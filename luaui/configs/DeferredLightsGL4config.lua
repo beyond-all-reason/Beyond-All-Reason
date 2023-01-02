@@ -16412,7 +16412,7 @@ local unitEventLights = {
 				pieceName = 'light', --seems it spawns not from this piece, but from center of model/unit.
 				lightName = 'corintbarrelglow',
 				alwaysVisible = true,
-				lightConfig = { posx = -8, posy = 4, posz = 0, radius = 30,
+				lightConfig = { posx = -10, posy = 4, posz = 0, radius = 30,
 					color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 300,
 					r = 1, g = 0.2, b = 0, a = 0.6,
 					modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,

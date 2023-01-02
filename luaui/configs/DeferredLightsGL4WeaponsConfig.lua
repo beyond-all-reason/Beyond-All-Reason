@@ -460,14 +460,16 @@ local function AssignLightsToAllWeapons()
 						t.b = t.b * 0.4	-- make more red
 						life = life * 1.8	-- too high and it will flicker somehow!
 						orgMult = orgMult * 0.15
+						t.colortime = 30 / life
 					else
 						t.r = t.r * 1.7	-- make more red
 						t.g = t.g * 0.4	-- make more red
 						t.b = t.b * 0.4	-- make more red
 						life = life * 1.2
+						t.colortime = 19 / life
 					end
 					t.lifetime = life
-					t.colortime = 25 / life
+					
 				end
 				radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 				if string.find(weaponDef.name, 'juno') then
@@ -512,6 +514,15 @@ GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 0, posz = 0, radius
 											modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
 											lifetime = 17, sustain = 2})
 muzzleFlashLights[WeaponDefNames["corint_lrpc"].id].yOffset = 16
+
+-- muzzleFlashLights[WeaponDefNames["corint_lrpc"].id] =
+-- GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 0, posz = 0, radius = 240,
+-- 											color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 50,
+-- 											r = 1.2, g = 1.0, b = 0.9, a = 0.5,
+-- 											modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
+-- 											lifetime = 17, sustain = 2})
+-- muzzleFlashLights[WeaponDefNames["corint_lrpc"].id].yOffset = 16
+
 
 
 --armbrtha

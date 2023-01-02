@@ -699,6 +699,17 @@ for weaponDefID=1, #WeaponDefs do
 			textures = { "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga", "t_groundcrack_10_a.tga" }
 			heatstart = 0
 			glowadd = 0
+			if weaponDef.type == 'AircraftBomb' then
+				textures = {"t_groundcrack_16_a.tga" }
+				alpha = 0.44
+				alphadecay = 0.00015
+				radius = radius * 0.75
+				radiusVariation = 1.45
+				heatstart = 100
+				heatdecay = 2.5
+				--glowsustain = 35
+				glowadd = 4
+			end
 
 		elseif weaponDef.type == 'Cannon' then
 			if string.find(weaponDef.name, 'old_armsnipe_weapon') then
@@ -714,7 +725,7 @@ for weaponDefID=1, #WeaponDefs do
 				alphadecay = 0.0024
 
 			elseif string.find(weaponDef.name, 'lrpc') then
-				textures = { "t_groundcrack_21_a.tga", "t_groundcrack_22_a.tga", "t_groundcrack_10_a.tga" }
+				textures = { "t_groundcrack_09_a.tga" }
 				radius = radius * 1.3
 				heatstart = 6000
 				heatdecay = 0.78
