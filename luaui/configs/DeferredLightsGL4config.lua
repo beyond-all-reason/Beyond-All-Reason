@@ -16406,28 +16406,30 @@ local unitEventLights = {
 	--corint disabled for now since it has static positioning - now only 'working' when shooting to east:
 
 	UnitScriptLights = {
-	-- 	[UnitDefNames['corint'].id] = {
-	-- 		[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
-	-- 			lightType = 'point',
-	-- 			pieceName = 'light', --seems it spawns not from this piece, but from center of model/unit.
-	-- 			lightName = 'corintbarrelglow',
-	-- 			lightConfig = { posx = 64, posy = 88, posz = -24, radius = 30,
-	-- 				color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 300,
-	-- 				r = 1, g = 0.2, b = 0, a = 0.6,
-	-- 				modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
-	-- 				lifetime = 400, sustain = 2},
-	-- 		},
-	-- 		[2] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
-	-- 			lightType = 'point',
-	-- 			pieceName = 'light', --seems it spawns not from this piece, but from center of model/unit.
-	-- 			lightName = 'corintbarrelglow',
-	-- 			lightConfig = { posx = 72, posy = 88, posz = 0, radius = 30,
-	-- 				color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 300,
-	-- 				r = 1, g = 0.2, b = 0, a = 0.6,
-	-- 				modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
-	-- 				lifetime = 400, sustain = 2},
-	-- 		},
-	-- 	},
+		[UnitDefNames['corint'].id] = {
+			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'light', --seems it spawns not from this piece, but from center of model/unit.
+				lightName = 'corintbarrelglow',
+				alwaysVisible = true,
+				lightConfig = { posx = -8, posy = 4, posz = 0, radius = 30,
+					color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 300,
+					r = 1, g = 0.2, b = 0, a = 0.6,
+					modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+					lifetime = 400, sustain = 2},
+			},
+			[2] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'light', --seems it spawns not from this piece, but from center of model/unit.
+				lightName = 'corintbarrelglow',
+				alwaysVisible = true,
+				lightConfig = { posx = 8, posy = 4, posz = 0, radius = 30,
+					color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 300,
+					r = 1, g = 0.2, b = 0, a = 0.6,
+					modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+					lifetime = 400, sustain = 2},
+			},
+		},
 	},
 
 	------------------------------- Put additional lights tied to events here! --------------------------------

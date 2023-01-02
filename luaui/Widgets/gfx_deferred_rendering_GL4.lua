@@ -989,7 +989,7 @@ local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
 			local px,py,pz = spGetUnitPosition(unitID)
 			if px == nil or spIsSphereInView(px,py,pz, lightTable[4]) == false then return end
 		end
-		if lightTable.initComplete == nil then InitializeLight(lightTable) end
+		if lightTable.initComplete == nil then InitializeLight(lightTable, unitID) end
 		local instanceID = tostring(unitID) .. "UnitScriptLight" .. tostring(lightIndex) .. "_" .. tostring(param)
 		AddLight(instanceID, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
 	end
