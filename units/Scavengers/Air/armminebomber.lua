@@ -95,7 +95,6 @@ return {
 				craterareaofeffect = 144,
 				edgeeffectiveness = 0.55,
 				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
-				explosionscar = true,
 				gravityaffected = "true",
 				impulseboost = 0.5,
 				impulsefactor = 0.5,
