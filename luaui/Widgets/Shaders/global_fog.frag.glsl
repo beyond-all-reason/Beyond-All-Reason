@@ -58,7 +58,8 @@ float losLevelAtWorldPos(vec3 worldPos){ // this returns
 		if (infoTexSample.r > 0.2) 
 			return clamp((infoTexSample.r -0.2) / 0.8 ,0,1);
 		else 
-			return -100 * (0.2 - infoTexSample.r);
+			return 0;
+			//return -100 * (0.2 - infoTexSample.r);
 	#else
 		vec2 losUV = clamp(worldPos.xz, vec2(0.0), mapSize.xy ) / mapSize.zw;
 		vec4 infoTexSample = texture(infoTex, losUV);
@@ -294,7 +295,13 @@ void main(void)
 					float simplexnoise = SimplexPerlin3D((rayPos) * noiseScale * noiseParams.z + noiseOffset)*0.5;
 					//simplexnoise = 0;
 					float thisraynoise = max(0, localNoise.r + noiseParams.y - simplexnoise);
-					collectedNoise += thisraynoise;
+					
+					// Modulate the noise based on its depth below fogplane:
+					float rayDepthratio = clamp( 1.0 - rayPos.y / (fogPlaneHeight) , 0.0, 1.0);
+					
+					float rayDepthFactor = min(1.0, 1 * rayDepthratio);
+					
+					collectedNoise += thisraynoise * rayDepthFactor;
 					
 					densityposition += vec4(rayPos*thisraynoise, thisraynoise); // collecting the 'center' of the noise cloud
 					if (thisraynoise > 0 ) { // only sample shadow if we have actual fog here!
@@ -314,6 +321,7 @@ void main(void)
 				}
 				collectedShadow /= numShadowSamplesTaken; // get the true litness by only taking into account actual samples taken
 				densityposition.xyz /= densityposition.w;
+
 				heightBasedFog *= collectedNoise/(NOISESAMPLES);
 			#else // fall back to retard mode
 				collectedShadow = 1.0;

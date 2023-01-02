@@ -27,7 +27,7 @@ local GL_RGBA32F_ARB = 0x8814
 -- Fix colorization based on sun angle
 -- Use a spherical harmonics equation for this?
 -- DONE: Fix colorization of height based and distance based fog
--- Use non constant density fog (maybe exponential is better?) 
+-- Use non constant density fog (maybe exponential is better?) (using linear at the moment)
 -- Create a better noise texture (also use this for other occasions!)
 -- Expose params to be easily tunable
 -- Create quality 'presets' and auto apply them?
@@ -44,14 +44,26 @@ local GL_RGBA32F_ARB = 0x8814
 
 
 ---- CONFIGURABLE PARAMETERS: -----------------------------------------
+local sliderStack = {}
 
+local function AddSlider(name, minval, maxval, step)
+end
+
+local function DrawSliders() -- origin is bottom left
+	local mx,my,left = Spring.GetMouseStat()
+	for i, slider in ipairs(sliderStack) do 
+		gl.Color(1,1,1,1)
+		gl.Text()
+		gl.Rect()
+	end
+end
 
 local shaderConfig = {
 	-- These are static parameters, cannot be changed during runtime
 	RAYMARCHSTEPS = 32, -- must be at least one, quite expensive
 	RESOLUTION = 2, -- THIS IS EXTREMELY IMPORTANT and specifies the fog plane resolution as a whole! 1 = max, 2 = half, 4 = quarter etc.
-	NOISESAMPLES = 6, -- how many samples of 3D noise to take
-	NOISESCALE = 1.2, -- The tiling pattern of noise
+	NOISESAMPLES = 8, -- how many samples of 3D noise to take
+	NOISESCALE = 0.2, -- The tiling pattern of noise
 	NOISETHRESHOLD = -0.0, -- The 0 level of noise
 	LOSREDUCEFOG = 0, -- how much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los
 	USEMINIMAP = 1, -- 0 or 1 to use the minimap for back-scatter
@@ -74,12 +86,12 @@ local shaderConfigNoNoise = {
 
 local minHeight, maxHeight = Spring.GetGroundExtremes()
 local fogUniforms = {
-	fogGlobalColor = {0.29,0.23,0.17,1}, -- bluish
+	fogGlobalColor = {0.6,0.7,0.8,1}, -- bluish
 	fogSunColor = {1.0,0.9,0.8,1}, -- yellowish
 	fogShadowedColor = {0.1,0.05,0.1,1}, -- purleish tint
 	fogPlaneHeight = (math.max(minHeight,0) + maxHeight) /1.7 ,
-	fogGlobalDensity = 0.50,
-	fogGroundDensity = 0.15,
+	fogGlobalDensity = 1.50,
+	fogGroundDensity = 0.25,
 	fogExpFactor = -0.000110, -- yes these are small negative numbers
 	noiseParams = {
 		1.4, -- high-frequency cloud noise, lower numbers = lower frequency
