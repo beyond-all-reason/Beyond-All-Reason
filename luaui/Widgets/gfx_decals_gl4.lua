@@ -694,15 +694,15 @@ for weaponDefID=1, #WeaponDefs do
 		local glowadd
 		local fadeintime
 
-		local textures = { "t_groundcrack_17_a.png", "t_groundcrack_21_a.png", "t_groundcrack_10_a.png" }
+		local textures = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga" }
 		if weaponDef.paralyzer then
-			textures = { "t_groundcrack_17_a.png", "t_groundcrack_10_a.png", "t_groundcrack_10_a.png" }
+			textures = { "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga", "t_groundcrack_10_a.tga" }
 			heatstart = 0
 			glowadd = 0
 
 		elseif weaponDef.type == 'Cannon' then
 			if string.find(weaponDef.name, 'old_armsnipe_weapon') then
-				textures = { "t_groundcrack_16_a.png", "t_groundcrack_17_a.png" }
+				textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga" }
 				radius = 50
 				heatstart = 6000
 				heatdecay = 2.0
@@ -710,11 +710,11 @@ for weaponDefID=1, #WeaponDefs do
 				glowadd = 4
 			end
 			if weaponDef.highTrajectory == 1 then
-				textures = { "t_groundcrack_21_a.png", "t_groundcrack_22_a.png", "t_groundcrack_10_a.png" }
+				textures = { "t_groundcrack_21_a.tga", "t_groundcrack_22_a.tga", "t_groundcrack_10_a.tga" }
 				alphadecay = 0.0024
 
 			elseif string.find(weaponDef.name, 'lrpc') then
-				textures = { "t_groundcrack_21_a.png", "t_groundcrack_22_a.png", "t_groundcrack_10_a.png" }
+				textures = { "t_groundcrack_21_a.tga", "t_groundcrack_22_a.tga", "t_groundcrack_10_a.tga" }
 				radius = radius * 1.3
 				heatstart = 6000
 				heatdecay = 0.78
@@ -723,7 +723,7 @@ for weaponDefID=1, #WeaponDefs do
 
 		elseif weaponDef.type == 'Flame' then
 			-- FLAME does not work - probably does not apply a decal on engine level
-			-- textures = { "t_groundcrack_16_a.png", "t_groundcrack_17_a.png" }
+			-- textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga" }
 			-- if string.find(weaponDef.name, 'flamethrower') then
 			-- 	radius = radius * 5.8
 			-- 	heatstart = 6000
@@ -758,7 +758,7 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.01
 
 		elseif weaponDef.type == 'DGun' then
-			textures = { "t_groundcrack_16_a.png", "t_groundcrack_17_a.png" }
+			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga" }
 			if string.find(weaponDef.name, 'juggernaut_fire') then
 				radius = radius * 2.4
 				heatdecay = 0.65
@@ -766,7 +766,7 @@ for weaponDefID=1, #WeaponDefs do
 				glowadd = 1.3
 				bwfactor = 0.1
 			elseif string.find(weaponDef.name, 'disintegratorxl') then
-				textures = { "t_groundcrack_21_a.png", "t_groundcrack_16_a.png" }
+				textures = { "t_groundcrack_21_a.tga", "t_groundcrack_16_a.tga" }
 				alphadecay = 0.004
 				radius = radius * 1.7 --* (math.random() * 20 + 0.2)
 				radiusVariation = 1.65
@@ -784,7 +784,7 @@ for weaponDefID=1, #WeaponDefs do
 		end
 
 		if radius > 500 then
-			textures = { "t_groundcrack_21_a.png" }
+			textures = { "t_groundcrack_21_a.tga" }
 			heatstart = 5500
 			heatdecay = 0.5
 			glowsustain = 150
@@ -796,7 +796,7 @@ for weaponDefID=1, #WeaponDefs do
 			radius = 180
 
 		elseif string.find(weaponDef.name, 'acid') then
-			textures = { "t_groundcrack_26_a.png" }
+			textures = { "t_groundcrack_26_a.tga" }
 			radius = (radius * 5)-- * (math.random() * 0.15 + 0.85)
 			alpha = 6
 			heatstart = 500
@@ -808,7 +808,7 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.17 --0.17
 
 		elseif string.find(weaponDef.name, 'napalm') then
-			textures = { "t_groundcrack_16_a.png" }
+			textures = { "t_groundcrack_16_a.tga" }
 			radius = radius * 1.6
 			heatstart = 4000
 			heatdecay = 0.33
@@ -819,7 +819,7 @@ for weaponDefID=1, #WeaponDefs do
 
 			--armliche
 		elseif string.find(weaponDef.name, 'arm_pidr') then
-			textures = { "t_groundcrack_21_a.png" }
+			textures = { "t_groundcrack_21_a.tga" }
 			radius = radius * 1.8
 			heatstart = 5500
 			heatdecay = 0.66
@@ -828,7 +828,7 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.1
 
 		elseif string.find(weaponDef.name, 'death_acid') then
-			textures = { "t_groundcrack_26_a.png" }
+			textures = { "t_groundcrack_26_a.tga" }
 			radius = (radius * 5.5)-- * (math.random() * 0.25 + 0.75)
 			alpha = 6
 			heatstart = 550
@@ -839,7 +839,7 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.17
 
 		elseif string.find(weaponDef.name, 'flamebug') then
-			textures = { "t_groundcrack_23_a.png", "t_groundcrack_24_a.png", "t_groundcrack_25_a.png", "t_groundcrack_27_a.png" }
+			textures = { "t_groundcrack_23_a.tga", "t_groundcrack_24_a.tga", "t_groundcrack_25_a.tga", "t_groundcrack_27_a.tga" }
 			radius = (radius * 5)-- * (math.random() * 0.7 + 0.52)
 			alpha = 15
 			heatstart = 500
@@ -851,7 +851,7 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.6
 
 		elseif string.find(weaponDef.name, 'bug') then
-			textures = { "t_groundcrack_23_a.png", "t_groundcrack_24_a.png", "t_groundcrack_25_a.png", "t_groundcrack_27_a.png" }
+			textures = { "t_groundcrack_23_a.tga", "t_groundcrack_24_a.tga", "t_groundcrack_25_a.tga", "t_groundcrack_27_a.tga" }
 			if string.find(weaponDef.name, 'flamebug') then
 				radius = (radius * 5)
 			else
@@ -867,7 +867,7 @@ for weaponDefID=1, #WeaponDefs do
 			end
 
 		elseif string.find(weaponDef.name, 'bloodyeggs') then
-			textures = { "t_groundcrack_23_a.png" }
+			textures = { "t_groundcrack_23_a.tga" }
 			radius = (radius * 1.5)-- * (math.random() * 1.2 + 0.25)
 			alpha = 10
 			heatstart = 490
@@ -878,7 +878,7 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.6
 
 		elseif string.find(weaponDef.name, 'dodo') then
-			textures = { "t_groundcrack_23_a.png", "t_groundcrack_24_a.png" }
+			textures = { "t_groundcrack_23_a.tga", "t_groundcrack_24_a.tga" }
 			radius = (radius * 1.2)-- * (math.random() * 0.15 + 0.85)
 			alpha = 10
 			heatstart = 490
@@ -888,7 +888,7 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.7
 
 		elseif string.find(weaponDef.name, 'armagmheat') then
-			textures = { "t_groundcrack_10_a.png" }
+			textures = { "t_groundcrack_10_a.tga" }
 			radius = (radius * 1.6)-- * (math.random() * 0.15 + 0.85)
 			alpha = 1
 			heatstart = 6500
@@ -983,7 +983,7 @@ function widget:Initialize()
 			local w = math.random() * 15 + 7
 			w = w * w
 			local j = math.floor(math.random()*20+1)
-			--local texture = string.format(groundscarsPath.."t_groundcrack_%02d_a.png", j)
+			--local texture = string.format(groundscarsPath.."t_groundcrack_%02d_a.tga", j)
 			local texture = randtablechoice(decalImageCoords)
 			--Spring.Echo(texture)
 			AddDecal(
