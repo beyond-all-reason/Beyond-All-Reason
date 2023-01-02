@@ -8,7 +8,7 @@ piece  flare, torso, head, pelvis, rthigh, rleg, lleg, lthigh,
        barrel1, barrel2, laser, rhand, rfoot, lfoot, aimy1;
 
 static-var  GunOpen, bMoving, Static_Var_3, Static_Var_4, restore_delay, wpn1_lasthead, animSpeed, maxSpeed,
-			statechg_DesiredState, statechg_StateChanging, animFramesPerKeyframe,isAiming;
+			statechg_DesiredState, statechg_StateChanging, animFramesPerKeyframe,isAiming, shotcount;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -816,6 +816,11 @@ Create()
 	statechg_StateChanging = FALSE;
 }
 
+lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
+}
+
 SetMaxReloadTime(Func_Var_1)
 {
 	restore_delay = 60000; //60000
@@ -880,7 +885,9 @@ AimPrimary(heading, pitch)
 FirePrimary()
 {
 	hide laser;
+	shotcount = shotcount + 1;
 	emit-sfx 1024 + 0 from flare;
+	call-script lua_UnitScriptLight(1, shotcount);
 	turn rloarm to x-axis <-45.010989> speed <200.000000>;
 	sleep 50;
 	turn rloarm to x-axis <-23.005495> speed <50.000000>;
