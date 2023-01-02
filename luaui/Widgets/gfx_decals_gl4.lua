@@ -92,6 +92,7 @@ local atlassedImages = {}
 local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 4 , sizez = 4}
 -- remember, we can use xXyY = gl.GetAtlasTexture(atlasID, texture) to query the atlas
 local decalImageCoords = {} -- Key filepath, value is {p,q,s,t}
+local numFiles = 0
 
 local function addDirToAtlas(atlas, path, key, filelist)
 	if filelist == nil then filelist = {} end
@@ -106,6 +107,7 @@ local function addDirToAtlas(atlas, path, key, filelist)
 			gl.AddAtlasTexture(atlas,lowerfile)
 			atlassedImages[lowerfile] = atlas
 			filelist[lowerfile] = true
+			numFiles = numFiles + 1
 		end
 	end
 	return filelist
@@ -146,13 +148,13 @@ local function makeAtlases()
 
 	if shaderConfig.PARALLAX == 1 then
 		atlasHeights = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
-		addDirToAtlas(atlasHeights, groundscarsPath, '_h.png')
+		addDirToAtlas(atlasHeights, groundscarsPath, '_h.')
 		success = gl.FinalizeTextureAtlas(atlasHeights)
 		if success == false then return false end
 	end
-	if shaderConfig.USEGLOW == 1 then
+	if false and shaderConfig.USEGLOW == 1 then
 		atlasRG = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
-		addDirToAtlas(atlasRG, groundscarsPath, '_rg.png')
+		addDirToAtlas(atlasRG, groundscarsPath, '_rg.')
 		success = gl.FinalizeTextureAtlas(atlasRG)
 		if success == false then return false end
 	end
@@ -551,8 +553,8 @@ local function DrawDecals()
 		glTexture(5, atlasColorAlpha)
 		glTexture(6, atlasNormals)
 		if shaderConfig.PARALLAX == 1 then glTexture(7, atlasHeights) end
-		if shaderConfig.AMBIENTOCCLUSION == 1 then glTexture(8, atlasRG) end
-		if shaderConfig.USEGLOW == 1 then glTexture(9, atlasRG) end
+		--if shaderConfig.AMBIENTOCCLUSION == 1 then glTexture(8, atlasRG) end
+		--if shaderConfig.USEGLOW == 1 then glTexture(9, atlasRG) end
 		--glTexture(9, '$map_gbuffer_zvaltex')
 		--glTexture(10, '$map_gbuffer_difftex')
 		--glTexture(11, '$map_gbuffer_normtex')
@@ -964,6 +966,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 end
 
 function widget:Initialize()
+	local t0 = Spring.GetTimer()
 	if makeAtlases() == false then
 		goodbye("Failed to init texture atlas for DecalsGL4")
 		return
@@ -1005,10 +1008,23 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('AddDecalGL4', WG['decalsgl4'].AddDecalGL4)
 	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)
 	widgetHandler:RegisterGlobal('GadgetWeaponExplosionDecal', GadgetWeaponExplosionDecal)
-
+	Spring.Echo(string.format("Decals GL4 loaded %d textures in %.3fs",numFiles, Spring.DiffTimers(Spring.GetTimer(), t0)))
+	--Spring.Echo("Trying to access _G[NightModeParams]", _G["NightModeParams"])
 end
 
+--[[
+function widget:DrawScreen()
+	local vsx, vsy = Spring.GetViewGeometry()
+	gl.Texture(0, atlasColorAlpha)
+	gl.TexRect(2,2,vsx-2,vsy-2,0,0,1,1)
+	gl.Texture(0, false)
+end
+]]--
 
+function widget:SunChanged()
+	--local nmp = _G["NightModeParams"]
+	--Spring.Echo("widget:SunChanged()",nmp)
+end
 
 function widget:ShutDown()
 	if atlasColorAlpha ~= nil then
