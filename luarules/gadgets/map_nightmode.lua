@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "2022.12.16",
 		license = "GNU GPL, v2 or later",
 		layer = -100,
-		enabled = false,
+		enabled = true,
 	}
 end
 
@@ -17,13 +17,19 @@ end
 	-- Maybe fuck with shadowdensity?
 	-- Needs a callin for widgets on sunchange!
 	-- Minimap slowly updates only
+	-- Spring.SendCommands("luarules updatesun") - check if widget/devshit changed the sun!
 	
--- Effects needing fixing:
-	-- Map edge extension
-	-- Map Grass
-	-- Decals
-	-- Features brightness
-	-- Creep shader
+-- Effects needing fixing/info on sunchange
+	-- Map edge extension - DONE
+	-- Map Grass - DONE
+	-- Decals - Fine as is!
+	-- Features brightness - DONE
+	-- Creep shader - DONE
+	-- Lava
+	-- Fog
+	-- snow?
+	-- volclouds
+	-- 
 
 -- Configuration options:
 	-- Definition of a nightmode is:
@@ -54,11 +60,11 @@ local mapList = VFS.DirList("luarules/configs/Atmosphereconfigs/", "*.lua")
 local mapFileName = ''	-- (Include at bottom of this file)
 for i = 1,#mapList+1 do
 	if i == #mapList+1 then
-		Spring.Echo("[Map NightMode] No map config found. Turning off the gadget")
+		--Spring.Echo("[Map NightMode] No map config found. Turning off the gadget")
 	end
 	if string.find(currentMapname, mapFileName) then
 		mapFileName = string.sub(mapList[i], 36, string.len(mapList[i])-4):lower()
-		Spring.Echo("[Map NightMode] Success! Map names match!: " ..mapFileName)
+		--Spring.Echo("[Map NightMode] Success! Map names match!: " ..mapFileName)
 		break
 	end
 end
@@ -94,6 +100,27 @@ if not gadgetHandler:IsSyncedCode() then
 		return copy
 	end
 
+	local function EchoSun(l)
+		local function quicktablestring(t) 
+			local tuple = ''
+			for _,v2 in ipairs(t) do 
+				tuple = tuple  .. string.format('%.3f, ',v2) 
+			end
+			return tuple
+		end
+		
+		for _,s in ipairs({'lighting','atmosphere'}) do 
+			Spring.Echo(s)
+			for k,v in pairs(l[s]) do 
+				if type(v) == 'table' then 
+					Spring.Echo(string.format("  %s = {%s},", k, quicktablestring(v)))
+				else
+					Spring.Echo(string.format("  %s = %s,", k, tostring(v)))
+				end
+			end
+		end
+		Spring.Echo('sunDir = '..quicktablestring(l['sunDir']))
+	end
 
 	local function GetLightingAndAtmosphere()  -- returns a table of the common parameters
 		local res =  {
@@ -119,18 +146,35 @@ if not gadgetHandler:IsSyncedCode() then
 				fogEnd = gl.GetAtmosphere("fogEnd"),
 			},
 			sunDir = {gl.GetSun("pos")},
+			nightFactor = {red = 1, green = 1, blue = 1, shadow = 1, altitude = 1},
 		}
 		--Spring.Echo("GetLightingAndAtmosphere")
 		--Spring.Debug.TableEcho(res)
 		return res
-	end
+	end	
+	
+	local currentNightFactor = {red = 1, green = 1, blue = 1, shadow = 1, altitude = 1}
+	GG['NightFactor'] = currentNightFactor
+	
 	
 	local function SetLightingAndAtmosphere(lightandatmos)
-		if lightandatmos.atmosphere then Spring.SetAtmosphere(lightandatmos.atmosphere) end
+		for k,_ in pairs(currentNightFactor) do 
+			GG['NightFactor'][k] = lightandatmos.nightFactor[k]
+		end
+		
+		if Script.LuaUI("NightFactorChanged") then 
+			Script.LuaUI.NightFactorChanged(lightandatmos.nightFactor.red, lightandatmos.nightFactor.green, lightandatmos.nightFactor.blue, lightandatmos.nightFactor.shadow, lightandatmos.nightFactor.altitude)
+		end
+		
 		if lightandatmos.lighting then Spring.SetSunLighting(lightandatmos.lighting) end
 		if lightandatmos.sunDir then Spring.SetSunDirection(lightandatmos.sunDir[1], lightandatmos.sunDir[2], lightandatmos.sunDir[3] ) end
+		if lightandatmos.atmosphere then Spring.SetAtmosphere(lightandatmos.atmosphere) end
+		--if lightandatmos.lighting then Spring.SetSunLighting({groundShadowDensity = lightandatmos.lighting.groundShadowDensity}) end -- for some godforsaken reason, this needs to be set TWICE!
+		if lightandatmos.lighting then Spring.SetSunLighting({}) end -- for some godforsaken reason, this needs to be set TWICE!
+
+		--gadgetHandler:SetGlobal("NightModeParams", {r=1, g=1, b=1, s=1, a= 1})
 	end
-	
+
 	local atmosphere_lighting = {"atmosphere","lighting"}
 	local atan2 = math.atan2
 	local diag = math.diag
@@ -210,6 +254,12 @@ if not gadgetHandler:IsSyncedCode() then
 			SunAzimuthHeightToDir(targetrot, targetheight, target['sunDir'])
 			--Spring.Echo("sunDir", mixfactor, "targetrot",targetrot, "targetheight", targetheight, aworldrot ,  bworldrot)
 		end
+		if a.nightFactor and b.nightFactor then 
+			for k,_ in pairs(currentNightFactor) do 
+				target.nightFactor[k] = mix(a.nightFactor[k], b.nightFactor[k], mixfactor)
+			end
+		end
+		return target
 	end
 	
 	local initial_atmosphere_lighting = GetLightingAndAtmosphere()
@@ -243,7 +293,7 @@ if not gadgetHandler:IsSyncedCode() then
 		
 		local fromazimuth, fromheight = SunDirToAzimuthHeight(fromlight.sunDir)
 		-- if the original sun is to the right, then we need to turn it left
-		Spring.Echo("Setting azimuth from", fromazimuth)
+		--Spring.Echo("Setting azimuth from", fromazimuth)
 		local toazimuth = 0
 		if fromazimuth > 0 then
 			toazimuth = fromazimuth + azimuth
@@ -253,20 +303,21 @@ if not gadgetHandler:IsSyncedCode() then
 			if toazimuth < -1 * math.pi then toazimuth = toazimuth + 2 * math.pi end 
 		end
 		SunAzimuthHeightToDir(toazimuth, fromheight * altitude, endlight.sunDir)
+		endlight.nightFactor = {red = nightfactor[1], green = nightfactor[2], blue =  nightfactor[3], shadow = nightfactor[4], altitude = altitude}
 		return endlight
 	end
 	
 	local transitionenabled = false
 	local nightModeConfig = {
 		{
-			nightFactor = {0.3, 0.3, 0.45, 1.0},
+			nightFactor = {0.3, 0.3, 0.45, 0.7},
 			azimuth = 1.5,
 			altitude = 0.5,
-			dayDuration = 10,
-			nightDuration = 10, 
-			transitionDuration = 25, 
-			repeats = 1000, 
-			startTime = 50, 
+			dayDuration = 3,
+			nightDuration = 3, 
+			transitionDuration = 5, 
+			repeats = 10000, 
+			startTime = 5, 
 			endLight = nil, -- this will be filled in on initialize!
 			period = nil, -- init: nightConf.dayDuration + nightConf.nightDuration + 2 * nightConf.transitionDuration
 		}
@@ -277,6 +328,12 @@ if not gadgetHandler:IsSyncedCode() then
 		-- line is the full line
 		-- words is a table here, of each of the words AFTER /luarules NightMode a b c -> {a,b,c}
 		Spring.Echo("SetNightMode",cmd, line, words, playerID)
+		if #words <= 1 then 
+			Spring.Echo("Resetting Lighting")
+			SetLightingAndAtmosphere(initial_atmosphere_lighting)
+			return
+		end
+		
 		Spring.Echo("Expecting /luarules NightMode nightR nightG nightB azimuth altitude shadowfactor")
 		--Spring.Debug.TableEcho(words)
 		local nightR = (words[1] and tonumber(words[1])) or 1
@@ -284,7 +341,7 @@ if not gadgetHandler:IsSyncedCode() then
 		local nightB = (words[3] and tonumber(words[3])) or 1
 		local azimuth = (words[4] and tonumber(words[4])) or 0
 		local altitude = (words[5] and tonumber(words[5])) or 1
-		local shadowfactor = (words[5] and tonumber(words[5])) or 1
+		local shadowfactor = (words[6] and tonumber(words[6])) or 1
 		
 		local newNightLight = GetNightLight(nil, { nightR, nightG,nightB,shadowfactor}, azimuth, altitude)
 		Spring.Debug.TableEcho(newNightLight)
@@ -296,6 +353,14 @@ if not gadgetHandler:IsSyncedCode() then
 	local function NightModeToggle(cmd, line, words, playerID)
 		transitionenabled = not transitionenabled
 	end
+	
+	
+	local function PrintSun(cmd, line, words, playerID)
+		Spring.Echo("Current sun settings are")
+		local sun = GetLightingAndAtmosphere()
+		EchoSun(sun)
+	end
+	
 
 	function gadget:GameFrame(n)
 		if transitionenabled == false then return end
@@ -330,51 +395,15 @@ if not gadgetHandler:IsSyncedCode() then
 				
 			end
 		end
-	
-		if true then return end
-		if initlight == nil then
-			--Spring.Echo("Loaded Sun Conf for: " .. Game.mapName)
-			initlight = GetLightingAndAtmosphere()
-			endlight = GetLightingAndAtmosphere()
-			mixedlight = GetLightingAndAtmosphere()
-			endlight.sunDir[1] = -1 * endlight.sunDir[1] 
-			--endlight.sunDir[2] = 0.3 * endlight.sunDir[2] 
-			endlight.sunDir[3] = -1 * endlight.sunDir[3]
-			local nightfactor = {0.3, 0.3, 0.45, 1.0}
-			for _,k in ipairs(atmosphere_lighting) do
-				for k2, v2 in pairs(endlight[k]) do
-					if string.find(k2, "Color", nil, true) then 
-						for i =1, #v2 do 
-							endlight[k][k2][i] = endlight[k][k2][i] * nightfactor[i]
-						end
-					end
-				end
-			end
-			--Spring.Echo("endlight =")
-			--Spring.Debug.TableEcho(endlight)
-		end
-		local dt = 300
-		local tstart = 60
-		
-		if n > tstart then 
-			local tfloor = math.floor((n-tstart)/dt)
-			local mixfac = ((n-tstart) % dt) / dt
-			--mixfac = math.smoothstep(0,1,mixfac);
-			--Spring.Echo(n,mixfac)
-			if tfloor % 2 ==0 then 
-				MixLightingAndAtmosphere(initlight, endlight, mixfac, mixedlight)
-			else
-				MixLightingAndAtmosphere(endlight, initlight, mixfac, mixedlight)
-			end
-			SetLightingAndAtmosphere(mixedlight)
-			--Spring.Debug.TableEcho(mixedlight)
-		end
-		
 	end
 	
-	function gadget:SunChanged(a,b,c,d,e,f)
-		Spring.Echo("gadget:SunChanged",Spring.GetGameFrame())
-
+	local lastSunChanged = -1 
+	function gadget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
+		local df = Spring.GetDrawFrame()
+		if df == lastSunChanged then return end
+		lastSunChanged = df
+		--Spring.Echo("gadget:SunChanged",Spring.GetGameFrame())
+		--Spring.Debug.TableEcho(GG.NightFactor)
 	end
 
 	function gadget:Initialize()
@@ -388,6 +417,8 @@ if not gadgetHandler:IsSyncedCode() then
 		gadgetHandler:AddSyncAction("MixLightingAndAtmosphere", MixLightingAndAtmosphere)
 		gadgetHandler:AddChatAction("NightMode", SetNightMode)
 		gadgetHandler:AddChatAction("NightModeToggle", NightModeToggle)
+		gadgetHandler:AddChatAction("PrintSun", PrintSun)
+		gadgetHandler:RegisterGlobal("NightModeParams", {r=1, g=1, b=1, s=1, a= 1})
 	end
 
 	function gadget:Shutdown()
