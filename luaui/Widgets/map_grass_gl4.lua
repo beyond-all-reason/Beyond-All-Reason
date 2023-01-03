@@ -94,6 +94,8 @@ local grassConfig = {
   grassDistTGA = "", -- MUST BE 8 bit uncompressed TGA, sized Game.mapSize* / patchResolution, where 0 is no grass, and 1<= controls grass size.
 }
 
+local nightFactor = {1,1,1,1}
+
 local distanceMult = 0.4
 
 --------------------------------------------------------------------------------
@@ -1121,6 +1123,8 @@ uniform vec4 grassuniforms; //windx, windz, windstrength, globalalpha
 
 uniform float distanceMult; //yes this is the additional distance multiplier
 
+uniform vec4 nightFactor;
+
 uniform sampler2D grassBladeColorTex;
 uniform sampler2D mapGrassColorModTex;
 uniform sampler2D grassWindPerturbTex;
@@ -1161,8 +1165,11 @@ void main() {
 	//fragColor = vec4(1.0, 1.0, 1.0, 1.0);
 	//fragColor = vec4(debuginfo.w*5, 1.0 - debuginfo.w*5.0, 0,1.0);
 	fragColor.a *= clamp(debuginfo.w *3,0.0,1.0);
-	if (fragColor.a < ALPHATHRESHOLD) // needed for depthmask
-	discard;
+	fragColor.rgb *= nightFactor.rgb;
+	
+	if (fragColor.a < ALPHATHRESHOLD) 
+		discard;// needed for depthmask
+		
 }
 ]]
 
@@ -1197,6 +1204,7 @@ local function makeShaderVAO()
       uniformFloat = {
         grassuniforms = {1,1,1,1},
 		distanceMult = distanceMult,
+		nightFactor = {1,1,1,1},
       },
     },
     "GrassShaderGL4"
@@ -1492,7 +1500,7 @@ function widget:DrawWorldPreUnit()
     if not placementMode then
 		startInstanceIndex, instanceCount = GetStartEndRows()
 	end
-	if instanceCount == 0 then return end
+	if instanceCount == 0 or startInstanceIndex == #grassInstanceData/4 then return end
     local _, _, isPaused = Spring.GetGameSpeed()
     if not isPaused then
       getWindSpeed()
@@ -1517,6 +1525,8 @@ function widget:DrawWorldPreUnit()
     local windStrength = math.min(grassConfig.maxWindSpeed, math.max(4.0, math.abs(windDirX) + math.abs(windDirZ)))
     grassShader:SetUniform("grassuniforms", offsetX, offsetZ, windStrength, smoothGrassFadeExp)
     grassShader:SetUniform("distanceMult", distanceMult)
+	grassShader:SetUniform("nightFactor", nightFactor[1], nightFactor[2], nightFactor[3], nightFactor[4])
+    
 
 
     grassVAO:DrawArrays(GL.TRIANGLES, grassPatchVBOsize, 0, instanceCount, startInstanceIndex)
@@ -1533,6 +1543,24 @@ function widget:DrawWorldPreUnit()
     gl.DepthMask(false)
     gl.Culling(GL.BACK)
   end
+end
+
+local lastSunChanged = -1 
+function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
+	local df = Spring.GetDrawFrame()
+	--Spring.Echo("widget:SunChanged", df)
+	if df == lastSunChanged then return end
+	lastSunChanged = df
+	
+	-- Do the math:
+	if WG['NightFactor'] then 
+		local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
+		nightFactor[1] = WG['NightFactor'].red * altitudefactor
+		nightFactor[2] = WG['NightFactor'].green * altitudefactor
+		nightFactor[3] = WG['NightFactor'].blue * altitudefactor 
+		nightFactor[4] = WG['NightFactor'].shadow 
+	end
+	--Spring.Debug.TableEcho(WG['NightFactor'])
 end
 
 -- ahahahah you cant stop me:

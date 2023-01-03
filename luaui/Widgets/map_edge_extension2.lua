@@ -16,6 +16,7 @@ end
 --------------------------------------------------------------------------------
 
 local brightness = 0.3
+local nightFactor = 1.0
 local curvature = true
 local fogEffect = true
 
@@ -60,7 +61,7 @@ local terrainInstanceVBO = nil
 
 local function UpdateShader()
 	mapExtensionShader:ActivateWith(function()
-		mapExtensionShader:SetUniformAlways("shaderParams", gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
+		mapExtensionShader:SetUniformAlways("shaderParams", gridSize, brightness * nightFactor, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
 	end)
 end
 
@@ -280,14 +281,14 @@ function widget:Initialize()
 	end
 	WG['mapedgeextension'].setBrightness = function(value)
 		brightness = value
-		UpdateShader()
+		--UpdateShader()
 	end
 	WG['mapedgeextension'].getCurvature = function()
 		return curvature
 	end
 	WG['mapedgeextension'].setCurvature = function(value)
 		curvature = value
-		UpdateShader()
+		--UpdateShader()
 	end
 
 	Spring.SendCommands("mapborder " .. (mapBorderStyle == 'cutaway' and "1" or "0"))
@@ -521,7 +522,7 @@ function widget:DrawWorldPreUnit()
 	gl.Texture(0, colorTex)
 	gl.Texture(1, "$heightmap")
 	mapExtensionShader:Activate()
-
+	mapExtensionShader:SetUniform("shaderParams", gridSize, brightness * nightFactor, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
 	--gl.RunQuery(q, function()
 		terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
 	--end)
@@ -535,6 +536,21 @@ function widget:DrawWorldPreUnit()
 	gl.Culling(GL.BACK)
 
 	--Spring.Echo(gl.GetQuery(q))
+end
+
+local lastSunChanged = -1 
+function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
+	local df = Spring.GetDrawFrame()
+	--Spring.Echo("widget:SunChanged", df)
+	if df == lastSunChanged then return end
+	lastSunChanged = df
+	-- Do the math:
+	if WG['NightFactor'] then 
+		nightFactor = (WG['NightFactor'].red + WG['NightFactor'].green + WG['NightFactor'].blue) * 0.33
+		--Spring.Echo("Map edge extension NightFactor", nightFactor)
+		--UpdateShader()
+	end
+	--Spring.Debug.TableEcho(WG['NightFactor'])
 end
 
 -- I see no value in this call
