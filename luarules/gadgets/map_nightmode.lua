@@ -17,7 +17,9 @@ end
 	-- Maybe fuck with shadowdensity?
 	-- Needs a callin for widgets on sunchange!
 	-- Minimap slowly updates only
+	-- Water Does not update correctly - Ask ivand for some uniforms into bumpwater
 	-- Spring.SendCommands("luarules updatesun") - check if widget/devshit changed the sun!
+	-- skybox darkening
 	
 -- Effects needing fixing/info on sunchange
 	-- Map edge extension - DONE
@@ -29,7 +31,7 @@ end
 	-- Fog
 	-- snow?
 	-- volclouds
-	-- 
+	
 
 -- Configuration options:
 	-- Definition of a nightmode is:
@@ -145,6 +147,11 @@ if not gadgetHandler:IsSyncedCode() then
 				fogStart = gl.GetAtmosphere("fogStart"),
 				fogEnd = gl.GetAtmosphere("fogEnd"),
 			},
+			water = {
+				ambientFactor = gl.GetWaterRendering("ambientFactor"),
+				diffuseFactor = gl.GetWaterRendering("diffuseFactor"),
+				specularFactor = gl.GetWaterRendering("specularFactor"),
+			},
 			sunDir = {gl.GetSun("pos")},
 			nightFactor = {red = 1, green = 1, blue = 1, shadow = 1, altitude = 1},
 		}
@@ -165,6 +172,10 @@ if not gadgetHandler:IsSyncedCode() then
 		if Script.LuaUI("NightFactorChanged") then 
 			Script.LuaUI.NightFactorChanged(lightandatmos.nightFactor.red, lightandatmos.nightFactor.green, lightandatmos.nightFactor.blue, lightandatmos.nightFactor.shadow, lightandatmos.nightFactor.altitude)
 		end
+		
+		-- This is disabled because these are all #defined params, so they cant be changed without recompiling the bumpwater shader
+		-- The bumpwaterUseUniforms was deprecated in 2022.10 by ivand
+		--if lightandatmos.water then Spring.SetWaterParams(lightandatmos.water) end 
 		
 		if lightandatmos.lighting then Spring.SetSunLighting(lightandatmos.lighting) end
 		if lightandatmos.sunDir then Spring.SetSunDirection(lightandatmos.sunDir[1], lightandatmos.sunDir[2], lightandatmos.sunDir[3] ) end
@@ -288,6 +299,12 @@ if not gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+		-- Also adjust the water parameters
+		local waterFactor = (nightfactor[1] + nightfactor[2] + nightfactor[3]) / 3.0
+		for waterkey, watervalue in ipairs(fromlight.water) do
+			endlight.water[waterkey] = watervalue * waterFactor
+		end
+
 		-- New sun height is weighted factor of old sun height
 		endlight.sunDir[2] = fromlight.sunDir[2] * altitude
 		
@@ -310,7 +327,7 @@ if not gadgetHandler:IsSyncedCode() then
 	local transitionenabled = false
 	local nightModeConfig = {
 		{
-			nightFactor = {0.3, 0.3, 0.45, 0.7},
+			nightFactor = {0.4, 0.4, 0.55, 0.7},
 			azimuth = 1.5,
 			altitude = 0.5,
 			dayDuration = 3,
