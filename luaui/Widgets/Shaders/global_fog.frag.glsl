@@ -56,7 +56,7 @@ float losLevelAtWorldPos(vec3 worldPos){ // this returns
 		vec2 losUV = clamp(worldPos.xz, vec2(0.0), mapSize.xy ) / mapSize.xy;
 		vec4 infoTexSample = texture(infoTex, losUV);
 		if (infoTexSample.r > 0.2) 
-			return clamp((infoTexSample.r -0.2) / 0.8 ,0,1);
+			return clamp((infoTexSample.r -0.2) / 0.75 ,0,1);
 		else 
 			//return 0;
 			return (LOSFOGUNDISCOVERED) * (-100) * (0.2 - infoTexSample.r);
