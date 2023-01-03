@@ -1973,7 +1973,7 @@ function init()
 		},
 		{ id = "lighteffects_radius", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.lighteffects_radius, min = 0.6, max = 1.2, step = 0.05, type = "slider", value = 1, description = texts.option.lighteffects_radius_descr,
 		  onload = function(i)
-			  loadWidgetData("Deferred rendering GL4", "lighteffects_brightness", { 'radiusMultiplier' })
+			  loadWidgetData("Deferred rendering GL4", "lighteffects_radius", { 'radiusMultiplier' })
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'RadiusMultiplier', { 'radiusMultiplier' }, value)
@@ -2056,6 +2056,14 @@ function init()
 		},
 
 		{ id = "decalsgl4", group = "gfx", category = types.basic, widget = "Decals GL4", name = texts.option.decalsgl4, type = "bool", value = GetWidgetToggleValue("Decals GL4"), description = texts.option.decalsgl4_desc },
+		{ id = "decalsgl4_lifetime", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.decalsgl4_lifetime, min = 0.5, max = 5, step = 0.1, type = "slider", value = 1, description = texts.option.decalsgl4_lifetime_descr,
+		  onload = function(i)
+			  loadWidgetData("Decals GL4", "decalsgl4_lifetime", { 'lifeTimeMult' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Decals GL4', 'decalsgl4', 'SetLifeTimeMult', { 'lifeTimeMult' }, value)
+		  end,
+		},
 
 		{ id = "decals", group = "gfx", category = types.advanced, name = texts.option.decals, restart = true, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 3) or 3) >= 1, description = texts.option.decals_descr,
 		  onchange = function(i, value)

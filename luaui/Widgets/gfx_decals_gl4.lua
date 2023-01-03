@@ -1017,6 +1017,10 @@ function widget:Initialize()
 	WG['decalsgl4'] = {}
 	WG['decalsgl4'].AddDecalGL4 = AddDecal
 	WG['decalsgl4'].RemoveDecalGL4 = RemoveDecal
+	WG['decalsgl4'].SetLifeTimeMult = function(value)
+		lifeTimeMult = value
+	end
+
 	widgetHandler:RegisterGlobal('AddDecalGL4', WG['decalsgl4'].AddDecalGL4)
 	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)
 	widgetHandler:RegisterGlobal('GadgetWeaponExplosionDecal', GadgetWeaponExplosionDecal)
@@ -1056,4 +1060,17 @@ function widget:ShutDown()
 	widgetHandler:DeregisterGlobal('AddDecalGL4')
 	widgetHandler:DeregisterGlobal('RemoveDecalGL4')
 	widgetHandler:DeregisterGlobal('GadgetWeaponExplosionDecal')
+end
+
+function widget:GetConfigData(_) -- Called by RemoveWidget
+	local savedTable = {
+		lifeTimeMult = lifeTimeMult,
+	}
+	return savedTable
+end
+
+function widget:SetConfigData(data) -- Called on load (and config change), just before Initialize!
+	if data.lifeTimeMult ~= nil then
+		lifeTimeMult = data.lifeTimeMult
+	end
 end
