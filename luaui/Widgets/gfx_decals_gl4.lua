@@ -68,6 +68,7 @@ local additionalcrap = {} -- a list of paths to also include for i dunno, sprays
 local resolution = 16 -- 32 is 2k tris, a tad pricey...
 local largesizethreshold  = 512 -- if min(width,height)> than this, then we use the large version!
 local extralargesizeThreshold = 1024 -- if min(width,height)> than this, then we use the extra large version!
+local lifeTimeMult = 1.0 -- A global lifetime multiplier for configurability
 
 local autoupdate = false -- auto update shader, for debugging only!
 
@@ -467,7 +468,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	heatstart = heatstart or 0
 	heatdecay = heatdecay or 1
 	alphastart = alphastart or 1
-	alphadecay = alphadecay or 0
+	alphadecay = (alphadecay or 0) / lifeTimeMult
 
 	bwfactor = bwfactor or 1 -- default force to black and white
 	glowsustain = glowsustain or 1 -- how many frames to keep max heat for
