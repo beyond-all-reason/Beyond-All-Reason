@@ -547,6 +547,17 @@ muzzleFlashLights[WeaponDefNames["armvulc_rflrpc"].id].yOffset = 4
 explosionLights[WeaponDefNames["armvulc_rflrpc"].id] =
 GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
 
+--corbuzz
+muzzleFlashLights[WeaponDefNames["corbuzz_rflrpc"].id] =
+GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
+											 r = 1.2, g = 1.1, b = 1.0, a = 0.5,
+											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
+											 modelfactor = 0.5, specular = 0.3, scattering = 2.8, lensflare = 4,
+											 lifetime = 20, sustain = 2})
+muzzleFlashLights[WeaponDefNames["corbuzz_rflrpc"].id].yOffset = 4
+explosionLights[WeaponDefNames["corbuzz_rflrpc"].id] =
+GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
+
 
 --corsilo
 explosionLights[WeaponDefNames["corsilo_crblmssl"].id] =
