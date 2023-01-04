@@ -118,9 +118,9 @@ local BaseClasses = {
 		lightConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 250,
 			r = 2, g = 2, b = 2, a = 0.3,
-			color2r = 0.7, color2g = 0.55, color2b = 0.28, colortime = 0.1, -- point lights only, colortime in seconds for unit-attached
+			color2r = 0.5, color2g = 0.17, color2b = 0.075, colortime = 0.2, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.15, specular = 0.15, scattering = 0.4, lensflare = 1,
-			lifetime = 12, sustain = 4, aninmtype = 0, -- unused
+			lifetime = 13, sustain = 4, aninmtype = 0, -- unused
 		},
 	},
 
@@ -434,7 +434,7 @@ local function AssignLightsToAllWeapons()
 				t.r, t.g, t.b = 0.99, 0.9, 1
 			end
 			t.lifetime = life
-			t.colortime = 25 / life
+			t.colortime = life * 0.17
 			t.a = orgMult
 
 			if weaponDef.type == 'DGun' then
@@ -447,7 +447,7 @@ local function AssignLightsToAllWeapons()
 				t.colortime = 2
 				t.lifetime = life * 0.5
 				t.a = 0.02 + ((orgMult*0.055) / weaponDef.beamtime) + (weaponDef.range*0.000035)
-				radius = 1.2 * ((weaponDef.damageAreaOfEffect*4) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.1)) + (weaponDef.range*0.08)
+				radius = 1.2 * ((weaponDef.damageAreaOfEffect*3.8) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.1)) + (weaponDef.range*0.06)
 				sizeclass = GetClosestSizeClass(radius)
 			elseif weaponDef.type == 'LightningCannon' then
 				t.a = orgMult*1.25
@@ -490,7 +490,7 @@ local function AssignLightsToAllWeapons()
 					t.r = (1.3 + t.r) / 2.3
 					t.g = (1.3 + t.g) / 2.3
 					t.b = (1.3 + t.b) / 2.3
-					t.a = orgMult*2.4
+					t.a = orgMult*1.6
 				end
 				local mult = 0.55
 				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult
