@@ -244,6 +244,7 @@ if gadgetHandler:IsSyncedCode() then
 		elseif words[1] == "fightertest" then
 			fightertest(words)
 		elseif words[1] == 'desync' then
+			Spring.Echo("Synced: Attempting to trigger a /desync")
 			Spring.SendCommands("desync")
 		end
 	end
@@ -642,6 +643,7 @@ else	-- UNSYNCED
 	end
 
 	function desync()
+		Spring.Echo("Unsynced: Attempting to trigger a /desync")
 		local msg = PACKET_HEADER .. ':desync'
 		Spring.SendLuaRulesMsg(msg)
 	end
