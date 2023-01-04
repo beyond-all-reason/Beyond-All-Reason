@@ -515,6 +515,9 @@ GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 0, posz = 0, radius
 											lifetime = 17, sustain = 2})
 muzzleFlashLights[WeaponDefNames["corint_lrpc"].id].yOffset = 16
 
+explosionLights[WeaponDefNames["corint_lrpc"].id] =
+GetLightClass("Explosion", nil, "Large", {colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
+
 -- muzzleFlashLights[WeaponDefNames["corint_lrpc"].id] =
 -- GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 0, posz = 0, radius = 240,
 -- 											color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 50,
