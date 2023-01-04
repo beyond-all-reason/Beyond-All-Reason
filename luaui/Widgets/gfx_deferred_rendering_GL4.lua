@@ -216,7 +216,7 @@ local examplePointLight = {
 local autoupdate = false
 local debugproj = false
 local addrandomlights = false
-
+local skipdraw = false
 ------------------------------ Data structures and management variables ------------
 
 -- These will contain 'global' type lights, ones that dont get updated every frame
@@ -1470,7 +1470,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	if chobbyInterface then return end
 	--local t0 = Spring.GetTimerMicros()
 	--if true then return end
-
+	if skipdraw then return end
 	if autoupdate then
 		deferredLightShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0) or deferredLightShader
 	end
@@ -1574,6 +1574,11 @@ function widget:TextCommand(command)
 				unitPointLightVBO.usedElements, unitBeamLightVBO.usedElements, unitConeLightVBO.usedElements,
 				projectilePointLightVBO.usedElements, projectileBeamLightVBO.usedElements, projectileConeLightVBO.usedElements,
 				cursorPointLightVBO.usedElements))
+		return true
+	end	
+	if string.find(command, "dlgl4skipdraw", nil, true) then
+		skipdraw = not skipdraw
+		Spring.Echo("Deferred Rendering GL4 skipdraw set to", skipdraw)
 		return true
 	end
 	return false
