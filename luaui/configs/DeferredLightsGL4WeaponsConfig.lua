@@ -338,7 +338,7 @@ local function AssignLightsToAllWeapons()
 				t.color2r, t.color2g, t.color2b = r, g, b
 			end
 
-			radius = (4 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (5 * radius * orgMult)
+			radius = (3.5 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (5 * radius * orgMult)
 			t.a = (orgMult * 0.1) / (0.2 + weaponDef.beamtime)
 
 			if weaponDef.paralyzer then
@@ -447,7 +447,7 @@ local function AssignLightsToAllWeapons()
 				t.colortime = 2
 				t.lifetime = life * 0.5
 				t.a = 0.02 + ((orgMult*0.055) / weaponDef.beamtime) + (weaponDef.range*0.000035)
-				radius = 1.6 * ((weaponDef.damageAreaOfEffect*4) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.1)) + (weaponDef.range*0.08)
+				radius = 1.2 * ((weaponDef.damageAreaOfEffect*4) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.1)) + (weaponDef.range*0.08)
 				sizeclass = GetClosestSizeClass(radius)
 			elseif weaponDef.type == 'LightningCannon' then
 				t.a = orgMult*1.25
@@ -471,7 +471,7 @@ local function AssignLightsToAllWeapons()
 					t.lifetime = life
 					
 				end
-				radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
+				radius = ((weaponDef.damageAreaOfEffect*1.8) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 				if string.find(weaponDef.name, 'juno') then
 					radius = 800
 					orgMult = 0.25
@@ -629,31 +629,31 @@ GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.15,
 
 --cordoomt3
 projectileDefLights[WeaponDefNames["cordoomt3_armagmheat"].id] =
-GetLightClass("LaserProjectile", "HeatRay", "Larger", {a = 0.14,
+GetLightClass("LaserProjectile", "HeatRay", "Mediumer", {a = 0.09,
 											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
+											modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
 											lifetime = 4, sustain = 0})
 
---armanni
-projectileDefLights[WeaponDefNames["armanni_ata"].id] =
-GetLightClass("LaserProjectile", "Blue", "Large", {a = 0.11,
-											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 0, sustain = 0})
+-- --armanni
+-- projectileDefLights[WeaponDefNames["armanni_ata"].id] =
+-- GetLightClass("LaserProjectile", "Blue", "Medium", {a = 0.09,
+-- 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
+-- 											modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
+-- 											lifetime = 0, sustain = 0})
 
---armannit3
-projectileDefLights[WeaponDefNames["armannit3_ata"].id] =
-GetLightClass("LaserProjectile", "Blue", "Larger", {a = 0.12,
-											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
-											modelfactor = 0.4, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 0, sustain = 0})
+-- --armannit3
+-- projectileDefLights[WeaponDefNames["armannit3_ata"].id] =
+-- GetLightClass("LaserProjectile", "Blue", "Mediumer", {a = 0.09,
+-- 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
+-- 											modelfactor = 0.4, specular = 0.1, scattering = 0.1, lensflare = 0,
+-- 											lifetime = 0, sustain = 0})
 
---armannit3_scav
-projectileDefLights[WeaponDefNames["armannit3_scav_ata"].id] =
-GetLightClass("LaserProjectile", "Purple", "Larger", {a = 0.12,
-											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
-											modelfactor = 0.4, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 0, sustain = 0})
+-- --armannit3_scav
+-- projectileDefLights[WeaponDefNames["armannit3_scav_ata"].id] =
+-- GetLightClass("LaserProjectile", "Purple", "Mediumer", {a = 0.09,
+-- 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
+-- 											modelfactor = 0.4, specular = 0.1, scattering = 0.1, lensflare = 0,
+-- 											lifetime = 0, sustain = 0})
 
 --[[
 --armpw
