@@ -1539,7 +1539,6 @@ function init()
 			heatdistortion = false,
 			snow = false,
 			particles = 9000,
-			treeradius = 0,
 			guishader = 0,
 			decals = false,
 			shadowslider = 1,
@@ -1557,7 +1556,6 @@ function init()
 			heatdistortion = true,
 			snow = false,
 			particles = 12000,
-			treeradius = 200,
 			guishader = 0,
 			decals = true,
 			shadowslider = 2,
@@ -1575,7 +1573,6 @@ function init()
 		 	heatdistortion = true,
 		 	snow = true,
 		 	particles = 15000,
-		 	treeradius = 400,
 		 	guishader = guishaderIntensity,
 		 	decals = true,
 			shadowslider = 3,
@@ -1593,7 +1590,6 @@ function init()
 			heatdistortion = true,
 			snow = true,
 			particles = 20000,
-			treeradius = 800,
 			guishader = guishaderIntensity,
 			decals = true,
 			shadowslider = 4,
@@ -1611,7 +1607,6 @@ function init()
 			heatdistortion = true,
 			snow = true,
 			particles = 25000,
-			treeradius = 800,
 			guishader = guishaderIntensity,
 			decals = true,
 			shadowslider = 5,
@@ -2002,6 +1997,13 @@ function init()
 
 		{ id = "label_gfx_environment", group = "gfx", name = texts.option.label_environment, category = types.basic },
 		{ id = "label_gfx_environment_spacer", group = "gfx", category = types.basic },
+
+		{ id = "featuredrawdist", group = "gfx", category = types.advanced, name = texts.option.featuredrawdist, type = "slider", min = 2500, max = 15000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = texts.option.featuredrawdist_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("FeatureFadeDistance", math.floor(value * 0.8))
+			  Spring.SetConfigInt("FeatureDrawDistance", value)
+		  end,
+		},
 
 		--{ id = "losopacity", group = "gfx", category = types.advanced, name = texts.option.lineofsight..widgetOptionColor .. "  " .. texts.option.losopacity, type = "slider", min = 0.5, max = 3, step = 0.1, value = (WG['los'] ~= nil and WG['los'].getOpacity ~= nil and WG['los'].getOpacity()) or 1, description = '',
 		--  onload = function(i)
@@ -3047,13 +3049,6 @@ function init()
 		  onchange = function(i, value)
 			  Spring.SendCommands("iconshidewithui " .. (value and 1 or 0))
 			  Spring.SetConfigInt("UnitIconsHideWithUI", (value and 1 or 0))
-		  end,
-		},
-
-		{ id = "featuredrawdist", group = "ui", category = types.advanced, name = texts.option.featuredrawdist, type = "slider", min = 2500, max = 15000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = texts.option.featuredrawdist_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("FeatureFadeDistance", math.floor(value * 0.8))
-			  Spring.SetConfigInt("FeatureDrawDistance", value)
 		  end,
 		},
 
