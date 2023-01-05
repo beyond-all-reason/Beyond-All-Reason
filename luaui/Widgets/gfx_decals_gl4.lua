@@ -727,8 +727,8 @@ for weaponDefID=1, #WeaponDefs do
 
 			elseif string.find(weaponDef.name, 'lrpc') then
 				textures = { "t_groundcrack_09_a.tga", "t_groundcrack_05_a.tga" }
-				radius = radius * 1.2
-				radiusVariation = 1.15
+				radius = radius * 1.3
+				radiusVariation = 0.7
 				heatstart = 6000
 				heatdecay = 0.78
 				glowadd = 2

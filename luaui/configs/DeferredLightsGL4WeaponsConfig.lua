@@ -471,7 +471,7 @@ local function AssignLightsToAllWeapons()
 					t.lifetime = life
 					
 				end
-				radius = ((weaponDef.damageAreaOfEffect*1.8) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
+				radius = ((weaponDef.damageAreaOfEffect*1.9) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 				if string.find(weaponDef.name, 'juno') then
 					radius = 800
 					orgMult = 0.25
