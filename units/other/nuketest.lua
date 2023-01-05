@@ -66,7 +66,7 @@ return {
 				impulsefactor = 0.5,
 				interceptedbyshieldtype = 4,
 				metalpershot = 0,
-				model = "scavs/cube.s3o",
+				model = "crblmssl.s3o",
 				name = "Newest Nuke",
 				range = 29999,
 				reloadtime = 5,
