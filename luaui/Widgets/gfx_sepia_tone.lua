@@ -14,10 +14,7 @@ end
 
 local GL_RGBA8 = 0x8058
 
-local STRENGTH = 0.6
-local version = 1.04
-
-local params = {gamma = 0.5, saturation = 0.5, contrast = 0.5, sepia = 0.0, shadeUI = false}
+local params = {gamma = 0.5, saturation = 0.5, contrast = 0.5, sepia = 0, shadeUI = false}
 
 -- skip draw if this matches:
 local defaultParams = {gamma = 0.5, saturation = 0.5, contrast = 0.5, sepia = 0.0}
@@ -179,12 +176,40 @@ function widget:Initialize()
 	end
 
 	WG.sepia = {}
-	WG.sepia.setStrength = function(value)
-		STRENGTH = value
+	WG.sepia.setGamma = function(value)
+		params.gamma = value
 		UpdateShader()
 	end
-	WG.sepia.getStrength = function()
-		return STRENGTH
+	WG.sepia.getGamma = function()
+		return params.gamma
+	end
+	WG.sepia.setSaturation = function(value)
+		params.saturation = value
+		UpdateShader()
+	end
+	WG.sepia.getSaturation = function()
+		return params.saturation
+	end
+	WG.sepia.setContrast = function(value)
+		params.contrast = value
+		UpdateShader()
+	end
+	WG.sepia.getContrast = function()
+		return params.contrast
+	end
+	WG.sepia.setSepia = function(value)
+		params.sepia = value
+		UpdateShader()
+	end
+	WG.sepia.getSepia = function()
+		return params.sepia
+	end
+	WG.sepia.setShadeUI = function(value)
+		params.shadeUI = value
+		UpdateShader()
+	end
+	WG.sepia.getShadeUI = function()
+		return params.shadeUI
 	end
 
 end
@@ -234,14 +259,6 @@ function widget:DrawScreenPost()
 	if params.shadeUI == true then DoSepia() end 
 end
 
-function widget:GetConfigData()
-	local data = {version = version}
-	for k,v in pairs(params) do 
-		data[k] = v 
-	end
-	return data
-end
-
 function widget:TextCommand(command)
 	if string.find(command,"sepiatone", nil, true ) == 1 then
 		local s = string.split(command, ' ') 
@@ -257,14 +274,12 @@ function widget:TextCommand(command)
 	end
 end
 
+function widget:GetConfigData()
+	return params
+end
+
 function widget:SetConfigData(data)
-	if true then 
-		Spring.Echo("FLORIS REMOVE ME")
-		return 
-	end
-	if data.version ~= nil and data.version == version then
-		for k,v in pairs(params) do 
-			params[k] = data[k] or v
-		end
+	for k,v in pairs(data) do
+		params[k] = data[k] or v
 	end
 end
