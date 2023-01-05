@@ -158,7 +158,7 @@ return {
 			msaa_descr = 'Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game',
 			cas_sharpness = 'Sharpness',
 			cas_sharpness_descr = 'How much sharpening should be applied to 3d world space',
-			sepiatone = 'Colorize',
+			sepiatone = 'Color filters',
 			sepiatone_descr = '',
 			sepiatone_gamma = 'gamma',
 			sepiatone_gamma_descr = '',
