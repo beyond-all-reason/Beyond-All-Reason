@@ -1827,42 +1827,42 @@ function init()
 		{ id = "sepiatone", group = "gfx", category = types.advanced, widget = "Sepia Tone", name = texts.option.sepiatone, type = "bool", value = GetWidgetToggleValue("Sepia Tone"), description = texts.option.sepiatone_descr },
 		{ id = "sepiatone_gamma", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_gamma, min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5, description = texts.option.sepiatone_gamma_descr,
 		  onload = function(i)
-			  loadWidgetData("Sepia Tone", "sepiatone_gamma", { 'params', 'gamma' })
+			  loadWidgetData("Sepia Tone", "sepiatone_gamma", { 'gamma' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Sepia Tone', 'sepia', 'setGamma', { 'params', 'gamma' }, value)
+			  saveOptionValue('Sepia Tone', 'sepia', 'setGamma', { 'gamma' }, value)
 		  end,
 		},
 		{ id = "sepiatone_saturation", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_saturation, min = 0, max = 1.5, step = 0.02, type = "slider", value = 0.5, description = texts.option.sepiatone_saturation_descr,
 		  onload = function(i)
-			  loadWidgetData("Sepia Tone", "sepiatone_saturation", { 'params', 'saturation' })
+			  loadWidgetData("Sepia Tone", "sepiatone_saturation", { 'saturation' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Sepia Tone', 'sepia', 'setSaturation', { 'params', 'saturation' }, value)
+			  saveOptionValue('Sepia Tone', 'sepia', 'setSaturation', { 'saturation' }, value)
 		  end,
 		},
 		{ id = "sepiatone_contrast", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_contrast, min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5, description = texts.option.sepiatone_contrast_descr,
 		  onload = function(i)
-			  loadWidgetData("Sepia Tone", "sepiatone_contrast", { 'params', 'contrast' })
+			  loadWidgetData("Sepia Tone", "sepiatone_contrast", { 'contrast' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Sepia Tone', 'sepia', 'setContrast', { 'params', 'contrast' }, value)
+			  saveOptionValue('Sepia Tone', 'sepia', 'setContrast', { 'contrast' }, value)
 		  end,
 		},
 		{ id = "sepiatone_sepia", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_sepia, min = 0, max = 0.5, step = 0.02, type = "slider", value = 0.5, description = texts.option.sepiatone_sepia_descr,
 		  onload = function(i)
-			  loadWidgetData("Sepia Tone", "sepiatone_sepia", { 'params', 'sepia' })
+			  loadWidgetData("Sepia Tone", "sepiatone_sepia", { 'sepia' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Sepia Tone', 'sepia', 'setSepia', { 'params', 'sepia' }, value)
+			  saveOptionValue('Sepia Tone', 'sepia', 'setSepia', { 'sepia' }, value)
 		  end,
 		},
 		{ id = "sepiatone_shadeui", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_shadeui, type = "bool", value = Spring.GetConfigInt("headlights", 1) == 1, description = texts.option.sepiatone_shadeui_descr,
 		  onload = function(i)
-			  loadWidgetData("Sepia Tone", "sepiatone_shadeui", { 'params', 'shadeUI' })
+			  loadWidgetData("Sepia Tone", "sepiatone_shadeui", { 'shadeUI' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Sepia Tone', 'sepia', 'setShadeUI', { 'params', 'shadeUI' }, value)
+			  saveOptionValue('Sepia Tone', 'sepia', 'setShadeUI', { 'shadeUI' }, value)
 		  end,
 		},
 
