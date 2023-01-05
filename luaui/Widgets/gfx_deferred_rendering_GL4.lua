@@ -161,6 +161,8 @@ local spGetProjectileDefID = Spring.GetProjectileDefID
 local spGetGroundHeight = Spring.GetGroundHeight
 local spIsSphereInView  = Spring.IsSphereInView
 local spGetUnitPosition  = Spring.GetUnitPosition
+local spGetUnitIsDead = Spring.GetUnitIsDead
+local spValidUnitID = Spring.ValidUnitID
 
 
 -- Weak:
@@ -983,7 +985,7 @@ end
 
 local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
 	--Spring.Echo("Widgetside UnitScriptLight", unitID, unitDefID, lightIndex, param)
-	if unitEventLights.UnitScriptLights[unitDefID] and unitEventLights.UnitScriptLights[unitDefID][lightIndex] then
+	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and unitEventLights.UnitScriptLights[unitDefID] and unitEventLights.UnitScriptLights[unitDefID][lightIndex] then
 		local lightTable = unitEventLights.UnitScriptLights[unitDefID][lightIndex]
 		if not lightTable.alwaysVisible then
 			local px,py,pz = spGetUnitPosition(unitID)
@@ -1168,7 +1170,7 @@ end
 -- This should simplify adding all kinds of events
 -- You are permitted to define as many lights as you wish, but its probably stupid to do so.
 local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
-	if Spring.ValidUnitID(unitID) and Spring.GetUnitIsDead(unitID) == false and unitEventLights[eventName] then
+	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and unitEventLights[eventName] then
 		if unitEventLights[eventName] then
 			-- get the default event if it is defined
 			local lightList =  unitEventLights[eventName][unitDefID] or unitEventLights[eventName]['default']
@@ -1482,13 +1484,14 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		coneLightVBO.usedElements > 0 then
 
 		local alt, ctrl = Spring.GetModKeyState()
+		local devui = (Spring.GetConfigInt('DevUI', 0) == 1) 
 
-		if autoupdate and ctrl and (isSinglePlayer or spec) and (Spring.GetConfigInt('DevUI', 0) == 1) then
+		if autoupdate and ctrl and (isSinglePlayer or spec) and devui then
 			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		else
 			glBlending(GL.SRC_ALPHA, GL.ONE)
 		end
-		if autoupdate and alt and (isSinglePlayer or spec) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
+		if autoupdate and alt and (isSinglePlayer or spec) and devui then return end
 
 		gl.Culling(GL.BACK)
 		gl.DepthTest(false)
