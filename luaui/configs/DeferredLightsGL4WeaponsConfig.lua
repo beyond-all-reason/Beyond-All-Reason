@@ -118,9 +118,9 @@ local BaseClasses = {
 		lightConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 250,
 			r = 2, g = 2, b = 2, a = 0.3,
-			color2r = 0.7, color2g = 0.55, color2b = 0.28, colortime = 0.1, -- point lights only, colortime in seconds for unit-attached
+			color2r = 0.5, color2g = 0.17, color2b = 0.075, colortime = 0.2, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.15, specular = 0.15, scattering = 0.4, lensflare = 1,
-			lifetime = 12, sustain = 4, aninmtype = 0, -- unused
+			lifetime = 13, sustain = 4, aninmtype = 0, -- unused
 		},
 	},
 
@@ -338,7 +338,7 @@ local function AssignLightsToAllWeapons()
 				t.color2r, t.color2g, t.color2b = r, g, b
 			end
 
-			radius = (4 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (5 * radius * orgMult)
+			radius = (3.5 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (5 * radius * orgMult)
 			t.a = (orgMult * 0.1) / (0.2 + weaponDef.beamtime)
 
 			if weaponDef.paralyzer then
@@ -434,7 +434,7 @@ local function AssignLightsToAllWeapons()
 				t.r, t.g, t.b = 0.99, 0.9, 1
 			end
 			t.lifetime = life
-			t.colortime = 25 / life
+			t.colortime = life * 0.17
 			t.a = orgMult
 
 			if weaponDef.type == 'DGun' then
@@ -447,7 +447,7 @@ local function AssignLightsToAllWeapons()
 				t.colortime = 2
 				t.lifetime = life * 0.5
 				t.a = 0.02 + ((orgMult*0.055) / weaponDef.beamtime) + (weaponDef.range*0.000035)
-				radius = 1.6 * ((weaponDef.damageAreaOfEffect*4) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.1)) + (weaponDef.range*0.08)
+				radius = 1.2 * ((weaponDef.damageAreaOfEffect*3.8) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.1)) + (weaponDef.range*0.06)
 				sizeclass = GetClosestSizeClass(radius)
 			elseif weaponDef.type == 'LightningCannon' then
 				t.a = orgMult*1.25
@@ -471,7 +471,7 @@ local function AssignLightsToAllWeapons()
 					t.lifetime = life
 					
 				end
-				radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
+				radius = ((weaponDef.damageAreaOfEffect*1.8) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 				if string.find(weaponDef.name, 'juno') then
 					radius = 800
 					orgMult = 0.25
@@ -490,7 +490,7 @@ local function AssignLightsToAllWeapons()
 					t.r = (1.3 + t.r) / 2.3
 					t.g = (1.3 + t.g) / 2.3
 					t.b = (1.3 + t.b) / 2.3
-					t.a = orgMult*2.4
+					t.a = orgMult*1.6
 				end
 				local mult = 0.55
 				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult
@@ -514,6 +514,9 @@ GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 0, posz = 0, radius
 											modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
 											lifetime = 17, sustain = 2})
 muzzleFlashLights[WeaponDefNames["corint_lrpc"].id].yOffset = 16
+
+explosionLights[WeaponDefNames["corint_lrpc"].id] =
+GetLightClass("Explosion", nil, "Large", {colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
 
 -- muzzleFlashLights[WeaponDefNames["corint_lrpc"].id] =
 -- GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 0, posz = 0, radius = 240,
@@ -545,6 +548,17 @@ GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 											 lifetime = 20, sustain = 2})
 muzzleFlashLights[WeaponDefNames["armvulc_rflrpc"].id].yOffset = 4
 explosionLights[WeaponDefNames["armvulc_rflrpc"].id] =
+GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
+
+--corbuzz
+muzzleFlashLights[WeaponDefNames["corbuzz_rflrpc"].id] =
+GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
+											 r = 1.2, g = 1.1, b = 1.0, a = 0.5,
+											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
+											 modelfactor = 0.5, specular = 0.3, scattering = 2.8, lensflare = 4,
+											 lifetime = 20, sustain = 2})
+muzzleFlashLights[WeaponDefNames["corbuzz_rflrpc"].id].yOffset = 4
+explosionLights[WeaponDefNames["corbuzz_rflrpc"].id] =
 GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
 
 
@@ -629,31 +643,31 @@ GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.15,
 
 --cordoomt3
 projectileDefLights[WeaponDefNames["cordoomt3_armagmheat"].id] =
-GetLightClass("LaserProjectile", "HeatRay", "Larger", {a = 0.14,
+GetLightClass("LaserProjectile", "HeatRay", "Mediumer", {a = 0.09,
 											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
+											modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
 											lifetime = 4, sustain = 0})
 
---armanni
-projectileDefLights[WeaponDefNames["armanni_ata"].id] =
-GetLightClass("LaserProjectile", "Blue", "Large", {a = 0.11,
-											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 0, sustain = 0})
+-- --armanni
+-- projectileDefLights[WeaponDefNames["armanni_ata"].id] =
+-- GetLightClass("LaserProjectile", "Blue", "Medium", {a = 0.09,
+-- 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
+-- 											modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
+-- 											lifetime = 0, sustain = 0})
 
---armannit3
-projectileDefLights[WeaponDefNames["armannit3_ata"].id] =
-GetLightClass("LaserProjectile", "Blue", "Larger", {a = 0.12,
-											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
-											modelfactor = 0.4, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 0, sustain = 0})
+-- --armannit3
+-- projectileDefLights[WeaponDefNames["armannit3_ata"].id] =
+-- GetLightClass("LaserProjectile", "Blue", "Mediumer", {a = 0.09,
+-- 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
+-- 											modelfactor = 0.4, specular = 0.1, scattering = 0.1, lensflare = 0,
+-- 											lifetime = 0, sustain = 0})
 
---armannit3_scav
-projectileDefLights[WeaponDefNames["armannit3_scav_ata"].id] =
-GetLightClass("LaserProjectile", "Purple", "Larger", {a = 0.12,
-											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
-											modelfactor = 0.4, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 0, sustain = 0})
+-- --armannit3_scav
+-- projectileDefLights[WeaponDefNames["armannit3_scav_ata"].id] =
+-- GetLightClass("LaserProjectile", "Purple", "Mediumer", {a = 0.09,
+-- 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
+-- 											modelfactor = 0.4, specular = 0.1, scattering = 0.1, lensflare = 0,
+-- 											lifetime = 0, sustain = 0})
 
 --[[
 --armpw
