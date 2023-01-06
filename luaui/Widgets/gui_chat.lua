@@ -32,6 +32,10 @@ local inputButton = true
 local allowMultiAutocomplete = true
 local allowMultiAutocompleteMax = 10
 
+local topbarArea
+local addedOptionsList
+local scrolling -- FIXME: never assigned, still used by internal logic
+
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.6) or 0.6)
 local widgetScale = (((vsx*0.3 + (vsy*2.33)) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
@@ -386,7 +390,7 @@ end
 local autocompleteUnitNames = {}
 local autocompleteUnitCodename = {}
 local uniqueHumanNames = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
+for _, unitDef in pairs(UnitDefs) do
 	if not uniqueHumanNames[unitDef.translatedHumanName] then
 		uniqueHumanNames[unitDef.translatedHumanName] = true
 		autocompleteUnitNames[#autocompleteUnitNames+1] = unitDef.translatedHumanName
@@ -396,14 +400,14 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 uniqueHumanNames = nil
-for featureDefID, featureDef in pairs(FeatureDefs) do
+for _, featureDef in pairs(FeatureDefs) do
 	autocompleteUnitCodename[#autocompleteUnitCodename+1] = featureDef.name:lower()
 end
 
 local teamColorKeys = {}
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
-	local r, g, b, a = spGetTeamColor(teams[i])
+	local r, g, b = spGetTeamColor(teams[i])
 	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
 end
 teams = nil
@@ -435,7 +439,7 @@ local function wordWrap(text, maxWidth, fontSize)
 	return lines
 end
 
-local function addConsoleLine(gameFrame, lineType, text, isLive)
+local function addConsoleLine(gameFrame, lineType, text)
 	if not text or text == '' then return end
 
 	-- convert /n into lines
@@ -482,8 +486,7 @@ local function colourNames(teamID)
 end
 
 local function teamcolorPlayername(playername)
-	local playersList = Spring.GetPlayerList()
-	for _, playerID in ipairs(playersList) do
+	for _, playerID in Spring.GetPlayerList() do
 		local name,_,_,teamID = Spring.GetPlayerInfo(playerID, false)
 		if name == playername then
 			return colourNames(teamID)..playername
@@ -619,7 +622,7 @@ local function cancelChatInput()
 	widgetHandler:DisownText()
 end
 
-function widget:PlayerChanged(playerID)
+function widget:PlayerChanged()
 	isSpec = Spring.GetSpectatingState()
 	if isSpec and inputMode == 'a:' then
 		inputMode = 's:'
@@ -720,7 +723,7 @@ function widget:Update(dt)
 		if not addedOptionsList and WG['options'] and WG['options'].getOptionsList then
 			local optionsList = WG['options'].getOptionsList()
 			addedOptionsList = true
-			for i, option in ipairs(optionsList) do
+			for _, option in ipairs(optionsList) do
 				autocompleteCommands[#autocompleteCommands+1] = 'option '..option
 			end
 		end
@@ -730,7 +733,7 @@ function widget:Update(dt)
 		end
 
 		-- check if team colors have changed
-		local teams = Spring.GetTeamList()
+		teams = Spring.GetTeamList()
 		local detectedChanges = false
 		for i = 1, #teams do
 			local r, g, b = spGetTeamColor(teams[i])
@@ -760,7 +763,7 @@ function widget:Update(dt)
 		end
 	end
 
-	local x,y,b = Spring.GetMouseState()
+	local x,y = Spring.GetMouseState()
 
 	if topbarArea then
 		scrollingPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight*maxLinesScroll)) / vsy
@@ -771,7 +774,7 @@ function widget:Update(dt)
 		historyMode = false
 		currentChatLine = #chatLines
 	elseif math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		local _, ctrl, _, shift = Spring.GetModKeyState()
 		if ctrl and shift then
 			if math_isInRect(x, y, consoleActivationArea[1], consoleActivationArea[2], consoleActivationArea[3], consoleActivationArea[4]) then
 				historyMode = 'console'
@@ -870,7 +873,7 @@ local function processLine(i)
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
+function widget:RecvLuaMsg(msg)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
 		if not chobbyInterface then
@@ -896,7 +899,6 @@ local function drawChatInput()
 		updateTextInputDlist = false
 		textInputDlist = glDeleteList(textInputDlist)
 		textInputDlist = glCreateList(function()
-			local x,y,_ = Spring.GetMouseState()
 			local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
 			local inputFontSize = floor(usedFontSize * 1.03)
 			local inputHeight = floor(inputFontSize * 2.3)
@@ -922,7 +924,7 @@ local function drawChatInput()
 			local textCursorPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, inputTextPosition)) * inputFontSize)
 
 			-- background
-			local r,g,b,a
+			local r,g,b
 			local inputAlpha = math.min(0.36, ui_opacity*0.66)
 			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText..(autocompleteText and autocompleteText or '')) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/3)))
 			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, nil,nil,nil,nil, nil,nil,nil,nil, inputAlpha)
@@ -1039,7 +1041,7 @@ local function drawChatInput()
 							usedFont:Print(ssub(word, letterCount+1), xPos + lettersWidth, yPos-addHeight, inputFontSize*scale, "")
 						else
 							local text = ''
-							for i=1, #word do
+							for _=1, #word do
 								text = text .. '.'
 							end
 							usedFont:Print(text, xPos + lettersWidth, yPos-addHeight, inputFontSize*scale, "")
@@ -1063,7 +1065,7 @@ function widget:DrawScreen()
 	if chobbyInterface then return end
 	if not chatLines[1] and not consoleLines[1] then return end
 
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local _, ctrl = Spring.GetModKeyState()
 	local x,y,b = Spring.GetMouseState()
 	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
 	if hovering and WG['guishader'] then
@@ -1097,7 +1099,7 @@ function widget:DrawScreen()
 		return
 	end
 
-	if (showHistoryWhenChatInput and showTextInput) or math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4]) or  (scrolling and math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[2]))  then
+	if (showHistoryWhenChatInput and showTextInput) or math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4]) or (scrolling and math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[2]))  then
 		hovering = true
 		if historyMode then
 			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4])
@@ -1268,7 +1270,7 @@ end
 local function runAutocompleteSet(wordsSet, searchStr, multi)
 	autocompleteWords = {}
 	local charCount = slen(searchStr)
-	for i, word in ipairs(wordsSet) do
+	for _, word in ipairs(wordsSet) do
 		if searchStr == ssub(word, 1, charCount) and slen(word) > charCount then
 			autocompleteWords[#autocompleteWords+1] = word
 			if not autocompleteText then
@@ -1533,9 +1535,9 @@ function widget:MousePress(x, y, button)
 	end
 end
 
-function widget:MouseWheel(up, value)
+function widget:MouseWheel(up)
 	if historyMode and not Spring.IsGUIHidden() then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		local _, ctrl, _, shift = Spring.GetModKeyState()
 		if up then
 			if historyMode == 'console' then
 				currentConsoleLine = currentConsoleLine - (shift and maxLinesScroll or (ctrl and 3 or 1))
@@ -1573,7 +1575,7 @@ function widget:MouseWheel(up, value)
 	end
 end
 
-function widget:WorldTooltip(ttType,data1,data2,data3)
+function widget:WorldTooltip()
 	local x,y,_ = Spring.GetMouseState()
 	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
 	if #chatLines > 0 and math_isInRect(x, y, activationArea[1],activationArea[2]+chatlogHeightDiff,activationArea[3],activationArea[4]) then
@@ -1860,13 +1862,13 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 	end
 end
 
-function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
+function widget:MapDrawCmd(_, cmdType, x, y, z)
 	if cmdType == 'point' then
 		lastMapmarkCoords = {x,y,z}
 	end
 end
 
-function widget:AddConsoleLine(lines, priority)
+function widget:AddConsoleLine(lines)
 	lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
 	for line in lines:gmatch("[^\n]+") do
 		processAddConsoleLine(spGetGameFrame(), line, true)
@@ -1952,8 +1954,7 @@ function widget:ViewResize()
 	-- get longest player name and calc its width
 	local namePrefix = '(s)'
 	maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
-	local playersList = Spring.GetPlayerList()
-	for _, playerID in ipairs(playersList) do
+	for _, playerID in ipairs(Spring.GetPlayerList()) do
 		local name = Spring.GetPlayerInfo(playerID, false)
 		if name ~= longestPlayername and font:GetTextWidth(namePrefix..name)*usedFontSize > maxPlayernameWidth then
 			longestPlayername = name
@@ -2015,7 +2016,7 @@ function widget:GameOver()
 	gameOver = true
 end
 
-function widget:GetConfigData(data)
+function widget:GetConfigData()
 	local inputHistoryLimited = {}
 	for k,v in ipairs(inputHistory) do
 		if k >= (#inputHistory - 20) then
