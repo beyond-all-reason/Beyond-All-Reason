@@ -97,7 +97,15 @@ local inputText = ''
 local inputTextPosition = 0
 local cursorBlinkTimer = 0
 local cursorBlinkDuration = 1
-local inputMode = isSpec and 's:' or 'a:'
+
+local inputMode = ''
+if isSpec then
+	inputMode = 's:'
+else
+	if #Spring.GetTeamList(Spring.GetMyAllyTeamID()) > 1 then
+		inputMode = 'a:'
+	end
+end
 
 local inputTextInsertActive = false
 local inputHistory = {}

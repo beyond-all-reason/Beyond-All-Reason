@@ -9737,10 +9737,10 @@ local unitDefLights = {
 		eyeglow = {
 			lightType = 'point',
 			pieceName = 'sphere',
-			lightConfig = { posx = 0, posy = 22, posz = 0, radius = 200,
+			lightConfig = { posx = 0, posy = 22, posz = 0, radius = 110,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-							r = 0.8, g = 0.8, b = 0.8, a = 0.20,
-							modelfactor = 0.1, specular = 0.1, scattering = 0.8, lensflare = 1,
+							r = 0.8, g = 0.8, b = 0.8, a = 0.07,
+							modelfactor = 0.1, specular = 0.1, scattering = 0.7, lensflare = 1,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
@@ -9748,10 +9748,10 @@ local unitDefLights = {
 		eyeglow = {
 			lightType = 'point',
 			pieceName = 'sphere',
-			lightConfig = { posx = 0, posy = 22, posz = 0, radius = 200,
+			lightConfig = { posx = 0, posy = 22, posz = 0, radius = 110,
 				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-				r = 0.8, g = 0.8, b = 0.8, a = 0.20,
-				modelfactor = 0.1, specular = 0.1, scattering = 0.8, lensflare = 1,
+				r = 0.8, g = 0.8, b = 0.8, a = 0.07,
+				modelfactor = 0.1, specular = 0.1, scattering = 0.7, lensflare = 1,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		eyes1 = {
