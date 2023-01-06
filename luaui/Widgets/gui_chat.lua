@@ -97,7 +97,8 @@ local inputText = ''
 local inputTextPosition = 0
 local cursorBlinkTimer = 0
 local cursorBlinkDuration = 1
-local inputMode = ''
+local inputMode = isSpec and 's:' or 'a:'
+
 local inputTextInsertActive = false
 local inputHistory = {}
 local inputHistoryCurrent = 0
