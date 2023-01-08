@@ -61,6 +61,7 @@ local unitDefCanWearHats = {
 local champs = {
 	["Raghna"] = true,
 	["Malady"] = true,
+	["[teh]Teddy"] = true,
 }
 function gadget:GameFrame(gf)
 	if gf == 90 and UnitDefNames['cor_hat_viking'] then
