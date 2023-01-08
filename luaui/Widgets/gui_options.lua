@@ -2001,7 +2001,7 @@ function init()
 				end
 			end,
 		},
-		{ id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_brightness, min = 0.6, max = 2, step = 0.05, type = "slider", value = 1, description = texts.option.lighteffects_brightness_descr,
+		{ id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_brightness, min = 0.6, max = 1.5, step = 0.05, type = "slider", value = 1, description = texts.option.lighteffects_brightness_descr,
 		  onload = function(i)
 			  loadWidgetData("Deferred rendering GL4", "lighteffects_brightness", { 'intensityMultiplier' })
 		  end,
