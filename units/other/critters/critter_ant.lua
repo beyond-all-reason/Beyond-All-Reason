@@ -18,6 +18,7 @@ return {
 		capturable = false,
 		category = "BOT MOBILE NOWEAPON NOTAIR NOTSUB",
 		defaultmissiontype = "Standby",
+		explodeas = "TINYBUG_DEATH",
 		floater = true,
 		footprintx = 1,
 		footprintz = 1,
