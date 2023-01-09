@@ -624,8 +624,8 @@ GetLightClass("Explosion", nil, "Large", {r = 2, g = 1.5, b = 1.0, a = 0.22,
 
 --corkorg
 projectileDefLights[WeaponDefNames["corkorg_corkorg_laser"].id] =
-GetLightClass("LaserProjectile", "HeatRay", "Large", {a = 0.14,
-											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
+GetLightClass("LaserProjectile", "HeatRay", "MediumLarge", {a = 0.11,
+											color2r = 0.5, color2g = 0.33, color2b = 0.26, colortime = 10,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 4, sustain = 0})
 
