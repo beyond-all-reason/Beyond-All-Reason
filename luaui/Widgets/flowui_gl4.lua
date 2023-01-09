@@ -80,7 +80,6 @@ local unitIcon = {}	-- {unitDefID = 'icons/'}, retrieves from buildmenu in initi
 -- We can entirely avoid alpha blended, if we specify a 'highlighttexture' and a blendfactor
 
 
-
 -- Notes from 2022.10.21 ---------------------------------------------------------
 -- We can ignore the WHOLE blendedprimitives shit from above because of in-shader highlighting!
 -- WHERE IS THE ORIGIN IN SCREENSPACE: BOTTOM LEFT!
@@ -163,6 +162,10 @@ local function newElement(o) -- This table contains the default properties
 			parent.children[obj.name] = obj
 		end
 		obj.treedepth = obj.parent.treedepth + 1
+		-- autodepth here:
+		if o.depth == nil then 
+			element.depth = 0.5 + obj.treedepth * 0.002 
+		end 
 	end
 	if obj.textelements then 
 		for i, textelement in ipairs(obj.textelements) do obj:UpdateTextPosition(textelement) end 
@@ -177,6 +180,7 @@ end
 -- [4 5 6]
 -- [7 8 9]
 function metaElement:UpdateTextPosition(newtext) -- for internal use only!
+	if newtext.text == nil then Spring.Debug.TraceEcho() end 
 	newtext.textwidth  = font:GetTextWidth(newtext.text)  * newtext.fontsize
 	newtext.textheight = font:GetTextHeight(newtext.text) * newtext.fontsize
 	if newtext.alignment == nil then return end
@@ -349,8 +353,15 @@ function metaElement:CalculatePosition()
 	-- also check if it changed, and then update it in vbo maybe?
 end
 
-function metaElement:NewContainer(o)
+function metaElement:NewContainer(o) -- A no-gfx container
 	return newElement(o)
+end
+
+function metaElement:NewUiElement(o) -- A UiElement
+	local obj = newElement(o)
+	obj.instanceKeys = Draw.Element(rectRoundVBO or obj.VBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right, obj.top,  
+		obj.tl or 1, obj.tr or 1, obj.br or 1, obj.bl or 1,  obj.ptl or 1, obj.ptr or 1, obj.pbr or 1, obj.pbl or 1,  obj.opacity or 1, 		obj.color1, obj.color2, obj.bgpadding or 3)
+	return obj
 end
 
 function metaElement:NewButton(o) -- yay this objs shit again!
@@ -478,44 +489,83 @@ end
 
 
 -------------------------- SILLY UNIT TESTS --------------------------------
-local sliderValues = {alpha = 1, beta = 2, gamma = 3}
-local function makeSliderList(forvalues, bottom, left, width, height)
+local sliderValues = {alpha = 1, beta = 2, gamma = 3, delta = 0.5, kappa = 0.5}
+local sliderConfig = {
+	{name = 'alpha', min = 0, max = 10, precision = 1},
+	{name = 'beta', min = -1, max = 3, precision = 3},
+	{name = 'gamma', min = 0, max = 1, precision = 1},
+	{name = 'delta', min = 0, max = 1, precision = 0},
+	{name = 'kappa', min = 0, max = 10, precision = 0},
+}
+
+
+local function makeSliderList(valuetarget, config, callbackfunc, left, bottom, width, height )
 	width = width or 200
 	height = height or 50
 	local i = 0
-	for slidername, slidervalue in pairs(forvalues) do 
+	local numelements = #config
+	
+	-- create a UI container:
+	local container = metaElement:NewUiElement({
+		name = 'sliderlist', left = left -4, bottom = bottom -4, right = left + width + 4, top = bottom + (numelements + 1) * height + 4,
+		parent = ROOT
+	})
+	
+	local function updateValue(obj, newvalue) 
+		obj.value = newvalue
+		valuetarget[obj.name] = newvalue
+		obj.textelements[1].text =  string.format('%s = %.'.. tostring(obj.precision)..'f',obj.name, newvalue)
+		obj:UpdateTextPosition(obj.textelements[1])
+		if callbackfunc then callbackfunc() end 
+	end
+	
+	for _, slidervalue in pairs(config) do 
 		local newSlider = metaElement:NewSlider({
 			left = left,
 			bottom = bottom + i * height, 
 			right = left + width, 
 			top = bottom + i * height + (height - 4),
-			name = slidername,
-			min = 0,
-			max = 10, 
-			steps = 0.1, 
-			parent = ROOT,
-			value = slidervalue,
-			defaultvalue = slidervalue,
+			name = slidervalue.name,
+			min = slidervalue.min,
+			max = slidervalue.max, 
+			precision = slidervalue.precision, 
+			parent = container,
+			value = valuetarget[slidervalue.name],
+			defaultvalue = valuetarget[slidervalue.name],
 			MouseEvents = {
 				left = function(obj, mx, my) 
 					-- get the offset of within the click? 
 					local wratio = (mx - obj.left) / (obj.right - obj.left)
-					forvalues[obj.name] = obj.min + wratio * (obj.max-obj.min)
-					Spring.Echo("left clicked", slidername, mx, wratio) 
+					local newvalue = math.round(obj.min + wratio * (obj.max-obj.min), obj.precision)
+					local newright = ((newvalue - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
+					Spring.Echo("left clicked", slidervalue.name, mx, wratio, newvalue, newright) 
+					updateValue(obj, newvalue)
+					obj:UpdateVBOKeys('right', newright)
 				end, 
 				right = function(obj, mx, my) 
-					Spring.Echo("right clicked", slidername, mx, my)
-					obj.value = obj.defaultvalue
+					Spring.Echo("right clicked", slidervalue.name, mx, my)
+					updateValue(obj, obj.defaultvalue)
+					obj:UpdateVBOKeys('right', mx)
 				end, 
 			},
 			textelements = {
-				{text = slidername,ox = 0, oy= 16,fontsize = 16,textoptions = 'B', alignment = 5},
-				{text = tostring(0),ox = 0, oy= 16,fontsize = 16,textoptions = 'B', alignment = 4},
-				{text = tostring(1),ox = 0, oy= 16,fontsize = 16,textoptions = 'B', alignment = 6},},
-			
+				{text = slidervalue.name, fontsize = 16,textoptions = 'B', alignment = 5},
+				{text = tostring(slidervalue.min), fontsize = 16,textoptions = 'B', alignment = 4},
+				{text = tostring(slidervalue.max), fontsize = 16,textoptions = 'B', alignment = 6},},
 		})
 		i = i+1
+		updateValue(newSlider, valuetarget[slidervalue.name])
 	end 
+	
+	local savebutton = metaElement:NewButton({
+		left = left,
+		bottom = bottom + (numelements ) * height,
+		right = left + width,
+		top = bottom + (numelements + 1) * height,
+		parent = container,
+		MouseEvents = {left = function() Spring.Echo("save ",i,j) end},
+		textelements = {{text = "Export Settings",ox = 0, oy= 16,fontsize = 16,textoptions = 'B', alignment = 5},},
+	})
 end 
 
 local function makebuttonarray()
@@ -1829,7 +1879,7 @@ function widget:Initialize()
 	
 	makebuttonarray()
 	makeunitbuttonarray()
-	makeSliderList(sliderValues, 300,vsx - 250)
+	makeSliderList(sliderValues,sliderConfig, nil, vsx - 250, 600, 200, 32)
 	AddRecursivelySplittingButton()
 end
 
