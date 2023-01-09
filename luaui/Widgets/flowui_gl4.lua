@@ -364,7 +364,13 @@ end
 
 function metaElement:NewCheckBox(obj) end
 function metaElement:NewSelector(obj) end
-function metaElement:NewSlider(obj) end
+function metaElement:NewSlider(o) 
+	local obj = newElement(o) 
+	obj.instanceKeys = Draw.Slider(rectRoundVBO or obj.VBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right, obj.top, 
+		obj.steps, obj.min, obj.max) 
+	return obj
+
+end
 
 --Toggle state = (default: 0) 0 / 0.5 / 1
 function metaElement:NewToggle(o) 
@@ -413,10 +419,10 @@ local function uiUpdate(mx,my,left,middle,right)
 		
 		if lasthitelement and lasthitelement.MouseEvents and (elementundercursor == nil or elementundercursor.name ~= lasthitelement.name) then
 			if lasthitelement.MouseEvents.leave then 
-				lasthitelement.MouseEvents.leave(lasthitelement)
+				lasthitelement.MouseEvents.leave(lasthitelement, mx, my)
 			end
 			if elementundercursor and elementundercursor.MouseEvents and elementundercursor.MouseEvents.enter then
-				elementundercursor.MouseEvents.enter(elementundercursor)
+				elementundercursor.MouseEvents.enter(elementundercursor, mx, my)
 			end
 		end
 	end
@@ -424,16 +430,16 @@ local function uiUpdate(mx,my,left,middle,right)
 	if elementundercursor and elementundercursor.MouseEvents then 
 		--Spring.Echo(elementundercursor, elementundercursor.name)
 		if left and left ~= lastmouse.left then 
-			if elementundercursor.MouseEvents.left then elementundercursor.MouseEvents.left(elementundercursor) end 
+			if elementundercursor.MouseEvents.left then elementundercursor.MouseEvents.left(elementundercursor,mx,my) end 
 		end
 		if middle and middle ~= lastmouse.middle then 
-			if elementundercursor.MouseEvents.middle then elementundercursor.MouseEvents.middle(elementundercursor) end 
+			if elementundercursor.MouseEvents.middle then elementundercursor.MouseEvents.middle(elementundercursor, mx, my) end 
 		end
 		if right and right ~= lastmouse.right then 
-			if elementundercursor.MouseEvents.right then elementundercursor.MouseEvents.right(elementundercursor) end 
+			if elementundercursor.MouseEvents.right then elementundercursor.MouseEvents.right(elementundercursor, mx, my) end 
 		end
 		if elementundercursor.MouseEvents.hover then
-			elementundercursor.MouseEvents.hover(elementundercursor)
+			elementundercursor.MouseEvents.hover(elementundercursor, mx, my)
 		end
 	end
 	lastmouse.mx = mx
@@ -472,10 +478,49 @@ end
 
 
 -------------------------- SILLY UNIT TESTS --------------------------------
+local sliderValues = {alpha = 1, beta = 2, gamma = 3}
+local function makeSliderList(forvalues, bottom, left, width, height)
+	width = width or 200
+	height = height or 50
+	local i = 0
+	for slidername, slidervalue in pairs(forvalues) do 
+		local newSlider = metaElement:NewSlider({
+			left = left,
+			bottom = bottom + i * height, 
+			right = left + width, 
+			top = bottom + i * height + (height - 4),
+			name = slidername,
+			min = 0,
+			max = 10, 
+			steps = 0.1, 
+			parent = ROOT,
+			value = slidervalue,
+			defaultvalue = slidervalue,
+			MouseEvents = {
+				left = function(obj, mx, my) 
+					-- get the offset of within the click? 
+					local wratio = (mx - obj.left) / (obj.right - obj.left)
+					forvalues[obj.name] = obj.min + wratio * (obj.max-obj.min)
+					Spring.Echo("left clicked", slidername, mx, wratio) 
+				end, 
+				right = function(obj, mx, my) 
+					Spring.Echo("right clicked", slidername, mx, my)
+					obj.value = obj.defaultvalue
+				end, 
+			},
+			textelements = {
+				{text = slidername,ox = 0, oy= 16,fontsize = 16,textoptions = 'B', alignment = 5},
+				{text = tostring(0),ox = 0, oy= 16,fontsize = 16,textoptions = 'B', alignment = 4},
+				{text = tostring(1),ox = 0, oy= 16,fontsize = 16,textoptions = 'B', alignment = 6},},
+			
+		})
+		i = i+1
+	end 
+end 
 
 local function makebuttonarray()
-	for i = 1, 10 do
-		for j = 1, 10 do 
+	for i = 1, 3 do
+		for j = 1, 3 do 
 			--rectRoundVBO, nil, 0.4, x,y,w,h, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, {0.2, 0.8, 0.2, 0.8 }, WG.FlowUI.elementCorner * 0.5
 			local newbtn = metaElement:NewButton({
 					left = 100 + 100*i,
@@ -499,7 +544,7 @@ local function makeunitbuttonarray()
 	for k,v in pairs(unitDef.buildOptions) do
 		Spring.Echo(k,v)
 	end
-	local n = 10
+	local n = 3
 	local s = 110
 	for i = 1, n do
 		for j = 1, n do 
@@ -1099,17 +1144,15 @@ end
 Draw.TexturedRectRound =  function (VBO, instanceID, z, px, py, sx, sy,  cs,  tl, tr, br, bl,  size, offset, offsetY,  texture, color) -- returns table of instanceIDs
 	-- texture should be a table of UV coords from atlas
 	local fronttextalpha = 0
-	if texture == nil then 
-		texture = {0,0,0,0}
+	
+	if texture == nil then
+	end
+	
+	if atlasID == nil then 
+			texture = {0,0,1,1}
 	else
 		fronttextalpha = 1.0
-		--Spring.Echo('TexturedRectRound',texture)
-		if atlasID == nil or texture == nil then 
-			--Spring.Debug.TraceFullEcho(30,30,30)
-			Spring.Echo(atlasID, texture)
-		end
 		texture = ({gl.GetAtlasTexture(atlasID, texture)})
-		--Spring.Echo(texture)
 	end 
 	
 	if color == nil then color = {1,1,1,0.5} end
@@ -1786,6 +1829,7 @@ function widget:Initialize()
 	
 	makebuttonarray()
 	makeunitbuttonarray()
+	makeSliderList(sliderValues, 300,vsx - 250)
 	AddRecursivelySplittingButton()
 end
 
@@ -1810,7 +1854,7 @@ function widget:DrawScreen()
 	if atlasID == nil then 
 		atlasID = WG['flowui_atlas'] 
 		atlassedImages = WG['flowui_atlassedImages'] 
-		Spring.Debug.TableEcho({gl.GetAtlasTexture(atlasID, "unitpics/armcom.dds")})
+		--Spring.Debug.TableEcho({gl.GetAtlasTexture(atlasID, "unitpics/armcom.dds")})
 	end
 	if elems < 0  then
 		elems = elems+1
@@ -1869,7 +1913,11 @@ function widget:DrawScreen()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- regular
 
 	gl.Texture(0, "luaui/images/backgroundtile.png")
-	gl.Texture(1, atlasID)
+	if atlasID then 
+		gl.Texture(1, atlasID)
+	else
+		gl.Texture(1, 'luaui/images/backgroundtile.png')
+	end
 	if rectRoundVBO.usedElements > 0 then 
 		rectRoundShader:Activate()
 		rectRoundVAO:DrawArrays(GL.POINTS,rectRoundVBO.usedElements, 0, nil, 0)
