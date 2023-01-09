@@ -101,7 +101,7 @@ return {
 				noselfdamage = true,
 				range = 680,
 				reloadtime = 0.9,
-				smoketrail = true,
+				smoketrail = false,
 				smokePeriod = 4,
 				smoketime = 8,
 				smokesize = 1.8,
