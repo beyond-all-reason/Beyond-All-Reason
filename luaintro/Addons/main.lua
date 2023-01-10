@@ -119,6 +119,7 @@ local tipKeys = {
 	'autogroups',
 	'reportUsers',
 	'ignoreUsers',
+	'insertFactoryQuickBuild',
 }
 
 local randomTip = ''
