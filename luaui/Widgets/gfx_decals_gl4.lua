@@ -171,6 +171,8 @@ local decalLargeShader = nil
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 
+local hasBadCulling = false -- AMD+Linux combo
+
 --------------------------- Localization for faster access -------------------
 
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -245,6 +247,7 @@ local function goodbye(reason)
 end
 
 local function initGL4( DPATname)
+	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == false)
 	decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
 	decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache)
 
@@ -543,7 +546,11 @@ local function DrawDecals()
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--Spring.Echo(decalVBO.usedElements,decalLargeVBO.usedElements)
-		glCulling(GL.BACK)
+		if hasBadCulling then 
+			glCulling(false)
+		else
+			glCulling(GL.BACK)
+		end
 		glDepthTest(GL_LEQUAL)
 		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		glTexture(0, '$heightmap')
