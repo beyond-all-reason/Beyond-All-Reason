@@ -34,6 +34,7 @@ local olduseteamcolors = false -- needs re-init when teamcolor prefs are changed
 -- endposrad
 -- color
 -- TODO: draw ally ranges in diff color!
+-- 172 vs 123 preopt
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir .. "LuaShader.lua")
@@ -73,8 +74,13 @@ void main() {
 	// blend start to end on mod gf%10
 	float timemix = clamp((mod(timeInfo.x, 10) + timeInfo.w) * (0.1), 0.0, 1.0);
 	vec4 circleWorldPos = mix(startposrad, endposrad, timemix);
+	bool isclipped = isSphereVisibleXY(vec4(circleWorldPos.xyz,1.0), circleWorldPos.w * 1.1);
+	if (isclipped){
+		gl_Position = cameraViewProj * vec4(-10000,-1000,-10000,1.0);
+		return;
+	}
+	
 	circleWorldPos.xz = circlepointposition.xy * circleWorldPos.w +  circleWorldPos.xz;
-
 	// get heightmap
 	circleWorldPos.y = max(0.0,heightAtWorldPos(circleWorldPos.xz))+16.0;
 
