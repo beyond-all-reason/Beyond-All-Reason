@@ -44,6 +44,10 @@ local GL_RGBA32F_ARB = 0x8814
 
 
 ---- CONFIGURABLE PARAMETERS: -----------------------------------------
+
+
+local vsx, vsy = Spring.GetViewGeometry()
+
 local sliderStack = {}
 
 local function AddSlider(name, minval, maxval, step)
@@ -69,7 +73,6 @@ local shaderConfig = {
 	LOSFOGUNDISCOVERED = 1.0, -- This specifies how much more fog there should be where the map has not yet been discovered ever (0 is none, 1 is a lot)
 	USEMINIMAP = 1, -- 0 or 1 to use the minimap for back-scatter
 	MINIMAPSCATTER = 0.1, -- How much the minimap color sdditively back-scatters into fog color, 0 is off
-
 }
 
 
@@ -102,6 +105,30 @@ local fogUniforms = {
 		},
 	}
 	
+
+local fogUniformSliders = {
+	name = "fogUniformSliders",
+	left = vsx - 270, 
+	bottom = 500, 
+	width = 250, 
+	height = 26,
+	valuetarget = fogUniforms,
+	sliderParamsList = {
+		{name = 'fogGlobalColor', min = 0, max = 1, digits = 3, tooltip =  'fogGlobalColor'},
+		{name = 'fogSunColor', min = 0, max = 1, digits = 3, tooltip =  'fogSunColor'},
+		{name = 'fogShadowedColor', min = 0, max = 1, digits = 3, tooltip =  'fogShadowedColor'},
+		{name = 'fogPlaneHeight', min = math.floor(minHeight), max = math.floor(maxHeight * 2), digits = 2, tooltip =  'fogPlaneHeight'},
+		{name = 'fogGlobalDensity', min = 0.1, max = 10, digits = 2, tooltip =  'fogGlobalDensity'},
+		{name = 'fogGroundDensity', min = 0.1, max = 1, digits = 2, tooltip =  'fogGroundDensity'},
+		{name = 'fogExpFactor', min = -0.0004, max = 0.000, digits = 4, tooltip =  'fogExpFactor'},
+		{name = 'noiseParams', min = -1, max = 3, digits = 3, tooltip =  'noiseParams'},
+	},
+	callbackfunc = nil
+}
+
+
+
+	
 local fogUniformsBluish = { -- bluish tint, not very good
 	fogGlobalColor = {0.5,0.6,0.7,1}, -- bluish
 	fogSunColor = {1.0,0.9,0.8,1}, -- yellowish
@@ -132,7 +159,6 @@ local fogPlaneVAO
 local resolution = 64
 local groundFogShader
 
-local vsx, vsy
 local combineShader
 local fogTexture
 local distortiontex = "LuaUI/images/fractal_voronoi_tiled_1024_1.png"
@@ -223,6 +249,33 @@ local function SetFogParams(paramname, paramvalue, paramIndex)
 	end
 end
 
+local function shaderDefinesChangedCallback(name, value)
+	Spring.Echo("shaderDefinesChangedCallback()", name, value, shaderConfig[name])
+	shaderSourceCache.forceupdate = true
+	groundFogShader =  LuaShader.CheckShaderUpdates(shaderSourceCache) or groundFogShader
+end
+
+local shaderDefinedSliders = {
+	name = "shaderDefinedSliders",
+	left = vsx - 270, 
+	bottom = 200, 
+	width = 250, 
+	height = 30,
+	valuetarget = shaderConfig,
+	sliderParamsList = {
+		{name = 'RAYMARCHSTEPS', min = 1, max = 128, digits = 0, tooltip =  'must be at least one, quite expensive'},
+		{name = 'NOISESAMPLES', min = 1, max = 64, digits = 0, tooltip = 'how many samples of 3D noise to take'},
+		{name = 'NOISESCALE', min = 0, max = 2, digits = 2, tooltip = 'The tiling pattern of noise'},
+		{name = 'NOISETHRESHOLD', min = -1, max = 1, digits = 2, tooltip =  'The 0 level of noise'},
+		{name = 'LOSREDUCEFOG', min = -1, max = 1, digits = 0, tooltip = 'how much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los'},
+		{name = 'LOSFOGUNDISCOVERED', min = 0.0, max = 1.0, digits= 1, tooltip = 'This specifies how much more fog there should be where the map has not yet been discovered ever (0 is none, 1 is a lot)'},
+		{name = 'USEMINIMAP = 1', min = 0, max = 1, digits = 0, tooltip = '0 or 1 to use the minimap for back-scatter'},
+		{name = 'MINIMAPSCATTER', min = -1, max = 1, digits = 2, tooltip = 'How much the minimap color sdditively back-scatters into fog color, 0 is off'},},
+	callbackfunc = shaderDefinesChangedCallback
+}
+
+
+
 function widget:Initialize()
 	minHeight, maxHeight = Spring.GetGroundExtremes()
 	if WG['infolosapi'] then 
@@ -276,11 +329,21 @@ function widget:Initialize()
 		return
 	end
 	WG['SetFogParams'] = SetFogParams
+	
+	if WG['flowui_gl4'] then 
+		Spring.Echo(" WG[flowui_gl4] detected")
+		if WG['flowui_gl4'].forwardslider then 
+			shaderDefinedSliders = WG['flowui_gl4'].forwardslider(shaderDefinedSliders)
+			fogUniformSliders = WG['flowui_gl4'].forwardslider(fogUniformSliders)
+		end
+	end
 end
 
 function widget:Shutdown()
 	if fogTexture then gl.DeleteTexture(fogTexture) end
 	WG.SetFogParams = nil
+	if fogUniformSliders.Destroy then fogUniformSliders:Destroy() end
+	if shaderDefinedSliders.Destroy then shaderDefinedSliders:Destroy() end 
 end
 
 local windX = 0
