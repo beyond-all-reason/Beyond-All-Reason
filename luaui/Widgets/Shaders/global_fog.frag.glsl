@@ -51,31 +51,14 @@ float shadowAtWorldPos(vec3 worldPos){
 		shadowVertexPos.xy += vec2(0.5);
 		return clamp(textureProj(shadowTex, shadowVertexPos), 0.0, 1.0);
 }
-float losLevelAtWorldPos(vec3 worldPos){ // this returns 
-	#if 1
-		vec2 losUV = clamp(worldPos.xz, vec2(0.0), mapSize.xy ) / mapSize.xy;
-		vec4 infoTexSample = texture(infoTex, losUV);
-		if (infoTexSample.r > 0.2) 
-			return clamp((infoTexSample.r -0.2) / 0.75 ,0,1);
-		else 
-			//return 0;
-			return (LOSFOGUNDISCOVERED) * (-100) * (0.2 - infoTexSample.r);
-	#else
-		vec2 losUV = clamp(worldPos.xz, vec2(0.0), mapSize.xy ) / mapSize.zw;
-		vec4 infoTexSample = texture(infoTex, losUV);
-		float loslevel = dot(vec3(0.33), infoTexSample.rgb) ; // lostex is PO2
-		float dx = dFdx(loslevel);
-		float dy = dFdy(loslevel);
-		vec4 neighbourinos = vec4(loslevel, loslevel + dx, loslevel + dy, loslevel+ dx + dy) ;// me, l/r, t/b, opposite
-		//vec4 neighbourinos = vec4(loslevel) ;// me, l/r, t/b, opposite
-		
-		loslevel = dot(neighbourinos, vec4(0.25));
-		loslevel = smoothstep(0.4, 0.5, loslevel);
-		//loslevel = 
-		//loslevel = step(0.5,loslevel);
-		return loslevel;
-		//return loslevel;
-	#endif
+float losLevelAtWorldPos(vec3 worldPos){ // this returns 0 for not in los, 1 for in los, -100 for never seen
+	vec2 losUV = clamp(worldPos.xz, vec2(0.0), mapSize.xy ) / mapSize.xy;
+	vec4 infoTexSample = texture(infoTex, losUV);
+	if (infoTexSample.r > 0.2) 
+		return clamp((infoTexSample.r -0.2) / 0.70 ,0,1) * LOSREDUCEFOG;
+	else 
+		//return 0;
+		return (LOSFOGUNDISCOVERED) * (-100) * (0.2 - infoTexSample.r);
 }
 
 float rand(vec2 co){
@@ -189,10 +172,10 @@ void main(void)
 	#if (NOISESAMPLES > 0)
 		float noiseScale =  0.001 * noiseParams.x;
 		vec3 noiseOffset = vec3(0.0);
-		noiseOffset.xz -= vec2(windX, windZ) * noiseScale ;
+		noiseOffset.xz -= vec2(windX, windZ) * noiseScale * WINDSTRENGTH;
 		noiseOffset.y += sin(fragWorldPos.x*0.001) ;
 		noiseOffset.y += cos(fragWorldPos.z*0.0012) ;
-		noiseOffset.y -= time * noiseScale ;
+		noiseOffset.y -= time * noiseScale * WINDSTRENGTH ;
 	#endif
 	
 	// calculate the Height-based fog amount
@@ -235,7 +218,7 @@ void main(void)
 	float outofboundsness = min(mymin.x, mymin.y) ;
 	//outofboundsness /= min(mapSize.x, mapSize.y);
 	float inlos = 0;
-	#if (LOSREDUCEFOG < 1)
+	#if (USELOS == 1)
 		inlos = losLevelAtWorldPos( mapWorldPos.xyz);
 		
 		bool outofmap = any(lessThan(vec4(mapWorldPos.xz, mapSize.xy),  vec4(0.0, 0.0, mapWorldPos.xz)));
@@ -292,7 +275,7 @@ void main(void)
 					//vec4 localNoise =  texture(noise64cube, rayPos.xyz * noiseScale + noiseOffset); // TODO: SUBSAMPLE THIS ONE!
 					vec3 skewed3dpos = (rayPos.xyz * noiseScale*0.5 + noiseOffset) * vec3(1,4,1);
 					float localNoise = 1.0 - texture(noise64cube, skewed3dpos.xzy).r; // TODO: SUBSAMPLE THIS ONE!
-					float simplexnoise = SimplexPerlin3D((rayPos) * noiseScale * noiseParams.z + noiseOffset)*0.5;
+					float simplexnoise =  SimplexPerlin3D((rayPos) * noiseScale * noiseParams.z + noiseOffset)*noiseParams.w;
 					//simplexnoise = 0;
 					float thisraynoise = max(0, localNoise.r + noiseParams.y - simplexnoise);
 					
@@ -338,7 +321,7 @@ void main(void)
 	//modulate the height based component only, not the distance based component
 	
 	// but modulate _before_ addition!
-	const float expfactor = fogExpFactor;
+	const float expfactor = fogExpFactor * -0.0001;
 	
 	// calculate the distance fog density
 	float distanceFogAmount = fogGlobalDensity * length(mapFromCam);
@@ -355,7 +338,7 @@ void main(void)
 	//return;
 	
 	// reduce height-based fog for in-los areas:
-	heightBasedFog *= (1.0 - inlos *(1.0- LOSREDUCEFOG));
+	heightBasedFog *= (1.0 - inlos);
 	
 	// Modulate the amount of fog based on how shadowed it is, by adding more fog to shadowed areas
 	heightBasedFog += heightBasedFog * smoothstep( 0.0,1.0, 1.0 - collectedShadow); 

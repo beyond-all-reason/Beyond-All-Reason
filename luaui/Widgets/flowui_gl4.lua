@@ -171,7 +171,7 @@ local function newElement(o) -- This table contains the default properties
 		obj.treedepth = obj.parent.treedepth + 1
 		-- autodepth here:
 		if o.depth == nil then 
-			element.depth = 0.5 + obj.treedepth * 0.002 
+			element.depth = 0.5 - obj.treedepth * 0.002 
 		end 
 	end
 	if obj.textelements then 
@@ -376,7 +376,7 @@ end
 function metaElement:NewUiElement(o) -- A UiElement
 	local obj = newElement(o)
 	obj.instanceKeys = Draw.Element(rectRoundVBO or obj.VBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right, obj.top,  
-		obj.tl or 1, obj.tr or 1, obj.br or 1, obj.bl or 1,  obj.ptl or 1, obj.ptr or 1, obj.pbr or 1, obj.pbl or 1,  obj.opacity or 1, 		obj.color1, obj.color2, obj.bgpadding or 3)
+		obj.tl, obj.tr, obj.br, obj.bl,  obj.ptl, obj.ptr, obj.pbr, obj.pbl,  obj.opacity, 		obj.color1, obj.color2, obj.bgpadding or 3)
 	return obj
 end
 
@@ -553,6 +553,7 @@ local function makeSliderList(sliderListConfig)
 	-- create a UI container:
 	local container = metaElement:NewUiElement({
 		name = sliderListConfig.name, left = left -4, bottom = bottom -4, right = left + width + 4, top = bottom + (numelements + 1) * height + 4,
+		color2 = {0,0,0,0.5}, color2 = {0,0,0,0.5}, opacity = 0.2,
 		parent = ROOT
 	})
 	

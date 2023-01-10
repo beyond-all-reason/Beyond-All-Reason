@@ -69,10 +69,12 @@ local shaderConfig = {
 	NOISESAMPLES = 8, -- how many samples of 3D noise to take
 	NOISESCALE = 0.2, -- The tiling pattern of noise
 	NOISETHRESHOLD = -0.0, -- The 0 level of noise
+	USELOS = 1, -- Use the LOS map at all, 1 = yes, 0 = no
 	LOSREDUCEFOG = 0, -- how much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los
 	LOSFOGUNDISCOVERED = 1.0, -- This specifies how much more fog there should be where the map has not yet been discovered ever (0 is none, 1 is a lot)
 	USEMINIMAP = 1, -- 0 or 1 to use the minimap for back-scatter
 	MINIMAPSCATTER = 0.1, -- How much the minimap color sdditively back-scatters into fog color, 0 is off
+	WINDSTRENGTH = 1.0, -- How wind affects fog
 }
 
 
@@ -96,7 +98,7 @@ local fogUniforms = {
 	fogPlaneHeight = (math.max(minHeight,0) + maxHeight) /1.7 ,
 	fogGlobalDensity = 1.50,
 	fogGroundDensity = 0.25,
-	fogExpFactor = -0.000110, -- yes these are small negative numbers
+	fogExpFactor = 1.0, -- yes these are small negative numbers
 	noiseParams = {
 		1.4, -- high-frequency cloud noise, lower numbers = lower frequency
 		0.2, -- noise bias, [-1,1] high numbers denser
@@ -120,13 +122,11 @@ local fogUniformSliders = {
 		{name = 'fogPlaneHeight', min = math.floor(minHeight), max = math.floor(maxHeight * 2), digits = 2, tooltip =  'fogPlaneHeight'},
 		{name = 'fogGlobalDensity', min = 0.1, max = 10, digits = 2, tooltip =  'fogGlobalDensity'},
 		{name = 'fogGroundDensity', min = 0.1, max = 1, digits = 2, tooltip =  'fogGroundDensity'},
-		{name = 'fogExpFactor', min = -0.0004, max = 0.000, digits = 5, tooltip =  'fogExpFactor'},
+		{name = 'fogExpFactor', min = 0.000, max = 5, digits = 2, tooltip =  'fogExpFactor'},
 		{name = 'noiseParams', min = -1, max = 5, digits = 3, tooltip =  'noiseParams'},
 	},
 	callbackfunc = nil
 }
-
-
 
 	
 local fogUniformsBluish = { -- bluish tint, not very good
@@ -267,9 +267,11 @@ local shaderDefinedSliders = {
 		{name = 'NOISESAMPLES', min = 1, max = 64, digits = 0, tooltip = 'how many samples of 3D noise to take'},
 		{name = 'NOISESCALE', min = 0, max = 2, digits = 2, tooltip = 'The tiling pattern of noise'},
 		{name = 'NOISETHRESHOLD', min = -1, max = 1, digits = 2, tooltip =  'The 0 level of noise'},
-		{name = 'LOSREDUCEFOG', min = -1, max = 1, digits = 0, tooltip = 'how much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los'},
-		{name = 'LOSFOGUNDISCOVERED', min = 0.0, max = 1.0, digits= 1, tooltip = 'This specifies how much more fog there should be where the map has not yet been discovered ever (0 is none, 1 is a lot)'},
-		{name = 'USEMINIMAP = 1', min = 0, max = 1, digits = 0, tooltip = '0 or 1 to use the minimap for back-scatter'},
+		{name = 'USELOS', min = 0, max = 1, digits = 0, tooltip = 'Use the LOS map at all, 1 = yes, 0 = no'},
+		{name = 'LOSREDUCEFOG', min = 0, max = 1, digits = 2, tooltip = 'how much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los'},
+		{name = 'LOSFOGUNDISCOVERED', min = 0, max = 1, digits= 2, tooltip = 'This specifies how much more fog there should be where the map has not yet been discovered ever (0 is none, 1 is a lot)'},
+		{name = 'USEMINIMAP', min = 0, max = 1, digits = 0, tooltip = '0 or 1 to use the minimap for back-scatter'},
+		{name = 'WINDSTRENGTH', min = 0, max = 4, digits = 2, tooltip = 'Speed multiplier for wind'},
 		{name = 'MINIMAPSCATTER', min = -1, max = 1, digits = 2, tooltip = 'How much the minimap color sdditively back-scatters into fog color, 0 is off'},},
 	callbackfunc = shaderDefinesChangedCallback
 }
@@ -378,7 +380,7 @@ function widget:DrawWorld()
 	gl.Texture(0, "$map_gbuffer_zvaltex")
 	gl.Texture(1, "$model_gbuffer_zvaltex")
 	gl.Texture(2, "$heightmap")
-	if shaderConfig.LOSREDUCEFOG < 1 and WG['infolosapi'].GetInfoLOSTexture then 
+	if shaderConfig.USELOS == 1 and WG['infolosapi'].GetInfoLOSTexture then 
 		gl.Texture(3, WG['infolosapi'].GetInfoLOSTexture()) --$info:los
 	else
 		gl.Texture(3, "$info") --$info:los
