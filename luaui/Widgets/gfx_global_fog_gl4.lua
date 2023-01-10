@@ -120,8 +120,8 @@ local fogUniformSliders = {
 		{name = 'fogPlaneHeight', min = math.floor(minHeight), max = math.floor(maxHeight * 2), digits = 2, tooltip =  'fogPlaneHeight'},
 		{name = 'fogGlobalDensity', min = 0.1, max = 10, digits = 2, tooltip =  'fogGlobalDensity'},
 		{name = 'fogGroundDensity', min = 0.1, max = 1, digits = 2, tooltip =  'fogGroundDensity'},
-		{name = 'fogExpFactor', min = -0.0004, max = 0.000, digits = 4, tooltip =  'fogExpFactor'},
-		{name = 'noiseParams', min = -1, max = 3, digits = 3, tooltip =  'noiseParams'},
+		{name = 'fogExpFactor', min = -0.0004, max = 0.000, digits = 5, tooltip =  'fogExpFactor'},
+		{name = 'noiseParams', min = -1, max = 5, digits = 3, tooltip =  'noiseParams'},
 	},
 	callbackfunc = nil
 }
