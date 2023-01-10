@@ -24,7 +24,7 @@ return {
 		capturable = false,
 		category = "ALL MOBILE WEAPON NOTLAND VTOL NOTSUB NOTSHIP NOTHOVER CHICKEN",
 		collide = false,
-		collisionvolumeoffsets = "0 7 -6",
+		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "48 12 22",
 		collisionvolumetype = "box",
 		cruisealt = 150,
