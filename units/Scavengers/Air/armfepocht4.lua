@@ -28,7 +28,7 @@ return {
 		losemitheight = 52,
 		mass = 1000000,
 		maxdamage = 60000,
-		maxvelocity = 0.6,
+		maxvelocity = 1.2,
 		maxwaterdepth = 15,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/armfepocht4.s3o",

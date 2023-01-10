@@ -28,7 +28,7 @@ return {
 		losemitheight = 64,
 		mass = 1000000,
 		maxdamage = 60000,
-		maxvelocity = 0.6,
+		maxvelocity = 1.2,
 		maxwaterdepth = 15,
 		objectname = "Units/scavboss/corfblackhyt4.s3o",
 		script = "Units/scavboss/corfblackhyt4.cob",

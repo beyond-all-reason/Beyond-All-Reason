@@ -34,7 +34,7 @@ local isAircon = {}
 local crashable  = {}
 local alwaysCrash = {}
 for udid,UnitDef in pairs(UnitDefs) do
-	if UnitDef.canFly == true and UnitDef.transportSize == 0 and string.sub(UnitDef.name, 1, 7) ~= "critter" and string.sub(UnitDef.name, 1, 7) ~= "chicken" then
+	if UnitDef.canFly == true and UnitDef.transportSize == 0 and string.sub(UnitDef.name, 1, 7) ~= "critter" then
 		crashable[UnitDef.id] = true
 		if UnitDef.buildSpeed > 1 then
 			isAircon[udid] = true
