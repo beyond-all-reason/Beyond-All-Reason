@@ -17,7 +17,7 @@ local glLineWidth = gl.LineWidth
 local glDepthTest = gl.DepthTest
 local GL_LINES = GL.LINES
 local chobbyInterface
-local font
+local font, loadedFontSize
 local rectRoundVBO = nil
 local vsx, vsy = Spring.GetViewGeometry()
 local groups = {} -- {energy = 'LuaUI/Images/groupicons/'energy.png',...}, retrieves from buildmenu in initialize
@@ -67,6 +67,7 @@ local unitIcon = {}	-- {unitDefID = 'icons/'}, retrieves from buildmenu in initi
 	-- GetChildByName()
 
 
+
 -- element 'Callbacks'
 	
 	
@@ -93,7 +94,13 @@ local unitIcon = {}	-- {unitDefID = 'icons/'}, retrieves from buildmenu in initi
 -- rename the alignment stuff of left right top down etc with all caps!
 
 -- todo 2022.11.04
--- auto Z with treedepth!
+-- DONE: auto Z with treedepth!
+	
+-- todo 2023.01.09
+	-- hovertooltip
+		-- a static, single element, that traces back on hoveredchanged
+		-- Needs its own class that resizes itself (smartly) 
+	-- drag support (for sliders etc)
 
 
 local Draw = {}
@@ -168,7 +175,17 @@ local function newElement(o) -- This table contains the default properties
 		end 
 	end
 	if obj.textelements then 
-		for i, textelement in ipairs(obj.textelements) do obj:UpdateTextPosition(textelement) end 
+		local cachetextelements = obj.textelements
+		obj.textelements = nil 
+		
+		for i, te in ipairs(cachetextelements) do 
+			obj:AddText(te.ox, te.oy, te.text, te.fontsize, te.textoptions, te.alignment, te.textcolor, te.outlinecolor)
+		end 
+		
+		for i, te in ipairs(obj.textelements) do 
+			obj:UpdateTextPosition(te)
+		end 
+		
 	end
 	
 	return obj
@@ -181,6 +198,7 @@ end
 -- [7 8 9]
 function metaElement:UpdateTextPosition(newtext) -- for internal use only!
 	if newtext.text == nil then Spring.Debug.TraceEcho() end 
+	if newtext.fontsize == nil then Spring.Debug.TraceEcho() end 
 	newtext.textwidth  = font:GetTextWidth(newtext.text)  * newtext.fontsize
 	newtext.textheight = font:GetTextHeight(newtext.text) * newtext.fontsize
 	if newtext.alignment == nil then return end
@@ -191,7 +209,7 @@ function metaElement:UpdateTextPosition(newtext) -- for internal use only!
 	end
 	local elementwidth = self.right - self.left
 	local elementheight = self.top - self.bottom
-	local alignInteger = tonumber(newtext.alignment) or self.texalignments[newtext.alignment] or 5 --default center
+	local alignInteger = tonumber(newtext.alignment) or self.textalignments[newtext.alignment] or 5 --default center
 	
 	Spring.Echo(newtext.alignment, newtext.text, newtext.textwidth, newtext.textheight, elementwidth, elementheight)
 	--if true then return end
@@ -223,8 +241,8 @@ function metaElement:AddText(ox, oy, text, fontsize, textoptions, alignment, tex
 	local newtext = {
 			ox = ox, -- offset from bottom left corner of parent element
 			oy = oy,
-			text = text,
-			fontsize = fontsize or 16,
+			text = text or "notext",
+			fontsize = fontsize or 12,
 			textoptions = textoptions or "",
 			textcolor = textcolor,
 			outlinecolor = outlinecolor,
@@ -301,8 +319,6 @@ function metaElement:UpdateVBOKeys(keyname, value)
 	if self.instanceKeys then 
 		for i,instanceKey in ipairs(self.instanceKeys) do 
 			local VBO = self.VBO or rectRoundVBO
-			--local instanceoffset = (VBO.instanceIDtoIndex[instanceKey] - 1) * VBO.instanceStep + self.vbokeys[keyname]
-			--VBO.instanceData[instanceoffset] = value
 			
 			getElementInstanceData(VBO, instanceKey, self.vboCache)
 			self.vboCache[self.vbokeys[keyname]] = value
@@ -318,7 +334,7 @@ function metaElement:Destroy(depth)
 	depth = (depth or 0 ) + 1
 	-- 1. hide self and children
 	self:SetVisibility(false)
-	if next(self.textelements) then ROOT.textChanged = true end
+	if self.textelements and  next(self.textelements) then ROOT.textChanged = true end
 	-- somehow mark them as dead
 	-- trigger a resize on critical amouts of elements changed?
 	-- POPPING BACK ELEMENTS IS FORBIDDEN AS IT WILL BREAK DRAW ORDER!
@@ -443,6 +459,11 @@ local function uiUpdate(mx,my,left,middle,right)
 		if left and left ~= lastmouse.left then 
 			if elementundercursor.MouseEvents.left then elementundercursor.MouseEvents.left(elementundercursor,mx,my) end 
 		end
+	
+		if left and (lastmouse.mx ~= mx or lastmouse.my ~= my) then 
+			if elementundercursor.MouseEvents.drag then elementundercursor.MouseEvents.drag(elementundercursor,mx,my) end
+		end
+		
 		if middle and middle ~= lastmouse.middle then 
 			if elementundercursor.MouseEvents.middle then elementundercursor.MouseEvents.middle(elementundercursor, mx, my) end 
 		end
@@ -489,83 +510,131 @@ end
 
 
 -------------------------- SILLY UNIT TESTS --------------------------------
-local sliderValues = {alpha = 1, beta = 2, gamma = 3, delta = 0.5, kappa = 0.5}
-local sliderConfig = {
-	{name = 'alpha', min = 0, max = 10, precision = 1},
-	{name = 'beta', min = -1, max = 3, precision = 3},
-	{name = 'gamma', min = 0, max = 1, precision = 1},
-	{name = 'delta', min = 0, max = 1, precision = 0},
-	{name = 'kappa', min = 0, max = 10, precision = 0},
+local sliderValues = {alpha = 1, beta = 2, gamma = 1, delta = 0, kappa = {0,1,2}}
+local sliderParamsList = {
+	{name = 'alpha', min = 0, max = 10, digits = 1},
+	{name = 'beta', min = -1, max = 3, digits = 3},
+	{name = 'gamma', min = 0, max = 1, digits = 1},
+	{name = 'delta', min = 0, max = 1, digits = 0},
+	{name = 'kappa', min = 0, max = 10, digits = 0},
+}
+
+local sliderListConfig = {
+	name = 'TestSliders',
+	left = vsx - 220,
+	bottom = vsy - 300, 
+	width = 200,
+	height = 32, 
+	valuetarget = sliderValues,
+	sliderParamsList = sliderParamsList,
+	callbackfunc = function (a,b,c) Spring.Echo("Callback",a,b,c) end,
 }
 
 
-local function makeSliderList(valuetarget, config, callbackfunc, left, bottom, width, height )
-	width = width or 200
-	height = height or 50
-	local i = 0
-	local numelements = #config
+local function makeSliderList(sliderListConfig)
+	local width = sliderListConfig.width or 200
+	local height = sliderListConfig.height or 50
+	local left = sliderListConfig.left or 0
+	local bottom = sliderListConfig.bottom or 0 
+	local valuetarget= sliderListConfig.valuetarget
 	
+	local i = 0
+	local numelements = 0
+	for k1,v1 in ipairs(sliderListConfig.sliderParamsList) do 
+		if type (valuetarget[v1.name]) == 'table' then 
+			for k2,v2 in ipairs(valuetarget[v1.name]) do 
+				numelements = numelements + 1
+			end
+		else
+			numelements = numelements + 1
+		end
+	end
+	Spring.Echo(i)
 	-- create a UI container:
 	local container = metaElement:NewUiElement({
-		name = 'sliderlist', left = left -4, bottom = bottom -4, right = left + width + 4, top = bottom + (numelements + 1) * height + 4,
+		name = sliderListConfig.name, left = left -4, bottom = bottom -4, right = left + width + 4, top = bottom + (numelements + 1) * height + 4,
 		parent = ROOT
 	})
 	
-	local function updateValue(obj, newvalue) 
+	local function updateValue(obj, newvalue, index) 
+		if newvalue == nil then return end
 		obj.value = newvalue
-		valuetarget[obj.name] = newvalue
-		obj.textelements[1].text =  string.format('%s = %.'.. tostring(obj.precision)..'f',obj.name, newvalue)
+		if obj.index == nil then 
+			valuetarget[obj.name] = newvalue
+		else
+			valuetarget[string.sub(obj.name,1,-2)][index] = newvalue
+		end
+		obj.textelements[1].text =  string.format('%s = %.'.. tostring(obj.digits)..'f',obj.name, newvalue)
 		obj:UpdateTextPosition(obj.textelements[1])
-		if callbackfunc then callbackfunc() end 
+		if sliderListConfig.callbackfunc then sliderListConfig.callbackfunc(obj.name, newvalue, index) end 
 	end
 	
-	for _, slidervalue in pairs(config) do 
-		local newSlider = metaElement:NewSlider({
-			left = left,
-			bottom = bottom + i * height, 
-			right = left + width, 
-			top = bottom + i * height + (height - 4),
-			name = slidervalue.name,
-			min = slidervalue.min,
-			max = slidervalue.max, 
-			precision = slidervalue.precision, 
-			parent = container,
-			value = valuetarget[slidervalue.name],
-			defaultvalue = valuetarget[slidervalue.name],
-			MouseEvents = {
-				left = function(obj, mx, my) 
-					-- get the offset of within the click? 
-					local wratio = (mx - obj.left) / (obj.right - obj.left)
-					local newvalue = math.round(obj.min + wratio * (obj.max-obj.min), obj.precision)
-					local newright = ((newvalue - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
-					Spring.Echo("left clicked", slidervalue.name, mx, wratio, newvalue, newright) 
-					updateValue(obj, newvalue)
-					obj:UpdateVBOKeys('right', newright)
-				end, 
-				right = function(obj, mx, my) 
-					Spring.Echo("right clicked", slidervalue.name, mx, my)
-					updateValue(obj, obj.defaultvalue)
-					obj:UpdateVBOKeys('right', mx)
-				end, 
-			},
-			textelements = {
-				{text = slidervalue.name, fontsize = 16,textoptions = 'B', alignment = 5},
-				{text = tostring(slidervalue.min), fontsize = 16,textoptions = 'B', alignment = 4},
-				{text = tostring(slidervalue.max), fontsize = 16,textoptions = 'B', alignment = 6},},
-		})
-		i = i+1
-		updateValue(newSlider, valuetarget[slidervalue.name])
+	for sliderorder, sliderParams in ipairs(sliderListConfig.sliderParamsList) do 
+		local nest = false
+		local nestvals = {valuetarget[sliderParams.name]}
+		if type(valuetarget[sliderParams.name]) == 'table' then 
+			nest = true 
+			nestvals = valuetarget[sliderParams.name]
+		end
+		
+		for j, defaultvalue in ipairs(nestvals) do
+			local nestname = ( nest and tostring(j)) or ""
+			if nest == false then j = nil end 
+			local newSlider = metaElement:NewSlider({
+				left = left,
+				bottom = bottom + i * height, 
+				right = left + width, 
+				top = bottom + i * height + (height - 4),
+				name = sliderParams.name..nestname,
+				min = sliderParams.min,
+				max = sliderParams.max, 
+				digits = sliderParams.digits, 
+				parent = container,
+				value = defaultvalue,
+				defaultvalue = defaultvalue,
+				index = j,
+				MouseEvents = {
+					left = function(obj, mx, my) 
+						-- get the offset of within the click? 
+						local wratio = (mx - obj.left) / (obj.right - obj.left)
+						local newvalue = math.round(obj.min + wratio * (obj.max-obj.min), obj.digits)
+						local newright = ((newvalue - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
+						Spring.Echo("left clicked", obj.name, mx, wratio, newvalue, newright) 
+						updateValue(obj, newvalue, obj.index)
+						obj:UpdateVBOKeys('right', newright)
+					end, 
+					right = function(obj, mx, my) 
+						updateValue(obj, obj.defaultvalue, obj.index)
+						local newright = ((obj.value - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
+						obj:UpdateVBOKeys('right', newright)
+						Spring.Echo("right clicked", obj.name, mx, my, newright, obj.value)
+					end, 
+				},
+				textelements = {
+					{text = string.format('%s%s = %.'.. tostring(sliderParams.digits)..'f',sliderParams.name, nestname, defaultvalue), alignment = 5},
+					{text = tostring(sliderParams.min), alignment = 4},
+					{text = tostring(sliderParams.max), alignment = 6},},
+			})
+			newSlider.MouseEvents.drag = newSlider.MouseEvents.left --hue hue
+			
+			i = i+1
+		end
+		--updateValue(newSlider, valuetarget[slidervalue.name])
 	end 
 	
 	local savebutton = metaElement:NewButton({
 		left = left,
-		bottom = bottom + (numelements ) * height,
+		bottom = bottom + (i ) * height,
 		right = left + width,
-		top = bottom + (numelements + 1) * height,
+		top = bottom + (i + 1) * height,
 		parent = container,
-		MouseEvents = {left = function() Spring.Echo("save ",i,j) end},
-		textelements = {{text = "Export Settings",ox = 0, oy= 16,fontsize = 16,textoptions = 'B', alignment = 5},},
+		MouseEvents = {left = function() 
+			Spring.Echo("Exporting Settings") 
+			Spring.Debug.TableEcho(valuetarget)
+		end},
+		textelements = {{text = "Export "..sliderListConfig.name, fontsize = 16, alignment = 5},},
 	})
+	return container
 end 
 
 local function makebuttonarray()
@@ -1356,9 +1425,9 @@ Draw.Element = function(VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl
 
 	-- highlight edges thinly
 	-- top
-	local topgloss = Draw.RectRound(VBO, nil, z-0.004,px + pxPad, sy - syPad - (cs*2.5), sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.04 * glossMult })
+	local topgloss2 = Draw.RectRound(VBO, nil, z-0.004,px + pxPad, sy - syPad - (cs*2.5), sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.04 * glossMult })
 	-- bottom
-	local botgloss = Draw.RectRound(VBO, nil, z-0.005,px + pxPad, py + pyPad, sx - sxPad, py + pyPad + (cs*2), cs, 0, 0, br, bl, { 1, 1, 1, 0.02 * glossMult }, { 1 ,1 ,1 , 0 })
+	local botgloss2 = Draw.RectRound(VBO, nil, z-0.005,px + pxPad, py + pyPad, sx - sxPad, py + pyPad + (cs*2), cs, 0, 0, br, bl, { 1, 1, 1, 0.02 * glossMult }, { 1 ,1 ,1 , 0 })
 	-- left
 	--WG.FlowUI.Draw.RectRound(px + pxPad, py + syPad, px + pxPad + (cs*2), sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0.02 * glossMult }, { 1, 1, 1, 0 })
 	-- right
@@ -1369,7 +1438,7 @@ Draw.Element = function(VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl
 
 	-- darkening bottom
 	local botdark = Draw.RectRound(VBO, nil, z-0.006,px, py, sx, py + ((sy-py)*0.75), cs*1.66, 0, 0, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
-	local instanceIDs = {background1, background2, topgloss, botgloss, botdark}
+	local instanceIDs = {background1, background2, topgloss, botgloss,topgloss2, botgloss2, botdark}
 	-- tile
 	if tileopacity > 0 then
 		--gl.Color(1,1,1, tileopacity)
@@ -1644,7 +1713,7 @@ Draw.Toggle = function(VBO, instanceID, z, px, py, sx, sy, state)
 
 	local instanceIDs = {outlineedge, top, highlighttop, highlightbottom}
 	for _, iID in ipairs(sliderknob) do
-		instanceIDs[#instanceIDs] = iID
+		instanceIDs[#instanceIDs + 1] = iID
 	end
 	if glowMult > 0 then
 		local boolGlow = radius * 1.75
@@ -1661,8 +1730,8 @@ Draw.Toggle = function(VBO, instanceID, z, px, py, sx, sy, state)
 		local glow2 = Draw.TexRect(VBO, nil, z - 0.006, x-boolGlow, y-boolGlow, x+boolGlow, y+boolGlow,"LuaUI/Images/flowui_gl4/glow.dds" ,{0.55, 1, 0.55, 0.1 * glowMult},nil)
 		--gl.Texture(false)
 		--gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		instanceIDs[#instanceIDs] = glow1
-		instanceIDs[#instanceIDs] = glow2
+		instanceIDs[#instanceIDs + 1] = glow1
+		instanceIDs[#instanceIDs + 1] = glow2
 		
 	end
 	return instanceIDs
@@ -1744,7 +1813,7 @@ Draw.Slider = function(VBO, instanceID, z, px, py, sx, sy, steps, min, max)
 			local stepSizeRight = math.floor(sliderWidth*0.005)
 			for _,posX in pairs(processedSteps) do
 				local step = Draw.RectRound(VBO, nil, z - 0.001 * #instanceIDs,posX-stepSizeLeft, py+1, posX+stepSizeRight, sy-1, stepSizeLeft, 1,1,1,1, { 0.12,0.12,0.12,0.22 }, { 0,0,0,0.22 })
-				instanceIDs[#instanceIDs] = step
+				instanceIDs[#instanceIDs + 1] = step
 			end
 		end
 	end
@@ -1753,11 +1822,11 @@ Draw.Slider = function(VBO, instanceID, z, px, py, sx, sy, steps, min, max)
 	--gl.Blending(GL.SRC_ALPHA, GL.ONE)
 	-- top
 	local tophighlight = Draw.RectRound(VBO, nil, z - 0.001 * #instanceIDs,px, sy-edgeWidth-edgeWidth, sx, sy, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.06 })
-	instanceIDs[#instanceIDs] = tophighlight
+	instanceIDs[#instanceIDs + 1] = tophighlight
 	-- bottom
 	
 	local bottomhighlight = Draw.RectRound(VBO, nil, z - 0.001 * #instanceIDs,px, py, sx, py+edgeWidth+edgeWidth, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.04 })
-	instanceIDs[#instanceIDs] = bottomhighlight
+	instanceIDs[#instanceIDs + 1] = bottomhighlight
 	--gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	return instanceIDs
 end
@@ -1830,10 +1899,11 @@ end
 -- Callins
 ----------------------------------------------------------------
 
-
+local function forwardslider(...)
+	return makeSliderList(...)
+end
 
 local btninstance = nil
-
 
 function widget:Initialize()
 	makeRectRoundVBO()
@@ -1844,20 +1914,13 @@ function widget:Initialize()
 	rectRoundVAO:AttachVertexBuffer(rectRoundVBO.instanceVBO)
 	rectRoundVBO.instanceVAO = rectRoundVAO
 	
-	WG['flowui_instancevbo'] = rectRoundVBO
-	WG['flowui_shader'] = rectRoundShader
-	WG['flowui_draw'] = Draw
+	WG['flowui_gl4'] = {}
+	WG['flowui_gl4'].forwardslider = forwardslider
+	
+	--WG['flowui_shader'] = rectRoundShader
+	--WG['flowui_draw'] = Draw
 
-	--[[for k = 1 , 1000 do
-		local x = math.floor(math.random()*vsx)
-		local y = math.floor(math.random()*vsy)
-		local w = x+math.floor(math.random()*200+20)
-		local h = y+math.floor(math.random()*150+10)
-		btninstance = Draw.Button(rectRoundVBO, nil, 0.4, x,y,w,h, 1,1,1,1, 1,1,1,1, nil, { 0.035, 0.4, 0.035, 0.8 }, { 0.05, 0.6, 0.5, 0.8 },  WG.FlowUI.elementCorner*0.4)
-	end]]--	
-
-	--Draw.Button(rectRoundVBO, nil, 0.4, 500,0,1524,1000, 24,24,32,60, 1,1,1,1, nil, { math.random(), math.random(), math.random(), 0.8 }, { math.random(), math.random(), math.random(), 0.8 },  WG.FlowUI.elementCorner*0.4)
-	font = WG['fonts'].getFont(nil, 1.4, 0.35, 1.4)
+	font, loadedFontSize = WG['fonts'].getFont(nil, 1.4, 0.35, 1.4)
 	if WG['buildmenu'] then
 		if WG['buildmenu'].getGroups then
 			groups, unitGroup = WG['buildmenu'].getGroups()
@@ -1877,16 +1940,14 @@ function widget:Initialize()
 		atlassedImages = WG['flowui_atlassedImages'] 
 	end
 	
-	makebuttonarray()
-	makeunitbuttonarray()
-	makeSliderList(sliderValues,sliderConfig, nil, vsx - 250, 600, 200, 32)
-	AddRecursivelySplittingButton()
+	--makebuttonarray()
+	--makeunitbuttonarray()
+	--makeSliderList(sliderListConfig)
+	--AddRecursivelySplittingButton()
 end
 
 function widget:Shutdown()
-	WG['flowui_instancevbo'] = nil
-	WG['flowui_shader'] = nil
-	WG['flowui_draw'] = nil
+	WG['flowui_gl4'] = nil
 
 	if rectRoundShader then
 		rectRoundShader:Finalize()
