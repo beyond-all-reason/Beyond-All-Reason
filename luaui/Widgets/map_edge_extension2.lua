@@ -23,7 +23,6 @@ local fogEffect = true
 local mapBorderStyle = 'texture'	-- either 'texture' or 'cutaway'
 
 local gridSize = 32
-local wiremap = false
 
 local hasBadCulling = false
 
@@ -31,8 +30,6 @@ local hasBadCulling = false
 --------------------------------------------------------------------------------
 
 local spIsAABBInView = Spring.IsAABBInView
-local spGetGroundHeight = Spring.GetGroundHeight
-local floor = math.floor
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 
 --------------------------------------------------------------------------------
@@ -188,7 +185,7 @@ bool MyEmitTestVertex(vec2 xzVec, bool testme) {
 		// this 'early clipping' will prevent generation of triangle strips is the quad is out of view
 		// use a 25x multiplier on the tolerance radius, as some triangles arent in spheres, but are highly elongated
 		bool invisible = isSphereVisibleXY(worldPos, 25.0*gridSize);
-		if ((invisible) || (alpha < 0.05))  return true; // also could be ||  (fogFactor < 0.025)) 
+		if ((invisible) || (alpha < 0.05))  return true; // also could be ||  (fogFactor < 0.025))
 	}
 	gl_Position = cameraViewProj * worldPos;
 	EmitVertex();
@@ -207,7 +204,7 @@ void main() {
 		MyEmitTestVertex(vec2(gridSize, gridSize),false); //BR
 		MyEmitTestVertex(vec2(gridSize,      0.0),false); //TR
 	}
-	
+
 	EndPrimitive();
 }
 ]]
@@ -291,7 +288,7 @@ function widget:Initialize()
 		--UpdateShader()
 	end
 
-	Spring.SendCommands("mapborder " .. (mapBorderStyle == 'cutaway' and "1" or "0"))
+	Spring.SendCommands("mapborder 1")--..(mapBorderStyle == 'cutaway' and "1" or "0"))
 
 	if gl.GetMapRendering("voidGround") then
 		restoreMapBorder = false
@@ -356,9 +353,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if restoreMapBorder then
-		Spring.SendCommands('mapborder '..(restoreMapBorder and '1' or '0'))
-	end
+	Spring.SendCommands('mapborder '..(restoreMapBorder and '1' or '0'))
 
 	if mapExtensionShader then
 		mapExtensionShader:Finalize()
@@ -538,14 +533,14 @@ function widget:DrawWorldPreUnit()
 	--Spring.Echo(gl.GetQuery(q))
 end
 
-local lastSunChanged = -1 
+local lastSunChanged = -1
 function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
 	local df = Spring.GetDrawFrame()
 	--Spring.Echo("widget:SunChanged", df)
 	if df == lastSunChanged then return end
 	lastSunChanged = df
 	-- Do the math:
-	if WG['NightFactor'] then 
+	if WG['NightFactor'] then
 		nightFactor = (WG['NightFactor'].red + WG['NightFactor'].green + WG['NightFactor'].blue) * 0.33
 		--Spring.Echo("Map edge extension NightFactor", nightFactor)
 		--UpdateShader()
