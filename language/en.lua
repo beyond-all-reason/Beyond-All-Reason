@@ -173,7 +173,7 @@ return {
 			cus = 'Advanced Model Shading',
 			cus_descr = 'Enables: depth texture, looking damaged, lights that blink, environment lighting, moving tank tracks.',
 			darkenmap = 'Darken map',
-			darkenmap_descr = 'Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings',
+			darkenmap_descr = 'Darkens the whole map (not the units)',
 			darkenmap_darkenfeatures = 'darken features',
 			darkenmap_darkenfeatures_descr = 'Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: Can be CPU intensive: it cycles through all visible features\nand renders them another time.',
 			advmapshading = 'Advanced Map Shading',

@@ -2020,13 +2020,10 @@ function init()
 
 		{ id = "darkenmap", group = "gfx", category = types.advanced, name = texts.option.darkenmap, min = 0, max = 0.33, step = 0.01, type = "slider", value = 0, description = texts.option.darkenmap_descr,
 		  onload = function(i)
-			  local mapDarkening = widgetHandler.configData["Darken map"].maps[Game.mapName:lower()]
-			  if mapDarkening then
-			 	options[getOptionByID('darkenmap')].value = mapDarkening
-			  end
+			  loadWidgetData("Darken map", "darkenmap", { 'darknessvalue' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', { 'maps', Game.mapName:lower() }, value)
+			  saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', { 'darknessvalue' }, value)
 		  end,
 		},
 		{ id = "darkenmap_darkenfeatures", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   "..texts.option.darkenmap_darkenfeatures, type = "bool", value = false, description = texts.option.darkenmap_darkenfeatures_descr,
