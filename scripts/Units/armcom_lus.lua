@@ -1,9 +1,9 @@
---INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 31
+--INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 33
 
 
 
 --Skeleton pieces
-local head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot ,lfoot, dish, barrel, aimy1, bigguncyl,hatpoint = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg" ,"rleg","rfoot" ,"lfoot", "dish", "barrel", "aimy1","bigguncyl","hatpoint")
+local head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot ,lfoot, dish, barrel, aimy1, bigguncyl,hatpoint, crown, medalsilver, medalbronze, medalgold = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg" ,"rleg","rfoot" ,"lfoot", "dish", "barrel", "aimy1","bigguncyl","hatpoint", "crown", "medalsilver", "medalbronze", "medalgold")
 
 local weapons = {
 	[1] = "laser",
@@ -888,6 +888,10 @@ function script.Create()
 	--Turn(nano, 1,math.rad(90)) -- WHY?
 	--Turn(laserflare, 1,math.rad(90)) -- WHY?
 	Hide(nano)
+	Hide(crown)
+	Hide(medalbronze)
+	Hide(medalsilver)
+	Hide(medalgold)
 	Spin(dish, 2, 2.5)
 	isAiming = false
 	isAimingDgun = false

@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis,
-    rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, hatpoint;
+    rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, hatpoint, crown, medalsilver, medalbronze, medalgold;
 
 static-var bMoving, bAiming, Busy, gun_3, gun_2, counter,
       bIsBuilding, buildPitch, buildHeading, maxSpeed, currentSpeed, animSpeed, justMoved;
@@ -795,6 +795,12 @@ Create()
 	hide aimy1;
 	hide teleport;
 	hide rbigflash;
+	
+	hide crown;
+	hide medalsilver;
+	hide medalbronze;
+	hide medalgold;
+	
 	idleTime = 0;
 	bMoving = FALSE;
 	bAiming = FALSE;
