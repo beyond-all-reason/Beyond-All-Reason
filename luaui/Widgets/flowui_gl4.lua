@@ -553,7 +553,7 @@ local function makeSliderList(sliderListConfig)
 	-- create a UI container:
 	local container = metaElement:NewUiElement({
 		name = sliderListConfig.name, left = left -4, bottom = bottom -4, right = left + width + 4, top = bottom + (numelements + 1) * height + 4,
-		color2 = {0,0,0,0.5}, color2 = {0,0,0,0.5}, opacity = 0.2,
+		color1 = {1,1,1,0.5}, color2 = {0,0,0,1.0}, opacity = 0.2,
 		parent = ROOT
 	})
 	
@@ -899,8 +899,8 @@ void addvertexflowui(float spx, float spy, float distfromside){
 	
 	// pack mouseposness into 'backtex', ergo g_fronttex_edge_backtex_hide.z
 	g_fronttex_edge_backtex_hide.z = 0.0;
-	bvec2 righttopmouse = lessThan(mouseScreenPos.xy, vec2(RIGHT, TOP));
-	bvec2 leftbottommouse = greaterThan(mouseScreenPos.xy, vec2(LEFT, BOTTOM));
+	bvec2 righttopmouse = lessThanEqual(mouseScreenPos.xy, vec2(RIGHT, TOP));
+	bvec2 leftbottommouse = greaterThanEqual(mouseScreenPos.xy, vec2(LEFT, BOTTOM));
 	g_fronttex_edge_backtex_hide.z = 0;
 	if (all(bvec4(righttopmouse, leftbottommouse)) ) {
 		g_fronttex_edge_backtex_hide.z = BLENDMODE + 0.5;	
@@ -1392,7 +1392,7 @@ Draw.Element = function(VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl
 	local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 	local bgpadding = bgpadding or WG.FlowUI.elementPadding
 	local cs = WG.FlowUI.elementCorner * (bgpadding/WG.FlowUI.elementPadding)
-	local glossMult = 1 + (2 - (opacity * 1.5))
+	local glossMult = 1 + (2 - (opacity * 1.5)) 
 	local tileopacity = Spring.GetConfigFloat("ui_tileopacity", 0.012)
 	local bgtexScale = Spring.GetConfigFloat("ui_tilescale", 7)
 	local bgtexSize = math.floor(WG.FlowUI.elementPadding * bgtexScale)
@@ -1409,14 +1409,15 @@ Draw.Element = function(VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl
 	
 	if z == nil then z = 0.5 end  -- fools depth sort
 	
-	-- background
+	-- background, color1 only, used for the edge
 	--gl.Texture(false)
 	local background1 = Draw.RectRound(VBO, nil, z-0.000, px, py, sx, sy, cs, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4] }, { color1[1], color1[2], color1[3], color1[4] })
 
+	--background2 is color2 only, used for the internal background color, has a gradient of 1/3 rd brightness from top
 	cs = cs * 0.6
 	local background2 = Draw.RectRound(VBO, nil, z-0.001,px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] }, { color2[1], color2[2], color2[3], color2[4] })
 
-	-- gloss
+	-- gloss on top and bottom of the button, very faint
 	--gl.Blending(GL.SRC_ALPHA, GL.ONE)
 	local glossHeight = math.floor(0.02 * WG.FlowUI.vsy * ui_scale)
 	-- top
@@ -1436,8 +1437,9 @@ Draw.Element = function(VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl
 
 	--WG.FlowUI.Draw.RectRound(px + (pxPad*1.6), sy - syPad - math.ceil(bgpadding*0.25), sx - (sxPad*1.6), sy - syPad, 0, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.07 * glossMult })
 	--gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	
 
-	-- darkening bottom
+	-- darkening bottom 2/3rds of element
 	local botdark = Draw.RectRound(VBO, nil, z-0.006,px, py, sx, py + ((sy-py)*0.75), cs*1.66, 0, 0, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
 	local instanceIDs = {background1, background2, topgloss, botgloss,topgloss2, botgloss2, botdark}
 	-- tile
