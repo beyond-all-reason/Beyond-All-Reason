@@ -72,6 +72,7 @@ local shaderConfig = {
 	RAYMARCHSTEPS = 32, -- must be at least one, quite expensive
 	RESOLUTION = 1, -- THIS IS EXTREMELY IMPORTANT and specifies the fog plane resolution as a whole! 1 = max, 2 = half, 4 = quarter etc.
 	NOISESAMPLES = 8, -- how many samples of 3D noise to take
+	HEIGHTDENSITY = 2, -- How quickly height-based fog reaches its maximum density
 	NOISESCALE = 0.2, -- The tiling pattern of noise
 	NOISETHRESHOLD = -0.0, -- The 0 level of noise
 	USELOS = 0, -- Use the LOS map at all, 1 = yes, 0 = no
@@ -81,36 +82,23 @@ local shaderConfig = {
 	MINIMAPSCATTER = 0.1, -- How much the minimap color sdditively back-scatters into fog color, 0 is off
 	WINDSTRENGTH = 1.0, -- How wind affects fog
 	FULLALPHA = 0, -- no-alpha blending
-
+	SUNCHROMASHIFT = 0.2, -- How much colors are shifted towards sun
 }
-
-
-local shaderConfigNoNoise = {
-	-- These are static parameters, cannot be changed during runtime
-	RAYMARCHSTEPS = 32, -- must be at least one, quite expensive
-	RESOLUTION = 1, -- THIS IS EXTREMELY IMPORTANT and specifies the fog plane resolution as a whole! 1 = max, 2 = half, 4 = quarter etc.
-	NOISESAMPLES = 6, -- how many samples of 3D noise to take
-	NOISESCALE = 1.2,
-	NOISETHRESHOLD = -0.0,
-	LOSREDUCEFOG = 0,	
-	MINIMAPSCATTER = 0.15, -- How much the minimap color back-scatters into fog color, 0 is off
-}
---shaderConfig = shaderConfigNoNoise
 
 local minHeight, maxHeight = Spring.GetGroundExtremes()
 local fogUniforms = {
-	fogGlobalColor = {0.6,0.7,0.8,1}, -- bluish
+	fogGlobalColor = {0.6,0.7,0.8,0.98}, -- bluish, alpha is the ABSOLUTE MAXIMUM FOG
 	fogSunColor = {1.0,0.9,0.8,0.35}, -- yellowish, alpha is power
 	fogShadowedColor = {0.1,0.05,0.1,1}, -- purleish tint
-	fogPlaneHeight = (math.max(minHeight,0) + maxHeight) /1.7 ,
-	fogGlobalDensity = 1.50,
-	fogGroundDensity = 0.25,
-	fogExpFactor = 1.0, -- yes these are small negative numbers
+	fogPlaneHeight = (math.max(minHeight,0) + maxHeight) /1.7 , -- Start of the height thing
+	fogGlobalDensity = 1.50, -- How dense the global fog is
+	fogGroundDensity = 0.25, -- How dense the height-based fog is
+	fogExpFactor = 1.0, -- Overall density multiplier
 	noiseParams = {
 		1.4, -- high-frequency cloud noise, lower numbers = lower frequency
 		0.2, -- noise bias, [-1,1] high numbers denser
 		1.2, -- low frequency big cloud noise, lower numbers = lower frequency
-		0.0,
+		0.0, -- low frequency noise bias, keep between [-1,1]
 		},
 	}
 	
@@ -120,15 +108,15 @@ local fogUniformSliders = {
 	left = vsx - 270, 
 	bottom = 600, 
 	width = 250, 
-	height = 26,
+	height = 24,
 	valuetarget = fogUniforms,
 	sliderParamsList = {
 		{name = 'fogGlobalColor', min = 0, max = 1, digits = 3, tooltip =  'fogGlobalColor'},
 		{name = 'fogSunColor', min = 0, max = 1, digits = 3, tooltip =  'fogSunColor'},
 		{name = 'fogShadowedColor', min = 0, max = 1, digits = 3, tooltip =  'fogShadowedColor'},
 		{name = 'fogPlaneHeight', min = math.floor(minHeight), max = math.floor(maxHeight * 2), digits = 2, tooltip =  'fogPlaneHeight'},
-		{name = 'fogGlobalDensity', min = 0.1, max = 10, digits = 2, tooltip =  'fogGlobalDensity'},
-		{name = 'fogGroundDensity', min = 0.1, max = 1, digits = 2, tooltip =  'fogGroundDensity'},
+		{name = 'fogGlobalDensity', min = 0.01, max = 10, digits = 2, tooltip =  'fogGlobalDensity'},
+		{name = 'fogGroundDensity', min = 0.01, max = 1, digits = 2, tooltip =  'fogGroundDensity'},
 		{name = 'fogExpFactor', min = 0.000, max = 5, digits = 2, tooltip =  'fogExpFactor'},
 		{name = 'noiseParams', min = -1, max = 5, digits = 3, tooltip =  'noiseParams'},
 	},
@@ -270,7 +258,7 @@ local shaderDefinedSliders = {
 	left = vsx - 270, 
 	bottom = 200, 
 	width = 250, 
-	height = 26,
+	height = 24,
 	valuetarget = shaderConfig,
 	sliderParamsList = {
 		{name = 'RESOLUTION', min = 1, max = 4, digits = 0, tooltip = 'Fog power of two resolution'},
@@ -285,6 +273,8 @@ local shaderDefinedSliders = {
 		{name = 'LOSFOGUNDISCOVERED', min = 0, max = 1, digits= 2, tooltip = 'This specifies how much more fog there should be where the map has not yet been discovered ever (0 is none, 1 is a lot)'},
 		{name = 'USEMINIMAP', min = 0, max = 1, digits = 0, tooltip = '0 or 1 to use the minimap for back-scatter'},
 		{name = 'WINDSTRENGTH', min = 0, max = 4, digits = 2, tooltip = 'Speed multiplier for wind'},
+		{name = 'HEIGHTDENSITY', min = 1, max = 10, digits = 2, tooltip = 'How quickly height fog reaches its max density'},
+		{name = 'SUNCHROMASHIFT', min = -0.5, max = 1, digits = 2, tooltip = 'How much colors are shifted towards sun'},
 		{name = 'MINIMAPSCATTER', min = -0.5, max = 0.5, digits = 2, tooltip = 'How much the minimap color sdditively back-scatters into fog color, 0 is off'},},
 	callbackfunc = shaderDefinesChangedCallback
 }
