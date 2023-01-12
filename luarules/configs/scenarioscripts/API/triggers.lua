@@ -11,7 +11,7 @@ local loadoutUnitsAlive = {} -- table of {unitID = true}
 local objectiveUnits = {}
 
 function gadget:Loadout()
-    for i, loadout in ipairs(modopts.loadoutunits) do 
+    for i, loadout in ipairs(modopts.loadoutunits) do
     local unitID = Spring.CreateUnit(loadout)
     loadoutUnitsAlive[unitID] = true
         if loadout.objectiveID then 
