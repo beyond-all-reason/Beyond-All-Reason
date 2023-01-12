@@ -341,7 +341,7 @@ void main(void)
 		float rayDepthratio = rayStartDepthRatio + rayEndDepthRatio;
 		// Fog reaches full density at half depth to waterplane
 		
-		heightBasedFog *= rayDepthratio;
+		heightBasedFog *= rayDepthratio * 0.4;
 		if (mapdepth > 0.9998){ // This would allow preventing fog outside of map edges?
 			//heightBasedFog = 0;
 			//distanceFogAmount = 0;
@@ -350,8 +350,8 @@ void main(void)
 	#else
 		// Marching:
 		const float steps = RAYMARCHSTEPS;
-		float noiseScale =  0.001 * noiseParams.x;
-		vec3 noiseOffset = vec3(windX, time, windZ) * noiseScale * WINDSTRENGTH;
+		float noiseScale =  0.001;
+		vec3 noiseOffset = vec3(windX, time, windZ) * noiseScale * WINDSTRENGTH * 3;
 	
 		if (rayLength> 0.0001 && inlos < 0.99) { 
 			#if 0 // old deprecated method
@@ -399,22 +399,18 @@ void main(void)
 						vec3 rayPos = mix(rayStart.xyz, rayEnd, f + 0.5 * rayJitterOffset);
 						
 						//vec4 localNoise =  texture(noise64cube, rayPos.xyz * noiseScale + noiseOffset); // TODO: SUBSAMPLE THIS ONE!
-						vec3 skewed3dpos = (rayPos.xyz * noiseScale*0.5 + noiseOffset) * vec3(1,4,1);
+						vec3 skewed3dpos = (rayPos.xyz * noiseScale * noiseParams.x + noiseOffset) * vec3(1,4,1);
 						float localNoise = 1.0 - texture(noise64cube, skewed3dpos.xzy).r; // TODO: SUBSAMPLE THIS ONE!
 						#if 1
 							float simplexnoise =  SimplexPerlin3D((rayPos) * noiseScale * noiseParams.z +
-							noiseOffset)*noiseParams.w;
+							noiseOffset) * noiseParams.w;
 						#else // yeah nested perlin is uggo
 							float a = 0.001;
 							vec3 swirlpos = rayPos.xyz * vec3(1.0, 1.1, 1.2) * a + vec3(time)*a * 0.0001 ;
-							//vec3 swirly = vec3(noise(swirlpos.xyz), noise(swirlpos.yzx), noise(swirlpos.zxy));
 							vec3 swirly = vec3(Value3D(swirlpos.xyz * 1.1 + 31.33), Value3D(swirlpos.yzx * 1.4 + 60.66), Value3D(swirlpos.zxy)); 
 							float simplexnoise = SimplexPerlin3D(swirlpos + swirly * 1.5) * 0.5 + 0.5;
 							//perlinswirl = noise(swirlpos + swirly * 3);
-		
-		
 						#endif
-						//simplexnoise = 0;
 						float thisraynoise = max(0, localNoise.r + noiseParams.y - simplexnoise);
 						
 						// Modulate the noise based on its depth below fogplane, this is 1 at 0 height, and 0 at fogPlaneHeight
@@ -426,7 +422,7 @@ void main(void)
 						collectedNoise += thisraynoise * rayDepthratio;
 						
 						densityposition += vec4(rayPos*thisraynoise, thisraynoise); // collecting the 'center' of the noise cloud
-						if (thisraynoise > 0 ) { // only sample shadow if we have actual fog here!
+						//if (thisraynoise > 0) { // only sample shadow if we have actual fog here!
 							for (uint m = 0; m < shadowSteps; m++){ // step through the small local volume 
 								f += (float(m)) / (steps); 
 								//float f = (float(m) + float(n) * NOISESAMPLES)/ steps;
@@ -439,7 +435,7 @@ void main(void)
 								collectedShadow += localShadow;
 								numShadowSamplesTaken += 1.0;
 							}
-						}
+						//}
 					}
 					collectedShadow /= numShadowSamplesTaken; // get the true litness by only taking into account actual samples taken
 					densityposition.xyz /= densityposition.w;
