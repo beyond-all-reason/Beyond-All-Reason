@@ -18,10 +18,16 @@ end
 		{name = 'coradvsol', x = 82, y = 200, z = 3671, rot = 1, teamID = 1, queue = {}}, --empty table
 		{name = 'armham', x = 152, y = 432, z = 2649, rot = 0, teamID = 0, queue = {
 		{cmdID= CMD.PATROL, position = {px = 108, py = 426, pz = 2091}},
-		}}
+		}},
 	}
+if objectiveUnits ~= nil then
+		function gadget:API_GiveOrderToUnit()
 
-		for k , unit in pairs(objectiveUnits) do
+		end
+	else
+		return
+end
+--[[		for k , unit in pairs(objectiveUnits) do
 			if UnitDefNames[unit.name] then
 			local unitID = Spring.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
 
@@ -32,5 +38,5 @@ end
 				end
 			end
 		end
-
+]]--
 --[[mx1= 533, my1= 434, mz1= 2155 ; mx2= 1118, my2= 428, mz2= 2157; mx3= 1906, my3= 431, mz3= 1223]]--
