@@ -610,6 +610,11 @@ local function makeSliderList(sliderListConfig)
 						obj:UpdateVBOKeys('right', newright)
 						Spring.Echo("right clicked", obj.name, mx, my, newright, obj.value)
 					end, 
+					hover = function (obj,mx,my) 
+						if sliderParams.tooltip and WG and WG['tooltip'] and WG['tooltip'].ShowTooltip then 
+							WG['tooltip'].ShowTooltip(sliderParams.name..nestname, sliderParams.tooltip)    -- x/y (optional): display coordinates
+						end 
+					end
 				},
 				textelements = {
 					{text = string.format('%s%s = %.'.. tostring(sliderParams.digits)..'f',sliderParams.name, nestname, defaultvalue), alignment = 5},

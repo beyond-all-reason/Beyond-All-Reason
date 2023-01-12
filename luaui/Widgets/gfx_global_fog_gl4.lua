@@ -35,7 +35,7 @@ local GL_RGBA32F_ARB = 0x8814
 -- DONE: minimap color backscatter
 -- DONE: Fix blending of shadowed and non-shadowed
 -- handle out-of-map better!
--- Fix non raytraced fog nonlinearity
+-- DONE: Fix non raytraced fog nonlinearity
 
 
 -- VERY IMPORTANT NOTES:
@@ -68,9 +68,9 @@ end
 
 local shaderConfig = {
 	-- These are static parameters, cannot be changed during runtime
-	RAYTRACING = 0, -- Specifies wether shadowing and noise are on
-	RAYMARCHSTEPS = 32, -- must be at least one, quite expensive
 	RESOLUTION = 1, -- THIS IS EXTREMELY IMPORTANT and specifies the fog plane resolution as a whole! 1 = max, 2 = half, 4 = quarter etc.
+	RAYTRACING = 0, -- Specifies wether shadowing and noise are on (=1), SET RESOLUTION TO 1 if OFF
+	RAYMARCHSTEPS = 32, -- must be at least one, quite expensive
 	NOISESAMPLES = 8, -- how many samples of 3D noise to take
 	HEIGHTDENSITY = 2, -- How quickly height-based fog reaches its maximum density
 	NOISESCALE = 0.2, -- The tiling pattern of noise
@@ -106,19 +106,19 @@ local fogUniforms = {
 local fogUniformSliders = {
 	name = "fogUniformSliders",
 	left = vsx - 270, 
-	bottom = 600, 
+	bottom = 200, 
 	width = 250, 
 	height = 24,
 	valuetarget = fogUniforms,
 	sliderParamsList = {
-		{name = 'fogGlobalColor', min = 0, max = 1, digits = 3, tooltip =  'fogGlobalColor'},
-		{name = 'fogSunColor', min = 0, max = 1, digits = 3, tooltip =  'fogSunColor'},
+		{name = 'fogGlobalColor', min = 0, max = 1, digits = 3, tooltip =  'fogGlobalColor, alpha is the ABSOLUTE MAXIMUM FOG'},
+		{name = 'fogSunColor', min = 0, max = 1, digits = 3, tooltip =  'fogSunColor, alpha is power'},
 		{name = 'fogShadowedColor', min = 0, max = 1, digits = 3, tooltip =  'fogShadowedColor'},
-		{name = 'fogPlaneHeight', min = math.floor(minHeight), max = math.floor(maxHeight * 2), digits = 2, tooltip =  'fogPlaneHeight'},
-		{name = 'fogGlobalDensity', min = 0.01, max = 10, digits = 2, tooltip =  'fogGlobalDensity'},
-		{name = 'fogGroundDensity', min = 0.01, max = 1, digits = 2, tooltip =  'fogGroundDensity'},
-		{name = 'fogExpFactor', min = 0.000, max = 5, digits = 2, tooltip =  'fogExpFactor'},
-		{name = 'noiseParams', min = -1, max = 5, digits = 3, tooltip =  'noiseParams'},
+		{name = 'fogPlaneHeight', min = math.floor(minHeight), max = math.floor(maxHeight * 2), digits = 2, tooltip =  'fogPlaneHeight, in elmos'},
+		{name = 'fogGlobalDensity', min = 0.01, max = 10, digits = 2, tooltip =  'How dense the global fog is'},
+		{name = 'fogGroundDensity', min = 0.01, max = 1, digits = 2, tooltip =  'How dense the height-based fog is'},
+		{name = 'fogExpFactor', min = 0.000, max = 5, digits = 2, tooltip =  'Overall density multiplier'},
+		{name = 'noiseParams', min = -1, max = 5, digits = 3, tooltip =  'High and low frequency gain, bias multipliers'},
 	},
 	callbackfunc = nil
 }
@@ -255,7 +255,7 @@ end
 
 local shaderDefinedSliders = {
 	name = "shaderDefinedSliders",
-	left = vsx - 270, 
+	left = vsx - 540, 
 	bottom = 200, 
 	width = 250, 
 	height = 24,
