@@ -74,6 +74,64 @@ float fogAmountHeightBased(float h){
 	return h;
 }
 
+//  https://github.com/BrianSharpe/Wombat/blob/master/Value3D.glsl
+float Value3D( vec3 P )
+{
+    // establish our grid cell and unit position
+    vec3 Pi = floor(P);
+    vec3 Pf = P - Pi;
+    vec3 Pf_min1 = Pf - 1.0;
+
+    // clamp the domain
+    Pi.xyz = Pi.xyz - floor(Pi.xyz * ( 1.0 / 69.0 )) * 69.0;
+    vec3 Pi_inc1 = step( Pi, vec3( 69.0 - 1.5 ) ) * ( Pi + 1.0 );
+
+    // calculate the hash
+    vec4 Pt = vec4( Pi.xy, Pi_inc1.xy ) + vec2( 50.0, 161.0 ).xyxy;
+    Pt *= Pt;
+    Pt = Pt.xzxz * Pt.yyww;
+    vec2 hash_mod = vec2( 1.0 / ( 635.298681 + vec2( Pi.z, Pi_inc1.z ) * 48.500388 ) );
+    vec4 hash_lowz = fract( Pt * hash_mod.xxxx );
+    vec4 hash_highz = fract( Pt * hash_mod.yyyy );
+
+    //	blend the results and return
+    //vec3 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
+    //vec3 blend = smoothstep(0,1,Pf); // better than 5th order as above (and faster)
+    vec3 blend = Pf * Pf * (3.0 - 2.0 * Pf); // better than 5th order as above (and faster)
+    vec4 res0 = mix( hash_lowz, hash_highz, blend.z );
+    vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) );
+    return dot( res0, blend2.zxzx * blend2.wwyy );
+}
+
+
+
+//  https://github.com/BrianSharpe/Wombat/blob/master/Value3D.glsl
+float Value3D3( vec3 P )
+{
+    // establish our grid cell and unit position
+    vec3 Pi = floor(P);
+    vec3 Pf = P - Pi;
+    vec3 Pf_min1 = Pf - 1.0;
+
+    // clamp the domain
+    Pi.xyz = Pi.xyz - floor(Pi.xyz * ( 1.0 / 69.0 )) * 69.0;
+    vec3 Pi_inc1 = step( Pi, vec3( 69.0 - 1.5 ) ) * ( Pi + 1.0 );
+
+    // calculate the hash
+    vec4 Pt = vec4( Pi.xy, Pi_inc1.xy ) + vec2( 50.0, 161.0 ).xyxy;
+    Pt *= Pt;
+    Pt = Pt.xzxz * Pt.yyww;
+    vec2 hash_mod = vec2( 1.0 / ( 635.298681 + vec2( Pi.z, Pi_inc1.z ) * 48.500388 ) );
+    vec4 hash_lowz = fract( Pt * hash_mod.xxxx );
+    vec4 hash_highz = fract( Pt * hash_mod.yyyy );
+
+    //	blend the results and return
+    vec3 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
+    vec4 res0 = mix( hash_lowz, hash_highz, blend.z );
+    vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) );
+    return dot( res0, blend2.zxzx * blend2.wwyy );
+}
+
 float SimplexPerlin3D( vec3 P ){
     //  https://github.com/BrianSharpe/Wombat/blob/master/SimplexPerlin3D.glsl
 
@@ -138,19 +196,74 @@ float SimplexPerlin3D( vec3 P ){
 }
 #line 31000
 
+
+//from : https://www.shadertoy.com/view/4dS3Wd
+// Precision-adjusted variations of https://www.shadertoy.com/view/4djSRW
+float hash(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }
+float hash(vec2 p) {vec3 p3 = fract(vec3(p.xyx) * 0.13); p3 += dot(p3, p3.yzx + 3.333); return fract((p3.x + p3.y) * p3.z); }
+
+float noise(float x) {
+    float i = floor(x);
+    float f = fract(x);
+    float u = f * f * (3.0 - 2.0 * f);
+    return mix(hash(i), hash(i + 1.0), u);
+}
+
+
+float noise(vec2 x) {
+    vec2 i = floor(x);
+    vec2 f = fract(x);
+
+	// Four corners in 2D of a tile
+	float a = hash(i);
+    float b = hash(i + vec2(1.0, 0.0));
+    float c = hash(i + vec2(0.0, 1.0));
+    float d = hash(i + vec2(1.0, 1.0));
+
+    // Simple 2D lerp using smoothstep envelope between the values.
+	// return vec3(mix(mix(a, b, smoothstep(0.0, 1.0, f.x)),
+	//			mix(c, d, smoothstep(0.0, 1.0, f.x)),
+	//			smoothstep(0.0, 1.0, f.y)));
+
+	// Same code, with the clamps in smoothstep and common subexpressions
+	// optimized away.
+    vec2 u = f * f * (3.0 - 2.0 * f);
+	return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+}
+
+
+float noise(vec3 x) {
+    const vec3 step = vec3(110, 241, 171);
+
+    vec3 i = floor(x);
+    vec3 f = fract(x);
+ 
+    // For performance, compute the base input to a 1D hash from the integer part of the argument and the 
+    // incremental change to the 1D based on the 3D -> 1D wrapping
+    float n = dot(i, step);
+
+    vec3 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(mix( hash(n + dot(step, vec3(0, 0, 0))), hash(n + dot(step, vec3(1, 0, 0))), u.x),
+                   mix( hash(n + dot(step, vec3(0, 1, 0))), hash(n + dot(step, vec3(1, 1, 0))), u.x), u.y),
+               mix(mix( hash(n + dot(step, vec3(0, 0, 1))), hash(n + dot(step, vec3(1, 0, 1))), u.x),
+                   mix( hash(n + dot(step, vec3(0, 1, 1))), hash(n + dot(step, vec3(1, 1, 1))), u.x), u.y), u.z);
+}
+
+
 #line 32000
 void main(void)
 {
 	float time = timeInfo.x + timeInfo.w;
 	vec3 camPos = cameraViewInv[3].xyz ;
-	
-	vec3 camDir = normalize(camPos-v_fragWorld.xyz);
 
 	vec2 screenUV = gl_FragCoord.xy * RESOLUTION / viewGeometry.xy;
 
 	// Sample the depth buffers, and choose whichever is closer to the screen
-	float mapdepth = texture(mapDepths, screenUV).x;
+	float mapdepth = texture(mapDepths, screenUV).x; 
 	float modeldepth = texture(modelDepths, screenUV).x;
+	// TexelFetch is no better in perf
+	//float mapdepth = texelFetch(mapDepths, ivec2(gl_FragCoord.xy)*RESOLUTION,0).x;
+	//float modeldepth = texelFetch(modelDepths, ivec2(gl_FragCoord.xy)*RESOLUTION,0).x;
 	mapdepth = min(mapdepth, modeldepth);
 	
 	// Transform screen-space depth to world-space position
@@ -169,14 +282,6 @@ void main(void)
 	}
 	vec3 fragWorldPos = v_worldPos.xyz;
 
-	#if (NOISESAMPLES > 0)
-		float noiseScale =  0.001 * noiseParams.x;
-		vec3 noiseOffset = vec3(0.0);
-		noiseOffset.xz -= vec2(windX, windZ) * noiseScale * WINDSTRENGTH;
-		noiseOffset.y += sin(fragWorldPos.x*0.001) ;
-		noiseOffset.y += cos(fragWorldPos.z*0.0012) ;
-		noiseOffset.y -= time * noiseScale * WINDSTRENGTH ;
-	#endif
 	
 	// calculate the Height-based fog amount
 	// rayStart is the distant point through fog and rayEnd is the close point through fog
@@ -203,13 +308,13 @@ void main(void)
 	float rayLength = length(rayEnd - rayStart);
 	float heightBasedFog = fogGroundDensity * rayLength * 400;
 	
-	// Marching:
-	const float steps = RAYMARCHSTEPS;
+	// calculate the distance fog density
+	float distanceFogAmount = fogGlobalDensity * length(mapFromCam);
+	
+
 	
 	float collectedNoise = 0.0;
 	float collectedShadow = 0.0; // What fraction of samples were LIT along the way.
-	
-	float largenoise = SimplexPerlin3D ((rayStart ) * noiseScale * noiseParams.z + noiseOffset);
 	
 	vec4 densityposition = vec4(0); // Ok, this contains the center-weighted sum of all positions, 
 	// TODO: FIX ABOVE FOG TOP!
@@ -220,101 +325,132 @@ void main(void)
 	float inlos = 0;
 	#if (USELOS == 1)
 		inlos = losLevelAtWorldPos( mapWorldPos.xyz);
-		
 		bool outofmap = any(lessThan(vec4(mapWorldPos.xz, mapSize.xy),  vec4(0.0, 0.0, mapWorldPos.xz)));
 		if (outofmap) inlos = 0;
-
 	#endif
+	#if (RAYTRACING == 0)
+		// With raytracing off, we have a bit more freedom in the height-based fog.
+		collectedShadow = 1.0;
+		
+		// But we need a better integration function!
+		//float rayDepthratio = clamp(1.0 - rayStart.y / (fogPlaneHeight) , 0.0, 1.0);
+						
+		//float rayDepthFactor = min(1.0, 1 * rayDepthratio);
+		//heightBasedFog *= rayDepthratio;
+		if (mapdepth > 0.9998){
+			//heightBasedFog = 0;
+			//distanceFogAmount = 0;
+		}
+		
+	#else
+		// Marching:
+		const float steps = RAYMARCHSTEPS;
+		float noiseScale =  0.001 * noiseParams.x;
+		vec3 noiseOffset = vec3(windX, time, windZ) * noiseScale * WINDSTRENGTH;
 	
-	if (rayLength> 0.0001 && inlos < 0.99) { 
-		#if 0 // old deprecated method
-			float rayJitterOffset = (1 * rand(screenUV)) / steps ;
-			#if (RAYMARCHSTEPS > 0)
-			for (uint i = 0; i < steps; i++){
-				float f = float(i) / steps;
-				vec3 rayPos = mix(rayStart.xyz, rayEnd, f + rayJitterOffset);
-				
-				float localShadow= shadowAtWorldPos(rayPos); // 1 for lit, 0 for unlit
-				float shadowDelta = 0.25 * (abs(dFdx(localShadow)) + abs(dFdy(localShadow)));
-				
-				localShadow = mix(shadowDelta, 1.0 - shadowDelta, localShadow);
-				collectedShadow += localShadow;
-			}
-			
-			collectedShadow /= steps;
-			collectedShadow = pow(collectedShadow, 2.0);
-			#else
-				collectedShadow = 1.0;
-			#endif
-			#if (NOISESAMPLES > 0)
-				for (uint i = 0; i < (NOISESAMPLES); i++){
-					float f = float(i) / (NOISESAMPLES);
-					vec3 rayPos = mix(rayStart.xyz, rayEnd, f + 0.005 * rayJitterOffset);
-				//if (1 == 1){
-					vec4 localNoise =  texture(noise64cube, rayPos.xyz * noiseScale  + noiseOffset); // TODO: SUBSAMPLE THIS ONE!
-					
-					float simplexnoise = SimplexPerlin3D ((rayPos ) * noiseScale * noiseParams.z + noiseOffset);
-					//simplexnoise = largenoise;
-					float thisraynoise = max(0,localNoise.a + noiseParams.y - simplexnoise);
-					collectedNoise += thisraynoise;
-				}
-				heightBasedFog *= collectedNoise/(NOISESAMPLES);
-			#endif
-			
-		#else// new interleaved sampling
-			
-			#if ((RAYMARCHSTEPS > 0) && (NOISESAMPLES >0))
-				float numShadowSamplesTaken = 0.001;
-				uint shadowSteps = RAYMARCHSTEPS / NOISESAMPLES;
+		if (rayLength> 0.0001 && inlos < 0.99) { 
+		
+			#if 0 // old deprecated method
 				float rayJitterOffset = (1 * rand(screenUV)) / steps ;
-				for (uint n = 0; n < NOISESAMPLES; n ++){
-					float f = float(n) / NOISESAMPLES;
+				#if (RAYMARCHSTEPS > 0)
+				for (uint i = 0; i < steps; i++){
+					float f = float(i) / steps;
+					vec3 rayPos = mix(rayStart.xyz, rayEnd, f + rayJitterOffset);
 					
-					vec3 rayPos = mix(rayStart.xyz, rayEnd, f + 0.5 * rayJitterOffset);
+					float localShadow= shadowAtWorldPos(rayPos); // 1 for lit, 0 for unlit
+					float shadowDelta = 0.25 * (abs(dFdx(localShadow)) + abs(dFdy(localShadow)));
 					
-					//vec4 localNoise =  texture(noise64cube, rayPos.xyz * noiseScale + noiseOffset); // TODO: SUBSAMPLE THIS ONE!
-					vec3 skewed3dpos = (rayPos.xyz * noiseScale*0.5 + noiseOffset) * vec3(1,4,1);
-					float localNoise = 1.0 - texture(noise64cube, skewed3dpos.xzy).r; // TODO: SUBSAMPLE THIS ONE!
-					float simplexnoise =  SimplexPerlin3D((rayPos) * noiseScale * noiseParams.z + noiseOffset)*noiseParams.w;
-					//simplexnoise = 0;
-					float thisraynoise = max(0, localNoise.r + noiseParams.y - simplexnoise);
-					
-					// Modulate the noise based on its depth below fogplane:
-					float rayDepthratio = clamp( 1.0 - rayPos.y / (fogPlaneHeight) , 0.0, 1.0);
-					
-					float rayDepthFactor = min(1.0, 1 * rayDepthratio);
-					
-					collectedNoise += thisraynoise * rayDepthFactor;
-					
-					densityposition += vec4(rayPos*thisraynoise, thisraynoise); // collecting the 'center' of the noise cloud
-					if (thisraynoise > 0 ) { // only sample shadow if we have actual fog here!
-						for (uint m = 0; m < shadowSteps; m++){ // step through the small local volume 
-							f += (float(m)) / (steps); 
-							//float f = (float(m) + float(n) * NOISESAMPLES)/ steps;
-							vec3 rayPos = mix(rayStart.xyz, rayEnd, f + rayJitterOffset);
-							
-							float localShadow= shadowAtWorldPos(rayPos); // 1 for lit, 0 for unlit
-							float shadowDelta = 0.25 * (abs(dFdx(localShadow)) + abs(dFdy(localShadow))); // magic smoothing using adjacent pixels
-							
-							localShadow = mix(shadowDelta, 1.0 - shadowDelta, localShadow);
-							collectedShadow += localShadow;
-							numShadowSamplesTaken += 1.0;
+					localShadow = mix(shadowDelta, 1.0 - shadowDelta, localShadow);
+					collectedShadow += localShadow;
+				}
+				
+				collectedShadow /= steps;
+				collectedShadow = collectedShadow * collectedShadow;
+				#else
+					collectedShadow = 1.0;
+				#endif
+				#if (NOISESAMPLES > 0)
+					for (uint i = 0; i < (NOISESAMPLES); i++){
+						float f = float(i) / (NOISESAMPLES);
+						vec3 rayPos = mix(rayStart.xyz, rayEnd, f + 0.005 * rayJitterOffset);
+					//if (1 == 1){
+						vec4 localNoise =  texture(noise64cube, rayPos.xyz * noiseScale  + noiseOffset); // TODO: SUBSAMPLE THIS ONE!
+						
+						float simplexnoise = SimplexPerlin3D ((rayPos ) * noiseScale * noiseParams.z + noiseOffset);
+
+						float thisraynoise = max(0,localNoise.a + noiseParams.y - simplexnoise);
+						collectedNoise += thisraynoise;
+					}
+					heightBasedFog *= collectedNoise/(NOISESAMPLES);
+				#endif
+				
+			#else// new interleaved sampling
+				
+				#if ((RAYMARCHSTEPS > 0) && (NOISESAMPLES >0))
+					float numShadowSamplesTaken = 0.001;
+					uint shadowSteps = RAYMARCHSTEPS / NOISESAMPLES;
+					float rayJitterOffset = (1 * rand(screenUV)) / steps ;
+					for (uint n = 0; n < NOISESAMPLES; n ++){
+						float f = float(n) / NOISESAMPLES;
+						
+						vec3 rayPos = mix(rayStart.xyz, rayEnd, f + 0.5 * rayJitterOffset);
+						
+						//vec4 localNoise =  texture(noise64cube, rayPos.xyz * noiseScale + noiseOffset); // TODO: SUBSAMPLE THIS ONE!
+						vec3 skewed3dpos = (rayPos.xyz * noiseScale*0.5 + noiseOffset) * vec3(1,4,1);
+						float localNoise = 1.0 - texture(noise64cube, skewed3dpos.xzy).r; // TODO: SUBSAMPLE THIS ONE!
+						#if 1
+							float simplexnoise =  SimplexPerlin3D((rayPos) * noiseScale * noiseParams.z +
+							noiseOffset)*noiseParams.w;
+						#else
+							float a = 0.001;
+							vec3 swirlpos = rayPos.xyz * vec3(1.0, 1.1, 1.2) * a + vec3(time)*a * 0.0001 ;
+							//vec3 swirly = vec3(noise(swirlpos.xyz), noise(swirlpos.yzx), noise(swirlpos.zxy));
+							vec3 swirly = vec3(Value3D(swirlpos.xyz * 1.1 + 31.33), Value3D(swirlpos.yzx * 1.4 + 60.66), Value3D(swirlpos.zxy)); 
+							float simplexnoise = SimplexPerlin3D(swirlpos + swirly * 1.5) * 0.5 + 0.5;
+							//perlinswirl = noise(swirlpos + swirly * 3);
+		
+		
+						#endif
+						//simplexnoise = 0;
+						float thisraynoise = max(0, localNoise.r + noiseParams.y - simplexnoise);
+						
+						// Modulate the noise based on its depth below fogplane:
+						float rayDepthratio = clamp( 1.0 - rayPos.y / (fogPlaneHeight) , 0.0, 1.0);
+						
+						float rayDepthFactor = min(1.0, 1 * rayDepthratio);
+						
+						collectedNoise += thisraynoise * rayDepthFactor;
+						
+						densityposition += vec4(rayPos*thisraynoise, thisraynoise); // collecting the 'center' of the noise cloud
+						if (thisraynoise > 0 ) { // only sample shadow if we have actual fog here!
+							for (uint m = 0; m < shadowSteps; m++){ // step through the small local volume 
+								f += (float(m)) / (steps); 
+								//float f = (float(m) + float(n) * NOISESAMPLES)/ steps;
+								vec3 rayPos = mix(rayStart.xyz, rayEnd, f + rayJitterOffset);
+								
+								float localShadow= shadowAtWorldPos(rayPos); // 1 for lit, 0 for unlit
+								float shadowDelta = 0.25 * (abs(dFdx(localShadow)) + abs(dFdy(localShadow))); // magic smoothing using adjacent pixels
+								
+								localShadow = mix(shadowDelta, 1.0 - shadowDelta, localShadow);
+								collectedShadow += localShadow;
+								numShadowSamplesTaken += 1.0;
+							}
 						}
 					}
-				}
-				collectedShadow /= numShadowSamplesTaken; // get the true litness by only taking into account actual samples taken
-				densityposition.xyz /= densityposition.w;
+					collectedShadow /= numShadowSamplesTaken; // get the true litness by only taking into account actual samples taken
+					densityposition.xyz /= densityposition.w;
 
-				heightBasedFog *= collectedNoise/(NOISESAMPLES);
-			#else // fall back to retard mode
-				collectedShadow = 1.0;
-				densityposition.xyz = (rayStart + rayEnd)*0.5;
+					heightBasedFog *= collectedNoise/(NOISESAMPLES);
+				#else // fall back to retard mode
+					collectedShadow = 1.0;
+					densityposition.xyz = (rayStart + rayEnd)*0.5;
+				#endif
+			
 			#endif
-		
-		#endif
-	}else{
-		collectedShadow = 1.0;
-	}
+		}else{
+			collectedShadow = 1.0;
+		}
+	#endif
 	if (mapWorldPos.y >= fogPlaneHeight){
 		//collectedShadow = 1.0; 
 	}
@@ -323,8 +459,6 @@ void main(void)
 	// but modulate _before_ addition!
 	const float expfactor = fogExpFactor * -0.0001;
 	
-	// calculate the distance fog density
-	float distanceFogAmount = fogGlobalDensity * length(mapFromCam);
 	
 	// Modulate distance fog density with angle of ray compared to sky?
 	vec3 fromCameraNormalized = normalize(mapFromCam);
@@ -346,53 +480,50 @@ void main(void)
 	float heightBasedFogExp = exp(heightBasedFog * expfactor);
 	float distanceFogAmountExp = exp(distanceFogAmount * expfactor);
 	
+	// Sum the two components of fog by multiplication?
 	float totalfog = heightBasedFogExp * distanceFogAmountExp;
 	//float totalfog = exp((heightBasedFogExp + distanceFogAmountExp) * expfactor);
 	
+	// Clamp the total amout of fog at 99%
 	float outputfogalpha = min(0.99, max(0, 1.0 - totalfog));
 	
-	float shadowColorization = clamp(heightBasedFogExp/distanceFogAmountExp,0,1);
 	
 	// Colorize fog based on view angle: TODO do this on center weigth of both !
-
 	float sunAngleCos =  dot( fromCameraNormalized, sunDir.xyz); // this goes from into sun at 1 to sun behind us at -1 
 	
-	float sphericalharmonic = 1.0;//pow(1.3, (cos(cos(sunAngleCos - 1.0) * 3.14*10)));
+	float sphericalharmonic = 0; 
+	if (sunAngleCos >= 0 ) { // This is for facing towards the sun
+		sphericalharmonic = pow( 1.0 * sunAngleCos, fogSunColor.a * 8);
+	}else{	// This is when sun is behind us
+		sphericalharmonic = pow(-1.0 * sunAngleCos, fogSunColor.a * 16) * 0.33;
+	}
 	
-	//reduce sun back glare
-	if (sunAngleCos < 0.0) sunAngleCos = sunAngleCos * sunAngleCos*sunAngleCos*sunAngleCos*sunAngleCos*sunAngleCos*sunAngleCos;
-
-	//sunAngleCos *= ( step( sunAngleCos, 0) * 0.5 +0.5);
-	
-	sphericalharmonic *= abs(sunAngleCos);
-	
-	//sphericalharmonic *= abs(sunAngleCos);
+	// This will be our output color
 	vec3 fogColor = fogGlobalColor.rgb;
 	
-	//sphericalharmonic = step(sunAngleCos, 0.75);
-	fogColor = mix(fogColor, 2*fogSunColor.rgb, pow(sphericalharmonic,4.0));
+	//colorize based on the sun level
+	fogColor = mix(fogColor, 2*fogSunColor.rgb, sphericalharmonic);
 	
 	// Set the base color depending on how shadowed it is, 
 	// shadowed components should tend toward fogGlobalColor
 	vec3 heightFogColor = mix(fogGlobalColor.rgb, fogColor, collectedShadow);
 	
-
-	
 	// Darkened the shadowed bits towards fogShadowedColor
 	fragColor.rgb = mix(vec3(fogShadowedColor), heightFogColor.rgb, collectedShadow);	
 	
 	//Calculate backscatter color from minimap if possible?
-	#if 1 // set to 1 or 0 to turn on/off
-		#if (USEMINIMAP == 1) 
-			vec4 minimapcolor = textureLod(miniMapTex, heighmapUVatWorldPosMirrored(mapWorldPos.xz), 4.0);
-			//fogColor.rgb = mix(fogColor.rgb, minimapcolor.rgb, MINIMAPSCATTER);
-			fragColor.rgb += minimapcolor.rgb * MINIMAPSCATTER * collectedShadow;
-		#endif
+	#if (USEMINIMAP == 1) 
+		vec4 minimapcolor = textureLod(miniMapTex, heighmapUVatWorldPosMirrored(mapWorldPos.xz), 4.0);
+		//fogColor.rgb = mix(fogColor.rgb, minimapcolor.rgb, MINIMAPSCATTER);
+		fragColor.rgb += minimapcolor.rgb * MINIMAPSCATTER * collectedShadow;
 	#endif
 	//fragColor.rgb = fract((mapWorldPos.xyz) / 32 -0.5);
 	//fragColor.a = 1.0;
+	
+	// Colorize the fog wether its in shadow or not
+	float heightDistFogRatio = heightBasedFog / (heightBasedFog + distanceFogAmount);
 	// Above that, mix back regular fog color for distance based fog
-	fragColor.rgb = mix( fogColor.rgb, fragColor.rgb,distanceFogAmountExp);
+	fragColor.rgb = mix( fogColor.rgb, fragColor.rgb,heightDistFogRatio);
 
 	//fragColor.rgb= vec3(1.0);
 	//fragColor.rgba = vec4(heightBasedFogExp, distanceFogAmountExp,0,1);
@@ -400,5 +531,22 @@ void main(void)
 	fragColor.a = outputfogalpha;
 	
 	//fragColor.rgb = vec3(fract(rayLength/200));
+	
+	//Swirly Value3D 
+	
+	
+	
+	//fragColor.a = 1.0;
+	
+	//float a = 0.01;
+	
+
+	//fragColor.rgb = vec3(noise(mapWorldPos.xz * 0.01) ) ;
+	//fragColor.rgb = vec3(perlinswirl*0.5 + swirly.x * 0.5) ;
+	//fragColor.rgb = vec3(perlinswirl) ;
+	///fragColor.rgb = swirly.rrr ;
+	#if (FULLALPHA == 1) 
+		fragColor.a = 1.0;
+	#endif
 	return;
 }

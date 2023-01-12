@@ -25,17 +25,21 @@ local GL_RGBA32F_ARB = 0x8814
 -- Pre optimization at full screen on Colorado is 190 -> 120fps, after 190->150fps
 -- DONE: Fix mixing of shadow marching and noise sampling, with conditional shadow marching
 -- Fix colorization based on sun angle
--- Use a spherical harmonics equation for this?
+-- DONE: Use a spherical harmonics equation for this?
 -- DONE: Fix colorization of height based and distance based fog
--- Use non constant density fog (maybe exponential is better?) (using linear at the moment)
+-- DONE Use non constant density fog (maybe exponential is better?) (using linear at the moment)
 -- Create a better noise texture (also use this for other occasions!)
--- Expose params to be easily tunable
+-- DONE: Expose params to be easily tunable
 -- Create quality 'presets' and auto apply them?
--- copy the whole self-illumination and shading thing from the fog volumes gl4 shader?
 -- DONE: better LOS shader usage?
--- minimap color backscatter
+-- DONE: minimap color backscatter
+-- DONE: Fix blending of shadowed and non-shadowed
 -- handle out-of-map better!
+-- Fix non raytraced fog nonlinearity
 
+
+-- VERY IMPORTANT NOTES:
+-- WHEN NOT USING RAYTRACING, SET FOG RESOLUTION TO 1!!!!!!!!!
 
 ------------- Literature and Reading: ---
 -- blue noise sampling:  https://blog.demofox.org/2020/05/10/ray-marching-fog-with-blue-noise/
@@ -64,24 +68,27 @@ end
 
 local shaderConfig = {
 	-- These are static parameters, cannot be changed during runtime
+	RAYTRACING = 0, -- Specifies wether shadowing and noise are on
 	RAYMARCHSTEPS = 32, -- must be at least one, quite expensive
-	RESOLUTION = 2, -- THIS IS EXTREMELY IMPORTANT and specifies the fog plane resolution as a whole! 1 = max, 2 = half, 4 = quarter etc.
+	RESOLUTION = 1, -- THIS IS EXTREMELY IMPORTANT and specifies the fog plane resolution as a whole! 1 = max, 2 = half, 4 = quarter etc.
 	NOISESAMPLES = 8, -- how many samples of 3D noise to take
 	NOISESCALE = 0.2, -- The tiling pattern of noise
 	NOISETHRESHOLD = -0.0, -- The 0 level of noise
-	USELOS = 1, -- Use the LOS map at all, 1 = yes, 0 = no
+	USELOS = 0, -- Use the LOS map at all, 1 = yes, 0 = no
 	LOSREDUCEFOG = 0, -- how much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los
 	LOSFOGUNDISCOVERED = 1.0, -- This specifies how much more fog there should be where the map has not yet been discovered ever (0 is none, 1 is a lot)
-	USEMINIMAP = 1, -- 0 or 1 to use the minimap for back-scatter
+	USEMINIMAP = 0, -- 0 or 1 to use the minimap for back-scatter
 	MINIMAPSCATTER = 0.1, -- How much the minimap color sdditively back-scatters into fog color, 0 is off
 	WINDSTRENGTH = 1.0, -- How wind affects fog
+	FULLALPHA = 0, -- no-alpha blending
+
 }
 
 
 local shaderConfigNoNoise = {
 	-- These are static parameters, cannot be changed during runtime
 	RAYMARCHSTEPS = 32, -- must be at least one, quite expensive
-	RESOLUTION = 2, -- THIS IS EXTREMELY IMPORTANT and specifies the fog plane resolution as a whole! 1 = max, 2 = half, 4 = quarter etc.
+	RESOLUTION = 1, -- THIS IS EXTREMELY IMPORTANT and specifies the fog plane resolution as a whole! 1 = max, 2 = half, 4 = quarter etc.
 	NOISESAMPLES = 6, -- how many samples of 3D noise to take
 	NOISESCALE = 1.2,
 	NOISETHRESHOLD = -0.0,
@@ -93,7 +100,7 @@ local shaderConfigNoNoise = {
 local minHeight, maxHeight = Spring.GetGroundExtremes()
 local fogUniforms = {
 	fogGlobalColor = {0.6,0.7,0.8,1}, -- bluish
-	fogSunColor = {1.0,0.9,0.8,1}, -- yellowish
+	fogSunColor = {1.0,0.9,0.8,1}, -- yellowish, alpha is power
 	fogShadowedColor = {0.1,0.05,0.1,1}, -- purleish tint
 	fogPlaneHeight = (math.max(minHeight,0) + maxHeight) /1.7 ,
 	fogGlobalDensity = 1.50,
@@ -111,7 +118,7 @@ local fogUniforms = {
 local fogUniformSliders = {
 	name = "fogUniformSliders",
 	left = vsx - 270, 
-	bottom = 500, 
+	bottom = 600, 
 	width = 250, 
 	height = 26,
 	valuetarget = fogUniforms,
@@ -149,8 +156,8 @@ local fogUniformsBluish = { -- bluish tint, not very good
 local autoreload = true
 
 --local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
---local noisetex3dcube =  "LuaUI/images/noisetextures/cloudy8_256x256x64_L.dds"
-local noisetex3dcube =  "LuaUI/images/noisetextures/cloudy8_a_128x128x32_L.dds"
+local noisetex3dcube =  "LuaUI/images/noisetextures/cloudy8_256x256x64_L.dds"
+--local noisetex3dcube =  "LuaUI/images/noisetextures/cloudy8_a_128x128x32_L.dds"
 local simpledither = "LuaUI/images/rgba_noise_256.tga"
 local worley3d128 = "LuaUI/images/worley_rgbnorm_01_asum_128_v1.dds"
 local dithernoise2d =  "LuaUI/images/lavadistortion.png"
@@ -253,6 +260,9 @@ local function shaderDefinesChangedCallback(name, value)
 	Spring.Echo("shaderDefinesChangedCallback()", name, value, shaderConfig[name])
 	shaderSourceCache.forceupdate = true
 	groundFogShader =  LuaShader.CheckShaderUpdates(shaderSourceCache) or groundFogShader
+	if name == 'RESOLUTION' then 
+		widget:ViewResize()
+	end
 end
 
 local shaderDefinedSliders = {
@@ -260,14 +270,17 @@ local shaderDefinedSliders = {
 	left = vsx - 270, 
 	bottom = 200, 
 	width = 250, 
-	height = 30,
+	height = 26,
 	valuetarget = shaderConfig,
 	sliderParamsList = {
+		{name = 'RESOLUTION', min = 1, max = 4, digits = 0, tooltip = 'Fog power of two resolution'},
+		{name = 'RAYTRACING', min = 0, max = 1, digits = 0, tooltip = 'Use any raytracing, 1 = yes, 0 = no'},
 		{name = 'RAYMARCHSTEPS', min = 1, max = 128, digits = 0, tooltip =  'must be at least one, quite expensive'},
 		{name = 'NOISESAMPLES', min = 1, max = 64, digits = 0, tooltip = 'how many samples of 3D noise to take'},
 		{name = 'NOISESCALE', min = 0, max = 2, digits = 2, tooltip = 'The tiling pattern of noise'},
 		{name = 'NOISETHRESHOLD', min = -1, max = 1, digits = 2, tooltip =  'The 0 level of noise'},
 		{name = 'USELOS', min = 0, max = 1, digits = 0, tooltip = 'Use the LOS map at all, 1 = yes, 0 = no'},
+		{name = 'FULLALPHA', min = 0, max = 1, digits = 0, tooltip = 'Show ONLY fog'},
 		{name = 'LOSREDUCEFOG', min = 0, max = 1, digits = 2, tooltip = 'how much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los'},
 		{name = 'LOSFOGUNDISCOVERED', min = 0, max = 1, digits= 2, tooltip = 'This specifies how much more fog there should be where the map has not yet been discovered ever (0 is none, 1 is a lot)'},
 		{name = 'USEMINIMAP', min = 0, max = 1, digits = 0, tooltip = '0 or 1 to use the minimap for back-scatter'},
@@ -315,10 +328,11 @@ function widget:Initialize()
 				vec2 distUV = gl_TexCoord[0].st * 4 + vec2(0, - gameframe*4);
 				//distUV = vec2(0.0);
 				vec4 dist = (texture2D(distortion, distUV) * 2.0 - 1.0) * distortionlevel;
-				vec4 dx = dFdx(dist);
-				vec4 dy = dFdy(dist);
+				//vec4 dx = dFdx(dist);
+				//vec4 dy = dFdy(dist);
 				
-				gl_FragColor = texture2D(fogbase, gl_TexCoord[0].st + dist.xy);
+				//gl_FragColor = texture2D(fogbase, gl_TexCoord[0].st + dist.xy);
+				gl_FragColor = texture2D(fogbase, gl_TexCoord[0].st);
 			}
 		]],
 		uniformInt = { fogbase = 0, distortion = 1},
@@ -363,9 +377,9 @@ end
 local toTexture = true
 
 local function renderToTextureFunc() -- this draws the fogspheres onto the texture
-	gl.Clear(GL.COLOR_BUFFER_BIT)
-	gl.DepthMask(false) 
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	--gl.DepthMask(false) 
+	--gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Blending(GL.ONE, GL.ZERO)
 	fogPlaneVAO:DrawElements(GL.TRIANGLES)
 end
 
@@ -406,10 +420,11 @@ function widget:DrawWorld()
 			groundFogShader:SetUniformFloat(uniformName, uniformValue[1], uniformValue[2], uniformValue[3], uniformValue[4])
 		end
 	end
-	
+	toTexture = shaderConfig.RESOLUTION ~= 1
 	if toTexture then 
 		gl.RenderToTexture(fogTexture, renderToTextureFunc)
 	else
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		fogPlaneVAO:DrawElements(GL.TRIANGLES)
 	end
 
@@ -427,8 +442,8 @@ function widget:DrawWorld()
 			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		end
 		combineShader:Activate()
-		combineShader:SetUniformFloat("gameframe", Spring.GetGameFrame()/1000)
-		combineShader:SetUniformFloat("distortionlevel", 0.0001) -- 0.001
+		--combineShader:SetUniformFloat("gameframe", Spring.GetGameFrame()/1000)
+		--combineShader:SetUniformFloat("distortionlevel", 0.0001) -- 0.001
 		gl.Texture(0, fogTexture)
 		gl.Texture(1, distortiontex)
 		gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
