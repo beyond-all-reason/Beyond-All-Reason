@@ -1445,7 +1445,7 @@ Draw.Element = function(VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl
 	-- tile
 	if tileopacity > 0 then
 		--gl.Color(1,1,1, tileopacity)
-		local bgtile = Draw.TexturedRectRound(VBO, nil, z-0.007,px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, bgtexSize, (px+pxPad)/WG.FlowUI.vsx/bgtexSize, (py+pyPad)/WG.FlowUI.vsy/bgtexSize, "luaui/images/flowui_gl4/backgroundtile.png")
+		local bgtile = Draw.TexturedRectRound(VBO, nil, z-0.007,px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, bgtexSize, (px+pxPad)/WG.FlowUI.vsx/bgtexSize, (py+pyPad)/WG.FlowUI.vsy/bgtexSize, "luaui/images/flowui_gl4/backgroundtile.png", {1,1,1,tileopacity})
 		instanceIDs[#instanceIDs + 1 ] = bgtile
 	end
 	return instanceIDs
