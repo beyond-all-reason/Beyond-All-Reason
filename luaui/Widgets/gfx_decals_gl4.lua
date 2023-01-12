@@ -247,7 +247,7 @@ local function goodbye(reason)
 end
 
 local function initGL4( DPATname)
-	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == false)
+	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 	if hasBadCulling then Spring.Echo("Decals GL4 detected AMD + Linux platform, attempting to fix culling") end 
 	decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
 	decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache)
