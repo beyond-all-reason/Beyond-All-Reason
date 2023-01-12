@@ -401,7 +401,7 @@ void main(void)
 						#if 1
 							float simplexnoise =  SimplexPerlin3D((rayPos) * noiseScale * noiseParams.z +
 							noiseOffset)*noiseParams.w;
-						#else
+						#else // yeah nested perlin is uggo
 							float a = 0.001;
 							vec3 swirlpos = rayPos.xyz * vec3(1.0, 1.1, 1.2) * a + vec3(time)*a * 0.0001 ;
 							//vec3 swirly = vec3(noise(swirlpos.xyz), noise(swirlpos.yzx), noise(swirlpos.zxy));
@@ -462,8 +462,10 @@ void main(void)
 	
 	// Modulate distance fog density with angle of ray compared to sky?
 	vec3 fromCameraNormalized = normalize(mapFromCam);
+	float rayUpness = 1.0;
 	if (fromCameraNormalized.y > 0) {
-		distanceFogAmount *= pow(1.0 - fromCameraNormalized.y, 16.0) ;
+		rayUpness = pow(1.0 - fromCameraNormalized.y, 8.0);
+		distanceFogAmount *= rayUpness;
 	}
 	
 
@@ -515,7 +517,7 @@ void main(void)
 	#if (USEMINIMAP == 1) 
 		vec4 minimapcolor = textureLod(miniMapTex, heighmapUVatWorldPosMirrored(mapWorldPos.xz), 4.0);
 		//fogColor.rgb = mix(fogColor.rgb, minimapcolor.rgb, MINIMAPSCATTER);
-		fragColor.rgb += minimapcolor.rgb * MINIMAPSCATTER * collectedShadow;
+		fragColor.rgb += minimapcolor.rgb * MINIMAPSCATTER * collectedShadow * rayUpness;
 	#endif
 	//fragColor.rgb = fract((mapWorldPos.xyz) / 32 -0.5);
 	//fragColor.a = 1.0;

@@ -100,7 +100,7 @@ local shaderConfigNoNoise = {
 local minHeight, maxHeight = Spring.GetGroundExtremes()
 local fogUniforms = {
 	fogGlobalColor = {0.6,0.7,0.8,1}, -- bluish
-	fogSunColor = {1.0,0.9,0.8,1}, -- yellowish, alpha is power
+	fogSunColor = {1.0,0.9,0.8,0.35}, -- yellowish, alpha is power
 	fogShadowedColor = {0.1,0.05,0.1,1}, -- purleish tint
 	fogPlaneHeight = (math.max(minHeight,0) + maxHeight) /1.7 ,
 	fogGlobalDensity = 1.50,
@@ -285,7 +285,7 @@ local shaderDefinedSliders = {
 		{name = 'LOSFOGUNDISCOVERED', min = 0, max = 1, digits= 2, tooltip = 'This specifies how much more fog there should be where the map has not yet been discovered ever (0 is none, 1 is a lot)'},
 		{name = 'USEMINIMAP', min = 0, max = 1, digits = 0, tooltip = '0 or 1 to use the minimap for back-scatter'},
 		{name = 'WINDSTRENGTH', min = 0, max = 4, digits = 2, tooltip = 'Speed multiplier for wind'},
-		{name = 'MINIMAPSCATTER', min = -1, max = 1, digits = 2, tooltip = 'How much the minimap color sdditively back-scatters into fog color, 0 is off'},},
+		{name = 'MINIMAPSCATTER', min = -0.5, max = 0.5, digits = 2, tooltip = 'How much the minimap color sdditively back-scatters into fog color, 0 is off'},},
 	callbackfunc = shaderDefinesChangedCallback
 }
 
