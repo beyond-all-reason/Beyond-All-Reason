@@ -2106,14 +2106,19 @@ function init()
 			  saveOptionValue('Decals GL4', 'decalsgl4', 'SetLifeTimeMult', { 'lifeTimeMult' }, value)
 		  end,
 		},
-
-		{ id = "decals", group = "gfx", category = types.advanced, name = texts.option.decals, restart = true, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 3) or 3) >= 1, description = texts.option.decals_descr,
+		{ id = "decals", group = "gfx", category = types.basic, name = texts.option.decals, restart = true, min = 0, max = 5, step = 1, type = "slider", value = Spring.GetConfigInt("GroundDecals", 0), description = texts.option.decals_descr,
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("GroundDecals", (value and 3 or 0))
-			  Spring.SendCommands("GroundDecals " .. (value and 3 or 0))
-			  Spring.SetConfigInt("GroundScarAlphaFade", 1)
+			  Spring.SetConfigInt("GroundDecals", value)
+			  Spring.SendCommands("GroundDecals " .. value)
 		  end,
 		},
+		--{ id = "decals", group = "gfx", category = types.advanced, name = texts.option.decals, restart = true, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 3) or 3) >= 1, description = texts.option.decals_descr,
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("GroundDecals", (value and 3 or 0))
+		--	  Spring.SendCommands("GroundDecals " .. (value and 3 or 0))
+		--	  Spring.SetConfigInt("GroundScarAlphaFade", 1)
+		--  end,
+		--},
 
 		{ id = "grass", group = "gfx", category = types.basic, widget = "Map Grass GL4", name = texts.option.grass, type = "bool", value = GetWidgetToggleValue("Map Grass GL4"), description = texts.option.grass_desc },
 		{ id = "grassdistance", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.grassdistance, type = "slider", min = 0.3, max = 1, step = 0.01, value = 1, description = texts.option.grassdistance_descr,
