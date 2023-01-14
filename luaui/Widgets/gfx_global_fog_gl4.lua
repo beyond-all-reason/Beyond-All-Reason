@@ -83,6 +83,28 @@ local shaderConfig = {
 	WINDSTRENGTH = 1.0, -- How wind affects fog
 	FULLALPHA = 0, -- no-alpha blending
 	SUNCHROMASHIFT = 0.2, -- How much colors are shifted towards sun
+	EASEGLOBAL = 2, -- How much to reduce near fog
+	EASEHEIGHT = 1, -- How much to reduce near fog
+}
+
+local definesSlidersParamsList = {
+	{name = 'RESOLUTION', min = 1, max = 4, digits = 0, tooltip = 'Fog power of two resolution'},
+	{name = 'RAYTRACING', min = 0, max = 1, digits = 0, tooltip = 'Use any raytracing, 1 = yes, 0 = no'},
+	{name = 'RAYMARCHSTEPS', min = 1, max = 128, digits = 0, tooltip =  'must be at least one, quite expensive'},
+	{name = 'NOISESAMPLES', min = 1, max = 64, digits = 0, tooltip = 'how many samples of 3D noise to take'},
+	{name = 'NOISESCALE', min = 0, max = 2, digits = 2, tooltip = 'The tiling pattern of noise'},
+	{name = 'NOISETHRESHOLD', min = -1, max = 1, digits = 2, tooltip =  'The 0 level of noise'},
+	{name = 'USELOS', min = 0, max = 1, digits = 0, tooltip = 'Use the LOS map at all, 1 = yes, 0 = no'},
+	{name = 'FULLALPHA', min = 0, max = 1, digits = 0, tooltip = 'Show ONLY fog'},
+	{name = 'LOSREDUCEFOG', min = 0, max = 1, digits = 2, tooltip = 'how much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los'},
+	{name = 'LOSFOGUNDISCOVERED', min = 0, max = 1, digits= 2, tooltip = 'This specifies how much more fog there should be where the map has not yet been discovered ever (0 is none, 1 is a lot)'},
+	{name = 'USEMINIMAP', min = 0, max = 1, digits = 0, tooltip = '0 or 1 to use the minimap for back-scatter'},
+	{name = 'WINDSTRENGTH', min = 0, max = 4, digits = 2, tooltip = 'Speed multiplier for wind'},
+	{name = 'HEIGHTDENSITY', min = 1, max = 10, digits = 2, tooltip = 'How quickly height fog reaches its max density'},
+	{name = 'SUNCHROMASHIFT', min = -0.5, max = 1, digits = 2, tooltip = 'How much colors are shifted towards sun'},
+	{name = 'MINIMAPSCATTER', min = -0.5, max = 0.5, digits = 2, tooltip = 'How much the minimap color sdditively back-scatters into fog color, 0 is off'},
+	{name = 'EASEGLOBAL', min = 1, max = 10, digits = 2, tooltip = 'How much to reduce global fog close to camera'},
+	{name = 'EASEHEIGHT', min = 0.5, max = 3, digits = 2, tooltip = 'How much to reduce height-based fog close to camera'},
 }
 
 local minHeight, maxHeight = Spring.GetGroundExtremes()
@@ -200,9 +222,7 @@ local shaderSourceCache = {
 		shaderConfig = shaderConfig
 	}
 
-
-
-function widget:ViewResize()
+local function makeFogTexture()
 	vsx, vsy = Spring.GetViewGeometry()
 
 	if fogTexture then gl.DeleteTexture(fogTexture) end
@@ -215,6 +235,11 @@ function widget:ViewResize()
 		fbo = true,
 		format = GL_RGBA32F_ARB,
 		})
+end
+
+
+function widget:ViewResize()
+	makeFogTexture()
 end
 
 widget:ViewResize()
@@ -245,11 +270,11 @@ local function SetFogParams(paramname, paramvalue, paramIndex)
 end
 
 local function shaderDefinesChangedCallback(name, value)
-	Spring.Echo("shaderDefinesChangedCallback()", name, value, shaderConfig[name])
+	--Spring.Echo("shaderDefinesChangedCallback()", name, value, shaderConfig[name])
 	shaderSourceCache.forceupdate = true
 	groundFogShader =  LuaShader.CheckShaderUpdates(shaderSourceCache) or groundFogShader
 	if name == 'RESOLUTION' then 
-		widget:ViewResize()
+		makeFogTexture()
 	end
 end
 
@@ -260,22 +285,7 @@ local shaderDefinedSliders = {
 	width = 250, 
 	height = 24,
 	valuetarget = shaderConfig,
-	sliderParamsList = {
-		{name = 'RESOLUTION', min = 1, max = 4, digits = 0, tooltip = 'Fog power of two resolution'},
-		{name = 'RAYTRACING', min = 0, max = 1, digits = 0, tooltip = 'Use any raytracing, 1 = yes, 0 = no'},
-		{name = 'RAYMARCHSTEPS', min = 1, max = 128, digits = 0, tooltip =  'must be at least one, quite expensive'},
-		{name = 'NOISESAMPLES', min = 1, max = 64, digits = 0, tooltip = 'how many samples of 3D noise to take'},
-		{name = 'NOISESCALE', min = 0, max = 2, digits = 2, tooltip = 'The tiling pattern of noise'},
-		{name = 'NOISETHRESHOLD', min = -1, max = 1, digits = 2, tooltip =  'The 0 level of noise'},
-		{name = 'USELOS', min = 0, max = 1, digits = 0, tooltip = 'Use the LOS map at all, 1 = yes, 0 = no'},
-		{name = 'FULLALPHA', min = 0, max = 1, digits = 0, tooltip = 'Show ONLY fog'},
-		{name = 'LOSREDUCEFOG', min = 0, max = 1, digits = 2, tooltip = 'how much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los'},
-		{name = 'LOSFOGUNDISCOVERED', min = 0, max = 1, digits= 2, tooltip = 'This specifies how much more fog there should be where the map has not yet been discovered ever (0 is none, 1 is a lot)'},
-		{name = 'USEMINIMAP', min = 0, max = 1, digits = 0, tooltip = '0 or 1 to use the minimap for back-scatter'},
-		{name = 'WINDSTRENGTH', min = 0, max = 4, digits = 2, tooltip = 'Speed multiplier for wind'},
-		{name = 'HEIGHTDENSITY', min = 1, max = 10, digits = 2, tooltip = 'How quickly height fog reaches its max density'},
-		{name = 'SUNCHROMASHIFT', min = -0.5, max = 1, digits = 2, tooltip = 'How much colors are shifted towards sun'},
-		{name = 'MINIMAPSCATTER', min = -0.5, max = 0.5, digits = 2, tooltip = 'How much the minimap color sdditively back-scatters into fog color, 0 is off'},},
+	sliderParamsList = definesSlidersParamsList,
 	callbackfunc = shaderDefinesChangedCallback
 }
 
@@ -425,12 +435,7 @@ function widget:DrawWorld()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	-- glColorMask(false, false, false, false)
 	if toTexture then 
-		local alt, ctrl, meta, shft = Spring.GetModKeyState()	
-		if shft then
-			gl.Blending(GL.ONE, GL.ZERO)
-		else
-			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		end
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		combineShader:Activate()
 		--combineShader:SetUniformFloat("gameframe", Spring.GetGameFrame()/1000)
 		--combineShader:SetUniformFloat("distortionlevel", 0.0001) -- 0.001

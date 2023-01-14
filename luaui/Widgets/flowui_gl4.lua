@@ -13,6 +13,8 @@ function widget:GetInfo()
 	}
 end
 
+local debugmode = false
+
 local glLineWidth = gl.LineWidth
 local glDepthTest = gl.DepthTest
 local GL_LINES = GL.LINES
@@ -211,7 +213,7 @@ function metaElement:UpdateTextPosition(newtext) -- for internal use only!
 	local elementheight = self.top - self.bottom
 	local alignInteger = tonumber(newtext.alignment) or self.textalignments[newtext.alignment] or 5 --default center
 	
-	Spring.Echo(newtext.alignment, newtext.text, newtext.textwidth, newtext.textheight, elementwidth, elementheight)
+	if debugmode then Spring.Echo(newtext.alignment, newtext.text, newtext.textwidth, newtext.textheight, elementwidth, elementheight) end
 	--if true then return end
 	--X coord
 	if alignInteger % 3 == 1 then -- left
@@ -549,7 +551,6 @@ local function makeSliderList(sliderListConfig)
 			numelements = numelements + 1
 		end
 	end
-	Spring.Echo(i)
 	-- create a UI container:
 	local container = metaElement:NewUiElement({
 		name = sliderListConfig.name, left = left -4, bottom = bottom -4, right = left + width + 4, top = bottom + (numelements + 1) * height + 4,
@@ -600,7 +601,7 @@ local function makeSliderList(sliderListConfig)
 						local wratio = (mx - obj.left) / (obj.right - obj.left)
 						local newvalue = math.round(obj.min + wratio * (obj.max-obj.min), obj.digits)
 						local newright = ((newvalue - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
-						Spring.Echo("left clicked", obj.name, mx, wratio, newvalue, newright) 
+						if debugmode then Spring.Echo("left clicked", obj.name, mx, wratio, newvalue, newright) end
 						updateValue(obj, newvalue, obj.index)
 						obj:UpdateVBOKeys('right', newright)
 					end, 
@@ -608,7 +609,7 @@ local function makeSliderList(sliderListConfig)
 						updateValue(obj, obj.defaultvalue, obj.index)
 						local newright = ((obj.value - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
 						obj:UpdateVBOKeys('right', newright)
-						Spring.Echo("right clicked", obj.name, mx, my, newright, obj.value)
+						if debugmode then  Spring.Echo("right clicked", obj.name, mx, my, newright, obj.value) end
 					end, 
 					hover = function (obj,mx,my) 
 						if sliderParams.tooltip and WG and WG['tooltip'] and WG['tooltip'].ShowTooltip then 

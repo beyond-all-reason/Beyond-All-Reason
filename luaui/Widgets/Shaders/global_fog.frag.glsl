@@ -106,7 +106,7 @@ float Value3D( vec3 P )
 
 
 //  https://github.com/BrianSharpe/Wombat/blob/master/Value3D.glsl
-float Value3D3( vec3 P )
+vec4 Value3D3( vec3 P )
 {
     // establish our grid cell and unit position
     vec3 Pi = floor(P);
@@ -126,10 +126,12 @@ float Value3D3( vec3 P )
     vec4 hash_highz = fract( Pt * hash_mod.yyyy );
 
     //	blend the results and return
-    vec3 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
+    //vec3 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
+    vec3 blend = Pf * Pf * (3.0 - 2.0 * Pf); // better than 5th order as above (and faster)
     vec4 res0 = mix( hash_lowz, hash_highz, blend.z );
     vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) );
-    return dot( res0, blend2.zxzx * blend2.wwyy );
+	
+    return vec4(dot( res0, blend2.zxzx * blend2.wwyy ), blend);
 }
 
 float SimplexPerlin3D( vec3 P ){
@@ -351,7 +353,7 @@ void main(void)
 		// Marching:
 		const float steps = RAYMARCHSTEPS;
 		float noiseScale =  0.001;
-		vec3 noiseOffset = vec3(windX, time, windZ) * noiseScale * WINDSTRENGTH * 3;
+		vec3 noiseOffset = vec3(windX, - time, windZ) * noiseScale * WINDSTRENGTH * 3;
 	
 		if (rayLength> 0.0001 && inlos < 0.99) { 
 			#if 0 // old deprecated method
@@ -402,7 +404,7 @@ void main(void)
 						vec3 skewed3dpos = (rayPos.xyz * noiseScale * noiseParams.x + noiseOffset) * vec3(1,4,1);
 						float localNoise = 1.0 - texture(noise64cube, skewed3dpos.xzy).r; // TODO: SUBSAMPLE THIS ONE!
 						#if 1
-							float simplexnoise =  SimplexPerlin3D((rayPos) * noiseScale * noiseParams.z +
+							float simplexnoise =  SimplexPerlin3D((rayPos) * noiseScale * noiseParams.x +
 							noiseOffset) * noiseParams.w;
 						#else // yeah nested perlin is uggo
 							float a = 0.001;
@@ -477,6 +479,21 @@ void main(void)
 	
 	float heightBasedFogExp = exp(heightBasedFog * expfactor);
 	float distanceFogAmountExp = exp(distanceFogAmount * expfactor);
+	
+	
+	#if 0 
+		float dE = 0.2; // distanceEase
+		float invertDistFog = 1.0 - distanceFogAmountExp;
+		float correctionFactor = 1.0 / (sqrt(1 + dE*dE) - dE);
+		float easeFog = 1.0 - (sqrt(invertDistFog * invertDistFog + dE * dE) - dE) * correctionFactor;
+		distanceFogAmountExp = easeFog;
+	#else
+		// power easing
+		distanceFogAmountExp = 1.0 - pow(1.0 - distanceFogAmountExp, EASEGLOBAL);
+		heightBasedFogExp    = 1.0 - pow(1.0 - heightBasedFogExp, EASEHEIGHT);
+		
+	#endif
+	
 	
 	// Sum the two components of fog by multiplication?
 	float totalfog = heightBasedFogExp * distanceFogAmountExp;
