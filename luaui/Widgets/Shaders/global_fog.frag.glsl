@@ -291,6 +291,8 @@ void main(void)
 	vec3 rayEnd = camPos.xyz; // Ends at closes point
 	float rayFractionInFog = 0; 
 	
+	//float heightEaseFactor = 0; // this is for weighting close-to-camera fog events, large numbers mean use HEIGHTEASED factor
+	
 	// If raystart is above the fog plane height
 	if (mapWorldPos.y > fogPlaneHeight) {
 		if (camPos.y > fogPlaneHeight) { // Cam is above fog too (B), so no fog at all
@@ -308,7 +310,10 @@ void main(void)
 		}
 	}
 	float rayLength = length(rayEnd - rayStart);
-	float heightBasedFog = fogGroundDensity * rayLength * 400;
+ 
+	float heightBasedFog = fogGroundDensity * rayLength * 400 * smoothstep(0.0,400.0 * EASEHEIGHT, length(rayStart-camPos));
+	
+
 	
 	// calculate the distance fog density
 	float distanceFogAmount = fogGlobalDensity * length(mapFromCam);
@@ -421,6 +426,8 @@ void main(void)
 						// Fog reaches full density at half depth to waterplane
 						rayDepthratio = clamp(rayDepthratio * HEIGHTDENSITY, 0, 1);
 						
+
+						
 						collectedNoise += thisraynoise * rayDepthratio;
 						
 						densityposition += vec4(rayPos*thisraynoise, thisraynoise); // collecting the 'center' of the noise cloud
@@ -440,6 +447,10 @@ void main(void)
 						//}
 					}
 					collectedShadow /= numShadowSamplesTaken; // get the true litness by only taking into account actual samples taken
+					
+					//apply shadow power:
+					collectedShadow = pow(collectedShadow, 2* fogShadowedColor.a);
+					
 					densityposition.xyz /= densityposition.w;
 
 					heightBasedFog *= collectedNoise/(NOISESAMPLES);
@@ -490,7 +501,7 @@ void main(void)
 	#else
 		// power easing
 		distanceFogAmountExp = 1.0 - pow(1.0 - distanceFogAmountExp, EASEGLOBAL);
-		heightBasedFogExp    = 1.0 - pow(1.0 - heightBasedFogExp, EASEHEIGHT);
+		//heightBasedFogExp    = 1.0 - pow(1.0 - heightBasedFogExp, EASEHEIGHT);
 		
 	#endif
 	

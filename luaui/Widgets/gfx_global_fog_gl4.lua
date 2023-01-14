@@ -103,15 +103,15 @@ local definesSlidersParamsList = {
 	{name = 'HEIGHTDENSITY', min = 1, max = 10, digits = 2, tooltip = 'How quickly height fog reaches its max density'},
 	{name = 'SUNCHROMASHIFT', min = -0.5, max = 1, digits = 2, tooltip = 'How much colors are shifted towards sun'},
 	{name = 'MINIMAPSCATTER', min = -0.5, max = 0.5, digits = 2, tooltip = 'How much the minimap color sdditively back-scatters into fog color, 0 is off'},
-	{name = 'EASEGLOBAL', min = 1, max = 10, digits = 2, tooltip = 'How much to reduce global fog close to camera'},
-	{name = 'EASEHEIGHT', min = 0.5, max = 3, digits = 2, tooltip = 'How much to reduce height-based fog close to camera'},
+	{name = 'EASEGLOBAL', min = 1, max = 50, digits = 2, tooltip = 'How much to reduce global fog close to camera'},
+	{name = 'EASEHEIGHT', min = 0.0, max = 5, digits = 2, tooltip = 'How much to reduce height-based fog close to camera'},
 }
 
 local minHeight, maxHeight = Spring.GetGroundExtremes()
 local fogUniforms = {
 	fogGlobalColor = {0.6,0.7,0.8,0.98}, -- bluish, alpha is the ABSOLUTE MAXIMUM FOG
 	fogSunColor = {1.0,0.9,0.8,0.35}, -- yellowish, alpha is power
-	fogShadowedColor = {0.1,0.05,0.1,1}, -- purleish tint
+	fogShadowedColor = {0.1,0.05,0.1,0.5}, -- purleish tint, alpha is power
 	fogPlaneHeight = (math.max(minHeight,0) + maxHeight) /1.7 , -- Start of the height thing
 	fogGlobalDensity = 1.50, -- How dense the global fog is
 	fogGroundDensity = 0.25, -- How dense the height-based fog is
