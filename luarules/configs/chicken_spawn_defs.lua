@@ -12,100 +12,35 @@ local difficulties = {
 }
 
 local difficulty = difficulties[Spring.GetModOptions().chicken_difficulty]
-
-local burrowName = 'chicken_hive'
 local waves = {}
 local basicWaves = {}
 local specialWaves = {}
 local superWaves = {}
 local airWaves = {}
 
-local chickenTypes = {
-	ve_chickenq    						=  true,
-	e_chickenq     						=  true,
-	n_chickenq     						=  true,
-	h_chickenq     						=  true,
-	vh_chickenq    						=  true,
-	chicken1       						=  true,
-	chicken1_mini						=  true,
-	chicken1b      						=  true,
-	chicken1c      						=  true,
-	chicken1d      						=  true,
-	chicken1x      						=  true,
-	chicken1y      						=  true,
-	chicken1z      						=  true,
-	chicken2       						=  true,
-	chicken2b      						=  true,
-	chickena1      						=  true,
-	chickena1b     						=  true,
-	chickena1c     						=  true,
-	chickenallterraina1					=  true,
-	chickenallterraina1b				=  true,
-	chickenallterraina1c				=  true,
-	chickena2      						=  true,
-	chickena2b     						=  true,
-	chickenapexallterrainassault 		=  true,
-	chickenapexallterrainassaultb 		=  true,
-	chickens1      						=  true,
-	chickens2      						=  true,
-	chicken_dodo1  						=  true,
-	chicken_dodo2  						=  true,
-	chicken_dodoair						=  true,
-	chickenf1      						=  true,
-	chickenf1b     						=  true,
-	chickenf1apex      					=  true,
-	chickenf1apexb     					=  true,
-	chickenf2      						=  true,
-	chickenc3      						=  true,
-	chickenc3b     						=  true,
-	chickenc3c     						=  true,
-	chickenr1      						=  true,
-	chickenr2      						=  true,
-	chickenh1      						=  true,
-	chickenh1b     						=  true,
-	chickenh2      						=  true,
-	chickenh3      						=  true,
-	chickenh4      						=  true,
-	chickenh5      						=  true,
-	chickenw1      						=  true,
-	chickenw1b     						=  true,
-	chickenw1c     						=  true,
-	chickenw1d     						=  true,
-	chickenw2      						=  true,
-	chickenp1      						=  true,
-	chickenp2      						=  true,
-	chickenpyroallterrain				=  true,
-	chickene1	   						=  true,
-	chickene2	   						=  true,
-	chickenearty1  						=  true,
-	chickenebomber1 					=  true,
-	chickenelectricallterrain 			=  true,
-	chickenelectricallterrainassault 	=  true,
-	chickenacidswarmer 					=  true,
-	chickenacidassault 					=  true,
-	chickenacidarty 					=  true,
-	chickenacidbomber 					=  true,
-	chickenacidallterrain				=  true,
-	chickenacidallterrainassault		=  true,
-	chicken1x_spectre					=  true,
-	chicken2_spectre					=  true,
-	chickena1_spectre					=  true,
-	chickena2_spectre					=  true,
-	chickens2_spectre					=  true,
+local burrowName = 'chicken_hive'
 
-	chicken_miniqueen_electric			=  true,
-	chicken_miniqueen_acid				=  true,
-	chicken_miniqueen_healer			=  true,
-	chicken_miniqueen_basic 			=  true,
-	chicken_miniqueen_fire 				=  true,
-	chicken_miniqueen_spectre 			=  true,
-  }
+local chickenTurrets = {
+	lightTurrets = { 					-- Spawn from the start
+		"chicken_turrets",
+	},
+	heavyTurrets = { 					-- Spawn from 20% queen anger
+		"chicken_turretl",
+	},
+	specialLightTurrets = { 			-- Spawn from 40% queen anger alongside lightTurrets
+		"chicken_turrets_acid",
+		"chicken_turrets_electric",
+	},
+	specialHeavyTurrets = { 			-- Spawn from 60% queen anger alongside heavyTurrets
+		"chicken_turretl_acid",
+		"chicken_turretl_electric",
+	},
+	burrowDefenders = {					-- Spawns connected to burrow
+		"chicken_turrets_burrow",
+	},
+}
 
-  local defenders = {
-	chicken_turrets_burrow = true,
-  }
-
-  local chickenEggs = {
+local chickenEggs = { -- Specify eggs dropped by unit here, requires useEggs to be true, if some unit is not specified here, it drops random egg colors.
 	chicken1       						=   "purple", 
 	chicken1_mini						=   "purple",
 	chicken1b      						=   "pink",
@@ -179,7 +114,100 @@ local chickenTypes = {
 	chicken_miniqueen_basic 			=  	"pink",
 	chicken_miniqueen_fire 				=  	"darkred",
 	chicken_miniqueen_spectre 				=  	"yellow",
-  }
+}
+
+chickenBehaviours = {
+	SKIRMISH = { -- Run away from target after target gets hit
+		[UnitDefNames["chickens1"].id] = { distance = 270, chance = 0.5 },
+		[UnitDefNames["chickens2"].id] = { distance = 250, chance = 0.5 },
+		[UnitDefNames["chickenr1"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenr2"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickene1"].id] = { distance = 300, chance = 1 },
+		[UnitDefNames["chickene2"].id] = { distance = 200, chance = 0.01 },	
+		[UnitDefNames["chickenelectricallterrainassault"].id] = { distance = 200, chance = 0.01 },
+		[UnitDefNames["chickenearty1"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenelectricallterrain"].id] = { distance = 300, chance = 1 },
+		[UnitDefNames["chickenacidswarmer"].id] = { distance = 300, chance = 1 },
+		[UnitDefNames["chickenacidassault"].id] = { distance = 200, chance = 1 },
+		[UnitDefNames["chickenacidallterrainassault"].id] = { distance = 200, chance = 1 },
+		[UnitDefNames["chickenacidarty"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenacidallterrain"].id] = { distance = 300, chance = 1 },
+		[UnitDefNames["chickenh2"].id] = { distance = 500, chance = 0.25 },
+		[UnitDefNames["chicken1x_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chicken2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chickens2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
+	},
+	COWARD = { -- Run away from target after getting hit by enemy
+		[UnitDefNames["chickenh1"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenh1b"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickens1"].id] = { distance = 270, chance = 0.5 },
+		[UnitDefNames["chickens2"].id] = { distance = 250, chance = 0.5 },
+		[UnitDefNames["chickenr1"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenr2"].id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames["chickenearty1"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenacidarty"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenh2"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenh3"].id] = { distance = 500, chance = 0.25 },
+		[UnitDefNames["chicken1x_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chicken2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chickens2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
+	},
+	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
+		[UnitDefNames["ve_chickenq"].id] = { chance = 0.01 },
+		[UnitDefNames["e_chickenq"].id] = { chance = 0.05 },
+		[UnitDefNames["n_chickenq"].id] = { chance = 0.1 },
+		[UnitDefNames["h_chickenq"].id] = { chance = 0.2 },
+		[UnitDefNames["vh_chickenq"].id] = { chance = 0.3 },
+		[UnitDefNames["epic_chickenq"].id] = { chance = 0.5 },
+		[UnitDefNames["chickens2"].id] = {chance = 0.2, distance = 750},
+		[UnitDefNames["chickena1"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["chickena1b"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["chickena1c"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["chickenallterraina1"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["chickenallterraina1b"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["chickenallterraina1c"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["chickena2"].id] = { chance = 0.2, distance = 3000 },
+		[UnitDefNames["chickena2b"].id] = { chance = 0.2, distance = 3000 },
+		[UnitDefNames["chickenapexallterrainassault"].id] = { chance = 0.2, distance = 3000 },
+		[UnitDefNames["chickenapexallterrainassaultb"].id] = { chance = 0.2, distance = 3000 },
+		[UnitDefNames["chickene2"].id] = { chance = 0.05 },
+		[UnitDefNames["chickenelectricallterrainassault"].id] = { chance = 0.05 },
+		[UnitDefNames["chickenacidassault"].id] = { chance = 0.05 },
+		[UnitDefNames["chickenacidallterrainassault"].id] = { chance = 0.05 },
+		[UnitDefNames["chickenacidswarmer"].id] = { chance = 0.01 },
+		[UnitDefNames["chickenacidallterrain"].id] = { chance = 0.01 },
+		[UnitDefNames["chickenp1"].id] = { chance = 0.2 },
+		[UnitDefNames["chickenp2"].id] = { chance = 0.2 },
+		[UnitDefNames["chickenpyroallterrain"].id] = { chance = 0.2 },
+		[UnitDefNames["chickenh4"].id] = { chance = 1 },
+		[UnitDefNames["chicken1x_spectre"].id] = { distance = 1000, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chicken2_spectre"].id] = { distance = 1000, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chickena1_spectre"].id] = { distance = 1000, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chickena2_spectre"].id] = { distance = 1000, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chickens2_spectre"].id] = { distance = 1000, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chicken_miniqueen_spectre"].id] = { distance = 1000, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chicken_miniqueen_electric"].id] = { chance = 1 },
+		[UnitDefNames["chicken_miniqueen_acid"].id] = { chance = 1 },
+		[UnitDefNames["chicken_miniqueen_healer"].id] = { chance = 1 },
+		[UnitDefNames["chicken_miniqueen_basic"].id] = { chance = 1 },
+		[UnitDefNames["chicken_miniqueen_fire"].id] = { chance = 1 },
+	},
+	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and queen
+		"chickenh1",
+		"chickenh1b",
+	},
+	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance
+		"chickenr1",
+		"chickenr2",
+		"chickenearty1",
+		"chickenacidarty",
+	},
+	KAMIKAZE = { -- Long lifetime and no regrouping, always uses Move command to rush into the enemy
+		"chicken_dodo1",
+		"chicken_dodo2",
+	},
+	PROBE_UNIT = UnitDefNames["chicken2"].id, -- tester unit for picking viable spawn positions - use some medium sized unit
+}
 
 local optionValues = {
 	-- [difficulties.veryeasy] = {
@@ -214,7 +242,7 @@ local optionValues = {
 	-- },
 
 	[difficulties.normal] = {
-		chickenMaxSpawnRate  = 120,
+		chickenMaxSpawnRate  = 30,
 		burrowSpawnRate   = 75,
 		turretSpawnRate   = 150,
 		queenSpawnMult    = 1,
@@ -223,14 +251,14 @@ local optionValues = {
 		spawnChance       = 0.2,
 		damageMod         = 0.4,
 		maxBurrows        = 1000,
-		minChickens		  = 13,
+		minChickens		  = 10,
 		maxChickens		  = 25,
 		queenName         = 've_chickenq',
 		queenResistanceMult   = 1,
 	},
 
 	[difficulties.hard] = {
-		chickenMaxSpawnRate  = 120,
+		chickenMaxSpawnRate  = 30,
 		burrowSpawnRate   = 60,
 		turretSpawnRate   = 120,
 		queenSpawnMult    = 1,
@@ -239,13 +267,13 @@ local optionValues = {
 		spawnChance       = 0.3,
 		damageMod         = 0.6,
 		maxBurrows        = 1000,
-		minChickens		  = 25,
+		minChickens		  = 10,
 		maxChickens		  = 50,
 		queenName         = 'e_chickenq',
 		queenResistanceMult   = 1.5,
 	},
 	[difficulties.veryhard] = {
-		chickenMaxSpawnRate  = 120,
+		chickenMaxSpawnRate  = 30,
 		burrowSpawnRate   = 45,
 		turretSpawnRate   = 90,
 		queenSpawnMult    = 3,
@@ -254,13 +282,13 @@ local optionValues = {
 		spawnChance       = 0.4,
 		damageMod         = 0.8,
 		maxBurrows        = 1000,
-		minChickens		  = 38,
+		minChickens		  = 10,
 		maxChickens		  = 75,
 		queenName         = 'n_chickenq',
 		queenResistanceMult   = 2,
 	},
 	[difficulties.insane] = {
-		chickenMaxSpawnRate  = 120,
+		chickenMaxSpawnRate  = 30,
 		burrowSpawnRate   = 30,
 		turretSpawnRate   = 60,
 		queenSpawnMult    = 3,
@@ -269,13 +297,13 @@ local optionValues = {
 		spawnChance       = 0.5,
 		damageMod         = 1,
 		maxBurrows        = 1000,
-		minChickens		  = 50,
+		minChickens		  = 10,
 		maxChickens		  = 100,
 		queenName         = 'h_chickenq',
 		queenResistanceMult   = 2.5,
 	},
 	[difficulties.epic] = {
-		chickenMaxSpawnRate  = 90,
+		chickenMaxSpawnRate  = 30,
 		burrowSpawnRate   = 20,
 		turretSpawnRate   = 40,
 		queenSpawnMult    = 3,
@@ -284,13 +312,13 @@ local optionValues = {
 		spawnChance       = 0.6,
 		damageMod         = 1.5,
 		maxBurrows        = 1000,
-		minChickens		  = 63,
+		minChickens		  = 10,
 		maxChickens		  = 125,
 		queenName         = 'vh_chickenq',
 		queenResistanceMult   = 3,
 	},
 	[difficulties.unbeatable] = {
-		chickenMaxSpawnRate  = 60,
+		chickenMaxSpawnRate  = 30,
 		burrowSpawnRate   = 10,
 		turretSpawnRate   = 20,
 		queenSpawnMult    = 3,
@@ -299,14 +327,14 @@ local optionValues = {
 		spawnChance       = 0.8,
 		damageMod         = 2,
 		maxBurrows        = 1000,
-		minChickens		  = 75,
+		minChickens		  = 10,
 		maxChickens		  = 150,
 		queenName         = 'epic_chickenq',
 		queenResistanceMult   = 3,
 	},
 
 	[difficulties.survival] = {
-		chickenMaxSpawnRate  = 120,
+		chickenMaxSpawnRate  = 30,
 		burrowSpawnRate   = 75,
 		turretSpawnRate   = 150,
 		queenSpawnMult    = 1,
@@ -315,7 +343,7 @@ local optionValues = {
 		spawnChance       = 0.2,
 		damageMod         = 0.4,
 		maxBurrows        = 1000,
-		minChickens		  = 13,
+		minChickens		  = 10,
 		maxChickens		  = 25,
 		queenName         = 'n_chickenq',
 		queenResistanceMult   = 1,
@@ -380,10 +408,6 @@ local function addBasicSquad(wave, unitList, weight)
     end
 end
 
-
-
-
-
 local function addAirSquad(wave, unitList, weight)
 	if not weight then weight = 1 end
     for i = 1, weight do 
@@ -400,13 +424,93 @@ end
 -- MiniBoss Squads ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-local miniBosses = {
+local miniBosses = { -- Units that spawn alongside queen
 	"chicken_miniqueen_electric", 	-- Electric Miniqueen
 	"chicken_miniqueen_acid", 		-- Acid Miniqueen
 	"chicken_miniqueen_healer", 	-- Healer Miniqueen
 	"chicken_miniqueen_basic",		-- Basic Miniqueen
 	"chicken_miniqueen_fire",		-- Pyro Miniqueen
 	"chicken_miniqueen_spectre",	-- Spectre Miniqueen
+}
+
+local chickenMinions = { -- Units spawning other units
+	["chicken_miniqueen_electric"] = {
+		"chickene1",
+		"chickene2",
+		"chickenearty1",
+		"chickenelectricallterrain",
+		"chickenelectricallterrainassault",
+	},
+	["chicken_miniqueen_acid"] = {
+		"chickenacidswarmer",
+		"chickenacidassault",
+		"chickenacidarty",
+		"chickenacidallterrain",
+		"chickenacidallterrainassault",
+	},
+	["chicken_miniqueen_healer"] = {
+		"chickenh1",
+		"chickenh1b",
+	},
+	["chicken_miniqueen_basic"] = {
+		"chicken2",
+		"chicken2b",
+		"chickenc3c",
+	},
+	["chicken_miniqueen_fire"] = {
+		"chickenp1",
+		"chickenp2",
+		"chickenpyroallterrain",
+	},
+	["chicken_miniqueen_spectre"] = {
+		"chickens2_spectre",
+		"chicken1x_spectre",
+		"chicken2_spectre",
+		"chickena1_spectre",
+		"chickena2_spectre",
+	},
+	["chickenh2"] = {
+		"chickenh2",
+		"chickenh3",
+		"chickenh4",
+	},
+	["chickenh3"] = {
+		"chickenh3",
+		"chickenh4",
+	},
+	["chickenh4"] = {
+		"chickenh4",
+	},
+	["ve_chickenq"] = {
+		"chickenh2",
+		"chickenh3",
+		"chickenh4",
+	},
+	["e_chickenq"] = {
+		"chickenh2",
+		"chickenh3",
+		"chickenh4",
+	},
+	["n_chickenq"] = {
+		"chickenh2",
+		"chickenh3",
+		"chickenh4",
+	},
+	["h_chickenq"] = {
+		"chickenh2",
+		"chickenh3",
+		"chickenh4",
+	},
+	["vh_chickenq"] = {
+		"chickenh2",
+		"chickenh3",
+		"chickenh4",
+	},
+	["epic_chickenq"] = {
+		"chickenh2",
+		"chickenh3",
+		"chickenh4",
+	},
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -476,7 +580,6 @@ local miniBosses = {
 	addSpecialSquad(10, { "3 chickenh3" 																}) -- Brood Mother
 	addSpecialSquad(10, { "10 chickenh4" 																}) -- Hatchling
 
-	
 if difficulty >= 3 then
 	for i = 11,wavesAmount do
 	addSpecialSquad(i, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
@@ -551,33 +654,43 @@ if difficulty >= 3 then
 		addAirSquad(i, { "1 chicken_dodoair" 												}) -- Air Kamikaze
 	end
 end
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-local config = {
-	difficulty             = difficulty,
-	difficulties           = difficulties,
-	chickenSpawnMultiplier = Spring.GetModOptions().chicken_spawncountmult,
-	gracePeriod            = Spring.GetModOptions().chicken_graceperiod * 60,  -- no chicken spawn in this period, seconds
-	queenTime              = Spring.GetModOptions().chicken_queentime * 60, -- time at which the queen appears, seconds
-	addQueenAnger          = Spring.GetModOptions().chicken_queenanger,
-	burrowSpawnType        = Spring.GetModOptions().chicken_chickenstart,
-	swarmMode			   = Spring.GetModOptions().chicken_swarmmode,
-	spawnSquare            = 90,       -- size of the chicken spawn square centered on the burrow
-	spawnSquareIncrement   = 2,         -- square size increase for each unit spawned
-	burrowName             = burrowName,   -- burrow unit name
-	burrowDef              = UnitDefNames[burrowName].id,
-	minBaseDistance        = 500,
-	chickenTypes           = table.copy(chickenTypes),
-	chickenEggs			   = table.copy(chickenEggs),
-	defenders              = table.copy(defenders),
-	waves                  = waves,
-	wavesAmount            = wavesAmount,
-	basicWaves		   	   = basicWaves,
-	specialWaves           = specialWaves,
-	superWaves             = superWaves,
-	airWaves			   = airWaves,
-	miniBosses			   = miniBosses,
-	difficultyParameters   = optionValues,
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Settings -- Adjust these
+local useEggs = true -- Drop eggs (requires egg features from Beyond All Reason)
+local useScum = true -- Use scum as space where turrets can spawn (requires scum gadget from Beyond All Reason)
+local spawnSquare = 90 -- size of the chicken spawn square centered on the burrow
+local spawnSquareIncrement = 2 -- square size increase for each unit spawned
+local minBaseDistance = 750 -- Minimum distance of new burrows from players and other burrows
+
+local config = { -- Don't touch this! ---------------------------------------------------------------------------------------------------------------------------------------------
+	useEggs 				= useEggs,
+	useScum					= useScum,
+	difficulty             	= difficulty,
+	difficulties           	= difficulties,
+	chickenEggs			   	= table.copy(chickenEggs),
+	burrowName             	= burrowName,   -- burrow unit name
+	burrowDef              	= UnitDefNames[burrowName].id,
+	chickenSpawnMultiplier 	= Spring.GetModOptions().chicken_spawncountmult,
+	gracePeriod            	= Spring.GetModOptions().chicken_graceperiod * 60,  -- no chicken spawn in this period, frames
+	queenTime              	= Spring.GetModOptions().chicken_queentime * 60, -- time at which the queen appears, frames
+	addQueenAnger          	= Spring.GetModOptions().chicken_queenanger,
+	burrowSpawnType        	= Spring.GetModOptions().chicken_chickenstart,
+	swarmMode			   	= Spring.GetModOptions().chicken_swarmmode,
+	spawnSquare            	= spawnSquare,       
+	spawnSquareIncrement   	= spawnSquareIncrement,         
+	minBaseDistance        	= minBaseDistance,
+	chickenTurrets			= table.copy(chickenTurrets),
+	waves                  	= waves,
+	wavesAmount            	= wavesAmount,
+	basicWaves		   	   	= basicWaves,
+	specialWaves           	= specialWaves,
+	superWaves             	= superWaves,
+	airWaves			   	= airWaves,
+	miniBosses			   	= miniBosses,
+	chickenMinions			= chickenMinions,
+	chickenBehaviours 		= chickenBehaviours,
+	difficultyParameters   	= optionValues,
 }
 
 for key, value in pairs(optionValues[difficulty]) do
