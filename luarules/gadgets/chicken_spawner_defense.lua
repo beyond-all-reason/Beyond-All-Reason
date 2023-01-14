@@ -1084,7 +1084,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 
-		if unitTeam == chickenTeamID and attackerTeam == chickenTeamID and (not config.chickenBehaviours.ARTILLERY[UnitDefs[attackerDefID].name]) then
+		if unitTeam == chickenTeamID and attackerTeam == chickenTeamID and (not (attackerDefID and config.chickenBehaviours.ARTILLERY[UnitDefs[attackerDefID].name])) then
 			return 0
 		end
 
@@ -1740,8 +1740,21 @@ if gadgetHandler:IsSyncedCode() then
 	local deleteBurrowTurrets = {}
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
-		if unitTeam == chickenTeamID and config.useEggs then
-			local x,y,z = Spring.GetUnitPosition(unitID)
+		if unitTeam == chickenTeamID then
+			if config.useEggs then
+				local x,y,z = Spring.GetUnitPosition(unitID)
+				if unitDefID == config.burrowDef then
+					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 64)
+				elseif config.chickenTurrets.heavyTurrets[UnitDefs[unitDefID].name] then
+					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 32)
+				elseif config.chickenTurrets.lightTurrets[UnitDefs[unitDefID].name] then
+					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 16)
+				elseif config.chickenTurrets.burrowDefenders[UnitDefs[unitDefID].name] then
+					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 16)
+				else
+					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 1)
+				end
+			end
 			if unitDefID == config.burrowDef then
 				for turret, burrow in pairs(burrowTurrets) do
 					if burrowTurrets[turret] == unitID then
@@ -1754,16 +1767,8 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					deleteBurrowTurrets = {}
 				end
-				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 64)
-			elseif config.chickenTurrets.heavyTurrets[UnitDefs[unitDefID].name] then
-				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 32)
-			elseif config.chickenTurrets.lightTurrets[UnitDefs[unitDefID].name] then
-				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 16)
 			elseif config.chickenTurrets.burrowDefenders[UnitDefs[unitDefID].name] then
 				burrowTurrets[unitID] = nil
-				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 16)
-			else
-				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 1)
 			end
 		end
 		
