@@ -242,7 +242,7 @@ local optionValues = {
 	-- },
 
 	[difficulties.normal] = {
-		chickenMaxSpawnRate  = 30,
+		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 75,
 		turretSpawnRate   = 150,
 		queenSpawnMult    = 1,
@@ -258,7 +258,7 @@ local optionValues = {
 	},
 
 	[difficulties.hard] = {
-		chickenMaxSpawnRate  = 30,
+		chickenMaxSpawnRate  = 50,
 		burrowSpawnRate   = 60,
 		turretSpawnRate   = 120,
 		queenSpawnMult    = 1,
@@ -273,7 +273,7 @@ local optionValues = {
 		queenResistanceMult   = 1.5,
 	},
 	[difficulties.veryhard] = {
-		chickenMaxSpawnRate  = 30,
+		chickenMaxSpawnRate  = 40,
 		burrowSpawnRate   = 45,
 		turretSpawnRate   = 90,
 		queenSpawnMult    = 3,
@@ -334,7 +334,7 @@ local optionValues = {
 	},
 
 	[difficulties.survival] = {
-		chickenMaxSpawnRate  = 30,
+		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 75,
 		turretSpawnRate   = 150,
 		queenSpawnMult    = 1,
@@ -659,6 +659,7 @@ end
 -- Settings -- Adjust these
 local useEggs = true -- Drop eggs (requires egg features from Beyond All Reason)
 local useScum = true -- Use scum as space where turrets can spawn (requires scum gadget from Beyond All Reason)
+local useWaveMsg = false -- Show dropdown message whenever new wave is spawning
 local spawnSquare = 90 -- size of the chicken spawn square centered on the burrow
 local spawnSquareIncrement = 2 -- square size increase for each unit spawned
 local minBaseDistance = 750 -- Minimum distance of new burrows from players and other burrows
@@ -691,6 +692,7 @@ local config = { -- Don't touch this! ------------------------------------------
 	chickenMinions			= chickenMinions,
 	chickenBehaviours 		= chickenBehaviours,
 	difficultyParameters   	= optionValues,
+	useWaveMsg 				= useWaveMsg,
 }
 
 for key, value in pairs(optionValues[difficulty]) do

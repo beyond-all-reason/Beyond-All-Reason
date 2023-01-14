@@ -1060,6 +1060,8 @@ if gadgetHandler:IsSyncedCode() then
 			chickenEvent("airWave")
 		elseif waveType == "miniboss" then
 			chickenEvent("miniQueen")
+		elseif config.useWaveMsg then
+			chickenEvent("wave")
 		end
 		return cCount
 	end
