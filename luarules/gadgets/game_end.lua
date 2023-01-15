@@ -134,7 +134,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if not teamInfo.hasLeader and not teamInfo.dead then
 			if not killTeamQueue[teamID] then
-				killTeamQueue[teamID] = gf + (30 * isFFA and 180 or 10)	-- add a grace period before killing the team
+				killTeamQueue[teamID] = gf + (30 * (isFFA and 180 or 10))	-- add a grace period before killing the team
 			end
 		elseif killTeamQueue[teamID] then
 			killTeamQueue[teamID] = nil
