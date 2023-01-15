@@ -36,7 +36,6 @@ if gadgetHandler:IsSyncedCode() then
 	local GetGaiaTeamID = Spring.GetGaiaTeamID
 	local SetGameRulesParam = Spring.SetGameRulesParam
 	local GetGameRulesParam = Spring.GetGameRulesParam
-	local GetTeamUnitsCounts = Spring.GetTeamUnitsCounts
 	local GetTeamUnitCount = Spring.GetTeamUnitCount
 	local GetGameFrame = Spring.GetGameFrame
 	local GetGameSeconds = Spring.GetGameSeconds
@@ -1246,7 +1245,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
-			if mRandom(1,100) == 1 and mRandom() < config.spawnChance then
+			if mRandom(1,100) == 1 and mRandom() < (SetCount(humanTeams) / math.max(1, Spring.GetTeamUnitDefCount(chickenTeamID, unitDefID))) then
 				SpawnMinions(unitID, unitDefID)
 			end
 			if unitTeam == chickenTeamID or attackerTeam == chickenTeamID then
@@ -1708,7 +1707,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n%7 == 3 and not chickenteamhasplayers then
 			local chickens = GetTeamUnits(chickenTeamID)
 			for i = 1,#chickens do
-				if mRandom(1,100) == 1 and mRandom() < config.spawnChance then
+				if mRandom(1,100) == 1 and mRandom() < (SetCount(humanTeams) / math.max(1, Spring.GetTeamUnitDefCount(chickenTeamID, Spring.GetUnitDefID(chickens[i])))) then
 					SpawnMinions(chickens[i], Spring.GetUnitDefID(chickens[i]))
 				end
 				if mRandom(1,60) == 1 then 
