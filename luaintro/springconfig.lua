@@ -2,6 +2,8 @@
 --- set some spring settings before the game/engine is really loaded yet
 --------------------------------------------------------------------------------------------
 
+Spring.SetConfigString("SplashScreenDir", "./MenuLoadscreens")
+
 -- set default unit rendering vars
 Spring.SetConfigFloat("tonemapA", 4.75)
 Spring.SetConfigFloat("tonemapB", 0.75)

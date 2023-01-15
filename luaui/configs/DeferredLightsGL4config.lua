@@ -1971,7 +1971,7 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armack'].id] = {
-		beacon1 = { -- this is the lightname
+		buildlight1 = { -- this is the lightname
 			lightType = 'cone',
 			pieceName = 'beacon1',
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 21,
@@ -1980,7 +1980,7 @@ local unitDefLights = {
 				modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 10,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
-		beacon2 = {
+		buildlight2 = {
 			lightType = 'cone',
 			pieceName = 'beacon2',
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 21,
@@ -16821,11 +16821,20 @@ local unitEventLights = {
 	},
 }
 
-local headlights = Spring.GetConfigInt("headlights", 1) == 1
-if not headlights then
+if not Spring.GetConfigInt("headlights", 1) == 1 then
 	for unitDefID, lights in pairs(unitDefLights) do
 		for name, params in pairs(lights) do
 			if string.find(name, "headlight") or string.find(name, "searchlight") then
+				unitDefLights[unitDefID][name] = nil
+			end
+		end
+	end
+end
+
+if not Spring.GetConfigInt("buildlights", 1) == 1 then
+	for unitDefID, lights in pairs(unitDefLights) do
+		for name, params in pairs(lights) do
+			if string.find(name, "buildlight") then
 				unitDefLights[unitDefID][name] = nil
 			end
 		end

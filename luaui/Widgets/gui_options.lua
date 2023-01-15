@@ -1857,7 +1857,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setSepia', { 'sepia' }, value)
 		  end,
 		},
-		{ id = "sepiatone_shadeui", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_shadeui, type = "bool", value = Spring.GetConfigInt("headlights", 1) == 1, description = texts.option.sepiatone_shadeui_descr,
+		{ id = "sepiatone_shadeui", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_shadeui, type = "bool", value = 0, description = texts.option.sepiatone_shadeui_descr,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_shadeui", { 'shadeUI' })
 		  end,
@@ -1993,13 +1993,22 @@ function init()
 		  end,
 		},
 		{ id = "lighteffects_headlights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_headlights, type = "bool", value = Spring.GetConfigInt("headlights", 1) == 1, description = texts.option.lighteffects_headlights_descr,
-			onchange = function(i, value)
-				Spring.SetConfigInt("headlights", value and 1 or 0)
-				if widgetHandler.orderList["Deferred rendering GL4"] ~= nil then
-					widgetHandler:DisableWidget("Deferred rendering GL4")
-					widgetHandler:EnableWidget("Deferred rendering GL4")
-				end
-			end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("headlights", value and 1 or 0)
+			  if widgetHandler.orderList["Deferred rendering GL4"] ~= nil then
+				  widgetHandler:DisableWidget("Deferred rendering GL4")
+				  widgetHandler:EnableWidget("Deferred rendering GL4")
+			  end
+		  end,
+		},
+		{ id = "lighteffects_buildlights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_buildlights, type = "bool", value = Spring.GetConfigInt("buildlights", 1) == 1, description = texts.option.lighteffects_buildlights_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("buildlights", value and 1 or 0)
+			  if widgetHandler.orderList["Deferred rendering GL4"] ~= nil then
+				  widgetHandler:DisableWidget("Deferred rendering GL4")
+				  widgetHandler:EnableWidget("Deferred rendering GL4")
+			  end
+		  end,
 		},
 		{ id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_brightness, min = 0.6, max = 1.5, step = 0.05, type = "slider", value = 1, description = texts.option.lighteffects_brightness_descr,
 		  onload = function(i)
