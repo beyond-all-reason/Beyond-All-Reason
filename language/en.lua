@@ -470,6 +470,8 @@ return {
 			console_backgroundopacity_descr = 'Show a transparent background',
 			console_chatvolume = 'chat message',
 			console_chatvolume_descr = 'Customize the volume of incoming chat messages',
+			console_mapmarkvolume = 'mapmark point',
+			console_mapmarkvolume_descr = 'Customize the volume of mapmark points/messages',
 			console_handleinput = 'handle chat input',
 			console_handleinput_descr = 'Integrates chat text input instead of using in-engine method',
 			console_inputbutton = 'input mode toggle button',

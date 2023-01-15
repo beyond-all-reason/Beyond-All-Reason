@@ -2292,6 +2292,14 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setChatVolume', { 'sndChatFileVolume' }, value)
 		  end,
 		},
+		{ id = "console_mapmarkvolume", group = "sound", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.console_mapmarkvolume, type = "slider", min = 0, max = 0.6, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getMapmarkVolume() or 0), description = texts.option.console_mapmarkvolume_descr,
+		  onload = function(i)
+			  loadWidgetData("Chat", "console_mapmarkvolume", { 'sndMapmarkFileVolume' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Chat', 'chat', 'setMapmarkVolume', { 'sndMapmarkFileVolume' }, value)
+		  end,
+		},
 		{ id = "sndvolmusic", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolmusic, type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
 		  onload = function(i)
 		  end,
