@@ -57,26 +57,69 @@ local unitDefCanWearHats = {
 	[UnitDefNames.armdecom.id] = true,
 }
 
--- give tourney winner a hat
-local champs = {
+local vikings = {
 	["Raghna"] = true,
 	["Malady"] = true,
+}
+local kings = {
 	["[teh]Teddy"] = true,
 }
+local goldMedals = {
+	["[teh]Teddy"] = true,
+}
+local silverMedals = {
+	["PRO_rANDY"] = true,
+}
+local bronzeMedals = {
+	["StarDom"] = true,
+}
 function gadget:GameFrame(gf)
-	if gf == 90 and UnitDefNames['cor_hat_viking'] then
+	if gf == 90 then
 		for _, playerID in ipairs(Spring.GetPlayerList()) do
 			local playerName, _, spec, teamID = Spring.GetPlayerInfo(playerID, false)
-			if not spec and champs[playerName] then
+			if not spec then
 				local units = Spring.GetTeamUnits(teamID)
 				for k = 1, #units do
 					local unitID = units[k]
 					local unitDefID = Spring.GetUnitDefID(unitID)
 					local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(unitID)
+
 					if unitDefCanWearHats[unitDefID] then
-						local hatDefID = UnitDefNames['cor_hat_viking'].id
-						local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
-						gadget:UnitGiven(unitID, hatDefID, teamID)
+						if vikings[playerName] and UnitDefNames['cor_hat_viking'] then
+							local hatDefID = UnitDefNames['cor_hat_viking'].id
+							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
+							gadget:UnitGiven(unitID, hatDefID, teamID)
+						end
+						if string.sub(UnitDefs[unitDefID].name, 1, 3) == 'arm' then
+							local scriptEnv = Spring.UnitScript.GetScriptEnv(unitID)
+							if scriptEnv then
+								if kings[playerName] and scriptEnv['ShowCrown'] then
+									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowCrown'], true)
+								end
+								if goldMedals[playerName] and scriptEnv['ShowMedalGold'] then
+									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowMedalGold'], true)
+								end
+								if silverMedals[playerName] and scriptEnv['ShowMedalSilver'] then
+									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowMedalSilver'], true)
+								end
+								if bronzeMedals[playerName] and scriptEnv['ShowMedalBronze'] then
+									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowMedalBronze'], true)
+								end
+							end
+						else
+							if kings[playerName] and Spring.GetCOBScriptID(unitID, 'ShowCrown') then
+								Spring.CallCOBScript(unitID, "ShowCrown", 0)
+							end
+							if goldMedals[playerName] and Spring.GetCOBScriptID(unitID, 'ShowMedalGold') then
+								Spring.CallCOBScript(unitID, "ShowMedalGold", 0)
+							end
+							if silverMedals[playerName] and Spring.GetCOBScriptID(unitID, 'ShowMedalSilver') then
+								Spring.CallCOBScript(unitID, "ShowMedalSilver", 0)
+							end
+							if bronzeMedals[playerName] and Spring.GetCOBScriptID(unitID, 'ShowMedalBronze') then
+								Spring.CallCOBScript(unitID, "ShowMedalBronze", 0)
+							end
+						end
 					end
 				end
 			end
