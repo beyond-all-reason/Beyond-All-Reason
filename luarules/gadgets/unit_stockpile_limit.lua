@@ -23,7 +23,7 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 	-- Config
 	----------------------------------------------------------------------------
 	local defaultStockpileLimit = 99
-	local isStockpilingUnit = { -- number represents maximum stockpile
+	local isStockpilingUnit = { -- number represents maximum stockpile. You can also use stockpileLimit customParam which overwrites whatever is set in this table
 		[UnitDefNames['armmercury'].id] = 5,
 		[UnitDefNames['corscreamer'].id] = 5,
 
@@ -75,6 +75,11 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 	for udid, ud in pairs(UnitDefs) do
 		if ud.canStockpile then
 			canStockpile[udid] = true
+		end
+		if ud.customParams and ud.customParams.stockpileLimit then
+			isStockpilingUnit[udid] = tonumber(ud.customParams.stockpileLimit)
+		elseif ud.customParams and ud.customParams.stockpilelimit then
+			isStockpilingUnit[udid] = tonumber(ud.customParams.stockpilelimit)
 		end
 	end
 
