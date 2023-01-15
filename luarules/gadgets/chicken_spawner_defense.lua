@@ -1245,9 +1245,6 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
-			if mRandom(1,100) == 1 and mRandom() < (SetCount(humanTeams) / math.max(1, Spring.GetTeamUnitDefCount(chickenTeamID, unitDefID))) then
-				SpawnMinions(unitID, unitDefID)
-			end
 			if unitTeam == chickenTeamID or attackerTeam == chickenTeamID then
 				if (unitID and unitSquadTable[unitID] and squadsTable[unitSquadTable[unitID]] and squadsTable[unitSquadTable[unitID]].squadLife and squadsTable[unitSquadTable[unitID]].squadLife < 5) then
 					squadsTable[unitSquadTable[unitID]].squadLife = 5
