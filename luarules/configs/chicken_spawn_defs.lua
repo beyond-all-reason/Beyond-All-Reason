@@ -211,7 +211,7 @@ chickenBehaviours = {
 
 local optionValues = {
 	-- [difficulties.veryeasy] = {
-	-- 	chickenMaxSpawnRate  = 120,
+	-- 	chickenSpawnRate  = 120,
 	-- 	burrowSpawnRate   = 105,
 	-- 	turretSpawnRate   = 210,
 	-- 	queenSpawnMult    = 0,
@@ -226,7 +226,7 @@ local optionValues = {
 	-- 	queenResistanceMult   = 0.25,
 	-- },
 	-- [difficulties.easy] = {
-	-- 	chickenMaxSpawnRate  = 120,
+	-- 	chickenSpawnRate  = 120,
 	-- 	burrowSpawnRate   = 90,
 	-- 	turretSpawnRate   = 180,
 	-- 	queenSpawnMult    = 0,
@@ -242,7 +242,7 @@ local optionValues = {
 	-- },
 
 	[difficulties.normal] = {
-		chickenMaxSpawnRate  = 60,
+		chickenSpawnRate  = 60,
 		burrowSpawnRate   = 75,
 		turretSpawnRate   = 150,
 		queenSpawnMult    = 1,
@@ -258,7 +258,7 @@ local optionValues = {
 	},
 
 	[difficulties.hard] = {
-		chickenMaxSpawnRate  = 50,
+		chickenSpawnRate  = 50,
 		burrowSpawnRate   = 60,
 		turretSpawnRate   = 120,
 		queenSpawnMult    = 1,
@@ -273,7 +273,7 @@ local optionValues = {
 		queenResistanceMult   = 1.5,
 	},
 	[difficulties.veryhard] = {
-		chickenMaxSpawnRate  = 40,
+		chickenSpawnRate  = 40,
 		burrowSpawnRate   = 45,
 		turretSpawnRate   = 90,
 		queenSpawnMult    = 3,
@@ -288,7 +288,7 @@ local optionValues = {
 		queenResistanceMult   = 2,
 	},
 	[difficulties.insane] = {
-		chickenMaxSpawnRate  = 30,
+		chickenSpawnRate  = 30,
 		burrowSpawnRate   = 30,
 		turretSpawnRate   = 60,
 		queenSpawnMult    = 3,
@@ -303,7 +303,7 @@ local optionValues = {
 		queenResistanceMult   = 2.5,
 	},
 	[difficulties.epic] = {
-		chickenMaxSpawnRate  = 30,
+		chickenSpawnRate  = 30,
 		burrowSpawnRate   = 20,
 		turretSpawnRate   = 40,
 		queenSpawnMult    = 3,
@@ -318,7 +318,7 @@ local optionValues = {
 		queenResistanceMult   = 3,
 	},
 	[difficulties.unbeatable] = {
-		chickenMaxSpawnRate  = 30,
+		chickenSpawnRate  = 30,
 		burrowSpawnRate   = 10,
 		turretSpawnRate   = 20,
 		queenSpawnMult    = 3,
@@ -334,7 +334,7 @@ local optionValues = {
 	},
 
 	[difficulties.survival] = {
-		chickenMaxSpawnRate  = 60,
+		chickenSpawnRate  = 60,
 		burrowSpawnRate   = 75,
 		turretSpawnRate   = 150,
 		queenSpawnMult    = 1,

@@ -264,7 +264,7 @@ if gadgetHandler:IsSyncedCode() then
 	if config.swarmMode then
 		config.maxChickens = config.maxChickens*10
 		config.minChickens = config.minChickens*10
-		config.chickenMaxSpawnRate = config.chickenMaxSpawnRate*10
+		config.chickenSpawnRate = config.chickenSpawnRate*10
 	end
 	-- local expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
 	local maxBurrows = ((config.maxBurrows*0.75)+(config.maxBurrows*0.25)*SetCount(humanTeams))*config.chickenSpawnMultiplier
@@ -296,7 +296,7 @@ if gadgetHandler:IsSyncedCode() then
 			nextDifficulty = config.difficultyParameters[5]
 			config.chickenSpawnMultiplier = config.chickenSpawnMultiplier*2
 		end
-		config.chickenMaxSpawnRate = nextDifficulty.chickenMaxSpawnRate
+		config.chickenSpawnRate = nextDifficulty.chickenSpawnRate
 		config.queenName = nextDifficulty.queenName
 		config.burrowSpawnRate = nextDifficulty.burrowSpawnRate
 		config.turretSpawnRate = nextDifficulty.turretSpawnRate
@@ -311,7 +311,7 @@ if gadgetHandler:IsSyncedCode() then
 		if config.swarmMode then
 			config.maxChickens = config.maxChickens*10
 			config.minChickens = config.minChickens*10
-			config.chickenMaxSpawnRate = config.chickenMaxSpawnRate*10
+			config.chickenSpawnRate = config.chickenSpawnRate*10
 		end
 		-- expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
 		maxBurrows = ((config.maxBurrows*0.75)+(config.maxBurrows*0.25)*SetCount(humanTeams))*config.chickenSpawnMultiplier
@@ -1154,7 +1154,7 @@ if gadgetHandler:IsSyncedCode() then
 		local unitName = UnitDefs[unitDefID].name
 		if config.chickenMinions[unitName] then
 			local minion = config.chickenMinions[unitName][mRandom(1,#config.chickenMinions[unitName])]
-			SpawnRandomOffWaveSquad(unitID, minion, 3)
+			SpawnRandomOffWaveSquad(unitID, minion, 4)
 		end
 	end
 
@@ -1237,6 +1237,7 @@ if gadgetHandler:IsSyncedCode() then
 			if queenID and unitID == queenID then
 				local curH, maxH = GetUnitHealth(unitID)
 				if curH and maxH then
+					curH = math.max(curH, maxH*0.05)
 					local spawnChance = math.max(0, math.ceil(curH/maxH*10000))
 					if mRandom(0,spawnChance) == 1 then
 						SpawnRandomOffWaveSquad(unitID, config.chickenBehaviours.HEALER[mRandom(1,#config.chickenBehaviours.HEALER)], 5)
@@ -1656,7 +1657,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				if firstSpawn then
 					SpawnBurrow()
-					timeOfLastWave = (config.gracePeriod + 10) - config.chickenMaxSpawnRate
+					timeOfLastWave = (config.gracePeriod + 10) - config.chickenSpawnRate
 					firstSpawn = false
 				else
 					SpawnBurrow()
@@ -1673,7 +1674,7 @@ if gadgetHandler:IsSyncedCode() then
 			if t > config.gracePeriod+5 then
 				if burrowCount > 0
 				and SetCount(spawnQueue) == 0
-				and ((config.chickenMaxSpawnRate) < (t - timeOfLastWave))
+				and ((config.chickenSpawnRate) < (t - timeOfLastWave))
 				and ((not config.swarmMode) or (t - timeOfLastWave) > 300) then
 					local cCount = Wave()
 					timeOfLastWave = t
@@ -1707,7 +1708,10 @@ if gadgetHandler:IsSyncedCode() then
 		if n%7 == 3 and not chickenteamhasplayers then
 			local chickens = GetTeamUnits(chickenTeamID)
 			for i = 1,#chickens do
-				if mRandom(1,15) == 1 then 
+				if mRandom(1,100) == 1 and mRandom() < config.spawnChance then
+					SpawnMinions(chickens[i], Spring.GetUnitDefID(chickens[i]))
+				end
+				if mRandom(1,60) == 1 then 
 					if unitCowardCooldown[chickens[i]] and (Spring.GetGameFrame() > unitCowardCooldown[chickens[i]]) then
 						unitCowardCooldown[chickens[i]] = nil
 						Spring.GiveOrderToUnit(chickens[i], CMD.STOP, 0, 0)
