@@ -136,6 +136,8 @@ chickenBehaviours = {
 		[UnitDefNames["chicken1x_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["chicken2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["chickens2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chickena1_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chickena2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 	},
 	COWARD = { -- Run away from target after getting hit by enemy
 		[UnitDefNames["chickenh1"].id] = { distance = 500, chance = 1 },
@@ -151,6 +153,8 @@ chickenBehaviours = {
 		[UnitDefNames["chicken1x_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["chicken2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["chickens2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chickena1_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chickena2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 	},
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
 		[UnitDefNames["ve_chickenq"].id] = { chance = 0.01 },
@@ -180,12 +184,12 @@ chickenBehaviours = {
 		[UnitDefNames["chickenp2"].id] = { chance = 0.2 },
 		[UnitDefNames["chickenpyroallterrain"].id] = { chance = 0.2 },
 		[UnitDefNames["chickenh4"].id] = { chance = 1 },
-		[UnitDefNames["chicken1x_spectre"].id] = { distance = 1000, chance = 0.25, teleport = true, teleportcooldown = 2,},
-		[UnitDefNames["chicken2_spectre"].id] = { distance = 1000, chance = 0.25, teleport = true, teleportcooldown = 2,},
-		[UnitDefNames["chickena1_spectre"].id] = { distance = 1000, chance = 0.25, teleport = true, teleportcooldown = 2,},
-		[UnitDefNames["chickena2_spectre"].id] = { distance = 1000, chance = 0.25, teleport = true, teleportcooldown = 2,},
-		[UnitDefNames["chickens2_spectre"].id] = { distance = 1000, chance = 0.25, teleport = true, teleportcooldown = 2,},
-		[UnitDefNames["chicken_miniqueen_spectre"].id] = { distance = 1000, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chicken1x_spectre"].id] = { distance = 1000, chance = 0.25},
+		[UnitDefNames["chicken2_spectre"].id] = { distance = 1000, chance = 0.25},
+		[UnitDefNames["chickena1_spectre"].id] = { distance = 1000, chance = 0.25},
+		[UnitDefNames["chickena2_spectre"].id] = { distance = 1000, chance = 0.25},
+		[UnitDefNames["chickens2_spectre"].id] = { distance = 1000, chance = 0.25},
+		[UnitDefNames["chicken_miniqueen_spectre"].id] = { chance = 1 },
 		[UnitDefNames["chicken_miniqueen_electric"].id] = { chance = 1 },
 		[UnitDefNames["chicken_miniqueen_acid"].id] = { chance = 1 },
 		[UnitDefNames["chicken_miniqueen_healer"].id] = { chance = 1 },
@@ -582,21 +586,24 @@ local chickenMinions = { -- Units spawning other units
 
 if difficulty >= 3 then
 	for i = 11,wavesAmount do
-	addSpecialSquad(i, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
-	addSpecialSquad(i, { "10 chickena2_spectre"															}) -- Apex Spectre Brawler
-	addSpecialSquad(i, { "3 chickenr1", "3 chickenearty1", "3 chickenacidarty" 							}) -- Artillery
-	if not Spring.GetModOptions().unit_restrictions_nonukes then
-		addSpecialSquad(i, { "1 chickenr2" 																}) -- Meteor Artillery
-	end
-	addSpecialSquad(i, { "2 chickenh2" 																	}) -- Apex Brood Mother
-	addSpecialSquad(i, { "3 chickene2" 																    }) -- EMP Brawler
-	addSpecialSquad(i, { "3 chickenelectricallterrainassault" 											}) -- EMP AllTerrain Brawler
-	addSpecialSquad(i, { "3 chickenacidassault" 														}) -- Acid Brawler
-	addSpecialSquad(i, { "3 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
-	addSpecialSquad(i, { "25 chicken_dodo2" 															}) -- Kamikaze
-	addSpecialSquad(i, { "10 chickenp2" 																}) -- Apex Pyro
-	addSpecialSquad(i, { "10 chickens2" 																}, 2) -- Apex Spiker
-	addSpecialSquad(i, { "10 chickens2_spectre" 														}, 2) -- Spectre Apex Spiker
+		for j = 1,#miniBosses do
+			addSpecialSquad(i, { "1 " .. miniBosses[j] 													}) -- Minibosses in regular endgame waves
+		end
+		addSpecialSquad(i, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"		}) -- Apex AllTerrain Brawler
+		addSpecialSquad(i, { "10 chickena2_spectre"														}) -- Apex Spectre Brawler
+		addSpecialSquad(i, { "3 chickenr1", "3 chickenearty1", "3 chickenacidarty" 						}) -- Artillery
+		if not Spring.GetModOptions().unit_restrictions_nonukes then
+			addSpecialSquad(i, { "1 chickenr2" 															}) -- Meteor Artillery
+		end
+		addSpecialSquad(i, { "2 chickenh2" 																}) -- Apex Brood Mother
+		addSpecialSquad(i, { "3 chickene2" 																}) -- EMP Brawler
+		addSpecialSquad(i, { "3 chickenelectricallterrainassault" 										}) -- EMP AllTerrain Brawler
+		addSpecialSquad(i, { "3 chickenacidassault" 													}) -- Acid Brawler
+		addSpecialSquad(i, { "3 chickenacidallterrainassault" 											}) -- Acid AllTerrain  Brawler
+		addSpecialSquad(i, { "25 chicken_dodo2" 														}) -- Kamikaze
+		addSpecialSquad(i, { "10 chickenp2" 															}) -- Apex Pyro
+		addSpecialSquad(i, { "10 chickens2" 															}, 2) -- Apex Spiker
+		addSpecialSquad(i, { "10 chickens2_spectre" 													}, 2) -- Spectre Apex Spiker
 	end
 end
 
