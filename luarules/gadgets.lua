@@ -503,7 +503,8 @@ function gadgetHandler:InsertGadget(gadget)
 			ArrayInsert(self[listname .. 'List'], func, gadget)
 		end
 	end
-		local kbytes = nil -- set to number to enable
+	
+	local kbytes = nil -- set to number to enable
 	if kbytes and collectgarbage then 	
 		collectgarbage("collect")
 		collectgarbage("collect")

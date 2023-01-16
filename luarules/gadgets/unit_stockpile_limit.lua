@@ -90,13 +90,13 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 		if queued and stock then
 			local count = stock + queued - MaxStockpile
 			while count < 0  do
-				if count < -100 then
+				if count <= -100 then
 					GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "ctrl", "shift" })
 					count = count + 100
-				elseif count < -20 then
+				elseif count <= -20 then
 					GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "ctrl" })
 					count = count + 20
-				elseif count < -5 then
+				elseif count <= -5 then
 					GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "shift" })
 					count = count + 5
 				else
