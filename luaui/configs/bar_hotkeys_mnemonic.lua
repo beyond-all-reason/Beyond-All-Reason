@@ -106,7 +106,8 @@ local bindings = {
 	{    "sc_q,sc_q", "drawlabel"       }, -- double hit Q for drawlabel
 	{            "r", "repair"          },
 	{      "Shift+r", "repair"          },
-	{            "s", "stop"            },
+    {        "Alt+r", "resurrect"       },
+    {            "s", "stop"            },
 	{      "Shift+s", "stop"            },
 	{       "Ctrl+s", "stopproduction"  },
 	{            "u", "unloadunits"     },

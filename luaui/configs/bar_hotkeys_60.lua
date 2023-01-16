@@ -1,5 +1,5 @@
 -- BAR hotkey config file: default for 60% keyboards
--- remap F-keys to use meta+ (spacebar) and ` to Q with modifiers	
+-- remap F-keys to use meta+ (spacebar) and ` to Q with modifiers
 local bindings = {
 	{            "esc", "quitmessage"                },
 	{      "Shift+esc", "quitmenu"                   },
@@ -127,7 +127,8 @@ local bindings = {
 	{            "sc_q", "drawinmap"       },
 	{            "sc_r", "repair"          },
 	{      "Shift+sc_r", "repair"          },
-	{            "sc_s", "stop"            },
+    {        "Alt+sc_r", "resurrect"       },
+    {            "sc_s", "stop"            },
 	{      "Shift+sc_s", "stop"            },
 	{       "Ctrl+sc_s", "stopproduction"  },
 	{            "sc_u", "unloadunits"     },

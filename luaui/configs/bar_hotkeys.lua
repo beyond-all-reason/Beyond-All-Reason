@@ -124,8 +124,9 @@ local bindings = {
 	{       "sc_q,sc_q", "drawlabel"       }, -- double hit Q for drawlabel, these are only present due to legacy. Should be deprecated at some point
 	{            "sc_q", "drawinmap"       },
 	{            "sc_r", "repair"          },
-	{      "Shift+sc_r", "repair"          },
-	{            "sc_s", "stop"            },
+    {      "Shift+sc_r", "repair"          },
+    {        "Alt+sc_r", "resurrect"       },
+    {            "sc_s", "stop"            },
 	{      "Shift+sc_s", "stop"            },
 	{       "Ctrl+sc_s", "stopproduction"  },
 	{            "sc_u", "unloadunits"     },
