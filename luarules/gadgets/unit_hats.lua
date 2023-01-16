@@ -65,13 +65,16 @@ local kings = {
 	["[teh]Teddy"] = true,
 }
 local goldMedals = {
-	["[teh]Teddy"] = true,
+	--["[teh]Teddy"] = true,
+	["EmperorGlass"] = true,
 }
 local silverMedals = {
-	["PRO_rANDY"] = true,
+	--["PRO_rANDY"] = true,
+	["[eVo]Lopatka"] = true,
 }
 local bronzeMedals = {
-	["StarDom"] = true,
+	--["StarDom"] = true,
+	["MatBlader"] = true,
 }
 function gadget:GameFrame(gf)
 	if gf == 90 then
