@@ -134,8 +134,8 @@ return {
 				smoketime = 36,
 				smokesize = 12.0,
 				smokecolor = 0.7,
-				smokeTrailCastShadow = false,
-				castshadow = true, --projectile
+				smokeTrailCastShadow = true,
+				--castshadow = true, --projectile
 				soundhit = "xplomed4",
 				soundhitwet = "splssml",
 				soundstart = "Rockhvy1",
