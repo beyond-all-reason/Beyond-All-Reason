@@ -973,7 +973,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if waveParameters.baseCooldown <= 0 then
 			-- special waves
-			if Spring.GetModOptions().unit_restrictions_noair == false and waveParameters.airWave.cooldown <= 0 and config.airWaves[currentWave] and mRandom() <= config.spawnChance then
+			if (not Spring.GetModOptions().unit_restrictions_noair) and waveParameters.airWave.cooldown <= 0 and config.airWaves[currentWave] and mRandom() <= config.spawnChance then
 				waveParameters.airWave.cooldown = mRandom(5,10)
 				waveParameters.baseCooldown = mRandom(2,4)
 				waveType = "air"
