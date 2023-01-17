@@ -1192,7 +1192,10 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 								-- this is done via a quick copy of the table
 								for i=1, lightParamTableSize do lightCacheTable[i] = lightParamTable[i] end
 								local unitHeight = Spring.GetUnitHeight(unitID)
-								if unitHeight == nil then Spring.Echo("Unitheight is nil for unitID", unitID, "unitDefName", UnitDefs[unitDefID].name) end
+								if unitHeight == nil then 
+									local losstate = Spring.GetUnitLosState(unitID)
+									Spring.Echo("Unitheight is nil for unitID", unitID, "unitDefName", UnitDefs[unitDefID].name, eventName, lightname, 'losstate', losstate and losstate.los) 
+								end
 
 								lightCacheTable[2] = lightCacheTable[2] + lightTable.aboveUnit + (unitHeight or 0)
 								lightParamTable = lightCacheTable

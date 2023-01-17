@@ -807,6 +807,13 @@ void main(void)
 	// light mixdown:
 	targetcolor.rgb = max(vec3(0.2), targetcolor.rgb); // we shouldnt let the targetcolor be fully black, or else we will have a bad time blending onto it.
 	
+	float mintarg = 0.4;
+	float targetbrightness =dot(targetcolor.rgb, vec3(0.375,0.5,0.125));
+	
+	targetcolor *= (1.0 -  step(mintarg,targetbrightness) * (targetbrightness -mintarg));
+	// if brightness is > 0.5, start reducing it?
+	
+	
 	// Sum up the additives of Rayleigh, Mie and LensFlare, colorize and alpha control them
 	vec3 additivelights = ((scatteringRayleigh + scatteringMie) * v_modelfactor_specular_scattering_lensflare.z + lensFlare) * v_lightcolor.rgb * v_lightcolor.w * 0.4  ;
 
