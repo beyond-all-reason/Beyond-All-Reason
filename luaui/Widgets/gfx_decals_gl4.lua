@@ -828,6 +828,15 @@ for weaponDefID=1, #WeaponDefs do
 			fadeintime = 200
 			bwfactor = 0.17 --0.17
 
+		elseif string.find(weaponDef.name, 'vipersabot') then
+			--textures = { "t_groundcrack_26_a.tga" }
+			radius = (radius * 4) -- viper has very tiny AoE
+
+		elseif string.find(weaponDef.name, 'corkorg_fire') then
+			--textures = { "t_groundcrack_26_a.tga" }
+			alphadecay = 0.004
+			--heatdecay = 0.85
+
 		elseif string.find(weaponDef.name, 'napalm') then
 			textures = { "t_groundcrack_16_a.tga" }
 			radius = radius * 1.6

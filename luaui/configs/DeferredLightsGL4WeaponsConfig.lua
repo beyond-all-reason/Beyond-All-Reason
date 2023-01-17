@@ -74,7 +74,7 @@ local BaseClasses = {
 			posx = 0, posy = 0, posz = 0, radius = 150,
 			r = 1, g = 0.7, b = 0.2, a = 0.15,
 			color2r = 0.6, color2g = 0.4, color2b = 0.10, colortime = 1.6, -- point lights only, colortime in seconds for unit-attached
-			modelfactor = 0.3, specular = 0.1, scattering = 0.6, lensflare = 0,
+			modelfactor = 0.3, specular = 0.1, scattering = 0.6, lensflare = 8,
 			lifetime = 0, sustain = 0, 	aninmtype = 0, -- unused
 		},
 	},
@@ -169,7 +169,7 @@ local ColorSets = { -- TODO add advanced dual-color sets!
 	Yellow = 	{r = 1, g = 1, b = 0},
 	White = 	{r = 1, g = 1, b = 1},
 	Plasma  = 	{r = 1, g = 0.8, b = 0.45},
-	HeatRay  = 	{r = 0.87, g = 0.70, b = 0.11},
+	HeatRay  = 	{r = 0.88, g = 0.65, b = 0.10},
 	Emg  = 		{r = 0.42, g = 0.32, b = 0.07},
 	Fire  = 	{r = 0.8, g = 0.3, b = 0.05},
 	Warm  = 	{r = 0.7, g = 0.7, b = 0.1},
@@ -372,13 +372,11 @@ local function AssignLightsToAllWeapons()
 			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
 
 		elseif weaponDef.type == 'StarburstLauncher' then
-			t.a = orgMult * 0.66
-			sizeclass = GetClosestSizeClass(radius)
+			t.a = orgMult * 0.44
 			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
-			radius = ((orgMult * 75) + (radius * 4)) * 0.4
-
-			life = 8 + (5*(radius/2000)+(orgMult * 5))
 			sizeclass = GetClosestSizeClass(radius)
+			radius = ((orgMult * 40) + (radius * 3)) * 0.3
+			life = 8 + (5*(radius/2000)+(orgMult * 5))	
 
 		elseif weaponDef.type == 'Cannon' then
 			t.a = orgMult*0.17
@@ -624,15 +622,32 @@ GetLightClass("Explosion", nil, "Large", {r = 2, g = 1.5, b = 1.0, a = 0.22,
 
 --corkorg
 projectileDefLights[WeaponDefNames["corkorg_corkorg_laser"].id] =
-GetLightClass("LaserProjectile", "HeatRay", "MediumLarge", {a = 0.11,
-											color2r = 0.5, color2g = 0.33, color2b = 0.26, colortime = 10,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 4, sustain = 0})
+GetLightClass("LaserProjectile", nil, "Medium", {a = 0.06,
+											r = 1.0, g = 0.5, b = 0.1,
+											color2r = 0.3, color2g = 0.1, color2b = 0.03, colortime = 10,
+											pos2x = 0, pos2y = 100, pos2z = 0,
+											modelfactor = 0.5, specular = 0.05, scattering = 0.05, lensflare = 16,
+											lifetime = 60, sustain = 4})
+
+muzzleFlashLights[WeaponDefNames["corkorg_corkorg_laser"].id] =
+GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 48, posz = 0,
+											 r = 1.2, g = 1.1, b = 0.5, a = 0.9,
+											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 10,
+											 modelfactor = 0.5, specular = 0.3, scattering = 2.8, lensflare = 9,
+											 lifetime = 120, sustain = 4})
+
+muzzleFlashLights[WeaponDefNames["corkorg_corkorg_laser"].id].yOffset = 32
 
 --corkorg_shotgun
 projectileDefLights[WeaponDefNames["corkorg_corkorg_fire"].id] =
-GetLightClass("CannonProjectile", "Plasma", "Small", {a = 0.05,
+GetLightClass("CannonProjectile", "Plasma", "Small", {a = 0.04,
 											modelfactor = 0.2, specular = 0.1, scattering = 0.9, lensflare = 3})
+
+--corkorg_rocket
+projectileDefLights[WeaponDefNames["corkorg_corkorg_rocket"].id] =
+GetLightClass("MissileProjectile", "Warm", "Medium", {a = 0.60,
+											modelfactor = 0.5, specular = 0.05, scattering = 0.5, lensflare = 5,
+											})
 
 --corkorg_scav
 projectileDefLights[WeaponDefNames["corkorg_scav_corkorg_laser"].id] =
