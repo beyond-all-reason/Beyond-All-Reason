@@ -2022,6 +2022,7 @@ local definitions = {
         texture            = [[flashside3]],
         useairlos          = false,
         drawOrder          = 1,
+        castShadow         = true,
       },
     },
     pop1 = {
@@ -2100,6 +2101,7 @@ local definitions = {
         particleSizeSpread=24,
         directional=0,
         rotParams          = [[-10 r20, -10 r20, -180 r360]],
+        castShadow         = true,
       },
     },
     outersmoke = {
@@ -2130,6 +2132,7 @@ local definitions = {
         particleSizeSpread=24,
         directional=0,
         rotParams          = [[-10 r20, -10 r20, -180 r360]],
+        castShadow         = true,
       },
     },
     sparks = {
@@ -2830,6 +2833,7 @@ local definitions = {
         texture            = [[flashside3]],
         useairlos          = false,
         drawOrder          = 1,
+        castShadow         = true,
       },
     },
     shockwave = {
@@ -2966,7 +2970,7 @@ local definitions = {
         particleSizeSpread=22,
         directional=0,
         rotParams          = [[-10 r20, -10 r20, -180 r360]],
-        --castShadow         = true,
+        castShadow         = true,
       },
     },
     sparks = {

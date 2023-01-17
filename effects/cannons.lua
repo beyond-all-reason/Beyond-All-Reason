@@ -184,6 +184,7 @@ local definitions = {
                 sizegrowth         = -0.09,
                 ttl                = 3,
                 useairlos          = true,
+                castShadow         = true,
         },
     },
     -- traillight = {
@@ -226,6 +227,7 @@ local definitions = {
                 sizegrowth         = -0.1,
                 ttl                = 5,
                 useairlos          = true,
+                castShadow         = true,
             },
         },
 

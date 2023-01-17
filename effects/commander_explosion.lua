@@ -201,6 +201,7 @@ return {
                 useairlos          = false,
                 alwaysvisible      = true,
                 drawOrder          = 1,
+                castShadow         = true,
             },
         },
         explosion = {
@@ -232,6 +233,7 @@ return {
                 useairlos          = false,
                 alwaysvisible      = true,
                 drawOrder          = 1,
+                castShadow         = true,
             },
         },
         shockwavefirst = {
@@ -302,6 +304,7 @@ return {
         texture            = [[shard1]],
         useairlos          = false,
         drawOrder          = 1,
+        castShadow         = true,
       },
     },
     shard2 = {
@@ -328,6 +331,7 @@ return {
         sizemod            = 1,
         texture            = [[shard2]],
         useairlos          = false,
+        castShadow         = true,
       },
     },
     shard3 = {
@@ -354,6 +358,7 @@ return {
         sizemod            = 1,
         texture            = [[shard3]],
         useairlos          = false,
+        castShadow         = true,
       },
     },
         sparks = {
@@ -483,6 +488,7 @@ return {
         rotParams          = [[-12 r24, -4 r8, 30 r30]],
         pos                = [[-20 r40, 0 r60, -20 r40]],
         drawOrder          = 0,
+        castShadow         = true,
       },
     },
         dirt = {
@@ -540,6 +546,7 @@ return {
                 useairlos          = false,
                 alwaysvisible      = true,
                 drawOrder          = 1,
+                castShadow         = true,
             },
         },
         dirt3 = {
@@ -568,6 +575,7 @@ return {
                 texture            = [[randomdots]],
                 useairlos          = false,
                 alwaysvisible      = true,
+                castShadow         = true,
             },
         },
         clouddust = {
@@ -598,6 +606,7 @@ return {
                 texture            = [[bigexplosmoke]],
                 alwaysvisible      = true,
                 drawOrder          = 1,
+                castShadow         = true,
             },
         },
         dustparticles = {
@@ -758,6 +767,7 @@ return {
                     texture            = [[dirt]],
                     useairlos          = true,
                     alwaysvisible      = true,
+                    castShadow         = true,
                 },
             },
         smoke2 = {
@@ -787,6 +797,7 @@ return {
                     texture            = [[fogdirty]],
                     useairlos          = true,
                     alwaysvisible      = true,
+                    castShadow         = true,
                 },
             },
             smoke3 = {
@@ -818,6 +829,7 @@ return {
                     useairlos          = true,
                     alwaysvisible      = true,
                     drawOrder          = 1,
+                    castShadow         = true,
                 },
             },    
             
