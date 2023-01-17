@@ -826,16 +826,13 @@ for weaponDefID=1, #WeaponDefs do
 			--glowadd = 2.5
 			--glowsustain = 0
 			fadeintime = 200
-			bwfactor = 0.17 --0.17
+			bwfactor = 0.17
 
 		elseif string.find(weaponDef.name, 'vipersabot') then
-			--textures = { "t_groundcrack_26_a.tga" }
 			radius = (radius * 4) -- viper has very tiny AoE
 
 		elseif string.find(weaponDef.name, 'corkorg_fire') then
-			--textures = { "t_groundcrack_26_a.tga" }
-			alphadecay = 0.004
-			--heatdecay = 0.85
+			alphadecay = 0.004 -- Juggernaut has lots of decals on shotgun
 
 		elseif string.find(weaponDef.name, 'napalm') then
 			textures = { "t_groundcrack_16_a.tga" }
@@ -926,6 +923,18 @@ for weaponDefID=1, #WeaponDefs do
 			alphadecay = 0.002
 			glowadd = 2.5
 			--bwfactor = 0.15
+
+		elseif string.find(weaponDef.name, 'corkorg_laser') then
+			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga" }
+			alphadecay = 0.004
+			radius = radius * 1.1 --* (math.random() * 20 + 0.2)
+			radiusVariation = 0.3
+			heatstart = 6800
+			heatdecay = 0.75
+			glowsustain = 45
+			glowadd = 1.8
+			bwfactor = 0.1
+
 		end
 
 		weaponConfig[weaponDefID] = {

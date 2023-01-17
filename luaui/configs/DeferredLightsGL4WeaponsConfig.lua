@@ -632,8 +632,8 @@ GetLightClass("MissileProjectile", "Warm", "Small", {a = 0.60,
 
 --corkorg
 projectileDefLights[WeaponDefNames["corkorg_corkorg_laser"].id] =
-GetLightClass("LaserProjectile", nil, "Medium", {a = 0.06,
-											r = 1.0, g = 0.5, b = 0.1,
+GetLightClass("LaserProjectile", nil, "Medium", {a = 0.08,
+											r = 1.0, g = 0.65, b = 0.1,
 											color2r = 0.3, color2g = 0.1, color2b = 0.03, colortime = 10,
 											pos2x = 0, pos2y = 100, pos2z = 0,
 											modelfactor = 0.5, specular = 0.05, scattering = 0.05, lensflare = 16,
