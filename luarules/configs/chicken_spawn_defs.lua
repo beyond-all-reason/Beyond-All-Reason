@@ -198,7 +198,7 @@ chickenBehaviours = {
 	},
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and queen
 		"chickenh1",
-		"chickenh1b",
+		--"chickenh1b",
 	},
 	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance
 		"chickenr1",
@@ -456,7 +456,7 @@ local chickenMinions = { -- Units spawning other units
 	},
 	["chicken_miniqueen_healer"] = {
 		"chickenh1",
-		"chickenh1b",
+		--"chickenh1b",
 	},
 	["chicken_miniqueen_basic"] = {
 		"chicken2",
