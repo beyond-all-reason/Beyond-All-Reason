@@ -4231,6 +4231,15 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armepoch'].id] = {
+		searchlight = {
+			lightType = 'cone',
+			pieceName = 'misbox2',
+			lightConfig = { posx = 0, posy = 0, posz = 7, radius = 250,
+							dirx = 0, diry = 0, dirz = 1, theta = 0.14,
+							r = 1, g = 1, b = 1, a = 0.45,
+							modelfactor = 0, specular = 0.5, scattering = 2, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 		turret1 = {
 			lightType = 'point',
 			pieceName = 'base',
