@@ -740,6 +740,15 @@ for weaponDefID=1, #WeaponDefs do
 				heatstart = 6000
 				heatdecay = 0.78
 				glowadd = 2
+
+			elseif string.find(weaponDef.name, 'tremor') then
+				textures = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga", "t_groundcrack_09_a.tga" }
+				radius = radius * 0.96
+				radiusVariation = 0.85
+				alphadecay = 0.0026
+				heatstart = 6000
+				heatdecay = 1.5
+				glowadd = 2
 			end
 
 		elseif weaponDef.type == 'Flame' then
@@ -828,11 +837,20 @@ for weaponDefID=1, #WeaponDefs do
 			fadeintime = 200
 			bwfactor = 0.17
 
-		elseif string.find(weaponDef.name, 'vipersabot') then
-			radius = (radius * 4) -- viper has very tiny AoE
+		elseif string.find(weaponDef.name, 'vipersabot') then -- viper has very tiny AoE
+			radius = (radius * 4) 
 
-		elseif string.find(weaponDef.name, 'corkorg_fire') then
-			alphadecay = 0.004 -- Juggernaut has lots of decals on shotgun
+		elseif string.find(weaponDef.name, 'corkorg_fire') then -- Juggernaut has lots of decals on shotgun
+			alphadecay = 0.004 
+
+		elseif string.find(weaponDef.name, 'exp_heavyrocket') then -- Catapult has lower AoE but big explo
+			textures = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga", "t_groundcrack_09_a.tga" }
+			radius = radius * 2.1
+			radiusVariation = 0.8
+			alphadecay = 0.0026
+			heatstart = 6500
+			heatdecay = 0.8
+			glowadd = 2
 
 		elseif string.find(weaponDef.name, 'napalm') then
 			textures = { "t_groundcrack_16_a.tga" }

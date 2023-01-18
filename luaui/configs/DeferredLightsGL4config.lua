@@ -37,10 +37,10 @@ local unitDefLights = {
 		headlightpw = { -- this is the lightname
 			lightType = 'cone',
 			pieceName = 'justattachtobase', -- invalid ones will attach to the worldpos of the unit
-			lightConfig = { posx = 0, posy = 23, posz = 7, radius = 150,
-							dirx = 0, diry = -0.07, dirz = 1, theta = 0.3,
-							r = 1, g = 1, b = 0.89999998, a = 0.5,
-							modelfactor = -0.5, specular = 0, scattering = 1.5, lensflare = 0.60000002,
+			lightConfig = { posx = 0, posy = 23, posz = 7, radius = 80,
+							dirx = 0, diry = -0.07, dirz = 1, theta = 0.27,
+							r = 1, g = 1, b = 0.89, a = 0.45,
+							modelfactor = -0.5, specular = -1.5, scattering = 1.8, lensflare = 1,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 		eyes = {
@@ -925,10 +925,10 @@ local unitDefLights = {
 		searchlight = {
 			lightType = 'cone',
 			pieceName = 'sleeve',
-			lightConfig = { posx = 0, posy = 5, posz = 5.8, radius = 450,
-				dirx = 0, diry = 0, dirz = 1, theta = 0.25,
-				r = 1, g = 1, b = 1, a = 0.45,
-				modelfactor = 0, specular = 1, scattering = 1, lensflare = 1,
+			lightConfig = { posx = 0, posy = 5, posz = 5.8, radius = 380,
+				dirx = 0, diry = 0, dirz = 1, theta = 0.24,
+				r = 0.95, g = 0.95, b = 0.88, a = 0.4,
+				modelfactor = -0.4, specular = -1.5, scattering = 1.8, lensflare = 2,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		base1 = {
@@ -1008,10 +1008,21 @@ local unitDefLights = {
 		searchlight = {
 			lightType = 'cone',
 			pieceName = 'turret',
-			lightConfig = { posx = 0, posy = 5, posz = 5.8, radius = 450,
-				dirx = 0, diry = 0, dirz = 1, theta = 0.25,
-				r = 1, g = 1, b = 1, a = 0.45,
-				modelfactor = 0, specular = 1, scattering = 1, lensflare = 1,
+			lightConfig = { posx = 0, posy = 5, posz = 5.8, radius = 380,
+				dirx = 0, diry = 0, dirz = 1, theta = 0.24,
+				r = 0.95, g = 0.95, b = 0.88, a = 0.4,
+				modelfactor = -0.4, specular = -1.5, scattering = 1.8, lensflare = 2,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	[UnitDefNames['corhllt'].id] = {
+		searchlight = {
+			lightType = 'cone',
+			pieceName = 'turret2',
+			lightConfig = { posx = 0, posy = 5, posz = 5.8, radius = 380,
+				dirx = 0, diry = 0, dirz = 1, theta = 0.22,
+				r = 0.95, g = 0.95, b = 0.88, a = 0.4,
+				modelfactor = -0.4, specular = -1.5, scattering = 1.8, lensflare = 2,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
@@ -1030,11 +1041,11 @@ local unitDefLights = {
 		searchlight = {
 			lightType = 'cone',
 			pieceName = 'sleeve',
-			lightConfig = { posx = 0, posy = 5, posz = 5.8, radius = 450,
-							dirx = 0, diry = 0, dirz = 1, theta = 0.25,
-							r = 1, g = 1, b = 1, a = 0.45,
-							modelfactor = 0, specular = 1, scattering = 1, lensflare = 1,
-							lifetime = 0, sustain = 0, animtype = 0},
+			lightConfig = { posx = 0, posy = 5, posz = 5.8, radius = 430,
+				dirx = 0, diry = 0, dirz = 1, theta = 0.22,
+				r = 0.95, g = 0.95, b = 0.88, a = 0.4,
+				modelfactor = -0.4, specular = -1.5, scattering = 1.8, lensflare = 2,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		glow = {
 			lightType = 'point',
@@ -1260,10 +1271,10 @@ local unitDefLights = {
 		searchlight = {
 			lightType = 'cone',
 			pieceName = 'gunl',
-			lightConfig = { posx = 0, posy = 0, posz = 7, radius = 450,
-							dirx = 0, diry = 0, dirz = 1, theta = 0.2,
-							r = 1, g = 1, b = 1, a = 0.45,
-							modelfactor = 0, specular = 1, scattering = 2, lensflare = 0,
+			lightConfig = { posx = 0, posy = 0, posz = 7, radius = 440,
+							dirx = 0, diry = 0, dirz = 1, theta = 0.18,
+							r = 0.95, g = 0.95, b = 0.88, a = 0.4,
+							modelfactor = -0.3, specular = -1.2, scattering = 1.8, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 		base1 = {
@@ -1334,10 +1345,10 @@ local unitDefLights = {
 		searchlight = {
 			lightType = 'cone',
 			pieceName = 'gunl',
-			lightConfig = { posx = 0, posy = 0, posz = 7, radius = 450,
-							dirx = 0, diry = 0, dirz = 1, theta = 0.2,
-							r = 1, g = 1, b = 1, a = 0.45,
-							modelfactor = 0, specular = 1, scattering = 2, lensflare = 0,
+			lightConfig = { posx = 0, posy = 0, posz = 7, radius = 440,
+							dirx = 0, diry = 0, dirz = 1, theta = 0.18,
+							r = 0.95, g = 0.95, b = 0.88, a = 0.4,
+							modelfactor = -0.3, specular = -1.2, scattering = 1.8, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 		float1 = {
@@ -1597,6 +1608,28 @@ local unitDefLights = {
 				r = 1, g = 1, b = 1, a = 0.45,
 				modelfactor = 0, specular = 1, scattering = 2, lensflare = 0,
 				lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	[UnitDefNames['armcir'].id] = {
+		searchlight = {
+			lightType = 'cone',
+			pieceName = 'spindle',
+			lightConfig = { posx = 0, posy = 0, posz = 7, radius = 475,
+							dirx = 0, diry = 0, dirz = 1, theta = 0.12,
+							r = 1, g = 1, b = 1, a = 0.45,
+							modelfactor = 0, specular = 0.5, scattering = 2, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	[UnitDefNames['cormadsam'].id] = {
+		searchlight = {
+			lightType = 'cone',
+			pieceName = 'launcher',
+			lightConfig = { posx = 0, posy = 0, posz = 2, radius = 475,
+							dirx = 0, diry = 0, dirz = 1, theta = 0.12,
+							r = 1, g = 1, b = 1, a = 0.45,
+							modelfactor = 0, specular = 0.5, scattering = 2, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armjamt'].id] = {
@@ -14910,11 +14943,20 @@ local unitDefLights = {
 	[UnitDefNames['corfhlt'].id] = {
 		eyes = {
 			lightType = 'point',
-			pieceName = 'turret',
+			pieceName = 'turret1',
 			lightConfig = { posx = 5, posy = 20, posz = 17.5, radius = 19,
 							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
 							r = 1, g = 0.2, b = 0.2, a = 0.11,
 							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		searchlight = {
+			lightType = 'cone',
+			pieceName = 'turret2',
+			lightConfig = { posx = 0, posy = 0, posz = 7, radius = 440,
+							dirx = 0, diry = 0.1, dirz = 1, theta = 0.18,
+							r = 0.95, g = 0.95, b = 0.88, a = 0.4,
+							modelfactor = -0.3, specular = -1.2, scattering = 1.8, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
