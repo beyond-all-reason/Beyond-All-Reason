@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "June 2014",
 		license = "GNU GPL, v2 or later",
 		layer = 2, --run after game initial spawn and coop (because we use readyStates)
-		enabled = true
+		enabled = false
 	}
 end
 
