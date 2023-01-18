@@ -75,6 +75,7 @@ local silverMedals = {
 local bronzeMedals = {
 	--["StarDom"] = true,
 	["MatBlader"] = true,
+	["[eVo]therxyy"] = true,
 }
 function gadget:GameFrame(gf)
 	if gf == 90 then
