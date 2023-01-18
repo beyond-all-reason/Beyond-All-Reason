@@ -613,10 +613,9 @@ end
 -- Basic Squads -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-addBasicSquad(1, {"5 chicken1_mini"}, 10)
-
 for i = 1,wavesAmount do
 	if i <= 4 then -- Basic Swarmer
+		addBasicSquad(1, { i*10 " chicken1_mini"}, 5)
 		addBasicSquad(i, { i*2 .." chicken1", i*2 .." chicken1b", i*2 .." chicken1c" }, 2)
 		addBasicSquad(i, { i*2 .." chicken1b", i*2 .." chicken1c", i*2 .." chicken1d" }, 2)
 		addBasicSquad(i, { i*2 .." chicken1c", i*2 .." chicken1d", i*2 .." chicken1" }, 2)
