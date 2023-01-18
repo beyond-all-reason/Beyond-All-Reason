@@ -389,7 +389,7 @@ end
 
 local function addSpecialSquad(wave, unitList, weight)
 	if not weight then weight = 1 end
-	wave = math.min(wave+math.random(-1,1), wavesAmount)
+	wave = math.max(math.min(wave+math.random(-1,1), wavesAmount), 1)
 	addSuperSquad(math.max(wave-3, 1), unitList, weight)
     for i = 1, weight do 
 		for j = wave,wavesAmount do
@@ -403,7 +403,6 @@ end
 
 local function addBasicSquad(wave, unitList, weight)
 	if not weight then weight = 1 end
-	wave = math.min(wave+math.random(-1,1), wavesAmount)
     for i = 1, weight do 
 		for j = wave,wavesAmount do
 			if not basicWaves[j] then
@@ -416,7 +415,7 @@ end
 
 local function addAirSquad(wave, unitList, weight)
 	if not weight then weight = 1 end
-	wave = math.min(wave+math.random(-1,1), wavesAmount) 
+	wave = math.max(math.min(wave+math.random(-1,1), wavesAmount), 1)
     for i = 1, weight do
 		for j = wave,wavesAmount do
 			if not airWaves[j] then
