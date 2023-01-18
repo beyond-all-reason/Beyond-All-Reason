@@ -39,7 +39,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "Chickens/chicken_miniqueen_acid.s3o",
 		pushresistant = true,
-		script = "Chickens/ve_chickenq.cob",
+		script = "Chickens/chicken_miniqueen.cob",
 		seismicsignature = 0,
 		selfdestructas = "BIGBUG_DEATH_ACID",
 		side = "THUNDERBIRDS",
