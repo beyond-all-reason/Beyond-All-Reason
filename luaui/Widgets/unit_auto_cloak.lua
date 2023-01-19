@@ -92,6 +92,10 @@ function widget:SetConfigData(cfg)
     spEcho("[Auto Cloak Units] widget:SetConfigData (enabled: "..tostring(cfg.enabled).."".."******".." ArmJammer: "..tostring(cfg.armjamt)..")")  -- DEBUG
     enabled = cfg.enabled == true
     cloaking_Unit_Default[UnitDefNames["armjamt"].id] = cfg.armjamt == true
+    cloaking_Unit_Default[UnitDefNames["armamex"].id] = cfg.armamex == true
+    cloaking_Unit_Default[UnitDefNames["armckfus"].id] = cfg.armckfus == true
+    cloaking_Unit_Default[UnitDefNames["armspy"].id] = cfg.armspy == true
+    cloaking_Unit_Default[UnitDefNames["corspy"].id] = cfg.corspy == true
     cloaking_Unit_Default[UnitDefNames["armdecom"].id] = cfg.armdecom == false
     cloaking_Unit_Default[UnitDefNames["cordecom"].id] = cfg.cordecom == false
     cloaking_Unit_Default[UnitDefNames["armferret"].id] = cfg.armferret == false
@@ -100,10 +104,6 @@ function widget:SetConfigData(cfg)
     cloaking_Unit_Default[UnitDefNames["armsnipe"].id] = cfg.armsnipe == false
     cloaking_Unit_Default[UnitDefNames["corsktl"].id] = cfg.corsktl == false
     cloaking_Unit_Default[UnitDefNames["armgremlin"].id] = cfg.armgremlin == false
-    cloaking_Unit_Default[UnitDefNames["armamex"].id] = cfg.armamex == true
-    cloaking_Unit_Default[UnitDefNames["armckfus"].id] = cfg.armckfus == true
-    cloaking_Unit_Default[UnitDefNames["armspy"].id] = cfg.armspy == true
-    cloaking_Unit_Default[UnitDefNames["corspy"].id] = cfg.corspy == true
 end
 
 function widget:Initialize()
@@ -167,22 +167,22 @@ function widget:Initialize()
     end
     WG['init_cloak'].get_ArmAmex = function() return cloaking_Unit_Default[UnitDefNames["armamex"].id] end
     WG['init_cloak'].set_ArmAmex = function(value)
-        spEcho("[Auto Cloak Units] Toggling Armada Gremlin from "..tostring(cloaking_Unit_Default[UnitDefNames["armamex"].id]).." to "..tostring(value))  -- DEBUG
+        spEcho("[Auto Cloak Units] Toggling Armada Twilight from "..tostring(cloaking_Unit_Default[UnitDefNames["armamex"].id]).." to "..tostring(value))  -- DEBUG
         cloaking_Unit_Default[UnitDefNames["armamex"].id] = value
     end
     WG['init_cloak'].get_ArmCkfus = function() return cloaking_Unit_Default[UnitDefNames["armckfus"].id] end
     WG['init_cloak'].set_ArmCkfus = function(value)
-        spEcho("[Auto Cloak Units] Toggling Armada Gremlin from "..tostring(cloaking_Unit_Default[UnitDefNames["armckfus"].id]).." to "..tostring(value))  -- DEBUG
+        spEcho("[Auto Cloak Units] Toggling Armada Cloakable Fusion Reactor from "..tostring(cloaking_Unit_Default[UnitDefNames["armckfus"].id]).." to "..tostring(value))  -- DEBUG
         cloaking_Unit_Default[UnitDefNames["armckfus"].id] = value
     end
     WG['init_cloak'].get_ArmSpy = function() return cloaking_Unit_Default[UnitDefNames["armspy"].id] end
     WG['init_cloak'].set_ArmSpy = function(value)
-        spEcho("[Auto Cloak Units] Toggling Armada Gremlin from "..tostring(cloaking_Unit_Default[UnitDefNames["armspy"].id]).." to "..tostring(value))  -- DEBUG
+        spEcho("[Auto Cloak Units] Toggling Armada Ghost from "..tostring(cloaking_Unit_Default[UnitDefNames["armspy"].id]).." to "..tostring(value))  -- DEBUG
         cloaking_Unit_Default[UnitDefNames["armspy"].id] = value
     end
     WG['init_cloak'].get_CorSpy = function() return cloaking_Unit_Default[UnitDefNames["corspy"].id] end
     WG['init_cloak'].set_CorSpy = function(value)
-        spEcho("[Auto Cloak Units] Toggling Armada Gremlin from "..tostring(cloaking_Unit_Default[UnitDefNames["corspy"].id]).." to "..tostring(value))  -- DEBUG
+        spEcho("[Auto Cloak Units] Toggling Armada Spectre from "..tostring(cloaking_Unit_Default[UnitDefNames["corspy"].id]).." to "..tostring(value))  -- DEBUG
         cloaking_Unit_Default[UnitDefNames["corspy"].id] = value
     end
 end
