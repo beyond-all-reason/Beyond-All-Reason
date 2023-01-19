@@ -20,13 +20,11 @@ end
 		{cmdID= CMD.PATROL, position = {px = 108, py = 426, pz = 2091}},
 		}},
 	}
-if objectiveUnits ~= nil then
+
 		function gadget:API_GiveOrderToUnit()
 
 		end
-	else
-		return
-end
+
 --[[		for k , unit in pairs(objectiveUnits) do
 			if UnitDefNames[unit.name] then
 			local unitID = Spring.CreateUnit(unit.name, unit.x, unit.y, unit.z, unit.rot, unit.teamID)
