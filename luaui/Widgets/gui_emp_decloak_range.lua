@@ -31,6 +31,7 @@ local opacityMultiplier			= 1.3
 local fadeMultiplier			= 1.2		-- lower value: fades out sooner
 local circleDivs				= 64		-- detail of range circle
 local autoCloakSpy				= false
+local autoCloakGremlin			= false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -80,11 +81,15 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 function cloakSpy(unitID)
-    spGiveOrderToUnit(unitID, cmdCloak, { 1 }, 0)
+	if autoCloakSpy then
+		spGiveOrderToUnit(unitID, cmdCloak, { 1 }, 0)
+	end
 end
 
 function processGremlin(unitID)
-    spGiveOrderToUnit(unitID, cmdCloak, { 1 }, 0)
+	if autoCloakGremlin then
+		spGiveOrderToUnit(unitID, cmdCloak, { 1 }, 0)
+	end
     spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 0 }, 0) -- 0 == hold pos
     spGiveOrderToUnit(unitID, cmdFireState, { 0 }, 0) -- hold fire
 end
@@ -92,9 +97,7 @@ end
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
     if isSpy[unitDefID] then
 		addSpy(unitID, unitDefID)
-		if autoCloakSpy then
-			cloakSpy(unitID)
-		end
+		cloakSpy(unitID)
     end
     if isGremlin[unitDefID] then
 		addGremlin(unitID, unitDefID)
