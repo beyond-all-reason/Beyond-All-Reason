@@ -18,7 +18,11 @@ local cloaking_Unit_Default = {
     [UnitDefNames["armpb"].id]=true,
     [UnitDefNames["armsnipe"].id]=true,
     [UnitDefNames["corsktl"].id]=true,
---    [UnitDefNames["armgremlin"].id]=true,
+    [UnitDefNames["armgremlin"].id]=true,
+    [UnitDefNames["armamex"].id]=true,
+    [UnitDefNames["armckfus"].id]=true,
+    [UnitDefNames["armspy"].id]=true,
+    [UnitDefNames["corspy"].id]=true,
 }
 
 --[[
@@ -83,7 +87,11 @@ function widget:GetConfigData()
         armpb = cloaking_Unit_Default[UnitDefNames["armpb"].id],
         armsnipe = cloaking_Unit_Default[UnitDefNames["armsnipe"].id],
         corsktl = cloaking_Unit_Default[UnitDefNames["corsktl"].id],
-    --    armgremlin = cloaking_Unit_Default[UnitDefNames["armgremlin"].id],
+        armgremlin = cloaking_Unit_Default[UnitDefNames["armgremlin"].id],
+        armamex = cloaking_Unit_Default[UnitDefNames["armamex"].id],
+        armckfus = cloaking_Unit_Default[UnitDefNames["armckfus"].id],
+        armspy = cloaking_Unit_Default[UnitDefNames["armspy"].id],
+        corspy = cloaking_Unit_Default[UnitDefNames["corspy"].id],
     }
 end
 
@@ -98,7 +106,11 @@ function widget:SetConfigData(cfg)
     cloaking_Unit_Default[UnitDefNames["armpb"].id] = cfg.armpb == false
     cloaking_Unit_Default[UnitDefNames["armsnipe"].id] = cfg.armsnipe == false
     cloaking_Unit_Default[UnitDefNames["corsktl"].id] = cfg.corsktl == false
---    cloaking_Unit_Default[UnitDefNames["armgremlin"].id] = cfg.armgremlin == false
+    cloaking_Unit_Default[UnitDefNames["armgremlin"].id] = cfg.armgremlin == false
+    cloaking_Unit_Default[UnitDefNames["armamex"].id] = cfg.armamex == true
+    cloaking_Unit_Default[UnitDefNames["armckfus"].id] = cfg.armckfus == true
+    cloaking_Unit_Default[UnitDefNames["armspy"].id] = cfg.armspy == true
+    cloaking_Unit_Default[UnitDefNames["corspy"].id] = cfg.corspy == true
 end
 
 function widget:Initialize()
@@ -159,11 +171,31 @@ function widget:Initialize()
         spEcho("[Auto Cloak Units] Toggling Cortex Skuttle from "..tostring(cloaking_Unit_Default[UnitDefNames["corsktl"].id]).." to "..tostring(value))  -- DEBUG
         cloaking_Unit_Default[UnitDefNames["corsktl"].id] = value
     end
---[[    WG['init_cloak'].get_ArmGremlin = function() return cloaking_Unit_Default[UnitDefNames["armgremlin"].id] end
+    WG['init_cloak'].get_ArmGremlin = function() return cloaking_Unit_Default[UnitDefNames["armgremlin"].id] end
     WG['init_cloak'].set_ArmGremlin = function(value)
         spEcho("[Auto Cloak Units] Toggling Armada Gremlin from "..tostring(cloaking_Unit_Default[UnitDefNames["armgremlin"].id]).." to "..tostring(value))  -- DEBUG
         cloaking_Unit_Default[UnitDefNames["armgremlin"].id] = value
-    end]]--
+    end
+    WG['init_cloak'].get_ArmAmex = function() return cloaking_Unit_Default[UnitDefNames["armamex"].id] end
+    WG['init_cloak'].set_ArmAmex = function(value)
+        spEcho("[Auto Cloak Units] Toggling Armada Gremlin from "..tostring(cloaking_Unit_Default[UnitDefNames["armamex"].id]).." to "..tostring(value))  -- DEBUG
+        cloaking_Unit_Default[UnitDefNames["armamex"].id] = value
+    end
+    WG['init_cloak'].get_ArmCkfus = function() return cloaking_Unit_Default[UnitDefNames["armckfus"].id] end
+    WG['init_cloak'].set_ArmCkfus = function(value)
+        spEcho("[Auto Cloak Units] Toggling Armada Gremlin from "..tostring(cloaking_Unit_Default[UnitDefNames["armckfus"].id]).." to "..tostring(value))  -- DEBUG
+        cloaking_Unit_Default[UnitDefNames["armckfus"].id] = value
+    end
+    WG['init_cloak'].get_ArmSpy = function() return cloaking_Unit_Default[UnitDefNames["armspy"].id] end
+    WG['init_cloak'].set_ArmSpy = function(value)
+        spEcho("[Auto Cloak Units] Toggling Armada Gremlin from "..tostring(cloaking_Unit_Default[UnitDefNames["armspy"].id]).." to "..tostring(value))  -- DEBUG
+        cloaking_Unit_Default[UnitDefNames["armspy"].id] = value
+    end
+    WG['init_cloak'].get_CorSpy = function() return cloaking_Unit_Default[UnitDefNames["corspy"].id] end
+    WG['init_cloak'].set_CorSpy = function(value)
+        spEcho("[Auto Cloak Units] Toggling Armada Gremlin from "..tostring(cloaking_Unit_Default[UnitDefNames["corspy"].id]).." to "..tostring(value))  -- DEBUG
+        cloaking_Unit_Default[UnitDefNames["corspy"].id] = value
+    end
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
