@@ -35,7 +35,7 @@ return {
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 195,
 		yardmap = "oooo",
-		initcloaked = true, --DEBUG
+	--	initcloaked = true, --DEBUG
 		customparams = {
 			unitgroup = 'util',
 			model_author = "Cremuss",
