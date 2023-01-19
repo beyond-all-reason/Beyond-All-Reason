@@ -5,10 +5,12 @@ local info = {
     author    = "wilkubyk",
     date      = "2022.12.29",
     license   = "GNU GPL, v2 or later",
-    layer     = math.huge,
+    layer     = math.huge, --someone check if could be changed
     enabled   = true  -- loaded by default
 }
-
+--
+--Main Table with all units that got Cloak 
+--
 local cloaking_Unit_Default = {
 	[UnitDefNames["armjamt"].id]=true,
 	[UnitDefNames["armdecom"].id]=true,
@@ -25,45 +27,33 @@ local cloaking_Unit_Default = {
     [UnitDefNames["corspy"].id]=true,
 }
 
---[[
-- Sneaky pete | default on armjamt
-- Decoy coms | default off armdecom / cordecom
-- Pack0 | default off armferret
-- Rattlesnake | default off armamb
-- PitBull | default off armpb
-- Snipers | default off armsnipe
-- Skuttle | default off corsktl
-- Gremlin | default off armgremlin
-]]--
-
 local CMD_CLOAK = 37382
-local cloak = CMD_CLOAK
-local cloakunits = {}
+local cloak = CMD_CLOAK --just simplified Var
+local cloakunits = {} -- get UnitID for initial local function
 local gameStarted
-local giveOrderToUnit = Spring.GiveOrderToUnit
-local spEcho = Spring.Echo
-local spUnitTeam = Spring.GetMyTeamID
-local default = false
-local armjamt = { [UnitDefNames["armjamt"].id]=true }
+local giveOrderToUnit = Spring.GiveOrderToUnit --optimization 
+local spEcho = Spring.Echo 
+local spUnitTeam = Spring.GetMyTeamID --optimization
+local enabled = false --Var for Main Toggle Default Auto Cloak
 
-local function cloakDeActive(unitID, unitDefID)
+local function cloakDeActive(unitID, unitDefID) --DeActivator of Cloak for all units with clock
     if cloaking_Unit_Default[unitDefID] then
         cloakunits[unitID] = true
         giveOrderToUnit(unitID, cloak, {0}, 0)
     end
 end
-local function cloakActive(unitID, unitDefID)
+local function cloakActive(unitID, unitDefID) --Activator of Cloak 
     if cloaking_Unit_Default[unitDefID] then
         cloakunits[unitID] = true
         giveOrderToUnit(unitID, cloak, {1}, 0)
     end
 end
-local function unitIDs(unitID, unitDefID)
+local function unitIDs(unitID, unitDefID) --check later if could be removed 
     if cloaking_Unit_Default[unitDefID] then
         cloakunits[unitID] = true
     end
 end
-local function NewUnit(unitID, unitDefID, unitTeam)
+local function NewUnit(unitID, unitDefID, unitTeam) --check later if could be removed
     if unitTeam ~= spUnitTeam then
         return
         unitIDs(unitID, unitDefID)
@@ -71,14 +61,17 @@ local function NewUnit(unitID, unitDefID, unitTeam)
 
 end
 
+--
+-- Callins (widget setup/configs)
+--
 function widget:GetInfo()
     return info
 end
 
 function widget:GetConfigData()
-    spEcho("[Auto Cloak Units] widget:GetConfigData (default: "..tostring(default).."".."******".."armjamt: "..tostring(cloaking_Unit_Default[UnitDefNames["armjamt"].id])..")") -- DEBUG
+    spEcho("[Auto Cloak Units] widget:GetConfigData (default: "..tostring(enabled).."".."******".."armjamt: "..tostring(cloaking_Unit_Default[UnitDefNames["armjamt"].id])..")") -- DEBUG
     return {
-	    default = default,
+	    enabled = enabled,
         armjamt = cloaking_Unit_Default[UnitDefNames["armjamt"].id],
         armdecom = cloaking_Unit_Default[UnitDefNames["armdecom"].id],
         cordecom = cloaking_Unit_Default[UnitDefNames["cordecom"].id],
@@ -96,8 +89,8 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(cfg)
-    spEcho("[Auto Cloak Units] widget:SetConfigData (default: "..tostring(cfg.default).."".."******".." ArmJammer: "..tostring(cfg.armjamt)..")")  -- DEBUG
-    default = cfg.default == true
+    spEcho("[Auto Cloak Units] widget:SetConfigData (enabled: "..tostring(cfg.enabled).."".."******".." ArmJammer: "..tostring(cfg.armjamt)..")")  -- DEBUG
+    enabled = cfg.enabled == true
     cloaking_Unit_Default[UnitDefNames["armjamt"].id] = cfg.armjamt == true
     cloaking_Unit_Default[UnitDefNames["armdecom"].id] = cfg.armdecom == false
     cloaking_Unit_Default[UnitDefNames["cordecom"].id] = cfg.cordecom == false
@@ -120,27 +113,23 @@ function widget:Initialize()
         maybeRemoveSelf()
     end
 
-    WG['default_cloak']= {}
-    WG['default_cloak'].get_Default     = function() return default end
-    WG['default_cloak'].set_Default     = function(value)
-        spEcho("[Auto Cloak Units] Toggling Default from "..tostring(default).." to "..tostring(value))  -- DEBUG
-        default = value
-    --    cloakDeActive()
+    WG['enabled_cloak']= {}
+    WG['enabled_cloak'].get_Enabled     = function() return enabled end
+    WG['enabled_cloak'].set_Enabled     = function(value)
+        spEcho("[Auto Cloak Units] Toggling Default from "..tostring(enabled).." to "..tostring(value))  -- DEBUG
+        enabled = value
     end
     WG['init_cloak'] = {}
     WG['init_cloak'].get_ArmJamt = function() return cloaking_Unit_Default[UnitDefNames["armjamt"].id] end
     WG['init_cloak'].set_ArmJamt = function(value)
         spEcho("[Auto Cloak Units] Toggling Sneaky Pete from "..tostring(cloaking_Unit_Default[UnitDefNames["armjamt"].id]).." to "..tostring(value))  -- DEBUG
         cloaking_Unit_Default[UnitDefNames["armjamt"].id] = value
-    --    cloakActive()
     end
-    --WG['init_cloak'] = {}
     WG['init_cloak'].get_ArmDeCom     = function() return cloaking_Unit_Default[UnitDefNames["armdecom"].id] end
     WG['init_cloak'].set_ArmDeCom     = function(value)
         spEcho("[Auto Cloak Units] Toggling Armada Decoy Commander from "..tostring(cloaking_Unit_Default[UnitDefNames["armdecom"].id]).." to "..tostring(value))  -- DEBUG
         cloaking_Unit_Default[UnitDefNames["armdecom"].id] = value
     end
-    --WG['init_cloak'] = {}
     WG['init_cloak'].get_CorDeCom = function() return cloaking_Unit_Default[UnitDefNames["cordecom"].id] end
     WG['init_cloak'].set_CorDeCom = function(value)
         spEcho("[Auto Cloak Units] Toggling Cortex Decoy Commander from "..tostring(cloaking_Unit_Default[UnitDefNames["cordecom"].id]).." to "..tostring(value))  -- DEBUG
@@ -199,10 +188,10 @@ function widget:Initialize()
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
-    if default == false then
-        cloakDeActive(unitID, unitDefID)
-        elseif default == true then
-            cloakActive(unitID, unitDefID)
+    if enabled == false then
+        cloakDeActive(unitID, unitDefID) --DeActivate Cloak when Toggled for all Units with cloak
+        elseif enabled == true then
+            cloakActive(unitID, unitDefID) --Activator for per Units settings
     end
 end
 

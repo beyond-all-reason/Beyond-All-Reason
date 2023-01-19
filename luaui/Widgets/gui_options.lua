@@ -3559,17 +3559,24 @@ function init()
 		{ id = "label_ui_cloak", group = "game", name = texts.option.label_cloak, category = types.basic },
 		{ id = "label_ui_cloak_spacer", group = "game", category = types.basic },
 
-		{ id = "auto_cloak_default", group = "game", category = types.basic, name = texts.option.auto_cloak_default, type = "bool", value = (WG['default_cloak'] ~= nil and WG['default_cloak'].get_Default ~= nil and WG['default_cloak'].get_Default()), description = texts.option.auto_cloak_default_descr,
-		onload = function(i)
-			loadWidgetData("Auto Cloak Units", "auto_cloak_default", { "default" })
-		end,
-		onchange = function(i, value)
-			if  widgetHandler.configData["Auto Cloak Units"] == nil then
-				widgetHandler.configData["Auto Cloak Units"] = {}
-			end
-			widgetHandler.configData["Auto Cloak Units"].default = value
-			saveOptionValue("Auto Cloak Units", "default_cloak", "set_Default", { "default" }, value)
-		end,
+		{ id = "auto_cloak_enabled", group = "game", category = types.basic, 
+			name = texts.option.auto_cloak_enabled, type = "bool", 
+			value = (
+					WG['enabled_cloak'] ~= nil 
+				and WG['enabled_cloak'].get_Enabled ~= nil 
+				and WG['enabled_cloak'].get_Enabled()
+					), 
+			description = texts.option.auto_cloak_enabled_descr,
+			onload = function(i)
+				loadWidgetData("Auto Cloak Units", "auto_cloak_enabled", { "enabled" })
+			end,
+			onchange = function(i, value)
+				if  widgetHandler.configData["Auto Cloak Units"] == nil then
+					widgetHandler.configData["Auto Cloak Units"] = {}
+				end
+				widgetHandler.configData["Auto Cloak Units"].enabled = value
+				saveOptionValue("Auto Cloak Units", "enabled_cloak", "set_Enabled", { "enabled" }, value)
+			end,
 		},
 
 		{ id = "auto_cloak_armjamt", group = "game", category = types.basic, 
