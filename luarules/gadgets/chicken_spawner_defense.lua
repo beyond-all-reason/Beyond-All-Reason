@@ -266,9 +266,9 @@ if gadgetHandler:IsSyncedCode() then
 		config.chickenSpawnRate = config.chickenSpawnRate*10
 	end
 	-- local expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
-	local maxBurrows = ((config.maxBurrows*0.75)+(config.maxBurrows*0.25)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+	local maxBurrows = ((config.maxBurrows*1-config.chickenPerPlayerMultiplier)+(config.maxBurrows*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 	local queenTime = (config.queenTime + config.gracePeriod)
-	local maxWaveSize = ((config.maxChickens*0.75)+(config.maxChickens*0.25)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+	local maxWaveSize = ((config.maxChickens*1-config.chickenPerPlayerMultiplier)+(config.maxChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 	local currentMaxWaveSize = config.minChickens
 	function updateDifficultyForSurvival()
 		t = GetGameSeconds()
@@ -313,8 +313,8 @@ if gadgetHandler:IsSyncedCode() then
 			config.chickenSpawnRate = config.chickenSpawnRate*10
 		end
 		-- expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
-		maxBurrows = ((config.maxBurrows*0.75)+(config.maxBurrows*0.25)*SetCount(humanTeams))*config.chickenSpawnMultiplier
-		maxWaveSize = ((config.maxChickens*0.5)+(config.maxChickens*0.5)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+		maxBurrows = ((config.maxBurrows*1-config.chickenPerPlayerMultiplier)+(config.maxBurrows*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+		maxWaveSize = ((config.maxChickens*1-config.chickenPerPlayerMultiplier)+(config.maxChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 		currentMaxWaveSize = config.minChickens
 	end
 
