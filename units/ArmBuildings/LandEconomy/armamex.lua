@@ -24,7 +24,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		initcloaked = true,
+	--	initcloaked = true, --DEBUG
 		maxdamage = 1450,
 		maxslope = 30,
 		maxwaterdepth = 20,
