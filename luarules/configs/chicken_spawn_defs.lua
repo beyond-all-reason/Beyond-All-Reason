@@ -679,6 +679,7 @@ local useWaveMsg = false -- Show dropdown message whenever new wave is spawning
 local spawnSquare = 90 -- size of the chicken spawn square centered on the burrow
 local spawnSquareIncrement = 2 -- square size increase for each unit spawned
 local minBaseDistance = 750 -- Minimum distance of new burrows from players and other burrows
+local burrowTurretSpawnRadius = 32
 
 local config = { -- Don't touch this! ---------------------------------------------------------------------------------------------------------------------------------------------
 	useEggs 				= useEggs,
@@ -709,6 +710,7 @@ local config = { -- Don't touch this! ------------------------------------------
 	chickenBehaviours 		= chickenBehaviours,
 	difficultyParameters   	= optionValues,
 	useWaveMsg 				= useWaveMsg,
+	burrowTurretSpawnRadius = burrowTurretSpawnRadius,
 }
 
 for key, value in pairs(optionValues[difficulty]) do

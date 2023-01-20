@@ -266,9 +266,9 @@ if gadgetHandler:IsSyncedCode() then
 		config.chickenSpawnRate = config.chickenSpawnRate*10
 	end
 	-- local expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
-	local maxBurrows = ((config.maxBurrows*1-config.chickenPerPlayerMultiplier)+(config.maxBurrows*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+	local maxBurrows = ((config.maxBurrows*(1-config.chickenPerPlayerMultiplier))+(config.maxBurrows*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 	local queenTime = (config.queenTime + config.gracePeriod)
-	local maxWaveSize = ((config.maxChickens*1-config.chickenPerPlayerMultiplier)+(config.maxChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+	local maxWaveSize = ((config.maxChickens*(1-config.chickenPerPlayerMultiplier))+(config.maxChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 	local currentMaxWaveSize = config.minChickens
 	function updateDifficultyForSurvival()
 		t = GetGameSeconds()
@@ -313,8 +313,8 @@ if gadgetHandler:IsSyncedCode() then
 			config.chickenSpawnRate = config.chickenSpawnRate*10
 		end
 		-- expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
-		maxBurrows = ((config.maxBurrows*1-config.chickenPerPlayerMultiplier)+(config.maxBurrows*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
-		maxWaveSize = ((config.maxChickens*1-config.chickenPerPlayerMultiplier)+(config.maxChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+		maxBurrows = ((config.maxBurrows*(1-config.chickenPerPlayerMultiplier))+(config.maxBurrows*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+		maxWaveSize = ((config.maxChickens*(1-config.chickenPerPlayerMultiplier))+(config.maxChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 		currentMaxWaveSize = config.minChickens
 	end
 
@@ -680,28 +680,28 @@ if gadgetHandler:IsSyncedCode() then
 		setChickenXP(unitID)
 		if #config.chickenTurrets.burrowDefenders > 0 then
 			-- spawn some turrets
-			local turretID = CreateUnit(config.chickenTurrets.burrowDefenders[mRandom(1,#config.chickenTurrets.burrowDefenders)], x-32, y, z-32, mRandom(0,3), chickenTeamID)
+			local turretID = CreateUnit(config.chickenTurrets.burrowDefenders[mRandom(1,#config.chickenTurrets.burrowDefenders)], x-config.burrowTurretSpawnRadius, y, z-config.burrowTurretSpawnRadius, mRandom(0,3), chickenTeamID)
 			if turretID then
 				SetUnitBlocking(turretID, false, false)
 				setChickenXP(turretID)
 				Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
 				burrowTurrets[turretID] = unitID
 			end
-			local turretID = CreateUnit(config.chickenTurrets.burrowDefenders[mRandom(1,#config.chickenTurrets.burrowDefenders)], x+32, y, z-32, mRandom(0,3), chickenTeamID)
+			local turretID = CreateUnit(config.chickenTurrets.burrowDefenders[mRandom(1,#config.chickenTurrets.burrowDefenders)], x+config.burrowTurretSpawnRadius, y, z-config.burrowTurretSpawnRadius, mRandom(0,3), chickenTeamID)
 			if turretID then
 				SetUnitBlocking(turretID, false, false)
 				setChickenXP(turretID)
 				Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
 				burrowTurrets[turretID] = unitID
 			end
-			local turretID = CreateUnit(config.chickenTurrets.burrowDefenders[mRandom(1,#config.chickenTurrets.burrowDefenders)], x-32, y, z+32, mRandom(0,3), chickenTeamID)
+			local turretID = CreateUnit(config.chickenTurrets.burrowDefenders[mRandom(1,#config.chickenTurrets.burrowDefenders)], x-config.burrowTurretSpawnRadius, y, z+config.burrowTurretSpawnRadius, mRandom(0,3), chickenTeamID)
 			if turretID then
 				SetUnitBlocking(turretID, false, false)
 				setChickenXP(turretID)
 				Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
 				burrowTurrets[turretID] = unitID
 			end
-			local turretID = CreateUnit(config.chickenTurrets.burrowDefenders[mRandom(1,#config.chickenTurrets.burrowDefenders)], x+32, y, z+32, mRandom(0,3), chickenTeamID)
+			local turretID = CreateUnit(config.chickenTurrets.burrowDefenders[mRandom(1,#config.chickenTurrets.burrowDefenders)], x+config.burrowTurretSpawnRadius, y, z+config.burrowTurretSpawnRadius, mRandom(0,3), chickenTeamID)
 			if turretID then
 				SetUnitBlocking(turretID, false, false)
 				setChickenXP(turretID)
@@ -710,28 +710,28 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			-- spawn more turrets sometimes
 			if mRandom(1,5) == 1 then
-				local turretID = CreateUnit(config.chickenTurrets.burrowDefenders[mRandom(1,#config.chickenTurrets.burrowDefenders)], x+48, y, z, mRandom(0,3), chickenTeamID)
+				local turretID = CreateUnit(config.chickenTurrets.burrowDefenders[mRandom(1,#config.chickenTurrets.burrowDefenders)], x+(math.ceil(config.burrowTurretSpawnRadius*1.5)), y, z, mRandom(0,3), chickenTeamID)
 				if turretID then
 					SetUnitBlocking(turretID, false, false)
 					setChickenXP(turretID)
 					Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
 					burrowTurrets[turretID] = unitID
 				end
-				local turretID = CreateUnit(config.chickenTurrets.burrowDefenders[mRandom(1,#config.chickenTurrets.burrowDefenders)], x-48, y, z, mRandom(0,3), chickenTeamID)
+				local turretID = CreateUnit(config.chickenTurrets.burrowDefenders[mRandom(1,#config.chickenTurrets.burrowDefenders)], x-(math.ceil(config.burrowTurretSpawnRadius*1.5)), y, z, mRandom(0,3), chickenTeamID)
 				if turretID then
 					SetUnitBlocking(turretID, false, false)
 					setChickenXP(turretID)
 					Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
 					burrowTurrets[turretID] = unitID
 				end
-				local turretID = CreateUnit(config.chickenTurrets.burrowDefenders[mRandom(1,#config.chickenTurrets.burrowDefenders)], x, y, z+48, mRandom(0,3), chickenTeamID)
+				local turretID = CreateUnit(config.chickenTurrets.burrowDefenders[mRandom(1,#config.chickenTurrets.burrowDefenders)], x, y, z+(math.ceil(config.burrowTurretSpawnRadius*1.5)), mRandom(0,3), chickenTeamID)
 				if turretID then
 					SetUnitBlocking(turretID, false, false)
 					setChickenXP(turretID)
 					Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
 					burrowTurrets[turretID] = unitID
 				end
-				local turretID = CreateUnit(config.chickenTurrets.burrowDefenders[mRandom(1,#config.chickenTurrets.burrowDefenders)], x, y, z-48, mRandom(0,3), chickenTeamID)
+				local turretID = CreateUnit(config.chickenTurrets.burrowDefenders[mRandom(1,#config.chickenTurrets.burrowDefenders)], x, y, z-(math.ceil(config.burrowTurretSpawnRadius*1.5)), mRandom(0,3), chickenTeamID)
 				if turretID then
 					SetUnitBlocking(turretID, false, false)
 					setChickenXP(turretID)
