@@ -3685,6 +3685,260 @@ function init()
 			  saveOptionValue('Auto Group', 'autogroup', 'setPersist', { 'persist' }, value)
 		  end,
 		},
+		{ id = "label_ui_cloak", group = "game", name = texts.option.label_cloak, category = types.basic },
+		{ id = "label_ui_cloak_spacer", group = "game", category = types.basic },
+
+		{ id = "auto_cloak_enabled", group = "game", category = types.basic, 
+			name = texts.option.auto_cloak_enabled, type = "bool", 
+			value = (
+					WG['enabled_cloak'] ~= nil 
+				and WG['enabled_cloak'].get_Enabled ~= nil 
+				and WG['enabled_cloak'].get_Enabled()
+					), 
+			description = texts.option.auto_cloak_enabled_descr,
+			onload = function(i)
+				loadWidgetData("Auto Cloak Units", "auto_cloak_enabled", { "enabled" })
+			end,
+			onchange = function(i, value)
+				if  widgetHandler.configData["Auto Cloak Units"] == nil then
+					widgetHandler.configData["Auto Cloak Units"] = {}
+				end
+				widgetHandler.configData["Auto Cloak Units"].enabled = value
+				saveOptionValue("Auto Cloak Units", "enabled_cloak", "set_Enabled", { "enabled" }, value)
+			end,
+		},
+
+		{ id = "auto_cloak_armjamt", group = "game", category = types.basic, 
+			name = widgetOptionColor .. "   " .. texts.option.auto_cloak_armjamt, 
+			type = "bool", 
+			value = (
+					WG['init_cloak'] ~= nil
+				and WG['init_cloak'].get_ArmJamt ~= nil
+				and WG['init_cloak'].get_ArmJamt()
+					), 
+			description = texts.option.auto_cloak_armjamt_descr,
+			onload = function(i)
+				loadWidgetData("Auto Cloak Units", "auto_cloak_armjamt", { "armjamt" })
+			end,
+			onchange = function(i, value)
+				if  widgetHandler.configData["Auto Cloak Units"] == nil then
+					widgetHandler.configData["Auto Cloak Units"] = {}
+				end
+				widgetHandler.configData["Auto Cloak Units"].armjamt = value
+				saveOptionValue("Auto Cloak Units", "init_cloak", "set_ArmJamt", { "armjamt" }, value)
+			end,
+		},
+
+		{ id = "auto_cloak_armdecom", group = "game", category = types.basic, 
+		name = widgetOptionColor .. "   " .. texts.option.auto_cloak_armdecom, 
+		type = "bool", 
+		value = (
+				WG['init_cloak'] ~= nil
+			and WG['init_cloak'].get_ArmDeCom ~= nil
+			and WG['init_cloak'].set_ArmDeCom()
+				), 
+		description = texts.option.auto_cloak_armdecom_descr,
+		onload = function(i)
+			loadWidgetData("Auto Cloak Units", "auto_cloak_armdecom", { "armdecom" })
+		end,
+		onchange = function(i, value)
+			if  widgetHandler.configData["Auto Cloak Units"] == nil then
+				widgetHandler.configData["Auto Cloak Units"] = {}
+			end
+			widgetHandler.configData["Auto Cloak Units"].armdecom = value
+			saveOptionValue("Auto Cloak Units", "init_cloak", "set_ArmDeCom", { "armdecom" }, value)
+		end,
+		},
+
+		{ id = "auto_cloak_cordecom", group = "game", category = types.basic, 
+		name = widgetOptionColor .. "   " .. texts.option.auto_cloak_cordecom, 
+		type = "bool", 
+		value = (
+				WG['init_cloak'] ~= nil
+			and WG['init_cloak'].get_CorDeCom ~= nil
+			and WG['init_cloak'].set_CorDeCom()
+				), 
+		description = texts.option.auto_cloak_cordecom_descr,
+		onload = function(i)
+			loadWidgetData("Auto Cloak Units", "auto_cloak_cordecom", { "cordecom" })
+		end,
+		onchange = function(i, value)
+			if  widgetHandler.configData["Auto Cloak Units"] == nil then
+				widgetHandler.configData["Auto Cloak Units"] = {}
+			end
+			widgetHandler.configData["Auto Cloak Units"].cordecom = value
+			saveOptionValue("Auto Cloak Units", "init_cloak", "set_CorDeCom", { "cordecom" }, value)
+		end,
+		},
+		{ id = "auto_cloak_armferret", group = "game", category = types.basic, 
+			name = widgetOptionColor .. "   " .. texts.option.auto_cloak_armferret, 
+			type = "bool", 
+			value = (
+					WG['init_cloak'] ~= nil
+				and WG['init_cloak'].get_ArmFerret ~= nil
+				and WG['init_cloak'].get_ArmFerret()
+					), 
+			description = texts.option.auto_cloak_armferret_descr,
+			onload = function(i)
+				loadWidgetData("Auto Cloak Units", "auto_cloak_armferret", { "armferret" })
+			end,
+			onchange = function(i, value)
+				saveOptionValue("Auto Cloak Units", "init_cloak", "set_ArmFerret", { "armferret" }, value)
+			end,
+		},
+
+		{ id = "auto_cloak_armamb", group = "game", category = types.basic, 
+			name = widgetOptionColor .. "   " .. texts.option.auto_cloak_armamb, 
+			type = "bool", 
+			value = (
+					WG['init_cloak'] ~= nil
+				and WG['init_cloak'].get_ArmAmb ~= nil
+				and WG['init_cloak'].get_ArmAmb()
+					), 
+			description = texts.option.auto_cloak_armamb_descr,
+			onload = function(i)
+				loadWidgetData("Auto Cloak Units", "auto_cloak_armamb", { "armamb" })
+			end,
+			onchange = function(i, value)
+				saveOptionValue("Auto Cloak Units", "init_cloak", "set_ArmAmb", { "armamb" }, value)
+			end,
+		},
+
+		{ id = "auto_cloak_armpb", group = "game", category = types.basic, 
+			name = widgetOptionColor .. "   " .. texts.option.auto_cloak_armpb, 
+			type = "bool", 
+			value = (
+					WG['init_cloak'] ~= nil
+				and WG['init_cloak'].get_ArmPb ~= nil
+				and WG['init_cloak'].get_ArmPb()
+					), 
+			description = texts.option.auto_cloak_armpb_descr,
+			onload = function(i)
+				loadWidgetData("Auto Cloak Units", "auto_cloak_armpb", { "armpb" })
+			end,
+			onchange = function(i, value)
+				saveOptionValue("Auto Cloak Units", "init_cloak", "set_ArmPb", { "armpb" }, value)
+			end,
+		},
+
+		{ id = "auto_cloak_armsnipe", group = "game", category = types.basic, 
+			name = widgetOptionColor .. "   " .. texts.option.auto_cloak_armsnipe, 
+			type = "bool", 
+			value = (
+					WG['init_cloak'] ~= nil
+				and WG['init_cloak'].get_ArmSnipe ~= nil
+				and WG['init_cloak'].get_ArmSnipe()
+					), 
+			description = texts.option.auto_cloak_armsnipe_descr,
+			onload = function(i)
+				loadWidgetData("Auto Cloak Units", "auto_cloak_armsnipe", { "armsnipe" })
+			end,
+			onchange = function(i, value)
+				saveOptionValue("Auto Cloak Units", "init_cloak", "set_ArmSnipe", { "armsnipe" }, value)
+			end,
+		},
+
+		{ id = "auto_cloak_corsktl", group = "game", category = types.basic, 
+			name = widgetOptionColor .. "   " .. texts.option.auto_cloak_corsktl, 
+			type = "bool", 
+			value = (
+					WG['init_cloak'] ~= nil
+				and WG['init_cloak'].get_CorSktl ~= nil
+				and WG['init_cloak'].get_CorSktl()
+					), 
+			description = texts.option.auto_cloak_corsktl_descr,
+			onload = function(i)
+				loadWidgetData("Auto Cloak Units", "auto_cloak_corsktl", { "corsktl" })
+			end,
+			onchange = function(i, value)
+				saveOptionValue("Auto Cloak Units", "init_cloak", "set_CorSktl", { "corsktl" }, value)
+			end,
+		},
+
+		{ id = "auto_cloak_armgremlin", group = "game", category = types.basic, 
+			name = widgetOptionColor .. "   " .. texts.option.auto_cloak_armgremlin, 
+			type = "bool", 
+			value = (
+					WG['init_cloak'] ~= nil
+				and WG['init_cloak'].get_ArmGremlin ~= nil
+				and WG['init_cloak'].get_ArmGremlin()
+					), 
+			description = texts.option.auto_cloak_armgremlin_descr,
+			onload = function(i)
+				loadWidgetData("Auto Cloak Units", "auto_cloak_armgremlin", { "armgremlin" })
+			end,
+			onchange = function(i, value)
+				saveOptionValue("Auto Cloak Units", "init_cloak", "set_ArmGremlin", { "armgremlin" }, value)
+			end,
+		},
+
+		{ id = "auto_cloak_armamex", group = "game", category = types.basic, 
+			name = widgetOptionColor .. "   " .. texts.option.auto_cloak_armamex, 
+			type = "bool", 
+			value = (
+					WG['init_cloak'] ~= nil
+				and WG['init_cloak'].get_ArmAmex ~= nil
+				and WG['init_cloak'].get_ArmAmex()
+					), 
+			description = texts.option.auto_cloak_armamex_descr,
+			onload = function(i)
+				loadWidgetData("Auto Cloak Units", "auto_cloak_armamex", { "armamex" })
+			end,
+			onchange = function(i, value)
+				saveOptionValue("Auto Cloak Units", "init_cloak", "set_ArmAmex", { "armamex" }, value)
+			end,
+		},
+
+		{ id = "auto_cloak_armckfus", group = "game", category = types.basic, 
+			name = widgetOptionColor .. "   " .. texts.option.auto_cloak_armckfus, 
+			type = "bool", 
+			value = (
+					WG['init_cloak'] ~= nil
+				and WG['init_cloak'].get_ArmCkfus ~= nil
+				and WG['init_cloak'].get_ArmCkfus()
+					), 
+			description = texts.option.auto_cloak_armckfus_descr,
+			onload = function(i)
+				loadWidgetData("Auto Cloak Units", "auto_cloak_armckfus", { "armckfus" })
+			end,
+			onchange = function(i, value)
+				saveOptionValue("Auto Cloak Units", "init_cloak", "set_ArmCkfus", { "armckfus" }, value)
+			end,
+		},
+
+		{ id = "auto_cloak_armspy", group = "game", category = types.basic, 
+			name = widgetOptionColor .. "   " .. texts.option.auto_cloak_armspy, 
+			type = "bool", 
+			value = (
+					WG['init_cloak'] ~= nil
+				and WG['init_cloak'].get_ArmSpy ~= nil
+				and WG['init_cloak'].get_ArmSpy()
+					), 
+			description = texts.option.auto_cloak_armspy_descr,
+			onload = function(i)
+				loadWidgetData("Auto Cloak Units", "auto_cloak_armspy", { "armspy" })
+			end,
+			onchange = function(i, value)
+				saveOptionValue("Auto Cloak Units", "init_cloak", "set_ArmSpy", { "armspy" }, value)
+			end,
+		},
+
+		{ id = "auto_cloak_corspy", group = "game", category = types.basic, 
+			name = widgetOptionColor .. "   " .. texts.option.auto_cloak_corspy, 
+			type = "bool", 
+			value = (
+					WG['init_cloak'] ~= nil
+				and WG['init_cloak'].get_CorSpy ~= nil
+				and WG['init_cloak'].get_CorSpy()
+					), 
+			description = texts.option.auto_cloak_corspy_descr,
+			onload = function(i)
+				loadWidgetData("Auto Cloak Units", "auto_cloak_corspy", { "corspy" })
+			end,
+			onchange = function(i, value)
+				saveOptionValue("Auto Cloak Units", "init_cloak", "set_CorSpy", { "corspy" }, value)
+			end,
+		},
 
 		-- ACCESSIBILITY
 
