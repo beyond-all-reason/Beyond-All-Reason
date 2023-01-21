@@ -324,11 +324,11 @@ local function AssignLightsToAllWeapons()
 		end
 		t.r, t.g, t.b = r, g, b
 
-		if string.find(weaponDef.name, 'juno') then
-			radius = 140
-			orgMult = 1
-			r, g, b = 0.45, 1, 0.45
-		end
+		-- if string.find(weaponDef.name, 'juno') then
+		-- 	radius = 140
+		-- 	orgMult = 1
+		-- 	r, g, b = 0.45, 1, 0.45
+		-- end
 
 		if weaponDef.type == 'BeamLaser' then
 			muzzleFlash = false
@@ -376,8 +376,8 @@ local function AssignLightsToAllWeapons()
 			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
 			sizeclass = GetClosestSizeClass(radius)
 			radius = ((orgMult * 75) + (radius * 4)) * 0.4
-			life = 8 + (5*(radius/2000)+(orgMult * 5))	
-
+			life = 8 + (5*(radius/2000)+(orgMult * 5))
+				
 		elseif weaponDef.type == 'Cannon' then
 			t.a = orgMult*0.17
 			radius = (radius + (weaponDef.size * 35)) * 0.44
@@ -471,9 +471,16 @@ local function AssignLightsToAllWeapons()
 				end
 				radius = ((weaponDef.damageAreaOfEffect*1.9) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 				if string.find(weaponDef.name, 'juno') then
-					radius = 800
+					radius = 675
 					orgMult = 0.25
-					t.lifetime = life * 12
+					t.r = 1.05
+					t.g = 1.3
+					t.b = 0.6
+					t.color2r = 0.32
+					t.color2g = 0.5
+					t.color2b = 0.12
+					t.colortime = 200
+					t.lifetime = 500
 				end
 				if weaponDef.customParams.unitexplosion then
 					radius = radius * 1.25
@@ -671,6 +678,58 @@ GetLightClass("LaserProjectile", "HeatRay", "Mediumer", {a = 0.09,
 											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
 											modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
 											lifetime = 4, sustain = 0})
+
+--armjuno
+projectileDefLights[WeaponDefNames["armjuno_juno_pulse"].id] =
+GetLightClass("MissileProjectile", "Green", "Medium", {r = 0.88, g = 1.5, b = 0.6, a = 0.45,
+											color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
+											modelfactor = 0.3, specular = 0.1, scattering = 0.3, lensflare = 8})
+explosionLights[WeaponDefNames["armjuno_juno_pulse"].id] =
+GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
+											posx = 0, posy = 100, posz = 0,
+											r = 0.9, g = 1.1, b = 0.45,
+	 										color2r = 0.32, color2g = 0.5, color2b = 0.12, colortime = 100,
+											sustain = 15, lifetime = 500,
+    										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
+
+--armjuno SCAV
+projectileDefLights[WeaponDefNames["armjuno_scav_juno_pulse"].id] =
+GetLightClass("MissileProjectile", "Green", "Medium", {r = 0.8, g = 0.4, b = 1.5, a = 0.45,
+											color2r = 0.75, color2g = 0.3, color2b = 0.9, colortime = 25,
+											modelfactor = 0.3, specular = 0.1, scattering = 0.3, lensflare = 8})
+explosionLights[WeaponDefNames["armjuno_scav_juno_pulse"].id] =
+GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
+											posx = 0, posy = 100, posz = 0,
+											r = 0.75, g = 0.6, b = 1.0,
+	 										color2r = 0.36, color2g = 0.12, color2b = 0.48, colortime = 75,
+											sustain = 15, lifetime = 500,
+    										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
+
+--corjuno
+projectileDefLights[WeaponDefNames["corjuno_juno_pulse"].id] =
+GetLightClass("MissileProjectile", "Green", "Medium", {r = 0.88, g = 1.5, b = 0.6, a = 0.45,
+											color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
+											modelfactor = 0.3, specular = 0.1, scattering = 0.3, lensflare = 8})
+explosionLights[WeaponDefNames["corjuno_juno_pulse"].id] =
+GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
+											posx = 0, posy = 100, posz = 0,
+											r = 0.9, g = 1.1, b = 0.45,
+	 										color2r = 0.32, color2g = 0.5, color2b = 0.12, colortime = 50,
+											sustain = 10, lifetime = 400,
+    										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
+
+--corjuno SCAV
+projectileDefLights[WeaponDefNames["corjuno_scav_juno_pulse"].id] =
+GetLightClass("MissileProjectile", "Green", "Medium", {r = 0.8, g = 0.4, b = 1.5, a = 0.45,
+											color2r = 0.75, color2g = 0.3, color2b = 0.9, colortime = 25,
+											modelfactor = 0.3, specular = 0.1, scattering = 0.3, lensflare = 8})
+explosionLights[WeaponDefNames["corjuno_scav_juno_pulse"].id] =
+GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
+											posx = 0, posy = 100, posz = 0,
+											r = 0.75, g = 0.6, b = 1.0,
+	 										color2r = 0.36, color2g = 0.12, color2b = 0.48, colortime = 75,
+											sustain = 10, lifetime = 400,
+    										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
 
 -- --armanni
 -- projectileDefLights[WeaponDefNames["armanni_ata"].id] =

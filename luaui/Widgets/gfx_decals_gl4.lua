@@ -823,7 +823,14 @@ for weaponDefID=1, #WeaponDefs do
 		end
 
 		if string.find(weaponDef.name, 'juno') then
-			radius = 180
+			textures = { "t_groundcrack_10_a.tga" }
+			radius = 700
+			alpha = 0.4
+			heatstart = 700
+			heatdecay = 0.5
+			alphadecay = 0.00005
+			--glowadd = 2.5
+			bwfactor = 0.05
 
 		elseif string.find(weaponDef.name, 'acid') then
 			textures = { "t_groundcrack_26_a.tga" }
