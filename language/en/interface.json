@@ -199,7 +199,7 @@
 			"priority_tooltip": "Assigns resources to use for this builder when not having enough for all",
 			"Decloaked": "Cloaked",
 			"Cloaked": "Cloaked",
-			"wantcloak_tooltip": "Invisibility state",
+			"wantcloak_tooltip": "Visibility state",
 			" On ": "On",
 			" Off ": "On",
 			"onoff_tooltip": "Active state: turn a unit on/off",
