@@ -665,6 +665,22 @@ function UnitDef_Post(name, uDef)
 		uDef.maxslope = math.floor((uDef.maxslope * 1.5) + 0.5)
 	end
 
+	-- make sure all paralyzable units have the correct EMPABLE category applied (or removed)
+	if uDef.category then
+		local empable = string.find(uDef.category, "EMPABLE")
+		if uDef.customparams and uDef.customparams.paralyzemultiplier then
+			if tonumber(uDef.customparams.paralyzemultiplier) == 0 then
+				if empable then
+					uDef.category = string.sub(uDef.category, 1, empable) .. string.sub(uDef.category, empable+7)
+				end
+			elseif not empable then
+				uDef.category = uDef.category .. ' EMPABLE'
+			end
+		elseif not empable then
+			uDef.category = uDef.category .. ' EMPABLE'
+		end
+	end
+
 	--if Spring.GetModOptions().airrebalance then
 		--if uDef.weapons then
 		--	local aaMult = 1.05
@@ -1197,7 +1213,13 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			ud.transportbyenemy = false
 		end
 	end
+	
+	-- For Decals GL4, disables default groundscars for explosions
+	for id,wDef in pairs(WeaponDefs) do
+		wDef.explosionScar = false
+	end
 
+	
 	--[[
 	-- Make BeamLasers do their damage up front instead of over time
 	-- Do this at the end so that we don't mess up any magic math

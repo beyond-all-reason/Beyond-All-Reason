@@ -14,7 +14,7 @@ return {
 		capturable = false,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "56 200 56",
+		collisionvolumescales = "56 100 56",
 		collisionvolumetype = "box",
 		energystorage = 1000,
 		explodeas = "ROOST_DEATH",
@@ -94,12 +94,6 @@ return {
 				weapontimer = 10,
 				weaponvelocity = 2000,
 				wobble = 0,
-				customparams = {
-					expl_light_color = "1 0.6 0.3",
-					expl_light_life_mult = 1.2,
-					expl_light_mult = 1.2,
-					expl_light_radius_mult = 1.2,
-				},
 				damage = {
 					chicken = 0.1,
 					default = 5000,

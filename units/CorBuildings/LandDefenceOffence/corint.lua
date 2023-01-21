@@ -115,7 +115,7 @@ return {
 			},
 		},
 		weapondefs = {
-			cor_intimidator = {
+			lrpc = {
 				accuracy = 335,
 				areaofeffect = 157,
 				avoidfeature = false,
@@ -146,11 +146,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1150,
-				customparams = {
-					expl_light_heat_radius_mult = 2,
-					expl_light_mult = 1.5,
-					expl_light_radius_mult = 1.5,
-				},
 				damage = {
 					default = 2000,
 					shields = 1000,
@@ -161,7 +156,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "COR_INTIMIDATOR",
+				def = "LRPC",
 				onlytargetcategory = "SURFACE",
 			},
 		},

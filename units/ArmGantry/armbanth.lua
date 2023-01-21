@@ -150,14 +150,6 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 1050,
-				customparams = {
-					expl_light_heat_radius_mult = 1.5,
-					expl_light_life_mult = 1.35,
-					expl_light_radius_mult = 1.2,
-					light_color = "1 0.8 0.17",
-					light_mult = 2,
-					light_radius_mult = 1.05,
-				},
 				damage = {
 					default = 730,
 				},
@@ -202,16 +194,6 @@ return {
 				weapontimer = 1,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 2000,
-				customparams = {
-					expl_light_color = "1 0.65 0.05",
-					expl_light_heat_radius_mult = 1.5,
-					expl_light_life_mult = 1.35,
-					expl_light_mult = 1.35,
-					expl_light_radius_mult = 1.35,
-					light_color = "1 0.6 0.17",
-					light_mult = 3.5,
-					light_radius_mult = 1.05,
-				},
 				damage = {
 					default = 900,
 					subs = 500,
@@ -247,14 +229,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
-				customparams = {
-					expl_light_heat_radius_mult = 1.5,
-					expl_light_life_mult = 2.5,
-					expl_light_mult = 4.5,
-					expl_light_radius_mult = 1.2,
-					light_radius_mult = 1.5,
-					light_mult = 3,
-				},
 				damage = {
 					commanders = 1800,
 					default = 6000,

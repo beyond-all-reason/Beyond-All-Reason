@@ -91,6 +91,7 @@ local function DrawTextWithBackground(text, x, y, size, opt)
 	end
 
 	font:Begin()
+	font:SetOutlineColor(0,0,0, 0.5)
 	font:SetTextColor(1, 1, 1, 0.85)
 	font:Print(text, x + 4, y, size, opt)
 	font:End()

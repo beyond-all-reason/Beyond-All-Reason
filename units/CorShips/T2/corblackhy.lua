@@ -87,7 +87,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-large",
+				[1] = "custom:barrelshot-larger",
 				[2] = "custom:waterwake-huge",
 				[3] = "custom:bowsplash-huge",
 				[4] = "custom:enginespurt-huge",
@@ -269,12 +269,6 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1200,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 0.86,
-					expl_light_radius_mult = 1.67,
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 150,
 					fighters = 150,

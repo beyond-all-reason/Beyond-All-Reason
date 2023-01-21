@@ -15,7 +15,6 @@ static-var  Static_Var_2;
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
 
 static-var maxSpeed, currentSpeed;
 BarrelRoll() // remember to start-script BarrelRoll(); in Create()!

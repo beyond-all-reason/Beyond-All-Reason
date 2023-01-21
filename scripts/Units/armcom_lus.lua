@@ -1,9 +1,9 @@
---INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 31
+--INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 33
 
 
 
 --Skeleton pieces
-local head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot ,lfoot, dish, barrel, aimy1, bigguncyl,hatpoint = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg" ,"rleg","rfoot" ,"lfoot", "dish", "barrel", "aimy1","bigguncyl","hatpoint")
+local head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot ,lfoot, dish, barrel, aimy1, bigguncyl,hatpoint, crown, medalsilver, medalbronze, medalgold = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg" ,"rleg","rfoot" ,"lfoot", "dish", "barrel", "aimy1","bigguncyl","hatpoint", "crown", "medalsilver", "medalbronze", "medalgold")
 
 local weapons = {
 	[1] = "laser",
@@ -887,6 +887,16 @@ function script.Create()
 	--Turn(lflare, 1,math.rad(90)) -- WHY?
 	--Turn(nano, 1,math.rad(90)) -- WHY?
 	--Turn(laserflare, 1,math.rad(90)) -- WHY?
+
+	Hide(crown)
+	Hide(medalgold)
+	Hide(medalsilver)
+	Hide(medalbronze)
+	Move(crown, y_axis, 100, 9999)
+	Move(medalgold, y_axis, 100, 9999)
+	Move(medalsilver, y_axis, 100, 9999)
+	Move(medalbronze, y_axis, 100, 9999)
+
 	Hide(nano)
 	Spin(dish, 2, 2.5)
 	isAiming = false
@@ -901,6 +911,19 @@ function script.Create()
 	animSpeed = 4
 	StartThread(UnitSpeed)
 	StartThread(StopWalking)
+end
+
+function ShowCrown()
+	Show(crown)
+end
+function ShowMedalGold()
+	Show(medalgold)
+end
+function ShowMedalSilver()
+	Show(medalsilver)
+end
+function ShowMedalBronze()
+	Show(medalbronze)
 end
 
 function script.StartMoving()

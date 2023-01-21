@@ -22,7 +22,7 @@ return {
 		maxslope = 17,
 		maxvelocity = 3.15,
 		maxwaterdepth = 32,
-		movementclass = "ATANK3",
+		movementclass = "HABOT3", --"ATANK3",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMAR.s3o",
 		script = "Units/armmar.cob",
@@ -87,6 +87,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
+				[2] = "custom:subbubbles",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
@@ -158,12 +159,6 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.59,
-					expl_light_radius_mult = 1.67,
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 85,
 					fighters = 85,

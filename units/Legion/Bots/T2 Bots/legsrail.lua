@@ -148,15 +148,6 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
-				customparams = {
-					light_color = "0.66 0.83 1",
-					light_radius_mult = 0.5,
-					light_mult = 1.7,
-					expl_light_life_mult = 0.1,
-					expl_light_radius_mult = 0.01,
-					expl_light_mult = 0.01,
-					expl_light_color = "0.42 0.7 0.98",
-				},
 				damage = {
 					commanders = 250,
 					default = 500,

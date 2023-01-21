@@ -29,6 +29,8 @@ local maxSilenceTime = 300
 local warLowLevel = 1000
 local warHighLevel = 20000
 local warMeterResetTime = 30 -- seconds
+local interruptionMinimumTime = 20 -- seconds
+local interruptionMaximumTime = 40 -- seconds
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -56,6 +58,9 @@ local fadeOutSkipTrack = false
 local interruptionEnabled
 local silenceTimerEnabled
 local deviceLostSafetyCheck = 0
+local interruptionTime = math.random(interruptionMinimumTime, interruptionMaximumTime)
+local gameFrame = 0
+local serverFrame = 0
 local bossHasSpawned = false
 
 local function ReloadMusicPlaylists()
@@ -870,6 +875,7 @@ function PlayNewTrack(paused)
 	if currentTrack then
 		Spring.PlaySoundStream(currentTrack, 1)
 		playing = true
+		interruptionTime = math.random(interruptionMinimumTime, interruptionMaximumTime)
 		if fadeDirection then
 			setMusicVolume(fadeLevel)
 		else
@@ -896,7 +902,13 @@ function widget:UnitDamaged(unitID, unitDefID, _, damage)
 	end
 end
 
+function widget:GameProgress(n)
+	-- happens every 150 frames
+	serverFrame = n
+end
+
 function widget:GameFrame(n)
+	gameFrame = n
 	if n%1800 == 0 then
 		deviceLostSafetyCheck = 0
 	end
@@ -949,15 +961,17 @@ function widget:GameFrame(n)
 			if playedTime > 0 and totalTime > 0 then -- music is playing
 				if not fadeDirection then
 					Spring.SetSoundStreamVolume(musicVolume)
-					if (bossHasSpawned and currentTrackListString ~= "bossFight")
-					or ((not bossHasSpawned) and currentTrackListString == "bossFight")
-					or (currentTrackListString == "intro" and n > 90 and interruptionEnabled)
-					or ((currentTrackListString == "peace" and warMeter > warLowLevel * 2) and interruptionEnabled) -- Peace in battle times, let's play some WarLow music at double of WarLow threshold
-					or ((currentTrackListString == "warLow" and warMeter > warHighLevel * 2) and interruptionEnabled) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at double of WarHigh threshold
-					or ((currentTrackListString == "warHigh" and warMeter <= warHighLevel * 0.5) and interruptionEnabled) -- WarHigh music is playing, but it has been quite peaceful recently. Let's switch to WarLow music at 50% of WarHigh threshold
-					or ((currentTrackListString == "warLow" and warMeter <= warLowLevel * 0.5 ) and interruptionEnabled) then -- WarLow music is playing, but it has been quite peaceful recently. Let's switch to peace music at 50% of WarLow threshold
+					if (bossHasSpawned and currentTrackListString ~= "bossFight") or ((not bossHasSpawned) and currentTrackListString == "bossFight") then
 						fadeDirection = -2
 						fadeOutSkipTrack = true
+					elseif (interruptionEnabled and (playedTime >= interruptionTime) and gameFrame >= serverFrame-300)
+					  and ((currentTrackListString == "intro" and n > 90)
+						or (currentTrackListString == "peace" and warMeter > warLowLevel * 2) -- Peace in battle times, let's play some WarLow music at double of WarLow threshold
+						or (currentTrackListString == "warLow" and warMeter > warHighLevel * 2) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at double of WarHigh threshold
+						or (currentTrackListString == "warHigh" and warMeter <= warHighLevel * 0.5) -- WarHigh music is playing, but it has been quite peaceful recently. Let's switch to WarLow music at 50% of WarHigh threshold
+						or (currentTrackListString == "warLow" and warMeter <= warLowLevel * 0.5 )) then -- WarLow music is playing, but it has been quite peaceful recently. Let's switch to peace music at 50% of WarLow threshold
+							fadeDirection = -2
+							fadeOutSkipTrack = true
 					elseif playedTime >= totalTime - 12 then
 						fadeDirection = -1
 					end

@@ -2,8 +2,8 @@ local chicken_egg =  {
     description = "Egg",
     blocking = 0,
     category = "corpses",
-    damage = 2000,
-    energy = 500,
+    damage = 10000,
+    energy = 1000,
     featurereclamate = "SMUDGE01",
     footprintx = 1,
     footprintz = 1,
@@ -15,13 +15,21 @@ local chicken_egg =  {
     resurrectable = 0,
     world = "All Worlds",
     smokeTime = 0,
+
+    --collisions
+    collisionVolumeType = "sphere",
+    collisionVolumeScales = "2 2 2",
+    collisionVolumeOffsets = "0 -2 0",
+    selectionVolumeType = "sphere",
+    selectionVolumeScales = "8 8 8",
 }
 
 local eggs = {}
 local sizes = {"s","m","l",}
 local colors = {"pink","white","red", "blue", "darkgreen", "purple", "green", "yellow", "darkred", "acidgreen"}
-local mvalues = {s = 50, m = 100, l = 200}
-local evalues = {s = 100, m = 250, l = 500}
+local mvalues = {s = 100, m = 200, l = 500}
+local evalues = {s = 1000, m = 2000, l = 5000}
+local healthvalues = {s = 1000, m = 2000, l = 3000}
 
 for _, size in pairs(sizes) do
     for _, color in pairs(colors) do
@@ -40,7 +48,7 @@ for _, size in pairs(sizes) do
         def.metal = mvalues[size]
         def.energy = evalues[size]
         def.reclaimtime = evalues[size]
-        def.damage = evalues[size]*5
+        def.damage = healthvalues[size]
         eggs[name] = def
     end
 end

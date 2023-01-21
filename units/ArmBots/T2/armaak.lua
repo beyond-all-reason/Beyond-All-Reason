@@ -146,14 +146,6 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1300,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.54,
-					expl_light_radius_mult = 0.64,
-					light_color = "1 0.5 0.6",
-					light_mult = 1.34,
-					light_radius_mult = 0.34,
-				},
 				damage = {
 					bombers = 220,
 					fighters = 220,
@@ -209,12 +201,6 @@ return {
 				weapontimer = 6,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 0.86,
-					expl_light_radius_mult = 1.67,
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 150,
 					fighters = 150,
@@ -265,12 +251,6 @@ return {
 				weapontype = "MissileLauncher",
 				startvelocity = 100,
 				weaponvelocity = 800,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 0.86,
-					expl_light_radius_mult = 1.67,
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 100,
 					fighters = 100,

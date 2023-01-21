@@ -66,9 +66,10 @@ void offsetVertex4( float x, float y, float z, float u, float v){
 	
 	vec3 Nup = vec3(0.0, 1.0, 0.0);
 	vec3 Trot = rotY * vec3(1.0, 0.0, 0.0);
-	vec3 Brot = rotY * vec3(0.0, 0.0, 1.0);
-	tbnmatrix = mat3(Trot, Brot, Nup);
-
+	//vec3 Brot = rotY * vec3(0.0, 0.0, 1.0);
+	vec3 Brot = cross(Nup,Trot);
+	tbnmatrix = (mat3(Trot, Brot, Nup));
+	
 	EmitVertex();
 }
 #line 22000

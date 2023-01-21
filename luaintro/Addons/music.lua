@@ -76,7 +76,7 @@ function addon.Initialize()
 			end
 		end
 
-		local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.02
+		local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.01
 		if #musicPlaylist > 1 then
 			local pickedTrack = math.ceil(#musicPlaylist*math.random())
 			Spring.PlaySoundStream(musicPlaylist[pickedTrack], 1)

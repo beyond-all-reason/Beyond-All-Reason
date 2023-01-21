@@ -1,16 +1,12 @@
 return {
 	flamebug_death = {
-		areaofeffect = 120,
-		craterboost = 0,
-		cratermult = 0,
-		edgeeffectiveness = 0.7,
-		explosiongenerator = "custom:gundam_MISSILE_EXPLOSION",
+		weaponType = "Cannon",
+		areaofeffect = 64,
+		camerashake = 48,
+		edgeeffectiveness = 0.9,
+		explosiongenerator = "custom:genericunitexplosion-huge-fire",
 		impulseboost = 0,
 		impulsefactor = 0.4,
-		interceptedbyshieldtype = 1,
-		name = "flamebug_death",
-		range = 450,
-		reloadtime = 3.6,
 		soundhit = "bigchickendead",
 		soundstart = "bigbugdie",
 		soundhitvolume = 9.5,
@@ -20,6 +16,9 @@ return {
 			chicken = 111,
 			default = 335,
 			tinychicken = 28,
+		},
+		customparams = {
+			unitexplosion = 1,
 		},
 	},
 }

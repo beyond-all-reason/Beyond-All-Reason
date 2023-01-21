@@ -116,13 +116,6 @@ return {
 				weapontimer = 3,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
-				customparams = {
-					expl_light_life_mult = 1.5,
-					expl_light_mult = 1.5,
-					expl_light_radius_mult = 1.5,
-					light_mult = 1.5,
-					light_radius_mult = 1.5,
-				},
 				damage = {
 					commanders = 95,
 					default = 190,

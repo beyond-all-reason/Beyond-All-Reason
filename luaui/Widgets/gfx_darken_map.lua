@@ -22,10 +22,6 @@ local darkenFeatures = false
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local currentMapname = Game.mapName:lower()
-local maps = {}
-local gaia = Spring.GetGaiaTeamID()
-
 local features
 
 local camX, camY, camZ = Spring.GetCameraPosition()
@@ -35,6 +31,18 @@ function widget:Shutdown()
 	WG['darkenmap'] = nil
 end
 
+
+local function mapDarkness(_,_,params)
+	if #params == 1 then
+		if type(tonumber(params[1])) == "number" then
+			darknessvalue = tonumber(params[1])
+			if darknessvalue > maxDarkness then
+				darknessvalue = maxDarkness
+			end
+		end
+	end
+end
+
 function widget:Initialize()
 	WG['darkenmap'] = {}
 	WG['darkenmap'].getMapDarkness = function()
@@ -42,7 +50,6 @@ function widget:Initialize()
 	end
 	WG['darkenmap'].setMapDarkness = function(value)
 		darknessvalue = tonumber(value)
-		maps[currentMapname] = darknessvalue
 	end
 	WG['darkenmap'].getDarkenFeatures = function()
 		return darkenFeatures
@@ -52,19 +59,6 @@ function widget:Initialize()
 	end
 
 	widgetHandler:AddAction("mapdarkness", mapDarkness, nil, "t")
-end
-
-
-function mapDarkness(_,_,params)
-	if #params == 1 then
-		if type(tonumber(params[1])) == "number" then
-			darknessvalue = tonumber(params[1])
-			if darknessvalue > maxDarkness then
-				darknessvalue = maxDarkness
-			end
-			maps[currentMapname] = darknessvalue
-		end
-	end
 end
 
 
@@ -123,27 +117,16 @@ end
 
 function widget:GetConfigData(data)
     return {
-		maps = maps,
+		darknessvalue = darknessvalue,
 		darkenFeatures = darkenFeatures
 	}
 end
 
 function widget:SetConfigData(data)
-	if data.maps ~= nil then
-		maps = data.maps
-		if data.darkenFeatures ~= nil then
-			darkenFeatures = data.darkenFeatures
-		end
-		if data.maps[currentMapname] ~= nil then
-			darknessvalue = data.maps[currentMapname]
-		end
+	if data.darknessvalue ~= nil then
+		darknessvalue = data.darknessvalue
 	end
-end
-
-
-function widget:TextCommand(command)
-    if string.find(command, "resetmapdarkness", nil, true) == 1  and  string.len(command) == 16 then
-		maps = {}
-		darknessvalue = 0
+	if data.darkenFeatures ~= nil then
+		darkenFeatures = data.darkenFeatures
 	end
 end

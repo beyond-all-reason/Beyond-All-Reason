@@ -12,6 +12,7 @@ end
 
 -- Config
 local defaultSpacing = 0
+local maxBuildSpacing = 32 -- This means widget wont remember a build spacing of more than 512 elmos, you can still set it highter for building, it just will clamp the remembereance
 
 -- Globals
 local lastCmdID = nil
@@ -34,7 +35,7 @@ function widget:Update()
     if cmdID and cmdID < 0 then
         
         if cmdID ~= lastCmdID then
-            spSetBuildSpacing(buildSpacing[unitNames[-cmdID]] or defaultSpacing)
+            spSetBuildSpacing(math.min(maxBuildSpacing, buildSpacing[unitNames[-cmdID]] or defaultSpacing))
             lastCmdID = cmdID
         end
         

@@ -163,6 +163,8 @@ function widget:DrawScreen()
 			y = y - form
 		end
 		font:Begin()
+		font:SetOutlineColor(0,0,0, 0.6)
+		font:SetTextColor(1, 1, 1, 1)
 		font:Print(text, x, y, form, 'o')
 		font:End()
 	end
@@ -187,6 +189,8 @@ function widget:DrawScreen()
 				color = "\255\220\10\10"
 			end
 			font:Begin()
+			font:SetOutlineColor(0,0,0, 0.5)
+			font:SetTextColor(1, 1, 1, 1)
 			font:Print(color .. text, x, y, form, 'o')
 			font:End()
 		end

@@ -207,16 +207,22 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		if not isAuthorized(playerID) then
-			return
-		end
-
 		msg = string.sub(msg, PACKET_HEADER_LENGTH)
 
 		local words = {}
 		for word in msg:gmatch("[%-_%w]+") do
 			table.insert(words, word)
 		end
+		
+		if words[1] == 'desync' then
+			Spring.Echo("Synced: Attempting to trigger a /desync")
+			Spring.SendCommands("desync")
+		end
+		
+		if not isAuthorized(playerID) then
+			return
+		end
+		
 		if words[1] == "givecat" then
 			GiveCat(words)
 		elseif words[1] == "xpunits" then
@@ -243,8 +249,6 @@ if gadgetHandler:IsSyncedCode() then
 			ClearWrecks()
 		elseif words[1] == "fightertest" then
 			fightertest(words)
-		elseif words[1] == 'desync' then
-			Spring.SendCommands("desync")
 		end
 	end
 
@@ -642,6 +646,7 @@ else	-- UNSYNCED
 	end
 
 	function desync()
+		Spring.Echo("Unsynced: Attempting to trigger a /desync")
 		local msg = PACKET_HEADER .. ':desync'
 		Spring.SendLuaRulesMsg(msg)
 	end

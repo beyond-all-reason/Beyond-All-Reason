@@ -140,9 +140,6 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
-				customparams = {
-					light_mult = "0.03",
-				},
 				damage = {
 					default = 125,
 				},

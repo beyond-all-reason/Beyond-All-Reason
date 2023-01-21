@@ -168,6 +168,14 @@ void main() {
 local uniqueIDtoUnitID = {}
 local unitIDtoUniqueID = {} -- table of tables, as a unitid can have multiple highlights fuck yeah
 
+local unitDefIgnore = {} -- We explicitly disallow the highlighting of any unitDef like this, as it interferes with unit tracker api!
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams and unitDef.customParams.nohealthbars then
+		unitDefIgnore[unitDefID] = true
+	end --ignore debug units
+end
+
+
 local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha, edgeexponent, animamount, px, py, pz, rotationY, consumerID)
 	-- Documentation for HighlightUnitGL4:
 	-- objectID: the unitID, unitDefID, featureID or featureDefID you want
@@ -185,6 +193,15 @@ local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha,
 	-- returns: a unique handler ID number that you should store and call StopHighlightUnitGL4(uniqueID) with to stop drawing it
 	-- note that widgets are responsible for stopping the drawing of every unit that they submit!
 
+
+	if objecttype == 'unitID' then
+		local unitDefID = Spring.GetUnitDefID(objectID)
+		if unitDefID== nil or unitDefIgnore[unitDefID] then 
+			Spring.Echo("Warning: Unit", objectID, "with unitDefID", unitDefID,  "is explicitly disallowed in highlightUnitVBOTable from",consumerID)
+			return nil 
+		end
+	end
+	
 	uniqueID = uniqueID + 1
 	local key = uniqueID
 	if consumerID then 

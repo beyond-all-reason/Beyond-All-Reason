@@ -130,13 +130,6 @@ return {
 			--	weapontimer = 2,
 			--	weapontype = "MissileLauncher",
 			--	weaponvelocity = 900,
-			--	customparams = {
-			--		expl_light_color = "1 0.4 0.5",
-			--		expl_light_mult = 0.4,
-			--		expl_light_radius_mult = 0.66,
-			--		light_color = "1 0.5 0.6",
-			--		light_skip = true,
-			--	},
 			--	damage = {
 			--		bombers = 150,
 			--		fighters = 120,
@@ -182,12 +175,6 @@ return {
 				weapontimer = 1,
 				weapontype = "Flame",
 				weaponvelocity = 400,
-				customparams = {
-					expl_light_color = "1 0.33 0.04",
-					expl_light_life_mult = 1.1,
-					expl_light_radius_mult = 1.15,
-					light_color = "1 0.5 0.05",
-				},
 				damage = {
 					commanders = 120,
 					default = 300,
@@ -280,12 +267,6 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 820,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.59,
-					expl_light_radius_mult = 1.67,
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 150,
 					fighters = 120,
@@ -321,7 +302,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1650,
 				customparams = {
-					expl_light_skip = true,
 					nofire = true,
 				},
 				damage = {

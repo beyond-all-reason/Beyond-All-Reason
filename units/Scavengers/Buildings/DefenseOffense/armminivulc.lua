@@ -140,9 +140,6 @@ return {
 				weapontimer = 14,
 				weapontype = "Cannon",
 				weaponvelocity = 660,
-				customparams = {
-					expl_light_heat_radius_mult = 1.75,
-				},
 				damage = {
 					default = 210,
 					shields = 105,

@@ -19,7 +19,7 @@ return {
 		collisionvolumescales = "18 40 40",
 		collisionvolumetype = "box",
 		defaultmissiontype = "Standby",
-		explodeas = "BUG_DEATH",
+		explodeas = "BUG_DEATH_ACID",
 		floater = false,
 		footprintx = 1.5,
 		footprintz = 1.5,
@@ -36,7 +36,7 @@ return {
 		objectname = "Chickens/chickenacidswarmer.s3o",
 		script = "Chickens/chicken1.cob",
 		seismicsignature = 0,
-		selfdestructas = "BUG_DEATH",
+		selfdestructas = "BUG_DEATH_ACID",
 		side = "THUNDERBIRDS",
 		sightdistance = 300,
 		smoothanim = true,
@@ -113,14 +113,6 @@ return {
 				weaponvelocity = 520,
 				damage = {
 					default = 1, --damage done in unit_area_timed_damage.lua
-				},
-				customparams = {
-					expl_light_life_mult = 1.0,
-					expl_light_radius_mult = 1.0,
-					expl_light_mult = 1.05,
-					light_radius_mult = "0.95",
-					light_mult = 1.8,
-					light_color = "0.8 0.99 0.11",
 				},
 			},
 		},

@@ -130,12 +130,12 @@ return {
 				range = 1210,
 				reloadtime = 8,
 				smoketrail = true,
-				smokePeriod = 9,
-				smoketime = 36,
+				smokePeriod = 8,
+				smoketime = 30,
 				smokesize = 12.0,
 				smokecolor = 0.7,
-				smokeTrailCastShadow = false,
-				castshadow = true, --projectile
+				smokeTrailCastShadow = true,
+				--castshadow = true, --projectile
 				soundhit = "xplomed4",
 				soundhitwet = "splssml",
 				soundstart = "Rockhvy1",
@@ -147,16 +147,6 @@ return {
 				weapontimer = 3,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 800,
-				customparams = {
-					expl_light_color = "1 0.5 0.05",
-					expl_light_heat_radius_mult = 3.5,
-					expl_light_life_mult = 1.25,
-					expl_light_mult = 1.2,
-					expl_light_radius_mult = 1.25,
-					light_color = "1 0.6 0.15",
-					light_mult = 3.3,
-					light_radius_mult = 1.2,
-				},
 				damage = {
 					default = 800,
 				},

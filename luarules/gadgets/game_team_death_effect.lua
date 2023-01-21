@@ -107,8 +107,8 @@ function gadget:GameFrame(gf)
                 if defs.attackerUnitID then
 					spDestroyUnit(unitID, selfD, false, defs.attackerUnitID)
 				else
-					if selfD and isCommander[spGetUnitDefID(unitID)] then
-						spDestroyUnit(unitID, false, true)	-- reclaim, dont want to leave FFA comwreck for idling starts
+					if selfD and isCommander[spGetUnitDefID(unitID)]  then
+						spDestroyUnit(unitID, false, false)	-- always leave commander wreckage (ffa reclaims all on early dropped players now)
 					else
 						spDestroyUnit(unitID, selfD, false) -- if 4th arg is given, it cannot be nil (or engine complains)
 					end

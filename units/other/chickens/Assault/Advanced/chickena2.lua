@@ -21,7 +21,7 @@ return {
 		collisionvolumescales = "37 55 90",
 		collisionvolumetype = "box",
 		defaultmissiontype = "Standby",
-		explodeas = "BIGBUG_DEATH",
+		explodeas = "MEGABUG_DEATH",
 		footprintx = 3,
 		footprintz = 3,
 		leavetracks = true,
@@ -38,7 +38,7 @@ return {
 		onlytargetcategory2 = "VTOL",
 		script = "Chickens/chickena2.cob",
 		seismicsignature = 0,
-		selfdestructas = "BIGBUG_DEATH",
+		selfdestructas = "MEGABUG_DEATH",
 		side = "THUNDERBIRDS",
 		sightdistance = 400,
 		smoothanim = true,
@@ -123,14 +123,6 @@ return {
 				wobble = 32000,
 				damage = {
 					default = 1000,
-				},
-				customparams = {
-					expl_light_life_mult = 1.5,
-					expl_light_radius_mult = 1.3,
-					expl_light_mult = 1.25,
-					light_radius_mult = "0.85",
-					light_mult = 3,
-					light_color = "1 0.55 0.05",
 				},
 			},
 			weapon = {

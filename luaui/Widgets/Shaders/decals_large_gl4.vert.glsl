@@ -12,8 +12,7 @@ layout (location = 1) in vec4 lengthwidthrotation; // l w rot and maxalpha
 layout (location = 2) in vec4 uvoffsets;
 layout (location = 3) in vec4 alphastart_alphadecay_heatstart_heatdecay;
 layout (location = 4) in vec4 worldPos; // also gameframe it was created on
-layout (location = 5) in vec4 parameters; // like wether this is a standard atlas or not
-
+layout (location = 5) in vec4 parameters; // x: BWfactor, y:glowsustain, z:glowadd, w: fadeintime
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 
@@ -94,7 +93,8 @@ void main()
 	// rotate the normals into the world
 	vec3 Nup = vec3(0.0, 1.0, 0.0);
 	vec3 Trot = rotY * vec3(1.0, 0.0, 0.0);
-	vec3 Brot = rotY * vec3(0.0, 0.0, 1.0);
+	//vec3 Brot = rotY * vec3(0.0, 0.0, 1.0);
+	vec3 Brot = cross(Nup,Trot);
 	tbnmatrix = mat3(Trot, Brot, Nup);
 	
 	// offset it into the world
@@ -116,7 +116,7 @@ void main()
 	float lifetonow = (timeInfo.x + timeInfo.w) - worldPos.w;
 	float alphastart = alphastart_alphadecay_heatstart_heatdecay.x;
 	float alphadecay = alphastart_alphadecay_heatstart_heatdecay.y;
-	float currentAlpha = min(1.0, (lifetonow / FADEINTIME))  * alphastart - lifetonow* alphadecay;
+	float currentAlpha = min(1.0, (lifetonow / parameters.w))  * alphastart - lifetonow* alphadecay;
 	currentAlpha = clamp(currentAlpha, 0.0, lengthwidthrotation.w);
 	g_position.w = currentAlpha;
 	

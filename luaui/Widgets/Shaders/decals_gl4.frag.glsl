@@ -146,8 +146,6 @@ void main(void)
 	vec3 fragNormal = tex2color.rgb * 2.0 - 1.0;
 	if (dot(tex2color.rgb, vec3(1.0)) < 0.001) fragNormal = vec3(0.0, 0.0, 1.0);// check if the normals are missing, if yes, then sub with Z up. 
 	
-	fragNormal.xy = -fragNormal.xy;
-	
 	// Ambient color calculation, tint with minimap, and with sunAmbientMap
 	vec3 blendedcolor = tex1color.rgb * (minimapcolor.rgb * 2.0); // just your basic color modulation
 	blendedcolor.rgb = mix(tex1color.rgb, blendedcolor.rgb, MINIMAPCOLORBLENDFACTOR);
@@ -160,6 +158,15 @@ void main(void)
 	vec3 worldspacenormal = tbnmatrix * fragNormal.rgb;
 	vec3 reorientedNormal = ReOrientNormalUnpacked(mapnormal.xzy, worldspacenormal.xzy).xzy;
 	
+	//debug the normals:
+	/* 
+		if (fract(gl_FragCoord.x * 0.01)>0.5)
+			fragColor.rgb = (worldspacenormal + 1.0) * 0.5;
+		else
+			fragColor.rgb = (reorientedNormal + 1.0) * 0.5;
+		fragColor.a = 1.0;
+		return;
+	*/
 	// diffuse lighting, apply global sunDiffuseMap
 	float diffuselight = clamp(dot(sunDir.xyz, reorientedNormal), -1.0, 1.0);
 	fragColor.rgb += vec3(diffuselight) * ( fragColor.rgb * sunDiffuseMap.rgb * 2.0);
@@ -208,7 +215,7 @@ void main(void)
 		//experiment with glowadd:
 		// we kinda need to additively blend here... 
 		float heatalpha = dot (vec3(1.0),heatColor);
-		fragColor.rgba += g_parameters.z * heatalpha * vec4(heatColor.rgb ,1.0); 
+		fragColor.rgba +=  g_parameters.z * heatalpha * vec4(heatColor.rgb ,g_position.w); 
 	#endif 
 	
 	//fragColor.a = 1.0;

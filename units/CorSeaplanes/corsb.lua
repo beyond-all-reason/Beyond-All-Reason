@@ -121,10 +121,6 @@ return {
 				sprayangle = 6000,
 				waterbounce = true,
 				weapontype = "AircraftBomb",
-				customparams = {
-					expl_light_color = "1 0.5 0.05",
-					expl_light_heat_radius_mult = 1.3,
-				},
 				damage = {
 					bombers = 10,
 					default = 50,

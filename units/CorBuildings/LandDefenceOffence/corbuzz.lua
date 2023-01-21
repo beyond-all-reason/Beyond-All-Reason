@@ -113,7 +113,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corbuzz_weapon = {
+			rflrpc = {
 				accuracy = 750,
 				areaofeffect = 256,
 				avoidfeature = false,
@@ -142,9 +142,6 @@ return {
 				weapontimer = 14,
 				weapontype = "Cannon",
 				weaponvelocity = 1150,
-				customparams = {
-					expl_light_heat_radius_mult = 1.75,
-				},
 				damage = {
 					default = 1330,
 					shields = 665,
@@ -155,7 +152,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "CORBUZZ_WEAPON",
+				def = "RFLRPC",
 				onlytargetcategory = "SURFACE",
 			},
 		},

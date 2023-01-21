@@ -17,6 +17,7 @@
 			"groups": "You can assign units to groups by pressing CTRL+(0-9).\nSelect the group by pressing the group number (0-9).",
 			"howShieldsWork": "Shields are \"plasma deflector shields.\" They only deflect plasma shells, everything else will go through.",
 			"idleConstructors": "Keep all your builders busy.\nPress CTRL+B to cycle through your idle constructors.",
+			"insertFactoryQuickBuild": "If you need a unit fast, without disrupting a factory build queue, press ALT and left-click on the unit you need.",
 			"joinDiscord": "If you encounter a bug, or have a great idea, or want to contribute in any way, please join BAR on Discord.",
 			"lastCommander": "Always check the Commander-counter located next to the resource bars. If you have the last Commander, you better hide it quick!",
 			"lastNotification": "Press F3 to go to the location of the last notification or label by a teammate.",

@@ -95,8 +95,6 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
 				customparams = {
-					light_mult = "0.7   ",
-					light_radius_mult = "0.26",
 					nohealthbars = true,
 				},
 				damage = {

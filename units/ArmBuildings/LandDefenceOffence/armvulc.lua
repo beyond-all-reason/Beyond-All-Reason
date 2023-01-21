@@ -113,7 +113,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armvulc_weapon = {
+			rflrpc = {
 				accuracy = 700,
 				areaofeffect = 224,
 				avoidfeature = false,
@@ -142,9 +142,6 @@ return {
 				weapontimer = 14,
 				weapontype = "Cannon",
 				weaponvelocity = 1100,
-				customparams = {
-					expl_light_heat_radius_mult = 1.75,
-				},
 				damage = {
 					default = 1050,
 					shields = 525,
@@ -155,7 +152,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "ARMVULC_WEAPON",
+				def = "RFLRPC",
 				onlytargetcategory = "SURFACE",
 			},
 		},

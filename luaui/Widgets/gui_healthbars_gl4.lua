@@ -945,6 +945,12 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	if debugmode then Spring.Debug.TraceEcho(unitBars[unitID]) end
 	--Spring.Echo("Caller1:", tostring()".name), "caller2:", tostring(debug.getinfo(3).name))
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+	
+	-- Why? Because adding additional bars can be triggered from outside of unit tracker api
+	-- like EMP, where we assume that unit is already visible, however
+	-- debug units are not present in unittracker api!
+	if (unitDefID == nil) or unitDefIgnore[unitDefID] then return nil end 
+
 	local gf = Spring.GetGameFrame()
 	local bt = barTypeMap[barname]
 	--if cnt == 1 then bt = barTypeMap.building end
@@ -1029,7 +1035,7 @@ local function updateReloadBar(unitID, unitDefID, reason)
 		addBarForUnit(unitID, unitDefID, "reload", reason)
 	end
 
-	if (reloadFrame and reloadTime) then
+	if (reloadFrame and reloadTime and gl.SetUnitBufferUniforms) then
 		uniformcache[1] = reloadFrame - 30 * reloadTime
 		gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
 		uniformcache[1] = reloadFrame
@@ -1354,10 +1360,10 @@ function widget:Initialize()
 	initGL4()
 	-- Walk through unitdefs for the stuff we need:
 	for udefID, unitDef in pairs(UnitDefs) do
-		if unitDef.customParams.nohealthbars then
+		if unitDef.customParams and unitDef.customParams.nohealthbars then
 			unitDefIgnore[udefID] = true
 		end --ignore debug units
-		--if unitDef.customParams.iscommander then unitDefIgnore[udefID] = true end --ignore commanders for now (enemy comms?)
+		
 		local shieldDefID = unitDef.shieldWeaponDef
 		shieldPower = ((shieldDefID) and (WeaponDefs[shieldDefID].shieldPower)) or (-1)
 		if shieldPower > 1 then unitDefhasShield[udefID] = shieldPower

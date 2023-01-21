@@ -67,6 +67,8 @@ local RectRound, UiElement, UiSelectHighlight, UiScroller, elementCorner, elemen
 local playSound = true
 local sndChatFile  = 'beep4'
 local sndChatFileVolume = 0.55
+local sndMapmarkFile = 'sounds/ui/mappoint2.wav'
+local sndMapmarkFileVolume = 0.5
 
 local colorOther = {1,1,1} -- normal chat color
 local colorAlly = {0,1,0}
@@ -97,7 +99,16 @@ local inputText = ''
 local inputTextPosition = 0
 local cursorBlinkTimer = 0
 local cursorBlinkDuration = 1
+
 local inputMode = ''
+if isSpec then
+	inputMode = 's:'
+else
+	if #Spring.GetTeamList(Spring.GetMyAllyTeamID()) > 1 then
+		inputMode = 'a:'
+	end
+end
+
 local inputTextInsertActive = false
 local inputHistory = {}
 local inputHistoryCurrent = 0
@@ -669,6 +680,12 @@ function widget:Initialize()
 	end
 	WG['chat'].setChatVolume = function(value)
 		sndChatFileVolume = value
+	end
+	WG['chat'].getMapmarkVolume = function()
+		return sndMapmarkFileVolume
+	end
+	WG['chat'].setMapmarkVolume = function(value)
+		sndMapmarkFileVolume = value
 	end
 	WG['chat'].getBackgroundOpacity = function()
 		return backgroundOpacity
@@ -1854,6 +1871,7 @@ end
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
 	if cmdType == 'point' then
 		lastMapmarkCoords = {x,y,z}
+		spPlaySoundFile( sndMapmarkFile, sndMapmarkFileVolume, nil, "ui" )
 	end
 end
 
@@ -2022,6 +2040,7 @@ function widget:GetConfigData(data)
 		fontsizeMult = fontsizeMult,
 		chatBackgroundOpacity = backgroundOpacity,
 		sndChatFileVolume = sndChatFileVolume,
+		sndMapmarkFileVolume = sndMapmarkFileVolume,
 		shutdownTime = os.clock(),
 		handleTextInput = handleTextInput,
 		inputButton = inputButton,
@@ -2043,6 +2062,9 @@ function widget:SetConfigData(data)
 	end
 	if data.sndChatFileVolume ~= nil then
 		sndChatFileVolume = data.sndChatFileVolume
+	end
+	if data.sndMapmarkFileVolume ~= nil then
+		sndMapmarkFileVolume = data.sndMapmarkFileVolume
 	end
 	if data.chatBackgroundOpacity ~= nil then
 		backgroundOpacity = data.chatBackgroundOpacity

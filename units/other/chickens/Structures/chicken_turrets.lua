@@ -131,14 +131,6 @@ return {
 					fighters = 400,
 					vtol = 400,
 				},
-				customparams = {
-					expl_light_life_mult = 1.5,
-					expl_light_radius_mult = 1.3,
-					expl_light_mult = 1.25,
-					light_radius_mult = "0.85",
-					light_mult = 3,
-					light_color = "1 0.55 0.05",
-				},
 			},
 		},
 		weapons = {

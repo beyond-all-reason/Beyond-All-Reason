@@ -22,10 +22,10 @@ return {
 		capturable = false,
 		category = "ALL MOBILE WEAPON NOTLAND VTOL NOTSUB NOTSHIP NOTHOVER CHICKEN",
 		collide = true,
-		collisionvolumeoffsets = "0 8 -2",
+		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "35 7 24",
 		collisionvolumetype = "box",
-		cruisealt = 120,
+		cruisealt = 220,
 		defaultmissiontype = "Standby",
 		explodeas = "TALON_DEATH",
 		footprintx = 3,
@@ -83,7 +83,7 @@ return {
 			},
 		},
 		weapondefs = {
-			weapon = {
+			bloodyeggs = {
 				accuracy = 1000,
 				collidefriendly = 0,
 				collidefeature = 0,
@@ -112,20 +112,11 @@ return {
 				damage = {
 					default = 360,
 				},
-				customparams = {
-					expl_light_life_mult = 1.3,
-					expl_light_radius_mult = 1.2,
-					expl_light_mult = 1.2,
-					expl_light_color = "1 0.05 0.01",
-					--light_radius_mult = "0.5",
-					--light_mult = 1.3,
-					light_color = "1 0.05 0.01",
-				},
 			},
 		},
 		weapons = {
 			[1] = {
-				def = "WEAPON",
+				def = "bloodyeggs",
 			},
 		},
 	},

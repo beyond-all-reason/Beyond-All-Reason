@@ -34,7 +34,7 @@ local isAircon = {}
 local crashable  = {}
 local alwaysCrash = {}
 for udid,UnitDef in pairs(UnitDefs) do
-	if UnitDef.canFly == true and UnitDef.transportSize == 0 and string.sub(UnitDef.name, 1, 7) ~= "critter" and string.sub(UnitDef.name, 1, 7) ~= "chicken" then
+	if UnitDef.canFly == true and UnitDef.transportSize == 0 and string.sub(UnitDef.name, 1, 7) ~= "critter" then
 		crashable[UnitDef.id] = true
 		if UnitDef.buildSpeed > 1 then
 			isAircon[udid] = true
@@ -57,8 +57,8 @@ end
 local crashing = {}
 local crashingCount = 0
 
-local totalUnitsTime = 0
-local percentage = 0.6	-- is reset somewhere else
+--local totalUnitsTime = 0
+--local percentage = 0.6	-- is reset somewhere else
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if paralyzer then return damage,1 end
@@ -67,15 +67,15 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	end
 
 	if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and weaponDefID ~= COM_BLAST then
-		if Spring.GetGameSeconds() - totalUnitsTime > 5 then
-			totalUnitsTime = Spring.GetGameSeconds()
-			local totalUnits = #Spring.GetAllUnits()
-			percentage = (1 - (totalUnits/10000))
-			if percentage < 0.6 then
-				percentage = 0.6
-			end
-		end
-		if random() < percentage or alwaysCrash[unitDefID] then
+		--if Spring.GetGameSeconds() - totalUnitsTime > 5 then
+		--	totalUnitsTime = Spring.GetGameSeconds()
+		--	local totalUnits = #Spring.GetAllUnits()
+		--	percentage = (1 - (totalUnits/10000))
+		--	if percentage < 0.6 then
+		--		percentage = 0.6
+		--	end
+		--end
+		--if random() < percentage or alwaysCrash[unitDefID] then
 			-- increase gravity so it crashes faster
 			local moveTypeData = Spring.GetUnitMoveTypeData(unitID)
 			if moveTypeData['myGravity'] then
@@ -110,7 +110,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			if isAircon[unitDefID] then
 				Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 			end
-		end
+		--end
 	end
 	return damage,1
 end

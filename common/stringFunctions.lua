@@ -36,3 +36,24 @@ if not string.lines then
 		return text
 	end
 end
+
+-- Returns python style tuple string.partition()
+if not string.partition then 
+	function string:partition(sep)
+		local seppos = self:find(sep, nil, true)
+		if seppos == nil then 
+			return self, nil, nil 
+		else
+			if seppos == 1 then 
+				return nil, sep, self:sub(sep:len()+1)
+			else
+				return self:sub(1, seppos -1), sep, self:sub(seppos + sep:len())
+			end
+		end
+	end
+end
+-- Unit test:
+-- print(string.partition("blaksjdfsaldkj","ldkj"))
+-- print(string.partition("blaksjdfsaldkj","aks"))
+
+

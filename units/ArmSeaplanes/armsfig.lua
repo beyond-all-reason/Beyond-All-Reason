@@ -106,7 +106,7 @@ return {
 				noselfdamage = true,
 				range = 710,
 				reloadtime = 0.83333,
-				smoketrail = true,
+				smoketrail = false,
 				smokePeriod = 4,
 				smoketime = 8,
 				smokesize = 1.8,
@@ -126,14 +126,6 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
-				customparams = {
-					expl_light_color = "1 0.55 0.5",
-					expl_light_mult = 1.59,
-					expl_light_radius_mult = 1.92,
-					light_color = "1 0.6 0.5",
-					light_radius_mult = 0.72,
-					light_mult = 1.7,
-				},
 				damage = {
 					bombers = 210,
 					commanders = 4,

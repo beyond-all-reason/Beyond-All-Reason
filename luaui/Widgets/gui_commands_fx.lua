@@ -118,72 +118,72 @@ local CONFIG = {
 	[CMD_ATTACK] = {
 		sizeMult = 1.4,
 		endSize = 0.28,
-		colour = { 1.00, 0.20, 0.20, 0.30 },
+		colour = { 1.0, 0.2, 0.2, 0.30 },
 	},
 	[CMD_CAPTURE] = {
 		sizeMult = 1.4,
 		endSize = 0.28,
-		colour = { 1.00, 1.00, 0.30, 0.30 },
+		colour = { 1.0, 1.0, 0.3, 0.30 },
 	},
 	[CMD_FIGHT] = {
 		sizeMult = 1.2,
 		endSize = 0.24,
-		colour = { 0.30, 0.50, 1.00, 0.25 },
+		colour = { 1.0, 0.2, 1.0, 0.25 },
 	},
 	[CMD_GUARD] = {
 		sizeMult = 1,
 		endSize = 0.2,
-		colour = { 0.10, 0.10, 0.50, 0.25 },
+		colour = { 0.6, 1.0, 1.0, 0.25 },
 	},
 	[CMD_LOAD_ONTO] = {
 		sizeMult = 1,
 		endSize = 0.2,
-		colour = { 0.30, 1.00, 1.00, 0.25 },
+		colour = { 0.4, 0.9, 0.9, 0.25 },
 	},
 	[CMD_LOAD_UNITS] = {
 		sizeMult = 1,
 		endSize = 0.2,
-		colour = { 0.30, 1.00, 1.00, 0.30 },
+		colour = { 0.4, 0.9, 0.9, 0.30 },
 	},
 	[CMD_MANUALFIRE] = {
 		sizeMult = 1.4,
 		endSize = 0.28,
-		colour = { 1.00, 0.00, 0.00, 0.30 },
+		colour = { 1.0, 0.0, 0.0, 0.30 },
 	},
 	[CMD_MOVE] = {
 		sizeMult = 1,
 		endSize = 0.2,
-		colour = { 0.00, 1.00, 0.00, 0.25 },
+		colour = { 0.1, 1.0, 0.1, 0.25 },
 	},
 	[CMD_RAW_MOVE] = {
 		sizeMult = 1,
 		endSize = 0.2,
-		colour = { 0.00, 1.00, 0.00, 0.25 },
+		colour = { 0.1, 1.0, 0.1, 0.25 },
 	},
 	[CMD_PATROL] = {
 		sizeMult = 1,
 		endSize = 0.2,
-		colour = { 0.10, 0.10, 1.00, 0.25 },
+		colour = { 0.2, 0.5, 1.0, 0.25 },
 	},
 	[CMD_RECLAIM] = {
 		sizeMult = 1,
 		endSize = 0,
-		colour = { 1.00, 0.20, 1.00, 0.4 },
+		colour = { 0.5, 1.00, 0.4, 0.4 },
 	},
 	[CMD_REPAIR] = {
 		sizeMult = 1,
 		endSize = 0.2,
-		colour = { 0.30, 1.00, 1.00, 0.4 },
+		colour = { 1.0, 0.9, 0.2, 0.4 },
 	},
 	[CMD_RESTORE] = {
 		sizeMult = 1,
 		endSize = 0.2,
-		colour = { 0.00, 0.50, 0.00, 0.25 },
+		colour = { 0.0, 0.5, 0.0, 0.25 },
 	},
 	[CMD_RESURRECT] = {
 		sizeMult = 1,
 		endSize = 0.2,
-		colour = { 0.20, 0.60, 1.00, 0.25 },
+		colour = { 0.9, 0.5, 1.0, 0.25 },
 	},
 	--[[
 	[CMD_SET_TARGET] = {
@@ -195,12 +195,12 @@ local CONFIG = {
 	[CMD_UNLOAD_UNIT] = {
 		sizeMult = 1,
 		endSize = 0.2,
-		colour = { 1.00, 1.00, 0.00, 0.25 },
+		colour = { 1.0, 0.8, 0.0, 0.25 },
 	},
 	[CMD_UNLOAD_UNITS] = {
 		sizeMult = 1,
 		endSize = 0.2,
-		colour = { 1.00, 1.00, 0.00, 0.25 },
+		colour = { 1.0, 0.8, 0.0, 0.25 },
 	},
 	[BUILD] = {
 		sizeMult = 1,
@@ -247,19 +247,19 @@ local MAX_UNITS = Game.maxUnits
 local function setCmdLineColors(alpha)
 	spLoadCmdColorsConfig('move        0.5  1.0  0.5  ' .. alpha)
 	spLoadCmdColorsConfig('attack      1.0  0.2  0.2  ' .. alpha)
-	spLoadCmdColorsConfig('fight       0.5  0.5  1.0  ' .. alpha)
+	spLoadCmdColorsConfig('fight       1.0  0.2  1.0  ' .. alpha)
 	spLoadCmdColorsConfig('wait        0.5  0.5  0.5  ' .. alpha)
 	spLoadCmdColorsConfig('build       0.0  1.0  0.0  ' .. alpha)
-	spLoadCmdColorsConfig('guard       0.3  0.3  1.0  ' .. alpha)
+	spLoadCmdColorsConfig('guard       0.6  1.0  1.0  ' .. alpha)
 	spLoadCmdColorsConfig('stop        0.0  0.0  0.0  ' .. alpha)
-	spLoadCmdColorsConfig('patrol      0.3  0.3  1.0  ' .. alpha)
+	spLoadCmdColorsConfig('patrol      0.2  0.5  1.0  ' .. alpha)
 	spLoadCmdColorsConfig('capture     1.0  1.0  0.3  ' .. alpha)
-	spLoadCmdColorsConfig('repair      0.3  1.0  1.0  ' .. alpha)
-	spLoadCmdColorsConfig('reclaim     1.0  0.2  1.0  ' .. alpha)
+	spLoadCmdColorsConfig('repair      1.0  0.9  0.2  ' .. alpha)
+	spLoadCmdColorsConfig('reclaim     0.5  1.0  0.4  ' .. alpha)
 	spLoadCmdColorsConfig('restore     0.0  1.0  0.0  ' .. alpha)
-	spLoadCmdColorsConfig('resurrect   0.2  0.6  1.0  ' .. alpha)
-	spLoadCmdColorsConfig('load        0.3  1.0  1.0  ' .. alpha)
-	spLoadCmdColorsConfig('unload      1.0  1.0  0.0  ' .. alpha)
+	spLoadCmdColorsConfig('resurrect   0.9  0.5  1.0  ' .. alpha)
+	spLoadCmdColorsConfig('load        0.4  0.9  0.9  ' .. alpha)
+	spLoadCmdColorsConfig('unload      1.0  0.8  0.0  ' .. alpha)
 	spLoadCmdColorsConfig('deathWatch  0.5  0.5  0.5  ' .. alpha)
 end
 

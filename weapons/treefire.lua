@@ -14,14 +14,6 @@ return {
 			crawlingbombs = 3,
 			default = 4,
 		},
-		customparams = {
-			expl_light_color = "1 0.33 0.07",
-			expl_light_mult = 1.5,
-			expl_light_radius_mult = 1.4,
-			expl_light_life_mult = 4.2,
-			expl_light_heat_radius_mult = 2,
-			expl_light_heat_life_mult = 4.5,
-		},
 	},
 	treefire_small = {
 		areaofeffect = 21,
@@ -37,14 +29,6 @@ return {
 			commanders = 3,
 			crawlingbombs = 3,
 			default = 6,
-		},
-		customparams = {
-			expl_light_color = "1 0.33 0.07",
-			expl_light_mult = 1.5,
-			expl_light_radius_mult = 1.4,
-			expl_light_life_mult = 4.2,
-			expl_light_heat_radius_mult = 2,
-			expl_light_heat_life_mult = 4.5,
 		},
 	},
 	treefire_medium = {
@@ -63,14 +47,6 @@ return {
 			crawlingbombs = 4,
 			default = 7,
 		},
-		customparams = {
-			expl_light_color = "1 0.33 0.07",
-			expl_light_mult = 1.5,
-			expl_light_radius_mult = 1.4,
-			expl_light_life_mult = 4.2,
-			expl_light_heat_radius_mult = 2,
-			expl_light_heat_life_mult = 4.5,
-		},
 	},
 	treefire_large = {
 		areaofeffect = 27,
@@ -86,14 +62,6 @@ return {
 			commanders = 4,
 			crawlingbombs = 4,
 			default = 8,
-		},
-		customparams = {
-			expl_light_color = "1 0.33 0.07",
-			expl_light_mult = 1.5,
-			expl_light_radius_mult = 1.4,
-			expl_light_life_mult = 4.2,
-			expl_light_heat_radius_mult = 2,
-			expl_light_heat_life_mult = 4.5,
 		},
 	},
 }

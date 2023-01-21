@@ -56,6 +56,7 @@ local buttonDrawn = false
 
 local RectRound, UiElement, UiButton, elementPadding, uiPadding
 
+local enableSubbing = false
 local eligibleAsSub = false
 local offeredAsSub = false
 local allowUnready = false	-- not enabled cause unreadying doesnt work
@@ -227,7 +228,7 @@ function widget:Initialize()
 		return
 	end
 
-	if mySpec then
+	if mySpec and enableSubbing then
 		if numPlayers <= 4 or isReplay or ffaMode then
 			eligibleAsSub = false
 		else
