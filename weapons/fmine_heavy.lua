@@ -14,9 +14,9 @@ return {
 		soundstart = "largegun",
 		weaponvelocity = 250,
 		damage = {
-			default = 1750,
-			subs = 1100,
-			mines = 0.5,
+			default = 1940,
+			subs = 1220,
+			mines = 1,
 		},
 	},
 }

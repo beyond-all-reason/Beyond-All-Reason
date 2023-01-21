@@ -20,7 +20,7 @@ return {
 		icontype = "armthovr",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 5160,
+		maxdamage = 5700,
 		maxvelocity = 1.77,
 		minwaterdepth = 12,
 		movementclass = "HOVER4",

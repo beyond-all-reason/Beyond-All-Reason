@@ -17,7 +17,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 4000,
+		maxdamage = 4450,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/CORERAD.s3o",

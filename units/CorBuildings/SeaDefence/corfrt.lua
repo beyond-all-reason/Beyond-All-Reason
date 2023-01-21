@@ -21,7 +21,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 355,
+		maxdamage = 395,
 		minwaterdepth = 2,
 		nochasecategory = "ALL",
 		objectname = "Units/CORFRT.s3o",

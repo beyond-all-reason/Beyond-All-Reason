@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 30000,
+		maxdamage = 33500,
 		maxslope = 13,
 		maxwaterdepth = 0,
 		objectname = "Units/CORBUZZ.s3o",

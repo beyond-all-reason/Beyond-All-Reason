@@ -19,7 +19,7 @@ return {
 		idleautoheal = 5,
 		idletime = 600,
 		mass = 200000,
-		maxdamage = 25000,
+		maxdamage = 28000,
 		maxvelocity = 1.7,
 		maxwaterdepth = 12,
 		movementclass = "HBOT4",

@@ -37,7 +37,7 @@ return {
 		maxacc = 0.25,
 		maxaileron = 0.025,
 		maxbank = 0.8,
-		maxdamage = 4000,
+		maxdamage = 4450,
 		maxelevator = 0.025,
 		maxpitch = 0.95,
 		maxrudder = 0.025,

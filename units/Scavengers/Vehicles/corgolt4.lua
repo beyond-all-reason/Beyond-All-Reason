@@ -20,7 +20,7 @@ return {
 		idletime = 1800,
 		leavetracks = true,
 		mass = 1000000,
-		maxdamage = 75000,
+		maxdamage = 83000,
 		maxslope = 10,
 		maxvelocity = 0.8,
 		maxwaterdepth = 12,

@@ -10,8 +10,8 @@ return {
 		soundhitdry = "fireburnshort",
 		soundhitvolume = 2.1,
 		damage = {
-			commanders = 2.5,
-			crawlingbombs = 2.5,
+			commanders = 3,
+			crawlingbombs = 3,
 			default = 4,
 		},
 	},
@@ -28,7 +28,7 @@ return {
 		damage = {
 			commanders = 3,
 			crawlingbombs = 3,
-			default = 5,
+			default = 6,
 		},
 	},
 	treefire_medium = {
@@ -43,9 +43,9 @@ return {
 		soundhitdry = "fireburnshort",
 		soundhitvolume = 2.3,
 		damage = {
-			commanders = 3.5,
-			crawlingbombs = 3.5,
-			default = 6,
+			commanders = 4,
+			crawlingbombs = 4,
+			default = 7,
 		},
 	},
 	treefire_large = {
@@ -61,7 +61,7 @@ return {
 		damage = {
 			commanders = 4,
 			crawlingbombs = 4,
-			default = 7,
+			default = 8,
 		},
 	},
 }

@@ -29,7 +29,7 @@ return {
 		idletime = 300,
 		levelground = false,
 		mass = 1400,
-		maxdamage = 10000,
+		maxdamage = 11100,
 		maxslope = 255,
 		maxvelocity = 0,
 		maxwaterdepth = 0,

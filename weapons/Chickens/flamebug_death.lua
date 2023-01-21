@@ -13,9 +13,9 @@ return {
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {
-			chicken = 100,
-			default = 300,
-			tinychicken = 25,
+			chicken = 111,
+			default = 335,
+			tinychicken = 28,
 		},
 		customparams = {
 			unitexplosion = 1,

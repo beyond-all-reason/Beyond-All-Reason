@@ -15,11 +15,11 @@ return {
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {
-			commanders = 1250,
-			crawlingbombs = 199,
-			default = 3000,
-			hvyboats = 1500,
-			lboats = 1500,
+			commanders = 1390,
+			crawlingbombs = 220,
+			default = 3350,
+			hvyboats = 1670,
+			lboats = 1670,
 		},
 	},
 }

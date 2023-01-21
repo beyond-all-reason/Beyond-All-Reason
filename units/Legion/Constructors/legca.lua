@@ -24,7 +24,7 @@ return {
 		icontype = "air",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 145,
+		maxdamage = 161,
 		maxslope = 10,
 		maxvelocity = 6.7,
 		maxwaterdepth = 0,

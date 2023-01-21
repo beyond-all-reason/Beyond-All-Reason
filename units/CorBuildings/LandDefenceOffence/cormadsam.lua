@@ -21,7 +21,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2500,
+		maxdamage = 2800,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/CORMADSAM.s3o",

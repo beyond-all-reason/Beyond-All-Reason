@@ -6,8 +6,8 @@ return {
 		impulseboost = 0,
 		noselfdamage = true,
 		damage = {
-			default = 99999,
-			scavboss = 1000,
+			default = 111000,
+			scavboss = 1110,
 		},
 	},
 }

@@ -24,7 +24,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 1,
-		maxdamage = 10,
+		maxdamage = 11,
 		maxvelocity = 0.6,
 		mincloakdistance = 75,
 		minwaterdepth = 15,

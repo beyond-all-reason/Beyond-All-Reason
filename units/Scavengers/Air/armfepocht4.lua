@@ -27,7 +27,7 @@ return {
 		idletime = 1800,
 		losemitheight = 52,
 		mass = 1000000,
-		maxdamage = 60000,
+		maxdamage = 67000,
 		maxvelocity = 1.2,
 		maxwaterdepth = 15,
 		nochasecategory = "VTOL",
