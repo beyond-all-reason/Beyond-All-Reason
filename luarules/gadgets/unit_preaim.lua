@@ -42,6 +42,7 @@ local exludedUnits = {    -- exclude auto target range boost for popup units
 	[UnitDefNames.corexp.id] = true,
 
 	[UnitDefNames.corllt.id] = true,
+	[UnitDefNames.corhllt.id] = true,
 	[UnitDefNames.armllt.id] = true,
 }
 local scavengerPopups = {}
