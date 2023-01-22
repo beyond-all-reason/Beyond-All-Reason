@@ -415,9 +415,6 @@ local function updateButtons()
 	if WG['keybinds'] ~= nil then
 		text = text .. Spring.I18N('ui.topbar.button.keys') .. '   '
 	end
-	if WG['changelog'] ~= nil then
-		text = text .. Spring.I18N('ui.topbar.button.changes') .. '   '
-	end
 	if WG['options'] ~= nil then
 		text = text .. Spring.I18N('ui.topbar.button.settings') .. '   '
 	end
@@ -518,17 +515,6 @@ local function updateButtons()
 				buttonsArea['buttons']['keybinds'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
 					firstButton = 'keybinds'
-				end
-			end
-			if WG['changelog'] ~= nil then
-				buttons = buttons + 1
-				if buttons > 1 then
-					offset = math_floor(offset + width + 0.5)
-				end
-				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.changes')) * fontsize) + 0.5)
-				buttonsArea['buttons']['changelog'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				if not firstButton then
-					firstButton = 'changelog'
 				end
 			end
 			if WG['options'] ~= nil then
@@ -1866,10 +1852,6 @@ local function hideWindows()
 		WG['scavengerinfo'].toggle(false)
 		closedWindow = true
 	end
-	if WG['changelog'] ~= nil and WG['changelog'].isvisible() then
-		WG['changelog'].toggle(false)
-		closedWindow = true
-	end
 	if WG['keybinds'] ~= nil and WG['keybinds'].isvisible() then
 		WG['keybinds'].toggle(false)
 		closedWindow = true
@@ -1959,14 +1941,6 @@ local function applyButtonAction(button)
 		hideWindows()
 		if WG['scavengerinfo'] ~= nil and isvisible ~= true then
 			WG['scavengerinfo'].toggle()
-		end
-	elseif button == 'changelog' then
-		if WG['changelog'] ~= nil then
-			isvisible = WG['changelog'].isvisible()
-		end
-		hideWindows()
-		if WG['changelog'] ~= nil and isvisible ~= true then
-			WG['changelog'].toggle()
 		end
 	elseif button == 'keybinds' then
 		if WG['keybinds'] ~= nil then
