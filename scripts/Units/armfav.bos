@@ -6,7 +6,7 @@
 piece  base, lfwheel, rfwheel, bwheel, gun, flare;
 
 static-var  restore_delay, moveSpeed, wheelSpeed, Static_Var_1, gun_2, statechg_DesiredState, statechg_StateChanging,
-			oldHeading;
+			oldHeading, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_MOVE 			2
@@ -104,6 +104,8 @@ ExecuteRestoreAfterDelay()
     }
 	turn gun to y-axis <0.000000> speed <90.000000>;
 	turn gun to x-axis <0.000000> speed <50.000000>;
+	wait-for-turn gun around y-axis;
+	wpn1_lasthead = 1000000;
  }
 SetStunned(State)
 {
@@ -126,10 +128,14 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn gun to y-axis heading speed <200.000000>;
-	turn gun to x-axis <0.000000> - pitch speed <200.000000>;
-	wait-for-turn gun around y-axis;
-	wait-for-turn gun around x-axis;
+	turn gun to y-axis heading speed <300.000000>;
+	turn gun to x-axis <0.000000> - pitch speed <300.000000>;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn gun around y-axis;
+	}
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
