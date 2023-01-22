@@ -269,7 +269,8 @@ if gadgetHandler:IsSyncedCode() then
 	local maxBurrows = ((config.maxBurrows*(1-config.chickenPerPlayerMultiplier))+(config.maxBurrows*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 	local queenTime = (config.queenTime + config.gracePeriod)
 	local maxWaveSize = ((config.maxChickens*(1-config.chickenPerPlayerMultiplier))+(config.maxChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
-	local currentMaxWaveSize = config.minChickens
+	local minWaveSize = ((config.minChickens*(1-config.chickenPerPlayerMultiplier))+(config.minChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+	local currentMaxWaveSize = minWaveSize
 	function updateDifficultyForSurvival()
 		t = GetGameSeconds()
 		config.gracePeriod = t-1
@@ -315,7 +316,8 @@ if gadgetHandler:IsSyncedCode() then
 		-- expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
 		maxBurrows = ((config.maxBurrows*(1-config.chickenPerPlayerMultiplier))+(config.maxBurrows*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 		maxWaveSize = ((config.maxChickens*(1-config.chickenPerPlayerMultiplier))+(config.maxChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
-		currentMaxWaveSize = config.minChickens
+		minWaveSize = ((config.minChickens*(1-config.chickenPerPlayerMultiplier))+(config.minChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+		currentMaxWaveSize = minWaveSize
 	end
 
 	--------------------------------------------------------------------------------
@@ -989,7 +991,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			
 			
-			-- if waveParameters.miniBoss.cooldown <= 0 and currentWave >= 6 and mRandom() <= config.spawnChance then
+			-- if waveParameters.miniBoss.cooldown <= 0 and currentWave >= 6 and mRandom() <= config.spawnChance thencurrentMaxWaveSize
 			-- 	waveParameters.miniBoss.cooldown = mRandom(10,20)
 			-- 	waveParameters.baseCooldown = mRandom(2,4)
 			-- 	waveType = "miniboss"
@@ -1056,11 +1058,11 @@ if gadgetHandler:IsSyncedCode() then
 		until (cCount > currentMaxWaveSize or loopCounter >= 100)
 
 		if waveType == "air" then
-			chickenEvent("airWave")
+			chickenEvent("airWave", cCount)
 		elseif waveType == "miniboss" then
-			chickenEvent("miniQueen")
+			chickenEvent("miniQueen", cCount)
 		elseif config.useWaveMsg then
-			chickenEvent("wave")
+			chickenEvent("wave", cCount)
 		end
 		return cCount
 	end
@@ -1610,7 +1612,7 @@ if gadgetHandler:IsSyncedCode() then
 			playerAgression = playerAgression*0.995
 			playerAgressionLevel = math.floor(playerAgression)
 			SetGameRulesParam("chickenPlayerAgressionLevel", playerAgressionLevel)
-			currentMaxWaveSize = (config.minChickens + math.ceil((queenAnger*0.01)*(maxWaveSize - config.minChickens)))
+			currentMaxWaveSize = (minWaveSize + math.ceil((queenAnger*0.01)*(maxWaveSize - minWaveSize)))
 			if t < config.gracePeriod then
 				queenAnger = 0
 				techAnger = 0
