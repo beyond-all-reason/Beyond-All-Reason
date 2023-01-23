@@ -1248,11 +1248,11 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			if unitTeam == chickenTeamID or attackerTeam == chickenTeamID then
-				if (unitID and unitSquadTable[unitID] and squadsTable[unitSquadTable[unitID]] and squadsTable[unitSquadTable[unitID]].squadLife and squadsTable[unitSquadTable[unitID]].squadLife < 5) then
-					squadsTable[unitSquadTable[unitID]].squadLife = 5
+				if (unitID and unitSquadTable[unitID] and squadsTable[unitSquadTable[unitID]] and squadsTable[unitSquadTable[unitID]].squadLife and squadsTable[unitSquadTable[unitID]].squadLife < 10) then
+					squadsTable[unitSquadTable[unitID]].squadLife = 10
 				end
-				if (attackerID and unitSquadTable[attackerID] and squadsTable[unitSquadTable[attackerID]] and squadsTable[unitSquadTable[attackerID]].squadLife and squadsTable[unitSquadTable[attackerID]].squadLife < 5) then
-					squadsTable[unitSquadTable[attackerID]].squadLife = 5
+				if (attackerID and unitSquadTable[attackerID] and squadsTable[unitSquadTable[attackerID]] and squadsTable[unitSquadTable[attackerID]].squadLife and squadsTable[unitSquadTable[attackerID]].squadLife < 10) then
+					squadsTable[unitSquadTable[attackerID]].squadLife = 10
 				end
 			end
 		end
