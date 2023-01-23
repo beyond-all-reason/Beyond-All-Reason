@@ -176,6 +176,8 @@ local math_ceil = math.ceil
 
 ------------------------------ Light and Shader configurations ------------------
 
+local unitDefLights
+local featureDefLights
 local unitEventLights -- Table of lights per unitDefID
 local muzzleFlashLights  -- one light per weaponDefID
 local projectileDefLights  -- one light per weaponDefID
@@ -917,6 +919,7 @@ local function LoadLightConfig()
 		--Spring.Echo("Loaded GL4 light config")
 		unitDefLights = result.unitDefLights
 		unitEventLights = result.unitEventLights
+		featureDefLights = result.featureDefLights
 		--projectileDefLights = result.projectileDefLights
 
 	else
@@ -1066,6 +1069,12 @@ function widget:Initialize()
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
+	
+	for _, featureID in ipairs(Spring.GetAllFeatures()) do 
+		widget:FeatureCreated(featureID)
+	end
+
+
 
 	WG['lightsgl4'] = {}
 	WG['lightsgl4'].AddPointLight = AddPointLight
@@ -1253,6 +1262,35 @@ end
 function widget:StockpileChanged(unitID, unitDefID, teamID, weaponNum, oldCount, newCount)
 	if newCount > oldCount then
 		eventLightSpawner("StockpileChanged", unitID, unitDefID, teamID)
+	end
+end
+
+function widget:FeatureCreated(featureID,allyteam)
+	-- TODO: Allow team-colored feature lights by getting teamcolor and putting it into lightCacheTable
+	local featureDefID = Spring.GetFeatureDefID(featureID)
+	if featureDefLights[featureDefID] then 
+		for lightname, lightTable in pairs(featureDefLights[featureDefID]) do 
+			if not lightTable.initComplete then InitializeLight(lightTable) end 
+			local px, py, pz = Spring.GetFeaturePosition(featureID)
+			if px then 
+			
+				local lightParamTable = lightTable.lightParamTable
+				for i=1, lightParamTableSize do lightCacheTable[i] = lightParamTable[i] end
+				lightCacheTable[1] = lightCacheTable[1] + px
+				lightCacheTable[2] = lightCacheTable[2] + py
+				lightCacheTable[3] = lightCacheTable[3] + pz
+				AddLight(tostring(featureID) ..  lightname, nil, nil, lightVBOMap[lightTable.lightType], lightCacheTable)
+			end
+		end
+	end
+end
+
+function widget:FeatureDestroyed(featureID)
+	local featureDefID = Spring.GetFeatureDefID(featureID)
+	if featureDefLights[featureDefID] then 
+		for lightname, lightTable in pairs(featureDefLights[featureDefID]) do 
+			RemoveLight(lightTable.lightType, tostring(featureID) ..  lightname)
+		end
 	end
 end
 
