@@ -408,8 +408,9 @@ local function updateButtons()
 		buttonsArea['buttons'] = {}
 
 		local margin = bgpadding
-		local textPadding = math_floor(fontsize)
-		local offset = math_floor(textPadding*0.3)
+		local textPadding = math_floor(fontsize*0.85)
+		local sidePadding = math_floor(textPadding*0.4)
+		local offset = sidePadding
 		local lastbutton
 		local function addButton(name, text)
 			local width = math_floor((font2:GetTextWidth(text) * fontsize) + textPadding)
@@ -448,8 +449,8 @@ local function updateButtons()
 			addButton('save', Spring.I18N('ui.topbar.button.save'))
 		end
 
-		buttonsArea['buttons'][lastbutton][1] = buttonsArea['buttons'][lastbutton][1] - math_floor(textPadding*0.3)
-		offset = offset + math_floor(textPadding*0.3)
+		buttonsArea['buttons'][lastbutton][1] = buttonsArea['buttons'][lastbutton][1] - sidePadding
+		offset = offset + sidePadding
 
 		buttonsArea[1] = buttonsArea[3]-offset-margin
 		UiElement(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 0, 0, 0, 1)
@@ -478,7 +479,7 @@ local function updateButtons()
 		font2:SetTextColor(0.92, 0.92, 0.92, 1)
 		font2:SetOutlineColor(0, 0, 0, 1)
 		for name, params in pairs(buttonsArea['buttons']) do
-			font2:Print(params[5], params[6], params[2] + ((params[4] - params[2]) * 0.52) - (fontsize / 5), fontsize, 'co')
+			font2:Print(params[5], params[6], params[2] + ((params[4] - params[2]) * 0.5) - (fontsize / 5), fontsize, 'co')
 		end
 		font2:End()
 	end)
