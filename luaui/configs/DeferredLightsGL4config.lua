@@ -16924,23 +16924,23 @@ local featureDefLights = {
 
 local crystalLightBase =  {
 			lightType = 'point',
-			lightConfig = { posx = 0, posy = 8, posz = 0, radius = 48,
+			lightConfig = { posx = 0, posy = 8, posz = 0, radius = 54,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = -1, g = 1, b = 1, a = 0.66,
-							modelfactor = 0.1, specular = 1.2, scattering = 1, lensflare = 0,
+							modelfactor = 0.3, specular = 0.3, scattering = 0.8, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		}
 
 local crystalColors = { -- note that the underscores are needed here
-	[""] = {1,1,1,0.33},
-	_violet = {1,0,1,0.33},
+	[""] = {0.8,0.5,0.95,0.15}, -- same as violet
+	_violet = {0.8,0.5,0.95,0.33},
 	_blue = {0,0,1,0.33}, 
 	_green = {0,1,0,0.33}, 
 	_lime = {0.2,1,0,0.33},
 	_obsidian = {1,1,1,0.33},
 	_quartz = {1,1,1,0.33}, 
 	_orange = {1,0.5,0,0.33}, 
-	_red = {1,0,0,0.1}, 
+	_red = {1,0.2,0.2,0.10}, 
 	_teal = {0,1,1,0.33},
 	_team = {1,1,1,0.33},
 	}
@@ -16954,8 +16954,8 @@ for colorname, colorvalues in pairs(crystalColors) do
 			crystalLight.lightConfig.g = colorvalues[2]
 			crystalLight.lightConfig.b = colorvalues[3]
 			crystalLight.lightConfig.a = colorvalues[4]
-			crystalLight.lightConfig.radius = (size + 0) * crystalLight.lightConfig.radius
-			crystalLight.lightConfig.posy = (size + 0) * crystalLight.lightConfig.posy
+			crystalLight.lightConfig.radius = (size + 0.2) * (crystalLight.lightConfig.radius * 0.6)
+			crystalLight.lightConfig.posy = (size + 1.5) * crystalLight.lightConfig.posy
 			featureDefLights[FeatureDefNames[crystaldefname].id] = {crystalLight = crystalLight}
 		end
 	end
