@@ -12,7 +12,6 @@ function widget:GetInfo()
 end
 
 local vsx,vsy = Spring.GetViewGeometry()
-local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 
 local fontSize = 22		-- is caclulated somewhere else anyway
 local fontSizePercentage = 0.6 -- fontSize * X = actual fontsize
@@ -528,22 +527,12 @@ function widget:MouseMove(mx,my,dx,dy)
 	end
 end
 
-local uiOpacitySec = 0
 function widget:Update(dt)
 	local x,y = GetMouseState()
 	if x ~= mousex or y ~= mousey then
 		widget:MouseMove(x,y,x-mousex,y-mousey)
 	end
 	mousex,mousey = x,y
-
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
-		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			widget:ViewResize()
-		end
-	end
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -585,7 +574,7 @@ function DrawBackground()
 	else
 		gl.Color(0,0,0,0.85)
 	end
-	UiElement(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, 1, 1, 1, 1, 1,1,1,1, ui_opacity + 0.2)
+	UiElement(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, 1, 1, 1, 1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 	if WG['guishader'] then
 		if backgroundGuishader ~= nil then
 			glDeleteList(backgroundGuishader)

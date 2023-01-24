@@ -19,11 +19,9 @@ local landLevel
 local seaLevel
 
 -- Get TeamIDs and AllyTeamIDs of Scavengers and Chickens
-local teams = Spring.GetTeamList()
 local scavengerTeamID
 local scavengerAllyTeamID
 local chickenTeamID
-local chickenAllyTeamID
 if Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsChickens() then
     local teams = Spring.GetTeamList()
     for i = 1,#teams do
@@ -162,23 +160,23 @@ local function VisibilityCheckEnemy(posx, posy, posz, posradius, allyTeamID, che
     return true
 end
 
-local function StartboxCheck(posx, posy, posz, posradius, allyTeamID, returnTrueWhenNoStartbox) -- Return True when position is within startbox.
-    local posradius = posradius or 1000
-    
-    if allyTeamID == GaiaAllyTeamID then return false end
+local function StartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStartbox) -- Return True when position is within startbox.
+    --local posradius = posradius or 1000
+    if not returnTrueWhenNoStartbox then returnTrueWhenNoStartbox = false end
 
-    if AllyTeamStartboxes[allyTeamID+1].allyTeamHasStartbox == false then
-        if returnTrueWhenNoStartbox then
-            return true
-        else
-            return false
-        end
+    if allyTeamID == GaiaAllyTeamID then 
+        return not returnTrueWhenNoStartbox
+    end
+    local startbox = AllyTeamStartboxes[allyTeamID+1]
+
+    if startbox.allyTeamHasStartbox == false then
+        return not returnTrueWhenNoStartbox
     end
 
-    if posx >= AllyTeamStartboxes[allyTeamID+1].xMin and posz >= AllyTeamStartboxes[allyTeamID+1].zMin and posx <= AllyTeamStartboxes[allyTeamID+1].xMax and posz <= AllyTeamStartboxes[allyTeamID+1].zMax then -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 everytime
-        return true
+    if posx >= startbox.xMin and posz >= startbox.zMin and posx <= startbox.xMax and posz <= startbox.zMax then -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 everytime
+        return not returnTrueWhenNoStartbox
     else
-        return false
+        return returnTrueWhenNoStartbox
     end
 end
 
@@ -240,7 +238,7 @@ local function ScavengerSpawnAreaCheck(posx, posy, posz, posradius) -- if true t
         if scavTechPercentage then
             if Spring.GetModOptions().scavspawnarea == true then
                 if not AllyTeamStartboxes[scavengerAllyTeamID+1].allyTeamHasStartbox then return true end -- Scavs do not have a startbox so we allow them to spawn anywhere
-                if StartboxCheck(posx, posy, posz, posradius, scavengerAllyTeamID) == true then return true end -- Area is within startbox, so it's for sure in the spawn box.
+                if StartboxCheck(posx, posy, posz, scavengerAllyTeamID) == true then return true end -- Area is within startbox, so it's for sure in the spawn box.
                 
                 -- Spawn Box grows with Scavengers tech, getting that into from GameRulesParameter set by Scav gadget
                 local SpawnBoxMinX = math.floor(AllyTeamStartboxes[scavengerAllyTeamID+1].xMin-(((mapSizeX)*0.01)*scavTechPercentage))
@@ -259,7 +257,7 @@ local function ScavengerSpawnAreaCheck(posx, posy, posz, posradius) -- if true t
             end
         else
             if not AllyTeamStartboxes[scavengerAllyTeamID+1].allyTeamHasStartbox then return true end -- There's no info about tech percentage, but if there's no startbox, we assume they can spawn anywhere, right?
-            if StartboxCheck(posx, posy, posz, posradius, scavengerAllyTeamID) == true then return true end -- Area is within startbox, so it's for sure in the spawn box, even if we don't have info about how big spawn box is.
+            if StartboxCheck(posx, posy, posz, scavengerAllyTeamID) == true then return true end -- Area is within startbox, so it's for sure in the spawn box, even if we don't have info about how big spawn box is.
             return false -- but otherwise, don't let them spawn, don't risk spawning in place they shouldn't spawn.
         end
     else

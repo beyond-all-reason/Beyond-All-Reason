@@ -79,9 +79,9 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	hide smoke2;
+	hide smoke1;
 	hide nano1;
 	hide nano2;
-	hide smoke1;
 	bMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
@@ -120,6 +120,8 @@ Deactivate()
 
 StartBuilding(heading, pitch)
 {
+	show nano1;
+	show nano2;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
@@ -130,6 +132,8 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+	hide nano1;
+	hide nano2;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	sleep 6000;

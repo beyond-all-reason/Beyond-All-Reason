@@ -19,7 +19,7 @@ return {
 		idletime = 1800,
 		leavetracks = true,
 		mass = 5001,
-		maxdamage = 2500,
+		maxdamage = 2800,
 		--maxreversevelocity = 0.608,
 		maxslope = 12,
 		maxvelocity = 1.4,
@@ -161,13 +161,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
-				customparams = {
-					expl_light_life_mult = 1.3,
-					expl_light_radius_mult = 1.15,
-					expl_light_mult = 1.15,
-					light_radius_mult = "1.2",
-					light_mult = 3,
-				},
 				damage = {
 					commanders = 1000,
 					default = 2500,

@@ -5,9 +5,8 @@
 
 piece base, column, top, turret1, turret2, barrel, flare1, flare2, flare3, aimpoint;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, restore_delay,
-            gun_1, gun_2, Static_Var_8, Static_Var_9, Static_Var_10,
-            Static_Var_11, Static_Var_12, bAiming, statechg_DesiredState, statechg_StateChanging;
+static-var  ExtractionSpeed, ArmorUp, restore_delay,
+            gun_1, gun_2, Static_Var_8, bAiming, statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
 
 // Signal definitions
@@ -34,18 +33,13 @@ LowerArmor()
 	sleep 300;
 }
 
-fixGo()
+Go()
 {
-	Static_Var_4 = 0;
+	ArmorUp = 0;
 	signal 8;
 	Static_Var_8 = 0;
 	start-script RaiseArmor();
-	if( Static_Var_11 )
-	{
-
-	}
 	set ACTIVATION to 100;
-
 }
 
 triplepenetration(){
@@ -53,11 +47,9 @@ triplepenetration(){
 	while(TRUE){
 		if( statechg_DesiredState == 0 AND !Stunned )
 		{
-			move column to y-axis [20] speed (Static_Var_1/2);
+			move column to y-axis [20] speed (ExtractionSpeed/2);
 			wait-for-move column along y-axis;
-			//move column to y-axis [10] speed Static_Var_1;
-			//wait-for-move column along y-axis;
-			move column to y-axis [0] speed Static_Var_1*2;
+			move column to y-axis [0] speed ExtractionSpeed*2;
 			wait-for-move column along y-axis;
 		}
 		sleep 1000;
@@ -66,13 +58,13 @@ triplepenetration(){
 
 Stop()
 {
-	if( !Static_Var_4 )
+	if( !ArmorUp )
 	{
 		start-script LowerArmor();
 		set ACTIVATION to 0;
 		gun_2 = base;
 	}
-	Static_Var_4 = 1;
+	ArmorUp = 1;
 	Static_Var_8 = 1;
 }
 
@@ -96,7 +88,7 @@ RequestState(requestedstate, currentstate)
 	{
 		if( statechg_DesiredState == 0 )
 		{
-			call-script fixGo();
+			call-script Go();
 			currentstate = 0;
 		}
 		if( statechg_DesiredState == 1 )
@@ -114,17 +106,11 @@ Create()
 	hide flare3;
 	hide flare2;
 	hide flare1;
-	Static_Var_1 = 500;
-	Static_Var_2 = 100;
-	Static_Var_3 = 1092;
-	Static_Var_4 = 0;
+	ExtractionSpeed = 500;
+	ArmorUp = 0;
 	Static_Var_8 = 0;
 	gun_1 = base;
-	Static_Var_11 = 0;
-	Static_Var_12 = 0;
 	gun_2 = base;
-	Static_Var_9 = 0;
-	Static_Var_10 = 0;
 	restore_delay = 5000;
 	bAiming = FALSE;
 	call-script InitState();
@@ -179,12 +165,11 @@ AimPrimary(heading, pitch)
 	}
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	while( !Static_Var_4 )
+	while( !ArmorUp )
 	{
 		sleep 250;
 	}
-	Static_Var_12 = heading;
-	turn turret1 to y-axis Static_Var_12 speed Static_Var_9;
+	turn turret1 to y-axis heading speed ExtractionSpeed/50;
 	wait-for-turn turret1 around y-axis;
 	if( bAiming )
 	{
@@ -241,7 +226,7 @@ AimSecondary(heading, pitch)
 	{
 		sleep 250;
 	}
-	turn turret2 to y-axis heading speed Static_Var_9;
+	turn turret2 to y-axis heading speed ExtractionSpeed/50;
 	wait-for-turn turret2 around y-axis;
 	return (1);
 }
@@ -300,9 +285,7 @@ QuerySecondary(piecenum)
 
 SetSpeed(Func_Var_1)
 {
-	Static_Var_1 = Func_Var_1 * 500;
-	Static_Var_9 = Func_Var_1 * 10;
-	Static_Var_10 = Static_Var_9;
+	ExtractionSpeed = Func_Var_1 * 500;
 }
 
 SweetSpot(piecenum)

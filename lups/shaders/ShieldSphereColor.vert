@@ -21,7 +21,11 @@ out Data {
 
 	float colormix;
 	float normalizedFragDepth;
+
+	noperspective vec2 v_screenUV;
 };
+
+#define SNORM2NORM(value) (value * 0.5 + 0.5)
 
 vec4 RotationQuat(vec3 axis, float angle) {
 	//axis = normalize(axis);
@@ -82,4 +86,5 @@ void main() {
 	normalizedFragDepth = clamp(normalizedFragDepth, 0.0, 1.0);
 
 	gl_Position = projMat * viewPos;
+	v_screenUV = SNORM2NORM(gl_Position.xy / gl_Position.w);
 }

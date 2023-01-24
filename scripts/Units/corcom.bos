@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis,
-    rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, hatpoint;
+    rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, hatpoint, crown, medalsilver, medalbronze, medalgold;
 
 static-var bMoving, bAiming, Busy, gun_3, gun_2, counter,
       bIsBuilding, buildPitch, buildHeading, maxSpeed, currentSpeed, animSpeed, justMoved;
@@ -789,18 +789,27 @@ bigfire()
 Create()
 {
 	hide rbigflash;
-	hide lfirept;
 	hide nanospray;
 	hide aimx1;
 	hide hatpoint;
 	hide aimy1;
 	hide teleport;
 	hide rbigflash;
-	hide lfirept;
+	
+	hide crown;
+	hide medalgold;
+	hide medalsilver;
+	hide medalbronze;
+
+	move crown to y-axis [100] speed [9999];
+	move medalgold to y-axis [100] speed [9999];
+	move medalsilver to y-axis [100] speed [9999];
+	move medalgold to y-axis [100] speed [9999];
+
 	idleTime = 0;
 	bMoving = FALSE;
 	bAiming = FALSE;
-	bIsBuilding = 0;
+	bIsBuilding = FALSE;
 	bDancing = FALSE;
 	danceSpeed = 8;
 	gun_2 = torso;
@@ -818,6 +827,24 @@ Create()
 	currentSpeed = 100;
 	//call-script TeleportControl();
 	start-script UnitSpeed();
+}
+
+
+ShowCrown()
+{
+	show crown;
+}
+ShowMedalGold()
+{
+	show medalgold;
+}
+ShowMedalSilver()
+{
+	show medalsilver;
+}
+ShowMedalBronze()
+{
+	show medalbronze;
 }
 
 StartMoving()
@@ -864,6 +891,7 @@ RestorePosition()
 
 ResumeBuilding()
 {
+	show nanospray;
 	sleep 400;
 	if( bIsBuilding AND ( !gun_2 ) )
 	{
@@ -901,7 +929,7 @@ AimPrimary(heading, pitch)
 	turn aimx1 to x-axis <-5.000000> - pitch speed <250.000000>;
 	//turn nanolathe to x-axis <000000> speed <250.000000>;
 	// if the turret cannot turn to its new heading in one frame, wait for turn
-	if ( (get ABS(last_primary_heading-heading)>1800) OR (get ABS(last_primary_pitch-pitch)>1500) )
+	if ( (get ABS(last_primary_heading - heading)>1800) OR (get ABS(last_primary_pitch - pitch)>1500) )
 	{
 		// seems to take 3 frames for wait-for-turn to process
 		wait-for-turn aimy1 around y-axis;
@@ -910,7 +938,7 @@ AimPrimary(heading, pitch)
 	last_primary_heading=heading;
 	last_primary_pitch=pitch;
 	gun_2 = lfirept;
-	if( bIsBuilding == 1 )
+	if( bIsBuilding )
 	{
 		start-script ResumeBuilding();
 	}
@@ -919,9 +947,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	show lfirept;
 	sleep 100;
-	hide lfirept;
 	sleep 400;
 	gun_2 = torso;
 	return (0);
@@ -996,7 +1022,7 @@ AimSecondary(heading, pitch)
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	gun_2 = lfirept;
-	if( bIsBuilding == 1 )
+	if( bIsBuilding )
 	{
 		start-script ResumeBuilding();
 	}
@@ -1005,10 +1031,8 @@ AimSecondary(heading, pitch)
 
 FireSecondary()
 {
-	show lfirept;
 	emit-sfx 1024 + 0 from lfirept;
 	sleep 100;
-	hide lfirept;
 	emit-sfx 1024 + 0 from lfirept;
 	sleep 400;
 	gun_2 = torso;
@@ -1027,11 +1051,12 @@ QueryWeapon4(piecenum)
 
 StartBuilding(heading, pitch)
 {
+	show nanospray;
 	gun_3 = torso;
 	signal SIG_AIM;
 	//set-signal-mask SIG_AIM;
 	bAiming = TRUE;
-	bIsBuilding = 1;
+	bIsBuilding = TRUE;
 	//while( !Busy ) //aiming shouldnt block construction
 	//{
 	//	sleep 30;
@@ -1056,7 +1081,8 @@ TargetCleared(Func_Var_1)
 
 StopBuilding()
 {
-	bIsBuilding = 0;
+	hide nanospray;
+	bIsBuilding = FALSE;
 	set INBUILDSTANCE to 0;
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;

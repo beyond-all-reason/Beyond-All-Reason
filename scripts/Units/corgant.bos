@@ -148,18 +148,18 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	hide n10;
-	hide n9;
-	hide n12;
-	hide n11;
-	hide n6;
+	hide n1;
+	hide n2;
+	hide n3;
+	hide n4;
 	hide n5;
+	hide n6;
 	hide n7;
 	hide n8;
-	hide n2;
-	hide n1;
-	hide n4;
-	hide n3;
+	hide n9;
+	hide n10;
+	hide n11;
+	hide n12;
 	hide pad;
 	Static_Var_1 = 1;
 	call-script InitState();
@@ -252,11 +252,35 @@ Deactivate()
 
 StartBuilding()
 {
+	show n1;
+	show n2;
+	show n3;
+	show n4;
+	show n5;
+	show n6;
+	show n7;
+	show n8;
+	show n9;
+	show n10;
+	show n11;
+	show n12;
 	sleep 50;
 }
 
 StopBuilding() // give the gantry a 1 second breathing room
 {
+	hide n1;
+	hide n2;
+	hide n3;
+	hide n4;
+	hide n5;
+	hide n6;
+	hide n7;
+	hide n8;
+	hide n9;
+	hide n10;
+	hide n11;
+	hide n12;
 	set BUGGER_OFF to 1; // tell units to get out of here
 	set INBUILDSTANCE to 0; // we turn it off, to wait for the unit to clear the build pad (large aircraft)
 	sleep 1000;   // then we wait for 2 sec

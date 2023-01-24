@@ -2,13 +2,18 @@ local currentDirectory = "modules/i18n/"
 I18N_PATH = currentDirectory .. "i18nlib/i18n/" -- I18N_PATH is expected to be global inside the i18n module
 local i18n = VFS.Include(I18N_PATH .. "init.lua", nil, VFS.ZIP)
 
-local translationFiles = VFS.DirList('language/', '*.json')
 local asianFont = 'SourceHanSans-Regular.ttc'
+local translationDirs = VFS.SubDirs('language')
 
-for _, file in ipairs(translationFiles) do
-	local i18nJson = VFS.LoadFile(file)
-	local i18nLua = Json.decode(i18nJson)
-	i18n.load(i18nLua)
+for _, languageDir in ipairs(translationDirs) do
+	local translationFiles = VFS.DirList(languageDir, '*.json')
+	local languageCode = table.remove( string.split(languageDir, '/') )
+
+	for _, file in ipairs(translationFiles) do
+		local i18nJson = VFS.LoadFile(file)
+		local i18nLua = { [languageCode] = Json.decode(i18nJson) }
+		i18n.load(i18nLua)
+	end
 end
 
 i18n.loadFile('language/test_french.lua')

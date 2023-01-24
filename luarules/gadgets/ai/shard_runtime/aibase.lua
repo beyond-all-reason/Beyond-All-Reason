@@ -24,7 +24,7 @@ end
 function AIBase:GameMessage(text)
 end
 
-function AIBase:UnitCreated(engineunit)
+function AIBase:UnitCreated(unit, unitDefId, teamId, builderId)
 end
 
 function AIBase:UnitBuilt(engineunit)
@@ -64,6 +64,18 @@ function AIBase:UnitIdle(engineunit)
 end
 
 function AIBase:UnitDamaged(engineunit,enginedamage)
+end
+
+function AIBase:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+end
+
+function AIBase:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+end
+
+function AIBase:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+end
+
+function AIBase:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 end
 
 function AIBase:UnitMoveFailed(engineunit)

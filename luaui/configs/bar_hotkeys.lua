@@ -42,11 +42,9 @@ local bindings = {
 	{           "sc_b", "gridmenu_next_page"  },
 	{           "sc_n", "gridmenu_prev_page"  },
 
-	{     "sc_c", "controlunit"    },
 	{ "Any+sc_h", "sharedialog"    },
 	{     "sc_i", "customgameinfo" },
 
-	{        "Any+sc_j", "mouse2" },
 	{ "Shift+backspace", "togglecammode" },
 	{  "Ctrl+backspace", "togglecammode" },
 	{         "Any+tab", "toggleoverview" },
@@ -126,8 +124,9 @@ local bindings = {
 	{       "sc_q,sc_q", "drawlabel"       }, -- double hit Q for drawlabel, these are only present due to legacy. Should be deprecated at some point
 	{            "sc_q", "drawinmap"       },
 	{            "sc_r", "repair"          },
-	{      "Shift+sc_r", "repair"          },
-	{            "sc_s", "stop"            },
+    {      "Shift+sc_r", "repair"          },
+    {       "Ctrl+sc_r", "resurrect"       },
+    {            "sc_s", "stop"            },
 	{      "Shift+sc_s", "stop"            },
 	{       "Ctrl+sc_s", "stopproduction"  },
 	{            "sc_u", "unloadunits"     },
@@ -155,6 +154,7 @@ local bindings = {
 	{ "Any+f5" , "HideInterface"          },
 	{ "Any+f6" , "MuteSound"              },
 	{ "Any+f7" , "DynamicSky"             },
+	{    "f10" , "options"                },
 	{    "f11" , "luaui selector"         },
 	{ "Any+f12", "screenshot"     , "png" },
 
@@ -174,13 +174,14 @@ local bindings = {
 	{ "Any+ctrl",  "moveslow"  },
 	{ "Any+shift", "movefast"  },
 
-	{ "Any+alt",   "movereset" }, -- fast camera reset on some camera states, e.g. middle mouse held
-	{ "Any+ctrl",  "movetilt"  }, -- Move inclination of camera
+	{ "Any+alt",   "movereset"  }, -- fast camera reset on mousewheel
+	{ "Any+alt",   "moverotate" }, -- rotate on x,y with mmb hold + move (Spring Camera)
+	{ "Any+ctrl",  "movetilt"   }, -- rotate on x with mousewheel
 
 	{ "Ctrl+sc_a", "select", "AllMap++_ClearSelection_SelectAll+"                                                                                    },
 	{ "Ctrl+sc_b", "select", "AllMap+_Builder_Idle+_ClearSelection_SelectOne+"                                                                       },
 	{ "Ctrl+sc_c", "select", "AllMap+_ManualFireUnit_Not_IdMatches_cordecom_Not_IdMatches_armdecom_Not_IdMatches_armthor+_ClearSelection_SelectOne+" },
-	{ "Ctrl+sc_r", "select", "AllMap+_Radar+_ClearSelection_SelectAll+"                                                                              },
+	-- { "Ctrl+sc_r", "select", "AllMap+_Radar+_ClearSelection_SelectAll+"                                                                              },
 	{ "Ctrl+sc_v", "select", "AllMap+_Not_Builder_Not_Commander_InPrevSel_Not_InHotkeyGroup+_SelectAll+"                                             },
 	{ "Ctrl+sc_w", "select", "AllMap+_Not_Aircraft_Weapons+_ClearSelection_SelectAll+"                                                               },
 	{ "Ctrl+sc_x", "select", "AllMap+_InPrevSel_Not_InHotkeyGroup+_SelectAll+"                                                                       },
@@ -337,9 +338,9 @@ local bindings = {
 	{ "Alt+sc_y", "settarget"         },
 	{     "sc_y", "settargetnoground" },
 
+	{ "Ctrl+sc_`", "group unset" },
 	-- if WG['Auto Group'] then
 	{ "Alt+sc_`",  "remove_from_autogroup" },
-	{ "Ctrl+sc_`", "remove_one_unit_from_group" },
 }
 
 for i = 0, 9 do

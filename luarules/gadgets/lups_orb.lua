@@ -96,6 +96,10 @@ local UnitEffects = {
 		{ class = 'ShieldSphere', options = armafusShieldSphere },
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 28.5, precision = 22, repeatEffect = true } },
 	},
+	["resourcecheat"] = {
+		{ class = 'ShieldSphere', options = armafusShieldSphere },
+		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 28.5, precision = 22, repeatEffect = true } },
+	},
 	["corgate"] = {
 		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 12, precision = 22, repeatEffect = true } },
 		{ class = 'ShieldSphere', options = corgateShieldSphere },
@@ -222,13 +226,19 @@ function gadget:UnitDestroyed(unitID, unitDefID)
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	gadget:UnitDestroyed(unitID, unitDefID, oldTeam)
-	gadget:UnitFinished(unitID, unitDefID, newTeam)
+	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+	if buildProgress and buildProgress >= 1 then
+		gadget:UnitDestroyed(unitID, unitDefID, oldTeam)
+		gadget:UnitFinished(unitID, unitDefID, newTeam)
+	end
 end
 
 function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
-	gadget:UnitDestroyed(unitID, unitDefID, oldTeam)
-	gadget:UnitFinished(unitID, unitDefID, newTeam)
+	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+	if buildProgress and buildProgress >= 1 then
+		gadget:UnitDestroyed(unitID, unitDefID, oldTeam)
+		gadget:UnitFinished(unitID, unitDefID, newTeam)
+	end
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)

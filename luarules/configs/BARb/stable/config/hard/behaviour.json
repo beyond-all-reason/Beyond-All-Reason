@@ -16,7 +16,7 @@
 			"static": 1.0,  // initial modifier for power of attack group based on static enemy threat; org= 1.2
 			"comm": 0.003   // because of power of dgun
 		},
-		"aa_threat": 200.0,  // anti-air threat threshold, air factories will stop production when AA threat exceeds
+		"aa_threat": 500.0,  // anti-air threat threshold, air factories will stop production when AA threat exceeds
 		"slack_mod": {
 			"all": 0.5,  // threat map 64-elmos slack multiplier for all units
 			"static": 1.0,  // additional 64-elmo-cells for static units
@@ -359,8 +359,8 @@
 		},
 		"armanni": {
 			"role": ["static"],
-			"threat": {"air":0.0, "surf":1.0, "water":1.0, 
-				"vs": {"raider":0.2}
+			"threat": {"air":0.0, "surf":0.5, "water":0.1, 
+				"vs": {"scout":0.1, "raider":0.1, "heavy": 2.0, "super":2.0}
 			}
 		},
 		"armbrtha": {
@@ -499,21 +499,16 @@
 		},
 		"cordoom": {
 			"role": ["static"],
-			"threat": {"air": 0.0, "water": 0.0,"surf": 1.0, "vs": {"heavy": 1.5}}
+			"threat": {"air":0.0, "surf":1.0, "water":0.1, "vs": {"scout":0.4, "raider":0.4, "artillery":0.3, "anti_heavy":0.5, "anti_heavy_ass":0.5, "super":0.8}}
         },
         "corfdoom": {
             "role": ["static"],
-            "threat": {"air": 0.0, "water": 0.0,"surf": 1.0,  "vs": {"heavy": 1.5}} 
+			"threat": {"air":0.0, "surf":1.0, "water":0.1, "vs": {"scout":0.4, "raider":0.4, "artillery":0.3, "anti_heavy":0.5, "anti_heavy_ass":0.5, "super":0.8}}
 		},
         "corjuno":{
 			"role":["super", "static"],
 			"since": 900
 		},
-        "cortron":{
-			"role":	["super", "static"],
-            "threat":{"air": 0.0, "water": 0.0, "surf": 0.1},
-			"limit": 1
-        },
         "corsilo":{
 			"role":	["super", "static"],
             "threat":{"air": 0.0, "water": 0.0, "surf": 0.1},
@@ -536,7 +531,8 @@
 			"role":	["super", "static"] //without "super" it does not shoot
 		},
 		"cortron":{
-			"role":	["super", "static"]
+			"role":	["super", "static"],
+			"limit":1
 		},
 		"armveil":{
 			"role": ["static"]
@@ -793,8 +789,8 @@
 		"armfark": {
 			"role": ["builder"], //support,mine
 			//"attribute": ["support"], //without attribute
-			"build_speed": 7.0,  //bp 140
-			"limit": 10,
+			"build_speed": 1.0,  //bp 140 											test!!!!!
+			"limit": 20,
             "since": 1500
 		},
         "corfast": {
@@ -844,9 +840,9 @@
 		"armconsul": {
 			"role": ["builder"],
 			//"attribute": ["support"],
-			"build_speed": 7.5,  //bp 150
+			"build_speed": 1.0 ,  //bp 150 																test!!!
             "since": 1500,
-			"limit": 10
+			"limit": 20
 		},
 		"armca": {
 			"role": ["builder", "air"],
@@ -1031,7 +1027,9 @@
 		},
 		"armaak": {
 			"role": ["anti_air"],
-			"threat":{"air": 2.0, "water": 0.0, "surf":0.0}
+			"threat":{"air": 2.0, "water": 0.0, "surf":0.0},
+			"limit": 10
+
 		},
 		"armmark": {
 			"role": ["support"], //support
@@ -1312,7 +1310,7 @@
 			"role": ["raider"]
 		},
 		"armpship": {
-			"role": ["skirmish"],
+			"role": ["riot"],
 			"attribute": ["siege"]
 		},
 		"armsub": {
@@ -1321,8 +1319,12 @@
 			
 		},
 		"armroy": {
-			"role": ["assault"],
+			"role": ["anti_sub"],
 			"attribute": ["siege"],
+			"threat": {
+				"air": 0.0, "surf": 1.0, "water": 0.5, 
+				"vs": {"scout":0.5, "raider":0.5}
+			},
 			"retreat": 0.5
 		},
 
@@ -1335,15 +1337,18 @@
 			"role": ["anti_sub", "sub"]	
 		},
 		"armserp": {
-			"role":["anti_heavy", "sub"],
+			"role":["sub"],
 			"attribute": ["siege"]
 		},	
 		"armaas": {
-			"role": ["anti_air"]
+			"role": ["anti_air"],
+			"limit": 5
 		},
 		"armcrus": {
 			"role": ["skirmish"],
-			"attribute": ["anti_sub"]
+			"attribute": ["anti_sub"],
+			"threat": {
+				"air": 0.0, "surf": 1.0, "water": 0.5}	
 		},
         "armsjam": {
 			"role": ["support"],
@@ -1352,7 +1357,8 @@
 		},
 		"armcarry": {
 			"role": ["support"],
-			"retreat": 0.75
+			"retreat": 0.75,
+            "limit": 2
 		},
 		"armmship": {
 			"role": ["artillery"],
@@ -1364,7 +1370,7 @@
 			"attribute": ["siege"]
 		},
 		"armepoch": {
-			"role": ["artillery", "super"],
+			"role": ["super"],  //+ artillery main role?
 			"attribute": ["super"],
 			"retreat": 0.4	
 		},
@@ -1417,7 +1423,7 @@
 		},
 		"corcrash": {
 			"role": ["anti_air"],
-			"attribute": ["support"],
+			//"attribute": ["support"],
 			"limit": 10
 		},
 	
@@ -1457,7 +1463,8 @@
 		},
 		"coraak": {
 			"role": ["anti_air"],
-			"attribute": ["support"]
+			//"attribute": ["support"],
+			"limit": 10
 		},
 		"cormando": {
 			"role": ["support"],
@@ -1639,23 +1646,28 @@
 			"limit": 10
 		},
 		"corpt": {
-			"role": ["scout", "anti_air"],
-			"attribute": ["anti_air", "siege"],
-			"limit": 8
+			"role": ["anti_air"],
+			"attribute": ["siege"],
+			"limit": 10
 		},
 		"coresupp": {
-			"role": ["raider"]
+			"role": ["scout"]
 		},
 		"corpship": {
-			"role": ["skirmish"]
-		},
-		"corsub": {
-			"role": ["sub"]		
+			"role": ["riot"]
 		},
 		"corroy": {
-			"role": ["assault"],
-			"attribute": ["siege"],
-			"retreat": 0.5
+			"role": ["anti_sub"], 				//assault
+			"attribute": ["siege", "support"],
+			"threat": {
+				"air": 0.0, "surf": 1.0, "water": 0.5, 
+				"vs": {"scout":0.5, "raider":0.5}
+			},
+			"retreat": 0.5,
+			"limit": 10
+		},
+		"corsub": {
+			"role": ["raider", "sub"]		
 		},
 	
 
@@ -1664,18 +1676,21 @@
 		// CORE ADV SHIPYARD - corasy
 
 		"corshark": {
-			"role": ["sub"],
-			"attribute": ["anti_sub","siege"]
+			"role": ["anti_sub", "sub"],
+			"attribute": ["anti_sub"]
 		},
 		"corssub": {
-			"role": ["anti_heavy", "sub"],
+			"role": ["sub"],
 			"attribute": ["siege"]
 		},
 		"corarch": {
-			"role": ["anti_air"]
+			"role": ["anti_air"],
+			"limit": 5
 		},
 		"corcrus": {
-			"role": ["skirmish"]
+			"role": ["skirmish"],
+			"threat": {
+				"air": 0.0, "surf": 1.0, "water": 0.5}	
 		},
 		"corsjam": {
 			"role": ["support"],
@@ -1683,7 +1698,8 @@
 		},
 		"corcarry": {
 			"role": ["support"],
-			"retreat": 0.75
+			"retreat": 0.75,
+            "limit": 2
 		},
 		"cormship": {
 			"role": ["artillery"],
@@ -1695,9 +1711,9 @@
 			"attribute": ["siege"]
 		},
 		"corblackhy": {
-			"role": ["artillery", "super"],
-            "attribute": ["super"],
-			"retreat": 0.4
+			"role": ["super"],
+            "attribute": ["siege"],
+			"retreat": 0.5
 		},
 
 
@@ -1712,6 +1728,7 @@
 		},
 		"corveng": {
 			"role": ["anti_air", "air"],
+			"power": 0.5,
 			"retreat": 0.5
 		},
 		"corshad": {

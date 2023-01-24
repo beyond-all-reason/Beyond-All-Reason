@@ -122,8 +122,9 @@ else
 		spGetTimer = Spring.GetTimerMicros
 		highres = true
 	end
-
-	Spring.Echo("Profiler using highres timers", highres, Spring.GetConfigInt("UseHighResTimer", 0))
+	if not highres then 
+		Spring.Echo("Profiler not using highres timers", highres, Spring.GetConfigInt("UseHighResTimer", 0))
+	end
 
 	hookPreRealFunction = function(gadgetName, callinName)
 		t = spGetTimer()

@@ -24,7 +24,7 @@ return {
 		idleautoheal = 2,
 		idletime = 1800,
 		losemitheight = 80,
-		maxdamage = 6000,
+		maxdamage = 6700,
 		minwaterdepth = 5,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORFDOOM.s3o",

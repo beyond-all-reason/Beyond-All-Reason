@@ -18,7 +18,7 @@ return {
 		idleautoheal = 5,
 		idletime = 600,
 		mass = 5000,
-		maxdamage = 25000,
+		maxdamage = 28000,
 		maxvelocity = 1.2,
 		maxwaterdepth = 12,
 		movementclass = "EPICALLTERRAIN",
@@ -150,9 +150,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
 				wobble = 2000,
-				customparams = {
-					light_mult = "0.66",
-				},
 				damage = {
 					default = 500,
 					subs = 200,

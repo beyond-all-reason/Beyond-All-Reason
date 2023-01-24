@@ -23,7 +23,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1020,
+		maxdamage = 1130,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/ARMADVSOL.s3o",

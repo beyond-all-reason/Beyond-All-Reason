@@ -96,12 +96,6 @@ local LootboxCaptureExcludedUnits = {
 
 
 -- locals
-local spGetUnitTeam         = Spring.GetUnitTeam
-local spNearestEnemy        = Spring.GetUnitNearestEnemy
-local spNearestAlly         = Spring.GetUnitNearestAlly
-local spSeparation          = Spring.GetUnitSeparation
-local spPosition            = Spring.GetUnitPosition
-local spTransfer            = Spring.TransferUnit
 local mapsizeX              = Game.mapSizeX
 local mapsizeZ              = Game.mapSizeZ
 local xBorder               = math.floor(mapsizeX/10)
@@ -111,8 +105,6 @@ local spGroundHeight        = Spring.GetGroundHeight
 local spGaiaTeam            = Spring.GetGaiaTeamID()
 local spGaiaAllyTeam        = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
 local spCreateUnit          = Spring.CreateUnit
-local spGetCylinder			= Spring.GetUnitsInCylinder
-local spGetUnitPosition 	= Spring.GetUnitPosition
 
 local aliveLootboxes        = {}
 local aliveLootboxesCount   = 0
@@ -129,11 +121,6 @@ local aliveLootboxCaptureDifficulty = {}
 
 local LootboxesToSpawn = 0
 
-local QueuedSpawns = {}
-local QueuedSpawnsFrames = {}
-
-local CaptureProgressForLootboxes = {}
-
 local lootboxesDensity = Spring.GetModOptions().lootboxes_density
 local lootboxDensityMultiplier = 1
 if lootboxesDensity == "veryrare" then
@@ -149,7 +136,6 @@ elseif lootboxesDensity == "verydense" then
 end
 
 local SpawnChance = math.ceil(75/lootboxDensityMultiplier)
-local TryToSpawn = false
 
 if scavengersAIEnabled then
 	spGaiaTeam = scavengerAITeamID
@@ -187,20 +173,24 @@ function gadget:GameFrame(n)
 			end
         end
         if LootboxesToSpawn >= 1 and lootboxSpawnEnabled then
-            for k = 1,1000 do
+            for k = 1,20 do
                 local posx = math.floor(math_random(xBorder,mapsizeX-xBorder)/16)*16
                 local posz = math.floor(math_random(zBorder,mapsizeZ-zBorder)/16)*16
                 local posy = spGroundHeight(posx, posz)
-				local unitsCyl = spGetCylinder(posx, posz, 128)
-				local terrainCheck = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 128)
-				local scavLoS = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 128, spGaiaAllyTeam, true, true, true)
-				local scavStartbox = positionCheckLibrary.StartboxCheck(posx, posy, posz, 500, spGaiaAllyTeam, false)
-				local scavCloud = Spring.GetModOptions().scavstartboxcloud
-                if #unitsCyl == 0 and terrainCheck and scavLoS == true and (scavStartbox == false or scavCloud == false) then
+				local canSpawnLootbox = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 128)
+				if canSpawnLootbox then
+					canSpawnLootbox = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 128)
+				end
+				if canSpawnLootbox then
+					canSpawnLootbox = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 128, spGaiaAllyTeam, true, true, true)
+				end
+				if canSpawnLootbox then
+					canSpawnLootbox = positionCheckLibrary.StartboxCheck(posx, posy, posz, spGaiaAllyTeam, true)
+				end
+                if canSpawnLootbox then
 					--aliveLootboxesCountT1
 					if aliveLootboxesCountT4 >= 4 and aliveLootboxesCountT3 >= 4 and aliveLootboxesCountT2 >= 3 and aliveLootboxesCountT1 >= 3 then
 						local r = math.random(0,3)
-						local spawnedUnit
 						if r == 0 then
 							lootboxToSpawn = lootboxesListT4[math_random(1,#lootboxesListT4)]
 						elseif r == 1 then
@@ -222,7 +212,7 @@ function gadget:GameFrame(n)
 					if string.find(lootboxToSpawn, "lootboxnano_t") then
 						lootboxToSpawn = lootboxToSpawn.."_var"..math.random(1,9)
 					end
-					spawnedUnit = spCreateUnit(lootboxToSpawn..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+					local spawnedUnit = spCreateUnit(lootboxToSpawn..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
 					if spawnedUnit then
 						Spring.SetUnitNeutral(spawnedUnit, true)
 					end

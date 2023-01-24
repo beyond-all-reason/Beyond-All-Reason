@@ -156,7 +156,7 @@ SweetSpot(piecenum)
 
 AimFromPrimary(piecenum)
 {
-	piecenum = spindle;
+	piecenum = aimpoint;
 }
 
 Killed(severity, corpsetype)

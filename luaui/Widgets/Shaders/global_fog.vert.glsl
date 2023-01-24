@@ -17,6 +17,8 @@ uniform sampler2D heightmapTex;
 uniform sampler2D mapDepths;
 uniform sampler2D modelDepths;
 
+uniform float fogPlaneHeight;
+
 out DataVS {
 	vec4 v_worldPos;
 	vec4 v_uvs;
@@ -180,23 +182,25 @@ void main()
 	vec2 screenPos = positionxy_xyfract.xy ;
 	vec2 screenUV = (positionxy_xyfract.xy * 0.5) + 0.5;// * viewGeometry.xy;
 	
+	gl_Position =  vec4( screenPos.x, screenPos.y, 0.5, 1);
+	return;
+	/*
 	float mapdepth = texture(mapDepths, screenUV).x;
-	float modeldepth = texture(modelDepths, screenUV).x;
+	float modeldepth = 100;// texture(modelDepths, screenUV).x;
 	mapdepth = min(mapdepth, modeldepth);
 
 	vec4 mapWorldPos =  vec4( vec3(screenPos, mapdepth),  1.0);
 	mapWorldPos = cameraViewProjInv * mapWorldPos;
 	mapWorldPos.xyz = mapWorldPos.xyz / mapWorldPos.w;
 	vec4 vertexPos = vec4( screenPos.x, screenPos.y, 0.5, 1);
-	gl_Position = vertexPos;
-	v_mapPos = vertexPos;
-	v_mapPos.r = mapdepth*10;
-	v_mapPos = mapWorldPos;
+	//v_mapPos = vertexPos;
+	//v_mapPos.r = mapdepth*10;
+	//v_mapPos = mapWorldPos;
 	
-	v_simplex.x = Perlin4D(vec4(mapWorldPos.xyz, time * 50) * 0.004);
-	v_simplex.y = Perlin4D(vec4(mapWorldPos.xyz, time * 50) * 0.003);
+	//v_simplex.x = Perlin4D(vec4(mapWorldPos.xyz, time * 5) * 0.001);
+	//v_simplex.y = Perlin4D(vec4(mapWorldPos.xyz, time * 50) * 0.003);
 
-	v_mapPos.w = length(v_mapPos.xyz - cameraViewInv[3].xyz);
+	//v_mapPos.w = length(v_mapPos.xyz - cameraViewInv[3].xyz);
 	// LETS MARCH BACKWARDS LIKE IDIOTS!
 	v_simplex.z = 0.0;
 	if (mapdepth > 0.9999) {
@@ -210,14 +214,15 @@ void main()
 
 	vec3 rayEnd = mapWorldPos.xyz;
 	
-	const float NOISETHRESHOLD = 0.1;
+	//const float NOISETHRESHOLD = 0.1;
 	
-	rayEnd = clamp((FOGTOP - mapWorldPos.y)/ (camPos.y- mapWorldPos.y),   0, 1) * mapToCam + mapWorldPos.xyz;
-	
+	rayEnd = clamp((fogPlaneHeight - mapWorldPos.y)/ (camPos.y- mapWorldPos.y),   0, 1) * mapToCam + mapWorldPos.xyz;
+	*/
+	/*
 	v_meanpos = vec4(0.001);
-	if (mapWorldPos.y < FOGTOP) {
+	if (mapWorldPos.y < fogPlaneHeight) {
 		
-		float distanceFromTop = FOGTOP - mapWorldPos.y;
+		float distanceFromTop = fogPlaneHeight - mapWorldPos.y;
 		float steps = 10.0;
 		for (float f = 0.0; f <= 1.0; f += 1.0 / steps){
 			vec3 rayPos = mix(mapWorldPos.xyz, rayEnd, f);
@@ -230,9 +235,5 @@ void main()
 	
 	}
 	v_simplex.z = marchcollection;
-	
-	
-	
-	return;	
-	
+	*/
 }

@@ -19,7 +19,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 4000,
+		maxdamage = 4450,
 		maxslope = 12,
 		maxwaterdepth = 0,
 		objectname = "Units/ARMBRTHA.s3o",
@@ -115,7 +115,7 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_berthacannon = {
+			lrpc = {
 				accuracy = 300,
 				areaofeffect = 135,
 				avoidfeature = false,
@@ -146,11 +146,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1100,
-				customparams = {
-					expl_light_heat_radius_mult = 2,
-					expl_light_mult = 1.5,
-					expl_light_radius_mult = 1.5,
-				},
 				damage = {
 					default = 1625,
 					shields = 812,
@@ -161,7 +156,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "ARM_BERTHACANNON",
+				def = "LRPC",
 				onlytargetcategory = "SURFACE",
 			},
 		},

@@ -4,9 +4,11 @@
 #include "exptype.h"
 
 piece  base, turret, sleeve, rtbarrel, ltbarrel, lempslv, lempbarrel, rempslv, rempbarrel, rlauncher,
-flare1, flare2, flare3, flare4, flare5, flare7;
+flare1, flare2, flare3, flare4, flare5, flare7, spark_emit1, spark_emit2;
 
 static-var  moveSpeed, currentSpeed, animSpeed, restore_delay, currentBarrel, currentLauncher;
+
+static-var last_lempslv_heading,last_rempslv_heading,last_tesla_heading,last_tesla_pitch;
 
 #define SIG_MOVE 1
 #define SIG_AIM_1			2
@@ -25,16 +27,6 @@ UnitSpeed()
 	}
 }
 
-RockUnit(anglex, anglez)
-{
-	turn base to x-axis anglex speed <50.005495>;
-	turn base to z-axis <0> - anglez speed <50.005495>;
-	wait-for-turn base around z-axis;
-	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
-}
-
 #define BASEPIECE base
 #define HITSPEED <45.0>
 //how 'heavy' the unit is, on a scale of 1-10
@@ -51,11 +43,18 @@ Create()
 	hide flare4;
 	hide flare5;
 	hide flare7;
+	hide spark_emit1;
+	hide spark_emit2;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
 	currentBarrel = 0;
 	currentLauncher = 0;
 	restore_delay = 3000;
+	//large negative values to let wait-for-turn happen on first target
+	last_lempslv_heading = -1000000;
+	last_rempslv_heading = -1000000;
+	last_tesla_heading = -1000000;
+	last_tesla_pitch = -1000000;
 }
 
 StartMoving()
@@ -76,18 +75,44 @@ SetMaxReloadTime(time)
 }
 
 static-var  Stunned;
-ExecuteRestoreAfterDelay()
+// Stun logic needs to be looked at, the restore is usually set to unstoppable mask 0,
+// which can cause problems if the unit gets a target while doing the restore animation
+// not relevant for unparalyzable thor, but might be needed for other units
+
+RestoreAfterDelay_tesla()
 {
-    if (Stunned)
-	{
-        return (1);
-    }
-    set-signal-mask 0;
+	set-signal-mask SIG_AIM_1; //ensures restore animation is killed if this weapon is aimed
+	sleep restore_delay;
+	//large negative values to let wait-for-turn happen on first target
+	last_tesla_heading = -1000000;
+	last_tesla_pitch = -1000000;
 	turn turret to y-axis <0.000000> speed <45>;
 	turn sleeve to x-axis <0.000000> speed <15.000000>;
+}
+
+RestoreAfterDelay_EMP_missile()
+{
+	set-signal-mask SIG_AIM_2; //ensures restore animation is killed if this weapon is aimed
+	sleep 6000; // allows the emp missile to be deployed for 6 seconds, can be adjusted for balance reasons
+	turn rlauncher to x-axis <0> speed <30>;
+}
+
+RestoreAfterDelay_lEMP()
+{
+	set-signal-mask SIG_AIM_3; //ensures restore animation is killed if this weapon is aimed
+	sleep restore_delay;
+	//large negative values to let wait-for-turn happen on first target
+	last_lempslv_heading = -1000000;
 	turn lempslv to y-axis <0> speed <90>;
+}
+
+RestoreAfterDelay_rEMP()
+{
+	set-signal-mask SIG_AIM_4; //ensures restore animation is killed if this weapon is aimed
+	sleep restore_delay;
+	//large negative values to let wait-for-turn happen on first target
+	last_lempslv_heading = -1000000;
 	turn rempslv to y-axis <0> speed <90>;
-	turn rlauncher to x-axis <0> speed <45>;
 }
 
 SetStunned(State)
@@ -95,14 +120,11 @@ SetStunned(State)
     Stunned = State;
 	if (!Stunned)
 	{
-	    start-script ExecuteRestoreAfterDelay();
+		start-script RestoreAfterDelay_tesla();
+		start-script RestoreAfterDelay_EMP_missile();
+		start-script RestoreAfterDelay_lEMP();
+		start-script RestoreAfterDelay_rEMP();
 	}
-}
-
-RestoreAfterDelay()
-{
-	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelay();
 }
 
 SweetSpot(piecenum)
@@ -120,29 +142,65 @@ AimWeapon1(heading, pitch)
 	turn sleeve to x-axis <0.000000> - pitch speed <15.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
-	start-script RestoreAfterDelay();
+	last_tesla_heading = heading;
+	last_tesla_pitch = pitch;
+	start-script RestoreAfterDelay_tesla();
 	return (1);
+}
+
+Rock_Main_Cannon()
+{
+	turn base to z-axis <0> - (GET KSIN(last_tesla_heading)) speed <50.005495>;
+	turn base to x-axis <0> - (GET KCOS(last_tesla_heading)) speed <50.005495>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <20.000000>;
+	turn base to x-axis <0.000000> speed <20.000000>;
+}
+
+FireSparks1()
+{
+		show spark_emit1;
+		sleep 225;
+		hide spark_emit1;
+		return (1);
+}
+
+FireSparks2()
+{
+		show spark_emit2;
+		sleep 225;
+		hide spark_emit2;
+		return (1);
 }
 
 FireWeapon1()
 {
+	start-script Rock_Main_Cannon();
 	if( currentBarrel == 0 )
 	{
+		//show spark_emit2;
 		move ltbarrel to z-axis [-2.400000] speed [500.000000];
 		spin ltbarrel around z-axis speed <360> accelerate <120>;
 		emit-sfx 1024 + 0 from flare2;
+		start-script FireSparks2();
 		sleep 100;
+		//hide spark_emit2;
 		wait-for-move ltbarrel along z-axis;
 		move ltbarrel to z-axis [0.000000] speed [3.000000];
 		wait-for-move ltbarrel along z-axis;
 		stop-spin ltbarrel around z-axis decelerate <15>;
+		
 	}
 	if( currentBarrel == 1 )
 	{
+		//show spark_emit1;
 		move rtbarrel to z-axis [-2.400000] speed [500.000000];
 		spin rtbarrel around z-axis speed <360> accelerate <120>;
 		emit-sfx 1024 + 0 from flare1;
+		start-script FireSparks1();
 		sleep 100;
+		//hide spark_emit1;
 		wait-for-move rtbarrel along z-axis;
 		move rtbarrel to z-axis [0.000000] speed [3.000000];
 		wait-for-move rtbarrel along z-axis;
@@ -168,11 +226,9 @@ AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
-	turn turret to y-axis heading speed <45.000000>;
-	turn rlauncher to x-axis <0.000000> - pitch speed <30.000000>;
-	wait-for-turn turret around y-axis;
+	turn rlauncher to x-axis <0.000000> - <90.0> speed <30.000000>;
 	wait-for-turn rlauncher around x-axis;
-	start-script RestoreAfterDelay();
+	start-script RestoreAfterDelay_EMP_missile();
 	return (1);
 }
 
@@ -180,12 +236,12 @@ FireWeapon2()
 {
 	if( currentLauncher == 0 )
 	{
-		emit-sfx 1024 + 0 from flare3;
+		emit-sfx 1024 + 0 from flare4;
 		sleep 100;
 	}
 	if( currentLauncher == 1 )
 	{
-		emit-sfx 1024 + 0 from flare4;
+		emit-sfx 1024 + 0 from flare3;
 		sleep 100;
 	}
 	currentLauncher = !currentLauncher;
@@ -209,9 +265,28 @@ AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
+	
+	// logic to restrict turret rotation due to unitdef maxangledif
+	// maxangledif=180 = 0 to 180 degrees = 0 to 32,768
+	// does no turn animation if the target heading is out of firing arc
+	// out of firing arc aim calls happen during "preaiming" logic
+	if ( (heading<0) )
+	{
+		return (0);
+	}
+	
+	// values in <> are degrees per second
+	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
+	// In general, 6 cau per frame ~= 1 degree per second
 	turn lempslv to y-axis heading speed <120>;
-	wait-for-turn lempslv around y-axis;
-	start-script RestoreAfterDelay();
+	// if weapon will take more than 1 frame to turn to new angle, wait for turn
+	if ( (get ABS(last_lempslv_heading - heading) > 720) )
+	{
+		// seems to take 3 frames for wait-for-turn to process
+		wait-for-turn lempslv around y-axis;
+	}
+	last_lempslv_heading = heading;
+	start-script RestoreAfterDelay_lEMP();
 	return (1);
 }
 
@@ -241,9 +316,29 @@ AimWeapon4(heading, pitch)
 {
 	signal SIG_AIM_4;
 	set-signal-mask SIG_AIM_4;
+	
+	// logic to restrict turret rotation due to unitdef maxangledif
+	// maxangledif=180 = -180 to 0 degrees = -32,768 to 0
+	// does no turn animation if the target heading is out of firing arc
+	// out of firing arc aim calls happen during "preaiming" logic
+	if ( (heading>0) )
+	{
+		return (0);
+	}
+	
+	// values in <> are degrees per second
+	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
+	// In general, 6 cau per frame ~= 1 degree per second
 	turn rempslv to y-axis heading speed <120>;
-	wait-for-turn rempslv around y-axis;
-	start-script RestoreAfterDelay();
+	// if weapon will take more than 1 frame to turn to new angle, wait for turn
+	if ( (get ABS(last_rempslv_heading - heading)>720) )
+	{
+		// seems to take 3 frames for wait-for-turn to process
+		wait-for-turn rempslv around y-axis;
+	}
+	last_rempslv_heading=heading;
+	
+	start-script RestoreAfterDelay_rEMP();
 	return (1);
 }
 

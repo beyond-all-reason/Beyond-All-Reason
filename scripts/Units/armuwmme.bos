@@ -14,8 +14,11 @@ static-var  Stunned;
 #define SIG_WORK 4
 
 
-fixGo()
+Go()
 {
+	if (Stunned) {
+		return(0);
+	}
 	signal SIG_WORK;
 	set-signal-mask SIG_WORK;
 	
@@ -49,11 +52,11 @@ Stop()
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (Stunned) {
 	    call-script Stop();
 	} else {
-	    call-script fixGo();
+	    call-script Go();
 	}
 }
 
@@ -77,7 +80,7 @@ RequestState(requestedstate, currentstate)
 	{
 		if( statechg_DesiredState == 0 )
 		{
-			start-script fixGo();
+			start-script Go();
 			currentstate = 0;
 		}
 		if( statechg_DesiredState == 1 )

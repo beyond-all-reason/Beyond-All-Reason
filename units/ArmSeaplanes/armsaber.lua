@@ -20,7 +20,7 @@ return {
 		icontype = "air",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 911,
+		maxdamage = 1010,
 		maxslope = 10,
 		maxvelocity = 5.23,
 		maxwaterdepth = 255,
@@ -106,9 +106,6 @@ return {
 				weapontimer = 1,
 				weapontype = "LaserCannon",
 				weaponvelocity = 1000,
-				customparams = {
-					light_radius_mult = 0.5,
-				},
 				damage = {
 					bombers = 10,
 					commanders = 40,

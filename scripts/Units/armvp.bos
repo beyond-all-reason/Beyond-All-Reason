@@ -122,20 +122,23 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-
-  sleep 5000;
+    sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);
 }
 
-StartBuilding()
+StartBuilding(Func_Var_1)
 {
+	show nano;
 	spin pad around y-axis speed <0.000000>;
+	return (0);
 }
 
 StopBuilding()
 {
+	hide nano;
 	stop-spin pad around y-axis;
+	return (0);
 }
 
 QueryBuildInfo(piecenum)

@@ -16,19 +16,18 @@ local leftClickMove = true
 
 local vsx, vsy = Spring.GetViewGeometry()
 
+local minimized = false
+local maximized = false
+
 local maxHeight = maxAllowedHeight
 local maxWidth = math.min(maxHeight * (Game.mapX / Game.mapY), maxAllowedWidth * (vsx / vsy))
 local usedWidth = math.floor(maxWidth * vsy)
 local usedHeight = math.floor(maxHeight * vsy)
-
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-
 local backgroundRect = { 0, 0, 0, 0 }
 
 local delayedSetup = false
 local sec = 0
-local uiOpacitySec = 0
+local sec2 = 0
 
 local spGetCameraState = Spring.GetCameraState
 local math_isInRect = math.isInRect
@@ -38,6 +37,8 @@ local leftclicked = false
 
 local RectRound, UiElement, elementCorner, elementPadding, elementMargin
 local dlistGuishader, dlistMinimap, oldMinimapGeometry, chobbyInterface
+
+local dualscreenMode = ((Spring.GetConfigInt("DualScreenMode", 0) or 0) == 1)
 
 local function checkGuishader(force)
 	if WG['guishader'] then
@@ -55,7 +56,27 @@ local function checkGuishader(force)
 	end
 end
 
+local function clear()
+	dlistMinimap = gl.DeleteList(dlistMinimap)
+	if WG['guishader'] and dlistGuishader then
+		WG['guishader'].DeleteDlist('minimap')
+		dlistGuishader = nil
+	end
+end
+
 function widget:ViewResize()
+	local newDualscreenMode = ((Spring.GetConfigInt("DualScreenMode", 0) or 0) == 1)
+	if dualscreenMode ~= newDualscreenMode then
+		dualscreenMode = newDualscreenMode
+		if dualscreenMode then
+			clear()
+		else
+			widget:Initialize()
+		end
+
+		return
+	end
+
 	vsx, vsy = Spring.GetViewGeometry()
 
 	elementPadding = WG.FlowUI.elementPadding
@@ -79,10 +100,12 @@ function widget:ViewResize()
 	usedWidth = math.floor(maxWidth * vsy)
 	usedHeight = math.floor(maxHeight * vsy)
 
-	Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
-
 	backgroundRect = { 0, vsy - (usedHeight), usedWidth, vsy }
-	checkGuishader(true)
+
+	if not dualscreenMode then
+		Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
+		checkGuishader(true)
+	end
 	dlistMinimap = gl.DeleteList(dlistMinimap)
 end
 
@@ -116,14 +139,12 @@ function widget:GameStart()
 end
 
 function widget:Shutdown()
-	dlistMinimap = gl.DeleteList(dlistMinimap)
-	if WG['guishader'] and dlistGuishader then
-		WG['guishader'].DeleteDlist('minimap')
-		dlistGuishader = nil
-	end
-
+	clear()
 	gl.SlaveMiniMap(false)
-	Spring.SendCommands("minimap geometry " .. oldMinimapGeometry)
+
+	if not dualscreenMode then
+		Spring.SendCommands("minimap geometry " .. oldMinimapGeometry)
+	end
 end
 
 function widget:Update(dt)
@@ -135,20 +156,19 @@ function widget:Update(dt)
 		end
 	end
 
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
-		Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
-		uiOpacitySec = 0
-		checkGuishader()
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize()
-		end
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			dlistMinimap = gl.DeleteList(dlistMinimap)
-		end
-	end
+	sec2 = sec2 + dt
+	if sec2 <= 0.5 then return end
+
+	sec2 = 0
+
+	if dualscreenMode then return end
+
+	_, _, _, _, minimized, maximized = Spring.GetMiniMapGeometry()
+
+	if (minimized or maximized) then return end
+
+	Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
+	checkGuishader()
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -160,15 +180,24 @@ end
 local st = spGetCameraState()
 local stframe = 0
 function widget:DrawScreen()
-	if chobbyInterface then
+	if chobbyInterface then return end
+
+	if dualscreenMode and not minimized then
+		gl.DrawMiniMap()
 		return
 	end
-	local x, y, b = Spring.GetMouseState()
-	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4]) then
-		if not math_isInRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4]) then
-			Spring.SetMouseCursor('cursornormal')
+
+	if maximized or maximized then
+		clear()
+	else
+		local x, y, b = Spring.GetMouseState()
+		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4]) then
+			if not math_isInRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4]) then
+				Spring.SetMouseCursor('cursornormal')
+			end
 		end
 	end
+
 	stframe = stframe + 1
 	if stframe % 10 == 0 then
 		st = spGetCameraState()
@@ -179,7 +208,8 @@ function widget:DrawScreen()
 			WG['guishader'].RemoveDlist('minimap')
 			wasOverview = true
 		end
-	else
+
+	elseif not (minimized or maximized) then
 		if wasOverview then
 			gl.SlaveMiniMap(true)
 			wasOverview = false
@@ -223,19 +253,23 @@ local function minimapToWorld(x, y)
 end
 
 function widget:MouseMove(x, y)
-	if leftclicked and leftClickMove then
-		local px, py, pz = minimapToWorld(x, y)
-		if py then
-			Spring.SetCameraTarget(px, py, pz, 0.04)
+	if not dualscreenMode then
+		if leftclicked and leftClickMove then
+			local px, py, pz = minimapToWorld(x, y)
+			if py then
+				Spring.SetCameraTarget(px, py, pz, 0.04)
+			end
 		end
 	end
 end
 
 function widget:MousePress(x, y, button)
-	if Spring.IsGUIHidden() then
-		return
-	end
+	if Spring.IsGUIHidden() then return end
+	if dualscreenMode then return end
+	if minimized then return end
+
 	leftclicked = false
+
 	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4]) then
 		if not math_isInRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4]) then
 			return true
@@ -251,5 +285,7 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseRelease(x, y, button)
+	if dualscreenMode then return end
+
 	leftclicked = false
 end

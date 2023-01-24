@@ -17,7 +17,7 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 620,
+		maxdamage = 690,
 		maxslope = 17,
 		maxvelocity = 3.71,
 		maxwaterdepth = 12,
@@ -141,12 +141,6 @@ return {
 				weapontimer = 0.6,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
-				customparams = {
-					expl_light_mult = 0.8,
-					expl_light_radius_mult = 0.85,
-					light_mult = 0.8,
-					light_radius_mult = 0.85,
-				},
 				damage = {
 					bombers = 1,
 					default = 12,

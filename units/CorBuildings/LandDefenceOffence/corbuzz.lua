@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 30000,
+		maxdamage = 33500,
 		maxslope = 13,
 		maxwaterdepth = 0,
 		objectname = "Units/CORBUZZ.s3o",
@@ -113,7 +113,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corbuzz_weapon = {
+			rflrpc = {
 				accuracy = 750,
 				areaofeffect = 256,
 				avoidfeature = false,
@@ -142,9 +142,6 @@ return {
 				weapontimer = 14,
 				weapontype = "Cannon",
 				weaponvelocity = 1150,
-				customparams = {
-					expl_light_heat_radius_mult = 1.75,
-				},
 				damage = {
 					default = 1330,
 					shields = 665,
@@ -155,7 +152,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "CORBUZZ_WEAPON",
+				def = "RFLRPC",
 				onlytargetcategory = "SURFACE",
 			},
 		},

@@ -17,7 +17,7 @@ return {
 		footprintz = 3,
 		idleautoheal = 5,
 		idletime = 600,
-		maxdamage = 1250,
+		maxdamage = 1390,
 		maxvelocity = 1.72,
 		maxwaterdepth = 12,
 		movementclass = "TBOT3",
@@ -153,10 +153,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 450,
 				wobble = 2500,
-				customparams = {
-					light_mult = "0.6",
-					light_radius_mult = "0.85",
-				},
 				damage = {
 					default = 200,
 					subs = 100,

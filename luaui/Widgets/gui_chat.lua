@@ -33,7 +33,7 @@ local allowMultiAutocomplete = true
 local allowMultiAutocompleteMax = 10
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.6) or 0.6)
 local widgetScale = (((vsx*0.3 + (vsy*2.33)) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 
 local maxLinesScroll = maxLinesScrollFull
@@ -67,6 +67,8 @@ local RectRound, UiElement, UiSelectHighlight, UiScroller, elementCorner, elemen
 local playSound = true
 local sndChatFile  = 'beep4'
 local sndChatFileVolume = 0.55
+local sndMapmarkFile = 'sounds/ui/mappoint2.wav'
+local sndMapmarkFileVolume = 0.5
 
 local colorOther = {1,1,1} -- normal chat color
 local colorAlly = {0,1,0}
@@ -97,7 +99,16 @@ local inputText = ''
 local inputTextPosition = 0
 local cursorBlinkTimer = 0
 local cursorBlinkDuration = 1
+
 local inputMode = ''
+if isSpec then
+	inputMode = 's:'
+else
+	if #Spring.GetTeamList(Spring.GetMyAllyTeamID()) > 1 then
+		inputMode = 'a:'
+	end
+end
+
 local inputTextInsertActive = false
 local inputHistory = {}
 local inputHistoryCurrent = 0
@@ -308,6 +319,7 @@ local autocompleteCommands = {
 	'wiresky',
 	'wiretree',
 	'wirewater',
+	'widgetselector',
 
 	-- gadgets
 	'luarules battleroyaledebug',
@@ -495,8 +507,10 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 	local wordwrappedText = wordWrap(textLines, lineMaxWidth, usedFontSize)
 
 	local sendMetal, sendEnergy, sendUnits
-	local msgColor = '\255\185\185\185'
+	local msgColor = '\255\180\180\180'
 	local msgHighlightColor = '\255\215\215\215'
+	local metalColor = '\255\255\255\255'
+	local energyColor = '\255\255\255\180'
 	-- metal/energy given
 	if lineType == 1 and sfind(text, 'I sent ', nil, true) then
 		if sfind(text, ' metal to ', nil, true) then
@@ -504,14 +518,14 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 			local playername = teamcolorPlayername(ssub(text, sfind(text, ' metal to ')+10))
 			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendMetal..' metal to '..playername
 			--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
-			text = msgColor..'shared '..msgHighlightColor..sendMetal..msgColor..' metal to '..playername
+			text = msgColor..'shared '..metalColor..sendMetal..metalColor.. ' metal'..msgColor..' to '..playername
 			lineType = 5
 		elseif sfind(text, ' energy to ', nil, true) then
 			sendEnergy = tonumber(string.match(ssub(text, sfind(text, 'I sent ')+7), '([0-9]*)'))
 			local playername = teamcolorPlayername(ssub(text, sfind(text, ' energy to ')+11))	-- no dot stripping needed here
 			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendEnergy..' energy to '..playername
 			--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
-			text = msgColor..'shared '..msgHighlightColor..sendEnergy..msgColor..' energy to '..playername
+			text = msgColor..'shared '..energyColor..sendEnergy..energyColor..' energy'..msgColor..' to '..playername
 			lineType = 5
 		end
 
@@ -667,6 +681,12 @@ function widget:Initialize()
 	WG['chat'].setChatVolume = function(value)
 		sndChatFileVolume = value
 	end
+	WG['chat'].getMapmarkVolume = function()
+		return sndMapmarkFileVolume
+	end
+	WG['chat'].setMapmarkVolume = function(value)
+		sndMapmarkFileVolume = value
+	end
 	WG['chat'].getBackgroundOpacity = function()
 		return backgroundOpacity
 	end
@@ -712,11 +732,6 @@ function widget:Update(dt)
 				autocompleteCommands[#autocompleteCommands+1] = 'option '..option
 			end
 		end
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) or ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66)  then
-			ui_scale = Spring.GetConfigFloat("ui_scale",1)
-			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.65)
-			widget:ViewResize()
-		end
 		if hideSpecChat ~= (Spring.GetConfigInt('HideSpecChat', 0) == 1) then
 			hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
 			widget:ViewResize()
@@ -726,7 +741,7 @@ function widget:Update(dt)
 		local teams = Spring.GetTeamList()
 		local detectedChanges = false
 		for i = 1, #teams do
-			local r, g, b, a = spGetTeamColor(teams[i])
+			local r, g, b = spGetTeamColor(teams[i])
 			if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
 				teamColorKeys[teams[i]] = r..'_'..g..'_'..b
 				detectedChanges = true
@@ -735,13 +750,13 @@ function widget:Update(dt)
 
 		-- detect a change in muted players
 		if WG.ignoredPlayers then
-			for name, value in pairs(ignoredPlayers) do
-				if WG.ignoredPlayers[name] == nil or WG.ignoredPlayers[name] ~= value then
+			for name, _ in pairs(ignoredPlayers) do
+				if not WG.ignoredPlayers[name] then
 					detectedChanges = true
 				end
 			end
-			for name, value in pairs(WG.ignoredPlayers) do
-				if ignoredPlayers[name] == nil or ignoredPlayers[name] ~= value then
+			for name, _ in pairs(WG.ignoredPlayers) do
+				if not ignoredPlayers[name] then
 					detectedChanges = true
 				end
 			end
@@ -1856,6 +1871,7 @@ end
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
 	if cmdType == 'point' then
 		lastMapmarkCoords = {x,y,z}
+		spPlaySoundFile( sndMapmarkFile, sndMapmarkFileVolume, nil, "ui" )
 	end
 end
 
@@ -2024,6 +2040,7 @@ function widget:GetConfigData(data)
 		fontsizeMult = fontsizeMult,
 		chatBackgroundOpacity = backgroundOpacity,
 		sndChatFileVolume = sndChatFileVolume,
+		sndMapmarkFileVolume = sndMapmarkFileVolume,
 		shutdownTime = os.clock(),
 		handleTextInput = handleTextInput,
 		inputButton = inputButton,
@@ -2045,6 +2062,9 @@ function widget:SetConfigData(data)
 	end
 	if data.sndChatFileVolume ~= nil then
 		sndChatFileVolume = data.sndChatFileVolume
+	end
+	if data.sndMapmarkFileVolume ~= nil then
+		sndMapmarkFileVolume = data.sndMapmarkFileVolume
 	end
 	if data.chatBackgroundOpacity ~= nil then
 		backgroundOpacity = data.chatBackgroundOpacity

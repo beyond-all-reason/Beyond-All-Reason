@@ -147,7 +147,6 @@ local mapSun = {
 	['flats and forests remake v1'] = {0.55, 0.5, -0.5},
 }
 
-if not mapSunLighting[currentMapname] and not mapSun[currentMapname] then return end
 
 function widget:GetInfo()
 	return {
@@ -156,13 +155,25 @@ function widget:GetInfo()
 		author    = "Floris",
 		date      = "August 2021",
 		license   = "GNU GPL, v2 or later",
-		layer     = 0,
+		layer     = -1000000,
 		enabled   = true
 	}
 end
 
+local function NightFactorChanged(red, green, blue, shadow, altitude)
+	WG['NightFactor'].red = red
+	WG['NightFactor'].green = green
+	WG['NightFactor'].blue = blue
+	WG['NightFactor'].shadow = shadow
+	WG['NightFactor'].altitude = altitude
+	--Spring.Echo("Widget NightFactorChanged")
+end
 function widget:Initialize()
-	if Spring.GetGameFrame() == 0 then
+	widgetHandler:RegisterGlobal("NightFactorChanged",NightFactorChanged )
+	WG['NightFactor'] = {red = 1, green = 1, blue = 1, shadow = 1, altitude = 1}
+	
+	if not mapSunLighting[currentMapname] and not mapSun[currentMapname] then return end
+	if Spring.GetGameFrame() < 1 then
 		if mapSun[currentMapname] then
 			Spring.SetSunDirection(mapSun[currentMapname][1], mapSun[currentMapname][2], mapSun[currentMapname][3])
 			Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
@@ -173,5 +184,17 @@ function widget:Initialize()
 			Spring.SendCommands("luarules updatesun")
 		end
 	end
-	widgetHandler:RemoveWidget()
+end
+
+local lastSunChanged = -1 
+function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
+	local df = Spring.GetDrawFrame()
+	--Spring.Echo("widget:SunChanged", df)
+	if df == lastSunChanged then return end
+	lastSunChanged = df
+	--Spring.Debug.TableEcho(WG['NightFactor'])
+end
+
+function widget:Shutdown()
+	widgetHandler:DeregisterGlobal("NightFactorChanged" )
 end

@@ -200,7 +200,7 @@ local landUnitsList = {
                 "corthud",
                 "corstorm",
                 --"corcrash",
-                "corkark",
+                "legkark",
                 "leggob",
                 "legcen",
                 "legbal",
@@ -682,7 +682,7 @@ end
 local function destroyCommanders()
 	for unitID, _ in pairs(initialCommanders) do
 		if Spring.ValidUnitID(unitID) then
-			Spring.DestroyUnit(unitID, false, true, gaiaTeamID)
+			Spring.DestroyUnit(unitID, false, true)
 		end
 	end
 	initialCommanders = nil

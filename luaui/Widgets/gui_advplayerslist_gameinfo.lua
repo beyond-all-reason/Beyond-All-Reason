@@ -1,16 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---
---	file: gui_musicPlayer.lua
---	brief:	yay music
---	author:	cake
---
---	Copyright (C) 2007.
---	Licensed under the terms of the GNU GPL, v2 or later.
---
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function widget:GetInfo()
 	return {
 		name	= "AdvPlayersList Game Info",
@@ -26,21 +13,12 @@ end
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local font, chobbyInterface, hovering
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
-
 local widgetScale = 1
 local glPushMatrix   = gl.PushMatrix
 local glPopMatrix	   = gl.PopMatrix
-local glColor        = gl.Color
 local glCreateList   = gl.CreateList
 local glDeleteList   = gl.DeleteList
 local glCallList     = gl.CallList
-
-local glBlending = gl.Blending
-local GL_SRC_ALPHA = GL.SRC_ALPHA
-local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
-local GL_ONE = GL.ONE
 
 local math_isInRect = math.isInRect
 
@@ -49,11 +27,8 @@ local advplayerlistPos = {}
 local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 
-local guishaderEnabled = (WG['guishader'] ~= nil)
-
 local passedTime = 0
 local passedTime2 = 0
-local uiOpacitySec = 0.5
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -74,7 +49,6 @@ end
 local function updateValues()
 
 	local textsize = 11*widgetScale
-	local textYPadding = 8*widgetScale
 	local textXPadding = 10*widgetScale
 
 	if drawlist[2] ~= nil then
@@ -144,21 +118,6 @@ function widget:Shutdown()
 end
 
 function widget:Update(dt)
-
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
-		uiOpacitySec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale",1)
-			widget:ViewResize()
-		end
-		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader'] ~= nil) then
-			guishaderEnabled = (WG['guishader'] ~= nil)
-			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
-			createList()
-		end
-	end
 	passedTime = passedTime + dt
 	passedTime2 = passedTime2 + dt
 	if passedTime > 0.1 then

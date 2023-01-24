@@ -17,7 +17,7 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2650,
+		maxdamage = 2950,
 		maxslope = 15,
 		maxvelocity = 1.58,
 		maxwaterdepth = 23,
@@ -149,8 +149,10 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				customparams = {
-					expl_light_color = "0.2 0.5 1",
-					light_color = "0.2 0.5 1",
+					spark_ceg = "genericshellexplosion-splash-lightning",
+					spark_forkdamage = "0.33",
+					spark_maxunits = "2",
+					spark_range = "60",
 				},
 				damage = {
 					bombers = 6,

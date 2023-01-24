@@ -118,7 +118,7 @@ if gadgetHandler:IsSyncedCode() then
 		local hasbeamweapon = false
 		for i=1,#weapons do
 			local weaponDefID = weapons[i].weaponDef
-			if WeaponDefs[weaponDefID].type == "LightningCannon" or 
+			if WeaponDefs[weaponDefID].type == "LightningCannon" or
 				WeaponDefs[weaponDefID].type == "BeamLaser" then
 				hasbeamweapon = true
 			end
@@ -140,15 +140,17 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
-		local wd = nil
 		local dmgMod = 1
-		local weaponDefID = nil
+		local weaponDefID
 		if proID and proID ~= -1 then
 			weaponDefID = Spring.GetProjectileDefID(proID)
 		elseif beamEmitterUnitID then -- hitscan weapons
-			weaponDefID = unitBeamWeapons[ Spring.GetUnitDefID(beamEmitterUnitID) ][beamEmitterWeaponNum].weaponDef
-			if weaponType[weaponDefID] ~= "LightningCannon" then
-				dmgMod = 1 / (weaponBeamtime[weaponDefID] * GAMESPEED)
+			local uDefID = Spring.GetUnitDefID(beamEmitterUnitID)
+			if unitBeamWeapons[ uDefID ] and unitBeamWeapons[ uDefID ][beamEmitterWeaponNum] then
+				weaponDefID = unitBeamWeapons[ uDefID ][beamEmitterWeaponNum]
+				if weaponType[weaponDefID] ~= "LightningCannon" then
+					dmgMod = 1 / (weaponBeamtime[weaponDefID] * GAMESPEED)
+				end
 			end
 		end
 
@@ -157,7 +159,7 @@ if gadgetHandler:IsSyncedCode() then
 			if dmg <= 0.1 then --some stupidity here: llt has 0.0001 dmg in weaponDamages[weaponDefID][SHIELDARMORID]
 				dmg = weaponDamages[weaponDefID][SHIELDARMORIDALT]
 			end
-			
+
 			local x, y, z = Spring.GetUnitPosition(shieldCarrierUnitID)
 			local dx, dy, dz
 			local onlyMove = false
@@ -303,7 +305,7 @@ local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 	local radius = unitData.radius
 
 	local found = false
-	
+
 	for _, hitInfo in ipairs(hitData) do
 		if hitInfo then
 

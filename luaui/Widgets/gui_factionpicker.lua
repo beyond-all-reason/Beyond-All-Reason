@@ -14,7 +14,7 @@ local factions = {
 	{ startUnit = UnitDefNames.armcom.id, faction = 'arm' },
 }
 if not Spring.GetModOptions().unba and Spring.GetModOptions().experimentallegionfaction then
-	factions[#factions+1] = { startUnit = UnitDefNames.legcomdef.id, faction = 'leg' }
+	factions[#factions+1] = { startUnit = UnitDefNames.legcom.id, faction = 'leg' }
 end
 
 local doUpdate
@@ -41,7 +41,6 @@ local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold
 
 local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local isSpec = Spring.GetSpectatingState()
@@ -223,16 +222,6 @@ function widget:Update(dt)
 		doUpdate = true
 		sec = 0
 		checkGuishader()
-
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize()
-			doUpdate = true
-		end
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			doUpdate = true
-		end
 
 		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
 			widget:ViewResize()

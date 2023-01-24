@@ -18,9 +18,9 @@ local hideBelowGameframe = 100
 
 -- unit platter
 local lineSize = 1.45
-local lineOpacity = 0.33
+local lineOpacity = 0.3
 local enablePlatter = true
-local platterOpacity = 0.11
+local platterOpacity = 0.1
 
 local useHexagons = true
 

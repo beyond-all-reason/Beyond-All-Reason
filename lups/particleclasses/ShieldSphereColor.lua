@@ -118,7 +118,6 @@ function ShieldSphereColorParticle:EndDraw()
 
 	shieldShader:ActivateWith(function ()
 		shieldShader:SetUniformFloat("gameFrame", gf)
-		shieldShader:SetUniformFloat("viewPortSize", vsx, vsy)
 		shieldShader:SetUniformMatrix("viewMat", "view")
 		shieldShader:SetUniformMatrix("projMat", "projection")
 
@@ -184,7 +183,7 @@ function ShieldSphereColorParticle:EndDraw()
 	end
 
 	gl.DepthTest(true)
-	gl.DepthMask(true)
+	gl.DepthMask(false) --"BK OpenGL state resets", was true
 end
 
 -----------------------------------------------------------------

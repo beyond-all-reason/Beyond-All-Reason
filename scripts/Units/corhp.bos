@@ -125,7 +125,6 @@ Create()
 {
 	hide nano2;
 	hide nano3;
-	hide pad;
 	hide nano4;
 	hide nano1;
 	hide pad;
@@ -192,12 +191,20 @@ Deactivate()
 
 StartBuilding()
 {
+	show nano1;
+	show nano4;
+	show nano3;
+	show nano2;
 	sleep 150;
 	return (0);
 }
 
 StopBuilding()
 {
+	hide nano1;
+	hide nano4;
+	hide nano3;
+	hide nano2;
 	sleep 150;
 	return (0);
 }

@@ -88,13 +88,50 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		self.indextoInstanceID = {}
 		if self.indextoUnitID then self.indextoUnitID = {} end
 	end
+	
+	function instanceTable:compact()
+		self.destroyedElements = 0
+		-- so this is for the edge case, where we have silently removed elements from instanceIDtoIndex
+		-- where we have holes everywhere, so we have to 'compact' the table, 
+		-- by copying back contiguously while preserving element order
+		local newInstanceIDtoIndex = {}
+		local newIndexToInstanceID = {}
+		local newInstanceData = {}
+		local newUsedElements = 0
+		for i = 1, self.usedElements do
+			local instanceID = self.indextoInstanceID[i]
+			local index = self.instanceIDtoIndex[self.indextoInstanceID[i]] 
+			if index then 
+				local instanceStep = self.instanceStep
+				local instanceData = self.instanceData
+				for j=1, instanceStep do 
+					newInstanceData[newUsedElements * instanceStep + j] = instanceData[(i-1)*instanceStep +j]
+				end
+				newUsedElements = newUsedElements + 1
+				newInstanceIDtoIndex[instanceID] = newUsedElements
+				newIndexToInstanceID[newUsedElements] = instanceID
+			else
+			    Spring.Echo("compacting index",i, 'instanceID', instanceID) 
+			end
+		end
+		Spring.Echo("Post compacting", self.usedElements, newUsedElements)
+		self.usedElements = newUsedElements
+		self.instanceIDtoIndex = newInstanceIDtoIndex
+		self.indextoInstanceID = newIndexToInstanceID
+		self.instanceData = newInstanceData
+		--iT.instanceVBO:Upload(iT.instanceData,nil,oldElementIndex-1,oldOffset +1,oldOffset + iTStep)
+		if self.usedElements > 0 then 
+			self.instanceVBO:Upload(self.instanceData)
+		end
+	end
+	
 
-	function instanceTable:draw()
+	function instanceTable:draw(primitiveType)
 		if self.usedElements > 0 then 
 			if self.indexVBO then 
-				self.VAO:DrawElements(self.primitiveType, self.numVertices, 0, self.usedElements,0)
+				self.VAO:DrawElements(primitiveType or self.primitiveType, self.numVertices, 0, self.usedElements,0)
 			else
-				self.VAO:DrawArrays  (self.primitiveType, self.numVertices, 0, self.usedElements,0)
+				self.VAO:DrawArrays  (primitiveType or self.primitiveType, self.numVertices, 0, self.usedElements,0)
 			end
 		end
 	end
@@ -338,7 +375,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	-- returns: the index of the instanceID in the table on success, else nil
 	if #thisInstance ~= iT.instanceStep then
 		Spring.Echo("Trying to upload an oddly sized instance into",iT.myName, #thisInstance, "instead of ",iT.instanceStep)
-		Spring.Debug.TraceFullEcho(20,20,20, "pushElementInstance Failure")
+		Spring.Debug.TraceFullEcho(20,20,20, "pushElementInstance Failure:"..iT.myName )
 	end
 	local iTusedElements = iT.usedElements
 	local iTStep    = iT.instanceStep 
@@ -377,6 +414,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 		if isvalidid == false then 
 			Spring.Echo("Error: Attempted to push an invalid unit/featureID",unitID, "into", iT.myName)
 			noUpload = true
+			Spring.Debug.TraceFullEcho(20,20,20,"invalid unit/featureID in " ..iT.myName)
 		end  
 		iT.indextoUnitID[thisInstanceIndex] = unitID
 	end
@@ -408,7 +446,7 @@ function popElementInstance(iT, instanceID, noUpload)
 
 	if iT.instanceIDtoIndex[instanceID] == nil then -- if key is instanceID yet does not exist, then warn and bail
 		Spring.Echo("Tried to remove element ",instanceID,'From instanceTable', iT.myName, 'but it does not exist in it')
-		Spring.Debug.TraceFullEcho(10,10,3)
+		Spring.Debug.TraceFullEcho(10,10,3, iT.myName)
 		return nil 
 	end
 	if iT.usedElements == 0 then -- Dont remove the last element
@@ -457,8 +495,7 @@ function popElementInstance(iT, instanceID, noUpload)
 		local oldOffset = (oldElementIndex-1)*iTStep 
 		local instanceData = iT.instanceData
 		for i = 1, iTStep do 
-			local data =  instanceData[endOffset + i]
-			instanceData[oldOffset + i ] = data
+			instanceData[oldOffset + i ] = instanceData[endOffset + i]
 		end
 		--size_t LuaVBOImpl::Upload(const sol::stack_table& luaTblData, const sol::optional<int> attribIdxOpt, const sol::optional<int> elemOffsetOpt, const sol::optional<int> luaStartIndexOpt, const sol::optional<int> luaFinishIndexOpt)
 		--Spring.Echo("Removing instanceID",instanceID,"from iT at position", oldElementIndex, "shuffling back at", iT.usedElements,"endoffset=",endOffset,'oldOffset=',oldOffset)
@@ -489,10 +526,10 @@ function popElementInstance(iT, instanceID, noUpload)
 						if iT.numZombies and iT.numZombies > 0 then -- WE HAVE ZOMBIES AAAAARGH
 							local s = "Warning: We have " .. tostring(iT.numZombies) .. " zombie units left over in " .. iT.myName
 							for zombie, gf in pairs(iT.zombies) do 
-								s = s .. " " .. tostring(zombie)
+								s = s .. " " .. tostring(zombie) ..'/'..tostring(gf)
 								Spring.Echo("ZOMBIE AT", zombie, Spring.GetUnitPosition(zombie))
 								--Spring.SendCommands({"pause 1"})
-								Spring.Debug.TraceFullEcho()
+								Spring.Debug.TraceFullEcho(nil,nil,nil, iT.myName)
 							end 
 							Spring.Echo(s)
 							iT.zombies = {}
@@ -594,6 +631,44 @@ function uploadElementRange(iT, startElementIndex, endElementIndex)
 			iT.instanceVBO:InstanceDataFromUnitIDs(unitIDRange, iT.unitIDattribID, startElementIndex - 1)
 		end
 	end
+end
+
+-- This function allows for order-preserving compacting of a list of instances based on these funcs. 
+-- It is designed for Decals GL4, where draw order matters a lot!
+-- remove takes priority over keep
+function compactInstanceVBO(iT, removelist, keeplist)	
+	local usedElements = iT.usedElements
+	if usedElements == 0 then return 0 end
+	local instanceStep = iT.instanceStep
+	local instanceData = iT.instanceData
+	local instanceIDtoIndex = iT.instanceIDtoIndex
+	local indextoInstanceID = iT.indextoInstanceID
+	local newindextoInstanceID = {}
+	local newinstanceIDtoIndex = {}
+	local newUsedElements = 0
+	local numremoved = 0
+	local removemode = (removelist ~= nil) and (keeplist == nil)
+	for index, instanceID in ipairs(indextoInstanceID) do 
+		-- If its in keeplist, 
+		if (removemode and (removelist[instanceID]== nil) ) or ((removemode == false) and keeplist[instanceID]) then 
+			local instanceOffset = (index-1) * instanceStep
+			local newInstanceOffset = newUsedElements * instanceStep
+			for i = 1, instanceStep do 
+				instanceData[newInstanceOffset + i] = instanceData[instanceOffset + i]
+			end
+			newUsedElements = newUsedElements + 1
+			newindextoInstanceID[newUsedElements] = instanceID
+			newinstanceIDtoIndex[instanceID] = newUsedElements
+		else
+			numremoved = numremoved + 1
+		end
+	end
+	
+	iT.dirty = true -- we set the flag to notify that CPU and GPU contents dont match!
+	iT.usedElements = newUsedElements
+	iT.instanceIDtoIndex = newinstanceIDtoIndex
+	iT.indextoInstanceID = newindextoInstanceID
+	return numremoved
 end
 
 function drawInstanceVBO(iT)
@@ -733,10 +808,11 @@ function makePlaneIndexVBO(xresolution, yresolution, cutcircle)
 	return planeIndexVBO, IndexVBOData
 end
 
-function makePointVBO(numPoints)
+function makePointVBO(numPoints, randomFactor)
 	-- makes points with xyzw
 	-- can be used in both GL.LINES and GL.TRIANGLE_FAN mode
-	if not numPoints then numPoints = 1 end
+	numPoints = numPoints or 1
+	randomFactor = randomFactor or 0
 	local pointVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	if pointVBO == nil then return nil end
 
@@ -747,10 +823,10 @@ function makePointVBO(numPoints)
 	local VBOData = {}
 
 	for i = 1, numPoints  do -- 
-		VBOData[#VBOData+1] = 0-- X
-		VBOData[#VBOData+1] = 0-- Y
-		VBOData[#VBOData+1] = 0---Z
-		VBOData[#VBOData+1] = numPoints -- index for lolz?
+		VBOData[#VBOData+1] = randomFactor * math.random()-- X
+		VBOData[#VBOData+1] = randomFactor * math.random()-- Y
+		VBOData[#VBOData+1] = randomFactor * math.random()---Z
+		VBOData[#VBOData+1] = i/numPoints -- index for lolz?
 	end	
 
 	pointVBO:Define(

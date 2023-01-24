@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, duct1, fan1, duct2, fan2, nano,thrust1,thrust2;
+piece  base, duct1, fan1, duct2, fan2, nano, thrust1, thrust2;
 
 static-var  Static_Var_1, Static_Var_2;
 
@@ -90,12 +90,14 @@ Deactivate()
 
 StartBuilding()
 {
+	show nano;
 	set INBUILDSTANCE to 1;
 	return (0);
 }
 
 StopBuilding()
 {
+	hide nano;
 	set INBUILDSTANCE to 0;
 	return (0);
 }

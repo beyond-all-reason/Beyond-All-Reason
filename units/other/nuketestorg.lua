@@ -22,7 +22,7 @@ return {
 		idletime = 90,
 		levelground = false,
 		mass = 165.75,
-		maxdamage = 5300,
+		maxdamage = 5900,
 		maxvelocity = 0,
 		noautofire = false,
 		objectname = "scavs/cube.s3o",
@@ -84,13 +84,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1500,
 				wobble = 50,
-				customparams = {
-					expl_light_color = "1 0.85 0.55",
-					expl_light_life_mult = 2.5,
-					expl_light_mult = 1.25,
-					expl_light_radius_mult = 0.9,
-					light_color = "1 0.6 0.2",
-				},
 				damage = {
 					commanders = 2500,
 					default = 9500,

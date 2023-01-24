@@ -1,6 +1,6 @@
 return {
 	queen_death = {
-		areaofeffect = 16,
+		areaofeffect = 512,
 		craterboost = 0,
 		cratermult = 0,
 		impulseboost = 0,
@@ -14,7 +14,7 @@ return {
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {
-			default = 1000,
+			default = 1110,
 		},
 	},
 }

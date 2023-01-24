@@ -29,6 +29,7 @@ CallInsList = {
 	"ControllerRemoved",
 	"ControllerConnected",
 	"ControllerDisconnected",
+	"ControllerRemapped",
 	"ControllerButtonUp",
 	"ControllerButtonDown",
 	"ControllerAxisMotion",

@@ -23,7 +23,7 @@ return {
 		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
-		maxdamage = 1200,
+		maxdamage = 1330,
 		maxslope = 18,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
@@ -36,6 +36,7 @@ return {
 		stealth = true,
 		turnrate = 0,
 		upright = true,
+		yardmap = "ffff",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armclaw_aoplane.dds",
@@ -155,8 +156,10 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 450,
 				customparams = {
-					expl_light_color = "0.2 0.5 1",
-					light_color = "0.2 0.5 1",
+					spark_ceg = "genericshellexplosion-splash-lightning",
+					spark_forkdamage = "0.33",
+					spark_maxunits = "2",
+					spark_range = "60",
 				},
 				damage = {
 					bombers = 2.5,

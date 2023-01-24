@@ -12,6 +12,8 @@ function widget:GetInfo()
 	}
 end
 
+local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+
 ----------------------------------------------------------------
 -- config
 ----------------------------------------------------------------
@@ -279,10 +281,20 @@ function widget:DrawInMiniMap(sx, sy)
 	local ratioX = sx / mapX
 	local ratioY = sy / mapY
 
+	local flipped = getMiniMapFlipped()
+
 	for unitID, defs in pairs(mapPoints) do
 		if defs.x then
-			local x = defs.x * ratioX
-			local y = sy - defs.z * ratioY
+			local x, y
+
+			if flipped then
+				x = (mapX - defs.x) * ratioX
+				y = sy - (mapY - defs.z) * ratioY
+			else
+				x = defs.x * ratioX
+				y = sy - defs.z * ratioY
+			end
+
 			local alpha = maxAlpha * (defs.time - timeNow) / ttl
 			if alpha <= 0 then
 				mapPoints[unitID] = nil

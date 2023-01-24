@@ -20,14 +20,14 @@ in DataVS {
 	vec4 v_lengthwidthrotation;
 	vec4 v_centerpos;
 	vec4 v_uvoffsets;
-	vec4 v_parameters;
+	vec4 v_parameters; // x: BWfactor, y:glowsustain, z:glowadd,
 } dataIn[];
 
 out DataGS {
-	vec4 g_color;
+	//vec4 g_color;
 	vec4 g_uv;
 	vec4 g_position; // how to get tbnmatrix here?
-	vec4 g_parameters;
+	vec4 g_parameters; // x: BWfactor, y:glowsustain, z:glowadd,
 	mat3 tbnmatrix;
 };
 
@@ -35,11 +35,6 @@ mat3 rotY;
 vec3 decalDimensions; // length, height, widgth
 vec4 centerpos;
 vec4 uvoffsets;
-
-float heightAtWorldPos(vec2 w){
-	vec2 uvhm =   vec2(clamp(w.x,8.0,mapSize.x-8.0),clamp(w.y,8.0, mapSize.y-8.0))/ mapSize.xy; 
-	return textureLod(heightmapTex, uvhm, 0.0).x;
-}
 
 // This function takes in a set of UV coordinates [0,1] and tranforms it to correspond to the correct UV slice of an atlassed texture
 vec2 transformUV(float u, float v){// this is needed for atlassing
@@ -56,12 +51,12 @@ void offsetVertex4( float x, float y, float z, float u, float v){
 	vec4 worldPos = vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
 	
 	vec2 uvhm = heighmapUVatWorldPos(worldPos.xz);
-	worldPos.y = textureLod(heightmapTex, uvhm, 0.0).x + 0.01;
+	worldPos.y = textureLod(heightmapTex, uvhm, 0.0).x + HEIGHTOFFSET;
 	gl_Position = cameraViewProj * worldPos;
 	gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in Z
-	g_uv.zw = dataIn[0].v_parameters.zw;
+	//g_uv.zw = dataIn[0].v_parameters.zw; //unused
 	g_position.xyz = worldPos.xyz;
-	g_position.w = length(vec2(x,z));
+	g_position.w = dataIn[0].v_lengthwidthrotation.w;
 	//g_mapnormal = textureLod(mapNormalsTex, uvhm, 0.0).raaa;
 	//g_mapnormal.g = sqrt( 1.0 - dot( g_mapnormal.ra, g_mapnormal.ra));
 	//g_mapnormal.xyz = g_mapnormal.rga;
@@ -71,9 +66,10 @@ void offsetVertex4( float x, float y, float z, float u, float v){
 	
 	vec3 Nup = vec3(0.0, 1.0, 0.0);
 	vec3 Trot = rotY * vec3(1.0, 0.0, 0.0);
-	vec3 Brot = rotY * vec3(0.0, 0.0, 1.0);
-	tbnmatrix = mat3(Trot, Brot, Nup);
-
+	//vec3 Brot = rotY * vec3(0.0, 0.0, 1.0);
+	vec3 Brot = cross(Nup,Trot);
+	tbnmatrix = (mat3(Trot, Brot, Nup));
+	
 	EmitVertex();
 }
 #line 22000
@@ -83,13 +79,11 @@ void main(){
 	centerpos = dataIn[0].v_centerpos;
 	rotY = rotation3dY(dataIn[0].v_lengthwidthrotation.z); // Create a rotation matrix around Y from the unit's rotation
 	//rotY = mat3(1.0);
-	float maxradius =  max(dataIn[0].v_lengthwidthrotation.x, dataIn[0].v_lengthwidthrotation.y);
-	if (isSphereVisibleXY(vec4(centerpos.xyz,1.0), 1.0* maxradius)) return; // yay for useless visiblity culling!
 	uvoffsets = dataIn[0].v_uvoffsets; // if an atlas is used, then use this, otherwise dont
 	decalDimensions = vec3(dataIn[0].v_lengthwidthrotation.x * 0.5, 0.0, dataIn[0].v_lengthwidthrotation.y * 0.5);
 	g_parameters = dataIn[0].v_parameters;
 	g_uv.zw = dataIn[0].v_parameters.zw;
-	g_color.a = dataIn[0].v_lengthwidthrotation.w;
+	//g_color.a = dataIn[0].v_lengthwidthrotation.w;
 	
 	// for a simple quad
 	/*

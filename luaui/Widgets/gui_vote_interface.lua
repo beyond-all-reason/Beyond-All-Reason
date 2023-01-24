@@ -19,7 +19,6 @@ local voteTimeout = 75	-- fallback timeout in case vote is aborted undetected
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.5 + (vsx * vsy / 5700000)) * 1.55
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -39,7 +38,6 @@ local voteDlist, chobbyInterface, font, font2, gameStarted, dlistGuishader
 local weAreVoteOwner, hovered, voteName, windowArea, closeButtonArea, yesButtonArea, noButtonArea
 local voteEndTime, voteEndText, voteOwnerPlayername
 
-local uiOpacitySec = 0
 local eligibleToVote = false
 
 local eligiblePlayers = {}
@@ -238,6 +236,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 
 			fontSize = fontSize * 0.85
 			font2:SetOutlineColor(0, 0, 0, 0.4)
+			font2:SetTextColor(1, 1, 1, 1)
 			font2:Print((weAreVoteOwner and Spring.I18N('ui.voting.endVote') or Spring.I18N('ui.voting.no')), noButtonArea[1] + ((noButtonArea[3] - noButtonArea[1]) / 2), noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 
 			-- YES
@@ -346,19 +345,6 @@ function widget:Update(dt)
 
 	if voteEndTime and os.clock() > voteEndTime then
 		CloseVote()
-	end
-
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
-		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			widget:ViewResize()
-		end
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize()
-		end
 	end
 end
 

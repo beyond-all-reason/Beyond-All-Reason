@@ -13,8 +13,11 @@ static-var  Stunned;
 #define SIG_ACTIVATE			2
 
 
-fixGo()
+Go()
 {
+	if (Stunned) {
+		return(0);
+	}
 	spin disc around y-axis speed Static_Var_1 accelerate Static_Var_2;
 	set ARMORED to 0;
 	Static_Var_4 = 1;
@@ -48,7 +51,7 @@ RequestState(requestedstate, currentstate)
 	{
 		if( statechg_DesiredState == 0 )
 		{
-			call-script fixGo();
+			call-script Go();
 			currentstate = 0;
 		}
 		if( statechg_DesiredState == 1 )
@@ -76,11 +79,11 @@ Create()
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (Stunned) {
 	    call-script Stop();
 	} else {
-	    call-script fixGo();
+	    call-script Go();
 	}
 }
 

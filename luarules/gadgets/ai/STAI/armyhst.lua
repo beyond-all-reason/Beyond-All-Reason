@@ -371,16 +371,18 @@ function ArmyHST:Init()
 		armuwmme = true ,
 		coruwmme = true ,
 		}
-
+	ArmyHST.t2mex = {
+		armmoho = true,
+		cormoho = true,
+		armuwmme = true,
+		coruwmme = true,
+		}
 	-- what mexes upgrade to what
 	ArmyHST.mexUpgrade = {
 		cormex = "cormoho",
 		armmex = "armmoho",
-		coruwmex = "coruwmme",--ex coruwmex caution this will be changed --TODO
-		armuwmex = "armuwmme",--ex armuwmex
 		armamex = "armmoho",
-		corexp = "cormexp",
-
+		corexp = "cormoho",
 		}
 
 	self._flak_ = {
@@ -414,9 +416,9 @@ function ArmyHST:Init()
 
 
 	self._fus_ = {
-		armfus = 'armafus' ,--will become afus in taskqueuebst:specialfilter()
+		armfus = 'armafus' ,--will become afus in buildersbst:specialfilter()
 		armuwfus = 'armuwfus' , --no advuwfus
-		corfus = 'corafus' ,--will become afus in taskqueuebst:specialfilter()
+		corfus = 'corafus' ,--will become afus in buildersbst:specialfilter()
 		coruwfus = 'coruwfus' ,--no advuwfus
 		-- 		armckfus = true , --clackable, better to think about it later
 
@@ -628,13 +630,6 @@ function ArmyHST:Init()
 	self:GetUnitTable()
 	self:GetFeatureTable()
 
-	self.buildersRole = {
-		default = {},
-		eco = {},
-		expand = {},
-		support = {},
-		starter = {},
-		}
 end
 
 
@@ -674,8 +669,8 @@ ArmyHST.factoryMobilities = {
 	armamsub = {"amp","sub"},
 	corgant = {"bot", "amp"},
 	armshltx = {"bot", "amp"},
-	corgantuw = {"amp"},
-	armshltxuw = {"amp"},
+	corgantuw = {"amp","hov"},
+	armshltxuw = {"amp","hov"},
 	}
 
 -- for calculating what factories to build
@@ -730,7 +725,7 @@ ArmyHST.factoryExitSides = {
 -- }
 
 -- what mexes upgrade to what
-ArmyHST.mexUpgrade = {
+--[[ArmyHST.mexUpgrade = {
 	cormex = "cormoho",
 	armmex = "armmoho",
 	coruwmex = "coruwmme",--ex coruwmex caution this will be changed --TODO
@@ -739,6 +734,7 @@ ArmyHST.mexUpgrade = {
 	corexp = "cormexp",
 
 	}
+]]
 
 -- factories that can build advanced construction units (i.e. moho mines)
 ArmyHST.advFactories = {
@@ -1321,7 +1317,7 @@ function ArmyHST:GetUnitTable()
 		elseif	utable.isBuilding and not utable.needsWater then
 			utable.mtype = 'veh'
 			utable.LAYER = 'G'
-		elseif  unitDef.moveDef.name and (string.find(unitDef.moveDef.name, 'abot') or string.find(unitDef.moveDef.name, 'vbot')  or string.find(unitDef.moveDef.name,'atank'))  then
+		elseif  unitDef.moveDef.name and (string.find(unitDef.moveDef.name, 'abot') or string.find(unitDef.moveDef.name, 'commanderbot') or string.find(unitDef.moveDef.name, 'vbot')  or string.find(unitDef.moveDef.name,'atank'))  then
 			utable.mtype = 'amp'
 			utable.LAYER = 'X'
 		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'uboat') then

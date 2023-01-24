@@ -12,7 +12,7 @@ layout (location = 1) in vec4 lengthwidthrotation; // l w rot and maxalpha
 layout (location = 2) in vec4 uvoffsets;
 layout (location = 3) in vec4 alphastart_alphadecay_heatstart_heatdecay;
 layout (location = 4) in vec4 worldPos; // also gameframe it was created on
-
+layout (location = 5) in vec4 parameters; // x: BWfactor, y:glowsustain, z:glowadd, w: fadeintime
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 
@@ -23,7 +23,7 @@ uniform sampler2D heightmapTex;
 
 
 out DataGS {
-	vec4 g_color;
+	//vec4 g_color;
 	vec4 g_uv;
 	vec4 g_position; // how to get tbnmatrix here?
 	vec4 g_parameters;
@@ -72,10 +72,12 @@ void main()
 {
 	// take the vertex, scale it to size, and rotate it around 0,0
 	
-	if (isSphereVisibleXY(vec4(worldPos.xyz,1.0), 1.0* max(lengthwidthrotation.x, lengthwidthrotation.y))) {
-		gl_Position= vec4(0,0,-100,1);
-		return; // yay for useless visiblity culling!
-	}
+	#if 0
+		//if (isSphereVisibleXY(vec4(worldPos.xyz,1.0), 1.0* max(lengthwidthrotation.x, lengthwidthrotation.y))) {
+		//	gl_Position= vec4(-100,-100,-100,1);
+		//	return; // yay for useless visiblity culling!
+		//}
+	#endif
 	
 	vec4 vertexPos = vec4(xyworld_xyfract.x, 0.0, xyworld_xyfract.y, 1.0);
 	vertexPos.xz *= lengthwidthrotation.xy * 0.5;
@@ -86,40 +88,42 @@ void main()
 	vertexPos.xyz = rotY * vertexPos.xyz;
 
 	// set the UVS
-	g_uv.xy = transformUV(xyworld_xyfract.x * 0.5 + 0.5, xyworld_xyfract.y* 0.5 + 0.5);
+	g_uv.xy = transformUV(xyworld_xyfract.x * 0.5 + 0.5, xyworld_xyfract.y * 0.5 + 0.5);
 	
 	// rotate the normals into the world
 	vec3 Nup = vec3(0.0, 1.0, 0.0);
 	vec3 Trot = rotY * vec3(1.0, 0.0, 0.0);
-	vec3 Brot = rotY * vec3(0.0, 0.0, 1.0);
+	//vec3 Brot = rotY * vec3(0.0, 0.0, 1.0);
+	vec3 Brot = cross(Nup,Trot);
 	tbnmatrix = mat3(Trot, Brot, Nup);
 	
 	// offset it into the world
 	vertexPos.xz += worldPos.xz;
 	
 	// get the height here:
-	vertexPos.y  = textureLod(heightmapTex, heighmapUVatWorldPos(vertexPos.xz), 0.0).x;
+	vertexPos.y  = textureLod(heightmapTex, heighmapUVatWorldPos(vertexPos.xz), 0.0).x + HEIGHTOFFSET;
 	
 	// Output it to the FS
 	gl_Position = cameraViewProj * vertexPos;
 	gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in Z
+	
 	// passthrough the rest of the data:
-	
-	g_color = vec4(0.0);
-	g_color.a = lengthwidthrotation.w;
 	g_position = vertexPos;
-	g_parameters = alphastart_alphadecay_heatstart_heatdecay;
+	g_parameters = parameters;
 	
+	// Calc alphadecay
 	float currentFrame = timeInfo.x + timeInfo.w;
 	float lifetonow = (timeInfo.x + timeInfo.w) - worldPos.w;
 	float alphastart = alphastart_alphadecay_heatstart_heatdecay.x;
 	float alphadecay = alphastart_alphadecay_heatstart_heatdecay.y;
-	// fade in the decal over 200 ms?
+	float currentAlpha = min(1.0, (lifetonow / parameters.w))  * alphastart - lifetonow* alphadecay;
+	currentAlpha = clamp(currentAlpha, 0.0, lengthwidthrotation.w);
+	g_position.w = currentAlpha;
 	
-	g_uv.z = exp(- 0.033 * lifetonow * alphastart_alphadecay_heatstart_heatdecay.w) * alphastart_alphadecay_heatstart_heatdecay.z ;
-	
-	float currentAlpha = min(1.0, lifetonow*0.166)  * alphastart - lifetonow* alphadecay;
-	currentAlpha = min(currentAlpha, lengthwidthrotation.w);
-	g_color.a = currentAlpha;
-	
+	// heatdecay is:
+	float heatdecay = alphastart_alphadecay_heatstart_heatdecay.w;
+	float heatstart = alphastart_alphadecay_heatstart_heatdecay.z;
+	float heatsustain = parameters.y;
+	float currentheat = heatstart * exp( -0.033 * step(heatsustain, lifetonow) * (lifetonow - heatsustain) * heatdecay);
+	g_parameters.w = currentheat ;
 }

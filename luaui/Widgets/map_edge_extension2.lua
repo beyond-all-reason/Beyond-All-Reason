@@ -16,13 +16,13 @@ end
 --------------------------------------------------------------------------------
 
 local brightness = 0.3
+local nightFactor = 1.0
 local curvature = true
 local fogEffect = true
 
 local mapBorderStyle = 'texture'	-- either 'texture' or 'cutaway'
 
 local gridSize = 32
-local wiremap = false
 
 local hasBadCulling = false
 
@@ -30,8 +30,6 @@ local hasBadCulling = false
 --------------------------------------------------------------------------------
 
 local spIsAABBInView = Spring.IsAABBInView
-local spGetGroundHeight = Spring.GetGroundHeight
-local floor = math.floor
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 
 --------------------------------------------------------------------------------
@@ -60,7 +58,7 @@ local terrainInstanceVBO = nil
 
 local function UpdateShader()
 	mapExtensionShader:ActivateWith(function()
-		mapExtensionShader:SetUniformAlways("shaderParams", gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
+		mapExtensionShader:SetUniformAlways("shaderParams", gridSize, brightness * nightFactor, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
 	end)
 end
 
@@ -185,11 +183,9 @@ bool MyEmitTestVertex(vec2 xzVec, bool testme) {
 	alphaFog = vec2(alpha, fogFactor);
 	if (testme ) {
 		// this 'early clipping' will prevent generation of triangle strips is the quad is out of view
-		// use a 10x multiplier on the tolerance radius, as some triangles arent in spheres, but are highly elongated
-		//if (isSphereVisibleXY(MyTestVertex(vec2(gridSize*0.5)), 10.0*gridSize)) return;
-		bool invisible = isSphereVisibleXY(worldPos, 0.01*gridSize);
-		//if ((invisible) || (alpha < 0.05) || (fogFactor < 0.025)) return true;
-		//if (invisible) return true;
+		// use a 25x multiplier on the tolerance radius, as some triangles arent in spheres, but are highly elongated
+		bool invisible = isSphereVisibleXY(worldPos, 25.0*gridSize);
+		if ((invisible) || (alpha < 0.05))  return true; // also could be ||  (fogFactor < 0.025))
 	}
 	gl_Position = cameraViewProj * worldPos;
 	EmitVertex();
@@ -208,7 +204,7 @@ void main() {
 		MyEmitTestVertex(vec2(gridSize, gridSize),false); //BR
 		MyEmitTestVertex(vec2(gridSize,      0.0),false); //TR
 	}
-	
+
 	EndPrimitive();
 }
 ]]
@@ -282,17 +278,17 @@ function widget:Initialize()
 	end
 	WG['mapedgeextension'].setBrightness = function(value)
 		brightness = value
-		UpdateShader()
+		--UpdateShader()
 	end
 	WG['mapedgeextension'].getCurvature = function()
 		return curvature
 	end
 	WG['mapedgeextension'].setCurvature = function(value)
 		curvature = value
-		UpdateShader()
+		--UpdateShader()
 	end
 
-	Spring.SendCommands("mapborder " .. (mapBorderStyle == 'cutaway' and "1" or "0"))
+	Spring.SendCommands("mapborder 1")--..(mapBorderStyle == 'cutaway' and "1" or "0"))
 
 	if gl.GetMapRendering("voidGround") then
 		restoreMapBorder = false
@@ -357,9 +353,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if restoreMapBorder then
-		Spring.SendCommands('mapborder '..(restoreMapBorder and '1' or '0'))
-	end
+	Spring.SendCommands('mapborder '..(restoreMapBorder and '1' or '0'))
 
 	if mapExtensionShader then
 		mapExtensionShader:Finalize()
@@ -523,7 +517,7 @@ function widget:DrawWorldPreUnit()
 	gl.Texture(0, colorTex)
 	gl.Texture(1, "$heightmap")
 	mapExtensionShader:Activate()
-
+	mapExtensionShader:SetUniform("shaderParams", gridSize, brightness * nightFactor, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
 	--gl.RunQuery(q, function()
 		terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
 	--end)
@@ -537,6 +531,21 @@ function widget:DrawWorldPreUnit()
 	gl.Culling(GL.BACK)
 
 	--Spring.Echo(gl.GetQuery(q))
+end
+
+local lastSunChanged = -1
+function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
+	local df = Spring.GetDrawFrame()
+	--Spring.Echo("widget:SunChanged", df)
+	if df == lastSunChanged then return end
+	lastSunChanged = df
+	-- Do the math:
+	if WG['NightFactor'] then
+		nightFactor = (WG['NightFactor'].red + WG['NightFactor'].green + WG['NightFactor'].blue) * 0.33
+		--Spring.Echo("Map edge extension NightFactor", nightFactor)
+		--UpdateShader()
+	end
+	--Spring.Debug.TableEcho(WG['NightFactor'])
 end
 
 -- I see no value in this call

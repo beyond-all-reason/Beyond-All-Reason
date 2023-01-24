@@ -24,9 +24,9 @@
 		},
 		"fac_land_t2":{
 			"type": ["rectangle", "factory"],
-			"size": [8 ,8],
-			"yard": [5, 10],
-			"offset": [0, 4],
+			//"size": [8 ,8],
+			"yard": [12, 20],
+			"offset": [4, 6],
 			"ignore": ["none"]
 		},		
 		"fac_air": {
@@ -176,15 +176,16 @@
 		"geo2": ["armageo", "corageo"],
 		"fusion":["armfus", "armuwfus", "armckfus", "armafus", "corfus", "coruwfus", "corafus"],
 		"store": ["armmstor", "armestor", "cormstor", "corestor"],
-		"mex": ["armmex", "cormex", "armuwmex", "armuwmex"],
+		"mex": ["armmex", "cormex", "armuwmex", "coruwmex"],
 		"mex2": ["armmoho", "cormoho", "armuwmme", "coruwmme"],
 		"converter": ["armmakr", "cormakr", "armmmkr", "cormmkr", "armfmkr", "corfmkr", "armuwmmm", "coruwmmm"],
 		"def_low": ["armllt", "corllt", "armbeamer", "corhllt"],
 		"def_mid": ["armclaw", "cormaw", "armpb", "corvipe", "armhlt", "corhlt"],
-		"def_hvy":  ["armamb", "armanni", "cortoast", "cordoom", "armguard", "corpun"],
+		"def_hvy":  ["armamb", "armanni", "cortoast", "cordoom", "armguard", "corpun", "armkraken", "corfdoom"],
 		"def_air": ["armferret", "armcir", "corrl", "cormadsam", "corerad"],
 		"caretaker": ["armnanotc", "armasp", "cornanotc", "corasp"],
 		"small": ["armrad", "corrad"]
+		
 //engy_low: wind
 //engy mid: fusion
 //engy_high: 
@@ -192,7 +193,7 @@
 //def_mid:
 //def_high:
 //unkown: small, default, 
-//special: supwerweapon
+//special: superweapon
 //terra:
 
 	}

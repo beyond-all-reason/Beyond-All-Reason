@@ -397,21 +397,11 @@ local function switchPlayerCam()
 end
 
 local passedTime = 0
-local uiOpacitySec = 0.5
+local sec = 0.5
 function widget:Update(dt)
 
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 1 then
-		uiOpacitySec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize()
-		end
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) or guishaderEnabled ~= (WG['guishader'] ~= nil) then
-			guishaderEnabled = (WG['guishader'] ~= nil)
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			createList()
-		end
+	sec = sec + dt
+	if sec > 1 then
 
 		-- check if team colors have changed
 		local teams = Spring.GetTeamList()

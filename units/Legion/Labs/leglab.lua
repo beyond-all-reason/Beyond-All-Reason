@@ -21,7 +21,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2600,
+		maxdamage = 2900,
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 100,
@@ -41,7 +41,7 @@ return {
 			[4] = "leglob",
 			[5] = "legcen",
 			[6] = "legbal",
-			[7] = "corkark",
+			[7] = "legkark",
 			[8] = "corcrash",
 		},
 		customparams = {

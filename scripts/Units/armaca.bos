@@ -45,8 +45,6 @@ deactivatescr()
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
@@ -119,7 +117,7 @@ Deactivate()
 
 StartBuilding(heading, pitch)
 {
-	
+	show emit;
 	start-script RequestState(0);
 	signal SIG_BUILD;
 	move doorl to x-axis [-2.8] speed [10];
@@ -132,6 +130,7 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+	hide emit;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	sleep 6000;

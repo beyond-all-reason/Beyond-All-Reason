@@ -22,10 +22,10 @@
                     "armuwfus": [6, 12, 35, 600, 2.8]  // efficiency=6.443299
 				},
 				"water": {
-					"armtide": [25, 40],
+					"armtide": [45, 60],
 					"armwin": [30, 60],
                     "armsolar": [12, 14, 0, 0, 0.030],
-                    "armadvsol": [16, 20, 12, 220, 0.220],
+                    "armadvsol": [16, 20, 12, 220, 0.200],
                     //"armgeo": [4, 8, 16, 300, 0.6], //0.6
                     "armgmm":[4,8, 25, 600, 2.2], 
                     //"armageo": [0, 1, 35, 1000, 3.0], //3.0
@@ -47,7 +47,7 @@
                     "coruwfus": [6, 12, 35, 600, 2.8] // efficiency=6.443299
 				},
 				"water": {
-					"cortide": [25, 40],
+					"cortide": [45, 60],
 					"corwin": [10, 20],
 					"corsolar": [6, 10, 0, 0, 0.027], // efficiency=0.026667
                     "coradvsol": [16, 20, 12, 220, 0.220], //efficiency=0.237542
@@ -98,7 +98,7 @@
 
 //mspull - // Mobile constructor to static constructor metal pull ratio; [[<value>, <start_mex_percent>], [<value>, <end_mex_percent>]]
 
-	"mex_up": 3,  // maximum number of simultaneous mex upgrades 2/3
+	"mex_up": 4,  // maximum number of simultaneous mex upgrades 2/3
 	"goal_exec": 50.0,  // assign builders till targeted time (in s) to build reached => low value: builders focus on few projects; high value: builder do more task; old values: 45, 50
 	"build_mod": 1000.0,  // default build_mod for UnitDef, if it's not specified
 	"eps_step": 0.2,

@@ -13,6 +13,7 @@ return {
 		canmove = true,
 		canpatrol = true,
 		canstop = "1",
+		cantbetransported = true,
 		capturable = false,
 		category = "MOBILE WEAPON NOTAIR NOTSUB",
 		collisionvolumeoffsets = "0 6 0",
@@ -27,7 +28,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 1000,
-		maxdamage = 50000,
+		maxdamage = 56000,
 		maxslope = 45,
 		maxvelocity = 0.85,
 		maxwaterdepth = 22,
@@ -94,8 +95,6 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
 				customparams = {
-					light_mult = "1",
-					light_radius_mult = "1",
 					nohealthbars = true,
 				},
 				damage = {

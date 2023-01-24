@@ -90,7 +90,7 @@ function UnitCloaker:EndDraw()
 
   gl.Culling(GL.BACK)
   gl.Culling(false)
-  gl.DepthMask(true)
+  gl.DepthMask(false) --"BK OpenGL state resets", was true
 
   gl.UseShader(0)
 

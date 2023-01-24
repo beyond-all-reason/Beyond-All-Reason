@@ -182,6 +182,8 @@ BuildAnim(){
 
 StartBuilding(torsoing, pitch)
 {
+	show flare2;
+	show flare1;
 	signal SIG_BUILD;
 	turn aimy1 to y-axis torsoing speed <240.000000>;
 	turn aimx1 to x-axis <-55> - pitch speed <240.0>;
@@ -192,6 +194,8 @@ StartBuilding(torsoing, pitch)
 
 StopBuilding()
 {
+	hide flare2;
+	hide flare1;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	turn aimy1 to y-axis <0.000000> speed <160.000000>;

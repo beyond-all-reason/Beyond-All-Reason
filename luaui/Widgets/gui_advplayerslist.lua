@@ -31,7 +31,7 @@ end
 	v17	 (Floris): Added alliances display and button and /cputext option
 	v18	 (Floris): Player system shown on tooltip + added FPS counter + replaced allycursor data with activity gadget data (all these features need gadgets too)
 	v19   (Floris): added player resource bars
-	v20   (Floris): added /alwayshidespecs + fixed drawing when playerlist is at the leftside of the screen
+	v20   (Floris): added alwayshidespecs + fixed drawing when playerlist is at the leftside of the screen
 	v21   (Floris): toggles LoS and /specfullview when camera tracking a player
 	v22   (Floris): added auto collapse function
 	v23   (Floris): hiding share buttons when you are alone
@@ -178,7 +178,6 @@ local timeCounter = 0
 local updateRate = 0.75
 local updateRatePreStart = 0.25
 local lastTakeMsg = -120
-local uiOpacitySec = 0.5
 local hoverPlayerlist = false
 
 --------------------------------------------------------------------------------
@@ -209,9 +208,6 @@ local tookTeamID
 local tookTeamName
 local tookFrame = -120
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-
 local playSounds = true
 local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
 
@@ -234,7 +230,6 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 
 --General players/spectator count and tables
 local player = {}
-local playerSpecs = {}
 local playerReadyState = {}
 local numberOfSpecs = 0
 local numberOfEnemies = 0
@@ -242,7 +237,7 @@ local numberOfEnemies = 0
 --To determine faction at start
 local sideOneDefID = UnitDefNames.armcom.id
 local sideTwoDefID = UnitDefNames.corcom.id
-local sideThreeDefID = UnitDefNames.legcomdef.id
+local sideThreeDefID = UnitDefNames.legcom.id
 
 local teamSideOne = "armada"
 local teamSideTwo = "cortex"
@@ -972,6 +967,18 @@ function widget:Initialize()
     SortList()
 
     WG['advplayerlist_api'] = {}
+	WG['advplayerlist_api'].GetAlwaysHideSpecs = function()
+		return alwaysHideSpecs
+	end
+	WG['advplayerlist_api'].SetAlwaysHideSpecs = function(value)
+		alwaysHideSpecs = value
+		if alwaysHideSpecs and specListShow then
+			specListShow = false
+			SetModulesPositionX() --why?
+			SortList()
+			CreateLists()
+		end
+	end
     WG['advplayerlist_api'].GetScale = function()
         return customScale
     end
@@ -1149,7 +1156,6 @@ function SetSidePics()
 end
 
 function GetAllPlayers()
-    local tplayerCount = 0
     local allteams = Spring_GetTeamList()
     teamN = table.maxn(allteams) - 1 --remove gaia
     for i = 0, teamN - 1 do
@@ -1157,16 +1163,6 @@ function GetAllPlayers()
         player[i + 64] = CreatePlayerFromTeam(i)
         for _, playerID in ipairs(teamPlayers) do
             player[playerID] = CreatePlayer(playerID)
-            tplayerCount = tplayerCount + 1
-        end
-
-        local isAiTeam = select(4, Spring.GetTeamInfo(teamN, false))
-        local luaAI = (Spring.GetTeamLuaAI(teamN) ~= "")
-        if not (isAiTeam or (luaAI ~= nil and luaAI ~= '')) then
-            if tplayerCount > 0 then
-                playerSpecs[i] = true -- (this isnt correct when team consists of only AI)
-            end
-            tplayerCount = 0
         end
     end
     local specPlayers = Spring_GetTeamList()
@@ -1604,12 +1600,14 @@ function SortPlayers(teamID, allyTeamID, vOffset)
 
     -- add AI teams
     if select(4, Spring_GetTeamInfo(teamID, false)) then
-        -- is AI
-        vOffset = vOffset + playerOffset
-        drawListOffset[#drawListOffset + 1] = vOffset
-        drawList[#drawList + 1] = 64 + teamID -- new AI team (instead of players)
-        player[64 + teamID].posY = vOffset
-        noPlayer = false
+        if enemyListShow or player[64 + teamID].allyteam == myAllyTeamID then
+            -- is AI
+            vOffset = vOffset + playerOffset
+            drawListOffset[#drawListOffset + 1] = vOffset
+            drawList[#drawList + 1] = 64 + teamID -- new AI team (instead of players)
+            player[64 + teamID].posY = vOffset
+            noPlayer = false
+        end
     end
 
     -- add no player token if no player found in this team at this point
@@ -1690,24 +1688,23 @@ function widget:DrawScreen()
     end
 
     local mouseX, mouseY, mouseButtonL = Spring_GetMouseState()
+
     -- update lists frequently if there is mouse interaction
-    local NeedUpdate = false
-    local CurGameFrame = Spring_GetGameFrame()
-
-    if mouseX > widgetPosX + m_name.posX + m_name.width - 5 and mouseX < widgetPosX + widgetWidth and mouseY > widgetPosY - 16 and mouseY < widgetPosY + widgetHeight then
-        local DrawFrame = Spring_GetDrawFrame()
-        if PrevGameFrame == nil then
-            PrevGameFrame = CurGameFrame
-        end
-        if DrawFrame % 5 == 0 or CurGameFrame > PrevGameFrame + 1 then
-            NeedUpdate = true
-        end
-    end
-
-    if NeedUpdate then
-        CreateLists()
-        PrevGameFrame = CurGameFrame
-    end
+    --local NeedUpdate = false
+    --local CurGameFrame = Spring_GetGameFrame()
+    --if mouseX > widgetPosX + m_name.posX + m_name.width - 5 and mouseX < widgetPosX + widgetWidth and mouseY > widgetPosY - 16 and mouseY < widgetPosY + widgetHeight then
+    --    local DrawFrame = Spring_GetDrawFrame()
+    --    if PrevGameFrame == nil then
+    --        PrevGameFrame = CurGameFrame
+    --    end
+    --    if DrawFrame % 5 == 0 or CurGameFrame > PrevGameFrame + 1 then
+    --        NeedUpdate = true
+    --    end
+    --end
+    --if NeedUpdate then
+    --    CreateLists()
+    --    PrevGameFrame = CurGameFrame
+    --end
 
     -- draws the background
     if Background then
@@ -1927,17 +1924,26 @@ end
 function CreateMainList()
     numberOfSpecs = 0
     numberOfEnemies = 0
-    local pList = Spring_GetPlayerList()
     local active, spec
-    for _, playerID in ipairs(pList) do
+    local playerList = Spring_GetPlayerList()
+    for _, playerID in ipairs(playerList) do
         _, active, spec = Spring_GetPlayerInfo(playerID)
-        if active then
-            if spec then
-                numberOfSpecs = numberOfSpecs + 1
-            elseif player[playerID].allyteam ~= myAllyTeamID then
-                numberOfEnemies = numberOfEnemies + 1
+        if active and spec then
+            numberOfSpecs = numberOfSpecs + 1
+        end
+    end
+    local playerID, isAiTeam, allyTeamID
+    local teamList = Spring_GetTeamList()
+    for i = 1, #teamList do
+        local teamID = teamList[i]
+        if teamID ~= gaiaTeamID then
+            _, playerID, _, isAiTeam, _, allyTeamID = Spring_GetTeamInfo(teamID, false)
+            _, active = Spring_GetPlayerInfo(playerID)
+            if active or isAiTeam then
+                if allyTeamID ~= myAllyTeamID then
+                    numberOfEnemies = numberOfEnemies + 1
+                end
             end
-
         end
     end
 
@@ -2037,6 +2043,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
     --if hideDeadTeams and player[playerID].dead then --and not player[playerID].totake then   -- totake is still active when teammates
     --    return
     --end
+
+    player[playerID].posY = vOffset
 
     tipY = nil
     local rank = player[playerID].rank
@@ -2174,12 +2182,6 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
     else
         -- spectator
         if specListShow and m_name.active then
-
-            if playerSpecs[playerID] ~= nil and (lockPlayerID ~= nil and lockPlayerID ~= playerID or lockPlayerID == nil) then
-                if recentBroadcasters[playerID] ~= nil and type(recentBroadcasters[playerID]) == "number" then
-                    DrawCamera(posY, false)
-                end
-            end
             DrawSmallName(name, team, posY, false, playerID, alpha)
         end
     end
@@ -2367,7 +2369,6 @@ function DrawSidePic(team, playerID, posY, leader, dark, ai)
 end
 
 function DrawRank(rank, posY)
-    gl_Color(1, 1, 1, 1)
     if rank == 0 then
         DrawRankImage(pics["rank0"], posY)
     elseif rank == 1 then
@@ -2564,9 +2565,6 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
     end
 
     local ignored = WG.ignoredPlayers and WG.ignoredPlayers[name]
-    if originalColourNames[playerID] then
-        name = originalColourNames[playerID] .. name
-    end
 
     local textindent = 4
     local explayerindent = -3
@@ -2574,26 +2572,14 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
         textindent = 0
     end
 
-    font2:Begin()
-    if playerSpecs[playerID] ~= nil then
-        local r,g,b = Spring_GetTeamColor(team)
-        if dark then
-            font2:SetTextColor(r, g, b, 1)
-            font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.75, 0.7 * widgetScale))
-            font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
-        else
-            font2:SetTextColor(r, g, b, 0.78)
-            font2:SetOutlineColor(0, 0, 0, 0.3)
-            font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
-        end
-    else
-        font2:SetTextColor(0, 0, 0, 0.3)
-        font2:SetOutlineColor(0, 0, 0, 0.3)
-        font2:Print(name, m_name.posX + textindent + widgetPosX + 2.2, posY + 3.3, 10, "n")
-        font2:Print(name, m_name.posX + textindent + widgetPosX + 3.8, posY + 3.3, 10, "n")
-        font2:SetTextColor(1, 1, 1, alpha)
-        font2:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + 4, 10, "n")
+    if originalColourNames[playerID] then
+        name = originalColourNames[playerID] .. name
     end
+
+    font2:Begin()
+    font2:SetOutlineColor(0, 0, 0, 0.3)
+    font2:SetTextColor(1, 1, 1, alpha)
+    font2:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + 4, 10, "n")
     font2:End()
 
     if ignored then
@@ -2999,6 +2985,7 @@ function widget:MousePress(x, y, button)
                                     end
                                 end
                                 CreateMainList()
+                                return true
                             end
                         end
 
@@ -3231,9 +3218,9 @@ end
 --  Save/load
 ---------------------------------------------------------------------------------------------------
 
-function widget:GetConfigData(data)
+function widget:GetConfigData()
     -- save
-    if m_side ~= nil then
+    if m_name ~= nil then
         local m_active_Table = {}
         for n, module in pairs(modules) do
             m_active_Table[module.name] = module.active
@@ -3266,6 +3253,8 @@ function widget:GetConfigData(data)
             lockcameraLos = lockcameraLos,
             hasresetskill = true,
             absoluteResbarValues = absoluteResbarValues,
+            originalColourNames = originalColourNames,
+
         }
 
         return settings
@@ -3276,6 +3265,7 @@ local dataversion = 1
 function widget:SetConfigData(data)
     -- load
     if data.widgetVersion ~= nil and widgetVersion == data.widgetVersion then
+
         if data.customScale ~= nil then
             customScale = data.customScale
         end
@@ -3312,7 +3302,6 @@ function widget:SetConfigData(data)
         if data.expandDown ~= nil and data.widgetRight ~= nil then
             expandDown = data.expandDown
             expandLeft = data.expandLeft
-            specListShow = data.specListShow
             local oldvsx = data.vsx
             local oldvsy = data.vsy
             if oldvsx == nil then
@@ -3340,23 +3329,29 @@ function widget:SetConfigData(data)
             end
         end
 
-        if data.lockPlayerID ~= nil and Spring.GetGameFrame() > 0 then
-            lockPlayerID = data.lockPlayerID
-            if lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID), false) then
-                if not lockcameraHideEnemies then
-                    if not fullView then
-                        Spring.SendCommands("specfullview")
-                        if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode() == "los" then
-                            desiredLosmode = 'normal'
-                            desiredLosmodeChanged = os.clock()
+        if Spring.GetGameFrame() > 0 then
+            if data.originalColourNames then
+                originalColourNames = data.originalColourNames
+            end
+
+            if data.lockPlayerID ~= nil then
+                lockPlayerID = data.lockPlayerID
+                if lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID), false) then
+                    if not lockcameraHideEnemies then
+                        if not fullView then
+                            Spring.SendCommands("specfullview")
+                            if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode() == "los" then
+                                desiredLosmode = 'normal'
+                                desiredLosmodeChanged = os.clock()
+                            end
                         end
-                    end
-                else
-                    if fullView then
-                        Spring.SendCommands("specfullview")
-                        if lockcameraLos and mySpecStatus then
-                            desiredLosmode = 'los'
-                            desiredLosmodeChanged = os.clock()
+                    else
+                        if fullView then
+                            Spring.SendCommands("specfullview")
+                            if lockcameraLos and mySpecStatus then
+                                desiredLosmode = 'los'
+                                desiredLosmodeChanged = os.clock()
+                            end
                         end
                     end
                 end
@@ -3560,20 +3555,6 @@ function widget:Update(delta)
         Spring.SetMouseCursor('cursornormal')
     end
 
-    uiOpacitySec = uiOpacitySec + delta
-    if uiOpacitySec > 0.5 then
-        uiOpacitySec = 0
-        if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-            ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-            widget:ViewResize()
-        end
-        uiOpacitySec = 0
-        if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.66) then
-            ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.66)
-            CreateBackground()
-        end
-    end
-
     totalTime = totalTime + delta
     timeCounter = timeCounter + delta
     curFrame = Spring_GetGameFrame()
@@ -3667,7 +3648,7 @@ function updateWidgetScale()
         customScale = 0.65
     end
     widgetScale = (vsy / 980) * (1 + ((vsx / vsy) * 0.065)) * customScale
-    widgetScale = widgetScale * (1 + (ui_scale - 1) / 1.25)
+    widgetScale = widgetScale * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
 
     widgetPosX = vsx - (widgetWidth * widgetScale) - bgpadding
     widgetRight = vsx - bgpadding
@@ -3713,8 +3694,10 @@ function widget:TextCommand(command)
         if string.sub(command, 10, 10) ~= '' then
             if string.sub(command, 10, 10) == '0' then
                 specListShow = false
+				alwaysHideSpecs = true
             elseif string.sub(command, 10, 10) == '1' then
                 specListShow = true
+				alwaysHideSpecs = false
             end
         else
             specListShow = not specListShow

@@ -12,7 +12,7 @@ return {
 		"corthud",
 		"corstorm",
 		"corcrash",
-		"corkark",
+		"legkark",
 		"leggob",
 		"legbal",
 		"legcen",
@@ -171,6 +171,7 @@ return {
 		"corshiva",
 		"corkarg",
 		"corcat",
+		"legpede",
 
 		-- Vehicles
 		"armthor_scav",
@@ -216,7 +217,6 @@ return {
 		"corjugg",
 		"armbanth",
 		"armthor",
-		"legpede",
 
 		-- Superboss
 		"armpwt4",

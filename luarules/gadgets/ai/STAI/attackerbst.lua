@@ -9,13 +9,13 @@ function AttackerBST:Name()
 	return "AttackerBST"
 end
 
-AttackerBST.DebugEnabled = false
-
 function AttackerBST:Init()
+	self.DebugEnabled = false
 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.network = network
 	self.name = self.unit:Internal():Name()
+	self.defID = self.ai.armyhst.unitTable[self.name].defId
 	local ut = self.ai.armyhst.unitTable[self.name]
 	self.level = ut.techLevel - 1
 	if self.level == 0 then self.level = 0.5 elseif self.level < 0 then self.level = 0.25 end
@@ -34,6 +34,7 @@ function AttackerBST:Init()
 	end
 	self.speed = ut.speed
 	self.threat = ut.metalCost
+	self.mass = ut.metalCost
 end
 
 function AttackerBST:OwnerBuilt()
@@ -49,20 +50,19 @@ function AttackerBST:OwnerDead()
 	self.attacking = nil
 	self.active = nil
 	self.unit = nil
-	--self.ai.attackhst:NeedMore(self)
 	self.ai.attackhst:RemoveRecruit(self)
 	self.ai.attackhst:RemoveMember(self)
 end
 
 function AttackerBST:OwnerIdle()
 	self.idle = true
-	self.timeout = nil
 	if self.active then
 		self.ai.attackhst:MemberIdle(self)
 	end
 end
 
-function AttackerBST:OwnerMoveFailed()
+function AttackerBST:OwnerMoveFailed(unit)
+	self:Warn('OWNER MOVE FAILED')
 	self:OwnerIdle()
 end
 
@@ -87,13 +87,8 @@ function AttackerBST:Deactivate()
 end
 
 function AttackerBST:Update()
-	 --self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'AttackerBST' then return end
-	--if f - self.uFrame < self.ai.behUp['attackerbst']  then
-	--	return
-	--end
-	--self.uFrame = f
 	if not self.active and self.squad and self.target then
 		self.unit:ElectBehaviour()
 	end
@@ -105,25 +100,21 @@ function AttackerBST:Update()
 			self.damaged = nil
 		end
 	end
-	if self.timeout then
-		if f >= self.timeout	then
-			self.game:SendToConsole("timeout triggered")
-			self.timeout = nil
-			-- self.ai.attackhst:RemoveMember(self)
-			self.ai.attackhst:AddRecruit(self)
-		end
-	end
 	if self.active and not self.movestateSet then
 		self:SetMoveState()
 	end
 	if self.active and self.needToMoveToTarget then
 		self.needToMoveToTarget = false
-		--self.unit:Internal():Move(self.target)
 		self.unit:Internal():AttackMove(self.target) --need to check this
 
 	end
 end
 
+function AttackerBST:MoveRandom(pos,dist)
+	local away = self.ai.tool:RandomAway(pos, dist)
+	if not self.unit then return end
+	self.unit:Internal():AttackMove(away)
+end
 function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	self.idle = false
 	self.attacking = true
@@ -139,8 +130,8 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 		self:EchoDebug('adv drit')
 		self.target = self.ai.tool:RandomAway( pos, self.formationDist, nil, perpendicularAttackAngle)
 	end
-	local canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
-
+	--local canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
+	local canMoveThere = Spring.TestMoveOrder(self.defID, self.target.x, self.target.y, self.target.z,nil,nil,nil,true,true,true)--TEST
 	if canMoveThere and self.squad then
 		self:EchoDebug('adv', canMoveThere)
 		self.squad.lastValidMove = self.target
@@ -152,11 +143,7 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	self:EchoDebug('adv',self.attacking,self.active,self.target.x,self.target.z)
 	if self.active and canMoveThere then
 		self:EchoDebug('adv move',self.target.x,self.target.z)
-		-- local framesToArrive = 30 * (self.ai.tool:Distance(self.unit:Internal():GetPosition(), self.target) / self.speed) * 2
-		-- game:SendToConsole("frames to arrive", framesToArrive)
-		-- self.timeout = self.game:Frame() + framesToArrive
-		self.unit:Internal():AttackMove(self.target) --need to check this
-		--self.unit:Internal():Move(self.target)
+		self.unit:Internal():Move(self.target) --need to check this
 	end
 	return canMoveThere
 end
@@ -165,13 +152,11 @@ function AttackerBST:Free()
 	self.attacking = false
 	self.target = nil
 	self.idle = nil
-	self.timeout = nil
 	if self.squad and self.squad.disbanding then
 		self.squad = nil
 	else
 		self.ai.attackhst:RemoveMember(self)
 	end
-	-- self.squad = nil
 	self.unit:ElectBehaviour()
 end
 
@@ -180,14 +165,6 @@ function AttackerBST:SetMoveState()
 	self.movestateSet = true
 	local thisUnit = self.unit
 	if thisUnit then
-		local unitName = self.name
-		if self.ai.armyhst.battles[unitName] then
-			thisUnit:Internal():HoldPosition()
-		elseif self.ai.armyhst.breaks[unitName] then
-			thisUnit:Internal():HoldPosition()
-		else
-			thisUnit:Internal():HoldPosition()
-		end
-
+		thisUnit:Internal():HoldPosition()
 	end
 end

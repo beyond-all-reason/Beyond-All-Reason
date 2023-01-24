@@ -94,6 +94,10 @@ else
 					if Script.LuaUI("GadgetWeaponExplosionGrass") then
 						Script.LuaUI.GadgetWeaponExplosionGrass(px, py, pz, weaponID, ownerID)
 					end
+					
+					if Script.LuaUI("GadgetWeaponExplosionDecal") then
+						Script.LuaUI.GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
+					end
                 end
             elseif Script.LuaUI("GadgetWeaponExplosion") then
                 -- dont know when this happens and if we should show the explosion...

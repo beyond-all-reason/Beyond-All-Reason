@@ -19,7 +19,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3005,
+		maxdamage = 3350,
 		metalstorage = 200,
 		minwaterdepth = 5,
 		objectname = "Units/ARMFHP.s3o",

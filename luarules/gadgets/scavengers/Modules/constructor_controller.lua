@@ -50,7 +50,7 @@ local function generateMoveOrder(unitID, shift)
 			local posx = pos[1]
 			local posy = pos[2]
 			local posz = pos[3]
-			if positionCheckLibrary.StartboxCheck(posx, posy, posz, 32, ScavengerAllyTeamID) == false then
+			if positionCheckLibrary.StartboxCheck(posx, posy, posz, ScavengerAllyTeamID) == false then
 				if positionCheckLibrary.MapEdgeCheck(posx, posy, posz, 32) == true then
 					Spring.GiveOrderToUnit(unitID, CMD.MOVE, {posx, posy, posz}, {"shift"})
 					break
@@ -184,14 +184,14 @@ local function spawnConstructor(n)
 			spawnBeaconsController.SpawnBeacon(n)
 
 			if scavconfig.constructorControllerModuleConfig.useresurrectors then
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
 
 				if posy > 0 then
 					local resurrector = constructorUnitList.Resurrectors[math.random(#constructorUnitList.Resurrectors)]
@@ -232,7 +232,7 @@ local function spawnConstructor(n)
 			if constructor then
 				constructorTimer = 0
 				spawnQueueLibrary.AddToSpawnQueue(constructor, posx, posy, posz, math.random(0, 3), ScavengerTeamID, n + 150)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math.random(0, 3), ScavengerTeamID)
 			end
 		else
 			constructorTimer = constructorTimer +  math.ceil(n / scavconfig.constructorControllerModuleConfig.constructortimerreductionframes)
@@ -390,7 +390,7 @@ local function constructNewBlueprint(n, unitID)
 		local canConstructHere = positionCheckLibrary.OccupancyCheck(posX, posY, posZ, blueprintRadius+192)
 							 and positionCheckLibrary.FlatAreaCheck(posX, posY, posZ, blueprintRadius)
 							 and positionCheckLibrary.MapEdgeCheck(posX, posY, posZ, blueprintRadius)
-							 and (not positionCheckLibrary.StartboxCheck(posX, posY, posZ, blueprintRadius, ScavengerAllyTeamID) or (not scavconfig.modules.startBoxProtection))
+							 and (not positionCheckLibrary.StartboxCheck(posX, posY, posZ, ScavengerAllyTeamID) or (not scavconfig.modules.startBoxProtection))
 
 		if canConstructHere then
 			buffConstructorBuildSpeed(unitID)

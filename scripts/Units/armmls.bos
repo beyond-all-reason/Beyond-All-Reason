@@ -148,12 +148,14 @@ Deactivate()
 
 StartBuilding(Func_Var_1)
 {
+	show nanoemit;
 	Static_Var_2 = Func_Var_1;
 	start-script RequestState(0);
 }
 
 StopBuilding()
 {
+	hide nanoemit;
 	start-script RequestState(1);
 }
 

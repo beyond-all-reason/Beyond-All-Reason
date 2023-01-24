@@ -14,9 +14,9 @@
 				"factory": {
 					"armlab": [
 						// [<weight>, [<role>, <role>, ...]]
-						[0.3, ["builder", "scout", "scout", "raider", "raider", "builder", "raider", "builder", "raider", "raider", "raider", "raider", "raider", "builder", "raider"]], //raider
-						[0.3, ["builder", "scout", "raider", "builder", "raider", "builder", "builder"]],  //builder
-						[0.4, ["scout", "builder", "raider", "raider", "raider", "builder", "raider", "raider", "builder"]]    //standard
+						[0.4, ["builder", "scout", "scout", "raider", "raider", "builder", "raider", "builder", "raider", "raider", "raider", "raider", "raider", "builder", "raider"]], //raider
+						[0.3, ["builder", "scout", "raider", "builder", "raider", "builder", "builder", "builder", "raider", "raider", "raider", "support", "raider"]],  //builder
+						[0.3, ["scout", "builder", "raider", "raider", "raider", "builder", "raider", "raider", "builder"]]    //standard
                     ],                 
 					"armvp": [
 						[0.4, ["scout", "builder", "raider", "builder", "raider", "builder", "raider", "raider", "raider", "builder", "raider"]], //standard
@@ -55,7 +55,7 @@
 				"time": 420,  // seconds
 				"threat": 8,
 				"air": true,
-				"task_rad": [-1, 800.0]  // [<peace_radius>, <danger_radius>] value -1 for deactivation
+				"task_rad": [2000, 800.0]  // [<peace_radius>, <danger_radius>] value -1 for deactivation was -1, 800
 				},
 
 			"side": "armada"
@@ -109,7 +109,7 @@
 				"time": 240,  // seconds
 				"threat": 7,
 				"air": true,
-				"task_rad": [-1, 1000.0]  // [<peace_radius>, <danger_radius>]
+				"task_rad": [2000, 800.0]  // [<peace_radius>, <danger_radius>] peace radius was -1
 				},
 
 			"side": "cortex"

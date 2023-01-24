@@ -20,7 +20,7 @@ return {
 		maxacc = 0.0575,
 		maxaileron = 0.0144,
 		maxbank = 0.8,
-		maxdamage = 600,
+		maxdamage = 670,
 		maxelevator = 0.01065,
 		maxpitch = 0.625,
 		maxrudder = 0.00615,
@@ -95,7 +95,6 @@ return {
 				craterareaofeffect = 144,
 				edgeeffectiveness = 0.55,
 				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
-				explosionscar = true,
 				gravityaffected = "true",
 				impulseboost = 0.5,
 				impulsefactor = 0.5,
@@ -109,10 +108,6 @@ return {
 				soundstart = "bombrel",
 				sprayangle = 300,
 				weapontype = "AircraftBomb",
-				customparams = {
-					expl_light_color = "1 0.5 0.05",
-					expl_light_heat_radius_mult = 1.3,
-				},
 				damage = {
 					bombers = 21,
 					default = 105,

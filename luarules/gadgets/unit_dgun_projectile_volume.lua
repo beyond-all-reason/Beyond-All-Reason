@@ -23,10 +23,8 @@ local killfriendly = true -- only different allyteams get hit
 
 
 local projectiles = {} -- {owner = proOwnerID, gameframe = Spring.GetGameFrame(), alreadydamaged = {}}
-local commanders = {}
 
 local weapons = {}
-local dgunProjectileWeaponID
 for weaponID, weaponDef in pairs(WeaponDefs) do
     if weaponDef.type == 'DGun' and weaponDef.damages  then -- to filter out decoy comm -- and weaponDef.damage.default > 5000
 		for _, v in pairs(weaponDef.damages) do
@@ -35,22 +33,15 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 			end
 		end
     end
-	if weaponDef.name == 'dgun_projectile' then
-		dgunProjectileWeaponID = weaponID
-	end
+end
+
+local dgunProjectileWeaponID
+if WeaponDefNames['armcom_disintegrator'] then
+	dgunProjectileWeaponID = WeaponDefNames['armcom_disintegrator'].id
 end
 if not dgunProjectileWeaponID then
 	Spring.Echo('Dgun projectile volume: -=== dgun projectile weapon not found ===-')
 	return
-end
-
-local isCommander = {} -- all dgun type weapon wield units are considered commanders, including decoys and scavbosses
-
-
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
-		isCommander[unitDefID] = true
-	end
 end
 
 
@@ -58,30 +49,13 @@ function gadget:Initialize()
     for weaponDefID,_ in pairs(weapons) do
         Script.SetWatchProjectile(weaponDefID, true)
     end
-	local units = Spring.GetAllUnits()
-	for i = 1, #units do
-		local unitID = units[i]
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
-	end
-end
-
-function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	if isCommander[unitDefID] then
-		commanders[unitID] = true
-	end
-end
-
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if isCommander[unitDefID] then
-		commanders[unitID] = nil
-	end
 end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
     if weapons[weaponDefID] then
         local ownerallyteam = Spring.GetUnitAllyTeam(proOwnerID)
         local x,y,z = Spring.GetProjectilePosition(proID)
-        projectiles[proID] = {owner = proOwnerID, gameframe = Spring.GetGameFrame(), alreadydamaged = {}, ownerallyteam = ownerallyteam, startx = x, starty = y , startz = z}
+        projectiles[proID] = {owner = proOwnerID, gameframe = Spring.GetGameFrame(), alreadydamaged = {}, ownerallyteam = ownerallyteam, startx = x, starty = y , startz = z, unitID = proOwnerID}
     end
 end
 
@@ -103,13 +77,13 @@ function gadget:GameFrame(gf)
 			local x,y,z = Spring.GetProjectilePosition(projectileID)
 			-- find commander that fired it so it can become immune to its damage
 			local units = Spring.GetUnitsInSphere(x,y,z, 80)	-- set a little wider than needed to be sure its sufficient for all dgun angles
-			-- seems that one can find my (-2), ally (-3), and enemy ( -4) units too with 5th param to GetUnitsInSphere! (but probably abad idea in synced!
+			-- seems that one can find my (-2), ally (-3), and enemy ( -4) units too with 5th param to GetUnitsInSphere! (but probably a bad idea in synced!
 			for i, unitID in pairs(units) do
 				local ux, uy, uz = Spring.GetUnitPosition(unitID, true) -- get mid pos
 				local radius = Spring.GetUnitRadius(unitID) + additionalradius
 
 				-- order by likelyhood
-				if commanders[unitID] == nil
+				if projectile.unitID ~= unitID
 					and (killfriendly or Spring.GetUnitAllyTeam(unitID) ~= projectile.ownerallyteam) -- dont kill friendlies
 					and projectile.alreadydamaged[unitID] == nil  -- only once per unit
 					and distancesq(x,y,z,ux,uy,uz) < radius * radius   -- its inside the units radius

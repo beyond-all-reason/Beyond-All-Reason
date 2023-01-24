@@ -65,7 +65,7 @@ local function addUnitShape(unitID)
 				a = a * teamColorAlphaMult
 			end
 		end
-		unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r,g,b, a, minEdgeAlpha+(highlightAlpha*2), edgeExponent)
+		unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r,g,b, a, minEdgeAlpha+(highlightAlpha*2), edgeExponent,0,0,0,0,0,"selected") 
 		return unitshapes[unitID]
 	end
 end

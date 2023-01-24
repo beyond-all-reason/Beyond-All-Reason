@@ -22,7 +22,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 6500,
+		maxdamage = 7200,
 		maxvelocity = 1.11,
 		minwaterdepth = 12,
 		movementclass = "EPICSHIP",
@@ -143,9 +143,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1150,
-				customparams = {
-					expl_light_heat_radius_mult = 4,
-				},
 				damage = {
 					default = 2000,
 					shields = 1000,

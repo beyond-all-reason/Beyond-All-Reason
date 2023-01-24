@@ -30,8 +30,6 @@ deactivatescr()
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
@@ -93,6 +91,7 @@ Deactivate()
 
 StartBuilding()
 {
+	show nano;
 	turn support to x-axis <-90> speed <90>;
 	turn beam to x-axis <135> speed <135>;
 	turn door1 to z-axis <-130> speed <280>;
@@ -103,6 +102,7 @@ StartBuilding()
 
 StopBuilding()
 {
+	hide nano;
 	turn support to x-axis <0> speed <90>;
 	turn beam to x-axis <0> speed <135>;
 	turn door1 to z-axis <0> speed <280>;

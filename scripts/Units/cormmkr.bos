@@ -6,7 +6,7 @@
 
 #define SIG_ANIM 2
 
-piece  base, cover, converter;
+piece  base, cover, converter, light;
 
 static-var  Active;
 
@@ -15,6 +15,7 @@ MMStatus(State)
 	Active = State;
 	if (Active){
 		hide cover;
+	    show light;
 		show converter;
 		move converter to y-axis [6] speed [12.000000];	
 	}
@@ -23,6 +24,7 @@ MMStatus(State)
 		move converter to y-axis [1] speed [12];
 		wait-for-move converter along y-axis;
 		hide converter;
+	    hide light;
 		show cover;
 	}
 	//get PRINT(get GAME_FRAME, Active);

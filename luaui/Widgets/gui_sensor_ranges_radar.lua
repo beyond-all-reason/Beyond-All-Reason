@@ -123,7 +123,7 @@ void main() {
 
 
 local function goodbye(reason)
-  Spring.Echo("DefenseRange GL4 widget exiting with reason: "..reason)
+  Spring.Echo("Sensor Ranges Radar widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget()
 end
 
@@ -173,12 +173,14 @@ local glLineWidth           = gl.LineWidth
 local glStencilFunc         = gl.StencilFunc
 local glStencilOp           = gl.StencilOp
 local glStencilTest         = gl.StencilTest
-local GL_ALWAYS             = GL.ALWAYS
-local GL_EQUAL              = GL.EQUAL
-local GL_LINE_LOOP          = GL.LINE_LOOP
-local GL_KEEP               = 0x1E00 --GL.KEEP
-local GL_REPLACE            = GL.REPLACE
-local GL_TRIANGLE_FAN       = GL.TRIANGLE_FAN
+local glStencilMask = gl.StencilMask
+local GL_ALWAYS = GL.ALWAYS
+local GL_EQUAL = GL.EQUAL
+local GL_NOTEQUAL = GL.NOTEQUAL
+local GL_LINE_LOOP = GL.LINE_LOOP
+local GL_KEEP = 0x1E00 --GL.KEEP
+local GL_REPLACE = GL.REPLACE
+local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
 
 -- Globals
 local vsx, vsy = Spring.GetViewGeometry()
@@ -342,7 +344,7 @@ function widget:GameFrame(n)
 	end
 end
 
-function widget:DrawWorld()
+function widget:DrawWorldPreUnit()
     if chobbyInterface then return end
     if spec and fullview then return end
     if spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
@@ -351,46 +353,41 @@ function widget:DrawWorld()
 
 	if opacity < 0.01 then return end
 
-	glColorMask(false, false, false, false)
+		glColorMask(false, false, false, false) -- disable color drawing
 	glStencilTest(true)
 	glDepthTest(false)
 
 	gl.Texture(0, "$heightmap")
 	circleShader:Activate()
-	circleShader:SetUniform("circleopacity", opacity)
-
-	-- Draw outer circles into stencil buffer
-		glStencilFunc(GL_ALWAYS, 1, 1) -- Always Passes, 1 Bit Plane, 1 As Mask
-		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
-		glLineWidth(rangeLineWidth + 1.0)
-		circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP,circleInstanceVBO.numVertices,0,circleInstanceVBO.usedElements,0)
-
-	-- Draw inverse inner circles into stencil buffer
-		glStencilFunc(GL_ALWAYS, 0, 0) -- Always Passes, 0 Bit Plane, 0 As Mask
-		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 0 Where Draw Any Polygon
-		circleInstanceVBO.VAO:DrawArrays(GL_TRIANGLE_FAN,circleInstanceVBO.numVertices,0,circleInstanceVBO.usedElements,0)
-
-
-	glColorMask(true, true, true, true)
-
-	glDepthTest(true)
-	glStencilFunc(GL_EQUAL, 1, 1)
-	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
-
-	-- Render outer circles using resulting stencil
-		glColor( rangeColor[1], rangeColor[2], rangeColor[3], rangeColor[4])
-		glLineWidth(rangeLineWidth * lineScale)
-		circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP,circleInstanceVBO.numVertices,0,circleInstanceVBO.usedElements,0)
-
+	circleShader:SetUniform("circleopacity", useteamcolors and opacity*2 or opacity)
+	
+	-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
+	-- Borg_King: Draw solid circles into masking stencil buffer
+	glStencilFunc(GL_NOTEQUAL, 1, 1) -- Always Passes, 0 Bit Plane, 0 As Mask
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
+	glStencilMask(1)
+	
+	circleInstanceVBO.VAO:DrawArrays(GL_TRIANGLE_FAN, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
+	
+	-- Borg_King: Draw thick ring with partial width outside of solid circle, replacing stencil to 0 (draw) where test passes
+	glColorMask(true, true, true, true)	-- re-enable color drawing
+	glStencilFunc(GL_NOTEQUAL, 1, 1)
+	glStencilMask(0)
+	glColor(rangeColor[1], rangeColor[2], rangeColor[3], rangeColor[4])
+	glLineWidth(rangeLineWidth * lineScale * 1.0) 
+	--Spring.Echo("glLineWidth",rangeLineWidth * lineScale * 1.0)
+	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
+	
+	glStencilMask(255) -- enable all bits for future drawing
+	glStencilFunc(GL_ALWAYS, 1, 1) -- reset gl stencilfunc too
+	
 	circleShader:Deactivate()
 	gl.Texture(0, false)
-
 	glStencilTest(false)
-
 	glDepthTest(true)
-	glColor( 1.0, 1.0, 1.0, 1.0 ) --reset like a nice boi
-	glLineWidth( 1.0 )
-	gl.Clear( GL.STENCIL_BUFFER_BIT)
+	glColor(1.0, 1.0, 1.0, 1.0) --reset like a nice boi
+	glLineWidth(1.0)
+	gl.Clear(GL.STENCIL_BUFFER_BIT)
 end
 
 function widget:GetConfigData(data)

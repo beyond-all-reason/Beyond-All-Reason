@@ -21,7 +21,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2500,
+		maxdamage = 2800,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/CORMADSAM.s3o",
@@ -156,12 +156,6 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1250,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.59,
-					expl_light_radius_mult = 1.67,
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 76,
 					fighters = 76,

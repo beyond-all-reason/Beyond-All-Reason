@@ -24,7 +24,7 @@ return {
 		idletime = 90,
 		levelground = false,
 		mass = 165.75,
-		maxdamage = 1800,
+		maxdamage = 2000,
 		maxvelocity = 0,
 		noautofire = false,
 		objectname = "scavs/cube.s3o",
@@ -88,12 +88,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 100,
 				wobble = 50,
-				customparams = {
-					expl_light_color = "0.95 0.78 0",
-					expl_light_life_mult = 2.4,
-					expl_light_mult = 1.4,
-					expl_light_radius_mult = 1.6,
-				},
 				damage = {
 					chicken = 1,
 					default = 1,

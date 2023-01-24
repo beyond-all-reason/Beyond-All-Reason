@@ -74,14 +74,28 @@ Create()
 	hide pad0;
 	hide pad1;
 	hide wake;
-	hide nano2;
 	hide nano1;
+	hide nano2;
 	Static_Var_1 = 0;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
 	}
 	start-script RockOnWaves();
+}
+
+StartBuilding()
+{
+	show nano1;
+	show nano2;
+	return (0);
+}
+
+StopBuilding()
+{
+	hide nano1;
+	hide nano2;
+	return (0);
 }
 
 Activate()

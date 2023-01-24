@@ -18,30 +18,24 @@ local function NearbyCapture(unitID, difficulty, range)
             local buildProgress = select(5, Spring.GetUnitHealth(unitID))
             if buildProgress == 1 then
                 local attackerAllyTeamID = Spring.GetUnitAllyTeam(attackerID)
-                local attackerDefID = Spring.GetUnitDefID(attackerID)
-                local attackerMetalCost = UnitDefs[attackerDefID].metalCost
-                local capturePower = ((attackerMetalCost/1000)*0.01)/difficulty
                 if attackerAllyTeamID == unitAllyTeam then
-                    captureDamage = captureDamage - capturePower
+                    captureDamage = captureDamage - ((UnitDefs[Spring.GetUnitDefID(attackerID)].metalCost/1000)*0.01)/difficulty
                 elseif attackerAllyTeamID ~= GaiaAllyTeamID then
-                    captureDamage = captureDamage + capturePower
+                    captureDamage = captureDamage + ((UnitDefs[Spring.GetUnitDefID(attackerID)].metalCost/1000)*0.01)/difficulty
                 end
             end
         end
     end
     if captureDamage ~= 0 then
-        local captureProgress = select(4, Spring.GetUnitHealth(unitID))
-        Spring.SetUnitHealth(unitID, {capture = captureProgress + captureDamage})
-
-        captureProgress = select(4, Spring.GetUnitHealth(unitID))
+        local captureProgress = select(4, Spring.GetUnitHealth(unitID)) + captureDamage
+        Spring.SetUnitHealth(unitID, {capture = captureProgress})
         if captureProgress < 0 then
             Spring.SetUnitHealth(unitID, {capture = 0})
         elseif captureProgress >= 1 then
             Spring.SetUnitHealth(unitID, {capture = 0})
             local nearestAttacker = Spring.GetUnitNearestEnemy(unitID, range*2, false)
             if nearestAttacker then
-                local attackerTeamID = Spring.GetUnitTeam(nearestAttacker)
-                Spring.TransferUnit(unitID, attackerTeamID, false)
+                Spring.TransferUnit(unitID, Spring.GetUnitTeam(nearestAttacker), false)
             end
         end
     end

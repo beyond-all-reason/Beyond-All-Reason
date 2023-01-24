@@ -10,24 +10,36 @@ function widget:GetInfo()
 	}
 end
 
+Spring.CreateDir("music/custom/loading")
+Spring.CreateDir("music/custom/peace")
+Spring.CreateDir("music/custom/warlow")
+Spring.CreateDir("music/custom/warhigh")
+Spring.CreateDir("music/custom/war")
+Spring.CreateDir("music/custom/bossfight")
+Spring.CreateDir("music/custom/gameover")
+Spring.CreateDir("music/custom/menu")
+
 ----------------------------------------------------------------------
 -- CONFIG
 ----------------------------------------------------------------------
 
-local showGUI = false
-local minSilenceTime = 10
-local maxSilenceTime = 120
-local warLowLevel = 1500
-local warHighLevel = 30000
+local showGUI = true
+local minSilenceTime = 60
+local maxSilenceTime = 300
+local warLowLevel = 1000
+local warHighLevel = 20000
+local warMeterResetTime = 30 -- seconds
+local interruptionMinimumTime = 20 -- seconds
+local interruptionMaximumTime = 40 -- seconds
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
-
-local specMultiplier = #Spring.GetAllyTeamList() - 1
 
 local function applySpectatorThresholds()
-	warLowLevel = 1500*specMultiplier
-	warHighLevel = 30000*specMultiplier
+	warLowLevel = warLowLevel*2
+	warHighLevel = warHighLevel*2
+	minSilenceTime = minSilenceTime*2
+	maxSilenceTime = maxSilenceTime*2
 	appliedSpectatorThresholds = true
 	--Spring.Echo("[Music Player] Spectator mode enabled")
 end
@@ -46,6 +58,9 @@ local fadeOutSkipTrack = false
 local interruptionEnabled
 local silenceTimerEnabled
 local deviceLostSafetyCheck = 0
+local interruptionTime = math.random(interruptionMinimumTime, interruptionMaximumTime)
+local gameFrame = 0
+local serverFrame = 0
 local bossHasSpawned = false
 
 local function ReloadMusicPlaylists()
@@ -207,14 +222,16 @@ local currentTrackListString = "intro"
 
 local defaultMusicVolume = 50
 local warMeter = 0
+local warMeterResetTimer = 0
 local gameOver = false
 local playedGameOverTrack = false
 local fadeLevel = 100
 local faderMin = 45 -- range in dB for volume faders, from -faderMin to 0dB
 
 local playedTime, totalTime = Spring.GetSoundStreamTime()
-local appliedSilence = true
-local silenceTimer = math.random(minSilenceTime,maxSilenceTime)
+local prevPlayedTime = playedTime
+
+local silenceTimer = math.random(minSilenceTime, maxSilenceTime)
 
 local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 20)	-- user value, cause actual volume will change during fadein/outc
 local volume = Spring.GetConfigInt("snd_volmaster", 100)
@@ -228,19 +245,16 @@ local widgetScale = 1
 local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 local borderPadding = bgpadding
-local uiOpacitySec = 0
 
 local vsx, vsy = Spring.GetViewGeometry()
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.6) or 0.6)
 
---local playing = (Spring.GetConfigInt('music', 1) == 1)
-local playing = true
+local playing = (Spring.GetConfigInt('music', 1) == 1)
 local shutdown
-local guishaderEnabled = (WG['guishader'] ~= nil)
 
 local playTex	= ":l:"..LUAUI_DIRNAME.."Images/music/play.png"
 local pauseTex	= ":l:"..LUAUI_DIRNAME.."Images/music/pause.png"
+local nextTex	= ":l:"..LUAUI_DIRNAME.."Images/music/next.png"
 local musicTex	= ":l:"..LUAUI_DIRNAME.."Images/music/music.png"
 local volumeTex	= ":l:"..LUAUI_DIRNAME.."Images/music/volume.png"
 
@@ -325,16 +339,36 @@ local function getSliderWidth()
 	return math.floor((4.5 * widgetScale)+0.5)
 end
 
+local function capitalize(text)
+	local str = ''
+	local upperNext = true
+	local char = ''
+	for i=1, string.len(text) do
+		char = string.sub(text, i,i)
+		if upperNext then
+			str = str..string.upper(char)
+			upperNext = false
+		else
+			str = str..char
+		end
+		if char == ' ' then
+			upperNext = true
+		end
+	end
+	return str
+end
+
 local function createList()
 	local trackname
 	local padding = math.floor(2.75 * widgetScale) -- button background margin
 	local padding2 = math.floor(2.5 * widgetScale) -- inner icon padding
 	local volumeWidth = math.floor(50 * widgetScale)
 	local heightoffset = -math.floor(0.9 * widgetScale)
-	--buttons['playpause'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
+	buttons['playpause'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
+	buttons['next'] = {buttons['playpause'][3]+padding, bottom+padding+heightoffset, buttons['playpause'][3]+((widgetHeight*widgetScale)-padding), top-padding+heightoffset}
 
-	--buttons['musicvolumeicon'] = {buttons['playpause'][3]+padding+padding, bottom+padding+heightoffset, buttons['playpause'][3]+((widgetHeight * widgetScale)), top-padding+heightoffset}
-	buttons['musicvolumeicon'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
+	buttons['musicvolumeicon'] = {buttons['next'][3]+padding+padding, bottom+padding+heightoffset, buttons['next'][3]+((widgetHeight * widgetScale)), top-padding+heightoffset}
+	--buttons['musicvolumeicon'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
 	buttons['musicvolume'] = {buttons['musicvolumeicon'][3]+padding, bottom+padding+heightoffset, buttons['musicvolumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
 	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (getVolumePos(maxMusicVolume/100))
 
@@ -343,7 +377,7 @@ local function createList()
 	buttons['volume'][5] = buttons['volume'][1] + (buttons['volume'][3] - buttons['volume'][1]) * (getVolumePos(volume/200))
 
 	local textsize = 11 * widgetScale
-	local textXPadding = 7 * widgetScale
+	local textXPadding = 10 * widgetScale
 	--local maxTextWidth = right-buttons['playpause'][3]-textXPadding-textXPadding
 	local maxTextWidth = right-textXPadding-textXPadding
 
@@ -371,13 +405,18 @@ local function createList()
 		end
 	end)
 	drawlist[2] = glCreateList( function()
-		local button = 'musicvolumeicon'
+		local button = 'playpause'
 		glColor(0.88,0.88,0.88,0.9)
 		if playing then
 			glTexture(pauseTex)
 		else
 			glTexture(playTex)
 		end
+		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+
+		button = 'next'
+		glColor(0.88,0.88,0.88,0.9)
+		glTexture(nextTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 	end)
 	drawlist[3] = glCreateList( function()
@@ -397,7 +436,17 @@ local function createList()
 				text = text..c
 			end
 		end
-		trackname = text
+		trackname = capitalize(text)
+
+		local button = 'playpause'
+		glColor(0.8,0.8,0.8,0.9)
+		glTexture(musicTex)
+		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+		glTexture(false)
+
+		font:Begin()
+		font:Print('\255\235\235\235'..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+		font:End()
 	end)
 	drawlist[4] = glCreateList( function()
 
@@ -453,8 +502,10 @@ local function updatePosition(force)
 end
 
 function widget:Initialize()
+	if Spring.GetGameFrame() == 0 and Spring.GetConfigInt('music_loadscreen', 1) == 1 then
+		currentTrack = Spring.GetConfigString('music_loadscreen_track', '')
+	end
 	ReloadMusicPlaylists()
-	appliedSilence = true
 	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 	widget:ViewResize()
 	--Spring.StopSoundStream() -- only for testing purposes
@@ -500,7 +551,11 @@ function widget:Initialize()
 		end
 		return tracksConfig
 	end
-	WG['music'].RefreshTrackList = function ()
+	WG['music'].RefreshSettings = function()
+		interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
+		silenceTimerEnabled 			= Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
+	end
+	WG['music'].RefreshTrackList = function()
 		Spring.StopSoundStream()
 		ReloadMusicPlaylists()
 		PlayNewTrack()
@@ -594,13 +649,16 @@ local function mouseEvent(x, y, button, release)
 			draggingSlider = nil
 		end
 		if button == 1 and not release and math_isInRect(x, y, left, bottom, right, top) then
-			-- if buttons['playpause'] ~= nil and math_isInRect(x, y, buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]) then
-			-- 	playing = not playing
-			-- 	Spring.SetConfigInt('music', (playing and 1 or 0))
-			-- 	Spring.PauseSoundStream()
-			-- 	createList()
-			-- 	return true
-			-- end
+			if buttons['playpause'] ~= nil and math_isInRect(x, y, buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]) then
+				playing = not playing
+				Spring.SetConfigInt('music', (playing and 1 or 0))
+				Spring.PauseSoundStream()
+				createList()
+			elseif buttons['next'] ~= nil and math_isInRect(x, y, buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]) then
+				playing = true
+				Spring.SetConfigInt('music', (playing and 1 or 0))
+				PlayNewTrack()
+			end
 			return true
 		end
 	end
@@ -618,14 +676,30 @@ function widget:MouseRelease(x, y, button)
 	return mouseEvent(x, y, button, true)
 end
 
+local playingInit = false
 function widget:Update(dt)
 	local frame = Spring.GetGameFrame()
 	local _,_,paused = Spring.GetGameSpeed()
+
+	playedTime, totalTime = Spring.GetSoundStreamTime()
+	if not playingInit then
+		playingInit = true
+		if playedTime ~= prevPlayedTime then
+			if not playing then
+				playing = true
+				createList()
+			end
+		else
+			if playing then
+				playing = false
+				createList()
+			end
+		end
+	end
+	prevPlayedTime = playedTime
+
 	if playing and (paused or frame < 1) then
-		local playedTime, totalTime = Spring.GetSoundStreamTime()
 		if totalTime == 0 then
-			silenceTimer = 0
-			warMeter = 0
 			PlayNewTrack(true)
 		end
 	end
@@ -642,20 +716,6 @@ function widget:Update(dt)
 		if volume ~= curVolume then
 			volume = curVolume
 			doCreateList = true
-		end
-		uiOpacitySec = uiOpacitySec + dt
-		if uiOpacitySec > 0.5 then
-			uiOpacitySec = 0
-			if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
-				ui_scale = Spring.GetConfigFloat("ui_scale",1)
-				widget:ViewResize()
-			end
-			uiOpacitySec = 0
-			if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader'] ~= nil)then
-				ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
-				guishaderEnabled = (WG['guishader'] ~= nil)
-				doCreateList = true
-			end
 		end
 		if doCreateList then
 			createList()
@@ -691,8 +751,12 @@ function widget:DrawScreen()
 	if drawlist[1] ~= nil then
 		glPushMatrix()
 		glCallList(drawlist[1])
-		--glCallList(drawlist[2])
-		glCallList(drawlist[4])
+		if not mouseover and not draggingSlider and playing and volume > 0 and playedTime < totalTime then
+			glCallList(drawlist[3])
+		else
+			glCallList(drawlist[2])
+			glCallList(drawlist[4])
+		end
 		if mouseover then
 
 			-- display play progress
@@ -701,13 +765,17 @@ function widget:DrawScreen()
 				if progressPx < borderPadding * 5 then
 					progressPx = borderPadding * 5
 				end
-				RectRound(left + borderPaddingLeft, bottom + borderPadding - (1.8 * widgetScale), left - borderPaddingRight + progressPx, top - borderPadding, borderPadding * 1.4, 2, 2, 2, 2, { 0.6, 0.6, 0.6, ui_opacity * 0.14 }, { 1, 1, 1, ui_opacity * 0.14 })
+				RectRound(left + borderPaddingLeft, bottom + borderPadding - (1.8 * widgetScale), left - borderPaddingRight + progressPx, top - borderPadding, borderPadding * 1.4, 2, 2, 2, 2, { 0.6, 0.6, 0.6, ui_opacity * 0.15 }, { 1, 1, 1, ui_opacity * 0.15 })
 			end
 
 			local color = { 1, 1, 1, 0.1 }
 			local colorHighlight = { 1, 1, 1, 0.3 }
 			glBlending(GL_SRC_ALPHA, GL_ONE)
 			local button = 'playpause'
+			if buttons[button] ~= nil and math_isInRect(mx, my, buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]) then
+				UiButton(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], 1, 1, 1, 1, 1, 1, 1, 1, 1, mlb and colorHighlight or color)
+			end
+			local button = 'next'
 			if buttons[button] ~= nil and math_isInRect(mx, my, buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]) then
 				UiButton(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], 1, 1, 1, 1, 1, 1, 1, 1, 1, mlb and colorHighlight or color)
 			end
@@ -722,13 +790,15 @@ function widget:DrawScreen()
 end
 
 function PlayNewTrack(paused)
+	if Spring.GetConfigInt('music', 1) ~= 1 then
+		return
+	end
 	if (not paused) and Spring.GetGameFrame() > 1 then
 		deviceLostSafetyCheck = deviceLostSafetyCheck + 1
 	end
 	Spring.StopSoundStream()
-	silenceTimer = 0
-	appliedSilence = false
-	warMeter = warMeter * 0.75
+	fadeOutSkipTrack = false
+	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 
 	if (not gameOver) and Spring.GetGameFrame() > 1 then
 		fadeLevel = 0
@@ -804,6 +874,8 @@ function PlayNewTrack(paused)
 
 	if currentTrack then
 		Spring.PlaySoundStream(currentTrack, 1)
+		playing = true
+		interruptionTime = math.random(interruptionMinimumTime, interruptionMaximumTime)
 		if fadeDirection then
 			setMusicVolume(fadeLevel)
 		else
@@ -816,16 +888,27 @@ end
 
 function widget:UnitDamaged(unitID, unitDefID, _, damage)
 	if damage > 1 then
+		warMeterResetTimer = 0
 		local curHealth, maxHealth = Spring.GetUnitHealth(unitID)
 		if damage > maxHealth then
 			warMeter = math.ceil(warMeter + maxHealth)
 		else
 			warMeter = math.ceil(warMeter + damage)
 		end
+		if totalTime == 0 and silenceTimer >= 0 and damage and damage > 0 then
+			silenceTimer = silenceTimer - damage*0.001
+			--Spring.Echo("silenceTimer: ", silenceTimer)
+		end
 	end
 end
 
+function widget:GameProgress(n)
+	-- happens every 150 frames
+	serverFrame = n
+end
+
 function widget:GameFrame(n)
+	gameFrame = n
 	if n%1800 == 0 then
 		deviceLostSafetyCheck = 0
 	end
@@ -835,12 +918,14 @@ function widget:GameFrame(n)
 	if gameOver and not playedGameOverTrack then
 		getFadeSpeed = getFastFadeSpeed
 		fadeOutSkipTrack = true
-		fadeDirection = -1
+		fadeDirection = -5
 	end
 
 	if n%30 == 15 then
-		if Spring.GetGameRulesParam("BossFightStarted") then
+		if Spring.GetGameRulesParam("BossFightStarted") and Spring.GetGameRulesParam("BossFightStarted") == 1 then
 			bossHasSpawned = true
+		else
+			bossHasSpawned = false
 		end
 		if deviceLostSafetyCheck >= 3 then
 			return
@@ -851,48 +936,53 @@ function widget:GameFrame(n)
 		end
 
 		local musicVolume = getMusicVolume()
-		if musicVolume > 0 then
-			playing = true
-		else
-			playing = false
-			appliedSilence = true
-			silenceTimer = 0
-			Spring.StopSoundStream()
-			return
-		end
-
-		playedTime, totalTime = Spring.GetSoundStreamTime()
+		--if musicVolume > 0 then
+		--	playing = true
+		--else
+		--	playing = false
+		--	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
+		--	--Spring.PauseSoundStream()
+		--	Spring.StopSoundStream()
+		--	return
+		--end
 
 		if warMeter > 0 then
-			warMeter = math.floor(warMeter - (warMeter * 0.02))
+			warMeter = math.floor(warMeter - (warMeter * 0.04))
+			if warMeter > warHighLevel*3 then
+				warMeter = warHighLevel*3
+			end
+			warMeterResetTimer = warMeterResetTimer + 1
+			if warMeterResetTimer > warMeterResetTime then
+				warMeter = 0
+			end
 		end
 
 		if not gameOver then
 			if playedTime > 0 and totalTime > 0 then -- music is playing
 				if not fadeDirection then
 					Spring.SetSoundStreamVolume(musicVolume)
-					if (totalTime < playedTime+11.1) then
-						fadeDirection = -1
-					elseif (bossHasSpawned and currentTrackListString ~= "bossFight")
-					or (currentTrackListString == "intro" and n > 30)
-					or ((currentTrackListString == "peace" and warMeter > warHighLevel * 0.8) and interruptionEnabled) -- Peace in battle times, let's play some WarLow music at 80% of WarHigh threshold
-					or ((currentTrackListString == "warLow" and warMeter > warHighLevel * 3) and interruptionEnabled) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at tripple of WarHigh threshold
-					or (( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.2 ) and interruptionEnabled) then -- War music is playing, but it has been quite peaceful recently. Let's switch to peace music at 20% of WarLow threshold
-						fadeDirection = -1
+					if (bossHasSpawned and currentTrackListString ~= "bossFight") or ((not bossHasSpawned) and currentTrackListString == "bossFight") then
+						fadeDirection = -2
 						fadeOutSkipTrack = true
+					elseif (interruptionEnabled and (playedTime >= interruptionTime) and gameFrame >= serverFrame-300)
+					  and ((currentTrackListString == "intro" and n > 90)
+						or (currentTrackListString == "peace" and warMeter > warLowLevel * 2) -- Peace in battle times, let's play some WarLow music at double of WarLow threshold
+						or (currentTrackListString == "warLow" and warMeter > warHighLevel * 2) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at double of WarHigh threshold
+						or (currentTrackListString == "warHigh" and warMeter <= warHighLevel * 0.5) -- WarHigh music is playing, but it has been quite peaceful recently. Let's switch to WarLow music at 50% of WarHigh threshold
+						or (currentTrackListString == "warLow" and warMeter <= warLowLevel * 0.5 )) then -- WarLow music is playing, but it has been quite peaceful recently. Let's switch to peace music at 50% of WarLow threshold
+							fadeDirection = -2
+							fadeOutSkipTrack = true
+					elseif playedTime >= totalTime - 12 then
+						fadeDirection = -1
 					end
 				end
 			elseif totalTime == 0 then -- there's no music
 				if silenceTimerEnabled and not bossHasSpawned then
-					if warMeter > warHighLevel * 3 and silenceTimer > 1 then
-						silenceTimer = 1
-					elseif appliedSilence and silenceTimer <= 0 then
-						PlayNewTrack()
-					elseif not appliedSilence and silenceTimer <= 0 then
-						silenceTimer = math.random(minSilenceTime,maxSilenceTime)
-						appliedSilence = true
-					elseif appliedSilence and silenceTimer > 0 then
+					--Spring.Echo("silenceTimer: ", silenceTimer)
+					if silenceTimer > 0 then
 						silenceTimer = silenceTimer - 1
+					elseif silenceTimer <= 0 then
+						PlayNewTrack()
 					end
 				else
 					PlayNewTrack()
@@ -919,9 +1009,21 @@ function widget:SetConfigData(data)
 			currentTrack = data.curTrack
 		end
 	end
-	if data.showGUI ~= nil then
-		showGUI = data.showGUI
+	if data.showGUIv2 ~= nil then
+		showGUI = data.showGUIv2
 	end
 end
 
+function widget:UnitCreated(_, _, _, builderID)
+	if builderID and warMeter < warLowLevel and silenceTimer > 0 and totalTime == 0 then
+		--Spring.Echo("silenceTimer: ", silenceTimer)
+		silenceTimer = silenceTimer - 2
+	end
+end
 
+function widget:UnitFinished()
+	if warMeter < warLowLevel and silenceTimer > 0 and totalTime == 0 then
+		--Spring.Echo("silenceTimer: ", silenceTimer)
+		silenceTimer = silenceTimer - 5
+	end
+end

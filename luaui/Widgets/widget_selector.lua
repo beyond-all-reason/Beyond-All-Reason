@@ -332,6 +332,9 @@ function widget:KeyPress(key, mods, isRepeat)
 			WG['topbar'].hideWindows()
 		end
 		show = newShow
+		if show and not (Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI() or Spring.GetConfigInt("widgetselector", 0) == 1) then
+			show = false
+		end
 		return true
 	end
 	if show and key == KEYSYMS.PAGEUP then
@@ -792,6 +795,9 @@ function widget:TextCommand(s)
 	for w in string.gmatch(s, "%S+") do
 		n = n + 1
 		token[n] = w
+	end
+	if s == "widgetselector" then
+		show = not show
 	end
 	if n == 1 and token[1] == "reset" then
 		-- tell the widget handler to reload with a blank config

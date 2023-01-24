@@ -108,11 +108,11 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	hide nano2;
 	hide nano1;
+	hide nano2;
 	hide nano3;
-	hide pad;
 	hide nano4;
+	hide pad;
 	unitviewer = FALSE;
 	spray = base;
 	call-script InitState();
@@ -145,6 +145,22 @@ QueryNanoPiece(piecenum)
 		spray = 0;
 	}
 
+}
+
+StartBuilding()
+{
+	show nano1;
+	show nano2;
+	show nano3;
+	show nano4;
+}
+
+StopBuilding()
+{
+	hide nano1;
+	hide nano2;
+	hide nano3;
+	hide nano4;
 }
 
 Activate()

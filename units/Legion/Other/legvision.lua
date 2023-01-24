@@ -27,7 +27,7 @@ return {
 		maxslope = 24,
 		maxwaterdepth = 0,
 		mincloakdistance = 0,
-		objectname = "Units/scavboss/LEGVISION.s3o",
+		objectname = "Units/LEGVISION.s3o",
 		script = "Units/COREYES.cob",
 		seismicsignature = 0,
 		sightdistance = 300,

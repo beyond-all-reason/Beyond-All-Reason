@@ -1,5 +1,5 @@
 The Code:
-The Spring Engine (which this game runs on) requires that all the code the games use are under the GPL licence. (https://springrts.com)
+The Spring Engine (which this game runs on) requires that all the code the games use are under the GPL v2 licence. (https://springrts.com)
 
 Models, textures, animation:
 Models by Cremuss are released under the CC-BY-SA 4.0 license. 

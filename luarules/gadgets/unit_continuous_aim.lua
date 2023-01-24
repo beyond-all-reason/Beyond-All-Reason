@@ -17,13 +17,13 @@ end
 local convertedUnits = {
 	-- value is reaimtime in frames, engine default is 15
 	--[UnitDefNames.armart.id] = true,
-	--[UnitDefNames.armfav.id] = true,
+	[UnitDefNames.armfav.id] = 3,
 	--[UnitDefNames.armflash.id] = true,
 	--[UnitDefNames.armjanus.id] = true,
 	--[UnitDefNames.armpincer.id] = true,
 	--[UnitDefNames.armsam.id] = true,
 	--[UnitDefNames.armstump.id] = true,
-	[UnitDefNames.armbeamer.id] = 3, 
+	[UnitDefNames.armbeamer.id] = 3,
 	[UnitDefNames.armpw.id] = 2,
 	[UnitDefNames.armpwt4.id] = 2,
 	[UnitDefNames.armflea.id] = 2,
@@ -31,7 +31,7 @@ local convertedUnits = {
 	[UnitDefNames.armham.id] = 2,
 	[UnitDefNames.armwar.id] = 2,
 	[UnitDefNames.armjeth.id] = 2,
-	--[UnitDefNames.corfav.id] = true,
+	[UnitDefNames.corfav.id] = 3,
 	--[UnitDefNames.corgarp.id] = true,
 	--[UnitDefNames.corgator.id] = true,
 	--[UnitDefNames.corlevlr.id] = true,
@@ -42,9 +42,9 @@ local convertedUnits = {
 	[UnitDefNames.corthud.id] = 2,
 	[UnitDefNames.corstorm.id] = 2,
 	[UnitDefNames.corcrash.id] = 5,
-	[UnitDefNames.corkark.id] = 2,
+	[UnitDefNames.legkark.id] = 2,
 	[UnitDefNames.armsnipe.id] = 2,
-	[UnitDefNames.armfido.id] = 2,
+	[UnitDefNames.armfido.id] = 3,
 	[UnitDefNames.armfboy.id] = 2,
 	[UnitDefNames.armfast.id] = 2,
 	[UnitDefNames.armamph.id] = 3,
@@ -61,12 +61,12 @@ local convertedUnits = {
 	--[UnitDefNames.corsumo.id] = true,
 	[UnitDefNames.cortermite.id] = 2,
 	[UnitDefNames.armraz.id] = 2,
-	[UnitDefNames.armmar.id] = 1,
+	[UnitDefNames.armmar.id] = 3,
 	[UnitDefNames.armbanth.id] = 1,
 	[UnitDefNames.corkorg.id] = 1,
 	--[UnitDefNames.corkarg.id] = true,
 	--[UnitDefNames.corjugg.id] = true,
-	[UnitDefNames.armvang.id] = 2,
+	[UnitDefNames.armvang.id] = 3,
 
 	-- the following units get a faster reaimtime to counteract their turret acceleration
 	[UnitDefNames.armflash.id] = 6,
@@ -109,6 +109,10 @@ local convertedUnits = {
 	[UnitDefNames.legbart.id] = 5,
 	[UnitDefNames.legmrv.id] = 5,
 	[UnitDefNames.legsco.id] = 5,
+	[UnitDefNames.legcom.id] = 5,
+	[UnitDefNames.legcomlvl2.id] = 5,
+	[UnitDefNames.legcomlvl3.id] = 5,
+	[UnitDefNames.legcomlvl4.id] = 5,
 }
 
 -- add for scavengers copies

@@ -9,7 +9,7 @@ static-var maxSpeed, animFramesPerKeyframe, bMoving, animSpeed,isDying,gun_1;
 
 // For N:\animations\Chickens\chicken_walk_remaster_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
 #define MOVESCALE 30 //Higher values are bigger, 100 is default
-#define MOVESPEED 3
+#define MOVESPEED 2
 #define animAmplitude 74
 #define LUHAND lupperarm  //define these as the left and right head thingies
 #define RUHAND rupperarm  

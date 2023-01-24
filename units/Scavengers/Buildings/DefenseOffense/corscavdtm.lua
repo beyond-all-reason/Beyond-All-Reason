@@ -20,7 +20,7 @@ return {
 		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
-		maxdamage = 1450,
+		maxdamage = 1610,
 		maxslope = 18,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
@@ -33,6 +33,7 @@ return {
 		stealth = true,
 		turnrate = 0,
 		upright = true,
+		yardmap = "ffff",
 		customparams = {
 			usebuildinggrounddecal = false,
 			buildinggrounddecaltype = "decals/scavdtf_aoplane.dds",
@@ -149,16 +150,6 @@ return {
 				weapontimer = 2.9,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 480,
-				customparams = {
-					expl_light_color = "1 0.5 0.05",
-					expl_light_heat_radius_mult = 2.2,
-					expl_light_life_mult = 1.1,
-					expl_light_mult = 1.1,
-					expl_light_radius_mult = 1.1,
-					light_color = "1 0.6 0.17",
-					light_mult = 2.4,
-					light_radius_mult = 1,
-				},
 				damage = {
 					default = 550,
 					subs = 200,

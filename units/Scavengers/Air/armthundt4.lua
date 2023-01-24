@@ -20,7 +20,7 @@ return {
 		maxacc = 0.032,
 		maxaileron = 0.003,
 		maxbank = 0.33,
-		maxdamage = 15000,
+		maxdamage = 16700,
 		maxelevator = 0.0033,
 		maxpitch = 0.3,
 		maxrudder = 0.0052,
@@ -109,10 +109,6 @@ return {
 				soundstart = "bombrelxl",
 				sprayangle = 4000,
 				weapontype = "AircraftBomb",
-				customparams = {
-					expl_light_color = "1 0.5 0.05",
-					expl_light_heat_radius_mult = 1.3,
-				},
 				damage = {
 					commanders = 300,
 					default = 1800,

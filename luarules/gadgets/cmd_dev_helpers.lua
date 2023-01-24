@@ -128,86 +128,82 @@ if gadgetHandler:IsSyncedCode() then
 			fightertesttotalunitsspawned = fightertesttotalunitsspawned + feedstep
 		end
 	end
-	
+
 	local function SpawnUnitDefsForTeamSynced(teamID, unitDefName)
 		--Spring.GetTeamUnitDefCount ( number teamID, number unitDefID )
-		--return: nil | number count 
+		--return: nil | number count
 		local unitDefID = UnitDefNames[unitDefName].id
-		
-		
+
+
 		local unitcount = Spring.GetTeamUnitDefCount(teamID, unitDefID)
-		
+
 		if (unitcount < maxunits) then
 			local cx = mapcx + placementradius*(getrandom() - 0.5)
 			local cz = mapcz + placementradius*(getrandom()- 0.5)
-			
+
 			local sqrtfeed = math.ceil(math.sqrt(feedstep))
 			local footprint = math.max(UnitDefs[unitDefID].xsize, UnitDefs[unitDefID].zsize)
 			local newUnitIDs = {}
 			local numspawned = 0
 			for x=1,sqrtfeed do
-				for z = 1, sqrtfeed do 
+				for z = 1, sqrtfeed do
 					if numspawned < feedstep then
 						local px = cx + 12 * footprint * x
 						local pz = cz + 12 * footprint * z
 						local py = Spring.GetGroundHeight(px,pz)
 						local unitID = Spring.CreateUnit(unitDefID, px, py, pz, "n", teamID)
-						if unitID then 
-							numspawned = numspawned + 1 
+						if unitID then
+							numspawned = numspawned + 1
 							newUnitIDs[#newUnitIDs + 1] = unitID
 						end
 					end
 				end
 			end
-			
+
 			--Spring.GiveOrderToUnitArray ( table unitArray = { [1] = number unitID, etc... }, number cmdID, table params = {number, etc...}, table options = {"alt", "ctrl", "shift", "right"} )
-			--return: nil | bool true 
+			--return: nil | bool true
 			--CMD.MOVE, { p.x, p.y, p.z }, 0 )
 			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.REPEAT, { 1 }, 0)
-			
+
 			local ncx = mapcx + placementradius*(getrandom() - 0.5)
 			local ncz = mapcz + placementradius*(getrandom() - 0.5)
 			local gh = Spring.GetGroundHeight(ncx,ncz)
 			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, {ncx,gh,ncz}, {"shift"})
-			
+
 			ncx = mapcx + placementradius*(getrandom() - 0.5)
 			ncz = mapcz + placementradius*(getrandom() - 0.5)
 			gh = Spring.GetGroundHeight(ncx,ncz)
 			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, {ncx,gh,ncz}, {"shift"})
-			
+
 			gh = Spring.GetGroundHeight(cx,cz)
 			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, {cx,gh,cz}, {"shift"})
-			
+
 			fightertesttotalunitsspawned = fightertesttotalunitsspawned + numspawned
 		end
 	end
 
 	local debugcommands = nil
 	function gadget:Initialize()
-		if Spring.GetModOptions() and Spring.GetModOptions().debugcommands then 
+		if Spring.GetModOptions() and Spring.GetModOptions().debugcommands then
 			debugcommands = {}
 			local commands = string.split(Spring.GetModOptions().debugcommands, '|')
-			for i,command in ipairs(commands) do 
+			for i,command in ipairs(commands) do
 				local cmdsplit = string.split(command,':')
-				if cmdsplit[1] and cmdsplit[2] and tonumber(cmdsplit[1]) then 
+				if cmdsplit[1] and cmdsplit[2] and tonumber(cmdsplit[1]) then
 					debugcommands[tonumber(cmdsplit[1])] = cmdsplit[2]
 					Spring.Echo("Adding debug command",cmdsplit[1], cmdsplit[2])
 				end
 			end
-			
+
 		end
 		checkStartPlayers()
 		gadgetHandler:AddChatAction('loadmissiles', LoadMissiles, "")
 		gadgetHandler:AddChatAction('halfhealth', HalfHealth, "")
-		
+
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
-			return
-		end
-
-		if not isAuthorized(playerID) then
 			return
 		end
 
@@ -217,6 +213,16 @@ if gadgetHandler:IsSyncedCode() then
 		for word in msg:gmatch("[%-_%w]+") do
 			table.insert(words, word)
 		end
+		
+		if words[1] == 'desync' then
+			Spring.Echo("Synced: Attempting to trigger a /desync")
+			Spring.SendCommands("desync")
+		end
+		
+		if not isAuthorized(playerID) then
+			return
+		end
+		
 		if words[1] == "givecat" then
 			GiveCat(words)
 		elseif words[1] == "xpunits" then
@@ -316,37 +322,37 @@ if gadgetHandler:IsSyncedCode() then
 				keepfeatures))
 		featuredefstoremove = {}
 		for _, udn in ipairs({team1unitDefName,team2unitDefName}) do
-			for _, wreckheap in ipairs({'_dead','_heap'}) do 
-				if FeatureDefNames[udn .. wreckheap] and FeatureDefNames[udn .. wreckheap].id then 
+			for _, wreckheap in ipairs({'_dead','_heap'}) do
+				if FeatureDefNames[udn .. wreckheap] and FeatureDefNames[udn .. wreckheap].id then
 					featuredefstoremove[FeatureDefNames[udn .. wreckheap].id] = true
 					Spring.Echo(udn .. wreckheap)
 				end
 			end
 		end
 	end
-	
-	
+
+
 	local featurestoremove = {}
 	function gadget:FeatureCreated(featureID, allyTeam)
-		if fightertestenabled then 
+		if fightertestenabled then
 			local featureDefID = Spring.GetFeatureDefID(featureID)
-			if featureDefID and featuredefstoremove[featureDefID] then 
-				featurestoremove[featureID] = Spring.GetGameFrame() + keepfeatures 
+			if featureDefID and featuredefstoremove[featureDefID] then
+				featurestoremove[featureID] = Spring.GetGameFrame() + keepfeatures
 			end
 		end
 	end
 
 	function gadget:GameFrame(n)
-		if fightertestenabled then 
+		if fightertestenabled then
 			if (n % 3 == 0)  then
 				SpawnUnitDefsForTeamSynced(0, team1unitDefName)
 				SpawnUnitDefsForTeamSynced(1, team2unitDefName)
 			end
-			
+
 			if (n % 3 == 1)  then
-				for featureID, deathtime in pairs(featurestoremove) do 
-					if deathtime < n then 
-						if Spring.ValidFeatureID(featureID) then 
+				for featureID, deathtime in pairs(featurestoremove) do
+					if deathtime < n then
+						if Spring.ValidFeatureID(featureID) then
 							Spring.DestroyFeature(featureID)
 						end
 						featurestoremove[featureID] = nil
@@ -354,8 +360,8 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		if debugcommands then 
-			if debugcommands[n] then 
+		if debugcommands then
+			if debugcommands[n] then
 				Spring.Echo("Executing debugcommand", debugcommands[n])
 				Spring.SendCommands(debugcommands[n])
 				debugcommands[n] = nil
@@ -376,7 +382,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local arrayWidth = math.ceil(math.sqrt(#giveUnits))
-		local spacing = 120
+		local spacing = 140
 		local n = 0
 		local x, z = ox, oz
 		for _, uDID in ipairs(giveUnits) do
@@ -407,11 +413,11 @@ if gadgetHandler:IsSyncedCode() then
 					Spring.SetUnitExperience(unitID, tonumber(params))
 				end
 			elseif action == 'remove' then
-				Spring.DestroyUnit(unitID, false, true, Spring.GetGaiaTeamID())
+				Spring.DestroyUnit(unitID, false, true)
 			elseif action == 'reclaim' then
 				local teamID = Spring.GetUnitTeam(unitID)
 				local unitDefID = Spring.GetUnitDefID(unitID)
-				Spring.DestroyUnit(unitID, false, true, teamID)		-- this doesnt give back resources in itself
+				Spring.DestroyUnit(unitID, false, true)		-- this doesnt give back resources in itself
 				Spring.AddTeamResource(teamID, 'metal', UnitDefs[unitDefID].metalCost)
 				Spring.AddTeamResource(teamID, 'energy', UnitDefs[unitDefID].energyCost)
 			elseif action == 'wreck' then
@@ -419,7 +425,7 @@ if gadgetHandler:IsSyncedCode() then
 				local x, y, z = Spring.GetUnitPosition(unitID)
 				local heading = Spring.GetUnitHeading(unitID)
 				local unitTeam = Spring.GetUnitTeam(unitID)
-				Spring.DestroyUnit(unitID, false, true, Spring.GetGaiaTeamID())
+				Spring.DestroyUnit(unitID, false, true)
 				if UnitDefs[unitDefID].wreckName and FeatureDefNames[UnitDefs[unitDefID].wreckName] then
 					Spring.CreateFeature(FeatureDefNames[UnitDefs[unitDefID].wreckName].id, x, y, z, heading, unitTeam)
 				end
@@ -511,6 +517,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('clearwrecks', clearWrecks, "") -- /luarules clearwrecks removes all wrecks and heaps from the map
 
 		gadgetHandler:AddChatAction('fightertest', fightertest, "") -- /luarules fightertest unitdefname1 unitdefname2 count
+		gadgetHandler:AddChatAction('desync', desync) -- /luarules fightertest unitdefname1 unitdefname2 count
 	end
 
 	function gadget:Shutdown()
@@ -525,7 +532,9 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('dumpfeatures')
 		gadgetHandler:RemoveChatAction('removeunitdefs')
 		gadgetHandler:RemoveChatAction('clearwrecks')
-		gadgetHandler:RemoveChatAction('fightertest')
+		gadgetHandler:RemoveChatAction('fightertest')		
+		gadgetHandler:RemoveChatAction('desync') -- /luarules fightertest unitdefname1 unitdefname2 count
+
 	end
 
 	function xpUnits(_, line, words, playerID)
@@ -636,6 +645,11 @@ else	-- UNSYNCED
 		Spring.SendLuaRulesMsg(msg)
 	end
 
+	function desync()
+		Spring.Echo("Unsynced: Attempting to trigger a /desync")
+		local msg = PACKET_HEADER .. ':desync'
+		Spring.SendLuaRulesMsg(msg)
+	end
 
 	function spawnceg(_, line, words, playerID)
 		--spawnceg usage:
@@ -669,7 +683,7 @@ else	-- UNSYNCED
 		local techLevels = {}
 
 		local facSuffix = { --ignore t3
-			["veh"] = "vp", ["bot"] = "lab", ["air"] = "ap", ["ship"] = "sy", ["hover"] = "hp" --hover are special case, no t2 fac
+			["veh"] = "vp", ["bot"] = "lab", ["ship"] = "sy", ["hover"] = "hp" --hover are special case, no t2 fac
 		}
 		local techSuffix = {
 			["t1"] = "", ["t2"] = "a" --t3 added later
@@ -729,6 +743,12 @@ else	-- UNSYNCED
 		if string.find(line, "cor") then
 			local Condition = function(ud)
 				return ud.name:sub(1, 3) == "cor" and not string.find(ud.name, '_scav')
+			end
+			Accept[#Accept + 1] = Condition
+		end
+		if string.find(line, "leg") then
+			local Condition = function(ud)
+				return ud.name:sub(1, 3) == "leg" and not string.find(ud.name, '_scav')
 			end
 			Accept[#Accept + 1] = Condition
 		end
@@ -793,6 +813,12 @@ else	-- UNSYNCED
 		if string.find(line, "building") then
 			local Condition = function(ud)
 				return ud.isBuilding
+			end
+			Accept[#Accept + 1] = Condition
+		end
+		if string.find(line, "air") then
+			local Condition = function(ud)
+				return ud.canFly
 			end
 			Accept[#Accept + 1] = Condition
 		end

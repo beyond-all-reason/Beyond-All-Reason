@@ -21,7 +21,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 5100,
-		maxdamage = 295,
+		maxdamage = 330,
 		maxslope = 20,
 		maxwaterdepth = 0,
 		nochasecategory = "ALL",
@@ -155,12 +155,6 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 800,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.59,
-					expl_light_radius_mult = 1.67,
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 115,
 					fighters = 115,

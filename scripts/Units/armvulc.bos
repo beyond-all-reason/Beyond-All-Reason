@@ -4,63 +4,184 @@
 #include "exptype.h"
 
 piece  base, flare, turret, barrel01, barrel02, barrel03, barrel04,
-       housing01, housing02, housing03, housing04, spindle, neck;
+       housing01, housing02, housing03, housing04, spindle, neck, back;
 
-static-var  gun_1;
+static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging, shotcount, shooting;
 
 // Signal definitions
 #define SIG_AIM				2
 
+activatescr()
+{
+	if( TRUE )
+	{
+		move back to z-axis [-6.000000] speed [12.000000];
+		sleep 1500;
+	}
+	return (0);
+}
 
+deactivatescr()
+{
+	if( TRUE )
+	{
+		move back to z-axis [4.000000] speed [4.000000];
+		sleep 100;
+	}
+	return (0);
+}
+
+Go()
+{
+	call-script activatescr();
+	shooting = 1;
+	return (0);
+}
+
+Stop()
+{
+	shooting = 0;
+	sleep 4000;
+	call-script deactivatescr();
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 Create()
 {
 	hide flare;
 	hide flare;
-	gun_1 = flare;
+	//gun_1 = base;
 	spin flare around z-axis speed <250.060440>;
+	restore_delay = 500;
+	call-script InitState();
+	move back to z-axis [4.000000] speed [4.000000];
+	return (0);
+}
+
+lua_UnitScriptLight(lightIndex, count) 
+{
+	return 0;
 }
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+	start-script RequestState(1);
+	return (0);
+}
+
 AimPrimary(heading, pitch)
 {
+	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	turn turret to y-axis heading speed <15.000000>;
 	turn neck to x-axis <0.000000> - pitch speed <6.000000>;
+	//move back to z-axis [-6.000000] speed [8.000000];
 	wait-for-turn turret around y-axis;
 	wait-for-turn neck around x-axis;
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
 FirePrimary()
 {
 	emit-sfx 1024 + 0 from flare;
+	start-script RequestState(1);
+	shooting = 1;
 	
 	if( gun_1 == 1 )
 	{
-		move barrel01 to z-axis [-10.000000] now;
-		move barrel01 to z-axis [0.000000] speed [10.000000];
+		shotcount = shotcount + 1;
+		move barrel01 to z-axis [-15.000000] now;
+		move housing01 to z-axis [-6.000000] now;
+		move spindle to z-axis [-2.000000] now;
+		//move back to z-axis [-6.000000] now;
+		call-script lua_UnitScriptLight(1, shotcount);
+		move barrel01 to z-axis [0.000000] speed [8.000000];
+		move housing01 to z-axis [0.000000] speed [1.500000];
+		move spindle to z-axis [0.000000] speed [11.000000];
+		//move back to z-axis [4.000000] speed [10.000000];
 		turn spindle to z-axis <90.000000> speed <230.000000>;
 	}
 	if( gun_1 == 2 )
 	{
-		move barrel02 to z-axis [-10.000000] now;
-		move barrel02 to z-axis [0.000000] speed [10.000000];
+		shotcount = shotcount + 1;
+		move barrel02 to z-axis [-15.000000] now;
+		move housing02 to z-axis [-6.000000] now;
+		move spindle to z-axis [-2.000000] now;
+		//move back to z-axis [-6.000000] now;
+		call-script lua_UnitScriptLight(2, shotcount);
+		move barrel02 to z-axis [0.000000] speed [8.000000];
+		move housing02 to z-axis [0.000000] speed [1.500000];
+		move spindle to z-axis [0.000000] speed [11.000000];
+		//move back to z-axis [4.000000] speed [10.000000];
 		turn spindle to z-axis <180.000000> speed <230.000000>;
 	}
 	if( gun_1 == 3 )
 	{
-		move barrel03 to z-axis [-10.000000] now;
-		move barrel03 to z-axis [0.000000] speed [10.000000];
+		shotcount = shotcount + 1;
+		move barrel03 to z-axis [-15.000000] now;
+		move housing03 to z-axis [-6.000000] now;
+		move spindle to z-axis [-2.000000] now;
+		//move back to z-axis [-6.000000] now;
+		call-script lua_UnitScriptLight(3, shotcount);
+		move barrel03 to z-axis [0.000000] speed [8.000000];
+		move housing03 to z-axis [0.000000] speed [1.500000];
+		move spindle to z-axis [0.000000] speed [11.000000];
+		//move back to z-axis [4.000000] speed [10.000000];
 		turn spindle to z-axis <270.000000> speed <230.000000>;
 	}
 	if( gun_1 == 4 )
 	{
-		move barrel04 to z-axis [-10.000000] now;
-		move barrel04 to z-axis [0.000000] speed [10.000000];
+		shotcount = shotcount + 1;
+		move barrel04 to z-axis [-15.000000] now;
+		move housing04 to z-axis [-6.000000] now;
+		move spindle to z-axis [-2.000000] now;
+		//move back to z-axis [-6.000000] now;
+		call-script lua_UnitScriptLight(4, shotcount);
+		move barrel04 to z-axis [0.000000] speed [8.000000];
+		move housing04 to z-axis [0.000000] speed [1.500000];
+		move spindle to z-axis [0.000000] speed [11.000000];
+		//move back to z-axis [4.000000] speed [10.000000];
 		turn spindle to z-axis <0.000000> speed <230.000000>;
 	}
 	++gun_1;
@@ -77,7 +198,10 @@ TargetCleared(Func_Var_1)
 		signal SIG_AIM;
 		stop-spin turret around y-axis;
 		stop-spin neck around x-axis;
+		call-script deactivatescr();
+		shooting = 0;
 	}
+	//move back to z-axis [4.000000] speed [4.000000];
 }
 
 QueryPrimary(piecenum)

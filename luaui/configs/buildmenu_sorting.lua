@@ -168,7 +168,7 @@ local unitOrderTable = {
 	['legbar']         = 005440,
 
 	['armwar']         = 005600, --STRONK
-	['corkark']        = 005610,
+	['legkark']        = 005610,
 
 	['armsam']         = 005800, --LAND + AA
 	['cormist']        = 005810,
@@ -517,7 +517,7 @@ local unitOrderTable = {
    ['corpun']         = 106900,
 
    --DEFENSES LAND T2
-   ['armmg']          = 107000, --land/AA machinegun
+   ['legmg']          = 107000, --land/AA machinegun
    ['armpb']          = 107100,
    ['corvipe']        = 107200,
    ['armamb']         = 107300,

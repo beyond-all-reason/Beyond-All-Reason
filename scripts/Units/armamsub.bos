@@ -143,6 +143,19 @@ QueryNanoPiece(piecenum)
 	if (spray>2) spray=0;
 }
 
+StartBuilding()
+{
+	show beam1;
+	show beam2;
+	show beam3;
+}
+
+StopBuilding()
+{
+	hide beam1;
+	hide beam2;
+	hide beam3;
+}
 
 Activate()
 {

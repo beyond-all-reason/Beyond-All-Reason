@@ -41,6 +41,9 @@ local debugdrawvisible = false
 -- todo: fix drawdebugvisible to be changeable - done
 -- todo: test this in singleplayer scenarios, and loaded games!
 
+-- SUPER IMPORTANT: NEVER EVER ADD UNITS TO A VBO TABLE THAT ARE IN unitDefIgnore!
+-- As the unit tracker api wont track them as actual units, and wont ever remove them either!
+
 
 local alliedUnits = {} -- table of unitID : unitDefID
 local numAlliedUnits = 0
@@ -324,9 +327,8 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 		end
 	end
 
-	if debuglevel >= 3 then Spring.Echo("UnitCreated", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, reason) end
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
-
+	if debuglevel >= 3 then Spring.Echo("UnitCreated", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, reason) end
 
 	if isValidLivingSeenUnit(unitID, unitDefID, 3) == false then return end
 
@@ -342,7 +344,10 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, reason)
-	if debuglevel >= 3 then Spring.Echo("UnitDestroyed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, reason) end
+	if debuglevel >= 3 then 
+		unitDefID = unitDefID or spGetUnitDefID(unitID)
+		Spring.Echo("UnitDestroyed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, reason) 
+	end
 	visibleUnitsRemove(unitID, reason or "destroyed")
 	alliedUnitsRemove(unitID, reason or "destroyed")
 end
@@ -552,13 +557,38 @@ function widget:TextCommand(command)
 
 	if string.find(command, "execute", nil, true) == 1 then
 		local cmd = string.sub(command, string.find(command, "execute", nil, true) + 8, nil)
-		local success, functionize = pcall(loadstring( 'return function() return {' .. cmd .. '} end'))
+		local success, functionize = pcall(loadstring( 'return function() return {' .. cmd .. '} end')) -- note, because of the return{} stuff, this cant execute any arbitrary for loop
 		if not success then
 			Spring.Echo("Failed to parse command:",success, cmd)
 		else
 			local success, data = pcall(functionize)
 			if not success then
-				Spring.Echo("Failed to execute command:", succes, cmd)
+				Spring.Echo("Failed to execute command:", success, cmd)
+			else
+				if type(data) == type({}) then
+					if #data == 1 then
+						Spring.Echo(data[1])
+					elseif #data == 0 then
+						Spring.Echo("nil")
+					else
+						Spring.Debug.TableEcho(data)
+					end
+				else
+					Spring.Echo(data)
+				end
+			end
+		end
+	end
+	
+	if string.find(command, "noreturnexecute", nil, true) == 1 then
+		local cmd = string.sub(command, string.find(command, "noreturnexecute", nil, true) + 16, nil)
+		local success, functionize = pcall(loadstring( 'return function() ' .. cmd .. ' end')) -- 
+		if not success then
+			Spring.Echo("Failed to parse command:",success, cmd)
+		else
+			local success, data = pcall(functionize)
+			if not success then
+				Spring.Echo("Failed to execute command:", success, cmd)
 			else
 				if type(data) == type({}) then
 					if #data == 1 then

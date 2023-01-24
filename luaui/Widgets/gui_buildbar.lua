@@ -10,9 +10,10 @@ function widget:GetInfo()
 	}
 end
 
+local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx, vsy = Spring.GetViewGeometry()
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 -- saved values
@@ -554,25 +555,9 @@ local function drawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 end
 
 local sec = 0
-local uiOpacitySec = 0.5
 function widget:Update(dt)
 	if chobbyInterface then
 		return
-	end
-
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
-		uiOpacitySec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize(Spring.GetViewGeometry())
-			widget:Shutdown()
-			widget:Initialize()
-		end
-		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-		end
 	end
 
 	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
@@ -866,8 +851,14 @@ function widget:DrawInMiniMap(sx, sy)
 		local pt = math.min(sx, sy)
 
 		gl.LoadIdentity()
-		gl.Translate(0, 1, 0)
-		gl.Scale(1 / msx, -1 / msz, 1)
+
+		if getMiniMapFlipped() then
+			gl.Translate(1, 0, 0)
+			gl.Scale(-1 / msx, 1 / msz, 1)
+		else
+			gl.Translate(0, 1, 0)
+			gl.Scale(1 / msx, -1 / msz, 1)
+		end
 
 		local r, g, b = Spring.GetTeamColor(myTeamID)
 		local alpha = 0.5 + math.abs((Spring.GetGameSeconds() % 0.25) * 4 - 0.5)

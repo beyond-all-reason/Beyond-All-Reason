@@ -177,12 +177,18 @@ Deactivate()
 
 StartBuilding()
 {
+	show nano1;
+	show nano2;
+	show nano3;
 	spin pad around y-axis speed <0.000000>;
 	return (0);
 }
 
 StopBuilding()
 {
+	hide nano1;
+	hide nano2;
+	hide nano3;
 	stop-spin pad around y-axis;
 	return (0);
 }

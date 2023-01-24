@@ -136,14 +136,14 @@ function actionHandler:RemoveAction(widget, cmd, types)
 
   -- default to removing all
   local text, keyPress, keyRepeat, keyRelease = ParseTypes(types, "tpRr")
-  
+
   local tSuccess, pSuccess, RSuccess, rSuccess = false, false, false, false
 
   if (text)       then tSuccess = remove(self.textActions)       end
   if (keyPress)   then pSuccess = remove(self.keyPressActions)   end
   if (keyRepeat)  then RSuccess = remove(self.keyRepeatActions)  end
   if (keyRelease) then rSuccess = remove(self.keyReleaseActions) end
-  
+
   return tSuccess, pSuccess, RSuccess, rSuccess
 end
 
@@ -168,7 +168,7 @@ end
 
 function actionHandler:RemoveWidgetActions(widget)
   local function clearActionList(actionMap)
-    for cmd, callInfoList in pairs(actionMap) do
+    for _, callInfoList in pairs(actionMap) do
       RemoveCallInfo(callInfoList, widget)
     end
   end
@@ -194,28 +194,16 @@ local function MakeWords(line)
 end
 
 
-local function MakeKeySetString(key, mods, getSymbol)
-  getSymbol = getSymbol or Spring.GetKeySymbol
-  local keyset = ""
-  if (mods.alt)   then keyset = keyset .. "A+" end
-  if (mods.ctrl)  then keyset = keyset .. "C+" end
-  if (mods.meta)  then keyset = keyset .. "M+" end
-  if (mods.shift) then keyset = keyset .. "S+" end
-  local _, defSym = getSymbol(key)
-  return (keyset .. defSym)
-end
-
-
-local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release)
+local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, actions)
   local callInfoList = actionMap[cmd]
   if (callInfoList == nil) then
     return false
   end
-  for i,callInfo in ipairs(callInfoList) do
+  for _, callInfo in ipairs(callInfoList) do
     --local widget = callInfo[1]
     local func   = callInfo[2]
     local data   = callInfo[3]
-    if (func(cmd, optLine, optWords, data, isRepeat, release)) then
+    if (func(cmd, optLine, optWords, data, isRepeat, release, actions)) then
       return true
     end
   end
@@ -223,35 +211,26 @@ local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release)
 end
 
 
-function actionHandler:KeyAction(press, key, mods, isRepeat, scanCode)
-  local defBinds
+function actionHandler:KeyAction(press, _, _, isRepeat, _, actions)
+  if (not(actions and next(actions))) then return false end
 
-  local keyset = MakeKeySetString(key, mods, Spring.GetKeySymbol)
-
-  if scanCode then -- engine supports scancodes
-    local scanset = MakeKeySetString(scanCode, mods, Spring.GetScanSymbol)
-    defBinds = Spring.GetKeyBindings(keyset, scanset)
+  local actionSet
+  if (press) then
+    actionSet = isRepeat and self.keyRepeatActions or self.keyPressActions
   else
-    defBinds = Spring.GetKeyBindings(keyset)
+    actionSet = self.keyReleaseActions
   end
 
-  if (defBinds) then
-    local actionSet
-    if (press) then
-      actionSet = isRepeat and self.keyRepeatActions or self.keyPressActions
-    else
-      actionSet = self.keyReleaseActions
-    end
-    for _, bAction in ipairs(defBinds) do
-      local bCmd = bAction["command"]
-      local bOpts = bAction["extra"]
-      local words = MakeWords(bOpts)
+  for _, bAction in ipairs(actions) do
+    local bCmd = bAction["command"]
+    local bOpts = bAction["extra"]
+    local words = MakeWords(bOpts)
 
-      if (TryAction(actionSet, bCmd, bOpts, words, isRepeat, not press)) then
-        return true
-      end
+    if (TryAction(actionSet, bCmd, bOpts, words, isRepeat, not press, actions)) then
+      return true
     end
   end
+
   return false
 end
 
@@ -264,7 +243,7 @@ function actionHandler:TextAction(line)
   end
   -- remove the command from the words list and the raw line
   table.remove(words, 1)
-  local _,_,line = string.find(line, "[^%s]+[%s]+(.*)")
+  _,_,line = string.find(line, "[^%s]+[%s]+(.*)")
   if (line == nil) then
     line = ""  -- no args
   end
@@ -280,8 +259,8 @@ function actionHandler:RecvFromSynced(...)
     if (callInfoList == nil) then
       return false
     end
-    
-    for i,callInfo in ipairs(callInfoList) do
+
+    for _,callInfo in ipairs(callInfoList) do
       -- local widget = callInfo[1]
       local func = callInfo[2]
       if (func(...)) then
@@ -298,7 +277,7 @@ function actionHandler:RecvFromSynced(...)
     end
     return false
   end
-  
+
   return false -- unknown type
 end
 

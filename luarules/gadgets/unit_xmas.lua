@@ -1,4 +1,3 @@
-
 function gadget:GetInfo()
 	return {
 		name		= "Xmas effects",
@@ -7,12 +6,8 @@ function gadget:GetInfo()
 		date		= "October 2017",
 		license     = "GNU GPL, v2 or later",
 		layer		= 0,
-		enabled		= true,
+		enabled		= false,
 	}
-end
-
-if not gadgetHandler:IsSyncedCode() then
-	return
 end
 
 local decorationUdefIDs = {}
@@ -24,6 +19,19 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
+local forceXmas = false	-- for debugging purpose
+
+if not gadgetHandler:IsSyncedCode() then
+	local uniformcache = {0}
+	function gadget:UnitCreated(unitID, unitDefID)
+		if decorationUdefIDs[unitDefID] then
+			uniformcache[1] = math.random() * 0.6 - 0.25
+			gl.SetUnitBufferUniforms(unitID, uniformcache, 9)
+		end
+	end
+	return
+end
+
 
 local maxDecorations = 200
 local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/2000000)
@@ -31,9 +39,11 @@ local candycaneSnowMapMult = 2.5
 local addGaiaBalls = false	-- if false, only own team colored balls are added
 
 local enableUnitDecorations = true		-- burst out xmas ball after unit death
-for _,teamID in ipairs(Spring.GetTeamList()) do
-	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
-		enableUnitDecorations = false
+if not forceXmas then
+	for _,teamID in ipairs(Spring.GetTeamList()) do
+		if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
+			enableUnitDecorations = false
+		end
 	end
 end
 
@@ -140,17 +150,28 @@ function initiateXmas()
 			end
 		end
 
-		-- spawn candy canes
-		for i=1, candycaneAmount do
-			local x = random(0, Game.mapSizeX)
-			local z = random(0, Game.mapSizeZ)
-			local groundType, groundType2 = Spring.GetGroundInfo(x,z)
-			if (type(groundType) == 'string' and groundType ~= "void" or groundType2 ~= "void") then	-- 105 compatibility
-				local y = GetGroundHeight(x, z)
-				local caneType = math.ceil(random(1,7))
-				local featureID = Spring.CreateFeature('candycane'..caneType,x,y,z,random(0,360))
-				Spring.SetFeatureRotation(featureID, random(-12,12), random(-12,12), random(-180,180))
-				candycanes[featureID] = caneType
+		-- spawn candy canes (if not already done)
+		local detectedCandycane = false
+		local allfeatures = Spring.GetAllFeatures()
+		for i, featureID in ipairs(allfeatures) do
+			local featureDefID = Spring.GetFeatureDefID(featureID)
+			if string.find(FeatureDefs[featureDefID].name, 'candycane') then
+				detectedCandycane = true
+				break
+			end
+		end
+		if not detectedCandycane then
+			for i=1, candycaneAmount do
+				local x = random(0, Game.mapSizeX)
+				local z = random(0, Game.mapSizeZ)
+				local groundType, groundType2 = Spring.GetGroundInfo(x,z)
+				if (type(groundType) == 'string' and groundType ~= "void" or groundType2 ~= "void") then	-- 105 compatibility
+					local y = GetGroundHeight(x, z)
+					local caneType = math.ceil(random(1,7))
+					local featureID = Spring.CreateFeature('candycane'..caneType,x,y,z,random(0,360))
+					Spring.SetFeatureRotation(featureID, random(-12,12), random(-12,12), random(-180,180))
+					candycanes[featureID] = caneType
+				end
 			end
 		end
 	end
@@ -164,6 +185,7 @@ local function setGaiaUnitSpecifics(unitID)
 	Spring.SetUnitStealth(unitID, true)
 	Spring.SetUnitNoMinimap(unitID, true)
 	--Spring.SetUnitMaxHealth(unitID, 2)
+	Spring.UnitIconSetDraw(unitID, false)
 	Spring.SetUnitBlocking(unitID, true, true, false, false, true, false, false)
 	Spring.SetUnitSensorRadius(unitID, 'los', 0)
 	Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
@@ -199,7 +221,7 @@ function gadget:GameFrame(n)
 			if frame < n then
 				decorationsTerminal[unitID] = nil
 				if Spring.GetUnitIsDead(unitID) == false then
-					Spring.DestroyUnit(unitID, false, false)
+					Spring.DestroyUnit(unitID, false, true)
 				end
 			end
 		end
@@ -316,7 +338,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		for i=1, #units do
 			if decorationUdefIDs[Spring.GetUnitDefID(units[i])] then
 				if Spring.GetUnitIsDead(units[i]) == false then
-					Spring.DestroyUnit(units[i], false, false)
+					Spring.DestroyUnit(units[i], false, true)
 					decorations[units[i]] = nil
 					decorationsTerminal[units[i]] = nil
 					createdDecorations[units[i]] = nil
@@ -335,11 +357,21 @@ function gadget:GameStart()
 				xmasRatio = xmasRatio + (1/receivedPlayerCount)
 			end
 		end
-		if xmasRatio > 0.75 then
+		if xmasRatio > 0.75 or forceXmas then
 			_G.itsXmas = true
 			initiateXmas()
 		else
 			return
+		end
+	end
+end
+
+-- in case of luarules reload
+if forceXmas then
+	function gadget:Initialize()
+		if Spring.GetGameFrame() > 0 then
+			_G.itsXmas = true
+			initiateXmas()
 		end
 	end
 end

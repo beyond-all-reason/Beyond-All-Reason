@@ -7,3 +7,5 @@ https://soundcloud.com/ryankrause94
 Nathan Sharples (Composer) and Kenneth Donahue (Sound Engineer):
 https://www.nathansharplesmusic.com/
 https://kennethdonahue.portfoliobox.net/
+
+Check license_music.txt in the root of this project for more information.

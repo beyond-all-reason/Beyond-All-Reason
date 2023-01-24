@@ -85,26 +85,6 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
-	-- Flanking Bonus Override
-	if Spring.GetModOptions().experimentalflankingbonusmode == 0 then
-		uDef.flankingbonusmode = 0
-	end
-	if Spring.GetModOptions().experimentalflankingbonusmode == 1 then
-		uDef.flankingbonusmode = 1
-	end
-	if Spring.GetModOptions().experimentalflankingbonusmode == 2 then
-		uDef.flankingbonusmode = 2
-	end
-	if Spring.GetModOptions().experimentalflankingbonusmode == 3 then
-		if uDef.canmove == true then
-			uDef.flankingbonusmode = 3
-		else
-			uDef.flankingbonusmode = 2
-		end
-	end
-	uDef.flankingbonusmin = Spring.GetModOptions().experimentalflankingbonusmin*0.01
-	uDef.flankingbonusmax = Spring.GetModOptions().experimentalflankingbonusmax*0.01
-
 	-- Reverse Gear
 	if Spring.GetModOptions().experimentalreversegear == true then
 		if (not uDef.canfly) and uDef.maxvelocity then
@@ -174,9 +154,9 @@ function UnitDef_Post(name, uDef)
 
 	if Spring.GetModOptions().experimentalrebalancehovercrafttech == true then
 		if name == "corhp" or name == "corfhp" or name == "armhp" or name == "armfhp" then
-			uDef.buildcostmetal = 730 --1100
-			uDef.buildcostenergy = 1800 --4200
-			uDef.buildtime = 7150 --11000
+			uDef.buildcostmetal = 900 --730 --1100
+			uDef.buildcostenergy = 3000 --1800 --4200
+			uDef.buildtime = 11000 --7150 --11000
 			uDef.workertime = 100 --200
 		end
 		if name == "armch" then
@@ -440,7 +420,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "armpwt4"
 			uDef.buildoptions[numBuildoptions+3] = "armvadert4"
 			uDef.buildoptions[numBuildoptions+4] = "armmeatball"
-		elseif name == "corgant" then
+		elseif name == "corgant" or name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cordemont4"
 			uDef.buildoptions[numBuildoptions+2] = "corkarganetht4"
@@ -452,9 +432,6 @@ function UnitDef_Post(name, uDef)
 		elseif name == "coravp" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
-		elseif name == "corlab" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corkark"
 		-- elseif name == "corap" then
 		-- 	local numBuildoptions = #uDef.buildoptions
 		-- 	uDef.buildoptions[numBuildoptions+1] = "corassistdrone"
@@ -467,7 +444,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
 			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
 			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
-			uDef.buildoptions[numBuildoptions+5] = "armmg"
+			uDef.buildoptions[numBuildoptions+5] = "legmg"
 		elseif name == "corca" or name == "corck" or name == "corcv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
@@ -588,19 +565,25 @@ function UnitDef_Post(name, uDef)
 		uDef.buildcostenergy = chickHealth*5
 		uDef.buildtime = chickHealth*10
 		uDef.hidedamage = true
-		if (uDef.mass and uDef.mass < 500) or not uDef.mass then uDef.mass = 500 end
+		uDef.mass = chickHealth
 		uDef.canhover = true
-		uDef.autoheal = math.ceil(math.sqrt(chickHealth * 0.1))
+		uDef.autoheal = math.ceil(math.sqrt(chickHealth * 0.2))
 		uDef.customparams.paralyzemultiplier = uDef.customparams.paralyzemultiplier or .2
-		uDef.idleautoheal = math.ceil(math.sqrt(chickHealth * 0.1))
+		uDef.idleautoheal = math.ceil(math.sqrt(chickHealth * 0.2))
 		uDef.customparams.areadamageresistance = "_CHICKENACID_"
 		uDef.upright = false
 		uDef.floater = true
+		uDef.turninplaceanglelimit = 360
 		if uDef.sightdistance then
-			uDef.sonardistance = uDef.sightdistance
+			uDef.sonardistance = uDef.sightdistance*2
+			uDef.radardistance = uDef.sightdistance*2
+			uDef.airsightdistance = uDef.sightdistance*2
 		end
 		if (not uDef.canfly) and uDef.maxvelocity then
 			uDef.maxreversevelocity = uDef.maxvelocity*0.65
+			uDef.turnrate = uDef.maxvelocity*300
+			uDef.acceleration = uDef.maxvelocity*0.05
+			uDef.brakerate = uDef.maxvelocity*0.05
 		end
 	end
 
@@ -693,6 +676,22 @@ function UnitDef_Post(name, uDef)
 
 	if uDef.maxslope then
 		uDef.maxslope = math.floor((uDef.maxslope * 1.5) + 0.5)
+	end
+
+	-- make sure all paralyzable units have the correct EMPABLE category applied (or removed)
+	if uDef.category then
+		local empable = string.find(uDef.category, "EMPABLE")
+		if uDef.customparams and uDef.customparams.paralyzemultiplier then
+			if tonumber(uDef.customparams.paralyzemultiplier) == 0 then
+				if empable then
+					uDef.category = string.sub(uDef.category, 1, empable) .. string.sub(uDef.category, empable+7)
+				end
+			elseif not empable then
+				uDef.category = uDef.category .. ' EMPABLE'
+			end
+		elseif not empable then
+			uDef.category = uDef.category .. ' EMPABLE'
+		end
 	end
 
 	--if Spring.GetModOptions().airrebalance then
@@ -1055,6 +1054,35 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
+		-- prepared to strip these customparams for when we remove old deferred lighting widgets
+		--if wDef.customparams then
+		--	wDef.customparams.expl_light_opacity = nil
+		--	wDef.customparams.expl_light_heat_radius = nil
+		--	wDef.customparams.expl_light_radius = nil
+		--	wDef.customparams.expl_light_color = nil
+		--	wDef.customparams.expl_light_nuke = nil
+		--	wDef.customparams.expl_light_skip = nil
+		--	wDef.customparams.expl_light_heat_life_mult = nil
+		--	wDef.customparams.expl_light_heat_radius_mult = nil
+		--	wDef.customparams.expl_light_heat_strength_mult = nil
+		--	wDef.customparams.expl_light_life = nil
+		--	wDef.customparams.expl_light_life_mult = nil
+		--	wDef.customparams.expl_noheatdistortion = nil
+		--	wDef.customparams.light_skip = nil
+		--	wDef.customparams.light_fade_time = nil
+		--	wDef.customparams.light_fade_offset = nil
+		--	wDef.customparams.light_beam_mult = nil
+		--	wDef.customparams.light_beam_start = nil
+		--	wDef.customparams.light_beam_mult_frames = nil
+		--	wDef.customparams.light_camera_height = nil
+		--	wDef.customparams.light_ground_height = nil
+		--	wDef.customparams.light_color = nil
+		--	wDef.customparams.light_radius = nil
+		--	wDef.customparams.light_radius_mult = nil
+		--	wDef.customparams.light_mult = nil
+		--	wDef.customparams.fake_Weapon = nil
+		--end
+
 		if wDef.damage ~= nil then
 			wDef.damage.indestructable = 0
 		end
@@ -1132,10 +1160,10 @@ function WeaponDef_Post(name, wDef)
 
 	-- ExplosionSpeed is calculated same way engine does it, and then doubled
 	-- Note that this modifier will only effect weapons fired from actual units, via super clever hax of using the weapon name as prefix
-	if wDef.damage and wDef.damage.default then 
+	if wDef.damage and wDef.damage.default then
 		if string.find(name,'_', nil, true) then
 			local prefix = string.sub(name,1,3)
-			if prefix == 'arm' or prefix == 'cor' or prefix == 'leg' or prefix == 'chi' then 
+			if prefix == 'arm' or prefix == 'cor' or prefix == 'leg' or prefix == 'chi' then
 				local globaldamage = math.max(30, wDef.damage.default / 20)
 				local defExpSpeed = (8 + (globaldamage * 2.5))/ (9 + (math.sqrt(globaldamage) * 0.70)) * 0.5
 				wDef.explosionSpeed = defExpSpeed * 2
@@ -1198,7 +1226,13 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			ud.transportbyenemy = false
 		end
 	end
+	
+	-- For Decals GL4, disables default groundscars for explosions
+	for id,wDef in pairs(WeaponDefs) do
+		wDef.explosionScar = false
+	end
 
+	
 	--[[
 	-- Make BeamLasers do their damage up front instead of over time
 	-- Do this at the end so that we don't mess up any magic math

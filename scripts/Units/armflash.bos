@@ -3,12 +3,14 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flare1, flare2, turret, base, sleeves, barrel1, barrel2;
+piece base, parts, track, turret, sleeve, lbarrel, lflare, rbarrel, rflare;
 
-static-var  restore_delay, gun_1;
+static-var  restore_delay, gun_1, fire_count;
+static-var  last_primary_heading, last_primary_pitch;
 
 // Signal definitions
 #define SIG_AIM				2
+#define SIG_FIRE1			4
 
 
 
@@ -23,17 +25,14 @@ static-var  restore_delay, gun_1;
 
 Create()
 {
-	hide flare1;
-	hide flare2;
-	hide flare1;
-	hide flare2;
-	gun_1 = flare1;
+	hide lflare;
+	hide rflare;
+	gun_1 = 0;
+	fire_count = 0;
+	// set last headings and pitches to large negative numbers
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
 	restore_delay = 3000;
-}
-
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = Func_Var_1 * 2;
 }
 
 static-var  Stunned;
@@ -43,8 +42,12 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	turn turret to y-axis <0.000000> speed <90.016484>;
-	turn sleeves to x-axis <0.000000> speed <50.005495>;
+	turn sleeve to x-axis <0.000000> speed <50.005495>;
+	// set last headings and pitches to large negative numbers
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -52,6 +55,7 @@ SetStunned(State)
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
+
 RestoreAfterDelay()
 {
 	sleep restore_delay;
@@ -62,44 +66,96 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
+	// values in <> are degrees per second
+	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
+	// In general, 6 cau per frame ~= 1 degree per second
 	turn turret to y-axis heading speed <250.000000>;
-	turn sleeves to x-axis <0.000000> - pitch speed <240.000000>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn sleeves around x-axis;
+	turn sleeve to x-axis <0.000000> - pitch speed <240.000000>;
+	// if the turret cannot turn to its new heading in three frames, wait for turn
+	if ( (get ABS(last_primary_heading - heading) > 4500) OR (get ABS(last_primary_pitch - pitch) > 4320) )
+	{
+		// seems to take 3 frames for wait-for-turn to process
+		wait-for-turn turret around y-axis;
+		wait-for-turn sleeve around x-axis;
+	}
+	last_primary_heading = heading;
+	last_primary_pitch = pitch;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
+Restorelbarrel()
+{
+	set-signal-mask 0;	//make sure shots from other barrel do not interrupt current barrel movement
+	sleep 100;
+	move lbarrel to z-axis [0.000000] speed [7.000000];
+}
+
+Restorerbarrel()
+{
+	set-signal-mask 0;	//make sure shots from other barrel do not interrupt current barrel movement
+	sleep 100;
+	move rbarrel to z-axis [0.000000] speed [7.000000];
+}
+
+Shot1(zero)
+{
+	signal SIG_FIRE1;
+	set-signal-mask SIG_FIRE1;
+
+	if(fire_count==0)
+	{
+		if( gun_1 == 0 )
+		{
+			move lbarrel to z-axis [-0.4666] now;
+			emit-sfx 1024+0 from lflare;
+		}
+		if( gun_1 == 1 )
+		{
+			move rbarrel to z-axis [-0.4666] now;
+			emit-sfx 1024 + 0 from rflare;
+		}
+	}
+	if(fire_count==1)
+	{
+		if( gun_1 == 0 )
+		{
+			move lbarrel to z-axis [-0.9333] now;
+			emit-sfx 1024+0 from lflare;
+		}
+		if( gun_1 == 1 )
+		{
+			move rbarrel to z-axis [-0.9333] now;
+			emit-sfx 1024 + 0 from rflare;
+		}
+	}
+	if(fire_count==2)
+	{
+		if( gun_1 == 0 )
+		{
+			move lbarrel to z-axis [-1.399994] now;
+			emit-sfx 1024+0 from lflare;
+			start-script Restorelbarrel();
+		}
+		if( gun_1 == 1 )
+		{
+			move rbarrel to z-axis [-1.399994] now;
+			emit-sfx 1024 + 0 from rflare;
+			start-script Restorerbarrel();
+		}
+	}
+	sleep 32;
+	++fire_count;
+	if(fire_count>=3)
+	{
+		fire_count=0;
+		gun_1 = !gun_1; // swap emit barrel at end of burst
+	}
+	return(1);
+}
 
 FirePrimary()
 {
-    if( gun_1 == 0 )
-    {
-        move barrel1 to z-axis [-0.4666] speed [300.000000];
-		emit-sfx 1024 + 0 from flare1;
-        sleep 100;
-		move barrel1 to z-axis [-0.9333] speed [300.000000];
-        emit-sfx 1024 + 0 from flare1;
-        sleep 100;
-		move barrel1 to z-axis [-1.399994] speed [300.000000];
-        emit-sfx 1024 + 0 from flare1;
-        wait-for-move barrel1 along z-axis;
-        move barrel1 to z-axis [0.000000] speed [5.000000];
-    }
-    if( gun_1 == 1 )
-    {
-        move barrel2 to z-axis [-0.4666] speed [300.000000];
-		emit-sfx 1024 + 0 from flare2;
-        sleep 100;
-		move barrel2 to z-axis [-0.9333] speed [300.000000];
-        emit-sfx 1024 + 0 from flare2;
-        sleep 100;
-		move barrel2 to z-axis [-1.399994] speed [300.000000];
-        emit-sfx 1024 + 0 from flare2;
-        wait-for-move barrel2 along z-axis;
-        move barrel2 to z-axis [0.000000] speed [5.000000];
-    }
-    gun_1 = !gun_1;
 }
 
 AimFromPrimary(piecenum)
@@ -109,7 +165,14 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	piecenum = gun_1;
+	if( gun_1 == 0 )
+	{
+		piecenum = lflare;
+	}
+	if( gun_1 == 1 )
+	{
+		piecenum = rflare;
+	}
 }
 
 SweetSpot(piecenum)
@@ -124,11 +187,9 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
-		explode sleeves type BITMAPONLY | NOHEATCLOUD;
-		explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare1 type BITMAPONLY | NOHEATCLOUD;
-		//explode barrel2 type BITMAPONLY | NOHEATCLOUD;
-		//explode flare2 type BITMAPONLY | NOHEATCLOUD;
+		explode sleeve type BITMAPONLY | NOHEATCLOUD;
+		explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -136,11 +197,9 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode sleeves type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode barrel1 type FALL | NOHEATCLOUD;
-		//explode flare1 type FALL | NOHEATCLOUD;
-		//explode barrel2 type FALL | NOHEATCLOUD;
-		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbarrel type FALL | NOHEATCLOUD;
+		explode rbarrel type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -148,20 +207,16 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode sleeves type SMOKE | FALL | NOHEATCLOUD;
-		explode barrel1 type SMOKE | FALL | NOHEATCLOUD;
-		//explode flare1 type SMOKE | FALL | NOHEATCLOUD;
-		explode barrel2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode sleeve type SMOKE | FALL | NOHEATCLOUD;
+		explode lbarrel type SMOKE | FALL | NOHEATCLOUD;
+		explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode sleeves type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode barrel1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode barrel2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode sleeve type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -64,10 +64,7 @@ local spGetGaiaTeamID = Spring.GetGaiaTeamID()
 
 --SYNCED CODE
 if gadgetHandler:IsSyncedCode() then
-
-
 	function gadget:Initialize()
-
 		GG.AiHelpers.Start()
 	end
 function gadget:RecvLuaMsg(msg, playerID)
@@ -79,9 +76,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 			local opts = string.split(msg,';')
 			local timeout = string.split(msg,'#')
 			local unit = string.split(msg,'!')
-
 			if #id ~= 3 or #cmd ~= 3 or #pos ~= 3 or #opts ~= 3 or #timeout ~= 3 or #unit ~= 3 then
-
 				spEcho('format incomplete',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
 				spEcho('recvluamsg',msg)
 				spEcho('splitting length',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
@@ -95,7 +90,6 @@ function gadget:RecvLuaMsg(msg, playerID)
 				Spring.Debug.TableEcho(pos)
 				return
 			end
-
 			id = id[2]
 			cmd = cmd[2]
 			pos = pos[2]
@@ -150,7 +144,6 @@ else
 	function gadget:Initialize()
 		local teamList = spGetTeamList()
 		spEcho("Looking for AIs")
-
 		for i = 1, #teamList do
 			local id = teamList[i]
 			local _, _, _, isAI, side, allyId = spGetTeamInfo(id, false)
@@ -163,7 +156,6 @@ else
 				end
 			end
 		end
-
 		-- catch up to started game
 		if Spring.GetGameFrame() > 1 then
 			self:GameStart()
@@ -221,7 +213,12 @@ else
 		thisAI.neutralUnitIds = thisAI.neutralUnitIds or {}
 		return thisAI
 	end
-
+	
+	local basememlimit = 200000
+	local pershardmemlimit = 50000
+	local garbagelimit = basememlimit -- in kilobytes, will adjust upwards as needed
+	local numShards = 0
+	
 	function gadget:GameStart()
 		-- Initialise AIs
 		for _, thisAI in ipairs(Shard.AIs) do
@@ -231,18 +228,37 @@ else
 			thisAI.startPos = { x, y, z }
 			thisAI:Prepare()
 			--thisAI:Init()
+			garbagelimit = math.min(1000000,garbagelimit + pershardmemlimit)
+			numShards = numShards + 1
 		end
 	end
 
 	function gadget:GameFrame(n)
-
 		-- for each AI...
-
-		for _, thisAI in ipairs(Shard.AIs) do
+		for i, thisAI in ipairs(Shard.AIs) do
+			--local RAM = gcinfo()
 			-- update sets of unit ids : own, friendlies, enemies
 			--1 run AI game frame update handlers
 			thisAI:Prepare()
 			thisAI:Update()
+			
+			if i == 1 and n % 121 == 0 then 
+				local ramuse = gcinfo()
+				--Spring.Echo("RAMUSE",i,n, RAMUSE)
+				if ramuse > garbagelimit then 
+					collectgarbage("collect")
+					collectgarbage("collect")
+					local notgarbagemem = gcinfo()
+					local newgarbagelimit = math.min(1000000, notgarbagemem + basememlimit + pershardmemlimit * numShards) -- peak 1 GB
+					Spring.Echo(string.format("%d STAIs using %d MB RAM > %d MB limit, performing garbage collection and adjusting limit to %d MB", 
+						numShards, math.floor(ramuse/1000), math.floor(garbagelimit/1000), math.floor(newgarbagelimit/1000) ) )
+					garbagelimit = newgarbagelimit
+				end
+			end
+			--RAM = gcinfo() - RAM
+			--if RAM > 1000 then
+			--	print ('AIloader',RAM/1000)
+			--end
 		end
 	end
 
@@ -264,9 +280,8 @@ else
 			end
 
 			if Spring.GetUnitTeam(unitId) == thisAI.id then
-				--prepareTheAI(thisAI)
 				thisAI:Prepare()
-				thisAI.UnitCreated(thisAI, unit,builderId)
+				thisAI:UnitCreated(unit, unitDefId, teamId, builderId)
 			end
 			-- thisAI:UnitCreated(unitId, unitDefId, teamId, builderId)
 		end
@@ -278,7 +293,7 @@ else
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
 				thisAI:Prepare()
-				thisAI:UnitDead(unit)
+				thisAI:UnitDead(unit,unitDefId, teamId, attackerId, attackerDefId, attackerTeamId)
 
 				thisAI.ownUnitIds[unitId] = nil
 				thisAI.friendlyUnitIds[unitId] = nil
@@ -287,7 +302,7 @@ else
 				thisAI.neutralUnitIds[unitId] = nil
 				-- thisAI:UnitDestroyed(unitId, unitDefId, teamId, attackerId, attackerDefId, attackerTeamId)
 			end
-			Shard:unshardify_unit(self.engineUnit)
+-- 			Shard:unshardify_unit(self.engineUnit)
 		end
 	end
 
@@ -311,7 +326,7 @@ else
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
 				thisAI:Prepare()
-				thisAI:UnitIdle(unit)
+				thisAI:UnitIdle(unit,unitDefId, teamId)
 				-- thisAI:UnitIdle(unitId, unitDefId, teamId)
 			end
 		end
@@ -324,7 +339,7 @@ else
 			for _, thisAI in ipairs(Shard.AIs) do
 				-- thisAI:UnitFinished(unitId, unitDefId, teamId)
 				thisAI:Prepare()
-				thisAI:UnitBuilt(unit)
+				thisAI:UnitBuilt(unit,unitDefId,teamId)
 			end
 		end
 	end
@@ -335,7 +350,7 @@ else
 			for _, thisAI in ipairs(Shard.AIs) do
 				thisAI:Prepare()
 				-- thisAI:UnitTaken(unitId, unitDefId, teamId, newTeamId)
-				thisAI:UnitDead(unit)
+				thisAI:UnitDead(unit, unitDefId, teamId, newTeamId)
 			end
 		end
 	end
@@ -346,11 +361,55 @@ else
 			for _, thisAI in ipairs(Shard.AIs) do
 				thisAI:Prepare()
 				-- thisAI:UnitCreated(unitId, unitDefId, teamId, oldTeamId)
-				thisAI:UnitCreated(unit)
+				thisAI:UnitCreated(unit, unitDefId, teamId, oldTeamId)
 			end
 		end
 	end
 
+	function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+		local unit = Shard:shardify_unit(unitID)
+		if unit then
+			for _, thisAI in ipairs(Shard.AIs) do
+				thisAI:Prepare()
+				thisAI:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+			end
+		end
+	end
+	function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+		local unit = Shard:shardify_unit(unitID)
+		if unit then
+			for _, thisAI in ipairs(Shard.AIs) do
+				thisAI:Prepare()
+				thisAI:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+			end
+		end
+	end
+	function gadget:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+		local unit = Shard:shardify_unit(unitID)
+		if unit then
+			for _, thisAI in ipairs(Shard.AIs) do
+				thisAI:Prepare()
+				thisAI:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+			end
+		end
+	end
+	function gadget:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+		local unit = Shard:shardify_unit(unitID)
+		if unit then
+			for _, thisAI in ipairs(Shard.AIs) do
+				thisAI:Prepare()
+				thisAI:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+			end
+		end
+	end
+
+-- 	function gadget:UnitMoved(a,b,c,d)
+-- 		print('unit moved',a,b,c,d)
+-- 	end
+
+-- 	function gadget:UnitMoveFailed(a,b,c,d)
+-- 		print('unit move failed',a,b,c,d)
+-- 	end
 	function gadget:FeatureDestroyed(featureID)
 		Shard:unshardify_feature(featureID)
 	end

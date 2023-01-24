@@ -72,7 +72,6 @@ local hoverType, hoverData = '', ''
 local sound_button = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_button2 = 'LuaUI/Sounds/buildbar_rem.wav'
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local backgroundRect = { 0, 0, 0, 0 }
@@ -528,22 +527,14 @@ function widget:Shutdown()
 	end
 end
 
-local uiOpacitySec = 0
+local sec2 = 0
 local sec = 0
 function widget:Update(dt)
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
-		uiOpacitySec = 0
+	sec2 = sec2 + dt
+	if sec2 > 0.5 then
+		sec2 = 0
 		checkGuishader()
 
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize()
-		end
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			doUpdate = true
-		end
 		if not rankTextures and WG['rankicons'] then
 			rankTextures = WG['rankicons'].getRankTextures()
 		end
@@ -874,13 +865,10 @@ local function drawUnitInfo()
 			{unitDefInfo[displayUnitDefID].metalCost, unitDefInfo[displayUnitDefID].energyCost}
 		)
 		-- price
-		if unitGroup[displayUnitDefID] then
-			local halfSize = iconSize * 0.5
-			local padding = (halfSize + halfSize) * 0.045
-			local size = (halfSize + halfSize) * 0.18
-			font3:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "o")
-		end
-
+		local halfSize = iconSize * 0.5
+		local padding = (halfSize + halfSize) * 0.045
+		local size = (halfSize + halfSize) * 0.18
+		font3:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "o")
 	end
 	iconSize = iconSize + iconPadding
 

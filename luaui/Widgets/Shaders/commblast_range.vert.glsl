@@ -42,9 +42,12 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 
 #line 10000
 
+#define SNORM2NORM(value) (value * 0.5 + 0.5)
+
 out DataVS {
 	flat vec3 v_centerpos; // xyz and radius?
 	flat vec4 v_teamcolor; // red or teamcolor, and alpha modifier
+	noperspective vec2 v_screenUV;
 };
 
 void main()
@@ -63,6 +66,7 @@ void main()
 	worldPos = worldMatrix * worldPos;
 
 	gl_Position = cameraViewProj * worldPos;
+	v_screenUV = SNORM2NORM(gl_Position.xy / gl_Position.w);
 	
 	vec3 camPos = cameraViewInv[3].xyz;
 	

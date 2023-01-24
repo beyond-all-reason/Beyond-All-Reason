@@ -1,3 +1,11 @@
+--[[
+disabled because of these problems:
+ * the original afk player can still return
+ * openskill value will still change for the afk player and not for the replacement player
+ * replacement player cant resign
+ * replacement player cant give units/resources
+]]
+
 function gadget:GetInfo()
 	return {
 		name = "Substitution",
@@ -6,7 +14,7 @@ function gadget:GetInfo()
 		date = "June 2014",
 		license = "GNU GPL, v2 or later",
 		layer = 2, --run after game initial spawn and coop (because we use readyStates)
-		enabled = true
+		enabled = false
 	}
 end
 

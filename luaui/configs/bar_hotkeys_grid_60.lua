@@ -156,10 +156,10 @@
 		{ "Any+f12", "screenshot"     , "png" },
 		{ "Alt+backspace", "fullscreen"       },
 
-		{      "Ctrl+meta+sc_q", "remove_one_unit_from_group" },
-		{            "Alt+sc_q", "remove_from_autogroup"      },
-		{ "meta+sc_q,meta+sc_q", "drawlabel"                  },
-		{           "meta+sc_q", "drawinmap"                  },
+		{      "Ctrl+meta+sc_q", "group unset"           },
+		{            "Alt+sc_q", "remove_from_autogroup" },
+		{ "meta+sc_q,meta+sc_q", "drawlabel"             },
+		{           "meta+sc_q", "drawinmap"             },
 
 		{ "Any+up",       "moveforward"  },
 		{ "Any+down",     "moveback"     },
@@ -168,8 +168,9 @@
 		{ "Any+pageup",   "moveup"       },
 		{ "Any+pagedown", "movedown"     },
 
-		{ "Any+alt",   "movereset" }, -- fast camera reset on some camera states, e.g. middle mouse held
-		{ "Any+ctrl",  "movetilt"  }, -- Move inclination of camera
+		{ "Any+alt",   "movereset"  }, -- fast camera reset on mousewheel
+		{ "Any+alt",   "moverotate" }, -- rotate on x,y with mmb hold + move (Spring Camera)
+		{ "Any+ctrl",  "movetilt"   }, -- rotate on x with mousewheel
 
 		{ "Ctrl+sc_e",    "select", "AllMap++_ClearSelection_SelectAll+"                                                                                       },
 		{  "Ctrl+tab",    "select", "AllMap+_Builder_Idle+_ClearSelection_SelectOne+"                                                                          },

@@ -156,6 +156,11 @@ function ShardUnit:IsAlive()
 	end
 end
 
+function ShardUnit:GetLos(bitmask)
+	bitmask = bitmask or true
+	return Spring.GetUnitLosState(self.id ,self:GetUnitAllyTeam(),bitmask)
+end
+
 function ShardUnit:IsCloaked()
 	return self:Cloaked()
 end
@@ -164,9 +169,21 @@ function ShardUnit:Cloaked()
 	return Spring.GetUnitIsCloaked(self.id)
 end
 
+function ShardUnit:GetUnitIsBuilding()
+	return Spring.GetUnitIsBuilding(self.id)
+end
+
+function ShardUnit:GetCurrentBuildPower()
+	return Spring.GetUnitCurrentBuildPower(self.id)
+end
+
+function ShardUnit:IsBlocking()
+	return Spring.GetUnitBlocking(self.unitid)
+end
+
 function ShardUnit:CurrentStockpile()
 	local numStockpiled, numStockpileQued, buildPercent = Spring.GetUnitStockpile(self.id)
-	return numStockpiled
+	return numStockpiled, numStockpileQued, buildPercent
 end
 
 function ShardUnit:Type()
@@ -400,6 +417,11 @@ function ShardUnit:AreaRESURRECT( p, radius )--Position p, double radius)
 	return self:AreaResurrect( p, radius )
 end
 
+function ShardUnit:AttackPos( pos )
+	local order = self:SyncOrder( self.id, CMD.ATTACK, { pos.x, pos.y, pos.z }, 0 )
+-- 	return Spring.GiveOrderToUnit( self.id, CMD.ATTACK, { gid }, 0 )
+end
+
 function ShardUnit:Attack( unit )
 	local gid = self:Unit_to_id( unit )
 	local order = self:SyncOrder( self.id, CMD.ATTACK, { gid }, 0 )
@@ -505,7 +527,7 @@ end
 
 function ShardUnit:GetHealtsParams()
 	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth( self.id )
-	return health, maxHealth, paralyzeDamage, captureProgress, buildProgress
+	return health, maxHealth, paralyzeDamage, captureProgress, buildProgress, health/maxHealth
 end
 
 function ShardUnit:GetHealth()

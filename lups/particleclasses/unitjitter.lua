@@ -127,6 +127,7 @@ function UnitJitter:EndDraw()
   gl.Culling(GL_BACK)
   gl.Culling(false)
   gl.Color(1,1,1,1)
+  gl.DepthMask(false) --"BK OpenGL state resets", wasn't set here at all
 end
 
 function UnitJitter:Draw()

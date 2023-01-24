@@ -12,9 +12,6 @@ static-var  spray, unitviewer, Static_Var_3, statechg_DesiredState, statechg_Sta
 
 activatescr()
 {
-
-	
-
 	turn main1 to y-axis <-135> speed <135>;
 	turn mid1 to z-axis <100> speed <100>;
 	turn end1 to z-axis <110> speed <110>;
@@ -195,6 +192,21 @@ QueryNanoPiece(piecenum)
 	if (spray>3) spray=0;
 }
 
+StartBuilding()
+{
+	show beam1;
+	show beam2;
+	show beam3;
+	show beam4;
+}
+
+StopBuilding()
+{
+	hide beam1;
+	hide beam2;
+	hide beam3;
+	hide beam4;
+}
 
 Activate()
 {
