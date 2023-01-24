@@ -408,8 +408,8 @@ local function updateButtons()
 		buttonsArea['buttons'] = {}
 
 		local margin = bgpadding
-		local textPadding = math_floor(fontsize*0.85)
-		local sidePadding = math_floor(textPadding*0.4)
+		local textPadding = math_floor(fontsize*0.8)
+		local sidePadding = textPadding
 		local offset = sidePadding
 		local lastbutton
 		local function addButton(name, text)
