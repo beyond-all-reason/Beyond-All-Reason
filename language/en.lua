@@ -446,6 +446,8 @@ return {
 			advplayerlist_share_descr = 'show (quick) share buttons\n\nNOTE: auto hides when having no team members',
 			advplayerlist_absresbars = 'resbar absolutes',
 			advplayerlist_absresbars_descr = 'resbar values and max storages are displayed on the scale of teamplayer that has max storage',
+			advplayerlist_hidespecs = 'hide spectators',
+			advplayerlist_hidespecs_descr = 'hide/collapse spectator list by default',
 			systemprivacy = 'hide your system info',
 			systemprivacy_descr = 'disallow other players to view your system specifications (in player list tooltip)\napplies to next game',
 			mascot = 'mascot',
