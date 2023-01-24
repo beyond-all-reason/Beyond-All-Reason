@@ -79,6 +79,7 @@ local SpringGetUnitPosition = Spring.GetUnitPosition
 local SpringSpawnCEG = Spring.SpawnCEG
 local SpringAddUnitDamage = Spring.AddUnitDamage
 local SpringSpawnProjectile = Spring.SpawnProjectile
+local SpringGetUnitIsDead = Spring.GetUnitIsDead
 
 -- this part handles the actual spark and chaining effect and applies damage
 -- for a typical lighting bolt ttl = 1, main bolt strikes frame 1, spark bolts strike frame 2
@@ -98,18 +99,19 @@ function gadget:ProjectileDestroyed(proID)
       local nearUnit = nearUnits[i] -- get nearest unit
       local nearUnitDefID = SpringGetUnitDefID(nearUnit) -- get its unitdefID
       if not immuneToSplash[nearUnitDefID] then -- check if unit is immune to sparking
-        
-        if lightning_shooter[lightning.proOwnerID] ~= nearUnit then --check if main bolt has hit this target or not
-          local v1,v2,v3,v4,v5,v6, ex, ey, ez = SpringGetUnitPosition(nearUnit,true,true) -- gets aimpoint of unit
-          SpringSpawnCEG(lightning.spark_ceg,ex,ey,ez,0,0,0) -- spawns "electric aura" at spark target
-          local spark_damage = lightning.spark_basedamage*lightning.spark_forkdamage -- figure out damage to apply to spark target
-          -- NB: weaponDefID -1 is debris damage which gets removed by engine_hotfixes.lua, use -7 (crush damage) arbitrarily instead
-          SpringAddUnitDamage(nearUnit, spark_damage, 0, lightning.proOwnerID, -7) -- apply damage to spark target
-          -- create visual lighting arc from main bolt termination point to spark target
-          -- set owner = -1 as a "spark bolt" identifier
-          SpringSpawnProjectile(lightning.weaponDefID, {["pos"]={lightning.x,lightning.y,lightning.z},["end"] = {ex,ey,ez}, ["ttl"] = 1, ["owner"] = -1})
-          count = count - 1 -- spark target count accounting
-        end
+		if not SpringGetUnitIsDead(nearUnit) then -- check if unit is in "death animation", so sparks do not chain to dying units. 
+			if lightning_shooter[lightning.proOwnerID] ~= nearUnit then --check if main bolt has hit this target or not
+			  local v1,v2,v3,v4,v5,v6, ex, ey, ez = SpringGetUnitPosition(nearUnit,true,true) -- gets aimpoint of unit
+			  SpringSpawnCEG(lightning.spark_ceg,ex,ey,ez,0,0,0) -- spawns "electric aura" at spark target
+			  local spark_damage = lightning.spark_basedamage*lightning.spark_forkdamage -- figure out damage to apply to spark target
+			  -- NB: weaponDefID -1 is debris damage which gets removed by engine_hotfixes.lua, use -7 (crush damage) arbitrarily instead
+			  SpringAddUnitDamage(nearUnit, spark_damage, 0, lightning.proOwnerID, -7) -- apply damage to spark target
+			  -- create visual lighting arc from main bolt termination point to spark target
+			  -- set owner = -1 as a "spark bolt" identifier
+			  SpringSpawnProjectile(lightning.weaponDefID, {["pos"]={lightning.x,lightning.y,lightning.z},["end"] = {ex,ey,ez}, ["ttl"] = 1, ["owner"] = -1})
+			  count = count - 1 -- spark target count accounting
+			end
+		end
       end
     end
     
