@@ -26,7 +26,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 1500,
-		maxdamage = 20000,
+		maxdamage = 22000,
 		maxslope = 18,
 		maxvelocity = 1.125,
 		maxwaterdepth = 0,
@@ -122,10 +122,6 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				waterweapon = true,
-				customparams = {
-					expl_light_color = "0.2 0.5 1",
-					light_color = "0.2 0.5 1",
-				},
 				damage = {
 					default = 1400,
 				},

@@ -170,14 +170,6 @@ local options={
 		section		= 'restrictions',
 		def    		= false,
 	},
-	{
-		key    		= "disablexmas",
-		name   		= "Disable Xmas",
-		desc   		= "Disable Xmas decorations",
-		type   		= "bool",
-		def    		= false,
-		section		= 'restrictions',
-	},
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -706,7 +698,7 @@ local options={
 		desc   = 'How many assist drones per commander should be spawned',
 		type   = 'number',
 		section= 'options',
-		def    = 4,
+		def    = 3,
 		min    = 1,
 		max    = 30,
 		step   = 1,
@@ -738,7 +730,7 @@ local options={
 		name   = 'Base Construction Turret: Range',
 		type   = 'number',
 		section= 'options',
-		def    = 1500,
+		def    = 1000,
 		min    = 100,
 		max    = 5000,
 		step   = 1,
@@ -749,9 +741,9 @@ local options={
 		name   = 'Base Construction Turret: Buildpower',
 		type   = 'number',
 		section= 'options',
-		def    = 500,
+		def    = 400,
 		min    = 100,
-		max    = 5000,
+		max    = 4000,
 		step   = 1,
 	},
 
@@ -1294,45 +1286,6 @@ local options={
 	},
 
 	{
-		key    = 'experimentalflankingbonusmode',
-		name   = 'Flanking Bonus Mode (between 0 and 3, read tooltip)',
-		desc   = "Additional damage applied to units when they're surrounded. 0 - No flanking bonus, 1 - Dynamic direction, world dimension, 2 - Dynamic direction, unit dimension, 3 - Static direction, front armor = best armor. If 3 is chosen, 2 is used for buildings.",
-		type   ="number",
-		section = 'options_experimental',
-		def    = 1,
-		min    = 0,
-		max    = 3,
-		step   = 1,
-		hidden = true,
-	},
-
-	{
-		key    = 'experimentalflankingbonusmin',
-		name   = 'Flanking Bonus Minimum Damage Percentage (Default 90%)',
-		desc   = 'How much damage weapons deal at hardest point of flanking armor',
-		type   ="number",
-		section = 'options_experimental',
-		def    = 90,
-		min    = 1,
-		max    = 1000,
-		step   = 1,
-		hidden = true,
-	},
-
-	{
-		key    = 'experimentalflankingbonusmax',
-		name   = 'Flanking Bonus Maximum Damage Percentage (Default 190%)',
-		desc   = 'How much damage weapons deal at hardest point of flanking armor',
-		type   ="number",
-		section = 'options_experimental',
-		def    = 190,
-		min    = 1,
-		max    = 1000,
-		step   = 1,
-		hidden = true,
-	},
-
-	{
 		key    = 'experimentalrebalancet2labs',
 		name   = 'Rebalance Candidate: Cheaper T2 Factories',
 		desc   = '',
@@ -1497,6 +1450,15 @@ local options={
 		section = 'options_experimental',
 		type    = "string",
 		def     = "",
+	},
+
+	{
+		key     = "defaultdecals",
+		name    = "Default Decals",
+		desc    = "Use the default explosion decals instead of Decals GL4", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+		section = 'options_experimental',
+		type    = "bool",
+		def     =  true,
 	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

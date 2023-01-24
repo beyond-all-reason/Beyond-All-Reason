@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis,
-    rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, hatpoint;
+    rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, hatpoint, crown, medalsilver, medalbronze, medalgold;
 
 static-var bMoving, bAiming, Busy, gun_3, gun_2, counter,
       bIsBuilding, buildPitch, buildHeading, maxSpeed, currentSpeed, animSpeed, justMoved;
@@ -795,6 +795,17 @@ Create()
 	hide aimy1;
 	hide teleport;
 	hide rbigflash;
+	
+	hide crown;
+	hide medalgold;
+	hide medalsilver;
+	hide medalbronze;
+
+	move crown to y-axis [100] speed [9999];
+	move medalgold to y-axis [100] speed [9999];
+	move medalsilver to y-axis [100] speed [9999];
+	move medalgold to y-axis [100] speed [9999];
+
 	idleTime = 0;
 	bMoving = FALSE;
 	bAiming = FALSE;
@@ -816,6 +827,24 @@ Create()
 	currentSpeed = 100;
 	//call-script TeleportControl();
 	start-script UnitSpeed();
+}
+
+
+ShowCrown()
+{
+	show crown;
+}
+ShowMedalGold()
+{
+	show medalgold;
+}
+ShowMedalSilver()
+{
+	show medalsilver;
+}
+ShowMedalBronze()
+{
+	show medalbronze;
 }
 
 StartMoving()

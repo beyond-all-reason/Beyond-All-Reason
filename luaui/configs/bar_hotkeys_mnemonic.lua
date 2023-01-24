@@ -106,7 +106,8 @@ local bindings = {
 	{    "sc_q,sc_q", "drawlabel"       }, -- double hit Q for drawlabel
 	{            "r", "repair"          },
 	{      "Shift+r", "repair"          },
-	{            "s", "stop"            },
+    {       "Ctrl+r", "resurrect"       },
+    {            "s", "stop"            },
 	{      "Shift+s", "stop"            },
 	{       "Ctrl+s", "stopproduction"  },
 	{            "u", "unloadunits"     },
@@ -162,7 +163,7 @@ local bindings = {
 	{ "Ctrl+a", "select", "AllMap++_ClearSelection_SelectAll+"                                                                                    },
 	{ "Ctrl+b", "select", "AllMap+_Builder_Idle+_ClearSelection_SelectOne+"                                                                       },
 	{ "Ctrl+c", "select", "AllMap+_ManualFireUnit_Not_IdMatches_cordecom_Not_IdMatches_armdecom_Not_IdMatches_armthor+_ClearSelection_SelectOne+" },
-	{ "Ctrl+r", "select", "AllMap+_Radar+_ClearSelection_SelectAll+"                                                                              },
+	-- { "Ctrl+r", "select", "AllMap+_Radar+_ClearSelection_SelectAll+"                                                                              },
 	{ "Ctrl+v", "select", "AllMap+_Not_Builder_Not_Commander_InPrevSel_Not_InHotkeyGroup+_SelectAll+"                                             },
 	{ "Ctrl+w", "select", "AllMap+_Not_Aircraft_Weapons+_ClearSelection_SelectAll+"                                                               },
 	{ "Ctrl+x", "select", "AllMap+_InPrevSel_Not_InHotkeyGroup+_SelectAll+"                                                                       },

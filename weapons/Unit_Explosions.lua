@@ -30,16 +30,11 @@ unitDeaths = {
 		soundhit = "EMGPULS1",
 		soundstart = "bombrel",
 		damage = {
-			default = 4000,
+			default = 4450,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_radius_mult = 1.15,
-			expl_light_mult = 1,
-			expl_light_color = "0.5 0.5 1",
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 
 	pyro = {
@@ -52,16 +47,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-fire",
 		damage = {
-			default = 50,
+			default = 56,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.5 0.2",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	pyroselfd = {
 		weaponType = "Cannon",
@@ -74,16 +64,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge-fire",
 		damage = {
-			default = 1000,
+			default = 1110,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.5 0.2",
-			expl_light_mult = 1.15,
-			expl_light_radius_mult = 1.15,
-			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 
 	flamethrower = {
@@ -96,16 +81,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium-fire",
 		damage = {
-			default = 35,
+			default = 39,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.5 0.15",
-			expl_light_mult = 1.15,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	flamethrowerSelfd = {
 		weaponType = "Cannon",
@@ -118,16 +98,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-fire",
 		damage = {
-			default = 650,
+			default = 720,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.5 0.15",
-			expl_light_mult = 1.2,
-			expl_light_radius_mult = 1.15,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 
 	tidal = {
@@ -141,7 +116,7 @@ unitDeaths = {
 		soundhit = "xplosml3",
 		soundstart = "largegun",
 		damage = {
-			default = 150,
+			default = 167,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -159,7 +134,7 @@ unitDeaths = {
 		soundhit = "xplosml3",
 		soundstart = "largegun",
 		damage = {
-			default = 300,
+			default = 335,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -177,16 +152,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-nano",
 		damage = {
-			default = 10,
-			nanos = 480,
+			default = 11,
+			nanos = 530,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.7 0.3",
-			expl_light_mult = 1.04,
-			expl_light_radius_mult = 1.04,
-			expl_light_life_mult = 1.06,
-		},
+		}
 	},
 
 	nanoselfd = {
@@ -200,17 +171,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-nano",
 		damage = {
-			default = 5,
-			nanos = 70,
+			default = 6,
+			nanos = 78,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "0.8 1 0.3",
-			expl_light_mult = 1.05,
-			expl_light_radius_mult = 1.05,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 
 	smallbuilder = {
@@ -223,16 +189,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small-builder",
 		damage = {
-			default = 25,
+			default = 28,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.3",
-			expl_light_mult = 1.03,
-			expl_light_radius_mult = 1.03,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	smallbuilderSelfd = {
 		weaponType = "Cannon",
@@ -244,16 +205,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-builder",
 		damage = {
-			default = 350,
+			default = 390,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.3",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 
 	windboom = {
@@ -267,13 +223,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-wind",
 		damage = {
-			default = 80,
+			default = 89,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_mult = 0.88,
-			expl_light_radius_mult = 0.88,
-		},
+		}
 	},
 
 	metalmaker = {
@@ -286,16 +240,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-metalmaker",
 		damage = {
-			default = 590,
+			default = 660,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.6 0.3",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	metalmakerSelfd = {
 		weaponType = "Cannon",
@@ -307,16 +256,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-metalmakerselfd",
 		damage = {
-			default = 950,
+			default = 1060,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.6 0.3",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 
 	advmetalmaker = {
@@ -329,17 +273,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-advmetalmaker",
 		damage = {
-			commanders = 900,
-			default = 1100,
+			commanders = 1000,
+			default = 1220,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.6 0.3",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	advmetalmakerSelfd = {
 		weaponType = "Cannon",
@@ -351,17 +290,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-advmetalmakerselfd",
 		damage = {
-			commanders = 1400,
-			default = 2400,
+			commanders = 1560,
+			default = 2650,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.6 0.3",
-			expl_light_mult = 1.2,
-			expl_light_radius_mult = 1.2,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 
 	energystorage = {
@@ -374,16 +308,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-large",
 		damage = {
-			default = 880,
+			default = 980,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	energystorageSelfd = {
 		weaponType = "Cannon",
@@ -395,16 +324,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge",
 		damage = {
-			default = 1280,
+			default = 1420,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.16,
-			expl_light_radius_mult = 1.16,
-			expl_light_life_mult = 1.22,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	['energystorage-uw'] = {
 		weaponType = "Cannon",
@@ -416,15 +340,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-large-uw",
 		damage = {
-			default = 880,
+			default = 980,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.15,
-		},
+		}
 	},
 	['energystorageSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -436,15 +356,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge-uw",
 		damage = {
-			default = 1280,
+			default = 1420,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.16,
-			expl_light_radius_mult = 1.16,
-			expl_light_life_mult = 1.22,
-		},
+		}
 	},
 
 	advenergystorage = {
@@ -457,17 +373,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge",
 		damage = {
-			commanders = 1400,
-			default = 2400,
+			commanders = 1560,
+			default = 2650,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.16,
-			expl_light_radius_mult = 1.16,
-			expl_light_life_mult = 1.22,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	advenergystorageSelfd = {
 		weaponType = "Cannon",
@@ -479,17 +390,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-gigantic",
 		damage = {
-			commanders = 2200,
-			default = 7500,
+			commanders = 2450,
+			default = 8300,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.2,
-			expl_light_radius_mult = 1.2,
-			expl_light_life_mult = 1.25,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	['advenergystorage-uw'] = {
 		weaponType = "Cannon",
@@ -501,16 +407,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge-uw",
 		damage = {
-			commanders = 1400,
-			default = 2400,
+			commanders = 1560,
+			default = 2650,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.16,
-			expl_light_radius_mult = 1.16,
-			expl_light_life_mult = 1.22,
-		},
+		}
 	},
 	['advenergystorageSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -522,16 +424,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-gigantic-uw",
 		damage = {
-			commanders = 2200,
-			default = 7500,
+			commanders = 2450,
+			default = 8300,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.2,
-			expl_light_radius_mult = 1.2,
-			expl_light_life_mult = 1.25,
-		},
+		}
 	},
 
 	geo = {
@@ -544,16 +442,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-large",
 		damage = {
-			default = 1280,
+			default = 1420,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.16,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 
 	advgeo = {
@@ -566,17 +459,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:nukedatbewm",
 		damage = {
-			commanders = 2500,
-			default = 9500,
+			commanders = 2800,
+			default = 10600,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.2,
-			expl_light_radius_mult = 1.2,
-			expl_light_life_mult = 1.25,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 
 	nukeBuilding = {
@@ -589,15 +477,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge",
 		damage = {
-			commanders = 1400,
-			default = 2400,
+			commanders = 1560,
+			default = 2650,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.66",
-			expl_light_life_mult = 1.25,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	nukeBuildingSelfd = {
 		weaponType = "Cannon",
@@ -609,15 +494,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:nukedatbewm",
 		damage = {
-			commanders = 2500,
-			default = 9500,
+			commanders = 2800,
+			default = 10600,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.66",
-			expl_light_life_mult = 1.25,
-			expl_light_heat_radius_mult = 1.3,
-		},
+		}
 	},
 
 	penetrator = {
@@ -630,14 +512,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-large",
 		damage = {
-			default = 880,
+			default = 980,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.6 0.75",
-			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	penetratorSelfd = {
 		weaponType = "Cannon",
@@ -649,14 +528,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge",
 		damage = {
-			default = 1280,
+			default = 1420,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.6 0.75",
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 
 	bantha = {
@@ -669,17 +545,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxxl",
 		damage = {
-			commanders = 1250,
-			default = 3500,
+			commanders = 1390,
+			default = 3900,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.88 0.6",
-			expl_light_mult = 1.22,
-			expl_light_radius_mult = 1.22,
-			expl_light_life_mult = 1.4,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	banthaSelfd = {
 		weaponType = "Cannon",
@@ -691,17 +562,12 @@ unitDeaths = {
 		soundstart = "misicbm1",
 		explosiongenerator = "custom:t3unitexplosionxxxl",
 		damage = {
-			commanders = 2000,
-			default = 4500,
+			commanders = 2200,
+			default = 5000,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.88 0.6",
-			expl_light_mult = 1.25,
-			expl_light_radius_mult = 1.25,
-			expl_light_life_mult = 1.5,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	korgExplosion = {
 		weaponType = "Cannon",
@@ -713,17 +579,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:newnuke",
 		damage = {
-			commanders = 2500,
-			default = 9500,
+			commanders = 2800,
+			default = 10600,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.88 0.6",
-			expl_light_mult = 1.2,
-			expl_light_radius_mult = 1.22,
-			expl_light_life_mult = 1.45,
-			expl_light_heat_radius_mult = 1.3,
-		},
+		}
 	},
 	korgExplosionSelfd = {
 		weaponType = "Cannon",
@@ -735,17 +596,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:newnukecor",
 		damage = {
-			commanders = 2700,
-			default = 11500,
+			commanders = 3000,
+			default = 12800,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.88 0.6",
-			expl_light_mult = 1.25,
-			expl_light_radius_mult = 1.25,
-			expl_light_life_mult = 1.5,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	juggernaut = {
 		weaponType = "Cannon",
@@ -757,18 +613,13 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxl",
 		damage = {
-			commanders = 900,
-			crawlingbombs = 99,
-			default = 1800,
+			commanders = 1000,
+			crawlingbombs = 110,
+			default = 2000,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.88 0.6",
-			expl_light_mult = 1.22,
-			expl_light_radius_mult = 1.22,
-			expl_light_life_mult = 1.4,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	juggernautSelfd = {
 		weaponType = "Cannon",
@@ -780,18 +631,13 @@ unitDeaths = {
 		soundstart = "misicbm1",
 		explosiongenerator = "custom:newnuketac",
 		damage = {
-			commanders = 1250,
-			crawlingbombs = 199,
-			default = 3000,
+			commanders = 1390,
+			crawlingbombs = 220,
+			default = 3350,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.88 0.6",
-			expl_light_mult = 1.25,
-			expl_light_radius_mult = 1.25,
-			expl_light_life_mult = 1.5,
-			expl_light_heat_radius_mult = 1.35,
-		},
+		}
 	},
 
 	flagshipExplosion = {
@@ -804,16 +650,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosion",
 		damage = {
-			commanders = 1400,
-			default = 2400,
+			commanders = 1560,
+			default = 2650,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_mult = 1.22,
-			expl_light_radius_mult = 1.22,
-			expl_light_life_mult = 1.4,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	flagshipExplosionSelfd = {
 		weaponType = "Cannon",
@@ -825,16 +667,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxl",
 		damage = {
-			commanders = 1900,
-			default = 5000,
+			commanders = 2100,
+			default = 5600,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_mult = 1.25,
-			expl_light_radius_mult = 1.25,
-			expl_light_life_mult = 1.5,
-			expl_light_heat_radius_mult = 1.35,
-		},
+		}
 	},
 
 
@@ -848,15 +686,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:decoycommander",
 		damage = {
-			default = 18,
+			default = 20,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	decoycommanderSelfd = {
 		weaponType = "Cannon",
@@ -868,15 +702,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:decoycommander-selfd",
 		damage = {
-			default = 280,
+			default = 310,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_mult = 1.13,
-			expl_light_radius_mult = 1.13,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	minifusionExplosion = {
 		weaponType = "Cannon",
@@ -888,18 +718,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:fusexpl",
 		damage = {
-			commanders = 900,
-			default = 1600,
+			commanders = 1000,
+			default = 1780,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.66",
-			expl_light_mult = 1.5,
-			expl_light_radius_mult = 1.4,
-			expl_light_life_mult = 1.75,
-			expl_light_heat_radius_mult = 1.2,
-			expl_light_nuke = 1,
-		},
+		}
 	},
 	fusionExplosion = {
 		weaponType = "Cannon",
@@ -911,18 +735,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:fusexpl",
 		damage = {
-			commanders = 1400,
-			default = 2400,
+			commanders = 1560,
+			default = 2650,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.66",
-			expl_light_mult = 1.5,
-			expl_light_radius_mult = 1.4,
-			expl_light_life_mult = 1.75,
-			expl_light_heat_radius_mult = 1.2,
-			expl_light_nuke = 1,
-		},
+		}
 	},
 	fusionExplosionSelfd = {
 		weaponType = "Cannon",
@@ -934,18 +752,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:fusexpl",
 		damage = {
-			commanders = 2200,
-			default = 7500,
+			commanders = 2450,
+			default = 8300,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.66",
-			expl_light_mult = 1.55,
-			expl_light_radius_mult = 1.5,
-			expl_light_life_mult = 1.85,
-			expl_light_heat_radius_mult = 1.25,
-			expl_light_nuke = 1,
-		},
+		}
 	},
 
 	['fusionExplosion-uw'] = {
@@ -958,17 +770,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge-uw",
 		damage = {
-			commanders = 1400,
-			default = 2400,
+			commanders = 1560,
+			default = 2650,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.66",
-			expl_light_mult = 1.3,
-			expl_light_radius_mult = 1.35,
-			expl_light_life_mult = 1.5,
-			expl_light_nuke = 1,
-		},
+		}
 	},
 	['fusionExplosionSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -980,17 +787,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-gigantic-uw",
 		damage = {
-			commanders = 2200,
-			default = 7500,
+			commanders = 2450,
+			default = 8300,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.66",
-			expl_light_mult = 1.35,
-			expl_light_radius_mult = 1.4,
-			expl_light_life_mult = 1.6,
-			expl_light_nuke = 1,
-		},
+		}
 	},
 
 	advancedFusionExplosion = {
@@ -1003,18 +805,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:afusexpl",
 		damage = {
-			commanders = 2500,
-			default = 9500,
+			commanders = 2800,
+			default = 10600,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.78 0.45",
-			expl_light_mult = 1.15,
-			expl_light_radius_mult = 1.2,
-			expl_light_life_mult = 1.4,
-			expl_light_heat_radius_mult = 1.1,
-			expl_light_nuke = 1,
-		},
+		}
 	},
 	advancedFusionExplosionSelfd = {
 		weaponType = "Cannon",
@@ -1026,18 +822,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:afusexpl",
 		damage = {
-			commanders = 2700,
-			default = 11500,
+			commanders = 3000,
+			default = 12800,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.75 0.45",
-			expl_light_mult = 1.3,
-			expl_light_radius_mult = 1.3,
-			expl_light_life_mult = 1.5,
-			expl_light_heat_radius_mult = 1.12,
-			expl_light_nuke = 1,
-		},
+		}
 	},
 
 	scavcomexplosion = {
@@ -1050,17 +840,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:scav_commander_explosion",
 		damage = {
-			commanders = 1250,
-			default = 5000,
+			commanders = 1390,
+			default = 5600,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "0.6 0.15 1",
-			expl_light_mult = 3,
-			expl_light_radius_mult = 1.15,
-			expl_light_life_mult = 2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 
 	ScavComBossExplo = {
@@ -1074,17 +859,12 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:newnukehuge",
 		damage = {
-			commanders = 1950,
-			default = 15000,
+			commanders = 2150,
+			default = 16700,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "0.6 0.15 1",
-			expl_light_mult = 1.95,
-			expl_light_radius_mult = 1.75,
-			expl_light_life_mult = 2.5,
-			expl_light_heat_radius_mult = 1.5,
-		},
+		}
 	},
 
 	--NUKE EXPLOSIONS WITH DAMAGE--
@@ -1107,18 +887,12 @@ unitDeaths = {
 		cratermult = 2,
 		edgeeffectiveness = 0.3,
 		damage = {
-			default = 50000,
-			commanders = 12500,
+			default = 56000,
+			commanders = 13900,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.5",
-			expl_light_mult = 1.6,
-			expl_light_radius_mult = 1.33,
-			expl_light_life_mult = 1.55,
-			expl_light_heat_radius_mult = 1.3,
-			expl_light_nuke = 1,
-		},
+		}
 	},
 
 
@@ -1134,16 +908,11 @@ unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-metal",
 		damage = {
-			default = 550,
+			default = 610,
 			walls = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
-		-- 	expl_light_color = "1 0.45 0.25",
-		-- 	expl_light_mult = 1.03,
-		-- 	expl_light_radius_mult = 1.03,
-		-- 	expl_light_life_mult = 1.2,
-		-- 	expl_light_heat_radius_mult = 1.1,
 		},
 	},
 	WallExplosionMetalXL = {
@@ -1156,16 +925,11 @@ unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-metal",
 		damage = {
-			default = 1375,
+			default = 1530,
 			walls = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
-		-- 	expl_light_color = "1 0.45 0.25",
-		-- 	expl_light_mult = 1.03,
-		-- 	expl_light_radius_mult = 1.03,
-		-- 	expl_light_life_mult = 1.2,
-		-- 	expl_light_heat_radius_mult = 1.1,
 		},
 	},
 	WallExplosionConcrete = {
@@ -1178,16 +942,11 @@ unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-concrete",
 		damage = {
-			default = 550,
+			default = 610,
 			walls = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
-		-- 	expl_light_color = "1 0.45 0.25",
-		-- 	expl_light_mult = 1.03,
-		-- 	expl_light_radius_mult = 1.03,
-		-- 	expl_light_life_mult = 1.2,
-		-- 	expl_light_heat_radius_mult = 1.1,
 		},
 	},
 	WallExplosionConcreteXL = {
@@ -1200,16 +959,11 @@ unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-concrete",
 		damage = {
-			default = 1375,
+			default = 1530,
 			walls = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
-		-- 	expl_light_color = "1 0.45 0.25",
-		-- 	expl_light_mult = 1.03,
-		-- 	expl_light_radius_mult = 1.03,
-		-- 	expl_light_life_mult = 1.2,
-		-- 	expl_light_heat_radius_mult = 1.1,
 		},
 	},
 	WallExplosionWater = {
@@ -1222,16 +976,11 @@ unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-water",
 		damage = {
-			default = 500,
+			default = 560,
 			walls = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
-		-- 	expl_light_color = "1 0.45 0.25",
-		-- 	expl_light_mult = 1.03,
-		-- 	expl_light_radius_mult = 1.03,
-		-- 	expl_light_life_mult = 1.2,
-		-- 	expl_light_heat_radius_mult = 1.1,
 		},
 	},
 	tinyBuildingExplosionGeneric = {
@@ -1244,16 +993,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-tiny",
 		damage = {
-			default = 10,
+			default = 11,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.03,
-			expl_light_radius_mult = 1.03,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.1,
-		},
+		}
 	},
 	tinyBuildingExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -1265,16 +1009,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-small",
 		damage = {
-			default = 30,
+			default = 33,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.05,
-			expl_light_radius_mult = 1.05,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['tinyBuildingExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -1286,15 +1025,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-tiny-uw",
 		damage = {
-			default = 10,
+			default = 11,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.03,
-			expl_light_radius_mult = 1.03,
-			expl_light_life_mult = 1.2,
-		},
+		}
 	},
 	['tinyBuildingExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -1306,15 +1041,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-small-uw",
 		damage = {
-			default = 30,
+			default = 33,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.05,
-			expl_light_radius_mult = 1.05,
-			expl_light_life_mult = 1.2,
-		},
+		}
 	},
 
 	smallBuildingExplosionGeneric = {
@@ -1327,16 +1058,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-small",
 		damage = {
-			default = 80,
+			default = 89,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.05,
-			expl_light_radius_mult = 1.05,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.1,
-		},
+		}
 	},
 	smallBuildingExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -1348,16 +1074,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-medium",
 		damage = {
-			default = 900,
+			default = 1000,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.07,
-			expl_light_radius_mult = 1.07,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	smallMex = {
 		weaponType = "Cannon",
@@ -1369,16 +1090,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-small",
 		damage = {
-			default = 350,
+			default = 390,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.07,
-			expl_light_radius_mult = 1.07,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['smallBuildingExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -1390,15 +1106,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-small-uw",
 		damage = {
-			default = 80,
+			default = 89,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.05,
-			expl_light_radius_mult = 1.05,
-			expl_light_life_mult = 1.2,
-		},
+		}
 	},
 	['smallBuildingExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -1410,15 +1122,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-medium-uw",
 		damage = {
-			default = 900,
+			default = 1000,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.07,
-			expl_light_radius_mult = 1.07,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 
 	mediumBuildingExplosionGeneric = {
@@ -1431,16 +1139,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-medium",
 		damage = {
-			default = 200,
+			default = 220,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.07,
-			expl_light_radius_mult = 1.07,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	mediumBuildingExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -1452,16 +1155,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-large",
 		damage = {
-			default = 1400,
+			default = 1560,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.09,
-			expl_light_radius_mult = 1.09,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['mediumBuildingExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -1473,15 +1171,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-medium-uw",
 		damage = {
-			default = 200,
+			default = 220,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.07,
-			expl_light_radius_mult = 1.07,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 	['mediumBuildingExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -1493,15 +1187,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-large-uw",
 		damage = {
-			default = 1400,
+			default = 1560,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.09,
-			expl_light_radius_mult = 1.09,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 
 	largeBuildingExplosionGeneric = {
@@ -1514,16 +1204,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-large",
 		damage = {
-			default = 600,
+			default = 670,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.09,
-			expl_light_radius_mult = 1.09,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	largeBuildingExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -1535,16 +1220,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge",
 		damage = {
-			default = 1800,
+			default = 2000,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.11,
-			expl_light_radius_mult = 1.11,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['largeBuildingExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -1556,15 +1236,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-large-uw",
 		damage = {
-			default = 600,
+			default = 670,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.09,
-			expl_light_radius_mult = 1.09,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 	['largeBuildingExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -1576,15 +1252,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge-uw",
 		damage = {
-			default = 1800,
+			default = 2000,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.11,
-			expl_light_radius_mult = 1.11,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 
 	hugeBuildingExplosionGeneric = {
@@ -1597,16 +1269,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge",
 		damage = {
-			default = 1200,
+			default = 1330,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.11,
-			expl_light_radius_mult = 1.11,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	hugeBuildingExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -1618,16 +1285,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-gigantic",
 		damage = {
-			default = 2800,
+			default = 3100,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.13,
-			expl_light_radius_mult = 1.13,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 
 
@@ -1643,16 +1305,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-tiny",
 		damage = {
-			default = 5,
+			default = 6,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.05,
-			expl_light_radius_mult = 1.03,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	tinyExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -1664,16 +1321,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small",
 		damage = {
-			default = 50,
+			default = 56,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.1,
-		},
+		}
 	},
 	['tinyExplosionGeneric-builder'] = {
 		weaponType = "Cannon",
@@ -1685,16 +1337,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-tiny-builder",
 		damage = {
-			default = 5,
+			default = 6,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.05,
-			expl_light_radius_mult = 1.03,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['tinyExplosionGenericSelfd-builder'] = {
 		weaponType = "Cannon",
@@ -1706,16 +1353,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small-builder",
 		damage = {
-			default = 50,
+			default = 56,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.1,
-		},
+		}
 	},
 	['tinyExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -1727,15 +1369,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-tiny-uw",
 		damage = {
-			default = 5,
+			default = 6,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1,
-			expl_light_radius_mult = 1,
-			expl_light_life_mult = 1.02,
-		},
+		}
 	},
 	['tinyExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -1747,15 +1385,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small-uw",
 		damage = {
-			default = 50,
+			default = 56,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.02,
-			expl_light_radius_mult = 1.02,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 	['tinyExplosionGeneric-phib'] = {
 		weaponType = "Cannon",
@@ -1767,16 +1401,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-tiny-phib",
 		damage = {
-			default = 5,
+			default = 6,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.02,
-			expl_light_radius_mult = 1.02,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['tinyExplosionGenericSelfd-phib'] = {
 		weaponType = "Cannon",
@@ -1788,16 +1417,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small-phib",
 		damage = {
-			default = 50,
+			default = 56,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.04,
-			expl_light_radius_mult = 1.04,
-			expl_light_life_mult = 1.06,
-			expl_light_heat_radius_mult = 1.1,
-		},
+		}
 	},
 
 	smallExplosionGenericAir = {
@@ -1810,16 +1434,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small",
 		damage = {
-			default = 5,
+			default = 6,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.04,
-			expl_light_radius_mult = 1.04,
-			expl_light_life_mult = 1.06,
-			expl_light_heat_radius_mult = 1.1,
-		},
+		}
 	},
 
 	smallExplosionGeneric = {
@@ -1832,16 +1451,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small",
 		damage = {
-			default = 10,
+			default = 11,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.04,
-			expl_light_radius_mult = 1.04,
-			expl_light_life_mult = 1.06,
-			expl_light_heat_radius_mult = 1.1,
-		},
+		}
 	},
 	smallExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -1853,16 +1467,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium",
 		damage = {
-			default = 200,
+			default = 220,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['smallExplosionGeneric-builder'] = {
 		weaponType = "Cannon",
@@ -1874,16 +1483,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small-builder",
 		damage = {
-			default = 10,
+			default = 11,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.04,
-			expl_light_radius_mult = 1.04,
-			expl_light_life_mult = 1.06,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['smallExplosionGenericSelfd-builder'] = {
 		weaponType = "Cannon",
@@ -1895,16 +1499,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium-builder",
 		damage = {
-			default = 200,
+			default = 220,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['smallExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -1916,15 +1515,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small-uw",
 		damage = {
-			default = 10,
+			default = 11,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.04,
-			expl_light_radius_mult = 1.04,
-			expl_light_life_mult = 1.06,
-		},
+		}
 	},
 	['smallExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -1936,15 +1531,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium-uw",
 		damage = {
-			default = 200,
+			default = 220,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-		},
+		}
 	},
 	['smallExplosionGeneric-phib'] = {
 		weaponType = "Cannon",
@@ -1956,16 +1547,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small-phib",
 		damage = {
-			default = 10,
+			default = 11,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.04,
-			expl_light_radius_mult = 1.04,
-			expl_light_life_mult = 1.06,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['smallExplosionGenericSelfd-phib'] = {
 		weaponType = "Cannon",
@@ -1977,16 +1563,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium-phib",
 		damage = {
-			default = 200,
+			default = 220,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 
 	mediumExplosionGeneric = {
@@ -1999,16 +1580,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium",
 		damage = {
-			default = 18,
+			default = 20,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	mediumExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -2020,16 +1596,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large",
 		damage = {
-			default = 280,
+			default = 310,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['mediumExplosionGeneric-builder'] = {
 		weaponType = "Cannon",
@@ -2041,16 +1612,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium-builder",
 		damage = {
-			default = 18,
+			default = 20,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['mediumExplosionGenericSelfd-builder'] = {
 		weaponType = "Cannon",
@@ -2062,16 +1628,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-builder",
 		damage = {
-			default = 280,
+			default = 310,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['mediumExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -2083,15 +1644,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium-uw",
 		damage = {
-			default = 18,
+			default = 20,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-		},
+		}
 	},
 	['mediumExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -2103,15 +1660,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-uw",
 		damage = {
-			default = 280,
+			default = 310,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 	['mediumExplosionGeneric-phib'] = {
 		weaponType = "Cannon",
@@ -2123,16 +1676,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium-phib",
 		damage = {
-			default = 18,
+			default = 20,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['mediumExplosionGenericSelfd-phib'] = {
 		weaponType = "Cannon",
@@ -2144,16 +1692,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-phib",
 		damage = {
-			default = 280,
+			default = 310,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 
 	largeExplosionGeneric = {
@@ -2166,16 +1709,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large",
 		damage = {
-			default = 25,
+			default = 28,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	largeExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -2187,16 +1725,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge",
 		damage = {
-			default = 350,
+			default = 390,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['largeExplosionGeneric-builder'] = {
 		weaponType = "Cannon",
@@ -2208,16 +1741,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-builder",
 		damage = {
-			default = 25,
+			default = 28,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['largeExplosionGenericSelfd-builder'] = {
 		weaponType = "Cannon",
@@ -2229,16 +1757,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge-builder",
 		damage = {
-			default = 350,
+			default = 390,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['largeExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -2250,15 +1773,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-uw",
 		damage = {
-			default = 25,
+			default = 28,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 	['largeExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -2270,15 +1789,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge-uw",
 		damage = {
-			default = 350,
+			default = 390,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 	['largeExplosionGeneric-phib'] = {
 		weaponType = "Cannon",
@@ -2290,16 +1805,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-phib",
 		damage = {
-			default = 25,
+			default = 28,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['largeExplosionGenericSelfd-phib'] = {
 		weaponType = "Cannon",
@@ -2311,16 +1821,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge-phib",
 		damage = {
-			default = 350,
+			default = 390,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 
 	hugeExplosionGeneric = {
@@ -2333,16 +1838,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge",
 		damage = {
-			default = 35,
+			default = 39,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	explosiont3 = {
 		weaponType = "Cannon",
@@ -2354,16 +1854,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosion",
 		damage = {
-			default = 70,
+			default = 78,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	explosiont3med = {
 		weaponType = "Cannon",
@@ -2375,16 +1870,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionmed",
 		damage = {
-			default = 18,
+			default = 20,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	explosiont3xl = {
 		weaponType = "Cannon",
@@ -2396,16 +1886,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxl",
 		damage = {
-			default = 1000,
+			default = 1110,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.11,
-			expl_light_radius_mult = 1.11,
-			expl_light_life_mult = 1.16,
-			expl_light_heat_radius_mult = 1.22,
-		},
+		}
 	},
 	explosiont3xxl = {
 		weaponType = "Cannon",
@@ -2417,16 +1902,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxxxl",
 		damage = {
-			default = 1800,
+			default = 2000,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.15,
-			expl_light_radius_mult = 1.20,
-			expl_light_life_mult = 1.24,
-			expl_light_heat_radius_mult = 1.28,
-		},
+		}
 	},
 	hugeExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -2438,16 +1918,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-gigantic",
 		damage = {
-			default = 500,
+			default = 560,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	['hugeExplosionGeneric-builder'] = {
 		weaponType = "Cannon",
@@ -2459,16 +1934,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge-builder",
 		damage = {
-			default = 35,
+			default = 39,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['hugeExplosionGenericSelfd-builder'] = {
 		weaponType = "Cannon",
@@ -2480,16 +1950,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-gigantic-builder",
 		damage = {
-			default = 500,
+			default = 560,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	['hugeExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -2501,15 +1966,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge-uw",
 		damage = {
-			default = 35,
+			default = 39,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 	['hugeExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -2521,15 +1982,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-gigantic-uw",
 		damage = {
-			default = 500,
+			default = 560,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 	['hugeExplosionGeneric-phib'] = {
 		weaponType = "Cannon",
@@ -2541,16 +1998,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge-phib",
 		damage = {
-			default = 35,
+			default = 39,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['hugeExplosionGenericSelfd-phib'] = {
 		weaponType = "Cannon",
@@ -2562,16 +2014,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-gigantic-phib",
 		damage = {
-			default = 500,
+			default = 560,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	lootboxExplosion1 = {
 		weaponType = "Cannon",
@@ -2583,16 +2030,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxl",
 		damage = {
-			default = 600,
+			default = 670,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.09,
-			expl_light_radius_mult = 1.09,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	lootboxExplosion2 = {
 		weaponType = "Cannon",
@@ -2604,16 +2046,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxxl",
 		damage = {
-			default = 1200,
+			default = 1330,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.16,
-		},
+		}
 	},
 	lootboxExplosion3 = {
 		weaponType = "Cannon",
@@ -2625,16 +2062,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxxxl",
 		damage = {
-			default = 2400,
+			default = 2650,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.17,
-		},
+		}
 	},
 	lootboxExplosion4 = {
 		weaponType = "Cannon",
@@ -2646,16 +2078,11 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxxxxl",
 		damage = {
-			default = 4800,
+			default = 5300,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.13,
-			expl_light_radius_mult = 1.13,
-			expl_light_life_mult = 1.16,
-			expl_light_heat_radius_mult = 1.18,
-		},
+		}
 	},
 
 	mistexplosm = {    -- for scavmist
@@ -2673,16 +2100,11 @@ unitDeaths = {
 		soundhit = "xploelc1",
 		soundstart = "bombrel",
 		damage = {
-			default = 1500,
+			default = 1670,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_radius_mult = 1.05,
-			expl_light_mult = 1,
-			expl_light_color = "0.7 0.3 1",
-			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 
 	mistexplo = {    -- for scavmist
@@ -2700,16 +2122,11 @@ unitDeaths = {
 		soundhit = "xploelc1",
 		soundstart = "bombrel",
 		damage = {
-			default = 2500,
+			default = 2800,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_radius_mult = 1.15,
-			expl_light_mult = 1,
-			expl_light_color = "0.7 0.3 1",
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 
 	mistexploxl = {    -- for scavmist
@@ -2727,16 +2144,11 @@ unitDeaths = {
 		soundhit = "xploelc1",
 		soundstart = "bombrel",
 		damage = {
-			default = 3500,
+			default = 3900,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_radius_mult = 1.25,
-			expl_light_mult = 1.1,
-			expl_light_color = "0.7 0.3 1",
-			expl_light_life_mult = 1.4,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 
 }

@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local config = VFS.Include('LuaRules/Configs/chicken_spawn_defs.lua')
+
 local customScale = 1
 local widgetScale = customScale
 local font, font2, chobbyInterface
@@ -206,6 +208,8 @@ local function getMarqueeMessage(chickenEventArgs)
 	elseif chickenEventArgs.type == "queen" then
 		messages[1] = textColor .. Spring.I18N('ui.chickens.queenIsAngry1')
 		messages[2] = textColor .. Spring.I18N('ui.chickens.queenIsAngry2')
+	elseif chickenEventArgs.type == "wave" then
+		messages[1] = textColor .. Spring.I18N('ui.chickens.wave', {waveNumber = chickenEventArgs.waveCount})
 	end
 
 	refreshMarqueeMessage = false
@@ -306,16 +310,14 @@ function ChickenEvent(chickenEventArgs)
 
 
 
-	-- if chickenEventArgs.type == "wave" then
-	-- 	if gameInfo.chicken_hiveCount < 1 then
-	-- 		return
-	-- 	end
-	-- 	waveCount = waveCount + 1
-	-- 	chickenEventArgs.waveCount = waveCount
-	-- 	showMarqueeMessage = true
-	-- 	refreshMarqueeMessage = true
-	-- 	messageArgs = chickenEventArgs
-	-- 	waveTime = Spring.GetTimer()
+	if chickenEventArgs.type == "wave" and config.useWaveMsg then
+		waveCount = waveCount + 1
+		chickenEventArgs.waveCount = waveCount
+		showMarqueeMessage = true
+		refreshMarqueeMessage = true
+		messageArgs = chickenEventArgs
+		waveTime = Spring.GetTimer()
+	end
 	-- elseif chickenEventArgs.type == "burrowSpawn" then
 	-- 	UpdateRules()
 	-- elseif chickenEventArgs.type == "queen" then

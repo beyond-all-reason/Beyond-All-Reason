@@ -5,7 +5,7 @@
 
 piece  base, doorl, door, post, turret, sleeve, barrel, dish, flare, antenna, light;
 
-static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateChanging, shooting;
+static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateChanging, shooting, shotcount;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -124,11 +124,17 @@ Create()
 	call-script InitState();
 	restore_delay = 3000;
 	shooting = 0;
+	shotcount = 0;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;
 	}
 	spin dish around y-axis speed <90>;
+}
+
+lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
 }
 
 #define SMOKEPIECE base
@@ -169,7 +175,9 @@ AimPrimary(heading, pitch)
 FirePrimary()
 {
     shooting=1;
+    shotcount = shotcount + 1;
     emit-sfx 1024 + 0 from flare;
+    call-script lua_UnitScriptLight(1, shotcount);
 	sleep 1400;
 	shooting=0;
 }

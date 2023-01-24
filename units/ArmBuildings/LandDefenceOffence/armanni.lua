@@ -23,7 +23,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		losemitheight = 72,
-		maxdamage = 5500,
+		maxdamage = 6100,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
@@ -157,13 +157,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1400,
-				customparams = {
-					expl_light_life_mult = 1.5,
-					expl_light_radius_mult = 1.3,
-					expl_light_mult = 1.15,
-					light_radius_mult = "1.15",
-					light_mult = 3,
-				},
 				damage = {
 					commanders = 2400,
 					default = 10800,

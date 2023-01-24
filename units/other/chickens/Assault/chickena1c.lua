@@ -26,7 +26,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 100000,
-		maxdamage = 4000,
+		maxdamage = 4450,
 		maxslope = 18,
 		maxvelocity = 1.3,
 		maxwaterdepth = 0,
@@ -122,14 +122,6 @@ return {
 				wobble = 32000,
 				damage = {
 					default = 1000,
-				},
-				customparams = {
-					expl_light_life_mult = 1.5,
-					expl_light_radius_mult = 1.3,
-					expl_light_mult = 1.25,
-					light_radius_mult = "0.85",
-					light_mult = 3,
-					light_color = "1 0.55 0.05",
 				},
 			},
 			weapon = {

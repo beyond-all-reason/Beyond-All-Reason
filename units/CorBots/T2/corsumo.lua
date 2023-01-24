@@ -18,7 +18,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 5001,
-		maxdamage = 14000,
+		maxdamage = 15600,
 		maxslope = 15,
 		maxvelocity = 0.75,
 		maxwaterdepth = 23,
@@ -145,12 +145,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
-				customparams = {
-					expl_light_color = "0.1 1 0.1",
-					light_color = "0 0.5 0",
-					light_mult = 1.4,
-					light_radius_mult = 0.7,
-				},
 				damage = {
 					bombers = 71,
 					default = 302,

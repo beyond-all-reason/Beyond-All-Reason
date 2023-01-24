@@ -36,8 +36,8 @@ mouseBoxBlendDst   one_minus_src_alpha
 alwaysDrawQueue   1
 
 useQueueIcons     1
-queueIconAlpha    0.5   
-queueIconScale    1.0
+queueIconAlpha    0.48   
+queueIconScale    0.9
 
 useColorRestarts  1
 useRestartColor   0
@@ -61,14 +61,15 @@ attack      1.0  0.2  0.2  0.3
 fight       1.0  0.2  1.0  0.3
 guard       0.6  1.0  1.0  0.3
 patrol      0.2  0.5  1.0  0.3
-capture     1.0  1.0  0.3  0.7
-repair      1.0  0.9  0.2  0.7
+capture     1.0  1.0  0.3  0.6
+repair      1.0  0.9  0.2  0.6
 reclaim     0.5  1.0  0.4  0.3
 restore     0.0  1.0  0.0  0.3
-resurrect   0.9  0.5  1.0  0.7
+resurrect   0.9  0.5  1.0  0.5
 load        0.4  0.9  0.9  0.7
 unload      1.0  0.8  0.0  0.7
 deathWatch  0.5  0.5  0.5  0.7
+
 
 
 ////////////////////////////////////////////////////////////////

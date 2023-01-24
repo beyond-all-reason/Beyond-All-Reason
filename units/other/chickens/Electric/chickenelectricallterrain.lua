@@ -25,7 +25,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 89,
-		maxdamage = 1800,
+		maxdamage = 2000,
 		maxreversevelocity = 3,
 		maxslope = 18,
 		maxvelocity = 3.25,
@@ -115,10 +115,6 @@ return {
 				turret = true,
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
-				customparams = {
-					expl_light_color = "0.2 0.5 1",
-					light_color = "0.2 0.5 1",
-				},
 				damage = {
 					default = 375,
 				},

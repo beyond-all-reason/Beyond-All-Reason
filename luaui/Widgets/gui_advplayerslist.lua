@@ -31,7 +31,7 @@ end
 	v17	 (Floris): Added alliances display and button and /cputext option
 	v18	 (Floris): Player system shown on tooltip + added FPS counter + replaced allycursor data with activity gadget data (all these features need gadgets too)
 	v19   (Floris): added player resource bars
-	v20   (Floris): added /alwayshidespecs + fixed drawing when playerlist is at the leftside of the screen
+	v20   (Floris): added alwayshidespecs + fixed drawing when playerlist is at the leftside of the screen
 	v21   (Floris): toggles LoS and /specfullview when camera tracking a player
 	v22   (Floris): added auto collapse function
 	v23   (Floris): hiding share buttons when you are alone
@@ -967,6 +967,18 @@ function widget:Initialize()
     SortList()
 
     WG['advplayerlist_api'] = {}
+	WG['advplayerlist_api'].GetAlwaysHideSpecs = function()
+		return alwaysHideSpecs
+	end
+	WG['advplayerlist_api'].SetAlwaysHideSpecs = function(value)
+		alwaysHideSpecs = value
+		if alwaysHideSpecs and specListShow then
+			specListShow = false
+			SetModulesPositionX() --why?
+			SortList()
+			CreateLists()
+		end
+	end
     WG['advplayerlist_api'].GetScale = function()
         return customScale
     end
@@ -3242,6 +3254,7 @@ function widget:GetConfigData()
             hasresetskill = true,
             absoluteResbarValues = absoluteResbarValues,
             originalColourNames = originalColourNames,
+
         }
 
         return settings
@@ -3289,7 +3302,6 @@ function widget:SetConfigData(data)
         if data.expandDown ~= nil and data.widgetRight ~= nil then
             expandDown = data.expandDown
             expandLeft = data.expandLeft
-            specListShow = data.specListShow
             local oldvsx = data.vsx
             local oldvsy = data.vsy
             if oldvsx == nil then
@@ -3682,8 +3694,10 @@ function widget:TextCommand(command)
         if string.sub(command, 10, 10) ~= '' then
             if string.sub(command, 10, 10) == '0' then
                 specListShow = false
+				alwaysHideSpecs = true
             elseif string.sub(command, 10, 10) == '1' then
                 specListShow = true
+				alwaysHideSpecs = false
             end
         else
             specListShow = not specListShow

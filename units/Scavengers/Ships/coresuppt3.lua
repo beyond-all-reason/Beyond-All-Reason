@@ -21,7 +21,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 80000,
+		maxdamage = 89000,
 		maxvelocity = 2.5,
 		minwaterdepth = 12,
 		movementclass = "EPICSHIP",
@@ -142,11 +142,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
-				customparams = {
-					expl_light_life_mult = 1.1,
-					light_mult = 1.3,
-					light_radius_mult = 0.6,
-				},
 				damage = {
 					commanders = 1200,
 					default = 5500,

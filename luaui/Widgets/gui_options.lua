@@ -19,7 +19,7 @@ local types = {
 	dev      = 3,
 }
 
-local version = 1.2	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
+local version = 1.3	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
 local newerVersion = false	-- configdata will set this true if it's a newer version
 
 local texts = {}    -- loaded from external language file
@@ -1539,7 +1539,6 @@ function init()
 			heatdistortion = false,
 			snow = false,
 			particles = 9000,
-			treeradius = 0,
 			guishader = 0,
 			decals = false,
 			shadowslider = 1,
@@ -1557,7 +1556,6 @@ function init()
 			heatdistortion = true,
 			snow = false,
 			particles = 12000,
-			treeradius = 200,
 			guishader = 0,
 			decals = true,
 			shadowslider = 2,
@@ -1575,7 +1573,6 @@ function init()
 		 	heatdistortion = true,
 		 	snow = true,
 		 	particles = 15000,
-		 	treeradius = 400,
 		 	guishader = guishaderIntensity,
 		 	decals = true,
 			shadowslider = 3,
@@ -1593,7 +1590,6 @@ function init()
 			heatdistortion = true,
 			snow = true,
 			particles = 20000,
-			treeradius = 800,
 			guishader = guishaderIntensity,
 			decals = true,
 			shadowslider = 4,
@@ -1611,7 +1607,6 @@ function init()
 			heatdistortion = true,
 			snow = true,
 			particles = 25000,
-			treeradius = 800,
 			guishader = guishaderIntensity,
 			decals = true,
 			shadowslider = 5,
@@ -1829,6 +1824,49 @@ function init()
 		  end,
 		},
 
+		{ id = "sepiatone", group = "gfx", category = types.advanced, widget = "Sepia Tone", name = texts.option.sepiatone, type = "bool", value = GetWidgetToggleValue("Sepia Tone"), description = texts.option.sepiatone_descr },
+		{ id = "sepiatone_gamma", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_gamma, min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5, description = texts.option.sepiatone_gamma_descr,
+		  onload = function(i)
+			  loadWidgetData("Sepia Tone", "sepiatone_gamma", { 'gamma' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Sepia Tone', 'sepia', 'setGamma', { 'gamma' }, value)
+		  end,
+		},
+		{ id = "sepiatone_saturation", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_saturation, min = 0, max = 1.5, step = 0.02, type = "slider", value = 0.5, description = texts.option.sepiatone_saturation_descr,
+		  onload = function(i)
+			  loadWidgetData("Sepia Tone", "sepiatone_saturation", { 'saturation' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Sepia Tone', 'sepia', 'setSaturation', { 'saturation' }, value)
+		  end,
+		},
+		{ id = "sepiatone_contrast", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_contrast, min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5, description = texts.option.sepiatone_contrast_descr,
+		  onload = function(i)
+			  loadWidgetData("Sepia Tone", "sepiatone_contrast", { 'contrast' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Sepia Tone', 'sepia', 'setContrast', { 'contrast' }, value)
+		  end,
+		},
+		{ id = "sepiatone_sepia", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_sepia, min = 0, max = 0.5, step = 0.02, type = "slider", value = 0.5, description = texts.option.sepiatone_sepia_descr,
+		  onload = function(i)
+			  loadWidgetData("Sepia Tone", "sepiatone_sepia", { 'sepia' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Sepia Tone', 'sepia', 'setSepia', { 'sepia' }, value)
+		  end,
+		},
+		{ id = "sepiatone_shadeui", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_shadeui, type = "bool", value = 0, description = texts.option.sepiatone_shadeui_descr,
+		  onload = function(i)
+			  loadWidgetData("Sepia Tone", "sepiatone_shadeui", { 'shadeUI' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Sepia Tone', 'sepia', 'setShadeUI', { 'shadeUI' }, value)
+		  end,
+		},
+
+
 		{ id = "label_gfx_lighting", group = "gfx", name = texts.option.label_lighting, category = types.basic },
 		{ id = "label_gfx_lighting_spacer", group = "gfx", category = types.basic },
 
@@ -1936,47 +1974,7 @@ function init()
 		  end,
 		},
 
-
-		{ id = "lighteffects", group = "gfx", category = types.basic, name = texts.option.lighteffects, type = "bool", value = GetWidgetToggleValue("Light Effects"), description = texts.option.lighteffects_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  if value then
-				  if widgetHandler.orderList["Deferred rendering"] ~= nil then
-					  widgetHandler:EnableWidget("Deferred rendering")
-				  end
-				  widgetHandler:EnableWidget("Light Effects")
-
-				  local id = getOptionByID('lighteffects2')
-				  if options[id].value then
-					  options[id].onchange(id, false)
-				  end
-			  else
-				  if widgetHandler.orderList["Deferred rendering"] ~= nil then
-					  widgetHandler:DisableWidget("Deferred rendering")
-				  end
-				  widgetHandler:DisableWidget("Light Effects")
-			  end
-		  end,
-		},
-		{ id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_brightness, min = 0.65, max = 2, step = 0.05, type = "slider", value = 1.4, description = texts.option.lighteffects_brightness_descr,
-		  onload = function(i)
-			  loadWidgetData("Light Effects", "lighteffects_brightness", { 'globalLightMult' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Light Effects', 'lighteffects', 'setGlobalBrightness', { 'globalLightMult' }, value)
-		  end,
-		},
-		{ id = "lighteffects_additionalflashes", category = types.dev, group = "gfx", name = widgetOptionColor .. "   " .. texts.option.lighteffects_additionalflashes, type = "bool", value = true, description = texts.option.lighteffects_additionalflashes_descr,
-		  onload = function(i)
-			  loadWidgetData("Light Effects", "lighteffects_additionalflashes", { 'additionalLightingFlashes' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Light Effects', 'lighteffects', 'setAdditionalFlashes', { 'additionalLightingFlashes' }, value)
-		  end,
-		},
-
-		{ id = "lighteffects2", group = "gfx", category = types.dev, name = texts.option.lighteffects2, type = "bool", value = GetWidgetToggleValue("Deferred rendering GL4"), description = texts.option.lighteffects2_descr,
+		{ id = "lighteffects", group = "gfx", category = types.basic, name = texts.option.lighteffects, type = "bool", value = GetWidgetToggleValue("Deferred rendering GL4"), description = texts.option.lighteffects_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -1994,27 +1992,47 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "lighteffects2_headlights", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.lighteffects2_headlights, type = "bool", value = Spring.GetConfigInt("headlights", 1) == 1, description = texts.option.lighteffects2_headlights_descr,
-			onchange = function(i, value)
-				Spring.SetConfigInt("headlights", value and 1 or 0)
-				if widgetHandler.orderList["Deferred rendering GL4"] ~= nil then
-					widgetHandler:DisableWidget("Deferred rendering GL4")
-					widgetHandler:EnableWidget("Deferred rendering GL4")
-				end
-			end,
+		{ id = "lighteffects_headlights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_headlights, type = "bool", value = Spring.GetConfigInt("headlights", 1) == 1, description = texts.option.lighteffects_headlights_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("headlights", value and 1 or 0)
+			  if widgetHandler.orderList["Deferred rendering GL4"] ~= nil then
+				  widgetHandler:DisableWidget("Deferred rendering GL4")
+				  widgetHandler:EnableWidget("Deferred rendering GL4")
+			  end
+		  end,
 		},
-
-		{ id = "heatdistortion", group = "gfx", category = types.dev, widget = "Lups", name = texts.option.heatdistortion, type = "bool", value = GetWidgetToggleValue("Lups"), description = texts.option.heatdistortion_descr },
+		{ id = "lighteffects_buildlights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_buildlights, type = "bool", value = Spring.GetConfigInt("buildlights", 1) == 1, description = texts.option.lighteffects_buildlights_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("buildlights", value and 1 or 0)
+			  if widgetHandler.orderList["Deferred rendering GL4"] ~= nil then
+				  widgetHandler:DisableWidget("Deferred rendering GL4")
+				  widgetHandler:EnableWidget("Deferred rendering GL4")
+			  end
+		  end,
+		},
+		{ id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_brightness, min = 0.6, max = 1.5, step = 0.05, type = "slider", value = 1, description = texts.option.lighteffects_brightness_descr,
+		  onload = function(i)
+			  loadWidgetData("Deferred rendering GL4", "lighteffects_brightness", { 'intensityMultiplier' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'IntensityMultiplier', { 'intensityMultiplier' }, value)
+		  end,
+		},
+		{ id = "lighteffects_radius", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.lighteffects_radius, min = 0.6, max = 1.2, step = 0.05, type = "slider", value = 1, description = texts.option.lighteffects_radius_descr,
+		  onload = function(i)
+			  loadWidgetData("Deferred rendering GL4", "lighteffects_radius", { 'radiusMultiplier' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'RadiusMultiplier', { 'radiusMultiplier' }, value)
+		  end,
+		},
 
 		{ id = "darkenmap", group = "gfx", category = types.advanced, name = texts.option.darkenmap, min = 0, max = 0.33, step = 0.01, type = "slider", value = 0, description = texts.option.darkenmap_descr,
 		  onload = function(i)
-			  local mapDarkening = widgetHandler.configData["Darken map"].maps[Game.mapName:lower()]
-			  if mapDarkening then
-			 	options[getOptionByID('darkenmap')].value = mapDarkening
-			  end
+			  loadWidgetData("Darken map", "darkenmap", { 'darknessvalue' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', { 'maps', Game.mapName:lower() }, value)
+			  saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', { 'darknessvalue' }, value)
 		  end,
 		},
 		{ id = "darkenmap_darkenfeatures", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   "..texts.option.darkenmap_darkenfeatures, type = "bool", value = false, description = texts.option.darkenmap_darkenfeatures_descr,
@@ -2028,6 +2046,13 @@ function init()
 
 		{ id = "label_gfx_environment", group = "gfx", name = texts.option.label_environment, category = types.basic },
 		{ id = "label_gfx_environment_spacer", group = "gfx", category = types.basic },
+
+		{ id = "featuredrawdist", group = "gfx", category = types.advanced, name = texts.option.featuredrawdist, type = "slider", min = 2500, max = 15000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = texts.option.featuredrawdist_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("FeatureFadeDistance", math.floor(value * 0.8))
+			  Spring.SetConfigInt("FeatureDrawDistance", value)
+		  end,
+		},
 
 		--{ id = "losopacity", group = "gfx", category = types.advanced, name = texts.option.lineofsight..widgetOptionColor .. "  " .. texts.option.losopacity, type = "slider", min = 0.5, max = 3, step = 0.1, value = (WG['los'] ~= nil and WG['los'].getOpacity ~= nil and WG['los'].getOpacity()) or 1, description = '',
 		--  onload = function(i)
@@ -2081,13 +2106,28 @@ function init()
 		  end,
 		},
 
-		{ id = "decals", group = "gfx", category = types.advanced, name = texts.option.decals, restart = true, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 3) or 3) >= 1, description = texts.option.decals_descr,
+		{ id = "decalsgl4", group = "gfx", category = types.basic, widget = "Decals GL4", name = texts.option.decalsgl4, type = "bool", value = GetWidgetToggleValue("Decals GL4"), description = texts.option.decalsgl4_desc },
+		{ id = "decalsgl4_lifetime", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.decalsgl4_lifetime, min = 0.5, max = 5, step = 0.1, type = "slider", value = 1, description = texts.option.decalsgl4_lifetime_descr,
+		  onload = function(i)
+			  loadWidgetData("Decals GL4", "decalsgl4_lifetime", { 'lifeTimeMult' })
+		  end,
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("GroundDecals", (value and 3 or 0))
-			  Spring.SendCommands("GroundDecals " .. (value and 3 or 0))
-			  Spring.SetConfigInt("GroundScarAlphaFade", 1)
+			  saveOptionValue('Decals GL4', 'decalsgl4', 'SetLifeTimeMult', { 'lifeTimeMult' }, value)
 		  end,
 		},
+		{ id = "decals", group = "gfx", category = types.basic, name = texts.option.decals, restart = true, min = 0, max = 5, step = 1, type = "slider", value = Spring.GetConfigInt("GroundDecals", 0), description = texts.option.decals_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("GroundDecals", value)
+			  Spring.SendCommands("GroundDecals " .. value)
+		  end,
+		},
+		--{ id = "decals", group = "gfx", category = types.advanced, name = texts.option.decals, restart = true, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 3) or 3) >= 1, description = texts.option.decals_descr,
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("GroundDecals", (value and 3 or 0))
+		--	  Spring.SendCommands("GroundDecals " .. (value and 3 or 0))
+		--	  Spring.SetConfigInt("GroundScarAlphaFade", 1)
+		--  end,
+		--},
 
 		{ id = "grass", group = "gfx", category = types.basic, widget = "Map Grass GL4", name = texts.option.grass, type = "bool", value = GetWidgetToggleValue("Map Grass GL4"), description = texts.option.grass_desc },
 		{ id = "grassdistance", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.grassdistance, type = "slider", min = 0.3, max = 1, step = 0.01, value = 1, description = texts.option.grassdistance_descr,
@@ -2191,11 +2231,11 @@ function init()
 		{ id = "label_gfx_game_spacer", group = "gfx", category = types.basic },
 		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos GL4", name = texts.option.resurrectionhalos, type = "bool", value = GetWidgetToggleValue("Resurrection Halos GL4"), description = texts.option.resurrectionhalos_descr },
 
-		{ id = "xmas", group = "gfx", name = texts.option.xmas, category = types.basic, type = "bool", value = (Spring.GetConfigFloat("decorationsize", 1) == 1), description = texts.option.xmas_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("decorationsize", (value and 1 or 0))
-		  end,
-		},
+		--{ id = "xmas", group = "gfx", name = texts.option.xmas, category = types.basic, type = "bool", value = (Spring.GetConfigFloat("decorationsize", 1) == 1), description = texts.option.xmas_descr,
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigFloat("decorationsize", (value and 1 or 0))
+		--  end,
+		--},
 
 
 		-- SOUND
@@ -2250,6 +2290,14 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Chat', 'chat', 'setChatVolume', { 'sndChatFileVolume' }, value)
+		  end,
+		},
+		{ id = "console_mapmarkvolume", group = "sound", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.console_mapmarkvolume, type = "slider", min = 0, max = 0.6, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getMapmarkVolume() or 0), description = texts.option.console_mapmarkvolume_descr,
+		  onload = function(i)
+			  loadWidgetData("Chat", "console_mapmarkvolume", { 'sndMapmarkFileVolume' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Chat', 'chat', 'setMapmarkVolume', { 'sndMapmarkFileVolume' }, value)
 		  end,
 		},
 		{ id = "sndvolmusic", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolmusic, type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
@@ -2934,6 +2982,14 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
 		  end,
 		},
+		{ id = "advplayerlist_hidespecs", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_hidespecs, type = "bool", value = true, description = texts.option.advplayerlist_hidespecs_descr,
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_hidespecs", { 'alwaysHideSpecs' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetAlwaysHideSpecs', { 'alwaysHideSpecs' }, value)
+		  end,
+		},
 		{ id = "unittotals", group = "ui", category = types.advanced, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   " .. texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },
 		{ id = "musicplayer", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. widgetOptionColor .. texts.option.musicplayer, type = "bool", value = (WG['music'] ~= nil and WG['music'].GetShowGui() or false), description = texts.option.musicplayer_descr,
 		  onload = function(i)
@@ -3066,13 +3122,6 @@ function init()
 		  end,
 		},
 
-		{ id = "featuredrawdist", group = "ui", category = types.advanced, name = texts.option.featuredrawdist, type = "slider", min = 2500, max = 15000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = texts.option.featuredrawdist_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("FeatureFadeDistance", math.floor(value * 0.8))
-			  Spring.SetConfigInt("FeatureDrawDistance", value)
-		  end,
-		},
-
 		-- { id = "teamcolors", group = "ui", category = types.basic, widget = "Player Color Palette", name = texts.option.teamcolors, type = "bool", value = GetWidgetToggleValue("Player Color Palette"), description = texts.option.teamcolors_descr },
 		-- { id = "sameteamcolors", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sameteamcolors, type = "bool", value = (WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil and WG['playercolorpalette'].getSameTeamColors()), description = texts.option.sameteamcolors_descr,
 		--   onchange = function(i, value)
@@ -3145,21 +3194,28 @@ function init()
 		--  end,
 		--},
 
-		{ id = "cursorlight", group = "ui", category = types.advanced, widget = "Cursor Light", name = texts.option.cursorlight, type = "bool", value = GetWidgetToggleValue("Cursor Light"), description = texts.option.cursorlight_descr },
-		{ id = "cursorlight_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightradius, type = "slider", min = 0.15, max = 1, step = 0.05, value = 1.5, description = '',
+		{ id = "cursorlight", group = "ui", category = types.advanced, name = texts.option.cursorlight, type = "bool", value = false, description = texts.option.cursorlight_descr,
 		  onload = function(i)
-			  loadWidgetData("Cursor Light", "cursorlight_lightradius", { 'lightRadiusMult' })
+			loadWidgetData("Deferred rendering GL4", "cursorlight", { 'showPlayerCursorLight' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Cursor Light', 'cursorlight', 'setLightRadius', { 'lightRadiusMult' }, value)
+			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'ShowPlayerCursorLight', { 'showPlayerCursorLight' }, value)
 		  end,
 		},
-		{ id = "cursorlight_lightstrength", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightstrength, type = "slider", min = 0.1, max = 1.2, step = 0.05, value = 0.2, description = '',
+		{ id = "cursorlight_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightradius, type = "slider", min = 0.3, max = 2, step = 0.05, value = 1, description = '',
 		  onload = function(i)
-			  loadWidgetData("Cursor Light", "cursorlight_lightstrength", { 'lightStrengthMult' })
+			  loadWidgetData("Deferred rendering GL4", "cursorlight_lightradius", { 'playerCursorLightRadius' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Cursor Light', 'cursorlight', 'setLightStrength', { 'lightStrengthMult' }, value)
+			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'PlayerCursorLightRadius', { 'playerCursorLightRadius' }, value)
+		  end,
+		},
+		{ id = "cursorlight_lightstrength", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightstrength, type = "slider", min = 0.3, max = 2, step = 0.05, value = 1, description = '',
+		  onload = function(i)
+			  loadWidgetData("Cursor Light", "cursorlight_lightstrength", { 'playerCursorLightBrightness' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'PlayerCursorLightBrightness', { 'playerCursorLightBrightness' }, value)
 		  end,
 		},
 
@@ -3473,17 +3529,17 @@ function init()
 			  if useNetworkSmoothing then
 				  Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 1)
 				  Spring.SetConfigInt("NetworkLossFactor", 0)
-				  Spring.SetConfigInt("LinkOutgoingBandwidth", 98304)
-				  Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 98304)
-				  Spring.SetConfigInt("LinkIncomingPeakBandwidth", 98304)
-				  Spring.SetConfigInt("LinkIncomingMaxPacketRate", 128)
-			  else
-				  Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 1)
-				  Spring.SetConfigInt("NetworkLossFactor", 2)
 				  Spring.SetConfigInt("LinkOutgoingBandwidth", 196608)
 				  Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 196608)
 				  Spring.SetConfigInt("LinkIncomingPeakBandwidth", 196608)
 				  Spring.SetConfigInt("LinkIncomingMaxPacketRate", 1024)
+			  else
+				  Spring.SetConfigInt("UseNetMessageSmoothingBuffer", 0)
+				  Spring.SetConfigInt("NetworkLossFactor", 2)
+				  Spring.SetConfigInt("LinkOutgoingBandwidth", 196608)
+				  Spring.SetConfigInt("LinkIncomingSustainedBandwidth", 1048576)
+				  Spring.SetConfigInt("LinkIncomingPeakBandwidth", 1048576)
+				  Spring.SetConfigInt("LinkIncomingMaxPacketRate", 2048)
 			  end
 		  end,
 		},
@@ -3608,8 +3664,6 @@ function init()
 		{ id = "dgunnogroundenemies", group = "game", category = types.advanced, widget = "DGun no ground enemies", name = texts.option.dgunnogroundenemies, type = "bool", value = GetWidgetToggleValue("DGun no ground enemies"), description = texts.option.dgunnogroundenemies_descr },
 		{ id = "dgunstallassist", group = "game", category = types.advanced, widget = "DGun Stall Assist", name = texts.option.dgunstallassist, type = "bool", value = GetWidgetToggleValue("DGun Stall Assist"), description = texts.option.dgunstallassist_descr },
 
-		{ id = "autocloakpopups", group = "game", category = types.basic, widget = "Auto Cloak Popups", name = texts.option.autocloakpopups, type = "bool", value = GetWidgetToggleValue("Auto Cloak Popups"), description = texts.option.autocloakpopups_descr },
-
 		{ id = "unitreclaimer", group = "game", category = types.basic, widget = "Specific Unit Reclaimer", name = texts.option.unitreclaimer, type = "bool", value = GetWidgetToggleValue("Specific Unit Reclaimer"), description = texts.option.unitreclaimer_descr },
 
 		{ id = "autogroup_immediate", group = "game", category = types.basic, name = texts.option.autogroup_immediate, type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getImmediate ~= nil and WG['autogroup'].getImmediate()), description = texts.option.autogroup_immediate_descr,
@@ -3637,6 +3691,11 @@ function init()
 			  saveOptionValue('Auto Group', 'autogroup', 'setPersist', { 'persist' }, value)
 		  end,
 		},
+
+		{ id = "label_ui_cloak", group = "game", name = texts.option.label_cloak, category = types.basic },
+		{ id = "label_ui_cloak_spacer", group = "game", category = types.basic },
+
+		{ id = "autocloak", group = "game", category = types.basic, widget = "Auto Cloak Units", name = texts.option.autocloak, type = "bool", value = GetWidgetToggleValue("Auto Cloak Units"), description = texts.option.autocloak_descr },
 
 		-- ACCESSIBILITY
 
@@ -4743,9 +4802,9 @@ function init()
 		--planeColor = {number r, number g, number b},
 	}
 
-	if os.date("%m") ~= "12"  or  os.date("%d") < "12" then
-		options[getOptionByID('xmas')] = nil
-	end
+	--if os.date("%m") ~= "12"  or  os.date("%d") < "12" then
+	--	options[getOptionByID('xmas')] = nil
+	--end
 
 	-- reset tonemap defaults (only once)
 	if not resettedTonemapDefault then
@@ -4954,10 +5013,58 @@ function init()
 				for k, v in pairs(soundList) do
 					count = count + 1
 					newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
-											onchange = function(i, value)
-												saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
-											end,
+					  onchange = function(i, value)
+						  saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
+					  end,
 					}
+				end
+			end
+		end
+		options = newOptions
+	end
+
+	-- add auto cloak toggles
+	local defaultUnitdefConfig = {	-- copy pasted defaults from the widget
+		[UnitDefNames["armjamt"].id] = true,
+		[UnitDefNames["armdecom"].id] = false,
+		[UnitDefNames["cordecom"].id] = false,
+		[UnitDefNames["armferret"].id] = false,
+		[UnitDefNames["armamb"].id] = false,
+		[UnitDefNames["armpb"].id] = false,
+		[UnitDefNames["armsnipe"].id] = false,
+		[UnitDefNames["corsktl"].id] = false,
+		[UnitDefNames["armgremlin"].id] = false,
+		[UnitDefNames["armamex"].id] = true,
+		[UnitDefNames["armckfus"].id] = true,
+		[UnitDefNames["armspy"].id] = true,
+		[UnitDefNames["corspy"].id] = true,
+	}
+	local unitdefConfig = {}
+	if WG['autocloak'] ~= nil then
+		unitdefConfig = WG['autocloak'].getUnitdefConfig()
+	elseif widgetHandler.configData["autocloak"] ~= nil and widgetHandler.configData["autocloak"].unitdefConfig ~= nil then
+		unitdefConfig = widgetHandler.configData["autocloak"].unitdefConfig
+	end
+	unitdefConfig = table.merge(defaultUnitdefConfig, unitdefConfig)
+	if type(unitdefConfig) == 'table' then
+		local newOptions = {}
+		local count = 0
+		for i, option in pairs(options) do
+			count = count + 1
+			newOptions[count] = option
+			if option.id == 'autocloak' then
+				for k, v in pairs(unitdefConfig) do
+					if UnitDefs[k] then
+						local faction = Spring.I18N('units.factions.' .. string.sub(UnitDefs[k].name,1,3))
+						if faction then
+							count = count + 1
+							newOptions[count] = { id = "autocloak_" .. k, group = "game", category = types.basic, name = widgetOptionColor .. "   " .. UnitDefs[k].translatedHumanName..'  ('..faction..')', type = "bool", value = v, description = "",
+							  onchange = function(i, value)
+								  saveOptionValue('Auto Cloak Units', 'autocloak', 'setUnitdefConfig', { 'unitdefConfig', k }, value, { k, value } )
+							  end,
+							}
+						end
+					end
 				end
 			end
 		end
@@ -5077,25 +5184,12 @@ function widget:Initialize()
 
 	-- enable previous default disabled widgets to their new default state
 	if newerVersion then
-		if version <= 1 then
-			if widgetHandler.orderList["DrawUnitShape GL4"] and widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
-				widgetHandler:EnableWidget("DrawUnitShape GL4")
+		if version <= 1.3 then
+			if widgetHandler.orderList["Deferred rendering GL4"] and widgetHandler.orderList["Deferred rendering GL4"] < 0.5 then
+				widgetHandler:EnableWidget("Deferred rendering GL4")
 			end
-			if widgetHandler.orderList["HighlightUnit GL4"] and widgetHandler.orderList["HighlightUnit GL4"] < 0.5 then
-				widgetHandler:EnableWidget("HighlightUnit GL4")
-			end
-			if widgetHandler.orderList["Rank Icons GL4"] and widgetHandler.orderList["Rank Icons GL4"] < 0.5 then
-				widgetHandler:EnableWidget("Rank Icons GL4")
-			end
-		end
-		if version <= 1.1 then
-			if widgetHandler.orderList["Health Bars GL4"] and widgetHandler.orderList["Health Bars GL4"] < 0.5 then
-				widgetHandler:EnableWidget("Health Bars GL4")
-			end
-		end
-		if version <= 1.2 then
-			if widgetHandler.orderList["Resurrection Halos GL4"] and widgetHandler.orderList["Resurrection Halos GL4"] < 0.5 then
-				widgetHandler:EnableWidget("Resurrection Halos GL4")
+			if widgetHandler.orderList["Decals GL4"] and widgetHandler.orderList["Decals GL4"] < 0.5 then
+				widgetHandler:EnableWidget("Decals GL4")
 			end
 		end
 	end
@@ -5107,6 +5201,9 @@ function widget:Initialize()
 		widgetHandler:EnableWidget("Language")
 	end
 
+	if widgetHandler.orderList["Infolos API"] and widgetHandler.orderList["Infolos API"] < 0.5 then
+		widgetHandler:EnableWidget("Infolos API")
+	end
 
 	if WG['lang'] then
 		texts = WG['lang'].getText('options')

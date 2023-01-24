@@ -18,7 +18,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 5001,
-		maxdamage = 7000,
+		maxdamage = 7800,
 		maxslope = 15,
 		maxvelocity = 0.75,
 		maxwaterdepth = 23,
@@ -149,11 +149,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
-				customparams = {
-					expl_light_life_mult = 1.1,
-					light_mult = 2.66,
-					light_radius_mult = 0.6,
-				},
 				damage = {
 					commanders = 5, --16,
 					default = 15, --33,
@@ -196,11 +191,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
-				customparams = {
-					expl_light_life_mult = 1.1,
-					light_mult = 2.66,
-					light_radius_mult = 0.6,
-				},
 				damage = {
 					commanders = 16,
 					default = 33,

@@ -152,7 +152,7 @@ end
 
 function gadgetHandler:Initialize()
 	local syncedHandler = Script.GetSynced()
-
+	
 	local unsortedGadgets = {}
 	-- get the gadget names
 	local gadgetFiles = VFS.DirList(GADGETS_DIR, "*.lua", VFSMODE)
@@ -161,13 +161,19 @@ function gadgetHandler:Initialize()
 	--  for k,gf in ipairs(gadgetFiles) do
 	--    Spring.Echo('gf1 = ' .. gf) -- FIXME
 	--  end
-
+	local doMoreYield = (Spring.Yield ~= nil);
 	-- stuff the gadgets into unsortedGadgets
 	for k, gf in ipairs(gadgetFiles) do
 		--    Spring.Echo('gf2 = ' .. gf) -- FIXME
 		local gadget = self:LoadGadget(gf)
 		if gadget then
 			table.insert(unsortedGadgets, gadget)
+			if not IsSyncedCode() and doMoreYield then
+				doMoreYield = Spring.Yield()
+				if doMoreYield == false then --GetThreadSafety == false
+					--Spring.Echo("GadgetHandler Yield: entering critical section") 
+				end
+			end
 		end
 	end
 
@@ -497,7 +503,8 @@ function gadgetHandler:InsertGadget(gadget)
 			ArrayInsert(self[listname .. 'List'], func, gadget)
 		end
 	end
-		local kbytes = nil -- set to number to enable
+	
+	local kbytes = nil -- set to number to enable
 	if kbytes and collectgarbage then 	
 		collectgarbage("collect")
 		collectgarbage("collect")

@@ -24,7 +24,7 @@ return {
 		icontype = "air",
 		idleautoheal = 15,
 		idletime = 1200,
-		maxdamage = 15000,
+		maxdamage = 16700,
 		maxslope = 10,
 		maxvelocity = 3.83,
 		maxwaterdepth = 0,
@@ -113,9 +113,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
-				customparams = {
-					light_radius_mult = "1.1",
-				},
 				damage = {
 					default = 90,
 				},
@@ -152,9 +149,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
-				customparams = {
-					light_radius_mult = "1.1",
-				},
 				damage = {
 					default = 250,
 				},

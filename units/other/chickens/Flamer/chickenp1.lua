@@ -26,7 +26,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 600,
-		maxdamage = 1000,
+		maxdamage = 1110,
 		maxvelocity = 4.5,
 		maxwaterdepth = 0,
 		movementclass = "CHICKSMALLHOVER",
@@ -63,10 +63,10 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:blank",
-				[2] = "custom:blood_spray",
-				[3] = "custom:blood_explode",
-				[4] = "custom:dirt",
+				--[1] = "custom:blank", --left over from morph of arty chick
+				[1] = "custom:blood_spray",
+				[2] = "custom:blood_explode",
+				[3] = "custom:dirt",
 			},
 			pieceexplosiongenerators = {
 				[1] = "blood_spray",
@@ -137,12 +137,6 @@ return {
 				weapontimer = 1,
 				weapontype = "Flame",
 				weaponvelocity = 265,
-				customparams = {
-					expl_light_color = "1 0.33 0.04",
-					expl_light_life_mult = 1.1,
-					expl_light_radius_mult = 1.15,
-					light_color = "1 0.5 0.05",
-				},
 				damage = {
 					default = 16,
 				},

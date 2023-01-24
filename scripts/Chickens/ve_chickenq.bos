@@ -11,8 +11,8 @@ static-var aMoving, bMoving, gun_1, shot5pitch, shot5heading;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
-#define MOVESCALE 100 //Higher values are bigger, 100 is default
-#define MOVESPEED 6
+#define MOVESCALE 200 //Higher values are bigger, 100 is default
+#define MOVESPEED 4.5
 #define animAmplitude 105
 #define SIG_WALK 64 //these defines are needed before includes!
 

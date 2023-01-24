@@ -21,7 +21,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 4000,
+		maxdamage = 4450,
 		minwaterdepth = 2,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMKRAKEN.s3o",

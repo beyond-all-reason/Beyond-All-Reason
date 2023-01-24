@@ -9,7 +9,7 @@ local Sounds = {
 			in3d = "false",
 		},
 		MapPoint = {
-			file = "sounds/ui/mappoint.wav",
+			file = "sounds/ui/mappoint.wav",	-- file now equal as blank.wav, is being called by chat ui widget now (so users can adjust its volume)
 			--rolloff = 0.1,
 			--dopplerscale = 0,
 			in3d = "false",

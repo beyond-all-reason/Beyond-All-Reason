@@ -18,7 +18,7 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 4000,
+		maxdamage = 4450,
 		maxslope = 17,
 		maxvelocity = 1.4,
 		maxwaterdepth = 25,
@@ -140,9 +140,6 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
-				customparams = {
-					light_mult = "0.03",
-				},
 				damage = {
 					default = 125,
 				},

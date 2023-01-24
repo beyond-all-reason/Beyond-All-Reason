@@ -17,7 +17,7 @@ end
 if gadgetHandler:IsSyncedCode() then
 
 	local leaveWreckage = Spring.GetModOptions().ffa_wreckage or false
-	local leaveWreckageFromFrame = Game.gameSpeed * 60 * 5
+	local leaveWreckageFromFrame = math.ceil(Game.gameSpeed * 60 * 3.2)
 
 	local earlyDropLimit = Game.gameSpeed * 60 * 2 -- in frames
 	local earlyDropGrace = Game.gameSpeed * 60 * 1 -- in frames
@@ -106,6 +106,12 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		for teamID, time in pairs(droppedTeam) do
 			if gameFrame - time > (time < earlyDropLimit and earlyDropGrace or lateDropGrace) then
+				if gameFrame < leaveWreckageFromFrame then
+					local teamUnits = Spring.GetTeamUnits(teamID)
+					for i=1, #teamUnits do
+						Spring.DestroyUnit(teamUnits[i], false, true)	-- reclaim, dont want to leave FFA comwreck for idling starts
+					end
+				end
 				destroyTeam(teamID, time)
 				droppedTeam[teamID] = nil
 			end

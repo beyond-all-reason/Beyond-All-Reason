@@ -18,8 +18,8 @@ return {
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {
-			default = 650,
-			chicken = 150,
+			default = 720,
+			chicken = 167,
 		},
 	},
 }

@@ -25,7 +25,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 89,
-		maxdamage = 1800,
+		maxdamage = 2000,
 		maxreversevelocity = 3,
 		maxslope = 18,
 		maxvelocity = 3.25,
@@ -112,14 +112,6 @@ return {
 				weaponvelocity = 520,
 				damage = {
 					default = 1, --damage done in unit_area_timed_damage.lua
-				},
-				customparams = {
-					expl_light_life_mult = 1.0,
-					expl_light_radius_mult = 1.0,
-					expl_light_mult = 1.05,
-					light_radius_mult = "0.95",
-					light_mult = 1.8,
-					light_color = "0.8 0.99 0.11",
 				},
 			},
 		},

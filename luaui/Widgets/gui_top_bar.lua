@@ -396,44 +396,66 @@ local function updateRejoin()
 end
 
 local function updateButtons()
-	local area = buttonsArea
-	local totalWidth = area[3] - area[1]
-	local text = '    '
 
-	if isSinglePlayer and allowSavegame and WG['savegame'] ~= nil then
-		text = text .. Spring.I18N('ui.topbar.button.save') .. '   '
+	local fontsize = (height * widgetScale) / 3
+
+	if dlistButtons1 ~= nil then
+		glDeleteList(dlistButtons1)
 	end
-	if WG['scavengerinfo'] ~= nil then
-		text = text .. Spring.I18N('ui.topbar.button.scavengers') .. '   '
-	end
-	if gameIsOver then
-		text = text .. Spring.I18N('ui.topbar.button.graphs') .. '   '
-	end
-	if WG['teamstats'] ~= nil then
-		text = text .. Spring.I18N('ui.topbar.button.stats') .. '   '
-	end
-	if WG['keybinds'] ~= nil then
-		text = text .. Spring.I18N('ui.topbar.button.keys') .. '   '
-	end
-	if WG['changelog'] ~= nil then
-		text = text .. Spring.I18N('ui.topbar.button.changes') .. '   '
-	end
-	if WG['options'] ~= nil then
-		text = text .. Spring.I18N('ui.topbar.button.settings') .. '   '
-	end
-	if not gameIsOver and chobbyLoaded then
-		if not spec and gameStarted and not isSinglePlayer then
-			text = text .. Spring.I18N('ui.topbar.button.resign') .. '  '
+	dlistButtons1 = glCreateList(function()
+
+		-- if buttonsArea['buttons'] == nil then -- With this condition it doesn't actually update buttons if they were already added
+		buttonsArea['buttons'] = {}
+
+		local margin = bgpadding
+		local textPadding = math_floor(fontsize*0.8)
+		local sidePadding = textPadding
+		local offset = sidePadding
+		local lastbutton
+		local function addButton(name, text)
+			local width = math_floor((font2:GetTextWidth(text) * fontsize) + textPadding)
+			buttonsArea['buttons'][name] = { buttonsArea[3] - offset - width, buttonsArea[2] + margin, buttonsArea[3] - offset, buttonsArea[4], text, buttonsArea[3] - offset - (width/2) }
+			if not lastbutton then
+				buttonsArea['buttons'][name][3] = buttonsArea[3]
+			end
+			offset = math_floor(offset + width + 0.5)
+			lastbutton = name
 		end
-		text = text .. Spring.I18N('ui.topbar.button.lobby') .. '  '
-	else
-		text = text .. Spring.I18N('ui.topbar.button.quit') .. '  '
-	end
 
-	local fontsize = totalWidth / font2:GetTextWidth(text)
-	if fontsize > (height * widgetScale) / 3 then
-		fontsize = (height * widgetScale) / 3
-	end
+		if not gameIsOver and chobbyLoaded then
+			if not spec and gameStarted and not isSinglePlayer then
+				addButton('resign', Spring.I18N('ui.topbar.button.resign'))
+			end
+			addButton('quit', Spring.I18N('ui.topbar.button.lobby'))
+		else
+			addButton('quit', Spring.I18N('ui.topbar.button.quit'))
+		end
+		if WG['options'] ~= nil then
+			addButton('options', Spring.I18N('ui.topbar.button.settings'))
+		end
+		if WG['keybinds'] ~= nil then
+			addButton('keybinds', Spring.I18N('ui.topbar.button.keys'))
+		end
+		if WG['teamstats'] ~= nil then
+			addButton('stats', Spring.I18N('ui.topbar.button.stats'))
+		end
+		if gameIsOver then
+			addButton('graphs', Spring.I18N('ui.topbar.button.graphs'))
+		end
+		if WG['scavengerinfo'] ~= nil then
+			addButton('scavengers', Spring.I18N('ui.topbar.button.scavengers'))
+		end
+		if isSinglePlayer and allowSavegame and WG['savegame'] ~= nil then
+			addButton('save', Spring.I18N('ui.topbar.button.save'))
+		end
+
+		buttonsArea['buttons'][lastbutton][1] = buttonsArea['buttons'][lastbutton][1] - sidePadding
+		offset = offset + sidePadding
+
+		buttonsArea[1] = buttonsArea[3]-offset-margin
+		UiElement(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 0, 0, 0, 1)
+
+	end)
 
 	-- add background blur
 	if dlistButtonsGuishader ~= nil then
@@ -443,122 +465,11 @@ local function updateButtons()
 		glDeleteList(dlistButtonsGuishader)
 	end
 	dlistButtonsGuishader = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
+		RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0,0,1,1)
 	end)
-
-	if dlistButtons1 ~= nil then
-		glDeleteList(dlistButtons1)
+	if WG['guishader'] then
+		WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
 	end
-	dlistButtons1 = glCreateList(function()
-
-		UiElement(area[1], area[2], area[3], area[4], 0, 0, 0, 1)
-
-		if WG['guishader'] then
-			WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
-		end
-
-		-- if buttonsArea['buttons'] == nil then -- With this condition it doesn't actually update buttons if they were already added
-			buttonsArea['buttons'] = {}
-
-			local margin = bgpadding
-			local offset = margin
-			local width = 0
-			local buttons = 0
-			firstButton = nil
-			if isSinglePlayer and allowSavegame and WG['savegame'] ~= nil then
-				buttons = buttons + 1
-				if buttons > 1 then
-					offset = math_floor(offset + width + 0.5)
-				end
-				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.save')) * fontsize) + 0.5)
-				buttonsArea['buttons']['save'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				if not firstButton then
-					firstButton = 'save'
-				end
-			end
-			if WG['scavengerinfo'] ~= nil then
-				buttons = buttons + 1
-				if buttons > 1 then
-					offset = math_floor(offset + width + 0.5)
-				end
-				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.scavengers')) * fontsize) + 0.5)
-				buttonsArea['buttons']['scavengers'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				if not firstButton then
-					firstButton = 'scavengers'
-				end
-			end
-			if gameIsOver then
-				buttons = buttons + 1
-				if buttons > 1 then
-					offset = math_floor(offset + width + 0.5)
-				end
-				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.graphs')) * fontsize) + 0.5)
-				buttonsArea['buttons']['graphs'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				if not firstButton then
-					firstButton = 'graphs'
-				end
-			end
-			if WG['teamstats'] ~= nil then
-				buttons = buttons + 1
-				if buttons > 1 then
-					offset = math_floor(offset + width + 0.5)
-				end
-				width = math_floor((font2:GetTextWidth('    ' .. Spring.I18N('ui.topbar.button.stats')) * fontsize) + 0.5)
-				buttonsArea['buttons']['stats'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				if not firstButton then
-					firstButton = 'stats'
-				end
-			end
-			if WG['keybinds'] ~= nil then
-				buttons = buttons + 1
-				if buttons > 1 then
-					offset = math_floor(offset + width + 0.5)
-				end
-				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.keys')) * fontsize) + 0.5)
-				buttonsArea['buttons']['keybinds'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				if not firstButton then
-					firstButton = 'keybinds'
-				end
-			end
-			if WG['changelog'] ~= nil then
-				buttons = buttons + 1
-				if buttons > 1 then
-					offset = math_floor(offset + width + 0.5)
-				end
-				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.changes')) * fontsize) + 0.5)
-				buttonsArea['buttons']['changelog'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				if not firstButton then
-					firstButton = 'changelog'
-				end
-			end
-			if WG['options'] ~= nil then
-				buttons = buttons + 1
-				if buttons > 1 then
-					offset = math_floor(offset + width + 0.5)
-				end
-				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.settings')) * fontsize) + 0.5)
-				buttonsArea['buttons']['options'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				if not firstButton then
-					firstButton = 'options'
-				end
-			end
-			if not gameIsOver and chobbyLoaded then
-				if not spec and gameStarted and not isSinglePlayer then
-					buttons = buttons + 1
-					offset = math_floor(offset + width + 0.5)
-					width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.resign')) * fontsize) + 0.5)
-					buttonsArea['buttons']['resign'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				end
-				offset = math_floor(offset + width + 0.5)
-				width = math_floor((font2:GetTextWidth('    ' .. Spring.I18N('ui.topbar.button.lobby')) * fontsize) + 0.5)
-				buttonsArea['buttons']['quit'] = { area[1] + offset, area[2] + margin, area[3], area[4] }
-			else
-				offset = math_floor(offset + width + 0.5)
-				width = math_floor((font2:GetTextWidth('    ' .. Spring.I18N('ui.topbar.button.quit')) * fontsize) + 0.5)
-				buttonsArea['buttons']['quit'] = { area[1] + offset, area[2] + margin, area[3], area[4] }
-			end
-		-- end
-	end)
 
 	if dlistButtons2 ~= nil then
 		glDeleteList(dlistButtons2)
@@ -567,7 +478,9 @@ local function updateButtons()
 		font2:Begin()
 		font2:SetTextColor(0.92, 0.92, 0.92, 1)
 		font2:SetOutlineColor(0, 0, 0, 1)
-		font2:Print(text, area[1], area[2] + ((area[4] - area[2]) * 0.52) - (fontsize / 5), fontsize, 'o')
+		for name, params in pairs(buttonsArea['buttons']) do
+			font2:Print(params[5], params[6], params[2] + ((params[4] - params[2]) * 0.5) - (fontsize / 5), fontsize, 'co')
+		end
 		font2:End()
 	end)
 end
@@ -1866,10 +1779,6 @@ local function hideWindows()
 		WG['scavengerinfo'].toggle(false)
 		closedWindow = true
 	end
-	if WG['changelog'] ~= nil and WG['changelog'].isvisible() then
-		WG['changelog'].toggle(false)
-		closedWindow = true
-	end
 	if WG['keybinds'] ~= nil and WG['keybinds'].isvisible() then
 		WG['keybinds'].toggle(false)
 		closedWindow = true
@@ -1959,14 +1868,6 @@ local function applyButtonAction(button)
 		hideWindows()
 		if WG['scavengerinfo'] ~= nil and isvisible ~= true then
 			WG['scavengerinfo'].toggle()
-		end
-	elseif button == 'changelog' then
-		if WG['changelog'] ~= nil then
-			isvisible = WG['changelog'].isvisible()
-		end
-		hideWindows()
-		if WG['changelog'] ~= nil and isvisible ~= true then
-			WG['changelog'].toggle()
 		end
 	elseif button == 'keybinds' then
 		if WG['keybinds'] ~= nil then

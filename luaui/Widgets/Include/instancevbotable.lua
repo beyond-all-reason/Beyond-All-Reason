@@ -414,6 +414,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 		if isvalidid == false then 
 			Spring.Echo("Error: Attempted to push an invalid unit/featureID",unitID, "into", iT.myName)
 			noUpload = true
+			Spring.Debug.TraceFullEcho(20,20,20,"invalid unit/featureID in " ..iT.myName)
 		end  
 		iT.indextoUnitID[thisInstanceIndex] = unitID
 	end
@@ -807,10 +808,11 @@ function makePlaneIndexVBO(xresolution, yresolution, cutcircle)
 	return planeIndexVBO, IndexVBOData
 end
 
-function makePointVBO(numPoints)
+function makePointVBO(numPoints, randomFactor)
 	-- makes points with xyzw
 	-- can be used in both GL.LINES and GL.TRIANGLE_FAN mode
-	if not numPoints then numPoints = 1 end
+	numPoints = numPoints or 1
+	randomFactor = randomFactor or 0
 	local pointVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	if pointVBO == nil then return nil end
 
@@ -821,10 +823,10 @@ function makePointVBO(numPoints)
 	local VBOData = {}
 
 	for i = 1, numPoints  do -- 
-		VBOData[#VBOData+1] = 0-- X
-		VBOData[#VBOData+1] = 0-- Y
-		VBOData[#VBOData+1] = 0---Z
-		VBOData[#VBOData+1] = numPoints -- index for lolz?
+		VBOData[#VBOData+1] = randomFactor * math.random()-- X
+		VBOData[#VBOData+1] = randomFactor * math.random()-- Y
+		VBOData[#VBOData+1] = randomFactor * math.random()---Z
+		VBOData[#VBOData+1] = i/numPoints -- index for lolz?
 	end	
 
 	pointVBO:Define(

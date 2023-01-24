@@ -132,8 +132,6 @@ RestoreAfterDelay()
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
 MoveRate1()
 {
 	start-script RestoreAfterDelay();

@@ -26,7 +26,7 @@ return {
 		footprintz = 2,
 		idleautoheal = 9,
 		idletime = 900,
-		maxdamage = 1400,
+		maxdamage = 1560,
 		maxslope = 20,
 		maxvelocity = 2.5,
 		movementclass = "ABOT2",
@@ -125,11 +125,6 @@ return {
 				weaponvelocity = 930,
 				damage = {
 					default = 100,
-				},
-				customparams = {
-					expl_light_mult = 0.6,
-					light_mult = 0.5,
-					light_radius_mult = 0.7,
 				},
 			},
 			commando_minelayer = {

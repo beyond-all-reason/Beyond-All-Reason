@@ -290,7 +290,7 @@ LuaShader.CreateShaderDefinesString = CreateShaderDefinesString
 
 local function CheckShaderUpdates(shadersourcecache, delaytime)
 	-- todo: extract shaderconfig
-	if shadersourcecache.lastshaderupdate == nil or 
+	if shadersourcecache.forceupdate or shadersourcecache.lastshaderupdate == nil or 
 		Spring.DiffTimers(Spring.GetTimer(), shadersourcecache.lastshaderupdate) > (delaytime or 0.5) then 
 		shadersourcecache.lastshaderupdate = Spring.GetTimer()
 		local vsSrcNew = (shadersourcecache.vssrcpath and VFS.LoadFile(shadersourcecache.vssrcpath)) or shadersourcecache.vsSrc

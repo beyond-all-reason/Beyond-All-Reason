@@ -14,8 +14,6 @@ static-var  Static_Var_1, gun_3;
 #define UNITSIZE 2
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
 MoveRate2()
 {
 	if( Rand( 1, 10 ) == 1 AND ( !Static_Var_1 ) )

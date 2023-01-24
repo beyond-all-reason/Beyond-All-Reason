@@ -61,6 +61,8 @@ uniform float attachedtounitID = 0;
 uniform float windX = 0;
 uniform float windZ = 0;
 
+uniform float radiusMultiplier = 1.0;
+uniform float intensityMultiplier = 1.0;
 
 out DataVS {
 	flat vec4 v_worldPosRad;
@@ -104,8 +106,10 @@ void main()
 {
 	float time = timeInfo.x + timeInfo.w;
 	
+	float lightRadius = worldposrad.w * radiusMultiplier;
 	v_worldPosRad = worldposrad ;
-	float lightRadius = worldposrad.w;
+	v_worldPosRad.w = lightRadius;
+	
 	// TODO ANIMATE
 	//v_worldPosRad.xyz += 1 * sin(5*time * vec3(0.01, 0.011, 0.012) + v_worldPosRad.xyz ); 
 	

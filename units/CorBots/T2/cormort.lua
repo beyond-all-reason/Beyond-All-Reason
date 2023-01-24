@@ -17,7 +17,7 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 850,
+		maxdamage = 940,
 		maxslope = 14,
 		maxvelocity = 1.68,
 		maxwaterdepth = 12,
@@ -136,10 +136,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
-				customparams = {
-					light_color = "1 0.6 0.15",
-					light_mult = 1.2,
-				},
 				damage = {
 					bombers = 14,
 					default = 105,

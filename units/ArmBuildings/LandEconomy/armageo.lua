@@ -21,7 +21,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3240,
+		maxdamage = 3600,
 		maxslope = 15,
 		maxwaterdepth = 0,
 		objectname = "Units/ARMAGEO.s3o",

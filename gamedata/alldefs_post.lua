@@ -84,26 +84,6 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
-	-- Flanking Bonus Override
-	if Spring.GetModOptions().experimentalflankingbonusmode == 0 then
-		uDef.flankingbonusmode = 0
-	end
-	if Spring.GetModOptions().experimentalflankingbonusmode == 1 then
-		uDef.flankingbonusmode = 1
-	end
-	if Spring.GetModOptions().experimentalflankingbonusmode == 2 then
-		uDef.flankingbonusmode = 2
-	end
-	if Spring.GetModOptions().experimentalflankingbonusmode == 3 then
-		if uDef.canmove == true then
-			uDef.flankingbonusmode = 3
-		else
-			uDef.flankingbonusmode = 2
-		end
-	end
-	uDef.flankingbonusmin = Spring.GetModOptions().experimentalflankingbonusmin*0.01
-	uDef.flankingbonusmax = Spring.GetModOptions().experimentalflankingbonusmax*0.01
-
 	-- Reverse Gear
 	if Spring.GetModOptions().experimentalreversegear == true then
 		if (not uDef.canfly) and uDef.maxvelocity then
@@ -685,7 +665,7 @@ function UnitDef_Post(name, uDef)
 		uDef.maxslope = math.floor((uDef.maxslope * 1.5) + 0.5)
 	end
 
-	-- make sure all paralyzable units have the correct EMPABLE category allied (or removed)
+	-- make sure all paralyzable units have the correct EMPABLE category applied (or removed)
 	if uDef.category then
 		local empable = string.find(uDef.category, "EMPABLE")
 		if uDef.customparams and uDef.customparams.paralyzemultiplier then
@@ -1233,7 +1213,13 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			ud.transportbyenemy = false
 		end
 	end
+	
+	-- For Decals GL4, disables default groundscars for explosions
+	for id,wDef in pairs(WeaponDefs) do
+		wDef.explosionScar = false
+	end
 
+	
 	--[[
 	-- Make BeamLasers do their damage up front instead of over time
 	-- Do this at the end so that we don't mess up any magic math

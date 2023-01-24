@@ -15,11 +15,11 @@ return {
 		soundstart = "largegun",
 		weaponvelocity = 400,
 		damage = {
-			commanders = 1000,
-			crawlingbombs = 199,
-			default = 7500,
-			hvyboats = 3750,
-			lboats = 3750,
+			commanders = 1110,
+			crawlingbombs = 220,
+			default = 8300,
+			hvyboats = 4150,
+			lboats = 4150,
 		},
 	},
 }

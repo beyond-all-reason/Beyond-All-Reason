@@ -17,7 +17,7 @@ return {
 		footprintz = 3,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 260,
+		maxdamage = 290,
 		maxslope = 16,
 		maxvelocity = 3.79,
 		maxwaterdepth = 0,
@@ -139,9 +139,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 450,
-				customparams = {
-					light_mult = "0.5",
-				},
 				damage = {
 					default = 36,
 				},

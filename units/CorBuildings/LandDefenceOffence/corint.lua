@@ -19,7 +19,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 4250,
+		maxdamage = 4700,
 		maxslope = 13,
 		maxwaterdepth = 0,
 		objectname = "Units/CORINT.s3o",
@@ -146,11 +146,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1150,
-				customparams = {
-					expl_light_heat_radius_mult = 2,
-					expl_light_mult = 1.5,
-					expl_light_radius_mult = 1.5,
-				},
 				damage = {
 					default = 2000,
 					shields = 1000,

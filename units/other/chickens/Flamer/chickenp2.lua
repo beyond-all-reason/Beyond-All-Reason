@@ -26,7 +26,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 1800,
-		maxdamage = 10000,
+		maxdamage = 11100,
 		maxvelocity = 3.5,
 		maxwaterdepth = 0,
 		movementclass = "CHICKSMALLHOVER",
@@ -137,12 +137,6 @@ return {
 				weapontimer = 1,
 				weapontype = "Flame",
 				weaponvelocity = 265,
-				customparams = {
-					expl_light_color = "1 0.33 0.04",
-					expl_light_life_mult = 1.1,
-					expl_light_radius_mult = 1.15,
-					light_color = "1 0.5 0.05",
-				},
 				damage = {
 					default = 100,
 				},
