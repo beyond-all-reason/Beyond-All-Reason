@@ -1,10 +1,10 @@
 function gadget:GetInfo()
     return {
-        name      = 'Lightning Spash Damage',
-        desc      = 'Handles Lightning Weapons Spash Damage',
+        name      = 'Lightning Splash Damage',
+        desc      = 'Handles Lightning Weapons Splash Damage',
         author    = 'TheFatController, Itanthias',
-        version   = 'v2.0',
-        date      = 'April 2011 (V1.0), Jan 2023 (V2.0)',
+        version   = 'v2.1',
+        date      = 'April 2011 (V1.0), Jan 2023 (V2.1)',
         license   = 'GNU GPL, v2 or later',
         layer     = 0,
         enabled   = true
@@ -19,16 +19,20 @@ end
 -- needed for random surplus sparking effect
 local random = math.random
 
+-- Options here
+local terminal_spark_effect = "genericshellexplosion-splash-lightning" -- can refactor into sparkWeapons if per-unit effects defined by customParams are desired
+local visual_chain_weapon = WeaponDefNames["lightning_chain"].id -- can refactor into sparkWeapons if per-unit effects defined by customParams are desired
+
 -- dictionary for in-game spark weapons
 local sparkWeapons = {}
 
 for wdid, wd in pairs(WeaponDefNames) do
 	if wd.customParams ~= nil then
-		if wd.customParams.spark_ceg ~= nil then
+		if wd.customParams.spark_forkdamage ~= nil then
             Script.SetWatchWeapon(wd.id, true) -- watch weapon so ProjectileCreated works
 			-- ZECRUS, values can be tuned in the unitdef file
 			sparkWeapons[wd.id] = 	{
-									ceg = wd.customParams.spark_ceg,
+									ceg = wd.customParams.spark_ceg, -- currently overridden by above "global" options
 									basedamage = tonumber(wd.damages[0]), --spark damage is assumed to be based on default damage 
 									forkdamage = tonumber(wd.customParams.spark_forkdamage),
 									maxunits = tonumber(wd.customParams.spark_maxunits),
@@ -79,7 +83,8 @@ local SpringGetUnitPosition = Spring.GetUnitPosition
 local SpringSpawnCEG = Spring.SpawnCEG
 local SpringAddUnitDamage = Spring.AddUnitDamage
 local SpringSpawnProjectile = Spring.SpawnProjectile
-local SpringGetUnitIsDead = Spring.GetUnitIsDead
+local SpringGetUnitIsDead = Spring.GetUnitIsDead 
+local SpringGetGroundHeight = Spring.GetGroundHeight
 
 -- this part handles the actual spark and chaining effect and applies damage
 -- for a typical lighting bolt ttl = 1, main bolt strikes frame 1, spark bolts strike frame 2
@@ -99,19 +104,20 @@ function gadget:ProjectileDestroyed(proID)
       local nearUnit = nearUnits[i] -- get nearest unit
       local nearUnitDefID = SpringGetUnitDefID(nearUnit) -- get its unitdefID
       if not immuneToSplash[nearUnitDefID] then -- check if unit is immune to sparking
-		if not SpringGetUnitIsDead(nearUnit) then -- check if unit is in "death animation", so sparks do not chain to dying units. 
-			if lightning_shooter[lightning.proOwnerID] ~= nearUnit then --check if main bolt has hit this target or not
-			  local v1,v2,v3,v4,v5,v6, ex, ey, ez = SpringGetUnitPosition(nearUnit,true,true) -- gets aimpoint of unit
-			  SpringSpawnCEG(lightning.spark_ceg,ex,ey,ez,0,0,0) -- spawns "electric aura" at spark target
-			  local spark_damage = lightning.spark_basedamage*lightning.spark_forkdamage -- figure out damage to apply to spark target
-			  -- NB: weaponDefID -1 is debris damage which gets removed by engine_hotfixes.lua, use -7 (crush damage) arbitrarily instead
-			  SpringAddUnitDamage(nearUnit, spark_damage, 0, lightning.proOwnerID, -7) -- apply damage to spark target
-			  -- create visual lighting arc from main bolt termination point to spark target
-			  -- set owner = -1 as a "spark bolt" identifier
-			  SpringSpawnProjectile(lightning.weaponDefID, {["pos"]={lightning.x,lightning.y,lightning.z},["end"] = {ex,ey,ez}, ["ttl"] = 1, ["owner"] = -1})
-			  count = count - 1 -- spark target count accounting
-			end
-		end
+        if not SpringGetUnitIsDead(nearUnit) then -- check if unit is in "death animation", so sparks do not chain to dying units. 
+          if lightning_shooter[lightning.proOwnerID] ~= nearUnit then --check if main bolt has hit this target or not
+            local v1,v2,v3,v4,v5,v6, ex, ey, ez = SpringGetUnitPosition(nearUnit,true,true) -- gets aimpoint of unit
+            SpringSpawnCEG(terminal_spark_effect,ex,ey,ez,0,0,0) -- spawns "electric aura" at spark target
+            local spark_damage = lightning.spark_basedamage*lightning.spark_forkdamage -- figure out damage to apply to spark target
+            -- NB: weaponDefID -1 is debris damage which gets removed by engine_hotfixes.lua, use -7 (crush damage) arbitrarily instead
+            SpringAddUnitDamage(nearUnit, spark_damage, 0, lightning.proOwnerID, -7) -- apply damage to spark target
+            -- create visual lighting arc from main bolt termination point to spark target
+            -- set owner = -1 as a "spark bolt" identifier
+            -- lightning.weaponDefID
+            SpringSpawnProjectile(visual_chain_weapon, {["pos"]={lightning.x,lightning.y,lightning.z},["end"] = {ex,ey,ez}, ["ttl"] = 1, ["owner"] = -1})
+            count = count - 1 -- spark target count accounting
+          end
+        end
       end
     end
     
@@ -123,11 +129,11 @@ function gadget:ProjectileDestroyed(proID)
       newz = lightning.z + math.cos(angle)*lightning.spark_range
       -- get height of random spark bolt termination point
       -- This may need to be tuned, steep slopes, cliffs, and uneven terrain may create weird visuals
-      height1 = math.max(Spring.GetGroundHeight(lightning.x,lightning.z),lightning.y) -- no vertical offset from ground seems needed for ground-strike bolts
-      height2 = Spring.GetGroundHeight(newx,newz)+5 -- offset by 5 units seems good for termination point of spark
+      height1 = math.max(SpringGetGroundHeight(lightning.x,lightning.z),lightning.y) -- no vertical offset from ground seems needed for ground-strike bolts
+      height2 = SpringGetGroundHeight(newx,newz)+5 -- offset by 5 units seems good for termination point of spark
       -- create effects
-      SpringSpawnProjectile(lightning.weaponDefID, {["pos"]={lightning.x,height1,lightning.z},["end"] = {newx,height2,newz}, ["ttl"] = 1, ["owner"] = -1})
-      SpringSpawnCEG(lightning.spark_ceg,newx,height2,newz,0,0,0)
+      SpringSpawnProjectile(visual_chain_weapon, {["pos"]={lightning.x,height1,lightning.z},["end"] = {newx,height2,newz}, ["ttl"] = 1, ["owner"] = -1})
+      SpringSpawnCEG(terminal_spark_effect,newx,height2,newz,0,0,0)
     end
     
     -- clear from table
