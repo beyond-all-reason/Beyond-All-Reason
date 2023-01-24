@@ -17,7 +17,6 @@ local definitions = {
         sizegrowth         = 17,
         speed              = [[0, 1 0, 0]],
         texture            = [[flare]],
-
         drawOrder          = 1,
       },
     },
@@ -209,7 +208,7 @@ local definitions = {
         particleSpeed=2,
         particleSpeedSpread=5,
         particleSize=7,
-        particleSizeSpread=15
+        particleSizeSpread=15,
         castShadow         = true,
       },
     },
