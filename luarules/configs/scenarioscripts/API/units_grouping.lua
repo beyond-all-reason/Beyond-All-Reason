@@ -31,5 +31,6 @@ end
 
 
 function ScenarioScript_GiveOrderToGroup(groupname)
+    groupname = {}
     Spring.Echo("SoonTM")
 end

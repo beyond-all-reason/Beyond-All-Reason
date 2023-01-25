@@ -19,6 +19,7 @@ local function setup(addResources)
 	local startMetal = Spring.GetModOptions().startmetal
 	local startEnergy = Spring.GetModOptions().startenergy
 
+
 	if GG.coopMode then
 
 		local teamPlayerCounts = {}
@@ -64,9 +65,8 @@ function gadget:Initialize()
 end
 
 function gadget:GameStart()
-	-- reset because commander added additional storage as well
-	setup()
-end
+		setup()
+	end
 
 function gadget:TeamDied(teamID)
 	Spring.SetTeamShareLevel(teamID, 'metal', 0)
@@ -74,3 +74,24 @@ function gadget:TeamDied(teamID)
 end
 
 
+--[[ 	if Spring.GetModOptions().scenariooptions then ]]
+--[[ 		local loadout ]]
+--[[ 		local scenariooptions = Json.decode(string.base64Decode(Spring.GetModOptions().scenariooptions)) ]]
+--[[ 			if scenariooptions and scenariooptions.unitloadout and next(scenariooptions.unitloadout) then ]]
+--[[ 					loadout = true ]]
+--[[ 					if not scenariooptions and scenariooptions.unitloadout and next(scenariooptions.unitloadout) then ]]
+--[[ 					loadout = false ]]
+--[[ 					end ]]
+--[[ 					if loadout == false then ]]
+--[[ 						 ]]
+--[[ 							setup(true) ]]
+--[[ 						end ]]
+--[[ 						if loadout == true then ]]
+--[[ 							function gadget:GamePreload() ]]
+--[[ 								setup(true) ]]
+--[[ 							end ]]
+--[[ 						end ]]
+--[[ 					end ]]
+--[[ 			end ]]
+--[[ 		end ]]
+--[[ 			local comOnly = UnitDetected("armcom" or "corcom" or "legcomdef", allyTeam.any, teamId.any, unitDefID.commander) ]]

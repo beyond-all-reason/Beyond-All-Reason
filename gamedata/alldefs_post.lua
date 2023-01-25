@@ -33,7 +33,8 @@ SaveDefsToCustomParams = false
 
 function PrebakeUnitDefs()
 	for name, unitDef in pairs(UnitDefs) do
-		-- UnitDef changes go here
+		-- UnitDef changes go here 
+		
 	end
 end
 
@@ -90,7 +91,19 @@ function UnitDef_Post(name, uDef)
 			uDef.maxreversevelocity = uDef.maxvelocity*0.65
 		end
 	end
+	
+	--scenariooptions
 
+	--[[ for name, uDef in pairs(UnitDefs) do ]]
+	--[[ 		--if Spring.GetModOptions().scenariooptions == true then ]]
+	--[[ 			if name == "armcom" or name == "corcom" or name == "legcomdef" then ]]
+	--[[ 				uDef.energystorage = 0 ]]
+	--[[ 				uDef.metalstorage = 0 ]]
+	--[[ 			end ]]
+	--[[ 	 ]]
+	--[[ 	end ]]
+	--end
+	
 	-- Rebalance Candidates
 
 	if Spring.GetModOptions().experimentalrebalancet2labs == true then --

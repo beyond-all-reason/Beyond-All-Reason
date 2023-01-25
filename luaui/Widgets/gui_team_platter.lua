@@ -145,7 +145,7 @@ local function RemoveUnit(unitID)
 	end
 end
 
---- Look how easy api_unit_tracker is to use! 
+--- Look how easy api_unit_tracker is to use!
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	AddPrimitiveAtUnit(unitID, unitDefID, unitTeam)
 end
@@ -162,11 +162,8 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 	RemoveUnit(unitID)
 end
 
--- wont be called for enemy units nor can it read spGetUnitMoveTypeData(unitID).aircraftState anyway
-function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if unitCanFly[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		RemoveUnit(unitID)
-	end
+local function GadgetCrashingAircraft(unitID, unitDefID, teamID)
+	RemoveUnit(unitID)
 end
 
 local function init()
@@ -178,11 +175,11 @@ local function init()
 	shaderConfig.HEIGHTOFFSET = 3.99
 	shaderConfig.USETEXTURE = 0
 	teamplatterVBO, teamplatterShader = InitDrawPrimitiveAtUnit(shaderConfig, "teamPlatters")
-	if teamplatterVBO == nil then 
+	if teamplatterVBO == nil then
 		widgetHandler:RemoveWidget()
 		return false
 	end
-	
+
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
@@ -206,10 +203,12 @@ function widget:Initialize()
 		skipOwnTeam = value
 		init()
 	end
+	widgetHandler:RegisterGlobal('GadgetCrashingAircraft3', GadgetCrashingAircraft)
 end
 
 function widget:Shutdown()
 	WG['teamplatter'] = nil
+	widgetHandler:DeregisterGlobal('GadgetCrashingAircraft3')
 end
 
 function widget:GetConfigData(data)
