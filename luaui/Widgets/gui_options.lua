@@ -19,7 +19,7 @@ local types = {
 	dev      = 3,
 }
 
-local version = 1.3	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
+local version = 1.4	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
 local newerVersion = false	-- configdata will set this true if it's a newer version
 
 local texts = {}    -- loaded from external language file
@@ -5184,12 +5184,9 @@ function widget:Initialize()
 
 	-- enable previous default disabled widgets to their new default state
 	if newerVersion then
-		if version <= 1.3 then
-			if widgetHandler.orderList["Deferred rendering GL4"] and widgetHandler.orderList["Deferred rendering GL4"] < 0.5 then
-				widgetHandler:EnableWidget("Deferred rendering GL4")
-			end
-			if widgetHandler.orderList["Decals GL4"] and widgetHandler.orderList["Decals GL4"] < 0.5 then
-				widgetHandler:EnableWidget("Decals GL4")
+		if version <= 1.4 then
+			if widgetHandler.orderList["Commblast Range GL4"] and widgetHandler.orderList["Commblast Range GL4"] < 0.5 then
+				widgetHandler:EnableWidget("Commblast Range GL4")
 			end
 		end
 	end
