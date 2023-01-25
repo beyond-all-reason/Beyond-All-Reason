@@ -21,7 +21,7 @@ return {
 		hidedamage = true,
 		idleautoheal = 0,
 		levelground = false,
-		maxdamage = 2500,
+		maxdamage = 2800,
 		maxslope = 64,
 		maxwaterdepth = 0,
 		objectname = "scavs/scavdrag.s3o",

@@ -5,7 +5,7 @@
 
 piece  pelvis, rthigh, rleg, rfoot, rrfinger, rlfinger, lthigh, lleg, lfoot, llfinger,lrfinger, aimy1, torso, aimx1, ruparm, rblimb, rflimb, rcannon, rbarrel, rflare, luparm, lblimb, lflimb, lcannon, lbarrel, lflare;
 
-static-var  Static_Var_1, gun_1, bMoving, bAiming, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, wpnheading ; 
+static-var  Static_Var_1, gun_1, bMoving, bAiming, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, wpnheading, shotcount ; 
 
 // Signal definitions
 #define SIG_WALK			2
@@ -406,6 +406,12 @@ Create()
 	Static_Var_1 = 3500;
 	wpnheading  = 0;
 	animSpeed = 6;
+	shotcount = 0;
+}
+
+lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
 }
 
 
@@ -485,6 +491,8 @@ FirePrimary()
 	if( gun_1 == 0 )
 	{
 		move rbarrel to z-axis [-1.5] speed [1000];
+		call-script lua_UnitScriptLight(2, shotcount);
+		shotcount = shotcount + 1;
 		sleep 100;
 		move rbarrel to z-axis [0] speed [6];
 		gun_1 = 1;
@@ -493,6 +501,8 @@ FirePrimary()
 	if ( gun_1 == 1 )
 	{
 		move lbarrel to z-axis [-1.5] speed [1000];
+		call-script lua_UnitScriptLight(1, shotcount);
+		shotcount = shotcount + 1;
 		sleep 100;
 		move lbarrel to z-axis [0] speed [6];
 		gun_1 = 2;
@@ -501,6 +511,7 @@ FirePrimary()
 		if( gun_1 == 2 )
 	{
 		move rbarrel to z-axis [-1.5] speed [1000];
+		//call-script lua_UnitScriptLight(2, shotcount);
 		sleep 100;
 		move rbarrel to z-axis [0] speed [6];
 		gun_1 = 3;
@@ -509,6 +520,7 @@ FirePrimary()
 	if ( gun_1 == 3 )
 	{
 		move lbarrel to z-axis [-1.5] speed [1000];
+		//call-script lua_UnitScriptLight(1, shotcount);
 		show lflare;
 		sleep 100;
 		hide lflare;

@@ -23,7 +23,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3600,
+		maxdamage = 4000,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		mincloakdistance = 70,
@@ -92,7 +92,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-large",
+				[1] = "custom:barrelshot-larger",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

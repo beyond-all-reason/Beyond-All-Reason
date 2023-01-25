@@ -21,7 +21,7 @@ return {
 		idletime = 1800,
 		losemitheight = 66,
 		mass = 5100,
-		maxdamage = 81,
+		maxdamage = 90,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/ARMRAD.s3o",

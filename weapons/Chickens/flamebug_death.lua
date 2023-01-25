@@ -13,17 +13,12 @@ return {
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {
-			chicken = 100,
-			default = 300,
-			tinychicken = 25,
+			chicken = 111,
+			default = 335,
+			tinychicken = 28,
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.5 0.2",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 }

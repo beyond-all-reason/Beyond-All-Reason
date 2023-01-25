@@ -18,7 +18,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		maxdamage = 950,
+		maxdamage = 1060,
 		maxslope = 10,
 		maxvelocity = 3,
 		maxwaterdepth = 12,
@@ -159,10 +159,6 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 85,
 					fighters = 85,
@@ -201,9 +197,6 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				customparams = {
-					expl_light_color = "0.2 0.5 1",
-					light_color = "0.2 0.5 1",
-					light_mult = "0.7",
 					spark_ceg = "genericshellexplosion-splash-lightning",
 					spark_forkdamage = "0.33",
 					spark_maxunits = "2",

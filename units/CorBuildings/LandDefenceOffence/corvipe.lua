@@ -17,7 +17,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2719,
+		maxdamage = 3000,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
@@ -154,10 +154,6 @@ return {
 				weapontimer = 0.1,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 950,
-				customparams = {
-					expl_light_color = "1 0.5 0.05",
-					light_color = "1 0.4 0.15",
-				},
 				damage = {
 					bombers = 26,
 					default = 825,

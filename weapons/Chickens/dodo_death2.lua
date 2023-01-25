@@ -17,8 +17,8 @@ return {
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {
-			default = 4000,
-			chicken = 1000,
+			default = 4450,
+			chicken = 1110,
 		},
 	},
 }

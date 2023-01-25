@@ -21,7 +21,7 @@ return {
 		maxacc = 0.06,
 		maxaileron = 0.01347,
 		maxbank = 0.8,
-		maxdamage = 1000,
+		maxdamage = 1110,
 		maxelevator = 0.00972,
 		maxpitch = 0.625,
 		maxrudder = 0.00522,
@@ -125,8 +125,6 @@ return {
 				waterbounce = true,
 				weapontype = "AircraftBomb",
 				customparams = {
-					expl_light_color = "1 0.5 0.05",
-					expl_light_heat_radius_mult = 1.3,
 					spawns_name = "cormine1",
 					spawns_surface = "LAND",
 				},

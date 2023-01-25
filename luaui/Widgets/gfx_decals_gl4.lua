@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "2021.11.02",
 		license = "Lua code: GNU GPL, v2 or later, Shader GLSL code: (c) Beherith (mysterme@gmail.com)",
 		layer = 999,
-		enabled = false,
+		enabled = true,
 	}
 end
 
@@ -68,13 +68,14 @@ local additionalcrap = {} -- a list of paths to also include for i dunno, sprays
 local resolution = 16 -- 32 is 2k tris, a tad pricey...
 local largesizethreshold  = 512 -- if min(width,height)> than this, then we use the large version!
 local extralargesizeThreshold = 1024 -- if min(width,height)> than this, then we use the extra large version!
+local lifeTimeMult = 1.0 -- A global lifetime multiplier for configurability
 
 local autoupdate = false -- auto update shader, for debugging only!
 
 
 -- for automatic oversaturation prevention, not sure if it even works, but hey!
 local areaResolution = 256 -- elmos per square, for a 64x map this is uh, big? for 32x32 its 4k
-local saturationThreshold = 100 * areaResolution
+local saturationThreshold = 16 * areaResolution
 
 ------------------------ GL4 BACKEND -----------------------------------
 
@@ -92,6 +93,7 @@ local atlassedImages = {}
 local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 4 , sizez = 4}
 -- remember, we can use xXyY = gl.GetAtlasTexture(atlasID, texture) to query the atlas
 local decalImageCoords = {} -- Key filepath, value is {p,q,s,t}
+local numFiles = 0
 
 local function addDirToAtlas(atlas, path, key, filelist)
 	if filelist == nil then filelist = {} end
@@ -102,10 +104,11 @@ local function addDirToAtlas(atlas, path, key, filelist)
 	for i=1, #files do
 		local lowerfile = string.lower(files[i])
 		if imgExts[string.sub(lowerfile,-3,-1)] and string.find(lowerfile, key, nil, true) then
-			Spring.Echo(files[i])
+			--Spring.Echo(files[i])
 			gl.AddAtlasTexture(atlas,lowerfile)
 			atlassedImages[lowerfile] = atlas
 			filelist[lowerfile] = true
+			numFiles = numFiles + 1
 		end
 	end
 	return filelist
@@ -123,18 +126,21 @@ local function makeAtlases()
 	local usedpixels = 0
 	-- read back the UVs:
 	for filepath, _ in pairs(decalImageCoords) do
-		local p,q,s,t = gl.GetAtlasTexture(atlasColorAlpha, filepath) --xXyY
+		local p,q,s,t = gl.GetAtlasTexture(atlasColorAlpha, filepath) --xXyY, wow, default are texel centers, e.g. [0.5; 1023.5]
 		local texelX = 1.0/atlasInfo.xsize -- shrink UV areas for less mip bleed
 		local texelY = 1.0/atlasInfo.ysize -- shrink UV areas for less mip bleed
 		usedpixels = usedpixels + (math.abs(p-q) * atlasInfo.xsize ) * (math.abs(s-t) * atlasInfo.ysize)
 		if autoreload then Spring.Echo(filepath) end
 		decalImageCoords[filepath] =  {p+texelX,q-texelX,s+texelY,t-texelY}
+		--Spring.Echo(atlasInfo.xsize * (p+texelX), atlasInfo.xsize * (q-texelX),texelX * atlasInfo.xsize)
 	end
 
-	Spring.Echo(string.format("Decals GL4 Atlas is %dx%d, used %.1f%%",
-		atlasInfo.xsize, atlasInfo.ysize,
-		usedpixels * 100 / (atlasInfo.xsize * atlasInfo.ysize)
+	if autoreload then
+		Spring.Echo(string.format("Decals GL4 Atlas is %dx%d, used %.1f%%",
+			atlasInfo.xsize, atlasInfo.ysize,
+			usedpixels * 100 / (atlasInfo.xsize * atlasInfo.ysize)
 		))
+	end
 
 	atlasNormals = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
 	addDirToAtlas(atlasNormals, groundscarsPath, '_n.')
@@ -143,13 +149,13 @@ local function makeAtlases()
 
 	if shaderConfig.PARALLAX == 1 then
 		atlasHeights = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
-		addDirToAtlas(atlasHeights, groundscarsPath, '_h.png')
+		addDirToAtlas(atlasHeights, groundscarsPath, '_h.')
 		success = gl.FinalizeTextureAtlas(atlasHeights)
 		if success == false then return false end
 	end
-	if shaderConfig.USEGLOW == 1 then
+	if false and shaderConfig.USEGLOW == 1 then
 		atlasRG = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
-		addDirToAtlas(atlasRG, groundscarsPath, '_rg.png')
+		addDirToAtlas(atlasRG, groundscarsPath, '_rg.')
 		success = gl.FinalizeTextureAtlas(atlasRG)
 		if success == false then return false end
 	end
@@ -164,6 +170,8 @@ local decalShader = nil
 local decalLargeShader = nil
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
+
+local hasBadCulling = false -- AMD+Linux combo
 
 --------------------------- Localization for faster access -------------------
 
@@ -239,6 +247,8 @@ local function goodbye(reason)
 end
 
 local function initGL4( DPATname)
+	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
+	if hasBadCulling then Spring.Echo("Decals GL4 detected AMD + Linux platform, attempting to fix culling") end 
 	decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
 	decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache)
 
@@ -443,7 +453,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	width, length,
 	heatstart, heatdecay, alphastart, alphadecay,
 	maxalpha,
-	bwfactor, glowsustain, glowadd, spawnframe)
+	bwfactor, glowsustain, glowadd, fadeintime, spawnframe)
 	-- Documentation
 	-- decaltexturename, full path to the decal texture name, it must have been added to the atlasses, e.g. 'bitmaps/scars/scar1.bmp'
 	-- posx, posz, world pos to place center of decal
@@ -457,17 +467,22 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	-- bwfactor: the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
 	-- glowsustain: how many frames to elapse before glow starts to recede
 	-- glowadd: how much additional, non-transparency controlled heat glow should the decal get
+	-- fadeintime: how many frames it takes for a decal to reach its max alpha after spawning
+	-- spawnframe: really shouldnt be touched (pass nil) unless you want to modify the params of an existing decal, then specify the frame that decal was spawned on.
 	heatstart = heatstart or 0
 	heatdecay = heatdecay or 1
 	alphastart = alphastart or 1
-	alphadecay = alphadecay or 0
+	alphadecay = (alphadecay or 0) / lifeTimeMult
 
 	bwfactor = bwfactor or 1 -- default force to black and white
 	glowsustain = glowsustain or 1 -- how many frames to keep max heat for
 	glowadd = glowadd or 0 -- how much additional additive glow to add
+	fadeintime = fadeintime or shaderConfig.FADEINTIME
 
 	if CheckDecalAreaSaturation(posx, posz, width, length) then
-		Spring.Echo("Map area is oversaturated with decals!", posx, posz, width, length)
+		if autoupdate then
+			Spring.Echo("Map area is oversaturated with decals!", posx, posz, width, length)
+		end
 		return nil
 	else
 
@@ -506,8 +521,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 			p,q,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
 			alphastart, alphadecay, heatstart, heatdecay, -- alphastart_alphadecay_heatstart_heatdecay
 			posx, posy, posz, spawnframe,
-
-			bwfactor,glowsustain,glowadd,0}, -- params
+			bwfactor, glowsustain, glowadd, fadeintime}, -- params
 		decalIndex, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		false) -- noupload, dont use unless you know what you want to batch push/pop
@@ -523,12 +537,21 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	return decalIndex, lifetime
 end
 
-function widget:DrawWorldPreUnit()
+local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+
+local function DrawDecals()
+	local alt, ctrl = Spring.GetModKeyState()
+	if alt and (isSinglePlayer) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
 	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
 
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--Spring.Echo(decalVBO.usedElements,decalLargeVBO.usedElements)
-		glCulling(GL.BACK)
+		if hasBadCulling then 
+			glCulling(false)
+		else
+			glCulling(GL.BACK)
+		end
 		glDepthTest(GL_LEQUAL)
 		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		glTexture(0, '$heightmap')
@@ -539,8 +562,8 @@ function widget:DrawWorldPreUnit()
 		glTexture(5, atlasColorAlpha)
 		glTexture(6, atlasNormals)
 		if shaderConfig.PARALLAX == 1 then glTexture(7, atlasHeights) end
-		if shaderConfig.AMBIENTOCCLUSION == 1 then glTexture(8, atlasRG) end
-		if shaderConfig.USEGLOW == 1 then glTexture(9, atlasRG) end
+		--if shaderConfig.AMBIENTOCCLUSION == 1 then glTexture(8, atlasRG) end
+		--if shaderConfig.USEGLOW == 1 then glTexture(9, atlasRG) end
 		--glTexture(9, '$map_gbuffer_zvaltex')
 		--glTexture(10, '$map_gbuffer_difftex')
 		--glTexture(11, '$map_gbuffer_normtex')
@@ -568,13 +591,8 @@ function widget:DrawWorldPreUnit()
 
 		-- Restore the GL state
 		for i = 0, 8 do glTexture(i, false) end
-		glCulling(GL.BACK) -- This is the correct default mode!
-		glDepthTest(GL_LEQUAL)
-		--gl.Blending(GL.SRC_ALPHA, GL.ONE)
-
+		glCulling(false) -- This is the correct default mode!
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
-
-		--gl.DepthMask(false) --"BK OpenGL state resets", already set as false
 
 		if false then
 			local tricount = 4*4*2 * decalVBO.usedElements + resolution*resolution*2*decalLargeVBO.usedElements + 4*4*resolution*resolution*2*decalExtraLargeVBO.usedElements
@@ -586,6 +604,17 @@ function widget:DrawWorldPreUnit()
 		end
 	end
 end
+
+if Spring.Utilities.EngineVersionAtLeast(105,1,1,1422) then
+	function widget:DrawPreDecals()
+		DrawDecals()
+	end
+else
+	function widget:DrawWorldPreUnit()
+		DrawDecals()
+	end
+end
+
 
 local function RemoveDecal(instanceID)
 	RemoveDecalFromArea(instanceID)
@@ -609,7 +638,7 @@ function widget:GameFrame(n)
 		decalRemoveQueue[n] = nil
 	end
 
-	if n % 91 == 0 then
+	if n % 271 == 0 then
 		local removed = 0
 		removed = removed + compactInstanceVBO(decalVBO, decalRemoveList)
 		removed = removed + compactInstanceVBO(decalLargeVBO, decalRemoveList)
@@ -672,29 +701,59 @@ for weaponDefID=1, #WeaponDefs do
 		local heatdecay
 		local glowsustain
 		local glowadd
+		local fadeintime
 
-		local textures = { "t_groundcrack_17_a.png", "t_groundcrack_21_a.png", "t_groundcrack_10_a.png" }
+		local textures = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga" }
 		if weaponDef.paralyzer then
-			textures = { "t_groundcrack_17_a.png", "t_groundcrack_10_a.png", "t_groundcrack_10_a.png" }
+			textures = { "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga", "t_groundcrack_10_a.tga" }
 			heatstart = 0
 			glowadd = 0
+			if weaponDef.type == 'AircraftBomb' then
+				textures = {"t_groundcrack_16_a.tga" }
+				alpha = 0.44
+				alphadecay = 0.00015
+				radius = radius * 0.75
+				radiusVariation = 1.45
+				heatstart = 100
+				heatdecay = 2.5
+				--glowsustain = 35
+				glowadd = 4
+			end
 
 		elseif weaponDef.type == 'Cannon' then
+			if string.find(weaponDef.name, 'old_armsnipe_weapon') then
+				textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga" }
+				radius = 50
+				heatstart = 6000
+				heatdecay = 2.0
+				glowsustain = 35
+				glowadd = 4
+			end
 			if weaponDef.highTrajectory == 1 then
-				textures = { "t_groundcrack_21_a.png", "t_groundcrack_22_a.png", "t_groundcrack_10_a.png" }
+				textures = { "t_groundcrack_21_a.tga", "t_groundcrack_22_a.tga", "t_groundcrack_10_a.tga" }
 				alphadecay = 0.0024
 
 			elseif string.find(weaponDef.name, 'lrpc') then
-				textures = { "t_groundcrack_21_a.png", "t_groundcrack_22_a.png", "t_groundcrack_10_a.png" }
-				radius = radius * 1.8
+				textures = { "t_groundcrack_09_a.tga", "t_groundcrack_05_a.tga" }
+				radius = radius * 1.3
+				radiusVariation = 0.7
 				heatstart = 6000
 				heatdecay = 0.78
+				glowadd = 2
+
+			elseif string.find(weaponDef.name, 'tremor') then
+				textures = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga", "t_groundcrack_09_a.tga" }
+				radius = radius * 0.96
+				radiusVariation = 0.85
+				alphadecay = 0.0026
+				heatstart = 6000
+				heatdecay = 1.5
 				glowadd = 2
 			end
 
 		elseif weaponDef.type == 'Flame' then
 			-- FLAME does not work - probably does not apply a decal on engine level
-			-- textures = { "t_groundcrack_16_a.png", "t_groundcrack_17_a.png" }
+			-- textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga" }
 			-- if string.find(weaponDef.name, 'flamethrower') then
 			-- 	radius = radius * 5.8
 			-- 	heatstart = 6000
@@ -705,6 +764,13 @@ for weaponDefID=1, #WeaponDefs do
 			-- end
 
 		elseif weaponDef.type == 'LightningCannon' then
+			heatstart = 4000
+			heatdecay = 1.0
+			glowsustain = 10
+			alpha = 0.5
+			--glowadd = 2
+			fadeintime = 15
+			bwfactor = 0.8
 
 		elseif weaponDef.type == 'BeamLaser' then
 
@@ -729,12 +795,21 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.01
 
 		elseif weaponDef.type == 'DGun' then
-			textures = { "t_groundcrack_16_a.png", "t_groundcrack_17_a.png" }
+			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga" }
 			if string.find(weaponDef.name, 'juggernaut_fire') then
 				radius = radius * 2.4
 				heatdecay = 0.65
 				glowsustain = 40
 				glowadd = 1.3
+				bwfactor = 0.1
+			elseif string.find(weaponDef.name, 'disintegratorxl') then
+				textures = { "t_groundcrack_21_a.tga", "t_groundcrack_16_a.tga" }
+				alphadecay = 0.004
+				radius = radius * 1.7 --* (math.random() * 20 + 0.2)
+				radiusVariation = 1.65
+				heatdecay = 0.75
+				glowsustain = 30
+				glowadd = 1.8
 				bwfactor = 0.1
 			else
 				radius = radius * 2.5
@@ -746,7 +821,7 @@ for weaponDefID=1, #WeaponDefs do
 		end
 
 		if radius > 500 then
-			textures = { "t_groundcrack_21_a.png" }
+			textures = { "t_groundcrack_21_a.tga" }
 			heatstart = 5500
 			heatdecay = 0.5
 			glowsustain = 150
@@ -755,10 +830,17 @@ for weaponDefID=1, #WeaponDefs do
 		end
 
 		if string.find(weaponDef.name, 'juno') then
-			radius = 180
+			textures = { "t_groundcrack_10_a.tga" }
+			radius = 700
+			alpha = 0.4
+			heatstart = 700
+			heatdecay = 0.5
+			alphadecay = 0.00005
+			--glowadd = 2.5
+			bwfactor = 0.05
 
 		elseif string.find(weaponDef.name, 'acid') then
-			textures = { "t_groundcrack_26_a.png" }
+			textures = { "t_groundcrack_26_a.tga" }
 			radius = (radius * 5)-- * (math.random() * 0.15 + 0.85)
 			alpha = 6
 			heatstart = 500
@@ -766,10 +848,26 @@ for weaponDefID=1, #WeaponDefs do
 			alphadecay = 0.012
 			--glowadd = 2.5
 			--glowsustain = 0
-			bwfactor = 0.17 --0.17
+			fadeintime = 200
+			bwfactor = 0.17
+
+		elseif string.find(weaponDef.name, 'vipersabot') then -- viper has very tiny AoE
+			radius = (radius * 4) 
+
+		elseif string.find(weaponDef.name, 'corkorg_fire') then -- Juggernaut has lots of decals on shotgun
+			alphadecay = 0.004 
+
+		elseif string.find(weaponDef.name, 'exp_heavyrocket') then -- Catapult has lower AoE but big explo
+			textures = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga", "t_groundcrack_09_a.tga" }
+			radius = radius * 2.1
+			radiusVariation = 0.8
+			alphadecay = 0.0026
+			heatstart = 6500
+			heatdecay = 0.8
+			glowadd = 2
 
 		elseif string.find(weaponDef.name, 'napalm') then
-			textures = { "t_groundcrack_16_a.png" }
+			textures = { "t_groundcrack_16_a.tga" }
 			radius = radius * 1.6
 			heatstart = 4000
 			heatdecay = 0.33
@@ -780,7 +878,7 @@ for weaponDefID=1, #WeaponDefs do
 
 			--armliche
 		elseif string.find(weaponDef.name, 'arm_pidr') then
-			textures = { "t_groundcrack_21_a.png" }
+			textures = { "t_groundcrack_21_a.tga" }
 			radius = radius * 1.8
 			heatstart = 5500
 			heatdecay = 0.66
@@ -789,38 +887,57 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.1
 
 		elseif string.find(weaponDef.name, 'death_acid') then
-			textures = { "t_groundcrack_26_a.png" }
+			textures = { "t_groundcrack_26_a.tga" }
 			radius = (radius * 5.5)-- * (math.random() * 0.25 + 0.75)
 			alpha = 6
 			heatstart = 550
 			heatdecay = 0.1
 			alphadecay = 0.012
 			glowadd = 2.5
+			fadeintime = 200
 			bwfactor = 0.17
 
-		elseif string.find(weaponDef.name, 'bug') then
-			textures = { "t_groundcrack_23_a.png", "t_groundcrack_24_a.png", "t_groundcrack_25_a.png", "t_groundcrack_27_a.png" }
-			radius = (radius * 10)-- * (math.random() * 0.7 + 0.52)
+		elseif string.find(weaponDef.name, 'flamebug') then
+			textures = { "t_groundcrack_23_a.tga", "t_groundcrack_24_a.tga", "t_groundcrack_25_a.tga", "t_groundcrack_27_a.tga" }
+			radius = (radius * 5)-- * (math.random() * 0.7 + 0.52)
 			alpha = 15
 			heatstart = 500
 			heatdecay = 0.12
 			alphadecay = 0.002
 			glowsustain = 15
 			glowadd = 2.5
+			fadeintime = 150
 			bwfactor = 0.6
 
+		elseif string.find(weaponDef.name, 'bug') then
+			textures = { "t_groundcrack_23_a.tga", "t_groundcrack_24_a.tga", "t_groundcrack_25_a.tga", "t_groundcrack_27_a.tga" }
+			if string.find(weaponDef.name, 'flamebug') then
+				radius = (radius * 5)
+			else
+				radius = (radius * 10)-- * (math.random() * 0.7 + 0.52)
+				alpha = 15
+				heatstart = 500
+				heatdecay = 0.12
+				alphadecay = 0.002
+				glowsustain = 15
+				glowadd = 2.5
+				fadeintime = 75
+				bwfactor = 0.6
+			end
+
 		elseif string.find(weaponDef.name, 'bloodyeggs') then
-			textures = { "t_groundcrack_23_a.png" }
+			textures = { "t_groundcrack_23_a.tga" }
 			radius = (radius * 1.5)-- * (math.random() * 1.2 + 0.25)
 			alpha = 10
 			heatstart = 490
 			heatdecay = 0.1
 			alphadecay = 0.005
 			glowadd = 2.5
+			fadeintime = 75
 			bwfactor = 0.6
 
 		elseif string.find(weaponDef.name, 'dodo') then
-			textures = { "t_groundcrack_23_a.png", "t_groundcrack_24_a.png" }
+			textures = { "t_groundcrack_23_a.tga", "t_groundcrack_24_a.tga" }
 			radius = (radius * 1.2)-- * (math.random() * 0.15 + 0.85)
 			alpha = 10
 			heatstart = 490
@@ -830,7 +947,7 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.7
 
 		elseif string.find(weaponDef.name, 'armagmheat') then
-			textures = { "t_groundcrack_10_a.png" }
+			textures = { "t_groundcrack_10_a.tga" }
 			radius = (radius * 1.6)-- * (math.random() * 0.15 + 0.85)
 			alpha = 1
 			heatstart = 6500
@@ -838,6 +955,18 @@ for weaponDefID=1, #WeaponDefs do
 			alphadecay = 0.002
 			glowadd = 2.5
 			--bwfactor = 0.15
+
+		elseif string.find(weaponDef.name, 'corkorg_laser') then
+			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga" }
+			alphadecay = 0.004
+			radius = radius * 1.1 --* (math.random() * 20 + 0.2)
+			radiusVariation = 0.3
+			heatstart = 6800
+			heatdecay = 0.75
+			glowsustain = 45
+			glowadd = 1.8
+			bwfactor = 0.1
+
 		end
 
 		weaponConfig[weaponDefID] = {
@@ -849,10 +978,11 @@ for weaponDefID=1, #WeaponDefs do
 			alpha, -- 6
 			alphadecay, -- 7
 			bwfactor,	-- 8
-			glowsustain,
-			glowadd,
+			glowsustain, --9
+			glowadd, -- 10
 			weaponDef.damageAreaOfEffect,	-- 11
 			damage,	-- 12
+			fadeintime, -- 13
 		}
 	end
 end
@@ -885,6 +1015,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	local bwfactor = params[8] or 0.5 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
 	local glowsustain = params[9] or (math.random() * 20) -- how many frames to elapse before glow starts to recede
 	local glowadd = params[10] or (math.random() * 2) -- how much additional, non-transparency controlled heat glow should the decal get
+	local fadeintime = params[13]
 
 	AddDecal(
 		groundscarsPath..texture,
@@ -900,11 +1031,13 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		math.random() * 0.2 + 0.8, -- maxalpha
 		bwfactor,
 		glowsustain,
-		glowadd
+		glowadd,
+		fadeintime
 	)
 end
 
 function widget:Initialize()
+	local t0 = Spring.GetTimer()
 	if makeAtlases() == false then
 		goodbye("Failed to init texture atlas for DecalsGL4")
 		return
@@ -921,7 +1054,7 @@ function widget:Initialize()
 			local w = math.random() * 15 + 7
 			w = w * w
 			local j = math.floor(math.random()*20+1)
-			--local texture = string.format(groundscarsPath.."t_groundcrack_%02d_a.png", j)
+			--local texture = string.format(groundscarsPath.."t_groundcrack_%02d_a.tga", j)
 			local texture = randtablechoice(decalImageCoords)
 			--Spring.Echo(texture)
 			AddDecal(
@@ -943,12 +1076,30 @@ function widget:Initialize()
 	WG['decalsgl4'] = {}
 	WG['decalsgl4'].AddDecalGL4 = AddDecal
 	WG['decalsgl4'].RemoveDecalGL4 = RemoveDecal
+	WG['decalsgl4'].SetLifeTimeMult = function(value)
+		lifeTimeMult = value
+	end
+
 	widgetHandler:RegisterGlobal('AddDecalGL4', WG['decalsgl4'].AddDecalGL4)
 	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)
 	widgetHandler:RegisterGlobal('GadgetWeaponExplosionDecal', GadgetWeaponExplosionDecal)
+	Spring.Echo(string.format("Decals GL4 loaded %d textures in %.3fs",numFiles, Spring.DiffTimers(Spring.GetTimer(), t0)))
+	--Spring.Echo("Trying to access _G[NightModeParams]", _G["NightModeParams"])
 end
 
+--[[
+function widget:DrawScreen()
+	local vsx, vsy = Spring.GetViewGeometry()
+	gl.Texture(0, atlasColorAlpha)
+	gl.TexRect(2,2,vsx-2,vsy-2,0,0,1,1)
+	gl.Texture(0, false)
+end
+]]--
 
+function widget:SunChanged()
+	--local nmp = _G["NightModeParams"]
+	--Spring.Echo("widget:SunChanged()",nmp)
+end
 
 function widget:ShutDown()
 	if atlasColorAlpha ~= nil then
@@ -968,4 +1119,17 @@ function widget:ShutDown()
 	widgetHandler:DeregisterGlobal('AddDecalGL4')
 	widgetHandler:DeregisterGlobal('RemoveDecalGL4')
 	widgetHandler:DeregisterGlobal('GadgetWeaponExplosionDecal')
+end
+
+function widget:GetConfigData(_) -- Called by RemoveWidget
+	local savedTable = {
+		lifeTimeMult = lifeTimeMult,
+	}
+	return savedTable
+end
+
+function widget:SetConfigData(data) -- Called on load (and config change), just before Initialize!
+	if data.lifeTimeMult ~= nil then
+		lifeTimeMult = data.lifeTimeMult
+	end
 end

@@ -22,7 +22,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		losemitheight = 72,
-		maxdamage = 103,
+		maxdamage = 114,
 		maxslope = 10,
 		minwaterdepth = 5,
 		objectname = "Units/CORFRAD.s3o",

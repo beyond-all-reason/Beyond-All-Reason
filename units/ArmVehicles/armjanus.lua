@@ -18,7 +18,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		maxdamage = 924,
+		maxdamage = 1030,
 		maxslope = 10,
 		maxvelocity = 1.8,
 		maxwaterdepth = 12,
@@ -150,11 +150,6 @@ return {
 				weaponacceleration = 80,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 230,
-				customparams = {
-					expl_light_color = "1 0.5 0.05",
-					expl_light_radius_mult = 1.05,
-					light_color = "1 0.6 0.05",
-				},
 				damage = {
 					bombers = 35,
 					default = 330,

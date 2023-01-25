@@ -23,7 +23,7 @@ return {
 		footprintz = 4,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3800,
+		maxdamage = 4200,
 		maxslope = 16,
 		maxvelocity = 1.51,
 		maxwaterdepth = 0,
@@ -150,12 +150,6 @@ return {
 				weapontimer = 3,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
-				customparams = {
-					--expl_light_color = "0.1 1 0.1",
-					--light_color = "0 0.5 0",
-					light_mult = 1.4,
-					light_radius_mult = 0.7,
-				},
 				damage = {
 					default = 2150,
 					subs = 1000,

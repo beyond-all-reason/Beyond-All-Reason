@@ -62,7 +62,7 @@ end
 function checkLabs()
   for Lid,Lv in pairs(lab) do
 
-    local units = spGetUnitsInBox(Lv.minx, Lv.miny, Lv.minz, Lv.maxx, Lv.maxy, Lv.maxz)
+    local units = spGetUnitsInBox(Lv.minx + 8, Lv.miny, Lv.minz + 8, Lv.maxx - 8, Lv.maxy, Lv.maxz - 8)
   	for i=1,#units do
 	  local id = units[i]
 	  local team = spGetUnitAllyTeam(id)

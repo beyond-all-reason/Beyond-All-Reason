@@ -22,7 +22,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		istargetingupgrade = true,
-		maxdamage = 1900,
+		maxdamage = 2100,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/ARMTARG.s3o",

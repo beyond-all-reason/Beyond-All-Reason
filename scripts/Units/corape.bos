@@ -22,7 +22,6 @@ static-var  gun_1, statechg_DesiredState, statechg_StateChanging, restore_delay;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
-#include "unit_hitbyweaponid_and_smoke.h"
 
 InitState()
 {

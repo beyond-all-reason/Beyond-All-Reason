@@ -31,7 +31,7 @@ return {
 		idletime = 1800,
 		losemitheight = 40,
 		mass = 4999,
-		maxdamage = 3000,
+		maxdamage = 3350,
 		maxslope = 20,
 		maxvelocity = 0.833,
 		maxwaterdepth = 35,
@@ -214,11 +214,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 550,
-				customparams = {
-					expl_light_life_mult = 1.1,
-					light_mult = 1.2,
-					light_radius_mult = 1.3,
-				},
 				damage = {
 					bombers = 27,
 					default = 190,
@@ -289,13 +284,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 0,
-				customparams = {
-					expl_light_color = "0.5 0.5 1",
-					expl_light_mult = 1.2,
-					expl_light_radius_mult = 0.9,
-					expl_light_life_mult = 1.55,
-					expl_light_heat_life_mult = "1.6",
-				},
 				damage = {
 					default = 10000,
 				},
@@ -344,12 +332,6 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 0.86,
-					expl_light_radius_mult = 3.33,
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 150,
 					fighters = 150,

@@ -29,7 +29,7 @@ return {
 		idletime = 300,
 		levelground = false,
 		mass = 1400,
-		maxdamage = 10000,
+		maxdamage = 11100,
 		maxslope = 255,
 		maxvelocity = 0,
 		maxwaterdepth = 0,
@@ -115,10 +115,6 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				waterweapon = true,
-				customparams = {
-					expl_light_color = "0.2 0.5 1",
-					light_color = "0.2 0.5 1",
-				},
 				damage = {
 					default = 1400,
 				},

@@ -20,7 +20,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 200000,
-		maxdamage = 9000,
+		maxdamage = 10000,
 		maxslope = 17,
 		maxvelocity = 1.1,
 		maxwaterdepth = 0,
@@ -145,10 +145,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
-				customparams = {
-					light_color = "1 0.65 0.20",
-					light_mult = 2,
-				},
 				damage = {
 					commanders = 1100,
 					default = 1265,
@@ -186,10 +182,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
-				customparams = {
-					light_color = "1 0.65 0.20",
-					light_mult = 2,
-				},
 				damage = {
 					commanders = 1100,
 					default = 1265,

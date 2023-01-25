@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 4000,
+		maxdamage = 4450,
 		maxslope = 12,
 		maxwaterdepth = 0,
 		objectname = "scavs/armbotrail.s3o",
@@ -160,9 +160,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
 				customparams = {
-					expl_light_heat_radius_mult = 2,
-					expl_light_mult = 1.5,
-					expl_light_radius_mult = 1.5,
 					spawns_name = "armpw",
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 				},

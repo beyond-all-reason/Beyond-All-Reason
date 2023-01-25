@@ -28,7 +28,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 24,
-		maxdamage = 150,
+		maxdamage = 167,
 		maxslope = 45,
 		maxvelocity = 0.5,
 		maxwaterdepth = 22,
@@ -95,8 +95,6 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
 				customparams = {
-					light_mult = "0.7   ",
-					light_radius_mult = "0.26",
 					nohealthbars = true,
 				},
 				damage = {

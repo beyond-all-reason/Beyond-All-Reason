@@ -673,8 +673,8 @@ else
 	local _, fullview = spGetSpectatingState()
 
 	local lineWidth = 1.4
-	local queueColour = { 1, 0.75, 0, 0.7 }
-	local commandColour = { 1, 0.5, 0, 0.7 }
+	local queueColour = { 1, 0.75, 0, 0.3 }
+	local commandColour = { 1, 0.5, 0, 0.3 }
 
 	local drawAllTargets = {}
 	local drawTarget = {}

@@ -968,6 +968,10 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 
+local function GadgetCrashingAircraft(unitID, unitDefID, teamID)
+	RemoveUnit(unitID, unitDefID, teamID)
+end
+
 
 function widget.RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	--Spring.Echo("RenderUnitDestroyed(unitID, unitDefID, unitTeam)",unitID, unitDefID, unitTeam)
@@ -1030,7 +1034,6 @@ function widget:PlayerChanged(playerID)
 	if reinit then reInitialize() end
 end
 
-
 function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
@@ -1065,6 +1068,7 @@ function widget:Initialize()
 		return popElementInstance(jetInstanceVBO,airjetkey)
 	end
 
+	widgetHandler:RegisterGlobal('GadgetCrashingAircraft2', GadgetCrashingAircraft)
 end
 
 
@@ -1072,4 +1076,5 @@ function widget:Shutdown()
 	for unitID, unitDefID in pairs(activePlanes) do
 		RemoveUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
+	widgetHandler:DeregisterGlobal('GadgetCrashingAircraft2')
 end

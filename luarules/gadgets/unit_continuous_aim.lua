@@ -17,7 +17,7 @@ end
 local convertedUnits = {
 	-- value is reaimtime in frames, engine default is 15
 	--[UnitDefNames.armart.id] = true,
-	--[UnitDefNames.armfav.id] = true,
+	[UnitDefNames.armfav.id] = 3,
 	--[UnitDefNames.armflash.id] = true,
 	--[UnitDefNames.armjanus.id] = true,
 	--[UnitDefNames.armpincer.id] = true,
@@ -31,7 +31,7 @@ local convertedUnits = {
 	[UnitDefNames.armham.id] = 2,
 	[UnitDefNames.armwar.id] = 2,
 	[UnitDefNames.armjeth.id] = 2,
-	--[UnitDefNames.corfav.id] = true,
+	[UnitDefNames.corfav.id] = 3,
 	--[UnitDefNames.corgarp.id] = true,
 	--[UnitDefNames.corgator.id] = true,
 	--[UnitDefNames.corlevlr.id] = true,

@@ -20,7 +20,7 @@ return {
 		idletime = 1800,
 		leavetracks = true,
 		mass = 100000,
-		maxdamage = 50000,
+		maxdamage = 56000,
 		maxslope = 14,
 		maxvelocity = 2.0,
 		maxwaterdepth = 20,
@@ -156,16 +156,9 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				customparams = {
-					expl_light_color = "0.2 0.5 1",
-					expl_light_life_mult = 5.5,
-					expl_light_mult = 3.5,
-					expl_light_radius_mult = 2.75,
-					light_color = "0.2 0.5 1",
-					light_mult = 1.6,
-					light_radius_mult = 1.5,
 					spark_ceg = "genericshellexplosion-splash-large-lightning",
 					spark_forkdamage = "0.5", --old value = "0.4",
-					spark_maxunits = "5", --old value = "12",
+					spark_maxunits = "4", --old value = "12",
 					spark_range = "125", --old value = "175",
 				},
 				damage = {
@@ -216,15 +209,6 @@ return {
 				weaponacceleration = 200,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 500,
-				customparams = {
-					expl_light_color = "0.5 0.5 1",
-					expl_light_life_mult = 3,
-					expl_light_mult = 2,
-					expl_light_radius_mult = 1.35,
-					light_color = "0.7 0.7 1",
-					light_mult = 0.8,
-					light_radius_mult = 0.8,
-				},
 				damage = {
 					default = 80000,
 				},
@@ -264,10 +248,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
-				customparams = {
-					expl_light_color = "0.7 0.7 1",
-					light_color = "0.7 0.7 1",
-				},
 				damage = {
 					default = 300,
 				},

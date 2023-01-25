@@ -27,8 +27,8 @@ return {
 		idletime = 1800,
 		losemitheight = 64,
 		mass = 1000000,
-		maxdamage = 60000,
-		maxvelocity = 0.6,
+		maxdamage = 67000,
+		maxvelocity = 1.2,
 		maxwaterdepth = 15,
 		objectname = "Units/scavboss/corfblackhyt4.s3o",
 		script = "Units/scavboss/corfblackhyt4.cob",
@@ -253,12 +253,6 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1200,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.59,
-					expl_light_radius_mult = 1.67,
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 50,
 					fighters = 50,

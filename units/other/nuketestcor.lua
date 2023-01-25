@@ -22,7 +22,7 @@ return {
 		idletime = 90,
 		levelground = false,
 		mass = 165.75,
-		maxdamage = 5560,
+		maxdamage = 6200,
 		maxvelocity = 0,
 		noautofire = false,
 		objectname = "scavs/cube.s3o",
@@ -66,7 +66,7 @@ return {
 				impulsefactor = 0.5,
 				interceptedbyshieldtype = 4,
 				metalpershot = 0,
-				model = "scavs/cube.s3o",
+				model = "crblmssl.s3o",
 				name = "Newest Nuke",
 				range = 29999,
 				reloadtime = 5,
@@ -81,9 +81,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1500,
 				wobble = 50,
-				customparams = {
-					expl_light_color = "1 0.85 0.55",
-				},
 				damage = {
 					commanders = 2500,
 					default = 11500,

@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 29000,
+		maxdamage = 32000,
 		maxslope = 13,
 		maxwaterdepth = 0,
 		objectname = "Units/ARMVULC.s3o",
@@ -142,9 +142,6 @@ return {
 				weapontimer = 14,
 				weapontype = "Cannon",
 				weaponvelocity = 1100,
-				customparams = {
-					expl_light_heat_radius_mult = 1.75,
-				},
 				damage = {
 					default = 1050,
 					shields = 525,

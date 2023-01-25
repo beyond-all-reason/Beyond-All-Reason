@@ -23,7 +23,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 900,
-		maxdamage = 6000,
+		maxdamage = 6700,
 		maxvelocity = 2.4,
 		minwaterdepth = 6,
 		movementclass = "EPICSHIP",
@@ -161,12 +161,6 @@ return {
 				weaponacceleration = 300,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1300,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 0.86,
-					expl_light_radius_mult = 1.67,
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 265,
 					fighters = 215,

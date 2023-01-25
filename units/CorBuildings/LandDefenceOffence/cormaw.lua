@@ -20,7 +20,7 @@ return {
 		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
-		maxdamage = 1450,
+		maxdamage = 1610,
 		maxslope = 18,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
@@ -33,6 +33,7 @@ return {
 		stealth = true,
 		turnrate = 0,
 		upright = true,
+		yardmap = "ffff",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/cormaw_aoplane.dds",
@@ -160,13 +161,6 @@ return {
 				weapontimer = 1,
 				weapontype = "Flame",
 				weaponvelocity = 300,
-				customparams = {
-					expl_light_color = "1 0.33 0.04",
-					expl_light_life_mult = 1.1,
-					expl_light_radius_mult = 1.15,
-					light_color = "1 0.5 0.05",
-					--light_radius_mult = 1.25,
-				},
 				damage = {
 					commanders = 16.5,
 					default = 22,

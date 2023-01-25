@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2500,
+		maxdamage = 2800,
 		maxslope = 10,
 		minwaterdepth = 25,
 		objectname = "Units/CORAMSUB.s3o",

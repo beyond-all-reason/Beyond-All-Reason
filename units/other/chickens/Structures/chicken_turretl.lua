@@ -29,7 +29,7 @@ return {
 		idletime = 300,
 		levelground = false,
 		mass = 1400,
-		maxdamage = 10000,
+		maxdamage = 11100,
 		maxslope = 255,
 		maxvelocity = 0,
 		maxwaterdepth = 0,
@@ -131,14 +131,6 @@ return {
 					fighters = 400,
 					vtol = 400,
 				},
-				customparams = {
-					expl_light_life_mult = 1.5,
-					expl_light_radius_mult = 1.3,
-					expl_light_mult = 1.25,
-					light_radius_mult = "0.85",
-					light_mult = 3,
-					light_color = "1 0.55 0.05",
-				},
 			},
 			cc_laser = {
 				areaofeffect = 64,
@@ -178,14 +170,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
-				customparams = {
-					expl_light_life_mult = 1.3,
-					expl_light_radius_mult = 1.0,
-					expl_light_mult = 1.15,
-					light_color = "0.87 0.49 0.03",
-					light_radius_mult = "0.65",
-					light_mult = 2.5,
-				},
 				damage = {
 					chicken = 0.1,
 					default = 28000,

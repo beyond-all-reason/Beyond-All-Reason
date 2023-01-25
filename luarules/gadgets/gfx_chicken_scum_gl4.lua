@@ -257,6 +257,8 @@ else
 		JIGGLEAMPLITUDE = 0.2,
 		VOIDWATER = (gl.GetMapRendering("voidWater") and 1 or 0), 
 	}
+	
+	local nightFactor = {1,1,1,1}
 
 	---- GL4 Backend Stuff----
 
@@ -344,6 +346,7 @@ else
 
 	#line 30000
 	uniform float iconDistance;
+	uniform vec4 nightFactor;
 	in DataVS {
 		vec4 v_worldPosRad;
 		vec4 v_localxz;
@@ -439,8 +442,8 @@ else
 
 		fragColor.a = 1.0 - radialScum*3;
 		fragColor.rgb *= ((fragColor.a  -0.3)*2.0) ;
-
-
+		
+		fragColor.rgb *= nightFactor.rgb;
 
 	}
 	]]
@@ -473,6 +476,7 @@ else
 				distortion = 6,
 				},
 			uniformFloat = {
+				nightFactor = {1,1,1,1},
 				--fadeDistance = 3000,
 			  },
 			},
@@ -695,6 +699,7 @@ else
 			glTexture(5, texnormalspec)
 			glTexture(6, texdistortion)-- Texture file
 			scumShader:Activate()
+			scumShader:SetUniform("nightFactor", nightFactor[1], nightFactor[2], nightFactor[3], nightFactor[4])
 
 			if usestencil then
 				gl.StencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
@@ -722,6 +727,20 @@ else
 		end
 	end
 
+	local lastSunChanged = -1 
+	function gadget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
+		local df = Spring.GetDrawFrame()
+		if df == lastSunChanged then return end
+		lastSunChanged = df
+		if GG['NightFactor'] then 
+			local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
+			nightFactor[1] = GG['NightFactor'].red 
+			nightFactor[2] = GG['NightFactor'].green 
+			nightFactor[3] = GG['NightFactor'].blue
+			nightFactor[4] = GG['NightFactor'].shadow
+		end
+	end
+	
 	local function RemoveScum(instanceID)
 		if debugmode then Spring.Echo("Removing scum", instanceID) end
 		if scums[instanceID] then
