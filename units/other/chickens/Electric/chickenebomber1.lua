@@ -97,7 +97,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.3,
-				explosiongenerator = "custom:genericshellexplosion-large-lightning",
+				explosiongenerator = "custom:genericshellexplosion-huge-lightning",
 				impulseboost = 0,
 				impulsefactor = 0,
 				interceptedbyshieldtype = 0,

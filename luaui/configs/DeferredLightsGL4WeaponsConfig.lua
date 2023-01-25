@@ -459,9 +459,9 @@ local function AssignLightsToAllWeapons()
 						t.r = t.r * 1.7	-- make more red
 						t.g = t.g * 0.4	-- make more red
 						t.b = t.b * 0.4	-- make more red
-						life = life * 1.8	-- too high and it will flicker somehow!
+						life = life * 1.1	-- too high and it will flicker somehow!
 						orgMult = orgMult * 0.15
-						t.colortime = 30 / life
+						t.colortime = 31 / life
 					else
 						t.r = t.r * 1.7	-- make more red
 						t.g = t.g * 0.4	-- make more red
