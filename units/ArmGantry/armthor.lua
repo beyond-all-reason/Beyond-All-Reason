@@ -158,7 +158,7 @@ return {
 				customparams = {
 					spark_ceg = "genericshellexplosion-splash-large-lightning",
 					spark_forkdamage = "0.5", --old value = "0.4",
-					spark_maxunits = "5", --old value = "12",
+					spark_maxunits = "4", --old value = "12",
 					spark_range = "125", --old value = "175",
 				},
 				damage = {

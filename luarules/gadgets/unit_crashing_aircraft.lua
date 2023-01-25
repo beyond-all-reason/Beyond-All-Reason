@@ -10,72 +10,70 @@ function gadget:GetInfo()
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then
-	return
-end
+if gadgetHandler:IsSyncedCode() then
 
-local random = math.random
-local GetUnitHealth = Spring.GetUnitHealth
-local SetUnitCOBValue = Spring.SetUnitCOBValue
-local SetUnitNoSelect = Spring.SetUnitNoSelect
-local SetUnitNoMinimap = Spring.SetUnitNoMinimap
-local SetUnitSensorRadius = Spring.SetUnitSensorRadius
-local SetUnitWeaponState = Spring.SetUnitWeaponState
-local SetUnitStealth = Spring.SetUnitStealth
-local SetUnitNeutral = Spring.SetUnitNeutral
-local SetUnitAlwaysVisible = Spring.SetUnitAlwaysVisible
-local UnitIconSetDraw = Spring.UnitIconSetDraw
-local DestroyUnit = Spring.DestroyUnit
+	local random = math.random
+	local GetUnitHealth = Spring.GetUnitHealth
+	local SetUnitCOBValue = Spring.SetUnitCOBValue
+	local SetUnitNoSelect = Spring.SetUnitNoSelect
+	local SetUnitNoMinimap = Spring.SetUnitNoMinimap
+	local SetUnitSensorRadius = Spring.SetUnitSensorRadius
+	local SetUnitWeaponState = Spring.SetUnitWeaponState
+	local SetUnitStealth = Spring.SetUnitStealth
+	local SetUnitNeutral = Spring.SetUnitNeutral
+	local SetUnitAlwaysVisible = Spring.SetUnitAlwaysVisible
+	local UnitIconSetDraw = Spring.UnitIconSetDraw
+	local DestroyUnit = Spring.DestroyUnit
 
-local COB_CRASHING = COB.CRASHING
-local COM_BLAST = WeaponDefNames['commanderexplosion'].id
+	local COB_CRASHING = COB.CRASHING
+	local COM_BLAST = WeaponDefNames['commanderexplosion'].id
 
-local isAircon = {}
-local crashable  = {}
-local alwaysCrash = {}
-for udid,UnitDef in pairs(UnitDefs) do
-	if UnitDef.canFly == true and UnitDef.transportSize == 0 and string.sub(UnitDef.name, 1, 7) ~= "critter" then
-		crashable[UnitDef.id] = true
-		if UnitDef.buildSpeed > 1 then
-			isAircon[udid] = true
+	local isAircon = {}
+	local crashable  = {}
+	local alwaysCrash = {}
+	for udid,UnitDef in pairs(UnitDefs) do
+		if UnitDef.canFly == true and UnitDef.transportSize == 0 and string.sub(UnitDef.name, 1, 7) ~= "critter" then
+			crashable[UnitDef.id] = true
+			if UnitDef.buildSpeed > 1 then
+				isAircon[udid] = true
+			end
+		end
+		if string.find(UnitDef.name, 'corcrw') or string.find(UnitDef.name, 'armliche') then
+			alwaysCrash[UnitDef.id] = true
 		end
 	end
-	if string.find(UnitDef.name, 'corcrw') or string.find(UnitDef.name, 'armliche') then
-		alwaysCrash[UnitDef.id] = true
-	end
-end
---local nonCrashable = {'armpeep', 'corfink', 'corbw', 'armfig', 'armsfig', 'armhawk', 'corveng', 'corsfig', 'corvamp'}
-local nonCrashable = {'armpeep', 'corfink', 'corbw'}
-for udid, ud in pairs(UnitDefs) do
-	for _, unitname in pairs(nonCrashable) do
-		if string.find(ud.name, unitname) then
-			crashable[udid] = nil
+	--local nonCrashable = {'armpeep', 'corfink', 'corbw', 'armfig', 'armsfig', 'armhawk', 'corveng', 'corsfig', 'corvamp'}
+	local nonCrashable = {'armpeep', 'corfink', 'corbw'}
+	for udid, ud in pairs(UnitDefs) do
+		for _, unitname in pairs(nonCrashable) do
+			if string.find(ud.name, unitname) then
+				crashable[udid] = nil
+			end
 		end
 	end
-end
 
-local crashing = {}
-local crashingCount = 0
+	local crashing = {}
+	local crashingCount = 0
 
---local totalUnitsTime = 0
---local percentage = 0.6	-- is reset somewhere else
+	--local totalUnitsTime = 0
+	--local percentage = 0.6	-- is reset somewhere else
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if paralyzer then return damage,1 end
-	if crashing[unitID] then
-		return 0,0
-	end
+	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+		if paralyzer then return damage,1 end
+		if crashing[unitID] then
+			return 0,0
+		end
 
-	if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and weaponDefID ~= COM_BLAST then
-		--if Spring.GetGameSeconds() - totalUnitsTime > 5 then
-		--	totalUnitsTime = Spring.GetGameSeconds()
-		--	local totalUnits = #Spring.GetAllUnits()
-		--	percentage = (1 - (totalUnits/10000))
-		--	if percentage < 0.6 then
-		--		percentage = 0.6
-		--	end
-		--end
-		--if random() < percentage or alwaysCrash[unitDefID] then
+		if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and weaponDefID ~= COM_BLAST then
+			--if Spring.GetGameSeconds() - totalUnitsTime > 5 then
+			--	totalUnitsTime = Spring.GetGameSeconds()
+			--	local totalUnits = #Spring.GetAllUnits()
+			--	percentage = (1 - (totalUnits/10000))
+			--	if percentage < 0.6 then
+			--		percentage = 0.6
+			--	end
+			--end
+			--if random() < percentage or alwaysCrash[unitDefID] then
 			-- increase gravity so it crashes faster
 			local moveTypeData = Spring.GetUnitMoveTypeData(unitID)
 			if moveTypeData['myGravity'] then
@@ -110,24 +108,55 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			if isAircon[unitDefID] then
 				Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 			end
-		--end
-	end
-	return damage,1
-end
 
-function gadget:GameFrame(gf)
-	if crashingCount > 0 and gf % 44 == 1 then
-		for unitID,deathGameFrame in pairs(crashing) do
-			if gf >= deathGameFrame then
-				DestroyUnit(unitID, false, true) --dont seld, but also dont leave wreck at all
+			SendToUnsynced("crashingAircraft", unitID, unitDefID, unitTeam)
+			--end
+		end
+		return damage,1
+	end
+
+	function gadget:GameFrame(gf)
+		if crashingCount > 0 and gf % 44 == 1 then
+			for unitID,deathGameFrame in pairs(crashing) do
+				if gf >= deathGameFrame then
+					DestroyUnit(unitID, false, true) --dont seld, but also dont leave wreck at all
+				end
 			end
 		end
 	end
-end
 
-function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-	if crashing[unitID] then
-		crashingCount = crashingCount - 1
-		crashing[unitID] = nil
+	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
+		if crashing[unitID] then
+			crashingCount = crashingCount - 1
+			crashing[unitID] = nil
+		end
 	end
+
+
+else	-- UNSYNCED
+
+
+	local IsUnitInView = Spring.IsUnitInView
+
+	local function crashingAircraft(_,unitID,unitDefID,unitTeam)
+		local _, fullView = Spring.GetSpectatingState()
+		local myTeamID = Spring.GetMyTeamID()
+		if fullView or CallAsTeam(myTeamID, IsUnitInView, unitID) then
+			if Script.LuaUI("GadgetCrashingAircraft") then
+				Script.LuaUI.GadgetCrashingAircraft(unitID, unitDefID, unitTeam)
+			end
+			if Script.LuaUI("GadgetCrashingAircraft2") then
+				Script.LuaUI.GadgetCrashingAircraft2(unitID, unitDefID, unitTeam)
+			end
+		end
+	end
+
+	function gadget:Initialize()
+		gadgetHandler:AddSyncAction("crashingAircraft", crashingAircraft)
+	end
+
+	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction("crashingAircraft")
+	end
+
 end
