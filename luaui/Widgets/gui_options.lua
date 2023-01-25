@@ -2982,7 +2982,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
 		  end,
 		},
-		{ id = "advplayerlist_hidespecs", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_hidespecs, type = "bool", value = true, description = texts.option.advplayerlist_hidespecs_descr,
+		{ id = "advplayerlist_hidespecs", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_hidespecs, type = "bool", value = true, description = texts.option.advplayerlist_hidespecs_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_hidespecs", { 'alwaysHideSpecs' })
 		  end,
