@@ -22,7 +22,6 @@ end
 -- crashy smores?
 -- drawflags
 -- rotate emit points of specific units
--- validate for crashing units
 -- do plenty of bursty anims
 -- expose as API?
 
@@ -399,7 +398,6 @@ local lighteffectsEnabled = false -- TODO (enableLights and WG['lighteffects'] ~
 -- xzVelocityUnits is disabled
 -- no FPS limited
 -- draw in refract/reflect too?
--- A crashing aircraft can be neither destroyed nor go out ouf LOS before becoming an invalid unitID
 -- GL4 Variables:
 
 local quadVBO = nil
@@ -976,13 +974,6 @@ end
 function widget.RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	--Spring.Echo("RenderUnitDestroyed(unitID, unitDefID, unitTeam)",unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID, unitDefID, unitTeam)
-end
-
--- wont be called for enemy units nor can it read spGetUnitMoveTypeData(unitID).aircraftState anyway
-function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if effectDefs[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		RemoveUnit(unitID, unitDefID, unitTeam)
-	end
 end
 
 
