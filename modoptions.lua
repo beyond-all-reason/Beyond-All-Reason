@@ -1256,6 +1256,16 @@ local options={
 	},
 
 	{
+		key = 'comupdate',
+		name = 'Commander Update',
+		desc = 'Increased commander HP, reduced comblast, reduced wreckmetal, com-to-com dgun rework.',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
+
+	},
+
+	{
 		key    = 'experimentalmorphs',
 		name   = 'Upgradeable Units',
 		desc   = 'Upgradeable Units',
