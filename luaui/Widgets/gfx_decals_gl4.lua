@@ -764,6 +764,13 @@ for weaponDefID=1, #WeaponDefs do
 			-- end
 
 		elseif weaponDef.type == 'LightningCannon' then
+			heatstart = 4000
+			heatdecay = 1.0
+			glowsustain = 10
+			alpha = 0.5
+			--glowadd = 2
+			fadeintime = 15
+			bwfactor = 0.8
 
 		elseif weaponDef.type == 'BeamLaser' then
 
