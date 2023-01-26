@@ -1,0 +1,442 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, aimy, seg1,seg2,seg3,seg4,seg5,head,flare,top, bore, barrel, aimpoint, firepoint;
+
+static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_AIM				2 
+
+//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
+// MaxVelocity and acceleration are in degrees per frame (not second!)
+// Jerk is the minimum velocity of the turret
+// A high precision requirement can result in overshoots if desired 
+// (c) CC BY NC ND Beherith mysterme@gmail.com
+
+#define MAX_SEG_VELOCITY <5.00>
+#define SEG_ACCELERATION <0.05>
+#define SEG_JERK <0.02>
+#define SEG_PRECISION <0.02>
+static-var segvelocity, segtarget, segposition, segdelta, timetozero, deceleratethreshold, gameFrame;
+
+
+#define MAX_AIMY1_VELOCITY <18.00>
+#define AIMY1_ACCELERATION <0.1>
+#define AIMY1_JERK <0.1>
+#define AIMY1_PRECISION <0.1>
+static-var aimy1velocity, aimy1target, aimy1position, aimy1delta;
+
+
+Motion(){
+	var i;
+	while(1){
+	
+		segdelta =  segtarget - segposition ;
+			
+		if( ( get ABS(segdelta) > SEG_PRECISION ) OR (get ABS(segvelocity) > SEG_JERK)){
+			//Clamp segposition and segdelta between <-180>;<180>
+			while (segposition >  <180>) segposition = segposition - <360>;
+			while (segposition < <-180>) segposition = segposition + <360>;
+			while (segdelta >  <180>) segdelta = segdelta - <360>;
+			while (segdelta < <-180>) segdelta = segdelta + <360>;
+		
+			//number of frames required to decelerate to 0
+			timetozero = get ABS(segvelocity) / SEG_ACCELERATION;
+			
+			//distance from target where we should start decelerating, always 'positive'
+			//pos = t * v - (t*(t-1)*a/2)
+			deceleratethreshold = timetozero * (get ABS(segvelocity)) - (timetozero * (timetozero - 1) * SEG_ACCELERATION / 2); 
+			
+			//get PRINT ( segdelta , deceleratethreshold, segvelocity, timetozero );
+			
+			if (get ABS(segdelta) <= deceleratethreshold){ //we need to decelerate
+				if (segvelocity > 0) segvelocity = segvelocity - SEG_ACCELERATION;
+				else 				   segvelocity = segvelocity + SEG_ACCELERATION;
+			}	
+			else //we need to accelerate
+			{
+				if (segdelta > 0) segvelocity = get MIN(       MAX_SEG_VELOCITY, segvelocity + SEG_ACCELERATION); 
+				else                segvelocity = get MAX((-1) * MAX_SEG_VELOCITY, segvelocity - SEG_ACCELERATION);
+			}
+			
+			//Apply jerk at very low velocities
+			if (get ABS(segvelocity) < SEG_JERK){
+				if ((segdelta >        SEG_JERK)) segvelocity =        SEG_JERK;
+				if ((segdelta < (-1) * SEG_JERK)) segvelocity = (-1) * SEG_JERK;
+			}
+			
+			segposition = segposition + segvelocity; 
+			
+			
+			turn seg1 to x-axis segposition now;
+			turn seg2 to x-axis segposition now;
+			turn seg3 to x-axis segposition now;
+			turn seg4 to x-axis segposition now;
+			turn seg5 to x-axis segposition now;
+			turn head to x-axis segposition now;
+			
+			
+			segdelta = segtarget - segposition ; 
+			if ((segdelta < <1>) AND (segdelta > <-1>)){
+				//return (1); // INPITCH
+			
+			}
+		}
+		
+		
+		//aaimy1delta = aimy1position - aimy1target;
+		aimy1delta = aimy1target - aimy1position;
+
+		if( ( get ABS(aimy1delta) > AIMY1_PRECISION ) OR (get ABS(aimy1velocity) > AIMY1_JERK)){
+		
+			//Clamp aimy1position and aimy1delta between <-180>;<180>
+			while (aimy1position >  <180>) aimy1position = aimy1position - <360>;
+			while (aimy1position < <-180>) aimy1position = aimy1position + <360>;
+			while (aimy1delta >  <180>) aimy1delta = aimy1delta - <360>;
+			while (aimy1delta < <-180>) aimy1delta = aimy1delta + <360>;
+		
+			//number of frames required to decelerate to 0
+			timetozero = get ABS(aimy1velocity) / AIMY1_ACCELERATION;
+			
+			//distance from target where we should start decelerating, always 'positive'
+			//pos = t * v - (t*(t-1)*a/2)
+			deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_ACCELERATION / 2); 
+			
+			//get PRINT ( aimy1delta , deceleratethreshold , aimy1velocity, timetozero );
+			
+			if (get ABS(aimy1delta) <= deceleratethreshold){ //we need to decelerate
+				if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
+				else 				   aimy1velocity = aimy1velocity + AIMY1_ACCELERATION;
+			}	
+			else //we need to accelerate
+			{
+				if (aimy1delta > 0) aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity + AIMY1_ACCELERATION); 
+				else                aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity - AIMY1_ACCELERATION);
+			}
+			
+			//Apply jerk at very low velocities
+			if (get ABS(aimy1velocity) < AIMY1_JERK){
+				if ((aimy1delta >        AIMY1_JERK)) aimy1velocity =        AIMY1_JERK;
+				if ((aimy1delta < (-1) * AIMY1_JERK)) aimy1velocity = (-1) * AIMY1_JERK;
+			}
+			
+			aimy1position = aimy1position + aimy1velocity; 
+			turn aimy to y-axis aimy1position now;
+			aimy1delta = aimy1target - aimy1position ; 	
+			if ((aimy1delta < <7>) AND (aimy1delta > <-7>)){
+				//return (1); // INHEADING
+			}
+		}
+		//aimy1velocity = 0;
+		
+		sleep 30;
+		i = i + 1;
+		if (RAND(0,11) == 1){
+			segtarget =  segtarget + RAND(-100,100);
+			aimy1target = aimy1target + RAND(-100,100);
+		}
+	}
+}
+
+AimWeapon1(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	
+	aimy1target = heading;
+	segtarget = -1 * pitch /  6;
+	
+	while (get ABS(aimy1delta) > <3>){
+		sleep 30;
+	}
+	return (1);
+}
+
+
+
+/*
+
+Wiggle(accel, toangle){
+	set-signal-mask SIG_WIGGLE;
+	Accelx = accel;
+	
+	var t;
+	var ang;
+	var steps; 
+	var distance;
+	
+	var curdistance;
+	
+	distance = Posx - toangle;
+	
+	var i;
+ 	var curspeed ;
+ 	curspeed = 0;
+ 	curdistance = 0;
+	var currpos;
+	currpos = 0;
+	
+	
+	while (1) { // foward
+		if (curdistance < distance/2){ // less than halfway there, so accelerate
+			Speedx = Speedx + accel;
+		}else{
+			Speedx = Speedx - accel;
+		}
+		
+		turn seg1 to x-axis currpos + fromangle now;
+		
+		if (curspeed <= 0 ) break;
+		if (curdistance >= distance) break;
+	}
+}*/
+
+Go()
+{
+/*
+	var i;
+	var ang;
+	var spd;
+	var pcs;
+	ang = 1;
+	spd = 2;
+	pcs = 0;
+	while(1){
+		pcs = seg1;
+		while(1){
+			call-script SegTurn(pcs,(i + 1), (2* i + 1));
+			pcs = pcs + 1;
+			if (pcs >= head) break; 
+		}
+		wait-for-turn seg1 around x-axis;
+		
+		i = i+1;
+		if (i >= 20) break;
+		//sleep 30;
+	}*/
+}
+
+Stop()
+{
+/*
+	var i;
+	var ang;
+	var spd;
+	var pcs;
+	ang = 1;
+	spd = 2;
+	pcs = 0;
+	while(1){
+		pcs = seg1;
+		while(1){
+			call-script SegTurn(pcs,(i + 1), (2* i + 1));
+			pcs = pcs + 1;
+			if (pcs >= head) break; 
+		}
+		wait-for-turn seg1 around x-axis;
+		
+		i = i+1;
+		if (i >= 20) break;
+		//sleep 30;
+	}
+*/	
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	segvelocity = 0;
+	segtarget= 0;
+	segposition = 0;
+	segdelta= 0;
+	timetozero = 0;
+	deceleratethreshold= 0;
+	gameFrame= 0;
+
+
+	aimy1velocity= 0;
+	aimy1target =0;
+	aimy1position= 0;
+	aimy1delta =0;
+
+	hide aimpoint;
+	hide firepoint;
+	hide flare;
+	hide flare;
+	restore_delay = 2000;
+	Static_Var_1 = 0;
+	call-script InitState();
+	start-script RequestState(0);
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 250;
+	}
+ 	//move aimpoint to y-axis [8] now;
+ 	start-script RequestState(1);
+ 	start-script Motion();
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 3;
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	set-signal-mask 0;
+	start-script RequestState(1);
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+/*
+
+AimPrimary(heading, pitch)
+{
+	start-script RequestState(0);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !Static_Var_1 )
+	{
+		sleep 250;
+	}
+	turn top to y-axis heading speed <300.000000>;
+	turn firepoint to x-axis <0.000000> - pitch speed <110.000000>;
+	wait-for-turn top around y-axis;
+	wait-for-turn firepoint around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}*/
+
+Shot1()
+{
+	//call-script lua_FlameShot(1);
+	//emit-sfx 1024 + 0 from flare;
+	segtarget = segtarget -  (Rand( 0, 1000 ));
+	aimy1target = aimy1target +  (Rand( 0, 4000 ) - 2000);
+	return (TRUE);
+}
+
+FirePrimary()
+{
+	//segtarget = segtarget + get RAND(0, 10000);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flare;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = head;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		//it recedes
+		
+		
+		
+		
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode seg1 type BITMAPONLY | NOHEATCLOUD;
+		explode seg3 type BITMAPONLY | NOHEATCLOUD;
+		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode head type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode seg1 type BITMAPONLY | NOHEATCLOUD;
+		explode seg3 type BITMAPONLY | NOHEATCLOUD;
+		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode head type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode seg1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode seg3 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode seg5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+ 		return(corpsetype);
+ 	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode seg1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode seg3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode seg5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}
