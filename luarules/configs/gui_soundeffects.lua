@@ -2341,3 +2341,46 @@ GUIUnitSoundEffects = {
 	lootboxnano_t4_var4	= LootboxNanoSoundEffects,
 
 }
+
+local scavCopies = {}
+for _, udef in pairs(UnitDefs) do
+	if GUIUnitSoundEffects[udef.name] then
+		scavCopies[udef.name .. "_scav"] = GUIUnitSoundEffects[udef.name]
+	end
+end
+table.mergeInPlace(GUIUnitSoundEffects, scavCopies)
+
+for _, udef in pairs(UnitDefs) do
+	if (not GUIUnitSoundEffects[udef.name]) and string.find(udef.name, "chicken") then
+		--Spring.Echo("[RESPONSEDOUND FALLBACK]: Chicken", udef.name)
+		GUIUnitSoundEffects[udef.name] = {}
+	elseif not GUIUnitSoundEffects[udef.name] then
+		if string.find(udef.name, "arm") then
+			Spring.Echo("[RESPONSEDOUND FALLBACK]: ARMADA", udef.name)
+			GUIUnitSoundEffects[udef.name] = {
+				BaseSoundSelectType = "arm-bot-small-sel",
+				BaseSoundMovementType = "arm-bot-tiny-ok",
+			}
+		elseif string.find(udef.name, "cor") then
+			Spring.Echo("[RESPONSEDOUND FALLBACK]: CORTEX", udef.name)
+			GUIUnitSoundEffects[udef.name] = {
+				BaseSoundSelectType = "cor-bot-small-sel",
+				BaseSoundMovementType = "cor-bot-medium-ok",
+			}
+		else
+			if math.random(0,1) == 0 then
+				Spring.Echo("[RESPONSEDOUND FALLBACK]: OTHER, RANDOM ARMADA", udef.name)
+				GUIUnitSoundEffects[udef.name] = {
+					BaseSoundSelectType = "arm-bot-small-sel",
+					BaseSoundMovementType = "arm-bot-tiny-ok",
+				}
+			else
+				Spring.Echo("[RESPONSEDOUND FALLBACK]: OTHER, RANDOM CORTEX", udef.name)
+				GUIUnitSoundEffects[udef.name] = {
+					BaseSoundSelectType = "cor-bot-small-sel",
+					BaseSoundMovementType = "cor-bot-medium-ok",
+				}
+			end
+		end
+	end
+end
