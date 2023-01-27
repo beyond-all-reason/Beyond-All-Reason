@@ -465,7 +465,7 @@ Killed(severity, corpsetype)
 	var randSeverity;
 	randSeverity = RAND(0,severity);
 
-	get PRINT(severity, randSeverity);
+	//get PRINT(severity, randSeverity);
 	//Head pops off an it recedes
 	if (randSeverity >= 0) {
 		emit-sfx 1025 from head;
