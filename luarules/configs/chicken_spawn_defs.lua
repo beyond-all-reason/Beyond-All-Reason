@@ -20,6 +20,13 @@ local airWaves = {}
 
 local burrowName = 'chicken_hive'
 
+local chickenNukeTurret
+if not Spring.GetModOptions().unit_restrictions_nonukes then
+	chickenNukeTurret = "chicken_turretxl_meteor"
+else
+	chickenNukeTurret = "chicken_turretl"
+end
+
 local chickenTurrets = {
 	lightTurrets = { 					-- Spawn from the start
 		"chicken_turrets",
@@ -34,6 +41,7 @@ local chickenTurrets = {
 	specialHeavyTurrets = { 			-- Spawn from 60% queen anger alongside heavyTurrets
 		"chicken_turretl_acid",
 		"chicken_turretl_electric",
+		chickenNukeTurret,
 	},
 	burrowDefenders = {					-- Spawns connected to burrow
 		"chicken_turrets_burrow",
@@ -205,6 +213,7 @@ chickenBehaviours = {
 		"chickenr2",
 		"chickenearty1",
 		"chickenacidarty",
+		"chicken_turretxl_meteor",
 	},
 	KAMIKAZE = { -- Long lifetime and no regrouping, always uses Move command to rush into the enemy
 		"chicken_dodo1",
