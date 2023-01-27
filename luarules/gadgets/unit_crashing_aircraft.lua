@@ -145,8 +145,17 @@ else	-- UNSYNCED
 			if Script.LuaUI("GadgetCrashingAircraft") then
 				Script.LuaUI.GadgetCrashingAircraft(unitID, unitDefID, unitTeam)
 			end
+			if Script.LuaUI("GadgetCrashingAircraft1") then
+				Script.LuaUI.GadgetCrashingAircraft1(unitID, unitDefID, unitTeam)
+			end
 			if Script.LuaUI("GadgetCrashingAircraft2") then
 				Script.LuaUI.GadgetCrashingAircraft2(unitID, unitDefID, unitTeam)
+			end
+			if Script.LuaUI("GadgetCrashingAircraft3") then
+				Script.LuaUI.GadgetCrashingAircraft3(unitID, unitDefID, unitTeam)
+			end
+			if Script.LuaUI("GadgetCrashingAircraft4") then
+				Script.LuaUI.GadgetCrashingAircraft4(unitID, unitDefID, unitTeam)
 			end
 		end
 	end

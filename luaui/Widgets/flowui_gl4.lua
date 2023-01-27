@@ -558,7 +558,7 @@ local function makeSliderList(sliderListConfig)
 		parent = ROOT
 	})
 	
-	local function updateValue(obj, newvalue, index) 
+	local function updateValue(obj, newvalue, index, tag) 
 		if newvalue == nil then return end
 		obj.value = newvalue
 		if obj.index == nil then 
@@ -566,7 +566,7 @@ local function makeSliderList(sliderListConfig)
 		else
 			valuetarget[string.sub(obj.name,1,-2)][index] = newvalue
 		end
-		obj.textelements[1].text =  string.format('%s = %.'.. tostring(obj.digits)..'f',obj.name, newvalue)
+		obj.textelements[1].text =  string.format('%s = %.'.. tostring(obj.digits)..'f' .. (tag or ""),obj.name, newvalue)
 		obj:UpdateTextPosition(obj.textelements[1])
 		if sliderListConfig.callbackfunc then sliderListConfig.callbackfunc(obj.name, newvalue, index) end 
 	end
@@ -606,9 +606,9 @@ local function makeSliderList(sliderListConfig)
 						obj:UpdateVBOKeys('right', newright)
 					end, 
 					right = function(obj, mx, my) 
-						updateValue(obj, obj.defaultvalue, obj.index)
+						updateValue(obj, obj.defaultvalue, obj.index, " (D)")
 						local newright = ((obj.value - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
-						obj:UpdateVBOKeys('right', newright)
+						obj:UpdateVBOKeys('right', newright, default)
 						if debugmode then  Spring.Echo("right clicked", obj.name, mx, my, newright, obj.value) end
 					end, 
 					hover = function (obj,mx,my) 
@@ -618,12 +618,13 @@ local function makeSliderList(sliderListConfig)
 					end
 				},
 				textelements = {
-					{text = string.format('%s%s = %.'.. tostring(sliderParams.digits)..'f',sliderParams.name, nestname, defaultvalue), alignment = 5},
+					{text = string.format('%s%s = %.'.. tostring(sliderParams.digits)..'f (D)',sliderParams.name, nestname, defaultvalue), alignment = 5},
 					{text = tostring(sliderParams.min), alignment = 4},
 					{text = tostring(sliderParams.max), alignment = 6},},
 			})
 			newSlider.MouseEvents.drag = newSlider.MouseEvents.left --hue hue
-			
+			local defaultPos = ((newSlider.value - newSlider.min) / (newSlider.max - newSlider.min)) *(newSlider.right - newSlider.left) + newSlider.left
+			newSlider:UpdateVBOKeys('right', defaultPos, newSlider.value)
 			i = i+1
 		end
 		--updateValue(newSlider, valuetarget[slidervalue.name])

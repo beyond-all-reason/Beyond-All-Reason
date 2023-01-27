@@ -33,12 +33,10 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local unitScale = {}
-local unitCanFly = {}
 local unitDecoration = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitScale[unitDefID] = ((7.5 * ( unitDef.xsize^2 + unitDef.zsize^2 ) ^ 0.5) + 8) * sizeMultiplier
 	if unitDef.canFly then
-		unitCanFly[unitDefID] = true
 		unitScale[unitDefID] = unitScale[unitDefID] * 0.9
 	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
 		unitScale[unitDefID] = unitScale[unitDefID] * 0.9
@@ -130,11 +128,8 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 	RemoveUnit(unitID)
 end
 
--- wont be called for enemy units nor can it read spGetUnitMoveTypeData(unitID).aircraftState anyway
-function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if unitCanFly[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		RemoveUnit(unitID)
-	end
+local function GadgetCrashingAircraft(unitID, unitDefID, teamID)
+	RemoveUnit(unitID)
 end
 
 local function init()
@@ -145,7 +140,7 @@ local function init()
 	shaderConfig.ANIMATION = 0
 	shaderConfig.HEIGHTOFFSET = 3.99
 	enemyspotterVBO, enemyspotterShader = InitDrawPrimitiveAtUnit(shaderConfig, "enemyspotter")
-	if enemyspotterVBO == nil then 
+	if enemyspotterVBO == nil then
 		widgetHandler:RemoveWidget()
 		return false
 	end
@@ -187,10 +182,12 @@ function widget:Initialize()
 		skipOwnTeam = value
 		init()
 	end
+	widgetHandler:RegisterGlobal('GadgetCrashingAircraft4', GadgetCrashingAircraft)
 end
 
 function widget:Shutdown()
 	WG['enemyspotter'] = nil
+	widgetHandler:DeregisterGlobal('GadgetCrashingAircraft4')
 end
 
 function widget:GetConfigData(data)

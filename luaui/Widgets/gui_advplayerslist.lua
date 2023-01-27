@@ -45,7 +45,7 @@ end
 local customScale = 1
 local pointDuration = 45
 local drawAlliesLabel = false
-local alwaysHideSpecs = false
+local alwaysHideSpecs = true
 local lockcameraHideEnemies = true            -- specfullview
 local lockcameraLos = true                    -- togglelos
 
@@ -3218,6 +3218,7 @@ end
 --  Save/load
 ---------------------------------------------------------------------------------------------------
 
+local version = 1
 function widget:GetConfigData()
     -- save
     if m_name ~= nil then
@@ -3254,14 +3255,13 @@ function widget:GetConfigData()
             hasresetskill = true,
             absoluteResbarValues = absoluteResbarValues,
             originalColourNames = originalColourNames,
-
+			version = version,
         }
 
         return settings
     end
 end
 
-local dataversion = 1
 function widget:SetConfigData(data)
     -- load
     if data.widgetVersion ~= nil and widgetVersion == data.widgetVersion then
@@ -3282,7 +3282,7 @@ function widget:SetConfigData(data)
             enemyListShow = data.enemyListShow
         end
 
-        if data.alwaysHideSpecs ~= nil then
+        if data.version ~= nil and data.alwaysHideSpecs ~= nil then
             alwaysHideSpecs = data.alwaysHideSpecs
         end
 

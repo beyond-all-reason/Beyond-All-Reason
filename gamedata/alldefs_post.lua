@@ -163,7 +163,7 @@ function UnitDef_Post(name, uDef)
 	if Spring.GetModOptions().newdgun then
 		if uDef.customparams.iscommander then
 			uDef.customparams.paralyzemultiplier = 0
-
+			
 			if uDef.weapondefs.disintegrator then
 				uDef.weapondefs.disintegrator = {
 					areaofeffect = 160,
@@ -803,6 +803,27 @@ function UnitDef_Post(name, uDef)
 		uDef = unbaUnits.unbaUnitTweaks(name, uDef)
 	end
 
+	-- Commander Update
+	
+	if Spring.GetModOptions().comupdate == true then
+		if name == "armcom" or name == "corcom" then
+			uDef.featuredefs.dead.metal = 1000
+			uDef.featuredefs.heap.metal = 500
+			uDef.maxdamage = 4500
+			uDef.autoheal = 0
+			uDef.idleautoheal = 0
+			if uDef.weapondefs.disintegrator then
+				uDef.weapondefs.disintegrator.damage = {
+					default = 98999,
+					scavboss = 1000,
+					commanders = 130,
+					}
+			end
+		end
+	end
+		
+		
+
 	-- Multipliers Modoptions
 
 	-- Health
@@ -962,12 +983,20 @@ end
 
 -- process weapondef
 function WeaponDef_Post(name, wDef)
-	if Spring.GetModOptions().newdgun then
+	if Spring.GetModOptions().newdgun or Spring.GetModOptions().comupdate then
 		if name == 'commanderexplosion' then
 			wDef.damage = {
-				default = 50000,
-				commanders = 2000,
+				default = 200000000,
+				commanders = 50000000,
 			}
+		end
+	end
+	
+	if Spring.GetModOptions().comupdate then
+		if name == 'commanderexplosion' then
+			wDef.AreaOfEffect = 700
+			wDef.cameraShake = 510
+			wDef.edgeeffectiveness = -50000
 		end
 	end
 
