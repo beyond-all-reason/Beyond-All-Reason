@@ -79,7 +79,10 @@ local function updateValues()
 			extraSpacing = 0.7
 		end
 
-		font:Print(titleColor..' x'..valueColor..gamespeed..titleColor..'      fps '..valueColor..fps, left+textXPadding+(textsize*(3.2+extraSpacing)), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+		font:Print(titleColor..' x'..valueColor..gamespeed..titleColor..'     fps '..valueColor..fps, left+textXPadding+(textsize*(2.8+extraSpacing)), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+
+		font:Print(valueColor..os.date("%H:%M"), left+textXPadding+(textsize*11.1), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+
 		font:End()
     end)
 end
