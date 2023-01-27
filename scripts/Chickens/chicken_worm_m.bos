@@ -3,9 +3,12 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, aimy, seg1,seg2,seg3,seg4,seg5,head,flare,top, bore, barrel, aimpoint, firepoint;
+piece  base, aimy, seg1,seg2,seg3,seg4,seg5,head,flare;
 
-static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+static-var  AboveGround, restore_delay, statechg_DesiredState, statechg_StateChanging, isAiming, frameslefttoshot;
+
+
+#define WORMSIZE 100 // This is for scaling move animations
 
 // Signal definitions
 #define SIG_AIM				2 
@@ -20,18 +23,19 @@ static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateCh
 #define SEG_ACCELERATION <0.05>
 #define SEG_JERK <0.02>
 #define SEG_PRECISION <0.02>
-static-var segvelocity, segtarget, segposition, segdelta, timetozero, deceleratethreshold, gameFrame;
+static-var segvelocity, segtarget, segposition, segdelta, timetozero, deceleratethreshold, gameFrame, segacceleration;
 
 
 #define MAX_AIMY1_VELOCITY <18.00>
 #define AIMY1_ACCELERATION <0.1>
 #define AIMY1_JERK <0.1>
 #define AIMY1_PRECISION <0.1>
-static-var aimy1velocity, aimy1target, aimy1position, aimy1delta;
+static-var aimy1velocity, aimy1target, aimy1position, aimy1delta, aimy1acceleration;
 
 
 Motion(){
 	var i;
+	i =0;
 	while(1){
 	
 		segdelta =  segtarget - segposition ;
@@ -44,22 +48,22 @@ Motion(){
 			while (segdelta < <-180>) segdelta = segdelta + <360>;
 		
 			//number of frames required to decelerate to 0
-			timetozero = get ABS(segvelocity) / SEG_ACCELERATION;
+			timetozero = get ABS(segvelocity) / segacceleration;
 			
 			//distance from target where we should start decelerating, always 'positive'
 			//pos = t * v - (t*(t-1)*a/2)
-			deceleratethreshold = timetozero * (get ABS(segvelocity)) - (timetozero * (timetozero - 1) * SEG_ACCELERATION / 2); 
+			deceleratethreshold = timetozero * (get ABS(segvelocity)) - (timetozero * (timetozero - 1) * segacceleration / 2); 
 			
 			//get PRINT ( segdelta , deceleratethreshold, segvelocity, timetozero );
 			
 			if (get ABS(segdelta) <= deceleratethreshold){ //we need to decelerate
-				if (segvelocity > 0) segvelocity = segvelocity - SEG_ACCELERATION;
-				else 				   segvelocity = segvelocity + SEG_ACCELERATION;
+				if (segvelocity > 0) segvelocity = segvelocity - segacceleration;
+				else 				   segvelocity = segvelocity + segacceleration;
 			}	
 			else //we need to accelerate
 			{
-				if (segdelta > 0) segvelocity = get MIN(       MAX_SEG_VELOCITY, segvelocity + SEG_ACCELERATION); 
-				else                segvelocity = get MAX((-1) * MAX_SEG_VELOCITY, segvelocity - SEG_ACCELERATION);
+				if (segdelta > 0) segvelocity = get MIN(       MAX_SEG_VELOCITY, segvelocity + segacceleration); 
+				else                segvelocity = get MAX((-1) * MAX_SEG_VELOCITY, segvelocity - segacceleration);
 			}
 			
 			//Apply jerk at very low velocities
@@ -99,28 +103,32 @@ Motion(){
 			while (aimy1delta < <-180>) aimy1delta = aimy1delta + <360>;
 		
 			//number of frames required to decelerate to 0
-			timetozero = get ABS(aimy1velocity) / AIMY1_ACCELERATION;
+			timetozero = get ABS(aimy1velocity) / aimy1acceleration;
 			
 			//distance from target where we should start decelerating, always 'positive'
 			//pos = t * v - (t*(t-1)*a/2)
-			deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_ACCELERATION / 2); 
+			deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * aimy1acceleration / 2); 
 			
 			//get PRINT ( aimy1delta , deceleratethreshold , aimy1velocity, timetozero );
 			
 			if (get ABS(aimy1delta) <= deceleratethreshold){ //we need to decelerate
-				if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
-				else 				   aimy1velocity = aimy1velocity + AIMY1_ACCELERATION;
+				if (aimy1velocity > 0) aimy1velocity = aimy1velocity - aimy1acceleration;
+				else 				   aimy1velocity = aimy1velocity + aimy1acceleration;
 			}	
 			else //we need to accelerate
 			{
-				if (aimy1delta > 0) aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity + AIMY1_ACCELERATION); 
-				else                aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity - AIMY1_ACCELERATION);
+				if (aimy1delta > 0) aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity + aimy1acceleration); 
+				else                aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity - aimy1acceleration);
 			}
 			
 			//Apply jerk at very low velocities
 			if (get ABS(aimy1velocity) < AIMY1_JERK){
-				if ((aimy1delta >        AIMY1_JERK)) aimy1velocity =        AIMY1_JERK;
-				if ((aimy1delta < (-1) * AIMY1_JERK)) aimy1velocity = (-1) * AIMY1_JERK;
+				//this line will only have effect if our delta is less than jerk
+				aimy1velocity = aimy1delta;
+			
+				if ((aimy1delta >        AIMY1_JERK)) aimy1velocity =        AIMY1_JERK;			
+				if ((aimy1delta < (-1) * AIMY1_JERK)) aimy1velocity = (-1) * AIMY1_JERK; 
+				
 			}
 			
 			aimy1position = aimy1position + aimy1velocity; 
@@ -134,115 +142,82 @@ Motion(){
 		
 		sleep 30;
 		i = i + 1;
-		if (RAND(0,11) == 1){
-			segtarget =  segtarget + RAND(-100,100);
-			aimy1target = aimy1target + RAND(-100,100);
+		if (AboveGround ==1 ){
+		
+		// this random motion sucks
+		/*	if ((isAiming == 0) OR ((isAiming == 1) AND (frameslefttoshot > 15) ) ){
+				if (RAND(0,3) == 1){
+					segtarget =  segtarget + RAND(-3,3);
+					aimy1target = aimy1target + RAND(-10,10);
+				}
+		 	}
+		 */
+		 
+		 // lets have the worm do a Z wave instead
+		 //	KSIN:	return int(1024*math::sinf(TAANG2RAD*(float)p1));
+		 
+		 	#define AMPLITUDE  100 / 200
+		 	#define PHASE 10900
+		 	#define FREQUENCY 1000
+
+		 	var basefreq;
+		 	var sin;
+		 	basefreq = i*FREQUENCY;
+
+		 	var j;
+		 	j = 0;
+		 	// some serious stack overflow going on here!
+		 	j = basefreq + 1 * PHASE;
+		 	sin = get KSIN(j);
+		 	turn seg1 to z-axis sin * AMPLITUDE now;
+		 	
+		 	j = basefreq + 2 * PHASE;
+		 	sin = get KSIN(j);
+		 	turn seg2 to z-axis sin * AMPLITUDE now;
+		 	
+		 	j = basefreq + 3 * PHASE;
+		 	sin = get KSIN(j);
+		 	turn seg3 to z-axis sin * AMPLITUDE now;
+		 	
+		 	j = basefreq + 4 * PHASE;
+		 	sin = get KSIN(j);
+		 	turn seg4 to z-axis sin * AMPLITUDE now;
+		 	
+		 	j = basefreq + 5 * PHASE;
+		 	sin = get KSIN(j);
+		 	turn seg5 to z-axis sin * AMPLITUDE now;
+		 	
+		 	j = basefreq + 6 * PHASE;
+		 	sin = get KSIN(j);
+		 	turn head to z-axis sin * AMPLITUDE now;
+		 	 
+		 	
 		}
 	}
 }
 
-AimWeapon1(heading, pitch)
-{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	
-	aimy1target = heading;
-	segtarget = -1 * pitch /  6;
-	
-	while (get ABS(aimy1delta) > <3>){
-		sleep 30;
-	}
-	return (1);
-}
-
-
-
-/*
-
-Wiggle(accel, toangle){
-	set-signal-mask SIG_WIGGLE;
-	Accelx = accel;
-	
-	var t;
-	var ang;
-	var steps; 
-	var distance;
-	
-	var curdistance;
-	
-	distance = Posx - toangle;
-	
-	var i;
- 	var curspeed ;
- 	curspeed = 0;
- 	curdistance = 0;
-	var currpos;
-	currpos = 0;
-	
-	
-	while (1) { // foward
-		if (curdistance < distance/2){ // less than halfway there, so accelerate
-			Speedx = Speedx + accel;
-		}else{
-			Speedx = Speedx - accel;
-		}
-		
-		turn seg1 to x-axis currpos + fromangle now;
-		
-		if (curspeed <= 0 ) break;
-		if (curdistance >= distance) break;
-	}
-}*/
 
 Go()
 {
-/*
-	var i;
-	var ang;
-	var spd;
-	var pcs;
-	ang = 1;
-	spd = 2;
-	pcs = 0;
-	while(1){
-		pcs = seg1;
-		while(1){
-			call-script SegTurn(pcs,(i + 1), (2* i + 1));
-			pcs = pcs + 1;
-			if (pcs >= head) break; 
-		}
-		wait-for-turn seg1 around x-axis;
-		
-		i = i+1;
-		if (i >= 20) break;
-		//sleep 30;
-	}*/
+	//get PRINT(111);
+	set ARMORED to 0;
+	move seg1 to y-axis [0] speed [1] * WORMSIZE;
+	
+	sleep 250;
+	segtarget = <0>;
+	wait-for-move seg1 along x-axis;
+	AboveGround = 1;
 }
 
 Stop()
-{
-/*
-	var i;
-	var ang;
-	var spd;
-	var pcs;
-	ang = 1;
-	spd = 2;
-	pcs = 0;
-	while(1){
-		pcs = seg1;
-		while(1){
-			call-script SegTurn(pcs,(i + 1), (2* i + 1));
-			pcs = pcs + 1;
-			if (pcs >= head) break; 
-		}
-		wait-for-turn seg1 around x-axis;
-		
-		i = i+1;
-		if (i >= 20) break;
-		//sleep 30;
-	}
-*/	
+{	
+	set ARMORED to 1;
+	AboveGround = 0;
+	segtarget = <-14>;
+	move seg1 to y-axis [-1] * WORMSIZE speed [0.8] * WORMSIZE;
+	
+	
+	wait-for-move seg1 along x-axis;
 }
 
 InitState()
@@ -286,19 +261,18 @@ Create()
 	timetozero = 0;
 	deceleratethreshold= 0;
 	gameFrame= 0;
-
+	segacceleration =  SEG_ACCELERATION;
 
 	aimy1velocity= 0;
 	aimy1target =0;
 	aimy1position= 0;
 	aimy1delta =0;
+	aimy1acceleration = AIMY1_ACCELERATION;
 
-	hide aimpoint;
-	hide firepoint;
 	hide flare;
 	hide flare;
 	restore_delay = 2000;
-	Static_Var_1 = 0;
+	AboveGround = 0;
 	call-script InitState();
 	start-script RequestState(0);
 	while( get BUILD_PERCENT_LEFT )
@@ -347,6 +321,51 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
+AimWeapon1(heading, pitch)
+{
+	
+	start-script RequestState(0);
+
+	isAiming = 1;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !AboveGround )
+	{
+		sleep 250;
+	}
+	aimy1target = heading;
+	aimy1delta = aimy1target - aimy1position;
+	
+	segtarget = -1 * pitch /  6;
+	
+	while (get ABS(aimy1delta) > <10>){
+		sleep 30;
+	}
+	
+	frameslefttoshot = (GET WEAPON_RELOADSTATE(1)) - (GET GAME_FRAME);
+	
+	if (frameslefttoshot < 15){ // GET WEAPON_RELOADSTATE(1) gives the frame weapon 1 can fire on
+		// if we can fire in 10 frames, do the spit
+		
+		
+			segtarget = segtarget -500;
+			segacceleration = 10 * SEG_ACCELERATION;
+			sleep 150;
+			
+			segtarget = segtarget + 000;
+	
+			sleep 150;
+			segacceleration = SEG_ACCELERATION;
+
+	
+	}
+	
+	// once we are pretty near to the target heading, as above, we need to do a quick shooty anim:
+	
+	isAiming = 0;
+	start-script RestoreAfterDelay();
+	return (1);
+}
 /*
 
 AimPrimary(heading, pitch)
@@ -354,7 +373,7 @@ AimPrimary(heading, pitch)
 	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	while( !Static_Var_1 )
+	while( !AboveGround )
 	{
 		sleep 250;
 	}
@@ -370,14 +389,15 @@ Shot1()
 {
 	//call-script lua_FlameShot(1);
 	//emit-sfx 1024 + 0 from flare;
-	segtarget = segtarget -  (Rand( 0, 1000 ));
-	aimy1target = aimy1target +  (Rand( 0, 4000 ) - 2000);
+	//segtarget = segtarget +  (Rand( 100, 200 ));
+	//aimy1target = aimy1target +  (Rand( 0, 400 ) - 200);
 	return (TRUE);
 }
 
 FirePrimary()
 {
 	//segtarget = segtarget + get RAND(0, 10000);
+
 }
 
 QueryPrimary(piecenum)
