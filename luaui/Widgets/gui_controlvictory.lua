@@ -570,7 +570,7 @@ function widget:DrawScreen()
 	local frame = Spring.GetGameFrame()
 	if frame / 30 > startTime then
 		if controlPointPromptPlayed ~= true then
-			Spring.PlaySoundFile("sounds/ui/controlpointscanbecaptured.wav", 1)
+			--Spring.PlaySoundFile("sounds/ui/controlpointscanbecaptured.wav", 1)
 			Spring.Echo([[Control Points may now be captured!]])
 			controlPointPromptPlayed = true
 		end

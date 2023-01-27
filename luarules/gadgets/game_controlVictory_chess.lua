@@ -937,6 +937,7 @@ function gadget:GameFrame(n)
         addInfiniteResources()
     end
     if n > 25 and n%addUpFrequency == 1 then
+        Spring.PlaySoundFile("sounds/voice/ReinforcementsHaveArrived.wav", 0.75, nil, "ui")
         addNewUnitsToQueue(false)
     end
     for i = 1,#teams do
@@ -949,15 +950,15 @@ function gadget:GameFrame(n)
         end
 
         if teamSpawnQueue[teamID] and #teamSpawnQueue[teamID] > 0 then
-            if teamRespawnQueue[teamID] and #teamRespawnQueue[teamID] > 0 then
-                if n > 25 and n%math.ceil(spawnTimer/(#teamRespawnQueue[teamID]+#teamSpawnQueue[teamID])) == 1 then
+            -- if teamRespawnQueue[teamID] and #teamRespawnQueue[teamID] > 0 then
+            --     if n > 25 and n%math.ceil(spawnTimer/(#teamRespawnQueue[teamID]+#teamSpawnQueue[teamID])) == 1 then
+            --         spawnUnitsFromQueue(teamID)
+            --     end
+            -- else
+                -- if n > 25 and n%spawnTimer == 1 then
                     spawnUnitsFromQueue(teamID)
-                end
-            else
-                if n > 25 and n%spawnTimer == 1 then
-                    spawnUnitsFromQueue(teamID)
-                end
-            end
+                -- end
+            -- end
         else
             if teamRespawnQueue[teamID] and #teamRespawnQueue[teamID] > 0 then
                 if n > 25 and n%math.ceil(respawnTimer/(#teamRespawnQueue[teamID])) == 1 then
