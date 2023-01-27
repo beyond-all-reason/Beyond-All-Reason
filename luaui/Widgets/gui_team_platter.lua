@@ -33,6 +33,8 @@ local GL_STENCIL_BUFFER_BIT = GL.STENCIL_BUFFER_BIT
 local GL_REPLACE            = GL.REPLACE
 local GL_POINTS				= GL.POINTS
 
+local hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
+
 local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local spGetUnitTeam = Spring.GetUnitTeam
 
@@ -118,6 +120,12 @@ function widget:DrawWorldPreUnit()
 
 		glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
 		glStencilMask(1)
+		
+		if hasBadCulling then 
+			gl.Culling(false)
+		else
+			gl.Culling(GL.BACK)
+		end
 
 		teamplatterShader:SetUniform("addRadius", 0)
 		teamplatterVBO.VAO:DrawArrays(GL_POINTS, teamplatterVBO.usedElements)
