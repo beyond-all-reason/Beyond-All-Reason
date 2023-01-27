@@ -49,11 +49,13 @@ local vsSrc =  [[
 #line 5000
 
 layout (location = 0) in vec4 lengthwidthcornerheight;
-layout (location = 1) in uint teamID;
-layout (location = 2) in uint numvertices;
-layout (location = 3) in vec4 parameters; // lifestart, ismine
-layout (location = 4) in vec4 uvoffsets; // this is optional, for using an Atlas
-layout (location = 5) in uvec4 instData;
+layout (location = 1) in uvec4 intparams;
+layout (location = 2) in vec4 parameters; // lifestart, ismine
+layout (location = 3) in vec4 uvoffsets; // this is optional, for using an Atlas
+layout (location = 4) in uvec4 instData;
+
+#define teamID intparams.x
+#define numvertices intparams.y
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
@@ -345,15 +347,14 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 	DrawPrimitiveAtUnitVBO = makeInstanceVBOTable(
 		{
 			{id = 0, name = 'lengthwidthcorner', size = 4},
-			{id = 1, name = 'teamID', size = 1, type = GL.UNSIGNED_INT},
-			{id = 2, name = 'numvertices', size = 1, type = GL.UNSIGNED_INT},
-			{id = 3, name = 'parameters', size = 4},
-			{id = 4, name = 'uvoffsets', size = 4},
-			{id = 5, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
+			{id = 1, name = 'intparams', size = 4, type = GL.UNSIGNED_INT},
+			{id = 2, name = 'parameters', size = 4},
+			{id = 3, name = 'uvoffsets', size = 4},
+			{id = 4, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 		},
 		64, -- maxelements
 		DPATname .. "VBO", -- name
-		5  -- unitIDattribID (instData)
+		4  -- unitIDattribID (instData)
 	)
 	if DrawPrimitiveAtUnitVBO == nil then 
 		Spring.Echo("Failed to create DrawPrimitiveAtUnitVBO for ", DPATname) 
