@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local timeNotation = 24
+
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local font, chobbyInterface, hovering
 
@@ -81,7 +83,13 @@ local function updateValues()
 
 		font:Print(titleColor..' x'..valueColor..gamespeed..titleColor..'     fps '..valueColor..fps, left+textXPadding+(textsize*(2.8+extraSpacing)), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
 
-		font:Print(valueColor..os.date("%H:%M"), left+textXPadding+(textsize*11.1), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+		local clock = ''
+		if timeNotation == 24 then
+			clock = os.date("%H:%M")
+		else
+			clock = os.date("%I:%M %p")
+		end
+		font:Print(valueColor..clock, left+textXPadding+(textsize*11.2), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
 
 		font:End()
     end)

@@ -1009,8 +1009,8 @@ function widget:SetConfigData(data)
 			currentTrack = data.curTrack
 		end
 	end
-	if data.showGUIv2 ~= nil then
-		showGUI = data.showGUIv2
+	if data.showGUI ~= nil then
+		showGUI = data.showGUI
 	end
 end
 
