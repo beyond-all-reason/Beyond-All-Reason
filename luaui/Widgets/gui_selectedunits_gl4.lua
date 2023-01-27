@@ -119,7 +119,7 @@ function widget:DrawWorldPreUnit()
 	if selectionVBO.usedElements > 0 then
 		if hasBadCulling then 
 			gl.Culling(false)
-		else
+		end
 		
 		glTexture(0, texture)
 		selectShader:Activate()
