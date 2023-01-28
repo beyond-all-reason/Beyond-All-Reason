@@ -20,52 +20,31 @@ local airWaves = {}
 
 local burrowName = 'chicken_hive'
 
-local chickenNukeTurret
+local chickenTurrets
 if not Spring.GetModOptions().unit_restrictions_nonukes then
-	chickenNukeTurret = "chicken_turretxl_meteor"
+	chickenTurrets = {
+		["chicken_turrets"] 			= { minQueenAnger = 0, 		spawnedPerWave = 10 },
+		["chicken_turrets_antiair"] 	= { minQueenAnger = 10, 	spawnedPerWave = 4 	},
+		["chicken_turretl"] 			= { minQueenAnger = 20, 	spawnedPerWave = 2 	},
+		["chicken_turretl_antiair"] 	= { minQueenAnger = 30, 	spawnedPerWave = 1 	},
+		["chicken_turrets_acid"] 		= { minQueenAnger = 40, 	spawnedPerWave = 2 	},
+		["chicken_turrets_electric"] 	= { minQueenAnger = 40, 	spawnedPerWave = 2 	},
+		["chicken_turretl_acid"] 		= { minQueenAnger = 60, 	spawnedPerWave = 1 	},
+		["chicken_turretl_electric"] 	= { minQueenAnger = 60, 	spawnedPerWave = 1 	},
+		["chicken_turretxl_meteor"]		= { minQueenAnger = 70, 	spawnedPerWave = 1 	},
+	}
 else
-	chickenNukeTurret = "chicken_turretl"
+	chickenTurrets = {
+		["chicken_turrets"] 			= { minQueenAnger = 0, 		spawnedPerWave = 10 },
+		["chicken_turrets_antiair"] 	= { minQueenAnger = 10, 	spawnedPerWave = 4 },
+		["chicken_turretl"] 			= { minQueenAnger = 20, 	spawnedPerWave = 2 	},
+		["chicken_turretl_antiair"] 	= { minQueenAnger = 30, 	spawnedPerWave = 1 	},
+		["chicken_turrets_acid"] 		= { minQueenAnger = 40, 	spawnedPerWave = 2 	},
+		["chicken_turrets_electric"] 	= { minQueenAnger = 40, 	spawnedPerWave = 2 	},
+		["chicken_turretl_acid"] 		= { minQueenAnger = 60, 	spawnedPerWave = 1 	},
+		["chicken_turretl_electric"] 	= { minQueenAnger = 60, 	spawnedPerWave = 1 	},
+	}
 end
-
-local chickenTurrets = {
-	["chicken_turrets"] 			= { minQueenAnger = 0, 		spawnedPerWave = 10 },
-	["chicken_turretl"] 			= { minQueenAnger = 20, 	spawnedPerWave = 2 	},
-	["chicken_turrets_acid"] 		= { minQueenAnger = 40, 	spawnedPerWave = 2 	},
-	["chicken_turrets_electric"] 	= { minQueenAnger = 40, 	spawnedPerWave = 2 	},
-	["chicken_turretl_acid"] 		= { minQueenAnger = 60, 	spawnedPerWave = 1 	},
-	["chicken_turretl_electric"] 	= { minQueenAnger = 60, 	spawnedPerWave = 1 	},
-	[chickenNukeTurret]				= { minQueenAnger = 70, 	spawnedPerWave = 1 	},
-	-- lightTurrets = { 					-- Spawn from the start
-	-- 	"chicken_turrets",
-	-- },
-	-- heavyTurrets = { 					-- Spawn from 20% queen anger
-	-- 	"chicken_turretl",
-	-- },
-	-- specialLightTurrets = { 			-- Spawn from 40% queen anger alongside lightTurrets
-	-- 	"chicken_turrets_acid",
-	-- 	"chicken_turrets_electric",
-	-- },
-	-- specialHeavyTurrets = { 			-- Spawn from 60% queen anger alongside heavyTurrets
-	-- 	"chicken_turretl_acid",
-	-- 	"chicken_turretl_electric",
-	-- 	chickenNukeTurret,
-	-- },
-	-- burrowDefenders = {					-- Spawns connected to burrow
-	-- 	--"chicken_turrets_burrow",
-	-- 	"chicken_turrets",
-	-- 	"chicken_turrets",
-	-- 	"chicken_turrets",
-	-- 	"chicken_turrets",
-	-- 	"chicken_turrets_acid",
-	-- 	"chicken_turrets_acid",
-	-- 	"chicken_turrets_electric",
-	-- 	"chicken_turrets_electric",
-	-- 	"chicken_turretl",
-	-- 	"chicken_turretl",
-	-- 	"chicken_turretl_acid",
-	-- 	"chicken_turretl_electric",
-	-- },
-}
 
 local chickenEggs = { -- Specify eggs dropped by unit here, requires useEggs to be true, if some unit is not specified here, it drops random egg colors.
 	chicken1       						=   "purple", 
