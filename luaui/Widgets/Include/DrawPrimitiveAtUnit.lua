@@ -264,7 +264,7 @@ void main(){
 	
 	#ifdef USE_CIRCLES
 		if (numVertices > uint(5)) { //A circle with even subdivisions
-			numVertices = min(numVertices,62u); // to make sure that we dont emit more than 64 vertices
+			numVertices = min(numVertices,uint(MAXVERTICES) - 2u); // to make sure that we dont emit more than MAXVERTICES vertices
 			//left most vertex
 			offsetVertex4(- width * 0.5, 0.0,  0, 0.0, 0.5);
 			int numSides = int(numVertices) / 2;

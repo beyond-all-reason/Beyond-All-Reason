@@ -70,7 +70,7 @@ local function AddPrimitiveAtUnit(unitID)
 	local unitDefID = unitUnitDefID[unitID]
 	if unitDefID == nil then return end -- these cant be selected
 
-	local numVertices = 64 -- default to cornered rectangle
+	local numVertices = 32 -- default to cornered rectangle
 	local cornersize = 0
 
 	local radius = unitScale[unitDefID]
@@ -212,6 +212,7 @@ local function init()
 	shaderConfig.GROWTHRATE = 3.5
 	shaderConfig.TEAMCOLORIZATION = teamcolorOpacity	-- not implemented, doing it via POST_SHADING below instead
 	shaderConfig.HEIGHTOFFSET = 4
+	shaderConfig.MAXVERTICES = 32
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
 	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnits")
 	if selectionVBO == nil then 
