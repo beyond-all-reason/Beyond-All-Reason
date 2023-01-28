@@ -27,7 +27,7 @@ return {
 		maxdamage = 33500,
 		maxvelocity = 0,
 		noautofire = false,
-		objectname = "Chickens/chicken_hive.s3o",
+		objectname = "Chickens/raptor_hive.s3o",
 		radardistance = 900,
 		script = "Chickens/chicken_hive.cob",
 		seismicsignature = 0,
