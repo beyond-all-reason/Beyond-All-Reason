@@ -31,6 +31,7 @@ local top, left, bottom, right = 0,0,0,0
 
 local passedTime = 0
 local passedTime2 = 0
+local usedTextWidth = 0
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -80,16 +81,19 @@ local function updateValues()
 		elseif minutes > 9 then
 			extraSpacing = 0.7
 		end
-
-		font:Print(titleColor..' x'..valueColor..gamespeed..titleColor..'     fps '..valueColor..fps, left+textXPadding+(textsize*(2.8+extraSpacing)), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
-
+		local text = titleColor..' x'..valueColor..gamespeed..titleColor..'     fps '..valueColor..fps
+		font:Print(text, left+textXPadding+(textsize*(2.8+extraSpacing)), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+		local textWidth = font:GetTextWidth(text) * textsize
+		if textWidth > usedTextWidth then
+			usedTextWidth = textWidth
+		end
 		local clock = ''
 		if timeNotation == 24 then
 			clock = os.date("%H:%M")
 		else
 			clock = os.date("%I:%M %p")
 		end
-		font:Print(valueColor..clock, left+textXPadding+(textsize*11.2), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+		font:Print(valueColor..clock, left+textXPadding+(textsize*(2.8+extraSpacing))+usedTextWidth+(textsize*1.3), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
 
 		font:End()
     end)
