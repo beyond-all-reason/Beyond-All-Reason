@@ -100,7 +100,7 @@ return {
 				stages = 8,
 				--paralyzetime = 20,
 				proximitypriority = -4,
-				range = 1250,
+				range = 1000,
 				reloadtime = 8,
 				rgbcolor = "0.8 0.99 0.11",
 				soundhit = "bloodsplash3",
@@ -110,7 +110,7 @@ return {
 				tolerance = 5000,
 				turret = true,
 				weapontimer = 0.2,
-				weaponvelocity = 260,
+				weaponvelocity = 500,
 				damage = {
 					default = 1,
 					shields = 800,
