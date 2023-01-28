@@ -17,8 +17,8 @@ return {
 		canstop = "1",
 		capturable = false,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN EMPABLE",
-		collisionvolumeoffsets = "0 15 0",
-		collisionvolumescales = "14 50 14",
+		collisionvolumeoffsets = "0 -15 0",
+		collisionvolumescales = "20 50 20",
 		collisionvolumetype = "box",
 		energystorage = 500,
 		explodeas = "bug_death",
@@ -116,6 +116,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "WEAPON",
+				onlytargetcategory = "NOTAIR",
 			},
 		},
 	},
