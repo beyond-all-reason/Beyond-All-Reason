@@ -52,14 +52,12 @@ local glColor = gl.Color
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
 local glTexCoord = gl.TexCoord
-local glUnit = gl.Unit
 local GL_QUADS = GL.QUADS
 
 local GaiaTeamID = Spring.GetGaiaTeamID()
 local myTeamID = Spring.GetMyTeamID()
 local mySpec = Spring.GetSpectatingState()
-
-local chobbyInterface, hidden
+local hidden
 
 local prevTexOffset = 0
 local texOffset = 0
@@ -72,6 +70,8 @@ local newUnitCommands = {}
 --------------------------------------------------------------------------------
 -- Config
 --------------------------------------------------------------------------------
+
+local useTeamColors = false
 
 local hideBelowGameframe = 100    -- delay to give spawn fx some time
 
@@ -221,24 +221,32 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetCommandQueue = Spring.GetCommandQueue
 local spIsUnitInView = Spring.IsUnitInView
 local spIsSphereInView = Spring.IsSphereInView
-local spIsUnitIcon = Spring.IsUnitIcon
 local spValidUnitID = Spring.ValidUnitID
 local spValidFeatureID = Spring.ValidFeatureID
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spIsGUIHidden = Spring.IsGUIHidden
 local spIsUnitSelected = Spring.IsUnitSelected
 local spLoadCmdColorsConfig = Spring.LoadCmdColorsConfig
-local spGetFPS = Spring.GetFPS
 local spGetGameFrame = Spring.GetGameFrame
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
-local GL_ONE = GL.ONE
 
 local MAX_UNITS = Game.maxUnits
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+local teamColor = {}
+local function loadTeamColors()
+	local teams = Spring.GetTeamList()
+	for i = 1, #teams do
+		local r, g, b = Spring.GetTeamColor(teams[i])
+		local min = 0.12
+		teamColor[teams[i]] = { math.max(r, min), math.max(g, min), math.max(b, min), 0.33 }
+	end
+end
+loadTeamColors()
 
 local function setCmdLineColors(alpha)
 	spLoadCmdColorsConfig('move        0.5  1.0  0.5  ' .. alpha)
@@ -290,6 +298,12 @@ function widget:Initialize()
 	WG['commandsfx'].setFilterAI = function(value)
 		filterAIteams = value
 		resetEnabledTeams()
+	end
+	WG['commandsfx'].getUseTeamColors = function()
+		return useTeamColors
+	end
+	WG['commandsfx'].setUseTeamColors = function(value)
+		useTeamColors = value
 	end
 end
 
@@ -442,6 +456,9 @@ local function addUnitCommand(unitID, unitDefID, cmdID)
 	if unitID and (CONFIG[cmdID] or cmdID == CMD_INSERT or cmdID < 0) then
 		unprocessedCommandsNum = unprocessedCommandsNum + 1
 		unprocessedCommands[unprocessedCommandsNum] = { ID = cmdID, time = os_clock(), unitID = unitID, draw = false, selected = spIsUnitSelected(unitID), udid = unitDefID } -- command queue is not updated until next gameframe
+		if useTeamColors then
+			unprocessedCommands[unprocessedCommandsNum].teamID = Spring.GetUnitTeam(unitID)
+		end
 	end
 end
 
@@ -615,7 +632,6 @@ local function IsPointInView(x, y, z)
 end
 
 function widget:DrawWorldPreUnit()
-	if chobbyInterface then return end
 	if hidden then return end
 	if spIsGUIHidden() then return end
 
@@ -658,7 +674,12 @@ function widget:DrawWorldPreUnit()
 						commandCount = commandCount + 1
 						-- lines
 						local usedLineWidth = lineWidth - (progress * (lineWidth - (lineWidth * lineWidthEnd)))
-						local lineColour = CONFIG[commands[i].queue[j].id].colour
+						local lineColour
+						if useTeamColors and commands[i].teamID then
+							lineColour = teamColor[commands[i].teamID]
+						else
+							lineColour = CONFIG[commands[i].queue[j].id].colour
+						end
 						local lineAlpha = opacity * lineOpacity * (lineColour[4] * 2) * lineAlphaMultiplier
 						if lineAlpha > 0 then
 							glColor(lineColour[1], lineColour[2], lineColour[3], lineAlpha)
@@ -717,15 +738,8 @@ function widget:PlayerChanged()
 	mySpec = Spring.GetSpectatingState()
 end
 
-
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
-function widget:GetConfigData(data)
-	return { opacity = opacity, filterAIteams = filterAIteams, filterOwn = filterOwn}
+function widget:GetConfigData()
+	return { opacity = opacity, filterAIteams = filterAIteams, filterOwn = filterOwn, useTeamColors = useTeamColors }
 end
 
 function widget:SetConfigData(data)
@@ -737,5 +751,8 @@ function widget:SetConfigData(data)
 	end
 	if data.filterOwn ~= nil then
 		filterOwn = data.filterOwn
+	end
+	if data.useTeamColors ~= nil then
+		useTeamColors = data.useTeamColors
 	end
 end

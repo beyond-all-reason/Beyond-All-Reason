@@ -564,6 +564,8 @@ return {
 			commandsfxfilterai = 'filter AI teams',
 			commandsfxfilterai_descr = 'Hide commands for AI teams',
 			commandsfxopacity = 'opacity',
+			commandsfxuseteamcolors = 'use teamcolors',
+			commandsfxuseteamcolors_descr = 'Make all the lines be teamcolors instead of command colors',
 			displaydps = 'Display DPS',
 			displaydps_descr = 'Display the \'Damage Per Second\' done where target are hit',
 			flankingicons = 'Flanking direction',

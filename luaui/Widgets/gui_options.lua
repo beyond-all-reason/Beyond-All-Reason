@@ -3366,6 +3366,14 @@ function init()
 			  saveOptionValue('Commands FX', 'commandsfx', 'setFilterAI', { 'filterAIteams' }, value)
 		  end,
 		},
+		{ id = "commandsfxuseteamcolors", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.commandsfxuseteamcolors, type = "bool", value = false, description = texts.option.commandsfxuseteamcolors_descr,
+		  onload = function(i)
+			  loadWidgetData("Commands FX", "commandsfxuseteamcolors", { 'useTeamColors' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Commands FX', 'commandsfx', 'setUseTeamColors', { 'useTeamColors' }, value)
+		  end,
+		},
 
 
 		{ id = "flankingicons", group = "ui", category = types.advanced, widget = "Flanking Icons GL4", name = texts.option.flankingicons, type = "bool", value = GetWidgetToggleValue("Flanking Icons GL4"), description = texts.option.flankingicons_descr },
