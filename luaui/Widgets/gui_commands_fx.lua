@@ -80,23 +80,19 @@ local filterAIteams = true
 
 local drawBuildQueue = true
 local drawLineTexture = true
-local drawUnitHighlight = false
-local drawUnitHighlightSkipFPS = 13  -- (0 to disable) skip drawing when framerate gets below this value
 
 local opacity = 1
-local duration = 1.2
+local duration = 0.8
 
 local lineWidth = 5.5
-local lineOpacity = 0.85
-local lineDuration = 1        -- set a value <= 1
-local lineWidthEnd = 0.85        -- multiplier
-local lineTextureLength = 4
-local lineTextureSpeed = 2.4
+local lineOpacity = 0.75
+local lineWidthEnd = 0.8        -- multiplier
+local lineTextureLength = 3
+local lineTextureSpeed = 4
 
 -- limit amount of effects to keep performance sane
 local maxCommandCount = 500        -- dont draw more commands than this amount, but keep processing them
 local maxTotalCommandCount = 850        -- dont add more commands above this amount
-local drawUnitHightlightMaxUnits = 70
 
 local lineImg = ":n:LuaUI/Images/commandsfx/line.dds"
 
@@ -561,7 +557,6 @@ function widget:Update(dt)
 					monitorCommands[i] = qsize
 				end
 				if qsize > 0 then
-					commands[i].highlight = CONFIG[our_q[1].id].colour
 					commands[i].draw = true
 				end
 
@@ -654,7 +649,7 @@ function widget:DrawWorldPreUnit()
 			local prevX, prevY, prevZ = spGetUnitPosition(unitID)
 			if commands[i].queueSize > 0 and prevX and commandCount < maxCommandCount then
 
-				local lineAlphaMultiplier = 1 - (progress / lineDuration)
+				local lineAlphaMultiplier = 1 - progress
 				for j = 1, commands[i].queueSize do
 					local X, Y, Z = ExtractTargetLocation(commands[i].queue[j].params[1], commands[i].queue[j].params[2], commands[i].queue[j].params[3], commands[i].queue[j].params[4], commands[i].queue[j].id)
 					local validCoord = X and Z and X >= 0 and X <= mapX and Z >= 0 and Z <= mapZ
@@ -726,35 +721,6 @@ end
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
-function widget:DrawWorld()
-	if chobbyInterface then return end
-	if hidden then return end
-	if spIsGUIHidden() then return end
-	if drawUnitHighlightSkipFPS > 0 and spGetFPS() < drawUnitHighlightSkipFPS then return end
-
-	-- highlight unit
-	if drawUnitHighlight then
-		gl.DepthTest(true)
-		gl.PolygonOffset(-2, -2)
-		gl.Blending(GL_SRC_ALPHA, GL_ONE)
-		local highlightUnitCounter = 0
-		for i, _ in pairs(commands) do
-			if commands[i].draw and commands[i].highlight and not spIsUnitIcon(commands[i].unitID) then
-				local progress = (osClock - commands[i].time) / duration
-				glColor(commands[i].highlight[1], commands[i].highlight[2], commands[i].highlight[3], 0.08 * (1 - progress))
-				glUnit(commands[i].unitID, true)
-				highlightUnitCounter = highlightUnitCounter + 1
-			end
-			if highlightUnitCounter >= drawUnitHightlightMaxUnits then
-				break
-			end
-		end
-		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-		gl.PolygonOffset(false)
-		gl.DepthTest(false)
 	end
 end
 
