@@ -1379,8 +1379,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	function queueTurretSpawnIfNeeded()
 		for uName, uSettings in pairs(config.chickenTurrets) do
-			Spring.Echo(uName)
-			Spring.Debug.TableEcho(uSettings)
+			--Spring.Echo(uName)
+			--Spring.Debug.TableEcho(uSettings)
 			if uSettings.minQueenAnger <= techAnger then
 				for i = 1,math.floor((uSettings.spawnedPerWave*(1-config.chickenPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.chickenPerPlayerMultiplier)*SetCount(humanTeams)) do
 					local attempts = 0
