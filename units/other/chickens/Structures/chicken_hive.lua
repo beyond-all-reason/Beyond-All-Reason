@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 400,
 		builddistance = 90,
 		builder = true,
-		buildpic = "chickens/roost.DDS",
+		buildpic = "chickens/chicken_hive.DDS",
 		buildtime = 10500,
 		capturable = false,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN EMPABLE",

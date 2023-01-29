@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 120,
 		builddistance = 500,
 		builder = false,
-		buildpic = "chickens/chickend1.DDS",
+		buildpic = "chickens/chicken_turrets.DDS",
 		buildtime = 2700,
 		canattack = true,
 		canreclaim = false,
