@@ -105,12 +105,12 @@ end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam)
 	NewUnit(unitID, unitDefID, unitTeam)
-	cloakDeActive(unitID, unitDefID)
+	cloakActive(unitID, unitDefID)
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam)
 	NewUnit(unitID, unitDefID, unitTeam)
-	cloakDeActive(unitID, unitDefID)
+	cloakActive(unitID, unitDefID)
 end
 
 function widget:PlayerChanged(playerID)
