@@ -23,26 +23,26 @@ local burrowName = 'chicken_hive'
 local chickenTurrets
 if not Spring.GetModOptions().unit_restrictions_nonukes then
 	chickenTurrets = {
-		["chicken_turrets"] 			= { minQueenAnger = 0, 		spawnedPerWave = 10 },
-		["chicken_turrets_antiair"] 	= { minQueenAnger = 10, 	spawnedPerWave = 4 	},
-		["chicken_turretl"] 			= { minQueenAnger = 20, 	spawnedPerWave = 2 	},
-		["chicken_turretl_antiair"] 	= { minQueenAnger = 30, 	spawnedPerWave = 1 	},
-		["chicken_turrets_acid"] 		= { minQueenAnger = 40, 	spawnedPerWave = 2 	},
-		["chicken_turrets_electric"] 	= { minQueenAnger = 40, 	spawnedPerWave = 2 	},
-		["chicken_turretl_acid"] 		= { minQueenAnger = 60, 	spawnedPerWave = 1 	},
-		["chicken_turretl_electric"] 	= { minQueenAnger = 60, 	spawnedPerWave = 1 	},
-		["chicken_turretxl_meteor"]		= { minQueenAnger = 70, 	spawnedPerWave = 1 	},
+		["chicken_turrets"] 			= { minQueenAnger = 0, 		spawnedPerWave = 10,	spawnOnBurrows = true	},
+		["chicken_turrets_antiair"] 	= { minQueenAnger = 0, 		spawnedPerWave = 4,		spawnOnBurrows = true	},
+		["chicken_turretl"] 			= { minQueenAnger = 20, 	spawnedPerWave = 2,		spawnOnBurrows = true	},
+		["chicken_turretl_antiair"] 	= { minQueenAnger = 20, 	spawnedPerWave = 1,		spawnOnBurrows = true	},
+		["chicken_turrets_acid"] 		= { minQueenAnger = 40, 	spawnedPerWave = 2,		spawnOnBurrows = false	},
+		["chicken_turrets_electric"] 	= { minQueenAnger = 40, 	spawnedPerWave = 2,		spawnOnBurrows = false	},
+		["chicken_turretl_acid"] 		= { minQueenAnger = 60, 	spawnedPerWave = 1,		spawnOnBurrows = false	},
+		["chicken_turretl_electric"] 	= { minQueenAnger = 60, 	spawnedPerWave = 1,		spawnOnBurrows = false	},
+		["chicken_turretxl_meteor"]		= { minQueenAnger = 70, 	spawnedPerWave = 1,		spawnOnBurrows = true	},
 	}
 else
 	chickenTurrets = {
-		["chicken_turrets"] 			= { minQueenAnger = 0, 		spawnedPerWave = 10 },
-		["chicken_turrets_antiair"] 	= { minQueenAnger = 10, 	spawnedPerWave = 4 },
-		["chicken_turretl"] 			= { minQueenAnger = 20, 	spawnedPerWave = 2 	},
-		["chicken_turretl_antiair"] 	= { minQueenAnger = 30, 	spawnedPerWave = 1 	},
-		["chicken_turrets_acid"] 		= { minQueenAnger = 40, 	spawnedPerWave = 2 	},
-		["chicken_turrets_electric"] 	= { minQueenAnger = 40, 	spawnedPerWave = 2 	},
-		["chicken_turretl_acid"] 		= { minQueenAnger = 60, 	spawnedPerWave = 1 	},
-		["chicken_turretl_electric"] 	= { minQueenAnger = 60, 	spawnedPerWave = 1 	},
+		["chicken_turrets"] 			= { minQueenAnger = 0, 		spawnedPerWave = 10,	spawnOnBurrows = true	},
+		["chicken_turrets_antiair"] 	= { minQueenAnger = 0, 		spawnedPerWave = 4,		spawnOnBurrows = true	},
+		["chicken_turretl"] 			= { minQueenAnger = 20, 	spawnedPerWave = 2,		spawnOnBurrows = true	},
+		["chicken_turretl_antiair"] 	= { minQueenAnger = 20, 	spawnedPerWave = 1,		spawnOnBurrows = true	},
+		["chicken_turrets_acid"] 		= { minQueenAnger = 40, 	spawnedPerWave = 2,		spawnOnBurrows = false	},
+		["chicken_turrets_electric"] 	= { minQueenAnger = 40, 	spawnedPerWave = 2,		spawnOnBurrows = false	},
+		["chicken_turretl_acid"] 		= { minQueenAnger = 60, 	spawnedPerWave = 1,		spawnOnBurrows = false	},
+		["chicken_turretl_electric"] 	= { minQueenAnger = 60, 	spawnedPerWave = 1,		spawnOnBurrows = false	},
 	}
 end
 

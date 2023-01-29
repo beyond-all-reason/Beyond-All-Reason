@@ -98,7 +98,7 @@ return {
 				range = 1000,
 				reloadtime = 8,
 				rgbcolor = "1 0.5 0.1",
-				size = 5.5,
+				size = 3,
 				sizedecay = 0.09,
 				soundhit = "bombsmed2",
 				soundstart = "bugarty",
@@ -108,7 +108,7 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 500,
 				damage = {
-					default = 3200,
+					default = 1600,
 					shields = 800,
 				},
 			},

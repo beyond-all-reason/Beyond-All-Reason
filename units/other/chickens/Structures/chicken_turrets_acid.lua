@@ -94,7 +94,7 @@ return {
 				name = "GOOLAUNCHER",
 				noselfdamage = true,
 				nogap = false,
-				size = 9,
+				size = 5,
 				sizedecay = 0.04,
 				alphaDecay = 0.18,
 				stages = 8,
@@ -113,7 +113,7 @@ return {
 				weaponvelocity = 500,
 				damage = {
 					default = 1,
-					shields = 800,
+					shields = 400,
 				},
 			},
 		},

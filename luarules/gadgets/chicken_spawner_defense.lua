@@ -646,7 +646,7 @@ if gadgetHandler:IsSyncedCode() then
 	function SpawnBurrowTurret(burrowID, burrowX, burrowY, burrowZ, turretX, turretZ)
 		local turretOptions = {}
 		for uName, uSettings in pairs(config.chickenTurrets) do
-			if uSettings.minQueenAnger <= techAnger then
+			if uSettings.minQueenAnger <= techAnger and uSettings.spawnOnBurrows then
 				for i = 1,uSettings.spawnedPerWave do
 					table.insert(turretOptions, uName)
 				end
@@ -1382,7 +1382,7 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.Echo(uName)
 			Spring.Debug.TableEcho(uSettings)
 			if uSettings.minQueenAnger <= techAnger then
-				for i = 1,uSettings.spawnedPerWave do
+				for i = 1,math.floor((uSettings.spawnedPerWave*(1-config.chickenPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.chickenPerPlayerMultiplier)*SetCount(humanTeams)) do
 					local attempts = 0
 					repeat
 						attempts = attempts + 1
@@ -1610,7 +1610,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n%7 == 3 and not chickenteamhasplayers then
 			local chickens = GetTeamUnits(chickenTeamID)
 			for i = 1,#chickens do
-				if mRandom(1,100) == 1 and mRandom() < (SetCount(humanTeams) / math.max(1, Spring.GetTeamUnitDefCount(chickenTeamID, Spring.GetUnitDefID(chickens[i])))) then
+				if mRandom(1,math.ceil((100*math.max(1, Spring.GetTeamUnitDefCount(chickenTeamID, Spring.GetUnitDefID(chickens[i])))))) == 1 and mRandom() < config.spawnChance then
 					SpawnMinions(chickens[i], Spring.GetUnitDefID(chickens[i]))
 				end
 				if mRandom(1,60) == 1 then 

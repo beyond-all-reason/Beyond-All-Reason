@@ -36,7 +36,7 @@ return {
 		movementclass = "NANO",
 		noautofire = false,
 		nochasecategory = "MOBILE",
-		objectname = "Chickens/chicken_turretl_purple_v2.s3o",
+		objectname = "Chickens/chicken_turretl_red_v2.s3o",
 		--reclaimspeed = 200,
 		script = "Chickens/chicken_turretl_v2.cob",
 		seismicsignature = 0,
