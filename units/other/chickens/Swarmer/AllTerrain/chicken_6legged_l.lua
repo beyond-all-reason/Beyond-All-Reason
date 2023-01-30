@@ -28,7 +28,7 @@ return {
 		maxdamage = 2650,
 		maxreversevelocity = 3,
 		maxslope = 18,
-		maxvelocity = 3.2,
+		maxvelocity = 2.1,
 		maxwaterdepth = 15,
 		movementclass = "CHICKALLTERRAINHOVER",
 		noautofire = false,
