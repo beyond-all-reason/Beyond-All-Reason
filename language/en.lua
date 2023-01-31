@@ -137,6 +137,7 @@ return {
 			label_automation = 'Automation',
 			label_game = 'Game',
 			label_info = 'Info',
+			label_music = 'Music',
 			label_messages = 'Messages',
 			label_hotkeys = 'Hotkeys',
 			label_camera = 'Camera',

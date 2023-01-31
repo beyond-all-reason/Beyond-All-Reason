@@ -568,7 +568,11 @@ function DrawWindow()
 
 						-- option controller
 						local rightPadding = 4
-						if option.type == 'bool' then
+						if option.type == 'click' then
+							optionButtons[oid] = {}
+							optionButtons[oid] = { math.floor(xPos + rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos) }
+
+						elseif option.type == 'bool' then
 							optionButtons[oid] = {}
 							optionButtons[oid] = { math.floor(xPosMax - boolWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos) }
 							UiToggle(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
@@ -974,7 +978,9 @@ function widget:DrawScreen()
 				local tooltipShowing = false
 				for i, o in pairs(optionButtons) do
 					if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-						RectRound(o[1], o[2], o[3], o[4], 1, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.22 }, { 1, 1, 1, 0.22 })
+						if options[i].onclick == nil then
+							RectRound(o[1], o[2], o[3], o[4], 1, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.22 }, { 1, 1, 1, 0.22 })
+						end
 						if WG['tooltip'] ~= nil and options[i].type == 'slider' then
 							local value = options[i].value
 							if options[i].steps then
@@ -992,7 +998,7 @@ function widget:DrawScreen()
 				end
 				if not tooltipShowing then
 					for i, o in pairs(optionHover) do
-						if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' then
+						if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' and options[i].type ~= 'text' then
 							-- display console command at the bottom
 							if advSettings or devMode then
 								font:Begin()
@@ -1336,26 +1342,29 @@ function mouseEvent(mx, my, button, release)
 				if release then
 					-- select option
 					if showSelectOptions == nil then
-						for i, o in pairs(optionButtons) do
+						if optionButtons then
+							for i, o in pairs(optionButtons) do
 
-							if options[i].type == 'bool' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-								options[i].value = not options[i].value
-								applyOptionValue(i)
-								if playSounds then
-									if options[i].value then
-										Spring.PlaySoundFile(sounds.toggleOnClick, 0.75, 'ui')
-									else
-										Spring.PlaySoundFile(sounds.toggleOffClick, 0.75, 'ui')
+								if options[i].type == 'bool' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
+									options[i].value = not options[i].value
+									applyOptionValue(i)
+									if playSounds then
+										if options[i].value then
+											Spring.PlaySoundFile(sounds.toggleOnClick, 0.75, 'ui')
+										else
+											Spring.PlaySoundFile(sounds.toggleOffClick, 0.75, 'ui')
+										end
 									end
+								elseif options[i].type == 'slider' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
+
+								elseif options[i].type == 'select' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
+
+								elseif options[i].onclick ~= nil and math_isInRect(mx, my, optionHover[i][1], optionHover[i][2], optionHover[i][3], optionHover[i][4]) then
+									options[i].onclick(i)
 								end
-							elseif options[i].type == 'slider' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-
-							elseif options[i].type == 'select' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-
-							elseif options[i].onclick ~= nil and math_isInRect(mx, my, optionHover[i][1], optionHover[i][2], optionHover[i][3], optionHover[i][4]) then
-								options[i].onclick(i)
 							end
 						end
+
 					end
 				else
 					-- mousepress
@@ -2337,6 +2346,7 @@ function init()
 				Spring.SetConfigInt('UseSoundtrackNew', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
 					WG['music'].RefreshTrackList()
+					init()
 				end
 			end
 		},
@@ -2345,6 +2355,7 @@ function init()
 				Spring.SetConfigInt('UseSoundtrackOld', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
 					WG['music'].RefreshTrackList()
+					init()
 				end
 			end
 		},
@@ -2353,6 +2364,7 @@ function init()
 				Spring.SetConfigInt('UseSoundtrackCustom', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
 					WG['music'].RefreshTrackList()
+					init()
 				end
 			end
 		},
@@ -5002,6 +5014,45 @@ function init()
 	end
 	if not aiDetected then
 		options[getOptionByID('commandsfxfilterai')] = nil
+	end
+
+	-- add music tracks options
+	local trackList
+	if WG['notifications'] ~= nil then
+		trackList = WG['music'].getTracksConfig()
+	end
+	if type(trackList) == 'table' then
+
+		local newOptions = {}
+		local count = 0
+		local prevCategory = ''
+		for i, option in pairs(options) do
+			count = count + 1
+			newOptions[count] = option
+			if option.id == 'loadscreen_music' then
+				count = count + 1
+				newOptions[count] = { id = "label_sound_music", group = "sound", name = texts.option.label_music, category = types.basic }
+				count = count + 1
+				newOptions[count] = { id = "label_sound_music_spacer", group = "sound", category = types.basic }
+
+				for k, v in pairs(trackList) do
+					if prevCategory ~= v[2] then
+						prevCategory = v[2]
+						count = count + 1
+						newOptions[count] = { id="music_track_"..v[2], group="sound", basic=true, name=v[2], type="text"}
+					end
+					count = count + 1
+					newOptions[count] = { id="music_track_"..v[2].."_"..v[3], group="sound", basic=true, name=widgetOptionColor.."   "..v[4], type="click",--..'\n'..v[4],
+						  onclick = function()
+							  if WG['music'] ~= nil and WG['music'].playTrack then
+								  WG['music'].playTrack(v[5])
+							  end
+						  end,
+					}
+				end
+			end
+		end
+		options = newOptions
 	end
 
 	-- add sound notification widget sound toggle options

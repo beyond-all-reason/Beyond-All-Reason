@@ -358,6 +358,12 @@ local function capitalize(text)
 	return str
 end
 
+local function processTrackname(trackname)
+	trackname = string.gsub(trackname, ".ogg", "")
+	trackname = trackname:match("[^(/|\\)]*$")
+	return capitalize(trackname)
+end
+
 local function createList()
 	local trackname
 	local padding = math.floor(2.75 * widgetScale) -- button background margin
@@ -423,10 +429,10 @@ local function createList()
 		-- track name
 		trackname = currentTrack or ''
 		glColor(0.45,0.45,0.45,1)
-		trackname = string.gsub(trackname, ".ogg", "")
-		trackname = trackname:match("[^(/|\\)]*$")
-		local text = ''
 
+		trackname = processTrackname(trackname)
+
+		local text = ''
 		for i = 1, #trackname do
 			local c = string.sub(trackname, i,i)
 			local width = font:GetTextWidth(text..c) * textsize
@@ -436,7 +442,7 @@ local function createList()
 				text = text..c
 			end
 		end
-		trackname = capitalize(text)
+		trackname = text
 
 		local button = 'playpause'
 		glColor(0.8,0.8,0.8,0.9)
@@ -538,18 +544,35 @@ function widget:Initialize()
 	WG['music'].getTracksConfig = function(value)
 		local tracksConfig = {}
 		for k,v in pairs(peaceTracks) do
-			tracksConfig[#tracksConfig+1] = {true, 'peace', k, v}
+			tracksConfig[#tracksConfig+1] = {true, 'peace', k, processTrackname(v), v}
 		end
 		for k,v in pairs(warlowTracks) do
-			tracksConfig[#tracksConfig+1] = {true, 'warlow', k, v}
+			tracksConfig[#tracksConfig+1] = {true, 'warlow', k, processTrackname(v), v}
 		end
 		for k,v in pairs(warhighTracks) do
-			tracksConfig[#tracksConfig+1] = {true, 'warhigh', k, v}
+			tracksConfig[#tracksConfig+1] = {true, 'warhigh', k, processTrackname(v), v}
+		end
+		for k,v in pairs(bossFightTracks) do
+			tracksConfig[#tracksConfig+1] = {true, 'bossfight', k, processTrackname(v), v}
 		end
 		for k,v in pairs(gameoverTracks) do
-			tracksConfig[#tracksConfig+1] = {true, 'gameover', k, v}
+			tracksConfig[#tracksConfig+1] = {true, 'gameover', k, processTrackname(v), v}
 		end
 		return tracksConfig
+	end
+	WG['music'].playTrack = function(track)
+		currentTrack = track
+		Spring.StopSoundStream()
+		Spring.PlaySoundStream(currentTrack, 1)
+		playing = true
+		local playedTime, totalTime = Spring.GetSoundStreamTime()
+		interruptionTime = totalTime + 2
+		if fadeDirection then
+			setMusicVolume(fadeLevel)
+		else
+			setMusicVolume(100)
+		end
+		createList()
 	end
 	WG['music'].RefreshSettings = function()
 		interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1

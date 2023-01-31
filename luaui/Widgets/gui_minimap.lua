@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local maxAllowedWidth = 0.29
+local maxAllowedWidth = 0.26
 local maxAllowedHeight = 0.32
 local leftClickMove = true
 
