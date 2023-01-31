@@ -153,7 +153,10 @@ return {
 				weaponvelocity = 475,
 				wobble = 32000,
 				damage = {
-					default = 500,
+					default = 5,
+					bombers = 500,
+					fighters = 500,
+					vtol = 500,
 				},
 			},
 			spawnmeteor = {
@@ -186,7 +189,7 @@ return {
 				wobble = 0,
 				damage = {
 					chicken = 0.1,
-					default = 5000,
+					default = 50000,
 				},
 			},
 		},

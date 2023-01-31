@@ -117,7 +117,10 @@ return {
 				weaponvelocity = 475,
 				wobble = 32000,
 				damage = {
-					default = 1000,
+					default = 10,
+					bombers = 1000,
+					fighters = 1000,
+					vtol = 1000,
 				},
 			},
 			-- cc_laser = {
