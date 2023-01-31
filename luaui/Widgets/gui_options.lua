@@ -2341,7 +2341,9 @@ function init()
 		  end,
 		},
 
-		{ id = "soundtrackNew", group = "sound", category = types.basic, name = texts.option.soundtrack.. widgetOptionColor .. "  " .. texts.option.soundtracknew, type = "bool", value = Spring.GetConfigInt('UseSoundtrackNew', 1) == 1, description = texts.option.soundtrack_descr,
+
+		{ id = "soundtrack", group = "sound", category = types.basic, name = texts.option.soundtrack, type = "text" },
+		{ id = "soundtrackNew", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.soundtracknew, type = "bool", value = Spring.GetConfigInt('UseSoundtrackNew', 1) == 1, description = texts.option.soundtracknew_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackNew', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2350,7 +2352,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackOld", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.soundtrackold, type = "bool", value = Spring.GetConfigInt('UseSoundtrackOld', 0) == 1,
+		{ id = "soundtrackOld", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.soundtrackold, type = "bool", value = Spring.GetConfigInt('UseSoundtrackOld', 0) == 1, description = texts.option.soundtrackold_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackOld', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2359,7 +2361,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackCustom", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.soundtrackcustom, type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1,
+		{ id = "soundtrackCustom", group = "sound", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.soundtrackcustom, type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1, description = texts.option.soundtrackcustom_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackCustom', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
