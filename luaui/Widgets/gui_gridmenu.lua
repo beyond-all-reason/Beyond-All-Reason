@@ -2214,17 +2214,15 @@ function widget:MousePress(x, y, button)
 		end
 
 	elseif preGamestartPlayer then
+		local mx, my = Spring.GetMouseState()
+		local _, pos = Spring.TraceScreenRay(mx, my, true)
 
 		if selBuildQueueDefID then
 			if button == 1 then
-				local pos
 				local curMexPosition = WG.MexSnap and WG.MexSnap.curPosition
 
 				if curMexPosition then
 					pos = { curMexPosition.x, curMexPosition.y, curMexPosition.z }
-				else
-					local mx, my = Spring.GetMouseState()
-					_, pos = Spring.TraceScreenRay(mx, my, true)
 				end
 
 				if not pos then
@@ -2233,10 +2231,18 @@ function widget:MousePress(x, y, button)
 
 				local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
 				local buildFacing = Spring.GetBuildFacing()
+				local buildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
+				local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
+
+				if cx ~= -100 then
+					local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, cx, cy, cz)
+
+					if DoBuildingsClash(buildData, { startDefID, cbx, cby, cbz, 1 }) then -- avoid clashing building and commander position
+						return true
+					end
+				end
 
 				if Spring.TestBuildOrder(selBuildQueueDefID, bx, by, bz, buildFacing) ~= 0 then
-
-					local buildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
 					local _, _, meta, shift = Spring.GetModKeyState()
 					if meta then
 						table.insert(buildQueue, 1, buildData)
@@ -2266,6 +2272,12 @@ function widget:MousePress(x, y, button)
 				return true
 			elseif button == 3 then
 				setPreGamestartDefID(nil)
+			end
+		elseif button == 1 and #buildQueue > 0 and pos then -- avoid clashing first building and commander position
+			local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, pos[1], pos[2], pos[3])
+
+			if DoBuildingsClash({ startDefID, cbx, cby, cbz, 1 }, buildQueue[1]) then
+				return true
 			end
 		end
 	elseif selectedBuilder and button == 3 then
