@@ -118,9 +118,9 @@ local drawFrame = 0
 function widget:DrawWorld()
 	drawFrame = drawFrame + 1
 	if selectionVBO.usedElements > 0 then
-		if hasBadCulling then 
+		--if hasBadCulling then 
 			gl.Culling(false)
-		end
+		--end
 		
 		glTexture(0, texture)
 		selectShader:Activate()
