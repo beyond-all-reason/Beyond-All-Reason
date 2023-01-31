@@ -3370,6 +3370,14 @@ function init()
 			  saveOptionValue('Commands FX', 'commandsfx', 'setOpacity', { 'opacity' }, value)
 		  end,
 		},
+		{ id = "commandsfxduration", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.commandsfxduration, type = "slider", min = 0.5, max = 2, step = 0.01, value = 1, description = '',
+		  onload = function(i)
+			  loadWidgetData("Commands FX", "commandsfxduration", { 'duration' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Commands FX', 'commandsfx', 'setDuration', { 'duration' }, value)
+		  end,
+		},
 		{ id = "commandsfxfilterai", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.commandsfxfilterai, type = "bool", value = true, description = texts.option.commandsfxfilterai_descr,
 		  onload = function(i)
 			  loadWidgetData("Commands FX", "commandsfxfilterai", { 'filterAIteams' })
@@ -3384,6 +3392,14 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Commands FX', 'commandsfx', 'setUseTeamColors', { 'useTeamColors' }, value)
+		  end,
+		},
+		{ id = "commandsfxuseteamcolorswhenspec", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.commandsfxuseteamcolorswhenspec, type = "bool", value = false, description = texts.option.commandsfxuseteamcolorswhenspec_descr,
+		  onload = function(i)
+			  loadWidgetData("Commands FX", "commandsfxuseteamcolorswhenspec", { 'useTeamColorsWhenSpec' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Commands FX', 'commandsfx', 'setUseTeamColorsWhenSpec', { 'useTeamColorsWhenSpec' }, value)
 		  end,
 		},
 

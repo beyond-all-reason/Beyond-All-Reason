@@ -72,6 +72,7 @@ local newUnitCommands = {}
 --------------------------------------------------------------------------------
 
 local useTeamColors = false
+local useTeamColorsWhenSpec = true
 
 local hideBelowGameframe = 100    -- delay to give spawn fx some time
 
@@ -82,7 +83,7 @@ local drawBuildQueue = true
 local drawLineTexture = true
 
 local opacity = 1
-local duration = 0.8
+local duration = 0.85
 
 local lineWidth = 5.5
 local lineOpacity = 0.75
@@ -292,6 +293,12 @@ function widget:Initialize()
 	WG['commandsfx'].setOpacity = function(value)
 		opacity = value
 	end
+	WG['commandsfx'].getDuration = function()
+		return duration
+	end
+	WG['commandsfx'].setDuration = function(value)
+		duration = value
+	end
 	WG['commandsfx'].getFilterAI = function()
 		return filterAIteams
 	end
@@ -304,6 +311,12 @@ function widget:Initialize()
 	end
 	WG['commandsfx'].setUseTeamColors = function(value)
 		useTeamColors = value
+	end
+	WG['commandsfx'].setUseTeamColorsWhenSpec = function()
+		return useTeamColorsWhenSpec
+	end
+	WG['commandsfx'].setUseTeamColorsWhenSpec = function(value)
+		useTeamColorsWhenSpec = value
 	end
 end
 
@@ -456,7 +469,7 @@ local function addUnitCommand(unitID, unitDefID, cmdID)
 	if unitID and (CONFIG[cmdID] or cmdID == CMD_INSERT or cmdID < 0) then
 		unprocessedCommandsNum = unprocessedCommandsNum + 1
 		unprocessedCommands[unprocessedCommandsNum] = { ID = cmdID, time = os_clock(), unitID = unitID, draw = false, selected = spIsUnitSelected(unitID), udid = unitDefID } -- command queue is not updated until next gameframe
-		if useTeamColors then
+		if useTeamColors or (mySpec and useTeamColorsWhenSpec) then
 			unprocessedCommands[unprocessedCommandsNum].teamID = Spring.GetUnitTeam(unitID)
 		end
 	end
@@ -675,7 +688,7 @@ function widget:DrawWorldPreUnit()
 						-- lines
 						local usedLineWidth = lineWidth - (progress * (lineWidth - (lineWidth * lineWidthEnd)))
 						local lineColour
-						if useTeamColors and commands[i].teamID then
+						if (useTeamColors or (mySpec and useTeamColorsWhenSpec)) and commands[i].teamID then
 							lineColour = teamColor[commands[i].teamID]
 						else
 							lineColour = CONFIG[commands[i].queue[j].id].colour
@@ -739,7 +752,7 @@ function widget:PlayerChanged()
 end
 
 function widget:GetConfigData()
-	return { opacity = opacity, filterAIteams = filterAIteams, filterOwn = filterOwn, useTeamColors = useTeamColors }
+	return { opacity = opacity, filterAIteams = filterAIteams, filterOwn = filterOwn, useTeamColors = useTeamColors, useTeamColorsWhenSpec = useTeamColorsWhenSpec, duration = duration }
 end
 
 function widget:SetConfigData(data)
@@ -754,5 +767,11 @@ function widget:SetConfigData(data)
 	end
 	if data.useTeamColors ~= nil then
 		useTeamColors = data.useTeamColors
+	end
+	if data.useTeamColorsWhenSpec ~= nil then
+		useTeamColorsWhenSpec = data.useTeamColorsWhenSpec
+	end
+	if data.duration ~= nil then
+		duration = data.duration
 	end
 end
