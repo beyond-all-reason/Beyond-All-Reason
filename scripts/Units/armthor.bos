@@ -3,18 +3,19 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret, sleeve, rtbarrel, ltbarrel, lempslv, lempbarrel, rempslv, rempbarrel, rlauncher,
+piece  base, turret, sleeve, rtbarrel, ltbarrel, lempslv, lempbarrel, rempslv, rempbarrel, rlauncher, llauncher,
 flare1, flare2, flare3, flare4, flare5, flare7, spark_emit1, spark_emit2;
 
-static-var  moveSpeed, currentSpeed, animSpeed, restore_delay, currentBarrel, currentLauncher;
+static-var  moveSpeed, currentSpeed, animSpeed, restore_delay, currentBarrel, currentLauncher, missiles_stockpiled;
 
 static-var last_lempslv_heading,last_rempslv_heading,last_tesla_heading,last_tesla_pitch;
 
 #define SIG_MOVE 1
 #define SIG_AIM_1			2
-#define SIG_AIM_2			4
+#define SIG_AIM_2			4 //rlauncher
 #define SIG_AIM_3			8
 #define SIG_AIM_4			16
+#define SIG_AIM_5			32 //llauncher
 
 UnitSpeed()
 {
@@ -48,7 +49,7 @@ Create()
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
 	currentBarrel = 0;
-	currentLauncher = 0;
+	missiles_stockpiled = 0;
 	restore_delay = 3000;
 	//large negative values to let wait-for-turn happen on first target
 	last_lempslv_heading = -1000000;
@@ -190,7 +191,7 @@ FireWeapon1()
 		move ltbarrel to z-axis [0.000000] speed [3.000000];
 		wait-for-move ltbarrel along z-axis;
 		stop-spin ltbarrel around z-axis decelerate <15>;
-		
+
 	}
 	if( currentBarrel == 1 )
 	{
@@ -222,41 +223,119 @@ QueryWeapon1(piecenum)
 
 //Weapon 2: EMP Missile Launcher
 //===================================
-AimWeapon2(heading, pitch)
+
+//functions to animate the missile tubes
+//separated out to make sure signals work correctly
+retract_rlauncher()
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
-	turn rlauncher to x-axis <0.000000> - <90.0> speed <30.000000>;
-	wait-for-turn rlauncher around x-axis;
-	start-script RestoreAfterDelay_EMP_missile();
-	return (1);
+	turn rlauncher to x-axis <0.000000> speed <60.000000>;
+}
+
+retract_llauncher()
+{
+	signal SIG_AIM_5;
+	set-signal-mask SIG_AIM_5;
+	turn llauncher to x-axis <0.000000> speed <60.000000>;
+}
+
+deploy_rlauncher()
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	turn rlauncher to x-axis <0.000000> - <90.0> speed <60.000000>;
+}
+
+deploy_llauncher()
+{
+	signal SIG_AIM_5;
+	set-signal-mask SIG_AIM_5;
+	turn llauncher to x-axis <0.000000> - <90.0> speed <60.000000>;
+}
+
+//called from gadget unit_stockpile_script.lua
+//seems to get called right before the weapon fires,
+// so sleep and delay the update of missiles_stockpiled variable
+SetStockpile(num_stockpiled)
+{
+	if (num_stockpiled == 0)
+	{
+		start-script retract_rlauncher();
+		start-script retract_llauncher();
+		sleep 100;
+		missiles_stockpiled = 0;
+	}
+	if (num_stockpiled == 1)
+	{
+		start-script deploy_rlauncher();
+		start-script retract_llauncher();
+		sleep 100;
+		missiles_stockpiled = 1;
+	}
+	if (num_stockpiled == 2)
+	{
+		start-script deploy_rlauncher();
+		start-script deploy_llauncher();
+		sleep 100;
+		missiles_stockpiled = 2;
+	}
+}
+
+AimWeapon2(heading, pitch)
+{
+	if (missiles_stockpiled == 2)
+	{
+		signal SIG_AIM_5;
+		set-signal-mask SIG_AIM_5;
+		turn llauncher to x-axis <0.000000> - <90.0> speed <60.000000>;
+		wait-for-turn llauncher around x-axis;
+		return (1);
+	}
+	if (missiles_stockpiled == 1)
+	{
+		signal SIG_AIM_2;
+		set-signal-mask SIG_AIM_2;
+		turn rlauncher to x-axis <0.000000> - <90.0> speed <60.000000>;
+		wait-for-turn rlauncher around x-axis;
+		return (1);
+	}
 }
 
 FireWeapon2()
 {
-	if( currentLauncher == 0 )
-	{
-		emit-sfx 1024 + 0 from flare4;
-		sleep 100;
-	}
-	if( currentLauncher == 1 )
+	if (missiles_stockpiled == 2)
 	{
 		emit-sfx 1024 + 0 from flare3;
-		sleep 100;
 	}
-	currentLauncher = !currentLauncher;
+	if (missiles_stockpiled == 1)
+	{
+		emit-sfx 1024 + 0 from flare4;
+	}
 }
 
 AimFromWeapon2(piecenum)
 {
-	if (currentLauncher) piecenum = flare3;
-	if (!currentLauncher) piecenum = flare4;
+	if (missiles_stockpiled == 2)
+	{
+		piecenum = flare3;
+	}
+	else
+	{
+		piecenum = flare4;
+	}
 }
 
 QueryWeapon2(piecenum)
 {
-	if (currentLauncher) piecenum = flare3;
-	if (!currentLauncher) piecenum = flare4;
+	if (missiles_stockpiled == 2)
+	{
+		piecenum = flare3;
+	}
+	else
+	{
+		piecenum = flare4;
+	}
 }
 
 //Weapon 3: Left EMP
@@ -265,7 +344,7 @@ AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
-	
+
 	// logic to restrict turret rotation due to unitdef maxangledif
 	// maxangledif=180 = 0 to 180 degrees = 0 to 32,768
 	// does no turn animation if the target heading is out of firing arc
@@ -274,7 +353,7 @@ AimWeapon3(heading, pitch)
 	{
 		return (0);
 	}
-	
+
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
@@ -316,7 +395,7 @@ AimWeapon4(heading, pitch)
 {
 	signal SIG_AIM_4;
 	set-signal-mask SIG_AIM_4;
-	
+
 	// logic to restrict turret rotation due to unitdef maxangledif
 	// maxangledif=180 = -180 to 0 degrees = -32,768 to 0
 	// does no turn animation if the target heading is out of firing arc
@@ -325,7 +404,7 @@ AimWeapon4(heading, pitch)
 	{
 		return (0);
 	}
-	
+
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
@@ -337,14 +416,14 @@ AimWeapon4(heading, pitch)
 		wait-for-turn rempslv around y-axis;
 	}
 	last_rempslv_heading=heading;
-	
+
 	start-script RestoreAfterDelay_rEMP();
 	return (1);
 }
 
 FireWeapon4()
 {
-	move rempbarrel to z-axis [-2.400000] speed [100.000000];	
+	move rempbarrel to z-axis [-2.400000] speed [100.000000];
 	emit-sfx 1024 + 0 from flare7;
 	sleep 100;
 	wait-for-move rempbarrel along z-axis;
