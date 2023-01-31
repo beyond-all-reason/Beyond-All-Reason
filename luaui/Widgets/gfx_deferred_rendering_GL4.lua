@@ -815,6 +815,8 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noUpload)
 				--Spring.Debug.TraceFullEcho(nil,nil,nil,"AddStaticLightsForUnit")
 				--Spring.Debug.TableEcho(lightParams)
 				local targetVBO = unitLightVBOMap[lightParams.lightType]
+				
+				if (not spec) and lightParams.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then return end
 				AddLight(tostring(unitID) ..  lightname, unitID, lightParams.pieceIndex, targetVBO, lightParams.lightParamTable)
 			end
 		end
