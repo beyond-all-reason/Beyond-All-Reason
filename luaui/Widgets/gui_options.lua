@@ -2342,8 +2342,10 @@ function init()
 		},
 
 
-		{ id = "soundtrack", group = "sound", category = types.basic, name = texts.option.soundtrack, type = "text" },
-		{ id = "soundtrackNew", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.soundtracknew, type = "bool", value = Spring.GetConfigInt('UseSoundtrackNew', 1) == 1, description = texts.option.soundtracknew_descr,
+		{ id = "soundtrack", group = "sound", category = types.basic, name = texts.option.label_soundtrack },
+		{ id = "soundtrack_spacer", group = "sound", category = types.basic },
+
+		{ id = "soundtrackNew", group = "sound", category = types.basic, name = texts.option.soundtracknew, type = "bool", value = Spring.GetConfigInt('UseSoundtrackNew', 1) == 1, description = texts.option.soundtracknew_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackNew', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2352,7 +2354,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackOld", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.soundtrackold, type = "bool", value = Spring.GetConfigInt('UseSoundtrackOld', 0) == 1, description = texts.option.soundtrackold_descr,
+		{ id = "soundtrackOld", group = "sound", category = types.basic, name = texts.option.soundtrackold, type = "bool", value = Spring.GetConfigInt('UseSoundtrackOld', 0) == 1, description = texts.option.soundtrackold_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackOld', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2361,7 +2363,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackCustom", group = "sound", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.soundtrackcustom, type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1, description = texts.option.soundtrackcustom_descr,
+		{ id = "soundtrackCustom", group = "sound", category = types.advanced, name = texts.option.soundtrackcustom, type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1, description = texts.option.soundtrackcustom_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackCustom', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2370,7 +2372,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackSilenceTimer", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.soundtracksilence, type = "bool", value = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1, description = texts.option.soundtracksilence_descr,
+		{ id = "soundtrackSilenceTimer", group = "sound", category = types.basic, name = texts.option.soundtracksilence, type = "bool", value = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1, description = texts.option.soundtracksilence_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackSilenceTimer', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshSettings then
@@ -2378,7 +2380,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackInterruption", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.soundtrackinterruption, type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = texts.option.soundtrackinterruption_descr,
+		{ id = "soundtrackInterruption", group = "sound", category = types.basic, name = texts.option.soundtrackinterruption, type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = texts.option.soundtrackinterruption_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackInterruption', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshSettings then
@@ -2387,7 +2389,7 @@ function init()
 			end
 		},
 
-		{ id = "loadscreen_music", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.loadscreen_music, type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = texts.option.loadscreen_music_descr,
+		{ id = "loadscreen_music", group = "sound", category = types.basic, name = texts.option.loadscreen_music, type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = texts.option.loadscreen_music_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("music_loadscreen", (value and 1 or 0))
 		  end,
@@ -5049,7 +5051,7 @@ function init()
 			newOptions[count] = option
 			if option.id == 'loadscreen_music' then
 				count = count + 1
-				newOptions[count] = { id = "label_sound_music", group = "sound", name = texts.option.label_music, category = types.basic }
+				newOptions[count] = { id = "label_sound_music", group = "sound", name = texts.option.label_playlist, category = types.basic }
 				count = count + 1
 				newOptions[count] = { id = "label_sound_music_spacer", group = "sound", category = types.basic }
 
