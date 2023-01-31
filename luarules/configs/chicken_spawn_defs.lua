@@ -203,19 +203,19 @@ chickenBehaviours = {
 		[UnitDefNames["chicken_miniqueen_fire"].id] = { chance = 1 },
 	},
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and queen
-		"chickenh1",
-		--"chickenh1b",
+		[UnitDefNames["chickenh1"].id] = true,
+		[UnitDefNames["chickenh1b"].id] = true,
 	},
-	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance
-		"chickenr1",
-		"chickenr2",
-		"chickenearty1",
-		"chickenacidarty",
-		"chicken_turretxl_meteor",
+	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance, friendly fire enabled (assuming nothing else in the game stops it)
+		[UnitDefNames["chickenr1"].id] = true,
+		[UnitDefNames["chickenr2"].id] = true,
+		[UnitDefNames["chickenearty1"].id] = true,
+		[UnitDefNames["chickenacidarty"].id] = true,
+		[UnitDefNames["chicken_turretxl_meteor"].id] = true,
 	},
 	KAMIKAZE = { -- Long lifetime and no regrouping, always uses Move command to rush into the enemy
-		"chicken_dodo1",
-		"chicken_dodo2",
+		[UnitDefNames["chicken_dodo1"].id] = true,
+		[UnitDefNames["chicken_dodo2"].id] = true,
 	},
 	PROBE_UNIT = UnitDefNames["chicken2"].id, -- tester unit for picking viable spawn positions - use some medium sized unit
 }
@@ -534,6 +534,11 @@ local chickenMinions = { -- Units spawning other units
 	},
 }
 
+local chickenHealers = { -- Spawn indepedently from squads in small numbers
+	"chickenh1",
+	--"chickenh1b",
+},
+
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Special Squads -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -694,6 +699,7 @@ local config = { -- Don't touch this! ------------------------------------------
 	difficulty             	= difficulty,
 	difficulties           	= difficulties,
 	chickenEggs			   	= table.copy(chickenEggs),
+	chickenHealers			= table.copy(chickenHealers),
 	burrowName             	= burrowName,   -- burrow unit name
 	burrowDef              	= UnitDefNames[burrowName].id,
 	chickenSpawnMultiplier 	= Spring.GetModOptions().chicken_spawncountmult,

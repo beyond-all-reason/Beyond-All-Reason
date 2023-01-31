@@ -987,7 +987,7 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 						if mRandom() <= config.spawnChance then
-							table.insert(spawnQueue, { burrow = burrowID, unitName = config.chickenBehaviours.HEALER[mRandom(1,#config.chickenBehaviours.HEALER)], team = chickenTeamID, squadID = 1 })
+							table.insert(spawnQueue, { burrow = burrowID, unitName = config.chickenHealers[mRandom(1,#config.chickenHealers)], team = chickenTeamID, squadID = 1 })
 							cCount = cCount + 1
 						end
 					end
@@ -1025,7 +1025,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 
-		if unitTeam == chickenTeamID and attackerTeam == chickenTeamID and (not (attackerDefID and config.chickenBehaviours.ARTILLERY[UnitDefs[attackerDefID].name])) then
+		if unitTeam == chickenTeamID and attackerTeam == chickenTeamID and (not (attackerDefID and config.chickenBehaviours.ARTILLERY[attackerDefID])) then
 			return 0
 		end
 
@@ -1056,7 +1056,7 @@ if gadgetHandler:IsSyncedCode() then
 					queenResistance[weaponID].notify = 1
 					if mRandom() < config.spawnChance then
 						if mRandom() < config.spawnChance then
-							SpawnRandomOffWaveSquad(queenID, config.chickenBehaviours.HEALER[mRandom(1,#config.chickenBehaviours.HEALER)], 5)
+							SpawnRandomOffWaveSquad(queenID, config.chickenHealers[mRandom(1,#config.chickenHealers)], 5)
 						end
 						if mRandom() < config.spawnChance then
 							SpawnRandomOffWaveSquad(queenID)
@@ -1068,7 +1068,7 @@ if gadgetHandler:IsSyncedCode() then
 							SpawnRandomOffWaveSquad(queenID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
 						end
 						for i = 1, SetCount(humanTeams)*2 do
-							table.insert(spawnQueue, { burrow = queenID, unitName = config.chickenBehaviours.HEALER[mRandom(1,#config.chickenBehaviours.HEALER)], team = chickenTeamID})
+							table.insert(spawnQueue, { burrow = queenID, unitName = config.chickenHealers[mRandom(1,#config.chickenHealers)], team = chickenTeamID})
 						end
 					end
 				end
@@ -1179,8 +1179,8 @@ if gadgetHandler:IsSyncedCode() then
 					curH = math.max(curH, maxH*0.05)
 					local spawnChance = math.max(0, math.ceil(curH/maxH*10000))
 					if mRandom(0,spawnChance) == 1 then
-						SpawnRandomOffWaveSquad(unitID, config.chickenBehaviours.HEALER[mRandom(1,#config.chickenBehaviours.HEALER)], 5)
-						SpawnRandomOffWaveSquad(unitID, config.chickenBehaviours.HEALER[mRandom(1,#config.chickenBehaviours.HEALER)], 5)
+						SpawnRandomOffWaveSquad(unitID, config.chickenHealers[mRandom(1,#config.chickenHealers)], 5)
+						SpawnRandomOffWaveSquad(unitID, config.chickenHealers[mRandom(1,#config.chickenHealers)], 5)
 						SpawnRandomOffWaveSquad(unitID)
 					end
 				end
@@ -1254,20 +1254,20 @@ if gadgetHandler:IsSyncedCode() then
 				squadCreationQueue.burrow = defs.burrow
 			end
 			squadCreationQueue.units[#squadCreationQueue.units+1] = unitID
-			if config.chickenBehaviours.HEALER[defs.unitName] then
+			if config.chickenBehaviours.HEALER[UnitDefNames[defs.unitName].id] then
 				squadCreationQueue.role = "healer"
 				if squadCreationQueue.life < 100 then
 					squadCreationQueue.life = 100
 				end
 			end
-			if config.chickenBehaviours.ARTILLERY[defs.unitName] then
+			if config.chickenBehaviours.ARTILLERY[UnitDefNames[defs.unitName].id] then
 				squadCreationQueue.role = "artillery"
 				squadCreationQueue.regroupenabled = false
 				if squadCreationQueue.life < 100 then
 					squadCreationQueue.life = 100
 				end
 			end
-			if config.chickenBehaviours.KAMIKAZE[defs.unitName] then
+			if config.chickenBehaviours.KAMIKAZE[UnitDefNames[defs.unitName].id] then
 				squadCreationQueue.role = "kamikaze"
 				squadCreationQueue.regroupenabled = false
 				if squadCreationQueue.life < 100 then
