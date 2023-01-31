@@ -227,7 +227,7 @@ local groups = {
 	antinuke = folder..'antinuke.png',
 }
 
-local disableWind = ((Game.windMin + Game.windMax) / 2) <= 5
+local disableWind = ((Game.windMin + Game.windMax) / 2) < 5
 
 local unitEnergyCost = {}
 local unitMetalCost = {}
