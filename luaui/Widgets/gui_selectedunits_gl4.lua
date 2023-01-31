@@ -115,7 +115,7 @@ local function AddPrimitiveAtUnit(unitID)
 end
 
 local drawFrame = 0
-function widget:DrawWorldPreUnit()
+function widget:DrawWorld()
 	drawFrame = drawFrame + 1
 	if selectionVBO.usedElements > 0 then
 		if hasBadCulling then 
