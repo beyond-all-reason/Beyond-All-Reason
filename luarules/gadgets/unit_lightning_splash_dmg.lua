@@ -114,7 +114,7 @@ function gadget:ProjectileDestroyed(proID)
             -- create visual lighting arc from main bolt termination point to spark target
             -- set owner = -1 as a "spark bolt" identifier
             -- lightning.weaponDefID
-            SpringSpawnProjectile(visual_chain_weapon, {["pos"]={lightning.x,lightning.y,lightning.z},["end"] = {ex,ey,ez}, ["ttl"] = 1, ["owner"] = -1})
+            SpringSpawnProjectile(lightning.weaponDefID, {["pos"]={lightning.x,lightning.y,lightning.z},["end"] = {ex,ey,ez}, ["ttl"] = 2, ["owner"] = -1})
             count = count - 1 -- spark target count accounting
           end
         end
@@ -122,17 +122,20 @@ function gadget:ProjectileDestroyed(proID)
     end
     
     -- special effects, for leftover chain
-    for i=1, count do
+    for i=1, count, 3 do
       angle = random()*2*math.pi -- random angle, in radians
+      pitch = random()*math.pi/2 -- random pitch, in radians
       -- convert to x,z and offset from main bolt termination point
-      newx = lightning.x + math.sin(angle)*lightning.spark_range
-      newz = lightning.z + math.cos(angle)*lightning.spark_range
+      newx = lightning.x + math.cos(pitch)*math.sin(angle)*lightning.spark_range
+      newz = lightning.z + math.cos(pitch)*math.cos(angle)*lightning.spark_range
       -- get height of random spark bolt termination point
       -- This may need to be tuned, steep slopes, cliffs, and uneven terrain may create weird visuals
       height1 = math.max(SpringGetGroundHeight(lightning.x,lightning.z),lightning.y) -- no vertical offset from ground seems needed for ground-strike bolts
-      height2 = SpringGetGroundHeight(newx,newz)+5 -- offset by 5 units seems good for termination point of spark
+      height2 = SpringGetGroundHeight(newx,newz)+5+math.sin(pitch)*lightning.spark_range -- offset by 5 units seems good for termination point of spark
+      -- also pitch height is added
       -- create effects
-      SpringSpawnProjectile(visual_chain_weapon, {["pos"]={lightning.x,height1,lightning.z},["end"] = {newx,height2,newz}, ["ttl"] = 1, ["owner"] = -1})
+      SpringSpawnProjectile(visual_chain_weapon, {["pos"]={lightning.x,height1,lightning.z},["end"] = {newx,height2,newz}, ["ttl"] = 2, ["owner"] = -1})
+      --SpringSpawnProjectile(lightning.weaponDefID, {["pos"]={lightning.x,height1,lightning.z},["end"] = {newx,height2,newz}, ["ttl"] = 2, ["owner"] = -1})
       SpringSpawnCEG(terminal_spark_effect,newx,height2,newz,0,0,0)
     end
     
