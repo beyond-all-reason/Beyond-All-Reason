@@ -913,8 +913,8 @@ local unitDefLights = {
 		greenblob = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = 10, posy = 108, posz = -10, radius = 17,
-				color2r = 0, color2g = 0, color2b = 0, colortime = 12,
+			lightConfig = { posx = 10.5, posy = 147, posz = -1.5, radius = 17,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 40,
 				r = 0, g = 1.5, b = 0, a = 0.8,
 				modelfactor = 0.8, specular = 0.9, scattering = 1, lensflare = 10,
 				lifetime = 0, sustain = 20, animtype = 0},
@@ -9503,14 +9503,27 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armamd'].id] = {
-		readylightamd = {
+		orangelightamd = {
 			lightType = 'point',
-			pieceName = 'antenna',
+			pieceName = 'orangelight',
+			alliedOnly = true,
 			lightConfig = { posx = 0, posy = 1, posz = 0, radius = 22,
 				color2r = 0, color2g = 0, color2b = 0, colortime = 15,
-				r = 2, g = 1, b = 0, a = 1,
-				modelfactor = 0.1, specular = 0.5, scattering = 0.66, lensflare = 6,
+				r = 2, g = 0.8, b = 0, a = 1,
+				modelfactor = 0.1, specular = 0.5, scattering = 0.66, lensflare = 8,
 				lifetime = 0, sustain = 0, animtype = 0},
+
+		},
+		greenlightamd = {
+			lightType = 'point',
+			pieceName = 'greenlight',
+			alliedOnly = true,
+			lightConfig = { posx = 0, posy = 1, posz = 0, radius = 32,
+				color2r = 2.5, color2g = 1.15, color2b = 0, colortime = 60,
+				r = 2, g = 0.8, b = 0, a = 1,
+				modelfactor = -0.1, specular = 0.3, scattering = 0.3, lensflare = 3,
+				lifetime = 0, sustain = 0, animtype = 0},
+
 		},
 	},
 	[UnitDefNames['corvalk'].id] = {
@@ -16940,7 +16953,7 @@ local crystalColors = { -- note that the underscores are needed here
 	_obsidian = {1,1,1,0.33},
 	_quartz = {1,1,1,0.33}, 
 	_orange = {1,0.5,0,0.33}, 
-	_red = {1,0.2,0.2,0.10}, 
+	_red = {1,0.2,0.2,0.067}, 
 	_teal = {0,1,1,0.33},
 	_team = {1,1,1,0.15},
 	}
