@@ -644,21 +644,23 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	
 	function SpawnBurrowTurret(burrowID, burrowX, burrowY, burrowZ, turretX, turretZ)
-		local turretOptions = {}
-		for uName, uSettings in pairs(config.chickenTurrets) do
-			if uSettings.minQueenAnger <= techAnger and uSettings.spawnOnBurrows then
-				for i = 1,uSettings.spawnedPerWave do
-					table.insert(turretOptions, uName)
+		if mRandom() < config.spawnChance then
+			local turretOptions = {}
+			for uName, uSettings in pairs(config.chickenTurrets) do
+				if uSettings.minQueenAnger <= techAnger and uSettings.spawnOnBurrows then
+					for i = 1,uSettings.spawnedPerWave do
+						table.insert(turretOptions, uName)
+					end
 				end
 			end
-		end
-		if #turretOptions > 0 then
-			local turretID = CreateUnit(turretOptions[mRandom(1,#turretOptions)], turretX, burrowY, turretZ, mRandom(0,3), chickenTeamID)
-			if turretID then
-				SetUnitBlocking(turretID, false, false)
-				setChickenXP(turretID)
-				Spring.GiveOrderToUnit(turretID, CMD.PATROL, {burrowX, burrowY, burrowZ}, {"meta"})
-				burrowTurrets[turretID] = burrowID
+			if #turretOptions > 0 then
+				local turretID = CreateUnit(turretOptions[mRandom(1,#turretOptions)], turretX, burrowY, turretZ, mRandom(0,3), chickenTeamID)
+				if turretID then
+					SetUnitBlocking(turretID, false, false)
+					setChickenXP(turretID)
+					Spring.GiveOrderToUnit(turretID, CMD.PATROL, {burrowX, burrowY, burrowZ}, {"meta"})
+					burrowTurrets[turretID] = burrowID
+				end
 			end
 		end
 	end
@@ -668,12 +670,23 @@ if gadgetHandler:IsSyncedCode() then
 		SetUnitBlocking(unitID, false, false)
 		setChickenXP(unitID)
 		if SetCount(config.chickenTurrets) > 0 then
+			local r = math.random(1,100)
 			-- spawn some turrets
-			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius, z-config.burrowTurretSpawnRadius)
-			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius, z-config.burrowTurretSpawnRadius)
-			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius, z+config.burrowTurretSpawnRadius)
-			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius, z+config.burrowTurretSpawnRadius)
-			if mRandom(1,5) == 1 then
+			if r < 30 then
+				SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius, z-config.burrowTurretSpawnRadius)
+				SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius, z-config.burrowTurretSpawnRadius)
+				SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius, z+config.burrowTurretSpawnRadius)
+				SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius, z+config.burrowTurretSpawnRadius)
+			elseif r < 60 then
+				SpawnBurrowTurret(unitID, x, y, z, x+(config.burrowTurretSpawnRadius*1.5), z)
+				SpawnBurrowTurret(unitID, x, y, z, x-(config.burrowTurretSpawnRadius*1.5), z)
+				SpawnBurrowTurret(unitID, x, y, z, x, z+(config.burrowTurretSpawnRadius*1.5))
+				SpawnBurrowTurret(unitID, x, y, z, x, z-(config.burrowTurretSpawnRadius*1.5))
+			elseif r < 90 then
+				SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius, z-config.burrowTurretSpawnRadius)
+				SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius, z-config.burrowTurretSpawnRadius)
+				SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius, z+config.burrowTurretSpawnRadius)
+				SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius, z+config.burrowTurretSpawnRadius)
 				SpawnBurrowTurret(unitID, x, y, z, x+(config.burrowTurretSpawnRadius*1.5), z)
 				SpawnBurrowTurret(unitID, x, y, z, x-(config.burrowTurretSpawnRadius*1.5), z)
 				SpawnBurrowTurret(unitID, x, y, z, x, z+(config.burrowTurretSpawnRadius*1.5))
@@ -1593,7 +1606,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			updateRaptorSpawnBox()
 		end
-		if n%((math.ceil(config.turretSpawnRate/(playerAgressionLevel+1)))*100) == 0 and chickenTeamUnitCount < chickenUnitCap then
+		if n%((math.ceil(config.turretSpawnRate/(playerAgressionLevel+1)))*30) == 0 and n > 900 and chickenTeamUnitCount < chickenUnitCap then
 			queueTurretSpawnIfNeeded()
 		end
 		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
