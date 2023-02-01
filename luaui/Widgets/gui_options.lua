@@ -1009,9 +1009,9 @@ function widget:DrawScreen()
 				end
 				if not tooltipShowing then
 					for i, o in pairs(optionHover) do
-						if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' and options[i].type ~= 'text' then
+						if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' and options[i].type ~= 'text'then
 							-- display console command at the bottom
-							if advSettings or devMode then
+							if (advSettings or devMode) and options[i].onchange ~= nil  then
 								font:Begin()
 								font:SetTextColor(0.5, 0.5, 0.5, 0.27)
 								font:Print('/option ' .. options[i].id, screenX + (8 * widgetScale), screenY - screenHeight + (11 * widgetScale), 14 * widgetScale, "n")

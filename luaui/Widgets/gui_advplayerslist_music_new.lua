@@ -590,6 +590,7 @@ function widget:Initialize()
 		Spring.StopSoundStream()
 		Spring.PlaySoundStream(currentTrack, 1)
 		playing = true
+		Spring.SetConfigInt('music', (playing and 1 or 0))
 		local playedTime, totalTime = Spring.GetSoundStreamTime()
 		interruptionTime = totalTime + 2
 		if fadeDirection then
