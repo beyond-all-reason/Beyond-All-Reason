@@ -1850,9 +1850,9 @@ else	-- UNSYNCED
 		function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if string.find(UnitDefs[unitDefID].name, "chicken") then
 				gl.SetUnitBufferUniforms(unitID, nocolorshift, 8)
-				colorshiftcache[1] = mRandom(-500,500)*0.0001 -- hue (hue hue)
-				colorshiftcache[2] = mRandom(-1000,1000)*0.0001 -- saturation         
-				colorshiftcache[3] = mRandom(-1000,1000)*0.0001 -- brightness
+				colorshiftcache[1] = mRandom(-100,100)*0.0001 -- hue (hue hue)
+				colorshiftcache[2] = mRandom(-200,200)*0.0001 -- saturation         
+				colorshiftcache[3] = mRandom(-200,200)*0.0001 -- brightness
 				gl.SetUnitBufferUniforms(unitID, colorshiftcache, 8)
 			end
 		end
