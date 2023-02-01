@@ -131,9 +131,12 @@ function gadget:ProjectileDestroyed(proID)
       -- get height of random spark bolt termination point
       -- This may need to be tuned, steep slopes, cliffs, and uneven terrain may create weird visuals
       height1 = math.max(SpringGetGroundHeight(lightning.x,lightning.z),lightning.y) -- no vertical offset from ground seems needed for ground-strike bolts
-      height2 = SpringGetGroundHeight(newx,newz)+5+math.sin(pitch)*lightning.spark_range -- offset by 5 units seems good for termination point of spark
-      -- also pitch height is added
+      height2 = SpringGetGroundHeight(newx,newz)+5+(math.sin(pitch)*lightning.spark_range/2) 
+	  -- offset by 5 units seems good for termination point of spark
+      -- also pitch height is added, and squashed by a factor of 2 for an "ellipsoid" strike surface
+
       -- create effects
+	  -- using special defined thinner bolt for left-over chain bolts
       SpringSpawnProjectile(visual_chain_weapon, {["pos"]={lightning.x,height1,lightning.z},["end"] = {newx,height2,newz}, ["ttl"] = 2, ["owner"] = -1})
       --SpringSpawnProjectile(lightning.weaponDefID, {["pos"]={lightning.x,height1,lightning.z},["end"] = {newx,height2,newz}, ["ttl"] = 2, ["owner"] = -1})
       SpringSpawnCEG(terminal_spark_effect,newx,height2,newz,0,0,0)
