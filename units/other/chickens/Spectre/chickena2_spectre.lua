@@ -98,8 +98,8 @@ return {
 				model = "SimpleFlareXL.s3o",
 				name = "Deadly Defensive Spores",
 				noselfdamage = true,
-				range = 1000,
-				reloadtime = 60,
+				range = 2000,
+				reloadtime = 6,
 				smoketrail = true,
 				smokePeriod = 10,
 				smoketime = 45,
@@ -122,7 +122,10 @@ return {
 				weaponvelocity = 475,
 				wobble = 32000,
 				damage = {
-					default = 2000,
+					default = 20,
+					bombers = 2000,
+					fighters = 2000,
+					vtol = 2000,
 				},
 			},
 			weapon = {
@@ -165,7 +168,7 @@ return {
 				--onlytargetcategory = "NOTAIR",
 			},
 			[2] = {
-				badtargetcategory = "NOTAIR",
+				onlytargetcategory = "VTOL",
 				def = "AAWEAPON",
 			},
 		},

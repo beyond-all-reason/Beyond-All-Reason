@@ -157,7 +157,7 @@ return {
 				edgeeffectiveness = 0.35,
 				explosiongenerator = "custom:genericshellexplosion-huge-bomb",
 				firestarter = 0,
-				flighttime = 5,
+				flighttime = 20,
 				firesubmersed = true,
 				impulseboost = 0,
 				impulsefactor = 0.4,
@@ -166,7 +166,7 @@ return {
 				model = "SimpleFlareXL.s3o",
 				name = "Deadly Defensive Spores",
 				noselfdamage = true,
-				range = 1000,
+				range = 2000,
 				reloadtime = 10,
 				smoketrail = true,
 				smokePeriod = 10,
@@ -190,7 +190,10 @@ return {
 				weaponvelocity = 475,
 				wobble = 32000,
 				damage = {
-					default = 1500,
+					default = 10,
+					bombers = 1000,
+					fighters = 1000,
+					vtol = 1000,
 				},
 			},
 		},
@@ -201,15 +204,15 @@ return {
 				maxangledif = 155,
 			},
 			[2] = {
-				badtargetcategory = "NOTAIR",
+				onlytargetcategory = "VTOL",
 				def = "yellow_missile",
 			},
 			[3] = {
-				badtargetcategory = "WEAPON",
+				onlytargetcategory = "VTOL",
 				def = "yellow_missile",
 			},
 			[4] = {
-				badtargetcategory = "NOWEAPON",
+				onlytargetcategory = "VTOL",
 				def = "yellow_missile",
 			},
 			[5] = {
