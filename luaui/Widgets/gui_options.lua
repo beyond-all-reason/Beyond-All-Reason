@@ -559,8 +559,19 @@ function DrawWindow()
 							font3:Print('\255\255\200\130' .. option.name, xPos + (oPadding * 0.5), yPos - (oHeight * 1.8) - oPadding, oHeight * 1.5, "no")
 							font3:End()
 							font:Begin()
+							font:SetTextColor(1, 1, 1, 1)
+							font:SetOutlineColor(0, 0, 0, 0.4)
 						else
-							font:Print(color .. option.name, xPos + (oPadding * 2), yPos - (oHeight / 2.4) - oPadding, oHeight, "no")
+							local text = option.name
+							local width = font2:GetTextWidth(text) * math.floor(15 * widgetScale)
+							local maxWidthMult = 1
+							if width > (xPosMax - xPos - 45) * maxWidthMult then
+								while font:GetTextWidth(text) * math.floor(15 * widgetScale) > (math.floor(xPosMax - xPos - 50))  do
+									text = string.sub(text, 1, string.len(text) - 1)
+								end
+								text = text .. '...'
+							end
+							font:Print(color .. text, xPos + (oPadding * 2), yPos - (oHeight / 2.4) - oPadding, oHeight, "no")
 						end
 
 						-- define hover area

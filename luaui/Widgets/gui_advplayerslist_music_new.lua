@@ -52,6 +52,9 @@ local warlowTracks = {}
 local gameoverTracks = {}
 local bossFightTracks = {}
 
+local menuTracks = {}
+local loadingTracks = {}
+
 local currentTrack
 local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, bossFightTracksPlayCounter, gameoverTracksPlayCounter
 local fadeOutSkipTrack = false
@@ -74,13 +77,18 @@ local function ReloadMusicPlaylists()
 	local warlowTracksNew 			= VFS.DirList(musicDirNew..'/warlow', '*.ogg')
 	local gameoverTracksNew 		= VFS.DirList(musicDirNew..'/gameover', '*.ogg')
 	local bossFightTracksNew   		= VFS.DirList(musicDirNew..'/bossfight', '*.ogg')
+	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu', '*.ogg')
+	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', '*.ogg')
 
 	-- Old Soundtrack List
 	local musicDirOld 			= 'music/legacy'
 	local peaceTracksOld 			= VFS.DirList(musicDirOld..'/peace', '*.ogg')
 	local warhighTracksOld 			= VFS.DirList(musicDirOld..'/warhigh', '*.ogg')
 	local warlowTracksOld 			= VFS.DirList(musicDirOld..'/warlow', '*.ogg')
+	local gameoverTracksOld 		= VFS.DirList(musicDirOld..'/gameover', '*.ogg')
 	local bossFightTracksOld  		= VFS.DirList(musicDirOld..'/bossfight', '*.ogg')
+	local menuTracksOld 			= VFS.DirList(musicDirOld..'/menu', '*.ogg')
+	local loadingTracksOld   		= VFS.DirList(musicDirOld..'/loading', '*.ogg')
 
 	-- Custom Soundtrack List
 	local musicDirCustom 		= 'music/custom'
@@ -91,6 +99,8 @@ local function ReloadMusicPlaylists()
 	local warTracksCustom 			= VFS.DirList(musicDirCustom..'/war', '*.ogg')
 	local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', '*.ogg')
 	local bossFightTracksCustom 	= VFS.DirList(musicDirCustom..'/bossfight', '*.ogg')
+	local menuTracksCustom 			= VFS.DirList(musicDirCustom..'/menu', '*.ogg')
+	local loadingTracksCustom  		= VFS.DirList(musicDirCustom..'/loading', '*.ogg')
 
 	-----------------------------------SETTINGS---------------------------------------
 
@@ -107,6 +117,8 @@ local function ReloadMusicPlaylists()
 	warlowTracks = {}
 	gameoverTracks = {}
 	bossFightTracks = {}
+	menuTracks = {}
+	loadingTracks = {}
 
 	if newSoundtrackEnabled then
 		table.append(peaceTracks, peaceTracksNew)
@@ -114,13 +126,18 @@ local function ReloadMusicPlaylists()
 		table.append(warlowTracks, warlowTracksNew)
 		table.append(gameoverTracks, gameoverTracksNew)
 		table.append(bossFightTracks, bossFightTracksNew)
+		table.append(menuTracks, menuTracksNew)
+		table.append(loadingTracks, loadingTracksNew)
 	end
 
 	if oldSoundtrackEnabled then
 		table.append(peaceTracks, peaceTracksOld)
 		table.append(warhighTracks, warhighTracksOld)
 		table.append(warlowTracks, warlowTracksOld)
+		table.append(gameoverTracks, gameoverTracksOld)
 		table.append(bossFightTracks, bossFightTracksOld)
+		table.append(menuTracks, menuTracksOld)
+		table.append(loadingTracks, loadingTracksOld)
 	end
 
 	if customSoundtrackEnabled then
@@ -135,6 +152,8 @@ local function ReloadMusicPlaylists()
 		table.append(warlowTracks, warTracksCustom)
 		table.append(gameoverTracks, gameoverTracksCustom)
 		table.append(bossFightTracks, bossFightTracksCustom)
+		table.append(menuTracks, menuTracksCustom)
+		table.append(loadingTracks, loadingTracksCustom)
 	end
 
 	if #bossFightTracks == 0 then
@@ -543,6 +562,12 @@ function widget:Initialize()
 	end
 	WG['music'].getTracksConfig = function(value)
 		local tracksConfig = {}
+		for k,v in pairs(menuTracks) do
+			tracksConfig[#tracksConfig+1] = {true, 'menu', k, processTrackname(v), v}
+		end
+		for k,v in pairs(loadingTracks) do
+			tracksConfig[#tracksConfig+1] = {true, 'loading', k, processTrackname(v), v}
+		end
 		for k,v in pairs(peaceTracks) do
 			tracksConfig[#tracksConfig+1] = {true, 'peace', k, processTrackname(v), v}
 		end
