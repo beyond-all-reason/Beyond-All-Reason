@@ -1,5 +1,6 @@
 return {
 	armlun = {
+		activatewhenbuilt = true,
 		acceleration = 0.01788,
 		brakerate = 0.01788,
 		buildcostenergy = 33000,
