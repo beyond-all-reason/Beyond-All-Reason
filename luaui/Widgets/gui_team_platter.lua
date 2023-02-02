@@ -92,6 +92,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, unitTeamID, noUpload)
 				length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
 				unitTeamID, -- teamID
 				numVertices, -- how many trianges should we make
+				0,0, -- padding
 				gf, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
 				0, 1, 0, 1, -- These are our default UV atlas tranformations
 				0, 0, 0, 0 -- these are just padding zeros, that will get filled in
@@ -113,13 +114,13 @@ function widget:DrawWorldPreUnit()
 	if teamplatterVBO.usedElements > 0 then
 		teamplatterShader:Activate()
 		teamplatterShader:SetUniform("iconDistance", 99999) -- pass
-		glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
+		--glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		glDepthTest(true)
-		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
-		glClear(GL_STENCIL_BUFFER_BIT ) -- set stencil buffer to 0
+		--glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
+		--glClear(GL_STENCIL_BUFFER_BIT ) -- set stencil buffer to 0
 
-		glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
-		glStencilMask(1)
+		--glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
+		--glStencilMask(1)
 		
 		if hasBadCulling then 
 			gl.Culling(false)
@@ -139,9 +140,9 @@ function widget:DrawWorldPreUnit()
 		teamplatterVBO.VAO:DrawArrays(GL_POINTS, teamplatterVBO.usedElements)
 		]]--
 
-		glStencilMask(1)
-		glStencilFunc(GL_ALWAYS, 1, 1)
-		glDepthTest(true)
+		--glStencilMask(1)
+		--glStencilFunc(GL_ALWAYS, 1, 1)
+		--glDepthTest(true)
 
 		teamplatterShader:Deactivate()
 	end
