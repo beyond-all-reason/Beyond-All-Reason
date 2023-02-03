@@ -103,12 +103,33 @@ local unitIcon = {}	-- {unitDefID = 'icons/'}, retrieves from buildmenu in initi
 		-- a static, single element, that traces back on hoveredchanged
 		-- Needs its own class that resizes itself (smartly) 
 	-- drag support (for sliders etc)
+	
+-- TODO 2023.02.03
+	-- TODO: add support for requesting a 'layer' for a widget
+	-- DONE: Clamp cornersize to half of min(width,height)
+	-- DONE: compartmentalize slider
+	-- DONE: add 'scissor' uniforms for each 'layer' object 
+	-- DONE: add 'scissor' uniforms for each 'layer' object 
+	-- TODO: Make the whole shit screen size aware
+	
+-- Regarding "Layers":
+	-- Due to the way draw order must be preserved, layers are an important thing. 
+	-- Each layer has its own InstanceVBO!
+	-- Layers are drawn in allocation order
+	-- Layer Properties
+		-- Each layer can have its own scissor test (ideally set to parent object) 
+		-- And each layer can have its own scrollscale 
+		-- Each layer has its own list of text elements
+		-- Each layer can have its own default styling. 
 
 
 local Draw = {}
 local vsx, vsy = Spring.GetViewGeometry()
 local nameCounter = 0
 local ROOT
+local Layers = {} -- A sorted list of Layer objects, each containing its own text list, its own scissor, and all kinds of other fun stuff. Maybe even setting its own stying like textcolor, outlinecolor? 
+
+
 local floor = math.floor
 -- what if I enabled LEFT, RIGHT, TOP, BOTTOM? 
 -- and calced X,Y, W,H from it?
@@ -135,6 +156,17 @@ local metaElement_mt = {
 	__index = metaElement,
 }
 
+-- create a new layer object from the table, but this has to be a metaElement!
+local function CreateLayer(o)
+	local obj = {}
+	for k,v in pairs(o) do obj[k] = v end 
+	obj.scissorLayer = obj.scissorLayer or {0,0,vsx,vsy}
+	obj.scrollScale = obj.scrollScale or {0,0,1,1}
+	obj.textChanged = obj.textChanged or false
+	obj.textDisplayList = obj.textDisplayList or nil
+end
+
+
 local function newElement(o) -- This table contains the default properties 
 	if o == nil then o = {} end 
 	if o.name == nil then -- auto namer
@@ -150,7 +182,7 @@ local function newElement(o) -- This table contains the default properties
 		depth = depth or 0.5, -- halfway?
 		treedepth = 1, -- how deep we are in the render tree
 		hidden = false,
-		MouseEvents = {}, --{left = func, right = func.., middle, enter, leave, hover} these funcs get self as first param
+		MouseEvents = o.MouseEvents or {}, --{left = func, right = func.., middle, enter, leave, hover} these funcs get self as first param
 		--self.children = {},
 		--textelements = {}, 
 		--visible = true, 
@@ -162,7 +194,7 @@ local function newElement(o) -- This table contains the default properties
 	local obj = setmetatable(element, metaElement_mt)
 	for k,v in pairs(o) do obj[k] = v end 
 	
-	if not obj.root then 
+	if not obj.isroot then 
 		local parent = obj.parent or ROOT
 
 		if parent.children == nil then 
@@ -371,7 +403,7 @@ function metaElement:CalculatePosition()
 	-- also check if it changed, and then update it in vbo maybe?
 end
 
-function metaElement:NewContainer(o) -- A no-gfx container
+function metaElement:NewContainer(o) -- A no-gfx empty container
 	return newElement(o)
 end
 
@@ -393,12 +425,65 @@ end
 
 function metaElement:NewCheckBox(obj) end
 function metaElement:NewSelector(obj) end
-function metaElement:NewSlider(o) 
+
+function metaElement:NewSlider(o)
+	o.textelements = {
+		{text = string.format('%s = %.'.. tostring(o.digits)..'f (D)',o.name, o.defaultvalue), alignment = 5},
+		{text = string.format('%.'.. tostring(o.digits)..'f',o.min), alignment = 4},
+		{text = string.format('%.'.. tostring(o.digits)..'f',o.max), alignment = 6},}
+	
+	o.MouseEvents = {
+		left = function(obj, mx, my) 
+			-- get the offset of within the click? 
+			local wratio = (mx - obj.left) / (obj.right - obj.left)
+			local newvalue = math.round(obj.min + wratio * (obj.max-obj.min), obj.digits)
+			local newright = ((newvalue - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
+			if debugmode then Spring.Echo("left clicked", obj.name, mx, wratio, newvalue, newright) end
+			obj.updateValue(obj, newvalue, obj.index)
+			obj:UpdateVBOKeys('right', newright)
+		end, 
+		right = function(obj, mx, my) 
+			obj.updateValue(obj, obj.defaultvalue, obj.index, " (D)")
+			local newright = ((obj.value - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
+			obj:UpdateVBOKeys('right', newright, default)
+			if debugmode then  Spring.Echo("right clicked", obj.name, mx, my, newright, obj.value) end
+		end, 
+		hover = function (obj,mx,my) 
+			if obj.tooltip and WG and WG['tooltip'] and WG['tooltip'].ShowTooltip then 
+				WG['tooltip'].ShowTooltip(obj.name, obj.tooltip)    -- x/y (optional): display coordinates
+			end 
+		end
+	}
+	o.MouseEvents.drag = o.MouseEvents.left
+	
 	local obj = newElement(o) 
+	
+	obj.updateValue = function (obj, newvalue, index, tag)
+		if debugmode then  Spring.Echo("updateValue", obj.name, newvalue, index, tag, obj.valuetarget) end
+
+		if newvalue == nil then return end
+		obj.value = newvalue
+		if obj.valuetarget then 
+			if obj.index == nil then 
+				obj.valuetarget[obj.name] = newvalue
+			else
+				obj.valuetarget[string.sub(obj.name,1,-2)][index] = newvalue
+			end
+		end
+		obj.textelements[1].text =  string.format('%s = %.'.. tostring(obj.digits)..'f' .. (tag or ""),obj.name, newvalue)
+		obj:UpdateTextPosition(obj.textelements[1])
+		if obj.callbackfunc then obj.callbackfunc(obj.name, newvalue, index) end 
+	end
+	
+	
 	obj.instanceKeys = Draw.Slider(rectRoundVBO or obj.VBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right, obj.top, 
 		obj.steps, obj.min, obj.max) 
+	
+	local defaultPos = ((obj.value - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
+	
+	obj:UpdateVBOKeys('right', defaultPos, obj.value)
+	
 	return obj
-
 end
 
 --Toggle state = (default: 0) 0 / 0.5 / 1
@@ -432,7 +517,7 @@ function metaElement:NewRectRound(obj) end
 
 --function metaElement:NewEmpty(obj) end
 
-ROOT = metaElement:NewContainer({root = true})
+ROOT = metaElement:NewContainer({isroot = true})
 
 local lastmouse = {mx = 0, my = 0, left = false, middle = false, right = false}
 local lasthitelement = nil -- this is to store which one was last hit to fire off mouseentered mouseleft events 
@@ -558,19 +643,6 @@ local function makeSliderList(sliderListConfig)
 		parent = ROOT
 	})
 	
-	local function updateValue(obj, newvalue, index, tag) 
-		if newvalue == nil then return end
-		obj.value = newvalue
-		if obj.index == nil then 
-			valuetarget[obj.name] = newvalue
-		else
-			valuetarget[string.sub(obj.name,1,-2)][index] = newvalue
-		end
-		obj.textelements[1].text =  string.format('%s = %.'.. tostring(obj.digits)..'f' .. (tag or ""),obj.name, newvalue)
-		obj:UpdateTextPosition(obj.textelements[1])
-		if sliderListConfig.callbackfunc then sliderListConfig.callbackfunc(obj.name, newvalue, index) end 
-	end
-	
 	for sliderorder, sliderParams in ipairs(sliderListConfig.sliderParamsList) do 
 		local nest = false
 		local nestvals = {valuetarget[sliderParams.name]}
@@ -579,52 +651,26 @@ local function makeSliderList(sliderListConfig)
 			nestvals = valuetarget[sliderParams.name]
 		end
 		
-		for j, defaultvalue in ipairs(nestvals) do
-			local nestname = ( nest and tostring(j)) or ""
-			if nest == false then j = nil end 
+		for index, defaultvalue in ipairs(nestvals) do
+			local nestname = ( nest and tostring(index)) or ""
+			if nest == false then index = nil end 
 			local newSlider = metaElement:NewSlider({
 				left = left,
 				bottom = bottom + i * height, 
 				right = left + width, 
 				top = bottom + i * height + (height - 4),
 				name = sliderParams.name..nestname,
+				tooltip = sliderParams.tooltip,
 				min = sliderParams.min,
 				max = sliderParams.max, 
 				digits = sliderParams.digits, 
 				parent = container,
 				value = defaultvalue,
 				defaultvalue = defaultvalue,
-				index = j,
-				MouseEvents = {
-					left = function(obj, mx, my) 
-						-- get the offset of within the click? 
-						local wratio = (mx - obj.left) / (obj.right - obj.left)
-						local newvalue = math.round(obj.min + wratio * (obj.max-obj.min), obj.digits)
-						local newright = ((newvalue - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
-						if debugmode then Spring.Echo("left clicked", obj.name, mx, wratio, newvalue, newright) end
-						updateValue(obj, newvalue, obj.index)
-						obj:UpdateVBOKeys('right', newright)
-					end, 
-					right = function(obj, mx, my) 
-						updateValue(obj, obj.defaultvalue, obj.index, " (D)")
-						local newright = ((obj.value - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
-						obj:UpdateVBOKeys('right', newright, default)
-						if debugmode then  Spring.Echo("right clicked", obj.name, mx, my, newright, obj.value) end
-					end, 
-					hover = function (obj,mx,my) 
-						if sliderParams.tooltip and WG and WG['tooltip'] and WG['tooltip'].ShowTooltip then 
-							WG['tooltip'].ShowTooltip(sliderParams.name..nestname, sliderParams.tooltip)    -- x/y (optional): display coordinates
-						end 
-					end
-				},
-				textelements = {
-					{text = string.format('%s%s = %.'.. tostring(sliderParams.digits)..'f (D)',sliderParams.name, nestname, defaultvalue), alignment = 5},
-					{text = tostring(sliderParams.min), alignment = 4},
-					{text = tostring(sliderParams.max), alignment = 6},},
+				valuetarget = valuetarget,
+				callbackfunc = sliderListConfig.callbackfunc,
+				index = index,
 			})
-			newSlider.MouseEvents.drag = newSlider.MouseEvents.left --hue hue
-			local defaultPos = ((newSlider.value - newSlider.min) / (newSlider.max - newSlider.min)) *(newSlider.right - newSlider.left) + newSlider.left
-			newSlider:UpdateVBOKeys('right', defaultPos, newSlider.value)
 			i = i+1
 		end
 		--updateValue(newSlider, valuetarget[slidervalue.name])
@@ -790,7 +836,9 @@ layout (location = 2) in vec4 color1; // rgba
 layout (location = 3) in vec4 color2; // rgba
 layout (location = 4) in vec4 uvoffsets; // uvrect, bottom left, top right
 layout (location = 5) in vec4 fronttexture_edge_z_progress; //  textured, edgewidth, z,progress
-layout (location = 6) in vec4 hide_blendmode_globalbackground;;  
+layout (location = 6) in vec4 hide_blendmode_globalbackground;
+
+uniform vec4 scrollScale = vec4(0,0,1,1);
 
 out DataVS {
 	vec4 v_screenpos;
@@ -804,9 +852,15 @@ out DataVS {
 
 #line 5100
 void main() {
-	gl_Position = vec4(screenpos.x, 0, screenpos.y,1.0);
-	v_screenpos = screenpos;
-	v_cornersizes = cornersizes;
+	// calculate scroll/scale offsets:
+	gl_Position = vec4(screenpos.x * scrollScale.z + scrollScale.x, 0, screenpos.y * scrollScale.w + scrollScale.y,1.0);
+	v_screenpos = screenpos * scrollScale.zwzw  + scrollScale.xyxy;
+	//v_screenpos = screenpos * scrollScale.zwzw * (sin(timeInfo.x/100) + 1) + scrollScale.xyxy+(cos(timeInfo.x/100)* 100); // hue hue
+	
+	// ensure corners are no smaller than they can be
+	v_cornersizes = cornersizes * scrollScale.zwzw + scrollScale.xyxy;
+	v_cornersizes = min(v_cornersizes, vec4(v_screenpos.z - v_screenpos.x) * 0.5);
+	v_cornersizes = min(v_cornersizes, vec4(v_screenpos.w - v_screenpos.y) * 0.5);
 	v_color1 = color1;
 	v_color2 = color2;
 	v_uvoffsets = uvoffsets;
@@ -1055,6 +1109,8 @@ local fsSrc = [[
 uniform sampler2D bgTex;
 uniform sampler2D uiAtlas;
 
+uniform vec4 scissorLayer; 
+
 #define BACKGROUND_TILESIZE 64
 
 in DataGS {
@@ -1071,6 +1127,14 @@ out vec4 fragColor;
 
 #line 20000
 void main() {
+	// silly mans scissor test?
+	if ((gl_FragCoord.x < scissorLayer.x) || 
+		(gl_FragCoord.y < scissorLayer.y) || 
+		(gl_FragCoord.x > scissorLayer.z) || 
+		(gl_FragCoord.y > scissorLayer.w)){
+		fragColor.rgba = vec4(fract(gl_FragCoord.xyx * 0.01),0.0);
+		return;
+	} 
 	//vec4 bgTex = texture(bgTex, g_uv.zw/BACKGROUND_TILESIZE); // sample background texture, even if we might discard it
 	vec4 fronttex = texture(uiAtlas, g_uv.xy, - 0.75);
 	fragColor = g_color;
@@ -1155,7 +1219,8 @@ local function makeShaders()
 				uiAtlas = 1,
 			},
 			uniformFloat = {
-				--shaderParams = {gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0},
+				scissorLayer = {0,0,vsx,vsy},
+				scrollScale = {0,0,1,1},
 			},
 		},
 		"rectRoundShader GL4"
@@ -2041,6 +2106,8 @@ function widget:DrawScreen()
 	end
 	if rectRoundVBO.usedElements > 0 then 
 		rectRoundShader:Activate()
+		rectRoundShader:SetUniformFloat("scissorLayer", 0,0,vsx, vsy)
+		rectRoundShader:SetUniformFloat("scissorLayer", 0,0,vsx, vsy)
 		rectRoundVAO:DrawArrays(GL.POINTS,rectRoundVBO.usedElements, 0, nil, 0)
 		rectRoundShader:Deactivate()
 	end
