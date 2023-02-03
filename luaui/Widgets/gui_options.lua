@@ -5292,9 +5292,7 @@ function widget:Initialize()
 		widgetHandler:EnableWidget("Infolos API")
 	end
 
-	if WG['lang'] then
-		texts = WG['lang'].getText('options')
-	end
+	texts = Spring.I18N('ui.settings')
 
 	-- set nano particle rotation: rotValue, rotVelocity, rotAcceleration, rotValueRNG, rotVelocityRNG, rotAccelerationRNG (in degrees)
 	Spring.SetNanoProjectileParams(-180, -50, -50, 360, 100, 100)
