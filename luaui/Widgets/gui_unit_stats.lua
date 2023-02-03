@@ -12,67 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	prog = 'Prog',
-	metal = 'Metal',
-	energy = 'Energy',
-	cost = 'Cost',
-	move = 'Move',
-	speedaccelturn = 'Speed / Accel / Turn',
-	build = 'Build',
-	los = 'Los',
-	airlos = 'AirLos',
-	radar = 'Radar',
-	sonar = 'Sonar',
-	jammer = 'Jam',
-	sonarjam = 'Sonar Jam',
-	seis = 'Seis',
-	other = 'Other',
-	stealth = 'Stealth',
-	armor = 'Armor',
-	class = 'class',
-	exp = 'Exp',
-	open = 'Open',
-	closed = 'Closed',
-	maxhp = 'max HP',
-	health = 'health',
-	assist = 'Assist',
-	repair = 'Repair',
-	reclaim = 'Reclaim',
-	resurrect = 'Resurrect',
-	capture = 'Capture',
-	cloak = 'Cloak',
-	waterweapon = 'Waterweapon',
-	manuelfire = 'Manuelfire',
-	stockpile = 'Stockpile',
-	paralyzer = 'Paralyzer',
-	kamikaze = 'Kamikaze',
-	abilities = 'Abilities',
-	deathexplosion = 'Death Explosion',
-	selfdestruct = 'Self Destruct',
-	weap = 'Weap',
-	accuracy = 'accuracy',
-	aim = 'aim',
-	firerate = 'firerate',
-	range = 'range',
-	aoe = 'aoe',
-	edge = 'edge',
-	s = 's', -- seconds abbr
-	reload = 'reload',
-	paralyze = 'paralyze',
-	impulse = 'impulse',
-	crater = 'crater',
-	info = 'Info',
-	dmg = 'Dmg',
-	infinite = 'infinite',
-	burst = 'Burst',
-	modifiers = 'Modifiers',
-	each = 'each',
-	dps = 'DPS',
-	persecond = 'per second',
-	totaldmg = 'Total Dmg',
-}
-
+local texts = {}
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
 local gameName = Game.gameName
 
@@ -304,9 +244,7 @@ local function disableStats()
 end
 
 function widget:Initialize()
-	if WG['lang'] then
-		texts = WG['lang'].getText('unitstats')
-	end
+	texts = Spring.I18N('ui.unitstats')
 
 	widget:ViewResize(vsx,vsy)
 
@@ -524,7 +462,7 @@ local function drawStats(uDefID, uID)
 	if sonarJammingRadius > 0 then DrawText(texts.sonarjam..':', '\255\255\77\77' .. sonarJammingRadius) end
 	if seismicRadius > 0 then DrawText(texts.seis..':' , '\255\255\26\255' .. seismicRadius) end
 
-	if uDef.stealth then DrawText(texts.other..":", texts.stealth) end
+	if uDef.stealth then DrawText(texts.other1..":", texts.stealth) end
 
 	cY = cY - fontSize
 
