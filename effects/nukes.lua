@@ -13,7 +13,7 @@ local definitions = {
                 heatfalloff        = [[0.18 r0.04]],
                 maxheat            = 20,
                 pos                = [[r-2 r2, 50, r-2 r2]],
-                rotParams          = [[30 r20, -12 r-4, -180 r360]],
+                rotParams          = [[20 r10, -5 r-2, -180 r360]],
                 --rotParams          = [[25 r30, -4 r-6, -180 r360]],
                 size               = [[32 r5]],
                 sizegrowth         = [[7 r3]],
@@ -144,7 +144,7 @@ local definitions = {
         },
         kickedupwater = {
             class              = [[CSimpleParticleSystem]],
-            count              = 1,
+            count              = 0,
             water              = true,
             underwater         = true,
             properties = {
@@ -341,13 +341,38 @@ local definitions = {
             --gravity            = [[0.0, 0.1, 0.0]],
             frontoffset        = 0,
             fronttexture       = [[blastwave]],
-            length             = 40,
+            length             = 1,
             sidetexture        = [[none]],
             size               = 12,
             sizegrowth         = [[-29 r6]],
             ttl                = 38,
             pos                = [[0, 75, 0]],
             drawOrder          = 1,
+          },
+        },
+    shockwave_fast = {
+          air                = true,
+          class              = [[CBitmapMuzzleFlame]],
+          count              = 1,
+          ground             = true,
+          underwater         = true,
+          water              = true,
+          unit               = true,
+          properties = {
+            colormap           = [[0 0 0 0.01   0.6 0.5 0.4 0.22    0.4 0.3 0.15 0.15   0.10 0.08 0.04 0.012    0.06 0.04 0.02 0.006    0 0 0 0.01]],
+            dir                = [[0, 1, 0]],
+            --gravity            = [[0.0, 0.1, 0.0]],
+            frontoffset        = 0,
+            fronttexture       = [[shockwave]],
+            length             = 1,
+            sidetexture        = [[none]],
+            size               = 19,
+            sizegrowth         = [[-58 r4]],
+            ttl                = 13,
+            pos                = [[0, 85, 0]],
+            drawOrder          = 1,
+            useairlos          = false,
+            alwaysvisible      = true,
           },
         },
     shockwave_inner = {
@@ -392,50 +417,6 @@ local definitions = {
             pos                = [[0, 25, 0]],
           },
         },
-            -- shockwave = {
-            --     class              = [[CSpherePartSpawner]],
-            --         count              = 1,
-            --         ground             = true,
-            --         water              = true,
-            --         underwater         = true,
-            --         air                = true,
-            --         properties = {
-            --             alpha           = 0.20,
-            --             ttl             = 30,
-            --             expansionSpeed  = 18,
-            --             color           = [[1.0, 0.85, 0.45]],
-            --             alwaysvisible      = true,
-            --         },
-            -- },
-            -- shockwave_slow = {
-            --     class              = [[CSpherePartSpawner]],
-            --         count              = 1,
-            --         ground             = true,
-            --         water              = true,
-            --         underwater         = true,
-            --         air                = true,
-            --         properties = {
-            --             alpha           = 0.05,
-            --             ttl             = 120,
-            --             expansionSpeed  = 9,
-            --             color           = [[0.8, 0.55, 0.2]],
-            --         },
-            -- },
-            -- shockwave_inner = {
-            --     class              = [[CSpherePartSpawner]],
-            --         count              = 1,
-            --         ground             = true,
-            --         water              = true,
-            --         underwater         = true,
-            --         air                = true,
-            --         properties = {
-            --             alpha           = 0.95,
-            --             ttl             = 50,
-            --             expansionSpeed  = 4.8,
-            --             color           = [[0.7, 0.60, 0.32]],
-            --             alwaysvisible      = true,
-            --         },
-            -- },
     bigsmoketrails = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -665,6 +646,50 @@ local definitions = {
                 pos                = [[-70 r140, 70 r15, -70 r140]],
             },
         },
+
+    -- electricstorm = {
+    --         air                = true,
+    --         class              = [[CExpGenSpawner]],
+    --         count              = 0,
+    --         ground             = true,
+    --         water              = false,
+    --         underwater         = false,
+    --         properties = {
+    --             delay              = [[15 r90]],
+    --             explosiongenerator = [[custom:lightning_stormbig]],
+    --             pos                = [[0 r165, 50 r50, 0 r165]],
+    --             alwaysvisible      = true,
+    --         },
+    --     },
+
+    -- electricstormalt = {
+    --         air                = true,
+    --         class              = [[CExpGenSpawner]],
+    --         count              = 0,
+    --         ground             = true,
+    --         water              = false,
+    --         underwater         = false,
+    --         properties = {
+    --             delay              = [[30 r100]],
+    --             explosiongenerator = [[custom:lightning_stormbigalt]],
+    --             pos                = [[-100 r160, 55 r50, -100 r160]],
+    --         },
+    --     },
+
+    -- electricstormxl = {
+    --         air                = true,
+    --         class              = [[CExpGenSpawner]],
+    --         count              = 0,
+    --         ground             = true,
+    --         water              = false,
+    --         underwater         = false,
+    --         properties = {
+    --             delay              = [[60 r110]],
+    --             explosiongenerator = [[custom:lightning_stormflares]],
+    --             pos                = [[-20 r150, 150 r25, -20 r150]],
+    --             alwaysvisible      = true,
+    --         },
+    --     },
 },
 
     ["newnuke-floor"] = {
@@ -1351,6 +1376,8 @@ definitions['newnukecor'].dirt2.properties.particlespeedspread = math.floor(defi
 definitions['newnukecor'].dirt2.properties.numparticles = math.floor(definitions['newnukecor'].dirt2.properties.numparticles * size)
 definitions['newnukecor'].brightflare.properties.ttl = math.floor(definitions['newnukecor'].brightflare.properties.ttl * size * 0.7)
 definitions['newnukecor'].shockwave.properties.ttl = math.floor(definitions['newnukecor'].shockwave.properties.ttl * size)
+definitions['newnukecor'].shockwave_fast.properties.size = math.floor(definitions['newnukecor'].shockwave_fast.properties.size * size * 0.95)
+definitions['newnukecor'].shockwave_fast.properties.ttl = math.floor(definitions['newnukecor'].shockwave_fast.properties.ttl * size * 0.85)
 definitions['newnukecor'].shockwave_slow.properties.ttl = math.floor(definitions['newnukecor'].shockwave_slow.properties.ttl * size)
 definitions['newnukecor'].shockwave_inner.properties.ttl = math.floor(definitions['newnukecor'].shockwave_inner.properties.ttl * size)
 -- definitions['newnukecor'].centerflare.properties.size = math.floor(definitions['newnukecor'].centerflare.properties.size * size * 1.2)
@@ -1399,6 +1426,8 @@ definitions['newnukehuge'].dirt2.properties.particlespeedspread = math.floor(def
 definitions['newnukehuge'].dirt2.properties.numparticles = math.floor(definitions['newnukehuge'].dirt2.properties.numparticles * size)
 definitions['newnukehuge'].brightflare.properties.ttl = math.floor(definitions['newnukehuge'].brightflare.properties.ttl * size)
 definitions['newnukehuge'].shockwave.properties.ttl = math.floor(definitions['newnukehuge'].shockwave.properties.ttl * size) * 0.7
+definitions['newnukehuge'].shockwave_fast.properties.size = math.floor(definitions['newnukehuge'].shockwave_fast.properties.size * size)
+definitions['newnukehuge'].shockwave_fast.properties.ttl = math.floor(definitions['newnukehuge'].shockwave_fast.properties.ttl * size)
 definitions['newnukehuge'].shockwave_slow.properties.ttl = math.floor(definitions['newnukehuge'].shockwave_slow.properties.ttl * size)
 definitions['newnukehuge'].shockwave_inner.properties.ttl = math.floor(definitions['newnukehuge'].shockwave_inner.properties.ttl * size)
 definitions['newnukehuge'].centerflare.properties.size = [[64 r9]]
@@ -1457,12 +1486,14 @@ definitions['newnuketac'].dirt2.properties.numparticles = math.floor(definitions
 definitions['newnuketac'].dirt3.properties.particlespeed = math.floor(definitions['newnuketac'].dirt3.properties.particlespeed * size * 0.9)
 definitions['newnuketac'].dirt3.properties.particlespeedspread = math.floor(definitions['newnuketac'].dirt3.properties.particlespeedspread * size * 0.9)
 definitions['newnuketac'].dirt3.properties.numparticles = math.floor(definitions['newnuketac'].dirt3.properties.numparticles * size)
-definitions['newnuketac'].brightflare.properties.ttl = math.floor(definitions['newnuketac'].brightflare.properties.ttl * size) * 0.4
-definitions['newnuketac'].brightflare.properties.size = math.floor(definitions['newnuketac'].brightflare.properties.size * size) * 0.4
-definitions['newnuketac'].brightflareslow.properties.ttl = math.floor(definitions['newnuketac'].brightflareslow.properties.ttl * size)
-definitions['newnuketac'].brightflareslow.properties.size = math.floor(definitions['newnuketac'].brightflareslow.properties.size * size)
+definitions['newnuketac'].brightflare.properties.ttl = math.floor(definitions['newnuketac'].brightflare.properties.ttl * size * 0.5)
+definitions['newnuketac'].brightflare.properties.size = math.floor(definitions['newnuketac'].brightflare.properties.size * size * 0.2)
+definitions['newnuketac'].brightflareslow.properties.ttl = math.floor(definitions['newnuketac'].brightflareslow.properties.ttl * size * 0.5)
+definitions['newnuketac'].brightflareslow.properties.size = math.floor(definitions['newnuketac'].brightflareslow.properties.size * size * 0.2)
 definitions['newnuketac'].shockwave.properties.ttl = math.floor(definitions['newnuketac'].shockwave.properties.ttl * size * 0.7)
 definitions['newnuketac'].shockwave.properties.size = math.floor(definitions['newnuketac'].shockwave.properties.size * size * 1.2)
+definitions['newnuketac'].shockwave_fast.properties.size = math.floor(definitions['newnuketac'].shockwave_fast.properties.size * size * 0.6)
+definitions['newnuketac'].shockwave_fast.properties.ttl = math.floor(definitions['newnuketac'].shockwave_fast.properties.ttl * size * 1.8)
 definitions['newnuketac'].shockwave_slow.properties.ttl = math.floor(definitions['newnuketac'].shockwave_slow.properties.ttl * size * 0.8)
 definitions['newnuketac'].shockwave_slow.properties.size = math.floor(definitions['newnuketac'].shockwave_slow.properties.size * size * 1.3)
 definitions['newnuketac'].shockwave_inner.properties.ttl = math.floor(definitions['newnuketac'].shockwave_inner.properties.ttl * size * 0.8)
@@ -1472,8 +1503,9 @@ definitions['newnuketac'].centerflare.properties.heat = math.floor(definitions['
 definitions['newnuketac'].centerflare.properties.maxheat = math.floor(definitions['newnuketac'].centerflare.properties.maxheat * size * 1.05)
 definitions['newnuketac'].groundflash_large.properties.size = math.floor(definitions['newnuketac'].groundflash_large.properties.size * size * 0.8)
 definitions['newnuketac'].groundflash_white.properties.size = math.floor(definitions['newnuketac'].groundflash_white.properties.size * size * 0.8)
+definitions['newnuketac'].groundflash_white.properties.ttl = math.floor(definitions['newnuketac'].groundflash_white.properties.ttl * size * 0.4)
 definitions['newnuketac'].groundflash_quick.properties.size = math.floor(definitions['newnuketac'].groundflash_quick.properties.size * size * 0.8)
-definitions['newnuketac'].groundflash_quick.properties.ttl = math.floor(definitions['newnuketac'].groundflash_quick.properties.ttl * size * 0.6)
+definitions['newnuketac'].groundflash_quick.properties.ttl = math.floor(definitions['newnuketac'].groundflash_quick.properties.ttl * size * 0.4)
 definitions['newnuketac'].groundflash_quick.properties.sizegrowth = math.floor(definitions['newnuketac'].groundflash_quick.properties.sizegrowth * size * 0.8)
 definitions['newnuketac'].grounddust.properties.particlesize = math.floor(definitions['newnuketac'].grounddust.properties.particlesize * size)
 definitions['newnuketac'].grounddust.properties.particlespeed = math.floor(definitions['newnuketac'].grounddust.properties.particlespeed * size)
@@ -1517,6 +1549,22 @@ definitions['chickennuke'].dirt2.properties.particlespeedspread = math.floor(def
 definitions['chickennuke'].centerflare.properties.size = [[15 r4]]
 definitions['chickennuke'].groundflash_large.properties.size = math.floor(definitions['chickennuke'].groundflash_large.properties.size * size)
 definitions['chickennuke'].groundflash_white.properties.size = math.floor(definitions['chickennuke'].groundflash_white.properties.size * size)
+
+-- definitions['afusexpl'] = table.copy(definitions['newnuke'])
+-- definitions['afusexpl'].electricstorm.count = 8
+-- definitions['afusexpl'].electricstormalt = 6
+-- definitions['afusexpl'].electricstormxl = 6
+-- definitions['afusexpl'].brightflare.properties.ttl          = math.floor(definitions['afusexpl'].brightflare.properties.ttl * 0.1)
+-- definitions['afusexpl'].brightflareslow.properties.ttl      = math.floor(definitions['afusexpl'].brightflareslow.properties.ttl * 0.25)
+-- definitions['afusexpl'].groundflash_large.properties.ttl    = math.floor(definitions['afusexpl'].groundflash_large.properties.ttl * 0.25)
+-- definitions['afusexpl'].groundflash_quick.properties.ttl    = math.floor(definitions['afusexpl'].groundflash_quick.properties.ttl * 0.1)
+-- definitions['afusexpl'].groundflash_white.properties.ttl    = math.floor(definitions['afusexpl'].groundflash_white.properties.ttl * 0.15)
+
+
+-- definitions['afusexplxl'] = table.copy(definitions['newnukecor'])
+-- definitions['afusexplxl'].electricstorm.count = 8
+-- definitions['afusexplxl'].electricstormalt = 6
+-- definitions['afusexplxl'].electricstormxl = 6
 
 
 return definitions

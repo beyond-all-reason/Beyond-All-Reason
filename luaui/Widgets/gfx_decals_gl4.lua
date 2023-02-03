@@ -749,6 +749,14 @@ for weaponDefID=1, #WeaponDefs do
 				heatstart = 6000
 				heatdecay = 1.5
 				glowadd = 2
+
+			elseif string.find(weaponDef.name, 'crawl_blastsmlscavboss') then
+				textures = { "t_groundcrack_21_a.tga" }
+				radius = radius * 1.7
+				--radiusVariation = 0.7
+				heatstart = 6000
+				heatdecay = 0.78
+				glowadd = 2
 			end
 
 		elseif weaponDef.type == 'Flame' then

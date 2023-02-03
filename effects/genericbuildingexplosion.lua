@@ -1216,7 +1216,7 @@ local sizes = {
     },
     clouddust = {
       properties = {
-        numparticles       = 6,
+        numparticles       = 8,
         particlelifespread = 200,
         particlesize       = 120,
         particlesizespread = 120,

@@ -611,8 +611,8 @@ GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
 --cortron
 explosionLights[WeaponDefNames["cortron_cortron_weapon"].id] =
 GetLightClass("Explosion", nil, "Large", {r = 3, g = 2.5, b = 2.0, a = 0.25,
-										  color2r = 0.9, color2g = 0.5, color2b = 0.15, colortime = 80,
-										  sustain = 30, lifetime = 150,
+										  color2r = 0.5, color2g = 0.2, color2b = 0.09, colortime = 10,
+										  sustain = 4, lifetime = 120,
 										  modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
 --legbart
