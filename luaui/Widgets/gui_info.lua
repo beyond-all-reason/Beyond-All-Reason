@@ -444,9 +444,7 @@ end
 function widget:Initialize()
 	refreshUnitInfo()
 
-	if WG['lang'] then
-		texts = WG['lang'].getText('info')
-	end
+	texts = Spring.I18N('ui.info')
 
 	checkGeothermalFeatures()
 
