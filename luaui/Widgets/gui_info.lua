@@ -905,7 +905,7 @@ local function drawUnitInfo()
 		end
 	end
 
-	local unitNameColor = '\255\205\255\205'
+	local unitNameColor = tooltipTitleColor
 	if SelectedUnitsCount > 0 then
 		if not displayMode == 'unitdef' or (WG['buildmenu'] and (WG['buildmenu'].selectedID and (not WG['buildmenu'].hoverID or (WG['buildmenu'].selectedID == WG['buildmenu'].hoverID)))) then
 			unitNameColor = '\255\125\255\125'
@@ -1317,18 +1317,90 @@ local function drawUnitInfo()
 	end
 end
 
+local showEngineTooltip = false		-- straight up display old engine delivered text
 local function drawEngineTooltip()
 	--local labelColor = '\255\205\205\205'
 	--local valueColor = '\255\255\255\255'
 
-	-- display default plaintext engine tooltip
-	local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
-	local text, numLines = font:WrapText(currentTooltip, contentWidth * (loadedFontSize / fontSize))
-	font:Begin()
-	font:SetTextColor(1, 1, 1, 1)
-	font:SetOutlineColor(0, 0, 0, 1)
-	font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8), fontSize, "o")
-	font:End()
+	local mouseX, mouseY, lmb, mmb, rmb, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
+	if not cameraPanMode then
+		local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
+		if showEngineTooltip then
+			-- display default plaintext engine tooltip
+			local text, numLines = font:WrapText(currentTooltip, contentWidth * (loadedFontSize / fontSize))
+			font:Begin()
+			font:SetTextColor(1, 1, 1, 1)
+			font:SetOutlineColor(0, 0, 0, 1)
+			font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8), fontSize, "o")
+			font:End()
+		else
+			local heightStep = (fontSize * 1.4)
+			hoverType, hoverData = spTraceScreenRay(mouseX, mouseY)
+			if hoverType == 'ground' then
+				local desc, coords = spTraceScreenRay(mouseX, mouseY, true)
+				local groundType1, groundType2, metal, hardness, tankSpeed, botSpeed, hoverSpeed, shipSpeed, receiveTracks = Spring.GetGroundInfo(coords[1], coords[3])
+				local text = ''
+				local height = 0
+				font:Begin()
+				font:SetTextColor(1, 1, 1, 1)
+				font:SetOutlineColor(0, 0, 0, 1)
+				font:Print(tooltipValueColor..math.floor(hoverData[1]+0.5)..',', backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				font:Print(math.floor(hoverData[3]+0.5), backgroundRect[1] + contentPadding + (fontSize * 3.2), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.elevation')..': '..tooltipValueColor..math.floor(hoverData[2]+0.5), backgroundRect[1] + contentPadding + (fontSize * 6.6), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				if tankSpeed ~= 1 or botSpeed ~= 1 or hoverSpeed ~= 1 or (shipSpeed ~= 1 and coords[2] <= 0) then
+					text = ''
+					if tankSpeed ~= 1 then
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.tank')..' '..tooltipValueColor..round(tankSpeed, 2)
+					end
+					if botSpeed ~= 1 then
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.bot')..' '..tooltipValueColor..round(botSpeed, 2)
+					end
+					if hoverSpeed ~= 1 then
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.hover')..' '..tooltipValueColor..round(hoverSpeed, 2)
+					end
+					if shipSpeed ~= 1 and coords[2] <= 0 then
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.ship')..' '..tooltipValueColor..round(shipSpeed, 2)
+					end
+					height = height + heightStep
+					font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.speedmultipliers')..':  '..text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				end
+				--if metal > 0 then
+				--	height = height + heightStep
+				--	font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.metal')..' '..tooltipValueColor..math.floor(metal), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				--end
+				--if hardness ~= 1 then
+				--	height = height + heightStep
+				--	font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.hardness')..' '..tooltipValueColor..math.floor(hardness), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				--end
+				font:End()
+			elseif hoverType == 'feature' then
+				local featureDefID = Spring.GetFeatureDefID(hoverData)
+				local text = FeatureDefs[featureDefID].tooltip
+				local height = 0
+				if text then
+					font2:Begin()
+					font2:Print(tooltipTitleColor..text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1.2) - height, (fontSize * 1.4), "o")
+					font2:End()
+					height = height + (fontSize * 0.5)
+				end
+				font:Begin()
+				font:SetTextColor(1, 1, 1, 1)
+				font:SetOutlineColor(0, 0, 0, 1)
+				text = ''
+				if FeatureDefs[featureDefID].energy > 0 then
+					height = height + heightStep
+					text = tooltipLabelTextColor..Spring.I18N('ui.reclaimInfo.energy', { energy = "\255\255\255\000"..FeatureDefs[featureDefID].energy })
+					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				end
+				if FeatureDefs[featureDefID].metal > 0 then
+					height = height + heightStep
+					text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.reclaimInfo.metal', { metal = tooltipValueColor..FeatureDefs[featureDefID].metal })
+					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				end
+				font:End()
+			end
+		end
+	end
 end
 
 local function drawInfo()
@@ -1714,7 +1786,7 @@ function checkChanges()
 		displayMode = 'unit'
 		displayUnitID = cfgDisplayUnitID
 		displayUnitDefID = spGetUnitDefID(displayUnitID)
-		if lastUpdateClock + 0.6 < os_clock() then
+		if lastUpdateClock + 0.4 < os_clock() then
 			-- unit stats could have changed meanwhile
 			doUpdate = true
 		end
@@ -1725,7 +1797,7 @@ function checkChanges()
 		displayMode = 'unit'
 		displayUnitID = hoverData
 		displayUnitDefID = spGetUnitDefID(displayUnitID)
-		if lastUpdateClock + 0.6 < os_clock() then
+		if lastUpdateClock + 0.4 < os_clock() then
 			-- unit stats could have changed meanwhile
 			doUpdate = true
 		end
@@ -1757,7 +1829,7 @@ function checkChanges()
 		displayMode = 'unit'
 		displayUnitID = selectedUnits[1]
 		displayUnitDefID = spGetUnitDefID(selectedUnits[1])
-		if lastUpdateClock + 0.6 < os_clock() then
+		if lastUpdateClock + 0.4 < os_clock() then
 			-- unit stats could have changed meanwhile
 			doUpdate = true
 		end
