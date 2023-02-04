@@ -714,6 +714,7 @@
 			"hardness": "Hardness",
 			"speedmultipliers": "Speeds",
 			"metal": "Metal",
+			"energy": "Energy",
 			"ship": "ship",
 			"tank": "Tank",
 			"bot": "Bot",

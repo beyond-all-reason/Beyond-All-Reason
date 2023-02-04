@@ -1389,12 +1389,12 @@ local function drawEngineTooltip()
 				text = ''
 				if FeatureDefs[featureDefID].energy > 0 then
 					height = height + heightStep
-					text = tooltipLabelTextColor..Spring.I18N('ui.reclaimInfo.energy', { energy = "\255\255\255\000"..FeatureDefs[featureDefID].energy })
+					text = tooltipLabelTextColor..Spring.I18N('ui.info.energy').."  \255\255\255\000"..FeatureDefs[featureDefID].energy
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				if FeatureDefs[featureDefID].metal > 0 then
 					height = height + heightStep
-					text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.reclaimInfo.metal', { metal = tooltipValueColor..FeatureDefs[featureDefID].metal })
+					text = tooltipLabelTextColor..Spring.I18N('ui.info.metal').."  "..tooltipValueColor..FeatureDefs[featureDefID].metal
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				font:End()
