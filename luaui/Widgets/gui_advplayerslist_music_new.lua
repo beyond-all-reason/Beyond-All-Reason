@@ -563,25 +563,25 @@ function widget:Initialize()
 	WG['music'].getTracksConfig = function(value)
 		local tracksConfig = {}
 		for k,v in pairs(menuTracks) do
-			tracksConfig[#tracksConfig+1] = {true, 'menu', k, processTrackname(v), v}
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.menu'), processTrackname(v), v}
 		end
 		for k,v in pairs(loadingTracks) do
-			tracksConfig[#tracksConfig+1] = {true, 'loading', k, processTrackname(v), v}
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.loading'), processTrackname(v), v}
 		end
 		for k,v in pairs(peaceTracks) do
-			tracksConfig[#tracksConfig+1] = {true, 'peace', k, processTrackname(v), v}
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.peace'), processTrackname(v), v}
 		end
 		for k,v in pairs(warlowTracks) do
-			tracksConfig[#tracksConfig+1] = {true, 'warlow', k, processTrackname(v), v}
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warlow'), processTrackname(v), v}
 		end
 		for k,v in pairs(warhighTracks) do
-			tracksConfig[#tracksConfig+1] = {true, 'warhigh', k, processTrackname(v), v}
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warhigh'), processTrackname(v), v}
 		end
 		for k,v in pairs(bossFightTracks) do
-			tracksConfig[#tracksConfig+1] = {true, 'bossfight', k, processTrackname(v), v}
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.bossfight'), processTrackname(v), v}
 		end
 		for k,v in pairs(gameoverTracks) do
-			tracksConfig[#tracksConfig+1] = {true, 'gameover', k, processTrackname(v), v}
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.gameover'), processTrackname(v), v}
 		end
 		return tracksConfig
 	end

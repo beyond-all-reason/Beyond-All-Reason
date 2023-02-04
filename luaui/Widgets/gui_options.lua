@@ -5071,16 +5071,16 @@ function init()
 				newOptions[count] = { id = "label_sound_music_spacer", group = "sound", category = types.basic }
 
 				for k, v in pairs(trackList) do
-					if prevCategory ~= v[2] then
-						prevCategory = v[2]
+					if prevCategory ~= v[1] then
+						prevCategory = v[1]
 						count = count + 1
-						newOptions[count] = { id="music_track_"..v[2], group="sound", basic=true, name=v[2], type="text"}
+						newOptions[count] = { id="music_track_"..v[2], group="sound", basic=true, name=v[1], type="text"}
 					end
 					count = count + 1
-					newOptions[count] = { id="music_track_"..v[2].."_"..v[3], group="sound", basic=true, name=widgetOptionColor.."   "..v[4], type="click",--..'\n'..v[4],
+					newOptions[count] = { id="music_track_"..count, group="sound", basic=true, name=widgetOptionColor.."   "..v[2], type="click",--..'\n'..v[4],
 						  onclick = function()
 							  if WG['music'] ~= nil and WG['music'].playTrack then
-								  WG['music'].playTrack(v[5])
+								  WG['music'].playTrack(v[3])
 							  end
 						  end,
 					}

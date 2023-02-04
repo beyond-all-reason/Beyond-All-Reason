@@ -102,6 +102,15 @@
 				"takeTeamAmount": "I took %{name}: %{units} units, %{energy} energy and %{metal} metal."
 			}
 		},
+		"music": {
+			"menu": "Menu",
+			"loading": "Loading",
+			"peace": "Peace",
+			"warlow": "Conflict",
+			"warhigh": "War",
+			"bossfight": "Boss fight",
+			"gameover": "Game over"
+		},
 		"playerTV": {
 			"playerTV": "TV",
 			"cancelPlayerTV": "Turn off TV",
@@ -701,6 +710,7 @@
 			"unitsselected": "units selected",
 			"m": "M",
 			"e": "E",
+			"elevation": "elevation",
 			"costm": "Cost M",
 			"coste": "Cost E",
 			"health": "Health",
