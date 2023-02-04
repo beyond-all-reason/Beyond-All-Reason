@@ -106,7 +106,7 @@
          	emitVector=0, 1, 0;
 		gravity=r-0.1 r0.1, 0 r0.1, r-0.1 r0.1;
 		colorMap= 0.2 0.2 0.4 0.01	0 0 0 0.0;
-		Texture=dirtold;
+		Texture=dirt;
 		airdrag=1.0;
 		particleLife=2;
 		particleLifeSpread=20;
@@ -235,7 +235,7 @@
          	emitVector=0, 1, 0;
 		gravity=r-0.1 r0.1, 0 r0.1, r-0.1 r0.1;
 		colorMap= 0.2 0.2 0.4 0.01	0 0 0 0.0;
-		Texture=dirtold;
+		Texture=dirt;
 		airdrag=1.0;
 		particleLife=2;
 		particleLifeSpread=20;
@@ -365,7 +365,7 @@
          	emitVector=0, 1, 0;
 		gravity=r-0.1 r0.1, 0 r0.1, r-0.1 r0.1;
 		colorMap= 0.2 0.2 0.4 0.01	0 0 0 0.0;
-		Texture=dirtold;
+		Texture=dirt;
 		airdrag=1.0;
 		particleLife=4;
 		particleLifeSpread=20;
