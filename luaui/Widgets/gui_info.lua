@@ -1346,7 +1346,7 @@ local function drawEngineTooltip()
 				font:SetOutlineColor(0, 0, 0, 1)
 				font:Print(tooltipValueColor..math.floor(hoverData[1]+0.5)..',', backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				font:Print(math.floor(hoverData[3]+0.5), backgroundRect[1] + contentPadding + (fontSize * 3.2), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
-				font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.elevation')..': '..tooltipValueColor..math.floor(hoverData[2]+0.5), backgroundRect[1] + contentPadding + (fontSize * 6.6), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.elevation')..'  '..tooltipValueColor..math.floor(hoverData[2]+0.5), backgroundRect[1] + contentPadding + (fontSize * 6.6), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				if tankSpeed ~= 1 or botSpeed ~= 1 or hoverSpeed ~= 1 or (shipSpeed ~= 1 and coords[2] <= 0) then
 					text = ''
 					if tankSpeed ~= 1 then
@@ -1362,7 +1362,7 @@ local function drawEngineTooltip()
 						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.ship')..' '..tooltipValueColor..round(shipSpeed, 2)
 					end
 					height = height + heightStep
-					font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.speedmultipliers')..':  '..text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+					font:Print(tooltipDarkTextColor..Spring.I18N('ui.info.speedmultipliers')..'   '..text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				--if metal > 0 then
 				--	height = height + heightStep
