@@ -220,6 +220,7 @@ local groups = {
 	weapon = folder..'weapon.png',
 	explo = folder..'weaponexplo.png',
 	weaponaa = folder..'weaponaa.png',
+	weaponsub = folder..'weaponsub.png',
 	aa = folder..'aa.png',
 	emp = folder..'emp.png',
 	sub = folder..'sub.png',
