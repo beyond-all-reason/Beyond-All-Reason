@@ -1333,16 +1333,23 @@ local function drawEngineTooltip()
 				if tankSpeed ~= 1 or botSpeed ~= 1 or hoverSpeed ~= 1 or (shipSpeed ~= 1 and coords[2] <= 0) then
 					text = ''
 					if tankSpeed ~= 1 then
-						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.tank')..' '..tooltipValueColor..(round(tankSpeed, 2)*100).."%"--..Spring.I18N('ui.info.percentchar')
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.tank')..' '..tooltipValueColor..math.floor(tankSpeed*100).."%"
 					end
 					if botSpeed ~= 1 then
-						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.bot')..' '..tooltipValueColor..(round(botSpeed, 2)*100).."%"--..Spring.I18N('ui.info.percentchar')
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.bot')..' '..tooltipValueColor..math.floor(botSpeed*100).."%"
 					end
 					if hoverSpeed ~= 1 then
-						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.hover')..' '..tooltipValueColor..(round(hoverSpeed, 2)*100).."%"--..Spring.I18N('ui.info.percentchar')
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.hover')..' '..tooltipValueColor..math.floor(hoverSpeed*100).."%"
 					end
 					if shipSpeed ~= 1 and coords[2] <= 0 then
-						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.ship')..' '..tooltipValueColor..(round(shipSpeed, 2)*100).."%"--..Spring.I18N('ui.info.percentchar')
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.ship')..' '..tooltipValueColor..math.floor(shipSpeed*100).."%"
+					end
+					if groundType2 and groundType2 ~= '' then
+						font2:Begin()
+						font2:Print(tooltipLabelTextColor..groundType2, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1) - height, (fontSize * 1.2), "o")
+						font2:End()
+						height = height + (fontSize * 0.25)
+						height = height + heightStep
 					end
 					font:Print(tooltipDarkTextColor..Spring.I18N('ui.info.speedmultipliers')..'   '..text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				elseif not displayMapPosition then

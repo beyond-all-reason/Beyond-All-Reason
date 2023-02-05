@@ -755,8 +755,7 @@
 			"eneededforconversion": "E needed for conversion",
 			"convertedm": "converted M",
 			"estorage": "E storage",
-			"mstorage": "M storage",
-			"percentchar": "%"
+			"mstorage": "M storage"
 		},
 		"settings": {
 			"basic": "Basic",
