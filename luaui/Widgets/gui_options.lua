@@ -3107,8 +3107,17 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setInputButton', { 'inputButton' }, value)
 		  end,
 		},
+		{ id = "autoeraser", group = "ui", category = types.basic, widget = "Auto point eraser", name = texts.option.autoeraser, type = "bool", value = GetWidgetToggleValue("Auto point eraser"), description = texts.option.autoeraser_descr },
+		{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.autoeraser_erasetime, type = "slider", min = 1, max = 240, step = 1, value = 60, description = texts.option.autoeraser_erasetime_descr,
+		  onload = function(i)
+			  loadWidgetData("Auto point eraser", "autoeraser_erasetime", { 'eraseTime' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Auto point eraser', 'autoeraser', 'setEraseTime', { 'eraseTime' }, value)
+		  end,
+		},
 
-		{ id = "continuouslyclearmapmarks", group = "ui", category = types.advanced, name = texts.option.continuouslyclearmapmarks, type = "bool", value = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1, description = texts.option.continuouslyclearmapmarks_descr,
+		{ id = "continuouslyclearmapmarks", group = "ui", category = types.dev, name = texts.option.continuouslyclearmapmarks, type = "bool", value = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1, description = texts.option.continuouslyclearmapmarks_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("ContinuouslyClearMapmarks", (value and 1 or 0))
 			  if value then
