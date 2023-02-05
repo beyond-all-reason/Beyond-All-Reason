@@ -2928,7 +2928,7 @@ function init()
 			  saveOptionValue('Info', 'info', 'setShowBuilderBuildlist', { 'showBuilderBuildlist' }, value)
 		  end,
 		},
-		{ id = "info_mappos", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.info_mappos, type = "bool", value = (WG['info'] and WG['info'].getShowBuilderBuildlist ~= nil and WG['info'].getDisplayMapPosition()), description = texts.option.info_mappos_descr,
+		{ id = "info_mappos", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.info_mappos, type = "bool", value = (WG['info'] and WG['info'].getDisplayMapPosition ~= nil and WG['info'].getDisplayMapPosition()), description = texts.option.info_mappos_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)

@@ -19,6 +19,7 @@ local rightclickCellZoom = 0.065 * zoomMult
 local clickCellZoom = 0.065 * zoomMult
 local hoverCellZoom = 0.03 * zoomMult
 local showBuilderBuildlist = true
+local displayMapPosition = false
 
 local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
 	selectedunits = 'Selected units',
@@ -456,6 +457,12 @@ function widget:Initialize()
 	end
 	WG['info'].setShowBuilderBuildlist = function(value)
 		showBuilderBuildlist = value
+	end
+	WG['info'].getDisplayMapPosition = function()
+		return displayMapPosition
+	end
+	WG['info'].setDisplayMapPosition = function(value)
+		displayMapPosition = value
 	end
 	WG['info'].displayUnitID = function(unitID)
 		cfgDisplayUnitID = unitID
@@ -1344,9 +1351,12 @@ local function drawEngineTooltip()
 				font:Begin()
 				font:SetTextColor(1, 1, 1, 1)
 				font:SetOutlineColor(0, 0, 0, 1)
-				font:Print(tooltipValueColor..math.floor(hoverData[1])..',', backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
-				font:Print(math.floor(hoverData[3]), backgroundRect[1] + contentPadding + (fontSize * 3.2), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
-				font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.elevation')..'  '..tooltipValueColor..math.floor(Spring.GetGroundHeight(coords[1], coords[3])), backgroundRect[1] + contentPadding + (fontSize * 6.6), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				if displayMapPosition then
+					font:Print(tooltipValueColor..math.floor(hoverData[1])..',', backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+					font:Print(math.floor(hoverData[3]), backgroundRect[1] + contentPadding + (fontSize * 3.2), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+					font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.elevation')..'  '..tooltipValueColor..math.floor(Spring.GetGroundHeight(coords[1], coords[3])), backgroundRect[1] + contentPadding + (fontSize * 6.6), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+					height = height + heightStep
+				end
 				if tankSpeed ~= 1 or botSpeed ~= 1 or hoverSpeed ~= 1 or (shipSpeed ~= 1 and coords[2] <= 0) then
 					text = ''
 					if tankSpeed ~= 1 then
@@ -1361,7 +1371,6 @@ local function drawEngineTooltip()
 					if shipSpeed ~= 1 and coords[2] <= 0 then
 						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.ship')..' '..tooltipValueColor..round(shipSpeed, 2)
 					end
-					height = height + heightStep
 					font:Print(tooltipDarkTextColor..Spring.I18N('ui.info.speedmultipliers')..'   '..text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				--if metal > 0 then
@@ -1880,11 +1889,15 @@ end
 function widget:GetConfigData(data)
 	return {
 		showBuilderBuildlist = showBuilderBuildlist,
+		displayMapPosition = displayMapPosition,
 	}
 end
 
 function widget:SetConfigData(data)
 	if data.showBuilderBuildlist ~= nil then
 		showBuilderBuildlist = data.showBuilderBuildlist
+	end
+	if data.displayMapPosition ~= nil then
+		displayMapPosition = data.displayMapPosition
 	end
 end
