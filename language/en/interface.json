@@ -1081,6 +1081,8 @@
 				"info": "Info panel",
 				"info_buildlist": "buildoption icons",
 				"info_buildlist_descr": "Regarding factories/builders: display an icon list of all buildable units instead of other info.",
+				"info_mappos": "display map position",
+				"info_mappos_descr": "Display the mouse cursors map position and elevation",
 				"advplayerlist": "Playerlist",
 				"advplayerlist_scale": "scale",
 				"advplayerlist_scale_descr": "Resize the playerlist (and its addons)",
