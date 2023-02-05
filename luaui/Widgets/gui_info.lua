@@ -1377,7 +1377,10 @@ local function drawEngineTooltip()
 				local featureDefID = Spring.GetFeatureDefID(hoverData)
 				local text = FeatureDefs[featureDefID].tooltip
 				local height = 0
-				if text then
+				if text == '' then
+					text = FeatureDefs[featureDefID].translatedDescription
+				end
+				if text and text ~= '' then
 					font2:Begin()
 					font2:Print(tooltipTitleColor..text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1.2) - height, (fontSize * 1.4), "o")
 					font2:End()
