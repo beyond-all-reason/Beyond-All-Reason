@@ -62,11 +62,15 @@ end
 function widget:GetConfigData()
 	return {
 		eraseTime = eraseTime,
+		pointsToErase = pointsToErase,
 	}
 end
 
 function widget:SetConfigData(data)
 	if data.eraseTime ~= nil then
 		eraseTime = data.eraseTime
+	end
+	if data.pointsToErase ~= nil and Spring.GetGameFrame() > 0 then
+		pointsToErase = data.pointsToErase
 	end
 end
