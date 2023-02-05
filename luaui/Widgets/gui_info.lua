@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local hideWhenEmpty = true
+
 local width = 0
 local height = 0
 
@@ -21,48 +23,10 @@ local hoverCellZoom = 0.03 * zoomMult
 local showBuilderBuildlist = true
 local displayMapPosition = false
 
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	selectedunits = 'Selected units',
-	unitsselected = 'units selected',
-	m = 'M',
-	e = 'E',
-	costm = 'Cost M',
-	coste = 'Cost E',
-	health = 'Health',
-	of = 'of',		-- 3 of 7
-	xp = 'XP',
-	maxhealth = 'max health',
-	reload = 'reload',
-	dps = 'DPS',
-	weaponrange = 'weapon range',
-	reloadtime = 'reload time',
-	energyshot = 'energy/shot',
-	metalshot = 'metal/shot',
-	stealthy = 'stealthy',
-	cloakcost = 'cloak cost',
-	cloakcostmoving = 'cloak cost moving',
-	transportmaxmass = 'transport max mass',
-	transportmaxsize = 'transport max size',
-	transportcapacity = 'transport capacity',
-	speed = 'speed',
-	reversespeed = 'reverse speed',
-	buildpower = 'buildpower',
-	buildoptions = 'buildoptions',
-	unparalyzable = 'unparalyzable',
-	paralyzemult = 'paralyzeMult',
-	transportable = 'transportable',
-	los = 'LoS',
-	airlos = 'AirLoS',
-	radar = 'radar',
-	sonar = 'sonar',
-	jamrange = 'jam range',
-	sonarjamrange = 'sonar jam range',
-	seismic = 'seismic',
-	eneededforconversion = 'E needed for conversion',
-	convertedm = 'converted M',
-	estorage = 'E storage',
-	mstorage = 'M storage',
-}
+local emptyInfo = false
+local showEngineTooltip = false		-- straight up display old engine delivered text
+
+local texts = {}
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -559,7 +523,7 @@ function widget:Update(dt)
 	end
 
 	sec = sec + dt
-	if sec > 0.05 then
+	if sec > 0.035 then
 		sec = 0
 		checkChanges()
 	end
@@ -1324,11 +1288,9 @@ local function drawUnitInfo()
 	end
 end
 
-local showEngineTooltip = false		-- straight up display old engine delivered text
 local function drawEngineTooltip()
 	--local labelColor = '\255\205\205\205'
 	--local valueColor = '\255\255\255\255'
-
 	local mouseX, mouseY, lmb, mmb, rmb, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
 	if not cameraPanMode then
 		local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
@@ -1372,6 +1334,8 @@ local function drawEngineTooltip()
 						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.ship')..' '..tooltipValueColor..round(shipSpeed, 2)
 					end
 					font:Print(tooltipDarkTextColor..Spring.I18N('ui.info.speedmultipliers')..'   '..text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				elseif not displayMapPosition then
+					emptyInfo = true
 				end
 				--if metal > 0 then
 				--	height = height + heightStep
@@ -1410,12 +1374,17 @@ local function drawEngineTooltip()
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				font:End()
+			else
+				emptyInfo = true
 			end
 		end
+	else
+		emptyInfo = true
 	end
 end
 
 local function drawInfo()
+	emptyInfo = false
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 0, 0)
 
 	contentPadding = (height * vsy * 0.075) * (0.95 - ((1 - ui_scale) * 0.5))
@@ -1618,6 +1587,11 @@ end
 
 local doUpdateClock2 = os_clock() + 0.9
 function widget:DrawScreen()
+	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
+	if cameraPanMode then
+		return
+	end
+
 	if chobbyInterface then
 		return
 	end
@@ -1625,7 +1599,6 @@ function widget:DrawScreen()
 	if ViewResizeUpdate then
 		ViewResizeUpdate = nil
 	end
-	local x, y, b, b2, b3 = spGetMouseState()
 
 	if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) or (os_clock() >= doUpdateClock2) then
 		doUpdateClock = nil
@@ -1646,7 +1619,12 @@ function widget:DrawScreen()
 			drawInfo()
 		end)
 	end
-	gl.CallList(dlistInfo)
+	if not hideWhenEmpty or not emptyInfo then
+		gl.CallList(dlistInfo)
+	elseif dlistGuishader then
+		WG['guishader'].DeleteDlist('info')
+		dlistGuishader = nil
+	end
 
 
 	-- widget hovered
@@ -1804,8 +1782,7 @@ function checkChanges()
 		end
 
 		-- hovered unit
-	elseif not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' and os_clock() - lastHoverDataClock > 0.08 then
-		-- add small hover delay against eplilepsy
+	elseif not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' then-- and os_clock() - lastHoverDataClock > 0.07 then		-- add small hover delay against eplilepsy
 		displayMode = 'unit'
 		displayUnitID = hoverData
 		displayUnitDefID = spGetUnitDefID(displayUnitID)
@@ -1815,8 +1792,7 @@ function checkChanges()
 		end
 
 		-- hovered feature
-	elseif not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'feature' and os_clock() - lastHoverDataClock > 0.08 then
-		-- add small hover delay against eplilepsy
+	elseif not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'feature' then-- and os_clock() - lastHoverDataClock > 0.07 then		-- add small hover delay against eplilepsy
 		displayMode = 'feature'
 		local featureID = hoverData
 		local featureDefID = spGetFeatureDefID(featureID)
