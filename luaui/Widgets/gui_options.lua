@@ -1019,7 +1019,7 @@ function widget:DrawScreen()
 							end
 							-- highlight option
 							UiSelectHighlight(o[1] - 4, o[2], o[3] + 4, o[4], nil, options[i].onclick and (ml and 0.35 or 0.22) or 0.14, options[i].onclick and { 0.5, 1, 0.25 })
-							if WG.tooltip and options[i].description and options[i].description ~= '' then
+							if WG.tooltip and options[i].description and options[i].description ~= '' and options[i].description ~= ' ' then
 								WG.tooltip.ShowTooltip('options_description', options[i].description)
 							end
 							break
