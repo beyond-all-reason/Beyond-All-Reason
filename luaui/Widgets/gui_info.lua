@@ -499,10 +499,18 @@ end
 local sec2 = 0
 local sec = 0
 function widget:Update(dt)
+	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
+	if cameraPanMode then
+		if dlistGuishader then
+			WG['guishader'].DeleteDlist('info')
+			dlistGuishader = nil
+		end
+		return
+	end
+
 	sec2 = sec2 + dt
 	if sec2 > 0.5 then
 		sec2 = 0
-		checkGuishader()
 
 		if not rankTextures and WG['rankicons'] then
 			rankTextures = WG['rankicons'].getRankTextures()
@@ -526,6 +534,9 @@ function widget:Update(dt)
 	if sec > 0.035 then
 		sec = 0
 		checkChanges()
+		if not hideWhenEmpty or not emptyInfo then
+			checkGuishader()
+		end
 	end
 end
 
@@ -1322,16 +1333,16 @@ local function drawEngineTooltip()
 				if tankSpeed ~= 1 or botSpeed ~= 1 or hoverSpeed ~= 1 or (shipSpeed ~= 1 and coords[2] <= 0) then
 					text = ''
 					if tankSpeed ~= 1 then
-						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.tank')..' '..tooltipValueColor..round(tankSpeed, 2)
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.tank')..' '..tooltipValueColor..(round(tankSpeed, 2)*100).."%"--..Spring.I18N('ui.info.percentchar')
 					end
 					if botSpeed ~= 1 then
-						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.bot')..' '..tooltipValueColor..round(botSpeed, 2)
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.bot')..' '..tooltipValueColor..(round(botSpeed, 2)*100).."%"--..Spring.I18N('ui.info.percentchar')
 					end
 					if hoverSpeed ~= 1 then
-						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.hover')..' '..tooltipValueColor..round(hoverSpeed, 2)
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.hover')..' '..tooltipValueColor..(round(hoverSpeed, 2)*100).."%"--..Spring.I18N('ui.info.percentchar')
 					end
 					if shipSpeed ~= 1 and coords[2] <= 0 then
-						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.ship')..' '..tooltipValueColor..round(shipSpeed, 2)
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.ship')..' '..tooltipValueColor..(round(shipSpeed, 2)*100).."%"--..Spring.I18N('ui.info.percentchar')
 					end
 					font:Print(tooltipDarkTextColor..Spring.I18N('ui.info.speedmultipliers')..'   '..text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				elseif not displayMapPosition then
@@ -1589,6 +1600,10 @@ local doUpdateClock2 = os_clock() + 0.9
 function widget:DrawScreen()
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
 	if cameraPanMode then
+		if dlistGuishader then
+			WG['guishader'].DeleteDlist('info')
+			dlistGuishader = nil
+		end
 		return
 	end
 
