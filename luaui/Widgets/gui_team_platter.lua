@@ -116,6 +116,7 @@ function widget:DrawWorldPreUnit()
 		teamplatterShader:SetUniform("iconDistance", 99999) -- pass
 		--glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		glDepthTest(true)
+		gl.DepthMask(true)
 		--glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
 		--glClear(GL_STENCIL_BUFFER_BIT ) -- set stencil buffer to 0
 
