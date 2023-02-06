@@ -355,7 +355,7 @@ if not gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveSyncAction("SetLightingAndAtmosphere")
 		gadgetHandler:RemoveSyncAction("GetLightingAndAtmosphere")
 		gadgetHandler:RemoveSyncAction("MixLightingAndAtmosphere")
-		SetLightingAndAtmosphere(endlight)
+		SetLightingAndAtmosphere(initial_atmosphere_lighting)
 	end
 
 
