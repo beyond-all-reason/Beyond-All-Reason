@@ -99,9 +99,174 @@ gadgetHandler = {
 }
 
 
+
+-- these call-ins are set to 'nil' if not used
+-- they are setup in UpdateCallIns()
+local callInLists = {
+	"Shutdown",
+
+	"GamePreload",
+	"GameStart",
+	"GameOver",
+	"GameID",
+	"TeamDied",
+
+	"PlayerAdded",
+	"PlayerChanged",
+	"PlayerRemoved",
+
+	"GameFrame",
+
+	"ViewResize",  -- FIXME ?
+
+	"TextCommand",
+	"GotChatMsg",
+	"RecvLuaMsg",
+
+	-- Unit CallIns
+	"UnitCreated",
+	"UnitFinished",
+	"UnitReverseBuilt",
+	"UnitFromFactory",
+	"UnitDestroyed",
+	"RenderUnitDestroyed",
+	"UnitExperience",
+	"UnitIdle",
+	"UnitCmdDone",
+	"UnitPreDamaged",
+	"UnitDamaged",
+	"UnitStunned",
+	"UnitTaken",
+	"UnitGiven",
+	"UnitEnteredRadar",
+	"UnitEnteredLos",
+	"UnitLeftRadar",
+	"UnitLeftLos",
+	"UnitSeismicPing",
+	"UnitLoaded",
+	"UnitUnloaded",
+	"UnitCloaked",
+	"UnitDecloaked",
+	-- optional
+	-- "UnitUnitCollision",
+	-- "UnitFeatureCollision",
+	-- "UnitMoveFailed",
+	"StockpileChanged",
+
+	-- Feature CallIns
+	"FeatureCreated",
+	"FeatureDestroyed",
+	"FeatureDamaged",
+	--[[ FeatureDamaged and FeaturePreDamaged missing on purpose. Basic damage control
+	     can be achieved via armordefs (use the "default" class, make sure to populate
+	     the others including "else" explicitly) so this way we avoid the perf cost. ]]
+
+	-- Projectile CallIns
+	"ProjectileCreated",
+	"ProjectileDestroyed",
+
+	-- Shield CallIns
+	"ShieldPreDamaged",
+
+	-- Misc Synced CallIns
+	"Explosion",
+
+	-- LUS callins
+	"ScriptFireWeapon",
+	"ScriptEndBurst",
+
+	-- LuaRules CallIns (note: the *PreDamaged calls belong here too)
+	"CommandFallback",
+	"AllowCommand",
+	"AllowStartPosition",
+	"AllowUnitCreation",
+	"AllowUnitTransfer",
+	"AllowUnitBuildStep",
+	"AllowUnitTransport",
+	"AllowUnitTransportLoad",
+	"AllowUnitTransportUnload",
+	"AllowUnitCloak",
+	"AllowUnitDecloak",
+	"AllowUnitTargetRange",
+	"AllowFeatureBuildStep",
+	"AllowFeatureCreation",
+	"AllowResourceLevel",
+	"AllowResourceTransfer",
+	"AllowDirectUnitControl",
+	"AllowBuilderHoldFire",
+	"MoveCtrlNotify",
+	"TerraformComplete",
+	"AllowWeaponTargetCheck",
+	"AllowWeaponTarget",
+	"AllowWeaponInterceptTarget",
+	-- unsynced
+	"DrawUnit",
+	"DrawFeature",
+	"DrawShield",
+	"DrawProjectile",
+	"RecvSkirmishAIMessage",
+
+	"SunChanged",
+
+	-- COB CallIn  (FIXME?)
+	"CobCallback",
+
+	-- Unsynced CallIns
+	"Update",
+	"DefaultCommand",
+	"DrawGenesis",
+	"DrawWorld",
+	"DrawWorldPreUnit",
+	"DrawWorldShadow",
+	"DrawWorldReflection",
+	"DrawWorldRefraction",
+	"DrawScreenEffects",
+	"DrawScreenPost",
+	"DrawScreen",
+	"DrawInMiniMap",
+	'DrawOpaqueUnitsLua',
+	'DrawOpaqueFeaturesLua',
+	'DrawAlphaUnitsLua',
+	'DrawAlphaFeaturesLua',
+	'DrawShadowUnitsLua',
+	'DrawShadowFeaturesLua',
+
+	"RecvFromSynced",
+
+	-- moved from LuaUI
+	"KeyPress",
+	"KeyRelease",
+	"MousePress",
+	"MouseRelease",
+	"MouseMove",
+	"MouseWheel",
+	"IsAbove",
+	"GetTooltip",
+
+	-- FIXME -- not implemented  (more of these?)
+	"WorldTooltip",
+	"MapDrawCmd",
+	"GameSetup",
+	"DefaultCommand",
+
+	-- Save/Load
+	"Save",
+	"Load",
+
+	-- FIXME: NOT IN BASE
+	"UnitCommand",
+	"UnitEnteredWater",
+	"UnitEnteredAir",
+	"UnitLeftWater",
+	"UnitLeftAir",
+
+	"UnsyncedHeightMapUpdate"
+}
+
+
 -- initialize the call-in lists
 do
-	for _, listname in ipairs(CALLIN_LIST) do
+	for _,listname in ipairs(callInLists) do
 		gadgetHandler[listname .. 'List'] = {}
 	end
 end
@@ -152,7 +317,7 @@ end
 
 function gadgetHandler:Initialize()
 	local syncedHandler = Script.GetSynced()
-	
+
 	local unsortedGadgets = {}
 	-- get the gadget names
 	local gadgetFiles = VFS.DirList(GADGETS_DIR, "*.lua", VFSMODE)
@@ -171,7 +336,7 @@ function gadgetHandler:Initialize()
 			if not IsSyncedCode() and doMoreYield then
 				doMoreYield = Spring.Yield()
 				if doMoreYield == false then --GetThreadSafety == false
-					--Spring.Echo("GadgetHandler Yield: entering critical section") 
+					--Spring.Echo("GadgetHandler Yield: entering critical section")
 				end
 			end
 		end
@@ -213,8 +378,8 @@ function gadgetHandler:LoadGadget(filename)
 		collectgarbage("collect") -- call it twice, mark
 		collectgarbage("collect") -- sweep
 		kbytes = collectgarbage("count")
-	end 
-	
+	end
+
 	local basename = Basename(filename)
 	local text = VFS.LoadFile(filename, VFSMODE)
 	if text == nil then
@@ -287,10 +452,10 @@ function gadgetHandler:LoadGadget(filename)
 		return nil
 	end
 
-	if kbytes then 
+	if kbytes then
 		collectgarbage("collect") -- mark
 		collectgarbage("collect") -- sweep
-		Spring.Echo("LoadGadget",filename,"delta=",collectgarbage("count")-kbytes,"total=",collectgarbage("count"),"KB, synced =", IsSyncedCode()) 
+		Spring.Echo("LoadGadget",filename,"delta=",collectgarbage("count")-kbytes,"total=",collectgarbage("count"),"KB, synced =", IsSyncedCode())
 	end
 	return gadget
 end
@@ -454,7 +619,7 @@ local function SafeWrapGadget(gadget)
 		end
 	end
 
-	for _, ciName in ipairs(CALLIN_LIST) do
+	for _, ciName in ipairs(callInLists) do
 		if gadget[ciName] then
 			gadget[ciName] = SafeWrap(gadget[ciName], ciName)
 		end
@@ -497,30 +662,30 @@ function gadgetHandler:InsertGadget(gadget)
 		return
 	end
 	ArrayInsert(self.gadgets, true, gadget)
-	for _, listname in ipairs(CALLIN_LIST) do
+	for _, listname in ipairs(callInLists) do
 		local func = gadget[listname]
 		if type(func) == 'function' then
 			ArrayInsert(self[listname .. 'List'], func, gadget)
 		end
 	end
-	
+
 	local kbytes = nil -- set to number to enable
-	if kbytes and collectgarbage then 	
+	if kbytes and collectgarbage then
 		collectgarbage("collect")
 		collectgarbage("collect")
 		kbytes= collectgarbage("count")
 	end
-	
+
 	self:UpdateCallIns()
 	if gadget.Initialize then
 		gadget:Initialize()
 	end
 	self:UpdateCallIns()
 
-	if kbytes then 
+	if kbytes then
 		collectgarbage("collect")
 		collectgarbage("collect")
-		Spring.Echo("Initialize",gadget.ghInfo.name,"delta=",collectgarbage("count")-kbytes,"total=",collectgarbage("count"),"KB, synced =", IsSyncedCode()) 
+		Spring.Echo("Initialize",gadget.ghInfo.name,"delta=",collectgarbage("count")-kbytes,"total=",collectgarbage("count"),"KB, synced =", IsSyncedCode())
 	end
 end
 
@@ -538,7 +703,7 @@ function gadgetHandler:RemoveGadget(gadget)
 	ArrayRemove(self.gadgets, gadget)
 	self:RemoveGadgetGlobals(gadget)
 	actionHandler.RemoveGadgetActions(gadget)
-	for _, listname in ipairs(CALLIN_LIST) do
+	for _, listname in ipairs(callInLists) do
 		ArrayRemove(self[listname .. 'List'], gadget)
 	end
 
@@ -603,7 +768,7 @@ function gadgetHandler:RemoveGadgetCallIn(name, g)
 end
 
 function gadgetHandler:UpdateCallIns()
-	for _, name in ipairs(CALLIN_LIST) do
+	for _, name in ipairs(callInLists) do
 		self:UpdateCallIn(name)
 	end
 end
@@ -708,7 +873,7 @@ function gadgetHandler:RaiseGadget(gadget)
 		end
 	end
 	Raise(self.gadgets, true, gadget)
-	for _, listname in ipairs(CALLIN_LIST) do
+	for _, listname in ipairs(callInLists) do
 		Raise(self[listname .. 'List'], gadget[listname], gadget)
 	end
 end
@@ -742,7 +907,7 @@ function gadgetHandler:LowerGadget(gadget)
 		end
 	end
 	Lower(self.gadgets, true, gadget)
-	for _, listname in ipairs(CALLIN_LIST) do
+	for _, listname in ipairs(callInLists) do
 		Lower(self[listname .. 'List'], gadget[listname], gadget)
 	end
 end
@@ -953,6 +1118,14 @@ function gadgetHandler:RecvLuaMsg(msg, player)
 	return false
 end
 
+function gadgetHandler:TextCommand(command)
+	for _, g in ipairs(self.TextCommandList) do
+		if g:TextCommand(command) then
+			return true
+		end
+	end
+	return
+end
 
 --------------------------------------------------------------------------------
 --
@@ -1280,7 +1453,6 @@ function gadgetHandler:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, att
 			return false
 		end
 	end
-
 	return true
 end
 
