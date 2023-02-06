@@ -584,7 +584,10 @@ function getElementInstanceData(iT, instanceID, cacheTable)
 	-- iT: instanceTable created with makeInstanceTable
 	-- instanceID: an optional key given to the item, so it can be easily removed by reference, defaults to the index of the instance in the buffer (1 based)
 	local instanceIndex = iT.instanceIDtoIndex[instanceID] 
-	if instanceIndex == nil then return nil end
+	if instanceIndex == nil then 
+		Spring.Echo("Tried to getElementInstanceData from",iT.myName,instanceID, "but it does not exist")
+		return nil 
+	end
 	local iData = cacheTable or {}
 	local iTStep = iT.instanceStep
 	instanceIndex = (instanceIndex-1) * iTStep
