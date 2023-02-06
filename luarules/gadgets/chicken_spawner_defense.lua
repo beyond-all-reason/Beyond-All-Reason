@@ -1086,10 +1086,10 @@ if gadgetHandler:IsSyncedCode() then
 					damage = damage - (damage * resistPercent)
 					
 				end
+				queenResistance[attackerDefID].damage = queenResistance[attackerDefID].damage + (damage * 4 * config.queenResistanceMult)
 			else
 				damage = 1
 			end
-			queenResistance[attackerDefID].damage = queenResistance[attackerDefID].damage + (damage * 4 * config.queenResistanceMult)	
 			return damage
 		end
 
