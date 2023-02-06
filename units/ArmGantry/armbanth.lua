@@ -235,6 +235,33 @@ return {
 					vtol = 3000,
 				},
 			},
+			banthfootstep = {
+				areaofeffect = 128,
+				camerashake = 300,
+				avoidfeature = false,
+				canattackground = false,
+				collidefriendly = false,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0,
+				explosiongenerator = "custom:footstep-large",
+				impactonly = 1,
+				name = "BanthStep",
+				noselfdamage = true,
+				range = 0,
+				reloadtime = 1.5,
+				soundhitwet = "splssml",
+				soundhit = "banthstep",
+				soundhitvolume = 20,
+				weapontype = "Cannon",
+				customparams = {
+					noexplosionlight = 1,
+				},
+				damage = {
+					default = 0,
+				},
+			},
 		},
 		weapons = {
 			[1] = {
@@ -251,6 +278,9 @@ return {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "BANTHA_ROCKET",
 				onlytargetcategory = "NOTSUB",
+			},
+			[4] = {
+				def = "BANTHFOOTSTEP",
 			},
 		},
 	},

@@ -275,7 +275,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0,
-				explosiongenerator = "custom:footstepkorg",
+				explosiongenerator = "custom:footstep-huge",
 				impactonly = 1,
 				name = "KrogStep",
 				noselfdamage = true,
@@ -283,7 +283,7 @@ return {
 				reloadtime = 1.5,
 				soundhitwet = "splssml",
 				soundhit = "korgstep",
-				soundhitvolume = 32,
+				soundhitvolume = 42,
 				weapontype = "Cannon",
 				customparams = {
 					noexplosionlight = 1,

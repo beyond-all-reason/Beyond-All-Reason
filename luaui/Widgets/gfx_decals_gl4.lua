@@ -975,11 +975,11 @@ for weaponDefID=1, #WeaponDefs do
 			glowadd = 1.8
 			bwfactor = 0.1
 
-		elseif string.find(weaponDef.name, 'krogfootstep') then
+		elseif string.find(weaponDef.name, 'footstep') then
 			--textures = { "f_corkorg_a.tga" }
 			textures = { "t_groundcrack_10_a.tga" }
 			--radius = 70
-			radius = 110
+			radius = (radius * 0.7)
 			radiusVariation = 0.5 --0.03
 			alpha = 0.5
 			heatstart = 100
