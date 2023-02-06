@@ -506,7 +506,7 @@ local sec2 = 0
 local sec = 0
 function widget:Update(dt)
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
-	if cameraPanMode or mouseOffScreen then
+	if not alwaysShow and (cameraPanMode or mouseOffScreen) then
 		if displayUnitID == nil and SelectedUnitsCount == 0 then
 			if dlistGuishader then
 				WG['guishader'].DeleteDlist('info')
@@ -1308,8 +1308,6 @@ local function drawUnitInfo()
 end
 
 local function drawEngineTooltip()
-	--local labelColor = '\255\205\205\205'
-	--local valueColor = '\255\255\255\255'
 	local mouseX, mouseY, lmb, mmb, rmb, mouseOffScreen, cameraPanMode = spGetMouseState()
 	if not cameraPanMode and not mouseOffScreen then
 		local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
@@ -1389,14 +1387,15 @@ local function drawEngineTooltip()
 				font:SetTextColor(1, 1, 1, 1)
 				font:SetOutlineColor(0, 0, 0, 1)
 				text = ''
-				if FeatureDefs[featureDefID].energy > 0 then
+				local metal, _, energy, _ = Spring.GetFeatureResources(hoverData)
+				if energy > 0 then
 					height = height + heightStep
-					text = tooltipLabelTextColor..Spring.I18N('ui.info.energy').."  \255\255\255\000"..FeatureDefs[featureDefID].energy
+					text = tooltipLabelTextColor..Spring.I18N('ui.info.energy').."  \255\255\255\000"..math.floor(energy)
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
-				if FeatureDefs[featureDefID].metal > 0 then
+				if metal > 0 then
 					height = height + heightStep
-					text = tooltipLabelTextColor..Spring.I18N('ui.info.metal').."  "..tooltipValueColor..FeatureDefs[featureDefID].metal
+					text = tooltipLabelTextColor..Spring.I18N('ui.info.metal').."  "..tooltipValueColor..math.floor(metal)
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				font:End()
@@ -1614,7 +1613,7 @@ end
 local doUpdateClock2 = os_clock() + 0.9
 function widget:DrawScreen()
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
-	if (cameraPanMode or mouseOffScreen) and displayUnitID == nil and SelectedUnitsCount == 0 then
+	if not alwaysShow and (cameraPanMode or mouseOffScreen) and displayUnitID == nil and SelectedUnitsCount == 0 then
 		if dlistGuishader then
 			WG['guishader'].DeleteDlist('info')
 			dlistGuishader = nil
@@ -1884,7 +1883,7 @@ function widget:SelectionChanged(sel)
 			doUpdateClock = os_clock() + 0.05  -- delay to save some performance
 		end
 	end
-	if select(7, spGetMouseState()) then	-- cameraPanMode
+	if not alwaysShow and select(7, spGetMouseState()) then	-- cameraPanMode
 		checkChanges()
 	end
 end
