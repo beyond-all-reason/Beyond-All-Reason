@@ -505,8 +505,8 @@ end
 local sec2 = 0
 local sec = 0
 function widget:Update(dt)
-	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
-	if cameraPanMode then
+	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
+	if cameraPanMode or mouseOffScreen then
 		if displayUnitID == nil and SelectedUnitsCount == 0 then
 			if dlistGuishader then
 				WG['guishader'].DeleteDlist('info')
@@ -1310,8 +1310,8 @@ end
 local function drawEngineTooltip()
 	--local labelColor = '\255\205\205\205'
 	--local valueColor = '\255\255\255\255'
-	local mouseX, mouseY, lmb, mmb, rmb, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
-	if not cameraPanMode then
+	local mouseX, mouseY, lmb, mmb, rmb, mouseOffScreen, cameraPanMode = spGetMouseState()
+	if not cameraPanMode and not mouseOffScreen then
 		local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
 		if showEngineTooltip then
 			-- display default plaintext engine tooltip
@@ -1613,8 +1613,8 @@ end
 
 local doUpdateClock2 = os_clock() + 0.9
 function widget:DrawScreen()
-	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
-	if cameraPanMode and displayUnitID == nil and SelectedUnitsCount == 0 then
+	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
+	if (cameraPanMode or mouseOffScreen) and displayUnitID == nil and SelectedUnitsCount == 0 then
 		if dlistGuishader then
 			WG['guishader'].DeleteDlist('info')
 			dlistGuishader = nil
@@ -1778,7 +1778,7 @@ function widget:DrawScreen()
 end
 
 function checkChanges()
-	local x, y, b, b2, b3 = spGetMouseState()
+	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
 	lastHoverData = hoverData
 	hoverType, hoverData = spTraceScreenRay(x, y)
 	if hoverType == 'unit' or hoverType == 'feature' then
@@ -1884,7 +1884,7 @@ function widget:SelectionChanged(sel)
 			doUpdateClock = os_clock() + 0.05  -- delay to save some performance
 		end
 	end
-	if select(7, Spring.GetMouseState()) then	-- cameraPanMode
+	if select(7, spGetMouseState()) then	-- cameraPanMode
 		checkChanges()
 	end
 end
