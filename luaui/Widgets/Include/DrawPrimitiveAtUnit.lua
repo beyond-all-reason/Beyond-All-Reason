@@ -352,7 +352,7 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 			{id = 3, name = 'uvoffsets', size = 4},
 			{id = 4, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 		},
-		64, -- maxelements
+		256, -- maxelements
 		DPATname .. "VBO", -- name
 		4  -- unitIDattribID (instData)
 	)
