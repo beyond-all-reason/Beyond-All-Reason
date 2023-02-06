@@ -265,6 +265,63 @@ return {
 					default = 150,
 				},
 			},
+			krogfootstep = {
+				areaofeffect = 172,
+				camerashake = 400,
+				avoidfeature = false,
+				canattackground = false,
+				collidefriendly = false,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0,
+				explosiongenerator = "custom:footstepkorg",
+				impactonly = 1,
+				name = "KrogStep",
+				noselfdamage = true,
+				range = 0,
+				reloadtime = 1.5,
+				soundhitwet = "splssml",
+				soundhit = "korgstep",
+				soundhitvolume = 32,
+				weapontype = "Cannon",
+				customparams = {
+					noexplosionlight = 1,
+				},
+				damage = {
+					default = 0,
+				},
+			},
+			krogweaponaim = {
+				areaofeffect = 0,
+				impactonly = 1,
+				name = "KrogAim",
+				noselfdamage = true,
+				soundhit = "korgaim",
+				soundhitvolume = 42,
+				weapontype = "Cannon",
+				customparams = {
+					noexplosionlight = 1,
+				},
+				damage = {
+					default = 0,
+				},
+			},
+			krogweaponrestore = {
+				areaofeffect = 0,
+				impactonly = 1,
+				name = "KrogRestore",
+				noselfdamage = true,
+				soundhit = "korgrestore2",
+				soundhitvolume = 40,
+				weapontype = "Cannon",
+				customparams = {
+					noexplosionlight = 1,
+				},
+				damage = {
+					default = 0,
+				},
+			},
 		},
 		weapons = {
 			[1] = {
@@ -293,6 +350,15 @@ return {
 				maindir = "1.4 -1.5 1",
 				maxangledif = 170,
 				onlytargetcategory = "NOTSUB",
+			},
+			[6] = {
+				def = "KROGFOOTSTEP",
+			},
+			[7] = {
+				def = "KROGWEAPONAIM",
+			},
+			[8] = {
+				def = "KROGWEAPONRESTORE",
 			},
 		},
 	},
