@@ -170,7 +170,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-meteor",
 				firestarter = 70,
 				flighttime = 100,
-				impulsefactor = 0.1,
+				impulsefactor = 0,
 				interceptedbyshieldtype = 4,
 				metalpershot = 0,
 				model = "Chickens/greyrock2.s3o",

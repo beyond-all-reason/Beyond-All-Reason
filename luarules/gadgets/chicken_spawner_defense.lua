@@ -1050,44 +1050,46 @@ if gadgetHandler:IsSyncedCode() then
 			damage = (damage * heroChicken[unitID])
 		end
 
-		if unitID == queenID then
-			-- special case queen
-			if weaponID == -1 and damage > 1 then
+		if unitID == queenID then -- Queen Resistance
+			if attackerDefID then
+				if weaponID == -1 and damage > 1 then
+					damage = 1
+				end
+				if not queenResistance[attackerDefID] then
+					queenResistance[attackerDefID] = {}
+					queenResistance[attackerDefID].damage = (damage * 4 * config.queenResistanceMult)
+					queenResistance[attackerDefID].notify = 0
+				end
+				local resistPercent = math.min((queenResistance[attackerDefID].damage) / queenMaxHP, 0.90)
+				if resistPercent > 0.5 then
+					if queenResistance[attackerDefID].notify == 0 then
+						chickenEvent("queenResistance", attackerDefID)
+						queenResistance[attackerDefID].notify = 1
+						if mRandom() < config.spawnChance then
+							if mRandom() < config.spawnChance then
+								SpawnRandomOffWaveSquad(queenID, config.chickenHealers[mRandom(1,#config.chickenHealers)], 5)
+							end
+							if mRandom() < config.spawnChance then
+								SpawnRandomOffWaveSquad(queenID)
+							end
+							if mRandom() < config.spawnChance then
+								SpawnRandomOffWaveSquad(queenID)
+							end
+							if mRandom() < config.spawnChance then
+								SpawnRandomOffWaveSquad(queenID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
+							end
+							for i = 1, SetCount(humanTeams)*2 do
+								table.insert(spawnQueue, { burrow = queenID, unitName = config.chickenHealers[mRandom(1,#config.chickenHealers)], team = chickenTeamID})
+							end
+						end
+					end
+					damage = damage - (damage * resistPercent)
+					
+				end
+			else
 				damage = 1
 			end
-			if not queenResistance[weaponID] then
-				queenResistance[weaponID] = {}
-				queenResistance[weaponID].damage = (damage * 3 * config.queenResistanceMult)
-				queenResistance[weaponID].notify = 0
-			end
-			local resistPercent = math.min((queenResistance[weaponID].damage) / queenMaxHP, 0.90)
-			if resistPercent > 0.5 then
-				if queenResistance[weaponID].notify == 0 then
-					if attackerDefID then
-						chickenEvent("queenResistance", attackerDefID)
-					end
-					queenResistance[weaponID].notify = 1
-					if mRandom() < config.spawnChance then
-						if mRandom() < config.spawnChance then
-							SpawnRandomOffWaveSquad(queenID, config.chickenHealers[mRandom(1,#config.chickenHealers)], 5)
-						end
-						if mRandom() < config.spawnChance then
-							SpawnRandomOffWaveSquad(queenID)
-						end
-						if mRandom() < config.spawnChance then
-							SpawnRandomOffWaveSquad(queenID)
-						end
-						if mRandom() < config.spawnChance then
-							SpawnRandomOffWaveSquad(queenID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
-						end
-						for i = 1, SetCount(humanTeams)*2 do
-							table.insert(spawnQueue, { burrow = queenID, unitName = config.chickenHealers[mRandom(1,#config.chickenHealers)], team = chickenTeamID})
-						end
-					end
-				end
-				damage = damage - (damage * resistPercent)
-			end
-			queenResistance[weaponID].damage = queenResistance[weaponID].damage + (damage * 3 * config.queenResistanceMult)
+			queenResistance[attackerDefID].damage = queenResistance[attackerDefID].damage + (damage * 4 * config.queenResistanceMult)	
 			return damage
 		end
 
