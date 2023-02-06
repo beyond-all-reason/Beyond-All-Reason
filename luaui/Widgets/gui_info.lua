@@ -506,7 +506,7 @@ local sec2 = 0
 local sec = 0
 function widget:Update(dt)
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
-	if cameraPanMode then
+	if displayUnitID == nil and cameraPanMode then
 		if dlistGuishader then
 			WG['guishader'].DeleteDlist('info')
 			dlistGuishader = nil
@@ -1612,7 +1612,7 @@ end
 local doUpdateClock2 = os_clock() + 0.9
 function widget:DrawScreen()
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
-	if cameraPanMode then
+	if displayUnitID == nil and cameraPanMode then
 		if dlistGuishader then
 			WG['guishader'].DeleteDlist('info')
 			dlistGuishader = nil
