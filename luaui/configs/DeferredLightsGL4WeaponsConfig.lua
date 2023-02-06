@@ -700,9 +700,11 @@ GetLightClass("LaserProjectile", "HeatRay", "Mediumer", {a = 0.09,
 
 --armjuno
 projectileDefLights[WeaponDefNames["armjuno_juno_pulse"].id] =
-GetLightClass("MissileProjectile", "Green", "Medium", {r = 0.88, g = 1.5, b = 0.6, a = 0.45,
-											color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
-											modelfactor = 0.3, specular = 0.1, scattering = 0.3, lensflare = 8})
+GetLightClass("MissileProjectile", "Green", "SmallMedium", {r = 0.02, g = 0.05, b = 0.01, a = 0.25,
+											color2r = 0.88, color2g = 1.5, color2b = 0.6, colortime = 150,
+											--lifetime = 200,
+											--color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
+											modelfactor = 0.3, specular = 0.1, scattering = 0.4, lensflare = 7})
 explosionLights[WeaponDefNames["armjuno_juno_pulse"].id] =
 GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 											posx = 0, posy = 100, posz = 0,
@@ -726,9 +728,11 @@ GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 
 --corjuno
 projectileDefLights[WeaponDefNames["corjuno_juno_pulse"].id] =
-GetLightClass("MissileProjectile", "Green", "Medium", {r = 0.88, g = 1.5, b = 0.6, a = 0.45,
-											color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
-											modelfactor = 0.3, specular = 0.1, scattering = 0.3, lensflare = 8})
+GetLightClass("MissileProjectile", "Green", "SmallMedium", {r = 0.02, g = 0.05, b = 0.01, a = 0.25,
+											color2r = 0.88, color2g = 1.5, color2b = 0.6, colortime = 150,
+											--lifetime = 200,
+											--color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
+											modelfactor = 0.3, specular = 0.1, scattering = 0.4, lensflare = 7})
 explosionLights[WeaponDefNames["corjuno_juno_pulse"].id] =
 GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 											posx = 0, posy = 100, posz = 0,
