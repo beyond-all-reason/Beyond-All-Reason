@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local hideWhenEmpty = true
+local alwaysShow = false
 
 local width = 0
 local height = 0
@@ -428,6 +428,12 @@ function widget:Initialize()
 	WG['info'].setDisplayMapPosition = function(value)
 		displayMapPosition = value
 	end
+	WG['info'].getAlwaysShow = function()
+		return alwaysShow
+	end
+	WG['info'].setAlwaysShow = function(value)
+		alwaysShow = value
+	end
 	WG['info'].displayUnitID = function(unitID)
 		cfgDisplayUnitID = unitID
 	end
@@ -534,7 +540,7 @@ function widget:Update(dt)
 	if sec > 0.035 then
 		sec = 0
 		checkChanges()
-		if not hideWhenEmpty or not emptyInfo then
+		if alwaysShow or not emptyInfo then
 			checkGuishader()
 		end
 	end
@@ -1641,7 +1647,7 @@ function widget:DrawScreen()
 			drawInfo()
 		end)
 	end
-	if not hideWhenEmpty or not emptyInfo then
+	if alwaysShow or not emptyInfo then
 		gl.CallList(dlistInfo)
 	elseif dlistGuishader then
 		WG['guishader'].DeleteDlist('info')
@@ -1888,6 +1894,7 @@ function widget:GetConfigData(data)
 	return {
 		showBuilderBuildlist = showBuilderBuildlist,
 		displayMapPosition = displayMapPosition,
+		alwaysShow = alwaysShow,
 	}
 end
 
@@ -1897,5 +1904,8 @@ function widget:SetConfigData(data)
 	end
 	if data.displayMapPosition ~= nil then
 		displayMapPosition = data.displayMapPosition
+	end
+	if data.alwaysShow ~= nil then
+		alwaysShow = data.alwaysShow
 	end
 end

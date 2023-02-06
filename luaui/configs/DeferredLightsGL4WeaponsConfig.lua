@@ -377,7 +377,7 @@ local function AssignLightsToAllWeapons()
 			sizeclass = GetClosestSizeClass(radius)
 			radius = ((orgMult * 75) + (radius * 4)) * 0.4
 			life = 8 + (5*(radius/2000)+(orgMult * 5))
-				
+
 		elseif weaponDef.type == 'Cannon' then
 			t.a = orgMult*0.17
 			radius = (radius + (weaponDef.size * 35)) * 0.44
@@ -470,7 +470,7 @@ local function AssignLightsToAllWeapons()
 						t.colortime = 19 / life
 					end
 					t.lifetime = life
-					
+
 				end
 				radius = ((weaponDef.damageAreaOfEffect*1.9) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 				if string.find(weaponDef.name, 'juno') then
@@ -511,8 +511,10 @@ local function AssignLightsToAllWeapons()
 				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult
 				sizeclass = GetClosestSizeClass(radius)
 			end
-			explosionLights[weaponID] = GetLightClass("Explosion", nil, sizeclass, t)
-			explosionLights[weaponID].yOffset = explosionLights[weaponID].lightConfig.radius / 5
+			if not weaponDef.customParams.noexplosionlight then
+				explosionLights[weaponID] = GetLightClass("Explosion", nil, sizeclass, t)
+				explosionLights[weaponID].yOffset = explosionLights[weaponID].lightConfig.radius / 5
+			end
 		end
 	end
 	Spring.Echo(Spring.GetGameFrame(),"DLGL4 weapons conf using",usedclasses,"light types")
