@@ -1057,6 +1057,69 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	)
 end
 
+local UnitScriptDecals = {
+	[UnitDefNames['corkorg'].id]={
+		[1] = {
+			texture = groundscarsPath..'f_corkorg_a.tga',
+			offsetx = 0, --offset from what the UnitScriptDecal returns 
+			offsetz = -20, -- 
+			offsetrot = 0, -- in radians
+			width = 32,
+			height = 80,
+			heatstart = 0,
+			heatdecay = 0,
+			alphastart = 1.0, 
+			alphadecay = 0.002, 
+			maxalpha = 1.0, 
+			bwfactor = 0.0, 
+			glowsustain = 0.0, 
+			glowadd = 0.0, 
+			fadeintime = 5, 
+			}
+		}
+	
+	}
+
+local function UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
+	--Spring.Echo("Widgetside UnitScriptDecal", unitID, unitDefID, decalIndex, posx,posz, heading)
+	if Spring.ValidUnitID(unitID) and Spring.GetUnitIsDead(unitID) == false and UnitScriptDecals[unitDefID] and UnitScriptDecals[unitDefID][decalIndex] then
+		local decalTable =  UnitScriptDecals[unitDefID][decalIndex] 
+	
+		-- So order of transformations is, get heading, rotate that into world space , heading 0 is +Z direction
+		-- Then place at worldpos
+		-- Then place at offset (rotated) 
+		-- Then apply additional offset rotation
+		
+		local rotationradians = (0.75 + heading / 65536) * 2 * math.pi
+		local sinrot = math.sin(-rotationradians)
+		local cosrot = math.cos(-rotationradians)
+		local offsetx = decalTable.offsetz
+		local offsetz = decalTable.offsetx
+		--local worldposx = posx + cosrot * decalTable.offsetx - sinrot * decalTable.offsetz
+		local worldposx = posx + cosrot * offsetx - sinrot * offsetz
+		
+		local worldposz = posz + sinrot * offsetx + cosrot * offsetz
+		
+		AddDecal(
+			decalTable.texture, 
+			worldposx, --posx
+			worldposz, --posx
+			decalTable.offsetrot + rotationradians, --rotation
+			decalTable.width, -- width
+			decalTable.height, -- height
+			decalTable.heatstart, -- heatstart
+			decalTable.heatdecay, -- heatdecay
+			decalTable.alphastart, -- alphastart
+			decalTable.alphadecay, -- alphadecay
+			decalTable.maxalpha, -- maxalpha
+			decalTable.bwfactor,
+			decalTable.glowsustain,
+			decalTable.glowadd,
+			decalTable.fadeintime
+	)
+	end
+end
+
 function widget:Initialize()
 	local t0 = Spring.GetTimer()
 	if makeAtlases() == false then
@@ -1104,6 +1167,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('AddDecalGL4', WG['decalsgl4'].AddDecalGL4)
 	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)
 	widgetHandler:RegisterGlobal('GadgetWeaponExplosionDecal', GadgetWeaponExplosionDecal)
+	widgetHandler:RegisterGlobal('UnitScriptDecal', UnitScriptDecal)
 	Spring.Echo(string.format("Decals GL4 loaded %d textures in %.3fs",numFiles, Spring.DiffTimers(Spring.GetTimer(), t0)))
 	--Spring.Echo("Trying to access _G[NightModeParams]", _G["NightModeParams"])
 end
@@ -1140,6 +1204,7 @@ function widget:ShutDown()
 	widgetHandler:DeregisterGlobal('AddDecalGL4')
 	widgetHandler:DeregisterGlobal('RemoveDecalGL4')
 	widgetHandler:DeregisterGlobal('GadgetWeaponExplosionDecal')
+	widgetHandler:DeregisterGlobal('UnitScriptDecal')
 end
 
 function widget:GetConfigData(_) -- Called by RemoveWidget
