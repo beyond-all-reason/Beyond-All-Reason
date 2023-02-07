@@ -94,7 +94,7 @@ return {
 				model = "SimpleFlareXL.s3o",
 				name = "Deadly Defensive Spores",
 				noselfdamage = true,
-				range = 2000,
+				range = 1000,
 				reloadtime = 3,
 				smoketrail = true,
 				smokePeriod = 2,
