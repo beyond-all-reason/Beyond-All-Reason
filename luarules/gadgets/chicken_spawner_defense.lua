@@ -84,12 +84,8 @@ if gadgetHandler:IsSyncedCode() then
 	local difficultyCounter = 0
 	local waveParameters = {
 		baseCooldown = 0,
-		specialSquadsPercentage = 33,
 		airWave = {
 			cooldown = 0,
-		},
-		typeBoost = {
-			cooldown = 10,
 		},
 	}
 	--local miniBossCooldown = 0
@@ -625,7 +621,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			local waveLevel = currentWave
 			local squad = config.basicWaves[waveLevel][mRandom(1, #config.basicWaves[waveLevel])]
-			if config.specialWaves[waveLevel] and mRandom(1,100) <= waveParameters.specialSquadsPercentage then
+			if config.specialWaves[waveLevel] and mRandom(1,100) <= 33 then
 				squad = config.specialWaves[waveLevel][mRandom(1, #config.specialWaves[waveLevel])]
 			elseif config.superWaves[waveLevel] and mRandom(1,100) <= 1 then
 				squad = config.superWaves[waveLevel][mRandom(1, #config.superWaves[waveLevel])]
@@ -672,34 +668,23 @@ if gadgetHandler:IsSyncedCode() then
 		if SetCount(config.chickenTurrets) > 0 then
 			local r = math.random(1,100)
 			-- spawn some turrets
-			if r < 30 then
-				SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius, z-config.burrowTurretSpawnRadius)
-				SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius, z-config.burrowTurretSpawnRadius)
-				SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius, z+config.burrowTurretSpawnRadius)
-				SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius, z+config.burrowTurretSpawnRadius)
-			elseif r < 60 then
-				SpawnBurrowTurret(unitID, x, y, z, x+(config.burrowTurretSpawnRadius*1.5), z)
-				SpawnBurrowTurret(unitID, x, y, z, x-(config.burrowTurretSpawnRadius*1.5), z)
-				SpawnBurrowTurret(unitID, x, y, z, x, z+(config.burrowTurretSpawnRadius*1.5))
-				SpawnBurrowTurret(unitID, x, y, z, x, z-(config.burrowTurretSpawnRadius*1.5))
-			elseif r < 90 then
-				SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius, z-config.burrowTurretSpawnRadius)
-				SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius, z-config.burrowTurretSpawnRadius)
-				SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius, z+config.burrowTurretSpawnRadius)
-				SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius, z+config.burrowTurretSpawnRadius)
-				SpawnBurrowTurret(unitID, x, y, z, x+(config.burrowTurretSpawnRadius*1.5), z)
-				SpawnBurrowTurret(unitID, x, y, z, x-(config.burrowTurretSpawnRadius*1.5), z)
-				SpawnBurrowTurret(unitID, x, y, z, x, z+(config.burrowTurretSpawnRadius*1.5))
-				SpawnBurrowTurret(unitID, x, y, z, x, z-(config.burrowTurretSpawnRadius*1.5))
-			end
-		end
-		-- spawn units together with burrow
-		if Spring.GetGameSeconds() > config.gracePeriod then
-			for i = 1,SetCount(humanTeams)*config.chickenSpawnMultiplier do
-				if mRandom() <= config.spawnChance then
-					SpawnRandomOffWaveSquad(unitID)
-				end
-			end
+			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius, z-config.burrowTurretSpawnRadius)
+			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius, z-config.burrowTurretSpawnRadius)
+			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius, z+config.burrowTurretSpawnRadius)
+			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius, z+config.burrowTurretSpawnRadius)
+			SpawnBurrowTurret(unitID, x, y, z, x+(config.burrowTurretSpawnRadius*1.5), z)
+			SpawnBurrowTurret(unitID, x, y, z, x-(config.burrowTurretSpawnRadius*1.5), z)
+			SpawnBurrowTurret(unitID, x, y, z, x, z+(config.burrowTurretSpawnRadius*1.5))
+			SpawnBurrowTurret(unitID, x, y, z, x, z-(config.burrowTurretSpawnRadius*1.5))
+
+			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius*0.5, z-config.burrowTurretSpawnRadius*1.25)
+			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius*1.25, z-config.burrowTurretSpawnRadius*0.5)
+			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius*1.25, z+config.burrowTurretSpawnRadius*0.5)
+			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius*0.5, z+config.burrowTurretSpawnRadius*1.25)
+			SpawnBurrowTurret(unitID, x, y, z, x+(config.burrowTurretSpawnRadius*1.25), z+config.burrowTurretSpawnRadius*0.5)
+			SpawnBurrowTurret(unitID, x, y, z, x-(config.burrowTurretSpawnRadius*1.25), z-config.burrowTurretSpawnRadius*0.5)
+			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius*0.5, z+(config.burrowTurretSpawnRadius*1.25))
+			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius*0.5, z-(config.burrowTurretSpawnRadius*1.25))
 		end
 	end
 
@@ -915,13 +900,6 @@ if gadgetHandler:IsSyncedCode() then
 		waveParameters.baseCooldown = waveParameters.baseCooldown - 1
 		waveParameters.airWave.cooldown = waveParameters.airWave.cooldown - 1
 		--waveParameters.miniBoss.cooldown = waveParameters.miniBoss.cooldown - 1
-		if waveParameters.specialSquadsPercentage > 40 then
-			waveParameters.specialSquadsPercentage = waveParameters.specialSquadsPercentage - 5
-		elseif waveParameters.specialSquadsPercentage < 30 then
-			waveParameters.specialSquadsPercentage = waveParameters.specialSquadsPercentage + 5
-		else
-			waveParameters.typeBoost.cooldown = waveParameters.typeBoost.cooldown - 1
-		end
 		
 
 		if waveParameters.baseCooldown <= 0 then
@@ -931,16 +909,6 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.baseCooldown = mRandom(2,4)
 				waveType = "air"
 			end
-			
-			-- random mutators
-			if waveParameters.typeBoost.cooldown <= 0 and mRandom() <= config.spawnChance then
-				waveParameters.typeBoost.cooldown = mRandom(5,8)
-				waveParameters.specialSquadsPercentage = math.random(-10,110)
-			end
-
-
-
-			
 			
 			-- if waveParameters.miniBoss.cooldown <= 0 and currentWave >= 6 and mRandom() <= config.spawnChance thencurrentMaxWaveSize
 			-- 	waveParameters.miniBoss.cooldown = mRandom(10,20)
@@ -974,32 +942,24 @@ if gadgetHandler:IsSyncedCode() then
 							squad = config.airWaves[currentWave][mRandom(1, #config.airWaves[currentWave])]
 						else
 							squad = config.basicWaves[currentWave][mRandom(1, #config.basicWaves[currentWave])]
-							if config.specialWaves[currentWave] and mRandom(1,100) <= waveParameters.specialSquadsPercentage then
+							if config.specialWaves[currentWave] and mRandom(1,100) <= 33 then
 								squad = config.specialWaves[currentWave][mRandom(1, #config.specialWaves[currentWave])]
 								if config.superWaves[currentWave] and mRandom(1,100) <= 3 then
 									squad = config.superWaves[currentWave][mRandom(1, #config.superWaves[currentWave])]
 								end
 							end
 						end
-						local skipSpawn = false
-						if cCount > 1 and mRandom() > config.spawnChance then
-							skipSpawn = true
-						end
-						if not skipSpawn then
-							for i, sString in pairs(squad) do
-								if cCount < currentMaxWaveSize then
-									local nEnd, _ = string.find(sString, " ")
-									local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-									local chickenName = string.sub(sString, (nEnd + 1))
-									for j = 1, unitNumber, 1 do
-										squadCounter = squadCounter + 1
-										table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
-									end
-									cCount = cCount + unitNumber
-								end
-							end
-						end
 						if mRandom() <= config.spawnChance then
+							for i, sString in pairs(squad) do
+								local nEnd, _ = string.find(sString, " ")
+								local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
+								local chickenName = string.sub(sString, (nEnd + 1))
+								for j = 1, unitNumber, 1 do
+									squadCounter = squadCounter + 1
+									table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
+								end
+								cCount = cCount + unitNumber
+							end
 							table.insert(spawnQueue, { burrow = burrowID, unitName = config.chickenHealers[mRandom(1,#config.chickenHealers)], team = chickenTeamID, squadID = 1 })
 							cCount = cCount + 1
 						end
@@ -1591,8 +1551,7 @@ if gadgetHandler:IsSyncedCode() then
 			if t > config.gracePeriod+5 then
 				if burrowCount > 0
 				and SetCount(spawnQueue) == 0
-				and ((config.chickenSpawnRate) < (t - timeOfLastWave))
-				and ((not config.swarmMode) or (t - timeOfLastWave) > 300) then
+				and ((config.chickenSpawnRate) < (t - timeOfLastWave)) then
 					local cCount = Wave()
 					timeOfLastWave = t
 				end
