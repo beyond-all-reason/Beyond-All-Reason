@@ -811,12 +811,12 @@ function UnitDef_Post(name, uDef)
 			uDef.featuredefs.heap.metal = 500
 			uDef.maxdamage = 4500
 			uDef.autoheal = 0
-			uDef.idleautoheal = 0
+			uDef.idleautoheal = 5
 			if uDef.weapondefs.disintegrator then
 				uDef.weapondefs.disintegrator.damage = {
 					default = 98999,
 					scavboss = 1000,
-					commanders = 130,
+					commanders = 0,
 					}
 			end
 		end
