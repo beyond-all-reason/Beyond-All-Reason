@@ -506,8 +506,8 @@ local sec2 = 0
 local sec = 0
 function widget:Update(dt)
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
-	if not alwaysShow and (cameraPanMode or mouseOffScreen) then
-		if displayUnitID == nil and SelectedUnitsCount == 0 then
+	if not alwaysShow and (cameraPanMode or mouseOffScreen) and  Spring.GetGameFrame() > 0 then
+		if SelectedUnitsCount == 0 then
 			if dlistGuishader then
 				WG['guishader'].DeleteDlist('info')
 				dlistGuishader = nil
@@ -1015,7 +1015,7 @@ local function drawUnitInfo()
 	cellRect = nil
 
 	-- draw unit buildoption icons
-	if displayMode == 'unitdef' and showBuilderBuildlist and unitDefInfo[displayUnitDefID].buildOptions then
+	if displayMode == 'unitdef' and showBuilderBuildlist and unitDefInfo[displayUnitDefID].buildOptions and not hideBuildlist then
 		gridHeight = math_ceil(height * 0.975)
 		local rows = 2
 		local colls = math_ceil(#unitDefInfo[displayUnitDefID].buildOptions / rows)
@@ -1613,7 +1613,7 @@ end
 local doUpdateClock2 = os_clock() + 0.9
 function widget:DrawScreen()
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
-	if not alwaysShow and (cameraPanMode or mouseOffScreen) and displayUnitID == nil and SelectedUnitsCount == 0 then
+	if not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0 then
 		if dlistGuishader then
 			WG['guishader'].DeleteDlist('info')
 			dlistGuishader = nil
@@ -1648,7 +1648,7 @@ function widget:DrawScreen()
 			drawInfo()
 		end)
 	end
-	if alwaysShow or not emptyInfo then
+	if alwaysShow or not emptyInfo or  Spring.GetGameFrame() == 0 then
 		gl.CallList(dlistInfo)
 	elseif dlistGuishader then
 		WG['guishader'].DeleteDlist('info')
@@ -1776,7 +1776,9 @@ function widget:DrawScreen()
 	end
 end
 
+local hideBuildlist
 function checkChanges()
+	hideBuildlist = nil	-- only set for pregame startunit
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
 	lastHoverData = hoverData
 	hoverType, hoverData = spTraceScreenRay(x, y)
@@ -1867,6 +1869,12 @@ function checkChanges()
 	-- display changed
 	if prevDisplayMode ~= displayMode or prevDisplayUnitDefID ~= displayUnitDefID or prevDisplayUnitID ~= displayUnitID then
 		doUpdate = true
+	end
+
+	if displayMode == 'text' and Spring.GetGameFrame() == 0 then
+		displayMode = 'unitdef'
+		displayUnitDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+		hideBuildlist = true
 	end
 end
 
