@@ -95,7 +95,7 @@ return {
 				name = "GOOLAUNCHER",
 				noselfdamage = true,
 				proximitypriority = -4,
-				range = 2000,
+				range = 1500,
 				reloadtime = 8,
 				rgbcolor = "1 0.5 0.1",
 				size = 5.5,
