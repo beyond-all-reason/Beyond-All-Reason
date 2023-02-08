@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author    = 'Beherith',
 		version   = '1.0',
 		date      = '2021.05.020',
-		license   = 'Lua code: GNU GPL, v2 or later; GLSL code: (c) Beherith mysterme@gmail.com',
+		license   = 'Lua code: GNU GPL, v2 or later; GLSL code: (c) Beherith mysterme@gmail.com',	
 		layer     = 100,
 		enabled   = false,  --  loaded by default?
 	}
@@ -111,6 +111,7 @@ local unitIcon = {}	-- {unitDefID = 'icons/'}, retrieves from buildmenu in initi
 	-- DONE: add 'scissor' uniforms for each 'layer' object 
 	-- DONE: add 'scissor' uniforms for each 'layer' object 
 	-- TODO: Make the whole shit screen size aware
+	-- DONE: drag is not 'sticky'
 	
 -- Regarding "Layers":
 	-- Due to the way draw order must be preserved, layers are an important thing. 
@@ -121,13 +122,21 @@ local unitIcon = {}	-- {unitDefID = 'icons/'}, retrieves from buildmenu in initi
 		-- And each layer can have its own scrollscale 
 		-- Each layer has its own list of text elements
 		-- Each layer can have its own default styling. 
+	-- A layer could be the child of a non-root object?
+	
+-- TODO 2023.02.07
+	-- DONE: Add LEFT RIGHT TOP BOTTOM parent-relative coords
+	-- DONE: Separate window title bar
+	-- TODO: implement resizing via recreation...
+	-- TODO: make highlightability dependend on having mouseEvents by default
 
 
 local Draw = {}
 local vsx, vsy = Spring.GetViewGeometry()
 local nameCounter = 0
-local ROOT
-local Layers = {} -- A sorted list of Layer objects, each containing its own text list, its own scissor, and all kinds of other fun stuff. Maybe even setting its own stying like textcolor, outlinecolor? 
+local ROOT -- this is the global root, its children can only be layers!
+local Layers = {} -- A sorted list of Layer objects, each containing its own text list, its own scissor, and all kinds of other fun stuff. Maybe even setting its own stying like textcolor, outlinecolor? , keyed with layername
+local LayerDrawOrder = {} -- 
 
 
 local floor = math.floor
@@ -156,30 +165,76 @@ local metaElement_mt = {
 	__index = metaElement,
 }
 
--- create a new layer object from the table, but this has to be a metaElement!
-local function CreateLayer(o)
-	local obj = {}
-	for k,v in pairs(o) do obj[k] = v end 
-	obj.scissorLayer = obj.scissorLayer or {0,0,vsx,vsy}
-	obj.scrollScale = obj.scrollScale or {0,0,1,1}
-	obj.textChanged = obj.textChanged or false
-	obj.textDisplayList = obj.textDisplayList or nil
+function metaElement:ProcessRelativeCoords()
+	local padding = self.padding or 0
+	local parent = self.parent
+	if self.LEFT then 
+		if type(self.LEFT) == 'string' then 
+			self.left = parent.left + (parent.right-parent.left) * tonumber(string.sub(self.LEFT,1,-1))/100.0 + padding
+		else
+			self.left = parent.left + self.LEFT + padding
+		end
+	end
+	
+	if self.RIGHT then 
+		if type(self.RIGHT) == 'string' then 
+			self.right = parent.right - (parent.right-parent.left) * tonumber(string.sub(self.RIGHT,1,-1))/100.0 - padding
+		else
+			self.right = parent.right - self.LEFT - padding
+		end
+	end
+		
+	if self.BOTTOM then 
+		if type(self.BOTTOM) == 'string' then 
+			self.bottom = parent.bottom + (parent.top-parent.bottom) * tonumber(string.sub(self.BOTTOM,1,-1))/100.0 + padding
+		else
+			self.bottom = parent.bottom + self.BOTTOM + padding
+		end
+	end
+	
+	if self.TOP then 
+		if type(self.TOP) == 'string' then 
+			self.top = parent.top - (parent.top-parent.bottom) * tonumber(string.sub(self.TOP,1,-1))/100.0 - padding
+		else
+			self.top = parent.top - self.TOP - padding
+		end
+	end
+	
+	if self.WIDTH then
+		if type(self.WIDTH) == 'string' then 
+			self.right = self.left + (parent.right-parent.left) * tonumber(string.sub(self.WIDTH,1,-1))/100.0 - padding
+		else
+			self.right = self.left + self.WIDTH - padding
+		end
+	end
+	
+	if self.HEIGHT then
+		if type(self.HEIGHT) == 'string' then 
+			self.top = self.bottom + (parent.top-parent.bottom) * tonumber(string.sub(self.HEIGHT,1,-1))/100.0 - padding
+		else
+			self.top = self.bottom + self.HEIGHT - padding
+		end
+	end
+	if not self.left   then self.left   = self.parent.left   + padding end 
+	if not self.right  then self.right  = self.parent.right  - padding end 
+	if not self.bottom then self.bottom = self.parent.bottom + padding end 
+	if not self.top    then self.top    = self.parent.top    - padding end 
 end
-
 
 local function newElement(o) -- This table contains the default properties 
 	if o == nil then o = {} end 
+	if type(o) ~= 'table' then Spring.Debug.TraceEcho() end 
 	if o.name == nil then -- auto namer
 		nameCounter = nameCounter + 1
 	end
 	
 	local element =   {
 		name = o.name or 'element'..tostring(nameCounter),
-		left = x or 0,
-		bottom = y or 0,
-		right = w or vsx, 
-		top = h or vsy,
-		depth = depth or 0.5, -- halfway?
+		--left = o.x or 0,
+		--bottom = o.y or 0,
+		--right = o.w or vsx, 
+		--top = o.h or vsy,
+		depth = o.depth or 0.5, -- halfway?
 		treedepth = 1, -- how deep we are in the render tree
 		hidden = false,
 		MouseEvents = o.MouseEvents or {}, --{left = func, right = func.., middle, enter, leave, hover} these funcs get self as first param
@@ -196,6 +251,7 @@ local function newElement(o) -- This table contains the default properties
 	
 	if not obj.isroot then 
 		local parent = obj.parent or ROOT
+		obj.parent = parent
 
 		if parent.children == nil then 
 			parent.children = {[obj.name] = obj}
@@ -207,7 +263,20 @@ local function newElement(o) -- This table contains the default properties
 		if o.depth == nil then 
 			element.depth = 0.5 - obj.treedepth * 0.002 
 		end 
+		if parent.VBO then 
+			--Spring.Echo("Setting VBO of ",obj.name,'from parent', parent.name,'to', parent.VBO.myName)
+			obj.VBO = parent.VBO
+		end 
+		if parent.layer then 
+			obj.layer = parent.layer 
+		else
+			Spring.Debug.TraceEcho(obj.name .. " parented to ".. obj.parent.name.. " has no layer")
+		end
 	end
+	-- Ok, so this is where parent-relative positioning comes in, and is expressed in percent
+	obj:ProcessRelativeCoords()
+	
+	
 	if obj.textelements then 
 		local cachetextelements = obj.textelements
 		obj.textelements = nil 
@@ -265,13 +334,14 @@ function metaElement:UpdateTextPosition(newtext) -- for internal use only!
 	end
 	newtext.ox = floor(newtext.ox)
 	newtext.oy = floor(newtext.oy)
-	ROOT.textChanged = true
+	self.layer.textChanged = true
 end
 
 
 function metaElement:AddText(ox, oy, text, fontsize, textoptions, alignment, textcolor, outlinecolor)
 	-- it is now that we need to cache text height, and width
-	ROOT.textChanged = true
+	if self.layer == nil then Spring.Debug.TraceEcho(self.name) end 
+	self.layer.textChanged = true
 	local newtext = {
 			ox = ox, -- offset from bottom left corner of parent element
 			oy = oy,
@@ -291,24 +361,30 @@ end
 
 function metaElement:RemoveText(textindex)
 	if self.textelements then 
-		ROOT.textChanged = true
+		layer.textChanged = true
 		return table.remove(self.textelements, textindex)
 	end
 end
 
-function metaElement:DrawText(px,py) -- parentx,parenty
+-- returns number of texts drawn, can also just count them
+function metaElement:DrawText(px,py,onlycount) -- parentx,parenty
 	--Spring.Echo(self)
-	if self.textelements then 
+	local count = 0
+	if self.textelements and not self.hidden then 
 		for i, text in ipairs(self.textelements) do
-			font:Print(text.text, text.ox + self.left, text.oy + self.bottom, text.fontsize, text.textoptions)
+			if not onlycount then 
+				font:Print(text.text, text.ox + self.left, text.oy + self.bottom, text.fontsize, text.textoptions)
+			end
+			count = count + 1
 			--Spring.Echo(text.text,text.ox, px, text.oy, py)
 		end
 	end
 	if self.children then
 		for name, child in pairs(self.children) do 
-			child:DrawText(self.left, self.bottom)
+			count = count + child:DrawText(self.left, self.bottom, onlycount)
 		end
 	end
+	return count
 end
 
 function metaElement:GetElementUnderMouse(mx,my)
@@ -334,12 +410,13 @@ end
 
 -- Will set all children to that visibility state too!
 function metaElement:SetVisibility(newvisibility)
+	Spring.Echo("SetVisibility", self.name, newvisibility)
 	if newvisibility == false then 
 		self.hidden = true -- this is for hit tests
 	else
 		self.hidden = false
 	end
-	ROOT.textChanged = true
+	self.layer.textChanged = true
 	self:UpdateVBOKeys('hide', newvisibility and 0 or 1)
 	
 	if self.children then 
@@ -349,13 +426,24 @@ function metaElement:SetVisibility(newvisibility)
 	end
 end
 
-function metaElement:UpdateVBOKeys(keyname, value)
+function metaElement:UpdateVBOKeys(keyname, value, delta)
 	if self.instanceKeys then 
 		for i,instanceKey in ipairs(self.instanceKeys) do 
 			local VBO = self.VBO or rectRoundVBO
+			local success = getElementInstanceData(VBO, instanceKey, self.vboCache) -- this is empty! probbly instance does not exist in this
+			if success == nil then 
+				Spring.Echo("element not found",self.name, VBO.myName,instanceKey)
+				Spring.Debug.TraceFullEcho()
+			end
+			--Spring.Debug.TableEcho(self.vboCache)
 			
-			getElementInstanceData(VBO, instanceKey, self.vboCache)
-			self.vboCache[self.vbokeys[keyname]] = value
+			if delta then 
+				local cache = self.vboCache
+				
+				self.vboCache[self.vbokeys[keyname]] = self.vboCache[self.vbokeys[keyname]] + delta
+			else
+				self.vboCache[self.vbokeys[keyname]] = value
+			end
 			pushElementInstance(VBO,self.vboCache, instanceKey, true) 
 			--Spring.Echo("Setting VBO Key", keyname, self.name, 'to',value,'for',instanceKey, #self.vboCache)
 			--todo needs a 'refresh' trigger for the ivbo
@@ -363,18 +451,64 @@ function metaElement:UpdateVBOKeys(keyname, value)
 	end
 end
 
+
+function metaElement:Reposition(dx, dy)
+	-- move elements
+	self.left = self.left + dx
+	self.bottom = self.bottom + dy
+	self.right = self.right + dx
+	self.top = self.top + dy
+	
+	-- if we are a layer, we must repos our own scissorLayer
+	if self.scissorLayer then 
+		self.scissorLayer[1] = self.scissorLayer[1] + dx
+		self.scissorLayer[2] = self.scissorLayer[2] + dy
+		self.scissorLayer[3] = self.scissorLayer[3] + dx
+		self.scissorLayer[4] = self.scissorLayer[4] + dy
+	end
+
+	-- move parts
+	if self.instanceKeys then 
+		for i,instanceKey in ipairs(self.instanceKeys) do 
+			local VBO = self.VBO or rectRoundVBO
+			local vboCache = self.vboCache
+			getElementInstanceData(VBO, instanceKey, vboCache)
+			vboCache[1] = vboCache[1] + dx
+			vboCache[2] = vboCache[2] + dy
+			vboCache[3] = vboCache[3] + dx
+			vboCache[4] = vboCache[4] + dy
+			pushElementInstance(VBO,self.vboCache, instanceKey, true) 
+		end
+	end
+	-- move text
+	if self.textelements then 
+		for i, textelement in ipairs(self.textelements) do 
+			--Spring.Echo(Spring.GetDrawFrame(),"repos", self.name, textelement.text)
+			--textelement.ox = textelement.ox + dx
+			--textelement.oy = textelement.oy + dy
+		end 
+	end
+	if self.children then
+		for _, childElement in pairs(self.children) do 
+			childElement:Reposition(dx,dy)
+		end
+	end
+	self.layer.textChanged = true
+
+end
+
 function metaElement:Destroy(depth)
 	--Spring.Echo("Destroying",self.name)
 	depth = (depth or 0 ) + 1
 	-- 1. hide self and children
 	self:SetVisibility(false)
-	if self.textelements and  next(self.textelements) then ROOT.textChanged = true end
+	if self.textelements and  next(self.textelements) then self.layer.textChanged = true end
 	-- somehow mark them as dead
 	-- trigger a resize on critical amouts of elements changed?
 	-- POPPING BACK ELEMENTS IS FORBIDDEN AS IT WILL BREAK DRAW ORDER!
 	-- CANNOT USE popElementInstance !
 	-- instead track the number of destroyed elements
-	for i, instanceKey in ipairs(self.instanceKeys) do 
+	for i, instanceKey in ipairs(self.instanceKeys or {}) do 
 		local VBO = self.VBO or rectRoundVBO
 		VBO.instanceIDtoIndex[instanceKey] = nil 
 		VBO.destroyedElements = (VBO.destroyedElements or 0) + 1 -- this is how we keep track
@@ -403,13 +537,35 @@ function metaElement:CalculatePosition()
 	-- also check if it changed, and then update it in vbo maybe?
 end
 
+function metaElement:AreRectsOverlapping(other) 
+	return (self.left <= other.right) and (self.right >= other.left) and (self.bottom <= other.top) and (self.top >= other.bottom)
+end
+
+local GetNewVBO = function (n) return nil end
+
+-- create a new layer object from the table, but this has to be a metaElement!
+function metaElement:CreateLayer(o)
+	local obj = newElement(o)
+	--for k,v in pairs(o) do obj[k] = v end 
+	obj.scissorLayer = obj.scissorLayer or {obj.left,obj.bottom,obj.right,obj.top}
+	obj.scrollScale = obj.scrollScale or {0,0,1,1}
+	obj.textChanged = obj.textChanged or false
+	obj.textDisplayList = obj.textDisplayList or nil
+	obj.VBO = GetNewVBO(obj.name)
+	Layers[obj.name] = obj
+	obj.layer = obj
+	LayerDrawOrder[#LayerDrawOrder + 1] = obj.name
+	obj.islayer = true
+	return obj
+end
+
 function metaElement:NewContainer(o) -- A no-gfx empty container
 	return newElement(o)
 end
 
 function metaElement:NewUiElement(o) -- A UiElement
 	local obj = newElement(o)
-	obj.instanceKeys = Draw.Element(rectRoundVBO or obj.VBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right, obj.top,  
+	obj.instanceKeys = Draw.Element(obj.VBO or rectRoundVBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right, obj.top,  
 		obj.tl, obj.tr, obj.br, obj.bl,  obj.ptl, obj.ptr, obj.pbr, obj.pbl,  obj.opacity, 		obj.color1, obj.color2, obj.bgpadding or 3)
 	return obj
 end
@@ -418,7 +574,7 @@ function metaElement:NewButton(o) -- yay this objs shit again!
 	local obj = newElement(o)
 	--Spring.Echo(obj.name, obj.left, obj.right, obj.top, obj.bottom)
 	--parent, VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
-	obj.instanceKeys = Draw.Button( rectRoundVBO or obj.VBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right, obj.top,  
+	obj.instanceKeys = Draw.Button( obj.VBO or rectRoundVBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right, obj.top,  
 		obj.tl or 1, obj.tr or 1, obj.br or 1, obj.bl or 1,  obj.ptl or 1, obj.ptr or 1, obj.pbr or 1, obj.pbl or 1,  obj.opacity or 1, 		obj.color1, obj.color2, obj.bgpadding or 3)
 	return obj
 end
@@ -435,7 +591,7 @@ function metaElement:NewSlider(o)
 	o.MouseEvents = {
 		left = function(obj, mx, my) 
 			-- get the offset of within the click? 
-			local wratio = (mx - obj.left) / (obj.right - obj.left)
+			local wratio = math.max(0,math.min(1.0,(mx - obj.left) / (obj.right - obj.left)))
 			local newvalue = math.round(obj.min + wratio * (obj.max-obj.min), obj.digits)
 			local newright = ((newvalue - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
 			if debugmode then Spring.Echo("left clicked", obj.name, mx, wratio, newvalue, newright) end
@@ -445,7 +601,7 @@ function metaElement:NewSlider(o)
 		right = function(obj, mx, my) 
 			obj.updateValue(obj, obj.defaultvalue, obj.index, " (D)")
 			local newright = ((obj.value - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
-			obj:UpdateVBOKeys('right', newright, default)
+			obj:UpdateVBOKeys('right', newright)
 			if debugmode then  Spring.Echo("right clicked", obj.name, mx, my, newright, obj.value) end
 		end, 
 		hover = function (obj,mx,my) 
@@ -457,7 +613,7 @@ function metaElement:NewSlider(o)
 	o.MouseEvents.drag = o.MouseEvents.left
 	
 	local obj = newElement(o) 
-	
+	Spring.Echo('slidervboname',obj.VBO.myName)
 	obj.updateValue = function (obj, newvalue, index, tag)
 		if debugmode then  Spring.Echo("updateValue", obj.name, newvalue, index, tag, obj.valuetarget) end
 
@@ -476,12 +632,14 @@ function metaElement:NewSlider(o)
 	end
 	
 	
-	obj.instanceKeys = Draw.Slider(rectRoundVBO or obj.VBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right, obj.top, 
+	obj.instanceKeys = Draw.Slider(obj.VBO or rectRoundVBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right, obj.top, 
 		obj.steps, obj.min, obj.max) 
+		
+	if obj.VBO.dirty then uploadAllElements(obj.VBO) end 
 	
 	local defaultPos = ((obj.value - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
-	
-	obj:UpdateVBOKeys('right', defaultPos, obj.value)
+	--Spring.Echo("Slider defaults",obj.value, obj.min, obj.max, obj.right, obj.left,defaultPos)
+	obj:UpdateVBOKeys('right', defaultPos)
 	
 	return obj
 end
@@ -489,13 +647,13 @@ end
 --Toggle state = (default: 0) 0 / 0.5 / 1
 function metaElement:NewToggle(o) 
 	local obj = newElement(o)
-	obj.instanceKeys = Draw.Toggle(rectRoundVBO or obj.VBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right, obj.top, obj.state)
+	obj.instanceKeys = Draw.Toggle(obj.VBO or rectRoundVBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right, obj.top, obj.state)
 end
 
 function metaElement:NewUiUnit(o) 
 	local obj = newElement(o)
 	
-	obj.instanceKeys = Draw.Unit(rectRoundVBO or obj.VBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right,obj.top,  
+	obj.instanceKeys = Draw.Unit(obj.VBO or rectRoundVBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right,obj.top,  
 			obj.cs, obj.tl or 1, obj.tr or 1, obj.br or 1, obj.bl or 1,  obj.zoom or 1, obj.bordersize ,0.8, --zoom,  borderSize, borderOpacity
 			obj.texture,
 			obj.radartexture,
@@ -515,22 +673,166 @@ function metaElement:NewUiUnit(o)
 	end
 function metaElement:NewRectRound(obj) end
 
+function metaElement:NewWindow(o)
+	-- Object Hierarchy of standard window:
+	-- ROOT
+		-- windowlayer
+			-- titlebar
+				--titlebutton
+				--minimizebutton
+				--closebutton
+			-- window
+				--child objects
+	local titlebarheight = o.titlebarheight or 24
+	local windowlayer = metaElement:CreateLayer(o)
+	--o.parent = windowlayer -- is this fucking parenting itself?
+	
+	local titlebar = metaElement:NewUiElement({
+		left = o.left,
+		right = o.right,
+		top = o.top,
+		bottom = o.top - titlebarheight,
+		parent = windowlayer,
+		bl = 0,
+		br = 0,
+	})
+	
+	local window = metaElement:NewUiElement({
+		left = o.left,
+		right = o.right,
+		top = o.top - titlebarheight, 
+		bottom = o.bottom,
+		parent = windowlayer,
+		tr = 0,
+		tl = 0,
+	})
+	--window.parent = windowlayer
+	--window.layer = windowlayer
+
+	local titlebutton = metaElement:NewButton({
+		name = o.name .. 'titlebutton',
+		left = o.left + 2, bottom = o.top - (titlebarheight - 2) ,right = o.right - 42, top = o.top - 2,
+		bl = 0, tr = 0, br = 0,
+		parent = titlebar, 
+		tooltip = "drag the window here",
+		textelements = {{text = "Draggy boi", fontsize = 16, alignment = 2},},
+		MouseEvents= {drag = function (obj, mx, my, lastmx, lastmy)
+			--Spring.Echo(obj.name, 'drag', mx, lastmx, my, lastmy)
+			obj.layer:Reposition(mx - lastmx, my - lastmy) --- ooooh this is really nasty
+			--obj.layer.scissorLayer[1] = obj.layer.scissorLayer[1] + mx - lastmx
+			--obj.layer.scissorLayer[2] = obj.layer.scissorLayer[2] + my - lastmy
+			end },
+	})
+	
+	local minimizebutton = metaElement:NewButton({
+		name = o.name .. 'minimizebutton',
+		left = o.right -42 , bottom = o.top - (titlebarheight - 2) ,right = o.right - 22, top = o.top - 2,
+		tl = 0, tr = 0, bl = 0, br = 0,
+		parent = titlebar, 
+		tooltip = "minimize",
+		minimized = false,
+		delta = o.top - 22 - o.bottom,
+		textelements = {{text = "_", fontsize = 16, alignment = 5},},
+		MouseEvents = {left = function(obj, mx, my) 
+			-- hide all children below top
+			-- initstate
+			Spring.Echo(obj.name, 'minimize')
+			obj.minimized = not obj.minimized
+			--obj.parent:UpdateVBOKeys('bottom', nil, obj.minimized and (obj.delta) or (-1* obj.delta))
+			local siblings = obj.parent.parent.children
+			for _, childElement in pairs(siblings) do
+				if childElement.top < obj.bottom then 
+					childElement:SetVisibility(not obj.minimized)
+				end
+			end
+			end}
+	})
+	
+	local closebutton = metaElement:NewButton({
+		name = o.name .. 'close',
+		left = o.right -22 , bottom = o.top - 22 ,right = o.right - 2, top = o.top - 2,
+		br = 0, tl = 0, bl = 0,
+		parent = titlebar, 
+		tooltip = "close",
+		textelements = {{text = "X", fontsize = 16, alignment = 5},},
+		MouseEvents = {left = function(obj, mx, my) 
+			Spring.Echo(obj.name, "close")
+			obj.parent.parent:Destroy()
+			end}
+	})
+	
+	-- some rando sliders:
+	for i, rando in ipairs({"one","two","three","four","five","six","seven","eight","nine","ten",'1','2','3','4','5','6','7','8'}) do 
+		if i > 20 then break end
+			local newSliderBorder = metaElement:NewUiElement({
+				LEFT = 4,
+				bottom = o.bottom + (i-1) * 20 + 4, 
+				RIGHT = 4, 
+				top = o.bottom + (i) * 20 + 4,
+				parent = window,
+				bl= 0, br = 0, tl = 0, tr = 0,
+			})
+		
+			local newSlider = metaElement:NewSlider({
+				padding = 2, -- note how not specifying any pos will just pad it within its parent!
+				name = rando,
+				tooltip = rando,
+				min = 1,
+				max = 10, 
+				digits = 2, 
+				parent =newSliderBorder,
+				value = 3,
+				defaultvalue = 3,
+				valuetarget = nil,
+				callbackfunc = function (name,val) Spring.Echo(name,val) end ,
+				index = i,
+			})
+			i = i+1
+	end
+	return windowlayer
+end
+
+local function BringLayerToFront(layername)
+	local oldindex = nil
+	for i,name in ipairs(LayerDrawOrder) do -- todo: iterate reverse for speed?
+		if name == layername then 
+			oldindex = i
+			break
+		end
+	end
+	if oldindex and oldindex < #LayerDrawOrder then 
+		for i = oldindex, #LayerDrawOrder -1 do 
+			LayerDrawOrder[i] = LayerDrawOrder[i+1]
+		end
+		LayerDrawOrder[#LayerDrawOrder] = layername
+	end
+end
+
 --function metaElement:NewEmpty(obj) end
 
-ROOT = metaElement:NewContainer({isroot = true})
+ROOT = metaElement:NewContainer({isroot = true,name = "ROOOOOOOT", left = 0, right = vsx, bottom = 0, top = vsy})
 
 local lastmouse = {mx = 0, my = 0, left = false, middle = false, right = false}
 local lasthitelement = nil -- this is to store which one was last hit to fire off mouseentered mouseleft events 
+local draggableelement = nil
 -- TODO: debounce clicking!
+
 local function uiUpdate(mx,my,left,middle,right)
 	--if true then return end
 	-- this needs to be revamped, to trace the element under cursor, and then act based on clickedness
 	local elementundercursor
+	local bringtofront = false
 	if false and mx == lastmouse.mx and my == lastmouse.my then -- this will probably be bad in the future!
 		elementundercursor = lasthitelement
 	else	
-		elementundercursor = ROOT:GetElementUnderMouse(mx,my) -- root will always hit!
-		
+		for i=#LayerDrawOrder, 1, -1 do 
+			local hittest = Layers[LayerDrawOrder[i]]:GetElementUnderMouse(mx,my)
+			if hittest then 
+				elementundercursor = hittest
+				break
+			end
+			--elementundercursor = ROOT:GetElementUnderMouse(mx,my) -- root will always hit!
+		end
 		if lasthitelement and lasthitelement.MouseEvents and (elementundercursor == nil or elementundercursor.name ~= lasthitelement.name) then
 			if lasthitelement.MouseEvents.leave then 
 				lasthitelement.MouseEvents.leave(lasthitelement, mx, my)
@@ -540,22 +842,51 @@ local function uiUpdate(mx,my,left,middle,right)
 			end
 		end
 	end
+	
+	-- Sensible Drag:
+	-- Click must _start_ inside of a draggable element
+	
+	if left and not lastmouse.left and elementundercursor 
+		and elementundercursor.MouseEvents and elementundercursor.MouseEvents.drag then 
+		draggableelement = elementundercursor
+	elseif left == false then 
+		draggableelement = nil
+	end
+	
+	if draggableelement and left and lastmouse.left and 
+		((mx ~= lastmouse.mx) or (my ~= lastmouse.my))
+		then -- drag
+		draggableelement.MouseEvents.drag(draggableelement,mx,my,lastmouse.mx, lastmouse.my)
+		bringtofront = true
+	end
+	
+	
+	
 	lasthitelement = elementundercursor
 	if elementundercursor and elementundercursor.MouseEvents then 
 		--Spring.Echo(elementundercursor, elementundercursor.name)
 		if left and left ~= lastmouse.left then 
-			if elementundercursor.MouseEvents.left then elementundercursor.MouseEvents.left(elementundercursor,mx,my) end 
+			if elementundercursor.MouseEvents.left then 
+				elementundercursor.MouseEvents.left(elementundercursor,mx,my) 
+				bringtofront = true
+			end 
 		end
 	
-		if left and (lastmouse.mx ~= mx or lastmouse.my ~= my) then 
-			if elementundercursor.MouseEvents.drag then elementundercursor.MouseEvents.drag(elementundercursor,mx,my) end
+		if left and lastmouse.left and (lastmouse.mx ~= mx or lastmouse.my ~= my) then 
+			--if elementundercursor.MouseEvents.drag then elementundercursor.MouseEvents.drag(elementundercursor,mx,my,lastmouse.mx, lastmouse.my) end
 		end
 		
 		if middle and middle ~= lastmouse.middle then 
-			if elementundercursor.MouseEvents.middle then elementundercursor.MouseEvents.middle(elementundercursor, mx, my) end 
+			if elementundercursor.MouseEvents.middle then 
+				elementundercursor.MouseEvents.middle(elementundercursor, mx, my) 
+				bringtofront = true
+			end 
 		end
 		if right and right ~= lastmouse.right then 
-			if elementundercursor.MouseEvents.right then elementundercursor.MouseEvents.right(elementundercursor, mx, my) end 
+			if elementundercursor.MouseEvents.right then 
+				elementundercursor.MouseEvents.right(elementundercursor, mx, my) 
+				bringtofront = true
+			end 
 		end
 		if elementundercursor.MouseEvents.hover then
 			elementundercursor.MouseEvents.hover(elementundercursor, mx, my)
@@ -566,10 +897,41 @@ local function uiUpdate(mx,my,left,middle,right)
 	lastmouse.left = left
 	lastmouse.middle = middle
 	lastmouse.right = right
+	if bringtofront and elementundercursor and elementundercursor.layer then
+		BringLayerToFront(elementundercursor.layer.name)
+	end
 end
 
 local textDisplayList = nil
 local useTextDisplayList = true
+
+
+local function RefreshText() -- make this a member of layer class?
+	if useTextDisplayList then 
+		for layername, Layer in pairs(Layers) do 
+			if Layer.textChanged then 
+				if Layer.textDisplayList then gl.DeleteList(Layer.textDisplayList) end
+				local textcount = Layer:DrawText(0,0,true)
+				if textcount >0 then
+					--Spring.Echo(Spring.GetDrawFrame(),"layer text rebuilt", layername)
+					Layer.textDisplayList = gl.CreateList(
+						function () 
+						font:Begin()
+						Layer:DrawText(0,0)
+						--font:SubmitBuffered(true) -- doesnt help at all :(
+						font:End()
+					end)
+				else
+					Layer.textDisplayList = nil
+				end
+				Layer.textChanged = false
+			end
+		end
+	end
+end
+
+
+
 local function DrawText()
 	--if true then return end
 	if useTextDisplayList then 
@@ -1166,8 +1528,8 @@ local function goodbye(reason)
   widgetHandler:RemoveWidget(self)
 end
 
-local function makeRectRoundVBO()
-	rectRoundVBO = makeInstanceVBOTable(
+local function makeRectRoundVBO(name)
+	local rectRoundVBO = makeInstanceVBOTable(
 		{
 			{id = 0, name = 'screenpos', size = 4},
 			{id = 1, name = 'cornersizes', size = 4},
@@ -1178,8 +1540,8 @@ local function makeRectRoundVBO()
 			{id = 6, name = 'hide_blendmode_globalbackground', size = 4}, -- TODO: maybe Hide, BlendMode, globalbackground
 			
 		},
-		32000	,
-		"rectRoundVBO"
+		1024	,
+		"rectRoundVBO" .. (name or "")
 	)
 	if rectRoundVBO == nil then goodbye("Failed to create rectRoundVBO") end
 	
@@ -1200,8 +1562,14 @@ local function makeRectRoundVBO()
 		
 		pushElementInstance(rectRoundVBO,VBOData,i,true)
 	end
+	
+	rectRoundVAO = gl.GetVAO()
+	rectRoundVAO:AttachVertexBuffer(rectRoundVBO.instanceVBO)
+	rectRoundVBO.instanceVAO = rectRoundVAO
 	return rectRoundVBO
 end
+
+GetNewVBO = makeRectRoundVBO
 
 local function makeShaders()
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
@@ -1981,13 +2349,10 @@ end
 local btninstance = nil
 
 function widget:Initialize()
-	makeRectRoundVBO()
+	rectRoundVBO = makeRectRoundVBO("ROOT")
 	makeShaders()
 	
-	rectRoundVAO = gl.GetVAO()
-	
-	rectRoundVAO:AttachVertexBuffer(rectRoundVBO.instanceVBO)
-	rectRoundVBO.instanceVAO = rectRoundVAO
+
 	
 	WG['flowui_gl4'] = {}
 	WG['flowui_gl4'].forwardslider = forwardslider
@@ -2019,6 +2384,17 @@ function widget:Initialize()
 	--makeunitbuttonarray()
 	--makeSliderList(sliderListConfig)
 	--AddRecursivelySplittingButton()
+	
+
+	for i = 1, 2 do
+		local mywindow = metaElement:NewWindow({name = 'W'..tostring(i), left = 300+i*200, right = 490+i*200, top = 600, bottom = 200})
+		--local mywindow2 = metaElement:NewWindow({name = 'testwindow2', left = 300+i*200, right = 500+i*200, top = 600, bottom = 200})
+	end 
+	
+	for i = 1, 2 do
+		local mywindow = metaElement:NewWindow({name = 'Z'..tostring(i), left = 300+i*200, right = 490+i*200, top = 1000, bottom = 610})
+		--local mywindow2 = metaElement:NewWindow({name = 'testwindow2', left = 300+i*200, right = 500+i*200, top = 600, bottom = 200})
+	end 
 end
 
 function widget:Shutdown()
@@ -2031,9 +2407,39 @@ end
 
 elems = 0
 
+local nonoverlapping = {}
+local numoverlapping = 1
+local i = 0;
+
 function widget:Update()
-	local mx, my, left, middle, right = Spring.GetMouseState()
-	uiUpdate(mx, my, left, middle, right)
+	i = i + 1
+	if i %100 == 0 then -- todo, if a layer doesnt have text then it can be batch drawn under a layer that does
+		nonoverlapping = {}
+		numoverlapping = 0
+		for a = 1, #LayerDrawOrder  do 
+			local alayer = Layers[LayerDrawOrder[a]]
+			local aclear = true
+			for b = 1, #LayerDrawOrder do 
+				local blayer = Layers[LayerDrawOrder[b]]
+				if a~=b and alayer:AreRectsOverlapping(blayer) then 
+					aclear = false
+					numoverlapping = numoverlapping + 1
+					break
+				end
+			end
+			if aclear then nonoverlapping[LayerDrawOrder[a]] = true end 
+		end
+		Spring.Echo("overlaps:", numoverlapping)
+	end
+end
+
+local function DrawLayer(layername)
+	local Layer = Layers[layername]
+	if Layer.VBO.dirty then uploadAllElements(Layer.VBO) end
+	--Spring.Echo(Layer.name, Layer.VBO.usedElements)
+	rectRoundShader:SetUniformFloat("scissorLayer", Layer.scissorLayer[1], Layer.scissorLayer[2], Layer.scissorLayer[3], Layer.scissorLayer[4])
+	rectRoundShader:SetUniformFloat("scrollScale", Layer.scrollScale[1], Layer.scrollScale[2], Layer.scrollScale[3], Layer.scrollScale[4])
+	Layer.VBO.instanceVAO:DrawArrays(GL.POINTS,Layer.VBO.usedElements, 0, nil, 0)
 end
 
 function widget:DrawScreen()
@@ -2092,11 +2498,15 @@ function widget:DrawScreen()
 	--local UiButton = WG.FlowUI.Draw.Button
 	--UiButton(500, 500, 600, 550, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.8, 0.2, 0.8 }, WG.FlowUI.elementCorner * 0.5)
 	if chobbyInterface then return end
-	
+	local mx, my, left, middle, right = Spring.GetMouseState()
+	uiUpdate(mx, my, left, middle, right)
+	RefreshText()
 	
 	if rectRoundVBO.dirty then uploadAllElements(rectRoundVBO) end -- do updates!
 	--gl.Blending(GL.SRC_ALPHA, GL.ONE) -- bloomy
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- regular
+	gl.DepthTest(false);
+	gl.DepthMask(false);
 
 	gl.Texture(0, "luaui/images/backgroundtile.png")
 	if atlasID then 
@@ -2104,14 +2514,36 @@ function widget:DrawScreen()
 	else
 		gl.Texture(1, 'luaui/images/backgroundtile.png')
 	end
-	if rectRoundVBO.usedElements > 0 then 
-		rectRoundShader:Activate()
-		rectRoundShader:SetUniformFloat("scissorLayer", 0,0,vsx, vsy)
-		rectRoundShader:SetUniformFloat("scissorLayer", 0,0,vsx, vsy)
-		rectRoundVAO:DrawArrays(GL.POINTS,rectRoundVBO.usedElements, 0, nil, 0)
-		rectRoundShader:Deactivate()
+	
+
+	-- Draw non-overlapping in one go:
+	rectRoundShader:Activate()
+	for layername, _ in pairs(nonoverlapping) do 
+		DrawLayer(layername)
 	end
-	gl.Texture(1, false)
-	gl.Texture(0, false)
-	DrawText()
+	rectRoundShader:Deactivate()
+	
+	for layername, _ in pairs(nonoverlapping) do 
+		local Layer = Layers[layername]
+		if Layer.textDisplayList then gl.CallList(Layer.textDisplayList) end
+	end
+	
+	-- Then draw the ones that overlap others
+	if numoverlapping > 0 then 
+		for i= 1, #LayerDrawOrder do
+			local layername = LayerDrawOrder[i]
+			if nonoverlapping[layername] == nil then 
+				rectRoundShader:Activate()
+				DrawLayer(layername)
+				rectRoundShader:Deactivate()
+				gl.Texture(1, false)
+				gl.Texture(0, false)
+				
+				local Layer = Layers[layername]
+				if Layer.textDisplayList then gl.CallList(Layer.textDisplayList) end
+			end
+		end
+	end
+	
+	--DrawText()
 end
