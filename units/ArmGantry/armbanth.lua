@@ -145,7 +145,7 @@ return {
 				soundhit = "xplosml3",
 				soundhitwet = "sizzle",
 				soundstart = "banthie2",
-				soundstartvolume = 55,
+				soundstartvolume = 45,
 				thickness = 3.3,
 				tolerance = 10000,
 				turret = true,
