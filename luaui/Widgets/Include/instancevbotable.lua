@@ -527,7 +527,7 @@ function popElementInstance(iT, instanceID, noUpload)
 							local s = "Warning: We have " .. tostring(iT.numZombies) .. " zombie units left over in " .. iT.myName
 							for zombie, gf in pairs(iT.zombies) do 
 								s = s .. " " .. tostring(zombie) ..'/'..tostring(gf)
-								Spring.Echo("ZOMBIE AT", zombie, Spring.GetUnitPosition(zombie))
+								Spring.Echo("ZOMBIE instanceID", zombie, 'gf',gf)
 								--Spring.SendCommands({"pause 1"})
 								Spring.Debug.TraceFullEcho(nil,nil,nil, iT.myName)
 							end 
@@ -566,8 +566,8 @@ function popElementInstance(iT, instanceID, noUpload)
 						iT.zombies = {}
 						iT.numZombies = 0
 					end 
-					if iT.zombies[popunitID] == nil then 
-						iT.zombies[popunitID] = gf
+					if iT.zombies[lastElementInstanceID] == nil then 
+						iT.zombies[lastElementInstanceID] = gf
 						iT.numZombies = iT.numZombies + 1 
 					end
 				end
