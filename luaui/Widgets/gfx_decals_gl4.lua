@@ -676,8 +676,8 @@ local globalDamageMult = Spring.GetModOptions().multiplier_weapondamage or 1
 local weaponConfig = {}
 for weaponDefID=1, #WeaponDefs do
 	local weaponDef = WeaponDefs[weaponDefID]
-
-	if not string.find(weaponDef.cegTag, 'aa') then
+	local nodecal = (weaponDef.customParams and weaponDef.customParams.nodecal)
+	if (not nodecal) and (not string.find(weaponDef.cegTag, 'aa')) then
 		local radius = weaponDef.damageAreaOfEffect * 1.4
 
 		local damage = 100
@@ -1005,6 +1005,7 @@ for weaponDefID=1, #WeaponDefs do
 			damage,	-- 12
 			fadeintime, -- 13
 		}
+		
 	end
 end
 

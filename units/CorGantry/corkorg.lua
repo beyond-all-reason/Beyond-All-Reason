@@ -287,6 +287,7 @@ return {
 				weapontype = "Cannon",
 				customparams = {
 					noexplosionlight = 1,
+					nodecal = true,
 				},
 				damage = {
 					default = 0,
