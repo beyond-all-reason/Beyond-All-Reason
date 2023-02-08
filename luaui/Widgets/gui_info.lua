@@ -110,6 +110,8 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
+local hideBuildlist
+
 local function round(value, numDecimalPlaces)
 	if value then
 		return string.format("%0." .. numDecimalPlaces .. "f", math.round(value, numDecimalPlaces))
@@ -1776,7 +1778,6 @@ function widget:DrawScreen()
 	end
 end
 
-local hideBuildlist
 function checkChanges()
 	hideBuildlist = nil	-- only set for pregame startunit
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
