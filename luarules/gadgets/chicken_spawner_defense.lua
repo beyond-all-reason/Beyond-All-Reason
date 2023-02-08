@@ -69,7 +69,6 @@ if gadgetHandler:IsSyncedCode() then
 	local maxTries = 30
 	local chickenUnitCap = math.floor(Game.maxUnits*0.95)
 	local damageMod = config.damageMod
-	local currentWave = 1
 	local minBurrows = 1
 	local timeOfLastSpawn = -999999
 	local timeOfLastFakeSpawn = 0
@@ -88,6 +87,7 @@ if gadgetHandler:IsSyncedCode() then
 			cooldown = 0,
 		},
 	}
+	local squadSpawnOptions = config.squadSpawnOptionsTable
 	--local miniBossCooldown = 0
 	local firstSpawn = true
 	local gameOver = nil
@@ -608,31 +608,34 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		else
-			local techAngerPerTier = 100/config.wavesAmount
-			if techAnger >= 100 then
-				currentWave = config.wavesAmount
-			else
-				currentWave = math.ceil(techAnger/techAngerPerTier)
+			squadCounter = 0
+			local squad
+			local specialRandom = mRandom(1,100)
+			for _ = 1,1000 do
+				if specialRandom <= 33 then
+					local potentialSquad = squadSpawnOptions.special[mRandom(1, #squadSpawnOptions.special)]
+					if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger) 
+					or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
+						squad = potentialSquad
+						break
+					end
+				else
+					local potentialSquad = squadSpawnOptions.basic[mRandom(1, #squadSpawnOptions.basic)]
+					if potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
+						squad = potentialSquad
+						break
+					end
+				end
 			end
-
-			if currentWave > config.wavesAmount then
-				currentWave = config.wavesAmount
-			end
-
-			local waveLevel = currentWave
-			local squad = config.basicWaves[waveLevel][mRandom(1, #config.basicWaves[waveLevel])]
-			if config.specialWaves[waveLevel] and mRandom(1,100) <= 33 then
-				squad = config.specialWaves[waveLevel][mRandom(1, #config.specialWaves[waveLevel])]
-			elseif config.superWaves[waveLevel] and mRandom(1,100) <= 1 then
-				squad = config.superWaves[waveLevel][mRandom(1, #config.superWaves[waveLevel])]
-			end
-			for i, sString in pairs(squad) do
-				local nEnd, _ = string.find(sString, " ")
-				local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-				local chickenName = string.sub(sString, (nEnd + 1))
-				for j = 1, unitNumber, 1 do
-					squadCounter = squadCounter + 1
-					table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
+			if squad then
+				for i, sString in pairs(squad.units) do
+					local nEnd, _ = string.find(sString, " ")
+					local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
+					local chickenName = string.sub(sString, (nEnd + 1))
+					for j = 1, unitNumber, 1 do
+						squadCounter = squadCounter + 1
+						table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
+					end
 				end
 			end
 		end
@@ -643,7 +646,8 @@ if gadgetHandler:IsSyncedCode() then
 		if mRandom() < config.spawnChance then
 			local turretOptions = {}
 			for uName, uSettings in pairs(config.chickenTurrets) do
-				if uSettings.minQueenAnger <= techAnger and uSettings.spawnOnBurrows then
+				if not uSettings.maxQueenAnger then uSettings.maxQueenAnger = uSettings.minQueenAnger + 50 end
+				if uSettings.minQueenAnger <= techAnger and uSettings.maxQueenAnger >= techAnger and uSettings.spawnOnBurrows then
 					for i = 1,uSettings.spawnedPerWave do
 						table.insert(turretOptions, uName)
 					end
@@ -883,95 +887,78 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 		squadManagerKillerLoop()
-		
-		local techAngerPerTier = 100/config.wavesAmount
-		if techAnger >= 100 then
-			currentWave = config.wavesAmount
-		else
-			currentWave = math.ceil(techAnger/techAngerPerTier)
-		end
-
-		if currentWave > config.wavesAmount then
-			currentWave = config.wavesAmount
-		end
-
 		local waveType = "normal"
 
 		waveParameters.baseCooldown = waveParameters.baseCooldown - 1
 		waveParameters.airWave.cooldown = waveParameters.airWave.cooldown - 1
-		--waveParameters.miniBoss.cooldown = waveParameters.miniBoss.cooldown - 1
-		
 
 		if waveParameters.baseCooldown <= 0 then
 			-- special waves
-			if (not Spring.GetModOptions().unit_restrictions_noair) and waveParameters.airWave.cooldown <= 0 and config.airWaves[currentWave] and mRandom() <= config.spawnChance then
+			if techAnger > config.airStartAnger then
 				waveParameters.airWave.cooldown = mRandom(5,10)
 				waveParameters.baseCooldown = mRandom(2,4)
 				waveType = "air"
 			end
-			
-			-- if waveParameters.miniBoss.cooldown <= 0 and currentWave >= 6 and mRandom() <= config.spawnChance thencurrentMaxWaveSize
-			-- 	waveParameters.miniBoss.cooldown = mRandom(10,20)
-			-- 	waveParameters.baseCooldown = mRandom(2,4)
-			-- 	waveType = "miniboss"
-			
 		end
 
 		local cCount = 0
 		local loopCounter = 0
 		local squadCounter = 0
-		if waveType == "miniboss" then
-			repeat
-				for burrowID in pairs(burrows) do
-					if mRandom(1,SetCount(burrows)) == 1 then
-						table.insert(spawnQueue, { burrow = burrowID, unitName = config.miniBosses[mRandom(1,#config.miniBosses)], team = chickenTeamID, squadID = 0 })
-						cCount = 1
-						break
-					end
-				end
-			until (cCount > 0 or loopCounter >= 100)
-		end
 		repeat
 			loopCounter = loopCounter + 1
 			for burrowID in pairs(burrows) do
-				if cCount < currentMaxWaveSize then
-					for mult = 1,config.chickenSpawnMultiplier do
-						squadCounter = 0
-						local squad
-						if waveType == "air" then
-							squad = config.airWaves[currentWave][mRandom(1, #config.airWaves[currentWave])]
-						else
-							squad = config.basicWaves[currentWave][mRandom(1, #config.basicWaves[currentWave])]
-							if config.specialWaves[currentWave] and mRandom(1,100) <= 33 then
-								squad = config.specialWaves[currentWave][mRandom(1, #config.specialWaves[currentWave])]
-								if config.superWaves[currentWave] and mRandom(1,100) <= 3 then
-									squad = config.superWaves[currentWave][mRandom(1, #config.superWaves[currentWave])]
+				if mRandom() <= config.spawnChance then
+					squadCounter = 0
+					local squad
+					if waveType == "air" then
+						for _ = 1,1000 do
+							local potentialSquad = squadSpawnOptions.air[mRandom(1, #squadSpawnOptions.air)]
+							if potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
+								squad = potentialSquad
+								break
+							end
+						end
+					else
+						local specialRandom = mRandom(1,100)
+						for _ = 1,1000 do
+							if specialRandom <= 33 then
+								local potentialSquad = squadSpawnOptions.special[mRandom(1, #squadSpawnOptions.special)]
+								if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger) 
+								or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
+									squad = potentialSquad
+									break
+								end
+							else
+								local potentialSquad = squadSpawnOptions.basic[mRandom(1, #squadSpawnOptions.basic)]
+								if potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
+									squad = potentialSquad
+									break
 								end
 							end
 						end
-						if mRandom() <= config.spawnChance then
-							for i, sString in pairs(squad) do
-								local nEnd, _ = string.find(sString, " ")
-								local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-								local chickenName = string.sub(sString, (nEnd + 1))
-								for j = 1, unitNumber, 1 do
-									squadCounter = squadCounter + 1
-									table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
-								end
-								cCount = cCount + unitNumber
+					end
+					if squad then
+						for i, sString in pairs(squad.units) do
+							local nEnd, _ = string.find(sString, " ")
+							local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
+							local chickenName = string.sub(sString, (nEnd + 1))
+							for j = 1, unitNumber, 1 do
+								squadCounter = squadCounter + 1
+								table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
 							end
-							table.insert(spawnQueue, { burrow = burrowID, unitName = config.chickenHealers[mRandom(1,#config.chickenHealers)], team = chickenTeamID, squadID = 1 })
+							cCount = cCount + unitNumber
+						end
+						table.insert(spawnQueue, { burrow = burrowID, unitName = config.chickenHealers[mRandom(1,#config.chickenHealers)], team = chickenTeamID, squadID = 1 })
+						if waveType ~= "air" then
 							cCount = cCount + 1
 						end
 					end
 				end
 			end
-		until (cCount > currentMaxWaveSize or loopCounter >= 100)
+		until (cCount > currentMaxWaveSize or loopCounter >= 200*config.chickenSpawnMultiplier)
 
-		if waveType == "air" then
+		if waveType == "air" and cCount > 0 then
 			chickenEvent("airWave", cCount)
-		elseif waveType == "miniboss" then
-			chickenEvent("miniQueen", cCount)
 		elseif config.useWaveMsg then
 			chickenEvent("wave", cCount)
 		end
@@ -1356,7 +1343,8 @@ if gadgetHandler:IsSyncedCode() then
 		for uName, uSettings in pairs(config.chickenTurrets) do
 			--Spring.Echo(uName)
 			--Spring.Debug.TableEcho(uSettings)
-			if uSettings.minQueenAnger <= techAnger then
+			if not uSettings.maxQueenAnger then uSettings.maxQueenAnger = uSettings.minQueenAnger + 50 end
+			if uSettings.minQueenAnger <= techAnger and uSettings.maxQueenAnger >= techAnger then
 				for i = 1,math.floor((uSettings.spawnedPerWave*(1-config.chickenPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.chickenPerPlayerMultiplier)*SetCount(humanTeams)) do
 					local attempts = 0
 					repeat
