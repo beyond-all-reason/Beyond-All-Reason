@@ -1059,26 +1059,66 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 end
 
 local UnitScriptDecals = {
-	[UnitDefNames['corkorg'].id]={
+	[UnitDefNames['corkorg'].id] = {
 		[1] = {
 			texture = groundscarsPath..'f_corkorg_a.tga',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = -20, -- 
+			offsetx = 2, --offset from what the UnitScriptDecal returns 
+			offsetz = -25, -- 
 			offsetrot = 0, -- in radians
-			width = 32,
-			height = 80,
+			width = 68,
+			height = 66,
 			heatstart = 0,
 			heatdecay = 0,
 			alphastart = 1.0, 
-			alphadecay = 0.002, 
+			alphadecay = 0.0002, 
 			maxalpha = 1.0, 
 			bwfactor = 0.0, 
 			glowsustain = 0.0, 
 			glowadd = 0.0, 
 			fadeintime = 5, 
 			}
-		}
-	
+		},
+
+	[UnitDefNames['armbanth'].id] = { 
+		[1] = {
+			texture = groundscarsPath..'f_armbanth_a.tga',
+			offsetx = 0, --offset from what the UnitScriptDecal returns 
+			offsetz = -7, -- 
+			offsetrot = 0, -- in radians
+			width = 36,
+			height = 33,
+			heatstart = 0,
+			heatdecay = 0,
+			alphastart = 1.2, 
+			alphadecay = 0.0016, 
+			maxalpha = 1.0, 
+			bwfactor = 0.5, 
+			glowsustain = 0.0, 
+			glowadd = 0.0, 
+			fadeintime = 5, 
+			}
+		},
+
+	[UnitDefNames['corthud'].id] = { 
+		[1] = {
+			texture = groundscarsPath..'f_botsmall_a.tga',
+			offsetx = 0, --offset from what the UnitScriptDecal returns 
+			offsetz = 0, -- 
+			offsetrot = 0, -- in radians
+			width = 17,
+			height = 15,
+			heatstart = 0,
+			heatdecay = 0,
+			alphastart = 0.8, 
+			alphadecay = 0.0022, 
+			maxalpha = 1.0, 
+			bwfactor = 0.1, 
+			glowsustain = 0.0, 
+			glowadd = 0.0, 
+			fadeintime = 5, 
+			}
+		},
+
 	}
 
 local function UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)

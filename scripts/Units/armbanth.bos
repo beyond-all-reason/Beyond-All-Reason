@@ -7,8 +7,13 @@ piece  head, torso, pelvis, missleflare,
        rleg, rthigh, lthigh, lleg, ltoe,  rtoe, lfoot, rfoot,
         luparm, ruparm, rloarm, lloarm, rshoulder, lshoulder, lbarrel, rbarrel, rflare, lflare, turret, laserflare, antenna, aimx1, aimy1;
 
-static-var  gun_1, gun_3,  bAiming, Static_Var_5,
+static-var  gun_1, gun_3,  bAiming, Static_Var_5, StompXZ, StompHeading,
             restore_delay, myHeading, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead;
+
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
 
 // Signal definitions
 #define SIG_AIM				2
@@ -168,6 +173,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 		}
 		if (bMoving) { //Frame:25
 			emit-sfx 4096 + 3 from ltoe;
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(ltoe) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(ltoe) & 0x0000ffff),   get HEADING(0));
 			turn antenna to x-axis <-3.000000> speed <13.333334> / animSpeed; //delta=0.44
 			turn head to y-axis <-3.322747> speed <73.424542> / animSpeed; //delta=2.45
 			turn lfoot to x-axis <-16.293293> speed <1313.585584> / animSpeed; //delta=43.79
@@ -373,6 +379,7 @@ Walk() {// For E:\Spring\support\Animation_sources\armbanth_anim_walk_v2.blend C
 		}
 		if (bMoving) { //Frame:55
 			emit-sfx 4096 + 3 from rtoe;
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rtoe) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rtoe) & 0x0000ffff),   get HEADING(0));
 			turn antenna to x-axis <3.000000> speed <13.333340> / animSpeed; //delta=-0.44
 			turn head to y-axis <1.777275> speed <102.526219> / animSpeed; //delta=-3.42
 			turn lfoot to x-axis <-61.831886> speed <568.779837> / animSpeed; //delta=18.96
