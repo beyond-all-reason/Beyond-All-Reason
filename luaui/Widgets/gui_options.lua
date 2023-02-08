@@ -2593,18 +2593,25 @@ function init()
 		  end,
 		},
 
+		{ id = "can_minimap_flip_even_with_rotation_according_to_player", blabla bool  }
+
 		{ id = "camera", group = "control", category = types.basic, name = texts.option.camera, type = "select", options = { 'fps', 'overhead', 'spring', 'rot overhead', 'free' }, value = (tonumber((Spring.GetConfigInt("CamMode", 1) + 1) or 2)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("CamMode", (value - 1))
 			  if value == 1 then
+				  Spring.SetConfigInt("CanMinimapFlip", 0)
 				  Spring.SendCommands('viewfps')
 			  elseif value == 2 then
+				  Spring.SetConfigInt("CanMinimapFlip", 1)
 				  Spring.SendCommands('viewta')
 			  elseif value == 3 then
+				  Spring.SetConfigInt("CanMinimapFlip", 0)
 				  Spring.SendCommands('viewspring')
 			  elseif value == 4 then
+				  Spring.SetConfigInt("CanMinimapFlip", can_minimap_flip_even_with_rotation_according_to_player and 1 or 0)
 				  Spring.SendCommands('viewrot')
 			  elseif value == 5 then
+				  Spring.SetConfigInt("CanMinimapFlip", 0)
 				  Spring.SendCommands('viewfree')
 			  end
 		  end,
