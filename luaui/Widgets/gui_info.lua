@@ -655,12 +655,12 @@ local function drawSelection()
 	--local stats = getSelectionTotals(selectionCells)
 	local fontSize = (height * vsy * 0.115) * (0.95 - ((1 - ui_scale) * 0.5))
 	local height = 0
-	local heightStep = (fontSize * 1.4)
+	local heightStep = (fontSize * 1.38)
 	font2:Begin()
-	font2:Print(tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. "  "..texts.unitsselected, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1) - height, (fontSize * 1.2), "o")
+	font2:Print(tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. "  "..texts.unitsselected, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1) - height, (fontSize * 1.23), "o")
 	font2:End()
 	font:Begin()
-	height = height + (fontSize * 0.63)
+	height = height + (fontSize * 0.68)
 
 	-- loop all unitdefs/cells (but not individual unitID's)
 	local totalMetalValue = 0
