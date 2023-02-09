@@ -657,7 +657,7 @@ local function drawSelection()
 	local height = 0
 	local heightStep = (fontSize * 1.4)
 	font2:Begin()
-	font2:Print(tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. "  "..texts.unitsselected, backgroundRect[1] + (bgpadding*2), backgroundRect[4] - contentPadding - (fontSize * 1) - height, (fontSize * 1.2), "o")
+	font2:Print(tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. "  "..texts.unitsselected, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1) - height, (fontSize * 1.2), "o")
 	font2:End()
 	font:Begin()
 	height = height + (fontSize * 0.63)
@@ -698,30 +698,30 @@ local function drawSelection()
 	local valueMinColor = '\255\255\180\180'
 	if totalMetalUse > 0 or totalMetalMake > 0 then
 		height = height + heightStep
-		font:Print( tooltipLabelTextColor .. texts.m.."   " .. (totalMetalMake > 0 and valuePlusColor .. '+' .. (totalMetalMake < 10 and round(totalMetalMake, 1) or round(totalMetalMake, 0)) .. ' ' or '    ') .. (totalMetalUse > 0 and valueMinColor .. '-' .. (totalMetalUse < 10 and round(totalMetalUse, 1) or round(totalMetalUse, 0)) or tooltipLabelTextColor .. '    '), backgroundRect[1] + (bgpadding*2), backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+		font:Print( tooltipLabelTextColor .. texts.m.."   " .. (totalMetalMake > 0 and valuePlusColor .. '+' .. (totalMetalMake < 10 and round(totalMetalMake, 1) or round(totalMetalMake, 0)) .. '  ' or '') .. (totalMetalUse > 0 and valueMinColor .. '-' .. (totalMetalUse < 10 and round(totalMetalUse, 1) or round(totalMetalUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
 	end
 	if totalEnergyUse > 0 or totalEnergyMake > 0 then
 		height = height + heightStep
-		font:Print( tooltipLabelTextColor .. texts.e.."   " .. (totalEnergyMake > 0 and valuePlusColor .. '+' .. (totalEnergyMake < 10 and round(totalEnergyMake, 1) or round(totalEnergyMake, 0)) .. ' ' or '    ') .. (totalEnergyUse > 0 and valueMinColor .. '-' .. (totalEnergyUse < 10 and round(totalEnergyUse, 1) or round(totalEnergyUse, 0)) or tooltipLabelTextColor .. '    '), backgroundRect[1] + (bgpadding*2), backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+		font:Print( tooltipLabelTextColor .. texts.e.."   " .. (totalEnergyMake > 0 and valuePlusColor .. '+' .. (totalEnergyMake < 10 and round(totalEnergyMake, 1) or round(totalEnergyMake, 0)) .. '  ' or '') .. (totalEnergyUse > 0 and valueMinColor .. '-' .. (totalEnergyUse < 10 and round(totalEnergyUse, 1) or round(totalEnergyUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
 	end
 
 	-- metal cost
 	height = height + heightStep
-	font:Print( tooltipLabelTextColor .. texts.costm.."   " .. tooltipValueWhiteColor .. totalMetalValue, backgroundRect[1] + (bgpadding*2), backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	font:Print( tooltipLabelTextColor .. texts.costm.."   " .. tooltipValueWhiteColor .. totalMetalValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
 
 	-- energy cost
 	height = height + heightStep
-	font:Print( tooltipLabelTextColor .. texts.coste.."\255\255\255\128   " .. totalEnergyValue, backgroundRect[1] + (bgpadding*2), backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	font:Print( tooltipLabelTextColor .. texts.coste.."\255\255\255\128   " .. totalEnergyValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
 
 	-- kills
 	if totalKills > 0 then
 		height = height + heightStep
-		font:Print( tooltipLabelTextColor .. texts.kills.."   " .. tooltipValueColor .. totalKills, backgroundRect[1] + (bgpadding*2), backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+		font:Print( tooltipLabelTextColor .. texts.kills.."   " .. tooltipValueColor .. totalKills, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
 	end
 	font:End()
 
 	-- selected units grid area
-	local gridWidth = math_floor((backgroundRect[3] - backgroundRect[1] - bgpadding) * 0.7)  -- leaving some room for the totals
+	local gridWidth = math_floor((backgroundRect[3] - backgroundRect[1] - bgpadding) * 0.6)  -- leaving some room for the totals
 	gridHeight = math_floor((backgroundRect[4] - backgroundRect[2]) - bgpadding)
 	customInfoArea = { backgroundRect[3] - gridWidth, backgroundRect[2], backgroundRect[3] - bgpadding, backgroundRect[2] + gridHeight }
 
