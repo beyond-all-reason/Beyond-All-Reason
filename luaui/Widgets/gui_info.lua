@@ -635,98 +635,6 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	end
 end
 
-local function getSelectionTotals(cells)
-	local valuePlusColor = '\255\180\255\180'
-	local valueMinColor = '\255\255\180\180'
-
-	local statsIndent = ''
-	local stats = ''
-
-	-- description
-	if cellHovered then
-		local text, numLines = font:WrapText(unitDefInfo[selectionCells[cellHovered]].tooltip, (backgroundRect[3] - backgroundRect[1]) * (loadedFontSize / 16))
-		stats = stats .. statsIndent .. tooltipTextColor .. text .. '\n\n'
-	end
-
-	-- loop all unitdefs/cells (but not individual unitID's)
-	local totalMetalValue = 0
-	local totalEnergyValue = 0
-	local totalDpsValue = 0
-	for _, unitDefID in pairs(cells) do
-		-- metal cost
-		if unitDefInfo[unitDefID].metalCost then
-			totalMetalValue = totalMetalValue + (unitDefInfo[unitDefID].metalCost * selUnitsCounts[unitDefID])
-		end
-		-- energy cost
-		if unitDefInfo[unitDefID].energyCost then
-			totalEnergyValue = totalEnergyValue + (unitDefInfo[unitDefID].energyCost * selUnitsCounts[unitDefID])
-		end
-		-- DPS
-		if unitDefInfo[unitDefID].dps then
-			totalDpsValue = totalDpsValue + (unitDefInfo[unitDefID].dps * selUnitsCounts[unitDefID])
-		end
-	end
-
-	-- loop all unitID's
-	local totalMaxHealthValue = 0
-	local totalHealth = 0
-	local totalMetalMake, totalMetalUse, totalEnergyMake, totalEnergyUse = 0, 0, 0, 0
-	for _, unitID in pairs(cellHovered and selUnitsSorted[selectionCells[cellHovered]] or selectedUnits) do
-		-- resources
-		local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(unitID)
-		if metalMake then
-			totalMetalMake = totalMetalMake + metalMake
-			totalMetalUse = totalMetalUse + metalUse
-			totalEnergyMake = totalEnergyMake + energyMake
-			totalEnergyUse = totalEnergyUse + energyUse
-		end
-		-- health
-		local health, maxHealth = spGetUnitHealth(unitID)
-		if health and maxHealth then
-			totalMaxHealthValue = totalMaxHealthValue + maxHealth
-			totalHealth = totalHealth + health
-		end
-	end
-
-	-- resources
-	stats = stats .. statsIndent .. tooltipLabelTextColor .. texts.m..": " .. (totalMetalMake > 0 and valuePlusColor .. '+' .. (totalMetalMake < 10 and round(totalMetalMake, 1) or round(totalMetalMake, 0)) .. ' ' or '... ') .. (totalMetalUse > 0 and valueMinColor .. '-' .. (totalMetalUse < 10 and round(totalMetalUse, 1) or round(totalMetalUse, 0)) or tooltipLabelTextColor .. '... ')
-	stats = stats .. '\n' .. statsIndent
-	stats = stats .. tooltipLabelTextColor .. texts.e..": " .. (totalEnergyMake > 0 and valuePlusColor .. '+' .. (totalEnergyMake < 10 and round(totalEnergyMake, 1) or round(totalEnergyMake, 0)) .. ' ' or '... ') .. (totalEnergyUse > 0 and valueMinColor .. '-' .. (totalEnergyUse < 10 and round(totalEnergyUse, 1) or round(totalEnergyUse, 0)) or tooltipLabelTextColor .. '... ')
-
-	-- metal cost
-	if totalMetalValue > 0 then
-		stats = stats .. '\n' .. statsIndent .. tooltipLabelTextColor .. texts.costm..": " .. tooltipValueWhiteColor .. totalMetalValue .. "   "
-	end
-	stats = stats .. '\n' .. statsIndent
-
-	-- energy cost
-	if totalEnergyValue > 0 then
-		stats = stats .. tooltipLabelTextColor .. texts.coste..": " .. tooltipValueYellowColor .. totalEnergyValue .. "   "
-	end
-
-	-- health
-	totalMaxHealthValue = math_floor(totalMaxHealthValue)
-	if totalMaxHealthValue > 0 then
-		totalHealth = math_floor(totalHealth)
-		stats = stats .. '\n' .. statsIndent .. tooltipLabelTextColor .. texts.health..": " .. tooltipValueColor .. math_floor((totalHealth / totalMaxHealthValue) * 100) .. "%"
-		stats = stats .. "\n" .. tooltipDarkTextColor .. " (" ..tooltipLabelTextColor .. totalHealth .. tooltipDarkTextColor .. ' '..texts.of..' ' .. tooltipLabelTextColor .. totalMaxHealthValue .. tooltipDarkTextColor .. ")"
-	end
-
-	-- DPS
-	if totalDpsValue > 0 then
-		stats = stats .. '\n' .. statsIndent .. tooltipLabelTextColor .. texts.dps..": " .. tooltipValueRedColor .. totalDpsValue .. "   "
-	end
-
-	if stats ~= '' then
-		stats = '\n' .. stats
-		if not cellHovered then
-			stats = '\n' .. stats
-		end
-	end
-
-	return stats
-end
-
 local function drawSelection()
 	selUnitsCounts = spGetSelectedUnitsCounts()
 	selUnitsSorted = spGetSelectedUnitsSorted()
@@ -744,12 +652,72 @@ local function drawSelection()
 
 	-- draw selection totals
 	local numLines
-	local stats = getSelectionTotals(selectionCells)
-	local text = tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. " "..texts.unitsselected .. stats .. "\n " .. (stats == '' and '' or '\n')
-	local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
-	text, numLines = font:WrapText(text, contentWidth * (loadedFontSize / fontSize))
+	--local stats = getSelectionTotals(selectionCells)
+	local fontSize = (height * vsy * 0.115) * (0.95 - ((1 - ui_scale) * 0.5))
+	local height = 0
+	local heightStep = (fontSize * 1.4)
+	font2:Begin()
+	font2:Print(tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. " "..texts.unitsselected, backgroundRect[1] + (bgpadding*2), backgroundRect[4] - contentPadding - (fontSize * 1) - height, (fontSize * 1.2), "o")
+	font2:End()
 	font:Begin()
-	font:Print(text, backgroundRect[1] + (bgpadding*1.6), backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8), fontSize, "o")
+	height = height + (fontSize * 0.63)
+
+	-- loop all unitdefs/cells (but not individual unitID's)
+	local totalMetalValue = 0
+	local totalEnergyValue = 0
+	for _, unitDefID in pairs(selectionCells) do
+		-- metal cost
+		if unitDefInfo[unitDefID].metalCost then
+			totalMetalValue = totalMetalValue + (unitDefInfo[unitDefID].metalCost * selUnitsCounts[unitDefID])
+		end
+		-- energy cost
+		if unitDefInfo[unitDefID].energyCost then
+			totalEnergyValue = totalEnergyValue + (unitDefInfo[unitDefID].energyCost * selUnitsCounts[unitDefID])
+		end
+	end
+
+	-- loop all unitID's
+	local totalMaxHealthValue = 0
+	local totalMetalMake, totalMetalUse, totalEnergyMake, totalEnergyUse = 0, 0, 0, 0
+	local totalKills = 0
+	for _, unitID in pairs(cellHovered and selUnitsSorted[selectionCells[cellHovered]] or selectedUnits) do
+		local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(unitID)
+		if metalMake then
+			totalMetalMake = totalMetalMake + metalMake
+			totalMetalUse = totalMetalUse + metalUse
+			totalEnergyMake = totalEnergyMake + energyMake
+			totalEnergyUse = totalEnergyUse + energyUse
+		end
+		local kills = spGetUnitRulesParam(unitID, "kills")
+		if kills then
+			totalKills = totalKills + kills
+		end
+	end
+
+	local valuePlusColor = '\255\180\255\180'
+	local valueMinColor = '\255\255\180\180'
+	if totalMetalUse > 0 or totalMetalMake > 0 then
+		height = height + heightStep
+		font:Print( tooltipLabelTextColor .. texts.m..": " .. (totalMetalMake > 0 and valuePlusColor .. '+' .. (totalMetalMake < 10 and round(totalMetalMake, 1) or round(totalMetalMake, 0)) .. ' ' or '    ') .. (totalMetalUse > 0 and valueMinColor .. '-' .. (totalMetalUse < 10 and round(totalMetalUse, 1) or round(totalMetalUse, 0)) or tooltipLabelTextColor .. '    '), backgroundRect[1] + (bgpadding*2), backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	end
+	if totalEnergyUse > 0 or totalEnergyMake > 0 then
+		height = height + heightStep
+		font:Print( tooltipLabelTextColor .. texts.e..": " .. (totalEnergyMake > 0 and valuePlusColor .. '+' .. (totalEnergyMake < 10 and round(totalEnergyMake, 1) or round(totalEnergyMake, 0)) .. ' ' or '    ') .. (totalEnergyUse > 0 and valueMinColor .. '-' .. (totalEnergyUse < 10 and round(totalEnergyUse, 1) or round(totalEnergyUse, 0)) or tooltipLabelTextColor .. '    '), backgroundRect[1] + (bgpadding*2), backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	end
+
+	-- metal cost
+	height = height + heightStep
+	font:Print( tooltipLabelTextColor .. texts.costm..": " .. tooltipValueWhiteColor .. totalMetalValue, backgroundRect[1] + (bgpadding*2), backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+
+	-- energy cost
+	height = height + heightStep
+	font:Print( tooltipLabelTextColor .. texts.coste..": " .. tooltipValueYellowColor .. totalEnergyValue, backgroundRect[1] + (bgpadding*2), backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+
+	-- kills
+	if totalKills > 0 then
+		height = height + heightStep
+		font:Print( tooltipLabelTextColor .. texts.kills..": " .. tooltipValueColor .. totalKills, backgroundRect[1] + (bgpadding*2), backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	end
 	font:End()
 
 	-- selected units grid area

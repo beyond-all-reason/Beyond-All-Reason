@@ -707,7 +707,7 @@
 		},
 		"info": {
 			"selectedunits": "Selected units",
-			"unitsselected": "units selected",
+			"unitsselected": "selected",
 			"m": "M",
 			"e": "E",
 			"elevation": "Elevation",
@@ -721,6 +721,7 @@
 			"hover": "Hover",
 			"costm": "Cost M",
 			"coste": "Cost E",
+			"kills": "Kills",
 			"health": "Health",
 			"of": "of",
 			"xp": "XP",
