@@ -5,8 +5,7 @@
 
 piece base, column, top, turret1, turret2, barrel, flare1, flare2, flare3, aimpoint;
 
-static-var  ExtractionSpeed, restore_delay,
-            gun_1, gun_2, statechg_DesiredState, statechg_StateChanging, column_going_up, weapon_state;
+static-var  ExtractionSpeed, restore_delay, gun_1, gun_2, column_going_up, weapon_state;
 static-var  Stunned;
 
 // weapon states
