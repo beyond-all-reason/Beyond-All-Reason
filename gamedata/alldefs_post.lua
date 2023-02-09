@@ -618,21 +618,20 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if not uDef.customparams.iscommander then
-		local wreckinfo = ''
+		--local wreckinfo = ''
 		if uDef.featuredefs and uDef.maxdamage then
 			if uDef.featuredefs.dead then
 				uDef.featuredefs.dead.damage = uDef.maxdamage
 				if Spring.GetModOptions().experimentalrebalancewreckstandarization then
 					if uDef.buildcostmetal and uDef.buildcostenergy then
 						if name and not string.find(name, "_scav") then
-							if (name and uDef.featuredefs.dead.metal) or uDef.name then
-								--wreckinfo = wreckinfo .. name ..  " Wreck Before: " .. tostring(uDef.featuredefs.dead.metal) .. ','
-							end
-							--uDef.featuredefs.dead.metal = (uDef.buildcostmetal + (uDef.buildcostenergy/100))*0.5
+							-- if (name and uDef.featuredefs.dead.metal) or uDef.name then
+							-- 	--wreckinfo = wreckinfo .. name ..  " Wreck Before: " .. tostring(uDef.featuredefs.dead.metal) .. ','
+							-- end
 							uDef.featuredefs.dead.metal = math.floor(uDef.buildcostmetal*0.6)
-							if name and not string.find(name, "_scav") then
-								--wreckinfo = wreckinfo .. " Wreck After: " .. tostring(uDef.featuredefs.dead.metal) .. " ; "
-							end
+							-- if name and not string.find(name, "_scav") then
+							-- 	--wreckinfo = wreckinfo .. " Wreck After: " .. tostring(uDef.featuredefs.dead.metal) .. " ; "
+							-- end
 						end
 					end
 				end
@@ -645,14 +644,13 @@ function UnitDef_Post(name, uDef)
 				if Spring.GetModOptions().experimentalrebalancewreckstandarization then
 					if uDef.buildcostmetal and uDef.buildcostenergy then
 						if name and not string.find(name, "_scav") then
-							if (name and uDef.featuredefs.heap.metal) or uDef.name then
-								--wreckinfo = wreckinfo .. name ..  " Heap Before: " .. tostring(uDef.featuredefs.heap.metal) .. ','
-							end
-							--uDef.featuredefs.heap.metal = (uDef.buildcostmetal + (uDef.buildcostenergy/100))*0.2
+							-- if (name and uDef.featuredefs.heap.metal) or uDef.name then
+							-- 	--wreckinfo = wreckinfo .. name ..  " Heap Before: " .. tostring(uDef.featuredefs.heap.metal) .. ','
+							-- end
 							uDef.featuredefs.heap.metal = math.floor(uDef.buildcostmetal*0.25)
-							if name and not string.find(name, "_scav") then
-								--wreckinfo = wreckinfo ..  " Heap After: " .. tostring(uDef.featuredefs.heap.metal)
-							end
+							-- if name and not string.find(name, "_scav") then
+							-- 	--wreckinfo = wreckinfo ..  " Heap After: " .. tostring(uDef.featuredefs.heap.metal)
+							-- end
 						end
 					end
 				end
