@@ -183,27 +183,27 @@ local function ReloadMusicPlaylists()
 	gameoverTracks 	= shuffleMusic(gameoverTracks)
 	bossFightTracks = shuffleMusic(bossFightTracks)
 
-	Spring.Echo("----- MUSIC PLAYER PLAYLIST -----")
-	Spring.Echo("----- peaceTracks -----")
-	for i = 1,#peaceTracks do
-		Spring.Echo(peaceTracks[i])
-	end
-	Spring.Echo("----- warlowTracks -----")
-	for i = 1,#warlowTracks do
-		Spring.Echo(warlowTracks[i])
-	end
-	Spring.Echo("----- warhighTracks -----")
-	for i = 1,#warhighTracks do
-		Spring.Echo(warhighTracks[i])
-	end
-	Spring.Echo("----- gameoverTracks -----")
-	for i = 1,#gameoverTracks do
-		Spring.Echo(gameoverTracks[i])
-	end
-	Spring.Echo("----- bossFightTracks -----")
-	for i = 1,#bossFightTracks do
-		Spring.Echo(bossFightTracks[i])
-	end
+	-- Spring.Echo("----- MUSIC PLAYER PLAYLIST -----")
+	-- Spring.Echo("----- peaceTracks -----")
+	-- for i = 1,#peaceTracks do
+	-- 	Spring.Echo(peaceTracks[i])
+	-- end
+	-- Spring.Echo("----- warlowTracks -----")
+	-- for i = 1,#warlowTracks do
+	-- 	Spring.Echo(warlowTracks[i])
+	-- end
+	-- Spring.Echo("----- warhighTracks -----")
+	-- for i = 1,#warhighTracks do
+	-- 	Spring.Echo(warhighTracks[i])
+	-- end
+	-- Spring.Echo("----- gameoverTracks -----")
+	-- for i = 1,#gameoverTracks do
+	-- 	Spring.Echo(gameoverTracks[i])
+	-- end
+	-- Spring.Echo("----- bossFightTracks -----")
+	-- for i = 1,#bossFightTracks do
+	-- 	Spring.Echo(bossFightTracks[i])
+	-- end
 
 	if #peaceTracks > 1 then
 		peaceTracksPlayCounter = math.random(#peaceTracks)
