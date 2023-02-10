@@ -506,8 +506,13 @@ end
 
 local sec2 = 0
 local sec = 0
+local lastCameraPanMode = false
 function widget:Update(dt)
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
+	if lastCameraPanMode ~= cameraPanMode then
+		lastCameraPanMode = cameraPanMode
+		checkChanges()
+	end
 	if not alwaysShow and (cameraPanMode or mouseOffScreen) and  Spring.GetGameFrame() > 0 then
 		if SelectedUnitsCount == 0 then
 			if dlistGuishader then
@@ -1786,7 +1791,7 @@ function checkChanges()
 		end
 
 		-- hovered unit
-	elseif not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' then-- and os_clock() - lastHoverDataClock > 0.07 then		-- add small hover delay against eplilepsy
+	elseif not cameraPanMode and not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' then-- and os_clock() - lastHoverDataClock > 0.07 then		-- add small hover delay against eplilepsy
 		displayMode = 'unit'
 		displayUnitID = hoverData
 		displayUnitDefID = spGetUnitDefID(displayUnitID)
@@ -1796,7 +1801,7 @@ function checkChanges()
 		end
 
 		-- hovered feature
-	elseif not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'feature' then-- and os_clock() - lastHoverDataClock > 0.07 then		-- add small hover delay against eplilepsy
+	elseif not cameraPanMode and not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'feature' then-- and os_clock() - lastHoverDataClock > 0.07 then		-- add small hover delay against eplilepsy
 		displayMode = 'feature'
 		local featureID = hoverData
 		local featureDefID = spGetFeatureDefID(featureID)
