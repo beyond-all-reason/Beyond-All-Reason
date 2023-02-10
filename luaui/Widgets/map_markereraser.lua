@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author    = "Shaman",
 		date      = "24 Sept 2022",
 		license   = "",
-		layer     = 5,
+		layer     = 0,
 		enabled   = true,
 	}
 end
@@ -13,6 +13,7 @@ end
 local eraseTime = 60
 local frame = -1
 local pointsToErase = {}
+local recentlyErased = {}
 local commandsThisSecond = 0
 
 function widget:Initialize()
@@ -23,6 +24,9 @@ function widget:Initialize()
 	WG['autoeraser'].setEraseTime = function(value)
 		eraseTime = value
 	end
+	WG['autoeraser'].getRecentlyErased = function(value)	-- so mapmarks fx widget can call this and wont active on auto erasing
+		return recentlyErased
+	end
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz, arg1, arg2, arg3, arg4) -- cmdType can be 'erase', 'point', or 'line', arg1 is the text or line length(?)
@@ -32,7 +36,7 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz, arg1, arg2, arg3, arg4
 			pointsToErase[frame + (eraseTime*30)][count + 1] = {px, py, pz}
 		else
 			pointsToErase[frame + (eraseTime*30)] = {[1] = {px, py, pz}}
-		end	
+		end
 	end
 end
 
@@ -43,6 +47,7 @@ function widget:GameFrame(f)
 			local point = pointsToErase[f][i]
 			if commandsThisSecond < 16 then -- prevent ratelimit
 				Spring.MarkerErasePosition(point[1], point[2], point[3])
+				recentlyErased[#recentlyErased+1] = {f, point[1], point[2], point[3] }
 			else
 				if pointsToErase[f + 30] then
 					pointsToErase[f + 30][#pointsToErase[f + 30] + 1] = {point[1], point[2], point[3]}
@@ -55,6 +60,13 @@ function widget:GameFrame(f)
 	end
 	if f % 30 == 0 then
 		commandsThisSecond = 0
+		local newRecentlyErased = {}
+		for i, params in ipairs(recentlyErased) do
+			if params[1] + 10 > f then
+				newRecentlyErased[#newRecentlyErased+1] = params
+			end
+		end
+		recentlyErased = newRecentlyErased
 	end
 end
 

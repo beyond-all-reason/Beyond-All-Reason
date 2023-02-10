@@ -144,7 +144,6 @@ function widget:Shutdown()
 	glDeleteList(ringDlist)
 end
 
-
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
 	local osClock = os.clock()
 	if cmdType == 'point' then
@@ -153,8 +152,18 @@ function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
 		mapDrawNicknameTime[playerID] = osClock
 		AddEffect('map_draw', x, y, z, osClock, false, playerID)
 	elseif cmdType == 'erase' then
-		mapEraseNicknameTime[playerID] = osClock
-		AddEffect('map_erase', x, y, z, osClock, false, playerID)
+		local doEraseEffect = true
+		if WG.autoeraser ~= nil then
+			for i, params in ipairs(WG.autoeraser.getRecentlyErased()) do
+				if x-10 < params[2] and x+10 > params[2] and z-10 < params[4] and z+10 > params[4] then
+					doEraseEffect = false
+				end
+			end
+		end
+		if doEraseEffect then
+			mapEraseNicknameTime[playerID] = osClock
+			AddEffect('map_erase', x, y, z, osClock, false, playerID)
+		end
 	end
 end
 
@@ -167,6 +176,7 @@ end
 
 
 function widget:DrawWorldPreUnit()
+
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 	if WG.clearmapmarks and WG.clearmapmarks.continuous then return end
