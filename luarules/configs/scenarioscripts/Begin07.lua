@@ -4,7 +4,7 @@ if gadgetHandler:IsSyncedCode() then
 else
     isSynced = false
 end
-
+local missionAPI = GG['missionAPI']
 	local objectiveUnits = {
 		{name = 'armck', x = 164, y = 432, z = 2649, rot = 0, teamID = 0, queue = {
 		{cmdID = CMD.MOVE, position = {px = 2183, py = 432, pz = 484}},
@@ -21,9 +21,10 @@ end
 		}},
 	}
 
-		function gadget:API_GiveOrderToUnit()
+gadget:GameStart()
 
-		end
+missionAPI.GiveOrderToUnit(unitID, objectiveUnits)
+
 
 --[[		for k , unit in pairs(objectiveUnits) do
 			if UnitDefNames[unit.name] then
