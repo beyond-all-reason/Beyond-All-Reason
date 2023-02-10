@@ -152,10 +152,8 @@ local function refreshUnitInfo()
 			unitDefInfo[unitDefID].airUnit = true
 		end
 
-		if unitDef.isImmobile or unitDef.isBuilding then
-			if not unitDef.cantBeTransported then
-				unitDefInfo[unitDefID].transportable = true
-			end
+		if not unitDef.cantBeTransported then	--unitDef.isImmobile or unitDef.isBuilding then
+			unitDefInfo[unitDefID].transportable = true
 		end
 
 		unitDefInfo[unitDefID].translatedHumanName = unitDef.translatedHumanName
@@ -167,6 +165,12 @@ local function refreshUnitInfo()
 		end
 		if unitDef.rSpeed > 0 then
 			unitDefInfo[unitDefID].reverseSpeed = round(unitDef.rSpeed, 0)
+		end
+		if unitDef.mass > 0 then
+			unitDefInfo[unitDefID].mass = unitDef.mass
+		end
+		if unitDef.xsize > 0 then
+			unitDefInfo[unitDefID].footprint = unitDef.xsize * unitDef.zsize
 		end
 		if unitDef.stealth then
 			unitDefInfo[unitDefID].stealth = true
@@ -1181,12 +1185,6 @@ local function drawUnitInfo()
 			end
 		end
 
-		if unitDefInfo[displayUnitDefID].transport then
-			addTextInfo(texts.transportmaxmass, unitDefInfo[displayUnitDefID].transport[1])
-			addTextInfo(texts.transportmaxsize, unitDefInfo[displayUnitDefID].transport[2])
-			addTextInfo(texts.transportcapacity, unitDefInfo[displayUnitDefID].transport[3])
-		end
-
 		if unitDefInfo[displayUnitDefID].speed then
 			addTextInfo(texts.speed, unitDefInfo[displayUnitDefID].speed)
 		end
@@ -1214,10 +1212,6 @@ local function drawUnitInfo()
 			else
 				addTextInfo(texts.paralyzemult, round(unitDefInfo[displayUnitDefID].paralyzeMult, 2))
 			end
-		end
-
-		if unitDefInfo[displayUnitDefID].transportable then
-			addTextInfo(texts.transportable)
 		end
 
 		if unitDefInfo[displayUnitDefID].losRadius then
@@ -1255,6 +1249,23 @@ local function drawUnitInfo()
 		end
 		if unitDefInfo[displayUnitDefID].metalStorage > 0 then
 			addTextInfo(texts.mstorage, unitDefInfo[displayUnitDefID].metalStorage)
+		end
+
+		if unitDefInfo[displayUnitDefID].transport then
+			addTextInfo(texts.transportmaxmass, unitDefInfo[displayUnitDefID].transport[1])
+			addTextInfo(texts.transportmaxsize, unitDefInfo[displayUnitDefID].transport[2])
+			addTextInfo(texts.transportcapacity, unitDefInfo[displayUnitDefID].transport[3])
+		end
+
+		if unitDefInfo[displayUnitDefID].transportable then
+			--addTextInfo(texts.transportable)
+
+			if unitDefInfo[displayUnitDefID].mass then
+				addTextInfo(texts.mass, unitDefInfo[displayUnitDefID].mass)
+			end
+			if unitDefInfo[displayUnitDefID].footprint then
+				addTextInfo(texts.footprint, unitDefInfo[displayUnitDefID].footprint)
+			end
 		end
 
 		local text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
