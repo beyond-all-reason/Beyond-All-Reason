@@ -74,7 +74,7 @@ void offsetVertex4( float x, float y, float z, float u, float v){
 }
 #line 22000
 void main(){
-	if (dataIn[0].v_skipdraw > 0u) return; //bail
+	if (dataIn[0].v_skipdraw == 1u) return; //bail
 
 	centerpos = dataIn[0].v_centerpos;
 	rotY = rotation3dY(dataIn[0].v_lengthwidthrotation.z); // Create a rotation matrix around Y from the unit's rotation
@@ -86,38 +86,34 @@ void main(){
 	//g_color.a = dataIn[0].v_lengthwidthrotation.w;
 	
 	// for a simple quad
-	/*
-		float length = dataIn[0].v_lengthwidthrotation.x;
-		float width = dataIn[0].v_lengthwidthrotation.y;
-		offsetVertex4( width * 0.5, 0.0,  length * 0.5, 0.0, 1.0); // bottom right
-		offsetVertex4( width * 0.5, 0.0, -length * 0.5, 0.0, 0.0); // top right
-		offsetVertex4(-width * 0.5, 0.0,  length * 0.5, 1.0, 1.0); // bottom left
-		offsetVertex4(-width * 0.5, 0.0, -length * 0.5, 1.0, 0.0); // top left
-		EndPrimitive();
-	*/
-	
-	
+	if (dataIn[0].v_skipdraw == 2u) { // pack single quad emission into negative heatstart
+			offsetVertex4( 1.0, 0.0,  1.0, 1.0 , 1.0); // 2
+			offsetVertex4( 1.0, 0.0, -1.0, 1.0 , 0.0); // 1
+			offsetVertex4(-1.0, 0.0,  1.0, 0.0 , 1.0); // 4
+			offsetVertex4(-1.0, 0.0, -1.0, 0.0,  0.0); // 3
+			EndPrimitive();
+	}else{
 	// for a 4x4 quad
-	for (int i = 0; i<4; i++){ //draw from bottom (front) to back
-		float v = float(i)*0.25; // [0-2]
-		// draw 4 strips of 9 verts
-		//10 8 6 4 2
-		// 9 7 5 3 1
-		float striptop = (2.0*v - 0.5);
-		float stripbot = (2.0*v - 1.0);
-		
-		offsetVertex4( 1.0, 0.0, striptop, 1.0 , v + 0.25); // 2
-		offsetVertex4( 1.0, 0.0, stripbot, 1.0 , v       ); // 1
-		offsetVertex4( 0.5, 0.0, striptop, 0.75, v + 0.25); // 4
-		offsetVertex4( 0.5, 0.0, stripbot, 0.75, v       ); // 3
-		offsetVertex4( 0.0, 0.0, striptop, 0.5, v + 0.25); // 6
-		offsetVertex4( 0.0, 0.0, stripbot, 0.5, v ); // 5
-		offsetVertex4(-0.5, 0.0, striptop, 0.25, v + 0.25); // 8
-		offsetVertex4(-0.5, 0.0, stripbot, 0.25, v ); // 7
-		offsetVertex4(-1.0, 0.0, striptop, 0.0, v + 0.25); // 10
-		offsetVertex4(-1.0, 0.0, stripbot, 0.0, v ); // 8
-		
-		EndPrimitive();
+		for (int i = 0; i<4; i++){ //draw from bottom (front) to back
+			float v = float(i)*0.25; // [0-2]
+			// draw 4 strips of 9 verts
+			//10 8 6 4 2
+			// 9 7 5 3 1
+			float striptop = (2.0*v - 0.5);
+			float stripbot = (2.0*v - 1.0);
+			
+			offsetVertex4( 1.0, 0.0, striptop, 1.0 , v + 0.25); // 2
+			offsetVertex4( 1.0, 0.0, stripbot, 1.0 , v       ); // 1
+			offsetVertex4( 0.5, 0.0, striptop, 0.75, v + 0.25); // 4
+			offsetVertex4( 0.5, 0.0, stripbot, 0.75, v       ); // 3
+			offsetVertex4( 0.0, 0.0, striptop, 0.5, v + 0.25); // 6
+			offsetVertex4( 0.0, 0.0, stripbot, 0.5, v ); // 5
+			offsetVertex4(-0.5, 0.0, striptop, 0.25, v + 0.25); // 8
+			offsetVertex4(-0.5, 0.0, stripbot, 0.25, v ); // 7
+			offsetVertex4(-1.0, 0.0, striptop, 0.0, v + 0.25); // 10
+			offsetVertex4(-1.0, 0.0, stripbot, 0.0, v ); // 8
+			
+			EndPrimitive();
+		}
 	}
-	
 }

@@ -46,10 +46,13 @@ void main()
 	v_uvoffsets = uvoffsets;
 	v_parameters = parameters;
 	v_lengthwidthrotation = lengthwidthrotation;
+	
+	v_skipdraw = 0u;
+	// Do a trick that makes decals < 48 sized only render a single quad
+	if ((lengthwidthrotation.x < SINGLEQUADDECALSIZETHRESHOLD) && (lengthwidthrotation.y < SINGLEQUADDECALSIZETHRESHOLD)) v_skipdraw = 2u; 
 
 	// Do visibility culling in the geometry shader, quite useful.
 	float maxradius =  lengthwidthrotation.x + lengthwidthrotation.y;
-	v_skipdraw = 0u;
 	if (isSphereVisibleXY(vec4(v_centerpos), maxradius)) v_skipdraw = 1u; 
 
 	// Calculate dynamic parameters for transparency
@@ -72,5 +75,7 @@ void main()
 
 	vec3 toCamera = cameraViewInv[3].xyz - v_centerpos.xyz;
 	//if (dot(toCamera, toCamera) >  fadeDistance * fadeDistance) v_skipdraw = 1u;
+
+	
 	gl_Position = cameraViewProj * v_centerpos;
 }

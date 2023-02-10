@@ -59,6 +59,7 @@ local shaderConfig = {
 	SPECULARSTRENGTH = 0.3, -- how strong specular highlights are
 	--BLACKANDWHITEFACTOR = 0.5, -- set to between [0,1] to set how strong the black and white conversion should be, 0 = original color, 1 = full black and white, deprecated, now controllable per-decal
 	MINIMAPCOLORBLENDFACTOR = 1, -- How much minimap color should affect decal color
+	SINGLEQUADDECALSIZETHRESHOLD = 24, -- if length and width of decal is less than this, then only spawn 1 quad instead of 16
 }
 
 local groundscarsPath = "luaui/images/decals_gl4/groundscars/"	-- old: "luaui/images/decals_gl4/oldscars/"
