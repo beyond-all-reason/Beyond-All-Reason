@@ -1374,7 +1374,11 @@ local function drawEngineTooltip()
 			end
 		end
 	else
-		emptyInfo = true
+		if cameraPanMode and #selectedUnits > 0 then
+			checkChanges()
+		else
+			emptyInfo = true
+		end
 	end
 end
 
