@@ -646,8 +646,13 @@
 		"unitTotals": {
 			"totals": "%{titleColor}Units  %{textColor}%{units} / %{maxUnits}      %{titleColor}Total  %{textColor}%{totalUnits}"
 		},
-		"factionPicker": {
-			"pick": "Pick your faction"
+		"factionicker": {
+			"pick": "Pick your faction",
+			"factions": {
+				"arm": " ",
+				"cor": " ",
+				"leg": "This faction is still work in progress"
+			}
 		},
 		"widgetselector": {
 			"pick": "Pick your faction",

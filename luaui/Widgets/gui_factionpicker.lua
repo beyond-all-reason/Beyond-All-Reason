@@ -96,6 +96,17 @@ local function drawFactionpicker()
 		)
 		-- faction name
 		font2:Print((disabled and "\255\170\170\170" or "\255\255\255\255") .. Spring.I18N('units.factions.' .. factions[i].faction), factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
+
+		if WG['tooltip'] ~= nil then
+			local text = Spring.I18N('ui.factionPicker.factions.'..factions[i].faction)
+			if text ~= '' and text ~= ' ' and text ~= 'ui.factionPicker.factions.'..factions[i].faction then
+				local tooltip = ''
+				local maxWidth = WG['tooltip'].getFontsize() * 80
+				local textLines, numLines = font:WrapText(text, maxWidth)
+				tooltip = tooltip..string.gsub(textLines, '[\n]', '\n')..'\n'
+				WG['tooltip'].AddTooltip('factionpicker_'..i, { factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4] }, tooltip, nil, Spring.I18N('units.factions.' .. factions[i].faction))
+			end
+		end
 	end
 	font2:End()
 end
@@ -209,6 +220,12 @@ function widget:Shutdown()
 		dlistGuishader = nil
 	end
 	dlistFactionpicker = gl.DeleteList(dlistFactionpicker)
+
+	if WG['tooltip'] ~= nil then
+		for i, faction in pairs(factions) do
+			WG['tooltip'].RemoveTooltip('factionpicker_'..i)
+		end
+	end
 end
 
 function widget:GameFrame(n)
@@ -273,6 +290,10 @@ function widget:DrawScreen()
 	end
 	gl.CallList(dlistFactionpicker)
 
+	font2:Begin()
+	font2:SetOutlineColor(0, 0, 0, 0.66)
+	font2:SetTextColor(1, 1, 1, 1)
+	font2:SetOutlineColor(0, 0, 0, 0.66)
 	-- highlight
 	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		for i, faction in pairs(factions) do
@@ -286,6 +307,7 @@ function widget:DrawScreen()
 			end
 		end
 	end
+	font2:End()
 
 	doUpdate = nil
 end
