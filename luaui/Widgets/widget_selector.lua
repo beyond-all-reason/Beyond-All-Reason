@@ -41,19 +41,13 @@ include("keysym.h.lua")
 include("fonts.lua")
 
 local WhiteStr = "\255\255\255\255"
-local RedStr = "\255\255\001\001"
-local GreenStr = "\255\001\255\001"
-local YellowStr = "\255\255\255\001"
 
-local customScale = 1
 local sizeMultiplier = 1
 
 local floor = math.floor
 
 local widgetsList = {}
 local fullWidgetsList = {}
-
-local vsx, vsy = widgetHandler:GetViewSizes()
 
 local minMaxEntries = 15
 local curMaxEntries = 25
@@ -533,21 +527,30 @@ function widget:DrawScreen()
 			local n = namedata[1]
 			local d = namedata[2]
 
-			local order = widgetHandler.orderList[n]
-			--local enabled = order and (order > 0)
 			--local tt = (d.active and GreenStr) or (enabled and YellowStr) or RedStr
-			--tt = tt .. n .. '\n'
 			local tooltip = ''
-			local maxWidth = WG['tooltip'].getFontsize() * 110
+			local order = widgetHandler.orderList[n]
+			if order then
+				if order >= 1 then
+					if not d.active then
+						tooltip = '\255\255\240\160'..n..'\n'
+					else
+						tooltip = '\255\130\255\160'..n..'\n'
+					end
+				else
+					tooltip = '\255\255\160\160'..n..'\n'
+				end
+			end
+			local maxWidth = WG['tooltip'].getFontsize() * 100
 			if d.desc and d.desc ~= '' then
 				local textLines, numLines = font:WrapText(d.desc, maxWidth)
 				tooltip = tooltip..WhiteStr..string.gsub(textLines, '[\n]', '\n'..WhiteStr)..'\n'
 			end
 			if d.author and d.author ~= '' then
 				local textLines, numLines = font:WrapText(d.author, maxWidth)
-				tooltip = tooltip.."\255\175\175\175" .. texts.author..':  '  .. "\255\200\255\200"..string.gsub(textLines, '[\n]', "\n\255\200\255\200")..'\n'
+				tooltip = tooltip.."\255\175\175\175" .. texts.author..':  '  .. "\255\215\250\215"..string.gsub(textLines, '[\n]', "\n\255\200\255\200")..'\n'
 			end
-			tooltip = tooltip .."\255\175\175\175".. texts.file..':  '  .. "\255\255\200\200"..d.basename .. (not d.fromZip and '   ('..texts.islocal..')' or '')
+			tooltip = tooltip .."\255\175\175\175".. texts.file..':  '  ..d.basename .. (not d.fromZip and '   ('..texts.islocal..')' or '')
 			if WG['tooltip'] then
 				WG['tooltip'].ShowTooltip('info', tooltip)
 			end
