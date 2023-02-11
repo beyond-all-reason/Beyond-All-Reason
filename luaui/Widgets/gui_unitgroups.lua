@@ -432,9 +432,13 @@ function widget:Update(dt)
 	local x, y, b, b2, b3 = spGetMouseState()
 	if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		hovered = true
-		local tooltipAddition
+		local tooltipAddition = ''
 		if numGroups >= 1 then
-			tooltipAddition = Spring.I18N('ui.unitGroups.shiftclick')..'\n'..Spring.I18N('ui.unitGroups.ctrlclick')
+			tooltipAddition = tooltipAddition .. Spring.I18N('ui.unitGroups.shiftclick')..'\n'..Spring.I18N('ui.unitGroups.ctrlclick')
+		end
+		tooltipAddition = tooltipAddition .. (tooltipAddition~='' and '\n' or '') .. Spring.I18N('ui.unitGroups.tooltip')
+		if WG['autogroup'] ~= nil then
+			tooltipAddition = tooltipAddition .. (tooltipAddition~='' and '\n\n' or '') .. "\255\200\255\200" .. Spring.I18N('ui.unitGroups.autogroupTooltip')
 		end
 		WG['tooltip'].ShowTooltip('unitgroups', tooltipAddition, nil, nil, Spring.I18N('ui.unitGroups.name'))
 		Spring.SetMouseCursor('cursornormal')

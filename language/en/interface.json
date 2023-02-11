@@ -250,9 +250,11 @@
 			"sleeping": "z"
 		},
 		"unitGroups": {
-			"name": "Unit groups",
+			"name": "Unit Groups",
 			"shiftclick": "shift + click:   add to selection",
-			"ctrlclick": "ctrl + click:   subtract from selection"
+			"ctrlclick": "ctrl + click:   subtract from selection",
+			"tooltip": "CTRL + 0-9 sets unit group for selected units.\nCTRL BACKQUOTE (~) remove units.",
+			"autogroupTooltip": "Auto Groups\nALT + 0-9 sets autogroup # for selected unit type(s).\nNewly built units get added to group# equal to their autogroup#.\nALT BACKQUOTE (~) remove units.\nView settings at: Settings/Interface/AutoGroup"
 		},
 		"changelog": {
 			"title": "Changelog"
