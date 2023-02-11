@@ -527,22 +527,30 @@ function widget:DrawScreen()
 
 	font:End()
 
+	if WG['tooltip'] ~= nil then
+		local namedata = aboveLabel(mx, my)
+		if namedata then
+			local n = namedata[1]
+			local d = namedata[2]
 
-	local namedata = aboveLabel(mx, my)
-	if namedata then
-		local n = namedata[1]
-		local d = namedata[2]
-
-		local order = widgetHandler.orderList[n]
-		local enabled = order and (order > 0)
-
-		--local tt = (d.active and GreenStr) or (enabled and YellowStr) or RedStr
-		--tt = tt .. n .. '\n'
-		local tt = (d.desc and WhiteStr .. d.desc .. '\n' or '')
-		tt = tt .. ((d.author and d.author~='') and "\255\175\175\175" .. texts.author..':  '  .. "\255\200\255\200" .. d.author .. '\n' or '')
-		tt = tt .."\255\175\175\175".. texts.file..':  '  .. "\255\255\200\200"..d.basename .. (not d.fromZip and '   ('..texts.islocal..')' or '')
-		if WG['tooltip'] then
-			WG['tooltip'].ShowTooltip('info', tt)
+			local order = widgetHandler.orderList[n]
+			--local enabled = order and (order > 0)
+			--local tt = (d.active and GreenStr) or (enabled and YellowStr) or RedStr
+			--tt = tt .. n .. '\n'
+			local tooltip = ''
+			local maxWidth = WG['tooltip'].getFontsize() * 110
+			if d.desc and d.desc ~= '' then
+				local textLines, numLines = font:WrapText(d.desc, maxWidth)
+				tooltip = tooltip..WhiteStr..string.gsub(textLines, '[\n]', '\n'..WhiteStr)..'\n'
+			end
+			if d.author and d.author ~= '' then
+				local textLines, numLines = font:WrapText(d.author, maxWidth)
+				tooltip = tooltip.."\255\175\175\175" .. texts.author..':  '  .. "\255\200\255\200"..string.gsub(textLines, '[\n]', "\n\255\200\255\200")..'\n'
+			end
+			tooltip = tooltip .."\255\175\175\175".. texts.file..':  '  .. "\255\255\200\200"..d.basename .. (not d.fromZip and '   ('..texts.islocal..')' or '')
+			if WG['tooltip'] then
+				WG['tooltip'].ShowTooltip('info', tooltip)
+			end
 		end
 	end
 end

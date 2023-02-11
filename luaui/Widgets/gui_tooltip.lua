@@ -57,6 +57,9 @@ function widget:Initialize()
 
 	if WG['tooltip'] == nil then
 		WG['tooltip'] = {}
+		WG['tooltip'].getFontsize = function()
+			return usedFontSize
+		end
 		WG['tooltip'].AddTooltip = function(name, area, value, delay)
 			if (value ~= nil and area[1] ~= nil and area[2] ~= nil and area[3] ~= nil and area[4] ~= nil) or (tooltips[name] ~= nil and tooltips[name].value ~= nil) then
 				if delay == nil then
