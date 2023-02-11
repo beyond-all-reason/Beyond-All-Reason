@@ -43,10 +43,7 @@ include("fonts.lua")
 local WhiteStr = "\255\255\255\255"
 local RedStr = "\255\255\001\001"
 local GreenStr = "\255\001\255\001"
-local BlueStr = "\255\001\001\255"
-local CyanStr = "\255\001\255\255"
 local YellowStr = "\255\255\255\001"
-local MagentaStr = "\255\255\001\255"
 
 local customScale = 1
 local sizeMultiplier = 1
@@ -122,6 +119,9 @@ local texts = {
 	button_allowuserwidgets = 'Allow User Widgets',
 	button_resetluaui = 'Reset LuaUI',
 	button_factoryresetluaui = 'Factory Reset LuaUI',
+	file = 'File',
+	author = 'Author',
+	islocal = 'local',
 }
 
 local buttons = { --see MouseRelease for which functions are called by which buttons
@@ -407,7 +407,7 @@ function widget:DrawScreen()
 
 
 	-- draw the widgets
-	local nd = self:AboveLabel(mx, my)
+	local nd = aboveLabel(mx, my)
 	local pointedY = nil
 	local pointedEnabled = false
 	local pointedName = (nd and nd[1]) or nil
@@ -526,6 +526,25 @@ function widget:DrawScreen()
 	end
 
 	font:End()
+
+
+	local namedata = aboveLabel(mx, my)
+	if namedata then
+		local n = namedata[1]
+		local d = namedata[2]
+
+		local order = widgetHandler.orderList[n]
+		local enabled = order and (order > 0)
+
+		--local tt = (d.active and GreenStr) or (enabled and YellowStr) or RedStr
+		--tt = tt .. n .. '\n'
+		local tt = (d.desc and WhiteStr .. d.desc .. '\n' or '')
+		tt = tt .. ((d.author and d.author~='') and "\255\175\175\175" .. texts.author..':  '  .. "\255\200\255\200" .. d.author .. '\n' or '')
+		tt = tt .."\255\175\175\175".. texts.file..':  '  .. "\255\255\200\200"..d.basename .. (not d.fromZip and '   ('..texts.islocal..')' or '')
+		if WG['tooltip'] then
+			WG['tooltip'].ShowTooltip('info', tt)
+		end
+	end
 end
 
 function widget:MousePress(x, y, button)
@@ -587,7 +606,7 @@ function widget:MousePress(x, y, button)
 		end
 	end
 
-	local namedata = self:AboveLabel(x, y)
+	local namedata = aboveLabel(x, y)
 	if not namedata then
 		show = false
 		return false
@@ -687,7 +706,7 @@ function widget:MouseRelease(x, y, mb)
 		end
 	end
 
-	local namedata = self:AboveLabel(x, y)
+	local namedata = aboveLabel(x, y)
 	if not namedata then
 		return false
 	end
@@ -712,7 +731,7 @@ function widget:MouseRelease(x, y, mb)
 	return -1
 end
 
-function widget:AboveLabel(x, y)
+function aboveLabel(x, y)
 	if x < minx or y < (miny + bordery) or
 		x > maxx or y > (maxy - bordery) then
 		return nil
@@ -732,50 +751,6 @@ function widget:AboveLabel(x, y)
 	return widgetsList[i]
 end
 
-function widget:IsAbove(x, y)
-	if not show then
-		return false
-	end
-	UpdateList()
-	if showButtons then
-		if x < minx or x > maxx + (yStep * sizeMultiplier) or
-			y < miny - #buttons * buttonHeight or y > maxy + bgPadding then
-			return false
-		end
-	end
-	return true
-end
-
-function widget:GetTooltip(x, y)
-	if not show then
-		return nil
-	end
-
-	UpdateList()
-	local namedata = self:AboveLabel(x, y)
-	if not namedata then
-		return '\255\200\255\200' .. 'Widget Selector\n' ..
-			'\255\255\255\200' .. 'LMB: toggle widget\n' ..
-			'\255\255\200\200' .. 'MMB: lower  widget\n' ..
-			'\255\200\200\255' .. 'RMB: raise  widget'
-	end
-
-	local n = namedata[1]
-	local d = namedata[2]
-
-	local order = widgetHandler.orderList[n]
-	local enabled = order and (order > 0)
-
-	local tt = (d.active and GreenStr) or (enabled and YellowStr) or RedStr
-	tt = tt .. n .. '\n'
-	tt = d.desc and tt .. WhiteStr .. d.desc .. '\n' or tt
-	tt = d.author and tt .. BlueStr .. 'Author:  ' .. CyanStr .. d.author .. '\n' or tt
-	tt = tt .. MagentaStr .. d.basename
-	if d.fromZip then
-		tt = tt .. RedStr .. ' (mod widget)'
-	end
-	return tt
-end
 
 function widget:GetConfigData()
 	local data = { startEntry = startEntry, curMaxEntries = curMaxEntries, show = show }

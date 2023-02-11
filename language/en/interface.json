@@ -730,7 +730,7 @@
 			"dps": "DPS",
 			"weaponrange": "range",
 			"coverrange": "cover range",
-			"reloadtime": "reload time",
+			"reloadtime": "reload",
 			"energyshot": "energy/shot",
 			"metalshot": "metal/shot",
 			"stealthy": "stealthy",
