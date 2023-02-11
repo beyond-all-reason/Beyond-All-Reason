@@ -648,7 +648,7 @@
 		"unitTotals": {
 			"totals": "%{titleColor}Units  %{textColor}%{units} / %{maxUnits}      %{titleColor}Total  %{textColor}%{totalUnits}"
 		},
-		"factionpicker": {
+		"factionPicker": {
 			"pick": "Pick your faction",
 			"factions": {
 				"arm": " ",
