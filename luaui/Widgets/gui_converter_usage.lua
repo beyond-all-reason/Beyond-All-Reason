@@ -82,7 +82,8 @@ local function updateUI()
 
     local fontSize = (area[4] - area[2]) * 0.4
     local color = "\255\255\255\255"
-    local tooltipText = "\255\215\255\215"..Spring.I18N('ui.topbar.converter_usage.defaultTooltip')
+	local tooltipTitle = Spring.I18N('ui.topbar.converter_usage.defaultTooltipTitle')
+	local tooltipText = Spring.I18N('ui.topbar.converter_usage.defaultTooltip')
 
     if dlistCU ~= nil then
         glDeleteList(dlistCU)
@@ -123,7 +124,7 @@ local function updateUI()
 		font2:End()
 
         if WG['tooltip'] ~= nil then
-            WG['tooltip'].AddTooltip('converter_usage', area, tooltipText)
+            WG['tooltip'].AddTooltip('converter_usage', area, tooltipText, nil, tooltipTitle)
         end
 	end)
 end

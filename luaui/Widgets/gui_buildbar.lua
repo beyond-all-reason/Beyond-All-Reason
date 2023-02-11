@@ -510,7 +510,7 @@ local function drawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 		iconAlpha = 1
 		zoom = 0.12
 		if WG.tooltip then
-			WG.tooltip.ShowTooltip('buildbar', '\255\215\255\215' .. UnitDefs[unitDefID].translatedHumanName .. '\n' .. UnitDefs[unitDefID].translatedTooltip)
+			WG.tooltip.ShowTooltip('buildbar', UnitDefs[unitDefID].translatedTooltip, nil, nil, UnitDefs[unitDefID].translatedHumanName)
 		end
 	end
 

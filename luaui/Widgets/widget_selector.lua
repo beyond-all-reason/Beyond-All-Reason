@@ -519,19 +519,20 @@ function widget:DrawScreen()
 			local d = namedata[2]
 
 			--local tt = (d.active and GreenStr) or (enabled and YellowStr) or RedStr
-			local tooltip = ''
+			local tooltipTitle = ''
 			local order = widgetHandler.orderList[n]
 			if order then
 				if order >= 1 then
 					if not d.active then
-						tooltip = '\255\255\240\160'..n..'\n'
+						tooltipTitle = '\255\255\240\160'..n..'\n'
 					else
-						tooltip = '\255\130\255\160'..n..'\n'
+						tooltipTitle = '\255\130\255\160'..n..'\n'
 					end
 				else
-					tooltip = '\255\255\160\160'..n..'\n'
+					tooltipTitle = '\255\255\160\160'..n..'\n'
 				end
 			end
+			local tooltip = ''
 			local maxWidth = WG['tooltip'].getFontsize() * 100
 			if d.desc and d.desc ~= '' then
 				local textLines, numLines = font:WrapText(d.desc, maxWidth)
@@ -543,7 +544,7 @@ function widget:DrawScreen()
 			end
 			tooltip = tooltip .."\255\175\175\175".. texts.file..':  '  ..d.basename .. (not d.fromZip and '   ('..texts.islocal..')' or '')
 			if WG['tooltip'] then
-				WG['tooltip'].ShowTooltip('info', tooltip)
+				WG['tooltip'].ShowTooltip('info', tooltip, nil, nil, tooltipTitle)
 			end
 		end
 	end

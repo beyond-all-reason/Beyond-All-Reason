@@ -47,16 +47,20 @@
 				"overflowing": "Overflowing",
 				"wastingMetal": "Wasting metal",
 				"wastingEnergy": "Wasting energy",
-				"shareMetalTooltip": "%{titleColor}Metal Share Slider\nShare excess metal above this point with your team",
-				"shareEnergyTooltip": "%{titleColor}Energy Share Slider\nShare excess energy above this point with your team",
+				"shareMetalTooltipTitle": "Metal Share Slider",
+				"shareMetalTooltip": "Share excess metal above this point with your team",
+				"shareEnergyTooltipTitle": "Energy Share Slider",
+				"shareEnergyTooltip": "Share excess energy above this point with your team",
 				"pullTooltip": "The current demand for %{resource} (per second) provided that there is sufficient supply and storage",
 				"incomeTooltip": "%{resource} income (per second)",
 				"expenseTooltip": "%{resource} spending  (per second)",
 				"storageTooltip": "%{resource} storage",
-				"conversionTooltip": "%{titleColor}Energy Conversion Slider\nExcess energy above this point\nwill power your Energy Converters"
+				"conversionTooltipTitle": "Energy Conversion Slider",
+				"conversionTooltip": "Excess energy above this point\nwill power your Energy Converters"
 			},
 			"converter_usage": {
-				"defaultTooltip": "Energy converter usage\nShows how many of your energy converters are active and producing metal.",
+				"defaultTooltipTitle": "Energy converter usage",
+				"defaultTooltip": "Shows how many of your energy converters are active and producing metal",
 				"tooManyConverters1Tooltip": "You have too many energy converters for your energy production.",
 				"tooManyConverters2Tooltip": "Stop building energy converters and increase your energy production."
 			}
@@ -123,7 +127,8 @@
 			"playerCameraTooltip": "Follow player camera perspective and apply selections"
 		},
 		"teamEconomy": {
-			"tooltip": "Team metal/energy income\n(Lighter portion is income from reclaiming)"
+			"tooltipTitle": "Team Income",
+			"tooltip": "Total metal/energy income\n(Lighter portion is income from reclaiming)"
 		},
 		"dgunrule": {
 			"enemycom": "Reminder: Dgun enemy = you lose\n(with you having last commander)"
@@ -240,9 +245,9 @@
 			}
 		},
 		"idleBuilders": {
-			"name": "Idle builders",
-			"idle": "%{textColor}Idle %{highlightColor}%{unit}",
-			"controls": "%{textColor}Click:   Cycle next builder\n%{textColor}Shift + Click:   Select all",
+			"name": "Idle Builders",
+			"idle": "Idle %{highlightColor}%{unit}",
+			"controls": "Click:   Cycle next builder\nShift + Click:   Select all",
 			"sleeping": "z"
 		},
 		"unitGroups": {

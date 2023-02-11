@@ -387,11 +387,10 @@ local function updateRejoin()
 
 	end)
 	if WG['tooltip'] ~= nil then
-
 		local mins = math.floor(serverFrame / 30 / 60)
 		local secs = math.floor(((serverFrame / 30 / 60) - mins) * 60)
 		local gametime = mins..':'..(secs < 10 and '0'..secs or secs)
-		WG['tooltip'].AddTooltip('rejoin', area, Spring.I18N('ui.topbar.catchingUpTooltip', { gameTime = gametime }))
+		WG['tooltip'].AddTooltip('rejoin', area, Spring.I18N('ui.topbar.catchingUpTooltip', { gameTime = gametime }), nil, Spring.I18N('ui.topbar.catchingUp'))
 	end
 end
 
@@ -603,10 +602,9 @@ local function updateWind()
 
 	if WG['tooltip'] ~= nil then
 		-- did a string concatenation here to add in the wind risk information, but it may mess with I18N localization efforts
-		tooltip_text=Spring.I18N('ui.topbar.wind.tooltip', { titleColor = textTitleColor, warnColor = textWarnColor })
-		tooltip_text=tooltip_text .. '\nAverage wind speed on this map is ' .. avgWindValue
-		tooltip_text=tooltip_text .. '\nCurrent wind risk is ' .. riskWindValue .. "% (percentage of time wind speed will be below 6)"
-		WG['tooltip'].AddTooltip('wind', area, tooltip_text)
+		local tooltip_text = '\nAverage wind speed on this map is ' .. avgWindValue
+		tooltip_text = tooltip_text .. '\nCurrent wind risk is ' .. riskWindValue .. "% (percentage of time wind speed will be below 6)"
+		WG['tooltip'].AddTooltip('wind', area, Spring.I18N('ui.topbar.windspeedTooltip'), nil, Spring.I18N('ui.topbar.windspeed'))
 	end
 end
 
@@ -637,7 +635,7 @@ local function updateTidal()
 		glDeleteList(tidaldlist2)
 	end
 	local wavesSize = height*0.53 * widgetScale
-        tidalWaveAnimationHeight = height*0.1 * widgetScale
+	tidalWaveAnimationHeight = height*0.1 * widgetScale
 	tidaldlist1 = glCreateList(function()
 		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
 		if WG['guishader'] then
@@ -661,7 +659,7 @@ local function updateTidal()
 	end)
 
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('tidal', area, Spring.I18N('ui.topbar.tidal.tooltip', { titleColor = textTitleColor, warnColor = textWarnColor }))
+		WG['tooltip'].AddTooltip('tidal', area, Spring.I18N('ui.topbar.tidalspeedTooltip'), nil, Spring.I18N('ui.topbar.tidalspeed'))
 	end
 end
 
@@ -979,11 +977,11 @@ local function updateResbar(res)
 	-- add tooltips
 	if WG['tooltip'] ~= nil and conversionIndicatorArea then
 		if res == 'energy' then
-			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], conversionIndicatorArea[1], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareEnergyTooltip', { titleColor = textTitleColor }))
-			WG['tooltip'].AddTooltip(res .. '_share_slider2', { conversionIndicatorArea[3], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareEnergyTooltip', { titleColor = textTitleColor }))
-			WG['tooltip'].AddTooltip(res .. '_metalmaker_slider', conversionIndicatorArea, Spring.I18N('ui.topbar.resources.conversionTooltip', { titleColor = textTitleColor }))
+			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], conversionIndicatorArea[1], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareEnergyTooltip'), nil, Spring.I18N('ui.topbar.resources.shareEnergyTooltipTitle'))
+			WG['tooltip'].AddTooltip(res .. '_share_slider2', { conversionIndicatorArea[3], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareEnergyTooltip'), nil, Spring.I18N('ui.topbar.resources.shareEnergyTooltipTitle'))
+			WG['tooltip'].AddTooltip(res .. '_metalmaker_slider', conversionIndicatorArea, Spring.I18N('ui.topbar.resources.conversionTooltip'), nil, Spring.I18N('ui.topbar.resources.conversionTooltipTitle'))
 		else
-			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareMetalTooltip', { titleColor = textTitleColor }))
+			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareMetalTooltip'), nil, Spring.I18N('ui.topbar.resources.shareMetalTooltipTitle'))
 		end
 
 		WG['tooltip'].AddTooltip(res .. '_pull', { resbarDrawinfo[res].textPull[2] - (resbarDrawinfo[res].textPull[4] * 2.5), resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[2] + (resbarDrawinfo[res].textPull[4] * 0.5), resbarDrawinfo[res].textPull[3] + resbarDrawinfo[res].textPull[4] }, Spring.I18N('ui.topbar.resources.pullTooltip', { resource = resourceName }))
