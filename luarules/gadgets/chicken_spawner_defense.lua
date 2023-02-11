@@ -894,7 +894,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if waveParameters.baseCooldown <= 0 then
 			-- special waves
-			if techAnger > config.airStartAnger then
+			if techAnger > config.airStartAnger and waveParameters.airWave.cooldown <= 0 then
 				waveParameters.airWave.cooldown = mRandom(5,10)
 				waveParameters.baseCooldown = mRandom(2,4)
 				waveType = "air"
