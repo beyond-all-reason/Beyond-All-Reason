@@ -105,18 +105,7 @@ local dlistGuishader, lastStart
 
 local widgetScale = (vsy / 1080)
 
-local texts = {
-	title = 'Widget Selector',
-	button_reloadluaui = 'Reload LuaUI',
-	button_unloadallwidgets = 'Unload All Widgets',
-	button_disallowuserwidgets = 'Disallow User Widgets',
-	button_allowuserwidgets = 'Allow User Widgets',
-	button_resetluaui = 'Reset LuaUI',
-	button_factoryresetluaui = 'Factory Reset LuaUI',
-	file = 'File',
-	author = 'Author',
-	islocal = 'local',
-}
+local texts = {}
 
 local buttons = { --see MouseRelease for which functions are called by which buttons
 	[1] = texts.button_reloadluaui,
@@ -140,6 +129,8 @@ local buttonTop = 28 -- offset between top of buttons and bottom of widget
 -------------------------------------------------------------------------------
 
 function widget:Initialize()
+
+	texts = Spring.I18N('ui.widgetselector')
 
 	if not allowuserwidgets then
 		buttons[3] = ''
@@ -548,7 +539,7 @@ function widget:DrawScreen()
 			end
 			if d.author and d.author ~= '' then
 				local textLines, numLines = font:WrapText(d.author, maxWidth)
-				tooltip = tooltip.."\255\175\175\175" .. texts.author..':  '  .. "\255\215\250\215"..string.gsub(textLines, '[\n]', "\n\255\200\255\200")..'\n'
+				tooltip = tooltip.."\255\175\175\175" .. texts.author..':  ' ..string.gsub(textLines, '[\n]', "\n\255\175\175\175")..'\n'
 			end
 			tooltip = tooltip .."\255\175\175\175".. texts.file..':  '  ..d.basename .. (not d.fromZip and '   ('..texts.islocal..')' or '')
 			if WG['tooltip'] then

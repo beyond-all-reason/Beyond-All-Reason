@@ -27,13 +27,13 @@
 			"catchingUp": "Catching up",
 			"catchingUpTooltip": "Displays the catch-up progress\nGame time: %{gameTime}",
 			"commanderCountTooltip": "%{titleColor}Commander Counter\nDisplays the number of ally\nand enemy commanders",
-			"tidal": {
-				"tooltip": "%{titleColor}Tidal Speed Display\nDisplays tidal speed on this map (always constant)."
-			},
+			"tidalspeed": "Tidal Speed",
+			"tidalspeedTooltip": "Tidal speed on this map (always constant)",
+			"windspeed": "Wind Speed",
+			"windspeedTooltip": "(small numbers are minimum and maximum)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
 			"wind": {
 				"nowind1": "No",
 				"nowind2": "wind",
-				"tooltip": "%{titleColor}Wind Display\nDisplays current wind strength (small numbers are minimum and maximum)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
 				"worth1": "Wind is not worth it",
 				"worth2": "Wind is viable",
 				"worth3": "Wind is okay",
@@ -644,6 +644,19 @@
 		},
 		"factionPicker": {
 			"pick": "Pick your faction"
+		},
+		"widgetselector": {
+			"pick": "Pick your faction",
+			"title": "Widget Selector",
+			"button_reloadluaui": "Reload LuaUI",
+			"button_unloadallwidgets": "Unload All Widgets",
+			"button_disallowuserwidgets": "Disallow User Widgets",
+			"button_allowuserwidgets": "Allow User Widgets",
+			"button_resetluaui": "Reset LuaUI",
+			"button_factoryresetluaui": "Factory Reset LuaUI",
+			"file": "File",
+			"author": "Author",
+			"islocal": "local"
 		},
 		"unitstats": {
 			"prog": "Prog",
