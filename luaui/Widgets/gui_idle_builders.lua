@@ -15,7 +15,6 @@ local alwaysShowLabel = true	-- always show the label regardless
 local showWhenSpec = false
 local showStack = false
 local iconSizeMult = 0.98
-local highlightSelectedGroups = true
 local playSounds = true
 local soundVolume = 0.5
 local setHeight = 0.046
