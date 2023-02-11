@@ -781,7 +781,7 @@ local function drawSelection()
 	glColor(1, 1, 1, 1)
 end
 
-function ColourString(R, G, B)
+local function ColourString(R, G, B)
 	local R255 = math.floor(R * 255)
 	local G255 = math.floor(G * 255)
 	local B255 = math.floor(B * 255)
@@ -797,7 +797,7 @@ function ColourString(R, G, B)
 	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
 end
 
-function GetAIName(teamID)
+local function GetAIName(teamID)
 	local _, _, _, name, _, options = Spring.GetAIInfo(teamID)
 	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
 	if niceName then
@@ -1705,14 +1705,16 @@ function widget:DrawScreen()
 					stats = stats .. statsIndent .. tooltipTextColor .. text .. '\n\n'
 				end
 				local text
+				local textTitle
 				stats = ''--getSelectionTotals(cells)
 				if cellHovered then
-					text = tooltipTitleColor .. unitDefInfo[selectionCells[cellHovered]].translatedHumanName .. tooltipLabelTextColor .. (selUnitsCounts[selectionCells[cellHovered]] > 1 and ' x ' .. tooltipTextColor .. selUnitsCounts[selectionCells[cellHovered]] or '') .. stats
+					textTitle = unitDefInfo[selectionCells[cellHovered]].translatedHumanName .. tooltipLabelTextColor .. (selUnitsCounts[selectionCells[cellHovered]] > 1 and ' x ' .. tooltipTextColor .. selUnitsCounts[selectionCells[cellHovered]] or '')
 				else
-					text = tooltipTitleColor .. texts.selectedunits..": " .. tooltipTextColor .. #selectedUnits .. stats .. "\n " .. (stats == '' and '' or '\n') .. selectionHowto
+					--textTitle = texts.selectedunits..": " .. tooltipTextColor .. #selectedUnits
+					text = selectionHowto
 				end
 
-				WG['tooltip'].ShowTooltip('info', text)
+				WG['tooltip'].ShowTooltip('info', text, nil, nil, textTitle)
 			end
 		end
 
