@@ -14,14 +14,31 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local isDGun = {}
+local dgunDamages = {}
+local dgunSize = {}
+for weaponDefID, weaponDef in ipairs(WeaponDefs) do
+	if weaponDef.type == 'DGun' then
+		Script.SetWatchProjectile(weaponDefID, true)
+		dgunDamages[weaponDefID] = weaponDef.damages
+		dgunSize[weaponDefID] = weaponDef.size
+	end
+end
+
 local isCommander = {}
+local unitArmorType = {}
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	if unitDef.customParams.iscommander then
+		isCommander[unitDefID] = true
+	end
+	unitArmorType = unitDef.armorType
+end
+
 local flyingDGuns = {}
 local groundedDGuns = {}
 local damagedUnits = {}
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-	if isDGun[weaponDefID] then
+	if dgunDamages[weaponDefID] then
 		flyingDGuns[proID] = true
 	end
 end
@@ -52,11 +69,8 @@ function gadget:GameFrame()
 
 	for proID in pairs(groundedDGuns) do
 		local x, y, z = Spring.GetProjectilePosition(proID)
-		local h = Spring.GetGroundHeight(x, z)
-		local weaponDefID = Spring.GetProjectileDefID(proID)
-		local size = WeaponDefs[weaponDefID].size
 		-- Projectile placed 2x effect size underground to leave nice fiery trail
-		Spring.SetProjectilePosition(proID, x, h - 2 * size, z)
+		Spring.SetProjectilePosition(proID, x, Spring.GetGroundHeight(x, z) - 2 * dgunSize[Spring.GetProjectileDefID(proID)], z)
 
 		-- NB: no removal; do this every frame so that
 		-- it doesn't fly off a cliff or something
@@ -64,33 +78,14 @@ function gadget:GameFrame()
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if isDGun[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
+	if dgunDamages[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
 		damagedUnits[projectileID] = damagedUnits[projectileID] or {}
-
 		if damagedUnits[projectileID][unitID] then
 			return 0
 		else
-			local armorClass = UnitDefs[unitDefID].armorType
-			local dgunFixedDamage = WeaponDefs[weaponDefID].damages[armorClass]
 			damagedUnits[projectileID][unitID] = true
-			return dgunFixedDamage
+			return dgunDamages[weaponDefID][unitArmorType[unitDefID]]
 		end
 	end
-
 	return damage
-end
-
-function gadget:Initialize()
-	for weaponDefID, weaponDef in ipairs(WeaponDefs) do
-		if weaponDef.type == 'DGun' then
-			Script.SetWatchProjectile(weaponDefID, true)
-			isDGun[weaponDefID] = true
-		end
-	end
-
-	for unitDefID, unitDef in ipairs(UnitDefs) do
-		if unitDef.customParams.iscommander then
-			isCommander[unitDefID] = true
-		end
-	end
 end

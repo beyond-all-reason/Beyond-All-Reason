@@ -21,29 +21,27 @@ local damageAmount = 9999 -- amount of damage, applied only once per projectile 
 local dGunRange = 250 -- This is so that we dont deal 'extra' damage outside of the range of the unit
 local killfriendly = true -- only different allyteams get hit
 
-
 local projectiles = {} -- {owner = proOwnerID, gameframe = Spring.GetGameFrame(), alreadydamaged = {}}
 
 local weapons = {}
-for weaponID, weaponDef in pairs(WeaponDefs) do
+for weaponDefID, weaponDef in pairs(WeaponDefs) do
     if weaponDef.type == 'DGun' and weaponDef.damages  then -- to filter out decoy comm -- and weaponDef.damage.default > 5000
 		for _, v in pairs(weaponDef.damages) do
 			if v > 99000 then
-				weapons[weaponDef.id] = true
+				weapons[weaponDefID] = true
 			end
 		end
     end
 end
 
-local dgunProjectileWeaponID
+local dgunProjectileWeaponID	-- just used so we can attach a dgun weapon as cause of the projectile volume damage
 if WeaponDefNames['armcom_disintegrator'] then
 	dgunProjectileWeaponID = WeaponDefNames['armcom_disintegrator'].id
 end
 if not dgunProjectileWeaponID then
-	Spring.Echo('Dgun projectile volume: -=== dgun projectile weapon not found ===-')
+	Spring.Echo('Error: Dgun projectile volume: -=== dgun projectile weapon not found ===-')
 	return
 end
-
 
 function gadget:Initialize()
     for weaponDefID,_ in pairs(weapons) do
@@ -73,7 +71,6 @@ end
 function gadget:GameFrame(gf)
 	for projectileID, projectile in pairs(projectiles) do
 		if projectile.gameframe <= Spring.GetGameFrame() + damagedelay then
-
 			local x,y,z = Spring.GetProjectilePosition(projectileID)
 			-- find commander that fired it so it can become immune to its damage
 			local units = Spring.GetUnitsInSphere(x,y,z, 80)	-- set a little wider than needed to be sure its sufficient for all dgun angles
