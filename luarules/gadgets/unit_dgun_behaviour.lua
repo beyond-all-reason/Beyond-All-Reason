@@ -30,7 +30,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
 	end
-	unitArmorType = unitDef.armorType
+	unitArmorType[unitDefID] = unitDef.armorType
 end
 
 local flyingDGuns = {}
