@@ -123,6 +123,10 @@ function widget:Update(dt)
 	if doUpdate then
 		if #selectedUnits == 1 and isCloakableBuilder[Spring.GetUnitDefID(selectedUnits[1])] and select(5,Spring.GetUnitStates(selectedUnits[1],false,true)) then
 			-- unit is cloaked, abort!
+			if WG.DrawUnitShapeGL4 and activeUnitShape then
+				WG.StopDrawUnitShapeGL4(activeUnitShape[6])
+				activeUnitShape = nil
+			end
 			return
 		end
 		if not WG.customformations_linelength or WG.customformations_linelength < 10 then	-- dragging multi-unit formation-move-line
