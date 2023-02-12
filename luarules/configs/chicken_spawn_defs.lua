@@ -581,18 +581,18 @@ end
 
 local airStartAnger = 5 -- needed for air waves to work correctly.
 
-addNewSquad({ type = "air", minAnger = 5, units = { "1 chickenw1_mini", } })
-addNewSquad({ type = "air", minAnger = 5, units = { "1 chickenf1_mini", } })
+addNewSquad({ type = "air", minAnger = 5, units = { "4 chickenw1_mini", } })
+addNewSquad({ type = "air", minAnger = 5, units = { "4 chickenf1_mini", } })
 
-addNewSquad({ type = "air", minAnger = 40, units = { "2 chickenw1", } })
-addNewSquad({ type = "air", minAnger = 40, units = { "2 chickenw1b", } })
-addNewSquad({ type = "air", minAnger = 40, units = { "2 chickenw1c", } })
-addNewSquad({ type = "air", minAnger = 40, units = { "2 chickenw1d", } })
-addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenf1", } })
-addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenf1b", } })
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1", } })
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1b", } })
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1c", } })
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1d", } })
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenf1", }, weight = 2})
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenf1b", }, weight = 2})
 
-addNewSquad({ type = "air", minAnger = 60, units = { "2 chickenebomber1" } })
-addNewSquad({ type = "air", minAnger = 60, units = { "2 chickenacidbomber" } })
+addNewSquad({ type = "air", minAnger = 60, units = { "4 chickenebomber1" } })
+addNewSquad({ type = "air", minAnger = 60, units = { "4 chickenacidbomber" } })
 
 addNewSquad({ type = "air", minAnger = 70, units = { "10 chicken_dodoair" } })
 
