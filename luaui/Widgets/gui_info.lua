@@ -955,10 +955,11 @@ local function drawUnitInfo()
 			if isAiTeam then
 				name = GetAIName(teamID)
 			end
-			if name then
-				local fontSizeOwner = fontSize * 0.87
-				font2:Print(ColourString(Spring.GetTeamColor(teamID))..name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
+			if not name then
+				name = '---'
 			end
+			local fontSizeOwner = fontSize * 0.87
+			font2:Print(ColourString(Spring.GetTeamColor(teamID))..name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
 		end
 	else
 		valueY1 = metalColor .. unitDefInfo[displayUnitDefID].metalCost
