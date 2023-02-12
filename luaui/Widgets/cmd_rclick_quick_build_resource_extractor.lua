@@ -12,8 +12,6 @@ function widget:GetInfo()
 	}
 end
 
--- TODO: exclude currently cloaked units (like commander)
-
 ------------------------------------------------------------
 -- Config
 ------------------------------------------------------------
@@ -42,6 +40,13 @@ local spGetUnitDefID = Spring.GetUnitDefID
 -- Other variables
 ------------------------------------------------------------
 local chobbyInterface, activeUnitShape, lastInsertedOrder
+
+local isCloakableBuilder = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.buildOptions[1] and unitDef.canCloak then
+		isCloakableBuilder[unitDefID] = true
+	end
+end
 
 ------------------------------------------------------------
 -- Helper functions (Math stuff)
@@ -94,10 +99,12 @@ function CheckForBuildingOpportunity(type, params)
 	return isT1Mex, isT1Geo, groundHasEmptyMetal, groundHasEmptyGeo, params
 end
 
-------------------------------------------------------------
--- display mouse cursor and unitshape when hovering over a resource spot
-------------------------------------------------------------
+local selectedUnits = Spring.GetSelectedUnits()
+function widget:SelectionChanged(sel)
+	selectedUnits = sel
+end
 
+-- display mouse cursor and unitshape when hovering over a resource spot
 local sec = 0
 function widget:Update(dt)
 	if chobbyInterface then return end
@@ -114,6 +121,10 @@ function widget:Update(dt)
 	local drawUnitShape = false
 
 	if doUpdate then
+		if #selectedUnits == 1 and isCloakableBuilder[Spring.GetUnitDefID(selectedUnits[1])] and select(5,Spring.GetUnitStates(selectedUnits[1],false,true)) then
+			-- unit is cloaked, abort!
+			return
+		end
 		if not WG.customformations_linelength or WG.customformations_linelength < 10 then	-- dragging multi-unit formation-move-line
 
 			local type, rayParams = Spring.TraceScreenRay(mx, my)
@@ -206,6 +217,11 @@ function widget:CommandNotify(id, params, options)
 		return
 	end
 
+	if #selectedUnits == 1 and isCloakableBuilder[Spring.GetUnitDefID(selectedUnits[1])] and select(5,Spring.GetUnitStates(selectedUnits[1],false,true)) then
+		-- unit is cloaked, abort!
+		return
+	end
+
 	local mx, my, mb = Spring.GetMouseState()
 
 	if isGuard then
@@ -220,7 +236,6 @@ function widget:CommandNotify(id, params, options)
 
 	function TryConvertCmdToBuildOrder(cmd_id, enableQuickBuildOnMove, constructors, spots, BuildOrder, placementRadius, placementDragRadius)
 		local moveReturn = false
-		local selectedUnits = Spring.GetSelectedUnits()
 		if constructors[selectedUnits[1]] then
 			if isGuard then
 				local ux, uy, uz = spGetUnitPosition(params[1])
