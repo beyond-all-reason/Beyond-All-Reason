@@ -116,6 +116,8 @@ return {
 				avoidfeature = false,
 				avoidfriendly = false,
 				cegtag = "cruisemissiletrail-emp",
+				collideenemy = false,
+				collidefeature = false,
 				collidefriendly = false,
 				commandfire = true,
 				craterboost = 0,
