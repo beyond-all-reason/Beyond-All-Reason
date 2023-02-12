@@ -74,6 +74,9 @@ end
 -- Shared functions
 ------------------------------------------------------------
 function CheckForBuildingOpportunity(type, params)
+	if not WG['resource_spot_builder'] then
+		return
+	end
 	local isT1Mex = (type == 'unit' and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(params)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(params)] <= t1mexThreshold)
 	local isT1Geo = (type == 'unit' and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(params)] and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(params)] <= t1geoThreshold)
 	local closestMex, closestGeo, unitID

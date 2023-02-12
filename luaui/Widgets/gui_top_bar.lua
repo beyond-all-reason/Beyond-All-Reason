@@ -601,10 +601,7 @@ local function updateWind()
 	end)
 
 	if WG['tooltip'] ~= nil then
-		-- did a string concatenation here to add in the wind risk information, but it may mess with I18N localization efforts
-		local tooltip_text = '\nAverage wind speed on this map is ' .. avgWindValue
-		tooltip_text = tooltip_text .. '\nCurrent wind risk is ' .. riskWindValue .. "% (percentage of time wind speed will be below 6)"
-		WG['tooltip'].AddTooltip('wind', area, Spring.I18N('ui.topbar.windspeedTooltip', { warnColor = textWarnColor }), nil, Spring.I18N('ui.topbar.windspeed'))
+		WG['tooltip'].AddTooltip('wind', area, Spring.I18N('ui.topbar.windspeedTooltip', { avgWindValue = avgWindValue, riskWindValue = riskWindValue, warnColor = textWarnColor }), nil, Spring.I18N('ui.topbar.windspeed'))
 	end
 end
 

@@ -30,7 +30,7 @@
 			"tidalspeed": "Tidal Speed",
 			"tidalspeedTooltip": "Tidal speed on this map (always constant)",
 			"windspeed": "Wind Speed",
-			"windspeedTooltip": "(small numbers are minimum and maximum)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
+			"windspeedTooltip": "(small numbers are minimum and maximum)\nAverage wind speed on this map is %{avgWindValue}\nCurrent wind risk is %{riskWindValue} (percentage of time wind speed will be below 6)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
 			"wind": {
 				"nowind1": "No",
 				"nowind2": "wind",
