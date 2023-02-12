@@ -5069,7 +5069,7 @@ function init()
 
 	-- add music tracks options
 	local trackList
-	if WG['notifications'] ~= nil then
+	if WG['notifications'] ~= nil and WG['music'] ~= nil then
 		trackList = WG['music'].getTracksConfig()
 	end
 	if type(trackList) == 'table' then
