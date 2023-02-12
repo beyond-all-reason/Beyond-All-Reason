@@ -535,7 +535,7 @@ local function updateComs(forceText)
 	comcountChanged = nil
 
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('coms', area, Spring.I18N('ui.topbar.commanderCountTooltip', { titleColor = textTitleColor }))
+		WG['tooltip'].AddTooltip('coms', area, Spring.I18N('ui.topbar.commanderCountTooltip'), nil, Spring.I18N('ui.topbar.commanderCount'))
 	end
 end
 
