@@ -56,6 +56,8 @@ local tooltipValueRedColor = '\255\255\180\180'
 
 local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor .. ": Select\n " .. tooltipTextColor .. "   + CTRL" .. tooltipLabelTextColor .. ": Select units of this type on map\n " .. tooltipTextColor .. "   + ALT" .. tooltipLabelTextColor .. ": Select 1 single unit of this unit type\n " .. tooltipTextColor .. "Right click" .. tooltipLabelTextColor .. ": Remove\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Remove only 1 unit from that unit type\n " .. tooltipTextColor .. "Middle click" .. tooltipLabelTextColor .. ": Move to center location\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Move to center off whole selection"
 
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+
 local iconTypesMap, dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
 local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures, chobbyInterface
 local cellRect, cellPadding, cornerSize, cellsize, cellHovered
@@ -947,17 +949,16 @@ local function drawUnitInfo()
 
 		-- display unit owner name
 		local teamID = Spring.GetUnitTeam(displayUnitID)
-		if mySpec or myTeamID ~= teamID then
+		if mySpec or (myTeamID ~= teamID and not anonymousMode) then
 			local _, playerID, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
 			local name = Spring.GetPlayerInfo(playerID, false)
 			if isAiTeam then
 				name = GetAIName(teamID)
 			end
-			if not name then
-				name = '---'
+			if name then
+				local fontSizeOwner = fontSize * 0.87
+				font2:Print(ColourString(Spring.GetTeamColor(teamID))..name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
 			end
-			local fontSizeOwner = fontSize * 0.87
-			font2:Print(ColourString(Spring.GetTeamColor(teamID))..name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
 		end
 	else
 		valueY1 = metalColor .. unitDefInfo[displayUnitDefID].metalCost
