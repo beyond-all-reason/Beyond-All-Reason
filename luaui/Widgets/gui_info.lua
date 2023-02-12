@@ -43,16 +43,12 @@ local backgroundRect = { 0, 0, 0, 0 }
 local currentTooltip = ''
 local lastUpdateClock = 0
 
-local hpcolormap = { { 1, 0.0, 0.0, 1 }, { 0.8, 0.60, 0.0, 1 }, { 0.0, 0.75, 0.0, 1 } }
-
 local tooltipTitleColor = '\255\205\255\205'
 local tooltipTextColor = '\255\255\255\255'
 local tooltipLabelTextColor = '\255\200\200\200'
 local tooltipDarkTextColor = '\255\133\133\133'
 local tooltipValueColor = '\255\255\255\255'
 local tooltipValueWhiteColor = '\255\255\255\255'
-local tooltipValueYellowColor = '\255\255\235\175'
-local tooltipValueRedColor = '\255\255\180\180'
 
 local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor .. ": Select\n " .. tooltipTextColor .. "   + CTRL" .. tooltipLabelTextColor .. ": Select units of this type on map\n " .. tooltipTextColor .. "   + ALT" .. tooltipLabelTextColor .. ": Select 1 single unit of this unit type\n " .. tooltipTextColor .. "Right click" .. tooltipLabelTextColor .. ": Remove\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Remove only 1 unit from that unit type\n " .. tooltipTextColor .. "Middle click" .. tooltipLabelTextColor .. ": Move to center location\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Move to center off whole selection"
 
@@ -491,6 +487,7 @@ function widget:Initialize()
 	end
 
 	bfcolormap = {}
+	local hpcolormap = { { 1, 0.0, 0.0, 1 }, { 0.8, 0.60, 0.0, 1 }, { 0.0, 0.75, 0.0, 1 } }
 	for hp = 0, 100 do
 		bfcolormap[hp] = { GetColor(hpcolormap, hp * 0.01) }
 	end
@@ -949,17 +946,16 @@ local function drawUnitInfo()
 
 		-- display unit owner name
 		local teamID = Spring.GetUnitTeam(displayUnitID)
-		if mySpec or (myTeamID ~= teamID and not anonymousMode) then
+		if mySpec or (myTeamID ~= teamID and not Spring.GetModOptions().teamcolors_anonymous_mode) then --anonymousMode) then
 			local _, playerID, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
 			local name = Spring.GetPlayerInfo(playerID, false)
 			if isAiTeam then
 				name = GetAIName(teamID)
 			end
-			if not name then
-				name = '---'
+			if name then
+				local fontSizeOwner = fontSize * 0.87
+				font2:Print(ColourString(Spring.GetTeamColor(teamID))..name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
 			end
-			local fontSizeOwner = fontSize * 0.87
-			font2:Print(ColourString(Spring.GetTeamColor(teamID))..name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
 		end
 	else
 		valueY1 = metalColor .. unitDefInfo[displayUnitDefID].metalCost
