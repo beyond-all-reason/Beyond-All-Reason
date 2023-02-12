@@ -613,7 +613,7 @@ addNewSquad({ type = "air", minAnger = 100, units = { "10 chicken_dodoair" } })
 -- Settings -- Adjust these
 local useEggs = true -- Drop eggs (requires egg features from Beyond All Reason)
 local useScum = true -- Use scum as space where turrets can spawn (requires scum gadget from Beyond All Reason)
-local useWaveMsg = false -- Show dropdown message whenever new wave is spawning
+local useWaveMsg = true -- Show dropdown message whenever new wave is spawning
 local spawnSquare = 90 -- size of the chicken spawn square centered on the burrow
 local spawnSquareIncrement = 2 -- square size increase for each unit spawned
 local minBaseDistance = 1000 -- Minimum distance of new burrows from players and other burrows
