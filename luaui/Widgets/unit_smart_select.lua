@@ -12,13 +12,11 @@ function widget:GetInfo()
 end
 
 local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+local inSelection = false
 
 local selectBuildingsWithMobile = false		-- whether to select buildings when mobile units are inside selection rectangle
 local includeNanosAsMobile = true
 local includeBuilders = false
-
--- CONFIG(int, MouseDragSelectionThreshold).defaultValue(4).description("Distance in pixels which the mouse must be dragged to trigger a selection box.");
-local dragSelectionThreshold
 
 -- selection modifiers
 local mods = {
@@ -92,12 +90,6 @@ local function sort(v1, v2)
 	end
 end
 
-local function getDist(coords1, coords2)
-  local dx = coords1[1] - coords2[1]
-  local dy = coords1[2] - coords2[2]
-  return math.sqrt (dx * dx + dy * dy)
-end
-
 local function MinimapToWorldCoords(x, y)
 	local px, py, sx, sy = spGetMiniMapGeometry()
 	if dualScreen == "left" then
@@ -115,14 +107,14 @@ local function MinimapToWorldCoords(x, y)
 	return x, y, z
 end
 
-local function GetUnitsInMinimapRectangle(x1, y1, x2, y2, team)
+local function GetUnitsInMinimapRectangle(x1, y1, x2, y2)
 	local left, _, top = MinimapToWorldCoords(x1, y1)
 	local right, _, bottom = MinimapToWorldCoords(x2, y2)
 
 	left, right = sort(left, right)
 	bottom, top = sort(bottom, top)
 
-	return spGetUnitsInRectangle(left, bottom, right, top, team)
+	return spGetUnitsInRectangle(left, bottom, right, top)
 end
 
 local function setModifier(_, _, _, data)
@@ -136,16 +128,32 @@ function widget:ViewResize()
 end
 
 function widget:SelectionChanged(sel)
-	local equalSelection = true
-	for i = 1, #sel do
-		if selectedUnits[i] ~= sel[i] then
-			equalSelection = false
-			break
+	local mousePressed = select(3, spGetMouseState())
+
+	-- Check if engine has just deselected via mouserelease on selectbox.
+	-- We want to preserve smartselect state above any engine modifiers.
+	if inSelection and not mousePressed then
+		inSelection = false
+		WG['smartselect'].updateSelection = false    -- widgethandler uses this to ignore the engine mouserelease selection
+
+		spSelectUnitArray(selectedUnits)
+		return
+	end
+
+	local equalSelection = #selectedUnits == #sel
+
+	if equalSelection then
+		for i = 1, #sel do
+			if selectedUnits[i] ~= sel[i] then
+				equalSelection = false
+				break
+			end
 		end
 	end
+
 	selectedUnits = sel
 	if referenceCoords ~= nil and spGetActiveCommand() == 0 then
-		if not select(3, spGetMouseState()) and referenceSelection ~= nil and lastSelection ~= nil and equalSelection then
+		if not mousePressed and referenceSelection ~= nil and lastSelection ~= nil and equalSelection then
 			WG['smartselect'].updateSelection = false    -- widgethandler uses this to ignore the engine mouserelease selection
 		end
 	end
@@ -184,6 +192,7 @@ function widget:PlayerChanged()
 end
 
 function widget:Update()
+	inSelection = false
 	WG['smartselect'].updateSelection = true
 
 	if referenceCoords == nil or spGetActiveCommand() ~= 0 then
@@ -215,24 +224,24 @@ function widget:Update()
 	lastCoords = { x, y }
 	lastMeta = { mods.mobile, mods.deselect, mods.idle, mods.all }
 
-	-- get all units within selection rectangle
-	local mouseSelection, originalMouseSelection
-	local r = referenceScreenCoords
-	if r ~= nil and spIsAboveMiniMap(r[1], r[2]) then
-		mouseSelection = GetUnitsInMinimapRectangle(r[1], r[2], x, y, nil)
-	else
-		local x1, y1, x2, y2 = Spring.GetSelectionBox()
+	local mouseSelection
 
-		if x1 then
-			mouseSelection = spGetUnitsInScreenRectangle(x1, y1, x2, y2, nil) or {}
-		elseif getDist(referenceScreenCoords, lastCoords) <= dragSelectionThreshold then -- empty selection if didnt make drag threshold
-			mouseSelection = {}
-		else -- if not x1 selection box is not valid anymore (mouserelease/minimum threshold/chorded/etc)
-			mouseSelection = selectedUnits
-		end
+	-- get all units within selection rectangle
+	local x1, y1, x2, y2 = Spring.GetSelectionBox()
+
+	if not x1 then -- if not x1 selection box is not valid anymore (mouserelease/minimum threshold/chorded/etc)
+		return -- perform no changes to current selection
 	end
 
-	originalMouseSelection = mouseSelection
+	if spIsAboveMiniMap(x1, y1) then
+		mouseSelection = GetUnitsInMinimapRectangle(x1, y1, x2, y2)
+	else
+		mouseSelection = spGetUnitsInScreenRectangle(x1, y1, x2, y2, nil) or {}
+	end
+
+	inSelection = true
+
+	local originalMouseSelection = mouseSelection
 
 	local newSelection = {}
 	local uid, udid, tmp
@@ -373,14 +382,7 @@ function widget:Update()
 		return
 	end
 
-	if pressed then
-		lastSelection = true
-	else
-		lastSelection = nil
-		referenceSelection = nil
-		referenceSelectionTypes = nil
-		referenceCoords = nil
-	end
+	lastSelection = true
 end
 
 function widget:Shutdown()
@@ -390,8 +392,6 @@ function widget:Shutdown()
 end
 
 function widget:Initialize()
-	dragSelectionThreshold = Spring.GetConfigInt("MouseDragSelectionThreshold")
-
 	WG.SmartSelect_MousePress2 = mousePress
 
 	for modifierName, _ in pairs(mods) do
