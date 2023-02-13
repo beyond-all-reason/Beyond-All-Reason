@@ -217,7 +217,7 @@ local examplePointLight = {
 ]]--
 
 ------------------------------ Debug switches ------------------------------
-local autoupdate = false
+local autoupdate = true
 local debugproj = false
 local addrandomlights = false
 local skipdraw = false
@@ -999,7 +999,7 @@ local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
 		end
 		if (not spec) and lightTable.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then return end
 		if lightTable.initComplete == nil then InitializeLight(lightTable, unitID) end
-		local instanceID = tostring(unitID) .. "UnitScriptLight" .. tostring(lightIndex) .. "_" .. tostring(param)
+		local instanceID = tostring(unitID) .. "_" .. tostring(UnitDefs[unitDefID].name) .. "UnitScriptLight" .. tostring(lightIndex) .. "_" .. tostring(param)
 		AddLight(instanceID, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
 	end
 end
