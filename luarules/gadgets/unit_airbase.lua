@@ -392,9 +392,9 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 
-	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-		return true
-	end
+	--function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	--	return true
+	--end
 
 	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 		if cmdID ~= CMD_LAND_AT_SPECIFIC_AIRBASE then
