@@ -97,10 +97,13 @@ Create()
 	OpenClosed = 1;
 	statechg_DesiredState = FALSE;
 	statechg_StateChanging = FALSE;
-	
-	
-	start-script RequestState(0);
-	
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 1000;
+	}
+	//close and armor once construction is done
+	start-script RequestState(1);
+
 //	turn dome to x-axis <-135.032967> now;
 //	move gun to x-axis [1.500000] now;
 }
@@ -152,7 +155,7 @@ FirePrimary()
 
 QueryPrimary(piecenum)
 {
-	piecenum = aimpoint;
+	piecenum = flare;
 }
 
 SweetSpot(piecenum)
