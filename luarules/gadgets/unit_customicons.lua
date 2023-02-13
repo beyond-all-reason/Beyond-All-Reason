@@ -298,6 +298,7 @@ local units = {
 	chickenc3b = { "chicken.png", 1.25999999 },
 	chickenc3c = { "chicken.png", 1.25999999 },
 
+	chickenf1_mini = { "chicken_air.png", 0.75 },
 	chickenf1 = { "chicken_air.png", 1.5 },
 	chickenf1b = { "chicken_air.png", 1.5 },
 	chickenf1apex = { "chicken_air.png", 2 },
@@ -324,6 +325,7 @@ local units = {
 	chickens1 = { "chicken_spike.png", 1.45999999 },
 	chickens2 = { "chicken_spike.png", 1.77499993 },
 
+	chickenw1_mini = { "chicken_air.png", 0.7 },
 	chickenw1 = { "chicken_air.png", 1.36499989 },
 	chickenw1b = { "chicken_air.png", 1.36499989 },
 	chickenw1c = { "chicken_air.png", 1.36499989 },

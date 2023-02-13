@@ -13,10 +13,10 @@ end
 --[[
 
 -- Availible API functions:
-WG['tooltip'].AddTooltip(name, area, value, delay, x, y)  -- area: {x1,y1,x2,y2}   value: 'text'   delay(optional): #seconds   x/y(optional): display coordinates
+WG['tooltip'].AddTooltip(name, area, value, delay, x, y, title)  -- area: {x1,y1,x2,y2}   value(optional): 'text'   delay(optional): #seconds   x/y(optional): display coordinates   title(optional): 'text'
 WG['tooltip'].RemoveTooltip(name)
 
-WG['tooltip'].ShowTooltip(name, value, x, y)    -- x/y (optional): display coordinates
+WG['tooltip'].ShowTooltip(name, value, x, y, title)    -- value(optional): 'text'   x/y (optional): display coordinates   title(optional): 'text'
 
 You can use 'AddTooltip' to add a screen area that will display a tooltip when you hover over it
 
@@ -32,6 +32,7 @@ local xOffset = 35
 local yOffset = -xOffset
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
+local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = 1
@@ -46,7 +47,7 @@ local string_lines = string.lines
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local tooltips = {}
 local cleanupGuishaderAreas = {}
-local font, chobbyInterface
+local font, font2, chobbyInterface
 local RectRound, UiElement, bgpadding
 local uiSec = 0
 
@@ -57,8 +58,11 @@ function widget:Initialize()
 
 	if WG['tooltip'] == nil then
 		WG['tooltip'] = {}
-		WG['tooltip'].AddTooltip = function(name, area, value, delay)
-			if (value ~= nil and area[1] ~= nil and area[2] ~= nil and area[3] ~= nil and area[4] ~= nil) or (tooltips[name] ~= nil and tooltips[name].value ~= nil) then
+		WG['tooltip'].getFontsize = function()
+			return usedFontSize
+		end
+		WG['tooltip'].AddTooltip = function(name, area, value, delay, title)
+			if ((value ~= nil or title ~= nil) and area[1] ~= nil and area[2] ~= nil and area[3] ~= nil and area[4] ~= nil) or (tooltips[name] ~= nil and (tooltips[name].value ~= nil or tooltips[name].title ~= nil)) then
 				if delay == nil then
 					delay = defaultDelay
 				end
@@ -67,8 +71,9 @@ function widget:Initialize()
 				end
 				tooltips[name].area = area
 				tooltips[name].delay = delay
-				if value ~= nil then
-					tooltips[name].value = tostring(value)
+				if value ~= nil or title ~= nil then
+					tooltips[name].value = value ~= nil and tostring(value) or nil
+					tooltips[name].title = title ~= nil and tostring(title) or nil
 					if tooltips[name].dlist then
 						tooltips[name].dlist = gl.DeleteList(tooltips[name].dlist)
 					end
@@ -84,15 +89,21 @@ function widget:Initialize()
 				tooltips[name] = nil
 			end
 		end
-		WG['tooltip'].ShowTooltip = function(name, value, x, y)
-			if value ~= nil then
-				value = tostring(value)
+		WG['tooltip'].ShowTooltip = function(name, value, x, y, title)
+			if value ~= nil or title ~= nil then
 				if not tooltips[name] then
-					tooltips[name] = { value = value }
+					tooltips[name] = {}
+					if tooltips[name].value ~= nil then
+						tooltips[name].value = tostring(value)
+					end
+					if tooltips[name].title ~= nil then
+						tooltips[name].title = tostring(title)
+					end
 				else
 					tooltips[name].disabled = false
-					if tooltips[name].value ~= value then
-						tooltips[name].value = value
+					if tooltips[name].value ~= value or tooltips[name].title ~= title then
+						tooltips[name].value = value ~= nil and tostring(value) or nil
+						tooltips[name].title = title ~= nil and tostring(title) or nil
 						if tooltips[name].dlist then
 							tooltips[name].dlist = gl.DeleteList(tooltips[name].dlist)
 							cleanupGuishaderAreas[name] = true
@@ -134,6 +145,7 @@ end
 function widget:ViewResize(x, y)
 	vsx, vsy = Spring.GetViewGeometry()
 	font = WG['fonts'].getFont(fontfile)
+	font2 = WG['fonts'].getFont(fontfile2)
 	widgetScale = (1 + ((vsy - 850) / 900)) * (0.95 + (ui_scale - 1) / 2.5)
 	usedFontSize = cfgFontSize * widgetScale
 	yOffset = -math.floor(xOffset*0.75) - usedFontSize
@@ -152,16 +164,24 @@ local function drawTooltip(name, x, y)
 
 	if not tooltips[name].dlist then
 		tooltips[name].dlist = gl.CreateList(function()
+
+			local titleFontSize = math_floor(usedFontSize * 1.25)
 			local fontSize = math_floor(usedFontSize)
 			local lineHeight = fontSize + (fontSize / 4.5)
-			local lines = string_lines(tooltips[name].value)
-
-			-- get text dimentions
+			local lines
 			local maxWidth = 0
 			local maxHeight = 0
-			for i, line in ipairs(lines) do
-				maxWidth = math_ceil(math.max(maxWidth, (font:GetTextWidth(line) * fontSize)))
-				maxHeight = math_ceil(maxHeight + lineHeight)
+			if tooltips[name].title and tooltips[name].title ~= '' then
+				maxWidth = math_ceil(math.max(maxWidth, (font:GetTextWidth(tooltips[name].title) * titleFontSize)))
+				maxHeight = math_ceil(maxHeight + (titleFontSize * 1.22))
+			end
+			if tooltips[name].value and tooltips[name].value ~= '' then
+				-- get text dimentions
+				lines = string_lines(tooltips[name].value)
+				for i, line in ipairs(lines) do
+					maxWidth = math_ceil(math.max(maxWidth, (font:GetTextWidth(line) * fontSize)))
+					maxHeight = math_ceil(maxHeight + lineHeight)
+				end
 			end
 			tooltips[name].maxWidth = maxWidth
 			tooltips[name].maxHeight = maxHeight
@@ -172,12 +192,23 @@ local function drawTooltip(name, x, y)
 
 			-- draw text
 			maxHeight = math_floor(-fontSize * 0.9)
-			font:Begin()
-			for i, line in ipairs(lines) do
-				font:Print('\255\244\244\244' .. line, addX, maxHeight+addY, fontSize, "o")
-				maxHeight = maxHeight - lineHeight
+
+			if tooltips[name].title and tooltips[name].title ~= '' then
+				maxHeight = math_ceil(maxHeight - (titleFontSize * 0.1))
+				font2:Begin()
+				font2:Print('\255\205\255\205'..tooltips[name].title, addX, maxHeight+addY, titleFontSize, "o")
+				font2:End()
+				maxHeight = math_ceil(maxHeight - (titleFontSize * 1.12))
 			end
-			font:End()
+
+			if tooltips[name].value and tooltips[name].value ~= '' then
+				font:Begin()
+				for i, line in ipairs(lines) do
+					font:Print('\255\244\244\244' .. line, addX, maxHeight+addY, fontSize, "o")
+					maxHeight = maxHeight - lineHeight
+				end
+				font:End()
+			end
 		end)
 	end
 

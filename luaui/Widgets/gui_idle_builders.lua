@@ -15,7 +15,6 @@ local alwaysShowLabel = true	-- always show the label regardless
 local showWhenSpec = false
 local showStack = false
 local iconSizeMult = 0.98
-local highlightSelectedGroups = true
 local playSounds = true
 local soundVolume = 0.5
 local setHeight = 0.046
@@ -497,16 +496,16 @@ function widget:Update(dt)
 				if math_isInRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
 					local unitDefID = existingGroups[i]
 					if unitDefID then
-						tooltipTitle = Spring.I18N('ui.idleBuilders.idle', { unit = unitHumanName[unitDefID], textColor = "\255\255\255\255", highlightColor = "\255\190\255\190" })
+						tooltipTitle = Spring.I18N('ui.idleBuilders.idle', { unit = unitHumanName[unitDefID], highlightColor = "\255\190\255\190" })
 						if #idleList[unitDefID] > 1 then
-							tooltipAddition = '\n' .. Spring.I18N('ui.idleBuilders.controls', { textColor = "\255\190\190\190" })
+							tooltipAddition = Spring.I18N('ui.idleBuilders.controls')
 						end
 					end
 					break
 				end
 			end
 		end
-		WG['tooltip'].ShowTooltip('idlebuilders', tooltipTitle..tooltipAddition)
+		WG['tooltip'].ShowTooltip('idlebuilders', tooltipAddition, nil, nil, tooltipTitle)
 
 		Spring.SetMouseCursor('cursornormal')
 		if b then

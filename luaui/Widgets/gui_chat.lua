@@ -28,6 +28,7 @@ local lineHeightMult = 1.36
 local lineTTL = 40
 local backgroundOpacity = 0.25
 local handleTextInput = true	-- handle chat text input instead of using spring's input method
+local maxTextInputChars = 127	-- tested 127 as being the true max
 local inputButton = true
 local allowMultiAutocomplete = true
 local allowMultiAutocompleteMax = 10
@@ -1081,7 +1082,6 @@ function widget:DrawScreen()
 	-- draw chat input
 	if handleTextInput then
 
-		--updateTextInputDlist = true
 		if showTextInput and updateTextInputDlist then
 			drawChatInput()
 		end
@@ -1091,7 +1091,7 @@ function widget:DrawScreen()
 			-- button hover
 			if inputButtonRect[1] and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
 				Spring.SetMouseCursor('cursornormal')
-				glColor(1,1,1,0.07)
+				glColor(1,1,1,0.075)
 				RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
 			end
 		elseif WG['guishader'] then
@@ -1362,6 +1362,12 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition+1)
 			inputTextPosition = inputTextPosition + 1
 		end
+		if string.len(inputText) > maxTextInputChars then
+			inputText = string.sub(inputText, 1, maxTextInputChars)
+			if inputTextPosition > maxTextInputChars then
+				inputTextPosition = maxTextInputChars
+			end
+		end
 		inputHistory[#inputHistory] = inputText
 		cursorBlinkTimer = 0
 		autocomplete(inputText)
@@ -1444,6 +1450,12 @@ function widget:KeyPress(key)
 		local clipboardText = Spring.GetClipboard()
 		inputText = utf8.sub(inputText, 1, inputTextPosition) .. clipboardText .. utf8.sub(inputText, inputTextPosition+1)
 		inputTextPosition = inputTextPosition + utf8.len(clipboardText)
+		if string.len(inputText) > maxTextInputChars then
+			inputText = string.sub(inputText, 1, maxTextInputChars)
+			if inputTextPosition > maxTextInputChars then
+				inputTextPosition = maxTextInputChars
+			end
+		end
 		inputHistory[#inputHistory] = inputText
 		cursorBlinkTimer = 0
 		autocomplete(inputText, true)

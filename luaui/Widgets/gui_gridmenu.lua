@@ -1745,16 +1745,12 @@ function widget:DrawScreen()
 								-- when meta: unitstats does the tooltip
 								local text
 								local textColor = "\255\215\255\215"
-
 								if unitRestricted[uDefID] then
 									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].translatedHumanName, textColor = textColor, warnColor = "\255\166\166\166" })
 								else
-									text = textColor .. UnitDefs[uDefID].translatedHumanName
+									text = UnitDefs[uDefID].translatedHumanName
 								end
-
-								text = text .. "\n\255\240\240\240" .. UnitDefs[uDefID].translatedTooltip
-
-								WG['tooltip'].ShowTooltip('buildmenu', text)
+								WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240"..UnitDefs[uDefID].translatedTooltip, nil, nil, text)
 							end
 
 							-- highlight --if b and not disableInput then
@@ -1776,11 +1772,9 @@ function widget:DrawScreen()
 
 							if WG['tooltip'] then
 								-- when meta: unitstats does the tooltip
-								local text
 								local textColor = "\255\215\255\215"
 
-								text = textColor .. cat
-								text = text .. "\n\255\240\240\240" .. Cfgs.categoryTooltips[cat]
+								local text =  Cfgs.categoryTooltips[cat]
 								local index=0
 								for k,v in pairs(categories) do
 									if v == cat then
@@ -1789,9 +1783,9 @@ function widget:DrawScreen()
 								end
 
 								local catKey = keyConfig.sanitizeKey(Cfgs.keyLayout[1][index], currentLayout)
-								text = text .. "\n\255\240\240\240Hotkey: " .. textColor .. "[" .. catKey .. "]"
+								text = text .. "\255\240\240\240Hotkey: " .. textColor .. "[" .. catKey .. "]"
 
-								WG['tooltip'].ShowTooltip('buildmenu', text)
+								WG['tooltip'].ShowTooltip('buildmenu', text, nil, nil, cat)
 							end
 
 							hoveredCatNotFound = false

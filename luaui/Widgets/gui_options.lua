@@ -1020,7 +1020,7 @@ function widget:DrawScreen()
 							-- highlight option
 							UiSelectHighlight(o[1] - 4, o[2], o[3] + 4, o[4], nil, options[i].onclick and (ml and 0.35 or 0.22) or 0.14, options[i].onclick and { 0.5, 1, 0.25 })
 							if WG.tooltip and options[i].description and options[i].description ~= '' and options[i].description ~= ' ' then
-								WG.tooltip.ShowTooltip('options_description', options[i].description)
+								WG.tooltip.ShowTooltip('options_description', options[i].description)--, nil, nil, "\255\255\255\255"..options[i].name)
 							end
 							break
 						end
@@ -3107,15 +3107,15 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setInputButton', { 'inputButton' }, value)
 		  end,
 		},
-		{ id = "autoeraser", group = "ui", category = types.basic, widget = "Auto point eraser", name = texts.option.autoeraser, type = "bool", value = GetWidgetToggleValue("Auto point eraser"), description = texts.option.autoeraser_descr },
-		{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.autoeraser_erasetime, type = "slider", min = 1, max = 240, step = 1, value = 60, description = texts.option.autoeraser_erasetime_descr,
-		  onload = function(i)
-			  loadWidgetData("Auto point eraser", "autoeraser_erasetime", { 'eraseTime' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Auto point eraser', 'autoeraser', 'setEraseTime', { 'eraseTime' }, value)
-		  end,
-		},
+		--{ id = "autoeraser", group = "ui", category = types.basic, widget = "Auto point eraser", name = texts.option.autoeraser, type = "bool", value = GetWidgetToggleValue("Auto point eraser"), description = texts.option.autoeraser_descr },
+		--{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.autoeraser_erasetime, type = "slider", min = 1, max = 240, step = 1, value = 60, description = texts.option.autoeraser_erasetime_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Auto point eraser", "autoeraser_erasetime", { 'eraseTime' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Auto point eraser', 'autoeraser', 'setEraseTime', { 'eraseTime' }, value)
+		--  end,
+		--},
 
 		{ id = "continuouslyclearmapmarks", group = "ui", category = types.dev, name = texts.option.continuouslyclearmapmarks, type = "bool", value = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1, description = texts.option.continuouslyclearmapmarks_descr,
 		  onchange = function(i, value)
@@ -5069,7 +5069,7 @@ function init()
 
 	-- add music tracks options
 	local trackList
-	if WG['notifications'] ~= nil then
+	if WG['notifications'] ~= nil and WG['music'] ~= nil then
 		trackList = WG['music'].getTracksConfig()
 	end
 	if type(trackList) == 'table' then

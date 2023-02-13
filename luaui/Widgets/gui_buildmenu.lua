@@ -1059,16 +1059,12 @@ function widget:DrawScreen()
 								-- when meta: unitstats does the tooltip
 								local text
 								local textColor = "\255\215\255\215"
-
 								if unitRestricted[uDefID] or unitDisabled[uDefID] then
 									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].translatedHumanName, textColor = textColor, warnColor = "\255\166\166\166" })
 								else
-									text = textColor .. UnitDefs[uDefID].translatedHumanName
+									text = UnitDefs[uDefID].translatedHumanName
 								end
-
-								text = text .. "\n\255\240\240\240" .. UnitDefs[uDefID].translatedTooltip
-
-								WG['tooltip'].ShowTooltip('buildmenu', text)
+								WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240"..UnitDefs[uDefID].translatedTooltip, nil, nil, text)
 							end
 
 							-- highlight --if b and not disableInput then

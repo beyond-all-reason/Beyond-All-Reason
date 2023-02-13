@@ -59,6 +59,7 @@ local shaderConfig = {
 	SPECULARSTRENGTH = 0.3, -- how strong specular highlights are
 	--BLACKANDWHITEFACTOR = 0.5, -- set to between [0,1] to set how strong the black and white conversion should be, 0 = original color, 1 = full black and white, deprecated, now controllable per-decal
 	MINIMAPCOLORBLENDFACTOR = 1, -- How much minimap color should affect decal color
+	SINGLEQUADDECALSIZETHRESHOLD = 24, -- if length and width of decal is less than this, then only spawn 1 quad instead of 16
 }
 
 local groundscarsPath = "luaui/images/decals_gl4/groundscars/"	-- old: "luaui/images/decals_gl4/oldscars/"
@@ -1121,11 +1122,11 @@ local UnitScriptDecals = {
 
 	}
 
-local function UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
-	--Spring.Echo("Widgetside UnitScriptDecal", unitID, unitDefID, decalIndex, posx,posz, heading)
-	if Spring.ValidUnitID(unitID) and Spring.GetUnitIsDead(unitID) == false and UnitScriptDecals[unitDefID] and UnitScriptDecals[unitDefID][decalIndex] then
-		local decalTable =  UnitScriptDecals[unitDefID][decalIndex] 
-	
+local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, heading)
+	--Spring.Echo("Widgetside UnitScriptDecal", unitID, unitDefID, whichDecal, posx,posz, heading)
+	if Spring.ValidUnitID(unitID) and Spring.GetUnitIsDead(unitID) == false and UnitScriptDecals[unitDefID] and UnitScriptDecals[unitDefID][whichDecal] then
+		local decalTable =  UnitScriptDecals[unitDefID][whichDecal] 
+		
 		-- So order of transformations is, get heading, rotate that into world space , heading 0 is +Z direction
 		-- Then place at worldpos
 		-- Then place at offset (rotated) 
@@ -1140,24 +1141,56 @@ local function UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, headin
 		local worldposx = posx + cosrot * offsetx - sinrot * offsetz
 		
 		local worldposz = posz + sinrot * offsetx + cosrot * offsetz
-		
-		AddDecal(
-			decalTable.texture, 
-			worldposx, --posx
-			worldposz, --posx
-			decalTable.offsetrot + rotationradians, --rotation
-			decalTable.width, -- width
-			decalTable.height, -- height
-			decalTable.heatstart, -- heatstart
-			decalTable.heatdecay, -- heatdecay
-			decalTable.alphastart, -- alphastart
-			decalTable.alphadecay, -- alphadecay
-			decalTable.maxalpha, -- maxalpha
-			decalTable.bwfactor,
-			decalTable.glowsustain,
-			decalTable.glowadd,
-			decalTable.fadeintime
-	)
+		if true then 
+			AddDecal(
+				decalTable.texture, 
+				worldposx, --posx
+				worldposz, --posx
+				decalTable.offsetrot + rotationradians, --rotation
+				decalTable.width, -- width
+				decalTable.height, -- height
+				decalTable.heatstart, -- heatstart
+				decalTable.heatdecay, -- heatdecay
+				decalTable.alphastart, -- alphastart
+				decalTable.alphadecay, -- alphadecay
+				decalTable.maxalpha, -- maxalpha
+				decalTable.bwfactor,
+				decalTable.glowsustain,
+				decalTable.glowadd,
+				decalTable.fadeintime
+			)
+		else
+			local decalCache = decalTable.cacheTable
+			
+			decalCache[3] = decalTable.offsetrot + rotationradians
+			decalCache[13] = worldposx
+			decalCache[14] = Spring.GetGroundHeight(posx, posz)
+			decalCache[15] = worldposz
+			
+			decalCache[10] = decalTable.alphadecay / lifeTimeMult
+			
+			local spawnframe = Spring.GetGameFrame()
+			decalCache[16] = spawnframe
+
+			local lifetime = math.floor(decalTable.alphastart/decalCache[10])
+			decalIndex = decalIndex + 1
+			--Spring.Echo(decalIndex)
+			pushElementInstance(
+				decalVBO, -- push into this Instance VBO Table
+				decalCache, -- params
+				decalIndex, -- this is the key inside the VBO Table, should be unique per unit
+				true, -- update existing element
+				false) -- noupload, dont use unless you know what you want to batch push/pop
+			local deathtime = spawnframe + lifetime
+			decalTimes[decalIndex] = deathtime
+			if decalRemoveQueue[deathtime] == nil then
+				decalRemoveQueue[deathtime] = {decalIndex}
+			else
+				decalRemoveQueue[deathtime][#decalRemoveQueue[deathtime] + 1 ] = decalIndex
+			end
+
+			AddDecalToArea(decalIndex, worldposx, worldposz, decalTable.width, decalTable.height)
+		end
 	end
 end
 
@@ -1211,6 +1244,36 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('UnitScriptDecal', UnitScriptDecal)
 	Spring.Echo(string.format("Decals GL4 loaded %d textures in %.3fs",numFiles, Spring.DiffTimers(Spring.GetTimer(), t0)))
 	--Spring.Echo("Trying to access _G[NightModeParams]", _G["NightModeParams"])
+	
+	--pre-optimize UnitScriptDecals:
+	for unitDefID, UnitScriptDecalSet in pairs(UnitScriptDecals) do 
+		for i, decalTable in ipairs(UnitScriptDecalSet) do 
+			local p,q,s,t = 0,1,0,1
+
+			if decalImageCoords[decalTable.texture] == nil then
+				Spring.Echo("Tried to spawn a decal gl4 with a texture not present in the atlas:",decalTable.texture)
+			else
+				local uvs = decalImageCoords[decalTable.texture]
+				p,q,s,t = uvs[1], uvs[2], uvs[3], uvs[4]
+			end
+			
+			decalTable.cacheTable = {
+				decalTable.width, decalTable.height, 0,	decalTable.maxalpha,
+				p,q,s,t, 
+				decalTable.alphastart or 1,
+				(decalTable.alphadecay) or 0 / lifeTimeMult, 
+				decalTable.heatstart or 0, 
+				decalTable.heatdecay or 1,
+				0,0,0,0,
+				decalTable.bwfactor or 1, 
+				decalTable.glowsustain or 1, 
+				decalTable.glowadd or 1, 
+				decalTable.fadeintime or shaderConfig.FADEINTIME or 1
+			}
+		end
+	end
+
+	
 end
 
 --[[

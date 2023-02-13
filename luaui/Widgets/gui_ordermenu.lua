@@ -678,7 +678,19 @@ function widget:DrawScreen()
 								tooltip = Spring.I18N('ui.orderMenu.hotkeyTooltip', { hotkey = hotkey:upper(), tooltip = tooltip, highlightColor = "\255\255\215\100", textColor = "\255\240\240\240" })
 							end
 							if tooltip ~= '' then
-								WG['tooltip'].ShowTooltip('ordermenu', tooltip)
+								local title
+								if isStateCommand[cmd.id] then
+									local currentStateIndex = cmd.params[1]
+									-- First element of params represents selected state index, but Spring engine implementation returns a value 2 less than the actual index
+									local stateOffset = 2
+									local commandState = cmd.params[currentStateIndex + stateOffset]
+									if commandState then
+										title = Spring.I18N('ui.orderMenu.' .. commandState)
+									end
+								else
+									title = Spring.I18N('ui.orderMenu.' .. cmd.action)
+								end
+								WG['tooltip'].ShowTooltip('ordermenu', tooltip, nil, nil, title)
 							end
 						end
 						cellHovered = cell

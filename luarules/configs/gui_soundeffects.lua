@@ -2356,26 +2356,26 @@ for _, udef in pairs(UnitDefs) do
 		GUIUnitSoundEffects[udef.name] = {}
 	elseif not GUIUnitSoundEffects[udef.name] then
 		if string.find(udef.name, "arm") then
-			Spring.Echo("[RESPONSEDOUND FALLBACK]: ARMADA", udef.name)
+			--Spring.Echo("[RESPONSEDOUND FALLBACK]: ARMADA", udef.name)
 			GUIUnitSoundEffects[udef.name] = {
 				BaseSoundSelectType = "arm-bot-small-sel",
 				BaseSoundMovementType = "arm-bot-tiny-ok",
 			}
 		elseif string.find(udef.name, "cor") then
-			Spring.Echo("[RESPONSEDOUND FALLBACK]: CORTEX", udef.name)
+			--Spring.Echo("[RESPONSEDOUND FALLBACK]: CORTEX", udef.name)
 			GUIUnitSoundEffects[udef.name] = {
 				BaseSoundSelectType = "cor-bot-small-sel",
 				BaseSoundMovementType = "cor-bot-medium-ok",
 			}
 		else
 			if math.random(0,1) == 0 then
-				Spring.Echo("[RESPONSEDOUND FALLBACK]: OTHER, RANDOM ARMADA", udef.name)
+				--Spring.Echo("[RESPONSEDOUND FALLBACK]: OTHER, RANDOM ARMADA", udef.name)
 				GUIUnitSoundEffects[udef.name] = {
 					BaseSoundSelectType = "arm-bot-small-sel",
 					BaseSoundMovementType = "arm-bot-tiny-ok",
 				}
 			else
-				Spring.Echo("[RESPONSEDOUND FALLBACK]: OTHER, RANDOM CORTEX", udef.name)
+				--Spring.Echo("[RESPONSEDOUND FALLBACK]: OTHER, RANDOM CORTEX", udef.name)
 				GUIUnitSoundEffects[udef.name] = {
 					BaseSoundSelectType = "cor-bot-small-sel",
 					BaseSoundMovementType = "cor-bot-medium-ok",
