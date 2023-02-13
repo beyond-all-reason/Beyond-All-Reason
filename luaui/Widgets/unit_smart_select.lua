@@ -28,8 +28,10 @@ local mods = {
 }
 
 local spGetMouseState = Spring.GetMouseState
+local spGetModKeyState = Spring.GetModKeyState
+local spGetSelectionBox = Spring.GetSelectionBox
 
-local spTraceScreenRay = Spring.TraceScreenRay
+local spIsGodModeEnabled = Spring.IsGodModeEnabled
 
 local spGetUnitsInScreenRectangle = Spring.GetUnitsInScreenRectangle
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
@@ -79,8 +81,7 @@ local dualScreen
 local vpy
 local mapWidth, mapHeight = Game.mapSizeX, Game.mapSizeZ
 
-local lastCoords, lastMeta, lastSelection
-local referenceCoords, referenceScreenCoords, referenceSelection, referenceSelectionTypes
+local lastSelection, referenceSelection, referenceSelectionTypes
 
 local function sort(v1, v2)
 	if v1 > v2 then
@@ -134,9 +135,15 @@ function widget:SelectionChanged(sel)
 	-- We want to preserve smartselect state above any engine modifiers.
 	if inSelection and not mousePressed then
 		inSelection = false
-		WG['smartselect'].updateSelection = false    -- widgethandler uses this to ignore the engine mouserelease selection
 
 		spSelectUnitArray(selectedUnits)
+
+		local _, ctrl = spGetModKeyState()
+
+		if ctrl and #sel == 0 then
+			WG['smartselect'].updateSelection = false    -- widgethandler uses this to ignore the engine mouserelease selection
+		end
+
 		return
 	end
 
@@ -152,7 +159,7 @@ function widget:SelectionChanged(sel)
 	end
 
 	selectedUnits = sel
-	if referenceCoords ~= nil and spGetActiveCommand() == 0 then
+	if spGetActiveCommand() == 0 then
 		if not mousePressed and referenceSelection ~= nil and lastSelection ~= nil and equalSelection then
 			WG['smartselect'].updateSelection = false    -- widgethandler uses this to ignore the engine mouserelease selection
 		end
@@ -161,7 +168,7 @@ end
 
 -- this widget gets called early due to its layer
 -- this function will get called after all widgets have had their chance with widget:MousePress
-local function mousePress(x, y, button)  --function widget:MousePress(x, y, button)
+local function mousePress(_, _, button)  --function widget:MousePress(x, y, button)
 	if button ~= 1 then return end
 
 	referenceSelection = selectedUnits
@@ -172,18 +179,7 @@ local function mousePress(x, y, button)  --function widget:MousePress(x, y, butt
 			referenceSelectionTypes[udid] = 1
 		end
 	end
-	referenceScreenCoords = { x, y }
-	lastMeta = nil
 	lastSelection = nil
-
-	if spIsAboveMiniMap(x, y) then
-		referenceCoords = { 0, 0, 0 }
-		lastCoords = { 0, 0, 0 }
-	else
-		local _, c = spTraceScreenRay(x, y, true, false, true)
-		referenceCoords = c
-		lastCoords = c
-	end
 end
 
 function widget:PlayerChanged()
@@ -192,46 +188,24 @@ function widget:PlayerChanged()
 end
 
 function widget:Update()
-	inSelection = false
 	WG['smartselect'].updateSelection = true
 
-	if referenceCoords == nil or spGetActiveCommand() ~= 0 then
+	if spGetActiveCommand() ~= 0 then
 		return
 	end
 
-	local x, y, pressed = spGetMouseState()
+	-- get all units within selection rectangle
+	local x1, y1, x2, y2 = spGetSelectionBox()
 
-	if not ((pressed or lastSelection) and referenceSelection ~= nil) then
-		referenceSelection = nil
-		referenceSelectionTypes = nil
-		referenceCoords = nil
+	inSelection = x1 ~= nil
 
-		return
-	end
+	if not inSelection then return end -- not in valid selection box (mouserelease/minimum threshold/chorded/etc)
 
 	if #referenceSelection == 0 then  -- no point in inverting an empty selection
 		mods.deselect = false
 	end
 
-	if referenceScreenCoords ~= nil and x == referenceScreenCoords[1] and y == referenceScreenCoords[2] then -- sameLast
-		if lastCoords == referenceCoords then
-			return
-		elseif lastMeta ~= nil and mods.mobile == lastMeta[1] and mods.deselect == lastMeta[2] and mods.idle == lastMeta[3] and mods.all == lastMeta[4] then
-			return
-		end
-	end
-
-	lastCoords = { x, y }
-	lastMeta = { mods.mobile, mods.deselect, mods.idle, mods.all }
-
 	local mouseSelection
-
-	-- get all units within selection rectangle
-	local x1, y1, x2, y2 = Spring.GetSelectionBox()
-
-	if not x1 then -- if not x1 selection box is not valid anymore (mouserelease/minimum threshold/chorded/etc)
-		return -- perform no changes to current selection
-	end
 
 	if spIsAboveMiniMap(x1, y1) then
 		mouseSelection = GetUnitsInMinimapRectangle(x1, y1, x2, y2)
@@ -240,8 +214,6 @@ function widget:Update()
 	end
 
 	inSelection = true
-
-	local originalMouseSelection = mouseSelection
 
 	local newSelection = {}
 	local uid, udid, tmp
@@ -257,7 +229,7 @@ function widget:Update()
 	mouseSelection = tmp
 
 	-- filter gaia units + ignored units (objects) + only own units when not spectating
-	if not Spring.IsGodModeEnabled() then
+	if not spIsGodModeEnabled() then
 		tmp = {}
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
@@ -372,10 +344,8 @@ function widget:Update()
 
 	elseif #mouseSelection > 0 then  -- select units inside selection rectangle
 		spSelectUnitArray(mouseSelection)
-
-	elseif #originalMouseSelection > 0 and #mouseSelection == 0 then
+	elseif #mouseSelection == 0 then
 		spSelectUnitArray({})
-
 	else  -- keep current selection while dragging until more things are selected
 		spSelectUnitArray(referenceSelection)
 		lastSelection = nil
