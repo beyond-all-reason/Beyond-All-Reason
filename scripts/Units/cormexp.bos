@@ -28,8 +28,8 @@ static-var  Stunned;
 triplepenetration(){
   // extraction animation
 	while(TRUE){
-    if ( !Stunned AND get ACTIVATION)
-    // only animate if not stunned and is activated
+    if ( !Stunned AND ExtractionSpeed > 0)
+    // only animate if not stunned and is extracting
     {
       // use get MAX statements to avoid stuck animations when ExtractionSpeed=0
       column_going_up = TRUE;
@@ -152,6 +152,11 @@ RetractWeapon()
 AimPrimary(heading, pitch)
 {
 
+  if ( ExtractionSpeed == 0 ) // only allow attacking when extracting
+  {
+  return (0);
+  }
+
 	if( !(weapon_state == 4) )
 	{
     call-script DeployWeapon();
@@ -192,6 +197,12 @@ QueryPrimary(piecenum)
 
 AimSecondary(heading, pitch)
 {
+
+  if ( ExtractionSpeed == 0 ) // only allow attacking when extracting
+  {
+  return (0);
+  }
+
   if( !(weapon_state == 4) )
   {
     call-script DeployWeapon();
