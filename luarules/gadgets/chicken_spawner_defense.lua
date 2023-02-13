@@ -82,9 +82,9 @@ if gadgetHandler:IsSyncedCode() then
 	local queenAngerAgressionLevel = 0
 	local difficultyCounter = 0
 	local waveParameters = {
-		baseCooldown = mRandom(5,10),
+		baseCooldown = mRandom(3,5),
 		airWave = {
-			cooldown = mRandom(2,4),
+			cooldown = mRandom(1,2),
 		},
 	}
 	local squadSpawnOptions = config.squadSpawnOptionsTable
@@ -474,7 +474,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- Spring.MarkerAddPoint (squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z, "Squad #" .. squadID .. " target")
 		local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
 		squadsTable[squadID].squadNeedsRefresh = true
-		squadCommanderGiveOrders(squadID, targetx, targety, targetz)
+		--squadCommanderGiveOrders(squadID, targetx, targety, targetz)
 	end
 
 	function createSquad(newSquad)
