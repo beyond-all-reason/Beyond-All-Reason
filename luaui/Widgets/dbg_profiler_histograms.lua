@@ -182,6 +182,7 @@ local function updatehist(h,newvalue, counter)
 end
 
 local function updateVBO(h)
+	if h == nil then return end
 	local vboData = h.VBOData
 	for i, count  in ipairs(h.data) do 
 		vboData[2*i - 1] =     i / bincount
@@ -267,7 +268,9 @@ end
 
 function widget:GameFrame(n)
 	for name, hist in pairs(actives) do
-		updatehist(histograms[name])
+		if histograms[name] then 
+			updatehist(histograms[name])
+		end
 	end
 end
 
@@ -277,12 +280,14 @@ function widget:DrawScreen()
 	histShader:SetUniform("boundingbox", boundingbox[1],boundingbox[2],boundingbox[3],boundingbox[4])
 	for name, _ in pairs(actives) do 
 		local hist = histograms[name]
-		if Spring.GetGameFrame()%30 == 0 then
-			updateVBO(hist)
+		if hist then 
+			if Spring.GetGameFrame()%30 == 0 then
+				updateVBO(hist)
+			end
+			gl.LineWidth(hist.linewidth)
+			histShader:SetUniform("color", hist.color[1], hist.color[2], hist.color[3], hist.color[4])
+			hist.VAO:DrawArrays(GL.LINE_STRIP)
 		end
-		gl.LineWidth(hist.linewidth)
-		histShader:SetUniform("color", hist.color[1], hist.color[2], hist.color[3], hist.color[4])
-		hist.VAO:DrawArrays(GL.LINE_STRIP)
 	end
 	histShader:Deactivate()
 end
