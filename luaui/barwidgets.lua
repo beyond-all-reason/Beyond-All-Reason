@@ -1509,7 +1509,7 @@ function widgetHandler:MousePress(x, y, button)
 		end
 	end
 	if widgetHandler.WG.SmartSelect_MousePress2 then
-		widgetHandler.WG.SmartSelect_MousePress2(x, y, button, 'abc')
+		widgetHandler.WG.SmartSelect_MousePress2(x, y, button)
 	end
 	return false
 end
