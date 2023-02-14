@@ -1119,7 +1119,42 @@ local UnitScriptDecals = {
 			fadeintime = 5, 
 			}
 		},
-
+	[UnitDefNames['armfboy'].id] = {
+		[1] = { -- LFOOT
+			texture = groundscarsPath..'f_armfboy_a.png',
+			offsetx = -1, --offset from what the UnitScriptDecal returns 
+			offsetz = 0, -- 
+			offsetrot = 0, -- in radians
+			width = 30,
+			height = 60,
+			heatstart = 0,
+			heatdecay = 0,
+			alphastart = 0.7, 
+			alphadecay = 0.0002, 
+			maxalpha = 1.0, 
+			bwfactor = 0.0, 
+			glowsustain = 0.0, 
+			glowadd = 0.0, 
+			fadeintime = 5, 
+			},
+		[2] = { -- RFOOT
+			texture = groundscarsPath..'f_armfboy_a.png',
+			offsetx = 1, --offset from what the UnitScriptDecal returns 
+			offsetz = 0, -- 
+			offsetrot = 0, -- in radians
+			width = 30,
+			height = 60,
+			heatstart = 0,
+			heatdecay = 0,
+			alphastart = 0.7, 
+			alphadecay = 0.0002, 
+			maxalpha = 1.0, 
+			bwfactor = 0.0, 
+			glowsustain = 0.0, 
+			glowadd = 0.0, 
+			fadeintime = 5, 
+			}
+		},
 	}
 
 local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, heading)
