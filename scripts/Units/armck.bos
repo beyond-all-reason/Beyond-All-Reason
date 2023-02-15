@@ -18,6 +18,10 @@ static-var  notBuilding, bMoving,statechg_DesiredState, statechg_StateChanging;
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
 
 // Generated for N:\animations\armck_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
@@ -51,6 +55,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 	}
 	while(bMoving) {
 		if (bMoving) { //Frame:10
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <17.678568> speed <510.064935> / animSpeed; //delta=17.00 
 			turn lleg to x-axis <4.587512> speed <223.484357> / animSpeed; //delta=7.45 
 			turn lleg to z-axis <1.294859> speed <20.808043> / animSpeed; //delta=-0.69 
@@ -146,6 +151,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:26
+		
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <-21.045874> speed <37.207438> / animSpeed; //delta=1.24 
 			turn lfoot to z-axis <5.967565> speed <202.819061> / animSpeed; //delta=-6.76 
 			turn lfoot to y-axis <4.707034> speed <197.304558> / animSpeed; //delta=6.58 

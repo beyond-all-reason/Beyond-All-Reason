@@ -14,6 +14,11 @@ static-var  bMoving, bAiming, isReady, gun_1, gun_1_side;
 // Signal definitions
 #define SIG_AIM				4
 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+
 // 
 // LICENSED CC BY NC ND to Beherith mysterme@gmail.com
 // Generated for N:\animations\corcat_anim_walk_v2.blend
@@ -55,6 +60,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 	}
 	while(bMoving) {
 		if (bMoving) { //Frame:12
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn head to x-axis <0.500000> speed <75.000003> / animSpeed; //delta=2.50 
 			turn head to z-axis <2.781250> speed <83.437501> / animSpeed; //delta=-2.78 
 			turn head to y-axis <-9.437500> speed <73.125008> / animSpeed; //delta=-2.44 
@@ -291,6 +297,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:40
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn head to x-axis <2.000000> speed <5.758932> / animSpeed; //delta=0.19 
 			turn head to z-axis <-2.000000> speed <28.392857> / animSpeed; //delta=0.95 
 			turn head to y-axis <7.000000> speed <96.964285> / animSpeed; //delta=3.23 

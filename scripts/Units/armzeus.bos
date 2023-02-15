@@ -10,6 +10,13 @@ static-var  bMoving, bAiming, restore_delay, statechg_DesiredState, statechg_Sta
 #define SIG_AIM				2
 
 static-var maxSpeed, animFramesPerKeyframe;
+
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+
+
 #define SIG_WALK 4
 Walk() {
 	if (bMoving) { //Frame:4
@@ -42,6 +49,7 @@ Walk() {
 	}
 	while(bMoving) {
 		if (bMoving) { //Frame:7
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <-4.079282> speed <93.610146> / animSpeed; 
 			turn lleg to x-axis <-7.424414> speed <144.010039> / animSpeed; 
 			turn lleg to z-axis <3.818876> speed <3.794994> / animSpeed; 
@@ -176,6 +184,7 @@ Walk() {
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:19
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <52.965576> speed <938.246233> / animSpeed; 
 			turn lfoot to z-axis <-1.237152> speed <167.670216> / animSpeed; 
 			turn lfoot to y-axis <1.478874> speed <352.863722> / animSpeed; 

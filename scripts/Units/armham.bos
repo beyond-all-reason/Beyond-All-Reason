@@ -21,6 +21,10 @@ static-var  bMoving, Static_Var_2, Static_Var_3, Static_Var_4, gun_1, gun_2,
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
 
 RockUnit(anglex, anglez)
 {
@@ -111,6 +115,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:18
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn larm to x-axis <3.000000> speed <120.000012> / animSpeed; //delta=4.00 
 			turn lfoot to x-axis <-16.649051> speed <1289.685386> / animSpeed; //delta=42.99 
 			turn lleg to x-axis <48.665695> speed <1446.899943> / animSpeed; //delta=-48.23 
@@ -195,6 +200,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:34
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn larm to x-axis <3.000000> speed <119.999999> / animSpeed; //delta=4.00 
 			turn lfoot to x-axis <-41.349699> speed <263.724156> / animSpeed; //delta=-8.79 
 			turn lleg to x-axis <73.996145> speed <279.726163> / animSpeed; //delta=-9.32 
