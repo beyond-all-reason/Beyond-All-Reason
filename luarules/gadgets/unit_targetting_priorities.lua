@@ -98,10 +98,28 @@ if gadgetHandler:IsSyncedCode() then
 		if unitDef.customParams.prioritytarget and unitDef.customParams.prioritytarget == "air" then
 			hasPriorityAir[unitDefID] = true
 		end
+
+		-- do Script.SetWatchWeapon so AllowWeaponTarget gets called
+		for wid, weapon in ipairs(unitDef.weapons) do
+			if weapon.onlyTargets then
+				for category, _ in pairs(weapon.onlyTargets) do
+					if category == 'vtol' then
+						Script.SetWatchWeapon(weapon.weaponDef, true) -- watch weapon so AllowWeaponTarget works
+					end
+				end
+			end
+		end
 	end
 
 	local spSetUnitRulesParam = Spring.SetUnitRulesParam
 	local spGetUnitRulesParam = Spring.GetUnitRulesParam
+
+	function gadget:Initialize()
+		for _, unitID in ipairs(Spring.GetAllUnits()) do
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			gadget:UnitCreated(unitID, unitDefID)
+		end
+	end
 
 	function gadget:UnitCreated(unitID, unitDefID)
 		if hasPriorityAir[unitDefID] then
