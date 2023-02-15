@@ -85,7 +85,8 @@ local dualScreen
 local vpy
 local mapWidth, mapHeight = Game.mapSizeX, Game.mapSizeZ
 
-local referenceSelection, referenceSelectionTypes
+local referenceSelection = {}
+local referenceSelectionTypes = {}
 
 local function sort(v1, v2)
 	if v1 > v2 then
@@ -227,7 +228,7 @@ function widget:Update()
 	for i = 1, #mouseSelection do
 		uid = mouseSelection[i]
 		if not spGetUnitNoSelect(uid) and -- filter unselectable units
-			(not isGodMode and spGetUnitTeam(uid) ~= GaiaTeamID and not ignoreUnits[spGetUnitDefID(uid)] and (spec or spGetUnitTeam(uid) == myTeamID)) then -- filter gaia units + ignored units (objects) + only own units when not spectating
+			(isGodMode or (spGetUnitTeam(uid) ~= GaiaTeamID and not ignoreUnits[spGetUnitDefID(uid)] and (spec or spGetUnitTeam(uid) == myTeamID))) then -- filter gaia units + ignored units (objects) + only own units when not spectating
 			n = n + 1
 			tmp[n] = uid
 			if equalsMouseSelection and uid ~= lastMouseSelection[n] then
