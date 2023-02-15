@@ -13,6 +13,8 @@ end
 
 local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
 local inSelection = false
+local finishedSelection = false
+local inMiniMapSel = false
 
 local selectBuildingsWithMobile = false		-- whether to select buildings when mobile units are inside selection rectangle
 local includeNanosAsMobile = true
@@ -26,6 +28,8 @@ local mods = {
  all      = false, -- whether to select all units
  mobile   = false, -- whether to select only mobile units
 }
+local lastMods = mods
+local lastMouseSelection = {}
 
 local spGetMouseState = Spring.GetMouseState
 local spGetModKeyState = Spring.GetModKeyState
@@ -81,7 +85,7 @@ local dualScreen
 local vpy
 local mapWidth, mapHeight = Game.mapSizeX, Game.mapSizeZ
 
-local lastSelection, referenceSelection, referenceSelectionTypes
+local referenceSelection, referenceSelectionTypes
 
 local function sort(v1, v2)
 	if v1 > v2 then
@@ -129,46 +133,44 @@ function widget:ViewResize()
 end
 
 function widget:SelectionChanged(sel)
-	local mousePressed = select(3, spGetMouseState())
+	-- widgets already received what we selected on previous pass, bypass this event
+	if finishedSelection then
+		WG['smartselect'].updateSelection = false
+		finishedSelection = false
+		return
+	end
 
 	-- Check if engine has just deselected via mouserelease on selectbox.
-	-- We want to preserve smartselect state above any engine modifiers.
-	if inSelection and not mousePressed then
+	-- We want to ignore engine passed selection and make sure we retain smartselect state
+	if inSelection and not select(3, spGetMouseState()) then -- left mouse button
 		inSelection = false
 
-		spSelectUnitArray(selectedUnits)
-
-		local _, ctrl = spGetModKeyState()
-
-		if ctrl and #sel == 0 then
-			WG['smartselect'].updateSelection = false    -- widgethandler uses this to ignore the engine mouserelease selection
+		if #sel == 0 and not select(2, spGetModKeyState()) then -- ctrl
+			-- if empty selection box and engine hardcoded deselect modifier is not
+			-- pressed, user is selected empty space
+			-- we must clear selection to disambiguate from our own deselect modifier
+			spSelectUnitArray({})
+		else
+			-- widgethandler uses this to ignore the engine mouserelease selection
+			-- we don't want to pass the engine selection to other widgets
+			WG['smartselect'].updateSelection = false
+			-- we also want to override back from engine selection to our selection
+			spSelectUnitArray(selectedUnits)
+			-- we bypass next selectionchanged event since we already know what we
+			-- selected, Update() constantly selects units inside selection box until
+			-- it finishes
+			finishedSelection = true
 		end
 
 		return
 	end
 
-	local equalSelection = #selectedUnits == #sel
-
-	if equalSelection then
-		for i = 1, #sel do
-			if selectedUnits[i] ~= sel[i] then
-				equalSelection = false
-				break
-			end
-		end
-	end
-
 	selectedUnits = sel
-	if spGetActiveCommand() == 0 then
-		if not mousePressed and referenceSelection ~= nil and lastSelection ~= nil and equalSelection then
-			WG['smartselect'].updateSelection = false    -- widgethandler uses this to ignore the engine mouserelease selection
-		end
-	end
 end
 
 -- this widget gets called early due to its layer
 -- this function will get called after all widgets have had their chance with widget:MousePress
-local function mousePress(_, _, button)  --function widget:MousePress(x, y, button)
+local function mousePress(x, y, button)  --function widget:MousePress(x, y, button)
 	if button ~= 1 then return end
 
 	referenceSelection = selectedUnits
@@ -179,7 +181,8 @@ local function mousePress(_, _, button)  --function widget:MousePress(x, y, butt
 			referenceSelectionTypes[udid] = 1
 		end
 	end
-	lastSelection = nil
+	lastMouseSelection = {}
+	inMiniMapSel = spIsAboveMiniMap(x, y)
 end
 
 function widget:PlayerChanged()
@@ -207,38 +210,40 @@ function widget:Update()
 
 	local mouseSelection
 
-	if spIsAboveMiniMap(x1, y1) then
+	if inMiniMapSel then
 		mouseSelection = GetUnitsInMinimapRectangle(x1, y1, x2, y2)
 	else
 		mouseSelection = spGetUnitsInScreenRectangle(x1, y1, x2, y2, nil) or {}
 	end
 
-	inSelection = true
-
 	local newSelection = {}
 	local uid, udid, tmp
 
-	-- filter unselectable units
 	tmp = {}
+	local n = 0
+	local equalsMouseSelection = #mouseSelection == #lastMouseSelection
+	local isGodMode = spIsGodModeEnabled()
+
 	for i = 1, #mouseSelection do
 		uid = mouseSelection[i]
-		if not spGetUnitNoSelect(uid) then
-			tmp[#tmp + 1] = uid
-		end
-	end
-	mouseSelection = tmp
-
-	-- filter gaia units + ignored units (objects) + only own units when not spectating
-	if not spIsGodModeEnabled() then
-		tmp = {}
-		for i = 1, #mouseSelection do
-			uid = mouseSelection[i]
-			if spGetUnitTeam(uid) ~= GaiaTeamID and not ignoreUnits[spGetUnitDefID(uid)] and (spec or spGetUnitTeam(uid) == myTeamID) then
-				tmp[#tmp + 1] = uid
+		if not spGetUnitNoSelect(uid) and -- filter unselectable units
+			(not isGodMode and spGetUnitTeam(uid) ~= GaiaTeamID and not ignoreUnits[spGetUnitDefID(uid)] and (spec or spGetUnitTeam(uid) == myTeamID)) then -- filter gaia units + ignored units (objects) + only own units when not spectating
+			n = n + 1
+			tmp[n] = uid
+			if equalsMouseSelection and uid ~= lastMouseSelection[n] then
+				equalsMouseSelection = false
 			end
 		end
-		mouseSelection = tmp
 	end
+
+	if equalsMouseSelection and mods.idle == lastMods[1] and mods.same == lastMods[2] and mods.deselect == lastMods[3] and mods.all == lastMods[4] and mods.mobile == lastMods[5] then
+		return
+	end
+
+	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile }
+	lastMouseSelection = mouseSelection
+
+	mouseSelection = tmp
 
 	if mods.idle then
 		tmp = {}
@@ -348,11 +353,7 @@ function widget:Update()
 		spSelectUnitArray({})
 	else  -- keep current selection while dragging until more things are selected
 		spSelectUnitArray(referenceSelection)
-		lastSelection = nil
-		return
 	end
-
-	lastSelection = true
 end
 
 function widget:Shutdown()
