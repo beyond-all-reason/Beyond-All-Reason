@@ -237,6 +237,7 @@ local unitLightVBOMap -- a table of the above 3, keyed by light type,  {point = 
 
 local unitAttachedLights = {} -- this is a table mapping unitID's to all their attached instanceIDs and vbos
 	--{unitID = { instanceID = targetVBO, ... }}
+local visibleUnits = {} -- this is a proxy for the widget callins, used to ensure we dont add unitscriptlights to units that are not visible
 
 -- these will be separate, as they need per-frame updates!
 local projectilePointLightVBO = {}  -- for plasma balls
@@ -991,7 +992,7 @@ end
 
 local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
 	--Spring.Echo("Widgetside UnitScriptLight", unitID, unitDefID, lightIndex, param)
-	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and unitEventLights.UnitScriptLights[unitDefID] and unitEventLights.UnitScriptLights[unitDefID][lightIndex] then
+	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and visibleUnits[unitID] and unitEventLights.UnitScriptLights[unitDefID] and unitEventLights.UnitScriptLights[unitDefID][lightIndex] then
 		local lightTable = unitEventLights.UnitScriptLights[unitDefID][lightIndex]
 		if not lightTable.alwaysVisible then
 			local px,py,pz = spGetUnitPosition(unitID)
@@ -1027,6 +1028,7 @@ end
 
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	visibleUnits[unitID] = unitDefID
 	AddStaticLightsForUnit(unitID, unitDefID, false, "VisibleUnitAdded")
 end
 
@@ -1034,6 +1036,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	clearInstanceTable(unitPointLightVBO) -- clear all instances
 	clearInstanceTable(unitBeamLightVBO) -- clear all instances
 	clearInstanceTable(unitConeLightVBO) -- clear all instances
+	visibleUnits = {}
 
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		AddStaticLightsForUnit(unitID, unitDefID, true, "VisibleUnitsChanged") -- add them with noUpload = true
@@ -1046,6 +1049,7 @@ end
 function widget:VisibleUnitRemoved(unitID) -- remove all the lights for this unit
 	--if debugmode then Spring.Debug.TraceEcho("remove",unitID,reason) end
 	RemoveUnitAttachedLights(unitID)
+	visibleUnits[unitID] = nil
 end
 
 function widget:Shutdown()
@@ -1103,11 +1107,25 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 					if not visible then
 						if px and spIsSphereInView(px,py,pz, lightTable[4]) then visible = true end
 					end
-					if (not spec) and lightTable.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then return end
-					if visible then
-						if not lightTable.initComplete then
-							if not InitializeLight(lightTable, unitID) then return end
+
+					-- bail if only for allies
+					if (not spec) and lightTable.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then 
+						visible = false
+					end
+					
+					-- bail if unable to initialize light
+					if not lightTable.initComplete then 
+						if not InitializeLight(lightTable, unitID) then 
+							visible = false
 						end
+					end
+					
+					-- bail if invalid unitID wants a unit-attached light
+					if lightTable.pieceName and (visibleUnits[unitID] == nil) then 
+						visible = false
+					end
+					
+					if visible then
 						--if lightTable.aboveUnit then lightTable.lightParamTable end
 						local lightParamTable = lightTable.lightParamTable
 						if lightTable.pieceName then
@@ -1132,6 +1150,7 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 							AddLight(eventName .. tostring(unitID) ..  lightname, nil, lightTable.pieceIndex, lightVBOMap[lightTable.lightType], lightCacheTable)
 						end
 					end
+				
 				end
 			end
 		end
