@@ -133,7 +133,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitCreated(unitID, unitDefID)
 		if hasPriorityAir[unitDefID] then
 			Spring.InsertUnitCmdDesc(unitID, CMD_SET_PRIORITY, setPriorityAirb)
-			spSetUnitRulesParam(unitID, "targetPriorityFighters", 10) -- so we got fighters only
+			spSetUnitRulesParam(unitID, "targetPriorityFighters", 20) -- so we got fighters only
 			spSetUnitRulesParam(unitID, "targetPriorityBombers", 1) -- so we got bombers only (t1&t2 and all torpedo)
 			spSetUnitRulesParam(unitID, "targetPriorityVtols", 10) -- so we got the rest cons,all strafe etc but non bomber class
 			spSetUnitRulesParam(unitID, "targetPriorityScouts", 1000) -- no priortiy 
@@ -167,7 +167,7 @@ if gadgetHandler:IsSyncedCode() then
 					spSetUnitRulesParam(unitID, "targetPriorityVtols", 10)
 					spSetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
 				elseif cmdParams[1] == 1 then
-					spSetUnitRulesParam(unitID, "targetPriorityFighters", 10)
+					spSetUnitRulesParam(unitID, "targetPriorityFighters", 20)
 					spSetUnitRulesParam(unitID, "targetPriorityBombers", 1)
 					spSetUnitRulesParam(unitID, "targetPriorityVtols", 10)
 					spSetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
