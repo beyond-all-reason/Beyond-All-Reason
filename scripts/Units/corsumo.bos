@@ -47,7 +47,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 	}
 	while(bMoving) {
 		if (bMoving) { //Frame:12
-			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lbfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lbfoot) & 0x0000ffff),   get HEADING(0));
+			//call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lbfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lbfoot) & 0x0000ffff),   get HEADING(0));
 			turn lbfoot to x-axis <-18.276130> speed <118.141953> / animSpeed; //delta=3.94 
 			move lbleg to y-axis [-3.471509] speed [34.125080] / animSpeed; //delta=-1.14 
 			turn lbleg to x-axis <38.963402> speed <584.451023> / animSpeed; //delta=-19.48 
@@ -125,7 +125,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:36
-			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rbfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rbfoot) & 0x0000ffff),   get HEADING(0));
+			//call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rbfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rbfoot) & 0x0000ffff),   get HEADING(0));
 			turn lbfoot to x-axis <44.038608> speed <737.860470> / animSpeed; //delta=-24.60 
 			move lbleg to y-axis [0.092369] speed [50.870780] / animSpeed; //delta=-1.70 
 			turn lbleg to x-axis <-45.483671> speed <682.255114> / animSpeed; //delta=22.74 
