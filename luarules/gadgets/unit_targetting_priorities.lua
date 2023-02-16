@@ -2,7 +2,7 @@ function gadget:GetInfo()
 	return {
 		name = 'Units Targetting Prioritie',
 		desc = 'Adds a priority command/button to set the wanted target prioritizing',
-		author = 'Doo',
+		author = 'Doo', --additions wilkubyk
 		version = 'v1.0',
 		date = 'May 2018',
 		license = 'GNU GPL, v2 or later',
@@ -21,7 +21,7 @@ if gadgetHandler:IsSyncedCode() then
 		action = 'setpriority',
 		tooltip = 'target priority',
 		queueing = false,
-		params = { '0', 'Fighters', 'Bombers', 'none' },
+		params = { '0', 'Fighters', 'Bombers', 'Vtols', 'none' },
 	}
 	local setPriorityAirb = {
 		id = CMD_SET_PRIORITY,
@@ -30,7 +30,16 @@ if gadgetHandler:IsSyncedCode() then
 		action = 'setpriority',
 		tooltip = 'target priority',
 		queueing = false,
-		params = { '1', 'Fighters', 'Bombers', 'none' },
+		params = { '1', 'Fighters', 'Bombers', 'Vtols', 'none' },
+	}
+	local setPriorityAirv = {
+		id = CMD_SET_PRIORITY,
+		type = CMDTYPE.ICON_MODE,
+		name = 'Set Priority',
+		action = 'setpriority',
+		tooltip = 'target priority',
+		queueing = false,
+		params = { '2', 'Fighters', 'Bombers', 'Vtols', 'none' },
 	}
 	local setPriorityAirn = {
 		id = CMD_SET_PRIORITY,
@@ -39,37 +48,37 @@ if gadgetHandler:IsSyncedCode() then
 		action = 'setpriority',
 		tooltip = 'target priority',
 		queueing = false,
-		params = { '2', 'Fighters', 'Bombers', 'No priority' },
+		params = { '3', 'Fighters', 'Bombers', 'Vtols', 'No priority' },
 	}
 	local airCategories = {
-		[UnitDefNames.armatlas.id] = "Bombers",
-		[UnitDefNames.armca.id] = "Bombers",
-		[UnitDefNames.armkam.id] = "Bombers",
+		[UnitDefNames.armatlas.id] = "Vtols",
+		[UnitDefNames.armca.id] = "Vtols",
+		[UnitDefNames.armkam.id] = "Vtols",
 		[UnitDefNames.armthund.id] = "Bombers",
-		[UnitDefNames.armaca.id] = "Bombers",
-		[UnitDefNames.armblade.id] = "Bombers",
-		[UnitDefNames.armbrawl.id] = "Bombers",
-		[UnitDefNames.armdfly.id] = "Bombers",
+		[UnitDefNames.armaca.id] = "Vtols",
+		[UnitDefNames.armblade.id] = "Vtols",
+		[UnitDefNames.armbrawl.id] = "Vtols",
+		[UnitDefNames.armdfly.id] = "Vtols",
 		[UnitDefNames.armlance.id] = "Bombers",
 		[UnitDefNames.armliche.id] = "Bombers",
 		[UnitDefNames.armpnix.id] = "Bombers",
 		[UnitDefNames.armstil.id] = "Bombers",
-		[UnitDefNames.armcsa.id] = "Bombers",
-		[UnitDefNames.armsaber.id] = "Bombers",
+		[UnitDefNames.armcsa.id] = "Vtols",
+		[UnitDefNames.armsaber.id] = "Vtols",
 		[UnitDefNames.armsb.id] = "Bombers",
 		[UnitDefNames.armseap.id] = "Bombers",
-		[UnitDefNames.corbw.id] = "Bombers",
-		[UnitDefNames.corca.id] = "Bombers",
-		[UnitDefNames.corvalk.id] = "Bombers",
+		[UnitDefNames.corbw.id] = "Vtols",
+		[UnitDefNames.corca.id] = "Vtols",
+		[UnitDefNames.corvalk.id] = "Vtols",
 		[UnitDefNames.corshad.id] = "Bombers",
-		[UnitDefNames.coraca.id] = "Bombers",
-		[UnitDefNames.corape.id] = "Bombers",
-		[UnitDefNames.corcrw.id] = "Bombers",
+		[UnitDefNames.coraca.id] = "Vtols",
+		[UnitDefNames.corape.id] = "Vtols",
+		[UnitDefNames.corcrw.id] = "Vtols",
 		[UnitDefNames.corhurc.id] = "Bombers",
-		[UnitDefNames.corseah.id] = "Bombers",
+		[UnitDefNames.corseah.id] = "Vtols",
 		[UnitDefNames.cortitan.id] = "Bombers",
-		[UnitDefNames.corcsa.id] = "Bombers",
-		[UnitDefNames.corcut.id] = "Bombers",
+		[UnitDefNames.corcsa.id] = "Vtols",
+		[UnitDefNames.corcut.id] = "Vtols",
 		[UnitDefNames.corsb.id] = "Bombers",
 		[UnitDefNames.corseap.id] = "Bombers",
 		[UnitDefNames.armfig.id] = "Fighters",
@@ -100,15 +109,15 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		-- do Script.SetWatchWeapon so AllowWeaponTarget gets called
-		for wid, weapon in ipairs(unitDef.weapons) do
-			if weapon.onlyTargets then
-				for category, _ in pairs(weapon.onlyTargets) do
-					if category == 'vtol' then
-						Script.SetWatchWeapon(weapon.weaponDef, true) -- watch weapon so AllowWeaponTarget works
+			for wid, weapon in ipairs(unitDef.weapons) do
+				if weapon.onlyTargets then
+					for category, _ in pairs(weapon.onlyTargets) do
+						if category == 'vtol' then
+							Script.SetWatchWeapon(weapon.weaponDef, true) -- watch weapon so AllowWeaponTarget works
+						end
 					end
 				end
 			end
-		end
 	end
 
 	local spSetUnitRulesParam = Spring.SetUnitRulesParam
@@ -123,10 +132,11 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(unitID, unitDefID)
 		if hasPriorityAir[unitDefID] then
-			Spring.InsertUnitCmdDesc(unitID, CMD_SET_PRIORITY, setPriorityAirn)
-			spSetUnitRulesParam(unitID, "targetPriorityFighters", 1)
-			spSetUnitRulesParam(unitID, "targetPriorityBombers", 1)
-			spSetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
+			Spring.InsertUnitCmdDesc(unitID, CMD_SET_PRIORITY, setPriorityAirb)
+			spSetUnitRulesParam(unitID, "targetPriorityFighters", 10) -- so we got fighters only
+			spSetUnitRulesParam(unitID, "targetPriorityBombers", 1) -- so we got bombers only (t1&t2 and all torpedo)
+			spSetUnitRulesParam(unitID, "targetPriorityVtols", 10) -- so we got the rest cons,all strafe etc but non bomber class
+			spSetUnitRulesParam(unitID, "targetPriorityScouts", 1000) -- no priortiy 
 		end
 	end
 
@@ -139,6 +149,8 @@ if gadgetHandler:IsSyncedCode() then
 				elseif cmdParams[1] == 1 then
 					Spring.EditUnitCmdDesc(unitID, cmdDescId, setPriorityAirb)
 				elseif cmdParams[1] == 2 then
+					Spring.EditUnitCmdDesc(unitID, cmdDescId, setPriorityAirv)
+				elseif cmdParams[1] == 3 then
 					Spring.EditUnitCmdDesc(unitID, cmdDescId, setPriorityAirn)
 				end
 			end
@@ -152,14 +164,22 @@ if gadgetHandler:IsSyncedCode() then
 				if cmdParams[1] == 0 then
 					spSetUnitRulesParam(unitID, "targetPriorityFighters", 1)
 					spSetUnitRulesParam(unitID, "targetPriorityBombers", 10)
+					spSetUnitRulesParam(unitID, "targetPriorityVtols", 10)
 					spSetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
 				elseif cmdParams[1] == 1 then
 					spSetUnitRulesParam(unitID, "targetPriorityFighters", 10)
 					spSetUnitRulesParam(unitID, "targetPriorityBombers", 1)
+					spSetUnitRulesParam(unitID, "targetPriorityVtols", 10)
 					spSetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
 				elseif cmdParams[1] == 2 then
+					spSetUnitRulesParam(unitID, "targetPriorityFighters", 10)
+					spSetUnitRulesParam(unitID, "targetPriorityBombers", 10)
+					spSetUnitRulesParam(unitID, "targetPriorityVtols", 1)
+					spSetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
+				elseif cmdParams[1] == 3 then
 					spSetUnitRulesParam(unitID, "targetPriorityFighters", 1)
 					spSetUnitRulesParam(unitID, "targetPriorityBombers", 1)
+					spSetUnitRulesParam(unitID, "targetPriorityVtols", 1)
 					spSetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
 				end
 			end
