@@ -30,6 +30,7 @@ local mods = {
 }
 local lastMods = mods
 local lastMouseSelection = {}
+local lastMouseSelectionCount = 0
 
 local spGetMouseState = Spring.GetMouseState
 local spGetModKeyState = Spring.GetModKeyState
@@ -182,7 +183,6 @@ local function mousePress(x, y, button)  --function widget:MousePress(x, y, butt
 			referenceSelectionTypes[udid] = 1
 		end
 	end
-	lastMouseSelection = {}
 	inMiniMapSel = spIsAboveMiniMap(x, y)
 end
 
@@ -222,7 +222,7 @@ function widget:Update()
 
 	tmp = {}
 	local n = 0
-	local equalsMouseSelection = #mouseSelection == #lastMouseSelection
+	local equalsMouseSelection = #mouseSelection == lastMouseSelectionCount
 	local isGodMode = spIsGodModeEnabled()
 
 	for i = 1, #mouseSelection do
@@ -231,7 +231,7 @@ function widget:Update()
 			(isGodMode or (spGetUnitTeam(uid) ~= GaiaTeamID and not ignoreUnits[spGetUnitDefID(uid)] and (spec or spGetUnitTeam(uid) == myTeamID))) then -- filter gaia units + ignored units (objects) + only own units when not spectating
 			n = n + 1
 			tmp[n] = uid
-			if equalsMouseSelection and uid ~= lastMouseSelection[n] then
+			if equalsMouseSelection and not lastMouseSelection[uid] then
 				equalsMouseSelection = false
 			end
 		end
@@ -242,7 +242,16 @@ function widget:Update()
 	end
 
 	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile }
-	lastMouseSelection = mouseSelection
+
+	-- Fill dictionary for set comparison
+	-- We increase slightly the perf cost of cache misses but at the same
+	-- we hit caches way more often. At thousands of units, this improvement
+	-- is massive
+	lastMouseSelection = {}
+	lastMouseSelectionCount = #mouseSelection
+	for i = 1, #mouseSelection do
+		lastMouseSelection[mouseSelection[i]] = true
+	end
 
 	mouseSelection = tmp
 
@@ -357,6 +366,23 @@ function widget:Update()
 	end
 end
 
+--- Profiling Update, remember to change widget:Update to local function update above
+--
+--local spGetTimer = Spring.GetTimer
+--local highres = nil
+--if Spring.GetTimerMicros and  Spring.GetConfigInt("UseHighResTimer", 0) == 1 then
+--	spGetTimer = Spring.GetTimerMicros
+--	highres = true
+--end
+--
+--function widget:Update()
+--	local sTimer = spGetTimer()
+--
+--	update()
+--
+--	Spring.Echo('Update time:', Spring.DiffTimers(spGetTimer(), sTimer, nil, highres))
+--end
+--
 function widget:Shutdown()
 	WG['smartselect'] = nil
 
