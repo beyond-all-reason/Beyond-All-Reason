@@ -159,6 +159,18 @@ local function ReloadMusicPlaylists()
 	if #bossFightTracks == 0 then
 		bossFightTracks = warhighTracks
 	end
+
+	if #loadingTracks == 0 then
+		loadingTracks = warhighTracks
+	end
+
+	if #gameoverTracks == 0 then
+		gameoverTracks = peaceTracks
+	end
+
+	if #menuTracks == 0 then
+		menuTracks = peaceTracks
+	end
 	----------------------------------SHUFFLE--------------------------------------
 
 	local function shuffleMusic(playlist)
