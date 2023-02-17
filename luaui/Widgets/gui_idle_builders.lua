@@ -31,9 +31,7 @@ local spec = Spring.GetSpectatingState()
 
 local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, TexturedRectRound, UiElement, UiButton, UiUnit
 
-local spGetGroupList = Spring.GetGroupList
-local spGetGroupUnitsCounts = Spring.GetGroupUnitsCounts
-local spGetGroupUnitsCount = Spring.GetGroupUnitsCount
+
 local spGetMouseState = Spring.GetMouseState
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetFullBuildQueue = Spring.GetFullBuildQueue
@@ -67,6 +65,8 @@ local selectedUnits = Spring.GetSelectedUnits() or {}
 local selectionHasChanged = true
 local selectedGroups = {}
 local unitgroupsActive = false
+local buildmenuShowingPosY = 0
+local buildmenuAlwaysShow = false
 
 local groupButtons = {}
 local existingGroups = {}
@@ -185,6 +185,13 @@ function widget:ViewResize()
 	else
 		posY = 0
 		posX = omPosX + omWidth + (widgetSpaceMargin/vsx)
+	end
+
+	if buildmenuBottomPosition and not buildmenuAlwaysShow then
+		buildmenuShowingPosY = posY
+		if (not selectedUnits[1] or not WG['buildmenu'].getIsShowing()) then
+			posY = 0
+		end
 	end
 
 	checkUnitGroupsPos()
@@ -483,6 +490,29 @@ function widget:Update(dt)
 	doUpdate = false
 	sec = sec + dt
 	sec2 = sec2 + dt
+
+	if WG['unitgroups'] then
+		local px, py, sx, sy = WG['unitgroups'].getPosition()
+		local oldPosX, oldPosY = posX, posY
+		posY = py / vsy
+		if posY ~= oldPosY then
+			doUpdate = true
+		end
+	else
+		if buildmenuBottomPosition and not buildmenuAlwaysShow and WG['buildmenu'] and WG['info'] then
+			if (not selectedUnits[1] or not WG['buildmenu'].getIsShowing()) and (posX > 0 or not WG['info'].getIsShowing()) then
+				if posY ~= 0 then
+					posY = 0
+					doUpdate = true
+				end
+			else
+				if posY ~= buildmenuShowingPosY then
+					posY = buildmenuShowingPosY
+					doUpdate = true
+				end
+			end
+		end
+	end
 
 	local x, y, b, b2, b3 = spGetMouseState()
 	if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then

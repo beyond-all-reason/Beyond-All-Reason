@@ -175,6 +175,7 @@ local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 local selectedBuilder, selectedFactory, selectedFactoryUID
 
 local facingMap = {south=0, east=1, north=2, west=3}
+local buildmenuShows = false
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -1026,6 +1027,9 @@ function widget:Initialize()
 		return posY, posY2
 	end
 	WG['buildmenu'].reloadBindings = reloadBindings
+	WG['buildmenu'].getIsShowing = function()
+		return buildmenuShows
+	end
 end
 
 -- update queue number
@@ -1127,6 +1131,12 @@ function widget:Update(dt)
 		activeCmd = select(4, Spring.GetActiveCommand())
 
 		if activeCmd ~= prevActiveCmd then doUpdate = true end
+	end
+
+	if not (preGamestartPlayer or selectedBuilder or selectedFactory or alwaysShow) then
+		buildmenuShows = false
+	else
+		buildmenuShows = true
 	end
 end
 

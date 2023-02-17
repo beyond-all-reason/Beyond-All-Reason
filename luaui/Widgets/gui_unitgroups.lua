@@ -62,6 +62,8 @@ local selectedGroups = {}
 local groupButtons = {}
 
 local font, font2, chobbyInterface, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
+local buildmenuAlwaysShow, ordermenuAlwaysShow = false, false
+local buildmenuShowingPosY = 0
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
@@ -81,11 +83,13 @@ function widget:ViewResize()
 
 	if WG['buildmenu'] then
 		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
+		buildmenuAlwaysShow = WG['buildmenu'].getAlwaysShow()
 	end
 
 	local omPosX, omPosY, omWidth, omHeight = 0, 0, 0, 0
 	if WG['ordermenu'] then
 		omPosX, omPosY, omWidth, omHeight = WG['ordermenu'].getPosition()
+		ordermenuAlwaysShow = WG['ordermenu'].getAlwaysShow()
 	end
 	ordermenuPosY = omPosY
 
@@ -99,6 +103,13 @@ function widget:ViewResize()
 	else
 		posY = 0
 		posX = omPosX + omWidth + (widgetSpaceMargin/vsx)
+	end
+
+	if buildmenuBottomPosition and not buildmenuAlwaysShow then
+		buildmenuShowingPosY = posY
+		if (not selectedUnits[1] or not WG['buildmenu'].getIsShowing()) then
+			posY = 0
+		end
 	end
 
 	iconMargin = floor((backgroundPadding * 0.5) + 0.5)
@@ -119,7 +130,7 @@ function widget:Initialize()
 	widget:PlayerChanged()
 	WG['unitgroups'] = {}
 	WG['unitgroups'].getPosition = function()
-		return posX, posY, backgroundRect and backgroundRect[3] or posX, backgroundRect and backgroundRect[4] or posY + usedHeight
+		return posX, backgroundRect and backgroundRect[2] or posY, backgroundRect and backgroundRect[3] or posX, backgroundRect and backgroundRect[4] or posY + usedHeight
 	end
 end
 
@@ -409,6 +420,7 @@ function widget:DrawScreen()
 	if chobbyInterface then
 		return
 	end
+
 	if (not spec or showWhenSpec) and dlist then
 		gl.CallList(dlist)
 	end
@@ -428,6 +440,20 @@ function widget:Update(dt)
 	local doUpdate = false
 	sec = sec + dt
 	sec2 = sec2 + dt
+
+	if buildmenuBottomPosition and not buildmenuAlwaysShow and WG['buildmenu'] and WG['info'] then
+		if (not selectedUnits[1] or not WG['buildmenu'].getIsShowing()) and (posX > 0 or not WG['info'].getIsShowing()) then
+			if posY ~= 0 then
+				posY = 0
+				doUpdate = true
+			end
+		else
+			if posY ~= buildmenuShowingPosY then
+				posY = buildmenuShowingPosY
+				doUpdate = true
+			end
+		end
+	end
 
 	local x, y, b, b2, b3 = spGetMouseState()
 	if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then

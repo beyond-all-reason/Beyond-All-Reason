@@ -63,6 +63,7 @@ local cachedUnitIcons
 local math_isInRect = math.isInRect
 
 local facingMap = {south=0, east=1, north=2, west=3}
+local buildmenuShows = false
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -648,6 +649,12 @@ function widget:Update(dt)
 		if Spring.IsGodModeEnabled() then
 			disableInput = false
 		end
+	end
+
+	if not preGamestartPlayer and selectedBuilderCount == 0 and not alwaysShow then
+		buildmenuShows = false
+	else
+		buildmenuShows = true
 	end
 end
 
@@ -1813,6 +1820,9 @@ function widget:Initialize()
 	end
 	WG['buildmenu'].reloadBindings = function()
 		bindBuildUnits(self)
+	end
+	WG['buildmenu'].getIsShowing = function()
+		return buildmenuShows
 	end
 end
 

@@ -42,6 +42,7 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local backgroundRect = { 0, 0, 0, 0 }
 local currentTooltip = ''
 local lastUpdateClock = 0
+local infoShows = false
 
 local tooltipTitleColor = '\255\205\255\205'
 local tooltipTextColor = '\255\255\255\255'
@@ -447,6 +448,9 @@ function widget:Initialize()
 	WG['info'].getPosition = function()
 		return width, height
 	end
+	WG['info'].getIsShowing = function()
+		return infoShows
+	end
 	if WG['buildmenu'] then
 		if WG['buildmenu'].getGroups then
 			groups, unitGroup = WG['buildmenu'].getGroups()
@@ -511,6 +515,7 @@ local sec2 = 0
 local sec = 0
 local lastCameraPanMode = false
 function widget:Update(dt)
+	infoShows = false
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
 	if lastCameraPanMode ~= cameraPanMode then
 		lastCameraPanMode = cameraPanMode
@@ -524,6 +529,9 @@ function widget:Update(dt)
 			end
 		end
 		return
+	end
+	if dlistGuishader then
+		infoShows = true
 	end
 
 	sec2 = sec2 + dt
