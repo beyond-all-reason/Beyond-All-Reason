@@ -1495,23 +1495,24 @@ function widgetHandler:WidgetAt(x, y)
 end
 
 function widgetHandler:MousePress(x, y, button)
-	local mo = self.mouseOwner
-	if mo then
-		mo:MousePress(x, y, button)
-		return true  --  already have an active press
-	end
-	for _, w in ipairs(self.MousePressList) do
-		if w:MousePress(x, y, button) then
-			if not mo then
+	if self.mouseOwner then
+		self.mouseOwner:MousePress(x, y, button)
+	else
+		for _, w in ipairs(self.MousePressList) do
+			if w:MousePress(x, y, button) then
 				self.mouseOwner = w
+				break
 			end
-			return true
 		end
 	end
+
+	local hasMouseOwner = self.mouseOwner ~= nil
+
 	if widgetHandler.WG.SmartSelect_MousePress2 then
-		widgetHandler.WG.SmartSelect_MousePress2(x, y, button)
+		widgetHandler.WG.SmartSelect_MousePress2(x, y, button, hasMouseOwner)
 	end
-	return false
+
+	return hasMouseOwner
 end
 
 function widgetHandler:MouseMove(x, y, dx, dy, button)
@@ -1523,7 +1524,7 @@ end
 
 function widgetHandler:MouseRelease(x, y, button)
 	local mo = self.mouseOwner
-	local mx, my, lmb, mmb, rmb = Spring.GetMouseState()
+	local _, _, lmb, mmb, rmb = Spring.GetMouseState()
 	if not (lmb or mmb or rmb) then
 		self.mouseOwner = nil
 	end
