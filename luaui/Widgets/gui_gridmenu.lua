@@ -2239,8 +2239,9 @@ function widget:MousePress(x, y, button)
 				local buildFacing = Spring.GetBuildFacing()
 				local buildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
 				local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
+				local _, _, meta, shift = Spring.GetModKeyState()
 
-				if cx ~= -100 then
+				if (meta or not shift) and cx ~= -100 then
 					local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, cx, cy, cz)
 
 					if DoBuildingsClash(buildData, { startDefID, cbx, cby, cbz, 1 }) then -- avoid clashing building and commander position
@@ -2249,7 +2250,6 @@ function widget:MousePress(x, y, button)
 				end
 
 				if Spring.TestBuildOrder(selBuildQueueDefID, bx, by, bz, buildFacing) ~= 0 then
-					local _, _, meta, shift = Spring.GetModKeyState()
 					if meta then
 						table.insert(buildQueue, 1, buildData)
 
