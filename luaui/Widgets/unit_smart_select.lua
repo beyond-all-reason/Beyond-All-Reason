@@ -12,6 +12,7 @@ function widget:GetInfo()
 end
 
 local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+local skipSel
 local inSelection = false
 local finishedSelection = false
 local inMiniMapSel = false
@@ -170,17 +171,15 @@ function widget:SelectionChanged(sel)
 	selectedUnits = sel
 end
 
--- We use this mousepress to check for mouse selection above minimap **before**
--- gui_minimap widget. Reason for this is that gui_minimap widget will get
--- mouse ownership before MousePress2 special handling has a chance to operate
-function widget:MousePress(x, y, button)
-	inMiniMapSel = button == 1 and spIsAboveMiniMap(x, y)
-end
-
 -- this widget gets called early due to its layer
 -- this function will get called after all widgets have had their chance with widget:MousePress
-local function mousePress(x, y, button)  --function widget:MousePress(x, y, button)
-	if button ~= 1 then return end
+local function mousePress(x, y, button, hasMouseOwner)  --function widget:MousePress(x, y, button)
+	if hasMouseOwner or button ~= 1 then
+		skipSel = true
+		return
+	end
+
+	skipSel = false
 
 	referenceSelection = selectedUnits
 	referenceSelectionTypes = {}
@@ -190,6 +189,8 @@ local function mousePress(x, y, button)  --function widget:MousePress(x, y, butt
 			referenceSelectionTypes[udid] = 1
 		end
 	end
+
+	inMiniMapSel = spIsAboveMiniMap(x, y)
 end
 
 function widget:PlayerChanged()
@@ -200,12 +201,7 @@ end
 function widget:Update()
 	WG['smartselect'].updateSelection = true
 
-	if spGetActiveCommand() ~= 0 then
-		return
-	end
-
-	-- if minimap left click to move is set and were over minimap, we dont select
-	if inMiniMapSel and WG['minimap'] and WG['minimap'].getLeftClickMove and WG['minimap'].getLeftClickMove() then
+	if skipSel or spGetActiveCommand() ~= 0 then
 		return
 	end
 
