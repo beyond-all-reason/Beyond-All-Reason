@@ -1,5 +1,5 @@
 return {
-	armnanot2 = {
+	armnanotct2 = {
 		acceleration = 0,
 		brakerate = 4.5,
 		buildcostenergy = 12800,

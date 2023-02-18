@@ -398,15 +398,15 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "armsptkt4"
 			uDef.buildoptions[numBuildoptions+3] = "armpwt4"
 			uDef.buildoptions[numBuildoptions+4] = "armvadert4"
-			uDef.buildoptions[numBuildoptions+5] = "armlunchbox"
-			uDef.buildoptions[numBuildoptions+6] = "armmeatball"
-			uDef.buildoptions[numBuildoptions+7] = "armassimilator"
+			-- uDef.buildoptions[numBuildoptions+5] = "armlunchbox"
+			-- uDef.buildoptions[numBuildoptions+6] = "armmeatball"
+			-- uDef.buildoptions[numBuildoptions+7] = "armassimilator"
 		elseif name == "armshltxuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
 			uDef.buildoptions[numBuildoptions+2] = "armpwt4"
 			uDef.buildoptions[numBuildoptions+3] = "armvadert4"
-			uDef.buildoptions[numBuildoptions+4] = "armmeatball"
+			-- uDef.buildoptions[numBuildoptions+4] = "armmeatball"
 		elseif name == "corgant" or name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cordemont4"
@@ -419,19 +419,12 @@ function UnitDef_Post(name, uDef)
 		elseif name == "coravp" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
-		-- elseif name == "corap" then
-		-- 	local numBuildoptions = #uDef.buildoptions
-		-- 	uDef.buildoptions[numBuildoptions+1] = "corassistdrone"
-		-- elseif name == "armap" then
-		-- 	local numBuildoptions = #uDef.buildoptions
-		-- 	uDef.buildoptions[numBuildoptions+1] = "armassistdrone"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
 			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
 			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
 			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
-			uDef.buildoptions[numBuildoptions+5] = "legmg"
 		elseif name == "corca" or name == "corck" or name == "corcv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
@@ -452,6 +445,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+4] = "corscavfort"
 			uDef.buildoptions[numBuildoptions+5] = "armbotrail"
 			uDef.buildoptions[numBuildoptions+6] = "armannit3"
+			uDef.buildoptions[numBuildoptions+7] = "armnanotct2"
 		elseif name == "coraca" or name == "corack" or name == "coracv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corapt3"
@@ -460,6 +454,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
 			uDef.buildoptions[numBuildoptions+5] = "corscavfort"
 			uDef.buildoptions[numBuildoptions+6] = "cordoomt3"
+			uDef.buildoptions[numBuildoptions+7] = "cornanotct2"
 		elseif name == "legaca" or name == "legack" or name == "legacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corapt3"
@@ -468,6 +463,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
 			uDef.buildoptions[numBuildoptions+5] = "corscavfort"
 			uDef.buildoptions[numBuildoptions+6] = "cordoomt3"
+			uDef.buildoptions[numBuildoptions+7] = "cornanotct2"
 		elseif name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armptt2"
