@@ -24,6 +24,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Beherith",
 		"Born2Crawl",
 		"Damgam",
+		"drivver44",
 		"Doo",
 		"FireStorm",
 		"Flaka",
@@ -49,6 +50,7 @@ if gadgetHandler:IsSyncedCode() then
 		"TeeeeVeeeeOn",
 		"tovernaar123",
 		"Vache",
+		"wilkubyk",
 		"Watch The Fort",
 		"Yaribz",
 		"Zecrus",
@@ -122,6 +124,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Requiem_TV",
 		"gamerangela911",
 		"Rikerss",
+		"Willow",
 
 
 		-- AI Names
