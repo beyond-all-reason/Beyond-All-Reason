@@ -19,6 +19,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- Contributors
 		"AF",
 		"AlexS",
+		"AlKo",
 		"AKU",
 		"Beherith",
 		"Born2Crawl",
