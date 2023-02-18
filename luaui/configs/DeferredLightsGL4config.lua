@@ -1187,7 +1187,7 @@ local unitDefLights = {
 							lifetime = 0, sustain = 0, animtype = 0 },
 		},
 	},
-	[UnitDefNames['armnanot2'].id] = {
+	[UnitDefNames['armnanotct2'].id] = {
 		nanolight = {
 			lightType = 'point',
 			pieceName = 'emitnano1',
@@ -1198,7 +1198,7 @@ local unitDefLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	[UnitDefNames['cornanot2'].id] = {
+	[UnitDefNames['cornanotct2'].id] = {
 		nanolight = {
 			lightType = 'point',
 			pieceName = 'emitnano',
