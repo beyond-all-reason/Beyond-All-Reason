@@ -1,10 +1,11 @@
 return {
 	corscavdrag = {
 		acceleration = 0,
+		autoheal = 4,
 		blocking = true,
 		brakerate = 0,
-		buildcostenergy = 160,
-		buildcostmetal = 11,
+		buildcostenergy = 0,
+		buildcostmetal = 8,
 		buildpic = "scavengers/CORSCAVDRAG.DDS",
 		buildtime = 255,
 		canattack = false,

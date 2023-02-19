@@ -1,11 +1,12 @@
 return {
 	corscavfort = {
 		acceleration = 0,
+		autoheal = 12,
 		blocking = true,
 		brakerate = 0,
 		buildangle = 0,
-		buildcostenergy = 1050,
-		buildcostmetal = 39,
+		buildcostenergy = 500,
+		buildcostmetal = 40,
 		buildpic = "scavengers/SCAVFORT.DDS",
 		buildtime = 1065,
 		canattack = false,
