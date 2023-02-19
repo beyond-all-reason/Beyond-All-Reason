@@ -251,6 +251,9 @@ local function ProcessAwards(awards)
 
 	-- don't show graph
 	Spring.SendCommands('endgraph 0')
+
+	-- somehow proportions and placement could be changed/corrupted, so better reinitiate to be safe!
+	widget:ViewResize(Spring.GetViewGeometry())
 end
 
 function widget:MousePress(x, y, button)
