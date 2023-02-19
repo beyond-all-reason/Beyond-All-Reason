@@ -391,7 +391,7 @@ end
 
 local function processTrackname(trackname)
 	trackname = string.gsub(trackname, ".ogg", "")
-	trackname = trackname:match("[^(/|\\)]*$")
+	trackname = trackname:match("[^/|\\]*$")
 	return capitalize(trackname)
 end
 
@@ -482,7 +482,7 @@ local function createList()
 		glTexture(false)
 
 		font:Begin()
-		font:Print('\255\235\235\235'..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+		font:Print("\255\235\235\235"..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
 		font:End()
 	end)
 	drawlist[4] = glCreateList( function()
