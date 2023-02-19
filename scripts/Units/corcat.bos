@@ -9,7 +9,7 @@ piece  torso, pelvis, rleg, rfoot, lleg, lfoot, head, lthigh,
 
 //MAKE SURE FIRE POINTS REMAIN CONSECUTIVE!
 
-static-var  bMoving, bAiming, isReady, gun_1, gun_1_side;
+static-var  bMoving, bAiming, isReady, gun_1;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -685,8 +685,7 @@ Create()
 	bMoving = FALSE;
 	bAiming = FALSE;
 	isReady = 1;
-	gun_1 = 1;
-	gun_1_side = 0;
+	gun_1 = 0;
 	animSpeed = 4;
 	turn lexhaust1 to z-axis <180> now;
 	
@@ -708,58 +707,55 @@ AimFromWeapon1(piecenum)
 }
 
 FireWeapon1() {
-	gun_1 = -1;
-	gun_1_side = 1;
+	gun_1 = 0;
 }
 
-Shot1() {
-	if (gun_1_side)
-	{
-		++gun_1;
-	}
-	gun_1_side = !gun_1_side;
+Shot1(zero) {
+
 	if (gun_1 == 0) emit-sfx UNIT_SFX0 from lexhaust2;
 
 	if (gun_1 == 1)	emit-sfx UNIT_SFX0 from lexhaust1;
 	if (gun_1 == 2) emit-sfx UNIT_SFX0 from rexhaust1;
 
 	if (gun_1 == 3) emit-sfx UNIT_SFX0 from rexhaust2;
+
+	sleep 32;
+	// sleep frame, to update gun flare frame AFTER it fires
+	++gun_1;
+	if (gun_1 == 4) 
+	{
+	gun_1 = 0;
+	}
 	
 }
 
 QueryWeapon1(piecenum) {
-	if (gun_1 >= 0 && gun_1 < 20) {
-		if (gun_1 == 0)
-		{
-			piecenum = lflare2;
-			
-			//emit-sfx UNIT_SFX0 from lexhaust2;
-		} 
-		if (gun_1 == 1)
-		{
-			piecenum = lflare1;
-			
-			//emit-sfx UNIT_SFX0 from lexhaust1;
-		} 
-		if (gun_1 == 2)
-		{
-			piecenum = rflare1;
-			
-			//emit-sfx UNIT_SFX0 from rexhaust1;
-		} 
-		if (gun_1 == 3)
-		{
-			piecenum = rflare2;
-			
-			//emit-sfx UNIT_SFX0 from rexhaust2;
-		}
-		if (gun_1 >= 3) {
-			gun_1=0;
-		}
 
-	} else {
-		piecenum = torso;
+	if (gun_1 == 0)
+	{
+		piecenum = lflare2;
+			
+		//emit-sfx UNIT_SFX0 from lexhaust2;
+	} 
+	if (gun_1 == 1)
+	{
+		piecenum = lflare1;
+			
+		//emit-sfx UNIT_SFX0 from lexhaust1;
+	} 
+	if (gun_1 == 2)
+	{
+		piecenum = rflare1;
+			
+		//emit-sfx UNIT_SFX0 from rexhaust1;
+	} 
+	if (gun_1 == 3)
+	{
+		piecenum = rflare2;
+			
+		//emit-sfx UNIT_SFX0 from rexhaust2;
 	}
+
 }
 
 
