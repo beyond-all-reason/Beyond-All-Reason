@@ -1872,13 +1872,15 @@ end
 function UpdateResources()
     if sliderPosition then
         if energyPlayer ~= nil then
-            if energyPlayer.team == myTeamID then
-                local current, storage = Spring_GetTeamResources(myTeamID, "energy")
-                maxShareAmount = storage - current
-                shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
-                shareAmount = shareAmount - (shareAmount % 1)
-            else
-                maxShareAmount = Spring_GetTeamResources(myTeamID, "energy")
+			if energyPlayer.team == myTeamID then
+				local current, storage = Spring_GetTeamResources(myTeamID, "energy")
+				maxShareAmount = storage - current
+				shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
+				shareAmount = shareAmount - (shareAmount % 1)
+			else
+				maxShareAmount = Spring_GetTeamResources(myTeamID, "energy")
+				local energy, energyStorage = Spring_GetTeamResources(energyPlayer.team, "energy")
+				maxShareAmount = math.min(maxShareAmount, (energyStorage - energy))
                 shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
                 shareAmount = shareAmount - (shareAmount % 1)
             end
@@ -1892,6 +1894,8 @@ function UpdateResources()
                 shareAmount = shareAmount - (shareAmount % 1)
             else
                 maxShareAmount = Spring_GetTeamResources(myTeamID, "metal")
+				local metal, metalStorage = Spring_GetTeamResources(metalPlayer.team, "metal")
+				maxShareAmount = math.min(maxShareAmount, (metalStorage - metal))
                 shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
                 shareAmount = shareAmount - (shareAmount % 1)
             end
