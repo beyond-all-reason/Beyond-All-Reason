@@ -13,70 +13,42 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	local airCategories = {
-		[UnitDefNames.armatlas.id] = "Vtols",
-		[UnitDefNames.armca.id] = "Vtols",
-		[UnitDefNames.armkam.id] = "Vtols",
-		[UnitDefNames.armthund.id] = "Bombers",
-		[UnitDefNames.armaca.id] = "Vtols",
-		[UnitDefNames.armblade.id] = "Vtols",
-		[UnitDefNames.armbrawl.id] = "Vtols",
-		[UnitDefNames.armdfly.id] = "Vtols",
-		[UnitDefNames.armlance.id] = "Bombers",
-		[UnitDefNames.armliche.id] = "Bombers",
-		[UnitDefNames.armpnix.id] = "Bombers",
-		[UnitDefNames.armstil.id] = "Bombers",
-		[UnitDefNames.armcsa.id] = "Vtols",
-		[UnitDefNames.armsaber.id] = "Vtols",
-		[UnitDefNames.armsb.id] = "Bombers",
-		[UnitDefNames.armseap.id] = "Bombers",
-		[UnitDefNames.corbw.id] = "Vtols",
-		[UnitDefNames.corca.id] = "Vtols",
-		[UnitDefNames.corvalk.id] = "Vtols",
-		[UnitDefNames.corshad.id] = "Bombers",
-		[UnitDefNames.coraca.id] = "Vtols",
-		[UnitDefNames.corape.id] = "Vtols",
-		[UnitDefNames.corcrw.id] = "Vtols",
-		[UnitDefNames.corhurc.id] = "Bombers",
-		[UnitDefNames.corseah.id] = "Vtols",
-		[UnitDefNames.cortitan.id] = "Bombers",
-		[UnitDefNames.corcsa.id] = "Vtols",
-		[UnitDefNames.corcut.id] = "Vtols",
-		[UnitDefNames.corsb.id] = "Bombers",
-		[UnitDefNames.corseap.id] = "Bombers",
-		[UnitDefNames.armfig.id] = "Fighters",
-		[UnitDefNames.armhawk.id] = "Fighters",
-		[UnitDefNames.armsfig.id] = "Fighters",
-		[UnitDefNames.corveng.id] = "Fighters",
-		[UnitDefNames.corvamp.id] = "Fighters",
-		[UnitDefNames.corsfig.id] = "Fighters",
-		[UnitDefNames.armpeep.id] = "Scouts",
-		[UnitDefNames.armawac.id] = "Scouts",
-		[UnitDefNames.armsehak.id] = "Scouts",
-		[UnitDefNames.corfink.id] = "Scouts",
-		[UnitDefNames.corawac.id] = "Scouts",
-		[UnitDefNames.corhunt.id] = "Scouts",
-	}
-	for udid, ud in pairs(UnitDefs) do
-		for unitname, category in pairs(airCategories) do
-			if string.find(ud.name, unitname) then
-				airCategories[udid] = category
-			end
-		end
-	end
-
+	local airCategories = {}
 	local hasPriorityAir = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		if unitDef.customParams.prioritytarget and unitDef.customParams.prioritytarget == "air" then
-			hasPriorityAir[unitDefID] = true
+		local weapons = unitDef.weapons
+		if unitDef.isAirUnit then
+			airCategories[unitDefID] = "Scouts"
+			if unitDef.isTransport then
+				airCategories[unitDefID] = "Vtols"
+			elseif unitDef.isBuilder then
+				airCategories[unitDefID] = "Vtols"
+			end
+			for i = 1, #weapons do
+				local weaponDef = WeaponDefs[weapons[i].weaponDef]
+				if weaponDef.type == 'AircraftBomb' then
+					airCategories[unitDefID] = "Bombers"
+				elseif weapons[i].onlyTargets.vtol then
+					airCategories[unitDefID] = "Fighters"
+				else
+					airCategories[unitDefID] = "Vtols"
+				end
+			end
 		end
 
-		-- do Script.SetWatchWeapon so AllowWeaponTarget gets called
-		for wid, weapon in ipairs(unitDef.weapons) do
-			if weapon.onlyTargets then
-				for category, _ in pairs(weapon.onlyTargets) do
-					if category == 'vtol' then
-						Script.SetWatchWeapon(weapon.weaponDef, true) -- watch weapon so AllowWeaponTarget works
+		for i = 1, #weapons do
+			local weaponDef = WeaponDefs[weapons[i].weaponDef]
+			if weapons[i].onlyTargets.vtol then
+				hasPriorityAir[unitDefID] = true
+
+				-- do Script.SetWatchWeapon so AllowWeaponTarget gets called
+				for wid, weapon in ipairs(unitDef.weapons) do
+					if weapon.onlyTargets then
+						for category, _ in pairs(weapon.onlyTargets) do
+							if category == 'vtol' then
+								Script.SetWatchWeapon(weapon.weaponDef, true) -- watch weapon so AllowWeaponTarget works
+							end
+						end
 					end
 				end
 			end

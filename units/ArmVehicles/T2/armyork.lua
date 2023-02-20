@@ -42,7 +42,6 @@ return {
 			unitgroup = 'aa',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			prioritytarget = "air",
 			subfolder = "armvehicles/t2",
 			techlevel = 2,
 		},

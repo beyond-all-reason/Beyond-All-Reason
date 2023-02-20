@@ -45,7 +45,6 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.1,
-			prioritytarget = "air",
 			subfolder = "armships",
 			techlevel = 2,
 		},

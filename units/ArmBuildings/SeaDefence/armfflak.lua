@@ -33,7 +33,6 @@ return {
 			unitgroup = 'aa',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			prioritytarget = "air",
 			removewait = true,
 			subfolder = "armbuildings/seadefence",
 			techlevel = 2,
