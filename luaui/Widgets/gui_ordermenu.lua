@@ -97,7 +97,6 @@ local hiddenCommands = {
 	[CMD.TIMEWAIT] = true,
 	[39812] = true, -- raw move
 	[34922] = true, -- set unit target
-	[34567] = true, -- setpriority
 }
 
 local hiddenCommandTypes = {
