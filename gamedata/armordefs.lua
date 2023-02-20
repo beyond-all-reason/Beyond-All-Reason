@@ -150,6 +150,7 @@ local armorDefs = {
 		"corfhlt",
 		"corfhp",
 		"corfmkr",
+		"corforge",
 		--"corfort",
 		"corfrt",
 		"corgator",
