@@ -1686,8 +1686,14 @@ function widget:DrawScreen()
     if Spring_IsGUIHidden() then
         return
     end
-
-    local mouseX, mouseY, mouseButtonL = Spring_GetMouseState()
+    local mouseX, mouseY, mouseButtonL, mmb, rmb, mouseOffScreen, cameraPanMode = Spring.GetMouseState()
+    --if cameraPanMode then
+    --    if BackgroundGuishader then
+    --        WG['guishader'].RemoveDlist('advplayerlist')
+    --        BackgroundGuishader = gl_DeleteList(BackgroundGuishader)
+    --    end
+    --    return
+    --end
 
     -- update lists frequently if there is mouse interaction
     --local NeedUpdate = false
@@ -1854,6 +1860,7 @@ function CreateBackground()
     end
 
     if WG['guishader'] then
+        BackgroundGuishader = gl_DeleteList(BackgroundGuishader)
         BackgroundGuishader = gl_CreateList(function()
             RectRound(absLeft, absBottom, absRight, absTop, elementCorner, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
         end)
