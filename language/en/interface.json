@@ -1071,6 +1071,8 @@
 				"minimap": "Minimap",
 				"minimap_enlarged": "enlarged",
 				"minimap_enlarged_descr": "Relocates the order-menu to make room for the minimap",
+				"minimapminimized": "minimized",
+				"minimapminimized_descr": "remove the minimap",
 				"minimap_maxheight": "height",
 				"minimap_maxheight_descr": "Allocate a max height for the minimap (remember: width is limited as well)",
 				"minimapiconsize": "icon scale",

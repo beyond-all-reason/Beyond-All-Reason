@@ -44,7 +44,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		for i = 1, #weapons do
-			local weaponDef = WeaponDefs[weapons[i].weaponDef]
 			if weapons[i].onlyTargets.vtol then
 				hasPriorityAir[unitDefID] = true
 
