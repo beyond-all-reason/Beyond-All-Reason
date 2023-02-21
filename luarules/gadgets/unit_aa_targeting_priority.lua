@@ -33,7 +33,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			for i = 1, #weapons do
 				local weaponDef = WeaponDefs[weapons[i].weaponDef]
-				if weaponDef.type == 'AircraftBomb' then
+				if weaponDef.type == 'AircraftBomb' or weaponDef.type == 'TorpedoLauncher' or string.find(weaponDef.name, 'arm_pidr') then
 					airCategories[unitDefID] = "Bombers"
 				elseif weapons[i].onlyTargets.vtol then
 					airCategories[unitDefID] = "Fighters"
@@ -58,13 +58,6 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
-		end
-	end
-
-	function gadget:Initialize()
-		for _, unitID in ipairs(Spring.GetAllUnits()) do
-			local unitDefID = Spring.GetUnitDefID(unitID)
-			gadget:UnitCreated(unitID, unitDefID)
 		end
 	end
 
