@@ -104,45 +104,46 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 	thisAward = gl.CreateList(function()
 		font:Begin()
 		--names
-		if award ~= 2 then
-			--if its a normal award or a cow award
+		if award ~= 2 then	-- award
 			gl.Color(1, 1, 1, 1)
 			local pic = ':l:LuaRules/Images/' .. pic .. '.png'
 			gl.Texture(pic)
 			gl.TexRect(widgetX + math.floor(12*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(70*widgetScale), widgetX + math.floor(108*widgetScale), widgetY + widgetHeightScaled - offset + math.floor(25*widgetScale))
 
-			font:Print(colourNames(winnerTeamID) .. winnerName, widgetX + math.floor(120*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(10*widgetScale), 18*widgetScale, "o")
-			font:Print(noteColour .. note, widgetX + math.floor(120*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(50*widgetScale), 15*widgetScale, "o")
-		else
-			--if the cow is not awarded, we replace it with minor awards (just text)
+			font2:Begin()
+			font2:Print(colourNames(winnerTeamID) .. winnerName, widgetX + math.floor(120*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(15*widgetScale), 25*widgetScale, "o")
+			font2:End()
+
+			font:Print(noteColour .. note, widgetX + math.floor(130*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(40*widgetScale), 15*widgetScale, "o")
+		else	-- others
 			local heightoffset = 0
 			if winnerTeamID >= 0 then
 				font:Print(Spring.I18N('ui.awards.resourcesProduced', { playerColor = colourNames(winnerTeamID), player = winnerName, textColor = white, score = math.floor(winnerScore) }), widgetX + math.floor(70*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
-				heightoffset = heightoffset + (17 * widgetScale)
+				heightoffset = heightoffset + (20 * widgetScale)
 			end
 			if secondTeamID >= 0 then
 				font:Print(Spring.I18N('ui.awards.damageTaken', { playerColor = colourNames(secondTeamID), player = secondName, textColor = white, score = math.floor(secondScore) }), widgetX + math.floor(70*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
-				heightoffset = heightoffset + (17 * widgetScale)
+				heightoffset = heightoffset + (20 * widgetScale)
 			end
 			if thirdTeamID >= 0 then
 				font:Print(Spring.I18N('ui.awards.sleptLongest', { playerColor = colourNames(thirdTeamID), player = thirdName, textColor = white, score = math.floor(thirdScore / 60) }), widgetX + math.floor(70*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
 			end
 		end
 
-		--scores
+		-- scores
 		if award == 0 then
-			--normal awards
+			-- normal awards
 			if winnerTeamID >= 0 then
 				if pic == 'comwreath' then
 					winnerScore = round(winnerScore, 2)
 				else
 					winnerScore = math.floor(winnerScore)
 				end
-				font:Print(colourNames(winnerTeamID) .. winnerScore, widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - 5, 14*widgetScale, "o")
+				font:Print(colourNames(winnerTeamID) .. winnerScore, widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(5*widgetScale), 14*widgetScale, "o")
 			else
 				font:Print('-', widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(5*widgetScale), 17*widgetScale, "o")
 			end
-			font:Print(Spring.I18N('ui.awards.runnersUp'), widgetX + math.floor(500*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(5*widgetScale), 14*widgetScale, "o")
+			font:Print("\255\120\120\120"..Spring.I18N('ui.awards.runnersUp'), widgetX + math.floor(512*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(5*widgetScale), 14*widgetScale, "o")
 
 			if secondScore > 0 then
 				if pic == 'comwreath' then
@@ -150,8 +151,10 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 				else
 					secondScore = math.floor(secondScore)
 				end
-				font:Print(colourNames(secondTeamID) .. secondName, widgetX + math.floor(520*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(25*widgetScale), 14*widgetScale, "o")
-				font:Print(colourNames(secondTeamID) .. secondScore, widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(25*widgetScale), 14*widgetScale, "o")
+				font2:Begin()
+				font2:Print(colourNames(secondTeamID) .. secondName, widgetX + math.floor(520*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(27*widgetScale), 16*widgetScale, "o")
+				font2:End()
+				font:Print(colourNames(secondTeamID) .. secondScore, widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(27*widgetScale), 14*widgetScale, "o")
 			end
 
 			if thirdScore > 0 then
@@ -160,8 +163,10 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 				else
 					thirdScore = math.floor(thirdScore)
 				end
-				font:Print(colourNames(thirdTeamID) .. thirdName, widgetX + math.floor(520*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(45*widgetScale), 14*widgetScale, "o")
-				font:Print(colourNames(thirdTeamID) .. thirdScore, widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(45*widgetScale), 14*widgetScale, "o")
+				font2:Begin()
+				font2:Print(colourNames(thirdTeamID) .. thirdName, widgetX + math.floor(520*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(49*widgetScale), 16*widgetScale, "o")
+				font2:End()
+				font:Print(colourNames(thirdTeamID) .. thirdScore, widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(49*widgetScale), 14*widgetScale, "o")
 			end
 		end
 		font:End()
@@ -237,20 +242,32 @@ local function ProcessAwards(awards)
 		addY = 100
 		height = height + addY
 	end
+	if cowAwardWinner ~= -1 then
+		addY = 100
+		height = height + addY
+	end
 
 	widget:ViewResize(Spring.GetViewGeometry())
 
-	FirstAward = createAward('fuscup', 0, Spring.I18N('ui.awards.resourcesDestroyed'), white, awards.ecoKill, 120)
-	SecondAward = createAward('bullcup', 0, Spring.I18N('ui.awards.enemiesDestroyed'), white, awards.fightKill, 220)
-	ThirdAward = createAward('comwreath', 0, Spring.I18N('ui.awards.resourcesEfficiency'), white, awards.efficiency, 320)
-	if cowAwardWinner ~= -1 then
-		CowAward = createAward('cow', 1, Spring.I18N('ui.awards.didEverything'), white, awards.goldenCow, 420 + addY)
-	else
-		OtherAwards = createAward('', 2, '', white, compoundAwards, 420 + addY)
-	end
+	local offsetAdd = 100
+	local offset = 120
+	FirstAward = createAward('fuscup', 0, Spring.I18N('ui.awards.resourcesDestroyed'), white, awards.ecoKill, offset)
+	offset = offset + offsetAdd
+	SecondAward = createAward('bullcup', 0, Spring.I18N('ui.awards.enemiesDestroyed'), white, awards.fightKill, offset)
+	offset = offset + offsetAdd
+	ThirdAward = createAward('comwreath', 0, Spring.I18N('ui.awards.resourcesEfficiency'), white, awards.efficiency, offset)
+	offset = offset + offsetAdd
+
 	if traitorWinner.score > threshold then
-		FourthAward = createAward('traitor', 0, Spring.I18N('ui.awards.traitor'), white, awards.traitor, 420)
+		FourthAward = createAward('traitor', 0, Spring.I18N('ui.awards.traitor'), white, awards.traitor, offset)
+		offset = offset + offsetAdd
 	end
+	if cowAwardWinner ~= -1 then
+		CowAward = createAward('cow', 1, Spring.I18N('ui.awards.didEverything'), white, awards.goldenCow, offset)
+		offset = offset + offsetAdd
+	end
+	OtherAwards = createAward('', 2, '', white, compoundAwards, offset)
+
 	drawAwards = true
 
 	-- don't show graph
@@ -321,7 +338,8 @@ function widget:DrawScreen()
 	end
 	if CowAward then
 		glCallList(CowAward)
-	elseif OtherAwards then
+	end
+	if OtherAwards then
 		glCallList(OtherAwards)
 	end
 	if FourthAward then
