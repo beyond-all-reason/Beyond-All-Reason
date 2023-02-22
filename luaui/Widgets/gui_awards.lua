@@ -20,7 +20,7 @@ local drawAwards = false
 local centerX, centerY -- coords for center of screen
 local widgetX, widgetY -- coords for top left hand corner of box
 local width = 880
-local height = 550
+local height = 520
 local widgetWidthScaled = math.floor(width * widgetScale)
 local widgetHeightScaled = math.floor(height * widgetScale)
 local quitRightX = math.floor(100 * widgetScale)
@@ -88,6 +88,8 @@ local function findPlayerName(teamID)
 end
 
 local function createAward(pic, award, note, noteColour, winnersTable, offset)
+	offset = offset * widgetScale
+
 	local winnerTeamID, secondTeamID, thirdTeamID = winnersTable[1].teamID, winnersTable[2].teamID, winnersTable[3].teamID
 	local winnerScore, secondScore, thirdScore = winnersTable[1].score, winnersTable[2].score, winnersTable[3].score
 	local winnerName, secondName, thirdName
@@ -201,7 +203,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	font2 = WG['fonts'].getFont(fontfile2)
 	titleFont = WG['fonts'].getFont(fontfile2, 4, 0.2, 1)
 
-	--fix geometry
+	-- fix geometry
 	widgetScale = (0.75 + (viewScreenX * viewScreenY / 7500000))
 	widgetWidthScaled = math.floor(width * widgetScale)
 	widgetHeightScaled = math.floor(height * widgetScale)
@@ -233,27 +235,26 @@ local function ProcessAwards(awards)
 	local addY = 0
 	if traitorWinner.score > threshold then
 		addY = 100
-		widgetHeightScaled = 600
+		height = height + addY
 	end
 
-	FirstAward = createAward('fuscup', 0, Spring.I18N('ui.awards.resourcesDestroyed'), white, awards.ecoKill, 100)
-	SecondAward = createAward('bullcup', 0, Spring.I18N('ui.awards.enemiesDestroyed'), white, awards.fightKill, 200)
-	ThirdAward = createAward('comwreath', 0, Spring.I18N('ui.awards.resourcesEfficiency'), white, awards.efficiency, 300)
+	widget:ViewResize(Spring.GetViewGeometry())
+
+	FirstAward = createAward('fuscup', 0, Spring.I18N('ui.awards.resourcesDestroyed'), white, awards.ecoKill, 120)
+	SecondAward = createAward('bullcup', 0, Spring.I18N('ui.awards.enemiesDestroyed'), white, awards.fightKill, 220)
+	ThirdAward = createAward('comwreath', 0, Spring.I18N('ui.awards.resourcesEfficiency'), white, awards.efficiency, 320)
 	if cowAwardWinner ~= -1 then
-		CowAward = createAward('cow', 1, Spring.I18N('ui.awards.didEverything'), white, awards.goldenCow, 400 + addY)
+		CowAward = createAward('cow', 1, Spring.I18N('ui.awards.didEverything'), white, awards.goldenCow, 420 + addY)
 	else
-		OtherAwards = createAward('', 2, '', white, compoundAwards, 400 + addY)
+		OtherAwards = createAward('', 2, '', white, compoundAwards, 420 + addY)
 	end
 	if traitorWinner.score > threshold then
-		FourthAward = createAward('traitor', 0, Spring.I18N('ui.awards.traitor'), white, awards.traitor, 400)
+		FourthAward = createAward('traitor', 0, Spring.I18N('ui.awards.traitor'), white, awards.traitor, 420)
 	end
 	drawAwards = true
 
 	-- don't show graph
 	Spring.SendCommands('endgraph 0')
-
-	-- somehow proportions and placement could be changed/corrupted, so better reinitiate to be safe!
-	widget:ViewResize(Spring.GetViewGeometry())
 end
 
 function widget:MousePress(x, y, button)
