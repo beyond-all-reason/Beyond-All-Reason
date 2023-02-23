@@ -966,13 +966,12 @@ local function drawUnitInfo()
 			end
 			if name then
 				local fontSizeOwner = fontSize * 0.87
-				--local r, g, b
-				--if anonymousMode then
-				--	r, g, b = {1,0,0}
-				--else
-				--	r, g, b = Spring.GetTeamColor(myTeamID)
-				--end
-				font2:Print(ColourString(Spring.GetModOptions().teamcolors_anonymous_mode and 1,0,0 or Spring.GetTeamColor(myTeamID))..name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
+				if Spring.GetModOptions().teamcolors_anonymous_mode then
+					name = ColourString(1,0,0) .. name
+				else
+					name = ColourString(Spring.GetTeamColor(myTeamID)) .. name
+				end
+				font2:Print(name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
 			end
 		end
 	else
