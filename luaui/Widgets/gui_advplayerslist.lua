@@ -154,6 +154,9 @@ local originalColourNames = {} -- loaded in SetOriginalColourNames, format is or
 
 local apiAbsPosition = { 0, 0, 0, 0, 1, 1, false }
 
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = {1,0,0}
+
 --------------------------------------------------------------------------------
 -- Colors
 --------------------------------------------------------------------------------
@@ -1249,6 +1252,9 @@ function CreatePlayer(playerID)
     local tname, _, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank = Spring_GetPlayerInfo(playerID, false)
     local _, _, _, _, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(tteam, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(tteam)
+	if not mySpecStatus and anonymousMode and playerID ~= myPlayerID then
+		tred, tgreen, tblue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+	end
 
     --skill
     local tskill
@@ -1326,6 +1332,9 @@ function CreatePlayerFromTeam(teamID)
     -- for when we don't have a human player occupying the slot, also when a player changes team (dies)
     local _, _, isDead, isAI, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(teamID, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(teamID)
+	if not mySpecStatus and anonymousMode and playerID ~= myPlayerID then
+		tred, tgreen, tblue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+	end
     local tname, ttotake, tskill, tai
     local tdead = true
 
@@ -2459,6 +2468,9 @@ end
 
 function colourNames(teamID)
     local nameColourR, nameColourG, nameColourB, nameColourA = Spring_GetTeamColor(teamID)
+	if not mySpecStatus and anonymousMode and playerID ~= myPlayerID then
+		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+	end
     local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
     local G255 = math.floor(nameColourG * 255)
     local B255 = math.floor(nameColourB * 255)
@@ -2539,7 +2551,11 @@ function DrawName(name, team, posY, dark, playerID)
 
     font2:Begin()
     if dark then
-        font2:SetTextColor(Spring_GetTeamColor(team))
+		if not mySpecStatus and anonymousMode and playerID ~= myPlayerID then
+			font2:SetTextColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3], 1)
+		else
+			font2:SetTextColor(Spring_GetTeamColor(team))
+		end
         font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.8, 0.75 * widgetScale))
         font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o")
     else
@@ -2547,7 +2563,11 @@ function DrawName(name, team, posY, dark, playerID)
         font2:SetOutlineColor(0, 0, 0, 0.4)
         font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, 14, "n") -- draws name
         font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, 14, "n") -- draws name
-        font2:SetTextColor(Spring_GetTeamColor(team))
+		if not mySpecStatus and anonymousMode and playerID ~= myPlayerID then
+			font2:SetTextColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3], 1)
+		else
+			font2:SetTextColor(Spring_GetTeamColor(team))
+		end
         font2:SetOutlineColor(0, 0, 0, 1)
         font2:Print( nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
     end
@@ -3449,7 +3469,11 @@ function CheckPlayersChange()
                     player[player[i].team + 64] = CreatePlayerFromTeam(player[i].team)
                 end
                 player[i].team = teamID
-                player[i].red, player[i].green, player[i].blue = Spring_GetTeamColor(teamID)
+				if not mySpecStatus and anonymousMode and playerID ~= myPlayerID then
+					player[i].red, player[i].green, player[i].blue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+				else
+					player[i].red, player[i].green, player[i].blue = Spring_GetTeamColor(teamID)
+				end
                 player[i].dark = GetDark(player[i].red, player[i].green, player[i].blue)
                 player[i].skill = GetSkill(i)
                 sorting = true

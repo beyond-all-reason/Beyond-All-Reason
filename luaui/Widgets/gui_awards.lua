@@ -237,19 +237,16 @@ local function ProcessAwards(awards)
 	table.insert(compoundAwards, awards.sleep[1])
 
 	-- create awards ui
-	local addY = 0
+	local offsetAdd = 100
 	if traitorWinner.score > threshold then
-		addY = 100
-		height = height + addY
+		height = height + offsetAdd
 	end
 	if cowAwardWinner ~= -1 then
-		addY = 100
-		height = height + addY
+		height = height + offsetAdd
 	end
 
 	widget:ViewResize(Spring.GetViewGeometry())
 
-	local offsetAdd = 100
 	local offset = 120
 	FirstAward = createAward('fuscup', 0, Spring.I18N('ui.awards.resourcesDestroyed'), white, awards.ecoKill, offset)
 	offset = offset + offsetAdd

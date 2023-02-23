@@ -94,6 +94,9 @@ local glTexRect = gl.TexRect
 
 local RectRound, RectRoundProgress, UiElement, UiUnit, elementCorner
 
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = {1,0,0}
+
 -------------------------------------------------------------------------------
 -- SOUNDS
 -------------------------------------------------------------------------------
@@ -860,7 +863,12 @@ function widget:DrawInMiniMap(sx, sy)
 			gl.Scale(1 / msx, -1 / msz, 1)
 		end
 
-		local r, g, b = Spring.GetTeamColor(myTeamID)
+		local r, g, b
+		if anonymousMode then
+			r, g, b = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+		else
+			r, g, b = Spring.GetTeamColor(myTeamID)
+		end
 		local alpha = 0.5 + math.abs((Spring.GetGameSeconds() % 0.25) * 4 - 0.5)
 		local x, _, z = Spring.GetUnitBasePosition(facs[openedMenu + 1].unitID)
 

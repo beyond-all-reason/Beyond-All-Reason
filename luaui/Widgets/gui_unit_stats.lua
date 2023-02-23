@@ -159,6 +159,7 @@ local textBufferCount = 0
 local spec = Spring.GetSpectatingState()
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = {1,0,0}
 
 local showStats = false
 
@@ -196,6 +197,7 @@ local function GetTeamColorCode(teamID)
 	if not teamID then return "\255\255\255\255" end
 
 	local R, G, B = spGetTeamColor(teamID)
+
 	if not R then return "\255\255\255\255" end
 
 	R = floor(R * 255)
