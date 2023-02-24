@@ -1497,7 +1497,7 @@ function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if infoShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		return true
 	end
 end

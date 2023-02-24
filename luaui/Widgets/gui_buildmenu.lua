@@ -1474,7 +1474,7 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if buildmenuShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		if selectedBuilderCount > 0 or (preGamestartPlayer and startDefID) then
 			local paginatorHovered = false
 			if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
