@@ -100,8 +100,11 @@ local numFiles = 0
 local function addDirToAtlas(atlas, path, key, filelist)
 	if filelist == nil then filelist = {} end
 	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
-	local files = VFS.DirList(path)
-	--files = table.sort(files)
+	local files = {}
+	for i, filename in ipairs(VFS.DirList(path)) do 
+		files[i] = string.lower(filename)
+	end
+	table.sort(files)
 	--Spring.Echo("Adding",#files, "images to atlas from", path, key)
 	for i=1, #files do
 		local lowerfile = string.lower(files[i])
@@ -1898,8 +1901,13 @@ end
 
 --[[
 function widget:DrawScreen()
+	gl.Blending(GL.ONE, GL.ZERO) -- the default mode
 	local vsx, vsy = Spring.GetViewGeometry()
-	gl.Texture(0, atlasColorAlpha)
+	if (Spring.GetGameFrame() %60) > 30 then 
+		gl.Texture(0, atlasNormals)
+	else
+		gl.Texture(0, atlasColorAlpha	)
+	end
 	gl.TexRect(2,2,vsx-2,vsy-2,0,0,1,1)
 	gl.Texture(0, false)
 end
