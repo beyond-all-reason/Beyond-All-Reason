@@ -133,12 +133,12 @@ local function makeAtlases()
 		local texelX = 1.0/atlasInfo.xsize -- shrink UV areas for less mip bleed
 		local texelY = 1.0/atlasInfo.ysize -- shrink UV areas for less mip bleed
 		usedpixels = usedpixels + (math.abs(p-q) * atlasInfo.xsize ) * (math.abs(s-t) * atlasInfo.ysize)
-		if autoreload then Spring.Echo(filepath) end
+		if autoupdate then Spring.Echo(filepath) end
 		decalImageCoords[filepath] =  {p+texelX,q-texelX,s+texelY,t-texelY}
 		--Spring.Echo(atlasInfo.xsize * (p+texelX), atlasInfo.xsize * (q-texelX),texelX * atlasInfo.xsize)
 	end
 
-	if autoreload then
+	if autoupdate then
 		Spring.Echo(string.format("Decals GL4 Atlas is %dx%d, used %.1f%%",
 			atlasInfo.xsize, atlasInfo.ysize,
 			usedpixels * 100 / (atlasInfo.xsize * atlasInfo.ysize)
@@ -1684,7 +1684,8 @@ local UnitScriptDecals = {
 			fadeintime = 5, 
 			},
 		},
-		[UnitDefNames['chicken1'].id] = { 
+		
+	[UnitDefNames['chicken1'].id] = { 
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_raptor_a.tga',
 			offsetx = 0, --offset from what the UnitScriptDecal returns 
@@ -1702,13 +1703,14 @@ local UnitScriptDecals = {
 			glowadd = 0.0, 
 			fadeintime = 5, 
 			},
-			[2] = { -- RFOOT
+		[2] = { -- RFOOT
 			texture = footprintsPath..'f_raptor_a.tga',
 			offsetx = 0, --offset from what the UnitScriptDecal returns 
 			offsetz = 0, -- 
 			offsetrot = 0.0, -- in radians
 			width = 26,
 			height = 26,
+			flipvertical = true,
 			heatstart = 0,
 			heatdecay = 0,
 			alphastart = 1, 
@@ -1867,6 +1869,12 @@ function widget:Initialize()
 			else
 				local uvs = decalImageCoords[decalTable.texture]
 				p,q,s,t = uvs[1], uvs[2], uvs[3], uvs[4]
+				if decalTable.fliphorizontal then
+					p, q = q, p
+				end
+				if decalTable.flipvertical then 
+					s, t = t, s
+				end
 			end
 			
 			decalTable.cacheTable = {
