@@ -48,6 +48,7 @@ local drawAlliesLabel = false
 local alwaysHideSpecs = true
 local lockcameraHideEnemies = true            -- specfullview
 local lockcameraLos = true                    -- togglelos
+local minWidth = 190	-- for the sake of giving the addons some room
 
 local hideDeadTeams = true
 local absoluteResbarValues = false
@@ -250,6 +251,26 @@ local teamSideThree = "legion"
 local absentName = " --- "
 
 local gameStarted = false
+
+local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+
+local isSingle = false
+if not mySpecStatus then
+	local teamList = Spring.GetTeamList(myAllyTeamID) or {}
+	local playerCount = 0
+	if #teamList > 0 then
+		for _, teamID in ipairs(teamList) do
+			--if not select(4, Spring.GetTeamInfo(teamID, false)) and not Spring.GetTeamLuaAI(teamID) then
+				for _, playerID in ipairs(Spring.GetPlayerList(teamID)) do
+					playerCount = playerCount + 1
+				end
+			--end
+		end
+	end
+	if playerCount == 1 then
+		isSingle = true
+	end
+end
 --------------------------------------------------------------------------------
 -- Button check variable
 --------------------------------------------------------------------------------
@@ -529,15 +550,19 @@ function SetModulesPositionX()
     for _, module in ipairs(modules) do
         module.posX = pos
         if module.active and (module.name ~= 'share' or not hideShareIcons) then
-            if mySpecStatus then
-                if module.spec then
-                    pos = pos + module.width
-                end
-            else
-                if module.play then
-                    pos = pos + module.width
-                end
-            end
+			if (module.name == 'cpuping' and isSinglePlayer) or (module.name == 'resources' and isSingle) then
+
+			else
+				if mySpecStatus then
+					if module.spec then
+						pos = pos + module.width
+					end
+				else
+					if module.play then
+						pos = pos + module.width
+					end
+				end
+			end
 
             widgetWidth = pos + 1
             if widgetWidth < 20 then
@@ -546,6 +571,9 @@ function SetModulesPositionX()
             updateWidgetScale()
         end
     end
+	if widgetWidth < minWidth then
+		widgetWidth = minWidth
+	end
 end
 
 function SetMaxPlayerNameWidth()
@@ -2175,7 +2203,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
             DrawAlly(posY, player[playerID].team)
         end
 
-        if (m_resources.active or m_income.active) and aliveAllyTeams[allyteam] ~= nil and player[playerID].energy ~= nil then
+        if not isSingle and (m_resources.active or m_income.active) and aliveAllyTeams[allyteam] ~= nil and player[playerID].energy ~= nil then
             if mySpecStatus or myAllyTeamID == allyteam then
                 local e = player[playerID].energy
                 local es = player[playerID].energyStorage
@@ -2206,7 +2234,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
         end
     end
 
-    if m_cpuping.active then
+    if m_cpuping.active and not isSinglePlayer then
         if cpuLvl ~= nil then
             -- draws CPU usage and ping icons (except AI and ghost teams)
             DrawPingCpu(pingLvl, cpuLvl, posY, spec, 1, cpu, lastFpsData[playerID])
