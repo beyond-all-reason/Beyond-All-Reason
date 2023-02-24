@@ -248,12 +248,18 @@ local function ProcessAwards(awards)
 	widget:ViewResize(Spring.GetViewGeometry())
 
 	local offset = 120
-	FirstAward = createAward('fuscup', 0, Spring.I18N('ui.awards.resourcesDestroyed'), white, awards.ecoKill, offset)
-	offset = offset + offsetAdd
-	SecondAward = createAward('bullcup', 0, Spring.I18N('ui.awards.enemiesDestroyed'), white, awards.fightKill, offset)
-	offset = offset + offsetAdd
-	ThirdAward = createAward('comwreath', 0, Spring.I18N('ui.awards.resourcesEfficiency'), white, awards.efficiency, offset)
-	offset = offset + offsetAdd
+	if awards.ecoKill[1].teamID >= 0 then
+		FirstAward = createAward('fuscup', 0, Spring.I18N('ui.awards.resourcesDestroyed'), white, awards.ecoKill, offset)
+		offset = offset + offsetAdd
+	end
+	if awards.fightKill[1].teamID >= 0 then
+		SecondAward = createAward('bullcup', 0, Spring.I18N('ui.awards.enemiesDestroyed'), white, awards.fightKill, offset)
+		offset = offset + offsetAdd
+	end
+	if awards.efficiency[1].teamID >= 0 then
+		ThirdAward = createAward('comwreath', 0, Spring.I18N('ui.awards.resourcesEfficiency'), white, awards.efficiency, offset)
+		offset = offset + offsetAdd
+	end
 
 	if traitorWinner.score > threshold then
 		FourthAward = createAward('traitor', 0, Spring.I18N('ui.awards.traitor'), white, awards.traitor, offset)
