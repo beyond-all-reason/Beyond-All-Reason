@@ -489,7 +489,7 @@ modules = {
     m_skill,
     m_resources,
     m_income,
-	m_cpuping,
+    m_cpuping,
     m_alliance,
     m_share,
     m_chat,
@@ -529,17 +529,13 @@ function SetModulesPositionX()
     for _, module in ipairs(modules) do
         module.posX = pos
         if module.active and (module.name ~= 'share' or not hideShareIcons) then
-			local width = module.width
-			if module.name == 'cpuping' and anonymousMode and not mySpecStatus then
-				width = math.ceil(module.width / 2)
-			end
             if mySpecStatus then
                 if module.spec then
-                    pos = pos + width
+                    pos = pos + module.width
                 end
             else
                 if module.play then
-                    pos = pos + width
+                    pos = pos + module.width
                 end
             end
 
@@ -2654,52 +2650,49 @@ function DrawSkill(skill, posY, dark)
 end
 
 function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
-	local anonymize = (not mySpecStatus and anonymousMode)
     gl_Texture(pics["pingPic"])
     local grayvalue
     if spec then
         grayvalue = 0.5 + (pingLvl / 20)
         gl_Color(grayvalue, grayvalue, grayvalue, (0.2 * pingLvl))
-        DrawRect(m_cpuping.posX + widgetPosX + (anonymize and 0 or 12), posY + 1, m_cpuping.posX + widgetPosX + (anonymize and 9 or 21), posY + 14)
+        DrawRect(m_cpuping.posX + widgetPosX + 12, posY + 1, m_cpuping.posX + widgetPosX + 21, posY + 14)
     else
         gl_Color(pingLevelData[pingLvl].r, pingLevelData[pingLvl].g, pingLevelData[pingLvl].b)
-        DrawRect(m_cpuping.posX + widgetPosX + (anonymize and 0 or 12), posY + 1, m_cpuping.posX + widgetPosX + (anonymize and 12 or 24), posY + 15)
+        DrawRect(m_cpuping.posX + widgetPosX + 12, posY + 1, m_cpuping.posX + widgetPosX + 24, posY + 15)
     end
 
-	if not anonymize then
-		grayvalue = 0.7 + (cpu / 135)
+    grayvalue = 0.7 + (cpu / 135)
 
-		-- display user fps
-		font:Begin()
-		if fps ~= nil then
-			if fps > 99 then
-				fps = 99
-			end
-			grayvalue = 0.95 - (math.min(fps, 99) / 400)
-			if fps < 0 then
-				fps = 0
-				greyvalue = 1
-			end
-			if spec then
-				font:SetTextColor(grayvalue, grayvalue, grayvalue, 0.87 * alpha * grayvalue)
-				font:Print(fps, m_cpuping.posX + widgetPosX + 11, posY + 5.3, 9, "ro")
-			else
-				font:SetTextColor(grayvalue, grayvalue, grayvalue, alpha * grayvalue)
-				font:Print(fps, m_cpuping.posX + widgetPosX + 11, posY + 5.3, 9.5, "ro")
-			end
-		else
-			gl_Texture(pics["cpuPic"])
-			if spec then
-				gl_Color(grayvalue, grayvalue, grayvalue, 0.1 + (0.14 * cpuLvl))
-				DrawRect(m_cpuping.posX + widgetPosX + 2, posY + 1, m_cpuping.posX + widgetPosX + 13, posY + 14)
-			else
-				gl_Color(pingLevelData[cpuLvl].r, pingLevelData[cpuLvl].g, pingLevelData[cpuLvl].b)
-				DrawRect(m_cpuping.posX + widgetPosX + 1, posY + 1, m_cpuping.posX + widgetPosX + 14, posY + 15)
-			end
-			gl_Color(1, 1, 1, 1)
-		end
-		font:End()
-	end
+    -- display user fps
+    font:Begin()
+    if fps ~= nil then
+        if fps > 99 then
+            fps = 99
+        end
+        grayvalue = 0.95 - (math.min(fps, 99) / 400)
+        if fps < 0 then
+            fps = 0
+            greyvalue = 1
+        end
+        if spec then
+            font:SetTextColor(grayvalue, grayvalue, grayvalue, 0.87 * alpha * grayvalue)
+            font:Print(fps, m_cpuping.posX + widgetPosX + 11, posY + 5.3, 9, "ro")
+        else
+            font:SetTextColor(grayvalue, grayvalue, grayvalue, alpha * grayvalue)
+            font:Print(fps, m_cpuping.posX + widgetPosX + 11, posY + 5.3, 9.5, "ro")
+        end
+    else
+        gl_Texture(pics["cpuPic"])
+        if spec then
+            gl_Color(grayvalue, grayvalue, grayvalue, 0.1 + (0.14 * cpuLvl))
+            DrawRect(m_cpuping.posX + widgetPosX + 2, posY + 1, m_cpuping.posX + widgetPosX + 13, posY + 14)
+        else
+            gl_Color(pingLevelData[cpuLvl].r, pingLevelData[cpuLvl].g, pingLevelData[cpuLvl].b)
+            DrawRect(m_cpuping.posX + widgetPosX + 1, posY + 1, m_cpuping.posX + widgetPosX + 14, posY + 15)
+        end
+        gl_Color(1, 1, 1, 1)
+    end
+    font:End()
 end
 
 function DrawPoint(posY, pointtime)
@@ -2833,18 +2826,14 @@ function IncomeTip(mouseX, energyIncome, metalIncome)
     end
 end
 
-function PingCpuTip(mouseX, ping, cpuLvl, fps, gpumem, system, name, teamID, spec)
-	local anonymize = (not mySpecStatus and anonymousMode)
-	if anonymize then
-		ping = math.max(900, ping)
-	end
-    if mouseX >= widgetPosX + (m_cpuping.posX + (anonymize and 1 or 13)) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + (anonymize and 11 or 23)) * widgetScale then
-        if ping < 2000 then
-            ping = Spring.I18N('ui.playersList.milliseconds', { number = ping })
-        elseif ping >= 2000 then
-            ping = Spring.I18N('ui.playersList.seconds', { number = round(ping / 1000, 0) })
+function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, spec)
+    if mouseX >= widgetPosX + (m_cpuping.posX + 13) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + 23) * widgetScale then
+        if pingLvl < 2000 then
+            pingLvl = Spring.I18N('ui.playersList.milliseconds', { number = pingLvl })
+        elseif pingLvl >= 2000 then
+            pingLvl = Spring.I18N('ui.playersList.seconds', { number = round(pingLvl / 1000, 0) })
         end
-        tipText = Spring.I18N('ui.playersList.commandDelay', { labelColor = "\255\190\190\190", delayColor = "\255\255\255\255", delay = ping })
+        tipText = Spring.I18N('ui.playersList.commandDelay', { labelColor = "\255\190\190\190", delayColor = "\255\255\255\255", delay = pingLvl })
     elseif mouseX >= widgetPosX + (m_cpuping.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + 11) * widgetScale then
         tipText = Spring.I18N('ui.playersList.cpu', { cpuUsage = cpuLvl })
         if fps ~= nil then
