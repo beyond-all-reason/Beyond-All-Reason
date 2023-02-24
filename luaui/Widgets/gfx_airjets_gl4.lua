@@ -648,63 +648,6 @@ end
 -- Draw Iteration
 --------------------------------------------------------------------------------
 
-local function DrawLights(unitID, unitDefID)
-	local unitEffects = effectDefs[unitDefID]
-
-	--glPushMatrix()
-	--glUnitMultMatrix(unitID)
-	for i = 1, #unitEffects do
-		local fx = unitEffects[i]
-		if fx.piecenum then
-			--Spring.Echo(UnitDefs[unitDefID].name)		-- echo to find out which unit is has wrongly configured piecenames
-			--// enter piece space
-			--glPushMatrix()
-			--glUnitPieceMultMatrix(unitID, fx.piecenum)
-			--glScale(1, 1, -1)
-			--glTexture(1, texture1)
-			--glTexture(2, texture2)
-			--glCallList(fx.dList)
-			--glPopMatrix()
-
-			-- add deferred light
-
-			--[[
-			if lighteffectsEnabled and lightDefs[unitDefID] then
-				local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(unitID)
-				if unitPosZ then
-					local _, yaw = spGetUnitRotation(unitID)
-					if yaw then
-						local lightOffset = unitPieceOffset[unitID..'_'..fx.piecenum]
-
-						-- still just only Y thus inacurate
-						local lightOffsetRotYx = lightOffset[1]*math_cos(3.1415+math_rad( 90+(((yaw+1.571)/6.2)*360) ))- lightOffset[3]*math_sin(3.1415+math_rad(90+ (((yaw+1.571)/6.2)*360) ))
-						local lightOffsetRotYz = lightOffset[1]*math_sin(3.1415+math_rad( 90+(((yaw+1.571)/6.2)*360) ))+ lightOffset[3]*math_cos(3.1415+math_rad(90+ (((yaw+1.571)/6.2)*360) ))
-
-						if not lights[unitID] then
-							if not fx.color[4] then
-								fx.color[4] = fx.light * 0.66
-							end
-							if not lights[unitID] then
-								lights[unitID] = {}
-							end
-							lights[unitID][i] = WG['lighteffects'].createLight('thruster',unitPosX+lightOffsetRotYx, unitPosY+lightOffset[2], unitPosZ+lightOffsetRotYz, 0.8 * fx.width * fx.length, fx.color)
-						elseif lights[unitID][i] then
-							if not WG['lighteffects'].editLightPos(lights[unitID][i], unitPosX+lightOffsetRotYx, unitPosY+lightOffset[2], unitPosZ+lightOffsetRotYz) then
-								fx.lightID = nil
-							end
-						end
-					end
-				end
-			end
-			]]--
-		end
-		--// leave piece space
-	end
-
-	--// leave unit space
-	--glPopMatrix()
-end
-
 local function ValidateUnitIDs(unitIDkeys)
 	local numunitids = 0
 	local validunitids = 0
@@ -903,10 +846,10 @@ function widget:Update(dt)
 				if xzVelocityUnits[unitDefID] then
 					local uvx,_,uvz = spGetUnitVelocity(unitID)
 					if uvx * uvx + uvz * uvz > xzVelocityUnits[unitDefID] * xzVelocityUnits[unitDefID] then
-						Activate(unitID, unitDefID,"updatewasinactive", spGetGameFrame() )
+						Activate(unitID, unitDefID,"updatewasinactive", gf)
 					end
 				else
-					Activate(unitID, unitDefID,"updatewasinactive", spGetGameFrame())
+					Activate(unitID, unitDefID,"updatewasinactive", gf)
 				end
 			end
 		end
@@ -976,6 +919,9 @@ function widget.RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 
+function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeamId)
+	RemoveUnit(unitID, unitDefID, unitTeam)
+end
 
 function widget:Update(dt)
 	--spec, fullview = Spring.GetSpectatingState()
