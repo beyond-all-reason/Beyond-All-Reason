@@ -1339,7 +1339,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function queueTurretSpawnIfNeeded()
+	function spawnCreepStructuresWave()
 		for uName, uSettings in pairs(config.chickenTurrets) do
 			--Spring.Echo(uName)
 			--Spring.Debug.TableEcho(uSettings)
@@ -1362,10 +1362,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	function updateRaptorSpawnBox()
 		if config.burrowSpawnType == "initialbox_post" then
-			lsx1 = math.max(RaptorStartboxXMin - ((MAPSIZEX*0.01) * techAnger), 0)
-			lsz1 = math.max(RaptorStartboxZMin - ((MAPSIZEZ*0.01) * techAnger), 0)
-			lsx2 = math.min(RaptorStartboxXMax + ((MAPSIZEX*0.01) * techAnger), MAPSIZEX)
-			lsz2 = math.min(RaptorStartboxZMax + ((MAPSIZEZ*0.01) * techAnger), MAPSIZEZ)
+			lsx1 = math.max(RaptorStartboxXMin - ((MAPSIZEX*0.005) * queenAnger), 0)
+			lsz1 = math.max(RaptorStartboxZMin - ((MAPSIZEZ*0.005) * queenAnger), 0)
+			lsx2 = math.min(RaptorStartboxXMax + ((MAPSIZEX*0.005) * queenAnger), MAPSIZEX)
+			lsz2 = math.min(RaptorStartboxZMax + ((MAPSIZEZ*0.005) * queenAnger), MAPSIZEZ)
 		end
 	end
 
@@ -1556,7 +1556,7 @@ if gadgetHandler:IsSyncedCode() then
 			updateRaptorSpawnBox()
 		end
 		if n%((math.ceil(config.turretSpawnRate/(playerAgressionLevel+1)))*30) == 0 and n > 900 and chickenTeamUnitCount < chickenUnitCap then
-			queueTurretSpawnIfNeeded()
+			spawnCreepStructuresWave()
 		end
 		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
 		if not chickenteamhasplayers then
@@ -1616,6 +1616,7 @@ if gadgetHandler:IsSyncedCode() then
 				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 1)
 			end
 			if unitDefID == config.burrowDef then
+				spawnCreepStructuresWave()
 				for turret, burrow in pairs(burrowTurrets) do
 					if burrowTurrets[turret] == unitID then
 						table.insert(deleteBurrowTurrets, turret)
