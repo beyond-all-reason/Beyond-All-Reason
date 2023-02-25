@@ -30,7 +30,7 @@ return {
 		mass = 4000,
 		maxdamage = 8000,
 		maxslope = 18,
-		maxvelocity = 1.4,
+		maxvelocity = 2.8,
 		maxwaterdepth = 0,
 		movementclass = "CHICKALLTERRAINBIGHOVER",
 		noautofire = false,
