@@ -335,6 +335,7 @@ local units = {
 	chickene1 = { "chicken_paralyze.png", 0.94499993 },
 	chickene2 = { "chicken_paralyze.png", 1.57499993 },
 	chickenearty1 = { "chicken_earty.png", 1.57499993 },
+	chickenearty2 = { "chicken_arty.png", 2.72999978 },
 	chickenebomber1 = { "chicken_air.png", 1.78499997 },
 	chickenelectricallterrain = { "chicken_paralyze.png", 1.47 },
 	chickenelectricallterrainassault = { "chicken_paralyze.png", 1.57499993 },
@@ -343,6 +344,7 @@ local units = {
 	chickenacidassault = { "chicken_acid.png", 1.57499993 },
 	chickenacidbomber = { "chicken_air_acid.png", 1.78499997 },
 	chickenacidarty = { "chicken_acid_arty.png", 1.57499993 },
+	chickenacidartyxl = { "chicken_arty.png", 2.72999978 },
 	chickenacidallterrain = { "chicken_acid.png", 1.47 },
 	chickenacidallterrainassault = { "chicken_acid.png", 1.57499993 },
 

@@ -1,5 +1,5 @@
 return {
-	chickenacidarty = {
+	chickenacidartyxl = {
 		acceleration = 0.115,
 		bmcode = "1",
 		brakerate = 0.414,
@@ -28,14 +28,14 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 4000,
-		maxdamage = 2000,
+		maxdamage = 8000,
 		maxslope = 18,
 		maxvelocity = 1.4,
 		maxwaterdepth = 0,
 		movementclass = "CHICKALLTERRAINBIGHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
-		objectname = "Chickens/chicken_artillery_acid_v2.s3o",
+		objectname = "Chickens/chicken_artillery_meteor_v2_acid.s3o",
 		script = "Chickens/chicken_artillery_v2.cob",
 		seismicsignature = 0,
 		selfdestructas = "LOBBER_MORPH",
@@ -52,7 +52,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 1840,
-		unitname = "chickenearty1",
+		unitname = "chickenacidartyxl",
 		upright = false,
 		workertime = 0,
 		waterline = 9999,
@@ -77,7 +77,7 @@ return {
 		},
 		weapondefs = {
 			acidspit = {
-				accuracy = 256,
+				accuracy = 1024,
 				areaofeffect = 150,
 				collidefriendly = 0,
 				collidefeature = 0,
@@ -105,12 +105,12 @@ return {
 				--paralyzetime = 20,
 				proximitypriority = -4,
 				range = 2000,
-				reloadtime = 8,
+				reloadtime = 0.8,
 				rgbcolor = "0.8 0.99 0.11",
 				soundhit = "bloodsplash3",
 				soundstart = "alien_bombrel",
 
-				sprayangle = 256,
+				sprayangle = 1024,
 				tolerance = 5000,
 				turret = true,
 				weapontimer = 0.2,
