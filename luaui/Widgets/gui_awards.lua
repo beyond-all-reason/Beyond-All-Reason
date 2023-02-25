@@ -269,6 +269,11 @@ local function ProcessAwards(awards)
 		CowAward = createAward('cow', 1, Spring.I18N('ui.awards.didEverything'), white, awards.goldenCow, offset)
 		offset = offset + offsetAdd
 	end
+	-- make sure the other awards lines are at the bottom
+	local minOffset = 120 + (offsetAdd*3)	
+	if offset < minOffset then
+		offset = minOffset
+	end
 	OtherAwards = createAward('', 2, '', white, compoundAwards, offset)
 
 	drawAwards = true
