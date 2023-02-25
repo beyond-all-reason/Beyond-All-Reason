@@ -17,13 +17,6 @@ local teamList = Spring.GetTeamList()
 local allyTeamList = Spring.GetAllyTeamList()
 local teamCount = #teamList - 1
 local allyTeamCount = #allyTeamList - 1
-
-local isFFA = false
-if #teamList == #allyTeamList and teamCount > 2 then
-	isFFA = true
-elseif not teamColors[allyTeamCount] then
-	isFFA = true
-end
 local isSurvival = Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsChickens()
 
 local survivalColorNum = 1 -- Starting from color #1
@@ -414,6 +407,13 @@ local function shuffleAllColors()
 			teamColors[i][j] = shuffleTable(teamColors[i][j])
 		end
 	end
+end
+
+local isFFA = false
+if #teamList == #allyTeamList and teamCount > 2 then
+	isFFA = true
+elseif not teamColors[allyTeamCount] then
+	isFFA = true
 end
 
 if gadgetHandler:IsSyncedCode() then
