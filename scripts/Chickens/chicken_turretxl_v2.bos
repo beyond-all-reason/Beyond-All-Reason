@@ -279,7 +279,7 @@ Deactivate()
 
 SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = Func_Var_1 * 2;
+	//restore_delay = Func_Var_1 * 2; //using above Create() value of restore_delay
 }
 
 static-var  Stunned;
@@ -307,7 +307,14 @@ RestoreAfterDelay()
 AimWeapon1(heading, pitch)
 {
 	
-	start-script RequestState(0);
+	// Only calls RequestState(0) and the rest of the AimWeapon function 
+	// if the time left to shoot is less that 5 seconds. 
+	frameslefttoshot = (GET WEAPON_RELOADSTATE(1)) - (GET GAME_FRAME);
+    if (frameslefttoshot > 150)
+    {
+        return (0);
+    }
+    start-script RequestState(0);
 
 	isAiming = 1;
 	signal SIG_AIM;
@@ -325,8 +332,6 @@ AimWeapon1(heading, pitch)
 	while (get ABS(aimy1delta) > <10>){
 		sleep 30;
 	}
-	
-	frameslefttoshot = (GET WEAPON_RELOADSTATE(1)) - (GET GAME_FRAME);
 	
 	if (frameslefttoshot < 15){ // GET WEAPON_RELOADSTATE(1) gives the frame weapon 1 can fire on
 		// if we can fire in 10 frames, do the spit
