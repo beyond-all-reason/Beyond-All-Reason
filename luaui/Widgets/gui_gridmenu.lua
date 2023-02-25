@@ -1526,42 +1526,44 @@ local function drawBuildmenu()
 		activeArea = drawCategories()
 	end
 
-	if stickToBottom then
-		rows = 2
-		colls = 6
-		cellSize = math_floor((activeArea[4] - activeArea[2]) / rows)
-	else
-		rows = 3
-		colls = 4
-		cellSize = math_floor((activeArea[3] - activeArea[1]) / colls)
-	end
-
-	-- adjust grid size when pages are needed
-	if uidcmdsCount > colls * rows then
-		pages = math_ceil(uidcmdsCount / (rows * colls))
-
-		if currentPage > pages then
-			currentPage = pages
+	if activeArea then
+		if stickToBottom then
+			rows = 2
+			colls = 6
+			cellSize = math_floor((activeArea[4] - activeArea[2]) / rows)
+		else
+			rows = 3
+			colls = 4
+			cellSize = math_floor((activeArea[3] - activeArea[1]) / colls)
 		end
-	else
-		currentPage = 1
-		pages = 1
+
+		-- adjust grid size when pages are needed
+		if uidcmdsCount > colls * rows then
+			pages = math_ceil(uidcmdsCount / (rows * colls))
+
+			if currentPage > pages then
+				currentPage = pages
+			end
+		else
+			currentPage = 1
+			pages = 1
+		end
+
+		-- these are globals so it can be re-used (hover highlight)
+		cellPadding = math_floor(cellSize * Cfgs.cfgCellPadding)
+		iconPadding = math_max(1, math_floor(cellSize * Cfgs.cfgIconPadding))
+		cornerSize = math_floor(cellSize * Cfgs.cfgIconCornerSize)
+		cellInnerSize = cellSize - cellPadding - cellPadding
+		priceFontSize = math_floor((cellInnerSize * Cfgs.cfgPriceFontSize) + 0.5)
+
+		cellRects = {}
+		hotkeyActions = {}
+
+		drawGrid(activeArea)
+		drawPaginators(activeArea)
+
+		font2:End()
 	end
-
-	-- these are globals so it can be re-used (hover highlight)
-	cellPadding = math_floor(cellSize * Cfgs.cfgCellPadding)
-	iconPadding = math_max(1, math_floor(cellSize * Cfgs.cfgIconPadding))
-	cornerSize = math_floor(cellSize * Cfgs.cfgIconCornerSize)
-	cellInnerSize = cellSize - cellPadding - cellPadding
-	priceFontSize = math_floor((cellInnerSize * Cfgs.cfgPriceFontSize) + 0.5)
-
-	cellRects = {}
-	hotkeyActions = {}
-
-	drawGrid(activeArea)
-	drawPaginators(activeArea)
-
-	font2:End()
 end
 
 function widget:RecvLuaMsg(msg)
