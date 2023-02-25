@@ -531,9 +531,6 @@ function widget:Update(dt)
 		end
 		return
 	end
-	if dlistGuishader then
-		infoShows = true
-	end
 
 	sec2 = sec2 + dt
 	if sec2 > 0.5 then
@@ -564,6 +561,33 @@ function widget:Update(dt)
 		if alwaysShow or not emptyInfo then
 			checkGuishader()
 		end
+	end
+
+
+	if ViewResizeUpdate then
+		ViewResizeUpdate = nil
+	end
+
+	if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) or (os_clock() >= doUpdateClock2) then
+		doUpdateClock = nil
+		doUpdateClock2 = os_clock() + 0.9
+		clear()
+		doUpdate = nil
+		lastUpdateClock = os_clock()
+	end
+
+	if displayUnitID and not Spring.ValidUnitID(displayUnitID) then
+		displayMode = 'text'
+		displayUnitID = nil
+		displayUnitDefID = nil
+	end
+
+	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) or chobbyInterface then
+		return
+	end
+
+	if alwaysShow or not emptyInfo or Spring.GetGameFrame() == 0 then
+		infoShows = true
 	end
 end
 
@@ -1618,34 +1642,13 @@ end
 local doUpdateClock2 = os_clock() + 0.9
 function widget:DrawScreen()
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
-	if not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0 then
+
+	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) or chobbyInterface then
 		if dlistGuishader then
 			WG['guishader'].DeleteDlist('info')
 			dlistGuishader = nil
 		end
 		return
-	end
-
-	if chobbyInterface then
-		return
-	end
-
-	if ViewResizeUpdate then
-		ViewResizeUpdate = nil
-	end
-
-	if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) or (os_clock() >= doUpdateClock2) then
-		doUpdateClock = nil
-		doUpdateClock2 = os_clock() + 0.9
-		clear()
-		doUpdate = nil
-		lastUpdateClock = os_clock()
-	end
-
-	if displayUnitID and not Spring.ValidUnitID(displayUnitID) then
-		displayMode = 'text'
-		displayUnitID = nil
-		displayUnitDefID = nil
 	end
 
 	if not dlistInfo then
@@ -1660,9 +1663,8 @@ function widget:DrawScreen()
 		dlistGuishader = nil
 	end
 
-
 	-- widget hovered
-	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if infoShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 
 		Spring.SetMouseCursor('cursornormal')
 

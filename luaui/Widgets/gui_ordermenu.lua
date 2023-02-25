@@ -428,7 +428,7 @@ function widget:Update(dt)
 		doUpdate = true
 	end
 
-	if not displayListGuiShader or (#commands == 0 and (not alwaysShow or Spring.GetGameFrame() == 0)) then
+	if (WG['guishader'] and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or Spring.GetGameFrame() == 0)) then
 		ordermenuShows = false
 	else
 		ordermenuShows = true
