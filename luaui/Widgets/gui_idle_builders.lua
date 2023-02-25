@@ -528,7 +528,9 @@ function widget:Update(dt)
 					if unitDefID then
 						tooltipTitle = Spring.I18N('ui.idleBuilders.idle', { unit = unitHumanName[unitDefID], highlightColor = "\255\190\255\190" })
 						if #idleList[unitDefID] > 1 then
-							tooltipAddition = Spring.I18N('ui.idleBuilders.controls')
+							tooltipAddition = Spring.I18N('ui.idleBuilders.controls').. '\n'..Spring.I18N('ui.idleBuilders.controls1')
+						else
+							tooltipAddition = tooltipAddition ..Spring.I18N('ui.idleBuilders.controls1')
 						end
 					end
 					break

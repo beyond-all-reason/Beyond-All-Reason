@@ -257,19 +257,7 @@ local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 local isSingle = false
 if not mySpecStatus then
 	local teamList = Spring.GetTeamList(myAllyTeamID) or {}
-	local playerCount = 0
-	if #teamList > 0 then
-		for _, teamID in ipairs(teamList) do
-			--if not select(4, Spring.GetTeamInfo(teamID, false)) and not Spring.GetTeamLuaAI(teamID) then
-				for _, playerID in ipairs(Spring.GetPlayerList(teamID)) do
-					playerCount = playerCount + 1
-				end
-			--end
-		end
-	end
-	if playerCount == 1 then
-		isSingle = true
-	end
+	isSingle = #teamList == 1
 end
 --------------------------------------------------------------------------------
 -- Button check variable

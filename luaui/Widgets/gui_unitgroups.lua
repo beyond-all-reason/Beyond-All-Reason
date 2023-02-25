@@ -460,7 +460,7 @@ function widget:Update(dt)
 		hovered = true
 		local tooltipAddition = ''
 		if numGroups >= 1 then
-			tooltipAddition = tooltipAddition .. Spring.I18N('ui.unitGroups.shiftclick')..'\n'..Spring.I18N('ui.unitGroups.ctrlclick')
+			tooltipAddition = tooltipAddition .. Spring.I18N('ui.unitGroups.shiftclick')..'\n'..Spring.I18N('ui.unitGroups.ctrlclick')..'\n'..Spring.I18N('ui.unitGroups.rightclick')
 		end
 		tooltipAddition = tooltipAddition .. (tooltipAddition~='' and '\n' or '') .. Spring.I18N('ui.unitGroups.tooltip')
 		if WG['autogroup'] ~= nil then

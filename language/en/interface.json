@@ -248,13 +248,15 @@
 		"idleBuilders": {
 			"name": "Idle Builders",
 			"idle": "Idle %{highlightColor}%{unit}",
-			"controls": "Click:   Cycle next builder\nSHIFT + Click:   Select all",
+			"controls1": "Right-Click:   move to unit",
+			"controls": "Click:   Select and cycle next builder\nSHIFT + Click:   Select all",
 			"sleeping": "z"
 		},
 		"unitGroups": {
 			"name": "Unit Groups",
-			"shiftclick": "SHIFT + click:   add to selection",
-			"ctrlclick": "CTRL + click:   subtract from selection",
+			"shiftclick": "SHIFT + Click:   add to selection",
+			"ctrlclick": "CTRL + Click:   subtract from selection",
+			"rightclick": "Right-Click:   move to and select group",
 			"tooltip": "CTRL + 0-9 sets unit group for selected units.\nCTRL BACKQUOTE (~) remove units.",
 			"autogroupTooltip": "Auto Groups\nALT + 0-9 sets autogroup # for selected unit type(s).\nNewly built units get added to group# equal to their autogroup#.\nALT BACKQUOTE (~) remove units.\nView settings at: Settings/Interface/AutoGroup"
 		},
