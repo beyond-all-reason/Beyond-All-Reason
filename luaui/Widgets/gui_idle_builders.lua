@@ -128,23 +128,45 @@ local function isIdleBuilder(unitID)
 	return false
 end
 
-local function checkUnitGroupsPos()
+local function checkUnitGroupsPos(isViewresize)
+
 	if WG['unitgroups'] then
 		unitgroupsActive = true
 		local px, py, sx, sy = WG['unitgroups'].getPosition()
 		local oldPosX, oldPosY = posX, posY
+		posY = py / vsy
 		if aboveUnitgroups then
 			posY = (sy + widgetSpaceMargin) / vsy
 		else
 			posX = (sx + widgetSpaceMargin) / vsx
 		end
 		if posX ~= oldPosX or posY ~= oldPosY then
+			if not isViewresize then
+				widget:ViewResize()
+			end
 			doUpdate = true
 		end
 	elseif unitgroupsActive then
 		unitgroupsActive = false
+		if buildmenuBottomPosition and not buildmenuAlwaysShow and WG['buildmenu'] and WG['info'] then
+			if (not selectedUnits[1] or not WG['buildmenu'].getIsShowing()) and (posX > 0 or not WG['info'].getIsShowing()) then
+				if posY ~= 0 then
+					posY = 0
+					if not isViewresize then
+						widget:ViewResize()
+					end
+					doUpdate = true
+				end
+			else
+				if posY ~= buildmenuShowingPosY then
+					posY = buildmenuShowingPosY
+				end
+			end
+		end
+		if not isViewresize then
+			widget:ViewResize()
+		end
 		doUpdate = true
-		widget:ViewResize()
 	end
 end
 
@@ -194,7 +216,7 @@ function widget:ViewResize()
 		end
 	end
 
-	checkUnitGroupsPos()
+	checkUnitGroupsPos(true)
 
 	iconMargin = floor((backgroundPadding * 0.5) + 0.5)
 	groupSize = floor((height * vsy) - (posY-height > 0 and backgroundPadding or 0))
@@ -491,28 +513,7 @@ function widget:Update(dt)
 	sec = sec + dt
 	sec2 = sec2 + dt
 
-	if WG['unitgroups'] then
-		local px, py, sx, sy = WG['unitgroups'].getPosition()
-		local oldPosX, oldPosY = posX, posY
-		posY = py / vsy
-		if posY ~= oldPosY then
-			doUpdate = true
-		end
-	else
-		if buildmenuBottomPosition and not buildmenuAlwaysShow and WG['buildmenu'] and WG['info'] then
-			if (not selectedUnits[1] or not WG['buildmenu'].getIsShowing()) and (posX > 0 or not WG['info'].getIsShowing()) then
-				if posY ~= 0 then
-					posY = 0
-					doUpdate = true
-				end
-			else
-				if posY ~= buildmenuShowingPosY then
-					posY = buildmenuShowingPosY
-					doUpdate = true
-				end
-			end
-		end
-	end
+	checkUnitGroupsPos()
 
 	local x, y, b, b2, b3 = spGetMouseState()
 	if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
@@ -583,8 +584,6 @@ function widget:Update(dt)
 		sec2 = 0
 		doUpdate = true
 	end
-
-	checkUnitGroupsPos()
 
 	if doUpdate then
 		updateList()
