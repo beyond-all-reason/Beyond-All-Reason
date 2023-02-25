@@ -1923,18 +1923,18 @@ function widget:DrawScreen()
 end
 
 function widget:DrawWorld()
-	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
-	if Spring.GetGameFrame() > 0 then
-		widgetHandler:RemoveWidgetCallIn('DrawWorld', self)
-
-		return
-	end
-
 	if not WG.StopDrawUnitShapeGL4 then return end
 
 		-- remove unit shape queue to re-add again later
 	for id, _ in pairs(unitshapes) do
 		removeUnitShape(id)
+	end
+
+	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
+	if Spring.GetGameFrame() > 0 then
+		widgetHandler:RemoveWidgetCallIn('DrawWorld', self)
+
+		return
 	end
 
 	if not preGamestartPlayer then return end
