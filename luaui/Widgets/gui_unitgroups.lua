@@ -44,7 +44,6 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
-local uiOpacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local uiScale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local height = setHeight * uiScale
 local posX = 0
@@ -543,15 +542,6 @@ function widget:Update(dt)
 				widget:ViewResize()
 				doUpdate = true
 			end
-		end
-		if uiScale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			uiScale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize()
-			doUpdate = true
-		end
-		if uiOpacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			doUpdate = true
 		end
 
 		doUpdate = true	-- TODO: find a way to detect group changes and only doUpdate then
