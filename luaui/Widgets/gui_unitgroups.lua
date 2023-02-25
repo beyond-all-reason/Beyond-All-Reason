@@ -441,6 +441,10 @@ function widget:Update(dt)
 	sec = sec + dt
 	sec2 = sec2 + dt
 
+	if buildmenuAlwaysShow ~= WG['buildmenu'].getAlwaysShow() then
+		widget:ViewResize()
+		doUpdate = true
+	end
 	if buildmenuBottomPosition and not buildmenuAlwaysShow and WG['buildmenu'] and WG['info'] then
 		if (not selectedUnits[1] or not WG['buildmenu'].getIsShowing()) and (posX > 0 or not WG['info'].getIsShowing()) then
 			if posY ~= 0 then
