@@ -979,7 +979,7 @@ local function drawUnitInfo()
 
 		-- display unit owner name
 		local teamID = Spring.GetUnitTeam(displayUnitID)
-		if mySpec or (myTeamID ~= teamID) then --anonymousMode) then
+		if mySpec or (myTeamID ~= teamID) then
 			local _, playerID, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
 			local name = Spring.GetPlayerInfo(playerID, false)
 			if isAiTeam then
@@ -990,11 +990,11 @@ local function drawUnitInfo()
 			end
 			if name then
 				local fontSizeOwner = fontSize * 0.87
-				if Spring.GetModOptions().teamcolors_anonymous_mode then
-					name = ColourString(1,0,0) .. name
-				else
+				--if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode then
+				--	name = ColourString(1,0,0) .. name
+				--else
 					name = ColourString(Spring.GetTeamColor(myTeamID)) .. name
-				end
+				--end
 				font2:Print(name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
 			end
 		end
