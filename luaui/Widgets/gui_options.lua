@@ -677,6 +677,10 @@ local isOffscreenTime
 local prevOffscreenVolume
 local apiUnitTrackerEnabledCount = 0
 function widget:Update(dt)
+	if sceduleToggleWidget then
+		widgetHandler:ToggleWidget(sceduleToggleWidget)
+		sceduleToggleWidget = nil
+	end
 
 	if Spring.GetConfigInt("muteOffscreen", 0) == 1 then
 		local prevIsOffscreen = isOffscreen
@@ -5506,6 +5510,7 @@ end
 
 local lastOptionCommand = 0
 
+local sceduleToggleWidget
 function widget:TextCommand(command)
 	if string.find(command, "options", nil, true) == 1 and string.len(command) == 7 then
 		local newShow = not show
@@ -5519,7 +5524,9 @@ function widget:TextCommand(command)
 		Spring.SendCommands("option devmode")
 	end
 	if command == "profile" and widgetHandler:IsWidgetKnown("Widget Profiler") then
-		widgetHandler:ToggleWidget("Widget Profiler")
+		-- widget handler doesnt like toggling the profiler from widget:TextCommand so we scedule it to be done in widget:Update instead
+		sceduleToggleWidget = "Widget Profiler"
+		--widgetHandler:ToggleWidget("Widget Profiler")
 	end
 	if command == "grapher" and widgetHandler:IsWidgetKnown("Frame Grapher") then
 		widgetHandler:ToggleWidget("Frame Grapher")
