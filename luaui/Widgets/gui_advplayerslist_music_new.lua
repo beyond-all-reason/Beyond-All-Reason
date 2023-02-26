@@ -822,11 +822,11 @@ function widget:DrawScreen()
 
 			-- display play progress
 			local progressPx = math.floor((right - left) * (playedTime / totalTime))
-			if progressPx > 1 then
+			if progressPx > 1 and playedTime / totalTime < 1 then
 				if progressPx < borderPadding * 5 then
 					progressPx = borderPadding * 5
 				end
-				RectRound(left + borderPaddingLeft, bottom + borderPadding - (1.8 * widgetScale), left - borderPaddingRight + progressPx, top - borderPadding, borderPadding * 1.4, 2, 2, 2, 2, { 0.6, 0.6, 0.6, ui_opacity * 0.15 }, { 1, 1, 1, ui_opacity * 0.15 })
+				RectRound(left + borderPaddingLeft, bottom + borderPadding - (1.8 * widgetScale), left - borderPaddingRight + progressPx, top - borderPadding, borderPadding, 2, 2, 2, 2, { 0.6, 0.6, 0.6, ui_opacity * 0.15 }, { 1, 1, 1, ui_opacity * 0.15 })
 			end
 
 			local color = { 1, 1, 1, 0.1 }
