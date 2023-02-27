@@ -29,23 +29,14 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		factoryUnits[unitID] = isFactory[unitDefID]
 	end
 	if setBlockingOnFinished[unitID] then
-
-		if UnitDefs[unitDefID].canFly == true then
-			--to make sure air units do not set their ground to blocking
-			--rare case of aircraft already in takeoff state can perma-block a factory
-			Spring.SetUnitBlocking(unitID, false, true)
-		else
-			Spring.SetUnitBlocking(unitID, true, true)
-		end
+		Spring.SetUnitBlocking(unitID, true)
 		setBlockingOnFinished[unitID] = nil
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if factoryUnits[builderID] then
-		-- first false is to set blocking on ground
-		-- second false is to set blocking with other solid objects and units
-		Spring.SetUnitBlocking(unitID, false, false)
+		Spring.SetUnitBlocking(unitID, false)
 		setBlockingOnFinished[unitID] = true
 	end
 end
