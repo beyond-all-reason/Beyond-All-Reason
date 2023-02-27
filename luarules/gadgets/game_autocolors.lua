@@ -503,7 +503,7 @@ if gadgetHandler:IsSyncedCode() then
 		}
 	end
 
-	Spring.SendLuaRulesMsg("AutoColors", Json.encode(AutoColors))
+	Spring.SendLuaRulesMsg("AutoColors" .. Json.encode(AutoColors))
 
 
 else	-- UNSYNCED
