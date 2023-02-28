@@ -124,9 +124,6 @@
 			"tooltipTitle": "Team Income",
 			"tooltip": "Total metal/energy income\n(Lighter portion is income from reclaiming)"
 		},
-		"dgunrule": {
-			"enemycom": "Reminder: Dgun enemy = you lose\n(with you having last commander)"
-		},
 		"mapinfo": {
 			"author": "Author"
 		},
@@ -1163,8 +1160,6 @@
 				"buildbar_descr": "Displays a column of factories at the right side of the screen\nhover and click units to quickly add to the factory queue",
 				"converterusage": "Energy Converter usage",
 				"converterusage_descr": "Displays the current energy->metal converter usage at the top of the screen",
-				"dgunrulereminder": "Dgun rule reminder",
-				"dgunrulereminder_descr": "Displays a tooltip at enemy commander to remind you not to dgun it\n...when last your commander is near it and dgun targeting is active",
 				"teamplatter": "Unit team platters",
 				"teamplatter_descr": "Shows a team color platter above all visible units",
 				"teamplatter_opacity": "opacity",
