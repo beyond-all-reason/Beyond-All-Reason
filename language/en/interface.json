@@ -1,6 +1,5 @@
 {
 	"ui": {
-		"disablingcus": "Disabling Advanced Model Shading (fps threshold reached)",
 		"forceResignMessage": "You have been force-resigned: Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
 		"topbar": {
 			"button": {
@@ -34,13 +33,7 @@
 			"windspeedTooltip": "(small numbers are minimum and maximum)\nAverage wind speed on this map is %{avgWindValue}\nCurrent wind risk is %{riskWindValue} (percentage of time wind speed will be below 6)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
 			"wind": {
 				"nowind1": "No",
-				"nowind2": "wind",
-				"worth1": "Wind is not worth it",
-				"worth2": "Wind is viable",
-				"worth3": "Wind is okay",
-				"worth4": "Wind is good",
-				"worth5": "Wind is really good",
-				"worth6": "Wind is amazing"
+				"nowind2": "wind"
 			},
 			"resources": {
 				"metal": "Metal",
@@ -131,9 +124,6 @@
 			"tooltipTitle": "Team Income",
 			"tooltip": "Total metal/energy income\n(Lighter portion is income from reclaiming)"
 		},
-		"dgunrule": {
-			"enemycom": "Reminder: Dgun enemy = you lose\n(with you having last commander)"
-		},
 		"mapinfo": {
 			"author": "Author"
 		},
@@ -217,11 +207,6 @@
 			" On ": "On",
 			" Off ": "Off",
 			"onoff_tooltip": "Active state: turn a unit on/off",
-			"Fighters": "Fighters",
-			"Bombers": "Bombers",
-			"Vtols": "Vtols",
-			"No priority": "No priority",
-			"setpriority_tooltip": "Set target priority Fighters/Bombers/Vtols/no priority",
 			" Fly ": "Fly",
 			"Land": "Land",
 			"idlemode_tooltip": "Sets what aircraft do when idle",
@@ -259,9 +244,6 @@
 			"rightclick": "Right-Click:   move to and select group",
 			"tooltip": "CTRL + 0-9 sets unit group for selected units.\nCTRL BACKQUOTE (~) remove units.",
 			"autogroupTooltip": "Auto Groups\nALT + 0-9 sets autogroup # for selected unit type(s).\nNewly built units get added to group# equal to their autogroup#.\nALT BACKQUOTE (~) remove units.\nView settings at: Settings/Interface/AutoGroup"
-		},
-		"changelog": {
-			"title": "Changelog"
 		},
 		"keybinds": {
 			"title": "Keybinds",
@@ -427,7 +409,6 @@
 			}
 		},
 		"chat": {
-			"ignored": "ignored",
 			"scroll": "%{textColor}Press %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor}to activate chatlog viewing/scrolling",
 			"shortcut": "CTRL + SHIFT",
 			"everyone": "everyone",
@@ -642,7 +623,6 @@
 			"warning": "You are idling, do something quick! (others are able to take over all your things soon)"
 		},
 		"ffaNoOwner": {
-			"removed": "No Owner Mode: Removing Team %{team}",
 			"destroyed": "No Owner Mode: Destroying Team %{team}",
 			"disconnected": "No Owner Mode: Team %{team} has %{gracePeriod} minute(s) to reconnect",
 			"reconnected": "No Owner Mode: Team %{team} reconnected"
@@ -1180,8 +1160,6 @@
 				"buildbar_descr": "Displays a column of factories at the right side of the screen\nhover and click units to quickly add to the factory queue",
 				"converterusage": "Energy Converter usage",
 				"converterusage_descr": "Displays the current energy->metal converter usage at the top of the screen",
-				"dgunrulereminder": "Dgun rule reminder",
-				"dgunrulereminder_descr": "Displays a tooltip at enemy commander to remind you not to dgun it\n...when last your commander is near it and dgun targeting is active",
 				"teamplatter": "Unit team platters",
 				"teamplatter_descr": "Shows a team color platter above all visible units",
 				"teamplatter_opacity": "opacity",
