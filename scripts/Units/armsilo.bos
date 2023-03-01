@@ -20,13 +20,7 @@
 
 piece  base, door1, door2, flare, light1, light2, light3, light4;
 
-static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging, shotcount;
-
-// Signal definitions
-#define SIG_AIM				2
-
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+static-var  restore_delay, shotcount;
 
 static-var  silo_state;
 // 0 = closed
@@ -35,6 +29,12 @@ static-var  silo_state;
 // 3 = closing, fired missile
 // 4 = closing, no missile fired
 
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
+
+// Signal definitions
+#define SIG_AIM				2
+
 Create()
 {
 	hide flare;
@@ -42,7 +42,7 @@ Create()
 	hide light2;
 	hide light3;
 	hide light4;
-	gun_1 = base;
+	shotcount = 0;
 	restore_delay = 15000;
 	silo_state = 0;
 	return (0);
