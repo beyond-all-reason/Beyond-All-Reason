@@ -261,6 +261,7 @@ do --save a ton of locals
 	local OPTION_MODELSFOG        = 1024
 	local OPTION_TREEWIND         = 2048
 	local OPTION_PBROVERRIDE      = 4096
+	local OPTION_SKELETALANIM     = 8192
 
 	local defaultBitShaderOptions = OPTION_SHADOWMAPPING + OPTION_NORMALMAPPING  + OPTION_MODELSFOG
 
@@ -291,7 +292,12 @@ do --save a ton of locals
 			brightnessFactor = 1.5,
 		},
 		otherunit = {
-			bitOptions = defaultBitShaderOptions,
+			bitOptions = defaultBitShaderOptions ,
+			baseVertexDisplacement = 0.0,
+			brightnessFactor = 1.5,
+		},
+		skeletalunit = {
+			bitOptions = defaultBitShaderOptions + OPTION_SKELETALANIM,
 			baseVertexDisplacement = 0.0,
 			brightnessFactor = 1.5,
 		},
@@ -833,6 +839,8 @@ local function initBinsAndTextures()
 				objectDefToUniformBin[unitDefID] = 'corunit'
 			elseif 	unitDef.name:sub(1,3) == 'leg' then
 				objectDefToUniformBin[unitDefID] = 'armunit'
+			elseif 	unitDef.name:sub(1,4) == 'skin' then
+				objectDefToUniformBin[unitDefID] = 'skeletalunit'
 			end
 			local normalTex = GetNormal(unitDef, nil)
 			local textureTable = {
@@ -885,6 +893,7 @@ local function initBinsAndTextures()
 			if textureKeytoSet[texKeyFast] == nil then
 				textureKeytoSet[texKeyFast] = textureTable
 			end
+			
 		end
 	end
 

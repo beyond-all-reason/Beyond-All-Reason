@@ -70,6 +70,7 @@ vertex = [[
 	#define OPTION_MODELSFOG 10
 
 	#define OPTION_TREEWIND 11
+	#define OPTION_SKELETALANIM 13
 
 	%%GLOBAL_OPTIONS%%
 
@@ -325,6 +326,23 @@ vertex = [[
 
 		vec4 modelPos = pieceMatrix * piecePos;
 		vec4 worldPos = worldPieceMatrix * piecePos;
+		
+		if (BITMASK_FIELD(bitOptions, OPTION_SKELETALANIM)) {
+			uint bone0_idx = uint(floor(uv.x));
+			float bone0_weight = float(fract(uv.x));
+			uint bone1_idx = uint(floor(uv.y));
+			float bone1_weight = float(fract(uv.y));
+			
+			mat4 bone0mat = mat[instData.x + bone0_idx + 1u];
+			mat4 bone1mat = mat[instData.x + bone1_idx + 1u];
+			
+			mat4 boneWeightedMat = bone0mat * bone0_weight + bone1mat * bone1_weight;
+
+			modelPos = boneWeightedMat * piecePos ;
+			worldPieceMatrix = worldMatrix * boneWeightedMat;
+			worldPos = worldPieceMatrix * piecePos;
+		}
+		
 		//worldPos.x += 64; // for dem debuggins
 
 		//gl_TexCoord[0] = gl_MultiTexCoord0;
