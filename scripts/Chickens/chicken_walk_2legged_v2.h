@@ -47,6 +47,7 @@ Walk() {// For N:\animations\Chickens\chicken_walk_remaster_v2.blend Created by 
 	}
 	while(bMoving) {
 		if (bMoving) { //Frame:12
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			move body to x-axis (((([-4.111111] *MOVESCALE)/100) *animAmplitude)/100) speed (((([61.666667] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-2.06
 			move body to z-axis (((([1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
 			move body to y-axis (((([2.098039] *MOVESCALE)/100) *animAmplitude)/100) speed (((([41.119187] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.37
@@ -185,6 +186,7 @@ Walk() {// For N:\animations\Chickens\chicken_walk_remaster_v2.blend Created by 
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:36
+			call-script lua_UnitScriptDecal(2, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			move body to x-axis (((([4.111111] *MOVESCALE)/100) *animAmplitude)/100) speed (((([40.083332] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.34
 			move body to z-axis (((([1.000000] *MOVESCALE)/100) *animAmplitude)/100) speed (((([30.000000] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=1.00
 			move body to y-axis (((([1.936651] *MOVESCALE)/100) *animAmplitude)/100) speed (((([45.960817] *MOVESCALE)/100) *animAmplitude)/100) / animSpeed; //delta=-1.53

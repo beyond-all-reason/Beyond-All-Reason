@@ -130,6 +130,11 @@ local unitIcon = {}	-- {unitDefID = 'icons/'}, retrieves from buildmenu in initi
 	-- TODO: implement resizing via recreation...
 	-- TODO: make highlightability dependend on having mouseEvents by default
 
+-- TOOD 2023.02.19
+	-- rewrite the entire goddamned shader to use a bitmask integer
+	-- and to use rectangles instead of tris
+	-- and to use a smaller number elements 
+
 
 local Draw = {}
 local vsx, vsy = Spring.GetViewGeometry()
@@ -307,7 +312,7 @@ function metaElement:UpdateTextPosition(newtext) -- for internal use only!
 	if newtext.alignment == nil then return end
 	--Spring.Debug.TraceFullEcho(nil,nil,nil,newtext.alignment)
 	if self.textalignments[newtext.alignment] == nil then 
-		--Spring.Echo("Text alignment for",newtext.text, "is invalid:", newtext.alignment)
+		Spring.Echo("Text alignment for",newtext.text, "is invalid:", newtext.alignment)
 		--return 
 	end
 	local elementwidth = self.right - self.left
@@ -387,11 +392,12 @@ function metaElement:DrawText(px,py,onlycount) -- parentx,parenty
 	return count
 end
 
-function metaElement:GetElementUnderMouse(mx,my)
+function metaElement:GetElementUnderMouse(mx,my,depth)
 	if self.hidden then return false end
+	depth = depth or 1
 	local hit = false
 	self.x = 1
-	--Spring.Echo("Testing",self.name, self.left,self.right,self.top,self.bottom)
+	--Spring.Echo("Testing",depth, self.name, self.left,self.right,self.top,self.bottom)
 	if mx >= self.left and mx <= self.right and my <= self.top and my >= self.bottom then hit = true end
 	--Spring.Echo("result:",hit)
 	if hit == false then return nil end
@@ -400,7 +406,7 @@ function metaElement:GetElementUnderMouse(mx,my)
 	local childHit 
 	if self.children then 
 		for _, childElement in pairs(self.children) do -- assume no overlap between children, hit-first
-			childHit = childElement:GetElementUnderMouse(mx,my)
+			childHit = childElement:GetElementUnderMouse(mx,my,depth + 1)
 			if childHit then break end
 		end
 	end
@@ -410,7 +416,7 @@ end
 
 -- Will set all children to that visibility state too!
 function metaElement:SetVisibility(newvisibility)
-	Spring.Echo("SetVisibility", self.name, newvisibility)
+	--Spring.Echo("SetVisibility", self.name, newvisibility)
 	if newvisibility == false then 
 		self.hidden = true -- this is for hit tests
 	else
@@ -466,28 +472,29 @@ function metaElement:Reposition(dx, dy)
 		self.scissorLayer[3] = self.scissorLayer[3] + dx
 		self.scissorLayer[4] = self.scissorLayer[4] + dy
 	end
-
-	-- move parts
-	if self.instanceKeys then 
-		for i,instanceKey in ipairs(self.instanceKeys) do 
-			local VBO = self.VBO or rectRoundVBO
-			local vboCache = self.vboCache
-			getElementInstanceData(VBO, instanceKey, vboCache)
-			vboCache[1] = vboCache[1] + dx
-			vboCache[2] = vboCache[2] + dy
-			vboCache[3] = vboCache[3] + dx
-			vboCache[4] = vboCache[4] + dy
-			pushElementInstance(VBO,self.vboCache, instanceKey, true) 
+	---if not self.hidden then 
+		-- move parts
+		if self.instanceKeys then 
+			for i,instanceKey in ipairs(self.instanceKeys) do 
+				local VBO = self.VBO or rectRoundVBO
+				local vboCache = self.vboCache
+				getElementInstanceData(VBO, instanceKey, vboCache)
+				vboCache[1] = vboCache[1] + dx
+				vboCache[2] = vboCache[2] + dy
+				vboCache[3] = vboCache[3] + dx
+				vboCache[4] = vboCache[4] + dy
+				pushElementInstance(VBO,self.vboCache, instanceKey, true) 
+			end
 		end
-	end
-	-- move text
-	if self.textelements then 
-		for i, textelement in ipairs(self.textelements) do 
-			--Spring.Echo(Spring.GetDrawFrame(),"repos", self.name, textelement.text)
-			--textelement.ox = textelement.ox + dx
-			--textelement.oy = textelement.oy + dy
-		end 
-	end
+		-- move text
+		if self.textelements then 
+			for i, textelement in ipairs(self.textelements) do 
+				--Spring.Echo(Spring.GetDrawFrame(),"repos", self.name, textelement.text)
+				--textelement.ox = textelement.ox + dx
+				--textelement.oy = textelement.oy + dy
+			end 
+		end
+	--end
 	if self.children then
 		for _, childElement in pairs(self.children) do 
 			childElement:Reposition(dx,dy)
@@ -527,8 +534,14 @@ function metaElement:Destroy(depth)
 		end
 	end
 	--deparent
-	self.parent.children[self.name] = nil
-	self.parent = nil
+	if self.parent then 
+		self.parent.children[self.name] = nil
+		self.parent = nil
+	else
+		Spring.Echo("Tried to destroy an orphan element", self.name)
+	end
+	
+	
 end
 
 
@@ -584,9 +597,9 @@ function metaElement:NewSelector(obj) end
 
 function metaElement:NewSlider(o)
 	o.textelements = {
-		{text = string.format('%s = %.'.. tostring(o.digits)..'f (D)',o.name, o.defaultvalue), alignment = 5},
-		{text = string.format('%.'.. tostring(o.digits)..'f',o.min), alignment = 4},
-		{text = string.format('%.'.. tostring(o.digits)..'f',o.max), alignment = 6},}
+		{text = string.format('%s = %.'.. tostring(o.digits)..'f <D>',o.name, o.defaultvalue), alignment = 'center'},
+		{text = string.format('%.'.. tostring(o.digits)..'f',o.min), alignment = 'left'},
+		{text = string.format('%.'.. tostring(o.digits)..'f',o.max), alignment = 'right'},}
 	
 	o.MouseEvents = {
 		left = function(obj, mx, my) 
@@ -599,7 +612,7 @@ function metaElement:NewSlider(o)
 			obj:UpdateVBOKeys('right', newright)
 		end, 
 		right = function(obj, mx, my) 
-			obj.updateValue(obj, obj.defaultvalue, obj.index, " (D)")
+			obj.updateValue(obj, obj.defaultvalue, obj.index, " <D>")
 			local newright = ((obj.value - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
 			obj:UpdateVBOKeys('right', newright)
 			if debugmode then  Spring.Echo("right clicked", obj.name, mx, my, newright, obj.value) end
@@ -616,7 +629,7 @@ function metaElement:NewSlider(o)
 	Spring.Echo('slidervboname',obj.VBO.myName)
 	obj.updateValue = function (obj, newvalue, index, tag)
 		if debugmode then  Spring.Echo("updateValue", obj.name, newvalue, index, tag, obj.valuetarget) end
-
+		local oldvalue = obj.value
 		if newvalue == nil then return end
 		obj.value = newvalue
 		if obj.valuetarget then 
@@ -628,7 +641,7 @@ function metaElement:NewSlider(o)
 		end
 		obj.textelements[1].text =  string.format('%s = %.'.. tostring(obj.digits)..'f' .. (tag or ""),obj.name, newvalue)
 		obj:UpdateTextPosition(obj.textelements[1])
-		if obj.callbackfunc then obj.callbackfunc(obj.name, newvalue, index) end 
+		if obj.callbackfunc then obj.callbackfunc(obj.name, newvalue, index, oldvalue) end 
 	end
 	
 	
@@ -688,6 +701,7 @@ function metaElement:NewWindow(o)
 	--o.parent = windowlayer -- is this fucking parenting itself?
 	
 	local titlebar = metaElement:NewUiElement({
+		name = o.name .. 'titlebar',
 		left = o.left,
 		right = o.right,
 		top = o.top,
@@ -698,6 +712,7 @@ function metaElement:NewWindow(o)
 	})
 	
 	local window = metaElement:NewUiElement({
+		name = o.name .. 'windowcontents',
 		left = o.left,
 		right = o.right,
 		top = o.top - titlebarheight, 
@@ -714,8 +729,8 @@ function metaElement:NewWindow(o)
 		left = o.left + 2, bottom = o.top - (titlebarheight - 2) ,right = o.right - 42, top = o.top - 2,
 		bl = 0, tr = 0, br = 0,
 		parent = titlebar, 
-		tooltip = "drag the window here",
-		textelements = {{text = "Draggy boi", fontsize = 16, alignment = 2},},
+		tooltip = "Drag the window here",
+		textelements = {{text = o.windowtitle or "Draggy boi", fontsize = 16, alignment = 'top'},},
 		MouseEvents= {drag = function (obj, mx, my, lastmx, lastmy)
 			--Spring.Echo(obj.name, 'drag', mx, lastmx, my, lastmy)
 			obj.layer:Reposition(mx - lastmx, my - lastmy) --- ooooh this is really nasty
@@ -732,7 +747,7 @@ function metaElement:NewWindow(o)
 		tooltip = "minimize",
 		minimized = false,
 		delta = o.top - 22 - o.bottom,
-		textelements = {{text = "_", fontsize = 16, alignment = 5},},
+		textelements = {{text = "_", fontsize = 16, alignment = 'center'},},
 		MouseEvents = {left = function(obj, mx, my) 
 			-- hide all children below top
 			-- initstate
@@ -754,42 +769,43 @@ function metaElement:NewWindow(o)
 		br = 0, tl = 0, bl = 0,
 		parent = titlebar, 
 		tooltip = "close",
-		textelements = {{text = "X", fontsize = 16, alignment = 5},},
+		textelements = {{text = "X", fontsize = 16, alignment = 'center'},},
 		MouseEvents = {left = function(obj, mx, my) 
 			Spring.Echo(obj.name, "close")
 			obj.parent.parent:Destroy()
 			end}
 	})
-	
-	-- some rando sliders:
-	for i, rando in ipairs({"one","two","three","four","five","six","seven","eight","nine","ten",'1','2','3','4','5','6','7','8'}) do 
-		if i > 20 then break end
-			local newSliderBorder = metaElement:NewUiElement({
-				LEFT = 4,
-				bottom = o.bottom + (i-1) * 20 + 4, 
-				RIGHT = 4, 
-				top = o.bottom + (i) * 20 + 4,
-				parent = window,
-				bl= 0, br = 0, tl = 0, tr = 0,
-			})
-		
-			local newSlider = metaElement:NewSlider({
-				padding = 2, -- note how not specifying any pos will just pad it within its parent!
-				name = rando,
-				tooltip = rando,
-				min = 1,
-				max = 10, 
-				digits = 2, 
-				parent =newSliderBorder,
-				value = 3,
-				defaultvalue = 3,
-				valuetarget = nil,
-				callbackfunc = function (name,val) Spring.Echo(name,val) end ,
-				index = i,
-			})
-			i = i+1
+	if o.testsliders then 
+		-- some rando sliders:
+		for i, rando in ipairs({"one","two","three","four","five","six","seven","eight","nine","ten",'1','2','3','4','5','6','7','8'}) do 
+			if i > 20 then break end
+				local newSliderBorder = metaElement:NewUiElement({
+					LEFT = 4,
+					bottom = o.bottom + (i-1) * 20 + 4, 
+					RIGHT = 4, 
+					top = o.bottom + (i) * 20 + 4,
+					parent = window,
+					bl= 0, br = 0, tl = 0, tr = 0,
+				})
+			
+				local newSlider = metaElement:NewSlider({
+					padding = 2, -- note how not specifying any pos will just pad it within its parent!
+					name = rando,
+					tooltip = rando,
+					min = 1,
+					max = 10, 
+					digits = 2, 
+					parent =newSliderBorder,
+					value = 3,
+					defaultvalue = 3,
+					valuetarget = nil,
+					callbackfunc = function (name,val) Spring.Echo(name,val) end ,
+					index = i,
+				})
+				i = i+1
+		end
 	end
-	return windowlayer
+	return windowlayer, window
 end
 
 local function BringLayerToFront(layername)
@@ -860,7 +876,9 @@ local function uiUpdate(mx,my,left,middle,right)
 		bringtofront = true
 	end
 	
-	
+	if lasthitelement ~= elementundercursor and elementundercursor then 
+		--Spring.Echo("hit",elementundercursor.name, elementundercursor.left, elementundercursor.right, elementundercursor.bottom, -elementundercursor.top)
+	end
 	
 	lasthitelement = elementundercursor
 	if elementundercursor and elementundercursor.MouseEvents then 
@@ -979,10 +997,15 @@ local sliderListConfig = {
 	callbackfunc = function (a,b,c) Spring.Echo("Callback",a,b,c) end,
 }
 
+local function requestWidgetLayer(widgetLayerParameters)
+	local newWindow, contents = metaElement:NewWindow(widgetLayerParameters)
+	return newWindow, contents
+end
+
 
 local function makeSliderList(sliderListConfig)
 	local width = sliderListConfig.width or 200
-	local height = sliderListConfig.height or 50
+	local sliderheight = sliderListConfig.sliderheight or 50
 	local left = sliderListConfig.left or 0
 	local bottom = sliderListConfig.bottom or 0 
 	local valuetarget= sliderListConfig.valuetarget
@@ -999,11 +1022,17 @@ local function makeSliderList(sliderListConfig)
 		end
 	end
 	-- create a UI container:
-	local container = metaElement:NewUiElement({
-		name = sliderListConfig.name, left = left -4, bottom = bottom -4, right = left + width + 4, top = bottom + (numelements + 1) * height + 4,
-		color1 = {1,1,1,0.5}, color2 = {0,0,0,1.0}, opacity = 0.2,
-		parent = ROOT
-	})
+	local container 
+	
+	if sliderListConfig.parent == nil then 
+		container = metaElement:NewUiElement({
+			name = sliderListConfig.name, left = left -4, bottom = bottom -4, right = left + width + 4, top = bottom + (numelements + 1) * sliderheight + 4,
+			color1 = {1,1,1,0.5}, color2 = {0,0,0,1.0}, opacity = 0.2,
+			parent = ROOT
+		})
+	else 
+		container = sliderListConfig.parent
+	end
 	
 	for sliderorder, sliderParams in ipairs(sliderListConfig.sliderParamsList) do 
 		local nest = false
@@ -1017,10 +1046,11 @@ local function makeSliderList(sliderListConfig)
 			local nestname = ( nest and tostring(index)) or ""
 			if nest == false then index = nil end 
 			local newSlider = metaElement:NewSlider({
-				left = left,
-				bottom = bottom + i * height, 
-				right = left + width, 
-				top = bottom + i * height + (height - 4),
+				--left = left,
+				padding = 4,
+				bottom = bottom + i * sliderheight, 
+				--right = left + width, 
+				top = bottom + i * sliderheight + (sliderheight - 4),
 				name = sliderParams.name..nestname,
 				tooltip = sliderParams.tooltip,
 				min = sliderParams.min,
@@ -1039,16 +1069,17 @@ local function makeSliderList(sliderListConfig)
 	end 
 	
 	local savebutton = metaElement:NewButton({
-		left = left,
-		bottom = bottom + (i ) * height,
-		right = left + width,
-		top = bottom + (i + 1) * height,
+		padding = 4,
+		--left = left,
+		bottom = bottom + (i ) * sliderheight,
+		--right = left + width,
+		top = bottom + (i + 1) * sliderheight,
 		parent = container,
 		MouseEvents = {left = function() 
 			Spring.Echo("Exporting Settings") 
 			Spring.Debug.TableEcho(valuetarget)
 		end},
-		textelements = {{text = "Export "..sliderListConfig.name, fontsize = 16, alignment = 5},},
+		textelements = {{text = "Export "..sliderListConfig.name, fontsize = 16, alignment = 'center'},},
 	})
 	return container
 end 
@@ -1120,46 +1151,44 @@ local function makeunitbuttonarray()
 end
 
 local function AddRecursivelySplittingButton()
-					local newbtn = metaElement:NewButton({
-						left = 300 ,
-						bottom = 100 ,
-						right = 1100 ,
-						top = 200 ,
-						parent = ROOT,
-						MouseEvents = {left = function(obj) 
-								-- add two buttons above self
-								local lefthalf = metaElement:NewButton({
-										left = obj.left,
-										bottom = obj.bottom,
-										right = obj.left + (obj.right - obj.left)/2,
-										top = obj.top,
-										MouseEvents = obj.MouseEvents,
-										textelements = {{text = "left",ox = 0, oy= 0,fontsize = 16,textoptions = 'B',alignment = 5},},
-										parent = obj,
-									})
-								local righthalf = metaElement:NewButton({
-										left = obj.left + (obj.right - obj.left)/2,
-										bottom = obj.bottom,
-										right = obj.right,
-										top = obj.top,
-										MouseEvents = obj.MouseEvents,
-										textelements = {{text = "right",ox = 0, oy= 0,fontsize = 16,textoptions = 'B',alignment = 5},},
-										parent = obj,
-										})
-			
-								Spring.Echo("left clicked unit",obj.name, instanceKeys) 
-						end, 
-							right = function(obj)
-								-- destroy self
-								Spring.Echo("right clicked", obj.name)
-								obj:Destroy()
-							end
-						},
-						textelements = {{text = "splitme",ox = 0, oy= 0,fontsize = 16,textoptions = 'B',alignment = 5},},
-						
+	local newbtn = metaElement:NewButton({
+		left = 300 ,
+		bottom = 100 ,
+		right = 1100 ,
+		top = 200 ,
+		parent = ROOT,
+		MouseEvents = {left = function(obj) 
+				-- add two buttons above self
+				local lefthalf = metaElement:NewButton({
+						left = obj.left,
+						bottom = obj.bottom,
+						right = obj.left + (obj.right - obj.left)/2,
+						top = obj.top,
+						MouseEvents = obj.MouseEvents,
+						textelements = {{text = "left",ox = 0, oy= 0,fontsize = 16,textoptions = 'B',alignment = 5},},
+						parent = obj,
 					})
-					
+				local righthalf = metaElement:NewButton({
+						left = obj.left + (obj.right - obj.left)/2,
+						bottom = obj.bottom,
+						right = obj.right,
+						top = obj.top,
+						MouseEvents = obj.MouseEvents,
+						textelements = {{text = "right",ox = 0, oy= 0,fontsize = 16,textoptions = 'B',alignment = 5},},
+						parent = obj,
+						})
 
+				Spring.Echo("left clicked unit",obj.name, instanceKeys) 
+		end, 
+			right = function(obj)
+				-- destroy self
+				Spring.Echo("right clicked", obj.name)
+				obj:Destroy()
+			end
+		},
+		textelements = {{text = "splitme",ox = 0, oy= 0,fontsize = 16,textoptions = 'B',alignment = 5},},
+		
+	})
 end
 
 --[[
@@ -1821,9 +1850,9 @@ end
 		tl, tr, br, bl = enable/disable corners for TopLeft, TopRight, BottomRight, BottomLeft (default: 1)
 		ptl, ptr, pbr, pbl = inner border padding/size multiplier (default: 1) (set to 0 when you want to attach this ui element to another element so there is only padding done by one of the 2 elements)
 		opacity = (default: ui_opacity springsetting)
-		color1, color2 = (color1[4 value overrides the opacity param defined above)
+		color1, color2 = (color1[4] value overrides the opacity param defined above)
 		bgpadding = custom border size
-]]
+]]--
 
 Draw.Element = function(VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
 	local opacity = opacity or Spring.GetConfigFloat("ui_opacity", 0.6)
@@ -2356,6 +2385,7 @@ function widget:Initialize()
 	
 	WG['flowui_gl4'] = {}
 	WG['flowui_gl4'].forwardslider = forwardslider
+	WG['flowui_gl4'].requestWidgetLayer = requestWidgetLayer
 	
 	--WG['flowui_shader'] = rectRoundShader
 	--WG['flowui_draw'] = Draw
@@ -2384,17 +2414,10 @@ function widget:Initialize()
 	--makeunitbuttonarray()
 	--makeSliderList(sliderListConfig)
 	--AddRecursivelySplittingButton()
+	--local mywindow = metaElement:NewWindow({name = 'W'..tostring(i), left = 300+1*200, right = 490+1*200, top = 600, bottom = 200, testsliders = true})
+
 	
 
-	for i = 1, 2 do
-		local mywindow = metaElement:NewWindow({name = 'W'..tostring(i), left = 300+i*200, right = 490+i*200, top = 600, bottom = 200})
-		--local mywindow2 = metaElement:NewWindow({name = 'testwindow2', left = 300+i*200, right = 500+i*200, top = 600, bottom = 200})
-	end 
-	
-	for i = 1, 2 do
-		local mywindow = metaElement:NewWindow({name = 'Z'..tostring(i), left = 300+i*200, right = 490+i*200, top = 1000, bottom = 610})
-		--local mywindow2 = metaElement:NewWindow({name = 'testwindow2', left = 300+i*200, right = 500+i*200, top = 600, bottom = 200})
-	end 
 end
 
 function widget:Shutdown()
@@ -2429,7 +2452,7 @@ function widget:Update()
 			end
 			if aclear then nonoverlapping[LayerDrawOrder[a]] = true end 
 		end
-		Spring.Echo("overlaps:", numoverlapping)
+		--Spring.Echo("overlaps:", numoverlapping)
 	end
 end
 

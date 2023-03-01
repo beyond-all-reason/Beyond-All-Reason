@@ -44,7 +44,6 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
-local uiOpacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local uiScale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local height = setHeight * uiScale
 local posX = 0
@@ -441,6 +440,10 @@ function widget:Update(dt)
 	sec = sec + dt
 	sec2 = sec2 + dt
 
+	if buildmenuAlwaysShow ~= WG['buildmenu'].getAlwaysShow() then
+		widget:ViewResize()
+		doUpdate = true
+	end
 	if buildmenuBottomPosition and not buildmenuAlwaysShow and WG['buildmenu'] and WG['info'] then
 		if (not selectedUnits[1] or not WG['buildmenu'].getIsShowing()) and (posX > 0 or not WG['info'].getIsShowing()) then
 			if posY ~= 0 then
@@ -460,7 +463,7 @@ function widget:Update(dt)
 		hovered = true
 		local tooltipAddition = ''
 		if numGroups >= 1 then
-			tooltipAddition = tooltipAddition .. Spring.I18N('ui.unitGroups.shiftclick')..'\n'..Spring.I18N('ui.unitGroups.ctrlclick')
+			tooltipAddition = tooltipAddition .. Spring.I18N('ui.unitGroups.shiftclick')..'\n'..Spring.I18N('ui.unitGroups.ctrlclick')..'\n'..Spring.I18N('ui.unitGroups.rightclick')
 		end
 		tooltipAddition = tooltipAddition .. (tooltipAddition~='' and '\n' or '') .. Spring.I18N('ui.unitGroups.tooltip')
 		if WG['autogroup'] ~= nil then
@@ -539,15 +542,6 @@ function widget:Update(dt)
 				widget:ViewResize()
 				doUpdate = true
 			end
-		end
-		if uiScale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			uiScale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize()
-			doUpdate = true
-		end
-		if uiOpacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			doUpdate = true
 		end
 
 		doUpdate = true	-- TODO: find a way to detect group changes and only doUpdate then

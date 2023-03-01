@@ -918,8 +918,8 @@ local function initBinsAndTextures()
 				featuresDefsWithAlpha[-1 * featureDefID] = "yes"
 			elseif featureDef.name:find("_dead", nil, true) or featureDef.name:find("_heap", nil, true) then
 				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
-			elseif featureDef.name:find("pilha_crystal", nil, true) then
-				objectDefToUniformBin[-1 * featureDefID] = 'featurepbr'
+			elseif featureDef.name:find("pilha_crystal", nil, true) or (featureDef.customParams and featureDef.customParams.cuspbr) then
+				objectDefToUniformBin[-1 * featureDefID] = 'featurepbr'	
 			end
 			--Spring.Echo("Assigned normal map to", featureDef.name, normalTex)
 

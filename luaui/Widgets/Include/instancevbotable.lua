@@ -104,17 +104,20 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 			if index then 
 				local instanceStep = self.instanceStep
 				local instanceData = self.instanceData
+				
+				local dstpos = newUsedElements * instanceStep
+				local srcpos = (i - 1) * instanceStep
 				for j=1, instanceStep do 
-					newInstanceData[newUsedElements * instanceStep + j] = instanceData[(i-1)*instanceStep +j]
+					newInstanceData[dstpos + j] = instanceData[srcpos +j]
 				end
 				newUsedElements = newUsedElements + 1
 				newInstanceIDtoIndex[instanceID] = newUsedElements
 				newIndexToInstanceID[newUsedElements] = instanceID
 			else
-			    Spring.Echo("compacting index",i, 'instanceID', instanceID) 
+			    --Spring.Echo("compacting index",i, 'instanceID', instanceID) 
 			end
 		end
-		Spring.Echo("Post compacting", self.usedElements, newUsedElements)
+		--Spring.Echo("Post compacting", self.usedElements, newUsedElements)
 		self.usedElements = newUsedElements
 		self.instanceIDtoIndex = newInstanceIDtoIndex
 		self.indextoInstanceID = newIndexToInstanceID

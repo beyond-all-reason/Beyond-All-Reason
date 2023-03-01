@@ -127,6 +127,9 @@ local capturePieParts = 4 + floor(captureRadius / 8)
 
 local RectRound, UiElement, elementCorner
 
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = {1,0,0}
+
 -----------------------------------------------------------------------------------------
 -- creates initial player listing
 -----------------------------------------------------------------------------------------
@@ -145,8 +148,14 @@ local function createPlayerList()
 				if playerEntries[allyTeamID][teamId] == nil then
 					playerEntries[allyTeamID][teamId] = {}
 				end
-				local r, g, b = Spring.GetTeamColor(teamId)
+				local r, g, b
+				if anonymousMode then
+					r, g, b = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+				else
+					r, g, b = Spring.GetTeamColor(teamId)
+				end
 				local playerTeamColor = string.char("255", r * 255, g * 255, b * 255)
+
 				for k, v in pairs(playerList) do
 					-- does this player have an entry? if not, make one!
 					if playerEntries[allyTeamID][teamId][v] == nil then
@@ -533,7 +542,12 @@ local function drawScoreboard()
 				end
 				--get AI info?
 			end
-			local r, g, b = Spring.GetTeamColor(team)
+			local r, g, b
+			if anonymousMode then
+				r, g, b = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+			else
+				r, g, b = Spring.GetTeamColor(team)
+			end
 			local color = string.char("255", r * 255, g * 255, b * 255)
 			Text(color .. name .. "'s team", scoreboardX - (((scoreboardWidth/2) - 10)*uiScale), scoreboardY + (((scoreboardHeight/2) - 22 - (55 * allyCounter - 1))*uiScale), 16*uiScale, "lo")
 			Text(white .. "\255\200\200\200Score: \255\255\255\255" .. allyScore, scoreboardX - (((scoreboardWidth/2) - 10)*uiScale), scoreboardY + (((scoreboardHeight/2) - 42 - (55 * allyCounter - 1))*uiScale), 16*uiScale, "lo")

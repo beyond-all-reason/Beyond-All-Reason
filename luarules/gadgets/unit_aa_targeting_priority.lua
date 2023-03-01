@@ -13,6 +13,13 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
+	local targetPriority = {
+		Bombers = 1,
+		Vtols = 10,
+		Fighters = 20,
+		Scouts = 1000,
+	}
+
 	local airCategories = {}
 	local hasPriorityAir = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -26,7 +33,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			for i = 1, #weapons do
 				local weaponDef = WeaponDefs[weapons[i].weaponDef]
-				if weaponDef.type == 'AircraftBomb' then
+				if weaponDef.type == 'AircraftBomb' or weaponDef.type == 'TorpedoLauncher' or string.find(weaponDef.name, 'arm_pidr') then
 					airCategories[unitDefID] = "Bombers"
 				elseif weapons[i].onlyTargets.vtol then
 					airCategories[unitDefID] = "Fighters"
@@ -37,7 +44,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		for i = 1, #weapons do
-			local weaponDef = WeaponDefs[weapons[i].weaponDef]
 			if weapons[i].onlyTargets.vtol then
 				hasPriorityAir[unitDefID] = true
 
@@ -55,25 +61,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local spSetUnitRulesParam = Spring.SetUnitRulesParam
-	local spGetUnitRulesParam = Spring.GetUnitRulesParam
-
-	function gadget:Initialize()
-		for _, unitID in ipairs(Spring.GetAllUnits()) do
-			local unitDefID = Spring.GetUnitDefID(unitID)
-			gadget:UnitCreated(unitID, unitDefID)
-		end
-	end
-
-	function gadget:UnitCreated(unitID, unitDefID)
-		if hasPriorityAir[unitDefID] then
-			spSetUnitRulesParam(unitID, "targetPriorityBombers", 1) -- so we got bombers only (t1&t2 and all torpedo)
-			spSetUnitRulesParam(unitID, "targetPriorityVtols", 10) -- so we got the rest cons,all strafe etc but non bomber class
-			spSetUnitRulesParam(unitID, "targetPriorityFighters", 20) -- so we got fighters only
-			spSetUnitRulesParam(unitID, "targetPriorityScouts", 1000) -- no priortiy
-		end
-	end
-
 	function gadget:AllowWeaponTarget(unitID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
 		if targetID == -1 and attackerWeaponNum == -1 then
 			return true, defPriority
@@ -81,9 +68,8 @@ if gadgetHandler:IsSyncedCode() then
 		local unitDefID = Spring.GetUnitDefID(targetID)
 		if unitDefID then
 			local priority = defPriority or 1.0
-			if airCategories[unitDefID] and spGetUnitRulesParam(unitID, "targetPriorityFighters") then
-				-- and spGetUnitRulesParam(unitID, "targetPriorityBombers") and spGetUnitRulesParam(unitID, "targetPriorityScouts"))
-				priority = priority * spGetUnitRulesParam(unitID, ("targetPriority" .. airCategories[unitDefID]))
+			if airCategories[unitDefID] and hasPriorityAir[Spring.GetUnitDefID(unitID)] then
+				priority = priority * targetPriority[airCategories[unitDefID]]
 			end
 			return true, priority
 		end

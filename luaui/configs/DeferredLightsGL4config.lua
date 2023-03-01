@@ -16679,9 +16679,9 @@ local unitEventLights = {
 				alwaysVisible = true,
 				lightConfig = { posx = 0, posy = 7, posz = 31, radius = 22,
 					color2r = 1, color2g = 0.2, color2b = 0, colortime = 200,
-					r = 0.5, g = 0.1, b = 0, a = 0.6,
+					r = 0.4, g = 0.06, b = 0, a = 0.6,
 					modelfactor = 2, specular = 1, scattering = 0.4, lensflare = 0,
-					lifetime = 200, sustain = 2},
+					lifetime = 200, sustain = 3},
 			},
 			[2] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
@@ -16689,10 +16689,10 @@ local unitEventLights = {
 				lightName = 'armrazrbarrelglow',
 				alwaysVisible = true,
 				lightConfig = { posx = 0, posy = 7, posz = 31, radius = 22,
-					color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 400,
-					r = 1, g = 0.2, b = 0, a = 0.6,
+					color2r = 1, color2g = 0.2, color2b = 0, colortime = 200,
+					r = 0.3, g = 0.06, b = 0, a = 0.6,
 					modelfactor = 2, specular = 1, scattering = 0.4, lensflare = 0,
-					lifetime = 200, sustain = 2},
+					lifetime = 200, sustain = 3},
 			},
 		},
 
@@ -16766,6 +16766,17 @@ local unitEventLights = {
 	------------------------------- Put additional lights tied to events here! --------------------------------
 	UnitIdle =  {
 		[UnitDefNames['armcom'].id] = {
+			idleBlink = {
+				lightType = 'point',
+				pieceName = 'head',
+				lightConfig = { posx = 0, posy = 20, posz = 0, radius = 110,
+					color2r = 0, color2g = 0, color2b = 0, colortime = 6,
+					r = -1, g = 1, b = 1, a = 0.25,
+					modelfactor = 0.2, specular = 0.6, scattering = 0.7, lensflare = 1,
+					lifetime = 12, sustain = 0, animtype = 0},
+			},
+		},
+		[UnitDefNames['corcom'].id] = {
 			idleBlink = {
 				lightType = 'point',
 				pieceName = 'head',
@@ -16957,7 +16968,7 @@ local featureDefLights = {
 local crystalLightBase =  {
 			lightType = 'point',
 			lightConfig = { posx = 0, posy = 12, posz = 0, radius = 72,
-							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0.1,
 							r = -1, g = 1, b = 1, a = 0.66,
 							modelfactor = 1.1, specular = 0.9, scattering = 0.8, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
@@ -16969,11 +16980,11 @@ local crystalColors = { -- note that the underscores are needed here
 	_blue = {0,0,1,0.33}, 
 	_green = {0,1,0,0.15}, 
 	_lime = {0.4,1,0.2,0.15},
-	_obsidian = {1,1,1,0.33},
-	_quartz = {1,1,1,0.33}, 
+	_obsidian = {0.3,0.2,0.2,0.33},
+	_quartz = {0.3,0.3,0.5,0.33}, 
 	_orange = {1,0.5,0,0.11}, 
 	_red = {1,0.2,0.2,0.067}, 
-	_teal = {0,1,1,0.33},
+	_teal = {0,1,1,0.15},
 	_team = {1,1,1,0.15},
 	}
 
@@ -16986,6 +16997,13 @@ for colorname, colorvalues in pairs(crystalColors) do
 			crystalLight.lightConfig.g = colorvalues[2]
 			crystalLight.lightConfig.b = colorvalues[3]
 			crystalLight.lightConfig.a = colorvalues[4]
+			
+			crystalLight.lightConfig.color2r   = colorvalues[1] * 0.6
+			crystalLight.lightConfig.color2g   = colorvalues[2] * 0.6
+			crystalLight.lightConfig.color2b   = colorvalues[3] * 0.6
+			crystalLight.lightConfig.colortime = 0.002 + 0.01 / size 
+			
+			
 			crystalLight.lightConfig.radius = (size + 0.2) * (crystalLight.lightConfig.radius * 0.6)
 			crystalLight.lightConfig.posy = (size + 1.5) * crystalLight.lightConfig.posy
 			featureDefLights[FeatureDefNames[crystaldefname].id] = {crystalLight = crystalLight}

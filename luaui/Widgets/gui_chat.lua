@@ -101,6 +101,9 @@ local inputTextPosition = 0
 local cursorBlinkTimer = 0
 local cursorBlinkDuration = 1
 
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = {1,0,0}
+
 local inputMode = ''
 if isSpec then
 	inputMode = 's:'
@@ -469,6 +472,9 @@ end
 
 local function colourNames(teamID)
 	local nameColourR, nameColourG, nameColourB = Spring.GetTeamColor(teamID)
+	if not isSpec and anonymousMode then
+		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+	end
 	local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
 	local G255 = math.floor(nameColourG * 255)
 	local B255 = math.floor(nameColourB * 255)
@@ -2022,7 +2028,6 @@ function widget:Shutdown()
 	clearDisplayLists()	-- console/chat displaylists
 	glDeleteList(textInputDlist)
 	WG['chat'] = nil
-	Spring.SendCommands("console 1")
 	if WG['guishader'] then
 		WG['guishader'].RemoveRect('chat')
 		WG['guishader'].RemoveRect('chatinput')
