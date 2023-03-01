@@ -16776,6 +16776,17 @@ local unitEventLights = {
 					lifetime = 12, sustain = 0, animtype = 0},
 			},
 		},
+		[UnitDefNames['corcom'].id] = {
+			idleBlink = {
+				lightType = 'point',
+				pieceName = 'head',
+				lightConfig = { posx = 0, posy = 20, posz = 0, radius = 110,
+					color2r = 0, color2g = 0, color2b = 0, colortime = 6,
+					r = -1, g = 1, b = 1, a = 0.25,
+					modelfactor = 0.2, specular = 0.6, scattering = 0.7, lensflare = 1,
+					lifetime = 12, sustain = 0, animtype = 0},
+			},
+		},
 		--[[
 		[UnitDefNames['armstump'].id] = { -- BLINK BLINK
 			idleBlink = {
