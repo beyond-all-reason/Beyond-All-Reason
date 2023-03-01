@@ -315,6 +315,12 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+-- This table stores gadget paths that we want to override game side. 
+-- Please indicate why you are adding each file in a comment
+local VFSMODE_OVERRIDE = {
+	['luagaia/gadgets/fp_featureplacer.lua'] = VFS.GAME
+	}
+
 function gadgetHandler:Initialize()
 	local syncedHandler = Script.GetSynced()
 
@@ -330,7 +336,7 @@ function gadgetHandler:Initialize()
 	-- stuff the gadgets into unsortedGadgets
 	for k, gf in ipairs(gadgetFiles) do
 		--    Spring.Echo('gf2 = ' .. gf) -- FIXME
-		local gadget = self:LoadGadget(gf)
+		local gadget = self:LoadGadget(gf, VFSMODE_OVERRIDE[string.lower(gf)])
 		if gadget then
 			table.insert(unsortedGadgets, gadget)
 			if not IsSyncedCode() and doMoreYield then
@@ -372,7 +378,7 @@ function gadgetHandler:Initialize()
 	end
 end
 
-function gadgetHandler:LoadGadget(filename)
+function gadgetHandler:LoadGadget(filename, overridevfsmode)
 	local kbytes = false -- set to number to enable
 	if kbytes and collectgarbage then -- only present in special debug builds, otherwise collectgarbage is not preset in synced context!
 		collectgarbage("collect") -- call it twice, mark
@@ -381,7 +387,7 @@ function gadgetHandler:LoadGadget(filename)
 	end
 
 	local basename = Basename(filename)
-	local text = VFS.LoadFile(filename, VFSMODE)
+	local text = VFS.LoadFile(filename, overridevfsmode or VFSMODE)
 	if text == nil then
 		Spring.Log(LOG_SECTION, LOG.ERROR, 'Failed to load: ' .. filename)
 		return nil
