@@ -48,6 +48,7 @@ local drawAlliesLabel = false
 local alwaysHideSpecs = true
 local lockcameraHideEnemies = true            -- specfullview
 local lockcameraLos = true                    -- togglelos
+local minWidth = 190	-- for the sake of giving the addons some room
 
 local hideDeadTeams = true
 local absoluteResbarValues = false
@@ -154,6 +155,9 @@ local originalColourNames = {} -- loaded in SetOriginalColourNames, format is or
 
 local apiAbsPosition = { 0, 0, 0, 0, 1, 1, false }
 
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = {1,0,0}
+
 --------------------------------------------------------------------------------
 -- Colors
 --------------------------------------------------------------------------------
@@ -247,6 +251,14 @@ local teamSideThree = "legion"
 local absentName = " --- "
 
 local gameStarted = false
+
+local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+
+local isSingle = false
+if not mySpecStatus then
+	local teamList = Spring.GetTeamList(myAllyTeamID) or {}
+	isSingle = #teamList == 1
+end
 --------------------------------------------------------------------------------
 -- Button check variable
 --------------------------------------------------------------------------------
@@ -526,15 +538,19 @@ function SetModulesPositionX()
     for _, module in ipairs(modules) do
         module.posX = pos
         if module.active and (module.name ~= 'share' or not hideShareIcons) then
-            if mySpecStatus then
-                if module.spec then
-                    pos = pos + module.width
-                end
-            else
-                if module.play then
-                    pos = pos + module.width
-                end
-            end
+			if (module.name == 'cpuping' and isSinglePlayer) or (module.name == 'resources' and isSingle) then
+
+			else
+				if mySpecStatus then
+					if module.spec then
+						pos = pos + module.width
+					end
+				else
+					if module.play then
+						pos = pos + module.width
+					end
+				end
+			end
 
             widgetWidth = pos + 1
             if widgetWidth < 20 then
@@ -543,6 +559,9 @@ function SetModulesPositionX()
             updateWidgetScale()
         end
     end
+	if widgetWidth < minWidth then
+		widgetWidth = minWidth
+	end
 end
 
 function SetMaxPlayerNameWidth()
@@ -1249,6 +1268,9 @@ function CreatePlayer(playerID)
     local tname, _, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank = Spring_GetPlayerInfo(playerID, false)
     local _, _, _, _, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(tteam, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(tteam)
+	if not mySpecStatus and anonymousMode and playerID ~= myPlayerID then
+		tred, tgreen, tblue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+	end
 
     --skill
     local tskill
@@ -1326,6 +1348,9 @@ function CreatePlayerFromTeam(teamID)
     -- for when we don't have a human player occupying the slot, also when a player changes team (dies)
     local _, _, isDead, isAI, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(teamID, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(teamID)
+	if not mySpecStatus and anonymousMode and playerID ~= myPlayerID then
+		tred, tgreen, tblue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+	end
     local tname, ttotake, tskill, tai
     local tdead = true
 
@@ -1686,8 +1711,14 @@ function widget:DrawScreen()
     if Spring_IsGUIHidden() then
         return
     end
-
-    local mouseX, mouseY, mouseButtonL = Spring_GetMouseState()
+    local mouseX, mouseY, mouseButtonL, mmb, rmb, mouseOffScreen, cameraPanMode = Spring.GetMouseState()
+    --if cameraPanMode then
+    --    if BackgroundGuishader then
+    --        WG['guishader'].RemoveDlist('advplayerlist')
+    --        BackgroundGuishader = gl_DeleteList(BackgroundGuishader)
+    --    end
+    --    return
+    --end
 
     -- update lists frequently if there is mouse interaction
     --local NeedUpdate = false
@@ -1854,6 +1885,7 @@ function CreateBackground()
     end
 
     if WG['guishader'] then
+        BackgroundGuishader = gl_DeleteList(BackgroundGuishader)
         BackgroundGuishader = gl_CreateList(function()
             RectRound(absLeft, absBottom, absRight, absTop, elementCorner, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
         end)
@@ -2159,7 +2191,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
             DrawAlly(posY, player[playerID].team)
         end
 
-        if (m_resources.active or m_income.active) and aliveAllyTeams[allyteam] ~= nil and player[playerID].energy ~= nil then
+        if not isSingle and (m_resources.active or m_income.active) and aliveAllyTeams[allyteam] ~= nil and player[playerID].energy ~= nil then
             if mySpecStatus or myAllyTeamID == allyteam then
                 local e = player[playerID].energy
                 local es = player[playerID].energyStorage
@@ -2190,7 +2222,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
         end
     end
 
-    if m_cpuping.active then
+    if m_cpuping.active and not isSinglePlayer then
         if cpuLvl ~= nil then
             -- draws CPU usage and ping icons (except AI and ghost teams)
             DrawPingCpu(pingLvl, cpuLvl, posY, spec, 1, cpu, lastFpsData[playerID])
@@ -2452,6 +2484,9 @@ end
 
 function colourNames(teamID)
     local nameColourR, nameColourG, nameColourB, nameColourA = Spring_GetTeamColor(teamID)
+	if not mySpecStatus and anonymousMode and playerID ~= myPlayerID then
+		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+	end
     local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
     local G255 = math.floor(nameColourG * 255)
     local B255 = math.floor(nameColourB * 255)
@@ -2532,7 +2567,11 @@ function DrawName(name, team, posY, dark, playerID)
 
     font2:Begin()
     if dark then
-        font2:SetTextColor(Spring_GetTeamColor(team))
+		if not mySpecStatus and anonymousMode and playerID ~= myPlayerID then
+			font2:SetTextColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3], 1)
+		else
+			font2:SetTextColor(Spring_GetTeamColor(team))
+		end
         font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.8, 0.75 * widgetScale))
         font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o")
     else
@@ -2540,7 +2579,11 @@ function DrawName(name, team, posY, dark, playerID)
         font2:SetOutlineColor(0, 0, 0, 0.4)
         font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, 14, "n") -- draws name
         font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, 14, "n") -- draws name
-        font2:SetTextColor(Spring_GetTeamColor(team))
+		if not mySpecStatus and anonymousMode and playerID ~= myPlayerID then
+			font2:SetTextColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3], 1)
+		else
+			font2:SetTextColor(Spring_GetTeamColor(team))
+		end
         font2:SetOutlineColor(0, 0, 0, 1)
         font2:Print( nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
     end
@@ -3442,7 +3485,11 @@ function CheckPlayersChange()
                     player[player[i].team + 64] = CreatePlayerFromTeam(player[i].team)
                 end
                 player[i].team = teamID
-                player[i].red, player[i].green, player[i].blue = Spring_GetTeamColor(teamID)
+				if not mySpecStatus and anonymousMode and playerID ~= myPlayerID then
+					player[i].red, player[i].green, player[i].blue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+				else
+					player[i].red, player[i].green, player[i].blue = Spring_GetTeamColor(teamID)
+				end
                 player[i].dark = GetDark(player[i].red, player[i].green, player[i].blue)
                 player[i].skill = GetSkill(i)
                 sorting = true

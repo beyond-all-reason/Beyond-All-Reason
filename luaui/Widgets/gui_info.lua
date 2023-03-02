@@ -54,6 +54,7 @@ local tooltipValueWhiteColor = '\255\255\255\255'
 local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor .. ": Select\n " .. tooltipTextColor .. "   + CTRL" .. tooltipLabelTextColor .. ": Select units of this type on map\n " .. tooltipTextColor .. "   + ALT" .. tooltipLabelTextColor .. ": Select 1 single unit of this unit type\n " .. tooltipTextColor .. "Right click" .. tooltipLabelTextColor .. ": Remove\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Remove only 1 unit from that unit type\n " .. tooltipTextColor .. "Middle click" .. tooltipLabelTextColor .. ": Move to center location\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Move to center off whole selection"
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = {1,0,0}
 
 local iconTypesMap, dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
 local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures, chobbyInterface
@@ -530,9 +531,6 @@ function widget:Update(dt)
 		end
 		return
 	end
-	if dlistGuishader then
-		infoShows = true
-	end
 
 	sec2 = sec2 + dt
 	if sec2 > 0.5 then
@@ -563,6 +561,33 @@ function widget:Update(dt)
 		if alwaysShow or not emptyInfo then
 			checkGuishader()
 		end
+	end
+
+
+	if ViewResizeUpdate then
+		ViewResizeUpdate = nil
+	end
+
+	if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) or (os_clock() >= doUpdateClock2) then
+		doUpdateClock = nil
+		doUpdateClock2 = os_clock() + 0.9
+		clear()
+		doUpdate = nil
+		lastUpdateClock = os_clock()
+	end
+
+	if displayUnitID and not Spring.ValidUnitID(displayUnitID) then
+		displayMode = 'text'
+		displayUnitID = nil
+		displayUnitDefID = nil
+	end
+
+	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) or chobbyInterface then
+		return
+	end
+
+	if alwaysShow or not emptyInfo or Spring.GetGameFrame() == 0 then
+		infoShows = true
 	end
 end
 
@@ -954,15 +979,23 @@ local function drawUnitInfo()
 
 		-- display unit owner name
 		local teamID = Spring.GetUnitTeam(displayUnitID)
-		if mySpec or (myTeamID ~= teamID and not Spring.GetModOptions().teamcolors_anonymous_mode) then --anonymousMode) then
+		if mySpec or (myTeamID ~= teamID) then
 			local _, playerID, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
 			local name = Spring.GetPlayerInfo(playerID, false)
 			if isAiTeam then
 				name = GetAIName(teamID)
 			end
+			if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode then
+				name = "??????"
+			end
 			if name then
 				local fontSizeOwner = fontSize * 0.87
-				font2:Print(ColourString(Spring.GetTeamColor(teamID))..name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
+				--if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode then
+				--	name = ColourString(1,0,0) .. name
+				--else
+					name = ColourString(Spring.GetTeamColor(myTeamID)) .. name
+				--end
+				font2:Print(name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
 			end
 		end
 	else
@@ -1488,7 +1521,7 @@ function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if infoShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		return true
 	end
 end
@@ -1609,34 +1642,13 @@ end
 local doUpdateClock2 = os_clock() + 0.9
 function widget:DrawScreen()
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
-	if not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0 then
+
+	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) or chobbyInterface then
 		if dlistGuishader then
 			WG['guishader'].DeleteDlist('info')
 			dlistGuishader = nil
 		end
 		return
-	end
-
-	if chobbyInterface then
-		return
-	end
-
-	if ViewResizeUpdate then
-		ViewResizeUpdate = nil
-	end
-
-	if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) or (os_clock() >= doUpdateClock2) then
-		doUpdateClock = nil
-		doUpdateClock2 = os_clock() + 0.9
-		clear()
-		doUpdate = nil
-		lastUpdateClock = os_clock()
-	end
-
-	if displayUnitID and not Spring.ValidUnitID(displayUnitID) then
-		displayMode = 'text'
-		displayUnitID = nil
-		displayUnitDefID = nil
 	end
 
 	if not dlistInfo then
@@ -1651,9 +1663,8 @@ function widget:DrawScreen()
 		dlistGuishader = nil
 	end
 
-
 	-- widget hovered
-	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if infoShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 
 		Spring.SetMouseCursor('cursornormal')
 

@@ -97,7 +97,6 @@ local hiddenCommands = {
 	[CMD.TIMEWAIT] = true,
 	[39812] = true, -- raw move
 	[34922] = true, -- set unit target
-	[34567] = true, -- setpriority
 }
 
 local hiddenCommandTypes = {
@@ -429,7 +428,7 @@ function widget:Update(dt)
 		doUpdate = true
 	end
 
-	if not displayListGuiShader or (#commands == 0 and (not alwaysShow or Spring.GetGameFrame() == 0)) then
+	if (WG['guishader'] and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or Spring.GetGameFrame() == 0)) then
 		ordermenuShows = false
 	else
 		ordermenuShows = true
@@ -831,7 +830,7 @@ function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if ordermenuShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		if #commands > 0 then
 			if not disableInput then
 				for cell = 1, #cellRects do

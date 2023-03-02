@@ -24,7 +24,7 @@ return {
 		maxslope = 13,
 		maxwaterdepth = 0,
 		objectname = "Units/CORBUZZ.s3o",
-		script = "Units/CORBUZZ.lua",
+		script = "Units/CORBUZZ.cob",
 		seismicsignature = 0,
 		selfdestructas = "advancedFusionExplosionSelfd",
 		sightdistance = 700,

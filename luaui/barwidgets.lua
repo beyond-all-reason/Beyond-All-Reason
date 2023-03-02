@@ -41,7 +41,8 @@ Spring.SendCommands({
 
 local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
 
-if Spring.GetModOptions().teamcolors_anonymous_mode then
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+if anonymousMode then
 	allowuserwidgets = false
 
 	-- disabling individual Spring functions isnt really good enough
@@ -295,7 +296,7 @@ local function Yield()
 	if doMoreYield then
 		local doMoreYield = Spring.Yield()
 		if doMoreYield == false then --GetThreadSafety == false
-			--Spring.Echo("WidgetHandler Yield: entering critical section") 
+			--Spring.Echo("WidgetHandler Yield: entering critical section")
 		end
 	end
 end
@@ -1140,6 +1141,7 @@ function widgetHandler:BlankOut()
 	end
 end
 
+
 function widgetHandler:Update()
 	local deltaTime = Spring.GetLastUpdateSeconds()
 	-- update the hour timer
@@ -1151,6 +1153,7 @@ function widgetHandler:Update()
 end
 
 function widgetHandler:ConfigureLayout(command)
+
 	if command == 'reconf' then
 		self:SendConfigData()
 		return true
@@ -1259,6 +1262,9 @@ end
 
 
 function widgetHandler:DrawScreen()
+	if not Spring.GetSpectatingState() and anonymousMode then
+		Spring.SendCommands("info 0")
+	end
 	if not Spring.IsGUIHidden() then
 		if not self.chobbyInterface  then
 			for _, w in r_ipairs(self.DrawScreenList) do

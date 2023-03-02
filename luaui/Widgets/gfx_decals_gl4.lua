@@ -100,8 +100,11 @@ local numFiles = 0
 local function addDirToAtlas(atlas, path, key, filelist)
 	if filelist == nil then filelist = {} end
 	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
-	local files = VFS.DirList(path)
-	--files = table.sort(files)
+	local files = {}
+	for i, filename in ipairs(VFS.DirList(path)) do 
+		files[i] = string.lower(filename)
+	end
+	table.sort(files)
 	--Spring.Echo("Adding",#files, "images to atlas from", path, key)
 	for i=1, #files do
 		local lowerfile = string.lower(files[i])
@@ -133,12 +136,12 @@ local function makeAtlases()
 		local texelX = 1.0/atlasInfo.xsize -- shrink UV areas for less mip bleed
 		local texelY = 1.0/atlasInfo.ysize -- shrink UV areas for less mip bleed
 		usedpixels = usedpixels + (math.abs(p-q) * atlasInfo.xsize ) * (math.abs(s-t) * atlasInfo.ysize)
-		if autoreload then Spring.Echo(filepath) end
+		if autoupdate then Spring.Echo(filepath) end
 		decalImageCoords[filepath] =  {p+texelX,q-texelX,s+texelY,t-texelY}
 		--Spring.Echo(atlasInfo.xsize * (p+texelX), atlasInfo.xsize * (q-texelX),texelX * atlasInfo.xsize)
 	end
 
-	if autoreload then
+	if autoupdate then
 		Spring.Echo(string.format("Decals GL4 Atlas is %dx%d, used %.1f%%",
 			atlasInfo.xsize, atlasInfo.ysize,
 			usedpixels * 100 / (atlasInfo.xsize * atlasInfo.ysize)
@@ -1381,15 +1384,15 @@ local UnitScriptDecals = {
 			offsetx = 0, --offset from what the UnitScriptDecal returns 
 			offsetz = -7, -- 
 			offsetrot = 0, -- in radians
-			width = 24,
-			height = 48,
-			heatstart = 0,
-			heatdecay = 0,
-			alphastart = 0.7, 
-			alphadecay = 0.0016, 
+			width = 48,
+			height = 24,
+			heatstart = 1000,
+			heatdecay = 0.0005,
+			alphastart = 0.8, 
+			alphadecay = 0.0009, 
 			maxalpha = 1.0, 
 			bwfactor = 0.3, 
-			glowsustain = 0.0, 
+			glowsustain = 10, 
 			glowadd = 0.0, 
 			fadeintime = 5, 
 			}
@@ -1683,6 +1686,44 @@ local UnitScriptDecals = {
 			glowadd = 0.0, 
 			fadeintime = 5, 
 			},
+		},
+		
+	[UnitDefNames['chicken1'].id] = { 
+		[1] = { -- LFOOT
+			texture = footprintsPath..'f_raptor_a.tga',
+			offsetx = 0, --offset from what the UnitScriptDecal returns 
+			offsetz = 0, -- 
+			offsetrot = 0.0, -- in radians
+			width = 26,
+			height = 26,
+			heatstart = 0,
+			heatdecay = 0,
+			alphastart = 1, 
+			alphadecay = 0.0032, 
+			maxalpha = 1.0, 
+			bwfactor = 0.3, 
+			glowsustain = 0.0, 
+			glowadd = 0.0, 
+			fadeintime = 5, 
+			},
+		[2] = { -- RFOOT
+			texture = footprintsPath..'f_raptor_a.tga',
+			offsetx = 0, --offset from what the UnitScriptDecal returns 
+			offsetz = 0, -- 
+			offsetrot = 0.0, -- in radians
+			width = 26,
+			height = 26,
+			flipvertical = true,
+			heatstart = 0,
+			heatdecay = 0,
+			alphastart = 1, 
+			alphadecay = 0.0032, 
+			maxalpha = 1.0, 
+			bwfactor = 0.3, 
+			glowsustain = 0.0, 
+			glowadd = 0.0, 
+			fadeintime = 5, 
+			},
 		},	
 
 }
@@ -1831,6 +1872,12 @@ function widget:Initialize()
 			else
 				local uvs = decalImageCoords[decalTable.texture]
 				p,q,s,t = uvs[1], uvs[2], uvs[3], uvs[4]
+				if decalTable.fliphorizontal then
+					p, q = q, p
+				end
+				if decalTable.flipvertical then 
+					s, t = t, s
+				end
 			end
 			
 			decalTable.cacheTable = {
@@ -1854,8 +1901,13 @@ end
 
 --[[
 function widget:DrawScreen()
+	gl.Blending(GL.ONE, GL.ZERO) -- the default mode
 	local vsx, vsy = Spring.GetViewGeometry()
-	gl.Texture(0, atlasColorAlpha)
+	if (Spring.GetGameFrame() %60) > 30 then 
+		gl.Texture(0, atlasNormals)
+	else
+		gl.Texture(0, atlasColorAlpha	)
+	end
 	gl.TexRect(2,2,vsx-2,vsy-2,0,0,1,1)
 	gl.Texture(0, false)
 end

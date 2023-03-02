@@ -1,6 +1,5 @@
 {
 	"ui": {
-		"disablingcus": "Disabling Advanced Model Shading (fps threshold reached)",
 		"forceResignMessage": "You have been force-resigned: Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
 		"topbar": {
 			"button": {
@@ -34,13 +33,7 @@
 			"windspeedTooltip": "(small numbers are minimum and maximum)\nAverage wind speed on this map is %{avgWindValue}\nCurrent wind risk is %{riskWindValue} (percentage of time wind speed will be below 6)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
 			"wind": {
 				"nowind1": "No",
-				"nowind2": "wind",
-				"worth1": "Wind is not worth it",
-				"worth2": "Wind is viable",
-				"worth3": "Wind is okay",
-				"worth4": "Wind is good",
-				"worth5": "Wind is really good",
-				"worth6": "Wind is amazing"
+				"nowind2": "wind"
 			},
 			"resources": {
 				"metal": "Metal",
@@ -131,9 +124,6 @@
 			"tooltipTitle": "Team Income",
 			"tooltip": "Total metal/energy income\n(Lighter portion is income from reclaiming)"
 		},
-		"dgunrule": {
-			"enemycom": "Reminder: Dgun enemy = you lose\n(with you having last commander)"
-		},
 		"mapinfo": {
 			"author": "Author"
 		},
@@ -217,11 +207,6 @@
 			" On ": "On",
 			" Off ": "Off",
 			"onoff_tooltip": "Active state: turn a unit on/off",
-			"Fighters": "Fighters",
-			"Bombers": "Bombers",
-			"Vtols": "Vtols",
-			"No priority": "No priority",
-			"setpriority_tooltip": "Set target priority Fighters/Bombers/Vtols/no priority",
 			" Fly ": "Fly",
 			"Land": "Land",
 			"idlemode_tooltip": "Sets what aircraft do when idle",
@@ -248,18 +233,17 @@
 		"idleBuilders": {
 			"name": "Idle Builders",
 			"idle": "Idle %{highlightColor}%{unit}",
-			"controls": "Click:   Cycle next builder\nSHIFT + Click:   Select all",
+			"controls1": "Right-Click:   move to unit",
+			"controls": "Click:   Select and cycle next builder\nSHIFT + Click:   Select all",
 			"sleeping": "z"
 		},
 		"unitGroups": {
 			"name": "Unit Groups",
-			"shiftclick": "SHIFT + click:   add to selection",
-			"ctrlclick": "CTRL + click:   subtract from selection",
+			"shiftclick": "SHIFT + Click:   add to selection",
+			"ctrlclick": "CTRL + Click:   subtract from selection",
+			"rightclick": "Right-Click:   move to and select group",
 			"tooltip": "CTRL + 0-9 sets unit group for selected units.\nCTRL BACKQUOTE (~) remove units.",
 			"autogroupTooltip": "Auto Groups\nALT + 0-9 sets autogroup # for selected unit type(s).\nNewly built units get added to group# equal to their autogroup#.\nALT BACKQUOTE (~) remove units.\nView settings at: Settings/Interface/AutoGroup"
-		},
-		"changelog": {
-			"title": "Changelog"
 		},
 		"keybinds": {
 			"title": "Keybinds",
@@ -425,7 +409,6 @@
 			}
 		},
 		"chat": {
-			"ignored": "ignored",
 			"scroll": "%{textColor}Press %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor}to activate chatlog viewing/scrolling",
 			"shortcut": "CTRL + SHIFT",
 			"everyone": "everyone",
@@ -640,7 +623,6 @@
 			"warning": "You are idling, do something quick! (others are able to take over all your things soon)"
 		},
 		"ffaNoOwner": {
-			"removed": "No Owner Mode: Removing Team %{team}",
 			"destroyed": "No Owner Mode: Destroying Team %{team}",
 			"disconnected": "No Owner Mode: Team %{team} has %{gracePeriod} minute(s) to reconnect",
 			"reconnected": "No Owner Mode: Team %{team} reconnected"
@@ -1071,6 +1053,8 @@
 				"minimap": "Minimap",
 				"minimap_enlarged": "enlarged",
 				"minimap_enlarged_descr": "Relocates the order-menu to make room for the minimap",
+				"minimapminimized": "minimized",
+				"minimapminimized_descr": "remove the minimap",
 				"minimap_maxheight": "height",
 				"minimap_maxheight_descr": "Allocate a max height for the minimap (remember: width is limited as well)",
 				"minimapiconsize": "icon scale",
@@ -1102,7 +1086,7 @@
 				"ordermenu_alwaysshow": "always show",
 				"ordermenu_alwaysshow_descr": "Not hiding when no buttons are available",
 				"ordermenu_hideset": "hide common commands",
-				"ordermenu_hideset_descr": "Hide the ordermenu commands that have shortcuts:\n\nMove, Stop, Attack, Patrol, Fight, Wait, Guard, Reclaim, Repair, D-Gun",
+				"ordermenu_hideset_descr": "Hide the ordermenu commands that have shortcuts:\nMove, Stop, Attack, Patrol, Fight, Wait, Guard, Reclaim, Repair, D-Gun",
 				"unitgroups": "Unit groups",
 				"unitgroups_descr": "Show unit groups interface\nlocated at the bottom of the screen (unless you have the buildmenu there)",
 				"info": "Info panel",
@@ -1110,6 +1094,8 @@
 				"info_buildlist_descr": "Regarding factories/builders: display an icon list of all buildable units instead of other info.",
 				"info_mappos": "display map position",
 				"info_mappos_descr": "Display the mouse cursors map position and elevation",
+				"info_alwaysshow": "always show",
+				"info_alwaysshow_descr": " ",
 				"advplayerlist": "Playerlist",
 				"advplayerlist_scale": "scale",
 				"advplayerlist_scale_descr": "Resize the playerlist (and its addons)",
@@ -1124,11 +1110,11 @@
 				"advplayerlist_skill": "OpenSkill value",
 				"advplayerlist_skill_descr": "show the player openskill number (used for balancing algorithm)",
 				"advplayerlist_income": "income values",
-				"advplayerlist_income_descr": "displays the energy/metal income values",
+				"advplayerlist_income_descr": "displays the energy/metal income values\n(if you have team members)",
 				"advplayerlist_cpuping": "cpuping number",
-				"advplayerlist_cpuping_descr": "show cpu/ping usage/value",
+				"advplayerlist_cpuping_descr": "show cpu/ping usage/value\n(when in multiplaye)r",
 				"advplayerlist_share": "share buttons",
-				"advplayerlist_share_descr": "show (quick) share buttons\n\nNOTE: auto hides when having no team members",
+				"advplayerlist_share_descr": "show (quick) share buttons\nNOTE: auto hides when having no team members",
 				"advplayerlist_absresbars": "resbar absolutes",
 				"advplayerlist_absresbars_descr": "resbar values and max storages are displayed on the scale of teamplayer that has max storage",
 				"advplayerlist_hidespecs": "hide spectators",
@@ -1174,8 +1160,6 @@
 				"buildbar_descr": "Displays a column of factories at the right side of the screen\nhover and click units to quickly add to the factory queue",
 				"converterusage": "Energy Converter usage",
 				"converterusage_descr": "Displays the current energy->metal converter usage at the top of the screen",
-				"dgunrulereminder": "Dgun rule reminder",
-				"dgunrulereminder_descr": "Displays a tooltip at enemy commander to remind you not to dgun it\n...when last your commander is near it and dgun targeting is active",
 				"teamplatter": "Unit team platters",
 				"teamplatter_descr": "Shows a team color platter above all visible units",
 				"teamplatter_opacity": "opacity",

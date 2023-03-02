@@ -1526,42 +1526,44 @@ local function drawBuildmenu()
 		activeArea = drawCategories()
 	end
 
-	if stickToBottom then
-		rows = 2
-		colls = 6
-		cellSize = math_floor((activeArea[4] - activeArea[2]) / rows)
-	else
-		rows = 3
-		colls = 4
-		cellSize = math_floor((activeArea[3] - activeArea[1]) / colls)
-	end
-
-	-- adjust grid size when pages are needed
-	if uidcmdsCount > colls * rows then
-		pages = math_ceil(uidcmdsCount / (rows * colls))
-
-		if currentPage > pages then
-			currentPage = pages
+	if activeArea then
+		if stickToBottom then
+			rows = 2
+			colls = 6
+			cellSize = math_floor((activeArea[4] - activeArea[2]) / rows)
+		else
+			rows = 3
+			colls = 4
+			cellSize = math_floor((activeArea[3] - activeArea[1]) / colls)
 		end
-	else
-		currentPage = 1
-		pages = 1
+
+		-- adjust grid size when pages are needed
+		if uidcmdsCount > colls * rows then
+			pages = math_ceil(uidcmdsCount / (rows * colls))
+
+			if currentPage > pages then
+				currentPage = pages
+			end
+		else
+			currentPage = 1
+			pages = 1
+		end
+
+		-- these are globals so it can be re-used (hover highlight)
+		cellPadding = math_floor(cellSize * Cfgs.cfgCellPadding)
+		iconPadding = math_max(1, math_floor(cellSize * Cfgs.cfgIconPadding))
+		cornerSize = math_floor(cellSize * Cfgs.cfgIconCornerSize)
+		cellInnerSize = cellSize - cellPadding - cellPadding
+		priceFontSize = math_floor((cellInnerSize * Cfgs.cfgPriceFontSize) + 0.5)
+
+		cellRects = {}
+		hotkeyActions = {}
+
+		drawGrid(activeArea)
+		drawPaginators(activeArea)
+
+		font2:End()
 	end
-
-	-- these are globals so it can be re-used (hover highlight)
-	cellPadding = math_floor(cellSize * Cfgs.cfgCellPadding)
-	iconPadding = math_max(1, math_floor(cellSize * Cfgs.cfgIconPadding))
-	cornerSize = math_floor(cellSize * Cfgs.cfgIconCornerSize)
-	cellInnerSize = cellSize - cellPadding - cellPadding
-	priceFontSize = math_floor((cellInnerSize * Cfgs.cfgPriceFontSize) + 0.5)
-
-	cellRects = {}
-	hotkeyActions = {}
-
-	drawGrid(activeArea)
-	drawPaginators(activeArea)
-
-	font2:End()
 end
 
 function widget:RecvLuaMsg(msg)
@@ -1921,18 +1923,18 @@ function widget:DrawScreen()
 end
 
 function widget:DrawWorld()
-	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
-	if Spring.GetGameFrame() > 0 then
-		widgetHandler:RemoveWidgetCallIn('DrawWorld', self)
-
-		return
-	end
-
 	if not WG.StopDrawUnitShapeGL4 then return end
 
 		-- remove unit shape queue to re-add again later
 	for id, _ in pairs(unitshapes) do
 		removeUnitShape(id)
+	end
+
+	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
+	if Spring.GetGameFrame() > 0 then
+		widgetHandler:RemoveWidgetCallIn('DrawWorld', self)
+
+		return
 	end
 
 	if not preGamestartPlayer then return end
@@ -2163,7 +2165,7 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if buildmenuShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		if selectedBuilder or selectedFactory or (preGamestartPlayer and startDefID) then
 			if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
 				currentPage = math_max(1, currentPage - 1)

@@ -6,10 +6,11 @@
 piece  base, flare, turret, barrel01, barrel02, barrel03, barrel04,
        housing01, housing02, housing03, housing04, spindle, neck, back;
 
-static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging, shotcount, shooting;
+static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging, shotcount, shooting, spin_speed, last_primary_heading, last_primary_pitch;
 
 // Signal definitions
 #define SIG_AIM				2
+#define SIG_FIRE			4
 
 activatescr()
 {
@@ -87,6 +88,9 @@ Create()
 	//gun_1 = base;
 	spin flare around z-axis speed <250.060440>;
 	restore_delay = 500;
+	spin_speed = 230;
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
 	call-script InitState();
 	move back to z-axis [4.000000] speed [4.000000];
 	return (0);
@@ -113,11 +117,21 @@ AimPrimary(heading, pitch)
 	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
+
+	// values in <> are degrees per second
+	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
+	// In general, 6 cau per frame ~= 1 degree per second
 	turn turret to y-axis heading speed <15.000000>;
 	turn neck to x-axis <0.000000> - pitch speed <6.000000>;
-	//move back to z-axis [-6.000000] speed [8.000000];
-	wait-for-turn turret around y-axis;
-	wait-for-turn neck around x-axis;
+	// only wait-for-turn if it takes more than 3 frames to finish the turn
+	if ( (get ABS(last_primary_heading - heading)>270) OR (get ABS(last_primary_pitch - pitch)>108) )
+	{
+		// seems to take 3 frames for wait-for-turn to process
+		wait-for-turn turret around y-axis;
+		wait-for-turn neck around x-axis;
+	}
+	last_primary_heading = heading;
+	last_primary_pitch = pitch;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -127,7 +141,19 @@ FirePrimary()
 	emit-sfx 1024 + 0 from flare;
 	start-script RequestState(1);
 	shooting = 1;
-	
+
+	//make spindle turn faster as unit gains XP and decreases reload time
+	//GET WEAPON_RELOADSTATE is in frames, we need seconds (factor of 30)
+	//use -1 so animation finishes 1 frame before it is ready to fire again
+	// use 90 here so spindle turns 90 degrees during its reload time
+	spin_speed = 30*90/((GET WEAPON_RELOADSTATE(1)) - (GET GAME_FRAME) - 1);
+
+	// bleh, <30>*90/((GET WEAPON_RELOADSTATE(1)) - (GET GAME_FRAME) - 1); 
+	// is not equal to
+	// <90>*30/((GET WEAPON_RELOADSTATE(1)) - (GET GAME_FRAME) - 1); 
+	// so just use <1>*30*90/((GET WEAPON_RELOADSTATE(1)) - (GET GAME_FRAME) - 1);
+	// Weird math?
+
 	if( gun_1 == 1 )
 	{
 		shotcount = shotcount + 1;
@@ -140,7 +166,7 @@ FirePrimary()
 		move housing01 to z-axis [0.000000] speed [1.500000];
 		move spindle to z-axis [0.000000] speed [11.000000];
 		//move back to z-axis [4.000000] speed [10.000000];
-		turn spindle to z-axis <90.000000> speed <230.000000>;
+		turn spindle to z-axis <90.000000> speed <1>*spin_speed;
 	}
 	if( gun_1 == 2 )
 	{
@@ -154,7 +180,7 @@ FirePrimary()
 		move housing02 to z-axis [0.000000] speed [1.500000];
 		move spindle to z-axis [0.000000] speed [11.000000];
 		//move back to z-axis [4.000000] speed [10.000000];
-		turn spindle to z-axis <180.000000> speed <230.000000>;
+		turn spindle to z-axis <180.000000> speed <1>*spin_speed;
 	}
 	if( gun_1 == 3 )
 	{
@@ -168,7 +194,7 @@ FirePrimary()
 		move housing03 to z-axis [0.000000] speed [1.500000];
 		move spindle to z-axis [0.000000] speed [11.000000];
 		//move back to z-axis [4.000000] speed [10.000000];
-		turn spindle to z-axis <270.000000> speed <230.000000>;
+		turn spindle to z-axis <270.000000> speed <1>*spin_speed; 
 	}
 	if( gun_1 == 4 )
 	{
@@ -182,13 +208,21 @@ FirePrimary()
 		move housing04 to z-axis [0.000000] speed [1.500000];
 		move spindle to z-axis [0.000000] speed [11.000000];
 		//move back to z-axis [4.000000] speed [10.000000];
-		turn spindle to z-axis <0.000000> speed <230.000000>;
+		turn spindle to z-axis <0.000000> speed <1>*spin_speed;
 	}
 	++gun_1;
 	if( gun_1 == 5 )
 	{
 		gun_1 = flare;
 	}
+
+	// After 1 second, last_primary_heading and last_primary_pitch should be reset
+	signal SIG_FIRE;
+	set-signal-mask SIG_FIRE;
+	sleep 1000;
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
+
 }
 
 TargetCleared(Func_Var_1)
