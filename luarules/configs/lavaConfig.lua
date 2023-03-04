@@ -4,8 +4,8 @@ lavaMap = false
 
 -- defaults:
 nolavaburstcegs = false
-lavaDiffuseEmitTex = "LuaUI/images/lava2_diffuseemit.dds"
-lavaNormalHeightTex = "LuaUI/images/lava2_normalheight.dds"
+lavaDiffuseEmitTex = "LuaUI/images/lava/lava2_diffuseemit.dds"
+lavaNormalHeightTex = "LuaUI/images/lava/lava2_normalheight.dds"
 
 lavaLevel = 1 -- pre-game lava level
 lavaGrow = 0.25 -- initial lavaGrow speed
@@ -66,8 +66,8 @@ if string.find(mapName, "stronghold") then
 	lavaDamage = 25 -- damage per second
 	lavaTideamplitude = 3
 	lavaTideperiod = 95
-	lavaDiffuseEmitTex = "LuaUI/images/lava7_diffuseemit.dds"
-	lavaNormalHeightTex = "LuaUI/images/lava7_normalheight.dds"
+	lavaDiffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
+	lavaNormalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
 	lavaLOSdarkness = 0.7
 	lavaColorCorrection = "vec3(1.1, 1.0, 0.88)"
 	lavaShadowStrength = 1.0 -- how much light a shadowed fragment can recieve
@@ -92,8 +92,8 @@ elseif string.find(mapName, "incandescence") then
 	lavaDamage = 150 -- damage per second
 	lavaTideamplitude = 3
 	lavaTideperiod = 95
-	lavaDiffuseEmitTex = "LuaUI/images/lava7_diffuseemit.dds"
-	lavaNormalHeightTex = "LuaUI/images/lava7_normalheight.dds"
+	lavaDiffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
+	lavaNormalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
 	lavaLOSdarkness = 0.7
 	lavaColorCorrection = "vec3(1.1, 1.0, 0.88)"
 	lavaShadowStrength = 1.0 -- how much light a shadowed fragment can recieve
