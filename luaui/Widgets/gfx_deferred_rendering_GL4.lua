@@ -199,7 +199,7 @@ local radiusMultiplier = 1.0
 local intensityMultiplier = 1.0
 
 -- the 3d noise texture used for this shader
-local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
+local noisetex3dcube =  "LuaUI/images/noisetextures/noise64_cube_3.dds"
 
 --[[
 local examplePointLight = {

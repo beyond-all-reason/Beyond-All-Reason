@@ -17,8 +17,8 @@ local enabled = true
 local opacityMult = 1
 
 local noiseTex = ":l:LuaUI/Images/rgbnoise.png"
---local noiseTex = "LuaUI/Images/uniformnoise_128_rgba_1pixoffset.tga"
-local noiseTex3D = "LuaUI/Images/worley_rgbnorm_01_asum_128_v1.dds"
+--local noiseTex = "LuaUI/Images/noisetextures/uniformnoise_128_rgba_1pixoffset.tga"
+local noiseTex3D = "LuaUI/Images/noisetextures/worley_rgbnorm_01_asum_128_v1.dds"
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

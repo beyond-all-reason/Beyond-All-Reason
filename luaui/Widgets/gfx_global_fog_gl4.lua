@@ -192,14 +192,14 @@ local fogUniformsBluish = { -- bluish tint, not very good
 ---------------------------------------------------------------------------
 local autoreload = true
 
---local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
+--local noisetex3dcube =  "LuaUI/images/noisetextures/noise64_cube_3.dds"
 local noisetex3dcube =  "LuaUI/images/noisetextures/cloudy8_256x256x64_L.dds"
-local noisetex3dcube =  "LuaUI/images/worley_rgbnorm_01_asum_128_v1_mip.dds"
+local noisetex3dcube =  "LuaUI/images/noisetextures/worley_rgbnorm_01_asum_128_v1_mip.dds"
 local blueNoise64 =  "LuaUI/images/noisetextures/blue_noise_64.tga"
 local uniformNoiseTex =  "LuaUI/images/noisetextures/uniform3d_16x16x16_RGBA.dds"
 --local noisetex3dcube =  "LuaUI/images/noisetextures/cloudy8_a_128x128x32_L.dds"
-local simpledither = "LuaUI/images/rgba_noise_256.tga"
-local worley3d128 = "LuaUI/images/worley_rgbnorm_01_asum_128_v1.dds"
+local simpledither = "LuaUI/images/noisetextures/rgba_noise_256.tga"
+local worley3d128 = "LuaUI/images/noisetextures/worley_rgbnorm_01_asum_128_v1.dds"
 local dithernoise2d =  "LuaUI/images/lavadistortion.png"
 
 local fogPlaneVAO 

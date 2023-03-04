@@ -720,7 +720,7 @@ end
 local textureKeytoSet = {} -- table of {TextureKey : {textureTable}}
 
 local blankNormalMap = "unittextures/blank_normal.dds"
-local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
+local noisetex3dcube =  "LuaUI/images/noisetextures/noise64_cube_3.dds"
 
 local fastObjectDefIDtoTextureKey = {} -- table of  {unitDefID : TextureKey, -featureDefID : TextureKey }
 local fastTextureKeyCache = {} -- a table of concatenated texture names to increasing integers
