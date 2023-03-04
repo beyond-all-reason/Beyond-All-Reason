@@ -221,8 +221,8 @@ if gadgetHandler:IsSyncedCode() then
 else
 
 
-	local texcolorheight = "LuaUI/images/alien_guts_colorheight.dds"
-	local texnormalspec =  "LuaUI/images/alien_guts_normalspec.dds"
+	local texcolorheight = "LuaUI/images/raptor_scum/alien_guts_colorheight.dds"
+	local texnormalspec =  "LuaUI/images/raptor_scum/alien_guts_normalspec.dds"
 	local texdistortion =  "LuaUI/images/lavadistortion.png"
 	local resolution = 32
 
