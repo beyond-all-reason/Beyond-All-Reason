@@ -1792,7 +1792,7 @@ function init()
 				forceUpdate = true
 			end,
 		},
-		{ id = "resolution", group = "gfx", category = types.basic, name = texts.option.resolution, type = "select", options = resolutionNames, value = Spring.GetConfigInt('SelectedScreenMode', 1), description = texts.option.resolution_descr,
+		{ id = "resolution", group = "gfx", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.resolution, type = "select", options = resolutionNames, value = Spring.GetConfigInt('SelectedScreenMode', 1), description = texts.option.resolution_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt('SelectedScreenMode', value)
 
@@ -5033,6 +5033,7 @@ function init()
 
 	if #displayNames <= 1 then
 		options[getOptionByID('display')] = nil
+		options[getOptionByID('resolution')].name = texts.option.resolution
 	end
 
 	-- reduce options for potatoes
