@@ -1654,7 +1654,11 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 			text = ssub(text,2)
 		end
 
-		nameText = convertColor(spGetTeamColor(names[name][3]))..name
+		if not isSpec and anonymousMode then
+			nameText = convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..name
+		else
+			nameText = convertColor(spGetTeamColor(names[name][3]))..name
+		end
 		line = convertColor(c[1],c[2],c[3])..text
 
 		-- spectator message
@@ -1714,7 +1718,11 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 				skipThisMessage = true
 			end
 		else
-			namecolor =  convertColor(spGetTeamColor(names[name][3]))
+			if not isSpec and anonymousMode then
+				namecolor = convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])
+			else
+				namecolor =  convertColor(spGetTeamColor(names[name][3]))
+			end
 
 			if names[name][1] == spGetMyAllyTeamID() then
 				textcolor = convertColor(colorAlly[1],colorAlly[2],colorAlly[3])
@@ -1817,7 +1825,11 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 			line = ''
 			if names[playername] then
 				if not names[playername][2] then
-					line = line..convertColor(spGetTeamColor(names[playername][3]))..playername
+					if not isSpec and anonymousMode then
+						line = line..convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..playername
+					else
+						line = line..convertColor(spGetTeamColor(names[playername][3]))..playername
+					end
 				else
 					line = line..convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..playername
 				end
@@ -1840,8 +1852,12 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 			local playername = ssub(line, sfind(line, 'Connection attempt from ')+24)
 			line = 'Connection attempt from: '
 			if names[playername] then
-				if  not names[playername][2] then
-					line = line..convertColor(spGetTeamColor(names[playername][3]))..playername
+				if not names[playername][2] then
+					if not isSpec and anonymousMode then
+						line = line..convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..playername
+					else
+						line = line..convertColor(spGetTeamColor(names[playername][3]))..playername
+					end
 				else
 					line = line..'(spectator) '..convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..playername
 				end
