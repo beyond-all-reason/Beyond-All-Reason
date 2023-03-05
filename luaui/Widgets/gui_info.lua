@@ -990,7 +990,7 @@ local function drawUnitInfo()
 			end
 			if name then
 				local fontSizeOwner = fontSize * 0.87
-				--if Spring.GetModOptions().teamcolors_anonymous_mode then
+				--if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode then
 				--	name = ColourString(1,0,0) .. name
 				--else
 					name = ColourString(Spring.GetTeamColor(teamID)) .. name
