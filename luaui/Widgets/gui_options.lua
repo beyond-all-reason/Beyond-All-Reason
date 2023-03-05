@@ -1643,14 +1643,25 @@ function init()
 	local screenModes = WG['screenMode'] and WG['screenMode'].GetScreenModes() or {}
 	local displays = WG['screenMode'] and WG['screenMode'].GetDisplays() or {}
 
+	local currentDisplay = 1
+	local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
 	local displayNames = {}
 	for index, display in ipairs(displays) do
-		displayNames[index] = display.name .. " " .. display.width .. " × " .. display.height
+		displayNames[index] = index..":  "..display.name .. " " .. display.width .. " × " .. display.height .. "  (" .. display.hz.."hz)"
+		if v_px >= display.x and v_px < display.x + display.width and v_py >= display.y and v_py < display.y + display.height then
+			currentDisplay = index
+		end
 	end
+	local selectedDisplay = currentDisplay
 
 	local resolutionNames = {}
+	local screenmodeOffset = 0
 	for _, screenMode in ipairs(screenModes) do
-		table.insert(resolutionNames, screenMode.name)
+		if screenMode.display == currentDisplay then
+			resolutionNames[#resolutionNames+1] = screenMode.name
+		elseif #resolutionNames == 0 then
+			screenmodeOffset = screenmodeOffset + 1
+		end
 	end
 
 	local soundDevices = { 'default' }
@@ -1758,16 +1769,42 @@ function init()
 		},
 		{ id = "label_gfx_screen", group = "gfx", name = texts.option.label_screen, category = types.basic },
 		{ id = "label_gfx_screen_spacer", group = "gfx", category = types.basic },
-		{ id = "display", group = "gfx", category = types.dev, name = texts.option.display, type = "select", options = displayNames, value = 0,
+		{ id = "display", group = "gfx", category = types.basic, name = texts.option.display, type = "select", options = displayNames, value = currentDisplay,
 			onchange = function(i, value)
+				--currentDisplay = value
+				selectedDisplay = value
+				Spring.SetConfigInt('SelectedDisplay', value)
+				resolutionNames = {}
+				screenmodeOffset = 0
+				for _, screenMode in ipairs(screenModes) do
+					if screenMode.display == selectedDisplay then
+						resolutionNames[#resolutionNames+1] = screenMode.name
+					elseif #resolutionNames == 0 then
+						screenmodeOffset = screenmodeOffset + 1
+					end
+				end
+				options[getOptionByID('resolution')].options = resolutionNames
+				if selectedDisplay == currentDisplay then
+					options[getOptionByID('resolution')].value = Spring.GetConfigInt('SelectedScreenMode', 1)
+				else
+					options[getOptionByID('resolution')].value = 0
+				end
+				forceUpdate = true
 			end,
 		},
-		{ id = "resolution", group = "gfx", category = types.basic, name = texts.option.resolution, type = "select", options = resolutionNames, value = Spring.GetConfigInt('SelectedScreenMode', 1), description = texts.option.resolution_descr,
+		{ id = "resolution", group = "gfx", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.resolution, type = "select", options = resolutionNames, value = Spring.GetConfigInt('SelectedScreenMode', 1), description = texts.option.resolution_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt('SelectedScreenMode', value)
 
 				if WG['screenMode'] then
-					WG['screenMode'].SetScreenMode(value)
+					WG['screenMode'].SetScreenMode(value+screenmodeOffset)
+					currentDisplay = 1
+					local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
+					for index, display in ipairs(displays) do
+						if v_px >= display.x and v_px < display.x + display.width and v_py >= display.y and v_py < display.y + display.height then
+							currentDisplay = index
+						end
+					end
 				end
 			end,
 		},
@@ -1922,9 +1959,9 @@ function init()
 		  end,
 		},
 
-		{ id = "shadowslider", group = "gfx", category = types.basic, name = texts.option.shadowslider, type = "select", options = { 'lowest', 'low', 'medium', 'high', 'ultra'}, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 1) or 4096), description = texts.option.shadowslider_descr,
+		{ id = "shadowslider", group = "gfx", category = types.basic, name = texts.option.shadowslider, type = "select", options = { 'lowest', 'low', 'medium', 'high', 'ultra'}, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 2048) or 2048), description = texts.option.shadowslider_descr,
 		  onload = function(i)
-			  local ShadowMapSize = tonumber(Spring.GetConfigInt("ShadowMapSize", 4096) or 4096)
+			  local ShadowMapSize = tonumber(Spring.GetConfigInt("ShadowMapSize", 2048) or 2048)
 			  if devMode then
 				  options[getOptionByID('shadowslider')].options[6] = 'insane'
 			  end
@@ -4912,6 +4949,10 @@ function init()
 		options[getOptionByID('restart')] = nil
 	end
 
+	if devMode or (WG['widgetselector'].getLocalWidgetCount and WG['widgetselector'].getLocalWidgetCount() == 0) then
+		options[getOptionByID('widgetselector')] = nil
+	end
+
 	if not scavengersAIEnabled then
 		options[getOptionByID('scav_voicenotifs')] = nil
 		options[getOptionByID('scav_messages')] = nil
@@ -4988,6 +5029,11 @@ function init()
 	end
 	if not waterDetected then
 		Spring.SendCommands("water 0")
+	end
+
+	if #displayNames <= 1 then
+		options[getOptionByID('display')] = nil
+		options[getOptionByID('resolution')].name = texts.option.resolution
 	end
 
 	-- reduce options for potatoes

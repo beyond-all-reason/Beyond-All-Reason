@@ -86,14 +86,22 @@ local function refreshScreenModes()
 	local display = -1
 
 	for _, videoMode in ipairs(Platform.availableVideoModes) do
+		if displays[display] then
+			if videoMode.hz > displays[display].hz then
+				displays[display].hz = videoMode.hz
+			end
+		end
 		-- Only capture the first occurence of the display index, it will contain maximum supported resolution
 		if display ~= videoMode.display then
 			display = videoMode.display
-
+			local w, h, x, y = Spring.GetScreenGeometry(display-1)
 			displays[display] = {
 				name = videoMode.displayName,
-				width = videoMode.w,
-				height = videoMode.h,
+				width = w, --videoMode.w,
+				height = h, --videoMode.h,
+				hz = videoMode.hz,
+				x = x,
+				y = y,
 			}
 
 			local fullscreen = {
@@ -122,17 +130,18 @@ local function refreshScreenModes()
 			local windowed = {
 				display = display,
 				displayName = videoMode.displayName,
-				name = "Window " .. videoMode.w .. " × " .. videoMode.h,
+				name = "Window " .. videoMode.w .. " × " .. videoMode.h.."  (" .. videoMode.hz.."hz)",
 				type = windowType.windowed,
 				width = videoMode.w,
 				height = videoMode.h,
+				hz = videoMode.hz
 			}
 
 			table.insert(screenModes, windowed)
 		end
 	end
 
-	insertMultiMonitorModes(screenModes)
+	--insertMultiMonitorModes(screenModes)
 end
 
 local function changeScreenMode(index)
