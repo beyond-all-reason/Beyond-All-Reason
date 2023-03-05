@@ -1652,6 +1652,7 @@ function init()
 			currentDisplay = index
 		end
 	end
+	local selectedDisplay = currentDisplay
 
 	local resolutionNames = {}
 	local screenmodeOffset = 0
@@ -1770,18 +1771,24 @@ function init()
 		{ id = "label_gfx_screen_spacer", group = "gfx", category = types.basic },
 		{ id = "display", group = "gfx", category = types.basic, name = texts.option.display, type = "select", options = displayNames, value = currentDisplay,
 			onchange = function(i, value)
-				currentDisplay = value
-				Spring.SetConfigInt('SelectedScreenMode', value)
+				--currentDisplay = value
+				selectedDisplay = value
+				Spring.SetConfigInt('SelectedDisplay', value)
 				resolutionNames = {}
 				screenmodeOffset = 0
 				for _, screenMode in ipairs(screenModes) do
-					if screenMode.display == currentDisplay then
+					if screenMode.display == selectedDisplay then
 						resolutionNames[#resolutionNames+1] = screenMode.name
 					elseif #resolutionNames == 0 then
 						screenmodeOffset = screenmodeOffset + 1
 					end
 				end
 				options[getOptionByID('resolution')].options = resolutionNames
+				if selectedDisplay == currentDisplay then
+					options[getOptionByID('resolution')].value = Spring.GetConfigInt('SelectedScreenMode', 1)
+				else
+					options[getOptionByID('resolution')].value = 0
+				end
 				forceUpdate = true
 			end,
 		},
@@ -1791,6 +1798,13 @@ function init()
 
 				if WG['screenMode'] then
 					WG['screenMode'].SetScreenMode(value+screenmodeOffset)
+					currentDisplay = 1
+					local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
+					for index, display in ipairs(displays) do
+						if v_px >= display.x and v_px < display.x + display.width and v_py >= display.y and v_py < display.y + display.height then
+							currentDisplay = index
+						end
+					end
 				end
 			end,
 		},
@@ -4933,6 +4947,10 @@ function init()
 
 	if not devMode then
 		options[getOptionByID('restart')] = nil
+	end
+
+	if devMode or (WG['widgetselector'].getLocalWidgetCount and WG['widgetselector'].getLocalWidgetCount() == 0) then
+		options[getOptionByID('widgetselector')] = nil
 	end
 
 	if not scavengersAIEnabled then

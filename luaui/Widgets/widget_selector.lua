@@ -48,6 +48,7 @@ local floor = math.floor
 
 local widgetsList = {}
 local fullWidgetsList = {}
+local localWidgetCount = 0
 
 local minMaxEntries = 15
 local curMaxEntries = 25
@@ -162,6 +163,9 @@ function widget:Initialize()
 	WG['widgetselector'].isvisible = function()
 		return show
 	end
+	WG['widgetselector'].getLocalWidgetCount = function()
+		return localWidgetCount
+	end
 
 	widget:ViewResize(Spring.GetViewGeometry())
 end
@@ -205,6 +209,13 @@ local function UpdateListScroll()
 	local n = 1
 	for i = se, ee do
 		widgetsList[n], n = fullWidgetsList[i], n + 1
+	end
+
+	localWidgetCount = 0
+	for _, namedata in ipairs(widgetsList) do
+		if not namedata[2].fromZip then
+			localWidgetCount = localWidgetCount + 1
+		end
 	end
 end
 
@@ -317,7 +328,7 @@ function widget:KeyPress(key, mods, isRepeat)
 			WG['topbar'].hideWindows()
 		end
 		show = newShow
-		if show and not (Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI() or Spring.GetConfigInt("widgetselector", 0) == 1) then
+		if show and not (Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI() or Spring.GetConfigInt("widgetselector", 0) == 1 or localWidgetCount > 0) then
 			show = false
 		end
 		return true
@@ -389,7 +400,6 @@ function widget:DrawScreen()
 			font:Print(tcol .. buttons[i], (minx + maxx) / 2, miny - (buttonTop * sizeMultiplier) - (i * (buttonHeight * sizeMultiplier)), buttonFontSize * sizeMultiplier, "oc")
 		end
 	end
-
 
 	-- draw the widgets
 	local nd = aboveLabel(mx, my)
