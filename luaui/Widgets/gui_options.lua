@@ -1812,17 +1812,17 @@ function init()
 				end
 			end,
 		},
-		{ id = "dualmode_enabled", group = "gfx", category = types.advanced, name = texts.option.dualmode, type = "bool", value = Spring.GetConfigInt("DualScreenMode"), description = texts.option.dualmode_enabled_descr,
+		{ id = "dualmode_enabled", group = "gfx", category = types.dev, name = texts.option.dualmode, type = "bool", value = Spring.GetConfigInt("DualScreenMode"), description = texts.option.dualmode_enabled_descr,
 		  onchange = function(_, value)
 			  Spring.SetConfigInt("DualScreenMode", value and 1 or 0)
 		  end,
 		},
-		{ id = "dualmode_left", group = "gfx", category = types.advanced, name = widgetOptionColor .. "  " .. texts.option.dualmode_left, type = "bool", value = Spring.GetConfigInt("DualScreenMiniMapOnLeft"), description = texts.option.dualmode_left_descr,
+		{ id = "dualmode_left", group = "gfx", category = types.dev, name = widgetOptionColor .. "  " .. texts.option.dualmode_left, type = "bool", value = Spring.GetConfigInt("DualScreenMiniMapOnLeft"), description = texts.option.dualmode_left_descr,
 		  onchange = function(_, value)
 			  Spring.SetConfigInt("DualScreenMiniMapOnLeft", value and 1 or 0)
 		  end,
 		},
-		{ id = "dualmode_minimap_aspectratio", group = "gfx", category = types.advanced, name = widgetOptionColor .. "  " .. texts.option.dualmode_minimap_aspectratio, type = "bool", value = Spring.GetConfigInt("DualScreenMiniMapAspectRatio"), description = texts.option.dualmode_minimap_aspectratio_descr,
+		{ id = "dualmode_minimap_aspectratio", group = "gfx", category = types.dev, name = widgetOptionColor .. "  " .. texts.option.dualmode_minimap_aspectratio, type = "bool", value = Spring.GetConfigInt("DualScreenMiniMapAspectRatio"), description = texts.option.dualmode_minimap_aspectratio_descr,
 		  onchange = function(_, value)
 			  Spring.SetConfigInt("DualScreenMiniMapAspectRatio", value and 1 or 0)
 		  end,
