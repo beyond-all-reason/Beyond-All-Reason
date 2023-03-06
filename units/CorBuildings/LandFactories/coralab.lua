@@ -26,7 +26,7 @@ return {
 		maxwaterdepth = 0,
 		metalstorage = 200,
 		objectname = "Units/CORALAB.s3o",
-		radardistance = 50,
+		--radardistance = 50,
 		script = "Units/CORALAB.lua",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingexplosiongenericSelfd",
