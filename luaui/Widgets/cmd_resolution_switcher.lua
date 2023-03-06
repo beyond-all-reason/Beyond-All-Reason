@@ -144,14 +144,6 @@ local function refreshScreenModes()
 
 	local numDisplays = Spring.GetNumDisplays()
 	if numDisplays > 1 then
-		displays[#displays+1] = {
-			name = "Multi Display",
-			width = 0,
-			height = 0,
-			hz = 0,
-			x = 0,
-			y = 0,
-		}
 		refreshScreenGeometries(numDisplays)
 
 		-- Insert mode spanning all monitors
@@ -169,7 +161,7 @@ local function refreshScreenModes()
 								addedDisplayCombo[display] = display2
 								addedDisplayCombo[display2] = display
 								table.insert(screenModes, {
-									display = #displays,	-- not actual display number
+									display = #displays+1,	-- not actual display number
 									actualDisplay = (x < x2 and display or display2),
 									name = "displays " .. display .. " + " .. display2.." ("..w + w2 .." x "..h + h2..")",
 									displayName = "",
@@ -186,6 +178,18 @@ local function refreshScreenModes()
 			end
 		end
 
+		-- only add the "Multi Display" option when there are valid display combos to choose from
+		for k,v in pairs(addedDisplayCombo) do
+			displays[#displays+1] = {
+				name = "Multi Display",
+				width = 0,
+				height = 0,
+				hz = 0,
+				x = 0,
+				y = 0,
+			}
+			break
+		end
 		--insertMultiMonitorModes(screenModes)
 	end
 end
