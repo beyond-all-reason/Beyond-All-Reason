@@ -630,6 +630,13 @@
 		"unitTotals": {
 			"totals": "%{titleColor}Units  %{textColor}%{units} / %{maxUnits}      %{titleColor}Total  %{textColor}%{totalUnits}"
 		},
+		"resolutionswitcher": {
+			"multidisplay": "Multi Display",
+			"fullscreen": "Fullscreen",
+			"borderless": "Borderless",
+			"window": "Window",
+			"displays": "displays"
+		},
 		"factionPicker": {
 			"pick": "Pick your faction",
 			"factions": {

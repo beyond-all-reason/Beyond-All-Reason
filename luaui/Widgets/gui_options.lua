@@ -1647,9 +1647,13 @@ function init()
 	local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
 	local displayNames = {}
 	for index, display in ipairs(displays) do
-		displayNames[index] = index..":  "..display.name .. " " .. display.width .. " × " .. display.height .. "  (" .. display.hz.."hz)"
-		if v_px >= display.x and v_px < display.x + display.width and v_py >= display.y and v_py < display.y + display.height then
-			currentDisplay = index
+		if display.width > 0 then
+			displayNames[index] = index..":  "..display.name .. " " .. display.width .. " × " .. display.height .. "  (" .. display.hz.."hz)"
+			if v_px >= display.x and v_px < display.x + display.width and v_py >= display.y and v_py < display.y + display.height then
+				currentDisplay = index
+			end
+		elseif devMode then
+			displayNames[index] = display.name
 		end
 	end
 	local selectedDisplay = currentDisplay

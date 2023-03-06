@@ -53,7 +53,7 @@ local function insertMaximalScreenMode(minI, maxI, modes)
 	local windowGeometry = getMaximalWindowGeometry(minI, maxI)
 
 	table.insert(modes, {
-		display = windowGeometry[5],
+		display = #displays,
 		name = "Multimonitor " .. minI .. "-" .. maxI,
 		displayName = "",
 		type = windowType.multimonitor,
@@ -141,7 +141,53 @@ local function refreshScreenModes()
 		end
 	end
 
-	--insertMultiMonitorModes(screenModes)
+
+	local numDisplays = Spring.GetNumDisplays()
+	if numDisplays > 1 then
+		displays[#displays+1] = {
+			name = "Multi Display",
+			width = 0,
+			height = 0,
+			hz = 0,
+			x = 0,
+			y = 0,
+		}
+		refreshScreenGeometries(numDisplays)
+
+		-- Insert mode spanning all monitors
+		--insertMaximalScreenMode(1, numDisplays, screenModes)
+
+		local addedDisplayCombo = {}
+		for display = 1, numDisplays do
+			for display2 = 1, numDisplays do
+				if display ~= display2 then
+					local w, h, x, y = Spring.GetScreenGeometry(display-1)
+					local w2, h2, x2, y2 = Spring.GetScreenGeometry(display2-1)
+					if w > 0 and w2 > 0 then
+						if x+w == x2 or x2+w2 == x or x2-w == x or x-w2 == x2 then	-- make sure they are next to eachother
+							if not addedDisplayCombo[display] or addedDisplayCombo[display] ~= display2 then
+								addedDisplayCombo[display] = display2
+								addedDisplayCombo[display2] = display
+								table.insert(screenModes, {
+									display = #displays,	-- not actual display number
+									actualDisplay = (x < x2 and display or display2),
+									name = "displays " .. display .. " + " .. display2.." ("..w + w2 .." x "..h + h2..")",
+									displayName = "",
+									type = windowType.multimonitor,
+									x = math.min(x, x2),
+									y = math.min(y, y2),
+									width = w + w2,
+									height = math.min(h, h2),
+								})
+							end
+						end
+					end
+				end
+			end
+		end
+
+		--insertMultiMonitorModes(screenModes)
+	end
 end
 
 local function changeScreenMode(index)
@@ -154,7 +200,7 @@ local function changeScreenMode(index)
 	elseif screenMode.type == windowType.borderless then
 		Spring.SetWindowGeometry(screenMode.display, screenMode.x or 0, screenMode.y or 0, screenMode.width, screenMode.height, true, true)
 	elseif screenMode.type == windowType.multimonitor then
-		Spring.SetWindowGeometry(screenMode.display, screenMode.x or 0, screenMode.y or 0, screenMode.width, screenMode.height, false, true)
+		Spring.SetWindowGeometry(screenMode.actualDisplay, screenMode.x or 0, screenMode.y or 0, screenMode.width, screenMode.height, false, true)
 	elseif screenMode.type == windowType.windowed then
 		-- Windowed mode has a chicken-and-egg problem, where window borders can't be known until after switching to windowed mode
 		-- This cannot be done in two consecutive SetWindowGeometry() calls, as there must be a two draw frame delay
