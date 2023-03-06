@@ -62,7 +62,6 @@ local numGroups = 0
 local selectedUnits = Spring.GetSelectedUnits() or {}
 local selectionHasChanged = true
 local selectedGroups = {}
-local unitgroupsActive = false
 local buildmenuShowingPosY = 0
 local buildmenuAlwaysShow = false
 local buildmenuIsShowing = true
@@ -360,7 +359,6 @@ end
 local function checkUnitGroupsPos(isViewresize)
 
 	if WG['unitgroups'] then
-		unitgroupsActive = true
 		local px, py, sx, sy = WG['unitgroups'].getPosition()
 		local oldPosX, oldPosY = posX, posY
 		posY = py / vsy
@@ -371,8 +369,7 @@ local function checkUnitGroupsPos(isViewresize)
 			end
 			updateList()
 		end
-	elseif unitgroupsActive then
-		unitgroupsActive = false
+	else
 		if buildmenuBottomPosition and not buildmenuAlwaysShow and WG['buildmenu'] and WG['info'] then
 			if (not selectedUnits[1] or not WG['buildmenu'].getIsShowing()) and (posX > 0 or not WG['info'].getIsShowing()) then
 				if posY ~= 0 then
@@ -385,13 +382,14 @@ local function checkUnitGroupsPos(isViewresize)
 			else
 				if posY ~= buildmenuShowingPosY then
 					posY = buildmenuShowingPosY
+					doUpdate = true
 				end
 			end
 		end
 		if not isViewresize then
 			widget:ViewResize()
+			doUpdate = true
 		end
-		doUpdate = true
 	end
 end
 

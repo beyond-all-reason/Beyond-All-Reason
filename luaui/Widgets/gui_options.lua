@@ -1652,7 +1652,7 @@ function init()
 			if v_px >= display.x and v_px < display.x + display.width and v_py >= display.y and v_py < display.y + display.height then
 				currentDisplay = index
 			end
-		elseif devMode then
+		elseif devMode then -- advSettings
 			displayNames[index] = display.name
 		end
 	end

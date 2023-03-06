@@ -163,14 +163,28 @@ local function refreshScreenModes()
 								table.insert(screenModes, {
 									display = #displays+1,	-- not actual display number
 									actualDisplay = (x < x2 and display or display2),
-									name = "displays " .. display .. " + " .. display2.." ("..w + w2 .." x "..h + h2..")",
+									name = "displays " .. display .. " + " .. display2.." ("..w + w2 .." x "..math.min(h, h2)..")",
 									displayName = "",
 									type = windowType.multimonitor,
 									x = math.min(x, x2),
-									y = math.min(y, y2),
+									y = math.max(y, y2),
 									width = w + w2,
 									height = math.min(h, h2),
 								})
+								-- the screenmode above was restricted to minimum height in case one display has lower vertical resolution
+								if h ~= h2 then
+									table.insert(screenModes, {
+										display = #displays+1,	-- not actual display number
+										actualDisplay = (x < x2 and display or display2),
+										name = "displays " .. display .. " + " .. display2.." ("..w + w2 .." x "..math.max(h, h2)..")",
+										displayName = "",
+										type = windowType.multimonitor,
+										x = math.min(x, x2),
+										y = math.min(y, y2),
+										width = w + w2,
+										height = math.max(h, h2),
+									})
+								end
 							end
 						end
 					end
