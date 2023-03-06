@@ -3,20 +3,45 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad,nano3, nano4, nano2, nano1, head1, head2, head3, head4;
+piece  base, pad, nano3, nano4, nano2, nano1, head1, head2, head3, head4, cil, dish, blink;
 
 static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
 
+DishSpin()
+{
+	show blink;
+	spin dish around y-axis speed <60>;
+}
+DishStopSpin()
+{
+	hide blink;
+	spin dish around y-axis speed <0.000>;
+}
 
+Lights()
+{
+	while( TRUE )
+	{
+	    if (!Stunned) {
+		    emit-sfx 1024 + 1 from blink;
+		}
+		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
+}
 
 activatescr()
 {
 //	while (TRUE)
 //	{
 //	turn head1 to y-axis 1000* Rand(1,66) now;
+	start-script DishSpin();
+	start-script Lights();
 	sleep 150;
 	
 //	}
@@ -31,6 +56,7 @@ deactivatescr()
 	turn head2 to y-axis <0> speed <45>;
 	turn head3 to y-axis <0> speed <45>;
 	turn head4 to y-axis <0> speed <45>;
+	//hide blink;
 
 	sleep 26;
 }
@@ -72,6 +98,17 @@ Stop()
 	call-script deactivatescr();
 }
 
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+		hide blink;
+	    call-script DishStopSpin();
+	} else {
+	    call-script DishSpin();
+	}
+}
+
 InitState()
 {
 	statechg_DesiredState = TRUE;
@@ -110,6 +147,7 @@ Create()
 	hide nano2;
 	hide nano3;
 	hide nano4;
+	hide blink;
 	hide pad;
 	unitviewer = FALSE;
 	spray = nano1;
@@ -159,6 +197,7 @@ Demo()
 Activate()
 {
 	signal SIG_ACTIVATE;
+	//start-script Lights();
 	start-script RequestState(0);
 }
 
@@ -166,6 +205,7 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
+	//hide blink;
     sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);

@@ -1,6 +1,7 @@
 return {
 	armaap = {
 		acceleration = 0,
+		activatewhenbuilt = true,
 		brakerate = 0,
 		buildcostenergy = 29000,
 		buildcostmetal = 3200,
@@ -25,6 +26,8 @@ return {
 		maxwaterdepth = 0,
 		metalstorage = 200,
 		objectname = "Units/ARMAAP.s3o",
+		radardistance = 1000,
+		radaremitheight = 50,
 		script = "Units/ARMAAP.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
@@ -98,6 +101,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
+				[2] = "custom:radarpulse_t1_slow",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",

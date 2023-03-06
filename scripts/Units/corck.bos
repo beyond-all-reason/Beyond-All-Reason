@@ -11,12 +11,6 @@ piece  torso, pelvis, lthigh, rthigh, rleg, lleg, beamhinge,
 
 static-var  notBuilding, bMoving, statechg_DesiredState, statechg_StateChanging;
 
-lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
-{
-	return 0;
-}
-
-
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corck_anim_walk.blend 
 	set-signal-mask SIG_WALK;
@@ -32,7 +26,6 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 	}
 	while(bMoving) {
 		if (bMoving) { //Frame:8
-			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <-48.099999> speed <560.999978> / animSpeed; 
 			turn lleg to x-axis <39.499995> speed <902.999895> / animSpeed; 
 			turn lthigh to x-axis <22.456250> speed <34.687508> / animSpeed; 
@@ -88,7 +81,6 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:24
-			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <-11.900001> speed <1139.999895> / animSpeed; 
 			turn lleg to x-axis <41.299996> speed <1376.999972> / animSpeed; 
 			turn lthigh to x-axis <-76.899993> speed <1031.999851> / animSpeed; 
@@ -236,7 +228,7 @@ RequestState(requestedstate, currentstate)
 			notBuilding = 0;
 			currentstate = 0;
 			show cagelight_emit;
-			spin cagelight around z-axis speed <300>;
+			spin cagelight around z-axis speed <200>;
 		}
 	}
 	statechg_StateChanging = FALSE;

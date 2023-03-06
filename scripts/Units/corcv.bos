@@ -5,7 +5,7 @@
 
 #define SIG_BUILD	4
 
-piece base, tyre2, tyre3, ltyre, lcover, rtyre, rcover,cabin ,w_glass, container, rdoor, ldoor, box, loturret, upturret, nano, beam;
+piece base, tyre2, tyre3, ltyre, lcover, rtyre, rcover,cabin ,w_glass, container, rdoor, ldoor, box, loturret, upturret, nano, beam, cagelight, cagelight_emit;
 
 static-var  restore_delay, statechg_DesiredState, statechg_StateChanging, notBuilding, currentSpeed, moveSpeed, wheelSpeed;
 
@@ -82,12 +82,16 @@ RequestState(requestedstate, currentstate)
 			call-script deactivatescr();
 			notBuilding = 1;
 			currentstate = 1;
+			hide cagelight_emit;
+			turn cagelight to y-axis <0> speed <1000>;
 		}
 		else
 		{
 			call-script activatescr();
 			notBuilding = 0;
 			currentstate = 0;
+			show cagelight_emit;
+			spin cagelight around y-axis speed <300>;
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -96,6 +100,7 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	hide beam;
+	hide cagelight_emit;
 	restore_delay = 3000;
 	notBuilding = 1;
 	moveSpeed = get MAX_SPEED;
@@ -133,6 +138,8 @@ StartBuilding(heading, pitch)
 StopBuilding()
 {
 	hide beam;
+	//hide cagelight_emit;
+	//turn cagelight to y-axis <0> speed <1000>;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	sleep 6000;
