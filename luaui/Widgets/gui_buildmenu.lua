@@ -681,8 +681,8 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled)
 		usedZoom,
 		nil, disabled and 0 or nil,
 		'#' .. uDefID,
-		showRadarIcon and (((unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]]) and ':l' .. (disabled and 't0.35,0.35,0.35' or '') ..':' .. iconTypesMap[unitIconType[uDefID]] or nil)) or nil,
-		showGroupIcon and (groups[unitGroup[uDefID]] and ':l' .. (disabled and 'gt0.4,0.4,0.4:' or ':') ..groups[unitGroup[uDefID]] or nil) or nil,
+		showRadarIcon and (((unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypesMap[unitIconType[uDefID]] or nil)) or nil,
+		showGroupIcon and (groups[unitGroup[uDefID]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[unitGroup[uDefID]] or nil) or nil,
 		{unitMetalCost[uDefID], unitEnergyCost[uDefID]},
 		tonumber(cmds[cellRectID].params[1])
 	)
