@@ -33,7 +33,10 @@ deactivatescr()
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-
+#define IDLEHOVERSCALE 32
+#define IDLEHOVERSPEED 60
+#define IDLEBASEPIECE base
+#include "idlehover.h"
 
 RequestState(requestedstate, currentstate)
 {
@@ -69,7 +72,11 @@ Create()
 	hide nano;
 	Static_Var_1 = 1;
 	Static_Var_2 = 0;
-	return (0);
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script IdleHover();
 }
 
 Activate()
