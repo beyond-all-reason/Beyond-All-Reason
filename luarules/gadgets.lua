@@ -182,6 +182,7 @@ local callInLists = {
 	"AllowUnitCreation",
 	"AllowUnitTransfer",
 	"AllowUnitBuildStep",
+	--"AllowUnitCaptureStep",
 	"AllowUnitTransport",
 	"AllowUnitTransportLoad",
 	"AllowUnitTransportUnload",
@@ -315,7 +316,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
--- This table stores gadget paths that we want to override game side. 
+-- This table stores gadget paths that we want to override game side.
 -- Please indicate why you are adding each file in a comment
 local VFSMODE_OVERRIDE = {
 	['luagaia/gadgets/fp_featureplacer.lua'] = VFS.GAME
