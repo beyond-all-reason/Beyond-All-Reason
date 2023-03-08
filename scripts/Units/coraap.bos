@@ -28,8 +28,7 @@ Lights()
 
 activatescr()
 {
-	start-script Lights();
-	sleep 50;
+	sleep 26;
 }
 
 deactivatescr()
@@ -97,10 +96,10 @@ SetStunned(State)
     Stunned = State;
 	if (Stunned) {
 		call-script DishStopSpin();
-	    call-script Stop();
+	    //call-script Stop();
 	} else {
 		call-script DishSpin();
-	    call-script Go();
+	    //call-script Go();
 	}
 }
 
@@ -153,6 +152,7 @@ Create()
 	unitviewer = FALSE;
 	spray = base;
 	call-script InitState();
+	start-script Lights();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;

@@ -41,7 +41,7 @@ activatescr()
 //	{
 //	turn head1 to y-axis 1000* Rand(1,66) now;
 	start-script DishSpin();
-	start-script Lights();
+	//start-script Lights();
 	sleep 150;
 	
 //	}
@@ -152,6 +152,7 @@ Create()
 	unitviewer = FALSE;
 	spray = nano1;
 	call-script InitState();
+	start-script Lights();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;

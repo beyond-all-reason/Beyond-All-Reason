@@ -49,13 +49,13 @@ Lights()
 
 activatescr()
 {
-	start-script Lights();
+	//start-script Lights();
 	sleep 26;
 }
 
 deactivatescr()
 {
-	sleep 26;
+//	sleep 26;
 }
 
 OpenYard()
@@ -156,6 +156,7 @@ Create()
 	spray = nano1;
 	call-script InitState();
 	start-script Standby();
+	start-script Lights();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
