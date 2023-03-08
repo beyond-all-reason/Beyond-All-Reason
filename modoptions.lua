@@ -589,7 +589,7 @@ local options={
 		desc   = 'Anonimizes players in the match so you have harder time telling who is who.',
 		type   = 'list',
 		section = 'options',
-		def  = "local",
+		def  = "disabled",
 		items={
 			{key="disabled", name="Disabled", desc="Anonymous Mode disabled."},
 			{key="allred", name="Force SimpleColors", desc="All players have simple colors enabled, enemies cannot be recognized from each other."},
