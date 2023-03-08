@@ -5591,6 +5591,15 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armplat'].id] = {
+		greenblob = {
+			lightType = 'point',
+			pieceName = 'blink',
+			lightConfig = { posx = 0, posy = 6, posz = 0, radius = 15,
+				color2r = 0, color2g = 0.3, color2b = 0, colortime = 50,
+				r = 0, g = 1, b = 0, a = 0.5,
+				modelfactor = 0.1, specular = 0.5, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'beam1',
