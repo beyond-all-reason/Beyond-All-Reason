@@ -359,7 +359,7 @@ function widget:GameFrame(n,forceupdate)
 					end
 					history.time = nil
 					local teamColor
-					if anonymousMode and teamID ~= Spring.GetLocalTeamID() then
+					if anonymousMode ~= "disabled" and teamID ~= Spring.GetLocalTeamID() then
 						teamColor = { anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3] }
 					else
 						teamColor = { Spring.GetTeamColor(teamID) }

@@ -42,7 +42,7 @@ Spring.SendCommands({
 local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-if anonymousMode then
+if anonymousMode ~= "disabled" then
 	allowuserwidgets = false
 
 	-- disabling individual Spring functions isnt really good enough
@@ -1262,7 +1262,7 @@ end
 
 
 function widgetHandler:DrawScreen()
-	if not Spring.GetSpectatingState() and anonymousMode then
+	if not Spring.GetSpectatingState() and anonymousMode ~= "disabled" then
 		Spring.SendCommands("info 0")
 	end
 	if not Spring.IsGUIHidden() then

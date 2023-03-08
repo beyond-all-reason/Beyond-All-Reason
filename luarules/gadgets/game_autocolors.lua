@@ -11,7 +11,6 @@ function gadget:GetInfo()
 end
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousModeColorSetup = Spring.GetModOptions().teamcolors_anonymous_mode_colorsetup
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local teamList = Spring.GetTeamList()
 local allyTeamList = Spring.GetAllyTeamList()
@@ -418,7 +417,7 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	if anonymousMode then
+	if anonymousMode ~= "disabled" then
 		shuffleAllColors()
 	end
 
@@ -510,7 +509,7 @@ else	-- UNSYNCED
 	teamColorsTable = {}
 
 	local function setUpLocalTeamColor(teamID, allyTeamID, isAI)
-		if anonymousMode and anonymousModeColorSetup ~= "global" then
+		if anonymousMode ~= "disabled" and anonymousMode ~= "global" then
 			if isAI and string.find(isAI, "Scavenger") then
 
 				teamColorsTable[teamID] = {
@@ -625,7 +624,7 @@ else	-- UNSYNCED
 		end
 	end
 
-	if anonymousMode and anonymousModeColorSetup == "local" then
+	if anonymousMode ~= "disabled" and anonymousMode == "local" then
 		shuffleAllColors()
 	end
 	setUpAllLocalTeamColors()
@@ -642,7 +641,7 @@ else	-- UNSYNCED
 	local iconDevModeColor = iconDevModeColors[iconDevMode]
 
 	local function updateTeamColors()
-		if math.random(0,30) == 0 and anonymousMode and anonymousModeColorSetup == "disco" and not Spring.GetSpectatingState() then
+		if math.random(0,30) == 0 and anonymousMode ~= "disabled" and anonymousMode == "disco" and not Spring.GetSpectatingState() then
 			shuffleAllColors()
 			setUpAllLocalTeamColors()
 		end
@@ -661,7 +660,7 @@ else	-- UNSYNCED
 
 			if iconDevModeColor then
 				Spring.SetTeamColor(teamID, hex2RGB(iconDevModeColor)[1]/255, hex2RGB(iconDevModeColor)[2]/255, hex2RGB(iconDevModeColor)[3]/255)
-			elseif Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or (anonymousMode and anonymousModeColorSetup == "allred" and not Spring.GetSpectatingState()) then
+			elseif Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or (anonymousMode ~= "disabled" and anonymousMode == "allred" and not Spring.GetSpectatingState()) then
 				local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
 				if teamID == myTeamID then
 					Spring.SetTeamColor(teamID,

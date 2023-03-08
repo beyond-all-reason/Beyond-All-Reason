@@ -864,7 +864,7 @@ function widget:DrawInMiniMap(sx, sy)
 		end
 
 		local r, g, b
-		if anonymousMode then
+		if anonymousMode ~= "disabled" then
 			r, g, b = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 		else
 			r, g, b = Spring.GetTeamColor(myTeamID)
