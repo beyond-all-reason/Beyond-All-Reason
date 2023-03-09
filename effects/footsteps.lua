@@ -28,6 +28,7 @@ return {
                 texture            = [[randdots]],
                 useairlos          = false,
                 alwaysvisible      = false,
+                castShadow         = true,
             },
         },
     dirtg2 = {
@@ -59,6 +60,7 @@ return {
         animParams         = [[8,8,60 r45]],
         useairlos          = false,
         alwaysvisible      = false,
+        castShadow         = true,
       },
     },
     -- extradebree = {
@@ -119,6 +121,7 @@ return {
                 texture            = [[randdots]],
                 useairlos          = false,
                 alwaysvisible      = false,
+                castShadow         = true,
             },
         },
     shockwave_fast = {
@@ -126,7 +129,7 @@ return {
           class              = [[CBitmapMuzzleFlame]],
           count              = 1,
           ground             = true,
-          underwater         = true,
+          underwater         = false,
           water              = true,
           unit               = true,
           properties = {
@@ -236,6 +239,7 @@ return {
                 texture            = [[randdots]],
                 useairlos          = false,
                 alwaysvisible      = false,
+                castShadow         = true,
             },
         },
     shockwave_fast = {
@@ -243,7 +247,7 @@ return {
           class              = [[CBitmapMuzzleFlame]],
           count              = 1,
           ground             = true,
-          underwater         = true,
+          underwater         = false,
           water              = true,
           unit               = true,
           properties = {
@@ -293,7 +297,7 @@ return {
         animParams         = [[8,6,41 r45]],
         useairlos          = false,
         alwaysvisible      = false,
-        castShadow         = true,
+        --castShadow         = true,
       },
     },
     extradebree = {
