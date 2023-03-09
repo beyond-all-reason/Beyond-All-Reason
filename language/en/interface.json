@@ -245,6 +245,9 @@
 			"tooltip": "CTRL + 0-9 sets unit group for selected units.\nCTRL BACKQUOTE (~) remove units.",
 			"autogroupTooltip": "Auto Groups\nALT + 0-9 sets autogroup # for selected unit type(s).\nNewly built units get added to group# equal to their autogroup#.\nALT BACKQUOTE (~) remove units.\nView settings at: Settings/Interface/AutoGroup"
 		},
+		"changelog": {
+			"title": "Changelog"
+		},
 		"keybinds": {
 			"title": "Keybinds",
 			"disclaimer": "These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!",

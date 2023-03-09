@@ -19,7 +19,6 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
-local textTitleColor = "\255\215\255\215"
 local textWarnColor = "\255\255\215\215"
 
 local vsx, vsy = Spring.GetViewGeometry()
@@ -434,6 +433,9 @@ local function updateButtons()
 		end
 		if WG['keybinds'] ~= nil then
 			addButton('keybinds', Spring.I18N('ui.topbar.button.keys'))
+		end
+		if WG['changelog'] ~= nil then
+			addButton('changelog', Spring.I18N('ui.topbar.button.changes'))
 		end
 		if WG['teamstats'] ~= nil then
 			addButton('stats', Spring.I18N('ui.topbar.button.stats'))
@@ -1778,6 +1780,10 @@ local function hideWindows()
 		WG['keybinds'].toggle(false)
 		closedWindow = true
 	end
+	if WG['changelog'] ~= nil and WG['changelog'].isvisible() then
+		WG['changelog'].toggle(false)
+		closedWindow = true
+	end
 	if WG['gameinfo'] ~= nil and WG['gameinfo'].isvisible() then
 		WG['gameinfo'].toggle(false)
 		closedWindow = true
@@ -1871,6 +1877,14 @@ local function applyButtonAction(button)
 		hideWindows()
 		if WG['keybinds'] ~= nil and isvisible ~= true then
 			WG['keybinds'].toggle()
+		end
+	elseif button == 'changelog' then
+		if WG['changelog'] ~= nil then
+			isvisible = WG['changelog'].isvisible()
+		end
+		hideWindows()
+		if WG['changelog'] ~= nil and isvisible ~= true then
+			WG['changelog'].toggle()
 		end
 	elseif button == 'stats' then
 		if WG['teamstats'] ~= nil then

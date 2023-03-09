@@ -14,8 +14,10 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local CMD_CAPTURE = CMD.CAPTURE
+
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-	if cmdID == CMD.CAPTURE and Spring.GetUnitAllyTeam(unitID) == Spring.GetUnitAllyTeam(cmdParams[1]) then
+	if cmdID == CMD_CAPTURE and Spring.GetUnitAllyTeam(unitID) == Spring.GetUnitAllyTeam(cmdParams[1]) then
 		return false
 	end
 	return true
