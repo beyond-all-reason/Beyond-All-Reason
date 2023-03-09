@@ -30,11 +30,14 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 	if setBlockingOnFinished[unitID] then
 		if UnitDefs[unitDefID].canFly == true then
-			--to make sure air units do not set their ground to blocking
+			-- to make sure air units do not set their ground to blocking
 			-- to prevent rare case of aircraft already in takeoff state perma-blocking a factory
-			Spring.SetUnitBlocking(unitID, false, true)
+
+			-- also the second false is to clear CSTATE_BIT_SOLIDOBJECTS, so landing aircraft do not claim dumb spots as blocking
+			-- TODO, engine fix to prevent this nonsense
+			Spring.SetUnitBlocking(unitID, false, false)
 		else
-			Spring.SetUnitBlocking(unitID, true, true)
+			Spring.SetUnitBlocking(unitID, true)
 		end
 		setBlockingOnFinished[unitID] = nil
 	end
@@ -43,8 +46,7 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if factoryUnits[builderID] then
 		-- first false is to set blocking on ground
-		-- second false is to set blocking with other solid objects and units
-		Spring.SetUnitBlocking(unitID, false, false)
+		Spring.SetUnitBlocking(unitID, false)
 		setBlockingOnFinished[unitID] = true
 	end
 end
