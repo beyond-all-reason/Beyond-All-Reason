@@ -1251,7 +1251,7 @@ fragment = [[
 			seedVec.y += 1024.0 * hash11(float(unitID));
 
 			healthMix = SNORM2NORM(Perlin3D(seedVec.xyz)) * (2.0 - baseVertexDisplacement);
-			healthMix = smoothstep(0.0, healthMix, max((1.0 - healthFraction) + baseVertexDisplacement, 0.0));
+			healthMix = smoothstep(0.0, healthMix, max((1.0 - healthFraction) + baseVertexDisplacement, 0.0)) * 0.8; // Reduce maximum damage shading to 80%
 		}
 		#endif
 
