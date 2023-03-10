@@ -624,7 +624,7 @@ else	-- UNSYNCED
 		end
 	end
 
-	if anonymousMode ~= "disabled" and anonymousMode == "local" then
+	if anonymousMode == "local" then
 		shuffleAllColors()
 	end
 	setUpAllLocalTeamColors()
@@ -641,7 +641,7 @@ else	-- UNSYNCED
 	local iconDevModeColor = iconDevModeColors[iconDevMode]
 
 	local function updateTeamColors()
-		if math.random(0,30) == 0 and anonymousMode ~= "disabled" and anonymousMode == "disco" and not Spring.GetSpectatingState() then
+		if math.random(0,30) == 0 and anonymousMode == "disco" and not Spring.GetSpectatingState() then
 			shuffleAllColors()
 			setUpAllLocalTeamColors()
 		end
@@ -660,7 +660,7 @@ else	-- UNSYNCED
 
 			if iconDevModeColor then
 				Spring.SetTeamColor(teamID, hex2RGB(iconDevModeColor)[1]/255, hex2RGB(iconDevModeColor)[2]/255, hex2RGB(iconDevModeColor)[3]/255)
-			elseif Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or (anonymousMode ~= "disabled" and anonymousMode == "allred" and not Spring.GetSpectatingState()) then
+			elseif Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or (anonymousMode == "allred" and not Spring.GetSpectatingState()) then
 				local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
 				if teamID == myTeamID then
 					Spring.SetTeamColor(teamID,

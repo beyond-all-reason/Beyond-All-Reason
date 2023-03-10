@@ -1262,7 +1262,7 @@ end
 
 
 function widgetHandler:DrawScreen()
-	if not Spring.GetSpectatingState() and anonymousMode ~= "disabled" then
+	if (not Spring.GetSpectatingState()) and anonymousMode ~= "disabled" then
 		Spring.SendCommands("info 0")
 	end
 	if not Spring.IsGUIHidden() then

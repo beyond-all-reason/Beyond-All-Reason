@@ -557,7 +557,7 @@ function widget:DrawScreen()
 				if not drawlistsPlayername[name] then
 					drawlistsPlayername[name] = gl.CreateList(function()
 						local r, g, b = 1, 1, 1
-						if not isSpec and anonymousMode ~= "disabled" then
+						if (not isSpec) and anonymousMode ~= "disabled" then
 							r, g, b = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 						elseif not spec then
 							r, g, b, _ = spGetTeamColor(myTeamID)

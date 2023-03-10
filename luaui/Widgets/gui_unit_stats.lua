@@ -775,7 +775,7 @@ local function drawStats(uDefID, uID)
 	local text = "\255\190\255\190" .. UnitDefs[uDefID].translatedHumanName
 	if uID then
 		local playername = ''
-		if not anonymousMode ~= "disabled" or spec then
+		if (not anonymousMode ~= "disabled") or spec then
 			playername = GetTeamColorCode(uTeam) .. GetTeamName(uTeam)
 		end
 		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   ".. playername .. grey .. effectivenessRate

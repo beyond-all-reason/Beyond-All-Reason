@@ -55,7 +55,7 @@ function colourPlayer(playerName)
 		return specColStr
 	end
 	local nameColourR, nameColourG, nameColourB, _ = Spring.GetTeamColor(teamID)
-	if not isSpec and anonymousMode ~= "disabled" then
+	if (not isSpec) and anonymousMode ~= "disabled" then
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
 	local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
