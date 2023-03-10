@@ -102,6 +102,7 @@ local cursorBlinkTimer = 0
 local cursorBlinkDuration = 1
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+
 local anonymousTeamColor = {1,0,0}
 
 local inputMode = ''
@@ -1654,7 +1655,7 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 			text = ssub(text,2)
 		end
 
-		if not isSpec and anonymousMode then
+		if not isSpec and anonymousMode ~= "disabled" then
 			nameText = convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..name
 		else
 			nameText = convertColor(spGetTeamColor(names[name][3]))..name
@@ -1718,7 +1719,7 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 				skipThisMessage = true
 			end
 		else
-			if not isSpec and anonymousMode then
+			if not isSpec and anonymousMode ~= "disabled" then
 				namecolor = convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])
 			else
 				namecolor =  convertColor(spGetTeamColor(names[name][3]))
@@ -1825,7 +1826,7 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 			line = ''
 			if names[playername] then
 				if not names[playername][2] then
-					if not isSpec and anonymousMode then
+					if not isSpec and anonymousMode ~= "disabled" then
 						line = line..convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..playername
 					else
 						line = line..convertColor(spGetTeamColor(names[playername][3]))..playername
@@ -1853,7 +1854,7 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 			line = 'Connection attempt from: '
 			if names[playername] then
 				if not names[playername][2] then
-					if not isSpec and anonymousMode then
+					if not isSpec and anonymousMode ~= "disabled" then
 						line = line..convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..playername
 					else
 						line = line..convertColor(spGetTeamColor(names[playername][3]))..playername

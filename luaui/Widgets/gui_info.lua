@@ -985,12 +985,12 @@ local function drawUnitInfo()
 			if isAiTeam then
 				name = GetAIName(teamID)
 			end
-			if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode then
+			if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode ~= 'disabled' then
 				name = "??????"
 			end
 			if name then
 				local fontSizeOwner = fontSize * 0.87
-				--if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode then
+				--if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode ~= 'disabled' then
 				--	name = ColourString(1,0,0) .. name
 				--else
 					name = ColourString(Spring.GetTeamColor(teamID)) .. name
