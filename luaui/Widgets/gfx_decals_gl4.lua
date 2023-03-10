@@ -548,7 +548,10 @@ end
 
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
+local skipdraw = false
+
 local function DrawDecals()
+	if skipdraw then return end
 	local alt, ctrl = Spring.GetModKeyState()
 	if alt and (isSinglePlayer) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
 	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
@@ -602,16 +605,25 @@ local function DrawDecals()
 		for i = 0, 8 do glTexture(i, false) end
 		glCulling(false) -- This is the correct default mode!
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
-
-		if false then
-			local tricount = 4*4*2 * decalVBO.usedElements + resolution*resolution*2*decalLargeVBO.usedElements + 4*4*resolution*resolution*2*decalExtraLargeVBO.usedElements
-			Spring.Echo(string.format("Small decal = %d, Medium decal = %d, Large decal = %d, tris = %d",
-				decalVBO.usedElements,
-				decalLargeVBO.usedElements,
-				decalExtraLargeVBO.usedElements,
-				tricount))
-		end
 	end
+end
+
+function widget:TextCommand(command)
+	if string.find(command, "decalsgl4stats", nil, true) then
+		local tricount = 4*4*2 * decalVBO.usedElements + resolution*resolution*2*decalLargeVBO.usedElements + 4*4*resolution*resolution*2*decalExtraLargeVBO.usedElements
+		Spring.Echo(string.format("Small decal = %d, Medium decal = %d, Large decal = %d, tris = %d",
+			decalVBO.usedElements,
+			decalLargeVBO.usedElements,
+			decalExtraLargeVBO.usedElements,
+			tricount))
+		return true
+	end	
+	if string.find(command, "decalsgl4skipdraw", nil, true) then
+		skipdraw = not skipdraw
+		Spring.Echo("Decals GL4 skipdraw set to", skipdraw)
+		return true
+	end
+	return false
 end
 
 if Spring.Utilities.EngineVersionAtLeast(105,1,1,1422) then
