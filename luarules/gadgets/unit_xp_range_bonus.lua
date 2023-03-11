@@ -31,9 +31,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:GameFrame(n)
-	for unitID, unitDef in pairs(updateList) do
+	for unitID, unitDefID in pairs(updateList) do
 		local currentXP = GetUnitExperience(unitID)
         if currentXP then
+			local unitDef = XPDefs[unitDefID]
 			local rangeXPScale = unitDef.customParams.rangexpscale
 
             local limitXP = ((3*currentXP)/(1+3*currentXP))*rangeXPScale
@@ -49,22 +50,18 @@ function gadget:GameFrame(n)
 end
 
 function GG.requestMaverickExpUpdate(unitID)	
-	if(XPDefs[attackerDefID] == nil) then
+	local unitDefID = GetUnitDefID(unitID)
+	if(XPDefs[unitDefID] == nil) then
 		return
 	end
 
 	--schedule an update of range next frame when exp has been updated
-    updateList[unitID] = UnitDefs[GetUnitDefID(unitID)]
+    updateList[unitID] = unitDefID
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	--Check if it doesn't exist anymore
-	if(UnitDefs[attackerDefID] == nil) then
-		return
-	end
-
 	if(XPDefs[attackerDefID]) then		
-		updateList[attackerID] = UnitDefs[unitDefID]	--schedule an update of range next frame when exp has been updated
+		updateList[attackerID] = attackerDefID	--schedule an update of range next frame when exp has been updated
 	end
 end
 
