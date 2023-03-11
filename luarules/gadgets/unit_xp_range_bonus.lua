@@ -23,10 +23,8 @@ local updateList = {}
 local XPDefs = {}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams ~= nil then
-		if unitDef.customParams.rangexpscale ~= nil then
-			XPDefs[unitDefID] = {unitDef.customParams.rangexpscale, WeaponDefs[unitDef.weapons[1].weaponDef].range}
-		end
+	if unitDef.customParams.rangexpscale then
+		XPDefs[unitDefID] = {unitDef.customParams.rangexpscale, WeaponDefs[unitDef.weapons[1].weaponDef].range}
 	end
 end
 
