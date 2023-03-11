@@ -1,8 +1,8 @@
 function gadget:GetInfo()
 	return {
-		name		= "Maverick Exp",
-		desc		= "Sets Maverick exp effect",
-		author		= "BrainDamage",
+		name		= "Unit Range XP Update",
+		desc		= "Sets Unit Range From XP",
+		author		= "BrainDamage/lonewolfdesign",
 		date		= "",
 		license		= "WTFPL",
 		layer		= 0,
@@ -24,14 +24,15 @@ local updateList = {}
 
 function gadget:GameFrame(n)
 	for unitID in pairs(updateList) do
-		local curExp = GetUnitExperience(unitID)
-        if curExp then
+		local currentXP = GetUnitExperience(unitID)
+        if currentXP then
 			local unitDef = UnitDefs[GetUnitDefID(unitID)]
 
 			local rangeXPScale = unitDef.customParams.rangexpscale
-            local limExp = ((3*curExp)/(1+3*curExp))*rangeXPScale
 
-            local newRange = WeaponDefs[unitDef.weapons[1].weaponDef].range  * ( 1 + limExp )
+            local limitXP = ((3*currentXP)/(1+3*currentXP))*rangeXPScale
+
+            local newRange = WeaponDefs[unitDef.weapons[1].weaponDef].range  * ( 1 + limitXP )
 
             SetUnitWeaponState(unitID, 1, "range", newRange)
             SetUnitMaxRange(unitID,newRange)
@@ -41,7 +42,8 @@ function gadget:GameFrame(n)
 end
 
 function GG.requestMaverickExpUpdate(unitID)	
-	if (not(string.find(UnitDefs[attackerDefID].name, "armmav"))) then
+	local unitDef = UnitDefs[GetUnitDefID(unitID)]
+	if(unitDef.customParams.rangexpscale == nil) then
 		return
 	end
 
@@ -55,7 +57,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 		return
 	end
 
-	if(string.find(UnitDefs[attackerDefID].name, "armmav")) then
+	if(UnitDefs[attackerDefID].customParams.rangexpscale ~= nil) then
 		updateList[attackerID] = true	--schedule an update of range next frame when exp has been updated
 	end
 end
