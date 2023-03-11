@@ -105,6 +105,8 @@ local font, chobbyInterface, backgroundGuishader, gameStarted, bgpadding, gameov
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {1,0,0}
 
+local isSpec = Spring.GetSpectatingState()
+
 function roundNumber(num,useFirstDecimal)
 	return useFirstDecimal and format("%0.1f",round(num,1)) or round(num)
 end
@@ -324,6 +326,7 @@ end
 
 function widget:PlayerChanged()
 	widget:GameFrame(GetGameFrame(),true)
+	isSpec = Spring.GetSpectatingState()
 end
 
 function widget:GameFrame(n,forceupdate)
@@ -359,7 +362,7 @@ function widget:GameFrame(n,forceupdate)
 					end
 					history.time = nil
 					local teamColor
-					if anonymousMode ~= "disabled" and teamID ~= Spring.GetLocalTeamID() then
+					if not isSpec and anonymousMode ~= "disabled" and teamID ~= Spring.GetLocalTeamID() then
 						teamColor = { anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3] }
 					else
 						teamColor = { Spring.GetTeamColor(teamID) }
