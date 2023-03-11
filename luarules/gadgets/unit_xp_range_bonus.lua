@@ -25,7 +25,7 @@ local XPDefs = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams ~= nil then
 		if unitDef.customParams.rangexpscale ~= nil then
-			XPDefs[unitDefID] = unitDef
+			XPDefs[unitDefID] = {unitDef.customParams.rangexpscale, WeaponDefs[unitDef.weapons[1].weaponDef].range}
 		end
 	end
 end
@@ -34,12 +34,11 @@ function gadget:GameFrame(n)
 	for unitID, unitDefID in pairs(updateList) do
 		local currentXP = GetUnitExperience(unitID)
         if currentXP then
-			local unitDef = XPDefs[unitDefID]
-			local rangeXPScale = unitDef.customParams.rangexpscale
+			local rangeXPScale, originalRange = XPDefs[unitDefID]
 
             local limitXP = ((3*currentXP)/(1+3*currentXP))*rangeXPScale
 
-            local newRange = WeaponDefs[unitDef.weapons[1].weaponDef].range  * ( 1 + limitXP )
+            local newRange = originalRange  * ( 1 + limitXP )
 
             SetUnitWeaponState(unitID, 1, "range", newRange)
             SetUnitMaxRange(unitID,newRange)
