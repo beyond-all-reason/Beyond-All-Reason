@@ -2,7 +2,7 @@ function gadget:GetInfo()
 	return {
 		name		= "Unit Range XP Update",
 		desc		= "Applies weapon range bonus when unit earns XP",
-		author		= "BrainDamage/lonewolfdesign",
+		author		= "BrainDamage, lonewolfdesign",
 		date		= "",
 		license		= "WTFPL",
 		layer		= 0,
