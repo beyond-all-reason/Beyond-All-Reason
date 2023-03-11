@@ -34,7 +34,7 @@ function gadget:GameFrame(n)
 	for unitID, unitDefID in pairs(updateList) do
 		local currentXP = GetUnitExperience(unitID)
         if currentXP then
-			local rangeXPScale, originalRange = XPDefs[unitDefID]
+			local rangeXPScale, originalRange = unpack(XPDefs[unitDefID])
 
             local limitXP = ((3*currentXP)/(1+3*currentXP))*rangeXPScale
 
