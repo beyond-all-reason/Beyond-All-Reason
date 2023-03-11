@@ -14,51 +14,51 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-
 local SetUnitWeaponState = Spring.SetUnitWeaponState
 local GetUnitExperience = Spring.GetUnitExperience
 local SetUnitMaxRange = Spring.SetUnitMaxRange
 local GetUnitDefID = Spring.GetUnitDefID
 
 local updateList = {}
+local XPDefs = {}
+
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.rangexpscale ~= nil then
+		XPDefs[unitDefID] = {unitDef.customParams.rangexpscale, WeaponDefs[unitDef.weapons[1].weaponDef].range}
+	end
+end
 
 function gadget:GameFrame(n)
-	for unitID in pairs(updateList) do
+	for unitID, unitDefID in pairs(updateList) do
 		local currentXP = GetUnitExperience(unitID)
         if currentXP then
-			local unitDef = UnitDefs[GetUnitDefID(unitID)]
-
-			local rangeXPScale = unitDef.customParams.rangexpscale
+			local rangeXPScale, originalRange = unpack(XPDefs[unitDefID])
 
             local limitXP = ((3*currentXP)/(1+3*currentXP))*rangeXPScale
 
-            local newRange = WeaponDefs[unitDef.weapons[1].weaponDef].range  * ( 1 + limitXP )
+            local newRange = originalRange  * ( 1 + limitXP )
 
             SetUnitWeaponState(unitID, 1, "range", newRange)
             SetUnitMaxRange(unitID,newRange)
         end
     end
+
 	updateList = {}
 end
 
 function GG.requestMaverickExpUpdate(unitID)	
-	local unitDef = UnitDefs[GetUnitDefID(unitID)]
-	if(unitDef.customParams.rangexpscale == nil) then
+	local unitDefID = GetUnitDefID(unitID)
+	if(XPDefs[unitDefID] == nil) then
 		return
 	end
 
 	--schedule an update of range next frame when exp has been updated
-    updateList[unitID] = true
+    updateList[unitID] = unitDefID
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	--Check if it doesn't exist anymore
-	if(UnitDefs[attackerDefID] == nil) then
-		return
-	end
-
-	if(UnitDefs[attackerDefID].customParams.rangexpscale ~= nil) then
-		updateList[attackerID] = true	--schedule an update of range next frame when exp has been updated
+	if(XPDefs[attackerDefID]) then		
+		updateList[attackerID] = attackerDefID	--schedule an update of range next frame when exp has been updated
 	end
 end
 
