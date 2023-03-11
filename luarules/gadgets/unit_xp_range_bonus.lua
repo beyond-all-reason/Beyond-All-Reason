@@ -1,8 +1,8 @@
 function gadget:GetInfo()
 	return {
-		name		= "Maverick Exp",
-		desc		= "Sets Maverick exp effect",
-		author		= "BrainDamage",
+		name		= "Unit Range XP Update",
+		desc		= "Applies weapon range bonus when unit earns XP",
+		author		= "BrainDamage, lonewolfdesign",
 		date		= "",
 		license		= "WTFPL",
 		layer		= 0,
@@ -20,22 +20,20 @@ local GetUnitExperience = Spring.GetUnitExperience
 local SetUnitMaxRange = Spring.SetUnitMaxRange
 local GetUnitDefID = Spring.GetUnitDefID
 
-local isMaverick = {}
-for udid, ud in pairs(UnitDefs) do
-	if string.find(ud.name, 'armmav') then
-		isMaverick[udid] = true
-	end
-end
-local maverickOriginalRange = WeaponDefNames["armmav_armmav_weapon"].range
-
 local updateList = {}
 
 function gadget:GameFrame(n)
 	for unitID in pairs(updateList) do
-		local curExp = GetUnitExperience(unitID)
-        if curExp then
-            local limExp = ((3*curExp)/(1+3*curExp))*0.6
-            local newRange = maverickOriginalRange * ( 1 + limExp )
+		local currentXP = GetUnitExperience(unitID)
+        if currentXP then
+			local unitDef = UnitDefs[GetUnitDefID(unitID)]
+
+			local rangeXPScale = unitDef.customParams.rangexpscale
+
+            local limitXP = ((3*currentXP)/(1+3*currentXP))*rangeXPScale
+
+            local newRange = WeaponDefs[unitDef.weapons[1].weaponDef].range  * ( 1 + limitXP )
+
             SetUnitWeaponState(unitID, 1, "range", newRange)
             SetUnitMaxRange(unitID,newRange)
         end
@@ -43,16 +41,23 @@ function gadget:GameFrame(n)
 	updateList = {}
 end
 
-function GG.requestMaverickExpUpdate(unitID)
-	if not isMaverick[GetUnitDefID(unitID)] then
+function GG.requestMaverickExpUpdate(unitID)	
+	local unitDef = UnitDefs[GetUnitDefID(unitID)]
+	if(unitDef.customParams.rangexpscale == nil) then
 		return
 	end
+
 	--schedule an update of range next frame when exp has been updated
     updateList[unitID] = true
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if isMaverick[attackerDefID] then
+	--Check if it doesn't exist anymore
+	if(UnitDefs[attackerDefID] == nil) then
+		return
+	end
+
+	if(UnitDefs[attackerDefID].customParams.rangexpscale ~= nil) then
 		updateList[attackerID] = true	--schedule an update of range next frame when exp has been updated
 	end
 end
