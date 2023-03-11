@@ -14,20 +14,26 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-
 local SetUnitWeaponState = Spring.SetUnitWeaponState
 local GetUnitExperience = Spring.GetUnitExperience
 local SetUnitMaxRange = Spring.SetUnitMaxRange
 local GetUnitDefID = Spring.GetUnitDefID
 
 local updateList = {}
+local XPDefs = {}
+
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams ~= nil then
+		if unitDef.customParams.rangexpscale ~= nil then
+			XPDefs[unitDefID] = unitDef
+		end
+	end
+end
 
 function gadget:GameFrame(n)
-	for unitID in pairs(updateList) do
+	for unitID, unitDef in pairs(updateList) do
 		local currentXP = GetUnitExperience(unitID)
         if currentXP then
-			local unitDef = UnitDefs[GetUnitDefID(unitID)]
-
 			local rangeXPScale = unitDef.customParams.rangexpscale
 
             local limitXP = ((3*currentXP)/(1+3*currentXP))*rangeXPScale
@@ -38,17 +44,17 @@ function gadget:GameFrame(n)
             SetUnitMaxRange(unitID,newRange)
         end
     end
+
 	updateList = {}
 end
 
 function GG.requestMaverickExpUpdate(unitID)	
-	local unitDef = UnitDefs[GetUnitDefID(unitID)]
-	if(unitDef.customParams.rangexpscale == nil) then
+	if(XPDefs[attackerDefID] == nil) then
 		return
 	end
 
 	--schedule an update of range next frame when exp has been updated
-    updateList[unitID] = true
+    updateList[unitID] = UnitDefs[GetUnitDefID(unitID)]
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
@@ -57,8 +63,8 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 		return
 	end
 
-	if(UnitDefs[attackerDefID].customParams.rangexpscale ~= nil) then
-		updateList[attackerID] = true	--schedule an update of range next frame when exp has been updated
+	if(XPDefs[attackerDefID]) then		
+		updateList[attackerID] = UnitDefs[unitDefID]	--schedule an update of range next frame when exp has been updated
 	end
 end
 
