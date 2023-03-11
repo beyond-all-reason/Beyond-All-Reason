@@ -40,6 +40,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",
 			techlevel = 2,
+			rangexpscale = 0.6,
 		},
 		featuredefs = {
 			dead = {
