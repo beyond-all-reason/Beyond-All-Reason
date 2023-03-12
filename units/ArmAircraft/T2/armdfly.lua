@@ -40,7 +40,6 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 420,
 		unloadspread = 0,
-		--isfireplatform = true, --allow units to fire while in transport , but since units are attached to the transport root only 1 unit can fire, need sol to set piece number for each unit attached
 		customparams = {
 			unitgroup = 'emp',
 			model_author = "FireStorm",
