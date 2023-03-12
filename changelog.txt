@@ -1,5 +1,6 @@
 ﻿# March 2023
 
+ • [Thor] Speed nerf 60->54, spark forkdamage nerf 0.5->0.25 (now deals 750 damage as aoe instead of 1500)
  • [Commanders] can no longer capture allied units
  • [Seaplane Platforms] added sonar distance for armada: 600, cortex: 800
  • [factories] tiny radar ranges removed + added large ranges for t1 air: 500, t2 air: 1000, armada seaplane: 750
