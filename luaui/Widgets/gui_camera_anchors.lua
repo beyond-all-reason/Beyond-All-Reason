@@ -17,6 +17,7 @@ function widget:GetInfo()
 end
 
 local GetCameraState      = Spring.GetCameraState
+local SetCameraState      = Spring.SetCameraState
 local SetCameraTarget     = Spring.SetCameraTarget
 
 function widget:Initialize()
@@ -30,21 +31,21 @@ function SetCameraAnchor(_, _, args)
 	local anchorId = args[1]
 	local cameraState = GetCameraState()
 
-	cameraAnchors[anchorId] = {cameraState.px, cameraState.py, cameraState.pz}
+	cameraAnchors[anchorId] = cameraState
 
 	Spring.Echo("Camera anchor set: " .. anchorId)
-	-- Spring.Echo("set: " .. cameraState.px .. "x " .. cameraState.pz .. "z " .. cameraState.py .. "y")
-
+	
 	return true
 end
 
 function FocusCameraAnchor(_, _, args)
 	local anchorId = args[1]
-	local cameraAnchor = cameraAnchors[anchorId]
+	local cameraState = cameraAnchors[anchorId]
 
-	if not cameraAnchor then return end
+	if not cameraState then return end
 
-	SetCameraTarget(cameraAnchor[1], 0, cameraAnchor[3])
+	--SetCameraTarget(cameraAnchor[1], 0, cameraAnchor[3])
+	SetCameraState(cameraState, 0)
 
 	return true
 end
