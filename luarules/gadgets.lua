@@ -147,6 +147,10 @@ local callInLists = {
 	"UnitUnloaded",
 	"UnitCloaked",
 	"UnitDecloaked",
+
+	"MetaUnitAdded",
+	"MetaUnitRemoved",
+
 	-- optional
 	-- "UnitUnitCollision",
 	-- "UnitFeatureCollision",
@@ -1218,6 +1222,20 @@ end
 --  LuaRules Game call-ins
 --
 
+function gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	for _, g in ipairs(self.MetaUnitAddedList) do
+		g:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	end
+	return
+end
+
+function gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	for _, g in ipairs(self.MetaUnitRemovedList) do
+		g:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	end
+	return
+end
+
 function gadgetHandler:DrawUnit(unitID, drawMode)
 	for _, g in ipairs(self.DrawUnitList) do
 		if g:DrawUnit(unitID, drawMode) then
@@ -1499,11 +1517,13 @@ end
 --
 
 function gadgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
+
 	for _, g in ipairs(self.UnitCreatedList) do
 		g:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	end
+	end	
 	return
-end
+end	
 
 function gadgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
 	for _, g in ipairs(self.UnitFinishedList) do
@@ -1527,8 +1547,9 @@ function gadgetHandler:UnitReverseBuilt(unitID, unitDefID, unitTeam)
 	return
 end
 
-function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam,
-									 attackerID, attackerDefID, attackerTeam)
+function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+
 	for _, g in ipairs(self.UnitDestroyedList) do
 		g:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	end
@@ -1564,18 +1585,7 @@ function gadgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, c
 	return
 end
 
-function gadgetHandler:UnitPreDamaged(
-	unitID,
-	unitDefID,
-	unitTeam,
-	damage,
-	paralyzer,
-	weaponDefID,
-	projectileID,
-	attackerID,
-	attackerDefID,
-	attackerTeam
-)
+function gadgetHandler:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	local retDamage = damage
 	local retImpulse = 1.0
 
@@ -1597,26 +1607,15 @@ function gadgetHandler:UnitPreDamaged(
 	return retDamage, retImpulse
 end
 
-function gadgetHandler:UnitDamaged(
-	unitID,
-	unitDefID,
-	unitTeam,
-	damage,
-	paralyzer,
-	weaponDefID,
-	projectileID,
-	attackerID,
-	attackerDefID,
-	attackerTeam
-)
+function gadgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	for _, g in ipairs(self.UnitDamagedList) do
-		g:UnitDamaged(unitID, unitDefID, unitTeam,
-			damage, paralyzer, weaponDefID, projectileID,
-			attackerID, attackerDefID, attackerTeam)
+		g:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	end
 end
 
 function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+	gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+
 	for _, g in ipairs(self.UnitTakenList) do
 		g:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	end
@@ -1624,6 +1623,8 @@ function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
 function gadgetHandler:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+	gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
+
 	for _, g in ipairs(self.UnitGivenList) do
 		g:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	end
@@ -1750,7 +1751,6 @@ function gadgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, 
 	end
 	return
 end
-
 
 --------------------------------------------------------------------------------
 --

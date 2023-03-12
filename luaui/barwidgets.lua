@@ -132,6 +132,8 @@ local flexCallIns = {
 	'UnitCloaked',
 	'UnitDecloaked',
 	'UnitMoveFailed',
+	'MetaUnitAdded',
+	'MetaUnitRemoved',
 	'RecvLuaMsg',
 	'StockpileChanged',
 	'SelectionChanged',
@@ -1844,12 +1846,28 @@ end
 --  Unit call-ins
 --
 
-function widgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	for _, w in ipairs(self.UnitCreatedList) do
-		w:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+function widgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	for _, w in ipairs(self.MetaUnitAddedList) do
+		w:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	end
 	return
 end
+
+function widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	for _, w in ipairs(self.MetaUnitRemovedList) do
+		w:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	end
+	return
+end
+
+function widgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	widgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
+
+	for _, w in ipairs(self.UnitCreatedList) do
+		w:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	end	
+	return
+end	
 
 function widgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
 	for _, w in ipairs(self.UnitFinishedList) do
@@ -1867,6 +1885,8 @@ function widgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam, factID, fact
 end
 
 function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam)
+	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+
 	for _, w in ipairs(self.UnitDestroyedList) do
 		w:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
@@ -1897,6 +1917,8 @@ function widgetHandler:UnitExperience(unitID, unitDefID, unitTeam, experience, o
 end
 
 function widgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+
 	for _, w in ipairs(self.UnitTakenList) do
 		w:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	end
@@ -1904,6 +1926,8 @@ function widgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
 function widgetHandler:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+	widgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
+
 	for _, w in ipairs(self.UnitGivenList) do
 		w:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	end
