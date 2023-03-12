@@ -1,95 +1,84 @@
-function ScenarioScript_Trigger_Ambush()
-    local killed = gadget:UnitDestroyed(unitID, unitDefID)
-    if killed == true then
-        local unitID = Spring.CreateUnit()
-    else
-        return
-    end
-end
+local triggerTypes = {
+	TimeElapsed = 1,
+	UnitExists = 2,
+	UnitNotExists = 3,
+	ConstructionStarted = 4,
+	ConstructionFinished = 5,
+	UnitKilled = 6,
+	UnitCaptured = 7,
+	UnitResurrected = 8,
+	UnitEnteredLocation = 9,
+	UnitLeftLocation = 10,
+	UnitDwellLocation = 11,
+	UnitSpotted = 12,
+	UnitUnspotted = 13,
+	FeatureNotExists = 14,
+	FeatureReclaimed = 15,
+	FeatureDestroyed = 16,
+	ResourceStored = 17,
+	ResourceProduction = 18,
+	TotalUnitsLost = 19,
+	TotalUnitsBuilt = 20,
+	TotalUnitsKilled = 21,
+	TotalUnitsCaptured = 22,
+	TeamDestroyed = 23,
+	Victory = 24,
+	Defeat = 25,
+}
 
-local loadoutUnitsAlive = {} -- table of {unitID = true}
-local objectiveUnits = {}
-
-function gadget:Loadout()
-    for i, loadout in ipairs(modopts.loadoutunits) do
-    local unitID = Spring.CreateUnit(loadout)
-    loadoutUnitsAlive[unitID] = true
-        if loadout.objectiveID then 
-            objectiveUnits[unitID] = loadout.objectiveID
-        end
-    end
-end
-
-function gadget:UnitDestroyed(unitID, ...)
-    if loadoutUnitsAlive[unitID] then -- check it it hasent already died
-        loadoutUnitsAlive[unitID] = nil -- remove it 
-        if  objectiveUnits[unitID] then -- OPTION A
-            DoObjective(objectiveUnits[unitID])
-            objectiveUnits[unitID] = nil -- remove if needed
-            
-        end
-    end
-end
 --[[
-function gadget:GameFrame(n)
-    --OPTION B
-    for unitID, objectiveID in pairs(objectiveUnits) do 
-        if loadoutUnitsAlive[unitID] == nil then -- the unit died
-            DoObjective(objectiveUnits[unitID])
-            objectiveUnits[unitID] = nil -- remove it
-         end
-    end
+		triggerOption = {
+			prerequisites = {},
+			repeating = false,
+			maxRepeats = nil,
+			difficulties = {},
+			coop = false,
+			active = true,
+			type = triggerTypes.foo,
+			parameters = {},
+			actionIds = {},
+		},
+		...
+	}
+]]
+
+local triggers = {}
+
+local function AddTrigger(id, type, triggerOptions, actionIds, ...)
+	triggerOptions = triggerOptions or {}
+	triggerOptions.prerequisites = triggerOptions.prerequisites or {}
+	triggerOptions.repeating = triggerOptions.repeating or false
+	triggerOptions.maxRepeats = triggerOptions.maxRepeats or nil
+	triggerOptions.difficulties = triggerOptions.difficulties or nil
+	triggerOptions.coop = triggerOptions.coop or false
+	triggerOptions.active = triggerOptions.active or true
+
+	local trigger = {
+		type = type,
+		prerequisites = triggerOptions.prerequisites,
+		repeating = triggerOptions.repeating,
+		maxRepeats = triggerOptions.maxRepeats,
+		difficulties = triggerOptions.difficulties,
+		coop = triggerOptions.coop,
+		active = triggerOptions.active,
+		parameters = ...,
+		actionIds = actionIds,
+	}
+
+	triggers[id] = trigger
 end
 
-]]--
+local function AddTimeElapsedTrigger(id, triggerOptions, actionIds, gameFrame, offset)
+	AddTrigger(id, triggerTypes.TimeElapsed, triggerOptions, gameFrame, offset)
+end
 
+--example usage
+--[[
+local options = {
+	prerequisites = { 'foundEnemyBase', 'builtRadar' },
+	repeating = true,
+}
+local actionIds = { 'callReinforcements', }
 
---[[local CMD_STOP = CMD.STOP
-Spring.DestroyUnit(unitID, false, true)
-function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-    if cmdID ~= CMD_STOP then return end
-    if not unitID then return end
-    if teamID ~= Spring.GetMyTeamID() then return end
-
-    if (Spring.GetUnitSelfDTime(unitID) > 0) then
-        Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, {})
-    end 
-end]]--
-
-
-
-
---[[function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam)
-    for _,w in ipairs(self.UnitDestroyedList) do
-      w:UnitDestroyed(unitID, unitDefID, unitTeam)
-    end
-    return
-  end]]--
-
-
-
---UniDefNames['unitname'].id
---[[return {
-	actions = {
-		-- My custom actions go here
-	},
-	functions = {
-        {
-            humanName = "Zombies in area",
-            name = "ZOMBIES_IN_AREA",
-            input = {"area"},
-            output = "unit_array",
-            tags = {"Units"},
-            execute = function()
-                local units = {}
-                for _, unitID in pairs(Spring.GetUnitsInRectangle(unpack(input.area))) do
-                    if UnitDefs[Spring.GetUnitDefID(unitID)].customParams.zombie then
-                        table.insert(units, unitID)
-                    end
-                end
-                return units
-            end
-        },
-	},
-}]]--
-
+AddTimeElapsedTrigger('intelCollected', options, actionIds, 0, 1800)
+]]
