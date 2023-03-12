@@ -8,8 +8,8 @@ function widget:GetInfo()
 	return {
 		name      = "Camera Anchors",
 		desc      = "Adds keybindings for Camera Anchors",
-		author    = "badosu",
-		date      = "Oct 06, 2021",
+		author    = "badosu, lonewolfdesign",
+		date      = "Mar 12, 2023",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true
@@ -44,7 +44,6 @@ function FocusCameraAnchor(_, _, args)
 
 	if not cameraState then return end
 
-	--SetCameraTarget(cameraAnchor[1], 0, cameraAnchor[3])
 	SetCameraState(cameraState, 0)
 
 	return true
