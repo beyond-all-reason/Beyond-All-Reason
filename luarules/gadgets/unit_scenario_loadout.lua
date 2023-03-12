@@ -46,6 +46,9 @@ function gadget:Initialize()
 	teamList = Spring.GetTeamList()
 	startMetal = Spring.GetModOptions().startmetal
 	startEnergy = Spring.GetModOptions().startenergy
+	teamList = Spring.GetTeamList()
+	startMetal = Spring.GetModOptions().startmetal
+	startEnergy = Spring.GetModOptions().startenergy
 	local gaiateamid = Spring.GetGaiaTeamID()
 end
 
