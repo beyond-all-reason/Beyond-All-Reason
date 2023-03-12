@@ -95,7 +95,7 @@ local glTexRect = gl.TexRect
 local RectRound, RectRoundProgress, UiElement, UiUnit, elementCorner
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)*0.0039, Spring.GetConfigInt("anonymousColorG", 0)*0.0039, Spring.GetConfigInt("anonymousColorB", 0)*0.0039}
+local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 -------------------------------------------------------------------------------
 -- SOUNDS
