@@ -21,6 +21,7 @@ local selectionVBO = nil
 local selectShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
 
+local hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 -- Localize for speedups:
 local glStencilFunc         = gl.StencilFunc
 local glStencilOp           = gl.StencilOp
@@ -116,6 +117,10 @@ local drawFrame = 0
 function widget:DrawWorldPreUnit()
 	drawFrame = drawFrame + 1
 	if selectionVBO.usedElements > 0 then
+		if hasBadCulling then 
+			gl.Culling(false)
+		end
+		
 		glTexture(0, texture)
 		selectShader:Activate()
 		selectShader:SetUniform("iconDistance", 99999) -- pass

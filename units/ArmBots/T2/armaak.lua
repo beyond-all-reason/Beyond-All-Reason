@@ -37,7 +37,6 @@ return {
 			unitgroup = 'aa',
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
-			prioritytarget = "air",
 			subfolder = "armbots/t2",
 			techlevel = 2,
 		},

@@ -28,16 +28,41 @@ for udid, unitDef in pairs(UnitDefs) do
 				if not unitOnlyTargetsCategory[udid] then
 					unitOnlyTargetsCategory[udid] = category
 					if category == 'vtol' then
+						--Spring.Echo(UnitDefs[udid].name, 'has category', category, 'unitDontAttackGround')
+						--Spring.Debug.TableEcho(weapon.onlyTargets)
 						unitDontAttackGround[udid] = true
 					end
 				elseif unitOnlyTargetsCategory[udid] ~= category then	-- multiple different onlytargetcategory used: disregard
 					unitOnlyTargetsCategory[udid] = nil
+					unitDontAttackGround[udid] = nil -- If there are multiple categories, then it can shoot ground, and should be allowed to do so
 					break
 				end
 			end
 		end
 	end
 end
+
+--[[
+function gadget:Initialize()
+	Spring.Echo("unitCategories")
+	for udid, categories in pairs(unitCategories) do 
+		Spring.Echo(UnitDefs[udid].name)
+		Spring.Debug.TableEcho(categories)
+	end
+	
+	Spring.Echo("unitOnlyTargetsCategory")
+	for udid, onlycat in pairs(unitOnlyTargetsCategory) do 
+		Spring.Echo(UnitDefs[udid].name,"=", onlycat)
+	end
+	
+	Spring.Echo("unitDontAttackGround")
+	for udid, noground in pairs(unitDontAttackGround) do 
+			Spring.Echo(UnitDefs[udid].name,"=", noground)
+	end
+	
+end
+]]-- 
+-- debug output
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if cmdID == CMD.ATTACK

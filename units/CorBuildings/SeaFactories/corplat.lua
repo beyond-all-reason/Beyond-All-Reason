@@ -1,6 +1,7 @@
 return {
 	corplat = {
 		acceleration = 0,
+		activatewhenbuilt = true,
 		brakerate = 0,
 		buildcostenergy = 5500,
 		buildcostmetal = 1400,
@@ -20,11 +21,12 @@ return {
 		maxdamage = 2200,
 		minwaterdepth = 30,
 		objectname = "Units/CORPLAT.s3o",
-		radardistance = 50,
+		--radardistance = 50,
 		script = "Units/CORPLAT.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 169,
+		sonardistance = 800,
 		terraformspeed = 1000,
 		waterline = 43,
 		workertime = 200,

@@ -25,6 +25,11 @@ LOLEMPTYFUNCTION(){
 	sleep 1;
 }
 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+
 StopWalking() {
 	animSpeed = 1; // tune restore speed here, higher values are slower restore speeds
 	move llfinger to y-axis [0.000000] speed [22.593379] / animSpeed;
@@ -89,6 +94,7 @@ Walk(calledfrom) {// For N:\animations\Chickens\armmar_walk_v2.blend Created by 
 
 		//get PRINT (get GAME_FRAME, 666,calledfrom,walkCount);
 		if (bMoving) { //Frame:12
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <-32.878383> speed <16.290718> / animSpeed; //delta=-0.54
 			turn lfoot to z-axis <3.346333> speed <69.931035> / animSpeed; //delta=-2.33
 			turn lfoot to y-axis <0.975738> speed <18.491813> / animSpeed; //delta=0.62
@@ -218,6 +224,7 @@ Walk(calledfrom) {// For N:\animations\Chickens\armmar_walk_v2.blend Created by 
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:36
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <5.121553> speed <374.547929> / animSpeed; //delta=12.48
 			turn lfoot to y-axis <0.017987> speed <6.950602> / animSpeed; //delta=-0.23
 			turn lleg to x-axis <44.676431> speed <1495.214474> / animSpeed; //delta=-49.84
@@ -505,6 +512,53 @@ StopMoving(){
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
+
+static-var  Stunned;
+
+RetractSecondary()
+{
+	secondary_deployed = 0;
+	turn laaturret to y-axis 0 speed <180.000000>;
+	turn raaturret to y-axis 0 speed <180.000000>;
+	wait-for-turn laaturret around y-axis;
+	wait-for-turn raaturret around y-axis;
+	turn laacannon to x-axis <27.000000> speed <108.000000>;
+	turn raacannon to x-axis <27.000000> speed <108.000000>;
+	wait-for-turn laacannon around x-axis;
+	wait-for-turn raacannon around x-axis;
+	move laaturret to y-axis [-5.2] speed [20.000000];
+	move raaturret to y-axis [-5.2] speed [20.000000];
+	wait-for-move laaturret along y-axis;
+	wait-for-move raaturret along y-axis;
+}
+
+RestoreAfterDelay_Primary()
+{
+	set-signal-mask SIG_AIM;
+	sleep restore_delay;
+	if (Stunned) {
+			return (1);
+	}
+	turn torso to y-axis 0 speed <140.000000>;
+	turn aimx1 to x-axis <0.000000> speed <360.000000>;
+	// set last heading values to large negative, ensure first aim waits for the turn
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
+}
+
+RestoreAfterDelay_Secondary()
+{
+	set-signal-mask SIG_AIM_2;
+	sleep restore_delay;
+	if (Stunned) {
+			return (1);
+	}
+	start-script RetractSecondary();
+	// set last heading values to large negative, ensure first aim waits for the turn
+	last_secondary_heading = -1000000;
+	last_secondary_pitch = -1000000;
+}
+
 Create()
 {
 	hide lturbfx;
@@ -538,7 +592,6 @@ SetMaxReloadTime(Func_Var_1)
 }
 
 
-static-var  Stunned;
 
 SetStunned(State)
 {
@@ -548,32 +601,7 @@ SetStunned(State)
 			start-script RestoreAfterDelay_Secondary();
 	}
 }
-RestoreAfterDelay_Primary()
-{
-	set-signal-mask SIG_AIM;
-	sleep restore_delay;
-	if (Stunned) {
-			return (1);
-	}
-	turn torso to y-axis 0 speed <140.000000>;
-	turn aimx1 to x-axis <0.000000> speed <360.000000>;
-	// set last heading values to large negative, ensure first aim waits for the turn
-	last_primary_heading = -1000000;
-	last_primary_pitch = -1000000;
-}
 
-RestoreAfterDelay_Secondary()
-{
-	set-signal-mask SIG_AIM_2;
-	sleep restore_delay;
-	if (Stunned) {
-			return (1);
-	}
-	start-script RetractSecondary();
-	// set last heading values to large negative, ensure first aim waits for the turn
-	last_secondary_heading = -1000000;
-	last_secondary_pitch = -1000000;
-}
 
 AimPrimary(heading, pitch)
 {
@@ -586,7 +614,7 @@ AimPrimary(heading, pitch)
 	turn torso to y-axis heading speed <270.000000>; //<140.000000>
 	turn aimx1 to x-axis <0.000000> - pitch speed <360.000000>;
 	// only wait-for-turn if it takes more than 3 frames to finish the turn
-	if ( (get ABS(last_primary_heading-heading)>4860) OR (get ABS(last_primary_pitch-pitch)>6480) )
+	if ( (get ABS(last_primary_heading - heading)>4860) OR (get ABS(last_primary_pitch - pitch)>6480) )
 	{
 		// seems to take 3 frames for wait-for-turn to process
 		wait-for-turn torso around y-axis;
@@ -597,23 +625,6 @@ AimPrimary(heading, pitch)
 
 	start-script RestoreAfterDelay_Primary();
 	return (1);
-}
-
-RetractSecondary()
-{
-secondary_deployed = 0;
-turn laaturret to y-axis 0 speed <180.000000>;
-turn raaturret to y-axis 0 speed <180.000000>;
-wait-for-turn laaturret around y-axis;
-wait-for-turn raaturret around y-axis;
-turn laacannon to x-axis <27.000000> speed <108.000000>;
-turn raacannon to x-axis <27.000000> speed <108.000000>;
-wait-for-turn laacannon around x-axis;
-wait-for-turn raacannon around x-axis;
-move laaturret to y-axis [-5.2] speed [20.000000];
-move raaturret to y-axis [-5.2] speed [20.000000];
-wait-for-move laaturret along y-axis;
-wait-for-move raaturret along y-axis;
 }
 
 AimSecondary(heading, pitch)

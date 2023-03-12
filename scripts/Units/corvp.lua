@@ -1,4 +1,4 @@
-local pad,base,nano1,nano2,nano3,nano4,fan1,fan2,doorr,doorl,doorf = piece("pad","base","nano1","nano2","nano3","nano4","fan1","fan2","doorr","doorl","doorf");
+local pad,base,nano1,nano2,nano3,nano4,fan1,fan2,doorr,doorl,doorf,cagelight,cagelight_emit = piece("pad","base","nano1","nano2","nano3","nano4","fan1","fan2","doorr","doorl","doorf","cagelight","cagelight_emit");
 
 local spray = 0;
 
@@ -43,6 +43,7 @@ function script.Create()
 	Hide(nano2);
 	Hide(nano3);
 	Hide(nano4);
+	Hide (cagelight_emit);
 	spray = 0;
 	UnitScript.StartThread(smoke_unit, base);
 end
@@ -94,6 +95,8 @@ function script.StartBuilding()
 	Show(nano2);
 	Show(nano3);
 	Show(nano4);
+	Show (cagelight_emit);
+	Spin (cagelight_emit, y_axis,3);
 	UnitScript.Spin(fan1, z_axis, math.rad(200), math.rad(5));
 	UnitScript.Spin(fan2, z_axis, math.rad(200), math.rad(5));
 end
@@ -103,6 +106,8 @@ function script.StopBuilding()
 	Hide(nano2);
 	Hide(nano3);
 	Hide(nano4);
+	Hide (cagelight_emit);
+	Turn (cagelight_emit, y_axis,0,15);
 	UnitScript.StopSpin(fan1, z_axis, math.rad(3));
 	UnitScript.StopSpin(fan2, z_axis, math.rad(3));
 end

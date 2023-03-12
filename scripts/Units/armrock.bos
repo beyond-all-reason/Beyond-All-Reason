@@ -20,6 +20,11 @@ static-var  bMoving, bAiming, Static_Var_3, restore_delay, moveSpeed, currentSpe
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+
 // Generated for N:\animations\armrock_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
@@ -94,6 +99,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:12
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <-30.343047> speed <1747.362241> / animSpeed; //delta=58.25 
 			turn lleg to x-axis <49.570900> speed <1348.285886> / animSpeed; //delta=-44.94 
 			turn lmisspod to x-axis <-0.000000> speed <210.000002> / animSpeed; //delta=-7.00 
@@ -174,6 +180,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:24
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <-53.799549> speed <658.782196> / animSpeed; //delta=-21.96 
 			turn lleg to x-axis <81.142033> speed <104.200068> / animSpeed; //delta=3.47 
 			turn lmisspod to x-axis <-0.000000> speed <210.000002> / animSpeed; //delta=7.00 

@@ -39,7 +39,6 @@ return {
 			unitgroup = 'aa',
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
-			prioritytarget = "air",
 			removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",
 			techlevel = 2,

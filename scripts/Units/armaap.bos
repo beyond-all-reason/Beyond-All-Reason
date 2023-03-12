@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad, nano3, nano4, nano2, nano1, dish, blinka, blinkb;
+piece  base, pad, nano3, nano4, nano2, nano1, dish, blink, blinka, blinkb;
 
 static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
@@ -33,14 +33,29 @@ Standby()
 	start-script Standby();
 }
 
+Lights()
+{
+	while( TRUE )
+	{
+	    if (!Stunned) {
+		    emit-sfx 1024 + 1 from blink;
+		}
+		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
+}
+
+
 activatescr()
 {
+	//start-script Lights();
 	sleep 26;
 }
 
 deactivatescr()
 {
-	sleep 26;
+//	sleep 26;
 }
 
 OpenYard()
@@ -78,16 +93,19 @@ Stop()
 }
 DishSpin()
 {
+	show blink;
 	spin dish around y-axis speed <60>;
 }
 DishStopSpin()
 {
+	hide blink;
 	spin dish around y-axis speed <0.000>;
 }
 SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
+		hide blink;
 	    call-script DishStopSpin();
 	} else {
 	    call-script DishSpin();
@@ -138,6 +156,7 @@ Create()
 	spray = nano1;
 	call-script InitState();
 	start-script Standby();
+	start-script Lights();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;

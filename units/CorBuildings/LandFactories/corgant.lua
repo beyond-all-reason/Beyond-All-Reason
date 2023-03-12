@@ -25,7 +25,7 @@ return {
 		maxwaterdepth = 0,
 		metalstorage = 800,
 		objectname = "Units/CORGANT.s3o",
-		radardistance = 50,
+		--radardistance = 50,
 		script = "Units/CORGANT.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",

@@ -377,7 +377,7 @@ local function AssignLightsToAllWeapons()
 			sizeclass = GetClosestSizeClass(radius)
 			radius = ((orgMult * 75) + (radius * 4)) * 0.4
 			life = 8 + (5*(radius/2000)+(orgMult * 5))
-				
+
 		elseif weaponDef.type == 'Cannon' then
 			t.a = orgMult*0.17
 			radius = (radius + (weaponDef.size * 35)) * 0.44
@@ -459,9 +459,9 @@ local function AssignLightsToAllWeapons()
 						t.r = t.r * 1.7	-- make more red
 						t.g = t.g * 0.4	-- make more red
 						t.b = t.b * 0.4	-- make more red
-						life = life * 1.8	-- too high and it will flicker somehow!
+						life = life * 1.1	-- too high and it will flicker somehow!
 						orgMult = orgMult * 0.15
-						t.colortime = 30 / life
+						t.colortime = 31 / life
 					else
 						t.r = t.r * 1.7	-- make more red
 						t.g = t.g * 0.4	-- make more red
@@ -470,7 +470,7 @@ local function AssignLightsToAllWeapons()
 						t.colortime = 19 / life
 					end
 					t.lifetime = life
-					
+
 				end
 				radius = ((weaponDef.damageAreaOfEffect*1.9) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 				if string.find(weaponDef.name, 'juno') then
@@ -511,8 +511,10 @@ local function AssignLightsToAllWeapons()
 				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult
 				sizeclass = GetClosestSizeClass(radius)
 			end
-			explosionLights[weaponID] = GetLightClass("Explosion", nil, sizeclass, t)
-			explosionLights[weaponID].yOffset = explosionLights[weaponID].lightConfig.radius / 5
+			if not weaponDef.customParams.noexplosionlight then
+				explosionLights[weaponID] = GetLightClass("Explosion", nil, sizeclass, t)
+				explosionLights[weaponID].yOffset = explosionLights[weaponID].lightConfig.radius / 5
+			end
 		end
 	end
 	Spring.Echo(Spring.GetGameFrame(),"DLGL4 weapons conf using",usedclasses,"light types")
@@ -611,8 +613,8 @@ GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
 --cortron
 explosionLights[WeaponDefNames["cortron_cortron_weapon"].id] =
 GetLightClass("Explosion", nil, "Large", {r = 3, g = 2.5, b = 2.0, a = 0.25,
-										  color2r = 0.9, color2g = 0.5, color2b = 0.15, colortime = 80,
-										  sustain = 30, lifetime = 150,
+										  color2r = 0.5, color2g = 0.2, color2b = 0.09, colortime = 10,
+										  sustain = 4, lifetime = 120,
 										  modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
 --legbart
@@ -698,9 +700,11 @@ GetLightClass("LaserProjectile", "HeatRay", "Mediumer", {a = 0.09,
 
 --armjuno
 projectileDefLights[WeaponDefNames["armjuno_juno_pulse"].id] =
-GetLightClass("MissileProjectile", "Green", "Medium", {r = 0.88, g = 1.5, b = 0.6, a = 0.45,
-											color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
-											modelfactor = 0.3, specular = 0.1, scattering = 0.3, lensflare = 8})
+GetLightClass("MissileProjectile", "Green", "SmallMedium", {r = 0.02, g = 0.05, b = 0.01, a = 0.25,
+											color2r = 0.88, color2g = 1.5, color2b = 0.6, colortime = 150,
+											--lifetime = 200,
+											--color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
+											modelfactor = 0.3, specular = 0.1, scattering = 0.4, lensflare = 7})
 explosionLights[WeaponDefNames["armjuno_juno_pulse"].id] =
 GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 											posx = 0, posy = 100, posz = 0,
@@ -724,9 +728,11 @@ GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 
 --corjuno
 projectileDefLights[WeaponDefNames["corjuno_juno_pulse"].id] =
-GetLightClass("MissileProjectile", "Green", "Medium", {r = 0.88, g = 1.5, b = 0.6, a = 0.45,
-											color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
-											modelfactor = 0.3, specular = 0.1, scattering = 0.3, lensflare = 8})
+GetLightClass("MissileProjectile", "Green", "SmallMedium", {r = 0.02, g = 0.05, b = 0.01, a = 0.25,
+											color2r = 0.88, color2g = 1.5, color2b = 0.6, colortime = 150,
+											--lifetime = 200,
+											--color2r = 0.75, color2g = 0.9, color2b = 0.3, colortime = 25,
+											modelfactor = 0.3, specular = 0.1, scattering = 0.4, lensflare = 7})
 explosionLights[WeaponDefNames["corjuno_juno_pulse"].id] =
 GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 											posx = 0, posy = 100, posz = 0,

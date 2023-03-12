@@ -120,6 +120,8 @@ return {
 				avoidfriendly = false,
 				burnblow = true,
 				cegtag = "antimissiletrail",
+				collideenemy = false,
+				collidefeature = false,
 				collidefriendly = false,
 				coverage = 2000,
 				craterareaofeffect = 420,

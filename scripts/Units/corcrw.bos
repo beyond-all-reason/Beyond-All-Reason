@@ -45,7 +45,6 @@ Create()
 		sleep 400;
 	}
 	start-script IdleHover();
-	sleep 1500;
 }
 
 Activate()

@@ -9,10 +9,6 @@ piece base, body, head,tail,lblade,mblade,rblade,rsack,lsack,rowing,lowing, riwi
 #include "exptype.h"
 
 
-#include "sfxtype.h"
-#include "exptype.h"
-
-
 // For N:\animations\Chickens\chicken_flight_2seg_anim_v1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 3))
 #define MOVESCALE 200
 #define MOVESPEED 5

@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad, head, nano1, nano2, dish;
+piece  base, pad, head, nano1, nano2, dish, cagelight, cagelight_emit, blink;
 
 static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
@@ -20,6 +20,31 @@ Standby()
 	sleep 50;
 	start-script Standby();
 }
+
+DishSpin()
+{
+	show blink;
+	spin dish around y-axis speed <150>;
+}
+DishStopSpin()
+{
+	hide blink;
+	spin dish around y-axis speed <0.000>;
+}
+
+Lights()
+{
+	while( TRUE )
+	{
+	    if (!Stunned) {
+		    emit-sfx 1024 + 0 from blink;
+		}
+		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
+}
+
 activatescr()
 {
 	if( TRUE )
@@ -29,7 +54,9 @@ activatescr()
 				wait-for-turn head around y-axis;
 		sleep 464;
 	}
-	sleep 56;
+	start-script DishSpin();
+	//start-script Lights();
+	sleep 150;
 	return (0);
 }
 
@@ -75,7 +102,7 @@ Go()
 {
 	call-script activatescr();
 	call-script OpenYard();
-	spin dish around y-axis speed <150.0>;
+	//spin dish around y-axis speed <150.0>;
 	set INBUILDSTANCE to 1;
 	return (0);
 }
@@ -83,18 +110,23 @@ Go()
 Stop()
 {
 	set INBUILDSTANCE to 0;
+	hide cagelight_emit;
+	turn cagelight to y-axis <0> speed <1000>;
 	call-script CloseYard();
 	call-script deactivatescr();
-	spin dish around y-axis speed <0.0>;
+	//spin dish around y-axis speed <0.0>;
 	return (0);
 }
 SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
-	    call-script Stop();
+		hide blink;
+		call-script DishStopSpin();
+	    //call-script Stop();
 	} else {
-	    call-script Go();
+		call-script DishSpin();
+	    //call-script Go();
 	}
 }
 
@@ -125,7 +157,7 @@ RequestState(requestedstate, currentstate)
 		if( statechg_DesiredState == 1 )
 		{
 			call-script Stop();
-			currentstate = 1;
+			currentstate = 1;	
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -137,10 +169,12 @@ Create()
 	hide pad;
 	hide nano1;
 	hide nano2;
+	hide cagelight_emit;
 	unitviewer = FALSE;
 	spray = base;
 	call-script InitState();
 	start-script Standby();
+	start-script Lights();
 	spin dish around y-axis speed <150.0>;
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -196,6 +230,8 @@ StartBuilding()
 {
 	show nano1;
 	show nano2;
+	show cagelight_emit;
+	spin cagelight around y-axis speed <200>;
 	set BUGGER_OFF to 1;
 	return (0);
 }
@@ -204,6 +240,8 @@ StopBuilding()
 {
 	hide nano1;
 	hide nano2;
+	hide cagelight_emit;
+	turn cagelight to y-axis <0> speed <1000>;
 	set BUGGER_OFF to 1;
 	return (0);
 }

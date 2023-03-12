@@ -176,7 +176,7 @@ local function CreatePanelDisplayList()
 	font:SetTextColor(1, 1, 1, 1)
 	font:SetOutlineColor(0, 0, 0, 1)
 	font:Print(techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
-	font:Print(Spring.I18N('ui.chickens.chickenPlayerAgression', { count = (Spring.GetGameRulesParam("chickenPlayerAgressionLevel") or 0) }), panelMarginX, PanelRow(2), panelFontSize, "")
+	--font:Print(Spring.I18N('ui.chickens.chickenPlayerAgression', { count = (Spring.GetGameRulesParam("chickenPlayerAgressionLevel") or 0) }), panelMarginX, PanelRow(2), panelFontSize, "")
 	--font:Print(Spring.I18N('ui.chickens.chickenCount', { count = gameInfo.chickenCounts }), panelMarginX, PanelRow(2), panelFontSize, "")
 	font:Print(Spring.I18N('ui.chickens.chickenKillCount', { count = gameInfo.chickenKills }), panelMarginX, PanelRow(5), panelFontSize, "")
 	--font:Print(Spring.I18N('ui.chickens.burrowCount', { count = gameInfo.chicken_hiveCount }), panelMarginX, PanelRow(4), panelFontSize, "")
@@ -199,17 +199,17 @@ local function getMarqueeMessage(chickenEventArgs)
 	if chickenEventArgs.type == "firstWave" then
 		messages[1] = textColor .. Spring.I18N('ui.chickens.firstWave1')
 		messages[2] = textColor .. Spring.I18N('ui.chickens.firstWave2')
-	elseif chickenEventArgs.type == "airWave" then
-		messages[1] = textColor .. Spring.I18N('ui.chickens.airWave1')
-		messages[2] = textColor .. Spring.I18N('ui.chickens.airWave2')
-	elseif chickenEventArgs.type == "miniQueen" then
-		messages[1] = textColor .. Spring.I18N('ui.chickens.miniBoss1')
-		messages[2] = textColor .. Spring.I18N('ui.chickens.miniBoss2')
 	elseif chickenEventArgs.type == "queen" then
 		messages[1] = textColor .. Spring.I18N('ui.chickens.queenIsAngry1')
 		messages[2] = textColor .. Spring.I18N('ui.chickens.queenIsAngry2')
+		queenIsAngry = true
+	elseif chickenEventArgs.type == "airWave" then
+		messages[1] = textColor .. Spring.I18N('ui.chickens.wave1', {waveNumber = chickenEventArgs.waveCount})
+		messages[2] = textColor .. Spring.I18N('ui.chickens.airWave1')
+		messages[3] = textColor .. Spring.I18N('ui.chickens.airWave2', {unitCount = chickenEventArgs.number})
 	elseif chickenEventArgs.type == "wave" then
-		messages[1] = textColor .. Spring.I18N('ui.chickens.wave', {waveNumber = chickenEventArgs.waveCount})
+		messages[1] = textColor .. Spring.I18N('ui.chickens.wave1', {waveNumber = chickenEventArgs.waveCount})
+		messages[2] = textColor .. Spring.I18N('ui.chickens.wave2', {unitCount = chickenEventArgs.number})
 	end
 
 	refreshMarqueeMessage = false
@@ -291,7 +291,7 @@ local function UpdateRules()
 end
 
 function ChickenEvent(chickenEventArgs)
-	if chickenEventArgs.type == "firstWave" or chickenEventArgs.type == "airWave" or chickenEventArgs.type == "miniQueen" or chickenEventArgs.type == "queen" then
+	if chickenEventArgs.type == "firstWave" or chickenEventArgs.type == "queen" then
 		showMarqueeMessage = true
 		refreshMarqueeMessage = true
 		messageArgs = chickenEventArgs
@@ -307,10 +307,7 @@ function ChickenEvent(chickenEventArgs)
 		end
 	end
 
-
-
-
-	if chickenEventArgs.type == "wave" and config.useWaveMsg then
+	if (chickenEventArgs.type == "wave" or chickenEventArgs.type == "airWave") and config.useWaveMsg and (not queenIsAngry) then
 		waveCount = waveCount + 1
 		chickenEventArgs.waveCount = waveCount
 		showMarqueeMessage = true
@@ -318,16 +315,6 @@ function ChickenEvent(chickenEventArgs)
 		messageArgs = chickenEventArgs
 		waveTime = Spring.GetTimer()
 	end
-	-- elseif chickenEventArgs.type == "burrowSpawn" then
-	-- 	UpdateRules()
-	-- elseif chickenEventArgs.type == "queen" then
-	-- 	showMarqueeMessage = true
-	-- 	refreshMarqueeMessage = true
-	-- 	messageArgs = chickenEventArgs
-	-- 	waveTime = Spring.GetTimer()
-	-- elseif chickenEventArgs.type == "score" .. (Spring.GetMyTeamID()) then
-	-- 	gotScore = chickenEventArgs.number
-	-- end
 end
 
 function widget:Initialize()

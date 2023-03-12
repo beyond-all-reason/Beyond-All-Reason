@@ -7,8 +7,8 @@ local scenariodata = {
 	isnew 			= true,
 	imagepath		= "scenario000.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= " ", -- This text will be drawn over image
-    summary         = [[Playground for testing various units.]],
-	briefing 		= [[Training Playground for rookies! Test any unit in the game you want against small Raptor groups!]],
+    summary         = [[A playground for testing various units.]],
+	briefing 		= [[The training playground lets you test every unit in the game while fighting against an endless wave of Raptors.]],
 
 	mapfilename		= "Neurope_Remake 4.2", -- the name of the map to be displayed here
 	playerstartx	= "10%", -- X position of where player comm icon should be drawn, from top left of the map

@@ -104,17 +104,20 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 			if index then 
 				local instanceStep = self.instanceStep
 				local instanceData = self.instanceData
+				
+				local dstpos = newUsedElements * instanceStep
+				local srcpos = (i - 1) * instanceStep
 				for j=1, instanceStep do 
-					newInstanceData[newUsedElements * instanceStep + j] = instanceData[(i-1)*instanceStep +j]
+					newInstanceData[dstpos + j] = instanceData[srcpos +j]
 				end
 				newUsedElements = newUsedElements + 1
 				newInstanceIDtoIndex[instanceID] = newUsedElements
 				newIndexToInstanceID[newUsedElements] = instanceID
 			else
-			    Spring.Echo("compacting index",i, 'instanceID', instanceID) 
+			    --Spring.Echo("compacting index",i, 'instanceID', instanceID) 
 			end
 		end
-		Spring.Echo("Post compacting", self.usedElements, newUsedElements)
+		--Spring.Echo("Post compacting", self.usedElements, newUsedElements)
 		self.usedElements = newUsedElements
 		self.instanceIDtoIndex = newInstanceIDtoIndex
 		self.indextoInstanceID = newIndexToInstanceID
@@ -527,7 +530,7 @@ function popElementInstance(iT, instanceID, noUpload)
 							local s = "Warning: We have " .. tostring(iT.numZombies) .. " zombie units left over in " .. iT.myName
 							for zombie, gf in pairs(iT.zombies) do 
 								s = s .. " " .. tostring(zombie) ..'/'..tostring(gf)
-								Spring.Echo("ZOMBIE AT", zombie, Spring.GetUnitPosition(zombie))
+								Spring.Echo("ZOMBIE instanceID", zombie, 'gf',gf)
 								--Spring.SendCommands({"pause 1"})
 								Spring.Debug.TraceFullEcho(nil,nil,nil, iT.myName)
 							end 
@@ -566,8 +569,8 @@ function popElementInstance(iT, instanceID, noUpload)
 						iT.zombies = {}
 						iT.numZombies = 0
 					end 
-					if iT.zombies[popunitID] == nil then 
-						iT.zombies[popunitID] = gf
+					if iT.zombies[lastElementInstanceID] == nil then 
+						iT.zombies[lastElementInstanceID] = gf
 						iT.numZombies = iT.numZombies + 1 
 					end
 				end
@@ -584,7 +587,10 @@ function getElementInstanceData(iT, instanceID, cacheTable)
 	-- iT: instanceTable created with makeInstanceTable
 	-- instanceID: an optional key given to the item, so it can be easily removed by reference, defaults to the index of the instance in the buffer (1 based)
 	local instanceIndex = iT.instanceIDtoIndex[instanceID] 
-	if instanceIndex == nil then return nil end
+	if instanceIndex == nil then 
+		Spring.Echo("Tried to getElementInstanceData from",iT.myName,instanceID, "but it does not exist")
+		return nil 
+	end
 	local iData = cacheTable or {}
 	local iTStep = iT.instanceStep
 	instanceIndex = (instanceIndex-1) * iTStep

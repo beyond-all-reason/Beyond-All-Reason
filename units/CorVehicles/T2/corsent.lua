@@ -42,7 +42,6 @@ return {
 			unitgroup = 'aa',
 			model_author = "Mr Bob, remodelled by PtaQ",
 			normaltex = "unittextures/cor_normal.dds",
-			prioritytarget = "air",
 			subfolder = "corvehicles/t2",
 			techlevel = 2,
 		},

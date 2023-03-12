@@ -63,6 +63,7 @@ local cachedUnitIcons
 local math_isInRect = math.isInRect
 
 local facingMap = {south=0, east=1, north=2, west=3}
+local buildmenuShows = false
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -220,6 +221,7 @@ local groups = {
 	weapon = folder..'weapon.png',
 	explo = folder..'weaponexplo.png',
 	weaponaa = folder..'weaponaa.png',
+	weaponsub = folder..'weaponsub.png',
 	aa = folder..'aa.png',
 	emp = folder..'emp.png',
 	sub = folder..'sub.png',
@@ -227,7 +229,7 @@ local groups = {
 	antinuke = folder..'antinuke.png',
 }
 
-local disableWind = ((Game.windMin + Game.windMax) / 2) <= 5
+local disableWind = ((Game.windMin + Game.windMax) / 2) < 5
 
 local unitEnergyCost = {}
 local unitMetalCost = {}
@@ -648,6 +650,12 @@ function widget:Update(dt)
 			disableInput = false
 		end
 	end
+
+	if not preGamestartPlayer and selectedBuilderCount == 0 and not alwaysShow then
+		buildmenuShows = false
+	else
+		buildmenuShows = true
+	end
 end
 
 function drawBuildmenuBg()
@@ -673,8 +681,8 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled)
 		usedZoom,
 		nil, disabled and 0 or nil,
 		'#' .. uDefID,
-		showRadarIcon and (((unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]]) and ':l' .. (disabled and 't0.35,0.35,0.35' or '') ..':' .. iconTypesMap[unitIconType[uDefID]] or nil)) or nil,
-		showGroupIcon and (groups[unitGroup[uDefID]] and ':l' .. (disabled and 'gt0.4,0.4,0.4:' or ':') ..groups[unitGroup[uDefID]] or nil) or nil,
+		showRadarIcon and (((unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypesMap[unitIconType[uDefID]] or nil)) or nil,
+		showGroupIcon and (groups[unitGroup[uDefID]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[unitGroup[uDefID]] or nil) or nil,
 		{unitMetalCost[uDefID], unitEnergyCost[uDefID]},
 		tonumber(cmds[cellRectID].params[1])
 	)
@@ -1058,16 +1066,12 @@ function widget:DrawScreen()
 								-- when meta: unitstats does the tooltip
 								local text
 								local textColor = "\255\215\255\215"
-
 								if unitRestricted[uDefID] or unitDisabled[uDefID] then
 									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].translatedHumanName, textColor = textColor, warnColor = "\255\166\166\166" })
 								else
-									text = textColor .. UnitDefs[uDefID].translatedHumanName
+									text = UnitDefs[uDefID].translatedHumanName
 								end
-
-								text = text .. "\n\255\240\240\240" .. UnitDefs[uDefID].translatedTooltip
-
-								WG['tooltip'].ShowTooltip('buildmenu', text)
+								WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240"..UnitDefs[uDefID].translatedTooltip, nil, nil, text)
 							end
 
 							-- highlight --if b and not disableInput then
@@ -1216,18 +1220,18 @@ function widget:DrawScreen()
 end
 
 function widget:DrawWorld()
-	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
-	if Spring.GetGameFrame() > 0 then
-		widgetHandler:RemoveWidgetCallIn('DrawWorld', self)
-
-		return
-	end
-
 	if not WG.StopDrawUnitShapeGL4 then return end
 
 		-- remove unit shape queue to re-add again later
 	for id, _ in pairs(unitshapes) do
 		removeUnitShape(id)
+	end
+
+	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
+	if Spring.GetGameFrame() > 0 then
+		widgetHandler:RemoveWidgetCallIn('DrawWorld', self)
+
+		return
 	end
 
 	if not preGamestartPlayer then return end
@@ -1470,7 +1474,7 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if buildmenuShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		if selectedBuilderCount > 0 or (preGamestartPlayer and startDefID) then
 			local paginatorHovered = false
 			if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
@@ -1521,18 +1525,15 @@ function widget:MousePress(x, y, button)
 		end
 
 	elseif preGamestartPlayer then
+		local mx, my = Spring.GetMouseState()
+		local _, pos = Spring.TraceScreenRay(mx, my, true)
 
 		if selBuildQueueDefID then
 			if button == 1 then
-
-				local pos
 				local curMexPosition = WG.MexSnap and WG.MexSnap.curPosition
 
 				if curMexPosition then
 					pos = { curMexPosition.x, curMexPosition.y, curMexPosition.z }
-				else
-					local mx, my = spGetMouseState()
-					_, pos = spTraceScreenRay(mx, my, true)
 				end
 
 				if not pos then
@@ -1540,11 +1541,19 @@ function widget:MousePress(x, y, button)
 				end
 				local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
 				local buildFacing = Spring.GetBuildFacing()
+				local buildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
+				local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
+				local _, _, meta, shift = Spring.GetModKeyState()
+
+				if (meta or not shift) and cx ~= -100 then
+					local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, cx, cy, cz)
+
+					if DoBuildingsClash(buildData, { startDefID, cbx, cby, cbz, 1 }) then -- avoid clashing building and commander position
+						return true
+					end
+				end
 
 				if Spring.TestBuildOrder(selBuildQueueDefID, bx, by, bz, buildFacing) ~= 0 then
-
-					local buildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
-					local _, _, meta, shift = Spring.GetModKeyState()
 					if meta then
 						table.insert(buildQueue, 1, buildData)
 
@@ -1574,6 +1583,12 @@ function widget:MousePress(x, y, button)
 
 			elseif button == 3 then
 				setPreGamestartDefID(nil)
+				return true
+			end
+		elseif button == 1 and #buildQueue > 0 and pos then -- avoid clashing first building and commander position
+			local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, pos[1], pos[2], pos[3])
+
+			if DoBuildingsClash({ startDefID, cbx, cby, cbz, 1 }, buildQueue[1]) then
 				return true
 			end
 		end
@@ -1805,6 +1820,9 @@ function widget:Initialize()
 	end
 	WG['buildmenu'].reloadBindings = function()
 		bindBuildUnits(self)
+	end
+	WG['buildmenu'].getIsShowing = function()
+		return buildmenuShows
 	end
 end
 

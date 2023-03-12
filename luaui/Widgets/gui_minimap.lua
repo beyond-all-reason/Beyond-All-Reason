@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local maxAllowedWidth = 0.29
+local maxAllowedWidth = 0.26
 local maxAllowedHeight = 0.32
 local leftClickMove = true
 
@@ -73,7 +73,6 @@ function widget:ViewResize()
 		else
 			widget:Initialize()
 		end
-
 		return
 	end
 
@@ -114,6 +113,11 @@ function widget:Initialize()
 	gl.SlaveMiniMap(true)
 
 	widget:ViewResize()
+
+	if Spring.GetConfigInt("MinimapMinimize", 0) == 1 then
+		Spring.SendCommands("minimap minimize 1")
+	end
+	_, _, _, _, minimized, maximized = Spring.GetMiniMapGeometry()
 
 	WG['minimap'] = {}
 	WG['minimap'].getHeight = function()
@@ -157,15 +161,17 @@ function widget:Update(dt)
 	end
 
 	sec2 = sec2 + dt
-	if sec2 <= 0.5 then return end
-
+	if sec2 <= 0.25 then return end
 	sec2 = 0
 
 	if dualscreenMode then return end
 
 	_, _, _, _, minimized, maximized = Spring.GetMiniMapGeometry()
+	Spring.SetConfigInt("MinimapMinimized", minimized and 1 or 0)
 
-	if (minimized or maximized) then return end
+	if minimized or maximized then
+		return
+	end
 
 	Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
 	checkGuishader()
@@ -187,7 +193,7 @@ function widget:DrawScreen()
 		return
 	end
 
-	if maximized or maximized then
+	if minimized or maximized then
 		clear()
 	else
 		local x, y, b = Spring.GetMouseState()
@@ -196,6 +202,10 @@ function widget:DrawScreen()
 				Spring.SetMouseCursor('cursornormal')
 			end
 		end
+	end
+	if dlistGuishader and WG['guishader'] then
+		WG['guishader'].RemoveDlist('minimap')
+		dlistGuishader = gl.DeleteList(dlistGuishader)
 	end
 
 	stframe = stframe + 1
@@ -206,6 +216,7 @@ function widget:DrawScreen()
 		-- overview camera
 		if dlistGuishader and WG['guishader'] then
 			WG['guishader'].RemoveDlist('minimap')
+			dlistGuishader = gl.DeleteList(dlistGuishader)
 			wasOverview = true
 		end
 

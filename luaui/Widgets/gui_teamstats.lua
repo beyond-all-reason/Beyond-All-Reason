@@ -79,7 +79,6 @@ local GetGaiaTeamID			= Spring.GetGaiaTeamID
 local GetAllyTeamList		= Spring.GetAllyTeamList
 local GetTeamList			= Spring.GetTeamList
 local GetTeamStatsHistory	= Spring.GetTeamStatsHistory
-local GetTeamColor			= Spring.GetTeamColor
 local GetTeamInfo			= Spring.GetTeamInfo
 local GetPlayerInfo			= Spring.GetPlayerInfo
 local IsGUIHidden			= Spring.IsGUIHidden
@@ -102,6 +101,11 @@ local borderRemap = {left={"x","min",-1},right={"x","max",1},top={"y","max",1},b
 local RectRound, UiElement, elementCorner
 
 local font, chobbyInterface, backgroundGuishader, gameStarted, bgpadding, gameover
+
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)*0.0039, Spring.GetConfigInt("anonymousColorG", 0)*0.0039, Spring.GetConfigInt("anonymousColorB", 0)*0.0039}
+
+local isSpec = Spring.GetSpectatingState()
 
 function roundNumber(num,useFirstDecimal)
 	return useFirstDecimal and format("%0.1f",round(num,1)) or round(num)
@@ -322,6 +326,7 @@ end
 
 function widget:PlayerChanged()
 	widget:GameFrame(GetGameFrame(),true)
+	isSpec = Spring.GetSpectatingState()
 end
 
 function widget:GameFrame(n,forceupdate)
@@ -356,7 +361,12 @@ function widget:GameFrame(n,forceupdate)
 						allyTotal[varName] = (allyTotal[varName] or 0 ) + value
 					end
 					history.time = nil
-					local teamColor = {GetTeamColor(teamID)}
+					local teamColor
+					if not isSpec and anonymousMode ~= "disabled" and teamID ~= Spring.GetLocalTeamID() then
+						teamColor = { anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3] }
+					else
+						teamColor = { Spring.GetTeamColor(teamID) }
+					end
 					local _,leader,isDead = GetTeamInfo(teamID,false)
 					local playerName,isActive = GetPlayerInfo(leader,false)
 					if Spring.GetGameRulesParam('ainame_'..teamID) then

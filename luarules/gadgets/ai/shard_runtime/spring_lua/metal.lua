@@ -246,4 +246,7 @@ end
 
 local spots = GetSpots()
 
+collectgarbage("collect")
+collectgarbage("collect")
+
 return spots

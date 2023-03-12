@@ -12,6 +12,13 @@ static-var  maxSpeed, animFramesPerKeyframe;
 #define SIG_AIM				4
 #define SIG_WALK			2
 
+
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+
+
 lua_FlameShot(weapon) //Distortion and lups flame effect
 {
   return 0;
@@ -57,6 +64,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 	}
 	while(bMoving) {
 		if (bMoving) { //Frame:6
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn backpack to x-axis <-3.500000> speed <104.999994> / animSpeed; //delta=3.50 
 			turn head to x-axis <10.999999> speed <329.999975> / animSpeed; //delta=-11.00 
 			turn head to y-axis <0.900000> speed <74.999991> / animSpeed; //delta=2.50 
@@ -214,6 +222,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:18
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn backpack to x-axis <-5.249999> speed <157.499979> / animSpeed; //delta=5.25 
 			turn head to x-axis <13.099999> speed <196.499983> / animSpeed; //delta=-6.55 
 			turn head to y-axis <2.050000> speed <43.500002> / animSpeed; //delta=1.45 

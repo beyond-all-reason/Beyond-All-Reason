@@ -5,99 +5,50 @@
 
 piece base, column, top, turret1, turret2, barrel, flare1, flare2, flare3, aimpoint;
 
-static-var  ExtractionSpeed, ArmorUp, restore_delay,
-            gun_1, gun_2, Static_Var_8, bAiming, statechg_DesiredState, statechg_StateChanging;
+static-var  ExtractionSpeed, restore_delay, gun_1, gun_2, column_going_up, weapon_state;
 static-var  Stunned;
+
+// weapon states
+// weapon_state = 0, fully retracted
+// weapon_state = 1, popping up
+// weapon_state = 2, popped up, barrels still retracted
+// weapon_state = 3, barrel deploying
+// weapon_state = 4, fully deployed
+// weapon_state = 5, barrel retracting
+// weapon_state = 6, popping down
 
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_AIM_2			4
+#define SIG_WEAPON_DEPLOY 16
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-RaiseArmor()
-{
-	move top to y-axis [-14] speed [28];
-	move barrel to z-axis [-5] speed [28];
-	sleep 300;
-	set ARMORED to 0;
-}
-
-LowerArmor()
-{
-	move top to y-axis [0] speed [28];
-	move barrel to z-axis [0] speed [28];
-	set ARMORED to 1;
-
-	sleep 300;
-}
-
-Go()
-{
-	ArmorUp = 0;
-	signal 8;
-	Static_Var_8 = 0;
-	start-script RaiseArmor();
-	set ACTIVATION to 100;
-}
-
 triplepenetration(){
-
+  // extraction animation
 	while(TRUE){
-		if( statechg_DesiredState == 0 AND !Stunned )
-		{
-			move column to y-axis [20] speed (ExtractionSpeed/2);
-			wait-for-move column along y-axis;
-			move column to y-axis [0] speed ExtractionSpeed*2;
-			wait-for-move column along y-axis;
-		}
-		sleep 1000;
+    if ( !Stunned AND ExtractionSpeed > 0)
+    // only animate if not stunned and is extracting
+    {
+      // use get MAX statements to avoid stuck animations when ExtractionSpeed=0
+      column_going_up = TRUE;
+      // weapon deploy may desire to interrupt the upwards stroke
+      if( weapon_state == 0 ) // normal stroke distance
+  		{
+  			move column to y-axis [20] speed ( get MAX(250000,ExtractionSpeed/2) );
+      }
+      else // half stroke if weapon is deployed
+      {
+        move column to y-axis [13.5] speed ( get MAX(250000,ExtractionSpeed/2) );
+      }
+  		wait-for-move column along y-axis;
+      column_going_up = FALSE;
+  		move column to y-axis [0] speed ( get MAX(1000000,ExtractionSpeed*2) );
+  	  wait-for-move column along y-axis;
+    }
+    sleep 1000;
 	}
-}
-
-Stop()
-{
-	if( !ArmorUp )
-	{
-		start-script LowerArmor();
-		set ACTIVATION to 0;
-		gun_2 = base;
-	}
-	ArmorUp = 1;
-	Static_Var_8 = 1;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
 }
 
 Create()
@@ -107,29 +58,25 @@ Create()
 	hide flare2;
 	hide flare1;
 	ExtractionSpeed = 500;
-	ArmorUp = 0;
-	Static_Var_8 = 0;
 	gun_1 = base;
 	gun_2 = base;
 	restore_delay = 5000;
-	bAiming = FALSE;
-	call-script InitState();
+  set ARMORED to 0; //makes sure no armor state is applied
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;
 	}
+  weapon_state = 4;
+  start-script RetractWeapon();
 	start-script triplepenetration();
-	set ARMORED to 0;
 }
 
 Activate()
 {
-	start-script RequestState(0);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
 }
 
 ExecuteRestoreAfterDelay()
@@ -137,17 +84,17 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	set-signal-mask 0;
-	bAiming = FALSE;
-	start-script RequestState(0);
+  start-script RetractWeapon();
 }
+
 SetStunned(State)
 {
     Stunned = State;
 }
+
 RestoreAfterDelay()
 {
-	sleep 10000;
+	sleep 6000;
 	start-script ExecuteRestoreAfterDelay();
 }
 
@@ -156,25 +103,69 @@ SetMaxReloadTime(Func_Var_1)
 	restore_delay = Func_Var_1 * 10;
 }
 
+DeployWeapon()
+{
+  signal SIG_WEAPON_DEPLOY;
+  set-signal-mask SIG_WEAPON_DEPLOY;
+
+  if (column_going_up == TRUE)
+  // interrupt column movement upwards to the half-stroke distance
+  {
+    move column to y-axis [13.5] speed ( get MAX(250000,ExtractionSpeed/2) );
+  }
+
+  // begin deploying weapon, setting weapon_state as we go
+  move top to y-axis [0] speed [28];
+  weapon_state = 1;
+  wait-for-move top along y-axis;
+  weapon_state = 2;
+	move barrel to z-axis [0] speed [28];
+  weapon_state = 3;
+  wait-for-move barrel along z-axis;
+  weapon_state = 4;
+}
+
+RetractWeapon()
+{
+  signal SIG_WEAPON_DEPLOY;
+	set-signal-mask SIG_WEAPON_DEPLOY;
+
+  if (weapon_state == 4 OR weapon_state == 5 OR weapon_state == 3)
+  // if weapon is fully deployed, or barrel is moving
+  {
+    move barrel to z-axis [-5] speed [28];
+    weapon_state = 5;
+    wait-for-move barrel along z-axis;
+    weapon_state = 2;
+  }
+
+  if (weapon_state == 2 OR weapon_state == 6 OR weapon_state == 1)
+  // if weapon is popped up and barrels retracted, or moving vertically
+  {
+    move top to y-axis [-14] speed [28];
+    weapon_state = 6;
+    wait-for-move top along y-axis;
+    weapon_state = 0;
+  }
+}
+
 AimPrimary(heading, pitch)
 {
-	if( get ACTIVATION )
+
+  if ( ExtractionSpeed == 0 ) // only allow attacking when extracting
+  {
+  return (0);
+  }
+
+	if( !(weapon_state == 4) )
 	{
-		bAiming = TRUE;
-		start-script RequestState(1);
+    call-script DeployWeapon();
 	}
-	signal SIG_AIM;
+  signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	while( !ArmorUp )
-	{
-		sleep 250;
-	}
-	turn turret1 to y-axis heading speed ExtractionSpeed/50;
+	turn turret1 to y-axis heading speed 40000;
 	wait-for-turn turret1 around y-axis;
-	if( bAiming )
-	{
-		start-script RestoreAfterDelay();
-	}
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
@@ -204,58 +195,33 @@ QueryPrimary(piecenum)
 	}
 }
 
-Reload()
-{
-	signal 8;
-	set-signal-mask 8;
-	sleep 5000;
-	gun_2 = base;
-	Static_Var_8 = 1;
-}
-
 AimSecondary(heading, pitch)
 {
-	if( get ACTIVATION )
-	{
-		bAiming = TRUE;
-		start-script RequestState(1);
-	}
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
-	while( !Static_Var_8 )
-	{
-		sleep 250;
-	}
-	turn turret2 to y-axis heading speed ExtractionSpeed/50;
-	wait-for-turn turret2 around y-axis;
-	return (1);
+
+  if ( ExtractionSpeed == 0 ) // only allow attacking when extracting
+  {
+  return (0);
+  }
+
+  if( !(weapon_state == 4) )
+  {
+    call-script DeployWeapon();
+  }
+  signal SIG_AIM_2;
+  set-signal-mask SIG_AIM_2;
+  turn turret2 to y-axis heading speed 40000;
+  wait-for-turn turret2 around y-axis;
+  start-script RestoreAfterDelay();
+  return (1);
+}
+
+Shot2(zero)
+{
+  emit-sfx 257 from barrel;
 }
 
 FireSecondary()
 {
-	if( gun_2 == 0 )
-	{
-		emit-sfx 257 from barrel;
-	}
-	if( gun_2 == 1 )
-	{
-		emit-sfx 257 from barrel;
-	}
-	if( gun_2 == 2 )
-	{
-		emit-sfx 257 from barrel;
-	}
-	if( gun_2 == 3 )
-	{
-		emit-sfx 257 from barrel;
-	}
-	++gun_2;
-	if( gun_2 >= 4 )
-	{
-		gun_2 = 0;
-		Static_Var_8 = 0;
-		start-script Reload();
-	}
 }
 
 AimFromSecondary(piecenum)
@@ -265,27 +231,12 @@ AimFromSecondary(piecenum)
 
 QuerySecondary(piecenum)
 {
-	if( gun_2 == 0 )
-	{
-		piecenum = flare3;
-	}
-	if( gun_2 == 1 )
-	{
-		piecenum = flare3;
-	}
-	if( gun_2 == 2 )
-	{
-		piecenum = flare3;
-	}
-	if( gun_2 == 3 )
-	{
-		piecenum = flare3;
-	}
+  piecenum = flare3;
 }
 
 SetSpeed(Func_Var_1)
 {
-	ExtractionSpeed = Func_Var_1 * 500;
+	ExtractionSpeed = Func_Var_1 * 500; //ExtractionSpeed ~= 2,000,000 on a +2 mex
 }
 
 SweetSpot(piecenum)

@@ -582,13 +582,21 @@ local options={
 		def    = false,
 		section= "options",
 	},
+
 	{
 		key    = 'teamcolors_anonymous_mode',
 		name   = 'Anonymous Mode',
-		desc   = 'All your enemies are colored with the same color so you cannot recognize them. Forces Dynamic TeamColors to be enabled',
-		type   = 'bool',
+		desc   = 'Anonimizes players in the match so you have harder time telling who is who.',
+		type   = 'list',
 		section = 'options',
-		def  = false,
+		def  = "disabled",
+		items={
+			{key="disabled", name="Disabled", desc="Anonymous Mode disabled."},
+			{key="allred", name="Force SimpleColors", desc="All players have simple colors enabled, enemies cannot be recognized from each other."},
+			{key="global", name="Shuffle Globally", desc="Player colors order is shuffled globally, everyone see the same colors"},
+			{key="local", name="Shuffle Locally", desc="Player colors order is shuffled locally, everyone see different colors"},
+			--{key="disco", name="Shuffle Locally - DiscoMode", desc="Player colors order is shuffled locally, everyone see different colors that change every once a while randomly"},
+		}
 	},
 
 	{
@@ -799,7 +807,7 @@ local options={
 		desc   = 'Time Between New Units Add-up.',
 		type   = 'number',
 		section= 'controlvictoryoptions',
-		def    = 4,
+		def    = 1,
 		min    = 1,
 		max    = 10,
 		step   = 1,  -- quantization is aligned to the def value
@@ -975,7 +983,7 @@ local options={
 		hidden = true,
 		type   = 'number',
 		section= 'controlvictoryoptions',
-		def    = 1,
+		def    = 4,
 		min    = 0,
 		max    = 6,
 		step   = 1,  -- quantization is aligned to the def value
@@ -1249,6 +1257,16 @@ local options={
 		key = 'newdgun',
 		name = 'New D-Gun Mechanics',
 		desc = 'New D-Gun Mechanics',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
+
+	},
+
+	{
+		key = 'comupdate',
+		name = 'Commander Update',
+		desc = 'Increased commander HP, reduced comblast, reduced wreckmetal, com-to-com dgun rework.',
 		type = 'bool',
 		section = 'options_experimental',
 		def = false,

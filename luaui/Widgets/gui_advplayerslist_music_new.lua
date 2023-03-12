@@ -52,6 +52,9 @@ local warlowTracks = {}
 local gameoverTracks = {}
 local bossFightTracks = {}
 
+local menuTracks = {}
+local loadingTracks = {}
+
 local currentTrack
 local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, bossFightTracksPlayCounter, gameoverTracksPlayCounter
 local fadeOutSkipTrack = false
@@ -74,13 +77,18 @@ local function ReloadMusicPlaylists()
 	local warlowTracksNew 			= VFS.DirList(musicDirNew..'/warlow', '*.ogg')
 	local gameoverTracksNew 		= VFS.DirList(musicDirNew..'/gameover', '*.ogg')
 	local bossFightTracksNew   		= VFS.DirList(musicDirNew..'/bossfight', '*.ogg')
+	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu', '*.ogg')
+	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', '*.ogg')
 
 	-- Old Soundtrack List
 	local musicDirOld 			= 'music/legacy'
 	local peaceTracksOld 			= VFS.DirList(musicDirOld..'/peace', '*.ogg')
 	local warhighTracksOld 			= VFS.DirList(musicDirOld..'/warhigh', '*.ogg')
 	local warlowTracksOld 			= VFS.DirList(musicDirOld..'/warlow', '*.ogg')
+	local gameoverTracksOld 		= VFS.DirList(musicDirOld..'/gameover', '*.ogg')
 	local bossFightTracksOld  		= VFS.DirList(musicDirOld..'/bossfight', '*.ogg')
+	local menuTracksOld 			= VFS.DirList(musicDirOld..'/menu', '*.ogg')
+	local loadingTracksOld   		= VFS.DirList(musicDirOld..'/loading', '*.ogg')
 
 	-- Custom Soundtrack List
 	local musicDirCustom 		= 'music/custom'
@@ -91,6 +99,8 @@ local function ReloadMusicPlaylists()
 	local warTracksCustom 			= VFS.DirList(musicDirCustom..'/war', '*.ogg')
 	local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', '*.ogg')
 	local bossFightTracksCustom 	= VFS.DirList(musicDirCustom..'/bossfight', '*.ogg')
+	local menuTracksCustom 			= VFS.DirList(musicDirCustom..'/menu', '*.ogg')
+	local loadingTracksCustom  		= VFS.DirList(musicDirCustom..'/loading', '*.ogg')
 
 	-----------------------------------SETTINGS---------------------------------------
 
@@ -107,6 +117,8 @@ local function ReloadMusicPlaylists()
 	warlowTracks = {}
 	gameoverTracks = {}
 	bossFightTracks = {}
+	menuTracks = {}
+	loadingTracks = {}
 
 	if newSoundtrackEnabled then
 		table.append(peaceTracks, peaceTracksNew)
@@ -114,13 +126,18 @@ local function ReloadMusicPlaylists()
 		table.append(warlowTracks, warlowTracksNew)
 		table.append(gameoverTracks, gameoverTracksNew)
 		table.append(bossFightTracks, bossFightTracksNew)
+		table.append(menuTracks, menuTracksNew)
+		table.append(loadingTracks, loadingTracksNew)
 	end
 
 	if oldSoundtrackEnabled then
 		table.append(peaceTracks, peaceTracksOld)
 		table.append(warhighTracks, warhighTracksOld)
 		table.append(warlowTracks, warlowTracksOld)
+		table.append(gameoverTracks, gameoverTracksOld)
 		table.append(bossFightTracks, bossFightTracksOld)
+		table.append(menuTracks, menuTracksOld)
+		table.append(loadingTracks, loadingTracksOld)
 	end
 
 	if customSoundtrackEnabled then
@@ -135,10 +152,24 @@ local function ReloadMusicPlaylists()
 		table.append(warlowTracks, warTracksCustom)
 		table.append(gameoverTracks, gameoverTracksCustom)
 		table.append(bossFightTracks, bossFightTracksCustom)
+		table.append(menuTracks, menuTracksCustom)
+		table.append(loadingTracks, loadingTracksCustom)
 	end
 
 	if #bossFightTracks == 0 then
 		bossFightTracks = warhighTracks
+	end
+
+	if #loadingTracks == 0 then
+		loadingTracks = warhighTracks
+	end
+
+	if #gameoverTracks == 0 then
+		gameoverTracks = peaceTracks
+	end
+
+	if #menuTracks == 0 then
+		menuTracks = peaceTracks
 	end
 	----------------------------------SHUFFLE--------------------------------------
 
@@ -164,27 +195,27 @@ local function ReloadMusicPlaylists()
 	gameoverTracks 	= shuffleMusic(gameoverTracks)
 	bossFightTracks = shuffleMusic(bossFightTracks)
 
-	Spring.Echo("----- MUSIC PLAYER PLAYLIST -----")
-	Spring.Echo("----- peaceTracks -----")
-	for i = 1,#peaceTracks do
-		Spring.Echo(peaceTracks[i])
-	end
-	Spring.Echo("----- warlowTracks -----")
-	for i = 1,#warlowTracks do
-		Spring.Echo(warlowTracks[i])
-	end
-	Spring.Echo("----- warhighTracks -----")
-	for i = 1,#warhighTracks do
-		Spring.Echo(warhighTracks[i])
-	end
-	Spring.Echo("----- gameoverTracks -----")
-	for i = 1,#gameoverTracks do
-		Spring.Echo(gameoverTracks[i])
-	end
-	Spring.Echo("----- bossFightTracks -----")
-	for i = 1,#bossFightTracks do
-		Spring.Echo(bossFightTracks[i])
-	end
+	-- Spring.Echo("----- MUSIC PLAYER PLAYLIST -----")
+	-- Spring.Echo("----- peaceTracks -----")
+	-- for i = 1,#peaceTracks do
+	-- 	Spring.Echo(peaceTracks[i])
+	-- end
+	-- Spring.Echo("----- warlowTracks -----")
+	-- for i = 1,#warlowTracks do
+	-- 	Spring.Echo(warlowTracks[i])
+	-- end
+	-- Spring.Echo("----- warhighTracks -----")
+	-- for i = 1,#warhighTracks do
+	-- 	Spring.Echo(warhighTracks[i])
+	-- end
+	-- Spring.Echo("----- gameoverTracks -----")
+	-- for i = 1,#gameoverTracks do
+	-- 	Spring.Echo(gameoverTracks[i])
+	-- end
+	-- Spring.Echo("----- bossFightTracks -----")
+	-- for i = 1,#bossFightTracks do
+	-- 	Spring.Echo(bossFightTracks[i])
+	-- end
 
 	if #peaceTracks > 1 then
 		peaceTracksPlayCounter = math.random(#peaceTracks)
@@ -358,6 +389,12 @@ local function capitalize(text)
 	return str
 end
 
+local function processTrackname(trackname)
+	trackname = string.gsub(trackname, ".ogg", "")
+	trackname = trackname:match("[^/|\\]*$")
+	return capitalize(trackname)
+end
+
 local function createList()
 	local trackname
 	local padding = math.floor(2.75 * widgetScale) -- button background margin
@@ -423,10 +460,10 @@ local function createList()
 		-- track name
 		trackname = currentTrack or ''
 		glColor(0.45,0.45,0.45,1)
-		trackname = string.gsub(trackname, ".ogg", "")
-		trackname = trackname:match("[^(/|\\)]*$")
-		local text = ''
 
+		trackname = processTrackname(trackname)
+
+		local text = ''
 		for i = 1, #trackname do
 			local c = string.sub(trackname, i,i)
 			local width = font:GetTextWidth(text..c) * textsize
@@ -436,7 +473,7 @@ local function createList()
 				text = text..c
 			end
 		end
-		trackname = capitalize(text)
+		trackname = text
 
 		local button = 'playpause'
 		glColor(0.8,0.8,0.8,0.9)
@@ -445,7 +482,7 @@ local function createList()
 		glTexture(false)
 
 		font:Begin()
-		font:Print('\255\235\235\235'..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+		font:Print("\255\235\235\235"..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
 		font:End()
 	end)
 	drawlist[4] = glCreateList( function()
@@ -537,19 +574,43 @@ function widget:Initialize()
 	end
 	WG['music'].getTracksConfig = function(value)
 		local tracksConfig = {}
+		for k,v in pairs(menuTracks) do
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.menu'), processTrackname(v), v}
+		end
+		for k,v in pairs(loadingTracks) do
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.loading'), processTrackname(v), v}
+		end
 		for k,v in pairs(peaceTracks) do
-			tracksConfig[#tracksConfig+1] = {true, 'peace', k, v}
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.peace'), processTrackname(v), v}
 		end
 		for k,v in pairs(warlowTracks) do
-			tracksConfig[#tracksConfig+1] = {true, 'warlow', k, v}
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warlow'), processTrackname(v), v}
 		end
 		for k,v in pairs(warhighTracks) do
-			tracksConfig[#tracksConfig+1] = {true, 'warhigh', k, v}
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warhigh'), processTrackname(v), v}
+		end
+		for k,v in pairs(bossFightTracks) do
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.bossfight'), processTrackname(v), v}
 		end
 		for k,v in pairs(gameoverTracks) do
-			tracksConfig[#tracksConfig+1] = {true, 'gameover', k, v}
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.gameover'), processTrackname(v), v}
 		end
 		return tracksConfig
+	end
+	WG['music'].playTrack = function(track)
+		currentTrack = track
+		Spring.StopSoundStream()
+		Spring.PlaySoundStream(currentTrack, 1)
+		playing = true
+		Spring.SetConfigInt('music', (playing and 1 or 0))
+		local playedTime, totalTime = Spring.GetSoundStreamTime()
+		interruptionTime = totalTime + 2
+		if fadeDirection then
+			setMusicVolume(fadeLevel)
+		else
+			setMusicVolume(100)
+		end
+		createList()
 	end
 	WG['music'].RefreshSettings = function()
 		interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
@@ -761,11 +822,11 @@ function widget:DrawScreen()
 
 			-- display play progress
 			local progressPx = math.floor((right - left) * (playedTime / totalTime))
-			if progressPx > 1 then
+			if progressPx > 1 and playedTime / totalTime < 1 then
 				if progressPx < borderPadding * 5 then
 					progressPx = borderPadding * 5
 				end
-				RectRound(left + borderPaddingLeft, bottom + borderPadding - (1.8 * widgetScale), left - borderPaddingRight + progressPx, top - borderPadding, borderPadding * 1.4, 2, 2, 2, 2, { 0.6, 0.6, 0.6, ui_opacity * 0.15 }, { 1, 1, 1, ui_opacity * 0.15 })
+				RectRound(left + borderPaddingLeft, bottom + borderPadding - (1.8 * widgetScale), left - borderPaddingRight + progressPx, top - borderPadding, borderPadding, 2, 2, 2, 2, { 0.6, 0.6, 0.6, ui_opacity * 0.15 }, { 1, 1, 1, ui_opacity * 0.15 })
 			end
 
 			local color = { 1, 1, 1, 0.1 }
@@ -1009,8 +1070,8 @@ function widget:SetConfigData(data)
 			currentTrack = data.curTrack
 		end
 	end
-	if data.showGUIv2 ~= nil then
-		showGUI = data.showGUIv2
+	if data.showGUI ~= nil then
+		showGUI = data.showGUI
 	end
 end
 

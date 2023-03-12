@@ -12,7 +12,10 @@ static-var  Static_Var_1, gun_1, bMoving, bAiming, wpn1_lasthead, animSpeed, max
 #define SIG_AIM				4
 #define SIG_AIM_3			8
 
-
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Dropbox\BAR\Remoddeling\razorback animation.blend 
 	set-signal-mask 16;
@@ -116,6 +119,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:13
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <25.481728> speed <63.367131> / animSpeed; 
 			turn lfoot to z-axis <-4.475741> speed <85.599768> / animSpeed; 
 			turn lfoot to y-axis <0.818811> speed <64.716850> / animSpeed; 
@@ -249,6 +253,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:25
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <5.231117> speed <178.823299> / animSpeed; 
 			turn lfoot to z-axis <0.465443> speed <54.477127> / animSpeed; 
 			turn lfoot to y-axis <2.206397> speed <47.061388> / animSpeed; 

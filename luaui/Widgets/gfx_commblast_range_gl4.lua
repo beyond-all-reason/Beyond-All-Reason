@@ -125,7 +125,7 @@ function widget:DrawWorldPreUnit()
 		commblastSphereVBO:Draw()
 		commblastSphereShader:Deactivate()
 		glTexture(0, false)
-
+		glCulling(false)
 		glDepthTest(false)
 	end
 end

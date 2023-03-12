@@ -13,6 +13,10 @@ local connectedController
 local reportState = false
 
 function widget:Initialize()
+	if not Spring.GetAvailableControllers then
+		Spring.Echo("ControllerTest: Spring.GetAvailableControllers not available")
+		return
+	end
 	local availableControllers = Spring.GetAvailableControllers()
 
 	if next(availableControllers) == nil then

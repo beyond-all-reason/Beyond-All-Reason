@@ -105,12 +105,12 @@ end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam)
 	NewUnit(unitID, unitDefID, unitTeam)
-	cloakDeActive(unitID, unitDefID)
+	cloakActive(unitID, unitDefID)
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam)
 	NewUnit(unitID, unitDefID, unitTeam)
-	cloakDeActive(unitID, unitDefID)
+	cloakActive(unitID, unitDefID)
 end
 
 function widget:PlayerChanged(playerID)
@@ -125,6 +125,10 @@ end
 
 function widget:SetConfigData(cfg)
 	if cfg.unitdefConfig ~= nil then
-		unitdefConfig = table.merge(unitdefConfig, cfg.unitdefConfig)
+		for unitDefID, value in pairs(cfg.unitdefConfig) do
+			if unitdefConfig[unitDefID] ~= nil then
+				unitdefConfig[unitDefID] = value
+			end
+		end
 	end
 end

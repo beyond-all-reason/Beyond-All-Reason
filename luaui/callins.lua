@@ -70,6 +70,9 @@ CallInsList = {
 	"UnitLeftWater",
 	"UnitLeftAir",
 
+	"MetaUnitAdded",
+	"MetaUnitRemoved",
+
 	"FeatureCreated",
 	"FeatureDestroyed",
 
@@ -95,7 +98,7 @@ CallInsList = {
 	"DrawScreenPost",
 	"DrawScreen",
 	"DrawInMiniMap",
-	
+
 	"DrawOpaqueUnitsLua",
 	"DrawOpaqueFeaturesLua",
 	"DrawAlphaUnitsLua",
@@ -135,13 +138,7 @@ CallInsList = {
 	"LanguageChanged"
 }
 
-
--- make the map
 CallInsMap = {}
 for _, callin in ipairs(CallInsList) do
   CallInsMap[callin] = true
 end
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

@@ -8,4 +8,7 @@ Nathan Sharples (Composer) and Kenneth Donahue (Sound Engineer):
 https://www.nathansharplesmusic.com/
 https://kennethdonahue.portfoliobox.net/
 
+Russell Lucas-Nutt (@rsslcs):
+https://soundcloud.com/rsslcs/
+
 Check license_music.txt in the root of this project for more information.

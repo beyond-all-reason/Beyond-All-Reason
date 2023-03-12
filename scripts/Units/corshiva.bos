@@ -10,6 +10,10 @@ static-var  bMoving, bAiming, restore_delay, gun_left, firststep;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe, curSpeed, doorOpen;
 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_AIM_3			8
@@ -56,6 +60,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 	}
 	while(bMoving) {
 		if (bMoving) {
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lankle to x-axis <-36.575663> speed <1388.118384> / animSpeed; 
 			turn lankle to z-axis <-1.310726> speed <28.107630> / animSpeed; 
 			turn lankle to y-axis <-0.854192> speed <15.882829> / animSpeed; 
@@ -205,6 +210,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) {
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lankle to x-axis <-5.727493> speed <23.611729> / animSpeed; 
 			turn lankle to z-axis <0.742267> speed <3.383836> / animSpeed; 
 			turn lfoot to x-axis <-2.167152> speed <241.825170> / animSpeed; 

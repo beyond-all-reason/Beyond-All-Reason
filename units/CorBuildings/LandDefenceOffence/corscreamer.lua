@@ -38,7 +38,6 @@ return {
 			unitgroup = 'aa',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			prioritytarget = "air",
 			removewait = true,
 			subfolder = "corbuildings/landdefenceoffence",
 			techlevel = 2,

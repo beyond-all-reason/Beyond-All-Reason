@@ -1,3 +1,4 @@
+--in root folder:
 backgroundtile.png
 energy.png
 energy_red.png
@@ -12,6 +13,11 @@ stripes.png
 wind-blades.png
 
 All above textures in this folder were made for Beyond All Reason by IceXuick and Floris, all rights reserved (CC BY NC ND)
+
+fractal_voronoi_tiled_1024_1.png
+fractal_voronoi_tiled.tmd
+lavadistortion.png
+(c) Beherith (mysterme@gmail.com)
 
 --in subfolder /advplayerlist/
 ally.dds
