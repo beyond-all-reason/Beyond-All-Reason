@@ -595,7 +595,7 @@ local options={
 			{key="allred", name="Force SimpleColors", desc="All players have simple colors enabled, enemies cannot be recognized from each other."},
 			{key="global", name="Shuffle Globally", desc="Player colors order is shuffled globally, everyone see the same colors"},
 			{key="local", name="Shuffle Locally", desc="Player colors order is shuffled locally, everyone see different colors"},
-			{key="disco", name="Shuffle Locally - DiscoMode", desc="Player colors order is shuffled locally, everyone see different colors that change every once a while randomly"},
+			--{key="disco", name="Shuffle Locally - DiscoMode", desc="Player colors order is shuffled locally, everyone see different colors that change every once a while randomly"},
 		}
 	},
 
