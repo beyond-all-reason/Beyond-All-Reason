@@ -163,7 +163,7 @@ function UnitDef_Post(name, uDef)
 	if Spring.GetModOptions().newdgun then
 		if uDef.customparams.iscommander then
 			uDef.customparams.paralyzemultiplier = 0
-
+			
 			if uDef.weapondefs.disintegrator then
 				uDef.weapondefs.disintegrator = {
 					areaofeffect = 160,
@@ -398,15 +398,15 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "armsptkt4"
 			uDef.buildoptions[numBuildoptions+3] = "armpwt4"
 			uDef.buildoptions[numBuildoptions+4] = "armvadert4"
-			uDef.buildoptions[numBuildoptions+5] = "armlunchbox"
-			uDef.buildoptions[numBuildoptions+6] = "armmeatball"
-			uDef.buildoptions[numBuildoptions+7] = "armassimilator"
+			-- uDef.buildoptions[numBuildoptions+5] = "armlunchbox"
+			-- uDef.buildoptions[numBuildoptions+6] = "armmeatball"
+			-- uDef.buildoptions[numBuildoptions+7] = "armassimilator"
 		elseif name == "armshltxuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
 			uDef.buildoptions[numBuildoptions+2] = "armpwt4"
 			uDef.buildoptions[numBuildoptions+3] = "armvadert4"
-			uDef.buildoptions[numBuildoptions+4] = "armmeatball"
+			-- uDef.buildoptions[numBuildoptions+4] = "armmeatball"
 		elseif name == "corgant" or name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cordemont4"
@@ -419,19 +419,12 @@ function UnitDef_Post(name, uDef)
 		elseif name == "coravp" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
-		-- elseif name == "corap" then
-		-- 	local numBuildoptions = #uDef.buildoptions
-		-- 	uDef.buildoptions[numBuildoptions+1] = "corassistdrone"
-		-- elseif name == "armap" then
-		-- 	local numBuildoptions = #uDef.buildoptions
-		-- 	uDef.buildoptions[numBuildoptions+1] = "armassistdrone"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
 			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
 			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
 			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
-			uDef.buildoptions[numBuildoptions+5] = "legmg"
 		elseif name == "corca" or name == "corck" or name == "corcv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
@@ -452,6 +445,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+4] = "corscavfort"
 			uDef.buildoptions[numBuildoptions+5] = "armbotrail"
 			uDef.buildoptions[numBuildoptions+6] = "armannit3"
+			uDef.buildoptions[numBuildoptions+7] = "armnanotct2"
 		elseif name == "coraca" or name == "corack" or name == "coracv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corapt3"
@@ -460,6 +454,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
 			uDef.buildoptions[numBuildoptions+5] = "corscavfort"
 			uDef.buildoptions[numBuildoptions+6] = "cordoomt3"
+			uDef.buildoptions[numBuildoptions+7] = "cornanotct2"
 		elseif name == "legaca" or name == "legack" or name == "legacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corapt3"
@@ -468,6 +463,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
 			uDef.buildoptions[numBuildoptions+5] = "corscavfort"
 			uDef.buildoptions[numBuildoptions+6] = "cordoomt3"
+			uDef.buildoptions[numBuildoptions+7] = "cornanotct2"
 		elseif name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armptt2"
@@ -533,7 +529,7 @@ function UnitDef_Post(name, uDef)
 	if uDef.pushresistant and uDef.pushresistant == true then
 		uDef.pushresistant = false
 		if not uDef.mass then
-			Spring.Echo("[PUSH RESISTANCE REMOVER] Push Resistant Unit with no mass: "..name)
+			--Spring.Echo("[PUSH RESISTANCE REMOVER] Push Resistant Unit with no mass: "..name)
 			uDef.mass = 4999
 		end
 	end
@@ -574,9 +570,9 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	if (uDef.buildpic and uDef.buildpic == "") or not uDef.buildpic then
-		Spring.Echo("[BUILDPIC] Missing Buildpic: ".. uDef.name)
-	end
+	-- if (uDef.buildpic and uDef.buildpic == "") or not uDef.buildpic then
+	-- 	Spring.Echo("[BUILDPIC] Missing Buildpic: ".. uDef.name)
+	-- end
 
 	--[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
          The engine uses full frames for actual reload times, but forwards the raw
@@ -618,21 +614,20 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if not uDef.customparams.iscommander then
-		local wreckinfo = ''
+		--local wreckinfo = ''
 		if uDef.featuredefs and uDef.maxdamage then
 			if uDef.featuredefs.dead then
 				uDef.featuredefs.dead.damage = uDef.maxdamage
 				if Spring.GetModOptions().experimentalrebalancewreckstandarization then
 					if uDef.buildcostmetal and uDef.buildcostenergy then
 						if name and not string.find(name, "_scav") then
-							if (name and uDef.featuredefs.dead.metal) or uDef.name then
-								wreckinfo = wreckinfo .. name ..  " Wreck Before: " .. tostring(uDef.featuredefs.dead.metal) .. ','
-							end
-							--uDef.featuredefs.dead.metal = (uDef.buildcostmetal + (uDef.buildcostenergy/100))*0.5
+							-- if (name and uDef.featuredefs.dead.metal) or uDef.name then
+							-- 	--wreckinfo = wreckinfo .. name ..  " Wreck Before: " .. tostring(uDef.featuredefs.dead.metal) .. ','
+							-- end
 							uDef.featuredefs.dead.metal = math.floor(uDef.buildcostmetal*0.6)
-							if name and not string.find(name, "_scav") then
-								wreckinfo = wreckinfo .. " Wreck After: " .. tostring(uDef.featuredefs.dead.metal) .. " ; "
-							end
+							-- if name and not string.find(name, "_scav") then
+							-- 	--wreckinfo = wreckinfo .. " Wreck After: " .. tostring(uDef.featuredefs.dead.metal) .. " ; "
+							-- end
 						end
 					end
 				end
@@ -645,20 +640,19 @@ function UnitDef_Post(name, uDef)
 				if Spring.GetModOptions().experimentalrebalancewreckstandarization then
 					if uDef.buildcostmetal and uDef.buildcostenergy then
 						if name and not string.find(name, "_scav") then
-							if (name and uDef.featuredefs.heap.metal) or uDef.name then
-								wreckinfo = wreckinfo .. name ..  " Heap Before: " .. tostring(uDef.featuredefs.heap.metal) .. ','
-							end
-							--uDef.featuredefs.heap.metal = (uDef.buildcostmetal + (uDef.buildcostenergy/100))*0.2
+							-- if (name and uDef.featuredefs.heap.metal) or uDef.name then
+							-- 	--wreckinfo = wreckinfo .. name ..  " Heap Before: " .. tostring(uDef.featuredefs.heap.metal) .. ','
+							-- end
 							uDef.featuredefs.heap.metal = math.floor(uDef.buildcostmetal*0.25)
-							if name and not string.find(name, "_scav") then
-								wreckinfo = wreckinfo ..  " Heap After: " .. tostring(uDef.featuredefs.heap.metal)
-							end
+							-- if name and not string.find(name, "_scav") then
+							-- 	--wreckinfo = wreckinfo ..  " Heap After: " .. tostring(uDef.featuredefs.heap.metal)
+							-- end
 						end
 					end
 				end
 			end
 		end
-		if wreckinfo ~= '' then Spring.Echo(wreckinfo) end
+		--if wreckinfo ~= '' then Spring.Echo(wreckinfo) end
     end
 
 	if uDef.maxslope then
@@ -802,6 +796,27 @@ function UnitDef_Post(name, uDef)
 		unbaUnits = VFS.Include("unbaconfigs/unbaunits_post.lua")
 		uDef = unbaUnits.unbaUnitTweaks(name, uDef)
 	end
+
+	-- Commander Update
+	
+	if Spring.GetModOptions().comupdate == true then
+		if name == "armcom" or name == "corcom" then
+			uDef.featuredefs.dead.metal = 1000
+			uDef.featuredefs.heap.metal = 500
+			uDef.maxdamage = 4500
+			uDef.autoheal = 0
+			uDef.idleautoheal = 5
+			if uDef.weapondefs.disintegrator then
+				uDef.weapondefs.disintegrator.damage = {
+					default = 98999,
+					scavboss = 1000,
+					commanders = 0,
+					}
+			end
+		end
+	end
+		
+		
 
 	-- Multipliers Modoptions
 
@@ -962,12 +977,20 @@ end
 
 -- process weapondef
 function WeaponDef_Post(name, wDef)
-	if Spring.GetModOptions().newdgun then
+	if Spring.GetModOptions().newdgun or Spring.GetModOptions().comupdate then
 		if name == 'commanderexplosion' then
 			wDef.damage = {
-				default = 50000,
-				commanders = 2000,
+				default = 200000000,
+				commanders = 50000000,
 			}
+		end
+	end
+	
+	if Spring.GetModOptions().comupdate then
+		if name == 'commanderexplosion' then
+			wDef.AreaOfEffect = 700
+			wDef.cameraShake = 510
+			wDef.edgeeffectiveness = -50000
 		end
 	end
 

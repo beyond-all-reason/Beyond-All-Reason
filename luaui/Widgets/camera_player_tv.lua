@@ -24,11 +24,6 @@ local widgetHeight = 22
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-
-local guishaderEnabled
-
 local parentPos = {}
 local drawlistsCountdown = {}
 local drawlistsPlayername = {}
@@ -77,6 +72,9 @@ teams = nil
 
 local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, toggleButton2, toggleButton3, backgroundGuishader, scheduledSpecFullView, desiredLosmode
 local RectRound, elementCorner, bgpadding
+
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = {1,0,0}
 
 local function addPlayerTsOrdered(ts, playerID, teamID, spec)
 	local inserted = false
@@ -559,7 +557,9 @@ function widget:DrawScreen()
 				if not drawlistsPlayername[name] then
 					drawlistsPlayername[name] = gl.CreateList(function()
 						local r, g, b = 1, 1, 1
-						if not spec then
+						if (not isSpec) and anonymousMode ~= "disabled" then
+							r, g, b = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+						elseif not spec then
 							r, g, b, _ = spGetTeamColor(myTeamID)
 						end
 						font2:Begin()

@@ -1,6 +1,35 @@
-﻿# May 2022
+﻿# March 2023
+
+ • [Commanders] can no longer capture allied units
+ • [Seaplane Platforms] added sonar distance for armada: 600, cortex: 800
+ • [factories] tiny radar ranges removed + added large ranges for t1 air: 500, t2 air: 1000, armada seaplane: 750
+
+
+# February 2023
+
+ • [missiles] antinukes/nukes/tacnukes/empmissiles no longer collide into enemy (air) units
+ • [Titan/Juggernaut] added foot stomp "weapon"
+
+
+# January 2023
+
+ • [vehicle scouts] accuracies and turnrate increased, damage reduced slightly. Cortex more maneuverable but slightly slower than armada, with reduced health
+
+
+# December 2022
+
+ • [catalyst] Range -18% Nerf (2750 -> 2250), Area of Effect -26% Nerf (512 -> 380), Damage +60% Buff (2500 -> 4000)
+
+
+# August 2022
+
+ • [Torpedo gunships] weapon changed to match up with other torpedos (damage and speed), accuracy and targeting improved. 
+
+
+# May 2022
 
  • [Sniper] speed: 30->33
+
 
 # March 2022
 

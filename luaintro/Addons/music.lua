@@ -63,7 +63,8 @@ function addon.Initialize()
 			-- Legacy Soundtrack List
 			if legacySoundtrackEnabled == 1 then
 				local musicDirLegacy 		= 'music/legacy'
-				table.append(musicPlaylist, VFS.DirList(musicDirLegacy..'/war', '*.ogg'))
+				table.append(musicPlaylist, VFS.DirList(musicDirLegacy..'/warhigh', '*.ogg'))
+				table.append(musicPlaylist, VFS.DirList(musicDirLegacy..'/warlow', '*.ogg'))
 			end
 
 			-- Custom Soundtrack List

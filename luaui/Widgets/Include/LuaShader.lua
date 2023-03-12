@@ -308,7 +308,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			shadersourcecache.fsSrc = fsSrcNew
 			shadersourcecache.gsSrc = gsSrcNew
 			shadersourcecache.forceupdate = nil
-			
+			shadersourcecache.updateFlag = true
 			local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 			local shaderDefines = LuaShader.CreateShaderDefinesString(shadersourcecache.shaderConfig)
 			if vsSrcNew then 
@@ -547,7 +547,7 @@ function LuaShader:Compile(suppresswarnings)
 	local shaderObj = self.shaderObj
 
 	local shLog = gl.GetShaderLog() or ""
-
+	self.shLog = shLog
 	if not shaderObj then
 		self:ShowError(shLog)
 		return false

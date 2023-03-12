@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad, dishbase1,dishbase2, dish1, dish2, nano1, nano2, nano3, nano4, nano5, nano6, nano7, nano8, none;
+piece  base, pad, dishbase1,dishbase2, dish1, dish2, nano1, nano2, nano3, nano4, nano5, nano6, nano7, nano8, none, blink1, blink2;
 
 static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
@@ -12,15 +12,28 @@ static-var  Stunned;
 #define SIG_ACTIVATE			2
 
 
+Lights()
+{
+	while( TRUE )
+	{
+	    if (!Stunned) {
+		    emit-sfx 1024 + 1 from blink1;
+		    emit-sfx 1024 + 1 from blink2;
+		}
+		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
+}
 
 activatescr()
 {
-
+	sleep 26;
 }
 
 deactivatescr()
 {
-
+	//sleep 25;
 }
 
 OpenYard()
@@ -49,8 +62,8 @@ Go()
 {
 	call-script activatescr();
 	call-script OpenYard();
-	spin dish1 around z-axis speed <150.0>;
-	spin dish2 around z-axis speed <150.0>;
+	//spin dish1 around z-axis speed <150.0>;
+	//spin dish2 around z-axis speed <150.0>;
 	set INBUILDSTANCE to 1;
 }
 
@@ -58,18 +71,35 @@ Stop()
 {
 	set INBUILDSTANCE to 0;
 	call-script CloseYard();
+	//spin dish1 around z-axis speed <0.0>;
+	//spin dish2 around z-axis speed <0.0>;
+	call-script deactivatescr();
+}
+
+DishSpin()
+{
+	show blink1;
+	show blink2;
+	spin dish1 around z-axis speed <150>;
+	spin dish2 around z-axis speed <150>;
+}
+DishStopSpin()
+{
+	hide blink1;
+	hide blink2;
 	spin dish1 around z-axis speed <0.0>;
 	spin dish2 around z-axis speed <0.0>;
-	call-script deactivatescr();
-
 }
+
 SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
-	    call-script Stop();
+		call-script DishStopSpin();
+	    //call-script Stop();
 	} else {
-	    call-script Go();
+		call-script DishSpin();
+	    //call-script Go();
 	}
 }
 
@@ -122,6 +152,7 @@ Create()
 	unitviewer = FALSE;
 	spray = base;
 	call-script InitState();
+	start-script Lights();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;

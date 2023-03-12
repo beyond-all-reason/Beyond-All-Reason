@@ -3,7 +3,7 @@
 
 
 --Skeleton pieces
-local head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot ,lfoot, dish, barrel, aimy1, bigguncyl,hatpoint, crown, medalsilver, medalbronze, medalgold = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg" ,"rleg","rfoot" ,"lfoot", "dish", "barrel", "aimy1","bigguncyl","hatpoint", "crown", "medalsilver", "medalbronze", "medalgold")
+local head, torso, luparm, biggun, ruparm, rloarm, lflare, nano, laserflare, pelvis, rthigh, lthigh, lleg, rleg, rfoot, rfootstep, lfoot, lfootstep, dish, barrel, aimy1, bigguncyl,hatpoint, crown, medalsilver, medalbronze, medalgold = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg", "rleg", "rfoot", "rfootstep", "lfoot", "lfootstep", "dish", "barrel", "aimy1","bigguncyl","hatpoint", "crown", "medalsilver", "medalbronze", "medalgold")
 
 local weapons = {
 	[1] = "laser",
@@ -199,7 +199,7 @@ function walk()
 			end
 			if (bMoving) then --Frame:20
 				if not Spring.GetUnitIsCloaked(unitID) then
-					UnitScript.EmitSfx(lfoot, 1024 + 2)
+					UnitScript.EmitSfx(lfootstep, 1024 + 2)
 				end
 				if (leftArm) then turn(biggun, 1, -49.335727, 68.030323/animSpeed) end--delta=2.27
 				turn(head, 1, -2.091907, 47.585562/animSpeed) --delta=1.59
@@ -372,7 +372,7 @@ function walk()
 			end
 			if (bMoving) then --Frame:44
 				if not Spring.GetUnitIsCloaked(unitID) then
-					UnitScript.EmitSfx(rfoot, 1024 + 2)
+					UnitScript.EmitSfx(rfootstep, 1024 + 2)
 				end
 				if (leftArm) then turn(biggun, 1, -53.164273, 68.030323/animSpeed) end--delta=-2.27
 				turn(head, 1, -2.091907, 47.585562/animSpeed) --delta=1.59

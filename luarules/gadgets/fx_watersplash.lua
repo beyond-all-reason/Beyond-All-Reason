@@ -29,6 +29,7 @@ local nonexplosiveWeapons = {
 local COR_SEAADVBOMB = WeaponDefNames['corsb_cor_seaadvbomb'].id --corsb gets a special ceg with less particles, because it has lots of bouncing bombs
 local ARM_JUNO = WeaponDefNames['armjuno_juno_pulse'].id --juno can explode on water
 local COR_JUNO = WeaponDefNames['corjuno_juno_pulse'].id --juno can explode on water
+local COR_TRON = WeaponDefNames['cortron_cortron_weapon'].id
 -- maybe need addition of scav version or better solution
 
 local splashCEG1 = "splash-tiny"
@@ -79,13 +80,16 @@ function gadget:Explosion(weaponID, px, py, pz, ownerID)
 			elseif aoe >= 48 and aoe < 64 then
 				Spring.SpawnCEG(splashCEG4, px, 0, pz)
 			elseif aoe >= 64 and aoe < 200 then
+				if weaponID == COR_TRON then
+					Spring.SpawnCEG(splashCEG6, px, 0, pz)
+				end
 				Spring.SpawnCEG(splashCEG5, px, 0, pz)
 			elseif aoe >= 200 and aoe < 400 then
 				Spring.SpawnCEG(splashCEG6, px, 0, pz)
 			elseif aoe >= 400 and aoe < 600 then
 				Spring.SpawnCEG(splashCEG7, px, 0, pz)
 			elseif aoe >= 600 then
-				Spring.SpawnCEG(splashCEG8, px, 0, pz)
+				Spring.SpawnCEG(splashCEG8, px, 0, pz)				
 			end
 			return true
 		else

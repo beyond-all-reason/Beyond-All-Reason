@@ -7,6 +7,11 @@ piece base, body, head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,lf
 
 static-var maxSpeed, animFramesPerKeyframe, bMoving, animSpeed,isDying,gun_1;
 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+
 // For N:\animations\Chickens\chicken_walk_remaster_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
 #define MOVESCALE 41 //Higher values are bigger, 100 is default
 #define MOVESPEED 4

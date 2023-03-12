@@ -8,8 +8,8 @@ function widget:GetInfo()
 	return {
 		name      = "Camera Anchors",
 		desc      = "Adds keybindings for Camera Anchors",
-		author    = "badosu",
-		date      = "Oct 06, 2021",
+		author    = "badosu, lonewolfdesign",
+		date      = "Mar 12, 2023",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true
@@ -17,6 +17,7 @@ function widget:GetInfo()
 end
 
 local GetCameraState      = Spring.GetCameraState
+local SetCameraState      = Spring.SetCameraState
 local SetCameraTarget     = Spring.SetCameraTarget
 
 function widget:Initialize()
@@ -30,21 +31,20 @@ function SetCameraAnchor(_, _, args)
 	local anchorId = args[1]
 	local cameraState = GetCameraState()
 
-	cameraAnchors[anchorId] = {cameraState.px, cameraState.py, cameraState.pz}
+	cameraAnchors[anchorId] = cameraState
 
 	Spring.Echo("Camera anchor set: " .. anchorId)
-	-- Spring.Echo("set: " .. cameraState.px .. "x " .. cameraState.pz .. "z " .. cameraState.py .. "y")
-
+	
 	return true
 end
 
 function FocusCameraAnchor(_, _, args)
 	local anchorId = args[1]
-	local cameraAnchor = cameraAnchors[anchorId]
+	local cameraState = cameraAnchors[anchorId]
 
-	if not cameraAnchor then return end
+	if not cameraState then return end
 
-	SetCameraTarget(cameraAnchor[1], 0, cameraAnchor[3])
+	SetCameraState(cameraState, 0)
 
 	return true
 end

@@ -29,7 +29,7 @@ Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
 Spring.SetConfigInt("CubeTexSizeReflection", 1024)
 
 -- Allow minimap to flip on camera rotation
-Spring.SetConfigInt("MiniMapCanFlip", 1)
+Spring.SetConfigInt("MiniMapCanFlip", 0)
 
 -- disable grass
 Spring.SetConfigInt("GrassDetail", 0)
@@ -75,6 +75,10 @@ end
 
 -- Disable dynamic model lights
 Spring.SetConfigInt("MaxDynamicModelLights", 0)
+
+-- Enable deferred map/model rendering
+Spring.SetConfigInt("AllowDeferredMapRendering", 1)
+Spring.SetConfigInt("AllowDeferredModelRendering", 1)
 
 -- Disable LoadingMT because: crashes on load, but fixed in 105.1.1-1422, redisable in 105.1.1-1432
 Spring.SetConfigInt("LoadingMT", 0)

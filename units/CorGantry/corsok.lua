@@ -1,5 +1,6 @@
 return {
 	corsok = {
+		activatewhenbuilt = true,
 		acceleration = 0.01731,
 		brakerate = 0.01731,
 		buildcostenergy = 12000,

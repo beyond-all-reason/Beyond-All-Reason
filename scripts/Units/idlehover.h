@@ -6,27 +6,50 @@
 static-var isIdle, IdleX, IdleY, IdleZ, wasIdle;
 IdleHover()
 {
+	var newIdleX; 
+	var newIdleZ;
+	var newIdleY;
+	var IdleSpeed;
+	var unitxz;
+	var groundheight;
 	while(TRUE){
 		// Detect 'idleness' 
+		// A hover type aircraft is considered idle if it is moving very slowly and is a [32] elmos above the ground.
 		wasIdle = isIdle;
-		// get PRINT(get GAME_FRAME, get CURRENT_SPEED, (get UNIT_Y)/65500, (get GROUND_HEIGHT)/65500);
-		if (((get CURRENT_SPEED) < 10000) AND (((get UNIT_Y) - (get GROUND_HEIGHT)) > [64] )) {
-			isIdle = TRUE;
+		
+		isIdle = FALSE;
+		//get PRINT(get GAME_FRAME, get CURRENT_SPEED, (get UNIT_Y)/65500, (get GROUND_HEIGHT)/65500);
+		if ((get CURRENT_SPEED) < 10000) {
+			unitxz = (get UNIT_XZ);
+			newIdleX = (unitxz & 0xffff0000) / 0x00010000; // top 16 bits divided by 65K
+			
+			// Below does not work, as -100 is returned as 31000...
+			//if (newIdleX & 0x00008000) newIdleX = newIdleX & 0xffff0000; // If the number is negative, it must be padded with 1's for twos complement negative number,
+			newIdleZ = (unitxz & 0x0000ffff); // silly unpack
+			//if (newIdleZ & 0x00008000) newIdleZ = newIdleZ & 0xffff0000; // If the number is negative, it must be padded with 1's for twos complement negative number
+			
+			// check if we are 'in map bounds'
+			// As the packed XZ cant really deal with negative numbers.
+			if ((newIdleX>0) && (newIdleX < 16000) && (newIdleZ>0) && (newIdleZ < 16000)){
+				groundheight = (get GROUND_HEIGHT(unitxz)); // GROUND HEIGHT EXPECT PACKED COORDS!
+				if (((get UNIT_Y) - groundheight) > [32] ){
+					isIdle = TRUE;
+				}
+			}
 		}
-		else
-		{
-			isIdle = FALSE;
-		}
-	
-	
+		
+		//get PRINT(get GAME_FRAME, get CURRENT_SPEED, ((get UNIT_Y) - (get GROUND_HEIGHT)) /[1]);
+		//get PRINT(get GAME_FRAME, newIdleX, newIdleZ, isIdle);
+		//get PRINT((get GAME_FRAME), newIdleX, newIdleZ, (get GROUND_HEIGHT(unitxz)));
+
 		if (isIdle){
-			var newIdleX;
+
 			newIdleX = Rand(-1*IDLEHOVERSCALE,IDLEHOVERSCALE);
-			var newIdleY;
+
 			newIdleY = Rand(-1*IDLEHOVERSCALE / 2,IDLEHOVERSCALE / 2);
-			var newIdleZ;
+
 			newIdleZ =  Rand(-1*IDLEHOVERSCALE,IDLEHOVERSCALE);
-			var IdleSpeed;
+
 			IdleSpeed = Rand(IDLEHOVERSPEED,IDLEHOVERSPEED*3); 
 			if (IdleSpeed < 10) IdleSpeed = 10; //wierd div by zero error?
 			//get PRINT(newIdleX,newIdleY,newIdleZ,IdleSpeed);

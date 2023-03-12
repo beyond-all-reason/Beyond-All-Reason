@@ -6,7 +6,13 @@
 piece  torso, gun, rfirept, lfirept, rgun, lgun, pelvis, rleg,
        rfoot, lleg, lfoot, lthigh, rthigh, aimx1, aimy1,ltoe,rtoe;
 
-static-var  bMoving, bAiming, gun_1, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe;
+static-var  bMoving, bAiming, gun_1, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading;
+
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+
 // Signal definitions
 #define SIG_AIM				4
 #define SIG_WALK			2
@@ -74,7 +80,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <-12.130870> speed <181.963053> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (bMoving) { //Frame:12		
 			turn gun to x-axis <-0.000001> speed <317.999982> / animSpeed; 
 			turn lfoot to x-axis <-20.910981> speed <865.657450> / animSpeed; 
 			turn lfoot to z-axis <-3.878097> speed <176.342797> / animSpeed; 
@@ -139,6 +145,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:20
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rtoe) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rtoe) & 0x0000ffff),   get HEADING(0));
 			turn gun to x-axis <-6.599999> speed <110.999953> / animSpeed; 
 			turn lfoot to x-axis <20.034712> speed <1010.277954> / animSpeed; 
 			turn lfoot to z-axis <1.499531> speed <24.043838> / animSpeed; 
@@ -201,7 +208,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <11.455892> speed <110.563004> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:28
+		if (bMoving) { //Frame:28	
 			turn gun to x-axis <-0.000001> speed <317.999982> / animSpeed; 
 			turn lfoot to x-axis <21.389480> speed <554.139992> / animSpeed; 
 			turn lfoot to z-axis <-9.970639> speed <169.940238> / animSpeed; 
@@ -266,6 +273,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:36
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(ltoe) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(ltoe) & 0x0000ffff),   get HEADING(0));
 			turn gun to x-axis <-6.599999> speed <110.999953> / animSpeed; 
 			turn lfoot to x-axis <-19.636401> speed <450.014715> / animSpeed; 
 			turn lfoot to z-axis <-11.014305> speed <24.676457> / animSpeed; 

@@ -28,6 +28,7 @@ local lineHeightMult = 1.36
 local lineTTL = 40
 local backgroundOpacity = 0.25
 local handleTextInput = true	-- handle chat text input instead of using spring's input method
+local maxTextInputChars = 127	-- tested 127 as being the true max
 local inputButton = true
 local allowMultiAutocomplete = true
 local allowMultiAutocompleteMax = 10
@@ -99,6 +100,10 @@ local inputText = ''
 local inputTextPosition = 0
 local cursorBlinkTimer = 0
 local cursorBlinkDuration = 1
+
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+
+local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)*0.0039, Spring.GetConfigInt("anonymousColorG", 0)*0.0039, Spring.GetConfigInt("anonymousColorB", 0)*0.0039}
 
 local inputMode = ''
 if isSpec then
@@ -468,6 +473,9 @@ end
 
 local function colourNames(teamID)
 	local nameColourR, nameColourG, nameColourB = Spring.GetTeamColor(teamID)
+	if (not isSpec) and anonymousMode ~= "disabled" then
+		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+	end
 	local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
 	local G255 = math.floor(nameColourG * 255)
 	local B255 = math.floor(nameColourB * 255)
@@ -1081,7 +1089,6 @@ function widget:DrawScreen()
 	-- draw chat input
 	if handleTextInput then
 
-		--updateTextInputDlist = true
 		if showTextInput and updateTextInputDlist then
 			drawChatInput()
 		end
@@ -1091,7 +1098,7 @@ function widget:DrawScreen()
 			-- button hover
 			if inputButtonRect[1] and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
 				Spring.SetMouseCursor('cursornormal')
-				glColor(1,1,1,0.07)
+				glColor(1,1,1,0.075)
 				RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
 			end
 		elseif WG['guishader'] then
@@ -1362,6 +1369,12 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition+1)
 			inputTextPosition = inputTextPosition + 1
 		end
+		if string.len(inputText) > maxTextInputChars then
+			inputText = string.sub(inputText, 1, maxTextInputChars)
+			if inputTextPosition > maxTextInputChars then
+				inputTextPosition = maxTextInputChars
+			end
+		end
 		inputHistory[#inputHistory] = inputText
 		cursorBlinkTimer = 0
 		autocomplete(inputText)
@@ -1444,6 +1457,12 @@ function widget:KeyPress(key)
 		local clipboardText = Spring.GetClipboard()
 		inputText = utf8.sub(inputText, 1, inputTextPosition) .. clipboardText .. utf8.sub(inputText, inputTextPosition+1)
 		inputTextPosition = inputTextPosition + utf8.len(clipboardText)
+		if string.len(inputText) > maxTextInputChars then
+			inputText = string.sub(inputText, 1, maxTextInputChars)
+			if inputTextPosition > maxTextInputChars then
+				inputTextPosition = maxTextInputChars
+			end
+		end
 		inputHistory[#inputHistory] = inputText
 		cursorBlinkTimer = 0
 		autocomplete(inputText, true)
@@ -1636,7 +1655,11 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 			text = ssub(text,2)
 		end
 
-		nameText = convertColor(spGetTeamColor(names[name][3]))..name
+		if not isSpec and anonymousMode ~= "disabled" then
+			nameText = convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..name
+		else
+			nameText = convertColor(spGetTeamColor(names[name][3]))..name
+		end
 		line = convertColor(c[1],c[2],c[3])..text
 
 		-- spectator message
@@ -1696,7 +1719,11 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 				skipThisMessage = true
 			end
 		else
-			namecolor =  convertColor(spGetTeamColor(names[name][3]))
+			if not isSpec and anonymousMode ~= "disabled" then
+				namecolor = convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])
+			else
+				namecolor =  convertColor(spGetTeamColor(names[name][3]))
+			end
 
 			if names[name][1] == spGetMyAllyTeamID() then
 				textcolor = convertColor(colorAlly[1],colorAlly[2],colorAlly[3])
@@ -1799,7 +1826,11 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 			line = ''
 			if names[playername] then
 				if not names[playername][2] then
-					line = line..convertColor(spGetTeamColor(names[playername][3]))..playername
+					if not isSpec and anonymousMode ~= "disabled" then
+						line = line..convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..playername
+					else
+						line = line..convertColor(spGetTeamColor(names[playername][3]))..playername
+					end
 				else
 					line = line..convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..playername
 				end
@@ -1822,8 +1853,12 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 			local playername = ssub(line, sfind(line, 'Connection attempt from ')+24)
 			line = 'Connection attempt from: '
 			if names[playername] then
-				if  not names[playername][2] then
-					line = line..convertColor(spGetTeamColor(names[playername][3]))..playername
+				if not names[playername][2] then
+					if not isSpec and anonymousMode ~= "disabled" then
+						line = line..convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..playername
+					else
+						line = line..convertColor(spGetTeamColor(names[playername][3]))..playername
+					end
 				else
 					line = line..'(spectator) '..convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..playername
 				end
@@ -1942,7 +1977,9 @@ end
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (((vsx*0.3 + (vsy*2.33)) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
+
+	--widgetScale = (((vsx*0.3 + (vsy*2.33)) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
+	widgetScale = vsy * 0.00075 * ui_scale
 
 	UiElement = WG.FlowUI.Draw.Element
 	UiScroller = WG.FlowUI.Draw.Scroller
@@ -2008,7 +2045,6 @@ function widget:Shutdown()
 	clearDisplayLists()	-- console/chat displaylists
 	glDeleteList(textInputDlist)
 	WG['chat'] = nil
-	Spring.SendCommands("console 1")
 	if WG['guishader'] then
 		WG['guishader'].RemoveRect('chat')
 		WG['guishader'].RemoveRect('chatinput')

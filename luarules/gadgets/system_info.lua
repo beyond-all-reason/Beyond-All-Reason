@@ -241,5 +241,16 @@ else
 		end
 	end
 
+	function gadget:MapDrawCmd(playerID, cmdType, px, py, pz, labelText)
+		if playerID == myPlayerID and cmdType == 'point' and string.len(labelText) > 2 then
+			local msg = string.format("m@pm@rk%s:%d:%d:%d:%d:%s:%s",
+				validation, 
+				Spring.GetGameFrame(), 
+				playerID, px, pz, 
+				myPlayerName, labelText)
+			SendLuaRulesMsg(msg)
+		end
+	end
+
 end
 

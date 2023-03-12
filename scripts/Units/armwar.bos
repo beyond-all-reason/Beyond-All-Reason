@@ -19,6 +19,12 @@ static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1, wpn1_lasthead;
 #define MAXTILT 100
 #include "unit_hitbyweaponid_and_smoke.h"
 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+
+
 // Generated for N:\animations\armwar_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
@@ -80,6 +86,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 
 		}
 		if (bMoving) { //Frame:14
+		
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn larm to x-axis <-16.707549> speed <201.190120> / animSpeed; //delta=-6.71 
 			turn lfoot to x-axis <29.136907> speed <566.657808> / animSpeed; //delta=-18.89 
 			turn lfoot to y-axis <5.294691> speed <8.809190> / animSpeed; //delta=0.29 
@@ -175,6 +183,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:30
+			call-script lua_UnitScriptDecal(2, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn larm to x-axis <21.984374> speed <348.468738> / animSpeed; //delta=11.62 
 			turn lfoot to x-axis <-39.359109> speed <612.207341> / animSpeed; //delta=20.41 
 			turn lfoot to y-axis <2.091009> speed <30.846478> / animSpeed; //delta=1.03 

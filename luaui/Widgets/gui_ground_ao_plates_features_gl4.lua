@@ -222,6 +222,51 @@ function widget:PlayerChanged()
 	allyTeamID = Spring.GetMyAllyTeamID()
 end
 
+local commandqueue = {}
+function widget:TextCommand(command)
+	if string.find(command,"givefeatures", nil, true ) then
+		local s = string.split(command, ' ') 
+		Spring.Echo("/luaui givefeatures featurename")
+		local key = s[2]
+		local matches = {}
+		for featureDefID, featureDef in ipairs(FeatureDefs) do 
+			if string.find(featureDef.name,key, nil, true) then 
+				matches[#matches+1] = featureDef.name
+			end
+		end
+		if #matches > 0 then
+			local mx, my, mb = Spring.GetMouseState()
+			local _, coords = Spring.TraceScreenRay(mx, my, true) 
+			local maxx = math.ceil(math.sqrt(#matches))
+			local size = 80
+			local i = 1
+			if coords then 
+				for z= coords[3],  coords[3] + size * maxx, size do
+					for x= coords[1],  coords[1] + size * maxx, size do
+						if i <= #matches then 
+							commandqueue[#commandqueue+1] = string.format('give %s @%d,%d,%d',
+								matches[i],
+								x,
+								Spring.GetGroundHeight(x,z),
+								z)
+							i=i+1
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function widget:GameFrame()
+	if #commandqueue > 0 then 
+		Spring.SendCommands({commandqueue[#commandqueue]})
+		commandqueue[#commandqueue] = nil
+	end
+end
+
+	
+	
 
 function widget:ShutDown()
 	if atlasID ~= nil then 

@@ -176,6 +176,8 @@ local math_ceil = math.ceil
 
 ------------------------------ Light and Shader configurations ------------------
 
+local unitDefLights
+local featureDefLights
 local unitEventLights -- Table of lights per unitDefID
 local muzzleFlashLights  -- one light per weaponDefID
 local projectileDefLights  -- one light per weaponDefID
@@ -197,7 +199,7 @@ local radiusMultiplier = 1.0
 local intensityMultiplier = 1.0
 
 -- the 3d noise texture used for this shader
-local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
+local noisetex3dcube =  "LuaUI/images/noisetextures/noise64_cube_3.dds"
 
 --[[
 local examplePointLight = {
@@ -235,6 +237,7 @@ local unitLightVBOMap -- a table of the above 3, keyed by light type,  {point = 
 
 local unitAttachedLights = {} -- this is a table mapping unitID's to all their attached instanceIDs and vbos
 	--{unitID = { instanceID = targetVBO, ... }}
+local visibleUnits = {} -- this is a proxy for the widget callins, used to ensure we dont add unitscriptlights to units that are not visible
 
 -- these will be separate, as they need per-frame updates!
 local projectilePointLightVBO = {}  -- for plasma balls
@@ -813,6 +816,8 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noUpload)
 				--Spring.Debug.TraceFullEcho(nil,nil,nil,"AddStaticLightsForUnit")
 				--Spring.Debug.TableEcho(lightParams)
 				local targetVBO = unitLightVBOMap[lightParams.lightType]
+				
+				if (not spec) and lightParams.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then return end
 				AddLight(tostring(unitID) ..  lightname, unitID, lightParams.pieceIndex, targetVBO, lightParams.lightParamTable)
 			end
 		end
@@ -917,6 +922,7 @@ local function LoadLightConfig()
 		--Spring.Echo("Loaded GL4 light config")
 		unitDefLights = result.unitDefLights
 		unitEventLights = result.unitEventLights
+		featureDefLights = result.featureDefLights
 		--projectileDefLights = result.projectileDefLights
 
 	else
@@ -954,6 +960,7 @@ local nightFactor = 1 --0.33
 local unitNightFactor = 1 -- applied above nightFactor default 1.2
 local adjustfornight = {'unitAmbientColor', 'unitDiffuseColor', 'unitSpecularColor','groundAmbientColor', 'groundDiffuseColor', 'groundSpecularColor' }
 
+
 local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	if explosionLights[weaponID] then
 		local lightParamTable = explosionLights[weaponID].lightParamTable
@@ -985,14 +992,15 @@ end
 
 local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
 	--Spring.Echo("Widgetside UnitScriptLight", unitID, unitDefID, lightIndex, param)
-	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and unitEventLights.UnitScriptLights[unitDefID] and unitEventLights.UnitScriptLights[unitDefID][lightIndex] then
+	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and visibleUnits[unitID] and unitEventLights.UnitScriptLights[unitDefID] and unitEventLights.UnitScriptLights[unitDefID][lightIndex] then
 		local lightTable = unitEventLights.UnitScriptLights[unitDefID][lightIndex]
 		if not lightTable.alwaysVisible then
 			local px,py,pz = spGetUnitPosition(unitID)
 			if px == nil or spIsSphereInView(px,py,pz, lightTable[4]) == false then return end
 		end
+		if (not spec) and lightTable.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then return end
 		if lightTable.initComplete == nil then InitializeLight(lightTable, unitID) end
-		local instanceID = tostring(unitID) .. "UnitScriptLight" .. tostring(lightIndex) .. "_" .. tostring(param)
+		local instanceID = tostring(unitID) .. "_" .. tostring(UnitDefs[unitDefID].name) .. "UnitScriptLight" .. tostring(lightIndex) .. "_" .. tostring(param)
 		AddLight(instanceID, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
 	end
 end
@@ -1018,94 +1026,9 @@ function widget:PlayerChanged(playerID)
 	end
 end
 
-function widget:Initialize()
-
-	Spring.Debug.TraceEcho("Initialize DLGL4")
-	if Spring.GetConfigString("AllowDeferredMapRendering") == '0' or Spring.GetConfigString("AllowDeferredModelRendering") == '0' then
-		Spring.Echo('Deferred Rendering (gfx_deferred_rendering.lua) requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!')
-		widgetHandler:RemoveWidget()
-		return
-	end
-	if not LoadLightConfig() then
-		widgetHandler:RemoveWidget()
-		return
-	end
-
-	if initGL4() == false then return end
-
-	local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
-
-	if nightFactor ~= 1 then
-		--Spring.Debug.TableEcho(mapinfo)
-		local nightLightingParams = {}
-		for _,v in ipairs(adjustfornight) do
-			nightLightingParams[v] = mapinfo.lighting[string.lower(v)]
-			if nightLightingParams[v] ~= nil then
-				for k2, v2 in pairs(nightLightingParams[v]) do
-					--Spring.Echo(v,k2,v2)
-					if tonumber(v2) then
-						if string.find(v, 'unit', nil, true) then
-							nightLightingParams[v][k2] = v2 * nightFactor * unitNightFactor
-						else
-							nightLightingParams[v][k2] = v2 * nightFactor
-						end
-					end
-				end
-			else
-				Spring.Echo("Deferred Lights GL4: Warning: This map does not specify ",v, "in mapinfo.lua!")
-			end
-		end
-		Spring.SetSunLighting(nightLightingParams)
-	end
-
-	if addrandomlights then
-		math.randomseed(1)
-		for i=1, 1 do AddRandomLight(	math.random()) end
-	end
-
-	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
-	end
-
-	WG['lightsgl4'] = {}
-	WG['lightsgl4'].AddPointLight = AddPointLight
-	WG['lightsgl4'].AddBeamLight  = AddBeamLight
-	WG['lightsgl4'].AddConeLight  = AddConeLight
-	WG['lightsgl4'].AddLight  = AddLight
-	WG['lightsgl4'].RemoveLight  = RemoveLight
-	WG['lightsgl4'].GetLightVBO  = GetLightVBO
-
-	WG['lightsgl4'].IntensityMultiplier = function(value)
-		intensityMultiplier = value
-	end
-	WG['lightsgl4'].RadiusMultiplier = function(value)
-		radiusMultiplier = value
-	end
-
-	WG['lightsgl4'].ShowPlayerCursorLight = function(value)
-		showPlayerCursorLight = value
-	end
-	WG['lightsgl4'].PlayerCursorLightRadius = function(value)
-		playerCursorLightRadius = value
-	end
-	WG['lightsgl4'].PlayerCursorLightBrightness = function(value)
-		playerCursorLightBrightness = value
-	end
-
-	widgetHandler:RegisterGlobal('AddPointLight', WG['lightsgl4'].AddPointLight)
-	widgetHandler:RegisterGlobal('AddBeamLight', WG['lightsgl4'].AddBeamLight)
-	widgetHandler:RegisterGlobal('AddConeLight', WG['lightsgl4'].AddConeLight)
-	widgetHandler:RegisterGlobal('AddLight', WG['lightsgl4'].AddLight)
-	widgetHandler:RegisterGlobal('RemoveLight', WG['lightsgl4'].RemoveLight)
-	widgetHandler:RegisterGlobal('GetLightVBO', WG['lightsgl4'].GetLightVBO)
-
-	widgetHandler:RegisterGlobal('GadgetWeaponExplosion', GadgetWeaponExplosion)
-	widgetHandler:RegisterGlobal('GadgetWeaponBarrelfire', GadgetWeaponBarrelfire)
-
-	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
-end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	visibleUnits[unitID] = unitDefID
 	AddStaticLightsForUnit(unitID, unitDefID, false, "VisibleUnitAdded")
 end
 
@@ -1113,6 +1036,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	clearInstanceTable(unitPointLightVBO) -- clear all instances
 	clearInstanceTable(unitBeamLightVBO) -- clear all instances
 	clearInstanceTable(unitConeLightVBO) -- clear all instances
+	visibleUnits = {}
 
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		AddStaticLightsForUnit(unitID, unitDefID, true, "VisibleUnitsChanged") -- add them with noUpload = true
@@ -1125,6 +1049,7 @@ end
 function widget:VisibleUnitRemoved(unitID) -- remove all the lights for this unit
 	--if debugmode then Spring.Debug.TraceEcho("remove",unitID,reason) end
 	RemoveUnitAttachedLights(unitID)
+	visibleUnits[unitID] = nil
 end
 
 function widget:Shutdown()
@@ -1137,6 +1062,7 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('RemoveLight')
 	widgetHandler:DeregisterGlobal('GetLightVBO')
 
+	widgetHandler:DeregisterGlobal('GadgetCrashingAircraft')
 	widgetHandler:DeregisterGlobal('GadgetWeaponExplosion')
 	widgetHandler:DeregisterGlobal('GadgetWeaponBarrelfire')
 
@@ -1181,10 +1107,25 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 					if not visible then
 						if px and spIsSphereInView(px,py,pz, lightTable[4]) then visible = true end
 					end
-					if visible then
-						if not lightTable.initComplete then
-							if not InitializeLight(lightTable, unitID) then return end
+
+					-- bail if only for allies
+					if (not spec) and lightTable.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then 
+						visible = false
+					end
+					
+					-- bail if unable to initialize light
+					if not lightTable.initComplete then 
+						if not InitializeLight(lightTable, unitID) then 
+							visible = false
 						end
+					end
+					
+					-- bail if invalid unitID wants a unit-attached light
+					if lightTable.pieceName and (visibleUnits[unitID] == nil) then 
+						visible = false
+					end
+					
+					if visible then
 						--if lightTable.aboveUnit then lightTable.lightParamTable end
 						local lightParamTable = lightTable.lightParamTable
 						if lightTable.pieceName then
@@ -1192,9 +1133,9 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 								-- this is done via a quick copy of the table
 								for i=1, lightParamTableSize do lightCacheTable[i] = lightParamTable[i] end
 								local unitHeight = Spring.GetUnitHeight(unitID)
-								if unitHeight == nil then 
+								if unitHeight == nil then
 									local losstate = Spring.GetUnitLosState(unitID)
-									Spring.Echo("Unitheight is nil for unitID", unitID, "unitDefName", UnitDefs[unitDefID].name, eventName, lightname, 'losstate', losstate and losstate.los) 
+									Spring.Echo("Unitheight is nil for unitID", unitID, "unitDefName", UnitDefs[unitDefID].name, eventName, lightname, 'losstate', losstate and losstate.los)
 								end
 
 								lightCacheTable[2] = lightCacheTable[2] + lightTable.aboveUnit + (unitHeight or 0)
@@ -1209,6 +1150,7 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 							AddLight(eventName .. tostring(unitID) ..  lightname, nil, lightTable.pieceIndex, lightVBOMap[lightTable.lightType], lightCacheTable)
 						end
 					end
+				
 				end
 			end
 		end
@@ -1232,6 +1174,9 @@ end
 function widget:UnitDestroyed(unitID, unitDefID, teamID) -- dont do piece-attached lights here!
 	eventLightSpawner("UnitDestroyed", unitID, unitDefID, teamID)
 end
+local function GadgetCrashingAircraft(unitID, unitDefID, teamID)
+	RemoveUnitAttachedLights(unitID)
+end
 
 -- THIS ONE DOESNT WORK, some shit is being pulled and i cant get the unit height of the unit being taken here!
 --function widget:UnitTaken(unitID, unitDefID, teamID)
@@ -1253,6 +1198,35 @@ end
 function widget:StockpileChanged(unitID, unitDefID, teamID, weaponNum, oldCount, newCount)
 	if newCount > oldCount then
 		eventLightSpawner("StockpileChanged", unitID, unitDefID, teamID)
+	end
+end
+
+function widget:FeatureCreated(featureID,allyteam)
+	-- TODO: Allow team-colored feature lights by getting teamcolor and putting it into lightCacheTable
+	local featureDefID = Spring.GetFeatureDefID(featureID)
+	if featureDefLights[featureDefID] then
+		for lightname, lightTable in pairs(featureDefLights[featureDefID]) do
+			if not lightTable.initComplete then InitializeLight(lightTable) end
+			local px, py, pz = Spring.GetFeaturePosition(featureID)
+			if px then
+
+				local lightParamTable = lightTable.lightParamTable
+				for i=1, lightParamTableSize do lightCacheTable[i] = lightParamTable[i] end
+				lightCacheTable[1] = lightCacheTable[1] + px
+				lightCacheTable[2] = lightCacheTable[2] + py
+				lightCacheTable[3] = lightCacheTable[3] + pz
+				AddLight(tostring(featureID) ..  lightname, nil, nil, lightVBOMap[lightTable.lightType], lightCacheTable)
+			end
+		end
+	end
+end
+
+function widget:FeatureDestroyed(featureID)
+	local featureDefID = Spring.GetFeatureDefID(featureID)
+	if featureDefLights[featureDefID] then
+		for lightname, lightTable in pairs(featureDefLights[featureDefID]) do
+			RemoveLight(lightTable.lightType, tostring(featureID) ..  lightname)
+		end
 	end
 end
 
@@ -1487,7 +1461,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		coneLightVBO.usedElements > 0 then
 
 		local alt, ctrl = Spring.GetModKeyState()
-		local devui = (Spring.GetConfigInt('DevUI', 0) == 1) 
+		local devui = (Spring.GetConfigInt('DevUI', 0) == 1)
 
 		if autoupdate and ctrl and (isSinglePlayer or spec) and devui then
 			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -1572,7 +1546,7 @@ function widget:RecvLuaMsg(msg)
 end
 
 -- Register /luaui dlgl4stats to dump light statistics
-function widget:TextCommand(command) 
+function widget:TextCommand(command)
 	if string.find(command, "dlgl4stats", nil, true) then
 		Spring.Echo(string.format("DLGLStats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d), Cursor = %d",
 				numAddLights,
@@ -1581,7 +1555,7 @@ function widget:TextCommand(command)
 				projectilePointLightVBO.usedElements, projectileBeamLightVBO.usedElements, projectileConeLightVBO.usedElements,
 				cursorPointLightVBO.usedElements))
 		return true
-	end	
+	end
 	if string.find(command, "dlgl4skipdraw", nil, true) then
 		skipdraw = not skipdraw
 		Spring.Echo("Deferred Rendering GL4 skipdraw set to", skipdraw)
@@ -1590,6 +1564,97 @@ function widget:TextCommand(command)
 	return false
 end
 
+function widget:Initialize()
+
+	Spring.Debug.TraceEcho("Initialize DLGL4")
+	if Spring.GetConfigString("AllowDeferredMapRendering") == '0' or Spring.GetConfigString("AllowDeferredModelRendering") == '0' then
+		Spring.Echo('Deferred Rendering (gfx_deferred_rendering.lua) requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!')
+		widgetHandler:RemoveWidget()
+		return
+	end
+	if not LoadLightConfig() then
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	if initGL4() == false then return end
+
+	local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
+
+	if nightFactor ~= 1 then
+		--Spring.Debug.TableEcho(mapinfo)
+		local nightLightingParams = {}
+		for _,v in ipairs(adjustfornight) do
+			nightLightingParams[v] = mapinfo.lighting[string.lower(v)]
+			if nightLightingParams[v] ~= nil then
+				for k2, v2 in pairs(nightLightingParams[v]) do
+					--Spring.Echo(v,k2,v2)
+					if tonumber(v2) then
+						if string.find(v, 'unit', nil, true) then
+							nightLightingParams[v][k2] = v2 * nightFactor * unitNightFactor
+						else
+							nightLightingParams[v][k2] = v2 * nightFactor
+						end
+					end
+				end
+			else
+				Spring.Echo("Deferred Lights GL4: Warning: This map does not specify ",v, "in mapinfo.lua!")
+			end
+		end
+		Spring.SetSunLighting(nightLightingParams)
+	end
+
+	if addrandomlights then
+		math.randomseed(1)
+		for i=1, 1 do AddRandomLight(	math.random()) end
+	end
+
+	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
+		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+	end
+
+	for _, featureID in ipairs(Spring.GetAllFeatures()) do
+		widget:FeatureCreated(featureID)
+	end
+
+	WG['lightsgl4'] = {}
+	WG['lightsgl4'].AddPointLight = AddPointLight
+	WG['lightsgl4'].AddBeamLight  = AddBeamLight
+	WG['lightsgl4'].AddConeLight  = AddConeLight
+	WG['lightsgl4'].AddLight  = AddLight
+	WG['lightsgl4'].RemoveLight  = RemoveLight
+	WG['lightsgl4'].GetLightVBO  = GetLightVBO
+
+	WG['lightsgl4'].IntensityMultiplier = function(value)
+		intensityMultiplier = value
+	end
+	WG['lightsgl4'].RadiusMultiplier = function(value)
+		radiusMultiplier = value
+	end
+
+	WG['lightsgl4'].ShowPlayerCursorLight = function(value)
+		showPlayerCursorLight = value
+	end
+	WG['lightsgl4'].PlayerCursorLightRadius = function(value)
+		playerCursorLightRadius = value
+	end
+	WG['lightsgl4'].PlayerCursorLightBrightness = function(value)
+		playerCursorLightBrightness = value
+	end
+
+	widgetHandler:RegisterGlobal('AddPointLight', WG['lightsgl4'].AddPointLight)
+	widgetHandler:RegisterGlobal('AddBeamLight', WG['lightsgl4'].AddBeamLight)
+	widgetHandler:RegisterGlobal('AddConeLight', WG['lightsgl4'].AddConeLight)
+	widgetHandler:RegisterGlobal('AddLight', WG['lightsgl4'].AddLight)
+	widgetHandler:RegisterGlobal('RemoveLight', WG['lightsgl4'].RemoveLight)
+	widgetHandler:RegisterGlobal('GetLightVBO', WG['lightsgl4'].GetLightVBO)
+
+	widgetHandler:RegisterGlobal('GadgetCrashingAircraft', GadgetCrashingAircraft)
+	widgetHandler:RegisterGlobal('GadgetWeaponExplosion', GadgetWeaponExplosion)
+	widgetHandler:RegisterGlobal('GadgetWeaponBarrelfire', GadgetWeaponBarrelfire)
+
+	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
+end
 --------------------------- Ingame Configurables -------------------
 
 function widget:GetConfigData(_) -- Called by RemoveWidget

@@ -27,7 +27,7 @@ return {
 		maxwaterdepth = 0,
 		metalstorage = 200,
 		objectname = "Units/ARMAVP.s3o",
-		radardistance = 50,
+		--radardistance = 50,
 		script = "Units/ARMAVP.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",

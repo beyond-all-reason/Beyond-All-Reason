@@ -15,6 +15,11 @@ static-var  ReadyToAim, gun_1, bMoving, bAiming, restore_delay, statechg_Desired
 #define SIG_AIM				2
 #define SIG_WALK 			4
 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armmav_anim_walk.blend 
 	//set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:5
@@ -85,6 +90,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:13
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn body to x-axis <0.534808> speed <8.022119> / animSpeed; //delta=-0.27 
 			turn body to z-axis <-4.000000> speed <60.000000> / animSpeed; //delta=2.00 
 			turn body to y-axis <-18.000001> speed <270.000008> / animSpeed; //delta=-9.00 
@@ -251,6 +257,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:29
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn body to z-axis <4.000000> speed <60.000000> / animSpeed; //delta=-2.00 
 			turn body to y-axis <18.000001> speed <270.000008> / animSpeed; //delta=9.00 
 			turn head to x-axis <5.000000> speed <74.999998> / animSpeed; //delta=-2.50 

@@ -24,9 +24,9 @@ local shaderConfig = {
 	RESOLUTION = 1,
 }
 
-local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
-local simpledither = "LuaUI/images/rgba_noise_256.tga"
-local worley3d128 = "LuaUI/images/worley_rgbnorm_01_asum_128_v1.dds"
+local noisetex3dcube =  "LuaUI/images/noisetextures/noise64_cube_3.dds"
+local simpledither = "LuaUI/images/noisetextures/rgba_noise_256.tga"
+local worley3d128 = "LuaUI/images/noisetextures/worley_rgbnorm_01_asum_128_v1.dds"
 local dithernoise2d =  "LuaUI/images/lavadistortion.png"
 
 local fogPlaneVAO 

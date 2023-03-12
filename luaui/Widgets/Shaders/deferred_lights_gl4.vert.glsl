@@ -181,7 +181,7 @@ void main()
 		if  (attachedtounitID > 0.5) {
 			// for point lights, if the colortime is anything sane (>0), then modulate the light with it.
 			if (colortime >0.5){
-				v_lightcolor.rgb = mix(v_lightcolor.rgb, worldposrad2.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5); }
+				v_lightcolor.rgb = mix( worldposrad2.rgb, v_lightcolor.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5); }
 				
 		}else{
 			if (colortime >0.0){

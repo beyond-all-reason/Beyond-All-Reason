@@ -170,9 +170,6 @@ if gadgetHandler:IsSyncedCode() then
 		-- -1: players will not be allowed to place startpoints; automatically readied once ingame
 		--  4: player has placed a startpoint but is not yet ready
 
-		-- communicate readyState to all
-		Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", readyState)
-
 		--[[
 		-- for debugging
 		local name,_,_,tID = Spring.GetPlayerInfo(playerID,false)
@@ -208,6 +205,9 @@ if gadgetHandler:IsSyncedCode() then
 				return false
 			end
 		end
+
+		-- communicate readyState to all
+		Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", readyState)
 
 		for otherTeamID, startpoint in pairs(startPointTable) do
 			local sx, sz = startpoint[1], startpoint[2]

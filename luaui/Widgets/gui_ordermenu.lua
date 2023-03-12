@@ -80,11 +80,13 @@ local rows = 0
 local cols = 0
 local disableInput = false
 local math_isInRect = math.isInRect
+local clickCountDown = 2
 
 local font, backgroundPadding, widgetSpaceMargin, chobbyInterface, displayListOrders, displayListGuiShader
 local clickedCell, clickedCellTime, clickedCellDesiredState, cellWidth, cellHeight
 local buildmenuBottomPosition
 local activeCommand, previousActiveCommand, doUpdate, doUpdateClock
+local ordermenuShows = false
 
 local hiddenCommands = {
 	[CMD.LOAD_ONTO] = true,
@@ -372,6 +374,9 @@ function widget:Initialize()
 			colorize = 1
 		end
 	end
+	WG['ordermenu'].getIsShowing = function()
+		return ordermenuShows
+	end
 end
 
 function widget:Shutdown()
@@ -386,6 +391,8 @@ end
 local buildmenuBottomPos = false
 local sec = 0
 function widget:Update(dt)
+	ordermenuShows = false
+
 	sec = sec + dt
 	if sec > 0.5 then
 		sec = 0
@@ -398,16 +405,6 @@ function widget:Update(dt)
 				widget:ViewResize()
 			end
 		end
-		if uiScale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			uiScale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize()
-			setupCellGrid(true)
-			doUpdate = true
-		end
-		if uiOpacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			doUpdate = true
-		end
 
 		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
 			widget:ViewResize()
@@ -419,6 +416,22 @@ function widget:Update(dt)
 		if Spring.IsGodModeEnabled() then
 			disableInput = false
 		end
+	end
+
+	clickCountDown = clickCountDown - 1
+	if clickCountDown == 0 then
+		doUpdate = true
+	end
+	previousActiveCommand = activeCommand
+	activeCommand = select(4, spGetActiveCommand())
+	if activeCommand ~= previousActiveCommand then
+		doUpdate = true
+	end
+
+	if (WG['guishader'] and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or Spring.GetGameFrame() == 0)) then
+		ordermenuShows = false
+	else
+		ordermenuShows = true
 	end
 end
 
@@ -645,19 +658,9 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-local clickCountDown = 2
 function widget:DrawScreen()
 	if chobbyInterface then
 		return
-	end
-	clickCountDown = clickCountDown - 1
-	if clickCountDown == 0 then
-		doUpdate = true
-	end
-	previousActiveCommand = activeCommand
-	activeCommand = select(4, spGetActiveCommand())
-	if activeCommand ~= previousActiveCommand then
-		doUpdate = true
 	end
 
 	local x, y, b = Spring.GetMouseState()
@@ -678,7 +681,19 @@ function widget:DrawScreen()
 								tooltip = Spring.I18N('ui.orderMenu.hotkeyTooltip', { hotkey = hotkey:upper(), tooltip = tooltip, highlightColor = "\255\255\215\100", textColor = "\255\240\240\240" })
 							end
 							if tooltip ~= '' then
-								WG['tooltip'].ShowTooltip('ordermenu', tooltip)
+								local title
+								if isStateCommand[cmd.id] then
+									local currentStateIndex = cmd.params[1]
+									-- First element of params represents selected state index, but Spring engine implementation returns a value 2 less than the actual index
+									local stateOffset = 2
+									local commandState = cmd.params[currentStateIndex + stateOffset]
+									if commandState then
+										title = Spring.I18N('ui.orderMenu.' .. commandState)
+									end
+								else
+									title = Spring.I18N('ui.orderMenu.' .. cmd.action)
+								end
+								WG['tooltip'].ShowTooltip('ordermenu', tooltip, nil, nil, title)
 							end
 						end
 						cellHovered = cell
@@ -815,7 +830,7 @@ function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if ordermenuShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		if #commands > 0 then
 			if not disableInput then
 				for cell = 1, #cellRects do

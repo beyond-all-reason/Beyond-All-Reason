@@ -17,7 +17,7 @@ local definitions = {
 				ttl=5,
 				frontOffset=0,
 				sideTexture=[[shot]],
-				frontTexture=[[flashcrap]],
+				frontTexture=[[flash1]],
 			}
 		},
 		fireglow = {
@@ -94,7 +94,7 @@ local definitions = {
 				ttl=5,
 				frontOffset=0,
 				sideTexture=[[shot]],
-				frontTexture=[[flashcrap]],
+				frontTexture=[[flash1]],
 			}
 		},
 		fireglow = {

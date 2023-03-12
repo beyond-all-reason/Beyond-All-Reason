@@ -187,5 +187,13 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 		StockpileDesiredTarget[unitID] = nil
 	end
+	
+	function gadget:Initialize()
+		local units = Spring.GetAllUnits()
+		for i = 1, #units do
+			local unitDefID = Spring.GetUnitDefID(units[i])
+			gadget:UnitCreated(units[i], unitDefID)
+		end
+	end
 end
 

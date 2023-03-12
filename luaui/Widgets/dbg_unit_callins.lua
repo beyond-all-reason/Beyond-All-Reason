@@ -45,6 +45,8 @@ local enabledcallins = {
 	RenderUnitDestroyed  = true,
 	FeatureCreated = true,
 	FeatureDestroyed = true,
+	MetaUnitAdded = true,
+	MetaUnitRemoved = true,
 	}
 local taglife = 5 * 30
 local tagrise = 2
@@ -303,6 +305,18 @@ function widget:FeatureDestroyed(featureID)
 		local pos = {fx,fy,fz}
 		addEvent(pos, "FeatureDestroyed") 
 	end 
+end
+
+function widget:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	if enabledcallins.MetaUnitAdded == nil then return end
+	if printcallins then Spring.Echo("w:MetaUnitAdded",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam) end
+	if showcallins then addEvent(unitID, "MetaUnitAdded") end
+end
+
+function widget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	if enabledcallins.MetaUnitRemoved == nil then return end
+	if printcallins then Spring.Echo("w:MetaUnitRemoved",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam) end
+	if showcallins then addEvent(unitID, "MetaUnitRemoved") end
 end
 
 local function init()

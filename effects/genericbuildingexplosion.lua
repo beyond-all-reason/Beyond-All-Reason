@@ -17,7 +17,6 @@ local definitions = {
         sizegrowth         = 17,
         speed              = [[0, 1 0, 0]],
         texture            = [[flare]],
-
         drawOrder          = 1,
       },
     },
@@ -209,7 +208,7 @@ local definitions = {
         particleSpeed=2,
         particleSpeedSpread=5,
         particleSize=7,
-        particleSizeSpread=15
+        particleSizeSpread=15,
         castShadow         = true,
       },
     },
@@ -501,19 +500,19 @@ local sizes = {
         particlesizespread = 4,
         particlespeed      = 1.5,
         particlespeedspread = 2.5,
-	  }
+	  },
 	},
     fireglow = {
       properties = {
         particlesize       = 14,
         particlelife       = 11,
-      }
+      },
     },
     fireglow2 = {
       properties = {
         particlesize       = 33,
         particlelife       = 14,
-      }
+      },
     },
     innersmoke = {
       properties = {
@@ -542,7 +541,7 @@ local sizes = {
         numparticles = 3,
         particlespeed      = 1.96,
         particlespeedspread = 4,
-	   	}
+	   	},
     },
     dirt = {
       properties = {
@@ -550,7 +549,7 @@ local sizes = {
         particlelifespread = 13,
         particlespeed      = 3,
         particlespeedspread = 3.7,
-	   	}
+	   	},
     },
     dirt2 = {
       properties = {
@@ -558,7 +557,7 @@ local sizes = {
         particlelifespread = 17,
         particlespeed      = 2.8,
         particlespeedspread = 4.4,
-	   	}
+	   	},
     },
     shard1 = {
       properties = {
@@ -596,7 +595,7 @@ local sizes = {
       	particlelifespread = 50,
         particlesize       = 33,
         particlesizespread = 55,
-      }
+      },
     },
     grounddust = {
       properties = {
@@ -606,7 +605,7 @@ local sizes = {
         particlesizespread = 2.1,
         particlespeed      = 2.33,
         particlespeedspread = 1,
-	    }
+	    },
     },
   },
 	
@@ -625,7 +624,7 @@ local sizes = {
         particlesizespread = 12,
         particlespeed      = 2.4,
         particlespeedspread = 7,
-      }
+      },
     },
     shockwavexplo = {
       properties = {
@@ -667,7 +666,7 @@ local sizes = {
         particlesizespread = 11,
         particlespeed      = 2.5,
         particlespeedspread = 7,
-	  }
+	  },
 	},
   shockwavexplo = {
       properties = {
@@ -681,13 +680,13 @@ local sizes = {
       properties = {
         particlesize       = 33,
         particlelife       = 16,
-      }
+      },
     },
     fireglow2 = {
       properties = {
         particlesize       = 64,
         particlelife       = 18,
-      }
+      },
     },
     innersmoke = {
       properties = {
@@ -718,7 +717,7 @@ local sizes = {
       particlespeedspread = 6,
       particlesize       = 100,
       particlesizespread = 140,
-	  }
+      },
     },
     dirt = {
       properties = {
@@ -726,7 +725,7 @@ local sizes = {
         particlelifespread = 40,
         particlespeed      = 3.7,
         particlespeedspread = 4.7,
-	  }
+      },
     },
     dirt2 = {
       properties = {
@@ -734,7 +733,7 @@ local sizes = {
         particlelifespread = 45,
         particlespeed      = 3.7,
         particlespeedspread = 5.7,
-	  }
+      },
     },
     shard1 = {
       properties = {
@@ -772,7 +771,7 @@ local sizes = {
       	particlelifespread = 130,
         particlesize       = 72,
         particlesizespread = 95,
-      }
+      },
     },
     grounddust = {
       properties = {
@@ -782,7 +781,7 @@ local sizes = {
         particlesizespread = 3.3,
         particlespeed      = 4.75,
         particlespeedspread = 1.75,
-	  }
+      },
     },
   },
 	
@@ -816,7 +815,7 @@ local sizes = {
         particlesizespread = 14,
         particlespeed      = 3.8,
         particlespeedspread = 9.5,
-	  }
+	  },
 	},
   shockwavexplo = {
       properties = {
@@ -830,13 +829,13 @@ local sizes = {
       properties = {
         particlesize       = 53,
         particlelife       = 17,
-      }
+      },
     },
     fireglow2 = {
       properties = {
         particlesize       = 105,
         particlelife       = 19,
-      }
+      },
     },
     innersmoke = {
       properties = {
@@ -867,7 +866,7 @@ local sizes = {
         particlespeedspread = 6.8,
         particlesize       = 110,
         particlesizespread = 150,
-	  }
+      },
     },
     dirt = {
       properties = {
@@ -875,7 +874,7 @@ local sizes = {
         particlelifespread = 50,
         particlespeed      = 5.5,
         particlespeedspread = 6.2,
-	  }
+      },
     },
     dirt2 = {
       properties = {
@@ -883,7 +882,7 @@ local sizes = {
         particlelifespread = 55,
         particlespeed      = 5.75,
         particlespeedspread = 7.5,
-	  }
+      },
     },
     shard1 = {
       properties = {
@@ -921,7 +920,7 @@ local sizes = {
       	particlelifespread = 160,
         particlesize       = 85,
         particlesizespread = 90,
-      }
+      },
     },
     grounddust = {
       properties = {
@@ -931,7 +930,7 @@ local sizes = {
         particlesizespread = 5,
         particlespeed      = 6.7,
         particlespeedspread = 3.3,
-	  }
+      },
     },
   },
 
@@ -965,7 +964,7 @@ local sizes = {
         particlesizespread = 20,
         particlespeed      = 5.5,
         particlespeedspread = 10,
-      }
+      },
     },
     shockwavexplo = {
       properties = {
@@ -979,13 +978,13 @@ local sizes = {
       properties = {
         particlesize       = 75,
         particlelife       = 19,
-      }
+      },
     },
     fireglow2 = {
       properties = {
         particlesize       = 150,
         particlelife       = 21,
-      }
+      },
     },
     innersmoke = {
       properties = {
@@ -1016,7 +1015,7 @@ local sizes = {
         particlespeedspread = 8,
         particlesize       = 120,
         particlesizespread = 160,
-      }
+      },
     },
     -- dirt = {
     --   properties = {
@@ -1034,7 +1033,7 @@ local sizes = {
         particlespeedspread = 6,
         particlesize       = 25,
         particlesizespread = 50,
-      }
+      },
     },
     dirt2 = {
       properties = {
@@ -1042,7 +1041,7 @@ local sizes = {
         particlelifespread = 60,
         particlespeed      = 7.5,
         particlespeedspread = 10.3,
-      }
+      },
     },
     shard1 = {
       properties = {
@@ -1080,7 +1079,7 @@ local sizes = {
         particlelifespread = 180,
         particlesize       = 100,
         particlesizespread = 100,
-      }
+      },
     },
     grounddust = {
       properties = {
@@ -1090,7 +1089,7 @@ local sizes = {
         particlesizespread = 5.5,
         particlespeed      = 11,
         particlespeedspread = 4.4,
-      }
+      },
     },
   },
 
@@ -1124,19 +1123,19 @@ local sizes = {
         particlesizespread = 24,
         particlespeed      = 7.5,
         particlespeedspread = 11.5,
-      }
+      },
     },
     fireglow = {
       properties = {
         particlesize       = 90,
         particlelife       = 21,
-      }
+      },
     },
     fireglow2 = {
       properties = {
         particlesize       = 190,
         particlelife       = 23,
-      }
+      },
     },
     innersmoke = {
       properties = {
@@ -1165,7 +1164,7 @@ local sizes = {
         numparticles = 10,
         particlespeed      = 6.5,
         particlespeedspread = 9,
-      }
+      },
     },
     dirt = {
       properties = {
@@ -1175,7 +1174,7 @@ local sizes = {
         particlespeedspread = 11,
         particlesize       = 70,
         particlesizespread = 130,
-      }
+      },
     },
     dirt2 = {
       properties = {
@@ -1183,7 +1182,7 @@ local sizes = {
         particlelifespread = 65,
         particlespeed      = 10.6,
         particlespeedspread = 14.5,
-      }
+      },
     },
     shard1 = {
       properties = {
@@ -1217,11 +1216,11 @@ local sizes = {
     },
     clouddust = {
       properties = {
-        numparticles       = 6,
+        numparticles       = 8,
         particlelifespread = 200,
         particlesize       = 120,
         particlesizespread = 120,
-      }
+      },
     },
     grounddust = {
       properties = {

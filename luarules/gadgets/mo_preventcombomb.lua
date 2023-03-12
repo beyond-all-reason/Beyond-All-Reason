@@ -1,4 +1,4 @@
-local gadgetEnabled = not (Spring.GetModOptions().newdgun or Spring.GetModOptions().unba)
+local gadgetEnabled = not (Spring.GetModOptions().newdgun or Spring.GetModOptions().unba or Spring.GetModOptions().comupdate)
 
 function gadget:GetInfo()
 	return {
@@ -52,10 +52,8 @@ local corcomDefID = UnitDefNames["corcom"].id
 local legcomDefID = UnitDefNames["legcom"].id
 
 local function CommCount(unitTeam)
-
-	local allyteamlist = Spring.GetAllyTeamList()
 	local teamsInAllyID = {}
-
+	local allyteamlist = Spring.GetAllyTeamList()
 	for ct, allyTeamID in pairs(allyteamlist) do
 		teamsInAllyID[allyTeamID] = Spring.GetTeamList(allyTeamID) -- [1] = teamID,
 	end

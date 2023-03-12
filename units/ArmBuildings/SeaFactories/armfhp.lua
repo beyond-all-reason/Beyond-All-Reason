@@ -23,7 +23,7 @@ return {
 		metalstorage = 200,
 		minwaterdepth = 5,
 		objectname = "Units/ARMFHP.s3o",
-		radardistance = 50,
+		--radardistance = 50,
 		script = "Units/ARMFHP.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",

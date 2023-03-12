@@ -19,7 +19,6 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
-local textTitleColor = "\255\215\255\215"
 local textWarnColor = "\255\255\215\215"
 
 local vsx, vsy = Spring.GetViewGeometry()
@@ -124,7 +123,7 @@ local avgWind = {[0]={[1]="0.8",[2]="1.5",[3]="2.2",[4]="3.0",[5]="3.7",[6]="4.5
 -- precomputed percentage of time wind is less than 6, from wind random monte carlo simulation, given minWind and maxWind
 local riskWind = {[0]={[1]="100",[2]="100",[3]="100",[4]="100",[5]="100",[6]="100",[7]="56",[8]="42",[9]="33",[10]="27",[11]="22",[12]="18.5",[13]="15.8",[14]="13.6",[15]="11.8",[16]="10.4",[17]="9.2",[18]="8.2",[19]="7.4",[20]="6.7",[21]="6.0",[22]="5.5",[23]="5.0",[24]="4.6",[25]="4.3",[26]="4.0",[27]="3.7",[28]="3.4",[29]="3.2",[30]="3.0",},[1]={[2]="100",[3]="100",[4]="100",[5]="100",[6]="100",[7]="56",[8]="42",[9]="33",[10]="27",[11]="22",[12]="18.5",[13]="15.7",[14]="13.6",[15]="11.8",[16]="10.4",[17]="9.2",[18]="8.2",[19]="7.4",[20]="6.7",[21]="6.0",[22]="5.5",[23]="5.0",[24]="4.6",[25]="4.3",[26]="4.0",[27]="3.7",[28]="3.4",[29]="3.2",[30]="3.0",},[2]={[3]="100",[4]="100",[5]="100",[6]="100",[7]="55",[8]="42",[9]="33",[10]="27",[11]="22",[12]="18.4",[13]="15.6",[14]="13.5",[15]="11.8",[16]="10.4",[17]="9.2",[18]="8.2",[19]="7.4",[20]="6.6",[21]="6.0",[22]="5.5",[23]="5.0",[24]="4.6",[25]="4.3",[26]="3.9",[27]="3.6",[28]="3.4",[29]="3.1",[30]="2.9",},[3]={[4]="100",[5]="100",[6]="100",[7]="53",[8]="40",[9]="32",[10]="25",[11]="21",[12]="17.8",[13]="15.2",[14]="13.2",[15]="11.5",[16]="10.2",[17]="9.1",[18]="8.1",[19]="7.3",[20]="6.6",[21]="6.0",[22]="5.4",[23]="5.0",[24]="4.6",[25]="4.2",[26]="3.9",[27]="3.6",[28]="3.4",[29]="3.1",[30]="2.9",},[4]={[5]="100",[6]="100",[7]="49",[8]="36",[9]="29",[10]="23",[11]="19.4",[12]="16.4",[13]="14.0",[14]="12.2",[15]="10.8",[16]="9.6",[17]="8.6",[18]="7.7",[19]="7.0",[20]="6.3",[21]="5.8",[22]="5.3",[23]="4.8",[24]="4.4",[25]="4.1",[26]="3.8",[27]="3.5",[28]="3.3",[29]="3.0",[30]="2.8",},[5]={[6]="100",[7]="41",[8]="30",[9]="24",[10]="19.5",[11]="16.2",[12]="13.9",[13]="11.9",[14]="10.4",[15]="9.3",[16]="8.3",[17]="7.5",[18]="6.8",[19]="6.2",[20]="5.7",[21]="5.2",[22]="4.8",[23]="4.4",[24]="4.1",[25]="3.8",[26]="3.5",[27]="3.2",[28]="3.0",[29]="2.8",[30]="2.6",},[6]={[7]="16.0",[8]="12.4",[9]="10.5",[10]="9.0",[11]="8.0",[12]="7.3",[13]="6.6",[14]="6.0",[15]="5.5",[16]="5.1",[17]="4.7",[18]="4.4",[19]="4.2",[20]="3.9",[21]="3.6",[22]="3.4",[23]="3.2",[24]="3.0",[25]="2.8",[26]="2.7",[27]="2.5",[28]="2.4",[29]="2.2",[30]="2.1",},}
 -- pull average wind from precomputed table, if it exists
-avgWindValue=avgWind[minWind]
+local avgWindValue = avgWind[minWind]
 if avgWindValue ~= nil then
 	avgWindValue=avgWindValue[maxWind]
 end
@@ -132,7 +131,7 @@ if avgWindValue == nil then
 	avgWindValue="~" .. tostring(math.max(minWind,maxWind*.75)) --fallback approximation
 end
 -- pull wind risk from precomputed table, if it exists
-riskWindValue=riskWind[minWind]
+local riskWindValue = riskWind[minWind]
 if riskWindValue ~= nil then
 	riskWindValue=riskWindValue[maxWind]
 end
@@ -387,53 +386,77 @@ local function updateRejoin()
 
 	end)
 	if WG['tooltip'] ~= nil then
-
 		local mins = math.floor(serverFrame / 30 / 60)
 		local secs = math.floor(((serverFrame / 30 / 60) - mins) * 60)
 		local gametime = mins..':'..(secs < 10 and '0'..secs or secs)
-		WG['tooltip'].AddTooltip('rejoin', area, Spring.I18N('ui.topbar.catchingUpTooltip', { gameTime = gametime }))
+		WG['tooltip'].AddTooltip('rejoin', area, Spring.I18N('ui.topbar.catchingUpTooltip', { gameTime = gametime }), nil, Spring.I18N('ui.topbar.catchingUp'))
 	end
 end
 
 local function updateButtons()
-	local area = buttonsArea
-	local totalWidth = area[3] - area[1]
-	local text = '    '
 
-	if isSinglePlayer and allowSavegame and WG['savegame'] ~= nil then
-		text = text .. Spring.I18N('ui.topbar.button.save') .. '   '
+	local fontsize = (height * widgetScale) / 3
+
+	if dlistButtons1 ~= nil then
+		glDeleteList(dlistButtons1)
 	end
-	if WG['scavengerinfo'] ~= nil then
-		text = text .. Spring.I18N('ui.topbar.button.scavengers') .. '   '
-	end
-	if gameIsOver then
-		text = text .. Spring.I18N('ui.topbar.button.graphs') .. '   '
-	end
-	if WG['teamstats'] ~= nil then
-		text = text .. Spring.I18N('ui.topbar.button.stats') .. '   '
-	end
-	if WG['keybinds'] ~= nil then
-		text = text .. Spring.I18N('ui.topbar.button.keys') .. '   '
-	end
-	if WG['changelog'] ~= nil then
-		text = text .. Spring.I18N('ui.topbar.button.changes') .. '   '
-	end
-	if WG['options'] ~= nil then
-		text = text .. Spring.I18N('ui.topbar.button.settings') .. '   '
-	end
-	if not gameIsOver and chobbyLoaded then
-		if not spec and gameStarted and not isSinglePlayer then
-			text = text .. Spring.I18N('ui.topbar.button.resign') .. '  '
+	dlistButtons1 = glCreateList(function()
+
+		-- if buttonsArea['buttons'] == nil then -- With this condition it doesn't actually update buttons if they were already added
+		buttonsArea['buttons'] = {}
+
+		local margin = bgpadding
+		local textPadding = math_floor(fontsize*0.8)
+		local sidePadding = textPadding
+		local offset = sidePadding
+		local lastbutton
+		local function addButton(name, text)
+			local width = math_floor((font2:GetTextWidth(text) * fontsize) + textPadding)
+			buttonsArea['buttons'][name] = { buttonsArea[3] - offset - width, buttonsArea[2] + margin, buttonsArea[3] - offset, buttonsArea[4], text, buttonsArea[3] - offset - (width/2) }
+			if not lastbutton then
+				buttonsArea['buttons'][name][3] = buttonsArea[3]
+			end
+			offset = math_floor(offset + width + 0.5)
+			lastbutton = name
 		end
-		text = text .. Spring.I18N('ui.topbar.button.lobby') .. '  '
-	else
-		text = text .. Spring.I18N('ui.topbar.button.quit') .. '  '
-	end
 
-	local fontsize = totalWidth / font2:GetTextWidth(text)
-	if fontsize > (height * widgetScale) / 3 then
-		fontsize = (height * widgetScale) / 3
-	end
+		if not gameIsOver and chobbyLoaded then
+			if not spec and gameStarted and not isSinglePlayer then
+				addButton('resign', Spring.I18N('ui.topbar.button.resign'))
+			end
+			addButton('quit', Spring.I18N('ui.topbar.button.lobby'))
+		else
+			addButton('quit', Spring.I18N('ui.topbar.button.quit'))
+		end
+		if WG['options'] ~= nil then
+			addButton('options', Spring.I18N('ui.topbar.button.settings'))
+		end
+		if WG['keybinds'] ~= nil then
+			addButton('keybinds', Spring.I18N('ui.topbar.button.keys'))
+		end
+		if WG['changelog'] ~= nil then
+			addButton('changelog', Spring.I18N('ui.topbar.button.changes'))
+		end
+		if WG['teamstats'] ~= nil then
+			addButton('stats', Spring.I18N('ui.topbar.button.stats'))
+		end
+		if gameIsOver then
+			addButton('graphs', Spring.I18N('ui.topbar.button.graphs'))
+		end
+		if WG['scavengerinfo'] ~= nil then
+			addButton('scavengers', Spring.I18N('ui.topbar.button.scavengers'))
+		end
+		if isSinglePlayer and allowSavegame and WG['savegame'] ~= nil then
+			addButton('save', Spring.I18N('ui.topbar.button.save'))
+		end
+
+		buttonsArea['buttons'][lastbutton][1] = buttonsArea['buttons'][lastbutton][1] - sidePadding
+		offset = offset + sidePadding
+
+		buttonsArea[1] = buttonsArea[3]-offset-margin
+		UiElement(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 0, 0, 0, 1)
+
+	end)
 
 	-- add background blur
 	if dlistButtonsGuishader ~= nil then
@@ -443,122 +466,11 @@ local function updateButtons()
 		glDeleteList(dlistButtonsGuishader)
 	end
 	dlistButtonsGuishader = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
+		RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0,0,1,1)
 	end)
-
-	if dlistButtons1 ~= nil then
-		glDeleteList(dlistButtons1)
+	if WG['guishader'] then
+		WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
 	end
-	dlistButtons1 = glCreateList(function()
-
-		UiElement(area[1], area[2], area[3], area[4], 0, 0, 0, 1)
-
-		if WG['guishader'] then
-			WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
-		end
-
-		-- if buttonsArea['buttons'] == nil then -- With this condition it doesn't actually update buttons if they were already added
-			buttonsArea['buttons'] = {}
-
-			local margin = bgpadding
-			local offset = margin
-			local width = 0
-			local buttons = 0
-			firstButton = nil
-			if isSinglePlayer and allowSavegame and WG['savegame'] ~= nil then
-				buttons = buttons + 1
-				if buttons > 1 then
-					offset = math_floor(offset + width + 0.5)
-				end
-				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.save')) * fontsize) + 0.5)
-				buttonsArea['buttons']['save'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				if not firstButton then
-					firstButton = 'save'
-				end
-			end
-			if WG['scavengerinfo'] ~= nil then
-				buttons = buttons + 1
-				if buttons > 1 then
-					offset = math_floor(offset + width + 0.5)
-				end
-				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.scavengers')) * fontsize) + 0.5)
-				buttonsArea['buttons']['scavengers'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				if not firstButton then
-					firstButton = 'scavengers'
-				end
-			end
-			if gameIsOver then
-				buttons = buttons + 1
-				if buttons > 1 then
-					offset = math_floor(offset + width + 0.5)
-				end
-				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.graphs')) * fontsize) + 0.5)
-				buttonsArea['buttons']['graphs'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				if not firstButton then
-					firstButton = 'graphs'
-				end
-			end
-			if WG['teamstats'] ~= nil then
-				buttons = buttons + 1
-				if buttons > 1 then
-					offset = math_floor(offset + width + 0.5)
-				end
-				width = math_floor((font2:GetTextWidth('    ' .. Spring.I18N('ui.topbar.button.stats')) * fontsize) + 0.5)
-				buttonsArea['buttons']['stats'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				if not firstButton then
-					firstButton = 'stats'
-				end
-			end
-			if WG['keybinds'] ~= nil then
-				buttons = buttons + 1
-				if buttons > 1 then
-					offset = math_floor(offset + width + 0.5)
-				end
-				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.keys')) * fontsize) + 0.5)
-				buttonsArea['buttons']['keybinds'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				if not firstButton then
-					firstButton = 'keybinds'
-				end
-			end
-			if WG['changelog'] ~= nil then
-				buttons = buttons + 1
-				if buttons > 1 then
-					offset = math_floor(offset + width + 0.5)
-				end
-				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.changes')) * fontsize) + 0.5)
-				buttonsArea['buttons']['changelog'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				if not firstButton then
-					firstButton = 'changelog'
-				end
-			end
-			if WG['options'] ~= nil then
-				buttons = buttons + 1
-				if buttons > 1 then
-					offset = math_floor(offset + width + 0.5)
-				end
-				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.settings')) * fontsize) + 0.5)
-				buttonsArea['buttons']['options'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				if not firstButton then
-					firstButton = 'options'
-				end
-			end
-			if not gameIsOver and chobbyLoaded then
-				if not spec and gameStarted and not isSinglePlayer then
-					buttons = buttons + 1
-					offset = math_floor(offset + width + 0.5)
-					width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.resign')) * fontsize) + 0.5)
-					buttonsArea['buttons']['resign'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				end
-				offset = math_floor(offset + width + 0.5)
-				width = math_floor((font2:GetTextWidth('    ' .. Spring.I18N('ui.topbar.button.lobby')) * fontsize) + 0.5)
-				buttonsArea['buttons']['quit'] = { area[1] + offset, area[2] + margin, area[3], area[4] }
-			else
-				offset = math_floor(offset + width + 0.5)
-				width = math_floor((font2:GetTextWidth('    ' .. Spring.I18N('ui.topbar.button.quit')) * fontsize) + 0.5)
-				buttonsArea['buttons']['quit'] = { area[1] + offset, area[2] + margin, area[3], area[4] }
-			end
-		-- end
-	end)
 
 	if dlistButtons2 ~= nil then
 		glDeleteList(dlistButtons2)
@@ -567,7 +479,9 @@ local function updateButtons()
 		font2:Begin()
 		font2:SetTextColor(0.92, 0.92, 0.92, 1)
 		font2:SetOutlineColor(0, 0, 0, 1)
-		font2:Print(text, area[1], area[2] + ((area[4] - area[2]) * 0.52) - (fontsize / 5), fontsize, 'o')
+		for name, params in pairs(buttonsArea['buttons']) do
+			font2:Print(params[5], params[6], params[2] + ((params[4] - params[2]) * 0.5) - (fontsize / 5), fontsize, 'co')
+		end
 		font2:End()
 	end)
 end
@@ -623,7 +537,7 @@ local function updateComs(forceText)
 	comcountChanged = nil
 
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('coms', area, Spring.I18N('ui.topbar.commanderCountTooltip', { titleColor = textTitleColor }))
+		WG['tooltip'].AddTooltip('coms', area, Spring.I18N('ui.topbar.commanderCountTooltip'), nil, Spring.I18N('ui.topbar.commanderCount'))
 	end
 end
 
@@ -689,11 +603,7 @@ local function updateWind()
 	end)
 
 	if WG['tooltip'] ~= nil then
-		-- did a string concatenation here to add in the wind risk information, but it may mess with I18N localization efforts
-		tooltip_text=Spring.I18N('ui.topbar.wind.tooltip', { titleColor = textTitleColor, warnColor = textWarnColor })
-		tooltip_text=tooltip_text .. '\nAverage wind speed on this map is ' .. avgWindValue
-		tooltip_text=tooltip_text .. '\nCurrent wind risk is ' .. riskWindValue .. "% (percentage of time wind speed will be below 6)"
-		WG['tooltip'].AddTooltip('wind', area, tooltip_text)
+		WG['tooltip'].AddTooltip('wind', area, Spring.I18N('ui.topbar.windspeedTooltip', { avgWindValue = avgWindValue, riskWindValue = riskWindValue, warnColor = textWarnColor }), nil, Spring.I18N('ui.topbar.windspeed'))
 	end
 end
 
@@ -724,7 +634,7 @@ local function updateTidal()
 		glDeleteList(tidaldlist2)
 	end
 	local wavesSize = height*0.53 * widgetScale
-        tidalWaveAnimationHeight = height*0.1 * widgetScale
+	tidalWaveAnimationHeight = height*0.1 * widgetScale
 	tidaldlist1 = glCreateList(function()
 		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
 		if WG['guishader'] then
@@ -748,7 +658,7 @@ local function updateTidal()
 	end)
 
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('tidal', area, Spring.I18N('ui.topbar.tidal.tooltip', { titleColor = textTitleColor, warnColor = textWarnColor }))
+		WG['tooltip'].AddTooltip('tidal', area, Spring.I18N('ui.topbar.tidalspeedTooltip'), nil, Spring.I18N('ui.topbar.tidalspeed'))
 	end
 end
 
@@ -1066,11 +976,11 @@ local function updateResbar(res)
 	-- add tooltips
 	if WG['tooltip'] ~= nil and conversionIndicatorArea then
 		if res == 'energy' then
-			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], conversionIndicatorArea[1], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareEnergyTooltip', { titleColor = textTitleColor }))
-			WG['tooltip'].AddTooltip(res .. '_share_slider2', { conversionIndicatorArea[3], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareEnergyTooltip', { titleColor = textTitleColor }))
-			WG['tooltip'].AddTooltip(res .. '_metalmaker_slider', conversionIndicatorArea, Spring.I18N('ui.topbar.resources.conversionTooltip', { titleColor = textTitleColor }))
+			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], conversionIndicatorArea[1], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareEnergyTooltip'), nil, Spring.I18N('ui.topbar.resources.shareEnergyTooltipTitle'))
+			WG['tooltip'].AddTooltip(res .. '_share_slider2', { conversionIndicatorArea[3], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareEnergyTooltip'), nil, Spring.I18N('ui.topbar.resources.shareEnergyTooltipTitle'))
+			WG['tooltip'].AddTooltip(res .. '_metalmaker_slider', conversionIndicatorArea, Spring.I18N('ui.topbar.resources.conversionTooltip'), nil, Spring.I18N('ui.topbar.resources.conversionTooltipTitle'))
 		else
-			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareMetalTooltip', { titleColor = textTitleColor }))
+			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareMetalTooltip'), nil, Spring.I18N('ui.topbar.resources.shareMetalTooltipTitle'))
 		end
 
 		WG['tooltip'].AddTooltip(res .. '_pull', { resbarDrawinfo[res].textPull[2] - (resbarDrawinfo[res].textPull[4] * 2.5), resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[2] + (resbarDrawinfo[res].textPull[4] * 0.5), resbarDrawinfo[res].textPull[3] + resbarDrawinfo[res].textPull[4] }, Spring.I18N('ui.topbar.resources.pullTooltip', { resource = resourceName }))
@@ -1185,7 +1095,7 @@ function init()
 	local totalWidth = topbarArea[3] - topbarArea[1]
 
 	-- metal
-	local width = math_floor(totalWidth / 4)
+	local width = math_floor(totalWidth / 4.25)
 	resbarArea['metal'] = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
 	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateResbar('metal')
@@ -1866,12 +1776,12 @@ local function hideWindows()
 		WG['scavengerinfo'].toggle(false)
 		closedWindow = true
 	end
-	if WG['changelog'] ~= nil and WG['changelog'].isvisible() then
-		WG['changelog'].toggle(false)
-		closedWindow = true
-	end
 	if WG['keybinds'] ~= nil and WG['keybinds'].isvisible() then
 		WG['keybinds'].toggle(false)
+		closedWindow = true
+	end
+	if WG['changelog'] ~= nil and WG['changelog'].isvisible() then
+		WG['changelog'].toggle(false)
 		closedWindow = true
 	end
 	if WG['gameinfo'] ~= nil and WG['gameinfo'].isvisible() then
@@ -1960,14 +1870,6 @@ local function applyButtonAction(button)
 		if WG['scavengerinfo'] ~= nil and isvisible ~= true then
 			WG['scavengerinfo'].toggle()
 		end
-	elseif button == 'changelog' then
-		if WG['changelog'] ~= nil then
-			isvisible = WG['changelog'].isvisible()
-		end
-		hideWindows()
-		if WG['changelog'] ~= nil and isvisible ~= true then
-			WG['changelog'].toggle()
-		end
 	elseif button == 'keybinds' then
 		if WG['keybinds'] ~= nil then
 			isvisible = WG['keybinds'].isvisible()
@@ -1975,6 +1877,14 @@ local function applyButtonAction(button)
 		hideWindows()
 		if WG['keybinds'] ~= nil and isvisible ~= true then
 			WG['keybinds'].toggle()
+		end
+	elseif button == 'changelog' then
+		if WG['changelog'] ~= nil then
+			isvisible = WG['changelog'].isvisible()
+		end
+		hideWindows()
+		if WG['changelog'] ~= nil and isvisible ~= true then
+			WG['changelog'].toggle()
 		end
 	elseif button == 'stats' then
 		if WG['teamstats'] ~= nil then

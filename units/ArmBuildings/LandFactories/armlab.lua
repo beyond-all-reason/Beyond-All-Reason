@@ -26,7 +26,7 @@ return {
 		maxwaterdepth = 0,
 		metalstorage = 100,
 		objectname = "Units/ARMLAB.s3o",
-		radardistance = 50,
+		--radardistance = 50,
 		script = "Units/ARMLAB.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",

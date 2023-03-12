@@ -1254,7 +1254,7 @@ local function initfeaturebars()
 			-- or shall we only instantiate bars when needed? probably number 2 is smarter...
 		--end -- maybe store resurrect progress here?
 
-		if gameFrame > 0 and featureDefID then -- dont add features that we cant get the ID of
+		if featureDefID then -- dont add features that we cant get the ID of
 			-- add a health bar for it (dont add one for pre-existing stuff)
 			widget:FeatureCreated(featureID)
 		else
@@ -1649,26 +1649,41 @@ function widget:GameFrame(n)
 	end
 end
 
+local rezreclaim = {0.0, 1.0}
 function widget:FeatureCreated(featureID)
 	local featureDefID = Spring.GetFeatureDefID(featureID)
-
+	local gameFrame = Spring.GetGameFrame()
 	-- some map-supplied features dont have a model, in these cases modelpath == ""
 	if FeatureDefs[featureDefID].name ~= 'geovent' and FeatureDefs[featureDefID].modelpath ~= ''  then
 		--Spring.Echo(FeatureDefs[featureDefID].name)
-		featureBars[featureID] = 0
-		addBarToFeature(featureID, 'featurehealth')
+		--featureBars[featureID] = 0 -- this is already done in AddBarToFeature
 
-		_, _, rezProgress = Spring.GetFeatureHealth(featureID)
-
+		local health,maxhealth,rezProgress = Spring.GetFeatureHealth(featureID)
+		
+		if gameFrame > 0 then 
+			addBarToFeature(featureID, 'featurehealth')
+		else
+			if health ~= maxhealth then addBarToFeature(featureID, 'featurehealth') end 
+		end
+		
+		
 		if rezProgress > 0 then
 			addBarToFeature(featureID, 'featureresurrect')
 		end
 
-		_, _, _, _, reclaimLeft = Spring.GetFeatureResources(featureID)
+		local _, _, _, _, reclaimLeft = Spring.GetFeatureResources(featureID)
 
 		if reclaimLeft < 1.0 then
 			addBarToFeature(featureID, 'featurereclaim')
 		end
+		
+		if rezProgress > 0  or reclaimLeft < 1 then 
+			-- We have to update the feature uniform buffers in this case, as features can be created with less than max health on the map with FP_featureplacer
+			rezreclaim[1] = rezProgress -- resurrect progress
+			rezreclaim[2] = reclaimLeft -- reclaim percent
+			gl.SetFeatureBufferUniforms(featureID, rezreclaim, 1) -- update GL, at offset of 1
+		end
+		
 	end
 end
 

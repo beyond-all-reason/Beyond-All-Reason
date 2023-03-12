@@ -10,6 +10,10 @@ static-var  bMoving, bAiming, restore_delay, gun_1, gun_lasthead, gun_lastpitch,
 
 static-var  Stunned;
 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_AIM_3			8
@@ -45,6 +49,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 	}
 	while(bMoving) {
 		if (bMoving) {
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <-41.595104> speed <671.469750> / animSpeed; 
 			turn lfoot to z-axis <-10.694907> speed <39.147127> / animSpeed; 
 			turn lfoot to y-axis <0.330399> speed <36.053302> / animSpeed; 
@@ -168,6 +173,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) {
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <48.203114> speed <672.209511> / animSpeed; 
 			turn lfoot to z-axis <0.242779> speed <177.259717> / animSpeed; 
 			turn lfoot to y-axis <2.279161> speed <235.598074> / animSpeed; 
@@ -424,7 +430,7 @@ AimSecondary(heading, pitch)
 	turn head to y-axis heading speed <200.000000>;
 	turn head to x-axis <0.000000> - pitch speed <100.000000>;
 	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
-	if ( (get ABS(gun_lasthead-heading)<1200) AND (get ABS(gun_lastpitch-pitch)<600) )
+	if ( (get ABS(gun_lasthead - heading)<1200) AND (get ABS(gun_lastpitch - pitch)<600) )
 	{
 		gun_lasthead = heading;
 		gun_lastpitch = pitch;

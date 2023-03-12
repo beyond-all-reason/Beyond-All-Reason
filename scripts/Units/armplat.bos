@@ -3,8 +3,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, plat1,plat2,tower,nc1,nc2,towercover,nano2,beam1,beam2,beam3,beam4,nano1,nano3,nano4,nc3,nc4,nanotower3,nanotower4,pad;
-static-var  spray, statechg_DesiredState, statechg_StateChanging;
+piece  base, plat1,plat2,tower,nc1,nc2,towercover,nano2,beam1,beam2,beam3,beam4,nano1,nano3,nano4,nc3,nc4,nanotower3,nanotower4,pad,blink;
+static-var  Static_Var_1, spray, statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -67,6 +68,26 @@ deactivatescr()
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
+RadarOn()
+{
+	
+	while( TRUE )
+	{
+	    if (!Stunned) {
+	    	if( get ACTIVATION )
+				{
+					emit-sfx 1024 + 0 from blink;
+				}	    
+		}
+		sleep 2500;
+	}
+	sleep 50;
+	start-script RadarOn();
+}
+RadarOff()
+{
+	
+}
 
 RockOnWaves()
 {
@@ -163,6 +184,7 @@ Create()
 	hide beam2;
 
 	set ARMORED to 1;
+	Static_Var_1 = 0;
 	spray = 0;
 	move base to y-axis [2.500000] now;
 	statechg_DesiredState = TRUE;
@@ -173,6 +195,7 @@ Create()
 	}
 	move base to y-axis [0.000000] speed [5.000000];
 	start-script RockOnWaves();
+	start-script RadarOn();
 }
 
 QueryNanoPiece(piecenum)
@@ -184,15 +207,36 @@ QueryNanoPiece(piecenum)
 
 Activate()
 {
+	if( Static_Var_1 )
+	{
+		set ACTIVATION to 0;
+		return (0);
+	}
+	show blink;
+	set ACTIVATION to 100;
 	signal SIG_ACTIVATE;
 	start-script RequestState(0);
 }
 
 Deactivate()
 {
+	if( get ACTIVATION )
+	{
+		Static_Var_1 = 1;
+	}
+	if( Static_Var_1 )
+	{
+		//signal 2;
+		//set-signal-mask 2;
+		set ACTIVATION to 0;
+		//sleep 8000;
+		Static_Var_1 = 0;
+		//set ACTIVATION to 100;
+	}
+	hide blink;
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-  sleep 5000;
+  	sleep 1000;
 	set-signal-mask 0;
 	start-script RequestState(1);
 }

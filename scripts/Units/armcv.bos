@@ -5,7 +5,7 @@
 
 #define SIG_BUILD		4	
 
-piece  base, turret, doorl, doorr, nano1, nano2;
+piece  base, turret, doorl, doorr, nano1, nano2, cagelight, cagelight_emit;
 
 static-var  statechg_DesiredState, statechg_StateChanging, notBuilding, nano;
 
@@ -25,6 +25,8 @@ activatescr()
 deactivatescr()
 {
 	set INBUILDSTANCE to 0;
+	hide cagelight_emit;
+	turn cagelight to z-axis <0> speed <1000>;
 	turn turret to y-axis <0.000000> speed <160.038462>;
 	wait-for-turn turret around y-axis;
 
@@ -61,12 +63,15 @@ RequestState(requestedstate, currentstate)
 			call-script deactivatescr();
 			notBuilding = 1;
 			currentstate = 1;
+
 		}
 		else
 		{
 			call-script activatescr();
 			notBuilding = 0;
 			currentstate = 0;
+			show cagelight_emit;
+			spin cagelight around z-axis speed <200>;
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -76,6 +81,7 @@ Create()
 {
 	hide nano2;
 	hide nano1;
+	hide cagelight_emit;
 	notBuilding = 1;
 	nano=0;
 	statechg_DesiredState = TRUE;

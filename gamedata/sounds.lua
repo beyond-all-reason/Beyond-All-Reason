@@ -211,6 +211,30 @@ local soundData = {
 		--in3d = false,
 	},
 
+	-- UNIT FOOTSTEPS SOUNDS // high pitch-mod
+	['unit'] = {
+		gain = 1.2 * 0.3,
+		pitchmod = 0.33,
+		gainmod  = 0.2 * 0.3,
+		dopplerscale = 0.5,
+		maxconcurrent = 6,
+		rolloff = 1.0,
+		priority = 1,
+		--in3d = false,
+	},
+
+	-- UNIT MOVEMENT SOUNDS // local low pitch-mod
+	['unit-local'] = {
+		gain = 1.2 * 0.5,
+		pitchmod = 0.03,
+		gainmod  = 0.2 * 0.3,
+		dopplerscale = 0,
+		maxconcurrent = 2,
+		rolloff = 1.2,
+		priority = 1,
+		--in3d = false,
+	},
+
 	-- UNIT FUNCTION/WEAPON SOUNDS
 	['function'] = {
 		gain = 1.2 * 0.3,
@@ -280,7 +304,7 @@ local soundData = {
 	},
 
 	-- AMBIENCE LOCAL
-	['atmoslocal'] = {
+	['atmos-local'] = {
 		gain = 0.9,
 		pitchmod = 0.11,
 		gainmod  = 0.2 * 0.3,

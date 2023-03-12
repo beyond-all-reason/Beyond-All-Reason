@@ -90,7 +90,7 @@ return {
         pos                = [[0, 1, 0]],
         sizegrowth         = 0.5,
         sizemod            = 1.0,
-        texture            = [[wake-chickens]],
+        texture            = [[wake]],
       },
     },
     orangeexplosionspikes = {
@@ -263,7 +263,7 @@ return {
         pos                = [[0, 1, 0]],
         sizegrowth         = 0.5,
         sizemod            = 1.0,
-        texture            = [[wake-chickens]],
+        texture            = [[wake]],
       },
     },
     orangeexplosionspikes = {
@@ -468,7 +468,7 @@ return {
         pos                = [[0, 1, 0]],
         sizegrowth         = 0.5,
         sizemod            = 1.0,
-        texture            = [[wake-chickens]],
+        texture            = [[wake]],
       },
     },
     orangeexplosionspikes = {
@@ -704,7 +704,7 @@ return {
         pos                = [[0, 1, 0]],
         sizegrowth         = 0.5,
         sizemod            = 1.0,
-        texture            = [[wake-chickens]],
+        texture            = [[wake]],
       },
     },
     orangeexplosionspikes = {
@@ -964,7 +964,7 @@ splashes = {
         pos                = [[0, 1, 0]],
         sizegrowth         = 0.3,
         sizemod            = 1.0,
-        texture            = [[wake-chickens]],
+        texture            = [[wake]],
       },
     },
     orangeexplosionspikes = {
@@ -1255,7 +1255,7 @@ splashes = {
         pos                = [[0, 1, 0]],
         sizegrowth         = 0.3,
         sizemod            = 1.0,
-        texture            = [[wake-chickens]],
+        texture            = [[wake]],
       },
     },
     orangeexplosionspikes = {

@@ -334,6 +334,7 @@ local armorDefs = {
 
 	},
 	bombers = {
+		"chickenf1_mini",
 		"chickenf1",
 		"chickenf1b",
 		"chickenf1apex",
@@ -359,6 +360,7 @@ local armorDefs = {
 		"chicken_dodoair",
 	},
 	fighters = {
+		"chickenw1_mini",
 		"chickenw1",
 		"chickenw1b",
 		"chickenw1c",

@@ -6,27 +6,20 @@ function widget:GetInfo()
 		date = "2022.08.27",
 		license = "Lua code: GNU GPL, v2 or later, Shader GLSL code: (c) Beherith (mysterme@gmail.com)",
 		layer = -1,
-		enabled = false,
+		enabled = true,
 	}
 end
 
-local commblastSphereVBO = nil
 local commblastSphereShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
 
 local glTexture = gl.Texture
 local glCulling = gl.Culling
 local glDepthTest = gl.DepthTest
-local GL_BACK = GL.BACK
-local GL_LEQUAL = GL.LEQUAL
 
 
 local spGetUnitPosition     = Spring.GetUnitPosition
-local spGetUnitDefID 		= Spring.GetUnitDefID
 local spGetGroundHeight		= Spring.GetGroundHeight
 local spGetUnitNearestEnemy	= Spring.GetUnitNearestEnemy
-local spValidUnitID			= Spring.ValidUnitID
-local spGetCameraPosition	= Spring.GetCameraPosition
 local spIsGUIHidden			= Spring.IsGUIHidden
 local spIsSphereInView		= Spring.IsSphereInView
 local diag 					= math.diag
@@ -36,9 +29,9 @@ local commanders = {} -- keyed as {unitID : {draw = bool, oldopacity = 0.0, newo
 local commDefIds = { [UnitDefNames['corcom'].id] = true, [UnitDefNames['armcom'].id] = true}
 local dgunRange	= WeaponDefNames["armcom_disintegrator"].range + WeaponDefNames["armcom_disintegrator"].damageAreaOfEffect
 
-local blastRadius			= 380		-- com explosion
-local showOnEnemyDistance	= 400
-local fadeInDistance		= 150
+local blastRadius			= 370		-- com explosion
+local showOnEnemyDistance	= 370
+local fadeInDistance		= 160
 
 ---- GL4 Config stuff ----------------
 
@@ -48,9 +41,8 @@ local shaderConfig = {
 	SPHERESEGMENTS = 8,
 	BLASTRADIUS = blastRadius,
 	DGUNRANGE = dgunRange,
-	OPACITYMULTIPLIER = 2.0,
-	TEAMCOLORED = 1
-	
+	OPACITYMULTIPLIER = 0.75,
+	TEAMCOLORED = 0
 }
 
 ---- Object intersection test http://www.realtimerendering.com/intersections.html
@@ -59,11 +51,7 @@ local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
-local commblastSphereVBO = nil 
-
-local fogTexture
-local vsx, vsy
-local combineShader
+local commblastSphereVBO
 
 local shaderSourceCache = {
 		vssrcpath = "LuaUI/Widgets/Shaders/commblast_range.vert.glsl",
@@ -137,7 +125,7 @@ function widget:DrawWorldPreUnit()
 		commblastSphereVBO:Draw()
 		commblastSphereShader:Deactivate()
 		glTexture(0, false)
-
+		glCulling(false)
 		glDepthTest(false)
 	end
 end
@@ -224,7 +212,7 @@ end
 
 function widget:Initialize()
 	commblastSphereVBO, commblastSphereShader = initFogGL4(shaderConfig, "commblastSpheres")
-	Spring.Echo(Spring.HaveShadows(),"advshad",Spring.HaveAdvShading())
+	--Spring.Echo(Spring.HaveShadows(),"advshad",Spring.HaveAdvShading())
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end

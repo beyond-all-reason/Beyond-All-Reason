@@ -215,24 +215,20 @@ return {
 				maxangledif = 155,
 			},
 			[2] = {
-				def = "spike_emp_blob",
-				onlytargetcategory = "NOTAIR",
+				def = "MELEE",
 			},
 			[3] = {
 				badtargetcategory = "WEAPON",
-				def = "spike_emp_blob",
-				onlytargetcategory = "NOTAIR",
+				def = "MELEE",
 			},
 			[4] = {
 				badtargetcategory = "NOWEAPON",
-				def = "spike_emp_blob",
-				onlytargetcategory = "NOTAIR",
+				def = "MELEE",
 			},
 			[5] = {
 				def = "GOO",
 				maindir = "0 0 1",
 				maxangledif = 180,
-				onlytargetcategory = "NOTAIR",
 			},
 		},
 	},

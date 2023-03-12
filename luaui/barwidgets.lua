@@ -41,7 +41,8 @@ Spring.SendCommands({
 
 local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
 
-if Spring.GetModOptions().teamcolors_anonymous_mode then
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+if anonymousMode ~= "disabled" then
 	allowuserwidgets = false
 
 	-- disabling individual Spring functions isnt really good enough
@@ -131,6 +132,8 @@ local flexCallIns = {
 	'UnitCloaked',
 	'UnitDecloaked',
 	'UnitMoveFailed',
+	'MetaUnitAdded',
+	'MetaUnitRemoved',
 	'RecvLuaMsg',
 	'StockpileChanged',
 	'SelectionChanged',
@@ -295,7 +298,7 @@ local function Yield()
 	if doMoreYield then
 		local doMoreYield = Spring.Yield()
 		if doMoreYield == false then --GetThreadSafety == false
-			--Spring.Echo("WidgetHandler Yield: entering critical section") 
+			--Spring.Echo("WidgetHandler Yield: entering critical section")
 		end
 	end
 end
@@ -1140,6 +1143,7 @@ function widgetHandler:BlankOut()
 	end
 end
 
+
 function widgetHandler:Update()
 	local deltaTime = Spring.GetLastUpdateSeconds()
 	-- update the hour timer
@@ -1151,6 +1155,7 @@ function widgetHandler:Update()
 end
 
 function widgetHandler:ConfigureLayout(command)
+
 	if command == 'reconf' then
 		self:SendConfigData()
 		return true
@@ -1259,6 +1264,9 @@ end
 
 
 function widgetHandler:DrawScreen()
+	if (not Spring.GetSpectatingState()) and anonymousMode ~= "disabled" then
+		Spring.SendCommands("info 0")
+	end
 	if not Spring.IsGUIHidden() then
 		if not self.chobbyInterface  then
 			for _, w in r_ipairs(self.DrawScreenList) do
@@ -1495,23 +1503,24 @@ function widgetHandler:WidgetAt(x, y)
 end
 
 function widgetHandler:MousePress(x, y, button)
-	local mo = self.mouseOwner
-	if mo then
-		mo:MousePress(x, y, button)
-		return true  --  already have an active press
-	end
-	for _, w in ipairs(self.MousePressList) do
-		if w:MousePress(x, y, button) then
-			if not mo then
+	if self.mouseOwner then
+		self.mouseOwner:MousePress(x, y, button)
+	else
+		for _, w in ipairs(self.MousePressList) do
+			if w:MousePress(x, y, button) then
 				self.mouseOwner = w
+				break
 			end
-			return true
 		end
 	end
+
+	local hasMouseOwner = self.mouseOwner ~= nil
+
 	if widgetHandler.WG.SmartSelect_MousePress2 then
-		widgetHandler.WG.SmartSelect_MousePress2(x, y, button, 'abc')
+		widgetHandler.WG.SmartSelect_MousePress2(x, y, button, hasMouseOwner)
 	end
-	return false
+
+	return hasMouseOwner
 end
 
 function widgetHandler:MouseMove(x, y, dx, dy, button)
@@ -1523,7 +1532,7 @@ end
 
 function widgetHandler:MouseRelease(x, y, button)
 	local mo = self.mouseOwner
-	local mx, my, lmb, mmb, rmb = Spring.GetMouseState()
+	local _, _, lmb, mmb, rmb = Spring.GetMouseState()
 	if not (lmb or mmb or rmb) then
 		self.mouseOwner = nil
 	end
@@ -1837,12 +1846,28 @@ end
 --  Unit call-ins
 --
 
-function widgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	for _, w in ipairs(self.UnitCreatedList) do
-		w:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+function widgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	for _, w in ipairs(self.MetaUnitAddedList) do
+		w:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	end
 	return
 end
+
+function widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	for _, w in ipairs(self.MetaUnitRemovedList) do
+		w:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	end
+	return
+end
+
+function widgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	widgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
+
+	for _, w in ipairs(self.UnitCreatedList) do
+		w:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	end	
+	return
+end	
 
 function widgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
 	for _, w in ipairs(self.UnitFinishedList) do
@@ -1860,6 +1885,8 @@ function widgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam, factID, fact
 end
 
 function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam)
+	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+
 	for _, w in ipairs(self.UnitDestroyedList) do
 		w:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
@@ -1890,6 +1917,8 @@ function widgetHandler:UnitExperience(unitID, unitDefID, unitTeam, experience, o
 end
 
 function widgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+
 	for _, w in ipairs(self.UnitTakenList) do
 		w:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	end
@@ -1897,6 +1926,8 @@ function widgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
 function widgetHandler:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+	widgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
+
 	for _, w in ipairs(self.UnitGivenList) do
 		w:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	end
