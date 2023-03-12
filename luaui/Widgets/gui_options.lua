@@ -65,6 +65,9 @@ local sounds = {
 
 local continuouslyClean = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
 
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+--local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)*0.0039, Spring.GetConfigInt("anonymousColorG", 0)*0.0039, Spring.GetConfigInt("anonymousColorB", 0)*0.0039}
+
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
@@ -3831,6 +3834,40 @@ function init()
 		{ id = "label_teamcolors", group = "accessibility", name = texts.option.label_teamcolors, category = types.basic },
 		{ id = "label_teamcolors_spacer", group = "accessibility", category = types.basic },
 
+
+		{ id = "anonymous_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.anonymous_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("anonymousColorR", 255)), description = texts.option.anonymous_descr,
+		  onchange = function(i, value, force)
+			  if force then
+				  Spring.SetConfigInt("anonymousColorR", value)
+				  Spring.SendCommands("luarules reloadluaui")
+			  else
+				  sceduleOptionApply = { os.clock() + 1.5, getOptionByID('anonymous_r') }
+			  end
+		  end,
+		},
+
+		{ id = "anonymous_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.anonymous_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("anonymousColorG", 0)), description = texts.option.anonymous_descr,
+		  onchange = function(i, value, force)
+			  if force then
+				  Spring.SetConfigInt("anonymousColorG", value)
+				  Spring.SendCommands("luarules reloadluaui")
+			  else
+				  sceduleOptionApply = { os.clock() + 1.5, getOptionByID('anonymous_g') }
+			  end
+		  end,
+		},
+
+		{ id = "anonymous_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.anonymous_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("anonymousColorB", 0)), description = texts.option.anonymous_descr,
+		  onchange = function(i, value, force)
+			  if force then
+				  Spring.SetConfigInt("anonymousColorB", value)
+				  Spring.SendCommands("luarules reloadluaui")
+			  else
+				  sceduleOptionApply = { os.clock() + 1.5, getOptionByID('anonymous_b') }
+			  end
+		  end,
+		},
+
 		{ id = "simpleteamcolors", group = "accessibility", category = types.basic, name = texts.option.playercolors, type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColors", 0) or 0) == 1, description = texts.option.simpleteamcolors_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColors", (value and 1 or 0))
@@ -5018,6 +5055,12 @@ function init()
 		end
 	end
 
+	-- remove anonymous color sliders
+	if anonymousMode == "disabled" then
+		options[getOptionByID('anonymous_r')] = nil
+		options[getOptionByID('anonymous_g')] = nil
+		options[getOptionByID('anonymous_b')] = nil
+	end
 
 	if Spring.GetGameFrame() == 0 then
 		detectWater()

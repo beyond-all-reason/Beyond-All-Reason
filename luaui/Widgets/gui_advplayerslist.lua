@@ -156,7 +156,7 @@ local originalColourNames = {} -- loaded in SetOriginalColourNames, format is or
 local apiAbsPosition = { 0, 0, 0, 0, 1, 1, false }
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = {1,0,0}
+local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)*0.0039, Spring.GetConfigInt("anonymousColorG", 0)*0.0039, Spring.GetConfigInt("anonymousColorB", 0)*0.0039}
 
 --------------------------------------------------------------------------------
 -- Colors

@@ -103,7 +103,7 @@ local RectRound, UiElement, elementCorner
 local font, chobbyInterface, backgroundGuishader, gameStarted, bgpadding, gameover
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = {1,0,0}
+local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)*0.0039, Spring.GetConfigInt("anonymousColorG", 0)*0.0039, Spring.GetConfigInt("anonymousColorB", 0)*0.0039}
 
 local isSpec = Spring.GetSpectatingState()
 

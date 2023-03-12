@@ -128,7 +128,7 @@ local capturePieParts = 4 + floor(captureRadius / 8)
 local RectRound, UiElement, elementCorner
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = {1,0,0}
+local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)*0.0039, Spring.GetConfigInt("anonymousColorG", 0)*0.0039, Spring.GetConfigInt("anonymousColorB", 0)*0.0039}
 
 -----------------------------------------------------------------------------------------
 -- creates initial player listing
