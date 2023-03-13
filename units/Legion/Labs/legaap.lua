@@ -25,6 +25,8 @@ return {
 		maxwaterdepth = 0,
 		metalstorage = 200,
 		objectname = "Units/CORAAP.s3o",
+		radardistance = 1000,
+		radaremitheight = 50,
 		script = "Units/CORAAP.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
@@ -96,6 +98,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
+				[2] = "custom:radarpulse_t1_slow",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",
