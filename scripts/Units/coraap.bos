@@ -152,13 +152,12 @@ Create()
 	unitviewer = FALSE;
 	spray = base;
 	call-script InitState();
-	start-script Lights();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
 	}
+	start-script Lights();
 	turn dishbase1 to x-axis <45> speed <100>;
-	
 	turn dishbase2 to x-axis <-45> speed <100>;
 	move dishbase1 to y-axis [-5] speed [10];
 	move dishbase2 to y-axis [-5] speed [10];

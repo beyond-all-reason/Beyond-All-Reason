@@ -152,11 +152,11 @@ Create()
 	unitviewer = FALSE;
 	spray = nano1;
 	call-script InitState();
-	start-script Lights();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
 	}
+	start-script Lights();
 }
 
 #define SMOKEPIECE base
