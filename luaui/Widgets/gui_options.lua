@@ -1649,7 +1649,6 @@ function init()
 	local currentDisplay = 1
 	local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
 	local displayNames = {}
-	local hasMultiDisplayOption = false
 	for index, display in ipairs(displays) do
 		if display.width > 0 then
 			displayNames[index] = index..":  "..display.name .. " " .. display.width .. " × " .. display.height .. "  (" .. display.hz.."hz)"
@@ -1658,7 +1657,6 @@ function init()
 			end
 		elseif devMode then -- advSettings
 			displayNames[index] = display.name
-			hasMultiDisplayOption = true
 		end
 	end
 	local selectedDisplay = currentDisplay
@@ -1670,13 +1668,6 @@ function init()
 			resolutionNames[#resolutionNames+1] = screenMode.name
 		elseif #resolutionNames == 0 then
 			screenmodeOffset = screenmodeOffset + 1
-		end
-	end
-
-	-- only allow dualscreen-mode on single displays when super ultrawide screen or Multi Display option shows
-	if (#displayNames <= 1 and vsx / vsy < 2.5) or (#displayNames > 1 and #displayNames == Spring.GetNumDisplays()) then
-		if  Spring.SetConfigInt("DualScreenMode", 0) ~= 0 then
-			Spring.SetConfigInt("DualScreenMode", 0)
 		end
 	end
 
@@ -5092,13 +5083,6 @@ function init()
 		options[getOptionByID('resolution')].name = texts.option.resolution
 	end
 
-	-- only allow dualscreen-mode on single displays when super ultrawide screen or Multi Display option shows
-	if (#displayNames <= 1 and vsx / vsy < 2.5) or (#displayNames > 1 and #displayNames == Spring.GetNumDisplays()) then
-		options[getOptionByID('dualmode_enabled')] = nil
-		options[getOptionByID('dualmode_left')] = nil
-		options[getOptionByID('dualmode_minimap_aspectratio')] = nil
-	end
-
 	-- reduce options for potatoes
 	if isPotatoGpu or isPotatoCpu then
 		local id = getOptionByID('shadowslider')
@@ -5414,7 +5398,6 @@ function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 end
 
 function widget:Initialize()
-
 	-- disable ambient player widget
 	if widgetHandler:IsWidgetKnown("Ambient Player") then
 		widgetHandler:DisableWidget("Ambient Player")
