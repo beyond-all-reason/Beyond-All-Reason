@@ -308,9 +308,23 @@ local soundData = {
 		gain = 0.9,
 		pitchmod = 0.11,
 		gainmod  = 0.2 * 0.3,
+		--gainmod  = 0,
 		dopplerscale = 1.0,
-		maxconcurrent = 12,
+		maxconcurrent = 10,
 		rolloff = 1.4,
+		maxdist = 10000,
+	},
+
+	-- AMBIENCE GEOVENTS
+	['atmos-geovents'] = {
+		gain = 0.8,
+		pitchmod = 0.06,
+		gainmod  = 0.2 * 0.3,
+		--gainmod  = 0,
+		dopplerscale = 1.0,
+		maxconcurrent = 10,
+		rolloff = 1.6,
+		maxdist = 3000,
 	},
 }
 

@@ -30,20 +30,20 @@ function gadget:GameFrame(n)
 	-- end
 
 -- SND geos
-	if n%560 == 0 then
-		SpawnCEGInPositionGround("noceg", 290, 200, 140, _, _, _, "geovent", 0.15)
+	if n%120 == 0 then
+		SpawnCEGInPositionGround("noceg", 290, 200, 140, _, _, _, "geoventshort", 0.15)
 	end
 
-	if n%560 == 30 then
-		SpawnCEGInPositionGround("noceg", 71, 200, 4586, _, _, _, "geovent", 0.15)
+	if n%120 == 30 then
+		SpawnCEGInPositionGround("noceg", 71, 200, 4586, _, _, _, "geoventshort", 0.15)
 	end
 
-	if n%560 == 60 then
-		SpawnCEGInPositionGround("noceg", 6077, 200, 2559, _, _, _, "geovent", 0.15)
+	if n%120 == 60 then
+		SpawnCEGInPositionGround("noceg", 6077, 200, 2559, _, _, _, "geoventshort", 0.15)
 	end
 
-	if n%560 == 15 then
-		SpawnCEGInPositionGround("noceg", 4008, 200, 7032, _, _, _, "geovent", 0.15)
+	if n%120 == 15 then
+		SpawnCEGInPositionGround("noceg", 4008, 200, 7032, _, _, _, "geoventshort", 0.15)
 	end
 
 -- common foggy canyon	
