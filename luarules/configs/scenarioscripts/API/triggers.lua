@@ -72,6 +72,9 @@ local function AddTimeElapsedTrigger(id, triggerOptions, actionIds, gameFrame, o
 	AddTrigger(id, triggerTypes.TimeElapsed, triggerOptions, gameFrame, offset)
 end
 
+-- Would rather not do this here, as spreading write to GG['MissionAPI'] makes code hard to follow
+-- GG['MissionAPI'].Triggers = triggers
+
 --example usage
 --[[
 local options = {
@@ -82,3 +85,8 @@ local actionIds = { 'callReinforcements', }
 
 AddTimeElapsedTrigger('intelCollected', options, actionIds, 0, 1800)
 ]]
+
+return {
+	Triggers = triggers,
+	-- TODO: Return trigger creation functions
+}
