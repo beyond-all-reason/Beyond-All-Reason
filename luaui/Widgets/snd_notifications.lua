@@ -19,7 +19,7 @@ local idleTime = 10		-- after this much sec: mark user as idle
 local displayMessages = true
 local spoken = true
 local idleBuilderNotificationDelay = 10 * 30	-- (in gameframes)
-local lowpowerThreshold = 6		-- if there is X secs a low power situation
+local lowpowerThreshold = 7		-- if there is X secs a low power situation
 local tutorialPlayLimit = 2		-- display the same tutorial message only this many times in total (max is always 1 play per game)
 
 --------------------------------------------------------------------------------
@@ -34,7 +34,6 @@ local gameframe = spGetGameFrame()
 
 local lockPlayerID
 local gaiaTeamID = Spring.GetGaiaTeamID()
-
 local function addSound(name, file, minDelay, duration, messageKey, unlisted)
 	Sound[name] = {
 		file = file,
@@ -67,10 +66,10 @@ addSound('PlayerAdded', 'PlayerAdded.wav', 1, 2.36, 'tips.notifications.playerAd
 
 -- awareness
 --addSound('IdleBuilder', 'IdleBuilder.wav', 30, 1.9, 'A builder has finished building')
-addSound('UnitsReceived', 'UnitReceived.wav', 4, 1.75, 'tips.notifications.unitsReceived')
-addSound('RadarLost', 'RadarLost.wav', 8, 1, 'tips.notifications.radarLost')
-addSound('AdvRadarLost', 'AdvRadarLost.wav', 8, 1.32, 'tips.notifications.advancedRadarLost')
-addSound('MexLost', 'MexLost.wav', 8, 1.53, 'tips.notifications.metalExtractorLost')
+addSound('UnitsReceived', 'UnitReceived.wav', 5, 1.75, 'tips.notifications.unitsReceived')
+addSound('RadarLost', 'RadarLost.wav', 12, 1, 'tips.notifications.radarLost')
+addSound('AdvRadarLost', 'AdvRadarLost.wav', 12, 1.32, 'tips.notifications.advancedRadarLost')
+addSound('MexLost', 'MexLost.wav', 10, 1.53, 'tips.notifications.metalExtractorLost')
 
 -- resources
 addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 80, 1.63, 'tips.notifications.overflowingMetal')
@@ -81,7 +80,7 @@ addSound('WholeTeamWastingMetal', 'WholeTeamWastingMetal.wav', 60, 1.82, 'tips.n
 addSound('WholeTeamWastingEnergy', 'WholeTeamWastingEnergy.wav', 120, 2.14, 'tips.notifications.teamWastingEnergy')
 --addSound('MetalStorageFull', 'metalstorefull.wav', 40, 1.62, 'Metal storage is full')
 --addSound('EnergyStorageFull', 'energystorefull.wav', 40, 1.65, 'Energy storage is full')
-addSound('LowPower', 'LowPower.wav', 40, 0.95, 'tips.notifications.lowPower')
+addSound('LowPower', 'LowPower.wav', 50, 0.95, 'tips.notifications.lowPower')
 addSound('WindNotGood', 'WindNotGood.wav', 9999999, 3.76, 'tips.notifications.lowWind')
 
 -- added this so they wont get immediately triggered after gamestart
@@ -455,6 +454,9 @@ function widget:GameFrame(gf)
 			if lowpowerDuration >= lowpowerThreshold then
 				queueNotification('LowPower')
 				lowpowerDuration = 0
+
+				-- increase next low power delay
+				Sound["LowPower"].delay = Sound["LowPower"].delay + 15
 			end
 		end
 
