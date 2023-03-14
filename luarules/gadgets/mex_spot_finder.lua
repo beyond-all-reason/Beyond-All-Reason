@@ -107,7 +107,7 @@ function gadget:Initialize()
 	local metalSpots, fromEngineMetalmap = GetSpots()
 	local metalSpotsByPos = false
 
-	if fromEngineMetalmap and #metalSpots < 6 then
+	if fromEngineMetalmap and #metalSpots < 10 then
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Indiscrete metal map detected")
 		metalSpots = false
 	end
@@ -133,7 +133,6 @@ function gadget:Initialize()
 	end
 
 	SetMexGameRulesParams(metalSpots)
-
 	GG.metalSpots = metalSpots
 	GG.metalSpotsByPos = metalSpotsByPos
 

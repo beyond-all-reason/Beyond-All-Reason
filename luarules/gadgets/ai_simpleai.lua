@@ -9,6 +9,8 @@ local mapsizeZ = Game.mapSizeZ
 
 local gameShortName = Game.gameShortName
 
+local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
+
 -- team locals
 SimpleFactoriesCount = {}
 SimpleFactories = {}
@@ -154,6 +156,30 @@ local function SimpleGetClosestMexSpot(x, z)
 				--and height > 0 then
 				bestSpot = spot
 				bestDist = dist
+			end
+		end
+	else
+		local canBuildMex = false
+		for i = 128,10000 do
+			canBuildMex = false
+			local posx = x + math.random(-i,i)
+			local posz = z + math.random(-i,i)
+			local posy = Spring.GetGroundHeight(posx, posz)
+			canBuildMex = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 64, 25, true)
+			if canBuildMex then
+				canBuildMex = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 64)
+			end
+			if canBuildMex then
+				canBuildMex = positionCheckLibrary.MapEdgeCheck(posx, posy, posz, 64)
+			end
+			if canBuildMex and select(3, Spring.GetGroundInfo(posx, posz)) > 0.1 then
+				canBuildMex = true
+			else
+				canBuildMex = false
+			end
+			if canBuildMex then
+				bestSpot = {x = posx, y = posy, z = posz}
+				break
 			end
 		end
 	end
