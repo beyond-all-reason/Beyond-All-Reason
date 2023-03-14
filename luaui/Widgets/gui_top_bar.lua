@@ -741,7 +741,7 @@ local function updateResbarText(res)
 								else
 									--WG['notifications'].addEvent('YouAreWastingMetal')
 								end
-							else
+							elseif r[res][6] > 0.75 then	-- supress if you are deliberately overflowing by adjustingthe share slider down
 								WG['notifications'].addEvent('YouAreOverflowingMetal')
 							end
 						end
@@ -754,7 +754,7 @@ local function updateResbarText(res)
 								else
 									--WG['notifications'].addEvent('YouAreWastingEnergy')
 								end
-							else
+							elseif r[res][6] > 0.75 then	-- supress if you are deliberately overflowing by adjustingthe share slider down
 								--WG['notifications'].addEvent('YouAreOverflowingEnergy')	-- this annoys the fuck out of em and makes them build energystoages too much
 							end
 						end

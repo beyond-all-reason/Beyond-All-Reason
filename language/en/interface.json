@@ -1087,7 +1087,7 @@
 				"buildmenu_maxposy_descr": "Set a maximum height position the buildmenu will stick to\n(menu will be directly under minimap unless it gets higher than this amount of the screen)",
 				"buildmenu_alwaysshow": "always show",
 				"buildmenu_alwaysshow_descr": "Not hiding when no builders are selected",
-				"buildmenu_prices": "prices",
+				"buildmenu_prices": "always show prices",
 				"buildmenu_prices_descr": "Unit prices in the buildmenu\n\n(when disabled: still show when hovering icon)",
 				"buildmenu_groupicon": "group icon",
 				"buildmenu_groupicon_descr": "Group icons in the buildmenu",
