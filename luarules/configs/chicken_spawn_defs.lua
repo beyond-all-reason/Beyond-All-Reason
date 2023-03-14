@@ -354,7 +354,7 @@ local function addNewSquad(squadParams) -- params: {type = "basic", minAnger = 0
 	if squadParams then -- Just in case
 		if not squadParams.units then return end
 		if not squadParams.minAnger then squadParams.minAnger = 0 end
-		if not squadParams.maxAnger then squadParams.maxAnger = squadParams.minAnger + 50 end -- Eliminate squads 50% after they're introduced by default, can be overwritten
+		if not squadParams.maxAnger then squadParams.maxAnger = 100 end -- Eliminate squads 50% after they're introduced by default, can be overwritten
 		if squadParams.maxAnger >= 100 then squadParams.maxAnger = 1000 end -- basically infinite
 		if not squadParams.weight then squadParams.weight = 1 end
 
@@ -475,36 +475,38 @@ local chickenHealers = { -- Spawn indepedently from squads in small numbers
 
 -- Basic Swarmer
 addNewSquad({ type = "basic", minAnger = 0, units = { "4 chicken1_mini" }, weight = 5, maxAnger = 15 })
-addNewSquad({ type = "basic", minAnger = 5, units = { "4 chicken1" }, maxAnger = 40 })
-addNewSquad({ type = "basic", minAnger = 5, units = { "4 chicken1b" }, maxAnger = 40 })
-addNewSquad({ type = "basic", minAnger = 5, units = { "4 chicken1c" }, maxAnger = 40 })
-addNewSquad({ type = "basic", minAnger = 5, units = { "4 chicken1d" }, maxAnger = 40 })
+addNewSquad({ type = "basic", minAnger = 5, units = { "4 chicken1" }, maxAnger = 45 })
+addNewSquad({ type = "basic", minAnger = 5, units = { "4 chicken1b" }, maxAnger = 45 })
+addNewSquad({ type = "basic", minAnger = 5, units = { "4 chicken1c" }, maxAnger = 45 })
+addNewSquad({ type = "basic", minAnger = 5, units = { "4 chicken1d" }, maxAnger = 45 })
 
 -- Better Swarmer
-addNewSquad({ type = "basic", minAnger = 20, units = { "4 chicken1x" }, maxAnger = 70 })
-addNewSquad({ type = "basic", minAnger = 20, units = { "4 chicken1y" }, maxAnger = 70 })
-addNewSquad({ type = "basic", minAnger = 20, units = { "4 chicken1z" }, maxAnger = 70 })
+addNewSquad({ type = "basic", minAnger = 25, units = { "4 chicken1x" }, maxAnger = 75 })
+addNewSquad({ type = "basic", minAnger = 25, units = { "4 chicken1y" }, maxAnger = 75 })
+addNewSquad({ type = "basic", minAnger = 25, units = { "4 chicken1z" }, maxAnger = 75 })
 
 -- Brawlers
-addNewSquad({ type = "basic", minAnger = 30, units = { "3 chickena1" }, maxAnger = 1000 })
-addNewSquad({ type = "basic", minAnger = 30, units = { "3 chickena1b" }, maxAnger = 1000 })
-addNewSquad({ type = "basic", minAnger = 30, units = { "3 chickena1c" }, maxAnger = 1000 })
+addNewSquad({ type = "basic", minAnger = 35, units = { "3 chickena1" }, maxAnger = 1000 })
+addNewSquad({ type = "basic", minAnger = 35, units = { "3 chickena1b" }, maxAnger = 1000 })
+addNewSquad({ type = "basic", minAnger = 35, units = { "3 chickena1c" }, maxAnger = 1000 })
 
 -- Apex Swarmer and  Apex Brawler
-addNewSquad({ type = "basic", minAnger = 60, units = { "4 chicken2b" }, maxAnger = 1000 })
-addNewSquad({ type = "basic", minAnger = 60, units = { "4 chicken2" }, maxAnger = 1000 })
-addNewSquad({ type = "basic", minAnger = 60, units = { "1 chickena2" }, maxAnger = 1000 })
-addNewSquad({ type = "basic", minAnger = 60, units = { "1 chickena2b" }, maxAnger = 1000 })
+addNewSquad({ type = "basic", minAnger = 65, units = { "4 chicken2b" }, maxAnger = 1000 })
+addNewSquad({ type = "basic", minAnger = 65, units = { "4 chicken2" }, maxAnger = 1000 })
+addNewSquad({ type = "basic", minAnger = 65, units = { "1 chickena2" }, maxAnger = 1000 })
+addNewSquad({ type = "basic", minAnger = 65, units = { "1 chickena2b" }, maxAnger = 1000 })
 
 -------------
 -- Special --
 -------------
 
-addNewSquad({ type = "special", minAnger = 20, units = { "5 chickens1" }, weight = 5 })
-addNewSquad({ type = "special", minAnger = 20, units = { "10 chickenp1" } })
-addNewSquad({ type = "special", minAnger = 20, units = { "8 chickene1" } })
+addNewSquad({ type = "special", minAnger = 20, units = { "5 chickenp1" } })
+addNewSquad({ type = "special", minAnger = 20, units = { "3 chickene1" } })
+addNewSquad({ type = "special", minAnger = 20, units = { "4 chicken1x" }, maxAnger = 40 })
+addNewSquad({ type = "special", minAnger = 20, units = { "4 chicken1y" }, maxAnger = 40 })
+addNewSquad({ type = "special", minAnger = 20, units = { "4 chicken1z" }, maxAnger = 40 })
 
-addNewSquad({ type = "special", minAnger = 30, units = { "5 chickens1" }, weight = 5 })
+addNewSquad({ type = "special", minAnger = 30, units = { "5 chickens1" }, weight = 3 })
 addNewSquad({ type = "special", minAnger = 30, units = { "10 chickenp1" } })
 addNewSquad({ type = "special", minAnger = 30, units = { "15 chicken_dodo1" } })
 addNewSquad({ type = "special", minAnger = 30, units = { "15 chickenc3" }, weight = 3 })
@@ -517,7 +519,9 @@ addNewSquad({ type = "special", minAnger = 40, units = { "10 chickenc3b" }, weig
 addNewSquad({ type = "special", minAnger = 50, units = { "10 chickenpyroallterrain" } })
 addNewSquad({ type = "special", minAnger = 50, units = { "10 chickenelectricallterrain" } })
 addNewSquad({ type = "special", minAnger = 50, units = { "5 chickene1", "5 chickenacidswarmer" } })
-addNewSquad({ type = "special", minAnger = 50, units = { "3 chickenr1" }, weight = 3 })
+addNewSquad({ type = "special", minAnger = 50, units = { "3 chickenr1" } })
+addNewSquad({ type = "special", minAnger = 50, units = { "3 chickenacidarty" } })
+addNewSquad({ type = "special", minAnger = 50, units = { "3 chickenearty1" } })
 addNewSquad({ type = "special", minAnger = 50, units = { "5 chickenc3c" }, weight = 3 })
 addNewSquad({ type = "special", minAnger = 50, units = { "6 chickenallterraina1" }, weight = 2 })
 addNewSquad({ type = "special", minAnger = 50, units = { "6 chickenallterraina1b" }, weight = 2 })
@@ -525,7 +529,6 @@ addNewSquad({ type = "special", minAnger = 50, units = { "6 chickenallterraina1c
 addNewSquad({ type = "special", minAnger = 50, units = { "6 chickena1_spectre" } })
 addNewSquad({ type = "special", minAnger = 50, units = { "5 chickenelectricallterrain", "5 chickenacidallterrain" } })
 
-addNewSquad({ type = "special", minAnger = 60, units = { "3 chickenearty1" } })
 addNewSquad({ type = "special", minAnger = 60, units = { "8 chickenp2" } })
 addNewSquad({ type = "special", minAnger = 60, units = { "3 chickene2" } })
 addNewSquad({ type = "special", minAnger = 60, units = { "3 chickenelectricallterrainassault" } })
@@ -536,7 +539,6 @@ addNewSquad({ type = "special", minAnger = 70, units = { "10 chickenacidallterra
 addNewSquad({ type = "special", minAnger = 70, units = { "4 chickenacidassault" } })
 addNewSquad({ type = "special", minAnger = 70, units = { "3 chickene2" } })
 addNewSquad({ type = "special", minAnger = 70, units = { "4 chickenacidallterrainassault" } })
-addNewSquad({ type = "special", minAnger = 70, units = { "3 chickenacidarty" } })
 addNewSquad({ type = "special", minAnger = 70, units = { "5 chickenh4" } })
 addNewSquad({ type = "special", minAnger = 70, units = { "5 chicken2_spectre" } })
 addNewSquad({ type = "special", minAnger = 70, units = { "10 chickens2_spectre" } })
@@ -594,15 +596,15 @@ end
 
 local airStartAnger = 5 -- needed for air waves to work correctly.
 
-addNewSquad({ type = "air", minAnger = 5, units = { "4 chickenw1_mini", } })
-addNewSquad({ type = "air", minAnger = 5, units = { "4 chickenf1_mini", } })
+addNewSquad({ type = "air", minAnger = 5, units = { "4 chickenw1_mini" }, maxAnger = 50 })
+addNewSquad({ type = "air", minAnger = 5, units = { "4 chickenf1_mini" }, maxAnger = 50 })
 
-addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1", } })
-addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1b", } })
-addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1c", } })
-addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1d", } })
-addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenf1", }, weight = 2})
-addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenf1b", }, weight = 2})
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1", }, maxAnger = 90 })
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1b", }, maxAnger = 90 })
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1c", }, maxAnger = 90 })
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1d", }, maxAnger = 90 })
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenf1", }, maxAnger = 90, weight = 2 })
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenf1b", }, maxAnger = 90, weight = 2 })
 
 addNewSquad({ type = "air", minAnger = 60, units = { "4 chickenebomber1" } })
 addNewSquad({ type = "air", minAnger = 60, units = { "4 chickenacidbomber" } })
