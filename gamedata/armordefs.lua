@@ -432,6 +432,8 @@ local armorDefs = {
 		"legmos",
 		"legfort",
 		"legca",
+		"armdrone",
+		"cordrone",
 	},
 	shields = {
 		"armgate",
