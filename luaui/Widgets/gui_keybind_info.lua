@@ -20,14 +20,19 @@ local lineType = {
 	key = 3,
 }
 
+local tabs = {"Keybindings", "Default Keys", "CTRL Keys", "ALT Keys", "Grid Keys", "Grid CTRL Keys", "Grid ALT Keys",}
+
 local keybindsimages = {
-	['Default Keys'] = "luaui/images/keybinds_defaults/BAR Keyboard Shortcuts.png",
-	['CTRL Keys']=     "luaui/images/keybinds_defaults/BAR Keyboard Shortcuts CTRL.png",  
-	['ALT Keys'] =     "luaui/images/keybinds_defaults/BAR Keyboard Shortcuts ALT.png",
+	['Default Keys'] = "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts.png",
+	['CTRL Keys']=     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_CTRL.png",  
+	['ALT Keys'] =     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_ALT.png",
+	['Grid Keys'] = "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_GRID.png",
+	['Grid CTRL Keys']=     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_GRID_CTRL.png",  
+	['Grid ALT Keys'] =     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_GRID_ALT.png",
 }
 
-local tabs = {"Keybindings", "Default Keys", "CTRL Keys", "ALT Keys"}
 local tabrects = {}
+local lasttab = "Keybindings"
 
 local doUpdate
 local actionHotkeys
@@ -107,7 +112,8 @@ local function drawTextTable(lines, x, y)
 	return x, lineIndex
 end
 
-local function drawWindow( activetab )
+local function drawWindow(activetab)
+	local activetab = activetab or lasttab
 	if activetab == nil then activetab = 'Keybindings' end 
 	
 	-- background
@@ -412,12 +418,12 @@ local function mouseEvent(x, y, button, release)
 					if keybinds then
 						gl.DeleteList(keybinds)
 					end
-					keybinds = gl.CreateList(drawWindow,tab)
-
+					lasstab = tab
+					keybinds = gl.CreateList(drawWindow, tab)
 					return true
 				end
 			end
-			if release then
+			if release or not release then
 				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
 				show = false
 			end
