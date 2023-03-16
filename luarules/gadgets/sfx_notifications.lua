@@ -140,6 +140,12 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadgetHandler:GameOver(winningAllyTeams)
 		gameover = true
+		local players = AllPlayers()
+		for ct, player in pairs (players) do
+			if tostring(player) then
+				SendToUnsynced("EventBroadcast", "BattleEnded", tostring(player))
+			end
+		end
 	end
 
 --Player left send to all in allyteam

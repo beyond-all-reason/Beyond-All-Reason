@@ -60,6 +60,7 @@ addSound('YouHaveLastCommander', 'Youhavelastcommander.wav', 30, 3, 'tips.notifi
 -- game status
 addSound('ChooseStartLoc', 'ChooseStartLoc.wav', 90, 2.2, 'tips.notifications.startingLocation')
 addSound('GameStarted', 'GameStarted.wav', 1, 2, 'tips.notifications.gameStarted')
+addSound('BattleEnded', 'BattleEnded.wav', 1, 2, 'tips.notifications.battleEnded')
 addSound('GamePause', 'GamePause.wav', 5, 1, 'tips.notifications.gamePaused')
 addSound('PlayerLeft', 'PlayerDisconnected.wav', 1, 1.65, 'tips.notifications.playerLeft')
 addSound('PlayerAdded', 'PlayerAdded.wav', 1, 2.36, 'tips.notifications.playerAdded')
