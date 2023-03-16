@@ -1,7 +1,7 @@
 local actionTypes = {
 	EnableTrigger = 1,
 	DisableTrigger = 2,
-	CreateTrigger = 3,
+	-- TODO: Fix numbering
 	IssueOrders = 4,
 	AllowCommands = 5,
 	RestrictCommands = 6,
@@ -28,7 +28,7 @@ local actionTypes = {
 
 local actions = {}
 
-local function AddAction(id, type, ...)
+local function addAction(id, type, ...)
 	local action = {
 		type = type,
 		parameters = ...,
@@ -37,11 +37,25 @@ local function AddAction(id, type, ...)
 	actions[id] = action
 end
 
-local function AddEnableTriggerAction(id, triggerId)
-	AddAction(id, triggerId)
+local function addEnableTriggerAction(id, triggerId)
+	addAction(id, actionTypes.EnableTrigger, triggerId)
+end
+
+local function addSendMessageAction(id, message)
+	addAction(id, actionTypes.SendMessage, message)
+end
+
+local function getActions()
+	return actions
 end
 
 --example usage
 --[[
 AddEnableTriggerAction('monitorSea', 'builtSonar')
 ]]
+
+return {
+	GetActions = getActions,
+	AddEnableTriggerAction = addEnableTriggerAction,
+	AddSendMessageAction = addSendMessageAction,
+}
