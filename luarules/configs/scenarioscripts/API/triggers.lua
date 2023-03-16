@@ -68,12 +68,19 @@ local function AddTrigger(id, type, triggerOptions, actionIds, ...)
 	triggers[id] = trigger
 end
 
-local function AddTimeElapsedTrigger(id, triggerOptions, actionIds, gameFrame, offset)
+local function addTimeElapsedTrigger(id, triggerOptions, actionIds, gameFrame, offset)
 	AddTrigger(id, triggerTypes.TimeElapsed, triggerOptions, gameFrame, offset)
 end
 
--- Would rather not do this here, as spreading write to GG['MissionAPI'] makes code hard to follow
--- GG['MissionAPI'].Triggers = triggers
+local function getTriggers()
+	for triggerId, trigger in pairs(triggers) do
+		if not trigger.type then
+			error("[Mission API] Trigger missing type: " .. triggerId)
+		end
+	end
+
+	return triggers
+end
 
 --example usage
 --[[
@@ -87,6 +94,7 @@ AddTimeElapsedTrigger('intelCollected', options, actionIds, 0, 1800)
 ]]
 
 return {
-	Triggers = triggers,
+	GetTriggers = getTriggers,
 	-- TODO: Return trigger creation functions
+	AddTimeElapsedTrigger = addTimeElapsedTrigger,
 }
