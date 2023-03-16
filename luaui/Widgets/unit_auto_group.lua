@@ -159,6 +159,18 @@ local function ChangeUnitTypeAutogroupHandler(_, _, args, data)
 	return true
 end
 
+local function RemoveSelectedUnitsFromGroupHandler(_, _, args)
+	local muid = nil
+	local units = GetSelectedUnits()
+	for i = 1, #units do
+		local muid = units[i]
+		if muid ~= nil then
+			SetUnitGroup(muid, -1)
+		end	
+	end
+	return true
+end
+
 local function RemoveOneUnitFromGroupHandler(_, _, args)
 	local mx, my = GetMouseState()
 	local _, pos = TraceScreenRay(mx, my, true)
@@ -192,6 +204,7 @@ function widget:Initialize()
 	widgetHandler:AddAction("add_to_autogroup", ChangeUnitTypeAutogroupHandler, nil, "p") -- With a parameter, adds all units of this type to a specific autogroup
 	widgetHandler:AddAction("remove_from_autogroup", ChangeUnitTypeAutogroupHandler, { removeAll = true }, "p") -- Without a parameter, removes all units of this type from autogroups
 	widgetHandler:AddAction("remove_one_unit_from_group", RemoveOneUnitFromGroupHandler, nil, "p") -- Removes the closest of selected units from groups and selects only it
+	widgetHandler:AddAction("remove_selected_units_from_group", RemoveSelectedUnitsFromGroupHandler, nil, "p") -- Just removes all selected units from the autogroup
 
 	WG['autogroup'] = {}
 	WG['autogroup'].getImmediate = function()
