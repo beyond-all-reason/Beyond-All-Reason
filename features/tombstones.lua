@@ -1,8 +1,8 @@
 local object = {
 	blocking = false,
 	collisionvolumeoffsets = "0 0 0",
-	collisionvolumescales = "12 24 12",
-	collisionvolumetype = "CylY",
+	collisionvolumescales = "0 0 0",
+	collisionvolumetype = "SPHERE",
 	description = "Commander Tombstone",
 	footprintx = 1,
 	footprintz = 1,
