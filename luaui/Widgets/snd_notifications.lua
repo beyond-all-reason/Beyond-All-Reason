@@ -52,6 +52,7 @@ end
 -- commanders
 addSound('EnemyCommanderDied', 'EnemyCommanderDied.wav', 1, 1.7, 'tips.notifications.enemyCommanderDied')
 addSound('FriendlyCommanderDied', 'FriendlyCommanderDied.wav', 1, 1.75, 'tips.notifications.friendlyCommanderDied')
+addSound('FriendlyCommanderSelfD', 'AlliedComSelfD.wav', 1, 2, 'tips.notifications.friendlyCommanderSelfD')
 addSound('ComHeavyDamage', 'ComHeavyDamage.wav', 12, 2.25, 'tips.notifications.commanderDamage')
 addSound('TeamDownLastCommander', 'Teamdownlastcommander.wav', 30, 3, 'tips.notifications.teamdownlastcommander')
 addSound('YouHaveLastCommander', 'Youhavelastcommander.wav', 30, 3, 'tips.notifications.youhavelastcommander')

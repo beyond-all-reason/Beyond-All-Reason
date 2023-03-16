@@ -2614,7 +2614,6 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
     local ignored = WG.ignoredPlayers and WG.ignoredPlayers[name]
 
     local textindent = 4
-    local explayerindent = -3
     if m_indent.active or m_rank.active or m_side.active or m_ID.active then
         textindent = 0
     end

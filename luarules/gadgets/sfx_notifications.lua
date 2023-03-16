@@ -229,9 +229,13 @@ else
 		end
 	end
 
+	local commanderLastDamaged = {}
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if unitTeam == myTeamID and isLrpc[attackerDefID] and attackerTeam and GetAllyTeamID(attackerTeam) ~= myAllyTeamID then
 			BroadcastEvent("EventBroadcast", 'LrpcTargetUnits', tostring(myPlayerID))
+		end
+		if isCommander[unitDefID] then
+			commanderLastDamaged[unitID] = Spring.GetGameFrame()
 		end
 	end
 
@@ -276,7 +280,11 @@ else
 				for ct, player in pairs (players) do
 					if tostring(player) then
 						if not unitInView then
-							BroadcastEvent("EventBroadcast", "FriendlyCommanderDied", tostring(player))
+							if not attackerTeam and select(6, Spring.GetTeamInfo(unitTeam, false)) == myAllyTeamID and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
+								BroadcastEvent("EventBroadcast", "FriendlyCommanderSelfD", tostring(player))
+							else
+								BroadcastEvent("EventBroadcast", "FriendlyCommanderDied", tostring(player))
+							end
 						end
 						if enableLastcomNotif and allyComCount == 1 then
 							if myComCount == 1 then
@@ -296,6 +304,7 @@ else
 					end
 				end
 			end
+			commanderLastDamaged[unitID] = nil
 		end
 	end
 end
