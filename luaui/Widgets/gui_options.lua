@@ -5504,6 +5504,9 @@ function widget:Initialize()
 			Spring.SetConfigInt("MaxParticles", minMaxparticles)
 			Spring.Echo('First time setup:  setting MaxParticles config value to ' .. minMaxparticles)
 		end
+
+		Spring.SetConfigInt("CamMode", 3)
+		Spring.SendCommands('viewspring')
 	end
 
 	Spring.SetConfigFloat("CamTimeFactor", 1)

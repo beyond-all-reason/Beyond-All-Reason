@@ -64,7 +64,9 @@ addSound('BattleEnded', 'BattleEnded.wav', 1, 2, 'tips.notifications.battleEnded
 addSound('GamePause', 'GamePause.wav', 5, 1, 'tips.notifications.gamePaused')
 addSound('PlayerLeft', 'PlayerDisconnected.wav', 1, 1.65, 'tips.notifications.playerLeft')
 addSound('PlayerAdded', 'PlayerAdded.wav', 1, 2.36, 'tips.notifications.playerAdded')
-
+addSound('PlayerResigned', 'PlayerResigned.wav', 1, 2.36, 'tips.notifications.playerResigned')
+addSound('PlayerTimedout', 'PlayerTimedout.wav', 1, 2.36, 'tips.notifications.playerTimedout')
+addSound('PlayerReconnecting', 'PlayerTimedout.wav', 1, 2.36, 'tips.notifications.playerReconnecting')
 
 -- awareness
 --addSound('IdleBuilder', 'IdleBuilder.wav', 30, 1.9, 'A builder has finished building')
