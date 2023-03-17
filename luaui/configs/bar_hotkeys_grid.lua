@@ -119,6 +119,7 @@
 		{      "Shift+sc_l", "firestate"       },
 		{            "sc_;", "movestate"       }, 
 		{      "Shift+sc_;", "movestate"       },
+		{       "Ctrl+sc_m", "toggleoverview"  },
 		{            "sc_m", "restore"         },
 		{      "Shift+sc_m", "restore"         },
 		{            "sc_n", "settargetnoground" },
