@@ -147,6 +147,7 @@
 
 		{ "Ctrl+f5", "viewta"                 },
 		{ "Ctrl+f6", "viewspring"             },
+		{ "Ctrl+f7", "HideInterface"          },
 		{ "Any+f5" , "LastMsgPos"             },
 		{ "Any+f6" , "ShowPathTraversability" },
 		{ "Any+f7" , "ShowMetalMap"           },
