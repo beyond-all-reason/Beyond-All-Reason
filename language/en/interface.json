@@ -960,6 +960,8 @@
 				"soundtracksilence_descr": "Adds no-music breaks between tracks\nto give you some time to enjoy pure sound effects\nand to make the music less repetitive.",
 				"soundtrackinterruption": "Interruptions",
 				"soundtrackinterruption_descr": "Allows the music to cut off mid-track\nto switch to diffrent intensity level\nwhen action pace changes quickly.",
+				"soundtrackfades": "Fade In/Out",
+				"soundtrackfades_descr": "Fade-in and Fade-out music when it starts, ends or cuts.",
 				"volume": "Volume",
 				"sndvolmaster": "master",
 				"sndvolgeneral": "general",

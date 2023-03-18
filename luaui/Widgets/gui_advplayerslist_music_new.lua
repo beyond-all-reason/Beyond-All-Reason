@@ -350,9 +350,16 @@ end
 
 local function updateFade()
 	if fadeDirection then
-		fadeLevel = fadeLevel + fadeChange()
+		if Spring.GetConfigInt("UseSoundtrackFades", 1) == 1 then
+			fadeLevel = fadeLevel + fadeChange()
+		else
+			if fadeDirection < 0 then
+				fadeLevel = 0
+			elseif fadeDirection > 0 then
+				fadeLevel = 100
+			end
+		end
 		setMusicVolume(fadeLevel)
-
 		if fadeDirection < 0 and fadeLevel <= 0 then
 			fadeDirection = nil
 			if fadeOutSkipTrack then

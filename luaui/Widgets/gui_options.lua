@@ -2456,6 +2456,14 @@ function init()
 				end
 			end
 		},
+		{ id = "soundtrackFades", group = "sound", category = types.basic, name = texts.option.soundtrackfades, type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = texts.option.soundtrackfades_descr,
+			onchange = function(i, value)
+				Spring.SetConfigInt('UseSoundtrackFades', value and 1 or 0)
+				if WG['music'] and WG['music'].RefreshSettings then
+					WG['music'].RefreshSettings()
+				end
+			end
+		},
 
 		{ id = "loadscreen_music", group = "sound", category = types.basic, name = texts.option.loadscreen_music, type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = texts.option.loadscreen_music_descr,
 		  onchange = function(i, value)
