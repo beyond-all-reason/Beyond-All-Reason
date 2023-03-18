@@ -5515,10 +5515,6 @@ function widget:Initialize()
 
 		Spring.SetConfigInt("CamMode", 3)
 		Spring.SendCommands('viewspring')
-		-- make sure vertical angle is proper (not horizontal view)
-		local cameraState = Spring.GetCameraState()
-		cameraState.rx = 2.6
-		Spring.SetCameraState(cameraState, 0.1)
 	end
 
 	Spring.SetConfigFloat("CamTimeFactor", 1)
@@ -5560,6 +5556,13 @@ function widget:Initialize()
 		if Spring.GetConfigInt("MSAALevel", 0) > 8 then
 			Spring.SetConfigInt("MSAALevel", 8)
 		end
+	end
+
+	-- make sure vertical angle is proper (not horizontal view)
+	if Spring.GetGameFrame() == 0 and (Spring.SetConfigInt("CamMode", 2) == 2 or Spring.SetConfigInt("CamMode", 2) == 3) then
+		local cameraState = Spring.GetCameraState()
+		cameraState.rx = 2.6
+		Spring.SetCameraState(cameraState, 0.1)
 	end
 
 	-- make sure fog-start is smaller than fog-end in case maps have configured it this way
