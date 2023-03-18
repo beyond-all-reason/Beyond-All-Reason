@@ -162,9 +162,6 @@ local callInLists = {
 	"FeatureDestroyed",
 	"FeatureDamaged",
 	"FeaturePreDamaged",
-	--[[ FeatureDamaged and FeaturePreDamaged missing on purpose. Basic damage control
-	     can be achieved via armordefs (use the "default" class, make sure to populate
-	     the others including "else" explicitly) so this way we avoid the perf cost. ]]
 
 	-- Projectile CallIns
 	"ProjectileCreated",
