@@ -161,6 +161,7 @@ local callInLists = {
 	"FeatureCreated",
 	"FeatureDestroyed",
 	"FeatureDamaged",
+	"FeaturePreDamaged",
 	--[[ FeatureDamaged and FeaturePreDamaged missing on purpose. Basic damage control
 	     can be achieved via armordefs (use the "default" class, make sure to populate
 	     the others including "else" explicitly) so this way we avoid the perf cost. ]]
@@ -1521,9 +1522,9 @@ function gadgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 
 	for _, g in ipairs(self.UnitCreatedList) do
 		g:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	end	
+	end
 	return
-end	
+end
 
 function gadgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
 	for _, g in ipairs(self.UnitFinishedList) do
