@@ -5515,6 +5515,10 @@ function widget:Initialize()
 
 		Spring.SetConfigInt("CamMode", 3)
 		Spring.SendCommands('viewspring')
+		-- make sure vertical angle is proper (not horizontal view)
+		local cameraState = Spring.GetCameraState()
+		cameraState.rx = 2.6
+		Spring.SetCameraState(cameraState, 0.1)
 	end
 
 	Spring.SetConfigFloat("CamTimeFactor", 1)
