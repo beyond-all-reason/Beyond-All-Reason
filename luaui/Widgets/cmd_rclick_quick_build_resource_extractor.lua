@@ -91,7 +91,7 @@ function CheckForBuildingOpportunity(type, params)
 		local mx, my, mb = Spring.GetMouseState()
 		_, params = Spring.TraceScreenRay(mx, my, true)
 	end
-	if isT1Mex or isT1Geo or type == 'ground' or type == 'feature' then
+	if params and params[3] and (isT1Mex or isT1Geo or type == 'ground' or type == 'feature') then
 		if type == 'ground' or type == 'feature' then
 			closestMex = GetClosestPosition(params[1], params[3], WG['resource_spot_finder'].metalSpotsList)
 			if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
