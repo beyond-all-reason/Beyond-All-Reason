@@ -2194,8 +2194,8 @@ function init()
 		},
 		{ id = "decals", group = "gfx", category = types.basic, name = texts.option.decals, restart = true, min = 0, max = 5, step = 1, type = "slider", value = Spring.GetConfigInt("GroundDecals", 0), description = texts.option.decals_descr,
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("GroundDecals", value)
-			  Spring.SendCommands("GroundDecals " .. value)
+			  Spring.SetConfigInt("GroundDecals", (value and 1 or 0))
+			  Spring.SendCommands("GroundDecals " .. (value and 1 or 0))
 		  end,
 		},
 		--{ id = "decals", group = "gfx", category = types.advanced, name = texts.option.decals, restart = true, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 3) or 3) >= 1, description = texts.option.decals_descr,
