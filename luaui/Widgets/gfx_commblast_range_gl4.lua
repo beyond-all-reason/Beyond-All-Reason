@@ -73,7 +73,13 @@ end
 
 local function initFogGL4(shaderConfig, DPATname)
 	commblastSphereShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or commblastSphereShader
-	
+
+	if not commblastSphereShader then
+		Spring.Echo("Error: Commblast Range GL4 shader not initialized")
+		widgetHandler:RemoveWidget()
+		return
+	end
+
 	local sphereVBO, numVertices, sphereIndexVBO, numIndices = makeSphereVBO(shaderConfig.SPHERESEGMENTS, shaderConfig.SPHERESEGMENTS/2, 1)
 
 	DrawPrimitiveAtUnitVBO = makeInstanceVBOTable(
@@ -85,7 +91,7 @@ local function initFogGL4(shaderConfig, DPATname)
 		DPATname .. "VBO", -- name,
 		4 --unitIDattribID
 	)
-	
+
 	DrawPrimitiveAtUnitVBO:makeVAOandAttach(sphereVBO,DrawPrimitiveAtUnitVBO.instanceVBO, sphereIndexVBO)
 	return DrawPrimitiveAtUnitVBO, commblastSphereShader
 end
@@ -95,8 +101,8 @@ local function AddBlastSphere(unitID, noUpload, oldopacity, newopacity, gamefram
 	cacheTable[1] = oldopacity
 	cacheTable[2] = newopacity
 	cacheTable[3] = gameframe
-	
-	return pushElementInstance(commblastSphereVBO, 
+
+	return pushElementInstance(commblastSphereVBO,
 			cacheTable,
 			unitID, true, noUpload, unitID)
 end
@@ -120,7 +126,7 @@ function widget:DrawWorldPreUnit()
 		glDepthTest(false)
 		gl.DepthMask(false)
 		gl.Texture(0, "$map_gbuffer_zvaltex")
-		
+
 		commblastSphereShader:Activate()
 		commblastSphereVBO:Draw()
 		commblastSphereShader:Deactivate()
@@ -130,10 +136,10 @@ function widget:DrawWorldPreUnit()
 	end
 end
 
---- Look how easy api_unit_tracker is to use! 
+--- Look how easy api_unit_tracker is to use!
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	--Spring.Echo("VisibleUnitAdded",	unitID, unitDefID, unitTeam)
-	if commDefIds[unitDefID] then 
+	if commDefIds[unitDefID] then
 		commanders[unitID] = {draw = false, oldopacity = 0.0, newopacity = 0.0}
 	end
 end
@@ -152,23 +158,23 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 	end
 end
 
-function widget:GameFrame(n) 
+function widget:GameFrame(n)
 	-- This is where we update the alphas of the spheres
 	-- also based on health!
 	-- we gotta do this every 15 frames, and do interpolation in-shader for optimum efficiency
 	-- check com movement, also try to draw as little as possible!
-	-- api_unit_tracker will take care of removing invisible commanders for us 
+	-- api_unit_tracker will take care of removing invisible commanders for us
 	-- but we have to add/update them here manually!
 	if n%15 ~= 0 then return end
-	
+
 	-- in the first pass, identify which ones we want to draw, and set their new opacities accordingly
-	
+
 	-- do not draw if any:
 		-- comm above ground
 		-- not in view
 		-- no enemies in range
 	for unitID, params in pairs(commanders) do
-		local x,y,z = spGetUnitPosition(unitID)			
+		local x,y,z = spGetUnitPosition(unitID)
 		local draw = false
 		local newopacity = 0
 		if x then
