@@ -540,10 +540,8 @@ local spIsUnitInView = Spring.IsUnitInView
 local UItextColor = {1.0, 1.0, 0.6, 1.0}
 local UItextSize = 14.0
 
-local snext = snext
-
 function gadget:DrawWorld()
-   if not snext(SYNCED.currentassignablecapacity) then
+   if not next(SYNCED.currentassignablecapacity) then
        return --//no transports to draw
    end
 
