@@ -124,7 +124,8 @@ if gadgetHandler:IsSyncedCode() then
 		"Requiem_TV",
 		"gamerangela911",
 		"Rikerss",
-		"Willow",
+		"Willow"
+		"Wintergaming",
 
 
 		-- AI Names
