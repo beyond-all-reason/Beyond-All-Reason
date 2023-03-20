@@ -1053,9 +1053,10 @@ function WeaponDef_Post(name, wDef)
 		-- Target borders of unit hitboxes rather than center (-1 = far border, 0 = center, 1 = near border)
 		-- wDef.targetborder = 1.0
 
-		if wDef.weapontype == "Cannon" and not wDef.model then
-			-- do not cast shadows on glowing plasma
-			wDef.castshadow = false
+		if wDef.weapontype == "Cannon" then
+			if not wDef.model then -- do not cast shadows on plasma shells
+				wDef.castshadow = false
+			end
 
 			if wDef.stages == nil then
 				wDef.stages = 10
