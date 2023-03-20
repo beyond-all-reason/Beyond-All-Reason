@@ -1102,7 +1102,7 @@ function init()
 	local totalWidth = topbarArea[3] - topbarArea[1]
 
 	-- metal
-	local width = math_floor(totalWidth / 4.25)
+	local width = math_floor(totalWidth / 4.4)
 	resbarArea['metal'] = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
 	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateResbar('metal')

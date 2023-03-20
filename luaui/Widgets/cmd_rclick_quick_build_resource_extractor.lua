@@ -42,10 +42,18 @@ local spGetUnitDefID = Spring.GetUnitDefID
 ------------------------------------------------------------
 local chobbyInterface, activeUnitShape, lastInsertedOrder
 
+local isT1Mex = {}
+local isT2Mex = {}
 local isCloakableBuilder = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildOptions[1] and unitDef.canCloak then
 		isCloakableBuilder[unitDefID] = true
+	end
+	if unitDef.extractsMetal > 0 and unitDef.extractsMetal <= 0.001 then
+		isT1Mex[unitDefID] = true
+	end
+	if unitDef.extractsMetal > 0.001 then
+		isT2Mex[unitDefID] = true
 	end
 end
 
@@ -114,6 +122,7 @@ end
 
 -- display mouse cursor and unitshape when hovering over a resource spot
 local sec = 0
+local drawUnitShape = false
 function widget:Update(dt)
 	if chobbyInterface then return end
 
@@ -126,7 +135,7 @@ function widget:Update(dt)
 		doUpdate = true
 	end
 
-	local drawUnitShape = false
+	drawUnitShape = false
 
 	if doUpdate then
 		if #selectedUnits == 1 and isCloakableBuilder[Spring.GetUnitDefID(selectedUnits[1])] and select(5,Spring.GetUnitStates(selectedUnits[1],false,true)) then
@@ -326,4 +335,21 @@ function widget:CommandNotify(id, params, options)
 		)
 	end
 	return result
+end
+
+-- make it so that it snaps and upgrades and does not need to be placed perfectly on top
+function widget:MousePress(mx, my, button)
+	if button == 1 and drawUnitShape and selectedUnits[1] then
+		if Spring.TestBuildOrder(drawUnitShape[1], drawUnitShape[2], drawUnitShape[3], drawUnitShape[4], 0) == 2 then
+			local alt, ctrl, meta, shift = Spring.GetModKeyState()
+			local keyState = {}
+			if alt then keyState[#keyState+1] = 'alt' end
+			if ctrl then keyState[#keyState+1] = 'ctrl' end
+			if meta then keyState[#keyState+1] = 'meta' end
+			if shift then keyState[#keyState+1] = 'shift' end
+			for i, unitID in ipairs(selectedUnits) do
+				Spring.GiveOrderToUnit(selectedUnits[i], -drawUnitShape[1], { drawUnitShape[2], drawUnitShape[3], drawUnitShape[4] }, keyState)
+			end
+		end
+	end
 end
