@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
-		name = "Mission API triggers",
-		desc = "Load and poll mission triggers, and dispatch actions",
+		name = "Mission API loader",
+		desc = "Load and populate global mission table",
 		date = "2023.03.14",
 		layer = 0,
 		enabled = true,
@@ -12,7 +12,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local actionDispatcher = VFS.Include('luarules/configs/scenarioscripts/API/actions_dispatcher.lua')
+local actionsDispatcher = VFS.Include('luarules/configs/scenarioscripts/API/actions_dispatcher.lua')
 
 local function loadMission()
 	-- TODO: Actually pass script path in modoptions
@@ -35,6 +35,8 @@ function gadget:Initialize()
 	GG['MissionAPI'] = {}
 	GG['MissionAPI'].TriggersController = VFS.Include('luarules/configs/scenarioscripts/API/triggers.lua')
 	GG['MissionAPI'].ActionsController = VFS.Include('luarules/configs/scenarioscripts/API/actions.lua')
+	GG['MissionAPI'].ActionsDispatcher = actionsDispatcher
+	GG['MissionAPI'].Difficulty = Spring.GetModOptions().mission_difficulty --TODO: add mission difficulty modoption
 
 	loadMission();
 	-- loading the mission script needs to populate the global triggers and actions tables
