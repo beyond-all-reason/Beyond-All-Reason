@@ -54,6 +54,7 @@ AddEnableTriggerAction('monitorSea', 'builtSonar')
 ]]
 
 return {
+	Types = actionTypes,
 	GetActions = getActions,
 	AddEnableTriggerAction = addEnableTriggerAction,
 	AddSendMessageAction = addSendMessageAction,
