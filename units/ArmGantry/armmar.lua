@@ -67,7 +67,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				collisionvolumescales = "68 68 68",
+				collisionvolumescales = "98 98 50",
 				collisionvolumetype = "Box",
 				damage = 1200,
 				energy = 0,
