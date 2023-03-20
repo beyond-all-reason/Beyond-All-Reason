@@ -58,11 +58,13 @@ local function AddTrigger(id, type, triggerOptions, actionIds, ...)
 		prerequisites = triggerOptions.prerequisites,
 		repeating = triggerOptions.repeating,
 		maxRepeats = triggerOptions.maxRepeats,
+        repeatCount = 0,
 		difficulties = triggerOptions.difficulties,
 		coop = triggerOptions.coop,
 		active = triggerOptions.active,
 		parameters = ...,
 		actionIds = actionIds,
+        triggered = false,
 	}
 
 	triggers[id] = trigger
@@ -94,6 +96,7 @@ AddTimeElapsedTrigger('intelCollected', options, actionIds, 0, 1800)
 ]]
 
 return {
+	Types = triggerTypes,
 	GetTriggers = getTriggers,
 	-- TODO: Return trigger creation functions
 	AddTimeElapsedTrigger = addTimeElapsedTrigger,

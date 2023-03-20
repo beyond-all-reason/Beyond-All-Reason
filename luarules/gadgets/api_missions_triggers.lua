@@ -8,14 +8,14 @@ function gadget:GetInfo()
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then
-	return false
-end
-
 local types, timeTypes, unitTypes, featureTypes, gameTypes
 local triggers, timeTriggers, unitTriggers, featureTriggers, gameTriggers
 
+local populateParameters = {
+	[types.TimeElapsed] = function (parameters) return { gameframe = parameters[1], offset = parameters[2] } end,
+}
 --[[
+
 local function populateTriggerTypes()
 	timeTypes = {
 		[types.TimeElapsed] = true,
@@ -55,29 +55,47 @@ local function populateTriggerLists()
 end
 ]]
 
-local function triggerValid(trigger)
-	if not trigger.active then return false end
+local function triggerValid(triggerId)
+	local trigger = triggers[triggerId]
 
-	for _, prerequisiteTrigger in pairs(trigger.prerequisites) do
-		if not prerequisiteTrigger.triggered then return false end
+	if not trigger.active then
+		return false
 	end
 
-	if trigger.triggered and not trigger.repeating then return false end
-	if trigger.repeating and trigger.repeatCount > trigger.maxRepeats then return false end
-	if trigger.difficulties ~= nil and not trigger.difficulties[GG['MissionAPI'].Difficulty] then return false end
+	for _, prerequisiteTrigger in pairs(trigger.prerequisites) do
+		if not prerequisiteTrigger.triggered then
+			return false
+		end
+	end
+
+	if trigger.triggered and not trigger.repeating then
+		return false
+	end
+
+	if trigger.repeating and trigger.repeatCount > trigger.maxRepeats then
+		return false
+	end
+
+	if trigger.difficulties ~= nil and not trigger.difficulties[GG['MissionAPI'].Difficulty] then
+		return false
+	end
 
 	--[[
 	--TODO: co-op check
-	if trigger.coop and not ??? then return false end
+	if trigger.coop and not ??? then
+	 	return false
+	end
 	]]
 
 	return true
 end
 
-local function activateTrigger(trigger)
-	if not triggerValid(trigger) then
+local function activateTrigger(triggerId)
+	if not triggerValid(triggerId) then
 		return
 	end
+
+	local trigger = triggers[triggerId]
 
 	trigger.triggered = true
 	trigger.repeatCount = trigger.repeatCount + 1
@@ -88,17 +106,17 @@ local function activateTrigger(trigger)
 end
 
 function gadget:Initialize()
-	types = GG['MissionAPI'].TriggersController.Types
 	triggers = GG['MissionAPI'].Triggers
+	types = GG['MissionAPI'].TriggersController.Types
 end
 
 function gadget:GameFrame(n)
 	for triggerId, trigger in pairs(triggers) do
 		if trigger.type == types.TimeElapsed then
-			local gameframe, offset = unpack(trigger.parameters)
+			local parameters = populateParameters[trigger.type]
 
-			if n == gameframe or (trigger.repeating and n > gameframe and offset % (n - gameframe) == 0) then
-				activateTrigger(trigger)
+			if n == gameframe or (trigger.repeating and n > parameters.gameframe and parameters.offset % (n - gameframe) == 0) then
+				activateTrigger(triggerId)
 			end
 		end
 	end
