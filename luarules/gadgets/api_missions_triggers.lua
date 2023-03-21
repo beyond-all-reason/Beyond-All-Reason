@@ -70,7 +70,7 @@ local function triggerValid(trigger)
 		return false
 	end
 
-	if trigger.difficulties ~= nil and not trigger.difficulties[GG['MissionAPI'].Difficulty] then
+	if trigger.difficulties ~= nil and not trigger.difficulties[GG['c5b27dc'].Difficulty] then
 		return false
 	end
 
@@ -93,13 +93,13 @@ local function activateTrigger(trigger)
 	trigger.repeatCount = trigger.repeatCount + 1
 
 	for _, actionId in pairs(trigger.actionIds) do
-		GG['MissionAPI'].ActionsDispatcher.Invoke(actionId)
+		GG['c5b27dc'].ActionsDispatcher.Invoke(actionId)
 	end
 end
 
 function gadget:Initialize()
-	triggers = GG['MissionAPI'].Triggers
-	types = GG['MissionAPI'].TriggersController.Types
+	triggers = GG['c5b27dc'].Triggers
+	types = GG['c5b27dc'].TriggersController.Types
 end
 
 function gadget:GameFrame(n)
