@@ -14,7 +14,7 @@ end
 local geoVentPositions = {}
 local currentGeoVentID = 1
 local numberOfGeoVentPositions = 0
-local soundSplitTime = 150
+local soundSplitTime = 120
 local collectedFeatures = false
 function gadget:GameFrame(n)
     if n == 90 then -- Collect all geo features, slightly delayed because of the opening animation and stuff might spawn new features at the start
