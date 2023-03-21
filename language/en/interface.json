@@ -1128,7 +1128,7 @@
 				"advplayerlist_skill_descr": "show the player openskill number (used for balancing algorithm)",
 				"advplayerlist_income": "income values",
 				"advplayerlist_income_descr": "displays the energy/metal income values\n(if you have team members)",
-				"advplayerlist_cpuping": "cpup/ing number",
+				"advplayerlist_cpuping": "cpu/ping number",
 				"advplayerlist_cpuping_descr": "show cpu/ping usage/value\n(when in multiplayer)",
 				"advplayerlist_share": "share buttons",
 				"advplayerlist_share_descr": "show (quick) share buttons\nNOTE: auto hides when having no team members",
