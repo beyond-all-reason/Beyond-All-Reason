@@ -12,8 +12,6 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local actionsDispatcher = VFS.Include('luarules/configs/scenarioscripts/API/actions_dispatcher.lua')
-
 local function loadMission()
 	-- TODO: Actually pass script path in modoptions
 	local missionSettings = Spring.GetModOptions().mission_path
@@ -35,7 +33,7 @@ function gadget:Initialize()
 	GG['MissionAPI'] = {}
 	GG['MissionAPI'].TriggersController = VFS.Include('luarules/configs/scenarioscripts/API/triggers.lua')
 	GG['MissionAPI'].ActionsController = VFS.Include('luarules/configs/scenarioscripts/API/actions.lua')
-	GG['MissionAPI'].ActionsDispatcher = actionsDispatcher
+	GG['MissionAPI'].ActionsDispatcher = VFS.Include('luarules/configs/scenarioscripts/API/actions_dispatcher.lua')
 	GG['MissionAPI'].Difficulty = Spring.GetModOptions().mission_difficulty --TODO: add mission difficulty modoption
 
 	loadMission();
