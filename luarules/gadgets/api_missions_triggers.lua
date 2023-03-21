@@ -11,11 +11,7 @@ end
 local types, timeTypes, unitTypes, featureTypes, gameTypes
 local triggers, timeTriggers, unitTriggers, featureTriggers, gameTriggers
 
-local populateParameters = {
-	[types.TimeElapsed] = function (parameters) return { gameframe = parameters[1], offset = parameters[2] } end,
-}
 --[[
-
 local function populateTriggerTypes()
 	timeTypes = {
 		[types.TimeElapsed] = true,
@@ -55,9 +51,7 @@ local function populateTriggerLists()
 end
 ]]
 
-local function triggerValid(triggerId)
-	local trigger = triggers[triggerId]
-
+local function triggerValid(trigger)
 	if not trigger.active then
 		return false
 	end
@@ -90,12 +84,10 @@ local function triggerValid(triggerId)
 	return true
 end
 
-local function activateTrigger(triggerId)
-	if not triggerValid(triggerId) then
+local function activateTrigger(trigger)
+	if not triggerValid(trigger) then
 		return
 	end
-
-	local trigger = triggers[triggerId]
 
 	trigger.triggered = true
 	trigger.repeatCount = trigger.repeatCount + 1
@@ -113,10 +105,10 @@ end
 function gadget:GameFrame(n)
 	for triggerId, trigger in pairs(triggers) do
 		if trigger.type == types.TimeElapsed then
-			local parameters = populateParameters[trigger.type]
+			local gameframe, offset = unpack(trigger.parameters)
 
-			if n == gameframe or (trigger.repeating and n > parameters.gameframe and parameters.offset % (n - gameframe) == 0) then
-				activateTrigger(triggerId)
+			if n == gameframe or (trigger.repeating and n > gameframe and offset % (n - gameframe) == 0) then
+				activateTrigger(trigger)
 			end
 		end
 	end
