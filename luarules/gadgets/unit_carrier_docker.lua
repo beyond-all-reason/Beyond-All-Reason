@@ -125,85 +125,88 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 		local dockingSnapRange
 
 
-		if GG.carrierMetaList[unitID].subUnitsList[subUnitID] then
-			if GG.carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece then
-				local pieceNumber = GG.carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece
-				--local distance = GetDistance(ox, subx, oz, subz)
-					local function LandLoop()
-						if not GG.carrierMetaList[unitID] then
-							return
-						elseif not GG.carrierMetaList[unitID].subUnitsList[subUnitID] then
-							return
-						end
-						while not GG.carrierMetaList[unitID].subUnitsList[subUnitID].docked do
-							--Spring.Echo("active docking nr. ", i)
-		
-							local px, py, pz = Spring.GetUnitPiecePosDir(unitID, pieceNumber)
-							
-		
-		
-							ox, oy, oz = spGetUnitPosition(unitID)
-							subx, suby, subz = spGetUnitPosition(subUnitID)
-							local distance = GetDistance(px, subx, pz, subz)
-							local heightDifference = GetDistance(py, suby, 0, 0)
-							
-		
-							
-							
-							if distance < 25 and subunitDef.isAirUnit then
-								local landingspeed = GG.carrierMetaList[unitID].dockHelperSpeed
-								if 0.2*heightDifference > landingspeed then
-									landingspeed = 0.2*heightDifference
-								end
-								local vx, vy, vz = GetDirectionalVector(landingspeed, subx, px, suby, py, subz, pz)
-								spSetUnitVelocity(subUnitID, vx, vy, vz)
-		
-							elseif distance < GG.carrierMetaList[unitID].dockRadius then
-								local vx, vy, vz = GetDirectionalVector(GG.carrierMetaList[unitID].dockHelperSpeed, subx, px, suby, py, subz, pz)
-								Spring.MoveCtrl.Enable(subUnitID)
-								mcSetPosition(subUnitID, subx+vx, suby, subz+vz)
-								Spring.MoveCtrl.Disable(subUnitID)
-								spSetUnitVelocity(subUnitID, vx, 0, vz)
-								heightDifference = 0
-		
-							else
-								spGiveOrderToUnit(subUnitID, CMD.STOP, {}, 0)
-								spGiveOrderToUnit(subUnitID, CMD.MOVE, {px, py, pz}, 0)
-							end
-		
-							
-							GG.carrierMetaList[unitID].activeDocking = true
-							if GG.carrierMetaList[unitID].dockHelperSpeed == 0 then
-								dockingSnapRange = GG.carrierMetaList[unitID].dockRadius
-							else
-								dockingSnapRange = GG.carrierMetaList[unitID].dockHelperSpeed
-							end
-						
-		
-							if distance < dockingSnapRange and heightDifference < dockingSnapRange and GG.carrierMetaList[unitID].subUnitsList[subUnitID].docked ~= true then
-								spUnitAttach(unitID, subUnitID, pieceNumber)
-								spGiveOrderToUnit(subUnitID, CMD.STOP, {}, 0)
-								Spring.MoveCtrl.Disable(subUnitID)
-								spSetUnitVelocity(subUnitID, 0, 0, 0)
-								SetUnitNoSelect(subUnitID, true)
-								GG.carrierMetaList[unitID].subUnitsList[subUnitID].docked = true
-								GG.carrierMetaList[unitID].subUnitsList[subUnitID].activeDocking = false
-								if GG.carrierMetaList[unitID].dockArmor then
-									spSetUnitArmored(subUnitID, true, GG.carrierMetaList[unitID].dockArmor)
-								end
-							end
-		
-							Sleep()
+		if unitID and subUnitID and GG.carrierMetaList[unitID] then
+			
+			if GG.carrierMetaList[unitID].subUnitsList[subUnitID] then
+				if GG.carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece then
+					local pieceNumber = GG.carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece
+					--local distance = GetDistance(ox, subx, oz, subz)
+						local function LandLoop()
 							if not GG.carrierMetaList[unitID] then
 								return
 							elseif not GG.carrierMetaList[unitID].subUnitsList[subUnitID] then
 								return
 							end
+							while not GG.carrierMetaList[unitID].subUnitsList[subUnitID].docked do
+								--Spring.Echo("active docking nr. ", i)
+			
+								local px, py, pz = Spring.GetUnitPiecePosDir(unitID, pieceNumber)
+								
+			
+			
+								ox, oy, oz = spGetUnitPosition(unitID)
+								subx, suby, subz = spGetUnitPosition(subUnitID)
+								local distance = GetDistance(px, subx, pz, subz)
+								local heightDifference = GetDistance(py, suby, 0, 0)
+								
+			
+								
+								
+								if distance < 25 and subunitDef.isAirUnit then
+									local landingspeed = GG.carrierMetaList[unitID].dockHelperSpeed
+									if 0.2*heightDifference > landingspeed then
+										landingspeed = 0.2*heightDifference
+									end
+									local vx, vy, vz = GetDirectionalVector(landingspeed, subx, px, suby, py, subz, pz)
+									spSetUnitVelocity(subUnitID, vx, vy, vz)
+			
+								elseif distance < GG.carrierMetaList[unitID].dockRadius then
+									local vx, vy, vz = GetDirectionalVector(GG.carrierMetaList[unitID].dockHelperSpeed, subx, px, suby, py, subz, pz)
+									Spring.MoveCtrl.Enable(subUnitID)
+									mcSetPosition(subUnitID, subx+vx, suby, subz+vz)
+									Spring.MoveCtrl.Disable(subUnitID)
+									spSetUnitVelocity(subUnitID, vx, 0, vz)
+									heightDifference = 0
+			
+								else
+									spGiveOrderToUnit(subUnitID, CMD.STOP, {}, 0)
+									spGiveOrderToUnit(subUnitID, CMD.MOVE, {px, py, pz}, 0)
+								end
+			
+								
+								GG.carrierMetaList[unitID].activeDocking = true
+								if GG.carrierMetaList[unitID].dockHelperSpeed == 0 then
+									dockingSnapRange = GG.carrierMetaList[unitID].dockRadius
+								else
+									dockingSnapRange = GG.carrierMetaList[unitID].dockHelperSpeed
+								end
+							
+			
+								if distance < dockingSnapRange and heightDifference < dockingSnapRange and GG.carrierMetaList[unitID].subUnitsList[subUnitID].docked ~= true then
+									spUnitAttach(unitID, subUnitID, pieceNumber)
+									spGiveOrderToUnit(subUnitID, CMD.STOP, {}, 0)
+									Spring.MoveCtrl.Disable(subUnitID)
+									spSetUnitVelocity(subUnitID, 0, 0, 0)
+									SetUnitNoSelect(subUnitID, true)
+									GG.carrierMetaList[unitID].subUnitsList[subUnitID].docked = true
+									GG.carrierMetaList[unitID].subUnitsList[subUnitID].activeDocking = false
+									if GG.carrierMetaList[unitID].dockArmor then
+										spSetUnitArmored(subUnitID, true, GG.carrierMetaList[unitID].dockArmor)
+									end
+								end
+			
+								Sleep()
+								if not GG.carrierMetaList[unitID] then
+									return
+								elseif not GG.carrierMetaList[unitID].subUnitsList[subUnitID] then
+									return
+								end
+							end
 						end
-					end
+			
+						StartScript(LandLoop)
 		
-					StartScript(LandLoop)
-	
+				end
 			end
 		end
 	end
