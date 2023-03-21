@@ -58,6 +58,7 @@ local gotScore
 local scoreCount = 0
 local resistancesTable = {}
 local currentlyResistantTo = {}
+local currentlyResistantToNames = {}
 
 local guiPanel --// a displayList
 local updatePanel
@@ -164,29 +165,35 @@ local function CreatePanelDisplayList()
 	local techLevel = ""
 	if currentTime > gameInfo.gracePeriod then
 		if gameInfo.queenAnger < 100 then
-			techLevel = Spring.I18N('ui.chickens.queenAnger', { anger = gameInfo.queenAnger })
+			techLevel = textColor .. Spring.I18N('ui.chickens.queenAnger', { anger = gameInfo.queenAnger })
 		else
-			techLevel = Spring.I18N('ui.chickens.queenHealth', { health = gameInfo.queenLife })
+			techLevel = textColor .. Spring.I18N('ui.chickens.queenHealth', { health = gameInfo.queenLife })
+			for i = 1,#currentlyResistantToNames do
+				if i == 1 then
+					font:Print(textColor .. Spring.I18N('ui.chickens.queenResistantToList'), panelMarginX, PanelRow(10), panelFontSize, "")
+				end
+				font:Print(textColor .. currentlyResistantToNames[i], panelMarginX+20, PanelRow(10+i), panelFontSize, "")
+			end
 		end
 	else
-		techLevel = Spring.I18N('ui.chickens.gracePeriod', { time = math.ceil(((currentTime - gameInfo.gracePeriod) * -1) - 0.5) })
+		techLevel = textColor .. Spring.I18N('ui.chickens.gracePeriod', { time = math.ceil(((currentTime - gameInfo.gracePeriod) * -1) - 0.5) })
 	end
 
 	font:Begin()
 	font:SetTextColor(1, 1, 1, 1)
 	font:SetOutlineColor(0, 0, 0, 1)
-	font:Print(techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
+	font:Print(textColor .. techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
 	--font:Print(Spring.I18N('ui.chickens.chickenPlayerAgression', { count = (Spring.GetGameRulesParam("chickenPlayerAgressionLevel") or 0) }), panelMarginX, PanelRow(2), panelFontSize, "")
 	--font:Print(Spring.I18N('ui.chickens.chickenCount', { count = gameInfo.chickenCounts }), panelMarginX, PanelRow(2), panelFontSize, "")
-	font:Print(Spring.I18N('ui.chickens.chickenKillCount', { count = gameInfo.chickenKills }), panelMarginX, PanelRow(5), panelFontSize, "")
+	font:Print(textColor .. Spring.I18N('ui.chickens.chickenKillCount', { count = gameInfo.chickenKills }), panelMarginX, PanelRow(5), panelFontSize, "")
 	--font:Print(Spring.I18N('ui.chickens.burrowCount', { count = gameInfo.chicken_hiveCount }), panelMarginX, PanelRow(4), panelFontSize, "")
 	--font:Print(Spring.I18N('ui.chickens.burrowKillCount', { count = gameInfo.chicken_hiveKills }), panelMarginX, PanelRow(5), panelFontSize, "")
 
 	if gotScore then
-		font:Print(Spring.I18N('ui.chickens.score', { score = commaValue(scoreCount) }), 88, h - 170, panelFontSize, "")
+		font:Print(textColor .. Spring.I18N('ui.chickens.score', { score = commaValue(scoreCount) }), 88, h - 170, panelFontSize, "")
 	else
 		local difficultyCaption = Spring.I18N('ui.chickens.difficulty.' .. difficultyOption)
-		font:Print(Spring.I18N('ui.chickens.mode', { mode = difficultyCaption }), 120, h - 170, panelFontSize, "")
+		font:Print(textColor .. Spring.I18N('ui.chickens.mode', { mode = difficultyCaption }), 120, h - 170, panelFontSize, "")
 	end
 	font:End()
 
@@ -223,6 +230,7 @@ local function getResistancesMessage()
 	for i = 1,#resistancesTable do
 		local attackerName = UnitDefs[resistancesTable[i]].name
 		messages[i+1] = textColor .. Spring.I18N('units.names.' .. attackerName)
+		currentlyResistantToNames[#currentlyResistantToNames+1] = Spring.I18N('units.names.' .. attackerName)
 	end
 	resistancesTable = {}
 
