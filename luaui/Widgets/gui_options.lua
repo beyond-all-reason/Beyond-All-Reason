@@ -1841,7 +1841,7 @@ function init()
 		},
 		{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync,  type = "select", options = { 'off', 'enabled', 'adaptive'}, value = 2, description = texts.option.vsync_descr,
 		  onload = function(i)
-			  local vsync =  Spring.GetConfigInt("VSyncGame", -1)
+			  local vsync = Spring.GetConfigInt("VSyncGame", -1)
 			  if vsync == 1 then
 			  	options[getOptionByID('vsync')].value = 2
 			  elseif vsync == -1 then
@@ -1849,7 +1849,6 @@ function init()
 			  else
 				options[getOptionByID('vsync')].value = 1
 			  end
-			  Spring.SetConfigInt("VSyncGame", vsync)
 		  end,
 		  onchange = function(i, value)
 			  local vsync = 0
@@ -5559,7 +5558,7 @@ function widget:Initialize()
 	end
 
 	-- make sure vertical angle is proper (not horizontal view)
-	if Spring.GetGameFrame() == 0 and (Spring.SetConfigInt("CamMode", 2) == 2 or Spring.SetConfigInt("CamMode", 2) == 3) then
+	if Spring.GetGameFrame() == 0 and (Spring.GetConfigInt("CamMode", 2) == 2 or Spring.GetConfigInt("CamMode", 2) == 3) then
 		local cameraState = Spring.GetCameraState()
 		cameraState.rx = 2.6
 		Spring.SetCameraState(cameraState, 0.1)

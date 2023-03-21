@@ -218,7 +218,9 @@ local function StartVote(name)	-- when called without params its just to refresh
 			end
 			RectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, elementCorner*0.66, 0, 1, 0, 1, color1, color2)
 			font2:Begin()
-			font2:Print("\255\0\0\0" .. Spring.I18N('ui.voting.cancel'), closeButtonArea[1] + ((closeButtonArea[3] - closeButtonArea[1]) / 2), closeButtonArea[2] + ((closeButtonArea[4] - closeButtonArea[2]) / 2) - (fontSize / 3), fontSize, "cn")
+			font2:SetOutlineColor(1, 1, 1, 0.2)
+			font2:SetTextColor(0, 0, 0, 0.7)
+			font2:Print("\255\000\000\000" .. Spring.I18N('ui.voting.cancel'), closeButtonArea[1] + ((closeButtonArea[3] - closeButtonArea[1]) / 2), closeButtonArea[2] + ((closeButtonArea[4] - closeButtonArea[2]) / 2) - (fontSize / 3), fontSize, "cn")
 
 			-- NO / End Vote
 			local color1, color2, mult

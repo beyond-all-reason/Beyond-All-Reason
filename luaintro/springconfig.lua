@@ -148,6 +148,8 @@ if Spring.GetConfigInt("version", 0) < version then
 	end
 
 	Spring.SetConfigInt("VSyncGame", -1)
+
+	Spring.SetConfigInt("CamMode", 3)
 end
 
 Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
