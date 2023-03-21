@@ -407,10 +407,6 @@ local function AssignLightsToAllWeapons()
 		elseif weaponDef.type == 'Flame' then
 			--sizeclass = "Small"
 			sizeclass = GetClosestSizeClass(radius*3)
-			--sizeclass = "Micro"
-			if weaponDef.customparams.sizeclass_GL4 then
-				sizeclass = weaponDef.customparams.sizeclass_GL4
-			end
 			t.a = orgMult*0.17
 			projectileDefLights[weaponID] = GetLightClass("FlameProjectile", "Fire", sizeclass, t)
 		end
@@ -526,6 +522,10 @@ end
 AssignLightsToAllWeapons()
 
 -----------------Manual Overrides--------------------
+
+--corforge
+projectileDefLights[WeaponDefNames["corforge_flamethrower_ce"].id] =
+GetLightClass("FlameProjectile", "Fire", "Micro", {r = 1, a = 0.02791886, g = 0.94, b = 0.88})
 
 --armthor
 explosionLights[WeaponDefNames["armthor_thunder"].id] =
