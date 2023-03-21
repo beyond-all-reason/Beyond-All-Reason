@@ -22,6 +22,8 @@ VFS.Include('luarules/configs/customcmds.h.lua')
 
 SYMKEYS = table.invert(KEYSYMS)
 
+local returnToCategoriesOnPick = true
+
 local configs = VFS.Include('luaui/configs/gridmenu_layouts.lua')
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local labGrids = configs.LabGrids
@@ -862,7 +864,7 @@ function widget:CommandNotify(cmdID, _, cmdOpts)
 		return
 	end
 
-	if not cmdOpts.shift then
+	if returnToCategoriesOnPick or not cmdOpts.shift then
 		currentBuildCategory = nil
 		doUpdate = true
 	end
@@ -2150,7 +2152,11 @@ function SetBuildFacing()
 end
 
 function widget:KeyRelease(key)
-	if key == KEYSYMS.LSHIFT then
+	if key ~= KEYSYMS.LSHIFT then return end
+
+	if preGamestartPlayer then
+		setPreGamestartDefID(nil)
+	else
 		currentBuildCategory = nil
 		currentCategoryIndex = nil
 		doUpdate = true
@@ -2274,6 +2280,10 @@ function widget:MousePress(x, y, button)
 
 					if not shift then
 						setPreGamestartDefID(nil)
+					elseif returnToCategoriesOnPick then
+						currentBuildCategory = nil
+						currentCategoryIndex = nil
+						doUpdate = true
 					end
 				end
 

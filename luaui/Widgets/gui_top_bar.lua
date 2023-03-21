@@ -13,7 +13,6 @@ end
 
 local allowSavegame = true--Spring.Utilities.ShowDevUI()
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.6)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
@@ -195,6 +194,12 @@ end
 
 local numPlayers = Spring.Utilities.GetPlayerCount()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+
+local isSingle = false
+if not mySpecStatus then
+	local teamList = Spring.GetTeamList(myAllyTeamID) or {}
+	isSingle = #teamList == 1
+end
 
 local allyteamOverflowingMetal = false
 local allyteamOverflowingEnergy = false
@@ -741,7 +746,7 @@ local function updateResbarText(res)
 								else
 									--WG['notifications'].addEvent('YouAreWastingMetal')
 								end
-							else
+							elseif r[res][6] > 0.75 then	-- supress if you are deliberately overflowing by adjustingthe share slider down
 								WG['notifications'].addEvent('YouAreOverflowingMetal')
 							end
 						end
@@ -754,7 +759,7 @@ local function updateResbarText(res)
 								else
 									--WG['notifications'].addEvent('YouAreWastingEnergy')
 								end
-							else
+							elseif r[res][6] > 0.75 then	-- supress if you are deliberately overflowing by adjustingthe share slider down
 								--WG['notifications'].addEvent('YouAreOverflowingEnergy')	-- this annoys the fuck out of em and makes them build energystoages too much
 							end
 						end
@@ -938,31 +943,33 @@ local function updateResbar(res)
 		end
 
 		-- Share slider
-		if res == 'energy' then
-			eneryOverflowLevel = r[res][6]
-		else
-			metalOverflowLevel = r[res][6]
-		end
-		local value = r[res][6]
-		if draggingShareIndicator and draggingShareIndicatorValue[res] ~= nil then
-			value = draggingShareIndicatorValue[res]
-		else
-			draggingShareIndicatorValue[res] = value
-		end
-		shareIndicatorArea[res] = { math_floor(barArea[1] + (value * barWidth) - (shareSliderWidth / 2)), math_floor(barArea[2] - sliderHeightAdd), math_floor(barArea[1] + (value * barWidth) + (shareSliderWidth / 2)), math_floor(barArea[4] + sliderHeightAdd) }
-		local cornerSize
-		if not showQuitscreen and resbarHover ~= nil and resbarHover == res then
-			cornerSize = 2 * widgetScale
-		else
-			cornerSize = 1.33 * widgetScale
-		end
-		UiSliderKnob(math_floor(shareIndicatorArea[res][1]+((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2)), math_floor(shareIndicatorArea[res][2]+((shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2)), math_floor((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2), { 0.85, 0, 0, 1 })
+		if not isSingle then
+			if res == 'energy' then
+				eneryOverflowLevel = r[res][6]
+			else
+				metalOverflowLevel = r[res][6]
+			end
+			local value = r[res][6]
+			if draggingShareIndicator and draggingShareIndicatorValue[res] ~= nil then
+				value = draggingShareIndicatorValue[res]
+			else
+				draggingShareIndicatorValue[res] = value
+			end
+			shareIndicatorArea[res] = { math_floor(barArea[1] + (value * barWidth) - (shareSliderWidth / 2)), math_floor(barArea[2] - sliderHeightAdd), math_floor(barArea[1] + (value * barWidth) + (shareSliderWidth / 2)), math_floor(barArea[4] + sliderHeightAdd) }
+			local cornerSize
+			if not showQuitscreen and resbarHover ~= nil and resbarHover == res then
+				cornerSize = 2 * widgetScale
+			else
+				cornerSize = 1.33 * widgetScale
+			end
+			UiSliderKnob(math_floor(shareIndicatorArea[res][1]+((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2)), math_floor(shareIndicatorArea[res][2]+((shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2)), math_floor((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2), { 0.85, 0, 0, 1 })
 
-		if buttonBgtexOpacity > 0 then
-			gl.Texture(buttonBackgroundTexture)
-			gl.Color(1,1,1, buttonBgtexOpacity*0.7)
-			TexturedRectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1, 1, 1, 1, buttonBgtexSize*0.82, 0)
-			gl.Texture(false)
+			if buttonBgtexOpacity > 0 then
+				gl.Texture(buttonBackgroundTexture)
+				gl.Color(1,1,1, buttonBgtexOpacity*0.7)
+				TexturedRectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1, 1, 1, 1, buttonBgtexSize*0.82, 0)
+				gl.Texture(false)
+			end
 		end
 	end)
 
@@ -1095,7 +1102,7 @@ function init()
 	local totalWidth = topbarArea[3] - topbarArea[1]
 
 	-- metal
-	local width = math_floor(totalWidth / 4.25)
+	local width = math_floor(totalWidth / 4.4)
 	resbarArea['metal'] = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
 	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateResbar('metal')
@@ -1977,23 +1984,17 @@ function widget:MousePress(x, y, button)
 		end
 
 		if not spec then
-			if math_isInRect(x, y, shareIndicatorArea['metal'][1], shareIndicatorArea['metal'][2], shareIndicatorArea['metal'][3], shareIndicatorArea['metal'][4]) then
-				draggingShareIndicator = 'metal'
-			end
-			--if math_isInRect(x, y, resbarDrawinfo['metal'].barArea[1], shareIndicatorArea['metal'][2], resbarDrawinfo['metal'].barArea[3], shareIndicatorArea['metal'][4]) then
-			--	draggingShareIndicator = 'metal'
-			--	adjustSliders(x, y)
-			--end
-			if math_isInRect(x, y, shareIndicatorArea['energy'][1], shareIndicatorArea['energy'][2], shareIndicatorArea['energy'][3], shareIndicatorArea['energy'][4]) then
-				draggingShareIndicator = 'energy'
+			if not isSingle then
+				if math_isInRect(x, y, shareIndicatorArea['metal'][1], shareIndicatorArea['metal'][2], shareIndicatorArea['metal'][3], shareIndicatorArea['metal'][4]) then
+					draggingShareIndicator = 'metal'
+				end
+				if math_isInRect(x, y, shareIndicatorArea['energy'][1], shareIndicatorArea['energy'][2], shareIndicatorArea['energy'][3], shareIndicatorArea['energy'][4]) then
+					draggingShareIndicator = 'energy'
+				end
 			end
 			if draggingShareIndicator == nil and math_isInRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
 				draggingConversionIndicator = true
 			end
-			--if draggingConversionIndicator == nil and math_isInRect(x, y, resbarDrawinfo['energy'].barArea[1], shareIndicatorArea['energy'][2], resbarDrawinfo['energy'].barArea[3], shareIndicatorArea['energy'][4]) then
-			--	draggingShareIndicator = 'energy'
-			--	adjustSliders(x, y)
-			--end
 			if draggingShareIndicator or draggingConversionIndicator then
 				if playSounds then
 					Spring.PlaySoundFile(resourceclick, 0.7, 'ui')

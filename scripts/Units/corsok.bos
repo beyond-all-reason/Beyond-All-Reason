@@ -6,11 +6,11 @@
 piece  rmis, lmis, rlauncher, llauncher, flare, turret, wake, support, cannon,
        body, base;
 
-static-var  Static_Var_1, gun_3, bAiming;
+static-var  Static_Var_1, bAiming;
 
 // Signal definitions
 #define SIG_AIM				2
-#define SIG_AIM_3			4
+#define SIG_AIM_2			4
 #define SIG_MOVE			8
 #define SIG_IDLE			16
 
@@ -69,7 +69,6 @@ Create()
 	hide lmis;
 	cache body;
 	cache turret;
-	gun_3 = rmis;
 	bAiming = FALSE;
 	return (0);
 }
@@ -106,21 +105,9 @@ QueryPrimary(piecenum)
 	return (0);
 }
 
-QueryTertiary(piecenum)
-{
-	piecenum = gun_3;
-	return (0);
-}
-
 AimFromPrimary(piecenum)
 {
 	piecenum = turret;
-	return (0);
-}
-
-AimFromTertiary(piecenum)
-{
-	piecenum = body;
 	return (0);
 }
 
@@ -130,24 +117,6 @@ FirePrimary()
 	move cannon to z-axis [-10.00000] speed [1250.00000];
 	sleep 150;
 	move cannon to z-axis [0.00000] speed [7.50000];
-	return (0);
-}
-
-FireTertiary()
-{
-	if( gun_3 == 0 )
-	{
-		move rlauncher to z-axis [-3.75000] speed [500.00000];
-		sleep 450;
-		move rlauncher to z-axis [0.00000] speed [5.00000];
-	}
-	if( gun_3 == 1 )
-	{
-		move llauncher to z-axis [-3.75000] speed [500.00000];
-		sleep 450;
-		move llauncher to z-axis [0.00000] speed [5.00000];
-	}
-	gun_3 = !gun_3;
 	return (0);
 }
 
@@ -167,10 +136,28 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimTertiary(heading, pitch)
+QuerySecondary(piecenum)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	piecenum = base;
+	return (0);
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+FireSecondary()
+{	
+	return (0);
+}
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	start-script RestoreAfterDelay();
 	return (1);
 }
 

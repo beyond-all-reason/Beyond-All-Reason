@@ -156,7 +156,7 @@ local originalColourNames = {} -- loaded in SetOriginalColourNames, format is or
 local apiAbsPosition = { 0, 0, 0, 0, 1, 1, false }
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)*0.0039, Spring.GetConfigInt("anonymousColorG", 0)*0.0039, Spring.GetConfigInt("anonymousColorB", 0)*0.0039}
+local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 --------------------------------------------------------------------------------
 -- Colors
@@ -2588,7 +2588,7 @@ function DrawName(name, team, posY, dark, playerID)
         font2:Print( nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
     end
 
-    if player[playerID] and player[playerID].incomeMultiplier and player[playerID].incomeMultiplier > 1 then
+    if player[playerID] and not player[playerID].dead and player[playerID].incomeMultiplier and player[playerID].incomeMultiplier > 1 then
         font2:SetTextColor(0.5,1,0.5,1)
         font2:Print('+'..math.floor((player[playerID].incomeMultiplier-1)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14), posY + 5.7 , 8, "o")
     end
@@ -2614,7 +2614,6 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
     local ignored = WG.ignoredPlayers and WG.ignoredPlayers[name]
 
     local textindent = 4
-    local explayerindent = -3
     if m_indent.active or m_rank.active or m_side.active or m_ID.active then
         textindent = 0
     end

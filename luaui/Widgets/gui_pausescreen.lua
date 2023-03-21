@@ -224,11 +224,13 @@ local function drawPause()
 	end
 
 	--draw text
-	font:Begin()
-	font:SetOutlineColor(outline)
-	font:SetTextColor(text)
-	font:Print(Spring.I18N('ui.pauseScreen.paused'), textX, textY, fontSizeHeadline, "O")
-	font:End()
+	if not gameover then
+		font:Begin()
+		font:SetOutlineColor(outline)
+		font:SetTextColor(text)
+		font:Print(Spring.I18N('ui.pauseScreen.paused'), textX, textY, fontSizeHeadline, "O")
+		font:End()
+	end
 
 	glPopMatrix()
 end

@@ -66,7 +66,7 @@ local sounds = {
 local continuouslyClean = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
---local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)*0.0039, Spring.GetConfigInt("anonymousColorG", 0)*0.0039, Spring.GetConfigInt("anonymousColorB", 0)*0.0039}
+--local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -854,7 +854,7 @@ function widget:RecvLuaMsg(msg, playerID)
 				pauseGameWhenSingleplayerExecuted = chobbyInterface
 			end
 			if not chobbyInterface then
-				Spring.SetConfigInt('VSync', Spring.GetConfigInt("VSyncGame", 0))
+				Spring.SetConfigInt('VSync', Spring.GetConfigInt("VSyncGame", -1))
 			end
 		end
 	end
@@ -1649,6 +1649,7 @@ function init()
 	local currentDisplay = 1
 	local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
 	local displayNames = {}
+	local hasMultiDisplayOption = false
 	for index, display in ipairs(displays) do
 		if display.width > 0 then
 			displayNames[index] = index..":  "..display.name .. " " .. display.width .. " × " .. display.height .. "  (" .. display.hz.."hz)"
@@ -1657,6 +1658,7 @@ function init()
 			end
 		elseif devMode then -- advSettings
 			displayNames[index] = display.name
+			hasMultiDisplayOption = true
 		end
 	end
 	local selectedDisplay = currentDisplay
@@ -1668,6 +1670,13 @@ function init()
 			resolutionNames[#resolutionNames+1] = screenMode.name
 		elseif #resolutionNames == 0 then
 			screenmodeOffset = screenmodeOffset + 1
+		end
+	end
+
+	-- only allow dualscreen-mode on single displays when super ultrawide screen or Multi Display option shows
+	if (#displayNames <= 1 and vsx / vsy < 2.5) or (#displayNames > 1 and #displayNames == Spring.GetNumDisplays()) then
+		if Spring.GetConfigInt("DualScreenMode", 0) ~= 0 then
+			Spring.SetConfigInt("DualScreenMode", 0)
 		end
 	end
 
@@ -1830,9 +1839,9 @@ function init()
 			  Spring.SetConfigInt("DualScreenMiniMapAspectRatio", value and 1 or 0)
 		  end,
 		},
-		{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync,  type = "select", options = { 'off', 'enabled', 'adaptive'}, value = 1, description = texts.option.vsync_descr,
+		{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync,  type = "select", options = { 'off', 'enabled', 'adaptive'}, value = 2, description = texts.option.vsync_descr,
 		  onload = function(i)
-			  local vsync =  Spring.GetConfigInt("VSyncGame", 0)
+			  local vsync = Spring.GetConfigInt("VSyncGame", -1)
 			  if vsync == 1 then
 			  	options[getOptionByID('vsync')].value = 2
 			  elseif vsync == -1 then
@@ -1840,7 +1849,6 @@ function init()
 			  else
 				options[getOptionByID('vsync')].value = 1
 			  end
-			  Spring.SetConfigInt("VSyncGame", vsync)
 		  end,
 		  onchange = function(i, value)
 			  local vsync = 0
@@ -2185,8 +2193,8 @@ function init()
 		},
 		{ id = "decals", group = "gfx", category = types.basic, name = texts.option.decals, restart = true, min = 0, max = 5, step = 1, type = "slider", value = Spring.GetConfigInt("GroundDecals", 0), description = texts.option.decals_descr,
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("GroundDecals", value)
-			  Spring.SendCommands("GroundDecals " .. value)
+			  Spring.SetConfigInt("GroundDecals", (value and 1 or 0))
+			  Spring.SendCommands("GroundDecals " .. (value and 1 or 0))
 		  end,
 		},
 		--{ id = "decals", group = "gfx", category = types.advanced, name = texts.option.decals, restart = true, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 3) or 3) >= 1, description = texts.option.decals_descr,
@@ -2442,6 +2450,14 @@ function init()
 		{ id = "soundtrackInterruption", group = "sound", category = types.basic, name = texts.option.soundtrackinterruption, type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = texts.option.soundtrackinterruption_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackInterruption', value and 1 or 0)
+				if WG['music'] and WG['music'].RefreshSettings then
+					WG['music'].RefreshSettings()
+				end
+			end
+		},
+		{ id = "soundtrackFades", group = "sound", category = types.basic, name = texts.option.soundtrackfades, type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = texts.option.soundtrackfades_descr,
+			onchange = function(i, value)
+				Spring.SetConfigInt('UseSoundtrackFades', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshSettings then
 					WG['music'].RefreshSettings()
 				end
@@ -5066,7 +5082,7 @@ function init()
 		detectWater()
 
 		-- set vsync
-		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", 0))
+		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
 
 		-- disable old cus
 		if Spring.GetConfigInt("cus", 0) == 1 then
@@ -5081,6 +5097,13 @@ function init()
 	if #displayNames <= 1 then
 		options[getOptionByID('display')] = nil
 		options[getOptionByID('resolution')].name = texts.option.resolution
+	end
+
+	-- only allow dualscreen-mode on single displays when super ultrawide screen or Multi Display option shows
+	if (#displayNames <= 1 and vsx / vsy < 2.5) or (#displayNames > 1 and #displayNames == Spring.GetNumDisplays()) then
+		options[getOptionByID('dualmode_enabled')] = nil
+		options[getOptionByID('dualmode_left')] = nil
+		options[getOptionByID('dualmode_minimap_aspectratio')] = nil
 	end
 
 	-- reduce options for potatoes
@@ -5398,6 +5421,7 @@ function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 end
 
 function widget:Initialize()
+
 	-- disable ambient player widget
 	if widgetHandler:IsWidgetKnown("Ambient Player") then
 		widgetHandler:DisableWidget("Ambient Player")
@@ -5487,6 +5511,9 @@ function widget:Initialize()
 			Spring.SetConfigInt("MaxParticles", minMaxparticles)
 			Spring.Echo('First time setup:  setting MaxParticles config value to ' .. minMaxparticles)
 		end
+
+		Spring.SetConfigInt("CamMode", 3)
+		Spring.SendCommands('viewspring')
 	end
 
 	Spring.SetConfigFloat("CamTimeFactor", 1)
@@ -5528,6 +5555,13 @@ function widget:Initialize()
 		if Spring.GetConfigInt("MSAALevel", 0) > 8 then
 			Spring.SetConfigInt("MSAALevel", 8)
 		end
+	end
+
+	-- make sure vertical angle is proper (not horizontal view)
+	if Spring.GetGameFrame() == 0 and (Spring.GetConfigInt("CamMode", 2) == 2 or Spring.GetConfigInt("CamMode", 2) == 3) then
+		local cameraState = Spring.GetCameraState()
+		cameraState.rx = 2.6
+		Spring.SetCameraState(cameraState, 0.1)
 	end
 
 	-- make sure fog-start is smaller than fog-end in case maps have configured it this way

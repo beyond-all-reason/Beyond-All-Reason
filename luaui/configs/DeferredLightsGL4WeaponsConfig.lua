@@ -523,6 +523,10 @@ AssignLightsToAllWeapons()
 
 -----------------Manual Overrides--------------------
 
+--corforge
+projectileDefLights[WeaponDefNames["corforge_flamethrower_ce"].id] =
+GetLightClass("FlameProjectile", "Fire", "Micro", {r = 1, a = 0.02791886, g = 0.94, b = 0.88})
+
 --armthor
 explosionLights[WeaponDefNames["armthor_thunder"].id] =
 GetLightClass("Explosion", nil, "Smallish", {r = 1.5, g = 1.5, b = 1.5, a = 0.08, radius = 120,

@@ -28,9 +28,6 @@ end
 Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
 Spring.SetConfigInt("CubeTexSizeReflection", 1024)
 
--- Allow minimap to flip on camera rotation
-Spring.SetConfigInt("MiniMapCanFlip", 0)
-
 -- disable grass
 Spring.SetConfigInt("GrassDetail", 0)
 
@@ -130,7 +127,7 @@ end
 Spring.SetConfigInt("UnitIconFadeVanish", Spring.GetConfigInt("UnitIconFadeStart", 3000))
 
 -- change some default value(s), upp the version and set what needs to be set
-local version = 2
+local version = 3
 if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("version", version)
 
@@ -140,10 +137,7 @@ if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("UnitIconFadeVanish", 3000)
 	Spring.SetConfigInt("UnitIconFadeStart", 3000)
 	Spring.SetConfigInt("UnitIconsHideWithUI", 1)
-end
 
-version = 3
-if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("version", version)
 
 	if Spring.GetConfigInt("UnitIconFadeVanish", 2700) < 2700 then
@@ -152,7 +146,13 @@ if Spring.GetConfigInt("version", 0) < version then
 	if Spring.GetConfigInt("UnitIconFadeStart", 3000) < 3000 then
 		Spring.SetConfigInt("UnitIconFadeVanish", 3000)
 	end
+
+	Spring.SetConfigInt("VSyncGame", -1)
+
+	Spring.SetConfigInt("CamMode", 3)
 end
+
+Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
 
 -- Configure sane keychain settings, this is to provide a standard experience
 -- for users that is acceptable

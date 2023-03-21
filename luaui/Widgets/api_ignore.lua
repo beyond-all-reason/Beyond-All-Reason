@@ -25,7 +25,7 @@ local specColStr = "\255\255\255\1"
 local whiteStr = "\255\255\255\1"
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = {1,0,0}
+local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 function CheckPIDs()
 	local playerList = Spring.GetPlayerList()

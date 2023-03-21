@@ -350,9 +350,16 @@ end
 
 local function updateFade()
 	if fadeDirection then
-		fadeLevel = fadeLevel + fadeChange()
+		if Spring.GetConfigInt("UseSoundtrackFades", 1) == 1 then
+			fadeLevel = fadeLevel + fadeChange()
+		else
+			if fadeDirection < 0 then
+				fadeLevel = 0
+			elseif fadeDirection > 0 then
+				fadeLevel = 100
+			end
+		end
 		setMusicVolume(fadeLevel)
-
 		if fadeDirection < 0 and fadeLevel <= 0 then
 			fadeDirection = nil
 			if fadeOutSkipTrack then
@@ -1033,7 +1040,7 @@ function widget:GameFrame(n)
 						or (currentTrackListString == "warLow" and warMeter <= warLowLevel * 0.5 )) then -- WarLow music is playing, but it has been quite peaceful recently. Let's switch to peace music at 50% of WarLow threshold
 							fadeDirection = -2
 							fadeOutSkipTrack = true
-					elseif playedTime >= totalTime - 12 then
+					elseif (playedTime >= totalTime - 12 and Spring.GetConfigInt("UseSoundtrackFades", 1) == 1) then
 						fadeDirection = -1
 					end
 				end

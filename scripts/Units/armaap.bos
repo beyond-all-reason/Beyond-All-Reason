@@ -151,16 +151,16 @@ Create()
 	hide nano3;
 	hide nano4;
 	hide pad;
-	spin dish around y-axis speed <60>;
 	unitviewer = FALSE;
 	spray = nano1;
 	call-script InitState();
 	start-script Standby();
-	start-script Lights();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
 	}
+	spin dish around y-axis speed <60>;
+	start-script Lights();
 }
 
 

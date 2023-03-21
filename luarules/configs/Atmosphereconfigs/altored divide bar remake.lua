@@ -18,17 +18,17 @@ function gadget:GameFrame(n)
 	end
 
 -- SND geos
-	if n%560 == 0 then
-		SpawnCEGInPositionGround("noceg", 2525, 300, 5383, _, _, _, "geovent", 0.5)
+	if n%120 == 0 then
+		SpawnCEGInPositionGround("noceg", 2525, 300, 5383, _, _, _, "geoventshort", 0.5)
 	end
-	if n%560 == 30 then
-		SpawnCEGInPositionGround("noceg", 4992, 300, 3885, _, _, _, "geovent", 0.5)
+	if n%120 == 30 then
+		SpawnCEGInPositionGround("noceg", 4992, 300, 3885, _, _, _, "geoventshort", 0.5)
 	end
-	if n%560 == 60 then
-		SpawnCEGInPositionGround("noceg", 5420, 300, 2693, _, _, _, "geovent", 0.5)
+	if n%120 == 60 then
+		SpawnCEGInPositionGround("noceg", 5420, 300, 2693, _, _, _, "geoventshort", 0.5)
 	end
-	if n%560 == 15 then
-		SpawnCEGInPositionGround("noceg", 2513, 300, 3967, _, _, _, "geovent", 0.5)
+	if n%120 == 15 then
+		SpawnCEGInPositionGround("noceg", 2513, 300, 3967, _, _, _, "geoventshort", 0.5)
 	end
 
 -- ## Atmosphere Functions

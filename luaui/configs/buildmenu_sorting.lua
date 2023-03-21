@@ -57,6 +57,7 @@ local unitOrderTable = {
 	['corfast']        = 003200,
 
 	['armconsul']      = 003300, --VEH
+	['corforge']       = 003350, --VEH
 
 	['armmls']         = 003400, --SHIP
 	['cormls']         = 003500, --SHIP

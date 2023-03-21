@@ -49,5 +49,5 @@ globals = {
     -- Libs
     -- "LCS", "Path", "Table", "Log", "String", "Shaders", "Time", "Array", "StartScript",
 
-    "CMDTYPE", "COBSCALE", "CallAsTeam", "SYNCED", "snext", "spairs", "sipairs", "loadlib",
+    "CMDTYPE", "COBSCALE", "CallAsTeam", "SYNCED", "loadlib",
 }

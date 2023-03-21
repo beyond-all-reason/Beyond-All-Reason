@@ -6,7 +6,7 @@
 piece  lflare, rflare, turret, wake, barrelcon, lbarrel, rbarrel, launch, lrocket,
        rrocket, base;
 
-static-var  Static_Var_1, gun_1, gun_2, bAiming, restore_delay;
+static-var  Static_Var_1, gun_1, bAiming, restore_delay;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -73,7 +73,6 @@ Create()
 	move rflare to z-axis [6] now;
 	bAiming = FALSE;
 	gun_1 = lflare;
-	gun_2 = lflare;
 	hide lrocket;
 	hide rrocket;
 	hide launch;
@@ -161,48 +160,29 @@ QueryPrimary(piecenum)
 	return (0);
 }
 
-AimSecondary(heading, pitch)
+QuerySecondary(piecenum)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
-	bAiming = TRUE;
-	turn launch to x-axis <-40.00000> speed <50.00000>;
-	wait-for-turn launch around x-axis;
-	start-script RestoreSecondary();
-	return (1);
-}
-
-FireSecondary()
-{
-	if( gun_2 == 0 )
-	{
-		gun_2 = rflare;
-		return (0);
-	}
-	if( gun_2 == 1 )
-	{
-		gun_2 = lflare;
-		return (0);
-	}
+	piecenum = base;
+	return (0);
 }
 
 AimFromSecondary(piecenum)
 {
-	piecenum = launch;
+	piecenum = base;
 	return (0);
 }
 
-QuerySecondary(piecenum)
-{
-	if( gun_2 == 0 )
-	{
-		piecenum = lrocket;
-	}
-	if( gun_2 == 1 )
-	{
-		piecenum = rrocket;
-	}
+FireSecondary()
+{	
 	return (0);
+}
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	start-script RestoreAfterDelay();
+	return (1);
 }
 
 SweetSpot(piecenum)
