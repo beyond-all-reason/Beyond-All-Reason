@@ -1054,6 +1054,10 @@ function WeaponDef_Post(name, wDef)
 		-- wDef.targetborder = 1.0
 
 		if wDef.weapontype == "Cannon" then
+			if not wDef.model then -- do not cast shadows on plasma shells
+				wDef.castshadow = false
+			end
+
 			if wDef.stages == nil then
 				wDef.stages = 10
 				if wDef.damage ~= nil and wDef.damage.default ~= nil and wDef.areaofeffect ~= nil then
