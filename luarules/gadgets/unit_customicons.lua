@@ -463,6 +463,7 @@ local units = {
 	corfmd = { "antinuke.png", 1.67999995 },
 	corfmine3 = { "mine.png", 0.55649996 },
 	corfmkr = { "metalmaker_t1_0.75.png", 0.78749996 },
+	corforge = { "cor_t2_flameworker.png", 1.45 },
 	corfort = { "wall_0.4.png", 0.41999999 },
 	corfrad = { "radar_t1_0.9.png", 0.94499993 },
 	corfrock = { "aa.png", 0.89249998 },

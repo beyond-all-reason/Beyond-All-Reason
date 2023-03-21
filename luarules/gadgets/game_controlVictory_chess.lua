@@ -289,6 +289,7 @@ local landUnitsList = {
                 "armcroc",
                 "armmerl",
                 "armbull",
+				--"corforge",
                 "cormart",
                 --"corsent",
                 "corseal",

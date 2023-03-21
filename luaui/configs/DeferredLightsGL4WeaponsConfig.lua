@@ -407,6 +407,10 @@ local function AssignLightsToAllWeapons()
 		elseif weaponDef.type == 'Flame' then
 			--sizeclass = "Small"
 			sizeclass = GetClosestSizeClass(radius*3)
+			--sizeclass = "Micro"
+			if weaponDef.customparams.sizeclass_GL4 then
+				sizeclass = weaponDef.customparams.sizeclass_GL4
+			end
 			t.a = orgMult*0.17
 			projectileDefLights[weaponID] = GetLightClass("FlameProjectile", "Fire", sizeclass, t)
 		end
