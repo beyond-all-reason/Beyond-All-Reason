@@ -37,7 +37,7 @@ return {
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/chicken_artillery_meteor_v2.s3o",
-		script = "Chickens/chicken_artillery_xl_v2.cob",
+		script = "Chickens/chicken_artillery_v2.cob",
 		seismicsignature = 0,
 		selfdestructas = "LOBBER_MORPH",
 		side = "THUNDERBIRDS",
