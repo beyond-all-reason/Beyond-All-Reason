@@ -56,24 +56,20 @@ function addon.Initialize()
 		if #musicPlaylist == 0 or math.random(0,3) == 0 then
 			if originalSoundtrackEnabled == 1 then
 				local musicDirOriginal 		= 'music/original'
-				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/warhigh', '*.ogg'))
-				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/warlow', '*.ogg'))
+				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/peace', '*.ogg'))
 			end
 
 			-- Legacy Soundtrack List
 			if legacySoundtrackEnabled == 1 then
 				local musicDirLegacy 		= 'music/legacy'
-				table.append(musicPlaylist, VFS.DirList(musicDirLegacy..'/warhigh', '*.ogg'))
-				table.append(musicPlaylist, VFS.DirList(musicDirLegacy..'/warlow', '*.ogg'))
+				table.append(musicPlaylist, VFS.DirList(musicDirLegacy..'/peace', '*.ogg'))
 			end
 
 			-- Custom Soundtrack List
 			if customSoundtrackEnabled == 1 then
 				local musicDirCustom 		= 'music/custom'
 				table.append(musicPlaylist, VFS.DirList(musicDirCustom, '*.ogg'))
-				table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/warhigh', '*.ogg'))
-				table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/warlow', '*.ogg'))
-				table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/war', '*.ogg'))
+				table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/peace', '*.ogg'))
 			end
 		end
 
