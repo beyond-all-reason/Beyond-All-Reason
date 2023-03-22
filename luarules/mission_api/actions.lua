@@ -25,72 +25,37 @@ local actionTypes = {
 	Defeat = 24,
 }
 
-local parameters = {
-	[actionTypes.EnableTrigger] = { 'triggerId' },
-	[actionTypes.DisableTrigger] = {  },
-	[actionTypes.IssueOrders] = {  },
-	[actionTypes.AllowCommands] = {  },
-	[actionTypes.RestrictCommands] = {  },
-	[actionTypes.AlterBuildlist] = {  },
-	[actionTypes.EnableBuildOption] = {  },
-	[actionTypes.DisableBuildOption] = {  },
-	[actionTypes.SpawnUnits] = {  },
-	[actionTypes.SpawnConstruction] = {  },
-	[actionTypes.DespawnUnits] = {  },
-	[actionTypes.SpawnWeapons] = {  },
-	[actionTypes.SpawnEffects] = {  },
-	[actionTypes.RevealLOS] = {  },
-	[actionTypes.UnrevealLOS] = {  },
-	[actionTypes.AlterMapZones] = {  },
-	[actionTypes.TransferUnits] = {  },
-	[actionTypes.ControlCamera] = {  },
-	[actionTypes.Pause] = {  },
-	[actionTypes.Unpause] = {  },
-	[actionTypes.PlayMedia] = {  },
-	[actionTypes.SendMessage] = {  },
-	[actionTypes.Victory] = {  },
-	[actionTypes.Defeat] = {  },
-}
-
---[[
-	actionId = {
-		type = actionTypes.EnableTrigger,
-		parameters = {
-			triggerId = 'triggerId'
-		}
-	}
-]]
-
 local actions = {}
 
-local function prevalidateActions()
-	for actionId, action in pairs(actions) do
-		if not action.type then
-			Spring.Log('actions.lua', LOG.ERROR, "[Mission API] Action missing type: " .. actionId)
-		end
+local function addAction(id, type, ...)
+	local action = {
+		type = type,
+		parameters = ...,
+	}
 
-		for _, parameter in pairs(parameters[action.type]) do
-			if action.parameters[parameter] == nil then
-				Spring.Log('actions.lua', LOG.ERROR, "[Mission API] Action missing required parameter. Action: " .. actionId .. ", Parameter: " .. parameter)
-			end
-		end
-	end
+	actions[id] = action
 end
 
-local function preprocessRawActions(rawActions)
-	for actionId, rawAction in pairs(rawActions) do	
-		actions[actionId] = table.copy(rawAction)
-	end
+local function addEnableTriggerAction(id, triggerId)
+	addAction(id, actionTypes.EnableTrigger, triggerId)
+end
 
-	prevalidateActions()
+local function addSendMessageAction(id, message)
+	addAction(id, actionTypes.SendMessage, message)
 end
 
 local function getActions()
 	return actions
 end
 
+--example usage
+--[[
+AddEnableTriggerAction('monitorSea', 'builtSonar')
+]]
+
 return {
 	Types = actionTypes,
 	GetActions = getActions,
-	PreprocessRawActions = preprocessRawActions,
+	AddEnableTriggerAction = addEnableTriggerAction,
+	AddSendMessageAction = addSendMessageAction,
 }

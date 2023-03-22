@@ -1,5 +1,5 @@
-local types = GG['MissionAPI'].ActionsController.Types
-local actions = GG['MissionAPI'].Actions
+local types = GG['c5b27dc'].ActionsController.Types
+local actions = GG['c5b27dc'].ActionsController.GetActions
 
 local function sendMessage(message)
 	Spring.Echo(message)
