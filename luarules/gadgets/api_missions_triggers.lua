@@ -8,6 +8,10 @@ function gadget:GetInfo()
 	}
 end
 
+if not gadgetHandler:IsSyncedCode() then
+	return
+end
+
 local types, timeTypes, unitTypes, featureTypes, gameTypes
 local triggers, timeTriggers, unitTriggers, featureTriggers, gameTriggers
 
