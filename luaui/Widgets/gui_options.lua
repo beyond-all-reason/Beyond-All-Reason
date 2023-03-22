@@ -2911,7 +2911,7 @@ function init()
 			  saveOptionValue('Grid menu', 'buildmenu', 'setBottomPosition', { 'stickToBottom' }, value)
 		  end,
 		},
-		{ id = "gridmenu", group = "ui", category = types.advanced, name = widgetOptionColor.."   " .. texts.option.gridmenu, type = "bool", value = GetWidgetToggleValue("Grid menu"), description = texts.option.gridmenu_descr,
+		{ id = "gridmenu", group = "ui", category = types.basic, name = widgetOptionColor.."   " .. texts.option.gridmenu, type = "bool", value = GetWidgetToggleValue("Grid menu"), description = texts.option.gridmenu_descr,
 		  onchange = function(i, value)
 			  if value then
 				  widgetHandler:DisableWidget('Build menu')
