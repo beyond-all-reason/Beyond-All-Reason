@@ -1175,7 +1175,7 @@
 				"idlebuilders": "Idle builders",
 				"idlebuilders_descr": "Displays a row of idle builder units at the bottom of the screen",
 				"buildbar": "Factory dock",
-				"buildbar_descr": "Displays a column of factories on the right side of the screen\nhover and click units to quickly add to the factory queue",
+				"buildbar_descr": "Displays a column of factories at the right side of the screen\nhover and click units to quickly add to the factory queue",
 				"converterusage": "Energy Converter usage",
 				"converterusage_descr": "Displays the current energy->metal converter usage at the top of the screen",
 				"teamplatter": "Unit team platters",
