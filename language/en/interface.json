@@ -1000,7 +1000,7 @@
 				"doubleclicktime": "Double-click time",
 				"crossalpha": "Cursor 'cross' alpha",
 				"crossalpha_descr": "Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(The'icon' has a dot in center with 4 arrows pointing in all directions)",
-				"middleclicktoggle": "Middle click toggles camera move",
+				"middleclicktoggle": "Middle-click toggles camera move",
 				"middleclicktoggle_descr": "Enable camera pan toggle via single middle mouse click",
 				"containmouse": "Contain mouse",
 				"containmouse_descr": "When in windowed mode, this prevents your mouse from moving out of it",
