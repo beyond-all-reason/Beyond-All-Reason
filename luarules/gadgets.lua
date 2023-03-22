@@ -409,7 +409,7 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 		Spring.Log(LOG_SECTION, LOG.ERROR, 'Failed to load: ' .. basename .. '  (' .. err .. ')')
 		return nil
 	end
-	if err == false then
+	if err == false then -- note that all "normal" gadgets return `nil` implicitly at EOF, so don't do "if not err"
 		return nil -- gadget asked for a quiet death
 	end
 
