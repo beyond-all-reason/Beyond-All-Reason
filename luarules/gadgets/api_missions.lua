@@ -9,7 +9,7 @@ function gadget:GetInfo()
 end
 
 if not gadgetHandler:IsSyncedCode() then
-	return
+	return false
 end
 
 local function loadMission()
