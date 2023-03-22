@@ -5,7 +5,7 @@
 			"armyDiversity": "Think ahead and include anti-air and support units in your army.",
 			"assistFactories": "It is efficient to support a factory with constructors, increasing its build-power.\nSelect constructors and right-click on the factory to Guard it.",
 			"autogroups": "Use ALT+(0-9) to assign selected unit type(s) to autogroups. Newly built units of the same type(s) will get automatically added to their autogroup. ALT+Backquote (`) removes units.",
-			"buildingHotkeys": "Mastering hotkeys is the key to proficiency.\nUse Z, X, C, V to quickly cycle between the most frequently built structures.",
+			"buildingHotkeys": "Mastering hotkeys is the key to proficiency.\nUse Z,X,C,V to quickly cycle between the most frequently built structures.",
 			"completelyDisappear": "Combine Cloak with radar jamming to completely hide your units.",
 			"destroyFighters":"Build long range anti-air on an extended front line to slowly dismantle the enemy's fighter-wall.",
 			"dGun": "Commanders have a manual D-Gun weapon, which disintegrates every unit with one shot.\nPress D to quickly initiate aiming.",
