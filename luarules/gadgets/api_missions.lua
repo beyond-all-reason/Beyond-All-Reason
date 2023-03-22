@@ -14,8 +14,7 @@ end
 
 local function loadMission()
 	-- TODO: Actually pass script path in modoptions
-	local missionSettings = Spring.GetModOptions().mission_path
-	local scriptPath = missionSettings.path
+	local scriptPath = 'test_mission.lua'-- Spring.GetModOptions().mission_path
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
