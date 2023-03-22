@@ -30,20 +30,20 @@ end
 -- invoke actions
 
 function gadget:Initialize()
-	GG['c5b27dc'] = {}
-	GG['c5b27dc'].TriggersController = VFS.Include('luarules/configs/scenarioscripts/API/triggers.lua')
-	GG['c5b27dc'].ActionsController = VFS.Include('luarules/configs/scenarioscripts/API/actions.lua')
-	GG['c5b27dc'].ActionsDispatcher = VFS.Include('luarules/configs/scenarioscripts/API/actions_dispatcher.lua')
-	GG['c5b27dc'].Difficulty = Spring.GetModOptions().mission_difficulty --TODO: add mission difficulty modoption
+	GG['MissionAPI'] = {}
+	GG['MissionAPI'].TriggersController = VFS.Include('luarules/mission_api/triggers.lua')
+	GG['MissionAPI'].ActionsController = VFS.Include('luarules/mission_api/actions.lua')
+	GG['MissionAPI'].ActionsDispatcher = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
+	GG['MissionAPI'].Difficulty = Spring.GetModOptions().mission_difficulty --TODO: add mission difficulty modoption
 
 	loadMission();
 	-- loading the mission script needs to populate the global triggers and actions tables
 
 	-- load triggers into table(s)
-	GG['c5b27dc'].Triggers = GG['c5b27dc'].TriggersController.GetTriggers()
-	GG['c5b27dc'].Actions = GG['c5b27dc'].ActionsController.GetActions()
+	GG['MissionAPI'].Triggers = GG['MissionAPI'].TriggersController.GetTriggers()
+	GG['MissionAPI'].Actions = GG['MissionAPI'].ActionsController.GetActions()
 end
 
 function gadget:Shutdown()
-	GG['c5b27dc'] = nil
+	GG['MissionAPI'] = nil
 end
