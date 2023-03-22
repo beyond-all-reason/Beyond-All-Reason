@@ -131,6 +131,7 @@
 		{       "Ctrl+sc_s", "canceltarget"    },
 		{            "sc_t", "repeat"          },
 		{      "Shift+sc_t", "repeat"          },
+		{       "Ctrl+sc_t", "toggleoverview"  },
 		{            "sc_u", "unloadunits"     },
 		{      "Shift+sc_u", "unloadunits"     },
 		{            "sc_w", "resurrect"       },
@@ -146,6 +147,7 @@
 
 		{ "Ctrl+f5", "viewta"                 },
 		{ "Ctrl+f6", "viewspring"             },
+		{ "Ctrl+f7", "HideInterface"          },
 		{ "Any+f5" , "LastMsgPos"             },
 		{ "Any+f6" , "ShowPathTraversability" },
 		{ "Any+f7" , "ShowMetalMap"           },

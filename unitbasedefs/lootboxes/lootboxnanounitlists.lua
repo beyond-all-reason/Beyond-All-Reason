@@ -103,6 +103,7 @@ return {
 		"armcroc",
 		"armmerl",
 		"armbull",
+		"corforge",
 		"cormart",
 		"corsent",
 		"corseal",

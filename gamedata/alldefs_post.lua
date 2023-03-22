@@ -419,6 +419,7 @@ function UnitDef_Post(name, uDef)
 		elseif name == "coravp" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
+			uDef.buildoptions[numBuildoptions+2] = "corforge"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
@@ -1054,6 +1055,10 @@ function WeaponDef_Post(name, wDef)
 		-- wDef.targetborder = 1.0
 
 		if wDef.weapontype == "Cannon" then
+			if not wDef.model then -- do not cast shadows on plasma shells
+				wDef.castshadow = false
+			end
+
 			if wDef.stages == nil then
 				wDef.stages = 10
 				if wDef.damage ~= nil and wDef.damage.default ~= nil and wDef.areaofeffect ~= nil then

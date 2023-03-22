@@ -854,7 +854,7 @@ function widget:RecvLuaMsg(msg, playerID)
 				pauseGameWhenSingleplayerExecuted = chobbyInterface
 			end
 			if not chobbyInterface then
-				Spring.SetConfigInt('VSync', Spring.GetConfigInt("VSyncGame", 0))
+				Spring.SetConfigInt('VSync', Spring.GetConfigInt("VSyncGame", -1))
 			end
 		end
 	end
@@ -1839,9 +1839,9 @@ function init()
 			  Spring.SetConfigInt("DualScreenMiniMapAspectRatio", value and 1 or 0)
 		  end,
 		},
-		{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync,  type = "select", options = { 'off', 'enabled', 'adaptive'}, value = 1, description = texts.option.vsync_descr,
+		{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync,  type = "select", options = { 'off', 'enabled', 'adaptive'}, value = 2, description = texts.option.vsync_descr,
 		  onload = function(i)
-			  local vsync =  Spring.GetConfigInt("VSyncGame", 0)
+			  local vsync = Spring.GetConfigInt("VSyncGame", -1)
 			  if vsync == 1 then
 			  	options[getOptionByID('vsync')].value = 2
 			  elseif vsync == -1 then
@@ -1849,7 +1849,6 @@ function init()
 			  else
 				options[getOptionByID('vsync')].value = 1
 			  end
-			  Spring.SetConfigInt("VSyncGame", vsync)
 		  end,
 		  onchange = function(i, value)
 			  local vsync = 0
@@ -2912,7 +2911,7 @@ function init()
 			  saveOptionValue('Grid menu', 'buildmenu', 'setBottomPosition', { 'stickToBottom' }, value)
 		  end,
 		},
-		{ id = "gridmenu", group = "ui", category = types.advanced, name = widgetOptionColor.."   " .. texts.option.gridmenu, type = "bool", value = GetWidgetToggleValue("Grid menu"), description = texts.option.gridmenu_descr,
+		{ id = "gridmenu", group = "ui", category = types.basic, name = widgetOptionColor.."   " .. texts.option.gridmenu, type = "bool", value = GetWidgetToggleValue("Grid menu"), description = texts.option.gridmenu_descr,
 		  onchange = function(i, value)
 			  if value then
 				  widgetHandler:DisableWidget('Build menu')
@@ -5083,7 +5082,7 @@ function init()
 		detectWater()
 
 		-- set vsync
-		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", 0))
+		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
 
 		-- disable old cus
 		if Spring.GetConfigInt("cus", 0) == 1 then
@@ -5559,7 +5558,7 @@ function widget:Initialize()
 	end
 
 	-- make sure vertical angle is proper (not horizontal view)
-	if Spring.GetGameFrame() == 0 and (Spring.SetConfigInt("CamMode", 2) == 2 or Spring.SetConfigInt("CamMode", 2) == 3) then
+	if Spring.GetGameFrame() == 0 and (Spring.GetConfigInt("CamMode", 2) == 2 or Spring.GetConfigInt("CamMode", 2) == 3) then
 		local cameraState = Spring.GetCameraState()
 		cameraState.rx = 2.6
 		Spring.SetCameraState(cameraState, 0.1)
