@@ -298,10 +298,10 @@ local soundData = {
 		gain = 0.8,
 		pitchmod = 0.22,
 		gainmod  = 0,
-		dopplerscale = 1.0,
+		dopplerscale = 8.0,
 		maxconcurrent = 10,
-		rolloff = 1.6,
-		maxdist = 10000,
+		rolloff = 0.7,
+		--maxdist = 10000,
 	},
 
 	-- AMBIENCE LOCAL
@@ -309,10 +309,10 @@ local soundData = {
 		gain = 0.8,
 		pitchmod = 0.22,
 		gainmod  = 0,
-		dopplerscale = 1.0,
+		dopplerscale = 4.0,
 		maxconcurrent = 10,
-		rolloff = 1.6,
-		maxdist = 3000,
+		rolloff = 1.5,
+		maxdist = 5000,
 	},
 
 	-- AMBIENCE GEOVENTS
@@ -320,9 +320,9 @@ local soundData = {
 		gain = 0.8,
 		pitchmod = 0.06,
 		gainmod  = 0,
-		dopplerscale = 1.0,
+		dopplerscale = 2.0,
 		maxconcurrent = 10,
-		rolloff = 1.6,
+		rolloff = 3,
 		maxdist = 3000,
 	},
 }
