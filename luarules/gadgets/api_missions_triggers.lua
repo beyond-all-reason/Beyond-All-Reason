@@ -56,33 +56,19 @@ end
 ]]
 
 local function triggerValid(trigger)
-	if not trigger.active then
-		return false
-	end
+	if not trigger.active then return false end
 
 	for _, prerequisiteTrigger in pairs(trigger.prerequisites) do
-		if not prerequisiteTrigger.triggered then
-			return false
-		end
+		if not prerequisiteTrigger.triggered then return false end
 	end
 
-	if trigger.triggered and not trigger.repeating then
-		return false
-	end
-
-	if trigger.repeating and trigger.repeatCount > trigger.maxRepeats then
-		return false
-	end
-
-	if trigger.difficulties ~= nil and not trigger.difficulties[GG['MissionAPI'].Difficulty] then
-		return false
-	end
+	if trigger.triggered and not trigger.repeating then return false end
+	if trigger.repeating and trigger.repeatCount > trigger.maxRepeats then return false end
+	if trigger.difficulties ~= nil and not trigger.difficulties[GG['MissionAPI'].Difficulty] then return false end
 
 	--[[
 	--TODO: co-op check
-	if trigger.coop and not ??? then
-	 	return false
-	end
+	if trigger.coop and not ??? then return false end
 	]]
 
 	return true
@@ -102,8 +88,8 @@ local function activateTrigger(trigger)
 end
 
 function gadget:Initialize()
-	triggers = GG['MissionAPI'].Triggers
 	types = GG['MissionAPI'].TriggersController.Types
+	triggers = GG['MissionAPI'].Triggers
 end
 
 function gadget:GameFrame(n)
