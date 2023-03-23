@@ -2911,6 +2911,11 @@ function init()
 			  Spring.SetConfigInt("MinimapMinimize", (value and '1' or '0'))
 		  end,
 		},
+		{ id = "minimapcanflip", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.minimapcanflip, type = "bool", value = Spring.GetConfigInt("MiniMapCanFlip", 0) == 1, description = texts.option.minimapcanflipk_descr,
+		  onchange = function(i, value)
+				 Spring.SetConfigInt("MiniMapCanFlip", value and 1 or 0)
+		  end,
+		},
 
 		{ id = "buildmenu_bottom", group = "ui", category = types.basic, name = texts.option.buildmenu ..widgetOptionColor.. "  " .. texts.option.buildmenu_bottom, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getBottomPosition ~= nil and WG['buildmenu'].getBottomPosition()), description = texts.option.buildmenu_bottom_descr,
 		  onload = function(i)
