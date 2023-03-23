@@ -28,13 +28,13 @@ local data = {
     geo_soundDelay = 125,
 
     wind_lastSoundFrame = 0,
-    wind_soundDelay = math.ceil(1200000/math.ceil((Game.mapSizeX + Game.mapSizeZ)*0.5)), -- Adjust the big number before / to change delay of sounds. Bigger number - more delay
-    wind_minHeight = select(2, Spring.GetGroundExtremes())*0.7,
+    wind_soundDelay = math.ceil(600000/math.ceil((Game.mapSizeX + Game.mapSizeZ)*0.5)), -- Adjust the big number before / to change delay of sounds. Bigger number - more delay
+    wind_minHeight = select(2, Spring.GetGroundExtremes())*0.6,
     wind_maxHeight = select(2, Spring.GetGroundExtremes()),
     wind_soundBank = {"windy1", "windy2", "windy3", "windy4", "windy5", },
 
     sea_lastSoundFrame = 0,
-    sea_soundDelay = math.ceil(100000/math.ceil((Game.mapSizeX + Game.mapSizeZ)*0.5)), -- Adjust the big number before / to change delay of sounds. Bigger number - more delay
+    sea_soundDelay = math.ceil(200000/math.ceil((Game.mapSizeX + Game.mapSizeZ)*0.5)), -- Adjust the big number before / to change delay of sounds. Bigger number - more delay
     sea_minDepth = -23,
     sea_soundBank = {"beach1", "beach2", "beach3", "beach4", "beach5", "beach6", },
 
