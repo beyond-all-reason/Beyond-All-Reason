@@ -16,32 +16,35 @@ if gadgetHandler:IsSyncedCode() then
 end
 
 local data = {
-    map_sizeX = Game.mapSizeX,
-    map_sizeZ = Game.mapSizeZ,
-    map_minHeight = Spring.GetGroundExtremes(),
-    map_maxHeight = select(2, Spring.GetGroundExtremes()),
-    map_voidWater = false,
+    map_sizeX = Game.mapSizeX,  -- no touchies
+    map_sizeZ = Game.mapSizeZ,  -- no touchies
+    map_minHeight = Spring.GetGroundExtremes(),  -- no touchies
+    map_maxHeight = select(2, Spring.GetGroundExtremes()),  -- no touchies
+    map_voidWater = false,  -- no touchies
 
-    geo_ventPositions = {},
-    geo_currentGeoVentID = 1, 
-    geo_numberOfGeoVentPositions = 0,
+    geo_ventPositions = {},  -- no touchies
+    geo_currentGeoVentID = 1,   -- no touchies
+    geo_numberOfGeoVentPositions = 0,  -- no touchies
     geo_soundDelay = 125,
 
-    wind_lastSoundFrame = 0,
-    wind_soundDelay = math.ceil(600000/math.ceil((Game.mapSizeX + Game.mapSizeZ)*0.5)), -- Adjust the big number before / to change delay of sounds. Bigger number - more delay
+    wind_lastSoundFrame = 0, -- no touchies
+    wind_soundDelay = 60,
     wind_minHeight = select(2, Spring.GetGroundExtremes())*0.6,
     wind_maxHeight = select(2, Spring.GetGroundExtremes()),
     wind_soundBank = {"windy1", "windy2", "windy3", "windy4", "windy5", },
+    wind_rareSoundBank = {"windy1", "windy2", "windy3", "windy4", "windy5", },
 
-    sea_lastSoundFrame = 0,
-    sea_soundDelay = math.ceil(200000/math.ceil((Game.mapSizeX + Game.mapSizeZ)*0.5)), -- Adjust the big number before / to change delay of sounds. Bigger number - more delay
+    sea_lastSoundFrame = 0, -- no touchies
+    sea_soundDelay = 60,
     sea_minDepth = -23,
     sea_soundBank = {"beach1", "beach2", "beach3", "beach4", "beach5", "beach6", },
+    sea_rareSoundBank = {"beach1", "beach2", "beach3", "beach4", "beach5", "beach6", },
 
-    beach_lastSoundFrame = 0,
-    beach_soundDelay = math.ceil(100000/math.ceil((Game.mapSizeX + Game.mapSizeZ)*0.5)), -- Adjust the big number before / to change delay of sounds. Bigger number - more delay
+    beach_lastSoundFrame = 0, -- no touchies
+    beach_soundDelay = 60,
     beach_maxDepth = -19,
     beach_soundBank = {"ocean1", "ocean2", "ocean3", "ocean4", "ocean5", "ocean6", },
+    beach_rareSoundBank = {"ocean1", "ocean2", "ocean3", "ocean4", "ocean5", "ocean6", },
 }
 
 
@@ -76,13 +79,13 @@ function CollectGeoVentPositions()
     end
 end
 
-
-
-
-
-
 function PlayGeoVentSound()
-    Spring.PlaySoundFile("geoventshort", 0.25, data.geo_ventPositions[data.geo_currentGeoVentID].x, data.geo_ventPositions[data.geo_currentGeoVentID].y, data.geo_ventPositions[data.geo_currentGeoVentID].z, 'sfx')
+    local randomposx = data.geo_ventPositions[data.geo_currentGeoVentID].x
+    local randomposz = data.geo_ventPositions[data.geo_currentGeoVentID].z
+    local randomposy = data.geo_ventPositions[data.geo_currentGeoVentID].y
+    if Spring.IsSphereInView(randomposx,randomposy,randomposz) then
+        Spring.PlaySoundFile("geoventshort", 0.25, randomposx, randomposy, randomposz, 'sfx')
+    end
     data.geo_currentGeoVentID = data.geo_currentGeoVentID + 1
     if data.geo_currentGeoVentID > data.geo_numberOfGeoVentPositions then -- we've played sound for all of them, repeat the loop.
         data.geo_currentGeoVentID = 1
@@ -93,11 +96,13 @@ function PlayWindSound(n) -- We want wind to play at volume depending on wind sp
     local randomposx = math.random(0, data.map_sizeX)
     local randomposz = math.random(0, data.map_sizeZ)
     local randomposy = Spring.GetGroundHeight(randomposx, randomposz)
-    if randomposy >= data.wind_minHeight then
+    if randomposy >= data.wind_minHeight and Spring.IsSphereInView(randomposx,randomposy + 400,randomposz) then
         local windSpeed = select(4, Spring.GetWind())/25
-        -- Playsoundfile (filename, volume, posx, posy, posz, sound-channel)
-        --Spring.PlaySoundFile(data.wind_soundBank[math.random(1,#data.wind_soundBank)], windSpeed-((data.wind_maxHeight - randomposy)/data.wind_maxHeight), randomposx, (randomposy + 400), randomposz, 'sfx')
-        Spring.PlaySoundFile(data.wind_soundBank[math.random(1,#data.wind_soundBank)], (0.35 + (windSpeed/25)), randomposx, (randomposy + 400), randomposz, 'sfx')
+        if math.random() > 0.1 then
+            Spring.PlaySoundFile(data.wind_soundBank[math.random(1,#data.wind_soundBank)], windSpeed*0.6, randomposx, (randomposy + 400), randomposz, 'sfx')
+        else
+            Spring.PlaySoundFile(data.wind_rareSoundBank[math.random(1,#data.wind_rareSoundBank)], windSpeed*0.6, randomposx, (randomposy + 400), randomposz, 'sfx')
+        end
         data.wind_lastSoundFrame = n
     end
 end
@@ -106,11 +111,13 @@ function PlaySeaSound(n) -- We want wind to play at volume depending on wind spe
     local randomposx = math.random(0, data.map_sizeX)
     local randomposz = math.random(0, data.map_sizeZ)
     local randomposy = Spring.GetGroundHeight(randomposx, randomposz) 
-    if randomposy <= data.sea_minDepth then
+    if randomposy <= data.sea_minDepth and Spring.IsSphereInView(randomposx,randomposy + 400,randomposz) then
         local windSpeed = select(4, Spring.GetWind())/25 
-        -- Playsoundfile (filename, volume, posx, posy, posz, sound-channel)
-        --Spring.PlaySoundFile(data.sea_soundBank[math.random(1,#data.sea_soundBank)], windSpeed, randomposx, (randomposy + 100), randomposz, 'sfx')
-        Spring.PlaySoundFile(data.sea_soundBank[math.random(1,#data.sea_soundBank)], (0.40 + (windSpeed/50)), randomposx, (randomposy + 100), randomposz, 'battle')
+        if math.random() > 0.1 then
+            Spring.PlaySoundFile(data.sea_soundBank[math.random(1,#data.sea_soundBank)], (0.10 + (windSpeed*0.75)), randomposx, (randomposy + 400), randomposz, 'sfx')
+        else
+            Spring.PlaySoundFile(data.sea_rareSoundBank[math.random(1,#data.sea_rareSoundBank)], (0.10 + (windSpeed*0.75)), randomposx, (randomposy + 400), randomposz, 'sfx')
+        end
         data.sea_lastSoundFrame = n
     end
 end
@@ -119,10 +126,13 @@ function PlayBeachSound(n) -- We want wind to play at volume depending on wind s
     local randomposx = math.random(0, data.map_sizeX)
     local randomposz = math.random(0, data.map_sizeZ)
     local randomposy = Spring.GetGroundHeight(randomposx, randomposz)
-    if randomposy < 0 and randomposy >= data.beach_maxDepth then
-        --local windSpeed = select(4, Spring.GetWind())/25
-        --Spring.PlaySoundFile(data.beach_soundBank[math.random(1,#data.beach_soundBank)], windSpeed, randomposx, (randomposy + 150), randomposz, 'sfx')
-        Spring.PlaySoundFile(data.beach_soundBank[math.random(1,#data.beach_soundBank)], 0.50, randomposx, (randomposy + 250), randomposz, 'sfx')
+    if randomposy < 0 and randomposy >= data.beach_maxDepth and Spring.IsSphereInView(randomposx,randomposy,randomposz) then
+        local windSpeed = select(4, Spring.GetWind())/25 
+        if math.random() > 0.1 then
+            Spring.PlaySoundFile(data.beach_soundBank[math.random(1,#data.beach_soundBank)], (0.20 + (windSpeed*0.6)), randomposx, (randomposy + 400), randomposz, 'sfx')
+        else
+            Spring.PlaySoundFile(data.beach_rareSoundBank[math.random(1,#data.beach_rareSoundBank)], (0.20 + (windSpeed*0.6)), randomposx, (randomposy + 400), randomposz, 'sfx')
+        end
         data.beach_lastSoundFrame = n
     end
 end
