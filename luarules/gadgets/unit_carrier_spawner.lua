@@ -117,6 +117,7 @@ local totalDroneCount = 0
 	-- dockinghealrate = 0,			Healing per second while docked. 
 	-- docktohealthreshold = 30,	If health percentage drops below the threshold the unit will attempt to dock for healing.
 	-- decayrate = 0,				health loss per second while not docked. 
+	-- carrierdeaththroe = "death",	Behaviour for the drones when the carrier dies. "death": destroy the drones. "control": gain manual control of the drones. "capture": same as "control", but if an enemy is within control range, they get control of the drones instead. 
 	
 	-- },							 
 
@@ -163,6 +164,7 @@ for weaponDefID = 1, #WeaponDefs do
 			dockingHealrate = wdcp.dockinghealrate,
 			decayRate = wdcp.decayrate,
 			dockToHealThreshold = wdcp.docktohealthreshold,
+			carrierdeaththroe = wdcp.carrierdeaththroe
 		}
 		if wdcp.spawn_blocked_by_shield then
 			shieldCollide[weaponDefID] = WeaponDefs[weaponDefID].damages[Game.armorTypes.shield]
@@ -400,7 +402,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					decayRate = tonumber(spawnDef.decayRate) or 0,
 					activeDocking = false, --currently not in use
 					activeRecall = false,
-					availablePieces = availablePieces
+					availablePieces = availablePieces,
+					carrierDeaththroe =spawnDef.carrierdeaththroe or "death",
 				}
 			end
 			
@@ -448,9 +451,29 @@ function gadget:UnitDestroyed(unitID)
 
 
 	if GG.carrierMetaList[unitID] then
-		for subUnitID,value in pairs(GG.carrierMetaList[unitID].subUnitsList) do
-			if GG.carrierMetaList[unitID].subUnitsList[subUnitID] then
-				Spring.DestroyUnit(subUnitID, true)
+		if GG.carrierMetaList[unitID].carrierDeaththroe == "death" then
+			for subUnitID,value in pairs(GG.carrierMetaList[unitID].subUnitsList) do
+				if GG.carrierMetaList[unitID].subUnitsList[subUnitID] then
+					Spring.DestroyUnit(subUnitID, true)
+				end
+			end
+		elseif GG.carrierMetaList[unitID].carrierDeaththroe == "capture" then
+			for subUnitID,value in pairs(GG.carrierMetaList[unitID].subUnitsList) do
+				if GG.carrierMetaList[unitID].subUnitsList[subUnitID] then
+					SetUnitNoSelect(subUnitID, false)
+					spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", nil, PRIVATE)
+					local enemyunitID = Spring.GetUnitNearestEnemy(subUnitID, GG.carrierMetaList[unitID].controlRadius)
+					if enemyunitID then
+						Spring.TransferUnit(subUnitID, Spring.GetUnitTeam(enemyunitID), false)
+					end
+				end
+			end
+		elseif GG.carrierMetaList[unitID].carrierDeaththroe == "control" then
+			for subUnitID,value in pairs(GG.carrierMetaList[unitID].subUnitsList) do
+				if GG.carrierMetaList[unitID].subUnitsList[subUnitID] then
+					SetUnitNoSelect(subUnitID, false)
+					spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", nil, PRIVATE)
+				end
 			end
 		end
 		GG.carrierMetaList[unitID] = nil
