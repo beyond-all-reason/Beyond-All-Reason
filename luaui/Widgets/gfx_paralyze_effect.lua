@@ -19,7 +19,7 @@ VFS.Include(luaShaderDir.."instancevboidtable.lua")
 
 local paralyzedUnitShader, unitShapeShader
 
-local vsSrc = [[
+local vsSrcOld = [[
 #version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
@@ -101,6 +101,96 @@ void main() {
 
 	v_startcolorpower = startcolorpower;
 	
+	//v_endcolor_alpha.a = 0.99;
+	gl_Position = cameraViewProj * modelPos;
+}
+]]
+
+local vsSrcNew = [[
+#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shader_storage_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+
+#line 10000
+
+layout (location = 0) in vec3 pos;
+layout (location = 1) in vec3 normal;
+layout (location = 2) in vec3 T;
+layout (location = 3) in vec3 B;
+layout (location = 4) in vec4 uv;
+
+layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
+#define pieceIndex (bonesInfo.x & 0x000000FFu)
+
+layout (location = 6) in vec4 startcolorpower;
+layout (location = 7) in vec4 endcolor_endgameframe;
+layout (location = 8) in uvec4 instData;
+
+//__ENGINEUNIFORMBUFFERDEFS__
+//__DEFINES__
+layout(std140, binding = 2) uniform FixedStateMatrices {
+	mat4 modelViewMat;
+	mat4 projectionMat;
+	mat4 textureMat;
+	mat4 modelViewProjectionMat;
+};
+#line 15000
+//layout(std140, binding=0) readonly buffer MatrixBuffer {
+layout(std140, binding=0) buffer MatrixBuffer {
+	mat4 mat[];
+};
+
+mat4 GetPieceMatrix(bool staticModel) {
+    return mat[instData.x + pieceIndex + uint(!staticModel)];
+}
+
+struct SUniformsBuffer {
+    uint composite; //     u8 drawFlag; u8 unused1; u16 id;
+
+    uint unused2;
+    uint unused3;
+    uint unused4;
+
+    float maxHealth;
+    float health;
+    float unused5;
+    float unused6;
+
+    vec4 speed;
+    vec4[5] userDefined; //can't use float[20] because float in arrays occupies 4 * float space
+};
+
+layout(std140, binding=1) readonly buffer UniformsBuffer {
+    SUniformsBuffer uni[];
+};
+
+out vec3 v_modelPosOrig;
+out vec4 v_startcolorpower;
+out vec4 v_endcolor_alpha;
+
+void main() {
+	uint baseIndex = instData.x;
+	mat4 modelMatrix = mat[baseIndex];
+
+	uint isDynamic = 1u; //default dynamic model
+	// dynamic models have one extra matrix, as their first matrix is their world pos/offset
+	//mat4 pieceMatrix = mat4mix(mat4(1.0), mat[baseIndex + pieceIndex + isDynamic ], modelMatrix[3][3]);
+	mat4 pieceMatrix = mat4mix(mat4(1.0), mat[baseIndex + pieceIndex + isDynamic ], 1.0);
+	vec4 localModelPos = pieceMatrix * vec4(pos, 1.0);
+
+	v_modelPosOrig = localModelPos.xyz + (modelMatrix[3].xyz)*0.3;
+	vec4 modelPos = modelMatrix * localModelPos;
+
+	v_endcolor_alpha.rgba = endcolor_endgameframe.rgba;
+	v_endcolor_alpha.a = clamp( (v_endcolor_alpha.a - (timeInfo.x + timeInfo.w) + 100) * 0.01, 0.0, 1.0); // fade out for end time
+
+	float paralyzestrength = uni[instData.y].userDefined[1].x; // this (paralyzedamage/maxhealth), so >=1.0 is paralyzed
+	v_endcolor_alpha.a = clamp(pow(paralyzestrength, 2.0), 0.0, 1.1);
+	if ((uni[instData.y].composite & 0x00000003u) < 1u ) v_endcolor_alpha.a = 0.0; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon))
+
+	v_startcolorpower = startcolorpower;
+
 	//v_endcolor_alpha.a = 0.99;
 	gl_Position = cameraViewProj * modelPos;
 }
@@ -311,6 +401,9 @@ local function initGL4()
 	paralyzedDrawUnitVBOTable.VAO = makeVAOandAttach(vertVBO, paralyzedDrawUnitVBOTable.instanceVBO, indxVBO)
 	paralyzedDrawUnitVBOTable.indexVBO = indxVBO
 	paralyzedDrawUnitVBOTable.vertexVBO = vertVBO
+
+	local noSkinning = Script.IsEngineMinVersion(105, 1, 1544)
+	local vsSrc = (noSkinning and vsSrcOld) or vsSrcNew
 
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 

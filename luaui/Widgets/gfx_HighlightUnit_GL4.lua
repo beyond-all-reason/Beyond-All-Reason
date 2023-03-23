@@ -26,7 +26,7 @@ local highlightunitShaderConfig = {
 	ANIMFREQUENCY = 0.033,
 }
 
-local vsSrc =
+local vsSrcOld =
 [[#version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
@@ -40,6 +40,111 @@ layout (location = 2) in vec3 T;
 layout (location = 3) in vec3 B;
 layout (location = 4) in vec4 uv;
 layout (location = 5) in uint pieceIndex;
+layout (location = 6) in vec4 worldposrot;
+layout (location = 7) in vec4 parameters; // x =isstatic, y = edgealpha, z = edgeexponent, w = animamount
+layout (location = 8) in vec4 hcolor; // rgb color, plainalpha
+layout (location = 9) in uvec4 instData;
+
+uniform float iconDistance;
+
+//__ENGINEUNIFORMBUFFERDEFS__
+//__DEFINES__
+
+#line 15000
+layout(std140, binding=0) readonly buffer MatrixBuffer {
+	mat4 mat[];
+};
+
+struct SUniformsBuffer {
+    uint composite; //     u8 drawFlag; u8 unused1; u16 id;
+
+    uint unused2;
+    uint unused3;
+    uint unused4;
+
+    float maxHealth;
+    float health;
+    float unused5;
+    float unused6;
+
+    vec4 speed;
+    vec4[5] userDefined; //can't use float[20] because float in arrays occupies 4 * float space
+};
+
+layout(std140, binding=1) readonly buffer UniformsBuffer {
+    SUniformsBuffer uni[];
+};
+
+out vec4 v_parameters;
+out vec3 worldPos;
+out vec3 v_toeye;
+out vec3 v_normal;
+out vec4 v_hcolor;
+
+void main() {
+	uint baseIndex = instData.x;
+
+	mat4 modelWorldMatrix = mat[baseIndex];
+
+	// dynamic models have one extra matrix, as their first matrix is their world pos/offset
+	uint isDynamic = 1u; //default dynamic model
+	if (parameters.x > 0.5) isDynamic = 0u;  //if paramy == 1 then the unit is static
+	mat4 pieceMatrix = mat[baseIndex + pieceIndex + isDynamic];
+
+	vec4 localModelPos = pieceMatrix * vec4(pos, 1.0);
+
+
+	// Make the rotation matrix around Y and rotate the model
+	mat3 rotY = rotation3dY(worldposrot.w);
+	localModelPos.xyz = rotY * localModelPos.xyz;
+
+	vec4 worldModelPos = localModelPos;
+	if (parameters.x < 0.5) worldModelPos = modelWorldMatrix * localModelPos; // dynamic models must be tranformed into their correct pos
+	worldModelPos.xyz += worldposrot.xyz; //Place it in the world
+
+	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
+	uint drawFlags = (instData.z & 0x0000FF00u) >> 8 ; // hopefully this works
+
+	vec4 viewpos = cameraView * worldModelPos;
+	v_toeye = cameraViewInv[3].xyz - worldModelPos.xyz ;
+	v_hcolor = hcolor;
+
+	vec3 modelBaseToCamera = cameraViewInv[3].xyz - (pieceMatrix[3].xyz + worldposrot.xyz);
+	if ( dot (modelBaseToCamera, modelBaseToCamera) >  (iconDistance * iconDistance)) {
+		v_hcolor.a = 0.0;
+	}
+	v_parameters = parameters;
+	if ((uni[instData.y].composite & 0x00000001u) == 0u ) { // alpha 0 drawing of icons stuff
+		v_hcolor.a = 0.0;
+		v_parameters.yw = vec2(0.0);
+	}
+
+	mat3 pieceMatrixRotationOnly = mat3(pieceMatrix);
+	mat3 modelWorldMatrixRotationOnly = mat3(modelWorldMatrix);
+
+	v_normal = modelWorldMatrixRotationOnly * pieceMatrixRotationOnly * rotY * normal;
+	worldPos = worldModelPos.xyz;
+	gl_Position = cameraViewProj * worldModelPos;
+}
+]]
+
+local vsSrcNew =
+[[#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shader_storage_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+
+#line 10000
+
+layout (location = 0) in vec3 pos;
+layout (location = 1) in vec3 normal;
+layout (location = 2) in vec3 T;
+layout (location = 3) in vec3 B;
+layout (location = 4) in vec4 uv;
+
+layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
+#define pieceIndex (bonesInfo.x & 0x000000FFu)
+
 layout (location = 6) in vec4 worldposrot;
 layout (location = 7) in vec4 parameters; // x =isstatic, y = edgealpha, z = edgeexponent, w = animamount
 layout (location = 8) in vec4 hcolor; // rgb color, plainalpha
@@ -337,6 +442,9 @@ function widget:Initialize()
 
 	local unitIDs = Spring.GetAllUnits()
 	local featuresIDs = Spring.GetAllFeatures()
+
+	local noSkinning = Script.IsEngineMinVersion(105, 1, 1544)
+	local vsSrc = (noSkinning and vsSrcOld) or vsSrcNew
 
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)

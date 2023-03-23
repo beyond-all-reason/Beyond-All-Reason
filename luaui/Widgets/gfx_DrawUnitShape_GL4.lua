@@ -62,7 +62,7 @@ local unitShapeShaderConfig = {
 	TRANSPARENCY = 0.5,
 }
 
-local vsSrc = [[
+local vsSrcOld = [[
 #version 330
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
@@ -157,6 +157,106 @@ void main() {
 	gl_Position = cameraViewProj * worldModelPos;
 }
 ]]
+
+local vsSrcNew = [[
+#version 330
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shader_storage_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+
+#line 10000
+
+layout (location = 0) in vec3 pos;
+layout (location = 1) in vec3 normal;
+layout (location = 2) in vec3 T;
+layout (location = 3) in vec3 B;
+layout (location = 4) in vec4 uv;
+
+layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
+#define pieceIndex (bonesInfo.x & 0x000000FFu)
+
+layout (location = 6) in vec4 worldposrot;
+layout (location = 7) in vec4 parameters; // x = alpha, y = isstatic, z = globalteamcoloramount, w = selectionanimation
+layout (location = 8) in uvec2 overrideteam; // x = override teamcolor if < 256
+layout (location = 9) in uvec4 instData;
+
+uniform float iconDistance;
+
+//__ENGINEUNIFORMBUFFERDEFS__
+//__DEFINES__
+layout(std140, binding = 2) uniform FixedStateMatrices {
+	mat4 modelViewMat;
+	mat4 projectionMat;
+	mat4 textureMat;
+	mat4 modelViewProjectionMat;
+};
+#line 15000
+//layout(std140, binding=0) readonly buffer MatrixBuffer {
+layout(std140, binding=0) buffer MatrixBuffer {
+	mat4 mat[];
+};
+
+mat4 GetPieceMatrix(bool staticModel) {
+    return mat[instData.x + pieceIndex + uint(!staticModel)];
+}
+
+//enum DrawFlags : uint8_t {
+//    SO_NODRAW_FLAG = 0, // must be 0
+//    SO_OPAQUE_FLAG = 1,
+//    SO_ALPHAF_FLAG = 2,
+//    SO_REFLEC_FLAG = 4,
+//    SO_REFRAC_FLAG = 8,
+//    SO_SHADOW_FLAG = 16,
+//    SO_FARTEX_FLAG = 32,
+//    SO_DRICON_FLAG = 128, //unused so far
+//};
+
+#define NORM2SNORM(value) (value * 2.0 - 1.0)
+#define SNORM2NORM(value) (value * 0.5 + 0.5)
+
+out vec2 v_uv;
+out vec4 v_parameters;
+out vec4 myTeamColor;
+out vec3 worldPos;
+
+void main() {
+	uint baseIndex = instData.x;
+
+	// dynamic models have one extra matrix, as their first matrix is their world pos/offset
+	mat4 modelMatrix = mat[baseIndex];
+	uint isDynamic = 1u; //default dynamic model
+	if (parameters.y > 0.5) isDynamic = 0u;  //if paramy == 1 then the unit is static
+	mat4 pieceMatrix = mat[baseIndex + pieceIndex + isDynamic];
+
+	vec4 localModelPos = pieceMatrix * vec4(pos, 1.0);
+
+
+	// Make the rotation matrix around Y and rotate the model
+	mat3 rotY = rotation3dY(worldposrot.w);
+	localModelPos.xyz = rotY * localModelPos.xyz;
+
+	vec4 worldModelPos = localModelPos;
+	if (parameters.y < 0.5) worldModelPos = modelMatrix*localModelPos;
+	worldModelPos.xyz += worldposrot.xyz; //Place it in the world
+
+	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
+	uint drawFlags = (instData.z & 0x0000FF00u) >> 8 ; // hopefully this works
+	if (overrideteam.x < 255u) teamIndex = overrideteam.x;
+
+	myTeamColor = vec4(teamColor[teamIndex].rgb, parameters.x); // pass alpha through
+
+	vec3 modelBaseToCamera = cameraViewInv[3].xyz - (pieceMatrix[3].xyz + worldposrot.xyz);
+	if ( dot (modelBaseToCamera, modelBaseToCamera) >  (iconDistance * iconDistance)) {
+		myTeamColor.a = 0.0; // do something if we are far out?
+	}
+
+	v_parameters = parameters;
+	v_uv = uv.xy;
+	worldPos = worldModelPos.xyz;
+	gl_Position = cameraViewProj * worldModelPos;
+}
+]]
+
 
 local fsSrc = [[
 #version 330
@@ -394,6 +494,9 @@ function widget:Initialize()
 	local communitdefid = UnitDefNames["armcom"].id
 	local pwdefid = UnitDefNames["armpw"].id
 	local corcomunitdefid = UnitDefNames["corcom"].id
+
+	local noSkinning = Script.IsEngineMinVersion(105, 1, 1544)
+	local vsSrc = (noSkinning and vsSrcOld) or vsSrcNew
 
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
