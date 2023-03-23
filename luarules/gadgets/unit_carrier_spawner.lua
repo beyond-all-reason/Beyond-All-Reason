@@ -73,6 +73,7 @@ local previousHealFrame = 0
 
 
 GG.carrierMetaList = {}
+GG.droneMetaList = {}
 
 
 local DEFAULT_UPDATE_ORDER_FREQUENCY = 30--21 -- gameframes
@@ -195,7 +196,11 @@ function HealUnit(unitID, healrate, resourceFrames, h, mh)
 	if mh < newHealth then
 		newHealth = mh
 	end
-	Spring.SetUnitHealth(unitID, newHealth)
+	if newHealth <= 0 then
+		Spring.DestroyUnit(unitID, true)
+	else
+		Spring.SetUnitHealth(unitID, newHealth)
+	end
 end
 
 
@@ -404,6 +409,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					activeRecall = false,
 					availablePieces = availablePieces,
 					carrierDeaththroe =spawnDef.carrierdeaththroe or "death",
+					parasite = "all",
 				}
 			end
 			
@@ -449,6 +455,10 @@ function gadget:UnitDestroyed(unitID)
 		end
 	end
 
+	if GG.droneMetaList[unitID] then
+		GG.droneMetaList[unitID] = nil
+		totalDroneCount = totalDroneCount - 1
+	end
 
 	if GG.carrierMetaList[unitID] then
 		if GG.carrierMetaList[unitID].carrierDeaththroe == "death" then
@@ -474,11 +484,33 @@ function gadget:UnitDestroyed(unitID)
 					SetUnitNoSelect(subUnitID, false)
 					spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", nil, PRIVATE)
 				end
+
+				GG.droneMetaList[subUnitID] = {
+					active = true,
+					docked = false, --
+					stayDocked = false,
+					activeDocking = false,
+					engaged = false,
+					decayRate = GG.carrierMetaList[unitID].decayRate,
+				}
+
 			end
 		end
 		GG.carrierMetaList[unitID] = nil
 	end
 
+end
+
+
+local function UpdateStandaloneDrones(frame)
+	local resourceFrames = (frame - previousHealFrame) / 30
+	for unitID,value in pairs(GG.droneMetaList) do
+		Spring.Echo("standalone drones:", unitID)
+		if GG.droneMetaList[unitID].decayRate > 0 then
+			local h, mh = Spring.GetUnitHealth(unitID)
+			HealUnit(unitID, -GG.droneMetaList[unitID].decayRate, resourceFrames, h, mh)
+		end
+	end
 end
 
 local function UpdateCarrier(carrierID, frame)
@@ -576,7 +608,7 @@ local function UpdateCarrier(carrierID, frame)
 	end
 
 	local rx, rz
-	local resourceFrames = (frame - previousHealFrame) / 30 --this might be the issue for healing/damage is it set to 0?
+	local resourceFrames = (frame - previousHealFrame) / 30
 	for subUnitID,value in pairs(GG.carrierMetaList[carrierID].subUnitsList) do
 		ox, oy, oz = spGetUnitPosition(carrierID)
 		local sx, sy, sz = spGetUnitPosition(subUnitID)
@@ -711,6 +743,7 @@ function gadget:GameFrame(f)
 		for unitID, _ in pairs(GG.carrierMetaList) do
 			UpdateCarrier(unitID, f)
 		end
+		UpdateStandaloneDrones(f)
 		previousHealFrame = f
 	end
 end
