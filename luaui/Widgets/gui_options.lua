@@ -2620,6 +2620,15 @@ function init()
 				if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
 					WG['bar_hotkeys'].reloadBindings()
 				end
+
+				-- enable grid menu for grid keybinds
+				Spring.Echo(options[getOptionByID('keybindings')].options[value])
+				if string.find(string.lower(options[getOptionByID('keybindings')].options[value]), "grid") then
+					if not options[getOptionByID('gridmenu')].value then
+						widgetHandler:DisableWidget('Build menu')
+						widgetHandler:EnableWidget('Grid menu')
+					end
+				end
 			end,
 		},
 
