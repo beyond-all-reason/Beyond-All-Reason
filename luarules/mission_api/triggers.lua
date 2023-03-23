@@ -71,7 +71,7 @@ local function AddTrigger(id, type, triggerOptions, actionIds, ...)
 end
 
 local function addTimeElapsedTrigger(id, triggerOptions, actionIds, gameFrame, offset)
-	AddTrigger(id, triggerTypes.TimeElapsed, triggerOptions, gameFrame, offset)
+	AddTrigger(id, triggerTypes.TimeElapsed, triggerOptions, actionIds, gameFrame, offset)
 end
 
 local function getTriggers()
