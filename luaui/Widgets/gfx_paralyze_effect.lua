@@ -19,6 +19,10 @@ VFS.Include(luaShaderDir.."instancevboidtable.lua")
 
 local paralyzedUnitShader, unitShapeShader
 
+local shaderConfig = {
+	SKINSUPPORT = Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and 1 or 0,
+}
+
 local vsSrc = [[
 #version 420
 #extension GL_ARB_uniform_buffer_object : require
@@ -26,19 +30,25 @@ local vsSrc = [[
 #extension GL_ARB_shading_language_420pack: require
 
 #line 10000
+//__DEFINES__
 
 layout (location = 0) in vec3 pos;
 layout (location = 1) in vec3 normal;
 layout (location = 2) in vec3 T;
 layout (location = 3) in vec3 B;
 layout (location = 4) in vec4 uv;
-layout (location = 5) in uint pieceIndex;
+#if (SKINSUPPORT == 0)
+	layout (location = 5) in uint pieceIndex;
+#else
+	layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
+	#define pieceIndex (bonesInfo.x & 0x000000FFu)
+#endif
 layout (location = 6) in vec4 startcolorpower;
 layout (location = 7) in vec4 endcolor_endgameframe;
 layout (location = 8) in uvec4 instData;
 
 //__ENGINEUNIFORMBUFFERDEFS__
-//__DEFINES__
+
 layout(std140, binding = 2) uniform FixedStateMatrices {
 	mat4 modelViewMat;
 	mat4 projectionMat;
@@ -313,7 +323,9 @@ local function initGL4()
 	paralyzedDrawUnitVBOTable.vertexVBO = vertVBO
 
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-
+	vsSrc = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
+	fsSrc = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
+		
 	paralyzedUnitShader = LuaShader({
 		vertex = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
 		fragment = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
