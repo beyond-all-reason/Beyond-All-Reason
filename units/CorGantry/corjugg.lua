@@ -154,8 +154,9 @@ return {
 				},
 			},
 			juggernaut_fire = {
-				areaofeffect = 48,
+				areaofeffect = 65,
 				avoidfeature = false,
+				bouncerebound = 0,
 				cegtag = "gausscannonprojectile",
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -163,6 +164,8 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:burnblackbig",
 				firestarter = 100,
+				firesubmersed = false,
+				groundbounce = true,
 				gravityaffected = true,
 				impulseboost = 0,
 				impulsefactor = 0,
@@ -175,9 +178,12 @@ return {
 				rgbcolor = "1 0.8 0.17",
 				size = 6.5,
 				soundhit = "xplomed2",
-				soundhitwet = "sizzle",
+				soundhitwet = "sizzlexs",
 				soundstart = "krogun1",
+				soundhitvolume = 32,
+				soundtrigger = true,
 				turret = true,
+				waterweapon = false,
 				weapontype = "DGun",
 				weaponvelocity = 520,
 				damage = {
@@ -225,7 +231,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "JUGGERNAUT_FIRE",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				def = "JUGGERNAUT_BOTTOM",
