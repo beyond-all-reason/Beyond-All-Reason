@@ -23,10 +23,12 @@ function widget:GetInfo()
 	}
 end
 
+local maxOrdersCheck = 100 -- max amount of orders to check for duplicate orders on units
+
 local maxUnits = Game.maxUnits
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitDefID = Spring.GetUnitDefID
-local GetCommandQueue = Spring.GetCommandQueue
+local GetUnitCommands = Spring.GetUnitCommands
 local GetUnitPosition = Spring.GetUnitPosition
 local GetFeaturesInRectangle = Spring.GetFeaturesInRectangle
 local GetFeaturePosition = Spring.GetFeaturePosition
@@ -72,7 +74,7 @@ function widget:GameStart()
     maybeRemoveSelf()
 end
 
-function widget:PlayerChanged(playerID)
+function widget:PlayerChanged()
     maybeRemoveSelf()
 end
 
@@ -96,7 +98,7 @@ local function tsp(rList, tList, dx, dz)
 	for i=1, #rList do
 		local item = rList[i]
 		if item ~= nil and item ~= 0 then
-			local distx, distz, uid, fid = item[1]-dx, item[2]-dz, item[3], item[4]
+			local distx, distz = item[1]-dx, item[2]-dz
 			local dist = abs(distx) + abs(distz)
 			if closestDist == nil or dist < closestDist then
 				closestDist = dist
@@ -169,147 +171,184 @@ local function issue(rList, shift)
 	end
 end
 
-function widget:CommandNotify(id, params, options)
-	if id == RECLAIM then
-		local mobiles, stationaries = {}, {}
-		local mobileb, stationaryb = false, false
+local reclaimOrders = {}
 
-		local rUnits = {}
-		local rUnitsCount = 0
-		local sUnits = GetSelectedUnits()
-		for i=1, #sUnits do
-			local uid = sUnits[i]
-			local udid = GetUnitDefID(uid)
-			if unitCanReclaim[udid] then
-				if not unitCanMove[udid] then
-					stationaries[uid] = unitBuildDistance[udid]
-					stationaryb = true
-				else
-					mobiles[uid] = unitBuildDistance[udid]
-					mobileb = true
-				end
+-- we use the previous unit loop iterating on cmds to store reclaim orders
+-- and return cmds for its original usage
+local function storeReclaimOrders(uid)
+		local cmds = GetUnitCommands(uid, maxOrdersCheck)
 
-				local ux, uy, uz = GetUnitPosition(uid)
-				if options.shift then
-					local cmds = GetCommandQueue(uid,100)
-					for ci=#cmds, 1, -1 do
-						local cmd = cmds[ci]
-						if cmd.id == MOVE then
-							ux, uy, uz = cmd.params[1], cmd.params[2], cmd.params[3]
-							break
-						end
-					end
-				end
-				rUnitsCount = rUnitsCount + 1
-				rUnits[rUnitsCount] = {uid=uid, ux=ux, uz=uz}
+		reclaimOrders[uid] = {}
+		local reclaimOrdersCount = 0
+
+		for _, order in pairs(cmds) do
+			if order["id"] == RECLAIM then
+				reclaimOrdersCount = reclaimOrdersCount + 1
+				reclaimOrders[uid][reclaimOrdersCount] = order["params"][1]
 			end
 		end
 
-		if #rUnits > 0 then
-			local len = #params
-			local retw, rmtw, retg, rmtg = {}, {}, {}, {}
-			local retwCount, rmtwCount, retgCount, rmtgCount = 0, 0, 0, 0
+		return cmds
+end
 
-			if len == 4 then
-				local x, y, z, r = params[1], params[2], params[3], params[4]
-				local xmin, xmax, zmin, zmax = (x-r), (x+r), (z-r), (z+r)
-				--local rx, rz = (xmax - xmin), (zmax - zmin)
+local function checkNoDuplicateOrder(uid, fid)
+	local orderParam = fid+maxUnits
 
-				local units = GetFeaturesInRectangle(xmin, zmin, xmax, zmax)
+	for _, reclaimParam in pairs(reclaimOrders[uid] or {}) do
+		if reclaimParam == orderParam then
+			return false
+		end
+	end
 
-				local mx, my, mz = WorldToScreenCoords(x, y, z)
-				local wy = Spring.GetGroundHeight(x, z)
-				local ct, id = TraceScreenRay(mx, my)
+	return true
+end
 
-				if ct == "feature" then
-					local cu = id
+function widget:CommandNotify(id, params, options)
+	if id ~= RECLAIM then return false end
 
-					for i=1,#units,1 do
-						local uid = units[i]
-						local ux, uy, uz = GetFeaturePosition(uid)
-						local ur = GetFeatureRadius(uid)
-						local urx, urz = abs(ux - x), abs(uz - z)
-						local ud = sqrt((urx * urx) + (urz * urz))-ur*.5
+	local mobiles, stationaries = {}, {}
+	local mobileb, stationaryb = false, false
 
-						if ud < r then
-						local mr, _, er, _, _ = GetFeatureResources(uid)
-							if uy < 0 then
-								if mr > 0 then
-									rmtwCount = rmtwCount + 1
-									rmtw[rmtwCount] = uid
-								elseif er > 0 then
-									retwCount = retwCount + 1
-									retw[retwCount] = uid
-								end
-							elseif uy > 0 then
-								if mr > 0 then
-									rmtgCount = rmtgCount + 1
-									rmtg[rmtgCount] = uid
-								elseif er > 0 then
-									retgCount = retgCount + 1
-									retg[retgCount] = uid
-								end
+	local rUnits = {}
+	local rUnitsCount = 0
+	local sUnits = GetSelectedUnits()
+
+	-- clear reclaim orders cache
+	reclaimOrders = {}
+
+	for i=1, #sUnits do
+		local uid = sUnits[i]
+		local udid = GetUnitDefID(uid)
+		if unitCanReclaim[udid] then
+			if not unitCanMove[udid] then
+				stationaries[uid] = unitBuildDistance[udid]
+				stationaryb = true
+			else
+				mobiles[uid] = unitBuildDistance[udid]
+				mobileb = true
+			end
+
+			local ux, _, uz = GetUnitPosition(uid)
+			if options.shift then
+				local cmds = storeReclaimOrders(uid)
+				for ci=#cmds, 1, -1 do
+					local cmd = cmds[ci]
+					if cmd.id == MOVE then
+						ux, uz = cmd.params[1], cmd.params[3]
+						break
+					end
+				end
+			end
+			rUnitsCount = rUnitsCount + 1
+			rUnits[rUnitsCount] = {uid=uid, ux=ux, uz=uz}
+		end
+	end
+
+	if #rUnits > 0 then
+		local len = #params
+		local retw, rmtw, retg, rmtg = {}, {}, {}, {}
+		local retwCount, rmtwCount, retgCount, rmtgCount = 0, 0, 0, 0
+
+		if len == 4 then
+			local x, y, z, r = params[1], params[2], params[3], params[4]
+			local xmin, xmax, zmin, zmax = (x-r), (x+r), (z-r), (z+r)
+			--local rx, rz = (xmax - xmin), (zmax - zmin)
+
+			local units = GetFeaturesInRectangle(xmin, zmin, xmax, zmax)
+
+			local mx, my = WorldToScreenCoords(x, y, z)
+			local wy = Spring.GetGroundHeight(x, z)
+			local ct, oid = TraceScreenRay(mx, my)
+
+			if ct == "feature" then
+				local cu = oid
+
+				for i=1,#units,1 do
+					local uid = units[i]
+					local ux, uy, uz = GetFeaturePosition(uid)
+					local ur = GetFeatureRadius(uid)
+					local urx, urz = abs(ux - x), abs(uz - z)
+					local ud = sqrt((urx * urx) + (urz * urz))-ur*.5
+
+					if ud < r then
+					local mr, _, er = GetFeatureResources(uid)
+						if uy < 0 then
+							if mr > 0 then
+								rmtwCount = rmtwCount + 1
+								rmtw[rmtwCount] = uid
+							elseif er > 0 then
+								retwCount = retwCount + 1
+								retw[retwCount] = uid
+							end
+						elseif uy > 0 then
+							if mr > 0 then
+								rmtgCount = rmtgCount + 1
+								rmtg[rmtgCount] = uid
+							elseif er > 0 then
+								retgCount = retgCount + 1
+								retg[retgCount] = uid
 							end
 						end
 					end
+				end
 
-					local mr, _, er, _, _ = GetFeatureResources(cu)
-					-- if (mr > 0)and(er > 0) then return end
+				local mr, _, er = GetFeatureResources(cu)
+				-- if (mr > 0)and(er > 0) then return end
 
-					local mList, sList = {}, {}
-					local mListCount, sListCount = 0, 0
-					local source = {}
+				local mList, sList = {}, {}
+				local mListCount, sListCount = 0, 0
+				local source = {}
 
-					if rmtgCount > 0 and mr > 0 and wy > 0 then
-						source = rmtg
-					elseif retgCount > 0 and er > 0 and wy > 0 then
-						source = retg
-					elseif rmtwCount > 0 and mr > 0 and wy < 0 then
-						source = rmtw
-					elseif retwCount > 0 and er > 0 and wy < 0 then
-						source = retw
-					end
+				if rmtgCount > 0 and mr > 0 and wy > 0 then
+					source = rmtg
+				elseif retgCount > 0 and er > 0 and wy > 0 then
+					source = retg
+				elseif rmtwCount > 0 and mr > 0 and wy < 0 then
+					source = rmtw
+				elseif retwCount > 0 and er > 0 and wy < 0 then
+					source = retw
+				end
 
-					for i=1,#source do
-						local fid = source[i]
-						if fid ~= nil then
-							local fx, _, fz = GetFeaturePosition(fid)
-							for ui=1,#rUnits do
-								local unit = rUnits[ui]
-								local uid, ux, uz = unit.uid, unit.ux, unit.uz
-								local dx, dz = ux-fx, uz-fz
-								--local dist = dx + dz
-								local item = {dx, dz, uid, fid}
-								if mobiles[uid] ~= nil then
+				for i=1,#source do
+					local fid = source[i]
+					if fid ~= nil then
+						local fx, _, fz = GetFeaturePosition(fid)
+						for ui=1,#rUnits do
+							local unit = rUnits[ui]
+							local uid, ux, uz = unit.uid, unit.ux, unit.uz
+							local dx, dz = ux-fx, uz-fz
+							--local dist = dx + dz
+							local item = {dx, dz, uid, fid}
+							if mobiles[uid] ~= nil then
+								if not options.shift or checkNoDuplicateOrder(uid, fid) then
 									mListCount = mListCount + 1
 									mList[mListCount] = item
-								elseif stationaries[uid] ~= nil then
-									if sqrt((dx*dx)+(dz*dz)) <= stationaries[uid] then
-										sListCount = sListCount + 1
-										sList[sListCount] = item
-									end
+								end
+							elseif stationaries[uid] ~= nil then
+								if sqrt((dx*dx)+(dz*dz)) <= stationaries[uid] and (not options.shift or checkNoDuplicateOrder(uid, fid)) then
+									sListCount = sListCount + 1
+									sList[sListCount] = item
 								end
 							end
 						end
 					end
-
-					local issued = false
-					if mobileb then
-						mList = tsp(mList)
-						issue(mList, options.shift)
-						issued = true
-					end
-
-					if stationaryb then
-						sList = stationary(sList)
-						issue(sList, options.shift)
-						issued = true
-					end
-
-					return issued
 				end
+
+				local issued = false
+				if mobileb then
+					mList = tsp(mList)
+					issue(mList, options.shift)
+					issued = true
+				end
+
+				if stationaryb then
+					sList = stationary(sList)
+					issue(sList, options.shift)
+					issued = true
+				end
+
+				return issued
 			end
 		end
 	end
-	return false
 end
