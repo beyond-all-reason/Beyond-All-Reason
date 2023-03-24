@@ -18,6 +18,7 @@ local mapBlackList = { "Brazillian_Battlefield_Remake_V2"  }
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
+local spGetUnitDefID = Spring.GetUnitDefID
 local math_pi = math.pi
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
 
@@ -25,23 +26,45 @@ local activeCmdID, bx, by, bz, bface
 local unitshape
 
 local isMex = {}
-for uDefID, uDef in pairs(UnitDefs) do
-	if uDef.extractsMetal > 0 then
-		isMex[uDefID] = true
+local isT1Mex = {}
+local isT2Mex = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.extractsMetal > 0 then
+		isMex[unitDefID] = true
+	end
+	if unitDef.extractsMetal > 0 and unitDef.extractsMetal <= 0.001 then
+		isT1Mex[unitDefID] = true
+	end
+	if unitDef.extractsMetal > 0.001 then
+		isT2Mex[unitDefID] = true
 	end
 end
+
+local Game_extractorRadius = Game.extractorRadius
 
 local function GetClosestPosition(x, z, positions)
 	local bestPos
 	local bestDist = math.huge
+	local t2mex = isT2Mex[-activeCmdID]
 	for i = 1, #positions do
 		local pos = positions[i]
 		if pos.x then
 			local dx, dz = x - pos.x, z - pos.z
 			local dist = dx * dx + dz * dz
 			if dist < bestDist then
-				bestPos = pos
-				bestDist = dist
+				local occupied = false
+				local units = Spring.GetUnitsInCylinder(pos.x, pos.z, Game_extractorRadius)
+				for j=1, #units do
+					if (t2mex and isT2Mex[spGetUnitDefID(units[j])]) or (not t2mex and isT1Mex[spGetUnitDefID(units[j])]) then
+						occupied = true
+						break
+					end
+				end
+				-- dont return occupied spot
+				if not occupied then
+					bestPos = pos
+					bestDist = dist
+				end
 			end
 		end
 	end
