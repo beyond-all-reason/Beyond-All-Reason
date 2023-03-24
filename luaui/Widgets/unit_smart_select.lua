@@ -11,11 +11,13 @@ function widget:GetInfo()
 	}
 end
 
-local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+local minimapToWorld = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").minimapToWorld
 local skipSel
 local inSelection = false
 local finishedSelection = false
 local inMiniMapSel = false
+
+local referenceX, referenceY
 
 local selectBuildingsWithMobile = false		-- whether to select buildings when mobile units are inside selection rectangle
 local includeNanosAsMobile = true
@@ -45,8 +47,6 @@ local spSelectUnitArray = Spring.SelectUnitArray
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetUnitTeam = Spring.GetUnitTeam
 
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
 
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -84,9 +84,7 @@ for udid, udef in pairs(UnitDefs) do
 end
 
 local dualScreen
-local vpy
-local mapWidth, mapHeight = Game.mapSizeX, Game.mapSizeZ
-
+local vpy = select(Spring.GetViewGeometry(), 4)
 local referenceSelection = {}
 local referenceSelectionTypes = {}
 
@@ -98,26 +96,10 @@ local function sort(v1, v2)
 	end
 end
 
-local function MinimapToWorldCoords(x, y)
-	local px, py, sx, sy = spGetMiniMapGeometry()
-	if dualScreen == "left" then
-		x = x + sx + px
-	end
-	x = ((x - px) / sx) * mapWidth
-	local z = (1 - (y - py + vpy)/sy) * mapHeight
-	y = spGetGroundHeight(x, z)
-
-	if getMiniMapFlipped() then
-		x = mapWidth - x
-		z = mapHeight - z
-	end
-
-	return x, y, z
-end
-
-local function GetUnitsInMinimapRectangle(x1, y1, x2, y2)
-	local left, _, top = MinimapToWorldCoords(x1, y1)
-	local right, _, bottom = MinimapToWorldCoords(x2, y2)
+local function GetUnitsInMinimapRectangle(x, y)
+	local left = referenceX
+	local top = referenceY
+	local right, _, bottom = minimapToWorld(x, y, vpy, dualScreen)
 
 	left, right = sort(left, right)
 	bottom, top = sort(bottom, top)
@@ -191,6 +173,9 @@ local function mousePress(x, y, button, hasMouseOwner)  --function widget:MouseP
 	end
 
 	inMiniMapSel = spIsAboveMiniMap(x, y)
+	if inMiniMapSel then
+		referenceX, _, referenceY = minimapToWorld(x, y, vpy, dualScreen)
+	end
 end
 
 function widget:PlayerChanged()
@@ -205,10 +190,13 @@ function widget:Update()
 		return
 	end
 
+	local x, y, lmb = Spring.GetMouseState()
+	if lmb == false then inMiniMapSel = false end
+
 	-- get all units within selection rectangle
 	local x1, y1, x2, y2 = spGetSelectionBox()
 
-	inSelection = x1 ~= nil
+	inSelection = inMiniMapSel or (x1 ~= nil)
 
 	if not inSelection then return end -- not in valid selection box (mouserelease/minimum threshold/chorded/etc)
 
@@ -219,7 +207,7 @@ function widget:Update()
 	local mouseSelection
 
 	if inMiniMapSel then
-		mouseSelection = GetUnitsInMinimapRectangle(x1, y1, x2, y2)
+		mouseSelection = GetUnitsInMinimapRectangle(x, y)
 	else
 		mouseSelection = spGetUnitsInScreenRectangle(x1, y1, x2, y2, nil) or {}
 	end

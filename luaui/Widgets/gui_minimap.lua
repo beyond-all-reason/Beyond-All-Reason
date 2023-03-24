@@ -10,11 +10,13 @@ function widget:GetInfo()
 	}
 end
 
+local minimapToWorld = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").minimapToWorld
+
 local maxAllowedWidth = 0.26
 local maxAllowedHeight = 0.32
 local leftClickMove = true
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy, _, vpy = Spring.GetViewGeometry()
 
 local minimized = false
 local maximized = false
@@ -76,7 +78,7 @@ function widget:ViewResize()
 		return
 	end
 
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy, _, vpy = Spring.GetViewGeometry()
 
 	elementPadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
@@ -196,7 +198,7 @@ function widget:DrawScreen()
 	if minimized or maximized then
 		clear()
 	else
-		local x, y, b = Spring.GetMouseState()
+		local x, y = Spring.GetMouseState()
 		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4]) then
 			if not math_isInRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4]) then
 				Spring.SetMouseCursor('cursornormal')
@@ -256,17 +258,10 @@ function widget:SetConfigData(data)
 	end
 end
 
-
-local function minimapToWorld(x, y)
-	local px = (x/usedWidth) * (Game.mapX * 512)
-	local pz = ((vsy-y)/usedHeight) * (Game.mapY * 512)
-	return px, Spring.GetGroundHeight(px,pz), pz
-end
-
 function widget:MouseMove(x, y)
 	if not dualscreenMode then
 		if leftclicked and leftClickMove then
-			local px, py, pz = minimapToWorld(x, y)
+			local px, py, pz = minimapToWorld(x, y, vpy)
 			if py then
 				Spring.SetCameraTarget(px, py, pz, 0.04)
 			end
@@ -286,7 +281,7 @@ function widget:MousePress(x, y, button)
 			return true
 		elseif button == 1 and leftClickMove then
 			leftclicked = true
-			local px, py, pz = minimapToWorld(x, y)
+			local px, py, pz = minimapToWorld(x, y, vpy)
 			if py then
 				Spring.SetCameraTarget(px, py, pz, 0.2)
 				return true
