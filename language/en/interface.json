@@ -939,7 +939,7 @@
 				"snowmap": "enabled on this map",
 				"snowmap_descr": "It will remember what you toggled for every map\n\n(by default: maps with wintery names have this toggled)",
 				"snowautoreduce": "auto reduce",
-				"snowautoreduce_descr": "Automaticly reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust  to average fps again",
+				"snowautoreduce_descr": "Automatically reduce snow when average FPS get lower\n\n(re-enabling this needs time to readjust to average fps again)",
 				"snowamount": "amount",
 				"snowamount_descr": "disable \"auto reduce\" option to see the max snow amount you have set",
 				"resurrectionhalos": "Resurrected unit halos",
