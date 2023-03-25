@@ -368,7 +368,9 @@ local unitOrderTable = {
 	['cormabm']        = 020010,
 
 	['armcarry']       = 020100,
+	['armcarry2']      = 020105,
 	['corcarry']       = 020110,
+	['corcarry2']      = 020115,
 
 -- BUILDINGS
    --ECO METAL MEX
