@@ -75,7 +75,9 @@ local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
 	if widgetHandler:CommandNotify(cmdID, cmdParams, cmdOpts) then
 		return
 	end
-	Spring.GiveOrder(cmdID, cmdParams, cmdOpts.coded)
+	if WG['resource_spot_builder'] then
+		WG['resource_spot_builder'].BuildMex(cmdParams, cmdOpts, false, false)
+	end
 end
 
 local function DoLine(x1, y1, z1, x2, y2, z2)
@@ -165,10 +167,8 @@ function widget:DrawWorld()
 	end
 
 	local bestPos = WG.MexSnap.curPosition
-
 	if not bestPos then
 		clearShape()
-
 		return
 	end
 
