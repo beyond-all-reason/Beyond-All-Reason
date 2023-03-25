@@ -315,9 +315,7 @@ function widget:CommandNotify(id, params, options)
 			mexPlacementRadius,
 			mexPlacementDragRadius
 		)
-	end
-
-	if (not isReclaim or not result) and (isTech1Geo or groundHasEmptyGeo or isReclaim) then
+	elseif (not isReclaim or not result) and (isTech1Geo or groundHasEmptyGeo or isReclaim) then
 		result = TryConvertCmdToBuildOrder(
 			CMD_CONSTRUCT_GEO,
 			enableMoveIsQuickBuildGeo,
@@ -341,9 +339,7 @@ function widget:MousePress(mx, my, button)
 			if ctrl then keyState[#keyState+1] = 'ctrl' end
 			if meta then keyState[#keyState+1] = 'meta' end
 			if shift then keyState[#keyState+1] = 'shift' end
-			for i, unitID in ipairs(selectedUnits) do
-				Spring.GiveOrderToUnit(selectedUnits[i], -drawUnitShape[1], { drawUnitShape[2], drawUnitShape[3], drawUnitShape[4] }, keyState)
-			end
+			WG['resource_spot_builder'].BuildMex({ drawUnitShape[2], drawUnitShape[3], drawUnitShape[4] }, keyState, false, false)
 		end
 	end
 end
