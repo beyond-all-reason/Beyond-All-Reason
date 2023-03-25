@@ -25,6 +25,7 @@ local preGamestartPlayer = Spring.GetGameFrame() == 0 and not Spring.GetSpectati
 
 local activeCmdID, bx, by, bz, bface
 local unitshape
+local draw = true
 
 local isMex = {}
 local isT1Mex = {}
@@ -160,13 +161,25 @@ function widget:Update()
 		WG.MexSnap.curPosition = nil
 		return
 	end
-
 	-- Find build position and check if it is valid (Would get 100% metal)
 	bx, by, bz = Spring.Pos2BuildPos(-activeCmdID, pos[1], pos[2], pos[3])
 	local closestSpot = GetClosestPosition(bx, bz, WG['resource_spot_finder'].metalSpotsList)
 	if not closestSpot or WG['resource_spot_finder'].IsMexPositionValid(closestSpot, bx, bz) then
 		WG.MexSnap.curPosition = nil
 		return
+	end
+
+	-- allow to queue on top of existing queued mex (to cancel)
+	draw = true
+	for i, unitID in ipairs(selectedUnits) do
+		for _, order in pairs(spGetUnitCommands(unitID, 40)) do
+			if order.id == activeCmdID then
+				if math.abs(order.params[1]-bx) <= 32 and math.abs(order.params[3]-bz) <= 32 then
+					draw = false
+					return true
+				end
+			end
+		end
 	end
 
 	-- Get the closet position that would give 100%
@@ -187,10 +200,8 @@ function widget:DrawWorld()
 	end
 
 	local bestPos = WG.MexSnap.curPosition
-
-	if not bestPos then
+	if not bestPos or not draw then
 		clearShape()
-
 		return
 	end
 
@@ -214,6 +225,17 @@ end
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if not isMex[-cmdID] then
 		return
+	end
+	-- allow to queue on top of existing queued mex (to cancel)
+	for i, unitID in ipairs(selectedUnits) do
+		for _, order in pairs(spGetUnitCommands(unitID, 40)) do
+			if order.id == cmdID then
+				if math.abs(order.params[1]-cmdParams[1]) <= 32 and math.abs(order.params[3]-cmdParams[3]) <= 32 then
+					Spring.GiveOrder(cmdID, cmdParams, cmdOpts.coded)
+					return true
+				end
+			end
+		end
 	end
 
 	local cbx, cbz = cmdParams[1], cmdParams[3]
