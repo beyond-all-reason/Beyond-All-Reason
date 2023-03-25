@@ -19,6 +19,7 @@ local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitCommands = Spring.GetUnitCommands
 local math_pi = math.pi
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
 
@@ -42,6 +43,12 @@ end
 
 local Game_extractorRadius = Game.extractorRadius
 
+
+local selectedUnits = Spring.GetSelectedUnits()
+function widget:SelectionChanged(sel)
+	selectedUnits = sel
+end
+
 local function GetClosestPosition(x, z, positions)
 	local bestPos
 	local bestDist = math.huge
@@ -60,6 +67,18 @@ local function GetClosestPosition(x, z, positions)
 						break
 					end
 				end
+				for i, unitID in ipairs(selectedUnits) do
+					for _, order in pairs(spGetUnitCommands(unitID, 40)) do
+						if (t2mex and isT2Mex[-order.id]) or (not t2mex and isT1Mex[-order.id]) then
+							local dx2, dz2 = order.params[1] - pos.x, order.params[3] - pos.z
+							local dist2 = dx2 * dx2 + dz2 * dz2
+							if dist2 < Game_extractorRadius*Game_extractorRadius then
+								occupied = true
+								break
+							end
+						end
+					end
+				end
 				-- dont return occupied spot
 				if not occupied then
 					bestPos = pos
@@ -76,6 +95,9 @@ local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
 		return
 	end
 	Spring.GiveOrder(cmdID, cmdParams, cmdOpts.coded)
+	--if WG['resource_spot_builder'] then
+	--	WG['resource_spot_builder'].BuildMex(cmdParams, cmdOpts, false, false)
+	--end
 end
 
 local function DoLine(x1, y1, z1, x2, y2, z2)
