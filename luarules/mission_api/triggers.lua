@@ -26,8 +26,38 @@ local triggerTypes = {
 	Defeat = 25,
 }
 
+local parameters = {
+	[triggerTypes.TimeElapsed] = { 'GameFrame', 'Offset' },
+	[triggerTypes.UnitExists] = {  },
+	[triggerTypes.UnitNotExists] = {  },
+	[triggerTypes.ConstructionStarted] = {  },
+	[triggerTypes.ConstructionFinished] = {  },
+	[triggerTypes.UnitKilled] = {  },
+	[triggerTypes.UnitCaptured] = {  },
+	[triggerTypes.UnitResurrected] = {  },
+	[triggerTypes.UnitEnteredLocation] = {  },
+	[triggerTypes.UnitLeftLocation] = {  },
+	[triggerTypes.UnitDwellLocation] = {  },
+	[triggerTypes.UnitSpotted] = {  },
+	[triggerTypes.UnitUnspotted] = {  },
+	[triggerTypes.FeatureNotExists] = {  },
+	[triggerTypes.FeatureReclaimed] = {  },
+	[triggerTypes.FeatureDestroyed] = {  },
+	[triggerTypes.ResourceStored] = {  },
+	[triggerTypes.ResourceProduction] = {  },
+	[triggerTypes.TotalUnitsLost] = {  },
+	[triggerTypes.TotalUnitsBuilt] = {  },
+	[triggerTypes.TotalUnitsKilled] = {  },
+	[triggerTypes.TotalUnitsCaptured] = {  },
+	[triggerTypes.TeamDestroyed] = {  },
+	[triggerTypes.Victory] = {  },
+	[triggerTypes.Defeat] = {  },
+}
+
 --[[
-		triggerOption = {
+	triggerId = {
+		type = triggerTypes.TimeElapsed,
+		settings = { -- all individual settings, and settings table itself, are optional
 			prerequisites = {},
 			repeating = false,
 			maxRepeats = nil,
@@ -38,66 +68,76 @@ local triggerTypes = {
 			parameters = {},
 			actionIds = {},
 		},
-		...
+		parameters = {
+			gameFrame = 123,
+			offset = 300,
+		},
+		actions = { 'actionId1', 'actionId2' },
 	}
 ]]
 
 local triggers = {}
 
-local function AddTrigger(id, type, triggerOptions, actionIds, ...)
-	triggerOptions = triggerOptions or {}
-	triggerOptions.prerequisites = triggerOptions.prerequisites or {}
-	triggerOptions.repeating = triggerOptions.repeating or false
-	triggerOptions.maxRepeats = triggerOptions.maxRepeats or nil
-	triggerOptions.difficulties = triggerOptions.difficulties or nil
-	triggerOptions.coop = triggerOptions.coop or false
-	triggerOptions.active = triggerOptions.active or true
+local function prevalidateTriggers()
+	for triggerId, trigger in pairs(triggers) do
+		if not trigger.type then
+			Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Trigger missing type: " .. triggerId)
+		end
 
-	local trigger = {
-		type = type,
-		prerequisites = triggerOptions.prerequisites,
-		repeating = triggerOptions.repeating,
-		maxRepeats = triggerOptions.maxRepeats,
-        repeatCount = 0,
-		difficulties = triggerOptions.difficulties,
-		coop = triggerOptions.coop,
-		active = triggerOptions.active,
-		parameters = ...,
-		actionIds = actionIds,
-        triggered = false,
-	}
+		if not trigger.actions or next(trigger.actions) == nil then
+			Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Trigger has no actions: " .. triggerId)
+		end
 
-	triggers[id] = trigger
+		for _, parameter in pairs(parameters[trigger.type]) do
+			if trigger.parameters[parameter] == nil then
+				Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Trigger missing required parameter. Trigger: " .. triggerId .. ", Parameter: " .. parameter)
+			end
+		end
+	end
 end
 
-local function addTimeElapsedTrigger(id, triggerOptions, actionIds, gameFrame, offset)
-	AddTrigger(id, triggerTypes.TimeElapsed, triggerOptions, actionIds, gameFrame, offset)
+local function preprocessRawTriggers(rawTriggers)
+	Spring.Echo("[Mission API] Processing mission triggers")
+
+	for triggerId, rawTrigger in pairs(rawTriggers) do
+		local settings = rawTrigger.settings or {}
+		settings.prerequisites = settings.prerequisites or {}
+		settings.repeating = settings.repeating or false
+		settings.maxRepeats = settings.maxRepeats or nil
+		settings.difficulties = settings.difficulties or nil
+		settings.coop = settings.coop or false
+		settings.active = settings.active or true
+
+		rawTrigger.triggered = false
+
+		triggers[triggerId] = table.copy(rawTrigger)
+	end
+
+	prevalidateTriggers()
+end
+
+local function postvalidateTriggers()
+	local actions = GG['MissionAPI'].Actions
+	for triggerId, trigger in pairs(triggers) do
+		for _, actionId in pairs(trigger.actions) do
+			if not actions[actionId] then
+				Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Trigger has action that does not exist. Trigger: " .. triggerId .. ", Action: " .. actionId)
+			end
+		end
+	end
+end
+
+local function postprocessTriggers()
+	postvalidateTriggers()
 end
 
 local function getTriggers()
-	for triggerId, trigger in pairs(triggers) do
-		if not trigger.type then
-			error("[Mission API] Trigger missing type: " .. triggerId)
-		end
-	end
-
 	return triggers
 end
-
---example usage
---[[
-local options = {
-	prerequisites = { 'foundEnemyBase', 'builtRadar' },
-	repeating = true,
-}
-local actionIds = { 'callReinforcements', }
-
-AddTimeElapsedTrigger('intelCollected', options, actionIds, 0, 1800)
-]]
 
 return {
 	Types = triggerTypes,
 	GetTriggers = getTriggers,
-	-- TODO: Return trigger creation functions
-	AddTimeElapsedTrigger = addTimeElapsedTrigger,
+	PreprocessRawTriggers = preprocessRawTriggers,
+	PostprocessTriggers = postprocessTriggers,
 }
