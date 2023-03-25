@@ -243,11 +243,11 @@ function widget:Initialize()
 			end
 		end)
 	end)
-	local waterlevel = 0 
+	local waterlevel = 0
 	if Spring.GetModOptions().map_waterlevel ~= 0 then
 		waterlevel = Spring.GetModOptions().map_waterlevel
 	end
-	
+
 	startboxDListStencil = gl.CreateList(function()
 		local minY, maxY = Spring.GetGroundExtremes()
 		minY = minY - 200 - waterlevel
@@ -522,7 +522,7 @@ function widget:Update(delta)
 		widgetHandler:RemoveWidget()
 	end
 	if not placeVoiceNotifTimer then
-		placeVoiceNotifTimer = os.clock() + 22
+		placeVoiceNotifTimer = os.clock() + 30
 	end
 
 	if (doWaterLevelCheck and not resetted) or (Spring.IsCheatingEnabled() and Spring.GetGroundHeight(0, 0) ~= groundHeightPoint) then

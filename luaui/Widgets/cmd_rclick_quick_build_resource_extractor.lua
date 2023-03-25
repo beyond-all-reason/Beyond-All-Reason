@@ -42,18 +42,10 @@ local spGetUnitDefID = Spring.GetUnitDefID
 ------------------------------------------------------------
 local chobbyInterface, activeUnitShape, lastInsertedOrder
 
-local isT1Mex = {}
-local isT2Mex = {}
 local isCloakableBuilder = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildOptions[1] and unitDef.canCloak then
 		isCloakableBuilder[unitDefID] = true
-	end
-	if unitDef.extractsMetal > 0 and unitDef.extractsMetal <= 0.001 then
-		isT1Mex[unitDefID] = true
-	end
-	if unitDef.extractsMetal > 0.001 then
-		isT2Mex[unitDefID] = true
 	end
 end
 
@@ -86,8 +78,8 @@ function CheckForBuildingOpportunity(type, params)
 	if not WG['resource_spot_builder'] then
 		return
 	end
-	local isT1Mex = (type == 'unit' and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(params)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(params)] <= t1mexThreshold)
-	local isT1Geo = (type == 'unit' and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(params)] and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(params)] <= t1geoThreshold)
+	local isTech1Mex = (type == 'unit' and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(params)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(params)] <= t1mexThreshold)
+	local isTech1Geo = (type == 'unit' and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(params)] and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(params)] <= t1geoThreshold)
 	local closestMex, closestGeo, unitID
 	if type == 'unit' then
 		unitID = params
@@ -99,7 +91,7 @@ function CheckForBuildingOpportunity(type, params)
 		local mx, my, mb = Spring.GetMouseState()
 		_, params = Spring.TraceScreenRay(mx, my, true)
 	end
-	if params and params[3] and (isT1Mex or isT1Geo or type == 'ground' or type == 'feature') then
+	if params and params[3] and (isTech1Mex or isTech1Geo or type == 'ground' or type == 'feature') then
 		if type == 'ground' or type == 'feature' then
 			closestMex = GetClosestPosition(params[1], params[3], WG['resource_spot_finder'].metalSpotsList)
 			if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
@@ -112,7 +104,7 @@ function CheckForBuildingOpportunity(type, params)
 		end
 	end
 
-	return isT1Mex, isT1Geo, groundHasEmptyMetal, groundHasEmptyGeo, params
+	return isTech1Mex, isTech1Geo, groundHasEmptyMetal, groundHasEmptyGeo, params
 end
 
 local selectedUnits = Spring.GetSelectedUnits()
@@ -123,10 +115,9 @@ end
 -- display mouse cursor and unitshape when hovering over a resource spot
 local sec = 0
 local drawUnitShape = false
+local activeCmdID
 function widget:Update(dt)
 	if chobbyInterface then return end
-
-	local mx, my, mb, mmb, mb2 = Spring.GetMouseState()
 
 	local doUpdate = activeUnitShape ~= nil
 	sec = sec + dt
@@ -138,6 +129,9 @@ function widget:Update(dt)
 	drawUnitShape = false
 
 	if doUpdate then
+		local mx, my, mb, mmb, mb2 = Spring.GetMouseState()
+		_, activeCmdID = Spring.GetActiveCommand()
+
 		if #selectedUnits == 1 and isCloakableBuilder[Spring.GetUnitDefID(selectedUnits[1])] and select(5,Spring.GetUnitStates(selectedUnits[1],false,true)) then
 			-- unit is cloaked, abort!
 			if WG.DrawUnitShapeGL4 and activeUnitShape then
@@ -146,10 +140,10 @@ function widget:Update(dt)
 			end
 			return
 		end
-		if not WG.customformations_linelength or WG.customformations_linelength < 10 then	-- dragging multi-unit formation-move-line
+		if not activeCmdID and (not WG.customformations_linelength or WG.customformations_linelength < 10) then	-- dragging multi-unit formation-move-line
 
 			local type, rayParams = Spring.TraceScreenRay(mx, my)
-			local isT1Mex, isT1Geo, groundHasEmptyMetal, groundHasEmptyGeo, params = CheckForBuildingOpportunity(type, rayParams)
+			local isTech1Mex, isTech1Geo, groundHasEmptyMetal, groundHasEmptyGeo, params = CheckForBuildingOpportunity(type, rayParams)
 
 			--put into a local function to reduce code redundancy
 			local function TryConstructBuilding(upgradableT1, groundHasEmptySpot, constructorsT1, constructorsT2, BuildOrder)
@@ -179,9 +173,9 @@ function widget:Update(dt)
 				end
 			end
 
-			if isT1Mex or groundHasEmptyMetal then
+			if isTech1Mex or groundHasEmptyMetal then
 				TryConstructBuilding(
-					isT1Mex,
+					isTech1Mex,
 					groundHasEmptyMetal,
 					WG['resource_spot_builder'].GetMexConstructorsDef(),
 					WG['resource_spot_builder'].GetMexConstructorsT2(),
@@ -189,9 +183,9 @@ function widget:Update(dt)
 				)
 			end
 
-			if isT1Geo or groundHasEmptyGeo then
+			if isTech1Geo or groundHasEmptyGeo then
 				TryConstructBuilding(
-					isT1Geo,
+					isTech1Geo,
 					groundHasEmptyGeo,
 					WG['resource_spot_builder'].GetGeoConstructorsDef(),
 					WG['resource_spot_builder'].GetGeoConstructorsT2(),
@@ -308,10 +302,10 @@ function widget:CommandNotify(id, params, options)
 
 	-- Decide if this is a mex or geo spot
 	local type, rayParams = Spring.TraceScreenRay(mx, my)
-	local isT1Mex, isT1Geo, groundHasEmptyMetal, groundHasEmptyGeo, unitPos = CheckForBuildingOpportunity(type, rayParams)
+	local isTech1Mex, isTech1Geo, groundHasEmptyMetal, groundHasEmptyGeo, unitPos = CheckForBuildingOpportunity(type, rayParams)
 
 	local result = false
-	if isT1Mex or groundHasEmptyMetal or isReclaim then
+	if isTech1Mex or groundHasEmptyMetal or isReclaim then
 		result = TryConvertCmdToBuildOrder(
 			CMD_CONSTRUCT_MEX,
 			enableMoveIsQuickBuildMex,
@@ -323,7 +317,7 @@ function widget:CommandNotify(id, params, options)
 		)
 	end
 
-	if (not isReclaim or not result) and (isT1Geo or groundHasEmptyGeo or isReclaim) then
+	if (not isReclaim or not result) and (isTech1Geo or groundHasEmptyGeo or isReclaim) then
 		result = TryConvertCmdToBuildOrder(
 			CMD_CONSTRUCT_GEO,
 			enableMoveIsQuickBuildGeo,
