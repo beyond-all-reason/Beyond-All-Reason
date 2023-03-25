@@ -74,7 +74,11 @@ local spUnitDetach = Spring.UnitDetach
 
 
 local function GetDistance(x1, x2, y1, y2)
-	return ((x1-x2)^2 + (y1-y2)^2)^0.5
+	if x1 and x2 then
+		return ((x1-x2)^2 + (y1-y2)^2)^0.5
+	else
+		return
+	end
 end
 
 local function GetDirectionalVector(speed, x1, x2, y1, y2, z1, z2)
@@ -138,7 +142,6 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 								return
 							end
 							while not GG.carrierMetaList[unitID].subUnitsList[subUnitID].docked do
-								--Spring.Echo("active docking nr. ", i)
 			
 								local px, py, pz = Spring.GetUnitPiecePosDir(unitID, pieceNumber)
 								
@@ -151,7 +154,9 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 								
 			
 								
-								
+								if not distance then
+									return
+								end
 								if distance < 25 and subunitDef.isAirUnit then
 									local landingspeed = GG.carrierMetaList[unitID].dockHelperSpeed
 									if 0.2*heightDifference > landingspeed then
