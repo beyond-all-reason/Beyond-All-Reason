@@ -42,10 +42,14 @@ local spGetUnitDefID = Spring.GetUnitDefID
 ------------------------------------------------------------
 local chobbyInterface, activeUnitShape, lastInsertedOrder
 
+local isT2Mex = {}
 local isCloakableBuilder = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildOptions[1] and unitDef.canCloak then
 		isCloakableBuilder[unitDefID] = true
+	end
+	if unitDef.extractsMetal > 0.001 then
+		isT2Mex[unitDefID] = true
 	end
 end
 
@@ -140,7 +144,7 @@ function widget:Update(dt)
 			end
 			return
 		end
-		if not activeCmdID and (not WG.customformations_linelength or WG.customformations_linelength < 10) then	-- dragging multi-unit formation-move-line
+		if (not activeCmdID or isT2Mex[-activeCmdID]) and (not WG.customformations_linelength or WG.customformations_linelength < 10) then	-- dragging multi-unit formation-move-line
 
 			local type, rayParams = Spring.TraceScreenRay(mx, my)
 			local isTech1Mex, isTech1Geo, groundHasEmptyMetal, groundHasEmptyGeo, params = CheckForBuildingOpportunity(type, rayParams)
@@ -339,7 +343,9 @@ function widget:MousePress(mx, my, button)
 			if ctrl then keyState[#keyState+1] = 'ctrl' end
 			if meta then keyState[#keyState+1] = 'meta' end
 			if shift then keyState[#keyState+1] = 'shift' end
-			WG['resource_spot_builder'].BuildMex({ drawUnitShape[2], drawUnitShape[3], drawUnitShape[4] }, keyState, false, false)
+			if WG['resource_spot_builder'] then
+				WG['resource_spot_builder'].BuildMex({ drawUnitShape[2], drawUnitShape[3], drawUnitShape[4] }, keyState, false, false)
+			end
 		end
 	end
 end
