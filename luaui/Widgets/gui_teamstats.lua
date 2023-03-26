@@ -18,10 +18,10 @@ local fontSizePercentage = 0.6 -- fontSize * X = actual fontsize
 local update = 30 -- in frames
 local replaceEndStats = false
 local highLightColour = {1,1,1,0.7}
-local sortHighLightColour = {1,0.87,0.87,1}
-local sortHighLightColourDesc = {0.9,1,0.9,1}
-local activeSortColour = {1,0.62,0.62,1}
-local activeSortColourDesc = {0.66,1,0.66,1}
+local sortHighLightColour = {1,0.87,0.87,1.4}
+local sortHighLightColourDesc = {0.9,1,0.9,1.4}
+local activeSortColour = {1,0.62,0.62,1.4}
+local activeSortColourDesc = {0.66,1,0.66,1.4}
 local oddLineColour = {0.28,0.28,0.28,0.33}
 local evenLineColour = {1,1,1,0.36}
 local sortLineColour = {0.82,0.82,0.82,0.85}
@@ -630,18 +630,18 @@ function ReGenerateBackgroundDisplayList()
 	end
 	if selectedLine and selectedLine < 3 and selectedColumn and selectedColumn > 0 and selectedColumn <= numColums then
 		if sortAscending then
-			glColor(sortHighLightColour)
+			glColor(sortHighLightColour[1], sortHighLightColour[2], sortHighLightColour[3], sortHighLightColour[4]*ui_opacity)
 		else
-			glColor(sortHighLightColourDesc)
+			glColor(sortHighLightColourDesc[1], sortHighLightColourDesc[2], sortHighLightColourDesc[3], sortHighLightColourDesc[4]*ui_opacity)
 		end
 		RectRound(math.floor(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding)
 	end
 	for selectedIndex, headerName in ipairs(header) do
 		if sortVar == headerName then
 			if sortAscending then
-				glColor(activeSortColour)
+				glColor(activeSortColour[1], activeSortColour[2], activeSortColour[3], activeSortColour[4]*ui_opacity)
 			else
-				glColor(activeSortColourDesc)
+				glColor(activeSortColourDesc[1], activeSortColourDesc[2], activeSortColourDesc[3], activeSortColourDesc[4]*ui_opacity)
 			end
 			RectRound(math.floor(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding)
 			break
