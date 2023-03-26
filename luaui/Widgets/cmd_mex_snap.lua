@@ -79,7 +79,7 @@ local function GetClosestPosition(x, z, positions)
 							if params[1] == -activeCmdID then
 								local dx2, dz2 = params[2] - pos.x, params[4] - pos.z
 								local dist2 = dx2 * dx2 + dz2 * dz2
-								if dist2 < Game_extractorRadius*Game_extractorRadius*3 then
+								if dist2 < Game_extractorRadius*Game_extractorRadius*2.25 then
 									occupied = true
 									if math.abs(params[2]-bx) <= 4 and math.abs(params[4]-bz) <= 4 then
 										isOnTop = true
@@ -115,7 +115,7 @@ local function GetClosestPosition(x, z, positions)
 								if (t2mex and isT2Mex[-order.id]) or (not t2mex and isT1Mex[-order.id]) then
 									local dx2, dz2 = order.params[1] - pos.x, order.params[3] - pos.z
 									local dist2 = dx2 * dx2 + dz2 * dz2
-									if dist2 < Game_extractorRadius*Game_extractorRadius*3 then
+									if dist2 < Game_extractorRadius*Game_extractorRadius*2.25 then
 										occupied = true
 										break
 									end
