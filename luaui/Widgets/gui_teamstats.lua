@@ -22,8 +22,8 @@ local sortHighLightColour = {1,0.87,0.87,1}
 local sortHighLightColourDesc = {0.9,1,0.9,1}
 local activeSortColour = {1,0.62,0.62,1}
 local activeSortColourDesc = {0.66,1,0.66,1}
-local oddLineColour = {0.23,0.23,0.23,0.4}
-local evenLineColour = {0.8,0.8,0.8,0.4}
+local oddLineColour = {0.28,0.28,0.28,0.33}
+local evenLineColour = {1,1,1,0.36}
 local sortLineColour = {0.82,0.82,0.82,0.85}
 
 local widgetScale = (vsy / 1080)
@@ -69,6 +69,8 @@ local guiData = {
 	},
 }
 guiData.mainPanel.relSizes.x.length = (guiData.mainPanel.relSizes.x.max - guiData.mainPanel.relSizes.x.min) * 0.92
+
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.6) or 0.6)
 
 local glColor	= gl.Color
 local glCreateList = gl.CreateList
@@ -620,8 +622,8 @@ function ReGenerateBackgroundDisplayList()
 			--colour = highLightColour
 		end
 		glColor(colour)
-		if lineCount > 2 then
-			RectRound(math.floor(boxSizes.x.min), math.floor(boxSizes.y.max -lineCount*fontSize), math.floor(boxSizes.x.max), math.floor(boxSizes.y.max -(lineCount-1)*fontSize), bgpadding, 1,1,1,1, {colour[1],colour[2],colour[3],colour[4]}, {colour[1],colour[2],colour[3],colour[4]*3})
+		if evenLineColour and lineCount > 2 then
+			RectRound(math.floor(boxSizes.x.min), math.floor(boxSizes.y.max -lineCount*fontSize), math.floor(boxSizes.x.max), math.floor(boxSizes.y.max -(lineCount-1)*fontSize), bgpadding, 1,1,1,1, {colour[1],colour[2],colour[3],colour[4]*ui_opacity}, {colour[1],colour[2],colour[3],colour[4]*3*ui_opacity})
 		elseif lineCount == 1 then
 			--RectRound(boxSizes.x.min, boxSizes.y.max -(lineCount+1)*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3*widgetScale)
 		end
