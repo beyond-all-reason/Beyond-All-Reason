@@ -200,7 +200,7 @@ local landUnitsList = {
                 "corthud",
                 "corstorm",
                 --"corcrash",
-                "corkark",
+                "legkark",
                 "leggob",
                 "legcen",
                 "legbal",
@@ -289,6 +289,7 @@ local landUnitsList = {
                 "armcroc",
                 "armmerl",
                 "armbull",
+				--"corforge",
                 "cormart",
                 --"corsent",
                 "corseal",
@@ -607,19 +608,19 @@ local seaUnitsList = {
 
 
 
-local spawnsPerPhase = ChessModeSpawnPerPhaseModoption
+--local spawnsPerPhase = ChessModeSpawnPerPhaseModoption
 local addUpFrequency = ChessModePhaseTimeModoption*1800
-local spawnTimer = 9000
-local respawnTimer = 9000
-local phase
-local canResurrect = {}
+--local spawnTimer = 9000
+local respawnTimer = 2500
+--local phase
+--local canResurrect = {}
 
 -- Functions to hide commanders
-for unitDefID, unitDef in pairs(UnitDefs) do
-    if unitDef.canResurrect then
-        canResurrect[unitDefID] = true
-    end
-end
+-- for unitDefID, unitDef in pairs(UnitDefs) do
+--     if unitDef.canResurrect then
+--         canResurrect[unitDefID] = true
+--     end
+-- end
 
 local function disableUnit(unitID)
 	Spring.MoveCtrl.Enable(unitID)
@@ -805,17 +806,17 @@ local function chooseNewUnits(starter, tier)
         seaWave = starterSeaUnitsList
         seaWaveQuantity = #starterSeaUnitsList
     else
-        if (Spring.GetGameSeconds() > 1800 and tier > 80) or (Spring.GetGameSeconds() > 3000) then -- Tier 4 -- Big Tech 3 units
+        if (Spring.GetGameSeconds() > 450 and tier > 80) or (Spring.GetGameSeconds() > 750) then -- Tier 4 -- Big Tech 3 units
             landWave = landUnitsList[4]
             landWaveQuantity = #landUnitsList[4]
             seaWave = seaUnitsList[4]
             seaWaveQuantity = #seaUnitsList[4]
-        elseif (Spring.GetGameSeconds() > 1200 and tier > 60) or (Spring.GetGameSeconds() > 2400) then -- Tier 3 -- Expensive Tech 2 units and small Tech 3 units
+        elseif (Spring.GetGameSeconds() > 300 and tier > 60) or (Spring.GetGameSeconds() > 600) then -- Tier 3 -- Expensive Tech 2 units and small Tech 3 units
             landWave = landUnitsList[3]
             landWaveQuantity = #landUnitsList[3]
             seaWave = seaUnitsList[3]
             seaWaveQuantity = #seaUnitsList[3]
-        elseif (Spring.GetGameSeconds() > 600 and tier > 40) or (Spring.GetGameSeconds() > 1800) then -- Tier 2 -- Less Expensive Tech 2 units
+        elseif (Spring.GetGameSeconds() > 150 and tier > 40) or (Spring.GetGameSeconds() > 450) then -- Tier 2 -- Less Expensive Tech 2 units
             landWave = landUnitsList[2]
             landWaveQuantity = #landUnitsList[2]
             seaWave = seaUnitsList[2]
@@ -937,6 +938,7 @@ function gadget:GameFrame(n)
         addInfiniteResources()
     end
     if n > 25 and n%addUpFrequency == 1 then
+        Spring.PlaySoundFile("sounds/voice/ReinforcementsHaveArrived.wav", 0.75, nil, "ui")
         addNewUnitsToQueue(false)
     end
     for i = 1,#teams do
@@ -949,15 +951,15 @@ function gadget:GameFrame(n)
         end
 
         if teamSpawnQueue[teamID] and #teamSpawnQueue[teamID] > 0 then
-            if teamRespawnQueue[teamID] and #teamRespawnQueue[teamID] > 0 then
-                if n > 25 and n%math.ceil(spawnTimer/(#teamRespawnQueue[teamID]+#teamSpawnQueue[teamID])) == 1 then
+            -- if teamRespawnQueue[teamID] and #teamRespawnQueue[teamID] > 0 then
+            --     if n > 25 and n%math.ceil(spawnTimer/(#teamRespawnQueue[teamID]+#teamSpawnQueue[teamID])) == 1 then
+            --         spawnUnitsFromQueue(teamID)
+            --     end
+            -- else
+                -- if n > 25 and n%spawnTimer == 1 then
                     spawnUnitsFromQueue(teamID)
-                end
-            else
-                if n > 25 and n%spawnTimer == 1 then
-                    spawnUnitsFromQueue(teamID)
-                end
-            end
+                -- end
+            -- end
         else
             if teamRespawnQueue[teamID] and #teamRespawnQueue[teamID] > 0 then
                 if n > 25 and n%math.ceil(respawnTimer/(#teamRespawnQueue[teamID])) == 1 then

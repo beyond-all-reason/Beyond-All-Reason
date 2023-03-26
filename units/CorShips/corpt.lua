@@ -22,7 +22,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 900,
-		maxdamage = 800,
+		maxdamage = 890,
 		maxvelocity = 2.3,
 		minwaterdepth = 6,
 		movementclass = "BOAT3",
@@ -43,7 +43,6 @@ return {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.3,
-			prioritytarget = "air",
 			subfolder = "corships",
 		},
 		featuredefs = {
@@ -159,9 +158,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
 				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					light_color = "1 0.5 0.6",
-
 				},
 				damage = {
 					bombers = 80,

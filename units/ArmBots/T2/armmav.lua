@@ -18,7 +18,7 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1400,
+		maxdamage = 1560,
 		maxslope = 14,
 		maxvelocity = 1.65,
 		maxwaterdepth = 0,
@@ -40,6 +40,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",
 			techlevel = 2,
+			rangexpscale = 0.6,
 		},
 		featuredefs = {
 			dead = {
@@ -139,11 +140,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
-				customparams = {
-					expl_light_life_mult = 1.1,
-					light_mult = 1.2,
-					light_radius_mult = 1.3,
-				},
 				damage = {
 					bombers = 65,
 					default = 265,

@@ -17,8 +17,8 @@ local enabled = true
 local opacityMult = 1
 
 local noiseTex = ":l:LuaUI/Images/rgbnoise.png"
---local noiseTex = "LuaUI/Images/uniformnoise_128_rgba_1pixoffset.tga"
-local noiseTex3D = "LuaUI/Images/worley_rgbnorm_01_asum_128_v1.dds"
+--local noiseTex = "LuaUI/Images/noisetextures/uniformnoise_128_rgba_1pixoffset.tga"
+local noiseTex3D = "LuaUI/Images/noisetextures/worley_rgbnorm_01_asum_128_v1.dds"
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -95,50 +95,23 @@ assert(type(speed) == "number")
 --------------------------------------------------------------------------------
 -- Automatically generated local definitions
 
-local GL_MODELVIEW           = GL.MODELVIEW
 local GL_NEAREST             = GL.NEAREST
-local GL_ONE                 = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
-local GL_PROJECTION          = GL.PROJECTION
-local GL_QUADS               = GL.QUADS
 local GL_SRC_ALPHA           = GL.SRC_ALPHA
-local glBeginEnd             = gl.BeginEnd
 local glBlending             = gl.Blending
-local glCallList             = gl.CallList
-local glColor                = gl.Color
-local glColorMask            = gl.ColorMask
 local glCopyToTexture        = gl.CopyToTexture
-local glCreateList           = gl.CreateList
 local glCreateShader         = gl.CreateShader
 local glCreateTexture        = gl.CreateTexture
 local glDeleteShader         = gl.DeleteShader
 local glDeleteTexture        = gl.DeleteTexture
-local glDepthMask            = gl.DepthMask
-local glDepthTest            = gl.DepthTest
-local glGetMatrixData        = gl.GetMatrixData
 local glGetShaderLog         = gl.GetShaderLog
 local glGetUniformLocation   = gl.GetUniformLocation
-local glGetViewSizes         = gl.GetViewSizes
-local glLoadIdentity         = gl.LoadIdentity
-local glLoadMatrix           = gl.LoadMatrix
-local glMatrixMode           = gl.MatrixMode
-local glMultiTexCoord        = gl.MultiTexCoord
-local glPopMatrix            = gl.PopMatrix
-local glPushMatrix           = gl.PushMatrix
-local glResetMatrices        = gl.ResetMatrices
-local glTexCoord             = gl.TexCoord
 local glTexture              = gl.Texture
-local glRect                 = gl.Rect
 local glUniform              = gl.Uniform
 local glUniformMatrix        = gl.UniformMatrix
 local glUseShader            = gl.UseShader
-local glVertex               = gl.Vertex
-local glTranslate            = gl.Translate
 local spGetCameraPosition    = Spring.GetCameraPosition
-local spGetCameraVectors     = Spring.GetCameraVectors
 local spGetWind              = Spring.GetWind
-local time                   = Spring.GetGameSeconds
-local spGetDrawFrame         = Spring.GetDrawFrame
 
 local function spEcho(words)
 	Spring.Echo('<Volumetric Clouds> '..words)
@@ -150,20 +123,14 @@ end
 --  Extra GL constants
 --
 
-local GL_DEPTH_BITS = 0x0D56
-
-local GL_DEPTH_COMPONENT   = 0x1902
-local GL_DEPTH_COMPONENT16 = 0x81A5
 local GL_DEPTH_COMPONENT24 = 0x81A6
-local GL_DEPTH_COMPONENT32 = 0x81A7
-local GL_RGBA32F_ARB       = 0x8814
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 if (gnd_min < 0) then gnd_min = 0 end
 if (gnd_max < 0) then gnd_max = 0 end
-local vsx, vsy
+local vsx, vsy, vpx, vpy
 
 local depthShader
 local depthTexture
@@ -184,13 +151,7 @@ local offsetZ = 0
 --------------------------------------------------------------------------------
 
 function widget:ViewResize()
-	vsx, vsy = gl.GetViewSizes()
-	if Spring.GetMiniMapDualScreen() == 'left' then
-		vsx = vsx / 2
-	end
-	if Spring.GetMiniMapDualScreen() == 'right' then
-		vsx = vsx / 2
-	end
+	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 
 	if depthTexture then
 		glDeleteTexture(depthTexture)
@@ -559,12 +520,12 @@ void main()
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function widget:GetConfigData(data)
-	return {opacityMult	= opacityMult}
+function widget:GetConfigData()
+	return {opacityMult = opacityMult}
 end
 
 function widget:SetConfigData(data)
-	if data.opacityMult ~= nil 	then
+	if data.opacityMult ~= nil then
 		opacityMult = data.opacityMult
 	end
 end
@@ -624,10 +585,6 @@ function widget:Initialize()
 		init()
 	end
 
-	if Spring.GetMiniMapDualScreen() == 'left' then --FIXME dualscreen
-		enabled = false
-	end
-
 	if not glCreateShader then
 		enabled = false
 	end
@@ -669,9 +626,8 @@ local function renderToTextureFunc()
 end
 
 local function DrawFogNew()
-	--//FIXME handle dualscreen correctly!
 	-- copy the depth buffer
-	glCopyToTexture(depthTexture, 0, 0, 0, 0, vsx, vsy) --FIXME scale down?
+	glCopyToTexture(depthTexture, 0, 0, vpx, vpy, vsx, vsy) --FIXME scale down?
 
 	-- setup the shader and its uniform values
 	glUseShader(depthShader)

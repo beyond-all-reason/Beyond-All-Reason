@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx, vsy = Spring.GetViewGeometry()
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
@@ -91,6 +93,9 @@ local glTexture = gl.Texture
 local glTexRect = gl.TexRect
 
 local RectRound, RectRoundProgress, UiElement, UiUnit, elementCorner
+
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 -------------------------------------------------------------------------------
 -- SOUNDS
@@ -508,7 +513,7 @@ local function drawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 		iconAlpha = 1
 		zoom = 0.12
 		if WG.tooltip then
-			WG.tooltip.ShowTooltip('buildbar', '\255\215\255\215' .. UnitDefs[unitDefID].translatedHumanName .. '\n' .. UnitDefs[unitDefID].translatedTooltip)
+			WG.tooltip.ShowTooltip('buildbar', UnitDefs[unitDefID].translatedTooltip, nil, nil, UnitDefs[unitDefID].translatedHumanName)
 		end
 	end
 
@@ -849,10 +854,21 @@ function widget:DrawInMiniMap(sx, sy)
 		local pt = math.min(sx, sy)
 
 		gl.LoadIdentity()
-		gl.Translate(0, 1, 0)
-		gl.Scale(1 / msx, -1 / msz, 1)
 
-		local r, g, b = Spring.GetTeamColor(myTeamID)
+		if getMiniMapFlipped() then
+			gl.Translate(1, 0, 0)
+			gl.Scale(-1 / msx, 1 / msz, 1)
+		else
+			gl.Translate(0, 1, 0)
+			gl.Scale(1 / msx, -1 / msz, 1)
+		end
+
+		local r, g, b
+		if anonymousMode ~= "disabled" then
+			r, g, b = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+		else
+			r, g, b = Spring.GetTeamColor(myTeamID)
+		end
 		local alpha = 0.5 + math.abs((Spring.GetGameSeconds() % 0.25) * 4 - 0.5)
 		local x, _, z = Spring.GetUnitBasePosition(facs[openedMenu + 1].unitID)
 

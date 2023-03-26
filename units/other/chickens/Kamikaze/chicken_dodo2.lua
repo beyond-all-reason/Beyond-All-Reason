@@ -32,7 +32,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 100,
-		maxdamage = 4000,
+		maxdamage = 4450,
 		maxslope = 18,
 		maxvelocity = 8,
 		maxwaterdepth = 0,

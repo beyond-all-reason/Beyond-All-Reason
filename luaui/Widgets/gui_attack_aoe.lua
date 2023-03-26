@@ -284,9 +284,9 @@ local function SetupUnitDef(unitDefID, unitDef)
 		weaponTable[unitDefID] = { type = "dropped", scatter = scatter, v = unitDef.speed, h = unitDef.wantedHeight, salvoSize = maxWeaponDef.salvoSize, salvoDelay = maxWeaponDef.salvoDelay }
 	elseif weaponType == "StarburstLauncher" then
 		if maxWeaponDef.tracks then
-			weaponTable[unitDefID] = { type = "tracking" }
+			weaponTable[unitDefID] = { type = "tracking", range = maxWeaponDef.range }
 		else
-			weaponTable[unitDefID] = { type = "cruise" }
+			weaponTable[unitDefID] = { type = "cruise", range = maxWeaponDef.range }
 		end
 	elseif weaponType == "TorpedoLauncher" then
 		if maxWeaponDef.tracks then

@@ -22,7 +22,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1200,
+		maxdamage = 1330,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		mincloakdistance = 72,
@@ -42,7 +42,6 @@ return {
 			unitgroup = 'aa',
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
-			prioritytarget = "air",
 			removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",
 			legacyname = "Pack0"
@@ -165,12 +164,6 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1200,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.59,
-					expl_light_radius_mult = 1.67,
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 150,
 					fighters = 150,

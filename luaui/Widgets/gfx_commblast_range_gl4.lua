@@ -6,27 +6,20 @@ function widget:GetInfo()
 		date = "2022.08.27",
 		license = "Lua code: GNU GPL, v2 or later, Shader GLSL code: (c) Beherith (mysterme@gmail.com)",
 		layer = -1,
-		enabled = false,
+		enabled = true,
 	}
 end
 
-local commblastSphereVBO = nil
 local commblastSphereShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
 
 local glTexture = gl.Texture
 local glCulling = gl.Culling
 local glDepthTest = gl.DepthTest
-local GL_BACK = GL.BACK
-local GL_LEQUAL = GL.LEQUAL
 
 
 local spGetUnitPosition     = Spring.GetUnitPosition
-local spGetUnitDefID 		= Spring.GetUnitDefID
 local spGetGroundHeight		= Spring.GetGroundHeight
 local spGetUnitNearestEnemy	= Spring.GetUnitNearestEnemy
-local spValidUnitID			= Spring.ValidUnitID
-local spGetCameraPosition	= Spring.GetCameraPosition
 local spIsGUIHidden			= Spring.IsGUIHidden
 local spIsSphereInView		= Spring.IsSphereInView
 local diag 					= math.diag
@@ -36,9 +29,9 @@ local commanders = {} -- keyed as {unitID : {draw = bool, oldopacity = 0.0, newo
 local commDefIds = { [UnitDefNames['corcom'].id] = true, [UnitDefNames['armcom'].id] = true}
 local dgunRange	= WeaponDefNames["armcom_disintegrator"].range + WeaponDefNames["armcom_disintegrator"].damageAreaOfEffect
 
-local blastRadius			= 380		-- com explosion
-local showOnEnemyDistance	= 400
-local fadeInDistance		= 150
+local blastRadius			= 370		-- com explosion
+local showOnEnemyDistance	= 370
+local fadeInDistance		= 160
 
 ---- GL4 Config stuff ----------------
 
@@ -48,9 +41,8 @@ local shaderConfig = {
 	SPHERESEGMENTS = 8,
 	BLASTRADIUS = blastRadius,
 	DGUNRANGE = dgunRange,
-	OPACITYMULTIPLIER = 2.0,
-	TEAMCOLORED = 1
-	
+	OPACITYMULTIPLIER = 0.75,
+	TEAMCOLORED = 0
 }
 
 ---- Object intersection test http://www.realtimerendering.com/intersections.html
@@ -59,11 +51,7 @@ local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
-local commblastSphereVBO = nil 
-
-local fogTexture
-local vsx, vsy
-local combineShader
+local commblastSphereVBO
 
 local shaderSourceCache = {
 		vssrcpath = "LuaUI/Widgets/Shaders/commblast_range.vert.glsl",
@@ -85,7 +73,13 @@ end
 
 local function initFogGL4(shaderConfig, DPATname)
 	commblastSphereShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or commblastSphereShader
-	
+
+	if not commblastSphereShader then
+		Spring.Echo("Error: Commblast Range GL4 shader not initialized")
+		widgetHandler:RemoveWidget()
+		return
+	end
+
 	local sphereVBO, numVertices, sphereIndexVBO, numIndices = makeSphereVBO(shaderConfig.SPHERESEGMENTS, shaderConfig.SPHERESEGMENTS/2, 1)
 
 	DrawPrimitiveAtUnitVBO = makeInstanceVBOTable(
@@ -97,7 +91,7 @@ local function initFogGL4(shaderConfig, DPATname)
 		DPATname .. "VBO", -- name,
 		4 --unitIDattribID
 	)
-	
+
 	DrawPrimitiveAtUnitVBO:makeVAOandAttach(sphereVBO,DrawPrimitiveAtUnitVBO.instanceVBO, sphereIndexVBO)
 	return DrawPrimitiveAtUnitVBO, commblastSphereShader
 end
@@ -107,14 +101,14 @@ local function AddBlastSphere(unitID, noUpload, oldopacity, newopacity, gamefram
 	cacheTable[1] = oldopacity
 	cacheTable[2] = newopacity
 	cacheTable[3] = gameframe
-	
-	return pushElementInstance(commblastSphereVBO, 
+
+	return pushElementInstance(commblastSphereVBO,
 			cacheTable,
 			unitID, true, noUpload, unitID)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
-	Spring.Echo("widget:RecvLuaMsg",msg)
+	--Spring.Echo("widget:RecvLuaMsg",msg)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
 	end
@@ -132,20 +126,20 @@ function widget:DrawWorldPreUnit()
 		glDepthTest(false)
 		gl.DepthMask(false)
 		gl.Texture(0, "$map_gbuffer_zvaltex")
-		
+
 		commblastSphereShader:Activate()
 		commblastSphereVBO:Draw()
 		commblastSphereShader:Deactivate()
 		glTexture(0, false)
-
+		glCulling(false)
 		glDepthTest(false)
 	end
 end
 
---- Look how easy api_unit_tracker is to use! 
+--- Look how easy api_unit_tracker is to use!
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	--Spring.Echo("VisibleUnitAdded",	unitID, unitDefID, unitTeam)
-	if commDefIds[unitDefID] then 
+	if commDefIds[unitDefID] then
 		commanders[unitID] = {draw = false, oldopacity = 0.0, newopacity = 0.0}
 	end
 end
@@ -164,23 +158,23 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 	end
 end
 
-function widget:GameFrame(n) 
+function widget:GameFrame(n)
 	-- This is where we update the alphas of the spheres
 	-- also based on health!
 	-- we gotta do this every 15 frames, and do interpolation in-shader for optimum efficiency
 	-- check com movement, also try to draw as little as possible!
-	-- api_unit_tracker will take care of removing invisible commanders for us 
+	-- api_unit_tracker will take care of removing invisible commanders for us
 	-- but we have to add/update them here manually!
 	if n%15 ~= 0 then return end
-	
+
 	-- in the first pass, identify which ones we want to draw, and set their new opacities accordingly
-	
+
 	-- do not draw if any:
 		-- comm above ground
 		-- not in view
 		-- no enemies in range
 	for unitID, params in pairs(commanders) do
-		local x,y,z = spGetUnitPosition(unitID)			
+		local x,y,z = spGetUnitPosition(unitID)
 		local draw = false
 		local newopacity = 0
 		if x then
@@ -224,7 +218,7 @@ end
 
 function widget:Initialize()
 	commblastSphereVBO, commblastSphereShader = initFogGL4(shaderConfig, "commblastSpheres")
-	Spring.Echo(Spring.HaveShadows(),"advshad",Spring.HaveAdvShading())
+	--Spring.Echo(Spring.HaveShadows(),"advshad",Spring.HaveAdvShading())
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end

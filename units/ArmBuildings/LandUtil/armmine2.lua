@@ -26,7 +26,7 @@ return {
 		idletime = 300,
 		initcloaked = true,
 		levelground = false,
-		maxdamage = 10,
+		maxdamage = 11,
 		maxslope = 40,
 		maxwaterdepth = 0,
 		mincloakdistance = 8,

@@ -19,7 +19,7 @@ local idleTime = 10		-- after this much sec: mark user as idle
 local displayMessages = true
 local spoken = true
 local idleBuilderNotificationDelay = 10 * 30	-- (in gameframes)
-local lowpowerThreshold = 6		-- if there is X secs a low power situation
+local lowpowerThreshold = 7		-- if there is X secs a low power situation
 local tutorialPlayLimit = 2		-- display the same tutorial message only this many times in total (max is always 1 play per game)
 
 --------------------------------------------------------------------------------
@@ -34,7 +34,6 @@ local gameframe = spGetGameFrame()
 
 local lockPlayerID
 local gaiaTeamID = Spring.GetGaiaTeamID()
-
 local function addSound(name, file, minDelay, duration, messageKey, unlisted)
 	Sound[name] = {
 		file = file,
@@ -53,6 +52,7 @@ end
 -- commanders
 addSound('EnemyCommanderDied', 'EnemyCommanderDied.wav', 1, 1.7, 'tips.notifications.enemyCommanderDied')
 addSound('FriendlyCommanderDied', 'FriendlyCommanderDied.wav', 1, 1.75, 'tips.notifications.friendlyCommanderDied')
+addSound('FriendlyCommanderSelfD', 'AlliedComSelfD.wav', 1, 2, 'tips.notifications.friendlyCommanderSelfD')
 addSound('ComHeavyDamage', 'ComHeavyDamage.wav', 12, 2.25, 'tips.notifications.commanderDamage')
 addSound('TeamDownLastCommander', 'Teamdownlastcommander.wav', 30, 3, 'tips.notifications.teamdownlastcommander')
 addSound('YouHaveLastCommander', 'Youhavelastcommander.wav', 30, 3, 'tips.notifications.youhavelastcommander')
@@ -60,37 +60,40 @@ addSound('YouHaveLastCommander', 'Youhavelastcommander.wav', 30, 3, 'tips.notifi
 -- game status
 addSound('ChooseStartLoc', 'ChooseStartLoc.wav', 90, 2.2, 'tips.notifications.startingLocation')
 addSound('GameStarted', 'GameStarted.wav', 1, 2, 'tips.notifications.gameStarted')
+addSound('BattleEnded', 'BattleEnded.wav', 1, 2, 'tips.notifications.battleEnded')
 addSound('GamePause', 'GamePause.wav', 5, 1, 'tips.notifications.gamePaused')
 addSound('PlayerLeft', 'PlayerDisconnected.wav', 1, 1.65, 'tips.notifications.playerLeft')
 addSound('PlayerAdded', 'PlayerAdded.wav', 1, 2.36, 'tips.notifications.playerAdded')
-
+addSound('PlayerResigned', 'PlayerResigned.wav', 1, 2.36, 'tips.notifications.playerResigned')
+addSound('PlayerTimedout', 'PlayerTimedout.wav', 1, 2.36, 'tips.notifications.playerTimedout')
+addSound('PlayerReconnecting', 'PlayerTimedout.wav', 1, 2.36, 'tips.notifications.playerReconnecting')
 
 -- awareness
 --addSound('IdleBuilder', 'IdleBuilder.wav', 30, 1.9, 'A builder has finished building')
-addSound('UnitsReceived', 'UnitReceived.wav', 4, 1.75, 'tips.notifications.unitsReceived')
-addSound('RadarLost', 'RadarLost.wav', 8, 1, 'tips.notifications.radarLost')
-addSound('AdvRadarLost', 'AdvRadarLost.wav', 8, 1.32, 'tips.notifications.advancedRadarLost')
-addSound('MexLost', 'MexLost.wav', 8, 1.53, 'tips.notifications.metalExtractorLost')
+addSound('UnitsReceived', 'UnitReceived.wav', 5, 1.75, 'tips.notifications.unitsReceived')
+addSound('RadarLost', 'RadarLost.wav', 12, 1, 'tips.notifications.radarLost')
+addSound('AdvRadarLost', 'AdvRadarLost.wav', 12, 1.32, 'tips.notifications.advancedRadarLost')
+addSound('MexLost', 'MexLost.wav', 10, 1.53, 'tips.notifications.metalExtractorLost')
 
 -- resources
-addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 45, 1.63, 'tips.notifications.overflowingMetal')
+addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 80, 1.63, 'tips.notifications.overflowingMetal')
 --addSound('YouAreOverflowingEnergy', 'YouAreOverflowingEnergy.wav', 100, 1.7, 'Your are overflowing energy')
 --addSound('YouAreWastingMetal', 'YouAreWastingMetal.wav', 25, 1.5, 'Your are wasting metal')
 --addSound('YouAreWastingEnergy', 'YouAreWastingEnergy.wav', 35, 1.3, 'Your are wasting energy')
-addSound('WholeTeamWastingMetal', 'WholeTeamWastingMetal.wav', 30, 1.82, 'tips.notifications.teamWastingMetal')
-addSound('WholeTeamWastingEnergy', 'WholeTeamWastingEnergy.wav', 110, 2.14, 'tips.notifications.teamWastingEnergy')
+addSound('WholeTeamWastingMetal', 'WholeTeamWastingMetal.wav', 60, 1.82, 'tips.notifications.teamWastingMetal')
+addSound('WholeTeamWastingEnergy', 'WholeTeamWastingEnergy.wav', 120, 2.14, 'tips.notifications.teamWastingEnergy')
 --addSound('MetalStorageFull', 'metalstorefull.wav', 40, 1.62, 'Metal storage is full')
 --addSound('EnergyStorageFull', 'energystorefull.wav', 40, 1.65, 'Energy storage is full')
-addSound('LowPower', 'LowPower.wav', 30, 0.95, 'tips.notifications.lowPower')
+addSound('LowPower', 'LowPower.wav', 50, 0.95, 'tips.notifications.lowPower')
 addSound('WindNotGood', 'WindNotGood.wav', 9999999, 3.76, 'tips.notifications.lowWind')
 
 -- added this so they wont get immediately triggered after gamestart
-LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+400
+LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+1200
 --LastPlay['YouAreOverflowingEnergy'] = spGetGameFrame()+300
 --LastPlay['YouAreWastingMetal'] = spGetGameFrame()+300
 --LastPlay['YouAreWastingEnergy'] = spGetGameFrame()+300
-LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()+400
-LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()+400
+LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()+1200
+LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()+2000
 
 -- alerts
 addSound('NukeLaunched', 'NukeLaunched.wav', 3, 2, 'tips.notifications.nukeLaunched')
@@ -455,6 +458,9 @@ function widget:GameFrame(gf)
 			if lowpowerDuration >= lowpowerThreshold then
 				queueNotification('LowPower')
 				lowpowerDuration = 0
+
+				-- increase next low power delay
+				Sound["LowPower"].delay = Sound["LowPower"].delay + 15
 			end
 		end
 
@@ -763,6 +769,10 @@ function widget:KeyPress()
 	lastUserInputTime = os.clock()
 end
 
+function widget:GameOver()
+	widgetHandler:RemoveWidget()
+end
+
 function widget:GetConfigData(data)
 	return {
 		Sound = Sound,
@@ -816,8 +826,3 @@ function widget:SetConfigData(data)
 		end
 	end
 end
-
--- maybe draw events on minimap
---function widget:DrawInMiniMap(sx, sy)
---
---end

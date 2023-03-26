@@ -6,10 +6,10 @@ local ShieldSphereBase = {
     --colormap1 = {{0.99, 0.99, 0.99, 0.05}, {0.0, 0.0, 0.0, 0.0}},
 	--colormap2 = {{0.95, 0.95, 0.95, 0.01}, {0.0, 0.0, 0.0, 0.0}},
 	-- go to red
-    colormap1 = {{0.99, 0.99, 0.90, 0.05}, {0.6, 0.30, 0.09, 0.0}},
+    colormap1 = {{0.99, 0.99, 0.90, 0.002}, {0.6, 0.30, 0.09, 0.0}},
 	colormap2 = {{0.7, 0.7, 0.7, 0.001}, {0.05, 0.03, 0.0, 0.0}},
 	repeatEffect = true,
-	drawBack = 0.7,
+	drawBack = 0.2,
 	--
 	terrainOutline = true,
 	unitsOutline = true,

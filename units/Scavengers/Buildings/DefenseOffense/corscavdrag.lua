@@ -1,10 +1,11 @@
 return {
 	corscavdrag = {
 		acceleration = 0,
+		autoheal = 4,
 		blocking = true,
 		brakerate = 0,
-		buildcostenergy = 160,
-		buildcostmetal = 11,
+		buildcostenergy = 0,
+		buildcostmetal = 8,
 		buildpic = "scavengers/CORSCAVDRAG.DDS",
 		buildtime = 255,
 		canattack = false,
@@ -21,7 +22,7 @@ return {
 		hidedamage = true,
 		idleautoheal = 0,
 		levelground = false,
-		maxdamage = 2500,
+		maxdamage = 2800,
 		maxslope = 64,
 		maxwaterdepth = 0,
 		objectname = "scavs/scavdrag.s3o",

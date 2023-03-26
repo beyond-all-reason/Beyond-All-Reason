@@ -56,6 +56,7 @@ local buttonDrawn = false
 
 local RectRound, UiElement, UiButton, elementPadding, uiPadding
 
+local enableSubbing = false
 local eligibleAsSub = false
 local offeredAsSub = false
 local allowUnready = false	-- not enabled cause unreadying doesnt work
@@ -67,6 +68,9 @@ local unitshapes = {}
 local teamStartPositions = {}
 local teamList = Spring.GetTeamList()
 
+local uiElementRect = {0,0,0,0}
+local buttonRect = {0,0,0,0}
+
 local function createButton()
 	local color = { 0.15, 0.15, 0.15 }
 	if not mySpec then
@@ -74,15 +78,17 @@ local function createButton()
 	elseif eligibleAsSub then
 		color = offeredAsSub and unsubButtonColor or subButtonColor
 	end
+	uiElementRect = { buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding }
+	buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2) }
 	gl.DeleteList(buttonList)
 	buttonList = gl.CreateList(function()
-		UiElement(buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding, 1, 1, 1, 1, 1, 1, 1, 1)
-		UiButton(buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2), 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.55, color[2]*0.55, color[3]*0.55, 1 }, { color[1], color[2], color[3], 1 })
+		UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
+		UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.55, color[2]*0.55, color[3]*0.55, 1 }, { color[1], color[2], color[3], 1 })
 	end)
 	gl.DeleteList(buttonHoverList)
 	buttonHoverList = gl.CreateList(function()
-		UiElement(buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding, 1, 1, 1, 1, 1, 1, 1, 1)
-		UiButton(buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2), 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.85, color[2]*0.85, color[3]*0.85, 1 }, { color[1]*1.5, color[2]*1.5, color[3]*1.5, 1 })
+		UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
+		UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.85, color[2]*0.85, color[3]*0.85, 1 }, { color[1]*1.5, color[2]*1.5, color[3]*1.5, 1 })
 	end)
 end
 
@@ -163,9 +169,9 @@ function widget:MousePress(sx, sy)
 	if buttonDrawn then
 
 		-- pressing element
-		if sx > buttonX - (buttonW / 2) - uiPadding and sx < buttonX + (buttonW / 2) + uiPadding and sy > buttonY - (buttonH / 2) - uiPadding and sy < buttonY + (buttonH / 2) + uiPadding then
+		if sx > uiElementRect[1] and sx < uiElementRect[3] and sy > uiElementRect[2] and sy < uiElementRect[4] then
 			-- pressing button
-			if sx > buttonX - (buttonW / 2) and sx < buttonX + (buttonW / 2) and sy > buttonY - (buttonH / 2) and sy < buttonY + (buttonH / 2) then
+			if sx > buttonRect[1] and sx < buttonRect[3] and sy > buttonRect[2] and sy < buttonRect[4] then
 
 				-- ready
 				if not mySpec then
@@ -227,7 +233,7 @@ function widget:Initialize()
 		return
 	end
 
-	if mySpec then
+	if mySpec and enableSubbing then
 		if numPlayers <= 4 or isReplay or ffaMode then
 			eligibleAsSub = false
 		else
@@ -268,10 +274,10 @@ function widget:DrawScreen()
 		buttonDrawn = true
 		if WG['guishader'] then
 			WG['guishader'].InsertRect(
-				buttonX - ((buttonW / 2) + uiPadding),
-				buttonY - ((buttonH / 2) + uiPadding),
-				buttonX + ((buttonW / 2) + uiPadding),
-				buttonY + ((buttonH / 2) + uiPadding),
+				uiElementRect[1],
+				uiElementRect[2],
+				uiElementRect[3],
+				uiElementRect[4],
 				'pregameui'
 			)
 		end
@@ -279,7 +285,7 @@ function widget:DrawScreen()
 		-- draw button and text
 		local x, y = Spring.GetMouseState()
 		local colorString
-		if x > buttonX - (buttonW / 2) and x < buttonX + (buttonW / 2) and y > buttonY - (buttonH / 2) and y < buttonY + (buttonH / 2) then
+		if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] then
 			gl.CallList(buttonHoverList)
 			colorString = "\255\210\210\210"
 		else
@@ -292,7 +298,7 @@ function widget:DrawScreen()
 			end
 		end
 		font:Begin()
-		font:Print(colorString .. buttonText, buttonX, buttonY - (buttonH * 0.16), 24 * uiScale, "co")
+		font:Print(colorString .. buttonText, buttonRect[1]+((buttonRect[3]-buttonRect[1])/2), (buttonRect[2]+((buttonRect[4]-buttonRect[2])/2)) - (buttonH * 0.16), 24 * uiScale, "co")
 		font:End()
 		gl.Color(1, 1, 1, 1)
 	end

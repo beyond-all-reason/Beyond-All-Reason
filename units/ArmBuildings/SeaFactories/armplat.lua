@@ -1,6 +1,7 @@
 return {
 	armplat = {
 		acceleration = 0,
+		--activatewhenbuilt = true,
 		brakerate = 0,
 		buildcostenergy = 5000,
 		buildcostmetal = 1450,
@@ -17,14 +18,16 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1820,
+		maxdamage = 2000,
 		minwaterdepth = 30,
 		objectname = "Units/ARMPLAT.s3o",
-		radardistance = 50,
+		onoffable = true,
+		radardistance = 750,
 		script = "Units/ARMPLAT.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 169,
+		sonardistance = 600,
 		terraformspeed = 1000,
 		waterline = 39,
 		workertime = 200,
@@ -64,6 +67,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:radarpulse_t1_slow",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

@@ -96,6 +96,10 @@ local UnitEffects = {
 		{ class = 'ShieldSphere', options = armafusShieldSphere },
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 28.5, precision = 22, repeatEffect = true } },
 	},
+	["resourcecheat"] = {
+		{ class = 'ShieldSphere', options = armafusShieldSphere },
+		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 28.5, precision = 22, repeatEffect = true } },
+	},
 	["corgate"] = {
 		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 12, precision = 22, repeatEffect = true } },
 		{ class = 'ShieldSphere', options = corgateShieldSphere },

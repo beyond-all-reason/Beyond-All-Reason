@@ -11,6 +11,12 @@ static-var  bMoving, Static_Var_2, Static_Var_3, restore_delay, wpn1_lasthead, a
 #define SIG_AIM				2
 #define SIG_WALK 			4
 
+lua_UnitScriptDecal(decalIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+
+
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armfboy_anim_walk.blend 
 	//set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:9
@@ -105,6 +111,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:41
+			call-script lua_UnitScriptDecal(2, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			move body to y-axis [0.500000] speed [37.500000] / animSpeed; //delta=1.25 
 			turn body to x-axis <-0.000000> speed <30.000000> / animSpeed; //delta=1.00 
 			turn body to z-axis <-0.000000> speed <45.000001> / animSpeed; //delta=-1.50 
@@ -202,6 +209,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:73
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			move body to y-axis [0.500000] speed [37.500000] / animSpeed; //delta=1.25 
 			turn body to x-axis <-0.000000> speed <30.000000> / animSpeed; //delta=1.00 
 			turn body to z-axis <-0.000000> speed <45.000001> / animSpeed; //delta=1.50 

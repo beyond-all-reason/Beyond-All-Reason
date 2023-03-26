@@ -18,7 +18,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 200000,
-		maxdamage = 5500,
+		maxdamage = 6100,
 		maxslope = 20,
 		maxvelocity = 1.6,
 		maxwaterdepth = 12,
@@ -157,14 +157,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 530,
 				wobble = 2000,
-				customparams = {
-					expl_light_color = "1 0.3 0.03",
-					expl_light_heat_radius_mult = 2.6,
-					expl_light_life_mult = 1.05,
-					expl_light_radius_mult = 1.75,
-					light_color = "1 0.5 0.05",
-					light_radius_mult = 0.5,
-				},
 				damage = {
 					default = 450,
 				},

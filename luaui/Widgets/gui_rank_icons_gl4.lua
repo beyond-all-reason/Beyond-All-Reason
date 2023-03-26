@@ -49,7 +49,7 @@ local debugmode = false
 local function addDirToAtlas(atlas, path)
 	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
 	local files = VFS.DirList(path, '*.png')
-	Spring.Echo("Adding",#files, "images to atlas from", path)
+	if debugmode then Spring.Echo("Adding",#files, "images to atlas from", path) end
 	for i=1, #files do
 		if imgExts[string.sub(files[i],-3,-1)] then
 			gl.AddAtlasTexture(atlas,files[i])
@@ -170,7 +170,10 @@ local function ProcessAllUnits()
 	local units = Spring.GetAllUnits()
 	--Spring.Echo("Refreshing Ground Plates", #units)
 	for _, unitID in ipairs(units) do
-		AddPrimitiveAtUnit(unitID, nil, true, 'ProcessAllUnits', unitID % numRanks + 1, true)
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		if unitDefID then 
+			updateUnitRank(unitID, unitDefID, true)
+		end
 	end
 	uploadAllElements(rankVBO)
 end
@@ -228,14 +231,14 @@ local function getRank(unitDefID, xp)
 	end
 end
 
-local function updateUnitRank(unitID, unitDefID)
+local function updateUnitRank(unitID, unitDefID, noUpload)
 	local currentRank = unitRanks[unitID]
 	local xp = GetUnitExperience(unitID)
 	if xp then
 		local newrank = getRank(unitDefID, xp)
 		unitRanks[unitID] = newrank
 		if newrank > 1 then
-			AddPrimitiveAtUnit(unitID, unitDefID, false, "updateUnitRank", newrank, false)
+			AddPrimitiveAtUnit(unitID, unitDefID, noUpload, "updateUnitRank", newrank, false)
 		end
 
 	end
@@ -311,6 +314,8 @@ function widget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldXP)
 	end
 end
 
+--[[
+-- Switch over to API
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if IsUnitAllied(unitID) or GetSpectatingState() then
 		updateUnitRank(unitID, GetUnitDefID(unitID))
@@ -333,6 +338,29 @@ function widget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 		unitRanks[unitID] = nil
 		RemovePrimitive(unitID, "UnitGiven")
 	end
+end
+]]--
+
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	if IsUnitAllied(unitID) or GetSpectatingState() then
+		updateUnitRank(unitID, GetUnitDefID(unitID))
+	end
+end
+
+function widget:VisibleUnitRemoved(unitID) -- E.g. when a unit dies
+	unitRanks[unitID] = nil
+	RemovePrimitive(unitID, "UnitDestroyed")
+end
+
+function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) 
+	clearInstanceTable(rankVBO)
+	doRefresh = true
+	unitRanks = {}
+	for unitID, unitDefID in pairs(extVisibleUnits) do 
+		updateUnitRank(unitID, unitDefID, true)
+	end
+	uploadAllElements(rankVBO)
+	doRefresh = false
 end
 
 -------------------------------------------------------------------------------------

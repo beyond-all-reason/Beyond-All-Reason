@@ -6,8 +6,6 @@
 uniform sampler2D mapDepthTex;
 uniform sampler2D modelsDepthTex;
 
-uniform vec2 viewPortSize;
-
 uniform int effects;
 
 uniform vec4 color1;
@@ -36,6 +34,8 @@ in Data {
 
 	float colormix;
 	float normalizedFragDepth;
+
+	noperspective vec2 v_screenUV;
 };
 
 #define NORM2SNORM(value) (value * 2.0 - 1.0)
@@ -249,12 +249,11 @@ void main() {
 		const float outlineAlpha = 0.45;
 
 		float minDepth = 1.0;
-		vec2 viewPortUV = gl_FragCoord.xy/viewPortSize;
 		if (BITMASK_FIELD(effects, 1)) { // terrain outline
-			minDepth = min(minDepth, texture( mapDepthTex, viewPortUV ).r);
+			minDepth = min(minDepth, texture( mapDepthTex, v_screenUV ).r);
 		}
 		if (BITMASK_FIELD(effects, 2)) { // units outline
-			minDepth = min(minDepth, texture( modelsDepthTex, viewPortUV ).r);
+			minDepth = min(minDepth, texture( modelsDepthTex, v_screenUV ).r);
 		}
 
 		#if (DEPTH_CLIP01 == 1)

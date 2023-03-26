@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad, nano3, nano4, nano2, nano1, dish, blinka, blinkb;
+piece  base, pad, nano3, nano4, nano2, nano1, dish, blink, blinka, blinkb;
 
 static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
@@ -33,14 +33,29 @@ Standby()
 	start-script Standby();
 }
 
+Lights()
+{
+	while( TRUE )
+	{
+	    if (!Stunned) {
+		    emit-sfx 1024 + 1 from blink;
+		}
+		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
+}
+
+
 activatescr()
 {
+	//start-script Lights();
 	sleep 26;
 }
 
 deactivatescr()
 {
-	sleep 26;
+//	sleep 26;
 }
 
 OpenYard()
@@ -78,16 +93,19 @@ Stop()
 }
 DishSpin()
 {
+	show blink;
 	spin dish around y-axis speed <60>;
 }
 DishStopSpin()
 {
+	hide blink;
 	spin dish around y-axis speed <0.000>;
 }
 SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
+		hide blink;
 	    call-script DishStopSpin();
 	} else {
 	    call-script DishSpin();
@@ -128,12 +146,11 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	hide nano3;
-	hide nano2;
-	hide pad;
-	hide nano4;
 	hide nano1;
-	spin dish around y-axis speed <60>;
+	hide nano2;
+	hide nano3;
+	hide nano4;
+	hide pad;
 	unitviewer = FALSE;
 	spray = nano1;
 	call-script InitState();
@@ -142,6 +159,8 @@ Create()
 	{
 		sleep 1000;
 	}
+	spin dish around y-axis speed <60>;
+	start-script Lights();
 }
 
 
@@ -189,18 +208,26 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-  sleep 5000;
+    sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);
 }
 
 StartBuilding()
 {
+	show nano1;
+	show nano2;
+	show nano3;
+	show nano4;
 	spin pad around y-axis speed <30.005495>;
 }
 
 StopBuilding()
 {
+	hide nano1;
+	hide nano2;
+	hide nano3;
+	hide nano4;
 	stop-spin pad around y-axis;
 }
 

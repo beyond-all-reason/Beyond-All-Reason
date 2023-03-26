@@ -20,6 +20,11 @@ static-var  bMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading,
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armvang_anim_walk_2legs_v2.blend
 	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:6
@@ -48,6 +53,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 	}
 	while(bMoving) {
 		if (bMoving) { //Frame:9
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lffoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lffoot) & 0x0000ffff),   get HEADING(0)); //lffoot
+			call-script lua_UnitScriptDecal(2, (get PIECE_XZ(rbankle) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rbankle) & 0x0000ffff),   get HEADING(0)); //lbankle
 			move base to y-axis [0.056000] speed [22.319999] / animSpeed; //delta=0.74
 			turn base to x-axis <-0.056000> speed <22.320001> / animSpeed; //delta=0.74
 			turn base to y-axis <-1.274999> speed <12.000010> / animSpeed; //delta=0.40
@@ -190,6 +197,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:27
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rffoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rffoot) & 0x0000ffff),   get HEADING(0)); //lffoot
+			call-script lua_UnitScriptDecal(2, (get PIECE_XZ(lbankle) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lbankle) & 0x0000ffff),   get HEADING(0)); //lbankle
 			move base to y-axis [-1.000000] speed [15.000000] / animSpeed; //delta=-0.50
 			turn base to x-axis <1.000000> speed <14.999995> / animSpeed; //delta=-0.50
 			turn base to y-axis <2.000000> speed <30.000003> / animSpeed; //delta=-1.00
@@ -625,7 +634,7 @@ AimPrimary(heading, pitch)
 	// In general, 6 cau per frame ~= 1 degree per second
 	turn aimy1 to y-axis heading speed <30.000000>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <45.000000>;
-	if ( (get ABS(last_primary_heading-heading)>180) OR (get ABS(last_primary_pitch-pitch)>270) )
+	if ( (get ABS(last_primary_heading - heading)>180) OR (get ABS(last_primary_pitch - pitch)>270) )
 	{
 		// seems to take 3 frames for wait-for-turn to process
 		wait-for-turn aimy1 around y-axis;
@@ -675,7 +684,7 @@ AimSecondary(heading, pitch)
 	// In general, 6 cau per frame ~= 1 degree per second
 	turn aimy1 to y-axis heading speed <30.000000>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <45.000000>;
-	if ( (get ABS(last_primary_heading-heading)>180) OR (get ABS(last_primary_pitch-pitch)>270) )
+	if ( (get ABS(last_primary_heading - heading)>180) OR (get ABS(last_primary_pitch - pitch)>270) )
 	{
 		// seems to take 3 frames for wait-for-turn to process
 		wait-for-turn aimy1 around y-axis;

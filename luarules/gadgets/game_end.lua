@@ -22,6 +22,8 @@ if gadgetHandler:IsSyncedCode() then
 	local sharedDynamicAllianceVictory = Spring.GetModOptions().shareddynamicalliancevictory
 	local fixedallies = Spring.GetModOptions().fixedallies
 
+	local earlyDropGrace = Game.gameSpeed * 60 * 1 -- in frames
+
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
 
@@ -75,6 +77,8 @@ if gadgetHandler:IsSyncedCode() then
 	local teamToAllyTeam = { [gaiaTeamID] = gaiaAllyTeamID }
 	local playerIDtoAIs = {}
 	local playerList = GetPlayerList()
+	local killTeamQueue = {}
+	local isFFA = Spring.GetModOptions().ffa_mode
 
 	local gameoverFrame
 	local gameoverWinners
@@ -130,9 +134,19 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		teamInfo.hasLeader = select(2, GetTeamInfo(teamID,false)) >= 0
 
-		if not teamInfo.hasLeader and not teamInfo.dead then
-			KillTeam(teamID)
-		end
+		--if not isFFA or gf > earlyDropGrace then
+			if not teamInfo.hasLeader and not teamInfo.dead then
+				if not killTeamQueue[teamID] then
+					killTeamQueue[teamID] = gf + (30 * (isFFA and 180 or 10))	-- add a grace period before killing the team
+				end
+			elseif killTeamQueue[teamID] then
+				killTeamQueue[teamID] = nil
+			end
+			if killTeamQueue[teamID] and gf >= killTeamQueue[teamID] then
+				KillTeam(teamID)
+				killTeamQueue[teamID] = nil
+			end
+		--end
 
 		-- if team isn't AI controlled, then we need to check if we have attached players
 		if not teamInfo.isAI then
@@ -422,6 +436,7 @@ if gadgetHandler:IsSyncedCode() then
 				if allyTeamUnitCount <= allyTeamInfo.unitDecorationCount then
 					for teamID in pairs(allyTeamInfo.teams) do
 						KillTeam(teamID)
+						killTeamQueue[teamID] = nil
 					end
 				end
 			end

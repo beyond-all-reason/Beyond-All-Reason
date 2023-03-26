@@ -57,6 +57,7 @@ local unitOrderTable = {
 	['corfast']        = 003200,
 
 	['armconsul']      = 003300, --VEH
+	['corforge']       = 003350, --VEH
 
 	['armmls']         = 003400, --SHIP
 	['cormls']         = 003500, --SHIP
@@ -168,7 +169,7 @@ local unitOrderTable = {
 	['legbar']         = 005440,
 
 	['armwar']         = 005600, --STRONK
-	['corkark']        = 005610,
+	['legkark']        = 005610,
 
 	['armsam']         = 005800, --LAND + AA
 	['cormist']        = 005810,
@@ -367,7 +368,9 @@ local unitOrderTable = {
 	['cormabm']        = 020010,
 
 	['armcarry']       = 020100,
+	['armcarry2']      = 020105,
 	['corcarry']       = 020110,
+	['corcarry2']      = 020115,
 
 -- BUILDINGS
    --ECO METAL MEX
@@ -517,7 +520,7 @@ local unitOrderTable = {
    ['corpun']         = 106900,
 
    --DEFENSES LAND T2
-   ['armmg']          = 107000, --land/AA machinegun
+   ['legmg']          = 107000, --land/AA machinegun
    ['armpb']          = 107100,
    ['corvipe']        = 107200,
    ['armamb']         = 107300,

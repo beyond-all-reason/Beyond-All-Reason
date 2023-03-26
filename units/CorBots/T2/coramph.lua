@@ -18,7 +18,7 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2100,
+		maxdamage = 2350,
 		maxslope = 14,
 		maxvelocity = 1.85,
 		movementclass = "ABOT2",
@@ -37,7 +37,7 @@ return {
 		turnrate = 1147.69995,
 		upright = true,
 		customparams = {
-			unitgroup = 'sub',
+			unitgroup = 'weaponsub',
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots/t2",

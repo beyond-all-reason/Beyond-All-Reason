@@ -4,7 +4,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base,fan;
+piece  base, fan, emit;
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
@@ -12,11 +12,13 @@ piece  base,fan;
 
 Activate()
 {
+    show emit;
 	spin fan around y-axis speed <-70.0000> accelerate <15.0>;
 }
 
 Deactivate()
 {
+    hide emit;
 	stop-spin fan around y-axis decelerate <0.2>;
 }
 

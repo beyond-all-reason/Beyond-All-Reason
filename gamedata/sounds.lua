@@ -9,7 +9,7 @@ local Sounds = {
 			in3d = "false",
 		},
 		MapPoint = {
-			file = "sounds/ui/mappoint.wav",
+			file = "sounds/ui/mappoint.wav",	-- file now equal as blank.wav, is being called by chat ui widget now (so users can adjust its volume)
 			--rolloff = 0.1,
 			--dopplerscale = 0,
 			in3d = "false",
@@ -211,6 +211,30 @@ local soundData = {
 		--in3d = false,
 	},
 
+	-- UNIT FOOTSTEPS SOUNDS // high pitch-mod
+	['unit'] = {
+		gain = 1.2 * 0.3,
+		pitchmod = 0.33,
+		gainmod  = 0.2 * 0.3,
+		dopplerscale = 0.5,
+		maxconcurrent = 6,
+		rolloff = 1.0,
+		priority = 1,
+		--in3d = false,
+	},
+
+	-- UNIT MOVEMENT SOUNDS // local low pitch-mod
+	['unit-local'] = {
+		gain = 1.2 * 0.5,
+		pitchmod = 0.03,
+		gainmod  = 0.2 * 0.3,
+		dopplerscale = 0,
+		maxconcurrent = 2,
+		rolloff = 1.2,
+		priority = 1,
+		--in3d = false,
+	},
+
 	-- UNIT FUNCTION/WEAPON SOUNDS
 	['function'] = {
 		gain = 1.2 * 0.3,
@@ -273,20 +297,33 @@ local soundData = {
 	['atmos'] = {
 		gain = 0.8,
 		pitchmod = 0.22,
-		gainmod  = 0.2 * 0.3,
-		dopplerscale = 1.0,
-		maxconcurrent = 6,
-		rolloff = 0.5,
+		gainmod  = 0,
+		dopplerscale = 8.0,
+		maxconcurrent = 10,
+		rolloff = 0.7,
+		--maxdist = 10000,
 	},
 
 	-- AMBIENCE LOCAL
-	['atmoslocal'] = {
-		gain = 0.9,
-		pitchmod = 0.11,
-		gainmod  = 0.2 * 0.3,
-		dopplerscale = 1.0,
-		maxconcurrent = 12,
-		rolloff = 1.4,
+	['atmos-local'] = {
+		gain = 0.8,
+		pitchmod = 0.22,
+		gainmod  = 0,
+		dopplerscale = 4.0,
+		maxconcurrent = 10,
+		rolloff = 1.5,
+		maxdist = 5000,
+	},
+
+	-- AMBIENCE GEOVENTS
+	['atmos-geovents'] = {
+		gain = 0.8,
+		pitchmod = 0.06,
+		gainmod  = 0,
+		dopplerscale = 2.0,
+		maxconcurrent = 10,
+		rolloff = 3,
+		maxdist = 3000,
 	},
 }
 

@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+
 if Game.startPosType ~= 2 then
 	return false
 end
@@ -48,6 +50,8 @@ local startboxDListColor = 0
 
 local isSpec = Spring.GetSpectatingState() or Spring.IsReplay()
 local myTeamID = Spring.GetMyTeamID()
+
+local flipped = false
 
 local placeVoiceNotifTimer = false
 local playedChooseStartLoc = false
@@ -194,6 +198,17 @@ function widget:LanguageChanged()
 	createInfotextList()
 end
 
+local function drawFormList()
+	gl.LoadIdentity()
+	if flipped then -- minimap is flipped
+		gl.Translate(1, 0, 0)
+		gl.Scale(-1 / msx, 1 / msz, 1)
+	else
+		gl.Translate(0, 1, 0)
+		gl.Scale(1 / msx, -1 / msz, 1)
+	end
+end
+
 function widget:Initialize()
 	-- only show at the beginning
 	if Spring.GetGameFrame() > 1 then
@@ -211,11 +226,7 @@ function widget:Initialize()
 	end
 
 	-- flip and scale  (using x & y for gl.Rect())
-	xformList = gl.CreateList(function()
-		gl.LoadIdentity()
-		gl.Translate(0, 1, 0)
-		gl.Scale(1 / msx, -1 / msz, 1)
-	end)
+	xformList = gl.CreateList(drawFormList)
 
 	-- cone list for world start positions
 	coneList = gl.CreateList(function()
@@ -232,11 +243,11 @@ function widget:Initialize()
 			end
 		end)
 	end)
-	local waterlevel = 0 
+	local waterlevel = 0
 	if Spring.GetModOptions().map_waterlevel ~= 0 then
 		waterlevel = Spring.GetModOptions().map_waterlevel
 	end
-	
+
 	startboxDListStencil = gl.CreateList(function()
 		local minY, maxY = Spring.GetGroundExtremes()
 		minY = minY - 200 - waterlevel
@@ -511,7 +522,7 @@ function widget:Update(delta)
 		widgetHandler:RemoveWidget()
 	end
 	if not placeVoiceNotifTimer then
-		placeVoiceNotifTimer = os.clock() + 22
+		placeVoiceNotifTimer = os.clock() + 30
 	end
 
 	if (doWaterLevelCheck and not resetted) or (Spring.IsCheatingEnabled() and Spring.GetGroundHeight(0, 0) ~= groundHeightPoint) then
@@ -542,6 +553,13 @@ function widget:Update(delta)
 			if oldTeamColors[teamID] ~= teamColors[teamID] then
 				detectedChanges = true
 			end
+		end
+
+		local newFlipped = getMiniMapFlipped()
+		if flipped ~= newFlipped then
+			flipped = newFlipped
+			gl.DeleteList(xformList)
+			xformList = gl.CreateList(drawFormList)
 		end
 
 		if detectedChanges then

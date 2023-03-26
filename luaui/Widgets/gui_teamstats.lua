@@ -18,12 +18,12 @@ local fontSizePercentage = 0.6 -- fontSize * X = actual fontsize
 local update = 30 -- in frames
 local replaceEndStats = false
 local highLightColour = {1,1,1,0.7}
-local sortHighLightColour = {1,0.87,0.87,1}
-local sortHighLightColourDesc = {0.9,1,0.9,1}
-local activeSortColour = {1,0.62,0.62,1}
-local activeSortColourDesc = {0.66,1,0.66,1}
-local oddLineColour = {0.23,0.23,0.23,0.4}
-local evenLineColour = {0.8,0.8,0.8,0.4}
+local sortHighLightColour = {1,0.87,0.87,1.4}
+local sortHighLightColourDesc = {0.9,1,0.9,1.4}
+local activeSortColour = {1,0.62,0.62,1.4}
+local activeSortColourDesc = {0.66,1,0.66,1.4}
+local oddLineColour = {0.28,0.28,0.28,0.33}
+local evenLineColour = {1,1,1,0.36}
 local sortLineColour = {0.82,0.82,0.82,0.85}
 
 local widgetScale = (vsy / 1080)
@@ -70,6 +70,8 @@ local guiData = {
 }
 guiData.mainPanel.relSizes.x.length = (guiData.mainPanel.relSizes.x.max - guiData.mainPanel.relSizes.x.min) * 0.92
 
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.6) or 0.6)
+
 local glColor	= gl.Color
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
@@ -79,7 +81,6 @@ local GetGaiaTeamID			= Spring.GetGaiaTeamID
 local GetAllyTeamList		= Spring.GetAllyTeamList
 local GetTeamList			= Spring.GetTeamList
 local GetTeamStatsHistory	= Spring.GetTeamStatsHistory
-local GetTeamColor			= Spring.GetTeamColor
 local GetTeamInfo			= Spring.GetTeamInfo
 local GetPlayerInfo			= Spring.GetPlayerInfo
 local IsGUIHidden			= Spring.IsGUIHidden
@@ -102,6 +103,11 @@ local borderRemap = {left={"x","min",-1},right={"x","max",1},top={"y","max",1},b
 local RectRound, UiElement, elementCorner
 
 local font, chobbyInterface, backgroundGuishader, gameStarted, bgpadding, gameover
+
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
+
+local isSpec = Spring.GetSpectatingState()
 
 function roundNumber(num,useFirstDecimal)
 	return useFirstDecimal and format("%0.1f",round(num,1)) or round(num)
@@ -321,6 +327,7 @@ function compareTeams(a,b)
 end
 
 function widget:PlayerChanged()
+	isSpec = Spring.GetSpectatingState()
 	widget:GameFrame(GetGameFrame(),true)
 end
 
@@ -356,7 +363,12 @@ function widget:GameFrame(n,forceupdate)
 						allyTotal[varName] = (allyTotal[varName] or 0 ) + value
 					end
 					history.time = nil
-					local teamColor = {GetTeamColor(teamID)}
+					local teamColor
+					if not isSpec and anonymousMode ~= "disabled" and teamID ~= Spring.GetLocalTeamID() then
+						teamColor = { anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3] }
+					else
+						teamColor = { Spring.GetTeamColor(teamID) }
+					end
 					local _,leader,isDead = GetTeamInfo(teamID,false)
 					local playerName,isActive = GetPlayerInfo(leader,false)
 					if Spring.GetGameRulesParam('ainame_'..teamID) then
@@ -610,26 +622,26 @@ function ReGenerateBackgroundDisplayList()
 			--colour = highLightColour
 		end
 		glColor(colour)
-		if lineCount > 2 then
-			RectRound(math.floor(boxSizes.x.min), math.floor(boxSizes.y.max -lineCount*fontSize), math.floor(boxSizes.x.max), math.floor(boxSizes.y.max -(lineCount-1)*fontSize), bgpadding, 1,1,1,1, {colour[1],colour[2],colour[3],colour[4]}, {colour[1],colour[2],colour[3],colour[4]*3})
+		if evenLineColour and lineCount > 2 then
+			RectRound(math.floor(boxSizes.x.min), math.floor(boxSizes.y.max -lineCount*fontSize), math.floor(boxSizes.x.max), math.floor(boxSizes.y.max -(lineCount-1)*fontSize), bgpadding, 1,1,1,1, {colour[1],colour[2],colour[3],colour[4]*ui_opacity}, {colour[1],colour[2],colour[3],colour[4]*3*ui_opacity})
 		elseif lineCount == 1 then
 			--RectRound(boxSizes.x.min, boxSizes.y.max -(lineCount+1)*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3*widgetScale)
 		end
 	end
 	if selectedLine and selectedLine < 3 and selectedColumn and selectedColumn > 0 and selectedColumn <= numColums then
 		if sortAscending then
-			glColor(sortHighLightColour)
+			glColor(sortHighLightColour[1], sortHighLightColour[2], sortHighLightColour[3], sortHighLightColour[4]*ui_opacity)
 		else
-			glColor(sortHighLightColourDesc)
+			glColor(sortHighLightColourDesc[1], sortHighLightColourDesc[2], sortHighLightColourDesc[3], sortHighLightColourDesc[4]*ui_opacity)
 		end
 		RectRound(math.floor(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding)
 	end
 	for selectedIndex, headerName in ipairs(header) do
 		if sortVar == headerName then
 			if sortAscending then
-				glColor(activeSortColour)
+				glColor(activeSortColour[1], activeSortColour[2], activeSortColour[3], activeSortColour[4]*ui_opacity)
 			else
-				glColor(activeSortColourDesc)
+				glColor(activeSortColourDesc[1], activeSortColourDesc[2], activeSortColourDesc[3], activeSortColourDesc[4]*ui_opacity)
 			end
 			RectRound(math.floor(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding)
 			break

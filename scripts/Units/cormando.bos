@@ -11,6 +11,10 @@ piece  turret, sleeve, barrel, torso, rnano,
 
 #define SIG_BUILD		4	
 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
 
 static-var  bMoving, spray, statechg_DesiredState, statechg_StateChanging, notBuilding, wpn1_lasthead;
 // Generated for N:\animations\cormando_anim_walk.blend
@@ -49,6 +53,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 	}
 	while(bMoving) {
 		if (bMoving) { //Frame:10
+			call-script lua_UnitScriptDecal(2, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn head to y-axis <16.999999> speed <255.000016> / animSpeed; //delta=8.50 
 			turn larm to x-axis <-52.460033> speed <1244.478302> / animSpeed; //delta=41.48 
 			turn lfoot to x-axis <16.463548> speed <716.121617> / animSpeed; //delta=-23.87 
@@ -151,6 +156,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:30
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn head to y-axis <-15.899997> speed <154.218696> / animSpeed; //delta=-5.14 
 			turn larm to x-axis <-49.175791> speed <325.429759> / animSpeed; //delta=10.85 
 			turn lfoot to x-axis <-25.975580> speed <15.392719> / animSpeed; //delta=-0.51 
@@ -394,6 +400,8 @@ Create()
 
 StartBuilding(torsoing, pitch)
 {
+	show lnano;
+	show rnano;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
@@ -404,6 +412,8 @@ StartBuilding(torsoing, pitch)
 
 StopBuilding()
 {
+	hide lnano;
+	hide rnano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	sleep 3000;

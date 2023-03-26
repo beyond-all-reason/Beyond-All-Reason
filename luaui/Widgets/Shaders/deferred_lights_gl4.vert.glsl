@@ -61,6 +61,8 @@ uniform float attachedtounitID = 0;
 uniform float windX = 0;
 uniform float windZ = 0;
 
+uniform float radiusMultiplier = 1.0;
+uniform float intensityMultiplier = 1.0;
 
 out DataVS {
 	flat vec4 v_worldPosRad;
@@ -72,6 +74,7 @@ out DataVS {
 	vec4 v_lightcenter_gradient_height;
 	vec4 v_position;
 	vec4 v_noiseoffset;
+	noperspective vec2 v_screenUV;
 };
 
 uniform sampler2D mapDepths;
@@ -79,13 +82,15 @@ uniform sampler2D modelDepths;
 uniform sampler2D heightmapTex;
 uniform sampler2D mapnormalsTex;
 
+#define SNORM2NORM(value) (value * 0.5 + 0.5)
+
 vec4 depthAtWorldPos(vec4 worldPosition){ 
 	// takes a point, transforms it to worldspace, and checks for occlusion against map, model buffer, and returns all the depths
 	// x: light pos depth, y: map depth, z: model depth, w: min(map, model)
 	vec4 screenPosition = cameraViewProj * worldPosition;
 	screenPosition.xyz = screenPosition.xyz / screenPosition.w;
 	// Transform from [-1,1] screen space into [0, 1] UV space
-	vec2 screenUV = clamp((screenPosition.xy * 0.5) +0.5, 0.001, 0.999);
+	vec2 screenUV = clamp(SNORM2NORM(screenPosition.xy), 0.001, 0.999);
 	vec4 depths;
 	
 	depths.x = screenPosition.z ;
@@ -101,8 +106,10 @@ void main()
 {
 	float time = timeInfo.x + timeInfo.w;
 	
+	float lightRadius = worldposrad.w * radiusMultiplier;
 	v_worldPosRad = worldposrad ;
-	float lightRadius = worldposrad.w;
+	v_worldPosRad.w = lightRadius;
+	
 	// TODO ANIMATE
 	//v_worldPosRad.xyz += 1 * sin(5*time * vec3(0.01, 0.011, 0.012) + v_worldPosRad.xyz ); 
 	
@@ -174,7 +181,7 @@ void main()
 		if  (attachedtounitID > 0.5) {
 			// for point lights, if the colortime is anything sane (>0), then modulate the light with it.
 			if (colortime >0.5){
-				v_lightcolor.rgb = mix(v_lightcolor.rgb, worldposrad2.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5); }
+				v_lightcolor.rgb = mix( worldposrad2.rgb, v_lightcolor.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5); }
 				
 		}else{
 			if (colortime >0.0){
@@ -295,6 +302,7 @@ void main()
 	//v_noiseoffset.y = windX + windZ;
 	
 	gl_Position = cameraViewProj * v_position;
+	v_screenUV = SNORM2NORM(gl_Position.xy / gl_Position.w);
 	
 	// pass everything on to fragment shader:
 

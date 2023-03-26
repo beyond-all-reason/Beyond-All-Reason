@@ -13,6 +13,10 @@
 static-var isSmoking;
 SmokeUnit(healthpercent) // ah yes, clever use of stack variables 
 {
+	if( get BUILD_PERCENT_LEFT){
+		isSmoking = 0;
+		return (0);
+	}
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -32,6 +36,7 @@ SmokeUnit(healthpercent) // ah yes, clever use of stack variables
 // this is what a pure hitbyweapon can look like, without any of the motion garbage
 HitByWeapon() //weaponID is always 0,lasers and flamers give angles of 0
 {
+	//get PRINT(1,get BUILD_PERCENT_LEFT);
 	if( get BUILD_PERCENT_LEFT) return (0);
 	if (isSmoking == 0)	{ 
 		isSmoking = 1;

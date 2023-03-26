@@ -31,8 +31,12 @@ local glDeleteList = gl.DeleteList
 local floor = math.floor
 local round = math.round
 
+local gameStarted = false
+
 --Current energy converted to metal
 local mConverted, eConverted
+--Store accumulated converted metal remainder from floor(mConverted) for more accurate conversion display
+local mConvertedRemainder = 0
 
 --Energy needed for maximum potential metal production
 local eConvertedMax
@@ -78,7 +82,8 @@ local function updateUI()
 
     local fontSize = (area[4] - area[2]) * 0.4
     local color = "\255\255\255\255"
-    local tooltipText = "\255\215\255\215"..Spring.I18N('ui.topbar.converter_usage.defaultTooltip')
+	local tooltipTitle = Spring.I18N('ui.topbar.converter_usage.defaultTooltipTitle')
+	local tooltipText = Spring.I18N('ui.topbar.converter_usage.defaultTooltip')
 
     if dlistCU ~= nil then
         glDeleteList(dlistCU)
@@ -119,7 +124,7 @@ local function updateUI()
 		font2:End()
 
         if WG['tooltip'] ~= nil then
-            WG['tooltip'].AddTooltip('converter_usage', area, tooltipText)
+            WG['tooltip'].AddTooltip('converter_usage', area, tooltipText, nil, tooltipTitle)
         end
 	end)
 end
@@ -170,33 +175,50 @@ function widget:Initialize()
     widget:ViewResize()
 end
 
+function widget:GameFrame()
+    gameStarted = true
+
+    local myTeamID = spGetMyTeamID()
+    eConverted = spGetTeamRulesParam(myTeamID, "mmUse")
+    mConverted = eConverted * spGetTeamRulesParam(myTeamID, "mmAvgEffi")
+    eConvertedMax = spGetTeamRulesParam(myTeamID, "mmCapacity")
+    converterUse = 0
+
+    if eConvertedMax <= 0 then return end
+
+    converterUse = floor(100 * eConverted / eConvertedMax)
+    eConverted = floor(eConverted)
+    mConvertedRemainder = mConvertedRemainder + (mConverted - floor(mConverted))
+    mConverted = floor(mConverted)
+    if mConvertedRemainder >= 1 then
+      mConverted = mConverted + 1
+      mConvertedRemainder = mConvertedRemainder - 1
+    end
+end
+
 local sec = 0
 function widget:Update(dt)
-    sec = sec + dt
-    if sec > 0.6 then
-        sec = 0
-        local myTeamID = spGetMyTeamID()
-        eConverted = spGetTeamRulesParam(myTeamID, "mmUse")
-        mConverted = eConverted * spGetTeamRulesParam(myTeamID, "mmAvgEffi")
-        eConvertedMax = spGetTeamRulesParam(myTeamID, "mmCapacity")
-        converterUse = 0
+    if not gameStarted then return end
 
-        if eConvertedMax > 0 then
-            converterUse = floor(100 * eConverted / eConvertedMax)
-            eConverted = floor(eConverted)
-            mConverted = floor(mConverted)
-            updateUI()
-        else
-            -- Dont draw if there are no converters
-            if dlistGuishader ~= nil then
-                if WG['guishader'] then
-                    WG['guishader'].RemoveDlist('converter_usage')
-                end
-                dlistGuishader = glDeleteList(dlistGuishader)
-            end
-            if dlistCU ~= nil then
-                dlistCU = glDeleteList(dlistCU)
-            end
+    sec = sec + dt
+    if sec <= 0.6 then return end
+
+    sec = 0
+
+    if eConvertedMax > 0 then
+        updateUI()
+        return
+    end
+
+    -- Dont draw if there are no converters
+    if dlistGuishader ~= nil then
+        if WG['guishader'] then
+            WG['guishader'].RemoveDlist('converter_usage')
         end
+        dlistGuishader = glDeleteList(dlistGuishader)
+    end
+
+    if dlistCU ~= nil then
+        dlistCU = glDeleteList(dlistCU)
     end
 end

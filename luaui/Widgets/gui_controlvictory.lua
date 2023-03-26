@@ -24,6 +24,8 @@ function widget:GetInfo()
 	}
 end
 
+local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+
 local selectedScoreMode = modOptions.scoremode
 local captureRadius
 if modOptions.usemexconfig then
@@ -125,6 +127,9 @@ local capturePieParts = 4 + floor(captureRadius / 8)
 
 local RectRound, UiElement, elementCorner
 
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
+
 -----------------------------------------------------------------------------------------
 -- creates initial player listing
 -----------------------------------------------------------------------------------------
@@ -143,8 +148,14 @@ local function createPlayerList()
 				if playerEntries[allyTeamID][teamId] == nil then
 					playerEntries[allyTeamID][teamId] = {}
 				end
-				local r, g, b = Spring.GetTeamColor(teamId)
+				local r, g, b
+				if anonymousMode ~= "disabled" then
+					r, g, b = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+				else
+					r, g, b = Spring.GetTeamColor(teamId)
+				end
 				local playerTeamColor = string.char("255", r * 255, g * 255, b * 255)
+
 				for k, v in pairs(playerList) do
 					-- does this player have an entry? if not, make one!
 					if playerEntries[allyTeamID][teamId][v] == nil then
@@ -390,9 +401,15 @@ end
 function widget:DrawInMiniMap()
 	PushMatrix()
 	gl.LoadIdentity()
-	Translate(0, 1, 0)
-	Scale(1 / Game.mapSizeX, 1 / Game.mapSizeZ, 0)
-	Rotate(90, 1, 0, 0)
+	if getMiniMapFlipped() then
+		Translate(1, 0, 0)
+		Scale(-1 / Game.mapSizeX, -1 / Game.mapSizeZ, 0)
+		Rotate(90, 1, 0, 0)
+	else
+		Translate(0, 1, 0)
+		Scale(1 / Game.mapSizeX, 1 / Game.mapSizeZ, 0)
+		Rotate(90, 1, 0, 0)
+	end
 	drawPoints(true)
 	PopMatrix()
 end
@@ -525,7 +542,12 @@ local function drawScoreboard()
 				end
 				--get AI info?
 			end
-			local r, g, b = Spring.GetTeamColor(team)
+			local r, g, b
+			if anonymousMode ~= "disabled" then
+				r, g, b = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+			else
+				r, g, b = Spring.GetTeamColor(team)
+			end
 			local color = string.char("255", r * 255, g * 255, b * 255)
 			Text(color .. name .. "'s team", scoreboardX - (((scoreboardWidth/2) - 10)*uiScale), scoreboardY + (((scoreboardHeight/2) - 22 - (55 * allyCounter - 1))*uiScale), 16*uiScale, "lo")
 			Text(white .. "\255\200\200\200Score: \255\255\255\255" .. allyScore, scoreboardX - (((scoreboardWidth/2) - 10)*uiScale), scoreboardY + (((scoreboardHeight/2) - 42 - (55 * allyCounter - 1))*uiScale), 16*uiScale, "lo")
@@ -562,7 +584,7 @@ function widget:DrawScreen()
 	local frame = Spring.GetGameFrame()
 	if frame / 30 > startTime then
 		if controlPointPromptPlayed ~= true then
-			Spring.PlaySoundFile("sounds/ui/controlpointscanbecaptured.wav", 1)
+			--Spring.PlaySoundFile("sounds/ui/controlpointscanbecaptured.wav", 1)
 			Spring.Echo([[Control Points may now be captured!]])
 			controlPointPromptPlayed = true
 		end

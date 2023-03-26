@@ -31,7 +31,7 @@ end
 	v17	 (Floris): Added alliances display and button and /cputext option
 	v18	 (Floris): Player system shown on tooltip + added FPS counter + replaced allycursor data with activity gadget data (all these features need gadgets too)
 	v19   (Floris): added player resource bars
-	v20   (Floris): added /alwayshidespecs + fixed drawing when playerlist is at the leftside of the screen
+	v20   (Floris): added alwayshidespecs + fixed drawing when playerlist is at the leftside of the screen
 	v21   (Floris): toggles LoS and /specfullview when camera tracking a player
 	v22   (Floris): added auto collapse function
 	v23   (Floris): hiding share buttons when you are alone
@@ -45,9 +45,10 @@ end
 local customScale = 1
 local pointDuration = 45
 local drawAlliesLabel = false
-local alwaysHideSpecs = false
+local alwaysHideSpecs = true
 local lockcameraHideEnemies = true            -- specfullview
 local lockcameraLos = true                    -- togglelos
+local minWidth = 190	-- for the sake of giving the addons some room
 
 local hideDeadTeams = true
 local absoluteResbarValues = false
@@ -154,6 +155,9 @@ local originalColourNames = {} -- loaded in SetOriginalColourNames, format is or
 
 local apiAbsPosition = { 0, 0, 0, 0, 1, 1, false }
 
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
+
 --------------------------------------------------------------------------------
 -- Colors
 --------------------------------------------------------------------------------
@@ -247,6 +251,14 @@ local teamSideThree = "legion"
 local absentName = " --- "
 
 local gameStarted = false
+
+local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+
+local isSingle = false
+if not mySpecStatus then
+	local teamList = Spring.GetTeamList(myAllyTeamID) or {}
+	isSingle = #teamList == 1
+end
 --------------------------------------------------------------------------------
 -- Button check variable
 --------------------------------------------------------------------------------
@@ -526,15 +538,19 @@ function SetModulesPositionX()
     for _, module in ipairs(modules) do
         module.posX = pos
         if module.active and (module.name ~= 'share' or not hideShareIcons) then
-            if mySpecStatus then
-                if module.spec then
-                    pos = pos + module.width
-                end
-            else
-                if module.play then
-                    pos = pos + module.width
-                end
-            end
+			if (module.name == 'cpuping' and isSinglePlayer) or (module.name == 'resources' and isSingle) then
+
+			else
+				if mySpecStatus then
+					if module.spec then
+						pos = pos + module.width
+					end
+				else
+					if module.play then
+						pos = pos + module.width
+					end
+				end
+			end
 
             widgetWidth = pos + 1
             if widgetWidth < 20 then
@@ -543,6 +559,9 @@ function SetModulesPositionX()
             updateWidgetScale()
         end
     end
+	if widgetWidth < minWidth then
+		widgetWidth = minWidth
+	end
 end
 
 function SetMaxPlayerNameWidth()
@@ -967,6 +986,18 @@ function widget:Initialize()
     SortList()
 
     WG['advplayerlist_api'] = {}
+	WG['advplayerlist_api'].GetAlwaysHideSpecs = function()
+		return alwaysHideSpecs
+	end
+	WG['advplayerlist_api'].SetAlwaysHideSpecs = function(value)
+		alwaysHideSpecs = value
+		if alwaysHideSpecs and specListShow then
+			specListShow = false
+			SetModulesPositionX() --why?
+			SortList()
+			CreateLists()
+		end
+	end
     WG['advplayerlist_api'].GetScale = function()
         return customScale
     end
@@ -1237,6 +1268,9 @@ function CreatePlayer(playerID)
     local tname, _, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank = Spring_GetPlayerInfo(playerID, false)
     local _, _, _, _, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(tteam, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(tteam)
+	if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
+		tred, tgreen, tblue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+	end
 
     --skill
     local tskill
@@ -1314,6 +1348,9 @@ function CreatePlayerFromTeam(teamID)
     -- for when we don't have a human player occupying the slot, also when a player changes team (dies)
     local _, _, isDead, isAI, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(teamID, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(teamID)
+	if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
+		tred, tgreen, tblue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+	end
     local tname, ttotake, tskill, tai
     local tdead = true
 
@@ -1674,8 +1711,14 @@ function widget:DrawScreen()
     if Spring_IsGUIHidden() then
         return
     end
-
-    local mouseX, mouseY, mouseButtonL = Spring_GetMouseState()
+    local mouseX, mouseY, mouseButtonL, mmb, rmb, mouseOffScreen, cameraPanMode = Spring.GetMouseState()
+    --if cameraPanMode then
+    --    if BackgroundGuishader then
+    --        WG['guishader'].RemoveDlist('advplayerlist')
+    --        BackgroundGuishader = gl_DeleteList(BackgroundGuishader)
+    --    end
+    --    return
+    --end
 
     -- update lists frequently if there is mouse interaction
     --local NeedUpdate = false
@@ -1842,6 +1885,7 @@ function CreateBackground()
     end
 
     if WG['guishader'] then
+        BackgroundGuishader = gl_DeleteList(BackgroundGuishader)
         BackgroundGuishader = gl_CreateList(function()
             RectRound(absLeft, absBottom, absRight, absTop, elementCorner, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
         end)
@@ -1860,13 +1904,15 @@ end
 function UpdateResources()
     if sliderPosition then
         if energyPlayer ~= nil then
-            if energyPlayer.team == myTeamID then
-                local current, storage = Spring_GetTeamResources(myTeamID, "energy")
-                maxShareAmount = storage - current
-                shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
-                shareAmount = shareAmount - (shareAmount % 1)
-            else
-                maxShareAmount = Spring_GetTeamResources(myTeamID, "energy")
+			if energyPlayer.team == myTeamID then
+				local current, storage = Spring_GetTeamResources(myTeamID, "energy")
+				maxShareAmount = storage - current
+				shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
+				shareAmount = shareAmount - (shareAmount % 1)
+			else
+				maxShareAmount = Spring_GetTeamResources(myTeamID, "energy")
+				local energy, energyStorage, _, _, _, shareSliderPos = Spring_GetTeamResources(energyPlayer.team, "energy")
+				maxShareAmount = math.min(maxShareAmount, ((energyStorage*shareSliderPos) - energy))
                 shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
                 shareAmount = shareAmount - (shareAmount % 1)
             end
@@ -1880,6 +1926,8 @@ function UpdateResources()
                 shareAmount = shareAmount - (shareAmount % 1)
             else
                 maxShareAmount = Spring_GetTeamResources(myTeamID, "metal")
+				local metal, metalStorage, _, _, _, shareSliderPos = Spring_GetTeamResources(metalPlayer.team, "metal")
+				maxShareAmount = math.min(maxShareAmount, ((metalStorage*shareSliderPos) - metal))
                 shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
                 shareAmount = shareAmount - (shareAmount % 1)
             end
@@ -2143,7 +2191,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
             DrawAlly(posY, player[playerID].team)
         end
 
-        if (m_resources.active or m_income.active) and aliveAllyTeams[allyteam] ~= nil and player[playerID].energy ~= nil then
+        if not isSingle and (m_resources.active or m_income.active) and aliveAllyTeams[allyteam] ~= nil and player[playerID].energy ~= nil then
             if mySpecStatus or myAllyTeamID == allyteam then
                 local e = player[playerID].energy
                 local es = player[playerID].energyStorage
@@ -2174,7 +2222,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
         end
     end
 
-    if m_cpuping.active then
+    if m_cpuping.active and not isSinglePlayer then
         if cpuLvl ~= nil then
             -- draws CPU usage and ping icons (except AI and ghost teams)
             DrawPingCpu(pingLvl, cpuLvl, posY, spec, 1, cpu, lastFpsData[playerID])
@@ -2436,6 +2484,9 @@ end
 
 function colourNames(teamID)
     local nameColourR, nameColourG, nameColourB, nameColourA = Spring_GetTeamColor(teamID)
+	if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
+		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+	end
     local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
     local G255 = math.floor(nameColourG * 255)
     local B255 = math.floor(nameColourB * 255)
@@ -2516,7 +2567,11 @@ function DrawName(name, team, posY, dark, playerID)
 
     font2:Begin()
     if dark then
-        font2:SetTextColor(Spring_GetTeamColor(team))
+		if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
+			font2:SetTextColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3], 1)
+		else
+			font2:SetTextColor(Spring_GetTeamColor(team))
+		end
         font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.8, 0.75 * widgetScale))
         font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o")
     else
@@ -2524,12 +2579,16 @@ function DrawName(name, team, posY, dark, playerID)
         font2:SetOutlineColor(0, 0, 0, 0.4)
         font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, 14, "n") -- draws name
         font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, 14, "n") -- draws name
-        font2:SetTextColor(Spring_GetTeamColor(team))
+		if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
+			font2:SetTextColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3], 1)
+		else
+			font2:SetTextColor(Spring_GetTeamColor(team))
+		end
         font2:SetOutlineColor(0, 0, 0, 1)
         font2:Print( nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
     end
 
-    if player[playerID] and player[playerID].incomeMultiplier and player[playerID].incomeMultiplier > 1 then
+    if player[playerID] and not player[playerID].dead and player[playerID].incomeMultiplier and player[playerID].incomeMultiplier > 1 then
         font2:SetTextColor(0.5,1,0.5,1)
         font2:Print('+'..math.floor((player[playerID].incomeMultiplier-1)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14), posY + 5.7 , 8, "o")
     end
@@ -2555,7 +2614,6 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
     local ignored = WG.ignoredPlayers and WG.ignoredPlayers[name]
 
     local textindent = 4
-    local explayerindent = -3
     if m_indent.active or m_rank.active or m_side.active or m_ID.active then
         textindent = 0
     end
@@ -3206,6 +3264,7 @@ end
 --  Save/load
 ---------------------------------------------------------------------------------------------------
 
+local version = 1
 function widget:GetConfigData()
     -- save
     if m_name ~= nil then
@@ -3242,13 +3301,13 @@ function widget:GetConfigData()
             hasresetskill = true,
             absoluteResbarValues = absoluteResbarValues,
             originalColourNames = originalColourNames,
+			version = version,
         }
 
         return settings
     end
 end
 
-local dataversion = 1
 function widget:SetConfigData(data)
     -- load
     if data.widgetVersion ~= nil and widgetVersion == data.widgetVersion then
@@ -3269,7 +3328,7 @@ function widget:SetConfigData(data)
             enemyListShow = data.enemyListShow
         end
 
-        if data.alwaysHideSpecs ~= nil then
+        if data.version ~= nil and data.alwaysHideSpecs ~= nil then
             alwaysHideSpecs = data.alwaysHideSpecs
         end
 
@@ -3289,7 +3348,6 @@ function widget:SetConfigData(data)
         if data.expandDown ~= nil and data.widgetRight ~= nil then
             expandDown = data.expandDown
             expandLeft = data.expandLeft
-            specListShow = data.specListShow
             local oldvsx = data.vsx
             local oldvsy = data.vsy
             if oldvsx == nil then
@@ -3426,7 +3484,11 @@ function CheckPlayersChange()
                     player[player[i].team + 64] = CreatePlayerFromTeam(player[i].team)
                 end
                 player[i].team = teamID
-                player[i].red, player[i].green, player[i].blue = Spring_GetTeamColor(teamID)
+				if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
+					player[i].red, player[i].green, player[i].blue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+				else
+					player[i].red, player[i].green, player[i].blue = Spring_GetTeamColor(teamID)
+				end
                 player[i].dark = GetDark(player[i].red, player[i].green, player[i].blue)
                 player[i].skill = GetSkill(i)
                 sorting = true
@@ -3682,8 +3744,10 @@ function widget:TextCommand(command)
         if string.sub(command, 10, 10) ~= '' then
             if string.sub(command, 10, 10) == '0' then
                 specListShow = false
+				alwaysHideSpecs = true
             elseif string.sub(command, 10, 10) == '1' then
                 specListShow = true
+				alwaysHideSpecs = false
             end
         else
             specListShow = not specListShow

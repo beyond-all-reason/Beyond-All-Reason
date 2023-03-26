@@ -18,7 +18,7 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 580,
+		maxdamage = 640,
 		maxslope = 15,
 		maxvelocity = 1.783,
 		movementclass = "ABOT2",
@@ -37,7 +37,6 @@ return {
 			unitgroup = 'aa',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			prioritytarget = "air",
 			subfolder = "corbots",
 		},
 		featuredefs = {
@@ -177,12 +176,6 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 0.86,
-					expl_light_radius_mult = 1.67,
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 110,
 					fighters = 110,

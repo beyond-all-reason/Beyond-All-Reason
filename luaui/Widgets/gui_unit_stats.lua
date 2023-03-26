@@ -12,67 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	prog = 'Prog',
-	metal = 'Metal',
-	energy = 'Energy',
-	cost = 'Cost',
-	move = 'Move',
-	speedaccelturn = 'Speed / Accel / Turn',
-	build = 'Build',
-	los = 'Los',
-	airlos = 'AirLos',
-	radar = 'Radar',
-	sonar = 'Sonar',
-	jammer = 'Jam',
-	sonarjam = 'Sonar Jam',
-	seis = 'Seis',
-	other = 'Other',
-	stealth = 'Stealth',
-	armor = 'Armor',
-	class = 'class',
-	exp = 'Exp',
-	open = 'Open',
-	closed = 'Closed',
-	maxhp = 'max HP',
-	health = 'health',
-	assist = 'Assist',
-	repair = 'Repair',
-	reclaim = 'Reclaim',
-	resurrect = 'Resurrect',
-	capture = 'Capture',
-	cloak = 'Cloak',
-	waterweapon = 'Waterweapon',
-	manuelfire = 'Manuelfire',
-	stockpile = 'Stockpile',
-	paralyzer = 'Paralyzer',
-	kamikaze = 'Kamikaze',
-	abilities = 'Abilities',
-	deathexplosion = 'Death Explosion',
-	selfdestruct = 'Self Destruct',
-	weap = 'Weap',
-	accuracy = 'accuracy',
-	aim = 'aim',
-	firerate = 'firerate',
-	range = 'range',
-	aoe = 'aoe',
-	edge = 'edge',
-	s = 's', -- seconds abbr
-	reload = 'reload',
-	paralyze = 'paralyze',
-	impulse = 'impulse',
-	crater = 'crater',
-	info = 'Info',
-	dmg = 'Dmg',
-	infinite = 'infinite',
-	burst = 'Burst',
-	modifiers = 'Modifiers',
-	each = 'each',
-	dps = 'DPS',
-	persecond = 'per second',
-	totaldmg = 'Total Dmg',
-}
-
+local texts = {}
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
 local gameName = Game.gameName
 
@@ -219,6 +159,7 @@ local textBufferCount = 0
 local spec = Spring.GetSpectatingState()
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local showStats = false
 
@@ -256,6 +197,7 @@ local function GetTeamColorCode(teamID)
 	if not teamID then return "\255\255\255\255" end
 
 	local R, G, B = spGetTeamColor(teamID)
+
 	if not R then return "\255\255\255\255" end
 
 	R = floor(R * 255)
@@ -304,9 +246,7 @@ local function disableStats()
 end
 
 function widget:Initialize()
-	if WG['lang'] then
-		texts = WG['lang'].getText('unitstats')
-	end
+	texts = Spring.I18N('ui.unitstats')
 
 	widget:ViewResize(vsx,vsy)
 
@@ -524,7 +464,7 @@ local function drawStats(uDefID, uID)
 	if sonarJammingRadius > 0 then DrawText(texts.sonarjam..':', '\255\255\77\77' .. sonarJammingRadius) end
 	if seismicRadius > 0 then DrawText(texts.seis..':' , '\255\255\26\255' .. seismicRadius) end
 
-	if uDef.stealth then DrawText(texts.other..":", texts.stealth) end
+	if uDef.stealth then DrawText(texts.other1..":", texts.stealth) end
 
 	cY = cY - fontSize
 
@@ -835,7 +775,7 @@ local function drawStats(uDefID, uID)
 	local text = "\255\190\255\190" .. UnitDefs[uDefID].translatedHumanName
 	if uID then
 		local playername = ''
-		if not anonymousMode or spec then
+		if (not anonymousMode ~= "disabled") or spec then
 			playername = GetTeamColorCode(uTeam) .. GetTeamName(uTeam)
 		end
 		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   ".. playername .. grey .. effectivenessRate

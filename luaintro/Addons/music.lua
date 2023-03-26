@@ -26,6 +26,9 @@ function addon.Shutdown()
 end
 
 function addon.Initialize()
+	--if Spring.GetConfigInt('music', 1) == 0 then
+	--	return
+	--end
 	if Spring.GetConfigInt('music_loadscreen', 1) == 1 then
 		local originalSoundtrackEnabled = Spring.GetConfigInt('UseSoundtrackNew', 1)
 		local legacySoundtrackEnabled 	= Spring.GetConfigInt('UseSoundtrackOld', 0)
@@ -53,34 +56,33 @@ function addon.Initialize()
 		if #musicPlaylist == 0 or math.random(0,3) == 0 then
 			if originalSoundtrackEnabled == 1 then
 				local musicDirOriginal 		= 'music/original'
-				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/warhigh', '*.ogg'))
-				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/warlow', '*.ogg'))
+				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/peace', '*.ogg'))
 			end
 
 			-- Legacy Soundtrack List
 			if legacySoundtrackEnabled == 1 then
 				local musicDirLegacy 		= 'music/legacy'
-				table.append(musicPlaylist, VFS.DirList(musicDirLegacy..'/war', '*.ogg'))
+				table.append(musicPlaylist, VFS.DirList(musicDirLegacy..'/peace', '*.ogg'))
 			end
 
 			-- Custom Soundtrack List
 			if customSoundtrackEnabled == 1 then
 				local musicDirCustom 		= 'music/custom'
 				table.append(musicPlaylist, VFS.DirList(musicDirCustom, '*.ogg'))
-				table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/warhigh', '*.ogg'))
-				table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/warlow', '*.ogg'))
-				table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/war', '*.ogg'))
+				table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/peace', '*.ogg'))
 			end
 		end
 
-		local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.02
+		local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.01
 		if #musicPlaylist > 1 then
 			local pickedTrack = math.ceil(#musicPlaylist*math.random())
 			Spring.PlaySoundStream(musicPlaylist[pickedTrack], 1)
 			Spring.SetSoundStreamVolume(musicvolume)
+			Spring.SetConfigString('music_loadscreen_track', musicPlaylist[pickedTrack])
 		elseif #musicPlaylist == 1 then
 			Spring.PlaySoundStream(musicPlaylist[1], 1)
 			Spring.SetSoundStreamVolume(musicvolume)
+			Spring.SetConfigString('music_loadscreen_track', musicPlaylist[1])
 		end
 	end
 end

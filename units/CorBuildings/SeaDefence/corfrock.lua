@@ -22,7 +22,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1280,
+		maxdamage = 1420,
 		minwaterdepth = 2,
 		nochasecategory = "ALL",
 		objectname = "Units/CORFROCK.s3o",
@@ -130,12 +130,6 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1050,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.59,
-					expl_light_radius_mult = 1.67,
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 115,
 					fighters = 115,
@@ -175,11 +169,6 @@ return {
 				weaponacceleration = 160,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 480,
-				customparams = {
-					expl_light_color = "1 0.5 0.05",
-					expl_light_radius_mult = 1.05,
-					light_color = "1 0.6 0.05",
-				},
 				damage = {
 					bombers = 440,
 					default = 330,

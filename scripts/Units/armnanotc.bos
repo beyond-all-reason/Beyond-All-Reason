@@ -5,21 +5,7 @@
 
 piece  base, aim, emitnano;
 
-static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
-
-
-Activatescr()
-{
-	sleep 1;
-	return (0);
-}
-
-Deactivatescr()
-{
-	sleep 1;
-	return (0);
-}
-
+static-var  BuildHeading;
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -29,66 +15,6 @@ Deactivatescr()
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-
-Go()
-{
-	call-script Activatescr();
-	turn aim to y-axis Static_Var_1 speed <320.000000>;
-	wait-for-turn aim around y-axis;
-	set INBUILDSTANCE to 1;
-	return (0);
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script Deactivatescr();
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-Create()
-{
-	hide emitnano;
-	call-script InitState();
-	Static_Var_1 = 0;
-	Static_Var_2 = 5000;
-	return (0);
-}
-
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
@@ -96,8 +22,21 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	turn aim to y-axis <0.000000> speed <100.000000>;
-	wait-for-turn aim around y-axis;
 }
+
+RestoreAfterDelay()
+{
+	sleep 5000;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+Create()
+{
+    hide emitnano;
+	BuildHeading = 0;
+	return (0);
+}
+
 SetStunned(State)
 {
     Stunned = State;
@@ -105,53 +44,34 @@ SetStunned(State)
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
-RestoreAfterDelay()
-{
-	sleep Static_Var_2;
-	start-script ExecuteRestoreAfterDelay();
-}
 
-Activate()
+StartBuilding(heading)
 {
-	start-script RequestState(0);
-	return (0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-	return (0);
-}
-
-StartBuilding(Func_Var_1)
-{
-	Static_Var_1 = Func_Var_1;
-	start-script RequestState(0);
-	return (0);
+	signal 1; // stop the restore delay stuff
+	BuildHeading = heading;
+    show emitnano;
+	turn aim to y-axis BuildHeading speed <320.000000>;
+	wait-for-turn aim around y-axis;
+	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
-	start-script RequestState(1);
-	return (0);
+    hide emitnano;
+	set INBUILDSTANCE to 0;
+	signal 1; // we must signal here, instead of in RestoreAfterDelay(), as that only gets called 1 frame later, so startbuilding wont terminate it
+	set-signal-mask 1; // make child threads inherit signal mask of 1
+	start-script RestoreAfterDelay();
 }
 
 QueryNanoPiece(piecenum)
 {
 	piecenum = emitnano;
-	return (0);
-}
-
-TargetHeading(Func_Var_1)
-{
-	Static_Var_1 = 0 - Func_Var_1;
-	return (0);
 }
 
 SweetSpot(piecenum)
 {
 	piecenum = aim;
-	return (0);
 }
 
 Killed(severity, corpsetype)

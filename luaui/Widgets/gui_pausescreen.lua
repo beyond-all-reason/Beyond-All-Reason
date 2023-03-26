@@ -39,7 +39,7 @@ local osClock = os.clock
 -- CONFIGURATION
 
 local fontfile = "fonts/unlisted/MicrogrammaDBold.ttf"
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 35
 local fontfileOutlineSize = 6
@@ -57,7 +57,6 @@ local fadeToTextAlpha = 0.33
 local fontSizeHeadline = 30
 local autoFadeTime = 1
 
-local vsx, vsy
 local pauseTimestamp = -10 --start or end of pause
 local lastPause = false
 local wndX1 = nil
@@ -67,7 +66,6 @@ local wndY2 = nil
 local textX = nil
 local textY = nil
 local usedSizeMultiplier = 1
-local vsx, vsy = Spring.GetWindowGeometry()
 local widgetInitTime = osClock()
 local previousDrawScreenClock = osClock()
 local paused = false
@@ -226,11 +224,13 @@ local function drawPause()
 	end
 
 	--draw text
-	font:Begin()
-	font:SetOutlineColor(outline)
-	font:SetTextColor(text)
-	font:Print(Spring.I18N('ui.pauseScreen.paused'), textX, textY, fontSizeHeadline, "O")
-	font:End()
+	if not gameover then
+		font:Begin()
+		font:SetOutlineColor(outline)
+		font:SetTextColor(text)
+		font:Print(Spring.I18N('ui.pauseScreen.paused'), textX, textY, fontSizeHeadline, "O")
+		font:End()
+	end
 
 	glPopMatrix()
 end
@@ -300,8 +300,8 @@ local function updateWindowCoords()
 	textY = wndY2 + (wndY1 - wndY2) * 0.4
 end
 
-function widget:ViewResize(viewSizeX, viewSizeY)
-	vsx, vsy = viewSizeX, viewSizeY
+function widget:ViewResize()
+	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 	usedSizeMultiplier = (0.5 + ((vsx * vsy) / 5500000)) * sizeMultiplier
 
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
@@ -324,7 +324,7 @@ function widget:DrawScreenEffects()
 		return
 	end
 	if shaderProgram and showPauseScreen and WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
-		glCopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
+		glCopyToTexture(screencopy, 0, 0, vpx, vpy, vsx, vsy)
 		--screencopy = WG['screencopymanager'].GetScreenCopy()	-- cant get this method to work
 		glTexture(0, screencopy)
 		glUseShader(shaderProgram)

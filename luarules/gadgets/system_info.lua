@@ -91,6 +91,29 @@ else
 					s_os = s_os .. ' ' .. Platform.osVersion
 				end
 			end
+			
+			if Platform.hwConfig ~= nil then 
+				s_cpu = string.match(Platform.hwConfig, '([%+a-zA-Z0-9 ()@._-]*)')
+				s_cpu = string.gsub(s_cpu, " Processor", "")
+				s_cpu = string.gsub(s_cpu, " Eight[-]Core", "")
+				s_cpu = string.gsub(s_cpu, " Six[-]Core", "")
+				s_cpu = string.gsub(s_cpu, " Quad[-]Core", "")
+				s_cpu = string.gsub(s_cpu, " CPU", "")
+				s_cpu = string.gsub(s_cpu, "%((.*)%)", "")
+				s_ram = string.match(Platform.hwConfig, '([0-9]*MB RAM)')
+				if s_ram ~= nil then
+					s_ram = string.gsub(s_ram, " RAM", "")
+				end
+			end
+			if Platform.availableVideoModes then
+				local maxheight = 0
+				local maxwidth = 0
+				for i, mode in pairs(Platform.availableVideoModes) do
+					if mode.h > maxheight then maxheight = mode.h end 
+					if mode.w > maxwidth then maxwidth = mode.h end 
+				end
+				s_resolution = tostring(maxwidth) .. 'x' .. tostring(maxheight)
+			end
 		end
 
 		local infolog = VFS.LoadFile("infolog.txt")
@@ -215,6 +238,17 @@ else
 		system = string.sub(system, 2)
 		if system ~= '' then
 			SendLuaRulesMsg("$y$"..myvalidation..system)
+		end
+	end
+
+	function gadget:MapDrawCmd(playerID, cmdType, px, py, pz, labelText)
+		if playerID == myPlayerID and cmdType == 'point' and string.len(labelText) > 2 then
+			local msg = string.format("m@pm@rk%s:%d:%d:%d:%d:%s:%s",
+				validation, 
+				Spring.GetGameFrame(), 
+				playerID, px, pz, 
+				myPlayerName, labelText)
+			SendLuaRulesMsg(msg)
 		end
 	end
 

@@ -21,7 +21,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3500,
+		maxdamage = 3900,
 		maxvelocity = 2.016,
 		minwaterdepth = 30,
 		movementclass = "BOAT4",
@@ -39,7 +39,6 @@ return {
 			unitgroup = 'aa',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			prioritytarget = "air",
 			subfolder = "corships/t2",
 			techlevel = 2,
 		},
@@ -188,10 +187,6 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					default = 125,
 				},
@@ -226,14 +221,6 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1550,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.54,
-					expl_light_radius_mult = 0.64,
-					light_color = "1 0.5 0.6",
-					light_mult = 1.34,
-					light_radius_mult = 0.34,
-				},
 				damage = {
 					bombers = 200,
 					fighters = 400,

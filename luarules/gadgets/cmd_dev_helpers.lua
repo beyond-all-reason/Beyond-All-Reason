@@ -207,16 +207,22 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		if not isAuthorized(playerID) then
-			return
-		end
-
 		msg = string.sub(msg, PACKET_HEADER_LENGTH)
 
 		local words = {}
 		for word in msg:gmatch("[%-_%w]+") do
 			table.insert(words, word)
 		end
+		
+		if words[1] == 'desync' then
+			Spring.Echo("Synced: Attempting to trigger a /desync")
+			Spring.SendCommands("desync")
+		end
+		
+		if not isAuthorized(playerID) then
+			return
+		end
+		
 		if words[1] == "givecat" then
 			GiveCat(words)
 		elseif words[1] == "xpunits" then
@@ -376,7 +382,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local arrayWidth = math.ceil(math.sqrt(#giveUnits))
-		local spacing = 120
+		local spacing = 140
 		local n = 0
 		local x, z = ox, oz
 		for _, uDID in ipairs(giveUnits) do
@@ -511,6 +517,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('clearwrecks', clearWrecks, "") -- /luarules clearwrecks removes all wrecks and heaps from the map
 
 		gadgetHandler:AddChatAction('fightertest', fightertest, "") -- /luarules fightertest unitdefname1 unitdefname2 count
+		gadgetHandler:AddChatAction('desync', desync) -- /luarules fightertest unitdefname1 unitdefname2 count
 	end
 
 	function gadget:Shutdown()
@@ -525,7 +532,9 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('dumpfeatures')
 		gadgetHandler:RemoveChatAction('removeunitdefs')
 		gadgetHandler:RemoveChatAction('clearwrecks')
-		gadgetHandler:RemoveChatAction('fightertest')
+		gadgetHandler:RemoveChatAction('fightertest')		
+		gadgetHandler:RemoveChatAction('desync') -- /luarules fightertest unitdefname1 unitdefname2 count
+
 	end
 
 	function xpUnits(_, line, words, playerID)
@@ -636,6 +645,11 @@ else	-- UNSYNCED
 		Spring.SendLuaRulesMsg(msg)
 	end
 
+	function desync()
+		Spring.Echo("Unsynced: Attempting to trigger a /desync")
+		local msg = PACKET_HEADER .. ':desync'
+		Spring.SendLuaRulesMsg(msg)
+	end
 
 	function spawnceg(_, line, words, playerID)
 		--spawnceg usage:
@@ -669,7 +683,7 @@ else	-- UNSYNCED
 		local techLevels = {}
 
 		local facSuffix = { --ignore t3
-			["veh"] = "vp", ["bot"] = "lab", ["air"] = "ap", ["ship"] = "sy", ["hover"] = "hp" --hover are special case, no t2 fac
+			["veh"] = "vp", ["bot"] = "lab", ["ship"] = "sy", ["hover"] = "hp" --hover are special case, no t2 fac
 		}
 		local techSuffix = {
 			["t1"] = "", ["t2"] = "a" --t3 added later
@@ -729,6 +743,12 @@ else	-- UNSYNCED
 		if string.find(line, "cor") then
 			local Condition = function(ud)
 				return ud.name:sub(1, 3) == "cor" and not string.find(ud.name, '_scav')
+			end
+			Accept[#Accept + 1] = Condition
+		end
+		if string.find(line, "leg") then
+			local Condition = function(ud)
+				return ud.name:sub(1, 3) == "leg" and not string.find(ud.name, '_scav')
 			end
 			Accept[#Accept + 1] = Condition
 		end
@@ -793,6 +813,12 @@ else	-- UNSYNCED
 		if string.find(line, "building") then
 			local Condition = function(ud)
 				return ud.isBuilding
+			end
+			Accept[#Accept + 1] = Condition
+		end
+		if string.find(line, "air") then
+			local Condition = function(ud)
+				return ud.canFly
 			end
 			Accept[#Accept + 1] = Condition
 		end

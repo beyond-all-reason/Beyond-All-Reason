@@ -26,6 +26,7 @@ end
 -- 13/04/13 -- Visuals remade by PixelOfDeath
 -- 23/03/13 -- Attack order y-coord placement remade by Bluestone for spring 94+
 
+local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
 
 local dotImage			= "LuaUI/Images/formationDot.dds"
 
@@ -811,8 +812,15 @@ end
 function widget:DrawInMiniMap()
     glPushMatrix()
     glLoadIdentity()
-    glTranslate(0, 1, 0)
-    glScale(1 / mapSizeX, -1 / mapSizeZ, 1)
+
+    if getMiniMapFlipped() then
+      glTranslate(1, 0, 0)
+      glScale(-1 / mapSizeX, 1 / mapSizeZ, 1)
+    else
+      glTranslate(0, 1, 0)
+      glScale(1 / mapSizeX, -1 / mapSizeZ, 1)
+    end
+
     DrawFormationLines(tVertsMinimap, 1)
     glPopMatrix()
 end

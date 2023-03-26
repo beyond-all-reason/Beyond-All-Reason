@@ -13,7 +13,7 @@ local definitions = {
                 heatfalloff        = [[0.18 r0.04]],
                 maxheat            = 20,
                 pos                = [[r-2 r2, 50, r-2 r2]],
-                rotParams          = [[30 r20, -12 r-4, -180 r360]],
+                rotParams          = [[20 r10, -5 r-2, -180 r360]],
                 --rotParams          = [[25 r30, -4 r-6, -180 r360]],
                 size               = [[32 r5]],
                 sizegrowth         = [[7 r3]],
@@ -23,6 +23,31 @@ local definitions = {
                 drawOrder          = 1,
             },
         },
+        -- animated textures on large areas DONT WORK
+        -- groundblast = {
+        --       air                = true,
+        --       class              = [[CBitmapMuzzleFlame]],
+        --       count              = 1,
+        --       ground             = true,
+        --       underwater         = false,
+        --       water              = true,
+        --       properties = {
+        --         colormap           = [[0 0 0 0   1 0.98 0.8 0.8   1 0.95 0.75 0.6   0.96 0.93 0.7 0.5   0.95 0.95 0.6 0.16    0.7 0.65 0.3 0.14   0.3 0.2 0.1 0.08    0.01 0.01 0.01 0.02]],
+        --         dir                = [[0, 1, 0]],
+        --         --gravity            = [[0.0, 0.1, 0.0]],
+        --         frontoffset        = 0,
+        --         fronttexture       = [[groundblast]],
+        --         length             = 45,
+        --         sidetexture        = [[none]],
+        --         size               = 350,
+        --         sizegrowth         = [[2.5 r0.5]],
+        --         ttl                = 45,
+        --         pos                = [[0, 20, 0]],
+        --         rotParams          = [[-2 r4, -1 r2, -180 r360]],
+        --         animParams         = [[8,8,50 r15]],
+        --         drawOrder          = 0,
+        --       },
+        --     },
         brightflare = {
           air                = true,
           class              = [[CBitmapMuzzleFlame]],
@@ -119,7 +144,7 @@ local definitions = {
         },
         kickedupwater = {
             class              = [[CSimpleParticleSystem]],
-            count              = 1,
+            count              = 0,
             water              = true,
             underwater         = true,
             properties = {
@@ -175,6 +200,39 @@ local definitions = {
                 drawOrder          = 1,
             },
         },
+        explosionanim = {
+          air                = true,
+          class              = [[CSimpleParticleSystem]],
+          count              = 0,
+          ground             = true,
+          water              = true,
+          underwater         = true,
+          properties = {
+            airdrag            = 0.79,
+            colormap           = [[0.05 0.05 0.02 0.1   0.95 0.93 0.85 0.95  0.80 0.75 0.65 0.85   0.35 0.25 0.1 0.75   0.08 0.07 0.06 0.28   0 0 0 0.01]],
+            directional        = false,
+            emitrot            = 65,
+            emitrotspread      = 24,
+            emitvector         = [[0, 1, 0]],
+            gravity            = [[0, 0.35, 0]],
+            numparticles       = 1,
+            particlelife       = 20,
+            particlelifespread = 40,
+            particlesize       = 180,
+            particlesizespread = 52,
+            particlespeed      = 8.8,
+            particlespeedspread = 14.3,
+            pos                = [[-20 r40, -10 r20, -20 r40]],
+            sizegrowth         = [[3.8 r2.2]],
+            sizemod            = 1.0,
+            texture            = [[smoke-ice-anim]],
+            animParams         = [[8,8,180 r50]],
+            rotParams          = [[-3 r6, -4 r8, -180 r360]],
+            useairlos          = false,
+            drawOrder          = 1,
+            castShadow         = true,
+          },
+        },
         explosion = {
             air                = true,
             class              = [[CSimpleParticleSystem]],
@@ -207,36 +265,37 @@ local definitions = {
             },
         },
         sparks = {
-      air                = true,
-      class              = [[CSimpleParticleSystem]],
-      count              = 1,
-      ground             = true,
-      water              = true,
-      underwater         = false,
-      properties = {
-        airdrag            = 0.97,
-        colormap           = [[0.85 0.75 0.67 0.005   0.8 0.55 0.3 0.011   0.8 0.55 0.3 0.005   0.4 0.22 0.15 0.01   0 0 0 0.01]],
-        directional        = true,
-        emitrot            = 30,
-        emitrotspread      = 40,
-        emitvector         = [[0, 1, 0]],
-        gravity            = [[0, -0.05, 0]],
-        numparticles       = 13,
-        particlelife       = 80,
-        particlelifespread = 16,
-        particlesize       = 70,
-        particlesizespread = 95,
-        particlespeed      = 14,
-        particlespeedspread = 9,
-        pos                = [[0, 4, 0]],
-        rotParams          = [[-5 r10, -5 r10, -180]],
-        sizegrowth         = -0.04,
-        sizemod            = 0.98,
-        texture            = [[gunshotxl]],
-        useairlos          = false,
-        alwaysvisible      = true,
-        drawOrder          = 2,
-      },
+          air                = true,
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          water              = true,
+          underwater         = false,
+          properties = {
+            airdrag            = 0.97,
+            colormap           = [[0.85 0.75 0.67 0.005   0.8 0.55 0.3 0.011   0.8 0.55 0.3 0.005   0.4 0.22 0.15 0.01   0 0 0 0.01]],
+            directional        = true,
+            emitrot            = 30,
+            emitrotspread      = 40,
+            emitvector         = [[0, 1, 0]],
+            gravity            = [[0, -0.05, 0]],
+            numparticles       = 13,
+            particlelife       = 80,
+            particlelifespread = 16,
+            particlesize       = 70,
+            particlesizespread = 95,
+            particlespeed      = 14,
+            particlespeedspread = 9,
+            pos                = [[0, 4, 0]],
+            rotParams          = [[-5 r10, -5 r10, -180]],
+            sizegrowth         = -0.04,
+            sizemod            = 0.98,
+            texture            = [[gunshotxl]],
+            useairlos          = false,
+            alwaysvisible      = true,
+            drawOrder          = 2,
+            --castShadow         = true,
+          },
     },
     fireglow = {
       air                = true,
@@ -282,13 +341,38 @@ local definitions = {
             --gravity            = [[0.0, 0.1, 0.0]],
             frontoffset        = 0,
             fronttexture       = [[blastwave]],
-            length             = 40,
+            length             = 1,
             sidetexture        = [[none]],
             size               = 12,
             sizegrowth         = [[-29 r6]],
             ttl                = 38,
             pos                = [[0, 75, 0]],
             drawOrder          = 1,
+          },
+        },
+    shockwave_fast = {
+          air                = true,
+          class              = [[CBitmapMuzzleFlame]],
+          count              = 1,
+          ground             = true,
+          underwater         = true,
+          water              = true,
+          unit               = true,
+          properties = {
+            colormap           = [[0 0 0 0.01   0.6 0.5 0.4 0.22    0.4 0.3 0.15 0.15   0.10 0.08 0.04 0.012    0.06 0.04 0.02 0.006    0 0 0 0.01]],
+            dir                = [[0, 1, 0]],
+            --gravity            = [[0.0, 0.1, 0.0]],
+            frontoffset        = 0,
+            fronttexture       = [[shockwave]],
+            length             = 1,
+            sidetexture        = [[none]],
+            size               = 19,
+            sizegrowth         = [[-58 r4]],
+            ttl                = 13,
+            pos                = [[0, 85, 0]],
+            drawOrder          = 1,
+            useairlos          = false,
+            alwaysvisible      = true,
           },
         },
     shockwave_inner = {
@@ -333,50 +417,6 @@ local definitions = {
             pos                = [[0, 25, 0]],
           },
         },
-    -- shockwave = {
-    --     class              = [[CSpherePartSpawner]],
-    --         count              = 1,
-    --         ground             = true,
-    --         water              = true,
-    --         underwater         = true,
-    --         air                = true,
-    --         properties = {
-    --             alpha           = 0.20,
-    --             ttl             = 30,
-    --             expansionSpeed  = 18,
-    --             color           = [[1.0, 0.85, 0.45]],
-    --             alwaysvisible      = true,
-    --         },
-    -- },
-    -- shockwave_slow = {
-    --     class              = [[CSpherePartSpawner]],
-    --         count              = 1,
-    --         ground             = true,
-    --         water              = true,
-    --         underwater         = true,
-    --         air                = true,
-    --         properties = {
-    --             alpha           = 0.05,
-    --             ttl             = 120,
-    --             expansionSpeed  = 9,
-    --             color           = [[0.8, 0.55, 0.2]],
-    --         },
-    -- },
-    -- shockwave_inner = {
-    --     class              = [[CSpherePartSpawner]],
-    --         count              = 1,
-    --         ground             = true,
-    --         water              = true,
-    --         underwater         = true,
-    --         air                = true,
-    --         properties = {
-    --             alpha           = 0.95,
-    --             ttl             = 50,
-    --             expansionSpeed  = 4.8,
-    --             color           = [[0.7, 0.60, 0.32]],
-    --             alwaysvisible      = true,
-    --         },
-    -- },
     bigsmoketrails = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -398,6 +438,7 @@ local definitions = {
         rotParams          = [[-15 r30, -5 r10, -90 r180]],
         pos                = [[-50 r100, 0 r50, -50 r100]],
         drawOrder          = 0,
+        castShadow         = true,
       },
     },
         dirt = {
@@ -428,6 +469,7 @@ local definitions = {
                 useairlos          = false,
                 alwaysvisible      = true,
                 drawOrder          = 1,
+                castShadow         = true,
             },
         },
         dirt2 = {
@@ -454,10 +496,12 @@ local definitions = {
                 pos                = [[0, 3, 0]],
                 sizegrowth         = -0.015,
                 sizemod            = 1,
-                texture            = [[bigexplosmoke]],
+                texture            = [[smoke-ice-anim]],
+                animParams         = [[8,8,180 r50]],
                 useairlos          = false,
                 alwaysvisible      = true,
                 drawOrder          = 0,
+                castShadow         = true,
             },
         },
         dirt3 = {
@@ -488,6 +532,7 @@ local definitions = {
                 useairlos          = false,
                 alwaysvisible      = true,
                 drawOrder          = 0,
+                --castShadow         = true,
             },
         },
         clouddust = {
@@ -516,9 +561,11 @@ local definitions = {
                 rotParams          = [[-30 r60, 0, -180 r360]],
                 sizegrowth         = 0.15,
                 sizemod            = 1.0,
-                texture            = [[bigexplosmoke]],
+                texture            = [[smoke-ice-anim]],
+                animParams         = [[8,8,180 r50]],
                 alwaysvisible      = true,
                 drawOrder          = 0,
+                castShadow         = true,
             },
         },
         dustparticles = {
@@ -555,7 +602,7 @@ local definitions = {
     grounddust = {
       air                = false,
       class              = [[CSimpleParticleSystem]],
-      count              = 1,
+      count              = 4,
       ground             = true,
       water              = true,
       underwater         = true,
@@ -566,21 +613,23 @@ local definitions = {
         directional        = false,
         emitrot            = 90,
         emitrotspread      = -2,
-        emitvector         = [[0, 1, 0]],
-        gravity            = [[0, 0.1, 0]],
-        numparticles       = 4,
+        emitvector         = [[0.3, 0.7, 0.3]],
+        gravity            = [[-0.1 r0.2, 0 r0.1, -0.1 r0.2]],
+        numparticles       = 1,
         particlelife       = 130,
         particlelifespread = 55,
-        particlesize       = 20,
+        particlesize       = 60,
         particlesizespread = 60,
-        particlespeed      = 12,
-        particlespeedspread = 3,
+        particlespeed      = 16,
+        particlespeedspread = 8,
         rotParams          = [[-4 r8, -1 r2, -180 r360]],
-        pos                = [[0, 50, 0]],
+        pos                = [[-20 r40, 0 r50, -20 r40]],
         sizegrowth         = 1.6,
         sizemod            = 1.0,
-        texture            = [[bigexplosmoke]],
+        texture            = [[smoke-ice-anim]],
+        animParams         = [[8,8,180 r50]],
         alwaysvisible      = true,
+        castShadow         = true,
       },
     },
 
@@ -597,6 +646,50 @@ local definitions = {
                 pos                = [[-70 r140, 70 r15, -70 r140]],
             },
         },
+
+    -- electricstorm = {
+    --         air                = true,
+    --         class              = [[CExpGenSpawner]],
+    --         count              = 0,
+    --         ground             = true,
+    --         water              = false,
+    --         underwater         = false,
+    --         properties = {
+    --             delay              = [[15 r90]],
+    --             explosiongenerator = [[custom:lightning_stormbig]],
+    --             pos                = [[0 r165, 50 r50, 0 r165]],
+    --             alwaysvisible      = true,
+    --         },
+    --     },
+
+    -- electricstormalt = {
+    --         air                = true,
+    --         class              = [[CExpGenSpawner]],
+    --         count              = 0,
+    --         ground             = true,
+    --         water              = false,
+    --         underwater         = false,
+    --         properties = {
+    --             delay              = [[30 r100]],
+    --             explosiongenerator = [[custom:lightning_stormbigalt]],
+    --             pos                = [[-100 r160, 55 r50, -100 r160]],
+    --         },
+    --     },
+
+    -- electricstormxl = {
+    --         air                = true,
+    --         class              = [[CExpGenSpawner]],
+    --         count              = 0,
+    --         ground             = true,
+    --         water              = false,
+    --         underwater         = false,
+    --         properties = {
+    --             delay              = [[60 r110]],
+    --             explosiongenerator = [[custom:lightning_stormflares]],
+    --             pos                = [[-20 r150, 150 r25, -20 r150]],
+    --             alwaysvisible      = true,
+    --         },
+    --     },
 },
 
     ["newnuke-floor"] = {
@@ -608,26 +701,65 @@ local definitions = {
                 water              = true,
                 properties = {
                     airdrag            = 0.86,
-                    colormap           = [[0 0 0 0.01   0.20 0.16 0.14 0.46   0.32 0.244 0.12 0.30    0.24 0.20 0.16 0.62   0.22 0.18 0.14 0.53   0.20 0.16 0.14 0.46   0.18 0.12 0.1 0.42   0.16 0.12 0.08 0.38   0.065 0.048 0.037 0.36   0.045 0.035 0.03 0.32   0.05 0.04 0.035 0.2    0 0 0 0.01]],
+                    --colormap           = [[0 0 0 0.01   0.20 0.16 0.14 0.46   0.32 0.244 0.12 0.30    0.24 0.20 0.16 0.62   0.22 0.18 0.14 0.53   0.20 0.16 0.14 0.46   0.18 0.12 0.1 0.42   0.16 0.12 0.08 0.38   0.065 0.048 0.037 0.36   0.045 0.035 0.03 0.32   0.05 0.04 0.035 0.2    0 0 0 0.01]],
+                    --colormap           =[[1 0.66 0.4 0.45     0.18 0.15 0.11 0.65    0.13 0.12 0.1 0.55   0.11 0.1 0.093 0.45   0.063 0.062 0.058 0.20    0 0 0 0.01]],
+                    colormap           =[[0.9 0.66 0.4 0.45     0.18 0.15 0.11 0.60    0.13 0.12 0.1 0.54   0.11 0.1 0.093 0.32    0 0 0 0.01]],
                     directional        = false,
                     emitrot            = 55,
                     emitrotspread      = 25,
                     emitvector         = [[0, 1, 0]],
-                    gravity            = [[0.0, 0.06, 0.0]],
-                    numparticles       = 3,
-                    particlelife       = 110,
+                    gravity            = [[0.0, 0.02 r0.02, 0.0]],
+                    numparticles       = 2,
+                    particlelife       = 130,
                     particlelifespread = 120,
-                    particlesize       = 13,
-                    particlesizespread = 65,
+                    particlesize       = 150,
+                    particlesizespread = 180,
                     particlespeed      = 13,
                     particlespeedspread = 14,
-                    rotParams          = [[-30 r60, -1 r2, -180 r360]],
-                    pos                = [[0.0, 80, 0.0]],
-                    sizegrowth         = 1.08,
+                    rotParams          = [[-15 r30, -1 r2, -180 r360]],
+                    pos                = [[0.0, -40 r40, 0.0]],
+                    sizegrowth         = [[1.05 r0.07]],
                     sizemod            = 1,
-                    texture            = [[dirt]],
+                    texture            = [[smoke-ice-anim]],
+                    animParams         = [[8,8,160 r100]],
                     useairlos          = true,
                     alwaysvisible      = true,
+                    castShadow         = true,
+                    drawOrder          = -1,
+                },
+            },
+            smoke1 = {
+                air                = true,
+                class              = [[CSimpleParticleSystem]],
+                count              = 4,
+                ground             = true,
+                water              = true,
+                properties = {
+                    airdrag            = 0.88,
+                    colormap           = [[0 0 0 0.01   0.20 0.16 0.14 0.46   0.32 0.244 0.12 0.30    0.24 0.20 0.16 0.40   0.22 0.18 0.14 0.45   0.20 0.16 0.14 0.40   0.18 0.12 0.1 0.32   0.12 0.10 0.06 0.27   0.065 0.048 0.037 0.21   0.045 0.035 0.03 0.18   0.05 0.04 0.035 0.13    0 0 0 0.01]],
+                    --colormap           =[[1 0.66 0.4 0.45     0.18 0.15 0.11 0.65    0.13 0.12 0.1 0.55   0.11 0.1 0.093 0.45   0.063 0.062 0.058 0.20    0 0 0 0.01]],
+                    --colormap           =[[1 0.66 0.4 0.55     0.18 0.15 0.11 0.75    0.13 0.12 0.1 0.65   0.11 0.1 0.093 0.45    0 0 0 0.01]],
+                    directional        = false,
+                    emitrot            = 95,
+                    emitrotspread      = 10,
+                    emitvector         = [[0.4, 0.5, 0.4]],
+                    gravity            = [[0.01 r0.03, 0.045 r0.02, 0.01 r0.03]],
+                    numparticles       = 1,
+                    particlelife       = 90,
+                    particlelifespread = 130,
+                    particlesize       = 40,
+                    particlesizespread = 100,
+                    particlespeed      = 13,
+                    particlespeedspread = 16,
+                    rotParams          = [[-15 r30, -1 r2, -180 r360]],
+                    pos                = [[-50 r100, 10 r40, -50 r100]],
+                    sizegrowth         = [[1.5 r0.5]],
+                    sizemod            = 1,
+                    texture            = [[bigexplosmoke]],
+                    --animParams         = [[8,8,160 r100]],
+                    useairlos          = true,
+                    alwaysvisible      = true,
+                    castShadow         = true,
                     drawOrder          = 0,
                 },
             },
@@ -646,19 +778,21 @@ local definitions = {
                     emitvector         = [[0, 1, 0]],
                     gravity            = [[0.0, 0.065, 0.0]],
                     numparticles       = 1,
-                    particlelife       = 120,
-                    particlelifespread = 135,
-                    particlesize       = 17,
-                    particlesizespread = 65,
+                    particlelife       = 130,
+                    particlelifespread = 100,
+                    particlesize       = 125,
+                    particlesizespread = 115,
                     particlespeed      = 11,
                     particlespeedspread = 12,
-                    rotParams          = [[-30 r60, -2 r4, -180 r360]],
+                    rotParams          = [[-15 r30, -4 r8, -180 r360]],
                     pos                = [[0.0, 80, 0.0]],
                     sizegrowth         = 1.01,
                     sizemod            = 1,
-                    texture            = [[fogdirty]],
+                    texture            = [[BARFlame02]],
+                    animParams         = [[16,6,170 r80]],
                     useairlos          = true,
                     alwaysvisible      = true,
+                    --castShadow         = true,
                     drawOrder          = 0,
                 },
             },
@@ -670,26 +804,29 @@ local definitions = {
                 water              = true,
                 properties = {
                     airdrag            = 0.88,
-                    colormap           = [[0 0 0 0.01   0.13 0.10 0.07 0.05    0.20 0.14 0.08 0.04   0.30 0.22 0.10 0.20    0.22 0.18 0.17 0.55   0.20 0.16 0.14 0.50   0.17 0.13 0.13 0.42   0.12 0.10 0.10 0.36   0.13 0.10 0.10 0.30   0.11 0.09 0.09 0.24   0.10 0.07 0.07 0.16    0 0 0 0.01]],
+                    --colormap           = [[0 0 0 0.01   0.13 0.10 0.07 0.05    0.20 0.14 0.08 0.04   0.30 0.22 0.10 0.20    0.22 0.18 0.17 0.55   0.20 0.16 0.14 0.50   0.17 0.13 0.13 0.42   0.12 0.10 0.10 0.36   0.13 0.10 0.10 0.30   0.11 0.09 0.09 0.24   0.10 0.07 0.07 0.16    0 0 0 0.01]],
+                    colormap           = [[0 0 0 0.01   0.13 0.10 0.07 0.05    0.15 0.14 0.08 0.04      0.10 0.09 0.09 0.24   0.08 0.07 0.07 0.16    0 0 0 0.01]],
                     directional        = false,
                     emitrot            = 95,
                     emitrotspread      = 10,
                     emitvector         = [[0, 1, 0]],
-                    gravity            = [[0.0, 0.065, 0.0]],
+                    gravity            = [[0.0, 0.045, 0.0]],
                     numparticles       = 1,
-                    particlelife       = 160,
-                    particlelifespread = 145,
-                    particlesize       = 40,
-                    particlesizespread = 115,
+                    particlelife       = 130,
+                    particlelifespread = 100,
+                    particlesize       = 150,
+                    particlesizespread = 150,
                     particlespeed      = 11,
                     particlespeedspread = 12,
-                    rotParams          = [[-6 r12, -2 r4, -180 r360]],
+                    rotParams          = [[-3 r6, -2 r4, -180 r360]],
                     pos                = [[-50 r100, 80, -50 r100]],
-                    sizegrowth         = 1.01,
+                    sizegrowth         = 1.4,
                     sizemod            = 1,
-                    texture            = [[cloudpuff]],
+                    texture            = [[smoke-ice-anim]],
+                    animParams         = [[8,8,180 r40]],
                     useairlos          = true,
                     alwaysvisible      = true,
+                    castShadow         = true,
                     drawOrder          = 0,
                 },
             },
@@ -902,6 +1039,7 @@ local definitions = {
                 sizegrowth         = 0.15,
                 sizemod            = 1.0,
                 texture            = [[bigexplosmoke]],
+                castShadow         = true,
             },
         },
 
@@ -1211,6 +1349,10 @@ definitions['newnukecor-floor'].smoke.properties.numparticles = math.floor(defin
 definitions['newnukecor-floor'].smoke.properties.particlesize = math.floor(definitions['newnukecor-floor'].smoke.properties.particlesize * size * 1.3)
 definitions['newnukecor-floor'].smoke.properties.particlespeed = math.floor(definitions['newnukecor-floor'].smoke.properties.particlespeed * size)
 definitions['newnukecor-floor'].smoke.properties.particlespeedspread = math.floor(definitions['newnukecor-floor'].smoke.properties.particlespeedspread * size)
+--definitions['newnukecor-floor'].smoke1.properties.numparticles = math.floor(definitions['newnukecor-floor'].smoke1.properties.numparticles * size * 1.3)
+definitions['newnukecor-floor'].smoke1.properties.particlesize = math.floor(definitions['newnukecor-floor'].smoke1.properties.particlesize * size * 1.3)
+definitions['newnukecor-floor'].smoke1.properties.particlespeed = math.floor(definitions['newnukecor-floor'].smoke1.properties.particlespeed * size)
+definitions['newnukecor-floor'].smoke1.properties.particlespeedspread = math.floor(definitions['newnukecor-floor'].smoke1.properties.particlespeedspread * size)
 definitions['newnukecor-floor'].smoke3.properties.particlesize = math.floor(definitions['newnukecor-floor'].smoke3.properties.particlesize * size * 1.3)
 --
 definitions['newnukecor'] = table.copy(definitions['newnuke'])
@@ -1234,6 +1376,8 @@ definitions['newnukecor'].dirt2.properties.particlespeedspread = math.floor(defi
 definitions['newnukecor'].dirt2.properties.numparticles = math.floor(definitions['newnukecor'].dirt2.properties.numparticles * size)
 definitions['newnukecor'].brightflare.properties.ttl = math.floor(definitions['newnukecor'].brightflare.properties.ttl * size * 0.7)
 definitions['newnukecor'].shockwave.properties.ttl = math.floor(definitions['newnukecor'].shockwave.properties.ttl * size)
+definitions['newnukecor'].shockwave_fast.properties.size = math.floor(definitions['newnukecor'].shockwave_fast.properties.size * size * 0.95)
+definitions['newnukecor'].shockwave_fast.properties.ttl = math.floor(definitions['newnukecor'].shockwave_fast.properties.ttl * size * 0.85)
 definitions['newnukecor'].shockwave_slow.properties.ttl = math.floor(definitions['newnukecor'].shockwave_slow.properties.ttl * size)
 definitions['newnukecor'].shockwave_inner.properties.ttl = math.floor(definitions['newnukecor'].shockwave_inner.properties.ttl * size)
 -- definitions['newnukecor'].centerflare.properties.size = math.floor(definitions['newnukecor'].centerflare.properties.size * size * 1.2)
@@ -1255,6 +1399,11 @@ definitions['newnukehuge-floor'] = table.copy(definitions['newnuke-floor'])
 definitions['newnukehuge-floor'].smoke.properties.numparticles = math.floor(definitions['newnukehuge-floor'].smoke.properties.numparticles * size)
 definitions['newnukehuge-floor'].smoke.properties.particlespeed = math.floor(definitions['newnukehuge-floor'].smoke.properties.particlespeed * size)
 definitions['newnukehuge-floor'].smoke.properties.particlespeedspread = math.floor(definitions['newnukehuge-floor'].smoke.properties.particlespeedspread * size)
+definitions['newnukehuge-floor'].smoke1.properties.numparticles = math.floor(definitions['newnukehuge-floor'].smoke1.properties.numparticles * size)
+definitions['newnukehuge-floor'].smoke1.properties.particlespeed = math.floor(definitions['newnukehuge-floor'].smoke1.properties.particlespeed * size)
+definitions['newnukehuge-floor'].smoke1.properties.particlespeedspread = math.floor(definitions['newnukehuge-floor'].smoke1.properties.particlespeedspread * size)
+definitions['newnukehuge-floor'].smoke3.properties.particlesize = math.floor(definitions['newnukehuge-floor'].smoke3.properties.particlesize * size * 1.3)
+--
 --
 definitions['newnukehuge'] = table.copy(definitions['newnuke'])
 definitions['newnukehuge'].nukefloor.properties.explosiongenerator = [[custom:newnukehuge-floor]]
@@ -1277,6 +1426,8 @@ definitions['newnukehuge'].dirt2.properties.particlespeedspread = math.floor(def
 definitions['newnukehuge'].dirt2.properties.numparticles = math.floor(definitions['newnukehuge'].dirt2.properties.numparticles * size)
 definitions['newnukehuge'].brightflare.properties.ttl = math.floor(definitions['newnukehuge'].brightflare.properties.ttl * size)
 definitions['newnukehuge'].shockwave.properties.ttl = math.floor(definitions['newnukehuge'].shockwave.properties.ttl * size) * 0.7
+definitions['newnukehuge'].shockwave_fast.properties.size = math.floor(definitions['newnukehuge'].shockwave_fast.properties.size * size)
+definitions['newnukehuge'].shockwave_fast.properties.ttl = math.floor(definitions['newnukehuge'].shockwave_fast.properties.ttl * size)
 definitions['newnukehuge'].shockwave_slow.properties.ttl = math.floor(definitions['newnukehuge'].shockwave_slow.properties.ttl * size)
 definitions['newnukehuge'].shockwave_inner.properties.ttl = math.floor(definitions['newnukehuge'].shockwave_inner.properties.ttl * size)
 definitions['newnukehuge'].centerflare.properties.size = [[64 r9]]
@@ -1293,6 +1444,10 @@ definitions['newnuketac-floor'].smoke.properties.particlespeed = math.floor(defi
 definitions['newnuketac-floor'].smoke.properties.particlespeedspread = math.floor(definitions['newnuketac-floor'].smoke.properties.particlespeedspread * size * 0.4)
 definitions['newnuketac-floor'].smoke.properties.particlesize = math.floor(definitions['newnuketac-floor'].smoke.properties.particlesize * size * 0.4)
 definitions['newnuketac-floor'].smoke.properties.particlelife = math.floor(definitions['newnuketac-floor'].smoke.properties.particlelife * size * 0.4)
+definitions['newnuketac-floor'].smoke1.properties.particlespeed = math.floor(definitions['newnuketac-floor'].smoke1.properties.particlespeed * size * 0.2)
+definitions['newnuketac-floor'].smoke1.properties.particlespeedspread = math.floor(definitions['newnuketac-floor'].smoke1.properties.particlespeedspread * size * 0.2)
+definitions['newnuketac-floor'].smoke1.properties.particlesize = math.floor(definitions['newnuketac-floor'].smoke1.properties.particlesize * size * 0.2)
+definitions['newnuketac-floor'].smoke1.properties.particlelife = math.floor(definitions['newnuketac-floor'].smoke1.properties.particlelife * size * 0.2)
 definitions['newnuketac-floor'].smoke2.properties.particlelife = math.floor(definitions['newnuketac-floor'].smoke2.properties.particlelife * size * 0.4)
 definitions['newnuketac-floor'].smoke2.properties.particlespeed = math.floor(definitions['newnuketac-floor'].smoke2.properties.particlespeed * size * 0.4)
 definitions['newnuketac-floor'].smoke2.properties.particlesize = math.floor(definitions['newnuketac-floor'].smoke2.properties.particlesize * size * 0.4)
@@ -1331,12 +1486,14 @@ definitions['newnuketac'].dirt2.properties.numparticles = math.floor(definitions
 definitions['newnuketac'].dirt3.properties.particlespeed = math.floor(definitions['newnuketac'].dirt3.properties.particlespeed * size * 0.9)
 definitions['newnuketac'].dirt3.properties.particlespeedspread = math.floor(definitions['newnuketac'].dirt3.properties.particlespeedspread * size * 0.9)
 definitions['newnuketac'].dirt3.properties.numparticles = math.floor(definitions['newnuketac'].dirt3.properties.numparticles * size)
-definitions['newnuketac'].brightflare.properties.ttl = math.floor(definitions['newnuketac'].brightflare.properties.ttl * size) * 0.4
-definitions['newnuketac'].brightflare.properties.size = math.floor(definitions['newnuketac'].brightflare.properties.size * size) * 0.4
-definitions['newnuketac'].brightflareslow.properties.ttl = math.floor(definitions['newnuketac'].brightflareslow.properties.ttl * size)
-definitions['newnuketac'].brightflareslow.properties.size = math.floor(definitions['newnuketac'].brightflareslow.properties.size * size)
+definitions['newnuketac'].brightflare.properties.ttl = math.floor(definitions['newnuketac'].brightflare.properties.ttl * size * 0.5)
+definitions['newnuketac'].brightflare.properties.size = math.floor(definitions['newnuketac'].brightflare.properties.size * size * 0.2)
+definitions['newnuketac'].brightflareslow.properties.ttl = math.floor(definitions['newnuketac'].brightflareslow.properties.ttl * size * 0.5)
+definitions['newnuketac'].brightflareslow.properties.size = math.floor(definitions['newnuketac'].brightflareslow.properties.size * size * 0.2)
 definitions['newnuketac'].shockwave.properties.ttl = math.floor(definitions['newnuketac'].shockwave.properties.ttl * size * 0.7)
 definitions['newnuketac'].shockwave.properties.size = math.floor(definitions['newnuketac'].shockwave.properties.size * size * 1.2)
+definitions['newnuketac'].shockwave_fast.properties.size = math.floor(definitions['newnuketac'].shockwave_fast.properties.size * size * 0.6)
+definitions['newnuketac'].shockwave_fast.properties.ttl = math.floor(definitions['newnuketac'].shockwave_fast.properties.ttl * size * 1.8)
 definitions['newnuketac'].shockwave_slow.properties.ttl = math.floor(definitions['newnuketac'].shockwave_slow.properties.ttl * size * 0.8)
 definitions['newnuketac'].shockwave_slow.properties.size = math.floor(definitions['newnuketac'].shockwave_slow.properties.size * size * 1.3)
 definitions['newnuketac'].shockwave_inner.properties.ttl = math.floor(definitions['newnuketac'].shockwave_inner.properties.ttl * size * 0.8)
@@ -1346,8 +1503,9 @@ definitions['newnuketac'].centerflare.properties.heat = math.floor(definitions['
 definitions['newnuketac'].centerflare.properties.maxheat = math.floor(definitions['newnuketac'].centerflare.properties.maxheat * size * 1.05)
 definitions['newnuketac'].groundflash_large.properties.size = math.floor(definitions['newnuketac'].groundflash_large.properties.size * size * 0.8)
 definitions['newnuketac'].groundflash_white.properties.size = math.floor(definitions['newnuketac'].groundflash_white.properties.size * size * 0.8)
+definitions['newnuketac'].groundflash_white.properties.ttl = math.floor(definitions['newnuketac'].groundflash_white.properties.ttl * size * 0.4)
 definitions['newnuketac'].groundflash_quick.properties.size = math.floor(definitions['newnuketac'].groundflash_quick.properties.size * size * 0.8)
-definitions['newnuketac'].groundflash_quick.properties.ttl = math.floor(definitions['newnuketac'].groundflash_quick.properties.ttl * size * 0.6)
+definitions['newnuketac'].groundflash_quick.properties.ttl = math.floor(definitions['newnuketac'].groundflash_quick.properties.ttl * size * 0.4)
 definitions['newnuketac'].groundflash_quick.properties.sizegrowth = math.floor(definitions['newnuketac'].groundflash_quick.properties.sizegrowth * size * 0.8)
 definitions['newnuketac'].grounddust.properties.particlesize = math.floor(definitions['newnuketac'].grounddust.properties.particlesize * size)
 definitions['newnuketac'].grounddust.properties.particlespeed = math.floor(definitions['newnuketac'].grounddust.properties.particlespeed * size)
@@ -1391,6 +1549,22 @@ definitions['chickennuke'].dirt2.properties.particlespeedspread = math.floor(def
 definitions['chickennuke'].centerflare.properties.size = [[15 r4]]
 definitions['chickennuke'].groundflash_large.properties.size = math.floor(definitions['chickennuke'].groundflash_large.properties.size * size)
 definitions['chickennuke'].groundflash_white.properties.size = math.floor(definitions['chickennuke'].groundflash_white.properties.size * size)
+
+-- definitions['afusexpl'] = table.copy(definitions['newnuke'])
+-- definitions['afusexpl'].electricstorm.count = 8
+-- definitions['afusexpl'].electricstormalt = 6
+-- definitions['afusexpl'].electricstormxl = 6
+-- definitions['afusexpl'].brightflare.properties.ttl          = math.floor(definitions['afusexpl'].brightflare.properties.ttl * 0.1)
+-- definitions['afusexpl'].brightflareslow.properties.ttl      = math.floor(definitions['afusexpl'].brightflareslow.properties.ttl * 0.25)
+-- definitions['afusexpl'].groundflash_large.properties.ttl    = math.floor(definitions['afusexpl'].groundflash_large.properties.ttl * 0.25)
+-- definitions['afusexpl'].groundflash_quick.properties.ttl    = math.floor(definitions['afusexpl'].groundflash_quick.properties.ttl * 0.1)
+-- definitions['afusexpl'].groundflash_white.properties.ttl    = math.floor(definitions['afusexpl'].groundflash_white.properties.ttl * 0.15)
+
+
+-- definitions['afusexplxl'] = table.copy(definitions['newnukecor'])
+-- definitions['afusexplxl'].electricstorm.count = 8
+-- definitions['afusexplxl'].electricstormalt = 6
+-- definitions['afusexplxl'].electricstormxl = 6
 
 
 return definitions

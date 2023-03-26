@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, dish1, dish2, dish3, dish4;
+piece  base, dish1, dish2, dish3, dish4, emit;
 
 static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
@@ -51,6 +51,7 @@ Go()
 	wait-for-turn dish2 around x-axis;
 	wait-for-turn dish3 around z-axis;
 	wait-for-turn dish4 around z-axis;
+	show emit;
 	set ARMORED to 0;
 	set YARD_OPEN to 0;
 }
@@ -65,6 +66,7 @@ Stop()
 	wait-for-turn dish2 around x-axis;
 	wait-for-turn dish3 around z-axis;
 	wait-for-turn dish4 around z-axis;
+	hide emit;
 	set ARMORED to 1;
 	set YARD_OPEN to 1;
 }

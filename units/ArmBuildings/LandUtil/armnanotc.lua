@@ -28,7 +28,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 700,
-		maxdamage = 500,
+		maxdamage = 560,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		movementclass = "NANO",

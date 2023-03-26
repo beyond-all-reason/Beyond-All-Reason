@@ -20,7 +20,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		levelground = false,
-		maxdamage = 2500,
+		maxdamage = 2800,
 		maxslope = 36,
 		maxwaterdepth = 0,
 		objectname = "Units/CORSD.s3o",

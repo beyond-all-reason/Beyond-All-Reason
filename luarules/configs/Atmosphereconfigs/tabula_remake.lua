@@ -21,30 +21,30 @@ function gadget:GameFrame(n)
 		SpawnCEGInPositionGround("noceg", 6000, 0, 1100, _, _, _, "oceangentlesurf", 0.3)
 	end
 
--- SND geos
-	if n%560 == 0 then
-		SpawnCEGInPositionGround("noceg", 4138, 200, 4972, _, _, _, "geovent", 0.3)
-	end
+-- SND geos Replaced by SFX_geovent.lua
+	-- if n%120 == 0 then
+	-- 	SpawnCEGInPositionGround("noceg", 4138, 200, 4972, _, _, _, "geoventshort", 0.3)
+	-- end
 
-	if n%560 == 30 then
-		SpawnCEGInPositionGround("noceg", 2848, 200, 6945, _, _, _, "geovent", 0.3)
-	end
+	-- if n%120 == 30 then
+	-- 	SpawnCEGInPositionGround("noceg", 2848, 200, 6945, _, _, _, "geoventshort", 0.3)
+	-- end
 
-	if n%560 == 60 then
-		SpawnCEGInPositionGround("noceg", 5558, 200, 6976, _, _, _, "geovent", 0.3)
-	end
+	-- if n%120 == 60 then
+	-- 	SpawnCEGInPositionGround("noceg", 5558, 200, 6976, _, _, _, "geoventshort", 0.3)
+	-- end
 
-	if n%560 == 15 then
-		SpawnCEGInPositionGround("noceg", 4031, 200, 2190, _, _, _, "geovent", 0.3)
-	end
+	-- if n%120 == 15 then
+	-- 	SpawnCEGInPositionGround("noceg", 4031, 200, 2190, _, _, _, "geoventshort", 0.3)
+	-- end
 
-	if n%560 == 45 then
-		SpawnCEGInPositionGround("noceg", 2606, 200, 200, _, _, _, "geovent", 0.3)
-	end
+	-- if n%120 == 45 then
+	-- 	SpawnCEGInPositionGround("noceg", 2606, 200, 200, _, _, _, "geoventshort", 0.3)
+	-- end
 
-	if n%560 == 75 then
-		SpawnCEGInPositionGround("noceg", 5361, 200, 224, _, _, _, "geovent", 0.3)
-	end
+	-- if n%120 == 75 then
+	-- 	SpawnCEGInPositionGround("noceg", 5361, 200, 224, _, _, _, "geoventshort", 0.3)
+	-- end
 
 -- common foggy cliffs	
 	if n%360 == 0 then

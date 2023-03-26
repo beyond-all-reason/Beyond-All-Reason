@@ -8,9 +8,9 @@ return {
 		buildtime = 26061,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
-		collisionvolumeoffsets = "0 -2 -1",
-		collisionvolumescales = "34 68 38",
-		collisionvolumetype = "Box",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "50 70 50",
+		collisionvolumetype = "CYLY",
 		corpse = "DEAD",
 		explodeas = "explosiont3med",
 		footprintx = 3,
@@ -18,11 +18,11 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 200000,
-		maxdamage = 4400,
+		maxdamage = 4900,
 		maxslope = 17,
 		maxvelocity = 3.15,
 		maxwaterdepth = 32,
-		movementclass = "ATANK3",
+		movementclass = "HABOT3", --"ATANK3",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMAR.s3o",
 		script = "Units/armmar.cob",
@@ -67,8 +67,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				collisionvolumescales = "55.0 4.0 6.0",
-				collisionvolumetype = "cylY",
+				collisionvolumescales = "98 98 50",
+				collisionvolumetype = "Box",
 				damage = 1200,
 				energy = 0,
 				featurereclamate = "SMUDGE01",
@@ -87,6 +87,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
+				[2] = "custom:subbubbles",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
@@ -158,12 +159,6 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.59,
-					expl_light_radius_mult = 1.67,
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 85,
 					fighters = 85,

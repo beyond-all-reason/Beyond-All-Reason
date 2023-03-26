@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, duct1, fan1, duct2, fan2, door1, door2, support, beam, nano,thrust;
+piece  base, duct1, fan1, duct2, fan2, door1, door2, support, beam, nano, thrust;
 
 static-var  Static_Var_1, Static_Var_2;
 
@@ -29,8 +29,6 @@ deactivatescr()
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
-
-#include "unit_hitbyweaponid_and_smoke.h"
 
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
@@ -93,6 +91,7 @@ Deactivate()
 
 StartBuilding()
 {
+	show nano;
 	turn support to x-axis <-90> speed <90>;
 	turn beam to x-axis <135> speed <135>;
 	turn door1 to z-axis <-140> speed <280>;
@@ -103,6 +102,7 @@ StartBuilding()
 
 StopBuilding()
 {
+	hide nano;
 	turn support to x-axis <0> speed <90>;
 	turn beam to x-axis <0> speed <135>;
 	turn door1 to z-axis <0> speed <280>;

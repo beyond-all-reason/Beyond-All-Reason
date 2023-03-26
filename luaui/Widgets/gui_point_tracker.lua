@@ -14,6 +14,8 @@ end
 local timeToLive = 330
 local lineWidth = 1.0
 
+local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+
 ----------------------------------------------------------------
 --speedups
 ----------------------------------------------------------------
@@ -81,6 +83,7 @@ layout (location = 1) in vec4 worldposradius;
 layout (location = 2) in vec4 colorlife;
 
 uniform float isMiniMap;
+uniform float cameraFlipped;
 
 out DataVS {
 	vec4 blendedcolor;
@@ -96,17 +99,23 @@ void main()
   vec4 worldPosInCamSpace;
 
   float viewratio = 1.0;
-   if (isMiniMap > 0.5) {
-    worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.xyz, 1.0);
+  if (isMiniMap > 0.5) {
+    if (cameraFlipped > 0.5) {
+      worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.x, worldposradius.y, mapSize.y - worldposradius.z, 1.0);
+    } else {
+      worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.xyz, 1.0);
+    }
     viewratio = mapSize.x / mapSize.y;
-   } else {
+  } else {
     worldPosInCamSpace  = cameraViewProj * vec4(worldposradius.xyz, 1.0);
     viewratio = viewGeometry.x / viewGeometry.y;
-   }
+  }
   // Note that the W component of the worldPosInCamSpace contains the normalization factor for camera into clip space
 
   //stretch to square:
-  vec2 stretched = vec2(position.x , position.y * viewratio);
+  vec2 stretched;
+
+  stretched = vec2(position.x , position.y * viewratio);
 
   // NDC into clip space
   vec3 clipspaceposition = worldPosInCamSpace.xyz / worldPosInCamSpace.w;
@@ -186,6 +195,7 @@ local function initGL4()
         },
 	uniformFloat = {
         isMiniMap = 0,
+        cameraFlipped = 0,
       },
     },
     "mapMarkShader GL4"
@@ -217,8 +227,11 @@ function DrawMapMarksWorld(isMiniMap)
     --Spring.Echo("DrawMapMarksWorld",isMiniMap, Spring.GetGameFrame(), mapMarkInstanceVBO.usedElements)
 	  glLineWidth(lineWidth)
 		mapMarkShader:Activate()
-    mapMarkShader:SetUniform("isMiniMap",isMiniMap)
+		mapMarkShader:SetUniform("isMiniMap",isMiniMap)
+		mapMarkShader:SetUniform("cameraFlipped", getMiniMapFlipped() and 1 or 0)
+
 		drawInstanceVBO(mapMarkInstanceVBO)
+
 		mapMarkShader:Deactivate()
 	end
 end

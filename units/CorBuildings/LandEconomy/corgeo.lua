@@ -22,7 +22,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1850,
+		maxdamage = 2050,
 		maxslope = 15,
 		maxwaterdepth = 99999,
 		objectname = "Units/CORGEO.s3o",

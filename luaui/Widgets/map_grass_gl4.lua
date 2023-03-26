@@ -75,11 +75,11 @@ local grassConfig = {
   grassShaderParams = { -- allcaps because thats how i know
     MAPCOLORFACTOR = 0.6, -- how much effect the minimapcolor has
     MAPCOLORBASE = 1.0,     --how much more to blend the bottom of the grass patches into map color
-    ALPHATHRESHOLD = 0.15,--alpha limit under which to discard a fragment
+    ALPHATHRESHOLD = 0.01,--alpha limit under which to discard a fragment
     WINDSTRENGTH = 0.1,	  -- how much the wind will blow the grass
     WINDSCALE = 0.33, -- how fast the wind texture moves
     WINDSAMPLESCALE = 0.001, -- tiling resolution of the noise texture
-    FADESTART = 5800,-- distance at which grass starts to fade
+    FADESTART = 5000,-- distance at which grass starts to fade
     FADEEND = 8000,--distance at which grass completely fades out
     SHADOWFACTOR = 0.25, -- how much shadowed grass gets darkened, lower values mean more shadows
     HASSHADOWS = 1, -- 0 for disable, no real difference in this (does not work yet)
@@ -93,6 +93,8 @@ local grassConfig = {
   -- The grassdisttex overrides the default map grass, if specified!
   grassDistTGA = "", -- MUST BE 8 bit uncompressed TGA, sized Game.mapSize* / patchResolution, where 0 is no grass, and 1<= controls grass size.
 }
+
+local nightFactor = {1,1,1,1}
 
 local distanceMult = 0.4
 
@@ -829,7 +831,7 @@ local function makeGrassInstanceVBO()
 	else -- try to load builtin grass type
 
 		local maphasgrass = mapHasSMFGrass()
-		--Spring.Echo("mapHasSMFGrass",maphasgrass)
+		--Spring.Echo("mapHasSMFGrass",maphasgrass, placementMode)
 		if (maphasgrass == 0 or maphasgrass == 255) and (not placementMode) then return nil end -- bail if none specified at all anywhere
 
 		local rowIndex = 1
@@ -888,6 +890,7 @@ layout (location = 6) in float pieceindex;
 layout (location = 7) in vec4 instancePosRotSize; //x, rot, z, size
 
 uniform vec4 grassuniforms; //windx, windz, 0, globalalpha
+uniform float distanceMult; //yes this is the additional distance multiplier
 
 uniform sampler2D grassBladeColorTex;
 
@@ -990,7 +993,7 @@ void main() {
   //--- DISTANCE FADE ---
   vec4 camPos = cameraViewInv[3];
   float distToCam = length(grassVertWorldPos.xyz - camPos.xyz); //dist from cam
-  instanceParamsVS.x = clamp((FADEEND - distToCam)/(FADEEND- FADESTART),0.0,1.0);
+  instanceParamsVS.x = clamp((FADEEND * distanceMult - distToCam)/(FADEEND * distanceMult - FADESTART * distanceMult),0.0,1.0);
 
 
   //--- ALPHA CULLING BASED ON QUAD NORMAL
@@ -1109,7 +1112,7 @@ local fsSrc = [[
 /*
 #define    MAPCOLORFACTOR 0.4
 #define    DARKENBASE 0.5
-#define    ALPHATHRESHOLD 0.02
+#define    ALPHATHRESHOLD 0.01
 #define    WINDSTRENGTH 1.0
 #define    WINDSCALE 0.33
 #define    FADESTART 2000
@@ -1117,6 +1120,10 @@ local fsSrc = [[
 */
 
 uniform vec4 grassuniforms; //windx, windz, windstrength, globalalpha
+
+uniform float distanceMult; //yes this is the additional distance multiplier
+
+uniform vec4 nightFactor;
 
 uniform sampler2D grassBladeColorTex;
 uniform sampler2D mapGrassColorModTex;
@@ -1158,8 +1165,11 @@ void main() {
 	//fragColor = vec4(1.0, 1.0, 1.0, 1.0);
 	//fragColor = vec4(debuginfo.w*5, 1.0 - debuginfo.w*5.0, 0,1.0);
 	fragColor.a *= clamp(debuginfo.w *3,0.0,1.0);
-	if (fragColor.a < ALPHATHRESHOLD) // needed for depthmask
-	discard;
+	fragColor.rgb *= nightFactor.rgb;
+	
+	if (fragColor.a < ALPHATHRESHOLD) 
+		discard;// needed for depthmask
+		
 }
 ]]
 
@@ -1193,6 +1203,8 @@ local function makeShaderVAO()
         },
       uniformFloat = {
         grassuniforms = {1,1,1,1},
+		distanceMult = distanceMult,
+		nightFactor = {1,1,1,1},
       },
     },
     "GrassShaderGL4"
@@ -1244,6 +1256,7 @@ function widget:Initialize()
 		end
 	end
 	WG['grassgl4'].removeGrassBelowHeight = function(height)
+		if #grassInstanceData == 0 then return nil end
 		if not removedBelowHeight or height > removedBelowHeight then
 			removedBelowHeight = height
 
@@ -1453,7 +1466,11 @@ local function GetStartEndRows() -- returns start and end indices of the instanc
 
 local glTexture = gl.Texture
 
+local smoothGrassFadeExp = 1
+
+
 function widget:DrawWorldPreUnit()
+  if #grassInstanceData == 0 then return end
   local mapDrawMode = Spring.GetMapDrawMode()
   if mapDrawMode ~= 'normal' and mapDrawMode ~= 'los' then return end
 	if placementMode then
@@ -1465,15 +1482,25 @@ function widget:DrawWorldPreUnit()
   local newGameSeconds = os.clock()
   local timePassed = newGameSeconds - oldGameSeconds
   oldGameSeconds = newGameSeconds
-
+  
   local cx, cy, cz = Spring.GetCameraPosition()
   local gh = (Spring.GetGroundHeight(cx,cz) or 0)
+  
+  local globalgrassfade = math.max(0.0,math.min(1.0,
+		((grassConfig.grassShaderParams.FADEEND*distanceMult) - (cy-gh))/((grassConfig.grassShaderParams.FADEEND*distanceMult)-(grassConfig.grassShaderParams.FADESTART*distanceMult))))
+
+  local expFactor = math.min(1.0, 3 * timePassed) -- ADJUST THE TEMPORAL FACTOR OF 3
+  smoothGrassFadeExp = smoothGrassFadeExp * (1.0 - expFactor) + globalgrassfade * expFactor 
+  --Spring.Echo(smoothGrassFadeExp, globalgrassfade)  
+  
+
   if cy  < ((grassConfig.grassShaderParams.FADEEND*distanceMult) + gh) and grassVAO ~= nil and #grassInstanceData > 0 then
 	local startInstanceIndex = 0
 	local instanceCount =  #grassInstanceData/4
     if not placementMode then
 		startInstanceIndex, instanceCount = GetStartEndRows()
 	end
+	if instanceCount == 0 or startInstanceIndex == #grassInstanceData/4 then return end
     local _, _, isPaused = Spring.GetGameSpeed()
     if not isPaused then
       getWindSpeed()
@@ -1481,8 +1508,6 @@ function widget:DrawWorldPreUnit()
       offsetZ = offsetZ - ((windDirZ * grassConfig.grassWindMult) * timePassed)
     end
 
-    local globalgrassfade = math.max(0.0,math.min(1.0,
-		((grassConfig.grassShaderParams.FADEEND*distanceMult) - (cy-gh))/((grassConfig.grassShaderParams.FADEEND*distanceMult)-(grassConfig.grassShaderParams.FADESTART*distanceMult))))
 
     gl.DepthTest(GL.LEQUAL)
     gl.DepthMask(true)
@@ -1498,7 +1523,11 @@ function widget:DrawWorldPreUnit()
     grassShader:Activate()
     --Spring.Echo("globalgrassfade",globalgrassfade)
     local windStrength = math.min(grassConfig.maxWindSpeed, math.max(4.0, math.abs(windDirX) + math.abs(windDirZ)))
-    grassShader:SetUniform("grassuniforms", offsetX, offsetZ, windStrength, globalgrassfade)
+    grassShader:SetUniform("grassuniforms", offsetX, offsetZ, windStrength, smoothGrassFadeExp)
+    grassShader:SetUniform("distanceMult", distanceMult)
+	grassShader:SetUniform("nightFactor", nightFactor[1], nightFactor[2], nightFactor[3], nightFactor[4])
+    
+
 
     grassVAO:DrawArrays(GL.TRIANGLES, grassPatchVBOsize, 0, instanceCount, startInstanceIndex)
     if placementMode and Spring.GetGameFrame()%30 == 0 then Spring.Echo("Drawing",instanceCount,"grass patches") end
@@ -1514,6 +1543,24 @@ function widget:DrawWorldPreUnit()
     gl.DepthMask(false)
     gl.Culling(GL.BACK)
   end
+end
+
+local lastSunChanged = -1 
+function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
+	local df = Spring.GetDrawFrame()
+	--Spring.Echo("widget:SunChanged", df)
+	if df == lastSunChanged then return end
+	lastSunChanged = df
+	
+	-- Do the math:
+	if WG['NightFactor'] then 
+		local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
+		nightFactor[1] = WG['NightFactor'].red * altitudefactor
+		nightFactor[2] = WG['NightFactor'].green * altitudefactor
+		nightFactor[3] = WG['NightFactor'].blue * altitudefactor 
+		nightFactor[4] = WG['NightFactor'].shadow 
+	end
+	--Spring.Debug.TableEcho(WG['NightFactor'])
 end
 
 -- ahahahah you cant stop me:

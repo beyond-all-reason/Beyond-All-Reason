@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local timeNotation = 24
+
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local font, chobbyInterface, hovering
 
@@ -29,6 +31,8 @@ local top, left, bottom, right = 0,0,0,0
 
 local passedTime = 0
 local passedTime2 = 0
+local usedTextWidth = 0
+local textWidthClock = 0
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -78,8 +82,21 @@ local function updateValues()
 		elseif minutes > 9 then
 			extraSpacing = 0.7
 		end
+		local text = titleColor..' x'..valueColor..gamespeed..titleColor..'     fps '..valueColor..fps
+		font:Print(text, left+textXPadding+(textsize*(2.8+extraSpacing)), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+		local textWidth = font:GetTextWidth(text) * textsize
+		if textWidth > usedTextWidth or textWidthClock+30 < os.clock() then
+			usedTextWidth = textWidth
+			textWidthClock = os.clock()
+		end
+		local clock = ''
+		if timeNotation == 24 then
+			clock = os.date("%H:%M")
+		else
+			clock = os.date("%I:%M %p")
+		end
+		font:Print(valueColor..clock, left+textXPadding+(textsize*(2.8+extraSpacing))+usedTextWidth+(textsize*1.3), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
 
-		font:Print(titleColor..' x'..valueColor..gamespeed..titleColor..'      fps '..valueColor..fps, left+textXPadding+(textsize*(3.2+extraSpacing)), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
 		font:End()
     end)
 end

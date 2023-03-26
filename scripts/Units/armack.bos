@@ -15,6 +15,13 @@ static-var  bMoving, notBuilding, nanoNozzle, statechg_DesiredState,
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
+
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+
+
 #define SIG_WALK 8
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\armack_anim_walk.blend 
 	//CC BY NC ND (c) Beherith
@@ -85,6 +92,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:16
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <-18.974974> speed <941.522828> / animSpeed; //delta=31.38 
 			turn lfoot to z-axis <9.309915> speed <8.925205> / animSpeed; //delta=-0.30 
 			turn lfoot to y-axis <3.049529> speed <149.883456> / animSpeed; //delta=5.00 
@@ -173,6 +181,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:32
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <-28.930704> speed <361.023821> / animSpeed; //delta=-12.03 
 			turn lfoot to z-axis <10.063127> speed <48.583366> / animSpeed; //delta=1.62 
 			turn lfoot to y-axis <4.893411> speed <84.317494> / animSpeed; //delta=-2.81 
@@ -353,6 +362,7 @@ Deactivate()
 
 StartBuilding(heading, pitch)
 {
+	show nano;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
@@ -363,6 +373,7 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+	hide nano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	sleep 3000;

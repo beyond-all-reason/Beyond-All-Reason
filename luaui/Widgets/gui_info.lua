@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local alwaysShow = false
+
 local width = 0
 local height = 0
 
@@ -19,49 +21,12 @@ local rightclickCellZoom = 0.065 * zoomMult
 local clickCellZoom = 0.065 * zoomMult
 local hoverCellZoom = 0.03 * zoomMult
 local showBuilderBuildlist = true
+local displayMapPosition = false
 
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	selectedunits = 'Selected units',
-	unitsselected = 'units selected',
-	m = 'M',
-	e = 'E',
-	costm = 'Cost M',
-	coste = 'Cost E',
-	health = 'Health',
-	of = 'of',		-- 3 of 7
-	xp = 'XP',
-	maxhealth = 'max health',
-	reload = 'reload',
-	dps = 'DPS',
-	weaponrange = 'weapon range',
-	reloadtime = 'reload time',
-	energyshot = 'energy/shot',
-	metalshot = 'metal/shot',
-	stealthy = 'stealthy',
-	cloakcost = 'cloak cost',
-	cloakcostmoving = 'cloak cost moving',
-	transportmaxmass = 'transport max mass',
-	transportmaxsize = 'transport max size',
-	transportcapacity = 'transport capacity',
-	speed = 'speed',
-	reversespeed = 'reverse speed',
-	buildpower = 'buildpower',
-	buildoptions = 'buildoptions',
-	unparalyzable = 'unparalyzable',
-	paralyzemult = 'paralyzeMult',
-	transportable = 'transportable',
-	los = 'LoS',
-	airlos = 'AirLoS',
-	radar = 'radar',
-	sonar = 'sonar',
-	jamrange = 'jam range',
-	sonarjamrange = 'sonar jam range',
-	seismic = 'seismic',
-	eneededforconversion = 'E needed for conversion',
-	convertedm = 'converted M',
-	estorage = 'E storage',
-	mstorage = 'M storage',
-}
+local emptyInfo = false
+local showEngineTooltip = false		-- straight up display old engine delivered text
+
+local texts = {}
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -77,8 +42,7 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local backgroundRect = { 0, 0, 0, 0 }
 local currentTooltip = ''
 local lastUpdateClock = 0
-
-local hpcolormap = { { 1, 0.0, 0.0, 1 }, { 0.8, 0.60, 0.0, 1 }, { 0.0, 0.75, 0.0, 1 } }
+local infoShows = false
 
 local tooltipTitleColor = '\255\205\255\205'
 local tooltipTextColor = '\255\255\255\255'
@@ -86,10 +50,11 @@ local tooltipLabelTextColor = '\255\200\200\200'
 local tooltipDarkTextColor = '\255\133\133\133'
 local tooltipValueColor = '\255\255\255\255'
 local tooltipValueWhiteColor = '\255\255\255\255'
-local tooltipValueYellowColor = '\255\255\235\175'
-local tooltipValueRedColor = '\255\255\180\180'
 
 local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor .. ": Select\n " .. tooltipTextColor .. "   + CTRL" .. tooltipLabelTextColor .. ": Select units of this type on map\n " .. tooltipTextColor .. "   + ALT" .. tooltipLabelTextColor .. ": Select 1 single unit of this unit type\n " .. tooltipTextColor .. "Right click" .. tooltipLabelTextColor .. ": Remove\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Remove only 1 unit from that unit type\n " .. tooltipTextColor .. "Middle click" .. tooltipLabelTextColor .. ": Move to center location\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Move to center off whole selection"
+
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local iconTypesMap, dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
 local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures, chobbyInterface
@@ -145,6 +110,8 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
+local hideBuildlist
+
 local function round(value, numDecimalPlaces)
 	if value then
 		return string.format("%0." .. numDecimalPlaces .. "f", math.round(value, numDecimalPlaces))
@@ -185,10 +152,8 @@ local function refreshUnitInfo()
 			unitDefInfo[unitDefID].airUnit = true
 		end
 
-		if unitDef.isImmobile or unitDef.isBuilding then
-			if not unitDef.cantBeTransported then
-				unitDefInfo[unitDefID].transportable = true
-			end
+		if not unitDef.cantBeTransported then	--unitDef.isImmobile or unitDef.isBuilding then
+			unitDefInfo[unitDefID].transportable = true
 		end
 
 		unitDefInfo[unitDefID].translatedHumanName = unitDef.translatedHumanName
@@ -200,6 +165,12 @@ local function refreshUnitInfo()
 		end
 		if unitDef.rSpeed > 0 then
 			unitDefInfo[unitDefID].reverseSpeed = round(unitDef.rSpeed, 0)
+		end
+		if unitDef.mass > 0 then
+			unitDefInfo[unitDefID].mass = unitDef.mass
+		end
+		if unitDef.xsize > 0 then
+			unitDefInfo[unitDefID].footprint = unitDef.xsize * unitDef.zsize
 		end
 		if unitDef.stealth then
 			unitDefInfo[unitDefID].stealth = true
@@ -444,9 +415,7 @@ end
 function widget:Initialize()
 	refreshUnitInfo()
 
-	if WG['lang'] then
-		texts = WG['lang'].getText('info')
-	end
+	texts = Spring.I18N('ui.info')
 
 	checkGeothermalFeatures()
 
@@ -459,6 +428,18 @@ function widget:Initialize()
 	WG['info'].setShowBuilderBuildlist = function(value)
 		showBuilderBuildlist = value
 	end
+	WG['info'].getDisplayMapPosition = function()
+		return displayMapPosition
+	end
+	WG['info'].setDisplayMapPosition = function(value)
+		displayMapPosition = value
+	end
+	WG['info'].getAlwaysShow = function()
+		return alwaysShow
+	end
+	WG['info'].setAlwaysShow = function(value)
+		alwaysShow = value
+	end
 	WG['info'].displayUnitID = function(unitID)
 		cfgDisplayUnitID = unitID
 	end
@@ -467,6 +448,9 @@ function widget:Initialize()
 	end
 	WG['info'].getPosition = function()
 		return width, height
+	end
+	WG['info'].getIsShowing = function()
+		return infoShows
 	end
 	if WG['buildmenu'] then
 		if WG['buildmenu'].getGroups then
@@ -508,6 +492,7 @@ function widget:Initialize()
 	end
 
 	bfcolormap = {}
+	local hpcolormap = { { 1, 0.0, 0.0, 1 }, { 0.8, 0.60, 0.0, 1 }, { 0.0, 0.75, 0.0, 1 } }
 	for hp = 0, 100 do
 		bfcolormap[hp] = { GetColor(hpcolormap, hp * 0.01) }
 	end
@@ -529,11 +514,27 @@ end
 
 local sec2 = 0
 local sec = 0
+local lastCameraPanMode = false
 function widget:Update(dt)
+	infoShows = false
+	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
+	if lastCameraPanMode ~= cameraPanMode then
+		lastCameraPanMode = cameraPanMode
+		checkChanges()
+	end
+	if not alwaysShow and (cameraPanMode or mouseOffScreen) and  Spring.GetGameFrame() > 0 then
+		if SelectedUnitsCount == 0 then
+			if dlistGuishader then
+				WG['guishader'].DeleteDlist('info')
+				dlistGuishader = nil
+			end
+		end
+		return
+	end
+
 	sec2 = sec2 + dt
 	if sec2 > 0.5 then
 		sec2 = 0
-		checkGuishader()
 
 		if not rankTextures and WG['rankicons'] then
 			rankTextures = WG['rankicons'].getRankTextures()
@@ -554,9 +555,39 @@ function widget:Update(dt)
 	end
 
 	sec = sec + dt
-	if sec > 0.05 then
+	if sec > 0.035 then
 		sec = 0
 		checkChanges()
+		if alwaysShow or not emptyInfo then
+			checkGuishader()
+		end
+	end
+
+
+	if ViewResizeUpdate then
+		ViewResizeUpdate = nil
+	end
+
+	if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) or (os_clock() >= doUpdateClock2) then
+		doUpdateClock = nil
+		doUpdateClock2 = os_clock() + 0.9
+		clear()
+		doUpdate = nil
+		lastUpdateClock = os_clock()
+	end
+
+	if displayUnitID and not Spring.ValidUnitID(displayUnitID) then
+		displayMode = 'text'
+		displayUnitID = nil
+		displayUnitDefID = nil
+	end
+
+	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) or chobbyInterface then
+		return
+	end
+
+	if alwaysShow or not emptyInfo or Spring.GetGameFrame() == 0 then
+		infoShows = true
 	end
 end
 
@@ -645,98 +676,6 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	end
 end
 
-local function getSelectionTotals(cells)
-	local valuePlusColor = '\255\180\255\180'
-	local valueMinColor = '\255\255\180\180'
-
-	local statsIndent = ''
-	local stats = ''
-
-	-- description
-	if cellHovered then
-		local text, numLines = font:WrapText(unitDefInfo[selectionCells[cellHovered]].tooltip, (backgroundRect[3] - backgroundRect[1]) * (loadedFontSize / 16))
-		stats = stats .. statsIndent .. tooltipTextColor .. text .. '\n\n'
-	end
-
-	-- loop all unitdefs/cells (but not individual unitID's)
-	local totalMetalValue = 0
-	local totalEnergyValue = 0
-	local totalDpsValue = 0
-	for _, unitDefID in pairs(cells) do
-		-- metal cost
-		if unitDefInfo[unitDefID].metalCost then
-			totalMetalValue = totalMetalValue + (unitDefInfo[unitDefID].metalCost * selUnitsCounts[unitDefID])
-		end
-		-- energy cost
-		if unitDefInfo[unitDefID].energyCost then
-			totalEnergyValue = totalEnergyValue + (unitDefInfo[unitDefID].energyCost * selUnitsCounts[unitDefID])
-		end
-		-- DPS
-		if unitDefInfo[unitDefID].dps then
-			totalDpsValue = totalDpsValue + (unitDefInfo[unitDefID].dps * selUnitsCounts[unitDefID])
-		end
-	end
-
-	-- loop all unitID's
-	local totalMaxHealthValue = 0
-	local totalHealth = 0
-	local totalMetalMake, totalMetalUse, totalEnergyMake, totalEnergyUse = 0, 0, 0, 0
-	for _, unitID in pairs(cellHovered and selUnitsSorted[selectionCells[cellHovered]] or selectedUnits) do
-		-- resources
-		local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(unitID)
-		if metalMake then
-			totalMetalMake = totalMetalMake + metalMake
-			totalMetalUse = totalMetalUse + metalUse
-			totalEnergyMake = totalEnergyMake + energyMake
-			totalEnergyUse = totalEnergyUse + energyUse
-		end
-		-- health
-		local health, maxHealth = spGetUnitHealth(unitID)
-		if health and maxHealth then
-			totalMaxHealthValue = totalMaxHealthValue + maxHealth
-			totalHealth = totalHealth + health
-		end
-	end
-
-	-- resources
-	stats = stats .. statsIndent .. tooltipLabelTextColor .. texts.m..": " .. (totalMetalMake > 0 and valuePlusColor .. '+' .. (totalMetalMake < 10 and round(totalMetalMake, 1) or round(totalMetalMake, 0)) .. ' ' or '... ') .. (totalMetalUse > 0 and valueMinColor .. '-' .. (totalMetalUse < 10 and round(totalMetalUse, 1) or round(totalMetalUse, 0)) or tooltipLabelTextColor .. '... ')
-	stats = stats .. '\n' .. statsIndent
-	stats = stats .. tooltipLabelTextColor .. texts.e..": " .. (totalEnergyMake > 0 and valuePlusColor .. '+' .. (totalEnergyMake < 10 and round(totalEnergyMake, 1) or round(totalEnergyMake, 0)) .. ' ' or '... ') .. (totalEnergyUse > 0 and valueMinColor .. '-' .. (totalEnergyUse < 10 and round(totalEnergyUse, 1) or round(totalEnergyUse, 0)) or tooltipLabelTextColor .. '... ')
-
-	-- metal cost
-	if totalMetalValue > 0 then
-		stats = stats .. '\n' .. statsIndent .. tooltipLabelTextColor .. texts.costm..": " .. tooltipValueWhiteColor .. totalMetalValue .. "   "
-	end
-	stats = stats .. '\n' .. statsIndent
-
-	-- energy cost
-	if totalEnergyValue > 0 then
-		stats = stats .. tooltipLabelTextColor .. texts.coste..": " .. tooltipValueYellowColor .. totalEnergyValue .. "   "
-	end
-
-	-- health
-	totalMaxHealthValue = math_floor(totalMaxHealthValue)
-	if totalMaxHealthValue > 0 then
-		totalHealth = math_floor(totalHealth)
-		stats = stats .. '\n' .. statsIndent .. tooltipLabelTextColor .. texts.health..": " .. tooltipValueColor .. math_floor((totalHealth / totalMaxHealthValue) * 100) .. "%"
-		stats = stats .. "\n" .. tooltipDarkTextColor .. " (" ..tooltipLabelTextColor .. totalHealth .. tooltipDarkTextColor .. ' '..texts.of..' ' .. tooltipLabelTextColor .. totalMaxHealthValue .. tooltipDarkTextColor .. ")"
-	end
-
-	-- DPS
-	if totalDpsValue > 0 then
-		stats = stats .. '\n' .. statsIndent .. tooltipLabelTextColor .. texts.dps..": " .. tooltipValueRedColor .. totalDpsValue .. "   "
-	end
-
-	if stats ~= '' then
-		stats = '\n' .. stats
-		if not cellHovered then
-			stats = '\n' .. stats
-		end
-	end
-
-	return stats
-end
-
 local function drawSelection()
 	selUnitsCounts = spGetSelectedUnitsCounts()
 	selUnitsSorted = spGetSelectedUnitsSorted()
@@ -754,16 +693,76 @@ local function drawSelection()
 
 	-- draw selection totals
 	local numLines
-	local stats = getSelectionTotals(selectionCells)
-	local text = tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. " "..texts.unitsselected .. stats .. "\n " .. (stats == '' and '' or '\n')
-	local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
-	text, numLines = font:WrapText(text, contentWidth * (loadedFontSize / fontSize))
+	--local stats = getSelectionTotals(selectionCells)
+	local fontSize = (height * vsy * 0.115) * (0.95 - ((1 - ui_scale) * 0.5))
+	local height = 0
+	local heightStep = (fontSize * 1.36)
+	font2:Begin()
+	font2:Print(tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. "  "..texts.unitsselected, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1.2) - height, (fontSize * 1.23), "o")
+	font2:End()
 	font:Begin()
-	font:Print(text, backgroundRect[1] + (bgpadding*1.6), backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8), fontSize, "o")
+	height = height + (fontSize * 0.85)
+
+	-- loop all unitdefs/cells (but not individual unitID's)
+	local totalMetalValue = 0
+	local totalEnergyValue = 0
+	for _, unitDefID in pairs(selectionCells) do
+		-- metal cost
+		if unitDefInfo[unitDefID].metalCost then
+			totalMetalValue = totalMetalValue + (unitDefInfo[unitDefID].metalCost * selUnitsCounts[unitDefID])
+		end
+		-- energy cost
+		if unitDefInfo[unitDefID].energyCost then
+			totalEnergyValue = totalEnergyValue + (unitDefInfo[unitDefID].energyCost * selUnitsCounts[unitDefID])
+		end
+	end
+
+	-- loop all unitID's
+	local totalMaxHealthValue = 0
+	local totalMetalMake, totalMetalUse, totalEnergyMake, totalEnergyUse = 0, 0, 0, 0
+	local totalKills = 0
+	for _, unitID in pairs(cellHovered and selUnitsSorted[selectionCells[cellHovered]] or selectedUnits) do
+		local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(unitID)
+		if metalMake then
+			totalMetalMake = totalMetalMake + metalMake
+			totalMetalUse = totalMetalUse + metalUse
+			totalEnergyMake = totalEnergyMake + energyMake
+			totalEnergyUse = totalEnergyUse + energyUse
+		end
+		local kills = spGetUnitRulesParam(unitID, "kills")
+		if kills then
+			totalKills = totalKills + kills
+		end
+	end
+
+	local valuePlusColor = '\255\180\255\180'
+	local valueMinColor = '\255\255\180\180'
+	if totalMetalUse > 0 or totalMetalMake > 0 then
+		height = height + heightStep
+		font:Print( tooltipLabelTextColor .. texts.m.."   " .. (totalMetalMake > 0 and valuePlusColor .. '+' .. (totalMetalMake < 10 and round(totalMetalMake, 1) or round(totalMetalMake, 0)) .. '  ' or '') .. (totalMetalUse > 0 and valueMinColor .. '-' .. (totalMetalUse < 10 and round(totalMetalUse, 1) or round(totalMetalUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	end
+	if totalEnergyUse > 0 or totalEnergyMake > 0 then
+		height = height + heightStep
+		font:Print( tooltipLabelTextColor .. texts.e.."   " .. (totalEnergyMake > 0 and valuePlusColor .. '+' .. (totalEnergyMake < 10 and round(totalEnergyMake, 1) or round(totalEnergyMake, 0)) .. '  ' or '') .. (totalEnergyUse > 0 and valueMinColor .. '-' .. (totalEnergyUse < 10 and round(totalEnergyUse, 1) or round(totalEnergyUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	end
+
+	-- metal cost
+	height = height + heightStep
+	font:Print( tooltipLabelTextColor .. texts.costm.."   " .. tooltipValueWhiteColor .. totalMetalValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+
+	-- energy cost
+	height = height + heightStep
+	font:Print( tooltipLabelTextColor .. texts.coste.."\255\255\255\128   " .. totalEnergyValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+
+	-- kills
+	if totalKills > 0 then
+		height = height + heightStep
+		font:Print( tooltipLabelTextColor .. texts.kills.."   " .. tooltipValueColor .. totalKills, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	end
 	font:End()
 
 	-- selected units grid area
-	local gridWidth = math_floor((backgroundRect[3] - backgroundRect[1] - bgpadding) * 0.7)  -- leaving some room for the totals
+	local gridWidth = math_floor((backgroundRect[3] - backgroundRect[1] - bgpadding) * 0.6)  -- leaving some room for the totals
 	gridHeight = math_floor((backgroundRect[4] - backgroundRect[2]) - bgpadding)
 	customInfoArea = { backgroundRect[3] - gridWidth, backgroundRect[2], backgroundRect[3] - bgpadding, backgroundRect[2] + gridHeight }
 
@@ -814,7 +813,7 @@ local function drawSelection()
 	glColor(1, 1, 1, 1)
 end
 
-function ColourString(R, G, B)
+local function ColourString(R, G, B)
 	local R255 = math.floor(R * 255)
 	local G255 = math.floor(G * 255)
 	local B255 = math.floor(B * 255)
@@ -830,7 +829,7 @@ function ColourString(R, G, B)
 	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
 end
 
-function GetAIName(teamID)
+local function GetAIName(teamID)
 	local _, _, _, name, _, options = Spring.GetAIInfo(teamID)
 	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
 	if niceName then
@@ -865,13 +864,10 @@ local function drawUnitInfo()
 			{unitDefInfo[displayUnitDefID].metalCost, unitDefInfo[displayUnitDefID].energyCost}
 		)
 		-- price
-		if unitGroup[displayUnitDefID] then
-			local halfSize = iconSize * 0.5
-			local padding = (halfSize + halfSize) * 0.045
-			local size = (halfSize + halfSize) * 0.18
-			font3:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "o")
-		end
-
+		local halfSize = iconSize * 0.5
+		local padding = (halfSize + halfSize) * 0.045
+		local size = (halfSize + halfSize) * 0.18
+		font3:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "o")
 	end
 	iconSize = iconSize + iconPadding
 
@@ -910,7 +906,7 @@ local function drawUnitInfo()
 		end
 	end
 
-	local unitNameColor = '\255\205\255\205'
+	local unitNameColor = tooltipTitleColor
 	if SelectedUnitsCount > 0 then
 		if not displayMode == 'unitdef' or (WG['buildmenu'] and (WG['buildmenu'].selectedID and (not WG['buildmenu'].hoverID or (WG['buildmenu'].selectedID == WG['buildmenu'].hoverID)))) then
 			unitNameColor = '\255\125\255\125'
@@ -983,17 +979,24 @@ local function drawUnitInfo()
 
 		-- display unit owner name
 		local teamID = Spring.GetUnitTeam(displayUnitID)
-		if mySpec or myTeamID ~= teamID then
+		if mySpec or (myTeamID ~= teamID) then
 			local _, playerID, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
 			local name = Spring.GetPlayerInfo(playerID, false)
 			if isAiTeam then
 				name = GetAIName(teamID)
 			end
-			if not name then
-				name = '---'
+			if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode ~= 'disabled' then
+				name = "??????"
 			end
-			local fontSizeOwner = fontSize * 0.87
-			font2:Print(ColourString(Spring.GetTeamColor(teamID))..name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
+			if name then
+				local fontSizeOwner = fontSize * 0.87
+				--if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode ~= 'disabled' then
+				--	name = ColourString(Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255) .. name
+				--else
+					name = ColourString(Spring.GetTeamColor(teamID)) .. name
+				--end
+				font2:Print(name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
+			end
 		end
 	else
 		valueY1 = metalColor .. unitDefInfo[displayUnitDefID].metalCost
@@ -1030,7 +1033,7 @@ local function drawUnitInfo()
 	cellRect = nil
 
 	-- draw unit buildoption icons
-	if displayMode == 'unitdef' and showBuilderBuildlist and unitDefInfo[displayUnitDefID].buildOptions then
+	if displayMode == 'unitdef' and showBuilderBuildlist and unitDefInfo[displayUnitDefID].buildOptions and not hideBuildlist then
 		gridHeight = math_ceil(height * 0.975)
 		local rows = 2
 		local colls = math_ceil(#unitDefInfo[displayUnitDefID].buildOptions / rows)
@@ -1221,12 +1224,6 @@ local function drawUnitInfo()
 			end
 		end
 
-		if unitDefInfo[displayUnitDefID].transport then
-			addTextInfo(texts.transportmaxmass, unitDefInfo[displayUnitDefID].transport[1])
-			addTextInfo(texts.transportmaxsize, unitDefInfo[displayUnitDefID].transport[2])
-			addTextInfo(texts.transportcapacity, unitDefInfo[displayUnitDefID].transport[3])
-		end
-
 		if unitDefInfo[displayUnitDefID].speed then
 			addTextInfo(texts.speed, unitDefInfo[displayUnitDefID].speed)
 		end
@@ -1254,10 +1251,6 @@ local function drawUnitInfo()
 			else
 				addTextInfo(texts.paralyzemult, round(unitDefInfo[displayUnitDefID].paralyzeMult, 2))
 			end
-		end
-
-		if unitDefInfo[displayUnitDefID].transportable then
-			addTextInfo(texts.transportable)
 		end
 
 		if unitDefInfo[displayUnitDefID].losRadius then
@@ -1297,6 +1290,23 @@ local function drawUnitInfo()
 			addTextInfo(texts.mstorage, unitDefInfo[displayUnitDefID].metalStorage)
 		end
 
+		if unitDefInfo[displayUnitDefID].transport then
+			addTextInfo(texts.transportmaxmass, unitDefInfo[displayUnitDefID].transport[1])
+			addTextInfo(texts.transportmaxsize, unitDefInfo[displayUnitDefID].transport[2])
+			addTextInfo(texts.transportcapacity, unitDefInfo[displayUnitDefID].transport[3])
+		end
+
+		if unitDefInfo[displayUnitDefID].transportable then
+			--addTextInfo(texts.transportable)
+
+			if unitDefInfo[displayUnitDefID].mass then
+				addTextInfo(texts.mass, unitDefInfo[displayUnitDefID].mass)
+			end
+			if unitDefInfo[displayUnitDefID].footprint then
+				addTextInfo(texts.footprint, unitDefInfo[displayUnitDefID].footprint)
+			end
+		end
+
 		local text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
 
 		-- prune number of lines
@@ -1323,20 +1333,112 @@ local function drawUnitInfo()
 end
 
 local function drawEngineTooltip()
-	--local labelColor = '\255\205\205\205'
-	--local valueColor = '\255\255\255\255'
-
-	-- display default plaintext engine tooltip
-	local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
-	local text, numLines = font:WrapText(currentTooltip, contentWidth * (loadedFontSize / fontSize))
-	font:Begin()
-	font:SetTextColor(1, 1, 1, 1)
-	font:SetOutlineColor(0, 0, 0, 1)
-	font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8), fontSize, "o")
-	font:End()
+	local mouseX, mouseY, lmb, mmb, rmb, mouseOffScreen, cameraPanMode = spGetMouseState()
+	if not cameraPanMode and not mouseOffScreen then
+		local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
+		if showEngineTooltip then
+			-- display default plaintext engine tooltip
+			local text, numLines = font:WrapText(currentTooltip, contentWidth * (loadedFontSize / fontSize))
+			font:Begin()
+			font:SetTextColor(1, 1, 1, 1)
+			font:SetOutlineColor(0, 0, 0, 1)
+			font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8), fontSize, "o")
+			font:End()
+		else
+			local heightStep = (fontSize * 1.4)
+			hoverType, hoverData = spTraceScreenRay(mouseX, mouseY)
+			if hoverType == 'ground' then
+				local desc, coords = spTraceScreenRay(mouseX, mouseY, true)
+				local groundType1, groundType2, metal, hardness, tankSpeed, botSpeed, hoverSpeed, shipSpeed, receiveTracks = Spring.GetGroundInfo(coords[1], coords[3])
+				local text = ''
+				local height = 0
+				font:Begin()
+				font:SetTextColor(1, 1, 1, 1)
+				font:SetOutlineColor(0, 0, 0, 1)
+				if displayMapPosition then
+					font:Print(tooltipValueColor..math.floor(hoverData[1])..',', backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+					font:Print(math.floor(hoverData[3]), backgroundRect[1] + contentPadding + (fontSize * 3.2), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+					font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.elevation')..'  '..tooltipValueColor..math.floor(Spring.GetGroundHeight(coords[1], coords[3])), backgroundRect[1] + contentPadding + (fontSize * 6.6), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+					height = height + heightStep
+				end
+				if tankSpeed ~= 1 or botSpeed ~= 1 or hoverSpeed ~= 1 or (shipSpeed ~= 1 and coords[2] <= 0) then
+					text = ''
+					if tankSpeed ~= 1 then
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.tank')..' '..tooltipValueColor..math.floor(tankSpeed*100).."%"
+					end
+					if botSpeed ~= 1 then
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.bot')..' '..tooltipValueColor..math.floor(botSpeed*100).."%"
+					end
+					if hoverSpeed ~= 1 then
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.hover')..' '..tooltipValueColor..math.floor(hoverSpeed*100).."%"
+					end
+					if shipSpeed ~= 1 and coords[2] <= 0 then
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.ship')..' '..tooltipValueColor..math.floor(shipSpeed*100).."%"
+					end
+					if groundType2 and groundType2 ~= '' then
+						font2:Begin()
+						font2:Print(tooltipLabelTextColor..groundType2, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1) - height, (fontSize * 1.2), "o")
+						font2:End()
+						height = height + (fontSize * 0.25)
+						height = height + heightStep
+					end
+					font:Print(tooltipDarkTextColor..Spring.I18N('ui.info.speedmultipliers')..'   '..text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				elseif not displayMapPosition then
+					emptyInfo = true
+				end
+				--if metal > 0 then
+				--	height = height + heightStep
+				--	font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.metal')..' '..tooltipValueColor..math.floor(metal), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				--end
+				--if hardness ~= 1 then
+				--	height = height + heightStep
+				--	font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.hardness')..' '..tooltipValueColor..math.floor(hardness), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				--end
+				font:End()
+			elseif hoverType == 'feature' then
+				local featureDefID = Spring.GetFeatureDefID(hoverData)
+				local text = FeatureDefs[featureDefID].tooltip
+				local height = 0
+				if text == '' then
+					text = FeatureDefs[featureDefID].translatedDescription
+				end
+				if text and text ~= '' then
+					font2:Begin()
+					font2:Print(tooltipTitleColor..text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1.2) - height, (fontSize * 1.4), "o")
+					font2:End()
+					height = height + (fontSize * 0.5)
+				end
+				font:Begin()
+				font:SetTextColor(1, 1, 1, 1)
+				font:SetOutlineColor(0, 0, 0, 1)
+				text = ''
+				local metal, _, energy, _ = Spring.GetFeatureResources(hoverData)
+				if energy > 0 then
+					height = height + heightStep
+					text = tooltipLabelTextColor..Spring.I18N('ui.info.energy').."  \255\255\255\000"..math.floor(energy)
+					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				end
+				if metal > 0 then
+					height = height + heightStep
+					text = tooltipLabelTextColor..Spring.I18N('ui.info.metal').."  "..tooltipValueColor..math.floor(metal)
+					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				end
+				font:End()
+			else
+				emptyInfo = true
+			end
+		end
+	else
+		if cameraPanMode and #selectedUnits > 0 then
+			checkChanges()
+		else
+			emptyInfo = true
+		end
+	end
 end
 
 local function drawInfo()
+	emptyInfo = false
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 0, 0)
 
 	contentPadding = (height * vsy * 0.075) * (0.95 - ((1 - ui_scale) * 0.5))
@@ -1419,7 +1521,7 @@ function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if infoShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		return true
 	end
 end
@@ -1539,27 +1641,14 @@ end
 
 local doUpdateClock2 = os_clock() + 0.9
 function widget:DrawScreen()
-	if chobbyInterface then
+	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
+
+	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) or chobbyInterface then
+		if dlistGuishader then
+			WG['guishader'].DeleteDlist('info')
+			dlistGuishader = nil
+		end
 		return
-	end
-
-	if ViewResizeUpdate then
-		ViewResizeUpdate = nil
-	end
-	local x, y, b, b2, b3 = spGetMouseState()
-
-	if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) or (os_clock() >= doUpdateClock2) then
-		doUpdateClock = nil
-		doUpdateClock2 = os_clock() + 0.9
-		clear()
-		doUpdate = nil
-		lastUpdateClock = os_clock()
-	end
-
-	if displayUnitID and not Spring.ValidUnitID(displayUnitID) then
-		displayMode = 'text'
-		displayUnitID = nil
-		displayUnitDefID = nil
 	end
 
 	if not dlistInfo then
@@ -1567,11 +1656,15 @@ function widget:DrawScreen()
 			drawInfo()
 		end)
 	end
-	gl.CallList(dlistInfo)
-
+	if alwaysShow or not emptyInfo or  Spring.GetGameFrame() == 0 then
+		gl.CallList(dlistInfo)
+	elseif dlistGuishader then
+		WG['guishader'].DeleteDlist('info')
+		dlistGuishader = nil
+	end
 
 	-- widget hovered
-	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if infoShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 
 		Spring.SetMouseCursor('cursornormal')
 
@@ -1629,14 +1722,16 @@ function widget:DrawScreen()
 					stats = stats .. statsIndent .. tooltipTextColor .. text .. '\n\n'
 				end
 				local text
-				stats = getSelectionTotals(cells)
+				local textTitle
+				stats = ''--getSelectionTotals(cells)
 				if cellHovered then
-					text = tooltipTitleColor .. unitDefInfo[selectionCells[cellHovered]].translatedHumanName .. tooltipLabelTextColor .. (selUnitsCounts[selectionCells[cellHovered]] > 1 and ' x ' .. tooltipTextColor .. selUnitsCounts[selectionCells[cellHovered]] or '') .. stats
+					textTitle = unitDefInfo[selectionCells[cellHovered]].translatedHumanName .. tooltipLabelTextColor .. (selUnitsCounts[selectionCells[cellHovered]] > 1 and ' x ' .. tooltipTextColor .. selUnitsCounts[selectionCells[cellHovered]] or '')
 				else
-					text = tooltipTitleColor .. texts.selectedunits..": " .. tooltipTextColor .. #selectedUnits .. stats .. "\n " .. (stats == '' and '' or '\n') .. selectionHowto
+					--textTitle = texts.selectedunits..": " .. tooltipTextColor .. #selectedUnits
+					text = selectionHowto
 				end
 
-				WG['tooltip'].ShowTooltip('info', text)
+				WG['tooltip'].ShowTooltip('info', text, nil, nil, textTitle)
 			end
 		end
 
@@ -1691,7 +1786,8 @@ function widget:DrawScreen()
 end
 
 function checkChanges()
-	local x, y, b, b2, b3 = spGetMouseState()
+	hideBuildlist = nil	-- only set for pregame startunit
+	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
 	lastHoverData = hoverData
 	hoverType, hoverData = spTraceScreenRay(x, y)
 	if hoverType == 'unit' or hoverType == 'feature' then
@@ -1719,25 +1815,23 @@ function checkChanges()
 		displayMode = 'unit'
 		displayUnitID = cfgDisplayUnitID
 		displayUnitDefID = spGetUnitDefID(displayUnitID)
-		if lastUpdateClock + 0.6 < os_clock() then
+		if lastUpdateClock + 0.4 < os_clock() then
 			-- unit stats could have changed meanwhile
 			doUpdate = true
 		end
 
 		-- hovered unit
-	elseif not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' and os_clock() - lastHoverDataClock > 0.08 then
-		-- add small hover delay against eplilepsy
+	elseif not cameraPanMode and not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' then-- and os_clock() - lastHoverDataClock > 0.07 then		-- add small hover delay against eplilepsy
 		displayMode = 'unit'
 		displayUnitID = hoverData
 		displayUnitDefID = spGetUnitDefID(displayUnitID)
-		if lastUpdateClock + 0.6 < os_clock() then
+		if lastUpdateClock + 0.4 < os_clock() then
 			-- unit stats could have changed meanwhile
 			doUpdate = true
 		end
 
 		-- hovered feature
-	elseif not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'feature' and os_clock() - lastHoverDataClock > 0.08 then
-		-- add small hover delay against eplilepsy
+	elseif not cameraPanMode and not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'feature' then-- and os_clock() - lastHoverDataClock > 0.07 then		-- add small hover delay against eplilepsy
 		displayMode = 'feature'
 		local featureID = hoverData
 		local featureDefID = spGetFeatureDefID(featureID)
@@ -1762,7 +1856,7 @@ function checkChanges()
 		displayMode = 'unit'
 		displayUnitID = selectedUnits[1]
 		displayUnitDefID = spGetUnitDefID(selectedUnits[1])
-		if lastUpdateClock + 0.6 < os_clock() then
+		if lastUpdateClock + 0.4 < os_clock() then
 			-- unit stats could have changed meanwhile
 			doUpdate = true
 		end
@@ -1784,6 +1878,12 @@ function checkChanges()
 	if prevDisplayMode ~= displayMode or prevDisplayUnitDefID ~= displayUnitDefID or prevDisplayUnitID ~= displayUnitID then
 		doUpdate = true
 	end
+
+	if displayMode == 'text' and Spring.GetGameFrame() == 0 then
+		displayMode = 'unitdef'
+		displayUnitDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+		hideBuildlist = true
+	end
 end
 
 function widget:SelectionChanged(sel)
@@ -1799,6 +1899,9 @@ function widget:SelectionChanged(sel)
 			doUpdateClock = os_clock() + 0.05  -- delay to save some performance
 		end
 	end
+	if not alwaysShow and select(7, spGetMouseState()) then	-- cameraPanMode
+		checkChanges()
+	end
 end
 
 function widget:LanguageChanged()
@@ -1810,11 +1913,19 @@ end
 function widget:GetConfigData(data)
 	return {
 		showBuilderBuildlist = showBuilderBuildlist,
+		displayMapPosition = displayMapPosition,
+		alwaysShow = alwaysShow,
 	}
 end
 
 function widget:SetConfigData(data)
 	if data.showBuilderBuildlist ~= nil then
 		showBuilderBuildlist = data.showBuilderBuildlist
+	end
+	if data.displayMapPosition ~= nil then
+		displayMapPosition = data.displayMapPosition
+	end
+	if data.alwaysShow ~= nil then
+		alwaysShow = data.alwaysShow
 	end
 end

@@ -185,10 +185,26 @@ Deactivate()
 
 StartBuilding()
 {
+	show nano1;
+	show nano2;
+	show nano3;
+	show nano4;
+	show nano5;
+	show nano6;
+	show nano7;
+	show nano8;
 }
 
 StopBuilding()
 {
+	hide nano1;
+	hide nano2;
+	hide nano3;
+	hide nano4;
+	hide nano5;
+	hide nano6;
+	hide nano7;
+	hide nano8;
 	set BUGGER_OFF to 1; // tell units to get out of here
 	set INBUILDSTANCE to 0; // we turn it off, to wait for the unit to clear the build pad (large aircraft)
 	sleep 500;   // then we wait for 0.5 sec

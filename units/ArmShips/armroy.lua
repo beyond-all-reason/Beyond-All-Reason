@@ -21,7 +21,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3340,
+		maxdamage = 3700,
 		maxvelocity = 2.24,
 		minwaterdepth = 12,
 		movementclass = "BOAT4",
@@ -37,7 +37,7 @@ return {
 		turnrate = 300,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = 'weaponsub',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships",

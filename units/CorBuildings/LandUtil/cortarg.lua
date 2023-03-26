@@ -19,7 +19,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		istargetingupgrade = true,
-		maxdamage = 1800,
+		maxdamage = 2000,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/CORTARG.s3o",

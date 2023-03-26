@@ -24,6 +24,9 @@ if (gadgetHandler:IsSyncedCode()) then
 		if builderID and canResurrect[Spring.GetUnitDefID(builderID)] then
 			Spring.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
 		end
+		-- See: https://github.com/beyond-all-reason/spring/pull/471
+		if builderID and Spring.GetUnitCurrentCommand(builderID) == CMD.RESURRECT then
+			Spring.SetUnitHealth(unitID, Spring.GetUnitHealth(unitID) * 0.05)
+		end
 	end
-
 end

@@ -20,6 +20,20 @@ local lineType = {
 	key = 3,
 }
 
+local tabs = {"Keybindings", "Default Keys", "CTRL Keys", "ALT Keys", "Grid Keys", "Grid CTRL Keys", "Grid ALT Keys",}
+
+local keybindsimages = {
+	['Default Keys'] = "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts.png",
+	['CTRL Keys']=     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_CTRL.png",  
+	['ALT Keys'] =     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_ALT.png",
+	['Grid Keys'] = "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_GRID.png",
+	['Grid CTRL Keys']=     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_GRID_CTRL.png",  
+	['Grid ALT Keys'] =     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_GRID_ALT.png",
+}
+
+local tabrects = {}
+local lasttab = "Keybindings"
+
 local doUpdate
 local actionHotkeys
 
@@ -34,7 +48,7 @@ end
 local vsx, vsy = Spring.GetViewGeometry()
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
-local screenHeightOrg = 520
+local screenHeightOrg = 550
 local screenWidthOrg = 1050
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
@@ -75,14 +89,14 @@ local function drawTextTable(lines, x, y)
 			-- title line
 			local title = line.text
 			local text = titleColor .. title
-			font:Print(text, x + 4, y - ((fontSize * 0.94) * lineIndex) + 5, fontSize)
+			font:Print(text, x + 4, y - ((fontSize * 0.92) * lineIndex) + 5, fontSize)
 			screenWidth = math.max(font:GetTextWidth(text) * 13, screenWidth)
 		elseif line.type == lineType.key then
 			-- keybind line
 			local bind = string.upper(line.key)
 			local description = line.text
 			local text = keybindColor .. bind .. "   " .. descriptionColor .. description
-			font:Print(text, x + 14, y - (fontSize * 0.94) * lineIndex, fontSize * 0.8)
+			font:Print(text, x + 14, y - (fontSize * 0.92) * lineIndex, fontSize * 0.8)
 			width = math.max(font:GetTextWidth(text) * 11, width)
 		end
 		height = height + 13
@@ -98,51 +112,97 @@ local function drawTextTable(lines, x, y)
 	return x, lineIndex
 end
 
-local function drawWindow()
+local function drawWindow(activetab)
+	local activetab = activetab or lasttab
+	if activetab == nil then activetab = 'Keybindings' end 
+	
 	-- background
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
-	-- title background
-	local title = Spring.I18N('ui.keybinds.title')
 	local titleFontSize = 18 * widgetScale
+	-- title background
+	--[[
+	local title = Spring.I18N('ui.keybinds.title')
 	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
 
 	gl.Color(0, 0, 0, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
+	
+	local showtabtext = "Show"
+	showtabRect = { math.floor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), screenY, math.floor(screenX + 2*(font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
 
+	RectRound(showtabRect[1], showtabRect[2], showtabRect[3], showtabRect[4], elementCorner, 1, 1, 0, 0)
+	]]--
+	
+	local tabx = 0
+	for i,tab in ipairs(tabs) do 
+		local tabwidth = font2:GetTextWidth(tab)
+		tabrects[tab] = { 
+			math.floor(screenX + tabx),
+			screenY,
+			math.floor(screenX + tabx + tabwidth * titleFontSize + (titleFontSize*1.5)),
+			math.floor(screenY + (titleFontSize*1.7)), 
+			tabx
+		}
+		tabx = tabx + (tabwidth  * titleFontSize +  (titleFontSize*1.5)) 
+		gl.Color(0, 0, 0, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+		RectRound(tabrects[tab][1], tabrects[tab][2], tabrects[tab][3], tabrects[tab][4], elementCorner, 1, 1, 0, 0)
+	end
+	
 	-- title
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
 	font2:SetOutlineColor(0, 0, 0, 0.4)
-	font2:Print(title, screenX + (titleFontSize * 0.75), screenY + (8*widgetScale), titleFontSize, "on")
+	for i,tab in ipairs(tabs) do 
+		local tabcolor = keybindColor
+		if tab ~= activetab then 
+			tabcolor = titleColor
+		end
+		font2:Print(tabcolor .. tab, screenX + (titleFontSize * 0.75) + tabrects[tab][5], screenY + (8*widgetScale), titleFontSize, "on")
+	end
 	font2:End()
 
-	local entriesPerColumn = math.ceil(#keybindsText / 3)
-	local entries1 = {}
-	local entries2 = {}
-	local entries3 = {}
-	for k, line in pairs(keybindsText) do
-		if k <= entriesPerColumn then
-			entries1[#entries1 + 1] = line
-		elseif k > entriesPerColumn and k <= entriesPerColumn * 2 then
-			entries2[#entries2 + 1] = line
-		else
-			entries3[#entries3 + 1] = line
-		end
-	end
-	local textPadding = 8 * widgetScale
-	local textTopPadding = 28 * widgetScale
-	local x = screenX + textPadding
-	drawTextTable(entries1, x, screenY - textTopPadding)
-	x = x + (350*widgetScale)
-	drawTextTable(entries2, x, screenY - textTopPadding)
-	x = x + (350*widgetScale)
-	drawTextTable(entries3, x, screenY - textTopPadding)
 
-	gl.Color(1, 1, 1, 1)
-	font:Begin()
-	font:Print(Spring.I18N('ui.keybinds.disclaimer'), screenX + (12*widgetScale), screenY - screenHeight + (14*widgetScale), 12.5*widgetScale)
-	font:End()
+	if activetab ~= "Keybindings" and keybindsimages[activetab] then 
+		gl.Color(1,1,1,1)
+		gl.Texture(0, keybindsimages[activetab]) 
+		local zoom = 0.05
+		gl.TexRect(screenX,screenY - screenHeight, screenX + screenWidth, screenY, 0 + 0.02, 1 - zoom, 1 - 0.02 , 0 + zoom)
+		gl.Texture(0, false)
+	else
+		
+		local entriesPerColumn = math.ceil(#keybindsText / 3)
+		local entries1 = {}
+		local entries2 = {}
+		local entries3 = {}
+		for k, line in pairs(keybindsText) do
+			if k <= entriesPerColumn then
+				entries1[#entries1 + 1] = line
+			elseif k > entriesPerColumn and k <= entriesPerColumn * 2 then
+				entries2[#entries2 + 1] = line
+			else
+				entries3[#entries3 + 1] = line
+			end
+		end
+		local textPadding = 8 * widgetScale
+		local textTopPadding = 28 * widgetScale
+		local x = screenX + textPadding
+		drawTextTable(entries1, x, screenY - textTopPadding)
+		x = x + (350*widgetScale)
+		drawTextTable(entries2, x, screenY - textTopPadding)
+		x = x + (350*widgetScale)
+		drawTextTable(entries3, x, screenY - textTopPadding)
+
+		gl.Color(1, 1, 1, 1)
+		font:Begin()
+		font:Print(Spring.I18N('ui.keybinds.disclaimer'), screenX + (12*widgetScale), screenY - screenHeight + (34*widgetScale), 12.5*widgetScale)
+		font:Print(Spring.I18N('ui.keybinds.howtochangekeybinds'), screenX + (12*widgetScale), screenY - screenHeight + (20*widgetScale), 12.5*widgetScale)
+		font:End()
+	end
+	
+	--[[
+
+	]]--
 end
 
 local function refreshText()
@@ -317,14 +377,16 @@ function widget:DrawScreen()
 				-- background
 				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
 				-- title
-				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
+				for k, tabrect in pairs(tabrects) do 
+					RectRound(tabrect[1], tabrect[2], tabrect[3], tabrect[4], elementCorner, 1, 1, 0, 0)
+				end
 			end)
 			WG['guishader'].InsertDlist(backgroundGuishader, 'keybindinfo')
 		end
 		showOnceMore = false
 
 		local x, y, pressed = Spring.GetMouseState()
-		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY)  then
 			Spring.SetMouseCursor('cursornormal')
 		end
 	else
@@ -350,12 +412,21 @@ local function mouseEvent(x, y, button, release)
 		-- on window
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 			return true
-		elseif titleRect == nil or not math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-			if release then
+		else 
+			for tab, tabrect in pairs(tabrects) do 
+				if math_isInRect(x, y, tabrect[1], tabrect[2], tabrect[3], tabrect[4]) then
+					if keybinds then
+						gl.DeleteList(keybinds)
+					end
+					lasstab = tab
+					keybinds = gl.CreateList(drawWindow, tab)
+					return true
+				end
+			end
+			if release or not release then
 				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
 				show = false
 			end
-			return true
 		end
 	end
 end

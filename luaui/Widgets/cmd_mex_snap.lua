@@ -18,30 +18,117 @@ local mapBlackList = { "Brazillian_Battlefield_Remake_V2"  }
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitCommands = Spring.GetUnitCommands
 local math_pi = math.pi
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
+local Game_extractorRadius = Game.extractorRadius
 
 local activeCmdID, bx, by, bz, bface
 local unitshape
+local draw = true
 
 local isMex = {}
-for uDefID, uDef in pairs(UnitDefs) do
-	if uDef.extractsMetal > 0 then
-		isMex[uDefID] = true
+local isT1Mex = {}
+local isT2Mex = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.extractsMetal > 0 then
+		isMex[unitDefID] = true
+	end
+	if unitDef.extractsMetal > 0 and unitDef.extractsMetal <= 0.001 then
+		isT1Mex[unitDefID] = true
+	end
+	if unitDef.extractsMetal > 0.001 then
+		isT2Mex[unitDefID] = true
 	end
 end
 
+
+local selectedUnits = Spring.GetSelectedUnits()
+function widget:SelectionChanged(sel)
+	selectedUnits = sel
+end
+
 local function GetClosestPosition(x, z, positions)
+	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local bestPos
 	local bestDist = math.huge
+	local t2mex = isT2Mex[-activeCmdID]
+	local isOnTop = false
+	local mx, my = spGetMouseState()
+	local _, pos = spTraceScreenRay(mx, my, true)
+	local bx, by, bz = Spring.Pos2BuildPos(-activeCmdID, pos[1], pos[2], pos[3])
 	for i = 1, #positions do
 		local pos = positions[i]
 		if pos.x then
 			local dx, dz = x - pos.x, z - pos.z
 			local dist = dx * dx + dz * dz
 			if dist < bestDist then
-				bestPos = pos
-				bestDist = dist
+				local occupied = false
+				if shift then
+					local units = Spring.GetUnitsInCylinder(pos.x, pos.z, Game_extractorRadius)
+					for j=1, #units do
+						if (t2mex and isT2Mex[spGetUnitDefID(units[j])]) or (not t2mex and isT1Mex[spGetUnitDefID(units[j])]) then
+							occupied = true
+							break
+						end
+					end
+					if Spring.GetGameFrame() == 0 then
+						local buildQueue = WG['buildmenu'].getBuildQueue()
+						for _, params in pairs(buildQueue) do
+							if params[1] == -activeCmdID then
+								local dx2, dz2 = params[2] - pos.x, params[4] - pos.z
+								local dist2 = dx2 * dx2 + dz2 * dz2
+								if dist2 < Game_extractorRadius*Game_extractorRadius*3 then
+									occupied = true
+									if math.abs(params[2]-bx) <= 4 and math.abs(params[4]-bz) <= 4 then
+										isOnTop = true
+										bestPos = pos
+										bestPos.x = params[2]
+										bestPos.y = params[3]
+										bestPos.z = params[4]
+										bestDist = dist2
+										-- this still wont allow to place on top imprecisely
+									end
+									break
+								end
+							end
+						end
+						if isOnTop then
+							break
+						end
+
+						-- allow to queue on top of existing queued mex (to cancel)
+						for i, unitID in ipairs(selectedUnits) do
+							for _, order in pairs(spGetUnitCommands(unitID, 40)) do
+								if order.id == cmdID then
+									if math.abs(order.params[1]-cmdParams[1]) <= 32 and math.abs(order.params[3]-cmdParams[3]) <= 32 then
+										Spring.GiveOrder(cmdID, cmdParams, cmdOpts.coded)
+										return true
+									end
+								end
+							end
+						end
+					else
+						for i, unitID in ipairs(selectedUnits) do
+							for _, order in pairs(spGetUnitCommands(unitID, 40)) do
+								if (t2mex and isT2Mex[-order.id]) or (not t2mex and isT1Mex[-order.id]) then
+									local dx2, dz2 = order.params[1] - pos.x, order.params[3] - pos.z
+									local dist2 = dx2 * dx2 + dz2 * dz2
+									if dist2 < Game_extractorRadius*Game_extractorRadius*3 then
+										occupied = true
+										break
+									end
+								end
+							end
+						end
+					end
+				end
+				-- dont return occupied spot
+				if not occupied then
+					bestPos = pos
+					bestDist = dist
+				end
 			end
 		end
 	end
@@ -53,6 +140,9 @@ local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
 		return
 	end
 	Spring.GiveOrder(cmdID, cmdParams, cmdOpts.coded)
+	--if WG['resource_spot_builder'] then
+	--	WG['resource_spot_builder'].BuildMex(cmdParams, cmdOpts, false, false)
+	--end
 end
 
 local function DoLine(x1, y1, z1, x2, y2, z2)
@@ -115,13 +205,37 @@ function widget:Update()
 		WG.MexSnap.curPosition = nil
 		return
 	end
-
 	-- Find build position and check if it is valid (Would get 100% metal)
 	bx, by, bz = Spring.Pos2BuildPos(-activeCmdID, pos[1], pos[2], pos[3])
 	local closestSpot = GetClosestPosition(bx, bz, WG['resource_spot_finder'].metalSpotsList)
 	if not closestSpot or WG['resource_spot_finder'].IsMexPositionValid(closestSpot, bx, bz) then
 		WG.MexSnap.curPosition = nil
 		return
+	end
+
+	-- allow to queue on top of existing queued mex (to cancel)
+	draw = true
+	if Spring.GetGameFrame() == 0 then
+		local buildQueue = WG['buildmenu'].getBuildQueue()
+		for _, params in pairs(buildQueue) do
+			if params[1] == -activeCmdID then
+				if math.abs(params[2]-bx) <= 4 and math.abs(params[4]-bz) <= 4 then
+					draw = false
+					return true
+				end
+			end
+		end
+	else
+		for i, unitID in ipairs(selectedUnits) do
+			for _, order in pairs(spGetUnitCommands(unitID, 40)) do
+				if order.id == activeCmdID then
+					if math.abs(order.params[1]-bx) <= 32 and math.abs(order.params[3]-bz) <= 32 then
+						draw = false
+						return true
+					end
+				end
+			end
+		end
 	end
 
 	-- Get the closet position that would give 100%
@@ -142,10 +256,8 @@ function widget:DrawWorld()
 	end
 
 	local bestPos = WG.MexSnap.curPosition
-
-	if not bestPos then
+	if not bestPos or not draw then
 		clearShape()
-
 		return
 	end
 
@@ -169,6 +281,17 @@ end
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if not isMex[-cmdID] then
 		return
+	end
+	-- allow to queue on top of existing queued mex (to cancel)
+	for i, unitID in ipairs(selectedUnits) do
+		for _, order in pairs(spGetUnitCommands(unitID, 40)) do
+			if order.id == cmdID then
+				if math.abs(order.params[1]-cmdParams[1]) <= 32 and math.abs(order.params[3]-cmdParams[3]) <= 32 then
+					Spring.GiveOrder(cmdID, cmdParams, cmdOpts.coded)
+					return true
+				end
+			end
+		end
 	end
 
 	local cbx, cbz = cmdParams[1], cmdParams[3]

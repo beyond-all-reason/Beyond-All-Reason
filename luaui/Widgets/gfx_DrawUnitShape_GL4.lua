@@ -60,6 +60,7 @@ local unitShaderConfig = {
 local unitShapeShaderConfig = {
 	STATICMODEL = 1.0, -- do not touch!
 	TRANSPARENCY = 0.5,
+	SKINSUPPORT = Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and 1 or 0,
 }
 
 local vsSrc = [[
@@ -69,13 +70,19 @@ local vsSrc = [[
 #extension GL_ARB_shading_language_420pack: require
 
 #line 10000
+//__DEFINES__
 
 layout (location = 0) in vec3 pos;
 layout (location = 1) in vec3 normal;
 layout (location = 2) in vec3 T;
 layout (location = 3) in vec3 B;
 layout (location = 4) in vec4 uv;
-layout (location = 5) in uint pieceIndex;
+#if (SKINSUPPORT == 0)
+	layout (location = 5) in uint pieceIndex;
+#else
+	layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
+	#define pieceIndex (bonesInfo.x & 0x000000FFu)
+#endif
 layout (location = 6) in vec4 worldposrot;
 layout (location = 7) in vec4 parameters; // x = alpha, y = isstatic, z = globalteamcoloramount, w = selectionanimation
 layout (location = 8) in uvec2 overrideteam; // x = override teamcolor if < 256
@@ -84,7 +91,6 @@ layout (location = 9) in uvec4 instData;
 uniform float iconDistance;
 
 //__ENGINEUNIFORMBUFFERDEFS__
-//__DEFINES__
 layout(std140, binding = 2) uniform FixedStateMatrices {
 	mat4 modelViewMat;
 	mat4 projectionMat;

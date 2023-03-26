@@ -22,6 +22,8 @@ VFS.Include('luarules/configs/customcmds.h.lua')
 
 SYMKEYS = table.invert(KEYSYMS)
 
+local returnToCategoriesOnPick = true
+
 local configs = VFS.Include('luaui/configs/gridmenu_layouts.lua')
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local labGrids = configs.LabGrids
@@ -103,6 +105,7 @@ local Cfgs = {
 		weapon = BUILDCAT_COMBAT,
 		explo = BUILDCAT_COMBAT,
 		weaponaa = BUILDCAT_COMBAT,
+		weaponsub = BUILDCAT_COMBAT,
 		aa = BUILDCAT_COMBAT,
 		emp = BUILDCAT_COMBAT,
 		sub = BUILDCAT_COMBAT,
@@ -174,6 +177,7 @@ local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 local selectedBuilder, selectedFactory, selectedFactoryUID
 
 local facingMap = {south=0, east=1, north=2, west=3}
+local buildmenuShows = false
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -274,6 +278,7 @@ local groups = {
 	weapon = folder..'weapon.png',
 	explo = folder..'weaponexplo.png',
 	weaponaa = folder..'weaponaa.png',
+	weaponsub = folder..'weaponsub.png',
 	aa = folder..'aa.png',
 	emp = folder..'emp.png',
 	sub = folder..'sub.png',
@@ -859,7 +864,7 @@ function widget:CommandNotify(cmdID, _, cmdOpts)
 		return
 	end
 
-	if not cmdOpts.shift then
+	if returnToCategoriesOnPick or not cmdOpts.shift then
 		currentBuildCategory = nil
 		doUpdate = true
 	end
@@ -1024,6 +1029,12 @@ function widget:Initialize()
 		return posY, posY2
 	end
 	WG['buildmenu'].reloadBindings = reloadBindings
+	WG['buildmenu'].getIsShowing = function()
+		return buildmenuShows
+	end
+	WG['buildmenu'].getBuildQueue = function()
+		return buildQueue
+	end
 end
 
 -- update queue number
@@ -1125,6 +1136,12 @@ function widget:Update(dt)
 		activeCmd = select(4, Spring.GetActiveCommand())
 
 		if activeCmd ~= prevActiveCmd then doUpdate = true end
+	end
+
+	if not (preGamestartPlayer or selectedBuilder or selectedFactory or alwaysShow) then
+		buildmenuShows = false
+	else
+		buildmenuShows = true
 	end
 end
 
@@ -1240,8 +1257,8 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled)
 	usedZoom,
 	nil, disabled and 0 or nil,
 	'#' .. uid,
-	showRadarIcon and (((unitIconType[uid] and iconTypesMap[unitIconType[uid]]) and ':l' .. (disabled and 't0.35,0.35,0.35' or '') ..':' .. iconTypesMap[unitIconType[uid]] or nil)) or nil,
-	showIcon and (groups[unitGroup[uid]] and ':l' .. (disabled and 'gt0.4,0.4,0.4:' or ':') ..groups[unitGroup[uid]] or nil) or nil,
+	showRadarIcon and (((unitIconType[uid] and iconTypesMap[unitIconType[uid]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypesMap[unitIconType[uid]] or nil)) or nil,
+	showIcon and (groups[unitGroup[uid]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[unitGroup[uid]] or nil) or nil,
 	{unitMetalCost[uid], unitEnergyCost[uid]},
 	tonumber(cmd.params[1])
 	)
@@ -1514,42 +1531,44 @@ local function drawBuildmenu()
 		activeArea = drawCategories()
 	end
 
-	if stickToBottom then
-		rows = 2
-		colls = 6
-		cellSize = math_floor((activeArea[4] - activeArea[2]) / rows)
-	else
-		rows = 3
-		colls = 4
-		cellSize = math_floor((activeArea[3] - activeArea[1]) / colls)
-	end
-
-	-- adjust grid size when pages are needed
-	if uidcmdsCount > colls * rows then
-		pages = math_ceil(uidcmdsCount / (rows * colls))
-
-		if currentPage > pages then
-			currentPage = pages
+	if activeArea then
+		if stickToBottom then
+			rows = 2
+			colls = 6
+			cellSize = math_floor((activeArea[4] - activeArea[2]) / rows)
+		else
+			rows = 3
+			colls = 4
+			cellSize = math_floor((activeArea[3] - activeArea[1]) / colls)
 		end
-	else
-		currentPage = 1
-		pages = 1
+
+		-- adjust grid size when pages are needed
+		if uidcmdsCount > colls * rows then
+			pages = math_ceil(uidcmdsCount / (rows * colls))
+
+			if currentPage > pages then
+				currentPage = pages
+			end
+		else
+			currentPage = 1
+			pages = 1
+		end
+
+		-- these are globals so it can be re-used (hover highlight)
+		cellPadding = math_floor(cellSize * Cfgs.cfgCellPadding)
+		iconPadding = math_max(1, math_floor(cellSize * Cfgs.cfgIconPadding))
+		cornerSize = math_floor(cellSize * Cfgs.cfgIconCornerSize)
+		cellInnerSize = cellSize - cellPadding - cellPadding
+		priceFontSize = math_floor((cellInnerSize * Cfgs.cfgPriceFontSize) + 0.5)
+
+		cellRects = {}
+		hotkeyActions = {}
+
+		drawGrid(activeArea)
+		drawPaginators(activeArea)
+
+		font2:End()
 	end
-
-	-- these are globals so it can be re-used (hover highlight)
-	cellPadding = math_floor(cellSize * Cfgs.cfgCellPadding)
-	iconPadding = math_max(1, math_floor(cellSize * Cfgs.cfgIconPadding))
-	cornerSize = math_floor(cellSize * Cfgs.cfgIconCornerSize)
-	cellInnerSize = cellSize - cellPadding - cellPadding
-	priceFontSize = math_floor((cellInnerSize * Cfgs.cfgPriceFontSize) + 0.5)
-
-	cellRects = {}
-	hotkeyActions = {}
-
-	drawGrid(activeArea)
-	drawPaginators(activeArea)
-
-	font2:End()
 end
 
 function widget:RecvLuaMsg(msg)
@@ -1743,16 +1762,12 @@ function widget:DrawScreen()
 								-- when meta: unitstats does the tooltip
 								local text
 								local textColor = "\255\215\255\215"
-
 								if unitRestricted[uDefID] then
 									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].translatedHumanName, textColor = textColor, warnColor = "\255\166\166\166" })
 								else
-									text = textColor .. UnitDefs[uDefID].translatedHumanName
+									text = UnitDefs[uDefID].translatedHumanName
 								end
-
-								text = text .. "\n\255\240\240\240" .. UnitDefs[uDefID].translatedTooltip
-
-								WG['tooltip'].ShowTooltip('buildmenu', text)
+								WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240"..UnitDefs[uDefID].translatedTooltip, nil, nil, text)
 							end
 
 							-- highlight --if b and not disableInput then
@@ -1774,11 +1789,9 @@ function widget:DrawScreen()
 
 							if WG['tooltip'] then
 								-- when meta: unitstats does the tooltip
-								local text
 								local textColor = "\255\215\255\215"
 
-								text = textColor .. cat
-								text = text .. "\n\255\240\240\240" .. Cfgs.categoryTooltips[cat]
+								local text =  Cfgs.categoryTooltips[cat]
 								local index=0
 								for k,v in pairs(categories) do
 									if v == cat then
@@ -1787,9 +1800,9 @@ function widget:DrawScreen()
 								end
 
 								local catKey = keyConfig.sanitizeKey(Cfgs.keyLayout[1][index], currentLayout)
-								text = text .. "\n\255\240\240\240Hotkey: " .. textColor .. "[" .. catKey .. "]"
+								text = text .. "\255\240\240\240Hotkey: " .. textColor .. "[" .. catKey .. "]"
 
-								WG['tooltip'].ShowTooltip('buildmenu', text)
+								WG['tooltip'].ShowTooltip('buildmenu', text, nil, nil, cat)
 							end
 
 							hoveredCatNotFound = false
@@ -1915,18 +1928,18 @@ function widget:DrawScreen()
 end
 
 function widget:DrawWorld()
-	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
-	if Spring.GetGameFrame() > 0 then
-		widgetHandler:RemoveWidgetCallIn('DrawWorld', self)
-
-		return
-	end
-
 	if not WG.StopDrawUnitShapeGL4 then return end
 
 		-- remove unit shape queue to re-add again later
 	for id, _ in pairs(unitshapes) do
 		removeUnitShape(id)
+	end
+
+	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
+	if Spring.GetGameFrame() > 0 then
+		widgetHandler:RemoveWidgetCallIn('DrawWorld', self)
+
+		return
 	end
 
 	if not preGamestartPlayer then return end
@@ -2142,7 +2155,11 @@ function SetBuildFacing()
 end
 
 function widget:KeyRelease(key)
-	if key == KEYSYMS.LSHIFT then
+	if key ~= KEYSYMS.LSHIFT then return end
+
+	if preGamestartPlayer then
+		setPreGamestartDefID(nil)
+	else
 		currentBuildCategory = nil
 		currentCategoryIndex = nil
 		doUpdate = true
@@ -2157,7 +2174,7 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if buildmenuShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		if selectedBuilder or selectedFactory or (preGamestartPlayer and startDefID) then
 			if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
 				currentPage = math_max(1, currentPage - 1)
@@ -2214,17 +2231,15 @@ function widget:MousePress(x, y, button)
 		end
 
 	elseif preGamestartPlayer then
+		local mx, my = Spring.GetMouseState()
+		local _, pos = Spring.TraceScreenRay(mx, my, true)
 
 		if selBuildQueueDefID then
 			if button == 1 then
-				local pos
 				local curMexPosition = WG.MexSnap and WG.MexSnap.curPosition
 
 				if curMexPosition then
 					pos = { curMexPosition.x, curMexPosition.y, curMexPosition.z }
-				else
-					local mx, my = Spring.GetMouseState()
-					_, pos = Spring.TraceScreenRay(mx, my, true)
 				end
 
 				if not pos then
@@ -2233,11 +2248,19 @@ function widget:MousePress(x, y, button)
 
 				local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
 				local buildFacing = Spring.GetBuildFacing()
+				local buildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
+				local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
+				local _, _, meta, shift = Spring.GetModKeyState()
+
+				if (meta or not shift) and cx ~= -100 then
+					local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, cx, cy, cz)
+
+					if DoBuildingsClash(buildData, { startDefID, cbx, cby, cbz, 1 }) then -- avoid clashing building and commander position
+						return true
+					end
+				end
 
 				if Spring.TestBuildOrder(selBuildQueueDefID, bx, by, bz, buildFacing) ~= 0 then
-
-					local buildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
-					local _, _, meta, shift = Spring.GetModKeyState()
 					if meta then
 						table.insert(buildQueue, 1, buildData)
 
@@ -2260,12 +2283,22 @@ function widget:MousePress(x, y, button)
 
 					if not shift then
 						setPreGamestartDefID(nil)
+					elseif returnToCategoriesOnPick then
+						currentBuildCategory = nil
+						currentCategoryIndex = nil
+						doUpdate = true
 					end
 				end
 
 				return true
 			elseif button == 3 then
 				setPreGamestartDefID(nil)
+			end
+		elseif button == 1 and #buildQueue > 0 and pos then -- avoid clashing first building and commander position
+			local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, pos[1], pos[2], pos[3])
+
+			if DoBuildingsClash({ startDefID, cbx, cby, cbz, 1 }, buildQueue[1]) then
+				return true
 			end
 		end
 	elseif selectedBuilder and button == 3 then

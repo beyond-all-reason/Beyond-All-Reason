@@ -5,10 +5,15 @@
 
 piece  head, torso, hips, rgunflare, lgunflare, eyeflare, rmispoint,
        lmispoint, rleg, rthigh, lthigh, lleg, ltoes, lheel, rtoes,
-       rheel, lshoulder, rshoulder, luparm, ruparm, rarm, larm, rmissle2, lmissle2, rfoot, lfoot, aimy1, aimx1, aimy2;
+       rheel, lshoulder, rshoulder, luparm, ruparm, rarm, larm, rmissle2, lmissle2, rfoot, lfoot, aimy1, aimx1, aimy2, lfootstep, rfootstep;
 
-static-var  ShootingArm, WhichShoulderRocket, bMoving, InMotion, Aim_while_moving, WhichFootStompsBool, NotReadytoStomp,
+static-var  ShootingArm, WhichShoulderRocket, bMoving, InMotion, Aim_while_moving, WhichFootStompsBool, NotReadytoStomp, StompXZ, StompHeading,
             restore_delay, SmokeEffectFeet, HandsUp, statechg_DesiredState, statechg_StateChanging, wpn1_lasthead, wpn2_lasthead;
+
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
 
 #define SIG_FOOTSTOMP_L 8
 #define SIG_FOOTSTOMP_R 16
@@ -159,6 +164,9 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:40
+			emit-sfx 4096 + 5 from rfootstep;
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfootstep) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfootstep) & 0x0000ffff),   get HEADING(0));
+			
 			turn head to x-axis <4.682400> speed <21.527992> / animSpeed; //delta=0.72 
 			turn head to z-axis <1.894785> speed <28.988457> / animSpeed; //delta=-0.97 
 			turn head to y-axis <1.996296> speed <47.222223> / animSpeed; //delta=-1.57 
@@ -349,6 +357,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:88
+			emit-sfx 4096 + 5 from lfootstep;
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfootstep) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfootstep) & 0x0000ffff),   get HEADING(0));
 			turn head to x-axis <4.324000> speed <20.280001> / animSpeed; //delta=0.68 
 			turn head to z-axis <-1.588889> speed <23.333328> / animSpeed; //delta=0.78 
 			turn head to y-axis <-2.096296> speed <47.222216> / animSpeed; //delta=1.57 
@@ -526,6 +536,7 @@ Go()
 		//{
 		//	sleep 100;
 		//}
+		emit-sfx 4096 + 6 from torso;
 		HandsUp = 1;
 		//move rmissle2 to y-axis [6.000000] speed [10.000000];
 		//move lmissle2 to y-axis [6.000000] speed [10.000000];
@@ -552,6 +563,7 @@ Stop()
 	if( HandsUp )
 	{
 		HandsUp = 0;
+		emit-sfx 4096 + 7 from torso;
 		turn larm to x-axis <-55.399996> speed <97.183035>;
 		turn larm to y-axis <0.000000> speed <19.869266>;
 		turn larm to z-axis <0.000000> speed <20.114566>;
@@ -770,8 +782,7 @@ AimWeapon1(heading, pitch)
 	//signal SIG_HEAD;
 	//We can do this any time
 	turn lshoulder to x-axis <0.0> - pitch speed <150>;
-	turn rshoulder to x-axis <0.0> - pitch speed <150>;
-	
+	turn rshoulder to x-axis <0.0> - pitch speed <150>;	
 	aimy1target = heading;
 	aimy1delta = aimy1target - aimy1position;
 
@@ -810,12 +821,11 @@ AimWeapon1(heading, pitch)
 				if ((aimy1delta >        AIMY1_JERK)) aimy1velocity =        AIMY1_JERK;
 				if ((aimy1delta < (-1) * AIMY1_JERK)) aimy1velocity = (-1) * AIMY1_JERK;
 			}
-			
 			aimy1position = aimy1position + aimy1velocity; 
 			turn aimy1 to y-axis aimy1position now;
 			aimy1delta = aimy1target - aimy1position ; 	
 		}
-		sleep 30;		
+		sleep 30;
 	}
 	aimy1velocity = 0;
 	start-script RestoreBody();

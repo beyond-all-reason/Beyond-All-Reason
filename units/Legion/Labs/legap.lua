@@ -21,11 +21,11 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		losemitheight = 40,
-		maxdamage = 1600,
+		maxdamage = 1780,
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 100,
-		objectname = "Units/scavboss/LEGAP.s3o",
+		objectname = "Units/CORAP.s3o",
 		radardistance = 510,
 		radaremitheight = 40,
 		script = "Units/CORAP.cob",
@@ -94,6 +94,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:radarpulse_t1_slow",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

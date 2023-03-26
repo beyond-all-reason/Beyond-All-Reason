@@ -18,7 +18,7 @@ return {
 		footprintz = 3,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 959,
+		maxdamage = 1070,
 		maxslope = 16,
 		maxvelocity = 2.95,
 		maxwaterdepth = 0,
@@ -38,7 +38,6 @@ return {
 			unitgroup = 'aa',
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
-			prioritytarget = "air",
 			subfolder = "armhovercraft",
 		},
 		featuredefs = {
@@ -157,12 +156,6 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 670,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 0.86,
-					expl_light_radius_mult = 1.67,
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 62,
 					fighters = 62,

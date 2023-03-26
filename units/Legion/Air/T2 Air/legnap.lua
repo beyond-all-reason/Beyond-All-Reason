@@ -22,7 +22,7 @@ return {
 		maxacc = 0.0525,
 		maxaileron = 0.01273,
 		maxbank = 0.8,
-		maxdamage = 2600,
+		maxdamage = 2900,
 		maxelevator = 0.00898,
 		maxpitch = 0.625,
 		maxrudder = 0.00448,
@@ -31,7 +31,7 @@ return {
 		maxwaterdepth = 0,
 		noautofire = true,
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/LEGNAP.s3o",
+		objectname = "Units/LEGNAP.s3o",
 		script = "Units/CORHURC.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
@@ -86,7 +86,7 @@ return {
 		},
 		weapondefs = {
 			napalmbombs = {
-				areaofeffect = 180,
+				areaofeffect = 300,
 				avoidfeature = false,
 				burst = 4,
 				burstrate = 0.6,
@@ -105,15 +105,11 @@ return {
 				name = "Heavy a2g napalm warheads",
 				noselfdamage = true,
 				range = 1280,
-				reloadtime = 7,
+				reloadtime = 10,
 				soundhit = "bombsmed2",
 				soundhitwet = "splslrg",
 				soundstart = "bombrelxl",
 				weapontype = "AircraftBomb",
-				customparams = {
-					expl_light_color = "1 0.5 0.05",
-					expl_light_heat_radius_mult = 1.3,
-				},
 				damage = {
 					bombers = 20,
 					default = 50,

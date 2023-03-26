@@ -7,7 +7,12 @@ vertex = [[
 	layout (location = 2) in vec3 T;
 	layout (location = 3) in vec3 B;
 	layout (location = 4) in vec4 uv;
-	layout (location = 5) in uint pieceIndex;
+	#if (SKINSUPPORT == 0)
+		layout (location = 5) in uint pieceIndex;
+	#else
+		layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
+		#define pieceIndex (bonesInfo.x & 0x000000FFu)
+	#endif
 
 	layout (location = 6) in uvec4 instData;
 	// u32 matOffset
@@ -279,7 +284,7 @@ vertex = [[
 
 		mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
 		mat3 normalMatrix = mat3(worldPieceMatrix);
-	
+
 
 		vec4 piecePos = vec4(pos, 1.0);
 
@@ -287,12 +292,17 @@ vertex = [[
 		healthFraction = clamp(UNITUNIFORMS.health / UNITUNIFORMS.maxHealth, 0.0, 1.0);
 
 		//modelVertexPos = piecePos;
-		
-		#ifdef TREE_RANDOMIZATION 
+
+		#ifdef TREE_RANDOMIZATION
 			float randomScale = fract(float(unitID)*0.01)*0.2 + 0.9;
 			piecePos.xyz *= randomScale;
 		#endif
-		
+
+
+		#if (XMAS == 1)
+		//	piecePos.xyz +=  piecePos.xyz * 10.0 * UNITUNIFORMS.userDefined[2].y; // number 9
+		#endif
+
 		modelVertexPosOrig = piecePos;
 		vec3 modelVertexNormal = normal;
 
@@ -464,7 +474,7 @@ fragment = [[
 			//#extension GL_EXT_conservative_depth : require
 			// preserve early-z performance if possible
 			// for future reference: https://github.com/buildaworldnet/IrrlichtBAW/wiki/Early-Fragment-Tests,-Hi-Z,-Depth,-Stencil-and-other-benchmarks
-			#if (GL_ARB_conservative_depth == 1)					  
+			#if (GL_ARB_conservative_depth == 1)
 				layout(depth_unchanged) out float gl_FragDepth;
 			#endif
 		#endif
@@ -568,14 +578,14 @@ fragment = [[
 	uniform int bitOptions;
 
 	uniform float hasAlphaShadows = 0.0;
-	
+
 	uniform float brightnessFactor = 1.5;
 	//int bitOptions = 1 +  2 + 8 + 16 + 128 + 256;
 
 	float simFrame = (timeInfo.x + timeInfo.w);
 
 	float textureLODBias =  -0.5; //-0.5 * sin (simFrame * 0.1) - 0.5;
-	
+
 
 	//uniform float pbrParams[8];
 
@@ -759,7 +769,7 @@ fragment = [[
 	// Misc functions
 
 	float Perlin3D( vec3 P ) {
-		
+
 		return (textureLod(noisetex3dcube, fract(P*0.1), 0.0).a * 2.0 - 1.0);
 		//  https://github.com/BrianSharpe/Wombat/blob/master/Perlin3D.glsl
 
@@ -990,7 +1000,7 @@ fragment = [[
 	#ifndef TONEMAP
 		#define TONEMAP(c) LINEARtoSRGB(c)
 	#endif
-	
+
 	#ifdef SHIFT_RGBHSV
 		vec3 rgb2hsv(vec3 c)
 		{
@@ -1246,7 +1256,7 @@ fragment = [[
 			seedVec.y += 1024.0 * hash11(float(unitID));
 
 			healthMix = SNORM2NORM(Perlin3D(seedVec.xyz)) * (2.0 - baseVertexDisplacement);
-			healthMix = smoothstep(0.0, healthMix, max((1.0 - healthFraction) + baseVertexDisplacement, 0.0));
+			healthMix = smoothstep(0.0, healthMix, max((1.0 - healthFraction) + baseVertexDisplacement, 0.0)) * 0.8; // Reduce maximum damage shading to 80%
 		}
 		#endif
 
@@ -1275,7 +1285,7 @@ fragment = [[
 
 		vec4 texColor1 = texture(texture1, myUV, textureLODBias);
 		vec4 texColor2 = texture(texture2, myUV, textureLODBias);
-		
+
 		#ifdef SHIFT_RGBHSV
 			if (BITMASK_FIELD(bitOptions, OPTION_SHIFT_RGBHSV)){
 				vec3 hsvColor1 = rgb2hsv(texColor1.rgb) + userDefined2.rgb;
@@ -1611,7 +1621,7 @@ fragment = [[
 					return;
 				}
 			#endif
-				
+
 
 			// Important note: even if you do not write any data in fragData, that will still write vec4(0.0) into that buffer.
 			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(N), alphaBin);
@@ -1675,6 +1685,7 @@ local defaultMaterialTemplate = {
 	-- they need to be redefined on every child material that has its own {shader,deferred,shadow}Definitions
 	shaderDefinitions = {
 		"#define RENDERING_MODE 0",
+		"#define SKINSUPPORT " .. (Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and "1" or "0"),
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 
@@ -1691,6 +1702,7 @@ local defaultMaterialTemplate = {
 	},
 	deferredDefinitions = {
 		"#define RENDERING_MODE 1",
+		"#define SKINSUPPORT " .. (Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and "1" or "0"),
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 
@@ -1705,11 +1717,12 @@ local defaultMaterialTemplate = {
 		"#define TONEMAP(c) CustomTM(c)",
 		"#define SHIFT_RGBHSV",
 	},
-	shadowDefinitions = {		
+	shadowDefinitions = {
 		"#define RENDERING_MODE 2",
+		"#define SKINSUPPORT " .. (Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and "1" or "0"),
 		"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
 		"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
-		[[	
+		[[
 #if (RENDERING_MODE == 2) //shadows pass. AMD requests that extensions are declared right on top of the shader
 	#if (SUPPORT_DEPTH_LAYOUT == 1)
 		#extension GL_ARB_conservative_depth : enable
@@ -1718,11 +1731,12 @@ local defaultMaterialTemplate = {
 		// for future reference: https://github.com/buildaworldnet/IrrlichtBAW/wiki/Early-Fragment-Tests,-Hi-Z,-Depth,-Stencil-and-other-benchmarks
 	#endif
 #endif
-]], 
+]],
 
 	},
 	reflectionDefinitions = {
 		"#define RENDERING_MODE 0",
+		"#define SKINSUPPORT " .. (Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and "1" or "0"),
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 

@@ -21,7 +21,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 7500,
-		maxdamage = 1290,
+		maxdamage = 1430,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/ARMBEAMER.s3o",
@@ -133,7 +133,7 @@ return {
 				laserflaresize = 9.35,
 				name = "Anti-swarm constant wave g2g laser",
 				noselfdamage = true,
-				range = 475,
+				range = 480,
 				reloadtime = 0.1,
 				rgbcolor = "0 0 1",
 				soundhitdry = "",
@@ -146,9 +146,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
-				customparams = {
-					light_radius_mult = "1.1",
-				},
 				damage = {
 					bombers = 2,
 					commanders = 53.2,

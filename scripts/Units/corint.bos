@@ -55,11 +55,11 @@ FirePrimary()
 	move gun to z-axis [-4.000000] speed [500.000000];
 	wait-for-move barrel along z-axis;
 	emit-sfx 1024 + 0 from flare;
+	call-script lua_UnitScriptLight(1, shotcount);
+	call-script lua_UnitScriptLight(2, shotcount);
 	sleep 200;
 	move barrel to z-axis [0.000000] speed [3.500000];
 	move gun to z-axis [0.000000] speed [3.500000];
-	call-script lua_UnitScriptLight(1, shotcount);
-	call-script lua_UnitScriptLight(2, shotcount);
 }
 
 TargetCleared(Func_Var_1)

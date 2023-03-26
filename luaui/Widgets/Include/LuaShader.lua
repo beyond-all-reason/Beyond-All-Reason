@@ -193,6 +193,17 @@ vec2 heighmapUVatWorldPos(vec2 worldpos){
 	return uvhm;
 }
 
+// This does 'mirror' style tiling of UVs like the way the map edge extension works
+vec2 heighmapUVatWorldPosMirrored(vec2 worldpos) { 
+	const vec2 inverseMapSize = 1.0 / mapSize.xy;
+	// Some texel magic to make the heightmap tex perfectly align:
+	const vec2 heightmaptexel = vec2(8.0, 8.0);
+	worldpos +=  vec2(-8.0, -8.0) * (worldpos * inverseMapSize) + vec2(4.0, 4.0) ;
+	vec2 uvhm = worldpos * inverseMapSize;
+	
+	return abs(fract(uvhm * 0.5 + 0.5) - 0.5) * 2.0;
+}
+
 // Note that this function does not check the Z or depth of the clip space, but in regular springrts top-down views, this isnt needed either. 
 // the radius to cameradist ratio is a good proxy for visibility in the XY plane
 bool isSphereVisibleXY(vec4 wP, float wR){ //worldPos, worldRadius
@@ -279,16 +290,16 @@ LuaShader.CreateShaderDefinesString = CreateShaderDefinesString
 
 local function CheckShaderUpdates(shadersourcecache, delaytime)
 	-- todo: extract shaderconfig
-	if shadersourcecache.lastshaderupdate == nil or 
+	if shadersourcecache.forceupdate or shadersourcecache.lastshaderupdate == nil or 
 		Spring.DiffTimers(Spring.GetTimer(), shadersourcecache.lastshaderupdate) > (delaytime or 0.5) then 
 		shadersourcecache.lastshaderupdate = Spring.GetTimer()
-		local vsSrcNew = shadersourcecache.vssrcpath and VFS.LoadFile(shadersourcecache.vssrcpath)
-		local fsSrcNew = shadersourcecache.fssrcpath and VFS.LoadFile(shadersourcecache.fssrcpath)
-		local gsSrcNew = shadersourcecache.gssrcpath and VFS.LoadFile(shadersourcecache.gssrcpath)
-		if  vsSrcNew == shadersourcecache.vsSrc and 
+		local vsSrcNew = (shadersourcecache.vssrcpath and VFS.LoadFile(shadersourcecache.vssrcpath)) or shadersourcecache.vsSrc
+		local fsSrcNew = (shadersourcecache.fssrcpath and VFS.LoadFile(shadersourcecache.fssrcpath)) or shadersourcecache.fsSrc
+		local gsSrcNew = (shadersourcecache.gssrcpath and VFS.LoadFile(shadersourcecache.gssrcpath)) or shadersourcecache.gsSrc
+		if vsSrcNew == shadersourcecache.vsSrc and 
 			fsSrcNew == shadersourcecache.fsSrc and 
 			gsSrcNew == shadersourcecache.gsSrc and 
-			not forceupdate then 
+			not shadersourcecache.forceupdate then 
 			--Spring.Echo("No change in shaders")
 			return nil
 		else
@@ -296,7 +307,8 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			shadersourcecache.vsSrc = vsSrcNew
 			shadersourcecache.fsSrc = fsSrcNew
 			shadersourcecache.gsSrc = gsSrcNew
-			
+			shadersourcecache.forceupdate = nil
+			shadersourcecache.updateFlag = true
 			local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 			local shaderDefines = LuaShader.CreateShaderDefinesString(shadersourcecache.shaderConfig)
 			if vsSrcNew then 
@@ -535,7 +547,7 @@ function LuaShader:Compile(suppresswarnings)
 	local shaderObj = self.shaderObj
 
 	local shLog = gl.GetShaderLog() or ""
-
+	self.shLog = shLog
 	if not shaderObj then
 		self:ShowError(shLog)
 		return false
@@ -672,6 +684,34 @@ local function isUpdateRequired(uniform, tbl)
 
 	return update
 end
+
+local function isUpdateRequiredNoTable(uniform, u1, u2, u3, u4)
+	if (u2 == nil) and (type(u1) == "string") then --named matrix
+		return true --no need to update cache
+	end
+
+	local update = false
+	local cachedValues = uniform.values
+	
+	if u1 and cachedValues[1] ~= u1 then 
+		update = true 
+		cachedValues[1] = val 	
+	end 
+	if u2 and cachedValues[2] ~= u2 then 
+		update = true 
+		cachedValues[2] = u2	
+	end 
+	if u3 and cachedValues[3] ~= u3 then 
+		update = true 
+		cachedValues[3] = u3 	
+	end 
+	if u4 and cachedValues[4] ~= u4 then 
+		update = true 
+		cachedValues[4] = u4 	
+	end 
+
+	return update
+end
 -----------------============ End of friend LuaShader functions ============-----------------
 
 
@@ -684,32 +724,40 @@ function LuaShader:GetUniformLocation(name)
 end
 
 --FLOAT UNIFORMS
-local function setUniformAlwaysImpl(uniform, ...)
-	glUniform(uniform.location, ...)
+local function setUniformAlwaysImpl(uniform, u1, u2, u3, u4)
+	if u4 ~= nil then 
+		glUniform(uniform.location, u1, u2, u3, u4)
+	elseif u3 ~= nil then 
+		glUniform(uniform.location, u1, u2, u3)
+	elseif u2 ~= nil then 
+		glUniform(uniform.location, u1, u2)
+	else
+		glUniform(uniform.location, u1)
+	end
 	return true --currently there is no way to check if uniform is set or not :(
 end
 
-function LuaShader:SetUniformAlways(name, ...)
+function LuaShader:SetUniformAlways(name, u1, u2, u3, u4)
 	local uniform = getUniform(self, name)
 	if not uniform then
 		return false
 	end
-	return setUniformAlwaysImpl(uniform, ...)
+	return setUniformAlwaysImpl(uniform, u1, u2, u3, u4)
 end
 
-local function setUniformImpl(uniform, ...)
-	if isUpdateRequired(uniform, {...}) then
-		return setUniformAlwaysImpl(uniform, ...)
+local function setUniformImpl(uniform, u1, u2, u3, u4)
+	if isUpdateRequiredNoTable(uniform, u1, u2, u3, u4) then
+		return setUniformAlwaysImpl(uniform, u1, u2, u3, u4)
 	end
 	return true
 end
 
-function LuaShader:SetUniform(name, ...)
+function LuaShader:SetUniform(name, u1, u2, u3, u4)
 	local uniform = getUniform(self, name)
 	if not uniform then
 		return false
 	end
-	return setUniformImpl(uniform, ...)
+	return setUniformImpl(uniform, u1, u2, u3, u4)
 end
 
 LuaShader.SetUniformFloat = LuaShader.SetUniform

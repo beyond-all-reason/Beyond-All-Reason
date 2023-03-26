@@ -21,7 +21,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3555,
+		maxdamage = 3950,
 		maxvelocity = 2.08,
 		minwaterdepth = 12,
 		movementclass = "BOAT4",
@@ -37,7 +37,7 @@ return {
 		turnrate = 291,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = 'weaponsub',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships",

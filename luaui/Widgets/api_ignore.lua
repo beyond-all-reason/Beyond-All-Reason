@@ -19,9 +19,13 @@ NOTE: This widget will block map draw commands from ignored players.
 local pID_table = {}
 local ignoredPlayers = {}
 local myName, _ = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+local isSpec = Spring.GetSpectatingState()
 
 local specColStr = "\255\255\255\1"
 local whiteStr = "\255\255\255\1"
+
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 function CheckPIDs()
 	local playerList = Spring.GetPlayerList()
@@ -36,6 +40,7 @@ function widget:Initialize()
 end
 
 function widget:PlayerChanged()
+	isSpec = Spring.GetSpectatingState()
 	CheckPIDs()
 end
 
@@ -49,7 +54,10 @@ function colourPlayer(playerName)
 	if spec then
 		return specColStr
 	end
-	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
+	local nameColourR, nameColourG, nameColourB, _ = Spring.GetTeamColor(teamID)
+	if (not isSpec) and anonymousMode ~= "disabled" then
+		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+	end
 	local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
 	local G255 = math.floor(nameColourG * 255)
 	local B255 = math.floor(nameColourB * 255)

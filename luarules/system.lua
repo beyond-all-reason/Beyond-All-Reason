@@ -51,9 +51,9 @@ if (System == nil) then
 		--  Unsynced Utilities
 		--
 		SYNCED  = SYNCED,
-		snext   = snext,
-		spairs  = spairs,
-		sipairs = sipairs,
+		snext   = next, -- the following 3 are deprecated, but defined in case any legacy code uses them
+		spairs  = pairs,
+		sipairs = ipairs,
 
 		--
 		--  Standard libraries

@@ -24,7 +24,7 @@ return {
 		idletime = 1800,
 		losemitheight = 52,
 		mass = 9999999,
-		maxdamage = 44800,
+		maxdamage = 50000,
 		maxvelocity = 1.795,
 		minwaterdepth = 15,
 		movementclass = "BOAT8",
@@ -88,8 +88,8 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-medium",
-				[2] = "custom:barrelshot-large",
+				[1] = "custom:barrelshot-large",
+				[2] = "custom:barrelshot-larger",
 				[3] = "custom:barrelshot-medium-aa",
 				[4] = "custom:waterwake-huge",
 				[5] = "custom:bowsplash-huge",
@@ -152,12 +152,6 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1550,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					light_color = "1 0.5 0.6",
-					light_mult = 1.31,
-					light_radius_mult = 0.55,
-				},
 				damage = {
 					bombers = 250,
 					fighters = 250,
@@ -277,12 +271,6 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 0.86,
-					expl_light_radius_mult = 3.33,
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 150,
 					fighters = 150,

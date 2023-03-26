@@ -9,7 +9,10 @@ piece  aimy1, rfirept, lfirept, pelvis, rfoot, lfoot, launcher, lthigh,
 static-var  gun_1, notMoving, moveSpeed, currentSpeed, animSpeed, wpn1_lasthead;
 static-var  maxSpeed, animFramesPerKeyframe, bMoving;
 
-
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
 // Signal definitions
 #define SIG_WALK			4
 #define SIG_AIM				8
@@ -139,6 +142,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:20
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn launcher to x-axis <0.100000> speed <98.999991> / animSpeed; 
 			turn lfoot to x-axis <38.552084> speed <1273.874173> / animSpeed; 
 			turn lknee to x-axis <-3.971019> speed <876.829355> / animSpeed; 
@@ -257,6 +261,7 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:36
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn launcher to x-axis <-0.000000> speed <89.999990> / animSpeed; 
 			turn lfoot to x-axis <-45.174461> speed <1464.284129> / animSpeed; 
 			turn lfoot to z-axis <-8.711228> speed <70.831730> / animSpeed; 

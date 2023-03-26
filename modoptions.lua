@@ -78,6 +78,27 @@ local options={
 	},
 
 	{
+		key    		= 'norush',
+		name   		= "No Rush mode - Work in Progress, Requires Startboxes (doesn't work in FFA or 1v1 preset)",
+		desc   		= 'No Rush mode',
+		type   		= "bool",
+		section		= 'restrictions',
+		def    		= false,
+	},
+
+	{
+		key    		= 'norushtimer',
+		name   		= "No Rush Time (in minutes)",
+		desc   		= 'No Rush Time (in minutes)',
+		type   		= "number",
+		section		= 'restrictions',
+		def    		= 5,
+		min    		= 5,
+		max    		= 30,
+		step   		= 1,
+	},
+
+	{
 		key    		= 'disable_fogofwar',
 		name   		= 'Disable Fog of War',
 		desc   		= 'Disable Fog of War',
@@ -561,13 +582,21 @@ local options={
 		def    = false,
 		section= "options",
 	},
+
 	{
 		key    = 'teamcolors_anonymous_mode',
 		name   = 'Anonymous Mode',
-		desc   = 'All your enemies are colored with the same color so you cannot recognize them. Forces Dynamic TeamColors to be enabled',
-		type   = 'bool',
+		desc   = 'Anonimizes players in the match so you have harder time telling who is who.',
+		type   = 'list',
 		section = 'options',
-		def  = false,
+		def  = "disabled",
+		items={
+			{key="disabled", name="Disabled", desc="Anonymous Mode disabled."},
+			{key="allred", name="Force SimpleColors", desc="All players have simple colors enabled, enemies cannot be recognized from each other."},
+			{key="global", name="Shuffle Globally", desc="Player colors order is shuffled globally, everyone see the same colors"},
+			{key="local", name="Shuffle Locally", desc="Player colors order is shuffled locally, everyone see different colors"},
+			--{key="disco", name="Shuffle Locally - DiscoMode", desc="Player colors order is shuffled locally, everyone see different colors that change every once a while randomly"},
+		}
 	},
 
 	{
@@ -677,7 +706,7 @@ local options={
 		desc   = 'How many assist drones per commander should be spawned',
 		type   = 'number',
 		section= 'options',
-		def    = 4,
+		def    = 3,
 		min    = 1,
 		max    = 30,
 		step   = 1,
@@ -709,7 +738,7 @@ local options={
 		name   = 'Base Construction Turret: Range',
 		type   = 'number',
 		section= 'options',
-		def    = 1500,
+		def    = 1000,
 		min    = 100,
 		max    = 5000,
 		step   = 1,
@@ -720,9 +749,9 @@ local options={
 		name   = 'Base Construction Turret: Buildpower',
 		type   = 'number',
 		section= 'options',
-		def    = 500,
+		def    = 400,
 		min    = 100,
-		max    = 5000,
+		max    = 4000,
 		step   = 1,
 	},
 
@@ -778,7 +807,7 @@ local options={
 		desc   = 'Time Between New Units Add-up.',
 		type   = 'number',
 		section= 'controlvictoryoptions',
-		def    = 4,
+		def    = 1,
 		min    = 1,
 		max    = 10,
 		step   = 1,  -- quantization is aligned to the def value
@@ -954,7 +983,7 @@ local options={
 		hidden = true,
 		type   = 'number',
 		section= 'controlvictoryoptions',
-		def    = 1,
+		def    = 4,
 		min    = 0,
 		max    = 6,
 		step   = 1,  -- quantization is aligned to the def value
@@ -1218,7 +1247,7 @@ local options={
 	{
 		key    = 'experimentallegionfaction',
 		name   = 'Legion Faction',
-		desc   = '3rd experimental faction',
+		desc   = '3rd experimental faction (does not work with unba enabled!)',
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,
@@ -1228,6 +1257,16 @@ local options={
 		key = 'newdgun',
 		name = 'New D-Gun Mechanics',
 		desc = 'New D-Gun Mechanics',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
+
+	},
+
+	{
+		key = 'comupdate',
+		name = 'Commander Update',
+		desc = 'Increased commander HP, reduced comblast, reduced wreckmetal, com-to-com dgun rework.',
 		type = 'bool',
 		section = 'options_experimental',
 		def = false,
@@ -1262,45 +1301,6 @@ local options={
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,
-	},
-
-	{
-		key    = 'experimentalflankingbonusmode',
-		name   = 'Flanking Bonus Mode (between 0 and 3, read tooltip)',
-		desc   = "Additional damage applied to units when they're surrounded. 0 - No flanking bonus, 1 - Dynamic direction, world dimension, 2 - Dynamic direction, unit dimension, 3 - Static direction, front armor = best armor. If 3 is chosen, 2 is used for buildings.",
-		type   ="number",
-		section = 'options_experimental',
-		def    = 1,
-		min    = 0,
-		max    = 3,
-		step   = 1,
-		hidden = true,
-	},
-
-	{
-		key    = 'experimentalflankingbonusmin',
-		name   = 'Flanking Bonus Minimum Damage Percentage (Default 90%)',
-		desc   = 'How much damage weapons deal at hardest point of flanking armor',
-		type   ="number",
-		section = 'options_experimental',
-		def    = 90,
-		min    = 1,
-		max    = 1000,
-		step   = 1,
-		hidden = true,
-	},
-
-	{
-		key    = 'experimentalflankingbonusmax',
-		name   = 'Flanking Bonus Maximum Damage Percentage (Default 190%)',
-		desc   = 'How much damage weapons deal at hardest point of flanking armor',
-		type   ="number",
-		section = 'options_experimental',
-		def    = 190,
-		min    = 1,
-		max    = 1000,
-		step   = 1,
-		hidden = true,
 	},
 
 	{
@@ -1398,6 +1398,15 @@ local options={
 		}
 	},
 
+	{
+		key		= "unified_maxslope",
+		name	= "Standardized land unit maxslope",
+		desc	= "All land units have minimum maxslope of 36",
+		type	= "bool",
+		def		= false,
+		section	= "options_experimental",
+	},
+
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Unused Options
@@ -1459,6 +1468,15 @@ local options={
 		section = 'options_experimental',
 		type    = "string",
 		def     = "",
+	},
+
+	{
+		key     = "defaultdecals",
+		name    = "Default Decals",
+		desc    = "Use the default explosion decals instead of Decals GL4", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+		section = 'options_experimental',
+		type    = "bool",
+		def     =  true,
 	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

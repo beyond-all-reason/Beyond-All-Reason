@@ -4,7 +4,7 @@ function widget:GetInfo()
 	return {
 		name = "Ground Fog GL4",
 		version = 3,
-		desc = "Draws funny ground fog",
+		desc = "Draws funny ground fog - DEPRECATED",
 		author = "Beherith",
 		date = "2022.07.14",
 		license = "Lua code is GPL V2, GLSL is (c) Beherith",
@@ -14,32 +14,6 @@ function widget:GetInfo()
 end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-local vsx, vsy, chobbyInterface
-local ivsx = 1.0
-local ivsy = 1.0
-local screenratio = 1.0
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
-function widget:ViewResize()
-	vsx, vsy = gl.GetViewSizes()
-	ivsx = 1.0 / vsx --we can do /n here!
-	ivsy = 1.0 / vsy
-	if Spring.GetMiniMapDualScreen() == 'left' then
-		vsx = vsx / 2
-	end
-	if Spring.GetMiniMapDualScreen() == 'right' then
-		vsx = vsx / 2
-	end
-	screenratio = vsy / vsx --so we dont overdraw and only always draw a square
-end
-
-widget:ViewResize()
 
 -- GL4 notes:
 local shaderConfig = {
@@ -50,9 +24,9 @@ local shaderConfig = {
 	RESOLUTION = 1,
 }
 
-local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
-local simpledither = "LuaUI/images/rgba_noise_256.tga"
-local worley3d128 = "LuaUI/images/worley_rgbnorm_01_asum_128_v1.dds"
+local noisetex3dcube =  "LuaUI/images/noisetextures/noise64_cube_3.dds"
+local simpledither = "LuaUI/images/noisetextures/rgba_noise_256.tga"
+local worley3d128 = "LuaUI/images/noisetextures/worley_rgbnorm_01_asum_128_v1.dds"
 local dithernoise2d =  "LuaUI/images/lavadistortion.png"
 
 local fogPlaneVAO 

@@ -1,6 +1,6 @@
 
 --Skeleton pieces
-local torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis, rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1 = piece("torso", "lfirept", "rbigflash", "nanospray", "nanolathe", "luparm", "ruparm", "pelvis", "rthigh", "lthigh", "biggun", "lleg", "l_foot", "rleg", "r_foot", "head", "teleport", "aimx1", "aimy1","hatpoint")    
+local torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis, rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1,hatpoint, crown, medalsilver, medalbronze, medalgold = piece("torso", "lfirept", "rbigflash", "nanospray", "nanolathe", "luparm", "ruparm", "pelvis", "rthigh", "lthigh", "biggun", "lleg", "l_foot", "rleg", "r_foot", "head", "teleport", "aimx1", "aimy1","hatpoint", "crown", "medalsilver", "medalbronze", "medalgold")    
 
 
 
@@ -514,6 +514,10 @@ function ResumeBuilding()
 end
 
 function script.Create()
+	Hide(crown)
+	Hide(medalbronze)
+	Hide(medalsilver)
+	Hide(medalgold)
 	isAiming = false
 	isAimingDgun = false
 	isBuilding = false

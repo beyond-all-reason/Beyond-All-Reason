@@ -223,7 +223,7 @@ local function createComnameList(attributes)
 	end
 	comnameList[attributes[1]] = gl.CreateList(function()
 		local x,y = 0,0
-		if (not anonymousMode or spec) and showPlayerRank and not unba and attributes[6] and not isSinglePlayer then
+		if ((not anonymousMode ~= "disabled") or spec) and showPlayerRank and not unba and attributes[6] and not isSinglePlayer then
 			x = (playerRankSize*0.5)
 		end
 		local outlineColor = { 0, 0, 0, 1 }
@@ -231,7 +231,7 @@ local function createComnameList(attributes)
 			outlineColor = { 1, 1, 1, 1 }		-- try to keep these values the same as the playerlist
 		end
 		local name = attributes[1]
-		if anonymousMode and not spec then
+		if anonymousMode ~= "disabled" and (not spec) then
 			name = anonymousName
 		end
 		if useThickLeterring then
@@ -257,7 +257,7 @@ local function createComnameList(attributes)
 		font:End()
 
 		-- player rank
-		if showPlayerRank and attributes[6] and (not anonymousMode or spec) and not isSinglePlayer then
+		if showPlayerRank and attributes[6] and ((not anonymousMode ~= "disabled") or spec) and not isSinglePlayer then
 			local halfSize = playerRankSize*0.5
 			local x_l = x - (((font:GetTextWidth(name) * fontSize) * 0.5) + halfSize + (fontSize * 0.1))
 			local y_l = y + (fontSize * 0.33)
@@ -417,7 +417,7 @@ local function createComnameIconList(unitID, attributes)
 			outlineColor = { 1, 1, 1, 1 }
 		end
 		local name = attributes[1]
-		if anonymousMode and not spec then
+		if anonymousMode ~= "disabled" and (not spec) then
 			name = anonymousName
 		end
 		fonticon:Begin()

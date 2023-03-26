@@ -34,7 +34,7 @@ return {
 		idletime = 1800,
 		losemitheight = 40,
 		mass = 4900,
-		maxdamage = 3000,
+		maxdamage = 3350,
 		maxslope = 20,
 		maxvelocity = 1.25,
 		maxwaterdepth = 35,
@@ -147,7 +147,7 @@ return {
 			explosiongenerators = {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
-				[3] = "custom:footstepcom",
+				[3] = "custom:footstep-medium",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",
@@ -289,7 +289,7 @@ return {
 				range = 250,
 				reloadtime = 0.9,
 				soundhit = "xplomas2s",
-				soundhitwet = "sizzle",
+				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
 				soundhitvolume = 36,
 				soundstartvolume = 96,
@@ -300,12 +300,6 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
-				customparams = {
-					expl_light_heat_radius = 12,
-					expl_light_opacity = 0.32,
-					expl_light_radius = 340,
-					expl_light_color = "1 0.83 0.53",
-				},
 				damage = {
 					default = 99999,
 					scavboss = 1000,

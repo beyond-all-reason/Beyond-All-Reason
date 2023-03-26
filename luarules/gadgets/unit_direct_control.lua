@@ -10,10 +10,10 @@ function gadget:GetInfo()
     }
 end
 
--- Direct control ("fps mode") is disabled because:
+-- Direct control ("fps mode") is disabled for players because:
 --   Commands given in fps mode bypass lua & would bypass all anti-hax gadgets
 --   It is buggy and unpolished
-local enabled = false
+local enabled = Spring.Utilities.IsDevMode()
 
 if (not gadgetHandler:IsSyncedCode()) then
     return false

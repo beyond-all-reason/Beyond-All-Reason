@@ -64,61 +64,62 @@ end
 
 -- I18N module does not support accessing translation keys by index number, so need to concatenate name
 local tipKeys = {
-	'showMetalSpots',
-	'queues',
-	'graphicsSettings',
-	'useRadar',
-	'vehiclesOrBots',
-	'windSpeed',
-	'windEnergyBuffer',
-	'dGun',
-	'separateBuildings',
-	'useDragMove',
-	'factoryCannibalism',
-	'useAntiAir',
-	'mapmarks',
-	'lastCommander',
 	'alwaysExpand',
-	'reclaimWrecks',
-	'transportBuildings',
-	'factoryRepeat',
-	'resurrectFight',
-	'overflowingEnergy',
-	'lastNotification',
-	'selectSameType',
-	'usePause',
-	'takeUnits',
-	'nanoTurretFight',
-	'useReclaim',
-	'useRepair',
-	'selectCommander',
 	'armyDiversity',
+	'assistFactories',
+	'autogroups',
 	'buildingHotkeys',
+	'completelyDisappear',
+	'destroyFighters',
+	'dGun',
+	'dGunAssassin',
+	'disableAntiNukes',
+	'factoryCannibalism',
+	'factoryRepeat',
+	'graphicsSettings',
+	'groups',
+	'howShieldsWork',
+	'idleConstructors',
+	'ignoreUsers',
+	'insertFactoryQuickBuild',
+	'joinDiscord',
+	'lastCommander',
+	'lastNotification',
+	'longRangeUnits',
+	'mapmarks',
+	'mohoGeoExplosion',
+	'nanoTurretFight',
+	'overflowingEnergy',
+	'queues',
+	'reclaimWrecks',
+	'reportUsers',
+	'resurrectFight',
+	'screenBombers',
+	'selectCommander',
+	'selectSameType',
+	'separateBuildings',
+	'separateBuildings2',
 	'shareResources',
 	'shareUnits',
-	'assistFactories',
-	'separateBuildings2',
-	'longRangeUnits',
-	'idleConstructors',
-	'useFighters',
-	'useRadarJammers',
+	'showMetalSpots',
+	'takeUnits',
+	'transportBuildings',
+	'useAntiAir',
 	'useCloak',
-	'completelyDisappear',
-	'useSpotters',
-	'groups',
-	'screenBombers',
-	'disableAntiNukes',
-	'howShieldsWork',
-	'mohoGeoExplosion',
-	'joinDiscord',
-	'destroyFighters',
-	'dGunAssassin',
-	'useSelfDestruct',
-	'useMines',
+	'useDragMove',
+	'useFighters',
 	'useJuno',
-	'autogroups',
-	'reportUsers',
-	'ignoreUsers',
+	'useMines',
+	'usePause',
+	'useRadar',
+	'useRadarJammers',
+	'useReclaim',
+	'useRepair',
+	'useSelfDestruct',
+	'useSpotters',
+	'vehiclesOrBots',
+	'windEnergyBuffer',
+	'windSpeed',
 }
 
 local randomTip = ''
@@ -159,7 +160,7 @@ local blurtex2
 local stenciltex
 local guishaderRects = {}
 local guishaderDlists = {}
-local vsx, vsy   = Spring.GetViewGeometry()
+local vsx, vsy, vpx, vpy   = Spring.GetViewGeometry()
 local ivsx, ivsy = vsx, vsy
 
 local wsx, wsy, _, _ = Spring.GetWindowGeometry()
@@ -393,7 +394,7 @@ function addon.DrawLoadScreen()
 		aspectRatio = texInfo.xsize / texInfo.ysize
 	end
 
-	local vsx, vsy = gl.GetViewSizes()
+	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 	local screenAspectRatio = vsx / vsy
 
 	local xDiv = 0
@@ -459,7 +460,7 @@ function addon.DrawLoadScreen()
 			gl.Color(1,1,1,1)
 			gl.Blending(false)
 
-			gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
+			gl.CopyToTexture(screencopy, 0, 0, vpx, vpy, vsx, vsy)
 			gl.Texture(screencopy)
 			gl.TexRect(0,1,1,0)
 			gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
@@ -523,7 +524,7 @@ function addon.DrawLoadScreen()
 		loadProgress = math.min(math.max(loadProgress, lastProgress[1]), lastProgress[2])
 	end
 
-	local vsx, vsy = gl.GetViewSizes()
+	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 
 	local loadvalue = math.max(0, loadProgress) * (1-posX-posX)
 	loadvalue = math.floor((loadvalue * vsx)+0.5) / vsx

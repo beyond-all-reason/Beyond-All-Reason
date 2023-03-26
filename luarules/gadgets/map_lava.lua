@@ -488,11 +488,14 @@ else  -- UNSYCNED
 		vec4 worldPos;
 		vec4 worldUV;
 		float inboundsness;
+		noperspective vec2 v_screenUV;
 	};
 	//__DEFINES__
 	//__ENGINEUNIFORMBUFFERDEFS__
 
 	#line 11000
+
+	#define SNORM2NORM(value) (value * 0.5 + 0.5)
 
 	vec2 inverseMapSize = 1.0 / mapSize.xy;
 
@@ -523,6 +526,7 @@ else  -- UNSYCNED
 
 		// Assign world position:
 		gl_Position = cameraViewProj * worldPos;
+		v_screenUV = SNORM2NORM(gl_Position.xy / gl_Position.w);
 	}
 	]]
 
@@ -547,6 +551,7 @@ else  -- UNSYCNED
 		vec4 worldPos;
 		vec4 worldUV;
 		float inboundsness;
+		noperspective vec2 v_screenUV;
 	};
 
 	//__ENGINEUNIFORMBUFFERDEFS__
@@ -567,18 +572,15 @@ else  -- UNSYCNED
 		//Get the fragment depth
 		// note that WE CANT GO LOWER THAN THE ACTUAL LAVA LEVEL!
 
-		// convert the pixel-coordinates of the fragment to UV coords for sampling the depth buffers
-		vec2 screenUV = gl_FragCoord.xy/ viewGeometry.xy;
-
 		// Sample the depth buffers, and choose whichever is closer to the screen
-		float mapdepth = texture(mapDepths, screenUV).x;
-		float modeldepth = texture(modelDepths, screenUV).x;
+		float mapdepth = texture(mapDepths, v_screenUV).x;
+		float modeldepth = texture(modelDepths, v_screenUV).x;
 		mapdepth = min(mapdepth, modeldepth);
 
 		// the W weight factor here is incorrect, as it comes from the depth buffers, and not the fragments own depth.
 
 		// Convert to normalized device coordinates, and calculate inverse view projection
-		vec4 mapWorldPos =  vec4(  vec3(screenUV.xy * 2.0 - 1.0, mapdepth),  1.0);
+		vec4 mapWorldPos =  vec4(  vec3(v_screenUV.xy * 2.0 - 1.0, mapdepth),  1.0);
 		mapWorldPos = cameraViewProjInv * mapWorldPos;
 		mapWorldPos.xyz = mapWorldPos.xyz/ mapWorldPos.w; // YAAAY this works!
 		float trueFragmentHeight = mapWorldPos.y;
@@ -618,8 +620,6 @@ else  -- UNSYCNED
 
 		fogAmount += extralightcoast;
 
-		//fragColor.rgb = fract(vec3(gl_FragCoord.z * 11.1 )); // good this works too
-		//fragColor.rgb = fract(mapWorldPos.xyz * 0.02);
 		fragColor.rgb = FOGCOLOR;
 		fragColor.a = fogAmount;
 

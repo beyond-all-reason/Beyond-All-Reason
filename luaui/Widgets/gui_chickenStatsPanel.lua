@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local config = VFS.Include('LuaRules/Configs/chicken_spawn_defs.lua')
+
 local customScale = 1
 local widgetScale = customScale
 local font, font2, chobbyInterface
@@ -26,8 +28,6 @@ if not Spring.GetGameRulesParam("difficulty") then
 end
 
 local GetGameSeconds = Spring.GetGameSeconds
-local gl = gl
-local math = math
 
 local displayList
 local panelTexture = ":n:LuaUI/Images/chickenpanel.tga"
@@ -58,6 +58,7 @@ local gotScore
 local scoreCount = 0
 local resistancesTable = {}
 local currentlyResistantTo = {}
+local currentlyResistantToNames = {}
 
 local guiPanel --// a displayList
 local updatePanel
@@ -164,29 +165,35 @@ local function CreatePanelDisplayList()
 	local techLevel = ""
 	if currentTime > gameInfo.gracePeriod then
 		if gameInfo.queenAnger < 100 then
-			techLevel = Spring.I18N('ui.chickens.queenAnger', { anger = gameInfo.queenAnger })
+			techLevel = textColor .. Spring.I18N('ui.chickens.queenAnger', { anger = gameInfo.queenAnger })
 		else
-			techLevel = Spring.I18N('ui.chickens.queenHealth', { health = gameInfo.queenLife })
+			techLevel = textColor .. Spring.I18N('ui.chickens.queenHealth', { health = gameInfo.queenLife })
+			for i = 1,#currentlyResistantToNames do
+				if i == 1 then
+					font:Print(textColor .. Spring.I18N('ui.chickens.queenResistantToList'), panelMarginX, PanelRow(10), panelFontSize, "")
+				end
+				font:Print(textColor .. currentlyResistantToNames[i], panelMarginX+20, PanelRow(10+i), panelFontSize, "")
+			end
 		end
 	else
-		techLevel = Spring.I18N('ui.chickens.gracePeriod', { time = math.ceil(((currentTime - gameInfo.gracePeriod) * -1) - 0.5) })
+		techLevel = textColor .. Spring.I18N('ui.chickens.gracePeriod', { time = math.ceil(((currentTime - gameInfo.gracePeriod) * -1) - 0.5) })
 	end
 
 	font:Begin()
 	font:SetTextColor(1, 1, 1, 1)
 	font:SetOutlineColor(0, 0, 0, 1)
-	font:Print(techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
-	font:Print(Spring.I18N('ui.chickens.chickenPlayerAgression', { count = (Spring.GetGameRulesParam("chickenPlayerAgressionLevel") or 0) }), panelMarginX, PanelRow(2), panelFontSize, "")
+	font:Print(textColor .. techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
+	--font:Print(Spring.I18N('ui.chickens.chickenPlayerAgression', { count = (Spring.GetGameRulesParam("chickenPlayerAgressionLevel") or 0) }), panelMarginX, PanelRow(2), panelFontSize, "")
 	--font:Print(Spring.I18N('ui.chickens.chickenCount', { count = gameInfo.chickenCounts }), panelMarginX, PanelRow(2), panelFontSize, "")
-	font:Print(Spring.I18N('ui.chickens.chickenKillCount', { count = gameInfo.chickenKills }), panelMarginX, PanelRow(5), panelFontSize, "")
+	font:Print(textColor .. Spring.I18N('ui.chickens.chickenKillCount', { count = gameInfo.chickenKills }), panelMarginX, PanelRow(5), panelFontSize, "")
 	--font:Print(Spring.I18N('ui.chickens.burrowCount', { count = gameInfo.chicken_hiveCount }), panelMarginX, PanelRow(4), panelFontSize, "")
 	--font:Print(Spring.I18N('ui.chickens.burrowKillCount', { count = gameInfo.chicken_hiveKills }), panelMarginX, PanelRow(5), panelFontSize, "")
 
 	if gotScore then
-		font:Print(Spring.I18N('ui.chickens.score', { score = commaValue(scoreCount) }), 88, h - 170, panelFontSize, "")
+		font:Print(textColor .. Spring.I18N('ui.chickens.score', { score = commaValue(scoreCount) }), 88, h - 170, panelFontSize, "")
 	else
 		local difficultyCaption = Spring.I18N('ui.chickens.difficulty.' .. difficultyOption)
-		font:Print(Spring.I18N('ui.chickens.mode', { mode = difficultyCaption }), 120, h - 170, panelFontSize, "")
+		font:Print(textColor .. Spring.I18N('ui.chickens.mode', { mode = difficultyCaption }), 120, h - 170, panelFontSize, "")
 	end
 	font:End()
 
@@ -199,15 +206,17 @@ local function getMarqueeMessage(chickenEventArgs)
 	if chickenEventArgs.type == "firstWave" then
 		messages[1] = textColor .. Spring.I18N('ui.chickens.firstWave1')
 		messages[2] = textColor .. Spring.I18N('ui.chickens.firstWave2')
-	elseif chickenEventArgs.type == "airWave" then
-		messages[1] = textColor .. Spring.I18N('ui.chickens.airWave1')
-		messages[2] = textColor .. Spring.I18N('ui.chickens.airWave2')
-	elseif chickenEventArgs.type == "miniQueen" then
-		messages[1] = textColor .. Spring.I18N('ui.chickens.miniBoss1')
-		messages[2] = textColor .. Spring.I18N('ui.chickens.miniBoss2')
 	elseif chickenEventArgs.type == "queen" then
 		messages[1] = textColor .. Spring.I18N('ui.chickens.queenIsAngry1')
 		messages[2] = textColor .. Spring.I18N('ui.chickens.queenIsAngry2')
+		queenIsAngry = true
+	elseif chickenEventArgs.type == "airWave" then
+		messages[1] = textColor .. Spring.I18N('ui.chickens.wave1', {waveNumber = chickenEventArgs.waveCount})
+		messages[2] = textColor .. Spring.I18N('ui.chickens.airWave1')
+		messages[3] = textColor .. Spring.I18N('ui.chickens.airWave2', {unitCount = chickenEventArgs.number})
+	elseif chickenEventArgs.type == "wave" then
+		messages[1] = textColor .. Spring.I18N('ui.chickens.wave1', {waveNumber = chickenEventArgs.waveCount})
+		messages[2] = textColor .. Spring.I18N('ui.chickens.wave2', {unitCount = chickenEventArgs.number})
 	end
 
 	refreshMarqueeMessage = false
@@ -221,11 +230,12 @@ local function getResistancesMessage()
 	for i = 1,#resistancesTable do
 		local attackerName = UnitDefs[resistancesTable[i]].name
 		messages[i+1] = textColor .. Spring.I18N('units.names.' .. attackerName)
+		currentlyResistantToNames[#currentlyResistantToNames+1] = Spring.I18N('units.names.' .. attackerName)
 	end
 	resistancesTable = {}
 
 	refreshMarqueeMessage = false
-	
+
 
 	return messages
 end
@@ -280,7 +290,7 @@ local function UpdateRules()
 	end
 
 	for _, rule in ipairs(rules) do
-		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 999
+		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 0
 	end
 	gameInfo.chickenCounts = getChickenCounts('Count')
 	gameInfo.chickenKills = getChickenCounts('Kills')
@@ -289,7 +299,7 @@ local function UpdateRules()
 end
 
 function ChickenEvent(chickenEventArgs)
-	if chickenEventArgs.type == "firstWave" or chickenEventArgs.type == "airWave" or chickenEventArgs.type == "miniQueen" or chickenEventArgs.type == "queen" then
+	if chickenEventArgs.type == "firstWave" or chickenEventArgs.type == "queen" then
 		showMarqueeMessage = true
 		refreshMarqueeMessage = true
 		messageArgs = chickenEventArgs
@@ -305,29 +315,14 @@ function ChickenEvent(chickenEventArgs)
 		end
 	end
 
-
-
-
-	-- if chickenEventArgs.type == "wave" then
-	-- 	if gameInfo.chicken_hiveCount < 1 then
-	-- 		return
-	-- 	end
-	-- 	waveCount = waveCount + 1
-	-- 	chickenEventArgs.waveCount = waveCount
-	-- 	showMarqueeMessage = true
-	-- 	refreshMarqueeMessage = true
-	-- 	messageArgs = chickenEventArgs
-	-- 	waveTime = Spring.GetTimer()
-	-- elseif chickenEventArgs.type == "burrowSpawn" then
-	-- 	UpdateRules()
-	-- elseif chickenEventArgs.type == "queen" then
-	-- 	showMarqueeMessage = true
-	-- 	refreshMarqueeMessage = true
-	-- 	messageArgs = chickenEventArgs
-	-- 	waveTime = Spring.GetTimer()
-	-- elseif chickenEventArgs.type == "score" .. (Spring.GetMyTeamID()) then
-	-- 	gotScore = chickenEventArgs.number
-	-- end
+	if (chickenEventArgs.type == "wave" or chickenEventArgs.type == "airWave") and config.useWaveMsg and (not queenIsAngry) then
+		waveCount = waveCount + 1
+		chickenEventArgs.waveCount = waveCount
+		showMarqueeMessage = true
+		refreshMarqueeMessage = true
+		messageArgs = chickenEventArgs
+		waveTime = Spring.GetTimer()
+	end
 end
 
 function widget:Initialize()
@@ -345,6 +340,12 @@ function widget:Initialize()
 	viewSizeX, viewSizeY = gl.GetViewSizes()
 	local x = math.abs(math.floor(viewSizeX - 320))
 	local y = math.abs(math.floor(viewSizeY - 300))
+
+	-- reposition if scavengers panel is shown as well
+	if Spring.Utilities.Gametype.IsScavengers() then
+		x = x - 315
+	end
+
 	updatePos(x, y)
 end
 

@@ -2,6 +2,8 @@
 --- set some spring settings before the game/engine is really loaded yet
 --------------------------------------------------------------------------------------------
 
+Spring.SetConfigString("SplashScreenDir", "./MenuLoadscreens")
+
 -- set default unit rendering vars
 Spring.SetConfigFloat("tonemapA", 4.75)
 Spring.SetConfigFloat("tonemapB", 0.75)
@@ -71,7 +73,11 @@ end
 -- Disable dynamic model lights
 Spring.SetConfigInt("MaxDynamicModelLights", 0)
 
--- Disable LoadingMT because: crashes on load
+-- Enable deferred map/model rendering
+Spring.SetConfigInt("AllowDeferredMapRendering", 1)
+Spring.SetConfigInt("AllowDeferredModelRendering", 1)
+
+-- Disable LoadingMT because: crashes on load, but fixed in 105.1.1-1422, redisable in 105.1.1-1432
 Spring.SetConfigInt("LoadingMT", 0)
 
 -- Chobby had this set to 100 before and it introduced latency of 4ms a sim-frame, having a 10%-15% penalty compared it the default
@@ -121,7 +127,7 @@ end
 Spring.SetConfigInt("UnitIconFadeVanish", Spring.GetConfigInt("UnitIconFadeStart", 3000))
 
 -- change some default value(s), upp the version and set what needs to be set
-local version = 2
+local version = 3
 if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("version", version)
 
@@ -131,10 +137,7 @@ if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("UnitIconFadeVanish", 3000)
 	Spring.SetConfigInt("UnitIconFadeStart", 3000)
 	Spring.SetConfigInt("UnitIconsHideWithUI", 1)
-end
 
-version = 3
-if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("version", version)
 
 	if Spring.GetConfigInt("UnitIconFadeVanish", 2700) < 2700 then
@@ -143,4 +146,26 @@ if Spring.GetConfigInt("version", 0) < version then
 	if Spring.GetConfigInt("UnitIconFadeStart", 3000) < 3000 then
 		Spring.SetConfigInt("UnitIconFadeVanish", 3000)
 	end
+
+	Spring.SetConfigInt("VSyncGame", -1)
+
+	Spring.SetConfigInt("CamMode", 3)
+end
+
+Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
+
+-- Configure sane keychain settings, this is to provide a standard experience
+-- for users that is acceptable
+local springKeyChainTimeout = 750 -- expected engine default in ms
+local barKeyChainTimeout = 333 -- the setting we want to apply in ms
+local userKeyChainTimeout = Spring.GetConfigInt("KeyChainTimeout")
+-- Only apply BARs default if current setting is equal to engine default
+-- Reason is engine is unable to distinguish between:
+--   - user configuring the setting to be equal to default
+--   - the actual setting being empty and engine using default
+if userKeyChainTimeout == springKeyChainTimeout then
+	-- Setting a standardized keychain timeout, 750ms is too long
+	-- A side benefit of making it smaller is reduced complexity of actions handling
+	-- since there are fewer complex and long chains between keystrokes
+	Spring.SetConfigInt("KeyChainTimeout", barKeyChainTimeout)
 end

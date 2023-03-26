@@ -11,19 +11,35 @@ function widget:GetInfo()
 	}
 end
 
+local minimapToWorld = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").minimapToWorld
+local skipSel
+local inSelection = false
+local finishedSelection = false
+local inMiniMapSel = false
+
+local referenceX, referenceY
+
 local selectBuildingsWithMobile = false		-- whether to select buildings when mobile units are inside selection rectangle
 local includeNanosAsMobile = true
 local includeBuilders = false
 
-local idle = false -- whether to select only idle units
-local same = false -- whether to select only units that share type with current selection
-local deselect = false -- whether to select units not present in current selection
-local all = false -- whether to select all units
-local mobile = false -- whether to select only mobile units
+-- selection modifiers
+local mods = {
+ idle     = false, -- whether to select only idle units
+ same     = false, -- whether to select only units that share type with current selection
+ deselect = false, -- whether to select units not present in current selection
+ all      = false, -- whether to select all units
+ mobile   = false, -- whether to select only mobile units
+}
+local lastMods = mods
+local lastMouseSelection = {}
+local lastMouseSelectionCount = 0
 
 local spGetMouseState = Spring.GetMouseState
+local spGetModKeyState = Spring.GetModKeyState
+local spGetSelectionBox = Spring.GetSelectionBox
 
-local spTraceScreenRay = Spring.TraceScreenRay
+local spIsGodModeEnabled = Spring.IsGodModeEnabled
 
 local spGetUnitsInScreenRectangle = Spring.GetUnitsInScreenRectangle
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
@@ -31,8 +47,6 @@ local spSelectUnitArray = Spring.SelectUnitArray
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetUnitTeam = Spring.GetUnitTeam
 
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
 
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -44,7 +58,6 @@ local selectedUnits = Spring.GetSelectedUnits()
 
 local spec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
-
 
 local ignoreUnits = {}
 local combatFilter = {}
@@ -70,11 +83,10 @@ for udid, udef in pairs(UnitDefs) do
 	mobileFilter[udid] = isMobile
 end
 
-local minimapOnLeft = (Spring.GetMiniMapDualScreen() == "left")
-local mapWidth, mapHeight = Game.mapSizeX, Game.mapSizeZ
-
-local lastCoords, lastMeta, lastSelection
-local referenceCoords, referenceScreenCoords, referenceSelection, referenceSelectionTypes
+local dualScreen
+local vpy = select(Spring.GetViewGeometry(), 4)
+local referenceSelection = {}
+local referenceSelectionTypes = {}
 
 local function sort(v1, v2)
 	if v1 > v2 then
@@ -84,76 +96,85 @@ local function sort(v1, v2)
 	end
 end
 
-local function MinimapToWorldCoords(x, y)
-	local px, py, sx, sy = spGetMiniMapGeometry()
-	local plx = 0
-	if minimapOnLeft then
-		plx = sx
-	end
-	x = ((x - px + plx) / sx) * mapWidth
-	local z = (1 - ((y - py) / sy)) * mapHeight
-	y = spGetGroundHeight(x, z)
-
-	local camState = Spring.GetCameraState()
-	if camState.mode == 1 and camState.flipped == 1 then -- minimap is flipped
-		x = mapWidth - x
-		z = mapHeight - z
-	end
-
-	return x, y, z
-end
-
-local function GetUnitsInMinimapRectangle(x1, y1, x2, y2, team)
-	local left, _, top = MinimapToWorldCoords(x1, y1)
-	local right, _, bottom = MinimapToWorldCoords(x2, y2)
+local function GetUnitsInMinimapRectangle(x, y)
+	local left = referenceX
+	local top = referenceY
+	local right, _, bottom = minimapToWorld(x, y, vpy, dualScreen)
 
 	left, right = sort(left, right)
 	bottom, top = sort(bottom, top)
 
-	return spGetUnitsInRectangle(left, bottom, right, top, team)
+	return spGetUnitsInRectangle(left, bottom, right, top)
+end
+
+local function setModifier(_, _, _, data)
+	mods[data[1]] = data[2]
 end
 
 
+function widget:ViewResize()
+	dualScreen = Spring.GetMiniMapDualScreen()
+	_, _, _, vpy = Spring.GetViewGeometry()
+end
+
 function widget:SelectionChanged(sel)
-	local equalSelection = true
-	for i = 1, #sel do
-		if selectedUnits[i] ~= sel[i] then
-			equalSelection = false
-			break
-		end
+	-- widgets already received what we selected on previous pass, bypass this event
+	if finishedSelection then
+		WG['smartselect'].updateSelection = false
+		finishedSelection = false
+		return
 	end
+
+	-- Check if engine has just deselected via mouserelease on selectbox.
+	-- We want to ignore engine passed selection and make sure we retain smartselect state
+	if inSelection and not select(3, spGetMouseState()) then -- left mouse button
+		inSelection = false
+
+		if #sel == 0 and not select(2, spGetModKeyState()) then -- ctrl
+			-- if empty selection box and engine hardcoded deselect modifier is not
+			-- pressed, user is selected empty space
+			-- we must clear selection to disambiguate from our own deselect modifier
+			spSelectUnitArray({})
+		else
+			-- widgethandler uses this to ignore the engine mouserelease selection
+			-- we don't want to pass the engine selection to other widgets
+			WG['smartselect'].updateSelection = false
+			-- we also want to override back from engine selection to our selection
+			spSelectUnitArray(selectedUnits)
+			-- we bypass next selectionchanged event since we already know what we
+			-- selected, Update() constantly selects units inside selection box until
+			-- it finishes
+			finishedSelection = true
+		end
+
+		return
+	end
+
 	selectedUnits = sel
-	if referenceCoords ~= nil and spGetActiveCommand() == 0 then
-		if not select(3, spGetMouseState()) and referenceSelection ~= nil and lastSelection ~= nil and equalSelection then
-			WG['smartselect'].updateSelection = false    -- widgethandler uses this to ignore the engine mouserelease selection
-		end
-	end
 end
 
 -- this widget gets called early due to its layer
 -- this function will get called after all widgets have had their chance with widget:MousePress
-WG.SmartSelect_MousePress2 = function(x, y, button)	--function widget:MousePress(x, y, button)
-	if button == 1 then
-		referenceSelection = selectedUnits
-		referenceSelectionTypes = {}
-		for i = 1, #referenceSelection do
-			local udid = spGetUnitDefID(referenceSelection[i])
-			if udid then
-				referenceSelectionTypes[udid] = 1
-			end
-		end
-		referenceScreenCoords = { x, y }
-		lastMeta = nil
-		lastSelection = nil
+local function mousePress(x, y, button, hasMouseOwner)  --function widget:MousePress(x, y, button)
+	if hasMouseOwner or button ~= 1 then
+		skipSel = true
+		return
+	end
 
-		if spIsAboveMiniMap(x, y) then
-			referenceCoords = { 0, 0, 0 }
-			lastCoords = { 0, 0, 0 }
-		else
-			local _, c = spTraceScreenRay(x, y, true, false, true)
-			referenceCoords = c
-			lastCoords = c
+	skipSel = false
+
+	referenceSelection = selectedUnits
+	referenceSelectionTypes = {}
+	for i = 1, #referenceSelection do
+		local udid = spGetUnitDefID(referenceSelection[i])
+		if udid then
+			referenceSelectionTypes[udid] = 1
 		end
+	end
+
+	inMiniMapSel = spIsAboveMiniMap(x, y)
+	if inMiniMapSel then
+		referenceX, _, referenceY = minimapToWorld(x, y, vpy, dualScreen)
 	end
 end
 
@@ -163,247 +184,213 @@ function widget:PlayerChanged()
 end
 
 function widget:Update()
-
 	WG['smartselect'].updateSelection = true
-	if referenceCoords ~= nil and spGetActiveCommand() == 0 then
-		local x, y, pressed = spGetMouseState()
 
-		if (pressed or lastSelection) and referenceSelection ~= nil then
-			if #referenceSelection == 0 then	-- no point in inverting an empty selection
-				deselect = false
+	if skipSel or spGetActiveCommand() ~= 0 then
+		return
+	end
+
+	local x, y, lmb = Spring.GetMouseState()
+	if lmb == false then inMiniMapSel = false end
+
+	-- get all units within selection rectangle
+	local x1, y1, x2, y2 = spGetSelectionBox()
+
+	inSelection = inMiniMapSel or (x1 ~= nil)
+
+	if not inSelection then return end -- not in valid selection box (mouserelease/minimum threshold/chorded/etc)
+
+	if #referenceSelection == 0 then  -- no point in inverting an empty selection
+		mods.deselect = false
+	end
+
+	local mouseSelection
+
+	if inMiniMapSel then
+		mouseSelection = GetUnitsInMinimapRectangle(x, y)
+	else
+		mouseSelection = spGetUnitsInScreenRectangle(x1, y1, x2, y2, nil) or {}
+	end
+
+	local newSelection = {}
+	local uid, udid, tmp
+
+	tmp = {}
+	local n = 0
+	local equalsMouseSelection = #mouseSelection == lastMouseSelectionCount
+	local isGodMode = spIsGodModeEnabled()
+
+	for i = 1, #mouseSelection do
+		uid = mouseSelection[i]
+		if not spGetUnitNoSelect(uid) and -- filter unselectable units
+			(isGodMode or (spGetUnitTeam(uid) ~= GaiaTeamID and not ignoreUnits[spGetUnitDefID(uid)] and (spec or spGetUnitTeam(uid) == myTeamID))) then -- filter gaia units + ignored units (objects) + only own units when not spectating
+			n = n + 1
+			tmp[n] = uid
+			if equalsMouseSelection and not lastMouseSelection[uid] then
+				equalsMouseSelection = false
 			end
+		end
+	end
 
-			if referenceScreenCoords ~= nil and x == referenceScreenCoords[1] and y == referenceScreenCoords[2] then -- sameLast
-				if lastCoords == referenceCoords then
-					return
-				elseif lastMeta ~= nil and mobile == lastMeta[1] and deselect == lastMeta[2] and idle == lastMeta[3] and all == lastMeta[4] then
-					return
-				end
+	if equalsMouseSelection and mods.idle == lastMods[1] and mods.same == lastMods[2] and mods.deselect == lastMods[3] and mods.all == lastMods[4] and mods.mobile == lastMods[5] then
+		return
+	end
+
+	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile }
+
+	-- Fill dictionary for set comparison
+	-- We increase slightly the perf cost of cache misses but at the same
+	-- we hit caches way more often. At thousands of units, this improvement
+	-- is massive
+	lastMouseSelection = {}
+	lastMouseSelectionCount = #mouseSelection
+	for i = 1, #mouseSelection do
+		lastMouseSelection[mouseSelection[i]] = true
+	end
+
+	mouseSelection = tmp
+
+	if mods.idle then
+		tmp = {}
+		for i = 1, #mouseSelection do
+			uid = mouseSelection[i]
+			udid = spGetUnitDefID(uid)
+			if (mobileFilter[udid] or builderFilter[udid]) and spGetCommandQueue(uid, 0) == 0 then
+				tmp[#tmp + 1] = uid
 			end
-			lastCoords = { x, y }
-			lastMeta = { mobile, deselect, idle, all }
+		end
+		mouseSelection = tmp
+	end
 
-			-- get all units within selection rectangle
-			local mouseSelection, originalMouseSelection
-			local r = referenceScreenCoords
-			if r ~= nil and spIsAboveMiniMap(r[1], r[2]) then
-				mouseSelection = GetUnitsInMinimapRectangle(r[1], r[2], x, y, nil)
-			else
-				local x1, y1, x2, y2 = Spring.GetSelectionBox()
-				mouseSelection = x1 and spGetUnitsInScreenRectangle(x1, y1, x2, y2, nil) or {}
+	-- only select new units identical to those already selected
+	if mods.same and #referenceSelection > 0 then
+		tmp = {}
+		for i = 1, #mouseSelection do
+			uid = mouseSelection[i]
+			if referenceSelectionTypes[ spGetUnitDefID(uid) ] ~= nil then
+				tmp[#tmp + 1] = uid
 			end
-			originalMouseSelection = mouseSelection
+		end
+		mouseSelection = tmp
+	end
 
-			local newSelection = {}
-			local uid, udid, tmp
-
-			-- filter unselectable units
+	if mods.mobile then  -- only select mobile combat units
+		if not mods.deselect then
 			tmp = {}
-			for i = 1, #mouseSelection do
-				uid = mouseSelection[i]
-				if not spGetUnitNoSelect(uid) then
+			for i = 1, #referenceSelection do
+				uid = referenceSelection[i]
+				if combatFilter[ spGetUnitDefID(uid) ] then  -- is a combat unit
 					tmp[#tmp + 1] = uid
 				end
 			end
-			mouseSelection = tmp
-
-			-- filter gaia units + ignored units (objects) + only own units when not spectating
-			if not Spring.IsGodModeEnabled() then
-				tmp = {}
-				for i = 1, #mouseSelection do
-					uid = mouseSelection[i]
-					if spGetUnitTeam(uid) ~= GaiaTeamID and not ignoreUnits[spGetUnitDefID(uid)] and (spec or spGetUnitTeam(uid) == myTeamID) then
-						tmp[#tmp + 1] = uid
-					end
-				end
-				mouseSelection = tmp
-			end
-
-			if idle then
-				tmp = {}
-				for i = 1, #mouseSelection do
-					uid = mouseSelection[i]
-					udid = spGetUnitDefID(uid)
-					if (mobileFilter[udid] or builderFilter[udid]) and spGetCommandQueue(uid, 0) == 0 then
-						tmp[#tmp + 1] = uid
-					end
-				end
-				mouseSelection = tmp
-			end
-
-			-- only select new units identical to those already selected
-			if same and #referenceSelection > 0 then
-				tmp = {}
-				for i = 1, #mouseSelection do
-					uid = mouseSelection[i]
-					if referenceSelectionTypes[ spGetUnitDefID(uid) ] ~= nil then
-						tmp[#tmp + 1] = uid
-					end
-				end
-				mouseSelection = tmp
-			end
-
-			if mobile then		-- only select mobile combat units
-				if not deselect then
-					tmp = {}
-					for i = 1, #referenceSelection do
-						uid = referenceSelection[i]
-						if combatFilter[ spGetUnitDefID(uid) ] then	-- is a combat unit
-							tmp[#tmp + 1] = uid
-						end
-					end
-					newSelection = tmp
-				end
-
-				tmp = {}
-				for i = 1, #mouseSelection do
-					uid = mouseSelection[i]
-					if combatFilter[ spGetUnitDefID(uid) ] then	-- is a combat unit
-						tmp[#tmp + 1] = uid
-					end
-				end
-				mouseSelection = tmp
-
-			elseif selectBuildingsWithMobile == false and all == false and deselect == false then
-				-- only select mobile units, not buildings
-				local mobiles = false
-				for i = 1, #mouseSelection do
-					uid = mouseSelection[i]
-					if mobileFilter[ spGetUnitDefID(uid) ] then
-						mobiles = true
-						break
-					end
-				end
-
-				if mobiles then
-					tmp = {}
-					local tmp2 = {}
-					for i = 1, #mouseSelection do
-						uid = mouseSelection[i]
-						udid = spGetUnitDefID(uid)
-						if buildingFilter[udid] == false then
-							if includeBuilders or not builderFilter[udid] then
-								tmp[#tmp + 1] = uid
-							else
-								tmp2[#tmp2 + 1] = uid
-							end
-						end
-					end
-					if #tmp == 0 then
-						tmp = tmp2
-					end
-					mouseSelection = tmp
-				end
-			end
-
-			if #newSelection < 1 then
-				newSelection = referenceSelection
-			end
-
-			if deselect then	-- deselect units inside the selection rectangle, if we already had units selected
-				local negative = {}
-				for i = 1, #mouseSelection do
-					uid = mouseSelection[i]
-					negative[uid] = true
-				end
-
-				tmp = {}
-				for i = 1, #newSelection do
-					uid = newSelection[i]
-					if not negative[uid]  then
-						tmp[#tmp + 1] = uid
-					end
-				end
-				newSelection = tmp
-				spSelectUnitArray(newSelection)
-
-			elseif all then	-- append units inside selection rectangle to current selection
-				spSelectUnitArray(newSelection)
-				spSelectUnitArray(mouseSelection, true)
-
-			elseif #mouseSelection > 0 then	-- select units inside selection rectangle
-				spSelectUnitArray(mouseSelection)
-
-			elseif #originalMouseSelection > 0 and #mouseSelection == 0 then
-				spSelectUnitArray({})
-
-			else	-- keep current selection while dragging until more things are selected
-				spSelectUnitArray(referenceSelection)
-				lastSelection = nil
-				return
-			end
-
-			if pressed then
-				lastSelection = true
-			else
-				lastSelection = nil
-				referenceSelection = nil
-				referenceSelectionTypes = nil
-				referenceCoords = nil
-			end
-		else
-			referenceSelection = nil
-			referenceSelectionTypes = nil
-			referenceCoords = nil
+			newSelection = tmp
 		end
+
+		tmp = {}
+		for i = 1, #mouseSelection do
+			uid = mouseSelection[i]
+			if combatFilter[ spGetUnitDefID(uid) ] then  -- is a combat unit
+				tmp[#tmp + 1] = uid
+			end
+		end
+		mouseSelection = tmp
+
+	elseif selectBuildingsWithMobile == false and mods.all == false and mods.deselect == false then
+		-- only select mobile units, not buildings
+		local mobiles = false
+		for i = 1, #mouseSelection do
+			uid = mouseSelection[i]
+			if mobileFilter[ spGetUnitDefID(uid) ] then
+				mobiles = true
+				break
+			end
+		end
+
+		if mobiles then
+			tmp = {}
+			local tmp2 = {}
+			for i = 1, #mouseSelection do
+				uid = mouseSelection[i]
+				udid = spGetUnitDefID(uid)
+				if buildingFilter[udid] == false then
+					if includeBuilders or not builderFilter[udid] then
+						tmp[#tmp + 1] = uid
+					else
+						tmp2[#tmp2 + 1] = uid
+					end
+				end
+			end
+			if #tmp == 0 then
+				tmp = tmp2
+			end
+			mouseSelection = tmp
+		end
+	end
+
+	if #newSelection < 1 then
+		newSelection = referenceSelection
+	end
+
+	if mods.deselect then  -- deselect units inside the selection rectangle, if we already had units selected
+		local negative = {}
+		for i = 1, #mouseSelection do
+			uid = mouseSelection[i]
+			negative[uid] = true
+		end
+
+		tmp = {}
+		for i = 1, #newSelection do
+			uid = newSelection[i]
+			if not negative[uid]  then
+				tmp[#tmp + 1] = uid
+			end
+		end
+		newSelection = tmp
+		spSelectUnitArray(newSelection)
+
+	elseif mods.all then  -- append units inside selection rectangle to current selection
+		spSelectUnitArray(newSelection)
+		spSelectUnitArray(mouseSelection, true)
+
+	elseif #mouseSelection > 0 then  -- select units inside selection rectangle
+		spSelectUnitArray(mouseSelection)
+	elseif #mouseSelection == 0 then
+		spSelectUnitArray({})
+	else  -- keep current selection while dragging until more things are selected
+		spSelectUnitArray(referenceSelection)
 	end
 end
 
+--- Profiling Update, remember to change widget:Update to local function update above
+--
+--local spGetTimer = Spring.GetTimer
+--local highres = nil
+--if Spring.GetTimerMicros and  Spring.GetConfigInt("UseHighResTimer", 0) == 1 then
+--	spGetTimer = Spring.GetTimerMicros
+--	highres = true
+--end
+--
+--function widget:Update()
+--	local sTimer = spGetTimer()
+--
+--	update()
+--
+--	Spring.Echo('Update time:', Spring.DiffTimers(spGetTimer(), sTimer, nil, highres))
+--end
+--
 function widget:Shutdown()
 	WG['smartselect'] = nil
-end
 
-local function setSameSelect()
-  same = true
-end
-
-local function unsetSameSelect()
-  same = false
-end
-
-local function setIdleSelect()
-  idle = true
-end
-
-local function unsetIdleSelect()
-  idle = false
-end
-
-local function setDeselectSelect()
-  deselect = true
-end
-
-local function unsetDeselectSelect()
-  deselect = false
-end
-
-local function setAllSelect()
-  all = true
-end
-
-local function unsetAllSelect()
-  all = false
-end
-
-local function setMobileSelect()
-  mobile = true
-end
-
-local function unsetMobileSelect()
-  mobile = false
+	WG.SmartSelect_MousePress2 = nil
 end
 
 function widget:Initialize()
-	widgetHandler:AddAction("selectbox_same", setSameSelect, nil, "p")
-	widgetHandler:AddAction("selectbox_same", unsetSameSelect, nil, "r")
-	widgetHandler:AddAction("selectbox_idle", setIdleSelect, nil, "p")
-	widgetHandler:AddAction("selectbox_idle", unsetIdleSelect, nil, "r")
-	widgetHandler:AddAction("selectbox_deselect", setDeselectSelect, nil, "p")
-	widgetHandler:AddAction("selectbox_deselect", unsetDeselectSelect, nil, "r")
-	widgetHandler:AddAction("selectbox_all", setAllSelect, nil, "p")
-	widgetHandler:AddAction("selectbox_all", unsetAllSelect, nil, "r")
-	widgetHandler:AddAction("selectbox_mobile", setMobileSelect, nil, "p")
-	widgetHandler:AddAction("selectbox_mobile", unsetMobileSelect, nil, "r")
+	WG.SmartSelect_MousePress2 = mousePress
+
+	for modifierName, _ in pairs(mods) do
+		widgetHandler:AddAction("selectbox_" .. modifierName, setModifier, { modifierName,  true }, "p")
+		widgetHandler:AddAction("selectbox_" .. modifierName, setModifier, { modifierName, false }, "r")
+	end
 
 	WG['smartselect'] = {}
 	WG['smartselect'].getIncludeBuildings = function()
@@ -419,6 +406,8 @@ function widget:Initialize()
 		includeBuilders = value
 	end
 	WG['smartselect'].updateSelection = false
+
+	widget:ViewResize();
 end
 
 function widget:GetConfigData()

@@ -249,6 +249,7 @@ function widget:Initialize()
 				WG.DeferredLighting_UnRegisterFunction(functionID)
 			end
 		end
+		deleteDlists()
 	end
 	WG['allycursors'].getLights = function()
 		return addLights
@@ -299,7 +300,7 @@ function widget:Initialize()
 		return showSpectatorName
 	end
 	WG['allycursors'].getCursors = function()
-		return cursors
+		return cursors, notIdle
 	end
 
 	local now = clock() - (idleCursorTime * 0.95)
@@ -319,6 +320,7 @@ function widget:Shutdown()
 	if functionID and WG.DeferredLighting_UnRegisterFunction then
 		WG.DeferredLighting_UnRegisterFunction(functionID)
 	end
+	WG['allycursors'] = nil
 end
 
 function widget:PlayerChanged(playerID)
@@ -375,7 +377,7 @@ local function createCursorDrawList(playerID, opacityMultiplier)
 	SetTeamColor(teamID, playerID, 1)
 
 	-- draw player cursor
-	if not spec and showCursorDot then
+	if not spec and showCursorDot and (not addLights or not WG['lightsgl4']) then
 		gl.Texture(allyCursor)
 		gl.BeginEnd(GL.QUADS, DrawGroundquad, wx, wy, wz, quadSize)
 		gl.Texture(false)

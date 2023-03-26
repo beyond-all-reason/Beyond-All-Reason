@@ -3,9 +3,10 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece pelvis, torso, rthigh, lthigh, lleg, rleg, rfoot,lfoot, luparm, ruparm, lcannon, rcannon, lflare, rflare, lturbfx, lflareaa, rturbfx, rflareaa, aimx1, aimy1, raaturret, laaturret, laacannon, raacannon, llfinger, lrfinger, rlfinger, rrfinger;
+piece pelvis, torso, rthigh, lthigh, lleg, rleg, rfoot,lfoot, luparm, ruparm, lcannon, rcannon, lflare, rflare, lturbfx, lflareaa, rturbfx, rflareaa, aimx1, aimy1, raaturret, laaturret, laacannon, raacannon, llfinger, lrfinger, rlfinger, rrfinger, lturbine, rturbine;
 
-static-var  bAiming, Static_Var_3, restore_delay, gun_1, gun_2, wpn1_lasthead, wpn2_lasthead;
+static-var  bAiming, restore_delay, gun_primary, gun_2, wpn1_lasthead, wpn2_lasthead, secondary_deployed;
+static-var last_primary_heading, last_primary_pitch, last_secondary_heading, last_secondary_pitch;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -24,8 +25,13 @@ LOLEMPTYFUNCTION(){
 	sleep 1;
 }
 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+
 StopWalking() {
-	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
+	animSpeed = 1; // tune restore speed here, higher values are slower restore speeds
 	move llfinger to y-axis [0.000000] speed [22.593379] / animSpeed;
 	move lrfinger to y-axis [0.000000] speed [22.593379] / animSpeed;
 	move pelvis to x-axis [0.000000] speed [95.224223] / animSpeed;
@@ -58,11 +64,11 @@ StopWalking() {
 	turn rthigh to y-axis <0.000000> speed <236.502842> / animSpeed;
 	turn rthigh to z-axis <0.000000> speed <356.179619> / animSpeed;
 	turn ruparm to x-axis <0.000000> speed <2135.376511> / animSpeed;
-	turn torso to y-axis <0.000000> speed <99.999999> / animSpeed;
+	//turn torso to y-axis <0.000000> speed <99.999999> / animSpeed;
 }
 
 
-Walk(calledfrom) {// For N:\animations\Chickens\armmar_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7)) 
+Walk(calledfrom) {// For N:\animations\Chickens\armmar_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
 	set-signal-mask SIG_WALK;
 	walkCount = walkCount + 1;
 	if (bMoving) { //Frame:6
@@ -81,13 +87,14 @@ Walk(calledfrom) {// For N:\animations\Chickens\armmar_walk_v2.blend Created by 
 			turn rleg to z-axis <-0.178733> speed <5.361985> / animSpeed; //delta=0.18
 			turn rthigh to x-axis <-27.915586> speed <837.467549> / animSpeed; //delta=27.92
 			turn rthigh to z-axis <0.101079> speed <3.032368> / animSpeed; //delta=-0.10
-			turn torso to y-axis <-2.000000> speed <60.000000> / animSpeed; //delta=-2.00
+			//turn torso to y-axis <-2.000000> speed <60.000000> / animSpeed; //delta=-2.00
 		sleep ((33*animSpeed) -1);
 	}
 	while(bMoving) {
-		
+
 		//get PRINT (get GAME_FRAME, 666,calledfrom,walkCount);
 		if (bMoving) { //Frame:12
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <-32.878383> speed <16.290718> / animSpeed; //delta=-0.54
 			turn lfoot to z-axis <3.346333> speed <69.931035> / animSpeed; //delta=-2.33
 			turn lfoot to y-axis <0.975738> speed <18.491813> / animSpeed; //delta=0.62
@@ -117,7 +124,7 @@ Walk(calledfrom) {// For N:\animations\Chickens\armmar_walk_v2.blend Created by 
 			turn rthigh to x-axis <-66.058564> speed <1144.289339> / animSpeed; //delta=38.14
 			turn rthigh to z-axis <-5.781383> speed <176.473854> / animSpeed; //delta=5.88
 			turn rthigh to y-axis <-4.664701> speed <141.901705> / animSpeed; //delta=-4.73
-			turn torso to y-axis <-3.000000> speed <29.999997> / animSpeed; //delta=-1.00
+			//turn torso to y-axis <-3.000000> speed <29.999997> / animSpeed; //delta=-1.00
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:18
@@ -149,7 +156,7 @@ Walk(calledfrom) {// For N:\animations\Chickens\armmar_walk_v2.blend Created by 
 			turn rthigh to z-axis <-4.781649> speed <29.992031> / animSpeed; //delta=-1.00
 			turn rthigh to y-axis <-1.463864> speed <96.025107> / animSpeed; //delta=3.20
 			turn ruparm to x-axis <3.500000> speed <104.999994> / animSpeed; //delta=-3.50
-			turn torso to y-axis <-2.000000> speed <29.999997> / animSpeed; //delta=1.00
+			//turn torso to y-axis <-2.000000> speed <29.999997> / animSpeed; //delta=1.00
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:24
@@ -181,7 +188,7 @@ Walk(calledfrom) {// For N:\animations\Chickens\armmar_walk_v2.blend Created by 
 			turn rthigh to z-axis <-1.303061> speed <104.357615> / animSpeed; //delta=-3.48
 			turn rthigh to y-axis <0.015171> speed <44.371058> / animSpeed; //delta=1.48
 			turn ruparm to x-axis <0.907407> speed <77.777770> / animSpeed; //delta=2.59
-			turn torso to y-axis <0.000000> speed <60.000000> / animSpeed; //delta=2.00
+			//turn torso to y-axis <0.000000> speed <60.000000> / animSpeed; //delta=2.00
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:30
@@ -213,10 +220,11 @@ Walk(calledfrom) {// For N:\animations\Chickens\armmar_walk_v2.blend Created by 
 			turn rthigh to z-axis <-0.886431> speed <12.498900> / animSpeed; //delta=-0.42
 			turn rthigh to y-axis <-0.127641> speed <4.284351> / animSpeed; //delta=-0.14
 			turn ruparm to x-axis <0.113426> speed <23.819447> / animSpeed; //delta=0.79
-			turn torso to y-axis <2.000000> speed <60.000000> / animSpeed; //delta=2.00
+			//turn torso to y-axis <2.000000> speed <60.000000> / animSpeed; //delta=2.00
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:36
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <5.121553> speed <374.547929> / animSpeed; //delta=12.48
 			turn lfoot to y-axis <0.017987> speed <6.950602> / animSpeed; //delta=-0.23
 			turn lleg to x-axis <44.676431> speed <1495.214474> / animSpeed; //delta=-49.84
@@ -246,7 +254,7 @@ Walk(calledfrom) {// For N:\animations\Chickens\armmar_walk_v2.blend Created by 
 			turn rthigh to z-axis <0.513079> speed <41.985312> / animSpeed; //delta=-1.40
 			turn rthigh to y-axis <-0.695657> speed <17.040495> / animSpeed; //delta=-0.57
 			turn ruparm to x-axis <-0.000000> speed <3.402778> / animSpeed; //delta=0.11
-			turn torso to y-axis <3.000000> speed <30.000003> / animSpeed; //delta=1.00
+			//turn torso to y-axis <3.000000> speed <30.000003> / animSpeed; //delta=1.00
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:42
@@ -279,7 +287,7 @@ Walk(calledfrom) {// For N:\animations\Chickens\armmar_walk_v2.blend Created by 
 			turn rthigh to z-axis <7.636671> speed <213.707771> / animSpeed; //delta=-7.12
 			turn rthigh to y-axis <-2.321986> speed <48.789869> / animSpeed; //delta=-1.63
 			turn ruparm to x-axis <3.700000> speed <110.999991> / animSpeed; //delta=-3.70
-			turn torso to y-axis <2.000000> speed <30.000003> / animSpeed; //delta=-1.00
+			//turn torso to y-axis <2.000000> speed <30.000003> / animSpeed; //delta=-1.00
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:48
@@ -311,7 +319,7 @@ Walk(calledfrom) {// For N:\animations\Chickens\armmar_walk_v2.blend Created by 
 			turn rthigh to z-axis <2.764849> speed <146.154659> / animSpeed; //delta=4.87
 			turn rthigh to y-axis <-0.514051> speed <54.238057> / animSpeed; //delta=1.81
 			turn ruparm to x-axis <1.850000> speed <55.499996> / animSpeed; //delta=1.85
-			turn torso to y-axis <0.000000> speed <60.000000> / animSpeed; //delta=-2.00
+			//turn torso to y-axis <0.000000> speed <60.000000> / animSpeed; //delta=-2.00
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:54
@@ -343,20 +351,23 @@ Walk(calledfrom) {// For N:\animations\Chickens\armmar_walk_v2.blend Created by 
 			turn rthigh to z-axis <0.101079> speed <79.913116> / animSpeed; //delta=2.66
 			turn rthigh to y-axis <0.065356> speed <17.382199> / animSpeed; //delta=0.58
 			turn ruparm to x-axis <-0.000000> speed <55.499996> / animSpeed; //delta=1.85
-			turn torso to y-axis <-2.000000> speed <60.000000> / animSpeed; //delta=-2.00
+			//turn torso to y-axis <-2.000000> speed <60.000000> / animSpeed; //delta=-2.00
 		sleep ((33*animSpeed) -1);
 		}
 	}
 }
 // Call this from MotionControl()!
 
-Swim() {// For N:\animations\Chickens\armmar_enterwater_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7)) 
+Swim() {// For N:\animations\Chickens\armmar_enterwater_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
 	set-signal-mask SIG_WALK;
-	
+
 	//get PRINT (get GAME_FRAME, 777);
 	if (bMoving) { //Frame:6
 
 		if (bMoving) { //Frame:30
+			spin lturbine around z-axis speed <-270>;
+			spin rturbine around z-axis speed <270>;
+
 			turn lfoot to x-axis <-111.379068> speed <139.223837> ; //delta=111.38
 			turn lfoot to z-axis <-19.499377> speed <24.374222> ; //delta=19.50//WARNING: possible gimbal lock issue detected in frame 30 bone lfoot
 
@@ -387,6 +398,8 @@ Swim() {// For N:\animations\Chickens\armmar_enterwater_v2.blend Created by http
 
 StopSwimming() {
 	animSpeed = 5; // tune restore speed here, higher values are slower restore speeds
+	stop-spin lturbine around z-axis;
+	stop-spin rturbine around z-axis;
 	turn lfoot to x-axis <0.000000> speed <1392.238367> / animSpeed;
 	turn lfoot to y-axis <0.000000> speed <251.900728> / animSpeed;
 	turn lfoot to z-axis <0.000000> speed <243.742216> / animSpeed;
@@ -427,7 +440,7 @@ UnitSpeed(){
 				groundheight = (get GROUND_WATER_HEIGHT(unitxz));
 			}
 			groundheight = groundheight /[1.0000];
-			
+
 			//groundheight = (get GROUND_WATER_HEIGHT (get UNIT_XZ))/65536;
 			//get PRINT (groundheight, get IN_WATER, get GAME_FRAME);
 			if (groundheight > (((-1) * 66))){
@@ -439,10 +452,13 @@ UnitSpeed(){
 					start-script Walk(11);
 					isSwimming = FALSE;
 				}
-				
+
 			}else{
+				// bubble effect should always play when moving and underwater
+				emit-sfx 1024 + 1 from lturbfx;
+				emit-sfx 1024 + 1 from rturbfx;
 				if (isSwimming == FALSE){
-				
+
 					//get PRINT( get GAME_FRAME, 7777);
 					signal SIG_WALK;
 					call-script StopWalking();
@@ -453,7 +469,7 @@ UnitSpeed(){
 		}
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 4) / animSpeed; 
+		animSpeed = (maxSpeed * 4) / animSpeed;
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed> 12) animSpeed = 12;
@@ -480,7 +496,7 @@ StopMoving(){
 	bMoving=FALSE;
 		//if (isSwimming == TRUE ) call-script StopSwimming();
 		//else call-script StopWalking();
-		
+
 		if (isSwimming == FALSE ) {
 			call-script StopWalking();
 		}
@@ -496,6 +512,53 @@ StopMoving(){
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
+
+static-var  Stunned;
+
+RetractSecondary()
+{
+	secondary_deployed = 0;
+	turn laaturret to y-axis 0 speed <180.000000>;
+	turn raaturret to y-axis 0 speed <180.000000>;
+	wait-for-turn laaturret around y-axis;
+	wait-for-turn raaturret around y-axis;
+	turn laacannon to x-axis <27.000000> speed <108.000000>;
+	turn raacannon to x-axis <27.000000> speed <108.000000>;
+	wait-for-turn laacannon around x-axis;
+	wait-for-turn raacannon around x-axis;
+	move laaturret to y-axis [-5.2] speed [20.000000];
+	move raaturret to y-axis [-5.2] speed [20.000000];
+	wait-for-move laaturret along y-axis;
+	wait-for-move raaturret along y-axis;
+}
+
+RestoreAfterDelay_Primary()
+{
+	set-signal-mask SIG_AIM;
+	sleep restore_delay;
+	if (Stunned) {
+			return (1);
+	}
+	turn torso to y-axis 0 speed <140.000000>;
+	turn aimx1 to x-axis <0.000000> speed <360.000000>;
+	// set last heading values to large negative, ensure first aim waits for the turn
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
+}
+
+RestoreAfterDelay_Secondary()
+{
+	set-signal-mask SIG_AIM_2;
+	sleep restore_delay;
+	if (Stunned) {
+			return (1);
+	}
+	start-script RetractSecondary();
+	// set last heading values to large negative, ensure first aim waits for the turn
+	last_secondary_heading = -1000000;
+	last_secondary_pitch = -1000000;
+}
+
 Create()
 {
 	hide lturbfx;
@@ -508,13 +571,19 @@ Create()
 	hide aimy1;
 	bMoving = FALSE;
 	bAiming = FALSE;
-	Static_Var_3 = 1;
-	gun_1 = 1;
+	// set last heading values to large negative, ensure first aim waits for the turn
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
+	last_secondary_heading = -1000000;
+	last_secondary_pitch = -1000000;
+	gun_primary = 1;
 	gun_2 = 1;
 	animSpeed = 4;
-	restore_delay = 3000; 
+	restore_delay = 3000;
 	walkCount = 0;
 	start-script UnitSpeed();
+	secondary_deployed = 0;
+	start-script RetractSecondary();
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -523,130 +592,134 @@ SetMaxReloadTime(Func_Var_1)
 }
 
 
-static-var  Stunned;
-ExecuteRestoreAfterDelay()
-{
-    if (Stunned) {
-        return (1);
-    }
-	turn aimy1 to y-axis <0.000000> speed <120.000000>;
-	turn aimx1 to x-axis <0.000000> speed <120.000000>;
-	turn laaturret to y-axis <0.000000> speed <120.000000>;
-	turn raaturret to y-axis <0.000000> speed <120.000000>;
-	bAiming = FALSE;
-	wpn1_lasthead = 1000000;
-	wpn2_lasthead = 1000000;
-}
+
 SetStunned(State)
 {
     Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
+			start-script RestoreAfterDelay_Primary();
+			start-script RestoreAfterDelay_Secondary();
 	}
 }
-RestoreAfterDelay()
-{
-	set-signal-mask SIG_AIM;
-	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelay();
-}
+
 
 AimPrimary(heading, pitch)
 {
+	set-signal-mask SIG_AIM;
 	signal SIG_AIM;
-	bAiming = TRUE;
-	turn aimy1 to y-axis heading speed <140.000000>;
-	turn aimx1 to x-axis 0 - pitch speed <360>;
-	//turn ruparm to x-axis 0 - pitch speed <360>;
-	while( !Static_Var_3 )
+
+	// values in <> are degrees per second
+	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
+	// In general, 6 cau per frame ~= 1 degree per second
+	turn torso to y-axis heading speed <270.000000>; //<140.000000>
+	turn aimx1 to x-axis <0.000000> - pitch speed <360.000000>;
+	// only wait-for-turn if it takes more than 3 frames to finish the turn
+	if ( (get ABS(last_primary_heading - heading)>4860) OR (get ABS(last_primary_pitch - pitch)>6480) )
 	{
-		return(0);
-	}
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
-	{
-		wpn1_lasthead = 1000000;
-		wait-for-turn aimy1 around y-axis;
+		// seems to take 3 frames for wait-for-turn to process
+		wait-for-turn torso around y-axis;
 		wait-for-turn aimx1 around x-axis;
 	}
-	wpn1_lasthead = heading;
-	start-script RestoreAfterDelay();
+	last_primary_heading = heading;
+	last_primary_pitch = pitch;
+
+	start-script RestoreAfterDelay_Primary();
 	return (1);
 }
 
 AimSecondary(heading, pitch)
 {
+	set-signal-mask SIG_AIM_2;
 	signal SIG_AIM_2;
-	turn laaturret to y-axis heading speed <180.000000>;
-	turn raaturret to y-axis heading speed <180.000000>;
-	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
+
+	if (secondary_deployed == 0)
 	{
-		wpn2_lasthead = 1000000;
-		wait-for-turn laaturret around y-axis;
+		move laaturret to y-axis [0] speed [20.000000];
+		move raaturret to y-axis [0] speed [20.000000];
+		wait-for-move laaturret along y-axis;
+		wait-for-move raaturret along y-axis;
+		secondary_deployed = 1;
+		return (0);
 	}
-	wpn2_lasthead = heading;
-	start-script RestoreAfterDelay();
+
+	// anti-air weapon, always return true after the deploy
+	turn laaturret to y-axis heading speed <360.000000>;
+	turn raaturret to y-axis heading speed <360.000000>;
+	turn laacannon to x-axis <0.000000> - pitch speed <360.000000>;
+	turn raacannon to x-axis <0.000000> - pitch speed <360.000000>;
+
+	start-script RestoreAfterDelay_Secondary();
 	return (1);
 }
 
 FirePrimary()
 {
-	if( gun_1 == 1 )
+	if( gun_primary == 1 )
 	{
-	    emit-sfx 1024 + 0 from lflare;
+	  emit-sfx 1024 + 0 from lflare;
 		move lcannon to z-axis [-3.000000] speed [30.000000];
 		sleep 150;
 		move lcannon to z-axis [0.000000] speed [3.000000];
-	
-	}
-	if( gun_1 == 2 )
-	{
-	    emit-sfx 1024 + 0 from rflare;
-		move rcannon to z-axis [-3.000000] speed [30.000000];
-		sleep 150;
-		
-		move rcannon to z-axis [0.000000] speed [3
-		.000000];
 
 	}
-	if (gun_1 ==1) gun_1 = 2;
-	else gun_1 = 1;
+	if( gun_primary == 2 )
+	{
+	  emit-sfx 1024 + 0 from rflare;
+		move rcannon to z-axis [-3.000000] speed [30.000000];
+		sleep 150;
+		move rcannon to z-axis [0.000000] speed [3.000000];
+	}
+	if (gun_primary == 1)
+	{
+	gun_primary = 2;
+	}
+	else
+	{
+	gun_primary = 1;
+	}
 }
 
 FireSecondary()
 {
 	if( gun_2 == 1 )
 	{
-	    show lflareaa;
+	  show lflareaa;
 		sleep 150;
 		hide lflareaa;
 	}
 	if( gun_2 == 2 )
 	{
-	    show rflareaa;
+	  show rflareaa;
 		sleep 150;
 		hide rflareaa;
 	}
-	if (gun_1 ==1) gun_1 = 2;
-	else gun_1 = 1;
+	if (gun_2 == 1)
+	{
+	gun_2 = 2;
+	}
+	else
+	{
+	gun_2 = 1;
+	}
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = torso;
+	piecenum = aimy1;
 }
 
 AimFromSecondary(piecenum)
 {
-	piecenum = laacannon;
+	piecenum = aimy1;
 }
 
 QueryPrimary(piecenum)
 {
-	if( gun_1 == 1 )
+	if( gun_primary == 1 )
 	{
 		piecenum = lflare;
 	}
-	if( gun_1 == 2 )
+	if( gun_primary == 2 )
 	{
 		piecenum = rflare;
 	}

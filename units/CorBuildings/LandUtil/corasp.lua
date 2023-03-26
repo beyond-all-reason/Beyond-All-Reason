@@ -23,7 +23,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 200000,
-		maxdamage = 1600,
+		maxdamage = 1780,
 		maxslope = 10,
 		maxwaterdepth = 1,
 		objectname = "Units/CORASP.s3o",

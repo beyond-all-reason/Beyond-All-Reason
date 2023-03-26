@@ -284,7 +284,7 @@ if (gadgetHandler:IsSyncedCode()) then
 	-- Variables
 	local TechTable={}
 	local ProviderTable={}
-	local AccessionTable={}
+	local AccessionTable={} -- this is empty in BAR
 	local ProviderIDs={}
 	local AccessionIDs={}
 	local ProviderRangeByIDs={}
@@ -873,7 +873,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		end
 	end
 
-
+	--[[ 
 	function gadget:AllowCommand(u,ud,team,cmd,param,opt,synced)
 		local x,y,z
 		if param and cmd<0 and #param==4 then
@@ -888,6 +888,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		end
 	return ICanHaz
 	end
+	]]--
 
 
     function gadget:AllowUnitCreation(ud,isBuilder,team,x,y,z)
@@ -912,6 +913,7 @@ if (gadgetHandler:IsSyncedCode()) then
 			if cp then
 				local str_p=cp.providestech or cp.providetech
 				local str_r=cp.requirestech or cp.requiretech
+				-- Note that in BAR this is pretty much blank!
 				if str_p then
 					local range=tonumber(cp.providestechrange or cp.providetechrange)
 					local lst_p=SplitStringComma(str_p)
@@ -1008,12 +1010,12 @@ else--unsynced
 
 		-- Placing a unit or giving an order requiring ranged tech
 		if Tech.AccessionTable[cmd] then
-			for _,tech in spairs(Tech.AccessionTable[cmd]) do
+			for _,tech in pairs(Tech.AccessionTable[cmd]) do
 				if Tech.TechTable[tech.tech].Ranged then
 					DrawWorldTimer=DrawWorldTimer or Spring.GetTimer()
 					local cm=math.abs(((Spring.DiffTimers(Spring.GetTimer(),DrawWorldTimer)/.78)%2)-1)
 					RangedProviders={}
-					for _,id in sipairs(Tech.TechTable[tech.tech].ProvidedBy) do
+					for _,id in ipairs(Tech.TechTable[tech.tech].ProvidedBy) do
 						if Tech.ProviderTable[id][tech.tech].range then
 							table.insert(RangedProviders,id)
 						end

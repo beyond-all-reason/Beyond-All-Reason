@@ -18,14 +18,13 @@ local spGetTeamUnits			= Spring.GetTeamUnits
 local spGetUnitRulesParam		= Spring.GetUnitRulesParam
 local spGetTeamResources		= Spring.GetTeamResources
 local spGetUnitResources		= Spring.GetUnitResources
+local spGetUnitTeam		        = Spring.GetUnitTeam
 
 local teamEnergy = {} -- table of teamid to current energy amount
 local teamUnits = {} -- table of teamid to table of stallable unitID : unitDefID
 local teamList = {} -- {team1, team2, team3....}
 
 local spec, fullview = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
-local updateFrame = 0
 local lastGameFrame = 0
 local sceduledGameFrame = 1
 
@@ -131,36 +130,26 @@ local function UpdateTeamEnergy()
 	end
 end
 
-local function init()
+function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	spec, fullview = Spring.GetSpectatingState()
 	if spec then
 		fullview = select(2,Spring.GetSpectatingState())
-		myTeamID = Spring.GetMyTeamID()
 	end
 	if not fullview then
 		teamList = Spring.GetTeamList(Spring.GetMyAllyTeamID())
 	else
 		teamList = Spring.GetTeamList()
 	end
-	teamEnergy = {}
+	
 	UpdateTeamEnergy()
+	clearInstanceTable(energyIconVBO) -- clear all instances
+	teamUnits = {}
+	for unitID, unitDefID in pairs(extVisibleUnits) do
+		widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID))
+	end
+	uploadAllElements(energyIconVBO) -- upload them all
 end
 
-local function doUpdate()
-	teamUnits = {}
-	for i, teamID in pairs(teamList) do
-		teamUnits[teamID] = {}
-		local teamUnitsRaw = spGetTeamUnits(teamID)
-		for i=1, #teamUnitsRaw do
-			local unitID = teamUnitsRaw[i]
-			local unitDefID = spGetUnitDefID(unitID)
-			if unitConf[unitDefID] and spGetUnitRulesParam(unitID, "under_construction") ~= 1 then
-				teamUnits[teamID][unitID] = unitDefID
-			end
-		end
-	end
-	sceduledGameFrame = Spring.GetGameFrame() + 33
-end
 
 function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
@@ -168,18 +157,10 @@ function widget:Initialize()
 		return
 	end
 	if not initGL4() then return end
-	init()
-	doUpdate()
-end
-
-function widget:PlayerChanged(playerID)
-	spec, fullview = Spring.GetSpectatingState()
-	local prevMyTeamID = myTeamID
-	myTeamID = Spring.GetMyTeamID()
-	if myTeamID ~= prevMyTeamID then
-		doUpdate()
+		
+	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
+		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
-	init()
 end
 
 local function updateStalling()
@@ -220,19 +201,8 @@ local function updateStalling()
 end
 
 function widget:Update(dt)
-	updateFrame = updateFrame + 1
-	if spec then
-		fullview = select(2,Spring.GetSpectatingState())
-		myTeamID = Spring.GetMyTeamID()
-	end
 	if Spring.GetGameFrame() ~= lastGameFrame then
 		lastGameFrame = Spring.GetGameFrame()
-		if not fullview then
-			teamList = Spring.GetTeamList(Spring.GetMyAllyTeamID())
-		else
-			teamList = Spring.GetTeamList()
-		end
-		teamEnergy = {}
 		UpdateTeamEnergy()
 	end
 end
@@ -243,43 +213,20 @@ function widget:GameFrame(n)
 	end
 end
 
-
-function widget:UnitFinished(unitID, unitDefID, teamID)
-	if unitConf[unitDefID] and teamUnits[teamID] then
-		teamUnits[teamID][unitID] = unitDefID
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- remove the corresponding ground plate if it exists
+	if unitConf[unitDefID] and spGetUnitRulesParam(unitID, "under_construction") ~= 1 then 
+		if teamUnits[unitTeam] == nil then teamUnits[unitTeam] = {} end 
+		teamUnits[unitTeam][unitID] = unitDefID
 	end
 end
 
-function widget:UnitTaken(unitID, unitDefID, teamID, newTeamID)
-	if unitConf[unitDefID] then
-		if teamUnits[teamID] then
-			teamUnits[teamID][unitID] = nil
-			widget:UnitDestroyed(unitID, unitDefID, teamID)
-		end
-		if teamUnits[newTeamID] then
-			teamUnits[newTeamID][unitID] = unitDefID
-		end
+function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
+	local unitTeam = spGetUnitTeam(unitID)
+	if teamUnits[unitTeam] then 
+		teamUnits[unitTeam][unitID] = nil
 	end
-end
-
-function widget:UnitGiven(unitID, unitDefID, teamID, oldTeamID)
-	if unitConf[unitDefID] then
-		if teamUnits[oldTeamID] then
-			teamUnits[oldTeamID][unitID] = nil
-			widget:UnitDestroyed(unitID, unitDefID, oldTeamID)
-		end
-		if teamUnits[teamID] then
-			teamUnits[teamID][unitID] = unitDefID
-		end
-	end
-end
-
-function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	if energyIconVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(energyIconVBO, unitID)
-	end
-	if teamUnits[teamID] then
-		teamUnits[teamID][unitID] = nil
 	end
 end
 

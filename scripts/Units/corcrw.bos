@@ -21,8 +21,6 @@ static-var  restore_delay, v1;
 #define UNITSIZE 5
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
@@ -47,7 +45,6 @@ Create()
 		sleep 400;
 	}
 	start-script IdleHover();
-	sleep 1500;
 }
 
 Activate()

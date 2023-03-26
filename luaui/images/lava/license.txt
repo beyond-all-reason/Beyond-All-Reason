@@ -1,0 +1,3 @@
+lava2_* is under CC Zero license
+lava6_* is under CC Zero license
+lava7_* is licensed from gametextures.com (SuperheatedRockLavaSurface_PbrGenericMetallic2kBitmap)

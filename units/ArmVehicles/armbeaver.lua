@@ -23,7 +23,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		maxdamage = 925,
+		maxdamage = 1030,
 		maxslope = 16,
 		maxvelocity = 1.4,
 		maxwaterdepth = 255,

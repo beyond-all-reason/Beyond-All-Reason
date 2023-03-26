@@ -1,6 +1,7 @@
 return {
 	corap = {
 		acceleration = 0,
+		activatewhenbuilt = true,
 		brakerate = 0,
 		buildcostenergy = 1350,
 		buildcostmetal = 840,
@@ -21,7 +22,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		losemitheight = 40,
-		maxdamage = 1925,
+		maxdamage = 2150,
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 100,
@@ -94,6 +95,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:radarpulse_t1_slow",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

@@ -17,7 +17,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1170,
+		maxdamage = 1300,
 		minwaterdepth = 12,
 		objectname = "Units/ARMTL.s3o",
 		script = "Units/ARMTL.cob",

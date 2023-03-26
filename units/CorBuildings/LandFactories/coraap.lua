@@ -1,6 +1,7 @@
 return {
 	coraap = {
 		acceleration = 0,
+		activatewhenbuilt = true,
 		brakerate = 0,
 		buildcostenergy = 28000,
 		buildcostmetal = 3200,
@@ -20,11 +21,13 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3520,
+		maxdamage = 3900,
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 200,
 		objectname = "Units/CORAAP.s3o",
+		radardistance = 1000,
+		radaremitheight = 50,
 		script = "Units/CORAAP.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
@@ -96,6 +99,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
+				[2] = "custom:radarpulse_t1_slow",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",

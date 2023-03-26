@@ -21,7 +21,7 @@ return {
 		idleautoheal = 5,
 		idletime = 600,
 		mass = 1000,
-		maxdamage = 850,
+		maxdamage = 940,
 		maxvelocity = 1.9,
 		maxwaterdepth = 0,
 		movementclass = "SCAVMIST",
@@ -106,10 +106,6 @@ return {
 				turret = true,
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
-				customparams = {
-					expl_light_color = "0.7 0.3 1",
-					light_color = "0.0 0.0 0",
-				},
 				damage = {
 					commanders = 15,
 					bombers = 6.5,

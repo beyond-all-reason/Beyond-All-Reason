@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 725,
+		maxdamage = 810,
 		minwaterdepth = 1,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORGPLAT.s3o",

@@ -144,7 +144,6 @@ function widget:Shutdown()
 	glDeleteList(ringDlist)
 end
 
-
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
 	local osClock = os.clock()
 	if cmdType == 'point' then
@@ -167,6 +166,7 @@ end
 
 
 function widget:DrawWorldPreUnit()
+
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 	if WG.clearmapmarks and WG.clearmapmarks.continuous then return end

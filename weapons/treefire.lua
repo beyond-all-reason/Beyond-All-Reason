@@ -10,17 +10,9 @@ return {
 		soundhitdry = "fireburnshort",
 		soundhitvolume = 2.1,
 		damage = {
-			commanders = 2.5,
-			crawlingbombs = 2.5,
+			commanders = 3,
+			crawlingbombs = 3,
 			default = 4,
-		},
-		customparams = {
-			expl_light_color = "1 0.33 0.07",
-			expl_light_mult = 1.5,
-			expl_light_radius_mult = 1.4,
-			expl_light_life_mult = 4.2,
-			expl_light_heat_radius_mult = 2,
-			expl_light_heat_life_mult = 4.5,
 		},
 	},
 	treefire_small = {
@@ -36,15 +28,7 @@ return {
 		damage = {
 			commanders = 3,
 			crawlingbombs = 3,
-			default = 5,
-		},
-		customparams = {
-			expl_light_color = "1 0.33 0.07",
-			expl_light_mult = 1.5,
-			expl_light_radius_mult = 1.4,
-			expl_light_life_mult = 4.2,
-			expl_light_heat_radius_mult = 2,
-			expl_light_heat_life_mult = 4.5,
+			default = 6,
 		},
 	},
 	treefire_medium = {
@@ -59,17 +43,9 @@ return {
 		soundhitdry = "fireburnshort",
 		soundhitvolume = 2.3,
 		damage = {
-			commanders = 3.5,
-			crawlingbombs = 3.5,
-			default = 6,
-		},
-		customparams = {
-			expl_light_color = "1 0.33 0.07",
-			expl_light_mult = 1.5,
-			expl_light_radius_mult = 1.4,
-			expl_light_life_mult = 4.2,
-			expl_light_heat_radius_mult = 2,
-			expl_light_heat_life_mult = 4.5,
+			commanders = 4,
+			crawlingbombs = 4,
+			default = 7,
 		},
 	},
 	treefire_large = {
@@ -85,15 +61,7 @@ return {
 		damage = {
 			commanders = 4,
 			crawlingbombs = 4,
-			default = 7,
-		},
-		customparams = {
-			expl_light_color = "1 0.33 0.07",
-			expl_light_mult = 1.5,
-			expl_light_radius_mult = 1.4,
-			expl_light_life_mult = 4.2,
-			expl_light_heat_radius_mult = 2,
-			expl_light_heat_life_mult = 4.5,
+			default = 8,
 		},
 	},
 }

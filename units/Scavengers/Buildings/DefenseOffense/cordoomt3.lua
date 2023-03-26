@@ -23,7 +23,7 @@ return {
 		idleautoheal = 2,
 		idletime = 1800,
 		losemitheight = 80,
-		maxdamage = 35000,
+		maxdamage = 39000,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
@@ -153,11 +153,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1800,
-				customparams = {
-					expl_light_life_mult = 1.1,
-					light_mult = 2.66,
-					light_radius_mult = 0.6,
-				},
 				damage = {
 					commanders = 1350,
 					default = 7500,
@@ -199,11 +194,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
-				customparams = {
-					expl_light_mult = 1.15,
-					light_radius_mult = "1.15",
-					light_mult = 3,
-				},
 				damage = {
 					commanders = 999,
 					default = 4500,

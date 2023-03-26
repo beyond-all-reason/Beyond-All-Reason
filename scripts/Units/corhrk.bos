@@ -12,6 +12,11 @@ static-var  gun_1, Static_Var_2, bMoving, bAiming, Static_Var_5,
 // Signal definitions
 #define SIG_AIM				2
 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+
 // Generated for N:\animations\corhrk_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
@@ -45,6 +50,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 	}
 	while(bMoving) {
 		if (bMoving) { //Frame:10
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <-29.513128> speed <417.750216> / animSpeed; //delta=-13.93 
 			turn lfoot to z-axis <0.000000> speed <147.355445> / animSpeed; //delta=4.91 
 			turn lfoot to y-axis <0.000000> speed <17.795554> / animSpeed; //delta=0.59 
@@ -103,6 +109,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:30
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lfoot to x-axis <31.785679> speed <201.919687> / animSpeed; //delta=6.73 
 			turn lleg to x-axis <-3.293502> speed <539.301235> / animSpeed; //delta=-17.98 
 			turn lthigh to x-axis <-59.802111> speed <687.004162> / animSpeed; //delta=22.90 

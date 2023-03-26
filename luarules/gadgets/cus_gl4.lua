@@ -12,6 +12,7 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
+	local itsXmas = GG.itsXmas
 	return false
 end
 
@@ -542,26 +543,35 @@ local function appendShaderDefinitionsToTemplate(template, alldefinitions)
 	return copytemplate
 end
 
+local itsXmas = false
 local function initMaterials()
 	defaultMaterialTemplate = VFS.Include("modelmaterials_gl4/templates/defaultMaterialTemplate.lua")
+	if itsXmas then
+		Spring.Echo("CUS GL4 enabled XMAS mode")
+	end
+
 
 	unitsNormalMapTemplate = appendShaderDefinitionsToTemplate(defaultMaterialTemplate, {
 		shaderDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
 			"#define ENABLE_OPTION_THREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
+			itsXmas and "#define XMAS 1" or "#define XMAS 0",
 		},
 		deferredDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
 			"#define ENABLE_OPTION_THREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
+			itsXmas and "#define XMAS 1" or "#define XMAS 0",
 		},
 		shadowDefinitions = {
+			itsXmas and "#define XMAS 1" or "",
 		},
 		reflectionDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
 			"#define ENABLE_OPTION_THREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
+			itsXmas and "#define XMAS 1" or "#define XMAS 0",
 		},
 	})
 
@@ -710,7 +720,7 @@ end
 local textureKeytoSet = {} -- table of {TextureKey : {textureTable}}
 
 local blankNormalMap = "unittextures/blank_normal.dds"
-local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
+local noisetex3dcube =  "LuaUI/images/noisetextures/noise64_cube_3.dds"
 
 local fastObjectDefIDtoTextureKey = {} -- table of  {unitDefID : TextureKey, -featureDefID : TextureKey }
 local fastTextureKeyCache = {} -- a table of concatenated texture names to increasing integers
@@ -908,8 +918,8 @@ local function initBinsAndTextures()
 				featuresDefsWithAlpha[-1 * featureDefID] = "yes"
 			elseif featureDef.name:find("_dead", nil, true) or featureDef.name:find("_heap", nil, true) then
 				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
-			elseif featureDef.name:find("pilha_crystal", nil, true) then
-				objectDefToUniformBin[-1 * featureDefID] = 'featurepbr'
+			elseif featureDef.name:find("pilha_crystal", nil, true) or (featureDef.customParams and featureDef.customParams.cuspbr) then
+				objectDefToUniformBin[-1 * featureDefID] = 'featurepbr'	
 			end
 			--Spring.Echo("Assigned normal map to", featureDef.name, normalTex)
 
@@ -1629,6 +1639,15 @@ local function DisableCUSGL4(optName, _, _, playerID)
 	gadget:Shutdown()
 end
 
+
+function gadget:GameFrame(n)
+	if not itsXmas and SYNCED.itsXmas then
+		itsXmas = true
+		initiated = false
+		ReloadCUSGL4(nil,nil,nil, Spring.GetMyPlayerID())
+	end
+end
+
 local updaterate = 1
 local function CUSGL4updaterate(optName, line, words, playerID)
 	if playerID ~= Spring.GetMyPlayerID() then
@@ -1929,6 +1948,22 @@ function gadget:DrawWorldPreUnit()
 				-- removal is 2.40 us per unit
 		end
 	end
+end
+
+local nightFactorBins = {tree = 1.3, feature = 1.3, featurepbr = 1.3, treepbr = 1.3}
+local lastSunChanged = -1 
+function gadget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
+	local df = Spring.GetDrawFrame()
+	if df == lastSunChanged then return end
+	lastSunChanged = df
+	local nightFactor = 1.0
+	if GG['NightFactor'] then 
+		local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
+		nightFactor = (GG['NightFactor'].red + GG['NightFactor'].green + GG['NightFactor'].blue) * 0.33
+	end
+	for uniformBinName, defaultBrightnessFactor in pairs(nightFactorBins) do 
+		uniformBins[uniformBinName].brightnessFactor = defaultBrightnessFactor * nightFactor
+	end 
 end
 
 local function drawPassBitsToNumber(opaquePass, deferredPass, drawReflection, drawRefraction)

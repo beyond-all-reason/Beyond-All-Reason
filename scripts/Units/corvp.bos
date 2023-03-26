@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  pad,base,nano1,nano2,nano3,nano4,fan1,fan2,doorr,doorl,doorf;
+piece  pad,base,nano1,nano2,nano3,nano4,fan1,fan2,doorr,doorl,doorf, cagelight, cagelight_emit;
 
 static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
 
@@ -119,6 +119,7 @@ Create()
 	hide nano3;
 	hide nano1;
 	hide pad;
+	hide cagelight_emit;
 	unitviewer = FALSE;
 	spray = 0;
 	call-script InitState();
@@ -174,14 +175,26 @@ Deactivate()
 
 StartBuilding()
 {
+	show nano2;
+	show nano4;
+	show nano3;
+	show nano1;
 	spin fan1 around z-axis speed <200> accelerate <5>;
 	spin fan2 around z-axis speed <200> accelerate <5>;
+	show cagelight_emit;
+	spin cagelight around y-axis speed <200>;
 }
 
 StopBuilding()
 {
+	hide nano2;
+	hide nano4;
+	hide nano3;
+	hide nano1;
 	stop-spin fan1 around z-axis decelerate <3>;
 	stop-spin fan2 around z-axis decelerate <3>;
+	hide cagelight_emit;
+	turn cagelight to y-axis <0> speed <1000>;
 }
 
 QueryBuildInfo(piecenum)

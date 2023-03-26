@@ -15,11 +15,9 @@ local alwaysShowLabel = true	-- always show the label regardless
 local showWhenSpec = false
 local showStack = false
 local iconSizeMult = 0.98
-local highlightSelectedGroups = true
 local playSounds = true
 local soundVolume = 0.5
 local setHeight = 0.046
-local aboveUnitgroups = false
 local maxGroups = 9
 
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
@@ -32,9 +30,7 @@ local spec = Spring.GetSpectatingState()
 
 local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, TexturedRectRound, UiElement, UiButton, UiUnit
 
-local spGetGroupList = Spring.GetGroupList
-local spGetGroupUnitsCounts = Spring.GetGroupUnitsCounts
-local spGetGroupUnitsCount = Spring.GetGroupUnitsCount
+
 local spGetMouseState = Spring.GetMouseState
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetFullBuildQueue = Spring.GetFullBuildQueue
@@ -53,7 +49,6 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
-local uiOpacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local uiScale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local height = setHeight * uiScale
 local posX = 0
@@ -67,7 +62,9 @@ local numGroups = 0
 local selectedUnits = Spring.GetSelectedUnits() or {}
 local selectionHasChanged = true
 local selectedGroups = {}
-local unitgroupsActive = false
+local buildmenuShowingPosY = 0
+local buildmenuAlwaysShow = false
+local buildmenuIsShowing = true
 
 local groupButtons = {}
 local existingGroups = {}
@@ -83,7 +80,7 @@ local isBuilder = {}
 local isFactory = {}
 local unitHumanName = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') then --and unitDef.buildOptions[1] then
+	if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1]) and not unitDef.customParams.isairbase then
 		isBuilder[unitDefID] = true
 	end
 	if unitDef.isFactory then
@@ -127,107 +124,6 @@ local function isIdleBuilder(unitID)
 		end
 	end
 	return false
-end
-
-local function checkUnitGroupsPos()
-	if WG['unitgroups'] then
-		unitgroupsActive = true
-		local px, py, sx, sy = WG['unitgroups'].getPosition()
-		local oldPosX, oldPosY = posX, posY
-		if aboveUnitgroups then
-			posY = (sy + widgetSpaceMargin) / vsy
-		else
-			posX = (sx + widgetSpaceMargin) / vsx
-		end
-		if posX ~= oldPosX or posY ~= oldPosY then
-			doUpdate = true
-		end
-	elseif unitgroupsActive then
-		unitgroupsActive = false
-		doUpdate = true
-		widget:ViewResize()
-	end
-end
-
-function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
-	height = setHeight * uiScale
-
-	font2 = WG['fonts'].getFont(nil, 1.3, 0.35, 1.4)
-	font = WG['fonts'].getFont(fontFile, 1.15, 0.35, 1.25)
-
-	elementCorner = WG.FlowUI.elementCorner
-	backgroundPadding = WG.FlowUI.elementPadding
-	widgetSpaceMargin = WG.FlowUI.elementMargin
-
-	RectRound = WG.FlowUI.Draw.RectRound
-	TexturedRectRound = WG.FlowUI.Draw.TexturedRectRound
-	UiElement = WG.FlowUI.Draw.Element
-	UiButton = WG.FlowUI.Draw.Button
-	UiUnit = WG.FlowUI.Draw.Unit
-
-	if WG['buildmenu'] then
-		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
-	end
-
-	local omPosX, omPosY, omWidth, omHeight = 0, 0, 0, 0
-	if WG['ordermenu'] then
-		omPosX, omPosY, omWidth, omHeight = WG['ordermenu'].getPosition()
-	end
-	ordermenuPosY = omPosY
-
-	if buildmenuBottomPosition then
-		posY = omHeight + (widgetSpaceMargin/vsy)
-		if omPosX <= 0.01 then
-			posX = omPosX + omWidth + (widgetSpaceMargin/vsx)
-		else
-			posX = 0
-		end
-	else
-		posY = 0
-		posX = omPosX + omWidth + (widgetSpaceMargin/vsx)
-	end
-
-	checkUnitGroupsPos()
-
-	iconMargin = floor((backgroundPadding * 0.5) + 0.5)
-	groupSize = floor((height * vsy) - (posY-height > 0 and backgroundPadding or 0))
-	usedHeight = groupSize + (posY-height > 0 and backgroundPadding or 0)
-end
-
-function widget:PlayerChanged(playerID)
-	spec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
-	if not showWhenSpec and Spring.GetGameFrame() > 1 and spec then
-		widgetHandler:RemoveWidget()
-		return
-	end
-end
-
-function widget:Initialize()
-	widget:ViewResize()
-	widget:PlayerChanged()
-	WG['idlebuilders'] = {}
-	WG['idlebuilders'].getPosition = function()
-		return posX, posY, backgroundRect and backgroundRect[3] or posX, backgroundRect and backgroundRect[4] or posY + usedHeight
-	end
-end
-
-function widget:Shutdown()
-	if dlist then
-		gl.DeleteList(dlist)
-	end
-	if WG['guishader'] and dlistGuishader then
-		WG['guishader'].DeleteDlist('idlebuilders')
-		dlistGuishader = nil
-	end
-	WG['idlebuilders'] = nil
-end
-
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
 end
 
 local function checkGuishader(force)
@@ -460,6 +356,132 @@ local function updateList()
 	end
 end
 
+local function checkUnitGroupsPos(isViewresize)
+
+	if WG['unitgroups'] then
+		local px, py, sx, sy = WG['unitgroups'].getPosition()
+		local oldPosX, oldPosY = posX, posY
+		posY = py / vsy
+		posX = (sx + widgetSpaceMargin) / vsx
+		if posX ~= oldPosX or posY ~= oldPosY then
+			if not isViewresize then
+				widget:ViewResize()
+			end
+			updateList()
+		end
+	else
+		if buildmenuBottomPosition and not buildmenuAlwaysShow and WG['buildmenu'] and WG['info'] then
+			if (not selectedUnits[1] or not WG['buildmenu'].getIsShowing()) and (posX > 0 or not WG['info'].getIsShowing()) then
+				if posY ~= 0 then
+					posY = 0
+					if not isViewresize then
+						widget:ViewResize()
+					end
+					doUpdate = true
+				end
+			else
+				if posY ~= buildmenuShowingPosY then
+					posY = buildmenuShowingPosY
+					doUpdate = true
+				end
+			end
+		end
+		if not isViewresize then
+			widget:ViewResize()
+			doUpdate = true
+		end
+	end
+end
+
+function widget:ViewResize()
+	vsx, vsy = Spring.GetViewGeometry()
+	height = setHeight * uiScale
+
+	font2 = WG['fonts'].getFont(nil, 1.3, 0.35, 1.4)
+	font = WG['fonts'].getFont(fontFile, 1.15, 0.35, 1.25)
+
+	elementCorner = WG.FlowUI.elementCorner
+	backgroundPadding = WG.FlowUI.elementPadding
+	widgetSpaceMargin = WG.FlowUI.elementMargin
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	TexturedRectRound = WG.FlowUI.Draw.TexturedRectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiButton = WG.FlowUI.Draw.Button
+	UiUnit = WG.FlowUI.Draw.Unit
+
+	if WG['buildmenu'] then
+		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
+		buildmenuIsShowing = WG['buildmenu'].getIsShowing()
+	end
+
+	local omPosX, omPosY, omWidth, omHeight = 0, 0, 0, 0
+	if WG['ordermenu'] then
+		omPosX, omPosY, omWidth, omHeight = WG['ordermenu'].getPosition()
+	end
+	ordermenuPosY = omPosY
+
+	if buildmenuBottomPosition then
+		posY = omHeight + (widgetSpaceMargin/vsy)
+		if omPosX <= 0.01 then
+			posX = omPosX + omWidth + (widgetSpaceMargin/vsx)
+		else
+			posX = 0
+		end
+	else
+		posY = 0
+		posX = omPosX + omWidth + (widgetSpaceMargin/vsx)
+	end
+
+	if buildmenuBottomPosition and not buildmenuAlwaysShow then
+		buildmenuShowingPosY = posY
+		if (not selectedUnits[1] or not WG['buildmenu'].getIsShowing()) then
+			posY = 0
+		end
+	end
+
+	checkUnitGroupsPos(true)
+
+	iconMargin = floor((backgroundPadding * 0.5) + 0.5)
+	groupSize = floor((height * vsy) - (posY-height > 0 and backgroundPadding or 0))
+	usedHeight = groupSize + (posY-height > 0 and backgroundPadding or 0)
+end
+
+function widget:PlayerChanged(playerID)
+	spec = Spring.GetSpectatingState()
+	myTeamID = Spring.GetMyTeamID()
+	if not showWhenSpec and Spring.GetGameFrame() > 1 and spec then
+		widgetHandler:RemoveWidget()
+		return
+	end
+end
+
+function widget:Initialize()
+	widget:ViewResize()
+	widget:PlayerChanged()
+	WG['idlebuilders'] = {}
+	WG['idlebuilders'].getPosition = function()
+		return posX, posY, backgroundRect and backgroundRect[3] or posX, backgroundRect and backgroundRect[4] or posY + usedHeight
+	end
+end
+
+function widget:Shutdown()
+	if dlist then
+		gl.DeleteList(dlist)
+	end
+	if WG['guishader'] and dlistGuishader then
+		WG['guishader'].DeleteDlist('idlebuilders')
+		dlistGuishader = nil
+	end
+	WG['idlebuilders'] = nil
+end
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
 	if chobbyInterface then
 		return
@@ -485,6 +507,8 @@ function widget:Update(dt)
 	sec = sec + dt
 	sec2 = sec2 + dt
 
+	checkUnitGroupsPos()
+
 	local x, y, b, b2, b3 = spGetMouseState()
 	if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		hovered = true
@@ -497,16 +521,18 @@ function widget:Update(dt)
 				if math_isInRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
 					local unitDefID = existingGroups[i]
 					if unitDefID then
-						tooltipTitle = Spring.I18N('ui.idleBuilders.idle', { unit = unitHumanName[unitDefID], textColor = "\255\255\255\255", highlightColor = "\255\190\255\190" })
+						tooltipTitle = Spring.I18N('ui.idleBuilders.idle', { unit = unitHumanName[unitDefID], highlightColor = "\255\190\255\190" })
 						if #idleList[unitDefID] > 1 then
-							tooltipAddition = '\n' .. Spring.I18N('ui.idleBuilders.controls', { textColor = "\255\190\190\190" })
+							tooltipAddition = Spring.I18N('ui.idleBuilders.controls').. '\n'..Spring.I18N('ui.idleBuilders.controls1')
+						else
+							tooltipAddition = tooltipAddition ..Spring.I18N('ui.idleBuilders.controls1')
 						end
 					end
 					break
 				end
 			end
 		end
-		WG['tooltip'].ShowTooltip('idlebuilders', tooltipTitle..tooltipAddition)
+		WG['tooltip'].ShowTooltip('idlebuilders', tooltipAddition, nil, nil, tooltipTitle)
 
 		Spring.SetMouseCursor('cursornormal')
 		if b then
@@ -518,13 +544,11 @@ function widget:Update(dt)
 		doUpdate = true
 	end
 
-	if sec > 0.5 then
-		sec = 0
 
-		if WG['buildmenu'] and WG['buildmenu'].getBottomPosition then
-			local prevbuildmenuBottomPos = buildmenuBottomPos
-			buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
-			if buildmenuBottomPos ~= prevbuildmenuBottomPos then
+	if sec > 0.4 then
+		sec = 0
+		if WG['buildmenu'] then
+			if buildmenuBottomPosition ~= WG['buildmenu'].getBottomPosition() or buildmenuIsShowing ~= WG['buildmenu'].getIsShowing() then
 				widget:ViewResize()
 				doUpdate = true
 			end
@@ -537,23 +561,12 @@ function widget:Update(dt)
 				doUpdate = true
 			end
 		end
-		if uiScale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			uiScale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize()
-			doUpdate = true
-		end
-		if uiOpacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			doUpdate = true
-		end
 
 		doUpdate = true	-- TODO: find a way to detect group changes and only doUpdate then
 	elseif hovered and sec2 > 0.05 then
 		sec2 = 0
 		doUpdate = true
 	end
-
-	checkUnitGroupsPos()
 
 	if doUpdate then
 		updateList()
