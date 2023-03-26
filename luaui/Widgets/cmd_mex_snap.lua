@@ -22,6 +22,7 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitCommands = Spring.GetUnitCommands
 local math_pi = math.pi
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
+local Game_extractorRadius = Game.extractorRadius
 
 local activeCmdID, bx, by, bz, bface
 local unitshape
@@ -42,8 +43,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local Game_extractorRadius = Game.extractorRadius
-
 
 local selectedUnits = Spring.GetSelectedUnits()
 function widget:SelectionChanged(sel)
@@ -55,6 +54,10 @@ local function GetClosestPosition(x, z, positions)
 	local bestPos
 	local bestDist = math.huge
 	local t2mex = isT2Mex[-activeCmdID]
+	local isOnTop = false
+	local mx, my = spGetMouseState()
+	local _, pos = spTraceScreenRay(mx, my, true)
+	local bx, by, bz = Spring.Pos2BuildPos(-activeCmdID, pos[1], pos[2], pos[3])
 	for i = 1, #positions do
 		local pos = positions[i]
 		if pos.x then
@@ -70,15 +73,39 @@ local function GetClosestPosition(x, z, positions)
 							break
 						end
 					end
-					if Spring.GetGameFrame() == 0 and not draw then
+					if Spring.GetGameFrame() == 0 then
 						local buildQueue = WG['buildmenu'].getBuildQueue()
 						for _, params in pairs(buildQueue) do
 							if params[1] == -activeCmdID then
 								local dx2, dz2 = params[2] - pos.x, params[4] - pos.z
 								local dist2 = dx2 * dx2 + dz2 * dz2
-								if dist2 < Game_extractorRadius*Game_extractorRadius then
+								if dist2 < Game_extractorRadius*Game_extractorRadius*3 then
 									occupied = true
+									if math.abs(params[2]-bx) <= 4 and math.abs(params[4]-bz) <= 4 then
+										isOnTop = true
+										bestPos = pos
+										bestPos.x = params[2]
+										bestPos.y = params[3]
+										bestPos.z = params[4]
+										bestDist = dist2
+										-- this still wont allow to place on top imprecisely
+									end
 									break
+								end
+							end
+						end
+						if isOnTop then
+							break
+						end
+
+						-- allow to queue on top of existing queued mex (to cancel)
+						for i, unitID in ipairs(selectedUnits) do
+							for _, order in pairs(spGetUnitCommands(unitID, 40)) do
+								if order.id == cmdID then
+									if math.abs(order.params[1]-cmdParams[1]) <= 32 and math.abs(order.params[3]-cmdParams[3]) <= 32 then
+										Spring.GiveOrder(cmdID, cmdParams, cmdOpts.coded)
+										return true
+									end
 								end
 							end
 						end
@@ -88,7 +115,7 @@ local function GetClosestPosition(x, z, positions)
 								if (t2mex and isT2Mex[-order.id]) or (not t2mex and isT1Mex[-order.id]) then
 									local dx2, dz2 = order.params[1] - pos.x, order.params[3] - pos.z
 									local dist2 = dx2 * dx2 + dz2 * dz2
-									if dist2 < Game_extractorRadius*Game_extractorRadius then
+									if dist2 < Game_extractorRadius*Game_extractorRadius*3 then
 										occupied = true
 										break
 									end
@@ -192,7 +219,7 @@ function widget:Update()
 		local buildQueue = WG['buildmenu'].getBuildQueue()
 		for _, params in pairs(buildQueue) do
 			if params[1] == -activeCmdID then
-				if math.abs(params[2]-bx) <= 32 and math.abs(params[4]-bz) <= 32 then
+				if math.abs(params[2]-bx) <= 4 and math.abs(params[4]-bz) <= 4 then
 					draw = false
 					return true
 				end
