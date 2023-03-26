@@ -1032,6 +1032,9 @@ function widget:Initialize()
 	WG['buildmenu'].getIsShowing = function()
 		return buildmenuShows
 	end
+	WG['buildmenu'].getBuildQueue = function()
+		return buildQueue
+	end
 end
 
 -- update queue number

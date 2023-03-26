@@ -51,6 +51,7 @@ function widget:SelectionChanged(sel)
 end
 
 local function GetClosestPosition(x, z, positions)
+	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local bestPos
 	local bestDist = math.huge
 	local t2mex = isT2Mex[-activeCmdID]
@@ -61,21 +62,37 @@ local function GetClosestPosition(x, z, positions)
 			local dist = dx * dx + dz * dz
 			if dist < bestDist then
 				local occupied = false
-				local units = Spring.GetUnitsInCylinder(pos.x, pos.z, Game_extractorRadius)
-				for j=1, #units do
-					if (t2mex and isT2Mex[spGetUnitDefID(units[j])]) or (not t2mex and isT1Mex[spGetUnitDefID(units[j])]) then
-						occupied = true
-						break
+				if shift then
+					local units = Spring.GetUnitsInCylinder(pos.x, pos.z, Game_extractorRadius)
+					for j=1, #units do
+						if (t2mex and isT2Mex[spGetUnitDefID(units[j])]) or (not t2mex and isT1Mex[spGetUnitDefID(units[j])]) then
+							occupied = true
+							break
+						end
 					end
-				end
-				for i, unitID in ipairs(selectedUnits) do
-					for _, order in pairs(spGetUnitCommands(unitID, 40)) do
-						if (t2mex and isT2Mex[-order.id]) or (not t2mex and isT1Mex[-order.id]) then
-							local dx2, dz2 = order.params[1] - pos.x, order.params[3] - pos.z
-							local dist2 = dx2 * dx2 + dz2 * dz2
-							if dist2 < Game_extractorRadius*Game_extractorRadius then
-								occupied = true
-								break
+					if Spring.GetGameFrame() == 0 then
+						local buildQueue = WG['buildmenu'].getBuildQueue()
+						for _, params in pairs(buildQueue) do
+							if params[1] == -activeCmdID then
+								local dx2, dz2 = params[2] - pos.x, params[4] - pos.z
+								local dist2 = dx2 * dx2 + dz2 * dz2
+								if dist2 < Game_extractorRadius*Game_extractorRadius then
+									occupied = false
+									break
+								end
+							end
+						end
+					else
+						for i, unitID in ipairs(selectedUnits) do
+							for _, order in pairs(spGetUnitCommands(unitID, 40)) do
+								if (t2mex and isT2Mex[-order.id]) or (not t2mex and isT1Mex[-order.id]) then
+									local dx2, dz2 = order.params[1] - pos.x, order.params[3] - pos.z
+									local dist2 = dx2 * dx2 + dz2 * dz2
+									if dist2 < Game_extractorRadius*Game_extractorRadius then
+										occupied = true
+										break
+									end
+								end
 							end
 						end
 					end
@@ -171,12 +188,24 @@ function widget:Update()
 
 	-- allow to queue on top of existing queued mex (to cancel)
 	draw = true
-	for i, unitID in ipairs(selectedUnits) do
-		for _, order in pairs(spGetUnitCommands(unitID, 40)) do
-			if order.id == activeCmdID then
-				if math.abs(order.params[1]-bx) <= 32 and math.abs(order.params[3]-bz) <= 32 then
+	if Spring.GetGameFrame() == 0 then
+		local buildQueue = WG['buildmenu'].getBuildQueue()
+		for _, params in pairs(buildQueue) do
+			if params[1] == -activeCmdID then
+				if math.abs(params[2]-bx) <= 32 and math.abs(params[4]-bz) <= 32 then
 					draw = false
 					return true
+				end
+			end
+		end
+	else
+		for i, unitID in ipairs(selectedUnits) do
+			for _, order in pairs(spGetUnitCommands(unitID, 40)) do
+				if order.id == activeCmdID then
+					if math.abs(order.params[1]-bx) <= 32 and math.abs(order.params[3]-bz) <= 32 then
+						draw = false
+						return true
+					end
 				end
 			end
 		end
