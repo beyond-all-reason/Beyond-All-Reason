@@ -100,7 +100,7 @@ local function GetClosestPosition(x, z, positions)
 
 						-- allow to queue on top of existing queued mex (to cancel)
 						for i, unitID in ipairs(selectedUnits) do
-							for _, order in pairs(spGetUnitCommands(unitID, 40)) do
+							for _, order in pairs(spGetUnitCommands(unitID, 200)) do
 								if order.id == cmdID then
 									if math.abs(order.params[1]-cmdParams[1]) <= 32 and math.abs(order.params[3]-cmdParams[3]) <= 32 then
 										Spring.GiveOrder(cmdID, cmdParams, cmdOpts.coded)
@@ -111,7 +111,7 @@ local function GetClosestPosition(x, z, positions)
 						end
 					else
 						for i, unitID in ipairs(selectedUnits) do
-							for _, order in pairs(spGetUnitCommands(unitID, 40)) do
+							for _, order in pairs(spGetUnitCommands(unitID, 200)) do
 								if (t2mex and isT2Mex[-order.id]) or (not t2mex and isT1Mex[-order.id]) then
 									local dx2, dz2 = order.params[1] - pos.x, order.params[3] - pos.z
 									local dist2 = dx2 * dx2 + dz2 * dz2
@@ -227,7 +227,7 @@ function widget:Update()
 		end
 	else
 		for i, unitID in ipairs(selectedUnits) do
-			for _, order in pairs(spGetUnitCommands(unitID, 40)) do
+			for _, order in pairs(spGetUnitCommands(unitID, 200)) do
 				if order.id == activeCmdID then
 					if math.abs(order.params[1]-bx) <= 32 and math.abs(order.params[3]-bz) <= 32 then
 						draw = false
@@ -284,7 +284,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	end
 	-- allow to queue on top of existing queued mex (to cancel)
 	for i, unitID in ipairs(selectedUnits) do
-		for _, order in pairs(spGetUnitCommands(unitID, 40)) do
+		for _, order in pairs(spGetUnitCommands(unitID, 200)) do
 			if order.id == cmdID then
 				if math.abs(order.params[1]-cmdParams[1]) <= 32 and math.abs(order.params[3]-cmdParams[3]) <= 32 then
 					Spring.GiveOrder(cmdID, cmdParams, cmdOpts.coded)

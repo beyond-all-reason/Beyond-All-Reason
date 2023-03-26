@@ -339,10 +339,10 @@ function widget:MousePress(mx, my, button)
 		if Spring.TestBuildOrder(drawUnitShape[1], drawUnitShape[2], drawUnitShape[3], drawUnitShape[4], 0) == 2 then
 			local alt, ctrl, meta, shift = Spring.GetModKeyState()
 			local keyState = {}
-			if alt then keyState[#keyState+1] = 'alt' end
-			if ctrl then keyState[#keyState+1] = 'ctrl' end
-			if meta then keyState[#keyState+1] = 'meta' end
-			if shift then keyState[#keyState+1] = 'shift' end
+			if alt then keyState.alt = true end
+			if ctrl then keyState.ctrl = true end
+			if meta then keyState.meta = true end
+			if shift then keyState.shift = true end
 			if WG['resource_spot_builder'] then
 				WG['resource_spot_builder'].BuildMex({ drawUnitShape[2], drawUnitShape[3], drawUnitShape[4] }, keyState, false, false)
 			end
