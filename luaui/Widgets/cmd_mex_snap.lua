@@ -70,14 +70,14 @@ local function GetClosestPosition(x, z, positions)
 							break
 						end
 					end
-					if Spring.GetGameFrame() == 0 then
+					if Spring.GetGameFrame() == 0 and not draw then
 						local buildQueue = WG['buildmenu'].getBuildQueue()
 						for _, params in pairs(buildQueue) do
 							if params[1] == -activeCmdID then
 								local dx2, dz2 = params[2] - pos.x, params[4] - pos.z
 								local dist2 = dx2 * dx2 + dz2 * dz2
 								if dist2 < Game_extractorRadius*Game_extractorRadius then
-									occupied = false
+									occupied = true
 									break
 								end
 							end
