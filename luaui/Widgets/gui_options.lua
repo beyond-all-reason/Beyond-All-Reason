@@ -2760,6 +2760,14 @@ function init()
 			  end
 		  end,
 		},
+		{ id = "invertmouse", group = "control", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.invertmouse, type = "bool", value = tonumber(Spring.GetConfigInt("InvertMouse ", 0)) == 1, description = "",
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("InvertMouse", value and 1 or 0)
+		  end,
+		},
+		{ id = "scrolltoggleoverview", group = "control", category = types.basic, widget = "Scrolldown Toggleoverview", name = widgetOptionColor .. "   " .. texts.option.scrolltoggleoverview, type = "bool", value = GetWidgetToggleValue("Scrolldown Toggleoverview"), description = texts.option.lockcamera_scrolltoggleoverview_descr },
 
 		{ id = "lockcamera_transitiontime", group = "control", category = types.advanced, name = texts.option.lockcamera..widgetOptionColor .. "   " ..texts.option.lockcamera_transitiontime, type = "slider", min = 0.5, max = 1.7, step = 0.01, value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockTransitionTime ~= nil and WG['advplayerlist_api'].GetLockTransitionTime()), description = texts.option.lockcamera_transitiontime_descr,
 		  onload = function(i)
