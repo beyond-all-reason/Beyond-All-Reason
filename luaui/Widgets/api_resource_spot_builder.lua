@@ -366,6 +366,10 @@ function widget:Initialize()
 	-- builders and buildings - MEX
 	----------------------------------------------
 
+	WG['resource_spot_builder'].GetMexConstructor = function(unitID)
+		return mexConstructors[unitID]
+	end
+
 	WG['resource_spot_builder'].GetMexConstructors = function()
 		return mexConstructors
 	end
