@@ -251,7 +251,7 @@
 		"keybinds": {
 			"title": "Keybinds",
 			"disclaimer": "These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!",
-			"howtochangekeybinds":"To change them: in Settings/Control tab, set Keybindings to Custom to create the BAR/data/bar_hotkeys_custom.lua file.\nEdit this file and select Custom to reload them." 
+			"howtochangekeybinds":"To change them: in Settings/Control tab, set Keybindings to Custom to create the BAR/data/bar_hotkeys_custom.lua file.\nEdit this file and select Custom to reload them.",
 			"chat": {
 				"title": "Chat",
 				"send": "Send chat message",
