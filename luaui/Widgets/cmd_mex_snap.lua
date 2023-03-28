@@ -93,7 +93,7 @@ local function GetClashingOrdersPreGame()
 	if not (WG['buildmenu'] and WG['buildmenu'].getPreGameDefID and WG['buildmenu'].getBuildQueue) then return {} end
 
 
-	local buildFacing = spGetBuildFacing()
+	local buildFacing = spGetBuildFacing() or 1
 	local orders = {}
 	local ordersCount = 0
 
@@ -106,7 +106,7 @@ local function GetClashingOrdersPreGame()
 			orders[ordersCount] = { { order[2], order[3], order[4], order[5] }, extractsMetal }
 
 			local obx, _, obz = spPos2BuildPos(orderDefID, order[2], order[3], order[4])
-			local buildData = { -activeCmdID, obx, nil, obz, order[5] }
+			local buildData = { -activeCmdID, obx, nil, obz, order[5] or buildFacing }
 			local buildData2 = { orderDefID, bx, nil, bz, buildFacing }
 
 			if DoBuildingsClash(buildData, buildData2) then
@@ -119,7 +119,7 @@ local function GetClashingOrdersPreGame()
 end
 
 local function GetClashingOrdersGame()
-	local buildFacing = spGetBuildFacing()
+	local buildFacing = spGetBuildFacing() or 1
 	local orders = {}
 	local ordersCount = 0
 
@@ -146,7 +146,7 @@ local function GetClashingOrdersGame()
 						orders[ordersCount] = { params, extractsMetal }
 
 						local obx, _, obz = spPos2BuildPos(orderDefID, params[1], params[2], params[3])
-						local buildData = { -activeCmdID, obx, nil, obz, params[4] }
+						local buildData = { -activeCmdID, obx, nil, obz, params[4] or buildFacing }
 						local buildData2 = { orderDefID, bx, nil, bz, buildFacing }
 
 						if DoBuildingsClash(buildData, buildData2) then
