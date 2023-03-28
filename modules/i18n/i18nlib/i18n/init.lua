@@ -31,7 +31,7 @@ local function isPluralTable(t)
 end
 
 local function isPresent(str)
-  return type(str) == 'string' and #str > 0
+  return type(str) == 'string'
 end
 
 local function assertPresent(functionName, paramName, value)
