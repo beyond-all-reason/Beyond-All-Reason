@@ -645,9 +645,9 @@
 		"factionPicker": {
 			"pick": "Pick your faction",
 			"factions": {
-				"arm": "",
-				"cor": "",
-				"leg": "This faction is still work in progress"
+				"arm": "Outsmart your foes with tactical finesse",
+				"cor": "Smash your foes with brute force",
+				"leg": "This faction is still a work in progress"
 			}
 		},
 		"widgetselector": {

@@ -99,13 +99,11 @@ local function drawFactionpicker()
 
 		if WG['tooltip'] ~= nil then
 			local text = Spring.I18N('ui.factionPicker.factions.'..factions[i].faction)
-			if text ~= '' and text ~= ' ' and text ~= 'ui.factionPicker.factions.'..factions[i].faction then
-				local tooltip = ''
-				local maxWidth = WG['tooltip'].getFontsize() * 80
-				local textLines, numLines = font:WrapText(text, maxWidth)
-				tooltip = tooltip..string.gsub(textLines, '[\n]', '\n')..'\n'
-				WG['tooltip'].AddTooltip('factionpicker_'..i, { factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4] }, tooltip, nil, Spring.I18N('units.factions.' .. factions[i].faction))
-			end
+			local tooltip = ''
+			local maxWidth = WG['tooltip'].getFontsize() * 80
+			local textLines, numLines = font:WrapText(text, maxWidth)
+			tooltip = tooltip..string.gsub(textLines, '[\n]', '\n')..'\n'
+			WG['tooltip'].AddTooltip('factionpicker_'..i, { factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4] }, tooltip, nil, Spring.I18N('units.factions.' .. factions[i].faction))
 		end
 	end
 	font2:End()
