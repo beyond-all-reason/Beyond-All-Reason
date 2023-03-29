@@ -20,9 +20,9 @@ The game runs on top of the Spring engine https://github.com/spring/spring.
 
 In order to develop the game (this repository) you first need a working install of the lobby/launcher. There are 2 ways to do this:
 
-1. Follow [the guide in the Chobby README](https://github.com/beyond-all-reason/BYAR-Chobby#developing-the-lobby). First download a [release of Chobby](https://github.com/beyond-all-reason/BYAR-Chobby/releases) and then launch Chobby, this will automatically download and install the engine and other dependencies.
+1. [Download the full BAR application](https://www.beyondallreason.info/download#How-To-Install) from the website and run it. This is probably what you will have done if you have previously installed and played the game.
 
-2. [Download the full BAR application](https://www.beyondallreason.info/download#How-To-Install) from the website and run it. This is probably what you will have done if you have previously installed and played the game.
+2. OR if you want to develop the lobby client, follow [the guide in the Chobby README](https://github.com/beyond-all-reason/BYAR-Chobby#developing-the-lobby). First download a [release of Chobby](https://github.com/beyond-all-reason/BYAR-Chobby/releases) and then launch Chobby, this will automatically download and install the engine and other dependencies.
 
 Once you have a working install of BAR you need a local development copy of the game code to work with. This code will live in the BAR install directory.
 
