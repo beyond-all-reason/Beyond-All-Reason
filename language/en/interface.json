@@ -1145,7 +1145,7 @@
 				"systemprivacy": "hide your system info",
 				"systemprivacy_descr": "disallow other players to view your system specifications (in player list tooltip)\napplies to next game",
 				"mascot": "mascot",
-				"mascot_descr": "Shows a mascot on top of the playerslist",
+				"mascot_descr": "Shows a mascot on top of the playerlist",
 				"unittotals": "unit totals",
 				"unittotals_descr": "Show your unit totals on top of the playerlist",
 				"musicplayer": "music player",
