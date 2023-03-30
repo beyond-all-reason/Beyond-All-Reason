@@ -184,7 +184,7 @@ local callInLists = {
 	"AllowUnitCreation",
 	"AllowUnitTransfer",
 	"AllowUnitBuildStep",
-	--"AllowUnitCaptureStep",
+	"AllowUnitCaptureStep",
 	"AllowUnitTransport",
 	"AllowUnitTransportLoad",
 	"AllowUnitTransportUnload",
