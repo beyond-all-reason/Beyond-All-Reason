@@ -2149,6 +2149,9 @@ function widget:Initialize()
 	WG['topbar'].getAutoHideButtons = function()
 		return autoHideButtons
 	end
+	WG['topbar'].getShowButtons = function()
+		return showButtons
+	end
 
 	widget:ViewResize()
 
