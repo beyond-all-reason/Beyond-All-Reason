@@ -16,9 +16,10 @@ function widget:GetInfo()
 	}
 end
 
-local GetCameraState      = Spring.GetCameraState
-local SetCameraState      = Spring.SetCameraState
-local SetCameraTarget     = Spring.SetCameraTarget
+local GetCameraState  = Spring.GetCameraState
+local SetCameraState  = Spring.SetCameraState
+local GetConfigInt    = Spring.GetConfigInt
+local SendCommands    = Spring.SendCommands
 
 function widget:Initialize()
 	widgetHandler:AddAction("set_camera_anchor", SetCameraAnchor, nil, 'p')
@@ -34,7 +35,7 @@ function SetCameraAnchor(_, _, args)
 	cameraAnchors[anchorId] = cameraState
 
 	Spring.Echo("Camera anchor set: " .. anchorId)
-	
+
 	return true
 end
 
@@ -43,6 +44,12 @@ function FocusCameraAnchor(_, _, args)
 	local cameraState = cameraAnchors[anchorId]
 
 	if not cameraState then return end
+
+	-- make sure if last camera state minimized minimap to unminimize it
+	-- overview camera hides minimap
+	if GetConfigInt("MinimapMinimize", 0) == 0 then
+		SendCommands("minimap minimize 0")
+	end
 
 	SetCameraState(cameraState, 0)
 
