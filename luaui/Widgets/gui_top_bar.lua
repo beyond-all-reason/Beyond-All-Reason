@@ -39,6 +39,8 @@ local buttonBgtexOpacity = 0
 local buttonBgtexSize
 local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
 local bgtexSize
+local showButtons = true
+local autoHideButtons = false
 
 local playSounds = true
 local leftclick = 'LuaUI/Sounds/tock.wav'
@@ -1446,20 +1448,8 @@ function widget:drawTidal()
    end
 end
 
-function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
-
+local function drawResBars()
 	glPushMatrix()
-
-	local now = os.clock()
-	local mx, my, mb = spGetMouseState()
-	hoveringTopbar = hoveringElement(mx, my)
-
-	if hoveringTopbar then
-		Spring.SetMouseCursor('cursornormal')
-	end
 
 	local updateText = os.clock() - updateTextClock > 0.1
 	if updateText then
@@ -1522,6 +1512,22 @@ function widget:DrawScreen()
 		glCallList(dlistResbar[res][2])
 	end
 
+	glPopMatrix()
+end
+
+function widget:DrawScreen()
+	glPushMatrix()
+
+	local now = os.clock()
+	local mx, my, mb = spGetMouseState()
+	hoveringTopbar = hoveringElement(mx, my)
+
+	if hoveringTopbar then
+		Spring.SetMouseCursor('cursornormal')
+	end
+
+	drawResBars()
+
 	if dlistWind1 then
 		glPushMatrix()
 		glCallList(dlistWind1)
@@ -1571,7 +1577,29 @@ function widget:DrawScreen()
 		end
 	end
 
-	if dlistButtons1 then
+	if autoHideButtons then
+		if buttonsArea[1] and math_isInRect(mx, my, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
+			if not showButtons then
+				showButtons = true
+				dlistButtonsGuishader = glCreateList(function()
+					RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0,0,1,1)
+				end)
+				if WG['guishader'] then
+					WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
+				end
+			end
+		elseif showButtons then
+			showButtons = false
+			if dlistButtonsGuishader ~= nil then
+				if WG['guishader'] then
+					WG['guishader'].RemoveDlist('topbar_buttons')
+				end
+				glDeleteList(dlistButtonsGuishader)
+			end
+		end
+	end
+
+	if showButtons and dlistButtons1 then
 		glCallList(dlistButtons1)
 		-- hovered?
 		if not showQuitscreen and buttonsArea['buttons'] ~= nil and math_isInRect(mx, my, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
@@ -2111,6 +2139,16 @@ function widget:Initialize()
 	WG['topbar'].hideWindows = function()
 		hideWindows()
 	end
+	WG['topbar'].setAutoHideButtons = function(value)
+		autoHideButtons = value
+		if autoHideButtons then
+			showButtons = false
+		end
+		updateButtons()
+	end
+	WG['topbar'].getAutoHideButtons = function()
+		return autoHideButtons
+	end
 
 	widget:ViewResize()
 
@@ -2195,4 +2233,16 @@ function widget:Shutdown()
 	Spring.SendCommands("resbar 1")
 	shutdown()
 	WG['topbar'] = nil
+end
+
+function widget:GetConfigData()
+	return {
+		autoHideButtons = autoHideButtons
+	}
+end
+
+function widget:SetConfigData(data)
+	if data.autoHideButtons ~= nil then
+		autoHideButtons = data.autoHideButtons
+	end
 end
