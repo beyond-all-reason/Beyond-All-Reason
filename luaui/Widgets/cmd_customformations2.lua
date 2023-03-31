@@ -84,6 +84,11 @@ local positionCmds = {
     [CMD_SETTARGET] = true -- set target
 }
 
+-- Commands that have uniform group speed formations via modifiers in engine (holding ctrl)
+local groupSpeedCommands = {
+    [CMD.MOVE] = true,
+}
+
 local chobbyInterface
 local lineLength = 0
 
@@ -446,11 +451,15 @@ function widget:MousePress(mx, my, mButton)
         usingCmd = CMD_UNLOADUNIT
     end
 
-    -- Is this command eligible for a custom formation ?
-    local alt, ctrl, meta, shift = GetModKeys()
+    local alt, ctrl = GetModKeys()
+
     if not (formationCmds[usingCmd] and (alt or not requiresAlt[usingCmd])) then
         return false
     end
+
+		if groupSpeedCommands[usingCmd] and ctrl then
+			return false
+		end
 
     -- Get clicked position
     local _, pos = spTraceScreenRay(mx, my, true, inMinimap)
@@ -466,7 +475,7 @@ function widget:MousePress(mx, my, mButton)
 	WG.customformations_linelength = lineLength
     return true
 end
-function widget:MouseMove(mx, my, dx, dy, mButton)
+function widget:MouseMove(mx, my, dx, dy)
     -- It is possible for MouseMove to fire after MouseRelease
     if #fNodes == 0 then
         return false
@@ -524,7 +533,8 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 	WG.customformations_linelength = lineLength
     return false
 end
-function widget:MouseRelease(mx, my, mButton)
+
+function widget:MouseRelease(mx, my)
 	lineLength = 0
 	WG.customformations_linelength = lineLength
 
