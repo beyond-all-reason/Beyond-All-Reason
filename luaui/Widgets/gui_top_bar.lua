@@ -472,11 +472,13 @@ local function updateButtons()
 		end
 		glDeleteList(dlistButtonsGuishader)
 	end
-	dlistButtonsGuishader = glCreateList(function()
-		RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0,0,1,1)
-	end)
-	if WG['guishader'] then
-		WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
+	if showButtons then
+		dlistButtonsGuishader = glCreateList(function()
+			RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0,0,1,1)
+		end)
+		if WG['guishader'] then
+			WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
+		end
 	end
 
 	if dlistButtons2 ~= nil then
