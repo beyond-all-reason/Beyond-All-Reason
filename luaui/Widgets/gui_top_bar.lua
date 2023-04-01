@@ -1518,7 +1518,6 @@ local function drawResBars()
 end
 
 function widget:DrawScreen()
-	glPushMatrix()
 
 	local now = os.clock()
 	local mx, my, mb = spGetMouseState()
@@ -1530,6 +1529,7 @@ function widget:DrawScreen()
 
 	drawResBars()
 
+	glPushMatrix()
 	if dlistWind1 then
 		glPushMatrix()
 		glCallList(dlistWind1)
