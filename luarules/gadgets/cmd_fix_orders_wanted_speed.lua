@@ -14,7 +14,7 @@ end
 -- speed neither movetype over a game.                                       ---
 --                                                                           ---
 -- Before implementing any kind of feature that changes these parameters     ---
--- dynamically this widget must be modified to get the unit movetype speed   ---
+-- dynamically this gadget must be modified to get the unit movetype speed   ---
 -- correspondingly.                                                          ---
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ function gadget:GetInfo()
 		name      = "Fix Wanted Speed",
 		desc      = "Reset max wanted speed for orders given via Lua. Avoids persisted wanted speed states from hardcoded engine behavior.",
 		author    = "badosu, adapted from 'Wanted Speed' by GoogleFrog",
-		date      = "11 November 2018",
+		date      = "31 March 2023",
 		license   = "GNU GPL, v2 or later",
 		layer     = -9999999999, -- Before every state toggle gadget.
 		enabled   = true,
