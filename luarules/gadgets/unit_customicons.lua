@@ -641,6 +641,7 @@ local units = {
 	legcomt2def = { "legcomt2_def.png", 2.2 },
 	legcomt2off = { "legcom_off.png", 2.2 },
 	legcv = { "vehicle_worker.png", 0.99749994 },
+	legdrone = { "air_hover.png", 0.5 },
 	legfig = { "air.png", 0.65 },
 	legfort = { "air_battleship.png", 2.3 },
 	leggant = { "factory_gantry.png", 2.51999998 },

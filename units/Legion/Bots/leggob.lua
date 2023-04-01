@@ -133,7 +133,7 @@ return {
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 3,
 				range = 300,
-				reloadtime = 1,
+				reloadtime = 1.1,
 				rgbcolor = "1 0.95 0.4",
 				--size = 2.25,
 				soundhit = "bimpact3",
