@@ -645,9 +645,9 @@
 		"factionPicker": {
 			"pick": "Pick your faction",
 			"factions": {
-				"arm": "",
-				"cor": "",
-				"leg": "This faction is still work in progress"
+				"arm": "Outsmart your foes with tactical finesse",
+				"cor": "Smash your foes with brute force",
+				"leg": "This faction is still a work in progress"
 			}
 		},
 		"widgetselector": {
@@ -835,17 +835,12 @@
 				"cas_sharpness": "Sharpness",
 				"cas_sharpness_descr": "How much sharpening should be applied to 3d world space",
 				"sepiatone": "Color filters",
-				"sepiatone_descr": "",
 				"sepiatone_gamma": "gamma",
-				"sepiatone_gamma_descr": "",
 				"sepiatone_saturation": "saturation",
-				"sepiatone_saturation_descr": "",
 				"sepiatone_contrast": "contrast",
-				"sepiatone_contrast_descr": "",
 				"sepiatone_sepia": "sepia",
 				"sepiatone_sepia_descr": "colorize with a sepia tone",
 				"sepiatone_shadeui": "affect the UI",
-				"sepiatone_shadeui_descr": "",
 				"cus": "Advanced Model Shading",
 				"cus_descr": "Enables: depth texture, looking damaged, lights that blink, environment lighting, moving tank tracks.",
 				"darkenmap": "Darken map",
@@ -889,7 +884,6 @@
 				"decals": "Unit tracks",
 				"decals_descr": "0 = Off\n\nNOTE: Changes might require a restart (if you turn it On/Off)",
 				"decalsgl4": "Ground scarring",
-				"decalsgl4_descr": "",
 				"decalsgl4_lifetime": "lifetime",
 				"decalsgl4_lifetime_descr": "...changes only apply to newly created scars",
 				"grounddetail": "Ground detail",
@@ -1118,7 +1112,6 @@
 				"info_mappos": "display map position",
 				"info_mappos_descr": "Display the mouse cursors map position and elevation",
 				"info_alwaysshow": "always show",
-				"info_alwaysshow_descr": "",
 				"advplayerlist": "Playerlist",
 				"advplayerlist_scale": "scale",
 				"advplayerlist_scale_descr": "Resize the playerlist (and its addons)",
@@ -1333,7 +1326,6 @@
 				"builderpriority_labs": "labs",
 				"builderpriority_labs_descr": "Toggle to set low priority",
 				"autocloak": "Auto Cloak Units",
-				"autocloak_descr": "",
 				"unitreclaimer": "Unit Reclaimer",
 				"unitreclaimer_descr": "Reclaim units within an area.\nHover over a unit and hold CTRL and drag area-reclaim circle to reclaim all units within, use ALT for just the type you hover over.",
 				"autogroup_immediate": "Autogroup immediate mode",
