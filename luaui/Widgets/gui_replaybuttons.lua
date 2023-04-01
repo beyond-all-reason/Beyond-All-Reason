@@ -39,7 +39,7 @@ local GL_ONE = GL.ONE
 
 local RectRound, UiButton, elementCorner
 
-local chobbyInterface, font, backgroundGuishader, buttonsList, buttonlist, active_button, bgpadding
+local font, backgroundGuishader, buttonsList, buttonlist, active_button, bgpadding
 
 local function add_button(x, y, text, name)
 	local new_button = {}
@@ -125,16 +125,9 @@ function widget:Shutdown()
 	gl.DeleteList(buttonsList)
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
 	if WG['guishader'] then
 		if isActive then
 			local dy = (#speeds + 1) * bHeight

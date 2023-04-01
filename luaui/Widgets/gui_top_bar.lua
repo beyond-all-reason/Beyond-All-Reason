@@ -182,7 +182,7 @@ local gameFrame = Spring.GetGameFrame()
 
 local draggingShareIndicatorValue = {}
 
-local font, font2, chobbyInterface, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover
+local font, font2, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover
 local draggingConversionIndicatorValue, draggingShareIndicator, draggingConversionIndicator
 local conversionIndicatorArea, quitscreenArea, quitscreenStayArea, quitscreenQuitArea, quitscreenResignArea, hoveringTopbar, hideQuitWindow
 local dlistButtonsGuishader, dlistRejoinGuishader, dlistComsGuishader, dlistButtonsGuishader, dlistWindGuishader, dlistTidalGuishader, dlistQuit
@@ -1279,9 +1279,6 @@ local t = UPDATE_RATE_S
 local blinkDirection = true
 local blinkProgress = 0
 function widget:Update(dt)
-	if chobbyInterface then
-		return
-	end
 
 	local prevMyTeamID = myTeamID
 	if spec and spGetMyTeamID() ~= prevMyTeamID then
@@ -1405,12 +1402,6 @@ function widget:Update(dt)
 				init()
 			end
 		end
-	end
-end
-
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 	end
 end
 

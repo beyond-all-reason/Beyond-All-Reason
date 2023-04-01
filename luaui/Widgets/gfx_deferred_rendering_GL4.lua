@@ -276,7 +276,6 @@ local autoLightInstanceID = 128000 -- as MAX_PROJECTILES = 128000, so they get u
 
 
 local gameFrame = 0
-local chobbyInterface = false
 
 local trackedProjectiles = {} -- used for finding out which projectiles can be culled {projectileID = updateFrame, ...}
 local trackedProjectileTypes = {} -- we have to track the types [point, light, cone] of projectile lights for efficient updates
@@ -816,7 +815,7 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noUpload)
 				--Spring.Debug.TraceFullEcho(nil,nil,nil,"AddStaticLightsForUnit")
 				--Spring.Debug.TableEcho(lightParams)
 				local targetVBO = unitLightVBOMap[lightParams.lightType]
-				
+
 				if (not spec) and lightParams.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then return end
 				AddLight(tostring(unitID) ..  lightname, unitID, lightParams.pieceIndex, targetVBO, lightParams.lightParamTable)
 			end
@@ -1109,22 +1108,22 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 					end
 
 					-- bail if only for allies
-					if (not spec) and lightTable.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then 
+					if (not spec) and lightTable.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then
 						visible = false
 					end
-					
+
 					-- bail if unable to initialize light
-					if not lightTable.initComplete then 
-						if not InitializeLight(lightTable, unitID) then 
+					if not lightTable.initComplete then
+						if not InitializeLight(lightTable, unitID) then
 							visible = false
 						end
 					end
-					
+
 					-- bail if invalid unitID wants a unit-attached light
-					if lightTable.pieceName and (visibleUnits[unitID] == nil) then 
+					if lightTable.pieceName and (visibleUnits[unitID] == nil) then
 						visible = false
 					end
-					
+
 					if visible then
 						--if lightTable.aboveUnit then lightTable.lightParamTable end
 						local lightParamTable = lightTable.lightParamTable
@@ -1150,7 +1149,7 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 							AddLight(eventName .. tostring(unitID) ..  lightname, nil, lightTable.pieceIndex, lightVBOMap[lightTable.lightType], lightCacheTable)
 						end
 					end
-				
+
 				end
 			end
 		end
@@ -1446,7 +1445,6 @@ end
 
 -- local tf = Spring.GetTimerMicros()
 function widget:DrawWorld() -- We are drawing in world space, probably a bad idea but hey
-	if chobbyInterface then return end
 	--local t0 = Spring.GetTimerMicros()
 	--if true then return end
 	if skipdraw then return end
@@ -1537,12 +1535,6 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	--	Spring.Echo("Deltat is ", dt,'us, so total load should be', dt * Spring.GetFPS() / 10 ,'%')
 	--	Spring.Echo("epoch is ", Spring.DiffTimers(t1,tf))
 	--end
-end
-
-function widget:RecvLuaMsg(msg)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
 end
 
 -- Register /luaui dlgl4stats to dump light statistics

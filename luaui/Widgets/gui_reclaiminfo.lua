@@ -41,7 +41,7 @@ local inMinimap = false --mouse cursor in minimap
 
 local math_sqrt = math.sqrt
 
-local font, rx, ry, chobbyInterface
+local font, rx, ry
 
 local isReclaimable = {}
 local unitMetalCost = {}
@@ -78,16 +78,9 @@ local function MinimapToWorld(rx, ry)
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
 	_, cmd, _ = Spring.GetActiveCommand()
 	x, y, b1, _, b2 = Spring.GetMouseState() --b1 = left button pressed?
 	nonground, _ = Spring.GetMouseCursor()

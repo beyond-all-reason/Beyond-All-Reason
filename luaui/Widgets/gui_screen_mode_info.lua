@@ -26,7 +26,7 @@ local glTranslate = gl.Translate
 local vsx, vsy = spGetViewGeometry()
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
 
-local font, chobbyInterface
+local font
 local currentLayout
 local screenmode
 
@@ -68,14 +68,7 @@ function widget:Initialize()
 	widget:ViewResize()
 end
 
-function widget:RecvLuaMsg(msg)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then return end
 	if WG['topbar'] and WG['topbar'].showingQuit() then return end
 
 	framecount = framecount + 1

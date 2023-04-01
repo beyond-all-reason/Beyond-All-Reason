@@ -103,7 +103,7 @@ local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousName = '?????'
 
-local usedFontSize, chobbyInterface
+local usedFontSize
 
 local comms = {}
 local comnameList = {}
@@ -429,7 +429,6 @@ local function createComnameIconList(unitID, attributes)
 end
 
 function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader will blur it when needed
-	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 	if Spring.GetGameFrame() < hideBelowGameframe then return end
 
@@ -454,15 +453,10 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader
 	drawScreenUnits = {}
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 
 function widget:DrawWorld()
-	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 	if Spring.GetGameFrame() < hideBelowGameframe then return end
 

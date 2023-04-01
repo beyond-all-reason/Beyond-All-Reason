@@ -56,7 +56,7 @@ local GetTeamResources = Spring.GetTeamResources
 
 local RectRound, UiElement
 
-local font, chobbyInterface, sideImageList
+local font, sideImageList
 
 local Button = {}
 
@@ -1304,14 +1304,8 @@ function widget:Update(dt)
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if not myFullview or not inSpecMode or chobbyInterface or Spring.IsGUIHidden() then
+	if not myFullview or not inSpecMode or Spring.IsGUIHidden() then
 		return
 	end
 

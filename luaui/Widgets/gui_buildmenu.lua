@@ -52,7 +52,7 @@ local hoverCellZoom = 0.05 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
-local bgpadding, chobbyInterface, activeAreaMargin, iconTypesMap
+local bgpadding, activeAreaMargin, iconTypesMap
 local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2, cmdsCount
 local doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize, priceFontSize
@@ -900,12 +900,6 @@ function drawBuildmenu()
 	font2:End()
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 local function GetBuildingDimensions(uDefID, facing)
 	local bDef = UnitDefs[uDefID]
 	if (facing % 2 == 1) then
@@ -996,10 +990,6 @@ function widget:DrawScreen()
 	if (not cachedUnitIcons) and Spring.GetGameFrame() == 0 then
 		cachedUnitIcons = true
 		cacheUnitIcons()
-	end
-
-	if chobbyInterface then
-		return
 	end
 
 	-- refresh buildmenu if active cmd changed

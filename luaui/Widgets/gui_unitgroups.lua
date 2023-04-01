@@ -60,7 +60,7 @@ local selectedGroups = {}
 
 local groupButtons = {}
 
-local font, font2, chobbyInterface, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
+local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
 local buildmenuAlwaysShow, ordermenuAlwaysShow = false, false
 local buildmenuShowingPosY = 0
 
@@ -142,12 +142,6 @@ function widget:Shutdown()
 		dlistGuishader = nil
 	end
 	WG['unitgroups'] = nil
-end
-
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
 end
 
 local function checkGuishader(force)
@@ -416,10 +410,6 @@ local function updateList()
 end
 
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
-
 	if (not spec or showWhenSpec) and dlist then
 		gl.CallList(dlist)
 	end

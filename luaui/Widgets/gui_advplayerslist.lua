@@ -199,7 +199,7 @@ local aliveAllyTeams = {}
 local allyTeamMaxStorage = {}
 local screenshotVars = {} -- containing: finished, width, height, gameframe, data, dataLast, dlist, pixels, player, filename, saved, saveQueued, posX, posY
 
-local Background, ShareSlider, chobbyInterface, BackgroundGuishader, tipText, drawTipText, tipY, myLastCameraState
+local Background, ShareSlider, BackgroundGuishader, tipText, drawTipText, tipY, myLastCameraState
 local specJoinedOnce, scheduledSpecFullView
 local prevClickedPlayer
 local lockPlayerID, leftPosX, lastSliderSound, release
@@ -1698,16 +1698,7 @@ end
 --  Draw control
 ---------------------------------------------------------------------------------------------------
 
-function widget:RecvLuaMsg(msg, playerID)
-    if msg:sub(1, 18) == 'LobbyOverlayActive' then
-        chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-    end
-end
-
 function widget:DrawScreen()
-    if chobbyInterface then
-        return
-    end
     if Spring_IsGUIHidden() then
         return
     end

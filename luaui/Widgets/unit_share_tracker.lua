@@ -37,7 +37,7 @@ local minimapHighlightSize = 3
 local minimapHighlightLineMin = 4
 local minimapHighlightLineMax = 8
 
-local chobbyInterface, font
+local font
 
 ----------------------------------------------------------------
 -- speedups
@@ -109,16 +109,7 @@ function widget:Initialize()
 	widget:ViewResize()
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
 	if not on or next(mapPoints) == nil then
 		return
 	end
