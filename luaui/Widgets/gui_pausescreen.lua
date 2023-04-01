@@ -267,10 +267,6 @@ function widget:GamePaused(playerID, isGamePaused)
 end
 
 function widget:DrawScreen()
-	if Spring.IsGUIHidden() then
-		return
-	end
-
 	local now = osClock()
 
 	if paused or (now - pauseTimestamp) <= slideTime then

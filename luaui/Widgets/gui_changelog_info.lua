@@ -264,9 +264,6 @@ end
 
 
 function widget:DrawScreen()
-	if spIsGUIHidden() then
-		return
-	end
 
 	-- draw the help
 	if not changelogList then

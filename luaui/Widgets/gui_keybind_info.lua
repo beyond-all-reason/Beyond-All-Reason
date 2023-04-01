@@ -53,8 +53,6 @@ local screenWidthOrg = 1050
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
-local spIsGUIHidden = Spring.IsGUIHidden
-
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
@@ -339,9 +337,6 @@ end
 
 
 function widget:DrawScreen()
-	if spIsGUIHidden() then
-		return
-	end
 
 	-- draw the help
 	if doUpdate then
@@ -397,7 +392,7 @@ function widget:KeyPress(key)
 end
 
 local function mouseEvent(x, y, button, release)
-	if spIsGUIHidden() then
+	if Spring.IsGUIHidden() then
 		return false
 	end
 

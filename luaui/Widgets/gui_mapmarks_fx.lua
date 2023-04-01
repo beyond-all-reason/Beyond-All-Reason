@@ -166,7 +166,6 @@ end
 
 
 function widget:DrawWorldPreUnit()
-
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 	if WG.clearmapmarks and WG.clearmapmarks.continuous then return end

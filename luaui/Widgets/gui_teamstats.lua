@@ -83,7 +83,6 @@ local GetTeamList			= Spring.GetTeamList
 local GetTeamStatsHistory	= Spring.GetTeamStatsHistory
 local GetTeamInfo			= Spring.GetTeamInfo
 local GetPlayerInfo			= Spring.GetPlayerInfo
-local IsGUIHidden			= Spring.IsGUIHidden
 local GetMouseState			= Spring.GetMouseState
 local GetGameFrame			= Spring.GetGameFrame
 local min					= math.min
@@ -576,8 +575,6 @@ local function DrawAllStats()
 end
 
 function widget:DrawScreen()
-	if IsGUIHidden() then return end
-
 	if not guiData.mainPanel.visible then
 		if WG['guishader'] then
 			WG['guishader'].DeleteDlist('teamstats_window')

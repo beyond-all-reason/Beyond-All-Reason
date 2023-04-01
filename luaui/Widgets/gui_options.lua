@@ -100,7 +100,6 @@ local manualChange = true
 
 local guishaderIntensity = 0.0035
 
-local spIsGUIHidden = Spring.IsGUIHidden
 local spGetGroundHeight = Spring.GetGroundHeight
 
 local os_clock = os.clock
@@ -898,12 +897,6 @@ function widget:DrawScreen()
 		init()
 		initialized = true
 	else
-		if chobbyInterface then
-			return
-		end
-		if spIsGUIHidden() then
-			return
-		end
 
 		-- update new slider value
 		if sliderValueChanged then
@@ -1250,7 +1243,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(mx, my, button, release)
-	if spIsGUIHidden() then
+	if Spring.IsGUIHidden() then
 		return false
 	end
 

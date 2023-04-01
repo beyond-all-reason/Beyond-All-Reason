@@ -64,12 +64,6 @@ end
 function widget:Update(dt)
 end
 
-function widget:DrawScreen()
-	if Spring.IsGUIHidden() then
-		return
-	end
-end
-
 function widget:DrawScreenEffects()
 	if Spring.IsGUIHidden() then
 		return

@@ -1305,7 +1305,7 @@ function widget:Update(dt)
 end
 
 function widget:DrawScreen()
-	if not myFullview or not inSpecMode or Spring.IsGUIHidden() then
+	if not myFullview or not inSpecMode then
 		return
 	end
 

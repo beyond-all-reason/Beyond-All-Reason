@@ -22,13 +22,6 @@ local largeradarrange = 3500	-- updates to 'armarad' value
 local cmdidtoradarsize = {}
 local radaremitheight = {}
 
--- Functions shortcuts
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetUnitIsActive = Spring.GetUnitIsActive
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spIsGUIHidden = Spring.IsGUIHidden
-
 -- Globals
 local mousepos = { 0, 0, 0 }
 local spGetActiveCommand = Spring.GetActiveCommand
@@ -318,7 +311,7 @@ function widget:DrawWorld()
 		end -- not build command
 	end
 
-	if spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then
+	if Spring.IsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then
 		return
 	end
 

@@ -80,8 +80,6 @@ local Spring_SendCommands = Spring.SendCommands
 local Spring_GetMouseState = Spring.GetMouseState
 local Spring_GetAIInfo = Spring.GetAIInfo
 local Spring_GetTeamRulesParam = Spring.GetTeamRulesParam
-local Spring_IsGUIHidden = Spring.IsGUIHidden
-local Spring_GetDrawFrame = Spring.GetDrawFrame
 local Spring_GetMyTeamID = Spring.GetMyTeamID
 local Spring_AreTeamsAllied = Spring.AreTeamsAllied
 
@@ -1699,9 +1697,6 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function widget:DrawScreen()
-    if Spring_IsGUIHidden() then
-        return
-    end
     local mouseX, mouseY, mouseButtonL, mmb, rmb, mouseOffScreen, cameraPanMode = Spring.GetMouseState()
     --if cameraPanMode then
     --    if BackgroundGuishader then

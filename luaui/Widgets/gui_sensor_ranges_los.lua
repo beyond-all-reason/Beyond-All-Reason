@@ -183,7 +183,6 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
-local spIsGUIHidden = Spring.IsGUIHidden
 local spIsUnitAllied = Spring.IsUnitAllied
 local glColor = gl.Color
 local glColorMask = gl.ColorMask
@@ -194,7 +193,6 @@ local glStencilOp = gl.StencilOp
 local glStencilTest = gl.StencilTest
 local glStencilMask = gl.StencilMask
 local GL_ALWAYS = GL.ALWAYS
-local GL_EQUAL = GL.EQUAL
 local GL_NOTEQUAL = GL.NOTEQUAL
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_KEEP = 0x1E00 --GL.KEEP
@@ -401,7 +399,7 @@ end
 
 function widget:DrawWorldPreUnit()
 	--if spec and fullview then return end
-	if spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then
+	if Spring.IsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then
 		return
 	end
 

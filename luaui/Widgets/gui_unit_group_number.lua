@@ -18,7 +18,6 @@ local fontSize = 13
 local GetGroupList = Spring.GetGroupList
 local GetGroupUnits = Spring.GetGroupUnits
 local GetGameFrame = Spring.GetGameFrame
-local IsGuiHidden = Spring.IsGUIHidden
 local spIsUnitInView = Spring.IsUnitInView
 local spGetUnitViewPosition = Spring.GetUnitViewPosition
 local spGetCameraPosition = Spring.GetCameraPosition
@@ -96,7 +95,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 end
 
 function widget:DrawWorld()
-	if IsGuiHidden() or GetGameFrame() < hideBelowGameframe then
+	if Spring.IsGUIHidden() or GetGameFrame() < hideBelowGameframe then
 		return
 	end
 	existingGroupsFrame = existingGroupsFrame + 1
