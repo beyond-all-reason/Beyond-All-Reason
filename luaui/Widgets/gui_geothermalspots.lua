@@ -256,7 +256,7 @@ local function initGL4()
 			vertex = vsSrc,
 			fragment = fsSrc,
 		},
-		"spotShader GL4"
+		"geoSpotShader GL4"
 	)
 	shaderCompiled = spotShader:Initialize()
 	if not shaderCompiled then goodbye("Failed to compile spotShader GL4 ") end
@@ -265,7 +265,7 @@ local function initGL4()
 		{id = 1, name = 'worldpos_radius', size = 4},
 		{id = 2, name = 'visibility', size = 4},
 	}
-	spotInstanceVBO = makeInstanceVBOTable(spotInstanceVBOLayout, 8, "spotInstanceVBO")
+	spotInstanceVBO = makeInstanceVBOTable(spotInstanceVBOLayout, 8, "geoSpotInstanceVBO")
 	spotInstanceVBO.numVertices = numVertices
 	spotInstanceVBO.vertexVBO = spotVBO
 	spotInstanceVBO.VAO = makeVAOandAttach(spotInstanceVBO.vertexVBO, spotInstanceVBO.instanceVBO)

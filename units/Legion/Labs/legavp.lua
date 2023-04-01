@@ -44,6 +44,7 @@ return {
 			"corgol",
 			"corban",
 			"cormart",
+			"legvcarry",
 			"corvroc",
 			"leginf",
 			"corsent",

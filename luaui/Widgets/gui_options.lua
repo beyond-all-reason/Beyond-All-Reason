@@ -3221,6 +3221,15 @@ function init()
 		--  end,
 		--},
 
+		{ id = "topbar_hidebuttons", group = "ui", category = types.advanced, name = texts.option.topbar..widgetOptionColor .. "  " .. texts.option.topbar_hidebuttons, type = "bool", value = (WG['topbar'] ~= nil and WG['topbar'].getAutoHideButtons() or 0),
+		  onload = function(i)
+			  loadWidgetData("Top Bar", "topbar_hidebuttons", { 'autoHideButtons' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Top Bar', 'topbar', 'setAutoHideButtons', { 'autoHideButtons' }, value)
+		  end,
+		},
+
 		{ id = "continuouslyclearmapmarks", group = "ui", category = types.dev, name = texts.option.continuouslyclearmapmarks, type = "bool", value = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1, description = texts.option.continuouslyclearmapmarks_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("ContinuouslyClearMapmarks", (value and 1 or 0))
@@ -5327,7 +5336,7 @@ function init()
 						local faction = Spring.I18N('units.factions.' .. string.sub(UnitDefs[k].name,1,3))
 						if faction then
 							count = count + 1
-							newOptions[count] = { id = "autocloak_" .. k, group = "game", category = types.basic, name = widgetOptionColor .. "   " .. UnitDefs[k].translatedHumanName..'  ('..faction..')', type = "bool", value = v, description = "",
+							newOptions[count] = { id = "autocloak_" .. k, group = "game", category = types.basic, name = widgetOptionColor .. "   " .. UnitDefs[k].translatedHumanName..'  ('..faction..')', type = "bool", value = v, description = UnitDefs[k].translatedTooltip,
 							  onchange = function(i, value)
 								  saveOptionValue('Auto Cloak Units', 'autocloak', 'setUnitdefConfig', { 'unitdefConfig', k }, value, { k, value } )
 							  end,

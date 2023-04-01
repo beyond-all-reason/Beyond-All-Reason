@@ -31,6 +31,7 @@ local inSpecMode = false
 local isReplay = Spring.IsReplay()
 local myAllyID = Spring.GetLocalAllyTeamID()
 local vsx, vsy = Spring.GetViewGeometry()
+local topbarShowButtons = true
 
 local sin = math.sin
 local floor = math.floor
@@ -230,6 +231,9 @@ local function updateButtons()
 
 	if cfgSticktotopbar and WG['topbar'] ~= nil then
 		local topbarArea = WG['topbar'].GetPosition()
+		if not topbarShowButtons then
+			topbarArea[2] = topbarArea[4]
+		end
 		widgetPosX = topbarArea[3] - widgetWidth
 		widgetPosY = topbarArea[2] - widgetHeight
 	end
@@ -1291,6 +1295,12 @@ function widget:Update(dt)
 			UpdateAllTeams()
 			makeSideImageList()
 		end
+	end
+	local prevTopbarShowButtons = topbarShowButtons
+	topbarShowButtons = WG['topbar'].getShowButtons()
+	if topbarShowButtons ~= prevTopbarShowButtons then
+		Reinit()
+		lastTextListUpdate = 0
 	end
 end
 

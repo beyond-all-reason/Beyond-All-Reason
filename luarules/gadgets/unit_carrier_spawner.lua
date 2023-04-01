@@ -432,6 +432,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					decayRate = tonumber(spawnDef.decayRate) or 0,
 					activeDocking = false, --currently not in use
 					activeRecall = false,
+					activeSpawning = false,
 					availablePieces = availablePieces,
 					carrierDeaththroe =spawnDef.carrierdeaththroe or "death",
 					parasite = "all",
@@ -593,16 +594,27 @@ local function UpdateCarrier(carrierID, carrierMetaList, frame)
 	local newOrder = true
 
 	
-
+	local activeSpawning = true
 	local idleRadius = carrierMetaList.radius
 	if carrierStates then
-		if carrierStates.firestate == 0 or carrierStates.movestate == 0 then
+		if carrierStates.firestate == 0 then
+			idleRadius = 0
+			activeSpawning = false
+		elseif carrierStates.movestate == 0 then
 			idleRadius = 0
 		elseif carrierStates.movestate == 1 then
 			idleRadius = 200
 		end
 	end
-
+	
+	local _, _, _, _, buildProgress = Spring.GetUnitHealth(carrierID)
+	
+	if buildProgress < 1 then
+		activeSpawning = false
+	end
+	
+	GG.carrierMetaList[carrierID].activeSpawning = activeSpawning
+	
 	local minEngagementRadius = carrierMetaList.minRadius
 	if carrierMetaList.subUnitsCommand.cmdID then
 		local prevcmdID = cmdID
@@ -798,8 +810,7 @@ function gadget:GameFrame(f)
 	if ((f % DEFAULT_SPAWN_CHECK_FREQUENCY) == 0) then
 		for unitID, _ in pairs(GG.carrierMetaList) do
 			if GG.carrierMetaList[unitID].spawnRateFrames == 0 then
-			elseif ((f % GG.carrierMetaList[unitID].spawnRateFrames) == 0) then
-
+			elseif ((f % GG.carrierMetaList[unitID].spawnRateFrames) == 0 and GG.carrierMetaList[unitID].activeSpawning) then
 				local spawnData = GG.carrierMetaList[unitID].subInitialSpawnData
 				local x, y, z = spGetUnitPosition(unitID)
 				spawnData.x = x
