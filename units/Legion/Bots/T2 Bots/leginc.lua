@@ -135,7 +135,7 @@ return {
 				noselfdamage = true,
 				proximitypriority = -1,
 				range = 750,
-				reloadtime = 1000,
+				reloadtime = 3,
 				rgbcolor = "1 0.8 0",
 				rgbcolor2 = "0.8 0 0",
 				soundhitdry = "",
