@@ -1519,15 +1519,14 @@ end
 
 function widget:DrawScreen()
 
+	drawResBars()
+
 	local now = os.clock()
 	local mx, my, mb = spGetMouseState()
 	hoveringTopbar = hoveringElement(mx, my)
-
 	if hoveringTopbar then
 		Spring.SetMouseCursor('cursornormal')
 	end
-
-	drawResBars()
 
 	glPushMatrix()
 	if dlistWind1 then
