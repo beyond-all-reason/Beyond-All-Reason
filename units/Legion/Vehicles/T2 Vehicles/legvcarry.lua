@@ -24,6 +24,7 @@ return {
 		maxvelocity = 1.5,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
+		movestate = 1,
 		name = "Gattling",
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGVCARRY.s3o",
@@ -143,7 +144,7 @@ return {
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
 				noselfdamage = true,
-				range = 900,
+				range = 1000,
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",--"xplomed2",
@@ -158,13 +159,13 @@ return {
 				customparams = {
 					carried_unit = "legdrone",     --Name of the unit spawned by this carrier unit. 
 					-- carried_unit2... 			Currently not implemented, but planned.
-					engagementrange = 900, 	
+					engagementrange = 1000, 	
 					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently. 
 					spawnrate = 10, 				--Spawnrate roughly in seconds. 
 					maxunits = 4,				--Will spawn units until this amount has been reached. 
 					buildcostenergy = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
 					buildcostmetal = 20,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
-					controlradius = 1000,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit. 
+					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit. 
 					decayrate = 3,
 					carrierdeaththroe = "control",
 					dockingarmor = 0.2,
