@@ -48,6 +48,7 @@ return {
 		sightdistance = 950,
 		smoothanim = true,
 		sonardistance = 720,
+		stealth = 1,
 		steeringmode = "2",
 		tedclass = "ABOT2",
 		trackoffset = 6,
@@ -114,7 +115,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
 				damage = {
-					default = 1130,
+					default = 600,
 				},
 			},
 		},
