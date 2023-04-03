@@ -973,6 +973,9 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == chickenTeamID then
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{3},0)
+			if UnitDefs[unitDefID].canCloak then
+				Spring.GiveOrderToUnit(unitID,37382,{1},0)
+			end
 			return
 		end
 		if squadPotentialTarget[unitID] then
