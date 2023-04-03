@@ -42,7 +42,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "bug_death",
 		side = "THUNDERBIRDS",
-		sightdistance = 600,
+		sightdistance = 500,
 		smoothanim = true,
 		tedclass = "METAL",
 		turninplace = true,

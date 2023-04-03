@@ -42,7 +42,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "tentacle_death",
 		side = "THUNDERBIRDS",
-		sightdistance = 940,
+		sightdistance = 500,
 		smoothanim = true,
 		tedclass = "METAL",
 		turninplace = true,
