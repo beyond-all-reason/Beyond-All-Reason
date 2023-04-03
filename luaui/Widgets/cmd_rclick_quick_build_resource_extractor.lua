@@ -36,20 +36,22 @@ local CMD_RECLAIM = CMD.RECLAIM
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetActiveCommand = Spring.GetActiveCommand
 
 ------------------------------------------------------------
 -- Other variables
 ------------------------------------------------------------
 local chobbyInterface, activeUnitShape, lastInsertedOrder
 
-local isT2Mex = {}
+local isMex = {}
 local isCloakableBuilder = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildOptions[1] and unitDef.canCloak then
 		isCloakableBuilder[unitDefID] = true
 	end
-	if unitDef.extractsMetal > 0.001 then
-		isT2Mex[unitDefID] = true
+
+	if unitDef.extractsMetal > 0 then
+		isMex[unitDefID] = true
 	end
 end
 
@@ -134,7 +136,7 @@ function widget:Update(dt)
 
 	if doUpdate then
 		local mx, my, mb, mmb, mb2 = Spring.GetMouseState()
-		_, activeCmdID = Spring.GetActiveCommand()
+		_, activeCmdID = spGetActiveCommand()
 
 		if #selectedUnits == 1 and isCloakableBuilder[Spring.GetUnitDefID(selectedUnits[1])] and select(5,Spring.GetUnitStates(selectedUnits[1],false,true)) then
 			-- unit is cloaked, abort!
@@ -144,7 +146,9 @@ function widget:Update(dt)
 			end
 			return
 		end
-		if (not activeCmdID or isT2Mex[-activeCmdID]) and (not WG.customformations_linelength or WG.customformations_linelength < 10) then	-- dragging multi-unit formation-move-line
+
+		if (not (activeCmdID and isMex[-activeCmdID])) and -- let player decide placement if they are building the mex themselves
+			 (not WG.customformations_linelength or WG.customformations_linelength < 10) then -- dragging multi-unit formation-move-line
 
 			local type, rayParams = Spring.TraceScreenRay(mx, my)
 			local isTech1Mex, isTech1Geo, groundHasEmptyMetal, groundHasEmptyGeo, params = CheckForBuildingOpportunity(type, rayParams)
@@ -155,7 +159,7 @@ function widget:Update(dt)
 					local hasT1constructor, hasT2constructor = false, false
 					-- search for constructors
 					local selUnitsCount = Spring.GetSelectedUnitsCounts()
-					for k,v in pairs(selUnitsCount) do
+					for k,_ in pairs(selUnitsCount) do
 						if k ~= 'n' then
 							if constructorsT1[k] then
 								hasT1constructor = true
@@ -242,11 +246,11 @@ function widget:CommandNotify(id, params, options)
 		return
 	end
 
-	local mx, my, mb = Spring.GetMouseState()
+	local mx, my = Spring.GetMouseState()
 
 	if isGuard then
 		if type == 'unit' then
-			local type, unitID = Spring.TraceScreenRay(mx, my)
+			local _, unitID = Spring.TraceScreenRay(mx, my)
 			if not (WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] <= t1mexThreshold)
 			and not (WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(unitID)] <= t1geoThreshold) then
 				return --no t1 buildings available
@@ -336,6 +340,12 @@ end
 -- make it so that it snaps and upgrades and does not need to be placed perfectly on top
 function widget:MousePress(mx, my, button)
 	if button == 1 and drawUnitShape and selectedUnits[1] then
+
+		activeCmdID = spGetActiveCommand()
+		if activeCmdID and isMex[-activeCmdID] then -- current activecmd is already build mex, let player decide how to place it
+			return false
+		end
+
 		if Spring.TestBuildOrder(drawUnitShape[1], drawUnitShape[2], drawUnitShape[3], drawUnitShape[4], 0) == 2 then
 			local alt, ctrl, meta, shift = Spring.GetModKeyState()
 			local keyState = {}
