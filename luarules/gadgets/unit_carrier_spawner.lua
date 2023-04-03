@@ -607,7 +607,7 @@ local function UpdateCarrier(carrierID, carrierMetaList, frame)
 		end
 	end
 	
-	local _, _, _, _, buildProgress = Spring.GetUnitHealth(carrierID)
+	local _, _, _, _, buildProgress = Spring.GetUnitHealth(carrierID) or 0
 	
 	if buildProgress < 1 then
 		activeSpawning = false
