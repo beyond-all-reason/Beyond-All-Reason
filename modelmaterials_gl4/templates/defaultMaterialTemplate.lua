@@ -1505,7 +1505,7 @@ fragment = [[
             ///
 			#if (USE_ENVIRONMENT_DIFFUSE == 1) || (USE_ENVIRONMENT_SPECULAR == 1)
 				#if (RENDERING_MODE == 0)
-					//TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
+					TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);	//needed for Intel GPU
 				#endif
 			#endif
             ///
