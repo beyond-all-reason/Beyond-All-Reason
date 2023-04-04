@@ -15,31 +15,45 @@ function gadget:GetInfo()
 	}
 end
 
-local spCreateFeature         = Spring.CreateFeature
-local spCreateUnit            = Spring.CreateUnit
-local spDestroyUnit           = Spring.DestroyUnit
-local spGetGameFrame          = Spring.GetGameFrame
-local spGetProjectileDefID    = Spring.GetProjectileDefID
-local spGetProjectileTeamID   = Spring.GetProjectileTeamID
-local spGetUnitShieldState    = Spring.GetUnitShieldState
-local spGiveOrderToUnit       = Spring.GiveOrderToUnit
-local spSetFeatureDirection   = Spring.SetFeatureDirection
-local spSetUnitRulesParam     = Spring.SetUnitRulesParam
-local spGetUnitPosition       = Spring.GetUnitPosition
-local SetUnitNoSelect         = Spring.SetUnitNoSelect
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spUseTeamResource = Spring.UseTeamResource --(teamID, "metal"|"energy", amount) return nil | bool hadEnough
-local spGetTeamResources = Spring.GetTeamResources --(teamID, "metal"|"energy") return nil | currentLevel
-local GetCommandQueue     = Spring.GetCommandQueue
-local spSetUnitArmored = Spring.SetUnitArmored
-local spGetUnitStates = Spring.GetUnitStates
-local spGetUnitBasePosition = Spring.GetUnitBasePosition
-local spGetUnitDefID        = Spring.GetUnitDefID
-local spSetUnitVelocity     = Spring.SetUnitVelocity
-local spGetUnitHeading      = Spring.GetUnitHeading
-local spGetUnitVelocity     = Spring.GetUnitVelocity
+local spCreateFeature           = Spring.CreateFeature
+local spCreateUnit              = Spring.CreateUnit
+local spDestroyUnit             = Spring.DestroyUnit
+local spGetGameFrame            = Spring.GetGameFrame
+local spGetProjectileDefID      = Spring.GetProjectileDefID
+local spGetProjectileTeamID     = Spring.GetProjectileTeamID
+local spGetUnitShieldState      = Spring.GetUnitShieldState
+local spGiveOrderToUnit         = Spring.GiveOrderToUnit
+local spSetFeatureDirection     = Spring.SetFeatureDirection
+local spSetUnitRulesParam       = Spring.SetUnitRulesParam
+local spGetUnitPosition			= Spring.GetUnitPosition
+local SetUnitNoSelect			= Spring.SetUnitNoSelect
+local spGetUnitRulesParam		= Spring.GetUnitRulesParam
+local spUseTeamResource 		= Spring.UseTeamResource --(teamID, "metal"|"energy", amount) return nil | bool hadEnough
+local spGetTeamResources 		= Spring.GetTeamResources --(teamID, "metal"|"energy") return nil | currentLevel
+local GetCommandQueue     		= Spring.GetCommandQueue
+local spSetUnitArmored 			= Spring.SetUnitArmored
+local spGetUnitStates			= Spring.GetUnitStates
+local spGetUnitBasePosition		= Spring.GetUnitBasePosition
+local spGetUnitDefID        	= Spring.GetUnitDefID
+local spSetUnitVelocity     	= Spring.SetUnitVelocity
+local spGetUnitHeading      	= Spring.GetUnitHeading
+local spGetUnitVelocity     	= Spring.GetUnitVelocity
+local spUnitAttach 				= Spring.UnitAttach  --can attach to  specific pieces using pieceID
+local spUnitDetach 				= Spring.UnitDetach
+local spSetUnitHealth 			= Spring.SetUnitHealth
+local spGetGroundHeight 		= Spring.GetGroundHeight
+local spGetUnitNearestEnemy		= Spring.GetUnitNearestEnemy
+local spTransferUnit			= Spring.TransferUnit
+local spGetUnitTeam 			= Spring.GetUnitTeam
+local spGetUnitsInCylinder 		= Spring.GetUnitsInCylinder
+local spGetUnitAllyTeam 		= Spring.GetUnitAllyTeam
+local spGetUnitHealth 			= Spring.GetUnitHealth
+local spGetUnitCurrentCommand 	= Spring.GetUnitCurrentCommand
+local spGetUnitWeaponTarget		= Spring.GetUnitWeaponTarget
 
-
+local mcEnable 				= Spring.MoveCtrl.Enable
+local mcSetPosition 		= Spring.MoveCtrl.SetPosition
+local mcDisable 			= Spring.MoveCtrl.Disable
 local mcSetVelocity         = Spring.MoveCtrl.SetVelocity
 local mcSetPosition         = Spring.MoveCtrl.SetPosition
 
@@ -50,9 +64,11 @@ local random = math.random
 local math_min = math.min
 local sin    = math.sin
 local cos    = math.cos
+local power = math.pow
 
+local PI = math.pi
 local GAME_SPEED = Game.gameSpeed
-local TAU = 2 * math.pi
+local TAU = 2 * PI
 local PRIVATE = { private = true }
 local CMD_WAIT = CMD.WAIT
 local EMPTY_TABLE = {}
@@ -76,8 +92,8 @@ GG.carrierMetaList = {}
 GG.droneMetaList = {}
 
 
-local DEFAULT_UPDATE_ORDER_FREQUENCY = 30--21 -- gameframes
-local CARRIER_UPDATE_FREQUENCY = 20--11 -- gameframes
+local DEFAULT_UPDATE_ORDER_FREQUENCY = 60--21 -- gameframes
+local CARRIER_UPDATE_FREQUENCY = 30--11 -- gameframes
 local DEFAULT_SPAWN_CHECK_FREQUENCY = 30 -- gameframes
 
 
@@ -194,9 +210,10 @@ local function RandomPointInUnitCircle(offset)
 	elseif startpointoffset < 0 then
 		startpointoffset = 0
 	end
-	local angle = random(0, 2*math.pi)
-	local distance = math.pow(random((startpointoffset/100), 1), 0.5)
-	return math.cos(angle)*distance, math.sin(angle)*distance
+	local angle = random(0, 2*PI)
+	--local distance = power(random((startpointoffset/100), 1), 0.5)
+	local distance = random((startpointoffset/100), 1)^0.5
+	return cos(angle)*distance, sin(angle)*distance
 end
 
 
@@ -210,9 +227,9 @@ function HealUnit(unitID, healrate, resourceFrames, h, mh)
 		newHealth = mh
 	end
 	if newHealth <= 0 then
-		Spring.DestroyUnit(unitID, true)
+		spDestroyUnit(unitID, true)
 	else
-		Spring.SetUnitHealth(unitID, newHealth)
+		spSetUnitHealth(unitID, newHealth)
 	end
 end
 
@@ -243,7 +260,7 @@ local function UnDockUnit(unitID, subUnitID)
 		return
 	elseif GG.carrierMetaList[unitID].subUnitsList[subUnitID].docked == true and not GG.carrierMetaList[unitID].subUnitsList[subUnitID].stayDocked then
 		spUnitDetach(subUnitID)
-		Spring.MoveCtrl.Disable(subUnitID)
+		mcDisable(subUnitID)
 		SetUnitNoSelect(subUnitID, true)
 		GG.carrierMetaList[unitID].subUnitsList[subUnitID].docked = false
 		GG.carrierMetaList[unitID].activeDocking = false
@@ -263,7 +280,7 @@ local function SpawnUnit(spawnData)
 			validSurface = true
 		end
 		if spawnData.x > 0 and spawnData.x < mapsizeX and spawnData.z > 0 and spawnData.z < mapsizeZ then
-			local y = Spring.GetGroundHeight(spawnData.x, spawnData.z)
+			local y = spGetGroundHeight(spawnData.x, spawnData.z)
 			if string.find(spawnDef.surface, "LAND") and y > 0 then
 				validSurface = true
 			elseif string.find(spawnDef.surface, "SEA") and y <= 0 then
@@ -318,7 +335,7 @@ local function SpawnUnit(spawnData)
 							break
 						end
 					end
-					GG.carrierMetaList[ownerID].subUnitsList[subUnitID] = {
+					local droneData = {
 						active = true,
 						docked = false, --
 						stayDocked = false,
@@ -327,19 +344,20 @@ local function SpawnUnit(spawnData)
 						dockingPiece = dockingpiece, --
 						dockingPieceIndex = dockingpieceindex,
 					}
+					GG.carrierMetaList[ownerID].subUnitsList[subUnitID] = droneData
 					totalDroneCount = totalDroneCount + 1
 				end
 
 
-				Spring.MoveCtrl.Enable(subUnitID)
-				Spring.MoveCtrl.SetPosition(subUnitID, spawnData.x, spawnData.y, spawnData.z)
-				Spring.MoveCtrl.Disable(subUnitID)
+				mcEnable(subUnitID)
+				mcSetPosition(subUnitID, spawnData.x, spawnData.y, spawnData.z)
+				mcDisable(subUnitID)
 
 
 				if GG.carrierMetaList[ownerID].docking and GG.carrierMetaList[ownerID].subUnitsList[subUnitID].dockingPiece then
 					spUnitAttach(ownerID, subUnitID, GG.carrierMetaList[ownerID].subUnitsList[subUnitID].dockingPiece)
 					spGiveOrderToUnit(subUnitID, CMD.STOP, {}, 0)
-					Spring.MoveCtrl.Disable(subUnitID)
+					mcDisable(subUnitID)
 					spSetUnitVelocity(subUnitID, 0, 0, 0)
 					SetUnitNoSelect(subUnitID, true)
 					GG.carrierMetaList[ownerID].subUnitsList[subUnitID].docked = true
@@ -409,7 +427,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 						dockingPiece = dockingOffset
 					end
 				end
-				GG.carrierMetaList[unitID] = {
+				local carrierData = {
 					radius = tonumber(spawnDef.minRadius) or 65535,
 					controlRadius = tonumber(spawnDef.radius) or 65535,
 					subUnitsList = {}, -- list of subUnitIDs owned by this unit.
@@ -437,6 +455,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					carrierDeaththroe =spawnDef.carrierdeaththroe or "death",
 					parasite = "all",
 				}
+				GG.carrierMetaList[unitID] = carrierData
 			end
 			
 		end
@@ -461,17 +480,11 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
 		GG.carrierMetaList[unitID].activeRecall = false
 		GG.carrierMetaList[unitID].subUnitsCommand.cmdID = cmdID
 		GG.carrierMetaList[unitID].subUnitsCommand.cmdParams = cmdParams
-		for subUnitID,value in pairs(GG.carrierMetaList[unitID].subUnitsList) do
-			if unitID == Spring.GetUnitRulesParam(subUnitID, "carrier_host_unit_id") then
-				--spGiveOrderToUnit(subUnitID, cmdID, cmdParams, cmdOptions)
-			end
-			
-		end
 	end
 end
 
 function gadget:UnitDestroyed(unitID)
-	local carrierUnitID = Spring.GetUnitRulesParam(unitID, "carrier_host_unit_id")
+	local carrierUnitID = spGetUnitRulesParam(unitID, "carrier_host_unit_id")
 	
 	if carrierUnitID then
 		if GG.carrierMetaList[carrierUnitID].subUnitsList[unitID] then
@@ -492,13 +505,13 @@ function gadget:UnitDestroyed(unitID)
 			if GG.carrierMetaList[unitID].subUnitsList[subUnitID] then
 				local standalone = false
 				if GG.carrierMetaList[unitID].carrierDeaththroe == "death" then
-					Spring.DestroyUnit(subUnitID, true)
+					spDestroyUnit(subUnitID, true)
 				
 				elseif GG.carrierMetaList[unitID].carrierDeaththroe == "capture" then
 					standalone = true
-					local enemyunitID = Spring.GetUnitNearestEnemy(subUnitID, GG.carrierMetaList[unitID].controlRadius)
+					local enemyunitID = spGetUnitNearestEnemy(subUnitID, GG.carrierMetaList[unitID].controlRadius)
 					if enemyunitID then
-						Spring.TransferUnit(subUnitID, Spring.GetUnitTeam(enemyunitID), false)
+						spTransferUnit(subUnitID, spGetUnitTeam(enemyunitID), false)
 					end
 				elseif GG.carrierMetaList[unitID].carrierDeaththroe == "control" then
 					standalone = true
@@ -552,7 +565,7 @@ function gadget:UnitDestroyed(unitID)
 				if standalone then
 					SetUnitNoSelect(subUnitID, false)
 					spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", nil, PRIVATE)
-					GG.droneMetaList[subUnitID] = {
+					local droneData = {
 						active = true,
 						docked = false, --
 						stayDocked = false,
@@ -560,6 +573,7 @@ function gadget:UnitDestroyed(unitID)
 						engaged = false,
 						decayRate = GG.carrierMetaList[unitID].decayRate,
 					}
+					GG.droneMetaList[subUnitID] = droneData
 				end
 				
 			end
@@ -574,14 +588,14 @@ local function UpdateStandaloneDrones(frame)
 	local resourceFrames = (frame - previousHealFrame) / 30
 	for unitID,value in pairs(GG.droneMetaList) do
 		if GG.droneMetaList[unitID].decayRate > 0 then
-			local h, mh = Spring.GetUnitHealth(unitID)
+			local h, mh = spGetUnitHealth(unitID)
 			HealUnit(unitID, -GG.droneMetaList[unitID].decayRate, resourceFrames, h, mh)
 		end
 	end
 end
 
 local function UpdateCarrier(carrierID, carrierMetaList, frame)
-	local cmdID, _, _, cmdParam_1, cmdParam_2, cmdParam_3 = Spring.GetUnitCurrentCommand(carrierID)
+	local cmdID, _, _, cmdParam_1, cmdParam_2, cmdParam_3 = spGetUnitCurrentCommand(carrierID)
 	local droneSendDistance = nil
 	local ox, oy, oz
 	local px, py, pz
@@ -665,7 +679,7 @@ local function UpdateCarrier(carrierID, carrierMetaList, frame)
 	
 	--Handles a setTarget order given to the carrier.
 	if not recallDrones and not attackOrder then
-		local targetType,_,setTarget = Spring.GetUnitWeaponTarget(carrierID, 1)
+		local targetType,_,setTarget = spGetUnitWeaponTarget(carrierID, 1)
 		if targetType and targetType > 0 then
 			ox, oy, oz = spGetUnitPosition(carrierID)
 			if targetType == 2 then --targeting ground
@@ -694,7 +708,7 @@ local function UpdateCarrier(carrierID, carrierMetaList, frame)
 		local droneDistance = GetDistance(ox, sx, oz, sz)
 
 		--local stayDocked = false
-		local h, mh = Spring.GetUnitHealth(subUnitID)
+		local h, mh = spGetUnitHealth(subUnitID)
 
 		if h then
 			if carrierMetaList.dockedHealRate > 0 and carrierMetaList.subUnitsList[subUnitID].docked then
