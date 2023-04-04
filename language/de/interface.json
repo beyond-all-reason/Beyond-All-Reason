@@ -251,6 +251,7 @@
 		"keybinds": {
 			"title": "Tastenbelegungen",
 			"disclaimer": "Diese Tastenbelegungen sind standardmäßig gesetzt. Wenn du Hotkey-Widgets entfernst/ersetzt oder deine eigenen UIKeys verwendest, funktionieren sie möglicherweise nicht mehr!",
+			"howtochangekeybinds":"Zum Ändern: in Einstellungen/Steuerung Tastenbelegungen auf \"Benutzerdefiniert\" setzen, um die Datei BAR/data/bar_hotkeys_custom.lua zu erstellen.\nBearbeite diese Datei und wähle \"Benutzerdefiniert\" wieder aus, um erneut zu laden.",
 			"chat": {
 				"title": "Chat",
 				"send": "Chatnachricht senden",
@@ -476,13 +477,13 @@
 		},
 		"screenMode": {
 			"title": "Bildschirmmodus: %{highlightColor}%{screenMode}",
-			"overview": "Drücke %{highlightColor}[TAB]%{textColor}, um an die Mausposition zu zoomen",
+			"overview": "Drücke %{highlightColor}[%{keyset}]%{textColor}, um an die Mausposition zu zoomen ",
 			"heightTitle": "Höhe",
-			"heightmap": "[F1] Zeigt jede Höhenstufe in einer andere Farbe",
+			"heightmap": "[%{keyset}] Zeigt jede Höhenstufe in einer anderen Farbe",
 			"pathingTitle": "Passierbarkeit",
-			"pathing":"[F2] Zeigt an, wohin die ausgewählte Einheit sich bewegen kann, Grün: okay, Rot: problematisch, Lila: unerreichbar",
+			"pathing":"[%{keyset}] Zeigt an, wohin die ausgewählte Einheit sich bewegen kann, Grün: okay, Rot: problematisch, Lila: unerreichbar",
 			"resourcesTitle": "Ressourcen",
-			"resources": "[F4] Hebt Metalladern in grün und geothermische Quellen in gelb hervor. Besetzte Medalladern werden in rot angezeigt."
+			"resources": "[%{keyset}] Hebt Metalladern in Grün und geothermische Quellen in Gelb hervor. Besetzte Metalladern werden in Rot angezeigt."
 		},
 		"pauseScreen": {
 			"paused": "SPIEL PAUSIERT"
@@ -525,6 +526,7 @@
 			"chickenPlayerAgression": "Spieler-Aggressivitätsniveau: %{count}",
 			"queenAnger": "Königin schlüpft: %{anger}%%",
 			"queenHealth": "Leben der Königin: %{health}%%",
+			"queenResistantToList": "Die Königin ist resistent gegen:",
 			"gracePeriod": "Friedenszeit: %{time}",
 			"burrowCount": "Baue: %{count}",
 			"burrowKillCount": "Umgebrachte Baue: %{count}",
@@ -643,6 +645,8 @@
 		"factionPicker": {
 			"pick": "Wähle deine Fraktion",
 			"factions": {
+				"arm": "Überliste deine Feinde mit taktischer Finesse",
+				"cor": "Zerschlage deine Feinde mit roher Gewalt",
 				"leg": "Diese Fraktion ist noch in Arbeit"
 			}
 		},
@@ -933,7 +937,7 @@
 				"snowamount": "Menge",
 				"snowamount_descr": "Auto-Reduktion deaktivieren, um die festgelegte maximale Schneemenge zu sehen",
 				"resurrectionhalos": "Wiederbelebungs-Heiligenscheine",
-				"resurrectionhalos_descr": "Einheiten, die wiederbelebt wurden, erhalten einen kleinen Heiligenschein.",
+				"resurrectionhalos_descr": "Fügt Heiligenscheine über wiederbelebten Einheiten hinzu",
 				"xmas": "Weihnachtskugeln",
 				"xmas_descr": "Bei Deaktivieren werden Weihnachtskugeln unsichtbar (andere Dekorationen bleiben sichtbar)",
 				"tombstones": "Grabsteine",
@@ -951,6 +955,8 @@
 				"soundtracksilence_descr": "Fügt Pausen ohne Musik zwischen den Stücken ein, um für Phasen zu sorgen, in denen man sich allein auf die Soundeffekte des Spiel konzentrieren kann und um die Musik weniger repetetiv zu machen.",
 				"soundtrackinterruption": "Unterbrechungen",
 				"soundtrackinterruption_descr": "Erlaubt es der Musik, in der Mitte eines Stücks abzuschneiden, um zu einer anderen Intensitätsstufe zu wechseln, wenn es plötzliche Änderungen gibt.",
+				"soundtrackfades": "Ein-/ausblenden",
+				"soundtrackfades_descr": "Musik ein-/ausblenden, wenn die startet, endet, oder abschneidet.",
 				"volume": "Lautstärke",
 				"sndvolmaster": "Gesamt",
 				"sndvolgeneral": "Allgemein",
@@ -1011,7 +1017,10 @@
 				"mincamheight": "Kamerazoom beschränken",
 				"mincamheight_descr": "Schränkt die Zoomstärke der Kamera ein\n\nHöher = Kamera kann weniger weit hineinzoomen",
 				"scrollspeed": "Zoom-Scrollgeschwindigkeit",
+				"invertmouse": "Linke Maustaste",
 				"scrollinverse": "Umgekehrtes Scrollen",
+				"scrolltoggleoverview": "Überblick umschalten, wenn man scrollt",
+				"scrolltoggleoverview_descr": "Überblickende Kamera umschalten, wenn man scrollt",
 				"minimumcameraheight": "Mindesthöhe der Kamera",
 				"lockcamera": "Verfolgungskamera",
 				"lockcamera_transitiontime": "Glättung",
@@ -1066,8 +1075,10 @@
 				"minimapiconsize": "Symbolgröße",
 				"minimapleftclick": "Linksklick bewegt die Kamera",
 				"minimapleftclick_descr": "Die linke Maustaste bewegt die Kamera (standardmäßig ist es die mittlere Maustaste)\nwenn deaktiviert: Linksklick (Ziehen) wählt Einheiten aus.",
+				"minimapcanflip": "Auto-Spiegeln",
+				"minimapcanflip_descr": "Spiegelt die Minikarte automatisch, wenn die Kameraperspektive auf der anderen Seite ist",
 				"gridmenu": "Raster",
-				"gridmenu_descr": "Alternatives, umfassendes Baumenü",
+				"gridmenu_descr": "Alternatives umfassendes Baumenü\nGehe zu Steuerung > Tastenbelegungen, um die optimierten Schnelltasten zu aktivieren",
 				"keylayout": "Tastaturbelegung",
 				"keylayout_descr": "Tastaturbelegung festlegen",
 				"keybindings": "Tastenkürzel",
@@ -1153,6 +1164,8 @@
 				"console_handleinput_descr": "Integriert Chat-Texteingaben, anstatt die Engine-interne Methode zu verwenden",
 				"console_inputbutton": "Eingabemodus-Schalter",
 				"console_inputbutton_descr": "Texteingabemodus-Schalter aktivieren",
+				"topbar": "Obere Leiste",
+				"topbar_hidebuttons": "Knöpfe automatisch verstecken",
 				"continuouslyclearmapmarks": "Alle Kartenmarkierungen und -zeichnungen verstecken",
 				"continuouslyclearmapmarks_descr": "Kontinuierlich alle Kartenmarkierungen und -zeichnungen löschen",
 				"autoeraser": "Automatisch Kartenmarkierungen löschen",
@@ -1333,7 +1346,7 @@
 				"dgunnogroundenemies": "D-Gun nicht an Landeinheiten orientieren",
 				"dgunnogroundenemies_descr": "Verhindert, dass die D-Gun beim Zielen zu nahegelegenen feindlichen Landeinheiten springt\n\nEs wird weiterhin zu Lufteinheiten, Schiffen und Luftkissenbooten (im Wasser) gesprungen",
 				"dgunstallassist": "Beim D-Gunning Energie sparen",
-				"dgunstallassist_descr": "Wenn mit ausgewähltem Kommandanten D gedrückt wird, werden andere Einheiten, die Energie verbrauchen, für eine Weile aufgehalten",
+				"dgunstallassist_descr": "Wenn die D-Gun aktiv ist, werden Einheiten, die Energie verbrauchen, pausiert.",
 				"singleplayerpause": "Pausieren, wenn in Einstellungen/Verlassen/Lobby",
 				"singleplayerpause_descr": "Ausschließlich im Einzelspielermodus...\n\nPausiert das Spiel an, wenn das Einstellungs-/Verlassen-Fenster oder die Lobby angezeigt werden",
 				"widgetselector": "Widgetauswahl-Oberfläche ",
