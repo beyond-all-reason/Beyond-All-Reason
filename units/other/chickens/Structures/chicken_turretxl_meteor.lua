@@ -39,6 +39,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "Chickens/chicken_turretxl_meteor_v2.s3o",
 		--reclaimspeed = 200,
+		repairable = false,
 		script = "Chickens/chicken_turretxl_v2.cob",
 		seismicsignature = 0,
 		selfdestructas = "tentacle_death",
