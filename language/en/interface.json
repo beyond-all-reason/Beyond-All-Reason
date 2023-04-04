@@ -251,7 +251,7 @@
 		"keybinds": {
 			"title": "Keybinds",
 			"disclaimer": "These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!",
-			"howtochangekeybinds":"To change them: in Settings/Control tab, set Keybindings to Custom to create the BAR/data/bar_hotkeys_custom.lua file.\nEdit this file and select Custom to reload them." 
+			"howtochangekeybinds":"To change them: in Settings/Control tab, set Keybindings to Custom to create the BAR/data/bar_hotkeys_custom.lua file.\nEdit this file and select Custom to reload them.",
 			"chat": {
 				"title": "Chat",
 				"send": "Send chat message",
@@ -477,13 +477,13 @@
 		},
 		"screenMode": {
 			"title": "Screen mode: %{highlightColor}%{screenMode}",
-			"overview": "Press %{highlightColor}[TAB]%{textColor} to zoom onto mouse position",
+			"overview": "Press %{highlightColor}[%{keyset}]%{textColor} to zoom onto mouse position",
 			"heightTitle": "Height",
-			"heightmap": "[F1] Displays a different color for every height level",
+			"heightmap": "[%{keyset}] Displays a different color for every height level",
 			"pathingTitle": "Traversability",
-			"pathing":"[F2] Shows where the selected unit can move, Green: okay, Red: problematic, Purple: can't move",
+			"pathing":"[%{keyset}] Shows where the selected unit can move, Green: okay, Red: problematic, Purple: can't move",
 			"resourcesTitle": "Resources",
-			"resources": "[F4] Highlights metal spots in green and geothermal vents in yellow.\n    Occupied metal spots are shown in red."
+			"resources": "[%{keyset}] Highlights metal spots in green and geothermal vents in yellow.\n    Occupied metal spots are shown in red."
 		},
 		"pauseScreen": {
 			"paused": "GAME  PAUSED"
@@ -514,7 +514,7 @@
 			"firstWave1": "The Raptors have arrived!",
 			"firstWave2": "Get ready to defend yourself!",
 			"airWave1": "Flying Raptors, incoming!",
-			"airWave2": "%{unitCount} Birds!",
+			"airWave2": "%{unitCount} Raptors!",
 			"queenIsAngry1": "The Queen is here!",
 			"queenIsAngry2": "Prepare yourself for the final battle!",
 			"queenResistant": "The Queen is becoming resistant to %{unit} attacks!",
@@ -645,9 +645,9 @@
 		"factionPicker": {
 			"pick": "Pick your faction",
 			"factions": {
-				"arm": " ",
-				"cor": " ",
-				"leg": "This faction is still work in progress"
+				"arm": "Outsmart your foes with tactical finesse",
+				"cor": "Smash your foes with brute force",
+				"leg": "This faction is still a work in progress"
 			}
 		},
 		"widgetselector": {
@@ -694,7 +694,7 @@
 			"capture": "Capture",
 			"cloak": "Cloak",
 			"waterweapon": "Waterweapon",
-			"manuelfire": "Manuelfire",
+			"manuelfire": "Manual fire",
 			"stockpile": "Stockpile",
 			"paralyzer": "Paralyzer",
 			"kamikaze": "Kamikaze",
@@ -835,17 +835,12 @@
 				"cas_sharpness": "Sharpness",
 				"cas_sharpness_descr": "How much sharpening should be applied to 3d world space",
 				"sepiatone": "Color filters",
-				"sepiatone_descr": " ",
 				"sepiatone_gamma": "gamma",
-				"sepiatone_gamma_descr": " ",
 				"sepiatone_saturation": "saturation",
-				"sepiatone_saturation_descr": " ",
 				"sepiatone_contrast": "contrast",
-				"sepiatone_contrast_descr": " ",
 				"sepiatone_sepia": "sepia",
 				"sepiatone_sepia_descr": "colorize with a sepia tone",
 				"sepiatone_shadeui": "affect the UI",
-				"sepiatone_shadeui_descr": " ",
 				"cus": "Advanced Model Shading",
 				"cus_descr": "Enables: depth texture, looking damaged, lights that blink, environment lighting, moving tank tracks.",
 				"darkenmap": "Darken map",
@@ -889,7 +884,6 @@
 				"decals": "Unit tracks",
 				"decals_descr": "0 = Off\n\nNOTE: Changes might require a restart (if you turn it On/Off)",
 				"decalsgl4": "Ground scarring",
-				"decalsgl4_descr": " ",
 				"decalsgl4_lifetime": "lifetime",
 				"decalsgl4_lifetime_descr": "...changes only apply to newly created scars",
 				"grounddetail": "Ground detail",
@@ -1118,7 +1112,6 @@
 				"info_mappos": "display map position",
 				"info_mappos_descr": "Display the mouse cursors map position and elevation",
 				"info_alwaysshow": "always show",
-				"info_alwaysshow_descr": " ",
 				"advplayerlist": "Playerlist",
 				"advplayerlist_scale": "scale",
 				"advplayerlist_scale_descr": "Resize the playerlist (and its addons)",
@@ -1145,7 +1138,7 @@
 				"systemprivacy": "hide your system info",
 				"systemprivacy_descr": "disallow other players to view your system specifications (in player list tooltip)\napplies to next game",
 				"mascot": "mascot",
-				"mascot_descr": "Shows a mascot on top of the playerslist",
+				"mascot_descr": "Shows a mascot on top of the playerlist",
 				"unittotals": "unit totals",
 				"unittotals_descr": "Show your unit totals on top of the playerlist",
 				"musicplayer": "music player",
@@ -1171,6 +1164,8 @@
 				"console_handleinput_descr": "Integrates chat text input instead of using in-engine method",
 				"console_inputbutton": "input mode toggle button",
 				"console_inputbutton_descr": "Enable text input mode toggle button",
+				"topbar": "Top bar",
+				"topbar_hidebuttons": "auto hide buttons",
 				"continuouslyclearmapmarks": "Hide all map drawings/marks",
 				"continuouslyclearmapmarks_descr": "Continuously clear all map marks: drawings and points",
 				"autoeraser": "Auto erase map marks",
@@ -1331,7 +1326,6 @@
 				"builderpriority_labs": "labs",
 				"builderpriority_labs_descr": "Toggle to set low priority",
 				"autocloak": "Auto Cloak Units",
-				"autocloak_descr": " ",
 				"unitreclaimer": "Unit Reclaimer",
 				"unitreclaimer_descr": "Reclaim units within an area.\nHover over a unit and hold CTRL and drag area-reclaim circle to reclaim all units within, use ALT for just the type you hover over.",
 				"autogroup_immediate": "Autogroup immediate mode",

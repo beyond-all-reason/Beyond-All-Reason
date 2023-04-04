@@ -86,7 +86,7 @@ for i = 1, #teams do
 end
 teams = nil
 
-local font, chobbyInterface, functionID, wx_old, wz_old
+local font, functionID, wx_old, wz_old
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -101,7 +101,7 @@ local function deleteDlists()
 end
 
 local function GetLights(beamLights, beamLightCount, pointLights, pointLightCount)
-	if not Spring.IsGUIHidden() and not chobbyInterface then
+	if not Spring.IsGUIHidden() then
 		for playerID, cursor in pairs(cursors) do
 			if teamColors[playerID] and not cursor[8] and notIdle[playerID] then
 				local params = { param = {} }
@@ -479,12 +479,6 @@ local function DrawCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity)
 	end
 end
 
-function widget:RecvLuaMsg(msg)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 local function updateCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity, sl)
   if cursors[playerID] == nil then
 			cursors[playerID] = { wx, wy, wz, camX, camY, camZ, opacity, sl}
@@ -503,7 +497,6 @@ end
 
 local sec = 0
 function widget:Update(dt)
-	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 
 	sec = sec + dt
@@ -573,9 +566,6 @@ function widget:Update(dt)
 end
 
 function widget:DrawWorldPreUnit()
-	if chobbyInterface then
-		return
-	end
 	if spIsGUIHidden() then
 		return
 	end

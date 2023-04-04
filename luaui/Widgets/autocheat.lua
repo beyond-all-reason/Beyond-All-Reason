@@ -27,15 +27,17 @@ end
 
 function widget:GameFrame(f)
 	if f > gf then
-		Spring.SendCommands("say !cheats")
-		Spring.SendCommands("say !hostsay /globallos")
-		Spring.SendCommands("say !hostsay /godmode")
-		--Spring.SendCommands("say !hostsay /nocost")
+		if not Spring.IsCheatingEnabled() and not Spring.IsReplay() then 
+			Spring.SendCommands("say !cheats")
+			Spring.SendCommands("say !hostsay /globallos")
+			Spring.SendCommands("say !hostsay /godmode")
+			--Spring.SendCommands("say !hostsay /nocost")
 
-		Spring.SendCommands("cheat")
-		Spring.SendCommands("globallos")
-		Spring.SendCommands("godmode")
-		--Spring.SendCommands("nocost")
+			Spring.SendCommands("cheat")
+			Spring.SendCommands("globallos")
+			Spring.SendCommands("godmode")
+			--Spring.SendCommands("nocost")
+		end
 
 		widgetHandler:RemoveCallIn('GameFrame');
 	end

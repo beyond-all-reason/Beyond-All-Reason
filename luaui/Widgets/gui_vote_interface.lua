@@ -34,7 +34,7 @@ local ssub = string.sub
 local slower = string.lower
 
 local RectRound, UiElement, UiButton, bgpadding, elementCorner, widgetSpaceMargin
-local voteDlist, chobbyInterface, font, font2, gameStarted, dlistGuishader
+local voteDlist, font, font2, gameStarted, dlistGuishader
 local weAreVoteOwner, hovered, voteName, windowArea, closeButtonArea, yesButtonArea, noButtonArea
 local voteEndTime, voteEndText, voteOwnerPlayername
 
@@ -542,16 +542,7 @@ function widget:Shutdown()
 	CloseVote()
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
 	if voteDlist then
 		if not WG['topbar'] or not WG['topbar'].showingQuit() then
 			if eligibleToVote then

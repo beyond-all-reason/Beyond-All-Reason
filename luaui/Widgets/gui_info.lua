@@ -57,7 +57,7 @@ local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local iconTypesMap, dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
-local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures, chobbyInterface
+local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures
 local cellRect, cellPadding, cornerSize, cellsize, cellHovered
 local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
 local displayUnitID, displayUnitDefID, doUpdateClock, lastHoverDataClock, lastHoverData
@@ -582,7 +582,7 @@ function widget:Update(dt)
 		displayUnitDefID = nil
 	end
 
-	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) or chobbyInterface then
+	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) then
 		return
 	end
 
@@ -1453,12 +1453,6 @@ local function drawInfo()
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 local function LeftMouseButton(unitDefID, unitTable)
 	local alt, ctrl, meta, shift = spGetModKeyState()
 	local acted = false
@@ -1643,7 +1637,7 @@ local doUpdateClock2 = os_clock() + 0.9
 function widget:DrawScreen()
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
 
-	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) or chobbyInterface then
+	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) then
 		if dlistGuishader then
 			WG['guishader'].DeleteDlist('info')
 			dlistGuishader = nil

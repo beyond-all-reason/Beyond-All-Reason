@@ -31,7 +31,6 @@ local outersize			= 1.98		-- outersize-innersize = circle width
 local maxValue			= 15		-- ignore spots above this metal value (probably metalmap)
 local maxScale			= 4			-- ignore spots above this scale (probably metalmap)
 
-local spIsGUIHidden = Spring.IsGUIHidden
 local spIsSphereInView = Spring.IsSphereInView
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -194,16 +193,16 @@ local function makeSpotVBO()
 				a4 = ((i+circleInnerOffset+detailPartWidth) * radstep)
 
 				arrayAppend(VBOData, {math.sin(a3)*innersize, math.cos(a3)*innersize, dir, a3})
-				
-				if dir == -1 then 
+
+				if dir == -1 then
 					arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, a4})
 					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
 				else
 					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
 					arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, a4})
 				end
-				
-				if dir == 1 then 
+
+				if dir == 1 then
 					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
 					arrayAppend(VBOData, {math.sin(a2)*outersize, math.cos(a2)*outersize, dir, a2})
 				else
@@ -292,7 +291,7 @@ function widget:ViewResize()
 	end
 end
 
-function widget:Initialize()	
+function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
@@ -421,7 +420,7 @@ function widget:DrawWorldPreUnit()
 	local mapDrawMode = spGetMapDrawMode()
 	if metalViewOnly and mapDrawMode ~= 'metal' then return end
 	if chobbyInterface then return end
-	if spIsGUIHidden() then return end
+	if Spring.IsGUIHidden() then return end
 
 	local clockDifference = (os.clock() - previousOsClock)
 	previousOsClock = os.clock()

@@ -37,7 +37,6 @@ local centerPosY = 0.5
 local screenX = (vsx*centerPosX) - (screenWidth/2)
 local screenY = (vsy*centerPosY) + (screenHeight/2)
 
-local spIsGUIHidden = Spring.IsGUIHidden
 local math_isInRect = math.isInRect
 
 local glCreateList = gl.CreateList
@@ -53,7 +52,7 @@ local maxLines = 20
 
 local showOnceMore = false		-- used because of GUI shader delay
 
-local font, font2, loadedFontSize, chobbyInterface, titleRect, backgroundGuishader, textList, dlistcreated, bgpadding
+local font, font2, loadedFontSize, titleRect, backgroundGuishader, textList, dlistcreated, bgpadding
 
 local RectRound, UiElement, UiScroller, elementCorner
 
@@ -177,16 +176,7 @@ function DrawWindow()
 end
 
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
-
-
 function widget:DrawScreen()
-  if chobbyInterface then return end
-  if spIsGUIHidden() then return end
 
   -- draw the help
   if not textList then
@@ -262,7 +252,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(x, y, button, release)
-  if spIsGUIHidden() then return end
+  if Spring.IsGUIHidden() then return end
 
 	if show then
 		-- on window

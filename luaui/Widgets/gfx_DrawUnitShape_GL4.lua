@@ -451,7 +451,12 @@ end
 
 function widget:Shutdown()
 	for i,VBOTable in ipairs(VBOTables) do
-		if VBOTable.VAO then VBOTable.VAO:Delete() end
+		if VBOTable.VAO then 
+			if Spring.Utilities.IsDevMode() then 
+				dumpAndCompareInstanceData(VBOTable)
+			end
+			VBOTable.VAO:Delete()
+		end
 	end
 	if unitShader then unitShader:Finalize() end
 	if unitShapeShader then unitShapeShader:Finalize() end

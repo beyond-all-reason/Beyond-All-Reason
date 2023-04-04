@@ -38,7 +38,7 @@ local wasOverview = false
 local leftclicked = false
 
 local RectRound, UiElement, elementCorner, elementPadding, elementMargin
-local dlistGuishader, dlistMinimap, oldMinimapGeometry, chobbyInterface
+local dlistGuishader, dlistMinimap, oldMinimapGeometry
 
 local dualscreenMode = ((Spring.GetConfigInt("DualScreenMode", 0) or 0) == 1)
 
@@ -179,16 +179,11 @@ function widget:Update(dt)
 	checkGuishader()
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 local st = spGetCameraState()
 local stframe = 0
 function widget:DrawScreen()
-	if chobbyInterface then return end
 
 	if dualscreenMode and not minimized then
 		gl.DrawMiniMap()

@@ -13,7 +13,6 @@ end
 WG.FlowUI = WG.FlowUI or {}
 WG.FlowUI.version = 1
 WG.FlowUI.initialized = false
-WG.FlowUI.chobbyInterface = false
 
 WG.FlowUI.opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 WG.FlowUI.scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
@@ -65,21 +64,9 @@ end
 function widget:Update(dt)
 end
 
-function widget:DrawScreen()
-	if Spring.IsGUIHidden() then
-		return
-	end
-end
-
 function widget:DrawScreenEffects()
 	if Spring.IsGUIHidden() then
 		return
-	end
-end
-
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		WG.FlowUI.chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 	end
 end
 

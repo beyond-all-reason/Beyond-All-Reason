@@ -12,9 +12,6 @@ end
 
 local weaponEnergyCostFloor = 6
 
-local spIsGUIHidden				= Spring.IsGUIHidden
-local spGetUnitDefID			= Spring.GetUnitDefID
-local spGetTeamUnits			= Spring.GetTeamUnits
 local spGetUnitRulesParam		= Spring.GetUnitRulesParam
 local spGetTeamResources		= Spring.GetTeamResources
 local spGetUnitResources		= Spring.GetUnitResources
@@ -26,7 +23,6 @@ local teamList = {} -- {team1, team2, team3....}
 
 local spec, fullview = Spring.GetSpectatingState()
 local lastGameFrame = 0
-local sceduledGameFrame = 1
 
 local chobbyInterface
 
@@ -140,7 +136,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	else
 		teamList = Spring.GetTeamList()
 	end
-	
+
 	UpdateTeamEnergy()
 	clearInstanceTable(energyIconVBO) -- clear all instances
 	teamUnits = {}
@@ -157,7 +153,7 @@ function widget:Initialize()
 		return
 	end
 	if not initGL4() then return end
-		
+
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
@@ -214,15 +210,15 @@ function widget:GameFrame(n)
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- remove the corresponding ground plate if it exists
-	if unitConf[unitDefID] and spGetUnitRulesParam(unitID, "under_construction") ~= 1 then 
-		if teamUnits[unitTeam] == nil then teamUnits[unitTeam] = {} end 
+	if unitConf[unitDefID] and spGetUnitRulesParam(unitID, "under_construction") ~= 1 then
+		if teamUnits[unitTeam] == nil then teamUnits[unitTeam] = {} end
 		teamUnits[unitTeam][unitID] = unitDefID
 	end
 end
 
 function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
 	local unitTeam = spGetUnitTeam(unitID)
-	if teamUnits[unitTeam] then 
+	if teamUnits[unitTeam] then
 		teamUnits[unitTeam][unitID] = nil
 	end
 	if energyIconVBO.instanceIDtoIndex[unitID] then
@@ -238,7 +234,7 @@ end
 
 function widget:DrawWorld()
 	if chobbyInterface then return end
-	if spIsGUIHidden() then return end
+	if Spring.IsGUIHidden() then return end
 
 	--if lastGameFrame % 90 == 0 then
 	--	Spring.Echo("energyicons",energyIconVBO.usedElements)

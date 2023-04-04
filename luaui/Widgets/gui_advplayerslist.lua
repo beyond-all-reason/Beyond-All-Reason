@@ -80,8 +80,6 @@ local Spring_SendCommands = Spring.SendCommands
 local Spring_GetMouseState = Spring.GetMouseState
 local Spring_GetAIInfo = Spring.GetAIInfo
 local Spring_GetTeamRulesParam = Spring.GetTeamRulesParam
-local Spring_IsGUIHidden = Spring.IsGUIHidden
-local Spring_GetDrawFrame = Spring.GetDrawFrame
 local Spring_GetMyTeamID = Spring.GetMyTeamID
 local Spring_AreTeamsAllied = Spring.AreTeamsAllied
 
@@ -199,7 +197,7 @@ local aliveAllyTeams = {}
 local allyTeamMaxStorage = {}
 local screenshotVars = {} -- containing: finished, width, height, gameframe, data, dataLast, dlist, pixels, player, filename, saved, saveQueued, posX, posY
 
-local Background, ShareSlider, chobbyInterface, BackgroundGuishader, tipText, drawTipText, tipY, myLastCameraState
+local Background, ShareSlider, BackgroundGuishader, tipText, drawTipText, tipY, myLastCameraState
 local specJoinedOnce, scheduledSpecFullView
 local prevClickedPlayer
 local lockPlayerID, leftPosX, lastSliderSound, release
@@ -1698,19 +1696,7 @@ end
 --  Draw control
 ---------------------------------------------------------------------------------------------------
 
-function widget:RecvLuaMsg(msg, playerID)
-    if msg:sub(1, 18) == 'LobbyOverlayActive' then
-        chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-    end
-end
-
 function widget:DrawScreen()
-    if chobbyInterface then
-        return
-    end
-    if Spring_IsGUIHidden() then
-        return
-    end
     local mouseX, mouseY, mouseButtonL, mmb, rmb, mouseOffScreen, cameraPanMode = Spring.GetMouseState()
     --if cameraPanMode then
     --    if BackgroundGuishader then

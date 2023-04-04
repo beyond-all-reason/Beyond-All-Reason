@@ -380,7 +380,12 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if highlightUnitVBOTable and highlightUnitVBOTable.VAO then highlightUnitVBOTable.VAO:Delete() end
+	if highlightUnitVBOTable and highlightUnitVBOTable.VAO then 
+		if Spring.Utilities.IsDevMode() then 
+			dumpAndCompareInstanceData(highlightUnitVBOTable)
+		end
+		highlightUnitVBOTable.VAO:Delete() 
+	end
 	if highlightunitShader then highlightunitShader:Finalize() end
 
 	WG['HighlightUnitGL4'] = nil

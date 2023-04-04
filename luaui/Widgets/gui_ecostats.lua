@@ -31,6 +31,7 @@ local inSpecMode = false
 local isReplay = Spring.IsReplay()
 local myAllyID = Spring.GetLocalAllyTeamID()
 local vsx, vsy = Spring.GetViewGeometry()
+local topbarShowButtons = true
 
 local sin = math.sin
 local floor = math.floor
@@ -55,7 +56,7 @@ local GetTeamResources = Spring.GetTeamResources
 
 local RectRound, UiElement
 
-local font, chobbyInterface, sideImageList
+local font, sideImageList
 
 local Button = {}
 
@@ -230,6 +231,9 @@ local function updateButtons()
 
 	if cfgSticktotopbar and WG['topbar'] ~= nil then
 		local topbarArea = WG['topbar'].GetPosition()
+		if not topbarShowButtons then
+			topbarArea[2] = topbarArea[4]
+		end
 		widgetPosX = topbarArea[3] - widgetWidth
 		widgetPosY = topbarArea[2] - widgetHeight
 	end
@@ -1292,16 +1296,16 @@ function widget:Update(dt)
 			makeSideImageList()
 		end
 	end
-end
-
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+	local prevTopbarShowButtons = topbarShowButtons
+	topbarShowButtons = WG['topbar'].getShowButtons()
+	if topbarShowButtons ~= prevTopbarShowButtons then
+		Reinit()
+		lastTextListUpdate = 0
 	end
 end
 
 function widget:DrawScreen()
-	if not myFullview or not inSpecMode or chobbyInterface or Spring.IsGUIHidden() then
+	if not myFullview or not inSpecMode then
 		return
 	end
 

@@ -69,6 +69,7 @@ return {
 			[28] = "corjamt",
 			[29] = "corjuno",
 			[30] = "corsy",
+			[31] = "legdefcarryt1",
 		},
 		customparams = {
 			unitgroup = 'builder',

@@ -13,122 +13,186 @@ function widget:GetInfo()
 	}
 end
 
+local maxCommands = 100
+
 local mapBlackList = { "Brazillian_Battlefield_Remake_V2"  }
 
+local Game_extractorRadius = Game.extractorRadius
+local Game_extractorRadiusSq = Game_extractorRadius * Game_extractorRadius
+
+local spGetModKeyState = Spring.GetModKeyState
+local spGetMyTeamID = Spring.GetMyTeamID
+
+local spGetBuildFacing = Spring.GetBuildFacing
+local spPos2BuildPos = Spring.Pos2BuildPos
+local spGetUnitCommands = Spring.GetUnitCommands
 local spGetActiveCommand = Spring.GetActiveCommand
+local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local spGetUnitMetalExtraction = Spring.GetUnitMetalExtraction
+local spGiveOrder = Spring.GiveOrder
 local math_pi = math.pi
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
-local Game_extractorRadius = Game.extractorRadius
 
 local activeCmdID, bx, by, bz, bface
 local unitshape
-local draw = true
 
 local isMex = {}
-local isT1Mex = {}
-local isT2Mex = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.extractsMetal > 0 then
-		isMex[unitDefID] = true
-	end
-	if unitDef.extractsMetal > 0 and unitDef.extractsMetal <= 0.001 then
-		isT1Mex[unitDefID] = true
-	end
-	if unitDef.extractsMetal > 0.001 then
-		isT2Mex[unitDefID] = true
+for uDefID, uDef in pairs(UnitDefs) do
+	if uDef.extractsMetal > 0 then
+		isMex[uDefID] = uDef.extractsMetal * 1000
 	end
 end
 
+local function GetExtractionAmount(spot, metalExtracts, orders)
+	local spotWorth = spot.worth/1000.0
+	local remainingMetal = spotWorth * metalExtracts
 
-local selectedUnits = Spring.GetSelectedUnits()
-function widget:SelectionChanged(sel)
-	selectedUnits = sel
+	for _, unit in pairs(spGetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)) do
+		local mMakes = spGetUnitMetalExtraction(unit)
+
+		if mMakes then
+			remainingMetal = remainingMetal - mMakes
+		end
+	end
+
+	for _, order in pairs(orders) do
+		local ox, oz = order[1][1], order[1][3]
+
+		local dx, dz = ox - spot.x, oz - spot.z
+
+		if dx*dx + dz*dz < Game_extractorRadiusSq then
+			remainingMetal = remainingMetal - order[2] * spotWorth
+		end
+	end
+
+	return remainingMetal
+end
+
+local function GetBuildingDimensions(uDefID, facing)
+	local bDef = UnitDefs[uDefID]
+	if (facing % 2 == 1) then
+		return 4 * bDef.zsize, 4 * bDef.xsize
+	else
+		return 4 * bDef.xsize, 4 * bDef.zsize
+	end
+end
+
+local function DoBuildingsClash(buildData1, buildData2)
+
+	local w1, h1 = GetBuildingDimensions(buildData1[1], buildData1[5])
+	local w2, h2 = GetBuildingDimensions(buildData2[1], buildData2[5])
+
+	return math.abs(buildData1[2] - buildData2[2]) < w1 + w2 and
+		math.abs(buildData1[4] - buildData2[4]) < h1 + h2
+end
+
+local function GetClashingOrdersPreGame()
+	if not (WG['buildmenu'] and WG['buildmenu'].getPreGameDefID and WG['buildmenu'].getBuildQueue) then return {} end
+
+
+	local buildFacing = spGetBuildFacing() or 1
+	local orders = {}
+	local ordersCount = 0
+
+	for _, order in pairs(WG['buildmenu'].getBuildQueue()) do
+		local orderDefID = order[1]
+		local extractsMetal = isMex[orderDefID]
+
+		if extractsMetal then
+			ordersCount = ordersCount + 1
+			orders[ordersCount] = { { order[2], order[3], order[4], order[5] }, extractsMetal }
+
+			local obx, _, obz = spPos2BuildPos(orderDefID, order[2], order[3], order[4])
+			local buildData = { -activeCmdID, obx, nil, obz, order[5] or buildFacing }
+			local buildData2 = { orderDefID, bx, nil, bz, buildFacing }
+
+			if DoBuildingsClash(buildData, buildData2) then
+				return nil
+			end
+		end
+	end
+
+	return orders
+end
+
+local function GetClashingOrdersGame()
+	local buildFacing = spGetBuildFacing() or 1
+	local orders = {}
+	local ordersCount = 0
+
+	local mexConstructor = WG['resource_spot_builder'].GetMexConstructor
+
+	for _, unitID in pairs(spGetSelectedUnits()) do
+		local mexDef = mexConstructor(unitID)
+		if mexDef then
+			local canBuild = false
+			for _, buildOption in pairs(mexDef.building) do
+				if buildOption == activeCmdID then canBuild = true; break end
+			end
+
+			if canBuild then
+				local unitOrders = spGetUnitCommands(unitID, maxCommands)
+
+				for _, order in pairs(unitOrders) do
+					local orderDefID = -order["id"]
+					local extractsMetal = isMex[orderDefID]
+
+					if extractsMetal then
+						local params = order["params"]
+						ordersCount = ordersCount + 1
+						orders[ordersCount] = { params, extractsMetal }
+
+						local obx, _, obz = spPos2BuildPos(orderDefID, params[1], params[2], params[3])
+						local buildData = { -activeCmdID, obx, nil, obz, params[4] or buildFacing }
+						local buildData2 = { orderDefID, bx, nil, bz, buildFacing }
+
+						if DoBuildingsClash(buildData, buildData2) then
+							return nil
+						end
+					end
+				end
+			end
+		end
+	end
+
+	return orders
+end
+
+local function GetClashingOrders()
+	return preGamestartPlayer and GetClashingOrdersPreGame() or GetClashingOrdersGame()
+end
+
+local function GetClosestMex(x, z, positions, metalExtracts, orders)
+	local bestPos
+	local bestDist = math.huge
+	for i = 1, #positions do
+		local pos = positions[i]
+		if pos.x then
+			local dx, dz = x - pos.x, z - pos.z
+			local dist = dx * dx + dz * dz
+			if dist < bestDist and GetExtractionAmount(pos, metalExtracts, orders) > 0 then
+				bestPos = pos
+				bestDist = dist
+			end
+		end
+	end
+	return bestPos
 end
 
 local function GetClosestPosition(x, z, positions)
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local bestPos
 	local bestDist = math.huge
-	local t2mex = isT2Mex[-activeCmdID]
-	local isOnTop = false
-	local mx, my = spGetMouseState()
-	local _, pos = spTraceScreenRay(mx, my, true)
-	local bx, by, bz = Spring.Pos2BuildPos(-activeCmdID, pos[1], pos[2], pos[3])
 	for i = 1, #positions do
 		local pos = positions[i]
 		if pos.x then
 			local dx, dz = x - pos.x, z - pos.z
 			local dist = dx * dx + dz * dz
 			if dist < bestDist then
-				local occupied = false
-				if shift then
-					local units = Spring.GetUnitsInCylinder(pos.x, pos.z, Game_extractorRadius)
-					for j=1, #units do
-						if (t2mex and isT2Mex[spGetUnitDefID(units[j])]) or (not t2mex and isT1Mex[spGetUnitDefID(units[j])]) then
-							occupied = true
-							break
-						end
-					end
-					if Spring.GetGameFrame() == 0 then
-						local buildQueue = WG['buildmenu'].getBuildQueue()
-						for _, params in pairs(buildQueue) do
-							if params[1] == -activeCmdID then
-								local dx2, dz2 = params[2] - pos.x, params[4] - pos.z
-								local dist2 = dx2 * dx2 + dz2 * dz2
-								if dist2 < Game_extractorRadius*Game_extractorRadius*2.25 then
-									occupied = true
-									if math.abs(params[2]-bx) <= 4 and math.abs(params[4]-bz) <= 4 then
-										isOnTop = true
-										bestPos = pos
-										bestPos.x = params[2]
-										bestPos.y = params[3]
-										bestPos.z = params[4]
-										bestDist = dist2
-										-- this still wont allow to place on top imprecisely
-									end
-									break
-								end
-							end
-						end
-						if isOnTop then
-							break
-						end
-
-						-- allow to queue on top of existing queued mex (to cancel)
-						for i, unitID in ipairs(selectedUnits) do
-							for _, order in pairs(spGetUnitCommands(unitID, 200)) do
-								if order.id == cmdID then
-									if math.abs(order.params[1]-cmdParams[1]) <= 32 and math.abs(order.params[3]-cmdParams[3]) <= 32 then
-										Spring.GiveOrder(cmdID, cmdParams, cmdOpts.coded)
-										return true
-									end
-								end
-							end
-						end
-					else
-						for i, unitID in ipairs(selectedUnits) do
-							for _, order in pairs(spGetUnitCommands(unitID, 200)) do
-								if (t2mex and isT2Mex[-order.id]) or (not t2mex and isT1Mex[-order.id]) then
-									local dx2, dz2 = order.params[1] - pos.x, order.params[3] - pos.z
-									local dist2 = dx2 * dx2 + dz2 * dz2
-									if dist2 < Game_extractorRadius*Game_extractorRadius*2.25 then
-										occupied = true
-										break
-									end
-								end
-							end
-						end
-					end
-				end
-				-- dont return occupied spot
-				if not occupied then
-					bestPos = pos
-					bestDist = dist
-				end
+				bestPos = pos
+				bestDist = dist
 			end
 		end
 	end
@@ -139,10 +203,8 @@ local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
 	if widgetHandler:CommandNotify(cmdID, cmdParams, cmdOpts) then
 		return
 	end
-	Spring.GiveOrder(cmdID, cmdParams, cmdOpts.coded)
-	--if WG['resource_spot_builder'] then
-	--	WG['resource_spot_builder'].BuildMex(cmdParams, cmdOpts, false, false)
-	--end
+
+	spGiveOrder(cmdID, cmdParams, cmdOpts)
 end
 
 local function DoLine(x1, y1, z1, x2, y2, z2)
@@ -167,7 +229,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 	end
 
-	for _,value in ipairs(mapBlackList) do
+	for _, value in ipairs(mapBlackList) do
 		if Game.mapName == value then
 			Spring.Echo("<Snap Mex> This map is incompatible - removing mex snap widget.")
 			widgetHandler:RemoveWidget()
@@ -193,7 +255,14 @@ function widget:Update()
 		_, activeCmdID = spGetActiveCommand()
 	end
 
-	if not (activeCmdID and isMex[-activeCmdID]) then
+	if not activeCmdID then
+		WG.MexSnap.curPosition = nil
+		return
+	end
+
+	local metalExtracts = isMex[-activeCmdID]
+
+	if not metalExtracts then
 		WG.MexSnap.curPosition = nil
 		return
 	end
@@ -205,47 +274,35 @@ function widget:Update()
 		WG.MexSnap.curPosition = nil
 		return
 	end
-	-- Find build position and check if it is valid (Would get 100% metal)
-	bx, by, bz = Spring.Pos2BuildPos(-activeCmdID, pos[1], pos[2], pos[3])
-	local closestSpot = GetClosestPosition(bx, bz, WG['resource_spot_finder'].metalSpotsList)
+
+	-- Find build position and check if it is available (Would get 100% metal)
+	bx, by, bz = spPos2BuildPos(-activeCmdID, pos[1], pos[2], pos[3])
+	local shift = select(4, spGetModKeyState())
+
+	local orders = shift and GetClashingOrders() or {}
+
+	if not orders then
+		WG.MexSnap.curPosition = nil
+		return
+
+	end
+
+	local closestSpot = GetClosestMex(bx, bz, WG['resource_spot_finder'].metalSpotsList, metalExtracts, orders)
+
 	if not closestSpot or WG['resource_spot_finder'].IsMexPositionValid(closestSpot, bx, bz) then
 		WG.MexSnap.curPosition = nil
 		return
 	end
 
-	-- allow to queue on top of existing queued mex (to cancel)
-	draw = true
-	if Spring.GetGameFrame() == 0 then
-		local buildQueue = WG['buildmenu'].getBuildQueue()
-		for _, params in pairs(buildQueue) do
-			if params[1] == -activeCmdID then
-				if math.abs(params[2]-bx) <= 4 and math.abs(params[4]-bz) <= 4 then
-					draw = false
-					return true
-				end
-			end
-		end
-	else
-		for i, unitID in ipairs(selectedUnits) do
-			for _, order in pairs(spGetUnitCommands(unitID, 200)) do
-				if order.id == activeCmdID then
-					if math.abs(order.params[1]-bx) <= 32 and math.abs(order.params[3]-bz) <= 32 then
-						draw = false
-						return true
-					end
-				end
-			end
-		end
-	end
-
-	-- Get the closet position that would give 100%
-	bface = Spring.GetBuildFacing()
+	-- Get the closest position that would give 100%
+	bface = spGetBuildFacing()
 	local mexPositions = WG['resource_spot_finder'].GetBuildingPositions(closestSpot, -activeCmdID, bface, true)
 	local bestPos = GetClosestPosition(bx, bz, mexPositions)
 	if not bestPos then
 		WG.MexSnap.curPosition = nil
 		return
 	end
+
 	WG.MexSnap.curPosition = bestPos
 end
 
@@ -256,8 +313,10 @@ function widget:DrawWorld()
 	end
 
 	local bestPos = WG.MexSnap.curPosition
-	if not bestPos or not draw then
+
+	if not bestPos then
 		clearShape()
+
 		return
 	end
 
@@ -274,33 +333,27 @@ function widget:DrawWorld()
 	if not unitshape or (unitshape[1]~= newUnitshape[1] or unitshape[2]~= newUnitshape[2] or unitshape[3]~= newUnitshape[3] or unitshape[4]~= newUnitshape[4] or unitshape[5]~= newUnitshape[5]) then
 		clearShape()
 		unitshape = newUnitshape
-		unitshape[6] = WG.DrawUnitShapeGL4(unitshape[1], unitshape[2], unitshape[3], unitshape[4], unitshape[5]*math_pi, 0.66, Spring.GetMyTeamID(), 0.15, 0.3)
+		unitshape[6] = WG.DrawUnitShapeGL4(unitshape[1], unitshape[2], unitshape[3], unitshape[4], unitshape[5]*math_pi, 0.66, spGetMyTeamID(), 0.15, 0.3)
 	end
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	if not isMex[-cmdID] then
-		return
-	end
-	-- allow to queue on top of existing queued mex (to cancel)
-	for i, unitID in ipairs(selectedUnits) do
-		for _, order in pairs(spGetUnitCommands(unitID, 200)) do
-			if order.id == cmdID then
-				if math.abs(order.params[1]-cmdParams[1]) <= 32 and math.abs(order.params[3]-cmdParams[3]) <= 32 then
-					Spring.GiveOrder(cmdID, cmdParams, cmdOpts.coded)
-					return true
-				end
-			end
-		end
-	end
+	local metalExtracts = isMex[-cmdID]
+
+	if not metalExtracts then return end
+	if cmdOpts.mexsnap then return end -- notifying order
 
 	local cbx, cbz = cmdParams[1], cmdParams[3]
-	local closestSpot = GetClosestPosition(bx, bz, WG['resource_spot_finder'].metalSpotsList)
+
+	local orders = cmdOpts.shift and GetClashingOrders() or {}
+	local closestSpot = GetClosestMex(bx, bz, WG['resource_spot_finder'].metalSpotsList, metalExtracts, orders)
+
 	if closestSpot and not WG['resource_spot_finder'].IsMexPositionValid(closestSpot, cbx, cbz) then
 		local cbface = cmdParams[4]
 		local mexPositions = WG['resource_spot_finder'].GetBuildingPositions(closestSpot, -cmdID, cbface, true)
 		local bestPos = GetClosestPosition(bx, bz, mexPositions)
 		if bestPos then
+			cmdOpts.mexsnap = true
 			GiveNotifyingOrder(cmdID, {bestPos.x, bestPos.y, bestPos.z, bface}, cmdOpts)
 			return true
 		end

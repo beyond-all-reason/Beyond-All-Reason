@@ -15,7 +15,7 @@ end
 
 local customScale = 1
 local widgetScale = customScale
-local font, font2, chobbyInterface
+local font, font2
 local messageArgs, marqueeMessage
 local refreshMarqueeMessage = false
 local showMarqueeMessage = false
@@ -367,16 +367,9 @@ function widget:GameFrame(n)
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
 	Draw()
 end
 

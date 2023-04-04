@@ -22,15 +22,7 @@ local largeradarrange = 3500	-- updates to 'armarad' value
 local cmdidtoradarsize = {}
 local radaremitheight = {}
 
--- Functions shortcuts
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetUnitIsActive = Spring.GetUnitIsActive
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
-local spIsGUIHidden = Spring.IsGUIHidden
-
 -- Globals
-local chobbyInterface
 local mousepos = { 0, 0, 0 }
 local spGetActiveCommand = Spring.GetActiveCommand
 
@@ -258,24 +250,20 @@ local function initgl4()
 	largeradVAO:AttachIndexBuffer(largi)
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
 	end
-	
-	if (smallradarrange > 2200) then 
+
+	if (smallradarrange > 2200) then
 		Spring.Echo("Sensor Ranges Radar Preview does not support increased radar ranges modoptions, removing.")
 		widgetHandler:RemoveWidget()
 		return
 	end
-	
+
 	initgl4()
 	WG.radarpreview = {
 		getShowPulseEffect = function()
@@ -323,7 +311,7 @@ function widget:DrawWorld()
 		end -- not build command
 	end
 
-	if chobbyInterface or spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then
+	if Spring.IsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then
 		return
 	end
 

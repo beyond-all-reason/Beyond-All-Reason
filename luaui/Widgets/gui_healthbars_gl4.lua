@@ -323,7 +323,6 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local GetUnitWeaponState = Spring.GetUnitWeaponState
 
-local spIsGUIHidden				= Spring.IsGUIHidden
 local chobbyInterface
 
 local unitDefIgnore = {} -- commanders!
@@ -945,11 +944,11 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	if debugmode then Spring.Debug.TraceEcho(unitBars[unitID]) end
 	--Spring.Echo("Caller1:", tostring()".name), "caller2:", tostring(debug.getinfo(3).name))
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
-	
+
 	-- Why? Because adding additional bars can be triggered from outside of unit tracker api
 	-- like EMP, where we assume that unit is already visible, however
 	-- debug units are not present in unittracker api!
-	if (unitDefID == nil) or unitDefIgnore[unitDefID] then return nil end 
+	if (unitDefID == nil) or unitDefIgnore[unitDefID] then return nil end
 
 	local gf = Spring.GetGameFrame()
 	local bt = barTypeMap[barname]
@@ -1097,13 +1096,13 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 			gl.SetUnitBufferUniforms(unitID, uniformcache, 0)
 		end
 		--Spring.Echo(unitID, unitDefID, unitDefCanStockpile[unitDefID])
-		if debugmode then 
+		if debugmode then
 			if unitDefCanStockpile[unitDefID] then
 				Spring.Echo("unitDefCanStockpile", unitAllyTeam, myAllyTeamID, fullview)
 			end
-			
+
 		end
-		
+
 		if unitDefCanStockpile[unitDefID] and ((unitAllyTeam == myAllyTeamID) or fullview) then
 			unitStockPileWatch[unitID] = 0.0
 			addBarForUnit(unitID, unitDefID, "stockpile", reason)
@@ -1363,7 +1362,7 @@ function widget:Initialize()
 		if unitDef.customParams and unitDef.customParams.nohealthbars then
 			unitDefIgnore[udefID] = true
 		end --ignore debug units
-		
+
 		local shieldDefID = unitDef.shieldWeaponDef
 		shieldPower = ((shieldDefID) and (WeaponDefs[shieldDefID].shieldPower)) or (-1)
 		if shieldPower > 1 then unitDefhasShield[udefID] = shieldPower
@@ -1491,7 +1490,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 
-	
+
 	clearInstanceTable(healthBarVBO) -- clear all instances
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		addBarsForUnit(unitID, unitDefID, Spring.GetUnitTeam(unitID), nil, "VisibleUnitsChanged") -- TODO: add them with noUpload = true
@@ -1659,14 +1658,14 @@ function widget:FeatureCreated(featureID)
 		--featureBars[featureID] = 0 -- this is already done in AddBarToFeature
 
 		local health,maxhealth,rezProgress = Spring.GetFeatureHealth(featureID)
-		
-		if gameFrame > 0 then 
+
+		if gameFrame > 0 then
 			addBarToFeature(featureID, 'featurehealth')
 		else
-			if health ~= maxhealth then addBarToFeature(featureID, 'featurehealth') end 
+			if health ~= maxhealth then addBarToFeature(featureID, 'featurehealth') end
 		end
-		
-		
+
+
 		if rezProgress > 0 then
 			addBarToFeature(featureID, 'featureresurrect')
 		end
@@ -1676,14 +1675,14 @@ function widget:FeatureCreated(featureID)
 		if reclaimLeft < 1.0 then
 			addBarToFeature(featureID, 'featurereclaim')
 		end
-		
-		if rezProgress > 0  or reclaimLeft < 1 then 
+
+		if rezProgress > 0  or reclaimLeft < 1 then
 			-- We have to update the feature uniform buffers in this case, as features can be created with less than max health on the map with FP_featureplacer
 			rezreclaim[1] = rezProgress -- resurrect progress
 			rezreclaim[2] = reclaimLeft -- reclaim percent
 			gl.SetFeatureBufferUniforms(featureID, rezreclaim, 1) -- update GL, at offset of 1
 		end
-		
+
 	end
 end
 
@@ -1696,7 +1695,7 @@ end
 function widget:DrawWorld()
 	--Spring.Echo(Engine.versionFull )
 	if chobbyInterface then return end
-	if not drawWhenGuiHidden and spIsGUIHidden() then return end
+	if not drawWhenGuiHidden and Spring.IsGUIHidden() then return end
 
     local now = os.clock()
 	if Spring.GetGameFrame() % 90 == 0 then

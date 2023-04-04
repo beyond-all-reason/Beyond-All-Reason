@@ -74,7 +74,7 @@ local nearIdle = 0 -- this means that factories with only X build items left wil
 local qCount = {}
 local idleList = {}
 
-local font, font2, chobbyInterface, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
+local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
 
 local isBuilder = {}
 local isFactory = {}
@@ -476,16 +476,7 @@ function widget:Shutdown()
 	WG['idlebuilders'] = nil
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
 	if (not spec or showWhenSpec) and dlist then
 		gl.CallList(dlist)
 	end

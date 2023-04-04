@@ -58,7 +58,7 @@ local maxLines = 20
 
 local math_isInRect = math.isInRect
 
-local font, loadedFontSize, font2, changelogList, titleRect, chobbyInterface, backgroundGuishader, changelogList, dlistcreated, show, bgpadding
+local font, loadedFontSize, font2, changelogList, titleRect, backgroundGuishader, changelogList, dlistcreated, show, bgpadding
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
@@ -260,20 +260,10 @@ function DrawWindow()
 	DrawTextarea(screenX + ((versionWidth+30)*widgetScale), screenY - (10*widgetScale), screenWidth - ((versionWidth+30)*widgetScale), screenHeight - (24*widgetScale), 1)
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
-	if spIsGUIHidden() then
-		return
-	end
 
 	-- draw the help
 	if not changelogList then

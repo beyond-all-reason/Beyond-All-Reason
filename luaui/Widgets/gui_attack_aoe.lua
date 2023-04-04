@@ -38,7 +38,7 @@ local circleList
 local secondPart = 0
 local mouseDistance = 1000
 
-local chobbyInterface, selectionChanged
+local selectionChanged
 
 --------------------------------------------------------------------------------
 --speedups
@@ -706,17 +706,7 @@ function widget:Shutdown()
 	DeleteDisplayLists()
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawWorld()
-	if chobbyInterface then
-		return
-	end
-
 	if not hasSelection then
 		return
 	end

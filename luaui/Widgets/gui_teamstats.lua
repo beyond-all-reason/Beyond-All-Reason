@@ -17,14 +17,14 @@ local fontSize = 22		-- is caclulated somewhere else anyway
 local fontSizePercentage = 0.6 -- fontSize * X = actual fontsize
 local update = 30 -- in frames
 local replaceEndStats = false
-local highLightColour = {1,1,1,0.7}
-local sortHighLightColour = {1,0.87,0.87,1.4}
-local sortHighLightColourDesc = {0.9,1,0.9,1.4}
-local activeSortColour = {1,0.62,0.62,1.4}
-local activeSortColourDesc = {0.66,1,0.66,1.4}
-local oddLineColour = {0.28,0.28,0.28,0.33}
-local evenLineColour = {1,1,1,0.36}
-local sortLineColour = {0.82,0.82,0.82,0.85}
+local highLightColour = {1,1,1,0.1}
+local sortHighLightColour = {1,0.87,0.87,0.22}
+local sortHighLightColourDesc = {0.9,1,0.9,0.22}
+local activeSortColour = {1,0.62,0.62,0.22}
+local activeSortColourDesc = {0.66,1,0.66,0.22}
+local oddLineColour = {0.28,0.28,0.28,0.06}
+local evenLineColour = {1,1,1,0.06}
+local sortLineColour = {0.82,0.82,0.82,0.1}
 
 local widgetScale = (vsy / 1080)
 local math_isInRect = math.isInRect
@@ -83,7 +83,6 @@ local GetTeamList			= Spring.GetTeamList
 local GetTeamStatsHistory	= Spring.GetTeamStatsHistory
 local GetTeamInfo			= Spring.GetTeamInfo
 local GetPlayerInfo			= Spring.GetPlayerInfo
-local IsGUIHidden			= Spring.IsGUIHidden
 local GetMouseState			= Spring.GetMouseState
 local GetGameFrame			= Spring.GetGameFrame
 local min					= math.min
@@ -102,7 +101,7 @@ local borderRemap = {left={"x","min",-1},right={"x","max",1},top={"y","max",1},b
 
 local RectRound, UiElement, elementCorner
 
-local font, chobbyInterface, backgroundGuishader, gameStarted, bgpadding, gameover
+local font, backgroundGuishader, gameStarted, bgpadding, gameover
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
@@ -191,11 +190,8 @@ local textDisplayList
 local backgroundDisplayList
 local teamControllers = {}
 local mousex,mousey = 0,0
-
-
 local sortVar = "damageDealt"
 local sortAscending = false
-
 local numColums = #header
 
 
@@ -215,7 +211,6 @@ end
 
 
 function calcAbsSizes()
-
 	guiData.mainPanel.absSizes = {
 		x = {
 			min = (guiData.mainPanel.relSizes.x.min * vsx),
@@ -248,6 +243,7 @@ function widget:ViewResize()
 
 	calcAbsSizes()
 	updateFontSize()
+	widget:GameFrame(GetGameFrame(),true)
 end
 
 local function refreshHeaders()
@@ -332,8 +328,9 @@ function widget:PlayerChanged()
 end
 
 function widget:GameFrame(n,forceupdate)
-	if n > 0 then
+	if n > 0 and not gameStarted then
 		gameStarted = true
+		forceupdate = true
 	end
 
 	if gameover then return end
@@ -443,9 +440,7 @@ function widget:GameFrame(n,forceupdate)
 		end
 	end
 	sort(teamData,compareAllyTeams)
-	if totalNumLines ~= prevNumLines then
-		guiData.mainPanel.absSizes.y.min = guiData.mainPanel.absSizes.y.max - totalNumLines*fontSize
-	end
+	guiData.mainPanel.absSizes.y.min = guiData.mainPanel.absSizes.y.max - totalNumLines*fontSize
 	prevNumLines = totalNumLines
 	glDeleteList(textDisplayList)
 	textDisplayList = glCreateList(ReGenerateTextDisplayList)
@@ -547,45 +542,13 @@ function widget:Update(dt)
 	mousex,mousey = x,y
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
-
-function widget:DrawScreen()
-	if chobbyInterface then return end
-	if IsGUIHidden() then return end
-	if not guiData.mainPanel.visible then
-		if WG['guishader'] then
-			WG['guishader'].DeleteDlist('teamstats_window')
-		end
-		return
-	end
-	DrawBackground()
-	DrawAllStats()
-
-	local x, y, pressed = Spring.GetMouseState()
-	local x1,y1,x2,y2 = math.floor(guiData.mainPanel.absSizes.x.min), math.floor(guiData.mainPanel.absSizes.y.min), math.floor(guiData.mainPanel.absSizes.x.max), math.floor(guiData.mainPanel.absSizes.y.max)
-	if math_isInRect(x, y, x1,y1,x2,y2) then
-		Spring.SetMouseCursor('cursornormal')
-	end
-end
-
-function DrawBackground()
+local function DrawBackground()
 	if not guiData.mainPanel.visible then
 		return
 	end
-	if backgroundDisplayList then
-		glCallList(backgroundDisplayList)
-	end
 
+	gl.Color(0,0,0,WG['guishader'] and 0.8 or 0.85)
 	local x1,y1,x2,y2 = math.floor(guiData.mainPanel.absSizes.x.min), math.floor(guiData.mainPanel.absSizes.y.min), math.floor(guiData.mainPanel.absSizes.x.max), math.floor(guiData.mainPanel.absSizes.y.max)
-	if WG['guishader'] then
-		gl.Color(0,0,0,0.8)
-	else
-		gl.Color(0,0,0,0.85)
-	end
 	UiElement(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, 1, 1, 1, 1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 	if WG['guishader'] then
 		if backgroundGuishader ~= nil then
@@ -596,14 +559,36 @@ function DrawBackground()
 		end)
 		WG['guishader'].InsertDlist(backgroundGuishader,'teamstats_window')
 	end
+
+	if backgroundDisplayList then
+		glCallList(backgroundDisplayList)
+	end
 end
 
-function DrawAllStats()
+local function DrawAllStats()
 	if not guiData.mainPanel.visible then
 		return
 	end
 	if textDisplayList then
 		glCallList(textDisplayList)
+	end
+end
+
+function widget:DrawScreen()
+	if not guiData.mainPanel.visible then
+		if WG['guishader'] then
+			WG['guishader'].DeleteDlist('teamstats_window')
+		end
+		return
+	end
+
+	DrawBackground()
+	DrawAllStats()
+
+	local mx, my = Spring.GetMouseState()
+	local x1,y1,x2,y2 = math.floor(guiData.mainPanel.absSizes.x.min), math.floor(guiData.mainPanel.absSizes.y.min), math.floor(guiData.mainPanel.absSizes.x.max), math.floor(guiData.mainPanel.absSizes.y.max)
+	if math_isInRect(mx, my, x1,y1,x2,y2) then
+		Spring.SetMouseCursor('cursornormal')
 	end
 end
 
@@ -623,7 +608,11 @@ function ReGenerateBackgroundDisplayList()
 		end
 		glColor(colour)
 		if evenLineColour and lineCount > 2 then
-			RectRound(math.floor(boxSizes.x.min), math.floor(boxSizes.y.max -lineCount*fontSize), math.floor(boxSizes.x.max), math.floor(boxSizes.y.max -(lineCount-1)*fontSize), bgpadding, 1,1,1,1, {colour[1],colour[2],colour[3],colour[4]*ui_opacity}, {colour[1],colour[2],colour[3],colour[4]*3*ui_opacity})
+			local bottomCorner = 0
+			if math.floor(boxSizes.x.min) >= guiData.mainPanel.absSizes.y.min then
+				bottomCorner = 1
+			end
+			RectRound(math.floor(boxSizes.x.min), math.floor(boxSizes.y.max -lineCount*fontSize), math.floor(boxSizes.x.max), math.floor(boxSizes.y.max -(lineCount-1)*fontSize), bgpadding, 0,0,bottomCorner,bottomCorner, {colour[1],colour[2],colour[3],colour[4]*ui_opacity}, {colour[1],colour[2],colour[3],colour[4]*3*ui_opacity})
 		elseif lineCount == 1 then
 			--RectRound(boxSizes.x.min, boxSizes.y.max -(lineCount+1)*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3*widgetScale)
 		end
@@ -634,7 +623,7 @@ function ReGenerateBackgroundDisplayList()
 		else
 			glColor(sortHighLightColourDesc[1], sortHighLightColourDesc[2], sortHighLightColourDesc[3], sortHighLightColourDesc[4]*ui_opacity)
 		end
-		RectRound(math.floor(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding)
+		RectRound(math.floor(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding, 0,0,1,1)
 	end
 	for selectedIndex, headerName in ipairs(header) do
 		if sortVar == headerName then
@@ -643,7 +632,7 @@ function ReGenerateBackgroundDisplayList()
 			else
 				glColor(activeSortColourDesc[1], activeSortColourDesc[2], activeSortColourDesc[3], activeSortColourDesc[4]*ui_opacity)
 			end
-			RectRound(math.floor(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding)
+			RectRound(math.floor(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding, 0,0,1,1)
 			break
 		end
 	end

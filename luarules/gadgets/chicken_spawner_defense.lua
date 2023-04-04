@@ -910,7 +910,7 @@ if gadgetHandler:IsSyncedCode() then
 				if mRandom() <= config.spawnChance then
 					squadCounter = 0
 					local squad
-					if waveType == "air" then
+					if waveType == "air" and mRandom() <= 0.5 then
 						for _ = 1,1000 do
 							local potentialSquad = squadSpawnOptions.air[mRandom(1, #squadSpawnOptions.air)]
 							if potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
@@ -973,6 +973,9 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == chickenTeamID then
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{3},0)
+			if UnitDefs[unitDefID].canCloak then
+				Spring.GiveOrderToUnit(unitID,37382,{1},0)
+			end
 			return
 		end
 		if squadPotentialTarget[unitID] then

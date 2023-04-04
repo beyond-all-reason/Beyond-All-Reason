@@ -34,11 +34,8 @@ local bladeSpeedMultiplier = 0.2
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
 local stripesTexture = "LuaUI/Images/stripes.png"
 local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
-local buttonBgtexScale = 1.9	-- lower = smaller tiles
-local buttonBgtexOpacity = 0
-local buttonBgtexSize
-local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
-local bgtexSize
+local showButtons = true
+local autoHideButtons = false
 
 local playSounds = true
 local leftclick = 'LuaUI/Sounds/tock.wav'
@@ -180,7 +177,7 @@ local gameFrame = Spring.GetGameFrame()
 
 local draggingShareIndicatorValue = {}
 
-local font, font2, chobbyInterface, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover
+local font, font2, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover
 local draggingConversionIndicatorValue, draggingShareIndicator, draggingConversionIndicator
 local conversionIndicatorArea, quitscreenArea, quitscreenStayArea, quitscreenQuitArea, quitscreenResignArea, hoveringTopbar, hideQuitWindow
 local dlistButtonsGuishader, dlistRejoinGuishader, dlistComsGuishader, dlistButtonsGuishader, dlistWindGuishader, dlistTidalGuishader, dlistQuit
@@ -258,9 +255,6 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	UiButton = WG.FlowUI.Draw.Button
 	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
-
-	bgtexSize = bgpadding * bgtexScale
-	buttonBgtexSize = bgpadding * buttonBgtexScale
 
 	font = WG['fonts'].getFont(fontfile)
 	font2 = WG['fonts'].getFont(fontfile2)
@@ -426,10 +420,10 @@ local function updateButtons()
 		end
 
 		if not gameIsOver and chobbyLoaded then
+			addButton('quit', Spring.I18N('ui.topbar.button.lobby'))
 			if not spec and gameStarted and not isSinglePlayer then
 				addButton('resign', Spring.I18N('ui.topbar.button.resign'))
 			end
-			addButton('quit', Spring.I18N('ui.topbar.button.lobby'))
 		else
 			addButton('quit', Spring.I18N('ui.topbar.button.quit'))
 		end
@@ -470,11 +464,13 @@ local function updateButtons()
 		end
 		glDeleteList(dlistButtonsGuishader)
 	end
-	dlistButtonsGuishader = glCreateList(function()
-		RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0,0,1,1)
-	end)
-	if WG['guishader'] then
-		WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
+	if showButtons then
+		dlistButtonsGuishader = glCreateList(function()
+			RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0,0,1,1)
+		end)
+		if WG['guishader'] then
+			WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
+		end
 	end
 
 	if dlistButtons2 ~= nil then
@@ -934,12 +930,6 @@ local function updateResbar(res)
 			end
 			UiSliderKnob(math_floor(conversionIndicatorArea[1]+((conversionIndicatorArea[3]-conversionIndicatorArea[1])/2)), math_floor(conversionIndicatorArea[2]+((conversionIndicatorArea[4]-conversionIndicatorArea[2])/2)), math_floor((conversionIndicatorArea[3]-conversionIndicatorArea[1])/2), { 0.95, 0.95, 0.7, 1 })
 
-			if buttonBgtexOpacity > 0 then
-				gl.Texture(buttonBackgroundTexture)
-				gl.Color(1,1,1, buttonBgtexOpacity*0.6)
-				TexturedRectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4], cornerSize, 1, 1, 1, 1, buttonBgtexSize*0.82, 0)
-				gl.Texture(false)
-			end
 		end
 
 		-- Share slider
@@ -963,13 +953,6 @@ local function updateResbar(res)
 				cornerSize = 1.33 * widgetScale
 			end
 			UiSliderKnob(math_floor(shareIndicatorArea[res][1]+((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2)), math_floor(shareIndicatorArea[res][2]+((shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2)), math_floor((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2), { 0.85, 0, 0, 1 })
-
-			if buttonBgtexOpacity > 0 then
-				gl.Texture(buttonBackgroundTexture)
-				gl.Color(1,1,1, buttonBgtexOpacity*0.7)
-				TexturedRectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4], cornerSize, 1, 1, 1, 1, buttonBgtexSize*0.82, 0)
-				gl.Texture(false)
-			end
 		end
 	end)
 
@@ -1275,9 +1258,6 @@ local t = UPDATE_RATE_S
 local blinkDirection = true
 local blinkProgress = 0
 function widget:Update(dt)
-	if chobbyInterface then
-		return
-	end
 
 	local prevMyTeamID = myTeamID
 	if spec and spGetMyTeamID() ~= prevMyTeamID then
@@ -1404,12 +1384,6 @@ function widget:Update(dt)
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 local function hoveringElement(x, y)
 	if math_isInRect(x, y, topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4]) then
 		if resbarArea.metal[1] and math_isInRect(x, y, resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4]) then
@@ -1446,20 +1420,8 @@ function widget:drawTidal()
    end
 end
 
-function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
-
+local function drawResBars()
 	glPushMatrix()
-
-	local now = os.clock()
-	local mx, my, mb = spGetMouseState()
-	hoveringTopbar = hoveringElement(mx, my)
-
-	if hoveringTopbar then
-		Spring.SetMouseCursor('cursornormal')
-	end
 
 	local updateText = os.clock() - updateTextClock > 0.1
 	if updateText then
@@ -1522,6 +1484,21 @@ function widget:DrawScreen()
 		glCallList(dlistResbar[res][2])
 	end
 
+	glPopMatrix()
+end
+
+function widget:DrawScreen()
+
+	drawResBars()
+
+	local now = os.clock()
+	local mx, my, mb = spGetMouseState()
+	hoveringTopbar = hoveringElement(mx, my)
+	if hoveringTopbar then
+		Spring.SetMouseCursor('cursornormal')
+	end
+
+	glPushMatrix()
 	if dlistWind1 then
 		glPushMatrix()
 		glCallList(dlistWind1)
@@ -1571,7 +1548,29 @@ function widget:DrawScreen()
 		end
 	end
 
-	if dlistButtons1 then
+	if autoHideButtons then
+		if buttonsArea[1] and math_isInRect(mx, my, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
+			if not showButtons then
+				showButtons = true
+				dlistButtonsGuishader = glCreateList(function()
+					RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0,0,1,1)
+				end)
+				if WG['guishader'] then
+					WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
+				end
+			end
+		elseif showButtons then
+			showButtons = false
+			if dlistButtonsGuishader ~= nil then
+				if WG['guishader'] then
+					WG['guishader'].RemoveDlist('topbar_buttons')
+				end
+				glDeleteList(dlistButtonsGuishader)
+			end
+		end
+	end
+
+	if showButtons and dlistButtons1 then
 		glCallList(dlistButtons1)
 		-- hovered?
 		if not showQuitscreen and buttonsArea['buttons'] ~= nil and math_isInRect(mx, my, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
@@ -2111,6 +2110,19 @@ function widget:Initialize()
 	WG['topbar'].hideWindows = function()
 		hideWindows()
 	end
+	WG['topbar'].setAutoHideButtons = function(value)
+		autoHideButtons = value
+		if autoHideButtons then
+			showButtons = false
+		end
+		updateButtons()
+	end
+	WG['topbar'].getAutoHideButtons = function()
+		return autoHideButtons
+	end
+	WG['topbar'].getShowButtons = function()
+		return showButtons
+	end
 
 	widget:ViewResize()
 
@@ -2195,4 +2207,16 @@ function widget:Shutdown()
 	Spring.SendCommands("resbar 1")
 	shutdown()
 	WG['topbar'] = nil
+end
+
+function widget:GetConfigData()
+	return {
+		autoHideButtons = autoHideButtons
+	}
+end
+
+function widget:SetConfigData(data)
+	if data.autoHideButtons ~= nil then
+		autoHideButtons = data.autoHideButtons
+	end
 end

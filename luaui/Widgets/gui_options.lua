@@ -24,7 +24,7 @@ local newerVersion = false	-- configdata will set this true if it's a newer vers
 
 local texts = {}    -- loaded from external language file
 
-local languageCodes = { 'en', 'fr', 'zh', 'test_unicode'}
+local languageCodes = { 'en', 'fr', 'de', 'zh', 'test_unicode'}
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
 
 local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
@@ -100,7 +100,6 @@ local manualChange = true
 
 local guishaderIntensity = 0.0035
 
-local spIsGUIHidden = Spring.IsGUIHidden
 local spGetGroundHeight = Spring.GetGroundHeight
 
 local os_clock = os.clock
@@ -898,12 +897,6 @@ function widget:DrawScreen()
 		init()
 		initialized = true
 	else
-		if chobbyInterface then
-			return
-		end
-		if spIsGUIHidden() then
-			return
-		end
 
 		-- update new slider value
 		if sliderValueChanged then
@@ -1250,7 +1243,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(mx, my, button, release)
-	if spIsGUIHidden() then
+	if Spring.IsGUIHidden() then
 		return false
 	end
 
@@ -1900,8 +1893,8 @@ function init()
 		  end,
 		},
 
-		{ id = "sepiatone", group = "gfx", category = types.advanced, widget = "Sepia Tone", name = texts.option.sepiatone, type = "bool", value = GetWidgetToggleValue("Sepia Tone"), description = texts.option.sepiatone_descr },
-		{ id = "sepiatone_gamma", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_gamma, min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5, description = texts.option.sepiatone_gamma_descr,
+		{ id = "sepiatone", group = "gfx", category = types.advanced, widget = "Sepia Tone", name = texts.option.sepiatone, type = "bool", value = GetWidgetToggleValue("Sepia Tone") },
+		{ id = "sepiatone_gamma", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_gamma, min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5, 
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_gamma", { 'gamma' })
 		  end,
@@ -1909,7 +1902,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setGamma', { 'gamma' }, value)
 		  end,
 		},
-		{ id = "sepiatone_saturation", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_saturation, min = 0, max = 1.5, step = 0.02, type = "slider", value = 0.5, description = texts.option.sepiatone_saturation_descr,
+		{ id = "sepiatone_saturation", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_saturation, min = 0, max = 1.5, step = 0.02, type = "slider", value = 0.5, 
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_saturation", { 'saturation' })
 		  end,
@@ -1917,7 +1910,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setSaturation', { 'saturation' }, value)
 		  end,
 		},
-		{ id = "sepiatone_contrast", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_contrast, min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5, description = texts.option.sepiatone_contrast_descr,
+		{ id = "sepiatone_contrast", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_contrast, min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5, 
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_contrast", { 'contrast' })
 		  end,
@@ -1933,7 +1926,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setSepia', { 'sepia' }, value)
 		  end,
 		},
-		{ id = "sepiatone_shadeui", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_shadeui, type = "bool", value = 0, description = texts.option.sepiatone_shadeui_descr,
+		{ id = "sepiatone_shadeui", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_shadeui, type = "bool", value = 0, 
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_shadeui", { 'shadeUI' })
 		  end,
@@ -2182,7 +2175,7 @@ function init()
 		  end,
 		},
 
-		{ id = "decalsgl4", group = "gfx", category = types.basic, widget = "Decals GL4", name = texts.option.decalsgl4, type = "bool", value = GetWidgetToggleValue("Decals GL4"), description = texts.option.decalsgl4_desc },
+		{ id = "decalsgl4", group = "gfx", category = types.basic, widget = "Decals GL4", name = texts.option.decalsgl4, type = "bool", value = GetWidgetToggleValue("Decals GL4") },
 		{ id = "decalsgl4_lifetime", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.decalsgl4_lifetime, min = 0.5, max = 5, step = 0.1, type = "slider", value = 1, description = texts.option.decalsgl4_lifetime_descr,
 		  onload = function(i)
 			  loadWidgetData("Decals GL4", "decalsgl4_lifetime", { 'lifeTimeMult' })
@@ -3032,7 +3025,7 @@ function init()
 			  saveOptionValue('Info', 'info', 'setDisplayMapPosition', { 'displayMapPosition' }, value)
 		  end,
 		},
-		{ id = "info_alwaysshow", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.info_alwaysshow, type = "bool", value = (WG['info'] ~= nil and WG['info'].getAlwaysShow ~= nil and WG['info'].getAlwaysShow()), description = texts.option.info_alwaysshow_descr,
+		{ id = "info_alwaysshow", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.info_alwaysshow, type = "bool", value = (WG['info'] ~= nil and WG['info'].getAlwaysShow ~= nil and WG['info'].getAlwaysShow()), 
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3220,6 +3213,15 @@ function init()
 		--	  saveOptionValue('Auto point eraser', 'autoeraser', 'setEraseTime', { 'eraseTime' }, value)
 		--  end,
 		--},
+
+		{ id = "topbar_hidebuttons", group = "ui", category = types.advanced, name = texts.option.topbar..widgetOptionColor .. "  " .. texts.option.topbar_hidebuttons, type = "bool", value = (WG['topbar'] ~= nil and WG['topbar'].getAutoHideButtons() or 0),
+		  onload = function(i)
+			  loadWidgetData("Top Bar", "topbar_hidebuttons", { 'autoHideButtons' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Top Bar', 'topbar', 'setAutoHideButtons', { 'autoHideButtons' }, value)
+		  end,
+		},
 
 		{ id = "continuouslyclearmapmarks", group = "ui", category = types.dev, name = texts.option.continuouslyclearmapmarks, type = "bool", value = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1, description = texts.option.continuouslyclearmapmarks_descr,
 		  onchange = function(i, value)
@@ -3865,7 +3867,7 @@ function init()
 		{ id = "label_ui_cloak", group = "game", name = texts.option.label_cloak, category = types.basic },
 		{ id = "label_ui_cloak_spacer", group = "game", category = types.basic },
 
-		{ id = "autocloak", group = "game", category = types.basic, widget = "Auto Cloak Units", name = texts.option.autocloak, type = "bool", value = GetWidgetToggleValue("Auto Cloak Units"), description = texts.option.autocloak_descr },
+		{ id = "autocloak", group = "game", category = types.basic, widget = "Auto Cloak Units", name = texts.option.autocloak, type = "bool", value = GetWidgetToggleValue("Auto Cloak Units") },
 
 		-- ACCESSIBILITY
 
@@ -5327,7 +5329,7 @@ function init()
 						local faction = Spring.I18N('units.factions.' .. string.sub(UnitDefs[k].name,1,3))
 						if faction then
 							count = count + 1
-							newOptions[count] = { id = "autocloak_" .. k, group = "game", category = types.basic, name = widgetOptionColor .. "   " .. UnitDefs[k].translatedHumanName..'  ('..faction..')', type = "bool", value = v, description = "",
+							newOptions[count] = { id = "autocloak_" .. k, group = "game", category = types.basic, name = widgetOptionColor .. "   " .. UnitDefs[k].translatedHumanName..'  ('..faction..')', type = "bool", value = v, description = UnitDefs[k].translatedTooltip,
 							  onchange = function(i, value)
 								  saveOptionValue('Auto Cloak Units', 'autocloak', 'setUnitdefConfig', { 'unitdefConfig', k }, value, { k, value } )
 							  end,

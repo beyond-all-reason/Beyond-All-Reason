@@ -54,7 +54,7 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local font, font2, bgpadding, chobbyInterface, dlistGuishader, dlistFactionpicker, bpWidth, bpHeight, rectMargin, fontSize
+local font, font2, bgpadding, dlistGuishader, dlistFactionpicker, bpWidth, bpHeight, rectMargin, fontSize
 
 local RectRound, UiElement, UiUnit
 
@@ -99,13 +99,11 @@ local function drawFactionpicker()
 
 		if WG['tooltip'] ~= nil then
 			local text = Spring.I18N('ui.factionPicker.factions.'..factions[i].faction)
-			if text ~= '' and text ~= ' ' and text ~= 'ui.factionPicker.factions.'..factions[i].faction then
-				local tooltip = ''
-				local maxWidth = WG['tooltip'].getFontsize() * 80
-				local textLines, numLines = font:WrapText(text, maxWidth)
-				tooltip = tooltip..string.gsub(textLines, '[\n]', '\n')..'\n'
-				WG['tooltip'].AddTooltip('factionpicker_'..i, { factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4] }, tooltip, nil, Spring.I18N('units.factions.' .. factions[i].faction))
-			end
+			local tooltip = ''
+			local maxWidth = WG['tooltip'].getFontsize() * 80
+			local textLines, numLines = font:WrapText(text, maxWidth)
+			tooltip = tooltip..string.gsub(textLines, '[\n]', '\n')..'\n'
+			WG['tooltip'].AddTooltip('factionpicker_'..i, { factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4] }, tooltip, nil, Spring.I18N('units.factions.' .. factions[i].faction))
 		end
 	end
 	font2:End()
@@ -253,18 +251,7 @@ function widget:Update(dt)
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-
-	if chobbyInterface then
-		return
-	end
-
 	local x, y, b = Spring.GetMouseState()
 	if not WG['topbar'] or not WG['topbar'].showingQuit() then
 		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then

@@ -24,10 +24,10 @@ local tabs = {"Keybindings", "Default Keys", "CTRL Keys", "ALT Keys", "Grid Keys
 
 local keybindsimages = {
 	['Default Keys'] = "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts.png",
-	['CTRL Keys']=     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_CTRL.png",  
+	['CTRL Keys']=     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_CTRL.png",
 	['ALT Keys'] =     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_ALT.png",
 	['Grid Keys'] = "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_GRID.png",
-	['Grid CTRL Keys']=     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_GRID_CTRL.png",  
+	['Grid CTRL Keys']=     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_GRID_CTRL.png",
 	['Grid ALT Keys'] =     "luaui/images/keybinds_defaults/BAR_Keyboard_Shortcuts_GRID_ALT.png",
 }
 
@@ -53,8 +53,6 @@ local screenWidthOrg = 1050
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
-local spIsGUIHidden = Spring.IsGUIHidden
-
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
@@ -74,7 +72,7 @@ local screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
 local screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
 local math_isInRect = math.isInRect
 
-local font, font2, titleRect, keybinds, chobbyInterface, backgroundGuishader, show
+local font, font2, titleRect, keybinds, backgroundGuishader, show
 
 local function drawTextTable(lines, x, y)
 	local lineIndex = 0
@@ -114,8 +112,8 @@ end
 
 local function drawWindow(activetab)
 	local activetab = activetab or lasttab
-	if activetab == nil then activetab = 'Keybindings' end 
-	
+	if activetab == nil then activetab = 'Keybindings' end
+
 	-- background
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
@@ -127,35 +125,35 @@ local function drawWindow(activetab)
 
 	gl.Color(0, 0, 0, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
-	
+
 	local showtabtext = "Show"
 	showtabRect = { math.floor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), screenY, math.floor(screenX + 2*(font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
 
 	RectRound(showtabRect[1], showtabRect[2], showtabRect[3], showtabRect[4], elementCorner, 1, 1, 0, 0)
 	]]--
-	
+
 	local tabx = 0
-	for i,tab in ipairs(tabs) do 
+	for i,tab in ipairs(tabs) do
 		local tabwidth = font2:GetTextWidth(tab)
-		tabrects[tab] = { 
+		tabrects[tab] = {
 			math.floor(screenX + tabx),
 			screenY,
 			math.floor(screenX + tabx + tabwidth * titleFontSize + (titleFontSize*1.5)),
-			math.floor(screenY + (titleFontSize*1.7)), 
+			math.floor(screenY + (titleFontSize*1.7)),
 			tabx
 		}
-		tabx = tabx + (tabwidth  * titleFontSize +  (titleFontSize*1.5)) 
+		tabx = tabx + (tabwidth  * titleFontSize +  (titleFontSize*1.5))
 		gl.Color(0, 0, 0, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 		RectRound(tabrects[tab][1], tabrects[tab][2], tabrects[tab][3], tabrects[tab][4], elementCorner, 1, 1, 0, 0)
 	end
-	
+
 	-- title
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
 	font2:SetOutlineColor(0, 0, 0, 0.4)
-	for i,tab in ipairs(tabs) do 
+	for i,tab in ipairs(tabs) do
 		local tabcolor = keybindColor
-		if tab ~= activetab then 
+		if tab ~= activetab then
 			tabcolor = titleColor
 		end
 		font2:Print(tabcolor .. tab, screenX + (titleFontSize * 0.75) + tabrects[tab][5], screenY + (8*widgetScale), titleFontSize, "on")
@@ -163,14 +161,14 @@ local function drawWindow(activetab)
 	font2:End()
 
 
-	if activetab ~= "Keybindings" and keybindsimages[activetab] then 
+	if activetab ~= "Keybindings" and keybindsimages[activetab] then
 		gl.Color(1,1,1,1)
-		gl.Texture(0, keybindsimages[activetab]) 
+		gl.Texture(0, keybindsimages[activetab])
 		local zoom = 0.05
 		gl.TexRect(screenX,screenY - screenHeight, screenX + screenWidth, screenY, 0 + 0.02, 1 - zoom, 1 - 0.02 , 0 + zoom)
 		gl.Texture(0, false)
 	else
-		
+
 		local entriesPerColumn = math.ceil(#keybindsText / 3)
 		local entries1 = {}
 		local entries2 = {}
@@ -199,7 +197,7 @@ local function drawWindow(activetab)
 		font:Print(Spring.I18N('ui.keybinds.howtochangekeybinds'), screenX + (12*widgetScale), screenY - screenHeight + (20*widgetScale), 12.5*widgetScale)
 		font:End()
 	end
-	
+
 	--[[
 
 	]]--
@@ -336,19 +334,9 @@ function widget:ViewResize()
 	keybinds = gl.CreateList(drawWindow)
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
-	if spIsGUIHidden() then
-		return
-	end
 
 	-- draw the help
 	if doUpdate then
@@ -377,7 +365,7 @@ function widget:DrawScreen()
 				-- background
 				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
 				-- title
-				for k, tabrect in pairs(tabrects) do 
+				for k, tabrect in pairs(tabrects) do
 					RectRound(tabrect[1], tabrect[2], tabrect[3], tabrect[4], elementCorner, 1, 1, 0, 0)
 				end
 			end)
@@ -404,7 +392,7 @@ function widget:KeyPress(key)
 end
 
 local function mouseEvent(x, y, button, release)
-	if spIsGUIHidden() then
+	if Spring.IsGUIHidden() then
 		return false
 	end
 
@@ -412,8 +400,8 @@ local function mouseEvent(x, y, button, release)
 		-- on window
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 			return true
-		else 
-			for tab, tabrect in pairs(tabrects) do 
+		else
+			for tab, tabrect in pairs(tabrects) do
 				if math_isInRect(x, y, tabrect[1], tabrect[2], tabrect[3], tabrect[4]) then
 					if keybinds then
 						gl.DeleteList(keybinds)

@@ -67,7 +67,7 @@ local MAP_SIZE_X_SCALED = MAP_SIZE_X / METAL_MAP_SQUARE_SIZE
 local MAP_SIZE_Z = Game.mapSizeZ
 local MAP_SIZE_Z_SCALED = MAP_SIZE_Z / METAL_MAP_SQUARE_SIZE
 
-local once, font, chobbyInterface, forceUpdate
+local once, font, forceUpdate
 
 ------------------------------------------------
 --helpers
@@ -191,9 +191,6 @@ function widget:Initialize()
 end
 
 function widget:DrawWorld()
-	if chobbyInterface then
-		return
-	end
 	local drawMode = GetMapDrawMode()
 	if GetGameFrame() < 1 and defaultDefID and drawMode == "metal" then
 		local mx, my = GetMouseState()
@@ -223,16 +220,9 @@ function widget:DrawWorld()
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
 	if once then
 		widget:ViewResize()
 		once = false
