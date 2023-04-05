@@ -990,7 +990,7 @@ if gadgetHandler:IsSyncedCode() then
 			squadPotentialTarget[unitID] = true
 		end
 		if config.ecoBuildingsPenalty[unitDefID] then
-			playerAgressionEcoValue = playerAgressionEcoValue + config.ecoBuildingsPenalty[unitDefID]
+			playerAgressionEcoValue = playerAgressionEcoValue + (config.ecoBuildingsPenalty[unitDefID]*config.queenTime/3600) -- scale to 60minutes = 3600seconds queen time
 		end
 	end
 
@@ -1501,8 +1501,8 @@ if gadgetHandler:IsSyncedCode() then
 					queenAnger = 100
 				end
 				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - (playerAgressionLevel*5) + queenAngerAgressionLevel, 100), 0)
-				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgressionLevel*0.02)/(config.queenTime/1200)) + playerAgressionEcoValue
-				SetGameRulesParam("ChickenQueenAngerGain_Aggression", (playerAgressionLevel*0.02)/(config.queenTime/1200))
+				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgression*0.01)/(config.queenTime/3600)) + playerAgressionEcoValue
+				SetGameRulesParam("ChickenQueenAngerGain_Aggression", (playerAgression*0.01)/(config.queenTime/3600))
 				SetGameRulesParam("ChickenQueenAngerGain_Eco", playerAgressionEcoValue)
 				if techAnger < 1 then techAnger = 1 end
 				if playerAgressionLevel+1 <= maxBurrows then
@@ -1732,7 +1732,7 @@ if gadgetHandler:IsSyncedCode() then
 			unitTeleportCooldown[unitID] = nil
 		end
 		if unitTeam ~= chickenTeamID and config.ecoBuildingsPenalty[unitDefID] then
-			playerAgressionEcoValue = playerAgressionEcoValue - config.ecoBuildingsPenalty[unitDefID]
+			playerAgressionEcoValue = playerAgressionEcoValue - (config.ecoBuildingsPenalty[unitDefID]*config.queenTime/3600) -- scale to 60minutes = 3600seconds queen time
 		end
 	end
 
