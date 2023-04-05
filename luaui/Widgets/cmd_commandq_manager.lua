@@ -10,16 +10,41 @@ function widget:GetInfo()
     }
 end
 
+-- Handlers
 function widget:Initialize()
     widgetHandler:AddAction("command_skip_current", SkipCurrentCommand)
     widgetHandler:AddAction("command_cancel_last", CancelLastCommand)
 end
 
+-- Locals
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetCommandQueueSize = Spring.GetCommandQueue
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local maxQueueSizeToCheck = 350 -- reduce ram usage, but didn't see no perf decreases after test
+
+-- Main functions
+function SkipCurrentCommand()
+    ProcessSelectedUnits(function(id)
+        RemoveCommand(id, 1)
+    end)
+end
+
+function CancelLastCommand()
+    ProcessSelectedUnits(function(id)
+        local commandQueueSize = spGetCommandQueueSize(id, 0)
+        if commandQueueSize and commandQueueSize >= 1 then
+            RemoveCommand(id, commandQueueSize)
+        end            
+    end)
+end
+
+-- Helper functions
+function RemoveCommand(unitID, cmdIndex)
+    local cmdID, _, cmdTag = spGetUnitCurrentCommand(unitID, cmdIndex)
+    if cmdID then
+        spGiveOrderToUnit(unitID, CMD.REMOVE, {cmdTag}, 0)
+    end
+end
 
 function ProcessSelectedUnits(processCommandFunc)
     local selectedUnits = spGetSelectedUnits()
@@ -27,23 +52,4 @@ function ProcessSelectedUnits(processCommandFunc)
         local id = selectedUnits[i]
         processCommandFunc(id)
     end
-end
-
-function SkipCurrentCommand()
-    ProcessSelectedUnits(function(id)
-        local cmdID, _, cmdTag = spGetUnitCurrentCommand(id)
-        if cmdID then
-            spGiveOrderToUnit(id, CMD.REMOVE, {cmdTag}, 0)
-        end
-    end)
-end
-
-function CancelLastCommand()
-    ProcessSelectedUnits(function(id)
-        local commandsQueue = spGetCommandQueue(id, maxQueueSizeToCheck)
-        if commandsQueue ~= nil and #commandsQueue >= 1 then
-            local lastCommand = commandsQueue[#commandsQueue]
-            spGiveOrderToUnit(id, CMD.REMOVE, {lastCommand.tag}, 0)
-        end            
-    end)
 end
