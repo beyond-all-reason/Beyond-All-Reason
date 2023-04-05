@@ -990,7 +990,7 @@ if gadgetHandler:IsSyncedCode() then
 			squadPotentialTarget[unitID] = true
 		end
 		if config.ecoBuildingsPenalty[unitDefID] then
-			playerAgressionEcoValue = playerAgressionEcoValue + (config.ecoBuildingsPenalty[unitDefID]*config.queenTime/3600) -- scale to 60minutes = 3600seconds queen time
+			playerAgressionEcoValue = playerAgressionEcoValue + (config.ecoBuildingsPenalty[unitDefID]/(config.queenTime/3600)) -- scale to 60minutes = 3600seconds queen time
 		end
 	end
 
@@ -1732,7 +1732,7 @@ if gadgetHandler:IsSyncedCode() then
 			unitTeleportCooldown[unitID] = nil
 		end
 		if unitTeam ~= chickenTeamID and config.ecoBuildingsPenalty[unitDefID] then
-			playerAgressionEcoValue = playerAgressionEcoValue - (config.ecoBuildingsPenalty[unitDefID]*config.queenTime/3600) -- scale to 60minutes = 3600seconds queen time
+			playerAgressionEcoValue = playerAgressionEcoValue - (config.ecoBuildingsPenalty[unitDefID]/(config.queenTime/3600)) -- scale to 60minutes = 3600seconds queen time
 		end
 	end
 
