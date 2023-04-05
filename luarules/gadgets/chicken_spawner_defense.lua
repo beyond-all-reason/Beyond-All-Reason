@@ -79,6 +79,7 @@ if gadgetHandler:IsSyncedCode() then
 	local queenMaxHP = 0
 	local playerAgression = 0
 	local playerAgressionLevel = 0
+	local playerAgressionEcoValue = 0
 	local queenAngerAgressionLevel = 0
 	local difficultyCounter = 0
 	local waveParameters = {
@@ -988,6 +989,9 @@ if gadgetHandler:IsSyncedCode() then
 		if not UnitDefs[unitDefID].canMove then
 			squadPotentialTarget[unitID] = true
 		end
+		if config.ecoBuildingsPenalty[unitDefID] then
+			playerAgressionEcoValue = playerAgressionEcoValue + config.ecoBuildingsPenalty[unitDefID]
+		end
 	end
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
@@ -1497,8 +1501,9 @@ if gadgetHandler:IsSyncedCode() then
 					queenAnger = 100
 				end
 				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - (playerAgressionLevel*5) + queenAngerAgressionLevel, 100), 0)
-				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgressionLevel*0.02)/(config.queenTime/1200))
+				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgressionLevel*0.02)/(config.queenTime/1200)) + playerAgressionEcoValue
 				SetGameRulesParam("ChickenQueenAngerGain_Aggression", (playerAgressionLevel*0.02)/(config.queenTime/1200))
+				SetGameRulesParam("ChickenQueenAngerGain_Eco", playerAgressionEcoValue)
 				if techAnger < 1 then techAnger = 1 end
 				if playerAgressionLevel+1 <= maxBurrows then
 					minBurrows = playerAgressionLevel+1
@@ -1725,6 +1730,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if unitTeleportCooldown[unitID] then
 			unitTeleportCooldown[unitID] = nil
+		end
+		if unitTeam ~= chickenTeamID and config.ecoBuildingsPenalty[unitDefID] then
+			playerAgressionEcoValue = playerAgressionEcoValue - config.ecoBuildingsPenalty[unitDefID]
 		end
 	end
 

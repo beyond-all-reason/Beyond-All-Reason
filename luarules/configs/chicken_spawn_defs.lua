@@ -634,6 +634,26 @@ local spawnSquareIncrement = 2 -- square size increase for each unit spawned
 local minBaseDistance = 1000 -- Minimum distance of new burrows from players and other burrows
 local burrowTurretSpawnRadius = 80
 
+local ecoBuildingsPenalty = { -- Additional queen hatch per second from eco buildup
+	[UnitDefNames["armadvsol"].id] 	= 0.00005,
+	[UnitDefNames["coradvsol"].id] 	= 0.00005,
+	[UnitDefNames["armmakr"].id] 	= 0.00005,
+	[UnitDefNames["cormakr"].id] 	= 0.00005,
+	[UnitDefNames["armfmkr"].id] 	= 0.00005,
+	[UnitDefNames["corfmkr"].id] 	= 0.00005,
+	[UnitDefNames["armfus"].id] 	= 0.00125,
+	[UnitDefNames["armckfus"].id] 	= 0.00125,
+	[UnitDefNames["corfus"].id] 	= 0.00125,
+	[UnitDefNames["armafus"].id] 	= 0.005,
+	[UnitDefNames["corafus"].id] 	= 0.005,
+	[UnitDefNames["armmmkr"].id] 	= 0.0025,
+	[UnitDefNames["cormmkr"].id] 	= 0.0025,
+	[UnitDefNames["armuwfus"].id] 	= 0.00125,
+	[UnitDefNames["coruwfus"].id] 	= 0.00125,
+	[UnitDefNames["armuwmmm"].id] 	= 0.0025,
+	[UnitDefNames["coruwmmm"].id] 	= 0.0025,
+}
+
 local config = { -- Don't touch this! ---------------------------------------------------------------------------------------------------------------------------------------------
 	useEggs 				= useEggs,
 	useScum					= useScum,
@@ -661,6 +681,7 @@ local config = { -- Don't touch this! ------------------------------------------
 	burrowTurretSpawnRadius = burrowTurretSpawnRadius,
 	squadSpawnOptionsTable	= squadSpawnOptionsTable,
 	airStartAnger			= airStartAnger,
+	ecoBuildingsPenalty		= ecoBuildingsPenalty,
 }
 
 for key, value in pairs(optionValues[difficulty]) do
