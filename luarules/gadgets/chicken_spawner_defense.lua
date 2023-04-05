@@ -327,6 +327,10 @@ if gadgetHandler:IsSyncedCode() then
 	SetGameRulesParam("queenAnger", queenAnger)
 	SetGameRulesParam("gracePeriod", config.gracePeriod)
 	SetGameRulesParam("difficulty", config.difficulty)
+	SetGameRulesParam("ChickenQueenAngerGain_Base", 100/config.queenTime) 
+	SetGameRulesParam("ChickenQueenAngerGain_Aggression", 0)
+	SetGameRulesParam("ChickenQueenAngerGain_Eco", 0)
+
 
 	function chickenEvent(type, num, tech)
 		SendToUnsynced("ChickenEvent", type, num, tech)
@@ -1494,6 +1498,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - (playerAgressionLevel*5) + queenAngerAgressionLevel, 100), 0)
 				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgressionLevel*0.02)/(config.queenTime/1200))
+				SetGameRulesParam("ChickenQueenAngerGain_Aggression", (playerAgressionLevel*0.02)/(config.queenTime/1200))
 				if techAnger < 1 then techAnger = 1 end
 				if playerAgressionLevel+1 <= maxBurrows then
 					minBurrows = playerAgressionLevel+1
@@ -1619,7 +1624,9 @@ if gadgetHandler:IsSyncedCode() then
 				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 1)
 			end
 			if unitDefID == config.burrowDef then
-				spawnCreepStructuresWave()
+				if mRandom() <= config.spawnChance then
+					spawnCreepStructuresWave()
+				end
 				for turret, burrow in pairs(burrowTurrets) do
 					if burrowTurrets[turret] == unitID then
 						table.insert(deleteBurrowTurrets, turret)

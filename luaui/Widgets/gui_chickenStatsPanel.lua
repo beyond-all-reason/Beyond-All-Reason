@@ -45,7 +45,7 @@ local x1 = 0
 local y1 = 0
 local panelMarginX = 30
 local panelMarginY = 40
-local panelSpacingY = 7
+local panelSpacingY = 5
 local waveSpacingY = 7
 local moving
 local capture
@@ -160,41 +160,38 @@ local function CreatePanelDisplayList()
 	gl.Translate(x1, y1, 0)
 	gl.Scale(widgetScale, widgetScale, 1)
 	gl.CallList(displayList)
-
+	font:Begin()
+	font:SetTextColor(1, 1, 1, 1)
+	font:SetOutlineColor(0, 0, 0, 1)
 	local currentTime = GetGameSeconds()
 	local techLevel = ""
 	if currentTime > gameInfo.gracePeriod then
 		if gameInfo.queenAnger < 100 then
-			techLevel = textColor .. Spring.I18N('ui.chickens.queenAnger', { anger = gameInfo.queenAnger })
+
+			local gain = 0
+			if Spring.GetGameRulesParam("ChickenQueenAngerGain_Base") then
+				font:Print(textColor .. "Base: +" .. math.round(Spring.GetGameRulesParam("ChickenQueenAngerGain_Base"), 3) .. "%/s.", panelMarginX+5, PanelRow(2), panelFontSize, "")
+				font:Print(textColor .. "Aggression: +" .. math.round(Spring.GetGameRulesParam("ChickenQueenAngerGain_Aggression"), 3) .. "%/s.", panelMarginX+5, PanelRow(3), panelFontSize, "")
+				--font:Print(textColor .. "Economy: +" .. math.round(Spring.GetGameRulesParam("ChickenQueenAngerGain_Eco"), 3) .. "%/s.", panelMarginX+5, PanelRow(4), panelFontSize, "")
+				gain = math.round(Spring.GetGameRulesParam("ChickenQueenAngerGain_Base"), 3) + math.round(Spring.GetGameRulesParam("ChickenQueenAngerGain_Aggression"), 3) + math.round(Spring.GetGameRulesParam("ChickenQueenAngerGain_Eco"), 3)
+			end
+			font:Print(textColor .. Spring.I18N('ui.chickens.queenAnger', { anger = gameInfo.queenAnger }) .. " (+" .. math.round(gain, 3) .. "%/s)", panelMarginX, PanelRow(1), panelFontSize, "")
 		else
-			techLevel = textColor .. Spring.I18N('ui.chickens.queenHealth', { health = gameInfo.queenLife })
+			font:Print(textColor .. Spring.I18N('ui.chickens.queenHealth', { health = gameInfo.queenLife }), panelMarginX, PanelRow(1), panelFontSize, "")
 			for i = 1,#currentlyResistantToNames do
 				if i == 1 then
-					font:Print(textColor .. Spring.I18N('ui.chickens.queenResistantToList'), panelMarginX, PanelRow(10), panelFontSize, "")
+					font:Print(textColor .. Spring.I18N('ui.chickens.queenResistantToList'), panelMarginX, PanelRow(11), panelFontSize, "")
 				end
-				font:Print(textColor .. currentlyResistantToNames[i], panelMarginX+20, PanelRow(10+i), panelFontSize, "")
+				font:Print(textColor .. currentlyResistantToNames[i], panelMarginX+20, PanelRow(11+i), panelFontSize, "")
 			end
 		end
 	else
-		techLevel = textColor .. Spring.I18N('ui.chickens.gracePeriod', { time = math.ceil(((currentTime - gameInfo.gracePeriod) * -1) - 0.5) })
+		font:Print(textColor .. Spring.I18N('ui.chickens.gracePeriod', { time = math.ceil(((currentTime - gameInfo.gracePeriod) * -1) - 0.5) }), panelMarginX, PanelRow(1), panelFontSize, "")
 	end
-
-	font:Begin()
-	font:SetTextColor(1, 1, 1, 1)
-	font:SetOutlineColor(0, 0, 0, 1)
-	font:Print(textColor .. techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
-	--font:Print(Spring.I18N('ui.chickens.chickenPlayerAgression', { count = (Spring.GetGameRulesParam("chickenPlayerAgressionLevel") or 0) }), panelMarginX, PanelRow(2), panelFontSize, "")
-	--font:Print(Spring.I18N('ui.chickens.chickenCount', { count = gameInfo.chickenCounts }), panelMarginX, PanelRow(2), panelFontSize, "")
-	font:Print(textColor .. Spring.I18N('ui.chickens.chickenKillCount', { count = gameInfo.chickenKills }), panelMarginX, PanelRow(5), panelFontSize, "")
-	--font:Print(Spring.I18N('ui.chickens.burrowCount', { count = gameInfo.chicken_hiveCount }), panelMarginX, PanelRow(4), panelFontSize, "")
-	--font:Print(Spring.I18N('ui.chickens.burrowKillCount', { count = gameInfo.chicken_hiveKills }), panelMarginX, PanelRow(5), panelFontSize, "")
-
-	if gotScore then
-		font:Print(textColor .. Spring.I18N('ui.chickens.score', { score = commaValue(scoreCount) }), 88, h - 170, panelFontSize, "")
-	else
-		local difficultyCaption = Spring.I18N('ui.chickens.difficulty.' .. difficultyOption)
-		font:Print(textColor .. Spring.I18N('ui.chickens.mode', { mode = difficultyCaption }), 120, h - 170, panelFontSize, "")
-	end
+	
+	font:Print(textColor .. Spring.I18N('ui.chickens.chickenKillCount', { count = gameInfo.chickenKills }), panelMarginX, PanelRow(6), panelFontSize, "")
+	local difficultyCaption = Spring.I18N('ui.chickens.difficulty.' .. difficultyOption)
+	font:Print(textColor .. Spring.I18N('ui.chickens.mode', { mode = difficultyCaption }), 120, h - 170, panelFontSize, "")
 	font:End()
 
 	gl.Texture(false)
