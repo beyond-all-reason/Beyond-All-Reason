@@ -19,7 +19,7 @@ local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetCommandQueue = Spring.GetCommandQueue
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local maxQueueSizeToCheck = 35 -- prevent hax, ram usage
+local maxQueueSizeToCheck = 350 -- reduce ram usage, but didn't see no perf decreases after test
 
 function ProcessSelectedUnits(processCommandFunc)
     local selectedUnits = spGetSelectedUnits()
