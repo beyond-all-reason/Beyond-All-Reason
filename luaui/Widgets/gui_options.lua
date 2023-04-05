@@ -1486,7 +1486,7 @@ function applyOptionValue(i, skipRedrawWindow, force)
 
 	local id = options[i].id
 
-	if options[i].widget ~= nil then
+	if options[i].widget ~= nil and widgetHandler.orderList[options[i].widget] ~= nil then
 		if options[i].value then
 			if widgetHandler.orderList[options[i].widget] < 0.5 then
 				widgetHandler:EnableWidget(options[i].widget)
