@@ -269,7 +269,16 @@ end
 
 local function processScaling()
 	setDefaults()
-	sizeMultiplier = ((vsy / 700) * 0.5) * (1 + (ui_scale - 1) / 1.5)
+	sizeMultiplier = ((vsy / 700) * 0.57) * (1 + (ui_scale - 1) / 1.5)
+	local numAllyteams = #Spring.GetAllyTeamList()-1
+	if numAllyteams > 5 then
+		sizeMultiplier = sizeMultiplier * 0.96
+	elseif numAllyteams > 8 then
+		sizeMultiplier = sizeMultiplier * 0.88
+	elseif numAllyteams > 11 then
+		sizeMultiplier = sizeMultiplier * 0.82
+	end
+
 	tH = math.floor(tH * sizeMultiplier)
 	widgetWidth = math.floor(widgetWidth * sizeMultiplier)
 	WBadge = math.floor(WBadge * sizeMultiplier)
