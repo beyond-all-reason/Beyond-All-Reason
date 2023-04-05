@@ -915,7 +915,7 @@ if gadgetHandler:IsSyncedCode() then
 				if mRandom() <= config.spawnChance then
 					squadCounter = 0
 					local squad
-					if waveType == "air" and mRandom() <= 0.5 then
+					if (waveType == "air" or queenID) and mRandom() <= 0.5 then
 						for _ = 1,1000 do
 							local potentialSquad = squadSpawnOptions.air[mRandom(1, #squadSpawnOptions.air)]
 							if potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
