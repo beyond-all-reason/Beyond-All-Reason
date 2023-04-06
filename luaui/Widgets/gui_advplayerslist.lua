@@ -2799,7 +2799,7 @@ function ResourcesTip(mouseX, energy, energyStorage, energyIncome, metal, metalS
         if metalIncome >= 10000 then
             metalIncome = Spring.I18N('ui.playersList.thousands', { number = math.floor(metalIncome / 1000) })
         end
-        tipText = "\255\255\255\000+" .. energyIncome .. "\n\255\255\255\000" .. energy .. "\n\255\255\255\255" .. metal .. "\n\255\255\255\255+" .. metalIncome
+        tipText = "\n\255\255\255\255+" .. metalIncome.. "\n\255\255\255\255" .. metal .. "\n\255\255\255\000" .. energy .. "\255\255\255\000+" .. energyIncome
     end
 end
 
