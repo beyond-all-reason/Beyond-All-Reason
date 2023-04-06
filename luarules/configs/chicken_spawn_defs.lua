@@ -635,25 +635,38 @@ local minBaseDistance = 1000 -- Minimum distance of new burrows from players and
 local burrowTurretSpawnRadius = 80
 
 local ecoBuildingsPenalty = { -- Additional queen hatch per second from eco buildup (for 60 minutes queen time. scales to queen time)
+	-- T1 Energy
+	[UnitDefNames["armsolar"].id] 	= 0.000005,
+	[UnitDefNames["corsolar"].id] 	= 0.000005,
+	[UnitDefNames["armwin"].id] 	= 0.000005,
+	[UnitDefNames["corwin"].id] 	= 0.000005,
+	[UnitDefNames["armtide"].id] 	= 0.000005,
+	[UnitDefNames["cortide"].id] 	= 0.000005,
 	[UnitDefNames["armadvsol"].id] 	= 0.00001,
 	[UnitDefNames["coradvsol"].id] 	= 0.00001,
-	[UnitDefNames["armmakr"].id] 	= 0.00001,
-	[UnitDefNames["cormakr"].id] 	= 0.00001,
-	[UnitDefNames["armfmkr"].id] 	= 0.00001,
-	[UnitDefNames["corfmkr"].id] 	= 0.00001,
-	[UnitDefNames["armwint2"].id] 	= 0.0002,
-	[UnitDefNames["corwint2"].id] 	= 0.0002,
-	[UnitDefNames["armfus"].id] 	= 0.0003,
-	[UnitDefNames["armckfus"].id] 	= 0.0003,
-	[UnitDefNames["corfus"].id] 	= 0.0003,
-	[UnitDefNames["armafus"].id] 	= 0.002,
-	[UnitDefNames["corafus"].id] 	= 0.002,
-	[UnitDefNames["armmmkr"].id] 	= 0.0003,
-	[UnitDefNames["cormmkr"].id] 	= 0.0003,
-	[UnitDefNames["armuwfus"].id] 	= 0.0003,
-	[UnitDefNames["coruwfus"].id] 	= 0.0003,
-	[UnitDefNames["armuwmmm"].id] 	= 0.0003,
-	[UnitDefNames["coruwmmm"].id] 	= 0.0003,
+
+	-- T2 Energy
+	[UnitDefNames["armwint2"].id] 	= 0.00015,
+	[UnitDefNames["corwint2"].id] 	= 0.00015,
+	[UnitDefNames["armfus"].id] 	= 0.00025,
+	[UnitDefNames["armckfus"].id] 	= 0.00025,
+	[UnitDefNames["corfus"].id] 	= 0.00025,
+	[UnitDefNames["armuwfus"].id] 	= 0.00025,
+	[UnitDefNames["coruwfus"].id] 	= 0.00025,
+	[UnitDefNames["armafus"].id] 	= 0.001,
+	[UnitDefNames["corafus"].id] 	= 0.001,
+
+	-- T1 Metal Makers
+	[UnitDefNames["armmakr"].id] 	= 0.0001,
+	[UnitDefNames["cormakr"].id] 	= 0.0001,
+	[UnitDefNames["armfmkr"].id] 	= 0.0001,
+	[UnitDefNames["corfmkr"].id] 	= 0.0001,
+	
+	-- T2 Metal Makers
+	[UnitDefNames["armmmkr"].id] 	= 0.001,
+	[UnitDefNames["cormmkr"].id] 	= 0.001,
+	[UnitDefNames["armuwmmm"].id] 	= 0.001,
+	[UnitDefNames["coruwmmm"].id] 	= 0.001,
 }
 
 local config = { -- Don't touch this! ---------------------------------------------------------------------------------------------------------------------------------------------
