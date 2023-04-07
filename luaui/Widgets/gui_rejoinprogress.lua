@@ -29,7 +29,6 @@ local rejoinArea = {}
 local gameFrame = Spring.GetGameFrame()
 local gameStarted = (Spring.GetGameFrame() > 0)
 local isReplay = Spring.IsReplay()
-local gameIsOver = false
 local bgpadding, RectRound, TexturedRectRound, UiElement, font, font2
 local dlistRejoin, dlistRejoinGuishader, serverFrame
 local posY = 0.22
@@ -214,7 +213,7 @@ function widget:GameProgress(n)	-- happens every 150 frames
 end
 
 function widget:GameOver()
-	gameIsOver = true
+	widget:Shutdown()
 end
 
 function widget:GameStart()
