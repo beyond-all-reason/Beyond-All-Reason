@@ -296,32 +296,34 @@ local function updateRejoin()
 			return
 		end
 	end
-	local area = rejoinArea
-
-	local catchup = gameFrame / serverFrame
 
 	-- add background blur
 	if dlistRejoinGuishader ~= nil then
 		if WG['guishader'] then
 			WG['guishader'].RemoveDlist('topbar_rejoin')
 		end
-		dlistRejoinGuishader = glDeleteList(dlistRejoinGuishader)
+		glDeleteList(dlistRejoinGuishader)
+		dlistRejoinGuishader = nil
 	end
+
+	if dlistRejoin ~= nil then
+		glDeleteList(dlistRejoin)
+		dlistRejoin = nil
+	end
+
 	if showRejoinUI then
+		local area = rejoinArea
+		local catchup = gameFrame / serverFrame
+
 		dlistRejoinGuishader = glCreateList(function()
 			RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
 		end)
-
-		if dlistRejoin ~= nil then
-			glDeleteList(dlistRejoin)
+		if WG['guishader'] then
+			WG['guishader'].InsertDlist(dlistRejoinGuishader, 'topbar_rejoin')
 		end
+
 		dlistRejoin = glCreateList(function()
-
 			UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
-
-			if WG['guishader'] then
-				WG['guishader'].InsertDlist(dlistRejoinGuishader, 'topbar_rejoin')
-			end
 
 			local barHeight = math_floor((height * widgetScale / 7.5) + 0.5)
 			local barHeightPadding = math_floor((9 * widgetScale) + 0.5) --((height/2) * widgetScale) - (barHeight/2)
@@ -381,6 +383,8 @@ local function updateRejoin()
 			-- Text
 			local fontsize = math.min(14 * widgetScale, ((area[3] - area[1])*0.88) / font:GetTextWidth(Spring.I18N('ui.topbar.catchingUp')))
 			font2:Begin()
+			font2:SetTextColor(0.92, 0.92, 0.92, 1)
+			font2:SetOutlineColor(0, 0, 0, 1)
 			font2:Print('\255\225\255\225' .. Spring.I18N('ui.topbar.catchingUp'), area[1] + ((area[3] - area[1]) / 2), area[2] + barHeight * 2 + fontsize, fontsize, 'cor')
 			font2:End()
 
@@ -1422,11 +1426,13 @@ local function hoveringElement(x, y)
 end
 
 function widget:drawTidal()
-   if displayTidalSpeed and tidaldlist1 then
-      glCallList(tidaldlist1)
-      glTranslate(tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2), math.sin(now/math.pi) * tidalWaveAnimationHeight + tidalarea[2] + (bgpadding/2) + ((tidalarea[4] - tidalarea[2]) / 2), 0)
-      glCallList(tidaldlist2)
-   end
+	if displayTidalSpeed and tidaldlist1 then
+		glPushMatrix()
+		glCallList(tidaldlist1)
+		glTranslate(tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2), math.sin(now/math.pi) * tidalWaveAnimationHeight + tidalarea[2] + (bgpadding/2) + ((tidalarea[4] - tidalarea[2]) / 2), 0)
+		glCallList(tidaldlist2)
+		glPopMatrix()
+	end
 end
 
 local function drawResBars()
@@ -1436,6 +1442,7 @@ local function drawResBars()
 	if updateText then
 		updateTextClock = os.clock()
 	end
+
 	local res = 'metal'
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
@@ -1464,6 +1471,7 @@ local function drawResBars()
 		glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
 	end
+
 	res = 'energy'
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
@@ -1507,7 +1515,6 @@ function widget:DrawScreen()
 		Spring.SetMouseCursor('cursornormal')
 	end
 
-	glPushMatrix()
 	if dlistWind1 then
 		glPushMatrix()
 		glCallList(dlistWind1)
@@ -1532,6 +1539,7 @@ function widget:DrawScreen()
 
     self:drawTidal()
 
+	glPushMatrix()
 	if displayComCounter and dlistComs1 then
 		glCallList(dlistComs1)
 		if allyComs == 1 and (gameFrame % 12 < 6) then
