@@ -106,6 +106,7 @@ if gadgetHandler:IsSyncedCode() then
 	local squadsTable = {}
 	local unitSquadTable = {}
 	local squadPotentialTarget = {}
+	local squadPotentialHighValueTarget = {}
 	local unitTargetPool = {}
 	local unitCowardCooldown = {}
 	local unitTeleportCooldown = {}
@@ -218,17 +219,31 @@ if gadgetHandler:IsSyncedCode() then
 	function getRandomEnemyPos()
 		local loops = 0
 		local targetCount = SetCount(squadPotentialTarget)
+		local highValueTargetCount = SetCount(squadPotentialHighValueTarget)
 		local pos = {}
 		local pickedTarget = nil
 		repeat
 			loops = loops + 1
-			for target in pairs(squadPotentialTarget) do
-				if mRandom(1,targetCount) == 1 then
-					if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
-						local x,y,z = Spring.GetUnitPosition(target)
-						pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
-						pickedTarget = target
-						break
+			if highValueTargetCount > 0 and mRandom() <= 0.75 then
+				for target in pairs(squadPotentialHighValueTarget) do
+					if mRandom(1,highValueTargetCount) == 1 then
+						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+							local x,y,z = Spring.GetUnitPosition(target)
+							pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
+							pickedTarget = target
+							break
+						end
+					end
+				end
+			else
+				for target in pairs(squadPotentialTarget) do
+					if mRandom(1,targetCount) == 1 then
+						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+							local x,y,z = Spring.GetUnitPosition(target)
+							pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
+							pickedTarget = target
+							break
+						end
 					end
 				end
 			end
@@ -506,7 +521,7 @@ if gadgetHandler:IsSyncedCode() then
 		if squadID ~= 0 then -- If it's 0 then we f***** up somewhere
 			local role = "assault"
 			if not newSquad.role then
-				if mRandom(0,100) <= 40 then
+				if mRandom(0,100) <= 60 then
 					role = "raid"
 				end
 			else
@@ -983,11 +998,15 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			return
 		end
-		if squadPotentialTarget[unitID] then
+		if squadPotentialTarget[unitID] or squadPotentialHighValueTarget[unitID] then
 			squadPotentialTarget[unitID] = nil
+			squadPotentialHighValueTarget[unitID] = nil
 		end
 		if not UnitDefs[unitDefID].canMove then
 			squadPotentialTarget[unitID] = true
+			if config.highValueTargets[unitDefID] then
+				squadPotentialHighValueTarget[unitID] = true
+			end
 		end
 		if config.ecoBuildingsPenalty[unitDefID] then
 			playerAgressionEcoValue = playerAgressionEcoValue + (config.ecoBuildingsPenalty[unitDefID]/(config.queenTime/3600)) -- scale to 60minutes = 3600seconds queen time
@@ -1662,6 +1681,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		squadPotentialTarget[unitID] = nil
+		squadPotentialHighValueTarget[unitID] = nil
 		for squad in ipairs(unitTargetPool) do
 			if unitTargetPool[squad] == unitID then
 				refreshSquad(squad)
