@@ -1383,15 +1383,18 @@ function widget:Update(dt)
 				userIsRejoining = true
 				if widgetHandler.orderList["Rejoin progress"] < 1 then
 					showRejoinUI = true
+					updateRejoin()
 				else
 					showRejoinUI = false
 				end
-				updateRejoin()
-			elseif showRejoinUI then
+			elseif userIsRejoining then
 				userIsRejoining = false
+				local prevShowRejoinUI = showRejoinUI
 				showRejoinUI = false
-				updateRejoin()
-				init()
+				if prevShowRejoinUI then
+					updateRejoin()
+					init()
+				end
 			end
 		end
 	end

@@ -7,7 +7,6 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = 9999,
 		enabled = true,
-		handler = true,
 	}
 end
 
@@ -30,7 +29,6 @@ local rejoinArea = {}
 local gameFrame = Spring.GetGameFrame()
 local gameStarted = (Spring.GetGameFrame() > 0)
 local isReplay = Spring.IsReplay()
-local spec = Spring.GetSpectatingState()
 local gameIsOver = false
 local bgpadding, RectRound, TexturedRectRound, UiElement, font, font2
 local dlistRejoin, dlistRejoinGuishader, serverFrame
@@ -225,10 +223,6 @@ end
 
 function widget:GameFrame(n)
 	gameFrame = n
-end
-
-function widget:PlayerChanged()
-	spec = Spring.GetSpectatingState()
 end
 
 function widget:Initialize()
