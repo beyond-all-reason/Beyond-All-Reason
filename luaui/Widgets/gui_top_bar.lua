@@ -33,7 +33,6 @@ local bladeSpeedMultiplier = 0.2
 
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
 local stripesTexture = "LuaUI/Images/stripes.png"
-local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
 local showButtons = true
 local autoHideButtons = false
 
@@ -193,7 +192,7 @@ local numPlayers = Spring.Utilities.GetPlayerCount()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local isSingle = false
-if not mySpecStatus then
+if not spec then
 	local teamList = Spring.GetTeamList(myAllyTeamID) or {}
 	isSingle = #teamList == 1
 end
@@ -1533,20 +1532,22 @@ function widget:DrawScreen()
 		glCallList(dlistComs2)
 	end
 
-	if dlistRejoin and showRejoinUI then
-		glCallList(dlistRejoin)
-	elseif dlistRejoin ~= nil then
-		if dlistRejoin ~= nil then
-			glDeleteList(dlistRejoin)
-			dlistRejoin = nil
+	--if widgetHandler.orderList["Rejoin progress"] < 1 then
+		if dlistRejoin and showRejoinUI then
+			glCallList(dlistRejoin)
+		elseif dlistRejoin ~= nil then
+			if dlistRejoin ~= nil then
+				glDeleteList(dlistRejoin)
+				dlistRejoin = nil
+			end
+			if WG['guishader'] then
+				WG['guishader'].RemoveDlist('topbar_rejoin')
+			end
+			if WG['tooltip'] ~= nil then
+				WG['tooltip'].RemoveTooltip('rejoin')
+			end
 		end
-		if WG['guishader'] then
-			WG['guishader'].RemoveDlist('topbar_rejoin')
-		end
-		if WG['tooltip'] ~= nil then
-			WG['tooltip'].RemoveTooltip('rejoin')
-		end
-	end
+	--end
 
 	if autoHideButtons then
 		if buttonsArea[1] and math_isInRect(mx, my, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
