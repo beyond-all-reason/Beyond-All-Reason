@@ -1,6 +1,9 @@
 {
 	"ui": {
 		"forceResignMessage": "You have been force-resigned: Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
+		"rejoin": {
+			"catchingUp": "Catching up to "
+		},
 		"topbar": {
 			"button": {
 				"quit": "Quit",

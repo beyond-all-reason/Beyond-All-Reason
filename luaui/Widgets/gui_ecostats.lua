@@ -1306,7 +1306,7 @@ function widget:Update(dt)
 		end
 	end
 	local prevTopbarShowButtons = topbarShowButtons
-	topbarShowButtons = WG['topbar'].getShowButtons()
+	topbarShowButtons =  WG['topbar'] and WG['topbar'].getShowButtons()
 	if topbarShowButtons ~= prevTopbarShowButtons then
 		Reinit()
 		lastTextListUpdate = 0
