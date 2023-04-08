@@ -635,6 +635,7 @@ local minBaseDistance = 1000 -- Minimum distance of new burrows from players and
 local burrowTurretSpawnRadius = 80
 
 local ecoBuildingsPenalty = { -- Additional queen hatch per second from eco buildup (for 60 minutes queen time. scales to queen time)
+	--[[
 	-- T1 Energy
 	[UnitDefNames["armsolar"].id] 	= 0.0000001,
 	[UnitDefNames["corsolar"].id] 	= 0.0000001,
@@ -667,6 +668,7 @@ local ecoBuildingsPenalty = { -- Additional queen hatch per second from eco buil
 	[UnitDefNames["cormmkr"].id] 	= 0.0005,
 	[UnitDefNames["armuwmmm"].id] 	= 0.0005,
 	[UnitDefNames["coruwmmm"].id] 	= 0.0005,
+	]]--
 }
 
 local highValueTargets = { -- Priority targets for Chickens. Must be immobile to prevent issues.
