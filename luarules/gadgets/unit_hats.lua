@@ -62,18 +62,15 @@ local vikings = {
 	["Malady"] = true,
 }
 local kings = {
-	["[teh]Teddy"] = true,
+	["MightySheep"] = true,
 }
 local goldMedals = {
-	--["[teh]Teddy"] = true,
 	["EmperorGlass"] = true,
 }
 local silverMedals = {
-	--["PRO_rANDY"] = true,
 	["[eVo]Lopatka"] = true,
 }
 local bronzeMedals = {
-	--["StarDom"] = true,
 	["MatBlader"] = true,
 	["[eVo]therxyy"] = true,
 }
