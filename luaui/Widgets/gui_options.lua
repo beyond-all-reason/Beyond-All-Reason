@@ -395,7 +395,7 @@ function drawChatInput()
 			local leftOffset = floor(lineHeight*0.7)
 			local distance = elementMargin
 			local usedFont = inputMode == '' and font3 or font
-			local modeText = 'filter'	--Spring.I18N('ui.options.filter')
+			local modeText = Spring.I18N('ui.settings.filter')
 			if inputMode ~= '' then
 				modeText = inputMode
 			end
@@ -430,7 +430,7 @@ function drawChatInput()
 
 			-- button text
 			usedFont:Begin()
-			r, g, b = 0.7, 0.7, 0.7
+			r, g, b = 0.5, 0.5, 0.5
 			usedFont:SetTextColor(r, g, b, 1)
 			usedFont:Print(modeText, modeTextPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
 
@@ -1428,13 +1428,15 @@ function widget:KeyPress(key)
 			cursorBlinkTimer = 0
 			if inputText == '' then
 				cancelChatInput()
+			else
+				init()
 			end
 		elseif key == 127 then -- DELETE
 			if inputTextPosition < utf8.len(inputText) then
 				inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition+2)
 			end
-			Spring.Echo(os.clock())
 			cursorBlinkTimer = 0
+			init()
 		elseif key == 277 then -- INSERT
 			inputTextInsertActive = not inputTextInsertActive
 		elseif key == 276 then -- LEFT
