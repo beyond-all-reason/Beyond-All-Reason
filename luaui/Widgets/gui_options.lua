@@ -390,7 +390,7 @@ function drawChatInput()
 		textInputDlist = glCreateList(function()
 			local activationArea = {screenX, screenY - screenHeight, screenX + screenWidth, screenY}
 			local usedFontSize = 16 * widgetScale
-			local lineHeight = floor(usedFontSize * 1.27)
+			local lineHeight = floor(usedFontSize * 1.15)
 			local x,y,_ = Spring.GetMouseState()
 			local chatlogHeightDiff = 0
 			local inputFontSize = floor(usedFontSize * 1.03)
@@ -1371,68 +1371,58 @@ function widget:KeyPress(key)
 		return false
 	end
 
-	local alt, ctrl, _, shift = Spring.GetModKeyState()
-	if ctrl and key == 118 then -- CTRL + V
-		local clipboardText = Spring.GetClipboard()
-		inputText = utf8.sub(inputText, 1, inputTextPosition) .. clipboardText .. utf8.sub(inputText, inputTextPosition+1)
-		inputTextPosition = inputTextPosition + utf8.len(clipboardText)
-		if string.len(inputText) > maxTextInputChars then
-			inputText = string.sub(inputText, 1, maxTextInputChars)
-			if inputTextPosition > maxTextInputChars then
-				inputTextPosition = maxTextInputChars
-			end
+	if inputText == '' and guishaderedTabs then
+		backgroundGuishader = glDeleteList(backgroundGuishader)
+	end
+
+	--local alt, ctrl, _, shift = Spring.GetModKeyState()
+	if key == 27 then -- ESC
+		clearChatInput()
+	elseif key == 8 then -- BACKSPACE
+		if inputTextPosition > 0 then
+			inputText = utf8.sub(inputText, 1, inputTextPosition-1) .. utf8.sub(inputText, inputTextPosition+1)
+			inputTextPosition = inputTextPosition - 1
 		end
 		cursorBlinkTimer = 0
-
-	elseif not alt and not ctrl then
-		if key == 27 then -- ESC
+		if inputText == '' then
 			clearChatInput()
-		elseif key == 8 then -- BACKSPACE
-			if inputTextPosition > 0 then
-				inputText = utf8.sub(inputText, 1, inputTextPosition-1) .. utf8.sub(inputText, inputTextPosition+1)
-				inputTextPosition = inputTextPosition - 1
-			end
-			cursorBlinkTimer = 0
-			if inputText == '' then
-				clearChatInput()
-			else
-				init()
-			end
-		elseif key == 127 then -- DELETE
-			if inputTextPosition < utf8.len(inputText) then
-				inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition+2)
-			end
-			cursorBlinkTimer = 0
-			init()
-		elseif key == 277 then -- INSERT
-			inputTextInsertActive = not inputTextInsertActive
-		elseif key == 276 then -- LEFT
-			inputTextPosition = inputTextPosition - 1
-			if inputTextPosition < 0 then
-				inputTextPosition = 0
-			end
-			cursorBlinkTimer = 0
-		elseif key == 275 then -- RIGHT
-			inputTextPosition = inputTextPosition + 1
-			if inputTextPosition > utf8.len(inputText) then
-				inputTextPosition = utf8.len(inputText)
-			end
-			cursorBlinkTimer = 0
-		elseif key == 278 or key == 280 then -- HOME / PGUP
-			inputTextPosition = 0
-			cursorBlinkTimer = 0
-		elseif key == 279 or key == 281 then -- END / PGDN
-			inputTextPosition = utf8.len(inputText)
-			cursorBlinkTimer = 0
-		elseif key == 273 then -- UP
-
-		elseif key == 274 then -- DOWN
-
-		elseif key == 9 then -- TAB
-
 		else
-			-- regular chars/keys handled in widget:TextInput
+			init()
 		end
+	elseif key == 127 then -- DELETE
+		if inputTextPosition < utf8.len(inputText) then
+			inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition+2)
+		end
+		cursorBlinkTimer = 0
+		init()
+	elseif key == 277 then -- INSERT
+		inputTextInsertActive = not inputTextInsertActive
+	elseif key == 276 then -- LEFT
+		inputTextPosition = inputTextPosition - 1
+		if inputTextPosition < 0 then
+			inputTextPosition = 0
+		end
+		cursorBlinkTimer = 0
+	elseif key == 275 then -- RIGHT
+		inputTextPosition = inputTextPosition + 1
+		if inputTextPosition > utf8.len(inputText) then
+			inputTextPosition = utf8.len(inputText)
+		end
+		cursorBlinkTimer = 0
+	elseif key == 278 or key == 280 then -- HOME / PGUP
+		inputTextPosition = 0
+		cursorBlinkTimer = 0
+	elseif key == 279 or key == 281 then -- END / PGDN
+		inputTextPosition = utf8.len(inputText)
+		cursorBlinkTimer = 0
+	elseif key == 273 then -- UP
+
+	elseif key == 274 then -- DOWN
+
+	elseif key == 9 then -- TAB
+
+	else
+		-- regular chars/keys handled in widget:TextInput
 	end
 
 	updateTextInputDlist = true
