@@ -5900,6 +5900,10 @@ function widget:Initialize()
 			WG['topbar'].hideWindows()
 		end
 		show = newShow
+		if show and showTextInput then
+			widgetHandler.textOwner = self		--widgetHandler:OwnText()
+			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		end
 	end
 	WG['options'].getOptionsList = function()
 		local optionList = {}
@@ -6103,7 +6107,7 @@ function widget:SetConfigData(data)
 	if Spring.GetGameFrame() > 0 then
 		if data.show ~= nil then
 			show = data.show
-			if showTextInput then
+			if show and showTextInput then
 				widgetHandler.textOwner = self		--widgetHandler:OwnText()
 				Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 			end
