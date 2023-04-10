@@ -33,7 +33,6 @@ local bladeSpeedMultiplier = 0.2
 
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
 local stripesTexture = "LuaUI/Images/stripes.png"
-local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
 local showButtons = true
 local autoHideButtons = false
 
@@ -193,7 +192,7 @@ local numPlayers = Spring.Utilities.GetPlayerCount()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local isSingle = false
-if not mySpecStatus then
+if not spec then
 	local teamList = Spring.GetTeamList(myAllyTeamID) or {}
 	isSingle = #teamList == 1
 end
@@ -222,7 +221,8 @@ local graphsWindowVisible = false
 --------------------------------------------------------------------------------
 
 local showRejoinUI = false    -- indicate whether UI is shown or hidden.
-local CATCH_UP_THRESHOLD = 6 * Game.gameSpeed    -- only show the window if behind this much
+local userIsRejoining = false
+local CATCH_UP_THRESHOLD = 10 * Game.gameSpeed    -- only show the window if behind this much
 local UPDATE_RATE_F = 4 -- frames
 local UPDATE_RATE_S = UPDATE_RATE_F / Game.gameSpeed
 local serverFrame
@@ -296,9 +296,6 @@ local function updateRejoin()
 			return
 		end
 	end
-	local area = rejoinArea
-
-	local catchup = gameFrame / serverFrame
 
 	-- add background blur
 	if dlistRejoinGuishader ~= nil then
@@ -306,89 +303,99 @@ local function updateRejoin()
 			WG['guishader'].RemoveDlist('topbar_rejoin')
 		end
 		glDeleteList(dlistRejoinGuishader)
+		dlistRejoinGuishader = nil
 	end
-	dlistRejoinGuishader = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
-	end)
 
 	if dlistRejoin ~= nil then
 		glDeleteList(dlistRejoin)
+		dlistRejoin = nil
 	end
-	dlistRejoin = glCreateList(function()
 
-		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
+	if showRejoinUI then
+		local area = rejoinArea
+		local catchup = gameFrame / serverFrame
 
+		dlistRejoinGuishader = glCreateList(function()
+			RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
+		end)
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistRejoinGuishader, 'topbar_rejoin')
 		end
 
-		local barHeight = math_floor((height * widgetScale / 7.5) + 0.5)
-		local barHeightPadding = math_floor((9 * widgetScale) + 0.5) --((height/2) * widgetScale) - (barHeight/2)
-		local barLeftPadding = barHeightPadding
-		local barRightPadding = barHeightPadding
-		local barArea = { area[1] + barLeftPadding, area[2] + barHeightPadding, area[3] - barRightPadding, area[2] + barHeight + barHeightPadding }
-		local barWidth = barArea[3] - barArea[1]
+		dlistRejoin = glCreateList(function()
+			UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
 
-		-- Bar background
-		local edgeWidth = math.max(1, math_floor(vsy / 1100))
-		local addedSize = math_floor(((barArea[4] - barArea[2]) * 0.15) + 0.5)
-		RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, 0.03 }, { 0, 0, 0, 0.03 })
-		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.2 }, { 0.8, 0.8, 0.8, 0.16 })
+			local barHeight = math_floor((height * widgetScale / 7.5) + 0.5)
+			local barHeightPadding = math_floor((9 * widgetScale) + 0.5) --((height/2) * widgetScale) - (barHeight/2)
+			local barLeftPadding = barHeightPadding
+			local barRightPadding = barHeightPadding
+			local barArea = { area[1] + barLeftPadding, area[2] + barHeightPadding, area[3] - barRightPadding, area[2] + barHeight + barHeightPadding }
+			local barWidth = barArea[3] - barArea[1]
 
-		gl.Texture(noiseBackgroundTexture)
-		gl.Color(1,1,1, 0.16)
-		TexturedRectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, barWidth*0.6, 0)
-		gl.Texture(false)
+			-- Bar background
+			local edgeWidth = math.max(1, math_floor(vsy / 1100))
+			local addedSize = math_floor(((barArea[4] - barArea[2]) * 0.15) + 0.5)
+			RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, 0.03 }, { 0, 0, 0, 0.03 })
+			RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.2 }, { 0.8, 0.8, 0.8, 0.16 })
 
-		-- gloss
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(barArea[1] - addedSize, barArea[2] + addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.07 })
-		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[2] + addedSize + addedSize + addedSize, barHeight * 0.2, 0, 0, 1, 1, { 1, 1, 1, 0.1 }, { 1, 1, 1, 0.0 })
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+			gl.Texture(noiseBackgroundTexture)
+			gl.Color(1,1,1, 0.16)
+			TexturedRectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, barWidth*0.6, 0)
+			gl.Texture(false)
 
-		-- Bar value
-		local valueWidth = catchup * barWidth
-		glColor(0, 1, 0, 1)
-		RectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, { 0, 0.55, 0, 1 }, { 0, 1, 0, 1 })
+			-- gloss
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+			RectRound(barArea[1] - addedSize, barArea[2] + addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.07 })
+			RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[2] + addedSize + addedSize + addedSize, barHeight * 0.2, 0, 0, 1, 1, { 1, 1, 1, 0.1 }, { 1, 1, 1, 0.0 })
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-		gl.Texture(stripesTexture)
-		gl.Color(1,1,1, 0.16)
-		TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, (barArea[3]-barArea[1]) * 0.66, -os.clock()*0.06)
-		gl.Texture(false)
+			-- Bar value
+			local valueWidth = catchup * barWidth
+			glColor(0, 1, 0, 1)
+			RectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, { 0, 0.55, 0, 1 }, { 0, 1, 0, 1 })
 
-		gl.Texture(noiseBackgroundTexture)
-		gl.Color(1,1,1, 0.2)
-		TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, barWidth*0.6, 0)
-		gl.Texture(false)
+			gl.Texture(stripesTexture)
+			gl.Color(1,1,1, 0.16)
+			TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, (barArea[3]-barArea[1]) * 0.66, -os.clock()*0.06)
+			gl.Texture(false)
 
-		-- Bar value highlight
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(barArea[1], barArea[4] - ((barArea[4] - barArea[2]) / 1.5), barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, { 0, 0, 0, 0 }, { 1, 1, 1, 0.13 })
-		RectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[2] + ((barArea[4] - barArea[2]) / 2), barHeight * 0.2, 1, 1, 1, 1, { 1, 1, 1, 0.13 }, { 0, 0, 0, 0 })
+			gl.Texture(noiseBackgroundTexture)
+			gl.Color(1,1,1, 0.2)
+			TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, barWidth*0.6, 0)
+			gl.Texture(false)
 
-		-- Bar value glow
-		local glowSize = barHeight * 6
-		glColor(0, 1, 0, 0.08)
-		glTexture(barGlowCenterTexture)
-		DrawRect(barArea[1], barArea[2] - glowSize, barArea[1] + (catchup * barWidth), barArea[4] + glowSize, 0.008)
-		glTexture(barGlowEdgeTexture)
-		DrawRect(barArea[1] - (glowSize * 2), barArea[2] - glowSize, barArea[1], barArea[4] + glowSize, 0.008)
-		DrawRect((barArea[1] + (catchup * barWidth)) + (glowSize * 2), barArea[2] - glowSize, barArea[1] + (catchup * barWidth), barArea[4] + glowSize, 0.008)
-		glTexture(false)
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+			-- Bar value highlight
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+			RectRound(barArea[1], barArea[4] - ((barArea[4] - barArea[2]) / 1.5), barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, { 0, 0, 0, 0 }, { 1, 1, 1, 0.13 })
+			RectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[2] + ((barArea[4] - barArea[2]) / 2), barHeight * 0.2, 1, 1, 1, 1, { 1, 1, 1, 0.13 }, { 0, 0, 0, 0 })
 
-		-- Text
-		local fontsize = math.min(14 * widgetScale, ((area[3] - area[1])*0.88) / font:GetTextWidth(Spring.I18N('ui.topbar.catchingUp')))
-		font2:Begin()
-		font2:Print('\255\225\255\225' .. Spring.I18N('ui.topbar.catchingUp'), area[1] + ((area[3] - area[1]) / 2), area[2] + barHeight * 2 + fontsize, fontsize, 'cor')
-		font2:End()
+			-- Bar value glow
+			local glowSize = barHeight * 6
+			glColor(0, 1, 0, 0.08)
+			glTexture(barGlowCenterTexture)
+			DrawRect(barArea[1], barArea[2] - glowSize, barArea[1] + (catchup * barWidth), barArea[4] + glowSize, 0.008)
+			glTexture(barGlowEdgeTexture)
+			DrawRect(barArea[1] - (glowSize * 2), barArea[2] - glowSize, barArea[1], barArea[4] + glowSize, 0.008)
+			DrawRect((barArea[1] + (catchup * barWidth)) + (glowSize * 2), barArea[2] - glowSize, barArea[1] + (catchup * barWidth), barArea[4] + glowSize, 0.008)
+			glTexture(false)
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-	end)
-	if WG['tooltip'] ~= nil then
-		local mins = math.floor(serverFrame / 30 / 60)
-		local secs = math.floor(((serverFrame / 30 / 60) - mins) * 60)
-		local gametime = mins..':'..(secs < 10 and '0'..secs or secs)
-		WG['tooltip'].AddTooltip('rejoin', area, Spring.I18N('ui.topbar.catchingUpTooltip', { gameTime = gametime }), nil, Spring.I18N('ui.topbar.catchingUp'))
+			-- Text
+			local fontsize = math.min(14 * widgetScale, ((area[3] - area[1])*0.88) / font:GetTextWidth(Spring.I18N('ui.topbar.catchingUp')))
+			font2:Begin()
+			font2:SetTextColor(0.92, 0.92, 0.92, 1)
+			font2:SetOutlineColor(0, 0, 0, 1)
+			font2:Print('\255\225\255\225' .. Spring.I18N('ui.topbar.catchingUp'), area[1] + ((area[3] - area[1]) / 2), area[2] + barHeight * 2 + fontsize, fontsize, 'cor')
+			font2:End()
+
+		end)
+		if WG['tooltip'] ~= nil then
+			local mins = math.floor(serverFrame / 30 / 60)
+			local secs = math.floor(((serverFrame / 30 / 60) - mins) * 60)
+			local gametime = mins..':'..(secs < 10 and '0'..secs or secs)
+			WG['tooltip'].AddTooltip('rejoin', area, Spring.I18N('ui.topbar.catchingUpTooltip', { gameTime = gametime }), nil, Spring.I18N('ui.topbar.catchingUp'))
+		end
+
 	end
 end
 
@@ -1373,12 +1380,21 @@ function widget:Update(dt)
 
 			local framesLeft = serverFrame - gameFrame
 			if framesLeft > CATCH_UP_THRESHOLD then
-				showRejoinUI = true
-				updateRejoin()
-			elseif showRejoinUI then
+				userIsRejoining = true
+				if widgetHandler.orderList["Rejoin progress"] < 1 then
+					showRejoinUI = true
+					updateRejoin()
+				else
+					showRejoinUI = false
+				end
+			elseif userIsRejoining then
+				userIsRejoining = false
+				local prevShowRejoinUI = showRejoinUI
 				showRejoinUI = false
-				updateRejoin()
-				init()
+				if prevShowRejoinUI then
+					updateRejoin()
+					init()
+				end
 			end
 		end
 	end
@@ -1413,11 +1429,13 @@ local function hoveringElement(x, y)
 end
 
 function widget:drawTidal()
-   if displayTidalSpeed and tidaldlist1 then
-      glCallList(tidaldlist1)
-      glTranslate(tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2), math.sin(now/math.pi) * tidalWaveAnimationHeight + tidalarea[2] + (bgpadding/2) + ((tidalarea[4] - tidalarea[2]) / 2), 0)
-      glCallList(tidaldlist2)
-   end
+	if displayTidalSpeed and tidaldlist1 then
+		glPushMatrix()
+		glCallList(tidaldlist1)
+		glTranslate(tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2), math.sin(now/math.pi) * tidalWaveAnimationHeight + tidalarea[2] + (bgpadding/2) + ((tidalarea[4] - tidalarea[2]) / 2), 0)
+		glCallList(tidaldlist2)
+		glPopMatrix()
+	end
 end
 
 local function drawResBars()
@@ -1427,6 +1445,7 @@ local function drawResBars()
 	if updateText then
 		updateTextClock = os.clock()
 	end
+
 	local res = 'metal'
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
@@ -1455,6 +1474,7 @@ local function drawResBars()
 		glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
 	end
+
 	res = 'energy'
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
@@ -1498,7 +1518,6 @@ function widget:DrawScreen()
 		Spring.SetMouseCursor('cursornormal')
 	end
 
-	glPushMatrix()
 	if dlistWind1 then
 		glPushMatrix()
 		glCallList(dlistWind1)
@@ -1523,6 +1542,7 @@ function widget:DrawScreen()
 
     self:drawTidal()
 
+	glPushMatrix()
 	if displayComCounter and dlistComs1 then
 		glCallList(dlistComs1)
 		if allyComs == 1 and (gameFrame % 12 < 6) then
@@ -2080,8 +2100,7 @@ end
 
 
 -- used for rejoin progress functionality
-function widget:GameProgress(n)
-	-- happens every 150 frames
+function widget:GameProgress(n)		-- happens every 150 frames
 	serverFrame = n
 end
 
@@ -2102,7 +2121,7 @@ function widget:Initialize()
 
 	WG['topbar'] = {}
 	WG['topbar'].showingRejoining = function()
-		return showRejoinUI
+		return userIsRejoining
 	end
 	WG['topbar'].showingQuit = function()
 		return (showQuitscreen ~= nil)

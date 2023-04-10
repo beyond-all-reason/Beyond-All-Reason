@@ -123,7 +123,7 @@ local fullTexQuad
 local function UpdateShader()
 	sepiaShader:ActivateWith(function()
 		sepiaShader:SetUniform("viewPosX", vpx)
-		sepiaShader:SetUniform("viewPosX", vpx)
+		sepiaShader:SetUniform("viewPosY", vpy)
 	end)
 end
 
@@ -156,6 +156,8 @@ function widget:Initialize()
 			screenCopyTex = 0,
 		},
 		uniformFloat = {
+			viewPosX = vpx,
+			viewPosY = vpy,
 			params = { params.gamma, params.saturation, params.contrast, params.sepia} --{gamma = 0.5, saturation = 0.5, contrast = 0.5, sepia = 0.0}
 			}
 	}, ": Sepia")

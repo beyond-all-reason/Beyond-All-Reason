@@ -79,6 +79,7 @@ if gadgetHandler:IsSyncedCode() then
 	local queenMaxHP = 0
 	local playerAgression = 0
 	local playerAgressionLevel = 0
+	local playerAgressionEcoValue = 0
 	local queenAngerAgressionLevel = 0
 	local difficultyCounter = 0
 	local waveParameters = {
@@ -105,6 +106,7 @@ if gadgetHandler:IsSyncedCode() then
 	local squadsTable = {}
 	local unitSquadTable = {}
 	local squadPotentialTarget = {}
+	local squadPotentialHighValueTarget = {}
 	local unitTargetPool = {}
 	local unitCowardCooldown = {}
 	local unitTeleportCooldown = {}
@@ -217,17 +219,31 @@ if gadgetHandler:IsSyncedCode() then
 	function getRandomEnemyPos()
 		local loops = 0
 		local targetCount = SetCount(squadPotentialTarget)
+		local highValueTargetCount = SetCount(squadPotentialHighValueTarget)
 		local pos = {}
 		local pickedTarget = nil
 		repeat
 			loops = loops + 1
-			for target in pairs(squadPotentialTarget) do
-				if mRandom(1,targetCount) == 1 then
-					if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
-						local x,y,z = Spring.GetUnitPosition(target)
-						pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
-						pickedTarget = target
-						break
+			if highValueTargetCount > 0 and mRandom() <= 0.75 then
+				for target in pairs(squadPotentialHighValueTarget) do
+					if mRandom(1,highValueTargetCount) == 1 then
+						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+							local x,y,z = Spring.GetUnitPosition(target)
+							pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
+							pickedTarget = target
+							break
+						end
+					end
+				end
+			else
+				for target in pairs(squadPotentialTarget) do
+					if mRandom(1,targetCount) == 1 then
+						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+							local x,y,z = Spring.GetUnitPosition(target)
+							pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
+							pickedTarget = target
+							break
+						end
 					end
 				end
 			end
@@ -327,6 +343,10 @@ if gadgetHandler:IsSyncedCode() then
 	SetGameRulesParam("queenAnger", queenAnger)
 	SetGameRulesParam("gracePeriod", config.gracePeriod)
 	SetGameRulesParam("difficulty", config.difficulty)
+	SetGameRulesParam("ChickenQueenAngerGain_Base", 100/config.queenTime) 
+	SetGameRulesParam("ChickenQueenAngerGain_Aggression", 0)
+	SetGameRulesParam("ChickenQueenAngerGain_Eco", 0)
+
 
 	function chickenEvent(type, num, tech)
 		SendToUnsynced("ChickenEvent", type, num, tech)
@@ -501,7 +521,7 @@ if gadgetHandler:IsSyncedCode() then
 		if squadID ~= 0 then -- If it's 0 then we f***** up somewhere
 			local role = "assault"
 			if not newSquad.role then
-				if mRandom(0,100) <= 40 then
+				if mRandom(0,100) <= 60 then
 					role = "raid"
 				end
 			else
@@ -910,7 +930,7 @@ if gadgetHandler:IsSyncedCode() then
 				if mRandom() <= config.spawnChance then
 					squadCounter = 0
 					local squad
-					if waveType == "air" then
+					if (waveType == "air" or queenID) and mRandom() <= 0.5 then
 						for _ = 1,1000 do
 							local potentialSquad = squadSpawnOptions.air[mRandom(1, #squadSpawnOptions.air)]
 							if potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
@@ -973,13 +993,23 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == chickenTeamID then
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{3},0)
+			if UnitDefs[unitDefID].canCloak then
+				Spring.GiveOrderToUnit(unitID,37382,{1},0)
+			end
 			return
 		end
-		if squadPotentialTarget[unitID] then
+		if squadPotentialTarget[unitID] or squadPotentialHighValueTarget[unitID] then
 			squadPotentialTarget[unitID] = nil
+			squadPotentialHighValueTarget[unitID] = nil
 		end
 		if not UnitDefs[unitDefID].canMove then
 			squadPotentialTarget[unitID] = true
+			if config.highValueTargets[unitDefID] then
+				squadPotentialHighValueTarget[unitID] = true
+			end
+		end
+		if config.ecoBuildingsPenalty[unitDefID] then
+			playerAgressionEcoValue = playerAgressionEcoValue + (config.ecoBuildingsPenalty[unitDefID]/(config.queenTime/3600)) -- scale to 60minutes = 3600seconds queen time
 		end
 	end
 
@@ -1490,7 +1520,9 @@ if gadgetHandler:IsSyncedCode() then
 					queenAnger = 100
 				end
 				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - (playerAgressionLevel*5) + queenAngerAgressionLevel, 100), 0)
-				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgressionLevel*0.02)/(config.queenTime/1200))
+				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgression*0.01)/(config.queenTime/3600)) + playerAgressionEcoValue
+				SetGameRulesParam("ChickenQueenAngerGain_Aggression", (playerAgression*0.01)/(config.queenTime/3600))
+				SetGameRulesParam("ChickenQueenAngerGain_Eco", playerAgressionEcoValue)
 				if techAnger < 1 then techAnger = 1 end
 				if playerAgressionLevel+1 <= maxBurrows then
 					minBurrows = playerAgressionLevel+1
@@ -1616,7 +1648,9 @@ if gadgetHandler:IsSyncedCode() then
 				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 1)
 			end
 			if unitDefID == config.burrowDef then
-				spawnCreepStructuresWave()
+				if mRandom() <= config.spawnChance then
+					spawnCreepStructuresWave()
+				end
 				for turret, burrow in pairs(burrowTurrets) do
 					if burrowTurrets[turret] == unitID then
 						table.insert(deleteBurrowTurrets, turret)
@@ -1647,6 +1681,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		squadPotentialTarget[unitID] = nil
+		squadPotentialHighValueTarget[unitID] = nil
 		for squad in ipairs(unitTargetPool) do
 			if unitTargetPool[squad] == unitID then
 				refreshSquad(squad)
@@ -1715,6 +1750,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if unitTeleportCooldown[unitID] then
 			unitTeleportCooldown[unitID] = nil
+		end
+		if unitTeam ~= chickenTeamID and config.ecoBuildingsPenalty[unitDefID] then
+			playerAgressionEcoValue = playerAgressionEcoValue - (config.ecoBuildingsPenalty[unitDefID]/(config.queenTime/3600)) -- scale to 60minutes = 3600seconds queen time
 		end
 	end
 

@@ -819,6 +819,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
 	if selectedFactory then
+		if args[3] and args[3] == 'builder' then return false end
 		if meta then return end
 
 		local opts
@@ -839,6 +840,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		return true
 	elseif preGamestartPlayer and currentBuildCategory then
 		if alt or ctrl or meta then return end
+		if args[3] and args[3] == 'factory' then return false end
 
 		setPreGamestartDefID(-uDefID)
 
@@ -846,6 +848,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 
 		return true
 	elseif selectedBuilder and currentBuildCategory then
+		if args[3] and args[3] == 'factory' then return false end
 		if alt or ctrl or meta then return end
 
 		local uDef = UnitDefs[-uDefID]
