@@ -121,7 +121,7 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local RectRound, elementCorner, UiElement, UiButton, UiSlider, UiSliderKnob, UiToggle, UiSelector, UiSelectHighlight, bgpadding
+local RectRound, elementCorner, elementMargin, elementPadding, UiElement, UiButton, UiSlider, UiSliderKnob, UiToggle, UiSelector, UiSelectHighlight, bgpadding
 
 local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
@@ -272,6 +272,8 @@ function widget:ViewResize()
 
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
+	elementMargin = WG.FlowUI.elementMargin
+	elementPadding = WG.FlowUI.elementPadding
 
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
@@ -309,6 +311,168 @@ local function detectWater()
 	end
 end
 
+
+local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
+local textInputDlist
+local updateTextInputDlist = true
+local textCursorRect
+local showTextInput = true
+local inputText = ''
+local inputTextPosition = 0
+local cursorBlinkTimer = 0
+local cursorBlinkDuration = 1
+local maxTextInputChars = 127	-- tested 127 as being the true max
+local inputButton = true
+local inputTextInsertActive = false
+local inputButtonRect
+local slen = string.len
+local ssub = string.sub
+local floor = math.floor
+local inputMode = ''
+
+function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
+	if not chobbyInterface and not Spring.IsGUIHidden() and showTextInput then
+		if inputTextInsertActive then
+			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition+2)
+			if inputTextPosition <= utf8.len(inputText) then
+				inputTextPosition = inputTextPosition + 1
+			end
+		else
+			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition+1)
+			inputTextPosition = inputTextPosition + 1
+		end
+		if string.len(inputText) > maxTextInputChars then
+			inputText = string.sub(inputText, 1, maxTextInputChars)
+			if inputTextPosition > maxTextInputChars then
+				inputTextPosition = maxTextInputChars
+			end
+		end
+		cursorBlinkTimer = 0
+		updateTextInputDlist = true
+		if WG['limitidlefps'] and WG['limitidlefps'].update then
+			WG['limitidlefps'].update()
+		end
+
+		init()
+		return true
+	end
+end
+
+local function cancelChatInput()
+	--showTextInput = false
+	inputText = ''
+	inputTextPosition = 0
+	inputTextInsertActive = false
+	backgroundGuishader = glDeleteList(backgroundGuishader)
+	if WG['guishader'] then
+		WG['guishader'].RemoveRect('optionsinput')
+	end
+	widgetHandler.textOwner = nil	--widgetHandler:DisownText()
+	init()
+end
+
+function drawChatInputCursor()
+	if textCursorRect then
+		local a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.15
+		glColor(0.7,0.7,0.7,a)
+		gl.Rect(textCursorRect[1], textCursorRect[2], textCursorRect[3], textCursorRect[4])
+		glColor(1,1,1,1)
+	end
+end
+
+function drawChatInput()
+	if showTextInput then
+		updateTextInputDlist = false
+		textInputDlist = glDeleteList(textInputDlist)
+		textInputDlist = glCreateList(function()
+			local activationArea = {screenX, screenY - screenHeight, screenX + screenWidth, screenY}
+			local usedFontSize = 15 * widgetScale
+			local lineHeight = floor(usedFontSize * 1.4)
+			local x,y,_ = Spring.GetMouseState()
+			local chatlogHeightDiff = 0
+			local inputFontSize = floor(usedFontSize * 1.03)
+			local inputHeight = floor(inputFontSize * 2.3)
+			local leftOffset = floor(lineHeight*0.7)
+			local distance =  elementMargin
+			local usedFont = inputMode == '' and font3 or font
+			local modeText = 'filter'	--Spring.I18N('ui.options.filter')
+			if inputMode ~= '' then
+				modeText = inputMode
+			end
+			local modeTextPosX = floor(activationArea[1]+elementPadding+elementPadding+leftOffset)
+			local textPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
+			local textCursorWidth = 1 + math.floor(inputFontSize / 14)
+			if inputTextInsertActive then
+				textCursorWidth = math.floor(textCursorWidth * 5)
+			end
+			local textCursorPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, inputTextPosition)) * inputFontSize)
+
+			-- background
+			local r,g,b,a
+			local inputAlpha = math.min(0.36, ui_opacity*0.66)
+			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/4.3)))
+			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, nil,nil,nil,nil, nil,nil,nil,nil, inputAlpha)
+			if WG['guishader'] then
+				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'optionsinput')
+			end
+
+			-- button background
+			local inputButtonRect = {activationArea[1]+elementPadding, activationArea[2]+chatlogHeightDiff-distance-inputHeight+elementPadding, textPosX-inputFontSize, activationArea[2]+chatlogHeightDiff-distance-elementPadding}
+			if inputMode ~= '' then
+				r, g, b = 0.03, 0.12, 0.03
+			else
+				r, g, b = 0, 0, 0
+			end
+			glColor(r, g, b, 0.3)
+			RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
+			glColor(1,1,1,0.033)
+			gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
+
+			-- button text
+			usedFont:Begin()
+			r, g, b = 0.7, 0.7, 0.7
+			usedFont:SetTextColor(r, g, b, 1)
+			usedFont:Print(modeText, modeTextPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
+
+			-- colon
+			--if not isCmd then
+			--	if inputMode == 'a:' then
+			--		r, g, b = 0.53, 0.66, 0.53
+			--	elseif inputMode == 's:' then
+			--		r, g, b = 0.66, 0.66, 0.5
+			--	else
+			--		r, g, b = 0.55, 0.55, 0.55
+			--	end
+			--	usedFont:SetTextColor(r, g, b, 1)
+			--	usedFont:Print(':', inputButtonRect[3]-0.5, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "co")
+			--end
+
+			-- text cursor
+			textCursorRect = { textPosX + textCursorPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64) }
+			--a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.15
+			--glColor(0.7,0.7,0.7,a)
+			--gl.Rect(textPosX + textCursorPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64))
+			--glColor(1,1,1,1)
+
+			-- text message
+			--if isCmd then
+			--	r, g, b = 0.85, 0.85, 0.85
+			--elseif inputMode == 'a:' then
+			--	r, g, b = 0.2, 1, 0.2
+			--elseif inputMode == 's:' then
+			--	r, g, b = 1, 1, 0.2
+			--else
+			--	r, g, b = 0.95, 0.95, 0.95
+			--end
+			r, g, b = 0.95, 0.95, 0.95
+			usedFont:SetTextColor(r,g,b, 1)
+			usedFont:Print(inputText, textPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
+			usedFont:End()
+		end)
+	end
+end
+
+
 function getOptionByID(id)
 	for i, option in pairs(options) do
 		if option.id == id then
@@ -338,7 +502,7 @@ function orderOptions()
 				name = group.name .. '                                          \255\130\130\130' .. vsx .. ' x ' .. vsy
 			end
 			newOptionsCount = newOptionsCount + 1
-			newOptions[newOptionsCount] = { id = "group_" .. group.id, name = name, type = "label" }
+			newOptions[newOptionsCount] = { id = "group_" .. group.id, name = '\255\255\200\110'..name, type = "label"}
 		end
 		for i, option in pairs(grOptions) do
 			newOptionsCount = newOptionsCount + 1
@@ -407,39 +571,41 @@ function DrawWindow()
 	font2:End()
 
 	-- group tabs
-	local tabFontSize = 16 * widgetScale
-	local xpos = screenX
-	local groupPadding = 1
-	groupRect = {}
-	for id, group in pairs(optionGroups) do
-		groupRect[id] = { xpos, titleRect[2], math.floor(xpos + (font2:GetTextWidth(group.name) * tabFontSize) + (33 * widgetScale)), titleRect[4] }
-		if devMode or group.id ~= 'dev' then
-			xpos = groupRect[id][3]
-			if currentGroupTab == nil or currentGroupTab ~= group.id then
-				RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
-				RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.66, 1, 1, 0, 0, { 0.6, 0.47, 0.24, 0.2 }, { 0.88, 0.68, 0.33, 0.2 })
+	if not (showTextInput and inputText ~= '' and inputMode == '') then
+		local tabFontSize = 16 * widgetScale
+		local xpos = screenX
+		local groupPadding = 1
+		groupRect = {}
+		for id, group in pairs(optionGroups) do
+			groupRect[id] = { xpos, titleRect[2], math.floor(xpos + (font2:GetTextWidth(group.name) * tabFontSize) + (33 * widgetScale)), titleRect[4] }
+			if devMode or group.id ~= 'dev' then
+				xpos = groupRect[id][3]
+				if currentGroupTab == nil or currentGroupTab ~= group.id then
+					RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
+					RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.66, 1, 1, 0, 0, { 0.6, 0.47, 0.24, 0.2 }, { 0.88, 0.68, 0.33, 0.2 })
 
-				RectRound(groupRect[id][1] + groupMargin+groupPadding, groupRect[id][2], groupRect[id][3] - groupMargin-groupPadding, groupRect[id][4] - groupMargin-groupPadding, elementCorner * 0.5, 1, 1, 0, 0, { 0,0,0, 0.13 }, { 0,0,0, 0.13 })
+					RectRound(groupRect[id][1] + groupMargin+groupPadding, groupRect[id][2], groupRect[id][3] - groupMargin-groupPadding, groupRect[id][4] - groupMargin-groupPadding, elementCorner * 0.5, 1, 1, 0, 0, { 0,0,0, 0.13 }, { 0,0,0, 0.13 })
 
-				glBlending(GL_SRC_ALPHA, GL_ONE)
-				-- gloss
-				RectRound(groupRect[id][1] + groupMargin, groupRect[id][4] - groupMargin - ((groupRect[id][4] - groupRect[id][2]) * 0.5), groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding * 1.2, 1, 1, 0, 0, { 1, 0.88, 0.66, 0 }, { 1, 0.88, 0.66, 0.1 })
-				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+					glBlending(GL_SRC_ALPHA, GL_ONE)
+					-- gloss
+					RectRound(groupRect[id][1] + groupMargin, groupRect[id][4] - groupMargin - ((groupRect[id][4] - groupRect[id][2]) * 0.5), groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding * 1.2, 1, 1, 0, 0, { 1, 0.88, 0.66, 0 }, { 1, 0.88, 0.66, 0.1 })
+					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-				font2:Begin()
-				font2:SetTextColor(0.7, 0.58, 0.44, 1)
-				font2:SetOutlineColor(0, 0, 0, 0.4)
-				font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (9 * widgetScale), tabFontSize, "con")
-				font2:End()
-			else
-				RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
-				RectRound(groupRect[id][1] + groupMargin, groupRect[id][2] - bgpadding, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.8, 1, 1, 0, 0, { 0.7, 0.7, 0.7, 0.15 }, { 0.8, 0.8, 0.8, 0.15 })
+					font2:Begin()
+					font2:SetTextColor(0.7, 0.58, 0.44, 1)
+					font2:SetOutlineColor(0, 0, 0, 0.4)
+					font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (9 * widgetScale), tabFontSize, "con")
+					font2:End()
+				else
+					RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
+					RectRound(groupRect[id][1] + groupMargin, groupRect[id][2] - bgpadding, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.8, 1, 1, 0, 0, { 0.7, 0.7, 0.7, 0.15 }, { 0.8, 0.8, 0.8, 0.15 })
 
-				font2:Begin()
-				font2:SetTextColor(1, 0.75, 0.4, 1)
-				font2:SetOutlineColor(0, 0, 0, 0.4)
-				font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (9 * widgetScale), tabFontSize, "con")
-				font2:End()
+					font2:Begin()
+					font2:SetTextColor(1, 0.75, 0.4, 1)
+					font2:SetOutlineColor(0, 0, 0, 0.4)
+					font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (9 * widgetScale), tabFontSize, "con")
+					font2:End()
+				end
 			end
 		end
 	end
@@ -466,7 +632,11 @@ function DrawWindow()
 	maxColumnRows = math.floor((y - yPosMax + oPadding) / (oHeight + oPadding + oPadding))
 	local numOptions = #options
 
-	if currentGroupTab ~= nil then
+	local dontFilterGroup = false
+	if inputText and inputText ~= '' and inputMode == '' then
+		dontFilterGroup = true
+	end
+	if currentGroupTab ~= nil and not dontFilterGroup then
 		numOptions = 0
 		for i, option in pairs(options) do
 			if option.group == currentGroupTab and showOption(option) then
@@ -527,9 +697,10 @@ function DrawWindow()
 
 	-- draw options
 	local yPos
+	local prevGroup = ''
 	for oid, option in pairs(options) do
 		if showOption(option) then
-			if currentGroupTab == nil or option.group == currentGroupTab then
+			if currentGroupTab == nil or option.group == currentGroupTab or dontFilterGroup then
 				yPos = math.floor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
 				if yPos - oHeight < yPosMax then
 					i = 0
@@ -679,6 +850,9 @@ local isOffscreenTime
 local prevOffscreenVolume
 local apiUnitTrackerEnabledCount = 0
 function widget:Update(dt)
+	cursorBlinkTimer = cursorBlinkTimer + dt
+	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
+
 	if sceduleToggleWidget then
 		widgetHandler:ToggleWidget(sceduleToggleWidget)
 		sceduleToggleWidget = nil
@@ -808,7 +982,9 @@ function widget:Update(dt)
 			end
 			windowList = gl.CreateList(DrawWindow)
 		end
-		options[getOptionByID('sndvolmaster')].value = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)    -- update value because other widgets can adjust this too
+		if getOptionByID('sndvolmaster') then
+			options[getOptionByID('sndvolmaster')].value = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)    -- update value because other widgets can adjust this too
+		end
 		if getOptionByID('sndvolmusic') then
 			if WG['music'] and WG['music'].GetMusicVolume then
 				options[getOptionByID('sndvolmusic')].value = WG['music'].GetMusicVolume()
@@ -946,12 +1122,17 @@ function widget:DrawScreen()
 						-- title
 						RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 						-- tabs
-						for id, group in pairs(optionGroups) do
-							if devMode or group.id ~= 'dev' then
-								if groupRect[id] then
-									RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0)
+						if not (showTextInput and inputText ~= '' and inputMode == '') then
+							guishaderedTabs = true
+							for id, group in pairs(optionGroups) do
+								if devMode or group.id ~= 'dev' then
+									if groupRect[id] then
+										RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0)
+									end
 								end
 							end
+						else
+							guishaderedTabs = false
 						end
 					end)
 				end
@@ -969,11 +1150,13 @@ function widget:DrawScreen()
 				RectRound(titleRect[1] + groupMargin, titleRect[4] - groupMargin - ((titleRect[4] - titleRect[2]) * 0.5), titleRect[3] - groupMargin, titleRect[4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 1, 0.88, 0.66, 0 }, { 1, 0.88, 0.66, 0.09 })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			end
-			if groupRect ~= nil then
-				for id, group in pairs(optionGroups) do
-					if devMode or group.id ~= 'dev' then
-						if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
-							mouseoverGroupTab(id)
+			if not (showTextInput and inputText ~= '' and inputMode == '') then
+				if groupRect ~= nil then
+					for id, group in pairs(optionGroups) do
+						if devMode or group.id ~= 'dev' then
+							if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+								mouseoverGroupTab(id)
+							end
 						end
 					end
 				end
@@ -988,7 +1171,7 @@ function widget:DrawScreen()
 			if not showSelectOptions then
 				local tooltipShowing = false
 				for i, o in pairs(optionButtons) do
-					if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
+					if options[i] and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
 						if options[i].onclick == nil then
 							RectRound(o[1], o[2], o[3], o[4], 1, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.22 }, { 1, 1, 1, 0.22 })
 						end
@@ -1009,7 +1192,7 @@ function widget:DrawScreen()
 				end
 				if not tooltipShowing then
 					for i, o in pairs(optionHover) do
-						if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' and options[i].type ~= 'text'then
+						if options[i] and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' and options[i].type ~= 'text'then
 							-- display console command at the bottom
 							if (advSettings or devMode) and options[i].onchange ~= nil  then
 								font:Begin()
@@ -1099,9 +1282,25 @@ function widget:DrawScreen()
 			elseif prevSelectHover ~= nil then
 				prevSelectHover = nil
 			end
+
+
+			if showTextInput then --and updateTextInputDlist then
+				drawChatInput()
+			end
+			if showTextInput and textInputDlist then
+				glCallList(textInputDlist)
+				drawChatInputCursor()
+			elseif WG['guishader'] then
+				WG['guishader'].RemoveRect('optionsinput')
+				textInputDlist = glDeleteList(textInputDlist)
+			end
 		else
 			if WG['guishader'] then
 				WG['guishader'].DeleteDlist('options')
+				if textInputDlist then
+					WG['guishader'].RemoveRect('optionsinput')
+					textInputDlist = glDeleteList(textInputDlist)
+				end
 			end
 		end
 		if checkedWidgetDataChanges == nil then
@@ -1157,15 +1356,115 @@ function loadPreset(preset)
 	windowList = gl.CreateList(DrawWindow)
 end
 
+
+function widget:KeyRelease()
+	-- Since we grab the keyboard, we need to specify a KeyRelease to make sure other release actions can be triggered
+	return false
+end
+
 function widget:KeyPress(key)
-	if key == 27 then
-		-- ESC
-		if showSelectOptions then
-			showSelectOptions = nil
+	if key == 27 then	-- ESC
+		if showTextInput then
+			cancelChatInput()
+			return true
 		else
-			show = false
+			if showSelectOptions then
+				showSelectOptions = nil
+			else
+				show = false
+			end
+			if not guishaderedTabs then
+				backgroundGuishader = glDeleteList(backgroundGuishader)
+			end
+		end
+	else
+		if show and (not WG['chat'] or not WG['chat'].isInputActive()) then
+			if guishaderedTabs then
+				backgroundGuishader = glDeleteList(backgroundGuishader)
+			end
+			--if not showTextInput then
+				showTextInput = true
+				widgetHandler.textOwner = self		--widgetHandler:OwnText()
+				-- again just to be safe, had report locking could still happen
+				Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			--end
+			init()
+		elseif showTextInput then
+			cancelChatInput()
 		end
 	end
+
+	if not showTextInput then
+		return false
+	end
+	if key >= 282 and key <= 293 then	-- Function keys
+		return false
+	end
+
+	local alt, ctrl, _, shift = Spring.GetModKeyState()
+	if ctrl and key == 118 then -- CTRL + V
+		local clipboardText = Spring.GetClipboard()
+		inputText = utf8.sub(inputText, 1, inputTextPosition) .. clipboardText .. utf8.sub(inputText, inputTextPosition+1)
+		inputTextPosition = inputTextPosition + utf8.len(clipboardText)
+		if string.len(inputText) > maxTextInputChars then
+			inputText = string.sub(inputText, 1, maxTextInputChars)
+			if inputTextPosition > maxTextInputChars then
+				inputTextPosition = maxTextInputChars
+			end
+		end
+		cursorBlinkTimer = 0
+
+	elseif not alt and not ctrl then
+		if key == 27 then -- ESC
+			cancelChatInput()
+		elseif key == 8 then -- BACKSPACE
+			if inputTextPosition > 0 then
+				inputText = utf8.sub(inputText, 1, inputTextPosition-1) .. utf8.sub(inputText, inputTextPosition+1)
+				inputTextPosition = inputTextPosition - 1
+			end
+			cursorBlinkTimer = 0
+			if inputText == '' then
+				cancelChatInput()
+			end
+		elseif key == 127 then -- DELETE
+			if inputTextPosition < utf8.len(inputText) then
+				inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition+2)
+			end
+			Spring.Echo(os.clock())
+			cursorBlinkTimer = 0
+		elseif key == 277 then -- INSERT
+			inputTextInsertActive = not inputTextInsertActive
+		elseif key == 276 then -- LEFT
+			inputTextPosition = inputTextPosition - 1
+			if inputTextPosition < 0 then
+				inputTextPosition = 0
+			end
+			cursorBlinkTimer = 0
+		elseif key == 275 then -- RIGHT
+			inputTextPosition = inputTextPosition + 1
+			if inputTextPosition > utf8.len(inputText) then
+				inputTextPosition = utf8.len(inputText)
+			end
+			cursorBlinkTimer = 0
+		elseif key == 278 or key == 280 then -- HOME / PGUP
+			inputTextPosition = 0
+			cursorBlinkTimer = 0
+		elseif key == 279 or key == 281 then -- END / PGDN
+			inputTextPosition = utf8.len(inputText)
+			cursorBlinkTimer = 0
+		elseif key == 273 then -- UP
+
+		elseif key == 274 then -- DOWN
+
+		elseif key == 9 then -- TAB
+
+		else
+			-- regular chars/keys handled in widget:TextInput
+		end
+	end
+
+	updateTextInputDlist = true
+	return true
 end
 
 function NearestValue(table, number)
@@ -1326,21 +1625,23 @@ function mouseEvent(mx, my, button, release)
 			end
 
 			local tabClicked = false
-			if show and groupRect ~= nil then
-				for id, group in pairs(optionGroups) do
-					if devMode or group.id ~= 'dev' then
-						if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
-							if not release then
-								currentGroupTab = group.id
-								startColumn = 1
-								showSelectOptions = nil
-								selectClickAllowHide = nil
-								if playSounds then
-									Spring.PlaySoundFile(sounds.paginatorClick, 0.9, 'ui')
+			if not (inputText and inputText ~= '' and inputMode == '') then
+				if show and groupRect ~= nil then
+					for id, group in pairs(optionGroups) do
+						if devMode or group.id ~= 'dev' then
+							if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+								if not release then
+									currentGroupTab = group.id
+									startColumn = 1
+									showSelectOptions = nil
+									selectClickAllowHide = nil
+									if playSounds then
+										Spring.PlaySoundFile(sounds.paginatorClick, 0.9, 'ui')
+									end
 								end
+								tabClicked = true
+								returnTrue = true
 							end
-							tabClicked = true
-							returnTrue = true
 						end
 					end
 				end
@@ -1894,7 +2195,7 @@ function init()
 		},
 
 		{ id = "sepiatone", group = "gfx", category = types.advanced, widget = "Sepia Tone", name = texts.option.sepiatone, type = "bool", value = GetWidgetToggleValue("Sepia Tone") },
-		{ id = "sepiatone_gamma", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_gamma, min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5, 
+		{ id = "sepiatone_gamma", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_gamma, min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_gamma", { 'gamma' })
 		  end,
@@ -1902,7 +2203,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setGamma', { 'gamma' }, value)
 		  end,
 		},
-		{ id = "sepiatone_saturation", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_saturation, min = 0, max = 1.5, step = 0.02, type = "slider", value = 0.5, 
+		{ id = "sepiatone_saturation", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_saturation, min = 0, max = 1.5, step = 0.02, type = "slider", value = 0.5,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_saturation", { 'saturation' })
 		  end,
@@ -1910,7 +2211,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setSaturation', { 'saturation' }, value)
 		  end,
 		},
-		{ id = "sepiatone_contrast", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_contrast, min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5, 
+		{ id = "sepiatone_contrast", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_contrast, min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_contrast", { 'contrast' })
 		  end,
@@ -1926,7 +2227,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setSepia', { 'sepia' }, value)
 		  end,
 		},
-		{ id = "sepiatone_shadeui", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_shadeui, type = "bool", value = 0, 
+		{ id = "sepiatone_shadeui", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_shadeui, type = "bool", value = 0,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_shadeui", { 'shadeUI' })
 		  end,
@@ -3025,7 +3326,7 @@ function init()
 			  saveOptionValue('Info', 'info', 'setDisplayMapPosition', { 'displayMapPosition' }, value)
 		  end,
 		},
-		{ id = "info_alwaysshow", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.info_alwaysshow, type = "bool", value = (WG['info'] ~= nil and WG['info'].getAlwaysShow ~= nil and WG['info'].getAlwaysShow()), 
+		{ id = "info_alwaysshow", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.info_alwaysshow, type = "bool", value = (WG['info'] ~= nil and WG['info'].getAlwaysShow ~= nil and WG['info'].getAlwaysShow()),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -5422,6 +5723,22 @@ function init()
 		processedOptions[processedOptionsCount] = option
 	end
 	options = processedOptions
+
+	if inputText and inputText ~= '' and inputMode == '' then
+		local filteredOptions = {}
+		for i, option in pairs(options) do
+			if option.name and option.name ~= '' and option.type and option.type ~= 'label' then
+				if string.find(string.lower(option.name), string.lower(inputText), nil, true) then
+					filteredOptions[#filteredOptions+1] = option
+				elseif option.description and option.description ~= '' and string.find(string.lower(option.description), string.lower(inputText), nil, true) then
+					filteredOptions[#filteredOptions+1] = option
+				elseif string.find(string.lower(option.id), string.lower(inputText), nil, true) then
+					filteredOptions[#filteredOptions+1] = option
+				end
+			end
+		end
+		options = filteredOptions
+	end
 
 	if windowList then
 		gl.DeleteList(windowList)
