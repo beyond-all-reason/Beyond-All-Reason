@@ -16,7 +16,7 @@ return {
 		capturable = false,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN EMPABLE",
 		collisionvolumeoffsets = "0 1 0",
-		collisionvolumescales = "25 34 44",
+		collisionvolumescales = "60 34 80",
 		collisionvolumetype = "box",
 		defaultmissiontype = "Standby",
 		explodeas = "LOBBER_MORPH",
