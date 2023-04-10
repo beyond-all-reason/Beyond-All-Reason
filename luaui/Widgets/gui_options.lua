@@ -2509,7 +2509,7 @@ function init()
 		--},
 
 		{ id = "grass", group = "gfx", category = types.basic, widget = "Map Grass GL4", name = Spring.I18N('ui.settings.option.grass'), type = "bool", value = GetWidgetToggleValue("Map Grass GL4"), description = Spring.I18N('ui.settings.option.grass_desc') },
-		{ id = "grassdistance", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.grassdistance'), type = "slider", min = 0.3, max = 1, step = 0.01, value = 1, description = Spring.I18N('ui.settings.option.grassdistance_descr'),
+		{ id = "grassdistance", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.grassdistance'), type = "slider", min = 0.3, max = 1, step = 0.01, value = 1, description = Spring.I18N('ui.settings.option.grassdistance_desc'),
 		  onload = function(i)
 			  loadWidgetData("Map Grass GL4", "grassdistance", { 'distanceMult' })
 		  end,
@@ -2691,7 +2691,7 @@ function init()
 		  end,
 		},
 
-		{ id = "sndunitsound", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.sndunitsound'), type = "bool", value = (Spring.GetConfigInt("snd_unitsound", 1) == 1), description = Spring.I18N('ui.settings.option.sndunitsound_descr'),
+		{ id = "sndunitsound", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.sndunitsound'), type = "bool", value = (Spring.GetConfigInt("snd_unitsound", 1) == 1), description = Spring.I18N('ui.settings.option.sndunitsound_desc'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("snd_unitsound", (value and 1 or 0))
 		  end,
@@ -2780,7 +2780,7 @@ function init()
 		},
 		{ id = "scav_voicenotifs", group = "notif", category = types.basic, widget = "Scavenger Audio Reciever", name = Spring.I18N('ui.settings.option.scav_voicenotifs'), type = "bool", value = GetWidgetToggleValue("Scavenger Audio Reciever"), description = Spring.I18N('ui.settings.option.scav_voicenotifs_descr') },
 
-		{ id = "notifications_tutorial", group = "notif", name = Spring.I18N('ui.settings.option.notifications_tutorial'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getTutorial()), description = Spring.I18N('ui.settings.option.notifications_tutorial_desc'),
+		{ id = "notifications_tutorial", group = "notif", name = Spring.I18N('ui.settings.option.notifications_tutorial'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getTutorial()), description = Spring.I18N('ui.settings.option.notifications_tutorial_descr'),
 		  onload = function(i)
 			  loadWidgetData("Notifications", "notifications_tutorial", { 'tutorialMode' })
 		  end,
@@ -3070,7 +3070,7 @@ function init()
 			  Spring.SetConfigInt("InvertMouse", value and 1 or 0)
 		  end,
 		},
-		{ id = "scrolltoggleoverview", group = "control", category = types.advanced, widget = "Scrolldown Toggleoverview", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.scrolltoggleoverview'), type = "bool", value = GetWidgetToggleValue("Scrolldown Toggleoverview"), description = Spring.I18N('ui.settings.option.lockcamera_scrolltoggleoverview_descr') },
+		{ id = "scrolltoggleoverview", group = "control", category = types.advanced, widget = "Scrolldown Toggleoverview", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.scrolltoggleoverview'), type = "bool", value = GetWidgetToggleValue("Scrolldown Toggleoverview"), description = Spring.I18N('ui.settings.option.scrolltoggleoverview_descr') },
 
 		{ id = "lockcamera_transitiontime", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.lockcamera')..widgetOptionColor .. "   " ..Spring.I18N('ui.settings.option.lockcamera_transitiontime'), type = "slider", min = 0.5, max = 1.7, step = 0.01, value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockTransitionTime ~= nil and WG['advplayerlist_api'].GetLockTransitionTime()), description = Spring.I18N('ui.settings.option.lockcamera_transitiontime_descr'),
 		  onload = function(i)
@@ -3222,7 +3222,7 @@ function init()
 			  Spring.SetConfigInt("MinimapMinimize", (value and '1' or '0'))
 		  end,
 		},
-		{ id = "minimapcanflip", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapcanflip'), type = "bool", value = Spring.GetConfigInt("MiniMapCanFlip", 0) == 1, description = Spring.I18N('ui.settings.option.minimapcanflipk_descr'),
+		{ id = "minimapcanflip", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapcanflip'), type = "bool", value = Spring.GetConfigInt("MiniMapCanFlip", 0) == 1, description = Spring.I18N('ui.settings.option.minimapcanflip_descr'),
 		  onchange = function(i, value)
 				 Spring.SetConfigInt("MiniMapCanFlip", value and 1 or 0)
 		  end,
@@ -3859,7 +3859,7 @@ function init()
 			  Spring.SetConfigInt("DisplayDPS", (value and 1 or 0))
 		  end,
 		},
-		{ id = "givenunits", group = "ui", category = types.advanced, widget = "Given Units", name = Spring.I18N('ui.settings.option.givenunits'), type = "bool", value = GetWidgetToggleValue("Given Units"), description = Spring.I18N('ui.settings.option.giveunits_descr') },
+		{ id = "givenunits", group = "ui", category = types.advanced, widget = "Given Units", name = Spring.I18N('ui.settings.option.givenunits'), type = "bool", value = GetWidgetToggleValue("Given Units"), description = Spring.I18N('ui.settings.option.givenunits_descr') },
 
 
 		{ id = "label_ui_ranges", group = "ui", name = Spring.I18N('ui.settings.option.label_ranges'), category = types.basic },
