@@ -5309,7 +5309,7 @@ function init()
 		options[getOptionByID('restart')] = nil
 	end
 
-	if devMode or (WG['widgetselector'].getLocalWidgetCount and WG['widgetselector'].getLocalWidgetCount() == 0) then
+	if devMode or (WG['widgetselector'] and WG['widgetselector'].getLocalWidgetCount and WG['widgetselector'].getLocalWidgetCount() == 0) then
 		options[getOptionByID('widgetselector')] = nil
 	end
 
