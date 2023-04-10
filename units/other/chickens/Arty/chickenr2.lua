@@ -41,7 +41,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "LOBBER_MORPH",
 		side = "THUNDERBIRDS",
-		sightdistance = 100,
+		sightdistance = 1000,
 		smoothanim = true,
 		steeringmode = "2",
 		tedclass = "BOT",

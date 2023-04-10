@@ -127,6 +127,8 @@ if gadgetHandler:IsSyncedCode() then
 		"Willow",
 		"Wintergaming",
 
+		-- Other contributions but not regular contributors
+		"Yeba",
 
 		-- AI Names
 		"Chris",

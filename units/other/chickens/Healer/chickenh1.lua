@@ -49,7 +49,7 @@ return {
 		seismicsignature = 1,
 		selfdestructas = "WEAVER_DEATH",
 		side = "THUNDERBIRDS",
-		sightdistance = 50,
+		sightdistance = 200,
 		smoothanim = true,
 		standingmoveorder = 1,
 		stealth = 1,

@@ -169,7 +169,6 @@ function widget:Update(dt)
 	if dualscreenMode then return end
 
 	_, _, _, _, minimized, maximized = Spring.GetMiniMapGeometry()
-	Spring.SetConfigInt("MinimapMinimized", minimized and 1 or 0)
 
 	if minimized or maximized then
 		return
@@ -217,10 +216,11 @@ function widget:DrawScreen()
 			wasOverview = true
 		end
 
-	elseif not (minimized or maximized) then
-		if wasOverview then
+	elseif not (minimized or maximized) or (wasOverview and Spring.GetConfigInt("MinimapMinimize", 0) == 0) then
+		if wasOverview and Spring.GetConfigInt("MinimapMinimize", 0) == 0 then
 			gl.SlaveMiniMap(true)
 			wasOverview = false
+			Spring.SendCommands("minimap minimize 0")
 		end
 
 		if dlistGuishader and WG['guishader'] then

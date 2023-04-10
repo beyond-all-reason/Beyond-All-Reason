@@ -2296,13 +2296,15 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead, m
     local paddingLeft = 2
     local paddingRight = 2
     local barWidth = m_resources.width - paddingLeft - paddingRight
-    local y1Offset = 7
-    local y2Offset = 5
-    if dead then
-        y1Offset = 7.4
-        y2Offset = 6
+    local y1Offset
+    local y2Offset
+    if not dead then
+        y1Offset = 11
+        y2Offset = 9
+    else
+        y1Offset = 10
+        y2Offset = 8.6
     end
-
     local maxStorage = (maxAllyTeamMetalStorage and maxAllyTeamMetalStorage or metalStorage)
     gl_Color(1, 1, 1, 0.18)
     gl_Texture(pics["resbarBgPic"])
@@ -2322,12 +2324,12 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead, m
         DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal), posY + y2Offset - glowsize)
     end
 
-    if not dead then
-        y1Offset = 11
-        y2Offset = 9
+    if dead then
+        y1Offset = 7.4
+        y2Offset = 6
     else
-        y1Offset = 10
-        y2Offset = 8.6
+       y1Offset = 7
+       y2Offset = 5
     end
     maxStorage = (maxAllyTeamEnergyStorage and maxAllyTeamEnergyStorage or energyStorage)
     gl_Color(1, 1, 0, 0.18)
@@ -2367,10 +2369,10 @@ function DrawIncome(energy, metal, posY, dead)
     local fontsize = dead and 4.5 or 8.5
     font:Begin()
     if energy > 0 then
-        font:Print('\255\255\255\050'..formatRes(math.floor(energy)), m_income.posX + widgetPosX + m_income.width - 2, posY + (fontsize*1.15) + (dead and 1 or 0), fontsize, "or")
+        font:Print('\255\255\255\050'..formatRes(math.floor(energy)), m_income.posX + widgetPosX + m_income.width - 2, posY + (fontsize*0.2) + (dead and 1 or 0), fontsize, "or")
     end
     if metal > 0 then
-        font:Print('\255\235\235\235'..formatRes(math.floor(metal)), m_income.posX + widgetPosX + m_income.width - 2, posY + (fontsize*0.2) + (dead and 1 or 0), fontsize, "or")
+        font:Print('\255\235\235\235'..formatRes(math.floor(metal)), m_income.posX + widgetPosX + m_income.width - 2, posY + (fontsize*1.15) + (dead and 1 or 0), fontsize, "or")
     end
     font:End()
 end
@@ -2797,7 +2799,7 @@ function ResourcesTip(mouseX, energy, energyStorage, energyIncome, metal, metalS
         if metalIncome >= 10000 then
             metalIncome = Spring.I18N('ui.playersList.thousands', { number = math.floor(metalIncome / 1000) })
         end
-        tipText = "\255\255\255\000+" .. energyIncome .. "\n\255\255\255\000" .. energy .. "\n\255\255\255\255" .. metal .. "\n\255\255\255\255+" .. metalIncome
+        tipText = "\255\255\255\255+" .. metalIncome.. "\n\255\255\255\255" .. metal .. "\n\255\255\255\000" .. energy .. "\n\255\255\255\000+" .. energyIncome
     end
 end
 

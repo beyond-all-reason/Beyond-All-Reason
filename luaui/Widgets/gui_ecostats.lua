@@ -257,7 +257,7 @@ local function updateButtons()
 end
 
 local function setDefaults()
-	widgetWidth = 105    -- just the bars area
+	widgetWidth = 120    -- just the bars area
 	right = true
 	tH = 32
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
@@ -269,7 +269,16 @@ end
 
 local function processScaling()
 	setDefaults()
-	sizeMultiplier = ((vsy / 700) * 0.5) * (1 + (ui_scale - 1) / 1.5)
+	sizeMultiplier = ((vsy / 700) * 0.55) * (1 + (ui_scale - 1) / 1.5)
+	local numAllyteams = #Spring.GetAllyTeamList()-1
+	if numAllyteams > 5 then
+		sizeMultiplier = sizeMultiplier * 0.96
+	elseif numAllyteams > 8 then
+		sizeMultiplier = sizeMultiplier * 0.88
+	elseif numAllyteams > 11 then
+		sizeMultiplier = sizeMultiplier * 0.82
+	end
+
 	tH = math.floor(tH * sizeMultiplier)
 	widgetWidth = math.floor(widgetWidth * sizeMultiplier)
 	WBadge = math.floor(WBadge * sizeMultiplier)
@@ -692,7 +701,7 @@ local function DrawEBar(tE, tEp, vOffset)
 	local barheight = 1 + math.floor(tH * 0.08)
 	if cfgResText then
 		dx = math.floor(11 * sizeMultiplier)
-		maxW = (widgetWidth / 2.3)
+		maxW = (widgetWidth / 1.95)
 	end
 
 	-- background
@@ -789,7 +798,7 @@ local function DrawMBar(tM, tMp, vOffset)
 
 	if cfgResText then
 		dx = math.floor(11 * sizeMultiplier)
-		maxW = (widgetWidth / 2.3)
+		maxW = (widgetWidth / 1.95)
 	end
 	-- background
 	glColor(0.8, 0.8, 0.8, 0.13)
@@ -1297,7 +1306,7 @@ function widget:Update(dt)
 		end
 	end
 	local prevTopbarShowButtons = topbarShowButtons
-	topbarShowButtons = WG['topbar'].getShowButtons()
+	topbarShowButtons =  WG['topbar'] and WG['topbar'].getShowButtons()
 	if topbarShowButtons ~= prevTopbarShowButtons then
 		Reinit()
 		lastTextListUpdate = 0
