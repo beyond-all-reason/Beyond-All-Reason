@@ -356,7 +356,7 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 	end
 end
 
-local function cancelChatInput()
+local function clearChatInput()
 	--showTextInput = false
 	inputText = ''
 	inputTextPosition = 0
@@ -365,6 +365,11 @@ local function cancelChatInput()
 	if WG['guishader'] then
 		WG['guishader'].RemoveRect('optionsinput')
 	end
+	init()
+end
+
+local function cancelChatInput()
+	clearChatInput()
 	widgetHandler.textOwner = nil	--widgetHandler:DisownText()
 	init()
 end
@@ -384,14 +389,14 @@ function drawChatInput()
 		textInputDlist = glDeleteList(textInputDlist)
 		textInputDlist = glCreateList(function()
 			local activationArea = {screenX, screenY - screenHeight, screenX + screenWidth, screenY}
-			local usedFontSize = 15 * widgetScale
-			local lineHeight = floor(usedFontSize * 1.4)
+			local usedFontSize = 16 * widgetScale
+			local lineHeight = floor(usedFontSize * 1.27)
 			local x,y,_ = Spring.GetMouseState()
 			local chatlogHeightDiff = 0
 			local inputFontSize = floor(usedFontSize * 1.03)
 			local inputHeight = floor(inputFontSize * 2.3)
 			local leftOffset = floor(lineHeight*0.7)
-			local distance = elementMargin
+			local distance = 0 --elementMargin
 			local usedFont = inputMode == '' and font3 or font
 			local modeText = Spring.I18N('ui.settings.filter')
 			if inputMode ~= '' then
@@ -406,30 +411,26 @@ function drawChatInput()
 			local textCursorPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, inputTextPosition)) * inputFontSize)
 
 			-- background
-			local r,g,b,a
-			local inputAlpha = math.min(0.36, ui_opacity*0.66)
 			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/4.3)))
-			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, nil,nil,nil,nil, nil,nil,nil,nil, inputAlpha)
+			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 0,0,nil,nil, 0,nil,nil,nil, ui_opacity + 0.2)
 			if WG['guishader'] then
 				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'optionsinput')
 			end
 
 			-- button background
-			local inputButtonRect = {activationArea[1]+elementPadding, activationArea[2]+chatlogHeightDiff-distance-inputHeight+elementPadding, textPosX-inputFontSize, activationArea[2]+chatlogHeightDiff-distance-elementPadding}
+			local inputButtonRect = {activationArea[1]+elementPadding, activationArea[2]+chatlogHeightDiff-distance-inputHeight+elementPadding, textPosX-inputFontSize, activationArea[2]+chatlogHeightDiff-distance}
 			if inputMode ~= '' then
-				r, g, b = 0.03, 0.12, 0.03
+				glColor(0.03, 0.12, 0.03, 0.3)
 			else
-				r, g, b = 0, 0, 0
+				glColor(0, 0, 0, 0.3)
 			end
-			glColor(r, g, b, 0.3)
-			RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
+			RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 0,0,0,1)
 			glColor(1,1,1,0.033)
 			gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
 
 			-- button text
 			usedFont:Begin()
-			r, g, b = 0.5, 0.5, 0.5
-			usedFont:SetTextColor(r, g, b, 1)
+			usedFont:SetTextColor(0.62, 0.62, 0.62, 1)
 			usedFont:Print(modeText, modeTextPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
 
 			-- colon
@@ -447,23 +448,8 @@ function drawChatInput()
 
 			-- text cursor
 			textCursorRect = { textPosX + textCursorPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64) }
-			--a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.15
-			--glColor(0.7,0.7,0.7,a)
-			--gl.Rect(textPosX + textCursorPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64))
-			--glColor(1,1,1,1)
 
-			-- text message
-			--if isCmd then
-			--	r, g, b = 0.85, 0.85, 0.85
-			--elseif inputMode == 'a:' then
-			--	r, g, b = 0.2, 1, 0.2
-			--elseif inputMode == 's:' then
-			--	r, g, b = 1, 1, 0.2
-			--else
-			--	r, g, b = 0.95, 0.95, 0.95
-			--end
-			r, g, b = 0.95, 0.95, 0.95
-			usedFont:SetTextColor(r,g,b, 1)
+			usedFont:SetTextColor(0.95, 0.95, 0.95, 1)
 			usedFont:Print(inputText, textPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
 			usedFont:End()
 		end)
@@ -545,7 +531,7 @@ function DrawWindow()
 	windowRect = { screenX, screenY - screenHeight, screenX + screenWidth, screenY }
 
 	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 0, 1, 1, 1, 1, 1, 1, ui_opacity + 0.2)
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 0, 0, (showTextInput and 0 or 1), 1, 1, 1, 1, ui_opacity + 0.2)
 
 	-- title
 	local groupMargin = math.floor(bgpadding * 0.8)
@@ -1365,8 +1351,8 @@ function widget:KeyPress(key)
 		return false
 	end
 	if key == 27 then	-- ESC
-		if showTextInput then
-			cancelChatInput()
+		if showTextInput and inputText ~= '' then
+			clearChatInput()
 			return true
 		else
 			if showSelectOptions then
@@ -1379,25 +1365,8 @@ function widget:KeyPress(key)
 				backgroundGuishader = glDeleteList(backgroundGuishader)
 			end
 		end
-	else
-		if show and (not WG['chat'] or not WG['chat'].isInputActive()) then
-			if guishaderedTabs then
-				backgroundGuishader = glDeleteList(backgroundGuishader)
-			end
-			--if not showTextInput then
-			showTextInput = true
-			widgetHandler.textOwner = self		--widgetHandler:OwnText()
-			-- again just to be safe, had report locking could still happen
-			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-			--end
-			init()
-		elseif showTextInput then
-			cancelChatInput()
-		end
-		--if not showTextInput then
-		--	return false
-		--end
 	end
+
 	if key >= 282 and key <= 293 then	-- Function keys
 		return false
 	end
@@ -1417,7 +1386,7 @@ function widget:KeyPress(key)
 
 	elseif not alt and not ctrl then
 		if key == 27 then -- ESC
-			cancelChatInput()
+			clearChatInput()
 		elseif key == 8 then -- BACKSPACE
 			if inputTextPosition > 0 then
 				inputText = utf8.sub(inputText, 1, inputTextPosition-1) .. utf8.sub(inputText, inputTextPosition+1)
@@ -1425,7 +1394,7 @@ function widget:KeyPress(key)
 			end
 			cursorBlinkTimer = 0
 			if inputText == '' then
-				cancelChatInput()
+				clearChatInput()
 			else
 				init()
 			end
@@ -5592,12 +5561,14 @@ function init()
 			newOptions[count] = option
 			if option.id == 'label_notif_messages_spacer' then
 				for k, v in pairs(soundList) do
-					count = count + 1
-					newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
-					  onchange = function(i, value)
-						  saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
-					  end,
-					}
+					if type(v) == 'table' then
+						count = count + 1
+						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
+											  onchange = function(i, value)
+												  saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
+											  end,
+						}
+					end
 				end
 			end
 		end
@@ -5993,6 +5964,10 @@ function widget:TextCommand(command)
 			WG['topbar'].hideWindows()
 		end
 		show = newShow
+		if show and showTextInput then
+			widgetHandler.textOwner = self		--widgetHandler:OwnText()
+			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		end
 	end
 
 	if command == "devmode" then
@@ -6017,6 +5992,10 @@ function widget:TextCommand(command)
 				applyOptionValue(optionID)
 			else
 				show = true
+				if showTextInput then
+					widgetHandler.textOwner = self		--widgetHandler:OwnText()
+					Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+				end
 			end
 		else
 			option = string.split(option, ' ')
@@ -6124,6 +6103,10 @@ function widget:SetConfigData(data)
 	if Spring.GetGameFrame() > 0 then
 		if data.show ~= nil then
 			show = data.show
+			if showTextInput then
+				widgetHandler.textOwner = self		--widgetHandler:OwnText()
+				Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			end
 		end
 	end
 	if data.pauseGameWhenSingleplayerExecuted ~= nil and Spring.GetGameFrame() > 0 then
