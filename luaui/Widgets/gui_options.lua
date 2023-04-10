@@ -393,7 +393,7 @@ function drawChatInput()
 			local inputFontSize = floor(usedFontSize * 1.03)
 			local inputHeight = floor(inputFontSize * 2.3)
 			local leftOffset = floor(lineHeight*0.7)
-			local distance =  elementMargin
+			local distance = elementMargin
 			local usedFont = inputMode == '' and font3 or font
 			local modeText = 'filter'	--Spring.I18N('ui.options.filter')
 			if inputMode ~= '' then
@@ -1372,6 +1372,7 @@ function widget:KeyPress(key)
 				showSelectOptions = nil
 			else
 				show = false
+				cancelChatInput()
 			end
 			if not guishaderedTabs then
 				backgroundGuishader = glDeleteList(backgroundGuishader)
@@ -1718,6 +1719,7 @@ function mouseEvent(mx, my, button, release)
 				if release and draggingSlider == nil then
 					showOnceMore = true        -- show once more because the guishader lags behind, though this will not fully fix it
 					show = false
+					cancelChatInput()
 				end
 				return true
 			end
