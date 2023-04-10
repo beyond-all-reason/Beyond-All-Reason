@@ -36,6 +36,21 @@ local spGetUnitDefID        = Spring.GetUnitDefID
 local spSetUnitVelocity     = Spring.SetUnitVelocity
 local spGetUnitHeading      = Spring.GetUnitHeading
 local spGetUnitVelocity     = Spring.GetUnitVelocity
+local spGetUnitHealth 		= Spring.GetUnitHealth
+
+local spGetUnitExperience	= Spring.GetUnitExperience
+local spGetUnitTeam 		= Spring.GetUnitTeam
+local spGetUnitDirection 	= Spring.GetUnitDirection
+local spGetUnitStockpile 	= Spring.GetUnitStockpile
+local spGetUnitCommands = Spring.GetUnitCommands
+local spEcho = Spring.Echo
+local spSetUnitHealth = Spring.SetUnitHealth
+
+local spSetUnitExperience = Spring.SetUnitExperience
+local spSetUnitStockpile = Spring.SetUnitStockpile
+local spSetUnitDirection = Spring.SetUnitDirection
+local spGetGameSeconds = Spring.GetGameSeconds
+local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 
 
 local mcSetVelocity         = Spring.MoveCtrl.SetVelocity
@@ -91,8 +106,17 @@ local totalDroneCount = 0
 -- ZECRUS, values can be tuned in the unitdef file. Add the section below to the unitdef list in the unitdef file.
 --customparams = {
 	--	-- Required:				
-	-- evolution_target = "unitname"     Name of the unit this unit will evolve into. 
-	-- evolution_condition = "timer"     Name of the unit this unit will evolve into. 
+	-- evolution_target = "unitname"    Name of the unit this unit will evolve into. 
+	
+	
+	--	-- Optional:
+	-- evolution_announcement = "Unit Evolved",  Announcement printed when the unit is evolved. Currently using the Spring.Echo function.
+	
+	--	-- Has a default value, as indicated, if not chosen:
+	-- evolution_condition = "timer"    condition type for the evolution. 
+	-- evolution_timer = 600, 			set the timer used for the timer condition. Given in secons from when the unit was created. 
+	-- combatRadius = 1000,				Range for setting in-combat status if enemies are within range, and disabling evolution while in-combat. 
+	
 	
 	-- },							 
 
@@ -117,53 +141,48 @@ end
 
 
 function Evolve(unitID, newUnit)
-	local health = Spring.GetUnitHealth(unitID)
-	local experience = Spring.GetUnitExperience(unitID)
-	local x,y,z = Spring.GetUnitPosition(unitID)
-	local team = Spring.GetUnitTeam(unitID)
-	local states = Spring.GetUnitStates(unitID)
-	local dx, dy, dz = Spring.GetUnitDirection(unitID)
-	local stockpile, stockpilequeued, stockpilebuildpercent = Spring.GetUnitStockpile(unitID)
-	local commandQueue = Spring.GetUnitCommands(unitID, -1)
-	--local selectedUnits = Spring.GetSelectedUnits()
-	--local isSelected = Spring.IsUnitSelected(unitID)
+	local health = spGetUnitHealth(unitID)
+	local experience = spGetUnitExperience(unitID)
+	local x,y,z = spGetUnitPosition(unitID)
+	local team = spGetUnitTeam(unitID)
+	local states = spGetUnitStates(unitID)
+	local dx, dy, dz = spGetUnitDirection(unitID)
+	local stockpile, stockpilequeued, stockpilebuildpercent = spGetUnitStockpile(unitID)
+	local commandQueue = spGetUnitCommands(unitID, -1)
 
 	--commandQueue[1].id
 	--commandQueue[1].params
 	--commandQueue[1].options
 
 	if evolutionMetaList[unitID].evolution_announcement then
-		Spring.Echo(evolutionMetaList[unitID].evolution_announcement)
+		spEcho(evolutionMetaList[unitID].evolution_announcement)
 	end
 
 	spSetUnitRulesParam(unitID, "disable_tombstone", "disabled", PRIVATE)
 	
-	local newUnitID = Spring.CreateUnit(newUnit, x,y,z, 0, team)
+	local newUnitID = spCreateUnit(newUnit, x,y,z, 0, team)
 	SendToUnsynced("unit_evolve_finished", unitID, newUnitID)
-	Spring.DestroyUnit(unitID, false, true)
-	Spring.SetUnitHealth(newUnitID, health)
-	Spring.SetUnitExperience(newUnitID, experience)
-	Spring.SetUnitStockpile(newUnitID, stockpile, stockpilebuildpercent)
-	Spring.SetUnitDirection(newUnitID, dx, dy, dz)
+	spDestroyUnit(unitID, false, true)
+	spSetUnitHealth(newUnitID, health)
+	spSetUnitExperience(newUnitID, experience)
+	spSetUnitStockpile(newUnitID, stockpile, stockpilebuildpercent)
+	spSetUnitDirection(newUnitID, dx, dy, dz)
 
-	if commandQueue then
-		--Spring.GiveOrderArrayToUnitArray({newUnitID}, commandQueue)	
+	if commandQueue[1] then
+		for _,command in pairs(commandQueue) do
+			spGiveOrderToUnit(newUnitID, command.id, command.params, command.options)
+		end
 	end
 	
 
-  	Spring.GiveOrderArrayToUnitArray({newUnitID}, {
-    { CMD.FIRE_STATE, { states.firestate },             { } },
-    { CMD.MOVE_STATE, { states.movestate },             { } },
-    { CMD.REPEAT,     { states["repeat"] and 1 or 0 },  { } },
-    { CMD.CLOAK,      { states.cloak     and 1 or 0 },  { } },
-    { CMD.ONOFF,      { 1 },                            { } },
-    { CMD.TRAJECTORY, { states.trajectory and 1 or 0 }, { } },
-  	})
+    spGiveOrderToUnit(newUnitID, CMD.FIRE_STATE, { states.firestate },             { })
+    spGiveOrderToUnit(newUnitID, CMD.MOVE_STATE, { states.movestate },             { })
+    spGiveOrderToUnit(newUnitID, CMD.REPEAT,     { states["repeat"] and 1 or 0 },  { })
+    spGiveOrderToUnit(newUnitID, CMD.CLOAK,      { states.cloak     and 1 or 0 },  { })
+    spGiveOrderToUnit(newUnitID, CMD.ONOFF,      { 1 },                            { })
+    spGiveOrderToUnit(newUnitID, CMD.TRAJECTORY, { states.trajectory and 1 or 0 }, { })
+  	
 
-	
-	--if isSelected then
-	--	Spring.SelectUnitArray({newUnitID})
-	--end
 
 	
 end
@@ -176,13 +195,13 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		evolutionMetaList[unitID] = {
 			evolution_target = udcp.evolution_target,
 			evolution_condition = udcp.evolution_condition or "timer",
-			evolution_timer = udcp.evolution_timer or 10,
-			evolution_announcement = udcp.evolution_announcement or "Unit Evolved",
+			evolution_timer = udcp.evolution_timer or 600,
+			evolution_announcement = udcp.evolution_announcement,
 			combatRadius = udcp.combatRadius or 1000,
 
 
-			timeCreated = Spring.GetGameSeconds(),
-			combatTimer = Spring.GetGameSeconds(),
+			timeCreated = spGetGameSeconds(),
+			combatTimer = spGetGameSeconds(),
 			inCombat = false,
 		}
 	end
@@ -217,14 +236,13 @@ function gadget:GameFrame(f)
 
 	if ((f % TIMER_CHECK_FREQUENCY) == 0) then
 		for unitID, _ in pairs(evolutionMetaList) do
-			local currentTime =  Spring.GetGameSeconds()
-			Spring.Echo("currentTime, timer", currentTime, evolutionMetaList[unitID].timeCreated, evolutionMetaList[unitID].combatTimer)
+			local currentTime =  spGetGameSeconds()
 			if evolutionMetaList[unitID].evolution_condition == "timer" and (currentTime-evolutionMetaList[unitID].timeCreated) >= evolutionMetaList[unitID].evolution_timer then
-				local enemyNearby = Spring.GetUnitNearestEnemy(unitID, evolutionMetaList[unitID].combatRadius)
+				local enemyNearby = spGetUnitNearestEnemy(unitID, evolutionMetaList[unitID].combatRadius)
 				local inCombat = false
 				if enemyNearby then
 					inCombat = true
-					evolutionMetaList[unitID].combatTimer = Spring.GetGameSeconds()
+					evolutionMetaList[unitID].combatTimer = spGetGameSeconds()
 				end
 
 				if not inCombat and (currentTime-evolutionMetaList[unitID].combatTimer) >= 5 then
@@ -241,13 +259,17 @@ end
 else
 
 
+local spSelectUnitArray = Spring.SelectUnitArray
+local spGetSelectedUnits = Spring.GetSelectedUnits
+
+
 local function SelectSwap(cmd, oldID, newID)
-	local selUnits = Spring.GetSelectedUnits()
+	local selUnits = spGetSelectedUnits()
 	for i=1,#selUnits do
 	  local unitID = selUnits[i]
 	  if (unitID == oldID) then
 		selUnits[i] = newID
-		Spring.SelectUnitArray(selUnits)
+		spSelectUnitArray(selUnits)
 		break
 	  end
 	end
