@@ -1363,6 +1363,9 @@ function widget:KeyRelease()
 end
 
 function widget:KeyPress(key)
+	if not show then
+		return false
+	end
 	if key == 27 then	-- ESC
 		if showTextInput then
 			cancelChatInput()
@@ -1384,19 +1387,18 @@ function widget:KeyPress(key)
 				backgroundGuishader = glDeleteList(backgroundGuishader)
 			end
 			--if not showTextInput then
-				showTextInput = true
-				widgetHandler.textOwner = self		--widgetHandler:OwnText()
-				-- again just to be safe, had report locking could still happen
-				Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			showTextInput = true
+			widgetHandler.textOwner = self		--widgetHandler:OwnText()
+			-- again just to be safe, had report locking could still happen
+			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 			--end
 			init()
 		elseif showTextInput then
 			cancelChatInput()
 		end
-	end
-
-	if not showTextInput then
-		return false
+		--if not showTextInput then
+		--	return false
+		--end
 	end
 	if key >= 282 and key <= 293 then	-- Function keys
 		return false
@@ -5954,6 +5956,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	cancelChatInput()
 	if windowList then
 		glDeleteList(windowList)
 	end
