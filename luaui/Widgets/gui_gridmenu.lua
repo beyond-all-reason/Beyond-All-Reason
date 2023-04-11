@@ -673,21 +673,23 @@ local function reloadBindings()
 	Cfgs.keyLayout = {{}, {}, {}}
 
 	for c=1,4 do
-		local cKey = getGridKey('gridmenu_category ' .. c)
+		local action = 'gridmenu_category ' .. c
+		local cKey = getGridKey(action)
 
 		if not cKey then
 			cKey = ''
-			Spring.Echo("Error, missing grid category keybinds, things may not function as expected")
+			Spring.Echo("Error, missing grid category keybind for action " .. action .. ", things may not function as expected")
 		end
 
 		Cfgs.categoryKeys[c] = cKey
 
 		for r=1,3 do
-			local key = getGridKey('gridmenu_key ' .. r .. ' ' .. c)
+			local action = 'gridmenu_key ' .. r .. ' ' .. c
+			local key = getGridKey(action)
 
 			if not key then
 				key = ''
-				Spring.Echo("Error, missing grid key keybinds, things may not function as expected")
+				Spring.Echo("Error, missing grid key bind for action " .. action .. ", things may not function as expected")
 			end
 
 			Cfgs.keyLayout[r][c] = key
@@ -696,8 +698,7 @@ local function reloadBindings()
 
 	local key = getGridKey('gridmenu_next_page')
 	if not key then
-		key = Cfgs.NEXT_PAGE_KEY
-		Spring.SendCommands('bind ' .. key .. ' gridmenu_next_page')
+		Spring.Echo("Error, missing grid key bind for next page, things may not function as expected")
 	end
 
 	Cfgs.NEXT_PAGE_KEY = key
@@ -705,7 +706,7 @@ local function reloadBindings()
 	key = getGridKey('gridmenu_prev_page')
 	if not key then
 		key = Cfgs.PREV_PAGE_KEY
-		Spring.SendCommands('bind ' .. key .. ' gridmenu_prev_page')
+		Spring.Echo("Error, missing grid key bind for prev page, things may not function as expected")
 	end
 
 	Cfgs.PREV_PAGE_KEY = key
