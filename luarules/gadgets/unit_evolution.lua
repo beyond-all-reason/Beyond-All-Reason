@@ -115,7 +115,7 @@ local totalDroneCount = 0
 	--	-- Has a default value, as indicated, if not chosen:
 	-- evolution_condition = "timer"    condition type for the evolution. 
 	-- evolution_timer = 600, 			set the timer used for the timer condition. Given in secons from when the unit was created. 
-	-- combatRadius = 1000,				Range for setting in-combat status if enemies are within range, and disabling evolution while in-combat. 
+	-- combatradius = 1000,				Range for setting in-combat status if enemies are within range, and disabling evolution while in-combat. 
 	
 	
 	-- },							 
@@ -185,7 +185,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			evolution_condition = udcp.evolution_condition or "timer",
 			evolution_timer = tonumber(udcp.evolution_timer) or 600,
 			evolution_announcement = udcp.evolution_announcement,
-			combatRadius = tonumber(udcp.combatRadius) or 1000,
+			combatRadius = tonumber(udcp.combatradius) or 1000,
 
 
 			timeCreated = spGetGameSeconds(),
