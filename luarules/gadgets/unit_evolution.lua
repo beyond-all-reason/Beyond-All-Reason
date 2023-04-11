@@ -123,18 +123,6 @@ local totalDroneCount = 0
 
 
 
-for unitDefID = 1, #UnitDefs do
-	local udcp = UnitDefs[unitDefID].customParams
-	
-	if udcp.carried_unit then
-		spawnDefs[unitDefID] = {
-			evolution_target = udcp.evolution_target,
-			evolution_condition = udcp.evolution_condition,
-
-		}
-
-	end
-end
 
 
 
@@ -195,9 +183,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		evolutionMetaList[unitID] = {
 			evolution_target = udcp.evolution_target,
 			evolution_condition = udcp.evolution_condition or "timer",
-			evolution_timer = udcp.evolution_timer or 600,
+			evolution_timer = tonumber(udcp.evolution_timer) or 600,
 			evolution_announcement = udcp.evolution_announcement,
-			combatRadius = udcp.combatRadius or 1000,
+			combatRadius = tonumber(udcp.combatRadius) or 1000,
 
 
 			timeCreated = spGetGameSeconds(),
