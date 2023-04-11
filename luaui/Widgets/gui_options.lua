@@ -394,7 +394,7 @@ function drawChatInput()
 			local x,y,_ = Spring.GetMouseState()
 			local chatlogHeightDiff = 0
 			local inputFontSize = floor(usedFontSize * 1.03)
-			local inputHeight = floor(inputFontSize * 2.3)
+			local inputHeight = floor(inputFontSize * 2.15)
 			local leftOffset = floor(lineHeight*0.7)
 			local distance = 0 --elementMargin
 			local usedFont = inputMode == '' and font3 or font
@@ -5890,9 +5890,13 @@ function widget:Initialize()
 			WG['topbar'].hideWindows()
 		end
 		show = newShow
-		if show and showTextInput then
-			widgetHandler.textOwner = self		--widgetHandler:OwnText()
-			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		if showTextInput then
+			if show then
+				widgetHandler.textOwner = self		--widgetHandler:OwnText()
+				Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			else
+				cancelChatInput()
+			end
 		end
 	end
 	WG['options'].getOptionsList = function()
@@ -5958,9 +5962,13 @@ function widget:TextCommand(command)
 			WG['topbar'].hideWindows()
 		end
 		show = newShow
-		if show and showTextInput then
-			widgetHandler.textOwner = self		--widgetHandler:OwnText()
-			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		if showTextInput then
+			if show then
+				widgetHandler.textOwner = self		--widgetHandler:OwnText()
+				Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			else
+				cancelChatInput()
+			end
 		end
 	end
 
