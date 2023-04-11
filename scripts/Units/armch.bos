@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, beam, nanogun, doorr, doorl, post, wake, turret;
+piece  base, beam, nanogun, doorr, doorl, post, wake, turret, cagelight, cagelight_emit;
 
 static-var  Static_Var_1, notBuilding, statechg_DesiredState, statechg_StateChanging, Wobble_status;
 
@@ -94,6 +94,8 @@ activatescr()
 deactivatescr()
 {
 	set INBUILDSTANCE to 0;
+	hide cagelight_emit;
+	turn cagelight to y-axis <0> speed <1000>;
 	turn post to y-axis <0.000000> speed <160.000000>;
 	wait-for-turn post around y-axis;
 
@@ -177,6 +179,8 @@ RequestState(requestedstate, currentstate)
 			call-script activatescr();
 			notBuilding = 0;
 			currentstate = 0;
+			show cagelight_emit;
+			spin cagelight around y-axis speed <200>;
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -186,6 +190,7 @@ Create()
 {
 	hide wake;
 	hide beam;
+	hide cagelight_emit;
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
