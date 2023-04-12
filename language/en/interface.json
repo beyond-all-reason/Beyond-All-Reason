@@ -798,6 +798,7 @@
 				"accessibility": "Accessibility",
 				"dev": "Dev"
 			},
+			"filter": "filter",
 			"option": {
 				"preset_lowest": "Lowest",
 				"preset_low": "Low",

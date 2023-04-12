@@ -30,6 +30,7 @@ local shaderConfig = {
 	FULL_ROTATION = 0, -- the primitive is fully rotated in the units plane
 	DISCARD = 0, -- Enable alpha threshold to discard fragments below 0.01
 	ROTATE_CIRCLES = 1, -- Set to 0 if you dont want circles to be rotated
+	PRE_OFFSET = "",
 }
 
 ---- GL4 Backend Stuff----
@@ -193,6 +194,7 @@ void offsetVertex4( float x, float y, float z, float u, float v){
 	g_uv.xy = transformUV(u,v);
 	vec3 primitiveCoords = vec3(x,y,z);
 	vec3 vecnorm = normalize(primitiveCoords);
+	PRE_OFFSET
 	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( addRadius * vecnorm + primitiveCoords ), 1.0);
 	g_uv.zw = dataIn[0].v_parameters.zw;
 	POST_GEOMETRY

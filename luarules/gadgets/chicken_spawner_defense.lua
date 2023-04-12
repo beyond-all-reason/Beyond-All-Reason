@@ -1316,6 +1316,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				Spring.SetGameRulesParam("BossFightStarted", 1)
+				Spring.SetUnitAlwaysVisible(queenID, true)
 			end
 		else
 			if mRandom() < config.spawnChance / 15 then

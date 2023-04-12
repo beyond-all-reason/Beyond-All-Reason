@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base,doorl,doorr ,nano1,nano2,nano3,nano4,nano5,nano6,nano7,nano8,pad;
+piece  base,doorl,doorr ,nano1,nano2,nano3,nano4,nano5,nano6,nano7,nano8,pad, cagelight, cagelight_emit, cagelight2, cagelight_emit2;
 
 static-var  spray, statechg_DesiredState, statechg_StateChanging;
 
@@ -28,6 +28,10 @@ activatescr()
 
 deactivatescr()
 {
+	hide cagelight_emit;
+	hide cagelight_emit2;
+	turn cagelight to y-axis <0> speed <1000>;
+	turn cagelight2 to y-axis <0> speed <1000>;
 	if( TRUE )
 	{
 		move doorl to x-axis [0.0] speed [24];
@@ -98,6 +102,10 @@ RequestState(requestedstate, currentstate)
 		{
 			call-script Go();
 			currentstate = 0;
+			show cagelight_emit;
+			show cagelight_emit2;
+			spin cagelight around y-axis speed <200>;
+			spin cagelight2 around y-axis speed <200>;
 		}
 		if( statechg_DesiredState == 1 )
 		{
@@ -119,6 +127,8 @@ Create()
 	hide nano4;
 	hide nano3;
 	hide nano2;
+	hide cagelight_emit;
+	hide cagelight_emit2;
 	spray = base;
 	call-script InitState();
 }
@@ -193,6 +203,8 @@ StartBuilding()
 	show nano6;
 	show nano7;
 	show nano8;
+	show cagelight_emit;
+	show cagelight_emit2;
 }
 
 StopBuilding()
@@ -205,6 +217,8 @@ StopBuilding()
 	hide nano6;
 	hide nano7;
 	hide nano8;
+	hide cagelight_emit;
+	hide cagelight_emit2;
 	set BUGGER_OFF to 1; // tell units to get out of here
 	set INBUILDSTANCE to 0; // we turn it off, to wait for the unit to clear the build pad (large aircraft)
 	sleep 500;   // then we wait for 0.5 sec
