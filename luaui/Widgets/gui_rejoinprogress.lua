@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 local showRejoinUI = false
-local CATCH_UP_THRESHOLD = 6 * Game.gameSpeed    -- only show the window if behind this much
+local CATCH_UP_THRESHOLD = 10 * Game.gameSpeed    -- only show the window if behind this much
 local UPDATE_RATE_F = 4 -- frames
 local UPDATE_RATE_S = UPDATE_RATE_F / Game.gameSpeed
 local t = UPDATE_RATE_S
@@ -26,7 +26,6 @@ local stripesTexture = "LuaUI/Images/stripes.png"
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 local rejoinArea = {}
-local gameFrame = Spring.GetGameFrame()
 local gameStarted = (Spring.GetGameFrame() > 0)
 local isReplay = Spring.IsReplay()
 local bgpadding, RectRound, TexturedRectRound, UiElement, font, font2
@@ -52,7 +51,7 @@ local function updateRejoin()
 
 	if showRejoinUI and serverFrame then
 		local area = rejoinArea
-		local catchup = gameFrame / serverFrame
+		local catchup = Spring.GetGameFrame() / serverFrame
 		if not dlistRejoinGuishader then
 			dlistRejoinGuishader = gl.CreateList(function()
 				RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
@@ -153,7 +152,7 @@ function widget:Update(dt)
 				serverFrame = serverFrame + math.ceil(speedFactor * UPDATE_RATE_F)
 			end
 
-			local framesLeft = serverFrame - gameFrame
+			local framesLeft = serverFrame - Spring.GetGameFrame()
 			if framesLeft > CATCH_UP_THRESHOLD then
 				showRejoinUI = true
 				updateRejoin()
@@ -176,7 +175,6 @@ function widget:DrawScreen()
 		gl.CallList(dlistRejoin)
 	end
 end
-
 
 function widget:ViewResize()
 	vsx, vsy = gl.GetViewSizes()
@@ -213,15 +211,11 @@ function widget:GameProgress(n)	-- happens every 150 frames
 end
 
 function widget:GameOver()
-	widget:Shutdown()
+	widgetHandler:RemoveWidget()
 end
 
 function widget:GameStart()
 	gameStarted = true
-end
-
-function widget:GameFrame(n)
-	gameFrame = n
 end
 
 function widget:Initialize()

@@ -22,8 +22,8 @@ return {
 		capturable = false,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN EMPABLE",
 		collisionspherescale = 1.75,
-		collisionvolumeoffsets = "0 -10 15",
-		collisionvolumescales = "40 65 70",
+		collisionvolumeoffsets = "0 -30 23",
+		collisionvolumescales = "60 113 105",
 		collisionvolumetest = 1,
 		collisionvolumetype = "box",
 		defaultmissiontype = "Standby",
@@ -35,7 +35,7 @@ return {
 		mass = 2000000,
 		maxdamage = 60000,
 		maxslope = 40,
-		maxvelocity = 1.5,
+		maxvelocity = 2.25,
 		maxwaterdepth = 0,
 		movementclass = "CHICKQUEENHOVER",
 		noautofire = false,
@@ -118,7 +118,7 @@ return {
 				weapontype = "Flame",
 				weaponvelocity = 265,
 				damage = {
-					default = 75,
+					default = 40,
 				},
 			},
 			flamethrowermain = {
@@ -161,7 +161,7 @@ return {
 				weapontype = "Flame",
 				weaponvelocity = 265,
 				damage = {
-					default = 150,
+					default = 80,
 				},
 			},
 		},

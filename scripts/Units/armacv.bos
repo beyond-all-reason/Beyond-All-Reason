@@ -4,7 +4,7 @@
 #define SIG_BUILD 4	
 #define SIG_MOVE 2
 
-piece  base, ldoor, rdoor, lturret, rturret, lplate, rplate, lnano, rnano, smoke1, smoke2;
+piece  base, ldoor, rdoor, lturret, rturret, lplate, rplate, lnano, rnano, smoke1, smoke2, cagelight, cagelight_emit, cagelight2, cagelight_emit2;
 
 static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, statechg_DesiredState, statechg_StateChanging, notBuilding, nano;
 
@@ -21,6 +21,10 @@ activatescr()
 deactivatescr()
 {
 	set INBUILDSTANCE to 0;
+	hide cagelight_emit;
+	hide cagelight_emit2;
+	//turn cagelight to z-axis <0> speed <1000>;
+	//turn cagelight2 to z-axis <0> speed <1000>;
 
 	turn rturret to x-axis <0> speed <160.038462>;
 	turn lturret to x-axis <0> speed <160.038462>;
@@ -93,6 +97,10 @@ RequestState(requestedstate, currentstate)
 			call-script activatescr();
 			notBuilding = 0;
 			currentstate = 0;
+			show cagelight_emit;
+			show cagelight_emit2;
+			spin cagelight_emit around x-axis speed <200>;
+			spin cagelight_emit2 around x-axis speed <200>;
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -104,6 +112,8 @@ Create()
 	hide rnano;
 	hide smoke1;
 	hide smoke2;
+	hide cagelight_emit;
+	hide cagelight_emit2;
 	bMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;

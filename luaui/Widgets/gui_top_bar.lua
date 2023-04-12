@@ -222,7 +222,7 @@ local graphsWindowVisible = false
 
 local showRejoinUI = false    -- indicate whether UI is shown or hidden.
 local userIsRejoining = false
-local CATCH_UP_THRESHOLD = 6 * Game.gameSpeed    -- only show the window if behind this much
+local CATCH_UP_THRESHOLD = 10 * Game.gameSpeed    -- only show the window if behind this much
 local UPDATE_RATE_F = 4 -- frames
 local UPDATE_RATE_S = UPDATE_RATE_F / Game.gameSpeed
 local serverFrame

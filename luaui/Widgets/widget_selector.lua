@@ -129,6 +129,45 @@ local buttonTop = 28 -- offset between top of buttons and bottom of widget
 
 -------------------------------------------------------------------------------
 
+
+local function UpdateGeometry()
+	midx = vsx * 0.5
+	midy = vsy * 0.5
+
+	local halfWidth = ((maxWidth + 2) * fontSize) * sizeMultiplier * 0.5
+	minx = floor(midx - halfWidth - (borderx * sizeMultiplier))
+	maxx = floor(midx + halfWidth + (borderx * sizeMultiplier))
+
+	local ySize = (yStep * sizeMultiplier) * (#widgetsList)
+	miny = floor(midy - (0.5 * ySize)) - ((fontSize + bgPadding + bgPadding) * sizeMultiplier)
+	maxy = floor(midy + (0.5 * ySize))
+end
+
+local function UpdateListScroll()
+	local wCount = #fullWidgetsList
+	local lastStart = lastStart or wCount - curMaxEntries + 1
+	if lastStart < 1 then
+		lastStart = 1
+	end
+	if lastStart > wCount - curMaxEntries + 1 then
+		lastStart = 1
+	end
+	if startEntry > lastStart then
+		startEntry = lastStart
+	end
+	if startEntry < 1 then
+		startEntry = 1
+	end
+
+	widgetsList = {}
+	local se = startEntry
+	local ee = se + curMaxEntries - 1
+	local n = 1
+	for i = se, ee do
+		widgetsList[n], n = fullWidgetsList[i], n + 1
+	end
+end
+
 function widget:Initialize()
 
 	texts = Spring.I18N('ui.widgetselector')
@@ -168,56 +207,9 @@ function widget:Initialize()
 	end
 
 	widget:ViewResize(Spring.GetViewGeometry())
+	UpdateList()
 end
 
-
--------------------------------------------------------------------------------
-
-
-local function UpdateGeometry()
-	midx = vsx * 0.5
-	midy = vsy * 0.5
-
-	local halfWidth = ((maxWidth + 2) * fontSize) * sizeMultiplier * 0.5
-	minx = floor(midx - halfWidth - (borderx * sizeMultiplier))
-	maxx = floor(midx + halfWidth + (borderx * sizeMultiplier))
-
-	local ySize = (yStep * sizeMultiplier) * (#widgetsList)
-	miny = floor(midy - (0.5 * ySize)) - ((fontSize + bgPadding + bgPadding) * sizeMultiplier)
-	maxy = floor(midy + (0.5 * ySize))
-end
-
-local function UpdateListScroll()
-	local wCount = #fullWidgetsList
-	local lastStart = lastStart or wCount - curMaxEntries + 1
-	if lastStart < 1 then
-		lastStart = 1
-	end
-	if lastStart > wCount - curMaxEntries + 1 then
-		lastStart = 1
-	end
-	if startEntry > lastStart then
-		startEntry = lastStart
-	end
-	if startEntry < 1 then
-		startEntry = 1
-	end
-
-	widgetsList = {}
-	local se = startEntry
-	local ee = se + curMaxEntries - 1
-	local n = 1
-	for i = se, ee do
-		widgetsList[n], n = fullWidgetsList[i], n + 1
-	end
-
-	localWidgetCount = 0
-	for _, namedata in ipairs(widgetsList) do
-		if not namedata[2].fromZip then
-			localWidgetCount = localWidgetCount + 1
-		end
-	end
-end
 
 local function ScrollUp(step)
 	startEntry = startEntry - step
@@ -265,7 +257,7 @@ local function SortWidgetListFunc(nd1, nd2)
 	return (nd1[1] < nd2[1])
 end
 
-local function UpdateList()
+function UpdateList()
 	if not widgetHandler.knownChanged then
 		return
 	end
@@ -287,6 +279,13 @@ local function UpdateList()
 		end
 	end
 
+	localWidgetCount = 0
+	for _, namedata in ipairs(fullWidgetsList) do
+		if not namedata[2].fromZip then
+			localWidgetCount = localWidgetCount + 1
+		end
+	end
+
 	maxWidth = (maxWidth / fontSize)
 
 	--if widgetHandler.knownCount ~= (fullWidgetsListCount + 1) then
@@ -294,6 +293,7 @@ local function UpdateList()
 	--end
 
 	table.sort(fullWidgetsList, SortWidgetListFunc)	-- occurred: Error in IsAbove(): [string "LuaUI/Widgets/widget_selector.lua"]:300: invalid order function for sorting (migh have happened cause i renamed/added a custom widget after launch)
+
 
 	UpdateListScroll()
 	UpdateGeometry()
