@@ -138,38 +138,37 @@ function Evolve(unitID, newUnit)
 	local stockpile, stockpilequeued, stockpilebuildpercent = spGetUnitStockpile(unitID)
 	local commandQueue = spGetUnitCommands(unitID, -1)
 
-	--commandQueue[1].id
-	--commandQueue[1].params
-	--commandQueue[1].options
-
-	if evolutionMetaList[unitID].evolution_announcement then
-		spEcho(evolutionMetaList[unitID].evolution_announcement)
-	end
-
-	spSetUnitRulesParam(unitID, "disable_tombstone", "disabled", PRIVATE)
-	
 	local newUnitID = spCreateUnit(newUnit, x,y,z, 0, team)
-	SendToUnsynced("unit_evolve_finished", unitID, newUnitID)
-	spDestroyUnit(unitID, false, true)
-	spSetUnitHealth(newUnitID, health)
-	spSetUnitExperience(newUnitID, experience)
-	spSetUnitStockpile(newUnitID, stockpile, stockpilebuildpercent)
-	spSetUnitDirection(newUnitID, dx, dy, dz)
 
-	if commandQueue[1] then
-		for _,command in pairs(commandQueue) do
-			spGiveOrderToUnit(newUnitID, command.id, command.params, command.options)
+	if newUnitID then
+		if evolutionMetaList[unitID].evolution_announcement then
+			spEcho(evolutionMetaList[unitID].evolution_announcement)
 		end
-	end
 	
-
-    spGiveOrderToUnit(newUnitID, CMD.FIRE_STATE, { states.firestate },             { })
-    spGiveOrderToUnit(newUnitID, CMD.MOVE_STATE, { states.movestate },             { })
-    spGiveOrderToUnit(newUnitID, CMD.REPEAT,     { states["repeat"] and 1 or 0 },  { })
-    spGiveOrderToUnit(newUnitID, CMD.CLOAK,      { states.cloak     and 1 or 0 },  { })
-    spGiveOrderToUnit(newUnitID, CMD.ONOFF,      { 1 },                            { })
-    spGiveOrderToUnit(newUnitID, CMD.TRAJECTORY, { states.trajectory and 1 or 0 }, { })
-  	
+		spSetUnitRulesParam(unitID, "disable_tombstone", "disabled", PRIVATE)
+		
+		SendToUnsynced("unit_evolve_finished", unitID, newUnitID)
+		spDestroyUnit(unitID, false, true)
+		spSetUnitHealth(newUnitID, health)
+		spSetUnitExperience(newUnitID, experience)
+		spSetUnitStockpile(newUnitID, stockpile, stockpilebuildpercent)
+		spSetUnitDirection(newUnitID, dx, dy, dz)
+	
+		if commandQueue[1] then
+			for _,command in pairs(commandQueue) do
+				spGiveOrderToUnit(newUnitID, command.id, command.params, command.options)
+			end
+		end
+		
+	
+		spGiveOrderToUnit(newUnitID, CMD.FIRE_STATE, { states.firestate },             { })
+		spGiveOrderToUnit(newUnitID, CMD.MOVE_STATE, { states.movestate },             { })
+		spGiveOrderToUnit(newUnitID, CMD.REPEAT,     { states["repeat"] and 1 or 0 },  { })
+		spGiveOrderToUnit(newUnitID, CMD.CLOAK,      { states.cloak     and 1 or 0 },  { })
+		spGiveOrderToUnit(newUnitID, CMD.ONOFF,      { 1 },                            { })
+		spGiveOrderToUnit(newUnitID, CMD.TRAJECTORY, { states.trajectory and 1 or 0 }, { })
+		  
+	end
 
 
 	
