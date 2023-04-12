@@ -494,6 +494,26 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
+function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+	if carrierMetaList[unitID] then
+		carrierMetaList[unitID].subInitialSpawnData.teamID = newTeam
+		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
+			spTransferUnit(subUnitID, newTeam, false)
+		end
+	end
+
+end
+
+function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+	if carrierMetaList[unitID] then
+		carrierMetaList[unitID].subInitialSpawnData.teamID = unitTeam
+		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
+			spTransferUnit(subUnitID, unitTeam, false)
+		end
+	end
+end
+
+
 function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 
 
