@@ -43,8 +43,6 @@ local categoryFontSize, pageButtonHeight, pageButtonWidth, paginatorCellWidth
 local paginatorFontSize, paginatorCellHeight
 
 local Cfgs = {
-	NEXT_PAGE_KEY = "SC_B",
-	PREV_PAGE_KEY = "SC_N",
 	disableInputWhenSpec = false, -- disable specs selecting buildoptions
 	cfgCellPadding = 0.007,
 	cfgIconPadding = 0.015, -- space between icons
@@ -660,6 +658,8 @@ local function getActionHotkey(action)
 	return key
 end
 
+-- Helper function for iterating over the actions with builder and factory tags,
+-- with GetActionHotKeys those tags will be missed and the hotkey wont work
 local function getGridKey(action)
 	local key = getActionHotkey(action)
 		or getActionHotkey(action .. ' builder')
@@ -673,37 +673,37 @@ local function reloadBindings()
 	Cfgs.keyLayout = {{}, {}, {}}
 
 	for c=1,4 do
-		local action = 'gridmenu_category ' .. c
-		local cKey = getGridKey(action)
+		local categoryAction = 'gridmenu_category ' .. c
+		local cKey = getActionHotkey(categoryAction)
 
 		if not cKey then
 			cKey = ''
-			Spring.Echo("Error, missing grid category keybind for action " .. action .. ", things may not function as expected")
+			Spring.Echo("Error, missing grid category keybind for action " .. categoryAction .. ", things may not function as expected")
 		end
 
 		Cfgs.categoryKeys[c] = cKey
 
 		for r=1,3 do
-			local action = 'gridmenu_key ' .. r .. ' ' .. c
-			local key = getGridKey(action)
+			local keyAction = 'gridmenu_key ' .. r .. ' ' .. c
+			local key = getGridKey(keyAction)
 
 			if not key then
 				key = ''
-				Spring.Echo("Error, missing grid key bind for action " .. action .. ", things may not function as expected")
+				Spring.Echo("Error, missing grid key bind for action " .. keyAction .. ", things may not function as expected")
 			end
 
 			Cfgs.keyLayout[r][c] = key
 		end
 	end
 
-	local key = getGridKey('gridmenu_next_page')
+	local key = getActionHotkey('gridmenu_next_page')
 	if not key then
 		Spring.Echo("Error, missing grid key bind for next page, things may not function as expected")
 	end
 
 	Cfgs.NEXT_PAGE_KEY = key
 
-	key = getGridKey('gridmenu_prev_page')
+	key = getActionHotkey('gridmenu_prev_page')
 	if not key then
 		key = Cfgs.PREV_PAGE_KEY
 		Spring.Echo("Error, missing grid key bind for prev page, things may not function as expected")
