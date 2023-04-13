@@ -144,6 +144,7 @@ return {
 				impulsefactor = 0.123,
 				name = "PlasmaCannon",
 				noselfdamage = true,
+				predictboost = 0.5,
 				range = 410,
 				reloadtime = 0.7,
 				soundhit = "xplomed2",

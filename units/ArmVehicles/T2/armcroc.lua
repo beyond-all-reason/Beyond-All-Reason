@@ -141,6 +141,7 @@ return {
 				impulsefactor = 0.123,
 				name = "Medium g2g gauss-cannon",
 				noselfdamage = true,
+				predictboost = 1,
 				range = 480,
 				reloadtime = 1.6,
 				soundhit = "xplomed4",
