@@ -40,7 +40,7 @@ local BUILDCAT_COMBAT = "Combat"
 local BUILDCAT_UTILITY = "Utility"
 local BUILDCAT_PRODUCTION = "Production"
 local categoryFontSize, pageButtonHeight, pageButtonWidth, paginatorCellWidth
-local paginatorFontSize, paginatorCellHeight
+local paginatorFontSize
 
 local Cfgs = {
 	disableInputWhenSpec = false, -- disable specs selecting buildoptions
@@ -156,6 +156,18 @@ local selectedBuilder, selectedFactory, selectedFactoryUID
 
 local facingMap = {south=0, east=1, north=2, west=3}
 local buildmenuShows = false
+
+-- Helper types to make the code more readable and easy to work with
+Rect = {}
+function Rect:new(x, y, w, h)
+	local this = {
+		x = x;
+		y = y;
+		width = w;
+		height = h;
+	}
+	return this;
+end
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -589,7 +601,7 @@ function widget:ViewResize()
 		paginatorFontSize = categoryFontSize * 1.2
 	end
 	paginatorCellWidth = paginatorFontSize * 2
-	paginatorCellHeight = 3 * paginatorFontSize
+
 
 	activeAreaMargin = math_ceil(bgpadding * Cfgs.cfgActiveAreaMargin)
 
@@ -615,6 +627,7 @@ function widget:ViewResize()
 		width = width / (vsx / vsy) * 1.78				-- make smaller for ultrawide screens
 		width = width * ui_scale
 
+		-- 0.14 is the space required to put this above the bottom-left UI element
 		posY2 = math_floor(0.14 * ui_scale * vsy) / vsy
 		posY2 = posY2 + (widgetSpaceMargin/vsy)
 		posY = posY2 + (0.74 * width * vsx + pageButtonHeight + paginatorCellWidth)/vsy
@@ -1250,18 +1263,18 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled)
 	local showIcon = showGroupIcon and not (selectedFactory or currentCategoryIndex)
 
 	UiUnit(
-	cellRects[cellRectID][1] + cellPadding + iconPadding,
-	cellRects[cellRectID][2] + cellPadding + iconPadding,
-	cellRects[cellRectID][3] - cellPadding - iconPadding,
-	cellRects[cellRectID][4] - cellPadding - iconPadding,
-	cornerSize, 1,1,1,1,
-	usedZoom,
-	nil, disabled and 0 or nil,
-	'#' .. uid,
-	showRadarIcon and (((unitIconType[uid] and iconTypesMap[unitIconType[uid]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypesMap[unitIconType[uid]] or nil)) or nil,
-	showIcon and (groups[unitGroup[uid]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[unitGroup[uid]] or nil) or nil,
-	{unitMetalCost[uid], unitEnergyCost[uid]},
-	tonumber(cmd.params[1])
+		cellRects[cellRectID][1] + cellPadding + iconPadding,
+		cellRects[cellRectID][2] + cellPadding + iconPadding,
+		cellRects[cellRectID][3] - cellPadding - iconPadding,
+		cellRects[cellRectID][4] - cellPadding - iconPadding,
+		cornerSize, 1,1,1,1,
+		usedZoom,
+		nil, disabled and 0 or nil,
+		'#' .. uid,
+		showRadarIcon and (((unitIconType[uid] and iconTypesMap[unitIconType[uid]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypesMap[unitIconType[uid]] or nil)) or nil,
+		showIcon and (groups[unitGroup[uid]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[unitGroup[uid]] or nil) or nil,
+		{unitMetalCost[uid], unitEnergyCost[uid]},
+		tonumber(cmd.params[1])
 	)
 
 	-- colorize/highlight unit icon
@@ -1270,22 +1283,22 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled)
 		gl.Color(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
 		gl.Texture('#' .. uid)
 		UiUnit(
-		cellRects[cellRectID][1] + cellPadding + iconPadding,
-		cellRects[cellRectID][2] + cellPadding + iconPadding,
-		cellRects[cellRectID][3] - cellPadding - iconPadding,
-		cellRects[cellRectID][4] - cellPadding - iconPadding,
-		cornerSize, 1,1,1,1,
-		usedZoom
-		)
-		if cellColor[4] > 0 then
-			gl.Blending(GL_SRC_ALPHA, GL_ONE)
-			UiUnit(
 			cellRects[cellRectID][1] + cellPadding + iconPadding,
 			cellRects[cellRectID][2] + cellPadding + iconPadding,
 			cellRects[cellRectID][3] - cellPadding - iconPadding,
 			cellRects[cellRectID][4] - cellPadding - iconPadding,
 			cornerSize, 1,1,1,1,
 			usedZoom
+		)
+		if cellColor[4] > 0 then
+			gl.Blending(GL_SRC_ALPHA, GL_ONE)
+			UiUnit(
+				cellRects[cellRectID][1] + cellPadding + iconPadding,
+				cellRects[cellRectID][2] + cellPadding + iconPadding,
+				cellRects[cellRectID][3] - cellPadding - iconPadding,
+				cellRects[cellRectID][4] - cellPadding - iconPadding,
+				cornerSize, 1,1,1,1,
+				usedZoom
 			)
 		end
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -1328,19 +1341,19 @@ end
 
 local function labActiveArea()
 	if stickToBottom then
-		return {
+		return Rect:new(
 			backgroundRect[1] + bgpadding,
 			backgroundRect[2],
 			backgroundRect[3],
 			backgroundRect[4] - bgpadding
-		}
+		)
 	else
-		return {
+		return Rect:new(
 			backgroundRect[1],
 			backgroundRect[2],
 			backgroundRect[3] - bgpadding,
 			backgroundRect[4] - bgpadding
-		}
+		)
 	end
 end
 
@@ -1351,18 +1364,18 @@ local function drawCategories()
 	if stickToBottom then
 		local x1 = backgroundRect[1] + bgpadding
 
-		activeArea = {
+		activeArea = Rect:new(
 			x1 + pageButtonWidth,
 			backgroundRect[2] - 2 * activeAreaMargin,
 			backgroundRect[3],
 			backgroundRect[4] - bgpadding
-		}
+		)
 
-		local contentHeight = activeArea[4] - activeArea[2]
+		local contentHeight = activeArea.height - activeArea.y
 
 		for i, cat in ipairs(categories) do
 			local a1 = x1
-			local a2 = activeArea[4] - i * (contentHeight / numCats) + 2
+			local a2 = activeArea.height - i * (contentHeight / numCats) + 2
 			local a3 = a1 + pageButtonWidth - activeAreaMargin
 			local a4 = a2 + (contentHeight / numCats) - 2
 
@@ -1371,14 +1384,14 @@ local function drawCategories()
 	else
 		local y2 = backgroundRect[4] - bgpadding
 
-		activeArea = {
+		activeArea = Rect:new(
 			backgroundRect[1],
 			backgroundRect[2],
 			backgroundRect[3] - bgpadding,
 			y2 - pageButtonHeight
-		}
+		)
 
-		local buttonWidth = math.round((activeArea[3] - activeArea[1] - bgpadding) / numCats)
+		local buttonWidth = math.round((activeArea.width - activeArea.x - bgpadding) / numCats)
 
 		for i, cat in ipairs(categories) do
 			local a1 = backgroundRect[1] + activeAreaMargin + (i - 1) * buttonWidth
@@ -1449,14 +1462,14 @@ local function drawGrid(activeArea)
 				local udef = uidcmds[uDefID]
 
 				cellRects[cellRectID] = {
-					activeArea[1] + (kcol - 1) * cellSize,
-					activeArea[4] - (rows - krow + 1) * cellSize,
-					activeArea[1] + (kcol ) * cellSize,
-					activeArea[4] - (rows - krow) * cellSize,
+					activeArea.x + (kcol - 1) * cellSize,
+					activeArea.height - (rows - krow + 1) * cellSize,
+					activeArea.x + (kcol ) * cellSize,
+					activeArea.height - (rows - krow) * cellSize,
 				}
 
 				local cellIsSelected = (activeCmd and udef and activeCmd == udef.name) or
-															 (preGamestartPlayer and selBuildQueueDefID == uDefID)
+					(preGamestartPlayer and selBuildQueueDefID == uDefID)
 				local usedZoom = (cellIsSelected and selectedCellZoom or defaultCellZoom)
 
 				if cellIsSelected then
@@ -1482,40 +1495,41 @@ local function drawPaginators(activeArea)
 		return
 	end
 
-	if stickToBottom then
-		local contentHeight = activeArea[4] - activeArea[2]
-		paginatorCellHeight = contentHeight / 3
+	local prevKeyText = "\255\215\255\215[".. keyConfig.sanitizeKey(Cfgs.PREV_PAGE_KEY, currentLayout) .."]"
+	local nextKeyText = "\255\215\255\215[".. keyConfig.sanitizeKey(Cfgs.NEXT_PAGE_KEY, currentLayout) .."]"
 
-		paginatorRects[1] = { activeArea[1] + 6 * cellSize, activeArea[2] + activeAreaMargin, activeArea[3] - bgpadding, activeArea[2] + paginatorCellHeight }
-		paginatorRects[2] = { paginatorRects[1][1], activeArea[2] + 2 * paginatorCellHeight, paginatorRects[1][3], activeArea[2] + 3 * paginatorCellHeight }
+	if stickToBottom then
+		local contentHeight = activeArea.height - activeArea.y
+		local paginatorCellHeight = contentHeight / 3
+
+		paginatorRects[1] = { activeArea.x + 6 * cellSize, activeArea.y + activeAreaMargin, activeArea.width - bgpadding, activeArea.y + paginatorCellHeight }
+		paginatorRects[2] = { paginatorRects[1][1], activeArea.y + 2 * paginatorCellHeight, paginatorRects[1][3], activeArea.y + 3 * paginatorCellHeight }
 
 		local paginatorWidth = paginatorRects[1][3] - paginatorRects[1][1]
 
 		UiButton(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print("\255\215\255\215[".. keyConfig.sanitizeKey(Cfgs.PREV_PAGE_KEY, currentLayout) .."]", paginatorRects[1][1] + paginatorWidth/2, paginatorRects[1][2] + (paginatorCellHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
+		font2:Print(prevKeyText, paginatorRects[1][1] + paginatorWidth/2, paginatorRects[1][2] + (paginatorCellHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
 		UiButton(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print("\255\215\255\215[".. keyConfig.sanitizeKey(Cfgs.NEXT_PAGE_KEY, currentLayout) .."]", paginatorRects[2][1] + paginatorWidth/2, paginatorRects[2][2] + (paginatorCellHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
+		font2:Print(nextKeyText, paginatorRects[2][1] + paginatorWidth/2, paginatorRects[2][2] + (paginatorCellHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
 
 		font2:Print("\255\245\245\245" .. currentPage .. "/" .. pages,
-		(paginatorRects[1][1] + paginatorRects[1][3]) * 0.5,
-		paginatorRects[1][4] + paginatorCellHeight * 0.5 - paginatorFontSize * 0.25, paginatorFontSize, "co")
+			(paginatorRects[1][1] + paginatorRects[1][3]) * 0.5,
+			paginatorRects[1][4] + paginatorCellHeight * 0.5 - paginatorFontSize * 0.25, paginatorFontSize, "co")
 	else
-		local contentWidth = activeArea[3] - activeArea[1]
+		local contentWidth = activeArea.width - activeArea.x
 		paginatorCellWidth = math_floor(contentWidth * 0.33)
 
-		paginatorRects[1] = { activeArea[1] + activeAreaMargin, activeArea[2], activeArea[1] + paginatorCellWidth, activeArea[4] - 3 * cellSize }
-		paginatorRects[2] = { activeArea[3] - paginatorCellWidth, paginatorRects[1][2], activeArea[3], paginatorRects[1][4] }
-		paginatorCellHeight = paginatorRects[1][4] - paginatorRects[1][2]
-		local prevText = "\255\215\255\215[".. keyConfig.sanitizeKey(Cfgs.PREV_PAGE_KEY, currentLayout) .."]"
-		local nextText = "\255\215\255\215[".. keyConfig.sanitizeKey(Cfgs.NEXT_PAGE_KEY, currentLayout) .."]"
+		local prevButtonRect = Rect:new(activeArea.x + activeAreaMargin, activeArea.y, activeArea.x + paginatorCellWidth, activeArea.height - 3 * cellSize)
+		local nextButtonRect = Rect:new(activeArea.width - paginatorCellWidth, prevButtonRect.y, activeArea.width, prevButtonRect.height)
+		local buttonHeight = prevButtonRect.height - prevButtonRect.y
 
-		UiButton(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + bgpadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print(prevText, paginatorRects[1][1] + (paginatorCellWidth * 0.5), paginatorRects[1][4] - font2:GetTextHeight(prevText) * paginatorFontSize * 0.25 - paginatorCellHeight/2, paginatorFontSize, "co")
-		UiButton(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + bgpadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print(nextText, paginatorRects[2][1] + (paginatorCellWidth * 0.5), paginatorRects[2][4] - font2:GetTextHeight(nextText) * paginatorFontSize * 0.25 - paginatorCellHeight/2, paginatorFontSize, "co")
+		UiButton(prevButtonRect.x + cellPadding, prevButtonRect.y + bgpadding, prevButtonRect.width + cellPadding, prevButtonRect.height - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
+		font2:Print(prevKeyText, prevButtonRect.x + (paginatorCellWidth * 0.5), prevButtonRect.height - font2:GetTextHeight(prevKeyText) * paginatorFontSize * 0.25 - buttonHeight/2, paginatorFontSize, "co")
+		UiButton(nextButtonRect.x + cellPadding, nextButtonRect.y + bgpadding, nextButtonRect.width - cellPadding, nextButtonRect.height - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
+		font2:Print(nextKeyText, nextButtonRect.x + (paginatorCellWidth * 0.5), nextButtonRect.height - font2:GetTextHeight(nextKeyText) * paginatorFontSize * 0.25 - buttonHeight/2, paginatorFontSize, "co")
 
 		local pagesText = currentPage .. " / " .. pages
-		font2:Print("\255\245\245\245" .. pagesText, contentWidth * 0.5, paginatorRects[1][4] - font2:GetTextHeight(pagesText) * paginatorFontSize * 0.25 - paginatorCellHeight/2, paginatorFontSize, "co")
+		font2:Print("\255\245\245\245" .. pagesText, contentWidth * 0.5, prevButtonRect.height - font2:GetTextHeight(pagesText) * paginatorFontSize * 0.25 - buttonHeight/2, paginatorFontSize, "co")
 	end
 end
 
@@ -1536,11 +1550,11 @@ local function drawBuildmenu()
 		if stickToBottom then
 			rows = 2
 			colls = 6
-			cellSize = math_floor((activeArea[4] - activeArea[2]) / rows)
+			cellSize = math_floor((activeArea.height - activeArea.y) / rows)
 		else
 			rows = 3
 			colls = 4
-			cellSize = math_floor((activeArea[3] - activeArea[1]) / colls)
+			cellSize = math_floor((activeArea.width - activeArea.x) / colls)
 		end
 
 		-- adjust grid size when pages are needed
@@ -1604,9 +1618,9 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 	gl.Color(borderColor)
 
 	gl.Shape(GL.LINE_LOOP, { { v = { bx - bw, by, bz - bh } },
-	{ v = { bx + bw, by, bz - bh } },
-	{ v = { bx + bw, by, bz + bh } },
-	{ v = { bx - bw, by, bz + bh } } })
+							 { v = { bx + bw, by, bz - bh } },
+							 { v = { bx + bw, by, bz + bh } },
+							 { v = { bx - bw, by, bz + bh } } })
 
 	if drawRanges then
 		if isMex[bDefID] then
@@ -1632,7 +1646,7 @@ local function DoBuildingsClash(buildData1, buildData2)
 	local w2, h2 = GetBuildingDimensions(buildData2[1], buildData2[5])
 
 	return math.abs(buildData1[2] - buildData2[2]) < w1 + w2 and
-	math.abs(buildData1[4] - buildData2[4]) < h1 + h2
+		math.abs(buildData1[4] - buildData2[4]) < h1 + h2
 end
 
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
@@ -1921,7 +1935,7 @@ end
 function widget:DrawWorld()
 	if not WG.StopDrawUnitShapeGL4 then return end
 
-		-- remove unit shape queue to re-add again later
+	-- remove unit shape queue to re-add again later
 	for id, _ in pairs(unitshapes) do
 		removeUnitShape(id)
 	end
@@ -2187,9 +2201,9 @@ function widget:MousePress(x, y, button)
 						Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
 
 						for i,c in pairs(categories) do
-							 if c == cat then
-								 currentCategoryIndex = i
-							 end
+							if c == cat then
+								currentCategoryIndex = i
+							end
 						end
 
 						doUpdate = true
