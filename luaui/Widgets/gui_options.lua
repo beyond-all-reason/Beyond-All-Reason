@@ -3075,7 +3075,7 @@ function init()
 		-- INTERFACE
 		{ id = "label_ui_interface", group = "ui", name = Spring.I18N('ui.settings.option.label_interface'), category = types.basic },
 		{ id = "label_ui_interface_spacer", group = "ui", category = types.basic },
-		{ id = "uiscale", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.interface') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.uiscale'), type = "slider", min = 0.8, max = 1.15, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
+		{ id = "uiscale", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.interface') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.uiscale'), type = "slider", min = 0.8, max = 1.3, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)
