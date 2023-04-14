@@ -82,7 +82,7 @@ local function activateTrigger(trigger)
 	trigger.triggered = true
 	trigger.repeatCount = trigger.repeatCount + 1
 
-	for _, actionId in pairs(trigger.actions) do
+	for _, actionId in ipairs(trigger.actions) do
 		GG['MissionAPI'].ActionsDispatcher.Invoke(actionId)
 	end
 end
