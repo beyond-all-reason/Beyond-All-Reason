@@ -357,8 +357,7 @@ function widget:ViewResize()
 
 	width = 0.2125
 	height = 0.14 * ui_scale
-	width = width / (vsx / vsy) * 1.78        -- make smaller for ultrawide screens
-	width = width * ui_scale
+	width = (0.14 * ui_scale) * 1.52
 	-- make pixel aligned
 	height = math_floor(height * vsy) / vsy
 	width = math_floor(width * vsx) / vsx
