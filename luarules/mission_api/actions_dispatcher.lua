@@ -34,9 +34,8 @@ local typeMapping = {
 
 local function invoke(actionId)
 	local actionFunction = typeMapping[actions[actionId].type]
-	--local parameters = unpack(actions[actionId].parameters)
 
-	actionFunction(actions[actionId].parameters)
+	actionFunction(unpack(actions[actionId].parameters))
 end
 
 return {
