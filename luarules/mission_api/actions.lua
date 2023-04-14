@@ -26,7 +26,12 @@ local actionTypes = {
 }
 
 local parameters = {
-	[actionTypes.EnableTrigger] = { 'triggerId' },
+	[actionTypes.EnableTrigger] = {
+		triggerId = {
+			required = true,
+			type = 'string',
+		},
+	 },
 	[actionTypes.DisableTrigger] = {  },
 	[actionTypes.IssueOrders] = {  },
 	[actionTypes.AllowCommands] = {  },

@@ -56,15 +56,15 @@ end
 ]]
 
 local function triggerValid(trigger)
-	if not trigger.active then return false end
+	if not trigger.settings.active then return false end
 
-	for _, prerequisiteTrigger in pairs(trigger.prerequisites) do
+	for _, prerequisiteTrigger in pairs(trigger.settings.prerequisites) do
 		if not prerequisiteTrigger.triggered then return false end
 	end
 
-	if trigger.triggered and not trigger.repeating then return false end
-	if trigger.repeating and trigger.repeatCount > trigger.maxRepeats then return false end
-	if trigger.difficulties ~= nil and not trigger.difficulties[GG['MissionAPI'].Difficulty] then return false end
+	if trigger.triggered and not trigger.settings.repeating then return false end
+	if trigger.settings.repeating and trigger.repeatCount > trigger.settings.maxRepeats then return false end
+	if trigger.settings.difficulties ~= nil and not trigger.settings.difficulties[GG['MissionAPI'].Difficulty] then return false end
 
 	--[[
 	--TODO: co-op check
@@ -82,12 +82,16 @@ local function activateTrigger(trigger)
 	trigger.triggered = true
 	trigger.repeatCount = trigger.repeatCount + 1
 
-	for _, actionId in pairs(trigger.actionIds) do
+	for _, actionId in pairs(trigger.actions) do
 		GG['MissionAPI'].ActionsDispatcher.Invoke(actionId)
 	end
 end
 
 function gadget:Initialize()
+	if not GG['MissionAPI'] then
+		gadgetHandler:RemoveGadget()
+	end
+
 	types = GG['MissionAPI'].TriggersController.Types
 	triggers = GG['MissionAPI'].Triggers
 end
@@ -95,9 +99,10 @@ end
 function gadget:GameFrame(n)
 	for triggerId, trigger in pairs(triggers) do
 		if trigger.type == types.TimeElapsed then
-			local gameframe, offset = unpack(trigger.parameters)
-
-			if n == gameframe or (trigger.repeating and n > gameframe and offset % (n - gameframe) == 0) then
+			local gameframe = trigger.parameters.gameFrame
+			local offset = trigger.parameters.offset
+			
+			if n == gameframe or (trigger.settings.repeating and n > gameframe and offset % (n - gameframe) == 0) then
 				activateTrigger(trigger)
 			end
 		end

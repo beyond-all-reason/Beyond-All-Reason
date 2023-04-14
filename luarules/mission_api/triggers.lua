@@ -27,7 +27,16 @@ local triggerTypes = {
 }
 
 local parameters = {
-	[triggerTypes.TimeElapsed] = { 'GameFrame', 'Offset' },
+	[triggerTypes.TimeElapsed] = {
+		gameFrame = {
+			required = true,
+			type = 'number',
+		},
+		offset = {
+			required = false,
+			type = 'number'
+		},
+	},
 	[triggerTypes.UnitExists] = {  },
 	[triggerTypes.UnitNotExists] = {  },
 	[triggerTypes.ConstructionStarted] = {  },
@@ -64,9 +73,6 @@ local parameters = {
 			difficulties = {},
 			coop = false,
 			active = true,
-			type = triggerTypes.foo,
-			parameters = {},
-			actionIds = {},
 		},
 		parameters = {
 			gameFrame = 123,
@@ -88,9 +94,16 @@ local function prevalidateTriggers()
 			Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Trigger has no actions: " .. triggerId)
 		end
 
-		for _, parameter in pairs(parameters[trigger.type]) do
-			if trigger.parameters[parameter] == nil then
-				Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Trigger missing required parameter. Trigger: " .. triggerId .. ", Parameter: " .. parameter)
+		for parameterName, parameterOptions in pairs(parameters[trigger.type]) do
+			local value = trigger.parameters[parameterName]
+			local type = type(value)
+
+			if value == nil and parameterOptions.required then
+				Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Trigger missing required parameter. Trigger: " .. triggerId .. ", Parameter: " .. parameterName)
+			end
+
+			if value ~= nil and type ~= parameterOptions.type then
+				Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameterOptions.type .. ", got " .. type .. ". Trigger: " .. triggerId .. ", Parameter: " .. parameterName)
 			end
 		end
 	end
@@ -108,7 +121,9 @@ local function preprocessRawTriggers(rawTriggers)
 		settings.coop = settings.coop or false
 		settings.active = settings.active or true
 
+		rawTrigger.settings = settings
 		rawTrigger.triggered = false
+		rawTrigger.repeatCount = 0
 
 		triggers[triggerId] = table.copy(rawTrigger)
 	end
