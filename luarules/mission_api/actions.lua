@@ -52,7 +52,12 @@ local parameters = {
 	[actionTypes.Pause] = {  },
 	[actionTypes.Unpause] = {  },
 	[actionTypes.PlayMedia] = {  },
-	[actionTypes.SendMessage] = {  },
+	[actionTypes.SendMessage] = {
+		message = {
+			required = true,
+			type = 'string',
+		}
+	},
 	[actionTypes.Victory] = {  },
 	[actionTypes.Defeat] = {  },
 }
@@ -74,9 +79,16 @@ local function prevalidateActions()
 			Spring.Log('actions.lua', LOG.ERROR, "[Mission API] Action missing type: " .. actionId)
 		end
 
-		for _, parameter in pairs(parameters[action.type]) do
-			if action.parameters[parameter] == nil then
-				Spring.Log('actions.lua', LOG.ERROR, "[Mission API] Action missing required parameter. Action: " .. actionId .. ", Parameter: " .. parameter)
+		for parameterName, parameterOptions in pairs(parameters[action.type]) do
+			local value = action.parameters[parameterName]
+			local type = type(value)
+
+			if value == nil and parameterOptions.required then
+				Spring.Log('actopms.lua', LOG.ERROR, "[Mission API] Action missing required parameter. Action: " .. actionId .. ", Parameter: " .. parameterName)
+			end
+
+			if value ~= nil and type ~= parameterOptions.type then
+				Spring.Log('actopms.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameterOptions.type .. ", got " .. type .. ". Action: " .. actionId .. ", Parameter: " .. parameterName)
 			end
 		end
 	end
