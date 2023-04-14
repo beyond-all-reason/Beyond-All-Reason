@@ -27,15 +27,24 @@ local typeMapping = {
 	-- types.Pause = ,
 	-- types.Unpause = ,
 	-- types.PlayMedia = ,
-	[types.SendMessage] = sendMessage,
+	[types.SendMessage] = {
+		actionFunction = sendMessage,
+		parameters = { 'message' }
+	}
 	-- types.Victory = ,
 	-- types.Defeat = ,
 }
 
 local function invoke(actionId)
-	local actionFunction = typeMapping[actions[actionId].type]
+	local type = actions[actionId].type
+	local actionFunction = typeMapping[type].actionFunction
+	local parameters = {}
 
-	actionFunction(unpack(actions[actionId].parameters))
+	for _, parameterName in ipairs(typeMapping[type].parameters) do
+		table.insert(parameters, actions[actionId].parameters[parameterName])
+	end
+
+	actionFunction(unpack(parameters))
 end
 
 return {
