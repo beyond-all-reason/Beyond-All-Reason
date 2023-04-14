@@ -1,11 +1,16 @@
--- local function addSound(notifname, notiffile, delay, length, text)
+-- local function addSound(notifname, notiffile, delay, length, text, unlisted)
 --     Spring.Echo("['" .. notifname .. "'] = {")
---     Spring.Echo("   [1] = {")
---     Spring.Echo("       file = '" .. notiffile[1] .. "',")
---     Spring.Echo("       length = " .. length .. ",")
---     Spring.Echo("       delay = " .. delay .. ",")
---     Spring.Echo("       text = '" .. text .. "',")
+--     Spring.Echo("   sound = {")
+--     Spring.Echo("       [1] = {")
+--     Spring.Echo("           file = '" .. notiffile[1] .. "',")
+--     Spring.Echo("           text = '" .. text .. "',")
+--     Spring.Echo("       },")
 --     Spring.Echo("   },")
+--     Spring.Echo("   length = " .. length .. ",")
+--     Spring.Echo("   delay = " .. delay .. ",")
+--     if unlisted then
+--     Spring.Echo("   unlisted = true,")
+--     end
 --     Spring.Echo("},")
 -- end
 
@@ -99,564 +104,683 @@ addSound('t_factoryships', {soundFolder .. td ..'factoryships.wav'}, 9999999, 15
 addSound('t_readyfortech2', {soundFolder .. td ..'readyfortecht2.wav'}, 9999999, 9.4, 'tips.notifications.tutorialT2Ready', true)
 addSound('t_duplicatefactory', {soundFolder .. td ..'duplicatefactory.wav'}, 9999999, 6.1, 'tips.notifications.tutorialDuplicateFactory', true)
 addSound('t_paralyzer', {soundFolder .. td ..'paralyzer.wav'}, 9999999, 9.66, 'tips.notifications.tutorialParalyzer', true)
-
 ]]
 
 local soundsTable = {
 
     -- Commanders
-
     ['EnemyCommanderDied'] = {
-       [1] = {
-           file = 'EnemyCommanderDied.wav',
-           length = 1.7,
-           delay = 1,
-           text = 'tips.notifications.enemyCommanderDied',
+       sound = {
+           [1] = {
+               file = 'EnemyCommanderDied.wav',
+               text = 'tips.notifications.enemyCommanderDied',
+           },
        },
+       length = 1.7,
+       delay = 1,
     },
     ['FriendlyCommanderDied'] = {
-       [1] = {
-           file = 'FriendlyCommanderDied.wav',
-           length = 1.75,
-           delay = 1,
-           text = 'tips.notifications.friendlyCommanderDied',
+       sound = {
+           [1] = {
+               file = 'FriendlyCommanderDied.wav',
+               text = 'tips.notifications.friendlyCommanderDied',
+           },
        },
+       length = 1.75,
+       delay = 1,
     },
     ['FriendlyCommanderSelfD'] = {
-       [1] = {
-           file = 'AlliedComSelfD.wav',
-           length = 2,
-           delay = 1,
-           text = 'tips.notifications.friendlyCommanderSelfD',
+       sound = {
+           [1] = {
+               file = 'AlliedComSelfD.wav',
+               text = 'tips.notifications.friendlyCommanderSelfD',
+           },
        },
+       length = 2,
+       delay = 1,
     },
     ['ComHeavyDamage'] = {
-       [1] = {
-           file = 'ComHeavyDamage.wav',
-           length = 2.25,
-           delay = 12,
-           text = 'tips.notifications.commanderDamage',
+       sound = {
+           [1] = {
+               file = 'ComHeavyDamage.wav',
+               text = 'tips.notifications.commanderDamage',
+           },
        },
+       length = 2.25,
+       delay = 12,
     },
     ['TeamDownLastCommander'] = {
-       [1] = {
-           file = 'Teamdownlastcommander.wav',
-           length = 3,
-           delay = 30,
-           text = 'tips.notifications.teamdownlastcommander',
+       sound = {
+           [1] = {
+               file = 'Teamdownlastcommander.wav',
+               text = 'tips.notifications.teamdownlastcommander',
+           },
        },
+       length = 3,
+       delay = 30,
     },
     ['YouHaveLastCommander'] = {
-       [1] = {
-           file = 'Youhavelastcommander.wav',
-           length = 3,
-           delay = 30,
-           text = 'tips.notifications.youhavelastcommander',
+       sound = {
+           [1] = {
+               file = 'Youhavelastcommander.wav',
+               text = 'tips.notifications.youhavelastcommander',
+           },
        },
+       length = 3,
+       delay = 30,
     },
 
     -- Game Status
 
+
     ['ChooseStartLoc'] = {
-       [1] = {
-           file = 'ChooseStartLoc.wav',
-           length = 2.2,
-           delay = 90,
-           text = 'tips.notifications.startingLocation',
+       sound = {
+           [1] = {
+               file = 'ChooseStartLoc.wav',
+               text = 'tips.notifications.startingLocation',
+           },
        },
+       length = 2.2,
+       delay = 90,
     },
     ['GameStarted'] = {
-       [1] = {
-           file = 'GameStarted.wav',
-           length = 2,
-           delay = 1,
-           text = 'tips.notifications.gameStarted',
+       sound = {
+           [1] = {
+               file = 'GameStarted.wav',
+               text = 'tips.notifications.gameStarted',
+           },
        },
+       length = 2,
+       delay = 1,
     },
     ['BattleEnded'] = {
-       [1] = {
-           file = 'BattleEnded.wav',
-           length = 2,
-           delay = 1,
-           text = 'tips.notifications.battleEnded',
+       sound = {
+           [1] = {
+               file = 'BattleEnded.wav',
+               text = 'tips.notifications.battleEnded',
+           },
        },
+       length = 2,
+       delay = 1,
     },
     ['GamePause'] = {
-       [1] = {
-           file = 'GamePause.wav',
-           length = 1,
-           delay = 5,
-           text = 'tips.notifications.gamePaused',
+       sound = {
+           [1] = {
+               file = 'GamePause.wav',
+               text = 'tips.notifications.gamePaused',
+           },
        },
+       length = 1,
+       delay = 5,
     },
     ['PlayerLeft'] = {
-       [1] = {
-           file = 'PlayerDisconnected.wav',
-           length = 1.65,
-           delay = 1,
-           text = 'tips.notifications.playerLeft',
+       sound = {
+           [1] = {
+               file = 'PlayerDisconnected.wav',
+               text = 'tips.notifications.playerLeft',
+           },
        },
+       length = 1.65,
+       delay = 1,
     },
     ['PlayerAdded'] = {
-       [1] = {
-           file = 'PlayerAdded.wav',
-           length = 2.36,
-           delay = 1,
-           text = 'tips.notifications.playerAdded',
+       sound = {
+           [1] = {
+               file = 'PlayerAdded.wav',
+               text = 'tips.notifications.playerAdded',
+           },
        },
+       length = 2.36,
+       delay = 1,
     },
     ['PlayerResigned'] = {
-       [1] = {
-           file = 'PlayerResigned.wav',
-           length = 2.36,
-           delay = 1,
-           text = 'tips.notifications.playerResigned',
+       sound = {
+           [1] = {
+               file = 'PlayerResigned.wav',
+               text = 'tips.notifications.playerResigned',
+           },
        },
+       length = 2.36,
+       delay = 1,
     },
     ['PlayerTimedout'] = {
-       [1] = {
-           file = 'PlayerTimedout.wav',
-           length = 2.36,
-           delay = 1,
-           text = 'tips.notifications.playerTimedout',
+       sound = {
+           [1] = {
+               file = 'PlayerTimedout.wav',
+               text = 'tips.notifications.playerTimedout',
+           },
        },
+       length = 2.36,
+       delay = 1,
     },
     ['PlayerReconnecting'] = {
-       [1] = {
-           file = 'PlayerTimedout.wav',
-           length = 2.36,
-           delay = 1,
-           text = 'tips.notifications.playerReconnecting',
+       sound = {
+           [1] = {
+               file = 'PlayerTimedout.wav',
+               text = 'tips.notifications.playerReconnecting',
+           },
        },
+       length = 2.36,
+       delay = 1,
     },
 
     -- Awareness
 
+
     ['UnitsReceived'] = {
-       [1] = {
-           file = 'UnitReceived.wav',
-           length = 1.75,
-           delay = 5,
-           text = 'tips.notifications.unitsReceived',
+       sound = {
+           [1] = {
+               file = 'UnitReceived.wav',
+               text = 'tips.notifications.unitsReceived',
+           },
        },
+       length = 1.75,
+       delay = 5,
     },
     ['RadarLost'] = {
-       [1] = {
-           file = 'RadarLost.wav',
-           length = 1,
-           delay = 12,
-           text = 'tips.notifications.radarLost',
+       sound = {
+           [1] = {
+               file = 'RadarLost.wav',
+               text = 'tips.notifications.radarLost',
+           },
        },
+       length = 1,
+       delay = 12,
     },
     ['AdvRadarLost'] = {
-       [1] = {
-           file = 'AdvRadarLost.wav',
-           length = 1.32,
-           delay = 12,
-           text = 'tips.notifications.advancedRadarLost',
+       sound = {
+           [1] = {
+               file = 'AdvRadarLost.wav',
+               text = 'tips.notifications.advancedRadarLost',
+           },
        },
+       length = 1.32,
+       delay = 12,
     },
     ['MexLost'] = {
-       [1] = {
-           file = 'MexLost.wav',
-           length = 1.52,
-           delay = 10,
-           text = 'tips.notifications.metalExtractorLost',
+       sound = {
+           [1] = {
+               file = 'MexLost.wav',
+               text = 'tips.notifications.metalExtractorLost',
+           },
        },
+       length = 1.53,
+       delay = 10,
     },
 
     -- Resources
 
+
     ['YouAreOverflowingMetal'] = {
-       [1] = {
-           file = 'YouAreOverflowingMetal.wav',
-           length = 1.63,
-           delay = 80,
-           text = 'tips.notifications.overflowingMetal',
+       sound = {
+           [1] = {
+               file = 'YouAreOverflowingMetal.wav',
+               text = 'tips.notifications.overflowingMetal',
+           },
        },
+       length = 1.63,
+       delay = 80,
     },
     ['WholeTeamWastingMetal'] = {
-       [1] = {
-           file = 'WholeTeamWastingMetal.wav',
-           length = 1.82,
-           delay = 60,
-           text = 'tips.notifications.teamWastingMetal',
+       sound = {
+           [1] = {
+               file = 'WholeTeamWastingMetal.wav',
+               text = 'tips.notifications.teamWastingMetal',
+           },
        },
+       length = 1.82,
+       delay = 60,
     },
     ['WholeTeamWastingEnergy'] = {
-       [1] = {
-           file = 'WholeTeamWastingEnergy.wav',
-           length = 2.14,
-           delay = 120,
-           text = 'tips.notifications.teamWastingEnergy',
+       sound = {
+           [1] = {
+               file = 'WholeTeamWastingEnergy.wav',
+               text = 'tips.notifications.teamWastingEnergy',
+           },
        },
+       length = 2.14,
+       delay = 120,
     },
     ['LowPower'] = {
-       [1] = {
-           file = 'LowPower.wav',
-           length = 0.95,
-           delay = 50,
-           text = 'tips.notifications.lowPower',
+       sound = {
+           [1] = {
+               file = 'LowPower.wav',
+               text = 'tips.notifications.lowPower',
+           },
        },
+       length = 0.95,
+       delay = 50,
     },
     ['WindNotGood'] = {
-       [1] = {
-           file = 'WindNotGood.wav',
-           length = 3.76,
-           delay = 9999999,
-           text = 'tips.notifications.lowWind',
+       sound = {
+           [1] = {
+               file = 'WindNotGood.wav',
+               text = 'tips.notifications.lowWind',
+           },
        },
+       length = 3.76,
+       delay = 9999999,
     },
 
     -- Alerts
 
     ['NukeLaunched'] = {
-       [1] = {
-           file = 'NukeLaunched.wav',
-           length = 2,
-           delay = 3,
-           text = 'tips.notifications.nukeLaunched',
+       sound = {
+           [1] = {
+               file = 'NukeLaunched.wav',
+               text = 'tips.notifications.nukeLaunched',
+           },
        },
+       length = 2,
+       delay = 3,
     },
     ['LrpcTargetUnits'] = {
-       [1] = {
-           file = 'LrpcTargetUnits.wav',
-           length = 3.8,
-           delay = 9999999,
-           text = 'tips.notifications.lrpcAttacking',
+       sound = {
+           [1] = {
+               file = 'LrpcTargetUnits.wav',
+               text = 'tips.notifications.lrpcAttacking',
+           },
        },
+       length = 3.8,
+       delay = 9999999,
     },
 
     -- Unit Ready
 
+
     ['VulcanIsReady'] = {
-       [1] = {
-           file = 'RagnarokIsReady.wav',
-           length = 1.16,
-           delay = 30,
-           text = 'tips.notifications.vulcanReady',
+       sound = {
+           [1] = {
+               file = 'RagnarokIsReady.wav',
+               text = 'tips.notifications.vulcanReady',
+           },
        },
+       length = 1.16,
+       delay = 30,
     },
     ['BuzzsawIsReady'] = {
-       [1] = {
-           file = 'CalamityIsReady.wav',
-           length = 1.31,
-           delay = 30,
-           text = 'tips.notifications.buzzsawReady',
+       sound = {
+           [1] = {
+               file = 'CalamityIsReady.wav',
+               text = 'tips.notifications.buzzsawReady',
+           },
        },
+       length = 1.31,
+       delay = 30,
     },
     ['Tech3UnitReady'] = {
-       [1] = {
-           file = 'Tech3UnitReady.wav',
-           length = 1.78,
-           delay = 9999999,
-           text = 'tips.notifications.t3Ready',
+       sound = {
+           [1] = {
+               file = 'Tech3UnitReady.wav',
+               text = 'tips.notifications.t3Ready',
+           },
        },
+       length = 1.78,
+       delay = 9999999,
     },
 
     -- Units Detected
 
     ['T2Detected'] = {
-       [1] = {
-           file = 'T2UnitDetected.wav',
-           length = 1.5,
-           delay = 9999999,
-           text = 'tips.notifications.t2Detected',
+       sound = {
+           [1] = {
+               file = 'T2UnitDetected.wav',
+               text = 'tips.notifications.t2Detected',
+           },
        },
+       length = 1.5,
+       delay = 9999999,
     },
     ['T3Detected'] = {
-       [1] = {
-           file = 'T3UnitDetected.wav',
-           length = 1.94,
-           delay = 9999999,
-           text = 'tips.notifications.t3Detected',
+       sound = {
+           [1] = {
+               file = 'T3UnitDetected.wav',
+               text = 'tips.notifications.t3Detected',
+           },
        },
+       length = 1.94,
+       delay = 9999999,
     },
     ['AircraftSpotted'] = {
-       [1] = {
-           file = 'AircraftSpotted.wav',
-           length = 1.25,
-           delay = 9999999,
-           text = 'tips.notifications.aircraftSpotted',
+       sound = {
+           [1] = {
+               file = 'AircraftSpotted.wav',
+               text = 'tips.notifications.aircraftSpotted',
+           },
        },
+       length = 1.25,
+       delay = 9999999,
     },
     ['MinesDetected'] = {
-       [1] = {
-           file = 'MinesDetected.wav',
-           length = 2.6,
-           delay = 200,
-           text = 'tips.notifications.minesDetected',
+       sound = {
+           [1] = {
+               file = 'MinesDetected.wav',
+               text = 'tips.notifications.minesDetected',
+           },
        },
+       length = 2.6,
+       delay = 200,
     },
     ['IntrusionCountermeasure'] = {
-       [1] = {
-           file = 'StealthyUnitsInRange.wav',
-           length = 4.8,
-           delay = 30,
-           text = 'tips.notifications.stealthDetected',
+       sound = {
+           [1] = {
+               file = 'StealthyUnitsInRange.wav',
+               text = 'tips.notifications.stealthDetected',
+           },
        },
+       length = 4.8,
+       delay = 30,
     },
     ['LrpcDetected'] = {
-       [1] = {
-           file = 'LrpcDetected.wav',
-           length = 2.3,
-           delay = 25,
-           text = 'tips.notifications.lrpcDetected',
+       sound = {
+           [1] = {
+               file = 'LrpcDetected.wav',
+               text = 'tips.notifications.lrpcDetected',
+           },
        },
+       length = 2.3,
+       delay = 25,
     },
     ['EMPmissilesiloDetected'] = {
-       [1] = {
-           file = 'EmpSiloDetected.wav',
-           length = 2.1,
-           delay = 4,
-           text = 'tips.notifications.empSiloDetected',
+       sound = {
+           [1] = {
+               file = 'EmpSiloDetected.wav',
+               text = 'tips.notifications.empSiloDetected',
+           },
        },
+       length = 2.1,
+       delay = 4,
     },
     ['TacticalNukeSiloDetected'] = {
-       [1] = {
-           file = 'TacticalNukeDetected.wav',
-           length = 2,
-           delay = 4,
-           text = 'tips.notifications.tacticalSiloDetected',
+       sound = {
+           [1] = {
+               file = 'TacticalNukeDetected.wav',
+               text = 'tips.notifications.tacticalSiloDetected',
+           },
        },
+       length = 2,
+       delay = 4,
     },
     ['NuclearSiloDetected'] = {
-       [1] = {
-           file = 'NuclearSiloDetected.wav',
-           length = 1.7,
-           delay = 4,
-           text = 'tips.notifications.nukeSiloDetected',
+       sound = {
+           [1] = {
+               file = 'NuclearSiloDetected.wav',
+               text = 'tips.notifications.nukeSiloDetected',
+           },
        },
+       length = 1.7,
+       delay = 4,
     },
     ['NuclearBomberDetected'] = {
-       [1] = {
-           file = 'NuclearBomberDetected.wav',
-           length = 1.6,
-           delay = 60,
-           text = 'tips.notifications.nukeBomberDetected',
+       sound = {
+           [1] = {
+               file = 'NuclearBomberDetected.wav',
+               text = 'tips.notifications.nukeBomberDetected',
+           },
        },
+       length = 1.6,
+       delay = 60,
     },
     ['JuggernautDetected'] = {
-       [1] = {
-           file = 'BehemothDetected.wav',
-           length = 1.4,
-           delay = 9999999,
-           text = 'tips.notifications.t3MobileTurretDetected',
+       sound = {
+           [1] = {
+               file = 'BehemothDetected.wav',
+               text = 'tips.notifications.t3MobileTurretDetected',
+           },
        },
+       length = 1.4,
+       delay = 9999999,
     },
     ['KorgothDetected'] = {
-       [1] = {
-           file = 'JuggernautDetected.wav',
-           length = 1.25,
-           delay = 9999999,
-           text = 'tips.notifications.t3AssaultBotDetected',
+       sound = {
+           [1] = {
+               file = 'JuggernautDetected.wav',
+               text = 'tips.notifications.t3AssaultBotDetected',
+           },
        },
+       length = 1.25,
+       delay = 9999999,
     },
     ['BanthaDetected'] = {
-       [1] = {
-           file = 'TitanDetected.wav',
-           length = 1.25,
-           delay = 9999999,
-           text = 'tips.notifications.t3AssaultMechDetected',
+       sound = {
+           [1] = {
+               file = 'TitanDetected.wav',
+               text = 'tips.notifications.t3AssaultMechDetected',
+           },
        },
+       length = 1.25,
+       delay = 9999999,
     },
     ['FlagshipDetected'] = {
-       [1] = {
-           file = 'FlagshipDetected.wav',
-           length = 1.4,
-           delay = 9999999,
-           text = 'tips.notifications.flagshipDetected',
+       sound = {
+           [1] = {
+               file = 'FlagshipDetected.wav',
+               text = 'tips.notifications.flagshipDetected',
+           },
        },
+       length = 1.4,
+       delay = 9999999,
     },
     ['CommandoDetected'] = {
-       [1] = {
-           file = 'CommandoDetected.wav',
-           length = 1.28,
-           delay = 9999999,
-           text = 'tips.notifications.commandoDetected',
+       sound = {
+           [1] = {
+               file = 'CommandoDetected.wav',
+               text = 'tips.notifications.commandoDetected',
+           },
        },
+       length = 1.28,
+       delay = 9999999,
     },
     ['TransportDetected'] = {
-       [1] = {
-           file = 'TransportDetected.wav',
-           length = 1.5,
-           delay = 9999999,
-           text = 'tips.notifications.transportDetected',
+       sound = {
+           [1] = {
+               file = 'TransportDetected.wav',
+               text = 'tips.notifications.transportDetected',
+           },
        },
+       length = 1.5,
+       delay = 9999999,
     },
     ['AirTransportDetected'] = {
-       [1] = {
-           file = 'AirTransportDetected.wav',
-           length = 1.38,
-           delay = 9999999,
-           text = 'tips.notifications.airTransportDetected',
+       sound = {
+           [1] = {
+               file = 'AirTransportDetected.wav',
+               text = 'tips.notifications.airTransportDetected',
+           },
        },
+       length = 1.38,
+       delay = 9999999,
     },
     ['SeaTransportDetected'] = {
-       [1] = {
-           file = 'SeaTransportDetected.wav',
-           length = 1.95,
-           delay = 9999999,
-           text = 'tips.notifications.seaTransportDetected',
+       sound = {
+           [1] = {
+               file = 'SeaTransportDetected.wav',
+               text = 'tips.notifications.seaTransportDetected',
+           },
        },
+       length = 1.95,
+       delay = 9999999,
     },
 
     -- Lava
 
     ['LavaRising'] = {
-       [1] = {
-           file = 'Lavarising.wav',
-           length = 3,
-           delay = 25,
-           text = 'tips.notifications.lavaRising',
-           unlisted = true,
+       sound = {
+           [1] = {
+               file = 'Lavarising.wav',
+               text = 'tips.notifications.lavaRising',
+           },
        },
+       length = 3,
+       delay = 25,
+       unlisted = true,
     },
     ['LavaDropping'] = {
-       [1] = {
-           file = 'Lavadropping.wav',
-           length = 2,
-           delay = 25,
-           text = 'tips.notifications.lavaDropping',
-           unlisted = true,
+       sound = {
+           [1] = {
+               file = 'Lavadropping.wav',
+               text = 'tips.notifications.lavaDropping',
+           },
        },
+       length = 2,
+       delay = 25,
+       unlisted = true,
     },
 
     -- Tutorials
 
     ['t_welcome'] = {
-       [1] = {
-           file = 'tutorial/welcome.wav',
-           length = 9.19,
-           delay = 9999999,
-           text = 'tips.notifications.tutorialWelcome',
-           unlisted = true,
+       sound = {
+           [1] = {
+               file = 'tutorial/welcome.wav',
+               text = 'tips.notifications.tutorialWelcome',
+           },
        },
+       length = 9.19,
+       delay = 9999999,
+       unlisted = true,
     },
     ['t_buildmex'] = {
-       [1] = {
-           file = 'tutorial/buildmex.wav',
-           length = 6.3,
-           delay = 9999999,
-           text = 'tips.notifications.tutorialBuildMetal',
-           unlisted = true,
+       sound = {
+           [1] = {
+               file = 'tutorial/buildmex.wav',
+               text = 'tips.notifications.tutorialBuildMetal',
+           },
        },
+       length = 6.31,
+       delay = 9999999,
+       unlisted = true,
     },
     ['t_buildenergy'] = {
-       [1] = {
-           file = 'tutorial/buildenergy.wav',
-           length = 6.47,
-           delay = 9999999,
-           text = 'tips.notifications.tutorialBuildenergy',
-           unlisted = true,
+       sound = {
+           [1] = {
+               file = 'tutorial/buildenergy.wav',
+               text = 'tips.notifications.tutorialBuildenergy',
+           },
        },
+       length = 6.47,
+       delay = 9999999,
+       unlisted = true,
     },
     ['t_makefactory'] = {
-       [1] = {
-           file = 'tutorial/makefactory.wav',
-           length = 8.87,
-           delay = 9999999,
-           text = 'tips.notifications.tutorialBuildFactory',
-           unlisted = true,
+       sound = {
+           [1] = {
+               file = 'tutorial/makefactory.wav',
+               text = 'tips.notifications.tutorialBuildFactory',
+           },
        },
+       length = 8.87,
+       delay = 9999999,
+       unlisted = true,
     },
     ['t_factoryair'] = {
-       [1] = {
-           file = 'tutorial/factoryair.wav',
-           length = 8.2,
-           delay = 9999999,
-           text = 'tips.notifications.tutorialFactoryAir',
-           unlisted = true,
+       sound = {
+           [1] = {
+               file = 'tutorial/factoryair.wav',
+               text = 'tips.notifications.tutorialFactoryAir',
+           },
        },
+       length = 8.2,
+       delay = 9999999,
+       unlisted = true,
     },
     ['t_factoryairsea'] = {
-       [1] = {
-           file = 'tutorial/factoryairsea.wav',
-           length = 7.39,
-           delay = 9999999,
-           text = 'tips.notifications.tutorialFactorySeaplanes',
-           unlisted = true,
+       sound = {
+           [1] = {
+               file = 'tutorial/factoryairsea.wav',
+               text = 'tips.notifications.tutorialFactorySeaplanes',
+           },
        },
+       length = 7.39,
+       delay = 9999999,
+       unlisted = true,
     },
     ['t_factorybots'] = {
-       [1] = {
-           file = 'tutorial/factorybots.wav',
-           length = 8.54,
-           delay = 9999999,
-           text = 'tips.notifications.tutorialFactoryBots',
-           unlisted = true,
+       sound = {
+           [1] = {
+               file = 'tutorial/factorybots.wav',
+               text = 'tips.notifications.tutorialFactoryBots',
+           },
        },
+       length = 8.54,
+       delay = 9999999,
+       unlisted = true,
     },
     ['t_factoryhovercraft'] = {
-       [1] = {
-           file = 'tutorial/factoryhovercraft.wav',
-           length = 6.91,
-           delay = 9999999,
-           text = 'tips.notifications.tutorialFactoryHovercraft',
-           unlisted = true,
+       sound = {
+           [1] = {
+               file = 'tutorial/factoryhovercraft.wav',
+               text = 'tips.notifications.tutorialFactoryHovercraft',
+           },
        },
+       length = 6.91,
+       delay = 9999999,
+       unlisted = true,
     },
     ['t_factoryvehicles'] = {
-       [1] = {
-           file = 'tutorial/factoryvehicles.wav',
-           length = 11.92,
-           delay = 9999999,
-           text = 'tips.notifications.tutorialFactoryVehicles',
-           unlisted = true,
+       sound = {
+           [1] = {
+               file = 'tutorial/factoryvehicles.wav',
+               text = 'tips.notifications.tutorialFactoryVehicles',
+           },
        },
+       length = 11.92,
+       delay = 9999999,
+       unlisted = true,
     },
     ['t_factoryships'] = {
-       [1] = {
-           file = 'tutorial/factoryships.wav',
-           length = 15.82,
-           delay = 9999999,
-           text = 'tips.notifications.tutorialFactoryShips',
-           unlisted = true,
+       sound = {
+           [1] = {
+               file = 'tutorial/factoryships.wav',
+               text = 'tips.notifications.tutorialFactoryShips',
+           },
        },
+       length = 15.82,
+       delay = 9999999,
+       unlisted = true,
     },
     ['t_readyfortech2'] = {
-       [1] = {
-           file = 'tutorial/readyfortecht2.wav',
-           length = 9.4,
-           delay = 9999999,
-           text = 'tips.notifications.tutorialT2Ready',
-           unlisted = true,
+       sound = {
+           [1] = {
+               file = 'tutorial/readyfortecht2.wav',
+               text = 'tips.notifications.tutorialT2Ready',
+           },
        },
+       length = 9.4,
+       delay = 9999999,
+       unlisted = true,
     },
     ['t_duplicatefactory'] = {
-       [1] = {
-           file = 'tutorial/duplicatefactory.wav',
-           length = 6.1,
-           delay = 9999999,
-           text = 'tips.notifications.tutorialDuplicateFactory',
-           unlisted = true,
+       sound = {
+           [1] = {
+               file = 'tutorial/duplicatefactory.wav',
+               text = 'tips.notifications.tutorialDuplicateFactory',
+           },
        },
+       length = 6.1,
+       delay = 9999999,
+       unlisted = true,
     },
     ['t_paralyzer'] = {
-       [1] = {
-           file = 'tutorial/paralyzer.wav',
-           length = 9.66,
-           delay = 9999999,
-           text = 'tips.notifications.tutorialParalyzer',
-           unlisted = true,
+       sound = {
+           [1] = {
+               file = 'tutorial/paralyzer.wav',
+               text = 'tips.notifications.tutorialParalyzer',
+           },
        },
+       length = 9.66,
+       delay = 9999999,
+       unlisted = true,
     },
 }
 
-for notifID, notifVariation in pairs(soundsTable) do -- Temporary to keep it working for now
-    local notifFiles = {}
-    local maxLength = 0
-    local maxDelay = 0
-    local text = notifVariation[1].text
-    for i = 1,#notifVariation do
-        notifFiles[i] = soundFolder .. notifVariation[i].file
-        if notifVariation[i].length > maxLength then
-            maxLength = notifVariation[i].length
-        end
-        if notifVariation[i].delay > maxDelay then
-            maxDelay = notifVariation[i].delay
-        end
+for notifID, notifDef in pairs(soundsTable) do -- Temporary to keep it working for now
+    local notifSounds = {}
+    local notifTexts = {}
+    for i = 1,#notifDef.sound do
+        notifSounds[i] = soundFolder .. notifDef.sound[i].file
+        notifTexts[i] = notifDef.sound[i].text
     end
-    addSound(notifID, notifFiles, maxDelay, maxLength, text, notifVariation[1].unlisted)
+    --addSound(notifID, notifSounds, notifDef.delay, notifDef.length, notifTexts, notifDef.unlisted)
+    addSound(notifID, notifSounds, notifDef.delay, notifDef.length, notifDef.sound[1].text, notifDef.unlisted) -- bandaid, picking text from first variation always.
 end
-

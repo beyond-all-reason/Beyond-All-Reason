@@ -606,9 +606,14 @@ local function playNextSound()
 		local isTutorialNotification = (string.sub(event, 1, 2) == 't_')
 		nextSoundQueued = sec + Sound[event].duration + silentTime
 		if not muteWhenIdle or not isIdle or isTutorialNotification then
+			local m = 1
 			if spoken and Sound[event].file and Sound[event].file[1] ~= '' then
-				Spring.PlaySoundFile(Sound[event].file[math.random(1,#Sound[event].file)], globalVolume, 'ui')
+				m = math.random(1,#Sound[event].file)
+				Spring.PlaySoundFile(Sound[event].file[m], globalVolume, 'ui')
 			end
+			-- if displayMessages and WG['messages'] and Sound[event].messageKey and Sound[event].messageKey[m] then -- Ready for fix with variation text
+			-- 	WG['messages'].addMessage(Spring.I18N(Sound[event].messageKey[m]))
+			-- end
 			if displayMessages and WG['messages'] and Sound[event].messageKey then
 				WG['messages'].addMessage(Spring.I18N(Sound[event].messageKey))
 			end
