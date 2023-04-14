@@ -4,7 +4,7 @@ function gadget:GetInfo()
 		desc = "Load and populate global mission table",
 		date = "2023.03.14",
 		layer = 0,
-		enabled = true,
+		enabled = false,
 	}
 end
 
@@ -35,6 +35,7 @@ function gadget:Initialize()
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
+		return
 	end
 
 	GG['MissionAPI'] = {}

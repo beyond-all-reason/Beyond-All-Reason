@@ -90,6 +90,7 @@ end
 function gadget:Initialize()
 	if not GG['MissionAPI'] then
 		gadgetHandler:RemoveGadget()
+		return
 	end
 
 	types = GG['MissionAPI'].TriggersController.Types
