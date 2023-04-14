@@ -48,106 +48,10 @@ function addSound(name, file, minDelay, duration, messageKey, unlisted)
 	end
 end
 
-local soundFolder = "Sounds/voice/"
--- commanders
-addSound('EnemyCommanderDied', {soundFolder .. 'EnemyCommanderDied.wav'}, 1, 1.7, 'tips.notifications.enemyCommanderDied')
-addSound('FriendlyCommanderDied', {soundFolder .. 'FriendlyCommanderDied.wav'}, 1, 1.75, 'tips.notifications.friendlyCommanderDied')
-addSound('FriendlyCommanderSelfD', {soundFolder .. 'AlliedComSelfD.wav'}, 1, 2, 'tips.notifications.friendlyCommanderSelfD')
-addSound('ComHeavyDamage', {soundFolder .. 'ComHeavyDamage.wav'}, 12, 2.25, 'tips.notifications.commanderDamage')
-addSound('TeamDownLastCommander', {soundFolder .. 'Teamdownlastcommander.wav'}, 30, 3, 'tips.notifications.teamdownlastcommander')
-addSound('YouHaveLastCommander', {soundFolder .. 'Youhavelastcommander.wav'}, 30, 3, 'tips.notifications.youhavelastcommander')
+soundFolder = "Sounds/voice/allison/"
+VFS.Include(soundFolder .. 'config.lua')
 
--- game status
-addSound('ChooseStartLoc', {soundFolder .. 'ChooseStartLoc.wav'}, 90, 2.2, 'tips.notifications.startingLocation')
-addSound('GameStarted', {soundFolder .. 'GameStarted.wav'}, 1, 2, 'tips.notifications.gameStarted')
-addSound('BattleEnded', {soundFolder .. 'BattleEnded.wav'}, 1, 2, 'tips.notifications.battleEnded')
-addSound('GamePause', {soundFolder .. 'GamePause.wav'}, 5, 1, 'tips.notifications.gamePaused')
-addSound('PlayerLeft', {soundFolder .. 'PlayerDisconnected.wav'}, 1, 1.65, 'tips.notifications.playerLeft')
-addSound('PlayerAdded', {soundFolder .. 'PlayerAdded.wav'}, 1, 2.36, 'tips.notifications.playerAdded')
-addSound('PlayerResigned', {soundFolder .. 'PlayerResigned.wav'}, 1, 2.36, 'tips.notifications.playerResigned')
-addSound('PlayerTimedout', {soundFolder .. 'PlayerTimedout.wav'}, 1, 2.36, 'tips.notifications.playerTimedout')
-addSound('PlayerReconnecting', {soundFolder .. 'PlayerTimedout.wav'}, 1, 2.36, 'tips.notifications.playerReconnecting')
-
--- awareness
---addSound('IdleBuilder', {soundFolder .. 'IdleBuilder.wav'}, 30, 1.9, 'A builder has finished building')
-addSound('UnitsReceived', {soundFolder .. 'UnitReceived.wav'}, 5, 1.75, 'tips.notifications.unitsReceived')
-addSound('RadarLost', {soundFolder .. 'RadarLost.wav'}, 12, 1, 'tips.notifications.radarLost')
-addSound('AdvRadarLost', {soundFolder .. 'AdvRadarLost.wav'}, 12, 1.32, 'tips.notifications.advancedRadarLost')
-addSound('MexLost', {soundFolder .. 'MexLost.wav'}, 10, 1.53, 'tips.notifications.metalExtractorLost')
-
--- resources
-addSound('YouAreOverflowingMetal', {soundFolder .. 'YouAreOverflowingMetal.wav'}, 80, 1.63, 'tips.notifications.overflowingMetal')
---addSound('YouAreOverflowingEnergy', {soundFolder .. 'YouAreOverflowingEnergy.wav'}, 100, 1.7, 'Your are overflowing energy')
---addSound('YouAreWastingMetal', {soundFolder .. 'YouAreWastingMetal.wav'}, 25, 1.5, 'Your are wasting metal')
---addSound('YouAreWastingEnergy', {soundFolder .. 'YouAreWastingEnergy.wav'}, 35, 1.3, 'Your are wasting energy')
-addSound('WholeTeamWastingMetal', {soundFolder .. 'WholeTeamWastingMetal.wav'}, 60, 1.82, 'tips.notifications.teamWastingMetal')
-addSound('WholeTeamWastingEnergy', {soundFolder .. 'WholeTeamWastingEnergy.wav'}, 120, 2.14, 'tips.notifications.teamWastingEnergy')
---addSound('MetalStorageFull', {soundFolder .. 'metalstorefull.wav'}, 40, 1.62, 'Metal storage is full')
---addSound('EnergyStorageFull', {soundFolder .. 'energystorefull.wav'}, 40, 1.65, 'Energy storage is full')
-addSound('LowPower', {soundFolder .. 'LowPower.wav'}, 50, 0.95, 'tips.notifications.lowPower')
-addSound('WindNotGood', {soundFolder .. 'WindNotGood.wav'}, 9999999, 3.76, 'tips.notifications.lowWind')
-
--- added this so they wont get immediately triggered after gamestart
-LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+1200
---LastPlay['YouAreOverflowingEnergy'] = spGetGameFrame()+300
---LastPlay['YouAreWastingMetal'] = spGetGameFrame()+300
---LastPlay['YouAreWastingEnergy'] = spGetGameFrame()+300
-LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()+1200
-LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()+2000
-
--- alerts
-addSound('NukeLaunched', {soundFolder .. 'NukeLaunched.wav'}, 3, 2, 'tips.notifications.nukeLaunched')
-addSound('LrpcTargetUnits', {soundFolder .. 'LrpcTargetUnits.wav'}, 9999999, 3.8, 'tips.notifications.lrpcAttacking')
-
--- unit ready
-addSound('VulcanIsReady', {soundFolder .. 'RagnarokIsReady.wav'}, 30, 1.16, 'tips.notifications.vulcanReady')
-addSound('BuzzsawIsReady', {soundFolder .. 'CalamityIsReady.wav'}, 30, 1.31, 'tips.notifications.buzzsawReady')
-addSound('Tech3UnitReady', {soundFolder .. 'Tech3UnitReady.wav'}, 9999999, 1.78, 'tips.notifications.t3Ready')
-
--- detections
-addSound('T2Detected', {soundFolder .. 'T2UnitDetected.wav'}, 9999999, 1.5, 'tips.notifications.t2Detected')	-- top bar widget calls this
-addSound('T3Detected', {soundFolder .. 'T3UnitDetected.wav'}, 9999999, 1.94, 'tips.notifications.t3Detected')	-- top bar widget calls this
-
-addSound('AircraftSpotted', {soundFolder .. 'AircraftSpotted.wav'}, 9999999, 1.25, 'tips.notifications.aircraftSpotted')	-- top bar widget calls this
-addSound('MinesDetected', {soundFolder .. 'MinesDetected.wav'}, 200, 2.6, 'tips.notifications.minesDetected')
-addSound('IntrusionCountermeasure', {soundFolder .. 'StealthyUnitsInRange.wav'}, 30, 4.8, 'tips.notifications.stealthDetected')
-
--- unit detections
-addSound('LrpcDetected', {soundFolder .. 'LrpcDetected.wav'}, 25, 2.3, 'tips.notifications.lrpcDetected')
-addSound('EMPmissilesiloDetected', {soundFolder .. 'EmpSiloDetected.wav'}, 4, 2.1, 'tips.notifications.empSiloDetected')
-addSound('TacticalNukeSiloDetected', {soundFolder .. 'TacticalNukeDetected.wav'}, 4, 2, 'tips.notifications.tacticalSiloDetected')
-addSound('NuclearSiloDetected', {soundFolder .. 'NuclearSiloDetected.wav'}, 4, 1.7, 'tips.notifications.nukeSiloDetected')
-addSound('NuclearBomberDetected', {soundFolder .. 'NuclearBomberDetected.wav'}, 60, 1.6, 'tips.notifications.nukeBomberDetected')
-addSound('JuggernautDetected', {soundFolder .. 'BehemothDetected.wav'}, 9999999, 1.4, 'tips.notifications.t3MobileTurretDetected')
-addSound('KorgothDetected', {soundFolder .. 'JuggernautDetected.wav'}, 9999999, 1.25, 'tips.notifications.t3AssaultBotDetected')
-addSound('BanthaDetected', {soundFolder .. 'TitanDetected.wav'}, 9999999, 1.25, 'tips.notifications.t3AssaultMechDetected')
-addSound('FlagshipDetected', {soundFolder .. 'FlagshipDetected.wav'}, 9999999, 1.4, 'tips.notifications.flagshipDetected')
-addSound('CommandoDetected', {soundFolder .. 'CommandoDetected.wav'}, 9999999, 1.28, 'tips.notifications.commandoDetected')
-addSound('TransportDetected', {soundFolder .. 'TransportDetected.wav'}, 9999999, 1.5, 'tips.notifications.transportDetected')
-addSound('AirTransportDetected', {soundFolder .. 'AirTransportDetected.wav'}, 9999999, 1.38, 'tips.notifications.airTransportDetected')
-addSound('SeaTransportDetected', {soundFolder .. 'SeaTransportDetected.wav'}, 9999999, 1.95, 'tips.notifications.seaTransportDetected')
-
--- lava/liquid level change notifications
-addSound('LavaRising', {soundFolder .. 'Lavarising.wav'}, 25, 3, 'tips.notifications.lavaRising', true)
-addSound('LavaDropping', {soundFolder .. 'Lavadropping.wav'}, 25, 2, 'tips.notifications.lavaDropping', true)
-
--- tutorial explanations (unlisted)
-local td = 'tutorial/'
-addSound('t_welcome', {soundFolder .. td ..'welcome.wav'}, 9999999, 9.19, 'tips.notifications.tutorialWelcome', true)
-addSound('t_buildmex', {soundFolder .. td ..'buildmex.wav'}, 9999999, 6.31, 'tips.notifications.tutorialBuildMetal', true)
-addSound('t_buildenergy', {soundFolder .. td ..'buildenergy.wav'}, 9999999, 6.47, 'tips.notifications.tutorialBuildenergy', true)
-addSound('t_makefactory', {soundFolder .. td ..'makefactory.wav'}, 9999999, 8.87, 'tips.notifications.tutorialBuildFactory', true)
-addSound('t_factoryair', {soundFolder .. td ..'factoryair.wav'}, 9999999, 8.2, 'tips.notifications.tutorialFactoryAir', true)
-addSound('t_factoryairsea', {soundFolder .. td ..'factoryairsea.wav'}, 9999999, 7.39, 'tips.notifications.tutorialFactorySeaplanes', true)
-addSound('t_factorybots', {soundFolder .. td ..'factorybots.wav'}, 9999999, 8.54, 'tips.notifications.tutorialFactoryBots', true)
-addSound('t_factoryhovercraft', {soundFolder .. td ..'factoryhovercraft.wav'}, 9999999, 6.91, 'tips.notifications.tutorialFactoryHovercraft', true)
-addSound('t_factoryvehicles', {soundFolder .. td ..'factoryvehicles.wav'}, 9999999, 11.92, 'tips.notifications.tutorialFactoryVehicles', true)
-addSound('t_factoryships', {soundFolder .. td ..'factoryships.wav'}, 9999999, 15.82, 'tips.notifications.tutorialFactoryShips', true)
-addSound('t_readyfortech2', {soundFolder .. td ..'readyfortecht2.wav'}, 9999999, 9.4, 'tips.notifications.tutorialT2Ready', true)
-addSound('t_duplicatefactory', {soundFolder .. td ..'duplicatefactory.wav'}, 9999999, 6.1, 'tips.notifications.tutorialDuplicateFactory', true)
-addSound('t_paralyzer', {soundFolder .. td ..'paralyzer.wav'}, 9999999, 9.66, 'tips.notifications.tutorialParalyzer', true)
-
-local unitsOfInterest = {}
+unitsOfInterest = {}
 unitsOfInterest[UnitDefNames['armemp'].id] = 'EMPmissilesiloDetected'
 unitsOfInterest[UnitDefNames['cortron'].id] = 'TacticalNukeSiloDetected'
 unitsOfInterest[UnitDefNames['armsilo'].id] = 'NuclearSiloDetected'
@@ -172,6 +76,14 @@ unitsOfInterest[UnitDefNames['armdfly'].id] = 'AirTransportDetected'
 unitsOfInterest[UnitDefNames['corseah'].id] = 'AirTransportDetected'
 unitsOfInterest[UnitDefNames['armtship'].id] = 'SeaTransportDetected'
 unitsOfInterest[UnitDefNames['cortship'].id] = 'SeaTransportDetected'
+
+-- added this so they wont get immediately triggered after gamestart
+LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+1200
+--LastPlay['YouAreOverflowingEnergy'] = spGetGameFrame()+300
+--LastPlay['YouAreWastingMetal'] = spGetGameFrame()+300
+--LastPlay['YouAreWastingEnergy'] = spGetGameFrame()+300
+LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()+1200
+LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()+2000
 
 local soundQueue = {}
 local nextSoundQueued = 0

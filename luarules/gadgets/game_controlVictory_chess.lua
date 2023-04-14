@@ -938,7 +938,7 @@ function gadget:GameFrame(n)
         addInfiniteResources()
     end
     if n > 25 and n%addUpFrequency == 1 then
-        Spring.PlaySoundFile("sounds/voice/ReinforcementsHaveArrived.wav", 0.75, nil, "ui")
+        Spring.PlaySoundFile("sounds/voice/allison/ReinforcementsHaveArrived.wav", 0.75, nil, "ui")
         addNewUnitsToQueue(false)
     end
     for i = 1,#teams do
