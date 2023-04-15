@@ -10,7 +10,7 @@ return {
 		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -9 1",
 		collisionvolumescales = "42 42 42",
-		collisionvolumetype = "CylZ",
+		collisionvolumetype = "BOX",
 		corpse = "DEAD",
 		explodeas = "largeExplosionGeneric",
 		footprintx = 4,

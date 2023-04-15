@@ -11,7 +11,7 @@ return {
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -7 0",
 		collisionvolumescales = "31 31 31",
-		collisionvolumetype = "CylZ",
+		collisionvolumetype = "BOX",
 		corpse = "DEAD",
 		explodeas = "smallexplosiongeneric-phib",
 		footprintx = 3,
