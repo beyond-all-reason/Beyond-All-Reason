@@ -47,13 +47,8 @@ local Cfgs = {
 	cfgCellPadding = 0.007,
 	cfgIconPadding = 0.015, -- space between icons
 	cfgIconCornerSize = 0.025,
-	cfgRadariconSize = 0.23,
-	cfgRadariconOffset = 0.025,
-	cfgGroupiconSize = 0.29,
 	cfgPriceFontSize = 0.19,
-	cfgCategoryFontSize = 0.19,
 	cfgActiveAreaMargin = 0.1, -- (# * bgpadding) space between the background border and active area
-	maxPosY = 0.74,
 	sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav',
 	sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav',
 	fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
@@ -159,12 +154,12 @@ local buildmenuShows = false
 
 -- Helper types to make the code more readable and easy to work with
 Rect = {}
-function Rect:new(x, y, w, h)
+function Rect:new(x, y, x2, y2)
 	local this = {
 		x = x;
 		y = y;
-		width = w;
-		height = h;
+		xEnd = x2;
+		yEnd = y2;
 	}
 	return this;
 end
@@ -207,7 +202,7 @@ local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 
 local buildQueue = {}
 local disableInput = Cfgs.disableInputWhenSpec and isSpec
-local backgroundRect = { 0, 0, 0, 0 }
+local backgroundRect = Rect:new(0, 0, 0, 0)
 local colls = 4
 local rows = 3
 local minimapHeight = 0.235
@@ -228,7 +223,8 @@ local catRects = {}
 local currentBuildCategory, currentCategoryIndex
 local currentPage = 1
 local pages = 1
-local paginatorRects = {}
+local prevPageRect = Rect:new(0, 0, 0, 0)
+local nextPageRect = Rect:new(0, 0, 0, 0)
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
 local unitshapes = {}
 local mexSnapPosition
@@ -470,7 +466,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner)
+				RectRound(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, elementCorner)
 			end)
 			if selectedBuilder or selectedFactory then
 				WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
@@ -620,8 +616,6 @@ function widget:ViewResize()
 		posX2 = math_floor(posX + posY * vsy * 3) + paginatorCellWidth + pageButtonWidth
 		width = posX2 - posX
 		height = posY
-
-		backgroundRect = { posX, (posY - height) * vsy, posX2, posY * vsy }
 	else
 		width = 0.212
 		width = width / (vsx / vsy) * 1.78				-- make smaller for ultrawide screens
@@ -651,8 +645,10 @@ function widget:ViewResize()
 		width = math_floor(width * vsx) / vsx
 		height = math_floor(height * vsy) / vsy
 
-		backgroundRect = { posX, (posY - height) * vsy, posX2, posY * vsy }
+
 	end
+
+	backgroundRect = Rect:new(posX, (posY - height) * vsy, posX2, posY * vsy)
 
 	checkGuishader(true)
 	clear()
@@ -1161,7 +1157,7 @@ end
 
 local function drawBuildmenuBg()
 	WG['buildmenu'].selectedID = nil
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
+	UiElement(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
 end
 
 local function drawButton(rect, text, opts)
@@ -1170,20 +1166,11 @@ local function drawButton(rect, text, opts)
 	local fontSize = opts.fontSize
 	local hovered = opts.hovered
 
-	local color1 = { 0.6, 0.6, 0.6, math_max(0.35, math_min(0.55, ui_opacity/1.5)) }
-	color1[4] = math_max(0, math_min(0.35, (ui_opacity-0.3)))
-	local color2 = { 1,1,1, math_max(0, math_min(0.35, (ui_opacity-0.3))) }
-
 	local padding = math_max(1, math_floor(bgpadding * 0.52))
 	local pad1 = padding
 
-	RectRound(rect[1] + pad1, rect[2] + pad1, rect[3] - pad1, rect[4] - pad1, padding * 1.5, 2, 2, 2, 2, color1, color2)
-	color1 = {0,0,0, color1[4]*0.85}
-	color2 = {0,0,0, color2[4]*0.85}
-	RectRound(rect[1] + padding + pad1, rect[2] + padding + pad1, rect[3] - padding - pad1, rect[4] - padding - pad1, padding * 1.2, 2, 2, 2, 2, color1, color2)
-
-	color1 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- bottom
-	color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- top
+	local color1 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- bottom
+	local color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- top
 
 	if highlight then
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
@@ -1342,17 +1329,17 @@ end
 local function labActiveArea()
 	if stickToBottom then
 		return Rect:new(
-			backgroundRect[1] + bgpadding,
-			backgroundRect[2],
-			backgroundRect[3],
-			backgroundRect[4] - bgpadding
+			backgroundRect.x + bgpadding,
+			backgroundRect.y,
+			backgroundRect.xEnd,
+			backgroundRect.yEnd - bgpadding
 		)
 	else
 		return Rect:new(
-			backgroundRect[1],
-			backgroundRect[2],
-			backgroundRect[3] - bgpadding,
-			backgroundRect[4] - bgpadding
+			backgroundRect.x,
+			backgroundRect.y,
+			backgroundRect.xEnd - bgpadding,
+			backgroundRect.yEnd - bgpadding
 		)
 	end
 end
@@ -1362,39 +1349,39 @@ local function drawCategories()
 	local activeArea
 
 	if stickToBottom then
-		local x1 = backgroundRect[1] + bgpadding
+		local x1 = backgroundRect.x + bgpadding
 
 		activeArea = Rect:new(
 			x1 + pageButtonWidth,
-			backgroundRect[2] - 2 * activeAreaMargin,
-			backgroundRect[3],
-			backgroundRect[4] - bgpadding
+			backgroundRect.y - 2 * activeAreaMargin,
+			backgroundRect.xEnd,
+			backgroundRect.yEnd - bgpadding
 		)
 
-		local contentHeight = activeArea.height - activeArea.y
+		local contentHeight = activeArea.yEnd - activeArea.y
 
 		for i, cat in ipairs(categories) do
 			local a1 = x1
-			local a2 = activeArea.height - i * (contentHeight / numCats) + 2
+			local a2 = activeArea.yEnd - i * (contentHeight / numCats) + 2
 			local a3 = a1 + pageButtonWidth - activeAreaMargin
 			local a4 = a2 + (contentHeight / numCats) - 2
 
 			catRects[cat] = { a1, a2, a3, a4 }
 		end
 	else
-		local y2 = backgroundRect[4] - bgpadding
+		local y2 = backgroundRect.yEnd - bgpadding
 
 		activeArea = Rect:new(
-			backgroundRect[1],
-			backgroundRect[2],
-			backgroundRect[3] - bgpadding,
+			backgroundRect.x,
+			backgroundRect.y,
+			backgroundRect.xEnd - bgpadding,
 			y2 - pageButtonHeight
 		)
 
-		local buttonWidth = math.round((activeArea.width - activeArea.x - bgpadding) / numCats)
+		local buttonWidth = math.round((activeArea.xEnd - activeArea.x - bgpadding) / numCats)
 
 		for i, cat in ipairs(categories) do
-			local a1 = backgroundRect[1] + activeAreaMargin + (i - 1) * buttonWidth
+			local a1 = backgroundRect.x + activeAreaMargin + (i - 1) * buttonWidth
 			local a2 = y2 - pageButtonHeight
 			local a3 = a1 + buttonWidth
 			local a4 = y2 - activeAreaMargin
@@ -1463,9 +1450,9 @@ local function drawGrid(activeArea)
 
 				cellRects[cellRectID] = {
 					activeArea.x + (kcol - 1) * cellSize,
-					activeArea.height - (rows - krow + 1) * cellSize,
+					activeArea.yEnd - (rows - krow + 1) * cellSize,
 					activeArea.x + (kcol ) * cellSize,
-					activeArea.height - (rows - krow) * cellSize,
+					activeArea.yEnd - (rows - krow) * cellSize,
 				}
 
 				local cellIsSelected = (activeCmd and udef and activeCmd == udef.name) or
@@ -1489,8 +1476,6 @@ local function drawGrid(activeArea)
 end
 
 local function drawPaginators(activeArea)
-	paginatorRects = {}
-
 	if pages == 1 then
 		return
 	end
@@ -1499,37 +1484,47 @@ local function drawPaginators(activeArea)
 	local nextKeyText = "\255\215\255\215[".. keyConfig.sanitizeKey(Cfgs.NEXT_PAGE_KEY, currentLayout) .."]"
 
 	if stickToBottom then
-		local contentHeight = activeArea.height - activeArea.y
-		local paginatorCellHeight = contentHeight / 3
+		local contentHeight = activeArea.yEnd - activeArea.y
+		local buttonHeight = contentHeight / 3
 
-		paginatorRects[1] = { activeArea.x + 6 * cellSize, activeArea.y + activeAreaMargin, activeArea.width - bgpadding, activeArea.y + paginatorCellHeight }
-		paginatorRects[2] = { paginatorRects[1][1], activeArea.y + 2 * paginatorCellHeight, paginatorRects[1][3], activeArea.y + 3 * paginatorCellHeight }
+		prevButtonRect = Rect:new(
+			activeArea.x + 6 * cellSize,
+			activeArea.y + activeAreaMargin,
+			activeArea.xEnd - bgpadding,
+			activeArea.y + buttonHeight
+		)
+		nextButtonRect = Rect:new(
+			prevButtonRect.x,
+			activeArea.y + 2 * buttonHeight,
+			prevButtonRect.xEnd,
+			activeArea.y + 3 * buttonHeight
+		)
 
-		local paginatorWidth = paginatorRects[1][3] - paginatorRects[1][1]
+		local buttonWidth = prevButtonRect.xEnd - prevButtonRect.x
 
-		UiButton(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print(prevKeyText, paginatorRects[1][1] + paginatorWidth/2, paginatorRects[1][2] + (paginatorCellHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
-		UiButton(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print(nextKeyText, paginatorRects[2][1] + paginatorWidth/2, paginatorRects[2][2] + (paginatorCellHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
+		UiButton(prevButtonRect.x + cellPadding, prevButtonRect.y + cellPadding, prevButtonRect.xEnd - cellPadding, prevButtonRect.yEnd - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
+		font2:Print(prevKeyText, prevButtonRect.x + buttonWidth/2, prevButtonRect.y + (buttonHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
+		UiButton(nextButtonRect.x + cellPadding, nextButtonRect.y + cellPadding, nextButtonRect.xEnd - cellPadding, nextButtonRect.yEnd - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
+		font2:Print(nextKeyText, nextButtonRect.x + buttonWidth/2, nextButtonRect.y + (buttonHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
 
 		font2:Print("\255\245\245\245" .. currentPage .. "/" .. pages,
-			(paginatorRects[1][1] + paginatorRects[1][3]) * 0.5,
-			paginatorRects[1][4] + paginatorCellHeight * 0.5 - paginatorFontSize * 0.25, paginatorFontSize, "co")
+			(prevButtonRect.x + prevButtonRect.xEnd) * 0.5,
+			prevButtonRect.yEnd + buttonHeight * 0.5 - paginatorFontSize * 0.25, paginatorFontSize, "co")
 	else
-		local contentWidth = activeArea.width - activeArea.x
-		paginatorCellWidth = math_floor(contentWidth * 0.33)
+		local contentWidth = activeArea.xEnd - activeArea.x
+		local buttonWidth = math_floor(contentWidth * 0.33)
 
-		local prevButtonRect = Rect:new(activeArea.x + activeAreaMargin, activeArea.y, activeArea.x + paginatorCellWidth, activeArea.height - 3 * cellSize)
-		local nextButtonRect = Rect:new(activeArea.width - paginatorCellWidth, prevButtonRect.y, activeArea.width, prevButtonRect.height)
-		local buttonHeight = prevButtonRect.height - prevButtonRect.y
+		prevButtonRect = Rect:new(activeArea.x + activeAreaMargin, activeArea.y, activeArea.x + buttonWidth, activeArea.yEnd - 3 * cellSize)
+		nextButtonRect = Rect:new(activeArea.xEnd - buttonWidth, prevButtonRect.y, activeArea.xEnd, prevButtonRect.yEnd)
+		local buttonHeight = prevButtonRect.yEnd - prevButtonRect.y
 
-		UiButton(prevButtonRect.x + cellPadding, prevButtonRect.y + bgpadding, prevButtonRect.width + cellPadding, prevButtonRect.height - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print(prevKeyText, prevButtonRect.x + (paginatorCellWidth * 0.5), prevButtonRect.height - font2:GetTextHeight(prevKeyText) * paginatorFontSize * 0.25 - buttonHeight/2, paginatorFontSize, "co")
-		UiButton(nextButtonRect.x + cellPadding, nextButtonRect.y + bgpadding, nextButtonRect.width - cellPadding, nextButtonRect.height - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print(nextKeyText, nextButtonRect.x + (paginatorCellWidth * 0.5), nextButtonRect.height - font2:GetTextHeight(nextKeyText) * paginatorFontSize * 0.25 - buttonHeight/2, paginatorFontSize, "co")
+		UiButton(prevButtonRect.x + cellPadding, prevButtonRect.y + bgpadding, prevButtonRect.xEnd + cellPadding, prevButtonRect.yEnd - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
+		font2:Print(prevKeyText, prevButtonRect.x + (buttonWidth * 0.5), prevButtonRect.yEnd - font2:GetTextHeight(prevKeyText) * paginatorFontSize * 0.25 - buttonHeight/2, paginatorFontSize, "co")
+		UiButton(nextButtonRect.x + cellPadding, nextButtonRect.y + bgpadding, nextButtonRect.xEnd - cellPadding, nextButtonRect.yEnd - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
+		font2:Print(nextKeyText, nextButtonRect.x + (buttonWidth * 0.5), nextButtonRect.yEnd - font2:GetTextHeight(nextKeyText) * paginatorFontSize * 0.25 - buttonHeight/2, paginatorFontSize, "co")
 
 		local pagesText = currentPage .. " / " .. pages
-		font2:Print("\255\245\245\245" .. pagesText, contentWidth * 0.5, prevButtonRect.height - font2:GetTextHeight(pagesText) * paginatorFontSize * 0.25 - buttonHeight/2, paginatorFontSize, "co")
+		font2:Print("\255\245\245\245" .. pagesText, contentWidth * 0.5, prevButtonRect.yEnd - font2:GetTextHeight(pagesText) * paginatorFontSize * 0.25 - buttonHeight/2, paginatorFontSize, "co")
 	end
 end
 
@@ -1550,11 +1545,11 @@ local function drawBuildmenu()
 		if stickToBottom then
 			rows = 2
 			colls = 6
-			cellSize = math_floor((activeArea.height - activeArea.y) / rows)
+			cellSize = math_floor((activeArea.yEnd - activeArea.y) / rows)
 		else
 			rows = 3
 			colls = 4
-			cellSize = math_floor((activeArea.width - activeArea.x) / colls)
+			cellSize = math_floor((activeArea.xEnd - activeArea.x) / colls)
 		end
 
 		-- adjust grid size when pages are needed
@@ -1742,7 +1737,7 @@ function widget:DrawScreen()
 		end
 
 		local hovering = false
-		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		if math_isInRect(x, y, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd) then
 			Spring.SetMouseCursor('cursornormal')
 			hovering = true
 		end
@@ -1833,25 +1828,25 @@ function widget:DrawScreen()
 			local usedZoom
 			local cellColor
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
-				if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+				if math_isInRect(x, y, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd) then
 
 					-- paginator buttons
-					local paginatorHovered
-					if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
-						paginatorHovered = 1
+					local hoveredRect
+					if prevButtonRect.x and math_isInRect(x, y, prevButtonRect.x, prevButtonRect.y, prevButtonRect.xEnd, prevButtonRect.yEnd) then
+						hoveredRect = prevButtonRect
 					end
-					if paginatorRects[2] and math_isInRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
-						paginatorHovered = 2
+					if nextButtonRect.y and math_isInRect(x, y, nextButtonRect.x, nextButtonRect.y, nextButtonRect.xEnd, nextButtonRect.yEnd) then
+						hoveredRect = nextButtonRect
 					end
-					if paginatorHovered then
+					if hoveredRect then
 						if WG['tooltip'] then
-							local text = "\255\240\240\240" .. (paginatorHovered == 1 and Spring.I18N('ui.buildMenu.previousPage') or Spring.I18N('ui.buildMenu.nextPage'))
+							local text = "\255\240\240\240" .. (hoveredRect == prevButtonRect and Spring.I18N('ui.buildMenu.previousPage') or Spring.I18N('ui.buildMenu.nextPage'))
 							WG['tooltip'].ShowTooltip('buildmenu', text)
 						end
-						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 1, 1, 1, 0 }, { 1, 1, 1, (b and 0.35 or 0.15) })
+						RectRound(hoveredRect.x + cellPadding, hoveredRect.y + cellPadding, hoveredRect.xEnd - cellPadding, hoveredRect.yEnd - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 1, 1, 1, 0 }, { 1, 1, 1, (b and 0.35 or 0.15) })
 						-- gloss
-						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][4] - cellPadding - ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.5), paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.015 }, { 1, 1, 1, 0.13 })
-						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][2] + cellPadding + ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.33), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0 })
+						RectRound(hoveredRect.x + cellPadding, hoveredRect.yEnd - cellPadding - ((hoveredRect.yEnd - hoveredRect.y) * 0.5), hoveredRect.xEnd - cellPadding, hoveredRect.yEnd - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.015 }, { 1, 1, 1, 0.13 })
+						RectRound(hoveredRect.x + cellPadding, hoveredRect.y + cellPadding, hoveredRect.xEnd - cellPadding, hoveredRect.y + cellPadding + ((hoveredRect.yEnd - hoveredRect.y) * 0.33), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0 })
 					end
 
 					-- cells
@@ -2179,7 +2174,7 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if buildmenuShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if buildmenuShows and math_isInRect(x, y, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd) then
 		if selectedBuilder or selectedFactory or (preGamestartPlayer and startDefID) then
 			if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
 				currentPage = math_max(1, currentPage - 1)
