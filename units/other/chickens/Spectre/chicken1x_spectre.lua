@@ -35,6 +35,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 5,
 		maxwaterdepth = 0,
+		mincloakdistance = 50,
 		movementclass = "CHICKSMALLHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
