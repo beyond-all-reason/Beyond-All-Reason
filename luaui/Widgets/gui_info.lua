@@ -478,9 +478,6 @@ function widget:Initialize()
 				end
 			end
 		end
-
-		widgetHandler:RegisterGlobal('GetPreGameDefID', WG['buildmenu'].getPreGameDefID)
-		widgetHandler:RegisterGlobal('GetBuildQueue', WG['buildmenu'].getBuildQueue)
 	end
 
 	iconTypesMap = {}
@@ -513,8 +510,6 @@ function widget:Shutdown()
 		WG['guishader'].DeleteDlist('info')
 		dlistGuishader = nil
 	end
-	widgetHandler:DeregisterGlobal('GetPreGameDefID')
-	widgetHandler:DeregisterGlobal('GetBuildQueue')
 end
 
 local sec2 = 0
