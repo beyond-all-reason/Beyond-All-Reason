@@ -633,7 +633,8 @@ function widget:ViewResize()
 		backgroundRect = { posX, (posY - height) * vsy, posX2, posY * vsy }
 	else
 		width = 0.212
-		width = (0.14 * ui_scale) * 1.52
+		width = width / (vsx / vsy) * 1.78				-- make smaller for ultrawide screens
+		width = width * ui_scale
 
 		posY2 = math_floor(0.14 * ui_scale * vsy) / vsy
 		posY2 = posY2 + (widgetSpaceMargin/vsy)

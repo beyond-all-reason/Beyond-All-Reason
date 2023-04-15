@@ -525,7 +525,10 @@ function widget:ViewResize()
 		posX = math_floor(posX * vsx) / vsx
 
 		height = (posY - posY2)
-		width = (0.14 * ui_scale) * 1.52
+		width = 0.212
+
+		width = width / (vsx / vsy) * 1.78        -- make smaller for ultrawide screens
+		width = width * ui_scale
 
 		posX2 = math_floor(width * vsx)
 

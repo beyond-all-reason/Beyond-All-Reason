@@ -68,7 +68,7 @@ local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 local soundButton = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
 local uiOpacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local uiScale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local backgroundRect = {}
 local activeRect = {}
@@ -141,7 +141,7 @@ local function checkGuiShader(force)
 		end
 		if not displayListGuiShader then
 			displayListGuiShader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner * ui_scale, ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner * uiScale, ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
 			end)
 		end
 	elseif displayListGuiShader then
@@ -157,8 +157,8 @@ local function setupCellGrid(force)
 	local oldCols = cols
 	local oldRows = rows
 	local cmdCount = #commands
-	local addCol = ui_scale < 0.85 and -1 or 0
-	local addRow = ui_scale < 0.85 and 0 or 0
+	local addCol = uiScale < 0.85 and -1 or 0
+	local addRow = uiScale < 0.85 and 0 or 0
 	if cmdCount <= (4 + addCol) * (4 + addRow) then
 		cols = 4 + addCol
 		rows = 4 + addRow
@@ -183,7 +183,7 @@ local function setupCellGrid(force)
 	end
 
 	local sizeDivider = ((cols + rows) / 16)
-	cellMargin = (cellMarginOriginal / sizeDivider) * ui_scale
+	cellMargin = (cellMarginOriginal / sizeDivider) * uiScale
 
 	if force or oldCols ~= cols or oldRows ~= rows then
 		clickedCell = nil
@@ -263,8 +263,11 @@ end
 function widget:ViewResize()
 	viewSizeX, viewSizeY = Spring.GetViewGeometry()
 
-	height = 0.14 * ui_scale
-	width = (0.14 * ui_scale) * 1.52
+	width = 0.2125
+	height = 0.14 * uiScale
+
+	width = width / (viewSizeX / viewSizeY) * 1.78        -- make smaller for ultrawide screens
+	width = width * uiScale
 
 	-- make pixel aligned
 	width = math.floor(width * viewSizeX) / viewSizeX
