@@ -1,66 +1,5 @@
-local actionTypes = {
-	EnableTrigger = 1,
-	DisableTrigger = 2,
-	IssueOrders = 3,
-	AllowCommands = 4,
-	RestrictCommands = 5,
-	AlterBuildlist = 6,
-	EnableBuildOption = 7,
-	DisableBuildOption = 8,
-	SpawnUnits = 9,
-	SpawnConstruction = 10,
-	DespawnUnits = 11,
-	SpawnWeapons = 12,
-	SpawnEffects = 13,
-	RevealLOS = 14,
-	UnrevealLOS = 15,
-	AlterMapZones = 16,
-	TransferUnits = 17,
-	ControlCamera = 18,
-	Pause = 19,
-	Unpause = 20,
-	PlayMedia = 21,
-	SendMessage = 22,
-	Victory = 23,
-	Defeat = 24,
-}
-
-local parameters = {
-	[actionTypes.EnableTrigger] = {
-		triggerId = {
-			required = true,
-			type = 'string',
-		},
-	 },
-	[actionTypes.DisableTrigger] = {  },
-	[actionTypes.IssueOrders] = {  },
-	[actionTypes.AllowCommands] = {  },
-	[actionTypes.RestrictCommands] = {  },
-	[actionTypes.AlterBuildlist] = {  },
-	[actionTypes.EnableBuildOption] = {  },
-	[actionTypes.DisableBuildOption] = {  },
-	[actionTypes.SpawnUnits] = {  },
-	[actionTypes.SpawnConstruction] = {  },
-	[actionTypes.DespawnUnits] = {  },
-	[actionTypes.SpawnWeapons] = {  },
-	[actionTypes.SpawnEffects] = {  },
-	[actionTypes.RevealLOS] = {  },
-	[actionTypes.UnrevealLOS] = {  },
-	[actionTypes.AlterMapZones] = {  },
-	[actionTypes.TransferUnits] = {  },
-	[actionTypes.ControlCamera] = {  },
-	[actionTypes.Pause] = {  },
-	[actionTypes.Unpause] = {  },
-	[actionTypes.PlayMedia] = {  },
-	[actionTypes.SendMessage] = {
-		message = {
-			required = true,
-			type = 'string',
-		}
-	},
-	[actionTypes.Victory] = {  },
-	[actionTypes.Defeat] = {  },
-}
+local schema = VFS.Include('luarules/mission_api/actions_schema.lua')
+local parameters = schema.Parameters
 
 --[[
 	actionId = {
@@ -79,16 +18,16 @@ local function prevalidateActions()
 			Spring.Log('actions.lua', LOG.ERROR, "[Mission API] Action missing type: " .. actionId)
 		end
 
-		for parameterName, parameterOptions in pairs(parameters[action.type]) do
-			local value = action.parameters[parameterName]
+		for _, parameter in pairs(parameters[action.type]) do
+			local value = action.parameters[parameter.name]
 			local type = type(value)
 
-			if value == nil and parameterOptions.required then
-				Spring.Log('actopms.lua', LOG.ERROR, "[Mission API] Action missing required parameter. Action: " .. actionId .. ", Parameter: " .. parameterName)
+			if value == nil and parameter.required then
+				Spring.Log('actopms.lua', LOG.ERROR, "[Mission API] Action missing required parameter. Action: " .. actionId .. ", Parameter: " .. parameter.name)
 			end
 
-			if value ~= nil and type ~= parameterOptions.type then
-				Spring.Log('actopms.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameterOptions.type .. ", got " .. type .. ". Action: " .. actionId .. ", Parameter: " .. parameterName)
+			if value ~= nil and type ~= parameter.type then
+				Spring.Log('actopms.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameter.type .. ", got " .. type .. ". Action: " .. actionId .. ", Parameter: " .. parameter.name)
 			end
 		end
 	end
@@ -107,7 +46,6 @@ local function getActions()
 end
 
 return {
-	Types = actionTypes,
 	GetActions = getActions,
 	PreprocessRawActions = preprocessRawActions,
 }

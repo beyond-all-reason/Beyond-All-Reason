@@ -1,67 +1,5 @@
-local triggerTypes = {
-	TimeElapsed = 1,
-	UnitExists = 2,
-	UnitNotExists = 3,
-	ConstructionStarted = 4,
-	ConstructionFinished = 5,
-	UnitKilled = 6,
-	UnitCaptured = 7,
-	UnitResurrected = 8,
-	UnitEnteredLocation = 9,
-	UnitLeftLocation = 10,
-	UnitDwellLocation = 11,
-	UnitSpotted = 12,
-	UnitUnspotted = 13,
-	FeatureNotExists = 14,
-	FeatureReclaimed = 15,
-	FeatureDestroyed = 16,
-	ResourceStored = 17,
-	ResourceProduction = 18,
-	TotalUnitsLost = 19,
-	TotalUnitsBuilt = 20,
-	TotalUnitsKilled = 21,
-	TotalUnitsCaptured = 22,
-	TeamDestroyed = 23,
-	Victory = 24,
-	Defeat = 25,
-}
-
-local parameters = {
-	[triggerTypes.TimeElapsed] = {
-		gameFrame = {
-			required = true,
-			type = 'number',
-		},
-		offset = {
-			required = false,
-			type = 'number'
-		},
-	},
-	[triggerTypes.UnitExists] = {  },
-	[triggerTypes.UnitNotExists] = {  },
-	[triggerTypes.ConstructionStarted] = {  },
-	[triggerTypes.ConstructionFinished] = {  },
-	[triggerTypes.UnitKilled] = {  },
-	[triggerTypes.UnitCaptured] = {  },
-	[triggerTypes.UnitResurrected] = {  },
-	[triggerTypes.UnitEnteredLocation] = {  },
-	[triggerTypes.UnitLeftLocation] = {  },
-	[triggerTypes.UnitDwellLocation] = {  },
-	[triggerTypes.UnitSpotted] = {  },
-	[triggerTypes.UnitUnspotted] = {  },
-	[triggerTypes.FeatureNotExists] = {  },
-	[triggerTypes.FeatureReclaimed] = {  },
-	[triggerTypes.FeatureDestroyed] = {  },
-	[triggerTypes.ResourceStored] = {  },
-	[triggerTypes.ResourceProduction] = {  },
-	[triggerTypes.TotalUnitsLost] = {  },
-	[triggerTypes.TotalUnitsBuilt] = {  },
-	[triggerTypes.TotalUnitsKilled] = {  },
-	[triggerTypes.TotalUnitsCaptured] = {  },
-	[triggerTypes.TeamDestroyed] = {  },
-	[triggerTypes.Victory] = {  },
-	[triggerTypes.Defeat] = {  },
-}
+local schema = VFS.Include('luarules/mission_api/triggers_schema.lua')
+local parameters = schema.Parameters
 
 --[[
 	triggerId = {
@@ -94,16 +32,16 @@ local function prevalidateTriggers()
 			Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Trigger has no actions: " .. triggerId)
 		end
 
-		for parameterName, parameterOptions in pairs(parameters[trigger.type]) do
-			local value = trigger.parameters[parameterName]
+		for _, parameter in pairs(parameters[trigger.type]) do
+			local value = trigger.parameters[parameter.name]
 			local type = type(value)
 
-			if value == nil and parameterOptions.required then
-				Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Trigger missing required parameter. Trigger: " .. triggerId .. ", Parameter: " .. parameterName)
+			if value == nil and parameter.required then
+				Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Trigger missing required parameter. Trigger: " .. triggerId .. ", Parameter: " .. parameter.name)
 			end
 
-			if value ~= nil and type ~= parameterOptions.type then
-				Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameterOptions.type .. ", got " .. type .. ". Trigger: " .. triggerId .. ", Parameter: " .. parameterName)
+			if value ~= nil and type ~= parameter.type then
+				Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameter.type .. ", got " .. type .. ". Trigger: " .. triggerId .. ", Parameter: " .. parameter.name)
 			end
 		end
 	end
@@ -151,7 +89,6 @@ local function getTriggers()
 end
 
 return {
-	Types = triggerTypes,
 	GetTriggers = getTriggers,
 	PreprocessRawTriggers = preprocessRawTriggers,
 	PostprocessTriggers = postprocessTriggers,

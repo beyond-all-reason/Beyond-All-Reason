@@ -13,6 +13,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local scriptPath
+local triggersController, actionsController
 local rawTriggers, rawActions
 
 local function loadMission()
@@ -20,13 +21,13 @@ local function loadMission()
 	rawTriggers = mission.Triggers
 	rawActions = mission.Actions
 
-	GG['MissionAPI'].TriggersController.PreprocessRawTriggers(rawTriggers)
-	GG['MissionAPI'].ActionsController.PreprocessRawActions(rawActions)
+	triggersController.PreprocessRawTriggers(rawTriggers)
+	actionsController.PreprocessRawActions(rawActions)
 
-	GG['MissionAPI'].Triggers = GG['MissionAPI'].TriggersController.GetTriggers()
-	GG['MissionAPI'].Actions = GG['MissionAPI'].ActionsController.GetActions()
+	GG['MissionAPI'].Triggers = triggersController.GetTriggers()
+	GG['MissionAPI'].Actions = actionsController.GetActions()
 
-	GG['MissionAPI'].TriggersController.PostprocessTriggers()
+	triggersController.PostprocessTriggers()
 end
 
 function gadget:Initialize()
@@ -40,12 +41,16 @@ function gadget:Initialize()
 
 	GG['MissionAPI'] = {}
 	GG['MissionAPI'].Difficulty = Spring.GetModOptions().mission_difficulty --TODO: add mission difficulty modoption
-	GG['MissionAPI'].TriggersController = VFS.Include('luarules/mission_api/triggers.lua')
-	GG['MissionAPI'].ActionsController = VFS.Include('luarules/mission_api/actions.lua')
+
+	local triggersSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
+	local actionsSchema = VFS.Include('luarules/mission_api/actions_schema.lua')
+	GG['MissionAPI'].TriggerTypes = triggersSchema.Types
+	GG['MissionAPI'].ActionTypes = actionsSchema.Types
+
+	triggersController = VFS.Include('luarules/mission_api/triggers.lua')
+	actionsController = VFS.Include('luarules/mission_api/actions.lua')
 
 	loadMission();
-
-	GG['MissionAPI'].ActionsDispatcher = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
 end
 
 function gadget:Shutdown()

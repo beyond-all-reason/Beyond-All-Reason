@@ -1,4 +1,6 @@
-local types = GG['MissionAPI'].ActionsController.Types
+local actionsSchema = VFS.Include('luarules/mission_api/actions_schema.lua')
+local parameterSchema = actionsSchema.Parameters
+local types = GG['MissionAPI'].ActionTypes
 local actions = GG['MissionAPI'].Actions
 
 local function sendMessage(message)
@@ -27,21 +29,18 @@ local typeMapping = {
 	-- types.Pause = ,
 	-- types.Unpause = ,
 	-- types.PlayMedia = ,
-	[types.SendMessage] = {
-		actionFunction = sendMessage,
-		parameters = { 'message' }
-	}
+	[types.SendMessage] = sendMessage,
 	-- types.Victory = ,
 	-- types.Defeat = ,
 }
 
 local function invoke(actionId)
 	local type = actions[actionId].type
-	local actionFunction = typeMapping[type].actionFunction
+	local actionFunction = typeMapping[type]
 	local parameters = {}
 
-	for _, parameterName in ipairs(typeMapping[type].parameters) do
-		table.insert(parameters, actions[actionId].parameters[parameterName])
+	for _, parameter in ipairs(parameterSchema[type]) do
+		table.insert(parameters, actions[actionId].parameters[parameter.name])
 	end
 
 	actionFunction(unpack(parameters))

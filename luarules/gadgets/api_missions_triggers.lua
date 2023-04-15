@@ -12,6 +12,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local actionsDispatcher
+
 local types, timeTypes, unitTypes, featureTypes, gameTypes
 local triggers, timeTriggers, unitTriggers, featureTriggers, gameTriggers
 
@@ -83,7 +85,7 @@ local function activateTrigger(trigger)
 	trigger.repeatCount = trigger.repeatCount + 1
 
 	for _, actionId in ipairs(trigger.actions) do
-		GG['MissionAPI'].ActionsDispatcher.Invoke(actionId)
+		actionsDispatcher.Invoke(actionId)
 	end
 end
 
@@ -93,7 +95,8 @@ function gadget:Initialize()
 		return
 	end
 
-	types = GG['MissionAPI'].TriggersController.Types
+	actionsDispatcher = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
+	types = GG['MissionAPI'].TriggerTypes
 	triggers = GG['MissionAPI'].Triggers
 end
 
