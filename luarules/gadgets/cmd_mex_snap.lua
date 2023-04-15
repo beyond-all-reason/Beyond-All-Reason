@@ -339,6 +339,7 @@ function gadget:DrawWorld()
 	end
 end
 
+-- NOTE: this can deny commands but fails to execute new (changed) orders from within unsynced
 function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if not isMex[-cmdID] or cmdOpts.mexsnap then
 		return

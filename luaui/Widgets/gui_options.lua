@@ -5761,6 +5761,9 @@ function widget:Initialize()
 		widgetHandler:EnableWidget("Infolos API")
 	end
 
+	if widgetHandler.orderList["Mex Snap"] and widgetHandler.orderList["Mex Snap"] < 0.5 then
+		widgetHandler:EnableWidget("Mex Snap")
+	end
 	-- set nano particle rotation: rotValue, rotVelocity, rotAcceleration, rotValueRNG, rotVelocityRNG, rotAccelerationRNG (in degrees)
 	Spring.SetNanoProjectileParams(-180, -50, -50, 360, 100, 100)
 
