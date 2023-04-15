@@ -70,55 +70,42 @@ local PRIVATE = { private = true }
 local CMD_WAIT = CMD.WAIT
 local EMPTY_TABLE = {}
 
-local noCreate = false
-
-local spawnDefs = {}
-local shieldCollide = {}
-local wantedList = {}
-
-local spawnList = {} -- [index] = {.spawnDef, .teamID, .x, .y, .z, .ownerID}, subtables reused
-local spawnCount = 0
 
 
-GG.carrierDockingList = {} -- [index] = {.spawnDef, .teamID, .x, .y, .z, .ownerID}, subtables reused
-GG.carrierQueuedDockingCount = 0
-local previousHealFrame = 0
 
 
 local evolutionMetaList = {}
-GG.droneMetaList = {}
+
 
 
 local TIMER_CHECK_FREQUENCY = 30 -- gameframes
 
 
-local coroutine = coroutine
-local Sleep     = coroutine.yield
-local assert    = assert
 
 
 
---TEMPORARY
-local healcount = 0
-local heallist = {}
-local totalDroneCount = 0
+
+--messages[1] = textColor .. Spring.I18N('ui.chickens.wave1', {waveNumber = chickenEventArgs.waveCount})
+
+
+
 
 -- ZECRUS, values can be tuned in the unitdef file. Add the section below to the unitdef list in the unitdef file.
 --customparams = {
-	--	-- Required:				
-	-- evolution_target = "unitname"    Name of the unit this unit will evolve into. 
-	
-	
+	--	-- Required:
+	-- evolution_target = "unitname"    Name of the unit this unit will evolve into.
+
+
 	--	-- Optional:
 	-- evolution_announcement = "Unit Evolved",  Announcement printed when the unit is evolved. Currently using the Spring.Echo function.
-	
+
 	--	-- Has a default value, as indicated, if not chosen:
-	-- evolution_condition = "timer"    condition type for the evolution. 
-	-- evolution_timer = 600, 			set the timer used for the timer condition. Given in secons from when the unit was created. 
-	-- combatradius = 1000,				Range for setting in-combat status if enemies are within range, and disabling evolution while in-combat. 
-	
-	
-	-- },							 
+	-- evolution_condition = "timer"    condition type for the evolution.
+	-- evolution_timer = 600, 			set the timer used for the timer condition. Given in secons from when the unit was created.
+	-- combatradius = 1000,				Range for setting in-combat status if enemies are within range, and disabling evolution while in-combat.
+
+
+	-- },
 
 
 
@@ -143,35 +130,39 @@ function Evolve(unitID, newUnit)
 	if newUnitID then
 		if evolutionMetaList[unitID].evolution_announcement then
 			spEcho(evolutionMetaList[unitID].evolution_announcement)
+			-- font2 = WG['fonts'].getFont(fontfile2)
+			-- font2:Begin()
+			-- font2:Print("test", 50, 40, 25, "co")
+			-- font2:End()
 		end
-	
+
 		spSetUnitRulesParam(unitID, "disable_tombstone", "disabled", PRIVATE)
-		
+
 		SendToUnsynced("unit_evolve_finished", unitID, newUnitID)
 		spDestroyUnit(unitID, false, true)
 		spSetUnitHealth(newUnitID, health)
 		spSetUnitExperience(newUnitID, experience)
 		spSetUnitStockpile(newUnitID, stockpile, stockpilebuildpercent)
 		spSetUnitDirection(newUnitID, dx, dy, dz)
-	
+
 		if commandQueue[1] then
 			for _,command in pairs(commandQueue) do
 				spGiveOrderToUnit(newUnitID, command.id, command.params, command.options)
 			end
 		end
-		
-	
+
+
 		spGiveOrderToUnit(newUnitID, CMD.FIRE_STATE, { states.firestate },             { })
 		spGiveOrderToUnit(newUnitID, CMD.MOVE_STATE, { states.movestate },             { })
 		spGiveOrderToUnit(newUnitID, CMD.REPEAT,     { states["repeat"] and 1 or 0 },  { })
 		spGiveOrderToUnit(newUnitID, CMD.CLOAK,      { states.cloak     and 1 or 0 },  { })
 		spGiveOrderToUnit(newUnitID, CMD.ONOFF,      { 1 },                            { })
 		spGiveOrderToUnit(newUnitID, CMD.TRAJECTORY, { states.trajectory and 1 or 0 }, { })
-		  
+
 	end
 
 
-	
+
 end
 
 
@@ -198,9 +189,9 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
 
 
 
-	if evolutionMetaList[unitID] and (cmdID == CMD.STOP) then
-		Evolve(unitID, evolutionMetaList[unitID].evolution_target)
-	end
+	-- if evolutionMetaList[unitID] and (cmdID == CMD.STOP) then
+	-- 	Evolve(unitID, evolutionMetaList[unitID].evolution_target)
+	-- end
 end
 
 function gadget:UnitDestroyed(unitID)
@@ -249,6 +240,41 @@ else
 local spSelectUnitArray = Spring.SelectUnitArray
 local spGetSelectedUnits = Spring.GetSelectedUnits
 
+-- --TEMPORARY
+-- --local font, font2
+-- local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+
+-- --local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
+
+-- local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+-- local vsx, vsy = Spring.GetViewGeometry()
+-- local fontfileScale = (1 + (vsx * vsy / 5700000))
+-- local fontfileSize = 25
+-- local fontfileOutlineSize = 6
+-- local fontfileOutlineStrength = 1.3
+-- local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
+-- local displayList
+
+
+-- local function Draw(xpos,ypos)
+-- 	local vsx, vsy = Spring.GetViewGeometry()
+-- 	local viewSizeX, viewSizeY = gl.GetViewSizes()
+-- 	local uiScale = (0.7 + (vsx * vsy / 6500000))
+-- 	Spring.Echo("Draw")
+-- 	displayList = gl.CreateList(function()
+-- 		font:Begin()
+-- 		font:SetTextColor(1, 1, 1)
+-- 		font:Print(123, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
+-- 		font:Print(1234, viewSizeX / 2, viewSizeY / 2, 1000, "co")
+-- 		font:Print(12345, xpos, ypos, 1000, "co")
+-- 		font:End()
+-- 	end)
+
+-- 	gl.CallList(displayList)
+-- 	-- font:Begin()
+-- 	-- font:Print("test", 50, 40, 25, "co")
+-- 	-- font:End()
+-- end
 
 local function SelectSwap(cmd, oldID, newID)
 	local selUnits = spGetSelectedUnits()
@@ -260,15 +286,34 @@ local function SelectSwap(cmd, oldID, newID)
 		break
 	  end
 	end
+	--Draw(100,500)
 end
+
+-- function gadget:DrawWorld()
+-- 	if Spring.IsGUIHidden() then
+-- 		return
+-- 	end
+-- 	Spring.Echo("DrawWorld")
+-- 	Draw(1000,1000)
+-- end
 
 function gadget:Initialize()
 	gadgetHandler:AddSyncAction("unit_evolve_finished", SelectSwap)
+	-- local w = 300
+	-- local h = 210
+	-- displayList = gl.CreateList(function()
+	-- 	gl.Blending(true)
+	-- 	gl.Color(1, 1, 1, 1)
+	-- 	gl.Texture(1, "LuaUI/images/gradient_alpha_2.png")
+	-- 	--gl.Texture(panelTexture)
+	-- 	gl.TexRect(0, 0, w, h)
+	-- end)
 
 end
 
 function gadget:Shutdown()
 	gadgetHandler:RemoveSyncAction("unit_evolve_finished")
+	--gl.DeleteList(displayList)
 end
 
 end
