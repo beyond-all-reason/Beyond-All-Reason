@@ -65,7 +65,7 @@ local function triggerValid(trigger)
 	end
 
 	if trigger.triggered and not trigger.settings.repeating then return false end
-	if trigger.settings.repeating and trigger.repeatCount > trigger.settings.maxRepeats then return false end
+	if trigger.settings.repeating and trigger.settings.maxRepeats ~= nil and trigger.repeatCount > trigger.settings.maxRepeats then return false end
 	if trigger.settings.difficulties ~= nil and not trigger.settings.difficulties[GG['MissionAPI'].Difficulty] then return false end
 
 	--[[
@@ -106,7 +106,7 @@ function gadget:GameFrame(n)
 			local gameframe = trigger.parameters.gameFrame
 			local interval = trigger.parameters.interval
 			
-			if n == gameframe or (trigger.settings.repeating and n > gameframe and interval % (n - gameframe) == 0) then
+			if n == gameframe or (trigger.settings.repeating and n > gameframe and (n - gameframe) % interval == 0) then
 				activateTrigger(trigger)
 			end
 		end
