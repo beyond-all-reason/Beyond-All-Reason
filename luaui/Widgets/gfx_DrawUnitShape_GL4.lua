@@ -228,9 +228,10 @@ local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, team
 	-- returns: a unique handler ID number that you should store and call StopDrawUnitGL4(uniqueID) with to stop drawing it
 	-- note that widgets are responsible for stopping the drawing of every unit that they submit!
 
-
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+
 	uniqueID = uniqueID + 1
+
 	teamID = teamID or 256
 	--teamID = Spring.GetUnitTeam(unitID)
 	highlight = highlight or 0
@@ -288,7 +289,6 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 	elseif armUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = armDrawUnitShapeVBOTable
 	else
 		Spring.Echo("The given unitDefID", unitDefID, "is neither arm nor cor, only those two are supported at the moment")
-
 		Spring.Debug.TraceFullEcho(nil,nil,nil,"DrawUnitGL4")
 		return nil
 	end
@@ -446,13 +446,19 @@ function widget:Initialize()
 	WG['StopDrawUnitShapeGL4'] = StopDrawUnitShapeGL4
 	WG['armDrawUnitShapeVBOTable'] = armDrawUnitShapeVBOTable
 	WG['corDrawUnitShapeVBOTable'] = corDrawUnitShapeVBOTable
+	widgetHandler:RegisterGlobal('DrawUnitGL4', DrawUnitGL4)
+	widgetHandler:RegisterGlobal('DrawUnitShapeGL4', DrawUnitShapeGL4)
+	widgetHandler:RegisterGlobal('StopDrawUnitGL4', StopDrawUnitGL4)
+	widgetHandler:RegisterGlobal('StopDrawUnitShapeGL4', StopDrawUnitShapeGL4)
+	widgetHandler:RegisterGlobal('armDrawUnitShapeVBOTable', armDrawUnitShapeVBOTable)
+	widgetHandler:RegisterGlobal('corDrawUnitShapeVBOTable', corDrawUnitShapeVBOTable)
 end
 
 
 function widget:Shutdown()
 	for i,VBOTable in ipairs(VBOTables) do
-		if VBOTable.VAO then 
-			if Spring.Utilities.IsDevMode() then 
+		if VBOTable.VAO then
+			if Spring.Utilities.IsDevMode() then
 				dumpAndCompareInstanceData(VBOTable)
 			end
 			VBOTable.VAO:Delete()
@@ -467,6 +473,12 @@ function widget:Shutdown()
 	WG['StopDrawUnitShapeGL4'] = nil
 	WG['armDrawUnitShapeVBOTable'] = nil
 	WG['corDrawUnitShapeVBOTable'] = nil
+	widgetHandler:DeregisterGlobal('DrawUnitGL4')
+	widgetHandler:DeregisterGlobal('DrawUnitShapeGL4')
+	widgetHandler:DeregisterGlobal('StopDrawUnitGL4')
+	widgetHandler:DeregisterGlobal('StopDrawUnitShapeGL4')
+	widgetHandler:DeregisterGlobal('armDrawUnitShapeVBOTable')
+	widgetHandler:DeregisterGlobal('armDrawUnitShapeVBOTable')
 end
 
 function widget:DrawWorldPreUnit() -- this is for UnitDef

@@ -1,4 +1,4 @@
-local base, pad, head1, head2, nano1, nano2, nano3, nano4, center1, center2, side1, side2,mount1,mount2 = piece("base", "pad", "head1", "head2", "nano1", "nano2", "nano3", "nano4", "center1", "center2", "side1", "side2","mount1","mount2");
+local base, pad, head1, head2, nano1, nano2, nano3, nano4, center1, center2, side1, side2, mount1, mount2, cagelight, cagelight_emit, cagelight2, cagelight_emit2 = piece("base", "pad", "head1", "head2", "nano1", "nano2", "nano3", "nano4", "center1", "center2", "side1", "side2", "mount1", "mount2", "cagelight", "cagelight_emit", "cagelight2", "cagelight_emit2");
 
 local spray = 0;
 
@@ -42,6 +42,8 @@ function script.Create()
 	Hide(nano2);
 	Hide(nano3);
 	Hide(nano4);
+	Hide(cagelight_emit);
+	Hide(cagelight_emit2);
 	spray = 0;
 	UnitScript.StartThread(smoke_unit, base);
 end
@@ -110,6 +112,10 @@ function script.StartBuilding()
 	Show(nano2);
 	Show(nano3);
 	Show(nano4);
+	Show(cagelight_emit);
+	Show(cagelight_emit2);
+	Spin(cagelight_emit, y_axis,4);
+	Spin(cagelight_emit2, y_axis,4);
 	UnitScript.Signal(SIG_BUILD);
 	UnitScript.StartThread(Build)
 end
@@ -122,6 +128,10 @@ function script.StopBuilding()
 	Hide(nano3);
 	Hide(nano4);
 	UnitScript.Signal(SIG_BUILD);
+	Hide(cagelight_emit);
+	Hide(cagelight_emit2);
+	Turn(cagelight_emit, y_axis,0,15);
+	Turn(cagelight_emit2, y_axis,0,15);
 
 	UnitScript.Move(mount1, z_axis, 0, 24);
 	UnitScript.Turn(head1 , y_axis, 0, math.rad(36) );

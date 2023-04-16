@@ -1042,22 +1042,30 @@ if gadgetHandler:IsSyncedCode() then
 					if queenResistance[attackerDefID].notify == 0 then
 						chickenEvent("queenResistance", attackerDefID)
 						queenResistance[attackerDefID].notify = 1
+						if SetCount(spawnQueue) == 0 and mRandom() < config.spawnChance then
+							Wave()
+							timeOfLastWave = t
+						end
 						if mRandom() < config.spawnChance then
-							if mRandom() < config.spawnChance then
-								SpawnRandomOffWaveSquad(queenID, config.chickenHealers[mRandom(1,#config.chickenHealers)], 5)
-							end
-							if mRandom() < config.spawnChance then
-								SpawnRandomOffWaveSquad(queenID)
-							end
-							if mRandom() < config.spawnChance then
-								SpawnRandomOffWaveSquad(queenID)
-							end
-							if mRandom() < config.spawnChance then
-								SpawnRandomOffWaveSquad(queenID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
-							end
-							for i = 1, SetCount(humanTeams)*2 do
-								table.insert(spawnQueue, { burrow = queenID, unitName = config.chickenHealers[mRandom(1,#config.chickenHealers)], team = chickenTeamID})
-							end
+							SpawnRandomOffWaveSquad(queenID, config.chickenHealers[mRandom(1,#config.chickenHealers)], SetCount(humanTeams)*10)
+						end
+						if mRandom() < config.spawnChance then
+							SpawnRandomOffWaveSquad(queenID)
+							SpawnRandomOffWaveSquad(queenID)
+							SpawnRandomOffWaveSquad(queenID)
+						end
+						if mRandom() < config.spawnChance then
+							SpawnRandomOffWaveSquad(queenID)
+							SpawnRandomOffWaveSquad(queenID)
+							SpawnRandomOffWaveSquad(queenID)
+						end
+						if mRandom() < config.spawnChance then
+							SpawnRandomOffWaveSquad(queenID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
+							SpawnRandomOffWaveSquad(queenID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
+							SpawnRandomOffWaveSquad(queenID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
+						end
+						for i = 1, SetCount(humanTeams)*2 do
+							table.insert(spawnQueue, { burrow = queenID, unitName = config.chickenHealers[mRandom(1,#config.chickenHealers)], team = chickenTeamID})
 						end
 					end
 					damage = damage - (damage * resistPercent)
@@ -1316,9 +1324,14 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				Spring.SetGameRulesParam("BossFightStarted", 1)
+				Spring.SetUnitAlwaysVisible(queenID, true)
 			end
 		else
 			if mRandom() < config.spawnChance / 15 then
+				if SetCount(spawnQueue) == 0 and mRandom() < config.spawnChance then
+					Wave()
+					timeOfLastWave = t
+				end
 				SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
 				SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
 				SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
@@ -1605,6 +1618,10 @@ if gadgetHandler:IsSyncedCode() then
 			local chickens = GetTeamUnits(chickenTeamID)
 			for i = 1,#chickens do
 				if mRandom(1,math.ceil((100*math.max(1, Spring.GetTeamUnitDefCount(chickenTeamID, Spring.GetUnitDefID(chickens[i])))))) == 1 and mRandom() < config.spawnChance then
+					SpawnMinions(chickens[i], Spring.GetUnitDefID(chickens[i]))
+					SpawnMinions(chickens[i], Spring.GetUnitDefID(chickens[i]))
+					SpawnMinions(chickens[i], Spring.GetUnitDefID(chickens[i]))
+					SpawnMinions(chickens[i], Spring.GetUnitDefID(chickens[i]))
 					SpawnMinions(chickens[i], Spring.GetUnitDefID(chickens[i]))
 				end
 				if mRandom(1,60) == 1 then 

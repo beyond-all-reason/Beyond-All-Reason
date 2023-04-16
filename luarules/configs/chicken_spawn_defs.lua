@@ -16,11 +16,11 @@ local chickenTurrets
 if not Spring.GetModOptions().unit_restrictions_nonukes then
 	chickenTurrets = {
 		["chicken_turrets"] 			= { minQueenAnger = 0, 		spawnedPerWave = 4,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
-		["chicken_turrets_antiair"] 	= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
+		["chicken_turrets_antiair"] 	= { minQueenAnger = 0, 		spawnedPerWave = 4,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
 		["chicken_turrets_acid"] 		= { minQueenAnger = 25, 	spawnedPerWave = 2,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
 		["chicken_turrets_electric"] 	= { minQueenAnger = 25, 	spawnedPerWave = 2,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
 		["chicken_turretl"] 			= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
-		["chicken_turretl_antiair"] 	= { minQueenAnger = 50, 	spawnedPerWave = 1,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
+		["chicken_turretl_antiair"] 	= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
 		["chicken_turretl_acid"] 		= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
 		["chicken_turretl_electric"] 	= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
 		["chicken_turretxl_meteor"]		= { minQueenAnger = 75, 	spawnedPerWave = 2,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
@@ -28,11 +28,11 @@ if not Spring.GetModOptions().unit_restrictions_nonukes then
 else
 	chickenTurrets = {
 		["chicken_turrets"] 			= { minQueenAnger = 0, 		spawnedPerWave = 4,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
-		["chicken_turrets_antiair"] 	= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
+		["chicken_turrets_antiair"] 	= { minQueenAnger = 0, 		spawnedPerWave = 4,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
 		["chicken_turrets_acid"] 		= { minQueenAnger = 25, 	spawnedPerWave = 2,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
 		["chicken_turrets_electric"] 	= { minQueenAnger = 25, 	spawnedPerWave = 2,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
 		["chicken_turretl"] 			= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
-		["chicken_turretl_antiair"] 	= { minQueenAnger = 50, 	spawnedPerWave = 1,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
+		["chicken_turretl_antiair"] 	= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
 		["chicken_turretl_acid"] 		= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
 		["chicken_turretl_electric"] 	= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
 	}
@@ -142,6 +142,18 @@ chickenBehaviours = {
 		[UnitDefNames["chickens2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["chickena1_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["chickena2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chicken_miniqueen_spectre"].id] = {distance = 500, chance = 0.01, teleport = true, teleportcooldown = 2 },
+		[UnitDefNames["chicken_miniqueen_electric"].id] = {distance = 500, chance = 0.01 },
+		[UnitDefNames["chicken_miniqueen_acid"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["chicken_miniqueen_healer"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["chicken_miniqueen_basic"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["chicken_miniqueen_fire"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["ve_chickenq"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["e_chickenq"].id] = { distance = 500, chance = 0.05 },
+		[UnitDefNames["n_chickenq"].id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames["h_chickenq"].id] = { distance = 500, chance = 0.2 },
+		[UnitDefNames["vh_chickenq"].id] = { distance = 500, chance = 0.3 },
+		[UnitDefNames["epic_chickenq"].id] = { distance = 500, chance = 0.5 },
 	},
 	COWARD = { -- Run away from target after getting hit by enemy
 		[UnitDefNames["chickenh1"].id] = { distance = 500, chance = 1 },
@@ -161,14 +173,20 @@ chickenBehaviours = {
 		[UnitDefNames["chickens2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["chickena1_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["chickena2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chicken_miniqueen_spectre"].id] = { distance = 500, chance = 0.01, teleport = true, teleportcooldown = 2 },
+		[UnitDefNames["chicken_miniqueen_electric"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["chicken_miniqueen_acid"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["chicken_miniqueen_healer"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["chicken_miniqueen_basic"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["chicken_miniqueen_fire"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["ve_chickenq"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["e_chickenq"].id] = { distance = 500, chance = 0.05 },
+		[UnitDefNames["n_chickenq"].id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames["h_chickenq"].id] = { distance = 500, chance = 0.2 },
+		[UnitDefNames["vh_chickenq"].id] = { distance = 500, chance = 0.3 },
+		[UnitDefNames["epic_chickenq"].id] = { distance = 500, chance = 0.5 },
 	},
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
-		[UnitDefNames["ve_chickenq"].id] = { chance = 0.01 },
-		[UnitDefNames["e_chickenq"].id] = { chance = 0.05 },
-		[UnitDefNames["n_chickenq"].id] = { chance = 0.1 },
-		[UnitDefNames["h_chickenq"].id] = { chance = 0.2 },
-		[UnitDefNames["vh_chickenq"].id] = { chance = 0.3 },
-		[UnitDefNames["epic_chickenq"].id] = { chance = 0.5 },
 		[UnitDefNames["chickens2"].id] = {chance = 0.2, distance = 750},
 		[UnitDefNames["chickena1"].id] = { chance = 0.2, distance = 1500 },
 		[UnitDefNames["chickena1b"].id] = { chance = 0.2, distance = 1500 },
@@ -195,12 +213,6 @@ chickenBehaviours = {
 		[UnitDefNames["chickena1_spectre"].id] = { distance = 1000, chance = 0.25},
 		[UnitDefNames["chickena2_spectre"].id] = { distance = 1000, chance = 0.25},
 		[UnitDefNames["chickens2_spectre"].id] = { distance = 1000, chance = 0.25},
-		[UnitDefNames["chicken_miniqueen_spectre"].id] = { chance = 1 },
-		[UnitDefNames["chicken_miniqueen_electric"].id] = { chance = 1 },
-		[UnitDefNames["chicken_miniqueen_acid"].id] = { chance = 1 },
-		[UnitDefNames["chicken_miniqueen_healer"].id] = { chance = 1 },
-		[UnitDefNames["chicken_miniqueen_basic"].id] = { chance = 1 },
-		[UnitDefNames["chicken_miniqueen_fire"].id] = { chance = 1 },
 	},
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and queen
 		[UnitDefNames["chickenh1"].id] = true,
@@ -417,15 +429,10 @@ local chickenMinions = { -- Units spawning other units
 		"chickena2_spectre",
 	},
 	["chickenh2"] = {
-		"chickenh2",
 		"chickenh3",
 		"chickenh4",
 	},
 	["chickenh3"] = {
-		"chickenh3",
-		"chickenh4",
-	},
-	["chickenh4"] = {
 		"chickenh4",
 	},
 	["ve_chickenq"] = {
@@ -587,24 +594,28 @@ addNewSquad({ type = "special", minAnger = 100, units = { "2 chickenearty2" } })
 addNewSquad({ type = "special", minAnger = 100, units = { "2 chickenacidartyxl" } })
 
 for j = 1, #miniBosses do
-	addNewSquad({ type = "special", minAnger = 90, units = { "1 " .. miniBosses[j] }, weight = 3 })
+	addNewSquad({ type = "special", minAnger = 60, units = { "1 " .. miniBosses[j] }})
+	addNewSquad({ type = "special", minAnger = 70, units = { "1 " .. miniBosses[j] }})
+	addNewSquad({ type = "special", minAnger = 80, units = { "1 " .. miniBosses[j] }})
+	addNewSquad({ type = "special", minAnger = 90, units = { "1 " .. miniBosses[j] }})
+	addNewSquad({ type = "special", minAnger = 100, units = { "1 " .. miniBosses[j], "1 " .. miniBosses[math.random(1,#miniBosses)], "1 " .. miniBosses[math.random(1,#miniBosses)] }, weight = 10 })
 end
 
 ---------
 -- Air --
 ---------
 
-local airStartAnger = 5 -- needed for air waves to work correctly.
+local airStartAnger = 20 -- needed for air waves to work correctly.
 
-addNewSquad({ type = "air", minAnger = 5, units = { "4 chickenw1_mini" }, maxAnger = 50 })
-addNewSquad({ type = "air", minAnger = 5, units = { "4 chickenf1_mini" }, maxAnger = 50 })
+addNewSquad({ type = "air", minAnger = 20, units = { "4 chickenw1_mini" } })
+addNewSquad({ type = "air", minAnger = 20, units = { "4 chickenf1_mini" } })
 
-addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1", }, maxAnger = 90 })
-addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1b", }, maxAnger = 90 })
-addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1c", }, maxAnger = 90 })
-addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1d", }, maxAnger = 90 })
-addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenf1", }, maxAnger = 90, weight = 2 })
-addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenf1b", }, maxAnger = 90, weight = 2 })
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1", } })
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1b", } })
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1c", } })
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1d", } })
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenf1", }, weight = 2 })
+addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenf1b", }, weight = 2 })
 
 addNewSquad({ type = "air", minAnger = 60, units = { "4 chickenebomber1" } })
 addNewSquad({ type = "air", minAnger = 60, units = { "4 chickenacidbomber" } })
@@ -613,15 +624,15 @@ addNewSquad({ type = "air", minAnger = 70, units = { "10 chicken_dodoair" } })
 
 addNewSquad({ type = "air", minAnger = 80, units = { "2 chickenf1apex" } })
 addNewSquad({ type = "air", minAnger = 80, units = { "2 chickenf1apexb" } })
-addNewSquad({ type = "air", minAnger = 80, units = { "6 chickenw2" } })
+addNewSquad({ type = "air", minAnger = 80, units = { "6 chickenw2" }, weight = 5 })
 
 addNewSquad({ type = "air", minAnger = 90, units = { "4 chickenf1apex" } })
 addNewSquad({ type = "air", minAnger = 90, units = { "4 chickenf1apexb" } })
-addNewSquad({ type = "air", minAnger = 90, units = { "12 chickenw2" } })
+addNewSquad({ type = "air", minAnger = 90, units = { "12 chickenw2" }, weight = 5 })
 
 addNewSquad({ type = "air", minAnger = 100, units = { "6 chickenf1apex" } })
 addNewSquad({ type = "air", minAnger = 100, units = { "6 chickenf1apexb" } })
-addNewSquad({ type = "air", minAnger = 100, units = { "18 chickenw2" } })
+addNewSquad({ type = "air", minAnger = 100, units = { "18 chickenw2" }, weight = 5 })
 addNewSquad({ type = "air", minAnger = 100, units = { "10 chicken_dodoair" } })
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

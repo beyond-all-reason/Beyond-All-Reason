@@ -394,7 +394,7 @@ function drawChatInput()
 			local x,y,_ = Spring.GetMouseState()
 			local chatlogHeightDiff = 0
 			local inputFontSize = floor(usedFontSize * 1.03)
-			local inputHeight = floor(inputFontSize * 2.3)
+			local inputHeight = floor(inputFontSize * 2.15)
 			local leftOffset = floor(lineHeight*0.7)
 			local distance = 0 --elementMargin
 			local usedFont = inputMode == '' and font3 or font
@@ -3075,7 +3075,7 @@ function init()
 		-- INTERFACE
 		{ id = "label_ui_interface", group = "ui", name = Spring.I18N('ui.settings.option.label_interface'), category = types.basic },
 		{ id = "label_ui_interface_spacer", group = "ui", category = types.basic },
-		{ id = "uiscale", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.interface') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.uiscale'), type = "slider", min = 0.8, max = 1.15, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
+		{ id = "uiscale", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.interface') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.uiscale'), type = "slider", min = 0.8, max = 1.3, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)
@@ -5761,6 +5761,9 @@ function widget:Initialize()
 		widgetHandler:EnableWidget("Infolos API")
 	end
 
+	if widgetHandler.orderList["Mex Snap"] and widgetHandler.orderList["Mex Snap"] < 0.5 then
+		widgetHandler:EnableWidget("Mex Snap")
+	end
 	-- set nano particle rotation: rotValue, rotVelocity, rotAcceleration, rotValueRNG, rotVelocityRNG, rotAccelerationRNG (in degrees)
 	Spring.SetNanoProjectileParams(-180, -50, -50, 360, 100, 100)
 
@@ -5890,9 +5893,13 @@ function widget:Initialize()
 			WG['topbar'].hideWindows()
 		end
 		show = newShow
-		if show and showTextInput then
-			widgetHandler.textOwner = self		--widgetHandler:OwnText()
-			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		if showTextInput then
+			if show then
+				widgetHandler.textOwner = self		--widgetHandler:OwnText()
+				Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			else
+				cancelChatInput()
+			end
 		end
 	end
 	WG['options'].getOptionsList = function()
@@ -5958,9 +5965,13 @@ function widget:TextCommand(command)
 			WG['topbar'].hideWindows()
 		end
 		show = newShow
-		if show and showTextInput then
-			widgetHandler.textOwner = self		--widgetHandler:OwnText()
-			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		if showTextInput then
+			if show then
+				widgetHandler.textOwner = self		--widgetHandler:OwnText()
+				Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			else
+				cancelChatInput()
+			end
 		end
 	end
 

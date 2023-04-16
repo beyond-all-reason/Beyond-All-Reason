@@ -157,6 +157,8 @@ local callInLists = {
 	-- "UnitMoveFailed",
 	"StockpileChanged",
 
+	"CommandNotify",
+
 	-- Feature CallIns
 	"FeatureCreated",
 	"FeatureDestroyed",

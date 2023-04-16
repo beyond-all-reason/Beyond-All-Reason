@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base,pad,arm1,arm2,arm3,door1,door2,nano1,nano2,nano3,nano4,nano5,nano6,n1,n2,n3,n4,n5,n6,n7,n8,n9,n10,n11,n12;
+piece  base,pad,arm1,arm2,arm3,door1,door2,nano1,nano2,nano3,nano4,nano5,nano6,n1,n2,n3,n4,n5,n6,n7,n8,n9,n10,n11,n12, cagelight, cagelight_emit, cagelight2, cagelight_emit2, cagelight3, cagelight_emit3;
 static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
@@ -45,6 +45,12 @@ activatescr()
 
 deactivatescr()
 {	
+	hide cagelight_emit;
+	hide cagelight_emit2;
+	hide cagelight_emit3;
+	turn cagelight to y-axis <0> speed <1000>;
+	turn cagelight2 to y-axis <0> speed <1000>;
+	turn cagelight_emit3 to y-axis <0> speed <1000>;
 	if( TRUE )
 	{
 		turn arm1 to x-axis <0> speed <90>;
@@ -136,6 +142,12 @@ RequestState(requestedstate, currentstate)
 		{
 			call-script Go();
 			currentstate = 0;
+			show cagelight_emit;
+			show cagelight_emit2;
+			show cagelight_emit3;
+			spin cagelight around y-axis speed <200>;
+			spin cagelight2 around y-axis speed <-200>;
+			spin cagelight_emit3 around y-axis speed <200>;
 		}
 		if( statechg_DesiredState == 1 )
 		{
@@ -161,6 +173,9 @@ Create()
 	hide n11;
 	hide n12;
 	hide pad;
+	hide cagelight_emit;
+	hide cagelight_emit2;
+	hide cagelight_emit3;
 	Static_Var_1 = 1;
 	call-script InitState();
 }
@@ -328,6 +343,9 @@ Killed(severity, corpsetype)
 		explode n7 type BITMAPONLY | NOHEATCLOUD;
 		explode n8 type BITMAPONLY | NOHEATCLOUD;
 		explode pad type BITMAPONLY | NOHEATCLOUD;
+		explode cagelight type FIRE | FALL | NOHEATCLOUD;
+		explode cagelight2 type FIRE | FALL | NOHEATCLOUD;
+		explode cagelight3 type FIRE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -355,6 +373,9 @@ Killed(severity, corpsetype)
 		explode n7 type FALL | NOHEATCLOUD;
 		explode n8 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode pad type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode cagelight type FIRE | FALL | NOHEATCLOUD;
+		explode cagelight2 type FIRE | FALL | NOHEATCLOUD;
+		explode cagelight3 type FIRE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -385,6 +406,9 @@ Killed(severity, corpsetype)
 		explode n7 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode n8 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode pad type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode cagelight type FIRE | FALL | NOHEATCLOUD;
+		explode cagelight2 type FIRE | FALL | NOHEATCLOUD;
+		explode cagelight3 type FIRE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -413,5 +437,8 @@ Killed(severity, corpsetype)
 		explode n7 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode n8 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode pad type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode cagelight type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode cagelight2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode cagelight3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
