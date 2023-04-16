@@ -97,7 +97,8 @@ local TIMER_CHECK_FREQUENCY = 30 -- gameframes
 
 
 	--	-- Optional:
-	-- evolution_announcement = "Unit Evolved",  Announcement printed when the unit is evolved. Currently using the Spring.Echo function.
+	-- evolution_announcement = "Unit Evolved",  	Announcement printed when the unit is evolved.
+	-- evolution_announcement_size = 18.5, 			Size of the onscreen announcement
 
 	--	-- Has a default value, as indicated, if not chosen:
 	-- evolution_condition = "timer"    condition type for the evolution.
@@ -128,17 +129,17 @@ function Evolve(unitID, newUnit)
 	local newUnitID = spCreateUnit(newUnit, x,y,z, 0, team)
 
 	if newUnitID then
+		local announcement = nil
+		local announcementSize = nil
 		if evolutionMetaList[unitID].evolution_announcement then
 			spEcho(evolutionMetaList[unitID].evolution_announcement)
-			-- font2 = WG['fonts'].getFont(fontfile2)
-			-- font2:Begin()
-			-- font2:Print("test", 50, 40, 25, "co")
-			-- font2:End()
+			announcement = evolutionMetaList[unitID].evolution_announcement
+			announcementSize = evolutionMetaList[unitID].evolution_announcement_size
 		end
 
 		spSetUnitRulesParam(unitID, "disable_tombstone", "disabled", PRIVATE)
 
-		SendToUnsynced("unit_evolve_finished", unitID, newUnitID)
+		SendToUnsynced("unit_evolve_finished", unitID, newUnitID, announcement,announcementSize)
 		spDestroyUnit(unitID, false, true)
 		spSetUnitHealth(newUnitID, health)
 		spSetUnitExperience(newUnitID, experience)
@@ -175,6 +176,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			evolution_condition = udcp.evolution_condition or "timer",
 			evolution_timer = tonumber(udcp.evolution_timer) or 600,
 			evolution_announcement = udcp.evolution_announcement,
+			evolution_announcement_size = tonumber(udcp.evolution_announcement_size),
 			combatRadius = tonumber(udcp.combatradius) or 1000,
 
 
@@ -239,44 +241,39 @@ else
 
 local spSelectUnitArray = Spring.SelectUnitArray
 local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetGameSeconds = Spring.GetGameSeconds
 
--- --TEMPORARY
--- --local font, font2
--- local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-
--- --local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-
--- local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
--- local vsx, vsy = Spring.GetViewGeometry()
--- local fontfileScale = (1 + (vsx * vsy / 5700000))
--- local fontfileSize = 25
--- local fontfileOutlineSize = 6
--- local fontfileOutlineStrength = 1.3
--- local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
--- local displayList
+local announcementStart = 0
+local announcementEnabled = false
+local announcement = nil
+local announcementSize = 18.5
 
 
--- local function Draw(xpos,ypos)
--- 	local vsx, vsy = Spring.GetViewGeometry()
--- 	local viewSizeX, viewSizeY = gl.GetViewSizes()
--- 	local uiScale = (0.7 + (vsx * vsy / 6500000))
--- 	Spring.Echo("Draw")
--- 	displayList = gl.CreateList(function()
--- 		font:Begin()
--- 		font:SetTextColor(1, 1, 1)
--- 		font:Print(123, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
--- 		font:Print(1234, viewSizeX / 2, viewSizeY / 2, 1000, "co")
--- 		font:Print(12345, xpos, ypos, 1000, "co")
--- 		font:End()
--- 	end)
+local displayList
 
--- 	gl.CallList(displayList)
--- 	-- font:Begin()
--- 	-- font:Print("test", 50, 40, 25, "co")
--- 	-- font:End()
--- end
+local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local vsx, vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx * vsy / 6200000))
+local fontfileSize = 50
+local fontfileOutlineSize = 10
+local fontfileOutlineStrength = 1.4
+local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
-local function SelectSwap(cmd, oldID, newID)
+
+local function Draw(newAnnouncement, newAnnouncementSize)
+	vsx, vsy = Spring.GetViewGeometry()
+	local uiScale = (0.7 + (vsx * vsy / 6500000))
+	displayList = gl.CreateList(function()
+		font:Begin()
+		font:SetTextColor(1, 1, 1)
+		font:Print(newAnnouncement, vsx * 0.5, vsy * 0.67, newAnnouncementSize * uiScale, "co")
+		font:End()
+	end)
+
+	gl.CallList(displayList)
+end
+
+local function EvolveFinished(cmd, oldID, newID, newAnnouncement, newAnnouncementSize)
 	local selUnits = spGetSelectedUnits()
 	for i=1,#selUnits do
 	  local unitID = selUnits[i]
@@ -286,34 +283,46 @@ local function SelectSwap(cmd, oldID, newID)
 		break
 	  end
 	end
-	--Draw(100,500)
+	if newAnnouncement then
+		announcement = newAnnouncement
+		announcementSize = newAnnouncementSize
+		announcementEnabled = true
+		announcementStart = spGetGameSeconds()
+	end
 end
 
--- function gadget:DrawWorld()
--- 	if Spring.IsGUIHidden() then
--- 		return
--- 	end
--- 	Spring.Echo("DrawWorld")
--- 	Draw(1000,1000)
--- end
+function gadget:DrawScreen()
+ 	if Spring.IsGUIHidden() then
+ 		return
+ 	end
+	if announcementEnabled then
+		local currentTime = spGetGameSeconds()
+		if currentTime-announcementStart < 3 then
+			Draw(announcement, announcementSize)
+		else
+			announcementEnabled = false
+			announcement = nil
+			announcementSize = 18.5
+		end
+	end
+end
 
 function gadget:Initialize()
-	gadgetHandler:AddSyncAction("unit_evolve_finished", SelectSwap)
-	-- local w = 300
-	-- local h = 210
-	-- displayList = gl.CreateList(function()
-	-- 	gl.Blending(true)
-	-- 	gl.Color(1, 1, 1, 1)
-	-- 	gl.Texture(1, "LuaUI/images/gradient_alpha_2.png")
-	-- 	--gl.Texture(panelTexture)
-	-- 	gl.TexRect(0, 0, w, h)
-	-- end)
+	gadgetHandler:AddSyncAction("unit_evolve_finished", EvolveFinished)
+	local w = 300
+	local h = 210
+	displayList = gl.CreateList(function()
+		gl.Blending(true)
+	 	gl.Color(1, 1, 1, 1)
+		gl.Texture(1, "LuaUI/images/gradient_alpha_2.png")
+		gl.TexRect(0, 0, w, h)
+	end)
 
 end
 
 function gadget:Shutdown()
 	gadgetHandler:RemoveSyncAction("unit_evolve_finished")
-	--gl.DeleteList(displayList)
+	gl.DeleteList(displayList)
 end
 
 end
