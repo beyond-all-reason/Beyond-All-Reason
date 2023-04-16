@@ -1258,7 +1258,7 @@ local function drawButton(rect, text, opts)
 		gl.Color(0, 0, 0, 0.75)
 	end
 
-	UiButton(rect[1] + padding + pad1, rect[2] + padding + pad1, rect[3] - padding - pad1, rect[4] - padding - pad1, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
+	UiButton(rect.x + padding + pad1, rect.y + padding + pad1, rect.xEnd - padding - pad1, rect.yEnd - padding - pad1, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
 
 	if highlight then
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -1278,14 +1278,14 @@ local function drawButton(rect, text, opts)
 		local pad = padding
 		local pad2 = 0
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(rect[1] + leftMargin + pad + pad2, rect[4] - topMargin - bgpadding - pad - pad2 - ((rect[4] - rect[2]) * 0.42), rect[3] - rightMargin - pad - pad2, (rect[4] - topMargin - pad - pad2), padding * 1.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 }, { 1, 1, 1, (disableInput and 0.11 or 0.24) })
-		RectRound(rect[1] + leftMargin + pad + pad2, rect[2] + bottomMargin + pad + pad2, rect[3] - rightMargin - pad - pad2, (rect[2] - bottomMargin - pad - pad2) + ((rect[4] - rect[2]) * 0.5), padding * 1.5, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 or 0.075) }, { 1, 1, 1, 0 })
+		RectRound(rect.x + leftMargin + pad + pad2, rect.yEnd - topMargin - bgpadding - pad - pad2 - ((rect.yEnd - rect.y) * 0.42), rect.xEnd - rightMargin - pad - pad2, (rect.yEnd - topMargin - pad - pad2), padding * 1.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 }, { 1, 1, 1, (disableInput and 0.11 or 0.24) })
+		RectRound(rect.x + leftMargin + pad + pad2, rect.y + bottomMargin + pad + pad2, rect.yEnd - rightMargin - pad - pad2, (rect.y - bottomMargin - pad - pad2) + ((rect.yEnd - rect.y) * 0.5), padding * 1.5, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 or 0.075) }, { 1, 1, 1, 0 })
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
 	local fontHeight = font2:GetTextHeight(text) * fontSize * zoom
 	local fontHeightOffset = fontHeight * 0.34
-	font2:Print(text, rect[1] + ((rect[3] - rect[1]) / 2), (rect[2] - (rect[2] - rect[4]) / 2) - fontHeightOffset, fontSize * zoom, "con")
+	font2:Print(text, rect.x + ((rect.xEnd - rect.x) / 2), (rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset, fontSize * zoom, "con")
 end
 
 local function drawCategoryButtons()
@@ -1307,7 +1307,7 @@ local function drawCategoryButtons()
 		local opts = {
 			highlight = (cat == currentBuildCategory),
 			hovered = (hoveredCat == cat),
-			fontSize = (rect[3] - rect[1] - (stickToBottom and 2 or 1.5) * 8 * math_max(1, math_floor(bgpadding * 0.52))) / maxTextSize,
+			fontSize = (rect.xEnd - rect.x - (stickToBottom and 2 or 1.5) * 8 * math_max(1, math_floor(bgpadding * 0.52))) / maxTextSize,
 		}
 
 		if opts.hovered then
@@ -1442,12 +1442,13 @@ local function drawCategories()
 		local contentHeight = activeArea.yEnd - activeArea.y
 
 		for i, cat in ipairs(categories) do
-			local a1 = x1
-			local a2 = activeArea.yEnd - i * (contentHeight / numCats) + 2
-			local a3 = a1 + pageButtonWidth - activeAreaMargin
-			local a4 = a2 + (contentHeight / numCats) - 2
-
-			catRects[cat] = { a1, a2, a3, a4 }
+			local y1 = activeArea.yEnd - i * (contentHeight / numCats) + 2
+			catRects[cat] = Rect:new(
+				x1,
+				y1,
+				x1 + pageButtonWidth - activeAreaMargin,
+				y1 + (contentHeight / numCats) - 2
+			)
 		end
 	else
 		local y2 = categoriesRect.yEnd
@@ -1462,12 +1463,13 @@ local function drawCategories()
 		local buttonWidth = math.round((categoriesRect.xEnd - categoriesRect.x) / numCats)
 
 		for i, cat in ipairs(categories) do
-			local a1 = categoriesRect.x + activeAreaMargin + (i - 1) * buttonWidth
-			local a2 = y2 - pageButtonHeight
-			local a3 = a1 + buttonWidth
-			local a4 = y2 - activeAreaMargin
-
-			catRects[cat] = { a1, a2, a3, a4 }
+			local x1 = categoriesRect.x + activeAreaMargin + (i - 1) * buttonWidth
+			catRects[cat] = Rect:new(
+				x1,
+				y2 - pageButtonHeight,
+				x1 + buttonWidth,
+				y2 - activeAreaMargin
+			)
 		end
 	end
 
@@ -1623,7 +1625,6 @@ local function drawBuildmenu()
 	end
 
 	if activeArea then
-		Spring.Echo("Cell size is" .. cellSize)
 		-- adjust grid size when pages are needed
 		if uidcmdsCount > colls * rows then
 			pages = math_ceil(uidcmdsCount / (rows * colls))
@@ -1851,7 +1852,7 @@ function widget:DrawScreen()
 					end
 
 					for cat, catRect in pairs(catRects) do
-						if math_isInRect(x, y, catRect[1], catRect[2], catRect[3], catRect[4]) then
+						if catRect:contains(x, y) then
 							hoveredCat = cat
 
 							if hoveredCat ~= drawnHoveredCat then
@@ -2262,7 +2263,7 @@ function widget:MousePress(x, y, button)
 
 			if not disableInput then
 				for cat, catRect in pairs(catRects) do
-					if math_isInRect(x, y, catRect[1], catRect[2], catRect[3], catRect[4]) then
+					if catRect:contains(x, y) then
 						currentBuildCategory = cat
 						switchedCategory = os.clock()
 						Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
