@@ -1407,58 +1407,25 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 	end
 end
 
-local function labActiveArea()
-	if stickToBottom then
-		return Rect:new(
-			backgroundRect.x + bgpadding,
-			backgroundRect.y,
-			backgroundRect.xEnd,
-			backgroundRect.yEnd - bgpadding
-		)
-	else
-		return Rect:new(
-			backgroundRect.x,
-			backgroundRect.y,
-			backgroundRect.xEnd - bgpadding,
-			backgroundRect.yEnd - bgpadding
-		)
-	end
-end
-
 local function drawCategories()
 	local numCats = #categories
-	local activeArea
 
 	if stickToBottom then
-		local x1 = backgroundRect.x + bgpadding
+		local x1 = categoriesRect.x
 
-		activeArea = Rect:new(
-			x1 + pageButtonWidth,
-			backgroundRect.y - 2 * activeAreaMargin,
-			backgroundRect.xEnd,
-			backgroundRect.yEnd - bgpadding
-		)
-
-		local contentHeight = activeArea.yEnd - activeArea.y
+		local contentHeight = (categoriesRect.yEnd - categoriesRect.y) / numCats
 
 		for i, cat in ipairs(categories) do
-			local y1 = activeArea.yEnd - i * (contentHeight / numCats) + 2
+			local y1 = categoriesRect.yEnd - i * contentHeight + 2
 			catRects[cat] = Rect:new(
 				x1,
 				y1,
 				x1 + pageButtonWidth - activeAreaMargin,
-				y1 + (contentHeight / numCats) - 2
+				y1 + contentHeight - 2
 			)
 		end
 	else
 		local y2 = categoriesRect.yEnd
-
-		activeArea = Rect:new(
-			backgroundRect.x,
-			backgroundRect.y,
-			backgroundRect.xEnd - bgpadding,
-			y2 - pageButtonHeight
-		)
 
 		local buttonWidth = math.round((categoriesRect.xEnd - categoriesRect.x) / numCats)
 
@@ -1474,11 +1441,9 @@ local function drawCategories()
 	end
 
 	drawCategoryButtons()
-
-	return activeArea
 end
 
-local function drawGrid(activeArea)
+local function drawGrid()
 	local numCellsPerPage = rows * colls
 	local cellRectID = 0
 	local unitGrid
@@ -1558,7 +1523,7 @@ local function drawGrid(activeArea)
 	end
 end
 
-local function drawPaginators(activeArea)
+local function drawPaginators()
 	if pages == 1 then
 		return
 	end
@@ -1567,20 +1532,19 @@ local function drawPaginators(activeArea)
 	local nextKeyText = "\255\215\255\215[".. keyConfig.sanitizeKey(Cfgs.NEXT_PAGE_KEY, currentLayout) .."]"
 
 	if stickToBottom then
-		local contentHeight = activeArea.yEnd - activeArea.y
-		local buttonHeight = contentHeight / 3
+		local buttonHeight = (paginatorsRect.yEnd - paginatorsRect.y) / 3
 
 		prevPageRect = Rect:new(
-			activeArea.x + 6 * cellSize,
-			activeArea.y + activeAreaMargin,
-			activeArea.xEnd - bgpadding,
-			activeArea.y + buttonHeight
+			paginatorsRect.x,
+			paginatorsRect.y,
+			paginatorsRect.xEnd,
+			paginatorsRect.y + buttonHeight
 		)
 		nextPageRect = Rect:new(
-			prevPageRect.x,
-			activeArea.y + 2 * buttonHeight,
-			prevPageRect.xEnd,
-			activeArea.y + 3 * buttonHeight
+			paginatorsRect.x,
+			paginatorsRect.y + 2 * buttonHeight,
+			paginatorsRect.xEnd,
+			paginatorsRect.y + 3 * buttonHeight
 		)
 
 		local buttonWidth = prevPageRect.xEnd - prevPageRect.x
@@ -1612,46 +1576,39 @@ local function drawPaginators(activeArea)
 end
 
 local function drawBuildmenu()
-	local activeArea
-
 	catRects = {}
-
 	font2:Begin()
 
-	if selectedFactory then
-		activeArea = labActiveArea()
-	elseif selectedBuilder then
-		activeArea = drawCategories()
+	if selectedBuilder then
+		drawCategories()
 	end
 
-	if activeArea then
-		-- adjust grid size when pages are needed
-		if uidcmdsCount > colls * rows then
-			pages = math_ceil(uidcmdsCount / (rows * colls))
+	-- adjust grid size when pages are needed
+	if uidcmdsCount > colls * rows then
+		pages = math_ceil(uidcmdsCount / (rows * colls))
 
-			if currentPage > pages then
-				currentPage = pages
-			end
-		else
-			currentPage = 1
-			pages = 1
+		if currentPage > pages then
+			currentPage = pages
 		end
-
-		-- these are globals so it can be re-used (hover highlight)
-		cellPadding = math_floor(cellSize * Cfgs.cfgCellPadding)
-		iconPadding = math_max(1, math_floor(cellSize * Cfgs.cfgIconPadding))
-		cornerSize = math_floor(cellSize * Cfgs.cfgIconCornerSize)
-		cellInnerSize = cellSize - cellPadding - cellPadding
-		priceFontSize = math_floor((cellInnerSize * Cfgs.cfgPriceFontSize) + 0.5)
-
-		cellRects = {}
-		hotkeyActions = {}
-
-		drawGrid()
-		drawPaginators(activeArea)
-
-		font2:End()
+	else
+		currentPage = 1
+		pages = 1
 	end
+
+	-- these are globals so it can be re-used (hover highlight)
+	cellPadding = math_floor(cellSize * Cfgs.cfgCellPadding)
+	iconPadding = math_max(1, math_floor(cellSize * Cfgs.cfgIconPadding))
+	cornerSize = math_floor(cellSize * Cfgs.cfgIconCornerSize)
+	cellInnerSize = cellSize - cellPadding - cellPadding
+	priceFontSize = math_floor((cellInnerSize * Cfgs.cfgPriceFontSize) + 0.5)
+
+	cellRects = {}
+	hotkeyActions = {}
+
+	drawGrid()
+	drawPaginators()
+
+	font2:End()
 end
 
 local function GetBuildingDimensions(uDefID, facing)
