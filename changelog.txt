@@ -1,5 +1,8 @@
 ﻿# April 2023
 
+ • [Grunt] Range reduced from 240->230 and health reduced from 290->270
+ • [Pawn] Damage per shot reduced from 10->9
+ • [Tick] Metal cost increased from 15->17
  • [T1 Vehicle Scouts] Damage per shot increased from 30->35 
  • Targeting improvements to tiger tank and turtle tank
 
