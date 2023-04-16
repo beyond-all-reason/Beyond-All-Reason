@@ -14,7 +14,7 @@ local parameters = schema.Parameters
 		},
 		parameters = {
 			gameFrame = 123,
-			offset = 300,
+			interval = 300,
 		},
 		actions = { 'actionId1', 'actionId2' },
 	}

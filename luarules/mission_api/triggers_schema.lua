@@ -34,7 +34,7 @@ local parameters = {
 			type = 'number',
 		},
 		[2] = {
-			name = 'offset',
+			name = 'interval',
 			required = false,
 			type = 'number'
 		},

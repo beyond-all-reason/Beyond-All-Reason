@@ -104,9 +104,9 @@ function gadget:GameFrame(n)
 	for triggerId, trigger in pairs(triggers) do
 		if trigger.type == types.TimeElapsed then
 			local gameframe = trigger.parameters.gameFrame
-			local offset = trigger.parameters.offset
+			local interval = trigger.parameters.interval
 			
-			if n == gameframe or (trigger.settings.repeating and n > gameframe and offset % (n - gameframe) == 0) then
+			if n == gameframe or (trigger.settings.repeating and n > gameframe and interval % (n - gameframe) == 0) then
 				activateTrigger(trigger)
 			end
 		end
