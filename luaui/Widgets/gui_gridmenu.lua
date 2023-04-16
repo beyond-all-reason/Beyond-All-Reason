@@ -232,6 +232,9 @@ local currentPage = 1
 local pages = 1
 local prevPageRect = Rect:new(0, 0, 0, 0)
 local nextPageRect = Rect:new(0, 0, 0, 0)
+local categoriesRect = Rect:new(0, 0, 0, 0)
+local buildpicsRect = Rect:new(0, 0, 0 ,0)
+local paginatorsRect = Rect:new(0, 0, 0, 0)
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
 local unitshapes = {}
 local mexSnapPosition
@@ -577,86 +580,6 @@ local function RefreshCommands()
 			end
 		end
 	end
-end
-
-local function clear()
-	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
-	dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
-end
-
-function widget:ViewResize()
-	local widgetSpaceMargin = WG.FlowUI.elementMargin
-	bgpadding = WG.FlowUI.elementPadding
-	elementCorner = WG.FlowUI.elementCorner
-
-	RectRound = WG.FlowUI.Draw.RectRound
-	RectRoundProgress = WG.FlowUI.Draw.RectRoundProgress
-	UiUnit = WG.FlowUI.Draw.Unit
-	UiElement = WG.FlowUI.Draw.Element
-	UiButton = WG.FlowUI.Draw.Button
-	elementCorner = WG.FlowUI.elementCorner
-	categoryFontSize = 0.0115 * ui_scale * vsy
-	pageButtonHeight = 2.3 * categoryFontSize * ui_scale
-	pageButtonWidth = 7 * categoryFontSize * ui_scale
-	if stickToBottom then
-		paginatorFontSize = categoryFontSize
-	else
-		paginatorFontSize = categoryFontSize * 1.2
-	end
-	paginatorCellWidth = paginatorFontSize * 2
-
-	activeAreaMargin = math_ceil(bgpadding * Cfgs.cfgActiveAreaMargin)
-
-	vsx, vsy = Spring.GetViewGeometry()
-
-	font2 = WG['fonts'].getFont(Cfgs.fontFile, 1.2, 0.28, 1.6)
-
-	if WG['minimap'] then
-		minimapHeight = WG['minimap'].getHeight()
-	end
-
-	if stickToBottom then
-		posY = math_floor(0.14 * ui_scale * vsy) / vsy
-		posY2 = 0
-		posX = math_floor(ordermenuLeft*vsx) + widgetSpaceMargin
-		posX2 = math_floor(posX + posY * vsy * 3) + paginatorCellWidth + pageButtonWidth
-		width = posX2 - posX
-		height = posY
-	else
-		width = 0.212
-		width = width / (vsx / vsy) * 1.78				-- make smaller for ultrawide screens
-		width = width * ui_scale
-
-		-- 0.14 is the space required to put this above the bottom-left UI element
-		posY2 = math_floor(0.14 * ui_scale * vsy) / vsy
-		posY2 = posY2 + (widgetSpaceMargin/vsy)
-		posY = posY2 + (0.74 * width * vsx + pageButtonHeight + paginatorCellWidth)/vsy
-		posX = 0
-
-		if WG['ordermenu'] and not WG['ordermenu'].getBottomPosition() then
-			local _, oposY, _, oheight = WG['ordermenu'].getPosition()
-			if posY > oposY then
-				posY = oposY - oheight - ((widgetSpaceMargin)/vsy)
-			end
-		end
-
-		posY = math_floor(posY * vsy) / vsy
-		posX = math_floor(posX * vsx) / vsx
-
-		height = (posY - posY2)
-
-		posX2 = math_floor(width * vsx)
-
-		-- make pixel aligned
-		width = math_floor(width * vsx) / vsx
-		height = math_floor(height * vsy) / vsy
-	end
-
-	backgroundRect = Rect:new(posX, (posY - height) * vsy, posX2, posY * vsy)
-
-	checkGuishader(true)
-	clear()
-	doUpdate = true
 end
 
 local function getActionHotkey(action)
@@ -1058,6 +981,160 @@ function widget:UnitFromFactory(_, _, _, factID)
 	end
 end
 
+--------------------
+-- DRAW FUNCTIONS --
+--------------------
+
+local function clear()
+	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
+	dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
+end
+
+function widget:ViewResize()
+	local widgetSpaceMargin = WG.FlowUI.elementMargin
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	RectRoundProgress = WG.FlowUI.Draw.RectRoundProgress
+	UiUnit = WG.FlowUI.Draw.Unit
+	UiElement = WG.FlowUI.Draw.Element
+	UiButton = WG.FlowUI.Draw.Button
+	elementCorner = WG.FlowUI.elementCorner
+	categoryFontSize = 0.0115 * ui_scale * vsy
+	pageButtonHeight = math_floor(2.0 * categoryFontSize * ui_scale)
+	pageButtonWidth = 7 * categoryFontSize * ui_scale
+	if stickToBottom then
+		paginatorFontSize = categoryFontSize
+	else
+		paginatorFontSize = categoryFontSize * 1.2
+	end
+	paginatorCellWidth = paginatorFontSize * 2
+
+	activeAreaMargin = math_ceil(bgpadding * Cfgs.cfgActiveAreaMargin)
+
+	vsx, vsy = Spring.GetViewGeometry()
+
+	font2 = WG['fonts'].getFont(Cfgs.fontFile, 1.2, 0.28, 1.6)
+
+	if WG['minimap'] then
+		minimapHeight = WG['minimap'].getHeight()
+	end
+
+	-- if stick to bottom we know cells are 2 row by 6 column
+	if stickToBottom then
+
+		posY = math_floor(0.14 * ui_scale * vsy) / vsy
+		posY2 = 0
+		posX = math_floor(ordermenuLeft*vsx) + widgetSpaceMargin
+		posX2 = math_floor(posX + posY * vsy * 3) + paginatorCellWidth + pageButtonWidth
+		width = posX2 - posX
+		height = posY
+
+		rows = 2
+		colls = 6
+		cellSize = math_floor(((height * vsy) - bgpadding) / rows)
+
+		local posYP = math_floor(posY * vsy)
+
+		-- assemble rects left to right
+		categoriesRect = Rect:new(
+			posX + bgpadding,
+			posY2,
+			posX + pageButtonWidth,
+			posYP - bgpadding
+		)
+
+		buildpicsRect = Rect:new(
+			categoriesRect.xEnd + bgpadding,
+			posY2,
+			categoriesRect.xEnd + (cellSize * colls) + bgpadding,
+			posYP - bgpadding
+		)
+
+		paginatorsRect = Rect:new(
+			buildpicsRect.xEnd + bgpadding,
+			posY2,
+			buildpicsRect.xEnd + paginatorCellWidth,
+			posYP - bgpadding
+		)
+
+		backgroundRect = Rect:new(
+			posX,
+			posY2,
+			paginatorsRect.xEnd + bgpadding,
+			posYP
+		)
+
+	else -- if stick to side we know cells are 3 row by 4 column
+		width = 0.212 -- hardcoded width to match bottom element
+		width = width / (vsx / vsy) * 1.78				-- make smaller for ultrawide screens
+		width = width * ui_scale
+
+		-- 0.14 is the space required to put this above the bottom-left UI element
+		posY2 = math_floor(0.14 * ui_scale * vsy) / vsy
+		posY2 = posY2 + (widgetSpaceMargin/vsy)
+		posY = posY2 + (0.74 * width * vsx + pageButtonHeight + paginatorCellWidth)/vsy
+		posX = 0
+
+		if WG['ordermenu'] and not WG['ordermenu'].getBottomPosition() then
+			local _, oposY, _, oheight = WG['ordermenu'].getPosition()
+			if posY > oposY then
+				posY = oposY - oheight - ((widgetSpaceMargin)/vsy)
+			end
+		end
+
+		posY = math_floor(posY * vsy) / vsy
+		posX = math_floor(posX * vsx) / vsx
+
+		height = (posY - posY2)
+
+		posX2 = math_floor(width * vsx)
+		local posYP = math_floor(posY * vsy)
+		local posY2P = math_floor(posY2 * vsy)
+
+		-- make pixel aligned
+		width = posX2 - posX
+
+
+		-- assemble rects, bottom to top
+		paginatorsRect = Rect:new(
+			posX + bgpadding,
+			posY2P + bgpadding,
+			posX2 - bgpadding,
+			posY2P + pageButtonHeight + bgpadding
+		)
+
+		rows = 3
+		colls = 4
+		cellSize = math_floor((width - (bgpadding * 2)) / colls)
+
+		buildpicsRect = Rect:new(
+			posX + bgpadding,
+			paginatorsRect.yEnd,
+			posX2 - bgpadding,
+			paginatorsRect.yEnd + (cellSize * rows) + bgpadding
+		)
+
+		categoriesRect = Rect:new(
+			posX + bgpadding,
+			buildpicsRect.yEnd,
+			posX2 - bgpadding,
+			buildpicsRect.yEnd + pageButtonHeight + bgpadding
+		)
+
+		backgroundRect = Rect:new(
+			posX,
+			posY2P,
+			posX2,
+			categoriesRect.yEnd)
+	end
+
+	checkGuishader(true)
+	clear()
+	doUpdate = true
+end
+
 local sec = 0
 local updateSelection = true
 function widget:Update(dt)
@@ -1326,7 +1403,7 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 		local hotkeyText = keyConfig.sanitizeKey(cmd.hotkey, currentLayout)
 
 		local hotkeyFontSize = priceFontSize * 1.1
-		font2:Print("\255\215\255\215" .. hotkeyText, cellRects[id].x + cellPadding + (cellInnerSize * 0.048), cellRects[id].y - cellPadding - hotkeyFontSize, hotkeyFontSize, "o")
+		font2:Print("\255\215\255\215" .. hotkeyText, cellRects[id].x + cellPadding + (cellInnerSize * 0.048), cellRects[id].yEnd - cellPadding - hotkeyFontSize, hotkeyFontSize, "o")
 	end
 end
 
@@ -1373,7 +1450,7 @@ local function drawCategories()
 			catRects[cat] = { a1, a2, a3, a4 }
 		end
 	else
-		local y2 = backgroundRect.yEnd - bgpadding
+		local y2 = categoriesRect.yEnd
 
 		activeArea = Rect:new(
 			backgroundRect.x,
@@ -1382,10 +1459,10 @@ local function drawCategories()
 			y2 - pageButtonHeight
 		)
 
-		local buttonWidth = math.round((activeArea.xEnd - activeArea.x - bgpadding) / numCats)
+		local buttonWidth = math.round((categoriesRect.xEnd - categoriesRect.x) / numCats)
 
 		for i, cat in ipairs(categories) do
-			local a1 = backgroundRect.x + activeAreaMargin + (i - 1) * buttonWidth
+			local a1 = categoriesRect.x + activeAreaMargin + (i - 1) * buttonWidth
 			local a2 = y2 - pageButtonHeight
 			local a3 = a1 + buttonWidth
 			local a4 = y2 - activeAreaMargin
@@ -1453,10 +1530,10 @@ local function drawGrid(activeArea)
 				local udef = uidcmds[uDefID]
 
 				cellRects[cellRectID] = Rect:new(
-					activeArea.x + (kcol - 1) * cellSize,
-					activeArea.yEnd - (rows - krow + 1) * cellSize,
-					activeArea.x + (kcol ) * cellSize,
-					activeArea.yEnd - (rows - krow) * cellSize
+					buildpicsRect.x + (kcol - 1) * cellSize,
+					buildpicsRect.yEnd - (rows - krow + 1) * cellSize,
+					buildpicsRect.x + (kcol ) * cellSize,
+					buildpicsRect.yEnd - (rows - krow) * cellSize
 				)
 
 				local cellIsSelected = (activeCmd and udef and activeCmd == udef.name) or
@@ -1515,12 +1592,12 @@ local function drawPaginators(activeArea)
 			(prevPageRect.x + prevPageRect.xEnd) * 0.5,
 			prevPageRect.yEnd + buttonHeight * 0.5 - paginatorFontSize * 0.25, paginatorFontSize, "co")
 	else
-		local contentWidth = activeArea.xEnd - activeArea.x
+		local contentWidth = paginatorsRect.xEnd - paginatorsRect.x
 		local buttonWidth = math_floor(contentWidth * 0.33)
 
-		prevPageRect = Rect:new(activeArea.x + activeAreaMargin, activeArea.y, activeArea.x + buttonWidth, activeArea.yEnd - 3 * cellSize)
-		nextPageRect = Rect:new(activeArea.xEnd - buttonWidth, prevPageRect.y, activeArea.xEnd, prevPageRect.yEnd)
-		local buttonHeight = prevPageRect.yEnd - prevPageRect.y
+		prevPageRect = Rect:new(paginatorsRect.x, paginatorsRect.y, paginatorsRect.x + buttonWidth, paginatorsRect.yEnd)
+		nextPageRect = Rect:new(paginatorsRect.xEnd - buttonWidth, paginatorsRect.y, paginatorsRect.xEnd, paginatorsRect.yEnd)
+		local buttonHeight = paginatorsRect.yEnd - paginatorsRect.y
 
 		UiButton(prevPageRect.x + cellPadding, prevPageRect.y + bgpadding, prevPageRect.xEnd + cellPadding, prevPageRect.yEnd - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
 		font2:Print(prevKeyText, prevPageRect.x + (buttonWidth * 0.5), prevPageRect.yEnd - font2:GetTextHeight(prevKeyText) * paginatorFontSize * 0.25 - buttonHeight/2, paginatorFontSize, "co")
@@ -1546,16 +1623,7 @@ local function drawBuildmenu()
 	end
 
 	if activeArea then
-		if stickToBottom then
-			rows = 2
-			colls = 6
-			cellSize = math_floor((activeArea.yEnd - activeArea.y) / rows)
-		else
-			rows = 3
-			colls = 4
-			cellSize = math_floor((activeArea.xEnd - activeArea.x) / colls)
-		end
-
+		Spring.Echo("Cell size is" .. cellSize)
 		-- adjust grid size when pages are needed
 		if uidcmdsCount > colls * rows then
 			pages = math_ceil(uidcmdsCount / (rows * colls))
@@ -1578,7 +1646,7 @@ local function drawBuildmenu()
 		cellRects = {}
 		hotkeyActions = {}
 
-		drawGrid(activeArea)
+		drawGrid()
 		drawPaginators(activeArea)
 
 		font2:End()
