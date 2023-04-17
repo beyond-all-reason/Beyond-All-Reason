@@ -1090,7 +1090,6 @@ function widget:ViewResize()
 		height = (posY - posY2)
 
 		posX2 = math_floor(width * vsx)
-		local posYP = math_floor(posY * vsy)
 		local posY2P = math_floor(posY2 * vsy)
 
 		-- make pixel aligned
@@ -1269,17 +1268,12 @@ local function drawButton(rect, text, opts)
 	if hovered then
 		zoom = 1.07
 
-		local leftMargin = 0
-		local rightMargin = 0
-		local topMargin = 0
-		local bottomMargin = 0
-
 		-- gloss highlight
 		local pad = padding
 		local pad2 = 0
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(rect.x + leftMargin + pad + pad2, rect.yEnd - topMargin - bgpadding - pad - pad2 - ((rect.yEnd - rect.y) * 0.42), rect.xEnd - rightMargin - pad - pad2, (rect.yEnd - topMargin - pad - pad2), padding * 1.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 }, { 1, 1, 1, (disableInput and 0.11 or 0.24) })
-		RectRound(rect.x + leftMargin + pad + pad2, rect.y + bottomMargin + pad + pad2, rect.yEnd - rightMargin - pad - pad2, (rect.y - bottomMargin - pad - pad2) + ((rect.yEnd - rect.y) * 0.5), padding * 1.5, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 or 0.075) }, { 1, 1, 1, 0 })
+		RectRound(rect.x + pad + pad2, rect.yEnd - bgpadding - pad - pad2 - ((rect.yEnd - rect.y) * 0.42), rect.xEnd - pad - pad2, (rect.yEnd - pad - pad2), padding * 1.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 }, { 1, 1, 1, (disableInput and 0.11 or 0.24) })
+		RectRound(rect.x + pad + pad2, rect.y + pad + pad2, rect.xEnd - pad - pad2, (rect.y - pad - pad2) + ((rect.yEnd - rect.y) * 0.5), padding * 1.5, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 or 0.075) }, { 1, 1, 1, 0 })
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
@@ -1329,12 +1323,13 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 	end
 
 	local showIcon = showGroupIcon and not (selectedFactory or currentCategoryIndex)
+	local cellRect = cellRects[id];
 
 	UiUnit(
-		cellRects[id].x + cellPadding + iconPadding,
-		cellRects[id].y + cellPadding + iconPadding,
-		cellRects[id].xEnd - cellPadding - iconPadding,
-		cellRects[id].yEnd - cellPadding - iconPadding,
+		cellRect.x + cellPadding + iconPadding,
+		cellRect.y + cellPadding + iconPadding,
+		cellRect.xEnd - cellPadding - iconPadding,
+		cellRect.yEnd - cellPadding - iconPadding,
 		cornerSize, 1,1,1,1,
 		usedZoom,
 		nil, disabled and 0 or nil,
@@ -1351,20 +1346,20 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 		gl.Color(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
 		gl.Texture('#' .. uid)
 		UiUnit(
-			cellRects[id].x + cellPadding + iconPadding,
-			cellRects[id].y + cellPadding + iconPadding,
-			cellRects[id].xEnd - cellPadding - iconPadding,
-			cellRects[id].yEnd - cellPadding - iconPadding,
+			cellRect.x + cellPadding + iconPadding,
+			cellRect.y + cellPadding + iconPadding,
+			cellRect.xEnd - cellPadding - iconPadding,
+			cellRect.yEnd - cellPadding - iconPadding,
 			cornerSize, 1,1,1,1,
 			usedZoom
 		)
 		if cellColor[4] > 0 then
 			gl.Blending(GL_SRC_ALPHA, GL_ONE)
 			UiUnit(
-				cellRects[id].x + cellPadding + iconPadding,
-				cellRects[id].y + cellPadding + iconPadding,
-				cellRects[id].xEnd - cellPadding - iconPadding,
-				cellRects[id].yEnd - cellPadding - iconPadding,
+				cellRect.x + cellPadding + iconPadding,
+				cellRect.y + cellPadding + iconPadding,
+				cellRect.xEnd - cellPadding - iconPadding,
+				cellRect.yEnd - cellPadding - iconPadding,
 				cornerSize, 1,1,1,1,
 				usedZoom
 			)
@@ -1381,7 +1376,7 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 		else
 			text = "\255\245\245\245" .. unitMetalCost[uid] .. "\n\255\255\255\000"
 		end
-		font2:Print(text .. unitEnergyCost[uid], cellRects[id].x + cellPadding + (cellInnerSize * 0.048), cellRects[id].y + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
+		font2:Print(text .. unitEnergyCost[uid], cellRect.x + cellPadding + (cellInnerSize * 0.048), cellRect.y + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
 	end
 
 	-- factory queue number
@@ -1389,12 +1384,12 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 		local pad = math_floor(cellInnerSize * 0.03)
 		local textWidth = math_floor(font2:GetTextWidth(cmd.params[1] .. '	') * cellInnerSize * 0.285)
 		local pad2 = 0
-		RectRound(cellRects[id].xEnd - cellPadding - iconPadding - textWidth - pad2, cellRects[id].yEnd - cellPadding - iconPadding - math_floor(cellInnerSize * 0.365) - pad2, cellRects[id].xEnd - cellPadding - iconPadding, cellRects[id].yEnd - cellPadding - iconPadding, cornerSize * 3.3, 0, 0, 0, 1, { 0.15, 0.15, 0.15, 0.95 }, { 0.25, 0.25, 0.25, 0.95 })
-		RectRound(cellRects[id].xEnd - cellPadding - iconPadding - textWidth - pad2, cellRects[id].yEnd - cellPadding - iconPadding - math_floor(cellInnerSize * 0.15) - pad2, cellRects[id].xEnd - cellPadding - iconPadding, cellRects[id].yEnd - cellPadding - iconPadding, 0, 0, 0, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.05 })
-		RectRound(cellRects[id].xEnd - cellPadding - iconPadding - textWidth - pad2 + pad, cellRects[id].yEnd - cellPadding - iconPadding - math_floor(cellInnerSize * 0.365) - pad2 + pad, cellRects[id].xEnd - cellPadding - iconPadding - pad2, cellRects[id].yEnd - cellPadding - iconPadding - pad2, cornerSize * 2.6, 0, 0, 0, 1, { 0.7, 0.7, 0.7, 0.1 }, { 1, 1, 1, 0.1 })
+		RectRound(cellRect.xEnd - cellPadding - iconPadding - textWidth - pad2, cellRect.yEnd - cellPadding - iconPadding - math_floor(cellInnerSize * 0.365) - pad2, cellRect.xEnd - cellPadding - iconPadding, cellRect.yEnd - cellPadding - iconPadding, cornerSize * 3.3, 0, 0, 0, 1, { 0.15, 0.15, 0.15, 0.95 }, { 0.25, 0.25, 0.25, 0.95 })
+		RectRound(cellRect.xEnd - cellPadding - iconPadding - textWidth - pad2, cellRect.yEnd - cellPadding - iconPadding - math_floor(cellInnerSize * 0.15) - pad2, cellRect.xEnd - cellPadding - iconPadding, cellRect.yEnd - cellPadding - iconPadding, 0, 0, 0, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.05 })
+		RectRound(cellRect.xEnd - cellPadding - iconPadding - textWidth - pad2 + pad, cellRect.yEnd - cellPadding - iconPadding - math_floor(cellInnerSize * 0.365) - pad2 + pad, cellRect.xEnd - cellPadding - iconPadding - pad2, cellRect.yEnd - cellPadding - iconPadding - pad2, cornerSize * 2.6, 0, 0, 0, 1, { 0.7, 0.7, 0.7, 0.1 }, { 1, 1, 1, 0.1 })
 		font2:Print("\255\190\255\190" .. cmd.params[1],
-			cellRects[id].x + cellPadding + math_floor(cellInnerSize * 0.96) - pad2,
-			cellRects[id].y + cellPadding + math_floor(cellInnerSize * 0.735) - pad2,
+			cellRect.x + cellPadding + math_floor(cellInnerSize * 0.96) - pad2,
+			cellRect.y + cellPadding + math_floor(cellInnerSize * 0.735) - pad2,
 			cellInnerSize * 0.29, "ro"
 		)
 	end
@@ -1403,7 +1398,7 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 		local hotkeyText = keyConfig.sanitizeKey(cmd.hotkey, currentLayout)
 
 		local hotkeyFontSize = priceFontSize * 1.1
-		font2:Print("\255\215\255\215" .. hotkeyText, cellRects[id].x + cellPadding + (cellInnerSize * 0.048), cellRects[id].yEnd - cellPadding - hotkeyFontSize, hotkeyFontSize, "o")
+		font2:Print("\255\215\255\215" .. hotkeyText, cellRect.x + cellPadding + (cellInnerSize * 0.048), cellRect.yEnd - cellPadding - hotkeyFontSize, hotkeyFontSize, "o")
 	end
 end
 
@@ -1858,14 +1853,14 @@ function widget:DrawScreen()
 			local usedZoom
 			local cellColor
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
-				if math_isInRect(x, y, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd) then
+				if backgroundRect:contains(x, y) then
 
 					-- paginator buttons
 					local hoveredRect
-					if prevPageRect.x and math_isInRect(x, y, prevPageRect.x, prevPageRect.y, prevPageRect.xEnd, prevPageRect.yEnd) then
+					if prevPageRect.x and prevPageRect:contains(x, y) then
 						hoveredRect = prevPageRect
 					end
-					if nextPageRect.y and math_isInRect(x, y, nextPageRect.x, nextPageRect.y, nextPageRect.xEnd, nextPageRect.yEnd) then
+					if nextPageRect.y and nextPageRect:contains(x, y) then
 						hoveredRect = nextPageRect
 					end
 					if hoveredRect then
