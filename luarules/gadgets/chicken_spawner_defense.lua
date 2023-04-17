@@ -1334,7 +1334,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
 				SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
-				SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
 				SpawnRandomOffWaveSquad(queenID)
 			end
 		end
@@ -1618,8 +1617,6 @@ if gadgetHandler:IsSyncedCode() then
 			local chickens = GetTeamUnits(chickenTeamID)
 			for i = 1,#chickens do
 				if mRandom(1,math.ceil((100*math.max(1, Spring.GetTeamUnitDefCount(chickenTeamID, Spring.GetUnitDefID(chickens[i])))))) == 1 and mRandom() < config.spawnChance then
-					SpawnMinions(chickens[i], Spring.GetUnitDefID(chickens[i]))
-					SpawnMinions(chickens[i], Spring.GetUnitDefID(chickens[i]))
 					SpawnMinions(chickens[i], Spring.GetUnitDefID(chickens[i]))
 					SpawnMinions(chickens[i], Spring.GetUnitDefID(chickens[i]))
 					SpawnMinions(chickens[i], Spring.GetUnitDefID(chickens[i]))
