@@ -96,8 +96,8 @@ return {
 				name = "GOOLAUNCHER",
 				noselfdamage = true,
 				proximitypriority = -4,
-				range = 1500,
-				reloadtime = 8,
+				range = 2000,
+				reloadtime = 30,
 				rgbcolor = "1 0.5 0.1",
 				size = 5.5,
 				sizedecay = 0.09,
@@ -107,10 +107,10 @@ return {
 				tolerance = 5000,
 				turret = true,
 				weapontimer = 0.2,
-				weaponvelocity = 520,
+				weaponvelocity = 750,
 				damage = {
 					default = 3200,
-					shields = 800,
+					shields = 1600,
 				},
 			},
 			-- cc_laser = {

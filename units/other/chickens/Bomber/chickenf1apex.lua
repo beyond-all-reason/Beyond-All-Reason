@@ -90,7 +90,7 @@ return {
 				avoidfeature = 0,
 				avoidfriendly = 0,
 				areaofeffect = 128,
-				burst = 10,
+				burst = 7,
 				burstrate = 0.2,
 				craterboost = 0,
 				cratermult = 0,
