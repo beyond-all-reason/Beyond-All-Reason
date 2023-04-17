@@ -396,14 +396,14 @@ local chickenMinions = { -- Units spawning other units
 	["chicken_miniqueen_electric"] = {
 		"chickene1",
 		"chickene2",
-		"chickenearty1",
+		--"chickenearty1",
 		"chickenelectricallterrain",
 		"chickenelectricallterrainassault",
 	},
 	["chicken_miniqueen_acid"] = {
 		"chickenacidswarmer",
 		"chickenacidassault",
-		"chickenacidarty",
+		--"chickenacidarty",
 		"chickenacidallterrain",
 		"chickenacidallterrainassault",
 	},
@@ -412,6 +412,8 @@ local chickenMinions = { -- Units spawning other units
 		--"chickenh1b",
 	},
 	["chicken_miniqueen_basic"] = {
+		"chicken1",
+		"chicken1x",
 		"chicken2",
 		"chicken2b",
 		"chickenc3c",
