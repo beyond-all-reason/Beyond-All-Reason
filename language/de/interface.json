@@ -1,6 +1,9 @@
 {
 	"ui": {
 		"forceResignMessage": "Du wurdest automatisch aus dem Spiel geworfen: Alle deine Einheiten selbst zu zerstören ist unerwünschtes Verhalten, während deine Mitspieler noch spielen.",
+		"rejoin": {
+			"catchingUp": "Aufholen zu"
+		},
 		"topbar": {
 			"button": {
 				"quit": "Verlassen",
@@ -514,7 +517,7 @@
 			"firstWave1": "Die Raptoren sind eingetroffen!",
 			"firstWave2": "Bereiten Sie sich für die Verteidigung vor!",
 			"airWave1": "Raptoren im Anflug!",
-			"airWave2": "%{unitCount} Flugraptoren!",
+			"airWave2": "%{unitCount} Raptoren!",
 			"queenIsAngry1": "Die Königin ist hier!",
 			"queenIsAngry2": "Bereiten Sie sich auf die letzte Schlacht vor!",
 			"queenResistant": "Die Königin wird gegen %{unit}-Angriffe resisten!",
@@ -524,7 +527,10 @@
 			"chickenCount": "Raptoren: %{count}",
 			"chickenKillCount": "Raptoren getötet: %{count}",
 			"chickenPlayerAgression": "Spieler-Aggressivitätsniveau: %{count}",
-			"queenAnger": "Königin schlüpft: %{anger}%%",
+			"queenAnger": "Königin schlüpft:%{anger}%% (+%{gain}%%/s)",
+			"queenAngerBase": "Basis: +%{value}%%/s",
+			"queenAngerAggression": "Aggressivität: +%{value}%%/s",
+			"queenAngerEco": "Wirtschaft: +%{value}%%/s",
 			"queenHealth": "Leben der Königin: %{health}%%",
 			"queenResistantToList": "Die Königin ist resistent gegen:",
 			"gracePeriod": "Friedenszeit: %{time}",
@@ -792,6 +798,7 @@
 				"accessibility": "Barrierefreiheit",
 				"dev": "Entwickler"
 			},
+			"filter": "Filter",
 			"option": {
 				"preset_lowest": "Niedrigste",
 				"preset_low": "Niedrig",
