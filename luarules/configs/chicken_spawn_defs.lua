@@ -594,11 +594,10 @@ addNewSquad({ type = "special", minAnger = 100, units = { "2 chickenearty2" } })
 addNewSquad({ type = "special", minAnger = 100, units = { "2 chickenacidartyxl" } })
 
 for j = 1, #miniBosses do
-	addNewSquad({ type = "special", minAnger = 60, units = { "1 chicken_miniqueen_basic" }})
 	addNewSquad({ type = "special", minAnger = 70, units = { "1 chicken_miniqueen_basic" }})
-	addNewSquad({ type = "special", minAnger = 70, units = { "1 chicken_miniqueen_healer" }})
+	addNewSquad({ type = "special", minAnger = 80, units = { "1 chicken_miniqueen_healer" }})
 	addNewSquad({ type = "special", minAnger = 90, units = { "1 " .. miniBosses[j] }})
-	addNewSquad({ type = "special", minAnger = 100, units = { "1 " .. miniBosses[j], "1 " .. miniBosses[math.random(1,#miniBosses)], "1 " .. miniBosses[math.random(1,#miniBosses)] }, weight = 10 })
+	addNewSquad({ type = "special", minAnger = 100, units = { "1 " .. miniBosses[j] }})
 end
 
 ---------
