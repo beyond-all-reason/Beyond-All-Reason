@@ -96,7 +96,7 @@ return {
 				name = "Deadly Defensive Spores",
 				noselfdamage = true,
 				range = 1000,
-				reloadtime = 30,
+				reloadtime = 3,
 				smoketrail = true,
 				smokePeriod = 2,
 				smoketime = 45,
@@ -119,10 +119,10 @@ return {
 				weaponvelocity = 2000,
 				wobble = 32000,
 				damage = {
-					default = 100,
-					bombers = 10000,
-					fighters = 10000,
-					vtol = 10000,
+					default = 10,
+					bombers = 1000,
+					fighters = 1000,
+					vtol = 1000,
 				},
 			},
 			-- cc_laser = {

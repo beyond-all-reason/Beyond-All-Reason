@@ -102,7 +102,7 @@ return {
 				--paralyzetime = 20,
 				proximitypriority = -4,
 				range = 2000,
-				reloadtime = 30,
+				reloadtime = 3,
 				rgbcolor = "0.8 0.99 0.11",
 				soundhit = "bloodsplash3",
 				soundstart = "alien_bombrel",
@@ -114,7 +114,7 @@ return {
 				weaponvelocity = 750,
 				damage = {
 					default = 1,
-					shields = 1600,
+					shields = 160,
 				},
 			},
 		},
