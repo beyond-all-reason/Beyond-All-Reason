@@ -257,7 +257,7 @@ local function createComnameList(attributes)
 		font:End()
 
 		-- player rank
-		if showPlayerRank and attributes[6] and ((not anonymousMode ~= "disabled") or spec) and not isSinglePlayer then
+		if showPlayerRank and attributes[6] and (anonymousMode ~= "disabled" or spec) and not isSinglePlayer then
 			local halfSize = playerRankSize*0.5
 			local x_l = x - (((font:GetTextWidth(name) * fontSize) * 0.5) + halfSize + (fontSize * 0.1))
 			local y_l = y + (fontSize * 0.33)
