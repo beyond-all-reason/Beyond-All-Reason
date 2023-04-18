@@ -137,7 +137,7 @@ function Evolve(unitID, newUnit)
 			announcementSize = evolutionMetaList[unitID].evolution_announcement_size
 		end
 
-		spSetUnitRulesParam(unitID, "disable_tombstone", "disabled", PRIVATE)
+		spSetUnitRulesParam(unitID, "unit_evolved", "true", PRIVATE)
 
 		SendToUnsynced("unit_evolve_finished", unitID, newUnitID, announcement,announcementSize)
 		spDestroyUnit(unitID, false, true)
