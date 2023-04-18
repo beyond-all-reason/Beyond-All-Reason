@@ -79,15 +79,16 @@ end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if dgunDamages[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
-		damagedUnits[projectileID] = damagedUnits[projectileID] or {}
-		if damagedUnits[projectileID][unitID] then
-			return 0
-		else
-			damagedUnits[projectileID][unitID] = true
-			return dgunDamages[weaponDefID][unitArmorType[unitDefID]]
-		end
-	if isDGun[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
+--		damagedUnits[projectileID] = damagedUnits[projectileID] or {}
+	--	if damagedUnits[projectileID][unitID] then
+	--		return 0
+--		else
+	--		damagedUnits[projectileID][unitID] = true
+	--		return dgunDamages[weaponDefID][unitArmorType[unitDefID]]
+--		end
+--	if isDGun[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
 		Spring.DeleteProjectile(projectileID)
 	end
-	return damage
+	--end
+	--return damage
 end

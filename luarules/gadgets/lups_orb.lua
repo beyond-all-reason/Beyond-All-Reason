@@ -10,20 +10,23 @@ function gadget:GetInfo()
 	}
 end
 
-local isCommander = {}
-for udefID,def in pairs(UnitDefs) do
-	if def.customParams.iscommander then
-		isCommander[udefID] = true
+local dgunDamages = {}
+local dgunSize = {}
+for weaponDefID, weaponDef in ipairs(WeaponDefs) do
+	if weaponDef.type == 'DGun' then
+		Script.SetWatchProjectile(weaponDefID, true)
+		dgunDamages[weaponDefID] = weaponDef.damages
+		dgunSize[weaponDefID] = weaponDef.size
 	end
 end
-local isDGUN = {}
-for udefID,_ in pairs(isCommander) do
-	if WeaponDefNames[ UnitDefs[ udefID ].name..'_disintegrator' ] then
-		isDGUN[ WeaponDefNames[ UnitDefs[udefID].name..'_disintegrator' ].id ] = true
-	else
-		Spring.Echo('ERROR: lups_orb: No disintegrator weapon found for: '..UnitDefs[udefID].name)
-		isCommander[udefID] = nil
+
+local isCommander = {}
+local unitArmorType = {}
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	if unitDef.customParams.iscommander then
+		isCommander[unitDefID] = true
 	end
+	unitArmorType[unitDefID] = unitDef.armorType
 end
 
 if gadgetHandler:IsSyncedCode() then
@@ -256,7 +259,7 @@ end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	Spring.Echo("beep")
-	if isDGun[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
+	if dgunDamages[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
 			Spring.Echo("boop")
 	end
 	return damage
