@@ -50,6 +50,15 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
+	local isT2Mex = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		-- not critter/chicken/object
+		if not string.find(unitDef.name, 'critter') and not string.find(unitDef.name, 'chicken') and (not unitDef.modCategories or not unitDef.modCategories.object) then
+			if unitDef.extractsMetal >= 0.004 then
+				isT2Mex[unitDefID] = unitDef.extractsMetal
+			end
+		end
+	end
 	local nukes = {
 		[WeaponDefNames["armsilo_nuclear_missile"].id] = true,
 		[WeaponDefNames["corsilo_crblmssl"].id] = true,
@@ -96,10 +105,12 @@ if gadgetHandler:IsSyncedCode() then
 
 -- UNITS RECEIVED send to all in team
 	function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-		local players = PlayersInTeamID(newTeam)
-		for ct, player in pairs (players) do
-			if tostring(player) then
-				SendToUnsynced("EventBroadcast", "UnitsReceived", tostring(player))
+		if not _G.transferredUnits or not _G.transferredUnits[unitID] then	-- exclude upgraded units (t2 mex/geo) because allied players could have done this
+			local players = PlayersInTeamID(newTeam)
+			for ct, player in pairs (players) do
+				if tostring(player) then
+					SendToUnsynced("EventBroadcast", "UnitsReceived", tostring(player))
+				end
 			end
 		end
 	end

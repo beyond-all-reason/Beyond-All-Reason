@@ -102,7 +102,7 @@ return {
 				name = "GOOLAUNCHER",
 				noselfdamage = true,
 				range = 500,
-				reloadtime = 18,
+				reloadtime = 1.8,
 				rgbcolor = "0.8 0.99 0.11",
 				nogap = false,
 				size = 8,

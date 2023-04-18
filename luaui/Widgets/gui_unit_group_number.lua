@@ -10,26 +10,18 @@ function widget:GetInfo()
 	}
 end
 
-
-local cutoffDistance = 3500
-local falloffDistance = 2500
 local hideBelowGameframe = 100
-local fontSize = 13
 
 local GetGroupList = Spring.GetGroupList
 local GetGroupUnits = Spring.GetGroupUnits
 local GetGameFrame = Spring.GetGameFrame
-local spIsUnitInView = Spring.IsUnitInView
-local spGetUnitViewPosition = Spring.GetUnitViewPosition
-local spGetCameraPosition = Spring.GetCameraPosition
-local diag = math.diag
-local min = math.min
+local spValidUnitID = Spring.ValidUnitID
+local spGetUnitIsDead = Spring.GetUnitIsDead
+local spIsGUIHidden = Spring.IsGUIHidden
 
-local vsx, vsy = Spring.GetViewGeometry()
 local existingGroups = GetGroupList()
 local existingGroupsFrame = 0
 local gameStarted = (Spring.GetGameFrame() > 0)
-local font, dlists
 
 local crashing = {}
 
@@ -69,7 +61,6 @@ local function initGL4()
 		numbersToUvs[i] = {grid,0,  1.0 - i*grid, 1.0 - (i+1)* grid} --xXyY
 	end
 	
-	
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.BILLBOARD = 1
@@ -80,10 +71,7 @@ local function initGL4()
 	shaderConfig.BREATHERATE = 0.0
 	shaderConfig.BREATHESIZE = 0.0
 	shaderConfig.GROWTHRATE = 5.0
-	--shaderConfig.POST_VERTEX = "v_parameters.w = max(-0.2, sin((timeInfo.x + timeInfo.w) * 2.0/30.0 + (v_centerpos.x + v_centerpos.z) * 0.1)) + 0.2; // match CUS glow rate"
-	--shaderConfig.POST_GEOMETRY = "g_uv.w = dataIn[0].v_parameters.w; gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in depth buffer"
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(texcolor.rgb* vec3(0.8, 1.0, 0.8), fragColor.a);" -- tint it greenish
-	--shaderConfig.POST_VERTEX = "v_lengthwidthcornerheight.xy *= parameters.y * 4.5 + (1250 - abs(cameraDistance-1250))*0.016;"
 	shaderConfig.PRE_OFFSET = "primitiveCoords.xz += vec2(20, -5);"
 	shaderConfig.MAXVERTICES = 4
 	shaderConfig.USE_CIRCLES = nil
@@ -99,7 +87,6 @@ local function initGL4()
 	return true
 end
 
-
 local function RemovePrimitive(unitID)
 	if unitGroupVBO.instanceIDtoIndex[unitID] then 
 		local oldgroup = unitIDtoGroup[unitID] 
@@ -112,10 +99,6 @@ end
 function widget:VisibleUnitRemoved(unitID) -- E.g. when a unit dies
 	RemovePrimitive(unitID, "VisibleUnitRemoved")
 end
-
-local spValidUnitID = Spring.ValidUnitID
-local spGetUnitIsDead = Spring.GetUnitIsDead
-
 
 local function AddPrimitiveAtUnit(unitID, noUpload, reason, groupNumber, gf)
 	if spValidUnitID(unitID) ~= true or spGetUnitIsDead(unitID) == true then
@@ -154,7 +137,6 @@ local function AddPrimitiveAtUnit(unitID, noUpload, reason, groupNumber, gf)
 		unitID) -- last one should be UNITID!
 end
 
-
 ------------------------------------------- End GL4 Stuff -------------------------------------------
 
 function widget:GameStart()
@@ -169,39 +151,16 @@ function widget:PlayerChanged(playerID)
 	end
 end
 
-function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
-	font = WG['fonts'].getFont(nil, 1.4, 0.35, 1.4)
-
-	if dlists then
-		for i, _ in ipairs(dlists) do
-			gl.DeleteList(dlists[i])
-		end
-	end
-	dlists = {}
-	for i = 0, 9 do
-		dlists[i] = gl.CreateList(function()
-			font:Begin()
-			font:Print("\255\200\255\200" .. i, 20.0, -10.0, fontSize, "cno")
-			font:End()
-		end)
-	end
-end
-
 function widget:Initialize()
 	initGL4()
 	for i = 0,9 do grouptounitID[i] = {} end
 	unitIDtoGroup = {}
-	widget:ViewResize()
 end
 
 function widget:Shutdown()
-	if dlists then
-		for i, _ in ipairs(dlists) do
-			gl.DeleteList(dlists[i])
-		end
-		dlists = {}
-	end
+	if unitGroupShader then unitGroupShader:Finalize() end 
+	if unitGroupVBO.VBO then unitGroupVBO:Delete() end 
+	if unitGroupVBO.VAO then unitGroupVBO.VAO:Delete() end 
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
@@ -216,54 +175,24 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 end
 
 local drawFrame = 0
-
-local newdraw = true
-local olddraw = false
+local nonEmptyGroups = {} 
+local maxNumGroups = 10
 
 function widget:DrawWorld()
 	drawFrame = drawFrame + 1
-	local gf = GetGameFrame()
-	if Spring.IsGUIHidden() or GetGameFrame() < hideBelowGameframe then
+	local gameFrame = GetGameFrame()
+	if spIsGUIHidden() or gameFrame < hideBelowGameframe then
 		return
 	end
 	
-	if olddraw then 
-	existingGroupsFrame = existingGroupsFrame + 1
-	if existingGroupsFrame % 10 == 0 then
-		existingGroups = GetGroupList()
-	end
-	local camX, camY, camZ = spGetCameraPosition()
-	local camDistance
-	for inGroup, _ in pairs(existingGroups) do
-		local units = GetGroupUnits(inGroup)
-		for i = 1, #units do
-			local unitID = units[i]
-			if spIsUnitInView(unitID) and not crashing[unitID] then
-				local ux, uy, uz = spGetUnitViewPosition(unitID)
-				camDistance = diag(camX - ux, camY - uy, camZ - uz)
-				if camDistance < cutoffDistance then
-					local scale = min(1, 1 - (camDistance - falloffDistance) / cutoffDistance)
-					gl.PushMatrix()
-					gl.Translate(ux, uy, uz)
-					if scale <=1 then
-						gl.Scale(scale, scale, scale)
-					end
-					gl.Billboard()
-					gl.CallList(dlists[inGroup])
-					gl.PopMatrix()
-				end
-			end
-			---- GL4 Drawing ---
-		end
-	end
-	end
 	-- GL4 management --
 	-- one important thing to note, is that we dont ever expect this change for two different groups in one frame.
 	-- only update 1 group at a time
-	if newdraw then 
+
 		local groupList = GetGroupList()
 		for inGroup, _ in pairs(groupList) do
-			if inGroup == drawFrame %10 then 
+			nonEmptyGroups[inGroup] = drawFrame -- mark the non empty ones
+			if inGroup == drawFrame % maxNumGroups then 
 				local units = GetGroupUnits(inGroup)
 				local thisGroupFrames = grouptounitID[inGroup]
 				for i=1, #units do
@@ -273,7 +202,7 @@ function widget:DrawWorld()
 						if unitIDtoGroup[unitID] then 
 							grouptounitID[unitIDtoGroup[unitID]][unitID] = nil
 						end
-						AddPrimitiveAtUnit(unitID, false, "", inGroup, gf)
+						AddPrimitiveAtUnit(unitID, false, "", inGroup, gameFrame)
 					end
 					-- mark as updated
 					thisGroupFrames[unitID] = drawFrame
@@ -287,6 +216,20 @@ function widget:DrawWorld()
 				end
 			end
 		end
+		
+		for i = 0, maxNumGroups do 
+			if nonEmptyGroups[i] and (nonEmptyGroups[i] < drawFrame - maxNumGroups) then 
+				local thisGroupFrames = grouptounitID[i]
+				-- this group hasnt been gotten, so it needs deletion
+				for unitID, lastupdate in pairs(thisGroupFrames) do
+					if lastupdate < drawFrame then 
+						RemovePrimitive(unitID)
+						thisGroupFrames[unitID] = nil
+					end
+				end
+			end
+		end
+		
 		if unitGroupVBO.usedElements > 0 then 
 			-- note that unitGroupVBO.VAO:DrawArrays can be display-list wrapped, but then the #usedElements doesnt update :/
 			gl.Texture(0, healthbartexture)
@@ -295,5 +238,4 @@ function widget:DrawWorld()
 			unitGroupShader:Deactivate()
 			gl.Texture(0, false)
 		end
-	end
 end

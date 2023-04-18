@@ -43,28 +43,6 @@ local categoryFontSize, pageButtonHeight, pageButtonWidth, paginatorCellWidth
 local paginatorFontSize, paginatorCellHeight
 
 local Cfgs = {
-	NEXT_PAGE_KEY = "SC_B",
-	PREV_PAGE_KEY = "SC_N",
-	qwerty = {
-		[3] = {
-			[1]  = "SC_Q",
-			[2]  = "SC_W",
-			[3]  = "SC_E",
-			[4]  = "SC_R",
-		},
-		[2] = {
-			[1] = "SC_A",
-			[2] = "SC_S",
-			[3] = "SC_D",
-			[4] = "SC_F",
-		},
-		[1] = {
-			[1] = "SC_Z",
-			[2] = "SC_X",
-			[3] = "SC_C",
-			[4] = "SC_V",
-		}
-	},
 	disableInputWhenSpec = false, -- disable specs selecting buildoptions
 	cfgCellPadding = 0.007,
 	cfgIconPadding = 0.015, -- space between icons
@@ -241,6 +219,7 @@ local pages = 1
 local paginatorRects = {}
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
 local unitshapes = {}
+local mexSnapPosition
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -680,28 +659,38 @@ local function getActionHotkey(action)
 	return key
 end
 
+-- Helper function for iterating over the actions with builder and factory tags,
+-- with GetActionHotKeys those tags will be missed and the hotkey wont work
+local function getGridKey(action)
+	local key = getActionHotkey(action)
+		or getActionHotkey(action .. ' builder')
+		or getActionHotkey(action .. ' factory')
+	return key
+end
+
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", 'qwerty')
 
 	Cfgs.keyLayout = {{}, {}, {}}
 
 	for c=1,4 do
-		local cKey = getActionHotkey('gridmenu_category ' .. c)
+		local categoryAction = 'gridmenu_category ' .. c
+		local cKey = getActionHotkey(categoryAction)
 
 		if not cKey then
-			cKey = Cfgs.qwerty[1][c]
-			Spring.SendCommands("bind " .. cKey .. " gridmenu_category " .. c)
-			Spring.SendCommands("bind Shift+" .. cKey .. " gridmenu_category " .. c)
+			cKey = ''
+			Spring.Echo("Error, missing grid category keybind for action " .. categoryAction .. ", things may not function as expected")
 		end
 
 		Cfgs.categoryKeys[c] = cKey
 
 		for r=1,3 do
-			local key = getActionHotkey('gridmenu_key ' .. r .. ' ' .. c)
+			local keyAction = 'gridmenu_key ' .. r .. ' ' .. c
+			local key = getGridKey(keyAction)
 
 			if not key then
-				key = Cfgs.qwerty[r][c]
-				Spring.SendCommands("bind Any+" .. key .. ' gridmenu_key ' .. r .. ' ' .. c)
+				key = ''
+				Spring.Echo("Error, missing grid key bind for action " .. keyAction .. ", things may not function as expected")
 			end
 
 			Cfgs.keyLayout[r][c] = key
@@ -710,8 +699,7 @@ local function reloadBindings()
 
 	local key = getActionHotkey('gridmenu_next_page')
 	if not key then
-		key = Cfgs.NEXT_PAGE_KEY
-		Spring.SendCommands('bind ' .. key .. ' gridmenu_next_page')
+		Spring.Echo("Error, missing grid key bind for next page, things may not function as expected")
 	end
 
 	Cfgs.NEXT_PAGE_KEY = key
@@ -719,7 +707,7 @@ local function reloadBindings()
 	key = getActionHotkey('gridmenu_prev_page')
 	if not key then
 		key = Cfgs.PREV_PAGE_KEY
-		Spring.SendCommands('bind ' .. key .. ' gridmenu_prev_page')
+		Spring.Echo("Error, missing grid key bind for prev page, things may not function as expected")
 	end
 
 	Cfgs.PREV_PAGE_KEY = key
@@ -1038,6 +1026,16 @@ function widget:Initialize()
 	WG['buildmenu'].getBuildQueue = function()
 		return buildQueue
 	end
+	WG['buildmenu'].setMexSnapPosition = function(value)
+		if value then
+			mexSnapPosition = value
+		else
+			mexSnapPosition = nil
+		end
+	end
+	widgetHandler:RegisterGlobal(widget, 'GetPreGameDefID', WG['buildmenu'].getPreGameDefID)
+	widgetHandler:RegisterGlobal(widget, 'GetBuildQueue', WG['buildmenu'].getBuildQueue)
+	widgetHandler:RegisterGlobal(widget, 'SetMexSnapPosition', WG['buildmenu'].setMexSnapPosition)
 end
 
 -- update queue number
@@ -2229,12 +2227,9 @@ function widget:MousePress(x, y, button)
 
 		if selBuildQueueDefID then
 			if button == 1 then
-				local curMexPosition = WG.MexSnap and WG.MexSnap.curPosition
-
-				if curMexPosition then
-					pos = { curMexPosition.x, curMexPosition.y, curMexPosition.z }
+				if mexSnapPosition then
+					pos = { mexSnapPosition.x, mexSnapPosition.y, mexSnapPosition.z }
 				end
-
 				if not pos then
 					return
 				end
@@ -2314,6 +2309,9 @@ function widget:Shutdown()
 			removeUnitShape(id)
 		end
 	end
+	widgetHandler:DeregisterGlobal(widget, 'GetPreGameDefID')
+	widgetHandler:DeregisterGlobal(widget, 'GetBuildQueue')
+	widgetHandler:DeregisterGlobal(widget, 'SetMexSnapPosition')
 end
 
 function widget:GetConfigData()

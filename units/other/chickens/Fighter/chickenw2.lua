@@ -106,7 +106,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 800,
-				reloadtime = 1.6,
+				reloadtime = 0.8,
 				smoketrail = true,
 				soundstart = "talonattack",
 				startvelocity = 600,
