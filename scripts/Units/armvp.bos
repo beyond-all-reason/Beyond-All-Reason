@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad, head, wheel1, wheel2, nano;
+piece  base, pad, head, wheel1, wheel2, nano, cagelight, cagelight_emit;
 
 static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
 
@@ -96,6 +96,7 @@ Create()
 {
 	hide pad;
 	hide nano;
+	hide cagelight_emit;
 
 	Static_Var_2 = 0;
 	Static_Var_1 = 0;
@@ -130,6 +131,8 @@ Deactivate()
 StartBuilding(Func_Var_1)
 {
 	show nano;
+	show cagelight_emit;
+	spin cagelight_emit around y-axis speed <200>;
 	spin pad around y-axis speed <0.000000>;
 	return (0);
 }
@@ -138,6 +141,8 @@ StopBuilding()
 {
 	hide nano;
 	stop-spin pad around y-axis;
+	hide cagelight_emit;
+	turn cagelight_emit to y-axis <0> speed <1000>;
 	return (0);
 }
 

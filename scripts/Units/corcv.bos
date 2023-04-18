@@ -91,7 +91,7 @@ RequestState(requestedstate, currentstate)
 			notBuilding = 0;
 			currentstate = 0;
 			show cagelight_emit;
-			spin cagelight around y-axis speed <300>;
+			spin cagelight around y-axis speed <250>;
 		}
 	}
 	statechg_StateChanging = FALSE;
