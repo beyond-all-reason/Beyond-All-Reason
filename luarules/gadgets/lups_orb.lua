@@ -10,6 +10,22 @@ function gadget:GetInfo()
 	}
 end
 
+local isCommander = {}
+for udefID,def in pairs(UnitDefs) do
+	if def.customParams.iscommander then
+		isCommander[udefID] = true
+	end
+end
+local isDGUN = {}
+for udefID,_ in pairs(isCommander) do
+	if WeaponDefNames[ UnitDefs[ udefID ].name..'_disintegrator' ] then
+		isDGUN[ WeaponDefNames[ UnitDefs[udefID].name..'_disintegrator' ].id ] = true
+	else
+		Spring.Echo('ERROR: lups_orb: No disintegrator weapon found for: '..UnitDefs[udefID].name)
+		isCommander[udefID] = nil
+	end
+end
+
 if gadgetHandler:IsSyncedCode() then
 	return
 end
@@ -73,6 +89,8 @@ local armgateShieldSphere = table.merge(defaults, {
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
 })
 
+
+
 local UnitEffects = {
 	["armjuno"] = {
 		{ class = 'ShieldSphere', options = armjunoShieldSphere },
@@ -118,6 +136,16 @@ local UnitEffects = {
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength=0.001, repeatEffect=true}},
 	},
 	["armfgate"] = {
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 25, 0 }, size = 15, precision = 22, repeatEffect = true } },
+		{ class = 'ShieldSphere', options = table.merge(armgateShieldSphere, { pos = { 0, 25, 0 } }) },
+		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
+	},
+	["armcom1"] = {
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 25, 0 }, size = 15, precision = 22, repeatEffect = true } },
+		{ class = 'ShieldSphere', options = table.merge(armgateShieldSphere, { pos = { 0, 25, 0 } }) },
+		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
+	},
+	["corcom1"] = {
 		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 25, 0 }, size = 15, precision = 22, repeatEffect = true } },
 		{ class = 'ShieldSphere', options = table.merge(armgateShieldSphere, { pos = { 0, 25, 0 } }) },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
@@ -224,6 +252,16 @@ function gadget:UnitDestroyed(unitID, unitDefID)
 		ClearFxs(unitID)
 	end
 end
+
+
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+	Spring.Echo("beep")
+	if isDGun[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
+			Spring.Echo("boop")
+	end
+	return damage
+end
+
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)

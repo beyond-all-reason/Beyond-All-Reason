@@ -160,7 +160,7 @@ function UnitDef_Post(name, uDef)
 
 	---------------------------------------------------------------------------------------------------
 
-	if Spring.GetModOptions().newdgun then
+	--[[if Spring.GetModOptions().newdgun then
 		if uDef.customparams.iscommander then
 			uDef.customparams.paralyzemultiplier = 0
 			
@@ -202,7 +202,7 @@ function UnitDef_Post(name, uDef)
 				}
 			end
 		end
-	end
+	end]]
 
 	-- Control Mode Tweaks
 	if Spring.GetModOptions().scoremode ~= "disabled" then
@@ -803,7 +803,7 @@ function UnitDef_Post(name, uDef)
 
 	-- Commander Update
 	
-	if Spring.GetModOptions().comupdate == true then
+	--[[if Spring.GetModOptions().comupdate == true then
 		if name == "armcom" or name == "corcom" then
 			uDef.featuredefs.dead.metal = 1000
 			uDef.featuredefs.heap.metal = 500
@@ -816,9 +816,25 @@ function UnitDef_Post(name, uDef)
 					scavboss = 1000,
 					commanders = 0,
 					}
+			uDef.weapondefs = {
+				repulsor = {
+					name = "DRepulsor",
+					range = 50,
+					weapontype = "Shield",
+					shield = {
+						interceptType = 32,
+						smart = true,
+						radius = 50,
+						visibleHitFrames = 60
+						},
+				},
+			}
+			uDef.weapons[4] = {
+				def = "REPULSOR",
+				}
 			end
 		end
-	end
+	end]]
 		
 		
 
