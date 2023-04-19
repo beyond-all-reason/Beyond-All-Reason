@@ -5299,7 +5299,13 @@ function init()
 		options[getOptionByID('restart')] = nil
 	end
 
-	if devMode or (WG['widgetselector'] and WG['widgetselector'].getLocalWidgetCount and WG['widgetselector'].getLocalWidgetCount() == 0) then
+	local localWidgetCount = 0
+	for name, data in pairs(widgetHandler.knownWidgets) do
+		if not data.fromZip then
+			localWidgetCount = localWidgetCount + 1
+		end
+	end
+	if devMode or localWidgetCount == 0 then
 		options[getOptionByID('widgetselector')] = nil
 	end
 
