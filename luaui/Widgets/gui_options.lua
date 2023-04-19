@@ -3022,7 +3022,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "invertmouse", group = "control", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.invertmouse'), type = "bool", value = tonumber(Spring.GetConfigInt("InvertMouse ", 0)) == 1, description = "",
+		{ id = "invertmouse", group = "control", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.invertmouse'), type = "bool", value = tonumber(Spring.GetConfigInt("InvertMouse", 0)) == 1, description = "",
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
