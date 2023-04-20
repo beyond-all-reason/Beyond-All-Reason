@@ -2100,7 +2100,7 @@ local unitDefLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 21,
 				dirx = 1, diry = 0, dirz = 0, theta = 0.99000001,
 				r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
-				modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 10,
+				modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 7,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		buildlight2 = {
@@ -2109,7 +2109,7 @@ local unitDefLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 21,
 				dirx = -1, diry = 0, dirz = 0, theta = 0.99000001,
 				r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
-				modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 10,
+				modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 7,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		nanolight = {
@@ -3457,12 +3457,21 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armcsa'].id] = {
+		buildlight = {
+			lightType = 'point',
+			pieceName = 'emit',
+			lightConfig = { posx = 0, posy = -3.5, posz = -21, radius = 13.6,
+							color2r = 0.3, color2g = 0.2, color2b = 0.025, colortime = 18,
+							r = 1.2, g = 0.85, b = 0.1, a = 1.8,
+							modelfactor = 0.15, specular = 0.3, scattering = 0.3, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'emit',
 			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 15,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-							r = -1, g = 1, b = 1, a = 0.33,
+							r = -1, g = 1, b = 1, a = 0.44,
 							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
@@ -3496,7 +3505,7 @@ local unitDefLights = {
 		thrusta = {
 			lightType = 'point',
 			pieceName = 'thrusta',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 22,
+			lightConfig = { posx = 0, posy = 0, posz = -6, radius = 18,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = 0.6, g = 1, b = 0.6, a = 0.25,
 							modelfactor = 0.4, specular = 0.5, scattering = 0.3, lensflare = 1,
@@ -3505,7 +3514,7 @@ local unitDefLights = {
 		thrustb = {
 			lightType = 'point',
 			pieceName = 'thrustb',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 22,
+			lightConfig = { posx = 0, posy = 0, posz = -6, radius = 18,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = 0.6, g = 1, b = 0.6, a = 0.25,
 							modelfactor = 0.4, specular = 0.5, scattering = 0.3, lensflare = 1,
@@ -9273,6 +9282,15 @@ local unitDefLights = {
 		--		modelfactor = 0, specular = 1, scattering = 3, lensflare = 0,
 		--		lifetime = 0, sustain = 0, animtype = 0},
 		--},
+		buildlight = {
+			lightType = 'point',
+			pieceName = 'nanolight',
+			lightConfig = { posx = 0, posy = -0.4, posz = 1, radius = 13.6,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 22,
+							r = 1.2, g = 0.85, b = 0.1, a = 2,
+							modelfactor = 0.15, specular = 0.3, scattering = 0.3, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 		nanolight = {
 			lightType = 'point',
 			pieceName = 'nano',
@@ -9970,6 +9988,15 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armaca'].id] = {
+		buildlight = {
+			lightType = 'point',
+			pieceName = 'nanolight',
+			lightConfig = { posx = 0, posy = -0.6, posz = 0.3, radius = 13,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 16,
+							r = 1.2, g = 0.85, b = 0.1, a = 2,
+							modelfactor = 0.15, specular = 0.3, scattering = 0.3, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 		nanolight = {
 			lightType = 'point',
 			pieceName = 'emit',
@@ -10045,7 +10072,7 @@ local unitDefLights = {
 		thrust = {
 			lightType = 'point',
 			pieceName = 'thrust',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
 							color2r = 1, color2g = 1, color2b = 1, colortime = 0,
 							r = 0.45, g = 0.7, b = 1, a = 0.33,
 							modelfactor = 0.4, specular = 0, scattering = 0.3, lensflare = 0,

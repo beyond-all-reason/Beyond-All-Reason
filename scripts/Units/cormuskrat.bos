@@ -20,7 +20,6 @@ static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, notBuil
 
 Go()
 {
-
 	set INBUILDSTANCE to 1;
 	turn arm1 to x-axis <60> speed <180>;
 	turn arm2 to x-axis <30> speed <180>;
@@ -32,6 +31,8 @@ Go()
 Stop()
 {
 	set INBUILDSTANCE to 0;
+	hide cagelight_emit;
+	turn cagelight to y-axis <0> speed <1000>;
 
 	move beam to y-axis [0] speed [10];
 	turn turret to z-axis <0> speed <180>;
@@ -61,16 +62,12 @@ RequestState(requestedstate, currentstate)
 			call-script Stop();
 			notBuilding = 1;
 			currentstate = 1;
-			hide cagelight_emit;
-			turn cagelight to y-axis <0> speed <1000>;
 		}
 		else
 		{
 			call-script Go();
 			notBuilding = 0;
 			currentstate = 0;
-			show cagelight_emit;
-			spin cagelight around y-axis speed <200>;
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -113,6 +110,8 @@ StartBuilding(heading, pitch)
 //	turn arm2 to x-axis <0> - pitch speed <360.000000>;  //up/down movement not working correct
 //	wait-for-turn arm2 around x-axis;
 	set INBUILDSTANCE to 1;
+	show cagelight_emit;
+	spin cagelight around y-axis speed <150>;
 }
 
 
@@ -121,6 +120,8 @@ StopBuilding()
 	hide nano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
+	hide cagelight_emit;
+	turn cagelight to y-axis <0> speed <1000>;
 	sleep 6000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	
