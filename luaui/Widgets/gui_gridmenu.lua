@@ -39,8 +39,7 @@ local BUILDCAT_ECONOMY = "Economy"
 local BUILDCAT_COMBAT = "Combat"
 local BUILDCAT_UTILITY = "Utility"
 local BUILDCAT_PRODUCTION = "Production"
-local categoryFontSize, pageButtonHeight, pageButtonWidth, paginatorCellWidth
-local paginatorFontSize
+local categoryFontSize, pageButtonHeight
 
 local Cfgs = {
 	disableInputWhenSpec = false, -- disable specs selecting buildoptions
@@ -998,22 +997,14 @@ function widget:ViewResize()
 	local widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
-
 	RectRound = WG.FlowUI.Draw.RectRound
 	RectRoundProgress = WG.FlowUI.Draw.RectRoundProgress
 	UiUnit = WG.FlowUI.Draw.Unit
 	UiElement = WG.FlowUI.Draw.Element
 	UiButton = WG.FlowUI.Draw.Button
-	elementCorner = WG.FlowUI.elementCorner
 	categoryFontSize = 0.0115 * ui_scale * vsy
+	pageFontSize = categoryFontSize
 	pageButtonHeight = math_floor(2.3 * categoryFontSize * ui_scale)
-	pageButtonWidth = 7 * categoryFontSize * ui_scale
-	if stickToBottom then
-		paginatorFontSize = categoryFontSize
-	else
-		paginatorFontSize = categoryFontSize * 1.2
-	end
-	paginatorCellWidth = paginatorFontSize * 2
 
 	activeAreaMargin = math_ceil(bgpadding * Cfgs.cfgActiveAreaMargin)
 
@@ -1031,7 +1022,6 @@ function widget:ViewResize()
 		posY = math_floor(0.14 * ui_scale * vsy) / vsy
 		posY2 = 0
 		posX = math_floor(ordermenuLeft*vsx) + widgetSpaceMargin
-		posX2 = math_floor(posX + posY * vsy * 3) + paginatorCellWidth + pageButtonWidth
 		width = posX2 - posX
 		height = posY
 
@@ -1039,13 +1029,16 @@ function widget:ViewResize()
 		colls = 6
 		cellSize = math_floor(((height * vsy) - bgpadding) / rows)
 
+		local categoryWidth = 7 * categoryFontSize * ui_scale
+		local pageButtonWidth = categoryWidth / 3
+
 		local posYP = math_floor(posY * vsy)
 
 		-- assemble rects left to right
 		categoriesRect = Rect:new(
 			posX + bgpadding,
 			posY2,
-			posX + pageButtonWidth,
+			posX + categoryWidth,
 			posYP - bgpadding
 		)
 
@@ -1059,7 +1052,7 @@ function widget:ViewResize()
 		paginatorsRect = Rect:new(
 			buildpicsRect.xEnd + bgpadding,
 			posY2,
-			buildpicsRect.xEnd + paginatorCellWidth,
+			buildpicsRect.xEnd + pageButtonWidth,
 			posYP - bgpadding
 		)
 
@@ -1078,7 +1071,7 @@ function widget:ViewResize()
 		-- 0.14 is the space required to put this above the bottom-left UI element
 		posY2 = math_floor(0.14 * ui_scale * vsy) / vsy
 		posY2 = posY2 + (widgetSpaceMargin/vsy)
-		posY = posY2 + (0.74 * width * vsx + pageButtonHeight + paginatorCellWidth)/vsy
+		posY = posY2 + (0.74 * width * vsx + pageButtonHeight)/vsy
 		posX = 0
 
 		if WG['ordermenu'] and not WG['ordermenu'].getBottomPosition() then
@@ -1103,7 +1096,7 @@ function widget:ViewResize()
 		-- assemble rects, bottom to top
 		paginatorsRect = Rect:new(
 			posX + bgpadding,
-			posY2P + bgpadding * 2,
+			posY2P + bgpadding,
 			posX2 - bgpadding,
 			posY2P + pageButtonHeight + bgpadding
 		)
@@ -1116,14 +1109,14 @@ function widget:ViewResize()
 			posX + bgpadding,
 			paginatorsRect.yEnd,
 			posX2 - bgpadding,
-			paginatorsRect.yEnd + (cellSize * rows) + bgpadding
+			paginatorsRect.yEnd + (cellSize * rows)
 		)
 
 		categoriesRect = Rect:new(
 			posX ,
 			buildpicsRect.yEnd,
 			posX2 - bgpadding,
-			buildpicsRect.yEnd + pageButtonHeight + (bgpadding)
+			buildpicsRect.yEnd + pageButtonHeight + bgpadding
 		)
 
 		backgroundRect = Rect:new(
@@ -1383,13 +1376,14 @@ local function drawCategories()
 		local x1 = categoriesRect.x
 
 		local contentHeight = (categoriesRect.yEnd - categoriesRect.y) / numCats
+		local contentWidth = categoriesRect.xEnd - categoriesRect.x
 
 		for i, cat in ipairs(categories) do
 			local y1 = categoriesRect.yEnd - i * contentHeight + 2
 			catRects[cat] = Rect:new(
 				x1,
 				y1,
-				x1 + pageButtonWidth - activeAreaMargin,
+				x1 + contentWidth - activeAreaMargin,
 				y1 + contentHeight - 2
 			)
 		end
@@ -1523,7 +1517,7 @@ local function drawPaginators()
 	local opts = {
 		highlight = false,
 		hovered = false,
-		fontSize = paginatorFontSize,
+		fontSize = pageFontSize,
 	}
 
 	if stickToBottom then
@@ -1544,17 +1538,17 @@ local function drawPaginators()
 
 		font2:Print("\255\245\245\245" .. currentPage .. "/" .. pages,
 			(prevPageRect.x + prevPageRect.xEnd) * 0.5,
-			prevPageRect.yEnd + buttonHeight * 0.5 - paginatorFontSize * 0.25, paginatorFontSize, "co")
+			prevPageRect.yEnd + buttonHeight * 0.5 - pageFontSize * 0.25, pageFontSize, "co")
 	else
 		local contentWidth = paginatorsRect.xEnd - paginatorsRect.x
 		local buttonWidth = math_floor(contentWidth * 0.33)
 
-		prevPageRect = Rect:new(paginatorsRect.x, paginatorsRect.y, paginatorsRect.x + buttonWidth, paginatorsRect.yEnd)
-		nextPageRect = Rect:new(paginatorsRect.xEnd - buttonWidth, paginatorsRect.y, paginatorsRect.xEnd, paginatorsRect.yEnd)
+		prevPageRect = Rect:new(paginatorsRect.x, paginatorsRect.y + bgpadding, paginatorsRect.x + buttonWidth, paginatorsRect.yEnd - bgpadding)
+		nextPageRect = Rect:new(paginatorsRect.xEnd - buttonWidth, paginatorsRect.y + bgpadding, paginatorsRect.xEnd, paginatorsRect.yEnd - bgpadding)
 		local buttonHeight = paginatorsRect.yEnd - paginatorsRect.y
 
 		local pagesText = currentPage .. " / " .. pages
-		font2:Print("\255\245\245\245" .. pagesText, contentWidth * 0.5, prevPageRect.yEnd - font2:GetTextHeight(pagesText) * paginatorFontSize * 0.25 - buttonHeight/2, paginatorFontSize, "co")
+		font2:Print("\255\245\245\245" .. pagesText, contentWidth * 0.5, prevPageRect.yEnd - font2:GetTextHeight(pagesText) * pageFontSize * 0.25 - buttonHeight/2, pageFontSize, "co")
 	end
 
 	opts.hovered = hoveredButton and prevPageRect:getId() == hoveredButton
