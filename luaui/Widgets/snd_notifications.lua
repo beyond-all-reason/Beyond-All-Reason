@@ -284,9 +284,6 @@ function widget:Initialize()
 			soundList[sound] = value
 		end
 	end
-	WG['notifications'].getVoiceSet = function()
-		return soundInfo
-	end
 	WG['notifications'].getSoundList = function()
 		local soundInfo = {}
 		for i, event in pairs(SoundOrder) do
