@@ -1267,11 +1267,7 @@ local function drawButton(rect, text, opts)
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
-	local zoom = 1
-
 	if hovered then
-		zoom = 1.07
-
 		-- gloss highlight
 		local pad = 0
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
@@ -1280,9 +1276,9 @@ local function drawButton(rect, text, opts)
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
-	local fontHeight = font2:GetTextHeight(text) * fontSize * zoom
+	local fontHeight = font2:GetTextHeight(text) * fontSize
 	local fontHeightOffset = fontHeight * 0.34
-	font2:Print(text, rect.x + ((rect.xEnd - rect.x) / 2), (rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset, fontSize * zoom, "con")
+	font2:Print(text, rect.x + ((rect.xEnd - rect.x) / 2), (rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset, fontSize, "con")
 
 	if opts.hovered then
 		drawnHoveredButton = rect:getId()
@@ -1871,7 +1867,7 @@ function widget:DrawScreen()
 			local usedZoom
 			local cellColor
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
-				if backgroundRect:contains(x, y) then
+				if hovering then
 
 					-- cells
 					if hoveredCellID then
