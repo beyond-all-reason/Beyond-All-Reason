@@ -100,7 +100,7 @@ return {
 				impulseboost = 2.5,
 				impulsefactor = 2.5,
 				model = "units/armvader.s3o",
-				name = "Ultra heavy Vader Bombs",
+				name = "Ultra Heavy Bombs",
 				noselfdamage = true,
 				range = 2480,
 				reloadtime = 4,
