@@ -1385,18 +1385,20 @@ if gadgetHandler:IsSyncedCode() then
 		for uName, uSettings in pairs(config.chickenTurrets) do
 			--Spring.Echo(uName)
 			--Spring.Debug.TableEcho(uSettings)
-			if not uSettings.maxQueenAnger then uSettings.maxQueenAnger = uSettings.minQueenAnger + 50 end
+			if not uSettings.maxQueenAnger then uSettings.maxQueenAnger = uSettings.minQueenAnger + 100 end
 			if uSettings.minQueenAnger <= techAnger and uSettings.maxQueenAnger >= techAnger then
 				for i = 1,math.floor((uSettings.spawnedPerWave*(1-config.chickenPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.chickenPerPlayerMultiplier)*SetCount(humanTeams)) do
-					local attempts = 0
-					repeat
-						attempts = attempts + 1
-						local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName)
-						if turretUnitID then
-							setChickenXP(turretUnitID)
-							Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
-						end
-					until turretUnitID or attempts > 100
+					if mRandom() < config.spawnChance then
+						local attempts = 0
+						repeat
+							attempts = attempts + 1
+							local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName)
+							if turretUnitID then
+								setChickenXP(turretUnitID)
+								Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
+							end
+						until turretUnitID or attempts > 100
+					end
 				end
 			end
 		end
