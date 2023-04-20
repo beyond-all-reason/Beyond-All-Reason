@@ -120,7 +120,7 @@ Cfgs.corToArm = table.invert(Cfgs.armToCor)
 
 local unitCategories = {}
 local hotkeyActions = {}
-local hoveredCat, drawnHoveredCat
+local hoveredButton, drawnHoveredButton
 local selBuildQueueDefID
 
 local stickToBottom = false
@@ -164,6 +164,10 @@ function Rect:new(x1, y1, x2, y2)
 
 	function this:contains(x, y)
 		return x >= self.x and x <= self.xEnd and y >= self.y and y <= self.yEnd
+	end
+
+	function this:getId()
+		return self.x + self.y + self.yEnd + self.xEnd
 	end
 
 	return this;
@@ -1247,7 +1251,6 @@ local function drawButton(rect, text, opts)
 	local hovered = opts.hovered
 
 	local padding = math_max(1, math_floor(bgpadding * 0.52))
-	local pad1 = padding
 
 	local color1 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- bottom
 	local color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- top
@@ -1257,7 +1260,7 @@ local function drawButton(rect, text, opts)
 		gl.Color(0, 0, 0, 0.75)
 	end
 
-	UiButton(rect.x + padding + pad1, rect.y + padding + pad1, rect.xEnd - padding - pad1, rect.yEnd - padding - pad1, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
+	UiButton(rect.x, rect.y, rect.xEnd, rect.yEnd, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
 
 	if highlight then
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -1269,17 +1272,20 @@ local function drawButton(rect, text, opts)
 		zoom = 1.07
 
 		-- gloss highlight
-		local pad = padding
-		local pad2 = 0
+		local pad = 0
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(rect.x + pad + pad2, rect.yEnd - bgpadding - pad - pad2 - ((rect.yEnd - rect.y) * 0.42), rect.xEnd - pad - pad2, (rect.yEnd - pad - pad2), padding * 1.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 }, { 1, 1, 1, (disableInput and 0.11 or 0.24) })
-		RectRound(rect.x + pad + pad2, rect.y + pad + pad2, rect.xEnd - pad - pad2, (rect.y - pad - pad2) + ((rect.yEnd - rect.y) * 0.5), padding * 1.5, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 or 0.075) }, { 1, 1, 1, 0 })
+		RectRound(rect.x + pad, rect.yEnd - bgpadding - pad - ((rect.yEnd - rect.y) * 0.42), rect.xEnd - pad, (rect.yEnd - pad), padding * 1.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 }, { 1, 1, 1, (disableInput and 0.11 or 0.24) })
+		RectRound(rect.x + pad, rect.y + pad, rect.xEnd - pad, (rect.y - pad) + ((rect.yEnd - rect.y) * 0.5), padding * 1.5, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 or 0.075) }, { 1, 1, 1, 0 })
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
 	local fontHeight = font2:GetTextHeight(text) * fontSize * zoom
 	local fontHeightOffset = fontHeight * 0.34
 	font2:Print(text, rect.x + ((rect.xEnd - rect.x) / 2), (rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset, fontSize * zoom, "con")
+
+	if opts.hovered then
+		drawnHoveredButton = rect:getId()
+	end
 end
 
 local function drawCategoryButtons()
@@ -1300,13 +1306,9 @@ local function drawCategoryButtons()
 
 		local opts = {
 			highlight = (cat == currentBuildCategory),
-			hovered = (hoveredCat == cat),
+			hovered = (hoveredButton == rect:getId()),
 			fontSize = (rect.xEnd - rect.x - (stickToBottom and 2 or 1.5) * 8 * math_max(1, math_floor(bgpadding * 0.52))) / maxTextSize,
 		}
-
-		if opts.hovered then
-			drawnHoveredCat = cat
-		end
 
 		drawButton(rect, catTexts[cat], opts)
 	end
@@ -1423,14 +1425,15 @@ local function drawCategories()
 		local y2 = categoriesRect.yEnd
 
 		local buttonWidth = math.round((categoriesRect.xEnd - categoriesRect.x) / numCats)
+		local padding = math_max(1, math_floor(bgpadding * 0.52))
 
 		for i, cat in ipairs(categories) do
 			local x1 = categoriesRect.x + activeAreaMargin + (i - 1) * buttonWidth
 			catRects[cat] = Rect:new(
-				x1,
-				y2 - pageButtonHeight,
-				x1 + buttonWidth,
-				y2 - activeAreaMargin
+				x1 + padding,
+				y2 - pageButtonHeight + padding,
+				x1 + buttonWidth - padding,
+				y2 - activeAreaMargin - padding
 			)
 		end
 	end
@@ -1526,6 +1529,12 @@ local function drawPaginators()
 	local prevKeyText = "\255\215\255\215[".. keyConfig.sanitizeKey(Cfgs.PREV_PAGE_KEY, currentLayout) .."]"
 	local nextKeyText = "\255\215\255\215[".. keyConfig.sanitizeKey(Cfgs.NEXT_PAGE_KEY, currentLayout) .."]"
 
+	local opts = {
+		highlight = false,
+		hovered = false,
+		fontSize = paginatorFontSize,
+	}
+
 	if stickToBottom then
 		local buttonHeight = (paginatorsRect.yEnd - paginatorsRect.y) / 3
 
@@ -1542,13 +1551,6 @@ local function drawPaginators()
 			paginatorsRect.y + 3 * buttonHeight
 		)
 
-		local buttonWidth = prevPageRect.xEnd - prevPageRect.x
-
-		UiButton(prevPageRect.x + cellPadding, prevPageRect.y + cellPadding, prevPageRect.xEnd - cellPadding, prevPageRect.yEnd - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print(prevKeyText, prevPageRect.x + buttonWidth/2, prevPageRect.y + (buttonHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
-		UiButton(nextPageRect.x + cellPadding, nextPageRect.y + cellPadding, nextPageRect.xEnd - cellPadding, nextPageRect.yEnd - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print(nextKeyText, nextPageRect.x + buttonWidth/2, nextPageRect.y + (buttonHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
-
 		font2:Print("\255\245\245\245" .. currentPage .. "/" .. pages,
 			(prevPageRect.x + prevPageRect.xEnd) * 0.5,
 			prevPageRect.yEnd + buttonHeight * 0.5 - paginatorFontSize * 0.25, paginatorFontSize, "co")
@@ -1560,14 +1562,14 @@ local function drawPaginators()
 		nextPageRect = Rect:new(paginatorsRect.xEnd - buttonWidth, paginatorsRect.y, paginatorsRect.xEnd, paginatorsRect.yEnd)
 		local buttonHeight = paginatorsRect.yEnd - paginatorsRect.y
 
-		UiButton(prevPageRect.x + cellPadding, prevPageRect.y + bgpadding, prevPageRect.xEnd + cellPadding, prevPageRect.yEnd - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print(prevKeyText, prevPageRect.x + (buttonWidth * 0.5), prevPageRect.yEnd - font2:GetTextHeight(prevKeyText) * paginatorFontSize * 0.25 - buttonHeight/2, paginatorFontSize, "co")
-		UiButton(nextPageRect.x + cellPadding, nextPageRect.y + bgpadding, nextPageRect.xEnd - cellPadding, nextPageRect.yEnd - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print(nextKeyText, nextPageRect.x + (buttonWidth * 0.5), nextPageRect.yEnd - font2:GetTextHeight(nextKeyText) * paginatorFontSize * 0.25 - buttonHeight/2, paginatorFontSize, "co")
-
 		local pagesText = currentPage .. " / " .. pages
 		font2:Print("\255\245\245\245" .. pagesText, contentWidth * 0.5, prevPageRect.yEnd - font2:GetTextHeight(pagesText) * paginatorFontSize * 0.25 - buttonHeight/2, paginatorFontSize, "co")
 	end
+
+	opts.hovered = hoveredButton and prevPageRect:getId() == hoveredButton
+	drawButton(prevPageRect, prevKeyText, opts)
+	opts.hovered = hoveredButton and nextPageRect:getId() == hoveredButton
+	drawButton(nextPageRect, nextKeyText, opts)
 end
 
 local function drawBuildmenu()
@@ -1772,7 +1774,7 @@ function widget:DrawScreen()
 		if preGamestartPlayer or selectedBuilder or selectedFactory then
 			-- pre process + 'highlight' under the icons
 			local hoveredCellID = nil
-			local hoveredCatNotFound = true
+			local hoveredButtonNotFound = true
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
 				if hovering then
 					for cellRectID, cellRect in pairs(cellRects) do
@@ -1805,9 +1807,9 @@ function widget:DrawScreen()
 
 					for cat, catRect in pairs(catRects) do
 						if catRect:contains(x, y) then
-							hoveredCat = cat
+							hoveredButton = catRect:getId()
 
-							if hoveredCat ~= drawnHoveredCat then
+							if hoveredButton ~= drawnHoveredButton then
 								doUpdate = true
 							end
 
@@ -1830,20 +1832,41 @@ function widget:DrawScreen()
 								WG['tooltip'].ShowTooltip('buildmenu', text, nil, nil, cat)
 							end
 
-							hoveredCatNotFound = false
+							hoveredButtonNotFound = false
 							break
+						end
+					end
+
+					-- paginator buttons
+					if prevPageRect.x and prevPageRect:contains(x, y) then
+						hoveredButton = prevPageRect:getId()
+						hoveredButtonNotFound = false
+					end
+					if nextPageRect.y and nextPageRect:contains(x, y) then
+						hoveredButton = nextPageRect:getId()
+						hoveredButtonNotFound = false
+					end
+
+					if hoveredButton ~= drawnHoveredButton then
+						doUpdate = true
+					end
+
+					if hoveredButton == prevPageRect:getId() or hoveredButton == nextPageRect:getId() then
+						if WG['tooltip'] then
+							local text = "\255\240\240\240" .. (hoveredButton == prevPageRect:getId() and Spring.I18N('ui.buildMenu.previousPage') or Spring.I18N('ui.buildMenu.nextPage'))
+							WG['tooltip'].ShowTooltip('buildmenu', text)
 						end
 					end
 				end
 			end
 
-			if (not hovering) or (selectedBuilder and hoveredCatNotFound) then
-				if drawnHoveredCat then
+			if (not hovering) or (selectedBuilder and hoveredButtonNotFound) then
+				if drawnHoveredButton then
 					doUpdate = true
 				end
 
-				drawnHoveredCat = nil
-				hoveredCat = nil
+				hoveredButton = nil
+				drawnHoveredButton = nil
 			end
 
 			-- draw buildmenu content
@@ -1854,25 +1877,6 @@ function widget:DrawScreen()
 			local cellColor
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
 				if backgroundRect:contains(x, y) then
-
-					-- paginator buttons
-					local hoveredRect
-					if prevPageRect.x and prevPageRect:contains(x, y) then
-						hoveredRect = prevPageRect
-					end
-					if nextPageRect.y and nextPageRect:contains(x, y) then
-						hoveredRect = nextPageRect
-					end
-					if hoveredRect then
-						if WG['tooltip'] then
-							local text = "\255\240\240\240" .. (hoveredRect == prevPageRect and Spring.I18N('ui.buildMenu.previousPage') or Spring.I18N('ui.buildMenu.nextPage'))
-							WG['tooltip'].ShowTooltip('buildmenu', text)
-						end
-						RectRound(hoveredRect.x + cellPadding, hoveredRect.y + cellPadding, hoveredRect.xEnd - cellPadding, hoveredRect.yEnd - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 1, 1, 1, 0 }, { 1, 1, 1, (b and 0.35 or 0.15) })
-						-- gloss
-						RectRound(hoveredRect.x + cellPadding, hoveredRect.yEnd - cellPadding - ((hoveredRect.yEnd - hoveredRect.y) * 0.5), hoveredRect.xEnd - cellPadding, hoveredRect.yEnd - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.015 }, { 1, 1, 1, 0.13 })
-						RectRound(hoveredRect.x + cellPadding, hoveredRect.y + cellPadding, hoveredRect.xEnd - cellPadding, hoveredRect.y + cellPadding + ((hoveredRect.yEnd - hoveredRect.y) * 0.33), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0 })
-					end
 
 					-- cells
 					if hoveredCellID then
