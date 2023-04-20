@@ -48,7 +48,21 @@ function addSound(name, file, minDelay, duration, messageKey, unlisted)
 	end
 end
 
-soundFolder = "Sounds/voice/allison/"
+local voiceSet = Spring.GetConfigString('voiceset', 'allison')
+local voiceSetFound = false
+local files = VFS.SubDirs('sounds/voice', '*')
+for k, file in ipairs(files) do
+	local dirname = string.sub(file, 14, string.len(file)-1)
+	if dirname == voiceSet then
+		voiceSetFound = true
+		break
+	end
+end
+if not voiceSetFound then
+	voiceSet = 'allison'
+end
+
+soundFolder = "Sounds/voice/"..voiceSet.."/"
 VFS.Include(soundFolder .. 'config.lua')
 
 unitsOfInterest = {}
@@ -269,6 +283,9 @@ function widget:Initialize()
 		WG['notifications']['setSound'..sound] = function(value)
 			soundList[sound] = value
 		end
+	end
+	WG['notifications'].getVoiceSet = function()
+		return soundInfo
 	end
 	WG['notifications'].getSoundList = function()
 		local soundInfo = {}

@@ -2013,7 +2013,7 @@ function init()
 		{ id = 'dev', name = Spring.I18N('ui.settings.group.dev') },
 	}
 
-	if not currentGroupTab or Spring.GetGameFrame() == 0 then
+	if not currentGroupTab then
 		currentGroupTab = optionGroups[1].id
 	else
 		-- check if group exists
@@ -2729,6 +2729,19 @@ function init()
 		{ id = "loadscreen_music", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.loadscreen_music'), type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = Spring.I18N('ui.settings.option.loadscreen_music_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("music_loadscreen", (value and 1 or 0))
+		  end,
+		},
+
+		{ id = "notifications_set", group = "notif", category = types.dev, name = Spring.I18N('ui.settings.option.notifications_set'), type = "select", options = {}, value = 1,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigString("voiceset", options[i].options[options[i].value])
+			  if widgetHandler.orderList["Notifications"] ~= nil then
+				  widgetHandler:DisableWidget("Notifications")
+				  widgetHandler:EnableWidget("Notifications")
+				  init()
+			  end
 		  end,
 		},
 
@@ -5542,6 +5555,26 @@ function init()
 		options = newOptions
 	end
 
+	-- add sound notification sets
+	if getOptionByID('notifications_set') then
+		local voiceset = Spring.GetConfigString("voiceset", 'allison')
+		local currentVoiceSetOption
+		local sets = {}
+		local files = VFS.SubDirs('sounds/voice', '*')
+		fontOption = {}
+		for k, file in ipairs(files) do
+			local dirname = string.sub(file, 14, string.len(file)-1)
+			sets[#sets+1] = dirname
+			if dirname == voiceset then
+				currentVoiceSetOption = #sets
+			end
+		end
+		options[getOptionByID('notifications_set')].options = sets
+		if currentVoiceSetOption then
+			options[getOptionByID('notifications_set')].value = currentVoiceSetOption
+		end
+	end
+
 	-- add sound notification widget sound toggle options
 	local soundList
 	if WG['notifications'] ~= nil then
@@ -6102,9 +6135,6 @@ function widget:SetConfigData(data)
 	if data.cameraPanTransitionTime ~= nil then
 		cameraPanTransitionTime = data.cameraPanTransitionTime
 	end
-	if data.currentGroupTab ~= nil then
-		currentGroupTab = data.currentGroupTab
-	end
 	if data.guishaderIntensity then
 		guishaderIntensity = data.guishaderIntensity
 	end
@@ -6112,6 +6142,9 @@ function widget:SetConfigData(data)
 		edgeMoveWidth = data.edgeMoveWidth
 	end
 	if Spring.GetGameFrame() > 0 then
+		if data.currentGroupTab ~= nil then
+			currentGroupTab = data.currentGroupTab
+		end
 		if data.show ~= nil then
 			show = data.show
 			if show and showTextInput then

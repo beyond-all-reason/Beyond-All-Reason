@@ -982,6 +982,7 @@
 				"scav_messages": "Scavenger written notifications",
 				"scav_voicenotifs": "Scavenger voice notifications",
 				"scav_voicenotifs_descr": "Toggle the scavenger announcer voice",
+				"notifications_set": "Voice",
 				"notifications_tutorial": "Tutorial mode",
 				"notifications_tutorial_descr": "Additional messages that guide you how to play\n\nIt remembers what has been played already\n(Re)enabling this will reset this",
 				"notifications_messages": "Written notifications",
