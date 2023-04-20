@@ -1006,7 +1006,7 @@ function widget:ViewResize()
 	UiButton = WG.FlowUI.Draw.Button
 	elementCorner = WG.FlowUI.elementCorner
 	categoryFontSize = 0.0115 * ui_scale * vsy
-	pageButtonHeight = math_floor(2.0 * categoryFontSize * ui_scale)
+	pageButtonHeight = math_floor(2.3 * categoryFontSize * ui_scale)
 	pageButtonWidth = 7 * categoryFontSize * ui_scale
 	if stickToBottom then
 		paginatorFontSize = categoryFontSize
@@ -1103,7 +1103,7 @@ function widget:ViewResize()
 		-- assemble rects, bottom to top
 		paginatorsRect = Rect:new(
 			posX + bgpadding,
-			posY2P + bgpadding,
+			posY2P + bgpadding * 2,
 			posX2 - bgpadding,
 			posY2P + pageButtonHeight + bgpadding
 		)
@@ -1120,17 +1120,18 @@ function widget:ViewResize()
 		)
 
 		categoriesRect = Rect:new(
-			posX + bgpadding,
+			posX ,
 			buildpicsRect.yEnd,
 			posX2 - bgpadding,
-			buildpicsRect.yEnd + pageButtonHeight + bgpadding
+			buildpicsRect.yEnd + pageButtonHeight + (bgpadding)
 		)
 
 		backgroundRect = Rect:new(
 			posX,
 			posY2P,
 			posX2,
-			categoriesRect.yEnd)
+			categoriesRect.yEnd + bgpadding
+		)
 	end
 
 	checkGuishader(true)
