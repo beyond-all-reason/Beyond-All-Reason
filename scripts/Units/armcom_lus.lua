@@ -3,7 +3,7 @@
 
 
 --Skeleton pieces
-local head, torso, luparm, biggun, ruparm, rloarm, lflare, nano, laserflare, pelvis, rthigh, lthigh, lleg, rleg, rfoot, rfootstep, lfoot, lfootstep, dish, barrel, aimy1, bigguncyl,hatpoint, crown, medalsilver, medalbronze, medalgold = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg", "rleg", "rfoot", "rfootstep", "lfoot", "lfootstep", "dish", "barrel", "aimy1","bigguncyl","hatpoint", "crown", "medalsilver", "medalbronze", "medalgold")
+local head, torso, luparm, biggun, ruparm, rloarm, lflare, nano, laserflare, pelvis, rthigh, lthigh, lleg, rleg, rfoot, rfootstep, lfoot, lfootstep, dish, barrel, aimy1, bigguncyl,hatpoint, crown, medalsilver, medalbronze, medalgold, cagelight, cagelight_emit = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg", "rleg", "rfoot", "rfootstep", "lfoot", "lfootstep", "dish", "barrel", "aimy1","bigguncyl","hatpoint", "crown", "medalsilver", "medalbronze", "medalgold", "cagelight", "cagelight_emit")
 
 local weapons = {
 	[1] = "laser",
@@ -898,6 +898,7 @@ function script.Create()
 	Move(medalbronze, y_axis, 100, 9999)
 
 	Hide(nano)
+	Hide (cagelight_emit);
 	Spin(dish, 2, 2.5)
 	isAiming = false
 	isAimingDgun = false
@@ -1049,6 +1050,8 @@ function script.StartBuilding(heading, pitch)
 	buildHeading = heading
 	buildPitch = pitch
 	StartThread(SprayNano, heading, pitch)
+	Show (cagelight_emit);
+	Spin (cagelight, z_axis,-8);
 	return true
 end
 
@@ -1060,6 +1063,8 @@ function script.StopBuilding()
 	Signal(SIG_AIM)
 	SetSignalMask(SIG_AIM)
 	StartThread(Restore)
+	Hide (cagelight_emit);
+	Turn (cagelight, z_axis,0,15);
 	return true
 end
 

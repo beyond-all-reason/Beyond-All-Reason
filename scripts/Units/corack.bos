@@ -137,9 +137,7 @@ Stop()
 {
 	set INBUILDSTANCE to 0;
 	hide cagelight_emit;
-	//turn cagelight to z-axis <0> speed <1000>;
 	hide cagelight_emit2;
-	//turn cagelight2 to z-axis <0> speed <1000>;
 	
 	turn lbeamhinge to x-axis <0> speed <360>;
 	turn rbeamhinge to x-axis <0> speed <360>;
@@ -186,10 +184,6 @@ RequestState(requestedstate, currentstate)
 			call-script Go();
 			notBuilding = 0;
 			currentstate = 0;
-			show cagelight_emit;
-			show cagelight_emit2;
-			spin cagelight_emit around y-axis speed <450>;
-			spin cagelight_emit2 around y-axis speed <-450>;
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -231,6 +225,10 @@ StartBuilding(heading, pitch)
 	turn aimy1 to y-axis heading speed <160.000000>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
+	show cagelight_emit;
+	show cagelight_emit2;
+	spin cagelight_emit around y-axis speed <450>;
+	spin cagelight_emit2 around y-axis speed <-450>;
 }
 
 StopBuilding()
@@ -239,6 +237,8 @@ StopBuilding()
 	hide lnano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
+	hide cagelight_emit;
+	hide cagelight_emit2;
 	sleep 6000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	
