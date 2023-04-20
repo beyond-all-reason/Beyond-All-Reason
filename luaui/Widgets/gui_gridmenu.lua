@@ -255,7 +255,6 @@ local math_floor = math.floor
 local math_ceil = math.ceil
 local math_max = math.max
 local math_min = math.min
-local math_isInRect = math.isInRect
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
@@ -1029,7 +1028,7 @@ function widget:ViewResize()
 		colls = 6
 		cellSize = math_floor(((height * vsy) - bgpadding) / rows)
 
-		local categoryWidth = 7 * categoryFontSize * ui_scale
+		local categoryWidth = 8 * categoryFontSize * ui_scale
 		local pageButtonWidth = categoryWidth / 3
 
 		local posYP = math_floor(posY * vsy)
@@ -1405,21 +1404,14 @@ local function drawCategories()
 	end
 
 	-- set up buttons
-	local maxTextSize = 0
-
 	for catIndex, cat in pairs(Cfgs.buildCategories) do
 		local catText = cat .. " \255\215\255\215" .. "[" .. keyConfig.sanitizeKey(Cfgs.categoryKeys[catIndex], currentLayout) .. "]"
-		local catTextSize = font2:GetTextWidth(catText)
-		if maxTextSize < catTextSize then
-			maxTextSize = catTextSize
-		end
-
 		local rect = catRects[cat]
 
 		local opts = {
 			highlight = (cat == currentBuildCategory),
 			hovered = (hoveredButton == rect:getId()),
-			fontSize = (rect.xEnd - rect.x - (stickToBottom and 2 or 1.5) * 8 * math_max(1, math_floor(bgpadding * 0.52))) / maxTextSize,
+			fontSize = categoryFontSize,
 		}
 
 		drawButton(rect, catText, opts)
@@ -1758,7 +1750,7 @@ function widget:DrawScreen()
 		gl.CallList(dlistBuildmenuBg)
 		if preGamestartPlayer or selectedBuilder or selectedFactory then
 			-- pre process + 'highlight' under the icons
-			local hoveredCellID = nil
+			local hoveredCellID
 			local hoveredButtonNotFound = true
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
 				if hovering then
