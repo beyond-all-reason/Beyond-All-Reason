@@ -213,15 +213,9 @@ local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 local buildQueue = {}
 local disableInput = Cfgs.disableInputWhenSpec and isSpec
 local backgroundRect = Rect:new(0, 0, 0, 0)
-local colls = 4
+local columns = 4
 local rows = 3
 local minimapHeight = 0.235
-local posY = 0
-local posY2 = 0
-local posX = 0
-local posX2 = 0.2
-local width = 0
-local height = 0
 local selectedBuilders = {}
 local cellRects = {}
 local cmds = {}
@@ -955,7 +949,7 @@ function widget:Initialize()
 		doUpdate = true
 	end
 	WG['buildmenu'].getSize = function()
-		return posY, posY2
+		return backgroundRect.y, backgroundRect.yEnd
 	end
 	WG['buildmenu'].reloadBindings = reloadBindings
 	WG['buildmenu'].getIsShowing = function()
@@ -1018,110 +1012,99 @@ function widget:ViewResize()
 	-- if stick to bottom we know cells are 2 row by 6 column
 	if stickToBottom then
 
-		posY = math_floor(0.14 * ui_scale * vsy) / vsy
-		posY2 = 0
-		posX = math_floor(ordermenuLeft*vsx) + widgetSpaceMargin
-		width = posX2 - posX
-		height = posY
+		local posY = math_floor(0.14 * ui_scale * vsy)
+		local posYEnd = 0
+		local posX = math_floor(ordermenuLeft*vsx) + widgetSpaceMargin
+		local height = posY
 
 		rows = 2
-		colls = 6
-		cellSize = math_floor(((height * vsy) - bgpadding) / rows)
+		columns = 6
+		cellSize = math_floor(((height) - bgpadding) / rows)
 
 		local categoryWidth = 8 * categoryFontSize * ui_scale
 		local pageButtonWidth = categoryWidth / 3
 
-		local posYP = math_floor(posY * vsy)
-
 		-- assemble rects left to right
 		categoriesRect = Rect:new(
 			posX + bgpadding,
-			posY2,
+			posYEnd,
 			posX + categoryWidth,
-			posYP - bgpadding
+			posY - bgpadding
 		)
 
 		buildpicsRect = Rect:new(
 			categoriesRect.xEnd + bgpadding,
-			posY2,
-			categoriesRect.xEnd + (cellSize * colls) + bgpadding,
-			posYP - bgpadding
+			posYEnd,
+			categoriesRect.xEnd + (cellSize * columns) + bgpadding,
+			posY - bgpadding
 		)
 
 		paginatorsRect = Rect:new(
 			buildpicsRect.xEnd + bgpadding,
-			posY2,
+			posYEnd,
 			buildpicsRect.xEnd + pageButtonWidth,
-			posYP - bgpadding
+			posY - bgpadding
 		)
 
 		backgroundRect = Rect:new(
 			posX,
-			posY2,
+			posYEnd,
 			paginatorsRect.xEnd + bgpadding,
-			posYP
+			posY
 		)
 
 	else -- if stick to side we know cells are 3 row by 4 column
-		width = 0.212 -- hardcoded width to match bottom element
-		width = width / (vsx / vsy) * 1.78				-- make smaller for ultrawide screens
+		local width = 0.212 	-- hardcoded width to match bottom element
+		width = width / (vsx / vsy) * 1.78	-- make smaller for ultrawide screens
 		width = width * ui_scale
 
 		-- 0.14 is the space required to put this above the bottom-left UI element
-		posY2 = math_floor(0.14 * ui_scale * vsy) / vsy
-		posY2 = posY2 + (widgetSpaceMargin/vsy)
-		posY = posY2 + (0.74 * width * vsx + pageButtonHeight)/vsy
-		posX = 0
+		local posYEnd = math_floor(0.14 * ui_scale * vsy) + widgetSpaceMargin
+		local posY = math_floor(posYEnd + ((0.74 * vsx) * width + pageButtonHeight))/vsy
+		local posX = 0
 
 		if WG['ordermenu'] and not WG['ordermenu'].getBottomPosition() then
 			local _, oposY, _, oheight = WG['ordermenu'].getPosition()
 			if posY > oposY then
-				posY = oposY - oheight - ((widgetSpaceMargin)/vsy)
+				posY = (oposY - oheight - ((widgetSpaceMargin)/vsy))
 			end
 		end
 
-		posY = math_floor(posY * vsy) / vsy
-		posX = math_floor(posX * vsx) / vsx
-
-		height = (posY - posY2)
-
-		posX2 = math_floor(width * vsx)
-		local posY2P = math_floor(posY2 * vsy)
+		local posXEnd = math_floor(width * vsx)
 
 		-- make pixel aligned
-		width = posX2 - posX
-
+		width = posXEnd - posX
 
 		-- assemble rects, bottom to top
 		paginatorsRect = Rect:new(
 			posX + bgpadding,
-			posY2P + bgpadding,
-			posX2 - bgpadding,
-			posY2P + pageButtonHeight + bgpadding
+			posYEnd + bgpadding,
+			posXEnd - bgpadding,
+			posYEnd + pageButtonHeight + bgpadding
 		)
 
 		rows = 3
-		colls = 4
-		cellSize = math_floor((width - (bgpadding * 2)) / colls)
+		columns = 4
+		cellSize = math_floor((width - (bgpadding * 2)) / columns)
 
 		buildpicsRect = Rect:new(
 			posX + bgpadding,
 			paginatorsRect.yEnd,
-			posX2 - bgpadding,
+			posXEnd - bgpadding,
 			paginatorsRect.yEnd + (cellSize * rows)
 		)
 
 		categoriesRect = Rect:new(
 			posX ,
 			buildpicsRect.yEnd,
-			posX2 - bgpadding,
+			posXEnd - bgpadding,
 			buildpicsRect.yEnd + pageButtonHeight + bgpadding
 		)
 
 		backgroundRect = Rect:new(
 			posX,
-			posY2P,
-			posX2,
+			posYEnd,
+			posXEnd,
 			categoriesRect.yEnd + bgpadding
 		)
 	end
@@ -1234,7 +1217,9 @@ end
 
 local function drawBuildmenuBg()
 	WG['buildmenu'].selectedID = nil
-	UiElement(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
+	local height = backgroundRect.yEnd - backgroundRect.y
+	local posY = backgroundRect.y
+	UiElement(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, (backgroundRect.x > 0 and 1 or 0), 1, ((posY-height > 0 or backgroundRect.x <= 0) and 1 or 0), 0)
 end
 
 local function drawButton(rect, text, opts)
@@ -1419,7 +1404,7 @@ local function drawCategories()
 end
 
 local function drawGrid()
-	local numCellsPerPage = rows * colls
+	local numCellsPerPage = rows * columns
 	local cellRectID = 0
 	local unitGrid
 	if selectedFactory then
@@ -1558,8 +1543,8 @@ local function drawBuildmenu()
 	end
 
 	-- adjust grid size when pages are needed
-	if uidcmdsCount > colls * rows then
-		pages = math_ceil(uidcmdsCount / (rows * colls))
+	if uidcmdsCount > columns * rows then
+		pages = math_ceil(uidcmdsCount / (rows * columns))
 
 		if currentPage > pages then
 			currentPage = pages
@@ -1671,7 +1656,7 @@ local function cacheUnitIcons()
 end
 
 local function drawBuildProgress()
-	local numCellsPerPage = rows * colls
+	local numCellsPerPage = rows * columns
 	local maxCellRectID = numCellsPerPage * currentPage
 	if maxCellRectID > uidcmdsCount then
 		maxCellRectID = uidcmdsCount
