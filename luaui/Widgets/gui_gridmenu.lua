@@ -1288,32 +1288,6 @@ local function drawButton(rect, text, opts)
 	end
 end
 
-local function drawCategoryButtons()
-	local catTexts = {}
-	local maxTextSize = 0
-
-	for catIndex, cat in pairs(Cfgs.buildCategories) do
-		local catText = cat .. " \255\215\255\215" .. "[" .. keyConfig.sanitizeKey(Cfgs.categoryKeys[catIndex], currentLayout) .. "]"
-		catTexts[cat] = catText
-		local catTextSize = font2:GetTextWidth(catText)
-		if maxTextSize < catTextSize then
-			maxTextSize = catTextSize
-		end
-	end
-
-	for _, cat in pairs(Cfgs.buildCategories) do
-		local rect = catRects[cat]
-
-		local opts = {
-			highlight = (cat == currentBuildCategory),
-			hovered = (hoveredButton == rect:getId()),
-			fontSize = (rect.xEnd - rect.x - (stickToBottom and 2 or 1.5) * 8 * math_max(1, math_floor(bgpadding * 0.52))) / maxTextSize,
-		}
-
-		drawButton(rect, catTexts[cat], opts)
-	end
-end
-
 local function drawCell(id, usedZoom, cellColor, disabled)
 	local cmd = cellcmds[id]
 	local uid = cmd.id * -1
@@ -1407,6 +1381,7 @@ end
 local function drawCategories()
 	local numCats = #categories
 
+	-- set up rects
 	if stickToBottom then
 		local x1 = categoriesRect.x
 
@@ -1438,7 +1413,26 @@ local function drawCategories()
 		end
 	end
 
-	drawCategoryButtons()
+	-- set up buttons
+	local maxTextSize = 0
+
+	for catIndex, cat in pairs(Cfgs.buildCategories) do
+		local catText = cat .. " \255\215\255\215" .. "[" .. keyConfig.sanitizeKey(Cfgs.categoryKeys[catIndex], currentLayout) .. "]"
+		local catTextSize = font2:GetTextWidth(catText)
+		if maxTextSize < catTextSize then
+			maxTextSize = catTextSize
+		end
+
+		local rect = catRects[cat]
+
+		local opts = {
+			highlight = (cat == currentBuildCategory),
+			hovered = (hoveredButton == rect:getId()),
+			fontSize = (rect.xEnd - rect.x - (stickToBottom and 2 or 1.5) * 8 * math_max(1, math_floor(bgpadding * 0.52))) / maxTextSize,
+		}
+
+		drawButton(rect, catText, opts)
+	end
 end
 
 local function drawGrid()
