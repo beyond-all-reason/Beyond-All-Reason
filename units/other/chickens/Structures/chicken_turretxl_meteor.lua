@@ -98,7 +98,7 @@ return {
 				turret = 1,
 				weaponvelocity = 1500,
 				damage = {
-					default = 15000,
+					default = 30000,
 				},
 			},
 			-- cc_laser = {

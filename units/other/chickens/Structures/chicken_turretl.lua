@@ -97,7 +97,7 @@ return {
 				noselfdamage = true,
 				proximitypriority = -4,
 				range = 2000,
-				reloadtime = 3,
+				reloadtime = 6,
 				rgbcolor = "1 0.5 0.1",
 				size = 5.5,
 				sizedecay = 0.09,
@@ -109,8 +109,8 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 750,
 				damage = {
-					default = 320,
-					shields = 160,
+					default = 640,
+					shields = 320,
 				},
 			},
 			-- cc_laser = {

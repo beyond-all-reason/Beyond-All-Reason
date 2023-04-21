@@ -91,7 +91,7 @@ return {
 				noselfdamage = true,
 				proximitypriority = -4,
 				range = 1000,
-				reloadtime = 2,
+				reloadtime = 4,
 				rgbcolor = "1 0.5 0.1",
 				size = 3,
 				sizedecay = 0.09,
@@ -103,8 +103,8 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 750,
 				damage = {
-					default = 160,
-					shields = 80,
+					default = 320,
+					shields = 160,
 				},
 			},
 			antiair = {
@@ -130,7 +130,7 @@ return {
 				name = "Deadly Defensive Spores",
 				noselfdamage = true,
 				range = 1000,
-				reloadtime = 2,
+				reloadtime = 4,
 				smoketrail = true,
 				smokePeriod = 2,
 				smoketime = 45,
@@ -153,10 +153,10 @@ return {
 				weaponvelocity = 2000,
 				wobble = 32000,
 				damage = {
-					default = 5,
-					bombers = 500,
-					fighters = 500,
-					vtol = 500,
+					default = 10,
+					bombers = 1000,
+					fighters = 1000,
+					vtol = 1000,
 				},
 			},
 			spawnmeteor = {
