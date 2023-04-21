@@ -320,11 +320,7 @@ local inputTextPosition = 0
 local cursorBlinkTimer = 0
 local cursorBlinkDuration = 1
 local maxTextInputChars = 127	-- tested 127 as being the true max
-local inputButton = true
 local inputTextInsertActive = false
-local inputButtonRect
-local slen = string.len
-local ssub = string.sub
 local floor = math.floor
 local inputMode = ''
 
