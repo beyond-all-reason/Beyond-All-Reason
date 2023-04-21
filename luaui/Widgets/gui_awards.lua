@@ -178,7 +178,7 @@ end
 
 local function createBackground()
 	if Background then
-		gl.DeleteList(Background)
+		Background = gl.DeleteList(Background)
 	end
 	if WG['guishader'] then
 		WG['guishader'].InsertRect(widgetX, widgetY, widgetX + widgetWidthScaled, widgetY + widgetHeightScaled, 'awards')
@@ -270,7 +270,7 @@ local function ProcessAwards(awards)
 		offset = offset + offsetAdd
 	end
 	-- make sure the other awards lines are at the bottom
-	local minOffset = 120 + (offsetAdd*3)	
+	local minOffset = 120 + (offsetAdd*3)
 	if offset < minOffset then
 		offset = minOffset
 	end

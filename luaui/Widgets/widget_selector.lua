@@ -466,10 +466,7 @@ function widget:KeyRelease()
 end
 
 function widget:KeyPress(key, mods, isRepeat)
-	if show and key == KEYSYMS.ESCAPE or
-		(key == KEYSYMS.F11 and not isRepeat and
-			not (mods.alt or mods.ctrl or mods.meta or mods.shift)) then
-
+	if show and key == KEYSYMS.ESCAPE or (key == KEYSYMS.F11 and not isRepeat and not (mods.alt or mods.ctrl or mods.meta or mods.shift)) then
 		if inputText and inputText ~= '' then
 			clearChatInput()
 		else
@@ -500,6 +497,10 @@ function widget:KeyPress(key, mods, isRepeat)
 	--return false
 
 	if not show then return false end
+	
+	if key >= 282 and key <= 293 then	-- Function keys
+		return false
+	end
 
 	--local alt, ctrl, _, shift = Spring.GetModKeyState()
 	if key == 27 then -- ESC
@@ -553,6 +554,11 @@ function widget:KeyPress(key, mods, isRepeat)
 
 	updateTextInputDlist = true
 	return true
+end
+
+function widget:Update(dt)
+	cursorBlinkTimer = cursorBlinkTimer + dt
+	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
 end
 
 function widget:DrawScreen()
