@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Bluestone",
 		date = "April 2015",
 		license = "GNU GPL, v2 or later, Mouthwash",
-		layer = 3,
+		layer = -99990,
 		enabled = true,
 	}
 end
