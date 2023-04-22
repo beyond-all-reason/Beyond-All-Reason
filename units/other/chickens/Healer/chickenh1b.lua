@@ -45,6 +45,7 @@ return {
 		noautofire = 0,
 		objectname = "Chickens/chicken_droneb.s3o",
 		reclaimspeed = 400,
+		repairable = false,
 		script = "Chickens/chickenh1b.cob",
 		seismicsignature = 1,
 		selfdestructas = "WEAVER_DEATH",
