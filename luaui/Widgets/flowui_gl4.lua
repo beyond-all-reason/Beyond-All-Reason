@@ -207,6 +207,8 @@ function metaElement:ProcessRelativeCoords()
 	
 	if self.WIDTH then
 		if type(self.WIDTH) == 'string' then 
+			--Spring.Debug.TraceEcho(self.left, parent.right, parent.left, self.WIDTH,string.sub(self.WIDTH,1,-1))
+			--Spring.Debug.TraceFullEcho(30,30,30)
 			self.right = self.left + (parent.right-parent.left) * tonumber(string.sub(self.WIDTH,1,-1))/100.0 - padding
 		else
 			self.right = self.left + self.WIDTH - padding
@@ -250,10 +252,11 @@ local function newElement(o) -- This table contains the default properties
 		--parent = ROOT,
 		--instanceKeys = {}, -- a table of the instancekeys corresponding to this piece of shit
 	}
-	
+	-- Set the metatable, and update its values
 	local obj = setmetatable(element, metaElement_mt)
 	for k,v in pairs(o) do obj[k] = v end 
 	
+	-- Here, we search for the objects parent, calculate its depth, and figure out which VBO to use
 	if not obj.isroot then 
 		local parent = obj.parent or ROOT
 		obj.parent = parent
@@ -345,7 +348,10 @@ end
 
 function metaElement:AddText(ox, oy, text, fontsize, textoptions, alignment, textcolor, outlinecolor)
 	-- it is now that we need to cache text height, and width
-	if self.layer == nil then Spring.Debug.TraceEcho(self.name) end 
+	if self.layer == nil then 
+		Spring.Debug.TraceEcho(self.name) 
+		--Spring.Debug.TraceFullEcho()
+	end 
 	self.layer.textChanged = true
 	local newtext = {
 			ox = ox, -- offset from bottom left corner of parent element
@@ -593,7 +599,22 @@ function metaElement:NewButton(o) -- yay this objs shit again!
 end
 
 function metaElement:NewCheckBox(obj) end
+
+-- creates rectangle, with text in it, set to the current default
+-- creates an arrow which opens the combo box
+-- The combo box is create on a new layer
+-- The new layer is populated with the options of the combo box, each of which are buttons within a control
+-- The selector's visibility is triggered by clicking into the combo box or onto the layer
+-- Clicking anywhere else should deactivate the combo box (hide it, and its respective layer)
 function metaElement:NewSelector(obj) end
+
+-- this one is tricky, see how chili does it?
+function metaElement:NewEditBox(obj) 
+end
+
+function metaElement:NewComboBox(obj)
+
+end
 
 function metaElement:NewSlider(o)
 	o.textelements = {
@@ -696,9 +717,11 @@ function metaElement:NewWindow(o)
 				--closebutton
 			-- window
 				--child objects
-	local titlebarheight = o.titlebarheight or 24
 	local windowlayer = metaElement:CreateLayer(o)
 	--o.parent = windowlayer -- is this fucking parenting itself?
+	if o.windowtitle == nil then return windowlayer end
+	
+	local titlebarheight = o.titlebarheight or 24
 	
 	local titlebar = metaElement:NewUiElement({
 		name = o.name .. 'titlebar',
@@ -1105,6 +1128,13 @@ local function makebuttonarray()
 end
 
 local function makeunitbuttonarray()
+	local unitButtonLayer = metaElement:CreateLayer({
+			name = "unitButtonLayer",
+			left = 0,
+			bottom = 0,
+			top = vsy,
+			right = vsx,
+			})
 	-- what can my boy build?
 	local unitDef = UnitDefs[UnitDefNames['armcom'].id]
 	for k,v in pairs(unitDef.buildOptions) do
@@ -1119,11 +1149,14 @@ local function makeunitbuttonarray()
 			if unitDef.buildOptions[idx] then 
 				local thisunitdefid = unitDef.buildOptions[idx]
 				local newbtn = metaElement:NewUiUnit({
-						left = 1000 + s*i,
-						bottom = 100 + s *j,
+						name = "unitbutton"..tostring(math.random()),
+						LEFT = 1000 + s*i,
+						BOTTOM = 100 + s *j,
 						right = 1000 + s*(i + 1),
+						--WIDTH = "10",
 						top = 100 + s*(j+ 1),
-						parent = ROOT,
+						parent = unitButtonLayer,
+						layer = unitButtonLayer,
 						texture = 'unitpics/'.. UnitDefs[thisunitdefid].name ..'.dds',
 						radartexture = unitIcon[thisunitdefid],
 						grouptexture = groups[unitGroup[thisunitdefid]],
@@ -2411,7 +2444,7 @@ function widget:Initialize()
 	end
 	
 	--makebuttonarray()
-	--makeunitbuttonarray()
+	makeunitbuttonarray()
 	--makeSliderList(sliderListConfig)
 	--AddRecursivelySplittingButton()
 	--local mywindow = metaElement:NewWindow({name = 'W'..tostring(i), left = 300+1*200, right = 490+1*200, top = 600, bottom = 200, testsliders = true})
