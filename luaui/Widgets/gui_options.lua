@@ -5878,6 +5878,7 @@ function widget:Initialize()
 		-- enable advanced model shading
 		if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then
 			Spring.SetConfigInt("AdvModelShading", 1)
+			Spring.SendCommands("advmodelshading 1")
 		end
 		-- enable normal mapping
 		if Spring.GetConfigInt("NormalMapping", 0) ~= 1 then
