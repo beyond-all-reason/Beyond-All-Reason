@@ -50,8 +50,8 @@ local widgetsList = {}
 local fullWidgetsList = {}
 local localWidgetCount = 0
 
-local minMaxEntries = 15
-local curMaxEntries = 25
+local minMaxEntries = 14
+local curMaxEntries = 24
 
 local startEntry = 1
 local pageStep = floor(curMaxEntries / 2) - 1
@@ -497,7 +497,7 @@ function widget:KeyPress(key, mods, isRepeat)
 	--return false
 
 	if not show then return false end
-	
+
 	if key >= 282 and key <= 293 then	-- Function keys
 		return false
 	end
@@ -588,29 +588,29 @@ function widget:DrawScreen()
 	borderx = (yStep * sizeMultiplier) * 0.75
 	bordery = (yStep * sizeMultiplier) * 0.75
 
-	-- draw the header
-	font2:Begin()
-	font2:Print(texts.title, midx, maxy + ((11 + bgPadding) * sizeMultiplier), titleFontSize * sizeMultiplier, "oc")
-	font2:End()
 
-	font:Begin()
 	local mx, my, lmb, mmb, rmb = Spring.GetMouseState()
 	local tcol = WhiteStr
 
-	-- draw the -/+ buttons
-	if maxx - 10 < mx and mx < maxx and maxy < my and my < maxy + ((buttonFontSize + 7) * sizeMultiplier) then
-		tcol = '\255\031\031\031'
-	end
-	font:Print(tcol .. "+", maxx, maxy + ((7 + bgPadding) * sizeMultiplier), buttonFontSize * sizeMultiplier, "or")
-	tcol = WhiteStr
-	if minx < mx and mx < minx + 10 and maxy < my and my < maxy + ((buttonFontSize + 7) * sizeMultiplier) then
-		tcol = '\255\031\031\031'
-	end
-	font:Print(tcol .. "-", minx, maxy + ((7 + bgPadding) * sizeMultiplier), buttonFontSize * sizeMultiplier, "ol")
-	tcol = WhiteStr
+	local backgroundRect = { floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)) }
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 1, 0, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
-	UiElement(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 1, 1, 1, 0, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	-- title background
+	local title = texts.title
+	local titleFontSize = 18 * widgetScale
+	local titleRect = { backgroundRect[1], backgroundRect[4], math.floor(backgroundRect[1] + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(backgroundRect[4] + (titleFontSize*1.7)) }
 
+	gl.Color(0, 0, 0, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
+
+	-- title
+	font2:Begin()
+	font2:SetTextColor(1, 1, 1, 1)
+	font2:SetOutlineColor(0, 0, 0, 0.4)
+	font2:Print(title, backgroundRect[1] + (titleFontSize * 0.75), backgroundRect[4] + (8*widgetScale), titleFontSize, "on")
+	font2:End()
+
+	font:Begin()
 	-- draw the text buttons (at the bottom) & their outlines
 	if showButtons then
 		for i, name in ipairs(buttons) do
@@ -807,14 +807,6 @@ function widget:MousePress(x, y, button)
 			end
 		end
 
-		-- above the -/+
-		if maxx - 10 < x and x < maxx and maxy + bgPadding < y and y < maxy + ((buttonFontSize + 7 + bgPadding) * sizeMultiplier) then
-			return true
-		end
-		if minx < x and x < minx + 10 and maxy + bgPadding < y and y < maxy + ((buttonFontSize + 7 + bgPadding) * sizeMultiplier) then
-			return true
-		end
-
 		-- above the scrollbar
 		if x >= minx + scrollbarOffset and x <= maxx + scrollbarOffset + (yStep * sizeMultiplier) then
 			if y >= (maxy - bordery) and y <= maxy then
@@ -990,7 +982,7 @@ function aboveLabel(x, y)
 	local i = floor(1 + ((maxy - bordery) - y) / (yStep * sizeMultiplier))
 	if i < 1 then
 		i = 1
-	elseif i > count then
+	elseif i == count then
 		i = count
 	end
 
@@ -999,13 +991,12 @@ end
 
 
 function widget:GetConfigData()
-	local data = { startEntry = startEntry, curMaxEntries = curMaxEntries, show = show }
+	local data = { startEntry = startEntry, show = show }
 	return data
 end
 
 function widget:SetConfigData(data)
 	startEntry = data.startEntry or startEntry
-	curMaxEntries = data.curMaxEntries or curMaxEntries
 	show = data.show or show
 	if show then
 		widgetHandler.textOwner = self		--widgetHandler:OwnText()
