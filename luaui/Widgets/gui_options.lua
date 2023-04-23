@@ -2249,6 +2249,10 @@ function init()
 			  local quality = {
 				  [1] = 2048, [2] = 3584, [3] = 6144, [4] = 8192, [5] = 10240, [6] = 12288
 			  }
+			  if options[getOptionByID('shadowslider')].options[value] == nil then
+				  value = (value == 1 and 2 or 4)
+				  options[getOptionByID('shadowslider')].value = value
+			  end
 			  value = quality[value]
 			  Spring.SendCommands("shadows 1 " .. value)
 			  Spring.SetConfigInt("Shadows", 1)
