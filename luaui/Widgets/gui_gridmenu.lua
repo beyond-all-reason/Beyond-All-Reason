@@ -181,10 +181,10 @@ local buildmenuShows = false
 Rect = {}
 function Rect:new(x1, y1, x2, y2)
 	local this = {
-		x = x1;
-		y = y1;
-		xEnd = x2;
-		yEnd = y2;
+		x = x1,
+		y = y1,
+		xEnd = x2,
+		yEnd = y2
 	}
 
 	function this:contains(x, y)
@@ -195,9 +195,8 @@ function Rect:new(x1, y1, x2, y2)
 		return self.x + self.y + self.yEnd + self.xEnd
 	end
 
-	return this;
+	return this
 end
-
 
 
 -------------------------------------------------------------------------------
@@ -1031,7 +1030,6 @@ function widget:ViewResize()
 		cellSize = math_floor(((height) - bgpadding) / rows)
 
 		local categoryWidth = 8 * categoryFontSize * ui_scale
-		local pageButtonWidth = categoryWidth / 3
 
 		-- assemble rects left to right
 		categoriesRect = Rect:new(
@@ -1286,7 +1284,7 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 	end
 
 	local showIcon = showGroupIcon and not (currentCategoryIndex)
-	local cellRect = cellRects[id];
+	local cellRect = cellRects[id]
 
 	UiUnit(
 		cellRect.x + cellPadding + iconPadding,
@@ -1447,7 +1445,6 @@ local function drawPaginators()
 		return
 	end
 
-	local prevKeyText = "\255\215\255\215".. keyConfig.sanitizeKey(Cfgs.PREV_PAGE_KEY, currentLayout)
 	local nextKeyText = keyConfig.sanitizeKey(Cfgs.NEXT_PAGE_KEY, currentLayout)
 	local nextPageText = "\255\245\245\245" .. "Next Page    ➞"
 	local pagesText = "\255\245\245\245" .. currentPage .. " / " .. pages
@@ -2236,7 +2233,7 @@ function widget:MousePress(x, y, button)
 			return true
 		end
 
-	-- i wish i had any idea what this code did
+	-- Special handling for buildings before game start, since there isn't yet a unit spawned to give normal orders to
 	elseif preGamestartPlayer then
 		local mx, my = Spring.GetMouseState()
 		local _, pos = Spring.TraceScreenRay(mx, my, true)
