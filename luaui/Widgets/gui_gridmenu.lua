@@ -253,7 +253,6 @@ local catRects = {}
 local currentBuildCategory, currentCategoryIndex
 local currentPage = 1
 local pages = 1
-local prevPageRect = Rect:new(0, 0, 0, 0)
 local nextPageRect = Rect:new(0, 0, 0, 0)
 local categoriesRect = Rect:new(0, 0, 0, 0)
 local buildpicsRect = Rect:new(0, 0, 0 ,0)
@@ -1826,10 +1825,6 @@ function widget:DrawScreen()
 					end
 
 					-- paginator buttons
-					if prevPageRect.x and prevPageRect:contains(x, y) then
-						hoveredButton = prevPageRect:getId()
-						hoveredButtonNotFound = false
-					end
 					if nextPageRect.y and nextPageRect:contains(x, y) then
 						hoveredButton = nextPageRect:getId()
 						hoveredButtonNotFound = false
@@ -1839,9 +1834,9 @@ function widget:DrawScreen()
 						doUpdate = true
 					end
 
-					if hoveredButton == prevPageRect:getId() or hoveredButton == nextPageRect:getId() then
+					if hoveredButton == nextPageRect:getId() then
 						if WG['tooltip'] then
-							local text = "\255\240\240\240" .. (hoveredButton == prevPageRect:getId() and Spring.I18N('ui.buildMenu.previousPage') or Spring.I18N('ui.buildMenu.nextPage'))
+							local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.nextPage')
 							WG['tooltip'].ShowTooltip('buildmenu', text)
 						end
 					end
@@ -2193,11 +2188,7 @@ function widget:MousePress(x, y, button)
 
 	if buildmenuShows and backgroundRect:contains(x, y) then
 		if selectedBuilder or selectedFactory or (preGamestartPlayer and startDefID) then
-			if prevPageRect and prevPageRect:contains(x, y) then
-				prevPageHandler()
-				Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
-				return true
-			elseif nextPageRect and nextPageRect:contains(x, y) then
+			if nextPageRect and nextPageRect:contains(x, y) then
 				Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
 				nextPageHandler()
 				return true
