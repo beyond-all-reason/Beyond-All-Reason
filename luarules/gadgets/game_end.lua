@@ -22,8 +22,6 @@ if gadgetHandler:IsSyncedCode() then
 	local sharedDynamicAllianceVictory = Spring.GetModOptions().shareddynamicalliancevictory
 	local fixedallies = Spring.GetModOptions().fixedallies
 
-	local earlyDropGrace = Game.gameSpeed * 60 * 1 -- in frames
-
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
 
@@ -137,12 +135,15 @@ if gadgetHandler:IsSyncedCode() then
 		--if not isFFA or gf > earlyDropGrace then
 			if not teamInfo.hasLeader and not teamInfo.dead then
 				if not killTeamQueue[teamID] then
-					killTeamQueue[teamID] = gf + (30 * (isFFA and 180 or 10))	-- add a grace period before killing the team
+					killTeamQueue[teamID] = gf + (Game.gameSpeed * (isFFA and 180 or 10))	-- add a grace period before killing the team
 				end
 			elseif killTeamQueue[teamID] then
 				killTeamQueue[teamID] = nil
 			end
 			if killTeamQueue[teamID] and gf >= killTeamQueue[teamID] then
+				if isFFA and gf < (Game.gameSpeed * 60 * 1) then
+					Spring.Echo('game_end: KillTeam teamID: '..teamID)
+				end
 				KillTeam(teamID)
 				killTeamQueue[teamID] = nil
 			end
@@ -435,6 +436,9 @@ if gadgetHandler:IsSyncedCode() then
 				allyTeamInfos[allyTeamID] = allyTeamInfo
 				if allyTeamUnitCount <= allyTeamInfo.unitDecorationCount then
 					for teamID in pairs(allyTeamInfo.teams) do
+						if isFFA and Spring.GetGameFrame() < (Game.gameSpeed * 60 * 1) then
+							Spring.Echo('game_end: unit destroyed, KillTeam teamID: '..teamID)
+						end
 						KillTeam(teamID)
 						killTeamQueue[teamID] = nil
 					end
