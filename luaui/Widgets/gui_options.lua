@@ -1783,7 +1783,10 @@ local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 100
 --if Platform ~= nil and Platform.gpuVendor == 'Intel' then
 --	isPotatoGpu = true
 --end
-if gpuMem and gpuMem > 0 and gpuMem < 1800 then
+if not gpuMem then
+	gpuMem = 0
+end
+if gpuMem > 0 and gpuMem < 1800 then
 	isPotatoGpu = true
 end
 if not Platform.glHaveGL4 then
@@ -2150,7 +2153,7 @@ function init()
 		},
 
 		{ id = "sepiatone", group = "gfx", category = types.advanced, widget = "Sepia Tone", name = Spring.I18N('ui.settings.option.sepiatone'), type = "bool", value = GetWidgetToggleValue("Sepia Tone") },
-		{ id = "sepiatone_gamma", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_gamma'), min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5, 
+		{ id = "sepiatone_gamma", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_gamma'), min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_gamma", { 'gamma' })
 		  end,
@@ -2158,7 +2161,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setGamma', { 'gamma' }, value)
 		  end,
 		},
-		{ id = "sepiatone_saturation", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_saturation'), min = 0, max = 1.5, step = 0.02, type = "slider", value = 0.5, 
+		{ id = "sepiatone_saturation", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_saturation'), min = 0, max = 1.5, step = 0.02, type = "slider", value = 0.5,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_saturation", { 'saturation' })
 		  end,
@@ -2166,7 +2169,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setSaturation', { 'saturation' }, value)
 		  end,
 		},
-		{ id = "sepiatone_contrast", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_contrast'), min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5, 
+		{ id = "sepiatone_contrast", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_contrast'), min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_contrast", { 'contrast' })
 		  end,
@@ -2182,7 +2185,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setSepia', { 'sepia' }, value)
 		  end,
 		},
-		{ id = "sepiatone_shadeui", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_shadeui'), type = "bool", value = 0, 
+		{ id = "sepiatone_shadeui", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_shadeui'), type = "bool", value = 0,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_shadeui", { 'shadeUI' })
 		  end,
@@ -3294,7 +3297,7 @@ function init()
 			  saveOptionValue('Info', 'info', 'setDisplayMapPosition', { 'displayMapPosition' }, value)
 		  end,
 		},
-		{ id = "info_alwaysshow", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.info_alwaysshow'), type = "bool", value = (WG['info'] ~= nil and WG['info'].getAlwaysShow ~= nil and WG['info'].getAlwaysShow()), 
+		{ id = "info_alwaysshow", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.info_alwaysshow'), type = "bool", value = (WG['info'] ~= nil and WG['info'].getAlwaysShow ~= nil and WG['info'].getAlwaysShow()),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -5475,7 +5478,24 @@ function init()
 				Spring.SendCommands("advmapshading 0")
 				Spring.SendCommands("Shadows 0 1024")
 			end
+
 		end
+
+	elseif gpuMem >= 3000 then
+		options[getOptionByID('cusgl4')] = nil
+
+		local id = getOptionByID('shadowslider')
+		options[id].options[1] = nil
+		if options[id].value == 1 then
+			options[id].value = 2
+			options[id].onchange(id, options[id].value)
+		end
+
+		if Spring.GetConfigInt("Water", 0) ~= 4 then
+			Spring.SendCommands("water 4")
+			Spring.SetConfigInt("Water", 4)
+		end
+		options[getOptionByID('water')] = nil
 	end
 
 	-- loads values via stored game config in luaui/configs
@@ -5827,7 +5847,7 @@ function widget:Initialize()
 		Spring.SetConfigFloat("snd_airAbsorption", 0.35)
 
 		-- Set lower defaults for lower end/potato systems
-		if gpuMem and gpuMem < 3300 then
+		if gpuMem < 3300 then
 			Spring.SetConfigInt("MSAALevel", 2)
 		end
 		if isPotatoGpu then
@@ -5844,7 +5864,6 @@ function widget:Initialize()
 		else
 			Spring.SendCommands("water 4")
 			Spring.SetConfigInt("Water", 4)
-
 		end
 
 		local minMaxparticles = 12000
