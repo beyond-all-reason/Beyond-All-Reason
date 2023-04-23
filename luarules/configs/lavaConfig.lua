@@ -226,32 +226,18 @@ elseif string.find(mapName, "speedmetal") then
 
 elseif string.find(mapName, "thermal shock") then
 	lavaMap = true
-	lavaLevel = 315 -- pre-game lava level
-	lavaGrow = 0.05 -- initial lavaGrow speed
-	lavaDamage = 100 -- damage per second
-	lavaUVscale = 2.0 -- How many times to tile the lava texture across the entire map
-	lavaColorCorrection = "vec3(1.0, 1.0, 1.0)" -- final colorcorrection on all lava + shore coloring
-	lavaLOSdarkness = 1.0 -- how much to darken the out-of-los areas of the lava plane
-	lavaSwirlFreq = 0.025 -- How fast the main lava texture swirls around default 0.025
-	lavaSwirlAmp = 0.003 -- How much the main lava texture is swirled around default 0.003
-	lavaSpecularExp = 64.0 -- the specular exponent of the lava plane
-	lavaShadowStrength = 0.4 -- how much light a shadowed fragment can recieve
-	lavaCoastWidth = 25.0 -- how wide the coast of the lava should be
-	lavaCoastColor = "vec3(1.0, 0.25, 0.0)" -- the color of the lava coast
-	lavaCoastLightBoost = 0.3 -- how much extra brightness should coastal areas get
-
-	lavaParallaxDepth = 16.0 -- set to >0 to enable, how deep the parallax effect is
-	lavaParallaxOffset = 0.5 -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
-
-	lavaFogColor = "vec3(1.5, 0.1, 0.0)" -- the color of the fog light
-	lavaFogFactor = 0.09 -- how dense the fog is
-	lavaFogHeight = 10 -- how high the fog is above the lava plane
-	lavaFogAbove = 1.0 -- the multiplier for how much fog should be above lava fragments, ~0.2 means the lava itself gets hardly any fog, while 2.0 would mean the lava gets a lot of extra fog
-	lavaFogEnabled = true --if fog above lava adds light / is enabled
-	lavaFogDistortion = 2.0 -- lower numbers are higher distortion amounts
-
-	lavaTideamplitude = 0.3 -- how much lava should rise up-down on static level
-	lavaTideperiod = 1000 -- how much time between live rise up-down
+	lavaLevel = 315 
+	lavaGrow = 0.05 
+	lavaColorCorrection = "vec3(1.0, 1.0, 1.0)"
+	lavaCoastColor = "vec3(1.0, 0.25, 0.0)"
+	lavaCoastLightBoost = 0.3
+	lavaFogColor = "vec3(1.5, 0.1, 0.0)" 
+	lavaFogFactor = 0.09 
+	lavaFogHeight = 10 
+	lavaFogAbove = 1.0
+	lavaFogDistortion = 2.0
+	lavaTideamplitude = 0.3 
+	lavaTideperiod = 1000 
     if isLavaGadget and isLavaGadget == "synced" then
 		addTideRhym (314, 0.02, 5*60) -- needs to be -1 than pre-game lava level
         addTideRhym (280, 0.02, 5*60)
