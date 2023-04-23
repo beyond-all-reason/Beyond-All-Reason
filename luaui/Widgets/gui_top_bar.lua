@@ -2131,9 +2131,7 @@ function widget:Initialize()
 	end
 	WG['topbar'].setAutoHideButtons = function(value)
 		autoHideButtons = value
-		if autoHideButtons then
-			showButtons = false
-		end
+		showButtons = not value
 		updateButtons()
 	end
 	WG['topbar'].getAutoHideButtons = function()

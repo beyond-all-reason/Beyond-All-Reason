@@ -208,7 +208,7 @@ function drawChatInput()
 		textInputDlist = gl.DeleteList(textInputDlist)
 		textInputDlist = gl.CreateList(function()
 			local activationArea = {floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier))}
-			local usedFontSize = 16 * widgetScale
+			local usedFontSize = 15 * widgetScale
 			local lineHeight = floor(usedFontSize * 1.15)
 			local x,y,_ = Spring.GetMouseState()
 			local chatlogHeightDiff = 0

@@ -16,12 +16,12 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	local leaveWreckage = Spring.GetModOptions().ffa_wreckage or false
-	local leaveWreckageFromFrame = math.ceil(Game.gameSpeed * 60 * 3.2)
-
 	local earlyDropLimit = Game.gameSpeed * 60 * 2 -- in frames
 	local earlyDropGrace = Game.gameSpeed * 60 * 1 -- in frames
 	local lateDropGrace = Game.gameSpeed * 60 * 3 -- in frames
+
+	local leaveWreckage = Spring.GetModOptions().ffa_wreckage or false
+	local leaveWreckageFromFrame = Game.gameSpeed * 60 * 3
 
 	local GetPlayerInfo = Spring.GetPlayerInfo
 	local GetPlayerList = Spring.GetPlayerList
@@ -83,6 +83,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		for teamID in pairs(teamsWithUnitsToKill) do
+			if gameFrame < earlyDropGrace then
+				Spring.Echo('mo_ffa: TeamDied teamID: '..teamID)
+			end
 			destroyTeam(teamID, gameFrame)
 			teamsWithUnitsToKill[teamID] = nil
 		end
@@ -91,6 +94,9 @@ if gadgetHandler:IsSyncedCode() then
 				local noneControlling, allResigned = GetTeamIsTakeable(teamID)
 				if noneControlling then
 					if allResigned then
+						if gameFrame < earlyDropGrace then
+							Spring.Echo('mo_ffa: destroy resigned teamID: '..teamID)
+						end
 						destroyTeam(teamID, gameFrame) -- destroy the team immediately if all players in it resigned
 					elseif not droppedTeam[teamID] then
 						local gracePeriod = gameFrame < earlyDropLimit and earlyDropGrace or lateDropGrace
@@ -104,15 +110,16 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		for teamID, time in pairs(droppedTeam) do
-			if gameFrame - time > (time < earlyDropLimit and earlyDropGrace or lateDropGrace) then
+		for teamID, frame in pairs(droppedTeam) do
+			if gameFrame - frame > (frame < earlyDropLimit and earlyDropGrace or lateDropGrace) then
 				if gameFrame < leaveWreckageFromFrame then
+					Spring.Echo('mo_ffa: remove dropped teamID: '..teamID..', leaving no wreckage')
 					local teamUnits = Spring.GetTeamUnits(teamID)
 					for i=1, #teamUnits do
 						Spring.DestroyUnit(teamUnits[i], false, true)	-- reclaim, dont want to leave FFA comwreck for idling starts
 					end
 				end
-				destroyTeam(teamID, time)
+				destroyTeam(teamID, frame)
 				droppedTeam[teamID] = nil
 			end
 		end

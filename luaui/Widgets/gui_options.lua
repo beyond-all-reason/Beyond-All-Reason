@@ -385,7 +385,7 @@ function drawChatInput()
 		textInputDlist = glDeleteList(textInputDlist)
 		textInputDlist = glCreateList(function()
 			local activationArea = {screenX, screenY - screenHeight, screenX + screenWidth, screenY}
-			local usedFontSize = 16 * widgetScale
+			local usedFontSize = 15 * widgetScale
 			local lineHeight = floor(usedFontSize * 1.15)
 			local x,y,_ = Spring.GetMouseState()
 			local chatlogHeightDiff = 0
@@ -393,7 +393,7 @@ function drawChatInput()
 			local inputHeight = floor(inputFontSize * 2.15)
 			local leftOffset = floor(lineHeight*0.7)
 			local distance = 0 --elementMargin
-			local usedFont = inputMode == '' and font3 or font
+			local usedFont = font
 			local modeText = Spring.I18N('ui.settings.filter')
 			if inputMode ~= '' then
 				modeText = inputMode
@@ -407,7 +407,7 @@ function drawChatInput()
 			local textCursorPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, inputTextPosition)) * inputFontSize)
 
 			-- background
-			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/4.3)))
+			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/5)))
 			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 0,0,nil,nil, 0,nil,nil,nil, ui_opacity + 0.2)
 			if WG['guishader'] then
 				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'optionsinput')
@@ -428,19 +428,6 @@ function drawChatInput()
 			usedFont:Begin()
 			usedFont:SetTextColor(0.62, 0.62, 0.62, 1)
 			usedFont:Print(modeText, modeTextPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
-
-			-- colon
-			--if not isCmd then
-			--	if inputMode == 'a:' then
-			--		r, g, b = 0.53, 0.66, 0.53
-			--	elseif inputMode == 's:' then
-			--		r, g, b = 0.66, 0.66, 0.5
-			--	else
-			--		r, g, b = 0.55, 0.55, 0.55
-			--	end
-			--	usedFont:SetTextColor(r, g, b, 1)
-			--	usedFont:Print(':', inputButtonRect[3]-0.5, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "co")
-			--end
 
 			-- text cursor
 			textCursorRect = { textPosX + textCursorPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64) }
@@ -533,9 +520,13 @@ function DrawWindow()
 	local groupMargin = math.floor(bgpadding * 0.8)
 	local color = '\255\255\255\255'
 	local color2 = '\255\125\125\125'
-	local title = "" .. color .. Spring.I18N('ui.settings.basic') .. color2 .. "  /  " .. Spring.I18N('ui.settings.advanced')
-	if advSettings then
+	local title = ""
+	if devMode then
+		title = devOptionColor .. Spring.I18N('ui.settings.option.devmode')
+	elseif advSettings then
 		title = "" .. color2 .. Spring.I18N('ui.settings.basic') .. "  /  " .. color .. Spring.I18N('ui.settings.advanced')
+	else
+		title = "" .. color .. Spring.I18N('ui.settings.basic') .. color2 .. "  /  " .. Spring.I18N('ui.settings.advanced')
 	end
 	local titleFontSize = 18 * widgetScale
 	titleRect = { math.floor((screenX + screenWidth) - ((font2:GetTextWidth(title) * titleFontSize) + (titleFontSize * 1.5))), screenY, screenX + screenWidth, math.floor(screenY + (titleFontSize * 1.7)) }
@@ -1122,7 +1113,7 @@ function widget:DrawScreen()
 
 			-- mouseover (highlight and tooltip)
 			local description = ''
-			if titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+			if not devMode and titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 				local groupMargin = math.floor(bgpadding * 0.8)
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -1512,7 +1503,7 @@ function mouseEvent(mx, my, button, release)
 			end
 		elseif button == 1 then
 			if release then
-				if titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+				if not devMode and titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 					-- showhow rightmouse doesnt get triggered :S
 					advSettings = not advSettings
 					startColumn = 1
@@ -1792,7 +1783,10 @@ local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 100
 --if Platform ~= nil and Platform.gpuVendor == 'Intel' then
 --	isPotatoGpu = true
 --end
-if gpuMem and gpuMem > 0 and gpuMem < 1800 then
+if not gpuMem then
+	gpuMem = 0
+end
+if gpuMem > 0 and gpuMem < 1800 then
 	isPotatoGpu = true
 end
 if not Platform.glHaveGL4 then
@@ -2159,7 +2153,7 @@ function init()
 		},
 
 		{ id = "sepiatone", group = "gfx", category = types.advanced, widget = "Sepia Tone", name = Spring.I18N('ui.settings.option.sepiatone'), type = "bool", value = GetWidgetToggleValue("Sepia Tone") },
-		{ id = "sepiatone_gamma", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_gamma'), min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5, 
+		{ id = "sepiatone_gamma", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_gamma'), min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_gamma", { 'gamma' })
 		  end,
@@ -2167,7 +2161,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setGamma', { 'gamma' }, value)
 		  end,
 		},
-		{ id = "sepiatone_saturation", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_saturation'), min = 0, max = 1.5, step = 0.02, type = "slider", value = 0.5, 
+		{ id = "sepiatone_saturation", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_saturation'), min = 0, max = 1.5, step = 0.02, type = "slider", value = 0.5,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_saturation", { 'saturation' })
 		  end,
@@ -2175,7 +2169,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setSaturation', { 'saturation' }, value)
 		  end,
 		},
-		{ id = "sepiatone_contrast", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_contrast'), min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5, 
+		{ id = "sepiatone_contrast", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_contrast'), min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_contrast", { 'contrast' })
 		  end,
@@ -2191,7 +2185,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setSepia', { 'sepia' }, value)
 		  end,
 		},
-		{ id = "sepiatone_shadeui", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_shadeui'), type = "bool", value = 0, 
+		{ id = "sepiatone_shadeui", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_shadeui'), type = "bool", value = 0,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_shadeui", { 'shadeUI' })
 		  end,
@@ -2255,6 +2249,10 @@ function init()
 			  local quality = {
 				  [1] = 2048, [2] = 3584, [3] = 6144, [4] = 8192, [5] = 10240, [6] = 12288
 			  }
+			  if options[getOptionByID('shadowslider')].options[value] == nil then
+				  value = (value == 1 and 2 or 4)
+				  options[getOptionByID('shadowslider')].value = value
+			  end
 			  value = quality[value]
 			  Spring.SendCommands("shadows 1 " .. value)
 			  Spring.SetConfigInt("Shadows", 1)
@@ -3303,7 +3301,7 @@ function init()
 			  saveOptionValue('Info', 'info', 'setDisplayMapPosition', { 'displayMapPosition' }, value)
 		  end,
 		},
-		{ id = "info_alwaysshow", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.info_alwaysshow'), type = "bool", value = (WG['info'] ~= nil and WG['info'].getAlwaysShow ~= nil and WG['info'].getAlwaysShow()), 
+		{ id = "info_alwaysshow", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.info_alwaysshow'), type = "bool", value = (WG['info'] ~= nil and WG['info'].getAlwaysShow ~= nil and WG['info'].getAlwaysShow()),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -5484,7 +5482,24 @@ function init()
 				Spring.SendCommands("advmapshading 0")
 				Spring.SendCommands("Shadows 0 1024")
 			end
+
 		end
+
+	elseif gpuMem >= 3000 then
+		options[getOptionByID('cusgl4')] = nil
+
+		local id = getOptionByID('shadowslider')
+		options[id].options[1] = nil
+		if options[id].value == 1 then
+			options[id].value = 2
+			options[id].onchange(id, options[id].value)
+		end
+
+		if Spring.GetConfigInt("Water", 0) ~= 4 then
+			Spring.SendCommands("water 4")
+			Spring.SetConfigInt("Water", 4)
+		end
+		options[getOptionByID('water')] = nil
 	end
 
 	-- loads values via stored game config in luaui/configs
@@ -5836,7 +5851,7 @@ function widget:Initialize()
 		Spring.SetConfigFloat("snd_airAbsorption", 0.35)
 
 		-- Set lower defaults for lower end/potato systems
-		if gpuMem and gpuMem < 3300 then
+		if gpuMem < 3300 then
 			Spring.SetConfigInt("MSAALevel", 2)
 		end
 		if isPotatoGpu then
@@ -5853,7 +5868,6 @@ function widget:Initialize()
 		else
 			Spring.SendCommands("water 4")
 			Spring.SetConfigInt("Water", 4)
-
 		end
 
 		local minMaxparticles = 12000
@@ -5887,6 +5901,7 @@ function widget:Initialize()
 		-- enable advanced model shading
 		if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then
 			Spring.SetConfigInt("AdvModelShading", 1)
+			Spring.SendCommands("advmodelshading 1")
 		end
 		-- enable normal mapping
 		if Spring.GetConfigInt("NormalMapping", 0) ~= 1 then
