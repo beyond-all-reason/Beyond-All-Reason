@@ -1115,7 +1115,7 @@ function widget:ViewResize()
 			posX,
 			posYEnd,
 			posXEnd,
-			paginatorsRect.yEnd + (bgpadding * 2)
+			paginatorsRect.yEnd + (bgpadding * 1.5)
 		)
 	end
 
@@ -1265,7 +1265,6 @@ local function drawButton(rect, opts, icon)
 
 	if hovered then
 		-- gloss highlight
-		local pad = 0
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(rect.x, rect.yEnd - ((rect.yEnd - rect.y) * 0.42), rect.xEnd, (rect.yEnd), padding * 1.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 }, { 1, 1, 1, (disableInput and 0.11 or 0.24) })
 		RectRound(rect.x, rect.y, rect.xEnd, (rect.y) + ((rect.yEnd - rect.y) * 0.5), padding * 1.5, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 or 0.075) }, { 1, 1, 1, 0 })
@@ -1287,7 +1286,7 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 		gl.Color(1, 1, 1, 1)
 	end
 
-	local showIcon = showGroupIcon and not (selectedFactory or currentCategoryIndex)
+	local showIcon = showGroupIcon and not (currentCategoryIndex)
 	local cellRect = cellRects[id];
 
 	UiUnit(
@@ -1344,27 +1343,33 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 		font2:Print(text .. unitEnergyCost[uid], cellRect.x + cellPadding + (cellInnerSize * 0.048), cellRect.y + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
 	end
 
-	-- factory queue number
-	if cmd.params[1] then
-		local pad = math_floor(cellInnerSize * 0.03)
-		local textWidth = math_floor(font2:GetTextWidth(cmd.params[1] .. '	') * cellInnerSize * 0.285)
-		local pad2 = 0
-		RectRound(cellRect.xEnd - cellPadding - iconPadding - textWidth - pad2, cellRect.yEnd - cellPadding - iconPadding - math_floor(cellInnerSize * 0.365) - pad2, cellRect.xEnd - cellPadding - iconPadding, cellRect.yEnd - cellPadding - iconPadding, cornerSize * 3.3, 0, 0, 0, 1, { 0.15, 0.15, 0.15, 0.95 }, { 0.25, 0.25, 0.25, 0.95 })
-		RectRound(cellRect.xEnd - cellPadding - iconPadding - textWidth - pad2, cellRect.yEnd - cellPadding - iconPadding - math_floor(cellInnerSize * 0.15) - pad2, cellRect.xEnd - cellPadding - iconPadding, cellRect.yEnd - cellPadding - iconPadding, 0, 0, 0, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.05 })
-		RectRound(cellRect.xEnd - cellPadding - iconPadding - textWidth - pad2 + pad, cellRect.yEnd - cellPadding - iconPadding - math_floor(cellInnerSize * 0.365) - pad2 + pad, cellRect.xEnd - cellPadding - iconPadding - pad2, cellRect.yEnd - cellPadding - iconPadding - pad2, cornerSize * 2.6, 0, 0, 0, 1, { 0.7, 0.7, 0.7, 0.1 }, { 1, 1, 1, 0.1 })
-		font2:Print("\255\190\255\190" .. cmd.params[1],
-			cellRect.x + cellPadding + math_floor(cellInnerSize * 0.96) - pad2,
-			cellRect.y + cellPadding + math_floor(cellInnerSize * 0.735) - pad2,
-			cellInnerSize * 0.29, "ro"
-		)
-	end
-
+	-- hotkey draw
 	if cmd.hotkey and (selectedFactory or (selectedBuilder and currentBuildCategory)) then
 		local hotkeyText = keyConfig.sanitizeKey(cmd.hotkey, currentLayout)
 
 		local hotkeyFontSize = priceFontSize * 1.1
-		font2:Print("\255\215\255\215" .. hotkeyText, cellRect.x + cellPadding + (cellInnerSize * 0.048), cellRect.yEnd - cellPadding - hotkeyFontSize, hotkeyFontSize, "o")
+		font2:Print("\255\215\255\215" .. hotkeyText, cellRect.xEnd - cellPadding - (cellInnerSize * 0.048), cellRect.yEnd - cellPadding - hotkeyFontSize, hotkeyFontSize, "ro")
 	end
+
+
+	-- factory queue number
+	if cmd.params[1] then
+		local queueFontSize = cellInnerSize * 0.29
+		local pad = math_floor(cellInnerSize * 0.03)
+		local textWidth = font2:GetTextWidth(cmd.params[1] .. '	') * queueFontSize
+		RectRound(cellRect.x, cellRect.yEnd - cellPadding - iconPadding - math_floor(cellInnerSize * 0.365), cellRect.x + textWidth, cellRect.yEnd - cellPadding - iconPadding, cornerSize * 3.3, 0, 0, 1, 0, { 0.15, 0.15, 0.15, 0.95 }, { 0.25, 0.25, 0.25, 0.95 })
+		font2:Print("\255\190\255\190" .. cmd.params[1],
+			cellRect.x + cellPadding + (pad * 3.5),
+			cellRect.y + cellPadding + math_floor(cellInnerSize * 0.735),
+			queueFontSize, "o"
+		)
+	end
+end
+
+local function drawEmptyCell(rect)
+	local color = { 0.1, 0.1, 0.1, 0.7 }
+	local pad = cellPadding + iconPadding
+	RectRound(rect.x + pad, rect.y + pad, rect.xEnd - pad, rect.yEnd - pad, cornerSize, 1, 1, 1, 1, color, color)
 end
 
 local function drawButtonHotkey(rect, keyText)
@@ -1517,6 +1522,13 @@ local function drawGrid()
 				curCmd = curCmd + 1
 			end
 
+			 local rect = Rect:new(
+				buildpicsRect.x + (kcol - 1) * cellSize,
+				buildpicsRect.yEnd - (rows - krow + 1) * cellSize,
+				buildpicsRect.x + (kcol ) * cellSize,
+				buildpicsRect.yEnd - (rows - krow) * cellSize
+			 )
+
 			if uDefID and uidcmds[uDefID] then
 				cellcmds[cellRectID] = uidcmds[uDefID]
 
@@ -1525,12 +1537,7 @@ local function drawGrid()
 
 				local udef = uidcmds[uDefID]
 
-				cellRects[cellRectID] = Rect:new(
-					buildpicsRect.x + (kcol - 1) * cellSize,
-					buildpicsRect.yEnd - (rows - krow + 1) * cellSize,
-					buildpicsRect.x + (kcol ) * cellSize,
-					buildpicsRect.yEnd - (rows - krow) * cellSize
-				)
+				cellRects[cellRectID] = rect
 
 				local cellIsSelected = (activeCmd and udef and activeCmd == udef.name) or
 					(preGamestartPlayer and selBuildQueueDefID == uDefID)
@@ -1542,6 +1549,7 @@ local function drawGrid()
 
 				drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, unitRestricted[uDefID])
 			else
+				drawEmptyCell(rect)
 				hotkeyActions[tostring(arow) .. tostring(coll)] = nil
 			end
 		end
