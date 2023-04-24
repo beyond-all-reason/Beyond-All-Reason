@@ -43,7 +43,7 @@ else
 			isCommander[udefID] = true
 		end
 		if not def.canMove then
-			if def.metalMake > 0.5 or def.energyMake > 5 or def.energyUpkeep < 0 or def.windGenerator > 0 or def.tidalGenerator > 0 or def.customParams.solar then
+			if def.metalMake > 0.5 or def.energyMake > 5 or def.energyUpkeep < 0 or def.windGenerator > 0 or def.tidalGenerator > 0 or def.customParams.solar or def.customParams.energyconv_capacity then
 				isEcoUnit[udefID] = true
 			end
 		end
@@ -72,7 +72,7 @@ else
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-		if not mySpec and attackerTeam == myTeamID and isEcoUnit[unitDefID] and spAreTeamsAllied(unitTeam, attackerTeam) then
+		if not mySpec and attackerTeam == myTeamID and (isEcoUnit[unitDefID] or isCommander[unitDefID]) and spAreTeamsAllied(unitTeam, attackerTeam) then
 			local msg = string.format("l0g%s:%d:%s:%d:%d:%d", validation,
 				Spring.GetGameFrame(), 'ud',
 				unitTeam, attackerTeam, unitDefID)
