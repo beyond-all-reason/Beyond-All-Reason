@@ -988,10 +988,10 @@ local function cacheUnitIcons()
 end
 
 function widget:DrawScreen()
-	if (not cachedUnitIcons) and Spring.GetGameFrame() == 0 then
-		cachedUnitIcons = true
-		cacheUnitIcons()
-	end
+	--if (not cachedUnitIcons) and Spring.GetGameFrame() == 0 then
+	--	cachedUnitIcons = true
+	--	cacheUnitIcons()
+	--end
 
 	-- refresh buildmenu if active cmd changed
 	local prevActiveCmd = activeCmd
