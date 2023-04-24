@@ -243,7 +243,7 @@ elseif string.find(mapName, "thermal shock") then
         addTideRhym (275, 0.02, 5*60)
         addTideRhym (240, 0.01, 5*60)
         addTideRhym (215, 0.01, 5*60)
-        addTideRhym (130, 0.01, 5*6000)
+        addTideRhym (160, 0.01, 5*6000)
     end
 
 elseif string.find(mapName, "forge") then
