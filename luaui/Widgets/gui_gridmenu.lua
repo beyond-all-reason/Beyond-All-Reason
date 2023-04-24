@@ -1710,10 +1710,10 @@ local function drawBuildProgress()
 end
 
 function widget:DrawScreen()
-	--if (not cachedUnitIcons) and Spring.GetGameFrame() == 0 then
-	--	cachedUnitIcons = true
-	--	cacheUnitIcons()
-	--end
+	if (not cachedUnitIcons) and Spring.GetGameFrame() == 0 then
+		cachedUnitIcons = true
+		cacheUnitIcons()
+	end
 
 	if WG['buildmenu'] then
 		WG['buildmenu'].hoverID = nil
