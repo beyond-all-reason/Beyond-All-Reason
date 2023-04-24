@@ -102,7 +102,7 @@ local pagestepped = false
 
 local RectRound, UiElement, UiSelectHighlight, elementPadding, elementCorner
 
-local dlistGuishader, lastStart
+local dlistGuishader, dlistGuishader2, lastStart
 
 local widgetScale = (vsy / 1080)
 
@@ -433,6 +433,7 @@ function UpdateList(force)
 	if force and WG['guishader']then
 		activeGuishader = false
 		WG['guishader'].DeleteDlist('widgetselector')
+		WG['guishader'].DeleteDlist('widgetselector2')
 	end
 
 	UpdateListScroll()
@@ -566,6 +567,7 @@ function widget:DrawScreen()
 		if WG['guishader'] and activeGuishader then
 			activeGuishader = false
 			WG['guishader'].DeleteDlist('widgetselector')
+			WG['guishader'].DeleteDlist('widgetselector2')
 			if textInputDlist then
 				WG['guishader'].RemoveRect('selectorinput')
 				textInputDlist = gl.DeleteList(textInputDlist)
@@ -575,6 +577,13 @@ function widget:DrawScreen()
 	end
 
 	UpdateList()
+
+	local backgroundRect = { floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)) }
+
+	local title = texts.title
+	local titleFontSize = 18 * widgetScale
+	local titleRect = { backgroundRect[1], backgroundRect[4], math.floor(backgroundRect[1] + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(backgroundRect[4] + (titleFontSize*1.7)) }
+
 	if WG['guishader'] == nil then
 		activeGuishader = false
 	end
@@ -583,7 +592,11 @@ function widget:DrawScreen()
 		dlistGuishader = gl.CreateList(function()
 			RectRound(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 6 * sizeMultiplier)
 		end)
+		dlistGuishader2 = gl.CreateList(function()
+			RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 6 * sizeMultiplier)
+		end)
 		WG['guishader'].InsertDlist(dlistGuishader, 'widgetselector')
+		WG['guishader'].InsertDlist(dlistGuishader2, 'widgetselector2')
 	end
 	borderx = (yStep * sizeMultiplier) * 0.75
 	bordery = (yStep * sizeMultiplier) * 0.75
@@ -592,14 +605,9 @@ function widget:DrawScreen()
 	local mx, my, lmb, mmb, rmb = Spring.GetMouseState()
 	local tcol = WhiteStr
 
-	local backgroundRect = { floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)) }
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 1, 0, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
 	-- title background
-	local title = texts.title
-	local titleFontSize = 18 * widgetScale
-	local titleRect = { backgroundRect[1], backgroundRect[4], math.floor(backgroundRect[1] + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(backgroundRect[4] + (titleFontSize*1.7)) }
-
 	gl.Color(0, 0, 0, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 
@@ -1037,6 +1045,7 @@ function widget:Shutdown()
 	cancelChatInput()
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('widgetselector')
+		WG['guishader'].DeleteDlist('widgetselector2')
 	end
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)

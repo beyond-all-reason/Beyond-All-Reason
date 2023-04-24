@@ -5486,6 +5486,10 @@ function init()
 		end
 
 	elseif gpuMem >= 3000 then
+		if (Spring.GetConfigInt("cus2", 1) ~= 1) then
+			local id = getOptionByID('cusgl4')
+			options[id].onchange(id, 1)
+		end
 		options[getOptionByID('cusgl4')] = nil
 
 		local id = getOptionByID('shadowslider')
