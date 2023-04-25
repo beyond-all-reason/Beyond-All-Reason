@@ -16,7 +16,7 @@ https://www.beyondallreason.info/guides
 
 Beyond All Reason (BAR), consists of 2 primary components, the lobby (Chobby - https://github.com/beyond-all-reason/BYAR-Chobby) and the game code itself (this repository).
 
-The game runs on top of the Spring engine https://github.com/spring/spring.
+The game runs on top of the Recoil engine https://github.com/beyond-all-reason/spring.
 
 In order to develop the game (this repository) you first need a working install of the lobby/launcher. There are 2 ways to do this:
 
