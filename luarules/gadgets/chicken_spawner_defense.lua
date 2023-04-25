@@ -1501,12 +1501,6 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		if n % 90 == 0 then
-			if (queenAnger >= 100) then
-				damageMod = (damageMod + 0.001)
-			end
-		end
-
 		local chickenTeamUnitCount = GetTeamUnitCount(chickenTeamID) or 0
 		if chickenTeamUnitCount < chickenUnitCap then
 			SpawnChickens()
@@ -1580,6 +1574,12 @@ if gadgetHandler:IsSyncedCode() then
 				SetGameRulesParam("chicken_hiveCount", SetCount(burrows))
 			elseif config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount >= maxBurrows then
 				timeOfLastSpawn = t
+			end
+			
+			if t < config.gracePeriod and burrowCount < SetCount(humanTeams) then
+				SpawnBurrow()
+				chickenEvent("burrowSpawn")
+				SetGameRulesParam("chicken_hiveCount", SetCount(burrows))
 			end
 
 			if t > config.gracePeriod+5 then
