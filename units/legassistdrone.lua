@@ -1,8 +1,8 @@
 return {
 	legassistdrone = {
-		acceleration = 10,
+		acceleration = 1,
 		blocking = false,
-		brakerate = 10,
+		brakerate = 1,
 		buildcostenergy = 250,
 		buildcostmetal = 50,
 		builddistance = 100,
