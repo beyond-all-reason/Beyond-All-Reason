@@ -10,7 +10,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "110 110 110",
+		collisionvolumescales = "88 88 88",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		damagemodifier = 0.95,
