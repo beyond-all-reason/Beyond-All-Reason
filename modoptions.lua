@@ -536,11 +536,20 @@ local options={
 		section="options",
 	},
 	{
+		key    = "map_waterislava",
+		name   = "Water Is Lava",
+		desc   = "Turns water into Lava",
+		type   = "bool",
+		def    = false,
+		section= "options",
+	},
+	{
 		key    = "map_atmosphere",
 		name   = "Map Atmosphere and Ambient Sounds",
 		desc   = "",
 		type   = "bool",
 		def    = true,
+		hidden = true,
 		section= "options",
 	},
 	{
