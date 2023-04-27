@@ -36,8 +36,9 @@ end
 -- validate aircraft landing in lava
 -- designate wether lava destroys features too
 -- localize everything!
--- compact the config file into an table include
+-- compact the config file into a table include
 -- smooth distortion fps counter
+-- add nightfactor api
 
 
 
