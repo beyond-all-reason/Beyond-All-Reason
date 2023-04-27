@@ -780,7 +780,7 @@ else
 			scumRemoveQueue[n] = nil
 		end
 
-		if n % 2 == 1 and Script.LuaUI("GadgetRemoveGrass") then
+		if n % 37 == 1 and Script.LuaUI("GadgetRemoveGrass") then
 			for scumID, scum in pairs(scums) do
 				if scum.growthrate > 0 then
 					local currentRadius = GetScumCurrentRadius(scum, n)
