@@ -25,11 +25,54 @@ end
 --_G.Game.mapSizeX = Game.mapSizeX
 --_G.Game.mapSizeY = Game.mapSizeY
 
+
+-- Dynamic lava typemap notes:
+-- TODO:
+-- add config for dynamicness
+-- double check lava going down vs lava going up
+-- try to order units out of the way of moving lava
+-- set smoothheightmesh
+-- set typemap
+-- validate aircraft landing in lava
+-- designate wether lava destroys features too
+-- localize everything!
+-- compact the config file into an table include
+-- smooth distortion fps counter
+
+
+
+local lavaTypeMap = {} -- This is a table of tables, keyed by height, value is an array of map positions that have 255 as a typemap
+
 function gadget:Initialize()
 	if lavaMap == false then
 		gadgetHandler:RemoveGadget(self)
 		return
 	end
+	
+	local lavaTerrainTypeIndex = 255
+	local defaultTerrainTypeIndex = 0
+	
+	local lavaTypeName = Spring.GetTerrainTypeData(lavaTerrainTypeIndex)
+	local defaultTypeName = Spring.GetTerrainTypeData(defaultTerrainTypeIndex)
+	local spGetGroundInfo  = Spring.GetGroundInfo
+	local spGetGroundHeight = Spring.GetGroundHeight
+	if lavaTypeName then 
+		for x = 8, Game.mapSizeX, 16 do 
+			for z = 8, Game.mapSizeZ, 16 do 
+				local y = spGetGroundHeight(x,z)
+				if y <= lavaLevel then
+					local terraintype = spGetGroundInfo(x,z)
+					if terraintype == lavaTypeMap then 
+							if lavaTypeMap[y] == nil then lavaTypeMap[y] = {} end 
+							lavaTypeMap[y][#lavaTypeMap[y] + 1] = {
+									x = x, y = y, z = z, terraintype = terraintype
+								}
+					end
+				end
+			end
+		end
+	end
+
 	_G.frame = 0
 	_G.lavaLevel = lavaLevel
 	_G.lavaGrow = lavaGrow
@@ -237,6 +280,8 @@ else  -- UNSYCNED
 
 	local heatdistortx = 0
 	local heatdistortz = 0
+	
+	local smoothFPS = 15
 
 	local elmosPerSquare = 256 -- The resolution of the lava
 
@@ -276,358 +321,47 @@ else  -- UNSYCNED
 	}
 
 
-	local lavaVSSrc = [[
-	#version 420
-	#extension GL_ARB_uniform_buffer_object : require
-	#extension GL_ARB_shader_storage_buffer_object : require
-	#extension GL_ARB_shading_language_420pack: require
-	#line 10000
-	layout (location = 0) in vec2 planePos;
+	local lavavsSrcPath = "LuaRules/Gadgets/Shaders/LavaSurface.vert.glsl"
+	local lavafsSrcPath = "LuaRules/Gadgets/Shaders/LavaSurface.frag.glsl"
+	local lavalightvsSrcPath = "LuaRules/Gadgets/Shaders/LavaLight.vert.glsl"
+	local lavalightfsSrcPath = "LuaRules/Gadgets/Shaders/LavaLight.frag.glsl"
 
-	uniform float lavaHeight;
-
-	out DataVS {
-		vec4 worldPos;
-		vec4 worldUV;
-		float inboundsness;
-		vec4 randpervertex;
-	};
-	//__DEFINES__
-	//__ENGINEUNIFORMBUFFERDEFS__
-
-	#line 11000
-
-	vec2 inverseMapSize = 1.0 / mapSize.xy;
-
-	float rand(vec2 co){ // a pretty crappy random function
-		return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
-	}
-
-	void main() {
-		// mapSize.xy is the actual map size,
-		//place the vertices into the world:
-		worldPos.y = lavaHeight;
-		worldPos.w = 1.0;
-		worldPos.xz =  (1.5 * planePos +0.5) * mapSize.xy;
-
-		// pass the world-space UVs out
-		float mapratio = mapSize.y / mapSize.x;
-		worldUV.xy = (1.5 * planePos +0.5);
-		worldUV.y *= mapratio;
-
-		float gametime = (timeInfo.x + timeInfo.w) * SWIRLFREQUENCY;
-
-		randpervertex = vec4(rand(worldPos.xz), rand(worldPos.xz * vec2(17.876234, 9.283)), rand(worldPos.xz + gametime + 2.0), rand(worldPos.xz + gametime + 3.0));
-		worldUV.zw = sin(randpervertex.xy + gametime * (0.5 + randpervertex.xy));
-
-		// global rotatemove, has 2 params, globalrotateamplitude, globalrotatefrequency
-		// Spin the whole texture around slowly
-		float worldRotTime = (timeInfo.x + timeInfo.w) ;
-		worldUV.xy += vec2( sin(worldRotTime * GLOBALROTATEFREQUENCY), cos(worldRotTime * GLOBALROTATEFREQUENCY)) * GLOBALROTATEAMPLIDUE;
-
-		// -- MAP OUT OF BOUNDS
-		vec2 mymin = min(worldPos.xz, mapSize.xy  - worldPos.xz) * inverseMapSize;
-		inboundsness = min(mymin.x, mymin.y);
-
-		// Assign world position:
-		gl_Position = cameraViewProj * worldPos;
-	}
-	]]
-
-	local lavaFSSrc =  [[
-	#version 330
-	#extension GL_ARB_uniform_buffer_object : require
-	#extension GL_ARB_shading_language_420pack: require
-
-	#line 20000
-
-	uniform float lavaHeight;
-	uniform float heatdistortx;
-	uniform float heatdistortz;
-
-	uniform sampler2D heightmapTex;
-	uniform sampler2D lavaDiffuseEmit;
-	uniform sampler2D lavaNormalHeight;
-	uniform sampler2D lavaDistortion;
-	uniform sampler2DShadow shadowTex;
-	uniform sampler2D infoTex;
-
-	in DataVS {
-		vec4 worldPos;
-		vec4 worldUV;
-		float inboundsness;
-		vec4 randpervertex;
-	};
-
-	//__ENGINEUNIFORMBUFFERDEFS__
-	//__DEFINES__
-
-	vec2 inverseMapSize = 1.0 / mapSize.xy;
-
-	float heightAtWorldPos(vec2 w){
-		// Some texel magic to make the heightmap tex perfectly align:
-		const vec2 heightmaptexel = vec2(8.0, 8.0);
-		w +=  vec2(-8.0, -8.0) * (w * inverseMapSize) + vec2(4.0, 4.0) ;
-
-		vec2 uvhm = clamp(w, heightmaptexel, mapSize.xy - heightmaptexel);
-		uvhm = uvhm	* inverseMapSize;
-
-		return texture(heightmapTex, uvhm, 0.0).x;
-	}
-
-	out vec4 fragColor;
-
-	#line 22000
-
-
-	void main() {
-
-		vec4 camPos = cameraViewInv[3];
-		vec3 worldtocam = camPos.xyz - worldPos.xyz;
-
-		// Sample emissive as heat indicator here for later displacement
-		vec4 nodiffuseEmit =  texture(lavaDiffuseEmit, worldUV.xy * WORLDUVSCALE );
-
-		vec2 rotatearoundvertices = worldUV.zw * SWIRLAMPLITUDE;
-
-		float localheight = OUTOFMAPHEIGHT ;
-		if (inboundsness > 0)
-			localheight = heightAtWorldPos(worldPos.xz);
-
-		if (localheight > lavaHeight - HEIGHTOFFSET ) discard;
-
-		// Calculate how far the fragment is from the coast
-		float coastfactor = clamp((localheight-lavaHeight + COASTWIDTH + HEIGHTOFFSET) * (1.0 / COASTWIDTH),  0.0, 1.0);
-
-		// this is ramp function that ramps up for 90% of the coast, then ramps down at the last 10% of coastwidth
-		if (coastfactor > 0.90)
-		{coastfactor = 9*( 1.0 - coastfactor);
-			coastfactor = pow(coastfactor/0.9, 1.0);
-		}else{
-			coastfactor = pow(coastfactor/0.9, 3.0);
+	local lavaShaderSourceCache = {
+			vssrcpath = lavavsSrcPath,
+			fssrcpath = lavafsSrcPath,
+			shaderName = "Lava Surface Shader GL4",
+			uniformInt = {
+				heightmapTex = 0,
+				lavaDiffuseEmit = 1,
+				lavaNormalHeight = 2,
+				lavaDistortion = 3,
+				shadowTex = 4,
+				infoTex = 5,
+			},
+			uniformFloat = {
+				lavaHeight = 1,
+				heatdistortx = 1,
+				heatdistortz = 1,
+			  },
+			shaderConfig = unifiedShaderConfig,		  
 		}
-
-		// Sample shadow map for shadow factor:
-		vec4 shadowVertexPos = shadowView * vec4(worldPos.xyz,1.0);
-		shadowVertexPos.xy += vec2(0.5);
-		float shadow = clamp(textureProj(shadowTex, shadowVertexPos), 0.0, 1.0);
-
-		// Sample LOS texture for LOS, and scale it into a sane range
-		vec2 losUV = clamp(worldPos.xz, vec2(0.0), mapSize.xy ) / mapSize.zw;
-		float losTexSample = dot(vec3(0.33), texture(infoTex, losUV).rgb) ; // lostex is PO2
-		losTexSample = clamp(losTexSample * 4.0 - 1.0, LOSDARKNESS, 1.0);
-		if (inboundsness < 0.0) losTexSample = 1.0;
-
-		// We shift the distortion texture camera-upwards according to the uniforms that got passed in
-		vec2 camshift =  vec2(heatdistortx, heatdistortz) * 0.001;
-		vec4 distortionTexture = texture(lavaDistortion, (worldUV.xy + camshift) * 45.2) ;
-
-		vec2 distortion = distortionTexture.xy * 0.2 * 0.02;
-		distortion.xy *= clamp(nodiffuseEmit.a * 0.5 + coastfactor, 0.2, 2.0);
-
-		vec2 diffuseNormalUVs =  worldUV.xy * WORLDUVSCALE + distortion.xy + rotatearoundvertices;
-		vec4 normalHeight =  texture(lavaNormalHeight, diffuseNormalUVs);
-
-		// Perform optional parallax mapping
-		#if (PARALLAXDEPTH > 0 )
-			vec3 viewvec = normalize(worldtocam * -1.0);
-			float pdepth = PARALLAXDEPTH * (PARALLAXOFFSET - normalHeight.a ) * (1.0 - coastfactor);
-			diffuseNormalUVs += pdepth * viewvec.xz * 0.002;
-			normalHeight =  texture(lavaNormalHeight, diffuseNormalUVs);
-		#endif
-
-		vec4 diffuseEmit =   texture(lavaDiffuseEmit , diffuseNormalUVs);
-
-		fragColor.rgba = diffuseEmit;
-
-		// Calculate lighting based on normal map
-		vec3 fragNormal = (normalHeight.xzy * 2.0 -1.0);
-		fragNormal.z = -1 * fragNormal.z; // for some goddamned reason Z(G) is inverted again
-		fragNormal = normalize(fragNormal);
-		float lightamount = clamp(dot(sunDir.xyz, fragNormal), 0.2, 1.0) * max(0.5,shadow);
-		fragColor.rgb *= lightamount;
-
-		fragColor.rgb += COASTCOLOR * coastfactor;
-
-		// Specular Color
-		vec3 reflvect = reflect(normalize(-1.0 * sunDir.xyz), normalize(fragNormal));
-		float specular = clamp(pow(dot(normalize(worldtocam), normalize(reflvect)), SPECULAREXPONENT), 0.0, SPECULARSTRENGTH) * shadow;
-		fragColor.rgb += fragColor.rgb * specular;
-
-		fragColor.rgb += fragColor.rgb * (diffuseEmit.a * distortion.y * 700.0);
-
-		fragColor.rgb *= losTexSample;
-
-		// some debugging stuff:
-		//fragColor.rgb = fragNormal.xzy;
-		//fragColor.rgb = vec3(losTexSample);
-		//fragColor.rgb = vec3(shadow);
-		//fragColor.rgb = distortionTexture.rgb ;
-		//fragColor.rg = worldUV.zw  ;
-		//fragColor.rgba *= vec4(fract(hmap*0.05));
-		//fragColor.rgb = vec3(randpervertex.w * 0.5 + 0.5);
-		//fragColor.rgb = fract(4*vec3(coastfactor));
-		fragColor.a = 1.0;
-		fragColor.a = clamp(  inboundsness * 2.0 +2.0, 0.0, 1.0);
-		SWIZZLECOLORS
-	}
-	]]
-
-
-	local fogLightVSSrc = [[
-	#version 420
-	#extension GL_ARB_uniform_buffer_object : require
-	#extension GL_ARB_shader_storage_buffer_object : require
-	#extension GL_ARB_shading_language_420pack: require
-	#line 10000
-	layout (location = 0) in vec2 planePos;
-
-	uniform float lavaHeight;
-
-	out DataVS {
-		vec4 worldPos;
-		vec4 worldUV;
-		float inboundsness;
-		noperspective vec2 v_screenUV;
-	};
-	//__DEFINES__
-	//__ENGINEUNIFORMBUFFERDEFS__
-
-	#line 11000
-
-	#define SNORM2NORM(value) (value * 0.5 + 0.5)
-
-	vec2 inverseMapSize = 1.0 / mapSize.xy;
-
-	float rand(vec2 co){ // a pretty crappy random function
-		return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
-	}
-
-	void main() {
-		// mapSize.xy is the actual map size,
-		//place the vertices into the world:
-		worldPos.y = lavaHeight;
-		worldPos.w = 1.0;
-		worldPos.xz =  (1.5 * planePos +0.5) * mapSize.xy;
-
-		// pass the world-space UVs out
-		float mapratio = mapSize.y / mapSize.x;
-		worldUV.xy = (1.5 * planePos +0.5);
-		worldUV.y *= mapratio;
-
-		float gametime = (timeInfo.x + timeInfo.w) * 0.006666;
-
-		vec4 randpervertex = vec4(rand(worldPos.xz), rand(worldPos.xz * vec2(17.876234, 9.283)), rand(worldPos.xz + gametime + 2.0), rand(worldPos.xz + gametime + 3.0));
-		worldUV.zw = sin(randpervertex.xy + gametime * (0.5 + randpervertex.xy));
-
-		// -- MAP OUT OF BOUNDS
-		vec2 mymin = min(worldPos.xz, mapSize.xy  - worldPos.xz) * inverseMapSize;
-		inboundsness = min(mymin.x, mymin.y);
-
-		// Assign world position:
-		gl_Position = cameraViewProj * worldPos;
-		v_screenUV = SNORM2NORM(gl_Position.xy / gl_Position.w);
-	}
-	]]
-
-	local foglightFSSrc =  [[
-	#version 330
-	#extension GL_ARB_uniform_buffer_object : require
-	#extension GL_ARB_shading_language_420pack: require
-
-	#line 20000
-
-	uniform float lavaHeight;
-	uniform float heatdistortx;
-	uniform float heatdistortz;
-
-	uniform sampler2D mapDepths;
-	uniform sampler2D modelDepths;
-	uniform sampler2D lavaDistortion;
-	//uniform sampler2D mapNormals;
-	//uniform sampler2D modelNormals;
-
-	in DataVS {
-		vec4 worldPos;
-		vec4 worldUV;
-		float inboundsness;
-		noperspective vec2 v_screenUV;
-	};
-
-	//__ENGINEUNIFORMBUFFERDEFS__
-	//__DEFINES__
-
-	vec2 inverseMapSize = 1.0 / mapSize.xy;
-
-	out vec4 fragColor;
-
-	#line 22000
-	void main() {
-
-		vec4 camPos = cameraViewInv[3];
-
-		// We shift the distortion texture camera-upwards according to the uniforms that got passed in
-		vec2 camshift =  vec2(heatdistortx, heatdistortz) * 0.01;
-
-		//Get the fragment depth
-		// note that WE CANT GO LOWER THAN THE ACTUAL LAVA LEVEL!
-
-		// Sample the depth buffers, and choose whichever is closer to the screen
-		float mapdepth = texture(mapDepths, v_screenUV).x;
-		float modeldepth = texture(modelDepths, v_screenUV).x;
-		mapdepth = min(mapdepth, modeldepth);
-
-		// the W weight factor here is incorrect, as it comes from the depth buffers, and not the fragments own depth.
-
-		// Convert to normalized device coordinates, and calculate inverse view projection
-		vec4 mapWorldPos =  vec4(  vec3(v_screenUV.xy * 2.0 - 1.0, mapdepth),  1.0);
-		mapWorldPos = cameraViewProjInv * mapWorldPos;
-		mapWorldPos.xyz = mapWorldPos.xyz/ mapWorldPos.w; // YAAAY this works!
-		float trueFragmentHeight = mapWorldPos.y;
-
-		float fogAboveLava = 1.0;
-
-		// clip mapWorldPos according to true lava height
-		if (mapWorldPos.y< lavaHeight - FOGHEIGHTABOVELAVA - HEIGHTOFFSET) {
-			// we need to make a vector from cam to fogplane position
-			vec3 camtofogplane = mapWorldPos.xyz - camPos.xyz;
-
-			// and scale it to make it
-			camtofogplane = FOGHEIGHTABOVELAVA * camtofogplane /abs(camtofogplane.y);
-			mapWorldPos.xyz = worldPos.xyz + camtofogplane;
-			fogAboveLava = FOGABOVELAVA;
+		
+	local lavaLightShaderSourceCache = {
+			vssrcpath = lavalightvsSrcPath,
+			fssrcpath = lavalightfsSrcPath,
+			shaderName = "Lava Light Shader GL4",
+			uniformInt = {
+				mapDepths = 0,
+				modelDepths = 1,
+				lavaDistortion = 2,
+			},
+			uniformFloat = {
+				lavaHeight = 1,
+				heatdistortx = 1,
+				heatdistortz = 1,
+			  },
+			shaderConfig = unifiedShaderConfig,		  
 		}
-
-		// Calculate how long the vector from top of foglightplane to lava or world pos actually is
-		float actualfogdepth = length(mapWorldPos.xyz - worldPos.xyz) ;
-		float fogAmount = 1.0 - exp2(- FOGFACTOR * FOGFACTOR * actualfogdepth  * 0.5);
-		fogAmount *= fogAboveLava;
-
-		// sample the distortiontexture according to camera shift and scale it down
-		vec4 distortionTexture = texture(lavaDistortion, (worldUV.xy * 22.0  + camshift)) ;
-		float fogdistort = (FOGLIGHTDISTORTION + distortionTexture.x + distortionTexture.y)/ FOGLIGHTDISTORTION ;
-
-
-		// apply some distortion to the fog
-		fogAmount *= fogdistort;
-
-
-		// lets add some extra brigtness near the coasts, by finding the distance of the lavaplane to the coast
-		float disttocoast = abs(trueFragmentHeight- (lavaHeight - FOGHEIGHTABOVELAVA - HEIGHTOFFSET));
-
-		float extralightcoast =  clamp(1.0 - disttocoast * (1.0 / COASTWIDTH), 0.0, 1.0);
-		extralightcoast = pow(extralightcoast, 3.0) * EXTRALIGHTCOAST;
-
-		fogAmount += extralightcoast;
-
-		fragColor.rgb = FOGCOLOR;
-		fragColor.a = fogAmount;
-
-		// fade out the foglightplane if it is far out of bounds
-		fragColor.a *= clamp(  inboundsness * 2.0 +2.0, 0.0, 1.0);
-		SWIZZLECOLORS
-	}
-	]]
 
 
 	local myPlayerID = tostring(Spring.GetMyPlayerID())
@@ -679,55 +413,17 @@ else  -- UNSYCNED
 		lavaPlaneVAO:AttachVertexBuffer(vertexBuffer)
 		lavaPlaneVAO:AttachIndexBuffer(indexBuffer)
 
+		lavaShader = LuaShader.CheckShaderUpdates(lavaShaderSourceCache)
 
-		local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-		lavaVSSrc = lavaVSSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-		lavaFSSrc = lavaFSSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+		foglightShader = LuaShader.CheckShaderUpdates(lavaLightShaderSourceCache)
 
-		lavaShader = LuaShader({
-			vertex = lavaVSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unifiedShaderConfig)),
-			fragment = lavaFSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unifiedShaderConfig)),
-			uniformInt = {
-				heightmapTex = 0,
-				lavaDiffuseEmit = 1,
-				lavaNormalHeight = 2,
-				lavaDistortion = 3,
-				shadowTex = 4,
-				infoTex = 5,
-			},
-			uniformFloat = {
-				lavaHeight = 1,
-				heatdistortx = 1,
-				heatdistortz = 1,
-			  },
-		}, "Lava Shader")
-
-
-		fogLightVSSrc = fogLightVSSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-		foglightFSSrc = foglightFSSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-		foglightShader = LuaShader({
-			vertex = fogLightVSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unifiedShaderConfig)),
-			fragment = foglightFSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unifiedShaderConfig)),
-			uniformInt = {
-				mapDepths = 0,
-				modelDepths = 1,
-				lavaDistortion = 2,
-			},
-			uniformFloat = {
-				lavaHeight = 1,
-				heatdistortx = 1,
-				heatdistortz = 1,
-			  },
-		}, "FogLight shader ")
-		local shaderCompiled = lavaShader:Initialize()
-		if not shaderCompiled then
+		if not lavaShader then
 			Spring.Echo("Failed to compile Lava Shader")
 			gadgetHandler:RemoveGadget()
 			return
 		end
 
-		shaderCompiled = foglightShader:Initialize()
-		if not shaderCompiled then
+		if not foglightShader then
 			Spring.Echo("Failed to compile foglightShader")
 			gadgetHandler:RemoveGadget()
 			return
@@ -740,9 +436,9 @@ else  -- UNSYCNED
 			if not isPaused then
 				local camX, camY, camZ = Spring.GetCameraDirection()
 				local camvlength = math.sqrt(camX*camX + camZ *camZ + 0.01)
-				local fps = math.max(Spring.GetFPS(), 15)
-				heatdistortx = heatdistortx - camX / (camvlength * fps)
-				heatdistortz = heatdistortz - camZ / (camvlength * fps)
+				local smoothFPS = 0.9 * smoothFPS + 0.1 * math.max(Spring.GetFPS(), 15)
+				heatdistortx = heatdistortx - camX / (camvlength * smoothFPS)
+				heatdistortz = heatdistortz - camZ / (camvlength * smoothFPS)
 			end
 			--Spring.Echo(camX, camZ, heatdistortx, heatdistortz,gameSpeed, isPaused)
 
