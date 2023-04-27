@@ -1,11 +1,11 @@
 
 local difficulties = {
-	normal   = 0,
-	hard     = 1,
-	veryhard = 2,
-	insane   = 3,
-	epic     = 4,
-	unbeatable = 5,
+	veryeasy = 0,
+	easy 	 = 1,
+	normal   = 2,
+	hard     = 3,
+	veryhard = 4,
+	epic     = 5,
 	survival = 6,
 }
 
@@ -248,7 +248,7 @@ chickenBehaviours = {
 
 local optionValues = {
 
-	[difficulties.normal] = {
+	[difficulties.veryeasy] = {
 		gracePeriod       = 10 * Spring.GetModOptions().chicken_graceperiodmult * 60,
 		queenTime      	  = 50 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 120,
@@ -267,7 +267,7 @@ local optionValues = {
 		queenResistanceMult   = 0.5,
 	},
 
-	[difficulties.hard] = {
+	[difficulties.easy] = {
 		gracePeriod       = 8 * Spring.GetModOptions().chicken_graceperiodmult * 60,
 		queenTime      	  = 45 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 100,
@@ -285,7 +285,7 @@ local optionValues = {
 		queenName         = 'e_chickenq',
 		queenResistanceMult   = 0.75,
 	},
-	[difficulties.veryhard] = {
+	[difficulties.normal] = {
 		gracePeriod       = 6 * Spring.GetModOptions().chicken_graceperiodmult * 60,
 		queenTime      	  = 40 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 80,
@@ -303,7 +303,7 @@ local optionValues = {
 		queenName         = 'n_chickenq',
 		queenResistanceMult   = 1,
 	},
-	[difficulties.insane] = {
+	[difficulties.hard] = {
 		gracePeriod       = 4 * Spring.GetModOptions().chicken_graceperiodmult * 60,
 		queenTime      	  = 35 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 60,
@@ -321,7 +321,7 @@ local optionValues = {
 		queenName         = 'h_chickenq',
 		queenResistanceMult   = 1.2,
 	},
-	[difficulties.epic] = {
+	[difficulties.veryhard] = {
 		gracePeriod       = 3 * Spring.GetModOptions().chicken_graceperiodmult * 60,
 		queenTime      	  = 30 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 60,
@@ -339,7 +339,7 @@ local optionValues = {
 		queenName         = 'vh_chickenq',
 		queenResistanceMult   = 1.4,
 	},
-	[difficulties.unbeatable] = {
+	[difficulties.epic] = {
 		gracePeriod       = 2 * Spring.GetModOptions().chicken_graceperiodmult * 60,
 		queenTime      	  = 28 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 60,
@@ -359,8 +359,8 @@ local optionValues = {
 	},
 
 	[difficulties.survival] = {
-		gracePeriod       = 8 * Spring.GetModOptions().chicken_graceperiodmult * 60,
-		queenTime      	  = 60 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 10 * Spring.GetModOptions().chicken_graceperiodmult * 60,
+		queenTime      	  = 50 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 120,
 		burrowSpawnRate   = 150,
 		turretSpawnRate   = 300,
@@ -370,7 +370,7 @@ local optionValues = {
 		spawnChance       = 0.2,
 		damageMod         = 0.4,
 		maxBurrows        = 1000,
-		minChickens		  = 10,
+		minChickens		  = 25,
 		maxChickens		  = 50,
 		chickenPerPlayerMultiplier = 0.25,
 		queenName         = 've_chickenq',

@@ -313,13 +313,14 @@ if gadgetHandler:IsSyncedCode() then
 		config.maxXP = nextDifficulty.maxXP
 		config.queenResistanceMult = nextDifficulty.queenResistanceMult
 		config.angerBonus = nextDifficulty.angerBonus
-		config.queenTime = nextDifficulty.queenTime
+		config.queenTime = nextDifficulty.queenTime*0.5
 		queenTime = (config.queenTime + config.gracePeriod)
 		maxBurrows = ((config.maxBurrows*(1-config.chickenPerPlayerMultiplier))+(config.maxBurrows*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 		maxWaveSize = ((config.maxChickens*(1-config.chickenPerPlayerMultiplier))+(config.maxChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 		minWaveSize = ((config.minChickens*(1-config.chickenPerPlayerMultiplier))+(config.minChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 		config.chickenSpawnRate = nextDifficulty.chickenSpawnRate*Spring.GetModOptions().chicken_spawntimemult
 		currentMaxWaveSize = minWaveSize
+		SetGameRulesParam("ChickenQueenAngerGain_Base", 100/config.queenTime) 
 	end
 
 	--------------------------------------------------------------------------------
