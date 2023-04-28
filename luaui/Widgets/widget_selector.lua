@@ -44,6 +44,15 @@ local WhiteStr = "\255\255\255\255"
 
 local sizeMultiplier = 1
 
+local texts = {}
+
+local buttons = { --see MouseRelease for which functions are called by which buttons
+	[1] = texts.button_reloadluaui,
+	[2] = texts.button_unloadallwidgets,
+	[3] = texts.button_disallowuserwidgets,
+	[4] = texts.button_resetluaui,
+	[5] = texts.button_factoryresetluaui,
+}
 local floor = math.floor
 
 local widgetsList = {}
@@ -106,15 +115,13 @@ local dlistGuishader, dlistGuishader2, lastStart
 
 local widgetScale = (vsy / 1080)
 
-local texts = {}
-
-local buttons = { --see MouseRelease for which functions are called by which buttons
-	[1] = texts.button_reloadluaui,
-	[2] = texts.button_unloadallwidgets,
-	[3] = texts.button_disallowuserwidgets,
-	[4] = texts.button_resetluaui,
-	[5] = texts.button_factoryresetluaui,
-}
+--local buttons = { --see MouseRelease for which functions are called by which buttons
+--	[1] = texts.button_reloadluaui,
+--	[2] = texts.button_unloadallwidgets,
+--	[3] = texts.button_disallowuserwidgets,
+--	[4] = texts.button_resetluaui,
+--	[5] = texts.button_factoryresetluaui,
+--}
 
 local allowuserwidgets = true
 if not Spring.GetModOptions().allowuserwidgets then
@@ -305,15 +312,13 @@ end
 
 function widget:Initialize()
 
-	texts = Spring.I18N('ui.widgetselector')
-
 	if not allowuserwidgets then
 		buttons[3] = ''
 	else
 		if widgetHandler.allowUserWidgets then
-			buttons[3] = texts.button_disallowuserwidgets
+			buttons[3] = Spring.I18N('ui.widgetselector.button_disallowuserwidgets')
 		else
-			buttons[3] = texts.button_allowuserwidgets
+			buttons[3] = Spring.I18N('ui.widgetselector.button_allowuserwidgets')
 		end
 	end
 
@@ -468,7 +473,7 @@ end
 
 function widget:KeyPress(key, mods, isRepeat)
 	if show and key == KEYSYMS.ESCAPE or (key == KEYSYMS.F11 and not isRepeat and not (mods.alt or mods.ctrl or mods.meta or mods.shift)) then
-		if not key == KEYSYMS.F11 and inputText and inputText ~= '' then
+		if key == KEYSYMS.ESCAPE and inputText and inputText ~= '' then
 			clearChatInput()
 		else
 			local newShow = not show
@@ -580,7 +585,7 @@ function widget:DrawScreen()
 
 	local backgroundRect = { floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)) }
 
-	local title = texts.title
+	local title = Spring.I18N('ui.widgetselector.title')
 	local titleFontSize = 18 * widgetScale
 	local titleRect = { backgroundRect[1], backgroundRect[4], math.floor(backgroundRect[1] + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(backgroundRect[4] + (titleFontSize*1.7)) }
 
@@ -637,9 +642,19 @@ function widget:DrawScreen()
 	local pointedName = (nd and nd[1]) or nil
 	local posy = maxy - ((yStep + bgPadding) * sizeMultiplier)
 	sby1 = posy + ((fontSize + fontSpace) * sizeMultiplier) * 0.5
+	local prevFromZip = true
+	local customWidgetPosy
 	for _, namedata in ipairs(widgetsList) do
+
 		local name = namedata[1]
 		local data = namedata[2]
+
+		if prevFromZip ~= data.fromZip then
+			customWidgetPosy = posy
+			font2:SetTextColor(0.5, 0.5, 0.5, 0.4)
+			font2:Print(Spring.I18N('ui.widgetselector.islocal'), minx + fontSize * sizeMultiplier * 0.25, posy + (fontSize * sizeMultiplier) * 0.33, fontSize * sizeMultiplier, "")
+		end
+
 		local color = ''
 		local pointed = (pointedName == name)
 		local order = widgetHandler.orderList[name]
@@ -651,26 +666,21 @@ function widget:DrawScreen()
 			if not pagestepped and (lmb or mmb or rmb) then
 				color = WhiteStr
 			else
-				color = (active and '\255\128\255\128') or
-					(enabled and '\255\255\255\128') or '\255\255\128\128'
+				color = (active and '\255\128\255\128') or (enabled and '\255\255\255\128') or '\255\255\128\128'
 			end
 		else
-			color = (active and '\255\064\224\064') or
-				(enabled and '\255\200\200\064') or '\255\224\064\064'
+			color = (active and '\255\064\224\064') or (enabled and '\255\200\200\064') or '\255\224\064\064'
 		end
-
-		local tmpName
-		if data.fromZip then
-			-- FIXME: extra chars not counted in text length
-			tmpName = WhiteStr .. '*' .. color .. name .. WhiteStr .. '*'
-		else
-			tmpName = color .. name
-		end
-
-		font:Print(color .. tmpName, midx, posy + (fontSize * sizeMultiplier) * 0.5, fontSize * sizeMultiplier, "vc")
+		prevFromZip = data.fromZip
+		font:Print(color .. name, midx, posy + (fontSize * sizeMultiplier) * 0.5, fontSize * sizeMultiplier, "vc")
 		posy = posy - (yStep * sizeMultiplier)
 	end
-
+	if customWidgetPosy then
+		gl.Color(1, 1, 1, 0.07)
+		RectRound(backgroundRect[1]+elementPadding, customWidgetPosy + math.floor(yStep * sizeMultiplier * 0.85), backgroundRect[3]-elementPadding, customWidgetPosy + math.floor(yStep * sizeMultiplier * 0.85)-1, 0, 0,0,0,0)
+		gl.Color(1, 1, 1, 0.035)
+		RectRound(backgroundRect[1]+elementPadding, backgroundRect[2]+elementPadding, backgroundRect[3]-elementPadding, customWidgetPosy + math.floor(yStep * sizeMultiplier * 0.85), elementPadding, 0,0,1,0)
+	end
 
 	-- scrollbar
 	if #widgetsList < #fullWidgetsList then
@@ -698,18 +708,6 @@ function widget:DrawScreen()
 		if (sbposx < mx and mx < sbposx + sbsizex and miny < my and my < maxy) or activescrollbar then
 			RectRound(sbposx, miny, sbposx + (sbsizex * 0.61), maxy, 4.5 * sizeMultiplier, 1, 1, 1, 1, { 0.2, 0.2, 0.2, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
 		end
-
-		--[[gl.Color(1.0, 1.0, 1.0, 0.15)
-		gl.Shape(GL.TRIANGLES, {
-		  { v = { sbposx + sbsizex / 2, miny + trianglePadding } },
-		  { v = { sbposx + trianglePadding, sby2 - 1 - trianglePadding} },
-		  { v = { sbposx + sbsizex - trianglePadding, sby2 - 1 - trianglePadding} }
-		})
-		gl.Shape(GL.TRIANGLES, {
-		  { v = { sbposx + sbsizex / 2, maxy - trianglePadding } },
-		  { v = { sbposx - trianglePadding + sbsizex, sby2 + sbheight + 1 + trianglePadding} },
-		  { v = { sbposx + trianglePadding, sby2 + sbheight + 1 + trianglePadding} }
-		})]]--
 
 		-- scroller
 		if (sbposx < mx and mx < sbposx + sbsizex and sby2 < my and my < sby2 + sbheight) then
@@ -779,9 +777,9 @@ function widget:DrawScreen()
 			end
 			if d.author and d.author ~= '' then
 				local textLines, numLines = font:WrapText(d.author, maxWidth)
-				tooltip = tooltip.."\255\175\175\175" .. texts.author..':  ' ..string.gsub(textLines, '[\n]', "\n\255\175\175\175")..'\n'
+				tooltip = tooltip.."\255\175\175\175" .. Spring.I18N('ui.widgetselector.author')..':  ' ..string.gsub(textLines, '[\n]', "\n\255\175\175\175")..'\n'
 			end
-			tooltip = tooltip .."\255\175\175\175".. texts.file..':  '  ..d.basename .. (not d.fromZip and '   ('..texts.islocal..')' or '')
+			tooltip = tooltip .."\255\175\175\175".. Spring.I18N('ui.widgetselector.file')..':  '  ..d.basename .. (not d.fromZip and '   ('..Spring.I18N('ui.widgetselector.islocal')..')' or '')
 			if WG['tooltip'] then
 				WG['tooltip'].ShowTooltip('info', tooltip, nil, nil, tooltipTitle)
 			end
