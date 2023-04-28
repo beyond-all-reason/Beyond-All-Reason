@@ -900,6 +900,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 		chickensDiedSinceLastWave = 0
+		lastWaveSize = 1
 		squadManagerKillerLoop()
 		
 		local waveType = "normal"
@@ -986,6 +987,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == chickenTeamID then
+			lastWaveSize = lastWaveSize+1
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{3},0)
 			if UnitDefs[unitDefID].canCloak then
 				Spring.GiveOrderToUnit(unitID,37382,{1},0)
@@ -1576,7 +1578,7 @@ if gadgetHandler:IsSyncedCode() then
 				if burrowCount > 0
 				and SetCount(spawnQueue) == 0
 				and ((config.chickenSpawnRate) < (t - timeOfLastWave)) then
-					lastWaveSize = Wave()
+					Wave()
 					timeOfLastWave = t
 				end
 			end
@@ -1650,8 +1652,8 @@ if gadgetHandler:IsSyncedCode() then
 
 		if unitTeam == chickenTeamID then
 			chickensDiedSinceLastWave = chickensDiedSinceLastWave + 1
-			if chickensDiedSinceLastWave > lastWaveSize then
-				lastWaveSize = Wave()
+			if chickensDiedSinceLastWave > lastWaveSize and SetCount(spawnQueue) == 0 then
+				Wave()
 				timeOfLastWave = GetGameSeconds()
 			end
 			if config.useEggs then
