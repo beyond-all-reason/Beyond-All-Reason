@@ -704,7 +704,8 @@ local options={
 		key    = 'assistdronesair',
 		name   = 'Assist Drones: Use Air Drones',
 		type   = 'bool',
-		def    = false,
+		def    = true,
+		hidden = true,
 		section= "options",
 	},
 
