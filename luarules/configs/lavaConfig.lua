@@ -226,8 +226,7 @@ elseif string.find(mapName, "speedmetal") then
 
 elseif string.find(mapName, "thermal shock") then
 	lavaMap = true
-	lavaLevel = 311 
-	lavaGrow = 0.05 
+	lavaGrow = 0
 	lavaColorCorrection = "vec3(1.0, 1.0, 1.0)"
 	lavaCoastColor = "vec3(1.0, 0.25, 0.0)"
 	lavaCoastLightBoost = 0.3
@@ -239,11 +238,7 @@ elseif string.find(mapName, "thermal shock") then
 	lavaTideamplitude = 0.3 
 	lavaTideperiod = 1000 
     if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (310, 0.02, 5*60) -- needs to be -1 than pre-game lava level
-        addTideRhym (275, 0.02, 5*60)
-        addTideRhym (240, 0.01, 5*60)
-        addTideRhym (215, 0.01, 5*60)
-        addTideRhym (160, 0.01, 5*6000)
+		addTideRhym (-1, 0.05, 5*6000)
     end
 
 elseif string.find(mapName, "forge") then
