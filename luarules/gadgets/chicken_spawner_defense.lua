@@ -73,6 +73,8 @@ if gadgetHandler:IsSyncedCode() then
 	local timeOfLastSpawn = -999999
 	local timeOfLastFakeSpawn = 0
 	local timeOfLastWave = 0
+	local lastWaveSize = 999999
+	local chickensDiedSinceLastWave = 0
 	local t = 0 -- game time in secondstarget
 	local queenAnger = 0
 	local techAnger = 0
@@ -897,12 +899,13 @@ if gadgetHandler:IsSyncedCode() then
 		if gameOver then
 			return
 		end
+		chickensDiedSinceLastWave = 0
 		squadManagerKillerLoop()
+		
 		local waveType = "normal"
-
 		waveParameters.baseCooldown = waveParameters.baseCooldown - 1
 		waveParameters.airWave.cooldown = waveParameters.airWave.cooldown - 1
-
+		
 		if waveParameters.baseCooldown <= 0 then
 			-- special waves
 			if techAnger > config.airStartAnger and waveParameters.airWave.cooldown <= 0 then
@@ -1319,10 +1322,6 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		else
 			if mRandom() < config.spawnChance / 15 then
-				if SetCount(spawnQueue) == 0 and mRandom() < config.spawnChance then
-					Wave()
-					timeOfLastWave = t
-				end
 				SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
 				SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
 				SpawnRandomOffWaveSquad(queenID)
@@ -1577,7 +1576,7 @@ if gadgetHandler:IsSyncedCode() then
 				if burrowCount > 0
 				and SetCount(spawnQueue) == 0
 				and ((config.chickenSpawnRate) < (t - timeOfLastWave)) then
-					local cCount = Wave()
+					lastWaveSize = Wave()
 					timeOfLastWave = t
 				end
 			end
@@ -1650,6 +1649,11 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
 		if unitTeam == chickenTeamID then
+			chickensDiedSinceLastWave = chickensDiedSinceLastWave + 1
+			if chickensDiedSinceLastWave > lastWaveSize then
+				lastWaveSize = Wave()
+				timeOfLastWave = GetGameSeconds()
+			end
 			if config.useEggs then
 				local x,y,z = Spring.GetUnitPosition(unitID)
 				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 1)
