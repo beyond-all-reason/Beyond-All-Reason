@@ -179,7 +179,9 @@ local function CreatePanelDisplayList()
 			local totalSeconds = (100 - gameInfo.queenAnger) / gain
 			time = string.formatTime(totalSeconds)
 			font:Print(textColor .. Spring.I18N('ui.chickens.queenETA', { time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
-
+			if #currentlyResistantToNames > 0 then
+				currentlyResistantToNames = {}
+			end
 		else
 			font:Print(textColor .. Spring.I18N('ui.chickens.queenHealth', { health = gameInfo.queenLife }), panelMarginX, PanelRow(1), panelFontSize, "")
 			for i = 1,#currentlyResistantToNames do
