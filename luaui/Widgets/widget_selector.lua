@@ -468,7 +468,7 @@ end
 
 function widget:KeyPress(key, mods, isRepeat)
 	if show and key == KEYSYMS.ESCAPE or (key == KEYSYMS.F11 and not isRepeat and not (mods.alt or mods.ctrl or mods.meta or mods.shift)) then
-		if inputText and inputText ~= '' then
+		if not key == KEYSYMS.F11 and inputText and inputText ~= '' then
 			clearChatInput()
 		else
 			local newShow = not show
