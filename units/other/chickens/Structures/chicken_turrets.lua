@@ -109,7 +109,7 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 750,
 				damage = {
-					default = 320,
+					default = 640,
 					shields = 160,
 				},
 			},

@@ -114,7 +114,7 @@ return {
 				weaponvelocity = 750,
 				damage = {
 					default = 1,
-					shields = 160,
+					shields = 320,
 				},
 			},
 		},
