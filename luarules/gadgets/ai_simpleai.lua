@@ -11,6 +11,11 @@ local debugmode = false
 
 local gameShortName = Game.gameShortName
 
+--Spring.Echo("tracy", tracy)
+
+local MakeHashedPosTable = VFS.Include("luarules/utilities/damgam_lib/hashpostable.lua")
+local HashPosTable = MakeHashedPosTable()
+
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 
 -- team locals
@@ -179,6 +184,7 @@ end
 -------- functions
 
 local function SimpleGetClosestMexSpot(x, z)
+	--tracy.ZoneBeginN("SimpleAI:SimpleGetClosestMexSpot")
 	local bestSpot
 	local bestDist = math.huge
 	local metalSpots = GG.metalSpots
@@ -187,17 +193,49 @@ local function SimpleGetClosestMexSpot(x, z)
 			local spot = metalSpots[i]
 			local dx, dz = x - spot.x, z - spot.z
 			local dist = dx * dx + dz * dz
-			local units = Spring.GetUnitsInCylinder(spot.x, spot.z, 128)
+			if dist < bestDist then 
+				local units = Spring.GetUnitsInCylinder(spot.x, spot.z, 128)
 			--local height = Spring.GetGroundHeight(spot.x, spot.z)
-			if dist < bestDist and #units == 0 then
-				--and height > 0 then
-				bestSpot = spot
-				bestDist = dist
+				if #units == 0 then
+					--and height > 0 then
+					bestSpot = spot
+					bestDist = dist
+				end
 			end
 		end
 	else
+		-- optimize for metal maps a bit
 		local canBuildMex = false
+		local numtries = 0
+		local maxtries = HashPosTable.numPos
+		
+		local hashPos = HashPosTable:hashPos(x,z)
+		local searchwidth = HashPosTable.resolution / 2 - 32
+		for hashposindex = 1, HashPosTable.numPos do 
+			local tilecenterx, tilecenterz = HashPosTable:GetNthCenter(x,z,hashposindex)
+			for attempt = 1,5 do 
+				local posx = tilecenterx + random(-searchwidth, searchwidth)
+				local posz = tilecenterz + random(-searchwidth, searchwidth)
+				local posy = Spring.GetGroundHeight(posx, posz)
+				local _,_,hasmetal = Spring.GetGroundInfo(posx, posz)
+				if hasmetal > 0.1 then 
+					local flat = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 64, 25, true)
+					if flat then 
+						local unoccupied = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 48)
+						if unoccupied then 
+							bestSpot = {x = posx, y = posy, z = posz}
+							break
+						end
+					end
+				end
+			end
+			if bestSpot then break end 
+		end
+		
+		--[[
+		-- old method left here as a reference
 		for i = 128,10000 do
+			
 			canBuildMex = false
 			local posx = x + random(-i,i)
 			local posz = z + random(-i,i)
@@ -219,11 +257,15 @@ local function SimpleGetClosestMexSpot(x, z)
 				break
 			end
 		end
+		]]--
 	end
+	--tracy.ZoneEnd()
 	return bestSpot
 end
 
 local function SimpleBuildOrder(cUnitID, building)
+	
+	--tracy.ZoneBeginN("SimpleAI:SimpleBuildOrder")
 	--Spring.Echo( UnitDefs[Spring.GetUnitDefID(cUnitID)].name, " ordered to build", UnitDefs[building].name)
 	local searchRange = 0
 	local numtests = 0
@@ -281,10 +323,13 @@ local function SimpleBuildOrder(cUnitID, building)
 			if gaveOrder then break end
 		end
 	end
+	--tracy.ZoneEnd()
 	--Spring.Echo("SBO",cUnitID, numtests, searchRange/300)
 end
 
 local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, unitTeam, allyTeamID, units, allunits, type)
+	
+	--tracy.ZoneBeginN("SimpleAI:SimpleConstructionProjectSelection")
 	local success = false
 
 	local mcurrent, mstorage, _, mincome, mexpense = Spring.GetTeamResources(unitTeam, "metal")
@@ -439,6 +484,9 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 			break
 		end
 	end
+	
+	--tracy.ZoneEnd()
+	return success
 end
 
 function gadget:GameOver()
@@ -451,7 +499,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n % 15 == 0 then
 			for i = 1, SimpleAITeamIDsCount do
 				if n%(15*SimpleAITeamIDsCount) == 15*(i-1) then
-					--Spring.Echo("StartUpdateAI", i)
+					--tracy.ZoneBeginN("SimpleAI:GameFrame")
 					local teamID = SimpleAITeamIDs[i]
 					local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(teamID)
 					local mcurrent, mstorage = Spring.GetTeamResources(teamID, "metal")
@@ -580,7 +628,7 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 					
-					--Spring.Echo("EndUpdateAI", i)
+					--tracy.ZoneEnd()
 				end
 			end
 		end
