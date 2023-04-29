@@ -331,6 +331,7 @@ function widget:Initialize()
 		show = newShow
 		if show then
 			widgetHandler.textOwner = self		--widgetHandler:OwnText()
+			Spring.SetConfigInt("widgetselector", 1)
 		else
 			widgetHandler.textOwner = nil		--widgetHandler:DisownText()
 		end
@@ -477,6 +478,7 @@ function widget:KeyPress(key, mods, isRepeat)
 			end
 			if show then
 				widgetHandler.textOwner = self		--widgetHandler:OwnText()
+				Spring.SetConfigInt("widgetselector", 1)
 			else
 				widgetHandler.textOwner = nil		--widgetHandler:DisownText()
 			end
@@ -1011,6 +1013,7 @@ function widget:TextCommand(s)
 		show = not show
 		if show then
 			widgetHandler.textOwner = self		--widgetHandler:OwnText()
+			Spring.SetConfigInt("widgetselector", 1)
 		else
 			widgetHandler.textOwner = nil		--widgetHandler:DisownText()
 		end
