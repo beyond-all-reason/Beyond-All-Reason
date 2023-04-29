@@ -44,15 +44,8 @@ local WhiteStr = "\255\255\255\255"
 
 local sizeMultiplier = 1
 
-local texts = {}
 
-local buttons = { --see MouseRelease for which functions are called by which buttons
-	[1] = texts.button_reloadluaui,
-	[2] = texts.button_unloadallwidgets,
-	[3] = texts.button_disallowuserwidgets,
-	[4] = texts.button_resetluaui,
-	[5] = texts.button_factoryresetluaui,
-}
+local buttons = {}
 local floor = math.floor
 
 local widgetsList = {}
@@ -115,24 +108,15 @@ local dlistGuishader, dlistGuishader2, lastStart
 
 local widgetScale = (vsy / 1080)
 
---local buttons = { --see MouseRelease for which functions are called by which buttons
---	[1] = texts.button_reloadluaui,
---	[2] = texts.button_unloadallwidgets,
---	[3] = texts.button_disallowuserwidgets,
---	[4] = texts.button_resetluaui,
---	[5] = texts.button_factoryresetluaui,
---}
-
 local allowuserwidgets = true
 if not Spring.GetModOptions().allowuserwidgets then
 	allowuserwidgets = false
 	buttons[3] = ''
 end
 
-local titleFontSize = 20
 local buttonFontSize = 15
 local buttonHeight = 24
-local buttonTop = 28 -- offset between top of buttons and bottom of widget
+local buttonTop = 40 -- offset between top of buttons and bottom of widget
 
 local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
 local textInputDlist
@@ -312,6 +296,13 @@ end
 
 function widget:Initialize()
 
+	buttons = { --see MouseRelease for which functions are called by which buttons
+		[1] = Spring.I18N('ui.widgetselector.button_reloadluaui'),
+		[2] = Spring.I18N('ui.widgetselector.button_unloadallwidgets'),
+		[3] = Spring.I18N('ui.widgetselector.button_disallowuserwidgets'),
+		[4] = Spring.I18N('ui.widgetselector.button_resetluaui'),
+		[5] = Spring.I18N('ui.widgetselector.button_factoryresetluaui'),
+	}
 	if not allowuserwidgets then
 		buttons[3] = ''
 	else
@@ -624,7 +615,6 @@ function widget:DrawScreen()
 	font2:End()
 
 	font:Begin()
-	-- draw the text buttons (at the bottom) & their outlines
 	if showButtons then
 		for i, name in ipairs(buttons) do
 			tcol = WhiteStr
