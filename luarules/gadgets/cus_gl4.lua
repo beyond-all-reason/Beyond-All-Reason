@@ -1926,8 +1926,18 @@ function gadget:DrawWorldPreUnit()
 		if firstDraw then 
 			local firstfeatures = Spring.GetVisibleFeatures()
 			local firstdrawFlagsFeatures = {}
-			for i, featureID in ipairs(firstfeatures) do firstdrawFlagsFeatures[i] = 1 + 4 + 16 end 
-			ProcessFeatures(firstfeatures, firstdrawFlagsFeatures, "firstDraw")
+			local validFirstFeatures = {}
+			local numfirstfeatures = 0
+			for i, featureID in ipairs(firstfeatures) do 
+				local flag = Spring.GetFeatureDrawFlag(featureID)
+				if flag and flag > 0 then 
+					numfirstfeatures = numfirstfeatures + 1 
+					validFirstFeatures[numfirstfeatures] = featureID
+					firstdrawFlagsFeatures[numfirstfeatures] = flag
+				end
+					
+			end 
+			ProcessFeatures(validFirstFeatures, firstdrawFlagsFeatures, "firstDraw")
 			
 			local firstunits = Spring.GetVisibleUnits()
 			local firstdrawFlagsUnits = {}
