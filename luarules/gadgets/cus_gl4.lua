@@ -1885,7 +1885,7 @@ function gadget:FeatureDestroyed(featureID)
 	destroyedFeatureDrawFlags[numdestroyedFeatures] = 0
 end
 
-local firstDraw = true
+local firstDraw = false
 function gadget:DrawWorldPreUnit()
 --function gadget:DrawGenesis() -- nope, shadow flags still a frame late https://github.com/beyond-all-reason/spring/issues/264
 	if unitDrawBins == nil then return end
