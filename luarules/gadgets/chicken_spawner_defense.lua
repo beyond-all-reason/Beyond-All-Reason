@@ -1757,7 +1757,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
-		if oldTeam == chickenTeamID then
+		if oldTeam == chickenTeamID and not string.find(UnitDefs[unitDefID].name, "lootbox") then
 			DestroyUnit(unitID, true)
 		end
 	end
