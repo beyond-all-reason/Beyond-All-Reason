@@ -1028,7 +1028,7 @@ if gadgetHandler:IsSyncedCode() then
 					queenResistance[attackerDefID].damage = (damage * 4 * config.queenResistanceMult)
 					queenResistance[attackerDefID].notify = 0
 				end
-				local resistPercent = math.min((queenResistance[attackerDefID].damage) / queenMaxHP, 0.90)
+				local resistPercent = math.min((queenResistance[attackerDefID].damage) / queenMaxHP, 0.95)
 				if resistPercent > 0.5 then
 					if queenResistance[attackerDefID].notify == 0 then
 						chickenEvent("queenResistance", attackerDefID)
