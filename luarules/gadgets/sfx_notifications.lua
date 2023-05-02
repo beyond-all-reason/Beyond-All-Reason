@@ -133,7 +133,7 @@ if gadgetHandler:IsSyncedCode() then
 		local players = AllPlayers()
 		for ct, player in pairs (players) do
 			if tostring(player) then
-				SendToUnsynced("EventBroadcast", "GamePause", tostring(player))
+				SendToUnsynced("EventBroadcast", (isPaused and "GamePause" or "GameStarted"), tostring(player))
 			end
 		end
 	end
