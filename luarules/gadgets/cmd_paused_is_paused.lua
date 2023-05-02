@@ -1,6 +1,9 @@
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
+if Spring.Utilities.Gametype.IsSinglePlayer() then
+	return
+end
 
 function gadget:GetInfo()
 	return {
