@@ -1,0 +1,28 @@
+if not gadgetHandler:IsSyncedCode() then
+	return
+end
+
+function gadget:GetInfo()
+	return {
+		name 	= "Paused is paused",
+		desc	= "Prevent commands being queued while paused",
+		author	= "Floris",
+		date	= "May 2023",
+		license	= "GNU GPL, v2 or later",
+		layer	= 0,
+		enabled = true,
+	}
+end
+
+local paused = false
+
+function gadget:GamePaused(playerID, isPaused)
+	paused = isPaused
+end
+
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	if paused then
+		return false
+	end
+	return true
+end

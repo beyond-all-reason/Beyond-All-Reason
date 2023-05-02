@@ -129,7 +129,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 -- Game paused send to all
-	function gadget:GamePaused()
+	function gadget:GamePaused(playerID, isPaused)
 		local players = AllPlayers()
 		for ct, player in pairs (players) do
 			if tostring(player) then
