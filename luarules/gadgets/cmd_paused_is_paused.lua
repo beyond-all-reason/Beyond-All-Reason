@@ -21,8 +21,9 @@ function gadget:GamePaused(playerID, isPaused)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if paused then
+	if paused and not Spring.IsCheatingEnabled() then
 		return false
+	else
+		return true
 	end
-	return true
 end
