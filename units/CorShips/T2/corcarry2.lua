@@ -191,6 +191,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "",--"custom:genericshellexplosion-medium",
 				gravityaffected = "true",
+				hightrajectory = 1,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
