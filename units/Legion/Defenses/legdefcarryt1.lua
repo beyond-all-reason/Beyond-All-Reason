@@ -129,6 +129,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "",--"custom:genericshellexplosion-medium",
 				gravityaffected = "true",
+				hightrajectory = 1,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
@@ -153,9 +154,9 @@ return {
 					spawnrate = 8, 				--Spawnrate roughly in seconds. 
 					maxunits = 4,				--Will spawn units until this amount has been reached. 
 					buildcostenergy = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
-					buildcostmetal = 25,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
+					buildcostmetal = 15,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
 					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit. 
-					decayrate = 3,
+					decayrate = 4,
 					carrierdeaththroe = "control",
 					dockingarmor = 0.2,
 					dockinghealrate = 15,
