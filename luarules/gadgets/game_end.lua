@@ -132,7 +132,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		teamInfo.hasLeader = select(2, GetTeamInfo(teamID,false)) >= 0
 
-		--if not isFFA or gf > earlyDropGrace then
+		if not isFFA or gf > (Game.gameSpeed * 60 * 1) then
 			if not teamInfo.hasLeader and not teamInfo.dead then
 				if not killTeamQueue[teamID] then
 					killTeamQueue[teamID] = gf + (Game.gameSpeed * (isFFA and 180 or 10))	-- add a grace period before killing the team
@@ -147,7 +147,7 @@ if gadgetHandler:IsSyncedCode() then
 				KillTeam(teamID)
 				killTeamQueue[teamID] = nil
 			end
-		--end
+		end
 
 		-- if team isn't AI controlled, then we need to check if we have attached players
 		if not teamInfo.isAI then

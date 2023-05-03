@@ -109,10 +109,13 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 			local pic = ':l:LuaRules/Images/' .. pic .. '.png'
 			gl.Texture(pic)
 			gl.TexRect(widgetX + math.floor(12*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(70*widgetScale), widgetX + math.floor(108*widgetScale), widgetY + widgetHeightScaled - offset + math.floor(25*widgetScale))
+			gl.Texture(false)
 
+			font:End()
 			font2:Begin()
 			font2:Print(colourNames(winnerTeamID) .. winnerName, widgetX + math.floor(120*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(15*widgetScale), 25*widgetScale, "o")
 			font2:End()
+			font:Begin()
 
 			font:Print(noteColour .. note, widgetX + math.floor(130*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(40*widgetScale), 15*widgetScale, "o")
 		else	-- others
@@ -151,9 +154,11 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 				else
 					secondScore = math.floor(secondScore)
 				end
+				font:End()
 				font2:Begin()
 				font2:Print(colourNames(secondTeamID) .. secondName, widgetX + math.floor(520*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(27*widgetScale), 16*widgetScale, "o")
 				font2:End()
+				font:Begin()
 				font:Print(colourNames(secondTeamID) .. secondScore, widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(27*widgetScale), 14*widgetScale, "o")
 			end
 
@@ -163,9 +168,11 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 				else
 					thirdScore = math.floor(thirdScore)
 				end
+				font:End()
 				font2:Begin()
 				font2:Print(colourNames(thirdTeamID) .. thirdName, widgetX + math.floor(520*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(49*widgetScale), 16*widgetScale, "o")
 				font2:End()
+				font:Begin()
 				font:Print(colourNames(thirdTeamID) .. thirdScore, widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(49*widgetScale), 14*widgetScale, "o")
 			end
 		end
