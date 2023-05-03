@@ -2820,11 +2820,22 @@ function init()
 
 		{ id = "containmouse", group = "control", category = types.basic, widget = "Grabinput", name = Spring.I18N('ui.settings.option.containmouse'), type = "bool", value = GetWidgetToggleValue("Grabinput"), description = Spring.I18N('ui.settings.option.containmouse_descr') },
 
-		{ id = "doubleclicktime", group = "control", category = types.advanced, restart = true, name = Spring.I18N('ui.settings.option.doubleclicktime'), type = "slider", min = 150, max = 400, step = 10, value = Spring.GetConfigInt("DoubleClickTime", 200), description = "",
+		{ id = "doubleclicktime", group = "control", category = types.advanced, restart = true, name = Spring.I18N('ui.settings.option.doubleclicktime'), type = "slider", min = 150, max = 400, step = 10, value = Spring.GetConfigInt("DoubleClickTime", 200), description = Spring.I18N('ui.settings.option.doubleclicktime_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("DoubleClickTime", value)
+		  end,
+		},
+		
+		{ id = "dragthreshold", group = "control", category = types.advanced, restart = false, name = Spring.I18N('ui.settings.option.dragthreshold'), type = "slider", min = 4, max = 50, step = 1, value = Spring.GetConfigInt("MouseDragSelectionThreshold", 4), description = Spring.I18N('ui.settings.option.dragthreshold_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("MouseDragSelectionThreshold", value)
+			  Spring.SetConfigInt("MouseDragCircleCommandThreshold", value)
+			  Spring.SetConfigInt("MouseDragBoxCommandThreshold", value + 12)
+			  Spring.SetConfigInt("MouseDragFrontCommandThreshold", value + 26)
 		  end,
 		},
 
