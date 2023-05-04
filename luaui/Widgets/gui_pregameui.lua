@@ -70,6 +70,7 @@ local teamList = Spring.GetTeamList()
 
 local uiElementRect = {0,0,0,0}
 local buttonRect = {0,0,0,0}
+local blinkButton = false
 
 local function createButton()
 	local color = { 0.15, 0.15, 0.15 }
@@ -271,6 +272,20 @@ function widget:DrawScreen()
 		font:End()
 
 	elseif ((not readied or allowUnready) or (mySpec and eligibleAsSub)) and buttonList and Game.startPosType == 2 then
+
+		local playerList = Spring.GetPlayerList()
+		local numPlayers = #playerList
+		local numPlayersReady = 0
+		if numPlayers > 3 then
+			for _, playerID in pairs(playerList) do
+				local readystate = Spring.GetGameRulesParam("player_" .. tostring(playerID) .. "_readyState")
+				if readystate == -1 or readystate == 1 or readystate == 2 then
+					numPlayersReady = numPlayersReady + 1
+				end
+			end
+			blinkButton = (numPlayers / numPlayersReady > 0.75)
+		end
+
 		buttonDrawn = true
 		if WG['guishader'] then
 			WG['guishader'].InsertRect(
@@ -294,7 +309,12 @@ function widget:DrawScreen()
 			if mySpec then
 				colorString = offeredAsSub and "\255\255\255\225" or "\255\222\222\222"
 			else
-				colorString = timer % 0.75 <= 0.375 and "\255\222\222\222" or "\255\255\255\255"
+				colorString = os.clock() % 0.75 <= 0.375 and "\255\222\222\222" or "\255\255\255\255"
+			end
+			if blinkButton and os.clock() % 0.75 <= 0.375 then
+				local mult = 1.5
+				gl.Color(readyButtonColor[1]*mult, readyButtonColor[2]*mult, readyButtonColor[3]*mult, 0.25)
+				RectRound(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], elementPadding*0.5)
 			end
 		end
 		font:Begin()
