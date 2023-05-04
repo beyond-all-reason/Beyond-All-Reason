@@ -732,13 +732,13 @@ if gadgetHandler:IsSyncedCode() then
 						if tries < maxTries*3 then
 							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, true, true)
 						else
-							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, true, false)
+							canSpawnBurrow = false
 						end
 					end
 				end
 
 				if canSpawnBurrow then
-					canSpawnBurrow = positionCheckLibrary.OccupancyCheck(x, y, z, config.minBaseDistance*0.25)
+					canSpawnBurrow = positionCheckLibrary.OccupancyCheck(x, y, z, config.minBaseDistance)
 				end
 
 				if canSpawnBurrow then
@@ -780,6 +780,9 @@ if gadgetHandler:IsSyncedCode() then
 						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(x, y, z, 128)
 					end
 					if canSpawnBurrow then
+						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, true, false)
+					end
+					if canSpawnBurrow then
 						for burrowID, _ in pairs(burrows) do
 							local bx, _, bz = Spring.GetUnitPosition(burrowID)
 							local spread = 100*SetCount(burrows)
@@ -796,7 +799,7 @@ if gadgetHandler:IsSyncedCode() then
 							break
 						end
 					elseif j == 100 then
-						timeOfLastSpawn = 1
+						timeOfLastSpawn = GetGameSeconds()
 					end
 				end
 			end
@@ -1231,9 +1234,8 @@ if gadgetHandler:IsSyncedCode() then
 					curH = math.max(curH, maxH*0.05)
 					local spawnChance = math.max(0, math.ceil(curH/maxH*10000))
 					if mRandom(0,spawnChance) == 1 then
-						SpawnRandomOffWaveSquad(unitID, config.chickenHealers[mRandom(1,#config.chickenHealers)], 5)
-						SpawnRandomOffWaveSquad(unitID, config.chickenHealers[mRandom(1,#config.chickenHealers)], 5)
-						SpawnRandomOffWaveSquad(unitID)
+						SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
+						SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
 					end
 				end
 			end
@@ -1382,7 +1384,7 @@ if gadgetHandler:IsSyncedCode() then
 			if mRandom() < config.spawnChance / 15 then
 				SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
 				SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
-				SpawnRandomOffWaveSquad(queenID)
+				--SpawnRandomOffWaveSquad(queenID)
 			end
 		end
 	end
