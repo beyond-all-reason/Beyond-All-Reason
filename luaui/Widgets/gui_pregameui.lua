@@ -309,12 +309,11 @@ function widget:DrawScreen()
 			if mySpec then
 				colorString = offeredAsSub and "\255\255\255\225" or "\255\222\222\222"
 			else
-				colorString = os.clock() % 0.75 <= 0.375 and "\255\222\222\222" or "\255\255\255\255"
+				colorString = os.clock() % 0.75 <= 0.375 and "\255\255\255\255" or "\255\222\222\222"
 			end
 			if blinkButton and os.clock() % 0.75 <= 0.375 then
-				local mult = 1.5
-				gl.Color(readyButtonColor[1]*mult, readyButtonColor[2]*mult, readyButtonColor[3]*mult, 0.25)
-				RectRound(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], elementPadding*0.5)
+				local mult = 1.33
+				UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { readyButtonColor[1]*0.55*mult, readyButtonColor[2]*0.55*mult, readyButtonColor[3]*0.55*mult, 1 }, { readyButtonColor[1]*mult, readyButtonColor[2]*mult, readyButtonColor[3]*mult, 1 })
 			end
 		end
 		font:Begin()
