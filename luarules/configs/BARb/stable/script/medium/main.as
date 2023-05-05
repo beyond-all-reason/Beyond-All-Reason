@@ -6,7 +6,7 @@
 
 namespace Main {
 
-void AiInitDef(CCircuitDef@ cdef)
+void AiMain()
 {
 }
 

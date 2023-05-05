@@ -8,28 +8,6 @@
 			// Choice importance, 0 by default
 			"importance": 0.5,
 
-			// Starting units (order matters)
-			"start": {
-				"factory": {
-					"armlab": [
-						[1.0, ["skirmish", "builder", "skirmish", "builder"]]
-					],
-					"armalab": [
-						[1.0, ["builderT2", "skirmish", "skirmish", "skirmish", "builderT2", "skirmish", "skirmish", "anti_air", "builderT2"]]
-					],
-					"armavp": [
-						[1.0, ["builderT2", "skirmish", "skirmish", "builderT2", "skirmish", "builderT2", "artillery", "anti_air", "builderT2"]]
-					],
-					"armasy": [
-						[1.0, ["builderT2", "skirmish", "skirmish", "builderT2", "skirmish", "builderT2", "artillery", "anti_air", "builderT2"]]
-					],
-					"armap": [
-						[1.0, ["anti_air", "raider", "builder", "bomber", "scout"]]
-					]
-				},
-				"default": ["raider", "builder"]
-			},
-
 			// Morph params
 			"upgrade": {
 //				"time": 120,  // Force-morph delay, in seconds
@@ -44,32 +22,13 @@
 				"task_rad": [1000.0, 900.0]  // [<peace_radius>, <danger_radius>]
 			},
 
+			"assist_fac": 3,  // commander assists factory with high priority till number of constructors reached
 			"side": "armada"
 		},
 		"corcom": {
 			// Choice importance, 0 by default
 			"importance": 0.5,
 
-			// Starting units (order matters)
-			"start": {
-				"factory": {
-					"corlab": [
-						// [<weight>, [<role>, <role>, ...]]
-						[1.0, ["skirmish", "builder"]]
-					],
-					"coralab": [
-						[1.0, ["builderT2", "raider", "raider", "raider", "builderT2", "artillery", "artillery", "assault", "builderT2", "anti_air"]]
-					],
-					"coravp": [
-						[1.0, ["builderT2", "skirmish", "skirmish", "skirmish", "builderT2", "skirmish", "skirmish", "assault", "anti_air", "builderT2"]]
-					],
-					"corasy": [
-						[1.0, ["builderT2", "skirmish", "skirmish", "builderT2", "skirmish", "builderT2", "artillery", "anti_air", "builderT2"]]
-					]
-				},
-				"default": ["builder", "skirmish"]
-			},
-
 			// Morph params
 			"upgrade": {
 //				"time": 120,  // Force-morph delay, in seconds
@@ -84,6 +43,7 @@
 				"task_rad": [1000.0, 900.0]  // [<peace_radius>, <danger_radius>]
 			},
 
+			"assist_fac": 3,  // commander assists factory with high priority till number of constructors reached
 			"side": "cortex"
 		}
 	}
