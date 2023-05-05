@@ -886,7 +886,7 @@
 				"mapedgeextension_brightness": "brightness",
 				"mapedgeextension_curvature": "curvature",
 				"mapedgeextension_curvature_descr": "Curve the mirrored edges away into the floor/seabed",
-				"lineofsight": "Line of Sight",
+				"lineofsight": "Fog of war",
 				"losopacity": "opacity",
 				"water": "Water quality",
 				"decals": "Unit tracks",
