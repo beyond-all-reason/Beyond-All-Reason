@@ -2386,14 +2386,14 @@ function init()
 		  end,
 		},
 
-		--{ id = "losopacity", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.losopacity'), type = "slider", min = 0.5, max = 3, step = 0.1, value = (WG['los'] ~= nil and WG['los'].getOpacity ~= nil and WG['los'].getOpacity()) or 1, description = '',
-		--  onload = function(i)
-		--	  loadWidgetData("LOS colors", "losopacity", { 'opacity' })
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('LOS colors', 'los', 'setOpacity', { 'opacity' }, value)
-		--  end,
-		--},
+		{ id = "losopacity", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.losopacity'), type = "slider", min = 0.01, max = 1, step = 0.01, value = (WG['los'] ~= nil and WG['los'].getOpacity ~= nil and WG['los'].getOpacity()) or 1, description = '',
+		  onload = function(i)
+			  loadWidgetData("LOS colors", "losopacity", { 'opacity' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('LOS colors', 'los', 'setOpacity', { 'opacity' }, value)
+		  end,
+		},
 
 		-- { id = "water", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.water'), type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
 		--   onload = function(i)
@@ -2827,7 +2827,7 @@ function init()
 			  Spring.SetConfigInt("DoubleClickTime", value)
 		  end,
 		},
-		
+
 		{ id = "dragthreshold", group = "control", category = types.advanced, restart = false, name = Spring.I18N('ui.settings.option.dragthreshold'), type = "slider", min = 4, max = 50, step = 1, value = Spring.GetConfigInt("MouseDragSelectionThreshold", 4), description = Spring.I18N('ui.settings.option.dragthreshold_descr'),
 		  onload = function(i)
 		  end,
