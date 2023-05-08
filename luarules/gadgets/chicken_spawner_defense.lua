@@ -1368,7 +1368,7 @@ if gadgetHandler:IsSyncedCode() then
 				spawnQueue = {}
 				chickenEvent("queen") -- notify unsynced about queen spawn
 				_, queenMaxHP = GetUnitHealth(queenID)
-				SetUnitExperience(queenID, config.maxXP)
+				SetUnitExperience(queenID, 0)
 				timeOfLastWave = t
 				for i = 1,SetCount(humanTeams) do
 					for burrowID, _ in pairs(burrows) do
