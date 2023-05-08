@@ -15,15 +15,39 @@ function widget:GetInfo()
 	}
 end
 
-include("keysym.h.lua")
 
-local keyActivate = KEYSYMS.TAB -- hold this button to switch to Overview
+local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local camKeys = {} -- list of buttons that switch to Overview
 local isLongPress = false; -- enabled when user presses tab for longer
-
 local prevCamState = nil;
 
+
+local function setActionHotkeys(action)
+	camKeys = {}
+	local keyTable = Spring.GetActionHotKeys(action)
+	for _, key in pairs(keyTable) do
+		local btn = keyConfig.sanitizeKey(key):upper()
+		table.insert(camKeys, btn)
+	end
+end
+
+-- works only with single key binds
+local function isCamKey(keyNum)
+	local pressedSymbol = Spring.GetKeySymbol(keyNum):upper()
+	for _, symbol in pairs(camKeys) do
+		if pressedSymbol == symbol then
+			return true
+		end
+	end
+	return false
+end
+
+function widget:Initialize()
+	setActionHotkeys("toggleoverview")
+end
+
 function widget:KeyPress(key, modifier, isRepeat)
-	if key ~= keyActivate then
+	if not isCamKey(key) then
 		return false
 	end;
 
@@ -38,12 +62,11 @@ function widget:KeyPress(key, modifier, isRepeat)
 	end
 
 	-- legacy behavior here
-	Spring.SendCommands({ "toggleoverview" })
-	return true
+	return false
 end
 
 function widget:KeyRelease(key, modifier)
-	if key ~= keyActivate then
+	if not isCamKey(key) then
 		return false
 	end
 
