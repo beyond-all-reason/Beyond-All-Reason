@@ -38,22 +38,36 @@ local cachedUnitIcons
 local BUILDCAT_ECONOMY = "Economy"
 local BUILDCAT_COMBAT = "Combat"
 local BUILDCAT_UTILITY = "Utility"
-local BUILDCAT_PRODUCTION = "Production"
-local categoryFontSize, pageButtonHeight, pageButtonWidth, paginatorCellWidth
-local paginatorFontSize, paginatorCellHeight
+local BUILDCAT_PRODUCTION = "Build"
+local categoryFontSize, pageButtonHeight
+
+local folder = 'LuaUI/Images/groupicons/'
+local groups = {
+	energy = folder..'energy.png',
+	metal = folder..'metal.png',
+	builder = folder..'builder.png',
+	buildert2 = folder..'buildert2.png',
+	buildert3 = folder..'buildert3.png',
+	buildert4 = folder..'buildert4.png',
+	util = folder..'util.png',
+	weapon = folder..'weapon.png',
+	explo = folder..'weaponexplo.png',
+	weaponaa = folder..'weaponaa.png',
+	weaponsub = folder..'weaponsub.png',
+	aa = folder..'aa.png',
+	emp = folder..'emp.png',
+	sub = folder..'sub.png',
+	nuke = folder..'nuke.png',
+	antinuke = folder..'antinuke.png',
+}
 
 local Cfgs = {
 	disableInputWhenSpec = false, -- disable specs selecting buildoptions
 	cfgCellPadding = 0.007,
 	cfgIconPadding = 0.015, -- space between icons
 	cfgIconCornerSize = 0.025,
-	cfgRadariconSize = 0.23,
-	cfgRadariconOffset = 0.025,
-	cfgGroupiconSize = 0.29,
 	cfgPriceFontSize = 0.19,
-	cfgCategoryFontSize = 0.19,
 	cfgActiveAreaMargin = 0.1, -- (# * bgpadding) space between the background border and active area
-	maxPosY = 0.74,
 	sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav',
 	sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav',
 	fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
@@ -62,6 +76,12 @@ local Cfgs = {
 		[BUILDCAT_COMBAT] = "Filter combat buildings",
 		[BUILDCAT_UTILITY] = "Filter utility buildings",
 		[BUILDCAT_PRODUCTION] = "Filter production buildings",
+	},
+	categoryIcons = {
+		groups.energy,
+		groups.weapon,
+		groups.util,
+		groups.builder,
 	},
 	buildCategories = {
 		BUILDCAT_ECONOMY,
@@ -125,7 +145,7 @@ Cfgs.corToArm = table.invert(Cfgs.armToCor)
 
 local unitCategories = {}
 local hotkeyActions = {}
-local hoveredCat, drawnHoveredCat
+local hoveredButton, drawnHoveredButton
 local selBuildQueueDefID
 
 local stickToBottom = false
@@ -156,6 +176,28 @@ local selectedBuilder, selectedFactory, selectedFactoryUID
 
 local facingMap = {south=0, east=1, north=2, west=3}
 local buildmenuShows = false
+
+-- Helper types to make the code more readable and easy to work with
+Rect = {}
+function Rect:new(x1, y1, x2, y2)
+	local this = {
+		x = x1,
+		y = y1,
+		xEnd = x2,
+		yEnd = y2
+	}
+
+	function this:contains(x, y)
+		return x >= self.x and x <= self.xEnd and y >= self.y and y <= self.yEnd
+	end
+
+	function this:getId()
+		return self.x + self.y + self.yEnd + self.xEnd
+	end
+
+	return this
+end
+
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -195,16 +237,10 @@ local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 
 local buildQueue = {}
 local disableInput = Cfgs.disableInputWhenSpec and isSpec
-local backgroundRect = { 0, 0, 0, 0 }
-local colls = 4
+local backgroundRect = Rect:new(0, 0, 0, 0)
+local columns = 4
 local rows = 3
 local minimapHeight = 0.235
-local posY = 0
-local posY2 = 0
-local posX = 0
-local posX2 = 0.2
-local width = 0
-local height = 0
 local selectedBuilders = {}
 local cellRects = {}
 local cmds = {}
@@ -216,7 +252,10 @@ local catRects = {}
 local currentBuildCategory, currentCategoryIndex
 local currentPage = 1
 local pages = 1
-local paginatorRects = {}
+local nextPageRect = Rect:new(0, 0, 0, 0)
+local categoriesRect = Rect:new(0, 0, 0, 0)
+local buildpicsRect = Rect:new(0, 0, 0 ,0)
+local paginatorsRect = Rect:new(0, 0, 0, 0)
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
 local unitshapes = {}
 local mexSnapPosition
@@ -234,7 +273,6 @@ local math_floor = math.floor
 local math_ceil = math.ceil
 local math_max = math.max
 local math_min = math.min
-local math_isInRect = math.isInRect
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
@@ -242,28 +280,8 @@ local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 
 -- Get from FlowUI
-local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner
+local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner, TexRectRound
 local ui_opacity, ui_scale
-
-local folder = 'LuaUI/Images/groupicons/'
-local groups = {
-	energy = folder..'energy.png',
-	metal = folder..'metal.png',
-	builder = folder..'builder.png',
-	buildert2 = folder..'buildert2.png',
-	buildert3 = folder..'buildert3.png',
-	buildert4 = folder..'buildert4.png',
-	util = folder..'util.png',
-	weapon = folder..'weapon.png',
-	explo = folder..'weaponexplo.png',
-	weaponaa = folder..'weaponaa.png',
-	weaponsub = folder..'weaponsub.png',
-	aa = folder..'aa.png',
-	emp = folder..'emp.png',
-	sub = folder..'sub.png',
-	nuke = folder..'nuke.png',
-	antinuke = folder..'antinuke.png',
-}
 
 local unitEnergyCost = {}
 local unitMetalCost = {}
@@ -282,15 +300,15 @@ local hasUnitGrid = { }
 local selectNextFrame, switchedCategory
 
 for uname, ugrid in pairs(unitGrids) do
-	local udef = UnitDefNames[uname]
-	local uid = udef.id
+	local builder = UnitDefNames[uname]
+	local uid = builder.id
 
 	unitGridPos[uid] = {{},{},{},{}}
 	gridPosUnit[uid] = {}
 	hasUnitGrid[uid] = {}
 	local uCanBuild = {}
 
-	local uBuilds = udef.buildOptions
+	local uBuilds = builder.buildOptions
 	for i = 1, #uBuilds do
 		uCanBuild[uBuilds[i]] = true
 	end
@@ -458,7 +476,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner)
+				RectRound(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, elementCorner)
 			end)
 			if selectedBuilder or selectedFactory then
 				WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
@@ -562,88 +580,6 @@ local function RefreshCommands()
 			end
 		end
 	end
-end
-
-local function clear()
-	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
-	dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
-end
-
-function widget:ViewResize()
-	local widgetSpaceMargin = WG.FlowUI.elementMargin
-	bgpadding = WG.FlowUI.elementPadding
-	elementCorner = WG.FlowUI.elementCorner
-
-	RectRound = WG.FlowUI.Draw.RectRound
-	RectRoundProgress = WG.FlowUI.Draw.RectRoundProgress
-	UiUnit = WG.FlowUI.Draw.Unit
-	UiElement = WG.FlowUI.Draw.Element
-	UiButton = WG.FlowUI.Draw.Button
-	elementCorner = WG.FlowUI.elementCorner
-	categoryFontSize = 0.0115 * ui_scale * vsy
-	pageButtonHeight = 2.3 * categoryFontSize * ui_scale
-	pageButtonWidth = 7 * categoryFontSize * ui_scale
-	if stickToBottom then
-		paginatorFontSize = categoryFontSize
-	else
-		paginatorFontSize = categoryFontSize * 1.2
-	end
-	paginatorCellWidth = paginatorFontSize * 2
-	paginatorCellHeight = 3 * paginatorFontSize
-
-	activeAreaMargin = math_ceil(bgpadding * Cfgs.cfgActiveAreaMargin)
-
-	vsx, vsy = Spring.GetViewGeometry()
-
-	font2 = WG['fonts'].getFont(Cfgs.fontFile, 1.2, 0.28, 1.6)
-
-	if WG['minimap'] then
-		minimapHeight = WG['minimap'].getHeight()
-	end
-
-	if stickToBottom then
-		posY = math_floor(0.14 * ui_scale * vsy) / vsy
-		posY2 = 0
-		posX = math_floor(ordermenuLeft*vsx) + widgetSpaceMargin
-		posX2 = math_floor(posX + posY * vsy * 3) + paginatorCellWidth + pageButtonWidth
-		width = posX2 - posX
-		height = posY
-
-		backgroundRect = { posX, (posY - height) * vsy, posX2, posY * vsy }
-	else
-		width = 0.212
-		width = width / (vsx / vsy) * 1.78				-- make smaller for ultrawide screens
-		width = width * ui_scale
-
-		posY2 = math_floor(0.14 * ui_scale * vsy) / vsy
-		posY2 = posY2 + (widgetSpaceMargin/vsy)
-		posY = posY2 + (0.74 * width * vsx + pageButtonHeight + paginatorCellWidth)/vsy
-		posX = 0
-
-		if WG['ordermenu'] and not WG['ordermenu'].getBottomPosition() then
-			local _, oposY, _, oheight = WG['ordermenu'].getPosition()
-			if posY > oposY then
-				posY = oposY - oheight - ((widgetSpaceMargin)/vsy)
-			end
-		end
-
-		posY = math_floor(posY * vsy) / vsy
-		posX = math_floor(posX * vsx) / vsx
-
-		height = (posY - posY2)
-
-		posX2 = math_floor(width * vsx)
-
-		-- make pixel aligned
-		width = math_floor(width * vsx) / vsx
-		height = math_floor(height * vsy) / vsy
-
-		backgroundRect = { posX, (posY - height) * vsy, posX2, posY * vsy }
-	end
-
-	checkGuishader(true)
-	clear()
-	doUpdate = true
 end
 
 local function getActionHotkey(action)
@@ -865,7 +801,10 @@ local function nextPageHandler()
 	if not (selectedBuilder or selectedFactory) then return end
 	if pages < 2 then return end
 
-	currentPage = math_min(pages, currentPage + 1)
+	currentPage =  currentPage + 1
+	if(currentPage > pages) then
+		currentPage = 1
+	end
 	doUpdate = true
 
 	return true
@@ -1017,7 +956,7 @@ function widget:Initialize()
 		doUpdate = true
 	end
 	WG['buildmenu'].getSize = function()
-		return posY, posY2
+		return backgroundRect.y, backgroundRect.yEnd
 	end
 	WG['buildmenu'].reloadBindings = reloadBindings
 	WG['buildmenu'].getIsShowing = function()
@@ -1043,6 +982,143 @@ function widget:UnitFromFactory(_, _, _, factID)
 	if Spring.IsUnitSelected(factID) then
 		doUpdateClock = os.clock() + 0.01
 	end
+end
+
+--------------------
+-- DRAW FUNCTIONS --
+--------------------
+
+local function clear()
+	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
+	dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
+end
+
+function widget:ViewResize()
+	local widgetSpaceMargin = WG.FlowUI.elementMargin
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
+	RectRound = WG.FlowUI.Draw.RectRound
+	RectRoundProgress = WG.FlowUI.Draw.RectRoundProgress
+	UiUnit = WG.FlowUI.Draw.Unit
+	TexRectRound = WG.FlowUI.Draw.TexRectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiButton = WG.FlowUI.Draw.Button
+	categoryFontSize = 0.0115 * ui_scale * vsy
+	pageFontSize = categoryFontSize
+	pageButtonHeight = math_floor(2.3 * categoryFontSize * ui_scale)
+
+	activeAreaMargin = math_ceil(bgpadding * Cfgs.cfgActiveAreaMargin)
+
+	vsx, vsy = Spring.GetViewGeometry()
+
+	font2 = WG['fonts'].getFont(Cfgs.fontFile, 1.2, 0.28, 1.6)
+
+	if WG['minimap'] then
+		minimapHeight = WG['minimap'].getHeight()
+	end
+
+	-- if stick to bottom we know cells are 2 row by 6 column
+	if stickToBottom then
+
+		local posY = math_floor(0.14 * ui_scale * vsy)
+		local posYEnd = 0
+		local posX = math_floor(ordermenuLeft*vsx) + widgetSpaceMargin
+		local height = posY
+
+		rows = 2
+		columns = 6
+		cellSize = math_floor(((height) - bgpadding) / rows)
+
+		local categoryWidth = 8 * categoryFontSize * ui_scale
+
+		-- assemble rects left to right
+		categoriesRect = Rect:new(
+			posX + bgpadding,
+			posYEnd + pageButtonHeight + bgpadding,
+			posX + categoryWidth,
+			posY - bgpadding
+		)
+
+		paginatorsRect = Rect:new(
+			posX + bgpadding,
+			posYEnd + bgpadding,
+			posX + categoryWidth,
+			categoriesRect.y
+		)
+
+		buildpicsRect = Rect:new(
+			categoriesRect.xEnd + bgpadding,
+			posYEnd,
+			categoriesRect.xEnd + (cellSize * columns) + bgpadding,
+			posY - bgpadding
+		)
+
+		backgroundRect = Rect:new(
+			posX,
+			posYEnd,
+			buildpicsRect.xEnd + bgpadding,
+			posY
+		)
+
+	else -- if stick to side we know cells are 3 row by 4 column
+		local width = 0.212 	-- hardcoded width to match bottom element
+		width = width / (vsx / vsy) * 1.78	-- make smaller for ultrawide screens
+		width = width * ui_scale
+
+		-- 0.14 is the space required to put this above the bottom-left UI element
+		local posYEnd = math_floor(0.14 * ui_scale * vsy) + widgetSpaceMargin
+		local posY = math_floor(posYEnd + ((0.74 * vsx) * width + pageButtonHeight))/vsy
+		local posX = 0
+
+		if WG['ordermenu'] and not WG['ordermenu'].getBottomPosition() then
+			local _, oposY, _, oheight = WG['ordermenu'].getPosition()
+			if posY > oposY then
+				posY = (oposY - oheight - ((widgetSpaceMargin)/vsy))
+			end
+		end
+
+		local posXEnd = math_floor(width * vsx)
+
+		-- make pixel aligned
+		width = posXEnd - posX
+
+		-- assemble rects, bottom to top
+		categoriesRect = Rect:new(
+			posX + bgpadding,
+			posYEnd + bgpadding,
+			posXEnd - bgpadding,
+			posYEnd + pageButtonHeight + bgpadding
+		)
+
+		rows = 3
+		columns = 4
+		cellSize = math_floor((width - (bgpadding * 2)) / columns)
+
+		buildpicsRect = Rect:new(
+			posX + bgpadding,
+			categoriesRect.yEnd,
+			posXEnd - bgpadding,
+			categoriesRect.yEnd + (cellSize * rows)
+		)
+
+		paginatorsRect = Rect:new(
+			posX + (width / 4),
+			buildpicsRect.yEnd + bgpadding,
+			posXEnd - (width / 4) - bgpadding,
+			buildpicsRect.yEnd + pageButtonHeight
+		)
+
+		backgroundRect = Rect:new(
+			posX,
+			posYEnd,
+			posXEnd,
+			paginatorsRect.yEnd + (bgpadding * 1.5)
+		)
+	end
+
+	checkGuishader(true)
+	clear()
+	doUpdate = true
 end
 
 local sec = 0
@@ -1148,97 +1224,57 @@ end
 
 local function drawBuildmenuBg()
 	WG['buildmenu'].selectedID = nil
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
+	local height = backgroundRect.yEnd - backgroundRect.y
+	local posY = backgroundRect.y
+	UiElement(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, (backgroundRect.x > 0 and 1 or 0), 1, ((posY-height > 0 or backgroundRect.x <= 0) and 1 or 0), 0)
 end
 
-local function drawButton(rect, text, opts)
+local function drawButton(rect, opts, icon)
 	opts = opts or {}
 	local highlight = opts.highlight
-	local fontSize = opts.fontSize
 	local hovered = opts.hovered
 
-	local color1 = { 0.6, 0.6, 0.6, math_max(0.35, math_min(0.55, ui_opacity/1.5)) }
-	color1[4] = math_max(0, math_min(0.35, (ui_opacity-0.3)))
-	local color2 = { 1,1,1, math_max(0, math_min(0.35, (ui_opacity-0.3))) }
-
 	local padding = math_max(1, math_floor(bgpadding * 0.52))
-	local pad1 = padding
 
-	RectRound(rect[1] + pad1, rect[2] + pad1, rect[3] - pad1, rect[4] - pad1, padding * 1.5, 2, 2, 2, 2, color1, color2)
-	color1 = {0,0,0, color1[4]*0.85}
-	color2 = {0,0,0, color2[4]*0.85}
-	RectRound(rect[1] + padding + pad1, rect[2] + padding + pad1, rect[3] - padding - pad1, rect[4] - padding - pad1, padding * 1.2, 2, 2, 2, 2, color1, color2)
-
-	color1 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- bottom
-	color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- top
+	local color1 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- bottom
+	local color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- top
 
 	if highlight then
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
 		gl.Color(0, 0, 0, 0.75)
 	end
 
-	UiButton(rect[1] + padding + pad1, rect[2] + padding + pad1, rect[3] - padding - pad1, rect[4] - padding - pad1, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
+	UiButton(rect.x, rect.y, rect.xEnd, rect.yEnd, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
+
+	if icon then
+		local iconSize = math.min(math.floor((rect.yEnd - rect.y) * 1.1), pageButtonHeight)
+		icon = ":l:" .. icon
+		gl.Color(1, 1, 1, 0.9)
+		gl.Texture(icon)
+		gl.BeginEnd(GL.QUADS, TexRectRound, rect.x + (bgpadding / 2), rect.yEnd - iconSize, rect.x + iconSize, rect.yEnd - (bgpadding / 2),  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
+		--	gl.TexRect(px, sy - iconSize, px + iconSize, sy)
+		gl.Texture(false)
+	end
 
 	if highlight then
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
-	local zoom = 1
-
 	if hovered then
-		zoom = 1.07
-
-		local leftMargin = 0
-		local rightMargin = 0
-		local topMargin = 0
-		local bottomMargin = 0
-
 		-- gloss highlight
-		local pad = padding
-		local pad2 = 0
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(rect[1] + leftMargin + pad + pad2, rect[4] - topMargin - bgpadding - pad - pad2 - ((rect[4] - rect[2]) * 0.42), rect[3] - rightMargin - pad - pad2, (rect[4] - topMargin - pad - pad2), padding * 1.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 }, { 1, 1, 1, (disableInput and 0.11 or 0.24) })
-		RectRound(rect[1] + leftMargin + pad + pad2, rect[2] + bottomMargin + pad + pad2, rect[3] - rightMargin - pad - pad2, (rect[2] - bottomMargin - pad - pad2) + ((rect[4] - rect[2]) * 0.5), padding * 1.5, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 or 0.075) }, { 1, 1, 1, 0 })
+		RectRound(rect.x, rect.yEnd - ((rect.yEnd - rect.y) * 0.42), rect.xEnd, (rect.yEnd), padding * 1.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 }, { 1, 1, 1, (disableInput and 0.11 or 0.24) })
+		RectRound(rect.x, rect.y, rect.xEnd, (rect.y) + ((rect.yEnd - rect.y) * 0.5), padding * 1.5, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 or 0.075) }, { 1, 1, 1, 0 })
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
-	local fontHeight = font2:GetTextHeight(text) * fontSize * zoom
-	local fontHeightOffset = fontHeight * 0.34
-	font2:Print(text, rect[1] + ((rect[3] - rect[1]) / 2), (rect[2] - (rect[2] - rect[4]) / 2) - fontHeightOffset, fontSize * zoom, "con")
-end
-
-local function drawCategoryButtons()
-	local catTexts = {}
-	local maxTextSize = 0
-
-	for catIndex, cat in pairs(Cfgs.buildCategories) do
-		local catText = cat .. " \255\215\255\215" .. "[" .. keyConfig.sanitizeKey(Cfgs.categoryKeys[catIndex], currentLayout) .. "]"
-		catTexts[cat] = catText
-		local catTextSize = font2:GetTextWidth(catText)
-		if maxTextSize < catTextSize then
-			maxTextSize = catTextSize
-		end
-	end
-
-	for _, cat in pairs(Cfgs.buildCategories) do
-		local rect = catRects[cat]
-
-		local opts = {
-			highlight = (cat == currentBuildCategory),
-			hovered = (hoveredCat == cat),
-			fontSize = (rect[3] - rect[1] - (stickToBottom and 2 or 1.5) * 8 * math_max(1, math_floor(bgpadding * 0.52))) / maxTextSize,
-		}
-
-		if opts.hovered then
-			drawnHoveredCat = cat
-		end
-
-		drawButton(rect, catTexts[cat], opts)
+	if opts.hovered then
+		drawnHoveredButton = rect:getId()
 	end
 end
 
-local function drawCell(cellRectID, usedZoom, cellColor, disabled)
-	local cmd = cellcmds[cellRectID]
+local function drawCell(id, usedZoom, cellColor, disabled)
+	local cmd = cellcmds[id]
 	local uid = cmd.id * -1
 	-- unit icon
 	if disabled then
@@ -1247,21 +1283,22 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled)
 		gl.Color(1, 1, 1, 1)
 	end
 
-	local showIcon = showGroupIcon and not (selectedFactory or currentCategoryIndex)
+	local showIcon = showGroupIcon and not (currentCategoryIndex)
+	local cellRect = cellRects[id]
 
 	UiUnit(
-	cellRects[cellRectID][1] + cellPadding + iconPadding,
-	cellRects[cellRectID][2] + cellPadding + iconPadding,
-	cellRects[cellRectID][3] - cellPadding - iconPadding,
-	cellRects[cellRectID][4] - cellPadding - iconPadding,
-	cornerSize, 1,1,1,1,
-	usedZoom,
-	nil, disabled and 0 or nil,
-	'#' .. uid,
-	showRadarIcon and (((unitIconType[uid] and iconTypesMap[unitIconType[uid]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypesMap[unitIconType[uid]] or nil)) or nil,
-	showIcon and (groups[unitGroup[uid]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[unitGroup[uid]] or nil) or nil,
-	{unitMetalCost[uid], unitEnergyCost[uid]},
-	tonumber(cmd.params[1])
+		cellRect.x + cellPadding + iconPadding,
+		cellRect.y + cellPadding + iconPadding,
+		cellRect.xEnd - cellPadding - iconPadding,
+		cellRect.yEnd - cellPadding - iconPadding,
+		cornerSize, 1,1,1,1,
+		usedZoom,
+		nil, disabled and 0 or nil,
+		'#' .. uid,
+		showRadarIcon and (((unitIconType[uid] and iconTypesMap[unitIconType[uid]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypesMap[unitIconType[uid]] or nil)) or nil,
+		showIcon and (groups[unitGroup[uid]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[unitGroup[uid]] or nil) or nil,
+		{unitMetalCost[uid], unitEnergyCost[uid]},
+		tonumber(cmd.params[1])
 	)
 
 	-- colorize/highlight unit icon
@@ -1270,22 +1307,22 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled)
 		gl.Color(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
 		gl.Texture('#' .. uid)
 		UiUnit(
-		cellRects[cellRectID][1] + cellPadding + iconPadding,
-		cellRects[cellRectID][2] + cellPadding + iconPadding,
-		cellRects[cellRectID][3] - cellPadding - iconPadding,
-		cellRects[cellRectID][4] - cellPadding - iconPadding,
-		cornerSize, 1,1,1,1,
-		usedZoom
+			cellRect.x + cellPadding + iconPadding,
+			cellRect.y + cellPadding + iconPadding,
+			cellRect.xEnd - cellPadding - iconPadding,
+			cellRect.yEnd - cellPadding - iconPadding,
+			cornerSize, 1,1,1,1,
+			usedZoom
 		)
 		if cellColor[4] > 0 then
 			gl.Blending(GL_SRC_ALPHA, GL_ONE)
 			UiUnit(
-			cellRects[cellRectID][1] + cellPadding + iconPadding,
-			cellRects[cellRectID][2] + cellPadding + iconPadding,
-			cellRects[cellRectID][3] - cellPadding - iconPadding,
-			cellRects[cellRectID][4] - cellPadding - iconPadding,
-			cornerSize, 1,1,1,1,
-			usedZoom
+				cellRect.x + cellPadding + iconPadding,
+				cellRect.y + cellPadding + iconPadding,
+				cellRect.xEnd - cellPadding - iconPadding,
+				cellRect.yEnd - cellPadding - iconPadding,
+				cornerSize, 1,1,1,1,
+				usedZoom
 			)
 		end
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -1300,103 +1337,144 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled)
 		else
 			text = "\255\245\245\245" .. unitMetalCost[uid] .. "\n\255\255\255\000"
 		end
-		font2:Print(text .. unitEnergyCost[uid], cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
+		font2:Print(text .. unitEnergyCost[uid], cellRect.x + cellPadding + (cellInnerSize * 0.048), cellRect.y + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
 	end
 
-	-- factory queue number
-	if cmd.params[1] then
-		local pad = math_floor(cellInnerSize * 0.03)
-		local textWidth = math_floor(font2:GetTextWidth(cmd.params[1] .. '	') * cellInnerSize * 0.285)
-		local pad2 = 0
-		RectRound(cellRects[cellRectID][3] - cellPadding - iconPadding - textWidth - pad2, cellRects[cellRectID][4] - cellPadding - iconPadding - math_floor(cellInnerSize * 0.365) - pad2, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cornerSize * 3.3, 0, 0, 0, 1, { 0.15, 0.15, 0.15, 0.95 }, { 0.25, 0.25, 0.25, 0.95 })
-		RectRound(cellRects[cellRectID][3] - cellPadding - iconPadding - textWidth - pad2, cellRects[cellRectID][4] - cellPadding - iconPadding - math_floor(cellInnerSize * 0.15) - pad2, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, 0, 0, 0, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.05 })
-		RectRound(cellRects[cellRectID][3] - cellPadding - iconPadding - textWidth - pad2 + pad, cellRects[cellRectID][4] - cellPadding - iconPadding - math_floor(cellInnerSize * 0.365) - pad2 + pad, cellRects[cellRectID][3] - cellPadding - iconPadding - pad2, cellRects[cellRectID][4] - cellPadding - iconPadding - pad2, cornerSize * 2.6, 0, 0, 0, 1, { 0.7, 0.7, 0.7, 0.1 }, { 1, 1, 1, 0.1 })
-		font2:Print("\255\190\255\190" .. cmd.params[1],
-			cellRects[cellRectID][1] + cellPadding + math_floor(cellInnerSize * 0.96) - pad2,
-			cellRects[cellRectID][2] + cellPadding + math_floor(cellInnerSize * 0.735) - pad2,
-			cellInnerSize * 0.29, "ro"
-		)
-	end
-
+	-- hotkey draw
 	if cmd.hotkey and (selectedFactory or (selectedBuilder and currentBuildCategory)) then
 		local hotkeyText = keyConfig.sanitizeKey(cmd.hotkey, currentLayout)
 
 		local hotkeyFontSize = priceFontSize * 1.1
-		font2:Print("\255\215\255\215" .. hotkeyText, cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.048), cellRects[cellRectID][4] - cellPadding - hotkeyFontSize, hotkeyFontSize, "o")
+		font2:Print("\255\215\255\215" .. hotkeyText, cellRect.xEnd - cellPadding - (cellInnerSize * 0.048), cellRect.yEnd - cellPadding - hotkeyFontSize, hotkeyFontSize, "ro")
+	end
+
+
+	-- factory queue number
+	if cmd.params[1] then
+		local queueFontSize = cellInnerSize * 0.29
+		local pad = math_floor(cellInnerSize * 0.03)
+		local textWidth = font2:GetTextWidth(cmd.params[1] .. '	') * queueFontSize
+		RectRound(cellRect.x, cellRect.yEnd - cellPadding - iconPadding - math_floor(cellInnerSize * 0.365), cellRect.x + textWidth, cellRect.yEnd - cellPadding - iconPadding, cornerSize * 3.3, 0, 0, 1, 0, { 0.15, 0.15, 0.15, 0.95 }, { 0.25, 0.25, 0.25, 0.95 })
+		font2:Print("\255\190\255\190" .. cmd.params[1],
+			cellRect.x + cellPadding + (pad * 3.5),
+			cellRect.y + cellPadding + math_floor(cellInnerSize * 0.735),
+			queueFontSize, "o"
+		)
 	end
 end
 
-local function labActiveArea()
-	if stickToBottom then
-		return {
-			backgroundRect[1] + bgpadding,
-			backgroundRect[2],
-			backgroundRect[3],
-			backgroundRect[4] - bgpadding
-		}
-	else
-		return {
-			backgroundRect[1],
-			backgroundRect[2],
-			backgroundRect[3] - bgpadding,
-			backgroundRect[4] - bgpadding
-		}
-	end
+local function drawEmptyCell(rect)
+	local color = { 0.1, 0.1, 0.1, 0.7 }
+	local pad = cellPadding + iconPadding
+	RectRound(rect.x + pad, rect.y + pad, rect.xEnd - pad, rect.yEnd - pad, cornerSize, 1, 1, 1, 1, color, color)
+end
+
+local function drawButtonHotkey(rect, keyText)
+	local keyFontSize = categoryFontSize + 5
+	local keyFontHeight = font2:GetTextHeight(keyText) * keyFontSize
+	local keyFontHeightOffset = keyFontHeight * 0.34
+
+	local textPadding = bgpadding * 2
+
+	local text = "\255\215\255\215" .. keyText
+	font2:Print(text, rect.xEnd - textPadding, (rect.y - (rect.y - rect.yEnd) / 2) - keyFontHeightOffset, keyFontSize, "ro")
 end
 
 local function drawCategories()
 	local numCats = #categories
-	local activeArea
 
+	-- set up rects
 	if stickToBottom then
-		local x1 = backgroundRect[1] + bgpadding
+		local x1 = categoriesRect.x
 
-		activeArea = {
-			x1 + pageButtonWidth,
-			backgroundRect[2] - 2 * activeAreaMargin,
-			backgroundRect[3],
-			backgroundRect[4] - bgpadding
-		}
-
-		local contentHeight = activeArea[4] - activeArea[2]
+		local contentHeight = (categoriesRect.yEnd - categoriesRect.y) / numCats
+		local contentWidth = categoriesRect.xEnd - categoriesRect.x
 
 		for i, cat in ipairs(categories) do
-			local a1 = x1
-			local a2 = activeArea[4] - i * (contentHeight / numCats) + 2
-			local a3 = a1 + pageButtonWidth - activeAreaMargin
-			local a4 = a2 + (contentHeight / numCats) - 2
-
-			catRects[cat] = { a1, a2, a3, a4 }
+			local y1 = categoriesRect.yEnd - i * contentHeight + 2
+			catRects[cat] = Rect:new(
+				x1,
+				y1,
+				x1 + contentWidth - activeAreaMargin,
+				y1 + contentHeight - 2
+			)
 		end
 	else
-		local y2 = backgroundRect[4] - bgpadding
+		local y2 = categoriesRect.yEnd
 
-		activeArea = {
-			backgroundRect[1],
-			backgroundRect[2],
-			backgroundRect[3] - bgpadding,
-			y2 - pageButtonHeight
-		}
-
-		local buttonWidth = math.round((activeArea[3] - activeArea[1] - bgpadding) / numCats)
+		local buttonWidth = math.round(((categoriesRect.xEnd - categoriesRect.x) / numCats))
+		local padding = math_max(1, math_floor(bgpadding * 0.52))
 
 		for i, cat in ipairs(categories) do
-			local a1 = backgroundRect[1] + activeAreaMargin + (i - 1) * buttonWidth
-			local a2 = y2 - pageButtonHeight
-			local a3 = a1 + buttonWidth
-			local a4 = y2 - activeAreaMargin
-
-			catRects[cat] = { a1, a2, a3, a4 }
+			local x1 = categoriesRect.x + (i - 1) * buttonWidth
+			catRects[cat] = Rect:new(
+				x1 + padding,
+				y2 - pageButtonHeight + padding,
+				x1 + buttonWidth - padding,
+				y2 - activeAreaMargin - padding
+			)
 		end
 	end
 
-	drawCategoryButtons()
+	-- set up buttons
+	for catIndex, cat in pairs(Cfgs.buildCategories) do
+		local catText = cat
+		local catIcon = Cfgs.categoryIcons[catIndex]
+		local keyText = keyConfig.sanitizeKey(Cfgs.categoryKeys[catIndex], currentLayout)
+		local rect = catRects[cat]
 
-	return activeArea
+		local opts = {
+			highlight = (cat == currentBuildCategory),
+			hovered = (hoveredButton == rect:getId()),
+		}
+
+		local textPadding = bgpadding * 2
+
+		local fontSize = categoryFontSize
+		local fontHeight = font2:GetTextHeight(catText) * categoryFontSize
+		local fontHeightOffset = fontHeight * 0.34
+		font2:Print(catText, rect.x + (textPadding * 3), (rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset, fontSize, "o")
+
+		drawButtonHotkey(rect, keyText)
+		drawButton(rect, opts, catIcon)
+	end
 end
 
-local function drawGrid(activeArea)
-	local numCellsPerPage = rows * colls
+local function drawPaginators()
+	if pages == 1 then
+		return
+	end
+
+	local nextKeyText = keyConfig.sanitizeKey(Cfgs.NEXT_PAGE_KEY, currentLayout)
+	local nextPageText = "\255\245\245\245" .. "Next Page    ➞"
+	local pagesText = "\255\245\245\245" .. currentPage .. " / " .. pages
+
+	local opts = {
+		highlight = false,
+		hovered = false,
+	}
+
+	nextPageRect = Rect:new(paginatorsRect.x, paginatorsRect.y, paginatorsRect.xEnd, paginatorsRect.yEnd)
+	local buttonHeight = nextPageRect.yEnd - nextPageRect.y
+	local buttonWidth = nextPageRect.xEnd - nextPageRect.x
+	local heightOffset = nextPageRect.yEnd - font2:GetTextHeight(pagesText) * pageFontSize * 0.25 - buttonHeight/2
+
+	if stickToBottom then
+		nextPageText = "\255\245\245\245" .. "Page " .. currentPage .. "/" .. pages .. " ➞"
+		font2:Print(nextPageText, nextPageRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
+	else
+		font2:Print(pagesText, nextPageRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
+		font2:Print(nextPageText, nextPageRect.x + (buttonWidth * 0.55), heightOffset, pageFontSize, "co")
+	end
+
+	drawButtonHotkey(nextPageRect, nextKeyText)
+
+	opts.hovered = hoveredButton and nextPageRect:getId() == hoveredButton
+	drawButton(nextPageRect, opts)
+end
+
+local function drawGrid()
+	local numCellsPerPage = rows * columns
 	local cellRectID = 0
 	local unitGrid
 	if selectedFactory then
@@ -1440,6 +1518,13 @@ local function drawGrid(activeArea)
 				curCmd = curCmd + 1
 			end
 
+			 local rect = Rect:new(
+				buildpicsRect.x + (kcol - 1) * cellSize,
+				buildpicsRect.yEnd - (rows - krow + 1) * cellSize,
+				buildpicsRect.x + (kcol ) * cellSize,
+				buildpicsRect.yEnd - (rows - krow) * cellSize
+			 )
+
 			if uDefID and uidcmds[uDefID] then
 				cellcmds[cellRectID] = uidcmds[uDefID]
 
@@ -1448,15 +1533,10 @@ local function drawGrid(activeArea)
 
 				local udef = uidcmds[uDefID]
 
-				cellRects[cellRectID] = {
-					activeArea[1] + (kcol - 1) * cellSize,
-					activeArea[4] - (rows - krow + 1) * cellSize,
-					activeArea[1] + (kcol ) * cellSize,
-					activeArea[4] - (rows - krow) * cellSize,
-				}
+				cellRects[cellRectID] = rect
 
 				local cellIsSelected = (activeCmd and udef and activeCmd == udef.name) or
-															 (preGamestartPlayer and selBuildQueueDefID == uDefID)
+					(preGamestartPlayer and selBuildQueueDefID == uDefID)
 				local usedZoom = (cellIsSelected and selectedCellZoom or defaultCellZoom)
 
 				if cellIsSelected then
@@ -1465,6 +1545,7 @@ local function drawGrid(activeArea)
 
 				drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, unitRestricted[uDefID])
 			else
+				drawEmptyCell(rect)
 				hotkeyActions[tostring(arow) .. tostring(coll)] = nil
 			end
 		end
@@ -1475,101 +1556,40 @@ local function drawGrid(activeArea)
 	end
 end
 
-local function drawPaginators(activeArea)
-	paginatorRects = {}
-
-	if pages == 1 then
-		return
-	end
-
-	if stickToBottom then
-		local contentHeight = activeArea[4] - activeArea[2]
-		paginatorCellHeight = contentHeight / 3
-
-		paginatorRects[1] = { activeArea[1] + 6 * cellSize, activeArea[2] + activeAreaMargin, activeArea[3] - bgpadding, activeArea[2] + paginatorCellHeight }
-		paginatorRects[2] = { paginatorRects[1][1], activeArea[2] + 2 * paginatorCellHeight, paginatorRects[1][3], activeArea[2] + 3 * paginatorCellHeight }
-
-		local paginatorWidth = paginatorRects[1][3] - paginatorRects[1][1]
-
-		UiButton(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print("\255\215\255\215[".. keyConfig.sanitizeKey(Cfgs.PREV_PAGE_KEY, currentLayout) .."]", paginatorRects[1][1] + paginatorWidth/2, paginatorRects[1][2] + (paginatorCellHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
-		UiButton(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print("\255\215\255\215[".. keyConfig.sanitizeKey(Cfgs.NEXT_PAGE_KEY, currentLayout) .."]", paginatorRects[2][1] + paginatorWidth/2, paginatorRects[2][2] + (paginatorCellHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
-
-		font2:Print("\255\245\245\245" .. currentPage .. "/" .. pages,
-		(paginatorRects[1][1] + paginatorRects[1][3]) * 0.5,
-		paginatorRects[1][4] + paginatorCellHeight * 0.5 - paginatorFontSize * 0.25, paginatorFontSize, "co")
-	else
-		local contentWidth = activeArea[3] - activeArea[1]
-		paginatorCellWidth = math_floor(contentWidth * 0.33)
-
-		paginatorRects[1] = { activeArea[1] + activeAreaMargin, activeArea[2], activeArea[1] + paginatorCellWidth, activeArea[4] - 3 * cellSize }
-		paginatorRects[2] = { activeArea[3] - paginatorCellWidth, paginatorRects[1][2], activeArea[3], paginatorRects[1][4] }
-		paginatorCellHeight = paginatorRects[1][4] - paginatorRects[1][2]
-		local prevText = "\255\215\255\215[".. keyConfig.sanitizeKey(Cfgs.PREV_PAGE_KEY, currentLayout) .."]"
-		local nextText = "\255\215\255\215[".. keyConfig.sanitizeKey(Cfgs.NEXT_PAGE_KEY, currentLayout) .."]"
-
-		UiButton(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + bgpadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print(prevText, paginatorRects[1][1] + (paginatorCellWidth * 0.5), paginatorRects[1][4] - font2:GetTextHeight(prevText) * paginatorFontSize * 0.25 - paginatorCellHeight/2, paginatorFontSize, "co")
-		UiButton(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + bgpadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print(nextText, paginatorRects[2][1] + (paginatorCellWidth * 0.5), paginatorRects[2][4] - font2:GetTextHeight(nextText) * paginatorFontSize * 0.25 - paginatorCellHeight/2, paginatorFontSize, "co")
-
-		local pagesText = currentPage .. " / " .. pages
-		font2:Print("\255\245\245\245" .. pagesText, contentWidth * 0.5, paginatorRects[1][4] - font2:GetTextHeight(pagesText) * paginatorFontSize * 0.25 - paginatorCellHeight/2, paginatorFontSize, "co")
-	end
-end
-
 local function drawBuildmenu()
-	local activeArea
-
 	catRects = {}
-
 	font2:Begin()
 
-	if selectedFactory then
-		activeArea = labActiveArea()
-	elseif selectedBuilder then
-		activeArea = drawCategories()
+	if selectedBuilder then
+		drawCategories()
 	end
 
-	if activeArea then
-		if stickToBottom then
-			rows = 2
-			colls = 6
-			cellSize = math_floor((activeArea[4] - activeArea[2]) / rows)
-		else
-			rows = 3
-			colls = 4
-			cellSize = math_floor((activeArea[3] - activeArea[1]) / colls)
+	-- adjust grid size when pages are needed
+	if uidcmdsCount > columns * rows then
+		pages = math_ceil(uidcmdsCount / (rows * columns))
+
+		if currentPage > pages then
+			currentPage = pages
 		end
-
-		-- adjust grid size when pages are needed
-		if uidcmdsCount > colls * rows then
-			pages = math_ceil(uidcmdsCount / (rows * colls))
-
-			if currentPage > pages then
-				currentPage = pages
-			end
-		else
-			currentPage = 1
-			pages = 1
-		end
-
-		-- these are globals so it can be re-used (hover highlight)
-		cellPadding = math_floor(cellSize * Cfgs.cfgCellPadding)
-		iconPadding = math_max(1, math_floor(cellSize * Cfgs.cfgIconPadding))
-		cornerSize = math_floor(cellSize * Cfgs.cfgIconCornerSize)
-		cellInnerSize = cellSize - cellPadding - cellPadding
-		priceFontSize = math_floor((cellInnerSize * Cfgs.cfgPriceFontSize) + 0.5)
-
-		cellRects = {}
-		hotkeyActions = {}
-
-		drawGrid(activeArea)
-		drawPaginators(activeArea)
-
-		font2:End()
+	else
+		currentPage = 1
+		pages = 1
 	end
+
+	-- these are globals so it can be re-used (hover highlight)
+	cellPadding = math_floor(cellSize * Cfgs.cfgCellPadding)
+	iconPadding = math_max(1, math_floor(cellSize * Cfgs.cfgIconPadding))
+	cornerSize = math_floor(cellSize * Cfgs.cfgIconCornerSize)
+	cellInnerSize = cellSize - cellPadding - cellPadding
+	priceFontSize = math_floor((cellInnerSize * Cfgs.cfgPriceFontSize) + 0.5)
+
+	cellRects = {}
+	hotkeyActions = {}
+
+	drawGrid()
+	drawPaginators()
+
+	font2:End()
 end
 
 local function GetBuildingDimensions(uDefID, facing)
@@ -1604,9 +1624,9 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 	gl.Color(borderColor)
 
 	gl.Shape(GL.LINE_LOOP, { { v = { bx - bw, by, bz - bh } },
-	{ v = { bx + bw, by, bz - bh } },
-	{ v = { bx + bw, by, bz + bh } },
-	{ v = { bx - bw, by, bz + bh } } })
+							 { v = { bx + bw, by, bz - bh } },
+							 { v = { bx + bw, by, bz + bh } },
+							 { v = { bx - bw, by, bz + bh } } })
 
 	if drawRanges then
 		if isMex[bDefID] then
@@ -1632,7 +1652,7 @@ local function DoBuildingsClash(buildData1, buildData2)
 	local w2, h2 = GetBuildingDimensions(buildData2[1], buildData2[5])
 
 	return math.abs(buildData1[2] - buildData2[2]) < w1 + w2 and
-	math.abs(buildData1[4] - buildData2[4]) < h1 + h2
+		math.abs(buildData1[4] - buildData2[4]) < h1 + h2
 end
 
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
@@ -1658,7 +1678,7 @@ local function cacheUnitIcons()
 end
 
 local function drawBuildProgress()
-	local numCellsPerPage = rows * colls
+	local numCellsPerPage = rows * columns
 	local maxCellRectID = numCellsPerPage * currentPage
 	if maxCellRectID > uidcmdsCount then
 		maxCellRectID = uidcmdsCount
@@ -1671,7 +1691,7 @@ local function drawBuildProgress()
 			local unitBuildDefID = spGetUnitDefID(unitBuildID)
 			if unitBuildDefID then
 				-- loop all shown cells
-				for cellRectID, _ in pairs(cellRects) do
+				for cellRectID, cellRect in pairs(cellRects) do
 					if not drawncellRectIDs[cellRectID] then
 						if cellRectID > maxCellRectID then
 							break
@@ -1680,7 +1700,7 @@ local function drawBuildProgress()
 						if unitBuildDefID == cellUnitDefID then
 							drawncellRectIDs[cellRectID] = true
 							local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
-							RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
+							RectRoundProgress(cellRect.x + cellPadding + iconPadding, cellRect.y + cellPadding + iconPadding, cellRect.xEnd - cellPadding - iconPadding, cellRect.yEnd - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
 						end
 					end
 				end
@@ -1728,7 +1748,7 @@ function widget:DrawScreen()
 		end
 
 		local hovering = false
-		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		if backgroundRect:contains(x, y) then
 			Spring.SetMouseCursor('cursornormal')
 			hovering = true
 		end
@@ -1737,12 +1757,12 @@ function widget:DrawScreen()
 		gl.CallList(dlistBuildmenuBg)
 		if preGamestartPlayer or selectedBuilder or selectedFactory then
 			-- pre process + 'highlight' under the icons
-			local hoveredCellID = nil
-			local hoveredCatNotFound = true
+			local hoveredCellID
+			local hoveredButtonNotFound = true
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
 				if hovering then
 					for cellRectID, cellRect in pairs(cellRects) do
-						if math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
+						if cellRect:contains(x, y) then
 							hoveredCellID = cellRectID
 							local cmd = cellcmds[cellRectID]
 							local uDefID = cmd.id * -1
@@ -1763,17 +1783,17 @@ function widget:DrawScreen()
 
 							-- highlight --if b and not disableInput then
 							gl.Blending(GL_SRC_ALPHA, GL_ONE)
-							RectRound(cellRects[cellRectID][1] + cellPadding, cellRects[cellRectID][2] + cellPadding, cellRects[cellRectID][3] - cellPadding, cellRects[cellRectID][4] - cellPadding, cellSize * 0.03, 1, 1, 1, 1, { 0, 0, 0, 0.1 * ui_opacity }, { 0, 0, 0, 0.1 * ui_opacity })
+							RectRound(cellRect.x + cellPadding, cellRect.y + cellPadding, cellRect.xEnd - cellPadding, cellRect.yEnd - cellPadding, cellSize * 0.03, 1, 1, 1, 1, { 0, 0, 0, 0.1 * ui_opacity }, { 0, 0, 0, 0.1 * ui_opacity })
 							gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 							break
 						end
 					end
 
 					for cat, catRect in pairs(catRects) do
-						if math_isInRect(x, y, catRect[1], catRect[2], catRect[3], catRect[4]) then
-							hoveredCat = cat
+						if catRect:contains(x, y) then
+							hoveredButton = catRect:getId()
 
-							if hoveredCat ~= drawnHoveredCat then
+							if hoveredButton ~= drawnHoveredButton then
 								doUpdate = true
 							end
 
@@ -1791,25 +1811,42 @@ function widget:DrawScreen()
 								end
 
 								local catKey = keyConfig.sanitizeKey(Cfgs.keyLayout[1][index], currentLayout)
-								text = text .. "\255\240\240\240Hotkey: " .. textColor .. "[" .. catKey .. "]"
+								text = text .. "\255\240\240\240 - Hotkey: " .. textColor .. "[" .. catKey .. "]"
 
 								WG['tooltip'].ShowTooltip('buildmenu', text, nil, nil, cat)
 							end
 
-							hoveredCatNotFound = false
+							hoveredButtonNotFound = false
 							break
+						end
+					end
+
+					-- paginator buttons
+					if nextPageRect.y and nextPageRect:contains(x, y) then
+						hoveredButton = nextPageRect:getId()
+						hoveredButtonNotFound = false
+					end
+
+					if hoveredButton ~= drawnHoveredButton then
+						doUpdate = true
+					end
+
+					if hoveredButton == nextPageRect:getId() then
+						if WG['tooltip'] then
+							local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.nextPage')
+							WG['tooltip'].ShowTooltip('buildmenu', text)
 						end
 					end
 				end
 			end
 
-			if (not hovering) or (selectedBuilder and hoveredCatNotFound) then
-				if drawnHoveredCat then
+			if (not hovering) or (selectedBuilder and hoveredButtonNotFound) then
+				if drawnHoveredButton then
 					doUpdate = true
 				end
 
-				drawnHoveredCat = nil
-				hoveredCat = nil
+				hoveredButton = nil
+				drawnHoveredButton = nil
 			end
 
 			-- draw buildmenu content
@@ -1819,26 +1856,7 @@ function widget:DrawScreen()
 			local usedZoom
 			local cellColor
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
-				if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-
-					-- paginator buttons
-					local paginatorHovered
-					if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
-						paginatorHovered = 1
-					end
-					if paginatorRects[2] and math_isInRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
-						paginatorHovered = 2
-					end
-					if paginatorHovered then
-						if WG['tooltip'] then
-							local text = "\255\240\240\240" .. (paginatorHovered == 1 and Spring.I18N('ui.buildMenu.previousPage') or Spring.I18N('ui.buildMenu.nextPage'))
-							WG['tooltip'].ShowTooltip('buildmenu', text)
-						end
-						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 1, 1, 1, 0 }, { 1, 1, 1, (b and 0.35 or 0.15) })
-						-- gloss
-						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][4] - cellPadding - ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.5), paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.015 }, { 1, 1, 1, 0.13 })
-						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][2] + cellPadding + ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.33), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0 })
-					end
+				if hovering then
 
 					-- cells
 					if hoveredCellID then
@@ -1921,7 +1939,7 @@ end
 function widget:DrawWorld()
 	if not WG.StopDrawUnitShapeGL4 then return end
 
-		-- remove unit shape queue to re-add again later
+	-- remove unit shape queue to re-add again later
 	for id, _ in pairs(unitshapes) do
 		removeUnitShape(id)
 	end
@@ -2165,31 +2183,25 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if buildmenuShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if buildmenuShows and backgroundRect:contains(x, y) then
 		if selectedBuilder or selectedFactory or (preGamestartPlayer and startDefID) then
-			if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
-				currentPage = math_max(1, currentPage - 1)
+			if nextPageRect and nextPageRect:contains(x, y) then
 				Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
-				doUpdate = true
-				return true
-			elseif paginatorRects[2] and math_isInRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
-				currentPage = math_min(pages, currentPage + 1)
-				Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
-				doUpdate = true
+				nextPageHandler()
 				return true
 			end
 
 			if not disableInput then
 				for cat, catRect in pairs(catRects) do
-					if math_isInRect(x, y, catRect[1], catRect[2], catRect[3], catRect[4]) then
+					if catRect:contains(x, y) then
 						currentBuildCategory = cat
 						switchedCategory = os.clock()
 						Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
 
 						for i,c in pairs(categories) do
-							 if c == cat then
-								 currentCategoryIndex = i
-							 end
+							if c == cat then
+								currentCategoryIndex = i
+							end
 						end
 
 						doUpdate = true
@@ -2198,7 +2210,7 @@ function widget:MousePress(x, y, button)
 				end
 
 				for cellRectID, cellRect in pairs(cellRects) do
-					if cellcmds[cellRectID].id and UnitDefs[-cellcmds[cellRectID].id].translatedHumanName and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not unitRestricted[-cellcmds[cellRectID].id] then
+					if cellcmds[cellRectID].id and UnitDefs[-cellcmds[cellRectID].id].translatedHumanName and cellRect:contains(x, y) and not unitRestricted[-cellcmds[cellRectID].id] then
 						if button ~= 3 then
 							Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
 
@@ -2221,6 +2233,7 @@ function widget:MousePress(x, y, button)
 			return true
 		end
 
+	-- Special handling for buildings before game start, since there isn't yet a unit spawned to give normal orders to
 	elseif preGamestartPlayer then
 		local mx, my = Spring.GetMouseState()
 		local _, pos = Spring.TraceScreenRay(mx, my, true)

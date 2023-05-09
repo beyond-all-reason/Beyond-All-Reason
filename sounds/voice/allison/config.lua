@@ -27,7 +27,7 @@ addSound('YouHaveLastCommander', {soundFolder .. 'Youhavelastcommander.wav'}, 30
 addSound('ChooseStartLoc', {soundFolder .. 'ChooseStartLoc.wav'}, 90, 2.2, 'tips.notifications.startingLocation')
 addSound('GameStarted', {soundFolder .. 'GameStarted.wav'}, 1, 2, 'tips.notifications.gameStarted')
 addSound('BattleEnded', {soundFolder .. 'BattleEnded.wav'}, 1, 2, 'tips.notifications.battleEnded')
-addSound('GamePause', {soundFolder .. 'GamePause.wav'}, 5, 1, 'tips.notifications.gamePaused')
+addSound('GamePause', {soundFolder .. 'GamePause.wav'}, 2, 1, 'tips.notifications.gamePaused')
 addSound('PlayerLeft', {soundFolder .. 'PlayerDisconnected.wav'}, 1, 1.65, 'tips.notifications.playerLeft')
 addSound('PlayerAdded', {soundFolder .. 'PlayerAdded.wav'}, 1, 2.36, 'tips.notifications.playerAdded')
 addSound('PlayerResigned', {soundFolder .. 'PlayerResigned.wav'}, 1, 2.36, 'tips.notifications.playerResigned')

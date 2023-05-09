@@ -137,6 +137,7 @@ function widget:Update(dt)
 	if doUpdate then
 		local mx, my, mb, mmb, mb2 = Spring.GetMouseState()
 		_, activeCmdID = spGetActiveCommand()
+		local isReclaim = activeCmdID == CMD.RECLAIM
 
 		if #selectedUnits == 1 and isCloakableBuilder[Spring.GetUnitDefID(selectedUnits[1])] and select(5,Spring.GetUnitStates(selectedUnits[1],false,true)) then
 			-- unit is cloaked, abort!
@@ -173,7 +174,7 @@ function widget:Update(dt)
 					end
 					if hasT1constructor or hasT2constructor then
 						local queuedBuildings = BuildOrder({ params[1], params[2], params[3]}, {}, false, true)
-						if queuedBuildings and #queuedBuildings > 0 then
+						if not isReclaim and queuedBuildings and #queuedBuildings > 0 then
 							drawUnitShape = { queuedBuildings[1][2], queuedBuildings[1][3], queuedBuildings[1][4], queuedBuildings[1][5], queuedBuildings[1][6] }
 							Spring.SetMouseCursor('upgmex')
 						end
@@ -313,7 +314,8 @@ function widget:CommandNotify(id, params, options)
 	local isTech1Mex, isTech1Geo, groundHasEmptyMetal, groundHasEmptyGeo, unitPos = CheckForBuildingOpportunity(type, rayParams)
 
 	local result = false
-	if isTech1Mex or groundHasEmptyMetal or isReclaim then
+	-- right click only
+	if options.right and (isTech1Mex or groundHasEmptyMetal or isReclaim) then
 		result = TryConvertCmdToBuildOrder(
 			CMD_CONSTRUCT_MEX,
 			enableMoveIsQuickBuildMex,
@@ -323,7 +325,8 @@ function widget:CommandNotify(id, params, options)
 			mexPlacementRadius,
 			mexPlacementDragRadius
 		)
-	elseif (not isReclaim or not result) and (isTech1Geo or groundHasEmptyGeo or isReclaim) then
+	-- right click only
+	elseif options.right and (not isReclaim or not result) and (isTech1Geo or groundHasEmptyGeo or isReclaim) then
 		result = TryConvertCmdToBuildOrder(
 			CMD_CONSTRUCT_GEO,
 			enableMoveIsQuickBuildGeo,

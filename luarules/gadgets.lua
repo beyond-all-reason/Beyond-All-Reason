@@ -116,6 +116,7 @@ local callInLists = {
 	"PlayerRemoved",
 
 	"GameFrame",
+	"GamePaused",
 
 	"ViewResize",  -- FIXME ?
 

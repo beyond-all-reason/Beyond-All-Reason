@@ -179,8 +179,6 @@ RequestState(requestedstate, currentstate)
 			call-script activatescr();
 			notBuilding = 0;
 			currentstate = 0;
-			show cagelight_emit;
-			spin cagelight around y-axis speed <200>;
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -216,6 +214,8 @@ StartBuilding(heading, pitch)
 {
 	show beam;
 	start-script RequestState(0);
+	show cagelight_emit;
+	spin cagelight around y-axis speed <225>;
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
 	turn post to y-axis heading speed <160.000000>;
@@ -228,6 +228,8 @@ StopBuilding()
 	hide beam;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
+	hide cagelight_emit;
+	turn cagelight to y-axis <0> speed <1000>;
 	sleep 6000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	

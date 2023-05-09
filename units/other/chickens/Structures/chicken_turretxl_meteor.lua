@@ -79,8 +79,9 @@ return {
 				avoidfriendly = 0,
 				cegtag = "nuketrail-roost",
 				collidefriendly = 0,
-				craterboost = 0,
-				cratermult = 0,
+				craterareaofeffect = 1920,
+				craterboost = 2.4,
+				cratermult = 1.2,
 				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:newnukecor",
 				firestarter = 70,
@@ -98,7 +99,7 @@ return {
 				turret = 1,
 				weaponvelocity = 1500,
 				damage = {
-					default = 15000,
+					default = 30000,
 				},
 			},
 			-- cc_laser = {

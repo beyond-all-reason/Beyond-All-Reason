@@ -169,7 +169,6 @@ function widget:Update(dt)
 	if dualscreenMode then return end
 
 	_, _, _, _, minimized, maximized = Spring.GetMiniMapGeometry()
-
 	if minimized or maximized then
 		return
 	end
@@ -198,10 +197,6 @@ function widget:DrawScreen()
 				Spring.SetMouseCursor('cursornormal')
 			end
 		end
-	end
-	if dlistGuishader and WG['guishader'] then
-		WG['guishader'].RemoveDlist('minimap')
-		dlistGuishader = gl.DeleteList(dlistGuishader)
 	end
 
 	stframe = stframe + 1

@@ -693,6 +693,20 @@ function widget:Explosion(weaponDefID, px, py, pz, AttackerID, ProjectileID) -- 
 	---Spring.Echo("widget:Explosion",weaponDefID, px, py, pz, AttackerID, ProjectileID)
 end
 
+-- Solars, nanos, wind, advsolars, metal makers, 
+local buildingExplosionPositionVariation = {
+	nanoboom = 1,
+	nanoselfd = 1, 
+	--smallBuildingExplosionGeneric = 1, --armadvsol
+	--smallBuildingExplosionGenericSelfd = 1, -- armadvsol
+	metalmaker = 1, 
+	metalmakerSelfd = 1, 
+	advmetalmaker = 1, 
+	advmetalmakerSelfd = 1, 
+	windboom = 1,
+	--mediumBuildingexplosiongeneric = 1, -- coradvsol
+	--mediumBuildingExplosionGenericSelfd = 1, --coradvsol
+	}
 local globalDamageMult = Spring.GetModOptions().multiplier_weapondamage or 1
 local weaponConfig = {}
 for weaponDefID=1, #WeaponDefs do
@@ -723,6 +737,8 @@ for weaponDefID=1, #WeaponDefs do
 		local glowsustain
 		local glowadd
 		local fadeintime
+		local positionVariation = 0
+		
 
 		local textures = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga" }
 		if weaponDef.paralyzer then
@@ -1010,7 +1026,10 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.4
 
 		end
-
+		if buildingExplosionPositionVariation[weaponDef.name] then 
+			positionVariation = buildingExplosionPositionVariation[weaponDef.name]
+		end
+		
 		weaponConfig[weaponDefID] = {
 			textures,
 			radius,
@@ -1025,6 +1044,7 @@ for weaponDefID=1, #WeaponDefs do
 			weaponDef.damageAreaOfEffect,	-- 11
 			damage,	-- 12
 			fadeintime, -- 13
+			positionVariation, --14
 		}
 		
 	end
@@ -1032,46 +1052,52 @@ end
 
 local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	--Spring.Echo("GadgetWeaponExplosionDecal",px, py, pz, weaponID, ownerID, weaponDef.damageAreaOfEffect, weaponDef.name)
-
+	local random = math.random
 	local params = weaponConfig[weaponID]
 	if not params then
 		return
 	end
 
-	local radius = params[2] + ((params[2] * (math.random()-0.5)) * params[3])
+	local radius = params[2] + ((params[2] * (random()-0.5)) * params[3])
 	local exploHeight = py - spGetGroundHeight(px,pz)
 	if exploHeight >= radius then
 		return
 	end
 
-	local texture = params[1][ math.random(1,#params[1]) ]
+	local texture = params[1][ random(1,#params[1]) ]
 
 	-- reduce severity when explosion is above ground
 	local heightMult = 1 - (exploHeight / radius)
 
-	local heatstart = params[4] or ((math.random() * 0.2 + 0.9) * 4900)
-	local heatdecay = params[5] or ((math.random() * 0.4 + 2.0) - (params[11]/2250))
+	local heatstart = params[4] or ((random() * 0.2 + 0.9) * 4900)
+	local heatdecay = params[5] or ((random() * 0.4 + 2.0) - (params[11]/2250))
 
-	local alpha = params[6] or ((math.random() * 1.0 + 1.5) * (1.0 - exploHeight/radius) * heightMult)
-	local alphadecay = params[7] or (params[7] or ((math.random() * 0.3 + 0.2) / (4 * radius)))
+	local alpha = params[6] or ((random() * 1.0 + 1.5) * (1.0 - exploHeight/radius) * heightMult)
+	local alphadecay = params[7] or (params[7] or ((random() * 0.3 + 0.2) / (4 * radius)))
 
 	local bwfactor = params[8] or 0.5 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
-	local glowsustain = params[9] or (math.random() * 20) -- how many frames to elapse before glow starts to recede
-	local glowadd = params[10] or (math.random() * 2) -- how much additional, non-transparency controlled heat glow should the decal get
+	local glowsustain = params[9] or (random() * 20) -- how many frames to elapse before glow starts to recede
+	local glowadd = params[10] or (random() * 2) -- how much additional, non-transparency controlled heat glow should the decal get
 	local fadeintime = params[13]
+	
+	if params[14] > 0 then --positionVariation
+		px = px + (random() - 0.5 ) * radius * 0.2 
+		pz = pz + (random() - 0.5 ) * radius * 0.2 
+	end
+
 
 	AddDecal(
 		groundscarsPath..texture,
 		px, --posx
 		pz, --posz
-		math.random() * 6.28, -- rotation
+		random() * 6.28, -- rotation
 		radius, -- width
 		radius, -- height
 		heatstart * heightMult, -- heatstart
 		heatdecay * (1+(1-heightMult)), -- heatdecay
-		(math.random() * 0.38 + 0.72) * alpha, -- alphastart
+		(random() * 0.38 + 0.72) * alpha, -- alphastart
 		alphadecay, -- alphadecay
-		math.random() * 0.2 + 0.8, -- maxalpha
+		random() * 0.2 + 0.8, -- maxalpha
 		bwfactor,
 		glowsustain,
 		glowadd,
@@ -1318,8 +1344,8 @@ local UnitScriptDecals = {
 			offsetx = 0, --offset from what the UnitScriptDecal returns 
 			offsetz = 0, -- 
 			offsetrot = 0.0, -- in radians
-			width = 20,
-			height = 40,
+			width = 40,
+			height = 20,
 			heatstart = 0,
 			heatdecay = 0,
 			alphastart = 1.0, 
@@ -1357,7 +1383,7 @@ local UnitScriptDecals = {
 			texture = footprintsPath..'f_armvang_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns 
 			offsetz = 0, -- 
-			offsetrot = 0.0, -- in radians
+			offsetrot = 0.8, -- in radians
 			width = 24,
 			height = 24,
 			heatstart = 0,

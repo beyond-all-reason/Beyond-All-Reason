@@ -1,11 +1,11 @@
 
 local difficulties = {
-	normal   = 0,
-	hard     = 1,
-	veryhard = 2,
-	insane   = 3,
-	epic     = 4,
-	unbeatable = 5,
+	veryeasy = 0,
+	easy 	 = 1,
+	normal   = 2,
+	hard     = 3,
+	veryhard = 4,
+	epic     = 5,
 	survival = 6,
 }
 
@@ -213,12 +213,18 @@ chickenBehaviours = {
 		[UnitDefNames["chickena1_spectre"].id] = { distance = 1000, chance = 0.25},
 		[UnitDefNames["chickena2_spectre"].id] = { distance = 1000, chance = 0.25},
 		[UnitDefNames["chickens2_spectre"].id] = { distance = 1000, chance = 0.25},
-		[UnitDefNames["ve_chickenq"].id] = { chance = 0.005 },
-		[UnitDefNames["e_chickenq"].id] = { chance = 0.005 },
-		[UnitDefNames["n_chickenq"].id] = { chance = 0.005 },
-		[UnitDefNames["h_chickenq"].id] = { chance = 0.005 },
-		[UnitDefNames["vh_chickenq"].id] = { chance = 0.005 },
-		[UnitDefNames["epic_chickenq"].id] = { chance = 0.005 },
+		[UnitDefNames["chicken_miniqueen_spectre"].id] = {distance = 500, chance = 0.01 },
+		[UnitDefNames["chicken_miniqueen_electric"].id] = {distance = 500, chance = 0.01 },
+		[UnitDefNames["chicken_miniqueen_acid"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["chicken_miniqueen_healer"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["chicken_miniqueen_basic"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["chicken_miniqueen_fire"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["ve_chickenq"].id] = { chance = 0.05 },
+		[UnitDefNames["e_chickenq"].id] = { chance = 0.05 },
+		[UnitDefNames["n_chickenq"].id] = { chance = 0.05 },
+		[UnitDefNames["h_chickenq"].id] = { chance = 0.05 },
+		[UnitDefNames["vh_chickenq"].id] = { chance = 0.05 },
+		[UnitDefNames["epic_chickenq"].id] = { chance = 0.05 },
 	},
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and queen
 		[UnitDefNames["chickenh1"].id] = true,
@@ -242,119 +248,133 @@ chickenBehaviours = {
 
 local optionValues = {
 
-	[difficulties.normal] = {
+	[difficulties.veryeasy] = {
+		gracePeriod       = 8 * Spring.GetModOptions().chicken_graceperiodmult * 60,
+		queenTime      	  = 50 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 120,
 		burrowSpawnRate   = 150,
-		turretSpawnRate   = 900,
+		turretSpawnRate   = 300,
 		queenSpawnMult    = 1,
 		angerBonus        = 1,
 		maxXP			  = 0.5,
-		spawnChance       = 0.2,
+		spawnChance       = 0.1,
 		damageMod         = 0.4,
 		maxBurrows        = 1000,
-		minChickens		  = 25,
-		maxChickens		  = 50,
+		minChickens		  = 5,
+		maxChickens		  = 25,
 		chickenPerPlayerMultiplier = 0.25,
 		queenName         = 've_chickenq',
-		queenResistanceMult   = 1,
+		queenResistanceMult   = 0.5,
 	},
 
-	[difficulties.hard] = {
-		chickenSpawnRate  = 100,
+	[difficulties.easy] = {
+		gracePeriod       = 7 * Spring.GetModOptions().chicken_graceperiodmult * 60,
+		queenTime      	  = 45 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		chickenSpawnRate  = 90,
 		burrowSpawnRate   = 120,
-		turretSpawnRate   = 720,
+		turretSpawnRate   = 240,
 		queenSpawnMult    = 1,
 		angerBonus        = 1,
 		maxXP			  = 1,
-		spawnChance       = 0.3,
+		spawnChance       = 0.2,
 		damageMod         = 0.6,
 		maxBurrows        = 1000,
-		minChickens		  = 30,
-		maxChickens		  = 60,
+		minChickens		  = 5,
+		maxChickens		  = 30,
 		chickenPerPlayerMultiplier = 0.25,
 		queenName         = 'e_chickenq',
-		queenResistanceMult   = 1.25,
+		queenResistanceMult   = 0.75,
 	},
-	[difficulties.veryhard] = {
-		chickenSpawnRate  = 80,
+	[difficulties.normal] = {
+		gracePeriod       = 6 * Spring.GetModOptions().chicken_graceperiodmult * 60,
+		queenTime      	  = 40 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		chickenSpawnRate  = 60,
 		burrowSpawnRate   = 90,
-		turretSpawnRate   = 540,
-		queenSpawnMult    = 3,
-		angerBonus        = 1,
-		maxXP			  = 1.5,
-		spawnChance       = 0.4,
-		damageMod         = 0.8,
-		maxBurrows        = 1000,
-		minChickens		  = 35,
-		maxChickens		  = 70,
-		chickenPerPlayerMultiplier = 0.25,
-		queenName         = 'n_chickenq',
-		queenResistanceMult   = 1.5,
-	},
-	[difficulties.insane] = {
-		chickenSpawnRate  = 60,
-		burrowSpawnRate   = 60,
-		turretSpawnRate   = 360,
-		queenSpawnMult    = 3,
-		angerBonus        = 1,
-		maxXP			  = 2,
-		spawnChance       = 0.5,
-		damageMod         = 1,
-		maxBurrows        = 1000,
-		minChickens		  = 40,
-		maxChickens		  = 80,
-		chickenPerPlayerMultiplier = 0.25,
-		queenName         = 'h_chickenq',
-		queenResistanceMult   = 1.75,
-	},
-	[difficulties.epic] = {
-		chickenSpawnRate  = 60,
-		burrowSpawnRate   = 40,
-		turretSpawnRate   = 240,
-		queenSpawnMult    = 3,
-		angerBonus        = 1,
-		maxXP			  = 5,
-		spawnChance       = 0.6,
-		damageMod         = 1.5,
-		maxBurrows        = 1000,
-		minChickens		  = 45,
-		maxChickens		  = 90,
-		chickenPerPlayerMultiplier = 0.25,
-		queenName         = 'vh_chickenq',
-		queenResistanceMult   = 2,
-	},
-	[difficulties.unbeatable] = {
-		chickenSpawnRate  = 60,
-		burrowSpawnRate   = 20,
 		turretSpawnRate   = 120,
 		queenSpawnMult    = 3,
 		angerBonus        = 1,
-		maxXP			  = 10,
-		spawnChance       = 0.8,
-		damageMod         = 2,
+		maxXP			  = 1.5,
+		spawnChance       = 0.3,
+		damageMod         = 0.8,
 		maxBurrows        = 1000,
-		minChickens		  = 50,
-		maxChickens		  = 100,
-		chickenPerPlayerMultiplier = 0.25,
-		queenName         = 'epic_chickenq',
-		queenResistanceMult   = 2.5,
-	},
-
-	[difficulties.survival] = {
-		chickenSpawnRate  = 120,
-		burrowSpawnRate   = 150,
-		turretSpawnRate   = 900,
-		queenSpawnMult    = 1,
-		angerBonus        = 1,
-		maxXP			  = 0.5,
-		spawnChance       = 0.2,
-		damageMod         = 0.4,
-		maxBurrows        = 1000,
-		minChickens		  = 25,
-		maxChickens		  = 50,
+		minChickens		  = 5,
+		maxChickens		  = 35,
 		chickenPerPlayerMultiplier = 0.25,
 		queenName         = 'n_chickenq',
 		queenResistanceMult   = 1,
+	},
+	[difficulties.hard] = {
+		gracePeriod       = 5 * Spring.GetModOptions().chicken_graceperiodmult * 60,
+		queenTime      	  = 40 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		chickenSpawnRate  = 50,
+		burrowSpawnRate   = 60,
+		turretSpawnRate   = 100,
+		queenSpawnMult    = 3,
+		angerBonus        = 1,
+		maxXP			  = 2,
+		spawnChance       = 0.4,
+		damageMod         = 1,
+		maxBurrows        = 1000,
+		minChickens		  = 5,
+		maxChickens		  = 40,
+		chickenPerPlayerMultiplier = 0.25,
+		queenName         = 'h_chickenq',
+		queenResistanceMult   = 1.33,
+	},
+	[difficulties.veryhard] = {
+		gracePeriod       = 4 * Spring.GetModOptions().chicken_graceperiodmult * 60,
+		queenTime      	  = 35 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		chickenSpawnRate  = 40,
+		burrowSpawnRate   = 60,
+		turretSpawnRate   = 80,
+		queenSpawnMult    = 3,
+		angerBonus        = 1,
+		maxXP			  = 2.5,
+		spawnChance       = 0.5,
+		damageMod         = 1.2,
+		maxBurrows        = 1000,
+		minChickens		  = 5,
+		maxChickens		  = 45,
+		chickenPerPlayerMultiplier = 0.25,
+		queenName         = 'vh_chickenq',
+		queenResistanceMult   = 1.67,
+	},
+	[difficulties.epic] = {
+		gracePeriod       = 3 * Spring.GetModOptions().chicken_graceperiodmult * 60,
+		queenTime      	  = 30 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		chickenSpawnRate  = 30,
+		burrowSpawnRate   = 60,
+		turretSpawnRate   = 60,
+		queenSpawnMult    = 3,
+		angerBonus        = 1,
+		maxXP			  = 3,
+		spawnChance       = 0.6,
+		damageMod         = 1.4,
+		maxBurrows        = 1000,
+		minChickens		  = 5,
+		maxChickens		  = 50,
+		chickenPerPlayerMultiplier = 0.25,
+		queenName         = 'epic_chickenq',
+		queenResistanceMult   = 2,
+	},
+
+	[difficulties.survival] = {
+		gracePeriod       = 8 * Spring.GetModOptions().chicken_graceperiodmult * 60,
+		queenTime      	  = 50 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		chickenSpawnRate  = 120,
+		burrowSpawnRate   = 150,
+		turretSpawnRate   = 300,
+		queenSpawnMult    = 1,
+		angerBonus        = 1,
+		maxXP			  = 0.5,
+		spawnChance       = 0.1,
+		damageMod         = 0.4,
+		maxBurrows        = 1000,
+		minChickens		  = 5,
+		maxChickens		  = 25,
+		chickenPerPlayerMultiplier = 0.25,
+		queenName         = 've_chickenq',
+		queenResistanceMult   = 0.5,
 	},
 }
 
@@ -489,16 +509,16 @@ local chickenHealers = { -- Spawn indepedently from squads in small numbers
 -----------
 
 -- Basic Swarmer
-addNewSquad({ type = "basic", minAnger = 0, units = { "4 chicken1_mini" }, weight = 5, maxAnger = 15 })
-addNewSquad({ type = "basic", minAnger = 5, units = { "4 chicken1" }, maxAnger = 45 })
-addNewSquad({ type = "basic", minAnger = 5, units = { "4 chicken1b" }, maxAnger = 45 })
-addNewSquad({ type = "basic", minAnger = 5, units = { "4 chicken1c" }, maxAnger = 45 })
-addNewSquad({ type = "basic", minAnger = 5, units = { "4 chicken1d" }, maxAnger = 45 })
+addNewSquad({ type = "basic", minAnger = 0, units = { "4 chicken1_mini" }, weight = 5, maxAnger = 30 })
+addNewSquad({ type = "basic", minAnger = 5, units = { "4 chicken1" }, maxAnger = 70 })
+addNewSquad({ type = "basic", minAnger = 5, units = { "4 chicken1b" }, maxAnger = 70 })
+addNewSquad({ type = "basic", minAnger = 5, units = { "4 chicken1c" }, maxAnger = 70 })
+addNewSquad({ type = "basic", minAnger = 5, units = { "4 chicken1d" }, maxAnger = 70 })
 
 -- Better Swarmer
-addNewSquad({ type = "basic", minAnger = 25, units = { "4 chicken1x" }, maxAnger = 75 })
-addNewSquad({ type = "basic", minAnger = 25, units = { "4 chicken1y" }, maxAnger = 75 })
-addNewSquad({ type = "basic", minAnger = 25, units = { "4 chicken1z" }, maxAnger = 75 })
+addNewSquad({ type = "basic", minAnger = 25, units = { "4 chicken1x" }, maxAnger = 1000 })
+addNewSquad({ type = "basic", minAnger = 25, units = { "4 chicken1y" }, maxAnger = 1000 })
+addNewSquad({ type = "basic", minAnger = 25, units = { "4 chicken1z" }, maxAnger = 1000 })
 
 -- Brawlers
 addNewSquad({ type = "basic", minAnger = 35, units = { "3 chickena1" }, maxAnger = 1000 })
@@ -627,20 +647,17 @@ addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenf1b", }, weight =
 addNewSquad({ type = "air", minAnger = 60, units = { "4 chickenebomber1" } })
 addNewSquad({ type = "air", minAnger = 60, units = { "4 chickenacidbomber" } })
 
-addNewSquad({ type = "air", minAnger = 70, units = { "10 chicken_dodoair" } })
+addNewSquad({ type = "air", minAnger = 70, units = { "10 chicken_dodoair" }, weight = 5 })
 
-addNewSquad({ type = "air", minAnger = 80, units = { "2 chickenf1apex" } })
-addNewSquad({ type = "air", minAnger = 80, units = { "2 chickenf1apexb" } })
-addNewSquad({ type = "air", minAnger = 80, units = { "6 chickenw2" }, weight = 5 })
+addNewSquad({ type = "air", minAnger = 90, units = { "2 chickenf1apex" } })
+addNewSquad({ type = "air", minAnger = 90, units = { "2 chickenf1apexb" } })
+addNewSquad({ type = "air", minAnger = 90, units = { "6 chickenw2" }, weight = 2 })
+addNewSquad({ type = "air", minAnger = 90, units = { "10 chicken_dodoair" }, weight = 5 })
 
-addNewSquad({ type = "air", minAnger = 90, units = { "4 chickenf1apex" } })
-addNewSquad({ type = "air", minAnger = 90, units = { "4 chickenf1apexb" } })
-addNewSquad({ type = "air", minAnger = 90, units = { "12 chickenw2" }, weight = 5 })
-
-addNewSquad({ type = "air", minAnger = 100, units = { "6 chickenf1apex" } })
-addNewSquad({ type = "air", minAnger = 100, units = { "6 chickenf1apexb" } })
-addNewSquad({ type = "air", minAnger = 100, units = { "18 chickenw2" }, weight = 5 })
-addNewSquad({ type = "air", minAnger = 100, units = { "10 chicken_dodoair" } })
+addNewSquad({ type = "air", minAnger = 100, units = { "3 chickenf1apex" } })
+addNewSquad({ type = "air", minAnger = 100, units = { "3 chickenf1apexb" } })
+addNewSquad({ type = "air", minAnger = 100, units = { "8 chickenw2" }, weight = 2 })
+addNewSquad({ type = "air", minAnger = 100, units = { "10 chicken_dodoair" }, weight = 5 })
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these
@@ -720,9 +737,6 @@ local config = { -- Don't touch this! ------------------------------------------
 	burrowName             	= burrowName,   -- burrow unit name
 	burrowDef              	= UnitDefNames[burrowName].id,
 	chickenSpawnMultiplier 	= Spring.GetModOptions().chicken_spawncountmult,
-	gracePeriod            	= Spring.GetModOptions().chicken_graceperiod * 60,  -- no chicken spawn in this period, frames
-	queenTime              	= Spring.GetModOptions().chicken_queentime * 60, -- time at which the queen appears, frames
-	addQueenAnger          	= Spring.GetModOptions().chicken_queenanger,
 	burrowSpawnType        	= Spring.GetModOptions().chicken_chickenstart,
 	swarmMode			   	= Spring.GetModOptions().chicken_swarmmode,
 	spawnSquare            	= spawnSquare,       

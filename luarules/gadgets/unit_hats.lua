@@ -60,6 +60,8 @@ local unitDefCanWearHats = {
 local vikings = {
 	["Raghna"] = true,
 	["Malady"] = true,
+	["captainjacksparrow"] = true,
+	["[DE]LSR"] = true,
 }
 local kings = {
 	["MightySheep"] = true,

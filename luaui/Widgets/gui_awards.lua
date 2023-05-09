@@ -109,10 +109,13 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 			local pic = ':l:LuaRules/Images/' .. pic .. '.png'
 			gl.Texture(pic)
 			gl.TexRect(widgetX + math.floor(12*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(70*widgetScale), widgetX + math.floor(108*widgetScale), widgetY + widgetHeightScaled - offset + math.floor(25*widgetScale))
+			gl.Texture(false)
 
+			font:End()
 			font2:Begin()
 			font2:Print(colourNames(winnerTeamID) .. winnerName, widgetX + math.floor(120*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(15*widgetScale), 25*widgetScale, "o")
 			font2:End()
+			font:Begin()
 
 			font:Print(noteColour .. note, widgetX + math.floor(130*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(40*widgetScale), 15*widgetScale, "o")
 		else	-- others
@@ -151,9 +154,11 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 				else
 					secondScore = math.floor(secondScore)
 				end
+				font:End()
 				font2:Begin()
 				font2:Print(colourNames(secondTeamID) .. secondName, widgetX + math.floor(520*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(27*widgetScale), 16*widgetScale, "o")
 				font2:End()
+				font:Begin()
 				font:Print(colourNames(secondTeamID) .. secondScore, widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(27*widgetScale), 14*widgetScale, "o")
 			end
 
@@ -163,9 +168,11 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 				else
 					thirdScore = math.floor(thirdScore)
 				end
+				font:End()
 				font2:Begin()
 				font2:Print(colourNames(thirdTeamID) .. thirdName, widgetX + math.floor(520*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(49*widgetScale), 16*widgetScale, "o")
 				font2:End()
+				font:Begin()
 				font:Print(colourNames(thirdTeamID) .. thirdScore, widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(49*widgetScale), 14*widgetScale, "o")
 			end
 		end
@@ -178,7 +185,7 @@ end
 
 local function createBackground()
 	if Background then
-		gl.DeleteList(Background)
+		Background = gl.DeleteList(Background)
 	end
 	if WG['guishader'] then
 		WG['guishader'].InsertRect(widgetX, widgetY, widgetX + widgetWidthScaled, widgetY + widgetHeightScaled, 'awards')
@@ -270,7 +277,7 @@ local function ProcessAwards(awards)
 		offset = offset + offsetAdd
 	end
 	-- make sure the other awards lines are at the bottom
-	local minOffset = 120 + (offsetAdd*3)	
+	local minOffset = 120 + (offsetAdd*3)
 	if offset < minOffset then
 		offset = minOffset
 	end

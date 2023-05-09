@@ -70,8 +70,6 @@ RequestState(requestedstate, currentstate)
 			call-script activatescr();
 			notBuilding = 0;
 			currentstate = 0;
-			show cagelight_emit;
-			spin cagelight around z-axis speed <200>;
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -110,6 +108,8 @@ StartBuilding(heading, pitch)
 	wait-for-turn turret around y-axis;
 	set INBUILDSTANCE to 1;
 	show nano1;
+	show cagelight_emit;
+	spin cagelight around z-axis speed <200>;
 }
 
 StopBuilding()
@@ -118,6 +118,8 @@ StopBuilding()
 	hide nano1;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
+	hide cagelight_emit;
+	turn cagelight to z-axis <0> speed <1000>;
 	sleep 6000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	

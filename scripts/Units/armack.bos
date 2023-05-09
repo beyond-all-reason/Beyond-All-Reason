@@ -299,6 +299,8 @@ Stop()
 	turn aimy1 to y-axis <0> speed <180>;
 	hide beacon1;
 	hide beacon2;
+	turn beacon1 to y-axis <0> speed <1000>;
+	turn beacon2 to y-axis <0> speed <1000>;
 	sleep 500;
 
 }
@@ -325,11 +327,7 @@ RequestState(requestedstate, currentstate)
 		{
 			call-script Go();
 			notBuilding = 0;
-			currentstate = 0;
-			show beacon1;
-			show beacon2;
-			spin beacon1 around y-axis speed <450>;
-			spin beacon2 around y-axis speed <-450>;
+			currentstate = 0;	
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -369,6 +367,10 @@ StartBuilding(heading, pitch)
 	turn aimy1 to y-axis heading speed <160.000000>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
+	show beacon1;
+	show beacon2;
+	spin beacon1 around y-axis speed <450>;
+	spin beacon2 around y-axis speed <-450>;
 }
 
 StopBuilding()
@@ -376,6 +378,10 @@ StopBuilding()
 	hide nano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
+	hide beacon1;
+	hide beacon2;
+	turn beacon1 to y-axis <0> speed <1000>;
+	turn beacon2 to y-axis <0> speed <1000>;
 	sleep 3000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	

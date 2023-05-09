@@ -11,8 +11,8 @@ function widget:GetInfo()
 end
 
 local showRejoinUI = false
-local CATCH_UP_THRESHOLD = 10 * Game.gameSpeed    -- only show the window if behind this much
-local UPDATE_RATE_F = 4 -- frames
+local CATCH_UP_THRESHOLD = 11 * Game.gameSpeed    -- only show the window if behind this much
+local UPDATE_RATE_F = 5 -- frames
 local UPDATE_RATE_S = UPDATE_RATE_F / Game.gameSpeed
 local t = UPDATE_RATE_S
 
@@ -144,6 +144,11 @@ function widget:Update(dt)
 		t = t - dt
 		if t <= 0 then
 			t = t + UPDATE_RATE_S
+
+			if Spring.IsGameOver() then		-- not sure if widget:GameOver() even works so I do this here as well
+				widgetHandler:RemoveWidget()
+				return
+			end
 
 			local speedFactor, _, isPaused = Spring.GetGameSpeed()
 

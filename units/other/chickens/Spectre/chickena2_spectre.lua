@@ -42,7 +42,7 @@ return {
 		objectname = "Chickens/chickena2_spectre.s3o",
 		onlytargetcategory2 = "VTOL",
 		script = "Chickens/chickena2.cob",
-		seismicsignature = 0,
+		seismicsignature = 4,
 		selfdestructas = "MEGABUG_DEATH",
 		side = "THUNDERBIRDS",
 		sightdistance = 400,

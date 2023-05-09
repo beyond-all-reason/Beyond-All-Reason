@@ -5,7 +5,7 @@
 
 
 #define SIG_BUILD		4	
-piece  base, fan, doorl,doorr,platform,arm,nano,emit,thrust;
+piece  base, fan, doorl,doorr,platform,arm,nano,emit,thrust, nanolight;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
@@ -24,6 +24,7 @@ activatescr()
 
 deactivatescr()
 {
+	hide nanolight;
 	if( TRUE )
 	{
 		turn arm to y-axis <0> speed <90>;
@@ -91,6 +92,7 @@ Create()
 {
 	hide emit;
 	hide thrust;
+	hide nanolight;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -125,6 +127,7 @@ StartBuilding(heading, pitch)
 	sleep 500;
 	move platform to y-axis [5] speed [10];
 	set INBUILDSTANCE to 1;
+	show nanolight;
 }
 
 
@@ -133,12 +136,13 @@ StopBuilding()
 	hide emit;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
+	hide nanolight;
 	sleep 6000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	
 	start-script RequestState(1);
-
 	set INBUILDSTANCE to 0;
+	hide nano;
 	return (0);
 }
 
