@@ -94,5 +94,5 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		return 0
 	end
 	--end
-	--return damage
+	return damage
 end
