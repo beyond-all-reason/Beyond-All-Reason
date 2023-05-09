@@ -907,36 +907,6 @@ function UnitDef_Post(name, uDef)
 					vtol = 45,
 			}
 		end
-		--[[if name == "armcom" or name == "corcom" then
-			uDef.featuredefs.dead.metal = 1000
-			uDef.featuredefs.heap.metal = 500
-			uDef.maxdamage = 4500
-			uDef.autoheal = 0
-			uDef.idleautoheal = 5
-			if uDef.weapondefs.disintegrator then
-				uDef.weapondefs.disintegrator.damage = {
-					default = 98999,
-					scavboss = 1000,
-					commanders = 0,
-					}
-			uDef.weapondefs = {
-				repulsor = {
-					name = "DRepulsor",
-					range = 50,
-					weapontype = "Shield",
-					shield = {
-						interceptType = 32,
-						smart = true,
-						radius = 50,
-						visibleHitFrames = 60
-						},
-				},
-			}
-			uDef.weapons[4] = {
-				def = "REPULSOR",
-				}
-			end
-		end]]
 	end
 		
 		
