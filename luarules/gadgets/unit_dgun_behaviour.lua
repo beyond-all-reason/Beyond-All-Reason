@@ -16,6 +16,7 @@ end
 
 local dgunDamages = {}
 local dgunSize = {}
+
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if weaponDef.type == 'DGun' then
 		Script.SetWatchProjectile(weaponDefID, true)
@@ -88,6 +89,8 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 --		end
 --	if isDGun[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
 		Spring.DeleteProjectile(projectileID)
+		local XPos, YPos, ZPos = Spring.GetUnitPosition(unitID)		
+		Spring.SpawnCEG("commander-spawn-explo", XPos, YPos, ZPos,0,0,0,0,0)
 	end
 	--end
 	--return damage

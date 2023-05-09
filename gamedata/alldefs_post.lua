@@ -803,8 +803,111 @@ function UnitDef_Post(name, uDef)
 
 	-- Commander Update
 	
-	--[[if Spring.GetModOptions().comupdate == true then
-		if name == "armcom" or name == "corcom" then
+	if Spring.GetModOptions().comupdate == true then
+		if name == "armllt" then
+			uDef.weapondefs.arm_lightlaser.damage = {
+					bombers = 5,
+					default = 75,
+					fighters = 5,
+					subs = 5,
+					vtol = 5,
+			}
+		end
+		if name == "armbeamer" then
+			uDef.weapondefs.armbeamer_weapon.damage = {
+					bombers = 2,
+					default = 26.6,
+					fighters = 2,
+					vtol = 2,
+			}
+		end
+		if name == "armclaw" then
+			uDef.weapondefs.dclaw.damage = {
+					bombers = 2.5,
+					default = 21,
+					fighters = 2.5,
+					vtol = 2.5,
+			}
+		end
+		if name == "armhlt" then
+			uDef.weapondefs.arm_laserh1.damage = {
+					bombers = 35,
+					default = 387,
+					fighters = 35,
+					vtol = 35,
+			}
+		end
+		if name == "corllt" then
+			uDef.weapondefs.cor_lightlaser.damage = {
+					bombers = 5,
+					default = 75,
+					fighters = 5,
+					subs = 5,
+					vtol = 5,
+			}
+		end
+		if name == "corbhmth" then
+			uDef.weapondefs.corbhmth_weapon.damage = {
+					bombers = 110,
+					default = 450,
+					fighters = 110,
+					subs = 150,
+					vtol = 110,
+			}
+		end
+		if name == "corexp" then
+			uDef.weapondefs.hllt_bottom.damage = {
+					bombers = 5,
+					default = 75,
+					fighters = 5,
+					vtol = 5,
+			}
+		end
+		if name == "corhllt" then
+			uDef.weapondefs.hllt_bottom.damage = {
+					bombers = 5,
+					default = 75,
+					fighters = 5,
+					vtol = 5,
+			}
+			uDef.weapondefs.hllt_top.damage = {
+					bombers = 5,
+					default = 75,
+					fighters = 5,
+					vtol = 5,
+			}
+		end
+		if name == "corhlt" then
+			uDef.weapondefs.cor_laserh1.damage = {
+					bombers = 35,
+					default = 261,
+					fighters = 35,
+					vtol = 35,
+			}
+		end
+		if name == "corllt" then
+			uDef.weapondefs.cor_lightlaser.damage = {
+					bombers = 5,
+					default = 75,
+					fighters = 5,
+					vtol = 5,
+			}
+		end
+		if name == "cormaw" then
+			uDef.weapondefs.dmaw.damage = {
+					default = 22,
+					subs = 5.5,
+			}
+		end
+		if name == "cormexp" then
+			uDef.weapondefs.cormexp_rocket.damage = {
+					bombers = 45,
+					default = 260,
+					fighters = 45,
+					vtol = 45,
+			}
+		end
+		--[[if name == "armcom" or name == "corcom" then
 			uDef.featuredefs.dead.metal = 1000
 			uDef.featuredefs.heap.metal = 500
 			uDef.maxdamage = 4500
@@ -833,8 +936,8 @@ function UnitDef_Post(name, uDef)
 				def = "REPULSOR",
 				}
 			end
-		end
-	end]]
+		end]]
+	end
 		
 		
 
