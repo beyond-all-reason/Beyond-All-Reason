@@ -91,6 +91,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		Spring.DeleteProjectile(projectileID)
 		local XPos, YPos, ZPos = Spring.GetUnitPosition(unitID)		
 		Spring.SpawnCEG("commander-spawn-explo", XPos, YPos, ZPos,0,0,0,0,0)
+		return 0
 	end
 	--end
 	--return damage
