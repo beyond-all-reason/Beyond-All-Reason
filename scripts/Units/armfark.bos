@@ -7,7 +7,7 @@
 #define SIG_WALK    2
 
 piece  pelvis, lthigh, rthigh, torso, rleg, rfoot, lleg, lfoot,
-       luparm, ruparm, rnano, lnano, aimx1, aimy1;
+       luparm, ruparm, rnano, lnano, aimx1, aimy1, armhexl, armhexl2, armhexl_emit, armhexl2_emit;
 
 static-var  bMoving, nanoNozzle, animSpeed, maxSpeed, animFramesPerKeyframe;
 			
@@ -291,6 +291,8 @@ Create()
 	hide aimy1;
     hide lnano;
     hide rnano;
+    hide armhexl_emit;
+    hide armhexl2_emit;
 	bMoving = FALSE;
 	animSpeed = 3;
 	nanoNozzle = 0;
@@ -320,6 +322,8 @@ StartBuilding(heading, pitch)
 	turn aimx1 to x-axis <-50> - pitch speed <240.0>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
+	show armhexl_emit;
+	show armhexl2_emit;
 	start-script BuildAnim();	
 }
 
@@ -329,6 +333,8 @@ StopBuilding()
     hide rnano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
+	hide armhexl_emit;
+	hide armhexl2_emit;
 	turn aimy1 to y-axis <0.000000> speed <160.000000>;
 	turn aimx1 to x-axis <0> speed <240.0>;
 	turn aimy1 to x-axis <0> speed <5>;	
@@ -336,11 +342,12 @@ StopBuilding()
 
 StartMoving()
 {
-  signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+  	signal SIG_WALK;
+  	set-signal-mask SIG_WALK;
 	bMoving = TRUE;
 	start-script UnitSpeed();
 	start-script walk();
+
 }
 
 StopMoving()

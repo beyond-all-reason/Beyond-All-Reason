@@ -34,15 +34,15 @@ local exampleLight = {
 
 local unitDefLights = {
 	[UnitDefNames['armpw'].id] = {
-		headlightpw = { -- this is the lightname
-			lightType = 'cone',
-			pieceName = 'justattachtobase', -- invalid ones will attach to the worldpos of the unit
-			lightConfig = { posx = 0, posy = 23, posz = 7, radius = 80,
-							dirx = 0, diry = -0.07, dirz = 1, theta = 0.27,
-							r = 1, g = 1, b = 0.89, a = 0.45,
-							modelfactor = -0.5, specular = -1.5, scattering = 1.8, lensflare = 1,
-							lifetime = 0, sustain = 0, animtype = 0},
-		},
+		-- headlightpw = { -- this is the lightname
+		-- 	lightType = 'cone',
+		-- 	pieceName = 'justattachtobase', -- invalid ones will attach to the worldpos of the unit
+		-- 	lightConfig = { posx = 0, posy = 23, posz = 7, radius = 80,
+		-- 					dirx = 0, diry = -0.07, dirz = 1, theta = 0.27,
+		-- 					r = 1, g = 1, b = 0.89, a = 0.45,
+		-- 					modelfactor = -0.5, specular = -1.5, scattering = 1.8, lensflare = 1,
+		-- 					lifetime = 0, sustain = 0, animtype = 0},
+		-- },
 		eyes = {
 			lightType = 'point',
 			pieceName = 'head',
@@ -2159,6 +2159,24 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armfark'].id] = {
+		armbuildlight = {
+			lightType = 'point',
+			pieceName = 'armhexl_emit',
+			lightConfig = { posx = 0, posy = 2, posz = -1, radius = 8.2,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 30,
+							r = 1.2, g = 0.89, b = 0.1, a = 1,
+							modelfactor = 0.25, specular = 0.35, scattering = 0.4, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		armbuildlight2 = {
+			lightType = 'point',
+			pieceName = 'armhexl2_emit',
+			lightConfig = { posx = 0, posy = 2, posz = -1, radius = 8.2,
+							color2r = 1.2, color2g = 0.89, color2b = 0.1, colortime = 30,
+							r = 0, g = 0, b = 0, a = 1,
+							modelfactor = 0.25, specular = 0.35, scattering = 0.4, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'lnano',
@@ -5530,6 +5548,41 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armavp'].id] = {
+		buildlight = { -- this is the lightname
+			lightType = 'cone',
+			pieceName = 'cagelight_emit',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 19,
+							dirx = 1, diry = 0, dirz = 0, theta = 0.99,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 4,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		buildlightB = { -- this is the lightname
+			lightType = 'cone',
+			pieceName = 'cagelight_emit',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 19,
+							dirx = -1, diry = 0, dirz = 0, theta = 0.99,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 4,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},buildlight2 = { -- this is the lightname
+			lightType = 'cone',
+			pieceName = 'cagelight2_emit',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 19,
+							dirx = 1, diry = 0, dirz = 0, theta = 0.99,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 4,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		buildlight2B = { -- this is the lightname
+			lightType = 'cone',
+			pieceName = 'cagelight2_emit',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 19,
+							dirx = -1, diry = 0, dirz = 0, theta = 0.99,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 4,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nano1',
@@ -5739,6 +5792,41 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armalab'].id] = {
+		buildlight = { -- this is the lightname
+			lightType = 'cone',
+			pieceName = 'cagelight_emit',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15,
+							dirx = 1, diry = 0, dirz = 0, theta = 0.99,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 4,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		buildlightB = { -- this is the lightname
+			lightType = 'cone',
+			pieceName = 'cagelight_emit',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15,
+							dirx = -1, diry = 0, dirz = 0, theta = 0.99,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 4,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},buildlight2 = { -- this is the lightname
+			lightType = 'cone',
+			pieceName = 'cagelight2_emit',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15,
+							dirx = 1, diry = 0, dirz = 0, theta = 0.99,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 4,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		buildlight2B = { -- this is the lightname
+			lightType = 'cone',
+			pieceName = 'cagelight2_emit',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15,
+							dirx = -1, diry = 0, dirz = 0, theta = 0.99,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 4,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nano1',
@@ -6995,15 +7083,15 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armstump'].id] = {
-		searchlight = {
-			lightType = 'cone',
-			pieceName = 'base',
-			lightConfig = { posx = 0, posy = 0, posz = 10, radius = 100,
-				dirx = 0, diry = -0.08, dirz = 1, theta = 0.25,
-				r = 1, g = 1, b = 1, a = 0.45,
-				modelfactor = 0, specular = 1, scattering = 1.5, lensflare = 0.6,
-				lifetime = 0, sustain = 0, animtype = 0},
-		},
+		-- searchlight = {
+		-- 	lightType = 'cone',
+		-- 	pieceName = 'base',
+		-- 	lightConfig = { posx = 0, posy = 0, posz = 10, radius = 100,
+		-- 		dirx = 0, diry = -0.08, dirz = 1, theta = 0.25,
+		-- 		r = 1, g = 1, b = 1, a = 0.45,
+		-- 		modelfactor = 0, specular = 1, scattering = 1.5, lensflare = 0.6,
+		-- 		lifetime = 0, sustain = 0, animtype = 0},
+		-- },
 		frontbase = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -10829,6 +10917,24 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['corbw'].id] = {
+		emplight = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 1.5, posz = 5.2, radius = 5,
+							color2r = 0.3, color2g = 0.3, color2b = 0.7, colortime = 100,
+							r = 0.80, g = 0.85, b = 1.3, a = 0.8,
+							modelfactor = 0.2, specular = 0.3, scattering = 2, lensflare = 20,
+							lifetime = 0, sustain = 0, animtype = 0 },
+		},
+		empblast = {
+			lightType = 'point',
+			pieceName = 'flare',
+			lightConfig = { posx = 0, posy = 2.7, posz = 6, radius = 20,
+							color2r = 0.3, color2g = 0.3, color2b = 0.7, colortime = 2,
+							r = 0.85, g = 0.85, b = 1.1, a = 1,
+							modelfactor = 0.8, specular = 0.8, scattering = 0.2, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0 },
+		},
 		eyes = {
 			lightType = 'point',
 			pieceName = 'base',
@@ -10841,7 +10947,7 @@ local unitDefLights = {
 		thrusta = {
 			lightType = 'point',
 			pieceName = 'thrusta',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 12,
+			lightConfig = { posx = 0, posy = 0, posz = -4, radius = 14,
 							color2r = 1, color2g = 1, color2b = 1, colortime = 0,
 							r = 0.45, g = 0.7, b = 1, a = 0.18,
 							modelfactor = 0.4, specular = 0, scattering = 0.2, lensflare = 0,
@@ -10850,7 +10956,7 @@ local unitDefLights = {
 		thrustb = {
 			lightType = 'point',
 			pieceName = 'thrustb',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 12,
+			lightConfig = { posx = 0, posy = 0, posz = -4, radius = 14,
 							color2r = 1, color2g = 1, color2b = 1, colortime = 0,
 							r = 0.45, g = 0.7, b = 1, a = 0.18,
 							modelfactor = 0.4, specular = 0, scattering = 0.23, lensflare = 0,
@@ -12417,10 +12523,28 @@ local unitDefLights = {
 		nanolight = {
 			lightType = 'point',
 			pieceName = 'flare',
-			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 15,
+			lightConfig = { posx = 0, posy = 0, posz = 1.5, radius = 15,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = -1, g = 1, b = 1, a = 0.25,
 							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0 },
+		},
+		emplight = {
+			lightType = 'point',
+			pieceName = 'barrel',
+			lightConfig = { posx = 0, posy = 0.2, posz = 5.9, radius = 6,
+							color2r = 0.3, color2g = 0.3, color2b = 0.7, colortime = 100,
+							r = 0.85, g = 0.85, b = 1.3, a = 0.8,
+							modelfactor = 0.2, specular = 0.3, scattering = 2, lensflare = 20,
+							lifetime = 0, sustain = 0, animtype = 0 },
+		},
+		empblast = {
+			lightType = 'point',
+			pieceName = 'emplight',
+			lightConfig = { posx = 0, posy = 3, posz = 0, radius = 25,
+							color2r = 0.3, color2g = 0.3, color2b = 0.7, colortime = 1.5,
+							r = 0.85, g = 0.85, b = 1.1, a = 0.25,
+							modelfactor = 0.2, specular = 0.3, scattering = 1, lensflare = 10,
 							lifetime = 0, sustain = 0, animtype = 0 },
 		},
 		eyes = {
@@ -12938,6 +13062,44 @@ local unitDefLights = {
 							modelfactor = 0.4, specular = 0, scattering = 1, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
+	},
+	[UnitDefNames['armvader'].id] = {
+		-- redlight = {
+		-- 	lightType = 'point',
+		-- 	pieceName = 'body',
+		-- 	lightConfig = { posx = 0, posy = 3.7, posz = -7, radius = 3,
+		-- 					color2r = 0, color2g = 0, color2b = 0, colortime = 15,
+		-- 					r = 1.1, g = 0.15, b = 0.15, a = 1,
+		-- 					modelfactor = 0.3, specular = 0.3, scattering = 1, lensflare = 0,
+		-- 					lifetime = 0, sustain = 0, animtype = 0},
+		-- },
+		-- redlightbig = {
+		-- 	lightType = 'point',
+		-- 	pieceName = 'body',
+		-- 	lightConfig = { posx = 0, posy = -1, posz = 0, radius = 6.7,
+		-- 					color2r = 0, color2g = 0, color2b = 0, colortime = 17,
+		-- 					r = 1, g = 0.1, b = 0.1, a = 7,
+		-- 					modelfactor = 2, specular = 0.3, scattering = 0, lensflare = 0,
+		-- 					lifetime = 0, sustain = 0, animtype = 0},
+		-- },
+		-- redlightl = {
+		-- 	lightType = 'point',
+		-- 	pieceName = 'body',
+		-- 	lightConfig = { posx = 7.6, posy = 0, posz = 0, radius = 2.6,
+		-- 					color2r = 0, color2g = 0, color2b = 0, colortime = 15,
+		-- 					r = 1.1, g = 0.15, b = 0.15, a = 2,
+		-- 					modelfactor = 0.3, specular = 0.3, scattering = 0.5, lensflare = 0,
+		-- 					lifetime = 0, sustain = 0, animtype = 0},
+		-- },
+		-- redlightr = {
+		-- 	lightType = 'point',
+		-- 	pieceName = 'body',
+		-- 	lightConfig = { posx = -7.6, posy = 0, posz = 0, radius = 2.6,
+		-- 					color2r = 0, color2g = 0, color2b = 0, colortime = 15,
+		-- 					r = 1.1, g = 0.15, b = 0.15, a = 2,
+		-- 					modelfactor = 0.3, specular = 0.3, scattering = 0.5, lensflare = 0,
+		-- 					lifetime = 0, sustain = 0, animtype = 0},
+		-- },
 	},
 
 	[UnitDefNames['armthor'].id] = {
