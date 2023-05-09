@@ -1,4 +1,5 @@
 local enabled = Spring.GetModOptions().newdgun
+local enabled = Spring.GetModOptions().comupdate
 
 function gadget:GetInfo()
 	return {
