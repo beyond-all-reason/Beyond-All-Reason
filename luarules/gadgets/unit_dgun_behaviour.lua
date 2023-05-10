@@ -1,4 +1,5 @@
 local enabled = Spring.GetModOptions().newdgun
+local enabled = Spring.GetModOptions().comupdate
 
 function gadget:GetInfo()
 	return {
@@ -6,7 +7,7 @@ function gadget:GetInfo()
 		desc = "D-Gun projectiles hug ground, deterministic damage against Commanders",
 		author = "Anarchid, Sprung",
 		layer = 0,
-		enabled = false -- Disabled for now because d-gun has been replaced with EMP weapon
+		enabled = enabled
 	}
 end
 
@@ -16,6 +17,7 @@ end
 
 local dgunDamages = {}
 local dgunSize = {}
+
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if weaponDef.type == 'DGun' then
 		Script.SetWatchProjectile(weaponDefID, true)
@@ -79,13 +81,19 @@ end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if dgunDamages[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
-		damagedUnits[projectileID] = damagedUnits[projectileID] or {}
-		if damagedUnits[projectileID][unitID] then
-			return 0
-		else
-			damagedUnits[projectileID][unitID] = true
-			return dgunDamages[weaponDefID][unitArmorType[unitDefID]]
-		end
+--		damagedUnits[projectileID] = damagedUnits[projectileID] or {}
+	--	if damagedUnits[projectileID][unitID] then
+	--		return 0
+--		else
+	--		damagedUnits[projectileID][unitID] = true
+	--		return dgunDamages[weaponDefID][unitArmorType[unitDefID]]
+--		end
+--	if isDGun[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
+		Spring.DeleteProjectile(projectileID)
+		local XPos, YPos, ZPos = Spring.GetUnitPosition(unitID)		
+		Spring.SpawnCEG("commander-spawn-explo", XPos, YPos, ZPos,0,0,0,0,0)
+		return 0
 	end
+	--end
 	return damage
 end
