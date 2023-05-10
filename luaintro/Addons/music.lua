@@ -69,7 +69,6 @@ function addon.Initialize()
 			if customSoundtrackEnabled == 1 then
 				local musicDirCustom 		= 'music/custom'
 				table.append(musicPlaylist, VFS.DirList(musicDirCustom, '*.ogg'))
-				table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/peace', '*.ogg'))
 			end
 		end
 
