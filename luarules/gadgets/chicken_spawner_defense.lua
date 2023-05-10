@@ -274,6 +274,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	local maxBurrows = ((config.maxBurrows*(1-config.chickenPerPlayerMultiplier))+(config.maxBurrows*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 	local queenTime = (config.queenTime + config.gracePeriod)
+	if config.difficulty == config.difficulties.survival then
+		queenTime = math.ceil(queenTime*0.5)
+	end
 	local maxWaveSize = ((config.maxChickens*(1-config.chickenPerPlayerMultiplier))+(config.maxChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 	local minWaveSize = ((config.minChickens*(1-config.chickenPerPlayerMultiplier))+(config.minChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 	config.chickenSpawnRate = config.chickenSpawnRate*Spring.GetModOptions().chicken_spawntimemult
@@ -313,7 +316,7 @@ if gadgetHandler:IsSyncedCode() then
 		config.maxXP = nextDifficulty.maxXP
 		config.queenResistanceMult = nextDifficulty.queenResistanceMult
 		config.angerBonus = nextDifficulty.angerBonus
-		config.queenTime = nextDifficulty.queenTime*0.5
+		config.queenTime = math.ceil(nextDifficulty.queenTime*0.25)
 		queenTime = (config.queenTime + config.gracePeriod)
 		maxBurrows = ((config.maxBurrows*(1-config.chickenPerPlayerMultiplier))+(config.maxBurrows*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 		maxWaveSize = ((config.maxChickens*(1-config.chickenPerPlayerMultiplier))+(config.maxChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
@@ -779,7 +782,7 @@ if gadgetHandler:IsSyncedCode() then
 					if canSpawnBurrow then
 						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(x, y, z, 128)
 					end
-					if canSpawnBurrow then
+					if canSpawnBurrow and playerAgression > config.angerBonus*10 then
 						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, true, false)
 					end
 					if canSpawnBurrow then
@@ -800,6 +803,7 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					elseif j == 100 then
 						timeOfLastSpawn = GetGameSeconds()
+						playerAgression = playerAgression + config.angerBonus
 					end
 				end
 			end

@@ -666,7 +666,7 @@ local useScum = true -- Use scum as space where turrets can spawn (requires scum
 local useWaveMsg = true -- Show dropdown message whenever new wave is spawning
 local spawnSquare = 90 -- size of the chicken spawn square centered on the burrow
 local spawnSquareIncrement = 2 -- square size increase for each unit spawned
-local minBaseDistance = 1000 -- Minimum distance of new burrows from players and other burrows
+local minBaseDistance = 256 -- Minimum distance of new burrows from players and other burrows
 local burrowTurretSpawnRadius = 80
 
 local ecoBuildingsPenalty = { -- Additional queen hatch per second from eco buildup (for 60 minutes queen time. scales to queen time)
