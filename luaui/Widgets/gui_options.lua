@@ -354,6 +354,7 @@ end
 
 local function clearChatInput()
 	--showTextInput = false
+	local doReinit = inputText ~= ''
 	inputText = ''
 	inputTextPosition = 0
 	inputTextInsertActive = false
@@ -361,7 +362,9 @@ local function clearChatInput()
 	if WG['guishader'] then
 		WG['guishader'].RemoveRect('optionsinput')
 	end
-	init()
+	if doReinit then
+		init()
+	end
 end
 
 local function cancelChatInput()

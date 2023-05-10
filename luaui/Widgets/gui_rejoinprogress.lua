@@ -154,7 +154,7 @@ function widget:Update(dt)
 
 			-- update/estimate serverFrame (because widget:GameProgress(n) only happens every 150 frames)
 			if gameStarted and not isPaused then
-				serverFrame = serverFrame + math.ceil(speedFactor * UPDATE_RATE_F)
+				serverFrame = serverFrame + (speedFactor * UPDATE_RATE_F)
 			end
 
 			local framesLeft = serverFrame - Spring.GetGameFrame()
