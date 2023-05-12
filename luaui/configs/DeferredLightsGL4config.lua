@@ -17979,6 +17979,17 @@ local unitEventLights = {
 	},
 
 	StockpileChanged = {
+		[UnitDefNames['legmos'].id] = {
+			cloakBlink = {
+				lightType = 'point',
+				pieceName = 'base',
+				lightConfig = { posx = 0, posy = 17, posz = 12, radius = 22,
+					color2r = 0, color2g = 0, color2b = 0, colortime = 20,
+					r = -1, g = 1, b = 1, a = 0.6,
+					modelfactor = 0.5, specular = 0.3, scattering = 0.25, lensflare = 0,
+					lifetime = 10, sustain = 0, animtype = 0},
+			},
+		},
 		default = {
 			default = {
 				lightType = 'cone',
@@ -17986,7 +17997,7 @@ local unitEventLights = {
 				aboveUnit = 100,
 				lightConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
 					dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
-					r = 1, g = 0, b = 0, a = 0.5,
+					r = -1, g = 0, b = 0, a = 0.5,
 					modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
 					lifetime = 15, sustain = 2, animtype = 0},
 			},
@@ -18005,6 +18016,7 @@ local unitEventLights = {
 					lifetime = 15, sustain = 2, animtype = 0},
 			},
 		},
+
 	},
 
 	UnitGiven = {
