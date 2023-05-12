@@ -803,7 +803,7 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					elseif j == 100 then
 						timeOfLastSpawn = GetGameSeconds()
-						playerAgression = playerAgression + (config.angerBonus*(queenAnger*0.01)
+						playerAgression = playerAgression + (config.angerBonus*(queenAnger*0.01))
 					end
 				end
 			end
