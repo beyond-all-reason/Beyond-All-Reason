@@ -1817,7 +1817,8 @@ function init()
 			snow = false,
 			particles = 9000,
 			guishader = 0,
-			decals = false,
+			decalsgl4 = 0,
+			decals = 0,
 			shadowslider = 1,
 			grass = false,
 			cusgl4 = false,
@@ -1834,7 +1835,8 @@ function init()
 			snow = false,
 			particles = 12000,
 			guishader = 0,
-			decals = true,
+			decalsgl4 = 1,
+			decals = 1,
 			shadowslider = 2,
 			grass = false,
 			cusgl4 = true,
@@ -1851,7 +1853,8 @@ function init()
 		 	snow = true,
 		 	particles = 15000,
 		 	guishader = guishaderIntensity,
-		 	decals = true,
+			decalsgl4 = 1,
+		 	decals = 2,
 			shadowslider = 3,
 		 	grass = true,
 			cusgl4 = true,
@@ -1868,7 +1871,8 @@ function init()
 			snow = true,
 			particles = 20000,
 			guishader = guishaderIntensity,
-			decals = true,
+			decalsgl4 = 1,
+			decals = 3,
 			shadowslider = 4,
 			grass = true,
 			cusgl4 = true,
@@ -1885,7 +1889,8 @@ function init()
 			snow = true,
 			particles = 25000,
 			guishader = guishaderIntensity,
-			decals = true,
+			decalsgl4 = 1,
+			decals = 4,
 			shadowslider = 5,
 			grass = true,
 			cusgl4 = true,
@@ -2452,17 +2457,10 @@ function init()
 		},
 		{ id = "decals", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.decals'), restart = true, min = 0, max = 5, step = 1, type = "slider", value = Spring.GetConfigInt("GroundDecals", 0), description = Spring.I18N('ui.settings.option.decals_descr'),
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("GroundDecals", (value and 1 or 0))
-			  Spring.SendCommands("GroundDecals " .. (value and 1 or 0))
+			  Spring.SetConfigInt("GroundDecals", value)
+			  Spring.SendCommands("GroundDecals " .. value)
 		  end,
 		},
-		--{ id = "decals", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.decals'), restart = true, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 3) or 3) >= 1, description = Spring.I18N('ui.settings.option.decals_descr'),
-		--  onchange = function(i, value)
-		--	  Spring.SetConfigInt("GroundDecals", (value and 3 or 0))
-		--	  Spring.SendCommands("GroundDecals " .. (value and 3 or 0))
-		--	  Spring.SetConfigInt("GroundScarAlphaFade", 1)
-		--  end,
-		--},
 
 		{ id = "grass", group = "gfx", category = types.basic, widget = "Map Grass GL4", name = Spring.I18N('ui.settings.option.grass'), type = "bool", value = GetWidgetToggleValue("Map Grass GL4"), description = Spring.I18N('ui.settings.option.grass_desc') },
 		{ id = "grassdistance", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.grassdistance'), type = "slider", min = 0.3, max = 1, step = 0.01, value = 1, description = Spring.I18N('ui.settings.option.grassdistance_desc'),
