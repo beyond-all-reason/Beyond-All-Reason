@@ -12,7 +12,7 @@ function gadget:GetInfo()
 		author = "Bluestone",
 		date = "",
 		license = "GNU GPL, v2 or later, Horses",
-		layer = 0,
+		layer = -1999999999,
 		enabled = true  --  loaded by default?
 	}
 end
@@ -626,17 +626,122 @@ else	-- UNSYNCED
 			local mapcx = Game.mapSizeX/2
 			local mapcz = Game.mapSizeZ/2
 			local mapcy = Spring.GetGroundHeight(mapcx,mapcz)
+			Spring.Debug.TableEcho(camState)
 			camState["px"] = mapcx
 			camState["py"] = mapcy
 			camState["pz"] = mapcz
 			camState["height"] = mapcy + 2000
+			camState["dist"] = mapcy + 2000
 			Spring.SetCameraState(camState, 0.75)
 		end
 	end
+	
+	------------------------------UNSYNCED-----------------------------
+	local fightertestactive = false
+	local fighterteststats = {
+		simFrameTimes = {},
+		drawFrameTimes = {},
+		updateFrameTimes = {},
+		numunitspawned = {},
+		numunitsdestroyed= {},
+	}
+	
+	
+	-- An Update is always done before a Draw Frame
+	-- An Update always Start with Gadget:Update
+	-- A draw frame actually spans from DrawGenesis to DrawScreenPost!
+	-- The timer of every sim frame ends with a lastFrameTime
+	-- A Sim frame starts at gadget:GameFrame. 
+	-- The end of a Sim Frame is unknown
+	
+	-- A
+	
+	
+	-- Spring.DiffTimers(Spring.GetTimerMicros(),tus)
+	
+	local lastDrawTimerUS = Spring.GetTimerMicros()
+	local lastSimTimerUS = Spring.GetTimerMicros()
+	local lastUpdateTimerUs = Spring.GetTimerMicros()
+	local lastFrameType = 'draw' -- can be draw, sim, update
+	local simTime = 0
+	local drawTime = 0
+	local updateTime = 0
+	
+	local ss = 0
+	local sd = 0
+	local su = 0
+	local alpha = 0.98
+	
+	function gadget:Update() -- START OF UPDATE
+		if fightertestactive then 
+			local now = Spring.GetTimerMicros()
+			if lastFrameType == 'draw' then 
+				-- We are doing a double draw
+			else
+				-- We are ending a sim frame, so better push the sim frame time number
+				simTime = Spring.DiffTimers(now, lastSimTimerUS)
+				fighterteststats.simFrameTimes[#fighterteststats.simFrameTimes + 1] = simTime
+				ss = alpha * ss + (1-alpha) * simTime
+			end
+			lastUpdateTimerUs = Spring.GetTimerMicros()
+		end
+	end
+	
+	function gadget:GameFrame(n) -- START OF SIM FRAME
+		if fightertestactive then 
+			local now = Spring.GetTimerMicros()
+			if lastFrameType == 'sim' then 
+				-- We are doing double sim, push a sim frame time number
+				simTime = Spring.DiffTimers(now, lastSimTimerUS)
+				fighterteststats.simFrameTimes[#fighterteststats.simFrameTimes + 1] = simTime
+				ss = alpha * ss + (1-alpha) * simTime
+			else -- we are coming off a draw frame
+				
+			end
+			lastSimTimerUS = now
+			lastFrameType = 'sim'
+		end
+	end
+	
+	function gadget:DrawGenesis() -- START OF DRAW
+		if fightertestactive then 
+			local now = Spring.GetTimerMicros()
+			updateTime = Spring.DiffTimers(now, lastUpdateTimerUs)
+			fighterteststats.updateFrameTimes[#fighterteststats.updateFrameTimes + 1] = updateTime
+			su = alpha * su + (1-alpha) * updateTime
+			lastDrawTimerUS = now
+		end
+	end
+	
+	function gadget:DrawScreenPost() -- END OF DRAW
+		if fightertestactive then
+			drawTime = Spring.DiffTimers(Spring.GetTimerMicros(), lastDrawTimerUS)
+			fighterteststats.drawFrameTimes[#fighterteststats.drawFrameTimes + 1] = drawTime
+			sd = alpha * sd + (1-alpha) * drawTime
+
+			lastFrameType = 'draw'
+			dt = drawTime
+		end
+	end
+	
+	function gadget:DrawScreen()
+		if fightertestactive then 
+			local s = string.format("Sim = %3.2f  %3.2f\nUpdate = %3.2f %3.2f\nDraw = %3.2f %3.2f", 
+				ss, simTime, su, updateTime, sd,  drawTime)
+			gl.Text(s, 600,600,16)
+		end
+	end
+	
 	function fightertest(_, line, words, playerID, action)
 		if not isAuthorized(Spring.GetMyPlayerID()) then
 			return
 		end
+		if fightertestactive then 
+			-- We need to dump the stats
+		else
+			-- initialize stats table
+		end
+		fightertestactive = not fightertestactive
 		local msg = PACKET_HEADER .. ':fightertest'
 		for i=1,5 do
 			if words[i] then msg = msg .. " " .. tostring(words[i]) end
@@ -881,5 +986,5 @@ else	-- UNSYNCED
 
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
 	end
-
+	
 end

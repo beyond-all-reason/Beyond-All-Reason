@@ -2007,6 +2007,13 @@ function gadgetHandler:DrawScreenEffects(vsx, vsy)
 	return
 end
 
+function gadgetHandler:DrawScreenPost()
+	for _, g in ipairs(self.DrawScreenPostList) do
+		g:DrawScreenPost(vsx, vsy)
+	end
+	return
+end
+
 function gadgetHandler:DrawScreen(vsx, vsy)
 	for _, g in ipairs(self.DrawScreenList) do
 		g:DrawScreen(vsx, vsy)
