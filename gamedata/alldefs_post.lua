@@ -837,6 +837,43 @@ function UnitDef_Post(name, uDef)
 					vtol = 35,
 			}
 		end
+		if name == "armsam" then
+			uDef.weapondefs.armtruck_missile.damage = {
+					bombers = 120,
+					default = 64,
+					fighters = 160,
+					vtol = 160,
+			}
+		end
+		if name == "armkam" then
+			uDef.weapondefs.med_emg.damage = {
+					bombers = 1,
+					default = 11,
+					fighters = 1,
+					vtol = 1,
+			}
+		end
+		if name == "armblade" then
+			uDef.weapondefs.vtol_sabot.damage = {
+					default = 190,
+			}
+		end
+		if name == "armbrawl" then
+			uDef.weapondefs.vtol_emg.damage = {
+					bombers = 2,
+					default = 16,
+					fighters = 2,
+					vtol = 2,
+			}
+		end		
+		if name == "armsaber" then
+			uDef.weapondefs.vtol_emg2.damage = {
+					bombers = 10,
+					default = 60,
+					fighters = 10,
+					vtol = 10,
+			}
+		end
 		if name == "corllt" then
 			uDef.weapondefs.cor_lightlaser.damage = {
 					bombers = 5,
@@ -907,7 +944,41 @@ function UnitDef_Post(name, uDef)
 					vtol = 45,
 			}
 		end
+		if name == "cormist" then
+			uDef.weapondefs.cortruck_missile.damage = {
+					bombers = 120,
+					default = 47,
+					fighters = 120,
+					vtol = 120,
+			}
+		end
+		if name == "corape" then
+			uDef.weapondefs.vtol_rocket.damage = {
+					bombers = 15,
+					default = 122,
+					fighters = 15,
+					subs = 61,
+					vtol = 15,
+			}
+		end		
+		if name == "corcut" then
+			uDef.weapondefs.vtol_rocket2.damage = {
+					bombers = 9,
+					default = 47,
+					fighters = 9,
+					vtol = 9,
+			}
+		end		
+		if name == "corseap" then
+			uDef.weapondefs.armseap_weapon1.damage = {
+					bombers = 15,
+					default = 342,
+					fighters = 15,
+					vtol = 15,
+			}
+		end
 	end
+	
 		
 		
 
