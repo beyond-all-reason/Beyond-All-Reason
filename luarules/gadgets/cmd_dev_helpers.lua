@@ -626,7 +626,7 @@ else	-- UNSYNCED
 			local mapcx = Game.mapSizeX/2
 			local mapcz = Game.mapSizeZ/2
 			local mapcy = Spring.GetGroundHeight(mapcx,mapcz)
-			Spring.Debug.TableEcho(camState)
+			--Spring.Debug.TableEcho(camState)
 			camState["px"] = mapcx
 			camState["py"] = mapcy
 			camState["pz"] = mapcz
@@ -638,13 +638,7 @@ else	-- UNSYNCED
 	
 	------------------------------UNSYNCED-----------------------------
 	local fightertestactive = false
-	local fighterteststats = {
-		simFrameTimes = {},
-		drawFrameTimes = {},
-		updateFrameTimes = {},
-		numunitspawned = {},
-		numunitsdestroyed= {},
-	}
+	local fighterteststats 
 	
 	
 	-- An Update is always done before a Draw Frame
@@ -732,14 +726,55 @@ else	-- UNSYNCED
 		end
 	end
 	
+	function gadget:UnitCreated()
+		if fightertestactive then 
+			fighterteststats.numunitscreated = fighterteststats.numunitscreated + 1
+		end
+	end
+	
+	function gadget:UnitDestroyed()
+		if fightertestactive then 
+			fighterteststats.numunitsdestroyed = fighterteststats.numunitsdestroyed + 1
+		end
+	end
+	
 	function fightertest(_, line, words, playerID, action)
 		if not isAuthorized(Spring.GetMyPlayerID()) then
 			return
 		end
 		if fightertestactive then 
 			-- We need to dump the stats
+			local s1 = string.format("Fightertest complete, #created = %d, #destroyed = %d",  fighterteststats.numunitscreated, fighterteststats.numunitsdestroyed)
+			Spring.Echo(s1)
+			local res = {}
+			for n, t in pairs({Sim = fighterteststats.simFrameTimes, Draw = fighterteststats.drawFrameTimes, Update = fighterteststats.updateFrameTimes}) do 
+			
+				local total = 0
+				for i,v in ipairs(t) do 
+					total = total + v
+				end
+				local s2 = string.format("%s %d frames, %3.2fms per frame, %4.2fs total", 
+						n, #t, total /#t, total)
+				res[#res+1] = s2
+				Spring.Echo(s2)
+			end
+			
+			
+			-- clean up
+			fighterteststats = {}
 		else
 			-- initialize stats table
+			fighterteststats = {
+				fightertestcommand = line,
+				simFrameTimes = {},
+				drawFrameTimes = {},
+				updateFrameTimes = {},
+				numunitscreated = 0,
+				numunitsdestroyed= 0,
+			}
+			lastDrawTimerUS = Spring.GetTimerMicros()
+			lastSimTimerUS = Spring.GetTimerMicros()
+			lastUpdateTimerUs = Spring.GetTimerMicros()
 		end
 		fightertestactive = not fightertestactive
 		local msg = PACKET_HEADER .. ':fightertest'
