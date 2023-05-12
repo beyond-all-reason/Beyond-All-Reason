@@ -19,7 +19,6 @@ local rangeColor = { 0.5, 0.7, 0.9, 0.17 } -- default range color
 local usestipple = 1 -- 0 or 1resolution size)
 local opacity = 0.17
 
-
 local circleSegments = 64
 ------- GL4 NOTES -----
 --only update every 15th frame, and interpolate pos in shader!
@@ -28,6 +27,7 @@ local circleSegments = 64
 	-- endposrad
 	-- color
 -- TODO: draw ally ranges in diff color!
+-- Dont even do anything if the map does not natively have water.
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
@@ -35,7 +35,6 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 local circleShader = nil
 local circleInstanceVBO = nil
-
 
 local vsSrc = [[
 #version 420
@@ -261,6 +260,11 @@ end
 
 
 function widget:Initialize()
+	if Spring.GetGroundExtremes() > 50 then 
+		widgetHandler:RemoveWidget()
+		return
+	end
+	
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
