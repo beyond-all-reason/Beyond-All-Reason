@@ -1395,10 +1395,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	function updateRaptorSpawnBox()
 		if config.burrowSpawnType == "initialbox_post" then
-			lsx1 = math.max(RaptorStartboxXMin - ((MAPSIZEX*0.005) * queenAnger), 0)
-			lsz1 = math.max(RaptorStartboxZMin - ((MAPSIZEZ*0.005) * queenAnger), 0)
-			lsx2 = math.min(RaptorStartboxXMax + ((MAPSIZEX*0.005) * queenAnger), MAPSIZEX)
-			lsz2 = math.min(RaptorStartboxZMax + ((MAPSIZEZ*0.005) * queenAnger), MAPSIZEZ)
+			lsx1 = math.max(RaptorStartboxXMin - ((MAPSIZEX*0.01) * queenAnger), 0)
+			lsz1 = math.max(RaptorStartboxZMin - ((MAPSIZEZ*0.01) * queenAnger), 0)
+			lsx2 = math.min(RaptorStartboxXMax + ((MAPSIZEX*0.01) * queenAnger), MAPSIZEX)
+			lsz2 = math.min(RaptorStartboxZMax + ((MAPSIZEZ*0.01) * queenAnger), MAPSIZEZ)
 		end
 	end
 
@@ -1590,7 +1590,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			updateRaptorSpawnBox()
 		end
-		if n%((math.ceil(config.turretSpawnRate/(playerAgressionLevel+1)))*30) == 0 and n > 900 and chickenTeamUnitCount < chickenUnitCap then
+		if n%((math.ceil(config.turretSpawnRate))*30) == 0 and n > 900 and chickenTeamUnitCount < chickenUnitCap then
 			spawnCreepStructuresWave()
 		end
 		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
