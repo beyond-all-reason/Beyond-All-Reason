@@ -30,7 +30,7 @@ return {
 		script = "Units/LEGDRONE.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
-		sightdistance = 364,
+		sightdistance = 500,
 		turninplaceanglelimit = 360,
 		turnrate = 1100,
 		upright = true,
