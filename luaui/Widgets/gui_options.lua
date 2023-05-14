@@ -367,9 +367,12 @@ local function clearChatInput()
 end
 
 local function cancelChatInput()
+	local doReinit = inputText ~= ''
 	clearChatInput()
 	widgetHandler.textOwner = nil	--widgetHandler:DisownText()
-	init()
+	if doReinit then
+		init()
+	end
 end
 
 function drawChatInputCursor()
@@ -1262,9 +1265,8 @@ function widget:DrawScreen()
 			elseif prevSelectHover ~= nil then
 				prevSelectHover = nil
 			end
-
-
-			if showTextInput and (inputText ~= prevInputText or updateTextInputDlist) then
+			
+			if showTextInput and (inputText ~= prevInputText or not updateTextInputDlist) then
 				prevInputText = inputText
 				updateInputDlist()
 			end
