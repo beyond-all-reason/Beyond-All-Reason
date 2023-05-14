@@ -1,5 +1,6 @@
 
--- When the overview closes, the camera returns to its previous position
+-- When tabbing out of the overview, the camera DOES NOT "zoom-to-cursor"
+-- When scrolling out of the overiew, the camera DOES "zoom-to-cursor"
 
 function widget:GetInfo()
 	return {
@@ -9,15 +10,16 @@ function widget:GetInfo()
 		date = "May 13, 2023",
 		license = "GNU GPL, v2 or later",
 		layer = 1,
-		enabled = true
+		enabled = false
 	}
 end
-
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local camKeys = {} -- list of buttons that switch to Overview
 local prevCamState = nil;
 
+
+-- INITIALIZATION
 
 local function storeCamKeys()
 	camKeys = {}
@@ -26,6 +28,18 @@ local function storeCamKeys()
 		local btn = keyConfig.sanitizeKey(key):upper()
 		table.insert(camKeys, btn)
 	end
+end
+
+function widget:Initialize()
+	storeCamKeys()
+end
+
+
+-- HELPER FUNCTIONS
+
+local function isScrollUpKey(keyNum)
+	-- todo, this
+	return false
 end
 
 -- works only with single key binds
@@ -39,25 +53,50 @@ local function isCamKey(keyNum)
 	return false
 end
 
-function widget:Initialize()
-	storeCamKeys()
+local function isOverview()
+	return Spring.GetCameraState().name == "ov"
+end
+
+
+-- BUSINESS LOGIC
+
+local function handleScrollUp()
+	if isOverview() then
+		Spring.SendCommands({ "toggleoverview" })
+	end
+end
+
+local function handleCamKey()
+	if isOverview() then
+		if prevCamState ~= nil then
+			Spring.SetCameraState(prevCamState, 1)
+		end 
+	else
+		prevCamState = Spring.GetCameraState()
+	end
 end
 
 function widget:KeyPress(key, modifier)
-	if not isCamKey(key) then
-		return
-	end
-
-	local camState = Spring.GetCameraState()
-	local isOverview = camState.name == "ov"
-
-
-	if not isOverview then
-		-- Entering overview
-		prevCamState = camState;
-		return
-	else
-		-- Leaving overview
-		Spring.SetCameraState(prevCamState, 1)
+	if isScrollUpKey(key) then
+		handleScrollUp()
+	elseif isCamKey(key) then
+		handleCamKey()
 	end
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
