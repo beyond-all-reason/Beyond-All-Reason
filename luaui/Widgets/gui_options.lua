@@ -293,6 +293,9 @@ function widget:ViewResize()
 
 	if windowList then
 		gl.DeleteList(windowList)
+		backgroundGuishader = glDeleteList(backgroundGuishader)
+		consoleCmdDlist = glDeleteList(consoleCmdDlist)
+		textInputDlist = glDeleteList(textInputDlist)
 	end
 	windowList = gl.CreateList(DrawWindow)
 
@@ -619,6 +622,16 @@ function DrawWindow()
 	optionButtons = {}
 	optionHover = {}
 
+	-- require restart notification
+	if changesRequireRestart then
+		glColor(1,0,0,0.06)
+		RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY-screenHeight + (31 * widgetScale), elementCorner, 0, 0, 1, 0)
+		RectRound(screenX, screenY - screenHeight + (30 * widgetScale)-1, screenX + screenWidth, screenY-screenHeight + (30 * widgetScale), 0, 0, 0, 0, 0)
+		font:SetTextColor(0.9, 0.3, 0.3, 1)
+		font:SetOutlineColor(0, 0, 0, 0.4)
+		font:Print(Spring.I18N('ui.settings.madechanges'), screenX + math.floor(screenWidth*0.5), screenY - screenHeight + (12 * widgetScale), 15 * widgetScale, "cn")
+	end
+
 	-- draw navigation... backward/forward
 	if totalColumns > maxShownColumns then
 		local buttonSize = 35 * widgetScale
@@ -655,13 +668,6 @@ function DrawWindow()
 		else
 			optionButtonBackward = nil
 		end
-	end
-
-	-- require restart notification
-	if changesRequireRestart then
-		font:SetTextColor(1, 0.35, 0.35, 1)
-		font:SetOutlineColor(0, 0, 0, 0.4)
-		font:Print(Spring.I18N('ui.settings.madechanges'), screenX + math.floor(bgpadding * 2.5), screenY - screenHeight + (3 * widgetScale) + math.floor(bgpadding * 2), 15 * widgetScale, "n")
 	end
 
 	-- draw options
@@ -875,7 +881,7 @@ function widget:Update(dt)
 
 	if sceduleOptionApply then
 		if sceduleOptionApply[1] <= os.clock() then
-			applyOptionValue(sceduleOptionApply[2], true, true)
+			applyOptionValue(sceduleOptionApply[2], nil, true, true)
 			sceduleOptionApply = nil
 		end
 	end
@@ -1322,8 +1328,7 @@ function loadPreset(preset)
 	for optionID, value in pairs(presets[preset]) do
 		local i = getOptionByID(optionID)
 		if options[i] ~= nil then
-			options[i].value = value
-			applyOptionValue(i, true)
+			applyOptionValue(i, value, true)
 		end
 	end
 
@@ -1477,9 +1482,8 @@ function widget:MouseMove(mx, my)
 	if draggingSlider ~= nil then
 		local newValue = getSliderValue(draggingSlider, mx)
 		if options[draggingSlider].value ~= newValue then
-			options[draggingSlider].value = newValue
 			sliderValueChanged = true
-			applyOptionValue(draggingSlider)    -- disabled so only on release it gets applied
+			applyOptionValue(draggingSlider, newValue)    -- disabled so only on release it gets applied
 			if playSounds and (lastSliderSound == nil or os_clock() - lastSliderSound > 0.04) then
 				lastSliderSound = os_clock()
 				Spring.PlaySoundFile(sounds.sliderDrag, 0.4, 'ui')
@@ -1551,8 +1555,7 @@ function mouseEvent(mx, my, button, release)
 
 				-- apply new slider value
 				if draggingSlider ~= nil then
-					options[draggingSlider].value = getSliderValue(draggingSlider, mx)
-					applyOptionValue(draggingSlider)
+					applyOptionValue(draggingSlider, getSliderValue(draggingSlider, mx))
 					draggingSlider = nil
 					draggingSliderPreDragValue = nil
 					return
@@ -1562,8 +1565,7 @@ function mouseEvent(mx, my, button, release)
 				if showSelectOptions ~= nil then
 					for i, o in pairs(optionSelect) do
 						if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-							options[showSelectOptions].value = o[5]
-							applyOptionValue(showSelectOptions)
+							applyOptionValue(showSelectOptions, o[5])
 							if playSounds then
 								Spring.PlaySoundFile(sounds.selectClick, 0.5, 'ui')
 							end
@@ -1613,8 +1615,7 @@ function mouseEvent(mx, my, button, release)
 							for i, o in pairs(optionButtons) do
 
 								if options[i].type == 'bool' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-									options[i].value = not options[i].value
-									applyOptionValue(i)
+									applyOptionValue(i, not options[i].value)
 									if playSounds then
 										if options[i].value then
 											Spring.PlaySoundFile(sounds.toggleOnClick, 0.75, 'ui')
@@ -1642,8 +1643,7 @@ function mouseEvent(mx, my, button, release)
 								draggingSliderPreDragValue = options[draggingSlider].value
 								local newValue = getSliderValue(draggingSlider, mx)
 								if options[draggingSlider].value ~= newValue then
-									options[draggingSlider].value = getSliderValue(draggingSlider, mx)
-									applyOptionValue(draggingSlider)    -- disabled so only on release it gets applied
+									applyOptionValue(draggingSlider, getSliderValue(draggingSlider, mx))    -- disabled so only on release it gets applied
 									if playSounds then
 										Spring.PlaySoundFile(sounds.sliderDrag, 0.3, 'ui')
 									end
@@ -1727,18 +1727,22 @@ function loadWidgetData(widgetName, optionId, configVar)
 	end
 end
 
-function applyOptionValue(i, skipRedrawWindow, force)
+function applyOptionValue(i, newValue, skipRedrawWindow, force)
 	if options[i] == nil then
 		return
+	end
+
+	if newValue ~= nil then
+		if options[i].restart and options[i].value ~= newValue then
+			changesRequireRestart = true
+		end
+
+		options[i].value = newValue
 	end
 
 	if options[i].id ~= 'preset' and presets.lowest[options[i].id] ~= nil and manualChange then
 		options[getOptionByID('preset')].value = presetCodes.custom
 		Spring.SetConfigString('graphicsPreset', presetCodes[presetCodes.custom])
-	end
-
-	if options[i].restart then
-		changesRequireRestart = true
 	end
 
 	local id = options[i].id
@@ -4524,8 +4528,7 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  if getOptionByID('fog_end') and value >= options[getOptionByID('fog_end')].value then
-				  options[getOptionByID('fog_end')].value = value + 0.01
-				  applyOptionValue(getOptionByID('fog_end'))
+				  applyOptionValue(getOptionByID('fog_end'), value + 0.01)
 			  end
 			  Spring.SetAtmosphere({ fogStart = value })
 		  end,
@@ -4535,8 +4538,7 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  if getOptionByID('fog_start') and value <= options[getOptionByID('fog_start')].value then
-				  options[getOptionByID('fog_start')].value = value - 0.01
-				  applyOptionValue(getOptionByID('fog_start'))
+				  applyOptionValue(getOptionByID('fog_start'), value - 0.01)
 			  end
 			  Spring.SetAtmosphere({ fogEnd = value })
 		  end,
@@ -5311,8 +5313,7 @@ function init()
 	if not resettedTonemapDefault then
 		local optionID = getOptionByID('tonemapDefaults')
 		if optionID then
-			options[optionID].value = true
-			applyOptionValue(optionID)
+			applyOptionValue(optionID, true)
 			resettedTonemapDefault = true
 		end
 	end
@@ -6066,8 +6067,7 @@ function widget:TextCommand(command)
 		if optionID then
 			if options[optionID].type == 'bool' then
 				lastOptionCommand = os_clock()
-				options[optionID].value = not options[optionID].value
-				applyOptionValue(optionID)
+				applyOptionValue(optionID, not options[optionID].value)
 			else
 				show = true
 				if showTextInput then
@@ -6085,21 +6085,20 @@ function widget:TextCommand(command)
 					if options[optionID].type == 'select' then
 						local selectKey = getSelectKey(optionID, option[2])
 						if selectKey then
-							options[optionID].value = selectKey
-							applyOptionValue(optionID)
+							applyOptionValue(optionID, selectKey)
 						end
 					elseif options[optionID].type == 'bool' then
+						local value
 						if option[2] == '0' then
-							options[optionID].value = false
+							value = false
 						elseif option[2] == '0.5' then
-							options[optionID].value = 0.5
+							value = 0.5
 						else
-							options[optionID].value = true
+							value = true
 						end
-						applyOptionValue(optionID)
+						applyOptionValue(optionID, value)
 					else
-						options[optionID].value = tonumber(option[2])
-						applyOptionValue(optionID)
+						applyOptionValue(optionID, tonumber(option[2]))
 					end
 				end
 			end
@@ -6134,6 +6133,7 @@ function widget:GetConfigData()
 		waterDetected = waterDetected,
 		customPresets = customPresets,
 		guishaderIntensity = guishaderIntensity,
+		changesRequireRestart = changesRequireRestart,
 
 		-- to restore init defaults
 		mapChecksum = Game.mapChecksum,
@@ -6176,6 +6176,9 @@ function widget:SetConfigData(data)
 		edgeMoveWidth = data.edgeMoveWidth
 	end
 	if Spring.GetGameFrame() > 0 then
+		if data.changesRequireRestart then
+			changesRequireRestart = data.changesRequireRestart
+		end
 		if data.currentGroupTab ~= nil then
 			currentGroupTab = data.currentGroupTab
 		end
