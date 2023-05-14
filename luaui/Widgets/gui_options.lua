@@ -311,9 +311,8 @@ end
 
 
 local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
-local textInputDlist
+--local textInputDlist, consoleCmdDlist, textCursorRect
 local updateTextInputDlist = true
-local textCursorRect
 local showTextInput = true
 local inputText = ''
 local inputTextPosition = 0
@@ -353,24 +352,22 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 end
 
 local function clearChatInput()
-	--showTextInput = false
-	local doReinit = inputText ~= ''
 	inputText = ''
 	inputTextPosition = 0
 	inputTextInsertActive = false
+	init()
+end
+
+local function cancelChatInput()
+	local doReinit = inputText ~= ''
 	backgroundGuishader = glDeleteList(backgroundGuishader)
 	if WG['guishader'] then
 		WG['guishader'].RemoveRect('optionsinput')
 	end
+	widgetHandler.textOwner = nil	--widgetHandler:DisownText()
 	if doReinit then
 		init()
 	end
-end
-
-local function cancelChatInput()
-	clearChatInput()
-	widgetHandler.textOwner = nil	--widgetHandler:DisownText()
-	init()
 end
 
 function drawChatInputCursor()
@@ -382,64 +379,62 @@ function drawChatInputCursor()
 	end
 end
 
-function drawChatInput()
-	if showTextInput then
-		updateTextInputDlist = false
-		textInputDlist = glDeleteList(textInputDlist)
-		textInputDlist = glCreateList(function()
-			local activationArea = {screenX, screenY - screenHeight, screenX + screenWidth, screenY}
-			local usedFontSize = 15 * widgetScale
-			local lineHeight = floor(usedFontSize * 1.15)
-			local x,y,_ = Spring.GetMouseState()
-			local chatlogHeightDiff = 0
-			local inputFontSize = floor(usedFontSize * 1.03)
-			local inputHeight = floor(inputFontSize * 2.15)
-			local leftOffset = floor(lineHeight*0.7)
-			local distance = 0 --elementMargin
-			local usedFont = font
-			local modeText = Spring.I18N('ui.settings.filter')
-			if inputMode ~= '' then
-				modeText = inputMode
-			end
-			local modeTextPosX = floor(activationArea[1]+elementPadding+elementPadding+leftOffset)
-			local textPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
-			local textCursorWidth = 1 + math.floor(inputFontSize / 14)
-			if inputTextInsertActive then
-				textCursorWidth = math.floor(textCursorWidth * 5)
-			end
-			local textCursorPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, inputTextPosition)) * inputFontSize)
+function updateInputDlist()
+	updateTextInputDlist = false
+	glDeleteList(textInputDlist)
+	textInputDlist = glCreateList(function()
+		local activationArea = {screenX, screenY - screenHeight, screenX + screenWidth, screenY}
+		local usedFontSize = 15 * widgetScale
+		local lineHeight = floor(usedFontSize * 1.15)
+		local x,y,_ = Spring.GetMouseState()
+		local chatlogHeightDiff = 0
+		local inputFontSize = floor(usedFontSize * 1.03)
+		local inputHeight = floor(inputFontSize * 2.15)
+		local leftOffset = floor(lineHeight*0.7)
+		local distance = 0 --elementMargin
+		local usedFont = font
+		local modeText = Spring.I18N('ui.settings.filter')
+		if inputMode ~= '' then
+			modeText = inputMode
+		end
+		local modeTextPosX = floor(activationArea[1]+elementPadding+elementPadding+leftOffset)
+		local textPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
+		local textCursorWidth = 1 + math.floor(inputFontSize / 14)
+		if inputTextInsertActive then
+			textCursorWidth = math.floor(textCursorWidth * 5)
+		end
+		local textCursorPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, inputTextPosition)) * inputFontSize)
 
-			-- background
-			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/5)))
-			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 0,0,nil,nil, 0,nil,nil,nil, ui_opacity + 0.2)
-			if WG['guishader'] then
-				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'optionsinput')
-			end
+		-- background
+		local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/5)))
+		UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 0,0,nil,nil, 0,nil,nil,nil, ui_opacity + 0.2)
+		if WG['guishader'] then
+			WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'optionsinput')
+		end
 
-			-- button background
-			local inputButtonRect = {activationArea[1]+elementPadding, activationArea[2]+chatlogHeightDiff-distance-inputHeight+elementPadding, textPosX-inputFontSize, activationArea[2]+chatlogHeightDiff-distance}
-			if inputMode ~= '' then
-				glColor(0.03, 0.12, 0.03, 0.3)
-			else
-				glColor(0, 0, 0, 0.3)
-			end
-			RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 0,0,0,1)
-			glColor(1,1,1,0.033)
-			gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
+		-- button background
+		local inputButtonRect = {activationArea[1]+elementPadding, activationArea[2]+chatlogHeightDiff-distance-inputHeight+elementPadding, textPosX-inputFontSize, activationArea[2]+chatlogHeightDiff-distance}
+		if inputMode ~= '' then
+			glColor(0.03, 0.12, 0.03, 0.3)
+		else
+			glColor(0, 0, 0, 0.3)
+		end
+		RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 0,0,0,1)
+		glColor(1,1,1,0.033)
+		gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
 
-			-- button text
-			usedFont:Begin()
-			usedFont:SetTextColor(0.62, 0.62, 0.62, 1)
-			usedFont:Print(modeText, modeTextPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
+		-- button text
+		usedFont:Begin()
+		usedFont:SetTextColor(0.62, 0.62, 0.62, 1)
+		usedFont:Print(modeText, modeTextPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
 
-			-- text cursor
-			textCursorRect = { textPosX + textCursorPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64) }
+		-- text cursor
+		textCursorRect = { textPosX + textCursorPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64) }
 
-			usedFont:SetTextColor(0.95, 0.95, 0.95, 1)
-			usedFont:Print(inputText, textPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
-			usedFont:End()
-		end)
-	end
+		usedFont:SetTextColor(0.95, 0.95, 0.95, 1)
+		usedFont:Print(inputText, textPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
+		usedFont:End()
+	end)
 end
 
 
@@ -938,12 +933,12 @@ function widget:Update(dt)
 	end
 
 	sec = sec + dt
-	if show and (sec > lastUpdate + 0.6 or forceUpdate) then
+	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
 		sec = 0
 		forceUpdate = nil
 		lastUpdate = sec
 
-		local changes = true
+		local changes = false
 		for i, option in ipairs(options) do
 			if options[i].widget ~= nil and options[i].type == 'bool' and options[i].value ~= GetWidgetToggleValue(options[i].widget) then
 				options[i].value = GetWidgetToggleValue(options[i].widget)
@@ -1166,13 +1161,20 @@ function widget:DrawScreen()
 				end
 				if not tooltipShowing then
 					for i, o in pairs(optionHover) do
-						if options[i] and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' and options[i].type ~= 'text'then
+						if options[i] and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' and options[i].type ~= 'text' then
 							-- display console command at the bottom
-							if (advSettings or devMode) and options[i].onchange ~= nil  then
-								font:Begin()
-								font:SetTextColor(0.5, 0.5, 0.5, 0.27)
-								font:Print('/option ' .. options[i].id, screenX + (8 * widgetScale), screenY - screenHeight + (11 * widgetScale), 14 * widgetScale, "n")
-								font:End()
+							if (advSettings or devMode) and (options[i].onchange ~= nil or options[i].widget) then
+								if not lastConsoleCmdOption or lastConsoleCmdOption ~= options[i].id then
+									consoleCmdDlist = glDeleteList(consoleCmdDlist)
+									consoleCmdDlist = glCreateList(function()
+										font:Begin()
+										font:SetTextColor(0.5, 0.5, 0.5, 0.27)
+										font:Print('/option ' .. options[i].id, screenX + (8 * widgetScale), screenY - screenHeight + (11 * widgetScale), 14 * widgetScale, "n")
+										font:End()
+									end)
+								end
+								glCallList(consoleCmdDlist)
+								lastConsoleCmdOption = options[i].id
 							end
 							-- highlight option
 							UiSelectHighlight(o[1] - 4, o[2], o[3] + 4, o[4], nil, options[i].onclick and (ml and 0.35 or 0.22) or 0.14, options[i].onclick and { 0.5, 1, 0.25 })
@@ -1256,17 +1258,18 @@ function widget:DrawScreen()
 			elseif prevSelectHover ~= nil then
 				prevSelectHover = nil
 			end
-
-
-			if showTextInput then --and updateTextInputDlist then
-				drawChatInput()
-			end
-			if showTextInput and textInputDlist then
-				glCallList(textInputDlist)
-				drawChatInputCursor()
-			elseif WG['guishader'] then
-				WG['guishader'].RemoveRect('optionsinput')
-				textInputDlist = glDeleteList(textInputDlist)
+			if showTextInput then
+				if not textInputDlist or inputText ~= prevInputText or updateTextInputDlist then
+					prevInputText = inputText
+					updateInputDlist()
+				end
+				if textInputDlist then
+					glCallList(textInputDlist)
+					drawChatInputCursor()
+				elseif WG['guishader'] then
+					WG['guishader'].RemoveRect('optionsinput')
+					textInputDlist = glDeleteList(textInputDlist)
+				end
 			end
 		else
 			if WG['guishader'] then
@@ -6003,6 +6006,7 @@ function widget:Shutdown()
 	cancelChatInput()
 	if windowList then
 		glDeleteList(windowList)
+		glDeleteList(backgroundGuishader)
 	end
 	if fontOption then
 		for i, font in pairs(fontOption) do
@@ -6011,16 +6015,16 @@ function widget:Shutdown()
 	end
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('options')
+		WG['guishader'].RemoveRect('optionsinput')
+		WG['guishader'].RemoveScreenRect('options_select')
+		WG['guishader'].RemoveScreenRect('options_select_options')
+		WG['guishader'].removeRenderDlist(selectOptionsList)
 	end
 	if selectOptionsList then
-		if WG['guishader'] then
-			WG['guishader'].RemoveScreenRect('options_select')
-			WG['guishader'].RemoveScreenRect('options_select_options')
-			WG['guishader'].removeRenderDlist(selectOptionsList)
-		end
 		glDeleteList(selectOptionsList)
-		selectOptionsList = nil
 	end
+	glDeleteList(consoleCmdDlist)
+	glDeleteList(textInputDlist)
 	WG['options'] = nil
 end
 
