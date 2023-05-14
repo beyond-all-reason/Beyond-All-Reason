@@ -1761,8 +1761,10 @@ function applyOptionValue(i, newValue, skipRedrawWindow, force)
 	end
 
 	if options[i].id ~= 'preset' and presets.lowest[options[i].id] ~= nil and manualChange then
-		options[getOptionByID('preset')].value = presetCodes.custom
-		Spring.SetConfigString('graphicsPreset', presetCodes[presetCodes.custom])
+		if options[getOptionByID('preset')] then
+			options[getOptionByID('preset')].value = presetCodes.custom
+			Spring.SetConfigString('graphicsPreset', presetCodes[presetCodes.custom])
+		end
 	end
 
 	if options[i].widget ~= nil and widgetHandler.orderList[options[i].widget] ~= nil then
