@@ -311,9 +311,8 @@ end
 
 
 local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
-local textInputDlist
+--local textInputDlist, consoleCmdDlist, textCursorRect
 local updateTextInputDlist = true
-local textCursorRect
 local showTextInput = true
 local inputText = ''
 local inputTextPosition = 0
@@ -382,7 +381,7 @@ function drawChatInputCursor()
 	end
 end
 
-function drawChatInput()
+function updateInputDlist()
 	if showTextInput then
 		updateTextInputDlist = false
 		textInputDlist = glDeleteList(textInputDlist)
@@ -938,12 +937,12 @@ function widget:Update(dt)
 	end
 
 	sec = sec + dt
-	if show and (sec > lastUpdate + 0.6 or forceUpdate) then
+	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
 		sec = 0
 		forceUpdate = nil
 		lastUpdate = sec
 
-		local changes = true
+		local changes = false
 		for i, option in ipairs(options) do
 			if options[i].widget ~= nil and options[i].type == 'bool' and options[i].value ~= GetWidgetToggleValue(options[i].widget) then
 				options[i].value = GetWidgetToggleValue(options[i].widget)
@@ -1166,13 +1165,20 @@ function widget:DrawScreen()
 				end
 				if not tooltipShowing then
 					for i, o in pairs(optionHover) do
-						if options[i] and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' and options[i].type ~= 'text'then
+						if options[i] and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' and options[i].type ~= 'text' then
 							-- display console command at the bottom
-							if (advSettings or devMode) and options[i].onchange ~= nil  then
-								font:Begin()
-								font:SetTextColor(0.5, 0.5, 0.5, 0.27)
-								font:Print('/option ' .. options[i].id, screenX + (8 * widgetScale), screenY - screenHeight + (11 * widgetScale), 14 * widgetScale, "n")
-								font:End()
+							if (advSettings or devMode) and (options[i].onchange ~= nil or options[i].widget) then
+								if not lastConsoleCmdOption or lastConsoleCmdOption ~= options[i].id then
+									consoleCmdDlist = glDeleteList(consoleCmdDlist)
+									consoleCmdDlist = glCreateList(function()
+										font:Begin()
+										font:SetTextColor(0.5, 0.5, 0.5, 0.27)
+										font:Print('/option ' .. options[i].id, screenX + (8 * widgetScale), screenY - screenHeight + (11 * widgetScale), 14 * widgetScale, "n")
+										font:End()
+									end)
+								end
+								glCallList(consoleCmdDlist)
+								lastConsoleCmdOption = options[i].id
 							end
 							-- highlight option
 							UiSelectHighlight(o[1] - 4, o[2], o[3] + 4, o[4], nil, options[i].onclick and (ml and 0.35 or 0.22) or 0.14, options[i].onclick and { 0.5, 1, 0.25 })
@@ -1258,8 +1264,9 @@ function widget:DrawScreen()
 			end
 
 
-			if showTextInput then --and updateTextInputDlist then
-				drawChatInput()
+			if showTextInput and (inputText ~= prevInputText or updateTextInputDlist) then
+				prevInputText = inputText
+				updateInputDlist()
 			end
 			if showTextInput and textInputDlist then
 				glCallList(textInputDlist)
@@ -6021,6 +6028,9 @@ function widget:Shutdown()
 		glDeleteList(selectOptionsList)
 		selectOptionsList = nil
 	end
+	glDeleteList(consoleCmdDlist)
+	glDeleteList(backgroundGuishader)
+	glDeleteList(textInputDlist)
 	WG['options'] = nil
 end
 
