@@ -720,6 +720,9 @@ function DrawWindow()
 								end
 								text = text .. '...'
 							end
+							if option.restart then
+								font:Print('\255\255\090\090*', xPos + (oPadding * 0.3), yPos - (oHeight / 5) - oPadding, oHeight, "no")
+							end
 							font:Print(color .. text, xPos + (oPadding * 2), yPos - (oHeight / 2.4) - oPadding, oHeight, "no")
 						end
 
@@ -1186,7 +1189,11 @@ function widget:DrawScreen()
 							-- highlight option
 							UiSelectHighlight(o[1] - 4, o[2], o[3] + 4, o[4], nil, options[i].onclick and (ml and 0.35 or 0.22) or 0.14, options[i].onclick and { 0.5, 1, 0.25 })
 							if WG.tooltip and options[i].description and options[i].description ~= '' and options[i].description ~= ' ' then
-								WG.tooltip.ShowTooltip('options_description', options[i].description)--, nil, nil, "\255\255\255\255"..options[i].name)
+								local desc = options[i].description
+								if options[i].restart then
+									desc = desc..'\n\n\255\255\120\120'..Spring.I18N('ui.settings.changesrequirerestart')
+								end
+								WG.tooltip.ShowTooltip('options_description', desc)--, nil, nil, "\255\255\255\255"..options[i].name)
 							end
 							break
 						end
