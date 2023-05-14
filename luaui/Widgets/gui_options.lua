@@ -167,6 +167,7 @@ local windowRect = { 0, 0, 0, 0 }
 local showOnceMore = false        -- used because of GUI shader delay
 local resettedTonemapDefault = false
 local heightmapChangeClock
+local requireRestartDefaults = {}
 
 local presetCodes = {}
 local presetNames = {}
@@ -515,7 +516,7 @@ function DrawWindow()
 	windowRect = { screenX, screenY - screenHeight, screenX + screenWidth, screenY }
 
 	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 0, 0, (showTextInput and 0 or 1), 1, 1, 1, 1, ui_opacity + 0.2)
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 0, 1, (showTextInput and 0 or 1), 1, 1, 1, 1, ui_opacity + 0.2)
 
 	-- title
 	local groupMargin = math.floor(bgpadding * 0.8)
@@ -625,8 +626,8 @@ function DrawWindow()
 	-- require restart notification
 	if changesRequireRestart then
 		glColor(1,0,0,0.06)
-		RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY-screenHeight + (31 * widgetScale), elementCorner, 0, 0, 1, 0)
-		RectRound(screenX, screenY - screenHeight + (30 * widgetScale)-1, screenX + screenWidth, screenY-screenHeight + (30 * widgetScale), 0, 0, 0, 0, 0)
+		RectRound(screenX+bgpadding, screenY - screenHeight+bgpadding, screenX + screenWidth-bgpadding, screenY-screenHeight + (31 * widgetScale), elementCorner, 0, 0, 1, 0)
+		RectRound(screenX+bgpadding, screenY - screenHeight+bgpadding + (30 * widgetScale)-1, screenX + screenWidth-bgpadding, screenY-screenHeight + (30 * widgetScale), 0, 0, 0, 0, 0)
 		font:SetTextColor(0.9, 0.3, 0.3, 1)
 		font:SetOutlineColor(0, 0, 0, 0.4)
 		font:Print(Spring.I18N('ui.settings.madechanges'), screenX + math.floor(screenWidth*0.5), screenY - screenHeight + (12 * widgetScale), 15 * widgetScale, "cn")
@@ -1727,25 +1728,35 @@ function loadWidgetData(widgetName, optionId, configVar)
 	end
 end
 
+function checkRequireRestart()
+	changesRequireRestart = false
+	for id, value in pairs(requireRestartDefaults) do
+		local i = getOptionByID(id)
+		if options[i] and options[i].value ~= value then
+			changesRequireRestart = true
+		end
+	end
+end
+
 function applyOptionValue(i, newValue, skipRedrawWindow, force)
 	if options[i] == nil then
 		return
 	end
 
-	if newValue ~= nil then
-		if options[i].restart and options[i].value ~= newValue then
-			changesRequireRestart = true
-		end
+	local id = options[i].id
 
+	if newValue ~= nil then
 		options[i].value = newValue
+	end
+
+	if options[i].restart and requireRestartDefaults[id] ~= nil then
+		checkRequireRestart()
 	end
 
 	if options[i].id ~= 'preset' and presets.lowest[options[i].id] ~= nil and manualChange then
 		options[getOptionByID('preset')].value = presetCodes.custom
 		Spring.SetConfigString('graphicsPreset', presetCodes[presetCodes.custom])
 	end
-
-	local id = options[i].id
 
 	if options[i].widget ~= nil and widgetHandler.orderList[options[i].widget] ~= nil then
 		if options[i].value then
@@ -5783,10 +5794,27 @@ function init()
 		options = filteredOptions
 	end
 
+	if not requireRestartDefaultsInit then
+		requireRestartDefaultsInit = true
+		for i, option in pairs(options) do
+			if option.restart and requireRestartDefaults[option.id] == nil then
+				requireRestartDefaults[option.id] = option.value
+			end
+		end
+	end
+
+	changesRequireRestart = false
+	for id, value in pairs(requireRestartDefaults) do
+		if options[getOptionByID(id)] and options[getOptionByID(id)].value ~= value then
+			changesRequireRestart = true
+		end
+	end
+
 	if windowList then
 		gl.DeleteList(windowList)
 	end
 	windowList = gl.CreateList(DrawWindow)
+
 end
 
 function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
@@ -6134,6 +6162,7 @@ function widget:GetConfigData()
 		customPresets = customPresets,
 		guishaderIntensity = guishaderIntensity,
 		changesRequireRestart = changesRequireRestart,
+		requireRestartDefaults = requireRestartDefaults,
 
 		-- to restore init defaults
 		mapChecksum = Game.mapChecksum,
@@ -6176,6 +6205,9 @@ function widget:SetConfigData(data)
 		edgeMoveWidth = data.edgeMoveWidth
 	end
 	if Spring.GetGameFrame() > 0 then
+		if data.requireRestartDefaults then
+			requireRestartDefaults = data.requireRestartDefaults
+		end
 		if data.changesRequireRestart then
 			changesRequireRestart = data.changesRequireRestart
 		end
