@@ -352,22 +352,14 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 end
 
 local function clearChatInput()
-	local doReinit = inputText ~= ''
 	inputText = ''
 	inputTextPosition = 0
 	inputTextInsertActive = false
-	--backgroundGuishader = glDeleteList(backgroundGuishader)
-	--if WG['guishader'] then
-	--	WG['guishader'].RemoveRect('optionsinput')
-	--end
-	if doReinit then
-		init()
-	end
+	init()
 end
 
 local function cancelChatInput()
 	local doReinit = inputText ~= ''
-	--clearChatInput()
 	backgroundGuishader = glDeleteList(backgroundGuishader)
 	if WG['guishader'] then
 		WG['guishader'].RemoveRect('optionsinput')
@@ -1267,7 +1259,7 @@ function widget:DrawScreen()
 				prevSelectHover = nil
 			end
 			if showTextInput then
-				if inputText ~= prevInputText or not updateTextInputDlist then
+				if not textInputDlist or inputText ~= prevInputText or updateTextInputDlist then
 					prevInputText = inputText
 					updateInputDlist()
 				end
