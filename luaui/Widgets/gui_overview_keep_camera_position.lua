@@ -37,11 +37,6 @@ end
 
 -- HELPER FUNCTIONS
 
-local function isScrollUpKey(keyNum)
-	-- todo, this
-	return false
-end
-
 -- works only with single key binds
 local function isCamKey(keyNum)
 	local pressedSymbol = Spring.GetKeySymbol(keyNum):upper()
@@ -60,13 +55,17 @@ end
 
 -- BUSINESS LOGIC
 
-local function handleScrollUp()
-	if isOverview() then
+function widget:MouseWheel(up, value)
+	if isOverview() and up then
 		Spring.SendCommands({ "toggleoverview" })
+		return true;
 	end
+	
+	--legacy behavior here
+	return false
 end
 
-local function handleCamKey()
+function widget:KeyPress(key, modifier)
 	if isOverview() then
 		if prevCamState ~= nil then
 			Spring.SetCameraState(prevCamState, 1)
@@ -75,28 +74,3 @@ local function handleCamKey()
 		prevCamState = Spring.GetCameraState()
 	end
 end
-
-function widget:KeyPress(key, modifier)
-	if isScrollUpKey(key) then
-		handleScrollUp()
-	elseif isCamKey(key) then
-		handleCamKey()
-	end
-end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
