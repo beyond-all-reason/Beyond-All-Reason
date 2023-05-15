@@ -630,8 +630,14 @@ else	-- UNSYNCED
 			camState["px"] = mapcx
 			camState["py"] = mapcy
 			camState["pz"] = mapcz
+			camState["dy"] = -1
+			camState["dz"] = -1
+			camState["dx"] = 0
+			camState["rx"] = 2.75
 			camState["height"] = mapcy + 2000
 			camState["dist"] = mapcy + 2000
+			camState["name"] = "spring"
+			
 			Spring.SetCameraState(camState, 0.75)
 		end
 	end
@@ -660,11 +666,14 @@ else	-- UNSYNCED
 	local simTime = 0
 	local drawTime = 0
 	local updateTime = 0
+	local isBenchMark = false
+	local benchMarkFrames = 0
 	
 	local ss = 0
 	local sd = 0
 	local su = 0
 	local alpha = 0.98
+	
 	
 	function gadget:Update() -- START OF UPDATE
 		if fightertestactive then 
@@ -719,8 +728,13 @@ else	-- UNSYNCED
 	end
 	
 	function gadget:DrawScreen()
-		if fightertestactive then 
-			local s = string.format("Sim = %3.2f  %3.2f\nUpdate = %3.2f %3.2f\nDraw = %3.2f %3.2f", 
+		if fightertestactive or isBenchMark then 
+			local s = ""
+			if isBenchMark then 
+				s = s .. string.format("Benchmark Frame %d/%d\n", #fighterteststats.simFrameTimes,benchMarkFrames)
+			end
+			
+			s = s .. string.format("Sim = ~%3.2fms  (%3.2fms)\nUpdate = ~%3.2fms (%3.2fms)\nDraw = ~%3.2fms (%3.2fms)", 
 				ss, simTime, su, updateTime, sd,  drawTime)
 			gl.Text(s, 600,600,16)
 		end
@@ -739,6 +753,8 @@ else	-- UNSYNCED
 	end
 	
 	function fightertest(_, line, words, playerID, action)
+	
+		Spring.Echo("Fightertest",line, words, playerID, action)
 		if not isAuthorized(Spring.GetMyPlayerID()) then
 			return
 		end
@@ -747,22 +763,90 @@ else	-- UNSYNCED
 			local s1 = string.format("Fightertest complete, #created = %d, #destroyed = %d",  fighterteststats.numunitscreated, fighterteststats.numunitsdestroyed)
 			Spring.Echo(s1)
 			local res = {}
+			local stats = {}
 			for n, t in pairs({Sim = fighterteststats.simFrameTimes, Draw = fighterteststats.drawFrameTimes, Update = fighterteststats.updateFrameTimes}) do 
-			
+				local ms = {
+					count = 0,
+					total = 0,
+					mean = 0,
+					spread = 0,
+					percentiles = {},
+				
+				}  --mystats
+				-- Discard first 10%
+				local ct = {} -- cleantable 
+				local oldtotal = #t
+				for i,v in ipairs(t) do 
+					if i > (oldtotal * 0.1) then 
+						ms.count = ms.count + 1
+						ct[ms.count] = v
+						ms.total = ms.total + v
+					end
+				end
+				
+				ms.mean = ms.total/ms.count
+				table.sort(ct)
+				
+				for i, v in ipairs(ct) do 
+					ms.spread = ms.spread + math.abs( v - ms.mean)
+				end
+				ms.spread = ms.spread/ms.count
+
+				for _,i in ipairs({0,1,2,5,10,20,35,50,65,80,90,95,98,99,100}) do 
+					ms.percentiles[i] = ct[math.min(#ct, 1 + math.floor(i*0.01 * #ct))]
+				end
+				
+				stats[n] = ms
+				
 				local total = 0
 				for i,v in ipairs(t) do 
 					total = total + v
 				end
+				
 				local s2 = string.format("%s %d frames, %3.2fms per frame, %4.2fs total", 
-						n, #t, total /#t, total)
+						n, ms.count, ms.mean, ms.total)
 				res[#res+1] = s2
 				Spring.Echo(s2)
 			end
 			
+			if isBenchMark then 
+				--stats.scenariooptions = Spring.GetModOptions().scenariooptions -- pass it back so we know difficulty
+				stats.benchmarkcommand = isBenchMark
+				stats.mapName = Game.mapName
+				stats.gameName = Game.gameName .. " " .. Game.gameVersion
+				stats.engineVersion = Engine.versionFull
+				stats.gpu = Platform.gpu
+				stats.cpu = Platform.hwConfig
+				local vsx,vsy = Spring.GetViewGeometry()
+				stats.display = tostring(vsx) ..'x' .. tostring(vsy)
+				
+				Spring.Echo("Benchmark Results")
+				Spring.Debug.TableEcho(stats)
+				
+				
+				if Spring.GetMenuName then
+					local message = Json.encode(stats)
+					--Spring.Echo("Sending Message", message)
+					Spring.SendLuaMenuMsg("ScenarioGameEnd " .. message)
+				end
+			end
+			
 			
 			-- clean up
-			fighterteststats = {}
+			--fighterteststats = {}
 		else
+			Spring.Echo("Starting Fightertest")
+			if Spring.GetModOptions().scenariooptions then
+				--Spring.Echo("Scenario: Spawning on frame", Spring.GetGameFrame())
+				local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
+				Spring.Debug.TableEcho(scenariooptions)
+				scenariooptions = Json.decode(scenariooptions)
+				if scenariooptions and scenariooptions.benchmarkcommand then
+					--This is where the magic happens!
+					isBenchMark = scenariooptions.benchmarkcommand
+					benchMarkFrames = scenariooptions.benchmarkframes
+				end
+			end
 			-- initialize stats table
 			fighterteststats = {
 				fightertestcommand = line,
