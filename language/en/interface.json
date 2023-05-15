@@ -1061,6 +1061,7 @@
 				"playercolors": "Simple Team Colors",
 				"simpleteamcolors": "simple",
 				"simpleteamcolors_reset": "Reset (Restart to reset sliders)",
+				"simpleteamcolors_use_gradient": "Team colors have varied brightness.",
 				"simpleteamcolors_player_r": "Player Red",
 				"simpleteamcolors_player_g": "Player Green",
 				"simpleteamcolors_player_b": "Player Blue",
