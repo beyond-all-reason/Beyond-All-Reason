@@ -128,6 +128,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:laserhit-medium-red",
+				fastautoretargetingenabled = 1,
 				firestarter = 10,
 				impulseboost = 0,
 				impulsefactor = 0,
