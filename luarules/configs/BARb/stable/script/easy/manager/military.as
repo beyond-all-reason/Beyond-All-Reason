@@ -9,11 +9,27 @@ IUnitTask@ AiMakeTask(CCircuitUnit@ unit)
 	return aiMilitaryMgr.DefaultMakeTask(unit);
 }
 
-void AiTaskCreated(IUnitTask@ task)
+void AiTaskAdded(IUnitTask@ task)
 {
 }
 
-void AiTaskClosed(IUnitTask@ task, bool done)
+void AiTaskRemoved(IUnitTask@ task, bool done)
+{
+}
+
+void AiUnitAdded(CCircuitUnit@ unit, Unit::UseAs usage)
+{
+}
+
+void AiUnitRemoved(CCircuitUnit@ unit, Unit::UseAs usage)
+{
+}
+
+void AiLoad(IStream& istream)
+{
+}
+
+void AiSave(OStream& ostream)
 {
 }
 
