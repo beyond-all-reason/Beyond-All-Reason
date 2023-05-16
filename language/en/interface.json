@@ -1365,7 +1365,7 @@
 				"catchupsmoothness": "Catch up smoothness",
 				"catchupsmoothness_descr": "Higher smoothness/fps comes at the expense of catch up speed.\n(higher value = less cpu time gets allocated to drawing)",
 				"catchupminfps": "Catch up min fps",
-				"catchupminfps_descr": "",
+				"catchupminfps_descr": " ",
 				"widgetselector": "Widget selector interface",
 				"widgetselector_descr": "Allow the toggling of the widget selector interface (via F11)",
 				"devmode": "Developer UI",
