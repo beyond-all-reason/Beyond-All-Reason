@@ -1362,6 +1362,8 @@
 				"dgunstallassist_descr": "When the D-Gun order is active, units that drain energy are pause their energy use.",
 				"singleplayerpause": "Pause when in settings/quit/lobby",
 				"singleplayerpause_descr": "Exclusively in singleplayer mode...\n\nPauses the game when showing the settings/quit window or lobby",
+				"catchupsmoothness": "Catch up smoothness",
+				"catchupsmoothness_descr": "Higher smoothness/fps comes at the expense of catch up speed.\n(higher value = less cpu time gets allocated to drawing)",
 				"widgetselector": "Widget selector interface",
 				"widgetselector_descr": "Allow the toggling of the widget selector interface (via F11)",
 				"devmode": "Developer UI",

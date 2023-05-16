@@ -4047,6 +4047,12 @@ function init()
 		  end,
 		},
 
+		{ id = "catchupsmoothness", group = "game", category = types.dev, name = Spring.I18N('ui.settings.option.catchupsmoothness'), type = "slider", min = 0.05, max = 0.3, step = 0.01, value = Spring.GetConfigFloat("MinSimDrawBalance", 0.15), description = Spring.I18N('ui.settings.option.catchupsmoothness_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigFloat("MinSimDrawBalance", value)
+		  end,
+		},
+
 		{ id = "label_ui_behavior", group = "game", name = Spring.I18N('ui.settings.option.label_behavior'), category = types.basic },
 		{ id = "label_ui_behavior_spacer", group = "game", category = types.basic },
 
