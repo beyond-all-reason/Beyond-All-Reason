@@ -1506,7 +1506,7 @@ fragment = [[
             ///
 			#if (USE_ENVIRONMENT_DIFFUSE == 1) || (USE_ENVIRONMENT_SPECULAR == 1)
 				#if (RENDERING_MODE == 0)
-					TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);	//needed for Intel GPU
+					//TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);	//needed for Intel GPU
 				#endif
 			#endif
             ///
@@ -1599,6 +1599,9 @@ fragment = [[
 		#endif
 
 		outColor.rgb *= brightnessFactor; // this is to correct for lack of env mapping, the nastiest hack there has ever been...
+		
+		//iblDiffuse, iblSpecular
+		//outColor.rgb = iblSpecular;
 
 		#if (RENDERING_MODE == 0)
 			fragData[0] = vec4(outColor, texColor2.a);
