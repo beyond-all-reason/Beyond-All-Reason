@@ -3519,15 +3519,15 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setInputButton', { 'inputButton' }, value)
 		  end,
 		},
-		--{ id = "autoeraser", group = "ui", category = types.basic, widget = "Auto point eraser", name = Spring.I18N('ui.settings.option.autoeraser'), type = "bool", value = GetWidgetToggleValue("Auto point eraser"), description = Spring.I18N('ui.settings.option.autoeraser_descr') },
-		--{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.autoeraser_erasetime'), type = "slider", min = 1, max = 240, step = 1, value = 60, description = Spring.I18N('ui.settings.option.autoeraser_erasetime_descr'),
-		--  onload = function(i)
-		--	  loadWidgetData("Auto point eraser", "autoeraser_erasetime", { 'eraseTime' })
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Auto point eraser', 'autoeraser', 'setEraseTime', { 'eraseTime' }, value)
-		--  end,
-		--},
+		{ id = "autoeraser", group = "ui", category = types.basic, widget = "Auto point eraser", name = Spring.I18N('ui.settings.option.autoeraser'), type = "bool", value = GetWidgetToggleValue("Auto point eraser"), description = Spring.I18N('ui.settings.option.autoeraser_descr') },
+		{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.autoeraser_erasetime'), type = "slider", min = 1, max = 240, step = 1, value = 60, description = Spring.I18N('ui.settings.option.autoeraser_erasetime_descr'),
+		  onload = function(i)
+			  loadWidgetData("Auto point eraser", "autoeraser_erasetime", { 'eraseTime' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Auto point eraser', 'autoeraser', 'setEraseTime', { 'eraseTime' }, value)
+		  end,
+		},
 
 		{ id = "topbar_hidebuttons", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.topbar')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.topbar_hidebuttons'), type = "bool", value = (WG['topbar'] ~= nil and WG['topbar'].getAutoHideButtons() or 0),
 		  onload = function(i)
