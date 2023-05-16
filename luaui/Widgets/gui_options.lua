@@ -4047,9 +4047,14 @@ function init()
 		  end,
 		},
 
-		{ id = "catchupsmoothness", group = "game", category = types.dev, name = Spring.I18N('ui.settings.option.catchupsmoothness'), type = "slider", min = 0.05, max = 0.3, step = 0.01, value = Spring.GetConfigFloat("MinSimDrawBalance", 0.15), description = Spring.I18N('ui.settings.option.catchupsmoothness_descr'),
+		{ id = "catchupsmoothness", group = "game", category = types.dev, name = Spring.I18N('ui.settings.option.catchupsmoothness'), restart = true, type = "slider", min = 0.05, max = 0.3, step = 0.01, value = Spring.GetConfigFloat("MinSimDrawBalance", 0.15), description = Spring.I18N('ui.settings.option.catchupsmoothness_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("MinSimDrawBalance", value)
+		  end,
+		},
+		{ id = "catchupminfps", group = "game", category = types.dev, name = Spring.I18N('ui.settings.option.catchupminfps'), restart = true, type = "slider", min = 2, max = 15, step = 1, value = Spring.GetConfigInt("MinDrawFPS", 2), description = Spring.I18N('ui.settings.option.catchupminfps_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("MinDrawFPS", value)
 		  end,
 		},
 
