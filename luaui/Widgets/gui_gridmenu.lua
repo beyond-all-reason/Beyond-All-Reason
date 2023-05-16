@@ -710,10 +710,8 @@ end
 
 local function enqueueUnit(uDefID, opts)
 	local udTable = Spring.GetSelectedUnitsSorted()
-	udTable.n = nil
 	for udidFac, uTable in pairs(udTable) do
 		if isFactory[udidFac] then
-			uTable.n = nil
 			for _, uid in ipairs(uTable) do
 				Spring.GiveOrderToUnit(uid, uDefID, {}, opts)
 			end
@@ -2364,7 +2362,6 @@ function GiveOrderToFactories(cmd, data)
 	data = data or {}
 
 	local udTable = Spring.GetSelectedUnitsSorted()
-	udTable.n = nil
 	for _, uTable in pairs(udTable) do
 		for _, uid in ipairs(uTable) do
 			Spring.GiveOrderToUnit(uid, cmd, data, 0)

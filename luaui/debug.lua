@@ -30,14 +30,12 @@ end
 
 
 function PrintSelection()
-  local udTable       = Spring.GetSelectedUnitsSorted()
+  local udTable, n       = Spring.GetSelectedUnitsSorted()
   local selectedGroup = Spring.GetSelectedGroup()
   print("Selected Group = " .. selectedGroup)
-  print("Selected: " .. udTable.n .. " types")
-  udTable.n = nil
+  print("Selected: " .. n .. " types")
   for udid,uTable in pairs(udTable) do
      print('  ' .. udid .. '=' .. UnitDefs[udid].name .. ' count ' .. uTable.n)
-    uTable.n = nil
     for _,uid in ipairs(uTable) do
       local health, maxHealth, paralyze, capture, build = Spring.GetUnitHealth(uid)
       print('  ', uid, health, maxHealth, paralyze, capture, build)
@@ -45,7 +43,6 @@ function PrintSelection()
     end
   end
   for udid,uTable in pairs(udTable) do
-    uTable.n = nil
     for uid,udid2 in pairs(uTable) do
       PrintBuildQueue(uid)
     end
@@ -252,7 +249,7 @@ end
 
 
 function PrintPlayerInfo(playerID)
-  local name, active, spectator, team, allyteam, ping, cpuUsage = 
+  local name, active, spectator, team, allyteam, ping, cpuUsage =
     Spring.GetPlayerInfo(playerID)
   print('   name:     '..name)
   print('   id:       '..playerID)
@@ -323,7 +320,7 @@ function Debug()
   PrintPlayerTree()
 
   PrintAlliedUnits()
-  
+
   PrintSelection()
   PrintGroups()
   PrintInCommand()
@@ -336,7 +333,7 @@ function Debug()
   print("My Player Info:")
   local myPlayerID = Spring.GetMyPlayerID()
   PrintPlayerInfo(myPlayerID)
-  
+
   PrintTeamUnitsCounts(Spring.GetMyTeamID())
 end
 

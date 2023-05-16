@@ -101,20 +101,18 @@ function widget:Update(dt)
 			selectionChanged = nil
 			local selectedUnitsCount = Spring.GetSelectedUnitsSorted()
 			for uDID,unit in pairs(selectedUnitsCount) do
-				if uDID ~= 'n' then --'n' returns table size
-					for i=1,#unit do
-						local unitID = unit[i]
-						if givenUnits[unitID] then
-							local currentAlpha = 1 - ((os.clock() - (givenUnits[unitID].osClock + (timeoutTime - timeoutFadeTime))) / timeoutFadeTime)
-							if currentAlpha > 1 then
-								currentAlpha = 1
-							end
-							givenUnits[unitID].selected = os.clock() -  (selectedFadeTime * (1 - currentAlpha))
-							--givenUnits[unitID].selectedGameSecs = Spring.GetGameSeconds() + UnitDefs[spGetUnitDefID(unitID)].selfDCountdown
-						else
-							-- uncomment line below for testing
-							-- AddGivenUnit(unitID)
+				for i=1,#unit do
+					local unitID = unit[i]
+					if givenUnits[unitID] then
+						local currentAlpha = 1 - ((os.clock() - (givenUnits[unitID].osClock + (timeoutTime - timeoutFadeTime))) / timeoutFadeTime)
+						if currentAlpha > 1 then
+							currentAlpha = 1
 						end
+						givenUnits[unitID].selected = os.clock() -  (selectedFadeTime * (1 - currentAlpha))
+						--givenUnits[unitID].selectedGameSecs = Spring.GetGameSeconds() + UnitDefs[spGetUnitDefID(unitID)].selfDCountdown
+					else
+						-- uncomment line below for testing
+						-- AddGivenUnit(unitID)
 					end
 				end
 			end

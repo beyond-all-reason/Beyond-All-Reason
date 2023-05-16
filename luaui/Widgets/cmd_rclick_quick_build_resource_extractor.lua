@@ -161,15 +161,13 @@ function widget:Update(dt)
 					-- search for constructors
 					local selUnitsCount = Spring.GetSelectedUnitsCounts()
 					for k,_ in pairs(selUnitsCount) do
-						if k ~= 'n' then
-							if constructorsT1[k] then
-								hasT1constructor = true
-								break
-							end
-							if constructorsT2[k] then
-								hasT2constructor = true
-								break
-							end
+						if constructorsT1[k] then
+							hasT1constructor = true
+							break
+						end
+						if constructorsT2[k] then
+							hasT2constructor = true
+							break
 						end
 					end
 					if hasT1constructor or hasT2constructor then

@@ -269,10 +269,8 @@ end
 
 function ClearFactoryQueues()
 	local udTable = Spring.GetSelectedUnitsSorted()
-	udTable.n = nil
 	for udidFac, uTable in pairs(udTable) do
 		if isFactory[udidFac] then
-			uTable.n = nil
 			for _, uid in ipairs(uTable) do
 				local queue = Spring.GetRealBuildQueue(uid)
 				if queue ~= nil then
