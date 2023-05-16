@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 		name      = "Auto mapmark eraser",
 		desc      = "Erases points after a period of time.",
-		author    = "Floris",
+		author    = "Shaman, Floris",
 		date      = "24 Sept 2022",
 		license   = "",
 		layer     = 0,
