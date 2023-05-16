@@ -254,9 +254,7 @@ function widget:CommandNotify(id, params, options)
 			local xmin, xmax, zmin, zmax = (x-r), (x+r), (z-r), (z+r)
 			--local rx, rz = (xmax - xmin), (zmax - zmin)
 
-			local units = GetFeaturesInRectangle(xmin, zmin, xmax, zmax)
 			local features = Spring.GetFeaturesInCylinder(x, z, r)
-			Spring.Echo(os.clock(), #features, #units)
 
 			local mx, my = WorldToScreenCoords(x, y, z)
 			local wy = Spring.GetGroundHeight(x, z)
