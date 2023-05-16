@@ -125,8 +125,8 @@ function widget:DrawScreen()
 		local rdx, rdy = (rangestart[1] - rangeend[1]), (rangestart[3] - rangeend[3])
 		local dist = math_sqrt((rdx * rdx) + (rdy * rdy))
 		local features = Spring.GetFeaturesInCylinder(rangestart[1], rangestart[3], dist)
-		for _, unit in ipairs(features) do
-			local fm, _, fe = Spring.GetFeatureResources(unit)
+		for _, featureID in ipairs(features) do
+			local fm, _, fe = Spring.GetFeatureResources(featureID)
 			metal = metal + fm
 			energy = energy + fe
 		end

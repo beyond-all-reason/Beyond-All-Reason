@@ -255,6 +255,8 @@ function widget:CommandNotify(id, params, options)
 			--local rx, rz = (xmax - xmin), (zmax - zmin)
 
 			local units = GetFeaturesInRectangle(xmin, zmin, xmax, zmax)
+			local features = Spring.GetFeaturesInCylinder(x, z, r)
+			Spring.Echo(os.clock(), #features, #units)
 
 			local mx, my = WorldToScreenCoords(x, y, z)
 			local wy = Spring.GetGroundHeight(x, z)
@@ -263,31 +265,25 @@ function widget:CommandNotify(id, params, options)
 			if ct == "feature" then
 				local cu = oid
 
-				for i=1,#units,1 do
-					local uid = units[i]
-					local ux, uy, uz = GetFeaturePosition(uid)
-					local ur = GetFeatureRadius(uid)
-					local urx, urz = abs(ux - x), abs(uz - z)
-					local ud = sqrt((urx * urx) + (urz * urz))-ur*.5
-
-					if ud < r then
-					local mr, _, er = GetFeatureResources(uid)
-						if uy < 0 then
-							if mr > 0 then
-								rmtwCount = rmtwCount + 1
-								rmtw[rmtwCount] = uid
-							elseif er > 0 then
-								retwCount = retwCount + 1
-								retw[retwCount] = uid
-							end
-						elseif uy > 0 then
-							if mr > 0 then
-								rmtgCount = rmtgCount + 1
-								rmtg[rmtgCount] = uid
-							elseif er > 0 then
-								retgCount = retgCount + 1
-								retg[retgCount] = uid
-							end
+				for i=1, #features, 1 do
+					local featureID = features[i]
+					local _, uy, _ = GetFeaturePosition(featureID)
+					local mr, _, er = GetFeatureResources(featureID)
+					if uy < 0 then
+						if mr > 0 then
+							rmtwCount = rmtwCount + 1
+							rmtw[rmtwCount] = featureID
+						elseif er > 0 then
+							retwCount = retwCount + 1
+							retw[retwCount] = featureID
+						end
+					elseif uy > 0 then
+						if mr > 0 then
+							rmtgCount = rmtgCount + 1
+							rmtg[rmtgCount] = featureID
+						elseif er > 0 then
+							retgCount = retgCount + 1
+							retg[retgCount] = featureID
 						end
 					end
 				end
