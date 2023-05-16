@@ -30,11 +30,12 @@ end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz, arg1, arg2, arg3, arg4) -- cmdType can be 'erase', 'point', or 'line', arg1 is the text or line length(?)
 	if cmdType ~= "erase" then
-		local count = pointsToErase and #pointsToErase or -1
-		if count > 0 then
-			pointsToErase[frame + (eraseTime*30)][count + 1] = {px, py, pz, playerID}
+		local f = frame + (eraseTime*30)
+		local count = pointsToErase[f] and #pointsToErase[f] or 0
+		if count == 0 then
+			pointsToErase[f] = {[1] = {px, py, pz, playerID}}
 		else
-			pointsToErase[frame + (eraseTime*30)] = {[1] = {px, py, pz, playerID}}
+			pointsToErase[f][count+1] = {px, py, pz, playerID}
 		end
 	end
 end
