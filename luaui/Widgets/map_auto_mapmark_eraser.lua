@@ -14,7 +14,6 @@ local eraseTime = 100
 local frame = -1
 local pointsToErase = {}
 local recentlyErased = {}
-local commandsThisSecond = 0
 
 function widget:Initialize()
 	WG['autoeraser'] = {}
@@ -24,7 +23,7 @@ function widget:Initialize()
 	WG['autoeraser'].setEraseTime = function(value)
 		eraseTime = value
 	end
-	WG['autoeraser'].getRecentlyErased = function(value)	-- so mapmarks fx widget can call this and wont active on auto erasing
+	WG['autoeraser'].getRecentlyErased = function(value)	-- so mapmarks fx widget can call this and wont activate on auto erasing
 		return recentlyErased
 	end
 end
@@ -45,21 +44,12 @@ function widget:GameFrame(f)
 	if pointsToErase[f] then
 		for i = 1, #pointsToErase[f] do
 			local point = pointsToErase[f][i]
-			if commandsThisSecond < 16 then -- prevent ratelimit
-				Spring.MarkerErasePosition(point[1], point[2], point[3], nil, true, point[4])
-				recentlyErased[#recentlyErased+1] = {f, point[1], point[2], point[3] }
-			else
-				if pointsToErase[f + 30] then
-					pointsToErase[f + 30][#pointsToErase[f + 30] + 1] = {point[1], point[2], point[3], point[4]}
-				else
-					pointsToErase[f + 30] = {[1] = {point[1], point[2], point[3], point[4]}}
-				end
-			end
+			Spring.MarkerErasePosition(point[1], point[2], point[3], nil, true, point[4], true)
+			recentlyErased[#recentlyErased+1] = {f, point[1], point[2], point[3] }
 		end
 		pointsToErase[f] = nil
 	end
 	if f % 30 == 0 then
-		commandsThisSecond = 0
 		local newRecentlyErased = {}
 		for i, params in ipairs(recentlyErased) do
 			if params[1] + 10 > f then
