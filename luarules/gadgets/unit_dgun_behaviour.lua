@@ -45,8 +45,8 @@ local function addVolumetricDamage(projectileID)
 		damages = dgunWeapons[weaponDefID].damages,
 		hitUnit = 1,
 		hitFeature = 1,
-		craterAreaOfEffect = dgunWeapons[weaponDefID].craterAreaOfEffect, -- * 2 ????
-		damageAreaOfEffect = dgunWeapons[weaponDefID].damageAreaOfEffect, -- * 2 ????
+		craterAreaOfEffect = dgunWeapons[weaponDefID].craterAreaOfEffect,
+		damageAreaOfEffect = dgunWeapons[weaponDefID].damageAreaOfEffect,
 		edgeEffectiveness = dgunWeapons[weaponDefID].edgeEffectiveness,
 		explosionSpeed = dgunWeapons[weaponDefID].explosionSpeed,
 		impactOnly = dgunWeapons[weaponDefID].impactOnly,
@@ -70,8 +70,8 @@ end
 
 function gadget:GameFrame()
 	for proID in pairs(flyingDGuns) do
-		-- Fireball is hitscan while in flight, engine only applies AoE damage after hitting the ground
-		-- Need to add this AoE damage manually for flying projectiles
+		-- Fireball is hitscan while in flight, engine only applies AoE damage after hitting the ground,
+		-- so we need to add the AoE damage manually for flying projectiles
 		addVolumetricDamage(proID)
 
 		local x, y, z = Spring.GetProjectilePosition(proID)
