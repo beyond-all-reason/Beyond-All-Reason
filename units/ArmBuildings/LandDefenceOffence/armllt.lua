@@ -125,6 +125,7 @@ return {
 				edgeeffectiveness = 0.15,
 				energypershot = 20,
 				explosiongenerator = "custom:laserhit-small-red",
+				fastautoretargeting = 1,
 				firestarter = 30,
 				impactonly = 1,
 				impulseboost = 0,

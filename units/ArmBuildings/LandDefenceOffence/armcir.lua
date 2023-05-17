@@ -127,6 +127,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
+				fastautoretargeting = 1,
 				firestarter = 20,
 				flighttime = 2.3,
 				impulseboost = 0,

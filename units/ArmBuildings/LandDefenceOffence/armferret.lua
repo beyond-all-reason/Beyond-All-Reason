@@ -132,6 +132,7 @@ return {
 				edgeeffectiveness = 0.15,
 				energypershot = 0,
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
+				fastautoretargeting = 1,
 				firestarter = 72,
 				flighttime = 2.5,
 				impulseboost = 0.123,

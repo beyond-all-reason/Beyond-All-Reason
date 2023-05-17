@@ -137,6 +137,7 @@ return {
 				duration = 1,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
+				fastautoretargeting = 1,
 				firestarter = 50,
 				impactonly = 1,
 				impulseboost = 0,

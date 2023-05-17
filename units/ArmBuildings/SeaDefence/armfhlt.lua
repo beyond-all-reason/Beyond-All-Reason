@@ -99,6 +99,7 @@ return {
 				edgeeffectiveness = 0.15,
 				energypershot = 40,
 				explosiongenerator = "custom:laserhit-medium-green",
+				fastautoretargeting = 1,
 				firestarter = 90,
 				impactonly = 1,
 				impulseboost = 0,
