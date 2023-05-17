@@ -150,6 +150,7 @@ return {
 				badtargetcategory = "VTOL",
 				def = "ARM_FATBOY_NOTALASER",
 				onlytargetcategory = "SURFACE",
+				weaponaimadjustpriority = 1.5,
 			},
 		},
 	},
