@@ -1,13 +1,12 @@
-local enabled = Spring.GetModOptions().newdgun
-local enabled = Spring.GetModOptions().comupdate
+local newCommanderBehaviour = Spring.GetModOptions().comupdate
 
 function gadget:GetInfo()
 	return {
 		name = "D-Gun Behaviour",
-		desc = "D-Gun projectiles hug ground, deterministic damage against Commanders",
+		desc = "D-Gun projectiles hug ground, volumetric damage, deterministic damage against Commanders",
 		author = "Anarchid, Sprung",
 		layer = 0,
-		enabled = enabled
+		enabled = true
 	}
 end
 
@@ -15,32 +14,51 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local dgunDamages = {}
-local dgunSize = {}
+local dgunWeapons = {}
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if weaponDef.type == 'DGun' then
 		Script.SetWatchProjectile(weaponDefID, true)
-		dgunDamages[weaponDefID] = weaponDef.damages
-		dgunSize[weaponDefID] = weaponDef.size
+		dgunWeapons[weaponDefID] = weaponDef
 	end
 end
 
 local isCommander = {}
-local unitArmorType = {}
+
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
 	end
-	unitArmorType[unitDefID] = unitDef.armorType
 end
 
 local flyingDGuns = {}
 local groundedDGuns = {}
-local damagedUnits = {}
+
+local function addVolumetricDamage(projectileID)
+	local weaponDefID = Spring.GetProjectileDefID(projectileID)
+	local ownerID = Spring.GetProjectileOwnerID(projectileID)
+	local x,y,z = Spring.GetProjectilePosition(projectileID)
+
+	local explosionParame ={
+		weaponDef = weaponDefID,
+		owner = ownerID,
+		damages = dgunWeapons[weaponDefID].damages,
+		hitUnit = 1,
+		hitFeature = 1,
+		craterAreaOfEffect = dgunWeapons[weaponDefID].craterAreaOfEffect, -- * 2 ????
+		damageAreaOfEffect = dgunWeapons[weaponDefID].damageAreaOfEffect, -- * 2 ????
+		edgeEffectiveness = dgunWeapons[weaponDefID].edgeEffectiveness,
+		explosionSpeed = dgunWeapons[weaponDefID].explosionSpeed,
+		impactOnly = dgunWeapons[weaponDefID].impactOnly,
+		ignoreOwner = dgunWeapons[weaponDefID].noSelfDamage,
+		damageGround = true,
+	}
+
+	Spring.SpawnExplosion(x, y ,z, 0, 0, 0, explosionParame)
+end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-	if dgunDamages[weaponDefID] then
+	if dgunWeapons[weaponDefID] then
 		flyingDGuns[proID] = true
 	end
 end
@@ -48,11 +66,14 @@ end
 function gadget:ProjectileDestroyed(proID)
 	flyingDGuns[proID] = nil
 	groundedDGuns[proID] = nil
-	damagedUnits[proID] = nil
 end
 
 function gadget:GameFrame()
 	for proID in pairs(flyingDGuns) do
+		-- Fireball is hitscan while in flight, engine only applies AoE damage after hitting the ground
+		-- Need to add this AoE damage manually for flying projectiles
+		addVolumetricDamage(proID)
+
 		local x, y, z = Spring.GetProjectilePosition(proID)
 		local h = Spring.GetGroundHeight(x, z)
 
@@ -71,29 +92,21 @@ function gadget:GameFrame()
 
 	for proID in pairs(groundedDGuns) do
 		local x, y, z = Spring.GetProjectilePosition(proID)
-		-- Projectile placed 2x effect size underground to leave nice fiery trail
-		Spring.SetProjectilePosition(proID, x, Spring.GetGroundHeight(x, z) - 2 * dgunSize[Spring.GetProjectileDefID(proID)], z)
+		Spring.SetProjectilePosition(proID, x, Spring.GetGroundHeight(x, z) - 1, z)
 
-		-- NB: no removal; do this every frame so that
-		-- it doesn't fly off a cliff or something
+		-- NB: no removal; do this every frame so that it doesn't fly off a cliff or something
 	end
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if dgunDamages[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
---		damagedUnits[projectileID] = damagedUnits[projectileID] or {}
-	--	if damagedUnits[projectileID][unitID] then
-	--		return 0
---		else
-	--		damagedUnits[projectileID][unitID] = true
-	--		return dgunDamages[weaponDefID][unitArmorType[unitDefID]]
---		end
---	if isDGun[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
-		Spring.DeleteProjectile(projectileID)
-		local XPos, YPos, ZPos = Spring.GetUnitPosition(unitID)		
-		Spring.SpawnCEG("commander-spawn-explo", XPos, YPos, ZPos,0,0,0,0,0)
-		return 0
+	if newCommanderBehaviour then
+		if dgunWeapons[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
+			Spring.DeleteProjectile(projectileID)
+			local x, y, z = Spring.GetUnitPosition(unitID)		
+			Spring.SpawnCEG("commander-spawn-explo", x, y, z, 0, 0, 0, 0, 0)
+			return 0
+		end
 	end
-	--end
+
 	return damage
 end
