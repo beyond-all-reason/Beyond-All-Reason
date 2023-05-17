@@ -23,8 +23,6 @@ function widget:GetInfo()
 	}
 end
 
-local vsx, vsy = Spring.GetViewGeometry()
-
 local start = false  --reclaim area cylinder drawing has been started
 local metal = 0  --metal count from features in cylinder
 local energy = 0  --energy count from features in cylinder
@@ -37,11 +35,8 @@ local vsx, vsy = widgetHandler:GetViewSizes()
 local form = 12 --text format depends on screen size
 local xstart, ystart = 0
 local cmd, xend, yend, x, y, b1, b2
-local inMinimap = false --mouse cursor in minimap
-
 local math_sqrt = math.sqrt
-
-local font, rx, ry
+local font
 
 local isReclaimable = {}
 local unitMetalCost = {}
@@ -79,7 +74,6 @@ local function MinimapToWorld(rx, ry)
 end
 
 
-
 function widget:DrawScreen()
 	_, cmd, _ = Spring.GetActiveCommand()
 	x, y, b1, _, b2 = Spring.GetMouseState() --b1 = left button pressed?
@@ -87,8 +81,7 @@ function widget:DrawScreen()
 	x, y = math.floor(x), math.floor(y) --TraceScreenRay needs this
 	if (cmd == CMD.RECLAIM and rangestart ~= nil and b1 and b1was == false) or (nonground == "Reclaim" and b1was == false and b2 and rangestart ~= nil) then
 		if rangestart[1] == 0 and rangestart[3] == 0 then
-			local rx, ry
-			inMinimap, rx, ry = InMinimap(x, y)
+			local inMinimap, rx, ry = InMinimap(x, y)
 			if inMinimap then
 				rangestart = MinimapToWorld(rx, ry)
 				xstart, ystart = x, y
@@ -117,8 +110,7 @@ function widget:DrawScreen()
 	--
 	if (b1 and rangestart ~= nil and cmd == CMD.RECLAIM and start) or (nonground == "Reclaim" and start and b2 and rangestart ~= nil) then
 
-		local rx, ry
-		inMinimap, rx, ry = InMinimap(x, y)
+		local inMinimap, rx, ry = InMinimap(x, y)
 		if inMinimap and rangestartinminimap then
 			rangeend = MinimapToWorld(rx, ry)
 		else
@@ -132,18 +124,11 @@ function widget:DrawScreen()
 		energy = 0
 		local rdx, rdy = (rangestart[1] - rangeend[1]), (rangestart[3] - rangeend[3])
 		local dist = math_sqrt((rdx * rdx) + (rdy * rdy))
-		--because there is only GetFeaturesInRectangle. Features outside of the circle are needed to be ignored
-		local units = Spring.GetFeaturesInRectangle(rangestart[1] - dist, rangestart[3] - dist, rangestart[1] + dist, rangestart[3] + dist)
-		local udist
-		for _, unit in ipairs(units) do
-			local ux, _, uy = Spring.GetFeaturePosition(unit)
-			local udx, udy = (ux - rangestart[1]), (uy - rangestart[3])
-			udist = math_sqrt((udx * udx) + (udy * udy))
-			if udist < dist then
-				local fm, _, fe = Spring.GetFeatureResources(unit)
-				metal = metal + fm
-				energy = energy + fe
-			end
+		local features = Spring.GetFeaturesInCylinder(rangestart[1], rangestart[3], dist)
+		for _, featureID in ipairs(features) do
+			local fm, _, fe = Spring.GetFeatureResources(featureID)
+			metal = metal + fm
+			energy = energy + fe
 		end
 		metal = math.floor(metal)
 		energy = math.floor(energy)
@@ -161,11 +146,12 @@ function widget:DrawScreen()
 		font:Print(text, x, y, form, 'o')
 		font:End()
 	end
-	--Unit resource info when mouse on one
+
+	-- Unit resource info when mouse on one
 	if nonground == "Reclaim" and rangestart ~= nil and (energy == 0 or metal == 0) and b1 == false then
 		local isunit, unitID = Spring.TraceScreenRay(x, y) --if on unit pos!
 		if isunit == "unit" and (Spring.GetUnitHealth(unitID)) then
-			--Getunithealth just to make sure that it is in los
+			-- Getunithealth just to make sure that it is in los
 			local unitDefID = Spring.GetUnitDefID(unitID)
 			local _, _, _, _, buildprogress = Spring.GetUnitHealth(unitID)
 			metal = math.floor(unitMetalCost[unitDefID] * buildprogress)
@@ -188,7 +174,6 @@ function widget:DrawScreen()
 			font:End()
 		end
 	end
-	--
 	metal = 0
 	energy = 0
 end
