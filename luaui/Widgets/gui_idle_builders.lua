@@ -457,7 +457,10 @@ function widget:PlayerChanged(playerID)
 	end
 end
 
+local initializeGameFrame = 0
+
 function widget:Initialize()
+	initializeGameFrame = Spring.GetGameFrame()
 	widget:ViewResize()
 	widget:PlayerChanged()
 	WG['idlebuilders'] = {}
@@ -484,7 +487,7 @@ local sec2 = 0
 local doUpdate = true
 local timerStart = Spring.GetTimer()
 function Update()
-	if Spring.GetGameFrame() <1 then return end
+	if Spring.GetGameFrame() <= initializeGameFrame then return end
 	checkgroups = true
 	if not (not spec or showWhenSpec) then
 		return
