@@ -467,6 +467,7 @@ function widget:Initialize()
 	WG['idlebuilders'].getPosition = function()
 		return posX, posY, backgroundRect and backgroundRect[3] or posX, backgroundRect and backgroundRect[4] or posY + usedHeight
 	end
+	updateList()
 end
 
 function widget:Shutdown()
