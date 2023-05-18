@@ -245,7 +245,7 @@ function widget:CommandNotify(id, params, options)
 		return
 	end
 
-	local mx, my = Spring.GetMouseState()
+	local mx, my = Spring.GetMouseState()	-- mouse button states are not accurate/reliable here
 
 	if isGuard then
 		if type == 'unit' then
@@ -340,7 +340,7 @@ end
 
 -- make it so that it snaps and upgrades and does not need to be placed perfectly on top
 function widget:MousePress(mx, my, button)
-	if button == 1 and drawUnitShape and selectedUnits[1] then
+	if button == 3 and drawUnitShape and selectedUnits[1] then
 
 		activeCmdID = spGetActiveCommand()
 		if activeCmdID and isMex[-activeCmdID] then -- current activecmd is already build mex, let player decide how to place it
