@@ -8,13 +8,11 @@ function ComUpdate_Post(name)
 	tablecom.maxdamage = 4000
 	tablecom.autoheal = 0
 	if tablecom.weapondefs.disintegrator then
-		tablecom.weapondefs.disintegrator.interceptedbyshieldtype = 8
 		tablecom.weapondefs.disintegrator.damage = {
-			default = 98999,
+			default = 99999,
 			scavboss = 1000,
 			commanders = 1,
 			}
 	end
-	
 	UnitDefs[name] = tablecom
 end
