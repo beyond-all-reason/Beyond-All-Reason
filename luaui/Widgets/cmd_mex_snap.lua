@@ -245,12 +245,14 @@ function widget:Initialize()
 			widgetHandler:RemoveWidget()
 		end
 	end
+	WG.MexSnap = {}
 end
 
 function widget:Shutdown()
 	if WG.StopDrawUnitShapeGL4 then
 		clearShape()
 	end
+	WG.MexSnap = nil
 end
 
 function widget:GameStart()
@@ -258,10 +260,8 @@ function widget:GameStart()
 end
 
 local function clearCurPosition()
-	if WG['buildmenu'] then
-		WG['buildmenu'].setMexSnapPosition()
-	end
 	curPosition = nil
+	WG.MexSnap.curPosition = curPosition
 end
 
 function widget:Update()
@@ -316,6 +316,7 @@ function widget:Update()
 	end
 
 	curPosition = bestPos
+	WG.MexSnap.curPosition = curPosition
 end
 
 function widget:DrawWorld()

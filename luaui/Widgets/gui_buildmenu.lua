@@ -135,7 +135,6 @@ local pages = 1
 local paginatorRects = {}
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
 local unitshapes = {}
-local mexSnapPosition
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -1521,6 +1520,7 @@ function widget:MousePress(x, y, button)
 
 		if selBuildQueueDefID then
 			if button == 1 then
+				local mexSnapPosition = WG.MexSnap and WG.MexSnap.curPosition
 				if mexSnapPosition then
 					pos = { mexSnapPosition.x, mexSnapPosition.y, mexSnapPosition.z }
 				end
@@ -1816,16 +1816,8 @@ function widget:Initialize()
 	WG['buildmenu'].getBuildQueue = function()
 		return buildQueue
 	end
-	WG['buildmenu'].setMexSnapPosition = function(value)
-		if value then
-			mexSnapPosition = value
-		else
-			mexSnapPosition = nil
-		end
-	end
 	widgetHandler:RegisterGlobal(widget, 'GetPreGameDefID', WG['buildmenu'].getPreGameDefID)
 	widgetHandler:RegisterGlobal(widget, 'GetBuildQueue', WG['buildmenu'].getBuildQueue)
-	widgetHandler:RegisterGlobal(widget, 'SetMexSnapPosition', WG['buildmenu'].setMexSnapPosition)
 end
 
 function widget:Shutdown()
@@ -1843,7 +1835,6 @@ function widget:Shutdown()
 	end
 	widgetHandler:DeregisterGlobal(widget, 'GetPreGameDefID')
 	widgetHandler:DeregisterGlobal(widget, 'GetBuildQueue')
-	widgetHandler:DeregisterGlobal(widget, 'SetMexSnapPosition')
 end
 
 function widget:GetConfigData()
