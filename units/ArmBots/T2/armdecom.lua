@@ -136,7 +136,6 @@ return {
 				cylindertargeting = 1,
 				edgeeffectiveness = 1,
 				explosiongenerator = "custom:laserhit-small-red",
-				fastautoretargeting = 1,
 				firestarter = 70,
 				impactonly = 1,
 				impulseboost = 0,
@@ -246,6 +245,7 @@ return {
 			[1] = {
 				def = "ARMCOMLASER",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
