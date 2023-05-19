@@ -281,6 +281,13 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].metalPerShot = weaponDef.metalCost
 			end
 		end
+
+		if unitDef.customParams.unitgroup and unitDef.customParams.unitgroup == 'explo' and unitDef.deathExplosion and WeaponDefNames[unitDef.deathExplosion] then
+			local weapon = WeaponDefs[WeaponDefNames[unitDef.deathExplosion].id]
+			if weapon then
+				unitDefInfo[unitDefID].dps = weapon.damages[Game.armorTypes["default"]]
+			end
+		end
 	end
 end
 
