@@ -286,6 +286,7 @@ local function refreshUnitInfo()
 			local weapon = WeaponDefs[WeaponDefNames[unitDef.deathExplosion].id]
 			if weapon then
 				unitDefInfo[unitDefID].dps = weapon.damages[Game.armorTypes["default"]]
+				unitDefInfo[unitDefID].reloadTime = nil
 			end
 		end
 	end
@@ -1206,8 +1207,9 @@ local function drawUnitInfo()
 				elseif maxRange then
 					addTextInfo(texts.weaponrange, math_floor(maxRange))
 				end
-
-				addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
+				if currentReloadTime and currentReloadTime > 0 then
+					addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
+				end
 			end
 
 			--addTextInfo('weapons', #unitWeapons[displayUnitDefID])
