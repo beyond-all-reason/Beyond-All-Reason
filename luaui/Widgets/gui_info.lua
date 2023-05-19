@@ -1192,10 +1192,12 @@ local function drawUnitInfo()
 				addTextInfo(texts.xp, round(exp, 2))
 				addTextInfo(texts.maxhealth, '+' .. round((maxHealth / unitDefInfo[displayUnitDefID].health - 1) * 100, 0) .. '%')
 				currentReloadTime = spGetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, 'reloadTimeXP')
-				reloadTimeSpeedup = currentReloadTime / unitDefInfo[displayUnitDefID].reloadTime
-				local reloadTimeSpeedupPercentage = tonumber(round((1 - reloadTimeSpeedup) * 100, 0))
-				if reloadTimeSpeedupPercentage > 0 then
-					addTextInfo(texts.reload, '-' .. reloadTimeSpeedupPercentage .. '%')
+				if unitDefInfo[displayUnitDefID].reloadTime then
+					reloadTimeSpeedup = currentReloadTime / unitDefInfo[displayUnitDefID].reloadTime
+					local reloadTimeSpeedupPercentage = tonumber(round((1 - reloadTimeSpeedup) * 100, 0))
+					if reloadTimeSpeedupPercentage > 0 then
+						addTextInfo(texts.reload, '-' .. reloadTimeSpeedupPercentage .. '%')
+					end
 				end
 			end
 			if dps then
