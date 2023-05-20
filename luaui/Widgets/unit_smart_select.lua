@@ -347,18 +347,25 @@ function widget:Update()
 		end
 		newSelection = tmp
 		spSelectUnitArray(newSelection)
+		selectedUnits = newSelection
 
 	elseif mods.all then  -- append units inside selection rectangle to current selection
 		spSelectUnitArray(newSelection)
 		spSelectUnitArray(mouseSelection, true)
+		selectedUnits = mouseSelection
 
 	elseif #mouseSelection > 0 then  -- select units inside selection rectangle
 		spSelectUnitArray(mouseSelection)
+		selectedUnits = mouseSelection
+
 	elseif #mouseSelection == 0 then
 		spSelectUnitArray({})
+
 	else  -- keep current selection while dragging until more things are selected
 		spSelectUnitArray(referenceSelection)
+		selectedUnits = referenceSelection
 	end
+
 end
 
 --- Profiling Update, remember to change widget:Update to local function update above
@@ -407,7 +414,7 @@ function widget:Initialize()
 	end
 	WG['smartselect'].updateSelection = false
 
-	widget:ViewResize();
+	widget:ViewResize()
 end
 
 function widget:GetConfigData()
