@@ -1374,11 +1374,12 @@ if gadgetHandler:IsSyncedCode() then
 				_, queenMaxHP = GetUnitHealth(queenID)
 				SetUnitExperience(queenID, 0)
 				timeOfLastWave = t
-				for i = 1,SetCount(humanTeams) do
-					for burrowID, _ in pairs(burrows) do
-						if mRandom() < config.spawnChance then
-							SpawnRandomOffWaveSquad(burrowID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
-						end
+				for burrowID, _ in pairs(burrows) do
+					if mRandom() < config.spawnChance then
+						SpawnRandomOffWaveSquad(burrowID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
+						SpawnRandomOffWaveSquad(burrowID)
+					else
+						SpawnRandomOffWaveSquad(burrowID)
 					end
 				end
 				Spring.SetGameRulesParam("BossFightStarted", 1)

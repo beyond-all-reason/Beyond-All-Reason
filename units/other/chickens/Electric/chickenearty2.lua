@@ -55,7 +55,7 @@ return {
 		unitname = "chickenearty2",
 		upright = false,
 		workertime = 0,
-		waterline = 9999,
+		waterline = 10,
 		customparams = {
 			subfolder = "other/chickens",
 			model_author = "KDR_11k, Beherith",

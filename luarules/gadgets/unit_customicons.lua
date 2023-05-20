@@ -314,6 +314,11 @@ local units = {
 	chickenh2 = { "chicken.png", 1.25999999 },
 	chickenh3 = { "chicken.png", 1.25999999 },
 	chickenh4 = { "chicken.png", 0.94499993 },
+	chickenbroodartyh4small = { "chicken_earty.png", 1.57499993 },
+	chickenbroodartyh4 = { "chicken_arty.png", 2.72999978 },
+	chickenbroodbomberh2 = { "chicken_air.png", 2 },
+	chickenbroodbomberh3 = { "chicken_air.png", 2 },
+	chickenbroodbomberh4 = { "chicken_air.png", 2 },
 
 	chickenh5 = { "chicken_overseer.png", 1.95499993 },
 
