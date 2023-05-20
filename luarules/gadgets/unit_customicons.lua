@@ -346,6 +346,8 @@ local units = {
 	chickenebomber1 = { "chicken_air.png", 1.78499997 },
 	chickenelectricallterrain = { "chicken_paralyze.png", 1.47 },
 	chickenelectricallterrainassault = { "chicken_paralyze.png", 1.57499993 },
+	chicken_dodo1_electric = { "chicken_bomb.png", 0.94499993 },
+	chicken_dodo2_electric = { "chicken_bomb.png", 1.1 },
 
 	chickenacidswarmer = { "chicken_acid.png", 1.25999999 },
 	chickenacidassault = { "chicken_acid.png", 1.57499993 },

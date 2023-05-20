@@ -80,6 +80,11 @@ local chickenEggs = { -- Specify eggs dropped by unit here, requires useEggs to 
 	chickenh2      						=   "purple",
 	chickenh3      						=   "purple",
 	chickenh4      						=   "purple",
+	chickenbroodbomberh2 				= 	"purple",
+	chickenbroodbomberh3 				= 	"purple",
+	chickenbroodbomberh4 				= 	"purple",
+	chickenbroodartyh4 					= 	"purple",
+	chickenbroodartyh4_small 			= 	"purple",
 	chickenh5      						=   "white",
 	chickenw1      						=   "purple",
 	chickenw1_mini      				=   "purple",
@@ -97,6 +102,8 @@ local chickenEggs = { -- Specify eggs dropped by unit here, requires useEggs to 
 	chickenebomber1 					=   "blue",
 	chickenelectricallterrain 			=   "blue",
 	chickenelectricallterrainassault	=   "blue",
+	chicken_dodo1_electric  			=   "blue",
+	chicken_dodo2_electric  			=   "blue",
 	chickenacidswarmer 					=   "acidgreen",
 	chickenacidassault 					=   "acidgreen",
 	chickenacidarty 					=   "acidgreen",
@@ -115,7 +122,7 @@ local chickenEggs = { -- Specify eggs dropped by unit here, requires useEggs to 
 	chicken_miniqueen_healer			=  	"white",
 	chicken_miniqueen_basic 			=  	"pink",
 	chicken_miniqueen_fire 				=  	"darkred",
-	chicken_miniqueen_spectre 				=  	"yellow",
+	chicken_miniqueen_spectre 			=  	"yellow",
 }
 
 chickenBehaviours = {
@@ -248,6 +255,8 @@ chickenBehaviours = {
 	KAMIKAZE = { -- Long lifetime and no regrouping, always uses Move command to rush into the enemy
 		[UnitDefNames["chicken_dodo1"].id] = true,
 		[UnitDefNames["chicken_dodo2"].id] = true,
+		[UnitDefNames["chicken_dodo1_electric"].id] = true,
+		[UnitDefNames["chicken_dodo2_electric"].id] = true,
 	},
 	PROBE_UNIT = UnitDefNames["chicken2"].id, -- tester unit for picking viable spawn positions - use some medium sized unit
 }
@@ -562,6 +571,7 @@ addNewSquad({ type = "special", minAnger = 20, units = { "4 chicken1z" }, maxAng
 addNewSquad({ type = "special", minAnger = 30, units = { "5 chickens1" }, weight = 3 })
 addNewSquad({ type = "special", minAnger = 30, units = { "10 chickenp1" } })
 addNewSquad({ type = "special", minAnger = 30, units = { "15 chicken_dodo1" } })
+addNewSquad({ type = "special", minAnger = 30, units = { "15 chicken_dodo1_electric" } })
 addNewSquad({ type = "special", minAnger = 30, units = { "15 chickenc3" }, weight = 3 })
 
 addNewSquad({ type = "special", minAnger = 40, units = { "3 chickene2" } })
@@ -591,6 +601,7 @@ addNewSquad({ type = "special", minAnger = 60, units = { "10 chickens2" }, weigh
 addNewSquad({ type = "special", minAnger = 60, units = { "5 chickenh4" } })
 
 addNewSquad({ type = "special", minAnger = 70, units = { "25 chicken_dodo2" } })
+addNewSquad({ type = "special", minAnger = 70, units = { "25 chicken_dodo2_electric" } })
 addNewSquad({ type = "special", minAnger = 70, units = { "10 chickenacidallterrain" } })
 addNewSquad({ type = "special", minAnger = 70, units = { "4 chickenacidassault" } })
 addNewSquad({ type = "special", minAnger = 70, units = { "3 chickene2" } })
@@ -640,6 +651,7 @@ addNewSquad({ type = "special", minAnger = 100, units = { "3 chickenelectricallt
 addNewSquad({ type = "special", minAnger = 100, units = { "3 chickenacidassault" } })
 addNewSquad({ type = "special", minAnger = 100, units = { "3 chickenacidallterrainassault" } })
 addNewSquad({ type = "special", minAnger = 100, units = { "25 chicken_dodo2" } })
+addNewSquad({ type = "special", minAnger = 100, units = { "25 chicken_dodo2_electric" } })
 addNewSquad({ type = "special", minAnger = 100, units = { "10 chickenp2" } })
 addNewSquad({ type = "special", minAnger = 100, units = { "10 chickens2" }, weight = 2 })
 addNewSquad({ type = "special", minAnger = 100, units = { "10 chickens2_spectre" } })
