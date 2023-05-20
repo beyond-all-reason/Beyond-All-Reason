@@ -648,16 +648,23 @@ addNewSquad({ type = "air", minAnger = 60, units = { "4 chickenebomber1" } })
 addNewSquad({ type = "air", minAnger = 60, units = { "4 chickenacidbomber" } })
 
 addNewSquad({ type = "air", minAnger = 70, units = { "10 chicken_dodoair" }, weight = 5 })
+addNewSquad({ type = "air", minAnger = 70, units = { "2 chickenbroodbomberh4" } })
+
+addNewSquad({ type = "air", minAnger = 80, units = { "2 chickenbroodbomberh3" } })
 
 addNewSquad({ type = "air", minAnger = 90, units = { "2 chickenf1apex" } })
 addNewSquad({ type = "air", minAnger = 90, units = { "2 chickenf1apexb" } })
 addNewSquad({ type = "air", minAnger = 90, units = { "6 chickenw2" }, weight = 2 })
 addNewSquad({ type = "air", minAnger = 90, units = { "10 chicken_dodoair" }, weight = 5 })
+addNewSquad({ type = "air", minAnger = 90, units = { "2 chickenbroodbomberh2" } })
 
 addNewSquad({ type = "air", minAnger = 100, units = { "3 chickenf1apex" } })
 addNewSquad({ type = "air", minAnger = 100, units = { "3 chickenf1apexb" } })
 addNewSquad({ type = "air", minAnger = 100, units = { "8 chickenw2" }, weight = 2 })
 addNewSquad({ type = "air", minAnger = 100, units = { "10 chicken_dodoair" }, weight = 5 })
+addNewSquad({ type = "air", minAnger = 100, units = { "4 chickenbroodbomberh4" } })
+addNewSquad({ type = "air", minAnger = 100, units = { "4 chickenbroodbomberh3" } })
+addNewSquad({ type = "air", minAnger = 100, units = { "4 chickenbroodbomberh2" } })
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these
