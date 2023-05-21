@@ -1,7 +1,7 @@
 return {
 	legbar = {
 		acceleration = 0.01654,
-		brakerate = 0.03308,
+		brakerate = 0.054,
 		buildcostenergy = 3600,
 		buildcostmetal = 320,
 		buildpic = "LEGBAR.DDS",
@@ -149,10 +149,11 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
+				mygravity = 0.1,
 				name = "HeavyCannon",
 				noselfdamage = true,
 				projectiles = 3,
-				range = 575,
+				range = 535,
 				reloadtime = 7.5,
 				rgbcolor = "1 0.25 0.1",
 				size = 4,
