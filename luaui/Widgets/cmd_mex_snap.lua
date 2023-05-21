@@ -231,6 +231,7 @@ local function clearShape()
 end
 
 function widget:Initialize()
+	WG.MexSnap = {}
 	if not WG.DrawUnitShapeGL4 then
 		widgetHandler:RemoveWidget()
 	end
@@ -245,7 +246,6 @@ function widget:Initialize()
 			widgetHandler:RemoveWidget()
 		end
 	end
-	WG.MexSnap = {}
 end
 
 function widget:Shutdown()
@@ -261,6 +261,9 @@ end
 
 local function clearCurPosition()
 	curPosition = nil
+	if not WG.MexSnap then
+		WG.MexSnap = {}
+	end
 	WG.MexSnap.curPosition = curPosition
 end
 
