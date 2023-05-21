@@ -1719,17 +1719,18 @@ end
 
 -- configVar = table, add more entries the deeper the configdata table var is: example: {'Config','console','maxlines'}  (limit = 3 deep)
 function loadWidgetData(widgetName, optionId, configVar)
-	if getOptionByID(optionId) and widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName][configVar[1]] ~= nil then
+	local optionID = getOptionByID(optionId)
+	if optionID and widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName][configVar[1]] ~= nil then
 		if configVar[2] ~= nil and widgetHandler.configData[widgetName][configVar[1]][configVar[2]] ~= nil then
 			if configVar[3] ~= nil and widgetHandler.configData[widgetName][configVar[1]][configVar[2]][configVar[3]] ~= nil then
-				options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]][configVar[3]]
+				options[optionID].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]][configVar[3]]
 				return true
 			else
-				options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]]
+				options[optionID].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]]
 				return true
 			end
-		elseif options[getOptionByID(optionId)].value ~= widgetHandler.configData[widgetName][configVar[1]] then
-			options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]]
+		elseif options[optionID].value ~= widgetHandler.configData[widgetName][configVar[1]] then
+			options[optionID].value = widgetHandler.configData[widgetName][configVar[1]]
 			return true
 		end
 	end
@@ -4356,6 +4357,12 @@ function init()
 
 		{ id = "label_dev_other", group = "dev", name = Spring.I18N('ui.settings.option.label_other'), category = types.dev },
 		{ id = "label_dev_other_spacer", group = "dev", category = types.dev },
+
+		{ id = "storedefaultsettings", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.storedefaultsettings'), type = "bool", value = tonumber(Spring.GetConfigInt("StoreDefaultSettings", 0) or 0) == 1, description = Spring.I18N('ui.settings.option.storedefaultsettings_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("StoreDefaultSettings", (value and 1 or 0))
+		  end,
+		},
 
 		{ id = "startboxeditor", group = "dev", category = types.dev, widget = "Startbox Editor", name = Spring.I18N('ui.settings.option.startboxeditor'), type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = Spring.I18N('ui.settings.option.startboxeditor_descr') },
 
