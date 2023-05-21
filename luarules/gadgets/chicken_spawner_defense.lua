@@ -708,7 +708,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function SpawnBurrow(number)
 
-		local unitDefID = UnitDefNames[config.burrowName].id
+		--local unitDefID = UnitDefNames[config.burrowName].id
 
 		for i = 1, (number or 1) do
 			local x, z, y
@@ -1517,7 +1517,7 @@ if gadgetHandler:IsSyncedCode() then
 				else
 					queenAnger = 100
 				end
-				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - (playerAgressionLevel*5) + queenAngerAgressionLevel, 100), 0)
+				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 100), 0)
 				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgression*0.01)/(config.queenTime/3600)) + playerAgressionEcoValue
 				SetGameRulesParam("ChickenQueenAngerGain_Aggression", (playerAgression*0.01)/(config.queenTime/3600))
 				SetGameRulesParam("ChickenQueenAngerGain_Eco", playerAgressionEcoValue)
@@ -1566,8 +1566,8 @@ if gadgetHandler:IsSyncedCode() then
 				timeOfLastSpawn = t
 			end
 			
-			if t < config.gracePeriod and burrowCount < SetCount(humanTeams) then
-				SpawnBurrow()
+			if burrowCount < SetCount(humanTeams) then
+				SpawnBurrow(SetCount(humanTeams))
 				chickenEvent("burrowSpawn")
 				SetGameRulesParam("chicken_hiveCount", SetCount(burrows))
 			end
