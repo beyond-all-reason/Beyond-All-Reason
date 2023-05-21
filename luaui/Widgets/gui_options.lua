@@ -4232,7 +4232,7 @@ function init()
 
 		{ id = "simpleteamcolors_reset", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " ..  Spring.I18N('ui.settings.option.simpleteamcolors_reset'), type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColors_Reset", 0) or 0) == 1,
 		  onchange = function(i, value)
-			Spring.SetConfigInt("SimpleTeamColorsUseGradient", 1)
+			Spring.SetConfigInt("SimpleTeamColorsUseGradient", 0)
 			Spring.SetConfigInt("SimpleTeamColorsPlayerR", 0)
 			Spring.SetConfigInt("SimpleTeamColorsPlayerG", 77)
 			Spring.SetConfigInt("SimpleTeamColorsPlayerB", 255)
