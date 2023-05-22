@@ -1525,6 +1525,10 @@ function mouseEvent(mx, my, button, release)
 					-- showhow rightmouse doesnt get triggered :S
 					advSettings = not advSettings
 					startColumn = 1
+					if windowList then
+						gl.DeleteList(windowList)
+					end
+					windowList = gl.CreateList(DrawWindow)
 					return
 				end
 				-- navigation buttons
@@ -4244,7 +4248,6 @@ function init()
 
 		{ id = "simpleteamcolors_reset", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " ..  Spring.I18N('ui.settings.option.simpleteamcolors_reset'), type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColors_Reset", 0) or 0) == 1,
 		  onchange = function(i, value)
-			Spring.SetConfigInt("SimpleTeamColorsUseGradient", 0)
 			Spring.SetConfigInt("SimpleTeamColorsPlayerR", 0)
 			Spring.SetConfigInt("SimpleTeamColorsPlayerG", 77)
 			Spring.SetConfigInt("SimpleTeamColorsPlayerB", 255)
@@ -4258,12 +4261,6 @@ function init()
 		  end,
 		},
 
-		{ id = "simpleteamcolors_use_gradient", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolors_use_gradient'), type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColorsUseGradient", 0) or 0) == 1,
-			onchange = function(i, value)
-				Spring.SetConfigInt("SimpleTeamColorsUseGradient", (value and 1 or 0))
-				Spring.SetConfigInt("UpdateTeamColors", 1)
-			end,
-		},
 		{ id = "simpleteamcolors_player_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolors_player_r'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsPlayerR", value)
