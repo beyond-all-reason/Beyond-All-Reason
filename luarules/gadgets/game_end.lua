@@ -108,15 +108,12 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function UpdateAllyTeamIsDead(allyTeamID)
 		local allyTeamInfo = allyTeamInfos[allyTeamID]
-		local wipeout = false
+		local wipeout = true
 		for teamID, teamInfo in pairs(allyTeamInfo.teams) do
-			wipeout = teamInfo.dead
-			if not wipeout and not isFFA then	-- missing FFA players are handled in mo_ffa.lua
-				if not playerQuitIsDead then
-					wipeout = not teamInfo.hasLeader
-				else
-					wipeout = not teamInfo.isControlled
-				end
+			if not playerQuitIsDead then
+				wipeout = wipeout and (teamInfo.dead or (not isFFA and not teamInfo.hasLeader))	-- missing FFA players are handled in mo_ffa.lua
+			else
+				wipeout = wipeout and (teamInfo.dead or (not isFFA and not teamInfo.isControlled))	-- missing FFA players are handled in mo_ffa.lua
 			end
 		end
 
