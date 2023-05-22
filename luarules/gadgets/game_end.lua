@@ -84,39 +84,44 @@ if gadgetHandler:IsSyncedCode() then
 	local gameoverAnimUnits
 
 	local allyTeamInfos = {}
-	--allyTeamInfos structure: (excluding gaia)
-	-- allyTeamInfos = {
-	--	[allyTeamID] = {
-	--		teams = {
-	--			[teamID]= {
-	--				players = {
-	--					[playerID] = isControlling
-	--				},
-	--				unitCount,
-	--				dead,
-	--				isAI,
-	--				isControlled,
-	--			},
-	--		},
-	--		unitCount,
-	--		unitDecorationCount,
-	--		dead,
-	--	},
-	--}
+	--[[
+	allyTeamInfos structure: (excluding gaia)
+	 allyTeamInfos = {
+		[allyTeamID] = {
+			teams = {
+				[teamID]= {
+					players = {
+						[playerID] = isControlling
+					},
+					unitCount,
+					dead,
+					isAI,
+					isControlled,
+				},
+			},
+			unitCount,
+			unitDecorationCount,
+			dead,
+		},
+	}
+	]]--
 
 	local function UpdateAllyTeamIsDead(allyTeamID)
 		local allyTeamInfo = allyTeamInfos[allyTeamID]
-		local dead = true
+		local wipeout = false
 		for teamID, teamInfo in pairs(allyTeamInfo.teams) do
-			if not playerQuitIsDead then
-				dead = dead and (teamInfo.dead or not teamInfo.hasLeader)
-			else
-				dead = dead and (teamInfo.dead or not teamInfo.isControlled)
+			wipeout = teamInfo.dead
+			if not wipeout and not isFFA then	-- missing FFA players are handled in mo_ffa.lua
+				if not playerQuitIsDead then
+					wipeout = not teamInfo.hasLeader
+				else
+					wipeout = not teamInfo.isControlled
+				end
 			end
 		end
 
 		-- destroy all dead team units
-		if dead and not allyTeamInfos[allyTeamID].dead and GetGameFrame() > 0 then
+		if wipeout and not allyTeamInfos[allyTeamID].dead and GetGameFrame() > 0 then
 			GG.wipeoutAllyTeam(allyTeamID)
 			allyTeamInfos[allyTeamID].dead = true
 		end
