@@ -1130,9 +1130,6 @@ if gadgetHandler:IsSyncedCode() then
 								SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
 							end
 						end
-						for _ = 1, SetCount(humanTeams) do
-							table.insert(spawnQueue, { burrow = queenID, unitName = config.chickenHealers[mRandom(1,#config.chickenHealers)], team = chickenTeamID})
-						end
 						spawnCreepStructuresWave()
 					end
 					damage = damage - (damage * resistPercent)
