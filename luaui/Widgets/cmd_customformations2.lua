@@ -41,8 +41,8 @@ local minPathSpacingSq = 50 * 50
 local minFormationLength = 20
 
 -- How long should algorithms take. (~0.1 gives visible stutter, default: 0.05)
-local maxHngTime = 0.05 -- Desired maximum time for hungarian algorithm
-local maxNoXTime = 0.05 -- Strict maximum time for backup algorithm
+local maxHngTime = 0.02 -- Desired maximum time for hungarian algorithm
+local maxNoXTime = 0.02 -- Strict maximum time for backup algorithm
 
 local defaultHungarianUnits	= 20 -- Need a baseline to start from when no config data saved
 local minHungarianUnits		= 10 -- If we kept reducing maxUnits it can get to a point where it can never increase, so we enforce minimums on the algorithms.
