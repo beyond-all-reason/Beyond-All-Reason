@@ -7,12 +7,6 @@ function ComUpdate_Post(name)
 	tablecom.featuredefs.heap.metal = 500
 	tablecom.maxdamage = 4000
 	tablecom.autoheal = 0
-	if tablecom.weapondefs.disintegrator then
-		tablecom.weapondefs.disintegrator.damage = {
-			default = 99999,
-			scavboss = 1000,
-			commanders = 1,
-			}
-	end
+
 	UnitDefs[name] = tablecom
 end
