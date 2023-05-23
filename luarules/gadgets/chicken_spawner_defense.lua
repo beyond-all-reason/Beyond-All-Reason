@@ -1514,19 +1514,16 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				if not queenID then
 					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + queenAngerAgressionLevel, 100), 0)
+					techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 100), 0)
+					minBurrows = SetCount(humanTeams)
 				else
 					queenAnger = 100
+					techAnger = 100
+					minBurrows = 1
 				end
-				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 100), 0)
 				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgression*0.01)/(config.queenTime/3600)) + playerAgressionEcoValue
 				SetGameRulesParam("ChickenQueenAngerGain_Aggression", (playerAgression*0.01)/(config.queenTime/3600))
 				SetGameRulesParam("ChickenQueenAngerGain_Eco", playerAgressionEcoValue)
-				if techAnger < 1 then techAnger = 1 end
-				if playerAgressionLevel+1 <= maxBurrows then
-					minBurrows = playerAgressionLevel+1
-				else
-					minBurrows = maxBurrows
-				end
 			end
 			SetGameRulesParam("queenAnger", queenAnger)
 
@@ -1540,9 +1537,6 @@ if gadgetHandler:IsSyncedCode() then
 
 			if config.burrowSpawnRate < (t - timeOfLastFakeSpawn) then
 				-- This block is all about setting the correct burrow target
-				if firstSpawn then
-					minBurrows = 1
-				end
 				timeOfLastFakeSpawn = t
 			end
 
@@ -1564,12 +1558,6 @@ if gadgetHandler:IsSyncedCode() then
 				SetGameRulesParam("chicken_hiveCount", SetCount(burrows))
 			elseif config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount >= maxBurrows then
 				timeOfLastSpawn = t
-			end
-			
-			if burrowCount < SetCount(humanTeams) then
-				SpawnBurrow(SetCount(humanTeams))
-				chickenEvent("burrowSpawn")
-				SetGameRulesParam("chicken_hiveCount", SetCount(burrows))
 			end
 
 			if t > config.gracePeriod+5 then
