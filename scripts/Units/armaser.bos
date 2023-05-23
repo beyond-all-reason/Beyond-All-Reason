@@ -7,10 +7,12 @@
 piece  base, lthigh, rthigh, rleg, rfoot, lleg, lfoot,shoulder, elbow, spindle, arm1,arm2,arm3,arm4,head,eye, aimy1;
 
 static-var  bMoving, Static_Var_3, Static_Var_4, Static_Var_5, keepspinning, animSpeed, maxSpeed, animFramesPerKeyframe;
+static-var recently_damaged, desired_activation;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
 #define SIG_WALK 				4
+#define SIG_OFF 				8
 
 static-var  Stunned;
 SetStunned(State)
@@ -19,7 +21,8 @@ SetStunned(State)
 	if (Stunned) {
 	    keepspinning = 0;
 	} else {
-	    keepspinning = 1;
+	    keepspinning = desired_activation;
+		set ACTIVATION to desired_activation;
 	}
 }
 
@@ -240,24 +243,46 @@ Create()
 	animSpeed = 4;
 	start-script spinarms();
 	Static_Var_5 = 0;
+	recently_damaged = 0;
+	desired_activation = 1;
 	return (0);
 }
 
 Activate()
 {
-	if( Static_Var_5 )
-	{
-		set ACTIVATION to 0;
-		return (0);
-	}
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
+	desired_activation = 1;
+	// if we are in this function, the unit is already on
+	// implied set ACTIVATION to 1;
+	// turn off if unit is in the recently_damaged state
+	// this turn off action calls the Deactivate function
+	if( recently_damaged == 1)
+	{
+		set ACTIVATION to 0;
+		return(0);
+	}
 	call-script open();
 	return (0);
 }
 
 Deactivate()
 {
+	// get PRINT(0, desired_activation,desired_activation,get GAME_FRAME);
+	// no easy way to tell if an on-off action is 
+	// script/gadget controlled or user controlled
+	// assume a deactivate command is a user command 
+	// if the unit has not been recently damaged
+	// However, we need to wait a few frames, 
+	// unit_paralyze_on_off deactivates this unit before it is 
+	// stunned, so it is actually turned off, but we need to wait to see if the
+	// unit is "damaged" by stun.
+	sleep 100;
+	if (recently_damaged == 0)
+	{
+		//set desired state if deactivated and not recently damaged
+		desired_activation = 0;
+	}
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
 	call-script close();
@@ -286,6 +311,17 @@ SmokeUnit(healthpercent) // ah yes, clever use of stack variables
 	isSmoking = 0;
 }
 
+OffOnHit()
+{
+signal SIG_OFF;
+set-signal-mask SIG_OFF;
+recently_damaged = 1;
+set ACTIVATION to 0; // turn off unit
+sleep 8000; //hardcoded time to stay off after being hit
+recently_damaged = 0;
+set ACTIVATION to desired_activation;
+}
+
 // this is what a pure hitbyweapon can look like, without any of the motion garbage
 HitByWeapon(anglex, anglez) //weaponID is always 0,lasers and flamers give angles of 0
 {
@@ -293,29 +329,15 @@ HitByWeapon(anglex, anglez) //weaponID is always 0,lasers and flamers give angle
 	if (isSmoking == 0)	{ 
 		isSmoking = 1;
 		start-script SmokeUnit();
-	}	
+	}
+	start-script OffOnHit();
 	turn base to z-axis anglez speed <105.000000>;
 	turn base to x-axis <0> - anglex speed <105.000000>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
 	turn base to z-axis <0.000000> speed <30.000000>;
 	turn base to x-axis <0.000000> speed <30.000000>;
-	if( get ACTIVATION )
-	{
-		Static_Var_5 = 1;
-	}
-
-	if( Static_Var_5 )
-	{
-		signal SIG_ACTIVATE;
-		set-signal-mask SIG_ACTIVATE;
-		set ACTIVATION to 0;
-		sleep 8000;
-		Static_Var_5 = 0;
-		set ACTIVATION to 100;
-	}
 	return (0);
-
 
 }
 

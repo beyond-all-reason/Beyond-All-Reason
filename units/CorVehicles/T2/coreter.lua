@@ -49,6 +49,7 @@ return {
 			subfolder = "corvehicles/t2",
 			techlevel = 2,
 			trackwidth = 27,
+			off_on_stun = "true",
 		},
 		featuredefs = {
 			dead = {
