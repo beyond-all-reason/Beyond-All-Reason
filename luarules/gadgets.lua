@@ -1061,9 +1061,13 @@ function gadgetHandler:Shutdown()
 end
 
 function gadgetHandler:GameFrame(frameNum)
+	tracy.ZoneBeginN("G:GameFrame")
 	for _, g in ipairs(self.GameFrameList) do
+		tracy.ZoneBeginN("G:GameFrame:" .. g.ghInfo.name)
 		g:GameFrame(frameNum)
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1075,14 +1079,18 @@ function gadgetHandler:GamePaused(playerID, paused)
 end
 
 function gadgetHandler:RecvFromSynced(...)
+	tracy.ZoneBeginN("G:RecvFromSynced")
 	if actionHandler.RecvFromSynced(...) then
+		tracy.ZoneEnd()
 		return
 	end
 	for _, g in ipairs(self.RecvFromSyncedList) do
 		if g:RecvFromSynced(...) then
+			tracy.ZoneEnd()
 			return
 		end
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1122,11 +1130,14 @@ function gadgetHandler:GotChatMsg(msg, player)
 end
 
 function gadgetHandler:RecvLuaMsg(msg, player)
+	tracy.ZoneBeginN("G:RecvLuaMsg")
 	for _, g in ipairs(self.RecvLuaMsgList) do
 		if g:RecvLuaMsg(msg, player) then
+			tracy.ZoneEnd()
 			return true
 		end
 	end
+	tracy.ZoneEnd()
 	return false
 end
 
@@ -1197,9 +1208,11 @@ function gadgetHandler:TeamChanged(teamID)
 end
 
 function gadgetHandler:PlayerChanged(playerID)
+	tracy.ZoneBeginN("G:PlayerChanged")
 	for _, g in ipairs(self.PlayerChangedList) do
 		g:PlayerChanged(playerID)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1295,11 +1308,15 @@ end
 
 function gadgetHandler:AllowCommand(unitID, unitDefID, unitTeam,
 									cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+								
+	tracy.ZoneBeginN("G:AllowCommand")
 	for _, g in ipairs(self.AllowCommandList) do
 		if not g:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) then
+			tracy.ZoneEnd()
 			return false
 		end
 	end
+	tracy.ZoneEnd()
 	return true
 end
 
@@ -1360,11 +1377,15 @@ end
 
 function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam,
 										  unitID, unitDefID, part)
+									
+	tracy.ZoneBeginN("G:AllowCommand")  
 	for _, g in ipairs(self.AllowUnitBuildStepList) do
 		if not g:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part) then
+			tracy.ZoneEnd()
 			return false
 		end
 	end
+	tracy.ZoneEnd()
 	return true
 end
 
@@ -1518,18 +1539,22 @@ end
 --
 
 function gadgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	tracy.ZoneBeginN("G:UnitCreated")  
 	gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
 
 	for _, g in ipairs(self.UnitCreatedList) do
 		g:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function gadgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
+	tracy.ZoneBeginN("G:UnitFinished")  
 	for _, g in ipairs(self.UnitFinishedList) do
 		g:UnitFinished(unitID, unitDefID, unitTeam)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1549,11 +1574,13 @@ function gadgetHandler:UnitReverseBuilt(unitID, unitDefID, unitTeam)
 end
 
 function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	tracy.ZoneBeginN("G:UnitDestroyed")  
 	gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 
 	for _, g in ipairs(self.UnitDestroyedList) do
 		g:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1573,9 +1600,11 @@ function gadgetHandler:UnitExperience(unitID, unitDefID, unitTeam,
 end
 
 function gadgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
+	tracy.ZoneBeginN("G:UnitIdle")  
 	for _, g in ipairs(self.UnitIdleList) do
 		g:UnitIdle(unitID, unitDefID, unitTeam)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1587,6 +1616,7 @@ function gadgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, c
 end
 
 function gadgetHandler:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+	tracy.ZoneBeginN("G:UnitPreDamaged")  
 	local retDamage = damage
 	local retImpulse = 1.0
 
@@ -1605,13 +1635,16 @@ function gadgetHandler:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paral
 		end
 	end
 
+	tracy.ZoneEnd()
 	return retDamage, retImpulse
 end
 
 function gadgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+	tracy.ZoneBeginN("G:UnitDamaged") 
 	for _, g in ipairs(self.UnitDamagedList) do
 		g:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	end
+	tracy.ZoneEnd()
 end
 
 function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
@@ -1633,9 +1666,11 @@ function gadgetHandler:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 end
 
 function gadgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+	tracy.ZoneBeginN("G:UnitCommand") 
 	for _, g in ipairs(self.UnitCommandList) do
 		g:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1675,9 +1710,11 @@ function gadgetHandler:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 end
 
 function gadgetHandler:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	tracy.ZoneBeginN("G:UnitEnteredLos") 
 	for _, g in ipairs(self.UnitEnteredLosList) do
 		g:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1689,9 +1726,11 @@ function gadgetHandler:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 end
 
 function gadgetHandler:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+	tracy.ZoneBeginN("G:UnitLeftLos") 
 	for _, g in ipairs(self.UnitLeftLosList) do
 		g:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1759,16 +1798,20 @@ end
 --
 
 function gadgetHandler:FeatureCreated(featureID, allyTeam)
+	tracy.ZoneBeginN("G:FeatureCreated") 
 	for _, g in ipairs(self.FeatureCreatedList) do
 		g:FeatureCreated(featureID, allyTeam)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function gadgetHandler:FeatureDestroyed(featureID, allyTeam)
+	tracy.ZoneBeginN("G:FeatureDestroyed") 
 	for _, g in ipairs(self.FeatureDestroyedList) do
 		g:FeatureDestroyed(featureID, allyTeam)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1890,9 +1933,11 @@ function gadgetHandler:SunChanged()
 end
 
 function gadgetHandler:Update(deltaTime)
+	tracy.ZoneBeginN("G:Update") 
 	for _, g in ipairs(self.UpdateList) do
 		g:Update(deltaTime)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1916,23 +1961,29 @@ function gadgetHandler:CommandNotify(id, params, options)
 end
 
 function gadgetHandler:DrawGenesis()
+	tracy.ZoneBeginN("G:DrawGenesis") 
 	for _, g in ipairs(self.DrawGenesisList) do
 		g:DrawGenesis()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function gadgetHandler:DrawWorld()
+	tracy.ZoneBeginN("G:DrawWorld") 
 	for _, g in ipairs(self.DrawWorldList) do
 		g:DrawWorld()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function gadgetHandler:DrawWorldPreUnit()
+	tracy.ZoneBeginN("G:DrawWorldPreUnit") 
 	for _, g in ipairs(self.DrawWorldPreUnitList) do
 		g:DrawWorldPreUnit()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -2001,30 +2052,38 @@ function gadgetHandler:DrawWorldRefraction()
 end
 
 function gadgetHandler:DrawScreenEffects(vsx, vsy)
+	tracy.ZoneBeginN("G:DrawScreenEffects") 
 	for _, g in ipairs(self.DrawScreenEffectsList) do
 		g:DrawScreenEffects(vsx, vsy)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function gadgetHandler:DrawScreenPost()
+	tracy.ZoneBeginN("G:DrawScreenPost") 
 	for _, g in ipairs(self.DrawScreenPostList) do
 		g:DrawScreenPost(vsx, vsy)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function gadgetHandler:DrawScreen(vsx, vsy)
+	tracy.ZoneBeginN("G:DrawScreen") 
 	for _, g in ipairs(self.DrawScreenList) do
 		g:DrawScreen(vsx, vsy)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function gadgetHandler:DrawInMiniMap(mmsx, mmsy)
+	tracy.ZoneBeginN("G:DrawInMiniMap") 
 	for _, g in ipairs(self.DrawInMiniMapList) do
 		g:DrawInMiniMap(mmsx, mmsy)
 	end
+	tracy.ZoneEnd()
 	return
 end
 

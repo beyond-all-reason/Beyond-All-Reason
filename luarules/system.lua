@@ -11,6 +11,17 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 if (System == nil) then
+	if tracy == nil then
+		Spring.Echo("Gadgetside tracy: No support detected, replacing tracy.* with function stubs.")
+		tracy = {}
+		tracy.ZoneBeginN = function () return end 
+		tracy.ZoneBegin = function () return end 
+		tracy.ZoneEnd = function () return end --Spring.Echo("No Tracy") return end 
+		tracy.Message = function () return end 
+		tracy.ZoneName = function () return end 
+		tracy.ZoneText = function () return end 
+	end
+	
 	System = {
 		--
 		--  Custom Spring tables
@@ -62,6 +73,7 @@ if (System == nil) then
 		os = os,
 		math = math,
 		debug = debug,
+		tracy = tracy,
 		table = table,
 		string = string,
 		package = package,
