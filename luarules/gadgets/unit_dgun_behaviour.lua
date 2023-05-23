@@ -42,6 +42,7 @@ local function addVolumetricDamage(projectileID)
 	local explosionParame ={
 		weaponDef = weaponDefID,
 		owner = ownerID,
+		projectileID = projectileID,
 		damages = dgunWeapons[weaponDefID].damages,
 		hitUnit = 1,
 		hitFeature = 1,
