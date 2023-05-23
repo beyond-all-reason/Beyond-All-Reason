@@ -41,8 +41,8 @@ local minPathSpacingSq = 50 * 50
 local minFormationLength = 20
 
 -- How long should algorithms take. (~0.1 gives visible stutter, default: 0.05)
-local maxHngTime = 0.02 -- Desired maximum time for hungarian algorithm
-local maxNoXTime = 0.02 -- Strict maximum time for backup algorithm
+local maxHngTime = 0.01 -- Desired maximum time for hungarian algorithm
+local maxNoXTime = 0.01 -- Strict maximum time for backup algorithm
 
 local defaultHungarianUnits	= 20 -- Need a baseline to start from when no config data saved
 local minHungarianUnits		= 10 -- If we kept reducing maxUnits it can get to a point where it can never increase, so we enforce minimums on the algorithms.
@@ -913,12 +913,13 @@ function GetOrdersNoX(nodes, units, unitCount, shifted)
             end
         end
     end
-
+	
+	local fminv = 1.0/ fm
     local function sortFunc(a, b)
         -- y = mx + c
         -- c = y - mx
         -- c = y + x / m (For perp line)
-        return (a[3] + a[1] / fm) < (b[3] + b[1] / fm)
+        return (a[3] + a[1] * fminv) < (b[3] + b[1] * fminv)
     end
 
     tsort(unitSet, sortFunc)
