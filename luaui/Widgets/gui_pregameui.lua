@@ -64,7 +64,7 @@ local enableSubbing = false
 local eligibleAsSub = false
 local offeredAsSub = false
 --local allowUnready = false	-- not enabled cause unreadying doesnt work, have to do workaroud
-local ShowReadied = true
+local showLockButton = true
 
 local numPlayers = Spring.Utilities.GetPlayerCount()
 
@@ -82,7 +82,11 @@ local blinkButton = false
 local function createButton()
 	local color = { 0.15, 0.15, 0.15 }
 	if not mySpec then
-		color = readied and unreadyButtonColor or readyButtonColor
+		if not locked then
+			color = readyButtonColor
+		else
+			color = unreadyButtonColor
+		end
 	elseif eligibleAsSub then
 		color = offeredAsSub and unsubButtonColor or subButtonColor
 	end
@@ -101,25 +105,6 @@ local function createButton()
 	end)
 end
 
-local function createLockButton()
-	local color = { 0.15, 0.15, 0.15 }
-	color = readied and unreadyButtonColor or readyButtonColor
-
-	uiLockRect = { buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding }
-	lockRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2) }
-
-	gl.DeleteList(lock_buttonList)
-	lock_buttonList = gl.CreateList(function()
-		UiElement(uiLockRect[1], uiLockRect[2], uiLockRect[3], uiLockRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
-		UiButton(lockRect[1], lockRect[2], lockRect[3], lockRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.55, color[2]*0.55, color[3]*0.55, 1 }, { color[1], color[2], color[3], 1 })
-	end)
-	gl.DeleteList(lock_buttonHoverList)
-	lock_buttonHoverList = gl.CreateList(function()
-		UiElement(uiLockRect[1], uiLockRect[2], uiLockRect[3], uiLockRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
-		UiButton(lockRect[1], lockRect[2], lockRect[3], lockRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.85, color[2]*0.85, color[3]*0.85, 1 }, { color[1]*1.5, color[2]*1.5, color[3]*1.5, 1 })
-	end)
-end
-
 function widget:ViewResize(viewSizeX, viewSizeY)
 	if mySpec then
 		if not offeredAsSub then
@@ -129,17 +114,14 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 		end
 	else
 		if readied then
-			buttonText = Spring.I18N('ui.initialSpawn.readied')
+			if locked then
+				buttonText = Spring.I18N('ui.initialSpawn.unlock')
+			else
+				buttonText = Spring.I18N('ui.initialSpawn.lock')
+			end
 		else
 			buttonText = Spring.I18N('ui.initialSpawn.ready')
 		end
-	end
-
-
-	if locked then
-		lockText = Spring.I18N('ui.initialSpawn.unlock')
-	else
-		lockText = Spring.I18N('ui.initialSpawn.lock')
 	end
 
 	vsx, vsy = Spring.GetViewGeometry()
@@ -165,13 +147,6 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 
 	createButton()
 
-	buttonY = buttonY - buttonH - uiPadding*2
-	orgbuttonW = font:GetTextWidth('       '..lockText) * 24
-	buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
-	createLockButton()
-	--orgbuttonW = font:GetTextWidth('       '..buttonText) * 24
-	--buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
-	--buttonY = buttonY + buttonH + uiPadding*2
 end
 
 function widget:GameSetup(state, ready, playerStates)
@@ -205,6 +180,7 @@ function widget:GameSetup(state, ready, playerStates)
 		return true, true
 	end
 
+	-- only return true, true once ALL players are ready
 	ready = true
 	local playerList = Spring.GetPlayerList()
 	for _, playerID in pairs(playerList) do
@@ -217,71 +193,42 @@ function widget:GameSetup(state, ready, playerStates)
 
 	return true, ready
 
-	--[[
-	if not ready and pressedReady then	-- check if we just readied
-		ready = true
-	elseif ready and not pressedReady then 	-- check if we just reconnected/dropped
-		ready = false
-	end
-
-	pressedReady = playerStates[Spring.GetMyPlayerID()] == 'ready'
-	local prevReadied = readied
-	readied = pressedReady
-	if readied ~= prevReadied then
-		widget:ViewResize(vsx, vsy)
-	end
-	--Spring.Echo(ready, pressedReady, os.clock(), Spring.Debug.TableEcho(playerStates)) --, Spring.Debug.TableEcho(playerStates)
-	return true, ready
-	]]--
 end
 
 function widget:MousePress(sx, sy)
 	if buttonDrawn then
 
-		-- pressing ready element
+		-- pressing button element
 		if sx > uiElementRect[1] and sx < uiElementRect[3] and sy > uiElementRect[2] and sy < uiElementRect[4] then
-			-- pressing ready button
+			-- pressing actual button
 			if sx > buttonRect[1] and sx < buttonRect[3] and sy > buttonRect[2] and sy < buttonRect[4] then
 
-				-- ready
-				if not mySpec then
-					if not readied then
-						if startPointChosen then
-							pressedReady = true
-							readied = true
-							Spring.SendLuaRulesMsg("ready_to_start_game") 
-						else
-							Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
+				-- if not pressed on ready
+				if not readied then
+					if not mySpec then
+						if not readied then
+							if startPointChosen then
+								pressedReady = true
+								readied = true
+								Spring.SendLuaRulesMsg("ready_to_start_game") 
+							else
+								Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
+							end
+
 						end
-					--else
-						--readied = false
-						--pressedReady = false
-						--Spring.SendLuaRulesMsg( ) -- if it doesnt work, try implementing this
+
+					-- substitute
+					elseif eligibleAsSub then
+						offeredAsSub = not offeredAsSub
+						if offeredAsSub then
+							Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutionMessage'))
+						else
+							Spring.Echo(Spring.I18N('ui.substitutePlayers.offerWithdrawn'))
+						end
+						Spring.SendLuaRulesMsg(offeredAsSub and '\144' or '\145')
 					end
-
-				-- substitute
-				elseif eligibleAsSub then
-					offeredAsSub = not offeredAsSub
-					if offeredAsSub then
-						Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutionMessage'))
-					else
-						Spring.Echo(Spring.I18N('ui.substitutePlayers.offerWithdrawn'))
-					end
-					Spring.SendLuaRulesMsg(offeredAsSub and '\144' or '\145')
-				end
-
-				widget:ViewResize(vsx, vsy)
-			end
-			return true
-		end
-
-		-- pressing lock element
-		-- if ready
-		if readied then
-			if sx > uiLockRect[1] and sx < uiLockRect[3] and sy > uiLockRect[2] and sy < uiLockRect[4] then
-				-- pressing lock button
-				if sx > lockRect[1] and sx < lockRect[3] and sy > lockRect[2] and sy < lockRect[4] then
-					-- lock
+				-- lock position text showing
+				else
 					if locked then
 						locked = false
 						Spring.SendLuaRulesMsg("unlocking_in_place") 
@@ -289,12 +236,11 @@ function widget:MousePress(sx, sy)
 						locked = true
 						Spring.SendLuaRulesMsg("locking_in_place") 
 					end
-
-					widget:ViewResize(vsx, vsy)
-				
 				end
-			return true
+
+				widget:ViewResize(vsx, vsy)
 			end
+			return true
 		end
 
 	end
@@ -373,7 +319,7 @@ function widget:DrawScreen()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
 
-	elseif ((not readied or ShowReadied) or (mySpec and eligibleAsSub)) and buttonList and Game.startPosType == 2 then
+	elseif ((not readied or showLockButton) or (mySpec and eligibleAsSub)) and buttonList and Game.startPosType == 2 then
 
 		local playerList = Spring.GetPlayerList()
 		local numPlayers = #playerList
@@ -420,29 +366,7 @@ function widget:DrawScreen()
 		end
 		font:Begin()
 		font:Print(colorString .. buttonText, buttonRect[1]+((buttonRect[3]-buttonRect[1])/2), (buttonRect[2]+((buttonRect[4]-buttonRect[2])/2)) - (buttonH * 0.16), 24 * uiScale, "co")
-		font:End()
-
-		-- draw lock button and text
-		if readied then
-			local x, y = Spring.GetMouseState()
-			local colorString
-			if x > lockRect[1] and x < lockRect[3] and y > lockRect[2] and y < lockRect[4] then
-				gl.CallList(lock_buttonHoverList)
-				colorString = "\255\210\210\210"
-			else
-				gl.CallList(lock_buttonList)
-				timer2 = timer2 + Spring.GetLastUpdateSeconds()
-				colorString = os.clock() % 0.75 <= 0.375 and "\255\255\255\255" or "\255\222\222\222"
-				if blinkButton and os.clock() % 0.75 <= 0.375 then
-					local mult = 1.33
-					UiButton(lockRect[1], lockRect[2], lockRect[3], lockRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { readyButtonColor[1]*0.55*mult, readyButtonColor[2]*0.55*mult, readyButtonColor[3]*0.55*mult, 1 }, { readyButtonColor[1]*mult, readyButtonColor[2]*mult, readyButtonColor[3]*mult, 1 })
-				end
-			end
-			font:Begin()
-			font:Print(colorString .. lockText, lockRect[1]+((lockRect[3]-lockRect[1])/2), (lockRect[2]+((lockRect[4]-lockRect[2])/2)) - (buttonH * 0.16), 24 * uiScale, "co")
-			font:End()
-		end
-		
+		font:End()		
 		gl.Color(1, 1, 1, 1)
 	end
 end
