@@ -1167,9 +1167,13 @@ function gadgetHandler:SetViewSize(vsx, vsy)
 end
 
 function gadgetHandler:ViewResize(vsx, vsy)
+	tracy.ZoneBeginN("G:ViewResize")
 	for _, g in ipairs(self.ViewResizeList) do
+		tracy.ZoneBeginN("G:ViewResize:" .. g.ghInfo.name)
 		g:ViewResize(vsx, vsy)
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1210,7 +1214,9 @@ end
 function gadgetHandler:PlayerChanged(playerID)
 	tracy.ZoneBeginN("G:PlayerChanged")
 	for _, g in ipairs(self.PlayerChangedList) do
+		tracy.ZoneBeginN("G:PlayerChanged:" .. g.ghInfo.name)
 		g:PlayerChanged(playerID)
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return
@@ -2127,21 +2133,27 @@ function gadgetHandler:MousePress(x, y, button)
 end
 
 function gadgetHandler:MouseMove(x, y, dx, dy, button)
+	tracy.ZoneBeginN("G:MouseMove")
 	local mo = self.mouseOwner
 	if mo and mo.MouseMove then
+		tracy.ZoneEnd()
 		return mo:MouseMove(x, y, dx, dy, button)
 	end
+	tracy.ZoneEnd()
 end
 
 function gadgetHandler:MouseRelease(x, y, button)
+	tracy.ZoneBeginN("G:MouseRelease")
 	local mo = self.mouseOwner
 	local mx, my, lmb, mmb, rmb = Spring.GetMouseState()
 	if not (lmb or mmb or rmb) then
 		self.mouseOwner = nil
 	end
 	if mo and mo.MouseRelease then
+		tracy.ZoneEnd()
 		return mo:MouseRelease(x, y, button)
 	end
+	tracy.ZoneEnd()
 	return -1
 end
 
