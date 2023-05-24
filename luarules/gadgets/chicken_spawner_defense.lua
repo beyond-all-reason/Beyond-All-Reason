@@ -1508,6 +1508,7 @@ if gadgetHandler:IsSyncedCode() then
 			if t < config.gracePeriod then
 				queenAnger = 0
 				techAnger = 0
+				minBurrows = SetCount(humanTeams)
 			else
 				if not queenID then
 					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + queenAngerAgressionLevel, 100), 0)
