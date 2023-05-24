@@ -210,7 +210,10 @@ function widget:MousePress(sx, sy)
 							if startPointChosen then
 								pressedReady = true
 								readied = true
-								Spring.SendLuaRulesMsg("ready_to_start_game") 
+								Spring.SendLuaRulesMsg("ready_to_start_game")
+								-- also default lock player in place
+								locked = true
+								Spring.SendLuaRulesMsg("locking_in_place") 
 							else
 								Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
 							end
