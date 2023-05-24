@@ -43,6 +43,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships/t2",
 			techlevel = 2,
+			off_on_stun = "true",
 		},
 		featuredefs = {
 			dead = {

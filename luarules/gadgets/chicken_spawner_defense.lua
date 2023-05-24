@@ -1118,10 +1118,6 @@ if gadgetHandler:IsSyncedCode() then
 					if queenResistance[attackerDefID].notify == 0 then
 						chickenEvent("queenResistance", attackerDefID)
 						queenResistance[attackerDefID].notify = 1
-						if SetCount(spawnQueue) == 0 and mRandom() < config.spawnChance then
-							Wave()
-							timeOfLastWave = t
-						end
 						if mRandom() < config.spawnChance then
 							SpawnRandomOffWaveSquad(queenID, config.chickenHealers[mRandom(1,#config.chickenHealers)], SetCount(humanTeams)*10)
 						end
@@ -1129,9 +1125,6 @@ if gadgetHandler:IsSyncedCode() then
 							if mRandom() < config.spawnChance then
 								SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
 							end
-						end
-						for _ = 1, SetCount(humanTeams) do
-							table.insert(spawnQueue, { burrow = queenID, unitName = config.chickenHealers[mRandom(1,#config.chickenHealers)], team = chickenTeamID})
 						end
 						spawnCreepStructuresWave()
 					end
@@ -1511,22 +1504,20 @@ if gadgetHandler:IsSyncedCode() then
 			if t < config.gracePeriod then
 				queenAnger = 0
 				techAnger = 0
+				minBurrows = SetCount(humanTeams)
 			else
 				if not queenID then
 					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + queenAngerAgressionLevel, 100), 0)
+					techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 100), 0)
+					minBurrows = SetCount(humanTeams)
 				else
 					queenAnger = 100
+					techAnger = 100
+					minBurrows = 1
 				end
-				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 100), 0)
 				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgression*0.01)/(config.queenTime/3600)) + playerAgressionEcoValue
 				SetGameRulesParam("ChickenQueenAngerGain_Aggression", (playerAgression*0.01)/(config.queenTime/3600))
 				SetGameRulesParam("ChickenQueenAngerGain_Eco", playerAgressionEcoValue)
-				if techAnger < 1 then techAnger = 1 end
-				if playerAgressionLevel+1 <= maxBurrows then
-					minBurrows = playerAgressionLevel+1
-				else
-					minBurrows = maxBurrows
-				end
 			end
 			SetGameRulesParam("queenAnger", queenAnger)
 
@@ -1540,9 +1531,6 @@ if gadgetHandler:IsSyncedCode() then
 
 			if config.burrowSpawnRate < (t - timeOfLastFakeSpawn) then
 				-- This block is all about setting the correct burrow target
-				if firstSpawn then
-					minBurrows = 1
-				end
 				timeOfLastFakeSpawn = t
 			end
 
@@ -1564,12 +1552,6 @@ if gadgetHandler:IsSyncedCode() then
 				SetGameRulesParam("chicken_hiveCount", SetCount(burrows))
 			elseif config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount >= maxBurrows then
 				timeOfLastSpawn = t
-			end
-			
-			if burrowCount < SetCount(humanTeams) then
-				SpawnBurrow(SetCount(humanTeams))
-				chickenEvent("burrowSpawn")
-				SetGameRulesParam("chicken_hiveCount", SetCount(burrows))
 			end
 
 			if t > config.gracePeriod+5 then

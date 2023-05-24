@@ -48,6 +48,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles/t2",
 			techlevel = 2,
+			off_on_stun = "true",
 		},
 		featuredefs = {
 			dead = {

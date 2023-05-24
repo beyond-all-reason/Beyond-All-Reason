@@ -1148,9 +1148,13 @@ function widgetHandler:Update()
 	local deltaTime = Spring.GetLastUpdateSeconds()
 	-- update the hour timer
 	hourTimer = (hourTimer + deltaTime) % 3600.0
+	tracy.ZoneBeginN("W:Update")
 	for _, w in ipairs(self.UpdateList) do
+		tracy.ZoneBeginN("W:Update:" .. w.whInfo.name)
 		w:Update(deltaTime)
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1267,15 +1271,19 @@ function widgetHandler:DrawScreen()
 	if (not Spring.GetSpectatingState()) and anonymousMode ~= "disabled" then
 		Spring.SendCommands("info 0")
 	end
+	tracy.ZoneBeginN("W:DrawScreen")
 	if not Spring.IsGUIHidden() then
 		if not self.chobbyInterface  then
 			for _, w in r_ipairs(self.DrawScreenList) do
+				tracy.ZoneBeginN("W:DrawScreen:" .. w.whInfo.name)
 				w:DrawScreen()
+				tracy.ZoneEnd()
 			end
 		elseif widgetHandler.WG.guishader and widgetHandler.WG.guishader.DrawScreen then
 			widgetHandler.WG.guishader.DrawScreen()
 		end
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1287,16 +1295,24 @@ function widgetHandler:DrawGenesis()
 end
 
 function widgetHandler:DrawWorld()
+	tracy.ZoneBeginN("W:DrawWorld")
 	for _, w in r_ipairs(self.DrawWorldList) do
+		tracy.ZoneBeginN("W:DrawWorld:" .. w.whInfo.name)
 		w:DrawWorld()
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function widgetHandler:DrawWorldPreUnit()
+	tracy.ZoneBeginN("W:DrawWorldPreUnit")
 	for _, w in r_ipairs(self.DrawWorldPreUnitList) do
+		tracy.ZoneBeginN("W:DrawWorldPreUnit:" .. w.whInfo.name)
 		w:DrawWorldPreUnit()
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1343,6 +1359,7 @@ function widgetHandler:DrawShadowFeaturesLua()
 end
 
 function widgetHandler:DrawPreDecals()
+	
 	for _, w in r_ipairs(self.DrawPreDecalsList) do
 		w:DrawPreDecals()
 	end
@@ -1392,16 +1409,24 @@ function widgetHandler:DrawFeaturesPostDeferred()
 end
 
 function widgetHandler:DrawScreenEffects(vsx, vsy)
+	tracy.ZoneBeginN("W:DrawScreenEffects")
 	for _, w in r_ipairs(self.DrawScreenEffectsList) do
+		tracy.ZoneBeginN("W:DrawScreenEffects:" .. w.whInfo.name)
 		w:DrawScreenEffects(vsx, vsy)
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function widgetHandler:DrawScreenPost()
+	tracy.ZoneBeginN("W:DrawScreenPost")
 	for _, w in r_ipairs(self.DrawScreenPostList) do
+		tracy.ZoneBeginN("W:DrawScreenPost:" .. w.whInfo.name)
 		w:DrawScreenPost()
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1710,9 +1735,13 @@ function widgetHandler:PlayerChanged(playerID)
 end
 
 function widgetHandler:GameFrame(frameNum)
+	tracy.ZoneBeginN("W:GameFrame")
 	for _, w in ipairs(self.GameFrameList) do
+		tracy.ZoneBeginN("W:GameFrame:" .. w.whInfo.name)
 		w:GameFrame(frameNum)
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 	return
 end
 

@@ -1144,8 +1144,7 @@ function WeaponDef_Post(name, wDef)
 	if Spring.GetModOptions().newdgun or Spring.GetModOptions().comupdate then
 		if name == 'commanderexplosion' then
 			wDef.damage = {
-				default = 200000000,
-				commanders = 50000000,
+				default = 5000,
 			}
 		end
 	end
@@ -1154,7 +1153,7 @@ function WeaponDef_Post(name, wDef)
 		if name == 'commanderexplosion' then
 			wDef.AreaOfEffect = 700
 			wDef.cameraShake = 510
-			wDef.edgeeffectiveness = -50000
+			wDef.edgeeffectiveness = 0
 		end
 	end
 
