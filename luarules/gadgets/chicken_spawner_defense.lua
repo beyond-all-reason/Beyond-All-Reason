@@ -1118,10 +1118,6 @@ if gadgetHandler:IsSyncedCode() then
 					if queenResistance[attackerDefID].notify == 0 then
 						chickenEvent("queenResistance", attackerDefID)
 						queenResistance[attackerDefID].notify = 1
-						if SetCount(spawnQueue) == 0 and mRandom() < config.spawnChance then
-							Wave()
-							timeOfLastWave = t
-						end
 						if mRandom() < config.spawnChance then
 							SpawnRandomOffWaveSquad(queenID, config.chickenHealers[mRandom(1,#config.chickenHealers)], SetCount(humanTeams)*10)
 						end
