@@ -15,6 +15,20 @@
 --		function AtlasOnDemand:RenderTasks()
 --		function AtlasOnDemand:Delete() 
 --		function AtlasOnDemand:DrawToScreen(aliastest,noalpha)
+
+-- Example usage:
+-- :Initialize()
+--		local myAtlas = MakeAtlasOnDemand({sizex = 1024, sizey =  512, xresolution = 96, yresolution = 24, name = "AtlasOnDemand Tester", defaultfont = {font = fontObj}})
+
+--    local myimguvcoords = myAtlas:AddImage("luaui/images/myimg.png", xsize, ysize)
+--    local mytextuvcoords = myAtlas:AddText("text", | {textparams optional}) -- will draw with defaultFont as passed during creation
+		
+-- :Draw()
+--		myAtlas:RenderTasks()
+--		gl.TexRect(posx, posy, posx + myimguvcoords[5], posy + myimguvcoords[6], myimguvcoords[1], myimguvcoords[3], myimguvcoords[2], myimguvcoords[4])
+--
+-- :Remove()
+--		myAtlas:Delete()
 ----------------------------------------------------
 
 
