@@ -1,5 +1,23 @@
 -- Author: (c) Beherith mysterme@gmail.com
 
+------------------- SUMMARY ------------------------
+-- This is designed for taking textures and pieces of static text and rendering them onto an atlas, for faster rendering.
+-------------------- USAGE: -------------------
+-- Create a new atlas with the MakeAtlasOnDemand({config}) table, it will return you the Atlas object
+-- Add Text or Images to it, the return values of the Add* functions are xXyYwhd arrays of UV coords and sizes, so you can even add these into a display list with gl.TexRect
+-- You must bind the Atlas.textureID with gl.Texture to draw from it.
+-- After adding stuff, preferably in DrawGenesis, call AtlasOnDemand:RenderTasks() which will perform the rendering to the atlas itself. 
+-- Read the documentation for the 5-6 user facing functions:
+--		function MakeAtlasOnDemand(config)
+--		function AtlasOnDemand:AddImage(image, xsize, ysize)
+--		function AtlasOnDemand:AddText(text, params)
+--		function AtlasOnDemand:RemoveFromAtlas(uvcoords, id)
+--		function AtlasOnDemand:RenderTasks()
+--		function AtlasOnDemand:Delete() 
+--		function AtlasOnDemand:DrawToScreen(aliastest,noalpha)
+----------------------------------------------------
+
+
 -- AtlasOnDemand class
 -- Size in the total size of the texture
 -- Resolution is the size of the splits (e.g. 128 size 'patches'
