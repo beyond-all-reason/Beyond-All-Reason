@@ -172,6 +172,7 @@ local function MakeAtlasOnDemand(config)
 			gl.DeleteTexture(self.textureID) 
 			self.textureID = nil 
 		end
+		self:DeleteDefaultFont()
 	end
 	
 	---Internal function for allocating areas of the texture
@@ -438,7 +439,7 @@ local function MakeAtlasOnDemand(config)
 	---To free the default font object if we are already done with it all
 	function AtlasOnDemand:DeleteDefaultFont()
 		if self.defaultfont then
-			gl.DeleteFont(self.defaultfont)
+			gl.DeleteFont(self.defaultfont.font)
 			self.defaultfont = nil 
 		end
 	end
