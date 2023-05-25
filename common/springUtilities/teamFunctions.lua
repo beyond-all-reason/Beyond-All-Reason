@@ -1,6 +1,6 @@
 local smallTeamThreshold = 4
 local initialized = false
-local settings = { }
+local settings = {}
 
 local function getSettings()
 	if initialized then
@@ -24,7 +24,7 @@ local function getSettings()
 			local isAllyTeamValid = true
 
 			for _, team in ipairs(teamList) do
-				if select (4, Spring.GetTeamInfo(team, false)) then
+				if select(4, Spring.GetTeamInfo(team, false)) then
 					allyteamEntirelyHuman = false
 				else
 					local teamPlayers = Spring.GetPlayerList(team)
@@ -47,12 +47,12 @@ local function getSettings()
 			end
 
 			if isAllyTeamValid then
-				actualAllyTeamList[#actualAllyTeamList+1] = allyTeam
-				actualAllyTeamSizes[#actualAllyTeamSizes+1] = #teamList
+				actualAllyTeamList[#actualAllyTeamList + 1] = allyTeam
+				actualAllyTeamSizes[#actualAllyTeamSizes + 1] = #teamList
 			end
 
 			if allyteamEntirelyHuman then
-				entirelyHumanAllyTeams[#entirelyHumanAllyTeams+1] = allyTeam
+				entirelyHumanAllyTeams[#entirelyHumanAllyTeams + 1] = allyTeam
 			end
 		end
 	end
@@ -106,20 +106,22 @@ local function getSettings()
 	return settings
 end
 
+local gametype = {
+	IsSinglePlayer = function() return getSettings().isSinglePlayer end,
+	Is1v1 = function() return getSettings().is1v1 end,
+	IsTeams = function() return getSettings().isTeams end,
+	IsBigTeams = function() return getSettings().isBigTeams end,
+	IsSmallTeams = function() return getSettings().isSmallTeams end,
+	IsChickens = function() return getSettings().isChickens end,
+	IsScavengers = function() return getSettings().isScavengers end,
+	IsPvE = function() return getSettings().isPvE end,
+	IsCoop = function() return getSettings().isCoop end,
+	IsFFA = function() return getSettings().isFFA end,
+	IsSandbox = function() return getSettings().isSandbox end,
+}
+
 return {
-	GetTeamCount   = function () return getSettings().teamCount end,
-	GetPlayerCount = function () return getSettings().playerCount end,
-	Gametype = {
-		IsSinglePlayer = function () return getSettings().isSinglePlayer end,
-		Is1v1          = function () return getSettings().is1v1          end,
-		IsTeams        = function () return getSettings().isTeams        end,
-		IsBigTeams     = function () return getSettings().isBigTeams     end,
-		IsSmallTeams   = function () return getSettings().isSmallTeams   end,
-		IsChickens     = function () return getSettings().isChickens     end,
-		IsScavengers   = function () return getSettings().isScavengers   end,
-		IsPvE          = function () return getSettings().isPvE          end,
-		IsCoop         = function () return getSettings().isCoop         end,
-		IsFFA          = function () return getSettings().isFFA          end,
-		IsSandbox      = function () return getSettings().isSandbox      end,
-	},
+	GetTeamCount = function() return getSettings().teamCount end,
+	GetPlayerCount = function() return getSettings().playerCount end,
+	Gametype = gametype,
 }

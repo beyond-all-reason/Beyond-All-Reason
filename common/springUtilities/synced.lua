@@ -2,17 +2,18 @@
 local function makeRealTable(proxy, debugTag)
 	if proxy == nil then
 		Spring.Log("Table Utilities", LOG.ERROR, "Proxy table is nil: " .. (debugTag or "unknown table"))
-		return
+		return nil
 	end
-	local proxyLocal = proxy
+
 	local ret = {}
-	for i,v in pairs(proxyLocal) do
+	for i, v in pairs(proxy) do
 		if type(v) == "table" then
 			ret[i] = makeRealTable(v)
 		else
 			ret[i] = v
 		end
 	end
+
 	return ret
 end
 

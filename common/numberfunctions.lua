@@ -11,7 +11,7 @@ if not math.round then
 end
 
 if not math.cross_product then
-	function math.cross_product (px, pz, ax, az, bx, bz)
+	function math.cross_product(px, pz, ax, az, bx, bz)
 		return ((px - bx) * (az - bz) - (ax - bx) * (pz - bz))
 	end
 end
@@ -60,7 +60,6 @@ if not ToSIPrec then
 				return strFormat("%.2f", num)
 			elseif absNum < 10 then
 				return strFormat("%.2f", num)
-
 			elseif absNum < 1000 then
 				return strFormat("%.0f", num)
 			elseif absNum < 1000000 then

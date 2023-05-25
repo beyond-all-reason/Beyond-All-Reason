@@ -2,12 +2,13 @@ local function customKeyToUsefulTable(dataRaw)
 	if not dataRaw then
 		return
 	end
-	if not type(dataRaw) == 'string' then
+
+	if type(dataRaw) ~= 'string' then
 		Spring.Echo("Customkey data error! type == " .. type(dataRaw))
 	else
 		dataRaw = string.gsub(dataRaw, '_', '=')
 		dataRaw = string.base64Decode(dataRaw)
-		local dataFunc, err = loadstring("return " .. dataRaw)
+		local dataFunc, err = load("return " .. dataRaw, "customKeyToUsefulTable", "t", {})
 		if dataFunc then
 			local success, usefulTable = pcall(dataFunc)
 			if success then
@@ -18,9 +19,10 @@ local function customKeyToUsefulTable(dataRaw)
 			end
 		end
 		if err then
-			Spring.Echo("Customkey error", err)
+			Spring.Echo("Customkey error:", err)
 		end
 	end
+
 	if collectgarbage then
 		collectgarbage("collect")
 	end

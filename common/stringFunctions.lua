@@ -1,14 +1,10 @@
 local base64 = VFS.Include('common/luaUtilities/base64.lua')
 
 if not string.split then
-	-- Split a string into a table of substrings, based on a delimiter.
-	-- If not supplied, delimiter defaults to whitespace.
-	-- Consecutive delimiters are treated as one.
-	-- string.split(csvText, ',')	csvText:split(',')
-	function string:split(delimiter)
+	function string.split(str, delimiter)
 		delimiter = delimiter or '%s'
 		local results = {}
-		for part in self:gmatch("[^" .. delimiter .. "]+") do
+		for part in str:gmatch("[^" .. delimiter .. "]+") do
 			table.insert(results, part)
 		end
 		return results
@@ -16,48 +12,47 @@ if not string.split then
 end
 
 if not string.base64Encode then
-	function string:base64Encode()
-		return base64.Encode(self)
+	function string.base64Encode(str)
+		return base64.Encode(str)
 	end
 
-	function string:base64Decode()
-		return base64.Decode(self)
+	function string.base64Decode(str)
+		return base64.Decode(str)
 	end
 end
 
 if not string.lines then
-	function string:lines()
+	function string.lines(str)
 		local text = {}
 		local function helper(line)
 			text[#text+1] = line
 			return ""
 		end
-		helper((self:gsub("(.-)\r?\n", helper)))
+		helper((str:gsub("(.-)\r?\n", helper)))
 		return text
 	end
 end
 
--- Returns python style tuple string.partition()
-if not string.partition then 
-	function string:partition(sep)
-		local seppos = self:find(sep, nil, true)
-		if seppos == nil then 
-			return self, nil, nil 
+if not string.partition then
+	function string.partition(str, sep)
+		local seppos = str:find(sep, nil, true)
+		if seppos == nil then
+			return str, nil, nil
 		else
-			if seppos == 1 then 
-				return nil, sep, self:sub(sep:len()+1)
+			if seppos == 1 then
+				return nil, sep, str:sub(sep:len() + 1)
 			else
-				return self:sub(1, seppos -1), sep, self:sub(seppos + sep:len())
+				return str:sub(1, seppos - 1), sep, str:sub(seppos + sep:len())
 			end
 		end
 	end
 end
 
 if not string.formatTime then
-	function string:formatTime()
-		local hours = math.floor(self / 3600)
-		local minutes = math.floor((self % 3600) / 60)
-		local seconds = math.floor(self % 60)
+	function string.formatTime(time)
+		local hours = math.floor(time / 3600)
+		local minutes = math.floor((time % 3600) / 60)
+		local seconds = math.floor(time % 60)
 		local hoursString = tostring(hours)
 		local minutesString = tostring(minutes)
 		local secondsString = tostring(seconds)
@@ -74,8 +69,5 @@ if not string.formatTime then
 		end
 	end
 end
--- Unit test:
--- print(string.partition("blaksjdfsaldkj","ldkj"))
--- print(string.partition("blaksjdfsaldkj","aks"))
 
-
+return string

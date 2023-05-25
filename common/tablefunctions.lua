@@ -1,8 +1,7 @@
-
 if not table.copy then
-	function table:copy()
+	function table.copy(tbl)
 		local copy = {}
-		for key, value in pairs(self) do
+		for key, value in pairs(tbl) do
 			if type(value) == "table" then
 				copy[key] = table.copy(value)
 			else
@@ -14,19 +13,13 @@ if not table.copy then
 end
 
 if not table.merge then
-	-- Recursively merge two tables and return the result in a new table.
-	-- When there is a conflict, values in 'secondary' override values in 'primary'.
 	function table.merge(primary, secondary)
 		local new = table.copy(primary)
-		for key, v in pairs(secondary) do
-			-- key not used in default, assign it the value at same key in override
-			if not new[key] and type(v) == "table" then
-				new[key] = table.copy(v)
-				-- values at key in both default and override are tables, merge those
-			elseif type(new[key]) == "table" and type(v) == "table"  then
-				new[key] = table.merge(new[key], v)
+		for key, value in pairs(secondary) do
+			if type(value) == "table" and type(new[key]) == "table" then
+				new[key] = table.merge(new[key], value)
 			else
-				new[key] = v
+				new[key] = value
 			end
 		end
 		return new
@@ -34,28 +27,20 @@ if not table.merge then
 end
 
 if not table.mergeInPlace then
-	-- Recursively merge values, mutating the table 'mergeTarget'.
-	-- When there is a conflict, values in 'mergeData' take precedence.
 	function table.mergeInPlace(mergeTarget, mergeData, deep)
 		if not deep then
 			local mergedData = table.merge(mergeTarget, mergeData)
-
 			for key, value in pairs(mergedData) do
 				mergeTarget[key] = value
 			end
-
 			return
 		end
 
-		for i, v in pairs(mergeData) do
-			if mergeTarget[i] and type(mergeTarget[i]) == "table" and type(v) == "table"  then
-				table.mergeInPlace(mergeTarget[i], v, deep)
+		for key, value in pairs(mergeData) do
+			if type(value) == "table" and type(mergeTarget[key]) == "table" then
+				table.mergeInPlace(mergeTarget[key], value, deep)
 			else
-				if type(v) == "table" then
-					mergeTarget[i] = table.copy(v)
-				else
-					mergeTarget[i] = v
-				end
+				mergeTarget[key] = value
 			end
 		end
 	end
@@ -64,7 +49,6 @@ end
 if not table.toString then
 	function table.toString(data, key)
 		local dataType = type(data)
-		-- Check the type
 		if key then
 			if type(key) == "number" then
 				key = "[" .. key .. "]"
@@ -75,7 +59,7 @@ if not table.toString then
 		elseif dataType == "number" then
 			return key .. "=" .. data
 		elseif dataType == "boolean" then
-			return key .. "=" .. ((data and "true") or "false")
+			return key .. "=" .. (data and "true" or "false")
 		elseif dataType == "table" then
 			local str
 			if key then
@@ -95,20 +79,21 @@ if not table.toString then
 end
 
 if not table.invert then
-	function table:invert()
+	function table.invert(tbl)
 		local inverted = {}
-		for key, value in pairs(self) do
+		for key, value in pairs(tbl) do
 			inverted[value] = key
 		end
 		return inverted
 	end
 end
 
-
 if not table.append then
 	function table.append(appendTarget, appendData)
-		for _, value in pairs(appendData) do
+		for _, value in ipairs(appendData) do
 			table.insert(appendTarget, value)
 		end
 	end
 end
+
+return table
