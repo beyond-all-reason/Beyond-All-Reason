@@ -314,6 +314,20 @@ function widget:DrawScreen()
 		font:End()
 	end
 
+	local showbutton = false
+	-- ((not readied or showLockButton) or (mySpec and eligibleAsSub)) and buttonList and Game.startPosType == 2
+	if buttonList and Game.startPosType == 2 then
+		if mySpec then
+			if eligibleAsSub then
+				showbutton = true
+			end
+		else
+			if not readied or showLockButton then
+				showbutton = true
+			end
+		end
+	end
+
 	if gameStarting then
 		timer = timer + Spring.GetLastUpdateSeconds()
 		local colorString = timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
@@ -322,7 +336,7 @@ function widget:DrawScreen()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
 
-	elseif ((not readied or showLockButton) or (mySpec and eligibleAsSub)) and buttonList and Game.startPosType == 2 then
+	elseif showbutton == true then
 
 		local playerList = Spring.GetPlayerList()
 		local numPlayers = #playerList
