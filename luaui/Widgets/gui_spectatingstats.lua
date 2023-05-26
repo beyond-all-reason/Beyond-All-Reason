@@ -17,6 +17,7 @@ local allyTeamName = {}
 local textcolor = "\255\200\200\200"
 
 local spGetUnitDefID = Spring.GetUnitDefID
+local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local unitdefMobileDps = {}
 local unitdefStaticDps = {}
@@ -54,7 +55,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function widget:Initialize()
-	if not Spring.GetSpectatingState() then
+	if not Spring.GetSpectatingState() and not isSinglePlayer then
 		widgetHandler:RemoveWidget()
 	end
 end
