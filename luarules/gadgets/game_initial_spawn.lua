@@ -127,7 +127,7 @@ if gadgetHandler:IsSyncedCode() then
 			GG.ffaStartPoints = ffaStartPoints[allyTeamsCount] -- NOT indexed by allyTeamID
 		end
 
-		-- mark all players as 'not yet placed'
+		-- mark all players as 'not yet placed' and 'not yet readied'
 		local initState
 		if Game.startPosType ~= 2 or ffaStartPoints then
 			initState = -1 -- if players won't be allowed to place startpoints
@@ -138,6 +138,12 @@ if gadgetHandler:IsSyncedCode() then
 		for _, playerID in pairs(playerList) do
 			Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", initState)
 		end
+
+		-- initializes gameside player readystates
+		--local playerList = Spring.GetPlayerList()
+		--for _, playerID in pairs(playerList) do
+		--	Spring.SetGameRulesParam("player_" .. playerID .. "_ready_status", 0)
+		--end
 	end
 
 	----------------------------------------------------------------
@@ -153,6 +159,38 @@ if gadgetHandler:IsSyncedCode() then
 				spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, { allied = true, public = false }) -- visible to allies only, set visible to all on GameStart
 				return true
 			end
+		end
+
+		-- keep track of ready status gameside.
+		-- sending ready status in GameSetup early prevents players from repositioning
+		-- thus, the plan is to keep track of readystats gameside, and only send through GameSetup
+		-- when everyone is ready
+		if msg == "ready_to_start_game" then
+			Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", 1)
+		end
+
+		-- keep track of who has joined
+		-- so when last person joins, start the auto-ready countdown
+		if msg == "joined_game" then
+			Spring.SetGameRulesParam("player_" .. playerID .. "_joined", 1)
+			local playerList = Spring.GetPlayerList()
+			local all_players_joined = true
+			for _, PID in pairs(playerList) do
+				if Spring.GetGameRulesParam("player_" .. PID .. "_joined") == nil then
+					all_players_joined = false
+				end
+			end
+			if all_players_joined == true then
+				Spring.SetGameRulesParam("all_players_joined", 1)
+			end
+		end
+
+		-- keep track of lock state
+		if msg == "locking_in_place" then
+			Spring.SetGameRulesParam("player_" .. playerID .. "_lockState", 1)
+		end
+		if msg == "unlocking_in_place" then
+			Spring.SetGameRulesParam("player_" .. playerID .. "_lockState", 0)
 		end
 	end
 
@@ -206,8 +244,15 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+		-- don't allow player to place if locked
+		local is_player_locked = Spring.GetGameRulesParam("player_" .. playerID .. "_lockState")
+		if is_player_locked == 1 then
+			return false
+		end
+
 		-- communicate readyState to all
-		Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", readyState)
+		-- Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", readyState)
+		local is_player_ready = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
 
 		for otherTeamID, startpoint in pairs(startPointTable) do
 			local sx, sz = startpoint[1], startpoint[2]
@@ -229,7 +274,7 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			-- player placed startpoint OR game is starting and player is ready
 			startPointTable[teamID] = { x, z }
-			if readyState ~= 1 then
+			if is_player_ready ~= 1 then
 				-- game is not starting (therefore, player cannot yet have pressed ready)
 				Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", 4)
 			end

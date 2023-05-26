@@ -571,6 +571,9 @@
 		"initialSpawn": {
 			"ready": "Ready",
 			"unready": "Unready",
+			"readied": "Readied",
+			"lock": "Lock Position",
+			"unlock": "Unlock Position",
 			"startCountdown": "Game starting in %{time}...",
 			"choosePoint": "Please choose a start point!",
 			"tooClose": "You cannot place your start position too close to another player"
