@@ -1085,12 +1085,10 @@ function widget:DrawScreen()
 end
 
 function widget:DrawWorld()
-	if not WG.StopDrawUnitShapeGL4 then return end
 
 	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
 	if Spring.GetGameFrame() > 0 then
 		widgetHandler:RemoveWidgetCallIn('DrawWorld', self)
-
 		return
 	end
 
