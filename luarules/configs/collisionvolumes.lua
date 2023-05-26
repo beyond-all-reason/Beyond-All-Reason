@@ -91,8 +91,8 @@ unitCollisionVolume['armlab'] = {
 	off={95,22,95,0,-1,0,1,1,1},
 }
 unitCollisionVolume['armpb'] = {
-	on={39,88,39,0,0,-5,0,1,0},
-	off={39,55,39,0,-17,0,0,1,0},
+	on={32,88,32,0,-8,0,1,1,1},
+	off={40,40,40,0,-8,0,3,1,1},
 }
 unitCollisionVolume['armplat'] = {
 	on={105,66,105,0,33,0,2,1,0},
@@ -195,7 +195,7 @@ end
 dynamicPieceCollisionVolume['corvipe'] = {
 	on = {
 		['0']={38,26,38,0,0,0,2,0},
-		['6']={25,45,25,0,25,0,1,1}, -- changed to [1] so the cylinder collision is attached to the turret and not a door 
+		['5']={25,45,25,0,25,0,1,1}, -- changed to [1] so the cylinder collision is attached to the turret and not a door 
 		['offsets']={0,23,0},
 	},
 	off = {

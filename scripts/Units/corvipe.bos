@@ -28,8 +28,8 @@ Close()
 	wait-for-move turret along y-axis;
 	move door1 to x-axis [8.54000000] speed [47.600000];
 	move door2 to x-axis [-8.54000000] speed [47.600000];
-	move lock1 to z-axis [-3.6000000] speed [12.700000];
-	move lock2 to z-axis [3.6000000] speed [12.700000];
+	move lock1 to z-axis [0] speed [12.700000];
+	move lock2 to z-axis [0] speed [12.700000];
 	wait-for-move door1 along x-axis;
 	set ARMORED to 1;
 }
@@ -39,8 +39,8 @@ Open()
 	set ARMORED to 0;
 	move door1 to x-axis [-5] speed [47.600000];
 	move door2 to x-axis [5] speed [47.600000];
-	move lock1 to z-axis [0] speed [12.700000];
-	move lock2 to z-axis [0] speed [12.700000];
+	move lock1 to z-axis [3.6000000] speed [12.700000];
+	move lock2 to z-axis [-3.6000000] speed [12.700000];
 	wait-for-move door1 along x-axis;
 	move turret to y-axis [0] speed [69.000000];
 	wait-for-move turret along y-axis;
@@ -72,12 +72,18 @@ Create()
 {
 	hide flare;
 	restore_delay = 3000;
-	is_open = 1;
+	is_open = 0;
 	while( get BUILD_PERCENT_LEFT )
 	{
-		sleep 400;
+		sleep 1000;
 	}
-	start-script Close();
+	// close and armor once construction is done
+	// only if no target in range when done
+	sleep 1000;
+	if ( is_open == 0 )
+	{
+		start-script Close();
+	}
 }
 
 AimPrimary(heading, pitch)

@@ -21,7 +21,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
-		objectname = "Units/CORVIPEV2.s3o",
+		objectname = "Units/CORVIPE.s3o",
 		script = "Units/CORVIPE.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
