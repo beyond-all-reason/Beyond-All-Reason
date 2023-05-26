@@ -102,14 +102,14 @@ local function DoBuildingsClash(buildData1, buildData2)
 end
 
 local function GetClashingOrdersPreGame()
-	if not (WG['pregame-build'] and WG['pregame-build'].getPreGameDefID and WG['pregame-build'].getBuildQueue) then return {} end
+	if not (WG['buildmenu'] and WG['buildmenu'].getPreGameDefID and WG['buildmenu'].getBuildQueue) then return {} end
 
 
 	local buildFacing = spGetBuildFacing() or 1
 	local orders = {}
 	local ordersCount = 0
 
-	for _, order in pairs(WG['pregame-build'].getBuildQueue()) do
+	for _, order in pairs(WG['buildmenu'].getBuildQueue()) do
 		local orderDefID = order[1]
 		local extractsMetal = isMex[orderDefID]
 
@@ -269,7 +269,7 @@ end
 
 function widget:Update()
 	if preGamestartPlayer then
-		activeCmdID = WG['pregame-build'] and WG['pregame-build'].getPreGameDefID()
+		activeCmdID = WG['buildmenu'] and WG['buildmenu'].getPreGameDefID()
 		if activeCmdID then activeCmdID = -activeCmdID end
 	else
 		_, activeCmdID = spGetActiveCommand()
