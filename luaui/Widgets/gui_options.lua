@@ -2744,8 +2744,8 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackFades", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackfades'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackfades_descr'),
-			onchange = function(i, value)
+		{ id = "soundtrackFades", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackfades'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackFades', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackfades_descr'),
+		  onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackFades', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshSettings then
 					WG['music'].RefreshSettings()
