@@ -634,9 +634,7 @@ end
 
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
-	if WG['pregame-build'] then
-		WG['pregame-build'].setPreGamestartDefID(uDefID)
-	end
+	WG['pregame-build'].setPreGamestartDefID(uDefID)
 	if not uDefID then
 		currentBuildCategory = nil
 		currentCategoryIndex = nil

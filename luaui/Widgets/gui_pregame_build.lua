@@ -132,20 +132,18 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "buildmenu_pregame_deselect", buildmenuPregameDeselectHandler, nil, "p")
 
 	-- Get our starting unit
-	--if preGamestartPlayer then
-	--	SetBuildFacing()
-	--	if not startDefID or startDefID ~= Spring.GetTeamRulesParam(myTeamID, 'startUnit') then
-	--		startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
-	--		doUpdate = true
-	--	end
-	--end
+	if preGamestartPlayer then
+		if not startDefID or startDefID ~= Spring.GetTeamRulesParam(myTeamID, 'startUnit') then
+			startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+			doUpdate = true
+		end
+	end
 
 	WG['pregame-build'] = {}
 	WG['pregame-build'].getPreGameDefID = function()
 		return selBuildQueueDefID
 	end
 	WG['pregame-build'].setPreGamestartDefID = function(value)
-		Spring.Echo('Setting buildqueue', value)
 		setPreGamestartDefID(value)
 	end
 
