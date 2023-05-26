@@ -5909,6 +5909,9 @@ function widget:Initialize()
 	if widgetHandler.orderList["Pregame UI"] < 0.5 then
 		widgetHandler:EnableWidget("Pregame UI")
 	end
+	if widgetHandler.orderList["Pregame Queue"] < 0.5 then
+		widgetHandler:EnableWidget("Pregame Queue")
+	end
 
 	updateGrabinput()
 	widget:ViewResize()
