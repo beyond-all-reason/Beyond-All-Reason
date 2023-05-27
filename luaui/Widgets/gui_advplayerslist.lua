@@ -2538,6 +2538,15 @@ function DrawName(name, team, posY, dark, playerID, desynced)
     local willSub = ""
     local ignored = WG.ignoredPlayers and WG.ignoredPlayers[name]
 
+    local isAbsent = false
+    if name == absentName then
+        isAbsent = true
+        local playerName = Spring.GetPlayerInfo(select(2,Spring.GetTeamInfo(team, false)), false)
+        if playerName then
+            name = playerName
+        end
+    end
+
     if not gameStarted then
         if playerID >= 64 then
             willSub = (Spring.GetGameRulesParam("Player" .. (playerID - 64) .. "willSub") == 1) and " (sub)" or "" --pID-64 because apl uses dummy playerIDs for absent players
@@ -2556,27 +2565,26 @@ function DrawName(name, team, posY, dark, playerID, desynced)
     end
 
     font2:Begin()
+    local fontsize = isAbsent and 9.5 or 14
     if dark then
-		if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
-			font2:SetTextColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3], 1)
-		else
-			font2:SetTextColor(Spring_GetTeamColor(team))
-		end
         font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.8, 0.75 * widgetScale))
-        font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o")
     else
         font2:SetTextColor(0, 0, 0, 0.4)
         font2:SetOutlineColor(0, 0, 0, 0.4)
-        font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, 14, "n") -- draws name
-        font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, 14, "n") -- draws name
-		if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
-			font2:SetTextColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3], 1)
-		else
-			font2:SetTextColor(Spring_GetTeamColor(team))
-		end
+        font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, fontsize, "n") -- draws name
+        font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, fontsize, "n") -- draws name
         font2:SetOutlineColor(0, 0, 0, 1)
-        font2:Print( nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
     end
+    if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
+        font2:SetTextColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3], 1)
+    else
+        font2:SetTextColor(Spring_GetTeamColor(team))
+    end
+    if isAbsent then
+        font2:SetOutlineColor(0, 0, 0, 0.4)
+        font2:SetTextColor(0.45,0.45,0.45,1)
+    end
+    font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, fontsize, dark and "o" or "n")
 
     --desynced = playerID == 1
 	if desynced then
