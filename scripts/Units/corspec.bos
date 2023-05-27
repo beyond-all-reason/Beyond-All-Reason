@@ -7,8 +7,11 @@ piece  pelvis, lleg, lfoot, rleg, rfoot, rthigh, lthigh,head,dish,rotator;
 
 static-var  bMoving, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5;
 
+static-var recently_damaged, desired_activation;
+
 // Signal definitions
 #define SIG_ACTIVATE			2
+#define SIG_OFF 				8
 
 // For N:\animations\corspec_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
@@ -290,18 +293,26 @@ Create()
 	start-script SmokeUnit();
 	animSpeed = 5;
 	Static_Var_5 = 0;
+	recently_damaged = 0;
+	desired_activation = 1;
 	return (0);
 }
 
 Activate()
 {
-	if( Static_Var_5 )
-	{
-		set ACTIVATION to 0;
-		return (0);
-	}
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
+	desired_activation = 1;
+	// if we are in this function, the unit is already on
+	// implied set ACTIVATION to 1;
+	// turn off if unit is in the recently_damaged state
+	// this turn off action calls the Deactivate function
+	if( recently_damaged == 1)
+	{
+		set ACTIVATION to 0;
+		return(0);
+	}
+
 	call-script open();
 	spin dish around x-axis speed <100.021978>;
 	return (0);
@@ -309,55 +320,57 @@ Activate()
 
 Deactivate()
 {
+	// get PRINT(0, desired_activation,desired_activation,get GAME_FRAME);
+	// no easy way to tell if an on-off action is 
+	// script/gadget controlled or user controlled
+	// assume a deactivate command is a user command 
+	// if the unit has not been recently damaged
+	// However, we need to wait a few frames, 
+	// unit_paralyze_on_off deactivates this unit before it is 
+	// stunned, so it is actually turned off, but we need to wait to see if the
+	// unit is "damaged" by stun.
+	sleep 100;
+	if (recently_damaged == 0)
+	{
+		//set desired state if deactivated and not recently damaged
+		desired_activation = 0;
+	}
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
+
 	turn dish to x-axis <0.000000> speed <-100.000000>;
 	wait-for-turn dish around x-axis;
 	call-script close();
 	return (0);
 }
 
+OffOnHit()
+{
+signal SIG_OFF;
+set-signal-mask SIG_OFF;
+recently_damaged = 1;
+set ACTIVATION to 0; // turn off unit
+sleep 8000; //hardcoded time to stay off after being hit
+recently_damaged = 0;
+set ACTIVATION to desired_activation;
+}
+
 HitByWeapon(anglex, anglez)
 {
-	if( get ACTIVATION )
-	{
-		Static_Var_5 = 1;
-	}
-	if( Static_Var_5 )
-	{
-		signal SIG_ACTIVATE;
-		set-signal-mask SIG_ACTIVATE;
-		set ACTIVATION to 0;
-		sleep 8000;
-		Static_Var_5 = 0;
-		set ACTIVATION to 100;
-	}
+	start-script OffOnHit();
 	return (0);
 }
 
 
 static-var  Stunned;
-ExecuteRestoreAfterDelay()
-{
-    if (Stunned) {
-        return (1);
-    }
-	Static_Var_2 = 0;
-}
 SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
-	    turn dish to x-axis <0.000000> speed <-100.000000>;
+	    start-script Deactivate();
 	} else {
-	    start-script ExecuteRestoreAfterDelay();
-	    spin dish around x-axis speed <100.021978>;
+	    set ACTIVATION to desired_activation;
 	}
-}
-RestoreAfterDelay()
-{
-	sleep Static_Var_4;
-	start-script ExecuteRestoreAfterDelay();
 }
 
 SweetSpot(piecenum)

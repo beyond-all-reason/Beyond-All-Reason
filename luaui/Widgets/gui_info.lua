@@ -281,6 +281,14 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].metalPerShot = weaponDef.metalCost
 			end
 		end
+
+		if unitDef.customParams.unitgroup and unitDef.customParams.unitgroup == 'explo' and unitDef.deathExplosion and WeaponDefNames[unitDef.deathExplosion] then
+			local weapon = WeaponDefs[WeaponDefNames[unitDef.deathExplosion].id]
+			if weapon then
+				unitDefInfo[unitDefID].dps = weapon.damages[Game.armorTypes["default"]]
+				unitDefInfo[unitDefID].reloadTime = nil
+			end
+		end
 	end
 end
 
@@ -1184,10 +1192,12 @@ local function drawUnitInfo()
 				addTextInfo(texts.xp, round(exp, 2))
 				addTextInfo(texts.maxhealth, '+' .. round((maxHealth / unitDefInfo[displayUnitDefID].health - 1) * 100, 0) .. '%')
 				currentReloadTime = spGetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, 'reloadTimeXP')
-				reloadTimeSpeedup = currentReloadTime / unitDefInfo[displayUnitDefID].reloadTime
-				local reloadTimeSpeedupPercentage = tonumber(round((1 - reloadTimeSpeedup) * 100, 0))
-				if reloadTimeSpeedupPercentage > 0 then
-					addTextInfo(texts.reload, '-' .. reloadTimeSpeedupPercentage .. '%')
+				if unitDefInfo[displayUnitDefID].reloadTime then
+					reloadTimeSpeedup = currentReloadTime / unitDefInfo[displayUnitDefID].reloadTime
+					local reloadTimeSpeedupPercentage = tonumber(round((1 - reloadTimeSpeedup) * 100, 0))
+					if reloadTimeSpeedupPercentage > 0 then
+						addTextInfo(texts.reload, '-' .. reloadTimeSpeedupPercentage .. '%')
+					end
 				end
 			end
 			if dps then
@@ -1199,8 +1209,9 @@ local function drawUnitInfo()
 				elseif maxRange then
 					addTextInfo(texts.weaponrange, math_floor(maxRange))
 				end
-
-				addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
+				if currentReloadTime and currentReloadTime > 0 then
+					addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
+				end
 			end
 
 			--addTextInfo('weapons', #unitWeapons[displayUnitDefID])

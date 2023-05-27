@@ -457,13 +457,17 @@ function widget:PlayerChanged(playerID)
 	end
 end
 
+local initializeGameFrame = 0
+
 function widget:Initialize()
+	initializeGameFrame = Spring.GetGameFrame()
 	widget:ViewResize()
 	widget:PlayerChanged()
 	WG['idlebuilders'] = {}
 	WG['idlebuilders'].getPosition = function()
 		return posX, posY, backgroundRect and backgroundRect[3] or posX, backgroundRect and backgroundRect[4] or posY + usedHeight
 	end
+	updateList()
 end
 
 function widget:Shutdown()
@@ -484,7 +488,7 @@ local sec2 = 0
 local doUpdate = true
 local timerStart = Spring.GetTimer()
 function Update()
-	if Spring.GetGameFrame() <1 then return end
+	if Spring.GetGameFrame() <= initializeGameFrame then return end
 	checkgroups = true
 	if not (not spec or showWhenSpec) then
 		return

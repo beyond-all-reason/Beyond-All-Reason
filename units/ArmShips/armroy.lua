@@ -184,6 +184,7 @@ return {
 				badtargetcategory = "VTOL",
 				def = "PLASMA",
 				onlytargetcategory = "SURFACE",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "NOTSUB",

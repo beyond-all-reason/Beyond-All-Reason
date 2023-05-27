@@ -155,15 +155,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 			Spring.Echo("hat created", unitID, unitDefID, unitTeam, builderID)
 		end
 		Hats[unitID] = -1
-		--Spring.SetUnitNoSelect(unitID,true) -- can it still be targetted though?
-		--[[number unitID,
-		   boolean isBlocking,
-		   boolean isSolidObjectCollidable,
-		   boolean isProjectileCollidable,
-		   boolean isRaySegmentCollidable,
-		   boolean crushable,
-		   boolean blockEnemyPushing,
-		   boolean blockHeightChanges]]--
 		Spring.SetUnitNeutral(unitID, true)
 		Spring.SetUnitBlocking(unitID, false, false, false, false) -- non blocking while dying
 		Spring.SetUnitNoMinimap(unitID, true)

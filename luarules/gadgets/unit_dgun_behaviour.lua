@@ -42,6 +42,7 @@ local function addVolumetricDamage(projectileID)
 	local explosionParame ={
 		weaponDef = weaponDefID,
 		owner = ownerID,
+		projectileID = projectileID,
 		damages = dgunWeapons[weaponDefID].damages,
 		hitUnit = 1,
 		hitFeature = 1,
@@ -103,7 +104,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		if dgunWeapons[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
 			Spring.DeleteProjectile(projectileID)
 			local x, y, z = Spring.GetUnitPosition(unitID)		
-			Spring.SpawnCEG("commander-spawn-explo", x, y, z, 0, 0, 0, 0, 0)
+			Spring.SpawnCEG("dgun-deflect", x, y, z, 0, 0, 0, 0, 0)
 			return 0
 		end
 	end

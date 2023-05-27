@@ -170,7 +170,7 @@ return {
 			[1] = {
 				def = "COR_GOL",
 				onlytargetcategory = "SURFACE",
-				weaponaimadjustpriority = 1.5,
+				fastautoretargeting = true,
 			},
 		},
 	},

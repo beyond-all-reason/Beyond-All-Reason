@@ -825,15 +825,20 @@ for weaponDefID=1, #WeaponDefs do
 
 		elseif weaponDef.type == 'AircraftBomb' then
 			if string.find(weaponDef.name, '.advbomb') then
+				alpha = 1.1
 				radius = radius * 1.5
 				heatstart = 5500
 				heatdecay = 2.0
+				alphadecay = 0.0006
+				radiusVariation = 0.6
 				glowsustain = 35
 				glowadd = 4
 			else
 				radius = radius * 0.8
 				heatstart = 3500
 				heatdecay = 2.7
+				alphadecay = 0.0030
+				radiusVariation = 0.45
 				glowsustain = 20
 				glowadd = 1.2
 			end

@@ -1,4 +1,9 @@
-﻿# April 2023
+﻿# May 2023
+
+ • [Supporter] Reloadtime reduced from 1s->0.93s
+ • [Roughneck] Projectile speed increased 450->800
+
+# April 2023
 
  • [Grunt] Range reduced from 240->230 and health reduced from 290->270
  • [Pawn] Damage per shot reduced from 10->9

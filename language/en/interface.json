@@ -90,6 +90,7 @@
 			"gpuMemory": "GPU Memory: %{gpuUsage}%%",
 			"pointClickTooltip": "Click to go to the last point set by the player",
 			"aiName": "%{name} (AI)",
+			"desynced": "desynced",
 			"chat": {
 				"needSupport": "I need unit support!",
 				"needMetal": "I need metal!",
@@ -570,6 +571,9 @@
 		"initialSpawn": {
 			"ready": "Ready",
 			"unready": "Unready",
+			"readied": "Readied",
+			"lock": "Lock Position",
+			"unlock": "Unlock Position",
 			"startCountdown": "Game starting in %{time}...",
 			"choosePoint": "Please choose a start point!",
 			"tooClose": "You cannot place your start position too close to another player"
@@ -1061,6 +1065,7 @@
 				"playercolors": "Simple Team Colors",
 				"simpleteamcolors": "simple",
 				"simpleteamcolors_reset": "Reset (Restart to reset sliders)",
+				"simpleteamcolors_use_gradient": "Use a different shade for each player.",
 				"simpleteamcolors_player_r": "Player Red",
 				"simpleteamcolors_player_g": "Player Green",
 				"simpleteamcolors_player_b": "Player Blue",
@@ -1380,6 +1385,8 @@
 				"restart_descr": "Restarts the game",
 				"echocamerastate": "Echo CameraState",
 				"echocamerastate_descr": "Echoes contents of Spring.GetCameraState()",
+				"storedefaultsettings": "Store default settings",
+				"storedefaultsettings_desc": "Do not remove engine defaults from springsettings.cfg",
 				"startboxeditor": "Startbox editor",
 				"startboxeditor_descr": "LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwites the export file for the first team)",
 				"tonemap": "Unit tonemapping",

@@ -7,7 +7,7 @@ function widget:GetInfo()
 		version   = "v1.2",
 		date      = "November 2010",
 		license   = "GNU GPL, v2 or later",
-		layer     = 1,
+		layer     = -1,
 		enabled   = true,
 		handler   = true
 	}
@@ -102,14 +102,14 @@ local function DoBuildingsClash(buildData1, buildData2)
 end
 
 local function GetClashingOrdersPreGame()
-	if not (WG['buildmenu'] and WG['buildmenu'].getPreGameDefID and WG['buildmenu'].getBuildQueue) then return {} end
+	if not (WG['pregame-build'] and WG['pregame-build'].getPreGameDefID and WG['pregame-build'].getBuildQueue) then return {} end
 
 
 	local buildFacing = spGetBuildFacing() or 1
 	local orders = {}
 	local ordersCount = 0
 
-	for _, order in pairs(WG['buildmenu'].getBuildQueue()) do
+	for _, order in pairs(WG['pregame-build'].getBuildQueue()) do
 		local orderDefID = order[1]
 		local extractsMetal = isMex[orderDefID]
 
@@ -231,6 +231,7 @@ local function clearShape()
 end
 
 function widget:Initialize()
+	WG.MexSnap = {}
 	if not WG.DrawUnitShapeGL4 then
 		widgetHandler:RemoveWidget()
 	end
@@ -251,6 +252,7 @@ function widget:Shutdown()
 	if WG.StopDrawUnitShapeGL4 then
 		clearShape()
 	end
+	WG.MexSnap = nil
 end
 
 function widget:GameStart()
@@ -258,15 +260,16 @@ function widget:GameStart()
 end
 
 local function clearCurPosition()
-	if WG['buildmenu'] then
-		WG['buildmenu'].setMexSnapPosition()
-	end
 	curPosition = nil
+	if not WG.MexSnap then
+		WG.MexSnap = {}
+	end
+	WG.MexSnap.curPosition = curPosition
 end
 
 function widget:Update()
 	if preGamestartPlayer then
-		activeCmdID = WG['buildmenu'] and WG['buildmenu'].getPreGameDefID()
+		activeCmdID = WG['pregame-build'] and WG['pregame-build'].getPreGameDefID()
 		if activeCmdID then activeCmdID = -activeCmdID end
 	else
 		_, activeCmdID = spGetActiveCommand()
@@ -316,6 +319,7 @@ function widget:Update()
 	end
 
 	curPosition = bestPos
+	WG.MexSnap.curPosition = curPosition
 end
 
 function widget:DrawWorld()

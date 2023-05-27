@@ -204,7 +204,7 @@ return {
 				impulsefactor = 1.8,
 				name = "RiotCannon",
 				noselfdamage = true,
-				range = 315,
+				range = 300,
 				reloadtime = 1.8,
 				soundhit = "corlevlrhit",
 				soundhitwet = "splsmed",

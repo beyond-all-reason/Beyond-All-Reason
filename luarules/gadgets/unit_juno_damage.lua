@@ -50,11 +50,22 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames.corfav.id] = true,
 		[UnitDefNames.armfav.id] = true,
 		[UnitDefNames.armflea.id] = true,
+		[UnitDefNames.chickenh4.id] = true,
+		[UnitDefNames.chicken_dodo1.id] = true,
+		[UnitDefNames.chicken_dodo1_electric.id] = true,
+		[UnitDefNames.chicken_dodo2.id] = true,
+		[UnitDefNames.chicken_dodo2_electric.id] = true,
+		
 	}
 	local todenyUnits = {
 		[UnitDefNames.corfav.id] = true,
 		[UnitDefNames.armfav.id] = true,
 		[UnitDefNames.armflea.id] = true,
+		[UnitDefNames.chickenh4.id] = true,
+		[UnitDefNames.chicken_dodo1.id] = true,
+		[UnitDefNames.chicken_dodo1_electric.id] = true,
+		[UnitDefNames.chicken_dodo2.id] = true,
+		[UnitDefNames.chicken_dodo2_electric.id] = true,
 	}
 	
 	for udid, ud in pairs(UnitDefs) do

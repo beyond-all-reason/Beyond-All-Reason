@@ -172,7 +172,6 @@ return {
 				edgeeffectiveness = 0.15,
 				energypershot = 75,
 				explosiongenerator = "custom:laserhit-medium-green",
-				fastautoretargeting = 1,
 				firestarter = 90,
 				impactonly = 1,
 				impulseboost = 0,
@@ -205,6 +204,7 @@ return {
 			[1] = {
 				def = "CORSUMO_WEAPON",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				def = "CORMEXP_ROCKET",
