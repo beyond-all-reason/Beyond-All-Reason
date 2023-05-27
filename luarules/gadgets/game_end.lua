@@ -411,7 +411,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:TeamDied(teamID)
 		local allyTeamID = teamToAllyTeam[teamID]
 		allyTeamInfos[allyTeamID].teams[teamID].dead = true
-		--UpdateAllyTeamIsDead(allyTeamID)
+		UpdateAllyTeamIsDead(allyTeamID)
 		CheckAllPlayers()
 	end
 
