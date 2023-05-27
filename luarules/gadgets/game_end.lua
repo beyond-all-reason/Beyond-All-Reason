@@ -25,6 +25,8 @@ if gadgetHandler:IsSyncedCode() then
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
 
+	local earlyDropGrace = Game.gameSpeed * 60 * 1 -- in frames
+
 	-- Exclude Scavengers / Chickens AI
 	local ignoredTeams = {
 		[gaiaTeamID] = true,
@@ -107,67 +109,82 @@ if gadgetHandler:IsSyncedCode() then
 	]]--
 
 	local function UpdateAllyTeamIsDead(allyTeamID)
-		local allyTeamInfo = allyTeamInfos[allyTeamID]
-		local wipeout = true
-		for teamID, teamInfo in pairs(allyTeamInfo.teams) do
-			if not playerQuitIsDead then
-				wipeout = wipeout and (teamInfo.dead or (not isFFA and not teamInfo.hasLeader))	-- missing FFA players are handled in mo_ffa.lua
-			else
-				wipeout = wipeout and (teamInfo.dead or (not isFFA and not teamInfo.isControlled))	-- missing FFA players are handled in mo_ffa.lua
-			end
-		end
+		if GetGameFrame() == 0 then return end
 
-		-- destroy all dead team units
-		if wipeout and not allyTeamInfos[allyTeamID].dead and GetGameFrame() > 0 then
-			GG.wipeoutAllyTeam(allyTeamID)
+		local wipeout = true
+		local allyTeamInfo = allyTeamInfos[allyTeamID]
+		for teamID, team in pairs(allyTeamInfo.teams) do
+			wipeout = wipeout and (team.dead or (playerQuitIsDead and not team.isControlled or not team.hasLeader))
+		end
+		if wipeout and not allyTeamInfos[allyTeamID].dead then
+			if isFFA and Spring.GetGameFrame() < earlyDropGrace then
+				local teams = Spring.GetTeamList(allyTeamID)
+				for teamID, team in pairs(allyTeamInfos[allyTeamID].teams) do
+					local teamUnits = Spring.GetTeamUnits(teamID)
+					for i=1, #teamUnits do
+						Spring.DestroyUnit(teamUnits[i], false, true)	-- reclaim, dont want to leave FFA comwreck for idling starts
+					end
+				end
+			else
+				GG.wipeoutAllyTeam(allyTeamID)
+			end
 			allyTeamInfos[allyTeamID].dead = true
 		end
 	end
 
+
 	local function CheckPlayer(playerID)
 		local _, active, spectator, teamID, allyTeamID = GetPlayerInfo(playerID, false)
-		local teamInfo = allyTeamInfos[allyTeamID].teams[teamID]
+		local team = allyTeamInfos[allyTeamID].teams[teamID]
 
 		local gf = GetGameFrame()
 		if not spectator and active then
-			teamInfo.players[playerID] = gf
+			team.players[playerID] = gf
 		end
-		teamInfo.hasLeader = select(2, GetTeamInfo(teamID,false)) >= 0
+		team.hasLeader = select(2, GetTeamInfo(teamID, false)) >= 0
 
-		if not isFFA or gf > (Game.gameSpeed * 60 * 1) then
-			if not teamInfo.hasLeader and not teamInfo.dead then
+		local allResigned = true
+		if not team.dead then
+			local players = GetPlayerList(teamID)
+			for _, playerID in pairs(players) do
+				local _, active, spec = GetPlayerInfo(playerID, false)
+				allResigned = allResigned and spec
+			end
+		end
+		if not team.dead and allResigned then
+			killTeamQueue[teamID] = gf
+		else
+			if not team.hasLeader and not team.dead then
 				if not killTeamQueue[teamID] then
-					killTeamQueue[teamID] = gf + (Game.gameSpeed * (isFFA and 180 or 10))	-- add a grace period before killing the team
+					killTeamQueue[teamID] = gf + (Game.gameSpeed * (isFFA and 20 or 12))	-- add a grace period before killing the team
 				end
 			elseif killTeamQueue[teamID] then
 				killTeamQueue[teamID] = nil
 			end
-			if killTeamQueue[teamID] and gf >= killTeamQueue[teamID] then
-				if isFFA and gf < (Game.gameSpeed * 60 * 1) then
-					Spring.Echo('game_end: KillTeam teamID: '..teamID)
-				end
-				KillTeam(teamID)
-				killTeamQueue[teamID] = nil
-			end
+		end
+		if killTeamQueue[teamID] and gf >= killTeamQueue[teamID] then
+			KillTeam(teamID)
+			killTeamQueue[teamID] = nil
 		end
 
 		-- if team isn't AI controlled, then we need to check if we have attached players
-		if not teamInfo.isAI then
-			teamInfo.isControlled = false
-			for _, isControlling in pairs(teamInfo.players) do
+		if not team.isAI then
+			team.isControlled = false
+			for _, isControlling in pairs(team.players) do
 				if isControlling and isControlling > (gf - 60) then -- this entire crap is needed because GetPlayerInfo returns active = false for the next 30 gameframes after savegame load, and results in immediate end of loaded games if > 1v1 game
-					teamInfo.isControlled = true
+					team.isControlled = true
 					break
 				end
 			end
 		end
+
+		allyTeamInfos[allyTeamID].teams[teamID] = team
 
 		-- if player is an AI controller, then mark all hosted AIs as uncontrolled
 		local AIHostList = playerIDtoAIs[playerID] or {}
 		for AITeam, AIAllyTeam in pairs(AIHostList) do
 			allyTeamInfos[AIAllyTeam].teams[AITeam].isControlled = active
 		end
-		allyTeamInfos[allyTeamID].teams[teamID] = teamInfo
 
 		UpdateAllyTeamIsDead(allyTeamID)
 	end
@@ -201,7 +218,7 @@ if gadgetHandler:IsSyncedCode() then
 		if teamCount < 2 then  -- sandbox mode
 			gadgetHandler:RemoveGadget(self)
 			return
-		elseif teamCount == 2 then  -- let player quit & rejoin in 1v1
+		elseif teamCount == 2 or isFFA then  -- let player quit & rejoin in 1v1
 			playerQuitIsDead = false
 		end
 
@@ -251,12 +268,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		CheckAllPlayers()
-
-		for _, allyTeamID in ipairs(allyteamList) do
-			if allyTeamInfos[allyTeamID] and allyTeamInfos[allyTeamID].dead then
-				UpdateAllyTeamIsDead(allyTeamID)
-			end
-		end
 	end
 
 
@@ -399,10 +410,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:TeamDied(teamID)
 		local allyTeamID = teamToAllyTeam[teamID]
-		local allyTeamInfo = allyTeamInfos[allyTeamID]
-		allyTeamInfo.teams[teamID].dead = true
-		allyTeamInfos[allyTeamID] = allyTeamInfo
-		UpdateAllyTeamIsDead(allyTeamID)
+		allyTeamInfos[allyTeamID].teams[teamID].dead = true
+		--UpdateAllyTeamIsDead(allyTeamID)
 		CheckAllPlayers()
 	end
 
@@ -438,9 +447,6 @@ if gadgetHandler:IsSyncedCode() then
 				allyTeamInfos[allyTeamID] = allyTeamInfo
 				if allyTeamUnitCount <= allyTeamInfo.unitDecorationCount then
 					for teamID in pairs(allyTeamInfo.teams) do
-						if isFFA and Spring.GetGameFrame() < (Game.gameSpeed * 60 * 1) then
-							Spring.Echo('game_end: unit destroyed, KillTeam teamID: '..teamID)
-						end
 						KillTeam(teamID)
 						killTeamQueue[teamID] = nil
 					end
