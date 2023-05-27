@@ -132,7 +132,7 @@ return {
 				name = "LightLaser",
 				noselfdamage = true,
 				range = 280,
-				reloadtime = 1,--0.63333,
+				reloadtime = 0.93,--0.63333,
 				rgbcolor = "1 0 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
