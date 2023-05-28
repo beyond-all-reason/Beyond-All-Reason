@@ -1258,7 +1258,7 @@ local options={
 		desc = 'Increased commander HP, reduced comblast, reduced wreckmetal, com-to-com dgun rework.',
 		type = 'bool',
 		section = 'options_experimental',
-		def = false,
+		def = true,
 
 	},
 
