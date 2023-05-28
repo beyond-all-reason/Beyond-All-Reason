@@ -208,8 +208,10 @@ local isMex = {}
 local isWaterUnit = {}
 local isGeothermalUnit = {}
 local unitMaxWeaponRange = {}
+local unitName = {}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
+	unitName[unitDefID] = unitDef.name
 	unitIconType[unitDefID] = unitDef.iconType
 	unitEnergyCost[unitDefID] = unitDef.energyCost
 	unitMetalCost[unitDefID] = unitDef.metalCost
@@ -598,7 +600,6 @@ function widget:Update(dt)
 end
 
 function drawBuildmenuBg()
-	WG['buildmenu'].selectedID = nil
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
 end
 
@@ -809,9 +810,6 @@ function drawBuildmenu()
 			local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
 			local usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 
-			if cellIsSelected then
-				WG['buildmenu'].selectedID = uDefID
-			end
 
 			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, unitRestricted[uDefID] or unitDisabled[uDefID])
 		end
@@ -869,7 +867,14 @@ function widget:DrawScreen()
 
 	-- refresh buildmenu if active cmd changed
 	local prevActiveCmd = activeCmd
-	activeCmd = select(4, spGetActiveCommand())
+	if Spring.GetGameFrame() == 0 and WG['pregame-build'] then
+		activeCmd = WG['pregame-build'].selectedID
+		if activeCmd then
+			activeCmd = unitName[activeCmd]
+		end
+	else
+		activeCmd = select(4, spGetActiveCommand())
+	end
 	if activeCmd ~= prevActiveCmd then
 		doUpdate = true
 	end

@@ -258,6 +258,7 @@ local unitIconType = {}
 local isMex = {}
 local isWaterUnit = {}
 local unitMaxWeaponRange = {}
+local unitName = {}
 
 local unitGridPos = { }
 local gridPosUnit = { }
@@ -328,6 +329,7 @@ for uname, ugrid in pairs(labGrids) do
 end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
+	unitName[unitDefID] = unitDef.name
 	unitGroup[unitDefID] = unitDef.customParams.unitgroup
 	unitCategories[unitDefID] = Cfgs.categoryGroupMapping[unitDef.customParams.unitgroup] or BUILDCAT_UTILITY
 
@@ -1105,7 +1107,14 @@ function widget:Update(dt)
 		-- refresh buildmenu if active cmd changed
 		local prevActiveCmd = activeCmd
 
-		activeCmd = select(4, Spring.GetActiveCommand())
+		if Spring.GetGameFrame() == 0 and WG['pregame-build'] then
+			activeCmd = WG['pregame-build'].selectedID
+			if activeCmd then
+				activeCmd = unitName[activeCmd]
+			end
+		else
+			activeCmd = select(4, Spring.GetActiveCommand())
+		end
 
 		if activeCmd ~= prevActiveCmd then doUpdate = true end
 	end
@@ -1118,7 +1127,6 @@ function widget:Update(dt)
 end
 
 local function drawBuildmenuBg()
-	WG['buildmenu'].selectedID = nil
 	local height = backgroundRect.yEnd - backgroundRect.y
 	local posY = backgroundRect.y
 	UiElement(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, (backgroundRect.x > 0 and 1 or 0), 1, ((posY-height > 0 or backgroundRect.x <= 0) and 1 or 0), 0)
@@ -1433,10 +1441,6 @@ local function drawGrid()
 				local cellIsSelected = (activeCmd and udef and activeCmd == udef.name) or
 					(preGamestartPlayer and selBuildQueueDefID == uDefID)
 				local usedZoom = (cellIsSelected and selectedCellZoom or defaultCellZoom)
-
-				if cellIsSelected then
-					WG['buildmenu'].selectedID = uDefID
-				end
 
 				drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, unitRestricted[uDefID])
 			else

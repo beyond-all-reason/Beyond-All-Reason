@@ -230,10 +230,11 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 			gl.DrawGroundCircle(bx, by, bz, wRange, 40)
 		end
 	end
-
+	WG['pregame-build'].selectedID = nil
 	if WG.StopDrawUnitShapeGL4 then
 		local id = buildData[1]..'_'..buildData[2]..'_'..buildData[3]..'_'..buildData[4]..'_'..buildData[5]
 		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]*(math.pi/2), myTeamID)
+		WG['pregame-build'].selectedID = buildData[1]
 	end
 end
 
@@ -474,6 +475,7 @@ end
 function widget:Shutdown()
 	widgetHandler:DeregisterGlobal(widget, 'GetPreGameDefID')
 	widgetHandler:DeregisterGlobal(widget, 'GetBuildQueue')
+	WG['pregame-build'] = nil
 end
 
 function widget:GetConfigData()
