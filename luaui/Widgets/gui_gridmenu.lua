@@ -903,6 +903,7 @@ function widget:ViewResize()
 	categoryFontSize = 0.0115 * ui_scale * vsy
 	pageFontSize = categoryFontSize
 	pageButtonHeight = math_floor(2.3 * categoryFontSize * ui_scale)
+	categoryButtonHeight = pageButtonHeight;
 
 	activeAreaMargin = math_ceil(bgpadding * Cfgs.cfgActiveAreaMargin)
 
@@ -979,12 +980,14 @@ function widget:ViewResize()
 		-- make pixel aligned
 		width = posXEnd - posX
 
+		categoryButtonHeight = pageButtonHeight * 1.4
+
 		-- assemble rects, bottom to top
 		categoriesRect = Rect:new(
 			posX + bgpadding,
 			posYEnd + bgpadding,
 			posXEnd - bgpadding,
-			posYEnd + pageButtonHeight + bgpadding
+			posYEnd + categoryButtonHeight + bgpadding
 		)
 
 		rows = 3
@@ -1311,9 +1314,9 @@ local function drawCategories()
 		for i, cat in ipairs(categories) do
 			local x1 = categoriesRect.x + (i - 1) * buttonWidth
 			catRects[cat] = Rect:new(
-				x1 + padding,
-				y2 - pageButtonHeight + padding,
-				x1 + buttonWidth - padding,
+				x1,
+				y2 - categoryButtonHeight + padding,
+				x1 + buttonWidth,
 				y2 - activeAreaMargin - padding
 			)
 		end
