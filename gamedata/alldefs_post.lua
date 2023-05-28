@@ -804,6 +804,12 @@ function UnitDef_Post(name, uDef)
 	-- Commander Update
 	
 	if Spring.GetModOptions().comupdate == true then
+		if name == "armdecom" then
+			uDef.maxdamage = 4000
+		end
+		if name == "cordecom" then
+			uDef.maxdamage = 4000
+		end
 		if name == "armllt" then
 			uDef.weapondefs.arm_lightlaser.damage = {
 					bombers = 5,
