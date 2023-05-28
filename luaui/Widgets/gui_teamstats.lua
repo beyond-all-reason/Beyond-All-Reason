@@ -72,7 +72,7 @@ local guiData = {
 }
 guiData.mainPanel.relSizes.x.length = (guiData.mainPanel.relSizes.x.max - guiData.mainPanel.relSizes.x.min) * 0.92
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.6) or 0.6)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.7) or 0.6)
 
 local glColor	= gl.Color
 local glCreateList = gl.CreateList
@@ -555,7 +555,7 @@ local function DrawBackground()
 
 	gl.Color(0,0,0,WG['guishader'] and 0.8 or 0.85)
 	local x1,y1,x2,y2 = math.floor(guiData.mainPanel.absSizes.x.min), math.floor(guiData.mainPanel.absSizes.y.min), math.floor(guiData.mainPanel.absSizes.x.max), math.floor(guiData.mainPanel.absSizes.y.max)
-	UiElement(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, 1, 1, 1, 1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.6)))
+	UiElement(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, 1, 1, 1, 1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 	if WG['guishader'] then
 		if backgroundGuishader ~= nil then
 			glDeleteList(backgroundGuishader)

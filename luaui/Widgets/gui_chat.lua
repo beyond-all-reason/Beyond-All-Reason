@@ -34,7 +34,7 @@ local allowMultiAutocomplete = true
 local allowMultiAutocompleteMax = 10
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.6) or 0.6)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.7) or 0.6)
 local widgetScale = (((vsx*0.3 + (vsy*2.33)) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 
 local maxLinesScroll = maxLinesScrollFull

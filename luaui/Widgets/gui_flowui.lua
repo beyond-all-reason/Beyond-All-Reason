@@ -14,7 +14,7 @@ WG.FlowUI = WG.FlowUI or {}
 WG.FlowUI.version = 1
 WG.FlowUI.initialized = false
 
-WG.FlowUI.opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.6)
+WG.FlowUI.opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.7) or 0.66)
 WG.FlowUI.scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 WG.FlowUI.tileOpacity = Spring.GetConfigFloat("ui_tileopacity", 0.011)
 WG.FlowUI.tileScale = Spring.GetConfigFloat("ui_tilescale", 7)

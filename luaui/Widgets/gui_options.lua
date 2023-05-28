@@ -32,7 +32,7 @@ for key, code in ipairs(languageCodes) do
 	languageNames[key] = Spring.I18N.languages[code]
 end
 
-local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
 local devMode = Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI()
 local advSettings = false
@@ -516,7 +516,7 @@ function DrawWindow()
 	windowRect = { screenX, screenY - screenHeight, screenX + screenWidth, screenY }
 
 	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, (showTextInput and inputText ~= '' and inputMode == '') and 1 or 0, 0, 1, (showTextInput and 0 or 1), 1, 1, 1, 1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.6)))
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, (showTextInput and inputText ~= '' and inputMode == '') and 1 or 0, 0, 1, (showTextInput and 0 or 1), 1, 1, 1, 1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 
 	-- title
 	local groupMargin = math.floor(bgpadding * 0.8)
@@ -3138,12 +3138,12 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "guiopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guiopacity'), type = "slider", min = 0.3, max = 1, step = 0.01, value = Spring.GetConfigFloat("ui_opacity", 0.6), description = '',
+		{ id = "guiopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guiopacity'), type = "slider", min = 0.3, max = 1, step = 0.01, value = Spring.GetConfigFloat("ui_opacity", 0.7), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)
 			  Spring.SetConfigFloat("ui_opacity", value)
-			  ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+			  ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 			  forceUpdate = true
 
 			  if force then
@@ -5952,7 +5952,7 @@ function widget:Initialize()
 			Spring.SetConfigInt("ShadowMapSize", 1024)
 			Spring.SetConfigInt("Shadows", 0)
 			Spring.SetConfigInt("MSAALevel", 0)
-			Spring.SetConfigFloat("ui_opacity", 0.66)    -- set to be more opaque cause guishader isnt availible
+			Spring.SetConfigFloat("ui_opacity", 0.7)    -- set to be more opaque cause guishader isnt availible
 		else
 			Spring.SendCommands("water 4")
 			Spring.SetConfigInt("Water", 4)
