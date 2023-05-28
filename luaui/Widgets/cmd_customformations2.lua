@@ -2,7 +2,7 @@
 function widget:GetInfo()
     return {
         name      = "CustomFormations2",
-        desc      = "Allows you to draw your own formation line.",
+        desc      = "Allows you to draw your own formation line. Modfiied by Errrrrrr",
         author    = "Niobium", -- based on 'Custom Formations' by jK and gunblob
         version   = "v4.3",
         date      = "April, 2013",
@@ -589,7 +589,19 @@ function widget:MouseRelease(mx, my, mButton)
 
         -- Single click ? (no line drawn)
         --if (#fNodes == 1) then
-        if fDists[#fNodes] < minFormationLength or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64*(selectedUnitsCount - 1)) then
+
+        -- we add the drag threshold code here  
+        -- tracing to a point with a drag threshold pixel delta added to mouse coord, to get world distance
+        local selectionThreshold = Spring.GetConfigInt("MouseDragFrontCommandThreshold")
+        local _, dragDeltaPos = spTraceScreenRay(mx,my+selectionThreshold, true, false, false, true)
+        local _, pos = spTraceScreenRay(mx, my, true, false, false, true)
+        local dragDelta = 0
+        if dragDeltaPos then
+            dragDelta = pos[3] - dragDeltaPos[3]
+        end
+        local adjustedMinFormationLength = max(dragDelta, minFormationLength)
+
+        if fDists[#fNodes] < adjustedMinFormationLength or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64*(selectedUnitsCount - 1)) then
             -- We should check if any units are able to execute it,
             -- but the order is small enough network-wise that the tiny bug potential isn't worth it.
 
@@ -913,8 +925,8 @@ function GetOrdersNoX(nodes, units, unitCount, shifted)
             end
         end
     end
-	
-	local fminv = 1.0/ fm
+
+    local fminv = 1.0/ fm
     local function sortFunc(a, b)
         -- y = mx + c
         -- c = y - mx
