@@ -14,7 +14,7 @@ WG.FlowUI = WG.FlowUI or {}
 WG.FlowUI.version = 1
 WG.FlowUI.initialized = false
 
-WG.FlowUI.opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
+WG.FlowUI.opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.6)
 WG.FlowUI.scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 WG.FlowUI.tileOpacity = Spring.GetConfigFloat("ui_tileopacity", 0.011)
 WG.FlowUI.tileScale = Spring.GetConfigFloat("ui_tilescale", 7)
@@ -480,7 +480,7 @@ end
 		bgpadding = custom border size
 ]]
 WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
-	local opacity = opacity or WG.FlowUI.opacity
+	local opacity = math.min(1, opacity or WG.FlowUI.opacity)
 	local color1 = color1 or { 0, 0, 0, opacity}
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
 	local ui_scale = WG.FlowUI.scale
@@ -489,6 +489,11 @@ WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pb
 	local glossMult = 1 + (2 - (opacity * 1.5))
 	local tileopacity = WG.FlowUI.tileOpacity
 	local bgtexSize = WG.FlowUI.tileSize
+	if opacity > 0.75 then	-- lighten up or background get too dark
+		glossMult = glossMult * (1 + ((opacity - 0.75) * 2))
+		local addition = (opacity - 0.75) * 0.15
+		color1 = {color1[1]+addition, color1[2]+addition, color1[3]+addition, color1[4]}
+	end
 
 	local tl = tl or 1
 	local tr = tr or 1
