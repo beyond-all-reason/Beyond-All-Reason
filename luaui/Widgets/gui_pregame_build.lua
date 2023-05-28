@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Hobo Joe, based on buildmenu from assorted authors",
 		date = "May 2023",
 		license = "GNU GPL, v2 or later",
-		layer = -1,
+		layer = 1,
 		enabled = true,
 		handler = true,
 	}
