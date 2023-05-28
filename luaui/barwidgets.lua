@@ -1148,9 +1148,13 @@ function widgetHandler:Update()
 	local deltaTime = Spring.GetLastUpdateSeconds()
 	-- update the hour timer
 	hourTimer = (hourTimer + deltaTime) % 3600.0
+	tracy.ZoneBeginN("W:Update")
 	for _, w in ipairs(self.UpdateList) do
+		tracy.ZoneBeginN("W:Update:" .. w.whInfo.name)
 		w:Update(deltaTime)
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1253,12 +1257,19 @@ function widgetHandler:ViewResize(vsx, vsy)
 		vsx = vsx.viewSizeX
 		print('real ViewResize') -- FIXME
 	end
+	
+	tracy.ZoneBeginN("W:ViewResize")
 	if widgetHandler.WG.FlowUI then
+		tracy.ZoneBeginN("W:ViewResize:FlowUI")
 		widgetHandler.WG.FlowUI.Callin.ViewResize1(vsx, vsy)
+		tracy.ZoneEnd()
 	end
 	for _, w in ipairs(self.ViewResizeList) do
+		tracy.ZoneBeginN("W:ViewResize:" .. w.whInfo.name)
 		w:ViewResize(vsx, vsy)
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1267,43 +1278,61 @@ function widgetHandler:DrawScreen()
 	if (not Spring.GetSpectatingState()) and anonymousMode ~= "disabled" then
 		Spring.SendCommands("info 0")
 	end
+	tracy.ZoneBeginN("W:DrawScreen")
 	if not Spring.IsGUIHidden() then
 		if not self.chobbyInterface  then
 			for _, w in r_ipairs(self.DrawScreenList) do
+				tracy.ZoneBeginN("W:DrawScreen:" .. w.whInfo.name)
 				w:DrawScreen()
+				tracy.ZoneEnd()
 			end
 		elseif widgetHandler.WG.guishader and widgetHandler.WG.guishader.DrawScreen then
+			tracy.ZoneBeginN("W:DrawScreen:guishader")
 			widgetHandler.WG.guishader.DrawScreen()
+			tracy.ZoneEnd()
 		end
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function widgetHandler:DrawGenesis()
+	tracy.ZoneBeginN("W:DrawGenesis")
 	for _, w in r_ipairs(self.DrawGenesisList) do
 		w:DrawGenesis()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function widgetHandler:DrawWorld()
+	tracy.ZoneBeginN("W:DrawWorld")
 	for _, w in r_ipairs(self.DrawWorldList) do
+		tracy.ZoneBeginN("W:DrawWorld:" .. w.whInfo.name)
 		w:DrawWorld()
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function widgetHandler:DrawWorldPreUnit()
+	tracy.ZoneBeginN("W:DrawWorldPreUnit")
 	for _, w in r_ipairs(self.DrawWorldPreUnitList) do
+		tracy.ZoneBeginN("W:DrawWorldPreUnit:" .. w.whInfo.name)
 		w:DrawWorldPreUnit()
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function widgetHandler:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
+	tracy.ZoneBeginN("W:DrawOpaqueUnitsLua")
 	for _, w in r_ipairs(self.DrawOpaqueUnitsLuaList) do
 		w:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1329,9 +1358,11 @@ function widgetHandler:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
 end
 
 function widgetHandler:DrawShadowUnitsLua()
+	tracy.ZoneBeginN("W:DrawShadowUnitsLua")
 	for _, w in r_ipairs(self.DrawShadowUnitsLuaList) do
 		w:DrawShadowUnitsLua()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1343,37 +1374,48 @@ function widgetHandler:DrawShadowFeaturesLua()
 end
 
 function widgetHandler:DrawPreDecals()
+	
+	tracy.ZoneBeginN("W:DrawPreDecals")
 	for _, w in r_ipairs(self.DrawPreDecalsList) do
 		w:DrawPreDecals()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function widgetHandler:DrawWorldPreParticles()
+	tracy.ZoneBeginN("W:DrawWorldPreParticles")
 	for _, w in r_ipairs(self.DrawWorldPreParticlesList) do
 		w:DrawWorldPreParticles()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function widgetHandler:DrawWorldShadow()
+	tracy.ZoneBeginN("W:DrawWorldShadow")
 	for _, w in r_ipairs(self.DrawWorldShadowList) do
 		w:DrawWorldShadow()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function widgetHandler:DrawWorldReflection()
+	tracy.ZoneBeginN("W:DrawWorldReflection")
 	for _, w in r_ipairs(self.DrawWorldReflectionList) do
 		w:DrawWorldReflection()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function widgetHandler:DrawWorldRefraction()
+	tracy.ZoneBeginN("W:DrawWorldRefraction")
 	for _, w in r_ipairs(self.DrawWorldRefractionList) do
 		w:DrawWorldRefraction()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1392,31 +1434,43 @@ function widgetHandler:DrawFeaturesPostDeferred()
 end
 
 function widgetHandler:DrawScreenEffects(vsx, vsy)
+	tracy.ZoneBeginN("W:DrawScreenEffects")
 	for _, w in r_ipairs(self.DrawScreenEffectsList) do
+		tracy.ZoneBeginN("W:DrawScreenEffects:" .. w.whInfo.name)
 		w:DrawScreenEffects(vsx, vsy)
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function widgetHandler:DrawScreenPost()
+	tracy.ZoneBeginN("W:DrawScreenPost")
 	for _, w in r_ipairs(self.DrawScreenPostList) do
+		tracy.ZoneBeginN("W:DrawScreenPost:" .. w.whInfo.name)
 		w:DrawScreenPost()
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function widgetHandler:DrawInMiniMap(xSize, ySize)
+	tracy.ZoneBeginN("W:DrawInMiniMap")
 	for _, w in r_ipairs(self.DrawInMiniMapList) do
 		w:DrawInMiniMap(xSize, ySize)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function widgetHandler:SunChanged()
+	tracy.ZoneBeginN("W:SunChanged")
 	local nmp = _G['NightModeParams']
 	for _, w in r_ipairs(self.SunChangedList) do
 		w:SunChanged(nmp)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1503,6 +1557,7 @@ function widgetHandler:WidgetAt(x, y)
 end
 
 function widgetHandler:MousePress(x, y, button)
+	tracy.ZoneBeginN("W:MousePress")
 	if self.mouseOwner then
 		self.mouseOwner:MousePress(x, y, button)
 	else
@@ -1520,17 +1575,22 @@ function widgetHandler:MousePress(x, y, button)
 		widgetHandler.WG.SmartSelect_MousePress2(x, y, button, hasMouseOwner)
 	end
 
+	tracy.ZoneEnd()
 	return hasMouseOwner
 end
 
 function widgetHandler:MouseMove(x, y, dx, dy, button)
+	tracy.ZoneBeginN("W:MouseMove")
 	local mo = self.mouseOwner
 	if mo and mo.MouseMove then
+		tracy.ZoneEnd()
 		return mo:MouseMove(x, y, dx, dy, button)
 	end
+	tracy.ZoneEnd()
 end
 
 function widgetHandler:MouseRelease(x, y, button)
+	tracy.ZoneBeginN("W:MouseRelease")
 	local mo = self.mouseOwner
 	local _, _, lmb, mmb, rmb = Spring.GetMouseState()
 	if not (lmb or mmb or rmb) then
@@ -1538,8 +1598,10 @@ function widgetHandler:MouseRelease(x, y, button)
 	end
 
 	if mo and mo.MouseRelease then
+		tracy.ZoneEnd()
 		return mo:MouseRelease(x, y, button)
 	end
+	tracy.ZoneEnd()
 	return false
 end
 
@@ -1629,14 +1691,17 @@ function widgetHandler:IsAbove(x, y)
 end
 
 function widgetHandler:GetTooltip(x, y)
+	tracy.ZoneBeginN("W:GetTooltip")
 	for _, w in ipairs(self.GetTooltipList) do
 		if w:IsAbove(x, y) then
 			local tip = w:GetTooltip(x, y)
 			if type(tip) == 'string' and #tip > 0 then
+				tracy.ZoneEnd()
 				return tip
 			end
 		end
 	end
+	tracy.ZoneEnd()
 	return ""
 end
 
@@ -1703,22 +1768,31 @@ function widgetHandler:PlayerRemoved(playerID, reason)
 end
 
 function widgetHandler:PlayerChanged(playerID)
+	tracy.ZoneBeginN("W:PlayerChanged")
 	for _, w in ipairs(self.PlayerChangedList) do
+		tracy.ZoneBeginN("W:PlayerChanged:" .. w.whInfo.name)
 		w:PlayerChanged(playerID)
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function widgetHandler:GameFrame(frameNum)
+	tracy.ZoneBeginN("W:GameFrame")
 	for _, w in ipairs(self.GameFrameList) do
+		tracy.ZoneBeginN("W:GameFrame:" .. w.whInfo.name)
 		w:GameFrame(frameNum)
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 -- local helper (not a real call-in)
 local oldSelection = {}
 function widgetHandler:UpdateSelection()
+	tracy.ZoneBeginN("W:UpdateSelection")
 	local changed
 	local newSelection = Spring.GetSelectedUnits()
 	if #newSelection == #oldSelection then
@@ -1751,24 +1825,31 @@ function widgetHandler:UpdateSelection()
 		end
 		if widgetHandler:SelectionChanged(newSelection, subselection) then
 			-- selection changed, don't set old selection to new selection as it is soon to change.
+			tracy.ZoneEnd()
 			return true
 		end
 	end
 	oldSelection = newSelection
+	
+	tracy.ZoneEnd()
 	return false
 end
 
 function widgetHandler:SelectionChanged(selectedUnits, subselection)
+	tracy.ZoneBeginN("W:SelectionChanged")
 	for _, w in ipairs(self.SelectionChangedList) do
 		if widgetHandler.WG.smartselect and not widgetHandler.WG.smartselect.updateSelection then
+			tracy.ZoneEnd()
 			return
 		end
 		local unitArray = w:SelectionChanged(selectedUnits, subselection)
 		if unitArray then
 			Spring.SelectUnitArray(unitArray)
+			tracy.ZoneEnd()
 			return true
 		end
 	end
+	tracy.ZoneEnd()
 	return false
 end
 
@@ -1861,11 +1942,14 @@ function widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 end
 
 function widgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	tracy.ZoneBegin("W:UnitCreated")
 	widgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
 
 	for _, w in ipairs(self.UnitCreatedList) do
+
 		w:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end	
+	tracy.ZoneEnd()
 	return
 end	
 
@@ -2088,9 +2172,11 @@ function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, 
 end
 
 function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	tracy.ZoneBeginN("W:VisibleUnitAdded")
 	for _, w in ipairs(self.VisibleUnitAddedList) do
 		w:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	end
+	tracy.ZoneEnd()
 end
 
 function widgetHandler:VisibleUnitRemoved(unitID)

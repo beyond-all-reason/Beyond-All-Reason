@@ -1263,7 +1263,7 @@ end
 
 function CreatePlayer(playerID)
     --generic player data
-    local tname, _, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank = Spring_GetPlayerInfo(playerID, false)
+    local tname, _, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank, _, _, desynced = Spring_GetPlayerInfo(playerID, false)
     local _, _, _, _, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(tteam, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(tteam)
 	if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
@@ -1324,6 +1324,7 @@ function CreatePlayer(playerID)
         metal = metal,
         metalStorage = metalStorage,
         incomeMultiplier = tincomeMultiplier,
+		desynced = desynced,
     }
 end
 
@@ -2092,6 +2093,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
     local alliances = player[playerID].alliances
     local posY = widgetPosY + widgetHeight - vOffset
     local tipPosY = widgetPosY + ((widgetHeight - vOffset) * widgetScale)
+	local desynced = player[playerID].desynced
 
     local alpha = 0.33
     local alphaActivity = 0
@@ -2171,7 +2173,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
             DrawSidePic(team, playerID, posY, leader, dark, ai)
         end
         if m_name.active then
-            DrawName(name, team, posY, dark, playerID)
+            DrawName(name, team, posY, dark, playerID, desynced)
         end
         if m_alliance.active and drawAllyButton and not mySpecStatus and not dead and team ~= myTeamID then
             DrawAlly(posY, player[playerID].team)
@@ -2532,9 +2534,18 @@ function DrawAlliances(alliances, posY)
     end
 end
 
-function DrawName(name, team, posY, dark, playerID)
+function DrawName(name, team, posY, dark, playerID, desynced)
     local willSub = ""
     local ignored = WG.ignoredPlayers and WG.ignoredPlayers[name]
+
+    local isAbsent = false
+    if name == absentName then
+        isAbsent = true
+        local playerName = Spring.GetPlayerInfo(select(2,Spring.GetTeamInfo(team, false)), false)
+        if playerName then
+            name = playerName
+        end
+    end
 
     if not gameStarted then
         if playerID >= 64 then
@@ -2554,40 +2565,47 @@ function DrawName(name, team, posY, dark, playerID)
     end
 
     font2:Begin()
+    local fontsize = isAbsent and 9.5 or 14
     if dark then
-		if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
-			font2:SetTextColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3], 1)
-		else
-			font2:SetTextColor(Spring_GetTeamColor(team))
-		end
         font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.8, 0.75 * widgetScale))
-        font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o")
     else
         font2:SetTextColor(0, 0, 0, 0.4)
         font2:SetOutlineColor(0, 0, 0, 0.4)
-        font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, 14, "n") -- draws name
-        font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, 14, "n") -- draws name
-		if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
-			font2:SetTextColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3], 1)
-		else
-			font2:SetTextColor(Spring_GetTeamColor(team))
-		end
+        font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, fontsize, "n") -- draws name
+        font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, fontsize, "n") -- draws name
         font2:SetOutlineColor(0, 0, 0, 1)
-        font2:Print( nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
     end
+    if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
+        font2:SetTextColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3], 1)
+    else
+        font2:SetTextColor(Spring_GetTeamColor(team))
+    end
+    if isAbsent then
+        font2:SetOutlineColor(0, 0, 0, 0.4)
+        font2:SetTextColor(0.45,0.45,0.45,1)
+    end
+    font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, fontsize, dark and "o" or "n")
 
-    if player[playerID] and not player[playerID].dead and player[playerID].incomeMultiplier and player[playerID].incomeMultiplier > 1 then
+    --desynced = playerID == 1
+	if desynced then
+		font2:SetTextColor(1,0.45,0.45,1)
+		font2:Print(Spring.I18N('ui.playersList.desynced'), m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14), posY + 5.7 , 8, "o")
+	elseif player[playerID] and not player[playerID].dead and player[playerID].incomeMultiplier and player[playerID].incomeMultiplier > 1 then
         font2:SetTextColor(0.5,1,0.5,1)
         font2:Print('+'..math.floor((player[playerID].incomeMultiplier-1)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14), posY + 5.7 , 8, "o")
     end
     font2:End()
 
-    if ignored then
+    if ignored or desynced then
         local x = m_name.posX + widgetPosX + 2 + xPadding
         local y = posY + 7
         local w = font2:GetTextWidth(nameText) * 14 + 2
         local h = 2
-        gl_Color(1, 1, 1, 0.9)
+		if desynced then
+			gl_Color(1, 0.2, 0.2, 0.9)
+		else
+			gl_Color(1, 1, 1, 0.9)
+		end
         gl_Texture(false)
         DrawRect(x, y, x + w, y + h)
         gl_Color(1, 1, 1, 1)
@@ -3438,7 +3456,7 @@ end
 function CheckPlayersChange()
     local sorting = false
     for i = 0, 63 do
-        local name, active, spec, teamID, allyTeamID, pingTime, cpuUsage, country, rank = Spring_GetPlayerInfo(i, false)
+        local name, active, spec, teamID, allyTeamID, pingTime, cpuUsage, country, rank, _, _, desynced = Spring_GetPlayerInfo(i, false)
         if active == false then
             if player[i].name ~= nil then
                 -- NON SPEC PLAYER LEAVING
@@ -3504,6 +3522,7 @@ function CheckPlayersChange()
             player[i].cpuLvl = GetCpuLvl(cpuUsage)
             player[i].ping = pingTime * 1000 - ((pingTime * 1000) % 1)
             player[i].cpu = cpuUsage * 100 - ((cpuUsage * 100) % 1)
+			player[i].desynced = desynced
         end
 
         if teamID and Spring_GetGameFrame() > 0 then

@@ -7,7 +7,7 @@ function widget:GetInfo()
 		date = "Oct 23, 2010; last update: April 13, 2022",
 		license = "GNU GPL, v2 or later",
 		handler = true,
-		layer = 0,
+		layer = 1000,
 		enabled = true  --  loaded by default?
 	}
 end
@@ -245,7 +245,7 @@ function widget:CommandNotify(id, params, options)
 		return
 	end
 
-	local mx, my = Spring.GetMouseState()
+	local mx, my = Spring.GetMouseState()	-- mouse button states are not accurate/reliable here
 
 	if isGuard then
 		if type == 'unit' then
@@ -339,7 +339,7 @@ function widget:CommandNotify(id, params, options)
 end
 
 -- make it so that it snaps and upgrades and does not need to be placed perfectly on top
-function widget:MousePress(mx, my, button)
+--[[function widget:MousePress(mx, my, button)
 	if button == 1 and drawUnitShape and selectedUnits[1] then
 
 		activeCmdID = spGetActiveCommand()
@@ -359,4 +359,4 @@ function widget:MousePress(mx, my, button)
 			end
 		end
 	end
-end
+end]]

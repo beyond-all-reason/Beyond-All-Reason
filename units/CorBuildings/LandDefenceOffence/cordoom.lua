@@ -168,7 +168,6 @@ return {
 				edgeeffectiveness = 0.15,
 				energypershot = 50,
 				explosiongenerator = "custom:laserhit-medium-green",
-				fastautoretargeting = 1,
 				firestarter = 90,
 				impactonly = 1,
 				impulseboost = 0,
@@ -210,7 +209,6 @@ return {
 				edgeeffectiveness = 0.15,
 				energypershot = 5,
 				explosiongenerator = "custom:laserhit-small-red",
-				fastautoretargeting = 1,
 				firestarter = 100,
 				impactonly = 1,
 				impulseboost = 0,
@@ -246,10 +244,12 @@ return {
 			[2] = {
 				def = "DOOMSDAY_GREEN_LASER",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[3] = {
 				def = "DOOMSDAY_RED_LASER",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 		},
 	},

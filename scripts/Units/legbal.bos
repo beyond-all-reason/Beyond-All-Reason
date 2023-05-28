@@ -289,34 +289,34 @@ walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 }
 // Call this from MotionControl()!
 StopWalking() {
-	move pelvis to y-axis [0.000000] speed [5.925000];
-	turn launcher to x-axis <5.899999> speed <82.499994>;
-	turn lfoot to x-axis <-0.511674> speed <366.071032>;
-	turn lfoot to y-axis <-0.309917> speed <22.852027>;
-	turn lfoot to z-axis <10.877619> speed <146.916357>;
-	turn lknee to x-axis <-0.719968> speed <314.694309>;
-	turn lknee to y-axis <-0.176804> speed <19.504339>;
-	turn lknee to z-axis <-2.895248> speed <32.873313>;
-	turn lleg to x-axis <4.602746> speed <512.617983>;
-	turn lleg to y-axis <4.217571> speed <37.812111>;
-	turn lleg to z-axis <-2.496718> speed <21.970739>;
-	turn lthigh to x-axis <2.243081> speed <281.073699>;
-	turn lthigh to y-axis <2.993269> speed <30.911615>;
-	turn lthigh to z-axis <-6.354488> speed <95.767889>;
-	turn pelvis to x-axis <-4.999999> speed <37.499996>;
-	turn pelvis to y-axis <0.000000> speed <40.898433>;
-	turn rfoot to x-axis <0.932360> speed <371.694412>;
-	turn rfoot to y-axis <0.474851> speed <22.005134>;
-	turn rfoot to z-axis <-10.296852> speed <64.797402>;
-	turn rknee to x-axis <-0.710460> speed <336.534481>;
-	turn rknee to y-axis <0.215404> speed <13.798553>;
-	turn rknee to z-axis <2.955248> speed <32.697332>;
-	turn rleg to x-axis <3.792608> speed <499.034427>;
-	turn rleg to y-axis <-3.940970> speed <43.842553>;
-	turn rleg to z-axis <2.397633> speed <24.118619>;
-	turn rthigh to x-axis <1.740186> speed <268.630524>;
-	turn rthigh to y-axis <-2.752263> speed <35.905934>;
-	turn rthigh to z-axis <6.095458> speed <56.466328>;
+	move pelvis to y-axis [0.000000] speed [5.925000] / 2;
+	turn launcher to x-axis <5.899999> speed <82.499994> / 2;
+	turn lfoot to x-axis <-0.511674> speed <366.071032> / 2;
+	turn lfoot to y-axis <-0.309917> speed <22.852027> / 2;
+	turn lfoot to z-axis <10.877619> speed <146.916357> / 2;
+	turn lknee to x-axis <-0.719968> speed <314.694309> / 2;
+	turn lknee to y-axis <-0.176804> speed <19.504339> / 2;
+	turn lknee to z-axis <-2.895248> speed <32.873313> / 2;
+	turn lleg to x-axis <4.602746> speed <512.617983> / 2;
+	turn lleg to y-axis <4.217571> speed <37.812111> / 2;
+	turn lleg to z-axis <-2.496718> speed <21.970739> / 2;
+	turn lthigh to x-axis <2.243081> speed <281.073699> / 2;
+	turn lthigh to y-axis <2.993269> speed <30.911615> / 2;
+	turn lthigh to z-axis <-6.354488> speed <95.767889> / 2;
+	turn pelvis to x-axis <-4.999999> speed <37.499996> / 2;
+	turn pelvis to y-axis <0.000000> speed <40.898433> / 2;
+	turn rfoot to x-axis <0.932360> speed <371.694412> / 2;
+	turn rfoot to y-axis <0.474851> speed <22.005134> / 2;
+	turn rfoot to z-axis <-10.296852> speed <64.797402> / 2;
+	turn rknee to x-axis <-0.710460> speed <336.534481> / 2;
+	turn rknee to y-axis <0.215404> speed <13.798553> / 2;
+	turn rknee to z-axis <2.955248> speed <32.697332> / 2;
+	turn rleg to x-axis <3.792608> speed <499.034427> / 2;
+	turn rleg to y-axis <-3.940970> speed <43.842553> / 2;
+	turn rleg to z-axis <2.397633> speed <24.118619> / 2;
+	turn rthigh to x-axis <1.740186> speed <268.630524> / 2;
+	turn rthigh to y-axis <-2.752263> speed <35.905934> / 2;
+	turn rthigh to z-axis <6.095458> speed <56.466328> / 2;
 }
 UnitSpeed(){
  maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
@@ -325,10 +325,10 @@ UnitSpeed(){
  while(TRUE){
   animSpeed = (get CURRENT_SPEED);
   if (animSpeed<1) animSpeed=1;
-  animSpeed = (maxSpeed * 5) / animSpeed; 
+  animSpeed = (maxSpeed * 8) / animSpeed; 
   //get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed);
-  if (animSpeed<2) animSpeed=2;
-  if (animspeed>8) animSpeed = 8;
+  if (animSpeed<3) animSpeed=3;
+  if (animspeed>12) animSpeed = 12;
   sleep 131;
  }
 }
@@ -367,7 +367,7 @@ Create()
 	notMoving = TRUE;
 	currentSpeed = 100;
 	moveSpeed = get MAX_SPEED;
-	animSpeed = 4;
+	animSpeed = 6;
 	start-script StopMoving();
 }
 

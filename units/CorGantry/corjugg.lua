@@ -235,13 +235,13 @@ return {
 			},
 			[2] = {
 				def = "JUGGERNAUT_BOTTOM",
-				maindir = "1 0 4",
+				maindir = "-1 0 4",
 				maxangledif = 90,
 				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
 				def = "JUGGERNAUT_BOTTOM",
-				maindir = "-1 0 4",
+				maindir = "1 0 4",
 				maxangledif = 90,
 				onlytargetcategory = "SURFACE",
 			},

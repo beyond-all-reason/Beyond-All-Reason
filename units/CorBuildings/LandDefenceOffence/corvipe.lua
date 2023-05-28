@@ -22,7 +22,7 @@ return {
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORVIPE.s3o",
-		script = "Units/CORVIPE.lua",
+		script = "Units/CORVIPE.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 546,

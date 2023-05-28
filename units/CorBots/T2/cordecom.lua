@@ -42,8 +42,8 @@ return {
 		objectname = "Units/CORCOM.s3o",
 		radardistance = 50,
 		reclaimable = false,
-    releaseheld  = true,
-		script = "Units/CORCOM_lus.lua",
+    	releaseheld  = true,
+		script = "Units/CORCOM.cob",
 		seismicsignature = 0,
 		selfdestructas = "decoycommanderSelfd",
 		showplayername = true,
@@ -135,7 +135,6 @@ return {
 				cylindertargeting = 1,
 				edgeeffectiveness = 1,
 				explosiongenerator = "custom:laserhit-small-red",
-				fastautoretargeting = 1,
 				firestarter = 70,
 				impactonly = 1,
 				impulseboost = 0,
@@ -245,6 +244,7 @@ return {
 			[1] = {
 				def = "ARMCOMLASER",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",

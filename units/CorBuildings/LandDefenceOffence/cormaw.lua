@@ -133,7 +133,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:burnblack",
-				fastautoretargeting = 1,
 				firestarter = 100,
 				flamegfxtime = 1,
 				groundbounce = true,
@@ -173,6 +172,7 @@ return {
 			[1] = {
 				def = "DMAW",
 				onlytargetcategory = "SURFACE",
+				fastautoretargeting = true,
 			},
 		},
 	},

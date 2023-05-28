@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Evil4Zerggin",
 		date = "9 January 2009",
 		license = "GNU LGPL, v2.1 or later",
-		layer = 1,
+		layer = 1010,
 		enabled = true
 	}
 end
@@ -13,9 +13,9 @@ end
 local textSize = 16
 
 ------------------------------------------------
---speedups
+-- speedups
 ------------------------------------------------
----
+
 local GetActiveCommand = Spring.GetActiveCommand
 local GetMouseState = Spring.GetMouseState
 local TraceScreenRay = Spring.TraceScreenRay
@@ -26,7 +26,6 @@ local GetMapDrawMode = Spring.GetMapDrawMode
 local glLineWidth = gl.LineWidth
 local glColor = gl.Color
 local glRect = gl.Rect
-local glText = gl.Text
 local glPolygonMode = gl.PolygonMode
 local glDrawGroundCircle = gl.DrawGroundCircle
 local glUnitShape = gl.UnitShape
@@ -45,7 +44,7 @@ local strFind = string.find
 local strFormat = string.format
 
 ------------------------------------------------
---vars
+-- vars
 ------------------------------------------------
 
 local vsx, vsy = Spring.GetViewGeometry()
@@ -70,7 +69,7 @@ local MAP_SIZE_Z_SCALED = MAP_SIZE_Z / METAL_MAP_SQUARE_SIZE
 local once, font, forceUpdate
 
 ------------------------------------------------
---helpers
+-- helpers
 ------------------------------------------------
 
 local function DrawTextWithBackground(text, x, y, size, opt)

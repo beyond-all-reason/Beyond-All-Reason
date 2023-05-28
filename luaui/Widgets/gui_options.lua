@@ -516,7 +516,7 @@ function DrawWindow()
 	windowRect = { screenX, screenY - screenHeight, screenX + screenWidth, screenY }
 
 	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 0, 1, (showTextInput and 0 or 1), 1, 1, 1, 1, ui_opacity + 0.2)
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, (showTextInput and inputText ~= '' and inputMode == '') and 1 or 0, 0, 1, (showTextInput and 0 or 1), 1, 1, 1, 1, ui_opacity + 0.2)
 
 	-- title
 	local groupMargin = math.floor(bgpadding * 0.8)
@@ -1525,6 +1525,10 @@ function mouseEvent(mx, my, button, release)
 					-- showhow rightmouse doesnt get triggered :S
 					advSettings = not advSettings
 					startColumn = 1
+					if windowList then
+						gl.DeleteList(windowList)
+					end
+					windowList = gl.CreateList(DrawWindow)
 					return
 				end
 				-- navigation buttons
@@ -1719,17 +1723,18 @@ end
 
 -- configVar = table, add more entries the deeper the configdata table var is: example: {'Config','console','maxlines'}  (limit = 3 deep)
 function loadWidgetData(widgetName, optionId, configVar)
-	if getOptionByID(optionId) and widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName][configVar[1]] ~= nil then
+	local optionID = getOptionByID(optionId)
+	if optionID and widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName][configVar[1]] ~= nil then
 		if configVar[2] ~= nil and widgetHandler.configData[widgetName][configVar[1]][configVar[2]] ~= nil then
 			if configVar[3] ~= nil and widgetHandler.configData[widgetName][configVar[1]][configVar[2]][configVar[3]] ~= nil then
-				options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]][configVar[3]]
+				options[optionID].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]][configVar[3]]
 				return true
 			else
-				options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]]
+				options[optionID].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]]
 				return true
 			end
-		elseif options[getOptionByID(optionId)].value ~= widgetHandler.configData[widgetName][configVar[1]] then
-			options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]]
+		elseif options[optionID].value ~= widgetHandler.configData[widgetName][configVar[1]] then
+			options[optionID].value = widgetHandler.configData[widgetName][configVar[1]]
 			return true
 		end
 	end
@@ -2739,8 +2744,8 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackFades", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackfades'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackfades_descr'),
-			onchange = function(i, value)
+		{ id = "soundtrackFades", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackfades'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackFades', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackfades_descr'),
+		  onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackFades', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshSettings then
 					WG['music'].RefreshSettings()
@@ -4243,6 +4248,7 @@ function init()
 
 		{ id = "simpleteamcolors_reset", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " ..  Spring.I18N('ui.settings.option.simpleteamcolors_reset'), type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColors_Reset", 0) or 0) == 1,
 		  onchange = function(i, value)
+			Spring.SetConfigInt("SimpleTeamColorsUseGradient", 0)
 			Spring.SetConfigInt("SimpleTeamColorsPlayerR", 0)
 			Spring.SetConfigInt("SimpleTeamColorsPlayerG", 77)
 			Spring.SetConfigInt("SimpleTeamColorsPlayerB", 255)
@@ -4255,7 +4261,12 @@ function init()
 			Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-
+		{ id = "simpleteamcolors_use_gradient", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolors_use_gradient'), type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColorsUseGradient", 0) or 0) == 1,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("SimpleTeamColorsUseGradient", (value and 1 or 0))
+			  Spring.SetConfigInt("UpdateTeamColors", 1)
+		  end,
+		},
 		{ id = "simpleteamcolors_player_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolors_player_r'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsPlayerR", value)
@@ -4356,6 +4367,12 @@ function init()
 
 		{ id = "label_dev_other", group = "dev", name = Spring.I18N('ui.settings.option.label_other'), category = types.dev },
 		{ id = "label_dev_other_spacer", group = "dev", category = types.dev },
+
+		{ id = "storedefaultsettings", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.storedefaultsettings'), type = "bool", value = tonumber(Spring.GetConfigInt("StoreDefaultSettings", 0) or 0) == 1, description = Spring.I18N('ui.settings.option.storedefaultsettings_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("StoreDefaultSettings", (value and 1 or 0))
+		  end,
+		},
 
 		{ id = "startboxeditor", group = "dev", category = types.dev, widget = "Startbox Editor", name = Spring.I18N('ui.settings.option.startboxeditor'), type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = Spring.I18N('ui.settings.option.startboxeditor_descr') },
 
@@ -5891,6 +5908,9 @@ function widget:Initialize()
 	-- just making sure
 	if widgetHandler.orderList["Pregame UI"] < 0.5 then
 		widgetHandler:EnableWidget("Pregame UI")
+	end
+	if widgetHandler.orderList["Pregame Queue"] < 0.5 then
+		widgetHandler:EnableWidget("Pregame Queue")
 	end
 
 	updateGrabinput()
