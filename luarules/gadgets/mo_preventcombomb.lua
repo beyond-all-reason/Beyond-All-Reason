@@ -1,4 +1,6 @@
-local gadgetEnabled = not (Spring.GetModOptions().newdgun or Spring.GetModOptions().unba or Spring.GetModOptions().comupdate)
+local gadgetEnabled = not (Spring.GetModOptions().newdgun or Spring.GetModOptions().unba)
+
+local ignoreDgunPart = Spring.GetModOptions().comupdate
 
 function gadget:GetInfo()
 	return {
@@ -72,7 +74,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		return 0, 0
 	end
 
-	if isDGUN[weaponID] or weaponID == COM_BLAST then
+	if (isDGUN[weaponID] and not ignoreDgunPart) or weaponID == COM_BLAST then
 
 		local hp,_ = GetUnitHealth(unitID)
 		hp = hp or 0
