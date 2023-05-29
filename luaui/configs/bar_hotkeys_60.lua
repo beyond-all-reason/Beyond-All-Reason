@@ -5,7 +5,7 @@ local bindings = {
 	{      "Shift+esc", "quitmenu"                   },
 	{ "Ctrl+Shift+esc", "quitforce"                  },
 	{  "Alt+Shift+esc", "reloadforce"                },
-	{     "Any+escape", "edit_escape"                },
+	{        "Any+esc", "edit_escape"                },
 	{      "Any+pause", "pause"                      },
 	{            "esc", "teamstatus_close"           },
 	{            "esc", "customgameinfo_close"       },
