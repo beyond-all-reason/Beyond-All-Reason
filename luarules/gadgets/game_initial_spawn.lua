@@ -176,8 +176,11 @@ if gadgetHandler:IsSyncedCode() then
 			local playerList = Spring.GetPlayerList()
 			local all_players_joined = true
 			for _, PID in pairs(playerList) do
-				if Spring.GetGameRulesParam("player_" .. PID .. "_joined") == nil then
-					all_players_joined = false
+				local _, _, spectator_flag = Spring.GetPlayerInfo(PID)
+				if spectator_flag == false then
+					if Spring.GetGameRulesParam("player_" .. PID .. "_joined") == nil then
+						all_players_joined = false
+					end
 				end
 			end
 			if all_players_joined == true then
