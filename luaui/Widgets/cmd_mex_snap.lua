@@ -261,9 +261,6 @@ end
 
 local function clearCurPosition()
 	curPosition = nil
-	if not WG.MexSnap then
-		WG.MexSnap = {}
-	end
 	WG.MexSnap.curPosition = curPosition
 end
 
@@ -324,7 +321,6 @@ end
 
 function widget:DrawWorld()
 	if not WG.DrawUnitShapeGL4 then
-		widget:Shutdown()
 		return
 	end
 

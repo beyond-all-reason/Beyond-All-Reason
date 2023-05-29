@@ -5913,6 +5913,15 @@ function widget:Initialize()
 		widgetHandler:EnableWidget("Pregame Queue")
 	end
 
+	-- enable GL4 unit rendering api's
+	if widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
+		widgetHandler:EnableWidget("DrawUnitShape GL4")
+	end
+	if widgetHandler.orderList["HighlightUnit API GL4"] < 0.5 then
+		widgetHandler:EnableWidget("HighlightUnit API GL4")
+	end
+
+
 	updateGrabinput()
 	widget:ViewResize()
 
