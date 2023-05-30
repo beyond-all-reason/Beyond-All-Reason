@@ -114,7 +114,11 @@ if gadgetHandler:IsSyncedCode() then
 		local wipeout = true
 		local allyTeamInfo = allyTeamInfos[allyTeamID]
 		for teamID, team in pairs(allyTeamInfo.teams) do
-			wipeout = wipeout and (team.dead or (playerQuitIsDead and not team.isControlled or not team.hasLeader))
+			if ignoredTeams[teamID] or team.isAI then
+				wipeout = false
+			else
+				wipeout = wipeout and (team.dead or (playerQuitIsDead and not team.isControlled or not team.hasLeader))
+			end
 		end
 		if wipeout and not allyTeamInfos[allyTeamID].dead then
 			if isFFA and Spring.GetGameFrame() < earlyDropGrace then
