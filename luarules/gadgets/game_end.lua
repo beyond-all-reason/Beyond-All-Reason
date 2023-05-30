@@ -114,7 +114,7 @@ if gadgetHandler:IsSyncedCode() then
 		local wipeout = true
 		local allyTeamInfo = allyTeamInfos[allyTeamID]
 		for teamID, team in pairs(allyTeamInfo.teams) do
-			if ignoredTeams[teamID] or team.isAI then
+			if ignoredTeams[teamID] then --or team.isAI then
 				wipeout = false
 			else
 				wipeout = wipeout and (team.dead or (playerQuitIsDead and not team.isControlled or not team.hasLeader))
