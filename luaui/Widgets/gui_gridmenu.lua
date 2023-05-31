@@ -173,7 +173,7 @@ local buildOpts = {}
 local buildOptsCount
 local categories = {}
 local catRects = {}
-local currentBuildCategory, currentCategoryIndex
+local currentCategory, currentCategoryIndex
 local currentPage = 1
 local pages = 1
 local nextPageRect = Rect:new(0, 0, 0, 0)
@@ -207,7 +207,8 @@ local ui_opacity, ui_scale
 
 
 local selectNextFrame, switchedCategory
-local units = VFS.Include("luaui/configs/gridmenu_categories.lua")
+local units = VFS.Include("luaui/configs/unit_config.lua")
+local grid = VFS.Include("luaui/configs/gridmenu_config.lua")
 
 local showWaterUnits = false
 
@@ -242,11 +243,11 @@ local function RefreshCommands()
 		selectedBuilder = startDefID
 	end
 
-	if currentBuildCategory then
-		gridPos = units.unitGridPos[selectedBuilder] and units.unitGridPos[selectedBuilder][currentCategoryIndex]
-		lHasUnitGrid = units.hasUnitGrid[selectedBuilder] -- Ensure if unit has static grid to not repeat unit on different category
+	if currentCategory then
+		gridPos = grid.unitGridPos[selectedBuilder] and grid.unitGridPos[selectedBuilder][currentCategoryIndex]
+		lHasUnitGrid = grid.hasUnitGrid[selectedBuilder] -- Ensure if unit has static grid to not repeat unit on different category
 	elseif selectedFactory then
-		gridPos = units.unitGridPos[selectedFactory]
+		gridPos = grid.unitGridPos[selectedFactory]
 	end
 
 	uncategorizedBuildOpts = {}
@@ -271,7 +272,7 @@ local function RefreshCommands()
 								name = UnitDefs[udefid].name,
 								params = {}
 							}
-						elseif currentBuildCategory == nil or (units.unitCategories[udefid] == currentBuildCategory and not (lHasUnitGrid and lHasUnitGrid[udefid])) then
+						elseif currentCategory == nil or (grid.unitCategories[udefid] == currentCategory and not (lHasUnitGrid and lHasUnitGrid[udefid])) then
 							Spring.Echo("uncategorized options")
 							buildOptsCount = buildOptsCount + 1
 							buildOpts[udefid] = {
@@ -307,7 +308,7 @@ local function RefreshCommands()
 						Spring.Echo("categorized options")
 						buildOptsCount = buildOptsCount + 1
 						buildOpts[cmd.id * -1] = activeCmdDescs[index]
-					elseif currentBuildCategory == nil or (units.unitCategories[cmd.id * -1] == currentBuildCategory and not (lHasUnitGrid and lHasUnitGrid[cmd.id * -1])) then
+					elseif currentCategory == nil or (grid.unitCategories[cmd.id * -1] == currentCategory and not (lHasUnitGrid and lHasUnitGrid[cmd.id * -1])) then
 						Spring.Echo("uncategorized options")
 						buildOptsCount = buildOptsCount + 1
 						buildOpts[cmd.id * -1] = activeCmdDescs[index]
@@ -416,7 +417,7 @@ local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
 	WG['pregame-build'].setPreGamestartDefID(uDefID)
 	if not uDefID then
-		currentBuildCategory = nil
+		currentCategory = nil
 		currentCategoryIndex = nil
 		doUpdate = true
 	end
@@ -430,7 +431,7 @@ local function gridmenuCategoryHandler(_, _, args)
 		return
 	end
 
-	if not selectedBuilder or (currentBuildCategory and hotkeyActions['1' .. cIndex]) then
+	if not selectedBuilder or (currentCategory and hotkeyActions['1' .. cIndex]) then
 		return
 	end
 
@@ -438,7 +439,7 @@ local function gridmenuCategoryHandler(_, _, args)
 
 	if alt or ctrl or meta then return end
 
-	currentBuildCategory = categories[cIndex]
+	currentCategory = categories[cIndex]
 	currentCategoryIndex = cIndex
 	switchedCategory = os.clock()
 	doUpdate = true
@@ -498,7 +499,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		enqueueUnit(uDefID, opts)
 
 		return true
-	elseif preGamestartPlayer and currentBuildCategory then
+	elseif preGamestartPlayer and currentCategory then
 		if alt or ctrl or meta then return end
 		if args[3] and args[3] == 'factory' then return false end
 
@@ -507,7 +508,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		doUpdate = true
 
 		return true
-	elseif selectedBuilder and currentBuildCategory then
+	elseif selectedBuilder and currentCategory then
 		if args[3] and args[3] == 'factory' then return false end
 		if alt or ctrl or meta then return end
 
@@ -528,7 +529,7 @@ function widget:CommandNotify(cmdID, _, cmdOpts)
 	end
 
 	if returnToCategoriesOnPick or not cmdOpts.shift then
-		currentBuildCategory = nil
+		currentCategory = nil
 		doUpdate = true
 	end
 end
@@ -557,9 +558,9 @@ local function prevPageHandler()
 end
 
 local function gridmenuCategoriesHandler()
-	if not (selectedBuilder and currentBuildCategory) then return end
+	if not (selectedBuilder and currentCategory) then return end
 
-	currentBuildCategory = nil
+	currentCategory = nil
 	currentCategoryIndex = nil
 	doUpdate = true
 
@@ -808,7 +809,7 @@ function widget:Update(dt)
 
 		selectedBuilder = nil
 		selectedFactory = nil
-		currentBuildCategory = nil
+		currentCategory = nil
 		currentCategoryIndex = nil
 		selectedBuilders = {}
 		currentPage = 1
@@ -1025,7 +1026,7 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 	end
 
 	-- hotkey draw
-	if cmd.hotkey and (selectedFactory or (selectedBuilder and currentBuildCategory)) then
+	if cmd.hotkey and (selectedFactory or (selectedBuilder and currentCategory)) then
 		local hotkeyText = keyConfig.sanitizeKey(cmd.hotkey, currentLayout)
 
 		local hotkeyFontSize = priceFontSize * 1.1
@@ -1108,7 +1109,7 @@ local function drawCategories()
 		local rect = catRects[cat]
 
 		local opts = {
-			highlight = (cat == currentBuildCategory),
+			highlight = (cat == currentCategory),
 			hovered = (hoveredButton == rect:getId()),
 		}
 
@@ -1162,9 +1163,9 @@ local function drawGrid()
 	local cellRectID = 0
 	local unitGrid
 	if selectedFactory then
-		unitGrid = units.gridPosUnit[selectedFactory]
+		unitGrid = grid.gridPosUnit[selectedFactory]
 	else
-		unitGrid = units.gridPosUnit[selectedBuilder]
+		unitGrid = grid.gridPosUnit[selectedBuilder]
 	end
 	local curCmd = currentPage > 1 and (numCellsPerPage * (currentPage - 1) - (buildOptsCount - uncategorizedBuildOptsCount) + 1) or 1
 
@@ -1195,7 +1196,7 @@ local function drawGrid()
 					uDefID = uncategorizedBuildOpts[curCmd].id * -1
 					curCmd = curCmd + 1
 				end
-			elseif currentPage == 1 and currentBuildCategory and unitGrid and unitGrid[currentCategoryIndex .. arow .. coll] then
+			elseif currentPage == 1 and currentCategory and unitGrid and unitGrid[currentCategoryIndex .. arow .. coll] then
 				uDefID = unitGrid[currentCategoryIndex .. arow .. coll]
 			elseif uncategorizedBuildOpts[curCmd] then
 				uDefID = uncategorizedBuildOpts[curCmd].id * -1
@@ -1599,7 +1600,7 @@ function widget:KeyRelease(key)
 	if preGamestartPlayer then
 		setPreGamestartDefID(nil)
 	else
-		currentBuildCategory = nil
+		currentCategory = nil
 		currentCategoryIndex = nil
 		doUpdate = true
 	end
@@ -1624,7 +1625,7 @@ function widget:MousePress(x, y, button)
 			if not disableInput then
 				for cat, catRect in pairs(catRects) do
 					if catRect:contains(x, y) then
-						currentBuildCategory = cat
+						currentCategory = cat
 						switchedCategory = os.clock()
 						Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
 
@@ -1663,7 +1664,7 @@ function widget:MousePress(x, y, button)
 			return true
 		end
 	elseif selectedBuilder and button == 3 then
-		currentBuildCategory = nil
+		currentCategory = nil
 		currentCategoryIndex = nil
 		doUpdate = true
 	end

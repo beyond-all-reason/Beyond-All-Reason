@@ -80,7 +80,7 @@ local advplayerlistLeft = vsx * 0.8
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.7) or 0.6)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
-local units = VFS.Include("luaui/configs/gridmenu_categories.lua")
+local units = VFS.Include("luaui/configs/unit_config.lua")
 
 local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
