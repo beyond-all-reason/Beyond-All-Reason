@@ -22,6 +22,8 @@ local showWaterUnits = false
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 
+	unitGroup[unitDefID] = unitDef.customParams.unitgroup
+
 	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'	-- or unitDef.name == 'armbeaver' or unitDef.name == 'cormuskrat'
 		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
 		isWaterUnit[unitDefID] = true
