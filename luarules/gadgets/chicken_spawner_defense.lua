@@ -81,7 +81,7 @@ if gadgetHandler:IsSyncedCode() then
 	local playerAgressionLevel = 0
 	local playerAgressionEcoValue = 0
 	local queenAngerAgressionLevel = 0
-	local difficultyCounter = 0
+	local difficultyCounter = config.difficulty
 	local waveParameters = {
 		baseCooldown = mRandom(3,5),
 		airWave = {
@@ -288,22 +288,18 @@ if gadgetHandler:IsSyncedCode() then
 		techAnger = 0
 		playerAgression = 0
 		queenAngerAgressionLevel = 0
+		pastFirstQueen = true
 		SetGameRulesParam("queenAnger", queenAnger)
 		local nextDifficulty
-		local difficultyCounter = difficultyCounter + 1
-		if difficultyCounter == 1 then
-			nextDifficulty = config.difficultyParameters[1]
-		elseif difficultyCounter == 2 then
-			nextDifficulty = config.difficultyParameters[2]
-		elseif difficultyCounter == 3 then
-			nextDifficulty = config.difficultyParameters[3]
-		elseif difficultyCounter == 4 then
-			nextDifficulty = config.difficultyParameters[4]
-		elseif difficultyCounter == 5 then
-			nextDifficulty = config.difficultyParameters[5]
-		elseif difficultyCounter > 5 then -- We're already at Epic, just multiply some numbers to make it even harder
-			nextDifficulty = config.difficultyParameters[5]
-			config.chickenSpawnMultiplier = config.chickenSpawnMultiplier*2
+		difficultyCounter = difficultyCounter + 1
+		if config.difficultyParameters[difficultyCounter] then
+			nextDifficulty = config.difficultyParameters[difficultyCounter]
+			config.queenResistanceMult = nextDifficulty.queenResistanceMult
+		else
+			difficultyCounter = difficultyCounter - 1
+			nextDifficulty = config.difficultyParameters[difficultyCounter]
+			config.chickenSpawnMultiplier = config.chickenSpawnMultiplier+1
+			config.queenResistanceMult = config.queenResistanceMult+0.5
 		end
 		config.queenName = nextDifficulty.queenName
 		config.burrowSpawnRate = nextDifficulty.burrowSpawnRate
@@ -314,9 +310,8 @@ if gadgetHandler:IsSyncedCode() then
 		config.minChickens = nextDifficulty.minChickens
 		config.maxBurrows = nextDifficulty.maxBurrows
 		config.maxXP = nextDifficulty.maxXP
-		config.queenResistanceMult = nextDifficulty.queenResistanceMult
 		config.angerBonus = nextDifficulty.angerBonus
-		config.queenTime = math.ceil(nextDifficulty.queenTime*0.25)
+		config.queenTime = math.ceil(nextDifficulty.queenTime*0.5)
 		queenTime = (config.queenTime + config.gracePeriod)
 		maxBurrows = ((config.maxBurrows*(1-config.chickenPerPlayerMultiplier))+(config.maxBurrows*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 		maxWaveSize = ((config.maxChickens*(1-config.chickenPerPlayerMultiplier))+(config.maxChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
@@ -1508,7 +1503,11 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				if not queenID then
 					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + queenAngerAgressionLevel, 100), 0)
-					techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().chicken_graceperiodmult)) / (queenTime - (config.gracePeriod/Spring.GetModOptions().chicken_graceperiodmult)) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 100), 0)
+					if pastFirstQueen then
+						techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 100), 0)
+					else
+						techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().chicken_graceperiodmult)) / (queenTime - (config.gracePeriod/Spring.GetModOptions().chicken_graceperiodmult)) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 100), 0)
+					end
 					minBurrows = SetCount(humanTeams)
 				else
 					queenAnger = 100
@@ -1685,7 +1684,7 @@ if gadgetHandler:IsSyncedCode() then
 			queenResistance = {}
 			Spring.SetGameRulesParam("BossFightStarted", 0)
 
-			if config.difficulty == config.difficulties.survival then
+			if Spring.GetModOptions().chicken_endless then
 				updateDifficultyForSurvival()
 			else
 				gameOver = GetGameFrame() + 200

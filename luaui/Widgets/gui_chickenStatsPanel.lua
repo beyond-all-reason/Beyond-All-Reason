@@ -196,8 +196,12 @@ local function CreatePanelDisplayList()
 	end
 	
 	font:Print(textColor .. Spring.I18N('ui.chickens.chickenKillCount', { count = gameInfo.chickenKills }), panelMarginX, PanelRow(6), panelFontSize, "")
+	local endless = ""
+	if Spring.GetModOptions().chicken_endless then
+		endless = ' (' .. Spring.I18N('ui.chickens.difficulty.endless') .. ')'
+	end
 	local difficultyCaption = Spring.I18N('ui.chickens.difficulty.' .. difficultyOption)
-	font:Print(textColor .. Spring.I18N('ui.chickens.mode', { mode = difficultyCaption }), 120, h - 170, panelFontSize, "")
+	font:Print(textColor .. Spring.I18N('ui.chickens.mode', { mode = difficultyCaption }) .. endless, 80, h - 170, panelFontSize, "")
 	font:End()
 
 	gl.Texture(false)
@@ -212,7 +216,6 @@ local function getMarqueeMessage(chickenEventArgs)
 	elseif chickenEventArgs.type == "queen" then
 		messages[1] = textColor .. Spring.I18N('ui.chickens.queenIsAngry1')
 		messages[2] = textColor .. Spring.I18N('ui.chickens.queenIsAngry2')
-		queenIsAngry = true
 	elseif chickenEventArgs.type == "airWave" then
 		messages[1] = textColor .. Spring.I18N('ui.chickens.wave1', {waveNumber = chickenEventArgs.waveCount})
 		messages[2] = textColor .. Spring.I18N('ui.chickens.airWave1')
@@ -318,7 +321,7 @@ function ChickenEvent(chickenEventArgs)
 		end
 	end
 
-	if (chickenEventArgs.type == "wave" or chickenEventArgs.type == "airWave") and config.useWaveMsg and (not queenIsAngry) then
+	if (chickenEventArgs.type == "wave" or chickenEventArgs.type == "airWave") and config.useWaveMsg and gameInfo.queenAnger <= 99 then
 		waveCount = waveCount + 1
 		chickenEventArgs.waveCount = waveCount
 		showMarqueeMessage = true
