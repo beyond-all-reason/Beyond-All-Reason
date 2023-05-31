@@ -24,10 +24,8 @@ SYMKEYS = table.invert(KEYSYMS)
 
 local returnToCategoriesOnPick = true
 
-local configs = VFS.Include('luaui/configs/gridmenu_layouts.lua')
+
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
-local labGrids = configs.LabGrids
-local unitGrids = configs.UnitGrids
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 
 local prevHoveredCellID, hoverDlist, hoverUdefID, hoverCellSelected
@@ -92,27 +90,9 @@ local Cfgs = {
 	categoryKeys = {},
 	vKeyLayout = {},
 	keyLayout = {},
-	categoryGroupMapping = {
-		energy = BUILDCAT_ECONOMY,
-		metal = BUILDCAT_ECONOMY,
-		builder = BUILDCAT_PRODUCTION,
-		buildert2 = BUILDCAT_PRODUCTION,
-		buildert3 = BUILDCAT_PRODUCTION,
-		buildert4 = BUILDCAT_PRODUCTION,
-		util = BUILDCAT_UTILITY,
-		weapon = BUILDCAT_COMBAT,
-		explo = BUILDCAT_COMBAT,
-		weaponaa = BUILDCAT_COMBAT,
-		weaponsub = BUILDCAT_COMBAT,
-		aa = BUILDCAT_COMBAT,
-		emp = BUILDCAT_COMBAT,
-		sub = BUILDCAT_COMBAT,
-		nuke = BUILDCAT_COMBAT,
-		antinuke = BUILDCAT_COMBAT,
-	},
 }
 
-local unitCategories = {}
+
 local hotkeyActions = {}
 local hoveredButton, drawnHoveredButton
 local selBuildQueueDefID
@@ -137,7 +117,7 @@ local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
 local bgpadding, activeAreaMargin, iconTypesMap
-local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2, cmdsCount
+local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2, uncategorizedBuildOptsCount
 local doUpdate, doUpdateClock, ordermenuHeight, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 
@@ -170,29 +150,6 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local unbaStartBuildoptions = {}
-if Spring.GetModOptions().unba then
-	VFS.Include("unbaconfigs/buildoptions.lua")
-	for unitname,level in pairs(ArmBuildOptions) do
-		if level == 1 then
-			unbaStartBuildoptions[UnitDefNames[unitname].id] = unitname
-		end
-	end
-	ArmBuildOptions = nil
-	for unitname,level in pairs(CorBuildOptions) do
-		if level == 1 then
-			unbaStartBuildoptions[UnitDefNames[unitname].id] = unitname
-		end
-	end
-	CorBuildOptions = nil
-	ArmDefsBuildOptions = nil
-	CorDefsBuildOptions = nil
-	ArmBuildOptionsStop = nil
-	CorBuildOptionsStop = nil
-else
-	unbaStartBuildoptions = nil
-end
-
 local vsx, vsy = Spring.GetViewGeometry()
 
 local ordermenuLeft = vsx / 5
@@ -210,10 +167,10 @@ local rows = 3
 local minimapHeight = 0.235
 local selectedBuilders = {}
 local cellRects = {}
-local cmds = {}
+local uncategorizedBuildOpts = {}
 local cellcmds = {}
-local uidcmds = {}
-local uidcmdsCount
+local buildOpts = {}
+local buildOptsCount
 local categories = {}
 local catRects = {}
 local currentBuildCategory, currentCategoryIndex
@@ -248,192 +205,11 @@ local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner, TexRectRound
 local ui_opacity, ui_scale
 
-local unitEnergyCost = {}
-local unitMetalCost = {}
-local unitGroup = {}
-local unitRestricted = {}
-local isBuilder = {}
-local isFactory = {}
-local unitIconType = {}
-local isMex = {}
-local isWaterUnit = {}
-local unitMaxWeaponRange = {}
-local unitName = {}
 
-local unitGridPos = { }
-local gridPosUnit = { }
-local hasUnitGrid = { }
 local selectNextFrame, switchedCategory
+local units = VFS.Include("luaui/configs/gridmenu_categories.lua")
 
-for uname, ugrid in pairs(unitGrids) do
-	local builder = UnitDefNames[uname]
-	local uid = builder.id
-
-	unitGridPos[uid] = {{},{},{},{}}
-	gridPosUnit[uid] = {}
-	hasUnitGrid[uid] = {}
-	local uCanBuild = {}
-
-	local uBuilds = builder.buildOptions
-	for i = 1, #uBuilds do
-		uCanBuild[uBuilds[i]] = true
-	end
-
-	for cat=1,4 do
-		for r=1,3 do
-			for c=1,4 do
-				local ugdefname = ugrid[cat] and ugrid[cat][r] and ugrid[cat][r][c]
-
-				if ugdefname then
-					local ugdef = UnitDefNames[ugdefname]
-
-					if ugdef and ugdef.id and uCanBuild[ugdef.id] then
-						gridPosUnit[uid][cat .. r .. c] = ugdef.id
-						unitGridPos[uid][cat][ugdef.id] = cat .. r .. c
-						hasUnitGrid[uid][ugdef.id] = true
-					end
-				end
-			end
-		end
-	end
-end
-
-for uname, ugrid in pairs(labGrids) do
-	local udef = UnitDefNames[uname]
-	local uid = udef.id
-
-	unitGridPos[uid] = {}
-	gridPosUnit[uid] = {}
-	local uCanBuild = {}
-
-	local uBuilds = udef.buildOptions
-	for i = 1, #uBuilds do
-		uCanBuild[uBuilds[i]] = true
-	end
-
-	for r=1,3 do
-		for c=1,4 do
-			local index = (r - 1) * 4 + c
-			local ugdefname = ugrid[index]
-
-			if ugdefname then
-				local ugdef = UnitDefNames[ugdefname]
-
-				if ugdef and ugdef.id and uCanBuild[ugdef.id] then
-					gridPosUnit[uid][r .. c] = ugdef.id
-					unitGridPos[uid][ugdef.id] = r .. c
-				end
-			end
-		end
-	end
-end
-
-for unitDefID, unitDef in pairs(UnitDefs) do
-	unitName[unitDefID] = unitDef.name
-	unitGroup[unitDefID] = unitDef.customParams.unitgroup
-	unitCategories[unitDefID] = Cfgs.categoryGroupMapping[unitDef.customParams.unitgroup] or BUILDCAT_UTILITY
-
-	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'	-- or unitDef.name == 'armbeaver' or unitDef.name == 'cormuskrat'
-		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
-		isWaterUnit[unitDefID] = true
-	end
-	if unitDef.name == 'armthovr' or unitDef.name == 'corintr' then
-		isWaterUnit[unitDefID] = nil
-	end
-
-	if unitDef.maxWeaponRange > 16 then
-		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
-	end
-
-	unitIconType[unitDefID] = unitDef.iconType
-	unitEnergyCost[unitDefID] = unitDef.energyCost
-	unitMetalCost[unitDefID] = unitDef.metalCost
-
-	if unitDef.maxThisUnit == 0 then
-		unitRestricted[unitDefID] = true
-	end
-
-	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
-		isBuilder[unitDefID] = unitDef.buildOptions
-	end
-
-	if unitDef.isFactory and #unitDef.buildOptions > 0 then
-		isFactory[unitDefID] = true
-	end
-
-	if unitDef.extractsMetal > 0 then
-		isMex[unitDefID] = true
-	end
-end
-
-------------------------------------
--- UNIT ORDER ----------------------
-------------------------------------
-
-local unitOrder = {}
-local unitOrderManualOverrideTable = VFS.Include("luaui/configs/buildmenu_sorting.lua")
-
-for unitDefID, _ in pairs(UnitDefs) do
-	if unitOrderManualOverrideTable[unitDefID] then
-		unitOrder[unitDefID] = -unitOrderManualOverrideTable[unitDefID]
-	else
-		unitOrder[unitDefID] = 9999999
-	end
-end
-
-local function getHighestOrderedUnit()
-	local highest = { 0, 0, false }
-	local firstOrderTest = true
-	local newSortingUnit = {}
-	for unitDefID, orderValue in pairs(unitOrder) do
-
-		if unitOrderManualOverrideTable[unitDefID] then
-			newSortingUnit[unitDefID] = true
-		else
-			newSortingUnit[unitDefID] = false
-		end
-
-		if firstOrderTest == true then
-			firstOrderTest = false
-			highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
-		--elseif orderValue > highest[2] then
-		elseif highest[3] == false and newSortingUnit[unitDefID] == true then
-			highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
-		elseif highest[3] == false and newSortingUnit[unitDefID] == false then
-			if orderValue > highest[2] then
-				highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
-			end
-		elseif highest[3] == true and newSortingUnit[unitDefID] == true then
-			if orderValue > highest[2] then
-				highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
-			end
-		end
-	end
-	return highest[1]
-end
-
-local unitsOrdered = {}
-for _, _ in pairs(UnitDefs) do
-	local uDefID = getHighestOrderedUnit()
-	unitsOrdered[#unitsOrdered + 1] = uDefID
-	unitOrder[uDefID] = nil
-end
-
-unitOrder = unitsOrdered
-unitsOrdered = nil
-
-local voidWater = false
-local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
-if success and mapinfo then
-	voidWater = mapinfo.voidwater
-end
-
-local minWaterUnitDepth = -11
 local showWaterUnits = false
-
-------------------------------------
--- /UNIT ORDER ----------------------
-------------------------------------
 
 
 local function checkGuishader(force)
@@ -467,53 +243,53 @@ local function RefreshCommands()
 	end
 
 	if currentBuildCategory then
-		gridPos = unitGridPos[selectedBuilder] and unitGridPos[selectedBuilder][currentCategoryIndex]
-		lHasUnitGrid = hasUnitGrid[selectedBuilder] -- Ensure if unit has static grid to not repeat unit on different category
+		gridPos = units.unitGridPos[selectedBuilder] and units.unitGridPos[selectedBuilder][currentCategoryIndex]
+		lHasUnitGrid = units.hasUnitGrid[selectedBuilder] -- Ensure if unit has static grid to not repeat unit on different category
 	elseif selectedFactory then
-		gridPos = unitGridPos[selectedFactory]
+		gridPos = units.unitGridPos[selectedFactory]
 	end
 
-	cmds = {}
-	uidcmds = {}
-	cmdsCount = 0
-	uidcmdsCount = 0
+	uncategorizedBuildOpts = {}
+	buildOpts = {}
+	uncategorizedBuildOptsCount = 0
+	buildOptsCount = 0
 
-	local unorderedCmdDefs = {}
+	local unorderedBuildOptions = {}
 
 	if preGamestartPlayer then
 		if startDefID then
 			categories = Cfgs.buildCategories
 
 			for _, udefid in pairs(UnitDefs[startDefID].buildOptions) do
-				if not unbaStartBuildoptions or unbaStartBuildoptions[udefid] then
-					if showWaterUnits or not isWaterUnit[udefid] then
+				if not units.unbaStartBuildoptions or units.unbaStartBuildoptions[udefid] then
+					if showWaterUnits or not units.isWaterUnit[udefid] then
 						if gridPos and gridPos[udefid] then
-							uidcmdsCount = uidcmdsCount + 1
-							uidcmds[udefid] = {
+							Spring.Echo("categorized options")
+							buildOptsCount = buildOptsCount + 1
+							buildOpts[udefid] = {
 								id = udefid * -1,
 								name = UnitDefs[udefid].name,
 								params = {}
 							}
-						elseif currentBuildCategory == nil or (unitCategories[udefid] == currentBuildCategory and not (lHasUnitGrid and lHasUnitGrid[udefid])) then
-							local cmd = {
+						elseif currentBuildCategory == nil or (units.unitCategories[udefid] == currentBuildCategory and not (lHasUnitGrid and lHasUnitGrid[udefid])) then
+							Spring.Echo("uncategorized options")
+							buildOptsCount = buildOptsCount + 1
+							buildOpts[udefid] = {
 								id = udefid * -1,
 								name = UnitDefs[udefid].name,
 								params = {}
 							}
 
-							uidcmdsCount = uidcmdsCount + 1
-							uidcmds[udefid] = cmd
-
-							unorderedCmdDefs[udefid] = true
+							unorderedBuildOptions[udefid] = true
 						end
 					end
 				end
 			end
 
-			for _, uDefID in pairs(unitOrder) do
-				if unorderedCmdDefs[uDefID] then
-					cmdsCount = cmdsCount + 1
-					cmds[cmdsCount] = uidcmds[uDefID]
+			for _, uDefID in pairs(units.unitOrder) do
+				if unorderedBuildOptions[uDefID] then
+					uncategorizedBuildOptsCount = uncategorizedBuildOptsCount + 1
+					uncategorizedBuildOpts[uncategorizedBuildOptsCount] = buildOpts[uDefID]
 				end
 			end
 		end
@@ -524,26 +300,28 @@ local function RefreshCommands()
 
 		for index, cmd in pairs(activeCmdDescs) do
 			if type(cmd) == "table" and not cmd.disabled then
-				if string.sub(cmd.action, 1, 10) == 'buildunit_' and (showWaterUnits or not isWaterUnit[cmd.id * -1]) then
+				if string.sub(cmd.action, 1, 10) == 'buildunit_' and (showWaterUnits or not units.isWaterUnit[cmd.id * -1]) then
 					cmdUnitdefs[cmd.id * -1] = index
 
 					if gridPos and gridPos[cmd.id * -1] then
-						uidcmdsCount = uidcmdsCount + 1
-						uidcmds[cmd.id * -1] = activeCmdDescs[index]
-					elseif currentBuildCategory == nil or (unitCategories[cmd.id * -1] == currentBuildCategory and not (lHasUnitGrid and lHasUnitGrid[cmd.id * -1])) then
-						uidcmdsCount = uidcmdsCount + 1
-						uidcmds[cmd.id * -1] = activeCmdDescs[index]
+						Spring.Echo("categorized options")
+						buildOptsCount = buildOptsCount + 1
+						buildOpts[cmd.id * -1] = activeCmdDescs[index]
+					elseif currentBuildCategory == nil or (units.unitCategories[cmd.id * -1] == currentBuildCategory and not (lHasUnitGrid and lHasUnitGrid[cmd.id * -1])) then
+						Spring.Echo("uncategorized options")
+						buildOptsCount = buildOptsCount + 1
+						buildOpts[cmd.id * -1] = activeCmdDescs[index]
 
-						unorderedCmdDefs[cmd.id * -1] = true
+						unorderedBuildOptions[cmd.id * -1] = true
 					end
 				end
 			end
 		end
 
-		for _, uDefID in pairs(unitOrder) do
-			if unorderedCmdDefs[uDefID] then
-				cmdsCount = cmdsCount + 1
-				cmds[cmdsCount] = activeCmdDescs[cmdUnitdefs[uDefID]]
+		for _, uDefID in pairs(units.unitOrder) do
+			if unorderedBuildOptions[uDefID] then
+				uncategorizedBuildOptsCount = uncategorizedBuildOptsCount + 1
+				uncategorizedBuildOpts[uncategorizedBuildOptsCount] = activeCmdDescs[cmdUnitdefs[uDefID]]
 			end
 		end
 	end
@@ -671,7 +449,7 @@ end
 local function enqueueUnit(uDefID, opts)
 	local udTable = Spring.GetSelectedUnitsSorted()
 	for udidFac, uTable in pairs(udTable) do
-		if isFactory[udidFac] then
+		if units.isFactory[udidFac] then
 			for _, uid in ipairs(uTable) do
 				Spring.GiveOrderToUnit(uid, uDefID, {}, opts)
 			end
@@ -823,10 +601,10 @@ function widget:Initialize()
 
 	WG['buildmenu'] = {}
 	WG['buildmenu'].getGroups = function()
-		return groups, unitGroup
+		return groups, units.unitGroup
 	end
 	WG['buildmenu'].getOrder = function()
-		return unitOrder
+		return units.unitOrder
 	end
 	WG['buildmenu'].getShowPrice = function()
 		return showPrice
@@ -1040,14 +818,14 @@ function widget:Update(dt)
 			for _, unitID in pairs(sel) do
 				local unitDefID = spGetUnitDefID(unitID)
 
-				if isBuilder[unitDefID] then
+				if units.isBuilder[unitDefID] then
 					doUpdate = true
 
 					selectedBuilders[unitID] = true
 					selectedBuilder = unitDefID
 				end
 
-				if isFactory[unitDefID] then
+				if units.isFactory[unitDefID] then
 					doUpdate = true
 
 					selectedFactory = unitDefID
@@ -1076,7 +854,7 @@ function widget:Update(dt)
 		end
 
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-		if not voidWater and mapMinWater <= minWaterUnitDepth then
+		if not voidWater and mapMinWater <= units.minWaterUnitDepth then
 			showWaterUnits = true
 		end
 
@@ -1113,7 +891,7 @@ function widget:Update(dt)
 		if Spring.GetGameFrame() == 0 and WG['pregame-build'] then
 			activeCmd = WG['pregame-build'].selectedID
 			if activeCmd then
-				activeCmd = unitName[activeCmd]
+				activeCmd = units.unitName[activeCmd]
 			end
 		else
 			activeCmd = select(4, Spring.GetActiveCommand())
@@ -1129,7 +907,7 @@ function widget:Update(dt)
 	end
 end
 
-local function drawBuildmenuBg()
+local function drawBuildMenuBg()
 	local height = backgroundRect.yEnd - backgroundRect.y
 	local posY = backgroundRect.y
 	UiElement(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, (backgroundRect.x > 0 and 1 or 0), 1, ((posY-height > 0 or backgroundRect.x <= 0) and 1 or 0), 0)
@@ -1201,9 +979,9 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 		usedZoom,
 		nil, disabled and 0 or nil,
 		'#' .. uid,
-		showRadarIcon and (((unitIconType[uid] and iconTypesMap[unitIconType[uid]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypesMap[unitIconType[uid]] or nil)) or nil,
-		showIcon and (groups[unitGroup[uid]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[unitGroup[uid]] or nil) or nil,
-		{unitMetalCost[uid], unitEnergyCost[uid]},
+		showRadarIcon and (((units.unitIconType[uid] and iconTypesMap[units.unitIconType[uid]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypesMap[units.unitIconType[uid]] or nil)) or nil,
+		showIcon and (groups[units.unitGroup[uid]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[units.unitGroup[uid]] or nil) or nil,
+		{units.unitMetalCost[uid], units.unitEnergyCost[uid]},
 		tonumber(cmd.params[1])
 	)
 
@@ -1239,11 +1017,11 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 	if showPrice then
 		local text
 		if disabled then
-			text = "\255\125\125\125" .. unitMetalCost[uid] .. "\n\255\135\135\135"
+			text = "\255\125\125\125" .. units.unitMetalCost[uid] .. "\n\255\135\135\135"
 		else
-			text = "\255\245\245\245" .. unitMetalCost[uid] .. "\n\255\255\255\000"
+			text = "\255\245\245\245" .. units.unitMetalCost[uid] .. "\n\255\255\255\000"
 		end
-		font2:Print(text .. unitEnergyCost[uid], cellRect.x + cellPadding + (cellInnerSize * 0.048), cellRect.y + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
+		font2:Print(text .. units.unitEnergyCost[uid], cellRect.x + cellPadding + (cellInnerSize * 0.048), cellRect.y + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
 	end
 
 	-- hotkey draw
@@ -1384,11 +1162,11 @@ local function drawGrid()
 	local cellRectID = 0
 	local unitGrid
 	if selectedFactory then
-		unitGrid = gridPosUnit[selectedFactory]
+		unitGrid = units.gridPosUnit[selectedFactory]
 	else
-		unitGrid = gridPosUnit[selectedBuilder]
+		unitGrid = units.gridPosUnit[selectedBuilder]
 	end
-	local curCmd = currentPage > 1 and (numCellsPerPage * (currentPage - 1) - (uidcmdsCount - cmdsCount) + 1) or 1
+	local curCmd = currentPage > 1 and (numCellsPerPage * (currentPage - 1) - (buildOptsCount - uncategorizedBuildOptsCount) + 1) or 1
 
 	cellcmds = {}
 
@@ -1413,14 +1191,14 @@ local function drawGrid()
 			if selectedFactory then
 				if currentPage == 1 and unitGrid and unitGrid[arow .. coll] then
 					uDefID = unitGrid[arow .. coll]
-				elseif cmds[curCmd] then
-					uDefID = cmds[curCmd].id * -1
+				elseif uncategorizedBuildOpts[curCmd] then
+					uDefID = uncategorizedBuildOpts[curCmd].id * -1
 					curCmd = curCmd + 1
 				end
 			elseif currentPage == 1 and currentBuildCategory and unitGrid and unitGrid[currentCategoryIndex .. arow .. coll] then
 				uDefID = unitGrid[currentCategoryIndex .. arow .. coll]
-			elseif cmds[curCmd] then
-				uDefID = cmds[curCmd].id * -1
+			elseif uncategorizedBuildOpts[curCmd] then
+				uDefID = uncategorizedBuildOpts[curCmd].id * -1
 				curCmd = curCmd + 1
 			end
 
@@ -1431,13 +1209,13 @@ local function drawGrid()
 				buildpicsRect.yEnd - (rows - krow) * cellSize
 			 )
 
-			if uDefID and uidcmds[uDefID] then
-				cellcmds[cellRectID] = uidcmds[uDefID]
+			if uDefID and buildOpts[uDefID] then
+				cellcmds[cellRectID] = buildOpts[uDefID]
 
-				uidcmds[uDefID].hotkey = string.gsub(string.upper(Cfgs.keyLayout[arow][coll]), "ANY%+", '')
+				buildOpts[uDefID].hotkey = string.gsub(string.upper(Cfgs.keyLayout[arow][coll]), "ANY%+", '')
 				hotkeyActions[tostring(arow) .. tostring(coll)] = -uDefID
 
-				local udef = uidcmds[uDefID]
+				local udef = buildOpts[uDefID]
 
 				cellRects[cellRectID] = rect
 
@@ -1445,7 +1223,7 @@ local function drawGrid()
 					(preGamestartPlayer and selBuildQueueDefID == uDefID)
 				local usedZoom = (cellIsSelected and selectedCellZoom or defaultCellZoom)
 
-				drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, unitRestricted[uDefID])
+				drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, units.unitRestricted[uDefID])
 			else
 				drawEmptyCell(rect)
 				hotkeyActions[tostring(arow) .. tostring(coll)] = nil
@@ -1458,7 +1236,7 @@ local function drawGrid()
 	end
 end
 
-local function drawBuildmenu()
+local function drawBuildMenu()
 	catRects = {}
 	font2:Begin()
 
@@ -1467,8 +1245,8 @@ local function drawBuildmenu()
 	end
 
 	-- adjust grid size when pages are needed
-	if uidcmdsCount > columns * rows then
-		pages = math_ceil(uidcmdsCount / (rows * columns))
+	if buildOptsCount > columns * rows then
+		pages = math_ceil(buildOptsCount / (rows * columns))
 
 		if currentPage > pages then
 			currentPage = pages
@@ -1505,8 +1283,8 @@ local function cacheUnitIcons()
 			if not excludeChickens or not string.find(unit.name,'chicken') then
 				gl.Texture('#'..id)
 				gl.TexRect(-1, -1, 0, 0)
-				if unitIconType[id] and iconTypesMap[unitIconType[id]] then
-					gl.Texture(':l:' .. iconTypesMap[unitIconType[id]])
+				if units.unitIconType[id] and iconTypesMap[units.unitIconType[id]] then
+					gl.Texture(':l:' .. iconTypesMap[units.unitIconType[id]])
 					gl.TexRect(-1, -1, 0, 0)
 				end
 			end
@@ -1519,8 +1297,8 @@ end
 local function drawBuildProgress()
 	local numCellsPerPage = rows * columns
 	local maxCellRectID = numCellsPerPage * currentPage
-	if maxCellRectID > uidcmdsCount then
-		maxCellRectID = uidcmdsCount
+	if maxCellRectID > buildOptsCount then
+		maxCellRectID = buildOptsCount
 	end
 	-- loop selected builders
 	local drawncellRectIDs = {}
@@ -1579,10 +1357,10 @@ function widget:DrawScreen()
 		end
 		if not dlistBuildmenu then
 			dlistBuildmenuBg = gl.CreateList(function()
-				drawBuildmenuBg()
+				drawBuildMenuBg()
 			end)
 			dlistBuildmenu = gl.CreateList(function()
-				drawBuildmenu()
+				drawBuildMenu()
 			end)
 		end
 
@@ -1612,7 +1390,7 @@ function widget:DrawScreen()
 								-- when meta: unitstats does the tooltip
 								local text
 								local textColor = "\255\215\255\215"
-								if unitRestricted[uDefID] then
+								if units.unitRestricted[uDefID] then
 									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].translatedHumanName, textColor = textColor, warnColor = "\255\166\166\166" })
 								else
 									text = UnitDefs[uDefID].translatedHumanName
@@ -1743,7 +1521,7 @@ function widget:DrawScreen()
 									end
 									cellColor = { 1, 0.85, 0.2, 0.25 }
 								end
-								if not unitRestricted[uDefID] then
+								if not units.unitRestricted[uDefID] then
 
 									local unsetShowPrice
 									if not showPrice then
@@ -1751,7 +1529,7 @@ function widget:DrawScreen()
 										showPrice = true
 									end
 
-									drawCell(hoveredCellID, usedZoom, cellColor, unitRestricted[uDefID])
+									drawCell(hoveredCellID, usedZoom, cellColor, units.unitRestricted[uDefID])
 
 									if unsetShowPrice then
 										showPrice = false
@@ -1799,7 +1577,7 @@ function widget:DrawWorld()
 end
 
 function widget:UnitCommand(_, unitDefID, _, cmdID)
-	if isFactory[unitDefID] and cmdID < 0 then
+	if units.isFactory[unitDefID] and cmdID < 0 then
 		-- filter away non build cmd's
 		if doUpdateClock == nil then
 			doUpdateClock = os.clock() + 0.01
@@ -1862,7 +1640,7 @@ function widget:MousePress(x, y, button)
 				end
 
 				for cellRectID, cellRect in pairs(cellRects) do
-					if cellcmds[cellRectID].id and UnitDefs[-cellcmds[cellRectID].id].translatedHumanName and cellRect:contains(x, y) and not unitRestricted[-cellcmds[cellRectID].id] then
+					if cellcmds[cellRectID].id and UnitDefs[-cellcmds[cellRectID].id].translatedHumanName and cellRect:contains(x, y) and not units.unitRestricted[-cellcmds[cellRectID].id] then
 						if button ~= 3 then
 							Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
 
