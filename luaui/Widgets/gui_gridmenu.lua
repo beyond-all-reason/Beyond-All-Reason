@@ -211,6 +211,7 @@ local units = VFS.Include("luaui/configs/unit_config.lua")
 local grid = VFS.Include("luaui/configs/gridmenu_config.lua")
 
 local showWaterUnits = false
+units.restrictWaterUnits(true)
 
 
 local function checkGuishader(force)
@@ -237,7 +238,8 @@ function widget:PlayerChanged()
 end
 
 local function RefreshCommands()
-	local gridPos, lHasUnitGrid
+	local gridPos = {}
+	local lHasUnitGrid = {}
 
 	if preGamestartPlayer and startDefID then
 		selectedBuilder = startDefID
@@ -257,76 +259,71 @@ local function RefreshCommands()
 
 	local unorderedBuildOptions = {}
 
+	-- convenience function
+	function setBuildOpt(udefid, opt)
+		if not opt then
+			opt = {
+				id = -udefid,
+				name = UnitDefs[udefid].name,
+				params = {}
+			}
+		end
+		buildOptsCount = buildOptsCount + 1
+		buildOpts[udefid] = opt
+	end
+
+	-- convenience function, figure out if we're looking for categorized build options
+	function noCategory(udefid)
+		return currentCategory == nil or (grid.unitCategories[udefid] == currentCategory and not lHasUnitGrid[udefid])
+	end
+
+	-- handle pregame build options
 	if preGamestartPlayer then
 		if startDefID then
 			categories = Cfgs.buildCategories
 
 			for _, udefid in pairs(UnitDefs[startDefID].buildOptions) do
 				if not units.unbaStartBuildoptions or units.unbaStartBuildoptions[udefid] then
-					if showWaterUnits or not units.isWaterUnit[udefid] then
-						if gridPos and gridPos[udefid] then
-							Spring.Echo("categorized options")
-							buildOptsCount = buildOptsCount + 1
-							buildOpts[udefid] = {
-								id = udefid * -1,
-								name = UnitDefs[udefid].name,
-								params = {}
-							}
-						elseif currentCategory == nil or (grid.unitCategories[udefid] == currentCategory and not (lHasUnitGrid and lHasUnitGrid[udefid])) then
-							Spring.Echo("uncategorized options")
-							buildOptsCount = buildOptsCount + 1
-							buildOpts[udefid] = {
-								id = udefid * -1,
-								name = UnitDefs[udefid].name,
-								params = {}
-							}
-
+					if not units.unitRestricted[udefid] then
+						if gridPos[udefid] then
+							setBuildOpt(udefid)
+						elseif noCategory(udefid) then
+							setBuildOpt(udefid)
 							unorderedBuildOptions[udefid] = true
 						end
 					end
 				end
 			end
-
-			for _, uDefID in pairs(units.unitOrder) do
-				if unorderedBuildOptions[uDefID] then
-					uncategorizedBuildOptsCount = uncategorizedBuildOptsCount + 1
-					uncategorizedBuildOpts[uncategorizedBuildOptsCount] = buildOpts[uDefID]
-				end
-			end
 		end
 	else
+		-- handle build options (not pregame)
 		local activeCmdDescs = selectedFactory and Spring.GetUnitCmdDescs(selectedFactoryUID) or Spring.GetActiveCmdDescs()
-
-		local cmdUnitdefs = {}
 
 		for index, cmd in pairs(activeCmdDescs) do
 			if type(cmd) == "table" and not cmd.disabled then
-				if string.sub(cmd.action, 1, 10) == 'buildunit_' and (showWaterUnits or not units.isWaterUnit[cmd.id * -1]) then
-					cmdUnitdefs[cmd.id * -1] = index
+				local id = -cmd.id
+				if string.sub(cmd.action, 1, 10) == 'buildunit_' and not units.unitRestricted[id] then
 
-					if gridPos and gridPos[cmd.id * -1] then
-						Spring.Echo("categorized options")
-						buildOptsCount = buildOptsCount + 1
-						buildOpts[cmd.id * -1] = activeCmdDescs[index]
-					elseif currentCategory == nil or (grid.unitCategories[cmd.id * -1] == currentCategory and not (lHasUnitGrid and lHasUnitGrid[cmd.id * -1])) then
-						Spring.Echo("uncategorized options")
-						buildOptsCount = buildOptsCount + 1
-						buildOpts[cmd.id * -1] = activeCmdDescs[index]
-
-						unorderedBuildOptions[cmd.id * -1] = true
+					if gridPos[id] then
+						setBuildOpt(id, activeCmdDescs[index])
+					elseif noCategory(id) then
+						setBuildOpt(id, activeCmdDescs[index])
+						unorderedBuildOptions[id] = true
 					end
 				end
 			end
 		end
+	end
 
-		for _, uDefID in pairs(units.unitOrder) do
-			if unorderedBuildOptions[uDefID] then
-				uncategorizedBuildOptsCount = uncategorizedBuildOptsCount + 1
-				uncategorizedBuildOpts[uncategorizedBuildOptsCount] = activeCmdDescs[cmdUnitdefs[uDefID]]
-			end
+	-- sort uncategorized options by the hardcoded unit sorting
+	for _, uDefID in pairs(units.unitOrder) do
+		if unorderedBuildOptions[uDefID] then
+			uncategorizedBuildOptsCount = uncategorizedBuildOptsCount + 1
+			uncategorizedBuildOpts[uncategorizedBuildOptsCount] = buildOpts[uDefID]
 		end
 	end
 end
+
 
 local function getActionHotkey(action)
 	local key
@@ -474,7 +471,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	end
 
 	if isRepeat and selectedBuilder then
-		return currentCategoryIndex and true or false
+		return currentCategory and true or false
 	end
 
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
@@ -855,8 +852,9 @@ function widget:Update(dt)
 		end
 
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-		if not voidWater and mapMinWater <= units.minWaterUnitDepth then
+		if not voidWater and mapMinWater <= units.minWaterUnitDepth and not showwaterUnits then
 			showWaterUnits = true
+			units.restrictWaterUnits(false)
 		end
 
 		local prevOrdermenuLeft = ordermenuLeft
@@ -968,7 +966,7 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 		gl.Color(1, 1, 1, 1)
 	end
 
-	local showIcon = showGroupIcon and not (currentCategoryIndex)
+	local showIcon = showGroupIcon and not (currentCategory)
 	local cellRect = cellRects[id]
 
 	UiUnit(
