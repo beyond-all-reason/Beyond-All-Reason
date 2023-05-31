@@ -274,7 +274,7 @@ local function RefreshCommands()
 
 	-- convenience function, figure out if we're looking for categorized build options
 	function noCategory(udefid)
-		return currentCategory == nil or (grid.unitCategories[udefid] == currentCategory and not lHasUnitGrid[udefid])
+		return currentCategory == nil or (grid.unitCategories[udefid] == currentCategory and not (lHasUnitGrid and lHasUnitGrid[udefid]))
 	end
 
 	-- handle pregame build options
@@ -285,7 +285,7 @@ local function RefreshCommands()
 			for _, udefid in pairs(UnitDefs[startDefID].buildOptions) do
 				if not units.unbaStartBuildoptions or units.unbaStartBuildoptions[udefid] then
 					if not units.unitRestricted[udefid] then
-						if gridPos[udefid] then
+						if gridPos and gridPos[udefid] then
 							setBuildOpt(udefid)
 						elseif noCategory(udefid) then
 							setBuildOpt(udefid)
@@ -304,7 +304,7 @@ local function RefreshCommands()
 				local id = -cmd.id
 				if string.sub(cmd.action, 1, 10) == 'buildunit_' and not units.unitRestricted[id] then
 
-					if gridPos[id] then
+					if gridPos and gridPos[id] then
 						setBuildOpt(id, activeCmdDescs[index])
 					elseif noCategory(id) then
 						setBuildOpt(id, activeCmdDescs[index])
@@ -1600,6 +1600,7 @@ function widget:KeyRelease(key)
 	else
 		currentCategory = nil
 		currentCategoryIndex = nil
+		Spring.SetActiveCommand(0, 0, false, false, Spring.GetModKeyState())
 		doUpdate = true
 	end
 end
