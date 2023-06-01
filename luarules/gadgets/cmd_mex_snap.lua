@@ -360,11 +360,11 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			return true
 		end
 	end
-	local _, metal, metal2 = Spring.GetGroundInfo(cbx, cbz)
-	if type(metal) == 'string' and metal2 > 0 then
-		return false
-	else
-		return true
-	end
+	--local _, metal, metal2 = Spring.GetGroundInfo(cbx, cbz)
+	--if type(metal) == 'string' and metal2 > 0 then
+	--	return false
+	--else
+	--	return true
+	--end
 end
 
