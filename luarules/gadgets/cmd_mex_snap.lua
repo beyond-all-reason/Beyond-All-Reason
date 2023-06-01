@@ -357,8 +357,14 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			-- this will cancel the order but it fails to give a new order somehow :S
 			cmdOpts.mexsnap = true
 			GiveNotifyingOrder(cmdID, {bestPos.x, bestPos.y, bestPos.z, bface}, cmdOpts)
+			return true
 		end
 	end
-	return true
+	local _, metal, metal2 = Spring.GetGroundInfo(cbx, cbz)
+	if type(metal) == 'string' and metal2 > 0 then
+		return false
+	else
+		return true
+	end
 end
 
