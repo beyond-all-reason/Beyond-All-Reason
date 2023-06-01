@@ -357,8 +357,8 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			-- this will cancel the order but it fails to give a new order somehow :S
 			cmdOpts.mexsnap = true
 			GiveNotifyingOrder(cmdID, {bestPos.x, bestPos.y, bestPos.z, bface}, cmdOpts)
-			return true
 		end
 	end
+	return true
 end
 
