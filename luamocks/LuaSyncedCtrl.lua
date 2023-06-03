@@ -12,6 +12,7 @@
 --along with this program.  If not, see <http://www.gnu.org/licenses/>.
 --==================================================================================================
 --Variables for the MockUp
+
 Spring ={}
 numberMock =42
 stringMock ="TestString"
