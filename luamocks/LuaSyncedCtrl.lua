@@ -55,17 +55,41 @@ assert(type(amount) == "number","Argument amount is of invalid type - expected n
 return  numberMock
  end
 
-function Spring.SetTeamShareLevel   (  teamID, metal)
+ ---Changes the resource amount for a team beyond which resources aren't stored but transferred to other allied teams if possible.
+ ---@param teamID number
+ ---@param resourceType resourceTypes
+ ---@param amount number
+ ---@return integer
+function Spring.SetTeamShareLevel   (teamID, resourceType, amount)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
-assert(type(metal) == "string","Argument metal is of invalid type - expected string");
+assert(type(resourceType) == "string","Argument metal is of invalid type - expected string");
+assert(type(amount) == "number","Argument amount is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.ShareTeamResource    (  teamID_)
-assert(type(teamID_) == "number","Argument teamID_ is of invalid type - expected number");
+--- Transfers resources between two teams
+---@param teamID_src number source team
+---@param teamID_rec number recieving team
+---@param resourceType resourceTypes
+---@param amount number
+---@return nil
+function Spring.ShareTeamResource    ( teamID_src, teamID_rec, resourceType, amount )
+assert(type(teamID_src) == "number","Argument teamID_src is of invalid type - expected number");
+assert(type(teamID_rec) == "number","Argument teamID_rec is of invalid type - expected number");
+assert(type(resourceType) == "string", "Argument resourceType is of invalid type - expected string");
+assert(type(amount) == "number","Argument amount is of invalid type - expected number");
 return  numberMock
  end
 
+--==================================================================================================
+-- Teams
+--==================================================================================================
+
+---Change the value of the (one-sided) alliance between: firstAllyTeamID -> secondAllyTeamID
+---@param firstAllyTeamID number
+---@param secondAllyTeamID number
+---@param ally boolean
+---@return nil
 function Spring.SetAlly    (  firstAllyTeamID, secondAllyTeamID, ally)
 assert(type(firstAllyTeamID) == "number","Argument firstAllyTeamID is of invalid type - expected number");
 assert(type(secondAllyTeamID) == "number","Argument secondAllyTeamID is of invalid type - expected number");
@@ -73,11 +97,27 @@ assert(type(ally) == "boolean","Argument ally is of invalid type - expected bool
 return  numberMock
  end
 
-function Spring.AssignPlayerToTeam    (  playerID, teamID)
-assert(type(playerID) == "number","Argument playerID is of invalid type - expected number");
-assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
-return boolMock
+ ---Assigns player playerID to team teamID
+ ---@param playerID number
+ ---@param teamID number
+ ---@return nil
+ function Spring.AssignPlayerToTeam    (  playerID, teamID)
+ assert(type(playerID) == "number","Argument playerID is of invalid type - expected number");
+ assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
+ return boolMock
+ end
+
+---Changes access to global line of sight for a team and its allies.
+---@param playerID number
+---@param globallos boolean
+---@return nil
+function Spring.SetGlobalLos (playerID, globallos)
+return nil
 end
+
+--==================================================================================================
+-- Unit Handling
+--==================================================================================================
 
 function Spring.CreateUnit   (  unitDefID, x, y , z, teamID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
