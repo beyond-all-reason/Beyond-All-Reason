@@ -584,53 +584,132 @@ assert(type(ParentPiece) == "number","Argument ParentPiece is of invalid type - 
 return  nil
 end
 
+--TODO can the functionality of passing only unitID be documented by someone more knowledgable?
+---@param unitID number
+---@param armored? boolean
+---@param armorMultiple? number # Cannot be less than zero, clamped to .0001 (optional)
+---@return nil
 function Spring.SetUnitArmored    (  unitID, armored, armorMultiple)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(armored) == "boolean","Argument armored is of invalid type - expected boolean");
 assert(type(armorMultiple) == "number","Argument armorMultiple is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
-function Spring.SetUnitShieldState   (  unitID, weaponID)
+---@param unitID number
+---@param weaponID number (default -1)
+---@param enabled boolean? (optional)
+---@param power number? # (optional)
+---@return nil
+function Spring.SetUnitShieldState   (  unitID, weaponID, enabled, power)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(weaponID) == "number","Argument weaponID is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
-function Spring.SetUnitFlanking   (  unitID, mode, mode)
+---@param unitID number
+---@param type string # "dir" | "minDamage" | "maxDamage" | "moveFactor" | "mode"
+---@param arg1 number # x | minDamage | maxDamage | moveFactor | mode
+---@param y number? # only when type is "dir" (optional)
+---@param z number? # only when type is "dir" (optional)
+---@return nil
+function Spring.SetUnitFlanking   (unitID, type, arg1, y, z)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(mode) == "string","Argument mode is of invalid type - expected string");
-assert(type(mode) == "number","Argument mode is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
+--TODO verify this is a sane representation of how this function should be called.
+-- Can multiple state calls be passed?
+---@alias states 
+---| "reloadState=number"
+---| "reloadFrame=number" # synonym for reloadState!
+---| "reloadTime=number"
+---| "accuracy=number"
+---| "sprayAngle=number"
+---| "range=number" # if you change the range of a weapon with dynamic damage make sure you use `SetUnitWeaponDamages` to change dynDamageRange as well.
+---| "projectileSpeed=number"
+---| "burst=number"
+---| "burstRate=number"
+---| "projectiles=number"
+---| "salvoLeft=number"
+---| "nextSalvo=number"
+---| "aimReady=number" # (<>0.0f := true)
+---@param unitID number
+---@param weaponNum number
+---@param states states
+---@return nil
 function Spring.SetUnitWeaponState   (  unitID, weaponNum, states)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
 assert(type(states) == "table","Argument states is of invalid type - expected table");
-return  numberMock
- end
+return nil
+end
 
-function Spring.SetUnitWeaponDamages    (  unitID, weaponNum)
+--duplicated for overloading
+
+---@param unitID number
+---@param weaponNum number
+---@param key states
+---@param value number
+---@return nil
+function Spring.SetUnitWeaponState   (  unitID, weaponNum, key, value)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
-return  numberMock
- end
+assert(type(states) == "table","Argument states is of invalid type - expected table");
+return nil
+end
+
+---@alias damages
+---| "paralyzeDamageTime=number" 
+---| "impulseFactor=number" 
+---| "impulseBoost=number" 
+---| "craterMult=number" 
+---| "craterBoost=number" 
+---| "dynDamageExp=number" 
+---| "dynDamageMin=number" 
+---| "dynDamageRange=number" 
+---| "dynDamageInverted=number"  (<>0.0f := true)
+---| "craterAreaOfEffect=number" 
+---| "damageAreaOfEffect=number" 
+---| "edgeEffectiveness=number" 
+---| "explosionSpeed=number" 
+
+---@param unitID number
+---@param weaponNum number | string # Number or string ["selfDestruct" | "explode"]
+---@param damages damages
+---@return nil
+function Spring.SetUnitWeaponDamages    (  unitID, weaponNum, damages)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
+	return  nil
+end
+
+---@param unitID number
+---@param weaponNum number | string # Number or string ["selfDestruct" | "explode"]
+---@param key damages
+---@param value number
+---@return nil
+function Spring.SetUnitWeaponDamages    (  unitID, weaponNum, key, value)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
+return  nil
+end
 
 function Spring.SetUnitCollisionVolumeData   ( )
 return
- end
+end
 
 function Spring.SetUnitPieceCollisionVolumeData   ( )
 return
- end
+end
 
 function Spring.SetUnitTravel   (  unitID, travel, travelPeriod)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(travel) == "number","Argument travel is of invalid type - expected number");
 assert(type(travelPeriod) == "number","Argument travelPeriod is of invalid type - expected number");
 return  numberMock
- end
+end
 
 function Spring.SetUnitMoveGoal    (  unitID, goalx, goaly, goalz, goalRadius, moveSpeed)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
@@ -640,7 +719,7 @@ assert(type(goalz) == "number","Argument goalz is of invalid type - expected num
 assert(type(goalRadius) == "number","Argument goalRadius is of invalid type - expected number");
 assert(type(moveSpeed) == "number","Argument moveSpeed is of invalid type - expected number");
 return  booleanMock
- end
+end
 
 
 function Spring.SetUnitPosition   (  unitID, x, z, alwaysAboveSea)
