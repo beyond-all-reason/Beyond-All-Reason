@@ -136,11 +136,23 @@ assert(type(teamID) == "number","Argument unitID is of invalid type - expected n
 return  numberMock
  end
 
-function Spring.DestroyUnit   ( )
-return  numberMock
+
+--  Spring.DestroyUnit ( number unitID [, bool selfd = false [, bool reclaimed = false [, number attackerID ]]] )
+--  return: nil
+-- 	 selfd := Makes the unit act like it self-destructed.
+-- 	 reclaimed := Don't show any DeathSequences, don't leave a wreckage. This does not give back the resources to the team!
+---@see Spring.CreateUnit
+---@param UnitID number
+---@param selfd boolean
+---@param reclaimed boolean
+---@param attackerID number
+function Spring.DestroyUnit   ( UnitID, selfd, reclaimed, attackerID )
+return  nil
  end
 
-function Spring.TransferUnit   ( )
+--  Spring.TransferUnit ( number unitID, number newTeamID [, bool given = true ] )
+--  return: nil 
+function Spring.TransferUnit   (UnitID, newTeamID, given)
 return  booleanMock
  end
 
