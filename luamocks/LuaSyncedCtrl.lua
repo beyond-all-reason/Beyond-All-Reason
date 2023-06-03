@@ -19,41 +19,114 @@ stringMock ="TestString"
 tableMock ={exampletable= true}
 booleanMock =true
 functionMock =function (bar) return bar; end
+
+--==================================================================================================
+-- GameRulesParameter
 --==================================================================================================
 
-function Spring.SetUnitRulesParam (  unitID, paramName)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(paramName) == "string","Argument paramName is of invalid type - expected string");
-return  numberMock
- end
-
-function Spring.SetTeamRulesParam   (  teamID, paramName)
-assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
-assert(type(paramName) == "string","Argument paramName is of invalid type - expected string");
-return  numberMock
- end
-
-function Spring.SetGameRulesParam   (  paramName)
-assert(type(paramName) == "string","Argument paramName is of invalid type - expected string");
+---@param paramName string
+---@param losAccess? losAccess
+---@return string
+function Spring.SetGameRulesParam   (  paramName, losAccess )
+	assert(type(paramName) == "string","Argument paramName is of invalid type - expected string");
+	assert(losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
+		| losAccess == "public", "Argument losAccess is invalid");
 return  stringMock
- end
+end
 
-function Spring.AddTeamResource   (  teamID, metal)
+---@param teamID number
+---@param paramName string
+---@param losAccess? losAccess
+---@return integer
+function Spring.SetTeamRulesParam (teamID, paramName, losAccess)
+	assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
+	assert(type(paramName) == "string" or type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
+	assert(losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
+		| losAccess == "public", "Argument losAccess is invalid");
+	return numberMock
+end
+
+---@param unitID number
+---@param paramName string
+---@param losAccess? losAccess
+---@return integer
+function Spring.SetUnitRulesParam (unitID, paramName, losAccess)
+    assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+    assert(type(paramName) == "string" or type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
+	assert(losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
+	| losAccess == "public", "Argument losAccess is invalid");
+	return numberMock
+end
+
+---SetFeatureRulesParam - no additional documentation
+---@param featureID any
+---@param paramName any
+---@param paramValue any
+---@param losAccess? losAccess
+---@return nil
+function Spring.SetFeatureRulesParam(featureID, paramName, paramValue, losAccess)
+	assert(type(featureID) == "number","Argument featureID is of invalid type - expected number");
+	assert(type(paramName))
+	assert(type(paramValue))
+	assert(losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
+	| losAccess == "public", "Argument losAccess is invalid");
+	return nil
+end
+
+--==================================================================================================
+-- Resources
+--==================================================================================================
+
+---Set tidal Strength
+---@param strength number
+---@return nil
+function Spring.SetTidal(strength)
+	assert(type(strength) == "number", "Argument strength is of invalid type - expected number")
+	return nil
+end
+
+---Sets wind strength
+---@param minStrength number
+---@param maxStrength number
+---@return nil
+function Spring.SetWind(minStrength, maxStrength)
+	assert(type(minStrength) == "number", "Argument minStrength is of invalid type - expected number")
+	assert(type(maxStrength) == "number", "Argument maxStrength is of invalid type - expected number")
+	return nil
+end
+
+---@param teamID number
+---@param resourceType resourceTypes
+---@param amount number
+---@return integer
+function Spring.AddTeamResource   (  teamID, resourceType, amount)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
-assert(type(metal) == "string","Argument metal is of invalid type - expected string");
-return  numberMock
- end
-
-function Spring.UseTeamResource   ( )
-return  booleanMock
- end
-
-function Spring.SetTeamResource   (  teamID, res, amount)
-assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
-assert(type(res) == "string","Argument res is of invalid type - expected string");
+assert(type(resourceType) == "string","Argument resourceType is of invalid type - expected string");
 assert(type(amount) == "number","Argument amount is of invalid type - expected number");
 return  numberMock
  end
+
+ ---specify "metal" or "energy" for type
+ -- Consumes metal and/or energy resources of the specified team.
+ ---@param teamID number
+ ---@param type resourceTypes
+ ---@param amount number
+ ---@return boolean | nil
+ function Spring.UseTeamResource   ( teamID, type, amount )
+ return  booleanMock
+  end
+
+  ---Sets team resources to given absolute value 
+  ---@param teamID number
+  ---@param res resValues
+  ---@param amount any
+  ---@return integer
+  function Spring.SetTeamResource   (  teamID, res, amount)
+  assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
+  assert(type(res) == "string","Argument res is of invalid type - expected string");
+  assert(type(amount) == "number","Argument amount is of invalid type - expected number");
+  return  numberMock
+   end
 
  ---Changes the resource amount for a team beyond which resources aren't stored but transferred to other allied teams if possible.
  ---@param teamID number
@@ -119,18 +192,38 @@ end
 -- Unit Handling
 --==================================================================================================
 
-function Spring.CreateUnit   (  unitDefID, x, y , z, teamID)
+function Spring.CreateUnit   (  unitDefID, x, y , z, facing, teamID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(teamID) == "number","Argument unitID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.DestroyUnit   ( )
-return  numberMock
- end
 
-function Spring.TransferUnit   ( )
+---@param UnitID number
+---@param selfd? boolean # if true, Makes the unit act like it self-destructed.
+---@param reclaimed? boolean # Don't show any DeathSequences, don't leave a wreckage. This does not give back the resources to the team!
+---@param attackerID? number 
+---@param cleanupImmediately? boolean # stronger version of reclaimed, removes the unit unconditionally and makes its ID available for immediate reuse (otherwise it takes a few frames) (default false)
+function Spring.DestroyUnit ( UnitID, selfd, reclaimed, attackerID, cleanupImmediately )
+    assert(UnitID)
+    assert(selfd)
+    assert(reclaimed)
+    assert(attackerID)
+    assert(cleanupImmediately)
+return  nil
+end
+
+---Spring.TransferUnit(unitID, newTeamID[, given=true])
+---@param UnitID number
+---@param newTeamID number
+---@param given? boolean # If given=false, the unit is captured.
+function Spring.TransferUnit   (UnitID, newTeamID, given)
 return  booleanMock
- end
+end
+
+--==================================================================================================
+-- Unit Control
+--==================================================================================================
 
 function Spring.SetUnitCosts   ( )
 return

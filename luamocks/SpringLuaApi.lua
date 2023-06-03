@@ -73,46 +73,107 @@ function VFS.Include(path)
     return numberMock
 end
 
----@param unitID number
+--==================================================================================================
+-- GameRulesParameter
+--==================================================================================================
+
+--TODO Merge the following sections that are exact duplicate from LuaSyncedCtrl.lua
+
+--- If one condition is fulfilled all beneath it are too (e.g. if an unit is in LOS it can read params with `inradar=true` even if the param has `inlos=false`) All GameRulesParam are public, TeamRulesParams can just be `private`,`allied` and/or `public` You can read RulesParams from any Lua enviroments! With those losAccess policies you can limit their access.
+--- Fields:
+
+---     private bool only readable by the ally (default) (optional)
+---     allied bool readable by ally + ingame allied (optional)
+---     inlos bool readable if the unit is in LOS (optional)
+---     inradar bool readable if the unit is in AirLOS (optional)
+---     public bool readable by all (optional)
+
+---@alias losAccess
+---| "private" #only readable by the ally (default) (optional)
+---| "allied" #readable by ally + ingame allied (optional)
+---| "inlos" #readable if the unit is in LOS (optional)
+---| "inradar" #readable if the unit is in AirLOS (optional)
+---| "public" #readable by all (optional)
 ---@param paramName string
----@return integer
-function Spring.SetUnitRulesParam (unitID, paramName)
-    assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-    assert(type(paramName) == "string" or type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
-    return numberMock
+---@param losAccess? losAccess
+---@return string
+function Spring.SetGameRulesParam   (  paramName, losAccess )
+	assert(type(paramName) == "string","Argument paramName is of invalid type - expected string");
+	assert(losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
+		| losAccess == "public", "Argument losAccess is invalid");
+return  stringMock
 end
 
----
 ---@param teamID number
 ---@param paramName string
+---@param losAccess? losAccess
 ---@return integer
-function Spring.SetTeamRulesParam (teamID, paramName)
-    assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
-    assert(type(paramName) == "string" or type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
-    return numberMock
+function Spring.SetTeamRulesParam (teamID, paramName, losAccess)
+	assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
+	assert(type(paramName) == "string" or type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
+	assert(losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
+		| losAccess == "public", "Argument losAccess is invalid");
+	return numberMock
 end
 
----
+---@param unitID number
 ---@param paramName string
----@return string
-function Spring.SetGameRulesParam   (  paramName)
-assert(type(paramName) == "string","Argument paramName is of invalid type - expected string");
-return  stringMock
- end
+---@param losAccess? losAccess
+---@return integer
+function Spring.SetUnitRulesParam (unitID, paramName, losAccess)
+    assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+    assert(type(paramName) == "string" or type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
+	assert(losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
+	| losAccess == "public", "Argument losAccess is invalid");
+	return numberMock
+end
 
+---SetFeatureRulesParam - no additional documentation
+---@param featureID any
+---@param paramName any
+---@param paramValue any
+---@param losAccess? losAccess
+---@return nil
+function Spring.SetFeatureRulesParam(featureID, paramName, paramValue, losAccess)
+	assert(type(featureID) == "number","Argument featureID is of invalid type - expected number");
+	assert(type(paramName))
+	assert(type(paramValue))
+	assert(losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
+	| losAccess == "public", "Argument losAccess is invalid");
+	return nil
+end
 
 --==================================================================================================
 -- Resources
 --==================================================================================================
 
 
----
+---Set tidal Strength
+---@param strength number
+---@return nil
+function Spring.SetTidal(strength)
+	assert(type(strength) == "number", "Argument strength is of invalid type - expected number")
+	return nil
+end
+
+---Sets wind strength
+---@param minStrength number
+---@param maxStrength number
+---@return nil
+function Spring.SetWind(minStrength, maxStrength)
+	assert(type(minStrength) == "number", "Argument minStrength is of invalid type - expected number")
+	assert(type(maxStrength) == "number", "Argument maxStrength is of invalid type - expected number")
+	return nil
+end
+
 ---@param teamID number
----@param metal number
+---@param resourceType resourceTypes
+---@param amount number
 ---@return integer
-function Spring.AddTeamResource   (  teamID, metal)
+function Spring.AddTeamResource   (  teamID, resourceType, amount)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
-assert(type(metal) == "string","Argument metal is of invalid type - expected string");
+assert(type(resourceType) == "string","Argument resourceType is of invalid type - expected string");
+assert(type(amount) == "number","Argument amount is of invalid type - expected number");
 return  numberMock
  end
 
@@ -120,14 +181,13 @@ return  numberMock
 ---| "metal"
 ---| "energy"
 
----specify "metal" or "energy" for resourceType
--- return: nil | bool hadEnough
+---specify "metal" or "energy" for type
 -- Consumes metal and/or energy resources of the specified team.
 ---@param teamID number
----@param resourceType resourceTypes
+---@param type resourceTypes
 ---@param amount number
 ---@return boolean | nil
-function Spring.UseTeamResource   ( teamID, resourceType, amount )
+function Spring.UseTeamResource   ( teamID, type, amount )
 return  booleanMock
  end
 
@@ -136,7 +196,7 @@ return  booleanMock
 ---| "e" # energy
 ---| "ms" # metalStorage
 ---| "es" # energyStorage
----Sets team resources to given absolute value --TODO verify functionality, currently presumed to be absolute not relative
+---Sets team resources to given absolute value 
 ---@param teamID number
 ---@param res resValues
 ---@param amount any
@@ -213,33 +273,55 @@ end
 -- Unit Handling
 --==================================================================================================
 
-function Spring.CreateUnit   (  unitDefID, x, y , z, facing, teamID)
+---@alias facing
+---| "south"
+---| "s"
+---| "0"
+
+---Spring.CreateUnit(unitDefName, x, y, z, facing, teamID[, build=false[, flattenGround=true[, unitID[, builderID]]]])
+---@param unitDefName string | number # UnitDefName string or UnitDefID number
+---@param x number
+---@param y number
+---@param z number
+---@param facing facing
+---@param teamID number
+---@param build? boolean
+---@param flattenGround? boolean # the unit flattens ground, if it normally does so (default true)
+---@param unitID? number # Requests specific unitID (optional)
+---@return integer # unitID meaning unit was created
+function Spring.CreateUnit   (  unitDefName, x, y , z, facing, teamID, build, flattenGround, unitID, builderID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(teamID) == "number","Argument unitID is of invalid type - expected number");
 return  numberMock
  end
 
 
--- Spring.DestroyUnit ( number unitID [, bool selfd = false [, bool reclaimed = false [, number attackerID ]]] )
--- return: nil
--- selfd := Makes the unit act like it self-destructed.
--- reclaimed := Don't show any DeathSequences, don't leave a wreckage. This does not give back the resources to the team!
----@param UnitID number
----@param selfd boolean
----@param reclaimed boolean
----@param attackerID number
-function Spring.DestroyUnit   ( UnitID, selfd, reclaimed, attackerID )
-return  nil
- end
 
--- Spring.TransferUnit ( number unitID, number newTeamID [, bool given = true ] )
--- If given=false, the unit is captured.
+---@param UnitID number
+---@param selfd? boolean # if true, Makes the unit act like it self-destructed.
+---@param reclaimed? boolean # Don't show any DeathSequences, don't leave a wreckage. This does not give back the resources to the team!
+---@param attackerID? number 
+---@param cleanupImmediately? boolean # stronger version of reclaimed, removes the unit unconditionally and makes its ID available for immediate reuse (otherwise it takes a few frames) (default false)
+function Spring.DestroyUnit ( UnitID, selfd, reclaimed, attackerID, cleanupImmediately )
+	assert(UnitID)
+	assert(selfd)
+	assert(reclaimed)
+	assert(attackerID)
+	assert(cleanupImmediately)
+return  nil
+end
+
+---Spring.TransferUnit(unitID, newTeamID[, given=true])
 ---@param UnitID number
 ---@param newTeamID number
----@param given boolean
+---@param given? boolean # If given=false, the unit is captured.
 function Spring.TransferUnit   (UnitID, newTeamID, given)
 return  booleanMock
- end
+end
+
+--==================================================================================================
+-- Unit Control
+--==================================================================================================
 
 --  Spring.SetUnitCosts ( number unitID, { [ buildTime = number amount ], [ metalCost = number amount ], [ energyCost = number amount ] } )
 ---@param unitID number
