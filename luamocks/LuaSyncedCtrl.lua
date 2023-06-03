@@ -225,30 +225,62 @@ end
 -- Unit Control
 --==================================================================================================
 
-function Spring.SetUnitCosts   ( )
-return
- end
+---@alias SetCostKey
+---| "buildTime=number"
+---| "metalCost=number"
+---| "energyCost=number"
 
+--- where {[number]=number,...} keys and values are, respectively and in this order: buildTime=amount, metalCost=amount, energyCost=amount
+---@param unitID number
+---@param where string | SetCostKey
+---@return nil
+function Spring.SetUnitCosts (unitID, where)
+return
+end
+
+--==================================================================================================
+-- Unit Resourcing
+--==================================================================================================
+
+---@param unitID number
+---@param tooltip string
 function Spring.SetUnitTooltip   (  unitID, tooltip)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(tooltip) == "string","Argument tooltip is of invalid type - expected string");
 return  numberMock
- end
+end
 
-function Spring.SetUnitHealth   ( )
+---@param unitID number
+---@param health number | string #number or {[string]=number,...} where keys can be one of health|capture|paralyze|build and values are amounts
+function Spring.SetUnitHealth   (unitID, health)
 return
- end
+end
 
+---@param unitID number
+---@param maxHealth number
 function Spring.SetUnitMaxHealth   (  unitID, maxHealth)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(maxHealth) == "number","Argument maxHealth is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.AddUnitDamage   ( )
+---@see paralyzeDamage
+---@see Spring.AddUnitImpulse
+---@param unitID number
+---@param damage number
+---@param paralyze number # equal to the paralyzetime in WeaponDef
+---@param attackerID number
+---@param weaponID number
+---@param impulse_x number
+---@param impulse_y number
+---@param impulse_z number
+function Spring.AddUnitDamage   ( unitID, damage, paralyze, attackerID, weaponID, impulse_x, impulse_y, impulse_z )
 return  numberMock
  end
 
+---@param unitID number
+---@param stockpile number
+---@param buildPercent number
 function Spring.SetUnitStockpile   (  unitID, stockpile, buildPercent)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(stockpile) == "number","Argument stockpile is of invalid type - expected number");
@@ -256,36 +288,54 @@ assert(type(buildPercent) == "number","Argument buildPercent is of invalid type 
 return  numberMock
  end
 
+---@param unitID number
+---@param experience number 
+---@see Spring.AddUnitExperience
 function Spring.SetUnitExperience   (  unitID, experience)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(experience) == "number","Argument experience is of invalid type - expected number");
 return  numberMock
  end
 
+---@param unitID number
+---@param deltaExperience number # Can be negative to subtract, but the unit will never have negative total afterwards
+---@return nil
+---@see Spring.SetUnitExperience
+function Spring.AddUnitExperience (unitID, deltaExperience)
+	return nil
+end
+
+---@param unitID number
+---@param fuel number
+---@deprecated 
 function Spring.SetUnitFuel   (  unitID, fuel)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(fuel) == "number","Argument fuel is of invalid type - expected number");
 return  numberMock
- end
+end
 
 function Spring.SetUnitCrashing    (  unitID, crashing)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(crashing) == "boolean","Argument crashing is of invalid type - expected boolean");
 return  numberMock
- end
+end
 
+---@deprecated
 function Spring.SetUnitLineage    (  unitID, teamID, isRoot)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 assert(type(isRoot) == "boolean","Argument isRoot is of invalid type - expected boolean");
 return  numberMock
- end
+end
 
+---@param unitID number
+---@param neutral boolean
+---@return nil | boolean
 function Spring.SetUnitNeutral   (  unitID, neutral)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(neutral) == "boolean","Argument neutral is of invalid type - expected boolean");
-return  numberMock
- end
+return  nil
+end
 
 function Spring.SetUnitTarget    ( )
 return  booleanMock
