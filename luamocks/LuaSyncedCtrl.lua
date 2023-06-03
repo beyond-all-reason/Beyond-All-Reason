@@ -23,7 +23,7 @@ functionMock =function (bar) return bar; end
 --==================================================================================================
 -- GameRulesParameter
 --==================================================================================================
-
+--[[ 
 ---@param paramName string
 ---@param losAccess? losAccess
 ---@return string
@@ -337,67 +337,123 @@ assert(type(neutral) == "boolean","Argument neutral is of invalid type - expecte
 return  nil
 end
 
-function Spring.SetUnitTarget    ( )
-return  booleanMock
- end
+---Defines a units target
+---@param unitID number
+---@param x? number # when nil or not passed it will drop target and ignore other parameters (optional)
+---@param y? number # (optional)
+---@param z? number # (optional)
+---@param dgun boolean? # default false
+---@param userTarget boolean? # default false
+---@param weaponNum number? # default -1
+---@return boolean # success
+function Spring.SetUnitTarget    (unitID, x, y, z, dgun, userTarget, weaponNum)
+	return  booleanMock
+end
 
+---Defines a units target
+---@param unitID number
+---@param enemyUnitID? number # when nil, drops the units current target (optional)
+---@param dgun boolean? # default false
+---@param userTarget boolean? # default false
+---@param weaponNum number? # default -1
+---@return boolean # success
+function Spring.SetUnitTarget    (unitID, enemyUnitID, dgun, userTarget, weaponNum)
+return  booleanMock
+end
+
+---@param unitID number
+---@param maxRange number
+---@return nil
 function Spring.SetUnitMaxRange   (  unitID, maxRange)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(maxRange) == "number","Argument maxRange is of invalid type - expected number");
-return  numberMock
- end
-
-function Spring.SetUnitBlocking    (  unitID, isBlocking, isSolidObjectCollidable, isProjectileCollidable, isRaySegmentCollidable, crushable, blockEnemyPushing, blockHeightChanges)
- assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
- assert(type(isBlocking) == "boolean","Argument isBlocking is of invalid type - expected boolean");
- assert(type(isSolidObjectCollidable) == "boolean","Argument isSolidObjectCollidable is of invalid type - expected boolean");
- assert(type(isProjectileCollidable) == "boolean","Argument isProjectileCollidable is of invalid type - expected boolean");
- assert(type(isRaySegmentCollidable) == "boolean","Argument isRaySegmentCollidable is of invalid type - expected boolean");
- assert(type(crushable) == "boolean","Argument crushable is of invalid type - expected boolean");
- assert(type(blockEnemyPushing) == "boolean","Argument blockEnemyPushing is of invalid type - expected boolean");
- assert(type(blockHeightChanges) == "boolean","Argument blockHeightChanges is of invalid type - expected boolean");
- return  numberMock
+return nil
 end
 
-function Spring.SetUnitBlocking    (  unitID, depth, range)
+---@param unitID number
+---@param isBlocking boolean
+---@param isSolidObjectCollidable boolean
+---@param isProjectileCollidable boolean
+---@param isRaySegmentCollidable boolean
+---@param crushable boolean
+---@param blockEnemyPushing boolean
+---@param blockHeightChanges boolean
+---@return nil
+function Spring.SetUnitBlocking    (  unitID, isBlocking, isSolidObjectCollidable, isProjectileCollidable, isRaySegmentCollidable, crushable, blockEnemyPushing, blockHeightChanges)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(depth) == "number","Argument depth is of invalid type - expected number");
-assert(type(range) == "number","Argument range is of invalid type - expected number");
+assert(type(isBlocking) == "boolean","Argument isBlocking is of invalid type - expected boolean");
+assert(type(isSolidObjectCollidable) == "boolean","Argument isSolidObjectCollidable is of invalid type - expected boolean");
+assert(type(isProjectileCollidable) == "boolean","Argument isProjectileCollidable is of invalid type - expected boolean");
+assert(type(isRaySegmentCollidable) == "boolean","Argument isRaySegmentCollidable is of invalid type - expected boolean");
+assert(type(crushable) == "boolean","Argument crushable is of invalid type - expected boolean");
+assert(type(blockEnemyPushing) == "boolean","Argument blockEnemyPushing is of invalid type - expected boolean");
+assert(type(blockHeightChanges) == "boolean","Argument blockHeightChanges is of invalid type - expected boolean");
 return  numberMock
- end
+end
 
-function Spring.SetUnitBuildSpeed   ( )
-return  numberMock
- end
 
+-- function Spring.SetUnitBlocking    (  unitID, depth, range)
+-- assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+-- assert(type(depth) == "number","Argument depth is of invalid type - expected number");
+-- assert(type(range) == "number","Argument range is of invalid type - expected number");
+-- return  numberMock
+-- end
+
+
+
+---@param builderID number
+---@param buildSpeed number
+---@param repairSpeed number
+---@param reclaimSpeed number
+---@param captureSpeed number
+---@param terraformSpeed number
+---@return nil
+function Spring.SetUnitBuildSpeed   (builderID, buildSpeed, repairSpeed, reclaimSpeed, captureSpeed, terraformSpeed)
+return nil
+end
+
+---@param builderID number
+---@param pieces table
+---@return nil
 function Spring.SetUnitNanoPieces    (  builderID, pieces)
 assert(type(builderID) == "number","Argument builderID is of invalid type - expected number");
 assert(type(pieces) == "table","Argument pieces is of invalid type - expected table");
-return  numberMock
- end
+return  nil
+end
 
+---@param transporterID number
+---@param passengerID number
+---@param pieceNum number
+---@return nil
 function Spring.UnitAttach    (  transporterID, passengerID, pieceNum)
 assert(type(transporterID) == "number","Argument transporterID is of invalid type - expected number");
 assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
 assert(type(pieceNum) == "number","Argument pieceNum is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
+---@param passengerID number
+---@return nil
 function Spring.UnitDetach    (  passengerID)
 assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
+---@param passengerID number
+---@return nil
 function Spring.UnitDetachFromAir    (  passengerID)
 assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
+---@param passengerID number
+---@param transportID number
+---@return nil
 function Spring.SetUnitLoadingTransport    (  passengerID, transportID)
 assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
 assert(type(transportID) == "number","Argument transportID is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
 function Spring.SetUnitPieceParent    (  unitID, AlteredPiece, ParentPiece)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
@@ -976,3 +1032,4 @@ assert(type(damages) == "table","Argument damages is of invalid type - expected 
 return  numberMock
  end
 
+--]]
