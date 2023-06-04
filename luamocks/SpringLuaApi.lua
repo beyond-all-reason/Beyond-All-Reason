@@ -81,9 +81,9 @@ end
 
 --TODO Merge the following sections that are exact duplicate from LuaSyncedCtrl.lua
 
+---@
 --- If one condition is fulfilled all beneath it are too (e.g. if an unit is in LOS it can read params with `inradar=true` even if the param has `inlos=false`) All GameRulesParam are public, TeamRulesParams can just be `private`,`allied` and/or `public` You can read RulesParams from any Lua enviroments! With those losAccess policies you can limit their access.
 --- Fields:
-
 ---     private bool only readable by the ally (default) (optional)
 ---     allied bool readable by ally + ingame allied (optional)
 ---     inlos bool readable if the unit is in LOS (optional)
@@ -94,12 +94,17 @@ end
 ---| "private" #only readable by the ally (default) (optional)
 ---| "allied" #readable by ally + ingame allied (optional)
 ---| "inlos" #readable if the unit is in LOS (optional)
+---| "typed" #readable if the unit is type (= in radar and was once in LOS)
 ---| "inradar" #readable if the unit is in AirLOS (optional)
 ---| "public" #readable by all (optional)
----@param paramName string
----@param losAccess? losAccess
+
+
+---@see Spring.GetGameRulesParams
+---@param paramName string #name of the parameter to be referenced.
+---@param paramValue number | string #numeric paramValues in quotes will be converted to number.
+---@param losAccess? losAccess # not typically used in GameRules, see GetGameRulesParams, it will be ignored.
 ---@return string
-function Spring.SetGameRulesParam (  paramName, losAccess )
+function Spring.SetGameRulesParam (  paramName, paramValue, losAccess )
 	assert(type(paramName) == "string","Argument paramName is of invalid type - expected string");
 	assert(losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
 		| losAccess == "public", "Argument losAccess is invalid");
@@ -109,13 +114,11 @@ end
 ---@param teamID number
 ---@param paramName string
 ---@param losAccess? losAccess
----@return integer
+---@return nil
 function Spring.SetTeamRulesParam (teamID, paramName, losAccess)
 	assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 	assert(type(paramName) == "string" or type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
-	assert(losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
-		| losAccess == "public", "Argument losAccess is invalid");
-	return numberMock
+	return nil
 end
 
 ---@param unitID number
