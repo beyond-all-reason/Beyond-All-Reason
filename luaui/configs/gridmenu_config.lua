@@ -7,6 +7,7 @@ local unitGrids = configs.UnitGrids
 local unitGridPos = { }
 local gridPosUnit = { }
 local hasUnitGrid = { }
+local uncategorizedGridPos = { }
 
 local unitCategories = {}
 
@@ -36,34 +37,39 @@ local categoryGroupMapping = {
 
 for uname, ugrid in pairs(unitGrids) do
 	local builder = UnitDefNames[uname]
-	local uid = builder.id
+	local builderId = builder.id
 
-	unitGridPos[uid] = {{},{},{},{}}
-	gridPosUnit[uid] = {}
-	hasUnitGrid[uid] = {}
-	local uCanBuild = {}
+	unitGridPos[builderId] = { {}, {}, {}, {}}
+	gridPosUnit[builderId] = {}
+	hasUnitGrid[builderId] = {}
+	uncategorizedGridPos[builderId] = { {}, {}, {}, {} }
+	local builderCanBuild = {}
 
 	local uBuilds = builder.buildOptions
 	for i = 1, #uBuilds do
-		uCanBuild[uBuilds[i]] = true
+		builderCanBuild[uBuilds[i]] = true
 	end
 
+	local uncategorizedCount = 0;
 	for cat=1,4 do
-		for r=1,3 do
-			for c=1,4 do
-				local ugdefname = ugrid[cat] and ugrid[cat][r] and ugrid[cat][r][c]
+		for row =1,3 do
+			for col =1,4 do
+				local unitAtPos = ugrid[cat] and ugrid[cat][row] and ugrid[cat][row][col]
 
-				if ugdefname then
-					local ugdef = UnitDefNames[ugdefname]
+				if unitAtPos then
+					local unit = UnitDefNames[unitAtPos]
 
-					if ugdef and ugdef.id and uCanBuild[ugdef.id] then
-						gridPosUnit[uid][cat .. r .. c] = ugdef.id
-						unitGridPos[uid][cat][ugdef.id] = cat .. r .. c
-						hasUnitGrid[uid][ugdef.id] = true
+					if unit and unit.id and builderCanBuild[unit.id] then
+						gridPosUnit[builderId][cat .. row .. col] = unit.id
+						unitGridPos[builderId][cat][unit.id] = cat .. row .. col
+						hasUnitGrid[builderId][unit.id] = true
+						uncategorizedCount = uncategorizedCount + 1
+						uncategorizedGridPos[builderId][cat][uncategorizedCount] = unit.id
 					end
 				end
 			end
 		end
+		uncategorizedCount = 0;
 	end
 end
 
@@ -106,4 +112,5 @@ return {
 	gridPosUnit = gridPosUnit,
 	hasUnitGrid = hasUnitGrid,
 	unitCategories = unitCategories,
+	uncategorizedGridPos = uncategorizedGridPos,
 }

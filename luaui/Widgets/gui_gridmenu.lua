@@ -315,11 +315,36 @@ local function RefreshCommands()
 		end
 	end
 
-	-- sort uncategorized options by the hardcoded unit sorting
-	for _, uDefID in pairs(units.unitOrder) do
-		if unorderedBuildOptions[uDefID] then
-			uncategorizedBuildOptsCount = uncategorizedBuildOptsCount + 1
-			uncategorizedBuildOpts[uncategorizedBuildOptsCount] = buildOpts[uDefID]
+
+	if(selectedBuilder) then
+		local uncategorizedOpts = grid.uncategorizedGridPos[selectedBuilder]
+		if uncategorizedOpts then
+			local optionsInRow = 0
+			for cat = 1, #uncategorizedOpts do
+				for _, uDefID in pairs(uncategorizedOpts[cat]) do
+					if optionsInRow >= 3 then
+						break
+					end
+
+					if unorderedBuildOptions[uDefID] then
+						optionsInRow = optionsInRow + 1
+						local position = (cat) + ((optionsInRow - 1) * columns)
+						uncategorizedBuildOptsCount = uncategorizedBuildOptsCount + 1
+						uncategorizedBuildOpts[position] = buildOpts[uDefID]
+					end
+				end
+				optionsInRow = 0
+			end
+
+		end
+
+	else
+		-- sort uncategorized options by the hardcoded unit sorting
+		for _, uDefID in pairs(units.unitOrder) do
+			if unorderedBuildOptions[uDefID] then
+				uncategorizedBuildOptsCount = uncategorizedBuildOptsCount + 1
+				uncategorizedBuildOpts[uncategorizedBuildOptsCount] = buildOpts[uDefID]
+			end
 		end
 	end
 end
@@ -1170,11 +1195,12 @@ local function drawGrid()
 	cellcmds = {}
 
 	for row = 3, 1, -1 do
-		for coll = 1, 4 do
+		for col = 1, 4 do
+
 			cellRectID = cellRectID + 1
 
 			local uDefID
-			local kcol = coll
+			local kcol = col
 			local arow = 3 - row + 1
 			local krow = arow
 			-- hotkey mapping from 2x6 -> 3x4 grid
@@ -1183,20 +1209,22 @@ local function drawGrid()
 			-- 3,3 -> 1,5
 			-- 3,4 -> 1,6
 			if arow > 2 and stickToBottom then
-				krow = coll < 3 and 2 or 1
-				kcol = 6 - coll % 2
+				krow = col < 3 and 2 or 1
+				kcol = 6 - col % 2
 			end
 
+			local position = col + ((row - 1) * columns)
+
 			if selectedFactory then
-				if currentPage == 1 and unitGrid and unitGrid[arow .. coll] then
-					uDefID = unitGrid[arow .. coll]
+				if currentPage == 1 and unitGrid and unitGrid[arow .. col] then
+					uDefID = unitGrid[arow .. col]
 				elseif uncategorizedBuildOpts[curCmd] then
 					uDefID = uncategorizedBuildOpts[curCmd].id * -1
 					curCmd = curCmd + 1
 				end
-			elseif currentPage == 1 and currentCategory and unitGrid and unitGrid[currentCategoryIndex .. arow .. coll] then
-				uDefID = unitGrid[currentCategoryIndex .. arow .. coll]
-			elseif uncategorizedBuildOpts[curCmd] then
+			elseif currentPage == 1 and currentCategory and unitGrid and unitGrid[currentCategoryIndex .. arow .. col] then
+				uDefID = unitGrid[currentCategoryIndex .. arow .. col]
+			elseif uncategorizedBuildOpts[curCmd] and uncategorizedBuildOpts[curCmd].id then
 				uDefID = uncategorizedBuildOpts[curCmd].id * -1
 				curCmd = curCmd + 1
 			end
@@ -1211,8 +1239,8 @@ local function drawGrid()
 			if uDefID and buildOpts[uDefID] then
 				cellcmds[cellRectID] = buildOpts[uDefID]
 
-				buildOpts[uDefID].hotkey = string.gsub(string.upper(Cfgs.keyLayout[arow][coll]), "ANY%+", '')
-				hotkeyActions[tostring(arow) .. tostring(coll)] = -uDefID
+				buildOpts[uDefID].hotkey = string.gsub(string.upper(Cfgs.keyLayout[arow][col]), "ANY%+", '')
+				hotkeyActions[tostring(arow) .. tostring(col)] = -uDefID
 
 				local udef = buildOpts[uDefID]
 
@@ -1225,7 +1253,7 @@ local function drawGrid()
 				drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, units.unitRestricted[uDefID])
 			else
 				drawEmptyCell(rect)
-				hotkeyActions[tostring(arow) .. tostring(coll)] = nil
+				hotkeyActions[tostring(arow) .. tostring(col)] = nil
 			end
 		end
 	end
@@ -1245,7 +1273,12 @@ local function drawBuildMenu()
 
 	-- adjust grid size when pages are needed
 	if buildOptsCount > columns * rows then
-		pages = math_ceil(buildOptsCount / (rows * columns))
+		if(selectedFactory or currentCategory) then
+			pages = math_ceil(buildOptsCount / (rows * columns))
+		else
+			pages = 1
+		end
+
 
 		if currentPage > pages then
 			currentPage = pages
