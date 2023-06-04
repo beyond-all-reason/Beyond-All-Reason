@@ -1700,7 +1700,7 @@ end
 
 function widget:DrawScreen()
 	AdvPlayersListAtlas:RenderTasks()
-	AdvPlayersListAtlas:DrawToScreen()
+	--AdvPlayersListAtlas:DrawToScreen()
     local mouseX, mouseY, mouseButtonL, mmb, rmb, mouseOffScreen, cameraPanMode = Spring.GetMouseState()
     --if cameraPanMode then
     --    if BackgroundGuishader then
