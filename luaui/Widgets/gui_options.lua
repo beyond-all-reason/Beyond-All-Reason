@@ -2723,7 +2723,7 @@ function init()
 		  end,
 		},
 
-		{ id = "notifications_set", group = "notif", category = types.dev, name = Spring.I18N('ui.settings.option.notifications_set'), type = "select", options = {}, value = 1,
+		{ id = "notifications_set", group = "notif", category = types.basic, name = Spring.I18N('ui.settings.option.notifications_set'), type = "select", options = {}, value = 1,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
