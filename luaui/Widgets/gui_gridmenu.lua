@@ -1224,8 +1224,8 @@ local function drawGrid()
 				end
 			elseif currentPage == 1 and currentCategory and unitGrid and unitGrid[currentCategoryIndex .. arow .. col] then
 				uDefID = unitGrid[currentCategoryIndex .. arow .. col]
-			elseif uncategorizedBuildOpts[curCmd] and uncategorizedBuildOpts[curCmd].id then
-				uDefID = uncategorizedBuildOpts[curCmd].id * -1
+			elseif uncategorizedBuildOpts[position] and uncategorizedBuildOpts[position].id then
+				uDefID = uncategorizedBuildOpts[position].id * -1
 				curCmd = curCmd + 1
 			end
 
