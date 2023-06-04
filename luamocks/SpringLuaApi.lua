@@ -621,7 +621,7 @@ end
 
 --TODO verify this is a sane representation of how this function should be called.
 -- Can multiple state calls be passed?
----@alias states 
+---@alias states table
 ---| "reloadState=number"
 ---| "reloadFrame=number" # synonym for reloadState!
 ---| "reloadTime=number"
@@ -639,6 +639,7 @@ end
 ---@param weaponNum number
 ---@param states states
 ---@return nil
+---@diagnostic disable-next-line
 function Spring.SetUnitWeaponState   (  unitID, weaponNum, states)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
@@ -653,6 +654,7 @@ end
 ---@param key states
 ---@param value number
 ---@return nil
+---@diagnostic disable-next-line 
 function Spring.SetUnitWeaponState   (  unitID, weaponNum, key, value)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
@@ -660,7 +662,7 @@ assert(type(states) == "table","Argument states is of invalid type - expected ta
 return nil
 end
 
----@alias damages
+---@alias damages table
 ---| "paralyzeDamageTime=number" 
 ---| "impulseFactor=number" 
 ---| "impulseBoost=number" 
@@ -679,6 +681,7 @@ end
 ---@param weaponNum number | string # Number or string ["selfDestruct" | "explode"]
 ---@param damages damages
 ---@return nil
+---@diagnostic disable-next-line
 function Spring.SetUnitWeaponDamages    (  unitID, weaponNum, damages)
 	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 	assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
@@ -690,53 +693,153 @@ end
 ---@param key damages
 ---@param value number
 ---@return nil
+---@diagnostic disable-next-line
 function Spring.SetUnitWeaponDamages    (  unitID, weaponNum, key, value)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
 return  nil
 end
 
-function Spring.SetUnitCollisionVolumeData   ( )
-return
+---@alias COLVOL_TYPES table
+---| "COLVOL_TYPE_DISABLED=-1"
+---| "COLVOL_TYPE_ELLIPSOID=0"
+---| "COLVOL_TYPE_CYLINDER=0"
+---| "COLVOL_TYPE_BOX=0"
+---| "COLVOL_TYPE_SPHERE=0"
+---| "COLVOL_NUM_TYPES=0" ---number of non-disabled collision volumn types
+
+---@alias COLVOL_TESTS table
+---| "COLVOL_TEST_DISC=0"
+---| "COLVOL_TEST_CONT=1"
+---| "COLVOL_NUM_TESTS=2"  // number of tests
+
+---@alias COLVOL_AXES table
+---| "COLVOL_AXIS_X=0"
+---| "COLVOL_AXIS_Y=1"
+---| "COLVOL_AXIS_Z=2"
+---| "COLVOL_NUM_AXES=3"   // number of collision volume axes
+
+---@param UnitID number
+---@param scaleX number
+---@param scaleY number
+---@param scaleZ number
+---@param offsetX number
+---@param offsetY number
+---@param offsetZ number
+---@param vType COLVOL_TYPES
+---@param tType COLVOL_TESTS
+---@param Axis COLVOL_AXES
+---@diagnostic disable-next-line
+function Spring.SetUnitCollisionVolumeData (UnitID, scaleX, scaleY, scaleZ, offsetX, offsetY, offsetZ, vType, tType, Axis)
+return nil
+end
+--- piece volumes not allowed to use discrete hit-testing
+---@param unitID number
+---@param pieceIndex number
+---@param enable boolean
+---@param scaleX number
+---@param scaleY number
+---@param scaleZ number
+---@param offsetX number
+---@param offsetY number
+---@param offsetZ number
+---@param volumeType? number (optional)
+---@param primaryAxis? number (optional)
+function Spring.SetUnitPieceCollisionVolumeData   (unitID, pieceIndex, enable, scaleX, scaleY, scaleZ, offsetX, offsetY, offsetZ, volumeType, primaryAxis)
+return nil
 end
 
-function Spring.SetUnitPieceCollisionVolumeData   ( )
-return
-end
-
+---Deprecated and marked for deletion in CPP API fields
+---@param unitID number
+---@param travel number
+---@param travelPeriod number
+---@return nil
+---@deprecated
 function Spring.SetUnitTravel   (  unitID, travel, travelPeriod)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(travel) == "number","Argument travel is of invalid type - expected number");
 assert(type(travelPeriod) == "number","Argument travelPeriod is of invalid type - expected number");
-return  numberMock
+return  nil
 end
 
-function Spring.SetUnitMoveGoal    (  unitID, goalx, goaly, goalz, goalRadius, moveSpeed)
+---Used by default commands to get in build-, attackrange etc.
+---@param unitID number
+---@param goalx number
+---@param goaly number
+---@param goalz number
+---@param goalRadius? number (optional)
+---@param moveSpeed? number (optional)
+---@param moveRaw? boolean (optional)
+---@return nil
+function Spring.SetUnitMoveGoal    (  unitID, goalx, goaly, goalz, goalRadius, moveSpeed, moveRaw)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(goalx) == "number","Argument goalx is of invalid type - expected number");
 assert(type(goaly) == "number","Argument goaly is of invalid type - expected number");
 assert(type(goalz) == "number","Argument goalz is of invalid type - expected number");
 assert(type(goalRadius) == "number","Argument goalRadius is of invalid type - expected number");
 assert(type(moveSpeed) == "number","Argument moveSpeed is of invalid type - expected number");
-return  booleanMock
+return  nil
 end
 
+---Used in conjuction with Spring.UnitAttach et al.
+---to re-implement old airbase & fuel system in lua
+---@param unitID number
+---@param goalX number
+---@param goalY number
+---@param goalZ number
+---@param goalRadius? number
+---@return nil
+---@see Spring.UnitAttach
+---@see Spring.ClearUnitGoal
+function Spring.SetLandUnitGoal(unitID, goalX, goalY, goalZ, goalRadius)
+	return nil
+end
 
+---@param unitID number
+---@return nil
+---@see Spring.SetLandUnitGoal
+---@see Spring.SetUnitMoveGoal
+function Spring.ClearUnitGoal(unitID)
+	return nil
+end
+
+---@param unitID number
+---@param posX number
+---@param posY number
+---@param posZ number
+---@param velX number
+---@param velY number
+---@param velZ number
+---@param rotX number
+---@param rotY number
+---@param rotZ number
+---@param dragX number
+---@param dragY number
+---@param dragZ number
+---@return nil
+function Spring.SetUnitPhysics(unitID, posX, posY, posZ, velX, velY, velZ, rotX, rotY, rotZ, dragX, dragY, dragZ)
+	return nil
+end
+
+---@param unitID number
+---@param mass number
+---@return nil
+function Spring.SetUnitMass(unitID, mass)
+return nil
+end
+
+---@param unitID number
+---@param x number
+---@param z number
+---@param alwaysAboveSea? boolean (optional)
+---@return nil
 function Spring.SetUnitPosition   (  unitID, x, z, alwaysAboveSea)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 assert(type(alwaysAboveSea) == "boolean","Argument alwaysAboveSea is of invalid type - expected boolean");
-return  numberMock
- end
-
-function Spring.SetUnitDirection    (  unitID, x, y, z)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(x) == "number","Argument x is of invalid type - expected number");
-assert(type(y) == "number","Argument y is of invalid type - expected number");
-assert(type(z) == "number","Argument z is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
 function Spring.SetUnitVelocity   (  unitID, velx, vely, velz)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
@@ -744,7 +847,7 @@ assert(type(velx) == "number","Argument velx is of invalid type - expected numbe
 assert(type(vely) == "number","Argument vely is of invalid type - expected number");
 assert(type(velz) == "number","Argument velz is of invalid type - expected number");
 return  numberMock
- end
+end
 
 function Spring.SetUnitRotation   (  unitID, rotx, roty, rotz)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
@@ -752,36 +855,75 @@ assert(type(rotx) == "number","Argument rotx is of invalid type - expected numbe
 assert(type(roty) == "number","Argument roty is of invalid type - expected number");
 assert(type(rotz) == "number","Argument rotz is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.AddUnitImpulse   (  unitID, x, y, z)
+---@param unitID number
+---@param yaw number
+---@param pitch number
+---@param roll number
+---@return nil
+function Spring.SetUnitDirection    (  unitID, yaw, pitch, roll)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
+---@param unitID number
+---@param x number
+---@param y number
+---@param z number
+---@param decayRate? number (optional)
+---@return nil
+function Spring.AddUnitImpulse   (  unitID, x, y, z, decayRate)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(x) == "number","Argument x is of invalid type - expected number");
+assert(type(y) == "number","Argument y is of invalid type - expected number");
+assert(type(z) == "number","Argument z is of invalid type - expected number");
+return  nil
+end
+
+---@param unitID number
+---@param pingSize number
+---@return nil
 function Spring.AddUnitSeismicPing   (  unitID, pingSize)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(pingSize) == "number","Argument pingSize is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
+---Deprecated due to not seeing this in the current ANY
+---@param unitID number
+---@deprecated
+---@return nil
 function Spring.RemoveBuildingDecal   (  unitID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
-function Spring.SetUnitMidAndAimPos    ( )
+---@param unitID number
+---@param mpX number new middle positionX of unit
+---@param mpY number new middle positionY of unit
+---@param mpZ number new middle positionZ of unit
+---@param apX number new positionX that enemies aim at on this unit
+---@param apY number new positionY that enemies aim at on this unit
+---@param apZ number new positionZ that enemies aim at on this unit
+---@param relative? boolean are the new coordinates relative to the world (false) or unit (true) coordinates? Also, not that apY is inverted. (default false) (optional)
+---@return boolean
+function Spring.SetUnitMidAndAimPos(unitID, mpX, mpY, mpZ, apX, apY, apZ relative)
 return  booleanMock
- end
+end
 
+---@param unitID number
+---@param radius number
+---@param height number
+---@return boolean returns success	
 function Spring.SetUnitRadiusAndHeight    (  unitID, radius, height)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(radius) == "number","Argument radius is of invalid type - expected number");
 assert(type(height) == "number","Argument height is of invalid type - expected number");
-return  numberMock
+return booleanMock
  end
 
 function Spring.UnitWeaponFire   (  unitID, weaponID)
@@ -938,7 +1080,16 @@ function Spring.SetUnitCollisionVolumeData    ( )
 return  booleanMock
  end
 
-function Spring.SetUnitMidAndAimPos    (  unitID, radius, height)
+---@param featureID number
+---@param mpX number new middle positionX of unit
+---@param mpY number new middle positionY of unit
+---@param mpZ number new middle positionZ of unit
+---@param apX number new positionX that enemies aim at on this unit
+---@param apY number new positionY that enemies aim at on this unit
+---@param apZ number new positionZ that enemies aim at on this unit
+---@param relative? boolean are the new coordinates relative to the world (false) or unit (true) coordinates? Also, not that apY is inverted. (default false) (optional)
+---@return boolean
+function Spring.SetFeatureMidAndAimPos    ( featureID, mpX, mpY, mpZ, apX, apY, apZ, relative)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(radius) == "number","Argument radius is of invalid type - expected number");
 assert(type(height) == "number","Argument height is of invalid type - expected number");
