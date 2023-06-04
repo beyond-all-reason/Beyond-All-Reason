@@ -1523,12 +1523,14 @@ function mouseEvent(mx, my, button, release)
 			for id, group in pairs(optionGroups) do
 				if devMode or group.id ~= 'dev' then
 					if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
-						currentGroupTab = group.id
-						startColumn = 1
-						showSelectOptions = nil
-						selectClickAllowHide = nil
-						if playSounds then
-							Spring.PlaySoundFile(sounds.paginatorClick, 0.9, 'ui')
+						if not release then
+							currentGroupTab = group.id
+							startColumn = 1
+							showSelectOptions = nil
+							selectClickAllowHide = nil
+							if playSounds then
+								Spring.PlaySoundFile(sounds.paginatorClick, 0.9, 'ui')
+							end
 						end
 						tabClick = true
 					end
