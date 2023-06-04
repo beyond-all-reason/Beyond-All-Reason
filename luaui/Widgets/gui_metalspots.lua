@@ -180,6 +180,8 @@ local function makeSpotVBO()
 	end
 	
 	-- Add the 32 tris for the inner circle of color:
+	-- TODO: FIX THIS
+	--[[
 	for i = 1, 32 do 
 		local d1 = (i/32) * math.pi * 2.0		
 		local d2 = ((i+1)/32) * math.pi * 2.0
@@ -188,6 +190,7 @@ local function makeSpotVBO()
 		arrayAppend(VBOData, {math.sin(d2)*centersize, math.cos(d2)*centersize, 1, 1})
 		arrayAppend(VBOData, {0, 0, 0, 1})
 	end
+	]]--
 	
 	-- Add the 2 tris for the billboard:
 	do 
