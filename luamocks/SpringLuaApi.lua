@@ -100,22 +100,23 @@ end
 
 
 ---@see Spring.GetGameRulesParams
----@param paramName string #name of the parameter to be referenced.
+---@param paramName string 
 ---@param paramValue number | string #numeric paramValues in quotes will be converted to number.
 ---@param losAccess? losAccess # not typically used in GameRules, see GetGameRulesParams, it will be ignored.
----@return string
+---@return nil
 function Spring.SetGameRulesParam (  paramName, paramValue, losAccess )
 	assert(type(paramName) == "string","Argument paramName is of invalid type - expected string");
 	assert(losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
-		| losAccess == "public", "Argument losAccess is invalid");
-return  stringMock
+		| losAccess == "public" | losAccess == "typed" , "Argument losAccess is invalid");
+return  nil
 end
 
 ---@param teamID number
 ---@param paramName string
+---@param paramValue number | string #numeric paramValues in quotes will be converted to number.
 ---@param losAccess? losAccess
 ---@return nil
-function Spring.SetTeamRulesParam (teamID, paramName, losAccess)
+function Spring.SetTeamRulesParam (teamID, paramName, paramValue, losAccess)
 	assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 	assert(type(paramName) == "string" or type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
 	return nil
@@ -123,20 +124,20 @@ end
 
 ---@param unitID number
 ---@param paramName string
+---@param paramValue number | string #numeric paramValues in quotes will be converted to number.
 ---@param losAccess? losAccess
----@return integer
-function Spring.SetUnitRulesParam (unitID, paramName, losAccess)
+---@return nil
+function Spring.SetUnitRulesParam (unitID, paramName, paramValue, losAccess)
     assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
     assert(type(paramName) == "string" or type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
 	assert(losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
-	| losAccess == "public", "Argument losAccess is invalid");
-	return numberMock
+		| losAccess == "public" | losAccess == "typed" , "Argument losAccess is invalid");
+	return nil
 end
 
----SetFeatureRulesParam - no additional documentation
----@param featureID any
----@param paramName any
----@param paramValue any
+---@param featureID number
+---@param paramName string
+---@param paramValue number | string
 ---@param losAccess? losAccess
 ---@return nil
 function Spring.SetFeatureRulesParam(featureID, paramName, paramValue, losAccess)
@@ -144,7 +145,7 @@ function Spring.SetFeatureRulesParam(featureID, paramName, paramValue, losAccess
 	assert(type(paramName))
 	assert(type(paramValue))
 	assert(losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
-	| losAccess == "public", "Argument losAccess is invalid");
+		| losAccess == "public" | losAccess == "typed" , "Argument losAccess is invalid");
 	return nil
 end
 
@@ -454,7 +455,6 @@ assert(type(neutral) == "boolean","Argument neutral is of invalid type - expecte
 return  nil
 end
 
----Defines a units target
 ---@param unitID number
 ---@param x? number # when nil or not passed it will drop target and ignore other parameters (optional)
 ---@param y? number # (optional)
@@ -467,7 +467,6 @@ function Spring.SetUnitTarget (unitID, x, y, z, dgun, userTarget, weaponNum)
 	return  booleanMock
 end
 
----Defines a units target
 ---@param unitID number
 ---@param enemyUnitID? number # when nil, drops the units current target (optional)
 ---@param dgun boolean? # default false
@@ -589,7 +588,6 @@ assert(type(ParentPiece) == "number","Argument ParentPiece is of invalid type - 
 return  nil
 end
 
---TODO can the functionality of passing only unitID be documented by someone more knowledgable?
 ---@param unitID number
 ---@param armored? boolean
 ---@param armorMultiple? number # Cannot be less than zero, clamped to .0001 (optional)
@@ -613,8 +611,18 @@ return  nil
 end
 
 ---@param unitID number
----@param type string # "dir" | "minDamage" | "maxDamage" | "moveFactor" | "mode"
----@param arg1 number # x | minDamage | maxDamage | moveFactor | mode
+---@param type string
+---|"dir"
+---|"minDamage"
+---|"maxDamage"
+---|"moveFactor"
+---|"mode" # if type = mode, 0 = no flanking bonus, 1 = global coords, mobile, 2 = unit coords, mobile, 3 = unit coords, locked
+---@param arg1 number
+---| 'x'
+---| 'minDamage'
+---| 'maxDamage'
+---| 'moveFactor'
+---| 'mode'
 ---@param y number? # only when type is "dir" (optional)
 ---@param z number? # only when type is "dir" (optional)
 ---@return nil
