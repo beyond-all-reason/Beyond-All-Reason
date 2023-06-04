@@ -117,7 +117,7 @@ local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
 local bgpadding, activeAreaMargin, iconTypesMap
-local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2, uncategorizedBuildOptsCount
+local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2
 local doUpdate, doUpdateClock, ordermenuHeight, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 
@@ -254,7 +254,6 @@ local function RefreshCommands()
 
 	uncategorizedBuildOpts = {}
 	buildOpts = {}
-	uncategorizedBuildOptsCount = 0
 	buildOptsCount = 0
 
 	local unorderedBuildOptions = {}
@@ -315,7 +314,7 @@ local function RefreshCommands()
 		end
 	end
 
-
+	-- sort "home page" options for a builder, what shows before any category has been selected
 	if(selectedBuilder) then
 		local uncategorizedOpts = grid.uncategorizedGridPos[selectedBuilder]
 		if uncategorizedOpts then
@@ -328,9 +327,9 @@ local function RefreshCommands()
 
 					if unorderedBuildOptions[uDefID] then
 						optionsInRow = optionsInRow + 1
-						local position = (cat) + ((optionsInRow - 1) * columns)
-						uncategorizedBuildOptsCount = uncategorizedBuildOptsCount + 1
-						uncategorizedBuildOpts[position] = buildOpts[uDefID]
+						-- The grid is sorted by row, starting at the bottom. We want to order these items by column, so we switch their positions by changing the index
+						local index = (cat) + ((optionsInRow - 1) * columns)
+						uncategorizedBuildOpts[index] = buildOpts[uDefID]
 					end
 				end
 				optionsInRow = 0
@@ -339,11 +338,12 @@ local function RefreshCommands()
 		end
 
 	else
+		local count = 0
 		-- sort uncategorized options by the hardcoded unit sorting
 		for _, uDefID in pairs(units.unitOrder) do
 			if unorderedBuildOptions[uDefID] then
-				uncategorizedBuildOptsCount = uncategorizedBuildOptsCount + 1
-				uncategorizedBuildOpts[uncategorizedBuildOptsCount] = buildOpts[uDefID]
+				count = count + 1
+				uncategorizedBuildOpts[count] = buildOpts[uDefID]
 			end
 		end
 	end
@@ -879,7 +879,7 @@ function widget:Update(dt)
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
 		if not voidWater and mapMinWater <= units.minWaterUnitDepth and not showwaterUnits then
 			showWaterUnits = true
-			units.restrictWaterUnits(false)
+			units.restrictWaterUnits(true)
 		end
 
 		local prevOrdermenuLeft = ordermenuLeft
@@ -981,27 +981,27 @@ local function drawButton(rect, opts, icon)
 	end
 end
 
-local function drawCell(id, usedZoom, cellColor, disabled)
-	local cmd = cellcmds[id]
+local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 	local uid = cmd.id * -1
 	-- unit icon
 	if disabled then
+		Spring.Echo("Drawing cell for disabled unit", cmd)
 		gl.Color(0.4, 0.4, 0.4, 1)
 	else
 		gl.Color(1, 1, 1, 1)
 	end
 
-	local showIcon = showGroupIcon and not (currentCategory)
-	local cellRect = cellRects[id]
+	local showIcon = showGroupIcon
 
 	UiUnit(
-		cellRect.x + cellPadding + iconPadding,
-		cellRect.y + cellPadding + iconPadding,
-		cellRect.xEnd - cellPadding - iconPadding,
-		cellRect.yEnd - cellPadding - iconPadding,
+		rect.x + cellPadding + iconPadding,
+		rect.y + cellPadding + iconPadding,
+		rect.xEnd - cellPadding - iconPadding,
+		rect.yEnd - cellPadding - iconPadding,
 		cornerSize, 1,1,1,1,
 		usedZoom,
-		nil, disabled and 0 or nil,
+		nil,
+		disabled and 0 or nil,
 		'#' .. uid,
 		showRadarIcon and (((units.unitIconType[uid] and iconTypesMap[units.unitIconType[uid]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypesMap[units.unitIconType[uid]] or nil)) or nil,
 		showIcon and (groups[units.unitGroup[uid]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[units.unitGroup[uid]] or nil) or nil,
@@ -1015,20 +1015,20 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 		gl.Color(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
 		gl.Texture('#' .. uid)
 		UiUnit(
-			cellRect.x + cellPadding + iconPadding,
-			cellRect.y + cellPadding + iconPadding,
-			cellRect.xEnd - cellPadding - iconPadding,
-			cellRect.yEnd - cellPadding - iconPadding,
+			rect.x + cellPadding + iconPadding,
+			rect.y + cellPadding + iconPadding,
+			rect.xEnd - cellPadding - iconPadding,
+			rect.yEnd - cellPadding - iconPadding,
 			cornerSize, 1,1,1,1,
 			usedZoom
 		)
 		if cellColor[4] > 0 then
 			gl.Blending(GL_SRC_ALPHA, GL_ONE)
 			UiUnit(
-				cellRect.x + cellPadding + iconPadding,
-				cellRect.y + cellPadding + iconPadding,
-				cellRect.xEnd - cellPadding - iconPadding,
-				cellRect.yEnd - cellPadding - iconPadding,
+				rect.x + cellPadding + iconPadding,
+				rect.y + cellPadding + iconPadding,
+				rect.xEnd - cellPadding - iconPadding,
+				rect.yEnd - cellPadding - iconPadding,
 				cornerSize, 1,1,1,1,
 				usedZoom
 			)
@@ -1045,7 +1045,7 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 		else
 			text = "\255\245\245\245" .. units.unitMetalCost[uid] .. "\n\255\255\255\000"
 		end
-		font2:Print(text .. units.unitEnergyCost[uid], cellRect.x + cellPadding + (cellInnerSize * 0.048), cellRect.y + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
+		font2:Print(text .. units.unitEnergyCost[uid], rect.x + cellPadding + (cellInnerSize * 0.048), rect.y + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
 	end
 
 	-- hotkey draw
@@ -1053,7 +1053,7 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 		local hotkeyText = keyConfig.sanitizeKey(cmd.hotkey, currentLayout)
 
 		local hotkeyFontSize = priceFontSize * 1.1
-		font2:Print("\255\215\255\215" .. hotkeyText, cellRect.xEnd - cellPadding - (cellInnerSize * 0.048), cellRect.yEnd - cellPadding - hotkeyFontSize, hotkeyFontSize, "ro")
+		font2:Print("\255\215\255\215" .. hotkeyText, rect.xEnd - cellPadding - (cellInnerSize * 0.048), rect.yEnd - cellPadding - hotkeyFontSize, hotkeyFontSize, "ro")
 	end
 
 
@@ -1062,10 +1062,10 @@ local function drawCell(id, usedZoom, cellColor, disabled)
 		local queueFontSize = cellInnerSize * 0.29
 		local pad = math_floor(cellInnerSize * 0.03)
 		local textWidth = font2:GetTextWidth(cmd.params[1] .. '	') * queueFontSize
-		RectRound(cellRect.x, cellRect.yEnd - cellPadding - iconPadding - math_floor(cellInnerSize * 0.365), cellRect.x + textWidth, cellRect.yEnd - cellPadding - iconPadding, cornerSize * 3.3, 0, 0, 1, 0, { 0.15, 0.15, 0.15, 0.95 }, { 0.25, 0.25, 0.25, 0.95 })
+		RectRound(rect.x, rect.yEnd - cellPadding - iconPadding - math_floor(cellInnerSize * 0.365), rect.x + textWidth, rect.yEnd - cellPadding - iconPadding, cornerSize * 3.3, 0, 0, 1, 0, { 0.15, 0.15, 0.15, 0.95 }, { 0.25, 0.25, 0.25, 0.95 })
 		font2:Print("\255\190\255\190" .. cmd.params[1],
-			cellRect.x + cellPadding + (pad * 3.5),
-			cellRect.y + cellPadding + math_floor(cellInnerSize * 0.735),
+			rect.x + cellPadding + (pad * 3.5),
+			rect.y + cellPadding + math_floor(cellInnerSize * 0.735),
 			queueFontSize, "o"
 		)
 	end
@@ -1190,57 +1190,61 @@ local function drawGrid()
 	else
 		unitGrid = grid.gridPosUnit[selectedBuilder]
 	end
-	local curCmd = currentPage > 1 and (numCellsPerPage * (currentPage - 1) - (buildOptsCount - uncategorizedBuildOptsCount) + 1) or 1
 
 	cellcmds = {}
 
-	for row = 3, 1, -1 do
+	for row = 1, 3 do
 		for col = 1, 4 do
-
 			cellRectID = cellRectID + 1
 
 			local uDefID
-			local kcol = col
-			local arow = 3 - row + 1
-			local krow = arow
 			-- hotkey mapping from 2x6 -> 3x4 grid
 			-- 3,1 -> 2,5
 			-- 3,2 -> 2,6
 			-- 3,3 -> 1,5
 			-- 3,4 -> 1,6
-			if arow > 2 and stickToBottom then
-				krow = col < 3 and 2 or 1
-				kcol = 6 - col % 2
-			end
 
-			local position = col + ((row - 1) * columns)
+			-- grid indices are laid out like this
+			-- 9  10 11 12
+			-- 5  6  7  8
+			-- 1  2  3  4
+
+			local index = col + ((row - 1) * columns)
+			-- offset for pages
+			index = index + ((currentPage - 1) * numCellsPerPage)
 
 			if selectedFactory then
-				if currentPage == 1 and unitGrid and unitGrid[arow .. col] then
-					uDefID = unitGrid[arow .. col]
-				elseif uncategorizedBuildOpts[curCmd] then
-					uDefID = uncategorizedBuildOpts[curCmd].id * -1
-					curCmd = curCmd + 1
+				if currentPage == 1 and unitGrid and unitGrid[row .. col] then
+					uDefID = unitGrid[row .. col]
+				elseif uncategorizedBuildOpts[index] then
+					uDefID = uncategorizedBuildOpts[index].id * -1
 				end
-			elseif currentPage == 1 and currentCategory and unitGrid and unitGrid[currentCategoryIndex .. arow .. col] then
-				uDefID = unitGrid[currentCategoryIndex .. arow .. col]
-			elseif uncategorizedBuildOpts[position] and uncategorizedBuildOpts[position].id then
-				uDefID = uncategorizedBuildOpts[position].id * -1
-				curCmd = curCmd + 1
+			elseif currentPage == 1 and currentCategory and unitGrid and unitGrid[currentCategoryIndex .. row .. col] then
+				uDefID = unitGrid[currentCategoryIndex .. row .. col]
+			elseif uncategorizedBuildOpts[index] and uncategorizedBuildOpts[index].id then
+				uDefID = uncategorizedBuildOpts[index].id * -1
 			end
 
-			 local rect = Rect:new(
-				buildpicsRect.x + (kcol - 1) * cellSize,
-				buildpicsRect.yEnd - (rows - krow + 1) * cellSize,
-				buildpicsRect.x + (kcol ) * cellSize,
-				buildpicsRect.yEnd - (rows - krow) * cellSize
-			 )
+			-- remap positions of cells if the grid is on the bottom
+			local rect
+			local acol = col
+			local arow = row
+			if row > 2 and stickToBottom then
+				arow = col < 3 and 2 or 1
+				acol = 6 - col % 2
+			end
+			rect = Rect:new(
+				buildpicsRect.x + (acol - 1) * cellSize,
+				buildpicsRect.yEnd - (rows - arow + 1) * cellSize,
+				buildpicsRect.x + (acol) * cellSize,
+				buildpicsRect.yEnd - (rows - arow) * cellSize
+			)
 
 			if uDefID and buildOpts[uDefID] then
 				cellcmds[cellRectID] = buildOpts[uDefID]
 
-				buildOpts[uDefID].hotkey = string.gsub(string.upper(Cfgs.keyLayout[arow][col]), "ANY%+", '')
-				hotkeyActions[tostring(arow) .. tostring(col)] = -uDefID
+				buildOpts[uDefID].hotkey = string.gsub(string.upper(Cfgs.keyLayout[row][col]), "ANY%+", '')
+				hotkeyActions[tostring(row) .. tostring(col)] = -uDefID
 
 				local udef = buildOpts[uDefID]
 
@@ -1250,10 +1254,10 @@ local function drawGrid()
 					(preGamestartPlayer and selBuildQueueDefID == uDefID)
 				local usedZoom = (cellIsSelected and selectedCellZoom or defaultCellZoom)
 
-				drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, units.unitRestricted[uDefID])
+				drawCell(rect, buildOpts[uDefID], usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, units.unitRestricted[uDefID])
 			else
 				drawEmptyCell(rect)
-				hotkeyActions[tostring(arow) .. tostring(col)] = nil
+				hotkeyActions[tostring(row) .. tostring(col)] = nil
 			end
 		end
 	end
@@ -1561,7 +1565,7 @@ function widget:DrawScreen()
 										showPrice = true
 									end
 
-									drawCell(hoveredCellID, usedZoom, cellColor, units.unitRestricted[uDefID])
+									drawCell(cellRects[hoveredCellID], cellcmds[hoveredCellID], usedZoom, cellColor, units.unitRestricted[uDefID])
 
 									if unsetShowPrice then
 										showPrice = false
