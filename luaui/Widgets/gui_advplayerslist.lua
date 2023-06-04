@@ -58,6 +58,7 @@ local vsx, vsy = Spring.GetViewGeometry()
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font, font2
 
+local AdvPlayersListAtlas
 --------------------------------------------------------------------------------
 -- SPEED UPS
 --------------------------------------------------------------------------------
@@ -1698,6 +1699,8 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function widget:DrawScreen()
+	AdvPlayersListAtlas:RenderTasks()
+	--AdvPlayersListAtlas:DrawToScreen()
     local mouseX, mouseY, mouseButtonL, mmb, rmb, mouseOffScreen, cameraPanMode = Spring.GetMouseState()
     --if cameraPanMode then
     --    if BackgroundGuishader then
@@ -3727,6 +3730,22 @@ function widget:ViewResize()
 
     font = WG['fonts'].getFont()
     font2 = WG['fonts'].getFont(fontfile2, 1.1, math.max(0.16, 0.25 / widgetScale), math.max(4.5, 6 / widgetScale))
+	
+	
+	local MakeAtlasOnDemand = VFS.Include("LuaUI/Widgets/include/AtlasOnDemand.lua")
+	if AdvPlayersListAtlas then 
+		--AdvPlayersListAtlas:Delete()
+	end
+	
+	local cellheight =math.min(32, math.ceil(math.max(font.size, font2.size) + 4))
+	local cellwidth = math.ceil(cellheight*1.25)
+	local cellcount = math.ceil(math.sqrt(32+32 + 200))
+	local atlasconfig = {sizex = cellheight * cellcount, sizey =  cellwidth*cellcount, xresolution = cellheight, yresolution = cellwidth, name = "AdvPlayersListAtlas", defaultfont = {font = font, options = 'o'}}
+	AdvPlayersListAtlas = MakeAtlasOnDemand(atlasconfig)
+	for i = 0, 99 do 
+		AdvPlayersListAtlas:AddText(string.format("%02d", i))
+	end
+	
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz)
