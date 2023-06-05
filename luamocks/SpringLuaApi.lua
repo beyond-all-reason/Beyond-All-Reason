@@ -114,11 +114,13 @@ end
 ---@param teamID number
 ---@param paramName string
 ---@param paramValue number | string #numeric paramValues in quotes will be converted to number.
----@param losAccess? losAccess
+---@param losAccess? losAccess # while valid arguments, inLos, inRdar, typed, are not meaningful for team rules.
 ---@return nil
 function Spring.SetTeamRulesParam (teamID, paramName, paramValue, losAccess)
 	assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 	assert(type(paramName) == "string" or type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
+	assert(type((losAccess) == "string" | type(losAccess) == "table") & (losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
+	| losAccess == "public" | losAccess == "typed") , "Argument losAccess is invalid");
 	return nil
 end
 
@@ -129,9 +131,10 @@ end
 ---@return nil
 function Spring.SetUnitRulesParam (unitID, paramName, paramValue, losAccess)
     assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-    assert(type(paramName) == "string" or type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
-	assert(losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
-		| losAccess == "public" | losAccess == "typed" , "Argument losAccess is invalid");
+	assert(type(paramName) == "string", "invalid type for argument paramName, expected String")
+    assert(type(paramValue) == "string" | type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
+	assert(type((losAccess) == "string" | type(losAccess) == "table") & (losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
+	| losAccess == "public" | losAccess == "typed") , "Argument losAccess is invalid");
 	return nil
 end
 
@@ -144,8 +147,8 @@ function Spring.SetFeatureRulesParam(featureID, paramName, paramValue, losAccess
 	assert(type(featureID) == "number","Argument featureID is of invalid type - expected number");
 	assert(type(paramName))
 	assert(type(paramValue))
-	assert(losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
-		| losAccess == "public" | losAccess == "typed" , "Argument losAccess is invalid");
+	assert(type((losAccess) == "string" | type(losAccess) == "table") & (losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
+	| losAccess == "public" | losAccess == "typed") , "Argument losAccess is invalid");
 	return nil
 end
 
