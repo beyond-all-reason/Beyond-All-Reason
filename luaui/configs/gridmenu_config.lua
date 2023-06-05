@@ -16,6 +16,9 @@ local BUILDCAT_COMBAT = "Combat"
 local BUILDCAT_UTILITY = "Utility"
 local BUILDCAT_PRODUCTION = "Build"
 
+local rows = 3
+local columns = 4
+
 local categoryGroupMapping = {
 	energy = BUILDCAT_ECONOMY,
 	metal = BUILDCAT_ECONOMY,
@@ -103,8 +106,85 @@ for uname, ugrid in pairs(labGrids) do
 	end
 end
 
+function dump(o)
+	if type(o) == 'table' then
+		local s = '{ '
+		for k,v in pairs(o) do
+			if type(k) ~= 'number' then k = '"'..k..'"' end
+			s = s .. '['..k..'] = ' .. dump(v) .. ','
+		end
+		return s .. '} '
+	else
+		return tostring(o)
+	end
+end
+
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitCategories[unitDefID] = categoryGroupMapping[unitDef.customParams.unitgroup] or BUILDCAT_UTILITY
+end
+
+function getCategoryIndex(category)
+	if category == BUILDCAT_ECONOMY then return 1
+	elseif category == BUILDCAT_COMBAT then return 2
+	elseif category == BUILDCAT_UTILITY then return 3
+	elseif category == BUILDCAT_PRODUCTION then return 4
+	else return nil end
+end
+
+function constructBuildOption(uDefID, cmd)
+	if not cmd then
+		cmd = {
+			id = -uDefID,
+			name = UnitDefs[uDefID].name,
+			params = {}
+		}
+	end
+	return cmd
+end
+
+
+function homeOptionsForBuilder(builderId)
+	local options = {}
+	local uncategorizedOpts = uncategorizedGridPos[builderId]
+
+	if uncategorizedOpts then
+		local optionsInRow = 0
+		for cat = 1, #uncategorizedOpts do
+			for _, uDefID in pairs(uncategorizedOpts[cat]) do
+				if optionsInRow >= 3 then
+					break
+				end
+				optionsInRow = optionsInRow + 1
+				-- The grid is sorted by row, starting at the bottom. We want to order these items by column, so we switch their positions by changing the index
+				local index = (cat) + ((optionsInRow - 1) * columns)
+				options[index] = constructBuildOption(uDefID)
+			end
+			optionsInRow = 0
+		end
+	end
+	return options
+end
+
+
+function getSortedGridForBuilder(builderId, currentCategory, cmds)
+	if not builderId then
+		return
+	end
+
+	local options = {}
+
+	local isFactory = UnitDefs[builderId] and UnitDefs[builderId].isFactory or false
+
+	-- If it's not a factory and no category is selected, we fill out the "home page"
+	if not currentCategory and not isFactory then
+		return homeOptionsForBuilder(builderId)
+	end
+
+	-- lay out the category
+	if currentCategory and not isFactory then
+		-- start with preset positions
+
+	end
 end
 
 return {
@@ -113,4 +193,5 @@ return {
 	hasUnitGrid = hasUnitGrid,
 	unitCategories = unitCategories,
 	uncategorizedGridPos = uncategorizedGridPos,
+	getSortedGridForBuilder = getSortedGridForBuilder,
 }

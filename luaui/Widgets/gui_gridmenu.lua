@@ -276,6 +276,7 @@ local function RefreshCommands()
 		return currentCategory == nil or (grid.unitCategories[udefid] == currentCategory and not (lHasUnitGrid and lHasUnitGrid[udefid]))
 	end
 
+
 	-- handle pregame build options
 	if preGamestartPlayer then
 		if startDefID then
@@ -298,15 +299,15 @@ local function RefreshCommands()
 		-- handle build options (not pregame)
 		local activeCmdDescs = selectedFactory and Spring.GetUnitCmdDescs(selectedFactoryUID) or Spring.GetActiveCmdDescs()
 
-		for index, cmd in pairs(activeCmdDescs) do
+		for _, cmd in pairs(activeCmdDescs) do
 			if type(cmd) == "table" and not cmd.disabled then
 				local id = -cmd.id
 				if string.sub(cmd.action, 1, 10) == 'buildunit_' and not units.unitRestricted[id] then
 
 					if gridPos and gridPos[id] then
-						setBuildOpt(id, activeCmdDescs[index])
+						setBuildOpt(id, cmd)
 					elseif noCategory(id) then
-						setBuildOpt(id, activeCmdDescs[index])
+						setBuildOpt(id, cmd)
 						unorderedBuildOptions[id] = true
 					end
 				end
@@ -316,27 +317,7 @@ local function RefreshCommands()
 
 	-- sort "home page" options for a builder, what shows before any category has been selected
 	if(selectedBuilder and not currentCategory) then
-		local uncategorizedOpts = grid.uncategorizedGridPos[selectedBuilder]
-		if uncategorizedOpts then
-			local optionsInRow = 0
-			for cat = 1, #uncategorizedOpts do
-				for _, uDefID in pairs(uncategorizedOpts[cat]) do
-					if optionsInRow >= 3 then
-						break
-					end
-
-					if unorderedBuildOptions[uDefID] then
-						optionsInRow = optionsInRow + 1
-						-- The grid is sorted by row, starting at the bottom. We want to order these items by column, so we switch their positions by changing the index
-						local index = (cat) + ((optionsInRow - 1) * columns)
-						uncategorizedBuildOpts[index] = buildOpts[uDefID]
-					end
-				end
-				optionsInRow = 0
-			end
-
-		end
-
+		uncategorizedBuildOpts = getSortedGridForBuilder(selectedBuilder, currentCategory)
 	else
 		local count = 0
 		-- sort uncategorized options by the hardcoded unit sorting
