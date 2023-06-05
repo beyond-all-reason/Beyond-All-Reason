@@ -37,6 +37,7 @@ end
 	v23   (Floris): hiding share buttons when you are alone
 	v24   (Floris): cleanup and removed betting system
 	v25   (Floris): added enemy collapse function
+	v26	  (Floris+Borg_King) : added var for number of spectators beyond the hardcoded 64. Also a hardcoded 63 was present that needed replacing
 ]]
 --------------------------------------------------------------------------------
 -- Config
