@@ -167,7 +167,6 @@ local rows = 3
 local minimapHeight = 0.235
 local selectedBuilders = {}
 local cellRects = {}
-local uncategorizedBuildOpts = {}
 local cellcmds = {}
 local buildOpts = {}
 local buildOptsCount
@@ -180,7 +179,7 @@ local nextPageRect = Rect:new(0, 0, 0, 0)
 local categoriesRect = Rect:new(0, 0, 0, 0)
 local buildpicsRect = Rect:new(0, 0, 0 ,0)
 local paginatorsRect = Rect:new(0, 0, 0, 0)
-local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
+local isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -238,96 +237,32 @@ function widget:PlayerChanged()
 end
 
 local function RefreshCommands()
-	local gridPos = {}
-	local lHasUnitGrid = {}
 
-	if preGamestartPlayer and startDefID then
+	if isPregame and startDefID then
 		selectedBuilder = startDefID
 	end
 
-	if currentCategory then
-		gridPos = grid.unitGridPos[selectedBuilder] and grid.unitGridPos[selectedBuilder][currentCategoryIndex]
-		lHasUnitGrid = grid.hasUnitGrid[selectedBuilder] -- Ensure if unit has static grid to not repeat unit on different category
-	elseif selectedFactory then
-		gridPos = grid.unitGridPos[selectedFactory]
-	end
-
-	uncategorizedBuildOpts = {}
 	buildOpts = {}
 	buildOptsCount = 0
 
-	local unorderedBuildOptions = {}
-
-	-- convenience function
-	function setBuildOpt(udefid, opt)
-		if not opt then
-			opt = {
-				id = -udefid,
-				name = UnitDefs[udefid].name,
-				params = {}
-			}
-		end
-		buildOptsCount = buildOptsCount + 1
-		buildOpts[udefid] = opt
-	end
-
-	-- convenience function, figure out if we're looking for categorized build options
-	function noCategory(udefid)
-		return currentCategory == nil or (grid.unitCategories[udefid] == currentCategory and not (lHasUnitGrid and lHasUnitGrid[udefid]))
-	end
-
-
-	-- handle pregame build options
-	if preGamestartPlayer then
-		if startDefID then
-			categories = Cfgs.buildCategories
-
-			for _, udefid in pairs(UnitDefs[startDefID].buildOptions) do
-				if not units.unbaStartBuildoptions or units.unbaStartBuildoptions[udefid] then
-					if not units.unitRestricted[udefid] then
-						if gridPos and gridPos[udefid] then
-							setBuildOpt(udefid)
-						elseif noCategory(udefid) then
-							setBuildOpt(udefid)
-							unorderedBuildOptions[udefid] = true
-						end
-					end
-				end
-			end
-		end
-	else
-		-- handle build options (not pregame)
-		local activeCmdDescs = selectedFactory and Spring.GetUnitCmdDescs(selectedFactoryUID) or Spring.GetActiveCmdDescs()
-
-		for _, cmd in pairs(activeCmdDescs) do
-			if type(cmd) == "table" and not cmd.disabled then
-				local id = -cmd.id
-				if string.sub(cmd.action, 1, 10) == 'buildunit_' and not units.unitRestricted[id] then
-
-					if gridPos and gridPos[id] then
-						setBuildOpt(id, cmd)
-					elseif noCategory(id) then
-						setBuildOpt(id, cmd)
-						unorderedBuildOptions[id] = true
-					end
-				end
-			end
-		end
-	end
-
-	-- sort "home page" options for a builder, what shows before any category has been selected
-	if(selectedBuilder and not currentCategory) then
-		uncategorizedBuildOpts = getSortedGridForBuilder(selectedBuilder, currentCategory)
-	else
+	function tablelength(T)
 		local count = 0
-		-- sort uncategorized options by the hardcoded unit sorting
-		for _, uDefID in pairs(units.unitOrder) do
-			if unorderedBuildOptions[uDefID] then
-				count = count + 1
-				uncategorizedBuildOpts[count] = buildOpts[uDefID]
-			end
-		end
+		for _ in pairs(T) do count = count + 1 end
+		return count
 	end
+
+	if selectedBuilder or isPregame then
+		categories = Cfgs.buildCategories
+		local buildOptions = UnitDefs[selectedBuilder].buildOptions
+		if isPregame and units.unbaStartBuildoptions then
+			buildOptions = units.unbaStartBuildoptions
+		end
+		buildOpts = getSortedGridForBuilder(selectedBuilder, buildOptions, currentCategory)
+	elseif selectedFactory then
+		local activeCmdDescs = Spring.GetUnitCmdDescs(selectedFactoryUID)
+		buildOpts = grid.getSortedGridForLab(selectedFactory, activeCmdDescs)
+	end
+	buildOptsCount = tablelength(buildOpts)
 end
 
 
@@ -502,7 +437,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		enqueueUnit(uDefID, opts)
 
 		return true
-	elseif preGamestartPlayer and currentCategory then
+	elseif isPregame and currentCategory then
 		if alt or ctrl or meta then return end
 		if args[3] and args[3] == 'factory' then return false end
 
@@ -593,7 +528,7 @@ function widget:Initialize()
 	end
 
 	-- Get our starting unit
-	if preGamestartPlayer then
+	if isPregame then
 		if not startDefID or startDefID ~= Spring.GetTeamRulesParam(myTeamID, 'startUnit') then
 			startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 			doUpdate = true
@@ -880,7 +815,7 @@ function widget:Update(dt)
 		end
 	end
 
-	if selectNextFrame and not preGamestartPlayer then
+	if selectNextFrame and not isPregame then
 		local cmdIndex = spGetCmdDescIndex(selectNextFrame)
 		if cmdIndex then
 			Spring.SetActiveCommand(cmdIndex, 1, true, false, Spring.GetModKeyState())
@@ -905,7 +840,7 @@ function widget:Update(dt)
 		if activeCmd ~= prevActiveCmd then doUpdate = true end
 	end
 
-	if not (preGamestartPlayer or selectedBuilder or selectedFactory or alwaysShow) then
+	if not (isPregame or selectedBuilder or selectedFactory or alwaysShow) then
 		buildmenuShows = false
 	else
 		buildmenuShows = true
@@ -966,7 +901,6 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 	local uid = cmd.id * -1
 	-- unit icon
 	if disabled then
-		Spring.Echo("Drawing cell for disabled unit", cmd)
 		gl.Color(0.4, 0.4, 0.4, 1)
 	else
 		gl.Color(1, 1, 1, 1)
@@ -1106,7 +1040,7 @@ local function drawCategories()
 	end
 
 	-- set up buttons
-	for catIndex, cat in pairs(Cfgs.buildCategories) do
+	for catIndex, cat in pairs(categories) do
 		local catText = cat
 		local catIcon = Cfgs.categoryIcons[catIndex]
 		local keyText = keyConfig.sanitizeKey(Cfgs.categoryKeys[catIndex], currentLayout)
@@ -1179,36 +1113,23 @@ local function drawGrid()
 			cellRectID = cellRectID + 1
 
 			local uDefID
-			-- hotkey mapping from 2x6 -> 3x4 grid
+
+
+
+
+			local index = col + ((row - 1) * columns)
+			-- offset for pages
+			index = index + ((currentPage - 1) * numCellsPerPage)
+
+			if buildOpts[index] then
+				uDefID = -buildOpts[index].id
+			end
+
+			-- if gridmenu is on bottom, we need to remap positions from 2x6 -> 3x4 grid
 			-- 3,1 -> 2,5
 			-- 3,2 -> 2,6
 			-- 3,3 -> 1,5
 			-- 3,4 -> 1,6
-
-			-- grid indices are laid out like this
-			-- 9  10 11 12
-			-- 5  6  7  8
-			-- 1  2  3  4
-
-			local index = col + ((row - 1) * columns)
-			-- offset for pages
-			--index = index + ((currentPage - 1) * numCellsPerPage)
-
-
-			if selectedFactory then
-				if currentPage == 1 and unitGrid and unitGrid[row .. col] then
-					uDefID = unitGrid[row .. col]
-				elseif uncategorizedBuildOpts[index] then
-					uDefID = uncategorizedBuildOpts[index].id * -1
-				end
-			elseif currentPage == 1 and currentCategory and unitGrid and unitGrid[currentCategoryIndex .. row .. col] then
-				uDefID = unitGrid[currentCategoryIndex .. row .. col]
-			else
-				if uncategorizedBuildOpts[index] and uncategorizedBuildOpts[index].id then
-					uDefID = uncategorizedBuildOpts[index].id * -1
-				end
-			end
-
 			local rect
 			local acol = col
 			local arow = row
@@ -1223,21 +1144,21 @@ local function drawGrid()
 				buildpicsRect.yEnd - (rows - arow) * cellSize
 			)
 
-			if uDefID and buildOpts[uDefID] then
-				cellcmds[cellRectID] = buildOpts[uDefID]
+			if uDefID and buildOpts[index] then
+				cellcmds[cellRectID] = buildOpts[index]
 
-				buildOpts[uDefID].hotkey = string.gsub(string.upper(Cfgs.keyLayout[row][col]), "ANY%+", '')
+				buildOpts[index].hotkey = string.gsub(string.upper(Cfgs.keyLayout[row][col]), "ANY%+", '')
 				hotkeyActions[tostring(row) .. tostring(col)] = -uDefID
 
-				local udef = buildOpts[uDefID]
+				local udef = buildOpts[index]
 
 				cellRects[cellRectID] = rect
 
 				local cellIsSelected = (activeCmd and udef and activeCmd == udef.name) or
-					(preGamestartPlayer and selBuildQueueDefID == uDefID)
+					(isPregame and selBuildQueueDefID == uDefID)
 				local usedZoom = (cellIsSelected and selectedCellZoom or defaultCellZoom)
 
-				drawCell(rect, buildOpts[uDefID], usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, units.unitRestricted[uDefID])
+				drawCell(rect, buildOpts[index], usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, units.unitRestricted[uDefID])
 			else
 				drawEmptyCell(rect)
 				hotkeyActions[tostring(row) .. tostring(col)] = nil
@@ -1245,7 +1166,7 @@ local function drawGrid()
 		end
 	end
 
-	if cellcmds[1] and (selectedBuilder or preGamestartPlayer) and switchedCategory then
+	if cellcmds[1] and (selectedBuilder or isPregame) and switchedCategory then
 		selectNextFrame = cellcmds[1].id
 	end
 end
@@ -1260,11 +1181,9 @@ local function drawBuildMenu()
 
 	-- adjust grid size when pages are needed
 	if buildOptsCount > columns * rows then
-		if(selectedFactory or currentCategory) then
-			pages = math_ceil(buildOptsCount / (rows * columns))
-		else
-			pages = 1
-		end
+		pages = math_ceil(buildOptsCount / (rows * columns))
+
+
 
 
 		if currentPage > pages then
@@ -1354,7 +1273,7 @@ function widget:DrawScreen()
 	if WG['buildmenu'] then
 		WG['buildmenu'].hoverID = nil
 	end
-	if not (preGamestartPlayer or selectedBuilder or selectedFactory or alwaysShow) then
+	if not (isPregame or selectedBuilder or selectedFactory or alwaysShow) then
 		if WG['guishader'] and dlistGuishader then
 			WG['guishader'].RemoveDlist('buildmenu')
 		end
@@ -1391,7 +1310,7 @@ function widget:DrawScreen()
 
 		-- draw buildmenu background
 		gl.CallList(dlistBuildmenuBg)
-		if preGamestartPlayer or selectedBuilder or selectedFactory then
+		if isPregame or selectedBuilder or selectedFactory then
 			-- pre process + 'highlight' under the icons
 			local hoveredCellID
 			local hoveredButtonNotFound = true
@@ -1579,7 +1498,7 @@ function widget:DrawWorld()
 		return
 	end
 
-	if not preGamestartPlayer then return end
+	if not isPregame then return end
 
 	if startDefID ~= Spring.GetTeamRulesParam(myTeamID, 'startUnit') then
 		startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
@@ -1609,13 +1528,13 @@ function widget:SelectionChanged()
 end
 
 function widget:GameStart()
-	preGamestartPlayer = false
+	isPregame = false
 end
 
 function widget:KeyRelease(key)
 	if key ~= KEYSYMS.LSHIFT then return end
 
-	if preGamestartPlayer then
+	if isPregame then
 		setPreGamestartDefID(nil)
 	else
 		currentCategory = nil
@@ -1634,7 +1553,7 @@ function widget:MousePress(x, y, button)
 	end
 
 	if buildmenuShows and backgroundRect:contains(x, y) then
-		if selectedBuilder or selectedFactory or (preGamestartPlayer and startDefID) then
+		if selectedBuilder or selectedFactory or (isPregame and startDefID) then
 			if nextPageRect and nextPageRect:contains(x, y) then
 				Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
 				nextPageHandler()
@@ -1664,7 +1583,7 @@ function widget:MousePress(x, y, button)
 						if button ~= 3 then
 							Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
 
-							if preGamestartPlayer then
+							if isPregame then
 								setPreGamestartDefID(cellcmds[cellRectID].id * -1)
 							elseif spGetCmdDescIndex(cellcmds[cellRectID].id) then
 								Spring.SetActiveCommand(spGetCmdDescIndex(cellcmds[cellRectID].id), 1, true, false, Spring.GetModKeyState())
