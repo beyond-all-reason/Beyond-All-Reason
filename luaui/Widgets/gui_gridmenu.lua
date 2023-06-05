@@ -1099,12 +1099,6 @@ end
 local function drawGrid()
 	local numCellsPerPage = rows * columns
 	local cellRectID = 0
-	local unitGrid
-	if selectedFactory then
-		unitGrid = grid.gridPosUnit[selectedFactory]
-	else
-		unitGrid = grid.gridPosUnit[selectedBuilder]
-	end
 
 	cellcmds = {}
 
@@ -1113,9 +1107,6 @@ local function drawGrid()
 			cellRectID = cellRectID + 1
 
 			local uDefID
-
-
-
 
 			local index = col + ((row - 1) * columns)
 			-- offset for pages
