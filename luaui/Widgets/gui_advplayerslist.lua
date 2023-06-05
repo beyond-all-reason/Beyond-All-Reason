@@ -98,9 +98,6 @@ local math_isInRect = math.isInRect
 local RectRound, UiElement, elementCorner, UiSelectHighlight
 local bgpadding = 3
 
-
-local specOffset = 256
-
 --------------------------------------------------------------------------------
 -- IMAGES
 --------------------------------------------------------------------------------
@@ -619,10 +616,10 @@ end
 local function UpdateAlliances()
     local playerList = Spring_GetPlayerList()
     for _, playerID in pairs(playerList) do
-        if player[playerID] and not player[playerID].spec then
+        if not player[playerID].spec then
             local alliances = {}
             for _, player2ID in pairs(playerList) do
-                if player[player2ID] and not player[playerID].spec and not player[player2ID].spec and playerID ~= player2ID and player[playerID].team ~= nil and player[player2ID].team ~= nil and player[playerID].allyteam ~= player[player2ID].allyteam and Spring_AreTeamsAllied(player[player2ID].team, player[playerID].team) then
+                if not player[playerID].spec and not player[player2ID].spec and playerID ~= player2ID and player[playerID].team ~= nil and player[player2ID].team ~= nil and player[playerID].allyteam ~= player[player2ID].allyteam and Spring_AreTeamsAllied(player[player2ID].team, player[playerID].team) then
                     alliances[#alliances + 1] = player2ID
                 end
             end
@@ -1181,7 +1178,7 @@ function GetAllPlayers()
     teamN = table.maxn(allteams) - 1 --remove gaia
     for i = 0, teamN - 1 do
         local teamPlayers = Spring_GetPlayerList(i, true)
-        player[i + specOffset] = CreatePlayerFromTeam(i)
+        player[i + 64] = CreatePlayerFromTeam(i)
         for _, playerID in ipairs(teamPlayers) do
             player[playerID] = CreatePlayer(playerID)
         end
@@ -1628,25 +1625,25 @@ function SortPlayers(teamID, allyTeamID, vOffset)
 
     -- add AI teams
     if select(4, Spring_GetTeamInfo(teamID, false)) then
-        if enemyListShow or player[specOffset + teamID].allyteam == myAllyTeamID then
+        if enemyListShow or player[64 + teamID].allyteam == myAllyTeamID then
             -- is AI
             vOffset = vOffset + playerOffset
             drawListOffset[#drawListOffset + 1] = vOffset
-            drawList[#drawList + 1] = specOffset + teamID -- new AI team (instead of players)
-            player[specOffset + teamID].posY = vOffset
+            drawList[#drawList + 1] = 64 + teamID -- new AI team (instead of players)
+            player[64 + teamID].posY = vOffset
             noPlayer = false
         end
     end
 
     -- add no player token if no player found in this team at this point
     if noPlayer then
-        if enemyListShow or player[specOffset + teamID].allyteam == myAllyTeamID then
+        if enemyListShow or player[64 + teamID].allyteam == myAllyTeamID then
             vOffset = vOffset + playerOffset - deadPlayerHeightReduction
             drawListOffset[#drawListOffset + 1] = vOffset
-            drawList[#drawList + 1] = specOffset + teamID  -- no players team
-            player[specOffset + teamID].posY = vOffset
+            drawList[#drawList + 1] = 64 + teamID  -- no players team
+            player[64 + teamID].posY = vOffset
             if Spring_GetGameFrame() > 0 then
-                player[specOffset + teamID].totake = IsTakeable(teamID)
+                player[64 + teamID].totake = IsTakeable(teamID)
             end
         end
     end
@@ -1661,7 +1658,7 @@ function SortSpecs(vOffset)
     for _, playerID in ipairs(playersList) do
         local _, active, spec = Spring_GetPlayerInfo(playerID, false)
         if spec and active then
-            if player[playerID] and player[playerID].name ~= nil then
+            if player[playerID].name ~= nil then
 
                 -- add "Specs" label if first spec
                 if noSpec then
@@ -1754,7 +1751,7 @@ function widget:DrawScreen()
         local posY
         local x, y, b = Spring.GetMouseState()
         for _, i in ipairs(drawList) do
-            if i > -1 then -- and i < specOffset
+            if i > -1 then -- and i < 64
                 posY = widgetPosY + widgetHeight - (player[i].posY or 0)
                 if myTeamID ~= player[i].team and not player[i].spec and not player[i].dead and player[i].name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + playerOffset) then
                     UiSelectHighlight(widgetPosX, posY, widgetPosX + widgetPosX + 2 + 4, posY + playerOffset, nil, b and 0.28 or 0.14)
@@ -1935,7 +1932,7 @@ function CheckTime()
         lastTime = now
         CheckPlayersChange()
         blink = not blink
-        for playerID = 0, specOffset-1 do
+        for playerID = 0, 63 do
             if player[playerID] ~= nil then
                 if player[playerID].pointTime ~= nil then
                     if player[playerID].pointTime <= now then
@@ -2226,7 +2223,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
         end
     end
 
-    if playerID < specOffset then
+    if playerID < 64 then
         if m_chat.active and mySpecStatus == false and spec == false then
             if playerID ~= myPlayerID then
                 DrawChatButton(posY)
@@ -2554,8 +2551,8 @@ function DrawName(name, team, posY, dark, playerID, desynced)
     end
 
     if not gameStarted then
-        if playerID >= specOffset then
-            willSub = (Spring.GetGameRulesParam("Player" .. (playerID - specOffset) .. "willSub") == 1) and " (sub)" or "" --pID-specOffset because apl uses dummy playerIDs for absent players
+        if playerID >= 64 then
+            willSub = (Spring.GetGameRulesParam("Player" .. (playerID - 64) .. "willSub") == 1) and " (sub)" or "" --pID-64 because apl uses dummy playerIDs for absent players
         else
             willSub = (Spring.GetGameRulesParam("Player" .. (playerID) .. "willSub") == 1) and " (sub)" or ""
         end
@@ -3004,7 +3001,7 @@ function widget:MousePress(x, y, button)
                 else
                     t = false
                     if m_point.active then
-                        if i > -1 and i < specOffset then
+                        if i > -1 and i < 64 then
                             if clickedPlayer.pointTime ~= nil then
                                 if right then
                                     if IsOnRect(x, y, widgetPosX - 33, posY - 2, widgetPosX - 17, posY + playerOffset) then
@@ -3022,9 +3019,9 @@ function widget:MousePress(x, y, button)
                         end
                     end
                 end
-                if i > -1 then -- and i < specOffset
+                if i > -1 then -- and i < 64
                     if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + playerOffset) then
-                        if ctrl and i < specOffset then
+                        if ctrl and i < 64 then
                             Spring_SendCommands("toggleignore " .. clickedPlayer.name)
                             return true
                         elseif not player[i].spec then
@@ -3047,7 +3044,7 @@ function widget:MousePress(x, y, button)
                             end
                         end
 
-                        if i < specOffset and (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
+                        if i < 64 and (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
                             LockCamera(i)
                             prevClickedPlayer = {}
                             SortList()
@@ -3118,7 +3115,7 @@ function widget:MousePress(x, y, button)
                     t = true
                 else
                     t = false
-                    if i > -1 and i < specOffset then
+                    if i > -1 and i < 64 then
                         --chat button
                         if m_chat.active then
                             if IsOnRect(x, y, m_chat.posX + widgetPosX + 1, posY, m_chat.posX + widgetPosX + 17, posY + playerOffset) then
@@ -3461,14 +3458,14 @@ end
 
 function CheckPlayersChange()
     local sorting = false
-    for i = 0, specOffset-1 do
+    for i = 0, 63 do
         local name, active, spec, teamID, allyTeamID, pingTime, cpuUsage, country, rank, _, _, desynced = Spring_GetPlayerInfo(i, false)
         if active == false then
             if player[i].name ~= nil then
                 -- NON SPEC PLAYER LEAVING
                 if player[i].spec == false then
                     if table.maxn(Spring_GetPlayerList(player[i].team, true)) == 0 then
-                        player[player[i].team + specOffset] = CreatePlayerFromTeam(player[i].team)
+                        player[player[i].team + 64] = CreatePlayerFromTeam(player[i].team)
                         sorting = true
                     end
                 end
@@ -3482,7 +3479,7 @@ function CheckPlayersChange()
                 if spec then
                     if table.maxn(Spring_GetPlayerList(player[i].team, true)) == 0 then
                         -- (update the no players team)
-                        player[player[i].team + specOffset] = CreatePlayerFromTeam(player[i].team)
+                        player[player[i].team + 64] = CreatePlayerFromTeam(player[i].team)
                     end
                     player[i].team = nil -- remove team
                 end
@@ -3493,7 +3490,7 @@ function CheckPlayersChange()
                 -- PLAYER CHANGING TEAM
                 if table.maxn(Spring_GetPlayerList(player[i].team, true)) == 0 then
                     -- check if there is no more player in the team + update
-                    player[player[i].team + specOffset] = CreatePlayerFromTeam(player[i].team)
+                    player[player[i].team + 64] = CreatePlayerFromTeam(player[i].team)
                 end
                 player[i].team = teamID
 				if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
@@ -3566,8 +3563,8 @@ end
 
 function updateTake(allyTeamID)
     for i = 0, teamN - 1 do
-        if player[i + specOffset].allyTeam == allyTeamID then
-            player[i + specOffset] = CreatePlayerFromTeam(i)
+        if player[i + 64].allyTeam == allyTeamID then
+            player[i + 64] = CreatePlayerFromTeam(i)
         end
     end
 end
@@ -3582,7 +3579,7 @@ function Take(teamID, name, i)
 end
 
 function widget:TeamDied(teamID)
-    player[teamID + specOffset] = CreatePlayerFromTeam(teamID)
+    player[teamID + 64] = CreatePlayerFromTeam(teamID)
     SortList()
 end
 
