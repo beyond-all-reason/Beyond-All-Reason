@@ -57,6 +57,7 @@ return {
 		turnrate = 100,
 		unitname = "epic_chickenq",
 		upright = false,
+		waterline = 80,
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",
