@@ -315,7 +315,7 @@ local function RefreshCommands()
 	end
 
 	-- sort "home page" options for a builder, what shows before any category has been selected
-	if(selectedBuilder) then
+	if(selectedBuilder and not currentCategory) then
 		local uncategorizedOpts = grid.uncategorizedGridPos[selectedBuilder]
 		if uncategorizedOpts then
 			local optionsInRow = 0
@@ -879,7 +879,7 @@ function widget:Update(dt)
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
 		if not voidWater and mapMinWater <= units.minWaterUnitDepth and not showwaterUnits then
 			showWaterUnits = true
-			units.restrictWaterUnits(true)
+			units.restrictWaterUnits(false)
 		end
 
 		local prevOrdermenuLeft = ordermenuLeft
@@ -1211,7 +1211,8 @@ local function drawGrid()
 
 			local index = col + ((row - 1) * columns)
 			-- offset for pages
-			index = index + ((currentPage - 1) * numCellsPerPage)
+			--index = index + ((currentPage - 1) * numCellsPerPage)
+
 
 			if selectedFactory then
 				if currentPage == 1 and unitGrid and unitGrid[row .. col] then
@@ -1221,11 +1222,12 @@ local function drawGrid()
 				end
 			elseif currentPage == 1 and currentCategory and unitGrid and unitGrid[currentCategoryIndex .. row .. col] then
 				uDefID = unitGrid[currentCategoryIndex .. row .. col]
-			elseif uncategorizedBuildOpts[index] and uncategorizedBuildOpts[index].id then
-				uDefID = uncategorizedBuildOpts[index].id * -1
+			else
+				if uncategorizedBuildOpts[index] and uncategorizedBuildOpts[index].id then
+					uDefID = uncategorizedBuildOpts[index].id * -1
+				end
 			end
 
-			-- remap positions of cells if the grid is on the bottom
 			local rect
 			local acol = col
 			local arow = row
