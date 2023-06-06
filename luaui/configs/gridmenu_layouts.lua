@@ -166,6 +166,17 @@ local labGrids = {
 		"corsnap", "cormh", "corhal", "",
 		"", "", "corah",
 	},
+
+	-- T3 labs
+	armshltx = {
+		"armmar", "armraz", "armvang", "armthor",
+		"armbanth", "armlun"
+	},
+
+	corgant = {
+		"corcat", "corkarg", "corshiva", "corkorg",
+		"corjugg", "corsok"
+	}
 }
 local unitGrids = {
 	-- Air assist drones
@@ -609,7 +620,7 @@ local unitGrids = {
 		{
 			{ "corsy", "corvp", "corap", "corlab",  },        -- shipyard, vehicle lab, air lab, bot lab
 			{ "cornanotcplat", "corasy", },                   -- floating nano, T2 shipyard
-			{ "corfhp", "", "coramsub", "corplat",  },        -- floating hover, amphibious lab, seaplane lab 
+			{ "corfhp", "", "coramsub", "corplat",  },        -- floating hover, amphibious lab, seaplane lab
 		}
 	},
 
@@ -800,7 +811,7 @@ local unitGrids = {
 			{ },                                                --
 		}
 	},
-	
+
 	legack = {
 		{
 			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus

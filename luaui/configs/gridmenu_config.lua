@@ -111,6 +111,19 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitCategories[unitDefID] = categoryGroupMapping[unitDef.customParams.unitgroup] or BUILDCAT_UTILITY
 end
 
+function dump(o)
+	if type(o) == 'table' then
+		local s = '{ '
+		for k,v in pairs(o) do
+			if type(k) ~= 'number' then k = '"'..k..'"' end
+			s = s .. '['..k..'] = ' .. dump(v) .. ','
+		end
+		return s .. '} '
+	else
+		return tostring(o)
+	end
+end
+
 function getCategoryIndex(category)
 	if category == BUILDCAT_ECONOMY then return 1
 	elseif category == BUILDCAT_COMBAT then return 2
@@ -175,7 +188,7 @@ function getSortedGridForBuilder(builderId, buildOptions, currentCategory)
 
 	-- lay out the category
 	if currentCategory and not isFactory then
-		unitGrid = gridPosUnit[builderId]
+		local unitGrid = gridPosUnit[builderId]
 		local emptyCells = {}
 		local categoryIndex = getCategoryIndex(currentCategory)
 
@@ -212,41 +225,33 @@ function getSortedGridForBuilder(builderId, buildOptions, currentCategory)
 end
 
 
+-- labs use cmds instead of buildoptions because they need to have state information like current queue count
 function getSortedGridForLab(builderId, cmds)
 	local options = {}
 
-	-- lay out the grid
-	unitGrid = gridPosUnit[builderId]
-	local emptyCells = {}
-
-	-- start with preset positions
-	for row = 1, rows do
-		for col = 1, columns do
-			local index = col + ((row - 1) * columns)
-
-			if unitGrid and unitGrid[row .. col] then
-				options[index] = constructBuildOption(unitGrid[row .. col])
-			else
-				-- any gaps in the grid can be filled by undefined units, i.e. scav units
-				table.insert(emptyCells, index)
-			end
-		end
-	end
-	for i = 13, 24 do
-		-- fill up page 2 with empty slots
-		table.insert(emptyCells, i)
-	end
-	-- go through all buildoptions to fill in any units without predefined grid positions i.e. scav units
+	local undefinedCmds = {}
+	-- go through all cmds to fill in all the units with predefined grid positions
 	for _, cmd in pairs(cmds) do
 		if type(cmd) == "table" and not cmd.disabled then
 			local id = -cmd.id
-			if string.sub(cmd.action, 1, 10) == 'buildunit_' and not (unitGridPos[builderId] and unitGridPos[builderId][id]) then
-				local index = table.remove(emptyCells, 1)
-
-				if index then
+			if string.sub(cmd.action, 1, 10) == 'buildunit_' then
+				if (unitGridPos[builderId] and unitGridPos[builderId][id]) then
+					local row = string.sub(unitGridPos[builderId][id], 1, 1)
+					local col = string.sub(unitGridPos[builderId][id], 2, 2)
+					local index = col + ((row - 1) * columns)
 					options[index] = constructBuildOption(id, cmd)
+				else
+					table.insert(undefinedCmds, cmd)
 				end
 			end
+		end
+	end
+	-- go through the cmds with undefined positions (i.e. scav units) and put them in the next available empty spot
+	for i = 1, 24 do
+		if #undefinedCmds < 1 then break end
+		if not options[i] then
+			local cmd = table.remove(undefinedCmds, 1)
+			options[i] = constructBuildOption(-cmd.id, cmd)
 		end
 	end
 	return options
