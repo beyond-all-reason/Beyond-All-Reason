@@ -72,7 +72,7 @@ return {
 			[9] = "legap",
 			[10] = "coreyes",
 			[11] = "corrad",
-			[12] = "cordrag",
+			[12] = "corscavdrag",
 			[13] = "corllt",
 			[14] = "corrl",
 			[15] = "cordl",
