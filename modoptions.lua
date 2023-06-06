@@ -1235,7 +1235,7 @@ local options={
 	{
 		key    = 'experimentalextraunits',
 		name   = 'Extra Unit Pack',
-		desc   = 'Formally known as Scavenger units. Addon pack of units for Armada and Cortex, including various "fun" units',
+		desc   = 'Formerly known as Scavenger units. Addon pack of units for Armada and Cortex, including various "fun" units',
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,
