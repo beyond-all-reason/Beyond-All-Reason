@@ -24,7 +24,6 @@ SYMKEYS = table.invert(KEYSYMS)
 
 local returnToCategoriesOnPick = true
 
-
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 
@@ -299,7 +298,6 @@ local function reloadBindings()
 
 		if not cKey then
 			cKey = ''
-			Spring.Echo("Error, missing grid category keybind for action " .. categoryAction .. ", things may not function as expected")
 		end
 
 		Cfgs.categoryKeys[c] = cKey
@@ -310,7 +308,6 @@ local function reloadBindings()
 
 			if not key then
 				key = ''
-				Spring.Echo("Error, missing grid key bind for action " .. keyAction .. ", things may not function as expected")
 			end
 
 			Cfgs.keyLayout[r][c] = key
@@ -319,7 +316,6 @@ local function reloadBindings()
 
 	local key = getActionHotkey('gridmenu_next_page')
 	if not key then
-		Spring.Echo("Error, missing grid key bind for next page, things may not function as expected")
 	end
 
 	Cfgs.NEXT_PAGE_KEY = key
@@ -327,7 +323,6 @@ local function reloadBindings()
 	key = getActionHotkey('gridmenu_prev_page')
 	if not key then
 		key = Cfgs.PREV_PAGE_KEY
-		Spring.Echo("Error, missing grid key bind for prev page, things may not function as expected")
 	end
 
 	Cfgs.PREV_PAGE_KEY = key
@@ -1104,9 +1099,8 @@ local function drawGrid()
 
 			local uDefID
 
-			local index = col + ((row - 1) * columns)
 			-- offset for pages
-			index = index + ((currentPage - 1) * numCellsPerPage)
+			local index = cellRectID + ((currentPage - 1) * numCellsPerPage)
 
 			if buildOpts[index] then
 				uDefID = -buildOpts[index].id
@@ -1623,16 +1617,5 @@ function widget:SetConfigData(data)
 	end
 	if data.alwaysShow ~= nil then
 		alwaysShow = data.alwaysShow
-	end
-end
-
-function GiveOrderToFactories(cmd, data)
-	data = data or {}
-
-	local udTable = Spring.GetSelectedUnitsSorted()
-	for _, uTable in pairs(udTable) do
-		for _, uid in ipairs(uTable) do
-			Spring.GiveOrderToUnit(uid, cmd, data, 0)
-		end
 	end
 end
