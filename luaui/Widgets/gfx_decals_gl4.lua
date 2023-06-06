@@ -904,6 +904,9 @@ for weaponDefID=1, #WeaponDefs do
 		elseif string.find(weaponDef.name, 'vipersabot') then -- viper has very tiny AoE
 			radius = (radius * 4) 
 
+		elseif string.find(weaponDef.name, 'armmav_weapon') then -- armmav has very tiny AoE
+			radius = (radius * 6) 
+
 		elseif string.find(weaponDef.name, 'corkorg_fire') then -- Juggernaut has lots of decals on shotgun
 			alphadecay = 0.004 
 
@@ -1302,26 +1305,6 @@ local UnitScriptDecals = {
 			fadeintime = 5, 
 			},
 		},	
-		
-	[UnitDefNames['armmav'].id] = { 
-		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armmav_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
-			offsetrot = 0.0, -- in radians
-			width = 20,
-			height = 20,
-			heatstart = 0,
-			heatdecay = 0,
-			alphastart = 0.6, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
-			},
-		},
 		
 	[UnitDefNames['armmav'].id] = { 
 		[1] = { -- LFOOT
