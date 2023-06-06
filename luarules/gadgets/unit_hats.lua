@@ -29,7 +29,7 @@ end
 
 -- Notes:
 -- hat wearing units must have unitdef holdsteady = true to give the piece orientations
--- hat wearing commander is only transportable by t2 transports (mass? unitcount? why?)
+-- hats have nonzero mass and can stop commanders from being able to use T1 transports (see 5c4b8a3)
 -- hat pos is 1 frame off :/
 
 if not gadgetHandler:IsSyncedCode() then
