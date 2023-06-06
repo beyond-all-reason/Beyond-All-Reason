@@ -184,13 +184,12 @@ assert(type(teamID) == "number","Argument teamID is of invalid type - expected n
 assert(type(resourceType) == "string","Argument resourceType is of invalid type - expected string");
 assert(type(amount) == "number","Argument amount is of invalid type - expected number");
 return  numberMock
- end
+end
 
 ---@alias resourceTypes
 ---| "metal"
 ---| "energy"
 
----specify "metal" or "energy" for type
 -- Consumes metal and/or energy resources of the specified team.
 ---@param teamID number
 ---@param type resourceTypes
@@ -198,7 +197,7 @@ return  numberMock
 ---@return boolean | nil
 function Spring.UseTeamResource ( teamID, type, amount )
 return  booleanMock
- end
+end
 
 ---@alias resValues
 ---| "m" # metal
@@ -215,25 +214,29 @@ assert(type(teamID) == "number","Argument teamID is of invalid type - expected n
 assert(type(res) == "string","Argument res is of invalid type - expected string");
 assert(type(amount) == "number","Argument amount is of invalid type - expected number");
 return  numberMock
- end
+end
 
- ---Changes the resource amount for a team beyond which resources aren't stored but transferred to other allied teams if possible.
- ---@param teamID number
- ---@param resourceType resourceTypes
- ---@param amount number
- ---@return integer
+---Changes the resource amount for a team beyond which resources aren't stored but transferred to other allied teams if possible
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetTeamShareLevel)
+---@param teamID number
+---@param resourceType resourceTypes
+---@param amount number
+---@return integer
 function Spring.SetTeamShareLevel (teamID, resourceType, amount)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 assert(type(resourceType) == "string","Argument metal is of invalid type - expected string");
 assert(type(amount) == "number","Argument amount is of invalid type - expected number");
 return  numberMock
- end
+end
 
 --- Transfers resources between two teams
+---
+--- [Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.ShareTeamResource)
 ---@param teamID_src number source team
 ---@param teamID_rec number recieving team
 ---@param resourceType resourceTypes
----@param amount number
+---@param amount number 
 ---@return nil
 function Spring.ShareTeamResource ( teamID_src, teamID_rec, resourceType, amount )
 assert(type(teamID_src) == "number","Argument teamID_src is of invalid type - expected number");
@@ -241,7 +244,8 @@ assert(type(teamID_rec) == "number","Argument teamID_rec is of invalid type - ex
 assert(type(resourceType) == "string", "Argument resourceType is of invalid type - expected string");
 assert(type(amount) == "number","Argument amount is of invalid type - expected number");
 return  numberMock
- end
+end
+
 
 --==================================================================================================
 -- Teams
