@@ -120,7 +120,7 @@ local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2
 local doUpdate, doUpdateClock, ordermenuHeight, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 
-local selectedBuilder, selectedFactory, selectedFactoryUID
+local activeBuilder, activeBuilderID, builderIsFactory, selectedFactoryUID
 
 local buildmenuShows = false
 
@@ -167,8 +167,8 @@ local minimapHeight = 0.235
 local selectedBuilders = {}
 local cellRects = {}
 local cellcmds = {}
-local buildOpts = {}
-local buildOptsCount
+local gridOpts = {}
+local gridOptsCount
 local categories = {}
 local catRects = {}
 local currentCategory
@@ -221,7 +221,7 @@ local function checkGuishader(force)
 			dlistGuishader = gl.CreateList(function()
 				RectRound(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, elementCorner)
 			end)
-			if selectedBuilder or selectedFactory then
+			if activeBuilder then
 				WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
 			end
 		end
@@ -238,11 +238,11 @@ end
 local function RefreshCommands()
 
 	if isPregame and startDefID then
-		selectedBuilder = startDefID
+		activeBuilder = startDefID
 	end
 
-	buildOpts = {}
-	buildOptsCount = 0
+	gridOpts = {}
+	gridOptsCount = 0
 
 	function tablelength(T)
 		local count = 0
@@ -250,18 +250,21 @@ local function RefreshCommands()
 		return count
 	end
 
-	if selectedBuilder or isPregame then
-		categories = Cfgs.buildCategories
-		local buildOptions = UnitDefs[selectedBuilder].buildOptions
-		if isPregame and units.unbaStartBuildoptions then
-			buildOptions = units.unbaStartBuildoptions
+	if activeBuilder then
+		if builderIsFactory then
+			local activeCmdDescs = Spring.GetUnitCmdDescs(selectedFactoryUID)
+			gridOpts = grid.getSortedGridForLab(activeBuilder, activeCmdDescs)
+		else
+			categories = Cfgs.buildCategories
+			local buildOptions = UnitDefs[activeBuilder].buildOptions
+			if isPregame and units.unbaStartBuildoptions then
+				buildOptions = units.unbaStartBuildoptions
+			end
+			gridOpts = grid.getSortedGridForBuilder(activeBuilder, buildOptions, currentCategory)
 		end
-		buildOpts = getSortedGridForBuilder(selectedBuilder, buildOptions, currentCategory)
-	elseif selectedFactory then
-		local activeCmdDescs = Spring.GetUnitCmdDescs(selectedFactoryUID)
-		buildOpts = grid.getSortedGridForLab(selectedFactory, activeCmdDescs)
 	end
-	buildOptsCount = tablelength(buildOpts)
+
+	gridOptsCount = tablelength(gridOpts)
 end
 
 
@@ -363,7 +366,7 @@ local function gridmenuCategoryHandler(_, _, args)
 		return
 	end
 
-	if not selectedBuilder or (currentCategory and hotkeyActions['1' .. cIndex]) then
+	if not activeBuilder or builderIsFactory or (currentCategory and hotkeyActions['1' .. cIndex]) then
 		return
 	end
 
@@ -404,13 +407,13 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		return
 	end
 
-	if isRepeat and selectedBuilder then
+	if isRepeat and activeBuilder then
 		return currentCategory and true or false
 	end
 
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
-	if selectedFactory then
+	if builderIsFactory then
 		if args[3] and args[3] == 'builder' then return false end
 		if meta then return end
 
@@ -439,7 +442,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		doUpdate = true
 
 		return true
-	elseif selectedBuilder and currentCategory then
+	elseif activeBuilder and currentCategory then
 		if args[3] and args[3] == 'factory' then return false end
 		if alt or ctrl or meta then return end
 
@@ -466,7 +469,7 @@ function widget:CommandNotify(cmdID, _, cmdOpts)
 end
 
 local function nextPageHandler()
-	if not (selectedBuilder or selectedFactory) then return end
+	if not activeBuilder then return end
 	if pages < 2 then return end
 
 	currentPage =  currentPage + 1
@@ -479,7 +482,7 @@ local function nextPageHandler()
 end
 
 local function prevPageHandler()
-	if not (selectedBuilder or selectedFactory) then return end
+	if not activeBuilder then return end
 	if pages < 2 then return end
 
 	currentPage = math_max(1, currentPage - 1)
@@ -489,7 +492,7 @@ local function prevPageHandler()
 end
 
 local function gridmenuCategoriesHandler()
-	if not (selectedBuilder and currentCategory) then return end
+	if not (activeBuilder and currentCategory) then return end
 
 	currentCategory = nil
 	doUpdate = true
@@ -737,8 +740,9 @@ function widget:Update(dt)
 		updateSelection = false
 		SelectedUnitsCount = Spring.GetSelectedUnitsCount()
 
-		selectedBuilder = nil
-		selectedFactory = nil
+		activeBuilder = nil
+		activeBuilderID = nil
+		builderIsFactory = false
 		currentCategory = nil
 		selectedBuilders = {}
 		currentPage = 1
@@ -752,21 +756,22 @@ function widget:Update(dt)
 					doUpdate = true
 
 					selectedBuilders[unitID] = true
-					selectedBuilder = unitDefID
+					activeBuilder = unitDefID
+					activeBuilderID = unitID
 				end
 
 				if units.isFactory[unitDefID] then
 					doUpdate = true
 
-					selectedFactory = unitDefID
+					builderIsFactory = true
 					selectedFactoryUID = unitID
-					selectedBuilder = nil
+					activeBuilder = unitDefID
 
 					break
 				end
 			end
 
-			if selectedBuilder then
+			if activeBuilder then
 				categories = Cfgs.buildCategories
 			else
 				categories = {}
@@ -831,7 +836,7 @@ function widget:Update(dt)
 		if activeCmd ~= prevActiveCmd then doUpdate = true end
 	end
 
-	if not (isPregame or selectedBuilder or selectedFactory or alwaysShow) then
+	if not (isPregame or activeBuilder or alwaysShow) then
 		buildmenuShows = false
 	else
 		buildmenuShows = true
@@ -955,7 +960,7 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 	end
 
 	-- hotkey draw
-	if cmd.hotkey and (selectedFactory or (selectedBuilder and currentCategory)) then
+	if cmd.hotkey and (builderIsFactory or (activeBuilder and currentCategory)) then
 		local hotkeyText = keyConfig.sanitizeKey(cmd.hotkey, currentLayout)
 
 		local hotkeyFontSize = priceFontSize * 1.1
@@ -1102,8 +1107,8 @@ local function drawGrid()
 			-- offset for pages
 			local index = cellRectID + ((currentPage - 1) * numCellsPerPage)
 
-			if buildOpts[index] then
-				uDefID = -buildOpts[index].id
+			if gridOpts[index] then
+				uDefID = -gridOpts[index].id
 			end
 
 			-- if gridmenu is on bottom, we need to remap positions from 2x6 -> 3x4 grid
@@ -1125,13 +1130,13 @@ local function drawGrid()
 				buildpicsRect.yEnd - (rows - arow) * cellSize
 			)
 
-			if uDefID and buildOpts[index] then
-				cellcmds[cellRectID] = buildOpts[index]
+			if uDefID and gridOpts[index] then
+				cellcmds[cellRectID] = gridOpts[index]
 
-				buildOpts[index].hotkey = string.gsub(string.upper(Cfgs.keyLayout[row][col]), "ANY%+", '')
+				gridOpts[index].hotkey = string.gsub(string.upper(Cfgs.keyLayout[row][col]), "ANY%+", '')
 				hotkeyActions[tostring(row) .. tostring(col)] = -uDefID
 
-				local udef = buildOpts[index]
+				local udef = gridOpts[index]
 
 				cellRects[cellRectID] = rect
 
@@ -1139,7 +1144,7 @@ local function drawGrid()
 					(isPregame and selBuildQueueDefID == uDefID)
 				local usedZoom = (cellIsSelected and selectedCellZoom or defaultCellZoom)
 
-				drawCell(rect, buildOpts[index], usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, units.unitRestricted[uDefID])
+				drawCell(rect, gridOpts[index], usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, units.unitRestricted[uDefID])
 			else
 				drawEmptyCell(rect)
 				hotkeyActions[tostring(row) .. tostring(col)] = nil
@@ -1147,7 +1152,7 @@ local function drawGrid()
 		end
 	end
 
-	if cellcmds[1] and (selectedBuilder or isPregame) and switchedCategory then
+	if cellcmds[1] and (activeBuilder or isPregame) and switchedCategory then
 		selectNextFrame = cellcmds[1].id
 	end
 end
@@ -1156,13 +1161,13 @@ local function drawBuildMenu()
 	catRects = {}
 	font2:Begin()
 
-	if selectedBuilder then
+	if activeBuilder then
 		drawCategories()
 	end
 
 	-- adjust grid size when pages are needed
-	if buildOptsCount > columns * rows then
-		pages = math_ceil(buildOptsCount / (rows * columns))
+	if gridOptsCount > columns * rows then
+		pages = math_ceil(gridOptsCount / (rows * columns))
 
 
 
@@ -1216,13 +1221,13 @@ end
 local function drawBuildProgress()
 	local numCellsPerPage = rows * columns
 	local maxCellRectID = numCellsPerPage * currentPage
-	if maxCellRectID > buildOptsCount then
-		maxCellRectID = buildOptsCount
+	if maxCellRectID > gridOptsCount then
+		maxCellRectID = gridOptsCount
 	end
 	-- loop selected builders
 	local drawncellRectIDs = {}
-	for builderUnitID, _ in pairs(selectedBuilders) do
-		local unitBuildID = spGetUnitIsBuilding(builderUnitID)
+	if activeBuilderID then
+		local unitBuildID = spGetUnitIsBuilding(activeBuilderID)
 		if unitBuildID then
 			local unitBuildDefID = spGetUnitDefID(unitBuildID)
 			if unitBuildDefID then
@@ -1254,7 +1259,7 @@ function widget:DrawScreen()
 	if WG['buildmenu'] then
 		WG['buildmenu'].hoverID = nil
 	end
-	if not (isPregame or selectedBuilder or selectedFactory or alwaysShow) then
+	if not (isPregame or activeBuilder or alwaysShow) then
 		if WG['guishader'] and dlistGuishader then
 			WG['guishader'].RemoveDlist('buildmenu')
 		end
@@ -1291,7 +1296,7 @@ function widget:DrawScreen()
 
 		-- draw buildmenu background
 		gl.CallList(dlistBuildmenuBg)
-		if isPregame or selectedBuilder or selectedFactory then
+		if isPregame or activeBuilder then
 			-- pre process + 'highlight' under the icons
 			local hoveredCellID
 			local hoveredButtonNotFound = true
@@ -1376,7 +1381,7 @@ function widget:DrawScreen()
 				end
 			end
 
-			if (not hovering) or (selectedBuilder and hoveredButtonNotFound) then
+			if (not hovering) or (activeBuilder and hoveredButtonNotFound) then
 				if drawnHoveredButton then
 					doUpdate = true
 				end
@@ -1533,7 +1538,7 @@ function widget:MousePress(x, y, button)
 	end
 
 	if buildmenuShows and backgroundRect:contains(x, y) then
-		if selectedBuilder or selectedFactory or (isPregame and startDefID) then
+		if activeBuilder or (isPregame and startDefID) then
 			if nextPageRect and nextPageRect:contains(x, y) then
 				Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
 				nextPageHandler()
@@ -1562,7 +1567,7 @@ function widget:MousePress(x, y, button)
 							elseif spGetCmdDescIndex(cellcmds[cellRectID].id) then
 								Spring.SetActiveCommand(spGetCmdDescIndex(cellcmds[cellRectID].id), 1, true, false, Spring.GetModKeyState())
 							end
-						elseif selectedFactory and spGetCmdDescIndex(cellcmds[cellRectID].id) then
+						elseif builderIsFactory and spGetCmdDescIndex(cellcmds[cellRectID].id) then
 							Spring.PlaySoundFile(Cfgs.sound_queue_rem, 0.75, 'ui')
 							Spring.SetActiveCommand(spGetCmdDescIndex(cellcmds[cellRectID].id), 3, false, true, Spring.GetModKeyState())
 						end
@@ -1575,7 +1580,7 @@ function widget:MousePress(x, y, button)
 		elseif alwaysShow then
 			return true
 		end
-	elseif selectedBuilder and button == 3 then
+	elseif activeBuilder and button == 3 then
 		currentCategory = nil
 		doUpdate = true
 	end

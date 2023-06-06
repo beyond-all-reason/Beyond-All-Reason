@@ -124,7 +124,7 @@ function dump(o)
 	end
 end
 
-function getCategoryIndex(category)
+local function getCategoryIndex(category)
 	if category == BUILDCAT_ECONOMY then return 1
 	elseif category == BUILDCAT_COMBAT then return 2
 	elseif category == BUILDCAT_UTILITY then return 3
@@ -132,7 +132,7 @@ function getCategoryIndex(category)
 	else return nil end
 end
 
-function constructBuildOption(uDefID, cmd)
+local function constructBuildOption(uDefID, cmd)
 	if not cmd then
 		cmd = {
 			id = -uDefID,
@@ -172,7 +172,7 @@ function homeOptionsForBuilder(builderId)
 end
 
 
-function getSortedGridForBuilder(builderId, buildOptions, currentCategory)
+local function getSortedGridForBuilder(builderId, buildOptions, currentCategory)
 	if not builderId then
 		return
 	end
@@ -220,7 +220,7 @@ end
 
 
 -- labs use cmds instead of buildoptions because they need to have state information like current queue count
-function getSortedGridForLab(builderId, cmds)
+local function getSortedGridForLab(builderId, cmds)
 	local options = {}
 
 	local undefinedCmds = {}
