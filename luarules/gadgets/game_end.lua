@@ -145,10 +145,14 @@ if gadgetHandler:IsSyncedCode() then
 
 		local allResigned = true
 		if not team.dead then
-			local players = GetPlayerList(teamID)
-			for _, playerID in pairs(players) do
-				local _, active, spec = GetPlayerInfo(playerID, false)
-				allResigned = allResigned and spec
+			if team.isAI then
+				allResigned = false
+			else
+				local players = GetPlayerList(teamID)
+				for _, playerID in pairs(players) do
+					local _, active, spec = GetPlayerInfo(playerID, false)
+					allResigned = allResigned and spec
+				end
 			end
 		end
 		if not team.dead and allResigned then
