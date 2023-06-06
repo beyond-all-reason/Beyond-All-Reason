@@ -7,7 +7,7 @@ local unitGrids = configs.UnitGrids
 local unitGridPos = { }
 local gridPosUnit = { }
 local hasUnitGrid = { }
-local uncategorizedGridPos = { }
+local homeGridPos = { }
 
 local unitCategories = {}
 
@@ -45,7 +45,7 @@ for uname, ugrid in pairs(unitGrids) do
 	unitGridPos[builderId] = { {}, {}, {}, {}}
 	gridPosUnit[builderId] = {}
 	hasUnitGrid[builderId] = {}
-	uncategorizedGridPos[builderId] = { {}, {}, {}, {} }
+	homeGridPos[builderId] = { {}, {}, {}, {} }
 	local builderCanBuild = {}
 
 	local uBuilds = builder.buildOptions
@@ -67,7 +67,7 @@ for uname, ugrid in pairs(unitGrids) do
 						unitGridPos[builderId][cat][unit.id] = cat .. row .. col
 						hasUnitGrid[builderId][unit.id] = true
 						uncategorizedCount = uncategorizedCount + 1
-						uncategorizedGridPos[builderId][cat][uncategorizedCount] = unit.id
+						homeGridPos[builderId][cat][uncategorizedCount] = unit.id
 					end
 				end
 			end
@@ -151,7 +151,7 @@ end
 
 function homeOptionsForBuilder(builderId)
 	local options = {}
-	local uncategorizedOpts = uncategorizedGridPos[builderId]
+	local uncategorizedOpts = homeGridPos[builderId]
 
 	if uncategorizedOpts then
 		local optionsInRow = 0
@@ -179,47 +179,41 @@ function getSortedGridForBuilder(builderId, buildOptions, currentCategory)
 
 	local options = {}
 
-	local isFactory = UnitDefs[builderId] and UnitDefs[builderId].isFactory or false
-
 	-- If it's not a factory and no category is selected, we fill out the "home page"
-	if not currentCategory and not isFactory then
+	if not currentCategory then
 		return homeOptionsForBuilder(builderId)
 	end
 
 	-- lay out the category
-	if currentCategory and not isFactory then
-		local unitGrid = gridPosUnit[builderId]
-		local emptyCells = {}
+	if currentCategory then
+		local undefinedOpts = {}
 		local categoryIndex = getCategoryIndex(currentCategory)
 
-		-- start with preset positions
-		for row = 1, rows do
-			for col = 1, columns do
-				local index = col + ((row - 1) * columns)
-
-				if unitGrid and unitGrid[categoryIndex .. row .. col] then
-					options[index] = constructBuildOption(unitGrid[categoryIndex .. row .. col])
-				else
-					-- any gaps in the grid can be filled by undefined units, i.e. scav units
-					table.insert(emptyCells, index)
-				end
-			end
-		end
-		for i = 13, 24 do
-			-- fill up page 2 with empty slots
-			table.insert(emptyCells, i)
-		end
-		-- go through all buildoptions to fill in any units without predefined grid positions i.e. scav units
+		-- first we go through all the buildopts that have defined positions and place them appropriately
 		for _, opt in pairs(buildOptions) do
-			if not hasUnitGrid[builderId][opt] and unitCategories[opt] == currentCategory then
-				local index = table.remove(emptyCells, 1)
-
-				if index then
-					options[index] = constructBuildOption(opt)
+			if unitCategories[opt] == currentCategory then
+				if hasUnitGrid[builderId][opt] and unitGridPos[builderId][categoryIndex][opt] then
+					local row = string.sub(unitGridPos[builderId][categoryIndex][opt], 2, 2)
+					local col = string.sub(unitGridPos[builderId][categoryIndex][opt], 3, 3)
+					local index = col + ((row - 1) * columns)
+					if index then
+						options[index] = constructBuildOption(opt)
+					end
+				else
+					table.insert(undefinedOpts, opt)
 				end
-
 			end
 		end
+
+		-- everything that doesn't have a defined position (i.e. scav units) gets placed into the grid in any empty spots.
+		for i = 1, 24 do
+			if #undefinedOpts < 1 then break end
+			if not options[i] then
+				local opt = table.remove(undefinedOpts, 1)
+				options[i] = constructBuildOption(opt)
+			end
+		end
+
 		return options
 	end
 end
@@ -258,11 +252,6 @@ function getSortedGridForLab(builderId, cmds)
 end
 
 return {
-	unitGridPos = unitGridPos,
-	gridPosUnit = gridPosUnit,
-	hasUnitGrid = hasUnitGrid,
-	unitCategories = unitCategories,
-	uncategorizedGridPos = uncategorizedGridPos,
 	getSortedGridForBuilder = getSortedGridForBuilder,
 	getSortedGridForLab = getSortedGridForLab,
 }

@@ -172,7 +172,7 @@ local buildOpts = {}
 local buildOptsCount
 local categories = {}
 local catRects = {}
-local currentCategory, currentCategoryIndex
+local currentCategory
 local currentPage = 1
 local pages = 1
 local nextPageRect = Rect:new(0, 0, 0, 0)
@@ -356,7 +356,6 @@ local function setPreGamestartDefID(uDefID)
 	WG['pregame-build'].setPreGamestartDefID(uDefID)
 	if not uDefID then
 		currentCategory = nil
-		currentCategoryIndex = nil
 		doUpdate = true
 	end
 
@@ -378,7 +377,6 @@ local function gridmenuCategoryHandler(_, _, args)
 	if alt or ctrl or meta then return end
 
 	currentCategory = categories[cIndex]
-	currentCategoryIndex = cIndex
 	switchedCategory = os.clock()
 	doUpdate = true
 
@@ -499,7 +497,6 @@ local function gridmenuCategoriesHandler()
 	if not (selectedBuilder and currentCategory) then return end
 
 	currentCategory = nil
-	currentCategoryIndex = nil
 	doUpdate = true
 
 	return true
@@ -748,7 +745,6 @@ function widget:Update(dt)
 		selectedBuilder = nil
 		selectedFactory = nil
 		currentCategory = nil
-		currentCategoryIndex = nil
 		selectedBuilders = {}
 		currentPage = 1
 
@@ -1529,7 +1525,6 @@ function widget:KeyRelease(key)
 		setPreGamestartDefID(nil)
 	else
 		currentCategory = nil
-		currentCategoryIndex = nil
 		Spring.SetActiveCommand(0, 0, false, false, Spring.GetModKeyState())
 		doUpdate = true
 	end
@@ -1557,12 +1552,6 @@ function widget:MousePress(x, y, button)
 						currentCategory = cat
 						switchedCategory = os.clock()
 						Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
-
-						for i,c in pairs(categories) do
-							if c == cat then
-								currentCategoryIndex = i
-							end
-						end
 
 						doUpdate = true
 						return true
@@ -1594,7 +1583,6 @@ function widget:MousePress(x, y, button)
 		end
 	elseif selectedBuilder and button == 3 then
 		currentCategory = nil
-		currentCategoryIndex = nil
 		doUpdate = true
 	end
 end
