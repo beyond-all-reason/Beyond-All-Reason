@@ -1233,9 +1233,9 @@ local options={
 	},
 
 	{
-		key    = 'experimentalscavuniqueunits',
-		name   = 'Scavenger Units Buildable by Players',
-		desc   = 'Scavenger Units Buildable by Players',
+		key    = 'experimentalextraunits',
+		name   = 'Extra Unit Pack',
+		desc   = 'Formerly known as Scavenger units. Addon pack of units for Armada and Cortex, including various "fun" units',
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,

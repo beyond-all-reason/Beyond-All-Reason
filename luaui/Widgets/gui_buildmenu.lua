@@ -839,7 +839,7 @@ end
 
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
 local function cacheUnitIcons()
-	local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalscavuniqueunits)
+	local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalextraunits)
 	local excludeChickens = not Spring.Utilities.Gametype.IsChickens()
 	gl.Translate(-vsx,0,0)
 	gl.Color(1, 1, 1, 0.001)
