@@ -259,20 +259,20 @@ end
 
 --- If one condition is fulfilled all beneath it are too (e.g. if an unit is in LOS it can read params with `inradar=true` even if the param has `inlos=false`) All GameRulesParam are public, TeamRulesParams can just be `private`,`allied` and/or `public` You can read RulesParams from any Lua enviroments! With those losAccess policies you can limit their access.
 --- Fields:
----     private bool only readable by the ally (default) (optional)
----     allied bool readable by ally + ingame allied (optional)
+---     private bool only readable by the ally (default) 
+---     allied bool readable by ally + ingame allied 
 ---     typed bool readable if the unit is type (= in radar and was once in LOS)
----     inlos bool readable if the unit is in LOS (optional)
----     inradar bool readable if the unit is in AirLOS (optional)
----     public bool readable by all (optional)
+---     inlos bool readable if the unit is in LOS 
+---     inradar bool readable if the unit is in AirLOS 
+---     public bool readable by all 
 
 ---@alias losAccess
----| "private" #only readable by the ally (default) (optional)
----| "allied" #readable by ally + ingame allied (optional)
----| "inlos" #readable if the unit is in LOS (optional)
+---| "private" #only readable by the ally (default) 
+---| "allied" #readable by ally + ingame allied 
+---| "inlos" #readable if the unit is in LOS 
 ---| "typed" #readable if the unit is type (= in radar and was once in LOS)
----| "inradar" #readable if the unit is in AirLOS (optional)
----| "public" #readable by all (optional)
+---| "inradar" #readable if the unit is in AirLOS 
+---| "public" #readable by all 
 
 ---@param paramName string 
 ---@param paramValue number | string #numeric paramValues in quotes will be converted to number.
@@ -343,9 +343,9 @@ end
 ---@param UnitID number
 ---@param funcName number | string
 ---@param retArgs number
----@param COBArg1? any #(optional)
----@param COBArg2? any #(optional)
----@param COBArgn? any #(optional)
+---@param COBArg1? any #
+---@param COBArg2? any #
+---@param COBArgn? any #
 ---@return nil|number
 ---Consult wizard for additional return param info. <br>
 ---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.CallCOBScript)
@@ -392,8 +392,8 @@ end
 ---@param teamID number
 ---@param build? boolean # the unit is created in "being built" state with buildProgress = 0 (default false)
 ---@param flattenGround? boolean # the unit flattens ground, if it normally does so (default true)
----@param unitID? number # Requests specific unitID (optional)
----@param builderID? number # (optional)
+---@param unitID? number # Requests specific unitID 
+---@param builderID? number # 
 ---@return nil | number # `unitID` meaning unit was created
 ---
 ---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.CreateUnit)
@@ -512,8 +512,8 @@ return  nil
 end
 
 ---@param unitID number
----@param forceUseWeapons? number # (optional)
----@param allowUseWeapons? number # (optional)
+---@param forceUseWeapons? number # 
+---@param allowUseWeapons? number # 
 ---@return nil
 ---
 ---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitUseWeapons)
@@ -521,89 +521,271 @@ function Spring.SetUnitUseWeapons (unitID, forceUseWeapons, allowUseWeapons)
 	return nil
 end
 
+---@alias states table
+---| 'reloadState':number
+---| "reloadFrame=number" # synonym for reloadState!
+---| "reloadTime=number"
+---| "accuracy=number"
+---| "sprayAngle=number"
+---| "range=number" # if you change the range of a weapon with dynamic damage make sure you use `SetUnitWeaponDamages` to change dynDamageRange as well.
+---| "projectileSpeed=number"
+---| "burst=number"
+---| "burstRate=number"
+---| "projectiles=number"
+---| "salvoLeft=number"
+---| "nextSalvo=number"
+---| "aimReady=number" # (<>0.0f := true)
+
 ---@param unitID number
----@param experience number 
+---@param weaponNum number
+---@param states states
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitWeaponState)
+---@diagnostic disable-next-line
+function Spring.SetUnitWeaponState (unitID, weaponNum, states)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
+assert(type(states) == "table","Argument states is of invalid type - expected table");
+return nil
+end
+
+---@param unitID number
+---@param weaponNum number
+---@param key states
+---@param value number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitWeaponState)
+---@diagnostic disable-next-line 
+function Spring.SetUnitWeaponState (unitID, weaponNum, key, value)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
+assert(type(states) == "table","Argument states is of invalid type - expected table");
+return nil
+end
+
+---@alias damages table
+---| "paralyzeDamageTime=number" 
+---| "impulseFactor=number" 
+---| "impulseBoost=number" 
+---| "craterMult=number" 
+---| "craterBoost=number" 
+---| "dynDamageExp=number" 
+---| "dynDamageMin=number" 
+---| "dynDamageRange=number" 
+---| "dynDamageInverted=number" (<>0.0f := true)
+---| "craterAreaOfEffect=number" 
+---| "damageAreaOfEffect=number" 
+---| "edgeEffectiveness=number" 
+---| "explosionSpeed=number" 
+
+---@param unitID number
+---@param weaponNum number | string # Number or string ["selfDestruct" | "explode"]
+---@param damages damages
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitWeaponDamages)
+---@diagnostic disable-next-line
+function Spring.SetUnitWeaponDamages (unitID, weaponNum, damages)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
+	return  nil
+end
+
+---@param unitID number
+---@param weaponNum number | string # Number or string ["selfDestruct" | "explode"]
+---@param key string
+---@param value number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitWeaponDamages)
+---@diagnostic disable-next-line
+function Spring.SetUnitWeaponDamages (unitID, weaponNum, key, value)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
+	return  nil
+end
+
+---@param unitID number
+---@param maxRange number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitMaxRange)
+function Spring.SetUnitMaxRange (unitID, maxRange)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(maxRange) == "number","Argument maxRange is of invalid type - expected number");
+	return nil
+end
+
+---@param unitID number
+---@param experience number
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitExperience)
 ---@see Spring.AddUnitExperience
 function Spring.SetUnitExperience (unitID, experience)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(experience) == "number","Argument experience is of invalid type - expected number");
-return  numberMock
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(experience) == "number","Argument experience is of invalid type - expected number");
+	return  numberMock
 end
 
 ---@param unitID number
 ---@param deltaExperience number # Can be negative to subtract, but the unit will never have negative total afterwards
 ---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.AddUnitExperience)
 ---@see Spring.SetUnitExperience
 function Spring.AddUnitExperience (unitID, deltaExperience)
 	return nil
 end
 
 ---@param unitID number
----@param fuel number
----@deprecated 
-function Spring.SetUnitFuel (unitID, fuel)
+---@param armored? boolean
+---@param armorMultiple? number # Cannot be less than zero, clamped to .0001 
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitArmored)
+function Spring.SetUnitArmored (unitID, armored, armorMultiple)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(fuel) == "number","Argument fuel is of invalid type - expected number");
-return  numberMock
-end
-
----@param unitID number
-function Spring.SetUnitCrashing (unitID, crashing)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(crashing) == "boolean","Argument crashing is of invalid type - expected boolean");
-return  numberMock
-end
-
----@deprecated
----@param unitID number
----@param teamID number
----@param isRoot boolean
----@return integer
-function Spring.SetUnitLineage (unitID, teamID, isRoot)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
-assert(type(isRoot) == "boolean","Argument isRoot is of invalid type - expected boolean");
-return  numberMock
-end
-
----@param unitID number
----@param neutral boolean
----@return nil | boolean
-function Spring.SetUnitNeutral (unitID, neutral)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(neutral) == "boolean","Argument neutral is of invalid type - expected boolean");
+assert(type(armored) == "boolean","Argument armored is of invalid type - expected boolean");
+assert(type(armorMultiple) == "number","Argument armorMultiple is of invalid type - expected number");
 return  nil
 end
 
----@param unitID number
----@param x? number # when nil or not passed it will drop target and ignore other parameters (optional)
----@param y? number # (optional)
----@param z? number # (optional)
----@param dgun boolean? # default false
----@param userTarget boolean? # default false
----@param weaponNum number? # default -1
----@return boolean # success
-function Spring.SetUnitTarget (unitID, x, y, z, dgun, userTarget, weaponNum)
-	return  booleanMock
-end
+--==================================================================================================
+-- Unit LOS
+--==================================================================================================
 
----@param unitID number
----@param enemyUnitID? number # when nil, drops the units current target (optional)
----@param dgun boolean? # default false
----@param userTarget boolean? # default false
----@param weaponNum number? # default -1
----@return boolean # success
-function Spring.SetUnitTarget (unitID, enemyUnitID, dgun, userTarget, weaponNum)
-return  booleanMock
-end
 
+---The 3rd argument is either the bit-and combination of the following numbers: LOS_INLOS = 1 LOS_INRADAR = 2 LOS_PREVLOS = 4 LOS_CONTRADAR = 8 or a table of the following form: losTypes = { [los = boolean,] [radar = boolean,] [prevLos = boolean,] [contRadar = boolean] }
 ---@param unitID number
----@param maxRange number
+---@param allyTeam number
+---@param losTypes number | table
 ---@return nil
-function Spring.SetUnitMaxRange (unitID, maxRange)
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitLosMask)
+function Spring.SetUnitLosMask (unitID, allyTeam, losTypes)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(maxRange) == "number","Argument maxRange is of invalid type - expected number");
+assert(type(allyTeam) == "number","Argument allyTeam is of invalid type - expected number");
+--assert(type(los) == "number","Argument los is of invalid type - expected number");
+return  nil
+end
+
+---The 3rd argument is either the bit-and combination of the following numbers: LOS_INLOS = 1 LOS_INRADAR = 2 LOS_PREVLOS = 4 LOS_CONTRADAR = 8 or a table of the following form: losTypes = { [los = boolean,] [radar = boolean,] [prevLos = boolean,] [contRadar = boolean] }
+---@param unitID number
+---@param allyTeam number
+---@param los number | table
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitLosState)
+function Spring.SetUnitLosState(unitID, allyTeam, los)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(allyTeam) == "number","Argument allyTeam is of invalid type - expected number");
+assert(type(los) == "number","Argument los is of invalid type - expected number");
+return  nil
+end
+
+---If the 2nd argument is a number, the value works like this: 1:=normal cloak 2:=for free cloak (cost no E) 3:=for free + no decloaking (except the unit is stunned) 4:=ultimative cloak (no ecost, no decloaking, no stunned decloak) The decloak distance is only changed: - if the 3th argument is a number or a boolean. - if the boolean is false it takes the default decloak distance for that unitdef, - if the boolean is true it takes the absolute value of it.
+---@param unitID number
+---@param cloak boolean | number
+---@param cloakArg boolean | number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitCloak)
+function Spring.SetUnitCloak (unitID, cloak, cloakArg)
 return nil
+end
+
+---@param unitID number
+---@param stealth boolean
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitStealth)
+function Spring.SetUnitStealth (unitID, stealth)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(stealth) == "boolean","Argument stealth is of invalid type - expected boolean");
+return nil
+end
+
+---@param unitID number
+---@param sonarStealth boolean
+---@return nil
+function Spring.SetUnitSonarStealth (unitID, sonarStealth)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(sonarStealth) == "boolean","Argument sonarStealth is of invalid type - expected boolean");
+return nil
+end
+
+---@param unitID number
+---@param seismicSignature number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitSeismicSignature)
+function Spring.SetUnitSeismicSignature (unitID, seismicSignature)
+	return nil
+end
+
+---@param unitID number
+---@param alwaysVisible boolean
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitAlwaysVisible)
+function Spring.SetUnitAlwaysVisible(unitID, alwaysVisible)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(alwaysVisible) == "boolean","Argument alwaysVisible is of invalid type - expected boolean");
+return nil
+end
+
+---@param unitID number
+---@param useAirLos boolean
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitUseAirLos)
+function Spring.SetUnitUseAirLos(unitID, useAirLos)
+	return nil
+end
+
+---@param unitID number
+---@param depth number # corresponds to metal extraction rawState
+---@param range? number similar to "extractsMetal" in unitDefs 
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitMetalExtraction)
+function Spring.SetUnitMetalExtraction(unitID, depth, range) end
+
+---@param unitID number
+---@param metal number
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitHarvestStorage)
+function Spring.SetUnitHarvestStorage (unitID, metal)
+	assert(type(unitid) == "number","Argument unitid is of invalid type - expected number");
+	assert(type(metal) == "number","Argument metal is of invalid type - expected number");
+end
+
+---@param unitID number
+---@param paramName string # one of `buildRange|buildDistance|buildRange3D`
+---@param value number | boolean # boolean when `paramName` is `buildRange3D`, number otherwise
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitBuildParams)
+function Spring.SetUnitBuildParams(unitID, paramName, value) end
+
+---@param builderID number
+---@param buildSpeed number
+---@param repairSpeed? number #
+---@param reclaimSpeed? number #
+---@param captureSpeed? number #
+---@param terraformSpeed? number #
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitBuildSpeed)
+function Spring.SetUnitBuildSpeed (builderID, buildSpeed, repairSpeed, reclaimSpeed, captureSpeed, terraformSpeed) end
+
+---This saves a lot of engine calls, by replacing: `function script.QueryNanoPiece() return currentpiece end` **Use it!**
+---@param builderID number
+---@param pieces table
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitNanoPieces)
+function Spring.SetUnitNanoPieces (builderID, pieces)
+	assert(type(builderID) == "number","Argument builderID is of invalid type - expected number");
+	assert(type(pieces) == "table","Argument pieces is of invalid type - expected table");
 end
 
 ---@param unitID number
@@ -614,17 +796,17 @@ end
 ---@param crushable boolean
 ---@param blockEnemyPushing boolean
 ---@param blockHeightChanges boolean
----@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitBlocking)
 function Spring.SetUnitBlocking (unitID, isBlocking, isSolidObjectCollidable, isProjectileCollidable, isRaySegmentCollidable, crushable, blockEnemyPushing, blockHeightChanges)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(isBlocking) == "boolean","Argument isBlocking is of invalid type - expected boolean");
-assert(type(isSolidObjectCollidable) == "boolean","Argument isSolidObjectCollidable is of invalid type - expected boolean");
-assert(type(isProjectileCollidable) == "boolean","Argument isProjectileCollidable is of invalid type - expected boolean");
-assert(type(isRaySegmentCollidable) == "boolean","Argument isRaySegmentCollidable is of invalid type - expected boolean");
-assert(type(crushable) == "boolean","Argument crushable is of invalid type - expected boolean");
-assert(type(blockEnemyPushing) == "boolean","Argument blockEnemyPushing is of invalid type - expected boolean");
-assert(type(blockHeightChanges) == "boolean","Argument blockHeightChanges is of invalid type - expected boolean");
-return  numberMock
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(isBlocking) == "boolean","Argument isBlocking is of invalid type - expected boolean");
+	assert(type(isSolidObjectCollidable) == "boolean","Argument isSolidObjectCollidable is of invalid type - expected boolean");
+	assert(type(isProjectileCollidable) == "boolean","Argument isProjectileCollidable is of invalid type - expected boolean");
+	assert(type(isRaySegmentCollidable) == "boolean","Argument isRaySegmentCollidable is of invalid type - expected boolean");
+	assert(type(crushable) == "boolean","Argument crushable is of invalid type - expected boolean");
+	assert(type(blockEnemyPushing) == "boolean","Argument blockEnemyPushing is of invalid type - expected boolean");
+	assert(type(blockHeightChanges) == "boolean","Argument blockHeightChanges is of invalid type - expected boolean");
 end
 
 --function Spring.SetUnitBlocking (unitID, blocking, collide, crushable)
@@ -642,31 +824,90 @@ end
 --return  numberMock
 -- end
 
----@param builderID number
----@param buildSpeed number
----@param repairSpeed number
----@param reclaimSpeed number
----@param captureSpeed number
----@param terraformSpeed number
----@return nil
-function Spring.SetUnitBuildSpeed (builderID, buildSpeed, repairSpeed, reclaimSpeed, captureSpeed, terraformSpeed)
-return nil
+---@param unitID number
+---@param crashing boolean
+---@return boolean success
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitCrashing)
+function Spring.SetUnitCrashing (unitID, crashing)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(crashing) == "boolean","Argument crashing is of invalid type - expected boolean");
+	return booleanMock
 end
 
----@param builderID number
----@param pieces table
----@return nil
-function Spring.SetUnitNanoPieces (  builderID, pieces)
-assert(type(builderID) == "number","Argument builderID is of invalid type - expected number");
-assert(type(pieces) == "table","Argument pieces is of invalid type - expected table");
-return  nil
+---@param unitID number
+---@param weaponID number (default -1)
+---@param enabled boolean? 
+---@param power number?
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitShieldState)
+function Spring.SetUnitShieldState (unitID, weaponID, enabled, power)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(weaponID) == "number","Argument weaponID is of invalid type - expected number");
+end
+
+---@param unitID number
+---@param type string
+---|"dir"
+---|"minDamage"
+---|"maxDamage"
+---|"moveFactor"
+---|"mode" # if type = mode, 0 = no flanking bonus, 1 = global coords, mobile, 2 = unit coords, mobile, 3 = unit coords, locked
+---@param arg1 number
+---| 'x'
+---| 'minDamage'
+---| 'maxDamage'
+---| 'moveFactor'
+---| 'mode'
+---@param y number? # only when type is "dir" 
+---@param z number? # only when type is "dir" 
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitFlanking)
+function Spring.SetUnitFlanking (unitID, type, arg1, y, z)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(mode) == "string","Argument mode is of invalid type - expected string");
+end
+
+---@param unitID number
+---@param neutral boolean
+---@return nil | boolean
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitNeutral)
+function Spring.SetUnitNeutral (unitID, neutral)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(neutral) == "boolean","Argument neutral is of invalid type - expected boolean");
+	return  nil
+end
+
+---@param unitID number
+---@param x? number # when nil or not passed it will drop target and ignore other parameters 
+---@param y? number # 
+---@param z? number # 
+---@param dgun boolean? # default false
+---@param userTarget boolean? # default false
+---@param weaponNum number? # default -1
+---@return boolean success
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitTarget)
+function Spring.SetUnitTarget (unitID, x, y, z, dgun, userTarget, weaponNum)
+	return  booleanMock
+end
+
+---@param unitID number
+---@param enemyUnitID? number # when nil, drops the units current target
+---@param dgun boolean? # default false
+---@param userTarget boolean? # default false
+---@param weaponNum number? # default -1
+---@return boolean success
+function Spring.SetUnitTarget (unitID, enemyUnitID, dgun, userTarget, weaponNum)
+	return  booleanMock
 end
 
 ---@param transporterID number
 ---@param passengerID number
 ---@param pieceNum number
 ---@return nil
-function Spring.UnitAttach (  transporterID, passengerID, pieceNum)
+function Spring.UnitAttach (transporterID, passengerID, pieceNum)
 assert(type(transporterID) == "number","Argument transporterID is of invalid type - expected number");
 assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
 assert(type(pieceNum) == "number","Argument pieceNum is of invalid type - expected number");
@@ -675,7 +916,7 @@ end
 
 ---@param passengerID number
 ---@return nil
-function Spring.UnitDetach (  passengerID)
+function Spring.UnitDetach (passengerID)
 assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
 return  nil
 end
@@ -705,131 +946,6 @@ function Spring.SetUnitPieceParent (unitID, AlteredPiece, ParentPiece)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(AlteredPiece) == "number","Argument AlteredPiece is of invalid type - expected number");
 assert(type(ParentPiece) == "number","Argument ParentPiece is of invalid type - expected number");
-return  nil
-end
-
----@param unitID number
----@param armored? boolean
----@param armorMultiple? number # Cannot be less than zero, clamped to .0001 (optional)
----@return nil
-function Spring.SetUnitArmored (unitID, armored, armorMultiple)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(armored) == "boolean","Argument armored is of invalid type - expected boolean");
-assert(type(armorMultiple) == "number","Argument armorMultiple is of invalid type - expected number");
-return  nil
-end
-
----@param unitID number
----@param weaponID number (default -1)
----@param enabled boolean? (optional)
----@param power number? # (optional)
----@return nil
-function Spring.SetUnitShieldState (unitID, weaponID, enabled, power)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(weaponID) == "number","Argument weaponID is of invalid type - expected number");
-return  nil
-end
-
----@param unitID number
----@param type string
----|"dir"
----|"minDamage"
----|"maxDamage"
----|"moveFactor"
----|"mode" # if type = mode, 0 = no flanking bonus, 1 = global coords, mobile, 2 = unit coords, mobile, 3 = unit coords, locked
----@param arg1 number
----| 'x'
----| 'minDamage'
----| 'maxDamage'
----| 'moveFactor'
----| 'mode'
----@param y number? # only when type is "dir" (optional)
----@param z number? # only when type is "dir" (optional)
----@return nil
-function Spring.SetUnitFlanking (unitID, type, arg1, y, z)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(mode) == "string","Argument mode is of invalid type - expected string");
-return  nil
-end
-
---TODO verify this is a sane representation of how this function should be called.
--- Can multiple state calls be passed?
----@alias states table
----| "reloadState=number"
----| "reloadFrame=number" # synonym for reloadState!
----| "reloadTime=number"
----| "accuracy=number"
----| "sprayAngle=number"
----| "range=number" # if you change the range of a weapon with dynamic damage make sure you use `SetUnitWeaponDamages` to change dynDamageRange as well.
----| "projectileSpeed=number"
----| "burst=number"
----| "burstRate=number"
----| "projectiles=number"
----| "salvoLeft=number"
----| "nextSalvo=number"
----| "aimReady=number" # (<>0.0f := true)
----@param unitID number
----@param weaponNum number
----@param states states
----@return nil
----@diagnostic disable-next-line
-function Spring.SetUnitWeaponState (unitID, weaponNum, states)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
-assert(type(states) == "table","Argument states is of invalid type - expected table");
-return nil
-end
-
---duplicated for overloading
-
----@param unitID number
----@param weaponNum number
----@param key states
----@param value number
----@return nil
----@diagnostic disable-next-line 
-function Spring.SetUnitWeaponState (unitID, weaponNum, key, value)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
-assert(type(states) == "table","Argument states is of invalid type - expected table");
-return nil
-end
-
----@alias damages table
----| "paralyzeDamageTime=number" 
----| "impulseFactor=number" 
----| "impulseBoost=number" 
----| "craterMult=number" 
----| "craterBoost=number" 
----| "dynDamageExp=number" 
----| "dynDamageMin=number" 
----| "dynDamageRange=number" 
----| "dynDamageInverted=number" (<>0.0f := true)
----| "craterAreaOfEffect=number" 
----| "damageAreaOfEffect=number" 
----| "edgeEffectiveness=number" 
----| "explosionSpeed=number" 
-
----@param unitID number
----@param weaponNum number | string # Number or string ["selfDestruct" | "explode"]
----@param damages damages
----@return nil
----@diagnostic disable-next-line
-function Spring.SetUnitWeaponDamages (unitID, weaponNum, damages)
-	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-	assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
-	return  nil
-end
-
----@param unitID number
----@param weaponNum number | string # Number or string ["selfDestruct" | "explode"]
----@param key damages
----@param value number
----@return nil
----@diagnostic disable-next-line
-function Spring.SetUnitWeaponDamages (unitID, weaponNum, key, value)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
 return  nil
 end
 
@@ -876,8 +992,8 @@ end
 ---@param offsetX number
 ---@param offsetY number
 ---@param offsetZ number
----@param volumeType? number (optional)
----@param primaryAxis? number (optional)
+---@param volumeType? number 
+---@param primaryAxis? number 
 function Spring.SetUnitPieceCollisionVolumeData (unitID, pieceIndex, enable, scaleX, scaleY, scaleZ, offsetX, offsetY, offsetZ, volumeType, primaryAxis)
 return nil
 end
@@ -900,9 +1016,9 @@ end
 ---@param goalx number
 ---@param goaly number
 ---@param goalz number
----@param goalRadius? number (optional)
----@param moveSpeed? number (optional)
----@param moveRaw? boolean (optional)
+---@param goalRadius? number 
+---@param moveSpeed? number 
+---@param moveRaw? boolean 
 ---@return nil
 function Spring.SetUnitMoveGoal (unitID, goalx, goaly, goalz, goalRadius, moveSpeed, moveRaw)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
@@ -964,7 +1080,7 @@ end
 ---@param unitID number
 ---@param x number
 ---@param z number
----@param alwaysAboveSea? boolean (optional)
+---@param alwaysAboveSea? boolean 
 ---@return nil
 function Spring.SetUnitPosition (unitID, x, z, alwaysAboveSea)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
@@ -1017,7 +1133,7 @@ end
 ---@param x number
 ---@param y number
 ---@param z number
----@param decayRate? number (optional)
+---@param decayRate? number 
 ---@return nil
 function Spring.AddUnitImpulse (unitID, x, y, z, decayRate)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
@@ -1052,7 +1168,7 @@ end
 ---@param apX number new positionX that enemies aim at on this unit
 ---@param apY number new positionY that enemies aim at on this unit
 ---@param apZ number new positionZ that enemies aim at on this unit
----@param relative? boolean are the new coordinates relative to the world (false) or unit (true) coordinates? Also, not that apY is inverted. (default false) (optional)
+---@param relative? boolean are the new coordinates relative to the world (false) or unit (true) coordinates? Also, not that apY is inverted. (default false) 
 ---@return boolean
 function Spring.SetUnitMidAndAimPos(unitID, mpX, mpY, mpZ, apX, apY, apZ relative)
 return  booleanMock
@@ -1089,73 +1205,6 @@ assert(type(weaponID) == "number","Argument weaponID is of invalid type - expect
 return nil
 end
 
----If the 2nd argument is a number, the value works like this: 1:=normal cloak 2:=for free cloak (cost no E) 3:=for free + no decloaking (except the unit is stunned) 4:=ultimative cloak (no ecost, no decloaking, no stunned decloak) The decloak distance is only changed: - if the 3th argument is a number or a boolean. - if the boolean is false it takes the default decloak distance for that unitdef, - if the boolean is true it takes the absolute value of it.
----@param unitID number
----@param cloak boolean | number
----@param cloakArg boolean | number
----@return nil
-function Spring.SetUnitCloak (unitID, cloak, cloakArg)
-return nil
-end
-
----@param unitID number
----@param stealth boolean
----@return nil
-function Spring.SetUnitStealth (unitID, stealth)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(stealth) == "boolean","Argument stealth is of invalid type - expected boolean");
-return nil
-end
-
----@param unitID number
----@param sonarStealth boolean
----@return nil
-function Spring.SetUnitSonarStealth (unitID, sonarStealth)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(sonarStealth) == "boolean","Argument sonarStealth is of invalid type - expected boolean");
-return nil
-end
-
----@param unitID number
----@param alwaysVisible boolean
----@return nil
-function Spring.SetUnitAlwaysVisible(unitID, alwaysVisible)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(alwaysVisible) == "boolean","Argument alwaysVisible is of invalid type - expected boolean");
-return nil
-end
-
----@param unitID number
----@param useAirLos boolean
----@return nil
-function Spring.SetUnitUseAirLos(unitID, useAirLos)
-	return nil
-end
-
----The 3rd argument is either the bit-and combination of the following numbers: LOS_INLOS = 1 LOS_INRADAR = 2 LOS_PREVLOS = 4 LOS_CONTRADAR = 8 or a table of the following form: losTypes = { [los = boolean,] [radar = boolean,] [prevLos = boolean,] [contRadar = boolean] }
----@param unitID number
----@param allyTeam number
----@param los number | table
----@return nil
-function Spring.SetUnitLosMask (unitID, allyTeam, los)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(allyTeam) == "number","Argument allyTeam is of invalid type - expected number");
---assert(type(los) == "number","Argument los is of invalid type - expected number");
-return  nil
-end
-
----The 3rd argument is either the bit-and combination of the following numbers: LOS_INLOS = 1 LOS_INRADAR = 2 LOS_PREVLOS = 4 LOS_CONTRADAR = 8 or a table of the following form: losTypes = { [los = boolean,] [radar = boolean,] [prevLos = boolean,] [contRadar = boolean] }
----@param unitID number
----@param allyTeam number
----@param los number | table
----@return nil
-function Spring.SetUnitLosState(unitID, allyTeam, los)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(allyTeam) == "number","Argument allyTeam is of invalid type - expected number");
-assert(type(los) == "number","Argument los is of invalid type - expected number");
-return  nil
-end
-
 ---Sets a unit sensor radius based on sensor type
 ---@param unitID number
 ---@param type string "los" | "airLos" | "radar" | "sonar" | "seismic" | "radarJammer" | "sonarJammer"
@@ -1185,13 +1234,6 @@ function Spring.UseUnitResource (unitID, m)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(m) == "string","Argument m is of invalid type - expected string");
 return  booleanMock
-end
-
-function Spring.SetUnitHarvestStorage (unitID, metal)
-assert(type(unitid) == "number","Argument unitid is of invalid type - expected number");
-assert(type(metal) == "number","Argument metal is of invalid type - expected number");
-
-return  numberMock
 end
 
 function Spring.DestroyFeature (  featureID)
@@ -1269,7 +1311,7 @@ end
 ---@param apX number new positionX that enemies aim at on this unit
 ---@param apY number new positionY that enemies aim at on this unit
 ---@param apZ number new positionZ that enemies aim at on this unit
----@param relative? boolean are the new coordinates relative to the world (false) or unit (true) coordinates? Also, not that apY is inverted. (default false) (optional)
+---@param relative? boolean are the new coordinates relative to the world (false) or unit (true) coordinates? Also, not that apY is inverted. (default false) 
 ---@return boolean
 function Spring.SetFeatureMidAndAimPos ( featureID, mpX, mpY, mpZ, apX, apY, apZ, relative)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
@@ -2925,6 +2967,32 @@ end
 
 function gl.GetViewSizes()
 	return numberMock, numberMock
+end
+
+--====================================================================================================
+-- Deprecated functions
+--====================================================================================================
+
+---@param unitID number
+---@param fuel number
+---@deprecated 
+function Spring.SetUnitFuel (unitID, fuel)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(fuel) == "number","Argument fuel is of invalid type - expected number");
+	return  numberMock
+end
+
+---@deprecated
+---@param unitID number
+---@param teamID number
+---@param isRoot boolean
+---@return integer
+---@deprecated
+function Spring.SetUnitLineage (unitID, teamID, isRoot)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
+assert(type(isRoot) == "boolean","Argument isRoot is of invalid type - expected boolean");
+return  numberMock
 end
 
 --gl.Viewport ( number x, number y, number w, number h )
