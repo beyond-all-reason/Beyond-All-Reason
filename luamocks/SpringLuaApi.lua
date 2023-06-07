@@ -899,8 +899,38 @@ end
 ---@param userTarget boolean? # default false
 ---@param weaponNum number? # default -1
 ---@return boolean success
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitTarget)
 function Spring.SetUnitTarget (unitID, enemyUnitID, dgun, userTarget, weaponNum)
 	return  booleanMock
+end
+
+---@param unitID number
+---@param mpX number new middle positionX of unit
+---@param mpY number new middle positionY of unit
+---@param mpZ number new middle positionZ of unit
+---@param apX number new positionX that enemies aim at on this unit
+---@param apY number new positionY that enemies aim at on this unit
+---@param apZ number new positionZ that enemies aim at on this unit
+---@param relative? boolean are the new coordinates relative to the world (false) or unit (true) coordinates? Also, not that apY is inverted. (default false) 
+---@return boolean success
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitMidAndAimPos)
+function Spring.SetUnitMidAndAimPos(unitID, mpX, mpY, mpZ, apX, apY, apZ, relative)
+	return  booleanMock
+end
+
+---@param unitID number
+---@param radius number
+---@param height number
+---@return boolean success
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitRadiusAndHeight)
+function Spring.SetUnitRadiusAndHeight (unitID, radius, height)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(radius) == "number","Argument radius is of invalid type - expected number");
+	assert(type(height) == "number","Argument height is of invalid type - expected number");
+	return booleanMock
 end
 
 ---@param transporterID number
@@ -913,6 +943,10 @@ assert(type(passengerID) == "number","Argument passengerID is of invalid type - 
 assert(type(pieceNum) == "number","Argument pieceNum is of invalid type - expected number");
 return  nil
 end
+
+--=================================
+--TODO Continue from here 6-6-23
+--=================================
 
 ---@param passengerID number
 ---@return nil
@@ -1159,30 +1193,6 @@ end
 function Spring.RemoveBuildingDecal (unitID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 return  nil
-end
-
----@param unitID number
----@param mpX number new middle positionX of unit
----@param mpY number new middle positionY of unit
----@param mpZ number new middle positionZ of unit
----@param apX number new positionX that enemies aim at on this unit
----@param apY number new positionY that enemies aim at on this unit
----@param apZ number new positionZ that enemies aim at on this unit
----@param relative? boolean are the new coordinates relative to the world (false) or unit (true) coordinates? Also, not that apY is inverted. (default false) 
----@return boolean
-function Spring.SetUnitMidAndAimPos(unitID, mpX, mpY, mpZ, apX, apY, apZ relative)
-return  booleanMock
-end
-
----@param unitID number
----@param radius number
----@param height number
----@return boolean returns success	
-function Spring.SetUnitRadiusAndHeight (unitID, radius, height)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(radius) == "number","Argument radius is of invalid type - expected number");
-assert(type(height) == "number","Argument height is of invalid type - expected number");
-return booleanMock
 end
 
 ---@param unitID number
