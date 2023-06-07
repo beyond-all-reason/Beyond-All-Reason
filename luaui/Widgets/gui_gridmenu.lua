@@ -754,12 +754,10 @@ function widget:Update(dt)
 		builderIsFactory = false
 		currentCategory = nil
 		selectedBuilders = {}
-		Spring.Echo("clearing selected builders")
 		currentPage = 1
 
 		if SelectedUnitsCount > 0 then
 			local sel = Spring.GetSelectedUnits()
-			Spring.Echo("selected units", dump(sel))
 			for _, unitID in pairs(sel) do
 				local unitDefID = spGetUnitDefID(unitID)
 
@@ -768,8 +766,6 @@ function widget:Update(dt)
 
 					local count = selectedBuilders[unitDefID] and selectedBuilders[unitDefID] or 0
 					selectedBuilders[unitDefID] = count + 1
-
-					Spring.Echo("setting builder to count", unitDefID, selectedBuilders[unitDefID])
 
 					activeBuilder = unitDefID
 					activeBuilderID = unitID
@@ -782,7 +778,6 @@ function widget:Update(dt)
 					selectedFactoryUID = unitID
 					activeBuilder = unitDefID
 
-					break
 				end
 			end
 
@@ -792,7 +787,6 @@ function widget:Update(dt)
 				categories = {}
 			end
 		end
-		Spring.Echo("selectedBuilders", dump(selectedBuilders))
 	end
 
 	sec = sec + dt
