@@ -178,6 +178,7 @@ local nextPageRect = Rect:new(0, 0, 0, 0)
 local categoriesRect = Rect:new(0, 0, 0, 0)
 local buildpicsRect = Rect:new(0, 0, 0 ,0)
 local paginatorsRect = Rect:new(0, 0, 0, 0)
+local buildersRect = Rect:new(0, 0, 0, 0)
 local isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
 -------------------------------------------------------------------------------
@@ -615,7 +616,8 @@ function widget:ViewResize()
 	categoryFontSize = 0.0115 * ui_scale * vsy
 	pageFontSize = categoryFontSize
 	pageButtonHeight = math_floor(2.3 * categoryFontSize * ui_scale)
-	categoryButtonHeight = pageButtonHeight;
+	categoryButtonHeight = pageButtonHeight
+	builderButtonHeight = pageButtonHeight * 2
 
 	activeAreaMargin = math_ceil(bgpadding * Cfgs.cfgActiveAreaMargin)
 
@@ -726,6 +728,13 @@ function widget:ViewResize()
 			posXEnd,
 			paginatorsRect.yEnd + (bgpadding * 1.5)
 		)
+
+		buildersRect = Rect:new(
+			posX,
+			backgroundRect.yEnd,
+			posXEnd,
+			backgroundRect.yEnd + builderButtonHeight
+		)
 	end
 
 	checkGuishader(true)
@@ -745,17 +754,23 @@ function widget:Update(dt)
 		builderIsFactory = false
 		currentCategory = nil
 		selectedBuilders = {}
+		Spring.Echo("clearing selected builders")
 		currentPage = 1
 
 		if SelectedUnitsCount > 0 then
 			local sel = Spring.GetSelectedUnits()
+			Spring.Echo("selected units", dump(sel))
 			for _, unitID in pairs(sel) do
 				local unitDefID = spGetUnitDefID(unitID)
 
 				if units.isBuilder[unitDefID] then
 					doUpdate = true
 
-					selectedBuilders[unitID] = true
+					local count = selectedBuilders[unitDefID] and selectedBuilders[unitDefID] or 0
+					selectedBuilders[unitDefID] = count + 1
+
+					Spring.Echo("setting builder to count", unitDefID, selectedBuilders[unitDefID])
+
 					activeBuilder = unitDefID
 					activeBuilderID = unitID
 				end
@@ -771,12 +786,13 @@ function widget:Update(dt)
 				end
 			end
 
-			if activeBuilder then
+			if activeBuilder and not builderIsFactory then
 				categories = Cfgs.buildCategories
 			else
 				categories = {}
 			end
 		end
+		Spring.Echo("selectedBuilders", dump(selectedBuilders))
 	end
 
 	sec = sec + dt
@@ -1092,6 +1108,48 @@ local function drawPaginators()
 	drawButton(nextPageRect, opts)
 end
 
+local function drawBuilderIcon(unitDefID, rect, lightness, zoom, highlightOpacity)
+	gl.Color(lightness,lightness,lightness,1)
+	UiUnit(
+		rect.x, rect.y, rect.xEnd, rect.yEnd,
+		math_ceil(bgpadding*0.5), 1,1,1,1,
+		zoom,
+		nil, math_max(0.1, highlightOpacity or 0.1),
+		'#'..unitDefID,
+		nil, nil, nil, nil
+	)
+	if highlightOpacity then
+		gl.Blending(GL_SRC_ALPHA, GL_ONE)
+		gl.Color(1,1,1,highlightOpacity)
+		RectRound(rect.x, rect.y, rect.xEnd, rect.yEnd, math_min(math_max(1, math_floor((rect.xEnd-rect.x) * 0.024)), math_floor((vsy*0.0015)+0.5)))
+		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	end
+end
+
+
+local function drawBuilders()
+	if not activeBuilder then
+		return
+	end
+
+	local builderTypes = 0
+	for unitDefID, count in pairs(selectedBuilders) do
+		builderTypes = builderTypes + 1
+
+		local rect = Rect:new(
+			buildersRect.x + (builderButtonHeight * (builderTypes - 1)),
+			buildersRect.y,
+			buildersRect.x + (builderButtonHeight * (builderTypes)),
+			buildersRect.yEnd
+		)
+
+		local highlight = activeBuilder == unitDefID and 1.0 or 0.5
+
+		drawBuilderIcon(unitDefID, rect, highlight, 0.05, 0)
+	end
+
+end
+
 local function drawGrid()
 	local numCellsPerPage = rows * columns
 	local cellRectID = 0
@@ -1192,6 +1250,7 @@ local function drawBuildMenu()
 
 	drawGrid()
 	drawPaginators()
+	drawBuilders()
 
 	font2:End()
 end
@@ -1224,7 +1283,7 @@ local function drawBuildProgress()
 	if maxCellRectID > gridOptsCount then
 		maxCellRectID = gridOptsCount
 	end
-	-- loop selected builders
+
 	local drawncellRectIDs = {}
 	if activeBuilderID then
 		local unitBuildID = spGetUnitIsBuilding(activeBuilderID)
