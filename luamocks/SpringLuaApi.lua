@@ -75,17 +75,25 @@ function VFS.Include(path)
     return numberMock
 end
 
+--TODO Move markup examples to another filename
+---Produces syntax highlighted code block within the tooltip
+--- ```
+--- assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
+--- assert(type(resourceType) == "string","Argument metal is of invalid type - expected string");
+--- assert(type(amount) == "number","Argument amount is of invalid type - expected number");
+--- ```
+
 --==================================================================================================
 -- Teams
 --==================================================================================================
 
 ---Change the value of the (one-sided) alliance between: firstAllyTeamID -> secondAllyTeamID
----
----[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetAlly)
 ---@param firstAllyTeamID number
 ---@param secondAllyTeamID number
 ---@param ally boolean
 ---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetAlly)
 function Spring.SetAlly (  firstAllyTeamID, secondAllyTeamID, ally)
 assert(type(firstAllyTeamID) == "number","Argument firstAllyTeamID is of invalid type - expected number");
 assert(type(secondAllyTeamID) == "number","Argument secondAllyTeamID is of invalid type - expected number");
@@ -94,11 +102,11 @@ return  numberMock
 end
 
 ---Assigns player playerID to team teamID
----
----[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.AssignPlayerToTeam)
 ---@param playerID number
 ---@param teamID number
 ---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.AssignPlayerToTeam)
 function Spring.AssignPlayerToTeam (  playerID, teamID)
 assert(type(playerID) == "number","Argument playerID is of invalid type - expected number");
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
@@ -106,11 +114,11 @@ return boolMock
 end
 
 ---Changes access to global line of sight for a team and its allies.
----
----[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetGlobalLos)
 ---@param playerID number
 ---@param globallos boolean
 ---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetGlobalLos)
 function Spring.SetGlobalLos (playerID, globallos)
 return nil
 end
@@ -121,21 +129,21 @@ end
 
 
 ---Will declare a team to be dead (no further orders can be assigned to such teams units)
----
----[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.KillTeam)
 ---@param teamID number #Gaia team cannot be killed.
 ---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.KillTeam)
 function Spring.KillTeam(teamID)
 	return nil
 end
 
 ---Will declare game over.
----
----[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.GameOver)
 ---@param AllyTeamID1 number
 ---@param AllyTeamID2 number
 ---@param AllyTeamIDn number
 ---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.GameOver)
 function Spring.GameOver(AllyTeamID1, AllyTeamID2, AllyTeamIDn)
 	return nil
 end
@@ -145,32 +153,33 @@ end
 --==================================================================================================
 
 ---Set tidal Strength
----
----[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetTidal)
 ---@param strength number
 ---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetTidal)
 function Spring.SetTidal(strength)
 	assert(type(strength) == "number", "Argument strength is of invalid type - expected number")
 	return nil
 end
 
 ---Sets wind strength
----
----[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetWind)
 ---@param minStrength number
 ---@param maxStrength number
 ---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetWind)
 function Spring.SetWind(minStrength, maxStrength)
 	assert(type(minStrength) == "number", "Argument minStrength is of invalid type - expected number")
 	assert(type(maxStrength) == "number", "Argument maxStrength is of invalid type - expected number")
 	return nil
 end
 
----[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.AddTeamResource)
 ---@param teamID number
 ---@param resourceType resourceTypes
 ---@param amount number
 ---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.AddTeamResource)
 function Spring.AddTeamResource (  teamID, resourceType, amount)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 assert(type(resourceType) == "string","Argument resourceType is of invalid type - expected string");
@@ -183,12 +192,12 @@ end
 ---| "energy"
 
 -- Consumes metal and/or energy resources of the specified team.
----
----[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.UseTeamResource)
 ---@param teamID number
 ---@param type resourceTypes
 ---@param amount number
 ---@return boolean | nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.UseTeamResource)
 function Spring.UseTeamResource ( teamID, type, amount )
 return  booleanMock
 end
@@ -200,12 +209,12 @@ end
 ---| "es" # energyStorage
 
 ---Sets team resources to given absolute value
----
----[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetTeamResource)
 ---@param teamID number
 ---@param res resValues
 ---@param amount any
 ---@return integer
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetTeamResource)
 function Spring.SetTeamResource (  teamID, res, amount)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 assert(type(res) == "string","Argument res is of invalid type - expected string");
@@ -214,17 +223,12 @@ return  numberMock
 end
 
 ---Changes the resource amount for a team beyond which resources aren't stored but transferred to other allied teams if possible
----
----[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetTeamShareLevel)
 ---@param teamID number
 ---@param resourceType resourceTypes
 ---@param amount number
 ---@return integer
---- ```
---- assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
---- assert(type(resourceType) == "string","Argument metal is of invalid type - expected string");
---- assert(type(amount) == "number","Argument amount is of invalid type - expected number");
---- ```
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetTeamShareLevel)
 function Spring.SetTeamShareLevel (teamID, resourceType, amount)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 assert(type(resourceType) == "string","Argument metal is of invalid type - expected string");
@@ -233,13 +237,13 @@ return  numberMock
 end
 
 --- Transfers resources between two teams
----
----[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.ShareTeamResource)
 ---@param teamID_src number source team
 ---@param teamID_rec number recieving team
 ---@param resourceType resourceTypes
 ---@param amount number 
 ---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.ShareTeamResource)
 function Spring.ShareTeamResource ( teamID_src, teamID_rec, resourceType, amount )
 assert(type(teamID_src) == "number","Argument teamID_src is of invalid type - expected number");
 assert(type(teamID_rec) == "number","Argument teamID_rec is of invalid type - expected number");
@@ -253,11 +257,11 @@ end
 --==================================================================================================
 
 
----@
 --- If one condition is fulfilled all beneath it are too (e.g. if an unit is in LOS it can read params with `inradar=true` even if the param has `inlos=false`) All GameRulesParam are public, TeamRulesParams can just be `private`,`allied` and/or `public` You can read RulesParams from any Lua enviroments! With those losAccess policies you can limit their access.
 --- Fields:
 ---     private bool only readable by the ally (default) (optional)
 ---     allied bool readable by ally + ingame allied (optional)
+---     typed bool readable if the unit is type (= in radar and was once in LOS)
 ---     inlos bool readable if the unit is in LOS (optional)
 ---     inradar bool readable if the unit is in AirLOS (optional)
 ---     public bool readable by all (optional)
@@ -270,14 +274,13 @@ end
 ---| "inradar" #readable if the unit is in AirLOS (optional)
 ---| "public" #readable by all (optional)
 
-
----@see Spring.GetGameRulesParams
 ---@param paramName string 
 ---@param paramValue number | string #numeric paramValues in quotes will be converted to number.
 ---@param losAccess? losAccess # not typically used in GameRules, see GetGameRulesParams, it will be ignored.
----
 ---@return nil
----[Open in Browser]()
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetGameRulesParam)<br>
+---[losAccess parameter details](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#losAccess)
 function Spring.SetGameRulesParam (  paramName, paramValue, losAccess )
 	assert(type(paramName) == "string","Argument paramName is of invalid type - expected string");
 	assert(losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
@@ -289,11 +292,13 @@ end
 ---@param paramName string
 ---@param paramValue number | string #numeric paramValues in quotes will be converted to number.
 ---@param losAccess? losAccess # while valid arguments, inLos, inRdar, typed, are not meaningful for team rules.
----[Open in Browser]()
 ---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetTeamRulesParam)
 function Spring.SetTeamRulesParam (teamID, paramName, paramValue, losAccess)
 	assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 	assert(type(paramName) == "string" or type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
+	assert(type(paramValue) == "string" | type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
 	assert(type((losAccess) == "string" | type(losAccess) == "table") & (losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
 	| losAccess == "public" | losAccess == "typed") , "Argument losAccess is invalid");
 	return nil
@@ -303,8 +308,9 @@ end
 ---@param paramName string
 ---@param paramValue number | string #numeric paramValues in quotes will be converted to number.
 ---@param losAccess? losAccess
----[Open in Browser]()
 ---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitRulesParam)
 function Spring.SetUnitRulesParam (unitID, paramName, paramValue, losAccess)
     assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 	assert(type(paramName) == "string", "invalid type for argument paramName, expected String")
@@ -319,6 +325,8 @@ end
 ---@param paramValue number | string
 ---@param losAccess? losAccess
 ---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetFeatureRulesParam)
 function Spring.SetFeatureRulesParam(featureID, paramName, paramValue, losAccess)
 	assert(type(featureID) == "number","Argument featureID is of invalid type - expected number");
 	assert(type(paramName))
@@ -328,64 +336,93 @@ function Spring.SetFeatureRulesParam(featureID, paramName, paramValue, losAccess
 	return nil
 end
 
+--==================================================================================================
+-- Lua to COB
+--==================================================================================================
+
+---@param UnitID number
+---@param funcName number | string
+---@param retArgs number
+---@param COBArg1? any #(optional)
+---@param COBArg2? any #(optional)
+---@param COBArgn? any #(optional)
+---@return nil|number
+---Consult wizard for additional return param info. <br>
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.CallCOBScript)
+function Spring.CallCOBScript(UnitID, funcName, retArgs, COBArg1, COBArg2, COBArgn)
+	return numberMock
+end
+
+---@param unitID number
+---@param funcName string
+---@return nil | number
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.GetCOBScriptID)
+function Spring.GetCOBScriptID (unitID, funcName)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(funcName) == "string","Argument funcName is of invalid type - expected string");
+	return  numberMock
+end
 
 
 --==================================================================================================
 -- Unit Handling
 --==================================================================================================
 
+
+
 ---@alias facing
 ---| "south"
----| "0"
+---| "0" # south
 ---| "east"
 ---| "e"
----| "1"
+---| "1" # east
 ---| "north"
 ---| "n"
----| "2"
+---| "2" # north
 ---| "west"
 ---| "w"
----| "3"
+---| "3" # west
 
----Spring.CreateUnit(unitDefName, x, y, z, facing, teamID[, build=false[, flattenGround=true[, unitID[, builderID]]]])
----@param unitDefName string | number # UnitDefName string or UnitDefID number
+---@param unitDefName 'string UnitDefName'|'number UnitDefID'
 ---@param x number
 ---@param y number
 ---@param z number
----@param facing number | string # string or number possible values for facing are: "south" | "s" | 0, "east" | "e" | 1, "north" | "n" | 2, "west" | "w" | 3
+---@param facing facing
 ---@param teamID number
 ---@param build? boolean # the unit is created in "being built" state with buildProgress = 0 (default false)
 ---@param flattenGround? boolean # the unit flattens ground, if it normally does so (default true)
 ---@param unitID? number # Requests specific unitID (optional)
 ---@param builderID? number # (optional)
----@return integer # unitID meaning unit was created
+---@return nil | number # `unitID` meaning unit was created
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.CreateUnit)
 function Spring.CreateUnit (  unitDefName, x, y , z, facing, teamID, build, flattenGround, unitID, builderID)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(teamID) == "number","Argument unitID is of invalid type - expected number");
-return  numberMock
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(teamID) == "number","Argument unitID is of invalid type - expected number");
+	return  numberMock
 end
-
 
 ---@param UnitID number
 ---@param selfd? boolean # if true, Makes the unit act like it self-destructed.
 ---@param reclaimed? boolean # Don't show any DeathSequences, don't leave a wreckage. This does not give back the resources to the team!
 ---@param attackerID? number 
 ---@param cleanupImmediately? boolean # stronger version of reclaimed, removes the unit unconditionally and makes its ID available for immediate reuse (otherwise it takes a few frames) (default false)
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.DestroyUnit)
 function Spring.DestroyUnit ( UnitID, selfd, reclaimed, attackerID, cleanupImmediately )
-	assert(UnitID)
-	assert(selfd)
-	assert(reclaimed)
-	assert(attackerID)
-	assert(cleanupImmediately)
-return  nil
+	return  nil
 end
 
----Spring.TransferUnit(unitID, newTeamID[, given=true])
 ---@param UnitID number
 ---@param newTeamID number
 ---@param given? boolean # If given=false, the unit is captured.
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.TransferUnit)
 function Spring.TransferUnit (UnitID, newTeamID, given)
-return  booleanMock
+	return nil
 end
 
 --==================================================================================================
@@ -398,63 +435,91 @@ end
 ---| "metalCost=number"
 ---| "energyCost=number"
 
---- where {[number]=number,...} keys and values are, respectively and in this order: buildTime=amount, metalCost=amount, energyCost=amount
 ---@param unitID number
----@param where string | SetCostKey
+---@param where SetCostKey
 ---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitCosts)
 function Spring.SetUnitCosts (unitID, where)
-return
+	return nil
 end
 
 --==================================================================================================
 -- Unit Resourcing
 --==================================================================================================
 
+---@param UnitID number
+---@param res string | '[u|c][u|m][m|e]' # `[unconditional|conditional][use|make][metal|energy]` ex. `"uum"`, `"cme"`
+---@param amount number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitResourcing)
+function Spring.SetUnitResourcing (UnitID, res, amount)
+	return nil
+end
+
+---@param UnitID number
+---@param res table
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitResourcing)
+function Spring.SetUnitResourcing (UnitID, res)
+	return nil
+end
+
 ---@param unitID number
 ---@param tooltip string
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitTooltip)
 function Spring.SetUnitTooltip (unitID, tooltip)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(tooltip) == "string","Argument tooltip is of invalid type - expected string");
-return  numberMock
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(tooltip) == "string","Argument tooltip is of invalid type - expected string");
+	return  nil
 end
 
 ---@param unitID number
 ---@param health number | string #number or {[string]=number,...} where keys can be one of health|capture|paralyze|build and values are amounts
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitHealth)
 function Spring.SetUnitHealth (unitID, health)
-return
+	return
 end
 
 ---@param unitID number
 ---@param maxHealth number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitMaxHealth)
 function Spring.SetUnitMaxHealth (unitID, maxHealth)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(maxHealth) == "number","Argument maxHealth is of invalid type - expected number");
-return  numberMock
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(maxHealth) == "number","Argument maxHealth is of invalid type - expected number");
+	return  nil
 end
-
----@see paralyzeDamage
----@see Spring.AddUnitImpulse
----@param unitID number
----@param damage number
----@param paralyze number # equal to the paralyzetime in WeaponDef
----@param attackerID number
----@param weaponID number
----@param impulse_x number
----@param impulse_y number
----@param impulse_z number
-function Spring.AddUnitDamage ( unitID, damage, paralyze, attackerID, weaponID, impulse_x, impulse_y, impulse_z )
-return  numberMock
- end
 
 ---@param unitID number
 ---@param stockpile number
 ---@param buildPercent number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitStockpile)
 function Spring.SetUnitStockpile (unitID, stockpile, buildPercent)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(stockpile) == "number","Argument stockpile is of invalid type - expected number");
 assert(type(buildPercent) == "number","Argument buildPercent is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
+
+---@param unitID number
+---@param forceUseWeapons? number # (optional)
+---@param allowUseWeapons? number # (optional)
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitUseWeapons)
+function Spring.SetUnitUseWeapons (unitID, forceUseWeapons, allowUseWeapons)
+	return nil
+end
 
 ---@param unitID number
 ---@param experience number 
@@ -463,7 +528,7 @@ function Spring.SetUnitExperience (unitID, experience)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(experience) == "number","Argument experience is of invalid type - expected number");
 return  numberMock
- end
+end
 
 ---@param unitID number
 ---@param deltaExperience number # Can be negative to subtract, but the unit will never have negative total afterwards
@@ -1110,10 +1175,6 @@ function Spring.SetUnitPosErrorParams ( )
 return  numberMock
 end
 
-function Spring.SetUnitResourcing ( )
-return
-end
-
 function Spring.AddUnitResource (unitID, m)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(m) == "string","Argument m is of invalid type - expected string");
@@ -1233,12 +1294,6 @@ end
 function Spring.CallCOBScriptCB (unitID, funcID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(funcID) == "number","Argument funcID is of invalid type - expected number");
-return  numberMock
-end
-
-function Spring.GetCOBScriptID (unitID, funcName)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(funcName) == "string","Argument funcName is of invalid type - expected string");
 return  numberMock
 end
 
@@ -2120,6 +2175,21 @@ assert(type(teamID) == "number","Argument teamID is of invalid type - expected n
 assert(type(units) == "string","Argument units is of invalid type - expected string");
 return  numberMock
  end
+
+---@param unitID number
+---@param damage number
+---@param paralyze number # equal to the paralyzetime in WeaponDef
+---@param attackerID number
+---@param weaponID number
+---@param impulse_x number
+---@param impulse_y number
+---@param impulse_z number
+---@see paralyzeDamage
+---@see Spring.AddUnitImpulse
+---@return nil
+function Spring.AddUnitDamage ( unitID, damage, paralyze, attackerID, weaponID, impulse_x, impulse_y, impulse_z )
+	return  nil
+end
 
 function Spring.AddUnitIcon (  iconName, texFile, size, dist, radAdjust)
 assert(type(iconName) == "string","Argument iconName is of invalid type - expected string");
