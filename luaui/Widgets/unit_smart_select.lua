@@ -14,7 +14,6 @@ end
 local minimapToWorld = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").minimapToWorld
 local skipSel
 local inSelection = false
-local finishedSelection = false
 local inMiniMapSel = false
 
 local referenceX, referenceY
@@ -118,14 +117,6 @@ function widget:ViewResize()
 end
 
 function widget:SelectionChanged(sel)
-	-- widgets already received what we selected on previous pass, bypass this event
-	if finishedSelection then
-		-- NOTE: disabled cause deselecting didnt always inform other widgets
-		--WG['smartselect'].updateSelection = false
-		--finishedSelection = false
-		--return
-	end
-
 	-- Check if engine has just deselected via mouserelease on selectbox.
 	-- We want to ignore engine passed selection and make sure we retain smartselect state
 	if inSelection and not select(3, spGetMouseState()) then -- left mouse button
@@ -138,17 +129,9 @@ function widget:SelectionChanged(sel)
 			selectedUnits = {}
 			spSelectUnitArray({})
 		else
-			-- widgethandler uses this to ignore the engine mouserelease selection
-			-- we don't want to pass the engine selection to other widgets
-			WG['smartselect'].updateSelection = false
 			-- we also want to override back from engine selection to our selection
 			spSelectUnitArray(selectedUnits)
-			-- we bypass next selectionchanged event since we already know what we
-			-- selected, Update() constantly selects units inside selection box until
-			-- it finishes
-			finishedSelection = true
 		end
-
 		return
 	end
 
