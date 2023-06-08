@@ -62,7 +62,9 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 
 	local isStockpilingUnitScav = {}
 	for defID, maxCount in pairs(isStockpilingUnit) do
-		isStockpilingUnitScav[UnitDefNames[UnitDefs[defID].name .. "_scav"].id] = maxCount
+		if UnitDefNames[UnitDefs[defID].name .. "_scav"] then
+			isStockpilingUnitScav[UnitDefNames[UnitDefs[defID].name .. "_scav"].id] = maxCount
+		end
 	end
 	table.mergeInPlace(isStockpilingUnit, isStockpilingUnitScav)
 
