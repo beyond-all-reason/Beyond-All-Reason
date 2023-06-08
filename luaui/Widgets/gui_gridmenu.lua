@@ -145,6 +145,20 @@ function Rect:new(x1, y1, x2, y2)
 	return this
 end
 
+local function pairsByKeys (t, f)
+	local a = {}
+	for n in pairs(t) do table.insert(a, n) end
+	table.sort(a, f)
+	local i = 0      -- iterator variable
+	local iter = function ()   -- iterator function
+		i = i + 1
+		if a[i] == nil then return nil
+		else return a[i], t[a[i]]
+		end
+	end
+	return iter
+end
+
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -171,6 +185,7 @@ local gridOpts = {}
 local gridOptsCount
 local categories = {}
 local catRects = {}
+local builderRects = {}
 local currentCategory
 local currentPage = 1
 local pages = 1
@@ -742,6 +757,7 @@ function widget:ViewResize()
 	doUpdate = true
 end
 
+
 local sec = 0
 local updateSelection = true
 function widget:Update(dt)
@@ -763,6 +779,7 @@ function widget:Update(dt)
 
 				if units.isBuilder[unitDefID] then
 					doUpdate = true
+					builderIsFactory = false
 
 					local count = selectedBuilders[unitDefID] and selectedBuilders[unitDefID] or 0
 					selectedBuilders[unitDefID] = count + 1
@@ -777,7 +794,6 @@ function widget:Update(dt)
 					builderIsFactory = true
 					selectedFactoryUID = unitID
 					activeBuilder = unitDefID
-
 				end
 			end
 
@@ -1102,7 +1118,7 @@ local function drawPaginators()
 	drawButton(nextPageRect, opts)
 end
 
-local function drawBuilderIcon(unitDefID, rect, lightness, zoom, highlightOpacity)
+local function drawBuilderIcon(unitDefID, rect, count, lightness, zoom, highlightOpacity)
 	gl.Color(lightness,lightness,lightness,1)
 	UiUnit(
 		rect.x, rect.y, rect.xEnd, rect.yEnd,
@@ -1112,6 +1128,21 @@ local function drawBuilderIcon(unitDefID, rect, lightness, zoom, highlightOpacit
 		'#'..unitDefID,
 		nil, nil, nil, nil
 	)
+
+	-- builder count number
+	if count > 1 then
+		local rectSize = rect.xEnd - rect.x
+		local countFontSize = rectSize * 0.29
+		local pad = math_floor(rectSize * 0.03)
+		local textWidth = font2:GetTextWidth(count .. '	') * countFontSize
+		RectRound(rect.x, rect.yEnd - (rectSize * 0.35), rect.x + textWidth, rect.yEnd, cornerSize, 0, 0, 1, 0, { 0.15, 0.15, 0.15, 0.95 }, { 0.25, 0.25, 0.25, 0.95 })
+		font2:Print("\255\190\255\190" .. count,
+			rect.x + (pad * 2),
+			rect.y + pad + math_floor(rectSize * 0.735),
+			countFontSize, "o"
+		)
+	end
+
 	if highlightOpacity then
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
 		gl.Color(1,1,1,highlightOpacity)
@@ -1127,7 +1158,7 @@ local function drawBuilders()
 	end
 
 	local builderTypes = 0
-	for unitDefID, count in pairs(selectedBuilders) do
+	for unitDefID, count in pairsByKeys(selectedBuilders) do
 		builderTypes = builderTypes + 1
 
 		local rect = Rect:new(
@@ -1137,9 +1168,11 @@ local function drawBuilders()
 			buildersRect.yEnd
 		)
 
+		builderRects[builderTypes] = rect
+
 		local highlight = activeBuilder == unitDefID and 1.0 or 0.5
 
-		drawBuilderIcon(unitDefID, rect, highlight, 0.05, 0)
+		drawBuilderIcon(unitDefID, rect, count, highlight, 0.05, 0)
 	end
 
 end
