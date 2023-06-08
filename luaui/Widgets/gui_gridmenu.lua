@@ -757,6 +757,48 @@ function widget:ViewResize()
 	doUpdate = true
 end
 
+local function addBuilderToSelection(unitID, incrementCount)
+	local unitDefID = spGetUnitDefID(unitID)
+
+	if units.isBuilder[unitDefID] then
+		doUpdate = true
+		builderIsFactory = false
+
+		if incrementCount then
+			local count = selectedBuilders[unitDefID] and selectedBuilders[unitDefID] or 0
+			selectedBuilders[unitDefID] = count + 1
+		end
+
+		activeBuilder = unitDefID
+		activeBuilderID = unitID
+	end
+
+	if units.isFactory[unitDefID] then
+		doUpdate = true
+
+		builderIsFactory = true
+		selectedFactoryUID = unitID
+		activeBuilder = unitDefID
+	end
+end
+
+local function setActiveBuilder(index)
+	local i = 0
+	for builder, _ in pairsByKeys(selectedBuilders) do
+		i = i + 1
+		if i == index then
+			local sel = Spring.GetSelectedUnits()
+			for _, unitID in pairs(sel) do
+				local unitDefID = spGetUnitDefID(unitID)
+				if builder == unitDefID then
+					addBuilderToSelection(unitID, false)
+					break
+				end
+			end
+		end
+	end
+end
+
 
 local sec = 0
 local updateSelection = true
@@ -775,26 +817,7 @@ function widget:Update(dt)
 		if SelectedUnitsCount > 0 then
 			local sel = Spring.GetSelectedUnits()
 			for _, unitID in pairs(sel) do
-				local unitDefID = spGetUnitDefID(unitID)
-
-				if units.isBuilder[unitDefID] then
-					doUpdate = true
-					builderIsFactory = false
-
-					local count = selectedBuilders[unitDefID] and selectedBuilders[unitDefID] or 0
-					selectedBuilders[unitDefID] = count + 1
-
-					activeBuilder = unitDefID
-					activeBuilderID = unitID
-				end
-
-				if units.isFactory[unitDefID] then
-					doUpdate = true
-
-					builderIsFactory = true
-					selectedFactoryUID = unitID
-					activeBuilder = unitDefID
-				end
+				addBuilderToSelection(unitID, true)
 			end
 
 			if activeBuilder and not builderIsFactory then
@@ -1119,6 +1142,10 @@ local function drawPaginators()
 end
 
 local function drawBuilderIcon(unitDefID, rect, count, lightness, zoom, highlightOpacity)
+	local hovered = hoveredButton == rect:getId()
+	lightness = hovered and lightness + 0.25 or lightness
+	zoom = hovered and zoom + 0.1 or zoom
+
 	gl.Color(lightness,lightness,lightness,1)
 	UiUnit(
 		rect.x, rect.y, rect.xEnd, rect.yEnd,
@@ -1375,7 +1402,7 @@ function widget:DrawScreen()
 		end
 
 		local hovering = false
-		if backgroundRect:contains(x, y) then
+		if backgroundRect:contains(x, y) or buildersRect:contains(x, y) then
 			Spring.SetMouseCursor('cursornormal')
 			hovering = true
 		end
@@ -1416,6 +1443,7 @@ function widget:DrawScreen()
 						end
 					end
 
+					-- category buttons
 					for cat, catRect in pairs(catRects) do
 						if catRect:contains(x, y) then
 							hoveredButton = catRect:getId()
@@ -1452,6 +1480,15 @@ function widget:DrawScreen()
 					if nextPageRect.y and nextPageRect:contains(x, y) then
 						hoveredButton = nextPageRect:getId()
 						hoveredButtonNotFound = false
+					end
+
+					-- builder buttons
+					for i, rect in pairs(builderRects) do
+						if rect:contains(x,y) then
+							hoveredButton = rect:getId()
+							hovering = true
+							hoveredButtonNotFound = false
+						end
 					end
 
 					if hoveredButton ~= drawnHoveredButton then
@@ -1623,12 +1660,20 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if buildmenuShows and backgroundRect:contains(x, y) then
+	if buildmenuShows and (backgroundRect:contains(x, y) or buildersRect:contains(x, y)) then
 		if activeBuilder or (isPregame and startDefID) then
 			if nextPageRect and nextPageRect:contains(x, y) then
 				Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
 				nextPageHandler()
 				return true
+			end
+
+			for i, rect in pairs(builderRects) do
+				if rect:contains(x,y) then
+					setActiveBuilder(i)
+					doUpdate = true
+					return true
+				end
 			end
 
 			if not disableInput then
