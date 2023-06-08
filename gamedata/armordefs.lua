@@ -546,6 +546,7 @@ local armorDefs = {
 		"chickenearty1",
 		"chickenelectricallterrain",
 		"chicken_hive",
+		"chicken_antinuke",
 	},
 }
 

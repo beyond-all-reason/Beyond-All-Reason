@@ -363,6 +363,7 @@ local units = {
 	chicken_turretl_acid  = { "chicken_tentacle2.png", 3 },
 	chicken_turretxl_meteor = { "chicken_tentacle2.png", 5 },
 	chicken_hive = { "chicken_roost.png", 2 },
+	chicken_antinuke = { "chicken_roost.png", 0 },
 
 	chicken1x_spectre = { "chicken.png", 1.25 },
 	chicken2_spectre = { "chicken.png", 1.5 },
