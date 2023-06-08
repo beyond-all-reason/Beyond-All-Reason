@@ -127,6 +127,7 @@ return {
 				waterbounce = true,
 				weapontype = "AircraftBomb",
 				customparams = {
+					bogus = 1,
 					spawns_name = "cormine1",
 					spawns_surface = "LAND",
 				},
