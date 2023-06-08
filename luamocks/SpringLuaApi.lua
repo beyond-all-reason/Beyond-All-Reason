@@ -933,55 +933,27 @@ function Spring.SetUnitRadiusAndHeight (unitID, radius, height)
 	return booleanMock
 end
 
----@param transporterID number
----@param passengerID number
----@param pieceNum number
----@return nil
-function Spring.UnitAttach (transporterID, passengerID, pieceNum)
-assert(type(transporterID) == "number","Argument transporterID is of invalid type - expected number");
-assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
-assert(type(pieceNum) == "number","Argument pieceNum is of invalid type - expected number");
-return  nil
-end
-
---=================================
---TODO Continue from here 6-6-23
---=================================
-
----@param passengerID number
----@return nil
-function Spring.UnitDetach (passengerID)
-assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
-return  nil
-end
-
----@param passengerID number
----@return nil
-function Spring.UnitDetachFromAir (  passengerID)
-assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
-return  nil
-end
-
----@param passengerID number
----@param transportID number
----@return nil
-function Spring.SetUnitLoadingTransport (  passengerID, transportID)
-assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
-assert(type(transportID) == "number","Argument transportID is of invalid type - expected number");
-return  nil
-end
-
 ---Changes the pieces hierarchy of a unit by attaching a piece to a new parent.
 ---@param unitID number
 ---@param AlteredPiece number
 ---@param ParentPiece number
 ---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitPieceParent)
 function Spring.SetUnitPieceParent (unitID, AlteredPiece, ParentPiece)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(AlteredPiece) == "number","Argument AlteredPiece is of invalid type - expected number");
-assert(type(ParentPiece) == "number","Argument ParentPiece is of invalid type - expected number");
-return  nil
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(AlteredPiece) == "number","Argument AlteredPiece is of invalid type - expected number");
+	assert(type(ParentPiece) == "number","Argument ParentPiece is of invalid type - expected number");
 end
+
+---Sets the local (parent-relative) matrix of the given piece. If any of the first three elements are non-zero, then blocks all script animations from modifying it until {0, 0, 0} is passed.
+---
+---[LuaSynchedCtrl.cpp SetUnitPieceMatrix](https://github.com/beyond-all-reason/spring/blob/BAR105/rts/Lua/LuaSyncedCtrl.cpp#L3218-L3240)<br>
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitPieceMatrix)
+---@param unitID number
+---@param pieceNum number
+---@param matrix table `number,...`  an array of 16 floats, pass as table with integer keys
+function Spring.SetUnitPieceMatrix(unitID, pieceNum, matrix) end
 
 ---@alias COLVOL_TYPES table
 ---| "COLVOL_TYPE_DISABLED=-1"
@@ -1013,9 +985,10 @@ end
 ---@param tType COLVOL_TESTS
 ---@param Axis COLVOL_AXES
 ---@diagnostic disable-next-line
-function Spring.SetUnitCollisionVolumeData (UnitID, scaleX, scaleY, scaleZ, offsetX, offsetY, offsetZ, vType, tType, Axis)
-return nil
-end
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitCollisionVolumeData)
+function Spring.SetUnitCollisionVolumeData (UnitID, scaleX, scaleY, scaleZ, offsetX, offsetY, offsetZ, vType, tType, Axis) end
+
 --- piece volumes not allowed to use discrete hit-testing
 ---@param unitID number
 ---@param pieceIndex number
@@ -1028,8 +1001,162 @@ end
 ---@param offsetZ number
 ---@param volumeType? number 
 ---@param primaryAxis? number 
-function Spring.SetUnitPieceCollisionVolumeData (unitID, pieceIndex, enable, scaleX, scaleY, scaleZ, offsetX, offsetY, offsetZ, volumeType, primaryAxis)
-return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitPieceCollisionVolumeData)<br>
+---see: [collisionvolumes.lua](https://github.com/beyond-all-reason/Beyond-All-Reason/blob/b43cef90f5ef6f23584d0fb1ffb62a29ed2a649d/luarules/configs/collisionvolumes.lua) for a detailed explaination of how this works.
+function Spring.SetUnitPieceCollisionVolumeData (unitID, pieceIndex, enable, scaleX, scaleY, scaleZ, offsetX, offsetY, offsetZ, volumeType, primaryAxis) end
+
+---@param unitID number
+---@param pieceIndex number
+---@param visible boolean
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitPieceVisible)
+function Spring.SetUnitPieceVisible(unitID, pieceIndex, visible) end
+
+---@param unitID number
+---@param type string `"los"` | `"airLos"` | `"radar"` | `"sonar"` | `"seismic"` | `"radarJammer"` | `"sonarJammer"`
+---@return number | nil # Returns new radius
+function Spring.SetUnitSensorRadius(unitID, type)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(type) == "string","Argument type is of invalid type - expected string");
+--assert(type(radius) == "number","Argument radius is of invalid type - expected number"); radius is defined by type
+return numberMock
+end
+
+---@param unitID number
+---@param posErrorVectorX number
+---@param posErrorVectorY number
+---@param posErrorVectorZ number
+---@param posErrorDeltaX number
+---@param posErrorDeltaY number
+---@param posErrorDeltaZ number
+---@param nextPosErrorUpdate? number
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitPosErrorParams)
+function Spring.SetUnitPosErrorParams (unitID, posErrorVectorX, posErrorVectorY, posErrorVectorZ, posErrorDeltaX, posErrorDeltaY, posErrorDeltaZ, nextPosErrorUpdate) end
+
+---Used by default commands to get in build-, attackrange etc.
+---@param unitID number
+---@param goalx number
+---@param goaly number
+---@param goalz number
+---@param goalRadius? number 
+---@param moveSpeed? number 
+---@param moveRaw? boolean
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitMoveGoal)
+function Spring.SetUnitMoveGoal (unitID, goalx, goaly, goalz, goalRadius, moveSpeed, moveRaw)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(goalx) == "number","Argument goalx is of invalid type - expected number");
+	assert(type(goaly) == "number","Argument goaly is of invalid type - expected number");
+	assert(type(goalz) == "number","Argument goalz is of invalid type - expected number");
+	assert(type(goalRadius) == "number","Argument goalRadius is of invalid type - expected number");
+	assert(type(moveSpeed) == "number","Argument moveSpeed is of invalid type - expected number");
+end
+
+---Used in conjuction with `Spring.UnitAttach` et al. to re-implement old airbase & fuel system in Lua
+---@param unitID number
+---@param goalX number
+---@param goalY number
+---@param goalZ number
+---@param goalRadius? number
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitLandGoal)
+---@see Spring.UnitAttach
+---@see Spring.ClearUnitGoal
+function Spring.SetUnitLandGoal (unitID, goalX, goalY, goalZ, goalRadius) end
+
+---@param unitID number
+---@see Spring.SetUnitLandGoal
+---@see Spring.SetUnitMoveGoal
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.ClearUnitGoal)
+function Spring.ClearUnitGoal(unitID) end
+
+---@param unitID number
+---@param posX number
+---@param posY number
+---@param posZ number
+---@param velX number
+---@param velY number
+---@param velZ number
+---@param rotX number
+---@param rotY number
+---@param rotZ number
+---@param dragX number
+---@param dragY number
+---@param dragZ number
+---Passes to func SetSolidObjectPhysicalState.<br>
+---[See SetSolidObjectPhysicalState on GitHub](https://github.com/beyond-all-reason/spring/blob/4acda93455baeeffd81a6e9129f317cf98ccd669/rts/Lua/LuaSyncedCtrl.cpp#L673-L705)
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitPhysics)
+function Spring.SetUnitPhysics(unitID, posX, posY, posZ, velX, velY, velZ, rotX, rotY, rotZ, dragX, dragY, dragZ) end
+
+---@param unitID number
+---@param mass number
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitMass)
+function Spring.SetUnitMass(unitID, mass) end
+
+---@param unitID number
+---@param x number
+---@param z number
+---@param alwaysAboveSea? boolean 
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitPosition)
+function Spring.SetUnitPosition (unitID, x, z, alwaysAboveSea)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(x) == "number","Argument x is of invalid type - expected number");
+	assert(type(z) == "number","Argument z is of invalid type - expected number");
+	assert(type(alwaysAboveSea) == "boolean","Argument alwaysAboveSea is of invalid type - expected boolean");
+end
+
+---@param unitID number
+---@param rotx number
+---@param roty number
+---@param rotz number
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitRotation)
+function Spring.SetUnitRotation (unitID, rotx, roty, rotz)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(rotx) == "number","Argument rotx is of invalid type - expected number");
+	assert(type(roty) == "number","Argument roty is of invalid type - expected number");
+	assert(type(rotz) == "number","Argument rotz is of invalid type - expected number");
+end
+
+--===================================
+
+---@param transporterID number
+---@param passengerID number
+---@param pieceNum number
+function Spring.UnitAttach (transporterID, passengerID, pieceNum)
+	assert(type(transporterID) == "number","Argument transporterID is of invalid type - expected number");
+	assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
+	assert(type(pieceNum) == "number","Argument pieceNum is of invalid type - expected number");
+end
+
+
+---@param passengerID number
+---@return nil
+function Spring.UnitDetach (passengerID)
+assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
+return  nil
+end
+
+---@param passengerID number
+---@return nil
+function Spring.UnitDetachFromAir (  passengerID)
+assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
+return  nil
+end
+
+---@param passengerID number
+---@param transportID number
+---@return nil
+function Spring.SetUnitLoadingTransport (  passengerID, transportID)
+assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
+assert(type(transportID) == "number","Argument transportID is of invalid type - expected number");
+return  nil
 end
 
 ---Deprecated and marked for deletion in CPP API fields
@@ -1045,85 +1172,6 @@ assert(type(travelPeriod) == "number","Argument travelPeriod is of invalid type 
 return  nil
 end
 
----Used by default commands to get in build-, attackrange etc.
----@param unitID number
----@param goalx number
----@param goaly number
----@param goalz number
----@param goalRadius? number 
----@param moveSpeed? number 
----@param moveRaw? boolean 
----@return nil
-function Spring.SetUnitMoveGoal (unitID, goalx, goaly, goalz, goalRadius, moveSpeed, moveRaw)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(goalx) == "number","Argument goalx is of invalid type - expected number");
-assert(type(goaly) == "number","Argument goaly is of invalid type - expected number");
-assert(type(goalz) == "number","Argument goalz is of invalid type - expected number");
-assert(type(goalRadius) == "number","Argument goalRadius is of invalid type - expected number");
-assert(type(moveSpeed) == "number","Argument moveSpeed is of invalid type - expected number");
-return  nil
-end
-
----Used in conjuction with Spring.UnitAttach et al.
----to re-implement old airbase & fuel system in lua
----@param unitID number
----@param goalX number
----@param goalY number
----@param goalZ number
----@param goalRadius? number
----@return nil
----@see Spring.UnitAttach
----@see Spring.ClearUnitGoal
-function Spring.SetLandUnitGoal(unitID, goalX, goalY, goalZ, goalRadius)
-	return nil
-end
-
----@param unitID number
----@return nil
----@see Spring.SetLandUnitGoal
----@see Spring.SetUnitMoveGoal
-function Spring.ClearUnitGoal(unitID)
-	return nil
-end
-
----@param unitID number
----@param posX number
----@param posY number
----@param posZ number
----@param velX number
----@param velY number
----@param velZ number
----@param rotX number
----@param rotY number
----@param rotZ number
----@param dragX number
----@param dragY number
----@param dragZ number
----@return nil
-function Spring.SetUnitPhysics(unitID, posX, posY, posZ, velX, velY, velZ, rotX, rotY, rotZ, dragX, dragY, dragZ)
-	return nil
-end
-
----@param unitID number
----@param mass number
----@return nil
-function Spring.SetUnitMass(unitID, mass)
-return nil
-end
-
----@param unitID number
----@param x number
----@param z number
----@param alwaysAboveSea? boolean 
----@return nil
-function Spring.SetUnitPosition (unitID, x, z, alwaysAboveSea)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(x) == "number","Argument x is of invalid type - expected number");
-assert(type(z) == "number","Argument z is of invalid type - expected number");
-assert(type(alwaysAboveSea) == "boolean","Argument alwaysAboveSea is of invalid type - expected boolean");
-return  nil
-end
-
 ---@param unitID number
 ---@param velx number
 ---@param vely number
@@ -1134,19 +1182,6 @@ assert(type(unitID) == "number","Argument unitID is of invalid type - expected n
 assert(type(velx) == "number","Argument velx is of invalid type - expected number");
 assert(type(vely) == "number","Argument vely is of invalid type - expected number");
 assert(type(velz) == "number","Argument velz is of invalid type - expected number");
-return  nil
-end
-
----@param unitID number
----@param rotx number
----@param roty number
----@param rotz number
----@return nil
-function Spring.SetUnitRotation (unitID, rotx, roty, rotz)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(rotx) == "number","Argument rotx is of invalid type - expected number");
-assert(type(roty) == "number","Argument roty is of invalid type - expected number");
-assert(type(rotz) == "number","Argument rotz is of invalid type - expected number");
 return  nil
 end
 
@@ -1215,24 +1250,13 @@ assert(type(weaponID) == "number","Argument weaponID is of invalid type - expect
 return nil
 end
 
----Sets a unit sensor radius based on sensor type
----@param unitID number
----@param type string "los" | "airLos" | "radar" | "sonar" | "seismic" | "radarJammer" | "sonarJammer"
----@return nil | number newRadius
-function Spring.SetUnitSensorRadius(unitID, type)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(type) == "string","Argument type is of invalid type - expected string");
---assert(type(radius) == "number","Argument radius is of invalid type - expected number"); radius is defined by type
-return numberMock
-end
+
 
 function Spring.SetRadarErrorParams ( )
 return  numberMock
 end
 
-function Spring.SetUnitPosErrorParams ( )
-return  numberMock
-end
+
 
 function Spring.AddUnitResource (unitID, m)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
