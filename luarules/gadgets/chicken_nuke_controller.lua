@@ -38,7 +38,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 end
 
 function gadget:GameFrame(frame)
-    if frame%17 == 0 then
+    if frame%30 == 17 then
         local allUnits = Spring.GetAllUnits()
         for nukeID, cooldown in pairs(aliveNukeLaunchers) do
             if cooldown <= Spring.GetGameSeconds() then
