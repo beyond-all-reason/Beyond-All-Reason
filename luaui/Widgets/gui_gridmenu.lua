@@ -1813,6 +1813,7 @@ end
 
 function widget:GameStart()
 	preGamestartPlayer = false
+	selectedBuilder = nil
 end
 
 function widget:KeyRelease(key)
