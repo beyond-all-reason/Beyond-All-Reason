@@ -139,7 +139,7 @@ function Rect:new(x1, y1, x2, y2)
 	end
 
 	function this:getId()
-		return self.x + self.y + self.yEnd + self.xEnd
+		return self.x .. self.y .. self.yEnd .. self.xEnd
 	end
 
 	return this
