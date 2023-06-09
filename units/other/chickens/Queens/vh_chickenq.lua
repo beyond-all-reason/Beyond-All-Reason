@@ -93,7 +93,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.7,
-				interceptedbyshieldtype = 4,
+				interceptedbyshieldtype = 1,
 				model = "Chickens/SGreyRock1.S3O",
 				name = "Blob",
 				noselfdamage = true,
