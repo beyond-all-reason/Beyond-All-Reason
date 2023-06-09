@@ -195,6 +195,7 @@ local categoriesRect = Rect:new(0, 0, 0, 0)
 local buildpicsRect = Rect:new(0, 0, 0 ,0)
 local paginatorsRect = Rect:new(0, 0, 0, 0)
 local buildersRect = Rect:new(0, 0, 0, 0)
+local nextBuilderRect = Rect:new(0, 0, 0, 0)
 local isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
 -------------------------------------------------------------------------------
@@ -346,6 +347,9 @@ local function reloadBindings()
 	end
 
 	Cfgs.PREV_PAGE_KEY = key
+
+	key = getActionHotkey('gridmenu_cycle_builder')
+	Cfgs.CYCLE_BUILDER_KEY = key
 
 	-- Autogenerate bottom layout keys
 	Cfgs.vKeyLayout = {}
@@ -1184,10 +1188,10 @@ local function drawBuilderIcon(unitDefID, rect, count, lightness, zoom, highligh
 	-- builder count number
 	if count > 1 then
 		local rectSize = rect.xEnd - rect.x
-		local countFontSize = rectSize * 0.29
+		local countFontSize = rectSize * 0.25
 		local pad = math_floor(rectSize * 0.03)
 		local textWidth = font2:GetTextWidth(count .. '	') * countFontSize
-		RectRound(rect.x, rect.yEnd - (rectSize * 0.35), rect.x + textWidth, rect.yEnd, cornerSize, 0, 0, 1, 0, { 0.15, 0.15, 0.15, 0.95 }, { 0.25, 0.25, 0.25, 0.95 })
+		RectRound(rect.x, rect.yEnd - (rectSize * 0.35), rect.x + textWidth, rect.yEnd, math_floor(rectSize / 10), 0, 0, 1, 0, { 0.15, 0.15, 0.15, 0.65 }, { 0.25, 0.25, 0.25, 0.65 })
 		font2:Print("\255\190\255\190" .. count,
 			rect.x + (pad * 2),
 			rect.y + pad + math_floor(rectSize * 0.735),
@@ -1238,8 +1242,38 @@ local function drawBuilders()
 		local highlight = activeBuilder == unitDefID and 1.0 or 0.5
 
 		drawBuilderIcon(unitDefID, rect, count, highlight, 0.05, 0)
+
+		-- avoid overflow
+		if builderTypes > 5 then
+			break
+		end
 	end
 
+	-- draw hint
+	local rect = Rect:new(
+		buildersRect.xEnd,
+		buildersRect.y + ((buildersRect.yEnd - buildersRect.y) * 0.2),
+		buildersRect.xEnd + (builderButtonSize * 0.8),
+		buildersRect.yEnd - ((buildersRect.yEnd - buildersRect.y) * 0.2)
+	)
+
+	local text = "›"
+	local rectSize = rect.xEnd - rect.x
+	local fontSize = rectSize * 0.75
+	local textHeight = font2:GetTextHeight(text) * fontSize
+	font2:Print("\255\255\255\255" .. text,
+		rect.x + math_floor(rectSize * 0.2),
+		rect.y + ((rect.yEnd - rect.y) / 2) - math_floor(textHeight / 2),
+		fontSize, "o"
+	)
+
+	local opts = {
+		hovered = (hoveredButton == rect:getId()),
+	}
+
+	drawButton(rect, opts)
+	drawButtonHotkey(rect, keyConfig.sanitizeKey(Cfgs.CYCLE_BUILDER_KEY, currentLayout))
+	nextBuilderRect = rect
 end
 
 local function drawGrid()
@@ -1440,7 +1474,7 @@ function widget:DrawScreen()
 		end
 
 		local hovering = false
-		if backgroundRect:contains(x, y) or buildersRect:contains(x, y) then
+		if backgroundRect:contains(x, y) or buildersRect:contains(x, y) or nextBuilderRect:contains(x, y) then
 			Spring.SetMouseCursor('cursornormal')
 			hovering = true
 		end
@@ -1526,7 +1560,13 @@ function widget:DrawScreen()
 							hoveredButton = rect:getId()
 							hovering = true
 							hoveredButtonNotFound = false
+							break
 						end
+					end
+					if nextBuilderRect:contains(x, y) then
+						hoveredButton = nextBuilderRect:getId()
+						hovering = true
+						hoveredButtonNotFound = false
 					end
 
 					if hoveredButton ~= drawnHoveredButton then
@@ -1698,7 +1738,7 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if buildmenuShows and (backgroundRect:contains(x, y) or buildersRect:contains(x, y)) then
+	if buildmenuShows and (backgroundRect:contains(x, y) or buildersRect:contains(x, y) or nextBuilderRect:contains(x, y)) then
 		if activeBuilder or (isPregame and startDefID) then
 			if nextPageRect and nextPageRect:contains(x, y) then
 				Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
@@ -1712,6 +1752,11 @@ function widget:MousePress(x, y, button)
 					doUpdate = true
 					return true
 				end
+			end
+			if nextBuilderRect:contains(x, y) then
+				cycleBuilder()
+				doUpdate = true
+				return true
 			end
 
 			if not disableInput then
