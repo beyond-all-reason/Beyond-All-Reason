@@ -1185,8 +1185,78 @@ end
 ---@param forced? boolean
 ---@param excludeUnitID? number
 ---@param excludeUnitDefIDs? number
-function Spring.BuggerOff(x, y, z, radius, teamID, spherical, forced, excludeUnitID, excludeUnitDefIDs)
-	
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.BuggerOff)
+function Spring.BuggerOff(x, y, z, radius, teamID, spherical, forced, excludeUnitID, excludeUnitDefIDs) end
+
+---@param unitID number
+---@param damage number
+---@param paralyze number # equal to the paralyzetime in WeaponDef
+---@param attackerID number
+---@param weaponID number
+---@param impulse_x number
+---@param impulse_y number
+---@param impulse_z number
+---@see paralyzeDamage
+---@see Spring.AddUnitImpulse
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.AddUnitDamage)
+function Spring.AddUnitDamage ( unitID, damage, paralyze, attackerID, weaponID, impulse_x, impulse_y, impulse_z ) end
+
+---@param unitID number
+---@param x number
+---@param y number
+---@param z number
+---@param decayRate? number 
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.AddUnitImpulse)
+function Spring.AddUnitImpulse (unitID, x, y, z, decayRate)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(x) == "number","Argument x is of invalid type - expected number");
+	assert(type(y) == "number","Argument y is of invalid type - expected number");
+	assert(type(z) == "number","Argument z is of invalid type - expected number");
+end
+
+---@param unitID number
+---@param pingSize number
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.AddUnitSeismicPing)
+function Spring.AddUnitSeismicPing (unitID, pingSize)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(pingSize) == "number","Argument pingSize is of invalid type - expected number");
+end
+
+---@param unitID number
+---@param resource "m" | "e"
+---@param amount number
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.AddUnitResource)
+function Spring.AddUnitResource (unitID, resource, amount)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(m) == "string","Argument m is of invalid type - expected string");
+end
+
+---@param unitID number
+---@param resource "m" | "e"
+---@param amount number
+---@return boolean okay
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.UseUnitResource)
+function Spring.UseUnitResource (unitID, resource, amount)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(resource) == "string","Argument resource is of invalid type - expected string");
+	return booleanMock
+end
+
+---@param unitID number
+---@param resource "m=number" | "e=number" | "metal=number" | "energy=number"
+---@return boolean okay
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.UseUnitResource)
+function Spring.UseUnitResource (unitID, resource)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(resource) == "string","Argument resource is of invalid type - expected string");
+	return booleanMock
 end
 
 --===================================
@@ -1199,7 +1269,6 @@ function Spring.UnitAttach (transporterID, passengerID, pieceNum)
 	assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
 	assert(type(pieceNum) == "number","Argument pieceNum is of invalid type - expected number");
 end
-
 
 ---@param passengerID number
 ---@return nil
@@ -1237,29 +1306,6 @@ assert(type(travelPeriod) == "number","Argument travelPeriod is of invalid type 
 return  nil
 end
 
----@param unitID number
----@param x number
----@param y number
----@param z number
----@param decayRate? number 
----@return nil
-function Spring.AddUnitImpulse (unitID, x, y, z, decayRate)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(x) == "number","Argument x is of invalid type - expected number");
-assert(type(y) == "number","Argument y is of invalid type - expected number");
-assert(type(z) == "number","Argument z is of invalid type - expected number");
-return  nil
-end
-
----@param unitID number
----@param pingSize number
----@return nil
-function Spring.AddUnitSeismicPing (unitID, pingSize)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(pingSize) == "number","Argument pingSize is of invalid type - expected number");
-return  nil
-end
-
 ---Deprecated - no references to this function in current recoil engine 2023-06-04
 ---@param unitID number
 ---@deprecated
@@ -1289,24 +1335,8 @@ assert(type(weaponID) == "number","Argument weaponID is of invalid type - expect
 return nil
 end
 
-
-
 function Spring.SetRadarErrorParams ( )
 return  numberMock
-end
-
-
-
-function Spring.AddUnitResource (unitID, m)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(m) == "string","Argument m is of invalid type - expected string");
-return  numberMock
-end
-
-function Spring.UseUnitResource (unitID, m)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(m) == "string","Argument m is of invalid type - expected string");
-return  booleanMock
 end
 
 function Spring.DestroyFeature (  featureID)
@@ -2291,20 +2321,7 @@ assert(type(units) == "string","Argument units is of invalid type - expected str
 return  numberMock
  end
 
----@param unitID number
----@param damage number
----@param paralyze number # equal to the paralyzetime in WeaponDef
----@param attackerID number
----@param weaponID number
----@param impulse_x number
----@param impulse_y number
----@param impulse_z number
----@see paralyzeDamage
----@see Spring.AddUnitImpulse
----@return nil
-function Spring.AddUnitDamage ( unitID, damage, paralyze, attackerID, weaponID, impulse_x, impulse_y, impulse_z )
-	return  nil
-end
+
 
 function Spring.AddUnitIcon (  iconName, texFile, size, dist, radAdjust)
 assert(type(iconName) == "string","Argument iconName is of invalid type - expected string");
