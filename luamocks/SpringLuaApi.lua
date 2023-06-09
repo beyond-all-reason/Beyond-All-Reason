@@ -1124,6 +1124,71 @@ function Spring.SetUnitRotation (unitID, rotx, roty, rotz)
 	assert(type(rotz) == "number","Argument rotz is of invalid type - expected number");
 end
 
+---@param unitID number
+---@param yaw number
+---@param pitch number
+---@param roll number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitDirection)
+function Spring.SetUnitDirection (unitID, yaw, pitch, roll)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(x) == "number","Argument x is of invalid type - expected number");
+assert(type(y) == "number","Argument y is of invalid type - expected number");
+assert(type(z) == "number","Argument z is of invalid type - expected number");
+return  nil
+end
+
+---Use this call to set up unit direction in a robust way. Heading (-32768 to 32767) represents a 2D (xz plane) unit orientation if unit was completely upright, new {upx,upy,upz} direction will be used as new "up" vector, the rotation set by "heading" will remain preserved.
+---@param unitID number
+---@param heading number
+---@param upX number
+---@param upY number
+---@param upZ number
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitHeadingAndUpDir)
+function Spring.SetUnitHeadingAndUpDir (unitID, heading, upX, upY, upZ) end
+
+---@param unitID number
+---@param velx number
+---@param vely number
+---@param velz number
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitVelocity)
+function Spring.SetUnitVelocity (unitID, velx, vely, velz)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(velx) == "number","Argument velx is of invalid type - expected number");
+	assert(type(vely) == "number","Argument vely is of invalid type - expected number");
+	assert(type(velz) == "number","Argument velz is of invalid type - expected number");
+end
+
+---@param unitID number
+---@param buggerOff? boolean
+---@param offset? number
+---@param radius? number
+---@param relHeading? number
+---@param spherical? boolean
+---@param forced? boolean
+---@return number | nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetFactoryBuggerOff)
+function Spring.SetFactoryBuggerOff(unitID, buggerOff, offset, radius, relHeading, spherical, forced) 
+	return numberMock
+end
+
+---@param x number
+---@param y number
+---@param z? number # uses ground heigh when unspecified
+---@param radius number
+---@param teamID number
+---@param spherical? boolean
+---@param forced? boolean
+---@param excludeUnitID? number
+---@param excludeUnitDefIDs? number
+function Spring.BuggerOff(x, y, z, radius, teamID, spherical, forced, excludeUnitID, excludeUnitDefIDs)
+	
+end
+
 --===================================
 
 ---@param transporterID number
@@ -1169,32 +1234,6 @@ function Spring.SetUnitTravel (unitID, travel, travelPeriod)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(travel) == "number","Argument travel is of invalid type - expected number");
 assert(type(travelPeriod) == "number","Argument travelPeriod is of invalid type - expected number");
-return  nil
-end
-
----@param unitID number
----@param velx number
----@param vely number
----@param velz number
----@return nil
-function Spring.SetUnitVelocity (unitID, velx, vely, velz)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(velx) == "number","Argument velx is of invalid type - expected number");
-assert(type(vely) == "number","Argument vely is of invalid type - expected number");
-assert(type(velz) == "number","Argument velz is of invalid type - expected number");
-return  nil
-end
-
----@param unitID number
----@param yaw number
----@param pitch number
----@param roll number
----@return nil
-function Spring.SetUnitDirection (unitID, yaw, pitch, roll)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(x) == "number","Argument x is of invalid type - expected number");
-assert(type(y) == "number","Argument y is of invalid type - expected number");
-assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  nil
 end
 
