@@ -46,7 +46,7 @@ function gadget:GameFrame(frame)
                 if Spring.GetUnitTeam(targetID) ~= Spring.GetUnitTeam(nukeID) then
                     local x,y,z = Spring.GetUnitPosition(targetID)
                     x = x + math.random(-1024,1024)
-                    z = z + + math.random(-1024,1024)
+                    z = z + math.random(-1024,1024)
                     y = math.max(Spring.GetGroundHeight(x,z), 0)
                     if x and z and x > 0 and x < Game.mapSizeX and z > 0 and z < Game.mapSizeZ then
                         Spring.GiveOrderToUnit(nukeID, CMD.ATTACK, {x, y, z}, 0)
