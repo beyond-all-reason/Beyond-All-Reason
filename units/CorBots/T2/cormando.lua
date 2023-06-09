@@ -155,6 +155,9 @@ return {
 				damage = {
 					default = 5,
 				},
+				customparams = {
+					bogus = 1
+				},
 			},
 		},
 		weapons = {
