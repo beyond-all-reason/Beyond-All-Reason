@@ -1040,7 +1040,17 @@ function widget:TextCommand(s)
 	if n == 1 and token[1] == "factoryreset" then
 		-- tell the widget handler to disallow user widgets and reload with a blank config
 		widgetHandler.__blankOutConfig = true
-		widgetHandler.__allowUserWidgets = false
+		--widgetHandler.__allowUserWidgets = false
+		Spring.SendCommands("luarules reloadluaui")
+	end
+	if n == 1 and token[1] == "userwidgets" then
+		if widgetHandler.allowUserWidgets then
+			widgetHandler.__allowUserWidgets = false
+			Spring.Echo("Disallowed user widgets, reloading...")
+		else
+			widgetHandler.__allowUserWidgets = true
+			Spring.Echo("Allowed user widgets, reloading...")
+		end
 		Spring.SendCommands("luarules reloadluaui")
 	end
 end
