@@ -179,6 +179,7 @@ local columns = 4
 local rows = 3
 local minimapHeight = 0.235
 local selectedBuilders = {}
+local selectedBuildersCount = 0
 local cellRects = {}
 local cellcmds = {}
 local gridOpts = {}
@@ -484,6 +485,77 @@ function widget:CommandNotify(cmdID, _, cmdOpts)
 	end
 end
 
+
+local function addBuilderToSelection(unitID, incrementCount)
+	local unitDefID = spGetUnitDefID(unitID)
+
+	if units.isBuilder[unitDefID] then
+		doUpdate = true
+		builderIsFactory = false
+
+		if not selectedBuilders[unitDefID] then
+			selectedBuildersCount = selectedBuildersCount + 1
+		end
+
+		if incrementCount then
+			local count = selectedBuilders[unitDefID] and selectedBuilders[unitDefID] or 0
+			selectedBuilders[unitDefID] = count + 1
+		end
+
+		activeBuilder = unitDefID
+		activeBuilderID = unitID
+	end
+
+	if units.isFactory[unitDefID] then
+		doUpdate = true
+
+		builderIsFactory = true
+		selectedFactoryUID = unitID
+		activeBuilder = unitDefID
+	end
+end
+
+---Set active builder based on index in selectedBuilders
+---@param index number
+---@return nil
+---
+local function setActiveBuilder(index)
+	local i = 0
+	for builder, _ in pairsByKeys(selectedBuilders) do
+		i = i + 1
+		if i == index then
+			local sel = Spring.GetSelectedUnits()
+			for _, unitID in pairs(sel) do
+				local unitDefID = spGetUnitDefID(unitID)
+				if builder == unitDefID then
+					addBuilderToSelection(unitID, false)
+					break
+				end
+			end
+		end
+	end
+end
+
+
+local function cycleBuilder()
+	if selectedBuildersCount <= 1 then
+		return
+	end
+	-- find the index that is currently active
+	local index = 0
+	for unitDefID, _ in pairsByKeys(selectedBuilders) do
+		index = index + 1
+		if unitDefID == activeBuilder then
+			if index == selectedBuildersCount then -- loop back to start
+				setActiveBuilder(1)
+			else
+				setActiveBuilder(index + 1)
+			end
+			break
+		end
+	end
+end
+
 local function nextPageHandler()
 	if not activeBuilder then return end
 	if pages < 2 then return end
@@ -492,16 +564,6 @@ local function nextPageHandler()
 	if(currentPage > pages) then
 		currentPage = 1
 	end
-	doUpdate = true
-
-	return true
-end
-
-local function prevPageHandler()
-	if not activeBuilder then return end
-	if pages < 2 then return end
-
-	currentPage = math_max(1, currentPage - 1)
 	doUpdate = true
 
 	return true
@@ -523,7 +585,7 @@ function widget:Initialize()
 
 	-- For some reason when handler = true widgetHandler:AddAction is not available
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_next_page", nextPageHandler, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "gridmenu_prev_page", prevPageHandler, nil, "p")
+	widgetHandler.actionHandler:AddAction(self, "gridmenu_cycle_builder", cycleBuilder, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_key", gridmenuKeyHandler, nil, "pR")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_category", gridmenuCategoryHandler, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_categories", gridmenuCategoriesHandler, nil, "p")
@@ -632,7 +694,7 @@ function widget:ViewResize()
 	pageFontSize = categoryFontSize
 	pageButtonHeight = math_floor(2.3 * categoryFontSize * ui_scale)
 	categoryButtonHeight = pageButtonHeight
-	builderButtonHeight = pageButtonHeight * 2
+	builderButtonSize = pageButtonHeight * 2
 
 	activeAreaMargin = math_ceil(bgpadding * Cfgs.cfgActiveAreaMargin)
 
@@ -744,59 +806,18 @@ function widget:ViewResize()
 			paginatorsRect.yEnd + (bgpadding * 1.5)
 		)
 
+		-- start with no width and grow dynamically
 		buildersRect = Rect:new(
 			posX,
 			backgroundRect.yEnd,
-			posXEnd,
-			backgroundRect.yEnd + builderButtonHeight
+			posX,
+			backgroundRect.yEnd + builderButtonSize
 		)
 	end
 
 	checkGuishader(true)
 	clear()
 	doUpdate = true
-end
-
-local function addBuilderToSelection(unitID, incrementCount)
-	local unitDefID = spGetUnitDefID(unitID)
-
-	if units.isBuilder[unitDefID] then
-		doUpdate = true
-		builderIsFactory = false
-
-		if incrementCount then
-			local count = selectedBuilders[unitDefID] and selectedBuilders[unitDefID] or 0
-			selectedBuilders[unitDefID] = count + 1
-		end
-
-		activeBuilder = unitDefID
-		activeBuilderID = unitID
-	end
-
-	if units.isFactory[unitDefID] then
-		doUpdate = true
-
-		builderIsFactory = true
-		selectedFactoryUID = unitID
-		activeBuilder = unitDefID
-	end
-end
-
-local function setActiveBuilder(index)
-	local i = 0
-	for builder, _ in pairsByKeys(selectedBuilders) do
-		i = i + 1
-		if i == index then
-			local sel = Spring.GetSelectedUnits()
-			for _, unitID in pairs(sel) do
-				local unitDefID = spGetUnitDefID(unitID)
-				if builder == unitDefID then
-					addBuilderToSelection(unitID, false)
-					break
-				end
-			end
-		end
-	end
 end
 
 
@@ -812,6 +833,7 @@ function widget:Update(dt)
 		builderIsFactory = false
 		currentCategory = nil
 		selectedBuilders = {}
+		selectedBuildersCount = 0
 		currentPage = 1
 
 		if SelectedUnitsCount > 0 then
@@ -825,6 +847,9 @@ function widget:Update(dt)
 			else
 				categories = {}
 			end
+
+			-- set active builder to first index after updating selection
+			setActiveBuilder(1)
 		end
 	end
 
@@ -1180,18 +1205,31 @@ end
 
 
 local function drawBuilders()
-	if not activeBuilder then
+	if not activeBuilder or selectedBuildersCount <= 1 then
 		return
 	end
 
+	-- reset builders rect to fix placement issues
+	buildersRect.xEnd = buildersRect.x
+
+	local padding = math_floor(builderButtonSize / 12)
 	local builderTypes = 0
 	for unitDefID, count in pairsByKeys(selectedBuilders) do
 		builderTypes = builderTypes + 1
 
+		-- place at the end of the bounds of the container
 		local rect = Rect:new(
-			buildersRect.x + (builderButtonHeight * (builderTypes - 1)),
+			buildersRect.xEnd,
 			buildersRect.y,
-			buildersRect.x + (builderButtonHeight * (builderTypes)),
+			buildersRect.xEnd + (builderButtonSize),
+			buildersRect.yEnd
+		)
+
+		-- grow container
+		buildersRect = Rect:new(
+			buildersRect.x,
+			buildersRect.y,
+			rect.xEnd + padding,
 			buildersRect.yEnd
 		)
 
