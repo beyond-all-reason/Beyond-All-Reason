@@ -48,7 +48,7 @@
 				"shareMetalTooltip": "Share excess metal above this point with your team",
 				"shareEnergyTooltipTitle": "Energy Share Slider",
 				"shareEnergyTooltip": "Share excess energy above this point with your team",
-				"pullTooltip": "The current demand for %{resource} (per second) provided that there is sufficient supply and storage",
+				"pullTooltip": "The desired demand for %{resource} (per second) provided that there is sufficient supply and storage. Builders on low-priority will only use leftover resources and thus their demand isn't counted here.",
 				"incomeTooltip": "%{resource} income (per second)",
 				"expenseTooltip": "%{resource} spending  (per second)",
 				"storageTooltip": "%{resource} storage",
