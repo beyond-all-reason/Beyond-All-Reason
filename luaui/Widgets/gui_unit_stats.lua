@@ -511,8 +511,6 @@ local function drawStats(uDefID, uID)
 	-- Transportable
 	------------------------------------------------------------------------------------
 
-	Spring.Echo("cant be transported", uDef.cantBeTransported)
-	Spring.Echo("unit transportable, mass, size", transportable, mass, size)
 	if transportable and mass > 0 and size > 0 then
 		if mass < 5000 and size < 3 then -- 3 is t1 transport max size
 			DrawText(texts.transportable..':', blue .. texts.transportable_light)
