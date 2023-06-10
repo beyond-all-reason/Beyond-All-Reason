@@ -66,6 +66,7 @@ local contentWidth, dlistInfo, bfcolormap, selUnitTypes
 local RectRound, UiElement, UiUnit, elementCorner
 
 local spGetCurrentTooltip = Spring.GetCurrentTooltip
+local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
@@ -1485,6 +1486,8 @@ local function LeftMouseButton(unitDefID, unitTable)
 			spSelectUnitArray(units, shift)
 		end
 	end
+	selectedUnits = spGetSelectedUnits()
+	SelectedUnitsCount = spGetSelectedUnitsCount()
 	if acted then
 		Spring.PlaySoundFile(sound_button, 0.5, 'ui')
 	end
@@ -1501,6 +1504,8 @@ local function MiddleMouseButton(unitDefID, unitTable)
 		Spring.SendCommands({ "viewselection" })
 		spSelectUnitArray(selectedUnits)
 	end
+	selectedUnits = spGetSelectedUnits()
+	SelectedUnitsCount = spGetSelectedUnitsCount()
 	Spring.PlaySoundFile(sound_button, 0.5, 'ui')
 end
 
@@ -1519,6 +1524,8 @@ local function RightMouseButton(unitDefID, unitTable)
 		end
 	end
 	spSelectUnitMap(map)
+	selectedUnits = spGetSelectedUnits()
+	SelectedUnitsCount = spGetSelectedUnitsCount()
 	Spring.PlaySoundFile(sound_button2, 0.5, 'ui')
 end
 
@@ -1892,13 +1899,14 @@ function checkChanges()
 end
 
 function widget:SelectionChanged(sel)
-	if SelectedUnitsCount ~= 0 and spGetSelectedUnitsCount() == 0 then
+	local newSelectedUnitsCount = spGetSelectedUnitsCount()
+	if SelectedUnitsCount ~= 0 and newSelectedUnitsCount == 0 then
 		doUpdate = true
 		SelectedUnitsCount = 0
 		selectedUnits = {}
 	end
-	if spGetSelectedUnitsCount() > 0 then
-		SelectedUnitsCount = spGetSelectedUnitsCount()
+	if newSelectedUnitsCount > 0 then
+		SelectedUnitsCount = newSelectedUnitsCount
 		selectedUnits = sel
 		if not doUpdateClock then
 			doUpdateClock = os_clock() + 0.05  -- delay to save some performance
