@@ -27,7 +27,7 @@ local aliveNukeLaunchers = {}
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     if nukeDefs[unitDefID] then
-        aliveNukeLaunchers[unitID] = Spring.GetGameSeconds() + math.random(30,60)
+        aliveNukeLaunchers[unitID] = Spring.GetGameSeconds() + math.random(5,15)
     end
 end
 
@@ -49,8 +49,8 @@ function gadget:GameFrame(frame)
                     z = z + math.random(-1024,1024)
                     y = math.max(Spring.GetGroundHeight(x,z), 0)
                     if x and z and x > 0 and x < Game.mapSizeX and z > 0 and z < Game.mapSizeZ then
-                        Spring.GiveOrderToUnit(nukeID, CMD.ATTACK, {x, y, z}, 0)
-                        aliveNukeLaunchers[nukeID] = Spring.GetGameSeconds() + math.random(5,60)
+                        Spring.GiveOrderToUnit(nukeID, CMD.ATTACK, {x, y, z}, {"shift"})
+                        aliveNukeLaunchers[nukeID] = Spring.GetGameSeconds() + math.random(0,30)
                     end
                 end
             end
