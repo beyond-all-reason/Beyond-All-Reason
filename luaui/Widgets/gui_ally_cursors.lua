@@ -22,7 +22,7 @@ local dlistAmount = 5        -- number of dlists generated for each player (# av
 local packetInterval = 0.33
 local numMousePos = 2 --//num mouse pos in 1 packet
 
-local showSpectatorName = true
+local showSpectatorName = false
 local showPlayerName = true
 local showCursorDot = true
 local drawNamesScaling = true

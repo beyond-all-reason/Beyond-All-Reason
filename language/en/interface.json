@@ -1221,6 +1221,8 @@
 				"selectedunits_teamcoloropacity_descr": "Set the amount of teamcolor used for the base platter",
 				"highlightselunits": "Selection Unit Highlight",
 				"highlightselunits_descr": "Highlights unit models when selected",
+				"highlightunit": "Highlight Unit",
+				"highlightunit_descr": "Highlight the unit that is under the mouse cursor",
 				"highlightselunits_opacity": "opacity",
 				"highlightselunits_opacity_descr": "Set the opacity of the highlight on selected units",
 				"highlightselunits_teamcolor": "use teamcolor",

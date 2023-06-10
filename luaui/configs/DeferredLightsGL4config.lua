@@ -12343,10 +12343,10 @@ local unitDefLights = {
 		weaponglow = {
 			lightType = 'point',
 			pieceName = 'gun_emit',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 10,
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 9,
 							color2r = 0.40000001, color2g = 0.69999999, color2b = 1.20000005, colortime = 30,
-							r = 0.2, g = 0.5, b = 1, a = 0.65,
-							modelfactor = 0.1, specular = 0.75, scattering = 1.5, lensflare = 7,
+							r = 0.2, g = 0.5, b = 1, a = 0.6,
+							modelfactor = 0.1, specular = 0.75, scattering = 1.2, lensflare = 7,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 		weaponspark = {
@@ -12961,9 +12961,9 @@ local unitDefLights = {
 		flamelight = {
 			lightType = 'point',
 			pieceName = 'lloarm',
-			lightConfig = { posx = 0, posy = -1.4, posz = 15, radius = 24,
+			lightConfig = { posx = 0, posy = -1.4, posz = 15, radius = 22,
 				color2r = 0.89999998, color2g = 0.5, color2b = 0.05, colortime = 5,
-				r = 0.95, g = 0.66, b = 0.07, a = 0.1,
+				r = 0.95, g = 0.66, b = 0.07, a = 0.08,
 				modelfactor = 0.4, specular = 0.8, scattering = 1.6, lensflare = 0,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
