@@ -176,7 +176,7 @@ end
 
 local function DrawText(t1, t2)
 	textBufferCount = textBufferCount + 1
-	textBuffer[textBufferCount] = {t1,t2,cX+(bgpadding*6),cY}
+	textBuffer[textBufferCount] = {t1,t2,cX+(bgpadding*8),cY}
 	cY = cY - fontSize
 	maxWidth = max(maxWidth, (font:GetTextWidth(t1)*fontSize) + (bgpadding*10), (font:GetTextWidth(t2)*fontSize)+(fontSize*6.5) + (bgpadding*10))
 end
@@ -346,6 +346,13 @@ local function drawStats(uDefID, uID)
 	local sonarJammingRadius = uDef.sonarJamRadius
 	local seismicRadius = uDef.seismicRadius
 	local armoredMultiple = uDef.armoredMultiple
+	local paralyzeMult = 1
+	if uDef.customParams.paralyzemultiplier then
+		paralyzeMult = tonumber(uDef.customParams.paralyzemultiplier)
+	end
+	local transportable = not (uDef.cantBeTransported and uDef.cantBeTransported or false)
+	local mass = uDef.mass and uDef.mass or 0
+	local size = uDef.xsize and uDef.xsize / 2 or 0
 	local buildProg, uExp
 	local level = 1
 	local unbacom
@@ -481,6 +488,14 @@ local function drawStats(uDefID, uID)
 			--DrawText("Exp:                 unknown",'\255\255\77\77')
 		end
 	end
+	if paralyzeMult < 1 then
+		if paralyzeMult == 0 then
+			DrawText(texts.emp..':', blue .. texts.immune)
+		else
+			local resist = 100 - (paralyzeMult * 100)
+			DrawText(texts.emp..':', blue .. math.floor(resist) .. "% " .. white .. texts.resist)
+		end
+	end
 	if maxHP then
 		DrawText(texts.open..":", format(texts.maxhp..": %d", maxHP) )
 
@@ -491,6 +506,19 @@ local function drawStats(uDefID, uID)
 
 	cY = cY - fontSize
 
+
+	------------------------------------------------------------------------------------
+	-- Transportable
+	------------------------------------------------------------------------------------
+
+	if transportable and mass > 0 and size > 0 then
+		if mass < 5000 and size < 3 then -- 3 is t1 transport max size
+			DrawText(texts.transportable..':', blue .. texts.transportable_light)
+		elseif mass < 100000 and size < 4 then
+			DrawText(texts.transportable..':', yellow .. texts.transportable_heavy)
+		end
+	end
+	cY = cY - fontSize
 
 	------------------------------------------------------------------------------------
 	-- SPECIAL ABILITIES

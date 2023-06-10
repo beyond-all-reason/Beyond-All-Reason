@@ -39,7 +39,7 @@ local gameStarting = false
 local timer = 0
 local timer2 = 0
 local auto_ready_timer = 120
-local auto_ready = true
+local auto_ready = not Spring.Utilities.Gametype.IsSinglePlayer()
 
 local buttonPosX = 0.8
 local buttonPosY = 0.76

@@ -81,7 +81,7 @@ if gadgetHandler:IsSyncedCode() then
 	local playerAgressionLevel = 0
 	local playerAgressionEcoValue = 0
 	local queenAngerAgressionLevel = 0
-	local difficultyCounter = 0
+	local difficultyCounter = config.difficulty
 	local waveParameters = {
 		baseCooldown = mRandom(3,5),
 		airWave = {
@@ -288,22 +288,18 @@ if gadgetHandler:IsSyncedCode() then
 		techAnger = 0
 		playerAgression = 0
 		queenAngerAgressionLevel = 0
+		pastFirstQueen = true
 		SetGameRulesParam("queenAnger", queenAnger)
 		local nextDifficulty
-		local difficultyCounter = difficultyCounter + 1
-		if difficultyCounter == 1 then
-			nextDifficulty = config.difficultyParameters[1]
-		elseif difficultyCounter == 2 then
-			nextDifficulty = config.difficultyParameters[2]
-		elseif difficultyCounter == 3 then
-			nextDifficulty = config.difficultyParameters[3]
-		elseif difficultyCounter == 4 then
-			nextDifficulty = config.difficultyParameters[4]
-		elseif difficultyCounter == 5 then
-			nextDifficulty = config.difficultyParameters[5]
-		elseif difficultyCounter > 5 then -- We're already at Epic, just multiply some numbers to make it even harder
-			nextDifficulty = config.difficultyParameters[5]
-			config.chickenSpawnMultiplier = config.chickenSpawnMultiplier*2
+		difficultyCounter = difficultyCounter + 1
+		if config.difficultyParameters[difficultyCounter] then
+			nextDifficulty = config.difficultyParameters[difficultyCounter]
+			config.queenResistanceMult = nextDifficulty.queenResistanceMult
+		else
+			difficultyCounter = difficultyCounter - 1
+			nextDifficulty = config.difficultyParameters[difficultyCounter]
+			config.chickenSpawnMultiplier = config.chickenSpawnMultiplier+1
+			config.queenResistanceMult = config.queenResistanceMult+0.5
 		end
 		config.queenName = nextDifficulty.queenName
 		config.burrowSpawnRate = nextDifficulty.burrowSpawnRate
@@ -314,9 +310,8 @@ if gadgetHandler:IsSyncedCode() then
 		config.minChickens = nextDifficulty.minChickens
 		config.maxBurrows = nextDifficulty.maxBurrows
 		config.maxXP = nextDifficulty.maxXP
-		config.queenResistanceMult = nextDifficulty.queenResistanceMult
 		config.angerBonus = nextDifficulty.angerBonus
-		config.queenTime = math.ceil(nextDifficulty.queenTime*0.25)
+		config.queenTime = math.ceil(nextDifficulty.queenTime*0.5)
 		queenTime = (config.queenTime + config.gracePeriod)
 		maxBurrows = ((config.maxBurrows*(1-config.chickenPerPlayerMultiplier))+(config.maxBurrows*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 		maxWaveSize = ((config.maxChickens*(1-config.chickenPerPlayerMultiplier))+(config.maxChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
@@ -1412,14 +1407,14 @@ if gadgetHandler:IsSyncedCode() then
 				-- 	size = "m"
 				-- 	eggValue = 200
 				-- end
-				local eggValue = 100
+				local eggValue = 200
 				local size = "s"
-				if targetEggValue - totalEggValue > 1500 then
+				if targetEggValue - totalEggValue > 8000 then
 					size = "l"
-					eggValue = 500
-				elseif targetEggValue - totalEggValue > 600 then
+					eggValue = 2000
+				elseif targetEggValue - totalEggValue > 2000 then
 					size = "m"
-					eggValue = 200
+					eggValue = 500
 				end
 				totalEggValue = totalEggValue + eggValue
 				if config.chickenEggs[name] and config.chickenEggs[name] ~= "" then
@@ -1500,19 +1495,22 @@ if gadgetHandler:IsSyncedCode() then
 			playerAgression = playerAgression*0.995
 			playerAgressionLevel = math.floor(playerAgression)
 			SetGameRulesParam("chickenPlayerAgressionLevel", playerAgressionLevel)
-			currentMaxWaveSize = (minWaveSize + math.ceil((queenAnger*0.01)*(maxWaveSize - minWaveSize)))
+			currentMaxWaveSize = (minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))
 			if t < config.gracePeriod then
 				queenAnger = 0
 				techAnger = 0
 				minBurrows = SetCount(humanTeams)
 			else
+				if pastFirstQueen then
+					techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((queenTime/Spring.GetModOptions().chicken_queentimemult) - config.gracePeriod) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 999), 0)
+				else
+					techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().chicken_graceperiodmult)) / ((queenTime/Spring.GetModOptions().chicken_queentimemult) - (config.gracePeriod/Spring.GetModOptions().chicken_graceperiodmult)) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 999), 0)
+				end
 				if not queenID then
 					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + queenAngerAgressionLevel, 100), 0)
-					techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 100), 0)
 					minBurrows = SetCount(humanTeams)
 				else
 					queenAnger = 100
-					techAnger = 100
 					minBurrows = 1
 				end
 				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgression*0.01)/(config.queenTime/3600)) + playerAgressionEcoValue
@@ -1629,7 +1627,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
 		if unitTeam == chickenTeamID then
-			if config.useEggs then
+			if config.useEggs and (not (gameIsOver or queenID)) then
 				local x,y,z = Spring.GetUnitPosition(unitID)
 				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 1)
 			end
@@ -1685,12 +1683,12 @@ if gadgetHandler:IsSyncedCode() then
 			queenResistance = {}
 			Spring.SetGameRulesParam("BossFightStarted", 0)
 
-			if config.difficulty == config.difficulties.survival then
+			if Spring.GetModOptions().chicken_endless then
 				updateDifficultyForSurvival()
 			else
 				gameOver = GetGameFrame() + 200
 				spawnQueue = {}
-
+				gameIsOver = true
 				-- kill whole allyteam  (game_end gadget will destroy leftover units)
 				if not killedChickensAllyTeam then
 					killedChickensAllyTeam = true

@@ -144,6 +144,9 @@ return {
 				damage = {
 					default = 0,
 				},
+				customparams = {
+					bogus = 1
+				}
 			},
 			mobileflak = {
 				accuracy = 1000,

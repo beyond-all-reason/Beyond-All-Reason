@@ -163,7 +163,7 @@ local function drawWindow(activetab)
 
 	if activetab ~= "Keybindings" and keybindsimages[activetab] then
 		gl.Color(1,1,1,1)
-		gl.Texture(0, keybindsimages[activetab])
+		gl.Texture(0, ":l:"..keybindsimages[activetab])
 		local zoom = 0.05
 		gl.TexRect(screenX,screenY - screenHeight, screenX + screenWidth, screenY, 0 + 0.02, 1 - zoom, 1 - 0.02 , 0 + zoom)
 		gl.Texture(0, false)

@@ -12,6 +12,9 @@
 --along with this program.  If not, see <http://www.gnu.org/licenses/>.
 --==================================================================================================
 --Variables for the MockUp
+
+---@meta
+---@type number
 numberMock =42
 stringMock ="TestString"
 tableMock ={exampletable= true}
@@ -66,169 +69,747 @@ Engine = {
 	versionFull = stringMock,
 }
 
+---@param path string
 function VFS.Include(path)
     assert(type(path) == "string", "Argument path is of invalid type - expected string");
     return numberMock
 end
 
-function Spring.SetUnitRulesParam (unitID, paramName)
-    assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-    assert(type(paramName) == "string" or type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
-    return numberMock
-end
+--TODO Move markup examples to another filename
+---Produces syntax highlighted code block within the tooltip
+--- ```
+--- assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
+--- assert(type(resourceType) == "string","Argument metal is of invalid type - expected string");
+--- assert(type(amount) == "number","Argument amount is of invalid type - expected number");
+--- ```
 
-function Spring.SetTeamRulesParam (teamID, paramName)
-    assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
-    assert(type(paramName) == "string" or type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
-    return numberMock
-end
+--==================================================================================================
+-- Teams
+--==================================================================================================
 
-function Spring.SetGameRulesParam   (  paramName)
-assert(type(paramName) == "string","Argument paramName is of invalid type - expected string");
-return  stringMock
- end
-
-function Spring.AddTeamResource   (  teamID, metal)
-assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
-assert(type(metal) == "string","Argument metal is of invalid type - expected string");
-return  numberMock
- end
-
-function Spring.UseTeamResource   ( )
-return  booleanMock
- end
-
-function Spring.SetTeamResource   (  teamID, res, amount)
-assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
-assert(type(res) == "string","Argument res is of invalid type - expected string");
-assert(type(amount) == "number","Argument amount is of invalid type - expected number");
-return  numberMock
- end
-
-function Spring.SetTeamShareLevel   (  teamID, metal)
-assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
-assert(type(metal) == "string","Argument metal is of invalid type - expected string");
-return  numberMock
- end
-
-function Spring.ShareTeamResource    (  teamID_)
-assert(type(teamID_) == "number","Argument teamID_ is of invalid type - expected number");
-return  numberMock
- end
-
-function Spring.SetAlly    (  firstAllyTeamID, secondAllyTeamID, ally)
+---Change the value of the (one-sided) alliance between: firstAllyTeamID -> secondAllyTeamID
+---@param firstAllyTeamID number
+---@param secondAllyTeamID number
+---@param ally boolean
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetAlly)
+function Spring.SetAlly (  firstAllyTeamID, secondAllyTeamID, ally)
 assert(type(firstAllyTeamID) == "number","Argument firstAllyTeamID is of invalid type - expected number");
 assert(type(secondAllyTeamID) == "number","Argument secondAllyTeamID is of invalid type - expected number");
 assert(type(ally) == "boolean","Argument ally is of invalid type - expected boolean");
 return  numberMock
- end
+end
 
-function Spring.AssignPlayerToTeam    (  playerID, teamID)
+---Assigns player playerID to team teamID
+---@param playerID number
+---@param teamID number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.AssignPlayerToTeam)
+function Spring.AssignPlayerToTeam (  playerID, teamID)
 assert(type(playerID) == "number","Argument playerID is of invalid type - expected number");
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 return boolMock
 end
 
-function Spring.CreateUnit   (  unitDefID, x, y , z, facing, teamID)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(teamID) == "number","Argument unitID is of invalid type - expected number");
-return  numberMock
- end
+---Changes access to global line of sight for a team and its allies.
+---@param playerID number
+---@param globallos boolean
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetGlobalLos)
+function Spring.SetGlobalLos (playerID, globallos)
+return nil
+end
 
-function Spring.DestroyUnit   ( )
-return  numberMock
- end
+--==================================================================================================
+-- Game End
+--==================================================================================================
 
-function Spring.TransferUnit   ( )
+
+---Will declare a team to be dead (no further orders can be assigned to such teams units)
+---@param teamID number #Gaia team cannot be killed.
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.KillTeam)
+function Spring.KillTeam(teamID)
+	return nil
+end
+
+---Will declare game over.
+---@param AllyTeamID1 number
+---@param AllyTeamID2 number
+---@param AllyTeamIDn number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.GameOver)
+function Spring.GameOver(AllyTeamID1, AllyTeamID2, AllyTeamIDn)
+	return nil
+end
+
+--==================================================================================================
+-- Resources
+--==================================================================================================
+
+---Set tidal Strength
+---@param strength number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetTidal)
+function Spring.SetTidal(strength)
+	assert(type(strength) == "number", "Argument strength is of invalid type - expected number")
+	return nil
+end
+
+---Sets wind strength
+---@param minStrength number
+---@param maxStrength number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetWind)
+function Spring.SetWind(minStrength, maxStrength)
+	assert(type(minStrength) == "number", "Argument minStrength is of invalid type - expected number")
+	assert(type(maxStrength) == "number", "Argument maxStrength is of invalid type - expected number")
+	return nil
+end
+
+---@param teamID number
+---@param resourceType resourceTypes
+---@param amount number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.AddTeamResource)
+function Spring.AddTeamResource (  teamID, resourceType, amount)
+assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
+assert(type(resourceType) == "string","Argument resourceType is of invalid type - expected string");
+assert(type(amount) == "number","Argument amount is of invalid type - expected number");
+return  nil
+end
+
+---@alias resourceTypes
+---| "metal"
+---| "energy"
+
+-- Consumes metal and/or energy resources of the specified team.
+---@param teamID number
+---@param type resourceTypes
+---@param amount number
+---@return boolean | nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.UseTeamResource)
+function Spring.UseTeamResource ( teamID, type, amount )
 return  booleanMock
- end
+end
 
-function Spring.SetUnitCosts   ( )
-return
- end
+---@alias resValues
+---| "m" # metal
+---| "e" # energy
+---| "ms" # metalStorage
+---| "es" # energyStorage
 
-function Spring.SetUnitTooltip   (  unitID, tooltip)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(tooltip) == "string","Argument tooltip is of invalid type - expected string");
+---Sets team resources to given absolute value
+---@param teamID number
+---@param res resValues
+---@param amount any
+---@return integer
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetTeamResource)
+function Spring.SetTeamResource (  teamID, res, amount)
+assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
+assert(type(res) == "string","Argument res is of invalid type - expected string");
+assert(type(amount) == "number","Argument amount is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetUnitHealth   ( )
-return
- end
-
-function Spring.SetUnitMaxHealth   (  unitID, maxHealth)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(maxHealth) == "number","Argument maxHealth is of invalid type - expected number");
+---Changes the resource amount for a team beyond which resources aren't stored but transferred to other allied teams if possible
+---@param teamID number
+---@param resourceType resourceTypes
+---@param amount number
+---@return integer
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetTeamShareLevel)
+function Spring.SetTeamShareLevel (teamID, resourceType, amount)
+assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
+assert(type(resourceType) == "string","Argument metal is of invalid type - expected string");
+assert(type(amount) == "number","Argument amount is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.AddUnitDamage   ( )
+--- Transfers resources between two teams
+---@param teamID_src number source team
+---@param teamID_rec number recieving team
+---@param resourceType resourceTypes
+---@param amount number 
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.ShareTeamResource)
+function Spring.ShareTeamResource ( teamID_src, teamID_rec, resourceType, amount )
+assert(type(teamID_src) == "number","Argument teamID_src is of invalid type - expected number");
+assert(type(teamID_rec) == "number","Argument teamID_rec is of invalid type - expected number");
+assert(type(resourceType) == "string", "Argument resourceType is of invalid type - expected string");
+assert(type(amount) == "number","Argument amount is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetUnitStockpile   (  unitID, stockpile, buildPercent)
+--==================================================================================================
+-- GameRulesParameter
+--==================================================================================================
+
+
+--- If one condition is fulfilled all beneath it are too (e.g. if an unit is in LOS it can read params with `inradar=true` even if the param has `inlos=false`) All GameRulesParam are public, TeamRulesParams can just be `private`,`allied` and/or `public` You can read RulesParams from any Lua enviroments! With those losAccess policies you can limit their access.
+--- Fields:
+---     private bool only readable by the ally (default) 
+---     allied bool readable by ally + ingame allied 
+---     typed bool readable if the unit is type (= in radar and was once in LOS)
+---     inlos bool readable if the unit is in LOS 
+---     inradar bool readable if the unit is in AirLOS 
+---     public bool readable by all 
+
+---@alias losAccess
+---| "private" #only readable by the ally (default) 
+---| "allied" #readable by ally + ingame allied 
+---| "inlos" #readable if the unit is in LOS 
+---| "typed" #readable if the unit is type (= in radar and was once in LOS)
+---| "inradar" #readable if the unit is in AirLOS 
+---| "public" #readable by all 
+
+---@param paramName string 
+---@param paramValue number | string #numeric paramValues in quotes will be converted to number.
+---@param losAccess? losAccess # not typically used in GameRules, see GetGameRulesParams, it will be ignored.
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetGameRulesParam)<br>
+---[losAccess parameter details](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#losAccess)
+function Spring.SetGameRulesParam (  paramName, paramValue, losAccess )
+	assert(type(paramName) == "string","Argument paramName is of invalid type - expected string");
+	assert(losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
+		| losAccess == "public" | losAccess == "typed" , "Argument losAccess is invalid");
+return  nil
+end
+
+---@param teamID number
+---@param paramName string
+---@param paramValue number | string #numeric paramValues in quotes will be converted to number.
+---@param losAccess? losAccess # while valid arguments, inLos, inRdar, typed, are not meaningful for team rules.
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetTeamRulesParam)
+function Spring.SetTeamRulesParam (teamID, paramName, paramValue, losAccess)
+	assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
+	assert(type(paramName) == "string" or type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
+	assert(type(paramValue) == "string" | type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
+	assert(type((losAccess) == "string" | type(losAccess) == "table") & (losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
+	| losAccess == "public" | losAccess == "typed") , "Argument losAccess is invalid");
+	return nil
+end
+
+---@param unitID number
+---@param paramName string
+---@param paramValue number | string #numeric paramValues in quotes will be converted to number.
+---@param losAccess? losAccess
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitRulesParam)
+function Spring.SetUnitRulesParam (unitID, paramName, paramValue, losAccess)
+    assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(paramName) == "string", "invalid type for argument paramName, expected String")
+    assert(type(paramValue) == "string" | type(paramName) == "number","Argument paramName is of invalid type - expected string or number");
+	assert(type((losAccess) == "string" | type(losAccess) == "table") & (losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
+	| losAccess == "public" | losAccess == "typed") , "Argument losAccess is invalid");
+	return nil
+end
+
+---@param featureID number
+---@param paramName string
+---@param paramValue number | string
+---@param losAccess? losAccess
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetFeatureRulesParam)
+function Spring.SetFeatureRulesParam(featureID, paramName, paramValue, losAccess)
+	assert(type(featureID) == "number","Argument featureID is of invalid type - expected number");
+	assert(type(paramName))
+	assert(type(paramValue))
+	assert(type((losAccess) == "string" | type(losAccess) == "table") & (losAccess == "private" | losAccess == "allied" | losAccess == "inlos" | losAccess == "inradar"
+	| losAccess == "public" | losAccess == "typed") , "Argument losAccess is invalid");
+	return nil
+end
+
+--==================================================================================================
+-- Lua to COB
+--==================================================================================================
+
+---@param UnitID number
+---@param funcName number | string
+---@param retArgs number
+---@param COBArg1? any #
+---@param COBArg2? any #
+---@param COBArgn? any #
+---@return nil|number
+---Consult wizard for additional return param info. <br>
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.CallCOBScript)
+function Spring.CallCOBScript(UnitID, funcName, retArgs, COBArg1, COBArg2, COBArgn)
+	return numberMock
+end
+
+---@param unitID number
+---@param funcName string
+---@return nil | number
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.GetCOBScriptID)
+function Spring.GetCOBScriptID (unitID, funcName)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(funcName) == "string","Argument funcName is of invalid type - expected string");
+	return  numberMock
+end
+
+
+--==================================================================================================
+-- Unit Handling
+--==================================================================================================
+
+
+
+---@alias facing
+---| "south"
+---| "0" # south
+---| "east"
+---| "e"
+---| "1" # east
+---| "north"
+---| "n"
+---| "2" # north
+---| "west"
+---| "w"
+---| "3" # west
+
+---@param unitDefName 'string UnitDefName'|'number UnitDefID'
+---@param x number
+---@param y number
+---@param z number
+---@param facing facing
+---@param teamID number
+---@param build? boolean # the unit is created in "being built" state with buildProgress = 0 (default false)
+---@param flattenGround? boolean # the unit flattens ground, if it normally does so (default true)
+---@param unitID? number # Requests specific unitID 
+---@param builderID? number # 
+---@return nil | number # `unitID` meaning unit was created
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.CreateUnit)
+function Spring.CreateUnit (  unitDefName, x, y , z, facing, teamID, build, flattenGround, unitID, builderID)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(teamID) == "number","Argument unitID is of invalid type - expected number");
+	return  numberMock
+end
+
+---@param UnitID number
+---@param selfd? boolean # if true, Makes the unit act like it self-destructed.
+---@param reclaimed? boolean # Don't show any DeathSequences, don't leave a wreckage. This does not give back the resources to the team!
+---@param attackerID? number 
+---@param cleanupImmediately? boolean # stronger version of reclaimed, removes the unit unconditionally and makes its ID available for immediate reuse (otherwise it takes a few frames) (default false)
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.DestroyUnit)
+function Spring.DestroyUnit ( UnitID, selfd, reclaimed, attackerID, cleanupImmediately )
+	return  nil
+end
+
+---@param UnitID number
+---@param newTeamID number
+---@param given? boolean # If given=false, the unit is captured.
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.TransferUnit)
+function Spring.TransferUnit (UnitID, newTeamID, given)
+	return nil
+end
+
+--==================================================================================================
+-- Unit Control
+--==================================================================================================
+
+
+---@alias SetCostKey
+---| "buildTime=number"
+---| "metalCost=number"
+---| "energyCost=number"
+
+---@param unitID number
+---@param where SetCostKey
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitCosts)
+function Spring.SetUnitCosts (unitID, where)
+	return nil
+end
+
+--==================================================================================================
+-- Unit Resourcing
+--==================================================================================================
+
+---@param UnitID number
+---@param res string | '[u|c][u|m][m|e]' # `[unconditional|conditional][use|make][metal|energy]` ex. `"uum"`, `"cme"`
+---@param amount number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitResourcing)
+function Spring.SetUnitResourcing (UnitID, res, amount)
+	return nil
+end
+
+---@param UnitID number
+---@param res table
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitResourcing)
+function Spring.SetUnitResourcing (UnitID, res)
+	return nil
+end
+
+---@param unitID number
+---@param tooltip string
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitTooltip)
+function Spring.SetUnitTooltip (unitID, tooltip)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(tooltip) == "string","Argument tooltip is of invalid type - expected string");
+	return  nil
+end
+
+---@param unitID number
+---@param health number | string #number or {[string]=number,...} where keys can be one of health|capture|paralyze|build and values are amounts
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitHealth)
+function Spring.SetUnitHealth (unitID, health)
+	return
+end
+
+---@param unitID number
+---@param maxHealth number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitMaxHealth)
+function Spring.SetUnitMaxHealth (unitID, maxHealth)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(maxHealth) == "number","Argument maxHealth is of invalid type - expected number");
+	return  nil
+end
+
+---@param unitID number
+---@param stockpile number
+---@param buildPercent number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitStockpile)
+function Spring.SetUnitStockpile (unitID, stockpile, buildPercent)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(stockpile) == "number","Argument stockpile is of invalid type - expected number");
 assert(type(buildPercent) == "number","Argument buildPercent is of invalid type - expected number");
-return  numberMock
- end
-
-function Spring.SetUnitExperience   (  unitID, experience)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(experience) == "number","Argument experience is of invalid type - expected number");
-return  numberMock
- end
-
-function Spring.SetUnitFuel   (  unitID, fuel)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(fuel) == "number","Argument fuel is of invalid type - expected number");
-return  numberMock
- end
-
-function Spring.SetUnitCrashing    (  unitID, crashing)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(crashing) == "boolean","Argument crashing is of invalid type - expected boolean");
-return  numberMock
- end
-
-function Spring.SetUnitLineage    (  unitID, teamID, isRoot)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
-assert(type(isRoot) == "boolean","Argument isRoot is of invalid type - expected boolean");
-return  numberMock
- end
-
-function Spring.SetUnitNeutral   (  unitID, neutral)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(neutral) == "boolean","Argument neutral is of invalid type - expected boolean");
-return  numberMock
- end
-
-function Spring.SetUnitTarget    ( )
-return  booleanMock
- end
-
-function Spring.SetUnitMaxRange   (  unitID, maxRange)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(maxRange) == "number","Argument maxRange is of invalid type - expected number");
-return  numberMock
- end
-
-
-function Spring.SetUnitBlocking    (  unitID, isBlocking, isSolidObjectCollidable, isProjectileCollidable, isRaySegmentCollidable, crushable, blockEnemyPushing, blockHeightChanges)
- assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
- assert(type(isBlocking) == "boolean","Argument isBlocking is of invalid type - expected boolean");
- assert(type(isSolidObjectCollidable) == "boolean","Argument isSolidObjectCollidable is of invalid type - expected boolean");
- assert(type(isProjectileCollidable) == "boolean","Argument isProjectileCollidable is of invalid type - expected boolean");
- assert(type(isRaySegmentCollidable) == "boolean","Argument isRaySegmentCollidable is of invalid type - expected boolean");
- assert(type(crushable) == "boolean","Argument crushable is of invalid type - expected boolean");
- assert(type(blockEnemyPushing) == "boolean","Argument blockEnemyPushing is of invalid type - expected boolean");
- assert(type(blockHeightChanges) == "boolean","Argument blockHeightChanges is of invalid type - expected boolean");
- return  numberMock
+return  nil
 end
 
---function Spring.SetUnitBlocking    (  unitID, blocking, collide, crushable)
+---@param unitID number
+---@param forceUseWeapons? number # 
+---@param allowUseWeapons? number # 
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitUseWeapons)
+function Spring.SetUnitUseWeapons (unitID, forceUseWeapons, allowUseWeapons)
+	return nil
+end
+
+---@alias states table
+---| 'reloadState':number
+---| "reloadFrame=number" # synonym for reloadState!
+---| "reloadTime=number"
+---| "accuracy=number"
+---| "sprayAngle=number"
+---| "range=number" # if you change the range of a weapon with dynamic damage make sure you use `SetUnitWeaponDamages` to change dynDamageRange as well.
+---| "projectileSpeed=number"
+---| "burst=number"
+---| "burstRate=number"
+---| "projectiles=number"
+---| "salvoLeft=number"
+---| "nextSalvo=number"
+---| "aimReady=number" # (<>0.0f := true)
+
+---@param unitID number
+---@param weaponNum number
+---@param states states
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitWeaponState)
+---@diagnostic disable-next-line
+function Spring.SetUnitWeaponState (unitID, weaponNum, states)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
+assert(type(states) == "table","Argument states is of invalid type - expected table");
+return nil
+end
+
+---@param unitID number
+---@param weaponNum number
+---@param key states
+---@param value number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitWeaponState)
+---@diagnostic disable-next-line 
+function Spring.SetUnitWeaponState (unitID, weaponNum, key, value)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
+assert(type(states) == "table","Argument states is of invalid type - expected table");
+return nil
+end
+
+---@alias damages table
+---| "paralyzeDamageTime=number" 
+---| "impulseFactor=number" 
+---| "impulseBoost=number" 
+---| "craterMult=number" 
+---| "craterBoost=number" 
+---| "dynDamageExp=number" 
+---| "dynDamageMin=number" 
+---| "dynDamageRange=number" 
+---| "dynDamageInverted=number" (<>0.0f := true)
+---| "craterAreaOfEffect=number" 
+---| "damageAreaOfEffect=number" 
+---| "edgeEffectiveness=number" 
+---| "explosionSpeed=number" 
+
+---@param unitID number
+---@param weaponNum number | string # Number or string ["selfDestruct" | "explode"]
+---@param damages damages
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitWeaponDamages)
+---@diagnostic disable-next-line
+function Spring.SetUnitWeaponDamages (unitID, weaponNum, damages)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
+	return  nil
+end
+
+---@param unitID number
+---@param weaponNum number | string # Number or string ["selfDestruct" | "explode"]
+---@param key string
+---@param value number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitWeaponDamages)
+---@diagnostic disable-next-line
+function Spring.SetUnitWeaponDamages (unitID, weaponNum, key, value)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
+	return  nil
+end
+
+---@param unitID number
+---@param maxRange number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitMaxRange)
+function Spring.SetUnitMaxRange (unitID, maxRange)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(maxRange) == "number","Argument maxRange is of invalid type - expected number");
+	return nil
+end
+
+---@param unitID number
+---@param experience number
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitExperience)
+---@see Spring.AddUnitExperience
+function Spring.SetUnitExperience (unitID, experience)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(experience) == "number","Argument experience is of invalid type - expected number");
+	return  numberMock
+end
+
+---@param unitID number
+---@param deltaExperience number # Can be negative to subtract, but the unit will never have negative total afterwards
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.AddUnitExperience)
+---@see Spring.SetUnitExperience
+function Spring.AddUnitExperience (unitID, deltaExperience)
+	return nil
+end
+
+---@param unitID number
+---@param armored? boolean
+---@param armorMultiple? number # Cannot be less than zero, clamped to .0001 
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitArmored)
+function Spring.SetUnitArmored (unitID, armored, armorMultiple)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(armored) == "boolean","Argument armored is of invalid type - expected boolean");
+assert(type(armorMultiple) == "number","Argument armorMultiple is of invalid type - expected number");
+return  nil
+end
+
+--==================================================================================================
+-- Unit LOS
+--==================================================================================================
+
+
+---The 3rd argument is either the bit-and combination of the following numbers: LOS_INLOS = 1 LOS_INRADAR = 2 LOS_PREVLOS = 4 LOS_CONTRADAR = 8 or a table of the following form: losTypes = { [los = boolean,] [radar = boolean,] [prevLos = boolean,] [contRadar = boolean] }
+---@param unitID number
+---@param allyTeam number
+---@param losTypes number | table
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitLosMask)
+function Spring.SetUnitLosMask (unitID, allyTeam, losTypes)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(allyTeam) == "number","Argument allyTeam is of invalid type - expected number");
+--assert(type(los) == "number","Argument los is of invalid type - expected number");
+return  nil
+end
+
+---The 3rd argument is either the bit-and combination of the following numbers: LOS_INLOS = 1 LOS_INRADAR = 2 LOS_PREVLOS = 4 LOS_CONTRADAR = 8 or a table of the following form: losTypes = { [los = boolean,] [radar = boolean,] [prevLos = boolean,] [contRadar = boolean] }
+---@param unitID number
+---@param allyTeam number
+---@param los number | table
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitLosState)
+function Spring.SetUnitLosState(unitID, allyTeam, los)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(allyTeam) == "number","Argument allyTeam is of invalid type - expected number");
+assert(type(los) == "number","Argument los is of invalid type - expected number");
+return  nil
+end
+
+---If the 2nd argument is a number, the value works like this: 1:=normal cloak 2:=for free cloak (cost no E) 3:=for free + no decloaking (except the unit is stunned) 4:=ultimative cloak (no ecost, no decloaking, no stunned decloak) The decloak distance is only changed: - if the 3th argument is a number or a boolean. - if the boolean is false it takes the default decloak distance for that unitdef, - if the boolean is true it takes the absolute value of it.
+---@param unitID number
+---@param cloak boolean | number
+---@param cloakArg boolean | number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitCloak)
+function Spring.SetUnitCloak (unitID, cloak, cloakArg)
+return nil
+end
+
+---@param unitID number
+---@param stealth boolean
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitStealth)
+function Spring.SetUnitStealth (unitID, stealth)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(stealth) == "boolean","Argument stealth is of invalid type - expected boolean");
+return nil
+end
+
+---@param unitID number
+---@param sonarStealth boolean
+---@return nil
+function Spring.SetUnitSonarStealth (unitID, sonarStealth)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(sonarStealth) == "boolean","Argument sonarStealth is of invalid type - expected boolean");
+return nil
+end
+
+---@param unitID number
+---@param seismicSignature number
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitSeismicSignature)
+function Spring.SetUnitSeismicSignature (unitID, seismicSignature)
+	return nil
+end
+
+---@param unitID number
+---@param alwaysVisible boolean
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitAlwaysVisible)
+function Spring.SetUnitAlwaysVisible(unitID, alwaysVisible)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(alwaysVisible) == "boolean","Argument alwaysVisible is of invalid type - expected boolean");
+return nil
+end
+
+---@param unitID number
+---@param useAirLos boolean
+---@return nil
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitUseAirLos)
+function Spring.SetUnitUseAirLos(unitID, useAirLos)
+	return nil
+end
+
+---@param unitID number
+---@param depth number # corresponds to metal extraction rawState
+---@param range? number similar to "extractsMetal" in unitDefs 
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitMetalExtraction)
+function Spring.SetUnitMetalExtraction(unitID, depth, range) end
+
+---@param unitID number
+---@param metal number
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitHarvestStorage)
+function Spring.SetUnitHarvestStorage (unitID, metal)
+	assert(type(unitid) == "number","Argument unitid is of invalid type - expected number");
+	assert(type(metal) == "number","Argument metal is of invalid type - expected number");
+end
+
+---@param unitID number
+---@param paramName string # one of `buildRange|buildDistance|buildRange3D`
+---@param value number | boolean # boolean when `paramName` is `buildRange3D`, number otherwise
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitBuildParams)
+function Spring.SetUnitBuildParams(unitID, paramName, value) end
+
+---@param builderID number
+---@param buildSpeed number
+---@param repairSpeed? number #
+---@param reclaimSpeed? number #
+---@param captureSpeed? number #
+---@param terraformSpeed? number #
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitBuildSpeed)
+function Spring.SetUnitBuildSpeed (builderID, buildSpeed, repairSpeed, reclaimSpeed, captureSpeed, terraformSpeed) end
+
+---This saves a lot of engine calls, by replacing: `function script.QueryNanoPiece() return currentpiece end` **Use it!**
+---@param builderID number
+---@param pieces table
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitNanoPieces)
+function Spring.SetUnitNanoPieces (builderID, pieces)
+	assert(type(builderID) == "number","Argument builderID is of invalid type - expected number");
+	assert(type(pieces) == "table","Argument pieces is of invalid type - expected table");
+end
+
+---@param unitID number
+---@param isBlocking boolean
+---@param isSolidObjectCollidable boolean
+---@param isProjectileCollidable boolean
+---@param isRaySegmentCollidable boolean
+---@param crushable boolean
+---@param blockEnemyPushing boolean
+---@param blockHeightChanges boolean
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitBlocking)
+function Spring.SetUnitBlocking (unitID, isBlocking, isSolidObjectCollidable, isProjectileCollidable, isRaySegmentCollidable, crushable, blockEnemyPushing, blockHeightChanges)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(isBlocking) == "boolean","Argument isBlocking is of invalid type - expected boolean");
+	assert(type(isSolidObjectCollidable) == "boolean","Argument isSolidObjectCollidable is of invalid type - expected boolean");
+	assert(type(isProjectileCollidable) == "boolean","Argument isProjectileCollidable is of invalid type - expected boolean");
+	assert(type(isRaySegmentCollidable) == "boolean","Argument isRaySegmentCollidable is of invalid type - expected boolean");
+	assert(type(crushable) == "boolean","Argument crushable is of invalid type - expected boolean");
+	assert(type(blockEnemyPushing) == "boolean","Argument blockEnemyPushing is of invalid type - expected boolean");
+	assert(type(blockHeightChanges) == "boolean","Argument blockHeightChanges is of invalid type - expected boolean");
+end
+
+--function Spring.SetUnitBlocking (unitID, blocking, collide, crushable)
 --assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 --assert(type(blocking) == "boolean","Argument blocking is of invalid type - expected boolean");
 --assert(type(collide) == "boolean","Argument collide is of invalid type - expected boolean");
@@ -236,850 +817,1032 @@ end
 --return  numberMock
 -- end
 
---function Spring.SetUnitBlocking    (  unitID, depth, range)
+--function Spring.SetUnitBlocking (unitID, depth, range)
 --assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 --assert(type(depth) == "number","Argument depth is of invalid type - expected number");
 --assert(type(range) == "number","Argument range is of invalid type - expected number");
 --return  numberMock
 -- end
 
-function Spring.SetUnitBuildSpeed   ( )
-return  numberMock
- end
+---@param unitID number
+---@param crashing boolean
+---@return boolean success
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitCrashing)
+function Spring.SetUnitCrashing (unitID, crashing)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(crashing) == "boolean","Argument crashing is of invalid type - expected boolean");
+	return booleanMock
+end
 
-function Spring.SetUnitNanoPieces    (  builderID, pieces)
-assert(type(builderID) == "number","Argument builderID is of invalid type - expected number");
-assert(type(pieces) == "table","Argument pieces is of invalid type - expected table");
-return  numberMock
- end
+---@param unitID number
+---@param weaponID number (default -1)
+---@param enabled boolean? 
+---@param power number?
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitShieldState)
+function Spring.SetUnitShieldState (unitID, weaponID, enabled, power)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(weaponID) == "number","Argument weaponID is of invalid type - expected number");
+end
 
-function Spring.UnitAttach    (  transporterID, passengerID, pieceNum)
+---@param unitID number
+---@param type string
+---|"dir"
+---|"minDamage"
+---|"maxDamage"
+---|"moveFactor"
+---|"mode" # if type = mode, 0 = no flanking bonus, 1 = global coords, mobile, 2 = unit coords, mobile, 3 = unit coords, locked
+---@param arg1 number
+---| 'x'
+---| 'minDamage'
+---| 'maxDamage'
+---| 'moveFactor'
+---| 'mode'
+---@param y number? # only when type is "dir" 
+---@param z number? # only when type is "dir" 
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitFlanking)
+function Spring.SetUnitFlanking (unitID, type, arg1, y, z)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(mode) == "string","Argument mode is of invalid type - expected string");
+end
+
+---@param unitID number
+---@param neutral boolean
+---@return nil | boolean
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitNeutral)
+function Spring.SetUnitNeutral (unitID, neutral)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(neutral) == "boolean","Argument neutral is of invalid type - expected boolean");
+	return  nil
+end
+
+---@param unitID number
+---@param x? number # when nil or not passed it will drop target and ignore other parameters 
+---@param y? number # 
+---@param z? number # 
+---@param dgun boolean? # default false
+---@param userTarget boolean? # default false
+---@param weaponNum number? # default -1
+---@return boolean success
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitTarget)
+function Spring.SetUnitTarget (unitID, x, y, z, dgun, userTarget, weaponNum)
+	return  booleanMock
+end
+
+---@param unitID number
+---@param enemyUnitID? number # when nil, drops the units current target
+---@param dgun boolean? # default false
+---@param userTarget boolean? # default false
+---@param weaponNum number? # default -1
+---@return boolean success
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitTarget)
+function Spring.SetUnitTarget (unitID, enemyUnitID, dgun, userTarget, weaponNum)
+	return  booleanMock
+end
+
+---@param unitID number
+---@param mpX number new middle positionX of unit
+---@param mpY number new middle positionY of unit
+---@param mpZ number new middle positionZ of unit
+---@param apX number new positionX that enemies aim at on this unit
+---@param apY number new positionY that enemies aim at on this unit
+---@param apZ number new positionZ that enemies aim at on this unit
+---@param relative? boolean are the new coordinates relative to the world (false) or unit (true) coordinates? Also, not that apY is inverted. (default false) 
+---@return boolean success
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitMidAndAimPos)
+function Spring.SetUnitMidAndAimPos(unitID, mpX, mpY, mpZ, apX, apY, apZ, relative)
+	return  booleanMock
+end
+
+---@param unitID number
+---@param radius number
+---@param height number
+---@return boolean success
+---
+---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitRadiusAndHeight)
+function Spring.SetUnitRadiusAndHeight (unitID, radius, height)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(radius) == "number","Argument radius is of invalid type - expected number");
+	assert(type(height) == "number","Argument height is of invalid type - expected number");
+	return booleanMock
+end
+
+---@param transporterID number
+---@param passengerID number
+---@param pieceNum number
+---@return nil
+function Spring.UnitAttach (transporterID, passengerID, pieceNum)
 assert(type(transporterID) == "number","Argument transporterID is of invalid type - expected number");
 assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
 assert(type(pieceNum) == "number","Argument pieceNum is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
-function Spring.UnitDetach    (  passengerID)
+--=================================
+--TODO Continue from here 6-6-23
+--=================================
+
+---@param passengerID number
+---@return nil
+function Spring.UnitDetach (passengerID)
 assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
-function Spring.UnitDetachFromAir    (  passengerID)
+---@param passengerID number
+---@return nil
+function Spring.UnitDetachFromAir (  passengerID)
 assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
-function Spring.SetUnitLoadingTransport    (  passengerID, transportID)
+---@param passengerID number
+---@param transportID number
+---@return nil
+function Spring.SetUnitLoadingTransport (  passengerID, transportID)
 assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
 assert(type(transportID) == "number","Argument transportID is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
-function Spring.SetUnitPieceParent    (  unitID, AlteredPiece, ParentPiece)
+---Changes the pieces hierarchy of a unit by attaching a piece to a new parent.
+---@param unitID number
+---@param AlteredPiece number
+---@param ParentPiece number
+---@return nil
+function Spring.SetUnitPieceParent (unitID, AlteredPiece, ParentPiece)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(AlteredPiece) == "number","Argument AlteredPiece is of invalid type - expected number");
 assert(type(ParentPiece) == "number","Argument ParentPiece is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
-function Spring.SetUnitArmored    (  unitID, armored, armorMultiple)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(armored) == "boolean","Argument armored is of invalid type - expected boolean");
-assert(type(armorMultiple) == "number","Argument armorMultiple is of invalid type - expected number");
-return  numberMock
- end
+---@alias COLVOL_TYPES table
+---| "COLVOL_TYPE_DISABLED=-1"
+---| "COLVOL_TYPE_ELLIPSOID=0"
+---| "COLVOL_TYPE_CYLINDER=0"
+---| "COLVOL_TYPE_BOX=0"
+---| "COLVOL_TYPE_SPHERE=0"
+---| "COLVOL_NUM_TYPES=0" ---number of non-disabled collision volumn types
 
-function Spring.SetUnitShieldState   (  unitID, weaponID)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(weaponID) == "number","Argument weaponID is of invalid type - expected number");
-return  numberMock
- end
+---@alias COLVOL_TESTS table
+---| "COLVOL_TEST_DISC=0"
+---| "COLVOL_TEST_CONT=1"
+---| "COLVOL_NUM_TESTS=2"  // number of tests
 
-function Spring.SetUnitFlanking   (  unitID, mode, mode)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(mode) == "string","Argument mode is of invalid type - expected string");
-assert(type(mode) == "number","Argument mode is of invalid type - expected number");
-return  numberMock
- end
+---@alias COLVOL_AXES table
+---| "COLVOL_AXIS_X=0"
+---| "COLVOL_AXIS_Y=1"
+---| "COLVOL_AXIS_Z=2"
+---| "COLVOL_NUM_AXES=3"   // number of collision volume axes
 
-function Spring.SetUnitWeaponState   (  unitID, weaponNum, states)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
-assert(type(states) == "table","Argument states is of invalid type - expected table");
-return  numberMock
- end
+---@param UnitID number
+---@param scaleX number
+---@param scaleY number
+---@param scaleZ number
+---@param offsetX number
+---@param offsetY number
+---@param offsetZ number
+---@param vType COLVOL_TYPES
+---@param tType COLVOL_TESTS
+---@param Axis COLVOL_AXES
+---@diagnostic disable-next-line
+function Spring.SetUnitCollisionVolumeData (UnitID, scaleX, scaleY, scaleZ, offsetX, offsetY, offsetZ, vType, tType, Axis)
+return nil
+end
+--- piece volumes not allowed to use discrete hit-testing
+---@param unitID number
+---@param pieceIndex number
+---@param enable boolean
+---@param scaleX number
+---@param scaleY number
+---@param scaleZ number
+---@param offsetX number
+---@param offsetY number
+---@param offsetZ number
+---@param volumeType? number 
+---@param primaryAxis? number 
+function Spring.SetUnitPieceCollisionVolumeData (unitID, pieceIndex, enable, scaleX, scaleY, scaleZ, offsetX, offsetY, offsetZ, volumeType, primaryAxis)
+return nil
+end
 
-function Spring.SetUnitWeaponDamages    (  unitID, weaponNum)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
-return  numberMock
- end
-
-function Spring.SetUnitCollisionVolumeData   ( )
-return
- end
-
-function Spring.SetUnitPieceCollisionVolumeData   ( )
-return
- end
-
-function Spring.SetUnitTravel   (  unitID, travel, travelPeriod)
+---Deprecated and marked for deletion in CPP API fields
+---@param unitID number
+---@param travel number
+---@param travelPeriod number
+---@return nil
+---@deprecated
+function Spring.SetUnitTravel (unitID, travel, travelPeriod)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(travel) == "number","Argument travel is of invalid type - expected number");
 assert(type(travelPeriod) == "number","Argument travelPeriod is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
-function Spring.SetUnitMoveGoal    (  unitID, goalx, goaly, goalz, goalRadius, moveSpeed)
+---Used by default commands to get in build-, attackrange etc.
+---@param unitID number
+---@param goalx number
+---@param goaly number
+---@param goalz number
+---@param goalRadius? number 
+---@param moveSpeed? number 
+---@param moveRaw? boolean 
+---@return nil
+function Spring.SetUnitMoveGoal (unitID, goalx, goaly, goalz, goalRadius, moveSpeed, moveRaw)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(goalx) == "number","Argument goalx is of invalid type - expected number");
 assert(type(goaly) == "number","Argument goaly is of invalid type - expected number");
 assert(type(goalz) == "number","Argument goalz is of invalid type - expected number");
 assert(type(goalRadius) == "number","Argument goalRadius is of invalid type - expected number");
 assert(type(moveSpeed) == "number","Argument moveSpeed is of invalid type - expected number");
-return  booleanMock
- end
+return  nil
+end
 
+---Used in conjuction with Spring.UnitAttach et al.
+---to re-implement old airbase & fuel system in lua
+---@param unitID number
+---@param goalX number
+---@param goalY number
+---@param goalZ number
+---@param goalRadius? number
+---@return nil
+---@see Spring.UnitAttach
+---@see Spring.ClearUnitGoal
+function Spring.SetLandUnitGoal(unitID, goalX, goalY, goalZ, goalRadius)
+	return nil
+end
 
-function Spring.SetUnitPosition   (  unitID, x, z, alwaysAboveSea)
+---@param unitID number
+---@return nil
+---@see Spring.SetLandUnitGoal
+---@see Spring.SetUnitMoveGoal
+function Spring.ClearUnitGoal(unitID)
+	return nil
+end
+
+---@param unitID number
+---@param posX number
+---@param posY number
+---@param posZ number
+---@param velX number
+---@param velY number
+---@param velZ number
+---@param rotX number
+---@param rotY number
+---@param rotZ number
+---@param dragX number
+---@param dragY number
+---@param dragZ number
+---@return nil
+function Spring.SetUnitPhysics(unitID, posX, posY, posZ, velX, velY, velZ, rotX, rotY, rotZ, dragX, dragY, dragZ)
+	return nil
+end
+
+---@param unitID number
+---@param mass number
+---@return nil
+function Spring.SetUnitMass(unitID, mass)
+return nil
+end
+
+---@param unitID number
+---@param x number
+---@param z number
+---@param alwaysAboveSea? boolean 
+---@return nil
+function Spring.SetUnitPosition (unitID, x, z, alwaysAboveSea)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 assert(type(alwaysAboveSea) == "boolean","Argument alwaysAboveSea is of invalid type - expected boolean");
-return  numberMock
- end
+return  nil
+end
 
-function Spring.SetUnitDirection    (  unitID, x, y, z)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(x) == "number","Argument x is of invalid type - expected number");
-assert(type(y) == "number","Argument y is of invalid type - expected number");
-assert(type(z) == "number","Argument z is of invalid type - expected number");
-return  numberMock
- end
-
-function Spring.SetUnitVelocity   (  unitID, velx, vely, velz)
+---@param unitID number
+---@param velx number
+---@param vely number
+---@param velz number
+---@return nil
+function Spring.SetUnitVelocity (unitID, velx, vely, velz)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(velx) == "number","Argument velx is of invalid type - expected number");
 assert(type(vely) == "number","Argument vely is of invalid type - expected number");
 assert(type(velz) == "number","Argument velz is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
-function Spring.SetUnitRotation   (  unitID, rotx, roty, rotz)
+---@param unitID number
+---@param rotx number
+---@param roty number
+---@param rotz number
+---@return nil
+function Spring.SetUnitRotation (unitID, rotx, roty, rotz)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(rotx) == "number","Argument rotx is of invalid type - expected number");
 assert(type(roty) == "number","Argument roty is of invalid type - expected number");
 assert(type(rotz) == "number","Argument rotz is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
-function Spring.AddUnitImpulse   (  unitID, x, y, z)
+---@param unitID number
+---@param yaw number
+---@param pitch number
+---@param roll number
+---@return nil
+function Spring.SetUnitDirection (unitID, yaw, pitch, roll)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
-function Spring.AddUnitSeismicPing   (  unitID, pingSize)
+---@param unitID number
+---@param x number
+---@param y number
+---@param z number
+---@param decayRate? number 
+---@return nil
+function Spring.AddUnitImpulse (unitID, x, y, z, decayRate)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(x) == "number","Argument x is of invalid type - expected number");
+assert(type(y) == "number","Argument y is of invalid type - expected number");
+assert(type(z) == "number","Argument z is of invalid type - expected number");
+return  nil
+end
+
+---@param unitID number
+---@param pingSize number
+---@return nil
+function Spring.AddUnitSeismicPing (unitID, pingSize)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(pingSize) == "number","Argument pingSize is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
-function Spring.RemoveBuildingDecal   (  unitID)
+---Deprecated - no references to this function in current recoil engine 2023-06-04
+---@param unitID number
+---@deprecated
+---@return nil
+function Spring.RemoveBuildingDecal (unitID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
-function Spring.SetUnitMidAndAimPos    ( )
-return  booleanMock
- end
-
-function Spring.SetUnitRadiusAndHeight    (  unitID, radius, height)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(radius) == "number","Argument radius is of invalid type - expected number");
-assert(type(height) == "number","Argument height is of invalid type - expected number");
-return  numberMock
- end
-
-function Spring.UnitWeaponFire   (  unitID, weaponID)
+---@param unitID number
+---@param weaponID number
+---@return nil
+function Spring.UnitWeaponFire (unitID, weaponID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(weaponID) == "number","Argument weaponID is of invalid type - expected number");
-return  numberMock
- end
+return  nil
+end
 
-function Spring.UnitWeaponHoldFire   (  unitID, weaponID)
+--TODO is this function deprecated, debug only, or intended to be maintained?
+---Marked not permanent, missing doc in Recoil API autodoc 
+---@param unitID number
+---@param weaponID number
+---@return nil
+function Spring.UnitWeaponHoldFire (unitID, weaponID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(weaponID) == "number","Argument weaponID is of invalid type - expected number");
-return  numberMock
- end
+return nil
+end
 
-function Spring.SetUnitCloak   ( )
-return  numberMock
- end
-
-function Spring.SetUnitSonarStealth   (  unitID, sonarStealth)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(sonarStealth) == "boolean","Argument sonarStealth is of invalid type - expected boolean");
-return  numberMock
- end
-
-function Spring.SetUnitStealth   (  unitID, stealth)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(stealth) == "boolean","Argument stealth is of invalid type - expected boolean");
-return  numberMock
- end
-
-function Spring.SetUnitAlwaysVisible   (  unitID, alwaysVisible)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(alwaysVisible) == "boolean","Argument alwaysVisible is of invalid type - expected boolean");
-return  numberMock
- end
-
-function Spring.SetUnitLosMask   (  unitID, allyTeam, los)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(allyTeam) == "number","Argument allyTeam is of invalid type - expected number");
-assert(type(los) == "number","Argument los is of invalid type - expected number");
-return  numberMock
- end
-
-function Spring.SetUnitLosState   (  unitID, allyTeam, los)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(allyTeam) == "number","Argument allyTeam is of invalid type - expected number");
-assert(type(los) == "number","Argument los is of invalid type - expected number");
-return  numberMock
- end
-
-function Spring.SetUnitSensorRadius   (  unitID, type, radius)
+---Sets a unit sensor radius based on sensor type
+---@param unitID number
+---@param type string "los" | "airLos" | "radar" | "sonar" | "seismic" | "radarJammer" | "sonarJammer"
+---@return nil | number newRadius
+function Spring.SetUnitSensorRadius(unitID, type)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(type) == "string","Argument type is of invalid type - expected string");
-assert(type(radius) == "number","Argument radius is of invalid type - expected number");
+--assert(type(radius) == "number","Argument radius is of invalid type - expected number"); radius is defined by type
+return numberMock
+end
+
+function Spring.SetRadarErrorParams ( )
 return  numberMock
- end
+end
 
-function Spring.SetRadarErrorParams    ( )
+function Spring.SetUnitPosErrorParams ( )
 return  numberMock
- end
+end
 
-function Spring.SetUnitPosErrorParams    ( )
-return  numberMock
- end
-
-function Spring.SetUnitResourcing   ( )
-return
- end
-
-function Spring.AddUnitResource   (  unitID, m)
+function Spring.AddUnitResource (unitID, m)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(m) == "string","Argument m is of invalid type - expected string");
 return  numberMock
- end
+end
 
-function Spring.UseUnitResource   (  unitID, m)
+function Spring.UseUnitResource (unitID, m)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(m) == "string","Argument m is of invalid type - expected string");
 return  booleanMock
- end
+end
 
-function Spring.SetUnitHarvestStorage    (  unitid, metal)
-assert(type(unitid) == "number","Argument unitid is of invalid type - expected number");
-assert(type(metal) == "number","Argument metal is of invalid type - expected number");
-
-return  numberMock
- end
-
-function Spring.DestroyFeature   (  featureID)
+function Spring.DestroyFeature (  featureID)
 assert(type(featureID) == "number","Argument featureID is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.TransferFeature   (  featureID, teamID)
+function Spring.TransferFeature (  featureID, teamID)
 assert(type(featureID) == "number","Argument featureID is of invalid type - expected number");
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetFeatureHealth   (  featureID, health)
+function Spring.SetFeatureHealth (  featureID, health)
 assert(type(featureID) == "number","Argument featureID is of invalid type - expected number");
 assert(type(health) == "number","Argument health is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetFeatureReclaim   (  featureID, reclaimLeft)
+function Spring.SetFeatureReclaim (  featureID, reclaimLeft)
 assert(type(featureID) == "number","Argument featureID is of invalid type - expected number");
 assert(type(reclaimLeft) == "number","Argument reclaimLeft is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetFeatureResurrect   (  featureID, UnitDefName, facing)
+function Spring.SetFeatureResurrect (  featureID, UnitDefName, facing)
 assert(type(featureID) == "number","Argument featureID is of invalid type - expected number");
 assert(type(UnitDefName) == "string","Argument UnitDefName? is of invalid type - expected string");
 assert(type(facing) == "number","Argument facing is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetFeaturePosition   (  featureID, x, y, z, snapToGround)
+function Spring.SetFeaturePosition (  featureID, x, y, z, snapToGround)
 assert(type(featureID) == "number","Argument featureID is of invalid type - expected number");
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 assert(type(snapToGround) == "boolean","Argument snapToGround is of invalid type - expected boolean");
 return  numberMock
- end
+end
 
-function Spring.SetFeatureDirection   (  featureID, x, y, z)
+function Spring.SetFeatureDirection (  featureID, x, y, z)
 assert(type(featureID) == "number","Argument featureID is of invalid type - expected number");
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetFeatureVelocity    ( featureID, noSelect)
+function Spring.SetFeatureVelocity ( featureID, noSelect)
 
 assert(type(featureID) == "number","Argument featureID is of invalid type - expected number");
 assert(type(noSelect) == "boolean","Argument noSelect is of invalid type - expected boolean");
 return  numberMock
- end
+end
 
-function Spring.SetFeatureAlwaysVisible   (  featureID, enable)
+function Spring.SetFeatureAlwaysVisible (  featureID, enable)
 assert(type(featureID) == "number","Argument featureID is of invalid type - expected number");
 assert(type(enable) == "boolean","Argument enable is of invalid type - expected boolean");
 return  numberMock
- end
+end
 
-function Spring.SetFeatureCollisionVolumeData   ( )
+function Spring.SetFeatureCollisionVolumeData ( )
 return
- end
+end
 
-function Spring.SetUnitCollisionVolumeData    ( )
+function Spring.SetUnitCollisionVolumeData ( )
 return  booleanMock
- end
+end
 
-function Spring.SetUnitMidAndAimPos    (  unitID, radius, height)
+---@param featureID number
+---@param mpX number new middle positionX of unit
+---@param mpY number new middle positionY of unit
+---@param mpZ number new middle positionZ of unit
+---@param apX number new positionX that enemies aim at on this unit
+---@param apY number new positionY that enemies aim at on this unit
+---@param apZ number new positionZ that enemies aim at on this unit
+---@param relative? boolean are the new coordinates relative to the world (false) or unit (true) coordinates? Also, not that apY is inverted. (default false) 
+---@return boolean
+function Spring.SetFeatureMidAndAimPos ( featureID, mpX, mpY, mpZ, apX, apY, apZ, relative)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(radius) == "number","Argument radius is of invalid type - expected number");
 assert(type(height) == "number","Argument height is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetFeatureBlocking   (  featureID, blocking, collidable)
+function Spring.SetFeatureBlocking (  featureID, blocking, collidable)
 assert(type(featureID) == "number","Argument featureID is of invalid type - expected number");
 assert(type(blocking) == "boolean","Argument blocking is of invalid type - expected boolean");
 assert(type(collidable) == "boolean","Argument collidable is of invalid type - expected boolean");
 return  numberMock
- end
+end
 
-function Spring.SetFeatureBlocking    (  unitID, funcID)
+function Spring.SetFeatureBlocking (unitID, funcID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(funcID) == "number","Argument funcID is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.CallCOBScriptCB   (  unitID, funcID)
+function Spring.CallCOBScriptCB (unitID, funcID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(funcID) == "number","Argument funcID is of invalid type - expected number");
 return  numberMock
- end
-
-function Spring.GetCOBScriptID   (  unitID, funcName)
-assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
-assert(type(funcName) == "string","Argument funcName is of invalid type - expected string");
-return  numberMock
- end
+end
 
 
-function Spring.SetUnitCOBValue   (  unitID, COBValue, param1)
+function Spring.SetUnitCOBValue (unitID, COBValue, param1)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(COBValue) == "number","Argument COBValue is of invalid type - expected number");
 assert(type(param1) == "number","Argument param1 is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.GiveOrderToUnit   ( )
+function Spring.GiveOrderToUnit ( )
 return
- end
+end
 
-function Spring.GiveOrderToUnitMap   ( )
+function Spring.GiveOrderToUnitMap ( )
 return
- end
+end
 
-function Spring.GiveOrderToUnitArray   ( )
+function Spring.GiveOrderToUnitArray ( )
 return
- end
+end
 
-function Spring.GiveOrderArrayToUnitMap   ( )
+function Spring.GiveOrderArrayToUnitMap ( )
 return
- end
+end
 
-function Spring.GiveOrderArrayToUnitArray   ( )
+function Spring.GiveOrderArrayToUnitArray ( )
 return
- end
+end
 
-function Spring.AddGrass   (  x, z)
+function Spring.AddGrass (  x, z)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.RemoveGrass   (  x, z)
+function Spring.RemoveGrass (  x, z)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.LevelHeightMap   (  x,z)
+function Spring.LevelHeightMap (  x,z)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.AdjustHeightMap    (  x,z)
+function Spring.AdjustHeightMap (  x,z)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.RevertHeightMap   (  x,z)
+function Spring.RevertHeightMap (  x,z)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetHeightMapFunc   ( )
+function Spring.SetHeightMapFunc ( )
 return  numberMock
- end
+end
 
 
 
-function Spring.SetHeightMap    ( x, z, height, terraform)
+function Spring.SetHeightMap ( x, z, height, terraform)
 
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 assert(type(height) == "number","Argument height is of invalid type - expected number");
 assert(type(terraform) == "number","Argument terraform is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.LevelSmoothMesh    (  x,z)
+function Spring.LevelSmoothMesh (  x,z)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  numberMock
- end
+end
 
 
-function Spring.AdjustSmoothMesh    (  x,z)
+function Spring.AdjustSmoothMesh (  x,z)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  numberMock
- end
+end
 
 
-function Spring.RevertSmoothMesh    (  x,z)
+function Spring.RevertSmoothMesh (  x,z)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  numberMock
- end
+end
 
 
-function Spring.SetSmoothMeshFunc   ( )
+function Spring.SetSmoothMeshFunc ( )
 return  numberMock
- end
+end
 
-function Spring.AddSmoothMesh    ( x, z, height)
+function Spring.AddSmoothMesh ( x, z, height)
 
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 assert(type(height) == "number","Argument height is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetSmoothMesh    (
- x, z, height, terraform)
+function Spring.SetSmoothMesh (
+x, z, height, terraform)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 assert(type(height) == "number","Argument height is of invalid type - expected number");
 assert(type(terraform) == "number","Argument terraform is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetMapSquareTerrainType   (  x, z)
+function Spring.SetMapSquareTerrainType (  x, z)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 return
- end
+end
 
-function Spring.SetTerrainTypeData   ( )
+function Spring.SetTerrainTypeData ( )
 return  booleanMock
- end
+end
 
-function Spring.SetMetalAmount    (  x, z, metalAmount)
+function Spring.SetMetalAmount (  x, z, metalAmount)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 assert(type(metalAmount) == "number","Argument metalAmount is of invalid type - expected number");
 end
 
 
-function Spring.EditUnitCmdDesc  (  unitID,  cmdDescID,  cmdArray )
+function Spring.EditUnitCmdDesc (unitID,  cmdDescID,  cmdArray )
 
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(cmdDescID) == "number","Argument cmdDescID is of invalid type - expected number");
 assert(type(cmdArray) == "table","Argument cmdArray is of invalid type - expected table");
 return  numberMock
- end
+end
 
-function Spring.InsertUnitCmdDesc   (  unitID, cmdDescID, cmdArray)
+function Spring.InsertUnitCmdDesc (unitID, cmdDescID, cmdArray)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(cmdDescID) == "number","Argument cmdDescID is of invalid type - expected number");
 assert(type(cmdArray) == "table","Argument cmdArray is of invalid type - expected table");
 return  numberMock
- end
+end
 
-function Spring.RemoveUnitCmdDesc   (  unitID, cmdDescID)
+function Spring.RemoveUnitCmdDesc (unitID, cmdDescID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(cmdDescID) == "number","Argument cmdDescID is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetNoPause   (  noPause)
+function Spring.SetNoPause (  noPause)
 assert(type(noPause) == "boolean","Argument noPause is of invalid type - expected boolean");
 return  booleanMock
- end
+end
 
-function Spring.SetUnitToFeature   (  tofeature)
+function Spring.SetUnitToFeature (  tofeature)
 assert(type(tofeature) == "boolean","Argument tofeature is of invalid type - expected boolean");
 return  booleanMock
- end
+end
 
-function Spring.SetExperienceGrade   ( )
+function Spring.SetExperienceGrade ( )
 return  numberMock
- end
+end
 
-function Spring.SpawnCEG   ( )
+function Spring.SpawnCEG ( )
 return  booleanMock
- end
+end
 
-function Spring.SpawnProjectile   (  weaponDefID, projectileParams)
+function Spring.SpawnProjectile (  weaponDefID, projectileParams)
 assert(type(weaponDefID) == "number","Argument weaponDefID is of invalid type - expected number");
 assert(type(projectileParams) == "table","Argument projectileParams is of invalid type - expected table");
 return  numberMock
- end
+end
 
-function Spring.SetProjectileTarget   ( )
+function Spring.SetProjectileTarget ( )
 return  booleanMock
- end
+end
 
-function Spring.SetProjectileIsIntercepted    (  projID)
+function Spring.SetProjectileIsIntercepted (  projID)
 assert(type(projID) == "number","Argument projID is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetProjectileMoveControl    (
- projID, enable)
+function Spring.SetProjectileMoveControl (
+projID, enable)
 assert(type(projID) == "number","Argument projID is of invalid type - expected number");
 assert(type(enable) == "boolean","Argument enable is of invalid type - expected boolean");
 return  numberMock
- end
+end
 
-function Spring.SetProjectilePosition   (  projID, x, y, z)
+function Spring.SetProjectilePosition (  projID, x, y, z)
 assert(type(projID) == "number","Argument projID is of invalid type - expected number");
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetProjectileVelocity   (  projID, x, y, z)
+function Spring.SetProjectileVelocity (  projID, x, y, z)
 assert(type(projID) == "number","Argument projID is of invalid type - expected number");
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetProjectileCollision   (  projID)
+function Spring.SetProjectileCollision (  projID)
 assert(type(projID) == "number","Argument projID is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetProjectileGravity   (  projID, grav)
+function Spring.SetProjectileGravity (  projID, grav)
 assert(type(projID) == "number","Argument projID is of invalid type - expected number");
 assert(type(grav) == "number","Argument grav is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetProjectileSpinAngle    (  projID, spinAngle)
+function Spring.SetProjectileSpinAngle (  projID, spinAngle)
 assert(type(projID) == "number","Argument projID is of invalid type - expected number");
 assert(type(spinAngle) == "number","Argument spinAngle is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetProjectileSpinSpeed    (  projID, speed)
+function Spring.SetProjectileSpinSpeed (  projID, speed)
 assert(type(projID) == "number","Argument projID is of invalid type - expected number");
 assert(type(speed) == "number","Argument speed is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetProjectileSpinVec    (  projID, x, y, z)
+function Spring.SetProjectileSpinVec (  projID, x, y, z)
 assert(type(projID) == "number","Argument projID is of invalid type - expected number");
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  numberMock
- end
+end
 
-function Spring.SetProjectileCEG   (  projID, ceg_)
+function Spring.SetProjectileCEG (  projID, ceg_)
 assert(type(projID) == "number","Argument projID is of invalid type - expected number");
 assert(type(ceg_) == "string","Argument ceg_ is of invalid type - expected string");
 return  numberMock
- end
+end
 
-function Spring.SetPieceProjectileParams    ( )
+function Spring.SetPieceProjectileParams ( )
 return  numberMock
- end
+end
 
-function Spring.SetProjectileAlwaysVisible    (  projectileID, alwaysVisible)
+function Spring.SetProjectileAlwaysVisible (  projectileID, alwaysVisible)
 assert(type(projectileID) == "number","Argument projectileID is of invalid type - expected number");
 assert(type(alwaysVisible) == "boolean","Argument alwaysVisible is of invalid type - expected boolean");
 return  numberMock
- end
+end
 
-function Spring.SetProjectileDamages    (  unitID, weaponNum, damages)
+function Spring.SetProjectileDamages (unitID, weaponNum, damages)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
 assert(type(damages) == "table","Argument damages is of invalid type - expected table");
 return  numberMock
- end
+end
+
+--==================================================================================================
+-- End of LuaSyncedCtrl, start of ?
+--==================================================================================================
 
 
-function Spring.IsDevLuaEnabled   ( )
+function Spring.IsDevLuaEnabled ( )
 return  booleanMock
  end
 
-function Spring.IsEditDefsEnabled   ( )
+function Spring.IsEditDefsEnabled ( )
 return  booleanMock
  end
 
-function Spring.AreHelperAIsEnabled   ( )
+function Spring.AreHelperAIsEnabled ( )
 return  booleanMock
  end
 
-function Spring.FixedAllies   ( )
+function Spring.FixedAllies ( )
 return  booleanMock
  end
 
-function Spring.IsGameOver   ( )
+function Spring.IsGameOver ( )
 return  booleanMock
  end
 
-function Spring.GetRulesInfoMap    ( )
+function Spring.GetRulesInfoMap ( )
 return  stringMock
  end
 
-function Spring.GetGameRulesParam   (  ruleIndex)
+function Spring.GetGameRulesParam (  ruleIndex)
  assert(type(ruleIndex) == "number","Argument ruleIndex is of invalid type - expected number");
  return  numberMock
 end
 
-function Spring.GetGameRulesParams   ( )
+function Spring.GetGameRulesParams ( )
  return  numberMock
 end
 
-function Spring.GetTeamRulesParam   (index, teamID)
+function Spring.GetTeamRulesParam (index, teamID)
  assert(type(index) == "number","Argument index is of invalid type - expected number");
  assert(type(teamID) == "number","Argument teamID, is of invalid type - expected number");
  return  numberMock
 end
 
-function Spring.GetTeamRulesParams   (teamID)
+function Spring.GetTeamRulesParams (teamID)
  assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
  return  numberMock
 end
 
-function Spring.GetUnitRulesParam   (unitID, ruleName)
+function Spring.GetUnitRulesParam (unitID, ruleName)
  assert(type(unitID) == "number","Argument index is of invalid type - expected number");
  assert(type(ruleName) == "string","Argument param is of invalid type - expected string");
  return  numberMock
 end
 
-function Spring.GetUnitRulesParam   (unitID, index)
+function Spring.GetUnitRulesParam (unitID, index)
  assert(type(unitID) == "number","Argument index is of invalid type - expected number");
  assert(type(index) == "number","Argument index is of invalid type - expected number");
  return  numberMock
 end
 
-function Spring.GetUnitRulesParams   (unitID)
+function Spring.GetUnitRulesParams (unitID)
  assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
  return  numberMock
 end
 
-function Spring.GetModOptions   ( )
+function Spring.GetModOptions ( )
 return  stringMock
  end
 
-function Spring.GetMapOptions   ( )
+function Spring.GetMapOptions ( )
 return  stringMock
  end
 
-function Spring.GetModOptions.exampleOption  ()
+function Spring.GetModOptions.exampleOption ()
 return  numberMock
  end
 
-function Spring.GetGameFrame   ( )
+function Spring.GetGameFrame ( )
 return  numberMock
  end
 
-function Spring.GetGameSeconds   ( )
+function Spring.GetGameSeconds ( )
 return  numberMock
  end
 
-function Spring.GetWind   ( )
+function Spring.GetWind ( )
 return  numberMock
  end
 
-function Spring.GetHeadingFromVector   (  x, z)
+function Spring.GetHeadingFromVector (  x, z)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetVectorFromHeading   (  heading)
+function Spring.GetVectorFromHeading (  heading)
 assert(type(heading) == "number","Argument heading is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetSideData   (  sideName)
+function Spring.GetSideData (  sideName)
 assert(type(sideName) == "string","Argument sideName is of invalid type - expected string");
 return  stringMock
  end
 
-function Spring.GetAllyTeamStartBox   (  allyID)
+function Spring.GetAllyTeamStartBox (  allyID)
 assert(type(allyID) == "number","Argument allyID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetTeamStartPosition   (  teamID)
+function Spring.GetTeamStartPosition (  teamID)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetPlayerList   (  teamID)
+function Spring.GetPlayerList (  teamID)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetTeamList   (  allyTeamID)
+function Spring.GetTeamList (  allyTeamID)
 assert(type(allyTeamID) == "number","Argument allyTeamID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetAllyTeamList   ( )
+function Spring.GetAllyTeamList ( )
 return  numberMock
  end
 
-function Spring.GetPlayerInfo   (  playerID)
+function Spring.GetPlayerInfo (  playerID)
 assert(type(playerID) == "number","Argument playerID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetPlayerControlledUnit   (  playerID)
+function Spring.GetPlayerControlledUnit (  playerID)
 assert(type(playerID) == "number","Argument playerID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetAIInfo   (  teamID)
+function Spring.GetAIInfo (  teamID)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetAllyTeamInfo   (  allyteamID)
+function Spring.GetAllyTeamInfo (  allyteamID)
 assert(type(allyteamID) == "number","Argument allyteamID is of invalid type - expected number");
 return  tableMock
  end
 
-function Spring.GetTeamInfo   (  teamID)
+function Spring.GetTeamInfo (  teamID)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetTeamResources   (  metal, teamID)
+function Spring.GetTeamResources (  metal, teamID)
 assert(type(metal) == "string","Argument metal is of invalid type - expected string");
 assert(type(teamID) == "number","Argument teamID, is of invalid type - expected number");
 return
  end
 
-function Spring.GetTeamUnitStats   (  teamID)
+function Spring.GetTeamUnitStats (  teamID)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetTeamResourceStats    (  metal, teamID)
+function Spring.GetTeamResourceStats (  metal, teamID)
 assert(type(metal) == "string","Argument metal is of invalid type - expected string");
 assert(type(teamID) == "number","Argument teamID, is of invalid type - expected number");
 return
  end
 
-function Spring.GetTeamStatsHistory   (  teamID, endIndex, startIndex)
+function Spring.GetTeamStatsHistory (  teamID, endIndex, startIndex)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 assert(type(endIndex) == "number","Argument endIndex is of invalid type - expected number");
 assert(type(startIndex) == "number","Argument startIndex is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetTeamLuaAI   (  teamID)
+function Spring.GetTeamLuaAI (  teamID)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.AreTeamsAllied   (  teamID1)
+function Spring.AreTeamsAllied (  teamID1)
 assert(type(teamID1) == "number","Argument teamID1 is of invalid type - expected number");
 return  booleanMock
  end
 
-function Spring.ArePlayersAllied   (  playerID1)
+function Spring.ArePlayersAllied (  playerID1)
 assert(type(playerID1) == "number","Argument playerID1 is of invalid type - expected number");
 return  booleanMock
  end
 
-function Spring.GetAllUnits   ( )
+function Spring.GetAllUnits ( )
 return  numberMock
  end
 
-function Spring.GetTeamUnits   (  teamID)
+function Spring.GetTeamUnits (  teamID)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetTeamUnitsSorted   (  teamID)
+function Spring.GetTeamUnitsSorted (  teamID)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 return
  end
 
-function Spring.GetTeamUnitsCounts   (  teamID)
+function Spring.GetTeamUnitsCounts (  teamID)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetTeamUnitsByDefs   (  teamID, unitDefID)
+function Spring.GetTeamUnitsByDefs (  teamID, unitDefID)
 assert(type(teamID) == "number","Argument teamID, is of invalid type - expected number");
 assert(type(unitDefID) == "number","Argument unitDefID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetTeamUnitDefCount   (  teamID, unitDefID)
+function Spring.GetTeamUnitDefCount (  teamID, unitDefID)
 assert(type(teamID) == "number","Argument teamID, is of invalid type - expected number");
 assert(type(unitDefID) == "number","Argument unitDefID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetTeamUnitCount   (  teamID)
+function Spring.GetTeamUnitCount (  teamID)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetUnitsInRectangle   (  xmin, teamID, zmin, zmax, xmax)
+function Spring.GetUnitsInRectangle (  xmin, teamID, zmin, zmax, xmax)
 assert(type(xmin) == "number","Argument xmin, is of invalid type - expected number");
 assert(type(teamID) == "number","Argument teamID] is of invalid type - expected number");
 assert(type(zmin) == "number","Argument zmin, is of invalid type - expected number");
@@ -1088,11 +1851,11 @@ assert(type(xmax) == "number","Argument xmax, is of invalid type - expected numb
 return  numberMock
  end
 
-function Spring.GetUnitsInBox   ( )
+function Spring.GetUnitsInBox ( )
 return  numberMock
  end
 
-function Spring.GetUnitsInSphere   (  radius, y, z, teamID, x)
+function Spring.GetUnitsInSphere (  radius, y, z, teamID, x)
 assert(type(radius) == "number","Argument radius is of invalid type - expected number");
 assert(type(y) == "number","Argument y, is of invalid type - expected number");
 assert(type(z) == "number","Argument z, is of invalid type - expected number");
@@ -1109,41 +1872,44 @@ function Spring.GetUnitsInCylinder (x, z, radius, teamID)
 return  numberMock
 end
 
-function Spring.GetUnitsInPlanes   ( )
+function Spring.GetUnitsInPlanes ( )
 return  numberMock
  end
 
-function Spring.GetUnitNearestAlly   (  range, unitID)
+function Spring.GetUnitNearestAlly (  range, unitID)
 assert(type(range) == "number","Argument range is of invalid type - expected number");
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetUnitNearestEnemy   (  range, unitID)
+function Spring.GetUnitNearestEnemy (  range, unitID)
 assert(type(range) == "number","Argument range is of invalid type - expected number");
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.ValidUnitID   (  unitID)
+function Spring.ValidUnitID (unitID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetUnitIsDead   (  unitID)
+function Spring.GetUnitIsDead (unitID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 return  booleanMock
  end
 
 
-function Spring.SetLastMessagePosition   (  x, y, z)
+function Spring.SetLastMessagePosition (  x, y, z)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.Echo (msg)
+--Spring.Echo ( arg1 [, arg2 [, ... ]] )
+-- return: nil 
+---@param msg string
+function Spring.Echo ( msg, ... )
  assert(type(msg) == "string","Argument command1 is of invalid type - expected string");
 return
  end
@@ -1154,49 +1920,49 @@ function Spring.Log ( command1, logLevel )
 return
  end
 
-function Spring.SendCommands    (  command1)
+function Spring.SendCommands (  command1)
 assert(type(command1) == "string","Argument command1 is of invalid type - expected string");
 return  stringMock
  end
 
-function Spring.SetActiveCommand    (  action, actionExtra)
+function Spring.SetActiveCommand (  action, actionExtra)
 assert(type(action) == "string","Argument action is of invalid type - expected string");
 assert(type(actionExtra) == "string","Argument actionExtra is of invalid type - expected string");
 return  booleanMock
  end
 
-function Spring.LoadCmdColorsConfig    (  config)
+function Spring.LoadCmdColorsConfig (  config)
 assert(type(config) == "string","Argument config is of invalid type - expected string");
 return  stringMock
  end
 
-function Spring.LoadCtrlPanelConfig    (  config)
+function Spring.LoadCtrlPanelConfig (  config)
 assert(type(config) == "string","Argument config is of invalid type - expected string");
 return  stringMock
  end
 
-function Spring.ForceLayoutUpdate    ( )
+function Spring.ForceLayoutUpdate ( )
 return
  end
 
-function Spring.SetDrawSelectionInfo    (  enable)
+function Spring.SetDrawSelectionInfo (  enable)
 assert(type(enable) == "boolean","Argument enable is of invalid type - expected boolean");
 return  booleanMock
  end
 
-function Spring.SetMouseCursor    (  cursorName, scale)
+function Spring.SetMouseCursor (  cursorName, scale)
 assert(type(cursorName) == "string","Argument cursorName is of invalid type - expected string");
 assert(type(scale) == "number","Argument scale is of invalid type - expected number");
 return  stringMock
  end
 
-function Spring.WarpMouse    (  x, y)
+function Spring.WarpMouse (  x, y)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.SetLosViewColors    (  always, LOS, radar, jam, radar2)
+function Spring.SetLosViewColors (  always, LOS, radar, jam, radar2)
 assert(type(always) == "table","Argument always is of invalid type - expected table");
 assert(type(LOS) == "table","Argument LOS is of invalid type - expected table");
 assert(type(radar) == "table","Argument radar is of invalid type - expected table");
@@ -1205,35 +1971,35 @@ assert(type(radar2) == "table","Argument radar2 is of invalid type - expected ta
 return  tableMock
  end
 
-function Spring.SendMessage   (  message)
+function Spring.SendMessage (  message)
 assert(type(message) == "string","Argument message is of invalid type - expected string");
 return  stringMock
  end
 
-function Spring.SendMessageToPlayer   (  playerID, message)
+function Spring.SendMessageToPlayer (  playerID, message)
 assert(type(playerID) == "number","Argument playerID is of invalid type - expected number");
 assert(type(message) == "string","Argument message is of invalid type - expected string");
 return  numberMock
  end
 
-function Spring.SendMessageToTeam   (  teamID, message)
+function Spring.SendMessageToTeam (  teamID, message)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 assert(type(message) == "string","Argument message is of invalid type - expected string");
 return  numberMock
  end
 
-function Spring.SendMessageToAllyTeam   (  allyID, message)
+function Spring.SendMessageToAllyTeam (  allyID, message)
 assert(type(allyID) == "number","Argument allyID is of invalid type - expected number");
 assert(type(message) == "string","Argument message is of invalid type - expected string");
 return  numberMock
  end
 
-function Spring.SendMessageToSpectators   (  message)
+function Spring.SendMessageToSpectators (  message)
 assert(type(message) == "string","Argument message is of invalid type - expected string");
 return  stringMock
  end
 
-function Spring.MarkerAddPoint    (  x, y, z, text)
+function Spring.MarkerAddPoint (  x, y, z, text)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
@@ -1241,194 +2007,194 @@ assert(type(text) == "string","Argument text is of invalid type - expected strin
 return  numberMock
  end
 
-function Spring.MarkerAddLine    (  x1)
+function Spring.MarkerAddLine (  x1)
 assert(type(x1) == "number","Argument x1 is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.MarkerErasePosition    (  x, y, z)
+function Spring.MarkerErasePosition (  x, y, z)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.LoadSoundDef   (  soundfile)
+function Spring.LoadSoundDef (  soundfile)
 assert(type(soundfile) == "string","Argument soundfile is of invalid type - expected string");
 return  booleanMock
  end
 
-function Spring.PlaySoundFile    (  soundfile, volume)
+function Spring.PlaySoundFile (  soundfile, volume)
 assert(type(soundfile) == "string","Argument soundfile is of invalid type - expected string");
 assert(type(volume) == "number","Argument volume is of invalid type - expected number");
 return  booleanMock
  end
 
-function Spring.PlaySoundStream   (  oggfile, volume)
+function Spring.PlaySoundStream (  oggfile, volume)
 assert(type(oggfile) == "string","Argument oggfile is of invalid type - expected string");
 assert(type(volume) == "number","Argument volume is of invalid type - expected number");
 return  booleanMock
  end
 
-function Spring.StopSoundStream   ( )
+function Spring.StopSoundStream ( )
 return
  end
 
-function Spring.PauseSoundStream   ( )
+function Spring.PauseSoundStream ( )
 return
  end
 
-function Spring.SetSoundStreamVolume   (  volume)
+function Spring.SetSoundStreamVolume (  volume)
 assert(type(volume) == "number","Argument volume is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.SendLuaUIMsg    (  message, mode)
+function Spring.SendLuaUIMsg (  message, mode)
 assert(type(message) == "string","Argument message is of invalid type - expected string");
 assert(type(mode) == "string","Argument mode is of invalid type - expected string");
 return  stringMock
  end
 
-function Spring.SendLuaGaiaMsg    (  message)
+function Spring.SendLuaGaiaMsg (  message)
 assert(type(message) == "string","Argument message is of invalid type - expected string");
 return  stringMock
  end
 
-function Spring.SendLuaRulesMsg   (  message)
+function Spring.SendLuaRulesMsg (  message)
 assert(type(message) == "string","Argument message is of invalid type - expected string");
 return  stringMock
  end
 
-function Spring.SendSkirmishAIMessage    (  aiTeam, message)
+function Spring.SendSkirmishAIMessage (  aiTeam, message)
 assert(type(aiTeam) == "number","Argument aiTeam is of invalid type - expected number");
 assert(type(message) == "string","Argument message is of invalid type - expected string");
 return  booleanMock
  end
 
-function Spring.SetUnitLeaveTracks   (  unitID, leavetracks)
+function Spring.SetUnitLeaveTracks (unitID, leavetracks)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(leavetracks) == "boolean","Argument leavetracks is of invalid type - expected boolean");
 return  numberMock
  end
 
-function Spring.SelectUnitMap   (  keyUnitIDvalueAnything, append)
+function Spring.SelectUnitMap (  keyUnitIDvalueAnything, append)
 assert(type(keyUnitIDvalueAnything) == "table","Argument keyUnitIDvalueAnything is of invalid type - expected table");
 assert(type(append) == "boolean","Argument append is of invalid type - expected boolean");
 return  tableMock
  end
 
-function Spring.SelectUnitArray   (  unitIDs, append)
+function Spring.SelectUnitArray (unitIDs, append)
 assert(type(unitIDs) == "table","Argument unitIDs is of invalid type - expected table");
 assert(type(append) == "boolean","Argument append is of invalid type - expected boolean");
 return  tableMock
  end
 
-function Spring.SetDrawSelectionInfo   (  drawSelectionInfo)
+function Spring.SetDrawSelectionInfo (  drawSelectionInfo)
 assert(type(drawSelectionInfo) == "boolean","Argument drawSelectionInfo is of invalid type - expected boolean");
 return  booleanMock
  end
 
-function Spring.SetUnitGroup    (  unitID, groupID)
+function Spring.SetUnitGroup (unitID, groupID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(groupID) == "number","Argument groupID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GiveOrder    ( )
+function Spring.GiveOrder ( )
 return  booleanMock
  end
 
-function Spring.GiveOrderToUnit    ( )
+function Spring.GiveOrderToUnit ( )
 return  booleanMock
  end
 
-function Spring.GiveOrderToUnitMap    ( )
+function Spring.GiveOrderToUnitMap ( )
 return  booleanMock
  end
 
-function Spring.GiveOrderToUnitArray    ( )
+function Spring.GiveOrderToUnitArray ( )
 return  booleanMock
  end
 
-function Spring.GiveOrderArrayToUnitMap    ( )
+function Spring.GiveOrderArrayToUnitMap ( )
 return  booleanMock
  end
 
-function Spring.GiveOrderArrayToUnitArray    ( )
+function Spring.GiveOrderArrayToUnitArray ( )
 return  booleanMock
  end
 
-function Spring.SetBuildFacing   (  Facing)
+function Spring.SetBuildFacing (  Facing)
 assert(type(Facing) == "number","Argument Facing is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.SetBuildSpacing   (  Spacing)
+function Spring.SetBuildSpacing (  Spacing)
 assert(type(Spacing) == "number","Argument Spacing is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.SetUnitNoDraw    (  unitID, noDraw)
+function Spring.SetUnitNoDraw (unitID, noDraw)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(noDraw) == "boolean","Argument noDraw is of invalid type - expected boolean");
 return  numberMock
  end
 
-function Spring.SetUnitNoSelect    (  unitID, noSelect)
+function Spring.SetUnitNoSelect (unitID, noSelect)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(noSelect) == "boolean","Argument noSelect is of invalid type - expected boolean");
 return  numberMock
  end
 
-function Spring.SetUnitNoMinimap    (  unitID, noMinimap)
+function Spring.SetUnitNoMinimap (unitID, noMinimap)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(noMinimap) == "boolean","Argument noMinimap is of invalid type - expected boolean");
 return  numberMock
  end
 
-function Spring.SetDrawSky   (  drawSky)
+function Spring.SetDrawSky (  drawSky)
 assert(type(drawSky) == "boolean","Argument drawSky is of invalid type - expected boolean");
 return  booleanMock
  end
 
-function Spring.SetDrawWater   (  drawWater)
+function Spring.SetDrawWater (  drawWater)
 assert(type(drawWater) == "boolean","Argument drawWater is of invalid type - expected boolean");
 return  booleanMock
  end
 
-function Spring.SetDrawGround   (  drawGround)
+function Spring.SetDrawGround (  drawGround)
 assert(type(drawGround) == "boolean","Argument drawGround is of invalid type - expected boolean");
 return  booleanMock
  end
 
-function Spring.SetWaterParams    (  params)
+function Spring.SetWaterParams (  params)
 assert(type(params) == "table","Argument params is of invalid type - expected table");
 return  tableMock
  end
 
-function Spring.SetLogSectionFilterLevel   (  sectionName, logLevel)
+function Spring.SetLogSectionFilterLevel (  sectionName, logLevel)
 assert(type(sectionName) == "string","Argument sectionName is of invalid type - expected string");
 assert(type(logLevel) == "number","Argument logLevel is of invalid type - expected number");
 return  booleanMock
  end
 
 
-function Spring.SetDrawGroundDeferred   ( Activate)
+function Spring.SetDrawGroundDeferred ( Activate)
 assert(type(Activate) == "boolean","Argument Activate is of invalid type - expected boolean");
 return  booleanMock
  end
 
-function Spring.SetDrawModelsDeferred    (  Activate)
+function Spring.SetDrawModelsDeferred (  Activate)
 assert(type(Activate) == "boolean","Argument Activate is of invalid type - expected boolean");
 return  booleanMock
  end
 
-function Spring.DrawUnitCommands   (  unitID)
+function Spring.DrawUnitCommands (unitID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.SetTeamColor   (  teamID, r, g, b)
+function Spring.SetTeamColor (  teamID, r, g, b)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 assert(type(r) == "number","Argument r is of invalid type - expected number");
 assert(type(g) == "number","Argument g is of invalid type - expected number");
@@ -1436,33 +2202,48 @@ assert(type(b) == "number","Argument b is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.AssignMouseCursor   ( )
+function Spring.AssignMouseCursor ( )
 return  booleanMock
  end
 
-function Spring.ReplaceMouseCursor    (  oldFileName, newFileName, hotSpotTopLeft)
+function Spring.ReplaceMouseCursor (  oldFileName, newFileName, hotSpotTopLeft)
 assert(type(oldFileName) == "string","Argument oldFileName is of invalid type - expected string");
 assert(type(newFileName) == "string","Argument newFileName is of invalid type - expected string");
 assert(type(hotSpotTopLeft) == "boolean","Argument hotSpotTopLeft is of invalid type - expected boolean");
 return  booleanMock
  end
 
-function Spring.SetCustomCommandDrawData    ( )
+function Spring.SetCustomCommandDrawData ( )
 return  tableMock
  end
 
-function Spring.SetShareLevel    (  metal)
+function Spring.SetShareLevel (  metal)
 assert(type(metal) == "string","Argument metal is of invalid type - expected string");
 return  stringMock
  end
 
-function Spring.ShareResources    (  teamID, units)
+function Spring.ShareResources (  teamID, units)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 assert(type(units) == "string","Argument units is of invalid type - expected string");
 return  numberMock
  end
 
-function Spring.AddUnitIcon   (  iconName, texFile, size, dist, radAdjust)
+---@param unitID number
+---@param damage number
+---@param paralyze number # equal to the paralyzetime in WeaponDef
+---@param attackerID number
+---@param weaponID number
+---@param impulse_x number
+---@param impulse_y number
+---@param impulse_z number
+---@see paralyzeDamage
+---@see Spring.AddUnitImpulse
+---@return nil
+function Spring.AddUnitDamage ( unitID, damage, paralyze, attackerID, weaponID, impulse_x, impulse_y, impulse_z )
+	return  nil
+end
+
+function Spring.AddUnitIcon (  iconName, texFile, size, dist, radAdjust)
 assert(type(iconName) == "string","Argument iconName is of invalid type - expected string");
 assert(type(texFile) == "string","Argument texFile is of invalid type - expected string");
 assert(type(size) == "number","Argument size is of invalid type - expected number");
@@ -1471,29 +2252,29 @@ assert(type(radAdjust) == "boolean","Argument radAdjust is of invalid type - exp
 return  booleanMock
  end
 
-function Spring.FreeUnitIcon   (  iconName)
+function Spring.FreeUnitIcon (  iconName)
 assert(type(iconName) == "string","Argument iconName is of invalid type - expected string");
 return  booleanMock
  end
 
-function Spring.SetUnitDefIcon    ( unitDefID, iconName)
+function Spring.SetUnitDefIcon ( unitDefID, iconName)
 assert(type(unitDefID) == "number","Argument unitDefID is of invalid type - expected number");
 assert(type(iconName) == "string","Argument iconName is of invalid type - expected string");
 return  numberMock
  end
 
-function Spring.SetUnitDefImage    ( unitDefID)
+function Spring.SetUnitDefImage ( unitDefID)
 assert(type(unitDefID) == "number","Argument unitDefID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.SetCameraState   (  camState, camTime)
+function Spring.SetCameraState (  camState, camTime)
 assert(type(camState) == "table","Argument camState is of invalid type - expected table");
 assert(type(camTime) == "number","Argument camTime is of invalid type - expected number");
 return  booleanMock
  end
 
-function Spring.SetCameraTarget   (  x, y, z, transTime)
+function Spring.SetCameraTarget (  x, y, z, transTime)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
@@ -1501,49 +2282,49 @@ assert(type(transTime) == "number","Argument transTime is of invalid type - expe
 return  numberMock
  end
 
-function Spring.SetCameraOffset    ( )
+function Spring.SetCameraOffset ( )
 return  numberMock
  end
 
-function Spring.ExtractModArchiveFile   (  modfile)
+function Spring.ExtractModArchiveFile (  modfile)
 assert(type(modfile) == "string","Argument modfile is of invalid type - expected string");
 return  stringMock
  end
 
-function Spring.CreateDir    (  path)
+function Spring.CreateDir (  path)
 assert(type(path) == "number","Argument path is of invalid type - expected number");
 return  booleanMock
  end
 
-function Spring.GetConfigInt    (  name, default, setInOverlay)
+function Spring.GetConfigInt (  name, default, setInOverlay)
 assert(type(name) == "string","Argument name is of invalid type - expected string");
 assert(type(default) == "number","Argument default is of invalid type - expected number");
 assert(type(setInOverlay) == "boolean","Argument setInOverlay is of invalid type - expected boolean");
 return  numberMock
  end
 
-function Spring.SetConfigInt    (  name, value, useOverlay)
+function Spring.SetConfigInt (  name, value, useOverlay)
 assert(type(name) == "string","Argument name is of invalid type - expected string");
 assert(type(value) == "number","Argument value is of invalid type - expected number");
 assert(type(useOverlay) == "boolean","Argument useOverlay is of invalid type - expected boolean");
 return  stringMock
  end
 
-function Spring.GetConfigString    (  name, default, setInOverlay)
+function Spring.GetConfigString (  name, default, setInOverlay)
 assert(type(name) == "string","Argument name is of invalid type - expected string");
 assert(type(default) == "string","Argument default is of invalid type - expected string");
 assert(type(setInOverlay) == "boolean","Argument setInOverlay is of invalid type - expected boolean");
 return  stringMock
  end
 
-function Spring.SetConfigString    (  name, value, useOverlay)
+function Spring.SetConfigString (  name, value, useOverlay)
 assert(type(name) == "string","Argument name is of invalid type - expected string");
 assert(type(value) == "string","Argument value is of invalid type - expected string");
 assert(type(useOverlay) == "boolean","Argument useOverlay is of invalid type - expected boolean");
 return  stringMock
  end
 
-function Spring.AddWorldIcon   (  cmdID, x, y, z)
+function Spring.AddWorldIcon (  cmdID, x, y, z)
 assert(type(cmdID) == "number","Argument cmdID is of invalid type - expected number");
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
@@ -1551,7 +2332,7 @@ assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.AddWorldText   (  text, x, y, z)
+function Spring.AddWorldText (  text, x, y, z)
 assert(type(text) == "string","Argument text is of invalid type - expected string");
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
@@ -1559,16 +2340,16 @@ assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  stringMock
  end
 
-function Spring.AddWorldUnit   ( )
+function Spring.AddWorldUnit ( )
 return  numberMock
  end
 
-function Spring.SetSunManualControl   (  setManualControl)
+function Spring.SetSunManualControl (  setManualControl)
 assert(type(setManualControl) == "boolean","Argument setManualControl is of invalid type - expected boolean");
 return booleanMock
 end
 
-function Spring.SetSunParameters  (  dirX, dirY, dirZ, dist, startTime, orbitTime)
+function Spring.SetSunParameters (  dirX, dirY, dirZ, dist, startTime, orbitTime)
 assert(type(dirX) == "number","Argument dirX is of invalid type - expected number");
 assert(type(dirY) == "number","Argument dirY is of invalid type - expected number");
 assert(type(dirZ) == "number","Argument dirZ is of invalid type - expected number");
@@ -1578,209 +2359,209 @@ assert(type(orbitTime) == "number","Argument orbitTime is of invalid type - expe
 return  numberMock
  end
 
-function Spring.SetSunDirection   (  dirX, dirY, dirZ)
+function Spring.SetSunDirection (  dirX, dirY, dirZ)
 assert(type(dirX) == "number","Argument dirX is of invalid type - expected number");
 assert(type(dirY) == "number","Argument dirY is of invalid type - expected number");
 assert(type(dirZ) == "number","Argument dirZ is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.SetSunLighting    (  params)
+function Spring.SetSunLighting (  params)
 assert(type(params) == "table","Argument params is of invalid type - expected table");
 return  tableMock
  end
 
-function Spring.SetAtmosphere    (  params)
+function Spring.SetAtmosphere (  params)
 assert(type(params) == "table","Argument params is of invalid type - expected table");
 return  tableMock
  end
 
-function Spring.Reload   (  startscript)
+function Spring.Reload (  startscript)
 assert(type(startscript) == "string","Argument startscript is of invalid type - expected string");
 return booleanMock
 end
 
 
-function Spring.Restart   ( commandline_)
+function Spring.Restart ( commandline_)
 assert(type(commandline_) == "string","Argument commandline_ is of invalid type - expected string");
 return booleanMock
  end
 
-function Spring.SetWMIcon    (  iconFileName)
+function Spring.SetWMIcon (  iconFileName)
 assert(type(iconFileName) == "string","Argument iconFileName is of invalid type - expected string");
 return  stringMock
  end
 
-function Spring.SetWMCaption    (  title, titleShort)
+function Spring.SetWMCaption (  title, titleShort)
 assert(type(title) == "string","Argument title is of invalid type - expected string");
 assert(type(titleShort) == "string","Argument titleShort is of invalid type - expected string");
 return  stringMock
  end
 
-function Spring.ClearWatchdogTimer    (  threadName)
+function Spring.ClearWatchdogTimer (  threadName)
 assert(type(threadName) == "string","Argument threadName is of invalid type - expected string");
 return  stringMock
  end
 
-function Spring.SetClipboard    (  text)
+function Spring.SetClipboard (  text)
 assert(type(text) == "string","Argument text is of invalid type - expected string");
 return  stringMock
  end
 
-function Spring.AddMapLight    ( lightParams)
+function Spring.AddMapLight ( lightParams)
 assert(type(lightParams) == "table","Argument lightParams is of invalid type - expected table");
 return  tableMock
  end
 
-function Spring.AddModelLight    ( lightParams)
+function Spring.AddModelLight ( lightParams)
 assert(type(lightParams) == "table","Argument lightParams is of invalid type - expected table");
 return  tableMock
  end
 
-function Spring.UpdateMapLight   (  lightHandle, lightParams)
+function Spring.UpdateMapLight (  lightHandle, lightParams)
 assert(type(lightHandle) == "number","Argument lightHandle is of invalid type - expected number");
 assert(type(lightParams) == "table","Argument lightParams is of invalid type - expected table");
 return  numberMock
  end
 
-function Spring.UpdateModelLight   (  lightHandle, lightParams)
+function Spring.UpdateModelLight (  lightHandle, lightParams)
 assert(type(lightHandle) == "number","Argument lightHandle is of invalid type - expected number");
 assert(type(lightParams) == "table","Argument lightParams is of invalid type - expected table");
 return  numberMock
  end
 
-function Spring.SetMapLightTrackingState   ( )
+function Spring.SetMapLightTrackingState ( )
 return  booleanMock
  end
 
-function Spring.SetModelLightTrackingState   ( )
+function Spring.SetModelLightTrackingState ( )
 return  booleanMock
  end
 
-function Spring.SetMapShadingTexture   (  texType, texName)
+function Spring.SetMapShadingTexture (  texType, texName)
 assert(type(texType) == "string","Argument texType is of invalid type - expected string");
 assert(type(texName) == "string","Argument texName is of invalid type - expected string");
 return  stringMock
  end
 
-function Spring.SetMapSquareTexture   (  texSqrX, texSqrY, luaTexName)
+function Spring.SetMapSquareTexture (  texSqrX, texSqrY, luaTexName)
 assert(type(texSqrX) == "number","Argument texSqrX is of invalid type - expected number");
 assert(type(texSqrY) == "number","Argument texSqrY is of invalid type - expected number");
 assert(type(luaTexName) == "string","Argument luaTexName is of invalid type - expected string");
 return  numberMock
  end
 
-function Spring.SetMapShader   (  standardShaderID, deferredShaderID)
+function Spring.SetMapShader (  standardShaderID, deferredShaderID)
 assert(type(standardShaderID) == "number","Argument standardShaderID is of invalid type - expected number");
 assert(type(deferredShaderID) == "number","Argument deferredShaderID is of invalid type - expected number");
 return  numberMock
  end
  
  
-function Spring.IsReplay   ( )
+function Spring.IsReplay ( )
 return  booleanMock
  end
 
-function Spring.GetReplayLength    ( )
+function Spring.GetReplayLength ( )
 return  numberMock
  end
 
-function Spring.GetSpectatingState   ( )
+function Spring.GetSpectatingState ( )
 return  booleanMock
  end
 
-function Spring.GetModUICtrl   ( )
+function Spring.GetModUICtrl ( )
 return  booleanMock
  end
 
-function Spring.GetMyAllyTeamID   ( )
+function Spring.GetMyAllyTeamID ( )
 return  numberMock
  end
 
-function Spring.GetMyTeamID   ( )
+function Spring.GetMyTeamID ( )
 return  numberMock
  end
 
-function Spring.GetMyPlayerID   ( )
+function Spring.GetMyPlayerID ( )
 return  numberMock
  end
 
-function Spring.GetLocalPlayerID   ( )
+function Spring.GetLocalPlayerID ( )
 return  numberMock
  end
 
-function Spring.GetLocalTeamID   ( )
+function Spring.GetLocalTeamID ( )
 return  numberMock
  end
 
-function Spring.GetLocalAllyTeamID   ( )
+function Spring.GetLocalAllyTeamID ( )
 return  numberMock
  end
 
-function Spring.GetPlayerRoster   (  sortType)
+function Spring.GetPlayerRoster (  sortType)
 assert(type(sortType) == "number","Argument sortType is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetTeamColor   (  teamID)
+function Spring.GetTeamColor (  teamID)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetTeamOrigColor   (  teamID)
+function Spring.GetTeamOrigColor (  teamID)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetPlayerTraffic   (  playerID, packetID)
+function Spring.GetPlayerTraffic (  playerID, packetID)
 assert(type(playerID) == "number","Argument playerID is of invalid type - expected number");
 assert(type(packetID) == "number","Argument packetID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetSoundStreamTime   ( )
+function Spring.GetSoundStreamTime ( )
 return  numberMock
  end
 
-function Spring.GetCameraNames   ( )
+function Spring.GetCameraNames ( )
 return  tableMock
  end
 
-function Spring.GetCameraState   ( )
+function Spring.GetCameraState ( )
 return  tableMock
  end
 
-function Spring.GetCameraPosition   ( )
+function Spring.GetCameraPosition ( )
 return  numberMock
  end
 
-function Spring.GetCameraDirection   ( )
+function Spring.GetCameraDirection ( )
 return  numberMock
  end
 
-function Spring.GetCameraFOV   ( )
+function Spring.GetCameraFOV ( )
 return  numberMock
  end
 
-function Spring.GetCameraVectors   ( )
+function Spring.GetCameraVectors ( )
 return  tableMock
  end
 
-function Spring.GetVisibleUnits   (  teamID)
+function Spring.GetVisibleUnits (  teamID)
 assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 return  tableMock
  end
 
-function Spring.GetVisibleFeatures   (  allyTeamID)
+function Spring.GetVisibleFeatures (  allyTeamID)
 assert(type(allyTeamID) == "number","Argument allyTeamID is of invalid type - expected number");
 return  tableMock
  end
 
-function Spring.IsAABBInView   ( )
+function Spring.IsAABBInView ( )
 return  booleanMock
  end
 
-function Spring.IsSphereInView   (  x, y, z, radius)
+function Spring.IsSphereInView (  x, y, z, radius)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
@@ -1788,339 +2569,339 @@ assert(type(radius) == "number","Argument radius is of invalid type - expected n
 return  booleanMock
  end
 
-function Spring.IsUnitIcon   (  unitID)
+function Spring.IsUnitIcon (unitID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 return  booleanMock
  end
 
-function Spring.IsUnitInView   (  unitID)
+function Spring.IsUnitInView (unitID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 return  booleanMock
  end
 
-function Spring.IsUnitVisible   (  unitID, radius, checkIcons)
+function Spring.IsUnitVisible (unitID, radius, checkIcons)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(radius) == "number","Argument radius is of invalid type - expected number");
 assert(type(checkIcons) == "boolean","Argument checkIcons is of invalid type - expected boolean");
 return  booleanMock
  end
 
-function Spring.WorldToScreenCoords   (  x, y, z)
+function Spring.WorldToScreenCoords (  x, y, z)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
 assert(type(z) == "number","Argument z is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.TraceScreenRay   ( )
+function Spring.TraceScreenRay ( )
 return
  end
 
-function Spring.GetPixelDir    (  x, y)
+function Spring.GetPixelDir (  x, y)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetViewGeometry   ( )
+function Spring.GetViewGeometry ( )
 return  numberMock
  end
 
-function Spring.GetWindowGeometry   ( )
+function Spring.GetWindowGeometry ( )
 return  numberMock
  end
 
-function Spring.GetScreenGeometry    ()
+function Spring.GetScreenGeometry ()
 return  numberMock
  end
 
-function Spring.IsUnitAllied   (  unitID)
+function Spring.IsUnitAllied (unitID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 return  booleanMock
  end
 
-function Spring.GetUnitViewPosition   (  unitID, midPos)
+function Spring.GetUnitViewPosition (unitID, midPos)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(midPos) == "boolean","Argument midPos is of invalid type - expected boolean");
 return  numberMock
  end
 
-function Spring.GetUnitTransformMatrix   (  unitID, invert)
+function Spring.GetUnitTransformMatrix (unitID, invert)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(invert) == "boolean","Argument invert is of invalid type - expected boolean");
 return  numberMock
  end
 
-function Spring.GetSelectedUnits   ( )
+function Spring.GetSelectedUnits ( )
 return  tableMock
  end
 
-function Spring.GetSelectedUnitsSorted   ( )
+function Spring.GetSelectedUnitsSorted ( )
 return  tableMock
  end
 
-function Spring.GetSelectedUnitsCounts   ( )
+function Spring.GetSelectedUnitsCounts ( )
 return  tableMock
  end
 
-function Spring.GetSelectedUnitsCount   ( )
+function Spring.GetSelectedUnitsCount ( )
 return  numberMock
  end
 
-function Spring.IsUnitSelected   (  unitID)
+function Spring.IsUnitSelected (unitID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 return  booleanMock
  end
 
-function Spring.GetUnitGroup   (  unitID)
+function Spring.GetUnitGroup (unitID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetGroupList   ( )
+function Spring.GetGroupList ( )
 return  tableMock
  end
 
-function Spring.GetSelectedGroup   ( )
+function Spring.GetSelectedGroup ( )
 return  numberMock
  end
 
-function Spring.GetGroupAIName   (  groupID)
+function Spring.GetGroupAIName (  groupID)
 assert(type(groupID) == "number","Argument groupID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetGroupAIList   ( )
+function Spring.GetGroupAIList ( )
 return  tableMock
  end
 
-function Spring.GetGroupUnits   (  groupID)
+function Spring.GetGroupUnits (  groupID)
 assert(type(groupID) == "number","Argument groupID is of invalid type - expected number");
 return  tableMock
  end
 
-function Spring.GetGroupUnitsSorted   (  groupID)
+function Spring.GetGroupUnitsSorted (  groupID)
 assert(type(groupID) == "number","Argument groupID is of invalid type - expected number");
 return
  end
 
-function Spring.GetGroupUnitsCounts   (  groupID)
+function Spring.GetGroupUnitsCounts (  groupID)
 assert(type(groupID) == "number","Argument groupID is of invalid type - expected number");
 return  tableMock
  end
 
-function Spring.GetGroupUnitsCount   (  groupID)
+function Spring.GetGroupUnitsCount (  groupID)
 assert(type(groupID) == "number","Argument groupID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetVisibleProjectiles    ( )
+function Spring.GetVisibleProjectiles ( )
 return  tableMock
  end
 
-function Spring.IsGUIHidden   ( )
+function Spring.IsGUIHidden ( )
 return  booleanMock
  end
 
-function Spring.HaveShadows   ( )
+function Spring.HaveShadows ( )
 return  booleanMock
  end
 
-function Spring.HaveAdvShading   ( )
+function Spring.HaveAdvShading ( )
 return  booleanMock
  end
 
-function Spring.GetWaterMode   ( )
+function Spring.GetWaterMode ( )
 return  numberMock
  end
 
-function Spring.GetMapDrawMode   ( )
+function Spring.GetMapDrawMode ( )
 return
  end
 
-function Spring.GetDrawSelectionInfo    ( )
+function Spring.GetDrawSelectionInfo ( )
 return  booleanMock
  end
 
-function Spring.GetUnitLuaDraw   (  unitID)
+function Spring.GetUnitLuaDraw (unitID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 return  booleanMock
  end
 
-function Spring.GetUnitNoDraw   (  unitID)
+function Spring.GetUnitNoDraw (unitID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 return  booleanMock
  end
 
-function Spring.GetUnitNoMinimap   (  unitID)
+function Spring.GetUnitNoMinimap (unitID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 return  booleanMock
  end
 
-function Spring.GetUnitNoSelect   (  unitID)
+function Spring.GetUnitNoSelect (unitID)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 return  booleanMock
  end
 
-function Spring.GetMiniMapGeometry   ( )
+function Spring.GetMiniMapGeometry ( )
 return  numberMock
  end
 
-function Spring.GetMiniMapDualScreen   ( )
+function Spring.GetMiniMapDualScreen ( )
 return  stringMock
  end
 
-function Spring.IsAboveMiniMap   (  x, y)
+function Spring.IsAboveMiniMap (  x, y)
 assert(type(x) == "number","Argument x is of invalid type - expected number");
 assert(type(y) == "number","Argument y is of invalid type - expected number");
 return  booleanMock
  end
 
-function Spring.GetActiveCommand   ( )
+function Spring.GetActiveCommand ( )
 return  numberMock
  end
 
-function Spring.GetDefaultCommand   ( )
+function Spring.GetDefaultCommand ( )
 return  numberMock
  end
 
-function Spring.GetActiveCmdDescs   ( )
+function Spring.GetActiveCmdDescs ( )
 return  tableMock
  end
 
-function Spring.GetActiveCmdDesc   (  index)
+function Spring.GetActiveCmdDesc (  index)
 assert(type(index) == "number","Argument index is of invalid type - expected number");
 return  tableMock
  end
 
-function Spring.GetCmdDescIndex   (  cmdID)
+function Spring.GetCmdDescIndex (  cmdID)
 assert(type(cmdID) == "number","Argument cmdID is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetActivePage   ( )
+function Spring.GetActivePage ( )
 return  numberMock
  end
 
-function Spring.GetBuildFacing   ( )
+function Spring.GetBuildFacing ( )
 return  numberMock
  end
 
-function Spring.GetBuildSpacing   ( )
+function Spring.GetBuildSpacing ( )
 return  numberMock
  end
 
-function Spring.GetGatherMode   ( )
+function Spring.GetGatherMode ( )
 return  numberMock
  end
 
-function Spring.GetInvertQueueKey   ( )
+function Spring.GetInvertQueueKey ( )
 return  booleanMock
  end
 
-function Spring.GetMouseState   ( )
+function Spring.GetMouseState ( )
 return  numberMock
  end
 
-function Spring.GetMouseCursor   ( )
+function Spring.GetMouseCursor ( )
 return  stringMock
  end
 
-function Spring.GetMouseStartPosition   (  mouseButton)
+function Spring.GetMouseStartPosition (  mouseButton)
 assert(type(mouseButton) == "number","Argument mouseButton is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetKeyState   (  key)
+function Spring.GetKeyState (  key)
 assert(type(key) == "number","Argument key is of invalid type - expected number");
 return  booleanMock
  end
 
-function Spring.GetModKeyState   ( )
+function Spring.GetModKeyState ( )
 return  booleanMock
  end
 
-function Spring.GetPressedKeys   ( )
+function Spring.GetPressedKeys ( )
 return  tableMock
  end
 
-function Spring.GetKeyCode   (  keysym)
+function Spring.GetKeyCode (  keysym)
 assert(type(keysym) == "string","Argument keysym is of invalid type - expected string");
 return  stringMock
  end
 
-function Spring.GetKeySymbol   (  key)
+function Spring.GetKeySymbol (  key)
 assert(type(key) == "number","Argument key is of invalid type - expected number");
 return  numberMock
  end
 
-function Spring.GetKeyBindings   (  keyset)
+function Spring.GetKeyBindings (  keyset)
 assert(type(keyset) == "string","Argument keyset is of invalid type - expected string");
 return  tableMock
  end
 
-function Spring.GetActionHotKeys   (  action)
+function Spring.GetActionHotKeys (  action)
 assert(type(action) == "string","Argument action is of invalid type - expected string");
 return  tableMock
  end
 
-function Spring.GetLastMessagePositions   ( )
+function Spring.GetLastMessagePositions ( )
 return  tableMock
  end
 
-function Spring.GetConsoleBuffer   (  maxLines)
+function Spring.GetConsoleBuffer (  maxLines)
 assert(type(maxLines) == "number","Argument maxLines is of invalid type - expected number");
 return  tableMock
  end
 
-function Spring.GetCurrentTooltip   ( )
+function Spring.GetCurrentTooltip ( )
 return  stringMock
  end
 
-function Spring.GetLosViewColors   ( )
+function Spring.GetLosViewColors ( )
 return  tableMock
  end
 
-function Spring.GetConfigParams    ( )
+function Spring.GetConfigParams ( )
 return  tableMock
  end
 
-function Spring.GetFPS   ( )
+function Spring.GetFPS ( )
 return  numberMock
  end
 
-function Spring.GetDrawFrame   ( )
+function Spring.GetDrawFrame ( )
 return  numberMock
  end
 
-function Spring.GetGameSpeed    ( )
+function Spring.GetGameSpeed ( )
 return  numberMock
  end
 
-function Spring.GetFrameTimeOffset   ( )
+function Spring.GetFrameTimeOffset ( )
 return  numberMock
  end
 
-function Spring.GetLastUpdateSeconds   ( )
+function Spring.GetLastUpdateSeconds ( )
 return  numberMock
  end
 
-function Spring.GetHasLag   ( )
+function Spring.GetHasLag ( )
 return  booleanMock
  end
 
-function Spring.GetTimer   ( )
+function Spring.GetTimer ( )
 return  numberMock
  end
 
-function Spring.DiffTimers   (  timercur, timerago, inMilliseconds)
+function Spring.DiffTimers (  timercur, timerago, inMilliseconds)
 assert(type(timercur) == "number","Argument timercur is of invalid type - expected number");
 assert(type(timerago) == "number","Argument timerago is of invalid type - expected number");
 assert(type(inMilliseconds) == "boolean","Argument inMilliseconds is of invalid type - expected boolean");
 return  numberMock
  end
 
-function Spring.GetMapSquareTexture   (  texSqrX, texSqrY, texMipLvl, luaTexName)
+function Spring.GetMapSquareTexture (  texSqrX, texSqrY, texMipLvl, luaTexName)
 assert(type(texSqrX) == "number","Argument texSqrX is of invalid type - expected number");
 assert(type(texSqrY) == "number","Argument texSqrY is of invalid type - expected number");
 assert(type(texMipLvl) == "number","Argument texMipLvl is of invalid type - expected number");
@@ -2128,11 +2909,11 @@ assert(type(luaTexName) == "string","Argument luaTexName is of invalid type - ex
 return  numberMock
  end
 
-function Spring.GetLogSections   ( )
+function Spring.GetLogSections ( )
 return  tableMock
  end
 
-function Spring.GetClipboard    ( )
+function Spring.GetClipboard ( )
 return  stringMock
  end
 
@@ -2196,6 +2977,32 @@ end
 
 function gl.GetViewSizes()
 	return numberMock, numberMock
+end
+
+--====================================================================================================
+-- Deprecated functions
+--====================================================================================================
+
+---@param unitID number
+---@param fuel number
+---@deprecated 
+function Spring.SetUnitFuel (unitID, fuel)
+	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+	assert(type(fuel) == "number","Argument fuel is of invalid type - expected number");
+	return  numberMock
+end
+
+---@deprecated
+---@param unitID number
+---@param teamID number
+---@param isRoot boolean
+---@return integer
+---@deprecated
+function Spring.SetUnitLineage (unitID, teamID, isRoot)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
+assert(type(isRoot) == "boolean","Argument isRoot is of invalid type - expected boolean");
+return  numberMock
 end
 
 --gl.Viewport ( number x, number y, number w, number h )

@@ -153,7 +153,7 @@ return {
 				accuracy = 75,
 				areaofeffect = 192,
 				avoidfeature = false,
-				cegtag = "arty-medium",
+				cegtag = "arty-large",
 				craterareaofeffect = 192,
 				craterboost = 0,
 				cratermult = 0,

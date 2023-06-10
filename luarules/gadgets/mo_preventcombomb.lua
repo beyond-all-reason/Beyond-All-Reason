@@ -1,6 +1,6 @@
-local gadgetEnabled = not (Spring.GetModOptions().newdgun or Spring.GetModOptions().unba)
+local gadgetEnabled = true	--not (Spring.GetModOptions().newdgun or Spring.GetModOptions().unba)
 
-local ignoreDgunPart = Spring.GetModOptions().comupdate
+local ignoreDgunPart = Spring.GetModOptions().comupdate or Spring.GetModOptions().newdgun or Spring.GetModOptions().unba
 
 function gadget:GetInfo()
 	return {

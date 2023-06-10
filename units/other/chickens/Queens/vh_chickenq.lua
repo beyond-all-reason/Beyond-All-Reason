@@ -57,6 +57,7 @@ return {
 		turnrate = 100,
 		unitname = "vh_chickenq",
 		upright = false,
+		waterline = 80,
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",
@@ -92,7 +93,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.7,
-				interceptedbyshieldtype = 4,
+				interceptedbyshieldtype = 1,
 				model = "Chickens/SGreyRock1.S3O",
 				name = "Blob",
 				noselfdamage = true,

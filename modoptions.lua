@@ -384,7 +384,7 @@ local options={
 			{key="veryhard", name="Very Hard", desc="Very Hard"},
 			{key="epic", name="Epic", desc="Epic"},
 
-			{key="survival", name="Endless", desc="Endless Mode"}
+			--{key="survival", name="Endless", desc="Endless Mode"}
 		}
 	},
 	{
@@ -399,6 +399,14 @@ local options={
 			{key="initialbox", name="Initial Start Box", desc="First wave spawns in chicken start box, following burrows avoid players"},
 			{key="alwaysbox", name="Always Start Box", desc="Burrows always spawn in chicken start box"},
 		}
+	},
+	{
+		key    = "chicken_endless",
+		name   = "Endless Mode",
+		desc   = "When you kill the queen, the game doesn't end, but loops around at higher difficulty instead, infinitely.",
+		type   = "bool",
+		def    = false,
+		section= "chicken_defense_options",
 	},
 	{
 		key    = "chicken_queentimemult",
@@ -1225,9 +1233,9 @@ local options={
 	},
 
 	{
-		key    = 'experimentalscavuniqueunits',
-		name   = 'Scavenger Units Buildable by Players',
-		desc   = 'Scavenger Units Buildable by Players',
+		key    = 'experimentalextraunits',
+		name   = 'Extra Unit Pack',
+		desc   = 'Formerly known as Scavenger units. Addon pack of units for Armada and Cortex, including various "fun" units',
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,
