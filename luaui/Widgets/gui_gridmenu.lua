@@ -190,6 +190,7 @@ local builderRects = {}
 local currentCategory
 local currentPage = 1
 local pages = 1
+local backRect = Rect:new(0, 0, 0, 0)
 local nextPageRect = Rect:new(0, 0, 0, 0)
 local categoriesRect = Rect:new(0, 0, 0, 0)
 local buildpicsRect = Rect:new(0, 0, 0 ,0)
@@ -792,6 +793,7 @@ function widget:ViewResize()
 		rows = 3
 		columns = 4
 		cellSize = math_floor((width - (bgpadding * 2)) / columns)
+		pageButtonHeight = cellSize / 3
 
 		buildpicsRect = Rect:new(
 			posX + bgpadding,
@@ -801,9 +803,9 @@ function widget:ViewResize()
 		)
 
 		paginatorsRect = Rect:new(
-			posX + (width / 4),
+			posX + bgpadding,
 			buildpicsRect.yEnd + bgpadding,
-			posXEnd - (width / 4) - bgpadding,
+			posXEnd - bgpadding,
 			buildpicsRect.yEnd + pageButtonHeight
 		)
 
@@ -1141,6 +1143,25 @@ local function drawCategories()
 		drawButtonHotkey(rect, keyText)
 		drawButton(rect, opts, catIcon)
 	end
+
+	if currentCategory and not stickToBottom then
+		local backText = "Back"
+		local width = (paginatorsRect.xEnd - paginatorsRect.x) / 2
+		backRect = Rect:new(paginatorsRect.x, paginatorsRect.y, paginatorsRect.xEnd - width - bgpadding, paginatorsRect.yEnd)
+		local buttonWidth = backRect.xEnd - backRect.x
+		local buttonHeight = backRect.yEnd - backRect.y
+		local heightOffset = backRect.yEnd - font2:GetTextHeight(backText) * pageFontSize * 0.35 - buttonHeight/2
+		font2:Print("⟵", backRect.x + (bgpadding * 3), heightOffset, pageFontSize, "o")
+		font2:Print(backText, backRect.x + (buttonWidth * 0.5), heightOffset, pageFontSize * 1.1, "co")
+
+		local opts = {
+			highlight = false,
+			hovered = hoveredButton == backRect:getId()
+		}
+
+		drawButtonHotkey(backRect, "Shift")
+		drawButton(backRect, opts)
+	end
 end
 
 
@@ -1150,7 +1171,7 @@ local function drawPaginators()
 	end
 
 	local nextKeyText = keyConfig.sanitizeKey(Cfgs.NEXT_PAGE_KEY, currentLayout)
-	local nextPageText = "\255\245\245\245" .. "Next Page    ➞"
+	local nextPageText = "\255\245\245\245" .. "Next Page    ⟶"
 	local pagesText = "\255\245\245\245" .. currentPage .. " / " .. pages
 
 	local opts = {
@@ -1158,15 +1179,17 @@ local function drawPaginators()
 		hovered = false,
 	}
 
-	nextPageRect = Rect:new(paginatorsRect.x, paginatorsRect.y, paginatorsRect.xEnd, paginatorsRect.yEnd)
 	local buttonHeight = nextPageRect.yEnd - nextPageRect.y
 	local buttonWidth = nextPageRect.xEnd - nextPageRect.x
-	local heightOffset = nextPageRect.yEnd - font2:GetTextHeight(pagesText) * pageFontSize * 0.25 - buttonHeight/2
+	local heightOffset = nextPageRect.yEnd - font2:GetTextHeight(pagesText) * pageFontSize * 0.2 - buttonHeight/2
 
 	if stickToBottom then
-		nextPageText = "\255\245\245\245" .. "Page " .. currentPage .. "/" .. pages .. " ➞"
+		nextPageRect = Rect:new(paginatorsRect.x, paginatorsRect.y, paginatorsRect.xEnd, paginatorsRect.yEnd)
+		nextPageText = "\255\245\245\245" .. "Page " .. currentPage .. "/" .. pages .. " 🠚"
 		font2:Print(nextPageText, nextPageRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
 	else
+		local width = paginatorsRect.xEnd - paginatorsRect.x
+		nextPageRect = Rect:new(paginatorsRect.x + (width / 2) + bgpadding, paginatorsRect.y, paginatorsRect.xEnd, paginatorsRect.yEnd)
 		font2:Print(pagesText, nextPageRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
 		font2:Print(nextPageText, nextPageRect.x + (buttonWidth * 0.55), heightOffset, pageFontSize, "co")
 	end
@@ -1196,12 +1219,11 @@ local function drawBuilderIcon(unitDefID, rect, count, lightness, zoom, highligh
 
 	-- builder count number
 	if count > 1 then
-
-		local countFontSize = rectSize * 0.25
+		local countFontSize = rectSize * 0.3
 		local pad = math_floor(rectSize * 0.03)
 		font2:Print("\255\240\240\240" .. count,
 			rect.x + (pad * 2),
-			rect.y + pad + math_floor(countFontSize * 1.5),
+			rect.y + pad + math_floor(countFontSize * 2.2),
 			countFontSize, "o"
 		)
 	end
@@ -1565,6 +1587,15 @@ function widget:DrawScreen()
 						end
 					end
 
+					if backRect.y and backRect:contains(x, y) then
+						hoveredButton = backRect:getId()
+						hoveredButtonNotFound = false
+						if WG['tooltip'] then
+							local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.homePage')
+							WG['tooltip'].ShowTooltip('buildmenu', text)
+						end
+					end
+
 					-- builder buttons
 					for i, rect in pairs(builderRects) do
 						if rect:contains(x,y) then
@@ -1738,6 +1769,13 @@ function widget:GameStart()
 	units.checkGeothermalFeatures()
 end
 
+function widget:KeyPress(key, modifier, isRepeat)
+	if currentCategory and key == KEYSYMS.ESCAPE then
+		currentCategory = nil
+		doUpdate = true
+	end
+end
+
 function widget:KeyRelease(key)
 	if key ~= KEYSYMS.LSHIFT then return end
 
@@ -1764,6 +1802,12 @@ function widget:MousePress(x, y, button)
 				Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
 				nextPageHandler()
 				return true
+			end
+
+			if backRect and backRect:contains(x, y) then
+				Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
+				currentCategory = nil
+				doUpdate = true
 			end
 
 			for i, rect in pairs(builderRects) do

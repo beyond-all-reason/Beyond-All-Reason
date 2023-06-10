@@ -136,6 +136,7 @@
 			"tooltipctrl": "CTRL-click to continuously clear"
 		},
 		"buildMenu": {
+			"homePage": "Go back to main view",
 			"nextPage": "Next page",
 			"previousPage": "Previous page",
 			"disabled": "%{textColor}%{unit} %{warnColor}(disabled)",

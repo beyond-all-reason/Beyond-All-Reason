@@ -1116,7 +1116,7 @@ local function bindBuildUnits(widget)
 end
 
 function widget:Initialize()
-	checkGeothermalFeatures()
+	units.checkGeothermalFeatures()
 	if disableWind then
 		units.restrictWindUnits(true)
 	end
