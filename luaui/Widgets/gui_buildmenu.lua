@@ -80,7 +80,7 @@ local advplayerlistLeft = vsx * 0.8
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.7) or 0.6)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
-local units = VFS.Include("luaui/configs/unit_config.lua")
+local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
 
 local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
@@ -189,25 +189,6 @@ if not showWaterUnits then
 	units.restrictWaterUnits(true)
 end
 
-local function checkGeothermalFeatures()
-	local  showGeothermalUnits = false
-	local geoThermalFeatures = {}
-	for defID, def in pairs(FeatureDefs) do
-		if def.geoThermal then
-			geoThermalFeatures[defID] = true
-		end
-	end
-	local features = Spring.GetAllFeatures()
-	for i = 1, #features do
-		if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
-			showGeothermalUnits = true
-			break
-		end
-	end
-	if not showGeothermalUnits then
-		units.restrictGeothermalUnits(true)
-	end
-end
 
 local function checkGuishader(force)
 	if WG['guishader'] then
@@ -967,10 +948,7 @@ end
 function widget:GameStart()
 	preGamestartPlayer = false
 
-	if checkGeothermalFeatures then
-		checkGeothermalFeatures()
-		checkGeothermalFeatures = nil
-	end
+	units.checkGeothermalFeatures()
 
 	unbindBuildUnits()
 end

@@ -223,7 +223,7 @@ local ui_opacity, ui_scale
 
 
 local selectNextFrame, switchedCategory
-local units = VFS.Include("luaui/configs/unit_config.lua")
+local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
 local grid = VFS.Include("luaui/configs/gridmenu_config.lua")
 
 local showWaterUnits = false
@@ -341,13 +341,6 @@ local function reloadBindings()
 
 	Cfgs.NEXT_PAGE_KEY = key
 
-	key = getActionHotkey('gridmenu_prev_page')
-	if not key then
-		key = Cfgs.PREV_PAGE_KEY
-	end
-
-	Cfgs.PREV_PAGE_KEY = key
-
 	key = getActionHotkey('gridmenu_cycle_builder')
 	Cfgs.CYCLE_BUILDER_KEY = key
 
@@ -424,7 +417,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 
 	local uDefID = hotkeyActions[tostring(row) .. tostring(col)]
 
-	if not uDefID then
+	if not uDefID or units.unitRestricted[-uDefID] then
 		return
 	end
 
@@ -586,6 +579,8 @@ function widget:Initialize()
 	if widgetHandler:IsWidgetKnown("Build menu") then
 		widgetHandler:DisableWidget("Build menu")
 	end
+
+	units.checkGeothermalFeatures()
 
 	-- For some reason when handler = true widgetHandler:AddAction is not available
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_next_page", nextPageHandler, nil, "p")
@@ -867,9 +862,9 @@ function widget:Update(dt)
 		end
 
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-		if not voidWater and mapMinWater <= units.minWaterUnitDepth and not showwaterUnits then
+		if not voidWater and mapMinWater <= units.minWaterUnitDepth and not showWaterUnits then
 			showWaterUnits = true
-			units.restrictWaterUnits(false)
+			units.restrictWaterUnits(true)
 		end
 
 		local prevOrdermenuLeft = ordermenuLeft
@@ -921,11 +916,13 @@ function widget:Update(dt)
 	end
 end
 
+
 local function drawBuildMenuBg()
 	local height = backgroundRect.yEnd - backgroundRect.y
 	local posY = backgroundRect.y
 	UiElement(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, (backgroundRect.x > 0 and 1 or 0), 1, ((posY-height > 0 or backgroundRect.x <= 0) and 1 or 0), 0)
 end
+
 
 local function drawButton(rect, opts, icon)
 	opts = opts or {}
@@ -1028,12 +1025,9 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 
 	-- price
 	if showPrice then
-		local text
-		if disabled then
-			text = "\255\125\125\125" .. units.unitMetalCost[uid] .. "\n\255\135\135\135"
-		else
-			text = "\255\245\245\245" .. units.unitMetalCost[uid] .. "\n\255\255\255\000"
-		end
+		local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
+		local energyColor = disabled and "\n\255\135\135\135" or "\n\255\255\255\000"
+		local text = metalColor .. units.unitMetalCost[uid] .. energyColor
 		font2:Print(text .. units.unitEnergyCost[uid], rect.x + cellPadding + (cellInnerSize * 0.048), rect.y + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
 	end
 
@@ -1042,9 +1036,9 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 		local hotkeyText = keyConfig.sanitizeKey(cmd.hotkey, currentLayout)
 
 		local hotkeyFontSize = priceFontSize * 1.1
-		font2:Print("\255\215\255\215" .. hotkeyText, rect.xEnd - cellPadding - (cellInnerSize * 0.048), rect.yEnd - cellPadding - hotkeyFontSize, hotkeyFontSize, "ro")
+		local hotkeyColor = disabled and "\255\100\100\100" or "\255\215\255\215"
+		font2:Print(hotkeyColor .. hotkeyText, rect.xEnd - cellPadding - (cellInnerSize * 0.048), rect.yEnd - cellPadding - hotkeyFontSize, hotkeyFontSize, "ro")
 	end
-
 
 	-- factory queue number
 	if cmd.params[1] then
@@ -1060,11 +1054,13 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 	end
 end
 
+
 local function drawEmptyCell(rect)
 	local color = { 0.1, 0.1, 0.1, 0.7 }
 	local pad = cellPadding + iconPadding
 	RectRound(rect.x + pad, rect.y + pad, rect.xEnd - pad, rect.yEnd - pad, cornerSize, 1, 1, 1, 1, color, color)
 end
+
 
 local function drawButtonHotkey(rect, keyText)
 	local keyFontSize = categoryFontSize + 5
@@ -1076,6 +1072,7 @@ local function drawButtonHotkey(rect, keyText)
 	local text = "\255\215\255\215" .. keyText
 	font2:Print(text, rect.xEnd - textPadding, (rect.y - (rect.y - rect.yEnd) / 2) - keyFontHeightOffset, keyFontSize, "ro")
 end
+
 
 local function drawCategories()
 	local numCats = #categories
@@ -1137,6 +1134,7 @@ local function drawCategories()
 	end
 end
 
+
 local function drawPaginators()
 	if pages == 1 then
 		return
@@ -1169,6 +1167,7 @@ local function drawPaginators()
 	opts.hovered = hoveredButton and nextPageRect:getId() == hoveredButton
 	drawButton(nextPageRect, opts)
 end
+
 
 local function drawBuilderIcon(unitDefID, rect, count, lightness, zoom, highlightOpacity)
 	local hovered = hoveredButton == rect:getId()
@@ -1276,6 +1275,7 @@ local function drawBuilders()
 	nextBuilderRect = rect
 end
 
+
 local function drawGrid()
 	local numCellsPerPage = rows * columns
 	local cellRectID = 0
@@ -1328,7 +1328,7 @@ local function drawGrid()
 					(isPregame and selBuildQueueDefID == uDefID)
 				local usedZoom = (cellIsSelected and selectedCellZoom or defaultCellZoom)
 
-				drawCell(rect, gridOpts[index], usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, units.unitRestricted[uDefID])
+				drawCell(rect, gridOpts[index], usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[uDefID])
 			else
 				drawEmptyCell(rect)
 				hotkeyActions[tostring(row) .. tostring(col)] = nil
@@ -1341,6 +1341,7 @@ local function drawGrid()
 	end
 end
 
+
 local function drawBuildMenu()
 	catRects = {}
 	font2:Begin()
@@ -1352,9 +1353,6 @@ local function drawBuildMenu()
 	-- adjust grid size when pages are needed
 	if gridOptsCount > columns * rows then
 		pages = math_ceil(gridOptsCount / (rows * columns))
-
-
-
 
 		if currentPage > pages then
 			currentPage = pages
@@ -1380,6 +1378,7 @@ local function drawBuildMenu()
 
 	font2:End()
 end
+
 
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
 local function cacheUnitIcons()
@@ -1552,6 +1551,10 @@ function widget:DrawScreen()
 					if nextPageRect.y and nextPageRect:contains(x, y) then
 						hoveredButton = nextPageRect:getId()
 						hoveredButtonNotFound = false
+						if WG['tooltip'] then
+							local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.nextPage')
+							WG['tooltip'].ShowTooltip('buildmenu', text)
+						end
 					end
 
 					-- builder buttons
@@ -1560,6 +1563,17 @@ function widget:DrawScreen()
 							hoveredButton = rect:getId()
 							hovering = true
 							hoveredButtonNotFound = false
+
+							local index = 0
+							for unitDefID, _ in pairsByKeys(selectedBuilders) do
+								index = index + 1
+								if index == i then
+									if WG['tooltip'] then
+										name = UnitDefs[unitDefID].translatedHumanName
+										WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240" .. name)
+									end
+								end
+							end
 							break
 						end
 					end
@@ -1567,17 +1581,14 @@ function widget:DrawScreen()
 						hoveredButton = nextBuilderRect:getId()
 						hovering = true
 						hoveredButtonNotFound = false
+						if WG['tooltip'] then
+							local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.nextBuilder')
+							WG['tooltip'].ShowTooltip('buildmenu', text)
+						end
 					end
 
 					if hoveredButton ~= drawnHoveredButton then
 						doUpdate = true
-					end
-
-					if hoveredButton == nextPageRect:getId() then
-						if WG['tooltip'] then
-							local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.nextPage')
-							WG['tooltip'].ShowTooltip('buildmenu', text)
-						end
 					end
 				end
 			end
@@ -1716,6 +1727,7 @@ end
 
 function widget:GameStart()
 	isPregame = false
+	units.checkGeothermalFeatures()
 end
 
 function widget:KeyRelease(key)

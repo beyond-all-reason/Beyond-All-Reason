@@ -88,23 +88,41 @@ else
 	unbaStartBuildoptions = nil
 end
 
-
-function restrictWindUnits(disable)
+local function restrictWindUnits(disable)
 	for unitDefID,_ in pairs(isWind) do
 		unitRestricted[unitDefID] = disable
 	end
 end
 
-function restrictGeothermalUnits(disable)
+local function restrictGeothermalUnits(disable)
+	Spring.Echo("restricting geo units", disable)
 	for unitDefID,_ in pairs(isGeothermal) do
 		unitRestricted[unitDefID] = disable
 	end
 end
 
-function restrictWaterUnits(disable)
+local function restrictWaterUnits(disable)
 	for unitDefID,_ in pairs(isWaterUnit) do
 		unitRestricted[unitDefID] = disable
 	end
+end
+
+local function checkGeothermalFeatures()
+	local hideGeoUnits = true
+	local geoThermalFeatures = {}
+	for defID, def in pairs(FeatureDefs) do
+		if def.geoThermal then
+			geoThermalFeatures[defID] = true
+		end
+	end
+	local features = Spring.GetAllFeatures()
+	for i = 1, #features do
+		if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
+			hideGeoUnits = false
+			break
+		end
+	end
+	restrictGeothermalUnits(hideGeoUnits)
 end
 
 
@@ -199,6 +217,7 @@ return {
 
 	showWaterUnits = showWaterUnits,
 
+	checkGeothermalFeatures = checkGeothermalFeatures,
 	restrictGeothermalUnits = restrictGeothermalUnits,
 	restrictWindUnits = restrictWindUnits,
 	restrictWaterUnits = restrictWaterUnits,

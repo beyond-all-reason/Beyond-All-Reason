@@ -138,7 +138,8 @@
 		"buildMenu": {
 			"nextPage": "Next page",
 			"previousPage": "Previous page",
-			"disabled": "%{textColor}%{unit} %{warnColor}(disabled)"
+			"disabled": "%{textColor}%{unit} %{warnColor}(disabled)",
+			"nextBuilder": "Next Builder"
 		},
 		"orderMenu": {
 			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
