@@ -153,10 +153,6 @@ local function refreshUnitInfo()
 			unitDefInfo[unitDefID].airUnit = true
 		end
 
-		if not unitDef.cantBeTransported then	--unitDef.isImmobile or unitDef.isBuilding then
-			unitDefInfo[unitDefID].transportable = true
-		end
-
 		unitDefInfo[unitDefID].translatedHumanName = unitDef.translatedHumanName
 		if unitDef.maxWeaponRange > 16 then
 			unitDefInfo[unitDefID].maxWeaponRange = unitDef.maxWeaponRange
@@ -166,12 +162,6 @@ local function refreshUnitInfo()
 		end
 		if unitDef.rSpeed > 0 then
 			unitDefInfo[unitDefID].reverseSpeed = round(unitDef.rSpeed, 0)
-		end
-		if unitDef.mass > 0 then
-			unitDefInfo[unitDefID].mass = unitDef.mass
-		end
-		if unitDef.xsize > 0 then
-			unitDefInfo[unitDefID].footprint = unitDef.xsize * unitDef.zsize
 		end
 		if unitDef.stealth then
 			unitDefInfo[unitDefID].stealth = true
@@ -1230,9 +1220,10 @@ local function drawUnitInfo()
 		end
 
 		if unitDefInfo[displayUnitDefID].cloakCost then
-			addTextInfo(texts.cloakcost, unitDefInfo[displayUnitDefID].cloakCost)
 			if unitDefInfo[displayUnitDefID].cloakCostMoving then
-				addTextInfo(texts.cloakcostmoving, unitDefInfo[displayUnitDefID].cloakCostMoving)
+				addTextInfo(texts.cloakcost, unitDefInfo[displayUnitDefID].cloakCost .. "/" .. unitDefInfo[displayUnitDefID].cloakCostMoving)
+			else
+				addTextInfo(texts.cloakcost, unitDefInfo[displayUnitDefID].cloakCost)
 			end
 		end
 
@@ -1249,21 +1240,10 @@ local function drawUnitInfo()
 		if unitDefInfo[displayUnitDefID].buildSpeed then
 			addTextInfo(texts.buildpower, unitDefInfo[displayUnitDefID].buildSpeed)
 		end
-		if unitDefInfo[displayUnitDefID].buildOptions then
-			addTextInfo(texts.buildoptions, #unitDefInfo[displayUnitDefID].buildOptions)
-		end
 
 		--if unitDefInfo[displayUnitDefID].armorType and unitDefInfo[displayUnitDefID].armorType ~= 'standard' then
 		--	addTextInfo('armor', unitDefInfo[displayUnitDefID].armorType)
 		--end
-
-		if unitDefInfo[displayUnitDefID].paralyzeMult then
-			if unitDefInfo[displayUnitDefID].paralyzeMult == 0 then
-				addTextInfo(texts.unparalyzable)
-			else
-				addTextInfo(texts.paralyzemult, round(unitDefInfo[displayUnitDefID].paralyzeMult, 2))
-			end
-		end
 
 		if unitDefInfo[displayUnitDefID].losRadius then
 			addTextInfo(texts.los, round(unitDefInfo[displayUnitDefID].losRadius, 0))
@@ -1306,17 +1286,6 @@ local function drawUnitInfo()
 			addTextInfo(texts.transportmaxmass, unitDefInfo[displayUnitDefID].transport[1])
 			addTextInfo(texts.transportmaxsize, unitDefInfo[displayUnitDefID].transport[2])
 			addTextInfo(texts.transportcapacity, unitDefInfo[displayUnitDefID].transport[3])
-		end
-
-		if unitDefInfo[displayUnitDefID].transportable then
-			--addTextInfo(texts.transportable)
-
-			if unitDefInfo[displayUnitDefID].mass then
-				addTextInfo(texts.mass, unitDefInfo[displayUnitDefID].mass)
-			end
-			if unitDefInfo[displayUnitDefID].footprint then
-				addTextInfo(texts.footprint, unitDefInfo[displayUnitDefID].footprint)
-			end
 		end
 
 		local text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
