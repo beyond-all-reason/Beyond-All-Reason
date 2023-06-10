@@ -712,6 +712,7 @@ function widget:ViewResize()
 		local posYEnd = 0
 		local posX = math_floor(ordermenuLeft*vsx) + widgetSpaceMargin
 		local height = posY
+		builderButtonSize = pageButtonHeight * 1.75
 
 		rows = 2
 		columns = 6
@@ -746,6 +747,14 @@ function widget:ViewResize()
 			posYEnd,
 			buildpicsRect.xEnd + bgpadding,
 			posY
+		)
+
+		-- start with no width and grow dynamically
+		buildersRect = Rect:new(
+			posX,
+			backgroundRect.yEnd,
+			posX,
+			backgroundRect.yEnd + builderButtonSize
 		)
 
 	else -- if stick to side we know cells are 3 row by 4 column
@@ -1173,11 +1182,12 @@ local function drawBuilderIcon(unitDefID, rect, count, lightness, zoom, highligh
 	local hovered = hoveredButton == rect:getId()
 	lightness = hovered and lightness + 0.25 or lightness
 	zoom = hovered and zoom + 0.1 or zoom
+	local rectSize = rect.xEnd - rect.x
 
 	gl.Color(lightness,lightness,lightness,1)
 	UiUnit(
 		rect.x, rect.y, rect.xEnd, rect.yEnd,
-		math_ceil(bgpadding*0.5), 1,1,1,1,
+		math_ceil(rectSize * 0.1), 1,1,1,1,
 		zoom,
 		nil, math_max(0.1, highlightOpacity or 0.1),
 		'#'..unitDefID,
@@ -1186,14 +1196,12 @@ local function drawBuilderIcon(unitDefID, rect, count, lightness, zoom, highligh
 
 	-- builder count number
 	if count > 1 then
-		local rectSize = rect.xEnd - rect.x
+
 		local countFontSize = rectSize * 0.25
 		local pad = math_floor(rectSize * 0.03)
-		local textWidth = font2:GetTextWidth(count .. '	') * countFontSize
-		RectRound(rect.x, rect.yEnd - (rectSize * 0.35), rect.x + textWidth, rect.yEnd, math_floor(rectSize / 10), 0, 0, 1, 0, { 0.15, 0.15, 0.15, 0.65 }, { 0.25, 0.25, 0.25, 0.65 })
-		font2:Print("\255\190\255\190" .. count,
+		font2:Print("\255\240\240\240" .. count,
 			rect.x + (pad * 2),
-			rect.y + pad + math_floor(rectSize * 0.735),
+			rect.y + pad + math_floor(countFontSize * 1.5),
 			countFontSize, "o"
 		)
 	end
@@ -1346,7 +1354,7 @@ local function drawBuildMenu()
 	catRects = {}
 	font2:Begin()
 
-	if activeBuilder then
+	if activeBuilder and not builderIsFactory then
 		drawCategories()
 	end
 
