@@ -567,15 +567,6 @@ local function nextPageHandler()
 	return true
 end
 
-local function gridmenuCategoriesHandler()
-	if not (activeBuilder and currentCategory) then return end
-
-	currentCategory = nil
-	doUpdate = true
-
-	return true
-end
-
 function widget:Initialize()
 	if widgetHandler:IsWidgetKnown("Build menu") then
 		widgetHandler:DisableWidget("Build menu")
@@ -588,7 +579,6 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_cycle_builder", cycleBuilder, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_key", gridmenuKeyHandler, nil, "pR")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_category", gridmenuCategoryHandler, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "gridmenu_categories", gridmenuCategoriesHandler, nil, "p")
 
 	reloadBindings()
 
@@ -1830,7 +1820,6 @@ function widget:MousePress(x, y, button)
 				for cat, catRect in pairs(catRects) do
 					if catRect:contains(x, y) then
 						currentCategory = cat
-						switchedCategory = os.clock()
 						Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
 
 						doUpdate = true
