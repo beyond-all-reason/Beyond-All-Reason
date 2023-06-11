@@ -1846,10 +1846,8 @@ function CreateLists(onlyMainList2)
     end
     UpdatePlayerResources()
 
-    --Create lists
-    if not onlyMainList2 then
-        CreateBackground()
-    end
+    -- Create lists
+    CreateBackground()
     CreateMainList(onlyMainList2 and MainList)
     CreateShareSlider()
 end
