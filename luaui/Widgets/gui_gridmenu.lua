@@ -933,22 +933,24 @@ local function drawButton(rect, opts, icon)
 
 	local padding = math_max(1, math_floor(bgpadding * 0.52))
 
-	local color1 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- bottom
-	local color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- top
+	local color = highlight and 0.2 or 0
+
+	local color1 = { color, color, color, math_max(0.55, math_min(0.95, ui_opacity * 1.25)) }	-- bottom
+	local color2 = { color, color, color, math_max(0.55, math_min(0.95, ui_opacity * 1.25)) }	-- top
 
 	if highlight then
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
-		gl.Color(0, 0, 0, 0.95)
+		gl.Color(0, 0, 0, 0.1)
 	end
 
 	UiButton(rect.x, rect.y, rect.xEnd, rect.yEnd, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
 
-	local color = disabled and 0.5 or 1.0
+	local dim = disabled and 0.4 or 1.0
 
 	if icon then
 		local iconSize = math.min(math.floor((rect.yEnd - rect.y) * 1.1), pageButtonHeight)
 		icon = ":l:" .. icon
-		gl.Color(color, color, color, 0.9)
+		gl.Color(dim, dim, dim, 0.9)
 		gl.Texture(icon)
 		gl.BeginEnd(GL.QUADS, TexRectRound, rect.x + (bgpadding / 2), rect.yEnd - iconSize, rect.x + iconSize, rect.yEnd - (bgpadding / 2),  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
 		--	gl.TexRect(px, sy - iconSize, px + iconSize, sy)
