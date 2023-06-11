@@ -13,9 +13,8 @@ end
 WG.FlowUI = WG.FlowUI or {}
 WG.FlowUI.version = 1
 WG.FlowUI.initialized = false
-WG.FlowUI.chobbyInterface = false
 
-WG.FlowUI.opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
+WG.FlowUI.opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.7) or 0.66)
 WG.FlowUI.scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 WG.FlowUI.tileOpacity = Spring.GetConfigFloat("ui_tileopacity", 0.011)
 WG.FlowUI.tileScale = Spring.GetConfigFloat("ui_tilescale", 7)
@@ -65,21 +64,9 @@ end
 function widget:Update(dt)
 end
 
-function widget:DrawScreen()
-	if Spring.IsGUIHidden() then
-		return
-	end
-end
-
 function widget:DrawScreenEffects()
 	if Spring.IsGUIHidden() then
 		return
-	end
-end
-
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		WG.FlowUI.chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 	end
 end
 
@@ -493,7 +480,7 @@ end
 		bgpadding = custom border size
 ]]
 WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
-	local opacity = opacity or WG.FlowUI.opacity
+	local opacity = math.min(1, opacity or WG.FlowUI.opacity)
 	local color1 = color1 or { 0, 0, 0, opacity}
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
 	local ui_scale = WG.FlowUI.scale
@@ -502,6 +489,11 @@ WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pb
 	local glossMult = 1 + (2 - (opacity * 1.5))
 	local tileopacity = WG.FlowUI.tileOpacity
 	local bgtexSize = WG.FlowUI.tileSize
+	if opacity > 0.75 then	-- lighten up or background get too dark
+		glossMult = glossMult * (1 + ((opacity - 0.75) * 2))
+		local addition = (opacity - 0.75) * 0.15
+		color1 = {color1[1]+addition, color1[2]+addition, color1[3]+addition, color1[4]}
+	end
 
 	local tl = tl or 1
 	local tr = tr or 1
@@ -612,6 +604,73 @@ WG.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
+-- This was broken out from an internal "Unit" function, to allow drawing similar style icons in other places
+WG.FlowUI.Draw.TexRectRound = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  offset)
+
+	local function drawTexCoordVertex(x, y)
+		local yc = 1 - ((y - py) / (sy - py))
+		local xc = (offset * 0.5) + ((x - px) / (sx - px)) + (-offset * ((x - px) / (sx - px)))
+		yc = 1 - (offset * 0.5) - ((y - py) / (sy - py)) + (offset * ((y - py) / (sy - py)))
+		gl.TexCoord(xc, yc)
+		gl.Vertex(x, y, 0)
+	end
+
+	-- mid section
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(px + cs, sy)
+
+	-- left side
+	drawTexCoordVertex(px, py + cs)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+
+	-- right side
+	drawTexCoordVertex(sx, py + cs)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+
+	-- bottom left
+	if bl ~= nil and bl == 0 then
+		drawTexCoordVertex(px, py)
+	else
+		drawTexCoordVertex(px + cs, py)
+	end
+	drawTexCoordVertex(px + cs, py)
+	drawTexCoordVertex(px + cs, py + cs)
+	drawTexCoordVertex(px, py + cs)
+	-- bottom right
+	if br ~= nil and br == 0 then
+		drawTexCoordVertex(sx, py)
+	else
+		drawTexCoordVertex(sx - cs, py)
+	end
+	drawTexCoordVertex(sx - cs, py)
+	drawTexCoordVertex(sx - cs, py + cs)
+	drawTexCoordVertex(sx, py + cs)
+	-- top left
+	if tl ~= nil and tl == 0 then
+		drawTexCoordVertex(px, sy)
+	else
+		drawTexCoordVertex(px + cs, sy)
+	end
+	drawTexCoordVertex(px + cs, sy)
+	drawTexCoordVertex(px + cs, sy - cs)
+	drawTexCoordVertex(px, sy - cs)
+	-- top right
+	if tr ~= nil and tr == 0 then
+		drawTexCoordVertex(sx, sy)
+	else
+		drawTexCoordVertex(sx - cs, sy)
+	end
+	drawTexCoordVertex(sx - cs, sy)
+	drawTexCoordVertex(sx - cs, sy - cs)
+	drawTexCoordVertex(sx, sy - cs)
+end
+
 --[[
 	Unit
 		draw a unit buildpic
@@ -630,78 +689,13 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 	local borderSize = borderSize~=nil and borderSize or math.min(math.max(1, math.floor((sx-px) * 0.024)), math.floor((WG.FlowUI.vsy*0.0015)+0.5))	-- set default with upper limit
 	local cs = cs~=nil and cs or math.max(1, math.floor((sx-px) * 0.024))
 
-	local function DrawTexRectRound(px, py, sx, sy,  cs,  tl, tr, br, bl,  offset)
-		local csyMult = 1 / ((sy - py) / cs)
 
-		local function drawTexCoordVertex(x, y)
-			local yc = 1 - ((y - py) / (sy - py))
-			local xc = (offset * 0.5) + ((x - px) / (sx - px)) + (-offset * ((x - px) / (sx - px)))
-			yc = 1 - (offset * 0.5) - ((y - py) / (sy - py)) + (offset * ((y - py) / (sy - py)))
-			gl.TexCoord(xc, yc)
-			gl.Vertex(x, y, 0)
-		end
-
-		-- mid section
-		drawTexCoordVertex(px + cs, py)
-		drawTexCoordVertex(sx - cs, py)
-		drawTexCoordVertex(sx - cs, sy)
-		drawTexCoordVertex(px + cs, sy)
-
-		-- left side
-		drawTexCoordVertex(px, py + cs)
-		drawTexCoordVertex(px + cs, py + cs)
-		drawTexCoordVertex(px + cs, sy - cs)
-		drawTexCoordVertex(px, sy - cs)
-
-		-- right side
-		drawTexCoordVertex(sx, py + cs)
-		drawTexCoordVertex(sx - cs, py + cs)
-		drawTexCoordVertex(sx - cs, sy - cs)
-		drawTexCoordVertex(sx, sy - cs)
-
-		-- bottom left
-		if bl ~= nil and bl == 0 then
-			drawTexCoordVertex(px, py)
-		else
-			drawTexCoordVertex(px + cs, py)
-		end
-		drawTexCoordVertex(px + cs, py)
-		drawTexCoordVertex(px + cs, py + cs)
-		drawTexCoordVertex(px, py + cs)
-		-- bottom right
-		if br ~= nil and br == 0 then
-			drawTexCoordVertex(sx, py)
-		else
-			drawTexCoordVertex(sx - cs, py)
-		end
-		drawTexCoordVertex(sx - cs, py)
-		drawTexCoordVertex(sx - cs, py + cs)
-		drawTexCoordVertex(sx, py + cs)
-		-- top left
-		if tl ~= nil and tl == 0 then
-			drawTexCoordVertex(px, sy)
-		else
-			drawTexCoordVertex(px + cs, sy)
-		end
-		drawTexCoordVertex(px + cs, sy)
-		drawTexCoordVertex(px + cs, sy - cs)
-		drawTexCoordVertex(px, sy - cs)
-		-- top right
-		if tr ~= nil and tr == 0 then
-			drawTexCoordVertex(sx, sy)
-		else
-			drawTexCoordVertex(sx - cs, sy)
-		end
-		drawTexCoordVertex(sx - cs, sy)
-		drawTexCoordVertex(sx - cs, sy - cs)
-		drawTexCoordVertex(sx, sy - cs)
-	end
 
 	-- draw unit
 	if texture then
 		gl.Texture(texture)
 	end
-	gl.BeginEnd(GL.QUADS, DrawTexRectRound, px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom+0.02)
+	gl.BeginEnd(GL.QUADS, WG.FlowUI.Draw.TexRectRound, px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom+0.02)
 	if texture then
 		gl.Texture(false)
 	end
@@ -738,7 +732,7 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 		local iconSize = math.floor((sx - px) * 0.3)
 		gl.Color(1, 1, 1, 0.9)
 		gl.Texture(groupTexture)
-		gl.BeginEnd(GL.QUADS, DrawTexRectRound, px, sy - iconSize, px + iconSize, sy,  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
+		gl.BeginEnd(GL.QUADS, WG.FlowUI.Draw.TexRectRound, px, sy - iconSize, px + iconSize, sy,  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
 		--	gl.TexRect(px, sy - iconSize, px + iconSize, sy)
 		gl.Texture(false)
 	end
@@ -747,7 +741,7 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 		local iconPadding = math.floor((sx - px) * 0.03)
 		gl.Color(1, 1, 1, 0.9)
 		gl.Texture(radarTexture)
-		gl.BeginEnd(GL.QUADS, DrawTexRectRound, sx - iconPadding - iconSize, py + iconPadding, sx - iconPadding, py + iconPadding + iconSize,  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
+		gl.BeginEnd(GL.QUADS, WG.FlowUI.Draw.TexRectRound, sx - iconPadding - iconSize, py + iconPadding, sx - iconPadding, py + iconPadding + iconSize,  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
 		--gl.TexRect(sx - iconPadding - iconSize, py + iconPadding, sx - iconPadding, py + iconPadding + iconSize)
 		gl.Texture(false)
 	end

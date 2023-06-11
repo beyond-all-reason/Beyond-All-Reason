@@ -133,6 +133,7 @@ return {
 				badtargetcategory = "VTOL",
 				def = "CORFHLT_LASER",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 		},
 	},

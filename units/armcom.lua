@@ -288,7 +288,7 @@ return {
 				range = 250,
 				reloadtime = 0.9,
 				soundhit = "xplomas2",
-				soundhitwet = "sizzle",
+				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
 				soundhitvolume = 36,
 				soundstartvolume = 96,
@@ -350,6 +350,7 @@ return {
 			[1] = {
 				def = "ARMCOMLASER",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",

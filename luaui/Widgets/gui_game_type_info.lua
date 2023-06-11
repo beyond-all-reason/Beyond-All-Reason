@@ -37,7 +37,7 @@ local message = ""
 local message2 = ""
 local message3 = ""
 
-local font, chobbyInterface
+local font
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
@@ -81,16 +81,9 @@ function widget:Update(dt)
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
 	if spGetGameSeconds() > 0 then
 		widgetHandler:RemoveWidget()
 		return
@@ -109,9 +102,9 @@ function widget:DrawScreen()
 	glTranslate((vsx * 0.5), (vsy * 0.19), 0) --has to be below where newbie info appears!
 	glScale(1.5, 1.5, 1)
 	font:Begin()
-	font:Print(msg, 0, 60 * widgetScale, 17.5 * widgetScale, "oc")
+	font:Print(msg, 0, 60 * widgetScale, 15.5 * widgetScale, "oc")
 	font:Print(msg2, 0, -35 * widgetScale, 13 * widgetScale, "oc")
-	font:Print(msg3, 0, 100 * widgetScale, 17.5 * widgetScale, "oc")
+	font:Print(msg3, 0, 100 * widgetScale, 15.5 * widgetScale, "oc")
 	if Spring.GetModOptions().deathmode == "own_com" then
 		font:Print("\255\255\150\150" ..Spring.I18N('ui.gametypeInfo.owncomends'), 0, 40 * widgetScale, 13 * widgetScale, "oc")
 	end

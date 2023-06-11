@@ -21,19 +21,19 @@ TypeMask STATIC  = aiRoleMasker.GetTypeMask("static");
 TypeMask HEAVY   = aiRoleMasker.GetTypeMask("heavy");
 TypeMask SUPER   = aiRoleMasker.GetTypeMask("super");
 TypeMask COMM    = aiRoleMasker.GetTypeMask("commander");
-
-TypeMask ROLE0   = AiAddRole("cloaked_raider",  ASSAULT.type);
-TypeMask ROLE1   = AiAddRole("snipe_target",    ASSAULT.type);
-TypeMask ROLE2   = AiAddRole("bullshit_raider", ASSAULT.type);
-TypeMask ROLE3   = AiAddRole("disarm_target",   ASSAULT.type);
-TypeMask ROLE4   = AiAddRole("shieldball",      ASSAULT.type);
-TypeMask ROLE5   = AiAddRole("missileskirm",    ASSAULT.type);
-TypeMask ROLE6   = AiAddRole("turtle",          ASSAULT.type);
-TypeMask ROLE7   = AiAddRole("role7",           ASSAULT.type);
-TypeMask ROLE8   = AiAddRole("role8",           ASSAULT.type);
-TypeMask ROLE9   = AiAddRole("role9",         ASSAULT.type);
-TypeMask ROLE10  = AiAddRole("anti_heavy_ass",  SUPPORT.type);
-TypeMask ROLE11  = AiAddRole("builderT2",       BUILDER.type);
+// Custom roles
+TypeMask ROLE0    = AiAddRole("cloaked_raider",  ASSAULT.type);
+TypeMask ROLE1    = AiAddRole("snipe_target",    ASSAULT.type);
+TypeMask ROLE2    = AiAddRole("bullshit_raider", ASSAULT.type);
+TypeMask ROLE3    = AiAddRole("disarm_target",   ASSAULT.type);
+TypeMask ROLE4    = AiAddRole("shieldball",      ASSAULT.type);
+TypeMask ROLE5    = AiAddRole("missileskirm",    ASSAULT.type);
+TypeMask ROLE6    = AiAddRole("turtle",          ASSAULT.type);
+TypeMask ROLE7    = AiAddRole("role7",           ASSAULT.type);
+TypeMask ROLE8    = AiAddRole("role8",           ASSAULT.type);
+TypeMask ROLE9    = AiAddRole("rezzer",          SUPPORT.type);
+TypeMask AHA      = AiAddRole("anti_heavy_ass",  SUPPORT.type);
+TypeMask BUILDER2 = AiAddRole("builderT2",       BUILDER.type);
 }  // namespace Role
 
 namespace Attr {
@@ -48,6 +48,40 @@ TypeMask RET_FIGHT = aiAttrMasker.GetTypeMask("ret_fight");
 TypeMask SOLO      = aiAttrMasker.GetTypeMask("solo");
 TypeMask BASE      = aiAttrMasker.GetTypeMask("base");
 TypeMask VAMPIRE   = aiAttrMasker.GetTypeMask("vampire");
+TypeMask ONOFF     = aiAttrMasker.GetTypeMask("onoff");
+TypeMask RARE      = aiAttrMasker.GetTypeMask("rare");
 }  // namespace Attr
 
+enum UseAs {
+	COMBAT = 0, DEFENCE, SUPER,  // military
+	BUILDER, REZZER,  // builder
+	FACTORY, ASSIST  // factory
+}
+
 }  // namespace Unit
+
+namespace RT {
+Type BUILDER = Unit::Role::BUILDER.type;
+Type SCOUT   = Unit::Role::SCOUT.type;
+Type RAIDER  = Unit::Role::RAIDER.type;
+Type RIOT    = Unit::Role::RIOT.type;
+Type ASSAULT = Unit::Role::ASSAULT.type;
+Type SKIRM   = Unit::Role::SKIRM.type;
+Type ARTY    = Unit::Role::ARTY.type;
+Type AA      = Unit::Role::AA.type;
+Type AS      = Unit::Role::AS.type;
+Type AH      = Unit::Role::AH.type;
+Type BOMBER  = Unit::Role::BOMBER.type;
+Type SUPPORT = Unit::Role::SUPPORT.type;
+Type MINE    = Unit::Role::MINE.type;
+Type TRANS   = Unit::Role::TRANS.type;
+Type AIR     = Unit::Role::AIR.type;
+Type SUB     = Unit::Role::SUB.type;
+Type STATIC  = Unit::Role::STATIC.type;
+Type HEAVY   = Unit::Role::HEAVY.type;
+Type SUPER   = Unit::Role::SUPER.type;
+Type COMM    = Unit::Role::COMM.type;
+// Custom roles
+Type AHA      = Unit::Role::AHA.type;
+Type BUILDER2 = Unit::Role::BUILDER2.type;
+}  // namespace RT

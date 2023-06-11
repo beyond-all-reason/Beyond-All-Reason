@@ -7,7 +7,7 @@ function widget:GetInfo()
 		date = "Oct 23, 2010; last update: April 13, 2022",
 		license = "GNU GPL, v2 or later",
 		handler = true,
-		layer = 0,
+		layer = 1000,
 		enabled = true  --  loaded by default?
 	}
 end
@@ -32,19 +32,26 @@ local mexPlacementDragRadius = 20000	-- larger size so you can drag a move line 
 ------------------------------------------------------------
 local CMD_MOVE = CMD.MOVE
 local CMD_GUARD = CMD.GUARD
+local CMD_RECLAIM = CMD.RECLAIM
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetActiveCommand = Spring.GetActiveCommand
 
 ------------------------------------------------------------
 -- Other variables
 ------------------------------------------------------------
 local chobbyInterface, activeUnitShape, lastInsertedOrder
 
+local isMex = {}
 local isCloakableBuilder = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildOptions[1] and unitDef.canCloak then
 		isCloakableBuilder[unitDefID] = true
+	end
+
+	if unitDef.extractsMetal > 0 then
+		isMex[unitDefID] = true
 	end
 end
 
@@ -77,8 +84,8 @@ function CheckForBuildingOpportunity(type, params)
 	if not WG['resource_spot_builder'] then
 		return
 	end
-	local isT1Mex = (type == 'unit' and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(params)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(params)] <= t1mexThreshold)
-	local isT1Geo = (type == 'unit' and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(params)] and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(params)] <= t1geoThreshold)
+	local isTech1Mex = (type == 'unit' and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(params)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(params)] <= t1mexThreshold)
+	local isTech1Geo = (type == 'unit' and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(params)] and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(params)] <= t1geoThreshold)
 	local closestMex, closestGeo, unitID
 	if type == 'unit' then
 		unitID = params
@@ -86,8 +93,12 @@ function CheckForBuildingOpportunity(type, params)
 	end
 
 	local groundHasEmptyMetal, groundHasEmptyGeo = false, false
-	if isT1Mex or isT1Geo or type == 'ground' then
-		if type == 'ground' then
+	if type == 'feature' then
+		local mx, my, mb = Spring.GetMouseState()
+		_, params = Spring.TraceScreenRay(mx, my, true)
+	end
+	if params and params[3] and (isTech1Mex or isTech1Geo or type == 'ground' or type == 'feature') then
+		if type == 'ground' or type == 'feature' then
 			closestMex = GetClosestPosition(params[1], params[3], WG['resource_spot_finder'].metalSpotsList)
 			if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
 				groundHasEmptyMetal = true
@@ -99,7 +110,7 @@ function CheckForBuildingOpportunity(type, params)
 		end
 	end
 
-	return isT1Mex, isT1Geo, groundHasEmptyMetal, groundHasEmptyGeo, params
+	return isTech1Mex, isTech1Geo, groundHasEmptyMetal, groundHasEmptyGeo, params
 end
 
 local selectedUnits = Spring.GetSelectedUnits()
@@ -109,10 +120,10 @@ end
 
 -- display mouse cursor and unitshape when hovering over a resource spot
 local sec = 0
+local drawUnitShape = false
+local activeCmdID
 function widget:Update(dt)
 	if chobbyInterface then return end
-
-	local mx, my, mb, mmb, mb2 = Spring.GetMouseState()
 
 	local doUpdate = activeUnitShape ~= nil
 	sec = sec + dt
@@ -121,9 +132,13 @@ function widget:Update(dt)
 		doUpdate = true
 	end
 
-	local drawUnitShape = false
+	drawUnitShape = false
 
 	if doUpdate then
+		local mx, my, mb, mmb, mb2 = Spring.GetMouseState()
+		_, activeCmdID = spGetActiveCommand()
+		local isReclaim = activeCmdID == CMD.RECLAIM
+
 		if #selectedUnits == 1 and isCloakableBuilder[Spring.GetUnitDefID(selectedUnits[1])] and select(5,Spring.GetUnitStates(selectedUnits[1],false,true)) then
 			-- unit is cloaked, abort!
 			if WG.DrawUnitShapeGL4 and activeUnitShape then
@@ -132,10 +147,12 @@ function widget:Update(dt)
 			end
 			return
 		end
-		if not WG.customformations_linelength or WG.customformations_linelength < 10 then	-- dragging multi-unit formation-move-line
+
+		if (not (activeCmdID and isMex[-activeCmdID])) and -- let player decide placement if they are building the mex themselves
+			 (not WG.customformations_linelength or WG.customformations_linelength < 10) then -- dragging multi-unit formation-move-line
 
 			local type, rayParams = Spring.TraceScreenRay(mx, my)
-			local isT1Mex, isT1Geo, groundHasEmptyMetal, groundHasEmptyGeo, params = CheckForBuildingOpportunity(type, rayParams)
+			local isTech1Mex, isTech1Geo, groundHasEmptyMetal, groundHasEmptyGeo, params = CheckForBuildingOpportunity(type, rayParams)
 
 			--put into a local function to reduce code redundancy
 			local function TryConstructBuilding(upgradableT1, groundHasEmptySpot, constructorsT1, constructorsT2, BuildOrder)
@@ -143,21 +160,19 @@ function widget:Update(dt)
 					local hasT1constructor, hasT2constructor = false, false
 					-- search for constructors
 					local selUnitsCount = Spring.GetSelectedUnitsCounts()
-					for k,v in pairs(selUnitsCount) do
-						if k ~= 'n' then
-							if constructorsT1[k] then
-								hasT1constructor = true
-								break
-							end
-							if constructorsT2[k] then
-								hasT2constructor = true
-								break
-							end
+					for k,_ in pairs(selUnitsCount) do
+						if constructorsT1[k] then
+							hasT1constructor = true
+							break
+						end
+						if constructorsT2[k] then
+							hasT2constructor = true
+							break
 						end
 					end
 					if hasT1constructor or hasT2constructor then
 						local queuedBuildings = BuildOrder({ params[1], params[2], params[3]}, {}, false, true)
-						if queuedBuildings and #queuedBuildings > 0 then
+						if not isReclaim and queuedBuildings and #queuedBuildings > 0 then
 							drawUnitShape = { queuedBuildings[1][2], queuedBuildings[1][3], queuedBuildings[1][4], queuedBuildings[1][5], queuedBuildings[1][6] }
 							Spring.SetMouseCursor('upgmex')
 						end
@@ -165,9 +180,9 @@ function widget:Update(dt)
 				end
 			end
 
-			if isT1Mex or groundHasEmptyMetal then
+			if isTech1Mex or groundHasEmptyMetal then
 				TryConstructBuilding(
-					isT1Mex,
+					isTech1Mex,
 					groundHasEmptyMetal,
 					WG['resource_spot_builder'].GetMexConstructorsDef(),
 					WG['resource_spot_builder'].GetMexConstructorsT2(),
@@ -175,9 +190,9 @@ function widget:Update(dt)
 				)
 			end
 
-			if isT1Geo or groundHasEmptyGeo then
+			if isTech1Geo or groundHasEmptyGeo then
 				TryConstructBuilding(
-					isT1Geo,
+					isTech1Geo,
 					groundHasEmptyGeo,
 					WG['resource_spot_builder'].GetGeoConstructorsDef(),
 					WG['resource_spot_builder'].GetGeoConstructorsT2(),
@@ -215,12 +230,13 @@ end
 
 
 ------------------------------------------------------------
--- Transform move/guard into a build order command
+-- Transform move/guard/reclaim into a build order command
 ------------------------------------------------------------
 function widget:CommandNotify(id, params, options)
 	local isMove = (id == CMD_MOVE)
 	local isGuard = (id == CMD_GUARD)
-	if not (isMove or isGuard) then
+	local isReclaim = (id == CMD_RECLAIM)
+	if not (isMove or isGuard or isReclaim) or (isReclaim and params[2]) then
 		return
 	end
 
@@ -229,11 +245,11 @@ function widget:CommandNotify(id, params, options)
 		return
 	end
 
-	local mx, my, mb = Spring.GetMouseState()
+	local mx, my = Spring.GetMouseState()	-- mouse button states are not accurate/reliable here
 
 	if isGuard then
-		local type, unitID = Spring.TraceScreenRay(mx, my)
 		if type == 'unit' then
+			local _, unitID = Spring.TraceScreenRay(mx, my)
 			if not (WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] <= t1mexThreshold)
 			and not (WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(unitID)] <= t1geoThreshold) then
 				return --no t1 buildings available
@@ -254,7 +270,11 @@ function widget:CommandNotify(id, params, options)
 					options.shift = true	-- this allows for separate clicks (of mex/geo spot queuing).
 				end
 				lastInsertedOrder = nil
-			elseif isMove and enableQuickBuildOnMove then
+			elseif (isMove or isReclaim) and enableQuickBuildOnMove then
+				if isReclaim then
+					local _, rayParams = Spring.TraceScreenRay(mx, my, true)
+					params[1], params[2], params[3] = rayParams[1], rayParams[2], rayParams[3]
+				end
 				local closestSpot = GetClosestPosition(params[1], params[3], spots)
 				local spotRadius = placementRadius
 				if #selectedUnits == 1 and #Spring.GetCommandQueue(selectedUnits[1], 8) > 1 then
@@ -289,10 +309,12 @@ function widget:CommandNotify(id, params, options)
 
 	-- Decide if this is a mex or geo spot
 	local type, rayParams = Spring.TraceScreenRay(mx, my)
-	local isT1Mex, isT1Geo, groundHasEmptyMetal, groundHasEmptyGeo, unitPos = CheckForBuildingOpportunity(type, rayParams)
+	local isTech1Mex, isTech1Geo, groundHasEmptyMetal, groundHasEmptyGeo, unitPos = CheckForBuildingOpportunity(type, rayParams)
 
-	if isT1Mex or groundHasEmptyMetal then
-		return TryConvertCmdToBuildOrder(
+	local result = false
+	-- right click only
+	if options.right and (isTech1Mex or groundHasEmptyMetal or isReclaim) then
+		result = TryConvertCmdToBuildOrder(
 			CMD_CONSTRUCT_MEX,
 			enableMoveIsQuickBuildMex,
 			WG['resource_spot_builder'].GetMexConstructors(),
@@ -301,10 +323,9 @@ function widget:CommandNotify(id, params, options)
 			mexPlacementRadius,
 			mexPlacementDragRadius
 		)
-	end
-
-	if isT1Geo or groundHasEmptyGeo then
-		return TryConvertCmdToBuildOrder(
+	-- right click only
+	elseif options.right and (not isReclaim or not result) and (isTech1Geo or groundHasEmptyGeo or isReclaim) then
+		result = TryConvertCmdToBuildOrder(
 			CMD_CONSTRUCT_GEO,
 			enableMoveIsQuickBuildGeo,
 			WG['resource_spot_builder'].GetGeoConstructors(),
@@ -314,4 +335,28 @@ function widget:CommandNotify(id, params, options)
 			geoPlacementDragRadius
 		)
 	end
+	return result
 end
+
+-- make it so that it snaps and upgrades and does not need to be placed perfectly on top
+--[[function widget:MousePress(mx, my, button)
+	if button == 1 and drawUnitShape and selectedUnits[1] then
+
+		activeCmdID = spGetActiveCommand()
+		if activeCmdID and isMex[-activeCmdID] then -- current activecmd is already build mex, let player decide how to place it
+			return false
+		end
+
+		if Spring.TestBuildOrder(drawUnitShape[1], drawUnitShape[2], drawUnitShape[3], drawUnitShape[4], 0) == 2 then
+			local alt, ctrl, meta, shift = Spring.GetModKeyState()
+			local keyState = {}
+			if alt then keyState.alt = true end
+			if ctrl then keyState.ctrl = true end
+			if meta then keyState.meta = true end
+			if shift then keyState.shift = true end
+			if WG['resource_spot_builder'] then
+				WG['resource_spot_builder'].BuildMex({ drawUnitShape[2], drawUnitShape[3], drawUnitShape[4] }, keyState, false, false)
+			end
+		end
+	end
+end]]

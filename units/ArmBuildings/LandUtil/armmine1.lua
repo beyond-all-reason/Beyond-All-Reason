@@ -14,9 +14,9 @@ return {
 		category = "ALL NOTLAND WEAPON MINE NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		cloakcost = 0.5,
 		collide = false,
-		collisionvolumeoffsets = "0 2 0",
-		collisionvolumescales = "13 8 13",
-		collisionvolumetype = "CylY",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "15 10 15",
+		collisionvolumetype = "cyly",
 		explodeas = "MINE_LIGHT",
 		firestate = 2,
 		footprintx = 1,
@@ -99,6 +99,9 @@ return {
 				damage = {
 					default = 0,
 				},
+				customparams = {
+					bogus = 1
+				}
 			},
 		},
 		weapons = {

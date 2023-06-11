@@ -3,9 +3,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad1, pad0, radar, door1, door2, antiflare, ground, nano1, nanoemit2,nano2, nanoemit1, blink, wake, bow;
+piece  base, pad1, pad0, radar, door1, door2, antiflare, ground, nano1, nanoemit2,nano2, nanoemit1, blink, wake, bow, unstocked, stocked;
 
-static-var  Static_Var_1, oldHead;
+static-var  Static_Var_1, oldHead, missiles_stockpiled;
 static-var  Stunned;
 
 // Signal definitions
@@ -114,6 +114,9 @@ Create()
 	hide pad1;
 	hide pad0;
 	hide ground;
+	missiles_stockpiled = 0;
+	hide stocked;
+	show unstocked;
 	Static_Var_1 = 0;
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -188,6 +191,34 @@ StopMoving()
 SweetSpot(piecenum)
 {
 	piecenum = base;
+}
+
+stocked_no()
+{
+	hide stocked;
+	show unstocked;
+}
+
+stocked_yes()
+{
+	show stocked;
+	hide unstocked;
+}
+
+SetStockpile(num_stockpiled)
+{
+	if (num_stockpiled == 0)
+	{
+		start-script stocked_no();
+		sleep 100;
+		missiles_stockpiled = 0;
+	}
+	if (num_stockpiled >= 1)
+	{
+		start-script stocked_yes();
+		sleep 100;
+		missiles_stockpiled = 1;
+	}
 }
 
 QueryLandingPad(Func_Var_1, Func_Var_2)

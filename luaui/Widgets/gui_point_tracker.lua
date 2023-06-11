@@ -35,7 +35,6 @@ local GL_LINES = GL.LINES
 local mapPoints = {}
 local myPlayerID
 local enabled = true
-local chobbyInterface
 local instanceIDgen = 1
 ----------------------------------------------------------------
 --local functions
@@ -239,7 +238,7 @@ end
 --callins
 ----------------------------------------------q------------------
 
-function widget:Initialize()	
+function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
@@ -255,16 +254,9 @@ function widget:Shutdown()
 	WG.PointTracker = nil
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
 	if not enabled then
 		return
 	end

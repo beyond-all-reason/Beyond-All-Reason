@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad, head1, head2, nano1, nano2;
+piece  base, pad, head1, head2, nano1, nano2, cagelight, cagelight2, cagelight_emit, cagelight2_emit;
 
 static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
 
@@ -36,6 +36,10 @@ StartBuilding()
 {
 	show nano1;
 	show nano2;
+	show cagelight_emit;
+	show cagelight2_emit;
+	spin cagelight_emit around z-axis speed <250>;
+	spin cagelight2_emit around z-axis speed <250>;
 	return (0);
 }
 
@@ -43,6 +47,10 @@ StopBuilding()
 {
 	hide nano1;
 	hide nano2;
+	hide cagelight_emit;
+	hide cagelight2_emit;
+	turn cagelight_emit to z-axis <0> speed <1000>;
+	turn cagelight2_emit to z-axis <0> speed <1000>;
 	return (0);
 }
 
@@ -118,6 +126,8 @@ Create()
 	hide pad;
 	hide nano1;
 	hide nano2;
+	hide cagelight_emit;
+	hide cagelight2_emit;
 	unitviewer = FALSE;
 	spray = base;
 	call-script InitState();

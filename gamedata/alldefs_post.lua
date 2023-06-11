@@ -160,7 +160,7 @@ function UnitDef_Post(name, uDef)
 
 	---------------------------------------------------------------------------------------------------
 
-	if Spring.GetModOptions().newdgun then
+	--[[if Spring.GetModOptions().newdgun then
 		if uDef.customparams.iscommander then
 			uDef.customparams.paralyzemultiplier = 0
 			
@@ -202,7 +202,7 @@ function UnitDef_Post(name, uDef)
 				}
 			end
 		end
-	end
+	end]]
 
 	-- Control Mode Tweaks
 	if Spring.GetModOptions().scoremode ~= "disabled" then
@@ -391,7 +391,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Add scav units to normal factories and builders
-	if Spring.GetModOptions().experimentalscavuniqueunits then
+	if Spring.GetModOptions().experimentalextraunits then
 		if name == "armshltx" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
@@ -399,14 +399,14 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+3] = "armpwt4"
 			uDef.buildoptions[numBuildoptions+4] = "armvadert4"
 			-- uDef.buildoptions[numBuildoptions+5] = "armlunchbox"
-			-- uDef.buildoptions[numBuildoptions+6] = "armmeatball"
-			-- uDef.buildoptions[numBuildoptions+7] = "armassimilator"
+			uDef.buildoptions[numBuildoptions+6] = "armmeatball"
+			uDef.buildoptions[numBuildoptions+7] = "armassimilator"
 		elseif name == "armshltxuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
 			uDef.buildoptions[numBuildoptions+2] = "armpwt4"
 			uDef.buildoptions[numBuildoptions+3] = "armvadert4"
-			-- uDef.buildoptions[numBuildoptions+4] = "armmeatball"
+			uDef.buildoptions[numBuildoptions+4] = "armmeatball"
 		elseif name == "corgant" or name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cordemont4"
@@ -419,30 +419,18 @@ function UnitDef_Post(name, uDef)
 		elseif name == "coravp" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
+			uDef.buildoptions[numBuildoptions+2] = "corforge"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
-			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
-			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
-			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
 		elseif name == "corca" or name == "corck" or name == "corcv" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
-			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
-			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
-			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
 		elseif name == "legca" or name == "legck" or name == "legcv" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
-			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
-			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
-			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
 		elseif name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armapt3"
 			uDef.buildoptions[numBuildoptions+2] = "armminivulc"
 			uDef.buildoptions[numBuildoptions+3] = "armwint2"
-			uDef.buildoptions[numBuildoptions+4] = "corscavfort"
 			uDef.buildoptions[numBuildoptions+5] = "armbotrail"
 			uDef.buildoptions[numBuildoptions+6] = "armannit3"
 			uDef.buildoptions[numBuildoptions+7] = "armnanotct2"
@@ -452,7 +440,6 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
       		uDef.buildoptions[numBuildoptions+3] = "corwint2"
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
-			uDef.buildoptions[numBuildoptions+5] = "corscavfort"
 			uDef.buildoptions[numBuildoptions+6] = "cordoomt3"
 			uDef.buildoptions[numBuildoptions+7] = "cornanotct2"
 		elseif name == "legaca" or name == "legack" or name == "legacv" then
@@ -461,7 +448,6 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
       		uDef.buildoptions[numBuildoptions+3] = "corwint2"
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
-			uDef.buildoptions[numBuildoptions+5] = "corscavfort"
 			uDef.buildoptions[numBuildoptions+6] = "cordoomt3"
 			uDef.buildoptions[numBuildoptions+7] = "cornanotct2"
 		elseif name == "armasy" then
@@ -546,6 +532,7 @@ function UnitDef_Post(name, uDef)
 	]]
 	if string.find(name, "chicken") and uDef.maxdamage then
 		local chickHealth = uDef.maxdamage
+		uDef.activatewhenbuilt = true
 		uDef.buildcostmetal = chickHealth*0.5
 		uDef.buildcostenergy = chickHealth*5
 		uDef.buildtime = chickHealth*10
@@ -802,21 +789,189 @@ function UnitDef_Post(name, uDef)
 	-- Commander Update
 	
 	if Spring.GetModOptions().comupdate == true then
-		if name == "armcom" or name == "corcom" then
-			uDef.featuredefs.dead.metal = 1000
-			uDef.featuredefs.heap.metal = 500
-			uDef.maxdamage = 4500
+		if name == "armdecom" then
+			uDef.maxdamage = 4000
 			uDef.autoheal = 0
-			uDef.idleautoheal = 5
-			if uDef.weapondefs.disintegrator then
-				uDef.weapondefs.disintegrator.damage = {
-					default = 98999,
-					scavboss = 1000,
-					commanders = 0,
-					}
-			end
+		end
+		if name == "cordecom" then
+			uDef.maxdamage = 4000
+			uDef.autoheal = 0
+		end
+		if name == "armllt" then
+			uDef.weapondefs.arm_lightlaser.damage = {
+					bombers = 5,
+					default = 75,
+					fighters = 5,
+					subs = 5,
+					vtol = 5,
+			}
+		end
+		if name == "armbeamer" then
+			uDef.weapondefs.armbeamer_weapon.damage = {
+					bombers = 2,
+					default = 26.6,
+					fighters = 2,
+					vtol = 2,
+			}
+		end
+		if name == "armclaw" then
+			uDef.weapondefs.dclaw.damage = {
+					bombers = 2.5,
+					default = 21,
+					fighters = 2.5,
+					vtol = 2.5,
+			}
+		end
+		if name == "armhlt" then
+			uDef.weapondefs.arm_laserh1.damage = {
+					bombers = 35,
+					default = 387,
+					fighters = 35,
+					vtol = 35,
+			}
+		end
+		if name == "armsam" then
+			uDef.weapondefs.armtruck_missile.damage = {
+					bombers = 120,
+					default = 64,
+					fighters = 160,
+					vtol = 160,
+			}
+		end
+		if name == "armkam" then
+			uDef.weapondefs.med_emg.damage = {
+					bombers = 1,
+					default = 11,
+					fighters = 1,
+					vtol = 1,
+			}
+		end
+		if name == "armblade" then
+			uDef.weapondefs.vtol_sabot.damage = {
+					default = 190,
+			}
+		end
+		if name == "armbrawl" then
+			uDef.weapondefs.vtol_emg.damage = {
+					bombers = 2,
+					default = 16,
+					fighters = 2,
+					vtol = 2,
+			}
+		end		
+		if name == "armsaber" then
+			uDef.weapondefs.vtol_emg2.damage = {
+					bombers = 10,
+					default = 60,
+					fighters = 10,
+					vtol = 10,
+			}
+		end
+		if name == "corllt" then
+			uDef.weapondefs.cor_lightlaser.damage = {
+					bombers = 5,
+					default = 75,
+					fighters = 5,
+					subs = 5,
+					vtol = 5,
+			}
+		end
+		if name == "corbhmth" then
+			uDef.weapondefs.corbhmth_weapon.damage = {
+					bombers = 110,
+					default = 450,
+					fighters = 110,
+					subs = 150,
+					vtol = 110,
+			}
+		end
+		if name == "corexp" then
+			uDef.weapondefs.hllt_bottom.damage = {
+					bombers = 5,
+					default = 75,
+					fighters = 5,
+					vtol = 5,
+			}
+		end
+		if name == "corhllt" then
+			uDef.weapondefs.hllt_bottom.damage = {
+					bombers = 5,
+					default = 75,
+					fighters = 5,
+					vtol = 5,
+			}
+			uDef.weapondefs.hllt_top.damage = {
+					bombers = 5,
+					default = 75,
+					fighters = 5,
+					vtol = 5,
+			}
+		end
+		if name == "corhlt" then
+			uDef.weapondefs.cor_laserh1.damage = {
+					bombers = 35,
+					default = 261,
+					fighters = 35,
+					vtol = 35,
+			}
+		end
+		if name == "corllt" then
+			uDef.weapondefs.cor_lightlaser.damage = {
+					bombers = 5,
+					default = 75,
+					fighters = 5,
+					vtol = 5,
+			}
+		end
+		if name == "cormaw" then
+			uDef.weapondefs.dmaw.damage = {
+					default = 22,
+					subs = 5.5,
+			}
+		end
+		if name == "cormexp" then
+			uDef.weapondefs.cormexp_rocket.damage = {
+					bombers = 45,
+					default = 260,
+					fighters = 45,
+					vtol = 45,
+			}
+		end
+		if name == "cormist" then
+			uDef.weapondefs.cortruck_missile.damage = {
+					bombers = 120,
+					default = 47,
+					fighters = 120,
+					vtol = 120,
+			}
+		end
+		if name == "corape" then
+			uDef.weapondefs.vtol_rocket.damage = {
+					bombers = 15,
+					default = 122,
+					fighters = 15,
+					subs = 61,
+					vtol = 15,
+			}
+		end		
+		if name == "corcut" then
+			uDef.weapondefs.vtol_rocket2.damage = {
+					bombers = 9,
+					default = 47,
+					fighters = 9,
+					vtol = 9,
+			}
+		end		
+		if name == "corseap" then
+			uDef.weapondefs.armseap_weapon1.damage = {
+					bombers = 15,
+					default = 342,
+					fighters = 15,
+					vtol = 15,
+			}
 		end
 	end
+	
 		
 		
 
@@ -982,8 +1137,7 @@ function WeaponDef_Post(name, wDef)
 	if Spring.GetModOptions().newdgun or Spring.GetModOptions().comupdate then
 		if name == 'commanderexplosion' then
 			wDef.damage = {
-				default = 200000000,
-				commanders = 50000000,
+				default = 5000,
 			}
 		end
 	end
@@ -992,7 +1146,7 @@ function WeaponDef_Post(name, wDef)
 		if name == 'commanderexplosion' then
 			wDef.AreaOfEffect = 700
 			wDef.cameraShake = 510
-			wDef.edgeeffectiveness = -50000
+			wDef.edgeeffectiveness = 0
 		end
 	end
 
@@ -1056,6 +1210,10 @@ function WeaponDef_Post(name, wDef)
 		-- wDef.targetborder = 1.0
 
 		if wDef.weapontype == "Cannon" then
+			if not wDef.model then -- do not cast shadows on plasma shells
+				wDef.castshadow = false
+			end
+
 			if wDef.stages == nil then
 				wDef.stages = 10
 				if wDef.damage ~= nil and wDef.damage.default ~= nil and wDef.areaofeffect ~= nil then

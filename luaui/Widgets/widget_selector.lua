@@ -44,14 +44,16 @@ local WhiteStr = "\255\255\255\255"
 
 local sizeMultiplier = 1
 
+
+local buttons = {}
 local floor = math.floor
 
 local widgetsList = {}
 local fullWidgetsList = {}
 local localWidgetCount = 0
 
-local minMaxEntries = 15
-local curMaxEntries = 25
+local minMaxEntries = 14
+local curMaxEntries = 24
 
 local startEntry = 1
 local pageStep = floor(curMaxEntries / 2) - 1
@@ -72,7 +74,7 @@ local font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutli
 
 local bgPadding = 4.5
 
-local maxWidth = 0.01
+local maxWidth = 0
 local borderx = yStep * 0.75
 local bordery = yStep * 0.75
 
@@ -100,21 +102,11 @@ local scrollbargrabpos = 0.0
 local show = false
 local pagestepped = false
 
-local RectRound, UiElement, UiSelectHighlight
+local RectRound, UiElement, UiSelectHighlight, elementPadding, elementCorner
 
-local dlistGuishader, lastStart
+local dlistGuishader, dlistGuishader2, lastStart
 
 local widgetScale = (vsy / 1080)
-
-local texts = {}
-
-local buttons = { --see MouseRelease for which functions are called by which buttons
-	[1] = texts.button_reloadluaui,
-	[2] = texts.button_unloadallwidgets,
-	[3] = texts.button_disallowuserwidgets,
-	[4] = texts.button_resetluaui,
-	[5] = texts.button_factoryresetluaui,
-}
 
 local allowuserwidgets = true
 if not Spring.GetModOptions().allowuserwidgets then
@@ -122,54 +114,145 @@ if not Spring.GetModOptions().allowuserwidgets then
 	buttons[3] = ''
 end
 
-local titleFontSize = 20
 local buttonFontSize = 15
 local buttonHeight = 24
-local buttonTop = 28 -- offset between top of buttons and bottom of widget
+local buttonTop = 40 -- offset between top of buttons and bottom of widget
 
--------------------------------------------------------------------------------
+local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
+local textInputDlist
+local updateTextInputDlist = true
+local textCursorRect
+local showTextInput = true
+local inputText = ''
+local inputTextPosition = 0
+local cursorBlinkTimer = 0
+local cursorBlinkDuration = 1
+local maxTextInputChars = 127	-- tested 127 as being the true max
+local inputTextInsertActive = false
+local floor = math.floor
+local inputMode = ''
+local chobbyInterface
 
-function widget:Initialize()
-
-	texts = Spring.I18N('ui.widgetselector')
-
-	if not allowuserwidgets then
-		buttons[3] = ''
-	else
-		if widgetHandler.allowUserWidgets then
-			buttons[3] = texts.button_disallowuserwidgets
-		else
-			buttons[3] = texts.button_allowuserwidgets
-		end
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 	end
-
-	widgetHandler.knownChanged = true
-	Spring.SendCommands('unbindkeyset f11')
-
-	if Spring.GetGameFrame() <= 0 then
-		Spring.SendLuaRulesMsg('xmas' .. ((os.date("%m") == "12" and os.date("%d") >= "12") and '1' or '0'))
-	end
-	WG['widgetselector'] = {}
-	WG['widgetselector'].toggle = function(state)
-		local newShow = state
-		if newShow == nil then
-			newShow = not show
-		end
-		if newShow and WG['topbar'] then
-			WG['topbar'].hideWindows()
-		end
-		show = newShow
-	end
-	WG['widgetselector'].isvisible = function()
-		return show
-	end
-	WG['widgetselector'].getLocalWidgetCount = function()
-		return localWidgetCount
-	end
-
-	widget:ViewResize(Spring.GetViewGeometry())
 end
 
+function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
+	if not chobbyInterface and not Spring.IsGUIHidden() and showTextInput and show then
+		if inputTextInsertActive then
+			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition+2)
+			if inputTextPosition <= utf8.len(inputText) then
+				inputTextPosition = inputTextPosition + 1
+			end
+		else
+			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition+1)
+			inputTextPosition = inputTextPosition + 1
+		end
+		if string.len(inputText) > maxTextInputChars then
+			inputText = string.sub(inputText, 1, maxTextInputChars)
+			if inputTextPosition > maxTextInputChars then
+				inputTextPosition = maxTextInputChars
+			end
+		end
+		cursorBlinkTimer = 0
+		updateTextInputDlist = true
+		if WG['limitidlefps'] and WG['limitidlefps'].update then
+			WG['limitidlefps'].update()
+		end
+		UpdateList(true)
+		return true
+	end
+end
+
+local function clearChatInput()
+	--showTextInput = false
+	inputText = ''
+	inputTextPosition = 0
+	inputTextInsertActive = false
+	--backgroundGuishader = gl.DeleteList(backgroundGuishader)
+	if WG['guishader'] then
+		WG['guishader'].RemoveRect('selectorinput')
+	end
+	UpdateList(true)
+end
+
+local function cancelChatInput()
+	clearChatInput()
+	widgetHandler.textOwner = nil	--widgetHandler:DisownText()
+	UpdateList(true)
+end
+
+function drawChatInputCursor()
+	if textCursorRect then
+		local a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.15
+		gl.Color(0.7,0.7,0.7,a)
+		gl.Rect(textCursorRect[1], textCursorRect[2], textCursorRect[3], textCursorRect[4])
+		gl.Color(1,1,1,1)
+	end
+end
+
+function drawChatInput()
+	if showTextInput then
+		updateTextInputDlist = false
+		textInputDlist = gl.DeleteList(textInputDlist)
+		textInputDlist = gl.CreateList(function()
+			local activationArea = {floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier))}
+			local usedFontSize = 15 * widgetScale
+			local lineHeight = floor(usedFontSize * 1.15)
+			local x,y,_ = Spring.GetMouseState()
+			local chatlogHeightDiff = 0
+			local inputFontSize = floor(usedFontSize * 1.03)
+			local inputHeight = floor(inputFontSize * 2.15)
+			local leftOffset = floor(lineHeight*0.7)
+			local distance = 0 --elementMargin
+			local usedFont = inputMode == '' and font3 or font
+			local modeText = Spring.I18N('ui.settings.filter')
+			if inputMode ~= '' then
+				modeText = inputMode
+			end
+			local modeTextPosX = floor(activationArea[1]+elementPadding+elementPadding+leftOffset)
+			local textPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
+			local textCursorWidth = 1 + math.floor(inputFontSize / 14)
+			if inputTextInsertActive then
+				textCursorWidth = math.floor(textCursorWidth * 5)
+			end
+			local textCursorPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, inputTextPosition)) * inputFontSize)
+
+			-- background
+			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/2)))
+			chatInputArea = { activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance }
+			UiElement(chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4], 0,0,nil,nil, 0,nil,nil,nil, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+			if WG['guishader'] then
+				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'selectorinput')
+			end
+
+			-- button background
+			local inputButtonRect = {activationArea[1]+elementPadding, activationArea[2]+chatlogHeightDiff-distance-inputHeight+elementPadding, textPosX-inputFontSize, activationArea[2]+chatlogHeightDiff-distance}
+			if inputMode ~= '' then
+				gl.Color(0.03, 0.12, 0.03, 0.3)
+			else
+				gl.Color(0, 0, 0, 0.3)
+			end
+			RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 0,0,0,1)
+			gl.Color(1,1,1,0.033)
+			gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
+
+			-- button text
+			usedFont:Begin()
+			usedFont:SetTextColor(0.62, 0.62, 0.62, 1)
+			usedFont:Print(modeText, modeTextPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
+
+			-- text cursor
+			textCursorRect = { textPosX + textCursorPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64) }
+
+			usedFont:SetTextColor(0.95, 0.95, 0.95, 1)
+			usedFont:Print(inputText, textPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
+			usedFont:End()
+		end)
+	end
+end
 
 -------------------------------------------------------------------------------
 
@@ -178,11 +261,11 @@ local function UpdateGeometry()
 	midx = vsx * 0.5
 	midy = vsy * 0.5
 
-	local halfWidth = ((maxWidth + 2) * fontSize) * sizeMultiplier * 0.5
+	local halfWidth = (((maxWidth / fontSize) + 2) * fontSize) * sizeMultiplier * 0.5
 	minx = floor(midx - halfWidth - (borderx * sizeMultiplier))
 	maxx = floor(midx + halfWidth + (borderx * sizeMultiplier))
 
-	local ySize = (yStep * sizeMultiplier) * (#widgetsList)
+	local ySize = (yStep * sizeMultiplier) * math.max(#widgetsList, 8)
 	miny = floor(midy - (0.5 * ySize)) - ((fontSize + bgPadding + bgPadding) * sizeMultiplier)
 	maxy = floor(midy + (0.5 * ySize))
 end
@@ -210,14 +293,61 @@ local function UpdateListScroll()
 	for i = se, ee do
 		widgetsList[n], n = fullWidgetsList[i], n + 1
 	end
+end
 
-	localWidgetCount = 0
-	for _, namedata in ipairs(widgetsList) do
-		if not namedata[2].fromZip then
-			localWidgetCount = localWidgetCount + 1
+function widget:Initialize()
+
+	buttons = { --see MouseRelease for which functions are called by which buttons
+		[1] = Spring.I18N('ui.widgetselector.button_reloadluaui'),
+		[2] = Spring.I18N('ui.widgetselector.button_unloadallwidgets'),
+		[3] = Spring.I18N('ui.widgetselector.button_disallowuserwidgets'),
+		[4] = Spring.I18N('ui.widgetselector.button_resetluaui'),
+		[5] = Spring.I18N('ui.widgetselector.button_factoryresetluaui'),
+	}
+	if not allowuserwidgets then
+		buttons[3] = ''
+	else
+		if widgetHandler.allowUserWidgets then
+			buttons[3] = Spring.I18N('ui.widgetselector.button_disallowuserwidgets')
+		else
+			buttons[3] = Spring.I18N('ui.widgetselector.button_allowuserwidgets')
 		end
 	end
+
+	widgetHandler.knownChanged = true
+	Spring.SendCommands('unbindkeyset f11')
+
+	if Spring.GetGameFrame() <= 0 then
+		Spring.SendLuaRulesMsg('xmas' .. ((os.date("%m") == "12" and os.date("%d") >= "12") and '1' or '0'))
+	end
+	WG['widgetselector'] = {}
+	WG['widgetselector'].toggle = function(state)
+		local newShow = state
+		if newShow == nil then
+			newShow = not show
+		end
+		if newShow and WG['topbar'] then
+			WG['topbar'].hideWindows()
+		end
+		show = newShow
+		if show then
+			widgetHandler.textOwner = self		--widgetHandler:OwnText()
+			Spring.SetConfigInt("widgetselector", 1)
+		else
+			widgetHandler.textOwner = nil		--widgetHandler:DisownText()
+		end
+	end
+	WG['widgetselector'].isvisible = function()
+		return show
+	end
+	WG['widgetselector'].getLocalWidgetCount = function()
+		return localWidgetCount
+	end
+
+	widget:ViewResize(Spring.GetViewGeometry())
+	UpdateList()
 end
+
 
 local function ScrollUp(step)
 	startEntry = startEntry - step
@@ -265,35 +395,44 @@ local function SortWidgetListFunc(nd1, nd2)
 	return (nd1[1] < nd2[1])
 end
 
-local function UpdateList()
-	if not widgetHandler.knownChanged then
+function UpdateList(force)
+	if not widgetHandler.knownChanged and not force then
 		return
 	end
 	widgetHandler.knownChanged = false
 
 	local myName = widget:GetInfo().name
-	maxWidth = 0
+	--maxWidth = 0
 	widgetsList = {}
-	local fullWidgetsListCount = #fullWidgetsList
+	fullWidgetsList = {}
 	for name, data in pairs(widgetHandler.knownWidgets) do
 		if name ~= myName and name ~= 'Write customparam.__def to files' then
-			fullWidgetsListCount = fullWidgetsListCount + 1
-			fullWidgetsList[fullWidgetsListCount] = { name, data }
-			-- look for the maxWidth
-			local width = fontSize * font:GetTextWidth(name)
-			if width > maxWidth then
-				maxWidth = width
+			if (not inputText or inputText == '') or (string.find(string.lower(name), string.lower(inputText), nil, true) or (data.desc and string.find(string.lower(data.desc), string.lower(inputText), nil, true)) or (data.basename and string.find(string.lower(data.basename), string.lower(inputText), nil, true)) or (data.author and string.find(string.lower(data.author), string.lower(inputText), nil, true))) then
+				fullWidgetsList[#fullWidgetsList+1] = { name, data }
+				-- look for the maxWidth
+				local width = fontSize * font:GetTextWidth(name)
+				if width > maxWidth then
+					maxWidth = width
+				end
 			end
 		end
 	end
-
-	maxWidth = (maxWidth / fontSize)
-
-	--if widgetHandler.knownCount ~= (fullWidgetsListCount + 1) then
-	--  error('knownCount mismatch')
-	--end
+	--maxWidth = (maxWidth / fontSize)
 
 	table.sort(fullWidgetsList, SortWidgetListFunc)	-- occurred: Error in IsAbove(): [string "LuaUI/Widgets/widget_selector.lua"]:300: invalid order function for sorting (migh have happened cause i renamed/added a custom widget after launch)
+
+	localWidgetCount = 0
+	for _, namedata in ipairs(fullWidgetsList) do
+		if not namedata[2].fromZip then
+			localWidgetCount = localWidgetCount + 1
+		end
+	end
+
+	if force and WG['guishader']then
+		activeGuishader = false
+		WG['guishader'].DeleteDlist('widgetselector')
+		WG['guishader'].DeleteDlist('widgetselector2')
+	end
 
 	UpdateListScroll()
 	UpdateGeometry()
@@ -310,6 +449,8 @@ function widget:ViewResize(n_vsx, n_vsy)
 
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
+	elementPadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
 	UiSelectHighlight = WG.FlowUI.Draw.SelectHighlight
 
 	UpdateGeometry()
@@ -318,18 +459,30 @@ end
 
 -------------------------------------------------------------------------------
 
-function widget:KeyPress(key, mods, isRepeat)
-	if show and key == KEYSYMS.ESCAPE or
-		(key == KEYSYMS.F11 and not isRepeat and
-			not (mods.alt or mods.ctrl or mods.meta or mods.shift)) then
+function widget:KeyRelease()
+	-- Since we grab the keyboard, we need to specify a KeyRelease to make sure other release actions can be triggered
+	return false
+end
 
-		local newShow = not show
-		if newShow and WG['topbar'] then
-			WG['topbar'].hideWindows()
-		end
-		show = newShow
-		if show and not (Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI() or Spring.GetConfigInt("widgetselector", 0) == 1 or localWidgetCount > 0) then
-			show = false
+function widget:KeyPress(key, mods, isRepeat)
+	if show and key == KEYSYMS.ESCAPE or (key == KEYSYMS.F11 and not isRepeat and not (mods.alt or mods.ctrl or mods.meta or mods.shift)) then
+		if key == KEYSYMS.ESCAPE and inputText and inputText ~= '' then
+			clearChatInput()
+		else
+			local newShow = not show
+			if newShow and WG['topbar'] then
+				WG['topbar'].hideWindows()
+			end
+			show = newShow
+			if show and not (Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI() or Spring.GetConfigInt("widgetselector", 0) == 1 or localWidgetCount > 0) then
+				show = false
+			end
+			if show then
+				widgetHandler.textOwner = self		--widgetHandler:OwnText()
+				Spring.SetConfigInt("widgetselector", 1)
+			else
+				widgetHandler.textOwner = nil		--widgetHandler:DisownText()
+			end
 		end
 		return true
 	end
@@ -341,7 +494,71 @@ function widget:KeyPress(key, mods, isRepeat)
 		ScrollDown(pageStep)
 		return true
 	end
-	return false
+	--return false
+
+	if not show then return false end
+
+	if key >= 282 and key <= 293 then	-- Function keys
+		return false
+	end
+
+	--local alt, ctrl, _, shift = Spring.GetModKeyState()
+	if key == 27 then -- ESC
+		clearChatInput()
+	elseif key == 8 then -- BACKSPACE
+		if inputTextPosition > 0 then
+			inputText = utf8.sub(inputText, 1, inputTextPosition-1) .. utf8.sub(inputText, inputTextPosition+1)
+			inputTextPosition = inputTextPosition - 1
+		end
+		cursorBlinkTimer = 0
+		if inputText == '' then
+			clearChatInput()
+		else
+			UpdateList(true)
+		end
+	elseif key == 127 then -- DELETE
+		if inputTextPosition < utf8.len(inputText) then
+			inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition+2)
+		end
+		cursorBlinkTimer = 0
+		UpdateList(true)
+	elseif key == 277 then -- INSERT
+		inputTextInsertActive = not inputTextInsertActive
+	elseif key == 276 then -- LEFT
+		inputTextPosition = inputTextPosition - 1
+		if inputTextPosition < 0 then
+			inputTextPosition = 0
+		end
+		cursorBlinkTimer = 0
+	elseif key == 275 then -- RIGHT
+		inputTextPosition = inputTextPosition + 1
+		if inputTextPosition > utf8.len(inputText) then
+			inputTextPosition = utf8.len(inputText)
+		end
+		cursorBlinkTimer = 0
+	elseif key == 278 or key == 280 then -- HOME / PGUP
+		inputTextPosition = 0
+		cursorBlinkTimer = 0
+	elseif key == 279 or key == 281 then -- END / PGDN
+		inputTextPosition = utf8.len(inputText)
+		cursorBlinkTimer = 0
+	elseif key == 273 then -- UP
+
+	elseif key == 274 then -- DOWN
+
+	elseif key == 9 then -- TAB
+
+	else
+		-- regular chars/keys handled in widget:TextInput
+	end
+
+	updateTextInputDlist = true
+	return true
+end
+
+function widget:Update(dt)
+	cursorBlinkTimer = cursorBlinkTimer + dt
+	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
 end
 
 function widget:DrawScreen()
@@ -349,11 +566,23 @@ function widget:DrawScreen()
 		if WG['guishader'] and activeGuishader then
 			activeGuishader = false
 			WG['guishader'].DeleteDlist('widgetselector')
+			WG['guishader'].DeleteDlist('widgetselector2')
+			if textInputDlist then
+				WG['guishader'].RemoveRect('selectorinput')
+				textInputDlist = gl.DeleteList(textInputDlist)
+			end
 		end
 		return
 	end
 
 	UpdateList()
+
+	backgroundRect = { floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)) }
+
+	local title = Spring.I18N('ui.widgetselector.title')
+	local titleFontSize = 18 * widgetScale
+	titleRect = { backgroundRect[1], backgroundRect[4], math.floor(backgroundRect[1] + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(backgroundRect[4] + (titleFontSize*1.7)) }
+
 	if WG['guishader'] == nil then
 		activeGuishader = false
 	end
@@ -362,35 +591,33 @@ function widget:DrawScreen()
 		dlistGuishader = gl.CreateList(function()
 			RectRound(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 6 * sizeMultiplier)
 		end)
+		dlistGuishader2 = gl.CreateList(function()
+			RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 6 * sizeMultiplier)
+		end)
 		WG['guishader'].InsertDlist(dlistGuishader, 'widgetselector')
+		WG['guishader'].InsertDlist(dlistGuishader2, 'widgetselector2')
 	end
 	borderx = (yStep * sizeMultiplier) * 0.75
 	bordery = (yStep * sizeMultiplier) * 0.75
 
-	-- draw the header
-	font2:Begin()
-	font2:Print(texts.title, midx, maxy + ((11 + bgPadding) * sizeMultiplier), titleFontSize * sizeMultiplier, "oc")
-	font2:End()
 
-	font:Begin()
 	local mx, my, lmb, mmb, rmb = Spring.GetMouseState()
 	local tcol = WhiteStr
 
-	-- draw the -/+ buttons
-	if maxx - 10 < mx and mx < maxx and maxy < my and my < maxy + ((buttonFontSize + 7) * sizeMultiplier) then
-		tcol = '\255\031\031\031'
-	end
-	font:Print(tcol .. "+", maxx, maxy + ((7 + bgPadding) * sizeMultiplier), buttonFontSize * sizeMultiplier, "or")
-	tcol = WhiteStr
-	if minx < mx and mx < minx + 10 and maxy < my and my < maxy + ((buttonFontSize + 7) * sizeMultiplier) then
-		tcol = '\255\031\031\031'
-	end
-	font:Print(tcol .. "-", minx, maxy + ((7 + bgPadding) * sizeMultiplier), buttonFontSize * sizeMultiplier, "ol")
-	tcol = WhiteStr
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 1, 0, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 
-	UiElement(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 1, 1, 1, 1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	-- title background
+	gl.Color(0, 0, 0, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 
-	-- draw the text buttons (at the bottom) & their outlines
+	-- title
+	font2:Begin()
+	font2:SetTextColor(1, 1, 1, 1)
+	font2:SetOutlineColor(0, 0, 0, 0.4)
+	font2:Print(title, backgroundRect[1] + (titleFontSize * 0.75), backgroundRect[4] + (8*widgetScale), titleFontSize, "on")
+	font2:End()
+
+	font:Begin()
 	if showButtons then
 		for i, name in ipairs(buttons) do
 			tcol = WhiteStr
@@ -408,9 +635,19 @@ function widget:DrawScreen()
 	local pointedName = (nd and nd[1]) or nil
 	local posy = maxy - ((yStep + bgPadding) * sizeMultiplier)
 	sby1 = posy + ((fontSize + fontSpace) * sizeMultiplier) * 0.5
+	local prevFromZip = true
+	local customWidgetPosy
 	for _, namedata in ipairs(widgetsList) do
+
 		local name = namedata[1]
 		local data = namedata[2]
+
+		if prevFromZip ~= data.fromZip then
+			customWidgetPosy = posy
+			font2:SetTextColor(0.5, 0.5, 0.5, 0.4)
+			font2:Print(Spring.I18N('ui.widgetselector.islocal'), minx + fontSize * sizeMultiplier * 0.25, posy + (fontSize * sizeMultiplier) * 0.33, fontSize * sizeMultiplier, "")
+		end
+
 		local color = ''
 		local pointed = (pointedName == name)
 		local order = widgetHandler.orderList[name]
@@ -422,26 +659,21 @@ function widget:DrawScreen()
 			if not pagestepped and (lmb or mmb or rmb) then
 				color = WhiteStr
 			else
-				color = (active and '\255\128\255\128') or
-					(enabled and '\255\255\255\128') or '\255\255\128\128'
+				color = (active and '\255\128\255\128') or (enabled and '\255\255\255\128') or '\255\255\128\128'
 			end
 		else
-			color = (active and '\255\064\224\064') or
-				(enabled and '\255\200\200\064') or '\255\224\064\064'
+			color = (active and '\255\064\224\064') or (enabled and '\255\200\200\064') or '\255\224\064\064'
 		end
-
-		local tmpName
-		if data.fromZip then
-			-- FIXME: extra chars not counted in text length
-			tmpName = WhiteStr .. '*' .. color .. name .. WhiteStr .. '*'
-		else
-			tmpName = color .. name
-		end
-
-		font:Print(color .. tmpName, midx, posy + (fontSize * sizeMultiplier) * 0.5, fontSize * sizeMultiplier, "vc")
+		prevFromZip = data.fromZip
+		font:Print(color .. name, midx, posy + (fontSize * sizeMultiplier) * 0.5, fontSize * sizeMultiplier, "vc")
 		posy = posy - (yStep * sizeMultiplier)
 	end
-
+	if customWidgetPosy then
+		gl.Color(1, 1, 1, 0.07)
+		RectRound(backgroundRect[1]+elementPadding, customWidgetPosy + math.floor(yStep * sizeMultiplier * 0.85), backgroundRect[3]-elementPadding, customWidgetPosy + math.floor(yStep * sizeMultiplier * 0.85)-1, 0, 0,0,0,0)
+		gl.Color(1, 1, 1, 0.035)
+		RectRound(backgroundRect[1]+elementPadding, backgroundRect[2]+elementPadding, backgroundRect[3]-elementPadding, customWidgetPosy + math.floor(yStep * sizeMultiplier * 0.85), elementPadding, 0,0,1,0)
+	end
 
 	-- scrollbar
 	if #widgetsList < #fullWidgetsList then
@@ -469,18 +701,6 @@ function widget:DrawScreen()
 		if (sbposx < mx and mx < sbposx + sbsizex and miny < my and my < maxy) or activescrollbar then
 			RectRound(sbposx, miny, sbposx + (sbsizex * 0.61), maxy, 4.5 * sizeMultiplier, 1, 1, 1, 1, { 0.2, 0.2, 0.2, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
 		end
-
-		--[[gl.Color(1.0, 1.0, 1.0, 0.15)
-		gl.Shape(GL.TRIANGLES, {
-		  { v = { sbposx + sbsizex / 2, miny + trianglePadding } },
-		  { v = { sbposx + trianglePadding, sby2 - 1 - trianglePadding} },
-		  { v = { sbposx + sbsizex - trianglePadding, sby2 - 1 - trianglePadding} }
-		})
-		gl.Shape(GL.TRIANGLES, {
-		  { v = { sbposx + sbsizex / 2, maxy - trianglePadding } },
-		  { v = { sbposx - trianglePadding + sbsizex, sby2 + sbheight + 1 + trianglePadding} },
-		  { v = { sbposx + trianglePadding, sby2 + sbheight + 1 + trianglePadding} }
-		})]]--
 
 		-- scroller
 		if (sbposx < mx and mx < sbposx + sbsizex and sby2 < my and my < sby2 + sbheight) then
@@ -550,14 +770,32 @@ function widget:DrawScreen()
 			end
 			if d.author and d.author ~= '' then
 				local textLines, numLines = font:WrapText(d.author, maxWidth)
-				tooltip = tooltip.."\255\175\175\175" .. texts.author..':  ' ..string.gsub(textLines, '[\n]', "\n\255\175\175\175")..'\n'
+				tooltip = tooltip.."\255\175\175\175" .. Spring.I18N('ui.widgetselector.author')..':  ' ..string.gsub(textLines, '[\n]', "\n\255\175\175\175")..'\n'
 			end
-			tooltip = tooltip .."\255\175\175\175".. texts.file..':  '  ..d.basename .. (not d.fromZip and '   ('..texts.islocal..')' or '')
+			tooltip = tooltip .."\255\175\175\175".. Spring.I18N('ui.widgetselector.file')..':  '  ..d.basename .. (not d.fromZip and '   ('..Spring.I18N('ui.widgetselector.islocal')..')' or '')
 			if WG['tooltip'] then
 				WG['tooltip'].ShowTooltip('info', tooltip, nil, nil, tooltipTitle)
 			end
 		end
 	end
+
+	if showTextInput then --and updateTextInputDlist then
+		drawChatInput()
+	end
+	if showTextInput and textInputDlist then
+		gl.CallList(textInputDlist)
+		drawChatInputCursor()
+	elseif WG['guishader'] then
+		WG['guishader'].RemoveRect('selectorinput')
+		textInputDlist = gl.DeleteList(textInputDlist)
+	end
+
+	--local windowClick = (backgroundRect and math.isInRect(mx, my, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]))
+	--local titleClick = (titleRect and math.isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]))
+	--local chatinputClick = (chatInputArea and math.isInRect(mx, my, chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4]))
+	--if windowClick or titleClick or chatinputClick then
+	--	Spring.SetMouseCursor('cursornormal')
+	--end
 end
 
 function widget:MousePress(x, y, button)
@@ -567,20 +805,20 @@ function widget:MousePress(x, y, button)
 
 	UpdateList()
 
+	local windowClick = (backgroundRect and math.isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]))
+	local titleClick = (titleRect and math.isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]))
+	local chatinputClick = (chatInputArea and math.isInRect(x, y, chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4]))
+
+
+	if windowClick or titleClick or chatinputClick then
+		Spring.Echo(os.clock(), 'aa', button)
+	end
 	if button == 1 then
 		-- above a button
 		if showButtons then
 			if minx < x and x < maxx and miny - (buttonTop * sizeMultiplier) - #buttons * (buttonHeight * sizeMultiplier) < y and y < miny - (buttonTop * sizeMultiplier) then
 				return true
 			end
-		end
-
-		-- above the -/+
-		if maxx - 10 < x and x < maxx and maxy + bgPadding < y and y < maxy + ((buttonFontSize + 7 + bgPadding) * sizeMultiplier) then
-			return true
-		end
-		if minx < x and x < minx + 10 and maxy + bgPadding < y and y < maxy + ((buttonFontSize + 7 + bgPadding) * sizeMultiplier) then
-			return true
 		end
 
 		-- above the scrollbar
@@ -619,14 +857,13 @@ function widget:MousePress(x, y, button)
 		end
 	end
 
-	local namedata = aboveLabel(x, y)
-	if not namedata then
+	if windowClick or titleClick or chatinputClick then
+		return true
+	else
 		show = false
+		widgetHandler.textOwner = nil		--widgetHandler:DisownText()
 		return false
 	end
-
-	return true
-
 end
 
 function widget:MouseMove(x, y, dx, dy, button)
@@ -757,7 +994,7 @@ function aboveLabel(x, y)
 	local i = floor(1 + ((maxy - bordery) - y) / (yStep * sizeMultiplier))
 	if i < 1 then
 		i = 1
-	elseif i > count then
+	elseif i == count then
 		i = count
 	end
 
@@ -766,14 +1003,16 @@ end
 
 
 function widget:GetConfigData()
-	local data = { startEntry = startEntry, curMaxEntries = curMaxEntries, show = show }
+	local data = { startEntry = startEntry, show = show }
 	return data
 end
 
 function widget:SetConfigData(data)
 	startEntry = data.startEntry or startEntry
-	curMaxEntries = data.curMaxEntries or curMaxEntries
 	show = data.show or show
+	if show then
+		widgetHandler.textOwner = self		--widgetHandler:OwnText()
+	end
 end
 
 function widget:TextCommand(s)
@@ -786,6 +1025,12 @@ function widget:TextCommand(s)
 	end
 	if s == "widgetselector" then
 		show = not show
+		if show then
+			widgetHandler.textOwner = self		--widgetHandler:OwnText()
+			Spring.SetConfigInt("widgetselector", 1)
+		else
+			widgetHandler.textOwner = nil		--widgetHandler:DisownText()
+		end
 	end
 	if n == 1 and token[1] == "reset" then
 		-- tell the widget handler to reload with a blank config
@@ -795,16 +1040,27 @@ function widget:TextCommand(s)
 	if n == 1 and token[1] == "factoryreset" then
 		-- tell the widget handler to disallow user widgets and reload with a blank config
 		widgetHandler.__blankOutConfig = true
-		widgetHandler.__allowUserWidgets = false
+		--widgetHandler.__allowUserWidgets = false
+		Spring.SendCommands("luarules reloadluaui")
+	end
+	if n == 1 and token[1] == "userwidgets" then
+		if widgetHandler.allowUserWidgets then
+			widgetHandler.__allowUserWidgets = false
+			Spring.Echo("Disallowed user widgets, reloading...")
+		else
+			widgetHandler.__allowUserWidgets = true
+			Spring.Echo("Allowed user widgets, reloading...")
+		end
 		Spring.SendCommands("luarules reloadluaui")
 	end
 end
 
 function widget:Shutdown()
 	Spring.SendCommands('bind f11 luaui selector') -- if this one is removed or crashes, then have the backup one take over.
-
+	cancelChatInput()
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('widgetselector')
+		WG['guishader'].DeleteDlist('widgetselector2')
 	end
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)

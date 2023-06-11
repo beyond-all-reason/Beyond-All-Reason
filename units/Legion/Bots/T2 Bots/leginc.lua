@@ -150,9 +150,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					commanders = 5, --16,
-					default = 15, --33,
-					vtol = 5, --11,
+					default = 33, --33,
+					vtol = 11, --11,
 				},
 			},
 			targetray = {

@@ -169,6 +169,7 @@ return {
 				badtargetcategory = "VTOL",
 				def = "COR_ERAD",
 				onlytargetcategory = "VTOL",
+				fastautoretargeting = true,
 			},
 		},
 	},

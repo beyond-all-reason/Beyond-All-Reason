@@ -150,6 +150,7 @@ local armorDefs = {
 		"corfhlt",
 		"corfhp",
 		"corfmkr",
+		"corforge",
 		--"corfort",
 		"corfrt",
 		"corgator",
@@ -358,6 +359,9 @@ local armorDefs = {
 		"legcib",
 		"legmineb",
 		"chicken_dodoair",
+		"chickenbroodbomberh2",
+		"chickenbroodbomberh3",
+		"chickenbroodbomberh4",
 	},
 	fighters = {
 		"chickenw1_mini",
@@ -542,6 +546,7 @@ local armorDefs = {
 		"chickenearty1",
 		"chickenelectricallterrain",
 		"chicken_hive",
+		"chicken_antinuke",
 	},
 }
 

@@ -3,7 +3,11 @@
 
 namespace Economy {
 
-void AiOpenStrategy(const CCircuitDef@ facDef, const AIFloat3& in pos)
+void AiLoad(IStream& istream)
+{
+}
+
+void AiSave(OStream& ostream)
 {
 }
 

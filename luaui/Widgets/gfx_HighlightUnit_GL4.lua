@@ -24,6 +24,7 @@ local debugmode = 0
 local highlightunitShaderConfig = {
 	ANIMSPEED = 0.066,
 	ANIMFREQUENCY = 0.033,
+	SKINSUPPORT = Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and 1 or 0,
 }
 
 local vsSrc =
@@ -33,13 +34,20 @@ local vsSrc =
 #extension GL_ARB_shading_language_420pack: require
 
 #line 10000
+//__DEFINES__
 
 layout (location = 0) in vec3 pos;
 layout (location = 1) in vec3 normal;
 layout (location = 2) in vec3 T;
 layout (location = 3) in vec3 B;
 layout (location = 4) in vec4 uv;
-layout (location = 5) in uint pieceIndex;
+#if (SKINSUPPORT == 0)
+	layout (location = 5) in uint pieceIndex;
+#else
+	layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
+	#define pieceIndex (bonesInfo.x & 0x000000FFu)
+#endif
+
 layout (location = 6) in vec4 worldposrot;
 layout (location = 7) in vec4 parameters; // x =isstatic, y = edgealpha, z = edgeexponent, w = animamount
 layout (location = 8) in vec4 hcolor; // rgb color, plainalpha
@@ -48,7 +56,7 @@ layout (location = 9) in uvec4 instData;
 uniform float iconDistance;
 
 //__ENGINEUNIFORMBUFFERDEFS__
-//__DEFINES__
+
 
 #line 15000
 layout(std140, binding=0) readonly buffer MatrixBuffer {
@@ -372,7 +380,12 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if highlightUnitVBOTable and highlightUnitVBOTable.VAO then highlightUnitVBOTable.VAO:Delete() end
+	if highlightUnitVBOTable and highlightUnitVBOTable.VAO then 
+		if Spring.Utilities.IsDevMode() then 
+			dumpAndCompareInstanceData(highlightUnitVBOTable)
+		end
+		highlightUnitVBOTable.VAO:Delete() 
+	end
 	if highlightunitShader then highlightunitShader:Finalize() end
 
 	WG['HighlightUnitGL4'] = nil

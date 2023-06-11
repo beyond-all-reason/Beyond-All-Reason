@@ -11,7 +11,7 @@ return {
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -4 -4",
 		collisionvolumescales = "40.5 40.5 43.5",
-		collisionvolumetype = "CylZ",
+		collisionvolumetype = "BOX",
 		corpse = "DEAD",
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
@@ -144,6 +144,9 @@ return {
 				damage = {
 					default = 0,
 				},
+				customparams = {
+					bogus = 1
+				}
 			},
 			mobileflak = {
 				accuracy = 1000,

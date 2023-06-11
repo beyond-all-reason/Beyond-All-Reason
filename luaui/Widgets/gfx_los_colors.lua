@@ -17,9 +17,7 @@ end
 local losWithRadarEnabled = false
 local colorize = false
 local specDetected = false
-local opacity = 1
-
-local always, LOS, radar, jam, radar2
+local opacity = 0.88
 
 local losColorsWithRadarsGray = {
 	fog =    {0.20, 0.20, 0.20},
@@ -45,20 +43,26 @@ local losColorsWithoutRadars = {
 	radar2 = {0.00, 0.00, 0.00},
 }
 
-local spSendCommands = Spring.SendCommands
+
+local always, LOS, radar, jam, radar2
 local spSetLosViewColors = Spring.SetLosViewColors
 
-function setLosWithRadars()
-	losWithRadarEnabled = true
-	withRadars()
+
+local function applyOpacity(colors)
+	local newColors = table.copy(colors)
+	for i,c in pairs(newColors.fog) do
+		newColors.fog[i] = c * opacity
+		newColors.los[i] = c / ((1+opacity)/2)
+	end
+	return newColors
 end
 
-function setLosWithoutRadars()
-	losWithRadarEnabled = false
-	withoutRadars()
+local function updateLOS(colors)
+	colors = applyOpacity(colors)
+	spSetLosViewColors(colors.fog, colors.los, colors.radar, colors.jam, colors.radar2)
 end
 
-function withRadars()
+local function withRadars()
 	if not colorize then
 		updateLOS(losColorsWithRadarsGray)
 	else
@@ -66,21 +70,54 @@ function withRadars()
 	end
 end
 
-function withoutRadars()
+local function withoutRadars()
 	updateLOS(losColorsWithoutRadars)
 end
 
-function applyOpacity(colors)
-	local newColors = table.copy(colors)
-	for i,c in pairs(newColors.fog) do
-		newColors.fog[i] = c * opacity
-	end
-	return newColors
+local function setLosWithRadars()
+	losWithRadarEnabled = true
+	withRadars()
 end
 
-function updateLOS(colors)
-	colors = applyOpacity(colors)
-	spSetLosViewColors(colors.fog, colors.los, colors.radar, colors.jam, colors.radar2)
+local function setLosWithoutRadars()
+	losWithRadarEnabled = false
+	withoutRadars()
+end
+
+local function refreshLOS()
+	if losWithRadarEnabled then
+		setLosWithRadars()
+	else
+		setLosWithoutRadars()
+	end
+end
+
+local function setLosWithColors()
+	colorize = true
+	setLosWithRadars()
+end
+
+local function setLosWithoutColors()
+	colorize = false
+	setLosWithRadars()
+end
+
+local function toggleLOSRadars()
+	if losWithRadarEnabled then
+		setLosWithoutRadars()
+	else
+		setLosWithRadars()
+	end
+	return true
+end
+
+local function toggleLOSColors()
+	if not colorize then
+		setLosWithColors()
+	else
+		setLosWithoutColors()
+	end
+	return true
 end
 
 function widget:PlayerChanged(playerID)
@@ -94,56 +131,6 @@ function widget:PlayerChanged(playerID)
 			end
 		end
 	end
-end
-
-function widget:Shutdown()
-	spSetLosViewColors(always, LOS, radar, jam, radar2)
-end
-
-
-function widget:GetConfigData()
-	return {
-		losWithRadarEnabled = losWithRadarEnabled,
-		colorize = colorize
-	}
-end
-
-function refreshLOS()
-	if losWithRadarEnabled then
-		setLosWithRadars()
-	else
-		setLosWithoutRadars()
-	end
-end
-
-function setLosWithColors()
-	colorize = true
-	setLosWithRadars()
-end
-
-function setLosWithoutColors()
-	colorize = false
-	setLosWithRadars()
-end
-
-function toggleLOSRadars()
-	if losWithRadarEnabled then
-		setLosWithoutRadars()
-	else
-		setLosWithRadars()
-	end
-
-	return true
-end
-
-function toggleLOSColors()
-	if not colorize then
-		setLosWithColors()
-	else
-		setLosWithoutColors()
-	end
-
-	return true
 end
 
 function widget:Initialize()
@@ -179,6 +166,10 @@ function widget:Initialize()
 	end
 end
 
+function widget:Shutdown()
+	spSetLosViewColors(always, LOS, radar, jam, radar2)
+end
+
 function widget:SetConfigData(data)
 	if data.losWithRadarEnabled ~= nil then
 		losWithRadarEnabled = data.losWithRadarEnabled
@@ -194,3 +185,10 @@ function widget:SetConfigData(data)
 	end
 end
 
+function widget:GetConfigData()
+	return {
+		losWithRadarEnabled = losWithRadarEnabled,
+		colorize = colorize,
+		opacity = opacity
+	}
+end

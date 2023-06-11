@@ -10,8 +10,6 @@ piece base, tyre2, tyre3, ltyre, lcover, rtyre, rcover,cabin ,w_glass, container
 static-var  restore_delay, statechg_DesiredState, statechg_StateChanging, notBuilding, currentSpeed, moveSpeed, wheelSpeed;
 
 
-
-
 activatescr()
 {
 	turn ldoor to z-axis <0.000000> now;
@@ -28,6 +26,8 @@ activatescr()
 deactivatescr()
 {
 	set INBUILDSTANCE to 0;
+	hide cagelight_emit;
+	turn cagelight to y-axis <0> speed <1000>;
 	turn loturret to y-axis <0.000000> speed <160.038462>;
 	turn upturret to y-axis <0.000000> speed <160.038462>;
 	wait-for-turn loturret around y-axis;
@@ -82,16 +82,12 @@ RequestState(requestedstate, currentstate)
 			call-script deactivatescr();
 			notBuilding = 1;
 			currentstate = 1;
-			hide cagelight_emit;
-			turn cagelight to y-axis <0> speed <1000>;
 		}
 		else
 		{
 			call-script activatescr();
 			notBuilding = 0;
 			currentstate = 0;
-			show cagelight_emit;
-			spin cagelight around y-axis speed <300>;
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -133,15 +129,17 @@ StartBuilding(heading, pitch)
 	turn upturret to y-axis heading speed <160.038462>;
 	wait-for-turn upturret around y-axis;
 	set INBUILDSTANCE to 1;
+	show cagelight_emit;
+	spin cagelight around y-axis speed <250>;
 }
 
 StopBuilding()
 {
 	hide beam;
-	//hide cagelight_emit;
-	//turn cagelight to y-axis <0> speed <1000>;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
+	hide cagelight_emit;
+	turn cagelight to y-axis <0> speed <1000>;
 	sleep 6000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	

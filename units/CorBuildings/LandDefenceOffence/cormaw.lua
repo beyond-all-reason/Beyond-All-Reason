@@ -172,6 +172,7 @@ return {
 			[1] = {
 				def = "DMAW",
 				onlytargetcategory = "SURFACE",
+				fastautoretargeting = true,
 			},
 		},
 	},

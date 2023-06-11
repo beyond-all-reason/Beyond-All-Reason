@@ -17,6 +17,7 @@ end
 ------------------------------------------------------------
 local t1geoThreshold = 300 --any building producing this much or less is considered tier 1
 local t1mexThreshold = 0.001 --any building producing this much or less is considered tier 1
+local maxOrdersCheck = 50 --maximum amount of orders in unit queue to check for duplicate orders
 
 ------------------------------------------------------------
 -- Speedups
@@ -25,6 +26,7 @@ local CMD_STOP = CMD.STOP
 local CMD_GUARD = CMD.GUARD
 local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
+local spGetBuildFacing = Spring.GetBuildFacing
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
@@ -42,7 +44,6 @@ local taremove = table.remove
 ------------------------------------------------------------
 -- Other variables
 ------------------------------------------------------------
-local lastInsertedOrder
 
 ------------------------------------------------------------
 -- unit tables
@@ -57,9 +58,6 @@ local geoConstructorsDef = {}
 local geoConstructorsT2 = {}
 local geoBuildings = {}
 
-local unitWaterDepth = {}
-local unitXsize = {}
-
 ------------------------------------------------------------
 -- populate unit tables
 ------------------------------------------------------------
@@ -72,17 +70,13 @@ for uDefID, uDef in pairs(UnitDefs) do
 	if customParams.geothermal then
 		geoBuildings[uDefID] = uDef.energyMake
 	end
-	if uDef.isBuilding then
-		unitWaterDepth[uDefID] = { uDef.minWaterDepth, uDef.maxWaterDepth }
-		unitXsize[uDefID] = uDef.xsize
-	end
 end
 
 for uDefID, uDef in pairs(UnitDefs) do
 	if uDef.buildOptions then
 		local maxExtractMetal = 0
 		local maxProduceEnergy = 0
-		for i, option in ipairs(uDef.buildOptions) do
+		for _, option in ipairs(uDef.buildOptions) do
 			if mexBuildings[option] then
 				maxExtractMetal = math.max(maxExtractMetal, mexBuildings[option])
 				if mexConstructorsDef[uDefID] then
@@ -161,8 +155,8 @@ local function NoAlliedMex(x, z, batchextracts)
 end
 
 
-local function BuildResourceExtractors(params, options, isGuard, justDraw, constructorIds, buildingIds, spots)		-- when isGuard: needs to be a table of the unit pos: { x = ux, y = uy, z = uz }
-	local cx, cy, cz, cr = params[1], params[2], params[3], params[4]
+local function BuildResourceExtractors(params, options, isGuard, justDraw, constructorIds, buildingIds, spots, checkDuplicateOrders)		-- when isGuard: needs to be a table of the unit pos: { x = ux, y = uy, z = uz }
+	local cx, _, cz, cr = params[1], params[2], params[3], params[4]
 	if not cr or cr < Game_extractorRadius then cr = Game_extractorRadius end
 	local units = selectedUnits
 
@@ -235,7 +229,7 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 		orderedCommands[#orderedCommands + 1] = commands[1]
 		aveX, aveZ = commands[1].x, commands[1].z
 		taremove(commands, 1)
-		for k, com in pairs(commands) do
+		for _, com in pairs(commands) do
 			com.d = Distance(aveX, aveZ, com.x, com.z)
 		end
 		commandsCount = commandsCount - 1
@@ -243,15 +237,29 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 
 	-- Shift key not used = give stop command first
 	if not justDraw and not options.shift then
+		checkDuplicateOrders = false -- no need to check for duplicate orders
 		for ct = 1, mainBuildersCount do
 			spGiveOrderToUnit(mainBuilders[ct], CMD_STOP, {}, CMD_OPT_RIGHT)
 		end
 	end
 
 	-- Give the actual mex build orders
+	local facing = spGetBuildFacing() or 1
 	local queuedMexes = {}
 	for ct = 1, mainBuildersCount do
 		local id = mainBuilders[ct]
+		local mexOrders = {}
+
+		if checkDuplicateOrders then
+			local mexOrdersCount = 0
+			for _, order in pairs(Spring.GetUnitCommands(id, maxOrdersCheck)) do
+				if mexBuildings[-order["id"]] then
+					mexOrdersCount = mexOrdersCount + 1
+					mexOrders[mexOrdersCount] = order
+				end
+			end
+		end
+
 		for i = 1, #orderedCommands do
 			local command = orderedCommands[i]
 			for j = 1, constructorIds[id].buildings do
@@ -270,11 +278,31 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 				end
 				if targetPos then
 					local newx, newz = targetPos.x, targetPos.z
-					queuedMexes[#queuedMexes+1] = { id, math.abs(constructorIds[id].building[j]), newx, spGetGroundHeight(newx, newz), newz, targetOwner }
-					if not justDraw then
-						spGiveOrderToUnit(id, constructorIds[id].building[j], { newx, spGetGroundHeight(newx, newz), newz }, { "shift" })
-						lastInsertedOrder = { command.x, command.z}
+					local orderParams = { newx, spGetGroundHeight(newx, newz), newz, facing }
+
+					local duplicateFound = false
+
+					if checkDuplicateOrders then
+						for mI, mexOrder in pairs(mexOrders) do
+							if mexOrder["id"] == constructorIds[id].building[j] then
+								local mParams = mexOrder["params"]
+								if mParams[1] == orderParams[1] and mParams[2] == orderParams[2] and mParams[3] == orderParams[3] and mParams[4] == orderParams[4] then
+									duplicateFound = true
+									mexOrders[mI] = nil
+									break
+								end
+							end
+						end
 					end
+
+					if not(checkDuplicateOrders and duplicateFound) then
+						queuedMexes[#queuedMexes+1] = { id, math.abs(constructorIds[id].building[j]), newx, spGetGroundHeight(newx, newz), newz, targetOwner }
+
+						if not justDraw then
+							spGiveOrderToUnit(id, constructorIds[id].building[j], orderParams, { "shift" })
+						end
+					end
+
 					break
 				end
 			end
@@ -304,13 +332,13 @@ function widget:UnitCreated(unitID, unitDefID)
 	end
 end
 
-function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+function widget:UnitTaken(unitID, unitDefID, _, newTeam)
 	if not mexConstructors[unitID] or geoConstructors[unitID] then
 		widget:UnitCreated(unitID, unitDefID, newTeam)
 	end
 end
 
-function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+function widget:UnitGiven(unitID, unitDefID, newTeam)
 	if not mexConstructors[unitID] or geoConstructors[unitID] then
 		widget:UnitCreated(unitID, unitDefID, newTeam)
 	end
@@ -328,8 +356,8 @@ function widget:Initialize()
 	WG['resource_spot_builder'] = { }
 
 
-	WG['resource_spot_builder'].BuildMex = function(params, options, isGuard, justDraw)
-		return BuildResourceExtractors (params, options, isGuard, justDraw, mexConstructors, mexBuildings, WG['resource_spot_finder'].metalSpotsList)
+	WG['resource_spot_builder'].BuildMex = function(params, options, isGuard, justDraw, noToggleOrder)
+		return BuildResourceExtractors (params, options, isGuard, justDraw, mexConstructors, mexBuildings, WG['resource_spot_finder'].metalSpotsList, noToggleOrder)
 	end
 
 	WG['resource_spot_builder'].BuildGeothermal = function(params, options, isGuard, justDraw)
@@ -339,6 +367,10 @@ function widget:Initialize()
 	----------------------------------------------
 	-- builders and buildings - MEX
 	----------------------------------------------
+
+	WG['resource_spot_builder'].GetMexConstructor = function(unitID)
+		return mexConstructors[unitID]
+	end
 
 	WG['resource_spot_builder'].GetMexConstructors = function()
 		return mexConstructors

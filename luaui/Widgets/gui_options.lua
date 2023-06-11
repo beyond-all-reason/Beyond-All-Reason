@@ -22,9 +22,7 @@ local types = {
 local version = 1.4	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
 local newerVersion = false	-- configdata will set this true if it's a newer version
 
-local texts = {}    -- loaded from external language file
-
-local languageCodes = { 'en', 'fr', 'zh', 'test_unicode'}
+local languageCodes = { 'en', 'fr', 'de', 'zh', 'test_unicode'}
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
 
 local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
@@ -34,7 +32,7 @@ for key, code in ipairs(languageCodes) do
 	languageNames[key] = Spring.I18N.languages[code]
 end
 
-local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
 local devMode = Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI()
 local advSettings = false
@@ -66,7 +64,7 @@ local sounds = {
 local continuouslyClean = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
---local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)*0.0039, Spring.GetConfigInt("anonymousColorG", 0)*0.0039, Spring.GetConfigInt("anonymousColorB", 0)*0.0039}
+--local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -100,7 +98,6 @@ local manualChange = true
 
 local guishaderIntensity = 0.0035
 
-local spIsGUIHidden = Spring.IsGUIHidden
 local spGetGroundHeight = Spring.GetGroundHeight
 
 local os_clock = os.clock
@@ -122,7 +119,7 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local RectRound, elementCorner, UiElement, UiButton, UiSlider, UiSliderKnob, UiToggle, UiSelector, UiSelectHighlight, bgpadding
+local RectRound, elementCorner, elementMargin, elementPadding, UiElement, UiButton, UiSlider, UiSliderKnob, UiToggle, UiSelector, UiSelectHighlight, bgpadding
 
 local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
@@ -170,6 +167,7 @@ local windowRect = { 0, 0, 0, 0 }
 local showOnceMore = false        -- used because of GUI shader delay
 local resettedTonemapDefault = false
 local heightmapChangeClock
+local requireRestartDefaults = {}
 
 local presetCodes = {}
 local presetNames = {}
@@ -273,6 +271,8 @@ function widget:ViewResize()
 
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
+	elementMargin = WG.FlowUI.elementMargin
+	elementPadding = WG.FlowUI.elementPadding
 
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
@@ -294,6 +294,9 @@ function widget:ViewResize()
 
 	if windowList then
 		gl.DeleteList(windowList)
+		backgroundGuishader = glDeleteList(backgroundGuishader)
+		consoleCmdDlist = glDeleteList(consoleCmdDlist)
+		textInputDlist = glDeleteList(textInputDlist)
 	end
 	windowList = gl.CreateList(DrawWindow)
 
@@ -309,6 +312,136 @@ local function detectWater()
 		Spring.SendCommands("water " .. desiredWaterValue)
 	end
 end
+
+
+local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
+--local textInputDlist, consoleCmdDlist, textCursorRect
+local updateTextInputDlist = true
+local showTextInput = true
+local inputText = ''
+local inputTextPosition = 0
+local cursorBlinkTimer = 0
+local cursorBlinkDuration = 1
+local maxTextInputChars = 127	-- tested 127 as being the true max
+local inputTextInsertActive = false
+local floor = math.floor
+local inputMode = ''
+
+function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
+	if not chobbyInterface and not Spring.IsGUIHidden() and showTextInput and show then
+		if inputTextInsertActive then
+			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition+2)
+			if inputTextPosition <= utf8.len(inputText) then
+				inputTextPosition = inputTextPosition + 1
+			end
+		else
+			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition+1)
+			inputTextPosition = inputTextPosition + 1
+		end
+		if string.len(inputText) > maxTextInputChars then
+			inputText = string.sub(inputText, 1, maxTextInputChars)
+			if inputTextPosition > maxTextInputChars then
+				inputTextPosition = maxTextInputChars
+			end
+		end
+		cursorBlinkTimer = 0
+		updateTextInputDlist = true
+		if WG['limitidlefps'] and WG['limitidlefps'].update then
+			WG['limitidlefps'].update()
+		end
+
+		init()
+		return true
+	end
+end
+
+local function clearChatInput()
+	inputText = ''
+	inputTextPosition = 0
+	inputTextInsertActive = false
+	init()
+end
+
+local function cancelChatInput()
+	local doReinit = inputText ~= ''
+	backgroundGuishader = glDeleteList(backgroundGuishader)
+	if WG['guishader'] then
+		WG['guishader'].RemoveRect('optionsinput')
+	end
+	widgetHandler.textOwner = nil	--widgetHandler:DisownText()
+	if doReinit then
+		init()
+	end
+end
+
+function drawChatInputCursor()
+	if textCursorRect then
+		local a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.15
+		glColor(0.7,0.7,0.7,a)
+		gl.Rect(textCursorRect[1], textCursorRect[2], textCursorRect[3], textCursorRect[4])
+		glColor(1,1,1,1)
+	end
+end
+
+function updateInputDlist()
+	updateTextInputDlist = false
+	glDeleteList(textInputDlist)
+	textInputDlist = glCreateList(function()
+		local activationArea = {screenX, screenY - screenHeight, screenX + screenWidth, screenY}
+		local usedFontSize = 15 * widgetScale
+		local lineHeight = floor(usedFontSize * 1.15)
+		local x,y,_ = Spring.GetMouseState()
+		local chatlogHeightDiff = 0
+		local inputFontSize = floor(usedFontSize * 1.03)
+		local inputHeight = floor(inputFontSize * 2.15)
+		local leftOffset = floor(lineHeight*0.7)
+		local distance = 0 --elementMargin
+		local usedFont = font
+		local modeText = Spring.I18N('ui.settings.filter')
+		if inputMode ~= '' then
+			modeText = inputMode
+		end
+		local modeTextPosX = floor(activationArea[1]+elementPadding+elementPadding+leftOffset)
+		local textPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
+		local textCursorWidth = 1 + math.floor(inputFontSize / 14)
+		if inputTextInsertActive then
+			textCursorWidth = math.floor(textCursorWidth * 5)
+		end
+		local textCursorPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, inputTextPosition)) * inputFontSize)
+
+		-- background
+		local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/5)))
+		chatInputArea = { activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance }
+		UiElement(chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4], 0,0,nil,nil, 0,nil,nil,nil, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+		if WG['guishader'] then
+			WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'optionsinput')
+		end
+
+		-- button background
+		local inputButtonRect = {activationArea[1]+elementPadding, activationArea[2]+chatlogHeightDiff-distance-inputHeight+elementPadding, textPosX-inputFontSize, activationArea[2]+chatlogHeightDiff-distance}
+		if inputMode ~= '' then
+			glColor(0.03, 0.12, 0.03, 0.3)
+		else
+			glColor(0, 0, 0, 0.3)
+		end
+		RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 0,0,0,1)
+		glColor(1,1,1,0.033)
+		gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
+
+		-- button text
+		usedFont:Begin()
+		usedFont:SetTextColor(0.62, 0.62, 0.62, 1)
+		usedFont:Print(modeText, modeTextPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
+
+		-- text cursor
+		textCursorRect = { textPosX + textCursorPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64) }
+
+		usedFont:SetTextColor(0.95, 0.95, 0.95, 1)
+		usedFont:Print(inputText, textPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
+		usedFont:End()
+	end)
+end
+
 
 function getOptionByID(id)
 	for i, option in pairs(options) do
@@ -339,7 +472,7 @@ function orderOptions()
 				name = group.name .. '                                          \255\130\130\130' .. vsx .. ' x ' .. vsy
 			end
 			newOptionsCount = newOptionsCount + 1
-			newOptions[newOptionsCount] = { id = "group_" .. group.id, name = name, type = "label" }
+			newOptions[newOptionsCount] = { id = "group_" .. group.id, name = '\255\255\200\110'..name, type = "label"}
 		end
 		for i, option in pairs(grOptions) do
 			newOptionsCount = newOptionsCount + 1
@@ -384,15 +517,19 @@ function DrawWindow()
 	windowRect = { screenX, screenY - screenHeight, screenX + screenWidth, screenY }
 
 	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 0, 1, 1, 1, 1, 1, 1, ui_opacity + 0.2)
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, (showTextInput and inputText ~= '' and inputMode == '') and 1 or 0, 0, 1, (showTextInput and 0 or 1), 1, 1, 1, 1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 
 	-- title
 	local groupMargin = math.floor(bgpadding * 0.8)
 	local color = '\255\255\255\255'
 	local color2 = '\255\125\125\125'
-	local title = "" .. color .. texts.basic .. color2 .. "  /  " .. texts.advanced
-	if advSettings then
-		title = "" .. color2 .. texts.basic .. "  /  " .. color .. texts.advanced
+	local title = ""
+	if devMode then
+		title = devOptionColor .. Spring.I18N('ui.settings.option.devmode')
+	elseif advSettings then
+		title = "" .. color2 .. Spring.I18N('ui.settings.basic') .. "  /  " .. color .. Spring.I18N('ui.settings.advanced')
+	else
+		title = "" .. color .. Spring.I18N('ui.settings.basic') .. color2 .. "  /  " .. Spring.I18N('ui.settings.advanced')
 	end
 	local titleFontSize = 18 * widgetScale
 	titleRect = { math.floor((screenX + screenWidth) - ((font2:GetTextWidth(title) * titleFontSize) + (titleFontSize * 1.5))), screenY, screenX + screenWidth, math.floor(screenY + (titleFontSize * 1.7)) }
@@ -408,39 +545,41 @@ function DrawWindow()
 	font2:End()
 
 	-- group tabs
-	local tabFontSize = 16 * widgetScale
-	local xpos = screenX
-	local groupPadding = 1
-	groupRect = {}
-	for id, group in pairs(optionGroups) do
-		groupRect[id] = { xpos, titleRect[2], math.floor(xpos + (font2:GetTextWidth(group.name) * tabFontSize) + (33 * widgetScale)), titleRect[4] }
-		if devMode or group.id ~= 'dev' then
-			xpos = groupRect[id][3]
-			if currentGroupTab == nil or currentGroupTab ~= group.id then
-				RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
-				RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.66, 1, 1, 0, 0, { 0.6, 0.47, 0.24, 0.2 }, { 0.88, 0.68, 0.33, 0.2 })
+	if not (showTextInput and inputText ~= '' and inputMode == '') then
+		local tabFontSize = 16 * widgetScale
+		local xpos = screenX
+		local groupPadding = 1
+		groupRect = {}
+		for id, group in pairs(optionGroups) do
+			groupRect[id] = { xpos, titleRect[2], math.floor(xpos + (font2:GetTextWidth(group.name) * tabFontSize) + (33 * widgetScale)), titleRect[4] }
+			if devMode or group.id ~= 'dev' then
+				xpos = groupRect[id][3]
+				if currentGroupTab == nil or currentGroupTab ~= group.id then
+					RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
+					RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.66, 1, 1, 0, 0, { 0.6, 0.47, 0.24, 0.2 }, { 0.88, 0.68, 0.33, 0.2 })
 
-				RectRound(groupRect[id][1] + groupMargin+groupPadding, groupRect[id][2], groupRect[id][3] - groupMargin-groupPadding, groupRect[id][4] - groupMargin-groupPadding, elementCorner * 0.5, 1, 1, 0, 0, { 0,0,0, 0.13 }, { 0,0,0, 0.13 })
+					RectRound(groupRect[id][1] + groupMargin+groupPadding, groupRect[id][2], groupRect[id][3] - groupMargin-groupPadding, groupRect[id][4] - groupMargin-groupPadding, elementCorner * 0.5, 1, 1, 0, 0, { 0,0,0, 0.13 }, { 0,0,0, 0.13 })
 
-				glBlending(GL_SRC_ALPHA, GL_ONE)
-				-- gloss
-				RectRound(groupRect[id][1] + groupMargin, groupRect[id][4] - groupMargin - ((groupRect[id][4] - groupRect[id][2]) * 0.5), groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding * 1.2, 1, 1, 0, 0, { 1, 0.88, 0.66, 0 }, { 1, 0.88, 0.66, 0.1 })
-				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+					glBlending(GL_SRC_ALPHA, GL_ONE)
+					-- gloss
+					RectRound(groupRect[id][1] + groupMargin, groupRect[id][4] - groupMargin - ((groupRect[id][4] - groupRect[id][2]) * 0.5), groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding * 1.2, 1, 1, 0, 0, { 1, 0.88, 0.66, 0 }, { 1, 0.88, 0.66, 0.1 })
+					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-				font2:Begin()
-				font2:SetTextColor(0.7, 0.58, 0.44, 1)
-				font2:SetOutlineColor(0, 0, 0, 0.4)
-				font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (9 * widgetScale), tabFontSize, "con")
-				font2:End()
-			else
-				RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
-				RectRound(groupRect[id][1] + groupMargin, groupRect[id][2] - bgpadding, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.8, 1, 1, 0, 0, { 0.7, 0.7, 0.7, 0.15 }, { 0.8, 0.8, 0.8, 0.15 })
+					font2:Begin()
+					font2:SetTextColor(0.7, 0.58, 0.44, 1)
+					font2:SetOutlineColor(0, 0, 0, 0.4)
+					font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (9 * widgetScale), tabFontSize, "con")
+					font2:End()
+				else
+					RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
+					RectRound(groupRect[id][1] + groupMargin, groupRect[id][2] - bgpadding, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.8, 1, 1, 0, 0, { 0.7, 0.7, 0.7, 0.15 }, { 0.8, 0.8, 0.8, 0.15 })
 
-				font2:Begin()
-				font2:SetTextColor(1, 0.75, 0.4, 1)
-				font2:SetOutlineColor(0, 0, 0, 0.4)
-				font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (9 * widgetScale), tabFontSize, "con")
-				font2:End()
+					font2:Begin()
+					font2:SetTextColor(1, 0.75, 0.4, 1)
+					font2:SetOutlineColor(0, 0, 0, 0.4)
+					font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (9 * widgetScale), tabFontSize, "con")
+					font2:End()
+				end
 			end
 		end
 	end
@@ -467,7 +606,11 @@ function DrawWindow()
 	maxColumnRows = math.floor((y - yPosMax + oPadding) / (oHeight + oPadding + oPadding))
 	local numOptions = #options
 
-	if currentGroupTab ~= nil then
+	local dontFilterGroup = false
+	if inputText and inputText ~= '' and inputMode == '' then
+		dontFilterGroup = true
+	end
+	if currentGroupTab ~= nil and not dontFilterGroup then
 		numOptions = 0
 		for i, option in pairs(options) do
 			if option.group == currentGroupTab and showOption(option) then
@@ -480,6 +623,16 @@ function DrawWindow()
 
 	optionButtons = {}
 	optionHover = {}
+
+	-- require restart notification
+	if changesRequireRestart then
+		glColor(1,0,0,0.06)
+		RectRound(screenX+bgpadding, screenY - screenHeight+bgpadding, screenX + screenWidth-bgpadding, screenY-screenHeight + (31 * widgetScale), elementCorner, 0, 0, 1, 0)
+		RectRound(screenX+bgpadding, screenY - screenHeight+bgpadding + (30 * widgetScale)-1, screenX + screenWidth-bgpadding, screenY-screenHeight + (30 * widgetScale), 0, 0, 0, 0, 0)
+		font:SetTextColor(0.9, 0.3, 0.3, 1)
+		font:SetOutlineColor(0, 0, 0, 0.4)
+		font:Print(Spring.I18N('ui.settings.madechanges'), screenX + math.floor(screenWidth*0.5), screenY - screenHeight + (12 * widgetScale), 15 * widgetScale, "cn")
+	end
 
 	-- draw navigation... backward/forward
 	if totalColumns > maxShownColumns then
@@ -519,18 +672,12 @@ function DrawWindow()
 		end
 	end
 
-	-- require restart notification
-	if changesRequireRestart then
-		font:SetTextColor(1, 0.35, 0.35, 1)
-		font:SetOutlineColor(0, 0, 0, 0.4)
-		font:Print(texts.madechanges, screenX + math.floor(bgpadding * 2.5), screenY - screenHeight + (3 * widgetScale) + math.floor(bgpadding * 2), 15 * widgetScale, "n")
-	end
-
 	-- draw options
 	local yPos
+	local prevGroup = ''
 	for oid, option in pairs(options) do
 		if showOption(option) then
-			if currentGroupTab == nil or option.group == currentGroupTab then
+			if currentGroupTab == nil or option.group == currentGroupTab or dontFilterGroup then
 				yPos = math.floor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
 				if yPos - oHeight < yPosMax then
 					i = 0
@@ -573,6 +720,9 @@ function DrawWindow()
 									text = string.sub(text, 1, string.len(text) - 1)
 								end
 								text = text .. '...'
+							end
+							if option.restart then
+								font:Print('\255\255\090\090*', xPos + (oPadding * 0.3), yPos - (oHeight / 5) - oPadding, oHeight, "no")
 							end
 							font:Print(color .. text, xPos + (oPadding * 2), yPos - (oHeight / 2.4) - oPadding, oHeight, "no")
 						end
@@ -680,6 +830,9 @@ local isOffscreenTime
 local prevOffscreenVolume
 local apiUnitTrackerEnabledCount = 0
 function widget:Update(dt)
+	cursorBlinkTimer = cursorBlinkTimer + dt
+	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
+
 	if sceduleToggleWidget then
 		widgetHandler:ToggleWidget(sceduleToggleWidget)
 		sceduleToggleWidget = nil
@@ -733,7 +886,7 @@ function widget:Update(dt)
 
 	if sceduleOptionApply then
 		if sceduleOptionApply[1] <= os.clock() then
-			applyOptionValue(sceduleOptionApply[2], true, true)
+			applyOptionValue(sceduleOptionApply[2], nil, true, true)
 			sceduleOptionApply = nil
 		end
 	end
@@ -791,12 +944,12 @@ function widget:Update(dt)
 	end
 
 	sec = sec + dt
-	if show and (sec > lastUpdate + 0.6 or forceUpdate) then
+	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
 		sec = 0
 		forceUpdate = nil
 		lastUpdate = sec
 
-		local changes = true
+		local changes = false
 		for i, option in ipairs(options) do
 			if options[i].widget ~= nil and options[i].type == 'bool' and options[i].value ~= GetWidgetToggleValue(options[i].widget) then
 				options[i].value = GetWidgetToggleValue(options[i].widget)
@@ -809,7 +962,9 @@ function widget:Update(dt)
 			end
 			windowList = gl.CreateList(DrawWindow)
 		end
-		options[getOptionByID('sndvolmaster')].value = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)    -- update value because other widgets can adjust this too
+		if getOptionByID('sndvolmaster') then
+			options[getOptionByID('sndvolmaster')].value = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)    -- update value because other widgets can adjust this too
+		end
 		if getOptionByID('sndvolmusic') then
 			if WG['music'] and WG['music'].GetMusicVolume then
 				options[getOptionByID('sndvolmusic')].value = WG['music'].GetMusicVolume()
@@ -854,7 +1009,7 @@ function widget:RecvLuaMsg(msg, playerID)
 				pauseGameWhenSingleplayerExecuted = chobbyInterface
 			end
 			if not chobbyInterface then
-				Spring.SetConfigInt('VSync', Spring.GetConfigInt("VSyncGame", 0))
+				Spring.SetConfigInt('VSync', Spring.GetConfigInt("VSyncGame", -1))
 			end
 		end
 	end
@@ -898,12 +1053,6 @@ function widget:DrawScreen()
 		init()
 		initialized = true
 	else
-		if chobbyInterface then
-			return
-		end
-		if spIsGUIHidden() then
-			return
-		end
 
 		-- update new slider value
 		if sliderValueChanged then
@@ -926,7 +1075,10 @@ function widget:DrawScreen()
 
 			--on window
 			local mx, my, ml = Spring.GetMouseState()
-			if math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then
+			if (math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4])) or
+					(titleRect and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4])) or
+					(chatInputArea and math_isInRect(mx, my, chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4]))
+			then
 				Spring.SetMouseCursor('cursornormal')
 			end
 			if groupRect ~= nil then
@@ -939,9 +1091,6 @@ function widget:DrawScreen()
 					end
 				end
 			end
-			if titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-				Spring.SetMouseCursor('cursornormal')
-			end
 
 			-- draw the options panel
 			glCallList(windowList)
@@ -953,12 +1102,17 @@ function widget:DrawScreen()
 						-- title
 						RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 						-- tabs
-						for id, group in pairs(optionGroups) do
-							if devMode or group.id ~= 'dev' then
-								if groupRect[id] then
-									RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0)
+						if not (showTextInput and inputText ~= '' and inputMode == '') then
+							guishaderedTabs = true
+							for id, group in pairs(optionGroups) do
+								if devMode or group.id ~= 'dev' then
+									if groupRect[id] then
+										RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0)
+									end
 								end
 							end
+						else
+							guishaderedTabs = false
 						end
 					end)
 				end
@@ -968,7 +1122,7 @@ function widget:DrawScreen()
 
 			-- mouseover (highlight and tooltip)
 			local description = ''
-			if titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+			if not devMode and titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 				local groupMargin = math.floor(bgpadding * 0.8)
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -976,11 +1130,13 @@ function widget:DrawScreen()
 				RectRound(titleRect[1] + groupMargin, titleRect[4] - groupMargin - ((titleRect[4] - titleRect[2]) * 0.5), titleRect[3] - groupMargin, titleRect[4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 1, 0.88, 0.66, 0 }, { 1, 0.88, 0.66, 0.09 })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			end
-			if groupRect ~= nil then
-				for id, group in pairs(optionGroups) do
-					if devMode or group.id ~= 'dev' then
-						if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
-							mouseoverGroupTab(id)
+			if not (showTextInput and inputText ~= '' and inputMode == '') then
+				if groupRect ~= nil then
+					for id, group in pairs(optionGroups) do
+						if devMode or group.id ~= 'dev' then
+							if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+								mouseoverGroupTab(id)
+							end
 						end
 					end
 				end
@@ -995,7 +1151,7 @@ function widget:DrawScreen()
 			if not showSelectOptions then
 				local tooltipShowing = false
 				for i, o in pairs(optionButtons) do
-					if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
+					if options[i] and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
 						if options[i].onclick == nil then
 							RectRound(o[1], o[2], o[3], o[4], 1, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.22 }, { 1, 1, 1, 0.22 })
 						end
@@ -1016,18 +1172,29 @@ function widget:DrawScreen()
 				end
 				if not tooltipShowing then
 					for i, o in pairs(optionHover) do
-						if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' and options[i].type ~= 'text'then
+						if options[i] and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' and options[i].type ~= 'text' then
 							-- display console command at the bottom
-							if (advSettings or devMode) and options[i].onchange ~= nil  then
-								font:Begin()
-								font:SetTextColor(0.5, 0.5, 0.5, 0.27)
-								font:Print('/option ' .. options[i].id, screenX + (8 * widgetScale), screenY - screenHeight + (11 * widgetScale), 14 * widgetScale, "n")
-								font:End()
+							if (advSettings or devMode) and (options[i].onchange ~= nil or options[i].widget) then
+								if not lastConsoleCmdOption or lastConsoleCmdOption ~= options[i].id then
+									consoleCmdDlist = glDeleteList(consoleCmdDlist)
+									consoleCmdDlist = glCreateList(function()
+										font:Begin()
+										font:SetTextColor(0.5, 0.5, 0.5, 0.27)
+										font:Print('/option ' .. options[i].id, screenX + (8 * widgetScale), screenY - screenHeight + (11 * widgetScale), 14 * widgetScale, "n")
+										font:End()
+									end)
+								end
+								glCallList(consoleCmdDlist)
+								lastConsoleCmdOption = options[i].id
 							end
 							-- highlight option
 							UiSelectHighlight(o[1] - 4, o[2], o[3] + 4, o[4], nil, options[i].onclick and (ml and 0.35 or 0.22) or 0.14, options[i].onclick and { 0.5, 1, 0.25 })
 							if WG.tooltip and options[i].description and options[i].description ~= '' and options[i].description ~= ' ' then
-								WG.tooltip.ShowTooltip('options_description', options[i].description)--, nil, nil, "\255\255\255\255"..options[i].name)
+								local desc = options[i].description
+								if options[i].restart then
+									desc = desc..'\n\n\255\255\120\120'..Spring.I18N('ui.settings.changesrequirerestart')
+								end
+								WG.tooltip.ShowTooltip('options_description', desc)--, nil, nil, "\255\255\255\255"..options[i].name)
 							end
 							break
 						end
@@ -1106,9 +1273,26 @@ function widget:DrawScreen()
 			elseif prevSelectHover ~= nil then
 				prevSelectHover = nil
 			end
+			if showTextInput then
+				if not textInputDlist or inputText ~= prevInputText or updateTextInputDlist then
+					prevInputText = inputText
+					updateInputDlist()
+				end
+				if textInputDlist then
+					glCallList(textInputDlist)
+					drawChatInputCursor()
+				elseif WG['guishader'] then
+					WG['guishader'].RemoveRect('optionsinput')
+					textInputDlist = glDeleteList(textInputDlist)
+				end
+			end
 		else
 			if WG['guishader'] then
 				WG['guishader'].DeleteDlist('options')
+				if textInputDlist then
+					WG['guishader'].RemoveRect('optionsinput')
+					textInputDlist = glDeleteList(textInputDlist)
+				end
 			end
 		end
 		if checkedWidgetDataChanges == nil then
@@ -1153,8 +1337,7 @@ function loadPreset(preset)
 	for optionID, value in pairs(presets[preset]) do
 		local i = getOptionByID(optionID)
 		if options[i] ~= nil then
-			options[i].value = value
-			applyOptionValue(i, true)
+			applyOptionValue(i, value, true)
 		end
 	end
 
@@ -1164,15 +1347,93 @@ function loadPreset(preset)
 	windowList = gl.CreateList(DrawWindow)
 end
 
+
+function widget:KeyRelease()
+	-- Since we grab the keyboard, we need to specify a KeyRelease to make sure other release actions can be triggered
+	return false
+end
+
 function widget:KeyPress(key)
-	if key == 27 then
-		-- ESC
-		if showSelectOptions then
-			showSelectOptions = nil
+	if not show then
+		return false
+	end
+	if key == 27 then	-- ESC
+		if showTextInput and inputText ~= '' then
+			clearChatInput()
+			return true
 		else
-			show = false
+			if showSelectOptions then
+				showSelectOptions = nil
+			else
+				show = false
+				cancelChatInput()
+			end
+			if not guishaderedTabs then
+				backgroundGuishader = glDeleteList(backgroundGuishader)
+			end
 		end
 	end
+
+	if key >= 282 and key <= 293 then	-- Function keys
+		return false
+	end
+
+	if inputText == '' and guishaderedTabs then
+		backgroundGuishader = glDeleteList(backgroundGuishader)
+	end
+
+	--local alt, ctrl, _, shift = Spring.GetModKeyState()
+	if key == 27 then -- ESC
+		clearChatInput()
+	elseif key == 8 then -- BACKSPACE
+		if inputTextPosition > 0 then
+			inputText = utf8.sub(inputText, 1, inputTextPosition-1) .. utf8.sub(inputText, inputTextPosition+1)
+			inputTextPosition = inputTextPosition - 1
+		end
+		cursorBlinkTimer = 0
+		if inputText == '' then
+			clearChatInput()
+		else
+			init()
+		end
+	elseif key == 127 then -- DELETE
+		if inputTextPosition < utf8.len(inputText) then
+			inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition+2)
+		end
+		cursorBlinkTimer = 0
+		init()
+	elseif key == 277 then -- INSERT
+		inputTextInsertActive = not inputTextInsertActive
+	elseif key == 276 then -- LEFT
+		inputTextPosition = inputTextPosition - 1
+		if inputTextPosition < 0 then
+			inputTextPosition = 0
+		end
+		cursorBlinkTimer = 0
+	elseif key == 275 then -- RIGHT
+		inputTextPosition = inputTextPosition + 1
+		if inputTextPosition > utf8.len(inputText) then
+			inputTextPosition = utf8.len(inputText)
+		end
+		cursorBlinkTimer = 0
+	elseif key == 278 or key == 280 then -- HOME / PGUP
+		inputTextPosition = 0
+		cursorBlinkTimer = 0
+	elseif key == 279 or key == 281 then -- END / PGDN
+		inputTextPosition = utf8.len(inputText)
+		cursorBlinkTimer = 0
+	elseif key == 273 then -- UP
+
+	elseif key == 274 then -- DOWN
+
+	elseif key == 9 then -- TAB
+
+	else
+		-- regular chars/keys handled in widget:TextInput
+	end
+
+	updateTextInputDlist = true
+	return true
 end
 
 function NearestValue(table, number)
@@ -1230,9 +1491,8 @@ function widget:MouseMove(mx, my)
 	if draggingSlider ~= nil then
 		local newValue = getSliderValue(draggingSlider, mx)
 		if options[draggingSlider].value ~= newValue then
-			options[draggingSlider].value = newValue
 			sliderValueChanged = true
-			applyOptionValue(draggingSlider)    -- disabled so only on release it gets applied
+			applyOptionValue(draggingSlider, newValue)    -- disabled so only on release it gets applied
 			if playSounds and (lastSliderSound == nil or os_clock() - lastSliderSound > 0.04) then
 				lastSliderSound = os_clock()
 				Spring.PlaySoundFile(sounds.sliderDrag, 0.4, 'ui')
@@ -1250,23 +1510,39 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(mx, my, button, release)
-	if spIsGUIHidden() then
+	if Spring.IsGUIHidden() then
 		return false
 	end
 
 	if show then
-		local returnTrue
-		if button == 3 then
-			if titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-				return
+		local windowClick = (math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]))
+		local titleClick = (titleRect and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]))
+		local chatinputClick = (chatInputArea and math_isInRect(mx, my, chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4]))
+		local tabClick
+		if not (inputText and inputText ~= '' and inputMode == '') and groupRect ~= nil then
+			for id, group in pairs(optionGroups) do
+				if devMode or group.id ~= 'dev' then
+					if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+						if not release then
+							currentGroupTab = group.id
+							startColumn = 1
+							showSelectOptions = nil
+							selectClickAllowHide = nil
+							if playSounds then
+								Spring.PlaySoundFile(sounds.paginatorClick, 0.9, 'ui')
+							end
+						end
+						tabClick = true
+					end
+				end
 			end
-		elseif button == 1 then
+		end
+
+		if button == 1 then
 			if release then
-				if titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-					-- showhow rightmouse doesnt get triggered :S
+				if not devMode and titleClick then
 					advSettings = not advSettings
 					startColumn = 1
-					return
 				end
 				-- navigation buttons
 				if optionButtonForward ~= nil and math_isInRect(mx, my, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
@@ -1279,11 +1555,6 @@ function mouseEvent(mx, my, button, release)
 					end
 					showSelectOptions = nil
 					selectClickAllowHide = nil
-					if windowList then
-						gl.DeleteList(windowList)
-					end
-					windowList = gl.CreateList(DrawWindow)
-					return
 				end
 				if optionButtonBackward ~= nil and math_isInRect(mx, my, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
 					startColumn = startColumn - maxShownColumns
@@ -1295,17 +1566,11 @@ function mouseEvent(mx, my, button, release)
 					end
 					showSelectOptions = nil
 					selectClickAllowHide = nil
-					if windowList then
-						gl.DeleteList(windowList)
-					end
-					windowList = gl.CreateList(DrawWindow)
-					return
 				end
 
 				-- apply new slider value
 				if draggingSlider ~= nil then
-					options[draggingSlider].value = getSliderValue(draggingSlider, mx)
-					applyOptionValue(draggingSlider)
+					applyOptionValue(draggingSlider, getSliderValue(draggingSlider, mx))
 					draggingSlider = nil
 					draggingSliderPreDragValue = nil
 					return
@@ -1315,8 +1580,7 @@ function mouseEvent(mx, my, button, release)
 				if showSelectOptions ~= nil then
 					for i, o in pairs(optionSelect) do
 						if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-							options[showSelectOptions].value = o[5]
-							applyOptionValue(showSelectOptions)
+							applyOptionValue(showSelectOptions, o[5])
 							if playSounds then
 								Spring.PlaySoundFile(sounds.selectClick, 0.5, 'ui')
 							end
@@ -1332,30 +1596,7 @@ function mouseEvent(mx, my, button, release)
 				end
 			end
 
-			local tabClicked = false
-			if show and groupRect ~= nil then
-				for id, group in pairs(optionGroups) do
-					if devMode or group.id ~= 'dev' then
-						if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
-							if not release then
-								currentGroupTab = group.id
-								startColumn = 1
-								showSelectOptions = nil
-								selectClickAllowHide = nil
-								if playSounds then
-									Spring.PlaySoundFile(sounds.paginatorClick, 0.9, 'ui')
-								end
-							end
-							tabClicked = true
-							returnTrue = true
-						end
-					end
-				end
-			end
-
-			if tabClicked then
-
-			elseif math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then
+			if not tabClick and windowClick then
 				-- on window
 				if release then
 					-- select option
@@ -1364,8 +1605,7 @@ function mouseEvent(mx, my, button, release)
 							for i, o in pairs(optionButtons) do
 
 								if options[i].type == 'bool' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-									options[i].value = not options[i].value
-									applyOptionValue(i)
+									applyOptionValue(i, not options[i].value)
 									if playSounds then
 										if options[i].value then
 											Spring.PlaySoundFile(sounds.toggleOnClick, 0.75, 'ui')
@@ -1384,8 +1624,7 @@ function mouseEvent(mx, my, button, release)
 						end
 
 					end
-				else
-					-- mousepress
+				else	-- press
 					if not showSelectOptions then
 						for i, o in pairs(optionButtons) do
 							if options[i].type == 'slider' and (math_isInRect(mx, my, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) or math_isInRect(mx, my, o[1], o[2], o[3], o[4])) then
@@ -1393,8 +1632,7 @@ function mouseEvent(mx, my, button, release)
 								draggingSliderPreDragValue = options[draggingSlider].value
 								local newValue = getSliderValue(draggingSlider, mx)
 								if options[draggingSlider].value ~= newValue then
-									options[draggingSlider].value = getSliderValue(draggingSlider, mx)
-									applyOptionValue(draggingSlider)    -- disabled so only on release it gets applied
+									applyOptionValue(draggingSlider, getSliderValue(draggingSlider, mx))    -- disabled so only on release it gets applied
 									if playSounds then
 										Spring.PlaySoundFile(sounds.sliderDrag, 0.3, 'ui')
 									end
@@ -1413,33 +1651,23 @@ function mouseEvent(mx, my, button, release)
 						end
 					end
 				end
-
-				if button == 1 or button == 3 then
-					return true
-				end
-				-- on title
-			elseif titleRect ~= nil and math_isInRect(mx, my, (titleRect[1] * widgetScale) - ((vsx * (widgetScale - 1)) / 2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale - 1)) / 2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale - 1)) / 2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale - 1)) / 2)) then
-				returnTrue = true
-			elseif not tabClicked then
-				if release and draggingSlider == nil then
-					showOnceMore = true        -- show once more because the guishader lags behind, though this will not fully fix it
-					show = false
-				end
-				return true
-			end
-
-			if show then
-				if windowList then
-					gl.DeleteList(windowList)
-				end
-				windowList = gl.CreateList(DrawWindow)
-			end
-			if returnTrue then
-				return true
 			end
 		end
 
-		if math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then
+
+		if windowList then
+			gl.DeleteList(windowList)
+		end
+		windowList = gl.CreateList(DrawWindow)
+
+		if windowClick or titleClick or chatinputClick or tabClick then
+			return true
+		elseif not tabClick then
+			if release and draggingSlider == nil then
+				showOnceMore = true        -- show once more because the guishader lags behind, though this will not fully fix it
+				show = false
+				cancelChatInput()
+			end
 			return true
 		end
 	end
@@ -1461,39 +1689,56 @@ end
 
 -- configVar = table, add more entries the deeper the configdata table var is: example: {'Config','console','maxlines'}  (limit = 3 deep)
 function loadWidgetData(widgetName, optionId, configVar)
-	if getOptionByID(optionId) and widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName][configVar[1]] ~= nil then
+	local optionID = getOptionByID(optionId)
+	if optionID and widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName][configVar[1]] ~= nil then
 		if configVar[2] ~= nil and widgetHandler.configData[widgetName][configVar[1]][configVar[2]] ~= nil then
 			if configVar[3] ~= nil and widgetHandler.configData[widgetName][configVar[1]][configVar[2]][configVar[3]] ~= nil then
-				options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]][configVar[3]]
+				options[optionID].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]][configVar[3]]
 				return true
 			else
-				options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]]
+				options[optionID].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]]
 				return true
 			end
-		elseif options[getOptionByID(optionId)].value ~= widgetHandler.configData[widgetName][configVar[1]] then
-			options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]]
+		elseif options[optionID].value ~= widgetHandler.configData[widgetName][configVar[1]] then
+			options[optionID].value = widgetHandler.configData[widgetName][configVar[1]]
 			return true
 		end
 	end
 end
 
-function applyOptionValue(i, skipRedrawWindow, force)
+function checkRequireRestart()
+	changesRequireRestart = false
+	for id, value in pairs(requireRestartDefaults) do
+		local i = getOptionByID(id)
+		if options[i] and options[i].value ~= value then
+			changesRequireRestart = true
+		end
+	end
+end
+
+function applyOptionValue(i, newValue, skipRedrawWindow, force)
 	if options[i] == nil then
 		return
 	end
 
-	if options[i].id ~= 'preset' and presets.lowest[options[i].id] ~= nil and manualChange then
-		options[getOptionByID('preset')].value = presetCodes.custom
-		Spring.SetConfigString('graphicsPreset', presetCodes[presetCodes.custom])
-	end
-
-	if options[i].restart then
-		changesRequireRestart = true
-	end
-
 	local id = options[i].id
 
-	if options[i].widget ~= nil then
+	if newValue ~= nil then
+		options[i].value = newValue
+	end
+
+	if options[i].restart and requireRestartDefaults[id] ~= nil then
+		checkRequireRestart()
+	end
+
+	if options[i].id ~= 'preset' and presets.lowest[options[i].id] ~= nil and manualChange then
+		if options[getOptionByID('preset')] then
+			options[getOptionByID('preset')].value = presetCodes.custom
+			Spring.SetConfigString('graphicsPreset', presetCodes[presetCodes.custom])
+		end
+	end
+
+	if options[i].widget ~= nil and widgetHandler.orderList[options[i].widget] ~= nil then
 		if options[i].value then
 			if widgetHandler.orderList[options[i].widget] < 0.5 then
 				widgetHandler:EnableWidget(options[i].widget)
@@ -1539,7 +1784,10 @@ local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 100
 --if Platform ~= nil and Platform.gpuVendor == 'Intel' then
 --	isPotatoGpu = true
 --end
-if gpuMem and gpuMem > 0 and gpuMem < 1800 then
+if not gpuMem then
+	gpuMem = 0
+end
+if gpuMem > 0 and gpuMem < 1800 then
 	isPotatoGpu = true
 end
 if not Platform.glHaveGL4 then
@@ -1551,7 +1799,7 @@ function init()
 	presetCodes = table.merge(presetCodes, table.invert(presetCodes))
 
 	for index, name in ipairs(presetCodes) do
-		presetNames[index] = texts.option['preset_' .. name]
+		presetNames[index] = Spring.I18N('ui.settings.option.preset_' .. name)
 	end
 
 	presets = {
@@ -1567,7 +1815,8 @@ function init()
 			snow = false,
 			particles = 9000,
 			guishader = 0,
-			decals = false,
+			decalsgl4 = 0,
+			decals = 0,
 			shadowslider = 1,
 			grass = false,
 			cusgl4 = false,
@@ -1584,7 +1833,8 @@ function init()
 			snow = false,
 			particles = 12000,
 			guishader = 0,
-			decals = true,
+			decalsgl4 = 1,
+			decals = 1,
 			shadowslider = 2,
 			grass = false,
 			cusgl4 = true,
@@ -1601,7 +1851,8 @@ function init()
 		 	snow = true,
 		 	particles = 15000,
 		 	guishader = guishaderIntensity,
-		 	decals = true,
+			decalsgl4 = 1,
+		 	decals = 2,
 			shadowslider = 3,
 		 	grass = true,
 			cusgl4 = true,
@@ -1618,7 +1869,8 @@ function init()
 			snow = true,
 			particles = 20000,
 			guishader = guishaderIntensity,
-			decals = true,
+			decalsgl4 = 1,
+			decals = 3,
 			shadowslider = 4,
 			grass = true,
 			cusgl4 = true,
@@ -1635,7 +1887,8 @@ function init()
 			snow = true,
 			particles = 25000,
 			guishader = guishaderIntensity,
-			decals = true,
+			decalsgl4 = 1,
+			decals = 4,
 			shadowslider = 5,
 			grass = true,
 			cusgl4 = true,
@@ -1649,6 +1902,7 @@ function init()
 	local currentDisplay = 1
 	local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
 	local displayNames = {}
+	local hasMultiDisplayOption = false
 	for index, display in ipairs(displays) do
 		if display.width > 0 then
 			displayNames[index] = index..":  "..display.name .. " " .. display.width .. " × " .. display.height .. "  (" .. display.hz.."hz)"
@@ -1657,6 +1911,7 @@ function init()
 			end
 		elseif devMode then -- advSettings
 			displayNames[index] = display.name
+			hasMultiDisplayOption = true
 		end
 	end
 	local selectedDisplay = currentDisplay
@@ -1668,6 +1923,13 @@ function init()
 			resolutionNames[#resolutionNames+1] = screenMode.name
 		elseif #resolutionNames == 0 then
 			screenmodeOffset = screenmodeOffset + 1
+		end
+	end
+
+	-- only allow dualscreen-mode on single displays when super ultrawide screen or Multi Display option shows
+	if (#displayNames <= 1 and vsx / vsy < 2.5) or (#displayNames > 1 and #displayNames == Spring.GetNumDisplays()) then
+		if Spring.GetConfigInt("DualScreenMode", 0) ~= 0 then
+			Spring.SetConfigInt("DualScreenMode", 0)
 		end
 	end
 
@@ -1727,22 +1989,27 @@ function init()
 		if isPotatoGpu then
 			Spring.Echo('potato Graphics Card detected')
 		end
-		presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium, texts.option.preset_custom }
+		presetNames = {
+			Spring.I18N('ui.settings.option.preset_lowest'),
+			Spring.I18N('ui.settings.option.preset_low'),
+			Spring.I18N('ui.settings.option.preset_medium'),
+			Spring.I18N('ui.settings.option.preset_custom')
+		}
 	end
 
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
 	optionGroups = {
-		{ id = 'gfx', name = texts.group.graphics },
-		{ id = 'ui', name = texts.group.interface },
-		{ id = 'game', name = texts.group.game },
-		{ id = 'control', name = texts.group.control },
-		{ id = 'sound', name = texts.group.audio },
-		{ id = 'notif', name = texts.group.notifications },
-		{ id = 'accessibility', name = texts.group.accessibility },
-		{ id = 'dev', name = texts.group.dev },
+		{ id = 'gfx', name = Spring.I18N('ui.settings.group.graphics') },
+		{ id = 'ui', name = Spring.I18N('ui.settings.group.interface') },
+		{ id = 'game', name = Spring.I18N('ui.settings.group.game') },
+		{ id = 'control', name = Spring.I18N('ui.settings.group.control') },
+		{ id = 'sound', name = Spring.I18N('ui.settings.group.audio') },
+		{ id = 'notif', name = Spring.I18N('ui.settings.group.notifications') },
+		{ id = 'accessibility', name = Spring.I18N('ui.settings.group.accessibility') },
+		{ id = 'dev', name = Spring.I18N('ui.settings.group.dev') },
 	}
 
-	if not currentGroupTab or Spring.GetGameFrame() == 0 then
+	if not currentGroupTab then
 		currentGroupTab = optionGroups[1].id
 	else
 		-- check if group exists
@@ -1760,7 +2027,7 @@ function init()
 
 	options = {
 		--GFX
-		{ id = "preset", group = "gfx", category = types.basic, name = texts.option.preset, type = "select", options = presetNames, value = presetCodes[Spring.GetConfigString('graphicsPreset')],
+		{ id = "preset", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.preset'), type = "select", options = presetNames, value = presetCodes[Spring.GetConfigString('graphicsPreset')],
 			onload = function(i)
 			end,
 			onchange = function(i, value)
@@ -1774,9 +2041,9 @@ function init()
 				manualChange = true
 			end,
 		},
-		{ id = "label_gfx_screen", group = "gfx", name = texts.option.label_screen, category = types.basic },
+		{ id = "label_gfx_screen", group = "gfx", name = Spring.I18N('ui.settings.option.label_screen'), category = types.basic },
 		{ id = "label_gfx_screen_spacer", group = "gfx", category = types.basic },
-		{ id = "display", group = "gfx", category = types.basic, name = texts.option.display, type = "select", options = displayNames, value = currentDisplay,
+		{ id = "display", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.display'), type = "select", options = displayNames, value = currentDisplay,
 			onchange = function(i, value)
 				--currentDisplay = value
 				selectedDisplay = value
@@ -1799,7 +2066,7 @@ function init()
 				forceUpdate = true
 			end,
 		},
-		{ id = "resolution", group = "gfx", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.resolution, type = "select", options = resolutionNames, value = Spring.GetConfigInt('SelectedScreenMode', 1), description = texts.option.resolution_descr,
+		{ id = "resolution", group = "gfx", category = types.basic, name = widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.resolution'), type = "select", options = resolutionNames, value = Spring.GetConfigInt('SelectedScreenMode', 1), description = Spring.I18N('ui.settings.option.resolution_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt('SelectedScreenMode', value)
 
@@ -1815,24 +2082,24 @@ function init()
 				end
 			end,
 		},
-		{ id = "dualmode_enabled", group = "gfx", category = types.dev, name = texts.option.dualmode, type = "bool", value = Spring.GetConfigInt("DualScreenMode"), description = texts.option.dualmode_enabled_descr,
+		{ id = "dualmode_enabled", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.dualmode'), type = "bool", value = Spring.GetConfigInt("DualScreenMode"), description = Spring.I18N('ui.settings.option.dualmode_enabled_descr'),
 		  onchange = function(_, value)
 			  Spring.SetConfigInt("DualScreenMode", value and 1 or 0)
 		  end,
 		},
-		{ id = "dualmode_left", group = "gfx", category = types.dev, name = widgetOptionColor .. "  " .. texts.option.dualmode_left, type = "bool", value = Spring.GetConfigInt("DualScreenMiniMapOnLeft"), description = texts.option.dualmode_left_descr,
+		{ id = "dualmode_left", group = "gfx", category = types.dev, name = widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.dualmode_left'), type = "bool", value = Spring.GetConfigInt("DualScreenMiniMapOnLeft"), description = Spring.I18N('ui.settings.option.dualmode_left_descr'),
 		  onchange = function(_, value)
 			  Spring.SetConfigInt("DualScreenMiniMapOnLeft", value and 1 or 0)
 		  end,
 		},
-		{ id = "dualmode_minimap_aspectratio", group = "gfx", category = types.dev, name = widgetOptionColor .. "  " .. texts.option.dualmode_minimap_aspectratio, type = "bool", value = Spring.GetConfigInt("DualScreenMiniMapAspectRatio"), description = texts.option.dualmode_minimap_aspectratio_descr,
+		{ id = "dualmode_minimap_aspectratio", group = "gfx", category = types.dev, name = widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.dualmode_minimap_aspectratio'), type = "bool", value = Spring.GetConfigInt("DualScreenMiniMapAspectRatio"), description = Spring.I18N('ui.settings.option.dualmode_minimap_aspectratio_descr'),
 		  onchange = function(_, value)
 			  Spring.SetConfigInt("DualScreenMiniMapAspectRatio", value and 1 or 0)
 		  end,
 		},
-		{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync,  type = "select", options = { 'off', 'enabled', 'adaptive'}, value = 1, description = texts.option.vsync_descr,
+		{ id = "vsync", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.vsync'),  type = "select", options = { 'off', 'enabled', 'adaptive'}, value = 2, description = Spring.I18N('ui.settings.option.vsync_descr'),
 		  onload = function(i)
-			  local vsync =  Spring.GetConfigInt("VSyncGame", 0)
+			  local vsync = Spring.GetConfigInt("VSyncGame", -1)
 			  if vsync == 1 then
 			  	options[getOptionByID('vsync')].value = 2
 			  elseif vsync == -1 then
@@ -1840,7 +2107,6 @@ function init()
 			  else
 				options[getOptionByID('vsync')].value = 1
 			  end
-			  Spring.SetConfigInt("VSyncGame", vsync)
 		  end,
 		  onchange = function(i, value)
 			  local vsync = 0
@@ -1853,9 +2119,9 @@ function init()
 			  Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
 		  end,
 		},
-		{ id = "limitidlefps", group = "gfx", category = types.advanced, widget = "Limit idle FPS", name = texts.option.limitidlefps, type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = texts.option.limitidlefps_descr },
+		{ id = "limitidlefps", group = "gfx", category = types.advanced, widget = "Limit idle FPS", name = Spring.I18N('ui.settings.option.limitidlefps'), type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = Spring.I18N('ui.settings.option.limitidlefps_descr') },
 
-		{ id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "select", options = { 'off', 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0), description = texts.option.msaa_descr,
+		{ id = "msaa", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.msaa'), type = "select", options = { 'off', 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0), description = Spring.I18N('ui.settings.option.msaa_descr'),
 		  onload = function(i)
 			  local msaa = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0)
 			  if msaa <= 0 then
@@ -1880,7 +2146,7 @@ function init()
 		  end,
 		},
 
-		{ id = "cas_sharpness", group = "gfx", category = types.advanced, name = texts.option.cas_sharpness, min = 0.75, max = 1.1, step = 0.01, type = "slider", value = 1.0, description = texts.option.cas_sharpness_descr,
+		{ id = "cas_sharpness", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.cas_sharpness'), min = 0.75, max = 1.1, step = 0.01, type = "slider", value = 1.0, description = Spring.I18N('ui.settings.option.cas_sharpness_descr'),
 		  onload = function(i)
 			  loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", { 'SHARPNESS' })
 		  end,
@@ -1892,8 +2158,8 @@ function init()
 		  end,
 		},
 
-		{ id = "sepiatone", group = "gfx", category = types.advanced, widget = "Sepia Tone", name = texts.option.sepiatone, type = "bool", value = GetWidgetToggleValue("Sepia Tone"), description = texts.option.sepiatone_descr },
-		{ id = "sepiatone_gamma", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_gamma, min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5, description = texts.option.sepiatone_gamma_descr,
+		{ id = "sepiatone", group = "gfx", category = types.advanced, widget = "Sepia Tone", name = Spring.I18N('ui.settings.option.sepiatone'), type = "bool", value = GetWidgetToggleValue("Sepia Tone") },
+		{ id = "sepiatone_gamma", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_gamma'), min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_gamma", { 'gamma' })
 		  end,
@@ -1901,7 +2167,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setGamma', { 'gamma' }, value)
 		  end,
 		},
-		{ id = "sepiatone_saturation", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_saturation, min = 0, max = 1.5, step = 0.02, type = "slider", value = 0.5, description = texts.option.sepiatone_saturation_descr,
+		{ id = "sepiatone_saturation", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_saturation'), min = 0, max = 1.5, step = 0.02, type = "slider", value = 0.5,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_saturation", { 'saturation' })
 		  end,
@@ -1909,7 +2175,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setSaturation', { 'saturation' }, value)
 		  end,
 		},
-		{ id = "sepiatone_contrast", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_contrast, min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5, description = texts.option.sepiatone_contrast_descr,
+		{ id = "sepiatone_contrast", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_contrast'), min = 0.1, max = 0.9, step = 0.02, type = "slider", value = 0.5,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_contrast", { 'contrast' })
 		  end,
@@ -1917,7 +2183,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setContrast', { 'contrast' }, value)
 		  end,
 		},
-		{ id = "sepiatone_sepia", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_sepia, min = 0, max = 0.5, step = 0.02, type = "slider", value = 0.5, description = texts.option.sepiatone_sepia_descr,
+		{ id = "sepiatone_sepia", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_sepia'), min = 0, max = 0.5, step = 0.02, type = "slider", value = 0.5, description = Spring.I18N('ui.settings.option.sepiatone_sepia_descr'),
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_sepia", { 'sepia' })
 		  end,
@@ -1925,7 +2191,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setSepia', { 'sepia' }, value)
 		  end,
 		},
-		{ id = "sepiatone_shadeui", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sepiatone_shadeui, type = "bool", value = 0, description = texts.option.sepiatone_shadeui_descr,
+		{ id = "sepiatone_shadeui", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_shadeui'), type = "bool", value = 0,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_shadeui", { 'shadeUI' })
 		  end,
@@ -1935,18 +2201,18 @@ function init()
 		},
 
 
-		{ id = "label_gfx_lighting", group = "gfx", name = texts.option.label_lighting, category = types.basic },
+		{ id = "label_gfx_lighting", group = "gfx", name = Spring.I18N('ui.settings.option.label_lighting'), category = types.basic },
 		{ id = "label_gfx_lighting_spacer", group = "gfx", category = types.basic },
 
 
-		{ id = "advmapshading", group = "gfx", category = types.dev, name = texts.option.advmapshading, type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = texts.option.advmapshading_descr,
+		{ id = "advmapshading", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.advmapshading'), type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = Spring.I18N('ui.settings.option.advmapshading_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
 			  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
 		  end,
 		},
 
-		{ id = "grounddetail", group = "gfx", category = types.dev, name = texts.option.grounddetail, type = "slider", min = 50, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 150) or 150), description = texts.option.grounddetail_descr,
+		{ id = "grounddetail", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.grounddetail'), type = "slider", min = 50, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 150) or 150), description = Spring.I18N('ui.settings.option.grounddetail_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -1955,7 +2221,7 @@ function init()
 		  end,
 		},
 
-		{ id = "cusgl4", group = "gfx", name = texts.option.cus, category = types.advanced, type = "bool", value = (Spring.GetConfigInt("cus2", 1) == 1), description = texts.option.cus_descr,
+		{ id = "cusgl4", group = "gfx", name = Spring.I18N('ui.settings.option.cus'), category = types.advanced, type = "bool", value = (Spring.GetConfigInt("cus2", 1) == 1), description = Spring.I18N('ui.settings.option.cus_descr'),
 		  onchange = function(i, value)
 			  if value == 0.5 then
 				  Spring.SendCommands("luarules disablecusgl4")
@@ -1966,7 +2232,7 @@ function init()
 		  end,
 		},
 
-		{ id = "shadowslider", group = "gfx", category = types.basic, name = texts.option.shadowslider, type = "select", options = { 'lowest', 'low', 'medium', 'high', 'ultra'}, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 2048) or 2048), description = texts.option.shadowslider_descr,
+		{ id = "shadowslider", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.shadowslider'), type = "select", options = { 'lowest', 'low', 'medium', 'high', 'ultra'}, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 2048) or 2048), description = Spring.I18N('ui.settings.option.shadowslider_descr'),
 		  onload = function(i)
 			  local ShadowMapSize = tonumber(Spring.GetConfigInt("ShadowMapSize", 2048) or 2048)
 			  if devMode then
@@ -1989,6 +2255,10 @@ function init()
 			  local quality = {
 				  [1] = 2048, [2] = 3584, [3] = 6144, [4] = 8192, [5] = 10240, [6] = 12288
 			  }
+			  if options[getOptionByID('shadowslider')].options[value] == nil then
+				  value = (value == 1 and 2 or 4)
+				  options[getOptionByID('shadowslider')].value = value
+			  end
 			  value = quality[value]
 			  Spring.SendCommands("shadows 1 " .. value)
 			  Spring.SetConfigInt("Shadows", 1)
@@ -1996,14 +2266,14 @@ function init()
 		  end,
 		},
 
-		{ id = "shadows_opacity", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.shadows_opacity, type = "slider", min = 0.3, max = 1, step = 0.01, value = gl.GetSun("shadowDensity"), description = '',
+		{ id = "shadows_opacity", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.shadows_opacity'), type = "slider", min = 0.3, max = 1, step = 0.01, value = gl.GetSun("shadowDensity"), description = '',
 		  onchange = function(i, value)
 			  Spring.SetSunLighting({ groundShadowDensity = value, modelShadowDensity = value })
 		  end,
 		},
 
-		{ id = "ssao", group = "gfx", category = types.basic, widget = "SSAO", name = texts.option.ssao, type = "bool", value = GetWidgetToggleValue("SSAO"), description = texts.option.ssao_descr },
-		{ id = "ssao_strength", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.ssao_strength, type = "slider", min = 5, max = 11, step = 1, value = 8, description = '',
+		{ id = "ssao", group = "gfx", category = types.basic, widget = "SSAO", name = Spring.I18N('ui.settings.option.ssao'), type = "bool", value = GetWidgetToggleValue("SSAO"), description = Spring.I18N('ui.settings.option.ssao_descr') },
+		{ id = "ssao_strength", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.ssao_strength'), type = "slider", min = 5, max = 11, step = 1, value = 8, description = '',
 		  onload = function(i)
 			  loadWidgetData("SSAO", "ssao_strength", { 'strength' })
 		  end,
@@ -2011,7 +2281,7 @@ function init()
 			  saveOptionValue('SSAO', 'ssao', 'setStrength', { 'strength' }, value)
 		  end,
 		},
-		{ id = "ssao_quality", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.ssao_quality, type = "select", options = { 'low', 'medium', 'high'}, value = (WG['ssao'] ~= nil and WG['ssao'].getPreset() or 2), description = texts.option.ssao_quality_descr,
+		{ id = "ssao_quality", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.ssao_quality'), type = "select", options = { 'low', 'medium', 'high'}, value = (WG['ssao'] ~= nil and WG['ssao'].getPreset() or 2), description = Spring.I18N('ui.settings.option.ssao_quality_descr'),
 		  onload = function(i)
 			  if widgetHandler.configData["SSAO"] ~= nil and widgetHandler.configData["SSAO"].preset ~= nil then
 				  options[getOptionByID('ssao_quality')].value = widgetHandler.configData["SSAO"].preset
@@ -2022,8 +2292,8 @@ function init()
 		  end,
 		},
 
-		{ id = "bloomdeferred", group = "gfx", category = types.basic, widget = "Bloom Shader Deferred", name = texts.option.bloomdeferred, type = "bool", value = GetWidgetToggleValue("Bloom Shader Deferred"), description = texts.option.bloomdeferred_descr },
-		{ id = "bloomdeferredbrightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.bloomdeferredbrightness, type = "slider", min = 0.4, max = 1.4, step = 0.05, value = 0.9, description = '',
+		{ id = "bloomdeferred", group = "gfx", category = types.basic, widget = "Bloom Shader Deferred", name = Spring.I18N('ui.settings.option.bloomdeferred'), type = "bool", value = GetWidgetToggleValue("Bloom Shader Deferred"), description = Spring.I18N('ui.settings.option.bloomdeferred_descr') },
+		{ id = "bloomdeferredbrightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.bloomdeferredbrightness'), type = "slider", min = 0.4, max = 1.4, step = 0.05, value = 0.9, description = '',
 		  onload = function(i)
 			  loadWidgetData("Bloom Shader Deferred", "bloomdeferredbrightness", { 'glowAmplifier' })
 		  end,
@@ -2031,7 +2301,7 @@ function init()
 			  saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBrightness', { 'glowAmplifier' }, value)
 		  end,
 		},
-		{ id = "bloomdeferred_quality", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.bloomdeferred_quality, type = "select", options = { 'low', 'medium', 'high'}, value = (WG['bloomdeferred'] ~= nil and WG['bloomdeferred'].getPreset() or 2), description = texts.option.bloomdeferred_quality_descr,
+		{ id = "bloomdeferred_quality", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.bloomdeferred_quality'), type = "select", options = { 'low', 'medium', 'high'}, value = (WG['bloomdeferred'] ~= nil and WG['bloomdeferred'].getPreset() or 2), description = Spring.I18N('ui.settings.option.bloomdeferred_quality_descr'),
 		  onload = function(i)
 			  if widgetHandler.configData["Bloom Shader Deferred"] ~= nil and widgetHandler.configData["Bloom Shader Deferred"].preset ~= nil then
 				  options[getOptionByID('bloomdeferred_quality')].value = widgetHandler.configData["Bloom Shader Deferred"].preset
@@ -2042,7 +2312,7 @@ function init()
 		  end,
 		},
 
-		{ id = "lighteffects", group = "gfx", category = types.basic, name = texts.option.lighteffects, type = "bool", value = GetWidgetToggleValue("Deferred rendering GL4"), description = texts.option.lighteffects_descr,
+		{ id = "lighteffects", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.lighteffects'), type = "bool", value = GetWidgetToggleValue("Deferred rendering GL4"), description = Spring.I18N('ui.settings.option.lighteffects_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2060,7 +2330,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "lighteffects_headlights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_headlights, type = "bool", value = Spring.GetConfigInt("headlights", 1) == 1, description = texts.option.lighteffects_headlights_descr,
+		{ id = "lighteffects_headlights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_headlights'), type = "bool", value = Spring.GetConfigInt("headlights", 1) == 1, description = Spring.I18N('ui.settings.option.lighteffects_headlights_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("headlights", value and 1 or 0)
 			  if widgetHandler.orderList["Deferred rendering GL4"] ~= nil then
@@ -2069,7 +2339,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "lighteffects_buildlights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_buildlights, type = "bool", value = Spring.GetConfigInt("buildlights", 1) == 1, description = texts.option.lighteffects_buildlights_descr,
+		{ id = "lighteffects_buildlights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_buildlights'), type = "bool", value = Spring.GetConfigInt("buildlights", 1) == 1, description = Spring.I18N('ui.settings.option.lighteffects_buildlights_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("buildlights", value and 1 or 0)
 			  if widgetHandler.orderList["Deferred rendering GL4"] ~= nil then
@@ -2078,7 +2348,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_brightness, min = 0.6, max = 1.5, step = 0.05, type = "slider", value = 1, description = texts.option.lighteffects_brightness_descr,
+		{ id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_brightness'), min = 0.6, max = 1.5, step = 0.05, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.lighteffects_brightness_descr'),
 		  onload = function(i)
 			  loadWidgetData("Deferred rendering GL4", "lighteffects_brightness", { 'intensityMultiplier' })
 		  end,
@@ -2086,7 +2356,7 @@ function init()
 			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'IntensityMultiplier', { 'intensityMultiplier' }, value)
 		  end,
 		},
-		{ id = "lighteffects_radius", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.lighteffects_radius, min = 0.6, max = 1.2, step = 0.05, type = "slider", value = 1, description = texts.option.lighteffects_radius_descr,
+		{ id = "lighteffects_radius", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_radius'), min = 0.6, max = 1.2, step = 0.05, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.lighteffects_radius_descr'),
 		  onload = function(i)
 			  loadWidgetData("Deferred rendering GL4", "lighteffects_radius", { 'radiusMultiplier' })
 		  end,
@@ -2095,7 +2365,7 @@ function init()
 		  end,
 		},
 
-		{ id = "darkenmap", group = "gfx", category = types.advanced, name = texts.option.darkenmap, min = 0, max = 0.33, step = 0.01, type = "slider", value = 0, description = texts.option.darkenmap_descr,
+		{ id = "darkenmap", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.darkenmap'), min = 0, max = 0.33, step = 0.01, type = "slider", value = 0, description = Spring.I18N('ui.settings.option.darkenmap_descr'),
 		  onload = function(i)
 			  loadWidgetData("Darken map", "darkenmap", { 'darknessvalue' })
 		  end,
@@ -2103,7 +2373,7 @@ function init()
 			  saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', { 'darknessvalue' }, value)
 		  end,
 		},
-		{ id = "darkenmap_darkenfeatures", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   "..texts.option.darkenmap_darkenfeatures, type = "bool", value = false, description = texts.option.darkenmap_darkenfeatures_descr,
+		{ id = "darkenmap_darkenfeatures", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   "..Spring.I18N('ui.settings.option.darkenmap_darkenfeatures'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.darkenmap_darkenfeatures_descr'),
 		  onload = function(i)
 			  loadWidgetData("Darken map", "darkenmap_darkenfeatures", { 'darkenFeatures' })
 		  end,
@@ -2112,26 +2382,26 @@ function init()
 		  end,
 		},
 
-		{ id = "label_gfx_environment", group = "gfx", name = texts.option.label_environment, category = types.basic },
+		{ id = "label_gfx_environment", group = "gfx", name = Spring.I18N('ui.settings.option.label_environment'), category = types.basic },
 		{ id = "label_gfx_environment_spacer", group = "gfx", category = types.basic },
 
-		{ id = "featuredrawdist", group = "gfx", category = types.advanced, name = texts.option.featuredrawdist, type = "slider", min = 2500, max = 15000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = texts.option.featuredrawdist_descr,
+		{ id = "featuredrawdist", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.featuredrawdist'), type = "slider", min = 2500, max = 15000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = Spring.I18N('ui.settings.option.featuredrawdist_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("FeatureFadeDistance", math.floor(value * 0.8))
 			  Spring.SetConfigInt("FeatureDrawDistance", value)
 		  end,
 		},
 
-		--{ id = "losopacity", group = "gfx", category = types.advanced, name = texts.option.lineofsight..widgetOptionColor .. "  " .. texts.option.losopacity, type = "slider", min = 0.5, max = 3, step = 0.1, value = (WG['los'] ~= nil and WG['los'].getOpacity ~= nil and WG['los'].getOpacity()) or 1, description = '',
-		--  onload = function(i)
-		--	  loadWidgetData("LOS colors", "losopacity", { 'opacity' })
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('LOS colors', 'los', 'setOpacity', { 'opacity' }, value)
-		--  end,
-		--},
+		{ id = "losopacity", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.losopacity'), type = "slider", min = 0.01, max = 1, step = 0.01, value = (WG['los'] ~= nil and WG['los'].getOpacity ~= nil and WG['los'].getOpacity()) or 1, description = '',
+		  onload = function(i)
+			  loadWidgetData("LOS colors", "losopacity", { 'opacity' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('LOS colors', 'los', 'setOpacity', { 'opacity' }, value)
+		  end,
+		},
 
-		-- { id = "water", group = "gfx", category = types.basic, name = texts.option.water, type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
+		-- { id = "water", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.water'), type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
 		--   onload = function(i)
 		--   end,
 		--   onchange = function(i, value)
@@ -2142,7 +2412,7 @@ function init()
 		--   end,
 		-- },
 
-		{ id = "water", group = "gfx", category = types.basic, name = texts.option.water, type = "select", options = { 'low', 'high' }, value = desiredWaterValue == 4 and 2 or 1,
+		{ id = "water", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.water'), type = "select", options = { 'low', 'high' }, value = desiredWaterValue == 4 and 2 or 1,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2155,9 +2425,9 @@ function init()
 		  end,
 		},
 
-		{ id = "mapedgeextension", group = "gfx", category = types.advanced, widget = "Map Edge Extension", name = texts.option.mapedgeextension, type = "bool", value = GetWidgetToggleValue("Map Edge Extension"), description = texts.option.mapedgeextension_descr },
+		{ id = "mapedgeextension", group = "gfx", category = types.advanced, widget = "Map Edge Extension", name = Spring.I18N('ui.settings.option.mapedgeextension'), type = "bool", value = GetWidgetToggleValue("Map Edge Extension"), description = Spring.I18N('ui.settings.option.mapedgeextension_descr') },
 
-		{ id = "mapedgeextension_brightness", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.mapedgeextension_brightness, min = 0.2, max = 1, step = 0.01, type = "slider", value = 0.3, description = '',
+		{ id = "mapedgeextension_brightness", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.mapedgeextension_brightness'), min = 0.2, max = 1, step = 0.01, type = "slider", value = 0.3, description = '',
 		  onload = function(i)
 			  loadWidgetData("Map Edge Extension", "mapedgeextension_brightness", { 'brightness' })
 		  end,
@@ -2165,7 +2435,7 @@ function init()
 			  saveOptionValue('Map Edge Extension', 'mapedgeextension', 'setBrightness', { 'brightness' }, value)
 		  end,
 		},
-		{ id = "mapedgeextension_curvature", category = types.dev, group = "gfx", name = widgetOptionColor .. "   " .. texts.option.mapedgeextension_curvature, type = "bool", value = true, description = texts.option.mapedgeextension_curvature_descr,
+		{ id = "mapedgeextension_curvature", category = types.dev, group = "gfx", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.mapedgeextension_curvature'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.mapedgeextension_curvature_descr'),
 		  onload = function(i)
 			  loadWidgetData("Map Edge Extension", "mapedgeextension_curvature", { 'curvature' })
 		  end,
@@ -2174,8 +2444,8 @@ function init()
 		  end,
 		},
 
-		{ id = "decalsgl4", group = "gfx", category = types.basic, widget = "Decals GL4", name = texts.option.decalsgl4, type = "bool", value = GetWidgetToggleValue("Decals GL4"), description = texts.option.decalsgl4_desc },
-		{ id = "decalsgl4_lifetime", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.decalsgl4_lifetime, min = 0.5, max = 5, step = 0.1, type = "slider", value = 1, description = texts.option.decalsgl4_lifetime_descr,
+		{ id = "decalsgl4", group = "gfx", category = types.basic, widget = "Decals GL4", name = Spring.I18N('ui.settings.option.decalsgl4'), type = "bool", value = GetWidgetToggleValue("Decals GL4") },
+		{ id = "decalsgl4_lifetime", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.decalsgl4_lifetime'), min = 0.5, max = 5, step = 0.1, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.decalsgl4_lifetime_descr'),
 		  onload = function(i)
 			  loadWidgetData("Decals GL4", "decalsgl4_lifetime", { 'lifeTimeMult' })
 		  end,
@@ -2183,22 +2453,15 @@ function init()
 			  saveOptionValue('Decals GL4', 'decalsgl4', 'SetLifeTimeMult', { 'lifeTimeMult' }, value)
 		  end,
 		},
-		{ id = "decals", group = "gfx", category = types.basic, name = texts.option.decals, restart = true, min = 0, max = 5, step = 1, type = "slider", value = Spring.GetConfigInt("GroundDecals", 0), description = texts.option.decals_descr,
+		{ id = "decals", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.decals'), restart = true, min = 0, max = 5, step = 1, type = "slider", value = Spring.GetConfigInt("GroundDecals", 0), description = Spring.I18N('ui.settings.option.decals_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("GroundDecals", value)
 			  Spring.SendCommands("GroundDecals " .. value)
 		  end,
 		},
-		--{ id = "decals", group = "gfx", category = types.advanced, name = texts.option.decals, restart = true, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 3) or 3) >= 1, description = texts.option.decals_descr,
-		--  onchange = function(i, value)
-		--	  Spring.SetConfigInt("GroundDecals", (value and 3 or 0))
-		--	  Spring.SendCommands("GroundDecals " .. (value and 3 or 0))
-		--	  Spring.SetConfigInt("GroundScarAlphaFade", 1)
-		--  end,
-		--},
 
-		{ id = "grass", group = "gfx", category = types.basic, widget = "Map Grass GL4", name = texts.option.grass, type = "bool", value = GetWidgetToggleValue("Map Grass GL4"), description = texts.option.grass_desc },
-		{ id = "grassdistance", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.grassdistance, type = "slider", min = 0.3, max = 1, step = 0.01, value = 1, description = texts.option.grassdistance_descr,
+		{ id = "grass", group = "gfx", category = types.basic, widget = "Map Grass GL4", name = Spring.I18N('ui.settings.option.grass'), type = "bool", value = GetWidgetToggleValue("Map Grass GL4"), description = Spring.I18N('ui.settings.option.grass_desc') },
+		{ id = "grassdistance", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.grassdistance'), type = "slider", min = 0.3, max = 1, step = 0.01, value = 1, description = Spring.I18N('ui.settings.option.grassdistance_desc'),
 		  onload = function(i)
 			  loadWidgetData("Map Grass GL4", "grassdistance", { 'distanceMult' })
 		  end,
@@ -2207,7 +2470,7 @@ function init()
 		  end,
 		},
 
-		{ id = "treewind", group = "gfx", category = types.dev, name = texts.option.treewind, type = "bool", value = tonumber(Spring.GetConfigInt("TreeWind", 1) or 1) == 1, description = texts.option.treewind_descr,
+		{ id = "treewind", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.treewind'), type = "bool", value = tonumber(Spring.GetConfigInt("TreeWind", 1) or 1) == 1, description = Spring.I18N('ui.settings.option.treewind_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2216,8 +2479,8 @@ function init()
 		  end,
 		},
 
-		{ id = "snow", group = "gfx", category = types.basic, widget = "Snow", name = texts.option.snow, type = "bool", value = GetWidgetToggleValue("Snow"), description = texts.option.snow_descr },
-		{ id = "snowmap", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.snowmap, type = "bool", value = true, description = texts.option.snowmap_descr,
+		{ id = "snow", group = "gfx", category = types.basic, widget = "Snow", name = Spring.I18N('ui.settings.option.snow'), type = "bool", value = GetWidgetToggleValue("Snow"), description = Spring.I18N('ui.settings.option.snow_descr') },
+		{ id = "snowmap", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.snowmap'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.snowmap_descr'),
 		  onload = function(i)
 			  loadWidgetData("Snow", "snowmap", { 'snowMaps', Game.mapName:lower() })
 		  end,
@@ -2225,7 +2488,7 @@ function init()
 			  saveOptionValue('Snow', 'snow', 'setSnowMap', { 'snowMaps', Game.mapName:lower() }, value)
 		  end,
 		},
-		{ id = "snowautoreduce", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.snowautoreduce, type = "bool", value = true, description = texts.option.snowautoreduce_descr,
+		{ id = "snowautoreduce", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.snowautoreduce'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.snowautoreduce_descr'),
 		  onload = function(i)
 			  loadWidgetData("Snow", "snowautoreduce", { 'autoReduce' })
 		  end,
@@ -2233,7 +2496,7 @@ function init()
 			  saveOptionValue('Snow', 'snow', 'setAutoReduce', { 'autoReduce' }, value)
 		  end,
 		},
-		{ id = "snowamount", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.snowamount, type = "slider", min = 0.2, max = 3, step = 0.2, value = 1, description = texts.option.snowamount_descr,
+		{ id = "snowamount", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.snowamount'), type = "slider", min = 0.2, max = 3, step = 0.2, value = 1, description = Spring.I18N('ui.settings.option.snowamount_descr'),
 		  onload = function(i)
 			  loadWidgetData("Snow", "snowamount", { 'customParticleMultiplier' })
 		  end,
@@ -2242,8 +2505,8 @@ function init()
 		  end,
 		},
 
-		{ id = "clouds", group = "gfx", category = types.advanced, widget = "Volumetric Clouds", name = texts.option.clouds, type = "bool", value = GetWidgetToggleValue("Volumetric Clouds"), description = '' },
-		{ id = "clouds_opacity", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.clouds_opacity, type = "slider", min = 0.2, max = 1.4, step = 0.05, value = 1, description = '',
+		{ id = "clouds", group = "gfx", category = types.advanced, widget = "Volumetric Clouds", name = Spring.I18N('ui.settings.option.clouds'), type = "bool", value = GetWidgetToggleValue("Volumetric Clouds"), description = '' },
+		{ id = "clouds_opacity", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.clouds_opacity'), type = "slider", min = 0.2, max = 1.4, step = 0.05, value = 1, description = '',
 		  onload = function(i)
 			  loadWidgetData("Volumetric Clouds", "clouds_opacity", { 'opacityMult' })
 		  end,
@@ -2251,7 +2514,7 @@ function init()
 			  saveOptionValue('Volumetric Clouds', 'clouds', 'setOpacity', { 'opacityMult' }, value)
 		  end,
 		},
-		{ id = "fogmult", group = "gfx", category = types.advanced, name = texts.option.fog, type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigFloat("FogMult", 1), description = texts.option.fogmult_descr,
+		{ id = "fogmult", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.fog'), type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigFloat("FogMult", 1), description = Spring.I18N('ui.settings.option.fogmult_descr'),
 		  onload = function(i)
 		  	options[i].onchange(i, options[i].value)
 		  end,
@@ -2265,10 +2528,10 @@ function init()
 		  end,
 		},
 
-		{ id = "label_gfx_effects", group = "gfx", name = texts.option.label_effects, category = types.basic },
+		{ id = "label_gfx_effects", group = "gfx", name = Spring.I18N('ui.settings.option.label_effects'), category = types.basic },
 		{ id = "label_gfx_effects_spacer", group = "gfx", category = types.basic },
 
-		{ id = "particles", group = "gfx", category = types.basic, name = texts.option.particles, type = "slider", min = 9000, max = 25000, step = 1000, value = tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000), description = texts.option.particles_descr,
+		{ id = "particles", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.particles'), type = "slider", min = 9000, max = 25000, step = 1000, value = tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000), description = Spring.I18N('ui.settings.option.particles_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2277,8 +2540,8 @@ function init()
 		  end,
 		},
 
-		{ id = "dof", group = "gfx", category = types.advanced, widget = "Depth of Field", name = texts.option.dof, type = "bool", value = GetWidgetToggleValue("Depth of Field"), description = texts.option.dof_descr },
-		{ id = "dof_autofocus", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.dof_autofocus, type = "bool", value = true, description = texts.option.dof_autofocus_descr,
+		{ id = "dof", group = "gfx", category = types.advanced, widget = "Depth of Field", name = Spring.I18N('ui.settings.option.dof'), type = "bool", value = GetWidgetToggleValue("Depth of Field"), description = Spring.I18N('ui.settings.option.dof_descr') },
+		{ id = "dof_autofocus", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.dof_autofocus'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.dof_autofocus_descr'),
 		  onload = function(i)
 			  loadWidgetData("Depth of Field", "dof_autofocus", { 'autofocus' })
 		  end,
@@ -2286,7 +2549,7 @@ function init()
 			  saveOptionValue('Depth of Field', 'dof', 'setAutofocus', { 'autofocus' }, value)
 		  end,
 		},
-		{ id = "dof_fstop", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.dof_fstop, type = "slider", min = 1, max = 6, step = 0.1, value = 2, description = texts.option.dof_fstop_descr,
+		{ id = "dof_fstop", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.dof_fstop'), type = "slider", min = 1, max = 6, step = 0.1, value = 2, description = Spring.I18N('ui.settings.option.dof_fstop_descr'),
 		  onload = function(i)
 			  loadWidgetData("Depth of Field", "dof_fstop", { 'fStop' })
 		  end,
@@ -2295,11 +2558,11 @@ function init()
 		  end,
 		},
 
-		{ id = "label_gfx_game", group = "gfx", name = texts.option.label_game, category = types.advanced },
+		{ id = "label_gfx_game", group = "gfx", name = Spring.I18N('ui.settings.option.label_game'), category = types.advanced },
 		{ id = "label_gfx_game_spacer", group = "gfx", category = types.basic },
-		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos GL4", name = texts.option.resurrectionhalos, type = "bool", value = GetWidgetToggleValue("Resurrection Halos GL4"), description = texts.option.resurrectionhalos_descr },
+		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos GL4", name = Spring.I18N('ui.settings.option.resurrectionhalos'), type = "bool", value = GetWidgetToggleValue("Resurrection Halos GL4"), description = Spring.I18N('ui.settings.option.resurrectionhalos_descr') },
 
-		--{ id = "xmas", group = "gfx", name = texts.option.xmas, category = types.basic, type = "bool", value = (Spring.GetConfigFloat("decorationsize", 1) == 1), description = texts.option.xmas_descr,
+		--{ id = "xmas", group = "gfx", name = Spring.I18N('ui.settings.option.xmas'), category = types.basic, type = "bool", value = (Spring.GetConfigFloat("decorationsize", 1) == 1), description = Spring.I18N('ui.settings.option.xmas_descr'),
 		--  onchange = function(i, value)
 		--	  Spring.SetConfigFloat("decorationsize", (value and 1 or 0))
 		--  end,
@@ -2307,7 +2570,7 @@ function init()
 
 
 		-- SOUND
-		{ id = "snddevice", group = "sound", category = types.advanced, name = texts.option.snddevice, type = "select", restart = true, options = soundDevices, value = soundDevicesByName[Spring.GetConfigString("snd_device")], description = texts.option.snddevice_descr,
+		{ id = "snddevice", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.snddevice'), type = "select", restart = true, options = soundDevices, value = soundDevicesByName[Spring.GetConfigString("snd_device")], description = Spring.I18N('ui.settings.option.snddevice_descr'),
 		  onchange = function(i, value)
 			  if options[i].options[options[i].value] == 'default' then
 				  Spring.SetConfigString("snd_device", '')
@@ -2317,42 +2580,42 @@ function init()
 		  end,
 		},
 
-		{ id = "sndvolmaster", group = "sound", category = types.basic, name = texts.option.volume .. widgetOptionColor .. "  " .. texts.option.sndvolmaster, type = "slider", min = 0, max = 200, step = 2, value = tonumber(Spring.GetConfigInt("snd_volmaster", 1) or 100),
+		{ id = "sndvolmaster", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.volume') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.sndvolmaster'), type = "slider", min = 0, max = 200, step = 2, value = tonumber(Spring.GetConfigInt("snd_volmaster", 1) or 100),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("snd_volmaster", value)
 		  end,
 		},
-		{ id = "sndvolgeneral", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolgeneral, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volgeneral", 1) or 100),
+		{ id = "sndvolgeneral", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolgeneral'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volgeneral", 1) or 100),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("snd_volgeneral", value)
 		  end,
 		},
-		{ id = "sndvolbattle", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolbattle, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volbattle", 1) or 100),
+		{ id = "sndvolbattle", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolbattle'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volbattle", 1) or 100),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("snd_volbattle", value)
 		  end,
 		},
-		{ id = "sndvolui", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolui, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volui", 1) or 100),
+		{ id = "sndvolui", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolui'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volui", 1) or 100),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("snd_volui", value)
 		  end,
 		},
-		--{ id = "sndvolunitreply", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolunitreply, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volunitreply", 1) or 100),
+		--{ id = "sndvolunitreply", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolunitreply'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volunitreply", 1) or 100),
 		--  onload = function(i)
 		--  end,
 		--  onchange = function(i, value)
 		--	  Spring.SetConfigInt("snd_volunitreply", value)
 		--  end,
 		--},
-		{ id = "console_chatvolume", group = "sound", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.console_chatvolume, type = "slider", min = 0, max = 1, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getChatVolume() or 0), description = texts.option.console_chatvolume_descr,
+		{ id = "console_chatvolume", group = "sound", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_chatvolume'), type = "slider", min = 0, max = 1, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getChatVolume() or 0), description = Spring.I18N('ui.settings.option.console_chatvolume_descr'),
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_chatvolume", { 'sndChatFileVolume' })
 		  end,
@@ -2360,7 +2623,7 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setChatVolume', { 'sndChatFileVolume' }, value)
 		  end,
 		},
-		{ id = "console_mapmarkvolume", group = "sound", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.console_mapmarkvolume, type = "slider", min = 0, max = 0.6, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getMapmarkVolume() or 0), description = texts.option.console_mapmarkvolume_descr,
+		{ id = "console_mapmarkvolume", group = "sound", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_mapmarkvolume'), type = "slider", min = 0, max = 0.6, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getMapmarkVolume() or 0), description = Spring.I18N('ui.settings.option.console_mapmarkvolume_descr'),
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_mapmarkvolume", { 'sndMapmarkFileVolume' })
 		  end,
@@ -2368,7 +2631,7 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setMapmarkVolume', { 'sndMapmarkFileVolume' }, value)
 		  end,
 		},
-		{ id = "sndvolmusic", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolmusic, type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
+		{ id = "sndvolmusic", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolmusic'), type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2380,13 +2643,13 @@ function init()
 		  end,
 		},
 
-		{ id = "sndunitsound", group = "sound", category = types.advanced, name = texts.option.sndunitsound, type = "bool", value = (Spring.GetConfigInt("snd_unitsound", 1) == 1), description = texts.option.sndunitsound_descr,
+		{ id = "sndunitsound", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.sndunitsound'), type = "bool", value = (Spring.GetConfigInt("snd_unitsound", 1) == 1), description = Spring.I18N('ui.settings.option.sndunitsound_desc'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("snd_unitsound", (value and 1 or 0))
 		  end,
 		},
 
-		{ id = "sndairabsorption", group = "sound", category = types.advanced, name = texts.option.sndairabsorption, type = "slider", min = 0, max = 0.4, step = 0.01, value = tonumber(Spring.GetConfigFloat("snd_airAbsorption", .35) or .35), description = texts.option.sndairabsorption_descr,
+		{ id = "sndairabsorption", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.sndairabsorption'), type = "slider", min = 0, max = 0.4, step = 0.01, value = tonumber(Spring.GetConfigFloat("snd_airAbsorption", .35) or .35), description = Spring.I18N('ui.settings.option.sndairabsorption_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2394,17 +2657,17 @@ function init()
 		  end,
 		},
 
-		{ id = "muteoffscreen", group = "sound", category = types.advanced, name = texts.option.muteoffscreen, type = "bool", value = (Spring.GetConfigInt("muteOffscreen", 0) == 1), description = texts.option.muteoffscreen_descr,
+		{ id = "muteoffscreen", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.muteoffscreen'), type = "bool", value = (Spring.GetConfigInt("muteOffscreen", 0) == 1), description = Spring.I18N('ui.settings.option.muteoffscreen_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("muteOffscreen", (value and 1 or 0))
 		  end,
 		},
 
 
-		{ id = "soundtrack", group = "sound", category = types.basic, name = texts.option.label_soundtrack },
+		{ id = "soundtrack", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.label_soundtrack') },
 		{ id = "soundtrack_spacer", group = "sound", category = types.basic },
 
-		{ id = "soundtrackNew", group = "sound", category = types.basic, name = texts.option.soundtracknew, type = "bool", value = Spring.GetConfigInt('UseSoundtrackNew', 1) == 1, description = texts.option.soundtracknew_descr,
+		{ id = "soundtrackNew", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtracknew'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackNew', 1) == 1, description = Spring.I18N('ui.settings.option.soundtracknew_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackNew', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2413,7 +2676,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackOld", group = "sound", category = types.basic, name = texts.option.soundtrackold, type = "bool", value = Spring.GetConfigInt('UseSoundtrackOld', 0) == 1, description = texts.option.soundtrackold_descr,
+		{ id = "soundtrackOld", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackold'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackOld', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackold_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackOld', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2422,7 +2685,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackCustom", group = "sound", category = types.advanced, name = texts.option.soundtrackcustom, type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1, description = texts.option.soundtrackcustom_descr,
+		{ id = "soundtrackCustom", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.soundtrackcustom'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackcustom_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackCustom', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2431,7 +2694,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackSilenceTimer", group = "sound", category = types.basic, name = texts.option.soundtracksilence, type = "bool", value = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1, description = texts.option.soundtracksilence_descr,
+		{ id = "soundtrackSilenceTimer", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtracksilence'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1, description = Spring.I18N('ui.settings.option.soundtracksilence_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackSilenceTimer', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshSettings then
@@ -2439,7 +2702,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackInterruption", group = "sound", category = types.basic, name = texts.option.soundtrackinterruption, type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = texts.option.soundtrackinterruption_descr,
+		{ id = "soundtrackInterruption", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackinterruption'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackinterruption_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackInterruption', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshSettings then
@@ -2447,21 +2710,42 @@ function init()
 				end
 			end
 		},
+		{ id = "soundtrackFades", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackfades'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackFades', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackfades_descr'),
+		  onchange = function(i, value)
+				Spring.SetConfigInt('UseSoundtrackFades', value and 1 or 0)
+				if WG['music'] and WG['music'].RefreshSettings then
+					WG['music'].RefreshSettings()
+				end
+			end
+		},
 
-		{ id = "loadscreen_music", group = "sound", category = types.basic, name = texts.option.loadscreen_music, type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = texts.option.loadscreen_music_descr,
+		{ id = "loadscreen_music", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.loadscreen_music'), type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = Spring.I18N('ui.settings.option.loadscreen_music_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("music_loadscreen", (value and 1 or 0))
 		  end,
 		},
 
-		{ id = "scav_messages", group = "notif", category = types.basic, name = texts.option.scav_messages, type = "bool", value = tonumber(Spring.GetConfigInt("scavmessages", 1) or 1) == 1, description = "",
+		{ id = "notifications_set", group = "notif", category = types.basic, name = Spring.I18N('ui.settings.option.notifications_set'), type = "select", options = {}, value = 1,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigString("voiceset", options[i].options[options[i].value])
+			  if widgetHandler.orderList["Notifications"] ~= nil then
+				  widgetHandler:DisableWidget("Notifications")
+				  widgetHandler:EnableWidget("Notifications")
+				  init()
+			  end
+		  end,
+		},
+
+		{ id = "scav_messages", group = "notif", category = types.basic, name = Spring.I18N('ui.settings.option.scav_messages'), type = "bool", value = tonumber(Spring.GetConfigInt("scavmessages", 1) or 1) == 1, description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("scavmessages", (value and 1 or 0))
 		  end,
 		},
-		{ id = "scav_voicenotifs", group = "notif", category = types.basic, widget = "Scavenger Audio Reciever", name = texts.option.scav_voicenotifs, type = "bool", value = GetWidgetToggleValue("Scavenger Audio Reciever"), description = texts.option.scav_voicenotifs_descr },
+		{ id = "scav_voicenotifs", group = "notif", category = types.basic, widget = "Scavenger Audio Reciever", name = Spring.I18N('ui.settings.option.scav_voicenotifs'), type = "bool", value = GetWidgetToggleValue("Scavenger Audio Reciever"), description = Spring.I18N('ui.settings.option.scav_voicenotifs_descr') },
 
-		{ id = "notifications_tutorial", group = "notif", name = texts.option.notifications_tutorial, category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getTutorial()), description = texts.option.notifications_tutorial_desc,
+		{ id = "notifications_tutorial", group = "notif", name = Spring.I18N('ui.settings.option.notifications_tutorial'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getTutorial()), description = Spring.I18N('ui.settings.option.notifications_tutorial_descr'),
 		  onload = function(i)
 			  loadWidgetData("Notifications", "notifications_tutorial", { 'tutorialMode' })
 		  end,
@@ -2469,7 +2753,7 @@ function init()
 			  saveOptionValue('Notifications', 'notifications', 'setTutorial', { 'tutorialMode' }, value)
 		  end,
 		},
-		{ id = "notifications_messages", group = "notif", name = texts.option.notifications_messages, category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getMessages()), description = texts.option.notifications_messages_descr,
+		{ id = "notifications_messages", group = "notif", name = Spring.I18N('ui.settings.option.notifications_messages'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getMessages()), description = Spring.I18N('ui.settings.option.notifications_messages_descr'),
 		  onload = function(i)
 			  loadWidgetData("Notifications", "notifications_messages", { 'displayMessages' })
 		  end,
@@ -2477,7 +2761,7 @@ function init()
 			  saveOptionValue('Notifications', 'notifications', 'setMessages', { 'displayMessages' }, value)
 		  end,
 		},
-		{ id = "notifications_spoken", group = "notif", name = texts.option.notifications_spoken, category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getSpoken()), description = texts.option.notifications_spoken_descr,
+		{ id = "notifications_spoken", group = "notif", name = Spring.I18N('ui.settings.option.notifications_spoken'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getSpoken()), description = Spring.I18N('ui.settings.option.notifications_spoken_descr'),
 		  onload = function(i)
 			  loadWidgetData("Notifications", "notifications_spoken", { 'spoken' })
 		  end,
@@ -2485,7 +2769,7 @@ function init()
 			  saveOptionValue('Notifications', 'notifications', 'setSpoken', { 'spoken' }, value)
 		  end,
 		},
-		{ id = "notifications_volume", group = "notif", category = types.basic, name = texts.option.notifications_volume, type = "slider", min = 0.05, max = 1, step = 0.05, value = 1, description = texts.option.notifications_volume_descr,
+		{ id = "notifications_volume", group = "notif", category = types.basic, name = Spring.I18N('ui.settings.option.notifications_volume'), type = "slider", min = 0.05, max = 1, step = 0.05, value = 1, description = Spring.I18N('ui.settings.option.notifications_volume_descr'),
 		  onload = function(i)
 			  loadWidgetData("Notifications", "notifications_volume", { 'volume' })
 		  end,
@@ -2493,7 +2777,7 @@ function init()
 			  saveOptionValue('Notifications', 'notifications', 'setVolume', { 'volume' }, value)
 		  end,
 		},
-		{ id = "notifications_playtrackedplayernotifs", category = types.basic, group = "notif", name = texts.option.notifications_playtrackedplayernotifs, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getPlayTrackedPlayerNotifs()), description = texts.option.notifications_playtrackedplayernotifs_descr,
+		{ id = "notifications_playtrackedplayernotifs", category = types.basic, group = "notif", name = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs'), type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getPlayTrackedPlayerNotifs()), description = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs_descr'),
 		  onload = function(i)
 			  loadWidgetData("Notifications", "notifications_playtrackedplayernotifs", { 'playTrackedPlayerNotifs' })
 		  end,
@@ -2503,11 +2787,11 @@ function init()
 		},
 
 
-		{ id = "label_notif_messages", group = "notif", name = texts.option.label_messages, category = types.basic },
+		{ id = "label_notif_messages", group = "notif", name = Spring.I18N('ui.settings.option.label_messages'), category = types.basic },
 		{ id = "label_notif_messages_spacer", group = "notif", category = types.basic },
 
 		-- CONTROL
-		{ id = "hwcursor", group = "control", category = types.basic, name = texts.option.hwcursor, type = "bool", value = tonumber(Spring.GetConfigInt("HardwareCursor", 0) or 0) == 1, description = texts.option.hwcursor_descr,
+		{ id = "hwcursor", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.hwcursor'), type = "bool", value = tonumber(Spring.GetConfigInt("HardwareCursor", 0) or 0) == 1, description = Spring.I18N('ui.settings.option.hwcursor_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2515,7 +2799,7 @@ function init()
 			  Spring.SetConfigInt("HardwareCursor", (value and 1 or 0))
 		  end,
 		},
-		{ id = "setcamera_bugfix", group = "control", category = types.advanced, name = texts.option.setcamera_bugfix, type = "bool", value = true, description = texts.option.setcamera_bugfix_descr,
+		{ id = "setcamera_bugfix", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.setcamera_bugfix'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.setcamera_bugfix_descr'),
 		  onload = function(i)
 			WG['setcamera_bugfix'] = true
 		  end,
@@ -2523,7 +2807,7 @@ function init()
 			WG['setcamera_bugfix'] = value
 		  end,
 		},
-		{ id = "cursorsize", group = "control", category = types.basic, name = texts.option.cursorsize, type = "slider", min = 0.3, max = 1.7, step = 0.1, value = 1, description = texts.option.cursorsize_descr,
+		{ id = "cursorsize", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.cursorsize'), type = "slider", min = 0.3, max = 1.7, step = 0.1, value = 1, description = Spring.I18N('ui.settings.option.cursorsize_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2533,9 +2817,9 @@ function init()
 		  end,
 		},
 
-		{ id = "containmouse", group = "control", category = types.basic, widget = "Grabinput", name = texts.option.containmouse, type = "bool", value = GetWidgetToggleValue("Grabinput"), description = texts.option.containmouse_descr },
+		{ id = "containmouse", group = "control", category = types.basic, widget = "Grabinput", name = Spring.I18N('ui.settings.option.containmouse'), type = "bool", value = GetWidgetToggleValue("Grabinput"), description = Spring.I18N('ui.settings.option.containmouse_descr') },
 
-		{ id = "doubleclicktime", group = "control", category = types.advanced, restart = true, name = texts.option.doubleclicktime, type = "slider", min = 150, max = 400, step = 10, value = Spring.GetConfigInt("DoubleClickTime", 200), description = "",
+		{ id = "doubleclicktime", group = "control", category = types.advanced, restart = true, name = Spring.I18N('ui.settings.option.doubleclicktime'), type = "slider", min = 150, max = 400, step = 10, value = Spring.GetConfigInt("DoubleClickTime", 200), description = Spring.I18N('ui.settings.option.doubleclicktime_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2543,10 +2827,21 @@ function init()
 		  end,
 		},
 
-		{ id = "label_ui_hotkeys", group = "control", name = texts.option.label_hotkeys, category = types.basic },
+		{ id = "dragthreshold", group = "control", category = types.advanced, restart = false, name = Spring.I18N('ui.settings.option.dragthreshold'), type = "slider", min = 4, max = 50, step = 1, value = Spring.GetConfigInt("MouseDragSelectionThreshold", 4), description = Spring.I18N('ui.settings.option.dragthreshold_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("MouseDragSelectionThreshold", value)
+			  Spring.SetConfigInt("MouseDragCircleCommandThreshold", value)
+			  Spring.SetConfigInt("MouseDragBoxCommandThreshold", value + 12)
+			  Spring.SetConfigInt("MouseDragFrontCommandThreshold", value + 26)
+		  end,
+		},
+
+		{ id = "label_ui_hotkeys", group = "control", name = Spring.I18N('ui.settings.option.label_hotkeys'), category = types.basic },
 		{ id = "label_ui_hotkeys_spacer", group = "control", category = types.basic },
 
-		{ id = "keylayout", group = "control", category = types.basic, name = texts.option.keylayout, type = "select", options = keyLayouts.layouts, value = 1, description = texts.option.keylayout_descr,
+		{ id = "keylayout", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.keylayout'), type = "select", options = keyLayouts.layouts, value = 1, description = Spring.I18N('ui.settings.option.keylayout_descr'),
 			onload = function()
 				local keyLayout = Spring.GetConfigString("KeyboardLayout")
 
@@ -2573,7 +2868,7 @@ function init()
 			end,
 		},
 
-		{ id = "keybindings", group = "control", category = types.basic, name = texts.option.keybindings, type = "select", options = keyLayouts.keybindingLayouts, value = 1, description = texts.option.keybindings_descr,
+		{ id = "keybindings", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.keybindings'), type = "select", options = keyLayouts.keybindingLayouts, value = 1, description = Spring.I18N('ui.settings.option.keybindings_descr'),
 			onload = function()
 				local keyFile = Spring.GetConfigString("KeybindingFile")
 				local value = 1
@@ -2604,13 +2899,22 @@ function init()
 				if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
 					WG['bar_hotkeys'].reloadBindings()
 				end
+
+				-- enable grid menu for grid keybinds
+				Spring.Echo(options[getOptionByID('keybindings')].options[value])
+				if string.find(string.lower(options[getOptionByID('keybindings')].options[value]), "grid") then
+					if not options[getOptionByID('gridmenu')].value then
+						widgetHandler:DisableWidget('Build menu')
+						widgetHandler:EnableWidget('Grid menu')
+					end
+				end
 			end,
 		},
 
-		{ id = "label_ui_camera", group = "control", name = texts.option.label_camera, category = types.basic },
+		{ id = "label_ui_camera", group = "control", name = Spring.I18N('ui.settings.option.label_camera'), category = types.basic },
 		{ id = "label_ui_camera_spacer", group = "control", category = types.basic },
 
-		{ id = "middleclicktoggle", group = "control", category = types.basic, name = texts.option.middleclicktoggle, type = "bool", value = (Spring.GetConfigFloat("MouseDragScrollThreshold", 0.3) ~= 0), description = texts.option.middleclicktoggle_descr,
+		{ id = "middleclicktoggle", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.middleclicktoggle'), type = "bool", value = (Spring.GetConfigFloat("MouseDragScrollThreshold", 0.3) ~= 0), description = Spring.I18N('ui.settings.option.middleclicktoggle_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2618,7 +2922,7 @@ function init()
 		  end,
 		},
 
-		{ id = "screenedgemove", group = "control", category = types.basic, name = texts.option.screenedgemove, type = "bool", restart = true, value = tonumber(Spring.GetConfigInt("FullscreenEdgeMove", 1) or 1) == 1, description = texts.option.screenedgemove_descr,
+		{ id = "screenedgemove", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.screenedgemove'), type = "bool", restart = true, value = tonumber(Spring.GetConfigInt("FullscreenEdgeMove", 1) or 1) == 1, description = Spring.I18N('ui.settings.option.screenedgemove_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("FullscreenEdgeMove", (value and 1 or 0))
 			  Spring.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
@@ -2629,19 +2933,19 @@ function init()
 				end
 		  end,
 		},
-		{ id = "screenedgemovewidth", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.screenedgemovewidth, type = "slider", min = 0, max = 0.1, step = 0.01, value = edgeMoveWidth, description = texts.option.screenedgemovewidth_descr,
+		{ id = "screenedgemovewidth", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.screenedgemovewidth'), type = "slider", min = 0, max = 0.1, step = 0.01, value = edgeMoveWidth, description = Spring.I18N('ui.settings.option.screenedgemovewidth_descr'),
 		  onchange = function(i, value)
 			  edgeMoveWidth = value
 			  Spring.SetConfigFloat("EdgeMoveWidth", value)
 		  end,
 		},
-		{ id = "screenedgemovedynamic", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.screenedgemovedynamic, type = "bool", restart = true, value = tonumber(Spring.GetConfigInt("EdgeMoveDynamic", 1) or 1) == 1, description = texts.option.screenedgemovedynamic_descr,
+		{ id = "screenedgemovedynamic", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.screenedgemovedynamic'), type = "bool", restart = true, value = tonumber(Spring.GetConfigInt("EdgeMoveDynamic", 1) or 1) == 1, description = Spring.I18N('ui.settings.option.screenedgemovedynamic_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("EdgeMoveDynamic", (value and 1 or 0))
 		  end,
 		},
 
-		{ id = "camera", group = "control", category = types.basic, name = texts.option.camera, type = "select", options = { 'fps', 'overhead', 'spring', 'rot overhead', 'free' }, value = (tonumber((Spring.GetConfigInt("CamMode", 1) + 1) or 2)),
+		{ id = "camera", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.camera'), type = "select", options = { 'fps', 'overhead', 'spring', 'rot overhead', 'free' }, value = (tonumber((Spring.GetConfigInt("CamMode", 1) + 1) or 2)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("CamMode", (value - 1))
 			  if value == 1 then
@@ -2657,7 +2961,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "camerashake", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.camerashake, type = "slider", min = 0, max = 200, step = 10, value = 80, description = texts.option.camerashake_descr,
+		{ id = "camerashake", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.camerashake'), type = "slider", min = 0, max = 200, step = 10, value = 80, description = Spring.I18N('ui.settings.option.camerashake_descr'),
 		  onload = function(i)
 			  loadWidgetData("CameraShake", "camerashake", { 'powerScale' })
 			  if options[i].value > 0 then
@@ -2671,7 +2975,7 @@ function init()
 			  end
 		  end,
 		},
-		--{ id = "camerasmoothing", group = "control", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.camerasmoothing, type = "bool", value = (tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1), description = "",
+		--{ id = "camerasmoothing", group = "control", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.camerasmoothing'), type = "bool", value = (tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1), description = "",
 		--  onload = function(i)
 		--  end,
 		--  onchange = function(i, value)
@@ -2685,21 +2989,21 @@ function init()
 		--	  end
 		--  end,
 		--},
-		{ id = "camerasmoothness", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.camerasmoothness, type = "slider", min = 0.04, max = 2, step = 0.01, value = cameraTransitionTime, description = texts.option.camerasmoothness_descr,
+		{ id = "camerasmoothness", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.camerasmoothness'), type = "slider", min = 0.04, max = 2, step = 0.01, value = cameraTransitionTime, description = Spring.I18N('ui.settings.option.camerasmoothness_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  cameraTransitionTime = value
 		  end,
 		},
-		{ id = "camerapanspeed", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.camerapanspeed, type = "slider", min = -0.01, max = -0.00195, step = 0.0001, value = Spring.GetConfigFloat("MiddleClickScrollSpeed", 0.0035), description = texts.option.camerapanspeed_descr,
+		{ id = "camerapanspeed", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.camerapanspeed'), type = "slider", min = -0.01, max = -0.00195, step = 0.0001, value = Spring.GetConfigFloat("MiddleClickScrollSpeed", 0.0035), description = Spring.I18N('ui.settings.option.camerapanspeed_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("MiddleClickScrollSpeed", value)
 		  end,
 		},
-		{ id = "cameramovespeed", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.cameramovespeed, type = "slider", min = 0, max = 50, step = 1, value = Spring.GetConfigInt("CamSpringScrollSpeed", 10), description = texts.option.cameramovespeed_descr,
+		{ id = "cameramovespeed", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.cameramovespeed'), type = "slider", min = 0, max = 50, step = 1, value = Spring.GetConfigInt("CamSpringScrollSpeed", 10), description = Spring.I18N('ui.settings.option.cameramovespeed_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2711,7 +3015,7 @@ function init()
 			  Spring.SetConfigInt("CamSpringScrollSpeed", value)        -- spring default: 10
 		  end,
 		},
-		{ id = "scrollspeed", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.scrollspeed, type = "slider", min = 1, max = 50, step = 1, value = math.abs(tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 1) or 25)), description = '',
+		{ id = "scrollspeed", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.scrollspeed'), type = "slider", min = 1, max = 50, step = 1, value = math.abs(tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 1) or 25)), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2722,7 +3026,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "scrollinverse", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.scrollinverse, type = "bool", value = (tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 1) or 25) < 0), description = "",
+		{ id = "scrollinverse", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.scrollinverse'), type = "bool", value = (tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 1) or 25) < 0), description = "",
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2735,8 +3039,16 @@ function init()
 			  end
 		  end,
 		},
+		{ id = "invertmouse", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.invertmouse'), type = "bool", value = tonumber(Spring.GetConfigInt("InvertMouse", 0)) == 1, description = "",
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("InvertMouse", value and 1 or 0)
+		  end,
+		},
+		{ id = "scrolltoggleoverview", group = "control", category = types.advanced, widget = "Scrolldown Toggleoverview", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.scrolltoggleoverview'), type = "bool", value = GetWidgetToggleValue("Scrolldown Toggleoverview"), description = Spring.I18N('ui.settings.option.scrolltoggleoverview_descr') },
 
-		{ id = "lockcamera_transitiontime", group = "control", category = types.advanced, name = texts.option.lockcamera..widgetOptionColor .. "   " ..texts.option.lockcamera_transitiontime, type = "slider", min = 0.5, max = 1.7, step = 0.01, value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockTransitionTime ~= nil and WG['advplayerlist_api'].GetLockTransitionTime()), description = texts.option.lockcamera_transitiontime_descr,
+		{ id = "lockcamera_transitiontime", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.lockcamera')..widgetOptionColor .. "   " ..Spring.I18N('ui.settings.option.lockcamera_transitiontime'), type = "slider", min = 0.5, max = 1.7, step = 0.01, value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockTransitionTime ~= nil and WG['advplayerlist_api'].GetLockTransitionTime()), description = Spring.I18N('ui.settings.option.lockcamera_transitiontime_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "lockcamera_transitiontime", { 'transitionTime' })
 		  end,
@@ -2746,7 +3058,7 @@ function init()
 		},
 
 
-		{ id = "allyselunits_select", group = "control", category = types.advanced, name = widgetOptionColor .. "   " ..texts.option.allyselunits_select, type = "bool", value = (WG['allyselectedunits'] ~= nil and WG['allyselectedunits'].getSelectPlayerUnits()), description = texts.option.allyselunits_select_descr,
+		{ id = "allyselunits_select", group = "control", category = types.advanced, name = widgetOptionColor .. "   " ..Spring.I18N('ui.settings.option.allyselunits_select'), type = "bool", value = (WG['allyselectedunits'] ~= nil and WG['allyselectedunits'].getSelectPlayerUnits()), description = Spring.I18N('ui.settings.option.allyselunits_select_descr'),
 		  onload = function(i)
 			  loadWidgetData("Ally Selected Units", "allyselunits_select", { 'selectPlayerUnits' })
 		  end,
@@ -2754,7 +3066,7 @@ function init()
 			  saveOptionValue('Ally Selected Units', 'allyselectedunits', 'setSelectPlayerUnits', { 'selectPlayerUnits' }, value)
 		  end,
 		},
-		{ id = "lockcamera_hideenemies", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lockcamera_hideenemies, type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockHideEnemies()), description = texts.option.lockcamera_hideenemies_descr,
+		{ id = "lockcamera_hideenemies", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lockcamera_hideenemies'), type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockHideEnemies()), description = Spring.I18N('ui.settings.option.lockcamera_hideenemies_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "lockcamera_hideenemies", { 'lockcameraHideEnemies' })
 		  end,
@@ -2762,7 +3074,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockHideEnemies', { 'lockcameraHideEnemies' }, value)
 		  end,
 		},
-		{ id = "lockcamera_los", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lockcamera_los, type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockLos()), description = texts.option.lockcamera_los_descr,
+		{ id = "lockcamera_los", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lockcamera_los'), type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockLos()), description = Spring.I18N('ui.settings.option.lockcamera_los_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "lockcamera_los", { 'lockcameraLos' })
 		  end,
@@ -2771,16 +3083,16 @@ function init()
 		  end,
 		},
 
-		{ id = "mincamheight", group = "control", category = types.advanced, name = texts.option.mincamheight, type = "slider", min = 0, max = 1500, step = 1, value = Spring.GetConfigInt("MinimumCameraHeight", 300), description = texts.option.mincamheight_descr,
+		{ id = "mincamheight", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.mincamheight'), type = "slider", min = 0, max = 1500, step = 1, value = Spring.GetConfigInt("MinimumCameraHeight", 300), description = Spring.I18N('ui.settings.option.mincamheight_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("MinimumCameraHeight", value)
 		  end,
 		},
 
 		-- INTERFACE
-		{ id = "label_ui_interface", group = "ui", name = texts.option.label_interface, category = types.basic },
+		{ id = "label_ui_interface", group = "ui", name = Spring.I18N('ui.settings.option.label_interface'), category = types.basic },
 		{ id = "label_ui_interface_spacer", group = "ui", category = types.basic },
-		{ id = "uiscale", group = "ui", category = types.basic, name = texts.option.interface .. widgetOptionColor .. "  " .. texts.option.uiscale, type = "slider", min = 0.8, max = 1.15, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
+		{ id = "uiscale", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.interface') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.uiscale'), type = "slider", min = 0.8, max = 1.3, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)
@@ -2792,12 +3104,12 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "guiopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guiopacity, type = "slider", min = 0.3, max = 1, step = 0.01, value = Spring.GetConfigFloat("ui_opacity", 0.6), description = '',
+		{ id = "guiopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guiopacity'), type = "slider", min = 0.3, max = 1, step = 0.01, value = Spring.GetConfigFloat("ui_opacity", 0.7), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)
 			  Spring.SetConfigFloat("ui_opacity", value)
-			  ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+			  ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 			  forceUpdate = true
 
 			  if force then
@@ -2808,7 +3120,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "guitilescale", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.guitilescale, type = "slider", min = 4, max = 40, step = 1, value = Spring.GetConfigFloat("ui_tilescale", 7), description = '',
+		{ id = "guitilescale", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guitilescale'), type = "slider", min = 4, max = 40, step = 1, value = Spring.GetConfigFloat("ui_tilescale", 7), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)
@@ -2820,7 +3132,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "guitileopacity", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. texts.option.guitileopacity, type = "slider", min = 0, max = 0.03, step = 0.001, value = Spring.GetConfigFloat("ui_tileopacity", 0.011), description = '',
+		{ id = "guitileopacity", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.guitileopacity'), type = "slider", min = 0, max = 0.03, step = 0.001, value = Spring.GetConfigFloat("ui_tileopacity", 0.011), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)
@@ -2833,7 +3145,7 @@ function init()
 		  end,
 		},
 
-		--{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishader, type = "slider", min = 0, max = 0.005, steps = {0, 1, 2, 3, 4, 5, 6}, value = guishaderIntensity, description = '',
+		--{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guishader'), type = "slider", min = 0, max = 0.005, steps = {0, 1, 2, 3, 4, 5, 6}, value = guishaderIntensity, description = '',
 		--  onload = function(i)
 		--	  loadWidgetData("GUI Shader", "guishader", { 'blurIntensity' })
 		--	  if type(options[getOptionByID('guishader')].value) ~= 'number' then
@@ -2856,10 +3168,10 @@ function init()
 		--	  end
 		--  end,
 		--},
-		{ id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. texts.option.guishader, type = "bool", value = GetWidgetToggleValue("GUI Shader") },
+		{ id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guishader'), type = "bool", value = GetWidgetToggleValue("GUI Shader") },
 
 
-		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = texts.option.minimap .. widgetOptionColor .. "  " .. texts.option.minimap_maxheight, type = "slider", min = 0.2, max = 0.4, step = 0.01, value = 0.35, description = texts.option.minimap_maxheight_descr,
+		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.minimap') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.minimap_maxheight'), type = "slider", min = 0.2, max = 0.4, step = 0.01, value = 0.35, description = Spring.I18N('ui.settings.option.minimap_maxheight_descr'),
 		  onload = function(i)
 			  loadWidgetData("Minimap", "minimap_maxheight", { 'maxHeight' })
 		  end,
@@ -2867,12 +3179,12 @@ function init()
 			  saveOptionValue('Minimap', 'minimap', 'setMaxHeight', { 'maxHeight' }, value)
 		  end,
 		},
-		{ id = "minimapleftclick", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.minimapleftclick, type = "bool", value = (WG['minimap'] ~= nil and WG['minimap'].getLeftClickMove ~= nil and WG['minimap'].getLeftClickMove()), description = texts.option.minimapleftclick_descr,
+		{ id = "minimapleftclick", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapleftclick'), type = "bool", value = (WG['minimap'] ~= nil and WG['minimap'].getLeftClickMove ~= nil and WG['minimap'].getLeftClickMove()), description = Spring.I18N('ui.settings.option.minimapleftclick_descr'),
 		  onchange = function(i, value)
 			  saveOptionValue('Minimap', 'minimap', 'setLeftClickMove', { 'leftClickMove' }, value)
 		  end,
 		},
-		{ id = "minimapiconsize", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.minimapiconsize, type = "slider", min = 2, max = 5, step = 0.25, value = tonumber(Spring.GetConfigFloat("MinimapIconScale", 3.5) or 1), description = '',
+		{ id = "minimapiconsize", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapiconsize'), type = "slider", min = 2, max = 5, step = 0.25, value = tonumber(Spring.GetConfigFloat("MinimapIconScale", 3.5) or 1), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2880,14 +3192,19 @@ function init()
 			  Spring.SendCommands("minimap unitsize " .. value)        -- spring wont remember what you set with '/minimap iconssize #'
 		  end,
 		},
-		{ id = "minimap_minimized", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.minimapminimized, type = "bool", value = Spring.GetConfigInt("MinimapMinimize", 0) == 1, description = texts.option.minimapminimized_descr,
+		{ id = "minimap_minimized", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapminimized'), type = "bool", value = Spring.GetConfigInt("MinimapMinimize", 0) == 1, description = Spring.I18N('ui.settings.option.minimapminimized_descr'),
 		  onchange = function(i, value)
 			  Spring.SendCommands("minimap minimize "..(value and '1' or '0'))
 			  Spring.SetConfigInt("MinimapMinimize", (value and '1' or '0'))
 		  end,
 		},
+		{ id = "minimapcanflip", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapcanflip'), type = "bool", value = Spring.GetConfigInt("MiniMapCanFlip", 0) == 1, description = Spring.I18N('ui.settings.option.minimapcanflip_descr'),
+		  onchange = function(i, value)
+				 Spring.SetConfigInt("MiniMapCanFlip", value and 1 or 0)
+		  end,
+		},
 
-		{ id = "buildmenu_bottom", group = "ui", category = types.basic, name = texts.option.buildmenu ..widgetOptionColor.. "  " .. texts.option.buildmenu_bottom, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getBottomPosition ~= nil and WG['buildmenu'].getBottomPosition()), description = texts.option.buildmenu_bottom_descr,
+		{ id = "buildmenu_bottom", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.buildmenu') ..widgetOptionColor.. "  " .. Spring.I18N('ui.settings.option.buildmenu_bottom'), type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getBottomPosition ~= nil and WG['buildmenu'].getBottomPosition()), description = Spring.I18N('ui.settings.option.buildmenu_bottom_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2895,7 +3212,7 @@ function init()
 			  saveOptionValue('Grid menu', 'buildmenu', 'setBottomPosition', { 'stickToBottom' }, value)
 		  end,
 		},
-		{ id = "gridmenu", group = "ui", category = types.advanced, name = widgetOptionColor.."   " .. texts.option.gridmenu, type = "bool", value = GetWidgetToggleValue("Grid menu"), description = texts.option.gridmenu_descr,
+		{ id = "gridmenu", group = "ui", category = types.basic, name = widgetOptionColor.."   " .. Spring.I18N('ui.settings.option.gridmenu'), type = "bool", value = GetWidgetToggleValue("Grid menu"), description = Spring.I18N('ui.settings.option.gridmenu_descr'),
 		  onchange = function(i, value)
 			  if value then
 				  widgetHandler:DisableWidget('Build menu')
@@ -2906,7 +3223,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "buildmenu_maxposy", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.buildmenu_maxposy, type = "slider", min = 0.66, max = 0.88, step = 0.01, value = 0.74, description = texts.option.buildmenu_maxposy_descr,
+		{ id = "buildmenu_maxposy", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.buildmenu_maxposy'), type = "slider", min = 0.66, max = 0.88, step = 0.01, value = 0.74, description = Spring.I18N('ui.settings.option.buildmenu_maxposy_descr'),
 		  onload = function(i)
 			  loadWidgetData("Build menu", "buildmenu_maxposy", { 'maxPosY' })
 		  end,
@@ -2914,7 +3231,7 @@ function init()
 			  saveOptionValue('Build menu', 'buildmenu', 'setMaxPosY', { 'maxPosY' }, value)
 		  end,
 		},
-		{ id = "buildmenu_alwaysshow", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.buildmenu_alwaysshow, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getAlwaysShow ~= nil and WG['buildmenu'].getAlwaysShow()), description = texts.option.buildmenu_alwaysshow_descr,
+		{ id = "buildmenu_alwaysshow", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.buildmenu_alwaysshow'), type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getAlwaysShow ~= nil and WG['buildmenu'].getAlwaysShow()), description = Spring.I18N('ui.settings.option.buildmenu_alwaysshow_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2922,7 +3239,7 @@ function init()
 			  saveOptionValue('Grid menu', 'buildmenu', 'setAlwaysShow', { 'alwaysShow' }, value)
 		  end,
 		},
-		{ id = "buildmenu_prices", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.buildmenu_prices, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowPrice ~= nil and WG['buildmenu'].getShowPrice()), description = texts.option.buildmenu_prices_descr,
+		{ id = "buildmenu_prices", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.buildmenu_prices'), type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowPrice ~= nil and WG['buildmenu'].getShowPrice()), description = Spring.I18N('ui.settings.option.buildmenu_prices_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2930,7 +3247,7 @@ function init()
 			  saveOptionValue('Grid menu', 'buildmenu', 'setShowPrice', { 'showPrice' }, value)
 		  end,
 		},
-		{ id = "buildmenu_groupicon", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.buildmenu_groupicon, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowGroupIcon ~= nil and WG['buildmenu'].getShowGroupIcon()), description = texts.option.buildmenu_groupicon_descr,
+		{ id = "buildmenu_groupicon", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.buildmenu_groupicon'), type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowGroupIcon ~= nil and WG['buildmenu'].getShowGroupIcon()), description = Spring.I18N('ui.settings.option.buildmenu_groupicon_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2938,7 +3255,7 @@ function init()
 			  saveOptionValue('Grid menu', 'buildmenu', 'setShowGroupIcon', { 'showGroupIcon' }, value)
 		  end,
 		},
-		{ id = "buildmenu_radaricon", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.buildmenu_radaricon, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowRadarIcon ~= nil and WG['buildmenu'].getShowRadarIcon()), description = texts.option.buildmenu_radaricon_descr,
+		{ id = "buildmenu_radaricon", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.buildmenu_radaricon'), type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowRadarIcon ~= nil and WG['buildmenu'].getShowRadarIcon()), description = Spring.I18N('ui.settings.option.buildmenu_radaricon_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2947,14 +3264,14 @@ function init()
 		  end,
 		},
 
-		{ id = "ordermenu_bottompos", group = "ui", category = types.basic, name = texts.option.ordermenu..widgetOptionColor .. "  " .. texts.option.ordermenu_bottompos, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getBottomPosition ~= nil and WG['ordermenu'].getBottomPosition()), description = texts.option.ordermenu_bottompos_descr,
+		{ id = "ordermenu_bottompos", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.ordermenu')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.ordermenu_bottompos'), type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getBottomPosition ~= nil and WG['ordermenu'].getBottomPosition()), description = Spring.I18N('ui.settings.option.ordermenu_bottompos_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Order menu', 'ordermenu', 'setBottomPosition', { 'stickToBottom' }, value)
 		  end,
 		},
-		{ id = "ordermenu_colorize", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.ordermenu_colorize, type = "slider", min = 0, max = 1, step = 0.1, value = 0, description = '',
+		{ id = "ordermenu_colorize", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.ordermenu_colorize'), type = "slider", min = 0, max = 1, step = 0.1, value = 0, description = '',
 		  onload = function(i)
 			  loadWidgetData("Order menu", "ordermenu_colorize", { 'colorize' })
 		  end,
@@ -2962,14 +3279,14 @@ function init()
 			  saveOptionValue('Order menu', 'ordermenu', 'setColorize', { 'colorize' }, value)
 		  end,
 		},
-		{ id = "ordermenu_alwaysshow", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.ordermenu_alwaysshow, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getAlwaysShow ~= nil and WG['ordermenu'].getAlwaysShow()), description = texts.option.ordermenu_alwaysshow_descr,
+		{ id = "ordermenu_alwaysshow", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.ordermenu_alwaysshow'), type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getAlwaysShow ~= nil and WG['ordermenu'].getAlwaysShow()), description = Spring.I18N('ui.settings.option.ordermenu_alwaysshow_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Order menu', 'ordermenu', 'setAlwaysShow', { 'alwaysShow' }, value)
 		  end,
 		},
-		{ id = "ordermenu_hideset", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.ordermenu_hideset, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getDisabledCmd ~= nil and WG['ordermenu'].getDisabledCmd('Move')), description = texts.option.ordermenu_hideset_descr,
+		{ id = "ordermenu_hideset", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.ordermenu_hideset'), type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getDisabledCmd ~= nil and WG['ordermenu'].getDisabledCmd('Move')), description = Spring.I18N('ui.settings.option.ordermenu_hideset_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2980,21 +3297,21 @@ function init()
 		  end,
 		},
 
-		{ id = "info_buildlist", group = "ui", category = types.advanced, name = texts.option.info .. widgetOptionColor .. "  " .. texts.option.info_buildlist, type = "bool", value = (WG['info'] and WG['info'].getShowBuilderBuildlist ~= nil and WG['info'].getShowBuilderBuildlist()), description = texts.option.info_buildlist_descr,
+		{ id = "info_buildlist", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.info') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.info_buildlist'), type = "bool", value = (WG['info'] and WG['info'].getShowBuilderBuildlist ~= nil and WG['info'].getShowBuilderBuildlist()), description = Spring.I18N('ui.settings.option.info_buildlist_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Info', 'info', 'setShowBuilderBuildlist', { 'showBuilderBuildlist' }, value)
 		  end,
 		},
-		{ id = "info_mappos", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.info_mappos, type = "bool", value = (WG['info'] and WG['info'].getDisplayMapPosition ~= nil and WG['info'].getDisplayMapPosition()), description = texts.option.info_mappos_descr,
+		{ id = "info_mappos", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.info_mappos'), type = "bool", value = (WG['info'] and WG['info'].getDisplayMapPosition ~= nil and WG['info'].getDisplayMapPosition()), description = Spring.I18N('ui.settings.option.info_mappos_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Info', 'info', 'setDisplayMapPosition', { 'displayMapPosition' }, value)
 		  end,
 		},
-		{ id = "info_alwaysshow", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.info_alwaysshow, type = "bool", value = (WG['info'] ~= nil and WG['info'].getAlwaysShow ~= nil and WG['info'].getAlwaysShow()), description = texts.option.info_alwaysshow_descr,
+		{ id = "info_alwaysshow", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.info_alwaysshow'), type = "bool", value = (WG['info'] ~= nil and WG['info'].getAlwaysShow ~= nil and WG['info'].getAlwaysShow()),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3002,7 +3319,7 @@ function init()
 		  end,
 		},
 
-		{ id = "advplayerlist_country", group = "ui", category = types.basic, name = texts.option.advplayerlist .. widgetOptionColor .. "  " .. texts.option.advplayerlist_country, type = "bool", value = true, description = texts.option.advplayerlist_country_descr,
+		{ id = "advplayerlist_country", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.advplayerlist') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.advplayerlist_country'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_country_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_country", { 'm_active_Table', 'country' })
 		  end,
@@ -3010,7 +3327,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'country' }, value, { 'country', value })
 		  end,
 		},
-		{ id = "advplayerlist_scale", group = "ui", category = types.advanced, name =  widgetOptionColor .. "   " .. texts.option.advplayerlist_scale, min = 0.85, max = 1.2, step = 0.01, type = "slider", value = 1, description = texts.option.advplayerlist_scale_descr,
+		{ id = "advplayerlist_scale", group = "ui", category = types.advanced, name =  widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_scale'), min = 0.85, max = 1.2, step = 0.01, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.advplayerlist_scale_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_scale", { 'customScale' })
 		  end,
@@ -3018,7 +3335,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetScale', { 'customScale' }, value)
 		  end,
 		},
-		{ id = "advplayerlist_showid", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_showid, type = "bool", value = false, description = texts.option.advplayerlist_showid_descr,
+		{ id = "advplayerlist_showid", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_showid'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.advplayerlist_showid_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_showid", { 'm_active_Table', 'id' })
 		  end,
@@ -3026,7 +3343,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'id' }, value, { 'id', value })
 		  end,
 		},
-		{ id = "advplayerlist_rank", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_rank, type = "bool", value = true, description = texts.option.advplayerlist_rank_descr,
+		{ id = "advplayerlist_rank", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_rank'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_rank_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_rank", { 'm_active_Table', 'rank' })
 		  end,
@@ -3034,7 +3351,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'rank' }, value, { 'rank', value })
 		  end,
 		},
-		--{ id = "advplayerlist_side", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_side, type = "bool", value = true, description = texts.option.advplayerlist_side_descr,
+		--{ id = "advplayerlist_side", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_side'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_side_descr'),
 		--  onload = function(i)
 		--	  loadWidgetData("AdvPlayersList", "advplayerlist_side", { 'm_active_Table', 'side' })
 		--  end,
@@ -3042,7 +3359,7 @@ function init()
 		--	  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'side' }, value, { 'side', value })
 		--  end,
 		--},
-		{ id = "advplayerlist_skill", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_skill, type = "bool", value = true, description = texts.option.advplayerlist_skill_descr,
+		{ id = "advplayerlist_skill", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_skill'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_skill_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_skill", { 'm_active_Table', 'skill' })
 		  end,
@@ -3050,7 +3367,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'skill' }, value, { 'skill', value })
 		  end,
 		},
-		{ id = "advplayerlist_cpuping", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_cpuping, type = "bool", value = true, description = texts.option.advplayerlist_cpuping_descr,
+		{ id = "advplayerlist_cpuping", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_cpuping'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_cpuping_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_cpuping", { 'm_active_Table', 'cpuping' })
 		  end,
@@ -3058,7 +3375,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'cpuping' }, value, { 'cpuping', value })
 		  end,
 		},
-		{ id = "advplayerlist_income", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_income, type = "bool", value = true, description = texts.option.advplayerlist_income_descr,
+		{ id = "advplayerlist_income", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_income'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_income_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_income", { 'm_active_Table', 'income' })
 		  end,
@@ -3066,7 +3383,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'income' }, value, { 'income', value })
 		  end,
 		},
-		{ id = "advplayerlist_absresbars", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_absresbars, type = "bool", value = false, description = texts.option.advplayerlist_absresbars_descr,
+		{ id = "advplayerlist_absresbars", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_absresbars'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.advplayerlist_absresbars_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_absresbars", { 'absoluteResbarValues' })
 		  end,
@@ -3074,7 +3391,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetAbsoluteResbars', { 'absoluteResbarValues' }, value)
 		  end,
 		},
-		{ id = "advplayerlist_share", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_share, type = "bool", value = true, description = texts.option.advplayerlist_share_descr,
+		{ id = "advplayerlist_share", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_share'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_share_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_share", { 'm_active_Table', 'share' })
 		  end,
@@ -3082,7 +3399,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
 		  end,
 		},
-		{ id = "advplayerlist_hidespecs", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_hidespecs, type = "bool", value = true, description = texts.option.advplayerlist_hidespecs_descr,
+		{ id = "advplayerlist_hidespecs", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_hidespecs'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_hidespecs_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_hidespecs", { 'alwaysHideSpecs' })
 		  end,
@@ -3090,8 +3407,8 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetAlwaysHideSpecs', { 'alwaysHideSpecs' }, value)
 		  end,
 		},
-		{ id = "unittotals", group = "ui", category = types.advanced, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   " .. texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },
-		{ id = "musicplayer", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. widgetOptionColor .. texts.option.musicplayer, type = "bool", value = (WG['music'] ~= nil and WG['music'].GetShowGui() or false), description = texts.option.musicplayer_descr,
+		{ id = "unittotals", group = "ui", category = types.advanced, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.unittotals'), type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = Spring.I18N('ui.settings.option.unittotals_descr') },
+		{ id = "musicplayer", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. widgetOptionColor .. Spring.I18N('ui.settings.option.musicplayer'), type = "bool", value = (WG['music'] ~= nil and WG['music'].GetShowGui() or false), description = Spring.I18N('ui.settings.option.musicplayer_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList Music Player New", "musicplayer", { 'showGUI' })
 		  end,
@@ -3099,9 +3416,9 @@ function init()
 			  saveOptionValue('AdvPlayersList Music Player New', 'music', 'SetShowGui', { 'showGUI' }, value)
 		  end,
 		},
-		{ id = "mascot", group = "ui", category = types.advanced, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   " .. texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
+		{ id = "mascot", group = "ui", category = types.advanced, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.mascot'), type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = Spring.I18N('ui.settings.option.mascot_descr') },
 
-		{ id = "displayselectedname", group = "ui", category = types.advanced, name = texts.option.displayselectedname, type = "bool", value = (WG['playertv'] ~= nil and WG['playertv'].GetAlwaysDisplayName() or false), description = texts.option.displayselectedname_descr,
+		{ id = "displayselectedname", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.displayselectedname'), type = "bool", value = (WG['playertv'] ~= nil and WG['playertv'].GetAlwaysDisplayName() or false), description = Spring.I18N('ui.settings.option.displayselectedname_descr'),
 		  onload = function(i)
 			  loadWidgetData("Player-TV", "displayselectedname", { 'alwaysDisplayName' })
 		  end,
@@ -3110,14 +3427,14 @@ function init()
 		  end,
 		},
 
-		{ id = "console_hidespecchat", group = "ui", category = types.basic, name = texts.option.console .. "   " .. widgetOptionColor .. texts.option.console_hidespecchat, type = "bool", value = (Spring.GetConfigInt("HideSpecChat", 0) == 1), description = texts.option.console_hidespecchat_descr,
+		{ id = "console_hidespecchat", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.console') .. "   " .. widgetOptionColor .. Spring.I18N('ui.settings.option.console_hidespecchat'), type = "bool", value = (Spring.GetConfigInt("HideSpecChat", 0) == 1), description = Spring.I18N('ui.settings.option.console_hidespecchat_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("HideSpecChat", value and 1 or 0)
 		  end,
 		},
-		{ id = "console_hide", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. widgetOptionColor .. texts.option.console_hide, type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getHide() or false), description = texts.option.console_hide_descr,
+		{ id = "console_hide", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. widgetOptionColor .. Spring.I18N('ui.settings.option.console_hide'), type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getHide() or false), description = Spring.I18N('ui.settings.option.console_hide_descr'),
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_hide", { 'hide' })
 		  end,
@@ -3125,7 +3442,7 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setHide', { 'hide' }, value)
 		  end,
 		},
-		{ id = "console_maxlines", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.console_maxlines, type = "slider", min = 3, max = 7, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxLines() or 5), description = '',
+		{ id = "console_maxlines", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_maxlines'), type = "slider", min = 3, max = 7, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxLines() or 5), description = '',
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_maxlines", { 'maxLines' })
 		  end,
@@ -3133,7 +3450,7 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setMaxLines', { 'maxLines' }, value)
 		  end,
 		},
-		{ id = "console_maxconsolelines", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.console_maxconsolelines, type = "slider", min = 2, max = 12, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxConsoleLines() or 2), description = '',
+		{ id = "console_maxconsolelines", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_maxconsolelines'), type = "slider", min = 2, max = 12, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxConsoleLines() or 2), description = '',
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_maxconsolelines", { 'maxConsoleLines' })
 		  end,
@@ -3141,7 +3458,7 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setMaxConsoleLines', { 'maxConsoleLines' }, value)
 		  end,
 		},
-		{ id = "console_fontsize", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.console_fontsize, type = "slider", min = 0.92, max = 1.12, step = 0.02, value = (WG['chat'] ~= nil and WG['chat'].getFontsize() or 1), description = '',
+		{ id = "console_fontsize", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_fontsize'), type = "slider", min = 0.92, max = 1.12, step = 0.02, value = (WG['chat'] ~= nil and WG['chat'].getFontsize() or 1), description = '',
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_fontsize", { 'fontsizeMult' })
 		  end,
@@ -3149,7 +3466,7 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setFontsize', { 'fontsizeMult' }, value)
 		  end,
 		},
-		{ id = "console_backgroundopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.console_backgroundopacity, type = "slider", min = 0, max = 0.45, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = texts.option.console_backgroundopacity_descr,
+		{ id = "console_backgroundopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_backgroundopacity'), type = "slider", min = 0, max = 0.45, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = Spring.I18N('ui.settings.option.console_backgroundopacity_descr'),
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_backgroundopacity", { 'chatBackgroundOpacity' })
 		  end,
@@ -3157,7 +3474,7 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setBackgroundOpacity', { 'chatBackgroundOpacity' }, value)
 		  end,
 		},
-		{ id = "console_handleinput", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.console_handleinput, type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getHandleInput() or 0), description = texts.option.console_handleinput_descr,
+		{ id = "console_handleinput", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_handleinput'), type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getHandleInput() or 0), description = Spring.I18N('ui.settings.option.console_handleinput_descr'),
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_handleinput", { 'handleTextInput' })
 		  end,
@@ -3165,7 +3482,7 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setHandleInput', { 'handleTextInput' }, value)
 		  end,
 		},
-		{ id = "console_inputbutton", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.console_inputbutton, type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getInputButton() or 0), description = texts.option.console_inputbutton_descr,
+		{ id = "console_inputbutton", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_inputbutton'), type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getInputButton() or 0), description = Spring.I18N('ui.settings.option.console_inputbutton_descr'),
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_inputbutton", { 'inputButton' })
 		  end,
@@ -3173,17 +3490,26 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setInputButton', { 'inputButton' }, value)
 		  end,
 		},
-		--{ id = "autoeraser", group = "ui", category = types.basic, widget = "Auto point eraser", name = texts.option.autoeraser, type = "bool", value = GetWidgetToggleValue("Auto point eraser"), description = texts.option.autoeraser_descr },
-		--{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.autoeraser_erasetime, type = "slider", min = 1, max = 240, step = 1, value = 60, description = texts.option.autoeraser_erasetime_descr,
-		--  onload = function(i)
-		--	  loadWidgetData("Auto point eraser", "autoeraser_erasetime", { 'eraseTime' })
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Auto point eraser', 'autoeraser', 'setEraseTime', { 'eraseTime' }, value)
-		--  end,
-		--},
+		{ id = "autoeraser", group = "ui", category = types.basic, widget = "Auto mapmark eraser", name = Spring.I18N('ui.settings.option.autoeraser'), type = "bool", value = GetWidgetToggleValue("Auto mapmark eraser"), description = Spring.I18N('ui.settings.option.autoeraser_descr') },
+		{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.autoeraser_erasetime'), type = "slider", min = 10, max = 200, step = 1, value = 60, description = Spring.I18N('ui.settings.option.autoeraser_erasetime_descr'),
+		  onload = function(i)
+			  loadWidgetData("Auto mapmark eraser", "autoeraser_erasetime", { 'eraseTime' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Auto mapmark eraser', 'autoeraser', 'setEraseTime', { 'eraseTime' }, value)
+		  end,
+		},
 
-		{ id = "continuouslyclearmapmarks", group = "ui", category = types.dev, name = texts.option.continuouslyclearmapmarks, type = "bool", value = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1, description = texts.option.continuouslyclearmapmarks_descr,
+		{ id = "topbar_hidebuttons", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.topbar')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.topbar_hidebuttons'), type = "bool", value = (WG['topbar'] ~= nil and WG['topbar'].getAutoHideButtons() or 0),
+		  onload = function(i)
+			  loadWidgetData("Top Bar", "topbar_hidebuttons", { 'autoHideButtons' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Top Bar', 'topbar', 'setAutoHideButtons', { 'autoHideButtons' }, value)
+		  end,
+		},
+
+		{ id = "continuouslyclearmapmarks", group = "ui", category = types.dev, name = Spring.I18N('ui.settings.option.continuouslyclearmapmarks'), type = "bool", value = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1, description = Spring.I18N('ui.settings.option.continuouslyclearmapmarks_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("ContinuouslyClearMapmarks", (value and 1 or 0))
 			  if value then
@@ -3192,29 +3518,29 @@ function init()
 		  end,
 		},
 
-		{ id = "unitgroups", group = "ui", category = types.basic, widget = "Unit Groups", name = texts.option.unitgroups, type = "bool", value = GetWidgetToggleValue("Unit Groups"), description = texts.option.unitgroups_descr },
-		{ id = "idlebuilders", group = "ui", category = types.basic, widget = "Idle Builders", name = texts.option.idlebuilders, type = "bool", value = GetWidgetToggleValue("Idle Builders"), description = texts.option.idlebuilders_descr },
-		{ id = "buildbar", group = "ui", category = types.basic, widget = "BuildBar", name = texts.option.buildbar, type = "bool", value = GetWidgetToggleValue("BuildBar"), description = texts.option.buildbar_descr },
+		{ id = "unitgroups", group = "ui", category = types.basic, widget = "Unit Groups", name = Spring.I18N('ui.settings.option.unitgroups'), type = "bool", value = GetWidgetToggleValue("Unit Groups"), description = Spring.I18N('ui.settings.option.unitgroups_descr') },
+		{ id = "idlebuilders", group = "ui", category = types.basic, widget = "Idle Builders", name = Spring.I18N('ui.settings.option.idlebuilders'), type = "bool", value = GetWidgetToggleValue("Idle Builders"), description = Spring.I18N('ui.settings.option.idlebuilders_descr') },
+		{ id = "buildbar", group = "ui", category = types.basic, widget = "BuildBar", name = Spring.I18N('ui.settings.option.buildbar'), type = "bool", value = GetWidgetToggleValue("BuildBar"), description = Spring.I18N('ui.settings.option.buildbar_descr') },
 
-		{ id = "converterusage", group = "ui", category = types.advanced, widget = "Converter Usage", name = texts.option.converterusage, type = "bool", value = GetWidgetToggleValue("Converter Usage"), description = texts.option.converterusage_descr },
+		{ id = "converterusage", group = "ui", category = types.advanced, widget = "Converter Usage", name = Spring.I18N('ui.settings.option.converterusage'), type = "bool", value = GetWidgetToggleValue("Converter Usage"), description = Spring.I18N('ui.settings.option.converterusage_descr') },
 
-		{ id = "widgetselector", group = "ui", category = types.advanced, name = texts.option.widgetselector, type = "bool", value = Spring.GetConfigInt("widgetselector", 0) == 1, description = texts.option.widgetselector_descr,
+		{ id = "widgetselector", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.widgetselector'), type = "bool", value = Spring.GetConfigInt("widgetselector", 0) == 1, description = Spring.I18N('ui.settings.option.widgetselector_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("widgetselector", (value and 1 or 0))
 		  end,
 		},
 
 
-		{ id = "label_ui_visuals", group = "ui", name = texts.option.label_visuals, category = types.basic },
+		{ id = "label_ui_visuals", group = "ui", name = Spring.I18N('ui.settings.option.label_visuals'), category = types.basic },
 		{ id = "label_ui_visuals_spacer", group = "ui", category = types.basic },
 
-		{ id = "uniticon_scaleui", group = "ui", category = types.basic, name = texts.option.uniticonscaleui, type = "slider", min = 0.85, max = 2, step = 0.05, value = tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = texts.option.uniticonscaleui_descr,
+		{ id = "uniticon_scaleui", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.uniticonscaleui'), type = "slider", min = 0.85, max = 2, step = 0.05, value = tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = Spring.I18N('ui.settings.option.uniticonscaleui_descr'),
 		  onchange = function(i, value)
 			  Spring.SendCommands("iconscaleui " .. value)
 			  Spring.SetConfigFloat("UnitIconScaleUI", value)
 		  end,
 		},
-		{ id = "uniticon_distance", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.uniticondistance, type = "slider", min = 1, max = 12000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 2700) or 1), description = texts.option.uniticondistance_descr,
+		{ id = "uniticon_distance", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.uniticondistance'), type = "slider", min = 1, max = 12000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 2700) or 1), description = Spring.I18N('ui.settings.option.uniticondistance_descr'),
 		  onchange = function(i, value)
 			  Spring.SendCommands("iconfadestart " .. value)
 			  Spring.SetConfigInt("UnitIconFadeStart", value)
@@ -3223,23 +3549,23 @@ function init()
 			  Spring.SetConfigInt("UnitIconFadeVanish", value)
 		  end,
 		},
-		{ id = "uniticon_hidewithui", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.uniticonhidewithui, type = "bool", value = (Spring.GetConfigInt("UnitIconsHideWithUI", 0) == 1), description = texts.option.uniticonhidewithui_descr,
+		{ id = "uniticon_hidewithui", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.uniticonhidewithui'), type = "bool", value = (Spring.GetConfigInt("UnitIconsHideWithUI", 0) == 1), description = Spring.I18N('ui.settings.option.uniticonhidewithui_descr'),
 		  onchange = function(i, value)
 			  Spring.SendCommands("iconshidewithui " .. (value and 1 or 0))
 			  Spring.SetConfigInt("UnitIconsHideWithUI", (value and 1 or 0))
 		  end,
 		},
 
-		-- { id = "teamcolors", group = "ui", category = types.basic, widget = "Player Color Palette", name = texts.option.teamcolors, type = "bool", value = GetWidgetToggleValue("Player Color Palette"), description = texts.option.teamcolors_descr },
-		-- { id = "sameteamcolors", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sameteamcolors, type = "bool", value = (WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil and WG['playercolorpalette'].getSameTeamColors()), description = texts.option.sameteamcolors_descr,
+		-- { id = "teamcolors", group = "ui", category = types.basic, widget = "Player Color Palette", name = Spring.I18N('ui.settings.option.teamcolors'), type = "bool", value = GetWidgetToggleValue("Player Color Palette"), description = Spring.I18N('ui.settings.option.teamcolors_descr') },
+		-- { id = "sameteamcolors", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sameteamcolors'), type = "bool", value = (WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil and WG['playercolorpalette'].getSameTeamColors()), description = Spring.I18N('ui.settings.option.sameteamcolors_descr'),
 		--   onchange = function(i, value)
 		-- 	  saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', { 'useSameTeamColors' }, value)
 		--   end,
 		-- },
 
 
-		{ id = "teamplatter", group = "ui", category = types.basic, widget = "TeamPlatter", name = texts.option.teamplatter, type = "bool", value = GetWidgetToggleValue("TeamPlatter"), description = texts.option.teamplatter_descr },
-		{ id = "teamplatter_opacity", category = types.advanced, group = "ui", name = widgetOptionColor .. "   " .. texts.option.teamplatter_opacity, min = 0.05, max = 0.4, step = 0.01, type = "slider", value = 0.25, description = texts.option.teamplatter_opacity_descr,
+		{ id = "teamplatter", group = "ui", category = types.basic, widget = "TeamPlatter", name = Spring.I18N('ui.settings.option.teamplatter'), type = "bool", value = GetWidgetToggleValue("TeamPlatter"), description = Spring.I18N('ui.settings.option.teamplatter_descr') },
+		{ id = "teamplatter_opacity", category = types.advanced, group = "ui", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.teamplatter_opacity'), min = 0.05, max = 0.4, step = 0.01, type = "slider", value = 0.25, description = Spring.I18N('ui.settings.option.teamplatter_opacity_descr'),
 		  onload = function(i)
 			  loadWidgetData("TeamPlatter", "teamplatter_opacity", { 'opacity' })
 		  end,
@@ -3247,7 +3573,7 @@ function init()
 			  saveOptionValue('TeamPlatter', 'teamplatter', 'setOpacity', { 'opacity' }, value)
 		  end,
 		},
-		{ id = "teamplatter_skipownteam", category = types.advanced, group = "ui", name = widgetOptionColor .. "   " .. texts.option.teamplatter_skipownteam, type = "bool", value = false, description = texts.option.teamplatter_skipownteam_descr,
+		{ id = "teamplatter_skipownteam", category = types.advanced, group = "ui", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.teamplatter_skipownteam'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.teamplatter_skipownteam_descr'),
 		  onload = function(i)
 			  loadWidgetData("TeamPlatter", "teamplatter_skipownteam", { 'skipOwnTeam' })
 		  end,
@@ -3256,8 +3582,8 @@ function init()
 		  end,
 		},
 
-		{ id = "enemyspotter", group = "ui", category = types.basic, widget = "EnemySpotter", name = texts.option.enemyspotter, type = "bool", value = GetWidgetToggleValue("EnemySpotter"), description = texts.option.enemyspotter_descr },
-		{ id = "enemyspotter_opacity", category = types.advanced, group = "ui", name = widgetOptionColor .. "   " .. texts.option.enemyspotter_opacity, min = 0.12, max = 0.4, step = 0.01, type = "slider", value = 0.15, description = texts.option.enemyspotter_opacity_descr,
+		{ id = "enemyspotter", group = "ui", category = types.basic, widget = "EnemySpotter", name = Spring.I18N('ui.settings.option.enemyspotter'), type = "bool", value = GetWidgetToggleValue("EnemySpotter"), description = Spring.I18N('ui.settings.option.enemyspotter_descr') },
+		{ id = "enemyspotter_opacity", category = types.advanced, group = "ui", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.enemyspotter_opacity'), min = 0.12, max = 0.4, step = 0.01, type = "slider", value = 0.15, description = Spring.I18N('ui.settings.option.enemyspotter_opacity_descr'),
 		  onload = function(i)
 			  loadWidgetData("EnemySpotter", "enemyspotter_opacity", { 'opacity' })
 		  end,
@@ -3266,8 +3592,8 @@ function init()
 		  end,
 		},
 
-		--{ id = "selectedunits", group = "ui", category = types.basic, widget = "Selected Units GL4", name = "Selection", type = "bool", value = GetWidgetToggleValue("Selected Units GL4"), description = texts.option.selectedunits_descr },
-		{ id = "selectedunits_opacity", group = "ui", category = types.advanced, name = texts.option.selectedunits..widgetOptionColor .. "  " .. texts.option.selectedunits_opacity, min = 0, max = 0.5, step = 0.01, type = "slider", value = 0.19, description = texts.option.selectedunits_opacity_descr,
+		--{ id = "selectedunits", group = "ui", category = types.basic, widget = "Selected Units GL4", name = "Selection", type = "bool", value = GetWidgetToggleValue("Selected Units GL4"), description = Spring.I18N('ui.settings.option.selectedunits_descr') },
+		{ id = "selectedunits_opacity", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.selectedunits')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.selectedunits_opacity'), min = 0, max = 0.5, step = 0.01, type = "slider", value = 0.19, description = Spring.I18N('ui.settings.option.selectedunits_opacity_descr'),
 		  onload = function(i)
 			  loadWidgetData("Selected Units GL4", "selectedunits_opacity", { 'opacity' })
 		  end,
@@ -3275,7 +3601,7 @@ function init()
 			  saveOptionValue('Selected Units GL4', 'selectedunits', 'setOpacity', { 'opacity' }, value)
 		  end,
 		},
-		{ id = "selectedunits_teamcoloropacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.selectedunits_teamcoloropacity, min = 0, max = 1, step = 0.01, type = "slider", value = 0.6, description = texts.option.selectedunits_teamcoloropacity_descr,
+		{ id = "selectedunits_teamcoloropacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.selectedunits_teamcoloropacity'), min = 0, max = 1, step = 0.01, type = "slider", value = 0.6, description = Spring.I18N('ui.settings.option.selectedunits_teamcoloropacity_descr'),
 		  onload = function(i)
 			  loadWidgetData("Selected Units GL4", "selectedunits_teamcoloropacity", { 'teamcolorOpacity' })
 		  end,
@@ -3284,8 +3610,8 @@ function init()
 		  end,
 		},
 
-		{ id = "highlightselunits", group = "ui", category = types.basic, widget = "Highlight Selected Units GL4", name = texts.option.highlightselunits, type = "bool", value = GetWidgetToggleValue("Highlight Selected Units GL4"), description = texts.option.highlightselunits_descr },
-		--{ id = "highlightselunits_opacity", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_opacity, min = 0.02, max = 0.12, step = 0.01, type = "slider", value = 0.05, description = texts.option.highlightselunits_opacity_descr,
+		{ id = "highlightselunits", group = "ui", category = types.basic, widget = "Highlight Selected Units GL4", name = Spring.I18N('ui.settings.option.highlightselunits'), type = "bool", value = GetWidgetToggleValue("Highlight Selected Units GL4"), description = Spring.I18N('ui.settings.option.highlightselunits_descr') },
+		--{ id = "highlightselunits_opacity", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.highlightselunits_opacity'), min = 0.02, max = 0.12, step = 0.01, type = "slider", value = 0.05, description = Spring.I18N('ui.settings.option.highlightselunits_opacity_descr'),
 		--  onload = function(i)
 		--	  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_opacity", { 'highlightAlpha' })
 		--  end,
@@ -3293,7 +3619,7 @@ function init()
 		--	  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setOpacity', { 'highlightAlpha' }, value)
 		--  end,
 		--},
-		--{ id = "highlightselunits_teamcolor", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_teamcolor, type = "bool", value = false, description = texts.option.highlightselunits_teamcolor_descr,
+		--{ id = "highlightselunits_teamcolor", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.highlightselunits_teamcolor'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.highlightselunits_teamcolor_descr'),
 		--  onload = function(i)
 		--	  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_teamcolor", { 'useTeamcolor' })
 		--  end,
@@ -3302,7 +3628,9 @@ function init()
 		--  end,
 		--},
 
-		{ id = "cursorlight", group = "ui", category = types.advanced, name = texts.option.cursorlight, type = "bool", value = false, description = texts.option.cursorlight_descr,
+		{ id = "highlightunit", group = "ui", category = types.advanced, widget = "Highlight Unit GL4", name = Spring.I18N('ui.settings.option.highlightunit'), type = "bool", value = GetWidgetToggleValue("Highlight Unit GL4"), description = Spring.I18N('ui.settings.option.highlightunit_descr') },
+
+		{ id = "cursorlight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.cursorlight'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.cursorlight_descr'),
 		  onload = function(i)
 			loadWidgetData("Deferred rendering GL4", "cursorlight", { 'showPlayerCursorLight' })
 		  end,
@@ -3310,7 +3638,7 @@ function init()
 			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'ShowPlayerCursorLight', { 'showPlayerCursorLight' }, value)
 		  end,
 		},
-		{ id = "cursorlight_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightradius, type = "slider", min = 0.3, max = 2, step = 0.05, value = 1, description = '',
+		{ id = "cursorlight_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.cursorlight_lightradius'), type = "slider", min = 0.3, max = 2, step = 0.05, value = 1, description = '',
 		  onload = function(i)
 			  loadWidgetData("Deferred rendering GL4", "cursorlight_lightradius", { 'playerCursorLightRadius' })
 		  end,
@@ -3318,7 +3646,7 @@ function init()
 			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'PlayerCursorLightRadius', { 'playerCursorLightRadius' }, value)
 		  end,
 		},
-		{ id = "cursorlight_lightstrength", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightstrength, type = "slider", min = 0.3, max = 2, step = 0.05, value = 1, description = '',
+		{ id = "cursorlight_lightstrength", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.cursorlight_lightstrength'), type = "slider", min = 0.3, max = 2, step = 0.05, value = 1, description = '',
 		  onload = function(i)
 			  loadWidgetData("Cursor Light", "cursorlight_lightstrength", { 'playerCursorLightBrightness' })
 		  end,
@@ -3328,10 +3656,10 @@ function init()
 		},
 
 
-		{ id = "label_ui_info", group = "ui", name = texts.option.label_info, category = types.basic },
+		{ id = "label_ui_info", group = "ui", name = Spring.I18N('ui.settings.option.label_info'), category = types.basic },
 		{ id = "label_ui_info_spacer", group = "ui", category = types.basic },
 
-		{ id = "metalspots_values", group = "ui", category = types.advanced, name = texts.option.metalspots..widgetOptionColor .. "   " .. texts.option.metalspots_values, type = "bool", value = (WG['metalspots'] ~= nil and WG['metalspots'].getShowValue()), description = texts.option.metalspots_values_descr,
+		{ id = "metalspots_values", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.metalspots')..widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.metalspots_values'), type = "bool", value = (WG['metalspots'] ~= nil and WG['metalspots'].getShowValue()), description = Spring.I18N('ui.settings.option.metalspots_values_descr'),
 		  onload = function(i)
 			  loadWidgetData("Metalspots", "metalspots_values", { 'showValues' })
 		  end,
@@ -3342,7 +3670,7 @@ function init()
 			  saveOptionValue('Metalspots', 'metalspots', 'setShowValue', { 'showValue' }, options[getOptionByID('metalspots_values')].value)
 		  end,
 		},
-		{ id = "metalspots_metalviewonly", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.metalspots_metalviewonly, type = "bool", value = false, description = texts.option.metalspots_metalviewonly_descr,
+		{ id = "metalspots_metalviewonly", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.metalspots_metalviewonly'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.metalspots_metalviewonly_descr'),
 		  onload = function(i)
 			  loadWidgetData("Metalspots", "metalspots_metalviewonly", { 'metalViewOnly' })
 		  end,
@@ -3351,9 +3679,9 @@ function init()
 		  end,
 		},
 
-		{ id = "geospots", group = "ui", category = types.dev, widget = "Geothermalspots", name = texts.option.geospots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.geospots_descr },
+		{ id = "geospots", group = "ui", category = types.dev, widget = "Geothermalspots", name = Spring.I18N('ui.settings.option.geospots'), type = "bool", value = GetWidgetToggleValue("Metalspots"), description = Spring.I18N('ui.settings.option.geospots_descr') },
 
-    { id = "healthbarsscale", group = "ui", category = types.advanced, name = texts.option.healthbars .. widgetOptionColor .. "  " .. texts.option.healthbarsscale, type = "slider", min = 0.6, max = 2.0, step = 0.1, value = 1, description = '',
+    { id = "healthbarsscale", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.healthbars') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.healthbarsscale'), type = "slider", min = 0.6, max = 2.0, step = 0.1, value = 1, description = '',
 		  onload = function(i)
 			  loadWidgetData("Health Bars GL4", "healthbarsscale", { 'barScale' })
 		  end,
@@ -3361,7 +3689,7 @@ function init()
 			  saveOptionValue('Health Bars GL4', 'healthbars', 'setScale', { 'barScale' }, value)
 		  end,
 		},
-		{ id = "healthbarsvariable", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.healthbarsvariable, type = "bool", value = (WG['healthbar'] ~= nil and WG['healthbar'].getVariableSizes()), description = texts.option.healthbarsvariable_descr,
+		{ id = "healthbarsvariable", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.healthbarsvariable'), type = "bool", value = (WG['healthbar'] ~= nil and WG['healthbar'].getVariableSizes()), description = Spring.I18N('ui.settings.option.healthbarsvariable_descr'),
 		  onload = function(i)
 			  loadWidgetData("Health Bars GL4", "healthbarsvariable", { "variableBarSizes" })
 		  end,
@@ -3369,7 +3697,7 @@ function init()
 			  saveOptionValue("Health Bars GL4", "healthbars", "setVariableSizes", { "variableBarSizes" }, value)
 		  end,
 		},
-		{ id = "healthbarswhenguihidden", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.healthbarswhenguihidden, type = "bool", value = (WG['healthbar'] ~= nil and WG['healthbar'].getDrawWhenGuiHidden()), description = texts.option.healthbarswhenguihidden_descr,
+		{ id = "healthbarswhenguihidden", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.healthbarswhenguihidden'), type = "bool", value = (WG['healthbar'] ~= nil and WG['healthbar'].getDrawWhenGuiHidden()), description = Spring.I18N('ui.settings.option.healthbarswhenguihidden_descr'),
 		  onload = function(i)
 			  loadWidgetData("Health Bars GL4", "healthbarswhenguihidden", { "drawWhenGuiHidden" })
 		  end,
@@ -3377,15 +3705,15 @@ function init()
 			  saveOptionValue("Health Bars GL4", "healthbars", "setDrawWhenGuiHidden", { "drawWhenGuiHidden" }, value)
 		  end,
 		},
-		{ id = "rankicons", group = "ui", category = types.advanced, widget = "Rank Icons GL4", name = texts.option.rankicons, type = "bool", value = GetWidgetToggleValue("Rank Icons GL4"), description = texts.option.rankicons_descr },
-		{ id = "rankicons_distance", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.rankicons_distance, type = "slider", min = 0.1, max = 1.5, step = 0.05, value = (WG['rankicons'] ~= nil and WG['rankicons'].getDrawDistance ~= nil and WG['rankicons'].getDrawDistance()), description = '',
+		{ id = "rankicons", group = "ui", category = types.advanced, widget = "Rank Icons GL4", name = Spring.I18N('ui.settings.option.rankicons'), type = "bool", value = GetWidgetToggleValue("Rank Icons GL4"), description = Spring.I18N('ui.settings.option.rankicons_descr') },
+		{ id = "rankicons_distance", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.rankicons_distance'), type = "slider", min = 0.1, max = 1.5, step = 0.05, value = (WG['rankicons'] ~= nil and WG['rankicons'].getDrawDistance ~= nil and WG['rankicons'].getDrawDistance()), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Rank Icons', 'rankicons', 'setDrawDistance', { 'distanceMult' }, value)
 		  end,
 		},
-		{ id = "rankicons_scale", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.rankicons_scale, type = "slider", min = 0.5, max = 2, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getScale ~= nil and WG['rankicons'].getScale()), description = '',
+		{ id = "rankicons_scale", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.rankicons_scale'), type = "slider", min = 0.5, max = 2, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getScale ~= nil and WG['rankicons'].getScale()), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3393,8 +3721,8 @@ function init()
 		  end,
 		},
 
-		{ id = "allycursors", group = "ui", category = types.basic, widget = "AllyCursors", name = texts.option.allycursors, type = "bool", value = GetWidgetToggleValue("AllyCursors"), description = texts.option.allycursors_descr },
-		{ id = "allycursors_playername", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.allycursors_playername, type = "bool", value = true, description = texts.option.allycursors_playername_descr,
+		{ id = "allycursors", group = "ui", category = types.basic, widget = "AllyCursors", name = Spring.I18N('ui.settings.option.allycursors'), type = "bool", value = GetWidgetToggleValue("AllyCursors"), description = Spring.I18N('ui.settings.option.allycursors_descr') },
+		{ id = "allycursors_playername", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.allycursors_playername'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.allycursors_playername_descr'),
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_playername", { 'showPlayerName' })
 		  end,
@@ -3402,7 +3730,7 @@ function init()
 			  saveOptionValue('AllyCursors', 'allycursors', 'setPlayerNames', { 'showPlayerName' }, value)
 		  end,
 		},
-		{ id = "allycursors_showdot", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.allycursors_showdot, type = "bool", value = true, description = texts.option.allycursors_showdot_descr,
+		{ id = "allycursors_showdot", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.allycursors_showdot'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.allycursors_showdot_descr'),
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_showdot", { 'showCursorDot' })
 		  end,
@@ -3410,7 +3738,7 @@ function init()
 			  saveOptionValue('AllyCursors', 'allycursors', 'setCursorDot', { 'showCursorDot' }, value)
 		  end,
 		},
-		{ id = "allycursors_spectatorname", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.allycursors_spectatorname, type = "bool", value = true, description = texts.option.allycursors_spectatorname_descr,
+		{ id = "allycursors_spectatorname", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.allycursors_spectatorname'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.allycursors_spectatorname_descr'),
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_spectatorname", { 'showSpectatorName' })
 		  end,
@@ -3418,7 +3746,7 @@ function init()
 			  saveOptionValue('AllyCursors', 'allycursors', 'setSpectatorNames', { 'showSpectatorName' }, value)
 		  end,
 		},
-		{ id = "allycursors_lights", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.allycursors_lights, type = "bool", value = true, description = texts.option.allycursors_lights_descr,
+		{ id = "allycursors_lights", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.allycursors_lights'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.allycursors_lights_descr'),
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_lights", { 'addLights' })
 		  end,
@@ -3426,7 +3754,7 @@ function init()
 			  saveOptionValue('AllyCursors', 'allycursors', 'setLights', { 'addLights' }, options[getOptionByID('allycursors_lights')].value)
 		  end,
 		},
-		{ id = "allycursors_lightradius", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. texts.option.allycursors_lightradius, type = "slider", min = 0.15, max = 1, step = 0.05, value = 0.5, description = '',
+		{ id = "allycursors_lightradius", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.allycursors_lightradius'), type = "slider", min = 0.15, max = 1, step = 0.05, value = 0.5, description = '',
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_lightradius", { 'lightRadiusMult' })
 		  end,
@@ -3434,7 +3762,7 @@ function init()
 			  saveOptionValue('AllyCursors', 'allycursors', 'setLightRadius', { 'lightRadiusMult' }, value)
 		  end,
 		},
-		{ id = "allycursors_lightstrength", group = "ui", category = types.dev , name = widgetOptionColor .. "      " .. texts.option.allycursors_lightstrength, type = "slider", min = 0.1, max = 1.2, step = 0.05, value = 0.85, description = '',
+		{ id = "allycursors_lightstrength", group = "ui", category = types.dev , name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.allycursors_lightstrength'), type = "slider", min = 0.1, max = 1.2, step = 0.05, value = 0.85, description = '',
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_lightstrength", { 'lightStrengthMult' })
 		  end,
@@ -3443,11 +3771,11 @@ function init()
 		  end,
 		},
 
-		{ id = "showbuilderqueue", group = "ui", category = types.advanced, widget = "Show Builder Queue", name = texts.option.showbuilderqueue, type = "bool", value = GetWidgetToggleValue("Show Builder Queue"), description = texts.option.showbuilderqueue_descr },
+		{ id = "showbuilderqueue", group = "ui", category = types.advanced, widget = "Show Builder Queue", name = Spring.I18N('ui.settings.option.showbuilderqueue'), type = "bool", value = GetWidgetToggleValue("Show Builder Queue"), description = Spring.I18N('ui.settings.option.showbuilderqueue_descr') },
 
-		{ id = "unitenergyicons", group = "ui", category = types.advanced, widget = "Unit Energy Icons", name = texts.option.unitenergyicons, type = "bool", value = GetWidgetToggleValue("Unit Energy Icons"), description = texts.option.unitenergyicons_descr },
+		{ id = "unitenergyicons", group = "ui", category = types.advanced, widget = "Unit Energy Icons", name = Spring.I18N('ui.settings.option.unitenergyicons'), type = "bool", value = GetWidgetToggleValue("Unit Energy Icons"), description = Spring.I18N('ui.settings.option.unitenergyicons_descr') },
 
-		{ id = "nametags_rank", group = "ui", category = types.advanced, name = texts.option.nametags_rank, type = "bool", value = true, description = texts.option.nametags_rank_descr,
+		{ id = "nametags_rank", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.nametags_rank'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.nametags_rank_descr'),
 		  onload = function(i)
 			  loadWidgetData("Commander Name Tags", "nametags_rank", { 'showPlayerRank' })
 		  end,
@@ -3456,9 +3784,9 @@ function init()
 		  end,
 		},
 
-		{ id = "commandsfx", group = "ui", category = types.basic, widget = "Commands FX", name = texts.option.commandsfx, type = "bool", value = GetWidgetToggleValue("Commands FX"), description = texts.option.commandsfx_descr },
+		{ id = "commandsfx", group = "ui", category = types.basic, widget = "Commands FX", name = Spring.I18N('ui.settings.option.commandsfx'), type = "bool", value = GetWidgetToggleValue("Commands FX"), description = Spring.I18N('ui.settings.option.commandsfx_descr') },
 
-		{ id = "commandsfxopacity", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.commandsfxopacity, type = "slider", min = 0.25, max = 1, step = 0.1, value = 1, description = '',
+		{ id = "commandsfxopacity", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.commandsfxopacity'), type = "slider", min = 0.25, max = 1, step = 0.1, value = 1, description = '',
 		  onload = function(i)
 			  loadWidgetData("Commands FX", "commandsfxopacity", { 'opacity' })
 		  end,
@@ -3466,7 +3794,7 @@ function init()
 			  saveOptionValue('Commands FX', 'commandsfx', 'setOpacity', { 'opacity' }, value)
 		  end,
 		},
-		{ id = "commandsfxduration", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.commandsfxduration, type = "slider", min = 0.5, max = 2, step = 0.01, value = 1, description = '',
+		{ id = "commandsfxduration", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.commandsfxduration'), type = "slider", min = 0.5, max = 2, step = 0.01, value = 1, description = '',
 		  onload = function(i)
 			  loadWidgetData("Commands FX", "commandsfxduration", { 'duration' })
 		  end,
@@ -3474,7 +3802,7 @@ function init()
 			  saveOptionValue('Commands FX', 'commandsfx', 'setDuration', { 'duration' }, value)
 		  end,
 		},
-		{ id = "commandsfxfilterai", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.commandsfxfilterai, type = "bool", value = true, description = texts.option.commandsfxfilterai_descr,
+		{ id = "commandsfxfilterai", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.commandsfxfilterai'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.commandsfxfilterai_descr'),
 		  onload = function(i)
 			  loadWidgetData("Commands FX", "commandsfxfilterai", { 'filterAIteams' })
 		  end,
@@ -3482,7 +3810,7 @@ function init()
 			  saveOptionValue('Commands FX', 'commandsfx', 'setFilterAI', { 'filterAIteams' }, value)
 		  end,
 		},
-		{ id = "commandsfxuseteamcolors", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.commandsfxuseteamcolors, type = "bool", value = false, description = texts.option.commandsfxuseteamcolors_descr,
+		{ id = "commandsfxuseteamcolors", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.commandsfxuseteamcolors'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.commandsfxuseteamcolors_descr'),
 		  onload = function(i)
 			  loadWidgetData("Commands FX", "commandsfxuseteamcolors", { 'useTeamColors' })
 		  end,
@@ -3490,7 +3818,7 @@ function init()
 			  saveOptionValue('Commands FX', 'commandsfx', 'setUseTeamColors', { 'useTeamColors' }, value)
 		  end,
 		},
-		{ id = "commandsfxuseteamcolorswhenspec", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.commandsfxuseteamcolorswhenspec, type = "bool", value = false, description = texts.option.commandsfxuseteamcolorswhenspec_descr,
+		{ id = "commandsfxuseteamcolorswhenspec", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.commandsfxuseteamcolorswhenspec'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.commandsfxuseteamcolorswhenspec_descr'),
 		  onload = function(i)
 			  loadWidgetData("Commands FX", "commandsfxuseteamcolorswhenspec", { 'useTeamColorsWhenSpec' })
 		  end,
@@ -3500,26 +3828,26 @@ function init()
 		},
 
 
-		{ id = "flankingicons", group = "ui", category = types.advanced, widget = "Flanking Icons GL4", name = texts.option.flankingicons, type = "bool", value = GetWidgetToggleValue("Flanking Icons GL4"), description = texts.option.flankingicons_descr },
+		{ id = "flankingicons", group = "ui", category = types.advanced, widget = "Flanking Icons GL4", name = Spring.I18N('ui.settings.option.flankingicons'), type = "bool", value = GetWidgetToggleValue("Flanking Icons GL4"), description = Spring.I18N('ui.settings.option.flankingicons_descr') },
 
-		{ id = "displaydps", group = "ui", category = types.basic, name = texts.option.displaydps, type = "bool", value = tonumber(Spring.GetConfigInt("DisplayDPS", 0) or 0) == 1, description = texts.option.displaydps_descr,
+		{ id = "displaydps", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.displaydps'), type = "bool", value = tonumber(Spring.GetConfigInt("DisplayDPS", 0) or 0) == 1, description = Spring.I18N('ui.settings.option.displaydps_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("DisplayDPS", (value and 1 or 0))
 		  end,
 		},
-		{ id = "givenunits", group = "ui", category = types.advanced, widget = "Given Units", name = texts.option.givenunits, type = "bool", value = GetWidgetToggleValue("Given Units"), description = texts.option.giveunits_descr },
+		{ id = "givenunits", group = "ui", category = types.advanced, widget = "Given Units", name = Spring.I18N('ui.settings.option.givenunits'), type = "bool", value = GetWidgetToggleValue("Given Units"), description = Spring.I18N('ui.settings.option.givenunits_descr') },
 
 
-		{ id = "label_ui_ranges", group = "ui", name = texts.option.label_ranges, category = types.basic },
+		{ id = "label_ui_ranges", group = "ui", name = Spring.I18N('ui.settings.option.label_ranges'), category = types.basic },
 		{ id = "label_ui_ranges_spacer", group = "ui", category = types.basic },
 
 
 		-- Radar range rings:
-		{ id = "radarrange", group = "ui", category = types.advanced, widget = "Sensor Ranges Radar", name = texts.option.radarrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Radar"), description = texts.option.radarrange_descr },
+		{ id = "radarrange", group = "ui", category = types.advanced, widget = "Sensor Ranges Radar", name = Spring.I18N('ui.settings.option.radarrange'), type = "bool", value = GetWidgetToggleValue("Sensor Ranges Radar"), description = Spring.I18N('ui.settings.option.radarrange_descr') },
 
-		{ id = "radarrangeopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.radarrangeopacity, type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['radarrange'] ~= nil and WG['radarrange'].getOpacity ~= nil and WG['radarrange'].getOpacity()) or 0.08, description = '',
+		{ id = "radarrangeopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.radarrangeopacity'), type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['radarrange'] ~= nil and WG['radarrange'].getOpacity ~= nil and WG['radarrange'].getOpacity()) or 0.08, description = '',
 		  onload = function(i)
 			  loadWidgetData("Sensor Ranges Radar", "radarrangeopacity", { 'opacity' })
 		  end,
@@ -3528,9 +3856,9 @@ function init()
 		  end,
 		},
 		-- Sonar range
-		{ id = "sonarrange", group = "ui", category = types.advanced, widget = "Sensor Ranges Sonar", name = texts.option.sonarrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Sonar"), description = texts.option.sonarrange_descr },
+		{ id = "sonarrange", group = "ui", category = types.advanced, widget = "Sensor Ranges Sonar", name = Spring.I18N('ui.settings.option.sonarrange'), type = "bool", value = GetWidgetToggleValue("Sensor Ranges Sonar"), description = Spring.I18N('ui.settings.option.sonarrange_descr') },
 
-		{ id = "sonarrangeopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sonarrangeopacity, type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['sonarrange'] ~= nil and WG['sonarrange'].getOpacity ~= nil and WG['sonarrange'].getOpacity()) or 0.08, description = '',
+		{ id = "sonarrangeopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sonarrangeopacity'), type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['sonarrange'] ~= nil and WG['sonarrange'].getOpacity ~= nil and WG['sonarrange'].getOpacity()) or 0.08, description = '',
 		  onload = function(i)
 			  loadWidgetData("Sensor Ranges Sonar", "sonarrangeopacity", { 'opacity' })
 		  end,
@@ -3539,9 +3867,9 @@ function init()
 		  end,
 		},
 		-- Jammer range
-		{ id = "jammerrange", group = "ui", category = types.advanced, widget = "Sensor Ranges Jammer", name = texts.option.jammerrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Jammer"), description = texts.option.jammerrange_descr },
+		{ id = "jammerrange", group = "ui", category = types.advanced, widget = "Sensor Ranges Jammer", name = Spring.I18N('ui.settings.option.jammerrange'), type = "bool", value = GetWidgetToggleValue("Sensor Ranges Jammer"), description = Spring.I18N('ui.settings.option.jammerrange_descr') },
 
-		{ id = "jammerrangeopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.jammerrangeopacity, type = "slider", min = 0.01, max = 0.66, step = 0.01, value = (WG['jammerrange'] ~= nil and WG['jammerrange'].getOpacity ~= nil and WG['jammerrange'].getOpacity()) or 0.08, description = '',
+		{ id = "jammerrangeopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.jammerrangeopacity'), type = "slider", min = 0.01, max = 0.66, step = 0.01, value = (WG['jammerrange'] ~= nil and WG['jammerrange'].getOpacity ~= nil and WG['jammerrange'].getOpacity()) or 0.08, description = '',
 		  onload = function(i)
 			  loadWidgetData("Sensor Ranges Jammer", "jammerrangeopacity", { 'opacity' })
 		  end,
@@ -3550,9 +3878,9 @@ function init()
 		  end,
 		},
 		-- LOS Range:
-		{ id = "losrange", group = "ui", category = types.advanced, widget = "Sensor Ranges LOS", name = texts.option.losrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges LOS"), description = texts.option.losrange_descr },
+		{ id = "losrange", group = "ui", category = types.advanced, widget = "Sensor Ranges LOS", name = Spring.I18N('ui.settings.option.losrange'), type = "bool", value = GetWidgetToggleValue("Sensor Ranges LOS"), description = Spring.I18N('ui.settings.option.losrange_descr') },
 
-		{ id = "losrangeopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.losrangeopacity, type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['losrange'] ~= nil and WG['losrange'].getOpacity ~= nil and WG['losrange'].getOpacity()) or 0.08, description = '',
+		{ id = "losrangeopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.losrangeopacity'), type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['losrange'] ~= nil and WG['losrange'].getOpacity ~= nil and WG['losrange'].getOpacity()) or 0.08, description = '',
 		  onload = function(i)
 			  loadWidgetData("Sensor Ranges LOS", "losrangeopacity", { 'opacity' })
 		  end,
@@ -3560,7 +3888,7 @@ function init()
 			  saveOptionValue('Sensor Ranges LOS', 'losrange', 'setOpacity', { 'opacity' }, value)
 		  end,
 		},
-		{ id = "losrangeteamcolors", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.losrangeteamcolors, type = "bool", value = (WG['losrange'] ~= nil and WG['losrange'].getUseTeamColors ~= nil and WG['losrange'].getUseTeamColors()), description = '',
+		{ id = "losrangeteamcolors", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.losrangeteamcolors'), type = "bool", value = (WG['losrange'] ~= nil and WG['losrange'].getUseTeamColors ~= nil and WG['losrange'].getUseTeamColors()), description = '',
 		  onload = function(i)
 			  loadWidgetData("Sensor Ranges LOS", "losrangeteamcolors", { 'useteamcolors' })
 		  end,
@@ -3569,8 +3897,8 @@ function init()
 		  end,
 		},
 
-		{ id = "defrange", group = "ui", category = types.basic, widget = "Defense Range", name = texts.option.defrange, type = "bool", value = GetWidgetToggleValue("Defense Range"), description = texts.option.defrange_descr },
-		{ id = "defrange_allyair", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.defrange_allyair, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyAir ~= nil and WG['defrange'].getAllyAir()), description = texts.option.defrange_allyair_descr,
+		{ id = "defrange", group = "ui", category = types.basic, widget = "Defense Range", name = Spring.I18N('ui.settings.option.defrange'), type = "bool", value = GetWidgetToggleValue("Defense Range"), description = Spring.I18N('ui.settings.option.defrange_descr') },
+		{ id = "defrange_allyair", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_allyair'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyAir ~= nil and WG['defrange'].getAllyAir()), description = Spring.I18N('ui.settings.option.defrange_allyair_descr'),
 		  onload = function(i)
 			  loadWidgetData("Defense Range", "defrange_allyair", { 'enabled', 'ally', 'air' })
 		  end,
@@ -3583,7 +3911,7 @@ function init()
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyAir', { 'enabled', 'ally', 'air' }, value)
 		  end,
 		},
-		{ id = "defrange_allyground", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.defrange_allyground, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyGround ~= nil and WG['defrange'].getAllyGround()), description = texts.option.defrange_allyground_descr,
+		{ id = "defrange_allyground", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_allyground'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyGround ~= nil and WG['defrange'].getAllyGround()), description = Spring.I18N('ui.settings.option.defrange_allyground_descr'),
 		  onload = function(i)
 			  loadWidgetData("Defense Range", "defrange_allyground", { 'enabled', 'ally', 'ground' })
 		  end,
@@ -3596,7 +3924,7 @@ function init()
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyGround', { 'enabled', 'ally', 'ground' }, value)
 		  end,
 		},
-		{ id = "defrange_allynuke", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.defrange_allynuke, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyNuke ~= nil and WG['defrange'].getAllyNuke()), description = texts.option.defrange_allynuke_descr,
+		{ id = "defrange_allynuke", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_allynuke'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyNuke ~= nil and WG['defrange'].getAllyNuke()), description = Spring.I18N('ui.settings.option.defrange_allynuke_descr'),
 		  onload = function(i)
 			  loadWidgetData("Defense Range", "defrange_allynuke", { 'enabled', 'ally', 'nuke' })
 		  end,
@@ -3609,7 +3937,7 @@ function init()
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setAllyNuke', { 'enabled', 'ally', 'nuke' }, value)
 		  end,
 		},
-		{ id = "defrange_enemyair", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.defrange_enemyair, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyAir ~= nil and WG['defrange'].getEnemyAir()), description = texts.option.defrange_enemyair_descr,
+		{ id = "defrange_enemyair", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_enemyair'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyAir ~= nil and WG['defrange'].getEnemyAir()), description = Spring.I18N('ui.settings.option.defrange_enemyair_descr'),
 		  onload = function(i)
 			  loadWidgetData("Defense Range", "defrange_enemyair", { 'enabled', 'enemy', 'air' })
 		  end,
@@ -3622,7 +3950,7 @@ function init()
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyAir', { 'enabled', 'enemy', 'air' }, value)
 		  end,
 		},
-		{ id = "defrange_enemyground", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.defrange_enemyground, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyGround ~= nil and WG['defrange'].getEnemyGround()), description = texts.option.defrange_enemyground_descr,
+		{ id = "defrange_enemyground", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_enemyground'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyGround ~= nil and WG['defrange'].getEnemyGround()), description = Spring.I18N('ui.settings.option.defrange_enemyground_descr'),
 		  onload = function(i)
 			  loadWidgetData("Defense Range", "defrange_enemyground", { 'enabled', 'enemy', 'ground' })
 		  end,
@@ -3635,7 +3963,7 @@ function init()
 			  saveOptionValue('Defense Range GL4', 'defrange', 'setEnemyGround', { 'enabled', 'enemy', 'ground' }, value)
 		  end,
 		},
-		{ id = "defrange_enemynuke", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.defrange_enemynuke, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyNuke ~= nil and WG['defrange'].getEnemyNuke()), description = texts.option.defrange_enemynuke_descr,
+		{ id = "defrange_enemynuke", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.defrange_enemynuke'), type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyNuke ~= nil and WG['defrange'].getEnemyNuke()), description = Spring.I18N('ui.settings.option.defrange_enemynuke_descr'),
 		  onload = function(i)
 			  loadWidgetData("Defense Range", "defrange_enemynuke", { 'enabled', 'enemy', 'nuke' })
 		  end,
@@ -3649,10 +3977,10 @@ function init()
 		  end,
 		},
 
-		{ id = "antiranges", group = "ui", category = types.advanced, widget = "Anti Ranges", name = texts.option.antiranges, type = "bool", value = GetWidgetToggleValue("Anti Ranges"), description = texts.option.antiranges_descr },
+		{ id = "antiranges", group = "ui", category = types.advanced, widget = "Anti Ranges", name = Spring.I18N('ui.settings.option.antiranges'), type = "bool", value = GetWidgetToggleValue("Anti Ranges"), description = Spring.I18N('ui.settings.option.antiranges_descr') },
 
 		-- GAME
-		{ id = "networksmoothing", restart = true, category = types.basic, group = "game", name = texts.option.networksmoothing, type = "bool", value = useNetworkSmoothing, description = texts.option.networksmoothing_descr,
+		{ id = "networksmoothing", restart = true, category = types.basic, group = "game", name = Spring.I18N('ui.settings.option.networksmoothing'), type = "bool", value = useNetworkSmoothing, description = Spring.I18N('ui.settings.option.networksmoothing_descr'),
 		  onload = function(i)
 			  options[i].onchange(i, options[i].value)
 		  end,
@@ -3675,9 +4003,9 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "autoquit", group = "game", category = types.basic, widget = "Autoquit", name = texts.option.autoquit, type = "bool", value = GetWidgetToggleValue("Autoquit"), description = texts.option.autoquit_descr },
+		{ id = "autoquit", group = "game", category = types.basic, widget = "Autoquit", name = Spring.I18N('ui.settings.option.autoquit'), type = "bool", value = GetWidgetToggleValue("Autoquit"), description = Spring.I18N('ui.settings.option.autoquit_descr') },
 
-		{ id = "singleplayerpause", group = "game", category = types.advanced, name = texts.option.singleplayerpause, type = "bool", value = pauseGameWhenSingleplayer, description = texts.option.singleplayerpause_descr,
+		{ id = "singleplayerpause", group = "game", category = types.advanced, name = Spring.I18N('ui.settings.option.singleplayerpause'), type = "bool", value = pauseGameWhenSingleplayer, description = Spring.I18N('ui.settings.option.singleplayerpause_descr'),
 		  onchange = function(i, value)
 			  pauseGameWhenSingleplayer = value
 			  if (isSinglePlayer or isReplay) and show then
@@ -3692,18 +4020,29 @@ function init()
 		  end,
 		},
 
-		{ id = "label_ui_behavior", group = "game", name = texts.option.label_behavior, category = types.basic },
+		{ id = "catchupsmoothness", group = "game", category = types.dev, name = Spring.I18N('ui.settings.option.catchupsmoothness'), restart = true, type = "slider", min = 0.05, max = 0.3, step = 0.01, value = Spring.GetConfigFloat("MinSimDrawBalance", 0.15), description = Spring.I18N('ui.settings.option.catchupsmoothness_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigFloat("MinSimDrawBalance", value)
+		  end,
+		},
+		{ id = "catchupminfps", group = "game", category = types.dev, name = Spring.I18N('ui.settings.option.catchupminfps'), restart = true, type = "slider", min = 2, max = 15, step = 1, value = Spring.GetConfigInt("MinDrawFPS", 2), description = Spring.I18N('ui.settings.option.catchupminfps_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("MinDrawFPS", value)
+		  end,
+		},
+
+		{ id = "label_ui_behavior", group = "game", name = Spring.I18N('ui.settings.option.label_behavior'), category = types.basic },
 		{ id = "label_ui_behavior_spacer", group = "game", category = types.basic },
 
 
-		{ id = "smartselect_includebuildings", group = "game", category = types.basic, name = texts.option.smartselect_includebuildings, type = "bool", value = false, description = texts.option.smartselect_includebuildings_descr,
+		{ id = "smartselect_includebuildings", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.smartselect_includebuildings'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.smartselect_includebuildings_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeBuildings', { 'selectBuildingsWithMobile' }, value)
 		  end,
 		},
-		{ id = "smartselect_includebuilders", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.smartselect_includebuilders, type = "bool", value = false, description = texts.option.smartselect_includebuilders_descr,
+		{ id = "smartselect_includebuilders", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smartselect_includebuilders'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.smartselect_includebuilders_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3716,24 +4055,24 @@ function init()
 			group = "game",
 			category = types.basic,
 			widget = "Builder Priority",
-			name = texts.option.builderpriority,
+			name = Spring.I18N('ui.settings.option.builderpriority'),
 			type = "bool",
 			value = GetWidgetToggleValue("Builder Priority"),
-			description = texts.option.builderpriority_descr,
+			description = Spring.I18N('ui.settings.option.builderpriority_descr'),
 		},
 
 		{
 			id = "builderpriority_nanos",
 			group = "game",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. texts.option.builderpriority_nanos,
+			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.builderpriority_nanos'),
 			type = "bool",
 			value = (
 					WG['builderpriority'] ~= nil
 							and WG['builderpriority'].getLowPriorityNanos ~= nil
 							and WG['builderpriority'].getLowPriorityNanos()
 			),
-			description = texts.option.builderpriority_nanos_descr,
+			description = Spring.I18N('ui.settings.option.builderpriority_nanos_descr'),
 			onload = function(i)
 				loadWidgetData("Builder Priority", "builderpriority_nanos", { 'lowpriorityNanos' })
 			end,
@@ -3746,14 +4085,14 @@ function init()
 			id = "builderpriority_cons",
 			group = "game",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. texts.option.builderpriority_cons,
+			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.builderpriority_cons'),
 			type = "bool",
 			value = (
 					WG['builderpriority'] ~= nil
 							and WG['builderpriority'].getLowPriorityCons ~= nil
 							and WG['builderpriority'].getLowPriorityCons()
 			),
-			description = texts.option.builderpriority_cons_descr,
+			description = Spring.I18N('ui.settings.option.builderpriority_cons_descr'),
 			onload = function(i)
 				loadWidgetData("Builder Priority", "builderpriority_cons", { 'lowpriorityCons' })
 			end,
@@ -3766,14 +4105,14 @@ function init()
 			id = "builderpriority_labs",
 			group = "game",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. texts.option.builderpriority_labs,
+			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.builderpriority_labs'),
 			type = "bool",
 			value = (
 					WG['builderpriority'] ~= nil
 							and WG['builderpriority'].getLowPriorityLabs ~= nil
 							and WG['builderpriority'].getLowPriorityLabs()
 			),
-			description = texts.option.builderpriority_labs_descr,
+			description = Spring.I18N('ui.settings.option.builderpriority_labs_descr'),
 			onload = function(i)
 				loadWidgetData("Builder Priority", "builderpriority_labs", { 'lowpriorityLabs' })
 			end,
@@ -3782,23 +4121,23 @@ function init()
 			end,
 		},
 
-		{ id = "factoryguard", group = "game", category = types.basic, widget = "FactoryGuard", name = texts.option.factory .. widgetOptionColor .. "  " .. texts.option.factoryguard, type = "bool", value = GetWidgetToggleValue("FactoryGuard"), description = texts.option.factoryguard_descr },
-		{ id = "factoryholdpos", group = "game", category = types.basic, widget = "Factory hold position", name = widgetOptionColor .. "   " .. texts.option.factoryholdpos, type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = texts.option.factoryholdpos_descr },
-		{ id = "factoryrepeat", group = "game", category = types.basic, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   " .. texts.option.factoryrepeat, type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = texts.option.factoryrepeat_descr },
+		{ id = "factoryguard", group = "game", category = types.basic, widget = "FactoryGuard", name = Spring.I18N('ui.settings.option.factory') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.factoryguard'), type = "bool", value = GetWidgetToggleValue("FactoryGuard"), description = Spring.I18N('ui.settings.option.factoryguard_descr') },
+		{ id = "factoryholdpos", group = "game", category = types.basic, widget = "Factory hold position", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryholdpos'), type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = Spring.I18N('ui.settings.option.factoryholdpos_descr') },
+		{ id = "factoryrepeat", group = "game", category = types.basic, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryrepeat'), type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = Spring.I18N('ui.settings.option.factoryrepeat_descr') },
 
 
-		{ id = "transportai", group = "game", category = types.basic, widget = "Transport AI", name = texts.option.transportai, type = "bool", value = GetWidgetToggleValue("Transport AI"), description = texts.option.transportai_descr },
+		{ id = "transportai", group = "game", category = types.basic, widget = "Transport AI", name = Spring.I18N('ui.settings.option.transportai'), type = "bool", value = GetWidgetToggleValue("Transport AI"), description = Spring.I18N('ui.settings.option.transportai_descr') },
 
-		{ id = "onlyfighterspatrol", group = "game", category = types.basic, widget = "OnlyFightersPatrol", name = texts.option.onlyfighterspatrol, type = "bool", value = GetWidgetToggleValue("Autoquit"), description = texts.option.onlyfighterspatrol_descr },
-		{ id = "fightersfly", group = "game", category = types.basic, widget = "Set fighters on Fly mode", name = texts.option.fightersfly, type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = texts.option.fightersfly_descr },
+		{ id = "onlyfighterspatrol", group = "game", category = types.basic, widget = "OnlyFightersPatrol", name = Spring.I18N('ui.settings.option.onlyfighterspatrol'), type = "bool", value = GetWidgetToggleValue("Autoquit"), description = Spring.I18N('ui.settings.option.onlyfighterspatrol_descr') },
+		{ id = "fightersfly", group = "game", category = types.basic, widget = "Set fighters on Fly mode", name = Spring.I18N('ui.settings.option.fightersfly'), type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = Spring.I18N('ui.settings.option.fightersfly_descr') },
 
-		{ id = "settargetdefault", group = "game", category = types.basic, widget = "Set target default", name = texts.option.settargetdefault, type = "bool", value = GetWidgetToggleValue("Set target default"), description = texts.option.settargetdefault_descr },
-		{ id = "dgunnogroundenemies", group = "game", category = types.advanced, widget = "DGun no ground enemies", name = texts.option.dgunnogroundenemies, type = "bool", value = GetWidgetToggleValue("DGun no ground enemies"), description = texts.option.dgunnogroundenemies_descr },
-		{ id = "dgunstallassist", group = "game", category = types.advanced, widget = "DGun Stall Assist", name = texts.option.dgunstallassist, type = "bool", value = GetWidgetToggleValue("DGun Stall Assist"), description = texts.option.dgunstallassist_descr },
+		{ id = "settargetdefault", group = "game", category = types.basic, widget = "Set target default", name = Spring.I18N('ui.settings.option.settargetdefault'), type = "bool", value = GetWidgetToggleValue("Set target default"), description = Spring.I18N('ui.settings.option.settargetdefault_descr') },
+		{ id = "dgunnogroundenemies", group = "game", category = types.advanced, widget = "DGun no ground enemies", name = Spring.I18N('ui.settings.option.dgunnogroundenemies'), type = "bool", value = GetWidgetToggleValue("DGun no ground enemies"), description = Spring.I18N('ui.settings.option.dgunnogroundenemies_descr') },
+		{ id = "dgunstallassist", group = "game", category = types.advanced, widget = "DGun Stall Assist", name = Spring.I18N('ui.settings.option.dgunstallassist'), type = "bool", value = GetWidgetToggleValue("DGun Stall Assist"), description = Spring.I18N('ui.settings.option.dgunstallassist_descr') },
 
-		{ id = "unitreclaimer", group = "game", category = types.basic, widget = "Specific Unit Reclaimer", name = texts.option.unitreclaimer, type = "bool", value = GetWidgetToggleValue("Specific Unit Reclaimer"), description = texts.option.unitreclaimer_descr },
+		{ id = "unitreclaimer", group = "game", category = types.basic, widget = "Specific Unit Reclaimer", name = Spring.I18N('ui.settings.option.unitreclaimer'), type = "bool", value = GetWidgetToggleValue("Specific Unit Reclaimer"), description = Spring.I18N('ui.settings.option.unitreclaimer_descr') },
 
-		{ id = "autogroup_immediate", group = "game", category = types.basic, name = texts.option.autogroup_immediate, type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getImmediate ~= nil and WG['autogroup'].getImmediate()), description = texts.option.autogroup_immediate_descr,
+		{ id = "autogroup_immediate", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.autogroup_immediate'), type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getImmediate ~= nil and WG['autogroup'].getImmediate()), description = Spring.I18N('ui.settings.option.autogroup_immediate_descr'),
 		  onload = function(i)
 			  loadWidgetData("Auto Group", "autogroup_immediate", { 'immediate' })
 		  end,
@@ -3811,7 +4150,7 @@ function init()
 		  end,
 		},
 
-		{ id = "autogroup_persist", group = "game", category = types.basic, name = texts.option.autogroup_persist, type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getPersist ~= nil and WG['autogroup'].getPersist()), description = texts.option.autogroup_persist_descr,
+		{ id = "autogroup_persist", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.autogroup_persist'), type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getPersist ~= nil and WG['autogroup'].getPersist()), description = Spring.I18N('ui.settings.option.autogroup_persist_descr'),
 		  onload = function(i)
 			  loadWidgetData("Auto Group", "autogroup_persist", { 'persist' })
 		  end,
@@ -3824,18 +4163,18 @@ function init()
 		  end,
 		},
 
-		{ id = "label_ui_cloak", group = "game", name = texts.option.label_cloak, category = types.basic },
+		{ id = "label_ui_cloak", group = "game", name = Spring.I18N('ui.settings.option.label_cloak'), category = types.basic },
 		{ id = "label_ui_cloak_spacer", group = "game", category = types.basic },
 
-		{ id = "autocloak", group = "game", category = types.basic, widget = "Auto Cloak Units", name = texts.option.autocloak, type = "bool", value = GetWidgetToggleValue("Auto Cloak Units"), description = texts.option.autocloak_descr },
+		{ id = "autocloak", group = "game", category = types.basic, widget = "Auto Cloak Units", name = Spring.I18N('ui.settings.option.autocloak'), type = "bool", value = GetWidgetToggleValue("Auto Cloak Units") },
 
 		-- ACCESSIBILITY
 
-		{ id = "label_teamcolors", group = "accessibility", name = texts.option.label_teamcolors, category = types.basic },
+		{ id = "label_teamcolors", group = "accessibility", name = Spring.I18N('ui.settings.option.label_teamcolors'), category = types.basic },
 		{ id = "label_teamcolors_spacer", group = "accessibility", category = types.basic },
 
 
-		{ id = "anonymous_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.anonymous_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("anonymousColorR", 255)), description = texts.option.anonymous_descr,
+		{ id = "anonymous_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.anonymous_r'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("anonymousColorR", 255)), description = Spring.I18N('ui.settings.option.anonymous_descr'),
 		  onchange = function(i, value, force)
 			  if force then
 				  Spring.SetConfigInt("anonymousColorR", value)
@@ -3846,7 +4185,7 @@ function init()
 		  end,
 		},
 
-		{ id = "anonymous_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.anonymous_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("anonymousColorG", 0)), description = texts.option.anonymous_descr,
+		{ id = "anonymous_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.anonymous_g'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("anonymousColorG", 0)), description = Spring.I18N('ui.settings.option.anonymous_descr'),
 		  onchange = function(i, value, force)
 			  if force then
 				  Spring.SetConfigInt("anonymousColorG", value)
@@ -3857,7 +4196,7 @@ function init()
 		  end,
 		},
 
-		{ id = "anonymous_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.anonymous_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("anonymousColorB", 0)), description = texts.option.anonymous_descr,
+		{ id = "anonymous_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.anonymous_b'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("anonymousColorB", 0)), description = Spring.I18N('ui.settings.option.anonymous_descr'),
 		  onchange = function(i, value, force)
 			  if force then
 				  Spring.SetConfigInt("anonymousColorB", value)
@@ -3868,15 +4207,16 @@ function init()
 		  end,
 		},
 
-		{ id = "simpleteamcolors", group = "accessibility", category = types.basic, name = texts.option.playercolors, type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColors", 0) or 0) == 1, description = texts.option.simpleteamcolors_descr,
+		{ id = "simpleteamcolors", group = "accessibility", category = types.basic, name = Spring.I18N('ui.settings.option.playercolors'), type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColors", 0) or 0) == 1, description = Spring.I18N('ui.settings.option.simpleteamcolors_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColors", (value and 1 or 0))
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
 
-		{ id = "simpleteamcolors_reset", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " ..  texts.option.simpleteamcolors_reset, type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColors_Reset", 0) or 0) == 1,
+		{ id = "simpleteamcolors_reset", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " ..  Spring.I18N('ui.settings.option.simpleteamcolors_reset'), type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColors_Reset", 0) or 0) == 1,
 		  onchange = function(i, value)
+			Spring.SetConfigInt("SimpleTeamColorsUseGradient", 0)
 			Spring.SetConfigInt("SimpleTeamColorsPlayerR", 0)
 			Spring.SetConfigInt("SimpleTeamColorsPlayerG", 77)
 			Spring.SetConfigInt("SimpleTeamColorsPlayerB", 255)
@@ -3889,58 +4229,63 @@ function init()
 			Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-
-		{ id = "simpleteamcolors_player_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_player_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0)),
+		{ id = "simpleteamcolors_use_gradient", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolors_use_gradient'), type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColorsUseGradient", 0) or 0) == 1,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("SimpleTeamColorsUseGradient", (value and 1 or 0))
+			  Spring.SetConfigInt("UpdateTeamColors", 1)
+		  end,
+		},
+		{ id = "simpleteamcolors_player_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolors_player_r'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsPlayerR", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_player_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_player_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerG", 77)),
+		{ id = "simpleteamcolors_player_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolors_player_g'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerG", 77)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsPlayerG", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_player_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_player_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255)),
+		{ id = "simpleteamcolors_player_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolors_player_b'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsPlayerB", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
 
-		{ id = "simpleteamcolors_ally_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_ally_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyR", 0)),
+		{ id = "simpleteamcolors_ally_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolors_ally_r'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyR", 0)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsAllyR", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_ally_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_ally_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyG", 255)),
+		{ id = "simpleteamcolors_ally_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolors_ally_g'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyG", 255)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsAllyG", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_ally_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_ally_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)),
+		{ id = "simpleteamcolors_ally_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolors_ally_b'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsAllyB", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
 
-		{ id = "simpleteamcolors_enemy_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_enemy_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255)),
+		{ id = "simpleteamcolors_enemy_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolors_enemy_r'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsEnemyR", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_enemy_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_enemy_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16)),
+		{ id = "simpleteamcolors_enemy_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolors_enemy_g'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsEnemyG", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_enemy_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_enemy_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)),
+		{ id = "simpleteamcolors_enemy_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.simpleteamcolors_enemy_b'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsEnemyB", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
@@ -3948,39 +4293,39 @@ function init()
 		},
 
 		-- DEV
-		{ id = "devmode", group = "dev", category = types.dev, name = texts.option.devmode, type = "bool", value = Spring.Utilities.ShowDevUI(), description = texts.option.devmode_descr,
+		{ id = "devmode", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.devmode'), type = "bool", value = Spring.Utilities.ShowDevUI(), description = Spring.I18N('ui.settings.option.devmode_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt("DevUI", value and 1 or 0)
 				Spring.SendCommands("luaui reload")
 			end,
 		},
-		{ id = "customwidgets", group = "dev", category = types.dev, name = texts.option.customwidgets, type = "bool", value = widgetHandler.allowUserWidgets, description = texts.option.customwidgets_descr,
+		{ id = "customwidgets", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.customwidgets'), type = "bool", value = widgetHandler.allowUserWidgets, description = Spring.I18N('ui.settings.option.customwidgets_descr'),
 		  onchange = function(i, value)
 			  widgetHandler.__allowUserWidgets = value
 			  Spring.SendCommands("luarules reloadluaui")
 		  end,
 		},
 
-		{ id = "autocheat", group = "dev", category = types.dev, widget = "Auto cheat", name = texts.option.autocheat, type = "bool", value = GetWidgetToggleValue("Auto cheat"), description = texts.option.autocheat_descr },
-		{ id = "restart", group = "dev", category = types.dev, name = texts.option.restart, type = "bool", value = false, description = texts.option.restart_descr,
+		{ id = "autocheat", group = "dev", category = types.dev, widget = "Auto cheat", name = Spring.I18N('ui.settings.option.autocheat'), type = "bool", value = GetWidgetToggleValue("Auto cheat"), description = Spring.I18N('ui.settings.option.autocheat_descr') },
+		{ id = "restart", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.restart'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.restart_descr'),
 		  onchange = function(i, value)
 			  options[getOptionByID('restart')].value = false
 			  Spring.Restart("", startScript)
 		  end,
 		},
 
-		{ id = "label_dev_debug", group = "dev", name = texts.option.label_debug, category = types.dev },
+		{ id = "label_dev_debug", group = "dev", name = Spring.I18N('ui.settings.option.label_debug'), category = types.dev },
 		{ id = "label_dev_debug_spacer", group = "dev", category = types.dev },
 
-		{ id = "profiler", group = "dev", category = types.dev, widget = "Widget Profiler", name = texts.option.profiler, type = "bool", value = GetWidgetToggleValue("Widget Profiler"), description = "" },
-		{ id = "framegrapher", group = "dev", category = types.dev, widget = "Frame Grapher", name = texts.option.framegrapher, type = "bool", value = GetWidgetToggleValue("Frame Grapher"), description = "" },
+		{ id = "profiler", group = "dev", category = types.dev, widget = "Widget Profiler", name = Spring.I18N('ui.settings.option.profiler'), type = "bool", value = GetWidgetToggleValue("Widget Profiler"), description = "" },
+		{ id = "framegrapher", group = "dev", category = types.dev, widget = "Frame Grapher", name = Spring.I18N('ui.settings.option.framegrapher'), type = "bool", value = GetWidgetToggleValue("Frame Grapher"), description = "" },
 
-		{ id = "debugcolvol", group = "dev", category = types.dev, name = texts.option.debugcolvol, type = "bool", value = false, description = "",
+		{ id = "debugcolvol", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.debugcolvol'), type = "bool", value = false, description = "",
 		  onchange = function(i, value)
 			  Spring.SendCommands("DebugColVol " .. (value and '1' or '0'))
 		  end,
 		},
-		{ id = "echocamerastate", group = "dev", category = types.dev, name = texts.option.echocamerastate, type = "bool", value = false, description = texts.option.echocamerastate_descr,
+		{ id = "echocamerastate", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.echocamerastate'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.echocamerastate_descr'),
 		  onchange = function(i, value)
 			  options[getOptionByID('echocamerastate')].value = false
 			  Spring.Debug.TableEcho(Spring.GetCameraState())
@@ -3988,12 +4333,18 @@ function init()
 		},
 
 
-		{ id = "label_dev_other", group = "dev", name = texts.option.label_other, category = types.dev },
+		{ id = "label_dev_other", group = "dev", name = Spring.I18N('ui.settings.option.label_other'), category = types.dev },
 		{ id = "label_dev_other_spacer", group = "dev", category = types.dev },
 
-		{ id = "startboxeditor", group = "dev", category = types.dev, widget = "Startbox Editor", name = texts.option.startboxeditor, type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = texts.option.startboxeditor_descr },
+		{ id = "storedefaultsettings", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.storedefaultsettings'), type = "bool", value = tonumber(Spring.GetConfigInt("StoreDefaultSettings", 0) or 0) == 1, description = Spring.I18N('ui.settings.option.storedefaultsettings_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("StoreDefaultSettings", (value and 1 or 0))
+		  end,
+		},
 
-		{ id = "language", group = "dev", category = types.dev, name = texts.option.language, type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
+		{ id = "startboxeditor", group = "dev", category = types.dev, widget = "Startbox Editor", name = Spring.I18N('ui.settings.option.startboxeditor'), type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = Spring.I18N('ui.settings.option.startboxeditor_descr') },
+
+		{ id = "language", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.language'), type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
 			onchange = function(i, value)
 				local language = languageCodes[value]
 				Spring.SetConfigString('language', language)
@@ -4004,7 +4355,7 @@ function init()
 				end
 			end
 		},
-		{ id = "font", group = "dev", category = types.dev, name = texts.option.font, type = "select", options = {}, value = 1, description = texts.option.font_descr,
+		{ id = "font", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.font'), type = "select", options = {}, value = 1, description = Spring.I18N('ui.settings.option.font_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4014,7 +4365,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "font2", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.font2, type = "select", options = {}, value = 1, description = texts.option.font2_descr,
+		{ id = "font2", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.font2'), type = "select", options = {}, value = 1, description = Spring.I18N('ui.settings.option.font2_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4025,10 +4376,10 @@ function init()
 		  end,
 		},
 
-		--{ id = "label_dev_unit", group = "dev", name = texts.option.label_unit, category = types.dev },
+		--{ id = "label_dev_unit", group = "dev", name = Spring.I18N('ui.settings.option.label_unit'), category = types.dev },
 		--{ id = "label_dev_unit_spacer", group = "dev", category = types.dev },
 		--
-		--{ id = "tonemapA", group = "dev", category = types.dev, name = texts.option.tonemap .. widgetOptionColor .. "  1", type = "slider", min = 0, max = 7, step = 0.01, value = Spring.GetConfigFloat("tonemapA", 4.8), description = "",
+		--{ id = "tonemapA", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.tonemap') .. widgetOptionColor .. "  1", type = "slider", min = 0, max = 7, step = 0.01, value = Spring.GetConfigFloat("tonemapA", 4.8), description = "",
 		--  onchange = function(i, value)
 		--	  Spring.SetConfigFloat("tonemapA", value)
 		--	  Spring.SendCommands("luarules updatesun")
@@ -4063,35 +4414,35 @@ function init()
 		--	  Spring.SendCommands("luarules GlassUpdateSun")
 		--  end,
 		--},
-		--{ id = "envAmbient", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.envAmbient, type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigFloat("envAmbient", 0.25), description = "",
+		--{ id = "envAmbient", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.envAmbient'), type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigFloat("envAmbient", 0.25), description = "",
 		--  onchange = function(i, value)
 		--	  Spring.SetConfigFloat("envAmbient", value)
 		--	  Spring.SendCommands("luarules updatesun")
 		--	  Spring.SendCommands("luarules GlassUpdateSun")
 		--  end,
 		--},
-		--{ id = "unitSunMult", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.unitSunMult, type = "slider", min = 0.7, max = 1.6, step = 0.01, value = Spring.GetConfigFloat("unitSunMult", 1.0), description = "",
+		--{ id = "unitSunMult", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.unitSunMult'), type = "slider", min = 0.7, max = 1.6, step = 0.01, value = Spring.GetConfigFloat("unitSunMult", 1.0), description = "",
 		--  onchange = function(i, value)
 		--	  Spring.SetConfigFloat("unitSunMult", value)
 		--	  Spring.SendCommands("luarules updatesun")
 		--	  Spring.SendCommands("luarules GlassUpdateSun")
 		--  end,
 		--},
-		--{ id = "unitExposureMult", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.unitExposureMult, type = "slider", min = 0.6, max = 1.25, step = 0.01, value = Spring.GetConfigFloat("unitExposureMult", 1.0), description = "",
+		--{ id = "unitExposureMult", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.unitExposureMult'), type = "slider", min = 0.6, max = 1.25, step = 0.01, value = Spring.GetConfigFloat("unitExposureMult", 1.0), description = "",
 		--  onchange = function(i, value)
 		--	  Spring.SetConfigFloat("unitExposureMult", value)
 		--	  Spring.SendCommands("luarules updatesun")
 		--	  Spring.SendCommands("luarules GlassUpdateSun")
 		--  end,
 		--},
-		--{ id = "modelGamma", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.modelGamma, type = "slider", min = 0.7, max = 1.7, step = 0.01, value = Spring.GetConfigFloat("modelGamma", 1.0), description = "",
+		--{ id = "modelGamma", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.modelGamma'), type = "slider", min = 0.7, max = 1.7, step = 0.01, value = Spring.GetConfigFloat("modelGamma", 1.0), description = "",
 		--  onchange = function(i, value)
 		--	  Spring.SetConfigFloat("modelGamma", value)
 		--	  Spring.SendCommands("luarules updatesun")
 		--	  Spring.SendCommands("luarules GlassUpdateSun")
 		--  end,
 		--},
-		--{ id = "tonemapDefaults", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.tonemapDefaults, type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = "",
+		--{ id = "tonemapDefaults", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.tonemapDefaults'), type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = "",
 		--  onchange = function(i, value)
 		--	  Spring.SetConfigFloat("tonemapA", 4.75)
 		--	  Spring.SetConfigFloat("tonemapB", 0.75)
@@ -4117,10 +4468,10 @@ function init()
 		--  end,
 		--},
 
-		{ id = "label_dev_map", group = "dev", name = texts.option.label_map, category = types.dev },
+		{ id = "label_dev_map", group = "dev", name = Spring.I18N('ui.settings.option.label_map'), category = types.dev },
 		{ id = "label_dev_map_spacer", group = "dev", category = types.dev },
 
-		{ id = "sun_y", group = "dev", category = types.dev, name = texts.option.sun .. widgetOptionColor .. "  " .. texts.option.sun_y, type = "slider", min = 0.05, max = 0.9999, step = 0.0001, value = select(2, gl.GetSun("pos")),
+		{ id = "sun_y", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.sun') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.sun_y'), type = "slider", min = 0.05, max = 0.9999, step = 0.0001, value = select(2, gl.GetSun("pos")),
 		  onchange = function(i, value)
 			  local sunX, sunY, sunZ = gl.GetSun("pos")
 			  sunY = value
@@ -4137,7 +4488,7 @@ function init()
 			  Spring.Echo(gl.GetSun())
 		  end,
 		},
-		{ id = "sun_x", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.sun_x, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(1, gl.GetSun("pos")),
+		{ id = "sun_x", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sun_x'), type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(1, gl.GetSun("pos")),
 		  onchange = function(i, value)
 			  local sunX, sunY, sunZ = gl.GetSun("pos")
 			  sunX = value
@@ -4154,7 +4505,7 @@ function init()
 			  Spring.Echo(gl.GetSun())
 		  end,
 		},
-		{ id = "sun_z", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.sun_z, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(3, gl.GetSun("pos")),
+		{ id = "sun_z", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sun_z'), type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(3, gl.GetSun("pos")),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4173,7 +4524,7 @@ function init()
 			  Spring.Echo(gl.GetSun())
 		  end,
 		},
-		{ id = "sun_reset", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.sun_reset, type = "bool", value = false,
+		{ id = "sun_reset", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sun_reset'), type = "bool", value = false,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4188,29 +4539,27 @@ function init()
 		  end,
 		},
 
-		{ id = "fog_start", group = "dev", category = types.dev, name = texts.option.fog .. widgetOptionColor .. "  " .. texts.option.fog_start, type = "slider", min = 0, max = 1.99, step = 0.01, value = gl.GetAtmosphere("fogStart"),
+		{ id = "fog_start", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.fog') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.fog_start'), type = "slider", min = 0, max = 1.99, step = 0.01, value = gl.GetAtmosphere("fogStart"),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  if getOptionByID('fog_end') and value >= options[getOptionByID('fog_end')].value then
-				  options[getOptionByID('fog_end')].value = value + 0.01
-				  applyOptionValue(getOptionByID('fog_end'))
+				  applyOptionValue(getOptionByID('fog_end'), value + 0.01)
 			  end
 			  Spring.SetAtmosphere({ fogStart = value })
 		  end,
 		},
-		{ id = "fog_end", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.fog_end, type = "slider", min = 0.5, max = 2, step = 0.01, value = gl.GetAtmosphere("fogEnd"),
+		{ id = "fog_end", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.fog_end'), type = "slider", min = 0.5, max = 2, step = 0.01, value = gl.GetAtmosphere("fogEnd"),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  if getOptionByID('fog_start') and value <= options[getOptionByID('fog_start')].value then
-				  options[getOptionByID('fog_start')].value = value - 0.01
-				  applyOptionValue(getOptionByID('fog_start'))
+				  applyOptionValue(getOptionByID('fog_start'), value - 0.01)
 			  end
 			  Spring.SetAtmosphere({ fogEnd = value })
 		  end,
 		},
-		{ id = "fog_reset", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.fog_reset, type = "bool", value = false, description = '',
+		{ id = "fog_reset", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.fog_reset'), type = "bool", value = false, description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4223,7 +4572,7 @@ function init()
 		  end,
 		},
 
-		{ id = "fog_r", group = "dev", category = types.dev, name = texts.option.fog .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 1, step = 0.01, value = select(1, gl.GetAtmosphere("fogColor")), description = '',
+		{ id = "fog_r", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.fog') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.red'), type = "slider", min = 0, max = 1, step = 0.01, value = select(1, gl.GetAtmosphere("fogColor")), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4231,7 +4580,7 @@ function init()
 			  Spring.SetAtmosphere({ fogColor = { value, fogColor[2], fogColor[3], fogColor[4] } })
 		  end,
 		},
-		{ id = "fog_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 1, step = 0.01, value = select(2, gl.GetAtmosphere("fogColor")), description = '',
+		{ id = "fog_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.green'), type = "slider", min = 0, max = 1, step = 0.01, value = select(2, gl.GetAtmosphere("fogColor")), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4239,7 +4588,7 @@ function init()
 			  Spring.SetAtmosphere({ fogColor = { fogColor[1], value, fogColor[3], fogColor[4] } })
 		  end,
 		},
-		{ id = "fog_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 1, step = 0.01, value = select(3, gl.GetAtmosphere("fogColor")), description = '',
+		{ id = "fog_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.blue'), type = "slider", min = 0, max = 1, step = 0.01, value = select(3, gl.GetAtmosphere("fogColor")), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4247,7 +4596,7 @@ function init()
 			  Spring.SetAtmosphere({ fogColor = { fogColor[1], fogColor[2], value, fogColor[4] } })
 		  end,
 		},
-		{ id = "fog_color_reset", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.fog_color_reset, type = "bool", value = false, description = '',
+		{ id = "fog_color_reset", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.fog_color_reset'), type = "bool", value = false, description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4260,7 +4609,7 @@ function init()
 		  end,
 		},
 
-		{ id = "map_voidwater", group = "dev", category = types.dev, name = texts.option.map_voidwater, type = "bool", value = false, description = "",
+		{ id = "map_voidwater", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.map_voidwater'), type = "bool", value = false, description = "",
 		  onload = function(i)
 			  options[i].value = gl.GetMapRendering("voidWater")
 		  end,
@@ -4268,7 +4617,7 @@ function init()
 			  Spring.SetMapRenderingParams({ voidWater = value })
 		  end,
 		},
-		{ id = "map_voidground", group = "dev", category = types.dev, name = texts.option.map_voidground, type = "bool", value = false, description = "",
+		{ id = "map_voidground", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.map_voidground'), type = "bool", value = false, description = "",
 		  onload = function(i)
 			  options[i].value = gl.GetMapRendering("voidGround")
 		  end,
@@ -4277,7 +4626,7 @@ function init()
 		  end,
 		},
 
-		{ id = "map_splatdetailnormaldiffusealpha", group = "dev", category = types.dev, name = texts.option.map_splatdetailnormaldiffusealpha, type = "bool", value = false, description = "",
+		{ id = "map_splatdetailnormaldiffusealpha", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.map_splatdetailnormaldiffusealpha'), type = "bool", value = false, description = "",
 		  onload = function(i)
 			  options[i].value = gl.GetMapRendering("splatDetailNormalDiffuseAlpha")
 		  end,
@@ -4286,7 +4635,7 @@ function init()
 		  end,
 		},
 
-		{ id = "map_splattexmults_r", group = "dev", category = types.dev, name = texts.option.map_splattexmults .. widgetOptionColor .. "   0", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
+		{ id = "map_splattexmults_r", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.map_splattexmults') .. widgetOptionColor .. "   0", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b, a = gl.GetMapRendering("splatTexMults")
 			  options[i].value = r
@@ -4327,7 +4676,7 @@ function init()
 		  end,
 		},
 
-		{ id = "map_splattexacales_r", group = "dev", category = types.dev, name = texts.option.map_splattexacales .. widgetOptionColor .. "   0", type = "slider", min = 0, max = 0.02, step = 0.0001, value = 0, description = "",
+		{ id = "map_splattexacales_r", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.map_splattexacales') .. widgetOptionColor .. "   0", type = "slider", min = 0, max = 0.02, step = 0.0001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b, a = gl.GetMapRendering("splatTexScales")
 			  options[i].value = r
@@ -4367,7 +4716,7 @@ function init()
 			 end,
 		},
 
-		{ id = "GroundShadowDensity", group = "dev", category = types.dev, name = texts.option.GroundShadowDensity .. widgetOptionColor .. "  ", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
+		{ id = "GroundShadowDensity", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.GroundShadowDensity') .. widgetOptionColor .. "  ", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local groundshadowDensity = gl.GetSun("shadowDensity", "ground")
 			  options[i].value = groundshadowDensity
@@ -4378,7 +4727,7 @@ function init()
 		  end,
 		},
 
-		{ id = "UnitShadowDensity", group = "dev", category = types.dev, name = texts.option.UnitShadowDensity .. widgetOptionColor .. "  ", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
+		{ id = "UnitShadowDensity", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.UnitShadowDensity') .. widgetOptionColor .. "  ", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local groundshadowDensity = gl.GetSun("shadowDensity", "unit")
 			  options[i].value = groundshadowDensity
@@ -4389,7 +4738,7 @@ function init()
 		  end,
 		},
 
-		{ id = "color_groundambient_r", group = "dev", category = types.dev, name = texts.option.color_groundambient .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+		{ id = "color_groundambient_r", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.color_groundambient') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.red'), type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient")
 			  options[i].value = r
@@ -4400,7 +4749,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_groundambient_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+		{ id = "color_groundambient_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.green'), type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient")
 			  options[i].value = g
@@ -4411,7 +4760,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_groundambient_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+		{ id = "color_groundambient_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.blue'), type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient")
 			  options[i].value = b
@@ -4423,7 +4772,7 @@ function init()
 		  end,
 		},
 
-		{ id = "color_grounddiffuse_r", group = "dev", category = types.dev, name = texts.option.color_grounddiffuse .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+		{ id = "color_grounddiffuse_r", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.color_grounddiffuse') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.red'), type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse")
 			  options[i].value = r
@@ -4434,7 +4783,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_grounddiffuse_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+		{ id = "color_grounddiffuse_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.green'), type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse")
 			  options[i].value = g
@@ -4445,7 +4794,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_grounddiffuse_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+		{ id = "color_grounddiffuse_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.blue'), type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse")
 			  options[i].value = b
@@ -4457,7 +4806,7 @@ function init()
 		  end,
 		},
 
-		{ id = "color_groundspecular_r", group = "dev", category = types.dev, name = texts.option.color_groundspecular .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+		{ id = "color_groundspecular_r", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.color_groundspecular') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.red'), type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("specular")
 			  options[i].value = r
@@ -4468,7 +4817,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_groundspecular_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_groundspecular_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.green'), type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("specular")
 			  options[i].value = g
@@ -4479,7 +4828,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_groundspecular_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_groundspecular_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.blue'), type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("specular")
 			  options[i].value = b
@@ -4492,7 +4841,7 @@ function init()
 		},
 
 
-		{ id = "color_unitambient_r", group = "dev", category = types.dev, name = texts.option.color_unitambient .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+		{ id = "color_unitambient_r", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.color_unitambient') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.red'), type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient", "unit")
 			  options[i].value = r
@@ -4503,7 +4852,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitambient_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+		{ id = "color_unitambient_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.green'), type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient", "unit")
 			  options[i].value = g
@@ -4514,7 +4863,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitambient_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+		{ id = "color_unitambient_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.blue'), type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient", "unit")
 			  options[i].value = b
@@ -4526,7 +4875,7 @@ function init()
 		  end,
 		},
 
-		{ id = "color_unitdiffuse_r", group = "dev", category = types.dev, name = texts.option.color_unitdiffuse .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+		{ id = "color_unitdiffuse_r", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.color_unitdiffuse') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.red'), type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse", "unit")
 			  options[i].value = r
@@ -4537,7 +4886,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitdiffuse_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+		{ id = "color_unitdiffuse_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.green'), type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse", "unit")
 			  options[i].value = g
@@ -4548,7 +4897,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitdiffuse_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+		{ id = "color_unitdiffuse_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.blue'), type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse", "unit")
 			  options[i].value = b
@@ -4560,7 +4909,7 @@ function init()
 		  end,
 		},
 
-		{ id = "color_unitspecular_r", group = "dev", category = types.dev, name = texts.option.color_unitspecular .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+		{ id = "color_unitspecular_r", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.color_unitspecular') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.red'), type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("specular", "unit")
 			  options[i].value = r
@@ -4571,7 +4920,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitspecular_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+		{ id = "color_unitspecular_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.green'), type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("specular", "unit")
 			  options[i].value = g
@@ -4582,7 +4931,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitspecular_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+		{ id = "color_unitspecular_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.blue'), type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("specular", "unit")
 			  options[i].value = b
@@ -4594,7 +4943,7 @@ function init()
 		  end,
 		},
 
-		{ id = "suncolor_r", group = "dev", category = types.dev, name = "Sun" .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "suncolor_r", group = "dev", category = types.dev, name = "Sun" .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.red'), type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetAtmosphere("sunColor")
 			  options[i].value = r
@@ -4605,7 +4954,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "suncolor_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "suncolor_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.green'), type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetAtmosphere("sunColor")
 			  options[i].value = g
@@ -4616,7 +4965,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "suncolor_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "suncolor_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.blue'), type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetAtmosphere("sunColor")
 			  options[i].value = b
@@ -4628,7 +4977,7 @@ function init()
 		  end,
 		},
 
-		{ id = "skycolor_r", group = "dev", category = types.dev, name = texts.option.skycolor .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "skycolor_r", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.skycolor') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.red'), type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetAtmosphere("skyColor")
 			  options[i].value = r
@@ -4639,7 +4988,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "skycolor_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "skycolor_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.green'), type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetAtmosphere("skyColor")
 			  options[i].value = g
@@ -4650,7 +4999,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "skycolor_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "skycolor_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.blue'), type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetAtmosphere("skyColor")
 			  options[i].value = b
@@ -4662,7 +5011,7 @@ function init()
 		  end,
 		},
 
-		{ id = "sunlighting_reset", group = "dev", category = types.dev, name = texts.option.sunlighting_reset, type = "bool", value = false, description = texts.option.sunlighting_reset_descr,
+		{ id = "sunlighting_reset", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.sunlighting_reset'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.sunlighting_reset_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4674,7 +5023,7 @@ function init()
 		  end,
 		},
 
-		{ id = "label_dev_water", group = "dev", name = texts.option.label_water, category = types.dev },
+		{ id = "label_dev_water", group = "dev", name = Spring.I18N('ui.settings.option.label_water'), category = types.dev },
 		{ id = "label_dev_water_spacer", group = "dev", category = types.dev },
 
 		-- springsettings water params
@@ -4980,8 +5329,7 @@ function init()
 	if not resettedTonemapDefault then
 		local optionID = getOptionByID('tonemapDefaults')
 		if optionID then
-			options[optionID].value = true
-			applyOptionValue(optionID)
+			applyOptionValue(optionID, true)
 			resettedTonemapDefault = true
 		end
 	end
@@ -4990,7 +5338,13 @@ function init()
 		options[getOptionByID('restart')] = nil
 	end
 
-	if devMode or (WG['widgetselector'].getLocalWidgetCount and WG['widgetselector'].getLocalWidgetCount() == 0) then
+	local localWidgetCount = 0
+	for name, data in pairs(widgetHandler.knownWidgets) do
+		if not data.fromZip then
+			localWidgetCount = localWidgetCount + 1
+		end
+	end
+	if devMode or localWidgetCount == 0 then
 		options[getOptionByID('widgetselector')] = nil
 	end
 
@@ -5066,7 +5420,7 @@ function init()
 		detectWater()
 
 		-- set vsync
-		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", 0))
+		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
 
 		-- disable old cus
 		if Spring.GetConfigInt("cus", 0) == 1 then
@@ -5080,7 +5434,14 @@ function init()
 
 	if #displayNames <= 1 then
 		options[getOptionByID('display')] = nil
-		options[getOptionByID('resolution')].name = texts.option.resolution
+		options[getOptionByID('resolution')].name = Spring.I18N('ui.settings.option.resolution')
+	end
+
+	-- only allow dualscreen-mode on single displays when super ultrawide screen or Multi Display option shows
+	if (#displayNames <= 1 and vsx / vsy < 2.5) or (#displayNames > 1 and #displayNames == Spring.GetNumDisplays()) then
+		options[getOptionByID('dualmode_enabled')] = nil
+		options[getOptionByID('dualmode_left')] = nil
+		options[getOptionByID('dualmode_minimap_aspectratio')] = nil
 	end
 
 	-- reduce options for potatoes
@@ -5153,7 +5514,28 @@ function init()
 				Spring.SendCommands("advmapshading 0")
 				Spring.SendCommands("Shadows 0 1024")
 			end
+
 		end
+
+	elseif gpuMem >= 3000 then
+		if (Spring.GetConfigInt("cus2", 1) ~= 1) then
+			local id = getOptionByID('cusgl4')
+			options[id].onchange(id, 1)
+		end
+		options[getOptionByID('cusgl4')] = nil
+
+		local id = getOptionByID('shadowslider')
+		options[id].options[1] = nil
+		if options[id].value == 1 then
+			options[id].value = 2
+			options[id].onchange(id, options[id].value)
+		end
+
+		if Spring.GetConfigInt("Water", 0) ~= 4 then
+			Spring.SendCommands("water 4")
+			Spring.SetConfigInt("Water", 4)
+		end
+		options[getOptionByID('water')] = nil
 	end
 
 	-- loads values via stored game config in luaui/configs
@@ -5196,7 +5578,7 @@ function init()
 			newOptions[count] = option
 			if option.id == 'loadscreen_music' then
 				count = count + 1
-				newOptions[count] = { id = "label_sound_music", group = "sound", name = texts.option.label_playlist, category = types.basic }
+				newOptions[count] = { id = "label_sound_music", group = "sound", name = Spring.I18N('ui.settings.option.label_playlist'), category = types.basic }
 				count = count + 1
 				newOptions[count] = { id = "label_sound_music_spacer", group = "sound", category = types.basic }
 
@@ -5220,6 +5602,26 @@ function init()
 		options = newOptions
 	end
 
+	-- add sound notification sets
+	if getOptionByID('notifications_set') then
+		local voiceset = Spring.GetConfigString("voiceset", 'allison')
+		local currentVoiceSetOption
+		local sets = {}
+		local files = VFS.SubDirs('sounds/voice', '*')
+		fontOption = {}
+		for k, file in ipairs(files) do
+			local dirname = string.sub(file, 14, string.len(file)-1)
+			sets[#sets+1] = dirname
+			if dirname == voiceset then
+				currentVoiceSetOption = #sets
+			end
+		end
+		options[getOptionByID('notifications_set')].options = sets
+		if currentVoiceSetOption then
+			options[getOptionByID('notifications_set')].value = currentVoiceSetOption
+		end
+	end
+
 	-- add sound notification widget sound toggle options
 	local soundList
 	if WG['notifications'] ~= nil then
@@ -5235,12 +5637,14 @@ function init()
 			newOptions[count] = option
 			if option.id == 'label_notif_messages_spacer' then
 				for k, v in pairs(soundList) do
-					count = count + 1
-					newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
-					  onchange = function(i, value)
-						  saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
-					  end,
-					}
+					if type(v) == 'table' then
+						count = count + 1
+						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
+											  onchange = function(i, value)
+												  saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
+											  end,
+						}
+					end
 				end
 			end
 		end
@@ -5282,7 +5686,7 @@ function init()
 						local faction = Spring.I18N('units.factions.' .. string.sub(UnitDefs[k].name,1,3))
 						if faction then
 							count = count + 1
-							newOptions[count] = { id = "autocloak_" .. k, group = "game", category = types.basic, name = widgetOptionColor .. "   " .. UnitDefs[k].translatedHumanName..'  ('..faction..')', type = "bool", value = v, description = "",
+							newOptions[count] = { id = "autocloak_" .. k, group = "game", category = types.basic, name = widgetOptionColor .. "   " .. UnitDefs[k].translatedHumanName..'  ('..faction..')', type = "bool", value = v, description = UnitDefs[k].translatedTooltip,
 							  onchange = function(i, value)
 								  saveOptionValue('Auto Cloak Units', 'autocloak', 'setUnitdefConfig', { 'unitdefConfig', k }, value, { k, value } )
 							  end,
@@ -5376,10 +5780,46 @@ function init()
 	end
 	options = processedOptions
 
+	if inputText and inputText ~= '' and inputMode == '' then
+		local filteredOptions = {}
+		for i, option in pairs(options) do
+			if option.name and option.name ~= '' and option.type and option.type ~= 'label' then
+				--local name = string.gsub(option.name, "(\\[0-9]+)+", "")
+				local name = string.gsub(option.name, widgetOptionColor, "")
+				name = string.gsub(name, "  ", " ")
+				if string.find(string.lower(name), string.lower(inputText), nil, true) then
+					filteredOptions[#filteredOptions+1] = option
+				elseif option.description and option.description ~= '' and string.find(string.lower(option.description), string.lower(inputText), nil, true) then
+					filteredOptions[#filteredOptions+1] = option
+				elseif string.find(string.lower(option.id), string.lower(inputText), nil, true) then
+					filteredOptions[#filteredOptions+1] = option
+				end
+			end
+		end
+		options = filteredOptions
+	end
+
+	if not requireRestartDefaultsInit then
+		requireRestartDefaultsInit = true
+		for i, option in pairs(options) do
+			if option.restart and requireRestartDefaults[option.id] == nil then
+				requireRestartDefaults[option.id] = option.value
+			end
+		end
+	end
+
+	changesRequireRestart = false
+	for id, value in pairs(requireRestartDefaults) do
+		if options[getOptionByID(id)] and options[getOptionByID(id)].value ~= value then
+			changesRequireRestart = true
+		end
+	end
+
 	if windowList then
 		gl.DeleteList(windowList)
 	end
 	windowList = gl.CreateList(DrawWindow)
+
 end
 
 function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
@@ -5398,6 +5838,7 @@ function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 end
 
 function widget:Initialize()
+
 	-- disable ambient player widget
 	if widgetHandler:IsWidgetKnown("Ambient Player") then
 		widgetHandler:DisableWidget("Ambient Player")
@@ -5426,8 +5867,9 @@ function widget:Initialize()
 		widgetHandler:EnableWidget("Infolos API")
 	end
 
-	texts = Spring.I18N('ui.settings')
-
+	if widgetHandler.orderList["Mex Snap"] and widgetHandler.orderList["Mex Snap"] < 0.5 then
+		widgetHandler:EnableWidget("Mex Snap")
+	end
 	-- set nano particle rotation: rotValue, rotVelocity, rotAcceleration, rotValueRNG, rotVelocityRNG, rotAccelerationRNG (in degrees)
 	Spring.SetNanoProjectileParams(-180, -50, -50, 360, 100, 100)
 
@@ -5435,6 +5877,18 @@ function widget:Initialize()
 	if widgetHandler.orderList["Pregame UI"] < 0.5 then
 		widgetHandler:EnableWidget("Pregame UI")
 	end
+	if widgetHandler.orderList["Pregame Queue"] < 0.5 then
+		widgetHandler:EnableWidget("Pregame Queue")
+	end
+
+	-- enable GL4 unit rendering api's
+	if widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
+		widgetHandler:EnableWidget("DrawUnitShape GL4")
+	end
+	if widgetHandler.orderList["HighlightUnit API GL4"] < 0.5 then
+		widgetHandler:EnableWidget("HighlightUnit API GL4")
+	end
+
 
 	updateGrabinput()
 	widget:ViewResize()
@@ -5462,7 +5916,7 @@ function widget:Initialize()
 		Spring.SetConfigFloat("snd_airAbsorption", 0.35)
 
 		-- Set lower defaults for lower end/potato systems
-		if gpuMem and gpuMem < 3300 then
+		if gpuMem < 3300 then
 			Spring.SetConfigInt("MSAALevel", 2)
 		end
 		if isPotatoGpu then
@@ -5475,11 +5929,10 @@ function widget:Initialize()
 			Spring.SetConfigInt("ShadowMapSize", 1024)
 			Spring.SetConfigInt("Shadows", 0)
 			Spring.SetConfigInt("MSAALevel", 0)
-			Spring.SetConfigFloat("ui_opacity", 0.66)    -- set to be more opaque cause guishader isnt availible
+			Spring.SetConfigFloat("ui_opacity", 0.7)    -- set to be more opaque cause guishader isnt availible
 		else
 			Spring.SendCommands("water 4")
 			Spring.SetConfigInt("Water", 4)
-
 		end
 
 		local minMaxparticles = 12000
@@ -5487,6 +5940,9 @@ function widget:Initialize()
 			Spring.SetConfigInt("MaxParticles", minMaxparticles)
 			Spring.Echo('First time setup:  setting MaxParticles config value to ' .. minMaxparticles)
 		end
+
+		Spring.SetConfigInt("CamMode", 3)
+		Spring.SendCommands('viewspring')
 	end
 
 	Spring.SetConfigFloat("CamTimeFactor", 1)
@@ -5510,6 +5966,7 @@ function widget:Initialize()
 		-- enable advanced model shading
 		if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then
 			Spring.SetConfigInt("AdvModelShading", 1)
+			Spring.SendCommands("advmodelshading 1")
 		end
 		-- enable normal mapping
 		if Spring.GetConfigInt("NormalMapping", 0) ~= 1 then
@@ -5530,6 +5987,13 @@ function widget:Initialize()
 		end
 	end
 
+	-- make sure vertical angle is proper (not horizontal view)
+	if Spring.GetGameFrame() == 0 and (Spring.GetConfigInt("CamMode", 2) == 2 or Spring.GetConfigInt("CamMode", 2) == 3) then
+		local cameraState = Spring.GetCameraState()
+		cameraState.rx = 2.6
+		Spring.SetCameraState(cameraState, 0.1)
+	end
+
 	-- make sure fog-start is smaller than fog-end in case maps have configured it this way
 	if gl.GetAtmosphere("fogEnd") <= gl.GetAtmosphere("fogStart") then
 		Spring.SetAtmosphere({ fogEnd = gl.GetAtmosphere("fogStart") + 0.01 })
@@ -5547,6 +6011,14 @@ function widget:Initialize()
 			WG['topbar'].hideWindows()
 		end
 		show = newShow
+		if showTextInput then
+			if show then
+				widgetHandler.textOwner = self		--widgetHandler:OwnText()
+				Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			else
+				cancelChatInput()
+			end
+		end
 	end
 	WG['options'].getOptionsList = function()
 		local optionList = {}
@@ -5577,8 +6049,10 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	cancelChatInput()
 	if windowList then
 		glDeleteList(windowList)
+		glDeleteList(backgroundGuishader)
 	end
 	if fontOption then
 		for i, font in pairs(fontOption) do
@@ -5587,16 +6061,16 @@ function widget:Shutdown()
 	end
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('options')
+		WG['guishader'].RemoveRect('optionsinput')
+		WG['guishader'].RemoveScreenRect('options_select')
+		WG['guishader'].RemoveScreenRect('options_select_options')
+		WG['guishader'].removeRenderDlist(selectOptionsList)
 	end
 	if selectOptionsList then
-		if WG['guishader'] then
-			WG['guishader'].RemoveScreenRect('options_select')
-			WG['guishader'].RemoveScreenRect('options_select_options')
-			WG['guishader'].removeRenderDlist(selectOptionsList)
-		end
 		glDeleteList(selectOptionsList)
-		selectOptionsList = nil
 	end
+	glDeleteList(consoleCmdDlist)
+	glDeleteList(textInputDlist)
 	WG['options'] = nil
 end
 
@@ -5610,6 +6084,14 @@ function widget:TextCommand(command)
 			WG['topbar'].hideWindows()
 		end
 		show = newShow
+		if showTextInput then
+			if show then
+				widgetHandler.textOwner = self		--widgetHandler:OwnText()
+				Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			else
+				cancelChatInput()
+			end
+		end
 	end
 
 	if command == "devmode" then
@@ -5630,10 +6112,13 @@ function widget:TextCommand(command)
 		if optionID then
 			if options[optionID].type == 'bool' then
 				lastOptionCommand = os_clock()
-				options[optionID].value = not options[optionID].value
-				applyOptionValue(optionID)
+				applyOptionValue(optionID, not options[optionID].value)
 			else
 				show = true
+				if showTextInput then
+					widgetHandler.textOwner = self		--widgetHandler:OwnText()
+					Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+				end
 			end
 		else
 			option = string.split(option, ' ')
@@ -5645,21 +6130,20 @@ function widget:TextCommand(command)
 					if options[optionID].type == 'select' then
 						local selectKey = getSelectKey(optionID, option[2])
 						if selectKey then
-							options[optionID].value = selectKey
-							applyOptionValue(optionID)
+							applyOptionValue(optionID, selectKey)
 						end
 					elseif options[optionID].type == 'bool' then
+						local value
 						if option[2] == '0' then
-							options[optionID].value = false
+							value = false
 						elseif option[2] == '0.5' then
-							options[optionID].value = 0.5
+							value = 0.5
 						else
-							options[optionID].value = true
+							value = true
 						end
-						applyOptionValue(optionID)
+						applyOptionValue(optionID, value)
 					else
-						options[optionID].value = tonumber(option[2])
-						applyOptionValue(optionID)
+						applyOptionValue(optionID, tonumber(option[2]))
 					end
 				end
 			end
@@ -5694,6 +6178,8 @@ function widget:GetConfigData()
 		waterDetected = waterDetected,
 		customPresets = customPresets,
 		guishaderIntensity = guishaderIntensity,
+		changesRequireRestart = changesRequireRestart,
+		requireRestartDefaults = requireRestartDefaults,
 
 		-- to restore init defaults
 		mapChecksum = Game.mapChecksum,
@@ -5729,9 +6215,6 @@ function widget:SetConfigData(data)
 	if data.cameraPanTransitionTime ~= nil then
 		cameraPanTransitionTime = data.cameraPanTransitionTime
 	end
-	if data.currentGroupTab ~= nil then
-		currentGroupTab = data.currentGroupTab
-	end
 	if data.guishaderIntensity then
 		guishaderIntensity = data.guishaderIntensity
 	end
@@ -5739,8 +6222,21 @@ function widget:SetConfigData(data)
 		edgeMoveWidth = data.edgeMoveWidth
 	end
 	if Spring.GetGameFrame() > 0 then
+		if data.requireRestartDefaults then
+			requireRestartDefaults = data.requireRestartDefaults
+		end
+		if data.changesRequireRestart then
+			changesRequireRestart = data.changesRequireRestart
+		end
+		if data.currentGroupTab ~= nil then
+			currentGroupTab = data.currentGroupTab
+		end
 		if data.show ~= nil then
 			show = data.show
+			if show and showTextInput then
+				widgetHandler.textOwner = self		--widgetHandler:OwnText()
+				Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			end
 		end
 	end
 	if data.pauseGameWhenSingleplayerExecuted ~= nil and Spring.GetGameFrame() > 0 then
@@ -5772,4 +6268,8 @@ function widget:SetConfigData(data)
 	if data.useNetworkSmoothing then
 		useNetworkSmoothing = data.useNetworkSmoothing
 	end
+end
+
+function widget:LanguageChanged()
+	init()
 end

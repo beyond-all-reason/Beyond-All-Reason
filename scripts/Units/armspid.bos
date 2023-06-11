@@ -9,7 +9,7 @@
 //#define WALK_PERIOD 100
 
 
-piece	flare, base, turret, barrel, leg1a, leg1b, leg2a, leg2b, leg3a, leg3b, leg4a, leg4b, leg5a, leg5b, leg6a, leg6b, aimy1;
+piece	flare, base, turret, barrel, leg1a, leg1b, leg2a, leg2b, leg3a, leg3b, leg4a, leg4b, leg5a, leg5b, leg6a, leg6b, aimy1, emplight;
 
 static-var Static_Var_1, fire_count, statechg_DesiredState, statechg_StateChanging, firing, notBuilding, open, maxreloadtime, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
 
@@ -577,6 +577,7 @@ Create()
 {
 	call-script InitState();
 	hide flare;
+	hide emplight;
 	notBuilding = 1;
 	fire_count=4;
 	animSpeed = 3;
@@ -603,9 +604,17 @@ QueryPrimary(piecenum)
 	piecenum=flare;
 }
 
+FireEmp()
+{
+	show emplight;
+	sleep 250;
+	hide emplight;
+}
+
 FirePrimary()
 {
 	emit-sfx 1024 + 0 from flare;
+	start-script FireEmp();
 	return(1);
 }
 

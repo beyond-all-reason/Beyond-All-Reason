@@ -7,7 +7,7 @@
 #define SIG_WALK		2
 
 
-piece  flare1, flare2, hip, lleg, rleg, rfoot, lfoot, luparm, ruparm, rarm, larm, torso,aimy1, aimx1;
+piece  flare1, flare2, hip, lleg, rleg, rfoot, lfoot, luparm, ruparm, rarm, larm, torso,aimy1, aimx1, corhexl, corhexl_emit;
 
 static-var spray, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
 
@@ -165,6 +165,8 @@ Create()
 	hide flare1;
 	hide aimx1;
 	hide aimy1;
+	//hide corhexl;
+	hide corhexl_emit;
 	bMoving = FALSE;
 	animSpeed = 3;
 	spray = flare1;
@@ -189,6 +191,7 @@ StartBuilding(torsoing, pitch)
 	turn aimx1 to x-axis <-55> - pitch speed <240.0>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
+	show corhexl_emit;
 	start-script BuildAnim();
 }
 
@@ -198,6 +201,7 @@ StopBuilding()
 	hide flare1;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
+	hide corhexl_emit;
 	turn aimy1 to y-axis <0.000000> speed <160.000000>;
 	turn aimx1 to x-axis <0> speed <240.0>;
 	turn aimy1 to x-axis <0> speed <5>;

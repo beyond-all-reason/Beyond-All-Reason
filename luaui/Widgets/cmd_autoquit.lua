@@ -3,7 +3,7 @@
 -- global variables
 ----------------------------------------------------------------
 local versionNumber = "v1.3"
-local delay = 8
+local delay = 12
 local mousemovedDelay = 60
 local endTime
 local mx,my

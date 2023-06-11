@@ -97,6 +97,9 @@ return {
 					crawlingbombs = 1000,
 					default = 0,
 				},
+				customparams = {
+					bogus = 1
+				}
 			},
 			crawl_dummy = {
 				areaofeffect = 0,
@@ -121,6 +124,9 @@ return {
 				damage = {
 					default = 0,
 				},
+				customparams = {
+					bogus = 1
+				}
 			},
 		},
 		weapons = {

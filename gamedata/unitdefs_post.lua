@@ -78,6 +78,12 @@ if Spring.GetModOptions().unba then
 	UnbaCom_Post("corcom")
 end
 
+if Spring.GetModOptions().comupdate then
+	VFS.Include("unbaconfigs/comupdate_post.lua")
+	ComUpdate_Post("armcom")
+	ComUpdate_Post("corcom")
+end
+
 local function getDimensions(scale)
 	if not scale then
 		return false

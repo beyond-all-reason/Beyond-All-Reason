@@ -199,11 +199,13 @@ return {
 				badtargetcategory = "VTOL",
 				def = "HLLT_TOP",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "HLLT_BOTTOM",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 		},
 	},

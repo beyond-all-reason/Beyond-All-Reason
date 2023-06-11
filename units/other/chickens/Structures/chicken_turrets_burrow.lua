@@ -38,6 +38,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "Chickens/chicken_turrets_v2.s3o",
 		--reclaimspeed = 200,
+		repairable = false,
 		script = "Chickens/chicken_turrets_v2.cob",
 		seismicsignature = 0,
 		selfdestructas = "bug_death",

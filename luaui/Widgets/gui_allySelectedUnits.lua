@@ -46,7 +46,6 @@ local GL_POINTS				= GL.POINTS
 local spGetUnitDefID        = Spring.GetUnitDefID
 local spGetPlayerInfo       = Spring.GetPlayerInfo
 local spGetSpectatingState	= Spring.GetSpectatingState
-local spIsGUIHidden			= Spring.IsGUIHidden
 
 local playerIsSpec = {}
 for i,playerID in pairs(Spring.GetPlayerList()) do
@@ -362,14 +361,10 @@ function widget:Shutdown()
 end
 
 local drawFrame = 0
-local isGuiHidden = spIsGUIHidden()
 function widget:DrawWorldPreUnit()
 	if Spring.GetGameFrame() < hideBelowGameframe then return end
 
-	if isGuiHidden ~= spIsGUIHidden() then
-		isGuiHidden = spIsGUIHidden()
-	end
-	if isGuiHidden then return end
+	if Spring.IsGUIHidden() then return end
 
 	if enablePlatter then
 		drawFrame = drawFrame + 1

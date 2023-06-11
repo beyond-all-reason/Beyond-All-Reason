@@ -60,16 +60,16 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		scumSpawnerIDs[UnitDefNames['chicken_hive'].id] = {radius = 1024, growthrate = 1}
-		scumSpawnerIDs[UnitDefNames['chicken_turretl'].id] = {radius = 384, growthrate = 1}
-		scumSpawnerIDs[UnitDefNames['chicken_turrets'].id] = {radius = 256, growthrate = 1}
-		scumSpawnerIDs[UnitDefNames['chicken_turretl_antiair'].id] = {radius = 384, growthrate = 1}
-		scumSpawnerIDs[UnitDefNames['chicken_turrets_antiair'].id] = {radius = 256, growthrate = 1}
-		scumSpawnerIDs[UnitDefNames['chicken_turretl_acid'].id] = {radius = 768, growthrate = 1}
-		scumSpawnerIDs[UnitDefNames['chicken_turrets_acid'].id] = {radius = 512, growthrate = 1}
-		scumSpawnerIDs[UnitDefNames['chicken_turretl_electric'].id] = {radius = 768, growthrate = 1}
-		scumSpawnerIDs[UnitDefNames['chicken_turrets_electric'].id] = {radius = 512, growthrate = 1}
-		scumSpawnerIDs[UnitDefNames['chicken_turretxl_meteor'].id] = {radius = 1024, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_hive'].id] = {radius = 1536, growthrate = 0.2}
+		scumSpawnerIDs[UnitDefNames['chicken_turretl'].id] = {radius = 1024, growthrate = 0.2}
+		scumSpawnerIDs[UnitDefNames['chicken_turrets'].id] = {radius = 512, growthrate = 0.2}
+		scumSpawnerIDs[UnitDefNames['chicken_turretl_antiair'].id] = {radius = 1024, growthrate = 0.2}
+		scumSpawnerIDs[UnitDefNames['chicken_turrets_antiair'].id] = {radius = 512, growthrate = 0.2}
+		scumSpawnerIDs[UnitDefNames['chicken_turretl_acid'].id] = {radius = 1024, growthrate = 0.2}
+		scumSpawnerIDs[UnitDefNames['chicken_turrets_acid'].id] = {radius = 512, growthrate = 0.2}
+		scumSpawnerIDs[UnitDefNames['chicken_turretl_electric'].id] = {radius = 1024, growthrate = 0.2}
+		scumSpawnerIDs[UnitDefNames['chicken_turrets_electric'].id] = {radius = 512, growthrate = 0.2}
+		scumSpawnerIDs[UnitDefNames['chicken_turretxl_meteor'].id] = {radius = 1536, growthrate = 0.2}
 
 		for x= 0, math.ceil(mapSizeX/1024) do
 			for z = 0, math.ceil(mapSizeZ/1024) do
@@ -196,7 +196,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitDestroyed(unitID, unitDefID)
 		if scumSpawnerIDs[unitDefID] and scums[unitID] then
-			AddOrUpdateScum(nil,nil,nil,nil, -10 * math.abs(scums[unitID].growthrate), unitID)
+			AddOrUpdateScum(nil,nil,nil,nil, math.abs(scums[unitID].growthrate), unitID)
 			SendToUnsynced("ScumRemoved", unitID)
 		end
 	end
@@ -780,7 +780,7 @@ else
 			scumRemoveQueue[n] = nil
 		end
 
-		if n % 2 == 1 and Script.LuaUI("GadgetRemoveGrass") then
+		if n % 37 == 1 and Script.LuaUI("GadgetRemoveGrass") then
 			for scumID, scum in pairs(scums) do
 				if scum.growthrate > 0 then
 					local currentRadius = GetScumCurrentRadius(scum, n)

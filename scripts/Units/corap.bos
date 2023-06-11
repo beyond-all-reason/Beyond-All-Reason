@@ -174,12 +174,12 @@ Create()
 	spray = base;
 	call-script InitState();
 	start-script Standby();
-	start-script Lights();
-	spin dish around y-axis speed <150.0>;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
 	}
+	spin dish around y-axis speed <150.0>;
+	start-script Lights();
 	return (0);
 }
 

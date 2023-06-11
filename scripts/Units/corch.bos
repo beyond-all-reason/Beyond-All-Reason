@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret, nano, wake;
+piece  base, turret, nano, wake, cagelight, cagelight_emit;
 
 static-var  terrain, notBuilding, statechg_DesiredState, statechg_StateChanging, Wobble_status;
 
@@ -20,7 +20,8 @@ activatescr()
 deactivatescr()
 {
 	set INBUILDSTANCE to 0;
-
+	hide cagelight_emit;
+	turn cagelight to y-axis <0> speed <1000>;
 }
 
 WobbleUnit()
@@ -96,11 +97,13 @@ RequestState(requestedstate, currentstate)
 	{
 		if( statechg_DesiredState )
 		{
+			call-script deactivatescr();
 			notBuilding = 1;
 			currentstate = 1;
 		}
 		else
 		{
+			call-script activatescr();
 			notBuilding = 0;
 			currentstate = 0;
 		}
@@ -149,6 +152,7 @@ Create()
 {
 	hide nano;
 	hide wake;
+	hide cagelight_emit;
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
@@ -179,6 +183,8 @@ StartBuilding(heading, pitch)
 	turn turret to y-axis heading speed <160.000000>;
 	wait-for-turn turret around y-axis;
 	set INBUILDSTANCE to 1;
+	show cagelight_emit;
+	spin cagelight around y-axis speed <225>;
 }
 
 StopBuilding()
@@ -186,6 +192,8 @@ StopBuilding()
 	hide nano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
+	hide cagelight_emit;
+	turn cagelight to y-axis <0> speed <-400>;
 	sleep 6000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	

@@ -267,7 +267,7 @@ return {
 				rgbcolor = "0.7 0.3 1.0",
 				size = 8.5,
 				soundhit = "xplomas2",
-				soundhitwet = "sizzle",
+				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
 				soundtrigger = true,
 				tolerance = 10000,

@@ -231,10 +231,12 @@ return {
 			[2] = {
 				def = "DOOMSDAY_GREEN_LASER",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[3] = {
 				def = "DOOMSDAY_RED_LASER",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 		},
 	},

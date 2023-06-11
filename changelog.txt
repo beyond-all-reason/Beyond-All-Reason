@@ -1,5 +1,12 @@
 ﻿# May 2023
+[Commander] default enabled modoption "comupdate":
+ • Now immune to the D-Gun. 
+ • Health 3350->4000. +Removed passive health regeneration.
+ • Wreckage metal 2000->1250.
+ • Death explosion inflict less damage.
+ • No longer susceptible to special damage modifiers from certain units, such as Light Laser Towers.
 
+Other
  • [Supporter] Reloadtime reduced from 1s->0.93s
  • [Roughneck] Projectile speed increased 450->800
 

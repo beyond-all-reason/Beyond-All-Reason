@@ -4,7 +4,7 @@ YOUR GOAL:
 Attempt to survive and build up a strong base and army to fight the Scavenger forces. You need to reach 100% BOSS ANGER in order to start the final phase and massive assault. You will eventually need to destroy the local Scavenger EPIC COMMANDER to be victorious.
 
 QUICK GUIDE
-1. Scavengers drop into their start zone and not attack until the end of the Grace Period (5 minutes by default).
+1. Scavengers drop into their start zone and do not attack until the end of the Grace Period (5 minutes by default).
 2. ORBITAL DROPS will spawn SCAVENGER BEACONS, both in the start box and areas with no radar coverage or line of sight.
 3. Scavenger REZ-BOTS will roam the battlefield and resurrect unit wreckage.
 4. Their strength will dynamically grow (or shrink) depending on your actions and aggression.
