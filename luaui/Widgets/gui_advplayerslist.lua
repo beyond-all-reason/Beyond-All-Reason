@@ -216,7 +216,7 @@ local Background, ShareSlider, BackgroundGuishader, tipText, drawTipText, tipY, 
 local specJoinedOnce, scheduledSpecFullView
 local prevClickedPlayer
 local lockPlayerID, leftPosX, lastSliderSound, release
-local curFrame, PrevGameFrame, MainList, MainList2, desiredLosmode, drawListOffset
+local curFrame, PrevGameFrame, MainList, desiredLosmode, drawListOffset
 
 local deadPlayerHeightReduction = 6
 
@@ -1135,7 +1135,6 @@ function widget:Shutdown()
     end
     if MainList then
         gl_DeleteList(MainList)
-        gl_DeleteList(MainList2)
     end
     if Background then
         gl_DeleteList(Background)
@@ -1757,7 +1756,6 @@ function widget:DrawScreen()
     -- draws the main list
     if MainList then
         gl_CallList(MainList)
-        gl_CallList(MainList2)
     else
         CreateMainList()
     end
@@ -1834,7 +1832,7 @@ function widget:DrawScreen()
     end
 end
 
-function CreateLists(onlyMainList2)
+function CreateLists()
     CheckTime() --this also calls CheckPlayers
     UpdateRecentBroadcasters()
     UpdateAlliances()
@@ -1848,7 +1846,7 @@ function CreateLists(onlyMainList2)
 
     --Create lists
     CreateBackground()
-    CreateMainList(onlyMainList2 and MainList)
+    CreateMainList()
     CreateShareSlider()
 end
 
@@ -1963,106 +1961,92 @@ function CheckTime()
     end
 end
 
-function CreateMainList(onlyMainList2)
-    local mouseX, mouseY = Spring_GetMouseState()
-
-    if not onlyMainList2 then
-        numberOfSpecs = 0
-        numberOfEnemies = 0
-        local active, spec
-        local playerList = Spring_GetPlayerList()
-        for _, playerID in ipairs(playerList) do
-            _, active, spec = Spring_GetPlayerInfo(playerID)
-            if active and spec then
-                numberOfSpecs = numberOfSpecs + 1
-            end
+function CreateMainList()
+    numberOfSpecs = 0
+    numberOfEnemies = 0
+    local active, spec
+    local playerList = Spring_GetPlayerList()
+    for _, playerID in ipairs(playerList) do
+        _, active, spec = Spring_GetPlayerInfo(playerID)
+        if active and spec then
+            numberOfSpecs = numberOfSpecs + 1
         end
-        local playerID, isAiTeam, allyTeamID
-        local teamList = Spring_GetTeamList()
-        for i = 1, #teamList do
-            local teamID = teamList[i]
-            if teamID ~= gaiaTeamID then
-                _, playerID, _, isAiTeam, _, allyTeamID = Spring_GetTeamInfo(teamID, false)
-                _, active = Spring_GetPlayerInfo(playerID)
-                if active or isAiTeam then
-                    if allyTeamID ~= myAllyTeamID then
-                        numberOfEnemies = numberOfEnemies + 1
-                    end
+    end
+    local playerID, isAiTeam, allyTeamID
+    local teamList = Spring_GetTeamList()
+    for i = 1, #teamList do
+        local teamID = teamList[i]
+        if teamID ~= gaiaTeamID then
+            _, playerID, _, isAiTeam, _, allyTeamID = Spring_GetTeamInfo(teamID, false)
+            _, active = Spring_GetPlayerInfo(playerID)
+            if active or isAiTeam then
+                if allyTeamID ~= myAllyTeamID then
+                    numberOfEnemies = numberOfEnemies + 1
                 end
             end
         end
-
-        local leader
-
-        if MainList then
-            gl_DeleteList(MainList)
-        end
-        tipText = nil
-        MainList = gl_CreateList(function()
-            drawTipText = nil
-            for i, drawObject in ipairs(drawList) do
-                if drawObject == -5 then
-                    specsLabelOffset = drawListOffset[i]
-                    local specAmount = numberOfSpecs
-                    if numberOfSpecs == 0 or (specListShow and numberOfSpecs < 10) then
-                        specAmount = ""
-                    end
-                    DrawLabel(" ".. Spring.I18N('ui.playersList.spectators', { amount = specAmount }), drawListOffset[i], specListShow)
-                    if Spring.GetGameFrame() <= 0 then
-                        if specListShow then
-                            DrawLabelTip( Spring.I18N('ui.playersList.hideSpecs'), drawListOffset[i], 95)
-                        else
-                            DrawLabelTip(Spring.I18N('ui.playersList.showSpecs'), drawListOffset[i], 95)
-                        end
-                    end
-                elseif drawObject == -4 then
-                    DrawSeparator(drawListOffset[i])
-                elseif drawObject == -3 then
-                    enemyLabelOffset = drawListOffset[i]
-                    local enemyAmount = numberOfEnemies
-                    if numberOfEnemies == 0 or (enemyListShow and numberOfEnemies < 10) then
-                        enemyAmount = ""
-                    end
-                    DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
-                    if Spring.GetGameFrame() <= 0 then
-                        if enemyListShow then
-                            DrawLabelTip( Spring.I18N('ui.playersList.hideEnemies'), drawListOffset[i], 95)
-                        else
-                            DrawLabelTip(Spring.I18N('ui.playersList.showEnemies'), drawListOffset[i], 95)
-                        end
-                    end
-                elseif drawObject == -2 then
-                    DrawLabel(" " .. Spring.I18N('ui.playersList.allies'), drawListOffset[i], true)
-                    if Spring.GetGameFrame() <= 0 then
-                        DrawLabelTip(Spring.I18N('ui.playersList.trackPlayer'), drawListOffset[i], 46)
-                    end
-                elseif drawObject == -1 then
-                    leader = true
-                else
-                    DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY)
-                end
-
-                -- draw player tooltip later so they will be on top of players drawn below
-                if tipText ~= nil then
-                    drawTipText = tipText
-                end
-            end
-
-            if drawTipText ~= nil then
-                tipText = drawTipText
-            end
-        end)
     end
 
-    MainList2 = gl_CreateList(function()
+    local mouseX, mouseY = Spring_GetMouseState()
+    local leader
+
+    if MainList then
+        gl_DeleteList(MainList)
+    end
+    tipText = nil
+    MainList = gl_CreateList(function()
         drawTipText = nil
-        local leader
         for i, drawObject in ipairs(drawList) do
-            if drawObject == -1 then
+            if drawObject == -5 then
+                specsLabelOffset = drawListOffset[i]
+                local specAmount = numberOfSpecs
+                if numberOfSpecs == 0 or (specListShow and numberOfSpecs < 10) then
+                    specAmount = ""
+                end
+                DrawLabel(" ".. Spring.I18N('ui.playersList.spectators', { amount = specAmount }), drawListOffset[i], specListShow)
+                if Spring.GetGameFrame() <= 0 then
+                    if specListShow then
+                        DrawLabelTip( Spring.I18N('ui.playersList.hideSpecs'), drawListOffset[i], 95)
+                    else
+                        DrawLabelTip(Spring.I18N('ui.playersList.showSpecs'), drawListOffset[i], 95)
+                    end
+                end
+            elseif drawObject == -4 then
+                DrawSeparator(drawListOffset[i])
+            elseif drawObject == -3 then
+                enemyLabelOffset = drawListOffset[i]
+                local enemyAmount = numberOfEnemies
+                if numberOfEnemies == 0 or (enemyListShow and numberOfEnemies < 10) then
+                    enemyAmount = ""
+                end
+                DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
+                if Spring.GetGameFrame() <= 0 then
+                    if enemyListShow then
+                        DrawLabelTip( Spring.I18N('ui.playersList.hideEnemies'), drawListOffset[i], 95)
+                    else
+                        DrawLabelTip(Spring.I18N('ui.playersList.showEnemies'), drawListOffset[i], 95)
+                    end
+                end
+            elseif drawObject == -2 then
+                DrawLabel(" " .. Spring.I18N('ui.playersList.allies'), drawListOffset[i], true)
+                if Spring.GetGameFrame() <= 0 then
+                    DrawLabelTip(Spring.I18N('ui.playersList.trackPlayer'), drawListOffset[i], 46)
+                end
+            elseif drawObject == -1 then
                 leader = true
-            elseif drawObject >= 0 then
-                DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, true)
+            else
+                DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY)
             end
+
+            -- draw player tooltip later so they will be on top of players drawn below
+            if tipText ~= nil then
+                drawTipText = tipText
+            end
+
+        end
+
+        if drawTipText ~= nil then
+            tipText = drawTipText
         end
     end)
 end
@@ -2094,7 +2078,7 @@ function DrawSeparator(vOffset)
     RectRound(widgetPosX + 2, widgetPosY + widgetHeight - vOffset - (1.5 / widgetScale), widgetPosX + widgetWidth - 2, widgetPosY + widgetHeight - vOffset + (1.5 / widgetScale), (0.5 / widgetScale), 1, 1, 1, 1, { 0.66, 0.66, 0.66, 0.35 }, { 0, 0, 0, 0.35 })
 end
 
-function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyDynamic) -- onlyDynamic to only draw dynamic stuff like ping/resources/allianaces/
+function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 
     --if hideDeadTeams and player[playerID].dead then --and not player[playerID].totake then   -- totake is still active when teammates
     --    return
@@ -2150,78 +2134,69 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyDynamic) -- o
         tipY = true
     end
 
-    if onlyDynamic and lockPlayerID ~= nil and lockPlayerID == playerID then
+    if lockPlayerID ~= nil and lockPlayerID == playerID then
         -- active
         DrawCamera(posY, true)
     end
 
     if spec == false then
         --player
-        if onlyDynamic and not dead and alliances ~= nil and #alliances > 0 then
+        if not dead and alliances ~= nil and #alliances > 0 then
             DrawAlliances(alliances, posY)
         end
         if leader then
             -- take / share buttons
-            if onlyDynamic then
-                if mySpecStatus == false then
-                    if allyteam == myAllyTeamID then
-                        if m_take.active then
-                            if totake then
-                                DrawTakeSignal(posY)
-                                if tipY then
-                                    TakeTip(mouseX)
-                                end
-                            end
-                        end
-                        if m_share.active and dead ~= true and not hideShareIcons then
-                            DrawShareButtons(posY, needm, neede)
+            if mySpecStatus == false then
+                if allyteam == myAllyTeamID then
+                    if m_take.active then
+                        if totake then
+                            DrawTakeSignal(posY)
                             if tipY then
-                                ShareTip(mouseX, playerID)
+                                TakeTip(mouseX)
                             end
                         end
                     end
-                    if drawAllyButton and dead ~= true then
+                    if m_share.active and dead ~= true and not hideShareIcons then
+                        DrawShareButtons(posY, needm, neede)
                         if tipY then
-                            AllyTip(mouseX, playerID)
+                            ShareTip(mouseX, playerID)
                         end
                     end
-                else
-                    if m_indent.active and Spring_GetMyTeamID() == team then
-                        DrawDot(posY)
+                end
+                if drawAllyButton and dead ~= true then
+                    if tipY then
+                        AllyTip(mouseX, playerID)
                     end
                 end
-            end
-            if not onlyDynamic then
-                if m_ID.active and not dead then
-                    DrawID(team, posY, dark, dead)
-                end
-                if m_skill.active then
-                    DrawSkill(skill, posY, dark)
+            else
+                if m_indent.active and Spring_GetMyTeamID() == team then
+                    DrawDot(posY)
                 end
             end
-        end
-
-        if not onlyDynamic then
-            if m_rank.active then
-                DrawRank(tonumber(rank), posY)
+            if m_ID.active and not dead then
+                DrawID(team, posY, dark, dead)
             end
-            if m_country.active and country ~= "" then
-                DrawCountry(country, posY)
-            end
-            if name ~= absentName and m_side.active then
-                DrawSidePic(team, playerID, posY, leader, dark, ai)
-            end
-            if m_name.active then
-                DrawName(name, team, posY, dark, playerID, desynced)
+            if m_skill.active then
+                DrawSkill(skill, posY, dark)
             end
         end
-
-        if onlyDynamic and m_alliance.active and drawAllyButton and not mySpecStatus and not dead and team ~= myTeamID then
+        if m_rank.active then
+            DrawRank(tonumber(rank), posY)
+        end
+        if m_country.active and country ~= "" then
+            DrawCountry(country, posY)
+        end
+        if name ~= absentName and m_side.active then
+            DrawSidePic(team, playerID, posY, leader, dark, ai)
+        end
+        if m_name.active then
+            DrawName(name, team, posY, dark, playerID, desynced)
+        end
+        if m_alliance.active and drawAllyButton and not mySpecStatus and not dead and team ~= myTeamID then
             DrawAlly(posY, player[playerID].team)
         end
 
-
-        if onlyDynamic and not isSingle and (m_resources.active or m_income.active) and aliveAllyTeams[allyteam] ~= nil and player[playerID].energy ~= nil then
+        if not isSingle and (m_resources.active or m_income.active) and aliveAllyTeams[allyteam] ~= nil and player[playerID].energy ~= nil then
             if mySpecStatus or myAllyTeamID == allyteam then
                 local e = player[playerID].energy
                 local es = player[playerID].energyStorage
@@ -2247,12 +2222,12 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyDynamic) -- o
         end
     else
         -- spectator
-        if not onlyDynamic and specListShow and m_name.active then
+        if specListShow and m_name.active then
             DrawSmallName(name, team, posY, false, playerID, alpha)
         end
     end
 
-    if onlyDynamic and m_cpuping.active and not isSinglePlayer then
+    if m_cpuping.active and not isSinglePlayer then
         if cpuLvl ~= nil then
             -- draws CPU usage and ping icons (except AI and ghost teams)
             DrawPingCpu(pingLvl, cpuLvl, posY, spec, 1, cpu, lastFpsData[playerID])
@@ -2263,20 +2238,18 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyDynamic) -- o
     end
 
     if playerID < specOffset then
-        if not onlyDynamic then
-            if m_chat.active and mySpecStatus == false and spec == false then
-                if playerID ~= myPlayerID then
-                    DrawChatButton(posY)
-                end
+        if m_chat.active and mySpecStatus == false and spec == false then
+            if playerID ~= myPlayerID then
+                DrawChatButton(posY)
             end
-        else
-            if m_point.active then
-                if player[playerID].pointTime ~= nil then
-                    if player[playerID].allyteam == myAllyTeamID or mySpecStatus then
-                        DrawPoint(posY, player[playerID].pointTime - now)
-                        if tipY then
-                            PointTip(mouseX)
-                        end
+        end
+
+        if m_point.active then
+            if player[playerID].pointTime ~= nil then
+                if player[playerID].allyteam == myAllyTeamID or mySpecStatus then
+                    DrawPoint(posY, player[playerID].pointTime - now)
+                    if tipY then
+                        PointTip(mouseX)
                     end
                 end
             end
@@ -3736,7 +3709,7 @@ function widget:Update(delta)
         return
     else
         timeCounter = 0
-        CreateLists(true)
+        CreateLists()
     end
 end
 
