@@ -231,6 +231,8 @@
 				"trajectory_tooltip": "Switch artillery firing angle between low and high trajectory",
 				"gaussCannon": "Gauss Cannon",
 				"heavyPlasma": "Heavy Plasma",
+				"siegeMode": "Siege Mode",
+				"suppressiveFire": "Suppressive Fire",
 				"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon"
 			}
 		},
