@@ -875,7 +875,7 @@ function widget:Update(dt)
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
 		if not voidWater and mapMinWater <= units.minWaterUnitDepth and not showWaterUnits then
 			showWaterUnits = true
-			units.restrictWaterUnits(true)
+			units.restrictWaterUnits(false)
 		end
 
 		local prevOrdermenuLeft = ordermenuLeft

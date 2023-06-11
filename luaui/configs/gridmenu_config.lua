@@ -191,17 +191,18 @@ local function getSortedGridForBuilder(builderId, buildOptions, currentCategory)
 
 		-- first we go through all the buildopts that have defined positions and place them appropriately
 		for _, opt in pairs(buildOptions) do
-			if unitCategories[opt] == currentCategory then
-				if hasUnitGrid[builderId][opt] and unitGridPos[builderId][categoryIndex][opt] then
+			if hasUnitGrid[builderId][opt] then
+				if unitGridPos[builderId][categoryIndex][opt] then
 					local row = string.sub(unitGridPos[builderId][categoryIndex][opt], 2, 2)
 					local col = string.sub(unitGridPos[builderId][categoryIndex][opt], 3, 3)
 					local index = col + ((row - 1) * columns)
 					if index then
 						options[index] = constructBuildOption(opt)
 					end
-				else
-					table.insert(undefinedOpts, opt)
 				end
+			else
+				-- if this unit doesn't have a defined position in the grid, find an empty spot for it
+				table.insert(undefinedOpts, opt)
 			end
 		end
 
