@@ -36,7 +36,7 @@ local BUILDCAT_ECONOMY = "Economy"
 local BUILDCAT_COMBAT = "Combat"
 local BUILDCAT_UTILITY = "Utility"
 local BUILDCAT_PRODUCTION = "Build"
-local categoryFontSize, pageButtonHeight
+local categoryFontSize, categoryButtonHeight
 
 local folder = 'LuaUI/Images/groupicons/'
 local groups = {
@@ -191,10 +191,10 @@ local currentCategory
 local currentPage = 1
 local pages = 1
 local backRect = Rect:new(0, 0, 0, 0)
+local catLabelRect = Rect:new(0, 0, 0, 0)
 local nextPageRect = Rect:new(0, 0, 0, 0)
-local categoriesRect = Rect:new(0, 0, 0, 0)
+local categoriesAndPagesRect = Rect:new(0, 0, 0, 0)
 local buildpicsRect = Rect:new(0, 0, 0 ,0)
-local paginatorsRect = Rect:new(0, 0, 0, 0)
 local buildersRect = Rect:new(0, 0, 0, 0)
 local nextBuilderRect = Rect:new(0, 0, 0, 0)
 local isPregame = Spring.GetGameFrame() == 0 and not isSpec
@@ -692,9 +692,9 @@ function widget:ViewResize()
 	UiButton = WG.FlowUI.Draw.Button
 	categoryFontSize = 0.0115 * ui_scale * vsy
 	pageFontSize = categoryFontSize
-	pageButtonHeight = math_floor(2.3 * categoryFontSize * ui_scale)
-	categoryButtonHeight = pageButtonHeight
-	builderButtonSize = pageButtonHeight * 2
+	categoryButtonHeight = math_floor(2.3 * categoryFontSize * ui_scale)
+	builderButtonSize = categoryButtonHeight * 2
+	pageButtonHeight = categoryButtonHeight
 
 	activeAreaMargin = math_ceil(bgpadding * Cfgs.cfgActiveAreaMargin)
 
@@ -722,7 +722,7 @@ function widget:ViewResize()
 		local categoryWidth = 8 * categoryFontSize * ui_scale
 
 		-- assemble rects left to right
-		categoriesRect = Rect:new(
+		categoriesAndPagesRect = Rect:new(
 			posX + bgpadding,
 			posYEnd + pageButtonHeight + bgpadding,
 			posX + categoryWidth,
@@ -737,9 +737,9 @@ function widget:ViewResize()
 		)
 
 		buildpicsRect = Rect:new(
-			categoriesRect.xEnd + bgpadding,
+			categoriesAndPagesRect.xEnd + bgpadding,
 			posYEnd,
-			categoriesRect.xEnd + (cellSize * columns) + bgpadding,
+			categoriesAndPagesRect.xEnd + (cellSize * columns) + bgpadding,
 			posY - bgpadding
 		)
 
@@ -765,7 +765,7 @@ function widget:ViewResize()
 
 		-- 0.14 is the space required to put this above the bottom-left UI element
 		local posYEnd = math_floor(0.14 * ui_scale * vsy) + widgetSpaceMargin
-		local posY = math_floor(posYEnd + ((0.74 * vsx) * width + pageButtonHeight))/vsy
+		local posY = math_floor(posYEnd + ((0.74 * vsx) * width))/vsy
 		local posX = 0
 
 		if WG['ordermenu'] and not WG['ordermenu'].getBottomPosition() then
@@ -780,10 +780,10 @@ function widget:ViewResize()
 		-- make pixel aligned
 		width = posXEnd - posX
 
-		categoryButtonHeight = pageButtonHeight * 1.4
+		categoryButtonHeight = categoryButtonHeight * 1.4
 
 		-- assemble rects, bottom to top
-		categoriesRect = Rect:new(
+		categoriesAndPagesRect = Rect:new(
 			posX + bgpadding,
 			posYEnd + bgpadding,
 			posXEnd - bgpadding,
@@ -793,27 +793,19 @@ function widget:ViewResize()
 		rows = 3
 		columns = 4
 		cellSize = math_floor((width - (bgpadding * 2)) / columns)
-		pageButtonHeight = cellSize / 3
 
 		buildpicsRect = Rect:new(
 			posX + bgpadding,
-			categoriesRect.yEnd,
+			categoriesAndPagesRect.yEnd,
 			posXEnd - bgpadding,
-			categoriesRect.yEnd + (cellSize * rows)
-		)
-
-		paginatorsRect = Rect:new(
-			posX + bgpadding,
-			buildpicsRect.yEnd + bgpadding,
-			posXEnd - bgpadding,
-			buildpicsRect.yEnd + pageButtonHeight
+			categoriesAndPagesRect.yEnd + (cellSize * rows)
 		)
 
 		backgroundRect = Rect:new(
 			posX,
 			posYEnd,
 			posXEnd,
-			paginatorsRect.yEnd + (bgpadding * 1.5)
+			buildpicsRect.yEnd + (bgpadding * 1.5)
 		)
 
 		-- start with no width and grow dynamically
@@ -953,7 +945,7 @@ local function drawButton(rect, opts, icon)
 	UiButton(rect.x, rect.y, rect.xEnd, rect.yEnd, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
 
 	if icon then
-		local iconSize = math.min(math.floor((rect.yEnd - rect.y) * 1.1), pageButtonHeight)
+		local iconSize = math.min(math.floor((rect.yEnd - rect.y) * 1.1), categoryButtonHeight)
 		icon = ":l:" .. icon
 		gl.Color(1, 1, 1, 0.9)
 		gl.Texture(icon)
@@ -976,6 +968,27 @@ local function drawButton(rect, opts, icon)
 
 	if opts.hovered then
 		drawnHoveredButton = rect:getId()
+	end
+end
+
+local function drawCatLabel(rect, opts, icon)
+	opts = opts or {}
+
+	local padding = math_max(1, math_floor(bgpadding * 0.52))
+
+	local color1 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- bottom
+	local color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- top
+
+	UiElement(rect.x, rect.y, rect.xEnd, rect.yEnd, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
+
+	if icon then
+		local iconSize = math.min(math.floor((rect.yEnd - rect.y) * 1.1), categoryButtonHeight)
+		icon = ":l:" .. icon
+		gl.Color(1, 1, 1, 0.9)
+		gl.Texture(icon)
+		gl.BeginEnd(GL.QUADS, TexRectRound, rect.x + (bgpadding / 2), rect.yEnd - iconSize, rect.x + iconSize, rect.yEnd - (bgpadding / 2),  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
+		--	gl.TexRect(px, sy - iconSize, px + iconSize, sy)
+		gl.Texture(false)
 	end
 end
 
@@ -1090,13 +1103,13 @@ local function drawCategories()
 
 	-- set up rects
 	if stickToBottom then
-		local x1 = categoriesRect.x
+		local x1 = categoriesAndPagesRect.x
 
-		local contentHeight = (categoriesRect.yEnd - categoriesRect.y) / numCats
-		local contentWidth = categoriesRect.xEnd - categoriesRect.x
+		local contentHeight = (categoriesAndPagesRect.yEnd - categoriesAndPagesRect.y) / numCats
+		local contentWidth = categoriesAndPagesRect.xEnd - categoriesAndPagesRect.x
 
 		for i, cat in ipairs(categories) do
-			local y1 = categoriesRect.yEnd - i * contentHeight + 2
+			local y1 = categoriesAndPagesRect.yEnd - i * contentHeight + 2
 			catRects[cat] = Rect:new(
 				x1,
 				y1,
@@ -1105,13 +1118,13 @@ local function drawCategories()
 			)
 		end
 	else
-		local y2 = categoriesRect.yEnd
+		local y2 = categoriesAndPagesRect.yEnd
 
-		local buttonWidth = math.round(((categoriesRect.xEnd - categoriesRect.x) / numCats))
+		local buttonWidth = math.round(((categoriesAndPagesRect.xEnd - categoriesAndPagesRect.x) / numCats))
 		local padding = math_max(1, math_floor(bgpadding * 0.52))
 
 		for i, cat in ipairs(categories) do
-			local x1 = categoriesRect.x + (i - 1) * buttonWidth
+			local x1 = categoriesAndPagesRect.x + (i - 1) * buttonWidth
 			catRects[cat] = Rect:new(
 				x1,
 				y2 - categoryButtonHeight + padding,
@@ -1121,38 +1134,40 @@ local function drawCategories()
 		end
 	end
 
-	-- set up buttons
-	for catIndex, cat in pairs(categories) do
-		local catText = cat
-		local catIcon = Cfgs.categoryIcons[catIndex]
-		local keyText = keyConfig.sanitizeKey(Cfgs.categoryKeys[catIndex], currentLayout)
-		local rect = catRects[cat]
+	-- set up buttons:
+	if not currentCategory then
+		for catIndex, cat in pairs(categories) do
+			local catText = cat
+			local catIcon = Cfgs.categoryIcons[catIndex]
+			local keyText = keyConfig.sanitizeKey(Cfgs.categoryKeys[catIndex], currentLayout)
+			local rect = catRects[cat]
 
-		local opts = {
-			highlight = (cat == currentCategory),
-			hovered = (hoveredButton == rect:getId()),
-		}
+			local opts = {
+				highlight = (cat == currentCategory),
+				hovered = (hoveredButton == rect:getId()),
+			}
 
-		local textPadding = bgpadding * 2
+			local textPadding = bgpadding * 2
 
-		local fontSize = categoryFontSize
-		local fontHeight = font2:GetTextHeight(catText) * categoryFontSize
-		local fontHeightOffset = fontHeight * 0.34
-		font2:Print(catText, rect.x + (textPadding * 3), (rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset, fontSize, "o")
+			local fontSize = categoryFontSize
+			local fontHeight = font2:GetTextHeight(catText) * categoryFontSize
+			local fontHeightOffset = fontHeight * 0.34
+			font2:Print(catText, rect.x + (textPadding * 3), (rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset, fontSize, "o")
 
-		drawButtonHotkey(rect, keyText)
-		drawButton(rect, opts, catIcon)
-	end
-
-	if currentCategory and not stickToBottom then
+			drawButtonHotkey(rect, keyText)
+			drawButton(rect, opts, catIcon)
+		end
+		
+	
+	elseif currentCategory and not stickToBottom then
 		local backText = "Back"
-		local width = (paginatorsRect.xEnd - paginatorsRect.x) / 2
-		backRect = Rect:new(paginatorsRect.x, paginatorsRect.y, paginatorsRect.xEnd - width - bgpadding, paginatorsRect.yEnd)
+		local width = (categoriesAndPagesRect.xEnd - categoriesAndPagesRect.x) / 3
+		backRect = Rect:new(categoriesAndPagesRect.x, categoriesAndPagesRect.y, categoriesAndPagesRect.xEnd - (width * 2) - (bgpadding * 2), categoriesAndPagesRect.yEnd)
 		local buttonWidth = backRect.xEnd - backRect.x
 		local buttonHeight = backRect.yEnd - backRect.y
 		local heightOffset = backRect.yEnd - font2:GetTextHeight(backText) * pageFontSize * 0.35 - buttonHeight/2
-		font2:Print("⟵", backRect.x + (bgpadding * 3), heightOffset, pageFontSize, "o")
-		font2:Print(backText, backRect.x + (buttonWidth * 0.5), heightOffset, pageFontSize * 1.1, "co")
+		font2:Print("⟵", backRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
+		font2:Print(backText, backRect.x + (buttonWidth * 0.4), heightOffset, pageFontSize * 1.1, "co")
 
 		local opts = {
 			highlight = false,
@@ -1161,6 +1176,22 @@ local function drawCategories()
 
 		drawButtonHotkey(backRect, "Shift")
 		drawButton(backRect, opts)
+
+		local categoryIndex
+		for catIndex, cat in pairs(categories) do
+			if cat == currentCategory then
+				categoryIndex = catIndex
+				break
+			end
+		end
+		local catIcon = Cfgs.categoryIcons[categoryIndex]
+		catLabelRect = Rect:new(backRect.xEnd + bgpadding, categoriesAndPagesRect.y, categoriesAndPagesRect.xEnd - width - bgpadding, categoriesAndPagesRect.yEnd)
+
+		buttonHeight = catLabelRect.yEnd - catLabelRect.y
+		heightOffset = catLabelRect.yEnd - font2:GetTextHeight(currentCategory) * pageFontSize * 0.35 - buttonHeight/2
+		font2:Print(currentCategory, catLabelRect.x + (width / 3), heightOffset, pageFontSize, "co")
+		local catOpts = {}
+		drawCatLabel(catLabelRect, catOpts, catIcon)
 	end
 end
 
@@ -1171,7 +1202,7 @@ local function drawPaginators()
 	end
 
 	local nextKeyText = keyConfig.sanitizeKey(Cfgs.NEXT_PAGE_KEY, currentLayout)
-	local nextPageText = "\255\245\245\245" .. "Next Page    ⟶"
+	local nextPageText = "\255\245\245\245" .. "Next Page"
 	local pagesText = "\255\245\245\245" .. currentPage .. " / " .. pages
 
 	local opts = {
@@ -1184,14 +1215,14 @@ local function drawPaginators()
 	local heightOffset = nextPageRect.yEnd - font2:GetTextHeight(pagesText) * pageFontSize * 0.2 - buttonHeight/2
 
 	if stickToBottom then
-		nextPageRect = Rect:new(paginatorsRect.x, paginatorsRect.y, paginatorsRect.xEnd, paginatorsRect.yEnd)
+		nextPageRect = Rect:new(categoriesAndPagesRect.x, categoriesAndPagesRect.y, categoriesAndPagesRect.xEnd, categoriesAndPagesRect.yEnd)
 		nextPageText = "\255\245\245\245" .. "Page " .. currentPage .. "/" .. pages .. " 🠚"
 		font2:Print(nextPageText, nextPageRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
 	else
-		local width = paginatorsRect.xEnd - paginatorsRect.x
-		nextPageRect = Rect:new(paginatorsRect.x + (width / 2) + bgpadding, paginatorsRect.y, paginatorsRect.xEnd, paginatorsRect.yEnd)
+		local width = categoriesAndPagesRect.xEnd - categoriesAndPagesRect.x
+		nextPageRect = Rect:new(categoriesAndPagesRect.x + (2 * (width / 3)) + (2 * bgpadding), categoriesAndPagesRect.y, categoriesAndPagesRect.xEnd, categoriesAndPagesRect.yEnd)
 		font2:Print(pagesText, nextPageRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
-		font2:Print(nextPageText, nextPageRect.x + (buttonWidth * 0.55), heightOffset, pageFontSize, "co")
+		font2:Print(nextPageText, nextPageRect.x + (buttonWidth * 0.65), heightOffset, pageFontSize, "co")
 	end
 
 	drawButtonHotkey(nextPageRect, nextKeyText)
@@ -1545,54 +1576,57 @@ function widget:DrawScreen()
 					end
 
 					-- category buttons
-					for cat, catRect in pairs(catRects) do
-						if catRect:contains(x, y) then
-							hoveredButton = catRect:getId()
+					if not currentCategory then
+						for cat, catRect in pairs(catRects) do
+							if catRect:contains(x, y) then
+								hoveredButton = catRect:getId()
 
-							if hoveredButton ~= drawnHoveredButton then
-								doUpdate = true
-							end
-
-
-							if WG['tooltip'] then
-								-- when meta: unitstats does the tooltip
-								local textColor = "\255\215\255\215"
-
-								local text =  Cfgs.categoryTooltips[cat]
-								local index=0
-								for k,v in pairs(categories) do
-									if v == cat then
-										index = k
-									end
+								if hoveredButton ~= drawnHoveredButton then
+									doUpdate = true
 								end
 
-								local catKey = keyConfig.sanitizeKey(Cfgs.keyLayout[1][index], currentLayout)
-								text = text .. "\255\240\240\240 - Hotkey: " .. textColor .. "[" .. catKey .. "]"
 
-								WG['tooltip'].ShowTooltip('buildmenu', text, nil, nil, cat)
+								if WG['tooltip'] then
+									-- when meta: unitstats does the tooltip
+									local textColor = "\255\215\255\215"
+
+									local text =  Cfgs.categoryTooltips[cat]
+									local index=0
+									for k,v in pairs(categories) do
+										if v == cat then
+											index = k
+										end
+									end
+
+									local catKey = keyConfig.sanitizeKey(Cfgs.keyLayout[1][index], currentLayout)
+									text = text .. "\255\240\240\240 - Hotkey: " .. textColor .. "[" .. catKey .. "]"
+
+									WG['tooltip'].ShowTooltip('buildmenu', text, nil, nil, cat)
+								end
+
+								hoveredButtonNotFound = false
+								break
 							end
+						end
 
+					else
+						-- paginator buttons
+						if nextPageRect.y and nextPageRect:contains(x, y) then
+							hoveredButton = nextPageRect:getId()
 							hoveredButtonNotFound = false
-							break
+							if WG['tooltip'] then
+								local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.nextPage')
+								WG['tooltip'].ShowTooltip('buildmenu', text)
+							end
 						end
-					end
 
-					-- paginator buttons
-					if nextPageRect.y and nextPageRect:contains(x, y) then
-						hoveredButton = nextPageRect:getId()
-						hoveredButtonNotFound = false
-						if WG['tooltip'] then
-							local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.nextPage')
-							WG['tooltip'].ShowTooltip('buildmenu', text)
-						end
-					end
-
-					if backRect.y and backRect:contains(x, y) then
-						hoveredButton = backRect:getId()
-						hoveredButtonNotFound = false
-						if WG['tooltip'] then
-							local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.homePage')
-							WG['tooltip'].ShowTooltip('buildmenu', text)
+						if backRect.y and backRect:contains(x, y) then
+							hoveredButton = backRect:getId()
+							hoveredButtonNotFound = false
+							if WG['tooltip'] then
+								local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.homePage')
+								WG['tooltip'].ShowTooltip('buildmenu', text)
+							end
 						end
 					end
 
