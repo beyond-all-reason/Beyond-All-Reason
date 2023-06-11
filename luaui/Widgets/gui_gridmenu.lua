@@ -1776,15 +1776,19 @@ function widget:KeyPress(key, modifier, isRepeat)
 	end
 end
 
+function clearCategory()
+	currentCategory = nil
+	Spring.SetActiveCommand(0, 0, false, false, Spring.GetModKeyState())
+	doUpdate = true
+end
+
 function widget:KeyRelease(key)
 	if key ~= KEYSYMS.LSHIFT then return end
 
 	if isPregame then
 		setPreGamestartDefID(nil)
 	else
-		currentCategory = nil
-		Spring.SetActiveCommand(0, 0, false, false, Spring.GetModKeyState())
-		doUpdate = true
+		clearCategory()
 	end
 end
 
@@ -1806,8 +1810,7 @@ function widget:MousePress(x, y, button)
 
 			if backRect and backRect:contains(x, y) then
 				Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
-				currentCategory = nil
-				doUpdate = true
+				clearCategory()
 			end
 
 			for i, rect in pairs(builderRects) do
