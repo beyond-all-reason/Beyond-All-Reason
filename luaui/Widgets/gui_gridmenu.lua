@@ -927,6 +927,7 @@ end
 
 local function drawButton(rect, opts, icon)
 	opts = opts or {}
+	local disabled = opts.disabled or false
 	local highlight = opts.highlight
 	local hovered = opts.hovered
 
@@ -937,15 +938,17 @@ local function drawButton(rect, opts, icon)
 
 	if highlight then
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
-		gl.Color(0, 0, 0, 0.75)
+		gl.Color(0, 0, 0, 0.95)
 	end
 
 	UiButton(rect.x, rect.y, rect.xEnd, rect.yEnd, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
 
+	local color = disabled and 0.5 or 1.0
+
 	if icon then
 		local iconSize = math.min(math.floor((rect.yEnd - rect.y) * 1.1), pageButtonHeight)
 		icon = ":l:" .. icon
-		gl.Color(1, 1, 1, 0.9)
+		gl.Color(color, color, color, 0.9)
 		gl.Texture(icon)
 		gl.BeginEnd(GL.QUADS, TexRectRound, rect.x + (bgpadding / 2), rect.yEnd - iconSize, rect.x + iconSize, rect.yEnd - (bgpadding / 2),  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
 		--	gl.TexRect(px, sy - iconSize, px + iconSize, sy)
@@ -1118,22 +1121,32 @@ local function drawCategories()
 		local keyText = keyConfig.sanitizeKey(Cfgs.categoryKeys[catIndex], currentLayout)
 		local rect = catRects[cat]
 
+		local disabled = (currentCategory and cat ~= currentCategory) and true or false
+
 		local opts = {
+			disabled = disabled,
 			highlight = (cat == currentCategory),
 			hovered = (hoveredButton == rect:getId()),
 		}
+
+
 
 		local textPadding = bgpadding * 2
 
 		local fontSize = categoryFontSize
 		local fontHeight = font2:GetTextHeight(catText) * categoryFontSize
 		local fontHeightOffset = fontHeight * 0.34
-		font2:Print(catText, rect.x + (textPadding * 3), (rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset, fontSize, "o")
+		local fontColor = disabled and "\255\100\100\100" or ""
+		font2:Print(fontColor .. catText, rect.x + (textPadding * 3), (rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset, fontSize, "o")
 
-		drawButtonHotkey(rect, keyText)
+		if not currentCategory then
+			drawButtonHotkey(rect, keyText)
+		end
+
 		drawButton(rect, opts, catIcon)
 	end
 
+	-- back button
 	if currentCategory and not stickToBottom then
 		local backText = "Back"
 		local width = (paginatorsRect.xEnd - paginatorsRect.x) / 2
