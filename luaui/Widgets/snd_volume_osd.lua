@@ -53,8 +53,6 @@ local GL_ONE = GL.ONE
 
 local RectRound
 
-local chobbyInterface
-
 local function sndVolumeIncreaseHandler(_, _, _, _, isRepeat)
 	volume = Spring.GetConfigInt("snd_volmaster", 80)
 	volume = volume + step
@@ -100,16 +98,9 @@ function widget:Initialize()
 	widget:ViewResize(vsx, vsy)
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
 	local y1 = widgetPosY
 	local y2 = widgetPosY + widgetHeight
 	local x1 = widgetPosX

@@ -77,7 +77,6 @@ function widget:Update()
 	if buildCount == 0 then return end
 
 	local selUnits = spGetSelUnitsSorted()
-	selUnits.n = nil
 
 	local builders = {}
 	local builderCount = 0

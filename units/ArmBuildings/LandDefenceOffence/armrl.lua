@@ -166,6 +166,7 @@ return {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "ARMRL_MISSILE",
 				onlytargetcategory = "VTOL",
+				fastautoretargeting = true,
 			},
 		},
 	},

@@ -294,7 +294,6 @@ end
 local spGetSpectatingState = Spring.GetSpectatingState
 local spec, fullview = spGetSpectatingState()
 local myAllyTeam = Spring.GetMyAllyTeamID()
-local myTeam = Spring.GetMyTeamID()
 local numallyteams = 2
 
 local defenses = {} -- table of unitID keys to info tables:
@@ -308,9 +307,7 @@ local mobileAntiUnits = {}
 
 --------------------------------------------------------------------------------
 
-local GL_LINE_LOOP          = GL.LINE_LOOP
 local glDepthTest           = gl.DepthTest
-local glDepthMask			= gl.DepthMask
 local glLineWidth           = gl.LineWidth
 local glTexture             = gl.Texture
 local glClear				= gl.Clear
@@ -323,19 +320,9 @@ local glStencilOp			= gl.StencilOp
 local GL_KEEP = 0x1E00 --GL.KEEP
 local GL_REPLACE = GL.REPLACE --GL.KEEP
 
-
-local upper                 = string.upper
-local floor                 = math.floor
-
-local spEcho                = Spring.Echo
-local spGetGameSeconds      = Spring.GetGameSeconds
-local spGetMyPlayerID       = Spring.GetMyPlayerID
-local spGetPlayerInfo       = Spring.GetPlayerInfo
 local spGetPositionLosState = Spring.GetPositionLosState
 local spGetUnitDefID        = Spring.GetUnitDefID
 local spGetUnitPosition     = Spring.GetUnitPosition
-local spIsGUIHidden 		= Spring.IsGUIHidden
-local spGetLocalTeamID	 	= Spring.GetLocalTeamID
 
 local chobbyInterface
 
@@ -1066,7 +1053,7 @@ function widget:DrawWorldPreUnit()
 	--	return
 	--end
 	if chobbyInterface then return end
-	if not spIsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
+	if not Spring.IsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 		cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")

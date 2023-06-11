@@ -42,8 +42,8 @@ return {
 		objectname = "Units/CORCOM.s3o",
 		radardistance = 50,
 		reclaimable = false,
-    releaseheld  = true,
-		script = "Units/CORCOM_lus.lua",
+    	releaseheld  = true,
+		script = "Units/CORCOM.cob",
 		seismicsignature = 0,
 		selfdestructas = "decoycommanderSelfd",
 		showplayername = true,
@@ -244,6 +244,7 @@ return {
 			[1] = {
 				def = "ARMCOMLASER",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",

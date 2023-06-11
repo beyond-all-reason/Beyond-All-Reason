@@ -171,6 +171,7 @@ return {
 				badtargetcategory = "VTOL",
 				def = "ARM_CIR",
 				onlytargetcategory = "VTOL",
+				fastautoretargeting = true,
 			},
 		},
 	},

@@ -16,7 +16,7 @@ Tips:
  
  ‣  The Armada Platypus (Tier 2 Bot) has a short range laser, and an Anti-Aircraft missile, and can provide excellent raiding and support while swimming above the water.
  
- ‣  Some Experimental Gantry (Tier 3) units are amphibious, and some stand tall enough to fire their weapons at surfact targets while in water.
+ ‣  Some Experimental Gantry (Tier 3) units are amphibious, and some stand tall enough to fire their weapons at surface targets while in water.
  
  ‣  Large maps provide great incentives to use Nuclear Missiles, so take care to defend yourself with either: Land nuclear missile defence or a mobile form of it.
  

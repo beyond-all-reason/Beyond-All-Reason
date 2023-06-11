@@ -51,7 +51,6 @@ function gadget:Initialize()
 		local spots = mapConfig.spots
 		local metalFactor = 0.43 * 9 / 21
 
-		local metalIdx = 1
 		local xIndex, zIndex, xi, zi
 		if spots and #spots > 0 then
 			for i = 1, #spots do

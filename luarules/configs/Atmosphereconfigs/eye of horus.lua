@@ -29,22 +29,22 @@ function gadget:GameFrame(n)
 	-- 	SpawnCEGInPositionGround("noceg", 6000, 0, 1100, _, _, _, "oceangentlesurf", 0.3)
 	-- end
 
--- SND geos
-	if n%560 == 0 then
-		SpawnCEGInPositionGround("noceg", 290, 200, 140, _, _, _, "geovent", 0.15)
-	end
+-- SND geos Replaced by SFX_geovent.lua
+	-- if n%120 == 0 then
+	-- 	SpawnCEGInPositionGround("noceg", 290, 200, 140, _, _, _, "geoventshort", 0.15)
+	-- end
 
-	if n%560 == 30 then
-		SpawnCEGInPositionGround("noceg", 71, 200, 4586, _, _, _, "geovent", 0.15)
-	end
+	-- if n%120 == 30 then
+	-- 	SpawnCEGInPositionGround("noceg", 71, 200, 4586, _, _, _, "geoventshort", 0.15)
+	-- end
 
-	if n%560 == 60 then
-		SpawnCEGInPositionGround("noceg", 6077, 200, 2559, _, _, _, "geovent", 0.15)
-	end
+	-- if n%120 == 60 then
+	-- 	SpawnCEGInPositionGround("noceg", 6077, 200, 2559, _, _, _, "geoventshort", 0.15)
+	-- end
 
-	if n%560 == 15 then
-		SpawnCEGInPositionGround("noceg", 4008, 200, 7032, _, _, _, "geovent", 0.15)
-	end
+	-- if n%120 == 15 then
+	-- 	SpawnCEGInPositionGround("noceg", 4008, 200, 7032, _, _, _, "geoventshort", 0.15)
+	-- end
 
 -- common foggy canyon	
 	-- if n%700 == 0 then

@@ -21,13 +21,49 @@ function LosHST:Init()
 	self.OWN = {}
 	self.ENEMY = {}
 	self.ai.friendlyTeamID = {}
+	self.cellPool = {} -- LIFO pool
+	self.numCellPool = 0
 end
+
+-- What is a cell pool?
+-- Instead of remaking self.enemy etc cells, why not reuse them? 
+-- So instead of clearing them on Update, we should just park them into the cell pool
+-- Ensure there is no double back-forth ref!
+-- If the cell pool is empty, make a new cell
+-- Clean a cell when fetching it from the pool
+
+function LosHST:GetCellFromPool()
+	if self.numCellPool == 0 then 
+		return {}
+	else
+		local CELL = self.cellPool[self.numCellPool]
+		self.cellPool[self.numCellPool] = nil
+		self.numCellPool = self.numCellPool - 1
+		return CELL
+	end
+end
+
+function LosHST:FreeCellsToPool(grid)
+	for x, row in pairs(grid) do 
+		for z, cell in pairs(row) do 
+			self.numCellPool = self.numCellPool + 1
+			self.cellPool[self.numCellPool] = cell
+			row[z] = nil
+		end
+	end
+end
+
 
 function LosHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
-	self.ENEMY = {}
-	self.OWN = {}
-	self.ALLY = {}
+	self.ENEMY = self.ENEMY or {} -- WAIT BUT WHY REALLOC EVERY FRAME?
+	self.OWN = self.OWN or {}
+	self.ALLY = self.ALLY or {}
+	self:FreeCellsToPool(self.ENEMY)
+	self:FreeCellsToPool(self.OWN)
+	self:FreeCellsToPool(self.ALLY)
+	
+	LosHST:tracyZoneBeginN("losEnemy")
 	for id,def in pairs(self.losEnemy) do
 		local unit = game:GetUnitByID(id)
 		local uPos = unit:GetPosition()
@@ -40,6 +76,10 @@ function LosHST:Update()
 			self:setCellLos(self.ENEMY,unit,X,Z)
 		end
 	end
+	LosHST:tracyZoneEnd()
+	
+	
+	LosHST:tracyZoneBeginN("radarEnemy")
 	for id,def in pairs(self.radarEnemy) do
 		local unit = game:GetUnitByID(id)
 		local uPos = unit:GetPosition()
@@ -53,6 +93,9 @@ function LosHST:Update()
 			self:setCellRadar(self.ENEMY,unit,X,Z)
 		end
 	end
+	LosHST:tracyZoneEnd()
+	 
+	LosHST:tracyZoneBeginN("ownImmobile")
 	for id,def in pairs(self.ownImmobile) do
 		local unit = game:GetUnitByID(id)
 		local uPos = unit:GetPosition()
@@ -63,6 +106,7 @@ function LosHST:Update()
 			self:setCellLos(self.OWN,unit,X,Z)
 		end
 	end
+	LosHST:tracyZoneEnd()
 	self:Draw()
 end
 
@@ -211,6 +255,7 @@ function LosHST:getCenter()
 	self.CENTER.z = self.CENTER.z / count
 end
 
+
 function LosHST:setupCell(grid,X,Z)--GAS are 3 layer. Unit of measure is usually metal cost!
 	--I = immoble
 	-- M = mobile
@@ -218,14 +263,28 @@ function LosHST:setupCell(grid,X,Z)--GAS are 3 layer. Unit of measure is usually
 	--A = air
 	--S = submerged
 
-	local CELL = {}
+	LosHST:tracyZoneBeginN("setupCell")
 
+	
+	local CELL = self:GetCellFromPool()
 	CELL.X = X
 	CELL.Z = Z
 	CELL.POS = self.ai.maphst.GRID[X][Z].POS --self.ai.maphst:GridToPos(X,Z)
+	
+	
 	CELL.metal = 0
-	CELL.units = {}--hold all the units
-	CELL.buildings = {}
+	if CELL.units then
+		local units = CELL.units
+		for k,v in pairs(units) do units[k] = nil end 
+	else
+		CELL.units = {} --hold all the units
+	end
+	if CELL.buildings then 
+		local buildings = CELL.buildings
+		for k,v in pairs(buildings) do buildings[k] = nil end 
+	else
+		CELL.buildings = {} --hold all the buildings
+	end
 	CELL.metalMedia = 0
 	CELL.unitsCount = 0
 
@@ -278,6 +337,8 @@ function LosHST:setupCell(grid,X,Z)--GAS are 3 layer. Unit of measure is usually
 	CELL.ENEMY = 0 --total amount of metal in cell
 	CELL.ENEMY_BALANCE = 0 -- this is balanced SOLDIERS - TURRETS
 	CELL.SPEED = 0
+	
+	LosHST:tracyZoneEnd()
 	return CELL
 end
 
@@ -296,7 +357,7 @@ function LosHST:setCellRadar(grid,unit,X,Z)
 	local M = CELL.metalMedia
 	local uPos = unit:GetPosition()
 	local speedX,speedY,speedZ, SPEED = Spring.GetUnitVelocity ( unit:ID() )
-	local target = {x = uPos.x+( speedX*100),y = uPos.y,z = uPos.z + (speedZ*100)}
+	--local target = {x = uPos.x+( speedX*100),y = uPos.y,z = uPos.z + (speedZ*100)} -- NEVER USED!
 	CELL.SPEED = CELL.SPEED + SPEED
 	CELL.units[unit:ID()] = unit:Name()
 	CELL.unitsCount = CELL.unitsCount + 1
@@ -347,9 +408,13 @@ function LosHST:setCellRadar(grid,unit,X,Z)
 end
 
 function LosHST:setCellLos(grid,unit,X,Z)
+	
+	
 	if not self.ai.maphst:GridToPos(X,Z) then
 		return
 	end
+	
+	LosHST:tracyZoneBeginN("setCellLos")
 	grid[X] = grid[X] or {}
 	grid[X][Z] = grid[X][Z] or self:setupCell(grid,X,Z)
 	local CELL = grid[X][Z]
@@ -362,7 +427,7 @@ function LosHST:setCellLos(grid,unit,X,Z)
 	local mobile = ut.speed > 0
 	local layer = self:setPosLayer(ut.name,uPos)
 	local speedX,speedY,speedZ, SPEED = Spring.GetUnitVelocity ( unit:ID() )
-	local target = {x = uPos.x+( speedX*100),y = uPos.y,z = uPos.z + (speedZ*100)}
+	--local target = {x = uPos.x+( speedX*100),y = uPos.y,z = uPos.z + (speedZ*100)} -- NEVER USED
 	CELL.SPEED = CELL.SPEED + SPEED
 	CELL.metal = CELL.metal + M
 	if CELL.unitsCount > 0 then
@@ -440,6 +505,8 @@ function LosHST:setCellLos(grid,unit,X,Z)
 	CELL.ENEMY_BALANCE = CELL.ARMED - CELL.UNARM
 	CELL.IM_balance = CELL.MOBILE - CELL.IMMOBILE
 	grid[X][Z] = CELL
+	
+	LosHST:tracyZoneEnd()
 end
 
 

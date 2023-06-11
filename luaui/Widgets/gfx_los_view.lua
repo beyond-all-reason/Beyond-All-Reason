@@ -14,13 +14,13 @@ end
 local myPlayerID = Spring.GetMyPlayerID()
 local lastMapDrawMode = Spring.GetMapDrawMode()
 
-function TurnOnLOS()
+local function TurnOnLOS()
     if Spring.GetMapDrawMode()~="los" then
         Spring.SendCommands("togglelos")
     end
 end
 
-function TurnOffLOS()
+local function TurnOffLOS()
     if Spring.GetMapDrawMode()=="los" then
         Spring.SendCommands("togglelos")
     end

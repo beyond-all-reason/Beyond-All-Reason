@@ -74,7 +74,7 @@ local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, toggleButton2, 
 local RectRound, elementCorner, bgpadding
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = {1,0,0}
+local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local function addPlayerTsOrdered(ts, playerID, teamID, spec)
 	local inserted = false

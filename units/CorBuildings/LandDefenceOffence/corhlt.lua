@@ -160,6 +160,7 @@ return {
 				badtargetcategory = "VTOL",
 				def = "COR_LASERH1",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 		},
 	},

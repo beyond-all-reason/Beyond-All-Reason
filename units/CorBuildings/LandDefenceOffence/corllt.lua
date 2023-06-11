@@ -158,6 +158,7 @@ return {
 			[1] = {
 				def = "COR_LIGHTLASER",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 		},
 	},

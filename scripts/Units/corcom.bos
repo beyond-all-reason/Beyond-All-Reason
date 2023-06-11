@@ -4,10 +4,10 @@
 #include "exptype.h"
 
 piece torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis,
-    rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, hatpoint, crown, medalsilver, medalbronze, medalgold;
+    rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, nanol1, nanol2, nanol3, leye, reye, cagelight, cagelight_emit, hatpoint, crown, medalsilver, medalbronze, medalgold;
 
 static-var bMoving, bAiming, Busy, gun_3, gun_2, counter,
-      bIsBuilding, buildPitch, buildHeading, maxSpeed, currentSpeed, animSpeed, justMoved;
+      bIsBuilding, buildPitch, buildHeading, maxSpeed, currentSpeed, animSpeed, justMoved, shotcount;
 
 // for the AimPrimary script, to skip wait-for-turn if needed
 static-var last_primary_heading,last_primary_pitch;
@@ -774,16 +774,6 @@ UnitSpeed(){
 }
 
 
-bigfire()
-{
-	turn ruparm to x-axis <40> now;
-	turn biggun to x-axis <-40> now;
-	turn ruparm to x-axis <0> speed <250>;
-	turn biggun to x-axis <0> speed <250>;
-	//sleep 100;
-	return (0);
-}
-
 
 
 Create()
@@ -795,6 +785,8 @@ Create()
 	hide aimy1;
 	hide teleport;
 	hide rbigflash;
+	hide lfirept;
+	hide cagelight_emit;
 	
 	hide crown;
 	hide medalgold;
@@ -806,6 +798,7 @@ Create()
 	move medalsilver to y-axis [100] speed [9999];
 	move medalgold to y-axis [100] speed [9999];
 
+	shotcount = 0;
 	idleTime = 0;
 	bMoving = FALSE;
 	bAiming = FALSE;
@@ -829,6 +822,22 @@ Create()
 	start-script UnitSpeed();
 }
 
+lua_UnitScriptLight(lightIndex, count) 
+{
+	return 0;
+}
+
+bigfire()
+{
+	shotcount = shotcount + 1;
+	call-script lua_UnitScriptLight(1, shotcount);
+	turn ruparm to x-axis <40> now;
+	turn biggun to x-axis <-40> now;
+	turn ruparm to x-axis <0> speed <250>;
+	turn biggun to x-axis <0> speed <250>;
+	//sleep 100;
+	return (0);
+}
 
 ShowCrown()
 {
@@ -981,7 +990,9 @@ AimTertiary(heading, pitch)
 
 FireTertiary()
 {
+	//shotcount = shotcount + 1;
 	emit-sfx 1024 + 0 from rbigflash;
+	//call-script lua_UnitScriptLight(1, shotcount);
 	gun_3 = torso;
 	call-script bigfire();
 	return (0);
@@ -1068,6 +1079,8 @@ StartBuilding(heading, pitch)
 	//wait-for-turn torso around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	set INBUILDSTANCE to 1;
+	show cagelight_emit;
+	spin cagelight_emit around y-axis speed <450>;
 	return (0);
 }
 
@@ -1084,6 +1097,8 @@ StopBuilding()
 	hide nanospray;
 	bIsBuilding = FALSE;
 	set INBUILDSTANCE to 0;
+	hide cagelight_emit;
+	turn cagelight_emit to y-axis <0> speed <1000>;
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	call-script RestorePosition();

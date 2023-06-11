@@ -19,13 +19,13 @@ local idleTime = 10		-- after this much sec: mark user as idle
 local displayMessages = true
 local spoken = true
 local idleBuilderNotificationDelay = 10 * 30	-- (in gameframes)
-local lowpowerThreshold = 6		-- if there is X secs a low power situation
+local lowpowerThreshold = 7		-- if there is X secs a low power situation
 local tutorialPlayLimit = 2		-- display the same tutorial message only this many times in total (max is always 1 play per game)
 
 --------------------------------------------------------------------------------
 
 local LastPlay = {}
-local soundFolder = "Sounds/voice/"
+
 local Sound = {}
 local soundList = {}
 local SoundOrder = {}
@@ -34,8 +34,7 @@ local gameframe = spGetGameFrame()
 
 local lockPlayerID
 local gaiaTeamID = Spring.GetGaiaTeamID()
-
-local function addSound(name, file, minDelay, duration, messageKey, unlisted)
+function addSound(name, file, minDelay, duration, messageKey, unlisted)
 	Sound[name] = {
 		file = file,
 		delay = minDelay,
@@ -49,102 +48,24 @@ local function addSound(name, file, minDelay, duration, messageKey, unlisted)
 	end
 end
 
+local voiceSet = Spring.GetConfigString('voiceset', 'allison')
+local voiceSetFound = false
+local files = VFS.SubDirs('sounds/voice', '*')
+for k, file in ipairs(files) do
+	local dirname = string.sub(file, 14, string.len(file)-1)
+	if dirname == voiceSet then
+		voiceSetFound = true
+		break
+	end
+end
+if not voiceSetFound then
+	voiceSet = 'allison'
+end
 
--- commanders
-addSound('EnemyCommanderDied', 'EnemyCommanderDied.wav', 1, 1.7, 'tips.notifications.enemyCommanderDied')
-addSound('FriendlyCommanderDied', 'FriendlyCommanderDied.wav', 1, 1.75, 'tips.notifications.friendlyCommanderDied')
-addSound('ComHeavyDamage', 'ComHeavyDamage.wav', 12, 2.25, 'tips.notifications.commanderDamage')
-addSound('TeamDownLastCommander', 'Teamdownlastcommander.wav', 30, 3, 'tips.notifications.teamdownlastcommander')
-addSound('YouHaveLastCommander', 'Youhavelastcommander.wav', 30, 3, 'tips.notifications.youhavelastcommander')
+soundFolder = "Sounds/voice/"..voiceSet.."/"
+VFS.Include(soundFolder .. 'config.lua')
 
--- game status
-addSound('ChooseStartLoc', 'ChooseStartLoc.wav', 90, 2.2, 'tips.notifications.startingLocation')
-addSound('GameStarted', 'GameStarted.wav', 1, 2, 'tips.notifications.gameStarted')
-addSound('GamePause', 'GamePause.wav', 5, 1, 'tips.notifications.gamePaused')
-addSound('PlayerLeft', 'PlayerDisconnected.wav', 1, 1.65, 'tips.notifications.playerLeft')
-addSound('PlayerAdded', 'PlayerAdded.wav', 1, 2.36, 'tips.notifications.playerAdded')
-
-
--- awareness
---addSound('IdleBuilder', 'IdleBuilder.wav', 30, 1.9, 'A builder has finished building')
-addSound('UnitsReceived', 'UnitReceived.wav', 4, 1.75, 'tips.notifications.unitsReceived')
-addSound('RadarLost', 'RadarLost.wav', 8, 1, 'tips.notifications.radarLost')
-addSound('AdvRadarLost', 'AdvRadarLost.wav', 8, 1.32, 'tips.notifications.advancedRadarLost')
-addSound('MexLost', 'MexLost.wav', 8, 1.53, 'tips.notifications.metalExtractorLost')
-
--- resources
-addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 80, 1.63, 'tips.notifications.overflowingMetal')
---addSound('YouAreOverflowingEnergy', 'YouAreOverflowingEnergy.wav', 100, 1.7, 'Your are overflowing energy')
---addSound('YouAreWastingMetal', 'YouAreWastingMetal.wav', 25, 1.5, 'Your are wasting metal')
---addSound('YouAreWastingEnergy', 'YouAreWastingEnergy.wav', 35, 1.3, 'Your are wasting energy')
-addSound('WholeTeamWastingMetal', 'WholeTeamWastingMetal.wav', 60, 1.82, 'tips.notifications.teamWastingMetal')
-addSound('WholeTeamWastingEnergy', 'WholeTeamWastingEnergy.wav', 120, 2.14, 'tips.notifications.teamWastingEnergy')
---addSound('MetalStorageFull', 'metalstorefull.wav', 40, 1.62, 'Metal storage is full')
---addSound('EnergyStorageFull', 'energystorefull.wav', 40, 1.65, 'Energy storage is full')
-addSound('LowPower', 'LowPower.wav', 40, 0.95, 'tips.notifications.lowPower')
-addSound('WindNotGood', 'WindNotGood.wav', 9999999, 3.76, 'tips.notifications.lowWind')
-
--- added this so they wont get immediately triggered after gamestart
-LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+1200
---LastPlay['YouAreOverflowingEnergy'] = spGetGameFrame()+300
---LastPlay['YouAreWastingMetal'] = spGetGameFrame()+300
---LastPlay['YouAreWastingEnergy'] = spGetGameFrame()+300
-LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()+1200
-LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()+2000
-
--- alerts
-addSound('NukeLaunched', 'NukeLaunched.wav', 3, 2, 'tips.notifications.nukeLaunched')
-addSound('LrpcTargetUnits', 'LrpcTargetUnits.wav', 9999999, 3.8, 'tips.notifications.lrpcAttacking')
-
--- unit ready
-addSound('VulcanIsReady', 'RagnarokIsReady.wav', 30, 1.16, 'tips.notifications.vulcanReady')
-addSound('BuzzsawIsReady', 'CalamityIsReady.wav', 30, 1.31, 'tips.notifications.buzzsawReady')
-addSound('Tech3UnitReady', 'Tech3UnitReady.wav', 9999999, 1.78, 'tips.notifications.t3Ready')
-
--- detections
-addSound('T2Detected', 'T2UnitDetected.wav', 9999999, 1.5, 'tips.notifications.t2Detected')	-- top bar widget calls this
-addSound('T3Detected', 'T3UnitDetected.wav', 9999999, 1.94, 'tips.notifications.t3Detected')	-- top bar widget calls this
-
-addSound('AircraftSpotted', 'AircraftSpotted.wav', 9999999, 1.25, 'tips.notifications.aircraftSpotted')	-- top bar widget calls this
-addSound('MinesDetected', 'MinesDetected.wav', 200, 2.6, 'tips.notifications.minesDetected')
-addSound('IntrusionCountermeasure', 'StealthyUnitsInRange.wav', 30, 4.8, 'tips.notifications.stealthDetected')
-
--- unit detections
-addSound('LrpcDetected', 'LrpcDetected.wav', 25, 2.3, 'tips.notifications.lrpcDetected')
-addSound('EMPmissilesiloDetected', 'EmpSiloDetected.wav', 4, 2.1, 'tips.notifications.empSiloDetected')
-addSound('TacticalNukeSiloDetected', 'TacticalNukeDetected.wav', 4, 2, 'tips.notifications.tacticalSiloDetected')
-addSound('NuclearSiloDetected', 'NuclearSiloDetected.wav', 4, 1.7, 'tips.notifications.nukeSiloDetected')
-addSound('NuclearBomberDetected', 'NuclearBomberDetected.wav', 60, 1.6, 'tips.notifications.nukeBomberDetected')
-addSound('JuggernautDetected', 'BehemothDetected.wav', 9999999, 1.4, 'tips.notifications.t3MobileTurretDetected')
-addSound('KorgothDetected', 'JuggernautDetected.wav', 9999999, 1.25, 'tips.notifications.t3AssaultBotDetected')
-addSound('BanthaDetected', 'TitanDetected.wav', 9999999, 1.25, 'tips.notifications.t3AssaultMechDetected')
-addSound('FlagshipDetected', 'FlagshipDetected.wav', 9999999, 1.4, 'tips.notifications.flagshipDetected')
-addSound('CommandoDetected', 'CommandoDetected.wav', 9999999, 1.28, 'tips.notifications.commandoDetected')
-addSound('TransportDetected', 'TransportDetected.wav', 9999999, 1.5, 'tips.notifications.transportDetected')
-addSound('AirTransportDetected', 'AirTransportDetected.wav', 9999999, 1.38, 'tips.notifications.airTransportDetected')
-addSound('SeaTransportDetected', 'SeaTransportDetected.wav', 9999999, 1.95, 'tips.notifications.seaTransportDetected')
-
--- lava/liquid level change notifications
-addSound('LavaRising', 'Lavarising.wav', 25, 3, 'tips.notifications.lavaRising', true)
-addSound('LavaDropping', 'Lavadropping.wav', 25, 2, 'tips.notifications.lavaDropping', true)
-
--- tutorial explanations (unlisted)
-local td = 'tutorial/'
-addSound('t_welcome', td..'welcome.wav', 9999999, 9.19, 'tips.notifications.tutorialWelcome', true)
-addSound('t_buildmex', td..'buildmex.wav', 9999999, 6.31, 'tips.notifications.tutorialBuildMetal', true)
-addSound('t_buildenergy', td..'buildenergy.wav', 9999999, 6.47, 'tips.notifications.tutorialBuildenergy', true)
-addSound('t_makefactory', td..'makefactory.wav', 9999999, 8.87, 'tips.notifications.tutorialBuildFactory', true)
-addSound('t_factoryair', td..'factoryair.wav', 9999999, 8.2, 'tips.notifications.tutorialFactoryAir', true)
-addSound('t_factoryairsea', td..'factoryairsea.wav', 9999999, 7.39, 'tips.notifications.tutorialFactorySeaplanes', true)
-addSound('t_factorybots', td..'factorybots.wav', 9999999, 8.54, 'tips.notifications.tutorialFactoryBots', true)
-addSound('t_factoryhovercraft', td..'factoryhovercraft.wav', 9999999, 6.91, 'tips.notifications.tutorialFactoryHovercraft', true)
-addSound('t_factoryvehicles', td..'factoryvehicles.wav', 9999999, 11.92, 'tips.notifications.tutorialFactoryVehicles', true)
-addSound('t_factoryships', td..'factoryships.wav', 9999999, 15.82, 'tips.notifications.tutorialFactoryShips', true)
-addSound('t_readyfortech2', td..'readyfortecht2.wav', 9999999, 9.4, 'tips.notifications.tutorialT2Ready', true)
-addSound('t_duplicatefactory', td..'duplicatefactory.wav', 9999999, 6.1, 'tips.notifications.tutorialDuplicateFactory', true)
-addSound('t_paralyzer', td..'paralyzer.wav', 9999999, 9.66, 'tips.notifications.tutorialParalyzer', true)
-
-local unitsOfInterest = {}
+unitsOfInterest = {}
 unitsOfInterest[UnitDefNames['armemp'].id] = 'EMPmissilesiloDetected'
 unitsOfInterest[UnitDefNames['cortron'].id] = 'TacticalNukeSiloDetected'
 unitsOfInterest[UnitDefNames['armsilo'].id] = 'NuclearSiloDetected'
@@ -169,6 +90,14 @@ unitsOfInterest[UnitDefNames['armdfly'].id] = 'AirTransportDetected'
 unitsOfInterest[UnitDefNames['corseah'].id] = 'AirTransportDetected'
 unitsOfInterest[UnitDefNames['armtship'].id] = 'SeaTransportDetected'
 unitsOfInterest[UnitDefNames['cortship'].id] = 'SeaTransportDetected'
+
+-- added this so they wont get immediately triggered after gamestart
+LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+1200
+--LastPlay['YouAreOverflowingEnergy'] = spGetGameFrame()+300
+--LastPlay['YouAreWastingMetal'] = spGetGameFrame()+300
+--LastPlay['YouAreWastingEnergy'] = spGetGameFrame()+300
+LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()+1200
+LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()+2000
 
 local soundQueue = {}
 local nextSoundQueued = 0
@@ -455,6 +384,9 @@ function widget:GameFrame(gf)
 			if lowpowerDuration >= lowpowerThreshold then
 				queueNotification('LowPower')
 				lowpowerDuration = 0
+
+				-- increase next low power delay
+				Sound["LowPower"].delay = Sound["LowPower"].delay + 15
 			end
 		end
 
@@ -688,9 +620,14 @@ local function playNextSound()
 		local isTutorialNotification = (string.sub(event, 1, 2) == 't_')
 		nextSoundQueued = sec + Sound[event].duration + silentTime
 		if not muteWhenIdle or not isIdle or isTutorialNotification then
-			if spoken and Sound[event].file ~= '' then
-				Spring.PlaySoundFile(soundFolder..Sound[event].file, globalVolume, 'ui')
+			local m = 1
+			if spoken and Sound[event].file and Sound[event].file[1] ~= '' then
+				m = math.random(1,#Sound[event].file)
+				Spring.PlaySoundFile(Sound[event].file[m], globalVolume, 'ui')
 			end
+			-- if displayMessages and WG['messages'] and Sound[event].messageKey and Sound[event].messageKey[m] then -- Ready for fix with variation text
+			-- 	WG['messages'].addMessage(Spring.I18N(Sound[event].messageKey[m]))
+			-- end
 			if displayMessages and WG['messages'] and Sound[event].messageKey then
 				WG['messages'].addMessage(Spring.I18N(Sound[event].messageKey))
 			end

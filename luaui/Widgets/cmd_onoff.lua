@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "19.08.2022",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true, --enabled by default
+		enabled = true,
 	}
 end
 
@@ -18,15 +18,12 @@ local function onoff(_, _, args)
 	local state = args[1]
 	if state ~= nil and (state ~= "0" and state ~= "1") then return end
 
-	--Should return { [number unitDefID] = { [1] = [number unitID], etc... }, ... }
+	-- Should return { [number unitDefID] = { [1] = [number unitID], etc... }, ... }
 	local selectedUnitsSorted = spGetSelectedUnitsSorted()
 	local anyOnOffable = false
 
 	for unitDefId, units in pairs(selectedUnitsSorted) do
-		--Actual return doesn't seem to match documentation
-		--First element is of selectedUnitsSorted is n = numberOfSelectedUnits
-		--Skip that
-		if unitDefId ~= "n" and UnitDefs[unitDefId].onOffable then
+		if UnitDefs[unitDefId].onOffable then
 			anyOnOffable = true
 
 			if state == nil then
@@ -39,7 +36,7 @@ local function onoff(_, _, args)
 			end
 		end
 	end
-	return anyOnOffable -- we only halt the chain when at least one unit responds to this action
+	return anyOnOffable		-- we only halt the chain when at least one unit responds to this action
 end
 
 function widget:Initialize()

@@ -5,7 +5,7 @@
 
 #define SIG_BUILD	2
 
-piece  base, track, arm1, arm2, turret, beam, door, nano ;
+piece  base, track, arm1, arm2, turret, beam, door, nano, cagelight, cagelight_emit ;
 
 static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, notBuilding, bMoving;
 
@@ -20,7 +20,6 @@ static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, notBuil
 
 Go()
 {
-
 	set INBUILDSTANCE to 1;
 	turn arm1 to x-axis <60> speed <180>;
 	turn arm2 to x-axis <30> speed <180>;
@@ -32,8 +31,11 @@ Go()
 Stop()
 {
 	set INBUILDSTANCE to 0;
+	hide cagelight_emit;
+	turn cagelight to y-axis <0> speed <1000>;
 
 	move beam to y-axis [0] speed [10];
+	turn turret to z-axis <0> speed <180>;
 	turn door to x-axis <0> speed <180>;
 	wait-for-turn door around x-axis;
 	turn arm1 to x-axis <-90> speed <180>;
@@ -75,6 +77,7 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	hide nano;
+	hide cagelight_emit;
 	bMoving = FALSE;
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
@@ -107,6 +110,8 @@ StartBuilding(heading, pitch)
 //	turn arm2 to x-axis <0> - pitch speed <360.000000>;  //up/down movement not working correct
 //	wait-for-turn arm2 around x-axis;
 	set INBUILDSTANCE to 1;
+	show cagelight_emit;
+	spin cagelight around y-axis speed <150>;
 }
 
 
@@ -115,6 +120,8 @@ StopBuilding()
 	hide nano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
+	hide cagelight_emit;
+	turn cagelight to y-axis <0> speed <1000>;
 	sleep 6000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	

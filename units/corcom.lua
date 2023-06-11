@@ -289,7 +289,7 @@ return {
 				range = 250,
 				reloadtime = 0.9,
 				soundhit = "xplomas2s",
-				soundhitwet = "sizzle",
+				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
 				soundhitvolume = 36,
 				soundstartvolume = 96,
@@ -351,6 +351,7 @@ return {
 			[1] = {
 				def = "CORCOMLASER",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",

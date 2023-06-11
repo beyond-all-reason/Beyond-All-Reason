@@ -1,6 +1,6 @@
--- BAR hotkey config file: ergokeys for grid menu	
+-- BAR hotkey config file: optimized for use with grid build menu.	
 	local bindings = {
-		{            "esc", "select", "AllMap++_ClearSelection+" },
+		{            "esc", "select", "AllMap++_ClearSelection_SelectNum_0+" },
 		{            "esc", "quitmessage"                },
 		{      "Shift+esc", "quitmenu"                   },
 		{ "Ctrl+Shift+esc", "quitforce"                  },
@@ -10,6 +10,7 @@
 		{            "esc", "teamstatus_close"           },
 		{            "esc", "customgameinfo_close"       },
 		{            "esc", "buildmenu_pregame_deselect" },
+--		{        "Any+alt", "mobile_waypoint_modifier"   }, --use this for badosu's mobile waypoint widget
 
 		{  "Any+sc_z", "selectbox_same"     }, -- select only units that share type with current selection modifier | Smart Select Widget
 		{ "Any+space", "selectbox_idle"     }, -- select only idle units modifier | Smart Select Widget
@@ -42,11 +43,6 @@
 		{       "Any+sc_e", "gridmenu_key 3 3"    },
 		{       "Any+sc_r", "gridmenu_key 3 4"    },
 		{           "sc_b", "gridmenu_next_page"  },
-		{           "sc_n", "gridmenu_prev_page"  },
-
-		-- { "Any+"..H, "sharedialog"    }, deprecated by player list sharing
-		-- { "Shift+backspace", "togglecammode" },
-		-- {         "Any+"..P, "toggleoverview" },
 
 		{      "Any+enter", "chat"           },
 		{  "Alt+ctrl+sc_a", "chatswitchally" },
@@ -69,7 +65,7 @@
 
 		{ "Ctrl+v", "pastetext" },
 
-		{ "Alt+sc_=",    "increasespeed" }, 
+		{ "Alt+sc_=",    "increasespeed" },
 		{ "Alt+sc_-",    "decreasespeed" },
 		{ "Alt+numpad+", "increasespeed" },
 		{ "Alt+numpad-", "decreasespeed" },
@@ -83,13 +79,15 @@
 		{ "Shift+Alt+sc_z", "buildspacing", "inc" },
 		{       "Alt+sc_x", "buildspacing", "dec" },
 		{ "Shift+Alt+sc_x", "buildspacing", "dec" },
-
+		
 		{            "sc_a", "attack"          },
 		{      "Shift+sc_a", "attack"          },
 		{       "Ctrl+sc_a", "areaattack"      },
 		{ "Ctrl+Shift+sc_a", "areaattack"      },
-		{            "sc_b", "onoff"           },
-		{      "Shift+sc_b", "onoff"           },
+		{       "sc_b,sc_b", "onoff", "0"           },
+		{            "sc_b", "onoff", "1"           },
+		{ "Shift+sc_b,Shift+sc_b", "onoff", "0"     },
+		{      "Shift+sc_b", "onoff", "1"           },
 		{       "Ctrl+sc_b", "selfd"           },
 		{ "Ctrl+Shift+sc_b", "selfd", "queued" },
 		{            "sc_d", "manualfire"      },
@@ -115,37 +113,53 @@
 		{      "Shift+sc_k", "cloak"           },
 		{            "sc_k", "wantcloak"       },
 		{        "Any+sc_k", "wantcloak"       },
-		{            "sc_l", "firestate"       },
-		{      "Shift+sc_l", "firestate"       },
-		{            "sc_;", "movestate"       }, 
-		{      "Shift+sc_;", "movestate"       },
+		{       "sc_l,sc_l,sc_l", "firestate", "1"  },
+		{       "sc_l,sc_l", "firestate", "0"  },
+		{            "sc_l", "firestate", "2"  },
+		{ "Shift+sc_l,Shift+sc_l,Shift+sc_l", "firestate", "1"  },
+		{ "Shift+sc_l,Shift+sc_l", "firestate", "0"  },
+		{      "Shift+sc_l", "firestate", "2"  },
+		{  "sc_;,sc_;,sc_;", "movestate", "1"  }, 
+		{       "sc_;,sc_;", "movestate", "0"  },
+		{            "sc_;", "movestate", "2"  },
+	    {       "Shift+sc_;,Shift+sc_;,Shift+sc_;", "movestate", "1"  },	
+		{ "Shift+sc_;,Shift+sc_;", "movestate", "0"  },
+		{      "Shift+sc_;", "movestate", "2"  }, 
 		{            "sc_m", "restore"         },
 		{      "Shift+sc_m", "restore"         },
-		{            "sc_n", "settargetnoground" },
+		{            "sc_n", "command_skip_current" }, 
+		{       "Ctrl+sc_n", "command_cancel_last"  }, 
 		{            "sc_o", "guard"           },
 		{      "Shift+sc_o", "guard"           },
 		{        "Alt+sc_o", "cameraflip"      },
+		{            "sc_p", "gatherwait"      },
+		{      "Shift+sc_p", "gatherwait"      },
+--		{       "sc_r,sc_r", "prioritise"      }, --use with Lexon's prioritise widget
 		{            "sc_r", "repair"          },
 		{      "Shift+sc_r", "repair"          },
 		{            "sc_s", "settarget"       },
 		{       "Ctrl+sc_s", "canceltarget"    },
-		{            "sc_t", "repeat"          },
-		{      "Shift+sc_t", "repeat"          },
+		{       "sc_t,sc_t", "repeat", "0"     },
+		{            "sc_t", "repeat", "1"     },
+		{ "Shift+sc_t,Shift+sc_t", "repeat", "0"     }, 
+		{      "Shift+sc_t", "repeat", "1"     },
+		{       "Ctrl+sc_t", "toggleoverview"  },
 		{            "sc_u", "unloadunits"     },
 		{      "Shift+sc_u", "unloadunits"     },
 		{            "sc_w", "resurrect"       },
 		{      "Shift+sc_w", "resurrect"       },
 		{            "sc_w", "capture"         },
 		{      "Shift+sc_w", "capture"         },
-		{            "sc_y", "wait"            },
+		{            "sc_y", "wait"            }, --currently can't add toggle for state, hopefully will change
 		{      "Shift+sc_y", "wait", "queued"  },
 		{       "Ctrl+sc_z", "areamex"         },
 
 		{ "Any+sc_'", "togglelos"             },
-		{ "Any+sc_'", "losradar"              },
+--		{ "Any+sc_'", "losradar"              },
 
 		{ "Ctrl+f5", "viewta"                 },
 		{ "Ctrl+f6", "viewspring"             },
+		{ "Ctrl+f7", "HideInterface"          },
 		{ "Any+f5" , "LastMsgPos"             },
 		{ "Any+f6" , "ShowPathTraversability" },
 		{ "Any+f7" , "ShowMetalMap"           },
@@ -159,7 +173,7 @@
 		{ "Ctrl+sc_`", "group unset" },
 		{ "Alt+sc_`",  "remove_from_autogroup" },
 
-		{ "sc_`,sc_`", "drawlabel"       }, -- double hit ` for drawlabel
+		{ "sc_`,sc_`", "drawlabel"       }, 
 		{      "sc_`", "drawinmap"       },
 
 		{ "Any+up",       "moveforward"  },
@@ -168,6 +182,9 @@
 		{ "Any+left",     "moveleft"     },
 		{ "Any+pageup",   "moveup"       },
 		{ "Any+pagedown", "movedown"     },
+--		{ "Any+home", "weapon_range_toggle"                     }, --added for gui_selected_weapon_range.lua
+--		{ "Any+pageup",   "weapon_range_cycle_color_mode"       }, --added for gui_selected_weapon_range.lua
+--		{ "Any+pagedown", "weapon_range_cycle_display_mode"     }, --added for gui_selected_weapon_range.lua
 
 		{ "Any+alt",   "movereset"  }, -- fast camera reset on mousewheel
 		{ "Any+alt",   "moverotate" }, -- rotate on x,y with mmb hold + move (Spring Camera)
@@ -176,10 +193,11 @@
 		{ "Ctrl+sc_e",    "select", "AllMap++_ClearSelection_SelectAll+"                                                                                       },
 		{  "Ctrl+tab",    "select", "AllMap+_Builder_Idle+_ClearSelection_SelectOne+"                                                                          },
 		{       "tab",    "select", "AllMap+_ManualFireUnit_Not_IdMatches_cordecom_Not_IdMatches_armdecom_Not_IdMatches_armthor+_ClearSelection_SelectOne+"    },
-		{      'sc_q',    "select", "Visible+_InPrevSel+_ClearSelection_SelectAll+"                                                                            },
+		{      "sc_q",    "select", "Visible+_InPrevSel+_ClearSelection_SelectAll+"                                                                            },
 		{ "Ctrl+sc_q",    "select", "PrevSelection++_ClearSelection_SelectPart_50+"                                                                            },		
 		{ "Ctrl+sc_w",    "select", "AllMap+_InPrevSel+_ClearSelection_SelectAll+"                                                                             },
-
+		{ "Ctrl+sc_r",    "select", "AllMap+_Transport_Idle+_ClearSelection_SelectAll+"                                                                        }, 
+        { "Ctrl+sc_y",    "select", "Visible+_Waiting+_ClearSelection_SelectAll+"                                                                              }, 
 		-- numpad movement
 		{ "numpad2", "moveback"    },
 		{ "numpad6", "moveright"   },
@@ -197,8 +215,7 @@
 		{ "numpad-", "snd_volume_decrease" },
 	}
 
---	table.insert(bindings,  })
-
+--	Loops that define group hotkeys, autogroups, and camera anchors. 
 	for i = 0, 9 do
 		table.insert(bindings, { 'Alt+'..i , "add_to_autogroup", i })
 
@@ -210,7 +227,6 @@
 
 	end
 
---camera anchors
 	for i = 1, 4 do
 		table.insert(bindings, { 'Ctrl+F'..i , "set_camera_anchor", i })
 		table.insert(bindings, { 'F'..i , "focus_camera_anchor", i })

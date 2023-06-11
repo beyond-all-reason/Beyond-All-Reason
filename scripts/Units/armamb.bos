@@ -108,7 +108,7 @@ SetStunned(state)
     stunned = state;
 	if (!stunned)
 	{
-	    start-script ExecuteRestoreAfterDelay();
+	    start-script RestoreAfterDelay();
 	}
 }
 

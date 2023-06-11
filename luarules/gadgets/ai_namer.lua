@@ -125,7 +125,10 @@ if gadgetHandler:IsSyncedCode() then
 		"gamerangela911",
 		"Rikerss",
 		"Willow",
+		"Wintergaming",
 
+		-- Other contributions but not regular contributors
+		"Yeba",
 
 		-- AI Names
 		"Chris",

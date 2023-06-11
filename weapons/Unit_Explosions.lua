@@ -874,6 +874,7 @@ unitDeaths = {
 		weaponType = "Cannon",
 		AreaOfEffect = 725,
 		cameraShake = 720,
+		explosionSpeed = 725,
 		impulseboost = impulseboost*2,
 		impulsefactor = impulsefactor,
 		soundhitwet = "newboomuw",

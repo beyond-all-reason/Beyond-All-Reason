@@ -52,6 +52,28 @@ if not string.partition then
 		end
 	end
 end
+
+if not string.formatTime then
+	function string:formatTime()
+		local hours = math.floor(self / 3600)
+		local minutes = math.floor((self % 3600) / 60)
+		local seconds = math.floor(self % 60)
+		local hoursString = tostring(hours)
+		local minutesString = tostring(minutes)
+		local secondsString = tostring(seconds)
+		if seconds < 10 then
+			secondsString = "0" .. secondsString
+		end
+		if hours > 0 and minutes < 10 then
+			minutesString = "0" .. minutesString
+		end
+		if hours > 0 then
+			return hoursString .. ":" .. minutesString .. ":" .. secondsString
+		else
+			return minutesString .. ":" .. secondsString
+		end
+	end
+end
 -- Unit test:
 -- print(string.partition("blaksjdfsaldkj","ldkj"))
 -- print(string.partition("blaksjdfsaldkj","aks"))

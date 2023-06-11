@@ -2,9 +2,9 @@
 function gadget:GetInfo()
 	return {
 		name      = "UnitDefs Turret TurnSpeeds",
-		desc      = "Allows to set units' turret turnspeeds from UnitDefs tables",
-		author    = "Doo",
-		date      = "May 2018",
+		desc      = "Allows to set units' turret turnspeeds from UnitDefs tables, and other weapon parameters",
+		author    = "Doo, Itanthias",
+		date      = "May 2018, May 2023",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true,
@@ -36,6 +36,38 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 					unitConf[unitDefID] = {}
 				end
 				unitConf[unitDefID][#unitConf[unitDefID]+1] = {'SetWeapon'..weaponID..'TurretSpeed', 0, TurretX, TurretY}
+			end
+
+			if WeaponDefs[weapon.weaponDef].customParams then
+				if WeaponDefs[weapon.weaponDef].customParams.active_range then
+					-- magic 65536 COB constant for range
+					local active_range = tonumber(WeaponDefs[weapon.weaponDef].customParams.active_range)*65536
+					local default_range = tonumber(WeaponDefs[weapon.weaponDef].range)*65536
+					-- ensure unitConf[unitDefID] exists
+					if not unitConf[unitDefID] then
+						unitConf[unitDefID] = {}
+					end
+					-- add new entry to unitConf[unitDefID]
+					-- and fill with parameters to pass in
+					-- {function name, return values, pass in values}
+					unitConf[unitDefID][#unitConf[unitDefID]+1] = {'SetWeapon'..weaponID..'range', 0, default_range, active_range}
+				end
+				if WeaponDefs[weapon.weaponDef].customParams.active_accuracy then
+					-- magic 65536 COB constant
+					-- magic 45055 constant for accuracy
+					-- https://github.com/beyond-all-reason/spring/blob/BAR105/rts/Sim/Weapons/WeaponDef.cpp#L112
+					-- random 0xafff factor in engine
+					local active_accuracy = math.sin(tonumber(WeaponDefs[weapon.weaponDef].customParams.active_accuracy)*math.pi/45055)*65536
+					local default_accuracy = tonumber(WeaponDefs[weapon.weaponDef].accuracy)*65536
+					-- ensure unitConf[unitDefID] exists
+					if not unitConf[unitDefID] then
+						unitConf[unitDefID] = {}
+					end
+					-- add new entry to unitConf[unitDefID]
+					-- and fill with parameters to pass in
+					-- {function name, return values, pass in values}
+					unitConf[unitDefID][#unitConf[unitDefID]+1] = {'SetWeapon'..weaponID..'accuracy', 0, default_accuracy, active_accuracy}
+				end
 			end
 		end
 	end

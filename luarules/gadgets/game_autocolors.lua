@@ -647,6 +647,11 @@ else	-- UNSYNCED
 		end
 		local myTeamID = Spring.GetMyTeamID()
 		local myAllyTeamID = Spring.GetMyAllyTeamID()
+
+		local next_team_brightness_offset = 1.0
+		local next_opponent_brightness_offset = 1.0
+		local dimming_factor = math.min( math.max(0.4, 0.05*#teamList), 0.95)
+
 		for i = 1, #teamList do
 			local teamID = teamList[i]
 			local r = 1
@@ -669,14 +674,20 @@ else	-- UNSYNCED
 						Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255)/255)
 				elseif allyTeamID == myAllyTeamID then
 					Spring.SetTeamColor(teamID,
-						Spring.GetConfigInt("SimpleTeamColorsAllyR", 0)/255,
-						Spring.GetConfigInt("SimpleTeamColorsAllyG", 255)/255,
-						Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)/255)
+						next_team_brightness_offset * Spring.GetConfigInt("SimpleTeamColorsAllyR", 0)/255,
+						next_team_brightness_offset * Spring.GetConfigInt("SimpleTeamColorsAllyG", 255)/255,
+						next_team_brightness_offset * Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)/255)
+					if Spring.GetConfigInt("SimpleTeamColorsUseGradient", 0) == 1 and anonymousMode ~= "allred" then
+						next_team_brightness_offset = dimming_factor * next_team_brightness_offset
+					end
 				elseif allyTeamID ~= myAllyTeamID and teamID ~= gaiaTeamID then
 					Spring.SetTeamColor(teamID,
-						Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255)/255,
-						Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16)/255,
-						Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)/255)
+						next_opponent_brightness_offset * Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255)/255,
+						next_opponent_brightness_offset * Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16)/255,
+						next_opponent_brightness_offset * Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)/255)
+					if Spring.GetConfigInt("SimpleTeamColorsUseGradient", 0) == 1 and anonymousMode ~= "allred" then
+						next_opponent_brightness_offset = dimming_factor * next_opponent_brightness_offset
+					end
 				else
 					Spring.SetTeamColor(teamID, hex2RGB(gaiaGrayColor)[1]/255, hex2RGB(gaiaGrayColor)[2]/255, hex2RGB(gaiaGrayColor)[3]/255)
 				end
@@ -697,3 +708,4 @@ else	-- UNSYNCED
 		end
 	end
 end
+

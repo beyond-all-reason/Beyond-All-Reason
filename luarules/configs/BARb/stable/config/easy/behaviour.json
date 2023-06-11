@@ -11,7 +11,8 @@
 		"static": 0.8,  // initial modifier for power of attack group based on static enemy threat
 		"comm": 0.01
 	},
-	"aa_threat": 25.0,  // anti-air threat threshold, air factories will stop production when AA threat exceeds
+	// anti-air threat threshold, air factories will stop production when AA threat exceeds
+	"aa_threat": [[8, 25.0], [24, 25.0]],  // [[<map_start>, <threat_start>], [<map_end>, <threat_end>]]
 	"slack_mod": {
 		"all": 0.5,  // threat map 64-elmos slack multiplier for all units
 		"static": 0.5,  // additional 64-elmo-cells for static units

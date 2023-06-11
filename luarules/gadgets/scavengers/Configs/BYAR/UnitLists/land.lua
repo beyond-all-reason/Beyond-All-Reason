@@ -102,6 +102,7 @@ return {
 		"armcroc_scav",
 		"armmerl_scav",
 		"armbull_scav",
+		"corforge_scav",
 		"cormart_scav",
 		"corsent_scav",
 		"corseal_scav",

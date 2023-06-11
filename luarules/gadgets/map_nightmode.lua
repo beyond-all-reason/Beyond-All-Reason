@@ -330,9 +330,9 @@ if not gadgetHandler:IsSyncedCode() then
 			nightFactor = {0.4, 0.4, 0.55, 0.7},
 			azimuth = 1.5,
 			altitude = 0.5,
-			dayDuration = 3,
-			nightDuration = 3, 
-			transitionDuration = 5, 
+			dayDuration = 180,
+			nightDuration = 180, 
+			transitionDuration = 120, 
 			repeats = 10000, 
 			startTime = 5, 
 			endLight = nil, -- this will be filled in on initialize!

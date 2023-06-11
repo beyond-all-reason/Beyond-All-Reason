@@ -29,8 +29,8 @@ Stop()
 	turn gun to x-axis <0.000000> speed <90.000000>;
 	move barrel to z-axis [-7] speed [15.000000];
 
-	wait-for-turn gun around x-axis;
-	wait-for-move barrel along z-axis;
+	//wait-for-turn gun around x-axis;
+	//wait-for-move barrel along z-axis;
 	move turret to y-axis [-32] speed [50.000000];
 	wait-for-move turret along y-axis;
 	turn dome to x-axis <135.000000> speed <550.000000>;
@@ -93,16 +93,21 @@ Create()
 	hide aimpoint;
 	hide flare;
 	hide flare;
-	restore_delay = 1600;
+	restore_delay = 3000;
 	OpenClosed = 1;
-	statechg_DesiredState = FALSE;
+	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
 	}
-	//close and armor once construction is done
-	start-script RequestState(1);
+	// close and armor once construction is done
+	// only if no target in range when done
+	sleep 1000;
+	if (statechg_DesiredState == TRUE)
+	{
+		start-script RequestState(1);
+	}
 
 //	turn dome to x-axis <-135.032967> now;
 //	move gun to x-axis [1.500000] now;
@@ -125,7 +130,7 @@ Deactivate()
 
 SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = Func_Var_1 * 2;
+	//restore_delay = Func_Var_1 * 2;
 }
 
 AimPrimary(heading, pitch)

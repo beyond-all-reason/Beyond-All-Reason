@@ -22,6 +22,7 @@ i18n.loadFile('language/test_unicode.lua')
 i18n.languages = {
 	en = "English",
 	fr = "Français",
+	de = 'Deutsch',
 	zh = "中文",
 	test_unicode = "test_unicode"
 }

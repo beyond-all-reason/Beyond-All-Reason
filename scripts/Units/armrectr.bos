@@ -5,7 +5,7 @@
 
 #define SIG_BUILD 2
 
-piece	pelvis, head, rhip, rleg, rfoot, lhip, lleg, lfoot, nano, aimy1; 
+piece	pelvis, head, rhip, rleg, rfoot, lhip, lleg, lfoot, nano, aimy1, armhexl, armhexl_emit; 
 
 static-var  bMoving, currentSpeed, animSpeed, maxSpeed, animFramesPerKeyframe, moveSpeed;
 
@@ -278,6 +278,7 @@ Create()
 {
 	hide nano;
 	hide aimy1;
+	hide armhexl_emit;
 	bMoving = FALSE;
 	animspeed = 3;
 	moveSpeed = get MAX_SPEED;
@@ -301,6 +302,7 @@ StartBuilding(heading, pitch)
 	turn aimy1 to y-axis heading speed <260.000000>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
+	show armhexl_emit;
 }
 
 StopBuilding()
@@ -308,6 +310,7 @@ StopBuilding()
 	hide nano;
 	signal SIG_BUILD;	
 	set INBUILDSTANCE to 0;
+	hide armhexl_emit;
 	turn aimy1 to y-axis <0> speed <260.000000>;
 }
 	

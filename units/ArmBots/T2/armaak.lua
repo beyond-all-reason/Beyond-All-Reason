@@ -255,6 +255,9 @@ return {
 					fighters = 100,
 					vtol = 100,
 				},
+				customparams = {
+					bogus = 1
+				},
 			},
 			bogus_missile = {
 				areaofeffect = 48,
@@ -282,6 +285,9 @@ return {
 				damage = {
 					default = 0,
 				},
+				customparams = {
+					bogus = 1
+				}
 			},
 		},
 		weapons = {

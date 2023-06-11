@@ -17,6 +17,17 @@ end
 ------------------------------------------------------------
 -- Config
 ------------------------------------------------------------
+local metalMaps = {
+	["Oort_Cloud_V2"] = true,
+	["Asteroid_Mines_V2.1"] = true,
+	["Cloud9_V2"] = true,
+	["Iron_Isle_V1"] = true,
+	["Nine_Metal_Islands_V1"] = true,
+	["SpeedMetal BAR V2"] = true,
+}
+
+
+Spring.Echo("Current MetalMap Name: " .. Game.mapName)
 local MAPSIDE_METALMAP = "mapconfig/map_metal_layout.lua"
 local GAMESIDE_METALMAP = "LuaRules/Configs/MetalSpots/" .. (Game.mapName or "") .. ".lua"
 
@@ -107,7 +118,7 @@ function gadget:Initialize()
 	local metalSpots, fromEngineMetalmap = GetSpots()
 	local metalSpotsByPos = false
 
-	if fromEngineMetalmap and #metalSpots < 6 then
+	if (fromEngineMetalmap and #metalSpots < 10) or metalMaps[Game.mapName] then
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Indiscrete metal map detected")
 		metalSpots = false
 	end
@@ -133,7 +144,6 @@ function gadget:Initialize()
 	end
 
 	SetMexGameRulesParams(metalSpots)
-
 	GG.metalSpots = metalSpots
 	GG.metalSpotsByPos = metalSpotsByPos
 

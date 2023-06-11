@@ -140,6 +140,22 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 	end
 	
 	newInstanceVBO:Upload(instanceData)
+	
+	--register self in WG if possible
+	if WG then 
+		if WG.VBOTableRegistry == nil then
+			--Spring.Echo("WG.VBORegistry == nil, creating registry on first load")
+			WG.VBOTableRegistry = {}
+		end
+		if WG.VBOTableRegistry[instanceTable.myName] then 
+			local newname = instanceTable.myName .. tostring(math.random())
+			--Spring.Echo(instanceTable.myName, 'already registered, renaming to', newname)
+			instanceTable.myName = newname
+		end
+		--Spring.Echo("Registered ", instanceTable.myName)
+		WG.VBOTableRegistry[instanceTable.myName] = instanceTable
+	end
+	
 	return instanceTable
 end
 

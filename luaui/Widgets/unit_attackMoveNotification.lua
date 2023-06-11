@@ -68,8 +68,8 @@ function widget:Initialize()
 	math.randomseed(os.time())
 end
 
-function widget:UnitDamaged (unitID, unitDefID, unitTeam, damage, paralyzer)
-	if localTeamID ~= unitTeam then
+function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+	if localTeamID ~= unitTeam or damage < 10 then
 		return
 	end
 	--Spring.Echo(corcomID, unitID)

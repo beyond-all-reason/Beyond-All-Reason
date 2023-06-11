@@ -50,22 +50,30 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	local armnuke = WeaponDefNames["armsilo_nuclear_missile"].id
-	local cornuke = WeaponDefNames["corsilo_crblmssl"].id
-	local scavArmNuke = WeaponDefNames["armsilo_scav_nuclear_missile"].id
-	local scavCorNuke = WeaponDefNames["corsilo_scav_crblmssl"].id
-	local chickenNuke = WeaponDefNames["chickenr2_meteorlauncher"].id
-	local chickenNuke2 = WeaponDefNames["chicken_turretxl_meteor_weapon"].id
+	local isT2Mex = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		-- not critter/chicken/object
+		if not string.find(unitDef.name, 'critter') and not string.find(unitDef.name, 'chicken') and (not unitDef.modCategories or not unitDef.modCategories.object) then
+			if unitDef.extractsMetal >= 0.004 then
+				isT2Mex[unitDefID] = unitDef.extractsMetal
+			end
+		end
+	end
+	local nukes = {
+		[WeaponDefNames["armsilo_nuclear_missile"].id] = true,
+		[WeaponDefNames["corsilo_crblmssl"].id] = true,
+		[WeaponDefNames["armsilo_scav_nuclear_missile"].id] = true,
+		[WeaponDefNames["corsilo_scav_crblmssl"].id] = true,
+		[WeaponDefNames["chicken_turretxl_meteor_weapon"].id] = true,
+		--WeaponDefNames["chickenr2_meteorlauncher"].id] = true,
+	}
 	local gamestarted = (Spring.GetGameFrame() > 0)
 	local gameover = false
 
 	function gadget:Initialize()
-		Script.SetWatchProjectile(armnuke, true)
-		Script.SetWatchProjectile(cornuke, true)
-		Script.SetWatchProjectile(scavArmNuke, true)
-		Script.SetWatchProjectile(scavCorNuke, true)
-		Script.SetWatchProjectile(chickenNuke, true)
-		Script.SetWatchProjectile(chickenNuke2, true)
+		for k,v in pairs(nukes) do
+			Script.SetWatchProjectile(k, true)
+		end
 	end
 
 	function gadgetHandler:TeamDied(teamID)
@@ -97,17 +105,20 @@ if gadgetHandler:IsSyncedCode() then
 
 -- UNITS RECEIVED send to all in team
 	function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-		local players = PlayersInTeamID(newTeam)
-		for ct, player in pairs (players) do
-			if tostring(player) then
-				SendToUnsynced("EventBroadcast", "UnitsReceived", tostring(player))
+		if not _G.transferredUnits or not _G.transferredUnits[unitID] then	-- exclude upgraded units (t2 mex/geo) because allied players could have done this
+			local players = PlayersInTeamID(newTeam)
+			for ct, player in pairs (players) do
+				if tostring(player) then
+					SendToUnsynced("EventBroadcast", "UnitsReceived", tostring(player))
+				end
 			end
 		end
 	end
 
 -- NUKE LAUNCH send to all but ally team
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-		if Spring.GetProjectileDefID(proID) == armnuke or Spring.GetProjectileDefID(proID) == cornuke or Spring.GetProjectileDefID(proID) == scavArmNuke or Spring.GetProjectileDefID(proID) == scavCorNuke or Spring.GetProjectileDefID(proID) == chickenNuke or Spring.GetProjectileDefID(proID) == chickenNuke2 then
+		local proDefID = Spring.GetProjectileDefID(proID)
+		if nukes[Spring.GetProjectileDefID(proID)] then
 			local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(proOwnerID)))
 			for ct, player in pairs (players) do
 				if tostring(player) then
@@ -118,11 +129,11 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 -- Game paused send to all
-	function gadget:GamePaused()
+	function gadget:GamePaused(playerID, isPaused)
 		local players = AllPlayers()
 		for ct, player in pairs (players) do
 			if tostring(player) then
-				SendToUnsynced("EventBroadcast", "GamePause", tostring(player))
+				SendToUnsynced("EventBroadcast", (isPaused and "GamePause" or "GameStarted"), tostring(player))
 			end
 		end
 	end
@@ -140,6 +151,12 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadgetHandler:GameOver(winningAllyTeams)
 		gameover = true
+		local players = AllPlayers()
+		for ct, player in pairs (players) do
+			if tostring(player) then
+				SendToUnsynced("EventBroadcast", "BattleEnded", tostring(player))
+			end
+		end
 	end
 
 --Player left send to all in allyteam
@@ -229,9 +246,13 @@ else
 		end
 	end
 
+	local commanderLastDamaged = {}
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if unitTeam == myTeamID and isLrpc[attackerDefID] and attackerTeam and GetAllyTeamID(attackerTeam) ~= myAllyTeamID then
 			BroadcastEvent("EventBroadcast", 'LrpcTargetUnits', tostring(myPlayerID))
+		end
+		if isCommander[unitDefID] then
+			commanderLastDamaged[unitID] = Spring.GetGameFrame()
 		end
 	end
 
@@ -276,7 +297,12 @@ else
 				for ct, player in pairs (players) do
 					if tostring(player) then
 						if not unitInView then
-							BroadcastEvent("EventBroadcast", "FriendlyCommanderDied", tostring(player))
+							if Spring.GetUnitRulesParam(unitID, "unit_evolved") == "true" then
+							elseif not attackerTeam and select(6, Spring.GetTeamInfo(unitTeam, false)) == myAllyTeamID and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
+								BroadcastEvent("EventBroadcast", "FriendlyCommanderSelfD", tostring(player))
+							else
+								BroadcastEvent("EventBroadcast", "FriendlyCommanderDied", tostring(player))
+							end
 						end
 						if enableLastcomNotif and allyComCount == 1 then
 							if myComCount == 1 then
@@ -291,11 +317,12 @@ else
 			if not unitInView then
 				local players =  AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 				for ct, player in pairs (players) do
-					if tostring(player) then
+					if tostring(player) and not Spring.GetUnitRulesParam(unitID, "unit_evolved") == "true" then
 						BroadcastEvent("EventBroadcast", "EnemyCommanderDied", tostring(player))
 					end
 				end
 			end
+			commanderLastDamaged[unitID] = nil
 		end
 	end
 end

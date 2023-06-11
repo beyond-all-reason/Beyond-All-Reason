@@ -16,8 +16,8 @@ SCategoryInfo InitCategories()
 	category.air   = "VTOL NOTSUB";
 	category.land  = "SURFACE NOTSUB";
 	category.water = "UNDERWATER NOTHOVER";
-	category.bad   = "TERRAFORM STUPIDTARGET MINE";
-	category.good  = "TURRET FLOAT";
+	category.bad   = "MINE";
+	category.good  = "";
 	return category;
 }
 

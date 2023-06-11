@@ -17,6 +17,7 @@ local blockingBuildProgress = 0.05
 local newNanoFrames = {} -- array table, i -> unitID
 local newNanoFrameNeutralState = {} -- hash table, unitID -> original neutral state
 local nanoFrameIdxToRemove = {}
+local CMD_ATTACK = CMD.ATTACK
 
 local function AddNanoFrame(unitID)
 	newNanoFrames[#newNanoFrames+1] = unitID
@@ -97,6 +98,15 @@ function gadget:GameFrame(n)
 		else
 			i = i + 1
 		end
+	end
+end
+
+-- make it not manually or accidentally targetable
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+	if cmdID == CMD_ATTACK and not cmdParams[2] and newNanoFrameNeutralState[cmdParams[1]] ~= nil then
+		return false
+	else
+		return true
 	end
 end
 

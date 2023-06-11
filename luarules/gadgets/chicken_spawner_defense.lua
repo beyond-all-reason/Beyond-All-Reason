@@ -79,8 +79,9 @@ if gadgetHandler:IsSyncedCode() then
 	local queenMaxHP = 0
 	local playerAgression = 0
 	local playerAgressionLevel = 0
+	local playerAgressionEcoValue = 0
 	local queenAngerAgressionLevel = 0
-	local difficultyCounter = 0
+	local difficultyCounter = config.difficulty
 	local waveParameters = {
 		baseCooldown = mRandom(3,5),
 		airWave = {
@@ -105,6 +106,7 @@ if gadgetHandler:IsSyncedCode() then
 	local squadsTable = {}
 	local unitSquadTable = {}
 	local squadPotentialTarget = {}
+	local squadPotentialHighValueTarget = {}
 	local unitTargetPool = {}
 	local unitCowardCooldown = {}
 	local unitTeleportCooldown = {}
@@ -217,17 +219,31 @@ if gadgetHandler:IsSyncedCode() then
 	function getRandomEnemyPos()
 		local loops = 0
 		local targetCount = SetCount(squadPotentialTarget)
+		local highValueTargetCount = SetCount(squadPotentialHighValueTarget)
 		local pos = {}
 		local pickedTarget = nil
 		repeat
 			loops = loops + 1
-			for target in pairs(squadPotentialTarget) do
-				if mRandom(1,targetCount) == 1 then
-					if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
-						local x,y,z = Spring.GetUnitPosition(target)
-						pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
-						pickedTarget = target
-						break
+			if highValueTargetCount > 0 and mRandom() <= 0.75 then
+				for target in pairs(squadPotentialHighValueTarget) do
+					if mRandom(1,highValueTargetCount) == 1 then
+						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+							local x,y,z = Spring.GetUnitPosition(target)
+							pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
+							pickedTarget = target
+							break
+						end
+					end
+				end
+			else
+				for target in pairs(squadPotentialTarget) do
+					if mRandom(1,targetCount) == 1 then
+						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+							local x,y,z = Spring.GetUnitPosition(target)
+							pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
+							pickedTarget = target
+							break
+						end
 					end
 				end
 			end
@@ -256,43 +272,35 @@ if gadgetHandler:IsSyncedCode() then
 	-- Difficulty
     --
 
-	if config.swarmMode then
-		config.maxChickens = config.maxChickens*10
-		config.minChickens = config.minChickens*10
-		config.chickenSpawnRate = config.chickenSpawnRate*10
-	end
-	-- local expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
 	local maxBurrows = ((config.maxBurrows*(1-config.chickenPerPlayerMultiplier))+(config.maxBurrows*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 	local queenTime = (config.queenTime + config.gracePeriod)
+	if config.difficulty == config.difficulties.survival then
+		queenTime = math.ceil(queenTime*0.5)
+	end
 	local maxWaveSize = ((config.maxChickens*(1-config.chickenPerPlayerMultiplier))+(config.maxChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 	local minWaveSize = ((config.minChickens*(1-config.chickenPerPlayerMultiplier))+(config.minChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+	config.chickenSpawnRate = config.chickenSpawnRate*Spring.GetModOptions().chicken_spawntimemult
 	local currentMaxWaveSize = minWaveSize
 	function updateDifficultyForSurvival()
 		t = GetGameSeconds()
 		config.gracePeriod = t-1
-		queenTime = (config.queenTime + config.gracePeriod)
 		queenAnger = 0  -- reenable chicken spawning
 		techAnger = 0
 		playerAgression = 0
 		queenAngerAgressionLevel = 0
+		pastFirstQueen = true
 		SetGameRulesParam("queenAnger", queenAnger)
 		local nextDifficulty
-		local difficultyCounter = difficultyCounter + 1
-		if difficultyCounter == 1 then
-			nextDifficulty = config.difficultyParameters[1]
-		elseif difficultyCounter == 2 then
-			nextDifficulty = config.difficultyParameters[2]
-		elseif difficultyCounter == 3 then
-			nextDifficulty = config.difficultyParameters[3]
-		elseif difficultyCounter == 4 then
-			nextDifficulty = config.difficultyParameters[4]
-		elseif difficultyCounter == 5 then
-			nextDifficulty = config.difficultyParameters[5]
-		elseif difficultyCounter > 5 then -- We're already at Epic, just multiply some numbers to make it even harder
-			nextDifficulty = config.difficultyParameters[5]
-			config.chickenSpawnMultiplier = config.chickenSpawnMultiplier*2
+		difficultyCounter = difficultyCounter + 1
+		if config.difficultyParameters[difficultyCounter] then
+			nextDifficulty = config.difficultyParameters[difficultyCounter]
+			config.queenResistanceMult = nextDifficulty.queenResistanceMult
+		else
+			difficultyCounter = difficultyCounter - 1
+			nextDifficulty = config.difficultyParameters[difficultyCounter]
+			config.chickenSpawnMultiplier = config.chickenSpawnMultiplier+1
+			config.queenResistanceMult = config.queenResistanceMult+0.5
 		end
-		config.chickenSpawnRate = nextDifficulty.chickenSpawnRate
 		config.queenName = nextDifficulty.queenName
 		config.burrowSpawnRate = nextDifficulty.burrowSpawnRate
 		config.turretSpawnRate = nextDifficulty.turretSpawnRate
@@ -302,18 +310,15 @@ if gadgetHandler:IsSyncedCode() then
 		config.minChickens = nextDifficulty.minChickens
 		config.maxBurrows = nextDifficulty.maxBurrows
 		config.maxXP = nextDifficulty.maxXP
-		config.queenResistanceMult = nextDifficulty.queenResistanceMult
 		config.angerBonus = nextDifficulty.angerBonus
-		if config.swarmMode then
-			config.maxChickens = config.maxChickens*10
-			config.minChickens = config.minChickens*10
-			config.chickenSpawnRate = config.chickenSpawnRate*10
-		end
-		-- expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
+		config.queenTime = math.ceil(nextDifficulty.queenTime*0.5)
+		queenTime = (config.queenTime + config.gracePeriod)
 		maxBurrows = ((config.maxBurrows*(1-config.chickenPerPlayerMultiplier))+(config.maxBurrows*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 		maxWaveSize = ((config.maxChickens*(1-config.chickenPerPlayerMultiplier))+(config.maxChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 		minWaveSize = ((config.minChickens*(1-config.chickenPerPlayerMultiplier))+(config.minChickens*config.chickenPerPlayerMultiplier)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+		config.chickenSpawnRate = nextDifficulty.chickenSpawnRate*Spring.GetModOptions().chicken_spawntimemult
 		currentMaxWaveSize = minWaveSize
+		SetGameRulesParam("ChickenQueenAngerGain_Base", 100/config.queenTime) 
 	end
 
 	--------------------------------------------------------------------------------
@@ -327,6 +332,10 @@ if gadgetHandler:IsSyncedCode() then
 	SetGameRulesParam("queenAnger", queenAnger)
 	SetGameRulesParam("gracePeriod", config.gracePeriod)
 	SetGameRulesParam("difficulty", config.difficulty)
+	SetGameRulesParam("ChickenQueenAngerGain_Base", 100/config.queenTime) 
+	SetGameRulesParam("ChickenQueenAngerGain_Aggression", 0)
+	SetGameRulesParam("ChickenQueenAngerGain_Eco", 0)
+
 
 	function chickenEvent(type, num, tech)
 		SendToUnsynced("ChickenEvent", type, num, tech)
@@ -501,7 +510,7 @@ if gadgetHandler:IsSyncedCode() then
 		if squadID ~= 0 then -- If it's 0 then we f***** up somewhere
 			local role = "assault"
 			if not newSquad.role then
-				if mRandom(0,100) <= 40 then
+				if mRandom(0,100) <= 60 then
 					role = "raid"
 				end
 			else
@@ -694,7 +703,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function SpawnBurrow(number)
 
-		local unitDefID = UnitDefNames[config.burrowName].id
+		--local unitDefID = UnitDefNames[config.burrowName].id
 
 		for i = 1, (number or 1) do
 			local x, z, y
@@ -721,13 +730,13 @@ if gadgetHandler:IsSyncedCode() then
 						if tries < maxTries*3 then
 							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, true, true)
 						else
-							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, true, false)
+							canSpawnBurrow = false
 						end
 					end
 				end
 
 				if canSpawnBurrow then
-					canSpawnBurrow = positionCheckLibrary.OccupancyCheck(x, y, z, config.minBaseDistance*0.25)
+					canSpawnBurrow = positionCheckLibrary.OccupancyCheck(x, y, z, config.minBaseDistance)
 				end
 
 				if canSpawnBurrow then
@@ -768,6 +777,9 @@ if gadgetHandler:IsSyncedCode() then
 					if canSpawnBurrow then
 						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(x, y, z, 128)
 					end
+					if canSpawnBurrow and playerAgression > config.angerBonus*10 then
+						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, true, false)
+					end
 					if canSpawnBurrow then
 						for burrowID, _ in pairs(burrows) do
 							local bx, _, bz = Spring.GetUnitPosition(burrowID)
@@ -785,7 +797,8 @@ if gadgetHandler:IsSyncedCode() then
 							break
 						end
 					elseif j == 100 then
-						timeOfLastSpawn = 1
+						timeOfLastSpawn = GetGameSeconds()
+						playerAgression = playerAgression + (config.angerBonus*(queenAnger*0.01))
 					end
 				end
 			end
@@ -808,6 +821,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function SpawnQueen()
 		local bestScore = 0
+		local bestBurrowID
 		local sx, sy, sz
 		for burrowID, _ in pairs(burrows) do
 			-- Try to spawn the queen at the 'best' burrow
@@ -817,6 +831,7 @@ if gadgetHandler:IsSyncedCode() then
 				score = mRandom(1,1000)
 				if score > bestScore then
 					bestScore = score
+					bestBurrowID = burrowID
 					sx = x
 					sy = y
 					sz = z
@@ -825,7 +840,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if sx and sy and sz then
-			return CreateUnit(config.queenName, sx, sy, sz, mRandom(0,3), chickenTeamID)
+			if bestBurrowID then
+				Spring.DestroyUnit(bestBurrowID, true, false)
+			end
+			return CreateUnit(config.queenName, sx, sy, sz, mRandom(0,3), chickenTeamID), burrowID
 		end
 
 		local x, z, y
@@ -887,11 +905,11 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 		squadManagerKillerLoop()
+		
 		local waveType = "normal"
-
 		waveParameters.baseCooldown = waveParameters.baseCooldown - 1
 		waveParameters.airWave.cooldown = waveParameters.airWave.cooldown - 1
-
+		
 		if waveParameters.baseCooldown <= 0 then
 			-- special waves
 			if techAnger > config.airStartAnger and waveParameters.airWave.cooldown <= 0 then
@@ -910,7 +928,7 @@ if gadgetHandler:IsSyncedCode() then
 				if mRandom() <= config.spawnChance then
 					squadCounter = 0
 					local squad
-					if waveType == "air" then
+					if (waveType == "air" or (queenID and mRandom() <= 0.25)) and mRandom() <= 0.5 then
 						for _ = 1,1000 do
 							local potentialSquad = squadSpawnOptions.air[mRandom(1, #squadSpawnOptions.air)]
 							if potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
@@ -965,6 +983,79 @@ if gadgetHandler:IsSyncedCode() then
 		return cCount
 	end
 
+	function spawnCreepStructure(unitDefName, spread)
+		local structureDefID = UnitDefNames[unitDefName].id
+		local canSpawnStructure = true
+		local spread = spread or 128
+		local spawnPosX = mRandom(lsx1,lsx2)
+		local spawnPosZ = mRandom(lsz1,lsz2)
+
+		if spawnPosX > MAPSIZEX - spread + 1 or spawnPosX < spread + 1 or spawnPosZ > MAPSIZEZ - spread + 1 or spawnPosZ < spread + 1 then
+			canSpawnStructure = false
+		end
+
+		if canSpawnStructure then
+			local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+			local canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+			if canSpawnStructure then
+				canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+			end
+			if canSpawnStructure then
+				if config.useScum and GG.IsPosInChickenScum(spawnPosX, spawnPosY, spawnPosZ) then
+					canSpawnStructure = true
+				elseif (not config.useScum) and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, true) then
+					canSpawnStructure = true
+				elseif playerAgressionLevel >= 5 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, true) then
+					canSpawnStructure = true
+				elseif playerAgressionLevel >= 10 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, false) then
+					canSpawnStructure = true
+				elseif playerAgressionLevel >= 15 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, false, false) then
+					canSpawnStructure = true
+				else
+					canSpawnStructure = false
+				end
+			end
+			if canSpawnStructure then
+				local structureUnitID = Spring.CreateUnit(structureDefID, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), chickenTeamID)
+				if structureUnitID then
+					SetUnitBlocking(structureUnitID, false, false)
+					return structureUnitID, spawnPosX, spawnPosY, spawnPosZ
+				end
+			end
+		end
+	end
+
+	function spawnCreepStructuresWave()
+		for uName, uSettings in pairs(config.chickenTurrets) do
+			--Spring.Echo(uName)
+			--Spring.Debug.TableEcho(uSettings)
+			if not uSettings.maxQueenAnger then uSettings.maxQueenAnger = uSettings.minQueenAnger + 100 end
+			if uSettings.minQueenAnger <= techAnger and uSettings.maxQueenAnger >= techAnger then
+				for i = 1,math.floor((uSettings.spawnedPerWave*(1-config.chickenPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.chickenPerPlayerMultiplier)*SetCount(humanTeams)) do
+					if mRandom() < config.spawnChance then
+						local attempts = 0
+						repeat
+							attempts = attempts + 1
+							local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName)
+							if turretUnitID then
+								setChickenXP(turretUnitID)
+								Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
+							end
+						until turretUnitID or attempts > 100
+					end
+				end
+			end
+		end
+	end
+
+	function SpawnMinions(unitID, unitDefID)
+		local unitName = UnitDefs[unitDefID].name
+		if config.chickenMinions[unitName] then
+			local minion = config.chickenMinions[unitName][mRandom(1,#config.chickenMinions[unitName])]
+			SpawnRandomOffWaveSquad(unitID, minion, 4)
+		end
+	end
+
 	--------------------------------------------------------------------------------
 	-- Call-ins
 	--------------------------------------------------------------------------------
@@ -973,13 +1064,23 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == chickenTeamID then
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{3},0)
+			if UnitDefs[unitDefID].canCloak then
+				Spring.GiveOrderToUnit(unitID,37382,{1},0)
+			end
 			return
 		end
-		if squadPotentialTarget[unitID] then
+		if squadPotentialTarget[unitID] or squadPotentialHighValueTarget[unitID] then
 			squadPotentialTarget[unitID] = nil
+			squadPotentialHighValueTarget[unitID] = nil
 		end
 		if not UnitDefs[unitDefID].canMove then
 			squadPotentialTarget[unitID] = true
+			if config.highValueTargets[unitDefID] then
+				squadPotentialHighValueTarget[unitID] = true
+			end
+		end
+		if config.ecoBuildingsPenalty[unitDefID] then
+			playerAgressionEcoValue = playerAgressionEcoValue + (config.ecoBuildingsPenalty[unitDefID]/(config.queenTime/3600)) -- scale to 60minutes = 3600seconds queen time
 		end
 	end
 
@@ -1007,28 +1108,20 @@ if gadgetHandler:IsSyncedCode() then
 					queenResistance[attackerDefID].damage = (damage * 4 * config.queenResistanceMult)
 					queenResistance[attackerDefID].notify = 0
 				end
-				local resistPercent = math.min((queenResistance[attackerDefID].damage) / queenMaxHP, 0.90)
+				local resistPercent = math.min((queenResistance[attackerDefID].damage) / queenMaxHP, 0.95)
 				if resistPercent > 0.5 then
 					if queenResistance[attackerDefID].notify == 0 then
 						chickenEvent("queenResistance", attackerDefID)
 						queenResistance[attackerDefID].notify = 1
 						if mRandom() < config.spawnChance then
+							SpawnRandomOffWaveSquad(queenID, config.chickenHealers[mRandom(1,#config.chickenHealers)], SetCount(humanTeams)*10)
+						end
+						for _ = 1,SetCount(humanTeams) do
 							if mRandom() < config.spawnChance then
-								SpawnRandomOffWaveSquad(queenID, config.chickenHealers[mRandom(1,#config.chickenHealers)], 5)
-							end
-							if mRandom() < config.spawnChance then
-								SpawnRandomOffWaveSquad(queenID)
-							end
-							if mRandom() < config.spawnChance then
-								SpawnRandomOffWaveSquad(queenID)
-							end
-							if mRandom() < config.spawnChance then
-								SpawnRandomOffWaveSquad(queenID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
-							end
-							for i = 1, SetCount(humanTeams)*2 do
-								table.insert(spawnQueue, { burrow = queenID, unitName = config.chickenHealers[mRandom(1,#config.chickenHealers)], team = chickenTeamID})
+								SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
 							end
 						end
+						spawnCreepStructuresWave()
 					end
 					damage = damage - (damage * resistPercent)
 					
@@ -1049,14 +1142,6 @@ if gadgetHandler:IsSyncedCode() then
 			damage = 0
 		end
 		return damage, 1
-	end
-
-	function SpawnMinions(unitID, unitDefID)
-		local unitName = UnitDefs[unitDefID].name
-		if config.chickenMinions[unitName] then
-			local minion = config.chickenMinions[unitName][mRandom(1,#config.chickenMinions[unitName])]
-			SpawnRandomOffWaveSquad(unitID, minion, 4)
-		end
 	end
 
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
@@ -1141,9 +1226,8 @@ if gadgetHandler:IsSyncedCode() then
 					curH = math.max(curH, maxH*0.05)
 					local spawnChance = math.max(0, math.ceil(curH/maxH*10000))
 					if mRandom(0,spawnChance) == 1 then
-						SpawnRandomOffWaveSquad(unitID, config.chickenHealers[mRandom(1,#config.chickenHealers)], 5)
-						SpawnRandomOffWaveSquad(unitID, config.chickenHealers[mRandom(1,#config.chickenHealers)], 5)
-						SpawnRandomOffWaveSquad(unitID)
+						SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
+						SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
 					end
 				end
 			end
@@ -1276,96 +1360,34 @@ if gadgetHandler:IsSyncedCode() then
 				spawnQueue = {}
 				chickenEvent("queen") -- notify unsynced about queen spawn
 				_, queenMaxHP = GetUnitHealth(queenID)
-				SetUnitExperience(queenID, config.maxXP)
+				SetUnitExperience(queenID, 0)
 				timeOfLastWave = t
-				for i = 1,SetCount(humanTeams) do
-					for burrowID, _ in pairs(burrows) do
-						if mRandom() < config.spawnChance then
-							SpawnRandomOffWaveSquad(burrowID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
-						end
+				for burrowID, _ in pairs(burrows) do
+					if mRandom() < config.spawnChance then
+						SpawnRandomOffWaveSquad(burrowID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
+						SpawnRandomOffWaveSquad(burrowID)
+					else
+						SpawnRandomOffWaveSquad(burrowID)
 					end
 				end
 				Spring.SetGameRulesParam("BossFightStarted", 1)
+				Spring.SetUnitAlwaysVisible(queenID, true)
 			end
 		else
 			if mRandom() < config.spawnChance / 15 then
 				SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
 				SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
-				SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
-				SpawnRandomOffWaveSquad(queenID)
-			end
-		end
-	end
-
-	function spawnCreepStructure(unitDefName, spread)
-		local structureDefID = UnitDefNames[unitDefName].id
-		local canSpawnStructure = true
-		local spread = spread or 128
-		local spawnPosX = mRandom(lsx1,lsx2)
-		local spawnPosZ = mRandom(lsz1,lsz2)
-
-		if spawnPosX > MAPSIZEX - spread + 1 or spawnPosX < spread + 1 or spawnPosZ > MAPSIZEZ - spread + 1 or spawnPosZ < spread + 1 then
-			canSpawnStructure = false
-		end
-
-		if canSpawnStructure then
-			local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-			local canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-			if canSpawnStructure then
-				canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-			end
-			if canSpawnStructure then
-				if config.useScum and GG.IsPosInChickenScum(spawnPosX, spawnPosY, spawnPosZ) then
-					canSpawnStructure = true
-				elseif (not config.useScum) and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, true) then
-					canSpawnStructure = true
-				elseif playerAgressionLevel >= 5 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, true) then
-					canSpawnStructure = true
-				elseif playerAgressionLevel >= 10 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, false) then
-					canSpawnStructure = true
-				elseif playerAgressionLevel >= 15 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, false, false) then
-					canSpawnStructure = true
-				else
-					canSpawnStructure = false
-				end
-			end
-			if canSpawnStructure then
-				local structureUnitID = Spring.CreateUnit(structureDefID, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), chickenTeamID)
-				if structureUnitID then
-					SetUnitBlocking(structureUnitID, false, false)
-					return structureUnitID, spawnPosX, spawnPosY, spawnPosZ
-				end
-			end
-		end
-	end
-
-	function spawnCreepStructuresWave()
-		for uName, uSettings in pairs(config.chickenTurrets) do
-			--Spring.Echo(uName)
-			--Spring.Debug.TableEcho(uSettings)
-			if not uSettings.maxQueenAnger then uSettings.maxQueenAnger = uSettings.minQueenAnger + 50 end
-			if uSettings.minQueenAnger <= techAnger and uSettings.maxQueenAnger >= techAnger then
-				for i = 1,math.floor((uSettings.spawnedPerWave*(1-config.chickenPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.chickenPerPlayerMultiplier)*SetCount(humanTeams)) do
-					local attempts = 0
-					repeat
-						attempts = attempts + 1
-						local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName)
-						if turretUnitID then
-							setChickenXP(turretUnitID)
-							Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
-						end
-					until turretUnitID or attempts > 100
-				end
+				--SpawnRandomOffWaveSquad(queenID)
 			end
 		end
 	end
 
 	function updateRaptorSpawnBox()
 		if config.burrowSpawnType == "initialbox_post" then
-			lsx1 = math.max(RaptorStartboxXMin - ((MAPSIZEX*0.005) * queenAnger), 0)
-			lsz1 = math.max(RaptorStartboxZMin - ((MAPSIZEZ*0.005) * queenAnger), 0)
-			lsx2 = math.min(RaptorStartboxXMax + ((MAPSIZEX*0.005) * queenAnger), MAPSIZEX)
-			lsz2 = math.min(RaptorStartboxZMax + ((MAPSIZEZ*0.005) * queenAnger), MAPSIZEZ)
+			lsx1 = math.max(RaptorStartboxXMin - ((MAPSIZEX*0.01) * queenAnger), 0)
+			lsz1 = math.max(RaptorStartboxZMin - ((MAPSIZEZ*0.01) * queenAnger), 0)
+			lsx2 = math.min(RaptorStartboxXMax + ((MAPSIZEX*0.01) * queenAnger), MAPSIZEX)
+			lsz2 = math.min(RaptorStartboxZMax + ((MAPSIZEZ*0.01) * queenAnger), MAPSIZEZ)
 		end
 	end
 
@@ -1385,14 +1407,14 @@ if gadgetHandler:IsSyncedCode() then
 				-- 	size = "m"
 				-- 	eggValue = 200
 				-- end
-				local eggValue = 100
+				local eggValue = 200
 				local size = "s"
-				if targetEggValue - totalEggValue > 1500 then
+				if targetEggValue - totalEggValue > 8000 then
 					size = "l"
-					eggValue = 500
-				elseif targetEggValue - totalEggValue > 600 then
+					eggValue = 2000
+				elseif targetEggValue - totalEggValue > 2000 then
 					size = "m"
-					eggValue = 200
+					eggValue = 500
 				end
 				totalEggValue = totalEggValue + eggValue
 				if config.chickenEggs[name] and config.chickenEggs[name] ~= "" then
@@ -1457,12 +1479,6 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		if n % 90 == 0 then
-			if (queenAnger >= 100) then
-				damageMod = (damageMod + 0.001)
-			end
-		end
-
 		local chickenTeamUnitCount = GetTeamUnitCount(chickenTeamID) or 0
 		if chickenTeamUnitCount < chickenUnitCap then
 			SpawnChickens()
@@ -1479,24 +1495,27 @@ if gadgetHandler:IsSyncedCode() then
 			playerAgression = playerAgression*0.995
 			playerAgressionLevel = math.floor(playerAgression)
 			SetGameRulesParam("chickenPlayerAgressionLevel", playerAgressionLevel)
-			currentMaxWaveSize = (minWaveSize + math.ceil((queenAnger*0.01)*(maxWaveSize - minWaveSize)))
+			currentMaxWaveSize = (minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))
 			if t < config.gracePeriod then
 				queenAnger = 0
 				techAnger = 0
+				minBurrows = SetCount(humanTeams)
 			else
+				if pastFirstQueen then
+					techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((queenTime/Spring.GetModOptions().chicken_queentimemult) - config.gracePeriod) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 999), 0)
+				else
+					techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().chicken_graceperiodmult)) / ((queenTime/Spring.GetModOptions().chicken_queentimemult) - (config.gracePeriod/Spring.GetModOptions().chicken_graceperiodmult)) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 999), 0)
+				end
 				if not queenID then
 					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + queenAngerAgressionLevel, 100), 0)
+					minBurrows = SetCount(humanTeams)
 				else
 					queenAnger = 100
+					minBurrows = 1
 				end
-				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - (playerAgressionLevel*5) + queenAngerAgressionLevel, 100), 0)
-				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgressionLevel*0.02)/(config.queenTime/1200))
-				if techAnger < 1 then techAnger = 1 end
-				if playerAgressionLevel+1 <= maxBurrows then
-					minBurrows = playerAgressionLevel+1
-				else
-					minBurrows = maxBurrows
-				end
+				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgression*0.01)/(config.queenTime/3600)) + playerAgressionEcoValue
+				SetGameRulesParam("ChickenQueenAngerGain_Aggression", (playerAgression*0.01)/(config.queenTime/3600))
+				SetGameRulesParam("ChickenQueenAngerGain_Eco", playerAgressionEcoValue)
 			end
 			SetGameRulesParam("queenAnger", queenAnger)
 
@@ -1510,9 +1529,6 @@ if gadgetHandler:IsSyncedCode() then
 
 			if config.burrowSpawnRate < (t - timeOfLastFakeSpawn) then
 				-- This block is all about setting the correct burrow target
-				if firstSpawn then
-					minBurrows = 1
-				end
 				timeOfLastFakeSpawn = t
 			end
 
@@ -1540,7 +1556,7 @@ if gadgetHandler:IsSyncedCode() then
 				if burrowCount > 0
 				and SetCount(spawnQueue) == 0
 				and ((config.chickenSpawnRate) < (t - timeOfLastWave)) then
-					local cCount = Wave()
+					Wave()
 					timeOfLastWave = t
 				end
 			end
@@ -1555,7 +1571,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			updateRaptorSpawnBox()
 		end
-		if n%((math.ceil(config.turretSpawnRate/(playerAgressionLevel+1)))*30) == 0 and n > 900 and chickenTeamUnitCount < chickenUnitCap then
+		if n%((math.ceil(config.turretSpawnRate))*30) == 0 and n > 900 and chickenTeamUnitCount < chickenUnitCap then
 			spawnCreepStructuresWave()
 		end
 		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
@@ -1572,7 +1588,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n%7 == 3 and not chickenteamhasplayers then
 			local chickens = GetTeamUnits(chickenTeamID)
 			for i = 1,#chickens do
-				if mRandom(1,math.ceil((100*math.max(1, Spring.GetTeamUnitDefCount(chickenTeamID, Spring.GetUnitDefID(chickens[i])))))) == 1 and mRandom() < config.spawnChance then
+				if mRandom(1,math.ceil((33*math.max(1, Spring.GetTeamUnitDefCount(chickenTeamID, Spring.GetUnitDefID(chickens[i])))))) == 1 and mRandom() < config.spawnChance then
 					SpawnMinions(chickens[i], Spring.GetUnitDefID(chickens[i]))
 				end
 				if mRandom(1,60) == 1 then 
@@ -1611,12 +1627,14 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
 		if unitTeam == chickenTeamID then
-			if config.useEggs then
+			if config.useEggs and (not (gameIsOver or queenID)) then
 				local x,y,z = Spring.GetUnitPosition(unitID)
 				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 1)
 			end
 			if unitDefID == config.burrowDef then
-				spawnCreepStructuresWave()
+				if mRandom() <= config.spawnChance then
+					spawnCreepStructuresWave()
+				end
 				for turret, burrow in pairs(burrowTurrets) do
 					if burrowTurrets[turret] == unitID then
 						table.insert(deleteBurrowTurrets, turret)
@@ -1647,6 +1665,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		squadPotentialTarget[unitID] = nil
+		squadPotentialHighValueTarget[unitID] = nil
 		for squad in ipairs(unitTargetPool) do
 			if unitTargetPool[squad] == unitID then
 				refreshSquad(squad)
@@ -1664,12 +1683,12 @@ if gadgetHandler:IsSyncedCode() then
 			queenResistance = {}
 			Spring.SetGameRulesParam("BossFightStarted", 0)
 
-			if config.difficulty == config.difficulties.survival then
+			if Spring.GetModOptions().chicken_endless then
 				updateDifficultyForSurvival()
 			else
 				gameOver = GetGameFrame() + 200
 				spawnQueue = {}
-
+				gameIsOver = true
 				-- kill whole allyteam  (game_end gadget will destroy leftover units)
 				if not killedChickensAllyTeam then
 					killedChickensAllyTeam = true
@@ -1682,21 +1701,13 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		-- if config.addQueenAnger then
-		-- 	if string.find(UnitDefs[unitDefID].name, "chicken_turret") then
-		-- 		playerAgression = playerAgression + config.angerBonus*0.25
-		-- 	end
-		-- end
-
 		if unitDefID == config.burrowDef and not gameOver then
 			local kills = GetGameRulesParam(config.burrowName .. "Kills") or 0
 			SetGameRulesParam(config.burrowName .. "Kills", kills + 1)
 
 			burrows[unitID] = nil
-			if config.addQueenAnger then
-				playerAgression = playerAgression + (config.angerBonus/config.chickenSpawnMultiplier)
-				config.maxXP = config.maxXP*1.01
-			end
+			playerAgression = playerAgression + (config.angerBonus/config.chickenSpawnMultiplier)
+			config.maxXP = config.maxXP*1.01
 
 			for i, defs in pairs(spawnQueue) do
 				if defs.burrow == unitID then
@@ -1716,6 +1727,9 @@ if gadgetHandler:IsSyncedCode() then
 		if unitTeleportCooldown[unitID] then
 			unitTeleportCooldown[unitID] = nil
 		end
+		if unitTeam ~= chickenTeamID and config.ecoBuildingsPenalty[unitDefID] then
+			playerAgressionEcoValue = playerAgressionEcoValue - (config.ecoBuildingsPenalty[unitDefID]/(config.queenTime/3600)) -- scale to 60minutes = 3600seconds queen time
+		end
 	end
 
 	function gadget:TeamDied(teamID)
@@ -1724,7 +1738,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
-		if oldTeam == chickenTeamID then
+		if oldTeam == chickenTeamID and not string.find(UnitDefs[unitDefID].name, "lootbox") then
 			DestroyUnit(unitID, true)
 		end
 	end

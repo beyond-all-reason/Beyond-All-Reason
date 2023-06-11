@@ -323,7 +323,6 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local GetUnitWeaponState = Spring.GetUnitWeaponState
 
-local spIsGUIHidden				= Spring.IsGUIHidden
 local chobbyInterface
 
 local unitDefIgnore = {} -- commanders!
@@ -410,459 +409,28 @@ if debugmode then
 	shaderConfig.DEBUGSHOW = 1 -- comment this to always show all bars
 end
 
-local vsSrc =  [[
-#version 420
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shader_storage_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
+local vsSrcPath = "LuaUI/Widgets/Shaders/HealthbarsGL4.vert.glsl"
+local gsSrcPath = "LuaUI/Widgets/Shaders/HealthbarsGL4.geom.glsl"
+local fsSrcPath = "LuaUI/Widgets/Shaders/HealthbarsGL4.frag.glsl"
 
-#line 5000
-
-layout (location = 0) in vec4 height_timers;
-layout (location = 1) in uvec4 bartype_index_ssboloc;
-layout (location = 2) in vec4 mincolor;
-layout (location = 3) in vec4 maxcolor;
-layout (location = 4) in uvec4 instData;
-
-//__ENGINEUNIFORMBUFFERDEFS__
-//__DEFINES__
-
-struct SUniformsBuffer {
-    uint composite; //     u8 drawFlag; u8 unused1; u16 id;
-
-    uint unused2;
-    uint unused3;
-    uint unused4;
-
-    float maxHealth;
-    float health;
-    float unused5;
-    float unused6;
-
-    vec4 speed;
-    vec4[5] userDefined; //can't use float[20] because float in arrays occupies 4 * float space
-};
-
-layout(std140, binding=1) readonly buffer UniformsBuffer {
-    SUniformsBuffer uni[];
-};
-
-#line 10000
-
-uniform float iconDistance;
-uniform float cameraDistanceMult;
-uniform float cameraDistanceMultGlyph;
-
-out DataVS {
-	uint v_numvertices;
-	vec4 v_mincolor;
-	vec4 v_maxcolor;
-	vec4 v_centerpos;
-	vec4 v_uvoffsets;
-	vec4 v_parameters;
-	vec2 v_sizemodifiers;
-	uvec4 v_bartype_index_ssboloc;
-};
-
-layout(std140, binding=0) readonly buffer MatrixBuffer {
-	mat4 UnitPieces[];
-};
-
-bool vertexClipped(vec4 clipspace, float tolerance) {
-  return any(lessThan(clipspace.xyz, -clipspace.www * tolerance)) ||
-         any(greaterThan(clipspace.xyz, clipspace.www * tolerance));
-}
-#define UNITUNIFORMS uni[instData.y]
-#define UNIFORMLOC bartype_index_ssboloc.z
-#define BARTYPE bartype_index_ssboloc.x
-
-#define BITUSEOVERLAY 1u
-#define BITSHOWGLYPH 2u
-#define BITPERCENTAGE 4u
-#define BITTIMELEFT 8u
-#define BITINTEGERNUMBER 16u
-#define BITGETPROGRESS 32u
-#define BITFLASHBAR 64u
-#define BITCOLORCORRECT 128u
-
-void main()
-{
-	uint baseIndex = instData.x; // this tells us which unit matrix to find
-	mat4 modelMatrix = UnitPieces[baseIndex]; // This gives us the models  world pos and rot matrix
-
-	gl_Position = cameraViewProj * vec4(modelMatrix[3].xyz, 1.0); // We transform this vertex into the center of the model
-
-	v_centerpos = vec4( modelMatrix[3].xyz, 1.0); // We are going to pass the centerpoint to the GS
-	v_numvertices = 4u;
-	if (vertexClipped(gl_Position, CLIPTOLERANCE)) v_numvertices = 0; // Make no primitives on stuff outside of screen
-
-	// this sets the num prims to 0 for units further from cam than iconDistance
-	float cameraDistance = length((cameraViewInv[3]).xyz - v_centerpos.xyz);
-	v_parameters.y = 1.0 - (clamp(cameraDistance * cameraDistanceMult, BARFADESTART, BARFADEEND) - BARFADESTART)/ ( BARFADEEND-BARFADESTART);
-	v_parameters.z = 1.0 - (clamp(cameraDistance * cameraDistanceMult * cameraDistanceMultGlyph, BARFADESTART, BARFADEEND) - BARFADESTART)/ ( BARFADEEND-BARFADESTART);
-	#ifdef DEBUGSHOW
-		v_parameters.y = 1.0;
-		v_parameters.z = 1.0;
-	#endif
-
-	v_parameters.w = height_timers.w;
-	v_sizemodifiers = height_timers.yz;
-	if (length((cameraViewInv[3]).xyz - v_centerpos.xyz) >  iconDistance){
-		v_parameters.yz = vec2(0.0);
+local shaderSourceCache = {
+		vssrcpath = vsSrcPath,
+		fssrcpath = fsSrcPath,
+		gssrcpath = gsSrcPath,
+		shaderName = "Health Bars Shader GL4",
+		uniformInt = {
+			healthbartexture = 0;
+			},
+		uniformFloat = {
+			--addRadius = 1,
+			iconDistance = 27,
+			cameraDistanceMult = 1.0,
+			cameraDistanceMultGlyph = 4.0,
+			skipGlyphsNumbers = 0.0,
+			globalSizeMult = 1.0,
+		  },
+		shaderConfig = shaderConfig,		  
 	}
-
-
-	if (dot(v_centerpos.xyz, v_centerpos.xyz) < 1.0) v_numvertices = 0; // if the center pos is at (0,0,0) then we probably dont have the matrix yet for this unit, because it entered LOS but has not been drawn yet.
-
-	v_centerpos.y += HEIGHTOFFSET; // Add some height to ensure above groundness
-	v_centerpos.y += height_timers.x; // Add per-instance height offset
-
-	if ((UNITUNIFORMS.composite & 0x00000003u) < 1u ) v_numvertices = 0u; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon))
-
-
-	v_bartype_index_ssboloc = bartype_index_ssboloc;
-	float relativehealth = UNITUNIFORMS.health / UNITUNIFORMS.maxHealth;
-	v_parameters.x = UNITUNIFORMS.health / UNITUNIFORMS.maxHealth;
-	if (UNIFORMLOC < 20u)
-	{
-		uint i = uint(mod(timeInfo.x, 20)*0.05);
-		//v_parameters.x =  UNITUNIFORMS.userDefined[uint(i / 5u)][uint(mod(i,4u))];
-		v_parameters.x =  UNITUNIFORMS.userDefined[0].y;
-
-	}else{ // this is a health bar, dont draw it if the unit is being built and its health doesnt really differ from the full health
-		// TODO: this is kinda buggy, as buildprogess in the the unit uniforms is somehow lagging behind health.
-		float buildprogress = UNITUNIFORMS.userDefined[0].x; // this is -1.0 for fully built units
-		#ifndef DEBUGSHOW
-			if (abs(buildprogress - relativehealth )< 0.03) v_numvertices = 0u;
-		#endif
-	}
-	if (UNIFORMLOC < 4u) v_parameters.x = UNITUNIFORMS.userDefined[0][bartype_index_ssboloc.z ];
-	if (UNIFORMLOC == 0u) { //building
-		// dont draw if health = buildProgress
-		//v_parameters.x = UNITUNIFORMS.userDefined[0].x;
-		//if (abs(v_parameters.x - relativehealth )< 0.02) v_numvertices = 0u;
-	}
-	if (UNIFORMLOC == 1u) v_parameters.x = UNITUNIFORMS.userDefined[0].y; //hmm featureresurrect or timeleft?
-	if (UNIFORMLOC == 2u) v_parameters.x = UNITUNIFORMS.userDefined[0].z; // shield/reloadstart/stockpile / buildtimeleft?
-	if (UNIFORMLOC == 4u) v_parameters.x = UNITUNIFORMS.userDefined[1].x; //emp damage and paralyze
-	if (UNIFORMLOC == 5u) v_parameters.x = UNITUNIFORMS.userDefined[1].y; //capture
-
-	if ((BARTYPE & BITGETPROGRESS) > 0u) { // reload bar progress is calced from nowtime-shottime / (endtime - shottime)
-		v_parameters.x =
-			((timeInfo.x + timeInfo.w) - UNITUNIFORMS.userDefined[0].z ) /
-			(UNITUNIFORMS.userDefined[0].w - UNITUNIFORMS.userDefined[0].z);
-		v_parameters.x = clamp(v_parameters.x * 1.0, 0.0, 1.0);
-	}
-
-	v_mincolor = mincolor;
-	v_maxcolor = maxcolor;
-}
-]]
-
-local gsSrc = [[
-
-#version 330
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
-//__ENGINEUNIFORMBUFFERDEFS__
-//__DEFINES__
-layout(points) in;
-layout(triangle_strip, max_vertices = MAXVERTICES) out;
-#line 20000
-
-uniform float iconDistance;
-uniform float skipGlyphsNumbers; // <0.5 means none, <1.5 means percent only, >1.5 means nothing, just bars
-
-in DataVS { // I recall the sane limit for cache coherence is like 48 floats per vertex? try to stay under that!
-	uint v_numvertices;
-	vec4 v_mincolor;
-	vec4 v_maxcolor;
-	vec4 v_centerpos;
-	vec4 v_uvoffsets;
-	vec4 v_parameters;
-	vec2 v_sizemodifiers;
-	uvec4 v_bartype_index_ssboloc;
-} dataIn[];
-
-out DataGS {
-	vec4 g_color; // pure rgba
-	vec4 g_uv; // xy is trivially uv coords, z is texture blend factor, w means nothing yet
-};
-
-mat3 rotY;
-vec4 centerpos;
-vec4 uvoffsets;
-float zoffset;
-float depthbuffermod;
-float sizemultiplier = dataIn[0].v_sizemodifiers.x;
-#define HALFPIXEL 0.0019765625
-
-#define BARTYPE dataIn[0].v_bartype_index_ssboloc.x
-#define BARALPHA dataIn[0].v_parameters.y
-#define GLYPHALPHA dataIn[0].v_parameters.z
-#define UVOFFSET dataIn[0].v_parameters.w
-#define UNIFORMLOC dataIn[0].v_bartype_index_ssboloc.z
-
-#define BITUSEOVERLAY 1u
-#define BITSHOWGLYPH 2u
-#define BITPERCENTAGE 4u
-#define BITTIMELEFT 8u
-#define BITINTEGERNUMBER 16u
-#define BITGETPROGRESS 32u
-#define BITFLASHBAR 64u
-#define BITCOLORCORRECT 128u
-
-void emitVertexBG(in vec2 pos){
-	g_uv.xy = vec2(0.0,0.0);
-	vec3 primitiveCoords = vec3(pos.x,0.0,pos.y - zoffset) * BARSCALE *sizemultiplier;
-	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
-	gl_Position.z += depthbuffermod;
-	g_uv.z = 0.0; // this tells us to use color
-	float extracolor = 0.0;
-	if (((BARTYPE & BITFLASHBAR) > 0u) && (mod(timeInfo.x, 10.0) > 4.0)){
-		extracolor = 0.5;
-	}
-	g_color = mix(BGBOTTOMCOLOR + extracolor, BGTOPCOLOR + extracolor, pos.y);
-	g_color.a *= dataIn[0].v_parameters.y; // blend with bar fade alpha
-	EmitVertex();
-}
-
-void emitVertexBarBG(in vec2 pos, in vec4 botcolor, in float bartextureoffset){
-	g_uv.x =  pos.x * 1.0/ (2.0 * (BARWIDTH - BARCORNER)); // map U to [-1, 1] x [0,1]
-	g_uv.x = g_uv.x + 0.5; // map UVS to [0,1]x[0,1]
-	g_uv.y = (pos.y - BARCORNER) / (BARHEIGHT - 2 * BARCORNER);
-	vec2 uv01 = g_uv.xy*3.0;
-	g_uv.xy = g_uv.xy * vec2(ATLASSTEP * 9, ATLASSTEP) + vec2(3 * ATLASSTEP, bartextureoffset); // map uvs to the bar texture
-	g_uv.y = -1.0 * g_uv.y;
-	//vec3 primitiveCoords = vec3( (pos.x - sign(pos.x) * BARCORNER),0.0, (pos.y - sign(pos.y - 0.5) * BARCORNER - zoffset)) * BARSCALE;
-	vec3 primitiveCoords = vec3( pos.x,0.0, pos.y - zoffset) * BARSCALE *sizemultiplier;
-	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
-	gl_Position.z += depthbuffermod;
-	g_uv.z = clamp(10000 * bartextureoffset, 0, 1); // this tells us to use color if we are using bartextureoffset
-	g_color = botcolor;
-	//g_color = vec4(g_uv.x, g_uv.y, 0.0, 1.0);
-	g_color.a *= dataIn[0].v_parameters.y; // blend with bar fade alpha
-	//g_color.a = 1.0;
-	//	g_uv.y -= ATLASSTEP * 8;
-	EmitVertex();
-}
-void emitVertexGlyph(in vec2 pos, in vec2 uv){
-	g_uv.xy = vec2(uv.x, 1.0 - uv.y);
-	vec3 primitiveCoords = vec3(pos.x,0.0,pos.y - zoffset) * BARSCALE *sizemultiplier;
-	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
-	g_uv.z = 1.0; // this tells us to use texture
-	g_color = vec4(1.0);
-	g_color.a *= dataIn[0].v_parameters.z; // blend with text/icon fade alpha
-	EmitVertex();
-}
-
-void emitGlyph(vec2 bottomleft, vec2 uvbottomleft, vec2 uvsizes){
-	#define GROWSIZE 0.2
-	emitVertexGlyph(vec2(bottomleft.x, bottomleft.y), vec2(uvbottomleft.x + HALFPIXEL, uvbottomleft.y + HALFPIXEL));
-	emitVertexGlyph(vec2(bottomleft.x, bottomleft.y + BARHEIGHT), vec2(uvbottomleft.x + HALFPIXEL, uvbottomleft.y + uvsizes.y - HALFPIXEL));
-	emitVertexGlyph(vec2(bottomleft.x + BARHEIGHT, bottomleft.y), vec2(uvbottomleft.x + uvsizes.x - HALFPIXEL, uvbottomleft.y + HALFPIXEL));
-	emitVertexGlyph(vec2(bottomleft.x + BARHEIGHT, bottomleft.y + BARHEIGHT), vec2(uvbottomleft.x + uvsizes.x -HALFPIXEL, uvbottomleft.y + uvsizes.y-HALFPIXEL));
-	EndPrimitive();
-}
-
-
-#line 22000
-void main(){
-	// bail super early like scum if simple bar with >0.99 value
-	//if (v_bartype_index_ssboloc.y < 32u){ // for paralyze and emp bars, which should always go above regular health bar
-		zoffset =  1.15 * BARHEIGHT *  float(dataIn[0].v_bartype_index_ssboloc.y);
-	//}else{
-	//	zoffset =  1.15 * BARHEIGHT *  -1.0;
-	//}
-
-	centerpos = dataIn[0].v_centerpos;
-
-	rotY = mat3(cameraViewInv[0].xyz,cameraViewInv[2].xyz, cameraViewInv[1].xyz); // swizzle cause we use xz,
-
-	g_color = vec4(1.0, 0.0, 1.0, 1.0); // a very noticeable default color
-
-	uvoffsets = dataIn[0].v_uvoffsets; // if an atlas is used, then use this, otherwise dont
-
-	float health = dataIn[0].v_parameters.x;
-	if (BARALPHA < MINALPHA) return; // Dont draw below 50% transparency
-
-	// All the early bail conditions to not draw full/empty bars
-	#ifndef DEBUGSHOW
-		if (health < 0.001) return;
-		if ((BARTYPE & BITPERCENTAGE) > 0u) { // for percentage bars
-			if (health > 0.995) return;
-		}else{
-			if ((BARTYPE & BITGETPROGRESS) > 0u) { // reload bar?
-				if (health > 0.995) return;
-			}
-			if ((BARTYPE & BITUSEOVERLAY) > 0u){ // for textured percentage bars bars
-			//	if (health > 0.995) return;
-			//	if (health < 0.005) return;
-			}
-		}
-	#endif
-	if (dataIn[0].v_numvertices == 0u) return; // for hiding the build bar when full health
-
-
-	// STOCKPILE BAR:  128*numStockpileQued + numStockpiled + stockpileBuild
-	uint numStockpiled = 0u;
-	uint numStockpileQueued = 0u;
-	if ((BARTYPE & BITINTEGERNUMBER) > 0u){
-		float oldhealth = health;
-		health = fract(oldhealth);
-		oldhealth = floor(oldhealth);
-		numStockpiled = uint(floor( mod (oldhealth, 128)));
-		numStockpileQueued = uint(floor(oldhealth/128));
-	}
-
-	//EMIT BAR BACKGROUND!
-	//     /-4----------6-\
-	//   2 |              | 8
-	//     |              |
-	//   1 |              | 7
-	//     \-3----------5-/
-	//start in bottom leftmost of this shit.
-
-		depthbuffermod = 0.001;
-		emitVertexBG(vec2(-BARWIDTH            , BARCORNER            )); //1
-		emitVertexBG(vec2(-BARWIDTH            , BARHEIGHT - BARCORNER)); //2
-		emitVertexBG(vec2(-BARWIDTH + BARCORNER, 0                    )); //3
-		emitVertexBG(vec2(-BARWIDTH + BARCORNER, BARHEIGHT            )); //4
-		emitVertexBG(vec2( BARWIDTH - BARCORNER, 0                    )); //5
-		emitVertexBG(vec2( BARWIDTH - BARCORNER, BARHEIGHT            )); //6
-		emitVertexBG(vec2( BARWIDTH            , BARCORNER            )); //7
-		emitVertexBG(vec2( BARWIDTH            , BARHEIGHT - BARCORNER)); //8
-		EndPrimitive();
-
-	// EMIT THE COLORED BACKGROUND
-	// for this to work, we need the true color of the bar?
-
-		vec4 topcolor = BGTOPCOLOR;
-		vec4 botcolor = BGBOTTOMCOLOR;
-		vec4 truecolor = mix(dataIn[0].v_mincolor, dataIn[0].v_maxcolor, health);
-
-		truecolor.a = 0.2;
-		topcolor = truecolor;
-
-		topcolor.rgb *= BOTTOMDARKENFACTOR;
-		depthbuffermod = 0.000;
-		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER, SMALLERCORNER + BARCORNER), truecolor, 0.0); //1
-		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER, BARHEIGHT - SMALLERCORNER - BARCORNER), topcolor,  0.0); //2
-		emitVertexBarBG(vec2(-BARWIDTH + SMALLERCORNER + BARCORNER, BARCORNER            ), truecolor, 0.0); //3
-		emitVertexBarBG(vec2(-BARWIDTH + SMALLERCORNER + BARCORNER, BARHEIGHT -BARCORNER ), topcolor,  0.0); //4
-		emitVertexBarBG(vec2( BARWIDTH - SMALLERCORNER - BARCORNER, BARCORNER            ), truecolor, 0.0); //5
-		emitVertexBarBG(vec2( BARWIDTH - SMALLERCORNER - BARCORNER, BARHEIGHT - BARCORNER), topcolor,  0.0); //6
-		emitVertexBarBG(vec2( BARWIDTH - BARCORNER, SMALLERCORNER + BARCORNER            ), truecolor, 0.0); //7
-		emitVertexBarBG(vec2( BARWIDTH - BARCORNER, BARHEIGHT - SMALLERCORNER - BARCORNER), topcolor,  0.0); //8
-		EndPrimitive();
-
-
-	// EMIT BAR FOREGROUND, ok this is harder than i thought
-
-		float healthbasedpos = (2*(BARWIDTH -  BARCORNER) - 2 * SMALLERCORNER) * health  ;
-		if ((BARTYPE & BITTIMELEFT) > 0u) healthbasedpos =  (2*(BARWIDTH -  BARCORNER) - 2 * SMALLERCORNER); // full bar for timer based shit
-		if ((BARTYPE & BITCOLORCORRECT) > 0u) { truecolor.rgb = truecolor.rgb/max(truecolor.r, truecolor.g); } // color correction for health
-		truecolor.a = 1.0;
-		botcolor = truecolor;
-		botcolor.rgb *= BOTTOMDARKENFACTOR;
-		float bartextureoffset = 0;
-		if ((BARTYPE & BITUSEOVERLAY) > 0u) bartextureoffset = UVOFFSET; // if the bar type is a textured bar, we have a lot of work to do
-
-		depthbuffermod = -0.001;
-		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER,                                  SMALLERCORNER + BARCORNER            ), botcolor,  bartextureoffset); //1
-		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER,                                  BARHEIGHT - BARCORNER - SMALLERCORNER), truecolor, bartextureoffset); //2
-		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER + SMALLERCORNER,                  BARCORNER                            ), botcolor,  bartextureoffset); //3
-		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER + SMALLERCORNER,                  BARHEIGHT - BARCORNER               ), truecolor, bartextureoffset); //4
-
-
-		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER + SMALLERCORNER + healthbasedpos, BARCORNER                            ), botcolor,  bartextureoffset); //5
-		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER + SMALLERCORNER + healthbasedpos, BARHEIGHT - BARCORNER                ), truecolor, bartextureoffset); //6
-		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER + 2 *SMALLERCORNER + healthbasedpos,                 BARCORNER + SMALLERCORNER            ), botcolor,  bartextureoffset); //7
-		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER + 2 *SMALLERCORNER + healthbasedpos,                 BARHEIGHT - BARCORNER - SMALLERCORNER), truecolor, bartextureoffset); //8
-		EndPrimitive();
-
-	// try to emit text?
-
-	if (GLYPHALPHA < MINALPHA) return; // dont display glyphs below 50% transparency
-
-	if (skipGlyphsNumbers > 1.5) return;
-
-	float currentglyphpos = 1.0;
-
-	if (skipGlyphsNumbers < 0.5 ){
-		if ((BARTYPE & BITSHOWGLYPH) > 0u){
-			emitGlyph(vec2(- BARWIDTH - currentglyphpos * BARHEIGHT , 0), vec2(ATLASSTEP, UVOFFSET), vec2(ATLASSTEP, ATLASSTEP));	//glyph icon
-		}
-	}else{
-		currentglyphpos = 0.0;
-	}
-
-	if ((BARTYPE & BITINTEGERNUMBER) > 0u){ // STOCKPILE FONTS THEN EH? xx/yy
-		vec4 numbers = vec4(numStockpiled, numStockpiled, numStockpileQueued, numStockpileQueued);
-		numbers = numbers * vec4(1.0, 0.1, 1.0, 0.1);
-		numbers = floor(mod(numbers, 10.0)) * ATLASSTEP;
-		float glyphpctsecatlas = 11 * ATLASSTEP; // TODO: slash sign in texture
-		// go right to left
-
-		emitGlyph(vec2(-BARWIDTH - (currentglyphpos + 1.0) * BARHEIGHT  , 0), vec2(0, numbers.x ), vec2(ATLASSTEP, ATLASSTEP)); // lsb of numqueued
-		if (numbers.y > 0 ){
-			emitGlyph(vec2(-BARWIDTH - (currentglyphpos + 2.0) * BARHEIGHT + BARHEIGHT * 0.4 , 0), vec2(0, numbers.y ), vec2(ATLASSTEP, ATLASSTEP)); // msb of numqueued
-		}
-	}
-
-
-	if ((BARTYPE & (BITTIMELEFT | BITPERCENTAGE))  > 0u){
-		float lsb ;
-		float msb ;
-		float glyphpctsecatlas;
-		if ((BARTYPE & BITTIMELEFT) > 0u){ //display time
-			health = (health - 1.0) / (1.0/40.0);
-			lsb = abs(floor(mod(health, 10.0)));
-			msb = abs( floor(mod(health*0.1, 10.0)));
-			glyphpctsecatlas = 14.0; // seconds
-		}else{
-			lsb = floor(mod(health*100.0, 10.0));
-			msb = floor(mod(health*10.0, 10.0));
-			glyphpctsecatlas = 11.0; // percent
-		}
-		emitGlyph(vec2(-BARWIDTH - (currentglyphpos + 1.0) * BARHEIGHT , 0), vec2(0, glyphpctsecatlas * ATLASSTEP), vec2(ATLASSTEP, ATLASSTEP)); // %
-		emitGlyph(vec2(-BARWIDTH - (currentglyphpos + 2.0) * BARHEIGHT + BARHEIGHT * 0.2 , 0), vec2(0,  lsb * ATLASSTEP ), vec2(ATLASSTEP, ATLASSTEP)); // lsb
-		if (msb > 0){
-			emitGlyph(vec2(-BARWIDTH - (currentglyphpos + 3.0) * BARHEIGHT + BARHEIGHT * 0.5 , 0), vec2(0,  msb * ATLASSTEP), vec2(ATLASSTEP, ATLASSTEP)); //msb
-		}
-	}
-}
-]]
-
-local fsSrc =
-[[
-#version 420
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
-//__ENGINEUNIFORMBUFFERDEFS__
-//__DEFINES__
-
-#line 30000
-in DataGS {
-	vec4 g_color;
-	vec4 g_uv;
-};
-
-uniform sampler2D healthbartexture;
-out vec4 fragColor;
-
-void main(void)
-{
-	vec4 texcolor = vec4(1.0);
-	texcolor = texture(healthbartexture, g_uv.xy);
-	texcolor.a *= g_color.a;
-	fragColor.rgba = mix(g_color, texcolor, g_uv.z);
-	//fragColor.rgba += vec4(0.25);
-	//fragColor.a += 0.5;
-	//fragColor.a = 1.0;
-	if (fragColor.a < 0.05) discard;
-}
-]]
 
 local function goodbye(reason)
   Spring.Echo("Healthbars GL4 widget exiting with reason: "..reason)
@@ -896,30 +464,9 @@ end
 
 
 local function initGL4()
-	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	gsSrc = gsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	healthBarShader =  LuaShader(
-		{
-		  vertex = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
-		  fragment = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
-		  geometry = gsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
-		  uniformInt = {
-			healthbartexture = 0;
-			},
-		uniformFloat = {
-			--addRadius = 1,
-			iconDistance = 27,
-			cameraDistanceMult = 1.0,
-			cameraDistanceMultGlyph = 4.0,
-			skipGlyphsNumbers = 0.0,
-		  },
-		},
-		"health bars Shader GL4"
-	  )
-	local shaderCompiled = healthBarShader:Initialize()
-	if not shaderCompiled then goodbye("Failed to compile health bars GL4 ") end
+	healthBarShader =  LuaShader.CheckShaderUpdates(shaderSourceCache)
+
+	if not healthBarShader then goodbye("Failed to compile health bars GL4 ") end
 
 	healthBarVBO = initializeInstanceVBOTable("healthBarVBO", false)
 
@@ -945,11 +492,11 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	if debugmode then Spring.Debug.TraceEcho(unitBars[unitID]) end
 	--Spring.Echo("Caller1:", tostring()".name), "caller2:", tostring(debug.getinfo(3).name))
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
-	
+
 	-- Why? Because adding additional bars can be triggered from outside of unit tracker api
 	-- like EMP, where we assume that unit is already visible, however
 	-- debug units are not present in unittracker api!
-	if (unitDefID == nil) or unitDefIgnore[unitDefID] then return nil end 
+	if (unitDefID == nil) or unitDefIgnore[unitDefID] then return nil end
 
 	local gf = Spring.GetGameFrame()
 	local bt = barTypeMap[barname]
@@ -1097,13 +644,13 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 			gl.SetUnitBufferUniforms(unitID, uniformcache, 0)
 		end
 		--Spring.Echo(unitID, unitDefID, unitDefCanStockpile[unitDefID])
-		if debugmode then 
+		if debugmode then
 			if unitDefCanStockpile[unitDefID] then
 				Spring.Echo("unitDefCanStockpile", unitAllyTeam, myAllyTeamID, fullview)
 			end
-			
+
 		end
-		
+
 		if unitDefCanStockpile[unitDefID] and ((unitAllyTeam == myAllyTeamID) or fullview) then
 			unitStockPileWatch[unitID] = 0.0
 			addBarForUnit(unitID, unitDefID, "stockpile", reason)
@@ -1363,7 +910,7 @@ function widget:Initialize()
 		if unitDef.customParams and unitDef.customParams.nohealthbars then
 			unitDefIgnore[udefID] = true
 		end --ignore debug units
-		
+
 		local shieldDefID = unitDef.shieldWeaponDef
 		shieldPower = ((shieldDefID) and (WeaponDefs[shieldDefID].shieldPower)) or (-1)
 		if shieldPower > 1 then unitDefhasShield[udefID] = shieldPower
@@ -1491,7 +1038,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 
-	
+
 	clearInstanceTable(healthBarVBO) -- clear all instances
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		addBarsForUnit(unitID, unitDefID, Spring.GetUnitTeam(unitID), nil, "VisibleUnitsChanged") -- TODO: add them with noUpload = true
@@ -1659,14 +1206,14 @@ function widget:FeatureCreated(featureID)
 		--featureBars[featureID] = 0 -- this is already done in AddBarToFeature
 
 		local health,maxhealth,rezProgress = Spring.GetFeatureHealth(featureID)
-		
-		if gameFrame > 0 then 
+
+		if gameFrame > 0 then
 			addBarToFeature(featureID, 'featurehealth')
 		else
-			if health ~= maxhealth then addBarToFeature(featureID, 'featurehealth') end 
+			if health ~= maxhealth then addBarToFeature(featureID, 'featurehealth') end
 		end
-		
-		
+
+
 		if rezProgress > 0 then
 			addBarToFeature(featureID, 'featureresurrect')
 		end
@@ -1676,14 +1223,14 @@ function widget:FeatureCreated(featureID)
 		if reclaimLeft < 1.0 then
 			addBarToFeature(featureID, 'featurereclaim')
 		end
-		
-		if rezProgress > 0  or reclaimLeft < 1 then 
+
+		if rezProgress > 0  or reclaimLeft < 1 then
 			-- We have to update the feature uniform buffers in this case, as features can be created with less than max health on the map with FP_featureplacer
 			rezreclaim[1] = rezProgress -- resurrect progress
 			rezreclaim[2] = reclaimLeft -- reclaim percent
 			gl.SetFeatureBufferUniforms(featureID, rezreclaim, 1) -- update GL, at offset of 1
 		end
-		
+
 	end
 end
 
@@ -1696,7 +1243,7 @@ end
 function widget:DrawWorld()
 	--Spring.Echo(Engine.versionFull )
 	if chobbyInterface then return end
-	if not drawWhenGuiHidden and spIsGUIHidden() then return end
+	if not drawWhenGuiHidden and Spring.IsGUIHidden() then return end
 
     local now = os.clock()
 	if Spring.GetGameFrame() % 90 == 0 then

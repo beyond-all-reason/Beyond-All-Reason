@@ -7,7 +7,7 @@
 
 piece  rnano, lnano, torso, lforeleg, rforeleg, rhindleg,
        lhindleg, lbeamcase, rbeamcase,  pelvis,
-       rbeamhinge, lbeamhinge, aimy1 ;
+       rbeamhinge, lbeamhinge, aimy1, cagelight, cagelight_emit, cagelight2, cagelight_emit2 ;
 
 static-var  bMoving, notBuilding, nanoNozzle,  statechg_DesiredState, statechg_StateChanging;
             
@@ -136,6 +136,8 @@ Go()
 Stop()
 {
 	set INBUILDSTANCE to 0;
+	hide cagelight_emit;
+	hide cagelight_emit2;
 	
 	turn lbeamhinge to x-axis <0> speed <360>;
 	turn rbeamhinge to x-axis <0> speed <360>;
@@ -193,6 +195,8 @@ Create()
 	hide rnano;
 	hide lnano;
 	hide aimy1;
+	hide cagelight_emit;
+	hide cagelight_emit2;
 	bMoving = FALSE;
 	nanoNozzle = 0;
 	notBuilding = 1;
@@ -221,6 +225,10 @@ StartBuilding(heading, pitch)
 	turn aimy1 to y-axis heading speed <160.000000>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
+	show cagelight_emit;
+	show cagelight_emit2;
+	spin cagelight_emit around y-axis speed <450>;
+	spin cagelight_emit2 around y-axis speed <-450>;
 }
 
 StopBuilding()
@@ -229,6 +237,8 @@ StopBuilding()
 	hide lnano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
+	hide cagelight_emit;
+	hide cagelight_emit2;
 	sleep 6000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	

@@ -19,6 +19,8 @@ end
 --------------------------------------------------------------------------------
 
 local vsx, vsy = gl.GetViewSizes()
+
+local allowInteraction = false	-- hovering and ctrl+shift shows background + scrollable history
 local posY = 0.16
 local charSize = 19.5 - (3.5 * ((vsx/vsy) - 1.78))
 local charDelay = 0.018
@@ -27,7 +29,7 @@ local maxLinesScroll = 10
 local lineTTL = 15
 local fadeTime = 0.3
 local fadeDelay = 0.25   -- need to hover this long in order to fadein and respond to CTRL
-local backgroundOpacity = 0.18
+local backgroundOpacity = 0.17
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local widgetScale = (((vsx+vsy) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
@@ -256,43 +258,45 @@ function widget:DrawScreen()
 	if chobbyInterface then return end
 	if not messageLines[1] then return end
 
-	local x,y,b = Spring.GetMouseState()
-	if math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) or  (scrolling and math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[1]+lineMaxWidth+(charSize*2*widgetScale), activationArea[2]+activatedHeight))  then
-		hovering = true
-		if not startFadeTime then
-			startFadeTime = os.clock()
-		end
-		if scrolling then
-			glColor(0,0,0,backgroundOpacity)
-			RectRound(activationArea[1], activationArea[2], activationArea[1]+lineMaxWidth+(charSize*2*widgetScale), activationArea[2]+activatedHeight, elementCorner)
-		else
-			local opacity = ((os.clock() - (startFadeTime+fadeDelay)) / fadeTime) * backgroundOpacity
-			if opacity > backgroundOpacity then
-				opacity = backgroundOpacity
+	if allowInteraction then
+		local x,y,b = Spring.GetMouseState()
+		if math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) or  (scrolling and math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[1]+lineMaxWidth+(charSize*2*widgetScale), activationArea[2]+activatedHeight))  then
+			hovering = true
+			if not startFadeTime then
+				startFadeTime = os.clock()
 			end
-			glColor(0,0,0,opacity)
-			RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[4], elementCorner)
-		end
-	else
-		if hovering then
-			local opacityPercentage = (os.clock() - (startFadeTime+fadeDelay)) / fadeTime
-			startFadeTime = os.clock() - math.max((1-opacityPercentage)*fadeTime, 0)
-		end
-		hovering = false
-		if startFadeTime then
-			local opacity = backgroundOpacity - (((os.clock() - startFadeTime) / fadeTime) * backgroundOpacity)
-			if opacity > 1 then
-				opacity = 1
-			end
-			if opacity <= 0 then
-				startFadeTime = nil
+			if scrolling then
+				glColor(0,0,0,backgroundOpacity)
+				RectRound(activationArea[1], activationArea[2], activationArea[1]+lineMaxWidth+(charSize*2*widgetScale), activationArea[2]+activatedHeight, elementCorner)
 			else
+				local opacity = ((os.clock() - (startFadeTime+fadeDelay)) / fadeTime) * backgroundOpacity
+				if opacity > backgroundOpacity then
+					opacity = backgroundOpacity
+				end
 				glColor(0,0,0,opacity)
 				RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[4], elementCorner)
 			end
+		else
+			if hovering then
+				local opacityPercentage = (os.clock() - (startFadeTime+fadeDelay)) / fadeTime
+				startFadeTime = os.clock() - math.max((1-opacityPercentage)*fadeTime, 0)
+			end
+			hovering = false
+			if startFadeTime then
+				local opacity = backgroundOpacity - (((os.clock() - startFadeTime) / fadeTime) * backgroundOpacity)
+				if opacity > 1 then
+					opacity = 1
+				end
+				if opacity <= 0 then
+					startFadeTime = nil
+				else
+					glColor(0,0,0,opacity)
+					RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[4], elementCorner)
+				end
+			end
+			scrolling = false
+			currentLine = #messageLines
 		end
-		scrolling = false
-		currentLine = #messageLines
 	end
 
 	if messageLines[currentLine] then
@@ -330,7 +334,7 @@ function widget:DrawScreen()
 end
 
 function widget:MouseWheel(up, value)
-	if scrolling then
+	if allowInteraction and scrolling then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if up then
 			currentLine = currentLine - (shift and maxLinesScroll or (ctrl and 3 or 1))

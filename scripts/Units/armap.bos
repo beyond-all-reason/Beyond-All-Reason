@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad, nano3, nano4, nano2, nano1, head1, head2, head3, head4, cil, dish, blink;
+piece  base, pad, nano3, nano4, nano2, nano1, head1, head2, head3, head4, cil, dish, blink, cagelight, cagelight_emit;
 
 static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
@@ -94,6 +94,8 @@ Go()
 Stop()
 {
 	set INBUILDSTANCE to 0;
+	hide cagelight_emit;
+	//turn cagelight to y-axis <0> speed <1000>;
 	call-script CloseYard();
 	call-script deactivatescr();
 }
@@ -147,16 +149,17 @@ Create()
 	hide nano2;
 	hide nano3;
 	hide nano4;
+	hide cagelight_emit;
 	hide blink;
 	hide pad;
 	unitviewer = FALSE;
 	spray = nano1;
 	call-script InitState();
-	start-script Lights();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
 	}
+	start-script Lights();
 }
 
 #define SMOKEPIECE base
@@ -218,6 +221,8 @@ StartBuilding()
 	show nano2;
 	show nano3;
 	show nano4;
+	show cagelight_emit;
+	spin cagelight_emit around y-axis speed <175>;
 	spin pad around y-axis speed <30.005495>;
 	return (0);
 }
@@ -228,6 +233,7 @@ StopBuilding()
 	hide nano2;
 	hide nano3;
 	hide nano4;
+	hide cagelight_emit;
 	stop-spin pad around y-axis;
 	return (0);
 }

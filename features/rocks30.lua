@@ -27,7 +27,7 @@ local Base	=	{
 	}, 
 }
 
-local biomes = { def="", snow = "Snowy ", moss = "Mossy " , desert = "Barren "}
+local biomes = { def="", snow = "Snowy ", moss = "Mossy " , desert = "Barren ", map = ""}
 
 local rocks = {}
 for biome, descname in pairs(biomes) do 

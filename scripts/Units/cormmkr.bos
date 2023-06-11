@@ -33,6 +33,7 @@ MMStatus(State)
 
 Create()
 {
+	Active = 0;
 }
 
 #define SMOKEPIECE base
