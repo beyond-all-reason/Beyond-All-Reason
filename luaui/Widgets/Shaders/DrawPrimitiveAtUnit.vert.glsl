@@ -28,9 +28,8 @@ struct SUniformsBuffer {
     float unused5;
     float unused6;
     
-    vec4 drawPos;
-    vec4 speed;
-    vec4[4] userDefined; //can't use float[16] because float in arrays occupies 4 * float space
+    vec4 speed;    
+    vec4[5] userDefined; //can't use float[20] because float in arrays occupies 4 * float space
 };
 
 layout(std140, binding=1) readonly buffer UniformsBuffer {
