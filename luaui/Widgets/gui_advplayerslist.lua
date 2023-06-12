@@ -48,7 +48,7 @@ end
 	v35   (Floris): support anonymous mode: all same color + hide cpuping info
 	v36   (Floris): show grey player name for missing + dead players
 	v37   (Floris/Borg_King):  add support for much larger player/spec counts  64 -> 256
-	v38   (Floris): significant performance improvement
+	v38   (Floris): significant performance improvement, + fast updating resources
 ]]
 --------------------------------------------------------------------------------
 -- Config
@@ -2277,7 +2277,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                 local ms = player[playerID].metalStorage
                 local mi = player[playerID].metalIncome
                 if es > 0 then
-                    if m_resources.active then
+                    if m_resources.active and (not dead or (e > 0 or m > 0)) then
                         DrawResources(e, es, m, ms, posY, dead, (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][1])), (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][2])))
                         if tipY then
                             ResourcesTip(mouseX, e, es, ei, m, ms, mi)
