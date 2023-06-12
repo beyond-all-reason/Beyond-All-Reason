@@ -694,7 +694,6 @@ function widget:ViewResize()
 	pageFontSize = categoryFontSize
 	categoryButtonHeight = math_floor(2.3 * categoryFontSize * ui_scale)
 	builderButtonSize = categoryButtonHeight * 2
-	pageButtonHeight = categoryButtonHeight
 
 	activeAreaMargin = math_ceil(bgpadding * Cfgs.cfgActiveAreaMargin)
 
@@ -713,7 +712,7 @@ function widget:ViewResize()
 		local posYEnd = 0
 		local posX = math_floor(ordermenuLeft*vsx) + widgetSpaceMargin
 		local height = posY
-		builderButtonSize = pageButtonHeight * 1.75
+		builderButtonSize = categoryButtonHeight * 1.75
 
 		rows = 2
 		columns = 6
@@ -724,16 +723,9 @@ function widget:ViewResize()
 		-- assemble rects left to right
 		categoriesAndPagesRect = Rect:new(
 			posX + bgpadding,
-			posYEnd + pageButtonHeight + bgpadding,
+			posYEnd,
 			posX + categoryWidth,
 			posY - bgpadding
-		)
-
-		paginatorsRect = Rect:new(
-			posX + bgpadding,
-			posYEnd + bgpadding,
-			posX + categoryWidth,
-			categoriesRect.y
 		)
 
 		buildpicsRect = Rect:new(
@@ -1159,15 +1151,24 @@ local function drawCategories()
 		end
 		
 	
-	elseif currentCategory and not stickToBottom then
+	elseif currentCategory then
 		local backText = "Back"
-		local width = (categoriesAndPagesRect.xEnd - categoriesAndPagesRect.x) / 3
-		backRect = Rect:new(categoriesAndPagesRect.x, categoriesAndPagesRect.y, categoriesAndPagesRect.xEnd - (width * 2) - (bgpadding * 2), categoriesAndPagesRect.yEnd)
-		local buttonWidth = backRect.xEnd - backRect.x
-		local buttonHeight = backRect.yEnd - backRect.y
-		local heightOffset = backRect.yEnd - font2:GetTextHeight(backText) * pageFontSize * 0.35 - buttonHeight/2
-		font2:Print("⟵", backRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
-		font2:Print(backText, backRect.x + (buttonWidth * 0.4), heightOffset, pageFontSize * 1.1, "co")
+		local buttonWidth 
+		local buttonHeight
+		if stickToBottom then
+			buttonHeight = (categoriesAndPagesRect.yEnd - categoriesAndPagesRect.y) / 3
+			backRect = Rect:new(categoriesAndPagesRect.x, categoriesAndPagesRect.y + bgpadding, categoriesAndPagesRect.xEnd, categoriesAndPagesRect.y + buttonHeight)
+			buttonWidth = backRect.xEnd - backRect.x
+			local heightOffset = backRect.yEnd - font2:GetTextHeight(backText) * pageFontSize * 0.35 - buttonHeight/2
+			font2:Print(backText, backRect.x + (buttonWidth * 0.25), heightOffset, pageFontSize, "co")
+		else
+			buttonWidth = (categoriesAndPagesRect.xEnd - categoriesAndPagesRect.x) / 3
+			backRect = Rect:new(categoriesAndPagesRect.x, categoriesAndPagesRect.y, categoriesAndPagesRect.xEnd - (buttonWidth * 2) - (bgpadding * 2), categoriesAndPagesRect.yEnd)
+			buttonHeight = backRect.yEnd - backRect.y
+			local heightOffset = backRect.yEnd - font2:GetTextHeight(backText) * pageFontSize * 0.35 - buttonHeight/2
+			font2:Print("⟵", backRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
+			font2:Print(backText, backRect.x + (buttonWidth * 0.3), heightOffset, pageFontSize * 1.1, "co")
+		end
 
 		local opts = {
 			highlight = false,
@@ -1185,11 +1186,13 @@ local function drawCategories()
 			end
 		end
 		local catIcon = Cfgs.categoryIcons[categoryIndex]
-		catLabelRect = Rect:new(backRect.xEnd + bgpadding, categoriesAndPagesRect.y, categoriesAndPagesRect.xEnd - width - bgpadding, categoriesAndPagesRect.yEnd)
-
-		buttonHeight = catLabelRect.yEnd - catLabelRect.y
+		if stickToBottom then 
+			catLabelRect = Rect:new(categoriesAndPagesRect.x, categoriesAndPagesRect.y + buttonHeight + bgpadding, categoriesAndPagesRect.xEnd, categoriesAndPagesRect.yEnd - buttonHeight - bgpadding)
+		else
+			catLabelRect = Rect:new(backRect.xEnd + bgpadding, categoriesAndPagesRect.y, categoriesAndPagesRect.xEnd - buttonWidth - bgpadding, categoriesAndPagesRect.yEnd)
+		end
 		heightOffset = catLabelRect.yEnd - font2:GetTextHeight(currentCategory) * pageFontSize * 0.35 - buttonHeight/2
-		font2:Print(currentCategory, catLabelRect.x + (width / 3), heightOffset, pageFontSize, "co")
+		font2:Print(currentCategory, catLabelRect.x + (buttonWidth / 3), heightOffset, pageFontSize, "co")
 		local catOpts = {}
 		drawCatLabel(catLabelRect, catOpts, catIcon)
 	end
@@ -1210,19 +1213,20 @@ local function drawPaginators()
 		hovered = false,
 	}
 
-	local buttonHeight = nextPageRect.yEnd - nextPageRect.y
-	local buttonWidth = nextPageRect.xEnd - nextPageRect.x
-	local heightOffset = nextPageRect.yEnd - font2:GetTextHeight(pagesText) * pageFontSize * 0.2 - buttonHeight/2
-
 	if stickToBottom then
-		nextPageRect = Rect:new(categoriesAndPagesRect.x, categoriesAndPagesRect.y, categoriesAndPagesRect.xEnd, categoriesAndPagesRect.yEnd)
+		local buttonHeight = (categoriesAndPagesRect.yEnd - categoriesAndPagesRect.y) / 3
+		nextPageRect = Rect:new(categoriesAndPagesRect.x, categoriesAndPagesRect.yEnd - buttonHeight, categoriesAndPagesRect.xEnd, categoriesAndPagesRect.yEnd)
 		nextPageText = "\255\245\245\245" .. "Page " .. currentPage .. "/" .. pages .. " 🠚"
+		local heightOffset = nextPageRect.yEnd - font2:GetTextHeight(pagesText) * pageFontSize * 0.2 - buttonHeight/2
 		font2:Print(nextPageText, nextPageRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
 	else
 		local width = categoriesAndPagesRect.xEnd - categoriesAndPagesRect.x
 		nextPageRect = Rect:new(categoriesAndPagesRect.x + (2 * (width / 3)) + (2 * bgpadding), categoriesAndPagesRect.y, categoriesAndPagesRect.xEnd, categoriesAndPagesRect.yEnd)
+		local buttonHeight = nextPageRect.yEnd - nextPageRect.y
+		local buttonWidth = nextPageRect.xEnd - nextPageRect.x
+		local heightOffset = nextPageRect.yEnd - font2:GetTextHeight(pagesText) * pageFontSize * 0.2 - buttonHeight/2
 		font2:Print(pagesText, nextPageRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
-		font2:Print(nextPageText, nextPageRect.x + (buttonWidth * 0.65), heightOffset, pageFontSize, "co")
+		font2:Print(nextPageText, nextPageRect.x + (buttonWidth * 0.55), heightOffset, pageFontSize, "co")
 	end
 
 	drawButtonHotkey(nextPageRect, nextKeyText)
