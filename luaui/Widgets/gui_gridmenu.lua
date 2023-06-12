@@ -567,15 +567,6 @@ local function nextPageHandler()
 	return true
 end
 
-local function gridmenuCategoriesHandler()
-	if not (activeBuilder and currentCategory) then return end
-
-	currentCategory = nil
-	doUpdate = true
-
-	return true
-end
-
 function widget:Initialize()
 	if widgetHandler:IsWidgetKnown("Build menu") then
 		widgetHandler:DisableWidget("Build menu")
@@ -588,7 +579,6 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_cycle_builder", cycleBuilder, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_key", gridmenuKeyHandler, nil, "pR")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_category", gridmenuCategoryHandler, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "gridmenu_categories", gridmenuCategoriesHandler, nil, "p")
 
 	reloadBindings()
 
@@ -921,25 +911,30 @@ end
 
 local function drawButton(rect, opts, icon)
 	opts = opts or {}
+	local disabled = opts.disabled or false
 	local highlight = opts.highlight
 	local hovered = opts.hovered
 
 	local padding = math_max(1, math_floor(bgpadding * 0.52))
 
-	local color1 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- bottom
-	local color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- top
+	local color = highlight and 0.2 or 0
+
+	local color1 = { color, color, color, math_max(0.55, math_min(0.95, ui_opacity * 1.25)) }	-- bottom
+	local color2 = { color, color, color, math_max(0.55, math_min(0.95, ui_opacity * 1.25)) }	-- top
 
 	if highlight then
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
-		gl.Color(0, 0, 0, 0.75)
+		gl.Color(0, 0, 0, 0.1)
 	end
 
 	UiButton(rect.x, rect.y, rect.xEnd, rect.yEnd, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
 
+	local dim = disabled and 0.4 or 1.0
+
 	if icon then
 		local iconSize = math.min(math.floor((rect.yEnd - rect.y) * 1.1), categoryButtonHeight)
 		icon = ":l:" .. icon
-		gl.Color(1, 1, 1, 0.9)
+		gl.Color(dim, dim, dim, 0.9)
 		gl.Texture(icon)
 		gl.BeginEnd(GL.QUADS, TexRectRound, rect.x + (bgpadding / 2), rect.yEnd - iconSize, rect.x + iconSize, rect.yEnd - (bgpadding / 2),  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
 		--	gl.TexRect(px, sy - iconSize, px + iconSize, sy)
@@ -1126,7 +1121,8 @@ local function drawCategories()
 		end
 	end
 
-	-- set up buttons:
+
+	-- set up buttons
 	if not currentCategory then
 		for catIndex, cat in pairs(categories) do
 			local catText = cat
@@ -1814,15 +1810,19 @@ function widget:KeyPress(key, modifier, isRepeat)
 	end
 end
 
+function clearCategory()
+	currentCategory = nil
+	Spring.SetActiveCommand(0, 0, false, false, Spring.GetModKeyState())
+	doUpdate = true
+end
+
 function widget:KeyRelease(key)
 	if key ~= KEYSYMS.LSHIFT then return end
 
 	if isPregame then
 		setPreGamestartDefID(nil)
 	else
-		currentCategory = nil
-		Spring.SetActiveCommand(0, 0, false, false, Spring.GetModKeyState())
-		doUpdate = true
+		clearCategory()
 	end
 end
 
@@ -1844,8 +1844,7 @@ function widget:MousePress(x, y, button)
 
 			if backRect and backRect:contains(x, y) then
 				Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
-				currentCategory = nil
-				doUpdate = true
+				clearCategory()
 			end
 
 			for i, rect in pairs(builderRects) do
@@ -1865,7 +1864,6 @@ function widget:MousePress(x, y, button)
 				for cat, catRect in pairs(catRects) do
 					if catRect:contains(x, y) then
 						currentCategory = cat
-						switchedCategory = os.clock()
 						Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
 
 						doUpdate = true

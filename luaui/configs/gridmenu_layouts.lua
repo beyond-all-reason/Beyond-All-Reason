@@ -587,9 +587,9 @@ local unitGrids = {
 			{ "armuwes", "armuwms", },                        -- uw e stor, uw m stor
 		},
 		{
-			{ "armtl", "armfhlt", },                          -- offshore torp launcher, floating HLT
+			{ "armtl", "armfhlt", "", "armclaw", },                          -- offshore torp launcher, floating HLT
 			{ "armfrt", },                                    -- floating AA
-			{ "armdl", "armguard", "armclaw", },              -- coastal torp launcher, guardian, lightning turret
+			{ "armdl", "armguard", },              -- coastal torp launcher, guardian, lightning turret
 		},
 		{
 			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
@@ -609,9 +609,9 @@ local unitGrids = {
 			{ "coruwes", "coruwms", },                        -- uw e stor, uw m stor
 		},
 		{
-			{ "cortl", "corfhlt", },                          -- offshore torp launcher, floating HLT
+			{ "cortl", "corfhlt", "", "cormaw" },                          -- offshore torp launcher, floating HLT
 			{ "corfrt", },                                    -- floating AA
-			{ "cordl", "corpun", "cormaw", },                 -- coastal torp launcher, punisher, flame turret
+			{ "cordl", "corpun", },                 -- coastal torp launcher, punisher, flame turret
 		},
 		{
 			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
