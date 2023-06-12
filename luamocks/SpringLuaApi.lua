@@ -1,3 +1,4 @@
+---@meta
 --==================================================================================================
 --    Copyright (C) <2016>  <Florian Seidl-Schulz>
 --This program is free software: you can redistribute it and/or modify
@@ -13,7 +14,7 @@
 --==================================================================================================
 --Variables for the MockUp
 
----@meta
+
 ---@type number
 numberMock =42
 stringMock ="TestString"
@@ -402,6 +403,7 @@ function Spring.CreateUnit (  unitDefName, x, y , z, facing, teamID, build, flat
 	assert(type(teamID) == "number","Argument unitID is of invalid type - expected number");
 	return  numberMock
 end
+
 
 ---@param UnitID number
 ---@param selfd? boolean # if true, Makes the unit act like it self-destructed.
@@ -1259,11 +1261,21 @@ function Spring.UseUnitResource (unitID, resource)
 	return booleanMock
 end
 
+--==================================================================================================
+-- Decals
+--==================================================================================================
+
+---@param unitID number
+
+function Spring.AddObjectDecal(unitID) end
+
+
 --===================================
 
 ---@param transporterID number
 ---@param passengerID number
 ---@param pieceNum number
+---@class a
 function Spring.UnitAttach (transporterID, passengerID, pieceNum)
 	assert(type(transporterID) == "number","Argument transporterID is of invalid type - expected number");
 	assert(type(passengerID) == "number","Argument passengerID is of invalid type - expected number");
