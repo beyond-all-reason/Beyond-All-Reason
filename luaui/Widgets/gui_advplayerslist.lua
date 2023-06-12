@@ -192,8 +192,8 @@ local blink = true
 local lastTime = 0
 local now = 0
 
-local timeCounter = 0
-local timeFastCounter = 0
+local timeCounter = 9
+local timeFastCounter = 9
 local updateRate = 0.75
 local updateFastRate = 0.1 -- only updates resources
 local updateRatePreStart = 0.25
@@ -320,7 +320,7 @@ local teamN
 local prevClickTime = os.clock()
 local specListShow = true
 local enemyListShow = true
-local forceMainListRefresh = false
+local forceMainListRefresh = true
 
 --------------------------------------------------
 -- Modules
@@ -1820,7 +1820,20 @@ function widget:DrawScreen()
     end
 end
 
-function CreateLists(onlyMainList2, onlyMainList3)
+function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
+    if not onlyMainList and not onlyMainList2 and not onlyMainList3 then
+        onlyMainList = true
+        onlyMainList2 = true
+        if m_resources.active or m_income.active then
+            onlyMainList3 = true
+        end
+    end
+    if onlyMainList2 then
+        timeCounter = 0
+    end
+    if onlyMainList3 then
+        timeFastCounter = 0
+    end
     if onlyMainList2 then
         if tipTextTime+updateFastRate < os.clock() then
             tipText = nil
@@ -1834,16 +1847,16 @@ function CreateLists(onlyMainList2, onlyMainList3)
     if not onlyMainList3 then
         GetAliveAllyTeams()
     end
-
     if onlyMainList3 then
         if m_resources.active or m_income.active then
             UpdateResources()
+            UpdatePlayerResources()
         end
-        UpdatePlayerResources()
-    else
+    end
+    if onlyMainList then
         CreateBackground()
     end
-    CreateMainList(onlyMainList2, onlyMainList3)
+    CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
     if onlyMainList2 then
         CreateShareSlider()
     end
@@ -1967,7 +1980,7 @@ function CheckTime()
     end
 end
 
-function CreateMainList(onlyMainList2, onlyMainList3)
+function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
     local mouseX, mouseY = Spring_GetMouseState()
 
     local prevNumberOfSpecs = numberOfSpecs
@@ -2002,7 +2015,7 @@ function CreateMainList(onlyMainList2, onlyMainList3)
         forceMainListRefresh = false
     end
 
-    if not onlyMainList2 and not onlyMainList3 then
+    if onlyMainList then
         local leader
         if MainList then
             MainList = gl_DeleteList(MainList)
@@ -2047,7 +2060,7 @@ function CreateMainList(onlyMainList2, onlyMainList3)
                 elseif drawObject == -1 then
                     leader = true
                 else
-                    DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, false, false)
+                    DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, true, false, false)
                 end
 
                 -- draw player tooltip later so they will be on top of players drawn below
@@ -2073,7 +2086,7 @@ function CreateMainList(onlyMainList2, onlyMainList3)
                 if drawObject == -1 then
                     leader = true
                 elseif drawObject >= 0 then
-                    DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, true, false)
+                    DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, false, true, false)
                 end
             end
         end)
@@ -2089,7 +2102,7 @@ function CreateMainList(onlyMainList2, onlyMainList3)
                 if drawObject == -1 then
                     leader = true
                 elseif drawObject >= 0 then
-                    DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, false, true)
+                    DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, false, false, true)
                 end
             end
         end)
@@ -2125,12 +2138,10 @@ end
 
 -- onlyMainList2 to only draw dynamic stuff like ping/alliances/buttons
 -- onlyMainList3 to only draw resources
-function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList2, onlyMainList3)
+function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onlyMainList2, onlyMainList3)
     --if hideDeadTeams and player[playerID].dead then --and not player[playerID].totake then   -- totake is still active when teammates
     --    return
     --end
-
-    local onlyMainList = not onlyMainList2 and not onlyMainList3
 
     player[playerID].posY = vOffset
 
@@ -3772,7 +3783,6 @@ function widget:Update(delta)
             reportTake = false
         end
     end
-
     -- update lists to take account of allyteam faction changes before gamestart
     if not curFrame or curFrame <= 0 then
         if timeCounter < updateRatePreStart then
@@ -3783,14 +3793,13 @@ function widget:Update(delta)
             CreateLists()
         end
     end
-
-    if timeFastCounter > updateFastRate or timeCounter > updateRate or forceMainListRefresh then
-        CreateLists(forceMainListRefresh or timeCounter > updateRate, forceMainListRefresh or timeFastCounter > updateFastRate)
-        if forceMainListRefresh or timeCounter > updateRate then
-            timeCounter = 0
-        end
-        if forceMainListRefresh or timeFastCounter > updateFastRate then
-            timeFastCounter = 0
+    if forceMainListRefresh then
+        CreateLists()
+    else
+        local updateMainList2 = timeCounter > updateRate
+        local updateMainList3 = ((m_resources.active or m_income.active) and timeFastCounter > updateFastRate)
+        if updateMainList2 or updateMainList3 then
+            CreateLists(false, updateMainList2, updateMainList3)
         end
     end
 end
