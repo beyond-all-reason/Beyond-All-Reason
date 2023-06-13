@@ -3628,6 +3628,8 @@ function init()
 		--  end,
 		--},
 
+		{ id = "highlightunit", group = "ui", category = types.advanced, widget = "Highlight Unit GL4", name = Spring.I18N('ui.settings.option.highlightunit'), type = "bool", value = GetWidgetToggleValue("Highlight Unit GL4"), description = Spring.I18N('ui.settings.option.highlightunit_descr') },
+
 		{ id = "cursorlight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.cursorlight'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.cursorlight_descr'),
 		  onload = function(i)
 			loadWidgetData("Deferred rendering GL4", "cursorlight", { 'showPlayerCursorLight' })

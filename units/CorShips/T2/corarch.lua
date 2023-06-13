@@ -140,6 +140,9 @@ return {
 				damage = {
 					default = 0,
 				},
+				customparams = {
+					bogus = 1
+				}
 			},
 			ga2 = {
 				areaofeffect = 64,

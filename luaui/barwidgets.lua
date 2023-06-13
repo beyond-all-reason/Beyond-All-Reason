@@ -1257,7 +1257,7 @@ function widgetHandler:ViewResize(vsx, vsy)
 		vsx = vsx.viewSizeX
 		print('real ViewResize') -- FIXME
 	end
-	
+
 	tracy.ZoneBeginN("W:ViewResize")
 	if widgetHandler.WG.FlowUI then
 		tracy.ZoneBeginN("W:ViewResize:FlowUI")
@@ -1374,7 +1374,7 @@ function widgetHandler:DrawShadowFeaturesLua()
 end
 
 function widgetHandler:DrawPreDecals()
-	
+
 	tracy.ZoneBeginN("W:DrawPreDecals")
 	for _, w in r_ipairs(self.DrawPreDecalsList) do
 		w:DrawPreDecals()
@@ -1570,7 +1570,6 @@ function widgetHandler:MousePress(x, y, button)
 	end
 
 	local hasMouseOwner = self.mouseOwner ~= nil
-
 	if widgetHandler.WG.SmartSelect_MousePress2 then
 		widgetHandler.WG.SmartSelect_MousePress2(x, y, button, hasMouseOwner)
 	end
@@ -1830,7 +1829,7 @@ function widgetHandler:UpdateSelection()
 		end
 	end
 	oldSelection = newSelection
-	
+
 	tracy.ZoneEnd()
 	return false
 end
@@ -1838,10 +1837,6 @@ end
 function widgetHandler:SelectionChanged(selectedUnits, subselection)
 	tracy.ZoneBeginN("W:SelectionChanged")
 	for _, w in ipairs(self.SelectionChangedList) do
-		if widgetHandler.WG.smartselect and not widgetHandler.WG.smartselect.updateSelection then
-			tracy.ZoneEnd()
-			return
-		end
 		local unitArray = w:SelectionChanged(selectedUnits, subselection)
 		if unitArray then
 			Spring.SelectUnitArray(unitArray)
@@ -1948,10 +1943,10 @@ function widgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	for _, w in ipairs(self.UnitCreatedList) do
 
 		w:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	end	
+	end
 	tracy.ZoneEnd()
 	return
-end	
+end
 
 function widgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
 	for _, w in ipairs(self.UnitFinishedList) do

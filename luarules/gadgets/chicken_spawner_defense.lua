@@ -1407,14 +1407,14 @@ if gadgetHandler:IsSyncedCode() then
 				-- 	size = "m"
 				-- 	eggValue = 200
 				-- end
-				local eggValue = 100
+				local eggValue = 200
 				local size = "s"
-				if targetEggValue - totalEggValue > 1500 then
+				if targetEggValue - totalEggValue > 8000 then
 					size = "l"
-					eggValue = 500
-				elseif targetEggValue - totalEggValue > 600 then
+					eggValue = 2000
+				elseif targetEggValue - totalEggValue > 2000 then
 					size = "m"
-					eggValue = 200
+					eggValue = 500
 				end
 				totalEggValue = totalEggValue + eggValue
 				if config.chickenEggs[name] and config.chickenEggs[name] ~= "" then
@@ -1501,17 +1501,16 @@ if gadgetHandler:IsSyncedCode() then
 				techAnger = 0
 				minBurrows = SetCount(humanTeams)
 			else
+				if pastFirstQueen then
+					techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((queenTime/Spring.GetModOptions().chicken_queentimemult) - config.gracePeriod) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 999), 0)
+				else
+					techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().chicken_graceperiodmult)) / ((queenTime/Spring.GetModOptions().chicken_queentimemult) - (config.gracePeriod/Spring.GetModOptions().chicken_graceperiodmult)) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 999), 0)
+				end
 				if not queenID then
 					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + queenAngerAgressionLevel, 100), 0)
-					if pastFirstQueen then
-						techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 100), 0)
-					else
-						techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().chicken_graceperiodmult)) / (queenTime - (config.gracePeriod/Spring.GetModOptions().chicken_graceperiodmult)) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 100), 0)
-					end
 					minBurrows = SetCount(humanTeams)
 				else
 					queenAnger = 100
-					techAnger = 100
 					minBurrows = 1
 				end
 				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgression*0.01)/(config.queenTime/3600)) + playerAgressionEcoValue
@@ -1628,7 +1627,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
 		if unitTeam == chickenTeamID then
-			if config.useEggs then
+			if config.useEggs and (not (gameIsOver or queenID)) then
 				local x,y,z = Spring.GetUnitPosition(unitID)
 				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 1)
 			end
@@ -1689,7 +1688,7 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				gameOver = GetGameFrame() + 200
 				spawnQueue = {}
-
+				gameIsOver = true
 				-- kill whole allyteam  (game_end gadget will destroy leftover units)
 				if not killedChickensAllyTeam then
 					killedChickensAllyTeam = true

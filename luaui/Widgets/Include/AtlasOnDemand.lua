@@ -49,6 +49,8 @@
 -- add arbitrary splitting, and better configability of atlas
 -- Add CustomTask for drawing mixed mode stuff, which should draw a display list (or even just a function, just like a display list?)
 -- Centering/Labeling: So for this case, we should try to draw centered, onto a given sized part of the atlas!
+-- do centering despite padding for the outline!
+-- maybe pad should be 8th param of uvcoords?
 -- Fix font color tracking
 -- Add a return value for fonts that show the descender line, to consistently be able to position fontses // https://springrts.com/wiki/GetTextHeight
 
@@ -260,14 +262,14 @@ local function MakeAtlasOnDemand(config)
 				-- create render task
 				local task = {id =id, w = xsize, h =  ysize, x = (xpos-1) * xresolution, y = (ypos-1) * yresolution}
 				local uvcoords = {
-					(xpos -1 ) / self.xslots + self.padx *0,
+					x = (xpos -1 ) / self.xslots + self.padx *0,
 					--(xpos + xstep - 1) / self.xslots - self.padx *0, -- this is incorrect, it should be up the extents only
-					(xpos -1 ) / self.xslots + self.padx *0 + xsize/self.xsize,
+					X = (xpos -1 ) / self.xslots + self.padx *0 + xsize/self.xsize,
 
-					(ypos  -1)  / self.yslots + self.pady *0,
-					(ypos  -1 ) / self.yslots - self.pady *0 + ysize/self.ysize,
+					y = (ypos  -1)  / self.yslots + self.pady *0,
+					Y = (ypos  -1 ) / self.yslots - self.pady *0 + ysize/self.ysize,
 					--(ypos + ystep -1 ) / self.yslots - self.pady *0,
-					xsize, ysize,
+					w = xsize, h = ysize, id = id,
 				}
 				-- Add it to uvcoords map
 				self.uvcoords[id] = uvcoords
@@ -353,7 +355,7 @@ local function MakeAtlasOnDemand(config)
 			else
 				if not self.defaultfont then 
 					Spring.Echo(string.format("AtlasOnDemand %s Warning: text %s without font cannot be added because atlas has no default font set", self.name, tostring(id)))
-					self.uvcoords[text] = {0,1,0,1,1,1} -- add a fallback so we only warn once per item
+					self.uvcoords[text] = {x = 0,X = 1,y = 0,Y = 1,w = 1,h = 1, id = id} -- add a fallback so we only warn once per item
 					return self.uvcoords[text]
 				else
 					-- we have a default font 
@@ -437,7 +439,7 @@ local function MakeAtlasOnDemand(config)
 			task.textparams = textparams
 			self.renderTextTaskList[#self.renderTextTaskList + 1 ] = task 
 		end
-		uvcoords[7] = textdescender
+		uvcoords.d = textdescender
 		self.uvcoords[textparams.id] = uvcoords
 		return uvcoords
 	end
@@ -448,10 +450,10 @@ local function MakeAtlasOnDemand(config)
 	-- @param id the identifier of the item, needed for clearing its uv coordinate cache
 	function AtlasOnDemand:RemoveFromAtlas(uvcoords, id)
 		-- since it kinda has to by dynamic, it would be nice if we could mark some space as free on this
-		local xmin = math.floor(uvcoords[1] * self.xslots)
-		local xmax =  math.ceil(uvcoords[2] * self.xslots)
-		local ymin = math.floor(uvcoords[3] * self.xslots)
-		local ymax =  math.ceil(uvcoords[4] * self.xslots)
+		local xmin = math.floor(uvcoords.x * self.xslots)
+		local xmax =  math.ceil(uvcoords.X * self.xslots)
+		local ymin = math.floor(uvcoords.y * self.xslots)
+		local ymax =  math.ceil(uvcoords.Y * self.xslots)
 		for x = xmin, xmax -1 do 
 			self.firstemptyrow = math.min(self.firstemptyrow, x)
 			for y = ymin, ymax -1 do 
@@ -580,6 +582,31 @@ local function MakeAtlasOnDemand(config)
 		currentParams.font:End()
 		gl.PopMatrix()
 	end
+	
+	--- this is a funny func, hijacks a common misspelling
+	-- @param id the id of the text element. Better be freaking unique
+	-- @param x x pos of left of text
+	-- @param y y pos of bottom line of text (note that its without descender and padding)
+	-- @param align x alignment override, one of 'c', 'r', 'l'
+	function AtlasOnDemand:TextRect(id,x,y, align)
+			local uvcoords = self.uvcoords[id]
+			if not uvcoords then 
+				Spring.Echo("AtlasOnDemand:TextRect cannot find id", id)
+			end
+			local ypos = y
+			local xpos = x
+			if align then
+				if align == 'c' then 
+						gl.TexRect(x - uvcoords.w/2,y - uvcoords.d, x + uvcoords.w/2, y + uvcoords.h - uvcoords.d,uvcoords.x, uvcoords.y, uvcoords.X, uvcoords.Y)
+
+				elseif align == 'r' then 
+						gl.TexRect(x - uvcoords.w,y - uvcoords.d, x, y + uvcoords.h - uvcoords.d,uvcoords.x, uvcoords.y, uvcoords.X, uvcoords.Y)
+				end
+			else
+				
+				gl.TexRect(x,y - uvcoords.d, x + uvcoords.w, y + uvcoords.h - uvcoords.d,uvcoords.x, uvcoords.y, uvcoords.X, uvcoords.Y)
+			end
+	end
 
 	---Perform the render target switch and draw all pending tasks
 	-- Take care when you call this, ideally, right before drawing with the atlas, its quite lightweight, so dont worry about that part. 
@@ -630,12 +657,11 @@ local function MakeAtlasOnDemand(config)
 		
 		if aliastest then 
 			local aliasUV = self.uvcoords[self.aliasing_grid_test_image]
-			Spring.Echo( aliasUV[1],aliasUV[3],aliasUV[2],aliasUV[4],aliasUV[5],aliasUV[6])
-			local x, X, y, Y, w, h = aliasUV[1],aliasUV[2],aliasUV[3],aliasUV[4],aliasUV[5],aliasUV[6],aliasUV[5],aliasUV[6]
+			Spring.Echo( aliasUV.x,aliasUV.y,aliasUV.X,aliasUV.Y,aliasUV.w,aliasUV.h)
 			local xs = 0
 			for i =1, 6 do
-				gl.TexRect(xs, vsy - i * h, xs + i*w, vsy, x,y, X, Y)
-				xs = xs + i * w
+				gl.TexRect(xs, vsy - i * aliasUV.h, xs + i*aliasUV.w, vsy, aliasUV.x,aliasUV.y, aliasUV.X, aliasUV.Y)
+				xs = xs + i * aliasUV.w
 			end
 		end
 		

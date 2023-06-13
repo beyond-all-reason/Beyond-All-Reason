@@ -9,6 +9,9 @@ piece  flare1, flare2, flare3, flare4, flare5, flare6, base, turret,
 
 static-var  gun_1;
 static-var out_of_arc_count;
+static-var global_pitch;
+static-var global_heading;
+static-var recoiling;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -24,6 +27,8 @@ static-var out_of_arc_count;
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
+static-var weapon1_active_accuracy, weapon1_default_accuracy;
+static-var weapon1_active_range, weapon1_default_range;
 Create()
 {
 	hide flare6;
@@ -45,7 +50,14 @@ Create()
 	turn flare5 to x-axis <-235> now;
 	turn flare6 to x-axis <-295> now;
 	gun_1 = flare1;
+	global_pitch = -1000000;
+	global_heading = -1000000;
+	recoiling = 0;
   out_of_arc_count = 0;
+	weapon1_default_accuracy = 0;
+	weapon1_active_accuracy = 0;
+	weapon1_default_range = 100;
+	weapon1_active_range = 100;
 	return (0);
 }
 
@@ -56,6 +68,8 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	turn turret to y-axis <0.000000> speed <20.000000>;
+	global_pitch = -1000000;
+	global_heading = -1000000;
 }
 SetStunned(State)
 {
@@ -68,6 +82,37 @@ RestoreAfterDelay()
 {
 	sleep 3000;
 	start-script ExecuteRestoreAfterDelay();
+}
+
+// control tremor mode firing here
+// unit_turretspeed.lua modified, so unitdef values can be fed into this COB script
+
+SetWeapon1accuracy(default_accuracy,active_accuracy)
+{
+	weapon1_default_accuracy = default_accuracy;
+	weapon1_active_accuracy = active_accuracy;
+}
+
+SetWeapon1range(default_range,active_range)
+{
+	weapon1_default_range = default_range;
+	weapon1_active_range = active_range;
+}
+
+Activate()
+{
+	//get WEAPON_ACCURACY(-1,2400*4);
+	//get WEAPON_RANGE(-1,65536*1470);
+	get WEAPON_ACCURACY(-1,weapon1_active_accuracy);
+	get WEAPON_RANGE(-1,weapon1_active_range);
+}
+
+Deactivate()
+{
+	//get WEAPON_ACCURACY(-1,1190*4);
+	//get WEAPON_RANGE(-1,65536*1275);
+	get WEAPON_ACCURACY(-1,weapon1_default_accuracy);
+	get WEAPON_RANGE(-1,weapon1_default_range);
 }
 
 AimPrimary(heading, pitch)
@@ -91,21 +136,38 @@ AimPrimary(heading, pitch)
 	}
 	out_of_arc_count = 0;
 
+	// turn to face target
 	turn turret to y-axis heading speed <20.000000>;
-	turn spindle to x-axis <60.005495> * gun_1 - pitch speed <200.038462>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn spindle around x-axis;
+
+	// prespin the hex barrel spindle if the unit has not recently fired
+	// in FirePrimary, the spindle should be locked in place for a few frames
+	// after firing, then starts spinning the spindle into place 
+	// before the next AimPrimary call
+	if (recoiling == 0)
+	{
+		turn spindle to x-axis <60.005495> * gun_1 - pitch speed <360>;
+	}
+
+	// only wait-for-turn if it takes more than 3 frames to get into position
+	if ( (get ABS(pitch-global_pitch)>5400) OR (get ABS(heading-global_heading)>360) )
+	{
+		wait-for-turn turret around y-axis;
+		wait-for-turn spindle around x-axis;
+	}
+	global_pitch = pitch;
+	global_heading = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
 FirePrimary()
 {
+	recoiling = 1;
 	if( gun_1 == 0 )
 	{
 		move barrel1 to z-axis [-4.500000] now;
 		emit-sfx 1024 + 0 from flare1;
-		sleep 40;
+		sleep 32;
 		move barrel1 to z-axis [0.000000] speed [5.000000];
 	}
 	if( gun_1 == 1 )
@@ -113,7 +175,7 @@ FirePrimary()
 		move barrel2 to y-axis [-3.750000] now;
 		move barrel2 to z-axis [-2.250000] now;
 		emit-sfx 1024 + 0 from flare2;
-		sleep 40;
+		sleep 32;
 		move barrel2 to y-axis [0.000000] speed [5.000000];
 		move barrel2 to z-axis [0.000000] speed [5.000000];
 	}
@@ -122,7 +184,7 @@ FirePrimary()
 		move barrel3 to y-axis [-3.750000] now;
 		move barrel3 to z-axis [2.250000] now;
 		emit-sfx 1024 + 0 from flare3;
-		sleep 40;
+		sleep 32;
 		move barrel3 to y-axis [0.000000] speed [5.000000];
 		move barrel3 to z-axis [0.000000] speed [5.000000];
 	}
@@ -130,7 +192,7 @@ FirePrimary()
 	{
 		move barrel4 to z-axis [4.500000] now;
 		emit-sfx 1024 + 0 from flare4;
-		sleep 40;
+		sleep 32;
 		move barrel4 to z-axis [0.000000] speed [5.000000];
 	}
 	if( gun_1 == 4 )
@@ -138,7 +200,7 @@ FirePrimary()
 		move barrel5 to y-axis [3.750000] now;
 		move barrel5 to z-axis [2.250000] now;
 		emit-sfx 1024 + 0 from flare5;
-		sleep 40;
+		sleep 32;
 		move barrel5 to y-axis [0.000000] speed [5.000000];
 		move barrel5 to z-axis [0.000000] speed [5.000000];
 	}
@@ -147,7 +209,7 @@ FirePrimary()
 		move barrel6 to y-axis [3.750000] now;
 		move barrel6 to z-axis [-2.250000] now;
 		emit-sfx 1024 + 0 from flare6;
-		sleep 40;
+		sleep 32;
 		move barrel6 to y-axis [0.000000] speed [5.000000];
 		move barrel6 to z-axis [0.000000] speed [5.000000];
 	}
@@ -156,6 +218,9 @@ FirePrimary()
 	{
 		gun_1 = flare1;
 	}
+	sleep 96;
+	turn spindle to x-axis <60.005495> * gun_1 - global_pitch speed <360>;
+	recoiling = 0;
 	return (0);
 }
 
