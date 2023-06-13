@@ -233,6 +233,7 @@
 				"heavyPlasma": "Heavy Plasma",
 				"siegeMode": "Siege Mode",
 				"suppressiveFire": "Suppressive Fire",
+				"siege_tooltip": "Switches between focused Suppressive Fire and long range inaccurate Siege Mode",
 				"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon"
 			}
 		},
