@@ -214,7 +214,6 @@ local recentBroadcasters = {}
 local newBroadcaster = false
 local aliveAllyTeams = {}
 local allyTeamMaxStorage = {}
-local screenshotVars = {} -- containing: finished, width, height, gameframe, data, dataLast, dlist, pixels, player, filename, saved, saveQueued, posX, posY
 
 local tipTextTime = 0
 local Background, ShareSlider, BackgroundGuishader, tipText, drawTipText, tipY, myLastCameraState
@@ -303,6 +302,7 @@ local desiredLosmodeChanged = 0
 local widgetTop = 0
 local widgetRight = 1
 local widgetHeight = 0
+local prevWidgetHeight = 0
 local widgetWidth = 0
 local widgetPosX = vsx - 200
 local widgetPosY = 0
@@ -648,184 +648,6 @@ local function UpdateAlliances()
     end
 end
 
-function toPixels(str)
-    local chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ !@#$%^&*()_+-=[]{};:,./<>?~|`'\"\\"
-    local pixels = {}
-    local pixelsCount = 0
-    for i = 1, string.len(str) do
-        if i % 3 == 1 then
-            pixelsCount = pixelsCount + 1
-            pixels[pixelsCount] = {}
-        end
-        local char = string.sub(str, i, i)
-        for ci = 1, string.len(chars) do
-            if char == string.sub(chars, ci, ci) then
-                pixels[pixelsCount][#pixels[pixelsCount] + 1] = (ci - 1) / string.len(chars)
-                break
-            end
-        end
-    end
-    return pixels
-end
-
--- only being called for devs registered in gadget
-function PlayerDataBroadcast(playerName, msg)
-    local data = ''
-    local count = 0
-    local startPos = 0
-    local msgType
-
-    for i = 1, string.len(msg) do
-        if string.sub(msg, i, i) == ';' then
-            count = count + 1
-            if count == 1 then
-                startPos = i + 1
-                playerName = string.sub(msg, 1, i - 1)
-            elseif count == 2 then
-                msgType = string.sub(msg, startPos, i - 1)
-                data = string.sub(msg, i + 1)
-                break
-            end
-        end
-    end
-
-    if data then
-        if msgType == 'screenshot' then
-            data = VFS.ZlibDecompress(data)
-            count = 0
-            for i = 1, string.len(data) do
-                if string.sub(data, i, i) == ';' then
-                    count = count + 1
-                    if count == 1 then
-                        local finished = string.sub(data, 1, i - 1)
-                        if finished == '1' then
-                            screenshotVars.finished = true
-                        else
-                            screenshotVars.finished = false
-                        end
-                        startPos = i + 1
-                    elseif count == 2 then
-                        screenshotVars.width = tonumber(string.sub(data, startPos, i - 1))
-                        startPos = i + 1
-                    elseif count == 3 then
-                        screenshotVars.height = tonumber(string.sub(data, startPos, i - 1))
-                        startPos = i + 1
-                    elseif count == 4 then
-                        screenshotVars.gameframe = tonumber(string.sub(data, startPos, i - 1))
-                        if not screenshotVars.data then
-                            screenshotVars.data = string.sub(data, i + 1)
-                        else
-                            screenshotVars.data = screenshotVars.data .. string.sub(data, i + 1)
-                        end
-                        break
-                    end
-                end
-            end
-            data = nil
-            screenshotVars.dataLast = totalTime
-
-            if screenshotVars.finished or totalTime - 4000 > screenshotVars.dataLast then
-                screenshotVars.finished = true
-                local datetable = os.date('*t')
-                local minutes = math.floor((screenshotVars.gameframe / 30 / 60))
-                local seconds = math.floor((screenshotVars.gameframe - ((minutes * 60) * 30)) / 30)
-                if seconds == 0 then
-                    seconds = '00'
-                elseif seconds < 10 then
-                    seconds = '0' .. seconds
-                end
-                local yyyy = datetable.year
-                local m = datetable.month
-                local d = datetable.day
-                local h = datetable.hour
-                local min = datetable.min
-                local s = datetable.sec
-                local yyyy = tostring(yyyy)
-                local mm = ((m > 9 and tostring(m)) or (m < 10 and ("0" .. tostring(m))))
-                local dd = ((d > 9 and tostring(d)) or (d < 10 and ("0" .. tostring(d))))
-                local hh = ((h > 9 and tostring(h)) or (h < 10 and ("0" .. tostring(h))))
-                local minmin = ((min > 9 and tostring(min)) or (min < 10 and ("0" .. tostring(min))))
-                local ss = ((s > 9 and tostring(s)) or (s < 10 and ("0" .. tostring(s))))
-
-                screenshotVars.pixels = toPixels(screenshotVars.data)
-                screenshotVars.player = playerName
-                screenshotVars.filename = yyyy .. mm .. dd .. "_" .. hh .. minmin .. ss .. "_" .. minutes .. '.' .. seconds .. "_" .. playerName
-                screenshotVars.saved = nil
-                screenshotVars.saveQueued = true
-                screenshotVars.posX = widgetPosX - (backgroundMargin + 30 + screenshotVars.width * widgetScale)
-                screenshotVars.posY = widgetPosY
-                screenshotVars.dlist = gl_CreateList(function()
-                    gl.PushMatrix()
-                    gl.Translate(screenshotVars.posX, screenshotVars.posY, 0)
-                    gl.Scale(widgetScale, widgetScale, 0)
-
-                    gl_Color(0, 0, 0, 0.66)
-                    local margin = 2
-                    RectRound(-margin, -margin, screenshotVars.width + margin + margin, screenshotVars.height + 15 + margin + margin, 6)
-                    gl_Color(1, 1, 1, 0.025)
-                    RectRound(0, 0, screenshotVars.width, screenshotVars.height + 12 + margin + margin, 4.5)
-
-                    font:Begin()
-                    font:Print(screenshotVars.player, 4, screenshotVars.height + 6.5, 11, "on")
-                    font:End()
-
-                    local row = 0
-                    local col = 0
-                    for p = 1, #screenshotVars.pixels do
-                        col = col + 1
-                        if p % screenshotVars.width == 1 then
-                            row = row + 1
-                            col = 1
-                        end
-                        gl.Color(screenshotVars.pixels[p][1], screenshotVars.pixels[p][2], screenshotVars.pixels[p][3], 1)
-                        gl.Rect(col, row, col + 1, row + 1)
-                    end
-                    gl.PopMatrix()
-
-                end)
-                screenshotVars.pixels = nil
-                screenshotVars.data = nil
-                screenshotVars.finished = nil
-            end
-        elseif msgType == 'infolog' or msgType == 'config' then
-            local playerID
-
-            for i = 1, string.len(data) do
-                if string.sub(data, i, i) == ';' then
-                    playerID = tonumber(string.sub(data, 1, i - 1))
-                    startPos = i + 1
-                    data = string.sub(data, i + 1)
-                    break
-                end
-            end
-
-            if playerID == myPlayerID then
-                local datetable = os.date('*t')
-                local yyyy = datetable.year
-                local m = datetable.month
-                local d = datetable.day
-                local h = datetable.hour
-                local min = datetable.min
-                local yyyy = tostring(yyyy)
-                local mm = ((m > 9 and tostring(m)) or (m < 10 and ("0" .. tostring(m))))
-                local dd = ((d > 9 and tostring(d)) or (d < 10 and ("0" .. tostring(d))))
-                local hh = ((h > 9 and tostring(h)) or (h < 10 and ("0" .. tostring(h))))
-                local minmin = ((min > 9 and tostring(min)) or (min < 10 and ("0" .. tostring(min))))
-
-                local filename = 'playerdata_' .. msgType .. 's.txt'
-                local filedata = ''
-                if VFS.FileExists(filename) then
-                    filedata = tostring(VFS.LoadFile(filename))
-                end
-                local file = assert(io.open(filename, 'w'), 'Unable to save ' .. filename)
-                file:write(filedata .. '-----------------------------------------------------\n----  ' .. yyyy .. '-' .. mm .. '-' .. dd .. "  " .. hh .. '.' .. minmin .. '  ' .. playerName .. '\n-----------------------------------------------------\n' .. VFS.ZlibDecompress(data) .. "\n\n\n\n\n\n")
-                file:close()
-                Spring.Echo('Added ' .. msgType .. ' to ' .. filename)
-            end
-        end
-    end
-end
-
 ---------------------------------------------------------------------------------------------------
 --  LockCamera stuff
 ---------------------------------------------------------------------------------------------------
@@ -977,7 +799,6 @@ function widget:Initialize()
     widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
     widgetHandler:RegisterGlobal('GpuMemEvent', GpuMemEvent)
     widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
-    widgetHandler:RegisterGlobal('PlayerDataBroadcast', PlayerDataBroadcast)
     UpdateRecentBroadcasters()
 
     mySpecStatus, fullView, _ = Spring.GetSpectatingState()
@@ -1125,7 +946,6 @@ end
 function widget:Shutdown()
     if WG['guishader'] then
         WG['guishader'].RemoveDlist('advplayerlist')
-        WG['guishader'].RemoveRect('advplayerlist_screenshot')
     end
     WG['advplayerlist_api'] = nil
     widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
@@ -1133,7 +953,6 @@ function widget:Shutdown()
     widgetHandler:DeregisterGlobal('FpsEvent')
     widgetHandler:DeregisterGlobal('GpuMemEvent')
     widgetHandler:DeregisterGlobal('SystemEvent')
-    widgetHandler:DeregisterGlobal('PlayerDataBroadcast')
     if ShareSlider then
         gl_DeleteList(ShareSlider)
     end
@@ -1144,9 +963,6 @@ function widget:Shutdown()
     end
     if Background then
         gl_DeleteList(Background)
-    end
-    if screenshotVars.dlist then
-        gl_DeleteList(screenshotVars.dlist)
     end
     if lockPlayerID then
         LockCamera()
@@ -1540,6 +1356,10 @@ function SortList()
 
     -- set the widget height according to space needed to show team
     widgetHeight = vOffset + 3
+    if widgetHeight ~= prevWidgetHeight then
+        prevWidgetHeight = widgetHeight
+        forceMainListRefresh = true
+    end
 
     updateWidgetScale()
 end
@@ -1769,52 +1589,6 @@ function widget:DrawScreen()
     local scaleReset = widgetScale / widgetScale / widgetScale
     gl.Translate(-scaleDiffX, -scaleDiffY, 0)
     gl.Scale(scaleReset, scaleReset, 0)
-
-    if screenshotVars.dlist then
-        gl_CallList(screenshotVars.dlist)
-        local margin = 1.9 * widgetScale
-        local left = screenshotVars.posX - margin
-        local bottom = screenshotVars.posY - margin
-        local width = (screenshotVars.width * widgetScale) + margin + margin + margin
-        local height = (screenshotVars.height * widgetScale) + margin + margin + margin + (15 * widgetScale)
-        if screenshotVars.saveQueued then
-            if WG['guishader'] then
-                WG['guishader'].InsertRect(left, bottom, left + width, bottom + height, 'advplayerlist_screenshot')
-                screenshotVars.guishader = true
-            end
-            if not screenshotVars.saved then
-                screenshotVars.saved = 'next'
-            elseif screenshotVars.saved == 'next' then
-                screenshotVars.saved = 'done'
-                local file = 'screenshotVars.s/' .. screenshotVars.filename .. '.png'
-                gl.SaveImage(left, bottom, width, height, file)
-                Spring.Echo('Screenshot saved to: ' .. file)
-                screenshotVars.saveQueued = nil
-            end
-        end
-        if screenshotVars.width and math_isInRect(mouseX, mouseY, screenshotVars.posX, screenshotVars.posY, screenshotVars.posX + (screenshotVars.width * widgetScale), screenshotVars.posY + (screenshotVars.height * widgetScale)) then
-            if mouseButtonL then
-                gl_DeleteList(screenshotVars.dlist)
-                if WG['guishader'] then
-                    WG['guishader'].RemoveRect('advplayerlist_screenshot')
-                end
-                screenshotVars.dlist = nil
-            else
-                gl.Color(0, 0, 0, 0.25)
-                RectRound(screenshotVars.posX, screenshotVars.posY, screenshotVars.posX + (screenshotVars.width * widgetScale), screenshotVars.posY + (screenshotVars.height * widgetScale), 2 * widgetScale)                -- close button
-                local size = (screenshotVars.height * widgetScale) * 1.2
-                local width = size * 0.011
-                gl.Color(1, 1, 1, 0.66)
-                gl.PushMatrix()
-                gl.Translate(screenshotVars.posX + ((screenshotVars.width * widgetScale) / 2), screenshotVars.posY + ((screenshotVars.height * widgetScale) / 2), 0)
-                gl.Rotate(-60, 0, 0, 1)
-                gl.Rect(-width, size / 2, width, -size / 2)
-                gl.Rotate(120, 0, 0, 1)
-                gl.Rect(-width, size / 2, width, -size / 2)
-                gl.PopMatrix()
-            end
-        end
-    end
 end
 
 function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
