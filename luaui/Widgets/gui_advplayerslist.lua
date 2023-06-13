@@ -1737,10 +1737,13 @@ function widget:DrawScreen()
 
     if not MainList2 then
         CreateMainList(true, true, true)
+    else
     end
-    gl_CallList(MainList)
-    gl_CallList(MainList2)
-    gl_CallList(MainList3)
+    if MainList and MainList2 and MainList3 then
+        gl_CallList(MainList)
+        gl_CallList(MainList2)
+        gl_CallList(MainList3)
+    end
 
     -- handle/draw hover highlight
     if mySpecStatus then
@@ -1760,7 +1763,9 @@ function widget:DrawScreen()
     if not ShareSlider then
         CreateShareSlider()
     end
-    gl_CallList(ShareSlider)
+    if ShareSlider then
+        gl_CallList(ShareSlider)
+    end
 
     local scaleReset = widgetScale / widgetScale / widgetScale
     gl.Translate(-scaleDiffX, -scaleDiffY, 0)
