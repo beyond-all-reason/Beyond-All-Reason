@@ -37,33 +37,73 @@ function widget:DrawGenesis() -- YES WE CAN!
 end
 
 local first = true
-function widget:DrawScreen()
---function widget:DrawGenesis()
-	MyAtlasOnDemand:DrawToScreen()
-	if first then 
-		MyAtlasOnDemand:AddText({text = t, font = font, options = 'bo'})
-		first = false
-		local vsx, vsy = Spring.GetViewGeometry()
+local textItems = {}
 
-		local width = font:GetTextWidth(t) * font.size
-		t = t .. " " .. tostring(width) .. " x"..tostring(vsx) .. " y" .. tostring(vsy)
+function widget:DrawScreen()
+	-- perform draw tasks, if any
+	MyAtlasOnDemand:RenderTasks()
+	
+	
+	-- Draw a grey background:
+	gl.Color(0.5, 0.5, 0.5, 1.0)
+	local o = 10
+	gl.Rect(o,o,MyAtlasOnDemand.xsize + o, MyAtlasOnDemand.ysize + o )
+	gl.Color(1.0, 1.0, 1.0, 1.0)
+	
+	-- Draw the Atlas:
+	MyAtlasOnDemand:DrawToScreen() 
+
+	-- Add our random tester texts to the atlas
+	if first then 
+		for j, num in ipairs({"59", "Tlgfi", "g1","60"}) do 
+			for i,fontsize in ipairs({9, 13,16,27, 36}) do 
+				local id = tostring(num).."_"..tostring(fontsize)
+				local textItem = {text = tostring(num), font = font, size = fontsize, id = id}
+				local uvcoords = MyAtlasOnDemand:AddText(tostring(num), textItem)
+				textItem.uvcoords = uvcoords
+				textItems[id] = textItem
+				Spring.Echo(id, uvcoords.x, uvcoords.y)
+			end
+		end
+		first = false
 	end
-	--local vsx, vsy = Spring.GetViewGeometry()
+	
+	-- Draw with the actual font renderer as second column
 	font:Begin()
-	font:Print(t, 10,256 + 10 + 32,64,'bo')
+	local offsetX = 64
+	for id,textItem in pairs(textItems) do 
+		local xpos = math.floor(o + offsetX + textItem.uvcoords.x * MyAtlasOnDemand.xsize)
+		local ypos = math.floor(o + textItem.uvcoords.y * MyAtlasOnDemand.ysize + textItem.uvcoords.d)
+		font:Print(textItem.text, xpos,ypos ,textItem.size,'')
+	end
 	font:End()
+	
+	-- Draw With silly TextRect overrider as third column
+	gl.Texture(MyAtlasOnDemand.textureID)
+	local offsetX = 128
+	--gl.Blending(GL.ONE, GL.ZERO) -- do full opaque
+	gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA) -- do full opaque
+	for id,textItem in pairs(textItems) do 
+		MyAtlasOnDemand:TextRect(id, o + offsetX + textItem.uvcoords.x * MyAtlasOnDemand.xsize, o + textItem.uvcoords.y *MyAtlasOnDemand.ysize + textItem.uvcoords.d)
+	end
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- reset blending
+	
 end
 
 function widget:Initialize()
+	--font = WG['fonts'].getFont()
+	font = gl.LoadFont("fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf"), 64, 1, 1)
+	
 	local MakeAtlasOnDemand = VFS.Include("LuaUI/Widgets/include/AtlasOnDemand.lua")
 	if not MakeAtlasOnDemand then
 		Spring.Echo("Failed to load AtlasOnDemand")
 		return 
 	end
-	MyAtlasOnDemand = MakeAtlasOnDemand({sizex = 1024, sizey =  512, xresolution = 96, yresolution = 24, name = "AtlasOnDemand Tester"})
+	MyAtlasOnDemand = MakeAtlasOnDemand({sizex = 1024, sizey =  512, xresolution = 224, yresolution = 24, name = "AtlasOnDemand Tester", font = {font = font}, debug = true})
 	buildPicList = VFS.DirList("unitpics") 
-	--font = WG['fonts'].getFont(nil, 1, 0.1, 13.0)
-	font = gl.LoadFont("fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf"), 64, 1, 1)
+	
+	MyAtlasOnDemand:AddImage('luaui/images/aliasing_test_grid_128.tga', 256, 256)
+	MyAtlasOnDemand:AddImage('unitpics/armcom.dds', 256, 256)
 end
 
 function widget:ShutDown()
