@@ -3835,6 +3835,7 @@ function widget:ViewResize()
 	for i = 0, 99 do 
 		AdvPlayersListAtlas:AddText(string.format("%02d", i))
 	end
+    forceMainListRefresh = true
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz)
