@@ -940,6 +940,7 @@ function widget:GameFrame(n)
         InitializePlayers()
         SetOriginalColourNames()
         SortList()
+        forceMainListRefresh = true
     end
 end
 
