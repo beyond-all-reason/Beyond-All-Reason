@@ -65,6 +65,8 @@ local minWidth = 190	-- for the sake of giving the addons some room
 local hideDeadTeams = true
 local absoluteResbarValues = false
 
+local curFrame = Spring.GetGameFrame()
+
 local vsx, vsy = Spring.GetViewGeometry()
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -195,8 +197,7 @@ local now = 0
 local timeCounter = 9
 local timeFastCounter = 9
 local updateRate = 0.75
-local updateFastRate = 0.1 -- only updates resources
-local updateRatePreStart = 0.25
+local updateFastRate = 0.09 -- only updates resources
 local lastTakeMsg = -120
 local hoverPlayerlist = false
 
@@ -1734,19 +1735,12 @@ function widget:DrawScreen()
     gl.Scale(widgetScale, widgetScale, 0)
     gl.Translate(scaleDiffX, scaleDiffY, 0)
 
-    -- draws the main list
-    if MainList then
-        gl_CallList(MainList)
-
-        if MainList2 then
-            gl_CallList(MainList2)
-        end
-        if MainList3 then
-            gl_CallList(MainList3)
-        end
-    else
-        CreateMainList()
+    if not MainList2 then
+        CreateMainList(true, true, true)
     end
+    gl_CallList(MainList)
+    gl_CallList(MainList2)
+    gl_CallList(MainList3)
 
     -- handle/draw hover highlight
     if mySpecStatus then
@@ -1763,11 +1757,10 @@ function widget:DrawScreen()
     end
 
     -- draws share energy/metal sliders
-    if ShareSlider then
-        gl_CallList(ShareSlider)
-    else
+    if not ShareSlider then
         CreateShareSlider()
     end
+    gl_CallList(ShareSlider)
 
     local scaleReset = widgetScale / widgetScale / widgetScale
     gl.Translate(-scaleDiffX, -scaleDiffY, 0)
@@ -1847,7 +1840,7 @@ function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
     if not onlyMainList3 then
         GetAliveAllyTeams()
     end
-    if onlyMainList3 then
+    if onlyMainList2 or onlyMainList3 then
         if m_resources.active or m_income.active then
             UpdateResources()
             UpdatePlayerResources()
@@ -2268,7 +2261,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
             DrawAlly(posY, player[playerID].team)
         end
 
-        if onlyMainList3 and not isSingle and (m_resources.active or m_income.active) and aliveAllyTeams[allyteam] ~= nil and player[playerID].energy ~= nil then
+        if (onlyMainList2 or onlyMainList3) and not isSingle and (m_resources.active or m_income.active) and aliveAllyTeams[allyteam] ~= nil and player[playerID].energy ~= nil then
             if mySpecStatus or myAllyTeamID == allyteam then
                 local e = player[playerID].energy
                 local es = player[playerID].energyStorage
@@ -2277,13 +2270,13 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                 local ms = player[playerID].metalStorage
                 local mi = player[playerID].metalIncome
                 if es > 0 then
-                    if m_resources.active and (not dead or (e > 0 or m > 0)) then
+                    if onlyMainList3 and m_resources.active and (not dead or (e > 0 or m > 0)) then
                         DrawResources(e, es, m, ms, posY, dead, (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][1])), (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][2])))
                         if tipY then
                             ResourcesTip(mouseX, e, es, ei, m, ms, mi)
                         end
                     end
-                    if m_income.active then
+                    if onlyMainList2 and m_income.active then
                         DrawIncome(ei, mi, posY, dead)
                         if tipY then
                             IncomeTip(mouseX, ei, mi)
@@ -3783,15 +3776,8 @@ function widget:Update(delta)
             reportTake = false
         end
     end
-    -- update lists to take account of allyteam faction changes before gamestart
-    if not curFrame or curFrame <= 0 then
-        if timeCounter < updateRatePreStart then
-            return
-        else
-            timeCounter = 0
-            SetSidePics() -- if the game hasn't started, update factions
-            CreateLists()
-        end
+    if curFrame <= 0 and timeCounter > updateRate then
+        SetSidePics() -- if the game hasn't started, update factions
     end
     if forceMainListRefresh then
         CreateLists()
