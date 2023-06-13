@@ -1737,7 +1737,6 @@ function widget:DrawScreen()
 
     if not MainList2 then
         CreateMainList(true, true, true)
-    else
     end
     if MainList and MainList2 and MainList3 then
         gl_CallList(MainList)
@@ -3790,7 +3789,7 @@ function widget:Update(delta)
         local updateMainList2 = timeCounter > updateRate
         local updateMainList3 = ((m_resources.active or m_income.active) and timeFastCounter > updateFastRate)
         if updateMainList2 or updateMainList3 then
-            CreateLists(false, updateMainList2, updateMainList3)
+            CreateLists(curFrame==0, updateMainList2, updateMainList3)
         end
     end
 end
