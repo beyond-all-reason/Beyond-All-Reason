@@ -204,6 +204,7 @@ local unitOrderTable = {
 	['armfido']        = 006500, --ARTILLERY
 	['cormort']        = 006510,
 	['legbart']        = 006515,
+	['legvcarry']      = 006516,
 	['armmart']        = 006520,
 	['cormart']        = 006530,
 	['cortrem']        = 006540,
@@ -516,6 +517,7 @@ local unitOrderTable = {
    ['corhllllt']      = 106500, --scavengers
    ['armhlt']         = 106600,
    ['corhlt']         = 106700,
+   ['legdefcarryt1']  = 106800,
    ['armguard']       = 106800,
    ['corpun']         = 106900,
 

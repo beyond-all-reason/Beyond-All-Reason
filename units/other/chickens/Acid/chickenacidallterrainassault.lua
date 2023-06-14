@@ -102,7 +102,7 @@ return {
 				name = "GOOLAUNCHER",
 				noselfdamage = true,
 				range = 500,
-				reloadtime = 18,
+				reloadtime = 3.6,
 				rgbcolor = "0.8 0.99 0.11",
 				nogap = false,
 				size = 8,
@@ -118,6 +118,7 @@ return {
 				weaponvelocity = 520,
 				damage = {
 					default = 1, --damage done in unit_area_timed_damage.lua
+					shields = 160,
 				},
 			},
 		},

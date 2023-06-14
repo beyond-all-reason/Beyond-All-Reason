@@ -181,6 +181,9 @@ return {
 				damage = {
 					default = 0,
 				},
+				customparams = {
+					bogus = 1
+				}
 			},
 			coraabot_missile1 = {
 				areaofeffect = 24,

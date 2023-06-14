@@ -10,7 +10,7 @@ return {
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -10 -1",
 		collisionvolumescales = "50 50 50",
-		collisionvolumetype = "CylZ",
+		collisionvolumetype = "BOX",
 		corpse = "DEAD",
 		explodeas = "hugeexplosiongeneric",
 		footprintx = 4,
@@ -170,6 +170,7 @@ return {
 			[1] = {
 				def = "COR_GOL",
 				onlytargetcategory = "SURFACE",
+				fastautoretargeting = true,
 			},
 		},
 	},

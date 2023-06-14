@@ -14,6 +14,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+_G.transferredUnits = {}
+
 local isT1Geo = {}
 local isT2Geo = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -66,8 +68,23 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			Spring.DestroyUnit(t1Geo, false, true)
 			Spring.AddTeamResource(unitTeam, "metal", isT1Geo[Spring.GetUnitDefID(t1Geo)])
 			if t1GeoTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(t1GeoTeamID, false)) then -- and Spring.AreTeamsAllied(t1GeoTeamID, unitTeam) then
+				_G.transferredUnits[unitID] = Spring.GetGameFrame()
 				Spring.TransferUnit(unitID, t1GeoTeamID)
 			end
 		end
 	end
 end
+
+
+-- the mex upgrade reclaimer gadget already does this
+--function gadget:GameFrame(gf)
+--	if gf % 99 then
+--		local newTransferredUnits = {}
+--		for unitID, frame in pairs(_G.transferredUnits) do
+--			if frame+30 > gf then
+--				newTransferredUnits[newTransferredUnits] = frame
+--			end
+--		end
+--		_G.transferredUnits = newTransferredUnits
+--	end
+--end

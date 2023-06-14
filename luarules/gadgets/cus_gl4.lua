@@ -1588,7 +1588,6 @@ local function initGL4()
 	Spring.Echo("[CUS GL4] Collecting units")
 	Spring.ClearUnitsPreviousDrawFlag()
 	Spring.ClearFeaturesPreviousDrawFlag()
-	gadget:DrawWorldPreUnit()
 	Spring.Echo("[CUS GL4] Ready")
 	initiated = true
 end
@@ -1886,6 +1885,7 @@ function gadget:FeatureDestroyed(featureID)
 	destroyedFeatureDrawFlags[numdestroyedFeatures] = 0
 end
 
+local firstDraw = false
 function gadget:DrawWorldPreUnit()
 --function gadget:DrawGenesis() -- nope, shadow flags still a frame late https://github.com/beyond-all-reason/spring/issues/264
 	if unitDrawBins == nil then return end
@@ -1915,6 +1915,7 @@ function gadget:DrawWorldPreUnit()
 		end
 
 		if numdestroyedFeatures > 0 then
+			
 			ProcessFeatures(destroyedFeatureIDs, destroyedFeatureDrawFlags, "destroyed")
 			for i=numdestroyedFeatures,1,-1 do
 				destroyedFeatureIDs[i] = nil
@@ -1922,6 +1923,30 @@ function gadget:DrawWorldPreUnit()
 			end
 			numdestroyedFeatures = 0
 		end
+		if firstDraw then 
+			local firstfeatures = Spring.GetVisibleFeatures()
+			local firstdrawFlagsFeatures = {}
+			local validFirstFeatures = {}
+			local numfirstfeatures = 0
+			for i, featureID in ipairs(firstfeatures) do 
+				local flag = Spring.GetFeatureDrawFlag(featureID)
+				if flag and flag > 0 then 
+					numfirstfeatures = numfirstfeatures + 1 
+					validFirstFeatures[numfirstfeatures] = featureID
+					firstdrawFlagsFeatures[numfirstfeatures] = flag
+				end
+					
+			end 
+			ProcessFeatures(validFirstFeatures, firstdrawFlagsFeatures, "firstDraw")
+			
+			local firstunits = Spring.GetVisibleUnits()
+			local firstdrawFlagsUnits = {}
+			for i, unitID in ipairs(firstunits) do firstdrawFlagsUnits[i] = 1 + 4 + 16 end 
+			ProcessUnits(firstunits, firstdrawFlagsUnits, "firstDraw")
+			
+			firstDraw = false
+		end
+		
 
 		ProcessUnits(units, drawFlagsUnits, "changed")
 		ProcessFeatures(features, drawFlagsFeatures, "changed")

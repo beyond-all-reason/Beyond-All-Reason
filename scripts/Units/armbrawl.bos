@@ -4,6 +4,7 @@
 #include "exptype.h"
 
 #define SIG_AIM				2
+#define SIG_FIRE1 			4
 piece  flare1, flare2, base, wingl, wingr, finl, finr, fan, flare3, flare4,pivot;
 
 static-var  gun_1, statechg_DesiredState, statechg_StateChanging;
@@ -132,7 +133,7 @@ Create()
 	hide flare3;
 	hide flare4;
 	hide pivot;
-	gun_1 = flare1;
+	gun_1 = 0;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -158,31 +159,56 @@ SweetSpot(piecenum)
 
 FirePrimary()
 {
+	return(1);
+}
+
+Shot1(zero)
+{
+	signal SIG_FIRE1;
+	set-signal-mask SIG_FIRE1;
 	if( gun_1 == 0 )
 	{
-		gun_1 = flare1;
-		return (0);
+		emit-sfx 1024 + 0 from flare2;
 	}
 	if( gun_1 == 1 )
 	{
-		gun_1 = flare2;
-		return (0);
+		emit-sfx 1024 + 0 from flare3;
 	}
 	if( gun_1 == 2 )
 	{
-		gun_1 = flare3;
-		return (0);
+		emit-sfx 1024 + 0 from flare1;
 	}
 	if( gun_1 == 3 )
 	{
-		gun_1 = flare4;
-		return (0);
+		emit-sfx 1024 + 0 from flare4;
 	}
+	sleep 32;
+	++gun_1;
+	if(gun_1>=3)
+	{
+		gun_1=0;
+	}
+	return(1);
 }
 
 QueryPrimary(piecenum)
 {
-	piecenum=base;
+	if( gun_1 == 0 )
+	{
+		piecenum = flare2;
+	}
+	if( gun_1 == 1 )
+	{
+		piecenum = flare3;
+	}
+	if( gun_1 == 2 )
+	{
+		piecenum = flare1;
+	}
+	if( gun_1 == 3 )
+	{
+		piecenum = flare4;
+	}
 }
 
 AimPrimary(heading, pitch)
@@ -197,7 +223,6 @@ AimPrimary(heading, pitch)
 AimFromPrimary(piecenum)
 {
 	piecenum = base;
-
 }
 
 Killed(severity, corpsetype)

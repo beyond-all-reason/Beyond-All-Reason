@@ -160,6 +160,7 @@ return {
 				badtargetcategory = "VTOL",
 				def = "armbeamer_WEAPON",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 		},
 	},

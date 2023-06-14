@@ -47,7 +47,7 @@ local string_lines = string.lines
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local tooltips = {}
 local cleanupGuishaderAreas = {}
-local font, font2, chobbyInterface
+local font, font2
 local RectRound, UiElement, bgpadding
 local uiSec = 0
 
@@ -240,16 +240,7 @@ local function drawTooltip(name, x, y)
 	gl.Translate(-posX+addX, -posY+addY, 0)
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
 	if WG['topbar'] and WG['topbar'].showingQuit() then
 		return
 	end

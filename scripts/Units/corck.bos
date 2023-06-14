@@ -198,8 +198,6 @@ Stop()
 	turn beamcase to z-axis <0> speed <180>;
 	wait-for-turn beamcase around z-axis;
 	
-
-	
 	turn aimy1 to y-axis <0.000000> speed <160.000000>;
 	wait-for-turn aimy1 around y-axis;
 }
@@ -227,8 +225,6 @@ RequestState(requestedstate, currentstate)
 			call-script Go();
 			notBuilding = 0;
 			currentstate = 0;
-			show cagelight_emit;
-			spin cagelight around z-axis speed <200>;
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -269,6 +265,8 @@ StartBuilding(heading, pitch)
 	turn aimy1 to y-axis heading speed <600.000000>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
+	show cagelight_emit;
+	spin cagelight around z-axis speed <150>;
 }
 
 StopBuilding()
@@ -276,8 +274,8 @@ StopBuilding()
 	hide nano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
-	//hide cagelight_emit;
-	//turn cagelight_emit to z-axis <0> speed <1000>;
+	hide cagelight_emit;
+	turn cagelight to z-axis <0> speed <1000>;
 	sleep 6000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	

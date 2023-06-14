@@ -170,6 +170,7 @@ return {
 				badtargetcategory = "VTOL",
 				def = "HLLT_BOTTOM",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 		},
 	},

@@ -268,119 +268,122 @@ local units = {
 
 	-- Chickens -----------------------------------------------------------
 
-	chicken1 = { "chicken.png", 0.94499993 },
+	chicken1 = { "chicken.png", 1 },
 	chicken1_mini = { "chicken.png", 0.75 },
-	chicken1b = { "chicken.png", 0.94499993 },
-	chicken1c = { "chicken.png", 0.94499993 },
-	chicken1d = { "chicken.png", 0.94499993 },
+	chicken1b = { "chicken.png", 1 },
+	chicken1c = { "chicken.png", 1 },
+	chicken1d = { "chicken.png", 1 },
 
-	chicken1x = { "chicken.png", 1.1 },
-	chicken1y = { "chicken.png", 1.1 },
-	chicken1z = { "chicken.png", 1.1 },
+	chicken1x = { "chicken.png", 1.25 },
+	chicken1y = { "chicken.png", 1.25 },
+	chicken1z = { "chicken.png", 1.25 },
 
-	chicken2 = { "chicken.png", 1.25999999 },
-	chicken2b = { "chicken.png", 1.25999999 },
+	chicken2 = { "chicken.png", 1.5 },
+	chicken2b = { "chicken.png", 1.5 },
 
-	chicken_dodo1 = { "chicken_bomb.png", 0.94499993 },
-	chicken_dodo2 = { "chicken_bomb.png", 1.1 },
-	chicken_dodoair = { "chicken_air.png", 1.0 },
+	chicken_dodo1 = { "chicken_bomb.png", 1 },
+	chicken_dodo2 = { "chicken_bomb.png", 1.5 },
+	chicken_dodoair = { "chicken_air.png", 1.5 },
 
-	chickena1 = { "chicken.png", 1.57499993 },
-	chickena1b = { "chicken.png", 1.57499993 },
-	chickena1c = { "chicken.png", 1.57499993 },
-	chickena2 = { "chicken.png", 1.77499993 },
-	chickena2b = { "chicken.png", 1.77499993 },
-	chickenallterraina1 = { "chicken.png", 1.57499993 },
-	chickenallterraina1b = { "chicken.png", 1.57499993 },
-	chickenallterraina1c = { "chicken.png", 1.57499993 },
-	chickenapexallterrainassault = { "chicken.png", 1.77499993 },
-	chickenapexallterrainassaultb = { "chicken.png", 1.77499993 },
+	chickena1 = { "chicken.png", 2 },
+	chickena1b = { "chicken.png", 2 },
+	chickena1c = { "chicken.png", 2 },
+	chickena2 = { "chicken.png", 3 },
+	chickena2b = { "chicken.png", 3 },
+	chickenallterraina1 = { "chicken.png", 2 },
+	chickenallterraina1b = { "chicken.png", 2 },
+	chickenallterraina1c = { "chicken.png", 2 },
+	chickenapexallterrainassault = { "chicken.png", 3 },
+	chickenapexallterrainassaultb = { "chicken.png", 3 },
 
-	chickenc3 = { "chicken.png", 1.25999999 },
-	chickenc3b = { "chicken.png", 1.25999999 },
-	chickenc3c = { "chicken.png", 1.25999999 },
+	chickenc3 = { "chicken.png", 1.5 },
+	chickenc3b = { "chicken.png", 1.5 },
+	chickenc3c = { "chicken.png", 1.5 },
 
-	chickenf1_mini = { "chicken_air.png", 0.75 },
+	chickenf1_mini = { "chicken_air.png", 1.25 },
 	chickenf1 = { "chicken_air.png", 1.5 },
 	chickenf1b = { "chicken_air.png", 1.5 },
-	chickenf1apex = { "chicken_air.png", 2 },
-	chickenf1apexb = { "chicken_air.png", 2 },
+	chickenf1apex = { "chicken_air.png", 3 },
+	chickenf1apexb = { "chicken_air.png", 3 },
 
-	chickenf2 = { "chicken_air.png", 1.78499997 },
+	chickenh1 = { "chicken.png", 0.75 },
+	chickenh1b = { "chicken.png", 0.75 },
 
-	chickenh1 = { "chicken.png", 0.94499993 },
-	chickenh1b = { "chicken.png", 0.94499993 },
+	chickenh2 = { "chicken.png", 2 },
+	chickenh3 = { "chicken.png", 1.5 },
+	chickenh4 = { "chicken.png", 1 },
+	chickenbroodartyh4small = { "chicken_earty.png", 1.5 },
+	chickenbroodartyh4 = { "chicken_arty.png", 3 },
+	chickenbroodbomberh2 = { "chicken_air.png", 3 },
+	chickenbroodbomberh3 = { "chicken_air.png", 3 },
+	chickenbroodbomberh4 = { "chicken_air.png", 3 },
 
-	chickenh2 = { "chicken.png", 1.25999999 },
-	chickenh3 = { "chicken.png", 1.25999999 },
-	chickenh4 = { "chicken.png", 0.94499993 },
+	chickenp1 = { "chicken_flame.png", 1.5 },
+	chickenp2 = { "chicken_flame.png", 2 },
+	chickenpyroallterrain = { "chicken_flame.png", 1.5 },
 
-	chickenh5 = { "chicken_overseer.png", 1.95499993 },
+	chickenr1 = { "chicken_arty.png", 1.5 },
+	chickenr2 = { "chicken_arty.png", 3 },
 
-	chickenp1 = { "chicken_flame.png", 0.94499993 },
-	chickenp2 = { "chicken_flame.png", 1.57499993 },
-	chickenpyroallterrain = { "chicken_flame.png", 1.47 },
+	chickens1 = { "chicken_spike.png", 1.5 },
+	chickens2 = { "chicken_spike.png", 2 },
 
-	chickenr1 = { "chicken_arty.png", 1.57499993 },
-	chickenr2 = { "chicken_arty.png", 2.72999978 },
+	chickenw1_mini = { "chicken_air.png", 1.25 },
+	chickenw1 = { "chicken_air.png", 1.5 },
+	chickenw1b = { "chicken_air.png", 1.5 },
+	chickenw1c = { "chicken_air.png", 1.5 },
+	chickenw1d = { "chicken_air.png", 1.5 },
+	chickenw2 = { "chicken_air.png", 2 },
 
-	chickens1 = { "chicken_spike.png", 1.45999999 },
-	chickens2 = { "chicken_spike.png", 1.77499993 },
+	chickene1 = { "chicken_paralyze.png", 1 },
+	chickene2 = { "chicken_paralyze.png", 2 },
+	chickenearty1 = { "chicken_earty.png", 1.5 },
+	chickenearty2 = { "chicken_arty.png", 3 },
+	chickenebomber1 = { "chicken_air.png", 2.5 },
+	chickenelectricallterrain = { "chicken_paralyze.png", 1.5 },
+	chickenelectricallterrainassault = { "chicken_paralyze.png", 2 },
+	chicken_dodo1_electric = { "chicken_bomb.png", 1 },
+	chicken_dodo2_electric = { "chicken_bomb.png", 1.5 },
 
-	chickenw1_mini = { "chicken_air.png", 0.7 },
-	chickenw1 = { "chicken_air.png", 1.36499989 },
-	chickenw1b = { "chicken_air.png", 1.36499989 },
-	chickenw1c = { "chicken_air.png", 1.36499989 },
-	chickenw1d = { "chicken_air.png", 1.36499989 },
-	chickenw2 = { "chicken_air.png", 1.36499989 },
+	chickenacidswarmer = { "chicken_acid.png", 1 },
+	chickenacidassault = { "chicken_acid.png", 2 },
+	chickenacidbomber = { "chicken_air_acid.png", 2.5 },
+	chickenacidarty = { "chicken_acid_arty.png", 1.5 },
+	chickenacidartyxl = { "chicken_arty.png", 3 },
+	chickenacidallterrain = { "chicken_acid.png", 1.5 },
+	chickenacidallterrainassault = { "chicken_acid.png", 2 },
 
-	chickene1 = { "chicken_paralyze.png", 0.94499993 },
-	chickene2 = { "chicken_paralyze.png", 1.57499993 },
-	chickenearty1 = { "chicken_earty.png", 1.57499993 },
-	chickenearty2 = { "chicken_arty.png", 2.72999978 },
-	chickenebomber1 = { "chicken_air.png", 1.78499997 },
-	chickenelectricallterrain = { "chicken_paralyze.png", 1.47 },
-	chickenelectricallterrainassault = { "chicken_paralyze.png", 1.57499993 },
-
-	chickenacidswarmer = { "chicken_acid.png", 1.25999999 },
-	chickenacidassault = { "chicken_acid.png", 1.57499993 },
-	chickenacidbomber = { "chicken_air_acid.png", 1.78499997 },
-	chickenacidarty = { "chicken_acid_arty.png", 1.57499993 },
-	chickenacidartyxl = { "chicken_arty.png", 2.72999978 },
-	chickenacidallterrain = { "chicken_acid.png", 1.47 },
-	chickenacidallterrainassault = { "chicken_acid.png", 1.57499993 },
-
-	chicken_turrets = { "chicken_tentacle.png", 1.57499993 },
-	chicken_turrets_antiair = { "chicken_tentacle.png", 1.57499993 },
-	chicken_turrets_burrow = { "chicken_tentacle.png", 0 },
-	chicken_turretl = { "chicken_tentacle2.png", 2.9 },
-	chicken_turretl_antiair = { "chicken_tentacle2.png", 2.9 },
-	chicken_turrets_electric = { "chicken_tentacle.png", 1.57499993 },
-	chicken_turretl_electric  = { "chicken_tentacle2.png", 2.9 },
-	chicken_turrets_acid  = { "chicken_tentacle.png", 1.57499993 },
-	chicken_turretl_acid  = { "chicken_tentacle2.png", 2.9 },
+	chicken_turrets = { "chicken_tentacle.png", 2 },
+	chicken_turrets_antiair = { "chicken_tentacle.png", 2 },
+	chicken_turretl = { "chicken_tentacle2.png", 3 },
+	chicken_turretl_antiair = { "chicken_tentacle2.png", 3 },
+	chicken_turrets_electric = { "chicken_tentacle.png", 2 },
+	chicken_turretl_electric  = { "chicken_tentacle2.png", 3 },
+	chicken_turrets_acid  = { "chicken_tentacle.png", 2 },
+	chicken_turretl_acid  = { "chicken_tentacle2.png", 3 },
 	chicken_turretxl_meteor = { "chicken_tentacle2.png", 5 },
-	chicken_hive = { "chicken_roost.png", 1.99499993 },
+	chicken_hive = { "chicken_roost.png", 2 },
+	chicken_antinuke = { "chicken_roost.png", 0 },
 
-	chicken1x_spectre = { "chicken.png", 1.1 },
-	chicken2_spectre = { "chicken.png", 1.25999999 },
-	chickena1_spectre = { "chicken.png", 1.57499993 },
-	chickena2_spectre = { "chicken.png", 1.77499993 },
-	chickens2_spectre = { "chicken_spike.png", 1.77499993 },
+	chicken1x_spectre = { "chicken.png", 1.25 },
+	chicken2_spectre = { "chicken.png", 1.5 },
+	chickena1_spectre = { "chicken.png", 2 },
+	chickena2_spectre = { "chicken.png", 3 },
+	chickens2_spectre = { "chicken_spike.png", 2 },
 
-	chicken_miniqueen_electric = { "chicken_queen.png", 2 },
-	chicken_miniqueen_acid = { "chicken_queen.png", 2 },
-	chicken_miniqueen_healer = { "chicken_queen.png", 2 },
-	chicken_miniqueen_basic = { "chicken_queen.png", 2 },
-	chicken_miniqueen_fire = { "chicken_queen.png", 2 },
-	chicken_miniqueen_spectre = { "chicken_queen.png", 2 },
+	chicken_miniqueen_electric = { "chicken_queen.png", 3 },
+	chicken_miniqueen_acid = { "chicken_queen.png", 3 },
+	chicken_miniqueen_healer = { "chicken_queen.png", 3 },
+	chicken_miniqueen_basic = { "chicken_queen.png", 3 },
+	chicken_miniqueen_fire = { "chicken_queen.png", 3 },
+	chicken_miniqueen_spectre = { "chicken_queen.png", 3 },
 
-	ve_chickenq = { "chicken_queen.png", 4.19999981 },
-	e_chickenq = { "chicken_queen.png", 4.19999981 },
-	h_chickenq = { "chicken_queen.png", 4.19999981 },
-	n_chickenq = { "chicken_queen.png", 4.19999981 },
-	vh_chickenq = { "chicken_queen.png", 4.19999981 },
-	epic_chickenq = { "chicken_queen.png", 4.19999981 },
+	ve_chickenq = { "chicken_queen.png", 5 },
+	e_chickenq = { "chicken_queen.png", 5 },
+	h_chickenq = { "chicken_queen.png", 5 },
+	n_chickenq = { "chicken_queen.png", 5 },
+	vh_chickenq = { "chicken_queen.png", 5 },
+	epic_chickenq = { "chicken_queen.png", 5 },
 
 	-----------------------------------------------------------------------
 
@@ -641,6 +644,7 @@ local units = {
 	legcomt2def = { "legcomt2_def.png", 2.2 },
 	legcomt2off = { "legcom_off.png", 2.2 },
 	legcv = { "vehicle_worker.png", 0.99749994 },
+	legdrone = { "air_hover.png", 0.5 },
 	legfig = { "air.png", 0.65 },
 	legfort = { "air_battleship.png", 2.3 },
 	leggant = { "factory_gantry.png", 2.51999998 },
@@ -669,6 +673,8 @@ local units = {
 	legsrail = { "allterrain_t2_rail.png", 1.85 },
 	legstr = { "bot_t2_raid.png", 1.3 },
 	legvp = { "factory_vehicle.png", 1.52250004 },
+	legvcarry = { "vehicle_t2_carry.png", 1.65 },
+	legdefcarryt1 = { "legdefcarryt1.png", 1.66 },
 
 	lootboxbronze = { "lootbox.png", 1.04999995 },
 	lootboxgold = { "lootboxt3.png", 1.20749986 },
@@ -780,24 +786,9 @@ local function GetIconTypes()
 	return iconTypes, iconSizes
 end
 
-local reloadedsavegame = false
-
-function gadget:GameFrame(n)
-	if reloadedsavegame == false and (n % 31) == 0 then  -- this might break on the second reload of a savegame
-		local finishedLoading,  loadedFromSave = Spring.GetGameState()
-		--Spring.Echo("reloadedsavegame?", finishedLoading,  loadedFromSave)
-		if loadedFromSave then
-			reloadedsavegame = true
-			loadUnitIcons()
-		end
-	end
-end
-
 function gadget:Initialize()
 	gadgetHandler:RegisterGlobal('GetIconTypes', GetIconTypes)
-	if Spring.GetGameFrame() <= 0 then
-		loadUnitIcons()
-	end
+	loadUnitIcons()
 end
 
 function gadget:Shutdown()

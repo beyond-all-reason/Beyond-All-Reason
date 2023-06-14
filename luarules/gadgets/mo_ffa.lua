@@ -16,12 +16,12 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	local leaveWreckage = Spring.GetModOptions().ffa_wreckage or false
-	local leaveWreckageFromFrame = math.ceil(Game.gameSpeed * 60 * 3.2)
-
 	local earlyDropLimit = Game.gameSpeed * 60 * 2 -- in frames
 	local earlyDropGrace = Game.gameSpeed * 60 * 1 -- in frames
 	local lateDropGrace = Game.gameSpeed * 60 * 3 -- in frames
+
+	local leaveWreckage = Spring.GetModOptions().ffa_wreckage or false
+	local leaveWreckageFromFrame = Game.gameSpeed * 60 * 3
 
 	local GetPlayerInfo = Spring.GetPlayerInfo
 	local GetPlayerList = Spring.GetPlayerList
@@ -40,7 +40,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function GetTeamIsTakeable(teamID)
-		local players = GetPlayerList(teamID)
 		local allResigned = true
 		local noneControlling = true
 
@@ -49,8 +48,9 @@ if gadgetHandler:IsSyncedCode() then
 			allResigned, noneControlling = false, false
 		end
 
+		local players = GetPlayerList(teamID)
 		for _, playerID in pairs(players) do
-			local name, active, spec = GetPlayerInfo(playerID, false)
+			local _, active, spec = GetPlayerInfo(playerID, false)
 			allResigned = allResigned and spec
 			noneControlling = noneControlling and (not active or spec)
 		end
@@ -70,8 +70,7 @@ if gadgetHandler:IsSyncedCode() then
 		teamsWithUnitsToKill[teamID] = true
 	end
 
-	local function destroyTeam(teamID, gameFrame)
-		-- old code also used Spring.GetUnitTransporter to exclude destroying transported units
+	local function destroyTeam(teamID)
 		Spring.KillTeam(teamID)
 		deadTeam[teamID] = true
 		SendToUnsynced("TeamDestroyed", teamID)
@@ -83,7 +82,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		for teamID in pairs(teamsWithUnitsToKill) do
-			destroyTeam(teamID, gameFrame)
+			destroyTeam(teamID)
 			teamsWithUnitsToKill[teamID] = nil
 		end
 		for _, teamID in pairs(GetTeamList()) do
@@ -91,7 +90,7 @@ if gadgetHandler:IsSyncedCode() then
 				local noneControlling, allResigned = GetTeamIsTakeable(teamID)
 				if noneControlling then
 					if allResigned then
-						destroyTeam(teamID, gameFrame) -- destroy the team immediately if all players in it resigned
+						destroyTeam(teamID) -- destroy the team immediately if all players in it resigned
 					elseif not droppedTeam[teamID] then
 						local gracePeriod = gameFrame < earlyDropLimit and earlyDropGrace or lateDropGrace
 						local minutesGrace = math.floor(gracePeriod / (Game.gameSpeed * 60))
@@ -104,15 +103,15 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		for teamID, time in pairs(droppedTeam) do
-			if gameFrame - time > (time < earlyDropLimit and earlyDropGrace or lateDropGrace) then
+		for teamID, frame in pairs(droppedTeam) do
+			if gameFrame - frame > (frame < earlyDropLimit and earlyDropGrace or lateDropGrace) then
 				if gameFrame < leaveWreckageFromFrame then
 					local teamUnits = Spring.GetTeamUnits(teamID)
 					for i=1, #teamUnits do
 						Spring.DestroyUnit(teamUnits[i], false, true)	-- reclaim, dont want to leave FFA comwreck for idling starts
 					end
 				end
-				destroyTeam(teamID, time)
+				destroyTeam(teamID)
 				droppedTeam[teamID] = nil
 			end
 		end

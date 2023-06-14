@@ -57,7 +57,7 @@ local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local iconTypesMap, dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
-local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures, chobbyInterface
+local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures
 local cellRect, cellPadding, cornerSize, cellsize, cellHovered
 local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
 local displayUnitID, displayUnitDefID, doUpdateClock, lastHoverDataClock, lastHoverData
@@ -66,6 +66,7 @@ local contentWidth, dlistInfo, bfcolormap, selUnitTypes
 local RectRound, UiElement, UiUnit, elementCorner
 
 local spGetCurrentTooltip = Spring.GetCurrentTooltip
+local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
@@ -152,10 +153,6 @@ local function refreshUnitInfo()
 			unitDefInfo[unitDefID].airUnit = true
 		end
 
-		if not unitDef.cantBeTransported then	--unitDef.isImmobile or unitDef.isBuilding then
-			unitDefInfo[unitDefID].transportable = true
-		end
-
 		unitDefInfo[unitDefID].translatedHumanName = unitDef.translatedHumanName
 		if unitDef.maxWeaponRange > 16 then
 			unitDefInfo[unitDefID].maxWeaponRange = unitDef.maxWeaponRange
@@ -165,12 +162,6 @@ local function refreshUnitInfo()
 		end
 		if unitDef.rSpeed > 0 then
 			unitDefInfo[unitDefID].reverseSpeed = round(unitDef.rSpeed, 0)
-		end
-		if unitDef.mass > 0 then
-			unitDefInfo[unitDefID].mass = unitDef.mass
-		end
-		if unitDef.xsize > 0 then
-			unitDefInfo[unitDefID].footprint = unitDef.xsize * unitDef.zsize
 		end
 		if unitDef.stealth then
 			unitDefInfo[unitDefID].stealth = true
@@ -279,6 +270,14 @@ local function refreshUnitInfo()
 			end
 			if weaponDef.metalCost > 0 and (not unitDefInfo[unitDefID].metalPerShot or weaponDef.metalCost > unitDefInfo[unitDefID].metalPerShot) then
 				unitDefInfo[unitDefID].metalPerShot = weaponDef.metalCost
+			end
+		end
+
+		if unitDef.customParams.unitgroup and unitDef.customParams.unitgroup == 'explo' and unitDef.deathExplosion and WeaponDefNames[unitDef.deathExplosion] then
+			local weapon = WeaponDefs[WeaponDefNames[unitDef.deathExplosion].id]
+			if weapon then
+				unitDefInfo[unitDefID].dps = weapon.damages[Game.armorTypes["default"]]
+				unitDefInfo[unitDefID].reloadTime = nil
 			end
 		end
 	end
@@ -582,7 +581,7 @@ function widget:Update(dt)
 		displayUnitDefID = nil
 	end
 
-	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) or chobbyInterface then
+	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) then
 		return
 	end
 
@@ -1184,10 +1183,12 @@ local function drawUnitInfo()
 				addTextInfo(texts.xp, round(exp, 2))
 				addTextInfo(texts.maxhealth, '+' .. round((maxHealth / unitDefInfo[displayUnitDefID].health - 1) * 100, 0) .. '%')
 				currentReloadTime = spGetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, 'reloadTimeXP')
-				reloadTimeSpeedup = currentReloadTime / unitDefInfo[displayUnitDefID].reloadTime
-				local reloadTimeSpeedupPercentage = tonumber(round((1 - reloadTimeSpeedup) * 100, 0))
-				if reloadTimeSpeedupPercentage > 0 then
-					addTextInfo(texts.reload, '-' .. reloadTimeSpeedupPercentage .. '%')
+				if unitDefInfo[displayUnitDefID].reloadTime then
+					reloadTimeSpeedup = currentReloadTime / unitDefInfo[displayUnitDefID].reloadTime
+					local reloadTimeSpeedupPercentage = tonumber(round((1 - reloadTimeSpeedup) * 100, 0))
+					if reloadTimeSpeedupPercentage > 0 then
+						addTextInfo(texts.reload, '-' .. reloadTimeSpeedupPercentage .. '%')
+					end
 				end
 			end
 			if dps then
@@ -1199,8 +1200,9 @@ local function drawUnitInfo()
 				elseif maxRange then
 					addTextInfo(texts.weaponrange, math_floor(maxRange))
 				end
-
-				addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
+				if currentReloadTime and currentReloadTime > 0 then
+					addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
+				end
 			end
 
 			--addTextInfo('weapons', #unitWeapons[displayUnitDefID])
@@ -1218,9 +1220,10 @@ local function drawUnitInfo()
 		end
 
 		if unitDefInfo[displayUnitDefID].cloakCost then
-			addTextInfo(texts.cloakcost, unitDefInfo[displayUnitDefID].cloakCost)
 			if unitDefInfo[displayUnitDefID].cloakCostMoving then
-				addTextInfo(texts.cloakcostmoving, unitDefInfo[displayUnitDefID].cloakCostMoving)
+				addTextInfo(texts.cloakcost, unitDefInfo[displayUnitDefID].cloakCost .. "/" .. unitDefInfo[displayUnitDefID].cloakCostMoving)
+			else
+				addTextInfo(texts.cloakcost, unitDefInfo[displayUnitDefID].cloakCost)
 			end
 		end
 
@@ -1237,21 +1240,10 @@ local function drawUnitInfo()
 		if unitDefInfo[displayUnitDefID].buildSpeed then
 			addTextInfo(texts.buildpower, unitDefInfo[displayUnitDefID].buildSpeed)
 		end
-		if unitDefInfo[displayUnitDefID].buildOptions then
-			addTextInfo(texts.buildoptions, #unitDefInfo[displayUnitDefID].buildOptions)
-		end
 
 		--if unitDefInfo[displayUnitDefID].armorType and unitDefInfo[displayUnitDefID].armorType ~= 'standard' then
 		--	addTextInfo('armor', unitDefInfo[displayUnitDefID].armorType)
 		--end
-
-		if unitDefInfo[displayUnitDefID].paralyzeMult then
-			if unitDefInfo[displayUnitDefID].paralyzeMult == 0 then
-				addTextInfo(texts.unparalyzable)
-			else
-				addTextInfo(texts.paralyzemult, round(unitDefInfo[displayUnitDefID].paralyzeMult, 2))
-			end
-		end
 
 		if unitDefInfo[displayUnitDefID].losRadius then
 			addTextInfo(texts.los, round(unitDefInfo[displayUnitDefID].losRadius, 0))
@@ -1294,17 +1286,6 @@ local function drawUnitInfo()
 			addTextInfo(texts.transportmaxmass, unitDefInfo[displayUnitDefID].transport[1])
 			addTextInfo(texts.transportmaxsize, unitDefInfo[displayUnitDefID].transport[2])
 			addTextInfo(texts.transportcapacity, unitDefInfo[displayUnitDefID].transport[3])
-		end
-
-		if unitDefInfo[displayUnitDefID].transportable then
-			--addTextInfo(texts.transportable)
-
-			if unitDefInfo[displayUnitDefID].mass then
-				addTextInfo(texts.mass, unitDefInfo[displayUnitDefID].mass)
-			end
-			if unitDefInfo[displayUnitDefID].footprint then
-				addTextInfo(texts.footprint, unitDefInfo[displayUnitDefID].footprint)
-			end
 		end
 
 		local text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
@@ -1453,12 +1434,6 @@ local function drawInfo()
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 local function LeftMouseButton(unitDefID, unitTable)
 	local alt, ctrl, meta, shift = spGetModKeyState()
 	local acted = false
@@ -1480,6 +1455,8 @@ local function LeftMouseButton(unitDefID, unitTable)
 			spSelectUnitArray(units, shift)
 		end
 	end
+	selectedUnits = spGetSelectedUnits()
+	SelectedUnitsCount = spGetSelectedUnitsCount()
 	if acted then
 		Spring.PlaySoundFile(sound_button, 0.5, 'ui')
 	end
@@ -1496,6 +1473,8 @@ local function MiddleMouseButton(unitDefID, unitTable)
 		Spring.SendCommands({ "viewselection" })
 		spSelectUnitArray(selectedUnits)
 	end
+	selectedUnits = spGetSelectedUnits()
+	SelectedUnitsCount = spGetSelectedUnitsCount()
 	Spring.PlaySoundFile(sound_button, 0.5, 'ui')
 end
 
@@ -1514,6 +1493,8 @@ local function RightMouseButton(unitDefID, unitTable)
 		end
 	end
 	spSelectUnitMap(map)
+	selectedUnits = spGetSelectedUnits()
+	SelectedUnitsCount = spGetSelectedUnitsCount()
 	Spring.PlaySoundFile(sound_button2, 0.5, 'ui')
 end
 
@@ -1643,7 +1624,7 @@ local doUpdateClock2 = os_clock() + 0.9
 function widget:DrawScreen()
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
 
-	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) or chobbyInterface then
+	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and Spring.GetGameFrame() > 0) then
 		if dlistGuishader then
 			WG['guishader'].DeleteDlist('info')
 			dlistGuishader = nil
@@ -1887,13 +1868,14 @@ function checkChanges()
 end
 
 function widget:SelectionChanged(sel)
-	if SelectedUnitsCount ~= 0 and spGetSelectedUnitsCount() == 0 then
+	local newSelectedUnitsCount = spGetSelectedUnitsCount()
+	if SelectedUnitsCount ~= 0 and newSelectedUnitsCount == 0 then
 		doUpdate = true
 		SelectedUnitsCount = 0
 		selectedUnits = {}
 	end
-	if spGetSelectedUnitsCount() > 0 then
-		SelectedUnitsCount = spGetSelectedUnitsCount()
+	if newSelectedUnitsCount > 0 then
+		SelectedUnitsCount = newSelectedUnitsCount
 		selectedUnits = sel
 		if not doUpdateClock then
 			doUpdateClock = os_clock() + 0.05  -- delay to save some performance

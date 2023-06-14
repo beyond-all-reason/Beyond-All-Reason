@@ -46,6 +46,22 @@ function makeInstanceVBOTable(layout, maxElements, myName, objectTypeAttribID, o
 	end
 	--Spring.Echo(myName,": VBO upload of #elements:",#instanceData)
 	newInstanceVBO:Upload(instanceData)
+	
+	--register self in WG if possible
+	if WG then 
+		if WG.VBOTableRegistry == nil then
+			--Spring.Echo("WG.VBORegistry == nil, creating registry on first load")
+			WG.VBOTableRegistry = {}
+		end
+		if WG.VBOTableRegistry[instanceTable.myName] then 
+			local newname = instanceTable.myName .. tostring(math.random())
+			--Spring.Echo(instanceTable.myName, 'already registered, renaming to', newname)
+			instanceTable.myName = newname
+		end
+		--Spring.Echo("Registered ", instanceTable.myName)
+		WG.VBOTableRegistry[instanceTable.myName] = instanceTable
+	end
+	
 	return instanceTable
 end
 
@@ -474,6 +490,32 @@ function pushInstanceDataGPU(iT)
 	iT.instanceVBO:Upload(iT.instanceData,nil,0, 1, iT.usedElements * iT.instanceStep)
 	iT.dirty = false
 end
+
+function dumpAndCompareInstanceData(iT)
+	local gpuContents = iT.instanceVBO:Download(nil,nil,nil,true)
+	for i = 1, iT.usedElements do 
+		Spring.Echo(string.format("%s, instanceID =%s, element %d of %d", iT.myName, tostring(iT.indextoInstanceID[i]), i, iT.usedElements))
+		local index = 1
+		local offset = (i -1) * (iT.instanceStep)
+		for j, layout in ipairs(iT.layout) do
+			local gpuData = '' 
+			local luaData = ''
+			for k= 1, layout.size do
+				luaData = luaData .. tostring(iT.instanceData[index + offset]) .. ","
+				gpuData = gpuData .. tostring(gpuContents[index + offset]) .. ","
+				index = index + 1
+			end
+			local layoutstr = string.format("  ID=%d, name = %s, size = %d, type = %d, luaData = {%s}, gpuData={%s}",
+				layout.id, layout.name, layout.size, layout.type or GL.FLOAT,
+				luaData,
+				gpuData
+			)
+			Spring.Echo(layoutstr)
+		end
+	end
+end
+	
+	
 
 function uploadAllElements(iT)
 	-- DANGER: stuff should be removed first!

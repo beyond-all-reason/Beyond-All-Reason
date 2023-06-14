@@ -34,7 +34,7 @@ local ssub = string.sub
 local slower = string.lower
 
 local RectRound, UiElement, UiButton, bgpadding, elementCorner, widgetSpaceMargin
-local voteDlist, chobbyInterface, font, font2, gameStarted, dlistGuishader
+local voteDlist, font, font2, gameStarted, dlistGuishader
 local weAreVoteOwner, hovered, voteName, windowArea, closeButtonArea, yesButtonArea, noButtonArea
 local voteEndTime, voteEndText, voteOwnerPlayername
 
@@ -136,7 +136,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 		noButtonArea = { xpos + (buttonMargin / 2), ypos - (height / 2) + buttonMargin + progressbarHeight, xpos + (width / 2) - buttonMargin, ypos - (height / 2) + buttonHeight - buttonMargin + progressbarHeight}
 
 		if not voteEndText then
-			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 		end
 
 		-- progress bar
@@ -260,7 +260,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 		end
 
 		if voteEndText then
-			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 			font:Begin()
 			font:Print("\255\190\190\190" .. voteEndText, windowArea[1] + ((windowArea[3] - windowArea[1]) / 2), windowArea[2] + ((windowArea[4] - windowArea[2]) / 2)-(fontSize*0.3), fontSize*1.1, "con")
 			font:End()
@@ -542,16 +542,7 @@ function widget:Shutdown()
 	CloseVote()
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
 	if voteDlist then
 		if not WG['topbar'] or not WG['topbar'].showingQuit() then
 			if eligibleToVote then

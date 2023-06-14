@@ -11,17 +11,18 @@ CCircuitUnit@ energizer2 = null;
 
 IUnitTask@ AiMakeTask(CCircuitUnit@ unit)
 {
+	// TODO: Add API to create any tasks
 // 	AiDelPoint(lastPos);
 // 	lastPos = unit.GetPos(ai.frame);
 // 	AiAddPoint(lastPos, "task");
 
 // 	IUnitTask@ task = aiBuilderMgr.DefaultMakeTask(unit);
-// 	if ((task !is null) && (task.GetType() == 5)) {  // Type::BUILDER
+// 	if ((task !is null) && (task.GetType() == Task::Type::BUILDER)) {
 // 		switch (task.GetBuildType()) {
-// 		case 10:  // BuildType::MEX
+// 		case Task::BuildType::MEX:
 // 			AiAddPoint(task.GetBuildPos(), task.GetBuildDef().GetName());
 // 			break;
-// 		case 5:  // BuildType::DEFENCE
+// 		case Task::BuildType::DEFENCE:
 // 			AiAddPoint(task.GetBuildPos(), task.GetBuildDef().GetName());
 // 			break;
 // 		default:
@@ -32,13 +33,12 @@ IUnitTask@ AiMakeTask(CCircuitUnit@ unit)
 	return aiBuilderMgr.DefaultMakeTask(unit);
 }
 
-void AiTaskCreated(IUnitTask@ task)
+void AiTaskAdded(IUnitTask@ task)
 {
-// 	if (task.GetType() != 5) {  // Type::BUILDER
+// 	if (task.GetType() != Task::Type::BUILDER)
 // 		return;
-// 	}
 // 	switch (task.GetBuildType()) {
-// 	case 4: {  // BuildType::ENERGY
+// 	case Task::BuildType::ENERGY: {
 // 		if (gPauseCnt == 0) {
 // 			string name = task.GetBuildDef().GetName();
 // 			if ((name == "armfus") || (name == "armafus") || (name == "corfus") || (name == "corafus")) {
@@ -48,54 +48,63 @@ void AiTaskCreated(IUnitTask@ task)
 // 			AiAddPoint(task.GetBuildPos(), name);
 // 		}
 // 	} break;
-// 	case 0:  // BuildType::FACTORY
-// 	case 1:  // BuildType::NANO
-// 	case 2:  // BuildType::STORE
-// 	case 3:  // BuildType::PYLON
-// 	case 5:  // BuildType::GEO
-// 	case 6:  // BuildType::DEFENCE
-// 	case 7:  // BuildType::BUNKER
-// 	case 8:  // BuildType::BIG_GUN
-// 	case 9:  // BuildType::RADAR
-// 	case 10:  // BuildType::SONAR
-// 	case 11:  // BuildType::CONVERT
-// 	case 12:  // BuildType::MEX
-// 	case 13:  // BuildType::MEXUP
+// 	case Task::BuildType::FACTORY:
+// 	case Task::BuildType::NANO:
+// 	case Task::BuildType::STORE:
+// 	case Task::BuildType::PYLON:
+// 	case Task::BuildType::GEO:
+// 	case Task::BuildType::GEOUP:
+// 	case Task::BuildType::DEFENCE:
+// 	case Task::BuildType::BUNKER:
+// 	case Task::BuildType::BIG_GUN:
+// 	case Task::BuildType::RADAR:
+// 	case Task::BuildType::SONAR:
+// 	case Task::BuildType::CONVERT:
+// 	case Task::BuildType::MEX:
+// 	case Task::BuildType::MEXUP:
 // 		AiAddPoint(task.GetBuildPos(), task.GetBuildDef().GetName());
 // 		break;
-// 	case 14:  // BuildType::REPAIR
-// 	case 15:  // BuildType::RECLAIM
-// 	case 16:  // BuildType::RESURRECT
-// 		AiAddPoint(task.GetBuildPos(), "re");
+// 	case Task::BuildType::REPAIR:
+// 		AiAddPoint(task.GetBuildPos(), "rep");
+// 		break;
+// 	case Task::BuildType::RECLAIM:
+// 		AiAddPoint(task.GetBuildPos(), "rec");
+// 		break;
+// 	case Task::BuildType::RESURRECT:
+// 		AiAddPoint(task.GetBuildPos(), "res");
+// 		break;
+// 	case Task::BuildType::TERRAFORM:
+// 		AiAddPoint(task.GetBuildPos(), "ter");
 // 		break;
 // 	default:
 // 		break;
 // 	}
 }
 
-void AiTaskClosed(IUnitTask@ task, bool done)
+void AiTaskRemoved(IUnitTask@ task, bool done)
 {
-// 	if (task.GetType() != 5) {  // Type::BUILDER
+// 	if (task.GetType() != Task::Type::BUILDER)
 // 		return;
-// 	}
 // 	switch (task.GetBuildType()) {
-// 	case 0:  // BuildType::FACTORY
-// 	case 1:  // BuildType::NANO
-// 	case 2:  // BuildType::STORE
-// 	case 3:  // BuildType::PYLON
-// 	case 4:  // BuildType::ENERGY
-// 	case 5:  // BuildType::GEO
-// 	case 6:  // BuildType::DEFENCE
-// 	case 7:  // BuildType::BUNKER
-// 	case 8:  // BuildType::BIG_GUN
-// 	case 9:  // BuildType::RADAR
-// 	case 10:  // BuildType::SONAR
-// 	case 11:  // BuildType::CONVERT
-// 	case 12:  // BuildType::MEX
-// 	case 13:  // BuildType::MEXUP
-// 	case 14:  // BuildType::REPAIR
-// 	case 15:  // BuildType::RECLAIM
-// 	case 16:  // BuildType::RESURRECT
+// 	case Task::BuildType::FACTORY:
+// 	case Task::BuildType::NANO:
+// 	case Task::BuildType::STORE:
+// 	case Task::BuildType::PYLON:
+// 	case Task::BuildType::ENERGY:
+// 	case Task::BuildType::GEO:
+// 	case Task::BuildType::GEOUP:
+// 	case Task::BuildType::DEFENCE:
+// 	case Task::BuildType::BUNKER:
+// 	case Task::BuildType::BIG_GUN:
+// 	case Task::BuildType::RADAR:
+// 	case Task::BuildType::SONAR:
+// 	case Task::BuildType::CONVERT:
+// 	case Task::BuildType::MEX:
+// 	case Task::BuildType::MEXUP:
+// 	case Task::BuildType::REPAIR:
+// 	case Task::BuildType::RECLAIM:
+// 	case Task::BuildType::RESURRECT:
+// 	case Task::BuildType::TERRAFORM:
 // 		AiDelPoint(task.GetBuildPos());
 // 		break;
 // 	default:
@@ -103,10 +112,10 @@ void AiTaskClosed(IUnitTask@ task, bool done)
 // 	}
 }
 
-void AiWorkerCreated(CCircuitUnit@ unit)
+void AiUnitAdded(CCircuitUnit@ unit, Unit::UseAs usage)
 {
 	const CCircuitDef@ cdef = unit.circuitDef;
-	if (cdef.IsRoleAny(Unit::Role::COMM.mask))
+	if (usage != Unit::UseAs::BUILDER || cdef.IsRoleAny(Unit::Role::COMM.mask))
 		return;
 
 	// constructor with BASE attribute is assigned to tasks near base
@@ -114,24 +123,41 @@ void AiWorkerCreated(CCircuitUnit@ unit)
 		if (energizer1 is null
 			&& (uint(cdef.count) > aiMilitaryMgr.GetGuardTaskNum() || cdef.IsAbleToFly()))
 		{
-			@energizer1 = @unit;
+			@energizer1 = unit;
 			unit.AddAttribute(Unit::Attr::BASE.type);
 		}
 	} else {
 		if (energizer2 is null) {
-			@energizer2 = @unit;
+			@energizer2 = unit;
 			unit.AddAttribute(Unit::Attr::BASE.type);
 		}
 	}
 }
 
-void AiWorkerDestroyed(CCircuitUnit@ unit)
+void AiUnitRemoved(CCircuitUnit@ unit, Unit::UseAs usage)
 {
-	if (energizer1 is unit) {
+	if (energizer1 is unit)
 		@energizer1 = null;
-	} else if (energizer2 is unit) {
+	else if (energizer2 is unit)
 		@energizer2 = null;
-	}
+}
+
+void AiLoad(IStream& istream)
+{
+	Id e1id = -1, e2id = -1;
+	istream >> e1id >> e2id;
+	@energizer1 = ai.GetTeamUnit(e1id);
+	@energizer2 = ai.GetTeamUnit(e2id);
+	if (energizer1 !is null)
+		energizer1.AddAttribute(Unit::Attr::BASE.type);
+	if (energizer2 !is null)
+		energizer2.AddAttribute(Unit::Attr::BASE.type);
+}
+
+void AiSave(OStream& ostream)
+{
+	ostream << Id(energizer1 !is null ? energizer1.id : -1)
+			<< Id(energizer2 !is null ? energizer2.id : -1);
 }
 
 }  // namespace Builder

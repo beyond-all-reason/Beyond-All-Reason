@@ -351,6 +351,7 @@ return {
 			[1] = {
 				def = "CORCOMLASER",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",

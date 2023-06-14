@@ -14,7 +14,7 @@ function widget:GetInfo()
 end
 
 -------------------------------- Notes, TODO ----------------------------------
--- Spawn 1000 geoshader billboards from a buffer of points filled with random 
+-- Spawn 1000 geoshader billboards from a buffer of points filled with random
 -- use startframe to start anim, and endframe to end anim
 
 -- PROBLEMS:
@@ -29,7 +29,7 @@ end
 
 -- Needs some unitform buffer shit to convey buildpower
 -- Needs stop and start times added to it
--- If builder is not visible, then no nano spray produced (this is bad for LOS) 
+-- If builder is not visible, then no nano spray produced (this is bad for LOS)
 
 ----------------------------- Localize for optmization ------------------------------------
 
@@ -69,7 +69,6 @@ local unitAttachedNanoSprays = {}
 local autoSprayInstanceID = 128000 -- as MAX_PROJECTILES = 128000, so they get unique ones
 
 local gameFrame = 0
-local chobbyInterface = false
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
@@ -133,13 +132,13 @@ end
 
 local function GetUnitNanoPieces(unitID)
 	local unitDefID = Spring.GetUnitDefID(unitID)
-	if unitDefID == nil then return nil end 
-	if unitDefPeiceMapCache[unitDefID] then return unitDefPeiceMapCache[unitDefID] end 
+	if unitDefID == nil then return nil end
+	if unitDefPeiceMapCache[unitDefID] then return unitDefPeiceMapCache[unitDefID] end
 	local nanolist = Spring.GetUnitNanoPieces(unitID)
 	Spring.Echo("GetUnitNanoPieces", unitID, unitDefID, nanolist)
-	if nanolist == nil then 
-		return nil  
-	else 
+	if nanolist == nil then
+		return nil
+	else
 		unitDefPeiceMapCache[unitDefID] = nanolist
 		return nanolist
 	end
@@ -169,7 +168,7 @@ local function AddSpray(instanceID, unitID, pieceIndex, nanoparams, noUpload)
 	local gameFrame = Spring.GetGameFrame()
 	if noUpload then gameFrame = -500 end -- shitty hax
 	instanceID = pushElementInstance(nanoSprayVBO, {200,0,200,50, gameFrame,1000000,1023,1, pieceIndex, 0,0,0,0}, instanceID, true, noUpload, unitID)
-	-- calcLightExpiry 
+	-- calcLightExpiry
 	return instanceID
 end
 
@@ -204,11 +203,11 @@ local function AddSprayForUnit(unitID, unitDefID, noUpload)
 	-- canbuild
 	local nanos = GetUnitNanoPieces(unitID)
 	Spring.Echo("AddSprayForUnit",unitID, unitDefID, noUpload,nanos)
-	if nanos then 
-		if unitAttachedNanoSprays[unitID] == nil then 
+	if nanos then
+		if unitAttachedNanoSprays[unitID] == nil then
 			unitAttachedNanoSprays[unitID] = {}
-		end 
-		for i,pieceIndex in ipairs(nanos) do 
+		end
+		for i,pieceIndex in ipairs(nanos) do
 			local instanceID = AddSpray(nil, unitID, pieceIndex)
 			unitAttachedNanoSprays[unitID][instanceID] = true
 		end
@@ -295,24 +294,23 @@ function widget:UnitFinished(unitID, unitDefID, teamID)
 end
 local lastGameFrame = -1
 function widget:Update(dt)
-	if lastGameFrame == gameFrame then return end 
+	if lastGameFrame == gameFrame then return end
 	lastGameFrame = gameFrame
-	
+
 end
 
 ------------------------------- Drawing all the lights ---------------------------------
 
 -- local tf = Spring.GetTimerMicros()
 function widget:DrawWorld() -- We are drawing in world space, probably a bad idea but hey
-	if chobbyInterface then return end
 	--local t0 = Spring.GetTimerMicros()
 	--if true then return end
 	if autoupdate then
 		nanoSprayShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0) or nanoSprayShader
 	end
 
-	if nanoSprayVBO.usedElements > 0 then 
-		
+	if nanoSprayVBO.usedElements > 0 then
+
 		gl.Texture(0, '$minimap')
 		nanoSprayShader:Activate()
 		--nanoSprayShader:SetUniformFloat("nightFactor", nightFactor)
@@ -323,7 +321,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		end
 		nanoSprayVBO:draw(GL.POINTS)
 		nanoSprayShader:Deactivate()
-		gl.Texture(0, false) 
+		gl.Texture(0, false)
 		gl.Culling(GL.BACK)
 		gl.DepthTest(true)
 		--gl.DepthMask(true) --"BK OpenGL state resets", was true but now commented out (redundant set of false states)
@@ -331,14 +329,8 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	end
 end
 
-function widget:RecvLuaMsg(msg)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 -- Register /luaui dlgl4stats to dump light statistics
-function widget:TextCommand(command) 
+function widget:TextCommand(command)
 	if string.find(command, "asdfasdfasfasdfsadfsdafsd", nil, true) then
 		return true
 	end

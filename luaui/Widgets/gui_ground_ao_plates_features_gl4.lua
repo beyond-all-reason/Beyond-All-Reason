@@ -40,6 +40,11 @@ local function addDirToAtlas(atlas, path)
 				--Spring.Echo('s3oname',s3oname)
 				s3oname = string.sub(s3oname, 1,	string.find(s3oname, "_dead", 1 , true) + 4)
 				atlassedImages[s3oname] = files[i]
+			elseif string.find(s3oname, "arm.x.._._", 1) or string.find(s3oname, "cor.x.._._", 1) then 
+				s3oname = string.sub(s3oname, 1,7)
+				
+				--Spring.Echo('s3oname',s3oname)
+				atlassedImages[s3oname] = files[i]
 			else
 				--Spring.Echo('Custom Feature AO plate:',s3oname, files[i])
 				atlassedImages[s3oname] = files[i]
@@ -150,19 +155,27 @@ function widget:Initialize()
 	end
 	makeAtlas()
 	--if true then return end
+	local knownheaps3os = {['arm3x3'] = 1}
 	for id , featureDefID in pairs(FeatureDefs) do
 		local FD = FeatureDefs[id]
-		if FD.modelname and string.find(FD.modelname:lower(), "_dead", nil, true) then -- todo TREES!
+		if FD.modelname and (string.find(FD.modelname:lower(), "_dead", nil, true) or string.find(FD.name, "_heap", nil, true) ) then -- todo TREES!
 			-- lets see if we can find an image for this one!
 			local modelnamenos3o = string.gsub(string.lower(FD.modelname), ".s3o","")
 			modelnamenos3o = basepath(modelnamenos3o,'/')
 
+			--Spring.Echo(FD.name, modelnamenos3o, atlassedImages[modelnamenos3o] )
 			if atlassedImages[modelnamenos3o] then
 				--Spring.Echo(modelnamenos3o,atlassedImages[modelnamenos3o])
 				local atlasname = basepath(atlassedImages[modelnamenos3o],'/')
-				local sizestr = string.sub(atlasname,
-					string.find(atlasname, "_dead", nil, true) + 6, 
-					string.find(atlasname, "_aoplane.dds", nil, true)-1)
+				local sizestr = ""
+				if string.find(atlasname, "_dead", nil, true) then -- regular wrecks
+					sizestr = string.sub(atlasname,
+						(string.find(atlasname, "_dead", nil, true) or 0) + 6, 
+						string.find(atlasname, "_aoplane.dds", nil, true)-1)
+				else -- heaps override
+					sizestr = string.sub(atlasname,9,11)
+				end
+				
 					--Spring.Echo(atlasname, modelnamenos3o, sizestr)
 				local sizex = string.sub(sizestr, 1, string.find(sizestr, "_", nil, true)-1)
 				local sizez = string.sub(sizestr, string.find(sizestr, "_", nil, true)+1 )

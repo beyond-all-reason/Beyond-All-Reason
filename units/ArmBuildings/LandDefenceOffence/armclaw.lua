@@ -174,6 +174,7 @@ return {
 			[1] = {
 				def = "DCLAW",
 				onlytargetcategory = "SURFACE",
+				fastautoretargeting = true,
 			},
 		},
 	},

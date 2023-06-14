@@ -7,6 +7,11 @@ piece  base, eye, blwheel, blthigh, blleg, flwheel, flthigh, flleg, brwheel, brt
 
 static-var  Static_Var_1, turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed;
 
+static-var recently_damaged, desired_activation;
+
+#define SIG_ACTIVATE			2
+#define SIG_OFF 				8
+
 TurnControl()
 {
 	var lastHeading, currHeading, diffHeading;
@@ -112,17 +117,27 @@ Create()
 
 	start-script SmokeUnit();
 	Static_Var_1 = 0;
+	recently_damaged = 0;
+	desired_activation = 1;
 	moveSpeed = get MAX_SPEED;
 	return (0);
 }
 
 Activate()
 {
-	if( Static_Var_1 )
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+	desired_activation = 1;
+	// if we are in this function, the unit is already on
+	// implied set ACTIVATION to 1;
+	// turn off if unit is in the recently_damaged state
+	// this turn off action calls the Deactivate function
+	if( recently_damaged == 1)
 	{
 		set ACTIVATION to 0;
-		return (0);
+		return(0);
 	}
+
 	turn blleg to y-axis <0> speed <90>;
 	turn blthigh to y-axis <0> speed <90>;
 	turn flleg to y-axis <0> speed <90>;
@@ -136,6 +151,24 @@ Activate()
 
 Deactivate()
 {
+	// get PRINT(0, desired_activation,desired_activation,get GAME_FRAME);
+	// no easy way to tell if an on-off action is 
+	// script/gadget controlled or user controlled
+	// assume a deactivate command is a user command 
+	// if the unit has not been recently damaged
+	// However, we need to wait a few frames, 
+	// unit_paralyze_on_off deactivates this unit before it is 
+	// stunned, so it is actually turned off, but we need to wait to see if the
+	// unit is "damaged" by stun.
+	sleep 100;
+	if (recently_damaged == 0)
+	{
+		//set desired state if deactivated and not recently damaged
+		desired_activation = 0;
+	}
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+
 	turn base to z-axis <0> speed 400;
 	wait-for-turn base around z-axis;
 	turn blleg to y-axis <-55> speed <90>;
@@ -167,30 +200,38 @@ StopMoving()
 sleep 1; //need for some odd reason (does not open/close otherwise)
 }
 
+static-var  Stunned;
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    start-script Deactivate();
+	} else {
+	    set ACTIVATION to desired_activation;
+	}
+}
+
+OffOnHit()
+{
+signal SIG_OFF;
+set-signal-mask SIG_OFF;
+recently_damaged = 1;
+set ACTIVATION to 0; // turn off unit
+sleep 8000; //hardcoded time to stay off after being hit
+recently_damaged = 0;
+set ACTIVATION to desired_activation;
+}
 
 HitByWeapon(anglex, anglez)
 {
 
+	start-script OffOnHit();
 	turn base to z-axis anglez speed <105.000000>;
 	turn base to x-axis <0> - anglex speed <105.000000>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
 	turn base to z-axis <0.000000> speed <30.000000>;
 	turn base to x-axis <0.000000> speed <30.000000>;
-	
-	if( get ACTIVATION )
-	{
-		Static_Var_1 = 1;
-	}
-	if( Static_Var_1 )
-	{
-		signal 2;
-		set-signal-mask 2;
-		set ACTIVATION to 0;
-		sleep 8000;
-		Static_Var_1 = 0;
-		set ACTIVATION to 100;
-	}
 	return (0);
 }
 

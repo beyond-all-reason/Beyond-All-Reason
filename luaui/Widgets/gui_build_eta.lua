@@ -26,7 +26,7 @@ local glDrawFuncAtUnit = gl.DrawFuncAtUnit
 local glBillboard = gl.Billboard
 local glTranslate = gl.Translate
 
-local font, chobbyInterface
+local font
 
 local etaTable = {}
 local etaMaxDist = 750000 -- max dist at which to draw ETA
@@ -77,9 +77,6 @@ function widget:Initialize()
 end
 
 function widget:Update(dt)
-	if chobbyInterface then
-		return
-	end
 
 	local gs = spGetGameSeconds()
 	if gs == lastGameUpdate then
@@ -191,16 +188,9 @@ local function drawEtaText(timeLeft, yoffset)
 	font:End()
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 function widget:DrawWorld()
-	if chobbyInterface then
-		return
-	end
 	if Spring.IsGUIHidden() == false then
 		local glStateReady = false
 		local cx, cy, cz = Spring.GetCameraPosition()
@@ -210,7 +200,7 @@ function widget:DrawWorld()
 				local dx, dy, dz = ux - cx, uy - cy, uz - cz
 				local dist = dx * dx + dy * dy + dz * dz
 				if dist < etaMaxDist then
-					if not glStateReady then 
+					if not glStateReady then
 						glDepthTest(true)
 						glColor(1, 1, 1, 0.1)
 						glStateReady = true
@@ -219,7 +209,7 @@ function widget:DrawWorld()
 				end
 			end
 		end
-		if glStateReady then 
+		if glStateReady then
 			glColor(1, 1, 1, 1)
 			glDepthTest(false)
 		end

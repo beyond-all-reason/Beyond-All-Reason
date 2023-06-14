@@ -1133,7 +1133,7 @@ fragment = [[
 		iblDiffuse = shToColor(shRD, shGD, shBD, N);
 		iblSpecular = shToColor(shR, shG, shB, Rv);
 
-		iblSpecular = mix(iblSpecular, SampleReflectionMapLod(Rv, 5.0), 0.2); //add some shininess
+		iblSpecular = mix(iblSpecular, SampleReflectionMapLod(Rv, 5.0), 0.1); //add some shininess
 	}
 
 
@@ -1493,7 +1493,8 @@ fragment = [[
 		// Indirect and ambient lighting
         vec3 outColor;
 		vec3 ambientContrib;
-		vec3 iblDiffuse, iblSpecular;
+		vec3 iblDiffuse = vec3(0);
+		vec3 iblSpecular = vec3(0);
         {
             // ambient lighting (we now use IBL as the ambient term)
 			vec3 F = FresnelWithRoughness(F0, F90, VdotH, roughness, envBRDF);
@@ -1505,7 +1506,7 @@ fragment = [[
             ///
 			#if (USE_ENVIRONMENT_DIFFUSE == 1) || (USE_ENVIRONMENT_SPECULAR == 1)
 				#if (RENDERING_MODE == 0)
-					//TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
+					//TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);	//needed for Intel GPU
 				#endif
 			#endif
             ///
@@ -1598,6 +1599,9 @@ fragment = [[
 		#endif
 
 		outColor.rgb *= brightnessFactor; // this is to correct for lack of env mapping, the nastiest hack there has ever been...
+		
+		//iblDiffuse, iblSpecular
+		//outColor.rgb = iblSpecular;
 
 		#if (RENDERING_MODE == 0)
 			fragData[0] = vec4(outColor, texColor2.a);
@@ -1990,7 +1994,7 @@ local function SunChanged(luaShader)
         Spring.GetConfigFloat("tonemapC", 3.5),
         Spring.GetConfigFloat("tonemapD", 0.85),
         Spring.GetConfigFloat("tonemapE", 1.0),
-        Spring.GetConfigFloat("envAmbient", 0.25),
+        Spring.GetConfigFloat("envAmbient", 0.125),
         Spring.GetConfigFloat("unitSunMult", 1.0),
         Spring.GetConfigFloat("unitExposureMult", 1.0),
 	})

@@ -1,4 +1,28 @@
-﻿# March 2023
+﻿# June 2023
+ • [Tremor] Weapon reworked, now has a higher aoe, firerate, and impulse but lower damage per shot.  The weapon is now stronger against groups of small units while significantly changing its strength against large units.  
+ • [Incisor] Hitbox adjusted so incisors will fire more effectively in close formations, but will still obstruct each other's fire in large groups.  
+
+# May 2023
+[Commander] default enabled modoption "comupdate":
+ • Now immune to the D-Gun. 
+ • Health 3350->4000. +Removed passive health regeneration.
+ • Wreckage metal 2000->1250.
+ • Death explosion inflict less damage.
+ • No longer susceptible to special damage modifiers from certain units, such as Light Laser Towers.
+
+Other
+ • [Supporter] Reloadtime reduced from 1s->0.93s
+ • [Roughneck] Projectile speed increased 450->800
+
+# April 2023
+
+ • [Grunt] Range reduced from 240->230 and health reduced from 290->270
+ • [Pawn] Damage per shot reduced from 10->9
+ • [Tick] Metal cost increased from 15->17
+ • [T1 Vehicle Scouts] Damage per shot increased from 30->35 
+ • Targeting improvements to tiger tank and turtle tank
+
+# March 2023
 
  • [T3 Hovertanks] Depthcharges added and main turrets can no longer target underwater units
  • [Thor] Speed nerf 60->54, spark forkdamage nerf 0.5->0.25 (now deals 750 damage as aoe instead of 1500)

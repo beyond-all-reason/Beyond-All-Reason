@@ -359,6 +359,9 @@ local armorDefs = {
 		"legcib",
 		"legmineb",
 		"chicken_dodoair",
+		"chickenbroodbomberh2",
+		"chickenbroodbomberh3",
+		"chickenbroodbomberh4",
 	},
 	fighters = {
 		"chickenw1_mini",
@@ -435,6 +438,7 @@ local armorDefs = {
 		"legca",
 		"armdrone",
 		"cordrone",
+		"legdrone",
 	},
 	shields = {
 		"armgate",
@@ -542,6 +546,7 @@ local armorDefs = {
 		"chickenearty1",
 		"chickenelectricallterrain",
 		"chicken_hive",
+		"chicken_antinuke",
 	},
 }
 

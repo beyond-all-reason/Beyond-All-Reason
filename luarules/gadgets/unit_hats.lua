@@ -29,7 +29,7 @@ end
 
 -- Notes:
 -- hat wearing units must have unitdef holdsteady = true to give the piece orientations
--- hat wearing commander is only transportable by t2 transports (mass? unitcount? why?)
+-- hats have nonzero mass and can stop commanders from being able to use T1 transports (see 5c4b8a3)
 -- hat pos is 1 frame off :/
 
 if not gadgetHandler:IsSyncedCode() then
@@ -60,20 +60,19 @@ local unitDefCanWearHats = {
 local vikings = {
 	["Raghna"] = true,
 	["Malady"] = true,
+	["captainjacksparrow"] = true,
+	["[DE]LSR"] = true,
 }
 local kings = {
-	["[teh]Teddy"] = true,
+	["MightySheep"] = true,
 }
 local goldMedals = {
-	--["[teh]Teddy"] = true,
 	["EmperorGlass"] = true,
 }
 local silverMedals = {
-	--["PRO_rANDY"] = true,
 	["[eVo]Lopatka"] = true,
 }
 local bronzeMedals = {
-	--["StarDom"] = true,
 	["MatBlader"] = true,
 	["[eVo]therxyy"] = true,
 }
@@ -156,15 +155,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 			Spring.Echo("hat created", unitID, unitDefID, unitTeam, builderID)
 		end
 		Hats[unitID] = -1
-		--Spring.SetUnitNoSelect(unitID,true) -- can it still be targetted though?
-		--[[number unitID,
-		   boolean isBlocking,
-		   boolean isSolidObjectCollidable,
-		   boolean isProjectileCollidable,
-		   boolean isRaySegmentCollidable,
-		   boolean crushable,
-		   boolean blockEnemyPushing,
-		   boolean blockHeightChanges]]--
 		Spring.SetUnitNeutral(unitID, true)
 		Spring.SetUnitBlocking(unitID, false, false, false, false) -- non blocking while dying
 		Spring.SetUnitNoMinimap(unitID, true)

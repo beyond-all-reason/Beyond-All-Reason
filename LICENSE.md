@@ -1,5 +1,6 @@
 The Code:
-The Spring Engine (which this game runs on) requires that all the code the games use are under the GPL v2 licence. (https://springrts.com)
+BAR game code is released under the GPL v2 licence, though individual files can have their own license (specified in wupget:GetInfo).
+The Recoil Engine (which this game runs on) requires that all the code the games use be compatible with GPL v2 or later. (https://beyond-all-reason.github.io/spring/)
 
 Models, textures, animation:
 Models by Cremuss are released under the CC-BY-SA 4.0 license. 

@@ -269,10 +269,9 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 		gl.Blending(true)
 
 		if updateStencilTexture then
-			DrawStencilTexture(true);
-			updateStencilTexture = false;
+			DrawStencilTexture(true)
+			updateStencilTexture = false
 		end
-
 
 		gl.Blending(true)
 		gl.Texture(screencopy)
@@ -356,14 +355,11 @@ function widget:Initialize()
 	self:UpdateCallIns()
 
 	WG['guishader'] = {}
-	WG['guishader'].InsertDlist = function(dlist, name)
-		if guishaderDlists[name] ~= dlist then
+	WG['guishader'].InsertDlist = function(dlist, name, force)
+		if force or guishaderDlists[name] ~= dlist then
 			guishaderDlists[name] = dlist
-			updateStencilTexture = name
-			--Spring.Debug.TraceFullEcho(nil,nil,nil, "InsertDlist")
-			--Spring.Debug.TraceEcho("InsertDlist", dlist, name)
+			updateStencilTexture = true
 		end
-
 	end
 	WG['guishader'].RemoveDlist = function(name)
 		local found = false
@@ -372,7 +368,7 @@ function widget:Initialize()
 		end
 		guishaderDlists[name] = nil
 		if found then
-			updateStencilTexture = name
+			updateStencilTexture = true
 		end
 		return found
 	end
@@ -386,7 +382,7 @@ function widget:Initialize()
 	end
 	WG['guishader'].InsertRect = function(left, top, right, bottom, name)
 		guishaderRects[name] = { left, top, right, bottom }
-		updateStencilTexture = name
+		updateStencilTexture = true
 	end
 	WG['guishader'].RemoveRect = function(name)
 		local found = false
@@ -395,7 +391,7 @@ function widget:Initialize()
 		end
 		guishaderRects[name] = nil
 		if found then
-			updateStencilTexture = name
+			updateStencilTexture = true
 		end
 		return found
 	end

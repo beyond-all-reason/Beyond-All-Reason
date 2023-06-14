@@ -44,7 +44,6 @@ local GetUnitDefID			= Spring.GetUnitDefID
 local lower                 = string.lower
 local spGetAllUnits			= Spring.GetAllUnits
 local spGiveOrderToUnit		= Spring.GiveOrderToUnit
-local spIsGUIHidden			= Spring.IsGUIHidden
 local spGetCameraPosition 	= Spring.GetCameraPosition
 local spValidUnitID			= Spring.ValidUnitID
 local spGetUnitPosition		= Spring.GetUnitPosition
@@ -184,7 +183,7 @@ end
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
 
-    if spIsGUIHidden() then return end
+    if Spring.IsGUIHidden() then return end
 
 	local camX, camY, camZ = spGetCameraPosition()
 

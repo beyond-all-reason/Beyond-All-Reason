@@ -100,3 +100,31 @@ function AIBase:EchoDebug(...)
 		self.game:SendToConsole(self.game:GetTeamID(), self:Name(), 'Debug: ',...)
 	end
 end
+
+if tracy and true then 
+	
+	Spring.Echo("Enabled Tracy support for AIBase")
+	AIBase.lastGCinfo = 0
+	local logRAM = true
+	--local function tracyZoneBeginMem() return end
+	--local function tracyZoneEndMem() return end
+	function AIBase:tracyZoneBeginN (fname) tracy.ZoneBeginN(self:Name() .. ":".. fname) end 
+	function AIBase:tracyZoneEnd() tracy.ZoneEnd() end 
+	
+	function AIBase:tracyZoneBeginMem()
+		if logRAM then lastGCinfo = gcinfo() end 
+		tracy.ZoneBeginN(fname)
+	end
+	
+	function AIBase:tracyZoneEndMem () 
+		if logRAM then 
+			local nowGCinfo = gcinfo() 
+			local delta = nowGCinfo - lastGCinfo
+			if delta > 0 then 
+				tracy.Message(tostring(nowGCinfo - lastGCinfo))
+			end
+			lastGCinfo = nowGCinfo
+		end
+		tracy.ZoneEnd()
+	end
+end

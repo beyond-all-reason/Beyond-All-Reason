@@ -38,7 +38,7 @@ local wasOverview = false
 local leftclicked = false
 
 local RectRound, UiElement, elementCorner, elementPadding, elementMargin
-local dlistGuishader, dlistMinimap, oldMinimapGeometry, chobbyInterface
+local dlistGuishader, dlistMinimap, oldMinimapGeometry
 
 local dualscreenMode = ((Spring.GetConfigInt("DualScreenMode", 0) or 0) == 1)
 
@@ -169,8 +169,6 @@ function widget:Update(dt)
 	if dualscreenMode then return end
 
 	_, _, _, _, minimized, maximized = Spring.GetMiniMapGeometry()
-	Spring.SetConfigInt("MinimapMinimized", minimized and 1 or 0)
-
 	if minimized or maximized then
 		return
 	end
@@ -179,16 +177,11 @@ function widget:Update(dt)
 	checkGuishader()
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 local st = spGetCameraState()
 local stframe = 0
 function widget:DrawScreen()
-	if chobbyInterface then return end
 
 	if dualscreenMode and not minimized then
 		gl.DrawMiniMap()
@@ -205,10 +198,6 @@ function widget:DrawScreen()
 			end
 		end
 	end
-	if dlistGuishader and WG['guishader'] then
-		WG['guishader'].RemoveDlist('minimap')
-		dlistGuishader = gl.DeleteList(dlistGuishader)
-	end
 
 	stframe = stframe + 1
 	if stframe % 10 == 0 then
@@ -222,10 +211,11 @@ function widget:DrawScreen()
 			wasOverview = true
 		end
 
-	elseif not (minimized or maximized) then
-		if wasOverview then
+	elseif not (minimized or maximized) or (wasOverview and Spring.GetConfigInt("MinimapMinimize", 0) == 0) then
+		if wasOverview and Spring.GetConfigInt("MinimapMinimize", 0) == 0 then
 			gl.SlaveMiniMap(true)
 			wasOverview = false
+			Spring.SendCommands("minimap minimize 0")
 		end
 
 		if dlistGuishader and WG['guishader'] then

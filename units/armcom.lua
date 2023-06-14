@@ -350,6 +350,7 @@ return {
 			[1] = {
 				def = "ARMCOMLASER",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",

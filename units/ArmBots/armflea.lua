@@ -3,7 +3,7 @@ return {
 		acceleration = 0.575,
 		brakerate = 1.725,
 		buildcostenergy = 340,
-		buildcostmetal = 15,
+		buildcostmetal = 17,
 		buildpic = "ARMFLEA.DDS",
 		buildtime = 800,
 		canmove = true,

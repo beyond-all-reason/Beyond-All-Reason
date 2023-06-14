@@ -70,7 +70,7 @@ local groups, unitGroup = {}, {}	-- retrieves from buildmenu in initialize
 local unitOrder = {}	-- retrieves from buildmenu in initialize
 
 local bgpadding, font, backgroundRect, backgroundOptionsRect, buildoptionsArea, dlistGuishader, dlistGuishader2, forceGuishader
-local chobbyInterface, factoriesArea, cornerSize, setInfoDisplayUnitID, factoriesAreaHovered
+local factoriesArea, cornerSize, setInfoDisplayUnitID, factoriesAreaHovered
 
 -------------------------------------------------------------------------------
 -- Speed Up
@@ -559,9 +559,6 @@ end
 
 local sec = 0
 function widget:Update(dt)
-	if chobbyInterface then
-		return
-	end
 
 	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
@@ -714,16 +711,9 @@ end
 -- DRAWSCREEN
 -------------------------------------------------------------------------------
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
 
 	local mx, my, lb, mb, rb, moffscreen = GetMouseState()
 
@@ -834,9 +824,6 @@ function widget:DrawScreen()
 end
 
 function widget:DrawWorld()
-	if chobbyInterface then
-		return
-	end
 
 	-- Draw factories command lines
 	if openedMenu >= 0 then

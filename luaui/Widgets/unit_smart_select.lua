@@ -14,7 +14,6 @@ end
 local minimapToWorld = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").minimapToWorld
 local skipSel
 local inSelection = false
-local finishedSelection = false
 local inMiniMapSel = false
 
 local referenceX, referenceY
@@ -118,13 +117,6 @@ function widget:ViewResize()
 end
 
 function widget:SelectionChanged(sel)
-	-- widgets already received what we selected on previous pass, bypass this event
-	if finishedSelection then
-		WG['smartselect'].updateSelection = false
-		finishedSelection = false
-		return
-	end
-
 	-- Check if engine has just deselected via mouserelease on selectbox.
 	-- We want to ignore engine passed selection and make sure we retain smartselect state
 	if inSelection and not select(3, spGetMouseState()) then -- left mouse button
@@ -134,20 +126,13 @@ function widget:SelectionChanged(sel)
 			-- if empty selection box and engine hardcoded deselect modifier is not
 			-- pressed, user is selected empty space
 			-- we must clear selection to disambiguate from our own deselect modifier
+			selectedUnits = {}
 			spSelectUnitArray({})
 		else
-			-- widgethandler uses this to ignore the engine mouserelease selection
-			-- we don't want to pass the engine selection to other widgets
-			WG['smartselect'].updateSelection = false
 			-- we also want to override back from engine selection to our selection
 			spSelectUnitArray(selectedUnits)
-			-- we bypass next selectionchanged event since we already know what we
-			-- selected, Update() constantly selects units inside selection box until
-			-- it finishes
-			finishedSelection = true
 		end
-
-		return
+		return selectedUnits
 	end
 
 	selectedUnits = sel
@@ -184,8 +169,6 @@ function widget:PlayerChanged()
 end
 
 function widget:Update()
-	WG['smartselect'].updateSelection = true
-
 	if skipSel or spGetActiveCommand() ~= 0 then
 		return
 	end
@@ -197,7 +180,6 @@ function widget:Update()
 	local x1, y1, x2, y2 = spGetSelectionBox()
 
 	inSelection = inMiniMapSel or (x1 ~= nil)
-
 	if not inSelection then return end -- not in valid selection box (mouserelease/minimum threshold/chorded/etc)
 
 	if #referenceSelection == 0 then  -- no point in inverting an empty selection
@@ -205,7 +187,6 @@ function widget:Update()
 	end
 
 	local mouseSelection
-
 	if inMiniMapSel then
 		mouseSelection = GetUnitsInMinimapRectangle(x, y)
 	else
@@ -346,18 +327,25 @@ function widget:Update()
 			end
 		end
 		newSelection = tmp
-		spSelectUnitArray(newSelection)
+		selectedUnits = newSelection
+		spSelectUnitArray(selectedUnits)
 
 	elseif mods.all then  -- append units inside selection rectangle to current selection
 		spSelectUnitArray(newSelection)
 		spSelectUnitArray(mouseSelection, true)
+		selectedUnits = Spring.GetSelectedUnits()
 
 	elseif #mouseSelection > 0 then  -- select units inside selection rectangle
-		spSelectUnitArray(mouseSelection)
+		selectedUnits = mouseSelection
+		spSelectUnitArray(selectedUnits)
+
 	elseif #mouseSelection == 0 then
-		spSelectUnitArray({})
+		selectedUnits = {}
+		spSelectUnitArray(selectedUnits)
+
 	else  -- keep current selection while dragging until more things are selected
-		spSelectUnitArray(referenceSelection)
+		selectedUnits = referenceSelection
+		spSelectUnitArray(selectedUnits)
 	end
 end
 
@@ -405,9 +393,8 @@ function widget:Initialize()
 	WG['smartselect'].setIncludeBuilders = function(value)
 		includeBuilders = value
 	end
-	WG['smartselect'].updateSelection = false
 
-	widget:ViewResize();
+	widget:ViewResize()
 end
 
 function widget:GetConfigData()

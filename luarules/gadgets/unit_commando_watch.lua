@@ -38,13 +38,6 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
-local isCommandoMinelayerWeapon = {}
-for wdid, wd in pairs(WeaponDefs) do
-	if string.find(wd.name, 'commando_minelayer') then
-		isCommandoMinelayerWeapon[wdid] = true
-	end
-end
-
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if isCommando[unitDefID] then
 		if weaponID < 0 then
@@ -61,39 +54,6 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		end
 	elseif mines[unitID] and (attackerID == mines[unitID]) then
 		return 0, 0
-	elseif isCommandoMinelayerWeapon[weaponID] and orderQueue[attackerID] == nil and attackerTeam and unitTeam and not Spring.AreTeamsAllied(attackerTeam, unitTeam) and isBuilding[unitDefID] then
-		if select(2, Spring.GetUnitStates(attackerID), false, true) ~= 2 then
-			return damage, 1
-		end     --(2=movestate)
-
-		local vx, _, vz = Spring.GetUnitVelocity(unitID)
-		local e, _, _, i = Spring.GetTeamResources(attackerTeam, "energy")
-		local cQueue = Spring.GetCommandQueue(attackerID, 20)
-		local active = false
-		for i = 1, #cQueue do
-			local order = cQueue[i]
-			if order.id == CMD.MOVE or order.id < 0 then
-				active = true
-				break
-			end
-		end
-		if (e > 1000 or i > 1000) and not active and math.sqrt((vx * vx) + (vz * vz)) < 1.5 then
-			local x, _, z = Spring.GetUnitBasePosition(attackerID)
-			local ex, ey, ez = Spring.GetUnitBasePosition(unitID)
-			local r = Spring.GetUnitRadius(unitID)
-			for i = r / 2, r + 28, 4 do
-				local angle = math.atan2((x - ex), (z - ez))
-				local angleMod = ((math.random(math.pi) - (math.pi / 2)) * 0.25)
-				angle = (angle + angleMod)
-				local tx = ex + (math.sin(angle) * i)
-				local tz = ez + (math.cos(angle) * i)
-				if Spring.TestBuildOrder(MINE2, tx, ey, tz, 1) == 2 then
-					orderQueue[attackerID] = { tx, ey, tz }
-					break
-				end
-			end
-			return 0, 0
-		end
 	end
 	return damage, 1
 end

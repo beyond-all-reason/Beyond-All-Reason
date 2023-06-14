@@ -38,6 +38,8 @@ local SYSTEM_ID = -1 -- see LuaUnsyncedRead::GetPlayerTraffic, playerID to get h
 local gameStarting = false
 local timer = 0
 local timer2 = 0
+local auto_ready_timer = 120
+local auto_ready = not Spring.Utilities.Gametype.IsSinglePlayer()
 
 local buttonPosX = 0.8
 local buttonPosY = 0.76
@@ -53,13 +55,16 @@ local buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
 local buttonList, buttonHoverList
 local buttonText = ''
 local buttonDrawn = false
+local lockText = ''
+local locked = false
 
 local RectRound, UiElement, UiButton, elementPadding, uiPadding
 
 local enableSubbing = false
 local eligibleAsSub = false
 local offeredAsSub = false
-local allowUnready = false	-- not enabled cause unreadying doesnt work
+--local allowUnready = false	-- not enabled cause unreadying doesnt work, have to do workaroud
+local showLockButton = true
 
 local numPlayers = Spring.Utilities.GetPlayerCount()
 
@@ -69,17 +74,25 @@ local teamStartPositions = {}
 local teamList = Spring.GetTeamList()
 
 local uiElementRect = {0,0,0,0}
+local uiLockRect = {0,0,0,0}
 local buttonRect = {0,0,0,0}
+local lockRect = {0,0,0,0}
+local blinkButton = false
 
 local function createButton()
 	local color = { 0.15, 0.15, 0.15 }
 	if not mySpec then
-		color = readied and unreadyButtonColor or readyButtonColor
+		if not locked then
+			color = readyButtonColor
+		else
+			color = unreadyButtonColor
+		end
 	elseif eligibleAsSub then
 		color = offeredAsSub and unsubButtonColor or subButtonColor
 	end
 	uiElementRect = { buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding }
 	buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2) }
+
 	gl.DeleteList(buttonList)
 	buttonList = gl.CreateList(function()
 		UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
@@ -101,7 +114,11 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 		end
 	else
 		if readied then
-			buttonText = Spring.I18N('ui.initialSpawn.unready')
+			if locked then
+				buttonText = Spring.I18N('ui.initialSpawn.unlock')
+			else
+				buttonText = Spring.I18N('ui.initialSpawn.lock')
+			end
 		else
 			buttonText = Spring.I18N('ui.initialSpawn.ready')
 		end
@@ -129,9 +146,15 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	uiPadding = math.floor(elementPadding * 4.5)
 
 	createButton()
+
 end
 
 function widget:GameSetup(state, ready, playerStates)
+
+	-- sends a "I arrived" message
+	if Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") == nil then
+		Spring.SendLuaRulesMsg("joined_game") 
+	end
 
 	-- check when the 3.2.1 countdown starts
 	if not gameStarting and ((Spring.GetPlayerTraffic(SYSTEM_ID, NETMSG_STARTPLAYING) or 0) > 0) then
@@ -149,53 +172,76 @@ function widget:GameSetup(state, ready, playerStates)
 		return true, true
 	end
 
-	if not ready and pressedReady then	-- check if we just readied
-		ready = true
-	elseif ready and not pressedReady then 	-- check if we just reconnected/dropped
-		ready = false
+	-- starts game after a specified amount of time after all players have joined
+	if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready then
+		auto_ready_timer = auto_ready_timer - Spring.GetLastUpdateSeconds()
+	end
+	if auto_ready_timer <=0 and auto_ready == true then
+		return true, true
 	end
 
-	pressedReady = playerStates[Spring.GetMyPlayerID()] == 'ready'
-	local prevReadied = readied
-	readied = pressedReady
-	if readied ~= prevReadied then
-		widget:ViewResize(vsx, vsy)
+	-- only return true, true once ALL players are ready
+	ready = true
+	local playerList = Spring.GetPlayerList()
+	for _, playerID in pairs(playerList) do
+		local _, _, spectator_flag = Spring.GetPlayerInfo(playerID)
+		if spectator_flag == false then
+			local is_player_ready = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
+			--Spring.Echo(#playerList, playerID, is_player_ready)
+			if is_player_ready == 0 or is_player_ready == 4 then
+				ready = false
+			end
+		end
 	end
-	--Spring.Echo(ready, pressedReady, os.clock(), Spring.Debug.TableEcho(playerStates)) --, Spring.Debug.TableEcho(playerStates)
+
 	return true, ready
+
 end
 
 function widget:MousePress(sx, sy)
 	if buttonDrawn then
 
-		-- pressing element
+		-- pressing button element
 		if sx > uiElementRect[1] and sx < uiElementRect[3] and sy > uiElementRect[2] and sy < uiElementRect[4] then
-			-- pressing button
+			-- pressing actual button
 			if sx > buttonRect[1] and sx < buttonRect[3] and sy > buttonRect[2] and sy < buttonRect[4] then
 
-				-- ready
-				if not mySpec then
-					if not readied then
-						if startPointChosen then
-							pressedReady = true
-						else
-							Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
-						end
-					else
-						readied = false
-						pressedReady = false
-						--Spring.SendLuaRulesMsg( ) -- if it doesnt work, try implementing this
-					end
+				-- if not pressed on ready
+				if not readied then
+					if not mySpec then
+						if not readied then
+							if startPointChosen then
+								pressedReady = true
+								readied = true
+								Spring.SendLuaRulesMsg("ready_to_start_game")
+								-- also default lock player in place
+								locked = true
+								Spring.SendLuaRulesMsg("locking_in_place") 
+							else
+								Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
+							end
 
-				-- substitute
-				elseif eligibleAsSub then
-					offeredAsSub = not offeredAsSub
-					if offeredAsSub then
-						Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutionMessage'))
-					else
-						Spring.Echo(Spring.I18N('ui.substitutePlayers.offerWithdrawn'))
+						end
+
+					-- substitute
+					elseif eligibleAsSub then
+						offeredAsSub = not offeredAsSub
+						if offeredAsSub then
+							Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutionMessage'))
+						else
+							Spring.Echo(Spring.I18N('ui.substitutePlayers.offerWithdrawn'))
+						end
+						Spring.SendLuaRulesMsg(offeredAsSub and '\144' or '\145')
 					end
-					Spring.SendLuaRulesMsg(offeredAsSub and '\144' or '\145')
+				-- lock position text showing
+				else
+					if locked then
+						locked = false
+						Spring.SendLuaRulesMsg("unlocking_in_place") 
+					else
+						locked = true
+						Spring.SendLuaRulesMsg("locking_in_place") 
+					end
 				end
 
 				widget:ViewResize(vsx, vsy)
@@ -262,6 +308,29 @@ function widget:DrawScreen()
 
 	buttonDrawn = false
 
+	-- display autoready timer
+	if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready then
+		local colorString = auto_ready_timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
+		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1, math.floor(auto_ready_timer)) })
+		font:Begin()
+		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
+		font:End()
+	end
+
+	local showbutton = false
+	-- ((not readied or showLockButton) or (mySpec and eligibleAsSub)) and buttonList and Game.startPosType == 2
+	if buttonList and Game.startPosType == 2 then
+		if mySpec then
+			if eligibleAsSub then
+				showbutton = true
+			end
+		else
+			if not readied or showLockButton then
+				showbutton = true
+			end
+		end
+	end
+
 	if gameStarting then
 		timer = timer + Spring.GetLastUpdateSeconds()
 		local colorString = timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
@@ -270,7 +339,21 @@ function widget:DrawScreen()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
 
-	elseif ((not readied or allowUnready) or (mySpec and eligibleAsSub)) and buttonList and Game.startPosType == 2 then
+	elseif showbutton == true then
+
+		local playerList = Spring.GetPlayerList()
+		local numPlayers = #playerList
+		local numPlayersReady = 0
+		if numPlayers > 3 then
+			for _, playerID in pairs(playerList) do
+				local readystate = Spring.GetGameRulesParam("player_" .. tostring(playerID) .. "_readyState")
+				if readystate == -1 or readystate == 1 or readystate == 2 then
+					numPlayersReady = numPlayersReady + 1
+				end
+			end
+			blinkButton = (numPlayers / numPlayersReady > 0.75)
+		end
+
 		buttonDrawn = true
 		if WG['guishader'] then
 			WG['guishader'].InsertRect(
@@ -282,7 +365,7 @@ function widget:DrawScreen()
 			)
 		end
 
-		-- draw button and text
+		-- draw ready button and text
 		local x, y = Spring.GetMouseState()
 		local colorString
 		if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] then
@@ -294,12 +377,19 @@ function widget:DrawScreen()
 			if mySpec then
 				colorString = offeredAsSub and "\255\255\255\225" or "\255\222\222\222"
 			else
-				colorString = timer % 0.75 <= 0.375 and "\255\222\222\222" or "\255\255\255\255"
+				colorString = os.clock() % 0.75 <= 0.375 and "\255\255\255\255" or "\255\222\222\222"
+			end
+			if readied then
+				colorString = "\255\222\222\222"
+			end
+			if blinkButton and not readied and os.clock() % 0.75 <= 0.375 then
+				local mult = 1.33
+				UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { readyButtonColor[1]*0.55*mult, readyButtonColor[2]*0.55*mult, readyButtonColor[3]*0.55*mult, 1 }, { readyButtonColor[1]*mult, readyButtonColor[2]*mult, readyButtonColor[3]*mult, 1 })
 			end
 		end
 		font:Begin()
 		font:Print(colorString .. buttonText, buttonRect[1]+((buttonRect[3]-buttonRect[1])/2), (buttonRect[2]+((buttonRect[4]-buttonRect[2])/2)) - (buttonH * 0.16), 24 * uiScale, "co")
-		font:End()
+		font:End()		
 		gl.Color(1, 1, 1, 1)
 	end
 end
