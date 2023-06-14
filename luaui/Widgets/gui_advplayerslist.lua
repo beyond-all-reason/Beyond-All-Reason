@@ -221,7 +221,7 @@ local prevClickedPlayer
 local lockPlayerID, leftPosX, lastSliderSound, release
 local curFrame, PrevGameFrame, MainList, MainList2, MainList3, desiredLosmode, drawListOffset
 
-local deadPlayerHeightReduction = 6
+local deadPlayerHeightReduction = 8
 
 local reportTake = false
 local tookTeamID
@@ -1164,7 +1164,6 @@ function CreatePlayer(playerID)
             metal = 0
         end
     end
-
     return {
         rank = trank,
         skill = tskill,
@@ -1239,7 +1238,6 @@ function CreatePlayerFromTeam(teamID)
     if tname == nil then
         tname = absentName
     end
-
     tskill = ""
 
     -- resources
@@ -1376,6 +1374,15 @@ function SortList()
     drawListOffset = {}
     local vOffset = 0
 
+
+    local aliveTeams = 0
+    for _, team in ipairs(teamList) do
+        if not select(3, Spring_GetTeamInfo(team, false)) then
+            aliveTeams = aliveTeams  + 1
+        end
+    end
+    playerScale = math.max(0.5, math.min(1, 33 / ((aliveTeams+((#teamList-aliveTeams)*0.5))-1)))
+
     -- calls the (cascade) sorting for players
     vOffset = SortAllyTeams(vOffset)
 
@@ -1421,13 +1428,12 @@ function SortAllyTeams(vOffset)
         if allyTeamID ~= myAllyTeamID then
             if firstenemy then
                 vOffset = vOffset + 13
-
                 vOffset = vOffset + labelOffset - 3
                 drawListOffset[#drawListOffset + 1] = vOffset
                 drawList[#drawList + 1] = -3 -- "Enemies" label
                 firstenemy = false
             else
-                vOffset = vOffset + separatorOffset
+                vOffset = vOffset + (separatorOffset*playerScale)
                 drawListOffset[#drawListOffset + 1] = vOffset
                 drawList[#drawList + 1] = -4 -- Enemy teams separator
             end
@@ -1443,22 +1449,11 @@ function SortTeams(allyTeamID, vOffset)
     -- (teams are not visible as such unless they are empty or AI)
     local teamsList = Spring_GetTeamList(allyTeamID)
 
-    local aliveTeams = 0
-    for _, team in ipairs(teamsList) do
-        if not select(3, Spring_GetTeamInfo(team, false)) then
-            aliveTeams = aliveTeams  +1
-        end
-    end
-    playerScale = math.max(0.5, math.min(1, 33 / ((aliveTeams+((#teamsList-aliveTeams)*0.5))-1)))
-
     --add teams
     for _, teamID in ipairs(teamsList) do
         drawListOffset[#drawListOffset + 1] = vOffset
         drawList[#drawList + 1] = -1
         vOffset = SortPlayers(teamID, allyTeamID, vOffset) -- adds players form the team
-        if select(3, Spring_GetTeamInfo(teamID, false)) then
-            vOffset = vOffset - deadPlayerHeightReduction
-        end
     end
 
     return vOffset
@@ -1739,7 +1734,7 @@ end
 ---------------------------------------------------------------------------------------------------
 --  Main (player) gllist
 ---------------------------------------------------------------------------------------------------
----
+
 function UpdateResources()
     if sliderPosition then
         if energyPlayer ~= nil then
@@ -1819,10 +1814,12 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
         local teamID = teamList[i]
         if teamID ~= gaiaTeamID then
             _, playerID, _, isAiTeam, _, allyTeamID = Spring_GetTeamInfo(teamID, false)
-            _, active = Spring_GetPlayerInfo(playerID)
-            if active or isAiTeam then
-                if allyTeamID ~= myAllyTeamID then
-                    numberOfEnemies = numberOfEnemies + 1
+            if aliveAllyTeams[allyTeamID] then
+                _, active = Spring_GetPlayerInfo(playerID)
+                if active or isAiTeam then
+                    if allyTeamID ~= myAllyTeamID then
+                        numberOfEnemies = numberOfEnemies + 1
+                    end
                 end
             end
         end
@@ -1832,7 +1829,6 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
         prevNumberOfEnemies = numberOfEnemies
         forceMainListRefresh = true
     end
-
     if onlyMainList then
         local leader
         if MainList then
@@ -1859,9 +1855,10 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
                 elseif drawObject == -3 then
                     enemyLabelOffset = drawListOffset[i]
                     local enemyAmount = numberOfEnemies
-                    if numberOfEnemies == 0 or (enemyListShow and numberOfEnemies < 10) then
+                    if numberOfEnemies == 0 or enemyListShow then
                         enemyAmount = ""
                     end
+                    DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
                     DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
                     if Spring.GetGameFrame() <= 0 then
                         if enemyListShow then
@@ -2454,8 +2451,8 @@ function DrawName(name, team, posY, dark, playerID, desynced)
     if name == absentName then
         isAbsent = true
         local playerName = Spring.GetPlayerInfo(select(2,Spring.GetTeamInfo(team, false)), false)
-        if playerName then
-            name = playerName
+        if playerName then --and aliveAllyTeams[player[playerID].allyteam] then
+            name = player[playerID].name
         end
     end
 
@@ -2477,8 +2474,8 @@ function DrawName(name, team, posY, dark, playerID, desynced)
     end
 
     font2:Begin()
-    local fontsize = isAbsent and 9.5 or 14
-    fontsize = fontsize * (playerScale + ((1-playerScale)*0.45))
+    local fontsize = isAbsent and 9 or 14
+    fontsize = fontsize * (playerScale + ((1-playerScale)*0.4))
     if dark then
         font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.8, 0.75 * widgetScale))
     else
@@ -2565,7 +2562,7 @@ function DrawID(playerID, posY, dark, dead)
     if playerID < 10 then
         spacer = " "
     end
-    local fontsize = 11
+    local fontsize = 10
     fontsize = fontsize * (playerScale + ((1-playerScale)*0.25))
     local deadspace = 0
     font:Begin()
@@ -2891,6 +2888,11 @@ function widget:MousePress(x, y, button)
     local clickedPlayer
     local posY
     local clickTime = os.clock()
+
+    if IsOnRect(x, y, apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1]) then
+        forceMainListRefresh = true
+    end
+
     if button == 1 then
         local alt, ctrl, meta, shift = Spring.GetModKeyState()
         sliderPosition = 0
