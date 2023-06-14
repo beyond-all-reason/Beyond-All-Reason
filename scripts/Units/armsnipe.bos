@@ -812,7 +812,7 @@ Create()
 	hide flare;
 	animSpeed = 5;
 	turn flare to x-axis <-90> now;
-	restore_delay = 5000; // restore delay
+	restore_delay = 5000;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 }
