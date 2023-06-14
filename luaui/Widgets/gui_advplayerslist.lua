@@ -1801,6 +1801,8 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 
     local mouseX, mouseY = Spring_GetMouseState()
 
+    local prevNumberOfSpecs = numberOfSpecs
+    local prevNumberOfEnemies = numberOfEnemies
     numberOfSpecs = 0
     numberOfEnemies = 0
     local active, spec
@@ -1824,6 +1826,11 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
                 end
             end
         end
+    end
+    if prevNumberOfSpecs ~= numberOfSpecs or prevNumberOfEnemies ~= numberOfEnemies then
+        prevNumberOfSpecs = numberOfSpecs
+        prevNumberOfEnemies = numberOfEnemies
+        forceMainListRefresh = true
     end
 
     if onlyMainList then
