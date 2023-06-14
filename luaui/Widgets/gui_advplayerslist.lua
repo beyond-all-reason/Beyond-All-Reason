@@ -304,6 +304,7 @@ local widgetRight = 1
 local widgetHeight = 0
 local prevWidgetHeight = 0
 local widgetWidth = 0
+local prevWidgetWidth = 0
 local widgetPosX = vsx - 200
 local widgetPosY = 0
 local widgetScale = 0
@@ -581,6 +582,11 @@ function SetModulesPositionX()
 	if widgetWidth < minWidth then
 		widgetWidth = minWidth
 	end
+
+    if widgetWidth ~= prevWidgetWidth then
+        prevWidgetWidth = widgetWidth
+        forceMainListRefresh = true
+    end
 end
 
 function SetMaxPlayerNameWidth()
@@ -3577,9 +3583,13 @@ function updateWidgetScale()
     if customScale < 0.65 then
         customScale = 0.65
     end
+    local prevWidgetScale = widgetScale
     widgetScale = (vsy / 980) * (1 + ((vsx / vsy) * 0.065)) * customScale
     widgetScale = widgetScale * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
-
+    if prevWidgetScale ~= widgetScale then
+        prevWidgetScale = widgetScale
+        forceMainListRefresh = true
+    end
     widgetPosX = vsx - (widgetWidth * widgetScale) - bgpadding
     widgetRight = vsx - bgpadding
     widgetPosY = bgpadding
