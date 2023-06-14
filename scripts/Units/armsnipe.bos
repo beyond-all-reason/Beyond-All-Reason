@@ -7,7 +7,7 @@ piece  flare, torso, head, pelvis, rthigh, rleg, lleg, lthigh,
        ruparm, luparm, lloarm, lhand, rloarm, gun1, gun2,
        barrel1, barrel2, laser, rhand, rfoot, lfoot, aimy1;
 
-static-var  GunOpen, bMoving, Static_Var_3, Static_Var_4, restore_delay, wpn1_lasthead, animSpeed, maxSpeed,
+static-var  GunOpen, bMoving, Static_Var_3, Static_Var_4, restore_delay, laser_hide, wpn1_lasthead, animSpeed, maxSpeed,
 			statechg_DesiredState, statechg_StateChanging, animFramesPerKeyframe,isAiming, shotcount;
 
 // Signal definitions
@@ -808,10 +808,11 @@ Create()
 	Static_Var_3 = 0;
 	Static_Var_4 = 1;
 	GunOpen = 0;
+	laser_hide = 3000; // miliseconds to hide laser after losing aim
 	hide flare;
 	animSpeed = 5;
 	turn flare to x-axis <-90> now;
-	restore_delay = 800;
+	restore_delay = 5000; // restore delay
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 }
@@ -823,7 +824,7 @@ lua_UnitScriptLight(lightIndex, count)
 
 SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = 60000; //60000
+	// stub
 }
 
 
@@ -850,9 +851,9 @@ RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;
 	// hide laser after 3 sec inactivity
-	sleep 9000;
+	sleep (laser_hide);
 	hide laser;
-	sleep (restore_delay - 9000);
+	sleep (restore_delay - laser_hide);
 	start-script ExecuteRestoreAfterDelay();
 }
 AimPrimary(heading, pitch)
@@ -900,7 +901,14 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	piecenum = flare;
+	if( GunOpen )
+	{
+		piecenum = flare;
+	}
+	else
+	{
+		piecenum = torso; //no aiming from ankle height
+	}
 }
 
 SweetSpot(piecenum)
