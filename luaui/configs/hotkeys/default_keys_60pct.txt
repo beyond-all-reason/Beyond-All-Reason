@@ -21,8 +21,6 @@ bind Any+space selectloop // activate select shape | Loop Select Widget
 bind Any+ctrl selectloop_invert // select units not present in current selection modifier | Loop Select Widget
 bind Any+shift selectloop_add // add to selection modifier | Loop Select Widget
 
-keyload luaui/configs/hotkeys/gridmenu.txt
-
 bind Any+sc_h sharedialog
 bind sc_i customgameinfo
 

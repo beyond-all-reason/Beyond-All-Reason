@@ -22,7 +22,7 @@ bind Any+space selectloop // activate select shape | Loop Select Widget
 bind Any+ctrl selectloop_invert // select units not present in current selection modifier | Loop Select Widget
 bind Any+shift selectloop_add // add to selection modifier | Loop Select Widget
 
-keyload luaui/configs/hotkeys/gridmenu.txt
+keyload luaui/configs/hotkeys/gridmenu_keys.txt
 
 // bind Any+"..H, "sharedialog deprecated by player list sharing
 // bind Shift+backspace togglecammode

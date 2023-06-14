@@ -44,7 +44,7 @@ local legacyToTxt = {
 	['luaui/configs/bar_hotkeys_60.lua']       = 'luaui/configs/hotkeys/default_keys_60pct.txt',
 	['luaui/configs/bar_hotkeys_grid.lua']     = 'luaui/configs/hotkeys/grid_keys.txt',
 	['luaui/configs/bar_hotkeys_grid_60.lua']  = 'luaui/configs/hotkeys/grid_keys_60pct.txt',
-	['bar_hotkeys_custom.lua']                 = 'uikeys_bar.txt',
+	['bar_hotkeys_custom.lua']                 = 'uikeys.txt',
 }
 
 local function replaceLegacyPreset()
@@ -99,7 +99,7 @@ end
 function widget:Initialize()
 	reloadBindings()
 
-	Spring.SendCommands("keysave uikeys_bar_user.txt") -- save a copy of current keys to uikeys_preset.txt
+	Spring.SendCommands("keysave uikeys_backup.txt") -- save a backup of current keys
 
 	WG['bar_hotkeys'] = {}
 	WG['bar_hotkeys'].reloadBindings = reloadBindings

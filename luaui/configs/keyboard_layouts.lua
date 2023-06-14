@@ -108,7 +108,7 @@ local keybindingPresets = {
 	['Default 60% Keyboard'] = 'luaui/configs/hotkeys/default_keys_60pct.txt',
 	['Grid Optimized'] = 'luaui/configs/hotkeys/grid_keys.txt',
 	['Grid Optimized 60% Keyboard'] = 'luaui/configs/hotkeys/grid_keys_60pct.txt',
-	['Custom'] = 'uikeys_bar.txt',
+	['Custom'] = 'uikeys.txt',
 }
 
 local keybindingLayoutFiles = {}

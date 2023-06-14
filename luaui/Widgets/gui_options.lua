@@ -2917,7 +2917,7 @@ function init()
 				end
 
 				if isCustom then
-					Spring.Echo("To test your custom bindings after changes type in chat: /keyreload " .. keyFile)
+					Spring.Echo("To test your custom bindings after changes type in chat: /keyreload")
 				end
 			end,
 		},
