@@ -36,7 +36,7 @@ local BUILDCAT_ECONOMY = "Economy"
 local BUILDCAT_COMBAT = "Combat"
 local BUILDCAT_UTILITY = "Utility"
 local BUILDCAT_PRODUCTION = "Build"
-local categoryFontSize, pageButtonHeight
+local categoryFontSize, hotkeyFontSize, pageButtonHeight
 
 local folder = 'LuaUI/Images/groupicons/'
 local groups = {
@@ -681,6 +681,7 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	UiButton = WG.FlowUI.Draw.Button
 	categoryFontSize = 0.0115 * ui_scale * vsy
+	hotkeyFontSize = categoryFontSize + 5
 	pageFontSize = categoryFontSize
 	pageButtonHeight = math_floor(2.3 * categoryFontSize * ui_scale)
 	categoryButtonHeight = pageButtonHeight
@@ -1041,9 +1042,9 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 	if cmd.hotkey and (builderIsFactory or (activeBuilder and currentCategory)) then
 		local hotkeyText = keyConfig.sanitizeKey(cmd.hotkey, currentLayout)
 
-		local hotkeyFontSize = priceFontSize * 1.1
+		local keyFontSize = priceFontSize * 1.1
 		local hotkeyColor = disabled and "\255\100\100\100" or "\255\215\255\215"
-		font2:Print(hotkeyColor .. hotkeyText, rect.xEnd - cellPadding - (cellInnerSize * 0.048), rect.yEnd - cellPadding - hotkeyFontSize, hotkeyFontSize, "ro")
+		font2:Print(hotkeyColor .. hotkeyText, rect.xEnd - cellPadding - (cellInnerSize * 0.048), rect.yEnd - cellPadding - keyFontSize, keyFontSize, "ro")
 	end
 
 	-- factory queue number
@@ -1069,14 +1070,14 @@ end
 
 
 local function drawButtonHotkey(rect, keyText)
-	local keyFontSize = categoryFontSize + 5
-	local keyFontHeight = font2:GetTextHeight(keyText) * keyFontSize
+	if not rect or not keyText then return end
+	local keyFontHeight = font2:GetTextHeight(keyText) * hotkeyFontSize
 	local keyFontHeightOffset = keyFontHeight * 0.34
 
 	local textPadding = bgpadding * 2
 
 	local text = "\255\215\255\215" .. keyText
-	font2:Print(text, rect.xEnd - textPadding, (rect.y - (rect.y - rect.yEnd) / 2) - keyFontHeightOffset, keyFontSize, "ro")
+	font2:Print(text, rect.xEnd - textPadding, (rect.y - (rect.y - rect.yEnd) / 2) - keyFontHeightOffset, hotkeyFontSize, "ro")
 end
 
 
@@ -1283,17 +1284,20 @@ local function drawBuilders()
 		end
 	end
 
+	local hotkey = keyConfig.sanitizeKey(Cfgs.CYCLE_BUILDER_KEY, currentLayout) or nil
+	local hotkeyWidth = hotkey and (font2:GetTextWidth(hotkey) * hotkeyFontSize) + (bgpadding * 2) or 0
+
 	-- draw hint
 	local rect = Rect:new(
 		buildersRect.xEnd,
 		buildersRect.y + ((buildersRect.yEnd - buildersRect.y) * 0.2),
-		buildersRect.xEnd + (builderButtonSize * 0.8),
+		buildersRect.xEnd + (builderButtonSize * 0.45) + hotkeyWidth,
 		buildersRect.yEnd - ((buildersRect.yEnd - buildersRect.y) * 0.2)
 	)
 
 	local text = "›"
-	local rectSize = rect.xEnd - rect.x
-	local fontSize = rectSize * 0.75
+	local rectSize = rect.yEnd - rect.y
+	local fontSize = rectSize * 1.2
 	local textHeight = font2:GetTextHeight(text) * fontSize
 	font2:Print("\255\255\255\255" .. text,
 		rect.x + math_floor(rectSize * 0.2),
@@ -1306,7 +1310,7 @@ local function drawBuilders()
 	}
 
 	drawButton(rect, opts)
-	drawButtonHotkey(rect, keyConfig.sanitizeKey(Cfgs.CYCLE_BUILDER_KEY, currentLayout))
+	drawButtonHotkey(rect, hotkey)
 	nextBuilderRect = rect
 end
 
