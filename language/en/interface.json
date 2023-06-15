@@ -233,6 +233,7 @@
 				"heavyPlasma": "Heavy Plasma",
 				"siegeMode": "Spread Fire",
 				"suppressiveFire": "Focused Fire",
+				"siege_tooltip": "Switches between Focused Fire and longer ranged Spread Fire",
 				"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon"
 			}
 		},

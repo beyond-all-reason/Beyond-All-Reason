@@ -132,7 +132,7 @@ function widget:SelectionChanged(sel)
 			-- we also want to override back from engine selection to our selection
 			spSelectUnitArray(selectedUnits)
 		end
-		return
+		return selectedUnits
 	end
 
 	selectedUnits = sel
@@ -169,8 +169,6 @@ function widget:PlayerChanged()
 end
 
 function widget:Update()
-	WG['smartselect'].updateSelection = true
-
 	if skipSel or spGetActiveCommand() ~= 0 then
 		return
 	end
@@ -395,7 +393,6 @@ function widget:Initialize()
 	WG['smartselect'].setIncludeBuilders = function(value)
 		includeBuilders = value
 	end
-	WG['smartselect'].updateSelection = false
 
 	widget:ViewResize()
 end

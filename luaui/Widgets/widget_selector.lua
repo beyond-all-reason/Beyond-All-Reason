@@ -809,10 +809,6 @@ function widget:MousePress(x, y, button)
 	local titleClick = (titleRect and math.isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]))
 	local chatinputClick = (chatInputArea and math.isInRect(x, y, chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4]))
 
-
-	if windowClick or titleClick or chatinputClick then
-		Spring.Echo(os.clock(), 'aa', button)
-	end
 	if button == 1 then
 		-- above a button
 		if showButtons then
