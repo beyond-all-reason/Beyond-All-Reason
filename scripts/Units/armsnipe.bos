@@ -881,7 +881,7 @@ FirePrimary()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = torso;
+	piecenum = aimy1;
 }
 
 QueryPrimary(piecenum)
@@ -892,7 +892,7 @@ QueryPrimary(piecenum)
 	}
 	else
 	{
-		piecenum = torso; //no aiming from ankle height
+		piecenum = aimy1; //no aiming from ankle height
 	}
 }
 
