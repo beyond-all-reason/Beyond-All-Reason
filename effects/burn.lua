@@ -82,7 +82,7 @@ return {
         emitrotspread      = 40,
         emitvector         = [[0.3, 0.7, 0.3]],
         gravity            = [[0, 0.06 r0.05, 0]],
-        numparticles       = 1, --[[1 r0.60]]
+        numparticles       = [[1 r2.5]],
         particlelife       = 24,
         particlelifespread = 9,
         particlesize       = 18.4,
