@@ -136,9 +136,11 @@
 			"tooltipctrl": "CTRL-click to continuously clear"
 		},
 		"buildMenu": {
+			"homePage": "Go back to main view",
 			"nextPage": "Next page",
 			"previousPage": "Previous page",
-			"disabled": "%{textColor}%{unit} %{warnColor}(disabled)"
+			"disabled": "%{textColor}%{unit} %{warnColor}(disabled)",
+			"nextBuilder": "Next Builder"
 		},
 		"orderMenu": {
 			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
