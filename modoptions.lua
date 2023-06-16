@@ -1242,7 +1242,7 @@ local options={
 	},
 
 	{
-		key    = 'expandedcorvecht2',
+		key    = 'expandedcortexvehiclest2',
 		name   = 'Additional Cortex T2 Vehicles',
 		desc   = 'Adds Forge, a combat engineer like the butler with a flamethrower. Adds Printer, an armored field engineer. Adds Torch, a fast flame tank',
 		type   = 'bool',

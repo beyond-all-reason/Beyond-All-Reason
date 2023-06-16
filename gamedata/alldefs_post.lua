@@ -391,7 +391,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Add prototype units to cor T2 vech
-	if Spring.GetModOptions().expandedcorvecht2 then
+	if Spring.GetModOptions().expandedcortexvehiclest2 then
 		if name == "coravp" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corforge"
