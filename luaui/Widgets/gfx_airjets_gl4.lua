@@ -61,8 +61,8 @@ local effectDefs = {
 	-- land vechs
 	["cortorch"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 5, length = 24, piece = "thruster1", light = 1 },
-		{ color = { 0.7, 0.4, 0.15 }, width = 8, length = 32, piece = "thruster2", light = 1 },
-		{ color = { 0.7, 0.4, 0.2 }, width = 12, length = 64, piece = "thruster3", light = 1 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 8, length = 32, piece = "thruster2", light = 1 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 12, length = 64, piece = "thruster3", light = 1 },
 	},
 
 	-- scouts
