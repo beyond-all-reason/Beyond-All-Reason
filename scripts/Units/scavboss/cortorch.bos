@@ -3,25 +3,13 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret, lloarm, flare1, flare2, flare3, flare4, flare5, flare6, flare7, flare8, flare9;
+piece  base, turret, lloarm, flare1, thruster1, thruster2, thruster3;
 
 static-var  restore_delay;
-static-var  flare_count;
+static-var  unit_speed;
 
 // Signal definitions
 #define SIG_AIM				2
-
-/*
-RockUnit(anglex, anglez)
-{
-	turn base to x-axis anglex speed <50.000000>;
-	turn base to z-axis <0> - anglez speed <50.000000>;
-	wait-for-turn base around z-axis;
-	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
-}
-*/
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -31,20 +19,22 @@ RockUnit(anglex, anglez)
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
+PilotLight(Func_Var_1)
+{
+	while( TRUE )
+	{
+		emit-sfx 1024 + 0 from flare1;
+		sleep 40;
+	}
+}
+
 
 Create()
 {
 	//hide flare1;
-	turn flare1 to y-axis <-20> now;
-	turn flare2 to y-axis <-15> now;
-	turn flare3 to y-axis <-10> now;
-	turn flare4 to y-axis <-5> now;
-	turn flare9 to y-axis <20> now;
-	turn flare8 to y-axis <15> now;
-	turn flare7 to y-axis <10> now;
-	turn flare6 to y-axis <5> now;
-	flare_count = 1;
+	//flare_count = 1;
 	restore_delay = 3000;
+	start-script PilotLight();
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -78,7 +68,7 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <90.000000>;
+	turn turret to y-axis heading speed <270.000000>;
 	turn lloarm to x-axis <0.000000> - pitch speed <90.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn lloarm around x-axis;
@@ -88,21 +78,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	emit-sfx 1024 + 0 from flare5;
-	//move barrel to z-axis [-1.000000] speed [500.000000];
-	//wait-for-move barrel along z-axis;
-	//move barrel to z-axis [0.000000] speed [3.000000];
-}
-
-Shot1(zero)
-{
-	flare_count = flare_count + 1;
-	if (flare_count == 10)
-	{
-		flare_count = 1;
-	}
-	//get PRINT(get GAME_FRAME,10000,flare_count,10000);
-	//emit-sfx 1024 + 0 from flare;
+	//emit-sfx 1024 + 0 from flare5;
 	//move barrel to z-axis [-1.000000] speed [500.000000];
 	//wait-for-move barrel along z-axis;
 	//move barrel to z-axis [0.000000] speed [3.000000];
@@ -115,17 +91,24 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	if (flare_count == 1) piecenum = flare1;
-	if (flare_count == 2) piecenum = flare2;
-	if (flare_count == 3) piecenum = flare3;
-	if (flare_count == 4) piecenum = flare4;
-	if (flare_count == 5) piecenum = flare5;
-	if (flare_count == 6) piecenum = flare6;
-	if (flare_count == 7) piecenum = flare7;
-	if (flare_count == 8) piecenum = flare8;
-	if (flare_count == 9) piecenum = flare9;
 	//get PRINT(get GAME_FRAME,piecenum,flare_count,piecenum);
-	//piecenum = flare;
+	piecenum = flare1;
+	hide thruster1;
+	hide thruster2;
+	hide thruster3;
+	unit_speed = get CURRENT_SPEED;
+	if ( (unit_speed > 0) AND (unit_speed <= 2.35*65536) )
+	{
+		show thruster1;
+	}
+	if ( (unit_speed > 2.35*65536) AND (unit_speed <= 4.0*65536) )
+	{
+		show thruster2;
+	}
+	if (unit_speed > 4.0*65536)
+	{
+		show thruster3;
+	}
 }
 
 SweetSpot(piecenum)
