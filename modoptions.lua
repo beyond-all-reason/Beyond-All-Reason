@@ -1242,6 +1242,15 @@ local options={
 	},
 
 	{
+		key    = 'expandedcorvecht2',
+		name   = 'Additional Cortex T2 Vehicles',
+		desc   = 'Adds Forge, a combat engineer like the butler with a flamethrower. Adds Printer, an armored field engineer. Adds Torch, a fast flame tank',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
+	{
 		key    = 'experimentallegionfaction',
 		name   = 'Legion Faction',
 		desc   = '3rd experimental faction (does not work with unba enabled!)',
