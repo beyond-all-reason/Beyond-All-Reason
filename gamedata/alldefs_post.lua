@@ -390,7 +390,7 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- Add scav units to normal factories and builders
+	-- Add prototype units to cor T2 vech
 	if Spring.GetModOptions().expandedcorvecht2 then
 		if name == "coravp" then
 			local numBuildoptions = #uDef.buildoptions
