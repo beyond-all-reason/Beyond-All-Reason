@@ -115,13 +115,13 @@ local hoverCellZoom = 0.05 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
-local bgpadding, activeAreaMargin, iconTypesMap
-local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2
+local bgpadding, iconMargin, activeAreaMargin, iconTypesMap
+local dlistGuishader, dlistGuishaderBuilders, dlistBuildmenuBg, dlistBuildmenu, font2
 local doUpdate, doUpdateClock, ordermenuHeight, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 
 local activeBuilder, activeBuilderID, builderIsFactory, selectedFactoryUID
-
+local prevBuildRectsCount = 0
 local buildmenuShows = false
 
 -- Helper types to make the code more readable and easy to work with
@@ -246,6 +246,25 @@ local function checkGuishader(force)
 		end
 	elseif dlistGuishader then
 		dlistGuishader = gl.DeleteList(dlistGuishader)
+	end
+end
+
+local function checkGuishaderBuilders(force)
+	if WG['guishader'] and #builderRects > 1 then
+		if prevBuildRectsCount ~= #builderRects then
+			prevBuildRectsCount = #builderRects
+			if dlistGuishaderBuilders then
+				dlistGuishaderBuilders = gl.DeleteList(dlistGuishaderBuilders)
+			end
+			dlistGuishaderBuilders = gl.CreateList(function()
+				RectRound(buildersRect.x, buildersRect.y, buildersRect.xEnd+(bgpadding*2), buildersRect.yEnd+bgpadding+(iconMargin*2), elementCorner)
+			end)
+			WG['guishader'].InsertDlist(dlistGuishaderBuilders, 'buildmenubuilders')
+		end
+	elseif dlistGuishaderBuilders then
+		prevBuildRectsCount = 0
+		WG['guishader'].DeleteDlist('buildmenubuilders')
+		dlistGuishaderBuilders = nil
 	end
 end
 
@@ -673,6 +692,7 @@ end
 function widget:ViewResize()
 	local widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
+	iconMargin = math.floor((bgpadding * 0.5) + 0.5)
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound
 	RectRoundProgress = WG.FlowUI.Draw.RectRoundProgress
@@ -922,7 +942,7 @@ end
 local function drawBuildMenuBg()
 	local height = backgroundRect.yEnd - backgroundRect.y
 	local posY = backgroundRect.y
-	UiElement(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, (backgroundRect.x > 0 and 1 or 0), 1, ((posY-height > 0 or backgroundRect.x <= 0) and 1 or 0), 0)
+	UiElement(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, (backgroundRect.x > 0 and (#builderRects > 1 and 0 or 1) or 0), 1, ((posY-height > 0 or backgroundRect.x <= 0) and 1 or 0), 0)
 end
 
 
@@ -1216,7 +1236,7 @@ local function drawBuilderIcon(unitDefID, rect, count, lightness, zoom, highligh
 	gl.Color(lightness,lightness,lightness,1)
 	UiUnit(
 		rect.x, rect.y, rect.xEnd, rect.yEnd,
-		math_ceil(rectSize * 0.1), 1,1,1,1,
+		math.ceil(bgpadding*0.5), 1,1,1,1,
 		zoom,
 		nil, math_max(0.1, highlightOpacity or 0.1),
 		'#'..unitDefID,
@@ -1247,12 +1267,14 @@ local function drawBuilders()
 	if not activeBuilder or selectedBuildersCount <= 1 then
 		return
 	end
+	builderRects = {}
 
 	-- reset builders rect to fix placement issues
 	buildersRect.xEnd = buildersRect.x
 
 	local padding = math_floor(builderButtonSize / 12)
 	local builderTypes = 0
+	local builderButtons = {}
 	for unitDefID, count in pairsByKeys(selectedBuilders) do
 		builderTypes = builderTypes + 1
 
@@ -1271,12 +1293,8 @@ local function drawBuilders()
 			rect.xEnd + padding,
 			buildersRect.yEnd
 		)
-
 		builderRects[builderTypes] = rect
-
-		local highlight = activeBuilder == unitDefID and 1.0 or 0.5
-
-		drawBuilderIcon(unitDefID, rect, count, highlight, 0.05, 0)
+		builderButtons[builderTypes] = { unitDefID, count, rect }
 
 		-- avoid overflow
 		if builderTypes > 5 then
@@ -1284,15 +1302,31 @@ local function drawBuilders()
 		end
 	end
 
+	-- draw background
+	local height = backgroundRect.yEnd - backgroundRect.y
+	local posY = backgroundRect.y
+	UiElement(buildersRect.x, buildersRect.y, buildersRect.xEnd+(bgpadding*2), buildersRect.yEnd+bgpadding+(iconMargin*2), (backgroundRect.x > 0 and 1 or 0), 1, ((posY-height > 0 or backgroundRect.x <= 0) and 1 or 0), 0, 1,1,0,1)
+
+	-- draw buttons
+	for builderType, params in pairsByKeys(builderButtons) do
+		-- correct position so its withing the background
+		builderRects[builderType].x = builderRects[builderType].x+bgpadding+iconMargin
+		builderRects[builderType].y = builderRects[builderType].y+iconMargin
+		builderRects[builderType].xEnd = builderRects[builderType].xEnd+bgpadding+iconMargin
+		builderRects[builderType].yEnd = builderRects[builderType].yEnd+iconMargin
+
+		drawBuilderIcon(params[1], builderRects[builderType], params[2], activeBuilder == params[1] and 1.0 or 0.5, 0.05, 0)
+	end
+
 	local hotkey = keyConfig.sanitizeKey(Cfgs.CYCLE_BUILDER_KEY, currentLayout) or nil
 	local hotkeyWidth = hotkey and (font2:GetTextWidth(hotkey) * hotkeyFontSize) + (bgpadding * 2) or 0
 
 	-- draw hint
 	local rect = Rect:new(
-		buildersRect.xEnd,
-		buildersRect.y + ((buildersRect.yEnd - buildersRect.y) * 0.2),
-		buildersRect.xEnd + (builderButtonSize * 0.45) + hotkeyWidth,
-		buildersRect.yEnd - ((buildersRect.yEnd - buildersRect.y) * 0.2)
+		buildersRect.xEnd+(bgpadding*3),
+		buildersRect.y + ((buildersRect.yEnd - buildersRect.y) * 0.2)+iconMargin,
+		buildersRect.xEnd + (builderButtonSize * 0.45) + hotkeyWidth+(bgpadding*3),
+		buildersRect.yEnd - ((buildersRect.yEnd - buildersRect.y) * 0.2)+iconMargin
 	)
 
 	local text = "›"
@@ -1484,7 +1518,12 @@ function widget:DrawScreen()
 	end
 	if not (isPregame or activeBuilder or alwaysShow) then
 		if WG['guishader'] and dlistGuishader then
-			WG['guishader'].RemoveDlist('buildmenu')
+			if dlistGuishader then
+				WG['guishader'].RemoveDlist('buildmenu')
+			end
+			if dlistGuishaderBuilders then
+				WG['guishader'].RemoveDlist('buildmenubuilders')
+			end
 		end
 	else
 		local x, y, b, b2, b3 = Spring.GetMouseState()
@@ -1510,6 +1549,8 @@ function widget:DrawScreen()
 				drawBuildMenu()
 			end)
 		end
+
+		checkGuishaderBuilders()
 
 		local hovering = false
 		if backgroundRect:contains(x, y) or buildersRect:contains(x, y) or nextBuilderRect:contains(x, y) then
@@ -1880,6 +1921,7 @@ function widget:Shutdown()
 	hoverDlist = gl.DeleteList(hoverDlist)
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('buildmenu')
+		WG['guishader'].DeleteDlist('buildmenubuilders')
 		dlistGuishader = nil
 	end
 	WG['buildmenu'] = nil

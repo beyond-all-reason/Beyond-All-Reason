@@ -267,6 +267,7 @@ local teamSideThree = "legion"
 local absentName = " --- "
 
 local gameStarted = false
+local gameStartRefreshed = Spring.GetGameFrame() > 30
 
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
@@ -3607,6 +3608,9 @@ function widget:Update(delta)
     end
     if curFrame <= 0 and timeCounter > updateRate then
         SetSidePics() -- if the game hasn't started, update factions
+    elseif curFrame > 15 and not gameStartRefreshed then
+        gameStartRefreshed = true
+        forceMainListRefresh = true
     end
     if forceMainListRefresh then
         CreateLists()
