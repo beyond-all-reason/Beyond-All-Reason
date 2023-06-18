@@ -240,7 +240,7 @@ end
 --- Transfers resources between two teams
 ---@param teamID_src number source team
 ---@param teamID_rec number recieving team
----@param resourceType resourceTypes
+---@param resourceType resourceType
 ---@param amount number 
 ---@return nil
 ---
