@@ -1,4 +1,3 @@
----@meta
 ---OpenGL
 
 ---
@@ -8,7 +7,7 @@
 ---@param y number
 ---@param size number
 ---@param options string (optional)
----return nil
+---@return nil
 function gl.Text(text, x, y, size[, options]) end
 
 
@@ -18,6 +17,6 @@ function gl.Text(text, x, y, size[, options]) end
 ---@param g number (optional)
 ---@param b number (optional)
 ---@param a number (optional)
----return nil
+---@return nil
 function gl.Color(r[, g[, b[, a]]]) end
 

@@ -1,24 +1,23 @@
----@meta
 ---VBO
 
 ---
----return nil
+---@return nil
 function vbo:Delete() end
 
 ---Parameters
 ---@param size number
 ---@param attribs number|{{number,number,number,number,number},...}
----return nil
+---@return nil
 function vbo:Define(size, attribs) end
 
 ---terrainVertexVBO:Define(numPoints, { {id = 0, name = "pos", size = 2}, })
----return number elementsCount
+---@return number elementsCount
 function vbo:GetBufferSize() end
 
----return number bufferSizeInBytes
+---@return number bufferSizeInBytes
 function vbo:GetBufferSize() end
 
----return number size
+---@return number size
 function vbo:GetBufferSize() end
 
 ---Parameters
@@ -27,13 +26,13 @@ function vbo:GetBufferSize() end
 ---@param elemOffset number (default): `0`
 ---@param luaStartIndex number (default): `0`
 ---@param luaFinishIndex number (optional)
----return {number, ...} indexData
+---@return {number, ...} indexData
 function vbo:Upload(vboData[, attributeIndex=-1[, elemOffset=0[, luaStartIndex=0[, luaFinishIndex]]]]) end
 
----return number elemOffset
+---@return number elemOffset
 function vbo:Upload(vboData[, attributeIndex=-1[, elemOffset=0[, luaStartIndex=0[, luaFinishIndex]]]]) end
 
----return number|{number,number,number,number} attrID
+---@return number|{number,number,number,number} attrID
 function vbo:Upload(vboData[, attributeIndex=-1[, elemOffset=0[, luaStartIndex=0[, luaFinishIndex]]]]) end
 
 ---vbo:Upload(posArray, 0, 1)
@@ -46,10 +45,10 @@ function vbo:Upload(vboData[, attributeIndex=-1[, elemOffset=0[, luaStartIndex=0
 ---@param elementOffset number (default): `0`
 ---@param elementCount number (optional)
 ---@param forceGPURead boolean (default): `false`
----return {{number,...},...} vboData
+---@return {{number,...},...} vboData
 function vbo:Download([attributeIndex=-1[, elementOffset=0[, elementCount[, forceGPURead=false]]]]) end
 
----return nil|number buffer size in bytes
+---@return nil|number buffer size in bytes
 function vbo:ModelsVBO() end
 
 ---Parameters
@@ -57,13 +56,13 @@ function vbo:ModelsVBO() end
 ---@param attrID number
 ---@param teamIdOpt number (optional)
 ---@param elementOffset number (optional)
----return {number,number,number,number} instanceData
+---@return {number,number,number,number} instanceData
 function vbo:InstanceDataFromUnitDefIDs(unitDefIDs, attrID[, teamIdOpt[, elementOffset]]) end
 
----return number elementOffset
+---@return number elementOffset
 function vbo:InstanceDataFromUnitDefIDs(unitDefIDs, attrID[, teamIdOpt[, elementOffset]]) end
 
----return attrID
+---@return attrID
 function vbo:InstanceDataFromUnitDefIDs(unitDefIDs, attrID[, teamIdOpt[, elementOffset]]) end
 
 ---Data Layout
@@ -78,13 +77,13 @@ SInstanceData:
 ---@param attrID number
 ---@param teamIdOpt number (optional)
 ---@param elementOffset number (optional)
----return {number,number,number,number} instanceData
+---@return {number,number,number,number} instanceData
 function vbo:InstanceDataFromFeatureDefIDs(featureDefIDs, attrID[, teamIdOpt[, elementOffset]]) end
 
----return number elementOffset
+---@return number elementOffset
 function vbo:InstanceDataFromFeatureDefIDs(featureDefIDs, attrID[, teamIdOpt[, elementOffset]]) end
 
----return attrID
+---@return attrID
 function vbo:InstanceDataFromFeatureDefIDs(featureDefIDs, attrID[, teamIdOpt[, elementOffset]]) end
 
 ---Data Layout
@@ -99,13 +98,13 @@ SInstanceData:
 ---@param attrID number
 ---@param teamIdOpt number (optional)
 ---@param elementOffset number (optional)
----return {number,number,number,number} instanceData
+---@return {number,number,number,number} instanceData
 function vbo:InstanceDataFromUnitIDs(unitIDs, attrID[, teamIdOpt[, elementOffset]]) end
 
----return number elementOffset
+---@return number elementOffset
 function vbo:InstanceDataFromUnitIDs(unitIDs, attrID[, teamIdOpt[, elementOffset]]) end
 
----return attrID
+---@return attrID
 function vbo:InstanceDataFromUnitIDs(unitIDs, attrID[, teamIdOpt[, elementOffset]]) end
 
 ---Data Layout
@@ -120,13 +119,13 @@ SInstanceData:
 ---@param attrID number
 ---@param teamIdOpt number (optional)
 ---@param elementOffset number (optional)
----return {number,number,number,number} instanceData
+---@return {number,number,number,number} instanceData
 function vbo:InstanceDataFromFeatureIDs(featureIDs, attrID[, teamIdOpt[, elementOffset]]) end
 
----return number elementOffset
+---@return number elementOffset
 function vbo:InstanceDataFromFeatureIDs(featureIDs, attrID[, teamIdOpt[, elementOffset]]) end
 
----return attrID
+---@return attrID
 function vbo:InstanceDataFromFeatureIDs(featureIDs, attrID[, teamIdOpt[, elementOffset]]) end
 
 ---Parameters
@@ -134,13 +133,13 @@ function vbo:InstanceDataFromFeatureIDs(featureIDs, attrID[, teamIdOpt[, element
 ---@param attrID number
 ---@param teamIdOpt number (optional)
 ---@param elementOffset number (optional)
----return {number, ...} matDataVec 4x4 matrix
+---@return {number, ...} matDataVec 4x4 matrix
 function vbo:MatrixDataFromProjectileIDs(projectileIDs, attrID[, teamIdOpt[, elementOffset]]) end
 
----return number elemOffset
+---@return number elemOffset
 function vbo:MatrixDataFromProjectileIDs(projectileIDs, attrID[, teamIdOpt[, elementOffset]]) end
 
----return number|{number,number,number,number} attrID
+---@return number|{number,number,number,number} attrID
 function vbo:MatrixDataFromProjectileIDs(projectileIDs, attrID[, teamIdOpt[, elementOffset]]) end
 
 ---Parameters
@@ -148,7 +147,7 @@ function vbo:MatrixDataFromProjectileIDs(projectileIDs, attrID[, teamIdOpt[, ele
 ---@param elementOffset number (optional)
 ---@param elementCount number (optional)
 ---@param target number (optional)
----return number bindingIndex when successful, -1 otherwise
+---@return number bindingIndex when successful, -1 otherwise
 function vbo:BindBufferRange(index[, elementOffset[, elementCount[, target]]]) end
 
 ---Parameters
@@ -156,9 +155,9 @@ function vbo:BindBufferRange(index[, elementOffset[, elementCount[, target]]]) e
 ---@param elementOffset number (optional)
 ---@param elementCount number (optional)
 ---@param target number (optional)
----return number bindingIndex when successful, -1 otherwise
+---@return number bindingIndex when successful, -1 otherwise
 function vbo:UnbindBufferRange(index[, elementOffset[, elementCount[, target]]]) end
 
----return nil
+---@return nil
 function vbo:DumpDefinition() end
 

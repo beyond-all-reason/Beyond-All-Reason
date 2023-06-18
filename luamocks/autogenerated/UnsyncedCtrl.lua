@@ -1,4 +1,3 @@
----@meta
 ---UnsyncedCtrl
 
 ---
@@ -15,14 +14,14 @@
 ---
 ---Parameters
 ---@param pingTag number
----return nil
+---@return nil
 function Spring.Ping(pingTag) end
 
 ---Parameters
 ---@param arg1
 ---@param arg2 (optional)
 ---@param argn (optional)
----return nil
+---@return nil
 function Spring.Echo(arg1[, arg2[, argn]]) end
 
 ---Parameters
@@ -31,75 +30,75 @@ function Spring.Echo(arg1[, arg2[, argn]]) end
 ---@param logMessage1 string
 ---@param logMessage2 string (optional)
 ---@param logMessagen string (optional)
----return nil
+---@return nil
 function Spring.Log(section, logLevel, logMessage1[, logMessage2[, logMessagen]]) end
 
 ---Parameters
 ---@param command1 ?string|table
 ---@param command2 string
----return nil
+---@return nil
 function Spring.SendCommands(command1, command2) end
 
 ---Parameters
 ---@param standardShaderID number
 ---@param deferredShaderID number
----return nil
+---@return nil
 function Spring.SetMapShader(standardShaderID, deferredShaderID) end
 
 ---Parameters
 ---@param texSqrX number
 ---@param texSqrY number
 ---@param luaTexName string
----return bool success
+---@return bool success
 function Spring.SetMapSquareTexture(texSqrX, texSqrY, luaTexName) end
 
 ---Parameters
 ---@param texType string
 ---@param texName string
----return bool success
+---@return bool success
 function Spring.SetMapShadingTexture(texType, texName) end
 
 ---Spring.SetMapShadingTexture("$ssmf_specular", "name_of_my_shiny_texture")
 ---Parameters
 ---@param texName string
----return nil
+---@return nil
 function Spring.SetSkyBoxTexture(texName) end
 
 
 ---
 ---Parameters
 ---@param message string
----return nil
+---@return nil
 function Spring.SendMessage(message) end
 
 ---Parameters
 ---@param message string
----return nil
+---@return nil
 function Spring.SendMessageToSpectators(message) end
 
 ---Parameters
 ---@param playerID number
 ---@param message string
----return nil
+---@return nil
 function Spring.SendMessageToPlayer(playerID, message) end
 
 ---Parameters
 ---@param teamID number
 ---@param message string
----return nil
+---@return nil
 function Spring.SendMessageToTeam(teamID, message) end
 
 ---Parameters
 ---@param allyID number
 ---@param message string
----return nil
+---@return nil
 function Spring.SendMessageToAllyTeam(allyID, message) end
 
 
 ---
 ---Parameters
 ---@param soundfile string
----return ?nil|bool success
+---@return ?nil|bool success
 function Spring.LoadSoundDef(soundfile) end
 
 ---Parameters
@@ -112,25 +111,25 @@ function Spring.LoadSoundDef(soundfile) end
 ---@param speedy number (optional)
 ---@param speedz number (optional)
 ---@param channel ?number|string (optional)
----return ?nil|bool playSound
+---@return ?nil|bool playSound
 function Spring.PlaySoundFile(soundfile[, volume=1.0[, posx[, posy[, posz[, speedx[, speedy[, speedz[, channel]]]]]]]]) end
 
 ---Parameters
 ---@param oggfile string
 ---@param volume number (default): `1.0`
 ---@param enqueue boolean (optional)
----return ?nil|bool success
+---@return ?nil|bool success
 function Spring.PlaySoundStream(oggfile[, volume=1.0[, enqueue]]) end
 
----return nil
+---@return nil
 function Spring.StopSoundStream() end
 
----return nil
+---@return nil
 function Spring.PauseSoundStream() end
 
 ---Parameters
 ---@param volume number
----return nil
+---@return nil
 function Spring.SetSoundStreamVolume(volume) end
 
 ---Parameters
@@ -138,7 +137,7 @@ function Spring.SetSoundStreamVolume(volume) end
 ---@param posX number
 ---@param posY number
 ---@param posZ number
----return nil
+---@return nil
 function Spring.AddWorldIcon(cmdID, posX, posY, posZ) end
 
 ---Parameters
@@ -146,7 +145,7 @@ function Spring.AddWorldIcon(cmdID, posX, posY, posZ) end
 ---@param posX number
 ---@param posY number
 ---@param posZ number
----return nil
+---@return nil
 function Spring.AddWorldText(text, posX, posY, posZ) end
 
 ---Parameters
@@ -156,18 +155,18 @@ function Spring.AddWorldText(text, posX, posY, posZ) end
 ---@param posZ number
 ---@param teamID number
 ---@param facing number
----return nil
+---@return nil
 function Spring.AddWorldUnit(unitDefID, posX, posY, posZ, teamID, facing) end
 
 ---Parameters
 ---@param unitID number
----return nil
+---@return nil
 function Spring.DrawUnitCommands(unitID) end
 
 ---Parameters
 ---@param units table
 ---@param tableOrArray boolean
----return nil
+---@return nil
 function Spring.DrawUnitCommands(units, tableOrArray) end
 
 
@@ -195,7 +194,7 @@ function Spring.DrawUnitCommands(units, tableOrArray) end
 ---@param y number
 ---@param z number
 ---@param transTime number (optional)
----return nil
+---@return nil
 function Spring.SetCameraTarget(x, y, z[, transTime]) end
 
 ---Parameters
@@ -205,7 +204,7 @@ function Spring.SetCameraTarget(x, y, z[, transTime]) end
 ---@param tx number
 ---@param ty number
 ---@param tz number
----return nil
+---@return nil
 function Spring.SetCameraTarget(px, py, pz, tx, ty, tz) end
 
 ---Parameters
@@ -213,7 +212,7 @@ function Spring.SetCameraTarget(px, py, pz, tx, ty, tz) end
 ---@param transitionTime number (default): `0`
 ---@param transitionTimeFactor number (optional)
 ---@param transitionTimeExponent number (optional)
----return bool set
+---@return bool set
 function Spring.SetCameraState(camState[, transitionTime=0[, transitionTimeFactor[, transitionTimeExponent]]]) end
 
 
@@ -221,24 +220,24 @@ function Spring.SetCameraState(camState[, transitionTime=0[, transitionTimeFacto
 ---Parameters
 ---@param unitID number
 ---@param append boolean (default): `false`
----return nil
+---@return nil
 function Spring.SelectUnit(unitID[, append=false]) end
 
 ---Parameters
 ---@param unitID number
----return nil
+---@return nil
 function Spring.DeselectUnit(unitID) end
 
 ---Parameters
 ---@param unitIDs {[number],...}
 ---@param append boolean (default): `false`
----return nil
+---@return nil
 function Spring.SelectUnitArray(unitIDs[, append=false]) end
 
 ---Parameters
 ---@param unitMap {[number]=any,...}
 ---@param append boolean (default): `false`
----return nil
+---@return nil
 function Spring.SelectUnitMap(unitMap[, append=false]) end
 
 
@@ -281,24 +280,24 @@ function Spring.SelectUnitMap(unitMap[, append=false]) end
 ---@param ignoreLOS boolean
 ---Parameters
 ---@param lightParams lightParams
----return number lightHandle
+---@return number lightHandle
 function Spring.AddMapLight(lightParams) end
 
 ---Parameters
 ---@param lightParams lightParams
----return number lightHandle
+---@return number lightHandle
 function Spring.AddModelLight(lightParams) end
 
 ---Parameters
 ---@param lightHandle number
 ---@param lightParams lightParams
----return bool success
+---@return bool success
 function Spring.UpdateMapLight(lightHandle, lightParams) end
 
 ---Parameters
 ---@param lightHandle number
 ---@param lightParams lightParams
----return bool success
+---@return bool success
 function Spring.UpdateModelLight(lightHandle, lightParams) end
 
 ---Parameters
@@ -306,7 +305,7 @@ function Spring.UpdateModelLight(lightHandle, lightParams) end
 ---@param unitOrProjectileID number
 ---@param enableTracking boolean
 ---@param unitOrProjectile boolean
----return bool success
+---@return bool success
 function Spring.SetMapLightTrackingState(lightHandle, unitOrProjectileID, enableTracking, unitOrProjectile) end
 
 ---Parameters
@@ -314,7 +313,7 @@ function Spring.SetMapLightTrackingState(lightHandle, unitOrProjectileID, enable
 ---@param unitOrProjectileID number
 ---@param enableTracking boolean
 ---@param unitOrProjectile boolean
----return bool success
+---@return bool success
 function Spring.SetModelLightTrackingState(lightHandle, unitOrProjectileID, enableTracking, unitOrProjectile) end
 
 
@@ -322,37 +321,37 @@ function Spring.SetModelLightTrackingState(lightHandle, unitOrProjectileID, enab
 ---Parameters
 ---@param unitID number
 ---@param noDraw boolean
----return nil
+---@return nil
 function Spring.SetUnitNoDraw(unitID, noDraw) end
 
 ---Parameters
 ---@param unitID number
 ---@param drawMask number
----return nil
+---@return nil
 function Spring.SetUnitEngineDrawMask(unitID, drawMask) end
 
 ---Parameters
 ---@param unitID number
 ---@param alwaysUpdateMatrix boolean
----return nil
+---@return nil
 function Spring.SetUnitAlwaysUpdateMatrix(unitID, alwaysUpdateMatrix) end
 
 ---Parameters
 ---@param unitID number
 ---@param unitNoMinimap boolean
----return nil
+---@return nil
 function Spring.SetUnitNoMinimap(unitID, unitNoMinimap) end
 
 ---Parameters
 ---@param unitID number
 ---@param unitNoSelect boolean
----return nil
+---@return nil
 function Spring.SetUnitNoSelect(unitID, unitNoSelect) end
 
 ---Parameters
 ---@param unitID number
 ---@param unitLeaveTracks boolean
----return nil
+---@return nil
 function Spring.SetUnitLeaveTracks(unitID, unitLeaveTracks) end
 
 ---Parameters
@@ -367,7 +366,7 @@ function Spring.SetUnitLeaveTracks(unitID, unitLeaveTracks) end
 ---@param vType number
 ---@param tType number
 ---@param Axis number
----return nil
+---@return nil
 function Spring.SetUnitSelectionVolumeData(unitID, featureID, scaleX, scaleY, scaleZ, offsetX, offsetY, offsetZ, vType, tType, Axis) end
 
 
@@ -375,25 +374,25 @@ function Spring.SetUnitSelectionVolumeData(unitID, featureID, scaleX, scaleY, sc
 ---Parameters
 ---@param featureID number
 ---@param noDraw boolean
----return nil
+---@return nil
 function Spring.SetFeatureNoDraw(featureID, noDraw) end
 
 ---Parameters
 ---@param featureID number
 ---@param engineDrawMask number
----return nil
+---@return nil
 function Spring.SetFeatureEngineDrawMask(featureID, engineDrawMask) end
 
 ---Parameters
 ---@param featureID number
 ---@param alwaysUpdateMat number
----return nil
+---@return nil
 function Spring.SetFeatureAlwaysUpdateMatrix(featureID, alwaysUpdateMat) end
 
 ---Parameters
 ---@param featureID number
 ---@param allow boolean
----return nil
+---@return nil
 function Spring.SetFeatureFade(featureID, allow) end
 
 ---Parameters
@@ -407,7 +406,7 @@ function Spring.SetFeatureFade(featureID, allow) end
 ---@param vType number
 ---@param tType number
 ---@param Axis number
----return nil
+---@return nil
 function Spring.SetFeatureSelectionVolumeData(featureID, scaleX, scaleY, scaleZ, offsetX, offsetY, offsetZ, vType, tType, Axis) end
 
 
@@ -418,42 +417,42 @@ function Spring.SetFeatureSelectionVolumeData(featureID, scaleX, scaleY, scaleZ,
 ---@param size number (optional)
 ---@param dist number (optional)
 ---@param radAdjust number (optional)
----return ?nil|bool added
+---@return ?nil|bool added
 function Spring.AddUnitIcon(iconName, texFile[, size[, dist[, radAdjust]]]) end
 
 ---Parameters
 ---@param iconName string
----return ?nil|bool freed
+---@return ?nil|bool freed
 function Spring.FreeUnitIcon(iconName) end
 
 ---Parameters
 ---@param unitID number
 ---@param drawIcon boolean
----return nil
+---@return nil
 function Spring.UnitIconSetDraw(unitID, drawIcon) end
 
 ---Parameters
 ---@param unitDefID number
 ---@param iconName string
----return nil
+---@return nil
 function Spring.SetUnitDefIcon(unitDefID, iconName) end
 
 ---Parameters
 ---@param unitDefID number
 ---@param image string
----return nil
+---@return nil
 function Spring.SetUnitDefImage(unitDefID, image) end
 
 
 ---
 ---Parameters
 ---@param modfile string
----return bool extracted
+---@return bool extracted
 function Spring.ExtractModArchiveFile(modfile) end
 
 ---Parameters
 ---@param path string
----return ?nil|bool dirCreated
+---@return ?nil|bool dirCreated
 function Spring.CreateDir(path) end
 
 
@@ -461,7 +460,7 @@ function Spring.CreateDir(path) end
 ---Parameters
 ---@param action string
 ---@param actionExtra string (optional)
----return ?nil|bool commandSet
+---@return ?nil|bool commandSet
 function Spring.SetActiveCommand(action[, actionExtra]) end
 
 ---Parameters
@@ -473,30 +472,30 @@ function Spring.SetActiveCommand(action[, actionExtra]) end
 ---@param ctrl ?bool
 ---@param meta ?bool
 ---@param shift ?bool
----return ?nil|bool commandSet
+---@return ?nil|bool commandSet
 function Spring.SetActiveCommand(cmdIndex[, button=1][, leftClick], rightClick, alt, ctrl, meta, shift) end
 
 ---Parameters
 ---@param config string
----return nil
+---@return nil
 function Spring.LoadCmdColorsConfig(config) end
 
 ---Parameters
 ---@param config string
----return nil
+---@return nil
 function Spring.LoadCtrlPanelConfig(config) end
 
----return nil
+---@return nil
 function Spring.ForceLayoutUpdate() end
 
 ---Parameters
 ---@param enable boolean
----return nil
+---@return nil
 function Spring.SetDrawSelectionInfo(enable) end
 
 ---Parameters
 ---@param state boolean
----return nil
+---@return nil
 function Spring.SetBoxSelectionByEngine(state) end
 
 ---Parameters
@@ -504,7 +503,7 @@ function Spring.SetBoxSelectionByEngine(state) end
 ---@param r number
 ---@param g number
 ---@param b number
----return nil
+---@return nil
 function Spring.SetTeamColor(teamID, r, g, b) end
 
 ---Parameters
@@ -512,20 +511,20 @@ function Spring.SetTeamColor(teamID, r, g, b) end
 ---@param iconFileName string
 ---@param overwrite boolean (default): `true`
 ---@param hotSpotTopLeft boolean (default): `false`
----return ?nil|bool assigned
+---@return ?nil|bool assigned
 function Spring.AssignMouseCursor(cmdName, iconFileName[, overwrite=true[, hotSpotTopLeft=false]]) end
 
 ---Parameters
 ---@param oldFileName string
 ---@param newFileName string
 ---@param hotSpotTopLeft boolean (default): `false`
----return ?nil|bool assigned
+---@return ?nil|bool assigned
 function Spring.ReplaceMouseCursor(oldFileName, newFileName[, hotSpotTopLeft=false]) end
 
 ---Parameters
 ---@param cmdID number
 ---@param cmdReference string|number (optional)
----return ?nil|bool assigned
+---@return ?nil|bool assigned
 function Spring.SetCustomCommandDrawData(cmdID[, cmdReference]) end
 
 
@@ -533,13 +532,13 @@ function Spring.SetCustomCommandDrawData(cmdID[, cmdReference]) end
 ---Parameters
 ---@param x number
 ---@param y number
----return nil
+---@return nil
 function Spring.WarpMouse(x, y) end
 
 ---Parameters
 ---@param cursorName string
 ---@param cursorScale number (default): `1.0`
----return nil
+---@return nil
 function Spring.SetMouseCursor(cursorName[, cursorScale=1.0]) end
 
 
@@ -550,7 +549,7 @@ function Spring.SetMouseCursor(cursorName[, cursorScale=1.0]) end
 ---@param radar table
 ---@param jam table
 ---@param radar2 table
----return nil
+---@return nil
 function Spring.SetLosViewColors(always, LOS, radar, jam, radar2) end
 
 ---Parameters
@@ -560,7 +559,7 @@ function Spring.SetLosViewColors(always, LOS, radar, jam, radar2) end
 ---@param rotValRng number (default): `0`
 ---@param rotVelRng number (default): `0`
 ---@param rotAccRng number (default): `0`
----return nil
+---@return nil
 function Spring.SetNanoProjectileParams([rotVal=0[, rotVel=0[, rotAcc=0[, rotValRng=0[, rotVelRng=0[, rotAccRng=0]]]]]]) end
 
 
@@ -569,24 +568,24 @@ function Spring.SetNanoProjectileParams([rotVal=0[, rotVel=0[, rotAcc=0[, rotVal
 ---@param name string
 ---@param value number
 ---@param useOverlay boolean (default): `false`
----return nil
+---@return nil
 function Spring.SetConfigInt(name, value[, useOverlay=false]) end
 
 ---Parameters
 ---@param name string
 ---@param value number
 ---@param useOverla boolean (default): `false`
----return nil
+---@return nil
 function Spring.SetConfigFloat(name, value[, useOverla=false]) end
 
 ---Parameters
 ---@param name string
 ---@param value number
 ---@param useOverlay boolean (default): `false`
----return nil
+---@return nil
 function Spring.SetConfigString(name, value[, useOverlay=false]) end
 
----return nil
+---@return nil
 function Spring.Quit() end
 
 
@@ -594,7 +593,7 @@ function Spring.Quit() end
 ---Parameters
 ---@param unitID number
 ---@param groupID number
----return nil
+---@return nil
 function Spring.SetUnitGroup(unitID, groupID) end
 
 
@@ -609,7 +608,7 @@ function Spring.SetUnitGroup(unitID, groupID) end
 ---@param cmdID number
 ---@param params table
 ---@param options cmdOpts
----return nil|true
+---@return nil|true
 function Spring.GiveOrder(cmdID, params, options) end
 
 ---Parameters
@@ -617,7 +616,7 @@ function Spring.GiveOrder(cmdID, params, options) end
 ---@param cmdID number
 ---@param params table
 ---@param options cmdOpts
----return nil|true
+---@return nil|true
 function Spring.GiveOrderToUnit(unitID, cmdID, params, options) end
 
 ---Parameters
@@ -625,7 +624,7 @@ function Spring.GiveOrderToUnit(unitID, cmdID, params, options) end
 ---@param cmdID number
 ---@param params table
 ---@param options cmdOpts
----return nil|true
+---@return nil|true
 function Spring.GiveOrderToUnitMap(unitMap, cmdID, params, options) end
 
 ---Parameters
@@ -633,7 +632,7 @@ function Spring.GiveOrderToUnitMap(unitMap, cmdID, params, options) end
 ---@param cmdID number
 ---@param params table
 ---@param options cmdOpts
----return nil|true
+---@return nil|true
 function Spring.GiveOrderToUnitArray(unitArray, cmdID, params, options) end
 
 ---Fields
@@ -643,30 +642,30 @@ function Spring.GiveOrderToUnitArray(unitArray, cmdID, params, options) end
 ---Parameters
 ---@param unitID number
 ---@param cmdArray {cmdSpec,...}
----return bool ordersGiven
+---@return bool ordersGiven
 function Spring.GiveOrderArrayToUnit(unitID, cmdArray) end
 
 ---Parameters
 ---@param unitMap table
 ---@param cmdArray {cmdSpec,...}
----return bool ordersGiven
+---@return bool ordersGiven
 function Spring.GiveOrderArrayToUnitMap(unitMap, cmdArray) end
 
 ---Parameters
 ---@param unitArray {number,...}
 ---@param cmdArray {cmdSpec,...}
 ---@param pairwise bool (default): `false`
----return nil|bool
+---@return nil|bool
 function Spring.GiveOrderArrayToUnitArray(unitArray, cmdArray[, pairwise=false]) end
 
 ---Parameters
 ---@param spacing number
----return nil
+---@return nil
 function Spring.SetBuildSpacing(spacing) end
 
 ---Parameters
 ---@param facing number
----return nil
+---@return nil
 function Spring.SetBuildFacing(facing) end
 
 
@@ -674,17 +673,17 @@ function Spring.SetBuildFacing(facing) end
 ---Parameters
 ---@param message string
 ---@param mode string
----return nil
+---@return nil
 function Spring.SendLuaUIMsg(message, mode) end
 
 ---Parameters
 ---@param message string
----return nil
+---@return nil
 function Spring.SendLuaGaiaMsg(message) end
 
 ---Parameters
 ---@param message string
----return nil
+---@return nil
 function Spring.SendLuaRulesMsg(message) end
 
 ---Parameters
@@ -693,7 +692,7 @@ function Spring.SendLuaRulesMsg(message) end
 ---@param x number
 ---@param y number
 ---@param z number
----return nil
+---@return nil
 function Spring.SetLastMessagePosition(x, y, z) end
 
 
@@ -701,20 +700,20 @@ function Spring.SetLastMessagePosition(x, y, z) end
 ---Parameters
 ---@param resource string
 ---@param shareLevel number
----return nil
+---@return nil
 function Spring.SetShareLevel(resource, shareLevel) end
 
 ---Parameters
 ---@param teamID number
 ---@param units string
----return nil
+---@return nil
 function Spring.ShareResources(teamID, units) end
 
 ---Parameters
 ---@param teamID number
 ---@param resource string
 ---@param amount number
----return nil
+---@return nil
 function Spring.ShareResources(teamID, resource, amount) end
 
 
@@ -725,7 +724,7 @@ function Spring.ShareResources(teamID, resource, amount) end
 ---@param z number
 ---@param text string (default): `""`
 ---@param localOnly boolean (optional)
----return nil
+---@return nil
 function Spring.MarkerAddPoint(x, y, z[, text=""[, localOnly]]) end
 
 ---Parameters
@@ -737,7 +736,7 @@ function Spring.MarkerAddPoint(x, y, z[, text=""[, localOnly]]) end
 ---@param z2 number
 ---@param localOnly boolean (default): `false`
 ---@param playerId number (optional)
----return nil
+---@return nil
 function Spring.MarkerAddLine(x1, y1, z1, x2, y2, z2[, localOnly=false[, playerId]]) end
 
 ---Parameters
@@ -748,7 +747,7 @@ function Spring.MarkerAddLine(x1, y1, z1, x2, y2, z2[, localOnly=false[, playerI
 ---@param localOnly boolean (default): `false`
 ---@param playerId number (optional)
 ---@param alwaysErase boolean (default): `false`
----return nil
+---@return nil
 function Spring.MarkerErasePosition(x, y, z, noop[, localOnly=false[, playerId[, alwaysErase=false]]]) end
 
 
@@ -759,7 +758,7 @@ function Spring.MarkerErasePosition(x, y, z, noop[, localOnly=false[, playerId[,
 ---@param params: sunColor rgb
 ---@param params: skyColor rgb
 ---@param params: cloudColor rgb
----return nil
+---@return nil
 function Spring.SetAtmosphere(params) end
 
 ---Spring.SetAtmosphere({ fogStart = 0, fogEnd = 0.5, fogColor = { 0.7, 0.2, 0.2, 1 }})
@@ -768,13 +767,13 @@ function Spring.SetAtmosphere(params) end
 ---@param dirY number
 ---@param dirZ number
 ---@param intensity number (default): `true`
----return nil
+---@return nil
 function Spring.SetSunDirection(dirX, dirY, dirZ[, intensity=true]) end
 
 ---Parameters
 ---@param params: groundAmbientColor rgb
 ---@param params: groundDiffuseColor rgb
----return nil
+---@return nil
 function Spring.SetSunLighting(params) end
 
 ---Spring.SetSunLighting({groundAmbientColor = {1, 0.1, 1}, groundDiffuseColor = {1, 0.1, 1} })
@@ -786,13 +785,13 @@ function Spring.SetSunLighting(params) end
 ---@param splatDetailNormalDiffuseAlpha boolean
 ---Parameters
 ---@param params mapRenderingParams
----return nil
+---@return nil
 function Spring.SetMapRenderingParams(params) end
 
 ---Parameters
 ---@param normal boolean (default): `true`
 ---@param shadow boolean (default): `false`
----return bool updated
+---@return bool updated
 function Spring.ForceTesselationUpdate([normal=true[, shadow=false]]) end
 
 
@@ -800,7 +799,7 @@ function Spring.ForceTesselationUpdate([normal=true[, shadow=false]]) end
 ---Parameters
 ---@param aiTeam number
 ---@param message string
----return ?nil|bool ai_processed
+---@return ?nil|bool ai_processed
 function Spring.SendSkirmishAIMessage(aiTeam, message) end
 
 
@@ -808,7 +807,7 @@ function Spring.SendSkirmishAIMessage(aiTeam, message) end
 ---Parameters
 ---@param sectionName string
 ---@param logLevel ?string|number
----return nil
+---@return nil
 function Spring.SetLogSectionFilterLevel(sectionName, logLevel) end
 
 ---Parameters
@@ -820,22 +819,22 @@ function Spring.SetLogSectionFilterLevel(sectionName, logLevel) end
 ---@param maxLoopRunTime number (optional)
 ---@param baseRunTimeMult number (optional)
 ---@param baseMemLoadMult number (optional)
----return nil
+---@return nil
 function Spring.GarbageCollectCtrl([itersPerBatch[, numStepsPerIter[, minStepsPerIter[, maxStepsPerIter[, minLoopRunTime[, maxLoopRunTime[, baseRunTimeMult[, baseMemLoadMult]]]]]]]]) end
 
 ---Parameters
 ---@param drawSky boolean
----return nil
+---@return nil
 function Spring.SetDrawSky(drawSky) end
 
 ---Parameters
 ---@param drawWater boolean
----return nil
+---@return nil
 function Spring.SetDrawWater(drawWater) end
 
 ---Parameters
 ---@param drawGround boolean
----return nil
+---@return nil
 function Spring.SetDrawGround(drawGround) end
 
 ---Parameters
@@ -846,17 +845,17 @@ function Spring.SetDrawGround(drawGround) end
 ---@param drawFeaturesDeferred boolean
 ---@param drawUnitsForward boolean (optional)
 ---@param drawFeaturesForward boolean (optional)
----return nil
+---@return nil
 function Spring.SetDrawModelsDeferred(drawUnitsDeferred, drawFeaturesDeferred[, drawUnitsForward[, drawFeaturesForward]]) end
 
 ---Parameters
 ---@param allowCaptureMode boolean
----return nil
+---@return nil
 function Spring.SetVideoCapturingMode(allowCaptureMode) end
 
 ---Parameters
 ---@param timeOffset boolean
----return nil
+---@return nil
 function Spring.SetVideoCapturingTimeOffset(timeOffset) end
 
 ---Fields
@@ -893,39 +892,39 @@ function Spring.SetVideoCapturingTimeOffset(timeOffset) end
 ---@param hasWaterPlane boolean
 ---Parameters
 ---@param waterParams waterParams
----return nil
+---@return nil
 function Spring.SetWaterParams(waterParams) end
 
 
 ---
 ---Parameters
 ---@param unitDefID number
----return nil
+---@return nil
 function Spring.PreloadUnitDefModel(unitDefID) end
 
 ---Parameters
 ---@param featureDefID number
----return nil
+---@return nil
 function Spring.PreloadFeatureDefModel(featureDefID) end
 
 ---Parameters
 ---@param name string
----return nil
+---@return nil
 function Spring.PreloadSoundItem(name) end
 
 ---Parameters
 ---@param modelName string
----return ?nil|bool success
+---@return ?nil|bool success
 function Spring.LoadModelTextures(modelName) end
 
 
 ---
----return nil|number decalIndex
+---@return nil|number decalIndex
 function Spring.CreateDecal() end
 
 ---Parameters
 ---@param decalIndex number
----return nil
+---@return nil
 function Spring.DestroyDecal(decalIndex) end
 
 ---Parameters
@@ -933,32 +932,32 @@ function Spring.DestroyDecal(decalIndex) end
 ---@param posX number
 ---@param posY number
 ---@param posZ number
----return bool decalSet
+---@return bool decalSet
 function Spring.SetDecalPos(decalIndex, posX, posY, posZ) end
 
 ---Parameters
 ---@param decalIndex number
 ---@param sizeX number
 ---@param sizeY number
----return bool decalSet
+---@return bool decalSet
 function Spring.SetDecalSize(decalIndex, sizeX, sizeY) end
 
 ---Parameters
 ---@param decalIndex number
 ---@param rot number
----return nil|bool decalSet
+---@return nil|bool decalSet
 function Spring.SetDecalRotation(decalIndex, rot) end
 
 ---Parameters
 ---@param decalIndex number
 ---@param textureName string
----return nil|bool decalSet
+---@return nil|bool decalSet
 function Spring.SetDecalTexture(decalIndex, textureName) end
 
 ---Parameters
 ---@param decalIndex number
 ---@param alpha number
----return nil|bool decalSet
+---@return nil|bool decalSet
 function Spring.SetDecalAlpha(decalIndex, alpha) end
 
 
@@ -968,13 +967,13 @@ function Spring.SetDecalAlpha(decalIndex, alpha) end
 ---@param y number
 ---@param width number
 ---@param height number
----return nil
+---@return nil
 function Spring.SDLSetTextInputRect(x, y, width, height) end
 
----return nil
+---@return nil
 function Spring.SDLStartTextInput() end
 
----return nil
+---@return nil
 function Spring.SDLStopTextInput() end
 
 
@@ -987,57 +986,57 @@ function Spring.SDLStopTextInput() end
 ---@param winSizeY number
 ---@param fullScreen boolean
 ---@param borderless boolean
----return nil
+---@return nil
 function Spring.SetWindowGeometry(displayIndex, winPosX, winPosY, winSizeX, winSizeY, fullScreen, borderless) end
 
----return bool minimized
+---@return bool minimized
 function Spring.SetWindowMinimized() end
 
----return bool maximized
+---@return bool maximized
 function Spring.SetWindowMaximized() end
 
 
 ---
 ---Parameters
 ---@param startScript string
----return nil
+---@return nil
 function Spring.Reload(startScript) end
 
 ---Parameters
 ---@param commandline_args string
 ---@param startScript string
----return nil
+---@return nil
 function Spring.Restart(commandline_args, startScript) end
 
 ---Parameters
 ---@param commandline_args string
 ---@param startScript string
----return nil
+---@return nil
 function Spring.Start(commandline_args, startScript) end
 
 ---Parameters
 ---@param iconFileName string
----return nil
+---@return nil
 function Spring.SetWMIcon(iconFileName) end
 
 ---Parameters
 ---@param title string
 ---@param titleShort string (default): `title`
----return nil
+---@return nil
 function SetWMCaption(title[, titleShort=title]) end
 
 ---Parameters
 ---@param threadName string (default): `main`
----return nil
+---@return nil
 function Spring.ClearWatchDogTimer([threadName=main]) end
 
 ---Parameters
 ---@param text string
----return nil
+---@return nil
 function Spring.SetClipboard(text) end
 
 ---Parameters
 ---@param sleep number
----return bool when true caller should continue calling `Spring.Yield` during the widgets/gadgets load, when false it shouldn't call it any longer.
+---@return bool when true caller should continue calling `Spring.Yield` during the widgets/gadgets load, when false it shouldn't call it any longer.
 function Spring.Yield(sleep) end
 

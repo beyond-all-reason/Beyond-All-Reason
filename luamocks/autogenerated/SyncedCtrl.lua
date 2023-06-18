@@ -5,74 +5,74 @@
 ---@param firstAllyTeamID number
 ---@param secondAllyTeamID number
 ---@param ally boolean
----return nil
+---@return nil
 function Spring.SetAlly(firstAllyTeamID, secondAllyTeamID, ally) end
 
 ---Parameters
 ---@param playerID number
 ---@param teamID number
----return nil
+---@return nil
 function Spring.AssignPlayerToTeam(playerID, teamID) end
 
 ---Parameters
 ---@param allyTeamID number
 ---@param globallos boolean
----return nil
+---@return nil
 function Spring.SetGlobalLos(allyTeamID, globallos) end
 
 
 ---
 ---Parameters
 ---@param teamID number
----return nil
+---@return nil
 function Spring.KillTeam(teamID) end
 
 ---Parameters
 ---@param allyTeamID1 number (optional)
 ---@param allyTeamID2 number (optional)
 ---@param allyTeamIDn number (optional)
----return nil
+---@return nil
 function Spring.GameOver([allyTeamID1[, allyTeamID2[, allyTeamIDn]]]) end
 
 
 ---
 ---Parameters
 ---@param strength number
----return nil
+---@return nil
 function Spring.SetTidal(strength) end
 
 ---Parameters
 ---@param minStrength number
 ---@param maxStrength number
----return nil
+---@return nil
 function Spring.SetWind(minStrength, maxStrength) end
 
 ---Parameters
 ---@param teamID number
 ---@param type string
 ---@param amount number
----return nil
+---@return nil
 function Spring.AddTeamResource(teamID, type, amount) end
 
 ---Parameters
 ---@param teamID number
 ---@param type string
 ---@param amount ?number|table
----return ?nil|bool hadEnough
+---@return ?nil|bool hadEnough
 function Spring.UseTeamResource(teamID, type, amount) end
 
 ---Parameters
 ---@param teamID number
 ---@param res string
 ---@param amount number
----return nil
+---@return nil
 function Spring.SetTeamResource(teamID, res, amount) end
 
 ---Parameters
 ---@param teamID number
 ---@param type string
 ---@param amount number
----return nil
+---@return nil
 function Spring.SetTeamShareLevel(teamID, type, amount) end
 
 ---Parameters
@@ -80,7 +80,7 @@ function Spring.SetTeamShareLevel(teamID, type, amount) end
 ---@param teamID_recv number
 ---@param type string
 ---@param amount number
----return nil
+---@return nil
 function Spring.ShareTeamResource(teamID_src, teamID_recv, type, amount) end
 
 
@@ -95,7 +95,7 @@ function Spring.ShareTeamResource(teamID_src, teamID_recv, type, amount) end
 ---@param paramName string
 ---@param paramValue ?number|string
 ---@param losAccess losAccess (optional)
----return nil
+---@return nil
 function Spring.SetGameRulesParam(paramName, paramValue[, losAccess]) end
 
 ---Parameters
@@ -103,7 +103,7 @@ function Spring.SetGameRulesParam(paramName, paramValue[, losAccess]) end
 ---@param paramName string
 ---@param paramValue ?number|string
 ---@param losAccess losAccess (optional)
----return nil
+---@return nil
 function Spring.SetTeamRulesParam(teamID, paramName, paramValue[, losAccess]) end
 
 ---Parameters
@@ -111,7 +111,7 @@ function Spring.SetTeamRulesParam(teamID, paramName, paramValue[, losAccess]) en
 ---@param paramName string
 ---@param paramValue ?number|string
 ---@param losAccess losAccess (optional)
----return nil
+---@return nil
 function Spring.SetPlayerRulesParam(playerID, paramName, paramValue[, losAccess]) end
 
 ---Parameters
@@ -119,7 +119,7 @@ function Spring.SetPlayerRulesParam(playerID, paramName, paramValue[, losAccess]
 ---@param paramName string
 ---@param paramValue ?number|string
 ---@param losAccess losAccess (optional)
----return nil
+---@return nil
 function Spring.SetUnitRulesParam(unitID, paramName, paramValue[, losAccess]) end
 
 ---Parameters
@@ -127,7 +127,7 @@ function Spring.SetUnitRulesParam(unitID, paramName, paramValue[, losAccess]) en
 ---@param paramName string
 ---@param paramValue ?number|string
 ---@param losAccess losAccess (optional)
----return nil
+---@return nil
 function Spring.SetFeatureRulesParam(featureID, paramName, paramValue[, losAccess]) end
 
 
@@ -139,22 +139,22 @@ function Spring.SetFeatureRulesParam(featureID, paramName, paramValue[, losAcces
 ---@param COBArg1 (optional)
 ---@param COBArg2 (optional)
 ---@param COBArgn (optional)
----return ?nil|number returnValue
+---@return ?nil|number returnValue
 function Spring.CallCOBScript(unitID, funcName, retArgs[, COBArg1[, COBArg2[, COBArgn]]]) end
 
----return ?nil|number returnArg1
+---@return ?nil|number returnArg1
 function Spring.CallCOBScript(unitID, funcName, retArgs[, COBArg1[, COBArg2[, COBArgn]]]) end
 
----return ?nil|number returnArg2
+---@return ?nil|number returnArg2
 function Spring.CallCOBScript(unitID, funcName, retArgs[, COBArg1[, COBArg2[, COBArgn]]]) end
 
----return ?nil|number returnArgn
+---@return ?nil|number returnArgn
 function Spring.CallCOBScript(unitID, funcName, retArgs[, COBArg1[, COBArg2[, COBArgn]]]) end
 
 ---Parameters
 ---@param unitID number
 ---@param funcName string
----return ?nil|number funcID
+---@return ?nil|number funcID
 function Spring.GetCOBScriptID(unitID, funcName) end
 
 
@@ -170,7 +170,7 @@ function Spring.GetCOBScriptID(unitID, funcName) end
 ---@param flattenGround boolean (default): `true`
 ---@param unitID number (optional)
 ---@param builderID number (optional)
----return number|nil unitID meaning unit was created
+---@return number|nil unitID meaning unit was created
 function Spring.CreateUnit(unitDefName, x, y, z, facing, teamID[, build=false[, flattenGround=true[, unitID[, builderID]]]]) end
 
 ---Parameters
@@ -179,14 +179,14 @@ function Spring.CreateUnit(unitDefName, x, y, z, facing, teamID[, build=false[, 
 ---@param reclaimed boolean (default): `false`
 ---@param attackerID number (optional)
 ---@param cleanupImmediately boolean (default): `false`
----return nil
+---@return nil
 function Spring.DestroyUnit(unitID[, selfd=false[, reclaimed=false[, attackerID[, cleanupImmediately=false]]]]) end
 
 ---Parameters
 ---@param unitID number
 ---@param newTeamID number
 ---@param given boolean (default): `true`
----return nil
+---@return nil
 function Spring.TransferUnit(unitID, newTeamID[, given=true]) end
 
 
@@ -194,7 +194,7 @@ function Spring.TransferUnit(unitID, newTeamID[, given=true]) end
 ---Parameters
 ---@param unitID number
 ---@param where {[number]=number,...}
----return nil
+---@return nil
 function Spring.SetUnitCosts(unitID, where) end
 
 
@@ -203,45 +203,45 @@ function Spring.SetUnitCosts(unitID, where) end
 ---@param unitID number
 ---@param res string
 ---@param amount number
----return nil
+---@return nil
 function Spring.SetUnitResourcing(unitID, res, amount) end
 
 ---Parameters
 ---@param unitID number
 ---@param res {[string]=number,...}
----return nil
+---@return nil
 function Spring.SetUnitResourcing(unitID, res) end
 
 ---Parameters
 ---@param unitID number
 ---@param tooltip string
----return nil
+---@return nil
 function Spring.SetUnitTooltip(unitID, tooltip) end
 
 ---Parameters
 ---@param unitID number
 ---@param health number|{[string]=number,...}
----return nil
+---@return nil
 function Spring.SetUnitHealth(unitID, health) end
 
 ---Parameters
 ---@param unitID number
 ---@param maxHealth number
----return nil
+---@return nil
 function Spring.SetUnitMaxHealth(unitID, maxHealth) end
 
 ---Parameters
 ---@param unitID number
 ---@param stockpile number (optional)
 ---@param buildPercent number (optional)
----return nil
+---@return nil
 function Spring.SetUnitStockpile(unitID[, stockpile[, buildPercent]]) end
 
 ---Parameters
 ---@param unitID number
 ---@param forceUseWeapons number (optional)
 ---@param allowUseWeapons number (optional)
----return nil
+---@return nil
 function Spring.SetUnitUseWeapons(unitID[, forceUseWeapons[, allowUseWeapons]]) end
 
 ---Fields
@@ -262,7 +262,7 @@ function Spring.SetUnitUseWeapons(unitID[, forceUseWeapons[, allowUseWeapons]]) 
 ---@param unitID number
 ---@param weaponNum number
 ---@param states states
----return nil
+---@return nil
 function Spring.SetUnitWeaponState(unitID, weaponNum, states) end
 
 ---Parameters
@@ -270,7 +270,7 @@ function Spring.SetUnitWeaponState(unitID, weaponNum, states) end
 ---@param weaponNum number
 ---@param key string
 ---@param value number
----return nil
+---@return nil
 function Spring.SetUnitWeaponState(unitID, weaponNum, key, value) end
 
 ---Fields
@@ -292,7 +292,7 @@ function Spring.SetUnitWeaponState(unitID, weaponNum, key, value) end
 ---@param unitID number
 ---@param weaponNum ?number|string
 ---@param damages damages
----return nil
+---@return nil
 function Spring.SetUnitWeaponDamages(unitID, weaponNum, damages) end
 
 ---Parameters
@@ -300,32 +300,32 @@ function Spring.SetUnitWeaponDamages(unitID, weaponNum, damages) end
 ---@param weaponNum ?number|string
 ---@param key string
 ---@param value number
----return nil
+---@return nil
 function Spring.SetUnitWeaponDamages(unitID, weaponNum, key, value) end
 
 ---Parameters
 ---@param unitID number
 ---@param maxRange number
----return nil
+---@return nil
 function Spring.SetUnitMaxRange(unitID, maxRange) end
 
 ---Parameters
 ---@param unitID number
 ---@param experience number
----return nil
+---@return nil
 function Spring.SetUnitExperience(unitID, experience) end
 
 ---Parameters
 ---@param unitID number
 ---@param deltaExperience number
----return nil
+---@return nil
 function Spring.AddUnitExperience(unitID, deltaExperience) end
 
 ---Parameters
 ---@param unitID number
 ---@param armored boolean (optional)
 ---@param armorMultiple number (optional)
----return nil
+---@return nil
 function Spring.SetUnitArmored(unitID[, armored[, armorMultiple]]) end
 
 
@@ -334,71 +334,71 @@ function Spring.SetUnitArmored(unitID[, armored[, armorMultiple]]) end
 ---@param unitID number
 ---@param allyTeam number
 ---@param losTypes number|table
----return nil
+---@return nil
 function Spring.SetUnitLosMask(unitID, allyTeam, losTypes) end
 
 ---Parameters
 ---@param unitID number
 ---@param allyTeam number
 ---@param los number|table
----return nil
+---@return nil
 function Spring.SetUnitLosState(unitID, allyTeam, los) end
 
 ---Parameters
 ---@param unitID number
 ---@param cloak bool|number
 ---@param cloakArg bool|number
----return nil
+---@return nil
 function Spring.SetUnitCloak(unitID, cloak, cloakArg) end
 
 ---Parameters
 ---@param unitID number
 ---@param stealth boolean
----return nil
+---@return nil
 function Spring.SetUnitStealth(unitID, stealth) end
 
 ---Parameters
 ---@param unitID number
 ---@param sonarStealth boolean
----return nil
+---@return nil
 function Spring.SetUnitSonarStealth(unitID, sonarStealth) end
 
 ---Parameters
 ---@param unitID number
 ---@param seismicSignature number
----return nil
+---@return nil
 function Spring.SetUnitSeismicSignature(unitID, seismicSignature) end
 
 ---Parameters
 ---@param unitID number
 ---@param alwaysVisible boolean
----return nil
+---@return nil
 function Spring.SetUnitAlwaysVisible(unitID, alwaysVisible) end
 
 ---Parameters
 ---@param unitID number
 ---@param useAirLos boolean
----return nil
+---@return nil
 function Spring.SetUnitUseAirLos(unitID, useAirLos) end
 
 ---Parameters
 ---@param unitID number
 ---@param depth number
 ---@param range number (optional)
----return nil
+---@return nil
 function Spring.SetUnitMetalExtraction(unitID, depth[, range]) end
 
 ---Parameters
 ---@param unitID number
 ---@param metal number
----return nil
+---@return nil
 function Spring.SetUnitHarvestStorage(unitID, metal) end
 
 ---Parameters
 ---@param unitID number
 ---@param paramName string
 ---@param bool number
----return nil
+---@return nil
 function Spring.SetUnitBuildParams(unitID, paramName, bool) end
 
 ---Parameters
@@ -408,13 +408,13 @@ function Spring.SetUnitBuildParams(unitID, paramName, bool) end
 ---@param reclaimSpeed number (optional)
 ---@param captureSpeed number (optional)
 ---@param terraformSpeed number (optional)
----return nil
+---@return nil
 function Spring.SetUnitBuildSpeed(builderID, buildSpeed[, repairSpeed[, reclaimSpeed[, captureSpeed[, terraformSpeed]]]]) end
 
 ---Parameters
 ---@param builderID number
 ---@param pieces table
----return nil
+---@return nil
 function Spring.SetUnitNanoPieces(builderID, pieces) end
 
 ---Parameters
@@ -426,13 +426,13 @@ function Spring.SetUnitNanoPieces(builderID, pieces) end
 ---@param crushable boolean
 ---@param blockEnemyPushing boolean
 ---@param blockHeightChanges boolean
----return nil
+---@return nil
 function Spring.SetUnitBlocking(unitID, isblocking, isSolidObjectCollidable, isProjectileCollidable, isRaySegmentCollidable, crushable, blockEnemyPushing, blockHeightChanges) end
 
 ---Parameters
 ---@param unitID number
 ---@param crashing boolean
----return bool success
+---@return bool success
 function Spring.SetUnitCrashing(unitID, crashing) end
 
 ---Parameters
@@ -440,14 +440,14 @@ function Spring.SetUnitCrashing(unitID, crashing) end
 ---@param weaponID number (default): `-1`
 ---@param enabled boolean (optional)
 ---@param power number (optional)
----return nil
+---@return nil
 function Spring.SetUnitShieldState(unitID[, weaponID=-1[, enabled[, power]]]) end
 
 ---Parameters
 ---@param unitID number
 ---@param weaponID number (optional)
 ---@param rechargeTime number (optional)
----return nil
+---@return nil
 function Spring.SetUnitShieldRechargeDelay(unitID[, weaponID[, rechargeTime]]) end
 
 ---Parameters
@@ -456,13 +456,13 @@ function Spring.SetUnitShieldRechargeDelay(unitID[, weaponID[, rechargeTime]]) e
 ---@param arg1 number
 ---@param y number (optional)
 ---@param z number (optional)
----return nil
+---@return nil
 function Spring.SetUnitFlanking(unitID, type, arg1[, y[, z]]) end
 
 ---Parameters
 ---@param unitID number
 ---@param neutral boolean
----return nil|bool setNeutral
+---@return nil|bool setNeutral
 function Spring.SetUnitNeutral(unitID, neutral) end
 
 ---Parameters
@@ -471,7 +471,7 @@ function Spring.SetUnitNeutral(unitID, neutral) end
 ---@param dgun boolean (default): `false`
 ---@param userTarget boolean (default): `false`
 ---@param weaponNum number (default): `-1`
----return bool success
+---@return bool success
 function Spring.SetUnitTarget(unitID[, enemyUnitID[, dgun=false[, userTarget=false[, weaponNum=-1]]]]) end
 
 ---Parameters
@@ -482,7 +482,7 @@ function Spring.SetUnitTarget(unitID[, enemyUnitID[, dgun=false[, userTarget=fal
 ---@param dgun boolean (default): `false`
 ---@param userTarget boolean (default): `false`
 ---@param weaponNum number (default): `-1`
----return bool success
+---@return bool success
 function Spring.SetUnitTarget(unitID[, x[, y[, z[, dgun=false[, userTarget=false[, weaponNum=-1]]]]]]) end
 
 ---Parameters
@@ -494,28 +494,28 @@ function Spring.SetUnitTarget(unitID[, x[, y[, z[, dgun=false[, userTarget=false
 ---@param apY number
 ---@param apZ number
 ---@param relative boolean (default): `false`
----return bool success
+---@return bool success
 function Spring.SetUnitMidAndAimPos(unitID, mpX, mpY, mpZ, apX, apY, apZ[, relative=false]) end
 
 ---Parameters
 ---@param unitID number
 ---@param radius number
 ---@param height number
----return bool success
+---@return bool success
 function Spring.SetUnitRadiusAndHeight(unitID, radius, height) end
 
 ---Parameters
 ---@param unitID number
 ---@param AlteredPiece number
 ---@param ParentPiece number
----return nil
+---@return nil
 function Spring.SetUnitPieceParent(unitID, AlteredPiece, ParentPiece) end
 
 ---Parameters
 ---@param unitID number
 ---@param pieceNum number
 ---@param matrix {number,...}
----return nil
+---@return nil
 function Spring.SetUnitPieceMatrix(unitID, pieceNum, matrix) end
 
 ---Parameters
@@ -529,7 +529,7 @@ function Spring.SetUnitPieceMatrix(unitID, pieceNum, matrix) end
 ---@param vType number
 ---@param tType number
 ---@param Axis number
----return nil
+---@return nil
 
   enum COLVOL_TYPES {
       COLVOL_TYPE_DISABLED = -1,
@@ -564,20 +564,20 @@ function Spring.SetUnitCollisionVolumeData(unitID, scaleX, scaleY, scaleZ, offse
 ---@param offsetZ number
 ---@param volumeType number (optional)
 ---@param primaryAxis number (optional)
----return nil
+---@return nil
 function Spring.SetUnitPieceCollisionVolumeData(unitID, pieceIndex, enable, scaleX, scaleY, scaleZ, offsetX, offsetY, offsetZ[, volumeType[, primaryAxis]]) end
 
 ---Parameters
 ---@param unitID number
 ---@param pieceIndex number
 ---@param visible boolean
----return nil
+---@return nil
 function Spring.SetUnitPieceVisible(unitID, pieceIndex, visible) end
 
 ---Parameters
 ---@param unitID number
 ---@param type string
----return ?nil|number newRadius
+---@return ?nil|number newRadius
 function Spring.SetUnitSensorRadius(unitID, type) end
 
 ---Parameters
@@ -589,7 +589,7 @@ function Spring.SetUnitSensorRadius(unitID, type) end
 ---@param posErrorDeltaY number
 ---@param posErrorDeltaZ number
 ---@param nextPosErrorUpdate number (optional)
----return nil
+---@return nil
 function Spring.SetUnitPosErrorParams(unitID, posErrorVectorX, posErrorVectorY, posErrorVectorZ, posErrorDeltaX, posErrorDeltaY, posErrorDeltaZ[, nextPosErrorUpdate]) end
 
 ---Parameters
@@ -600,7 +600,7 @@ function Spring.SetUnitPosErrorParams(unitID, posErrorVectorX, posErrorVectorY, 
 ---@param goalRadius number (optional)
 ---@param moveSpeed number (optional)
 ---@param moveRaw boolean (optional)
----return nil
+---@return nil
 function Spring.SetUnitMoveGoal(unitID, goalX, goalY, goalZ[, goalRadius[, moveSpeed[, moveRaw]]]) end
 
 ---Parameters
@@ -609,12 +609,12 @@ function Spring.SetUnitMoveGoal(unitID, goalX, goalY, goalZ[, goalRadius[, moveS
 ---@param goalY number
 ---@param goalZ number
 ---@param goalRadius number (optional)
----return nil
+---@return nil
 function Spring.SetUnitLandGoal(unitID, goalX, goalY, goalZ[, goalRadius]) end
 
 ---Parameters
 ---@param unitID number
----return nil
+---@return nil
 function Spring.ClearUnitGoal(unitID) end
 
 ---Parameters
@@ -631,13 +631,13 @@ function Spring.ClearUnitGoal(unitID) end
 ---@param dragX number
 ---@param dragY number
 ---@param dragZ number
----return nil
+---@return nil
 function Spring.SetUnitPhysics(unitID, posX, posY, posZ, velX, velY, velZ, rotX, rotY, rotZ, dragX, dragY, dragZ) end
 
 ---Parameters
 ---@param unitID number
 ---@param mass number
----return nil
+---@return nil
 function Spring.SetUnitMass(unitID, mass) end
 
 ---Parameters
@@ -645,7 +645,7 @@ function Spring.SetUnitMass(unitID, mass) end
 ---@param x number
 ---@param z number
 ---@param alwaysAboveSea boolean (optional)
----return nil
+---@return nil
 function Spring.SetUnitPosition(unitID, x, z[, alwaysAboveSea]) end
 
 ---Parameters
@@ -653,7 +653,7 @@ function Spring.SetUnitPosition(unitID, x, z[, alwaysAboveSea]) end
 ---@param yaw number
 ---@param pitch number
 ---@param roll number
----return nil
+---@return nil
 function Spring.SetUnitRotation(unitID, yaw, pitch, roll) end
 
 ---Parameters
@@ -661,7 +661,7 @@ function Spring.SetUnitRotation(unitID, yaw, pitch, roll) end
 ---@param x number
 ---@param y number
 ---@param z number
----return nil
+---@return nil
 function Spring.SetUnitDirection(unitID, x, y, z) end
 
 ---Parameters
@@ -670,7 +670,7 @@ function Spring.SetUnitDirection(unitID, x, y, z) end
 ---@param upx number
 ---@param upy number
 ---@param upz number
----return nil
+---@return nil
 function Spring.SetUnitHeadingAndUpDir(unitID, heading, upx, upy, upz) end
 
 ---Parameters
@@ -678,7 +678,7 @@ function Spring.SetUnitHeadingAndUpDir(unitID, heading, upx, upy, upz) end
 ---@param velX number
 ---@param velY number
 ---@param velZ number
----return nil
+---@return nil
 function Spring.SetUnitVelocity(unitID, velX, velY, velZ) end
 
 ---Parameters
@@ -689,7 +689,7 @@ function Spring.SetUnitVelocity(unitID, velX, velY, velZ) end
 ---@param relHeading number (optional)
 ---@param spherical boolean (optional)
 ---@param forced boolean (optional)
----return nil|number buggerOff
+---@return nil|number buggerOff
 function Spring.SetFactoryBuggerOff(unitID[, buggerOff[, offset[, radius[, relHeading[, spherical[, forced]]]]]]) end
 
 ---Parameters
@@ -702,7 +702,7 @@ function Spring.SetFactoryBuggerOff(unitID[, buggerOff[, offset[, radius[, relHe
 ---@param forced boolean (default): `true`
 ---@param excludeUnitID number (optional)
 ---@param excludeUnitDefIDs {[number],...} (optional)
----return nil
+---@return nil
 function Spring.BuggerOff(x, y[, z], radius, teamID[, spherical=true[, forced=true[, excludeUnitID[, excludeUnitDefIDs]]]]) end
 
 ---Parameters
@@ -714,7 +714,7 @@ function Spring.BuggerOff(x, y[, z], radius, teamID[, spherical=true[, forced=tr
 ---@param impulseX number (optional)
 ---@param impulseY number (optional)
 ---@param impulseZ number (optional)
----return nil
+---@return nil
 function Spring.AddUnitDamage(unitID, damage[, paralyze=0[, attackerID=-1[, weaponID=-1[, impulseX[, impulseY[, impulseZ]]]]]]) end
 
 ---Parameters
@@ -723,45 +723,45 @@ function Spring.AddUnitDamage(unitID, damage[, paralyze=0[, attackerID=-1[, weap
 ---@param y number
 ---@param z number
 ---@param decayRate number (optional)
----return nil
+---@return nil
 function Spring.AddUnitImpulse(unitID, x, y, z[, decayRate]) end
 
 ---Parameters
 ---@param unitID number
 ---@param pindSize number
----return nil
+---@return nil
 function Spring.AddUnitSeismicPing(unitID, pindSize) end
 
 ---Parameters
 ---@param unitID number
 ---@param resource string
 ---@param amount number
----return nil
+---@return nil
 function Spring.AddUnitResource(unitID, resource, amount) end
 
 ---Parameters
 ---@param unitID number
 ---@param resource string
 ---@param amount number
----return ?nil|bool okay
+---@return ?nil|bool okay
 function Spring.UseUnitResource(unitID, resource, amount) end
 
 ---Parameters
 ---@param unitID number
 ---@param resources {[string]=number,...}
----return ?nil|bool okay
+---@return ?nil|bool okay
 function Spring.UseUnitResource(unitID, resources) end
 
 
 ---
 ---Parameters
 ---@param unitID number
----return nil
+---@return nil
 function Spring.AddObjectDecal(unitID) end
 
 ---Parameters
 ---@param unitID number
----return nil
+---@return nil
 function Spring.RemoveObjectDecal(unitID) end
 
 
@@ -769,13 +769,13 @@ function Spring.RemoveObjectDecal(unitID) end
 ---Parameters
 ---@param x number
 ---@param z number
----return nil
+---@return nil
 function Spring.AddGrass(x, z) end
 
 ---Parameters
 ---@param x number
 ---@param z number
----return nil
+---@return nil
 function Spring.RemoveGrass(x, z) end
 
 
@@ -788,48 +788,48 @@ function Spring.RemoveGrass(x, z) end
 ---@param heading number (optional)
 ---@param AllyTeamID number (optional)
 ---@param featureID number (optional)
----return number featureID
+---@return number featureID
 function Spring.CreateFeature(featureDef, x, y, z[, heading[, AllyTeamID[, featureID]]]) end
 
 ---Parameters
 ---@param featureDefID number
----return nil
+---@return nil
 function Spring.DestroyFeature(featureDefID) end
 
 ---Parameters
 ---@param featureDefID number
 ---@param teamID number
----return nil
+---@return nil
 function Spring.TransferFeature(featureDefID, teamID) end
 
 ---Parameters
 ---@param featureID number
 ---@param enable boolean
----return nil
+---@return nil
 function Spring.SetFeatureAlwaysVisible(featureID, enable) end
 
 ---Parameters
 ---@param featureID number
 ---@param useAirLos boolean
----return nil
+---@return nil
 function Spring.SetFeatureUseAirLos(featureID, useAirLos) end
 
 ---Parameters
 ---@param featureID number
 ---@param health number
----return nil
+---@return nil
 function Spring.SetFeatureHealth(featureID, health) end
 
 ---Parameters
 ---@param featureID number
 ---@param maxHealth number
----return nil
+---@return nil
 function Spring.SetFeatureMaxHealth(featureID, maxHealth) end
 
 ---Parameters
 ---@param featureID number
 ---@param reclaimLeft number
----return nil
+---@return nil
 function Spring.SetFeatureReclaim(featureID, reclaimLeft) end
 
 ---Parameters
@@ -840,7 +840,7 @@ function Spring.SetFeatureReclaim(featureID, reclaimLeft) end
 ---@param reclaimLeft number (optional)
 ---@param featureDefMetal number (optional)
 ---@param featureDefEnergy number (optional)
----return nil
+---@return nil
 function Spring.SetFeatureResources(featureID, metal, energy[, reclaimTime[, reclaimLeft[, featureDefMetal[, featureDefEnergy]]]]) end
 
 ---Parameters
@@ -848,7 +848,7 @@ function Spring.SetFeatureResources(featureID, metal, energy[, reclaimTime[, rec
 ---@param unitDef string|number
 ---@param facing string|number (optional)
 ---@param progress number (optional)
----return nil
+---@return nil
 function Spring.SetFeatureResurrect(featureID, unitDef[, facing[, progress]]) end
 
 ---Parameters
@@ -857,7 +857,7 @@ function Spring.SetFeatureResurrect(featureID, unitDef[, facing[, progress]]) en
 ---@param arg1 number (optional)
 ---@param arg2 number (optional)
 ---@param argn number (optional)
----return nil
+---@return nil
 function Spring.SetFeatureMoveCtrl(featureID[, enable[, arg1[, arg2[, argn]]]]) end
 
 ---Parameters
@@ -874,13 +874,13 @@ function Spring.SetFeatureMoveCtrl(featureID[, enable[, arg1[, arg2[, argn]]]]) 
 ---@param dragX number
 ---@param dragY number
 ---@param dragZ number
----return nil
+---@return nil
 function Spring.SetFeaturePhysics(featureID, posX, posY, posZ, velX, velY, velZ, rotX, rotY, rotZ, dragX, dragY, dragZ) end
 
 ---Parameters
 ---@param featureID number
 ---@param mass number
----return nil
+---@return nil
 function Spring.SetFeatureMass(featureID, mass) end
 
 ---Parameters
@@ -889,7 +889,7 @@ function Spring.SetFeatureMass(featureID, mass) end
 ---@param y number
 ---@param z number
 ---@param snapToGround boolean (optional)
----return nil
+---@return nil
 function Spring.SetFeaturePosition(featureID, x, y, z[, snapToGround]) end
 
 ---Parameters
@@ -897,7 +897,7 @@ function Spring.SetFeaturePosition(featureID, x, y, z[, snapToGround]) end
 ---@param rotX number
 ---@param rotY number
 ---@param rotZ number
----return nil
+---@return nil
 function Spring.SetFeatureRotation(featureID, rotX, rotY, rotZ) end
 
 ---Parameters
@@ -905,7 +905,7 @@ function Spring.SetFeatureRotation(featureID, rotX, rotY, rotZ) end
 ---@param dirX number
 ---@param dirY number
 ---@param dirZ number
----return nil
+---@return nil
 function Spring.SetFeatureDirection(featureID, dirX, dirY, dirZ) end
 
 ---Parameters
@@ -914,7 +914,7 @@ function Spring.SetFeatureDirection(featureID, dirX, dirY, dirZ) end
 ---@param upx number
 ---@param upy number
 ---@param upz number
----return nil
+---@return nil
 function Spring.SetFeatureHeadingAndUpDir(featureID, heading, upx, upy, upz) end
 
 ---Parameters
@@ -922,7 +922,7 @@ function Spring.SetFeatureHeadingAndUpDir(featureID, heading, upx, upy, upz) end
 ---@param velX number
 ---@param velY number
 ---@param velZ number
----return nil
+---@return nil
 function Spring.SetFeatureVelocity(featureID, velX, velY, velZ) end
 
 ---Parameters
@@ -934,13 +934,13 @@ function Spring.SetFeatureVelocity(featureID, velX, velY, velZ) end
 ---@param crushable boolean
 ---@param blockEnemyPushing boolean
 ---@param blockHeightChanges boolean
----return nil
+---@return nil
 function Spring.SetFeatureBlocking(featureID, isBlocking, isSolidObjectCollidable, isProjectileCollidable, isRaySegmentCollidable, crushable, blockEnemyPushing, blockHeightChanges) end
 
 ---Parameters
 ---@param featureID number
 ---@param noSelect boolean
----return nil
+---@return nil
 function Spring.SetFeatureNoSelect(featureID, noSelect) end
 
 ---Parameters
@@ -952,14 +952,14 @@ function Spring.SetFeatureNoSelect(featureID, noSelect) end
 ---@param apY number
 ---@param apZ number
 ---@param relative boolean (optional)
----return bool success
+---@return bool success
 function Spring.SetFeatureMidAndAimPos(featureID, mpX, mpY, mpZ, apX, apY, apZ[, relative]) end
 
 ---Parameters
 ---@param featureID number
 ---@param radius number
 ---@param height number
----return bool success
+---@return bool success
 function Spring.SetFeatureRadiusAndHeight(featureID, radius, height) end
 
 ---Parameters
@@ -973,7 +973,7 @@ function Spring.SetFeatureRadiusAndHeight(featureID, radius, height) end
 ---@param vType number
 ---@param tType number
 ---@param Axis number
----return nil
+---@return nil
 function Spring.SetFeatureCollisionVolumeData(featureID, scaleX, scaleY, scaleZ, offsetX, offsetY, offsetZ, vType, tType, Axis) end
 
 ---Parameters
@@ -989,14 +989,14 @@ function Spring.SetFeatureCollisionVolumeData(featureID, scaleX, scaleY, scaleZ,
 ---@param Axis number
 ---@param volumeType number
 ---@param primaryAxis number (optional)
----return nil
+---@return nil
 function Spring.SetFeaturePieceCollisionVolumeData(featureID, pieceIndex, enable, scaleX, scaleY, scaleZ, offsetX, offsetY, offsetZ, Axis, volumeType[, primaryAxis]) end
 
 ---Parameters
 ---@param featureID number
 ---@param pieceIndex number
 ---@param visible boolean
----return nil
+---@return nil
 function Spring.SetFeaturePieceVisible(featureID, pieceIndex, visible) end
 
 
@@ -1030,19 +1030,19 @@ function Spring.SetFeaturePieceVisible(featureID, pieceIndex, visible) end
 ---Parameters
 ---@param projectileID number
 ---@param alwaysVisible boolean
----return nil
+---@return nil
 function Spring.SetProjectileAlwaysVisible(projectileID, alwaysVisible) end
 
 ---Parameters
 ---@param projectileID number
 ---@param useAirLos boolean
----return nil
+---@return nil
 function Spring.SetProjectileUseAirLos(projectileID, useAirLos) end
 
 ---Parameters
 ---@param projectileID number
 ---@param enable boolean
----return nil
+---@return nil
 function Spring.SetProjectileMoveControl(projectileID, enable) end
 
 ---Parameters
@@ -1050,7 +1050,7 @@ function Spring.SetProjectileMoveControl(projectileID, enable) end
 ---@param posX number (default): `0`
 ---@param posY number (default): `0`
 ---@param posZ number (default): `0`
----return nil
+---@return nil
 function Spring.SetProjectilePosition(projectileID[, posX=0[, posY=0[, posZ=0]]]) end
 
 ---Parameters
@@ -1058,12 +1058,12 @@ function Spring.SetProjectilePosition(projectileID[, posX=0[, posY=0[, posZ=0]]]
 ---@param velX number (default): `0`
 ---@param velY number (default): `0`
 ---@param velZ number (default): `0`
----return nil
+---@return nil
 function Spring.SetProjectileVelocity(projectileID[, velX=0[, velY=0[, velZ=0]]]) end
 
 ---Parameters
 ---@param projectileID number
----return nil
+---@return nil
 function Spring.SetProjectileCollision(projectileID) end
 
 ---Parameters
@@ -1071,12 +1071,12 @@ function Spring.SetProjectileCollision(projectileID) end
 ---@param arg1 number (default): `0`
 ---@param arg2 number (default): `0`
 ---@param posZ number (default): `0`
----return ?nil|bool validTarget
+---@return ?nil|bool validTarget
 function Spring.SetProjectileTarget(projectileID[, arg1=0[, arg2=0[, posZ=0]]]) end
 
 ---Parameters
 ---@param projectileID number
----return nil
+---@return nil
 function Spring.SetProjectileIsIntercepted(projectileID) end
 
 ---Parameters
@@ -1084,19 +1084,19 @@ function Spring.SetProjectileIsIntercepted(projectileID) end
 ---@param weaponNum number
 ---@param key string
 ---@param value number
----return nil
+---@return nil
 function Spring.SetProjectileDamages(unitID, weaponNum, key, value) end
 
 ---Parameters
 ---@param projectileID number
 ---@param ignore boolean
----return nil
+---@return nil
 function Spring.SetProjectileIgnoreTrackingError(projectileID, ignore) end
 
 ---Parameters
 ---@param projectileID number
 ---@param grav number (default): `0`
----return nil
+---@return nil
 function Spring.SetProjectileGravity(projectileID[, grav=0]) end
 
 ---Parameters
@@ -1107,7 +1107,7 @@ function Spring.SetProjectileGravity(projectileID[, grav=0]) end
 ---@param spinVectorX number (optional)
 ---@param spinVectorY number (optional)
 ---@param spinVectorZ number (optional)
----return nil
+---@return nil
 function Spring.SetPieceProjectileParams(projectileID[, explosionFlags[, spinAngle[, spinSpeed[, spinVectorX[, spinVectorY[, spinVectorZ]]]]]]) end
 
 
@@ -1123,7 +1123,7 @@ function Spring.SetPieceProjectileParams(projectileID[, explosionFlags[, spinAng
 ---@param options cmdOpts
 ---Parameters
 ---@param unitID number
----return nil
+---@return nil
 function Spring.UnitFinishCommand(unitID) end
 
 ---Parameters
@@ -1131,7 +1131,7 @@ function Spring.UnitFinishCommand(unitID) end
 ---@param cmdID number
 ---@param params {number,...}
 ---@param cmdOpts cmdOpts
----return bool unitOrdered
+---@return bool unitOrdered
 function Spring.GiveOrderToUnit(unitID, cmdID, params, cmdOpts) end
 
 ---Parameters
@@ -1139,7 +1139,7 @@ function Spring.GiveOrderToUnit(unitID, cmdID, params, cmdOpts) end
 ---@param cmdID number
 ---@param params {number,...}
 ---@param cmdOpts cmdOpts
----return number unitsOrdered
+---@return number unitsOrdered
 function Spring.GiveOrderToUnitMap(unitMap, cmdID, params, cmdOpts) end
 
 ---Parameters
@@ -1147,25 +1147,25 @@ function Spring.GiveOrderToUnitMap(unitMap, cmdID, params, cmdOpts) end
 ---@param cmdID number
 ---@param params {number,...}
 ---@param cmdOpts cmdOpts
----return number unitsOrdered
+---@return number unitsOrdered
 function Spring.GiveOrderToUnitArray(unitIDs, cmdID, params, cmdOpts) end
 
 ---Parameters
 ---@param unitID number
 ---@param cmdArray {cmdSpec,...}
----return bool ordersGiven
+---@return bool ordersGiven
 function Spring.GiveOrderArrayToUnit(unitID, cmdArray) end
 
 ---Parameters
 ---@param unitMap {[number]=table}
 ---@param orderArray {cmdSpec,...}
----return number unitsOrdered
+---@return number unitsOrdered
 function Spring.GiveOrderArrayToUnitMap(unitMap, orderArray) end
 
 ---Parameters
 ---@param unitArray {number,...}
 ---@param orderArray {cmdSpec,...}
----return nil
+---@return nil
 function Spring.GiveOrderArrayToUnitArray(unitArray, orderArray) end
 
 
@@ -1176,7 +1176,7 @@ function Spring.GiveOrderArrayToUnitArray(unitArray, orderArray) end
 ---@param x2_height number
 ---@param z2 number (optional)
 ---@param height number (optional)
----return nil
+---@return nil
 function Spring.LevelHeightMap(x1, z1, x2_height[, z2[, height]]) end
 
 ---Parameters
@@ -1185,7 +1185,7 @@ function Spring.LevelHeightMap(x1, z1, x2_height[, z2[, height]]) end
 ---@param x2_height number
 ---@param y2 number (optional)
 ---@param height number (optional)
----return nil
+---@return nil
 function Spring.AdjustHeightMap(x1, y1, x2_height[, y2[, height]]) end
 
 ---Parameters
@@ -1194,14 +1194,14 @@ function Spring.AdjustHeightMap(x1, y1, x2_height[, y2[, height]]) end
 ---@param x2_factor number
 ---@param y2 number (optional)
 ---@param factor number (optional)
----return nil
+---@return nil
 function Spring.RevertHeightMap(x1, y1, x2_factor[, y2[, factor]]) end
 
 ---Parameters
 ---@param x number
 ---@param z number
 ---@param height number
----return ?nil|number newHeight
+---@return ?nil|number newHeight
 function Spring.AddHeightMap(x, z, height) end
 
 ---Parameters
@@ -1209,7 +1209,7 @@ function Spring.AddHeightMap(x, z, height) end
 ---@param z number
 ---@param height number
 ---@param terraform number (default): `1`
----return ?nil|number absHeightDiff =0 nothing will be changed (the terraform starts) and if =1 the terraform will be finished.
+---@return ?nil|number absHeightDiff =0 nothing will be changed (the terraform starts) and if =1 the terraform will be finished.
 function Spring.SetHeightMap(x, z, height[, terraform=1]) end
 
 ---Parameters
@@ -1217,7 +1217,7 @@ function Spring.SetHeightMap(x, z, height[, terraform=1]) end
 ---@param arg1 (optional)
 ---@param arg2 (optional)
 ---@param argn (optional)
----return ?nil|number absTotalHeightMapAmountChanged
+---@return ?nil|number absTotalHeightMapAmountChanged
 function Spring.SetHeightMapFunc(lua_function[, arg1[, arg2[, argn]]]) end
 
 
@@ -1228,7 +1228,7 @@ function Spring.SetHeightMapFunc(lua_function[, arg1[, arg2[, argn]]]) end
 ---@param x2_height number
 ---@param y2 number (optional)
 ---@param height number (optional)
----return nil
+---@return nil
 function Spring.LevelOriginalHeightMap(x1, y1, x2_height[, y2[, height]]) end
 
 ---Parameters
@@ -1237,7 +1237,7 @@ function Spring.LevelOriginalHeightMap(x1, y1, x2_height[, y2[, height]]) end
 ---@param x2_height number
 ---@param y2 number (optional)
 ---@param height number (optional)
----return nil
+---@return nil
 function Spring.AdjustOriginalHeightMap(x1, y1, x2_height[, y2[, height]]) end
 
 ---Parameters
@@ -1246,14 +1246,14 @@ function Spring.AdjustOriginalHeightMap(x1, y1, x2_height[, y2[, height]]) end
 ---@param x2_factor number
 ---@param y2 number (optional)
 ---@param factor number (optional)
----return nil
+---@return nil
 function Spring.RevertOriginalHeightMap(x1, y1, x2_factor[, y2[, factor]]) end
 
 ---Parameters
 ---@param x number
 ---@param y number
 ---@param height number
----return nil
+---@return nil
 function Spring.AddOriginalHeightMap(x, y, height) end
 
 ---Parameters
@@ -1261,12 +1261,12 @@ function Spring.AddOriginalHeightMap(x, y, height) end
 ---@param y number
 ---@param height number
 ---@param factor number (optional)
----return nil
+---@return nil
 function Spring.SetOriginalHeightMap(x, y, height[, factor]) end
 
 ---Parameters
 ---@param heightMapFunc function
----return nil
+---@return nil
 function Spring.SetOriginalHeightMapFunc(heightMapFunc) end
 
 ---Parameters
@@ -1275,7 +1275,7 @@ function Spring.SetOriginalHeightMapFunc(heightMapFunc) end
 ---@param x2 number (optional)
 ---@param z2 number (optional)
 ---@param height number
----return nil
+---@return nil
 function Spring.LevelSmoothMesh(x1, z1[, x2][, z2], height) end
 
 ---Parameters
@@ -1284,7 +1284,7 @@ function Spring.LevelSmoothMesh(x1, z1[, x2][, z2], height) end
 ---@param x2 number (optional)
 ---@param z2 number (optional)
 ---@param height number
----return nil
+---@return nil
 function Spring.AdjustSmoothMesh(x1, z1[, x2][, z2], height) end
 
 ---Parameters
@@ -1293,14 +1293,14 @@ function Spring.AdjustSmoothMesh(x1, z1[, x2][, z2], height) end
 ---@param x2 number (optional)
 ---@param z2 number (optional)
 ---@param origFactor number
----return nil
+---@return nil
 function Spring.RevertSmoothMesh(x1, z1[, x2][, z2], origFactor) end
 
 ---Parameters
 ---@param x number
 ---@param z number
 ---@param height number
----return ?nil|number newHeight
+---@return ?nil|number newHeight
 function Spring.AddSmoothMesh(x, z, height) end
 
 ---Parameters
@@ -1308,7 +1308,7 @@ function Spring.AddSmoothMesh(x, z, height) end
 ---@param z number
 ---@param height number
 ---@param terraform number (default): `1`
----return ?nil|number absHeightDiff
+---@return ?nil|number absHeightDiff
 function Spring.SetSmoothMesh(x, z, height[, terraform=1]) end
 
 ---Parameters
@@ -1316,7 +1316,7 @@ function Spring.SetSmoothMesh(x, z, height[, terraform=1]) end
 ---@param arg1
 ---@param arg2
 ---@param argn
----return ?nil|number absTotalHeightMapAmountChanged
+---@return ?nil|number absTotalHeightMapAmountChanged
 function Spring.SetSmoothMeshFunc(lua_function, arg1, arg2, argn) end
 
 
@@ -1325,7 +1325,7 @@ function Spring.SetSmoothMeshFunc(lua_function, arg1, arg2, argn) end
 ---@param x number
 ---@param z number
 ---@param newType number
----return ?nil|number oldType
+---@return ?nil|number oldType
 function Spring.SetMapSquareTerrainType(x, z, newType) end
 
 ---Parameters
@@ -1334,54 +1334,54 @@ function Spring.SetMapSquareTerrainType(x, z, newType) end
 ---@param speedKBOts number (default): `nil`
 ---@param speedHovers number (default): `nil`
 ---@param speedShips number (default): `nil`
----return ?nil|bool true
+---@return ?nil|bool true
 function Spring.SetTerrainTypeData(typeIndex[, speedTanks=nil[, speedKBOts=nil[, speedHovers=nil[, speedShips=nil]]]]) end
 
 ---Parameters
 ---@param x number
 ---@param z number
 ---@param mask number
----return nil See also buildingMask unitdef tag.
+---@return nil See also buildingMask unitdef tag.
 function Spring.SetSquareBuildingMask(x, z, mask) end
 
 ---Parameters
 ---@param unitID number
 ---@param weaponID number
----return nil
+---@return nil
 function Spring.UnitWeaponFire(unitID, weaponID) end
 
 ---Parameters
 ---@param transporterID number
 ---@param passengerID number
 ---@param pieceNum number
----return nil
+---@return nil
 function Spring.UnitAttach(transporterID, passengerID, pieceNum) end
 
 ---Parameters
 ---@param passengerID number
----return nil
+---@return nil
 function Spring.UnitDetach(passengerID) end
 
 ---Parameters
 ---@param passengerID number
----return nil
+---@return nil
 function Spring.UnitDetachFromAir(passengerID) end
 
 ---Parameters
 ---@param passengerID number
 ---@param transportID number
----return nil
+---@return nil
 function Spring.SetUnitLoadingTransport(passengerID, transportID) end
 
 ---Parameters
 ---@param weaponDefID number
 ---@param projectileParams projectileParams
----return ?nil|number projectileID
+---@return ?nil|number projectileID
 function Spring.SpawnProjectile(weaponDefID, projectileParams) end
 
 ---Parameters
 ---@param projectileID number
----return nil
+---@return nil
 function Spring.DeleteProjectile(projectileID) end
 
 ---Fields
@@ -1405,7 +1405,7 @@ function Spring.DeleteProjectile(projectileID) end
 ---@param dirY number (default): `0`
 ---@param dirZ number (default): `0`
 ---@param explosionParams explosionParams
----return nil
+---@return nil
 function Spring.SpawnExplosion([posX=0][, posY=0][, posZ=0][, dirX=0][, dirY=0][, dirZ=0], explosionParams) end
 
 ---Parameters
@@ -1418,10 +1418,10 @@ function Spring.SpawnExplosion([posX=0][, posY=0][, posZ=0][, dirX=0][, dirY=0][
 ---@param dirZ number (default): `0`
 ---@param radius number (default): `0`
 ---@param damage number (default): `0`
----return ?nil|bool success
+---@return ?nil|bool success
 function Spring.SpawnCEG(cegname[, posX=0[, posY=0[, posZ=0[, dirX=0[, dirY=0[, dirZ=0[, radius=0[, damage=0]]]]]]]]) end
 
----return number cegID
+---@return number cegID
 function Spring.SpawnCEG(cegname[, posX=0[, posY=0[, posZ=0[, dirX=0[, dirY=0[, dirZ=0[, radius=0[, damage=0]]]]]]]]) end
 
 ---Parameters
@@ -1436,14 +1436,14 @@ function Spring.SpawnCEG(cegname[, posX=0[, posY=0[, posZ=0[, dirX=0[, dirY=0[, 
 ---@param radius number (default): `0`
 ---@param damage number (default): `0`
 ---@param absolute boolean (optional)
----return ?nil|bool success
+---@return ?nil|bool success
 function Spring.SpawnSFX([unitID=0[, sfxID=0[, posX=0[, posY=0[, posZ=0[, dirX=0[, dirY=0[, dirZ=0[, radius=0[, damage=0[, absolute]]]]]]]]]]]) end
 
 
 ---
 ---Parameters
 ---@param noPause boolean
----return nil
+---@return nil
 function Spring.SetNoPause(noPause) end
 
 ---Parameters
@@ -1451,7 +1451,7 @@ function Spring.SetNoPause(noPause) end
 ---@param ExpPowerScale number (optional)
 ---@param ExpHealthScale number (optional)
 ---@param ExpReloadScale number (optional)
----return nil
+---@return nil
 function Spring.SetExperienceGrade(expGrade[, ExpPowerScale[, ExpHealthScale[, ExpReloadScale]]]) end
 
 ---Parameters
@@ -1459,7 +1459,7 @@ function Spring.SetExperienceGrade(expGrade[, ExpPowerScale[, ExpHealthScale[, E
 ---@param allyteamErrorSize number
 ---@param baseErrorSize number (optional)
 ---@param baseErrorMult number (optional)
----return nil
+---@return nil
 function Spring.SetRadarErrorParams(allyTeamID, allyteamErrorSize[, baseErrorSize[, baseErrorMult]]) end
 
 
@@ -1468,19 +1468,19 @@ function Spring.SetRadarErrorParams(allyTeamID, allyteamErrorSize[, baseErrorSiz
 ---@param unitID number
 ---@param cmdDescID number
 ---@param cmdArray table
----return nil
+---@return nil
 function Spring.EditUnitCmdDesc(unitID, cmdDescID, cmdArray) end
 
 ---Parameters
 ---@param unitID number
 ---@param cmdDescID number (optional)
 ---@param cmdArray table
----return nil
+---@return nil
 function Spring.InsertUnitCmdDesc(unitID[, cmdDescID], cmdArray) end
 
 ---Parameters
 ---@param unitID number
 ---@param cmdDescID number (optional)
----return nil
+---@return nil
 function Spring.RemoveUnitCmdDesc(unitID[, cmdDescID]) end
 

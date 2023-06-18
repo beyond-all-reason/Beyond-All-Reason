@@ -1,8 +1,7 @@
----@meta
 ---LuaHandle
 
 ---
----return nil
+---@return nil
 function Shutdown() end
 
 ---Parameters
@@ -244,7 +243,7 @@ function Shutdown() end
 ---@param pz number
 ---@param attackerID number
 ---@param projectileID number
----return  bool noGfx if then no graphical effects are drawn by the engine for this explosion.
+---@return  bool noGfx if then no graphical effects are drawn by the engine for this explosion.
 function Explosion(weaponDefID, px, py, pz, attackerID, projectileID) end
 
 ---Parameters
@@ -259,16 +258,16 @@ function Explosion(weaponDefID, px, py, pz, attackerID, projectileID) end
 ---@param playerID number
 ---Parameters
 ---@param zip table
----return x1
+---@return x1
 function UnsyncedHeightMapUpdate() end
 
----return z1
+---@return z1
 function UnsyncedHeightMapUpdate() end
 
----return x2
+---@return x2
 function UnsyncedHeightMapUpdate() end
 
----return z2
+---@return z2
 function UnsyncedHeightMapUpdate() end
 
 ---Parameters
@@ -313,7 +312,7 @@ function UnsyncedHeightMapUpdate() end
 ---@param utf32char number
 ---@param scanCode number
 ---@param actionList table
----return boolean halt whether to halt the chain for consumers of the keypress
+---@return boolean halt whether to halt the chain for consumers of the keypress
 function KeyPress(keyCode, mods, isRepeat, label, utf32char, scanCode, actionList) end
 
 ---Parameters
@@ -323,7 +322,7 @@ function KeyPress(keyCode, mods, isRepeat, label, utf32char, scanCode, actionLis
 ---@param utf32char number
 ---@param scanCode number
 ---@param actionList table
----return bool
+---@return bool
 function KeyRelease(keyCode, mods, label, utf32char, scanCode, actionList) end
 
 ---Parameters
@@ -336,14 +335,14 @@ function KeyRelease(keyCode, mods, label, utf32char, scanCode, actionList) end
 ---@param x number
 ---@param y number
 ---@param button number
----return boolean becomeMouseOwner
+---@return boolean becomeMouseOwner
 function MousePress(x, y, button) end
 
 ---Parameters
 ---@param x number
 ---@param y number
 ---@param button number
----return boolean becomeMouseOwner
+---@return boolean becomeMouseOwner
 function MouseRelease(x, y, button) end
 
 ---Parameters
@@ -358,13 +357,13 @@ function MouseRelease(x, y, button) end
 ---Parameters
 ---@param x number
 ---@param y number
----return  boolean isAbove
+---@return  boolean isAbove
 function IsAbove(x, y) end
 
 ---Parameters
 ---@param x number
 ---@param y number
----return  string tooltip
+---@return  string tooltip
 function GetTooltip(x, y) end
 
 ---Fields
@@ -379,7 +378,7 @@ function GetTooltip(x, y) end
 ---@param cmdID integer
 ---@param cmdParams table
 ---@param cmdOpts cmdOpts
----return boolean Returning true deletes the command and does not send it through the network.
+---@return boolean Returning true deletes the command and does not send it through the network.
 function CommandNotify(cmdID, cmdParams, cmdOpts) end
 
 ---Parameters
@@ -392,7 +391,7 @@ function CommandNotify(cmdID, cmdParams, cmdOpts) end
 ---@param data1 number
 ---@param data2 number (optional)
 ---@param data3 number (optional)
----return string newTooltip
+---@return string newTooltip
 function WorldTooltip(ttType, data1[, data2[, data3]]) end
 
 ---Parameters
@@ -408,10 +407,10 @@ function WorldTooltip(ttType, data1[, data2[, data3]]) end
 ---@param state string
 ---@param ready boolean
 ---@param playerStates table
----return bool success
+---@return bool success
 function GameSetup(state, ready, playerStates) end
 
----return bool newReady
+---@return bool newReady
 function GameSetup(state, ready, playerStates) end
 
 ---Parameters
