@@ -1,3 +1,4 @@
+---@meta
 ---UnsyncedRead
 
 ---
