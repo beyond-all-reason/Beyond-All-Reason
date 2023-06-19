@@ -50,7 +50,7 @@ Restore_Nano()
 	{
 		open_state = 5;
 		turn aim to y-axis <0> speed <160>;
-		move nanotower to y-axis [0] speed [17];
+		move nanotower to y-axis [0] speed [12.75];
 		wait-for-move nanotower along y-axis;
 		open_state = 4;
 	}
@@ -58,7 +58,7 @@ Restore_Nano()
 	{
 		open_state = 3;
 		move aim to y-axis [0] speed [16];
-		move door to z-axis [-1.75] speed [3.5];
+		move door to z-axis [-1.3125] speed [2.625];
 		turn door to x-axis <-26.25> speed <52.5>;
 		wait-for-move aim along y-axis;
 		wait-for-move door along z-axis;
@@ -68,7 +68,7 @@ Restore_Nano()
 	if ( (open_state == 2) OR (open_state == 1) )
 	{
 		open_state = 1;
-		move door to z-axis [0] speed [3.5];
+		move door to z-axis [0] speed [2.625];
 		turn door to x-axis <0> speed <52.5>;
 		wait-for-turn door around x-axis;
 		open_state = 0;
@@ -81,7 +81,7 @@ Deploy_Nano(heading)
 	if ( (open_state == 0) OR (open_state == 1) )
 	{
 		open_state = 1;
-		move door to z-axis [-1.75] speed [3.5];
+		move door to z-axis [-1.3125] speed [2.625];
 		turn door to x-axis <-26.25> speed <52.5>;
 		wait-for-turn door around x-axis;
 		open_state = 2;
@@ -89,8 +89,8 @@ Deploy_Nano(heading)
 	if ( (open_state == 2) OR (open_state == 3) )
 	{
 		open_state = 3;
-		move door to z-axis [-3.5] speed [3.5];
-		move aim to y-axis [8] speed [16];
+		move door to z-axis [-2.625] speed [2.625];
+		move aim to y-axis [6] speed [12];
 		turn door to x-axis <-52.5> speed <52.5>;
 		wait-for-move aim along y-axis;
 		wait-for-move door along z-axis;
@@ -100,7 +100,7 @@ Deploy_Nano(heading)
 	if ( (open_state == 4) OR (open_state == 5) )
 	{
 		open_state = 5;
-		move nanotower to y-axis [17] speed [17];
+		move nanotower to y-axis [12.75] speed [12.75];
 		wait-for-move nanotower along y-axis;
 		open_state = 6;
 	}
