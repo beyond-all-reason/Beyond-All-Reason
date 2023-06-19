@@ -28,7 +28,6 @@ return {
 		movementclass = "HTANK4",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORTREM.s3o",
-		onoffable = true,
 		script = "Units/CORTREM.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
@@ -44,7 +43,6 @@ return {
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "Mr Bob",
-			onoffname = "siege",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles/t2",
 			techlevel = 2,
@@ -124,8 +122,8 @@ return {
 		weapondefs = {
 			tremor = {
 				
-				accuracy = 1190,
-				areaofeffect = 200,
+				accuracy = 1500,
+				areaofeffect = 245,
 				avoidfeature = false,
 				cegtag = "arty-medium",
 				craterboost = 0,
@@ -138,9 +136,9 @@ return {
 				name = "RapidArtillery",
 				noselfdamage = true,
 				proximitypriority = -3,
-				range = 1275,
+				range = 1470,
 				mygravity = 0.1333,
-				reloadtime = 0.34,
+				reloadtime = 0.5,
 				soundhit = "xplomed4",
 				soundhitwet = "splslrg",
 				soundstart = "cannhvy2",
@@ -148,17 +146,17 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 420,
 				customparams = {
-					speceffect = "siege",
-					when = "state==true",
-					max_velocity_reduction = "0.125",
-					active_range = "1470",
-					active_accuracy = "2400",
+					speceffect = "velocity_variance",
+					when = "always",
+					max_velocity_reduction = "0.2",
+					--active_range = "1470",
+					--active_accuracy = "2400",
 				},
 				damage = {
 					bombers = 19,
 					default = 100,
 					fighters = 19,
-					subs = 75,
+					subs = 25,
 					vtol = 19,
 				},
 				

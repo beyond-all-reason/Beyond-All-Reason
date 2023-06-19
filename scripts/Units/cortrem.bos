@@ -84,43 +84,12 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-// control tremor mode firing here
-// unit_turretspeed.lua modified, so unitdef values can be fed into this COB script
-
-SetWeapon1accuracy(default_accuracy,active_accuracy)
-{
-	weapon1_default_accuracy = default_accuracy;
-	weapon1_active_accuracy = active_accuracy;
-}
-
-SetWeapon1range(default_range,active_range)
-{
-	weapon1_default_range = default_range;
-	weapon1_active_range = active_range;
-}
-
-Activate()
-{
-	//get WEAPON_ACCURACY(-1,2400*4);
-	//get WEAPON_RANGE(-1,65536*1470);
-	get WEAPON_ACCURACY(-1,weapon1_active_accuracy);
-	get WEAPON_RANGE(-1,weapon1_active_range);
-}
-
-Deactivate()
-{
-	//get WEAPON_ACCURACY(-1,1190*4);
-	//get WEAPON_RANGE(-1,65536*1275);
-	get WEAPON_ACCURACY(-1,weapon1_default_accuracy);
-	get WEAPON_RANGE(-1,weapon1_default_range);
-}
-
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 
-  // out of firing arc aim calls happen during "preaiming" logic
+    // out of firing arc aim calls happen during "preaiming" logic
 	// logic to reset gun to neutral if the target heading has been
 	// out of firing arc for ~3 seconds
 	if ( (heading < -24576) OR (heading > 24576) )
@@ -145,7 +114,7 @@ AimPrimary(heading, pitch)
 	// before the next AimPrimary call
 	if (recoiling == 0)
 	{
-		turn spindle to x-axis <60.005495> * gun_1 - pitch speed <360>;
+		turn spindle to x-axis <60.005495> * gun_1 - pitch speed <180>;
 	}
 
 	// only wait-for-turn if it takes more than 3 frames to get into position
@@ -219,7 +188,7 @@ FirePrimary()
 		gun_1 = flare1;
 	}
 	sleep 96;
-	turn spindle to x-axis <60.005495> * gun_1 - global_pitch speed <360>;
+	turn spindle to x-axis <60.005495> * gun_1 - global_pitch speed <180>;
 	recoiling = 0;
 	return (0);
 }
