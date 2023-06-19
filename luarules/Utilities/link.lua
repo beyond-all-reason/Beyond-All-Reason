@@ -1,5 +1,3 @@
-Spring.Echo("\n\nHELLO\n\n")
-
 local function printLines()
     local function file_exists(file)
         local f = io.open(file, "rb")

@@ -67,11 +67,7 @@ function vbo:InstanceDataFromUnitDefIDs(unitDefIDs, attrID[, teamIdOpt[, element
 
 ---Data Layout
 
-SInstanceData:
-   , matOffset{ matOffset_ }            // updated during the following draw frames
-   , uniOffset{ uniOffset_ }            // updated during the following draw frames
-   , info{ teamIndex, drawFlags, 0, 0 } // not updated during the following draw frames
-   , aux1 { 0u }
+
 ---Parameters
 ---@param featureDefIDs number|{number,...}
 ---@param attrID number
@@ -88,11 +84,7 @@ function vbo:InstanceDataFromFeatureDefIDs(featureDefIDs, attrID[, teamIdOpt[, e
 
 ---Data Layout
 
-SInstanceData:
-   , matOffset{ matOffset_ }            // updated during the following draw frames
-   , uniOffset{ uniOffset_ }            // updated during the following draw frames
-   , info{ teamIndex, drawFlags, 0, 0 } // not updated during the following draw frames
-   , aux1 { 0u }
+
 ---Parameters
 ---@param unitIDs number|{number,...}
 ---@param attrID number
@@ -109,11 +101,7 @@ function vbo:InstanceDataFromUnitIDs(unitIDs, attrID[, teamIdOpt[, elementOffset
 
 ---Data Layout
 
-SInstanceData:
-   , matOffset{ matOffset_ }            // updated during the following draw frames
-   , uniOffset{ uniOffset_ }            // updated during the following draw frames
-   , info{ teamIndex, drawFlags, 0, 0 } // not updated during the following draw frames
-   , aux1 { 0u }
+
 ---Parameters
 ---@param featureIDs number|{number,...}
 ---@param attrID number
