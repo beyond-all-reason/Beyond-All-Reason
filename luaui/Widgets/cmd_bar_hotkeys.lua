@@ -38,6 +38,7 @@ local function loadBindingsLegacy(file)
 	end
 end
 
+-- Map old, deleted lua format presets onto uikeys presets
 local legacyToTxt = {
 	['luaui/configs/bar_hotkeys.lua']          = 'luaui/configs/hotkeys/default_keys.txt',
 	['luaui/configs/bar_hotkeys_mnemonic.lua'] = 'luaui/configs/hotkeys/mnemonic_keys.txt',
@@ -47,6 +48,9 @@ local legacyToTxt = {
 	['bar_hotkeys_custom.lua']                 = 'uikeys.txt',
 }
 
+
+-- TODO: This code is exclusively to convert from the placeholder lua format to the more stable uikeys format
+-- TODO: After a period of ~6 months it should be deleted (around December 2023 or later)
 local function replaceLegacyPreset()
 	local keyFile = Spring.GetConfigString("KeybindingFile")
 	if not keyFile then return false end
@@ -54,7 +58,9 @@ local function replaceLegacyPreset()
 	local newFormat = legacyToTxt[keyFile]
 	if not newFormat then return false end
 
+	-- output the current custom .lua bindings into a uikeys.txt file
 	if keyFile == 'bar_hotkeys_custom.lua' then
+		Spring.SendCommands("keysave uikeys_auto_backup.txt") -- save a backup of current keys
 		Spring.Echo("BAR Hotkeys: bar_hotkeys_custom.lua found. This format is deprecated, a " .. newFormat .. " file was written to your bar folder")
 
 		if VFS.FileExists(keyFile) then
@@ -73,6 +79,7 @@ local function replaceLegacyPreset()
 end
 
 local function reloadBindings()
+	-- Second parameter here is just a fallback if this config is undefined
 	currentLayout = Spring.GetConfigString("KeyboardLayout", 'qwerty')
 
 	local hasLegacy = replaceLegacyPreset()
@@ -94,8 +101,6 @@ end
 
 function widget:Initialize()
 	reloadBindings()
-
-	Spring.SendCommands("keysave uikeys_auto_backup.txt") -- save a backup of current keys
 
 	WG['bar_hotkeys'] = {}
 	WG['bar_hotkeys'].reloadBindings = reloadBindings
