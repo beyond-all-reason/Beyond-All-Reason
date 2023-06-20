@@ -48,15 +48,11 @@ local legacyToTxt = {
 }
 
 local function replaceLegacyPreset()
-	local keyFile = Spring.GetConfigString("KeybindingFile", "noop")
-
-	if keyFile == "noop" then return false end
+	local keyFile = Spring.GetConfigString("KeybindingFile")
+	if not keyFile then return false end
 
 	local newFormat = legacyToTxt[keyFile]
-
 	if not newFormat then return false end
-
-	Spring.Echo(os.clock(), newFormat, type(newFormat))
 
 	if keyFile == 'bar_hotkeys_custom.lua' then
 		Spring.Echo("BAR Hotkeys: bar_hotkeys_custom.lua found. This format is deprecated, a " .. newFormat .. " file was written to your bar folder")
@@ -99,7 +95,7 @@ end
 function widget:Initialize()
 	reloadBindings()
 
-	Spring.SendCommands("keysave uikeys_backup.txt") -- save a backup of current keys
+	Spring.SendCommands("keysave uikeys_auto_backup.txt") -- save a backup of current keys
 
 	WG['bar_hotkeys'] = {}
 	WG['bar_hotkeys'].reloadBindings = reloadBindings
