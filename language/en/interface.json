@@ -136,9 +136,11 @@
 			"tooltipctrl": "CTRL-click to continuously clear"
 		},
 		"buildMenu": {
+			"homePage": "Go back to main view",
 			"nextPage": "Next page",
 			"previousPage": "Previous page",
-			"disabled": "%{textColor}%{unit} %{warnColor}(disabled)"
+			"disabled": "%{textColor}%{unit} %{warnColor}(disabled)",
+			"nextBuilder": "Next Builder"
 		},
 		"orderMenu": {
 			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
@@ -231,9 +233,9 @@
 				"trajectory_tooltip": "Switch artillery firing angle between low and high trajectory",
 				"gaussCannon": "Gauss Cannon",
 				"heavyPlasma": "Heavy Plasma",
-				"siegeMode": "Siege Mode",
-				"suppressiveFire": "Suppressive Fire",
-				"siege_tooltip": "Switches between focused Suppressive Fire and long range inaccurate Siege Mode",
+				"siegeMode": "Spread Fire",
+				"suppressiveFire": "Focused Fire",
+				"siege_tooltip": "Switches between Focused Fire and longer ranged Spread Fire",
 				"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon"
 			}
 		},

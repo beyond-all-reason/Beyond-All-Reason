@@ -390,6 +390,16 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	-- Add prototype units to cor T2 vech
+	if Spring.GetModOptions().expandedcortexvehiclest2 then
+		if name == "coravp" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corforge"
+			uDef.buildoptions[numBuildoptions+2] = "corprinter"
+			uDef.buildoptions[numBuildoptions+3] = "cortorch"
+		end
+	end
+
 	-- Add scav units to normal factories and builders
 	if Spring.GetModOptions().experimentalextraunits then
 		if name == "armshltx" then
@@ -420,6 +430,8 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
 			uDef.buildoptions[numBuildoptions+2] = "corforge"
+			uDef.buildoptions[numBuildoptions+3] = "corprinter"
+			uDef.buildoptions[numBuildoptions+4] = "cortorch"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			local numBuildoptions = #uDef.buildoptions
 		elseif name == "corca" or name == "corck" or name == "corcv" then

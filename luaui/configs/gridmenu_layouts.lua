@@ -166,6 +166,17 @@ local labGrids = {
 		"corsnap", "cormh", "corhal", "",
 		"", "", "corah",
 	},
+
+	-- T3 labs
+	armshltx = {
+		"armmar", "armraz", "armvang", "armthor",
+		"armbanth", "armlun"
+	},
+
+	corgant = {
+		"corcat", "corkarg", "corshiva", "corkorg",
+		"corjugg", "corsok"
+	}
 }
 local unitGrids = {
 	-- Air assist drones
@@ -576,9 +587,9 @@ local unitGrids = {
 			{ "armuwes", "armuwms", },                        -- uw e stor, uw m stor
 		},
 		{
-			{ "armtl", "armfhlt", },                          -- offshore torp launcher, floating HLT
+			{ "armtl", "armfhlt", "", "armclaw", },                          -- offshore torp launcher, floating HLT
 			{ "armfrt", },                                    -- floating AA
-			{ "armdl", "armguard", "armclaw", },              -- coastal torp launcher, guardian, lightning turret
+			{ "armdl", "armguard", },              -- coastal torp launcher, guardian, lightning turret
 		},
 		{
 			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
@@ -598,9 +609,9 @@ local unitGrids = {
 			{ "coruwes", "coruwms", },                        -- uw e stor, uw m stor
 		},
 		{
-			{ "cortl", "corfhlt", },                          -- offshore torp launcher, floating HLT
+			{ "cortl", "corfhlt", "", "cormaw" },                          -- offshore torp launcher, floating HLT
 			{ "corfrt", },                                    -- floating AA
-			{ "cordl", "corpun", "cormaw", },                 -- coastal torp launcher, punisher, flame turret
+			{ "cordl", "corpun", },                 -- coastal torp launcher, punisher, flame turret
 		},
 		{
 			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
@@ -609,7 +620,7 @@ local unitGrids = {
 		{
 			{ "corsy", "corvp", "corap", "corlab",  },        -- shipyard, vehicle lab, air lab, bot lab
 			{ "cornanotcplat", "corasy", },                   -- floating nano, T2 shipyard
-			{ "corfhp", "", "coramsub", "corplat",  },        -- floating hover, amphibious lab, seaplane lab 
+			{ "corfhp", "", "coramsub", "corplat",  },        -- floating hover, amphibious lab, seaplane lab
 		}
 	},
 
@@ -800,7 +811,7 @@ local unitGrids = {
 			{ },                                                --
 		}
 	},
-	
+
 	legack = {
 		{
 			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
