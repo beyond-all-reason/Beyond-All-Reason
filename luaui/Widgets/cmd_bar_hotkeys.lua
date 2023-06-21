@@ -67,9 +67,7 @@ local function replaceLegacyPreset()
 
 	-- output the current custom .lua bindings into a uikeys.txt file
 	if keyFile == 'bar_hotkeys_custom.lua' then
-		Spring.SendCommands("keysave uikeys_auto_backup.txt") -- save a backup of current keys
 		Spring.Echo("BAR Hotkeys: bar_hotkeys_custom.lua found. This format is deprecated, a " .. newFormat .. " file was written to your bar folder")
-
 		if VFS.FileExists(keyFile) then
 			Spring.SendCommands("unbindall")
 			loadBindingsLegacy(keyFile)
