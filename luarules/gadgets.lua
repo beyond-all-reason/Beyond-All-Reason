@@ -1587,6 +1587,12 @@ function gadgetHandler:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paral
 	local retDamage = damage
 	local retImpulse = 1.0
 
+	-- To future devs
+	-- yes, multiple gadgets can affect damage and impulse
+	-- and that ordering *does* matter
+	-- so if your new UnitPreDamaged is behaving weird
+	-- check every other gadget that may be handing damage or impulse
+	-- and check the layering and ordering of the gadgets
 	for _, g in ipairs(self.UnitPreDamagedList) do
 		local dmg, imp = g:UnitPreDamaged(
 			unitID, unitDefID, unitTeam,
@@ -1598,7 +1604,7 @@ function gadgetHandler:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paral
 			retDamage = dmg
 		end
 		if imp ~= nil then
-			retImpulse = imp
+			retImpulse = retImpulse*imp
 		end
 	end
 
