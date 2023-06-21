@@ -22,7 +22,6 @@ local timeoutTime = 6.5
 
 local glDrawListAtUnit			= gl.DrawListAtUnit
 local spIsGUIHidden				= Spring.IsGUIHidden
-local spGetSelectedUnitsCount	= Spring.GetSelectedUnitsCount
 local spGetUnitDefID			= Spring.GetUnitDefID
 local spIsUnitInView 			= Spring.IsUnitInView
 local spGetCameraDirection		= Spring.GetCameraDirection
@@ -35,7 +34,7 @@ local sec = 0
 local prevCam = {spGetCameraDirection()}
 local myTeamID = Spring.GetLocalTeamID()
 
-local gameStarted, chobbyInterface, selectionChanged
+local gameStarted, selectionChanged
 
 for udid, unitDef in pairs(UnitDefs) do
 	local xsize, zsize = unitDef.xsize, unitDef.zsize
@@ -102,20 +101,18 @@ function widget:Update(dt)
 			selectionChanged = nil
 			local selectedUnitsCount = Spring.GetSelectedUnitsSorted()
 			for uDID,unit in pairs(selectedUnitsCount) do
-				if uDID ~= 'n' then --'n' returns table size
-					for i=1,#unit do
-						local unitID = unit[i]
-						if givenUnits[unitID] then
-							local currentAlpha = 1 - ((os.clock() - (givenUnits[unitID].osClock + (timeoutTime - timeoutFadeTime))) / timeoutFadeTime)
-							if currentAlpha > 1 then
-								currentAlpha = 1
-							end
-							givenUnits[unitID].selected = os.clock() -  (selectedFadeTime * (1 - currentAlpha))
-							--givenUnits[unitID].selectedGameSecs = Spring.GetGameSeconds() + UnitDefs[spGetUnitDefID(unitID)].selfDCountdown
-						else
-							-- uncomment line below for testing
-							-- AddGivenUnit(unitID)
+				for i=1,#unit do
+					local unitID = unit[i]
+					if givenUnits[unitID] then
+						local currentAlpha = 1 - ((os.clock() - (givenUnits[unitID].osClock + (timeoutTime - timeoutFadeTime))) / timeoutFadeTime)
+						if currentAlpha > 1 then
+							currentAlpha = 1
 						end
+						givenUnits[unitID].selected = os.clock() -  (selectedFadeTime * (1 - currentAlpha))
+						--givenUnits[unitID].selectedGameSecs = Spring.GetGameSeconds() + UnitDefs[spGetUnitDefID(unitID)].selfDCountdown
+					else
+						-- uncomment line below for testing
+						-- AddGivenUnit(unitID)
 					end
 				end
 			end
@@ -130,16 +127,7 @@ function widget:Update(dt)
 	end
 end
 
-
--- draw icons
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawWorld()
-	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 	local osClock = os.clock()
 	--local gameSecs = Spring.GetGameSeconds()
@@ -183,12 +171,12 @@ local lastreceiveframe = 0
 function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if (newTeam == myTeamID) then
 		AddGivenUnit(unitID)
-		if lastreceiveframe < Spring.GetGameFrame() then 
+		if lastreceiveframe < Spring.GetGameFrame() then
 			local x, y, z = Spring.GetUnitPosition(unitID)
 			if x and y and z then
 				Spring.SetLastMessagePosition(x, y, z)
 			end
-			lastreceiveframe = Spring.GetGameFrame() 
+			lastreceiveframe = Spring.GetGameFrame()
 		end
 	end
 end

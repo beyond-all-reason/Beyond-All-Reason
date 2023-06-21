@@ -117,7 +117,7 @@ local spEcho = Spring.Echo
 local spGetModKeyState = Spring.GetModKeyState
 local lastGameSeconds = Spring.GetGameSeconds()
 
-local font, gameStarted, selUnits, chobbyInterface
+local font, gameStarted, selUnits
 
 local udefTab = {}
 local isFactory = {}
@@ -269,10 +269,8 @@ end
 
 function ClearFactoryQueues()
 	local udTable = Spring.GetSelectedUnitsSorted()
-	udTable.n = nil
 	for udidFac, uTable in pairs(udTable) do
 		if isFactory[udidFac] then
-			uTable.n = nil
 			for _, uid in ipairs(uTable) do
 				local queue = Spring.GetRealBuildQueue(uid)
 				if queue ~= nil then
@@ -455,7 +453,7 @@ function CalcDrawCoords(unitId, heightAll)
 end
 
 function DrawBoxTitle(x, y, alpha, unitDef, selUnit)
-	UiElement(x, y - boxHeightTitle, x + boxWidth, y, 1,1,1,0, 1,1,0,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	UiElement(x, y - boxHeightTitle, x + boxWidth, y, 1,1,1,0, 1,1,0,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 	gl.Color(1, 1, 1, 1)
 
 	UiUnit(
@@ -510,7 +508,7 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 	end
 
 	--Draw Background Box
-	UiElement(x, y - boxHeight, x + boxWidth, y, 0,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	UiElement(x, y - boxHeight, x + boxWidth, y, 0,1,1,1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 	--UiElement(x + boxIconBorder, y - boxHeight + 3, x + groupLabelMargin, y - 3, 1, 1, 1, 1)
 	--gl.Color(0, 0, 0, math.min(alpha, 0.6))
 	--gl.Rect(x, y, x + boxWidth, y - boxHeight)
@@ -647,16 +645,7 @@ function widget:Update()
 	lastGameSeconds = now
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
 	if alpha > 0.0 then
 		DrawBoxes()
 	else

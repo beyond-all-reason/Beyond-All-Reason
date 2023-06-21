@@ -204,6 +204,7 @@ return {
 			[1] = {
 				def = "CORSUMO_WEAPON",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				def = "CORMEXP_ROCKET",

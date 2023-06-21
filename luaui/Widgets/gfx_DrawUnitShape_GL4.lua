@@ -60,6 +60,7 @@ local unitShaderConfig = {
 local unitShapeShaderConfig = {
 	STATICMODEL = 1.0, -- do not touch!
 	TRANSPARENCY = 0.5,
+	SKINSUPPORT = Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and 1 or 0,
 }
 
 local vsSrc = [[
@@ -69,13 +70,19 @@ local vsSrc = [[
 #extension GL_ARB_shading_language_420pack: require
 
 #line 10000
+//__DEFINES__
 
 layout (location = 0) in vec3 pos;
 layout (location = 1) in vec3 normal;
 layout (location = 2) in vec3 T;
 layout (location = 3) in vec3 B;
 layout (location = 4) in vec4 uv;
-layout (location = 5) in uint pieceIndex;
+#if (SKINSUPPORT == 0)
+	layout (location = 5) in uint pieceIndex;
+#else
+	layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
+	#define pieceIndex (bonesInfo.x & 0x000000FFu)
+#endif
 layout (location = 6) in vec4 worldposrot;
 layout (location = 7) in vec4 parameters; // x = alpha, y = isstatic, z = globalteamcoloramount, w = selectionanimation
 layout (location = 8) in uvec2 overrideteam; // x = override teamcolor if < 256
@@ -84,7 +91,6 @@ layout (location = 9) in uvec4 instData;
 uniform float iconDistance;
 
 //__ENGINEUNIFORMBUFFERDEFS__
-//__DEFINES__
 layout(std140, binding = 2) uniform FixedStateMatrices {
 	mat4 modelViewMat;
 	mat4 projectionMat;
@@ -222,9 +228,10 @@ local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, team
 	-- returns: a unique handler ID number that you should store and call StopDrawUnitGL4(uniqueID) with to stop drawing it
 	-- note that widgets are responsible for stopping the drawing of every unit that they submit!
 
-
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+
 	uniqueID = uniqueID + 1
+
 	teamID = teamID or 256
 	--teamID = Spring.GetUnitTeam(unitID)
 	highlight = highlight or 0
@@ -282,7 +289,6 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 	elseif armUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = armDrawUnitShapeVBOTable
 	else
 		Spring.Echo("The given unitDefID", unitDefID, "is neither arm nor cor, only those two are supported at the moment")
-
 		Spring.Debug.TraceFullEcho(nil,nil,nil,"DrawUnitGL4")
 		return nil
 	end
@@ -440,12 +446,23 @@ function widget:Initialize()
 	WG['StopDrawUnitShapeGL4'] = StopDrawUnitShapeGL4
 	WG['armDrawUnitShapeVBOTable'] = armDrawUnitShapeVBOTable
 	WG['corDrawUnitShapeVBOTable'] = corDrawUnitShapeVBOTable
+	widgetHandler:RegisterGlobal('DrawUnitGL4', DrawUnitGL4)
+	widgetHandler:RegisterGlobal('DrawUnitShapeGL4', DrawUnitShapeGL4)
+	widgetHandler:RegisterGlobal('StopDrawUnitGL4', StopDrawUnitGL4)
+	widgetHandler:RegisterGlobal('StopDrawUnitShapeGL4', StopDrawUnitShapeGL4)
+	widgetHandler:RegisterGlobal('armDrawUnitShapeVBOTable', armDrawUnitShapeVBOTable)
+	widgetHandler:RegisterGlobal('corDrawUnitShapeVBOTable', corDrawUnitShapeVBOTable)
 end
 
 
 function widget:Shutdown()
 	for i,VBOTable in ipairs(VBOTables) do
-		if VBOTable.VAO then VBOTable.VAO:Delete() end
+		if VBOTable.VAO then
+			if Spring.Utilities.IsDevMode() then
+				dumpAndCompareInstanceData(VBOTable)
+			end
+			VBOTable.VAO:Delete()
+		end
 	end
 	if unitShader then unitShader:Finalize() end
 	if unitShapeShader then unitShapeShader:Finalize() end
@@ -456,6 +473,12 @@ function widget:Shutdown()
 	WG['StopDrawUnitShapeGL4'] = nil
 	WG['armDrawUnitShapeVBOTable'] = nil
 	WG['corDrawUnitShapeVBOTable'] = nil
+	widgetHandler:DeregisterGlobal('DrawUnitGL4')
+	widgetHandler:DeregisterGlobal('DrawUnitShapeGL4')
+	widgetHandler:DeregisterGlobal('StopDrawUnitGL4')
+	widgetHandler:DeregisterGlobal('StopDrawUnitShapeGL4')
+	widgetHandler:DeregisterGlobal('armDrawUnitShapeVBOTable')
+	widgetHandler:DeregisterGlobal('armDrawUnitShapeVBOTable')
 end
 
 function widget:DrawWorldPreUnit() -- this is for UnitDef

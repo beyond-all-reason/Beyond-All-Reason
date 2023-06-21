@@ -22,8 +22,6 @@ local usedCutoffDistance = cutoffDistance * distanceMult
 local iconsizeMult = 1
 local usedIconsize = iconsize * iconsizeMult
 
-local chobbyInterface
-
 local maximumRankXP = 0.8
 local numRanks = #VFS.DirList('LuaUI/Images/ranks', '*.png')
 local rankTextures = {}
@@ -171,7 +169,7 @@ local function ProcessAllUnits()
 	--Spring.Echo("Refreshing Ground Plates", #units)
 	for _, unitID in ipairs(units) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
-		if unitDefID then 
+		if unitDefID then
 			updateUnitRank(unitID, unitDefID, true)
 		end
 	end
@@ -185,7 +183,7 @@ local function RemovePrimitive(unitID,reason)
 	end
 end
 
-function initGL4()
+local function initGL4()
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.BILLBOARD = 1
@@ -352,11 +350,11 @@ function widget:VisibleUnitRemoved(unitID) -- E.g. when a unit dies
 	RemovePrimitive(unitID, "UnitDestroyed")
 end
 
-function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) 
+function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	clearInstanceTable(rankVBO)
 	doRefresh = true
 	unitRanks = {}
-	for unitID, unitDefID in pairs(extVisibleUnits) do 
+	for unitID, unitDefID in pairs(extVisibleUnits) do
 		updateUnitRank(unitID, unitDefID, true)
 	end
 	uploadAllElements(rankVBO)
@@ -366,16 +364,9 @@ end
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 function widget:DrawWorld()
-	if chobbyInterface then
-		return
-	end
 	if Spring.IsGUIHidden() then
 		return
 	end

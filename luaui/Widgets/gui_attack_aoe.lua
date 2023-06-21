@@ -38,7 +38,7 @@ local circleList
 local secondPart = 0
 local mouseDistance = 1000
 
-local chobbyInterface, selectionChanged
+local selectionChanged
 
 --------------------------------------------------------------------------------
 --speedups
@@ -69,7 +69,6 @@ local glLineWidth = gl.LineWidth
 local glPointSize = gl.PointSize
 local glPopMatrix = gl.PopMatrix
 local glPushMatrix = gl.PushMatrix
-local glRotate = gl.Rotate
 local glScale = gl.Scale
 local glTranslate = gl.Translate
 local glVertex = gl.Vertex
@@ -77,12 +76,11 @@ local GL_LINES = GL.LINES
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_POINTS = GL.POINTS
 local PI = math.pi
-local atan = math.atan
+local atan2 = math.atan2
 local cos = math.cos
 local sin = math.sin
 local floor = math.floor
 local max = math.max
-local min = math.min
 local sqrt = math.sqrt
 
 local unitCost = {}
@@ -109,7 +107,7 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 --------------------------------------------------------------------------------
---utility functions
+-- utility functions
 --------------------------------------------------------------------------------
 
 local function ToBool(x)
@@ -672,7 +670,7 @@ local function DrawOrbitalScatter(scatter, tx, ty, tz)
 end
 
 local function DrawDGun(aoe, fx, fy, fz, tx, ty, tz, range, requiredEnergy, unitName)
-	local angle = math.atan2(fx - tx, fz - tz) + (math.pi / 2.1)
+	local angle = atan2(fx - tx, fz - tz) + (math.pi / 2.1)
 	local dx, dz, offset_x, offset_z = fx, fz, 0, 0
 	if unitName == 'armcom' then
 		offset_x = (sin(angle) * 10)
@@ -706,17 +704,7 @@ function widget:Shutdown()
 	DeleteDisplayLists()
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawWorld()
-	if chobbyInterface then
-		return
-	end
-
 	if not hasSelection then
 		return
 	end
@@ -768,7 +756,7 @@ function widget:DrawWorld()
 
 
 	if (weaponType == "ballistic") then
-		local trajectory = select(7, Spring.GetUnitStates(aimingUnitID, false, true))
+		local trajectory = select(7, GetUnitStates(aimingUnitID, false, true))
 		if trajectory then
 			trajectory = 1
 		else

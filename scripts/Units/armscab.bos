@@ -3,9 +3,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  body, rthigh, lthigh, rbleg, lbleg, rbfoot, lbfoot, rmfoot, lmfoot, rfleg, lfleg, rffoot, lffoot, turret, ldoor, rdoor, flare, rmleg, lmleg, aimy1;
+piece  body, rthigh, lthigh, rbleg, lbleg, rbfoot, lbfoot, rmfoot, lmfoot, rfleg, lfleg, rffoot, lffoot, turret, ldoor, rdoor, flare, rmleg, lmleg, aimy1, unstocked, stocked;
 
-static-var  Static_Var_1, Static_Var_2, bMoving, statechg_DesiredState, statechg_StateChanging, animSpeed, maxSpeed, animFramesPerKeyframe, isAiming;
+static-var  Static_Var_1, Static_Var_2, bMoving, statechg_DesiredState, statechg_StateChanging, animSpeed, maxSpeed, animFramesPerKeyframe, isAiming, missiles_stockpiled;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -387,6 +387,9 @@ Create()
 {
 	hide aimy1;
 	hide flare;
+	missiles_stockpiled = 0;
+	hide stocked;
+	show unstocked;
 	bMoving = FALSE;
 	Static_Var_1 = 0;
 	Static_Var_2 = 3000;
@@ -449,6 +452,34 @@ SweetSpot(piecenum)
 {
 	piecenum = body;
 	return (0);
+}
+
+stocked_no()
+{
+	hide stocked;
+	show unstocked;
+}
+
+stocked_yes()
+{
+	show stocked;
+	hide unstocked;
+}
+
+SetStockpile(num_stockpiled)
+{
+	if (num_stockpiled == 0)
+	{
+		start-script stocked_no();
+		sleep 100;
+		missiles_stockpiled = 0;
+	}
+	if (num_stockpiled >= 1)
+	{
+		start-script stocked_yes();
+		sleep 100;
+		missiles_stockpiled = 1;
+	}
 }
 
 Killed(severity, corpsetype)

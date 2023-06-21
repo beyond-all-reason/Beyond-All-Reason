@@ -14,6 +14,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+_G.transferredUnits = {}
+
 local isT1Mex = {}
 local isT15Mex = {}
 local isT2Mex = {}
@@ -103,6 +105,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			Spring.DestroyUnit(t1Mex, false, true)
 			Spring.AddTeamResource(unitTeam, "metal", isT1Mex[Spring.GetUnitDefID(t1Mex)])
 			if t1MexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(t1MexTeamID, false)) then -- and Spring.AreTeamsAllied(t1MexTeamID, unitTeam) then
+				_G.transferredUnits[unitID] = Spring.GetGameFrame()
 				Spring.TransferUnit(unitID, t1MexTeamID)
 			end
 		elseif t15Mex then
@@ -110,6 +113,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			Spring.DestroyUnit(t15Mex, false, true)
 			Spring.AddTeamResource(unitTeam, "metal", isT15Mex[Spring.GetUnitDefID(t15Mex)])
 			if t15MexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(t15MexTeamID, false)) then -- and Spring.AreTeamsAllied(t1MexTeamID, unitTeam) then
+				_G.transferredUnits[unitID] = Spring.GetGameFrame()
 				Spring.TransferUnit(unitID, t15MexTeamID)
 			end
 		end
@@ -120,8 +124,22 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			Spring.DestroyUnit(t1Mex, false, true)
 			Spring.AddTeamResource(unitTeam, "metal", isT1Mex[Spring.GetUnitDefID(t1Mex)])
 			if t1MexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(t1MexTeamID, false)) then -- and Spring.AreTeamsAllied(t1MexTeamID, unitTeam) then
+				_G.transferredUnits[unitID] = Spring.GetGameFrame()
 				Spring.TransferUnit(unitID, t1MexTeamID)
 			end
 		end
+	end
+end
+
+
+function gadget:GameFrame(gf)
+	if gf % 99 then
+		local newTransferredUnits = {}
+		for unitID, frame in pairs(_G.transferredUnits) do
+			if frame+30 > gf then
+				newTransferredUnits[unitID] = frame
+			end
+		end
+		_G.transferredUnits = newTransferredUnits
 	end
 end

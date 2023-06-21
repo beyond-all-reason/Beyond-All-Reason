@@ -1,0 +1,204 @@
+
+
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, dbl, dbr, dtr, dtl, dummy;
+
+static-var  Static_Var_1, restore_delay, gun_1, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+			move dbl to x-axis [-8] speed [8];
+			move dbl to z-axis [-8] speed [8];
+			move dbr to x-axis [8] speed [8];
+			move dbr to z-axis [-8] speed [8];
+			move dtl to x-axis [-8] speed [8];
+			move dtl to z-axis [8] speed [8];
+			move dtr to x-axis [8] speed [8];
+			move dtr to z-axis [8] speed [8];	
+	sleep 1768;
+	}
+	sleep 3;
+	return (0);
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+			move dbl to x-axis [0] speed [8];
+			move dbl to z-axis [0] speed [8];
+			move dbr to x-axis [0] speed [8];
+			move dbr to z-axis [0] speed [8];
+			move dtl to x-axis [0] speed [8];
+			move dtl to z-axis [0] speed [8];
+			move dtr to x-axis [0] speed [8];
+			move dtr to z-axis [0] speed [8];	
+		sleep 1762;
+	}
+	sleep 14;
+	return (0);
+}
+
+
+Go()
+{
+	call-script activatescr();
+	Static_Var_1 = 1;
+	return (0);
+}
+
+Stop()
+{
+	Static_Var_1 = 0;
+	call-script deactivatescr();
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+Create()
+{
+	hide dummy;
+	Static_Var_1 = 0;
+	restore_delay = 3000;
+	call-script InitState();
+	return (0);
+}
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
+
+Activate()
+{
+	start-script RequestState(0);
+	return (0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+	return (0);
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+	return (0);
+}
+
+AimPrimary(heading, pitch)
+{
+	start-script RequestState(0);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	return (1);
+}
+
+FirePrimary()
+{
+	return (0);
+}
+
+QueryPrimary(piecenum)
+{
+			piecenum=dummy;
+	return (0);
+}
+
+AimFromPrimary(piecenum)
+{
+			piecenum=dummy;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dbr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dtr type BITMAPONLY | NOHEATCLOUD;
+		explode dtl type BITMAPONLY | NOHEATCLOUD;
+		explode dbl type BITMAPONLY | NOHEATCLOUD;
+		explode dummy type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dbr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dtr type FALL | NOHEATCLOUD;
+		explode dtl type FALL | NOHEATCLOUD;
+		explode dbl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dummy type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dbr type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode dtr type SMOKE | FALL | NOHEATCLOUD;
+		explode dtl type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode dbl type SMOKE | FALL | NOHEATCLOUD;
+		explode dummy type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dbr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode dtr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dtl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode dbl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dummy type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

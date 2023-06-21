@@ -11,11 +11,12 @@ function widget:GetInfo()
 	}
 end
 
-local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+local minimapToWorld = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").minimapToWorld
 local skipSel
 local inSelection = false
-local finishedSelection = false
 local inMiniMapSel = false
+
+local referenceX, referenceY
 
 local selectBuildingsWithMobile = false		-- whether to select buildings when mobile units are inside selection rectangle
 local includeNanosAsMobile = true
@@ -45,8 +46,6 @@ local spSelectUnitArray = Spring.SelectUnitArray
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetUnitTeam = Spring.GetUnitTeam
 
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
 
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -84,9 +83,7 @@ for udid, udef in pairs(UnitDefs) do
 end
 
 local dualScreen
-local vpy
-local mapWidth, mapHeight = Game.mapSizeX, Game.mapSizeZ
-
+local vpy = select(Spring.GetViewGeometry(), 4)
 local referenceSelection = {}
 local referenceSelectionTypes = {}
 
@@ -98,26 +95,10 @@ local function sort(v1, v2)
 	end
 end
 
-local function MinimapToWorldCoords(x, y)
-	local px, py, sx, sy = spGetMiniMapGeometry()
-	if dualScreen == "left" then
-		x = x + sx + px
-	end
-	x = ((x - px) / sx) * mapWidth
-	local z = (1 - (y - py + vpy)/sy) * mapHeight
-	y = spGetGroundHeight(x, z)
-
-	if getMiniMapFlipped() then
-		x = mapWidth - x
-		z = mapHeight - z
-	end
-
-	return x, y, z
-end
-
-local function GetUnitsInMinimapRectangle(x1, y1, x2, y2)
-	local left, _, top = MinimapToWorldCoords(x1, y1)
-	local right, _, bottom = MinimapToWorldCoords(x2, y2)
+local function GetUnitsInMinimapRectangle(x, y)
+	local left = referenceX
+	local top = referenceY
+	local right, _, bottom = minimapToWorld(x, y, vpy, dualScreen)
 
 	left, right = sort(left, right)
 	bottom, top = sort(bottom, top)
@@ -136,13 +117,6 @@ function widget:ViewResize()
 end
 
 function widget:SelectionChanged(sel)
-	-- widgets already received what we selected on previous pass, bypass this event
-	if finishedSelection then
-		WG['smartselect'].updateSelection = false
-		finishedSelection = false
-		return
-	end
-
 	-- Check if engine has just deselected via mouserelease on selectbox.
 	-- We want to ignore engine passed selection and make sure we retain smartselect state
 	if inSelection and not select(3, spGetMouseState()) then -- left mouse button
@@ -152,20 +126,13 @@ function widget:SelectionChanged(sel)
 			-- if empty selection box and engine hardcoded deselect modifier is not
 			-- pressed, user is selected empty space
 			-- we must clear selection to disambiguate from our own deselect modifier
+			selectedUnits = {}
 			spSelectUnitArray({})
 		else
-			-- widgethandler uses this to ignore the engine mouserelease selection
-			-- we don't want to pass the engine selection to other widgets
-			WG['smartselect'].updateSelection = false
 			-- we also want to override back from engine selection to our selection
 			spSelectUnitArray(selectedUnits)
-			-- we bypass next selectionchanged event since we already know what we
-			-- selected, Update() constantly selects units inside selection box until
-			-- it finishes
-			finishedSelection = true
 		end
-
-		return
+		return selectedUnits
 	end
 
 	selectedUnits = sel
@@ -191,6 +158,9 @@ local function mousePress(x, y, button, hasMouseOwner)  --function widget:MouseP
 	end
 
 	inMiniMapSel = spIsAboveMiniMap(x, y)
+	if inMiniMapSel then
+		referenceX, _, referenceY = minimapToWorld(x, y, vpy, dualScreen)
+	end
 end
 
 function widget:PlayerChanged()
@@ -199,17 +169,17 @@ function widget:PlayerChanged()
 end
 
 function widget:Update()
-	WG['smartselect'].updateSelection = true
-
 	if skipSel or spGetActiveCommand() ~= 0 then
 		return
 	end
 
+	local x, y, lmb = Spring.GetMouseState()
+	if lmb == false then inMiniMapSel = false end
+
 	-- get all units within selection rectangle
 	local x1, y1, x2, y2 = spGetSelectionBox()
 
-	inSelection = x1 ~= nil
-
+	inSelection = inMiniMapSel or (x1 ~= nil)
 	if not inSelection then return end -- not in valid selection box (mouserelease/minimum threshold/chorded/etc)
 
 	if #referenceSelection == 0 then  -- no point in inverting an empty selection
@@ -217,9 +187,8 @@ function widget:Update()
 	end
 
 	local mouseSelection
-
 	if inMiniMapSel then
-		mouseSelection = GetUnitsInMinimapRectangle(x1, y1, x2, y2)
+		mouseSelection = GetUnitsInMinimapRectangle(x, y)
 	else
 		mouseSelection = spGetUnitsInScreenRectangle(x1, y1, x2, y2, nil) or {}
 	end
@@ -358,18 +327,25 @@ function widget:Update()
 			end
 		end
 		newSelection = tmp
-		spSelectUnitArray(newSelection)
+		selectedUnits = newSelection
+		spSelectUnitArray(selectedUnits)
 
 	elseif mods.all then  -- append units inside selection rectangle to current selection
 		spSelectUnitArray(newSelection)
 		spSelectUnitArray(mouseSelection, true)
+		selectedUnits = Spring.GetSelectedUnits()
 
 	elseif #mouseSelection > 0 then  -- select units inside selection rectangle
-		spSelectUnitArray(mouseSelection)
+		selectedUnits = mouseSelection
+		spSelectUnitArray(selectedUnits)
+
 	elseif #mouseSelection == 0 then
-		spSelectUnitArray({})
+		selectedUnits = {}
+		spSelectUnitArray(selectedUnits)
+
 	else  -- keep current selection while dragging until more things are selected
-		spSelectUnitArray(referenceSelection)
+		selectedUnits = referenceSelection
+		spSelectUnitArray(selectedUnits)
 	end
 end
 
@@ -417,9 +393,8 @@ function widget:Initialize()
 	WG['smartselect'].setIncludeBuilders = function(value)
 		includeBuilders = value
 	end
-	WG['smartselect'].updateSelection = false
 
-	widget:ViewResize();
+	widget:ViewResize()
 end
 
 function widget:GetConfigData()

@@ -44,7 +44,6 @@ return {
 		reclaimable = false,
     	releaseheld  = true,
 		script = "Units/ARMCOM_lus.lua",
-		--script = "Units/ARMCOM.cob",
 		seismicsignature = 0,
 		selfdestructas = "decoycommanderSelfd",
 		showplayername = true,
@@ -245,6 +244,7 @@ return {
 			[1] = {
 				def = "ARMCOMLASER",
 				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",

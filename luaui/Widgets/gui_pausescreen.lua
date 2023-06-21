@@ -74,7 +74,7 @@ local lastGameFrameTime = os.clock() + 10
 
 local shaderAlpha = 0
 local screencopy, shaderProgram
-local chobbyInterface, alphaLoc, showPauseScreen, nonShaderAlpha
+local alphaLoc, showPauseScreen, nonShaderAlpha
 local gameover = false
 local noNewGameframes = false
 
@@ -266,20 +266,7 @@ function widget:GamePaused(playerID, isGamePaused)
 	paused = isGamePaused
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
-	if Spring.IsGUIHidden() then
-		return
-	end
-
 	local now = osClock()
 
 	if paused or (now - pauseTimestamp) <= slideTime then

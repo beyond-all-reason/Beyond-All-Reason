@@ -7,7 +7,7 @@ local scenariodata = {
 	imagepath		= "scenario001.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "Rocks can contain a lot of metal...", -- This text will be drawn over image
     summary         = [[Three aggressive barbarians have landed in the top right corner of the map. Neutralize them.]],
-briefing 		= [[Fortify your side of the crossing as soon as possible, before the hordes start moving across. All units can pass through the central shallow isthmus, with the notable exception of Fleas. The shallow water connects the two seas, and control over the vast amount of metal they hold is key to victory.
+briefing 		= [[Fortify your side of the crossing as soon as possible, before the hordes start moving across. All units can pass through the central shallow isthmus, with the notable exception of Tick. The shallow water connects the two seas, and control over the vast amount of metal they hold is key to victory.
 
 Score:
     1. Speed: destroy the enemy Commanders as fast as possible.

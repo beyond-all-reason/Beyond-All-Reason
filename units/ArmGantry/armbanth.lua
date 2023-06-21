@@ -50,8 +50,8 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "4.58798065186 -1.75430091553 -5.00808410645",
-				collisionvolumescales = "66.5059539795 21.8749981689 69.125361816406",
+				collisionvolumeoffsets = "0 0 0",
+				collisionvolumescales = "66.5059539795 40 69.125361816406",
 				collisionvolumetype = "Box",
 				damage = 21000,
 				energy = 0,

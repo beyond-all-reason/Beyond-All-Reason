@@ -5,7 +5,7 @@
 
 #define SIG_BUILD		2
 
-piece  torso, pelvis, lthigh, rthigh, rleg, lleg, rfoot, lfoot, lcover, rcover, turret, nano, aimy1;
+piece  torso, pelvis, lthigh, rthigh, rleg, lleg, rfoot, lfoot, lcover, rcover, turret, nano, aimy1, cagelight, cagelight_emit;
 
 static-var  notBuilding, bMoving,statechg_DesiredState, statechg_StateChanging;
 
@@ -315,6 +315,8 @@ Go()
 Stop()
 {
 	set INBUILDSTANCE to 0;
+	hide cagelight_emit;
+	turn cagelight_emit to z-axis <0> speed <1000>;
 	move turret to y-axis [0] speed [16];
 	turn aimy1 to y-axis <0> speed <360>;
 	turn lcover to z-axis <0> speed <60>;
@@ -355,6 +357,7 @@ Create()
 {
 	hide nano;
 	hide aimy1;
+	hide cagelight_emit;
 	bMoving = FALSE;
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
@@ -382,6 +385,8 @@ StartBuilding(heading, pitch)
 	turn aimy1 to y-axis heading speed <600.000000>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
+	show cagelight_emit;
+	spin cagelight_emit around z-axis speed <150>;
 }
 
 StopBuilding()
@@ -389,6 +394,8 @@ StopBuilding()
 	hide nano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
+	hide cagelight_emit;
+	turn cagelight_emit to z-axis <0> speed <1000>;
 	sleep 6000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	

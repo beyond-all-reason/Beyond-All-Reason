@@ -166,6 +166,7 @@ return {
 				badtargetcategory = "NOWEAPON LIGHTAIRSCOUT",
 				def = "CORRL_MISSILE",
 				onlytargetcategory = "VTOL",
+				fastautoretargeting = true,
 			},
 		},
 	},

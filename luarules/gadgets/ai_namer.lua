@@ -124,9 +124,11 @@ if gadgetHandler:IsSyncedCode() then
 		"Requiem_TV",
 		"gamerangela911",
 		"Rikerss",
-		"Willow"
+		"Willow",
 		"Wintergaming",
 
+		-- Other contributions but not regular contributors
+		"Yeba",
 
 		-- AI Names
 		"Chris",

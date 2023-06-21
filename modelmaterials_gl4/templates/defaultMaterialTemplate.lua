@@ -7,7 +7,12 @@ vertex = [[
 	layout (location = 2) in vec3 T;
 	layout (location = 3) in vec3 B;
 	layout (location = 4) in vec4 uv;
-	layout (location = 5) in uint pieceIndex;
+	#if (SKINSUPPORT == 0)
+		layout (location = 5) in uint pieceIndex;
+	#else
+		layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
+		#define pieceIndex (bonesInfo.x & 0x000000FFu)
+	#endif
 
 	layout (location = 6) in uvec4 instData;
 	// u32 matOffset
@@ -1128,7 +1133,7 @@ fragment = [[
 		iblDiffuse = shToColor(shRD, shGD, shBD, N);
 		iblSpecular = shToColor(shR, shG, shB, Rv);
 
-		iblSpecular = mix(iblSpecular, SampleReflectionMapLod(Rv, 5.0), 0.2); //add some shininess
+		iblSpecular = mix(iblSpecular, SampleReflectionMapLod(Rv, 5.0), 0.1); //add some shininess
 	}
 
 
@@ -1488,7 +1493,8 @@ fragment = [[
 		// Indirect and ambient lighting
         vec3 outColor;
 		vec3 ambientContrib;
-		vec3 iblDiffuse, iblSpecular;
+		vec3 iblDiffuse = vec3(0);
+		vec3 iblSpecular = vec3(0);
         {
             // ambient lighting (we now use IBL as the ambient term)
 			vec3 F = FresnelWithRoughness(F0, F90, VdotH, roughness, envBRDF);
@@ -1500,7 +1506,7 @@ fragment = [[
             ///
 			#if (USE_ENVIRONMENT_DIFFUSE == 1) || (USE_ENVIRONMENT_SPECULAR == 1)
 				#if (RENDERING_MODE == 0)
-					//TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
+					//TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);	//needed for Intel GPU
 				#endif
 			#endif
             ///
@@ -1593,6 +1599,9 @@ fragment = [[
 		#endif
 
 		outColor.rgb *= brightnessFactor; // this is to correct for lack of env mapping, the nastiest hack there has ever been...
+		
+		//iblDiffuse, iblSpecular
+		//outColor.rgb = iblSpecular;
 
 		#if (RENDERING_MODE == 0)
 			fragData[0] = vec4(outColor, texColor2.a);
@@ -1680,6 +1689,7 @@ local defaultMaterialTemplate = {
 	-- they need to be redefined on every child material that has its own {shader,deferred,shadow}Definitions
 	shaderDefinitions = {
 		"#define RENDERING_MODE 0",
+		"#define SKINSUPPORT " .. (Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and "1" or "0"),
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 
@@ -1696,6 +1706,7 @@ local defaultMaterialTemplate = {
 	},
 	deferredDefinitions = {
 		"#define RENDERING_MODE 1",
+		"#define SKINSUPPORT " .. (Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and "1" or "0"),
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 
@@ -1712,6 +1723,7 @@ local defaultMaterialTemplate = {
 	},
 	shadowDefinitions = {
 		"#define RENDERING_MODE 2",
+		"#define SKINSUPPORT " .. (Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and "1" or "0"),
 		"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
 		"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
 		[[
@@ -1728,6 +1740,7 @@ local defaultMaterialTemplate = {
 	},
 	reflectionDefinitions = {
 		"#define RENDERING_MODE 0",
+		"#define SKINSUPPORT " .. (Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and "1" or "0"),
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 
@@ -1981,7 +1994,7 @@ local function SunChanged(luaShader)
         Spring.GetConfigFloat("tonemapC", 3.5),
         Spring.GetConfigFloat("tonemapD", 0.85),
         Spring.GetConfigFloat("tonemapE", 1.0),
-        Spring.GetConfigFloat("envAmbient", 0.25),
+        Spring.GetConfigFloat("envAmbient", 0.125),
         Spring.GetConfigFloat("unitSunMult", 1.0),
         Spring.GetConfigFloat("unitExposureMult", 1.0),
 	})

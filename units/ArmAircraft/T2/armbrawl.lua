@@ -37,8 +37,12 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft/t2",
 			techlevel = 2,
+			firingceg = "barrelshot-tiny",
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:barrelshot-tiny",
+			},
 			crashexplosiongenerators = {
 				[1] = "crashing-small",
 				[2] = "crashing-small",
@@ -75,10 +79,10 @@ return {
 		},
 		weapondefs = {
 			vtol_emg = {
-				areaofeffect = 8,
+				areaofeffect = 16,
 				avoidfeature = false,
-				burst = 3,
-				burstrate = 0.1,
+				burst = 4,
+				burstrate = 0.15,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -90,9 +94,9 @@ return {
 				name = "Rapid-fire a2g plasma guns",
 				noselfdamage = true,
 				range = 380,
-				reloadtime = 0.46667,
+				reloadtime = 0.6,
 				rgbcolor = "1 0.95 0.4",
-				size = 2.5,
+				size = 3,
 				soundhitwet = "splshbig",
 				soundstart = "brawlemg",
 				sprayangle = 1024,
@@ -100,7 +104,7 @@ return {
 				turret = false,
 				weapontimer = 1,
 				weapontype = "Cannon",
-				weaponvelocity = 450,
+				weaponvelocity = 800,--450,
 				damage = {
 					bombers = 2,
 					commanders = 8,

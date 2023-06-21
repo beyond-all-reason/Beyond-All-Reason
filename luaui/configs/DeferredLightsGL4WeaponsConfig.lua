@@ -254,10 +254,10 @@ local gibLight = {
 	lightType = 'point', -- or cone or beam
 	pieceName = nil, -- optional
 	lightConfig = {
-		posx = 0, posy = 0, posz = 0, radius = 38,
-		r = 1, g = 0.9, b = 0.5, a = 0.12,
+		posx = 0, posy = 0, posz = 0, radius = 36,
+		r = 1, g = 0.9, b = 0.5, a = 0.08,
 		color2r = 0.9, color2g = 0.75, color2b = 0.25, colortime = 0.3, -- point lights only, colortime in seconds for unit-attache
-		modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
+		modelfactor = 0.4, specular = 0.5, scattering = 0.5, lensflare = 0,
 		lifetime = 300, sustain = 3, aninmtype = 0 -- unused
 	},
 }
@@ -523,6 +523,10 @@ AssignLightsToAllWeapons()
 
 -----------------Manual Overrides--------------------
 
+--corforge
+projectileDefLights[WeaponDefNames["corforge_flamethrower_ce"].id] =
+GetLightClass("FlameProjectile", "Fire", "Micro", {r = 1, a = 0.02791886, g = 0.94, b = 0.88})
+
 --armthor
 explosionLights[WeaponDefNames["armthor_thunder"].id] =
 GetLightClass("Explosion", nil, "Smallish", {r = 1.5, g = 1.5, b = 1.5, a = 0.08, radius = 120,
@@ -596,7 +600,20 @@ GetLightClass("Explosion", nil, "Tera", {r = 3, g = 3, b = 2.8, a = 0.2,
 --corsilo engine
 projectileDefLights[WeaponDefNames["corsilo_crblmssl"].id] =
 GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
-													 modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+
+--corsilo SCAV
+explosionLights[WeaponDefNames["corsilo_scav_crblmssl"].id] =
+GetLightClass("Explosion", nil, "Tera", {r = 2, g = 1, b = 3, a = 0.18,
+										 color2r = 0.6, color2g = 0.3, color2b = 1, colortime = 120,
+										 sustain = 30, lifetime = 200,
+										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
+
+--corsilo engine SCAV
+projectileDefLights[WeaponDefNames["corsilo_scav_crblmssl"].id] =
+GetLightClass("MissileProjectile", nil, "Large", {r = 2, g = 1, b = 3, a = 0.4,
+										color2r = 0.75, color2g = 0.3, color2b = 0.9,
+										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 
 --armsilo
 explosionLights[WeaponDefNames["armsilo_nuclear_missile"].id] =
@@ -609,6 +626,19 @@ GetLightClass("Explosion", nil, "Giga", {r = 3, g = 3, b = 2.8, a = 0.18,
 projectileDefLights[WeaponDefNames["armsilo_nuclear_missile"].id] =
 GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
 													 modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+
+--armsilo SCAV
+explosionLights[WeaponDefNames["armsilo_scav_nuclear_missile"].id] =
+GetLightClass("Explosion", nil, "Giga", {r = 2, g = 1, b = 3, a = 0.18,
+										 color2r = 0.6, color2g = 0.3, color2b = 1, colortime = 110,
+										 sustain = 25, lifetime = 180,
+										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
+
+--armsilo engine SCAV
+projectileDefLights[WeaponDefNames["armsilo_scav_nuclear_missile"].id] =
+GetLightClass("MissileProjectile", nil, "Large", {r = 2, g = 1, b = 3, a = 0.4,
+										color2r = 0.75, color2g = 0.3, color2b = 0.9,
+										modelfactor = 0.1, specular = 0.1, scattering = 0.4, lensflare = 0})
 
 --cortron
 explosionLights[WeaponDefNames["cortron_cortron_weapon"].id] =

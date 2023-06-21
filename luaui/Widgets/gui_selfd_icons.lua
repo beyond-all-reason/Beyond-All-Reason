@@ -36,8 +36,6 @@ local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSi
 local selfdUnits = {}
 local drawLists = {}
 local glDrawListAtUnit			= gl.DrawListAtUnit
-
-local spIsGUIHidden				= Spring.IsGUIHidden
 local spGetUnitDefID			= Spring.GetUnitDefID
 local spIsUnitInView 			= Spring.IsUnitInView
 local spGetUnitSelfDTime		= Spring.GetUnitSelfDTime
@@ -132,7 +130,7 @@ function widget:Update(dt)
 end
 
 function widget:DrawWorld()
-	if spIsGUIHidden() then return end
+	if Spring.IsGUIHidden() then return end
 
 	gl.DepthTest(true)
 	gl.Color(0.9,0.9,0.9,1)

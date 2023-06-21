@@ -6,7 +6,7 @@
 #define SIG_BUILD		4	
 #define SIG_MOVE    2
 
-piece  base, gun, nano1, nano2, smoke1, smoke2;
+piece  base, gun, nano1, nano2, smoke1, smoke2, cagelight, cagelight_emit, cagelight2, cagelight_emit2;
 
 static-var  bMoving, moveSpeed, animSpeed, terrain, notBuilding, statechg_DesiredState, statechg_StateChanging, nanob;
 
@@ -18,6 +18,10 @@ activatescr()
 deactivatescr()
 {
 	set INBUILDSTANCE to 0;
+	hide cagelight_emit;
+	hide cagelight_emit2;
+	turn cagelight_emit to y-axis <0> speed <1000>;
+	turn cagelight_emit2 to y-axis <0> speed <1000>;
 	sleep 70;
 }
 
@@ -82,6 +86,8 @@ Create()
 	hide smoke1;
 	hide nano1;
 	hide nano2;
+	hide cagelight_emit;
+	hide cagelight_emit2;
 	bMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
@@ -128,6 +134,10 @@ StartBuilding(heading, pitch)
 	turn gun to y-axis heading speed <160.038462>;
 	wait-for-turn gun around y-axis;
 	set INBUILDSTANCE to 1;
+	show cagelight_emit;
+	show cagelight_emit2;
+	spin cagelight_emit around y-axis speed <400>;
+	spin cagelight_emit2 around y-axis speed <-400>;
 }
 
 StopBuilding()
@@ -136,6 +146,10 @@ StopBuilding()
 	hide nano2;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
+	hide cagelight_emit;
+	hide cagelight_emit2;
+	turn cagelight_emit to y-axis <0> speed <1000>;
+	turn cagelight_emit2 to y-axis <0> speed <1000>;
 	sleep 6000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	

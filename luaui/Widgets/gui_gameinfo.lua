@@ -18,7 +18,7 @@ local valuecolor = "\255\255\255\255"
 local valuegreycolor = "\255\180\180\180"
 local separator = "::"
 
-local font, font2, loadedFontSize, mainDList, titleRect, chobbyInterface, backgroundGuishader, show
+local font, font2, loadedFontSize, mainDList, titleRect, backgroundGuishader, show
 local maxLines = 22
 local math_isInRect = math.isInRect
 
@@ -113,8 +113,6 @@ local startLine = 1
 local vsx, vsy = Spring.GetViewGeometry()
 local screenX = (vsx * 0.5) - (screenWidth / 2)
 local screenY = (vsy * 0.5) + (screenHeight / 2)
-
-local spIsGUIHidden = Spring.IsGUIHidden
 
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
@@ -243,8 +241,8 @@ function DrawWindow()
 	local titleFontSize = 18 * widgetScale
 	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(Spring.I18N('ui.gameInfo.title')) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
 
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
-	gl.Color(0, 0, 0, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	gl.Color(0, 0, 0, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 
 	font2:Begin()
@@ -257,19 +255,9 @@ function DrawWindow()
 	DrawTextarea(screenX, screenY - (8 * widgetScale), screenWidth, screenHeight - (24 * widgetScale), 1)
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
-	if spIsGUIHidden() then
-		return
-	end
 
 	-- draw the help
 	if not mainDList then
@@ -338,7 +326,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(x, y, button, release)
-	if spIsGUIHidden() then
+	if Spring.IsGUIHidden() then
 		return false
 	end
 

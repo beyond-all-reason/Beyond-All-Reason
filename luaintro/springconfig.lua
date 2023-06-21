@@ -28,9 +28,6 @@ end
 Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
 Spring.SetConfigInt("CubeTexSizeReflection", 1024)
 
--- Allow minimap to flip on camera rotation
-Spring.SetConfigInt("MiniMapCanFlip", 0)
-
 -- disable grass
 Spring.SetConfigInt("GrassDetail", 0)
 
@@ -120,7 +117,9 @@ Spring.SetConfigFloat("CrossAlpha", 0)	-- will be in effect next launch
 
 Spring.SetConfigInt("UnitLodDist", 999999)
 
-
+if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then
+	Spring.SetConfigInt("AdvModelShading", 1)
+end
 
 if not Spring.GetConfigFloat("UnitIconFadeAmount") then
 	Spring.SetConfigFloat("UnitIconFadeAmount", 0.1)
@@ -130,7 +129,7 @@ end
 Spring.SetConfigInt("UnitIconFadeVanish", Spring.GetConfigInt("UnitIconFadeStart", 3000))
 
 -- change some default value(s), upp the version and set what needs to be set
-local version = 2
+local version = 3
 if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("version", version)
 
@@ -140,10 +139,7 @@ if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("UnitIconFadeVanish", 3000)
 	Spring.SetConfigInt("UnitIconFadeStart", 3000)
 	Spring.SetConfigInt("UnitIconsHideWithUI", 1)
-end
 
-version = 3
-if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("version", version)
 
 	if Spring.GetConfigInt("UnitIconFadeVanish", 2700) < 2700 then
@@ -152,20 +148,31 @@ if Spring.GetConfigInt("version", 0) < version then
 	if Spring.GetConfigInt("UnitIconFadeStart", 3000) < 3000 then
 		Spring.SetConfigInt("UnitIconFadeVanish", 3000)
 	end
+
+	Spring.SetConfigInt("VSyncGame", -1)
+
+	Spring.SetConfigInt("CamMode", 3)
 end
+
+Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
 
 -- Configure sane keychain settings, this is to provide a standard experience
 -- for users that is acceptable
 local springKeyChainTimeout = 750 -- expected engine default in ms
 local barKeyChainTimeout = 333 -- the setting we want to apply in ms
 local userKeyChainTimeout = Spring.GetConfigInt("KeyChainTimeout")
--- Only apply BARs default if current setting is equal to engine default
+
+-- Apply BAR's default if current setting is equal to engine default OR BAR's default
 -- Reason is engine is unable to distinguish between:
 --   - user configuring the setting to be equal to default
 --   - the actual setting being empty and engine using default
-if userKeyChainTimeout == springKeyChainTimeout then
+if userKeyChainTimeout == springKeyChainTimeout or userKeyChainTimeout == barKeyChainTimeout then
 	-- Setting a standardized keychain timeout, 750ms is too long
 	-- A side benefit of making it smaller is reduced complexity of actions handling
 	-- since there are fewer complex and long chains between keystrokes
 	Spring.SetConfigInt("KeyChainTimeout", barKeyChainTimeout)
+else
+	-- If user has configured a custom KeyChainTimeout, restore this setting
+	Spring.SetConfigInt("KeyChainTimeout", userKeyChainTimeout)
 end
+

@@ -14,7 +14,7 @@ return {
 	]],
 	fragment = [[#version 130
 	#ifdef HIGH_QUALITY
-		#extension GL_ARB_texture_query_lod : enable
+		//#extension GL_ARB_texture_query_lod : enable
 	#endif
 		uniform float time;
 		uniform vec4 alwaysColor;
@@ -35,7 +35,8 @@ return {
 		}
 		vec4 getTexel(in sampler2D tex, in vec2 p)
 		{
-			int lod = int(textureQueryLOD(tex, p).x);
+			//int lod = int(textureQueryLOD(tex, p).x);
+			int lod = 0;
 			vec2 texSize = vec2(textureSize(tex, lod));
 			vec4 c = vec4(0.0);
 			for (int i = 0; i<4; i++) {

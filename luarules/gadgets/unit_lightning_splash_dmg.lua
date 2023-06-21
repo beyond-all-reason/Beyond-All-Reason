@@ -98,6 +98,8 @@ function gadget:ProjectileDestroyed(proID)
     for i=1, #nearUnits do -- loop over nearby units
       
       if count == 0 then -- exit if maximum chain is reached
+		-- clear from table
+    	lightning_info[proID] = nil
 		return
       end
       

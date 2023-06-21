@@ -26,13 +26,15 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	if isCommander[unitDefID] then
 		local px,py,pz = Spring.GetUnitPosition(unitID)
 		pz = pz - 40
-		local tombstoneID = Spring.CreateFeature(isCommander[unitDefID], px, Spring.GetGroundHeight(px,pz), pz, 0, teamID)
-		if tombstoneID then
-			local rx,ry,rz = Spring.GetFeatureRotation(tombstoneID)
-			rx = rx + 0.18 + (math.random(0, 6) / 50)
-			rz = rz - 0.12 + (math.random(0, 12) / 50)
-			ry = ry - 0.12 + (math.random(0, 12) / 50)
-			Spring.SetFeatureRotation(tombstoneID, rx,ry,rz)
+		if not (Spring.GetUnitRulesParam(unitID, "unit_evolved") == "true") then
+			local tombstoneID = Spring.CreateFeature(isCommander[unitDefID], px, Spring.GetGroundHeight(px,pz), pz, 0, teamID)
+			if tombstoneID then
+				local rx,ry,rz = Spring.GetFeatureRotation(tombstoneID)
+				rx = rx + 0.18 + (math.random(0, 6) / 50)
+				rz = rz - 0.12 + (math.random(0, 12) / 50)
+				ry = ry - 0.12 + (math.random(0, 12) / 50)
+				Spring.SetFeatureRotation(tombstoneID, rx,ry,rz)
+			end
 		end
 	end
 end

@@ -150,6 +150,7 @@ local armorDefs = {
 		"corfhlt",
 		"corfhp",
 		"corfmkr",
+		"corforge",
 		--"corfort",
 		"corfrt",
 		"corgator",
@@ -173,6 +174,7 @@ local armorDefs = {
 		"cormstor",
 		"cornecro",
 		"corplat",
+		"corprinter",
 		"corraid",
 		"correap",
 		"corrl",
@@ -185,6 +187,7 @@ local armorDefs = {
 		"cortarg",
 		"cortermite",
 		"corthovr",
+		"cortorch",
 		"corthud",
 		"cortide",
 		"cortron",
@@ -358,6 +361,9 @@ local armorDefs = {
 		"legcib",
 		"legmineb",
 		"chicken_dodoair",
+		"chickenbroodbomberh2",
+		"chickenbroodbomberh3",
+		"chickenbroodbomberh4",
 	},
 	fighters = {
 		"chickenw1_mini",
@@ -434,6 +440,7 @@ local armorDefs = {
 		"legca",
 		"armdrone",
 		"cordrone",
+		"legdrone",
 	},
 	shields = {
 		"armgate",
@@ -541,6 +548,7 @@ local armorDefs = {
 		"chickenearty1",
 		"chickenelectricallterrain",
 		"chicken_hive",
+		"chicken_antinuke",
 	},
 }
 

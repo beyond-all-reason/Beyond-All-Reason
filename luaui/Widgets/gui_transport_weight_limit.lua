@@ -143,14 +143,14 @@ function widget:GameFrame(n)
 							local unitID = visibleUnits[i]
 							local visableID = Spring.GetUnitDefID(unitID)
 							local isinTrans = Spring.GetUnitIsTransporting(transID)
-							if #isinTrans >= transCapacity then
+							if isinTrans and #isinTrans >= transCapacity then
 								return
 							end
 							if transID and transID ~= visableID then
 								local passengerX = unitXsize[visableID]/2
-								if (unitMass[visableID] <= transMassLimit) and (passengerX <= transportSize) and not cantBeTransported[visableID] and not Spring.IsUnitIcon(unitID) then
+								if unitMass[visableID] <= transMassLimit and passengerX <= transportSize and not cantBeTransported[visableID] and not Spring.IsUnitIcon(unitID) then
 									local x, y, z = Spring.GetUnitBasePosition(unitID)
-									if (x) then
+									if x then
 										 unitstodraw[unitID] = {pos = {x,y,z},size = (passengerX*6)}
 									end
 								end

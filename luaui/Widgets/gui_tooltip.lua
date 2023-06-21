@@ -28,7 +28,7 @@ Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique
 local defaultDelay = 0.37
 local cfgFontSize = 14
 
-local xOffset = 35
+local xOffset = 12
 local yOffset = -xOffset
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
@@ -47,7 +47,7 @@ local string_lines = string.lines
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local tooltips = {}
 local cleanupGuishaderAreas = {}
-local font, font2, chobbyInterface
+local font, font2
 local RectRound, UiElement, bgpadding
 local uiSec = 0
 
@@ -148,7 +148,7 @@ function widget:ViewResize(x, y)
 	font2 = WG['fonts'].getFont(fontfile2)
 	widgetScale = (1 + ((vsy - 850) / 900)) * (0.95 + (ui_scale - 1) / 2.5)
 	usedFontSize = cfgFontSize * widgetScale
-	yOffset = -math.floor(xOffset*0.75) - usedFontSize
+	yOffset = -math.floor(xOffset*0.5) - usedFontSize
 
 	bgpadding = math.ceil(WG.FlowUI.elementPadding * 0.66)
 	RectRound = WG.FlowUI.Draw.RectRound
@@ -240,16 +240,7 @@ local function drawTooltip(name, x, y)
 	gl.Translate(-posX+addX, -posY+addY, 0)
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
 	if WG['topbar'] and WG['topbar'].showingQuit() then
 		return
 	end

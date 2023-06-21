@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 17000,
 		buildcostmetal = 1400,
 		--builder = true,
-		buildpic = "CORCARRY.DDS",
+		buildpic = "CORCARRY2.DDS",
 		buildtime = 20000,
 		--canassist = false,
 		--canattack = true,
@@ -19,10 +19,10 @@ return {
 		collisionvolumescales = "61 61 153",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		energymake = 300,
+		energymake = 25,
 		energystorage = 1500,
 		energyuse = 25,
-		explodeas = "minifusionExplosion",
+		explodeas = "hugeexplosiongeneric",
 		floater = true,
 		footprintx = 7,
 		footprintz = 7,
@@ -31,17 +31,18 @@ return {
 		idletime = 600,
 		losemitheight = 50,
 		mass = 10000,
-		maxdamage = 5000,
+		maxdamage = 3000,
 		maxvelocity = 2.008,
 		minwaterdepth = 15,
 		movementclass = "BOAT7",
+		movestate = 1,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCARRY2.s3o",
 		radardistance = 2700,
 		radaremitheight = 50,
 		script = "Units/CORCARRY2.cob",
 		seismicsignature = 0,
-		selfdestructas = "minifusionExplosion",
+		selfdestructas = "hugeexplosiongenericSelfd",
 		sightdistance = 1040,
 		sonardistance = 740,
 		terraformspeed = 5000,
@@ -190,6 +191,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "",--"custom:genericshellexplosion-medium",
 				gravityaffected = "true",
+				hightrajectory = 1,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
@@ -213,18 +215,20 @@ return {
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently. 
 					spawnrate = 3, 				--Spawnrate roughly in seconds. 
 					maxunits = 24,				--Will spawn units until this amount has been reached. 
-					buildcostenergy = 650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
-					buildcostmetal = 29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
+					buildcostenergy = 500,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
+					buildcostmetal = 20,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
 					controlradius = 1300,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit. 
+					decayrate = 6,
+					carrierdeaththroe = "control",
 					dockingarmor = 0.2,
-					dockinghealrate = 10,
-					docktohealthreshold = 70,
+					dockinghealrate = 30,
+					docktohealthreshold = 50,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpiecestart = 17,		--First model piece to be used for docking.
 					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit. 
 					dockingpieceend = 40,		--Last model piece used for docking. Will loop back to first when exceeded. 
-					dockingradius = 160,			--The range at which the units snap to the carrier unit when docking.
+					dockingradius = 240,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},
 		},
@@ -236,7 +240,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "PLASMA",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -11,4 +11,8 @@ https://kennethdonahue.portfoliobox.net/
 Russell Lucas-Nutt (@rsslcs):
 https://soundcloud.com/rsslcs/
 
+Matteo Dell'Acqua:
+https://matteoh2o1999.github.io/music
+https://www.youtube.com/@matteodellacquamusic
+
 Check license_music.txt in the root of this project for more information.

@@ -103,7 +103,7 @@ local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousName = '?????'
 
-local usedFontSize, chobbyInterface
+local usedFontSize
 
 local comms = {}
 local comnameList = {}
@@ -223,7 +223,7 @@ local function createComnameList(attributes)
 	end
 	comnameList[attributes[1]] = gl.CreateList(function()
 		local x,y = 0,0
-		if ((not anonymousMode ~= "disabled") or spec) and showPlayerRank and not unba and attributes[6] and not isSinglePlayer then
+		if (anonymousMode == "disabled" or spec) and showPlayerRank and not unba and attributes[6] and not isSinglePlayer then
 			x = (playerRankSize*0.5)
 		end
 		local outlineColor = { 0, 0, 0, 1 }
@@ -231,7 +231,7 @@ local function createComnameList(attributes)
 			outlineColor = { 1, 1, 1, 1 }		-- try to keep these values the same as the playerlist
 		end
 		local name = attributes[1]
-		if anonymousMode ~= "disabled" and (not spec) then
+		if anonymousMode ~= "disabled" and not spec then
 			name = anonymousName
 		end
 		if useThickLeterring then
@@ -257,7 +257,7 @@ local function createComnameList(attributes)
 		font:End()
 
 		-- player rank
-		if showPlayerRank and attributes[6] and ((not anonymousMode ~= "disabled") or spec) and not isSinglePlayer then
+		if showPlayerRank and attributes[6] and (anonymousMode == "disabled" or spec) and not isSinglePlayer then
 			local halfSize = playerRankSize*0.5
 			local x_l = x - (((font:GetTextWidth(name) * fontSize) * 0.5) + halfSize + (fontSize * 0.1))
 			local y_l = y + (fontSize * 0.33)
@@ -429,7 +429,6 @@ local function createComnameIconList(unitID, attributes)
 end
 
 function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader will blur it when needed
-	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 	if Spring.GetGameFrame() < hideBelowGameframe then return end
 
@@ -454,15 +453,10 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader
 	drawScreenUnits = {}
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 
 
 function widget:DrawWorld()
-	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 	if Spring.GetGameFrame() < hideBelowGameframe then return end
 

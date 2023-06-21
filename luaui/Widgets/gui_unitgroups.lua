@@ -60,7 +60,7 @@ local selectedGroups = {}
 
 local groupButtons = {}
 
-local font, font2, chobbyInterface, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
+local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
 local buildmenuAlwaysShow, ordermenuAlwaysShow = false, false
 local buildmenuShowingPosY = 0
 
@@ -142,12 +142,6 @@ function widget:Shutdown()
 		dlistGuishader = nil
 	end
 	WG['unitgroups'] = nil
-end
-
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
 end
 
 local function checkGuishader(force)
@@ -416,10 +410,6 @@ local function updateList()
 end
 
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
-
 	if (not spec or showWhenSpec) and dlist then
 		gl.CallList(dlist)
 	end
@@ -440,20 +430,22 @@ function widget:Update(dt)
 	sec = sec + dt
 	sec2 = sec2 + dt
 
-	if buildmenuAlwaysShow ~= WG['buildmenu'].getAlwaysShow() then
-		widget:ViewResize()
-		doUpdate = true
-	end
-	if buildmenuBottomPosition and not buildmenuAlwaysShow and WG['buildmenu'] and WG['info'] then
-		if (not selectedUnits[1] or not WG['buildmenu'].getIsShowing()) and (posX > 0 or not WG['info'].getIsShowing()) then
-			if posY ~= 0 then
-				posY = 0
-				doUpdate = true
-			end
-		else
-			if posY ~= buildmenuShowingPosY then
-				posY = buildmenuShowingPosY
-				doUpdate = true
+	if WG['buildmenu'] then
+		if buildmenuAlwaysShow ~= WG['buildmenu'].getAlwaysShow() then
+			widget:ViewResize()
+			doUpdate = true
+		end
+		if buildmenuBottomPosition and not buildmenuAlwaysShow and WG['info'] then
+			if (not selectedUnits[1] or not WG['buildmenu'].getIsShowing()) and (posX > 0 or not WG['info'].getIsShowing()) then
+				if posY ~= 0 then
+					posY = 0
+					doUpdate = true
+				end
+			else
+				if posY ~= buildmenuShowingPosY then
+					posY = buildmenuShowingPosY
+					doUpdate = true
+				end
 			end
 		end
 	end

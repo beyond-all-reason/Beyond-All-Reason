@@ -176,6 +176,7 @@ return {
 				badtargetcategory = "NOTAIR",
 				def = "FERRET_MISSILE",
 				onlytargetcategory = "VTOL",
+				fastautoretargeting = true,
 			},
 		},
 	},

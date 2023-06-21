@@ -26,6 +26,7 @@ local CMD_STOP = CMD.STOP
 local CMD_GUARD = CMD.GUARD
 local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
+local spGetBuildFacing = Spring.GetBuildFacing
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
@@ -243,13 +244,14 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 	end
 
 	-- Give the actual mex build orders
+	local facing = spGetBuildFacing() or 1
 	local queuedMexes = {}
 	for ct = 1, mainBuildersCount do
 		local id = mainBuilders[ct]
 		local mexOrders = {}
-		local mexOrdersCount = 0
 
 		if checkDuplicateOrders then
+			local mexOrdersCount = 0
 			for _, order in pairs(Spring.GetUnitCommands(id, maxOrdersCheck)) do
 				if mexBuildings[-order["id"]] then
 					mexOrdersCount = mexOrdersCount + 1
@@ -276,7 +278,7 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 				end
 				if targetPos then
 					local newx, newz = targetPos.x, targetPos.z
-					local orderParams = { newx, spGetGroundHeight(newx, newz), newz }
+					local orderParams = { newx, spGetGroundHeight(newx, newz), newz, facing }
 
 					local duplicateFound = false
 
@@ -365,6 +367,10 @@ function widget:Initialize()
 	----------------------------------------------
 	-- builders and buildings - MEX
 	----------------------------------------------
+
+	WG['resource_spot_builder'].GetMexConstructor = function(unitID)
+		return mexConstructors[unitID]
+	end
 
 	WG['resource_spot_builder'].GetMexConstructors = function()
 		return mexConstructors
