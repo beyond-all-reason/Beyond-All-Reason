@@ -58,6 +58,13 @@ local function replaceLegacyPreset()
 	local newFormat = legacyToTxt[keyFile]
 	if not newFormat then return false end
 
+	-- in case the user has a uikeys file already, we need to back it up because it could potentially get overwritten by the following steps
+	if VFS.FileExists("uikeys.txt") then
+		Spring.Echo("BAR Hotkeys: Found existing unused uikeys file, creating a backup called uikeys_auto_backup.txt")
+		Spring.SendCommands("keyreload")
+		Spring.SendCommands("keysave uikeys_auto_backup.txt")
+	end
+
 	-- output the current custom .lua bindings into a uikeys.txt file
 	if keyFile == 'bar_hotkeys_custom.lua' then
 		Spring.SendCommands("keysave uikeys_auto_backup.txt") -- save a backup of current keys
