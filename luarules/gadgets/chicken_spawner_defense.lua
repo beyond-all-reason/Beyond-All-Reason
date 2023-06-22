@@ -928,7 +928,8 @@ if gadgetHandler:IsSyncedCode() then
 				if mRandom() <= config.spawnChance then
 					squadCounter = 0
 					local squad
-					if (waveType == "air" or (queenID and mRandom() <= 0.25)) and mRandom() <= 0.5 then
+					--if (waveType == "air" or (queenID and mRandom() <= 0.25)) and mRandom() <= 0.5 then
+					if (waveType == "air" and math.random() <= 0.8) or (techAnger > config.airStartAnger and math.random() <= 0.2) then
 						for _ = 1,1000 do
 							local potentialSquad = squadSpawnOptions.air[mRandom(1, #squadSpawnOptions.air)]
 							if potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
@@ -975,9 +976,12 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		until (cCount > currentMaxWaveSize or loopCounter >= 200*config.chickenSpawnMultiplier)
 
-		if waveType == "air" and cCount > 0 then
-			chickenEvent("airWave", cCount)
-		elseif config.useWaveMsg then
+		-- if waveType == "air" and cCount > 0 then
+		-- 	chickenEvent("airWave", cCount)
+		-- elseif config.useWaveMsg then
+		-- 	chickenEvent("wave", cCount)
+		-- end
+		if config.useWaveMsg then
 			chickenEvent("wave", cCount)
 		end
 		return cCount
