@@ -170,7 +170,7 @@ return {
 				name = "Deadly Defensive Spores",
 				noselfdamage = true,
 				range = 2000,
-				reloadtime = 6,
+				reloadtime = 1.5,
 				smoketrail = true,
 				smokePeriod = 2,
 				smoketime = 45,
