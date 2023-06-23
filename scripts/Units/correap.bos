@@ -52,6 +52,7 @@ Smoke()
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
+/*
 RockUnit(anglex, anglez)
 {
 	turn base to x-axis anglex speed <50.005495>;
@@ -61,6 +62,7 @@ RockUnit(anglex, anglez)
 	turn base to z-axis <0.000000> speed <20.000000>;
 	turn base to x-axis <0.000000> speed <20.000000>;
 }
+*/
 
 Create()
 {
@@ -141,20 +143,21 @@ FirePrimary()
 {
 	if( gun_1 == 0 )
 	{
-		move barrel1 to z-axis [-2.400000] speed [500.000000];
-		emit-sfx 1024 + 0 from flare1;
-		sleep 100;
-		wait-for-move barrel1 along z-axis;
-		move barrel1 to z-axis [0.000000] speed [3.000000];
+		move barrel1 to z-axis [-3] speed [9];
+		//emit-sfx 1024 + 0 from flare1;
+		sleep 334;
+		//wait-for-move barrel1 along z-axis;
+		move barrel1 to z-axis [0.000000] speed [4.5];
 	}
 	if( gun_1 == 1 )
 	{
-		move barrel2 to z-axis [-2.400000] speed [500.000000];
-		emit-sfx 1024 + 0 from flare2;
-		sleep 100;
+		move barrel2 to z-axis [-3] speed [9];
+		//emit-sfx 1024 + 0 from flare2;
+		sleep 334;
 		wait-for-move barrel2 along z-axis;
-		move barrel2 to z-axis [0.000000] speed [3.000000];
+		move barrel2 to z-axis [0.000000] speed [4.5];
 	}
+	//sleep 234;
 	gun_1 = !gun_1;
 }
 
