@@ -34,7 +34,7 @@ function UnbaCom_Post(name)
 			tablecom.weapondefs[lowername.."laser"..I].range = armRange[i]
 			tablecom.weapondefs[lowername.."laser"..I].areaofeffect = armAOE[i]
 			tablecom.weapondefs[lowername.."laser"..I].reloadtime = armReloadTime[i]
-			tablecom.weapondefs[lowername.."laser"..I].thickness = 2+(i*0.1)
+			tablecom.weapondefs[lowername.."laser"..I].thickness = 2+(i*0.5)
 			if i == 3 then
 				tablecom.weapondefs[lowername.."laser3"].rgbcolor = "0.7 0.3 0"
 			elseif i == 4 then
@@ -194,7 +194,7 @@ function UnbaCom_Post(name)
 			tablecom.weapondefs[lowername.."laser"..I].range = corRange[i]
 			tablecom.weapondefs[lowername.."laser"..I].areaofeffect = corAOE[i]
 			tablecom.weapondefs[lowername.."laser"..I].reloadtime = corReloadTime[i]
-			tablecom.weapondefs[lowername.."laser"..I].thickness = 2+(i*0.1)
+			tablecom.weapondefs[lowername.."laser"..I].thickness = 2+(i*0.5)
 			if i == 3 then
 				tablecom.weapondefs[lowername.."laser3"].rgbcolor = "0.7 0.3 0"
 			elseif i == 4 then
@@ -306,9 +306,9 @@ function UnbaCom_Post(name)
 		tablecom.featuredefs["dead"..tostring(i)].metal = tablecom.featuredefs["dead"].metal * WreckMetal[i]
 		tablecom.featuredefs["heap"..tostring(i)].metal = tablecom.featuredefs["heap"].metal * WreckMetal[i]
 		tablecom.featuredefs["dead"..tostring(i)].featuredead = "heap"..tostring(i)
-		tablecom.featuredefs["dead"..tostring(i)].resurrectable = 0
+		--tablecom.featuredefs["dead"..tostring(i)].resurrectable = 0
 	end
-	tablecom.featuredefs["dead"].resurrectable = 0
+	--tablecom.featuredefs["dead"].resurrectable = 0
 	UnitDefs[name] = tablecom
 
 end
