@@ -268,7 +268,8 @@ if ValidID(unitID) then
 		Spring.MoveCtrl.Disable(unitID)
 	end
 	--if corMoveSpeed[level] then
-		Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", math.ceil(levelMoveSpeed[level]*30))
+		Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", math.ceil(levelMoveSpeedCortex[level]*30))
+		Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxWantedSpeed", math.ceil(levelMoveSpeedCortex[level]*30))
 	--end
 	if curMoveCtrl then
 		Spring.MoveCtrl.Enable(unitID)
