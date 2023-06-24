@@ -567,9 +567,7 @@ local function drawStats(uDefID, uID)
 	end
 
 	local totaldps = 0
-	local totaldpsAoE = 0
 	local totalbDamages = 0
-	local totalbDamagesAoE = 0
 	local useExp = true
 	for i = 1, #wepsCompact do
 
@@ -626,8 +624,6 @@ local function drawStats(uDefID, uID)
 			local accuracyBonus = accuracy ~= 0 and (uWep.accuracy/accuracy-1) or 0
 			local moveErrorBonus = moveError ~= 0 and (uWep.targetMoveError/moveError-1) or 0
 			--local range = spGetUnitWeaponState(uID,weaponNums[i] or -1,"range") or uWep.range
-			local ee = uWep.edgeEffectiveness
-			local AoE = math.max(1,(math.pi * uWep.damageAreaOfEffect^2)/256)
 
 			local rangeBonus = range ~= 0 and (range/uWep.range-1) or 0
 			if uExp ~= 0 then
@@ -657,18 +653,14 @@ local function drawStats(uDefID, uID)
 			local oDmg = uWep.damages[cat]
 			local catName = Game.armorTypes[cat]
 			local burst = uWep.salvoSize
-			local EEFactor = (ee - (-1 + ee)*math.log(1 - ee))/ee^2
 			if string.find(uWep.name, "disintegrator") then
 				DrawText(texts.dmg..":", yellow..texts.infinite)
 			elseif wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
 				if catName and oDmg and (oDmg ~= defaultDamage or cat == 0) then
 					local dmgString
 					local dps = defaultDamage * burst / (useExp and reload or uWep.reload)
-					local dpsAoE = dps * AoE * EEFactor
 					local bDamages = defaultDamage * burst
-					local bDamagesAoE = bDamages * AoE * EEFactor
 					dmgString = texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.."."
-					dmgString = texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.." ( "..(format(yellow .. "%d", bDamagesAoE))..white.." )."
 					DrawText(texts.dmg..":", dmgString)
 				end
 				local dmgString	= white
@@ -684,15 +676,10 @@ local function drawStats(uDefID, uID)
 				if catName and oDmg and (oDmg ~= defaultDamage or cat == 0) then
 					local dmgString
 					local dps = defaultDamage * burst / (useExp and reload or uWep.reload)
-					local dpsAoE = dps * AoE * EEFactor
 					local bDamages = defaultDamage * burst
-					local bDamagesAoE = bDamages * AoE * EEFactor
 					totaldps = totaldps + wepCount*dps
-					totaldpsAoE = totaldpsAoE + wepCount*dpsAoE
 					totalbDamages = totalbDamages + wepCount* bDamages
-					totalbDamagesAoE = totalbDamagesAoE +  wepCount*bDamagesAoE
 					dmgString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.."."
-					dmgString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.." ( "..(format(yellow .. "%d", dpsAoE))..white.." ) "..texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.." ( "..(format(yellow .. "%d", bDamagesAoE))..white.." )."
 					if wepCount > 1 then
 						dmgString = dmgString .. white .. " ("..texts.each..")"
 					end
@@ -734,7 +721,7 @@ local function drawStats(uDefID, uID)
 	end
 
 	if totaldps > 0 then
-		DrawText(texts.totaldmg..':', texts.dps.." = "..(format(yellow .. "%d", totaldps))..white.." ( "..(format(yellow .. "%d", totaldpsAoE))..white.." ) "..texts.burst.." = "..(format(yellow .. "%d", totalbDamages))..white.." ( "..(format(yellow .. "%d", totalbDamagesAoE))..white.." ).")
+		DrawText(texts.totaldmg..':', texts.dps.." = "..(format(yellow .. "%d", totaldps))..'; '..white..texts.burst.." = "..(format(yellow .. "%d", totalbDamages))..white..".")
 		cY = cY - fontSize
 	end
 
