@@ -403,6 +403,8 @@ function Spring.CreateUnit (  unitDefName, x, y , z, facing, teamID, build, flat
 	return  numberMock
 end
 
+
+
 ---@param UnitID number
 ---@param selfd? boolean # if true, Makes the unit act like it self-destructed.
 ---@param reclaimed? boolean # Don't show any DeathSequences, don't leave a wreckage. This does not give back the resources to the team!
@@ -520,6 +522,7 @@ end
 function Spring.SetUnitUseWeapons (unitID, forceUseWeapons, allowUseWeapons)
 	return nil
 end
+
 
 ---@alias states table
 ---| 'reloadState':number
@@ -1077,6 +1080,9 @@ end
 function Spring.SetLandUnitGoal(unitID, goalX, goalY, goalZ, goalRadius)
 	return nil
 end
+
+unitdefs = Spring.CreateUnit('number UnitDefID')
+unitdefs.
 
 ---@param unitID number
 ---@return nil

@@ -173,6 +173,8 @@ function Spring.GetCOBScriptID(unitID, funcName) end
 ---@return number|nil unitID meaning unit was created
 function Spring.CreateUnit(unitDefName, x, y, z, facing, teamID[, build=false[, flattenGround=true[, unitID[, builderID]]]]) end
 
+local newthing = Spring.CreateUnit()
+
 ---Parameters
 ---@param unitID number
 ---@param selfd boolean (default): `false`
