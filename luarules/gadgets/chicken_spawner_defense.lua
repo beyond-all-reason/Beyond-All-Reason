@@ -87,6 +87,12 @@ if gadgetHandler:IsSyncedCode() then
 		airWave = {
 			cooldown = mRandom(1,2),
 		},
+		basicWave = {
+			cooldown = mRandom(5,10),
+		},
+		specialWave = {
+			cooldown = mRandom(10,20),
+		},
 	}
 	local squadSpawnOptions = config.squadSpawnOptionsTable
 	--local miniBossCooldown = 0
@@ -456,9 +462,9 @@ if gadgetHandler:IsSyncedCode() then
 						if not unitCowardCooldown[unitID] then
 							if role == "assault" or role == "healer" or role == "artillery" then
 								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
-							elseif role == "raid" or role == "kamikaze" then
+							elseif role == "raid" then
 								Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
-							elseif role == "aircraft" then
+							elseif role == "aircraft" or role == "kamikaze" then
 								local pos = getRandomEnemyPos()
 								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x, pos.y, pos.z} , {})
 							end
@@ -909,13 +915,23 @@ if gadgetHandler:IsSyncedCode() then
 		local waveType = "normal"
 		waveParameters.baseCooldown = waveParameters.baseCooldown - 1
 		waveParameters.airWave.cooldown = waveParameters.airWave.cooldown - 1
+		waveParameters.basicWave.cooldown = waveParameters.basicWave.cooldown - 1
+		waveParameters.specialWave.cooldown = waveParameters.specialWave.cooldown - 1
 		
 		if waveParameters.baseCooldown <= 0 then
 			-- special waves
-			if techAnger > config.airStartAnger and waveParameters.airWave.cooldown <= 0 then
+			if techAnger > config.airStartAnger and waveParameters.airWave.cooldown <= 0 and mRandom() <= config.spawnChance then
 				waveParameters.airWave.cooldown = mRandom(5,10)
 				waveParameters.baseCooldown = mRandom(2,4)
 				waveType = "air"
+			elseif waveParameters.basicWave.cooldown <= 0 and mRandom() <= config.spawnChance then
+				waveParameters.basicWave.cooldown = mRandom(3,9)
+				waveParameters.baseCooldown = mRandom(1,2)
+				waveType = "basicOnly"
+			elseif waveParameters.specialWave.cooldown <= 0 and mRandom() <= config.spawnChance then
+				waveParameters.specialWave.cooldown = mRandom(10,20)
+				waveParameters.baseCooldown = mRandom(3,6)
+				waveType = "specialOnly"
 			end
 		end
 
@@ -928,7 +944,8 @@ if gadgetHandler:IsSyncedCode() then
 				if mRandom() <= config.spawnChance then
 					squadCounter = 0
 					local squad
-					if (waveType == "air" or (queenID and mRandom() <= 0.25)) and mRandom() <= 0.5 then
+					--if (waveType == "air" or (queenID and mRandom() <= 0.25)) and mRandom() <= 0.5 then
+					if waveType ~= "basicOnly" and waveType ~= "specialOnly" and ((waveType == "air") or (techAnger > config.airStartAnger and mRandom() <= 0.2)) then
 						for _ = 1,1000 do
 							local potentialSquad = squadSpawnOptions.air[mRandom(1, #squadSpawnOptions.air)]
 							if potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
@@ -939,7 +956,7 @@ if gadgetHandler:IsSyncedCode() then
 					else
 						local specialRandom = mRandom(1,100)
 						for _ = 1,1000 do
-							if specialRandom <= 33 then
+							if (specialRandom <= 33 or waveType == "specialOnly") and waveType ~= "basicOnly" then
 								local potentialSquad = squadSpawnOptions.special[mRandom(1, #squadSpawnOptions.special)]
 								if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger) 
 								or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
@@ -966,7 +983,7 @@ if gadgetHandler:IsSyncedCode() then
 							end
 							cCount = cCount + unitNumber
 						end
-						if waveType ~= "air" then
+						if waveType ~= "air" and loopCounter <= 1 then
 							table.insert(spawnQueue, { burrow = burrowID, unitName = config.chickenHealers[mRandom(1,#config.chickenHealers)], team = chickenTeamID, squadID = 1 })
 							cCount = cCount + 1
 						end
@@ -975,9 +992,12 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		until (cCount > currentMaxWaveSize or loopCounter >= 200*config.chickenSpawnMultiplier)
 
-		if waveType == "air" and cCount > 0 then
-			chickenEvent("airWave", cCount)
-		elseif config.useWaveMsg then
+		-- if waveType == "air" and cCount > 0 then
+		-- 	chickenEvent("airWave", cCount)
+		-- elseif config.useWaveMsg then
+		-- 	chickenEvent("wave", cCount)
+		-- end
+		if config.useWaveMsg then
 			chickenEvent("wave", cCount)
 		end
 		return cCount
@@ -1407,14 +1427,14 @@ if gadgetHandler:IsSyncedCode() then
 				-- 	size = "m"
 				-- 	eggValue = 200
 				-- end
-				local eggValue = 100
+				local eggValue = 200
 				local size = "s"
-				if targetEggValue - totalEggValue > 1500 then
+				if targetEggValue - totalEggValue > 8000 then
 					size = "l"
-					eggValue = 500
-				elseif targetEggValue - totalEggValue > 600 then
+					eggValue = 2000
+				elseif targetEggValue - totalEggValue > 2000 then
 					size = "m"
-					eggValue = 200
+					eggValue = 500
 				end
 				totalEggValue = totalEggValue + eggValue
 				if config.chickenEggs[name] and config.chickenEggs[name] ~= "" then
@@ -1495,23 +1515,26 @@ if gadgetHandler:IsSyncedCode() then
 			playerAgression = playerAgression*0.995
 			playerAgressionLevel = math.floor(playerAgression)
 			SetGameRulesParam("chickenPlayerAgressionLevel", playerAgressionLevel)
-			currentMaxWaveSize = (minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))
+			if not queenID then
+				currentMaxWaveSize = (minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))
+			else
+				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*0.25)
+			end
 			if t < config.gracePeriod then
 				queenAnger = 0
 				techAnger = 0
 				minBurrows = SetCount(humanTeams)
 			else
+				if pastFirstQueen then
+					techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((queenTime/Spring.GetModOptions().chicken_queentimemult) - config.gracePeriod) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 999), 0)
+				else
+					techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().chicken_graceperiodmult)) / ((queenTime/Spring.GetModOptions().chicken_queentimemult) - (config.gracePeriod/Spring.GetModOptions().chicken_graceperiodmult)) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 999), 0)
+				end
 				if not queenID then
 					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + queenAngerAgressionLevel, 100), 0)
-					if pastFirstQueen then
-						techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 100), 0)
-					else
-						techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().chicken_graceperiodmult)) / (queenTime - (config.gracePeriod/Spring.GetModOptions().chicken_graceperiodmult)) * 100) - (playerAgressionLevel*1) + queenAngerAgressionLevel, 100), 0)
-					end
 					minBurrows = SetCount(humanTeams)
 				else
 					queenAnger = 100
-					techAnger = 100
 					minBurrows = 1
 				end
 				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgression*0.01)/(config.queenTime/3600)) + playerAgressionEcoValue
@@ -1628,7 +1651,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
 		if unitTeam == chickenTeamID then
-			if config.useEggs then
+			if config.useEggs and (not (gameIsOver or queenID)) then
 				local x,y,z = Spring.GetUnitPosition(unitID)
 				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 1)
 			end
@@ -1689,7 +1712,7 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				gameOver = GetGameFrame() + 200
 				spawnQueue = {}
-
+				gameIsOver = true
 				-- kill whole allyteam  (game_end gadget will destroy leftover units)
 				if not killedChickensAllyTeam then
 					killedChickensAllyTeam = true

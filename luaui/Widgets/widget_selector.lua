@@ -809,10 +809,6 @@ function widget:MousePress(x, y, button)
 	local titleClick = (titleRect and math.isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]))
 	local chatinputClick = (chatInputArea and math.isInRect(x, y, chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4]))
 
-
-	if windowClick or titleClick or chatinputClick then
-		Spring.Echo(os.clock(), 'aa', button)
-	end
 	if button == 1 then
 		-- above a button
 		if showButtons then
@@ -1040,7 +1036,17 @@ function widget:TextCommand(s)
 	if n == 1 and token[1] == "factoryreset" then
 		-- tell the widget handler to disallow user widgets and reload with a blank config
 		widgetHandler.__blankOutConfig = true
-		widgetHandler.__allowUserWidgets = false
+		--widgetHandler.__allowUserWidgets = false
+		Spring.SendCommands("luarules reloadluaui")
+	end
+	if n == 1 and token[1] == "userwidgets" then
+		if widgetHandler.allowUserWidgets then
+			widgetHandler.__allowUserWidgets = false
+			Spring.Echo("Disallowed user widgets, reloading...")
+		else
+			widgetHandler.__allowUserWidgets = true
+			Spring.Echo("Allowed user widgets, reloading...")
+		end
 		Spring.SendCommands("luarules reloadluaui")
 	end
 end

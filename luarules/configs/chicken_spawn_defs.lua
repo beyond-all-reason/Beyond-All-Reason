@@ -15,22 +15,22 @@ local burrowName = 'chicken_hive'
 local chickenTurrets
 if not Spring.GetModOptions().unit_restrictions_nonukes then
 	chickenTurrets = {
-		["chicken_turrets"] 			= { minQueenAnger = 0, 		spawnedPerWave = 4,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
-		["chicken_turrets_antiair"] 	= { minQueenAnger = 0, 		spawnedPerWave = 4,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
-		["chicken_turrets_acid"] 		= { minQueenAnger = 25, 	spawnedPerWave = 2,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
-		["chicken_turrets_electric"] 	= { minQueenAnger = 25, 	spawnedPerWave = 2,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
+		["chicken_turrets"] 			= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,},
+		["chicken_turrets_antiair"] 	= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,},
+		["chicken_turrets_acid"] 		= { minQueenAnger = 25, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 75,},
+		["chicken_turrets_electric"] 	= { minQueenAnger = 25, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 75,},
 		["chicken_turretl"] 			= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
 		["chicken_turretl_antiair"] 	= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
 		["chicken_turretl_acid"] 		= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
 		["chicken_turretl_electric"] 	= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
-		["chicken_turretxl_meteor"]		= { minQueenAnger = 75, 	spawnedPerWave = 2,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
+		["chicken_turretxl_meteor"]		= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
 	}
 else
 	chickenTurrets = {
-		["chicken_turrets"] 			= { minQueenAnger = 0, 		spawnedPerWave = 4,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
-		["chicken_turrets_antiair"] 	= { minQueenAnger = 0, 		spawnedPerWave = 4,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
-		["chicken_turrets_acid"] 		= { minQueenAnger = 25, 	spawnedPerWave = 2,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
-		["chicken_turrets_electric"] 	= { minQueenAnger = 25, 	spawnedPerWave = 2,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
+		["chicken_turrets"] 			= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,},
+		["chicken_turrets_antiair"] 	= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,},
+		["chicken_turrets_acid"] 		= { minQueenAnger = 25, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 75,},
+		["chicken_turrets_electric"] 	= { minQueenAnger = 25, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 75,},
 		["chicken_turretl"] 			= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
 		["chicken_turretl_antiair"] 	= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
 		["chicken_turretl_acid"] 		= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
@@ -407,7 +407,7 @@ local function addNewSquad(squadParams) -- params: {type = "basic", minAnger = 0
 	if squadParams then -- Just in case
 		if not squadParams.units then return end
 		if not squadParams.minAnger then squadParams.minAnger = 0 end
-		if not squadParams.maxAnger then squadParams.maxAnger = 100 end -- Eliminate squads 50% after they're introduced by default, can be overwritten
+		if not squadParams.maxAnger then squadParams.maxAnger = 100 end -- Eliminate squads 100% after they're introduced by default, can be overwritten
 		if squadParams.maxAnger >= 100 then squadParams.maxAnger = 1000 end -- basically infinite
 		if not squadParams.weight then squadParams.weight = 1 end
 
@@ -558,6 +558,14 @@ addNewSquad({ type = "basic", minAnger = 65, units = { "1 chickena2b" }, maxAnge
 -------------
 -- Special --
 -------------
+addNewSquad({ type = "special", minAnger = 0, units = { "1 chicken1" }, maxAnger = 15 })
+addNewSquad({ type = "special", minAnger = 0, units = { "1 chicken1b" }, maxAnger = 15 })
+addNewSquad({ type = "special", minAnger = 0, units = { "1 chicken1c" }, maxAnger = 15 })
+addNewSquad({ type = "special", minAnger = 0, units = { "1 chicken1d" }, maxAnger = 15 })
+
+addNewSquad({ type = "special", minAnger = 10, units = { "1 chicken1x" }, maxAnger = 25 })
+addNewSquad({ type = "special", minAnger = 10, units = { "1 chicken1y" }, maxAnger = 25 })
+addNewSquad({ type = "special", minAnger = 10, units = { "1 chicken1z" }, maxAnger = 25 })
 
 addNewSquad({ type = "special", minAnger = 20, units = { "5 chickenp1" } })
 addNewSquad({ type = "special", minAnger = 20, units = { "3 chickene1" } })

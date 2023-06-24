@@ -434,7 +434,7 @@ local function createList()
 		drawlist[5] = glCreateList( function()
 			RectRound(left, bottom, right, top, elementCorner, 1,0,0,1)
 		end)
-		WG['guishader'].InsertDlist(drawlist[5], 'music')
+		WG['guishader'].InsertDlist(drawlist[5], 'music', true)
 	end
 	drawlist[1] = glCreateList( function()
 		UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1)
@@ -530,18 +530,20 @@ local function createList()
 end
 
 local function updatePosition(force)
+	local prevPos = advplayerlistPos
 	if WG['advplayerlist_api'] ~= nil then
-		local prevPos = advplayerlistPos
-		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-
-		left = advplayerlistPos[2]
-		bottom = advplayerlistPos[1]
-		right = advplayerlistPos[4]
-		top = math.ceil(advplayerlistPos[1]+(widgetHeight * advplayerlistPos[5]))
-		widgetScale = advplayerlistPos[5]
-		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
-			createList()
-		end
+		advplayerlistPos = WG['advplayerlist_api'].GetPosition()
+	else
+		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
+		advplayerlistPos = {0,vsx-(220*scale),0,vsx,scale}
+	end
+	left = advplayerlistPos[2]
+	bottom = advplayerlistPos[1]
+	right = advplayerlistPos[4]
+	top = math.ceil(advplayerlistPos[1]+(widgetHeight * advplayerlistPos[5]))
+	widgetScale = advplayerlistPos[5]
+	if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
+		createList()
 	end
 end
 

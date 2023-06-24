@@ -90,17 +90,17 @@ local function addUnitShape(unitID)
 				a = a * teamColorAlphaMult
 			end
 		end
-		
-		if highlightunitID or highlightID then 
+
+		if highlightunitID or highlightID then
 			removeUnitShape()
 		end
-		
+
 		highlightunitID = unitID
-		highlightID =  WG.HighlightUnitGL4(unitID, 'unitID', r,g,b, a, 
-				(unitIsSelected and selectedEdgeAlpha or edgeAlpha), 
-				(unitIsSelected and selectedEdgeExponent or edgeExponent), 
+		highlightID =  WG.HighlightUnitGL4(unitID, 'unitID', r,g,b, a,
+				(unitIsSelected and selectedEdgeAlpha or edgeAlpha),
+				(unitIsSelected and selectedEdgeExponent or edgeExponent),
 				(unitIsSelected and selectedAnimationAlpha or animationAlpha),
-				0,0,0,0,"mouseover") 
+				0,0,0,0,"mouseover")
 		return highlightID
 	end
 end
@@ -109,7 +109,7 @@ end
 local function processSelection()
 	local prevUnitIsSelected = unitIsSelected
 	unitIsSelected = isUnitSelected(highlightunitID)
-	if highlightunitID and unitIsSelected ~= prevUnitIsSelected then  
+	if highlightunitID and unitIsSelected ~= prevUnitIsSelected then
 		addUnitShape(highlightunitID)
 	end
 end
@@ -131,7 +131,7 @@ function widget:VisibleUnitRemoved(unitID) -- E.g. when a unit dies
 	visibleUnits[unitID] = nil
 end
 
-function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) 
+function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	-- Called when players are changed, better remove all of them now!
 	visibleUnits = {}
 	for unitID, unitDefID in pairs(extVisibleUnits) do
@@ -146,8 +146,8 @@ end
 
 function widget:Update()
 	if WG.StopHighlightUnitGL4 then
-		local mx, my = spGetMouseState()
-		if mx == math.ceil(vsx/2) and my+1 == math.ceil(vsy/2) then	-- dont highlight unit when cursor is in center and we're likely camera-panning (cause I dont know how to detect that)
+		local mx, my, _, mmb, _, mouseOffScreen, cameraPanMode  = spGetMouseState()
+		if mouseOffScreen or cameraPanMode or mmb then
 			removeUnitShape()
 		else
 			local type, data = spTraceScreenRay(mx, my)
@@ -161,7 +161,7 @@ function widget:Update()
 				removeUnitShape()
 			end
 
-		end	
+		end
 	end
 end
 

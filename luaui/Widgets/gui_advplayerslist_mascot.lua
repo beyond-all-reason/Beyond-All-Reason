@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author		= "Floris",
 		date		= "23 may 2015",
 		license		= "GNU GPL, v2 or later",
-		layer		= -2,			-- set to -5 to draw mascot on top of advplayerlist
+		layer		= 0,
 		enabled		= false,
 	}
 end
@@ -190,26 +190,27 @@ end
 local parentPos = {}
 local positionChange = os.clock()
 function updatePosition(force)
-	if (WG['advplayerlist_api'] ~= nil) then
-		local prevPos = parentPos
-		if WG['displayinfo'] ~= nil then
-			parentPos = WG['displayinfo'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		elseif WG['unittotals'] ~= nil then
-			parentPos = WG['unittotals'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		elseif WG['music'] ~= nil then
-			parentPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		else
-			parentPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		end
-		if parentPos[5] ~= nil then
-			usedImgSize = OPTIONS[currentOption]['imageSize'] * parentPos[5]
-			xPos = parentPos[2]+(usedImgSize/2) + (OPTIONS[currentOption]['xOffset'] * parentPos[5])
-			yPos = parentPos[1]+(usedImgSize/2) + (OPTIONS[currentOption]['yOffset'] * parentPos[5])
-			positionChange = os.clock()
+	local prevPos = parentPos
+	if WG['displayinfo'] ~= nil then
+		parentPos = WG['displayinfo'].GetPosition()
+	elseif WG['unittotals'] ~= nil then
+		parentPos = WG['unittotals'].GetPosition()
+	elseif WG['music'] ~= nil then
+		parentPos = WG['music'].GetPosition()
+	elseif WG['advplayerlist_api'] ~= nil then
+		parentPos = WG['advplayerlist_api'].GetPosition()
+	else
+		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
+		parentPos = {0,vsx-(220*scale),0,vsx,scale}
+	end
+	if parentPos[5] ~= nil then
+		usedImgSize = OPTIONS[currentOption]['imageSize'] * parentPos[5]
+		xPos = parentPos[2]+(usedImgSize/2) + (OPTIONS[currentOption]['xOffset'] * parentPos[5])
+		yPos = parentPos[1]+(usedImgSize/2) + (OPTIONS[currentOption]['yOffset'] * parentPos[5])
+		positionChange = os.clock()
 
-			if (prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5]) or force then
-				createList(usedImgSize)
-			end
+		if (prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5]) or force then
+			createList(usedImgSize)
 		end
 	end
 end

@@ -49,6 +49,8 @@
 -- add arbitrary splitting, and better configability of atlas
 -- Add CustomTask for drawing mixed mode stuff, which should draw a display list (or even just a function, just like a display list?)
 -- Centering/Labeling: So for this case, we should try to draw centered, onto a given sized part of the atlas!
+-- do centering despite padding for the outline!
+-- maybe pad should be 8th param of uvcoords?
 -- Fix font color tracking
 -- Add a return value for fonts that show the descender line, to consistently be able to position fontses // https://springrts.com/wiki/GetTextHeight
 
@@ -191,10 +193,15 @@ local function MakeAtlasOnDemand(config)
 		end
 	end 
 	local GL_RGBA = 0x1908
+	local GL_TEXTURE_2D_MULTISAMPLE = 0x9100
 	AtlasOnDemand.texProps = config.texProps or {
 		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		--min_filter = GL.NEAREST, mag_filter = GL.NEAREST,
-		wrap_s = GL.CLAMP, wrap_t = GL.CLAMP, format = GL_RGBA}
+		wrap_s = GL.CLAMP, wrap_t = GL.CLAMP, format = GL_RGBA, 
+		
+        --target = GL_TEXTURE_2D_MULTISAMPLE,
+		--samples = 1,
+		}
 	AtlasOnDemand.texProps.fbo = true -- need so that we can RenderToTexture it
 	AtlasOnDemand.textureID = gl.CreateTexture(config.sizex, config.sizey, AtlasOnDemand.texProps)
 
@@ -260,14 +267,14 @@ local function MakeAtlasOnDemand(config)
 				-- create render task
 				local task = {id =id, w = xsize, h =  ysize, x = (xpos-1) * xresolution, y = (ypos-1) * yresolution}
 				local uvcoords = {
-					(xpos -1 ) / self.xslots + self.padx *0,
+					x = (xpos -1 ) / self.xslots + self.padx *0,
 					--(xpos + xstep - 1) / self.xslots - self.padx *0, -- this is incorrect, it should be up the extents only
-					(xpos -1 ) / self.xslots + self.padx *0 + xsize/self.xsize,
+					X = (xpos -1 ) / self.xslots + self.padx *0 + xsize/self.xsize,
 
-					(ypos  -1)  / self.yslots + self.pady *0,
-					(ypos  -1 ) / self.yslots - self.pady *0 + ysize/self.ysize,
+					y = (ypos  -1)  / self.yslots + self.pady *0,
+					Y = (ypos  -1 ) / self.yslots - self.pady *0 + ysize/self.ysize,
 					--(ypos + ystep -1 ) / self.yslots - self.pady *0,
-					xsize, ysize,
+					w = xsize, h = ysize, id = id,
 				}
 				-- Add it to uvcoords map
 				self.uvcoords[id] = uvcoords
@@ -321,7 +328,7 @@ local function MakeAtlasOnDemand(config)
 		else
 			local texInfo = gl.TextureInfo(image)
 			if texInfo and (texInfo.xsize ~= xsize or texInfo.ysize ~= ysize) then 
-				Spring.Echo(string.format("AtlasOnDemand %s Warning: image %s size does not match %dx%d given, %dx%d from TextureInfo", self.name, tostring(image), xsize, ysize, texInfo.xsize, texInfo.ysize))	
+				Spring.Echo(string.format("AtlasOnDemand %s Warning: image %s size does not match %dx%d given, %dx%d from TextureInfo", self.name, tostring(image), xsize or -1, ysize or -1, texInfo.xsize, texInfo.ysize))	
 				if xsize == nil then xsize = texInfo.xsize end 
 				if ysize == nil then ysize = texInfo.ysize end 
 			end
@@ -353,7 +360,7 @@ local function MakeAtlasOnDemand(config)
 			else
 				if not self.defaultfont then 
 					Spring.Echo(string.format("AtlasOnDemand %s Warning: text %s without font cannot be added because atlas has no default font set", self.name, tostring(id)))
-					self.uvcoords[text] = {0,1,0,1,1,1} -- add a fallback so we only warn once per item
+					self.uvcoords[text] = {x = 0,X = 1,y = 0,Y = 1,w = 1,h = 1, id = id} -- add a fallback so we only warn once per item
 					return self.uvcoords[text]
 				else
 					-- we have a default font 
@@ -409,9 +416,9 @@ local function MakeAtlasOnDemand(config)
 		-- Height needs to take into account outlines as well! (and maybe even
 		local textheight, textdescender, numlines = textparams.font:GetTextHeight(textparams.text) -- See https://springrts.com/wiki/GetTextHeight
 		local height = math.ceil((textheight + textdescender) * textparams.size)
-		textdescender = textdescender * textparams.size
-		if self.debug then Spring.Echo(string.format("Pre adjusted textsize for %s at size %d is w=%d h=%d", textparams.text, textparams.size, width,height )) end
-		local pad = 0
+		textdescender = -1 * textdescender * textparams.size -- descender is negative for 'b' ?
+		if self.debug then Spring.Echo(string.format("Pre adjusted textsize for %s at size %d is w=%d h=%d descender=%d", textparams.text, textparams.size, width, height, textdescender)) end
+		local pad = 1
 		if string.find(textparams.options ,'o', nil, true) then 
 			textparams.options = textparams.options .. 'o'
 			pad = math.ceil(textparams.font.outlinewidth/2)
@@ -426,18 +433,18 @@ local function MakeAtlasOnDemand(config)
 		textparams.pad = pad + textparams.pad
 		pad = textparams.pad
 		width = width + 2*pad
-		height = height + 2*pad
-		textdescender = math.ceil(textdescender + pad)
+		height = height + 2*pad + textdescender
+		textdescender = math.round(textdescender + pad,0)
 		local vsx, vsy = Spring.GetViewGeometry()
 		
-		if self.debug then Spring.Echo(string.format("AddText Size: %s, size=%d, w=%d h=%d d=%d", textparams.text, textparams.size, width, height, textdescender)) end
+		if self.debug then Spring.Echo(string.format('AddText: "%s", size=%d, w=%d h=%d d=%d pad =%f', textparams.text, textparams.size, width, height, textdescender, pad)) end
 		
 		local uvcoords, task = self:ReserveSpace(textparams.id, width, height)
 		if task then 
 			task.textparams = textparams
 			self.renderTextTaskList[#self.renderTextTaskList + 1 ] = task 
 		end
-		uvcoords[7] = textdescender
+		uvcoords.d = textdescender
 		self.uvcoords[textparams.id] = uvcoords
 		return uvcoords
 	end
@@ -448,10 +455,10 @@ local function MakeAtlasOnDemand(config)
 	-- @param id the identifier of the item, needed for clearing its uv coordinate cache
 	function AtlasOnDemand:RemoveFromAtlas(uvcoords, id)
 		-- since it kinda has to by dynamic, it would be nice if we could mark some space as free on this
-		local xmin = math.floor(uvcoords[1] * self.xslots)
-		local xmax =  math.ceil(uvcoords[2] * self.xslots)
-		local ymin = math.floor(uvcoords[3] * self.xslots)
-		local ymax =  math.ceil(uvcoords[4] * self.xslots)
+		local xmin = math.floor(uvcoords.x * self.xslots)
+		local xmax =  math.ceil(uvcoords.X * self.xslots)
+		local ymin = math.floor(uvcoords.y * self.xslots)
+		local ymax =  math.ceil(uvcoords.Y * self.xslots)
 		for x = xmin, xmax -1 do 
 			self.firstemptyrow = math.min(self.firstemptyrow, x)
 			for y = ymin, ymax -1 do 
@@ -513,7 +520,9 @@ local function MakeAtlasOnDemand(config)
 		gl.PushMatrix()
 		local xscale = self.xsize
 		local yscale = self.ysize
-		gl.Scale(1/xscale, 1/yscale, 1/yscale) 
+		-- The next two operators translate the [-1;1] NDC space into the self.xsize and self.ysize dimensions, I dont think Z needs scaling, but it doesnt matter really
+		gl.Translate(-1,-1,0) -- translate to -1 so that NDC is now in [0;2] space
+		gl.Scale(2/xscale, 2/yscale, 2/yscale) -- scale so that it should now be in [self.xsize,self.ysize] space
 		for i, task in ipairs(taskList) do 
 			local textparams = task.textparams
 			if currentParams.font ~= textparams.font then 
@@ -564,21 +573,49 @@ local function MakeAtlasOnDemand(config)
 			end
 	
 
-			local x = ((task.x + textparams.pad)/self.xsize -0.5 ) * 2 *xscale
-			local y = ((task.y + textparams.pad)/self.ysize -0.5 ) * 2 *yscale
+			local x = (task.x + textparams.pad)
+			local y = (task.y + textparams.pad) 
 			--x = task.x * 0.01
 			--y = task.y * 0.01
 			-- TODO: fix alignment!
+			
+			-- So, a big problem seems to be using fonts that are not size-allocated correctly!
 			if self.debug then 
-				string.format("Task params: id = %s w=%d h=%d x=%d y=%d", task.id,task.w,task.h,task.x,task.y)
-				Spring.Echo(string.format("Task params: id = %s w=%d h=%d x=%d y=%d", task.id,task.w,task.h,task.x,task.y))
-				Spring.Echo("renderText:",textparams.text, x,y,textparams.size, textparams.options)
+				
+				Spring.Echo(string.format("Task params: id = %s w=%.3f h=%.3f x=%.3f y=%.3f", task.id,task.w,task.h,task.x,task.y))
+				Spring.Echo(string.format("renderText: text = %s, x = %f, y = %.3f, size = %.3f, opts = %s",textparams.text, x,y,textparams.size, textparams.options))
 			end
-			local fscale = 2 -- FREAKING WHY?
-			font:Print(textparams.text, x,y,fscale * textparams.size, textparams.options)
+			font:Print(textparams.text, x,y, textparams.size, textparams.options)
+			--font:Print(textparams.text, x,y, 36, textparams.options..'')
 		end
 		currentParams.font:End()
 		gl.PopMatrix()
+	end
+	
+	--- this is a funny func, hijacks a common misspelling
+	-- @param id the id of the text element. Better be freaking unique
+	-- @param x x pos of left of text
+	-- @param y y pos of bottom line of text (note that its without descender and padding)
+	-- @param align x alignment override, one of 'c', 'r', 'l'
+	function AtlasOnDemand:TextRect(id,x,y, align)
+			local uvcoords = self.uvcoords[id]
+			if not uvcoords then 
+				Spring.Echo("AtlasOnDemand:TextRect cannot find id", id)
+				return
+			end
+			local ypos = y
+			local xpos = x
+			if align then
+				if align == 'c' then 
+						gl.TexRect(x - uvcoords.w/2,y - uvcoords.d, x + uvcoords.w/2, y + uvcoords.h - uvcoords.d,uvcoords.x, uvcoords.y, uvcoords.X, uvcoords.Y)
+
+				elseif align == 'r' then 
+						gl.TexRect(x - uvcoords.w,y - uvcoords.d, x, y + uvcoords.h - uvcoords.d,uvcoords.x, uvcoords.y, uvcoords.X, uvcoords.Y)
+				end
+			else
+				--Spring.Echo(id,x,y,uvcoords.w, uvcoords.h )
+				gl.TexRect(x,y - uvcoords.d, x + uvcoords.w, y + uvcoords.h - uvcoords.d,uvcoords.x, uvcoords.y, uvcoords.X, uvcoords.Y)
+			end
 	end
 
 	---Perform the render target switch and draw all pending tasks
@@ -621,21 +658,23 @@ local function MakeAtlasOnDemand(config)
 		else
 			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- 
 		end
+		
+		gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA) -- 
  
 		gl.Texture(0, self.textureID)
-		local o = 10
 		--o = o + math.sin(Spring.GetDrawFrame()*0.01)
 		local vsx, vsy = Spring.GetViewGeometry()
+		local o = 10
+		
 		gl.TexRect(o,o,math.min(vsx - o, self.xsize + o), math.min(vsy-o,self.ysize + o), 0,0,1,1)
 		
 		if aliastest then 
 			local aliasUV = self.uvcoords[self.aliasing_grid_test_image]
-			Spring.Echo( aliasUV[1],aliasUV[3],aliasUV[2],aliasUV[4],aliasUV[5],aliasUV[6])
-			local x, X, y, Y, w, h = aliasUV[1],aliasUV[2],aliasUV[3],aliasUV[4],aliasUV[5],aliasUV[6],aliasUV[5],aliasUV[6]
+			Spring.Echo( aliasUV.x,aliasUV.y,aliasUV.X,aliasUV.Y,aliasUV.w,aliasUV.h)
 			local xs = 0
 			for i =1, 6 do
-				gl.TexRect(xs, vsy - i * h, xs + i*w, vsy, x,y, X, Y)
-				xs = xs + i * w
+				gl.TexRect(xs, vsy - i * aliasUV.h, xs + i*aliasUV.w, vsy, aliasUV.x,aliasUV.y, aliasUV.X, aliasUV.Y)
+				xs = xs + i * aliasUV.w
 			end
 		end
 		

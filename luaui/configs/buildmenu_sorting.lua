@@ -57,6 +57,7 @@ local unitOrderTable = {
 	['corfast']        = 003200,
 
 	['armconsul']      = 003300, --VEH
+	['corprinter']     = 003325, --VEH
 	['corforge']       = 003350, --VEH
 
 	['armmls']         = 003400, --SHIP
@@ -185,6 +186,7 @@ local unitOrderTable = {
 	['legstr']         = 006105,
 	['corpyro']        = 006110,
 	['armlatnk']       = 006120,
+	['cortorch']       = 006125,
 	['legmrv']         = 006130,
 
 	['armzeus']        = 006300, --MAIN BATTLE

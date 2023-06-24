@@ -370,8 +370,8 @@ local function InitializeSpots(mSpots)
 				local gh = Spring.GetGroundHeight(spot.x, spot.z)
 				pushElementInstance(spotInstanceVBO, -- vbo
 						{spot.x, gh, spot.z, scale,
-						(occupied and 0) or 1, -1000,uvcoords[5],uvcoords[6], 
-						uvcoords[1],uvcoords[2],uvcoords[3],uvcoords[4]}, -- instanceData
+						(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h, 
+						uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
 					instanceID, -- instanceID
 					true, -- updateExisting
 					true -- noUpload
@@ -396,8 +396,8 @@ local function UpdateSpotValues() -- This will only get called on playerchanged
 			
 			pushElementInstance(spotInstanceVBO, -- vbo
 					{spot.x, spot.y, spot.z, spot.scale,
-					(occupied and 0) or 1, -1000,uvcoords[5],uvcoords[6], 
-					uvcoords[1],uvcoords[2],uvcoords[3],uvcoords[4]}, -- instanceData
+					(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h, 
+					uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
 				spot.instanceID, -- instanceID
 				true, -- updateExisting
 				true -- noUpload
