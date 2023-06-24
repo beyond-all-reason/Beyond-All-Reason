@@ -558,6 +558,14 @@ addNewSquad({ type = "basic", minAnger = 65, units = { "1 chickena2b" }, maxAnge
 -------------
 -- Special --
 -------------
+addNewSquad({ type = "special", minAnger = 0, units = { "1 chicken1" }, maxAnger = 15 })
+addNewSquad({ type = "special", minAnger = 0, units = { "1 chicken1b" }, maxAnger = 15 })
+addNewSquad({ type = "special", minAnger = 0, units = { "1 chicken1c" }, maxAnger = 15 })
+addNewSquad({ type = "special", minAnger = 0, units = { "1 chicken1d" }, maxAnger = 15 })
+
+addNewSquad({ type = "special", minAnger = 10, units = { "1 chicken1x" }, maxAnger = 25 })
+addNewSquad({ type = "special", minAnger = 10, units = { "1 chicken1y" }, maxAnger = 25 })
+addNewSquad({ type = "special", minAnger = 10, units = { "1 chicken1z" }, maxAnger = 25 })
 
 addNewSquad({ type = "special", minAnger = 20, units = { "5 chickenp1" } })
 addNewSquad({ type = "special", minAnger = 20, units = { "3 chickene1" } })

@@ -197,43 +197,43 @@ function HandleLevelUps()
 		if hp and hp > 1 and (Spring.GetUnitIsDead(unitID) == false) then
 			local fxp = Spring.GetUnitExperience(unitID)
 			local realxp = 100 * fxp
-		if realxp > 70 and level == 17 then
-			LevelUpStats(17)
-		elseif realxp > 55 and level == 16 then
-			LevelUpStats(16)
-		elseif realxp > 45 and level == 15 then
-			LevelUpStats(15)
-		elseif realxp > 40 and level == 14 then
-			LevelUpStats(14)
-		elseif realxp > 35 and level == 13 then
-			LevelUpStats(13)
-		elseif realxp > 30 and level == 12 then
-			LevelUpStats(12)
-		elseif realxp > 25 and level == 11 then
-			LevelUpStats(11)			
-		elseif realxp > 21 and level == 10 then
-			LevelUpStats(10)
-		elseif realxp > 18 and level == 9 then
-			LevelUpStats(9)
-		elseif realxp > 14 and level == 8 then
-			LevelUpStats(8)
-		elseif realxp > 12 and level == 7 then
-			LevelUpStats(7)
-		elseif realxp > 10 and level == 6 then
-			LevelUpStats(6)
-		elseif realxp > 7 and level == 5 then
-			LevelUpStats(5)
-		elseif realxp > 5 and level == 4 then
-			LevelUpStats(4)
-		elseif realxp > 3 and level == 3 then
-			LevelUpStats(3)
-		elseif realxp > 2 and level == 2 then
-			LevelUpStats(2)
-		elseif realxp > 1 and level == 1 then
-			LevelUpStats(1)
-		elseif realxp >= 0 and level == 0 then
-			LevelUpStats(0)
-		end
+			if realxp > 230 and level == 17 then
+				LevelUpStats(17)
+			elseif realxp > 204 and level == 16 then
+				LevelUpStats(16)
+			elseif realxp > 180 and level == 15 then
+				LevelUpStats(15)
+			elseif realxp > 158 and level == 14 then
+				LevelUpStats(14)
+			elseif realxp > 137 and level == 13 then
+				LevelUpStats(13)
+			elseif realxp > 117 and level == 12 then
+				LevelUpStats(12)
+			elseif realxp > 99 and level == 11 then
+				LevelUpStats(11)			
+			elseif realxp > 83 and level == 10 then
+				LevelUpStats(10)
+			elseif realxp > 68 and level == 9 then
+				LevelUpStats(9)
+			elseif realxp > 54 and level == 8 then
+				LevelUpStats(8)
+			elseif realxp > 42 and level == 7 then
+				LevelUpStats(7)
+			elseif realxp > 32 and level == 6 then
+				LevelUpStats(6)
+			elseif realxp > 23 and level == 5 then
+				LevelUpStats(5)
+			elseif realxp > 15 and level == 4 then
+				LevelUpStats(4)
+			elseif realxp > 9 and level == 3 then
+				LevelUpStats(3)
+			elseif realxp > 5 and level == 2 then
+				LevelUpStats(2)
+			elseif realxp > 2 and level == 1 then
+				LevelUpStats(1)
+			elseif realxp >= 0 and level == 0 then
+				LevelUpStats(0)
+			end
 		end
 Sleep(1)
 end
@@ -267,7 +267,10 @@ if ValidID(unitID) then
 	if curMoveCtrl then
 		Spring.MoveCtrl.Disable(unitID)
 	end
-	Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", corMoveSpeed[level]*30)
+	--if corMoveSpeed[level] then
+		Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", math.ceil(levelMoveSpeedCortex[level]*30))
+		Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxWantedSpeed", math.ceil(levelMoveSpeedCortex[level]*30))
+	--end
 	if curMoveCtrl then
 		Spring.MoveCtrl.Enable(unitID)
 	end
@@ -539,7 +542,7 @@ function walk()
 			turn(torso, 1, 0.011484, 15.494713 / animSpeed)
 			turn(torso, 3, -2.604197, 78.125917 / animSpeed)
 			turn(torso, 2, -11.687500, 159.374994 / animSpeed)
-		Sleep((33*animSpeed) -1)
+			Sleep((33*animSpeed) -1)
 		end
 		if (bMoving) then --Frame:18
 
@@ -687,7 +690,7 @@ function walk()
 			turn(torso, 1, -0.000000, 18.435316 / animSpeed)
 			turn(torso, 3, 2.154603, 64.638097 / animSpeed)
 			turn(torso, 2, 11.687500, 159.374994 / animSpeed)
-		Sleep((33*animSpeed) -1)
+			Sleep((33*animSpeed) -1)
 		end
 		if (bMoving) then --Frame:42
 			if (rightArm) then turn(biggun, 1, 0.000000, 144.375003 / animSpeed)  end
@@ -723,7 +726,7 @@ function walk()
 			turn(torso, 1, 7.296131, 218.883930 / animSpeed)
 			turn(torso, 3, 0.804385, 40.506543 / animSpeed)
 			turn(torso, 2, -0.000001, 350.625002 / animSpeed)
-		Sleep((33*animSpeed) -1)
+			Sleep((33*animSpeed) -1)
 		end
 		if (bMoving) then --Frame:48
 			if not Spring.GetUnitIsCloaked(unitID) then
@@ -763,7 +766,7 @@ function walk()
 			turn(torso, 1, 2.755654, 136.214300 / animSpeed)
 			turn(torso, 3, 0.258552, 16.374982 / animSpeed)
 			turn(torso, 2, -11.687500, 350.624996 / animSpeed)
-		Sleep((33*animSpeed) -1)
+			Sleep((33*animSpeed) -1)
 		end
 		if (bMoving) then --Frame:54
 			if (rightArm) then turn(biggun, 1, 7.000000, 65.625012 / animSpeed)  end
@@ -799,7 +802,7 @@ function walk()
 			turn(torso, 1, 0.527975, 66.830393 / animSpeed)
 			turn(torso, 3, -0.000000, 7.756572 / animSpeed)
 			turn(torso, 2, -16.999999, 159.374968 / animSpeed)
-		Sleep((33*animSpeed) -1)
+			Sleep((33*animSpeed) -1)
 		end
 	end
 end
@@ -943,7 +946,7 @@ end
 function ResumeBuilding()
 	Sleep(800)
 	if isBuilding and not isAiming then
-		Turn(aimy1, 2, buildheading - rad(20), rad(300.000000))
+		Turn(aimy1, 2, buildHeading - rad(20), rad(300.000000))
 		Turn(aimx1, 1, rad(-20.000000) - buildpitch, rad(90.000000))
 	end
 	return (0)

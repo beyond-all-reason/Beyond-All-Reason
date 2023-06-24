@@ -199,43 +199,43 @@ function HandleLevelUps()
 		if hp and hp > 1 and (Spring.GetUnitIsDead(unitID) == false) then
 			local fxp = Spring.GetUnitExperience(unitID)
 			local realxp = 100 * fxp
-		if realxp > 70 and level == 17 then
-			LevelUpStats(17)
-		elseif realxp > 55 and level == 16 then
-			LevelUpStats(16)
-		elseif realxp > 45 and level == 15 then
-			LevelUpStats(15)
-		elseif realxp > 40 and level == 14 then
-			LevelUpStats(14)
-		elseif realxp > 35 and level == 13 then
-			LevelUpStats(13)
-		elseif realxp > 30 and level == 12 then
-			LevelUpStats(12)
-		elseif realxp > 25 and level == 11 then
-			LevelUpStats(11)			
-		elseif realxp > 21 and level == 10 then
-			LevelUpStats(10)
-		elseif realxp > 18 and level == 9 then
-			LevelUpStats(9)
-		elseif realxp > 14 and level == 8 then
-			LevelUpStats(8)
-		elseif realxp > 12 and level == 7 then
-			LevelUpStats(7)
-		elseif realxp > 10 and level == 6 then
-			LevelUpStats(6)
-		elseif realxp > 7 and level == 5 then
-			LevelUpStats(5)
-		elseif realxp > 5 and level == 4 then
-			LevelUpStats(4)
-		elseif realxp > 3 and level == 3 then
-			LevelUpStats(3)
-		elseif realxp > 2 and level == 2 then
-			LevelUpStats(2)
-		elseif realxp > 1 and level == 1 then
-			LevelUpStats(1)
-		elseif realxp >= 0 and level == 0 then
-			LevelUpStats(0)
-		end
+			if realxp > 230 and level == 17 then
+				LevelUpStats(17)
+			elseif realxp > 204 and level == 16 then
+				LevelUpStats(16)
+			elseif realxp > 180 and level == 15 then
+				LevelUpStats(15)
+			elseif realxp > 158 and level == 14 then
+				LevelUpStats(14)
+			elseif realxp > 137 and level == 13 then
+				LevelUpStats(13)
+			elseif realxp > 117 and level == 12 then
+				LevelUpStats(12)
+			elseif realxp > 99 and level == 11 then
+				LevelUpStats(11)			
+			elseif realxp > 83 and level == 10 then
+				LevelUpStats(10)
+			elseif realxp > 68 and level == 9 then
+				LevelUpStats(9)
+			elseif realxp > 54 and level == 8 then
+				LevelUpStats(8)
+			elseif realxp > 42 and level == 7 then
+				LevelUpStats(7)
+			elseif realxp > 32 and level == 6 then
+				LevelUpStats(6)
+			elseif realxp > 23 and level == 5 then
+				LevelUpStats(5)
+			elseif realxp > 15 and level == 4 then
+				LevelUpStats(4)
+			elseif realxp > 9 and level == 3 then
+				LevelUpStats(3)
+			elseif realxp > 5 and level == 2 then
+				LevelUpStats(2)
+			elseif realxp > 2 and level == 1 then
+				LevelUpStats(1)
+			elseif realxp >= 0 and level == 0 then
+				LevelUpStats(0)
+			end
 		end
 Sleep(1)
 end
@@ -269,7 +269,10 @@ if ValidID(unitID) then
 	if curMoveCtrl then
 		Spring.MoveCtrl.Disable(unitID)
 	end
-	Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", armMoveSpeed[level]*30)
+	--if armMoveSpeed[level] then
+		Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", math.ceil(levelMoveSpeedArmada[level]*30))
+		Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxWantedSpeed", math.ceil(levelMoveSpeedArmada[level]*30))
+	--end
 	if curMoveCtrl then
 		Spring.MoveCtrl.Enable(unitID)
 	end
@@ -524,7 +527,7 @@ function walk()
 				turn(torso, 1, -4.288164, 60.727696/animSpeed) --delta=2.02
 				turn(torso, 3,  1.713372, 51.401158/animSpeed) --delta=-1.71
 				turn(torso, 2, 7.879434, 236.383029/animSpeed) --delta=7.88
-			Sleep( (33*animSpeed) -1)
+				Sleep( (33*animSpeed) -1)
 		end
 		while(bMoving) do
 			if (bMoving) then --Frame:8
@@ -552,7 +555,7 @@ function walk()
 				turn(torso, 1, -3.674753, 18.402335/animSpeed) --delta=-0.61
 				turn(torso, 3,  4.188244, 74.246156/animSpeed) --delta=-2.47
 				turn(torso, 2, 13.926961, 181.425790/animSpeed) --delta=6.05
-			Sleep( (33*animSpeed) -1)
+				Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:12
 				if (leftArm) then turn(biggun, 1, -46.110552, 16.959121/animSpeed) end--delta=-0.57
@@ -579,7 +582,7 @@ function walk()
 				turn(torso, 1, -2.141225, 46.005832/animSpeed) --delta=-1.53
 				turn(torso, 3,  5.140116, 28.556180/animSpeed) --delta=-0.95
 				turn(torso, 2, 15.758869, 54.957239/animSpeed) --delta=1.83
-			Sleep( (33*animSpeed) -1)
+				Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:16
 
@@ -608,7 +611,7 @@ function walk()
 				turn(torso, 1, -3.061342, 27.603503/animSpeed) --delta=0.92
 				turn(torso, 3,  4.074019, 31.982933/animSpeed) --delta=1.07
 				turn(torso, 2, 13.926961, 54.957239/animSpeed) --delta=-1.83
-			Sleep( (33*animSpeed) -1)
+				Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:20
 				if not Spring.GetUnitIsCloaked(unitID) then
@@ -639,7 +642,7 @@ function walk()
 				turn(torso, 1, -3.981459, 27.603503/animSpeed) --delta=0.92
 				turn(torso, 3,  2.056047, 60.539158/animSpeed) --delta=2.02
 				turn(torso, 2, 7.879434, 181.425790/animSpeed) --delta=-6.05
-			Sleep( (33*animSpeed) -1)
+				Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:24
 				if (leftArm) then turn(biggun, 1, -52.006372, 80.119348/animSpeed) end--delta=2.67
@@ -668,7 +671,7 @@ function walk()
 				turn(torso, 1, -4.594870, 18.402335/animSpeed) --delta=0.61
 				turn(torso, 3,  -0.000000, 61.681404/animSpeed) --delta=2.06
 				turn(torso, 2, 0.000000, 236.383029/animSpeed) --delta=-7.88
-			Sleep( (33*animSpeed) -1)
+				Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:28
 				if (leftArm) then turn(biggun, 1, -53.142724, 34.090567/animSpeed) end--delta=1.14
@@ -697,7 +700,7 @@ function walk()
 				turn(torso, 1, -4.288164, 9.201174/animSpeed) --delta=-0.31
 				turn(torso, 3,  -2.053859, 61.615764/animSpeed) --delta=2.05
 				turn(torso, 2, -7.879434, 236.383029/animSpeed) --delta=-7.88
-			Sleep( (33*animSpeed) -1)
+				Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:32
 				if (leftArm) then turn(biggun, 1, -55.253092, 63.311038/animSpeed) end--delta=2.11
@@ -723,7 +726,7 @@ function walk()
 				turn(torso, 1, -3.674753, 18.402335/animSpeed) --delta=-0.61
 				turn(torso, 3,  -4.074748, 60.626684/animSpeed) --delta=2.02
 				turn(torso, 2, -13.926961, 181.425790/animSpeed) --delta=-6.05
-			Sleep( (33*animSpeed) -1)
+				Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:36
 
@@ -751,7 +754,7 @@ function walk()
 				turn(torso, 1, -2.141225, 46.005832/animSpeed) --delta=-1.53
 				turn(torso, 3,  -5.140116, 31.961046/animSpeed) --delta=1.07
 				turn(torso, 2, -15.758869, 54.957239/animSpeed) --delta=-1.83
-			Sleep( (33*animSpeed) -1)
+				Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:40
 
@@ -781,7 +784,7 @@ function walk()
 				turn(torso, 1, -3.061342, 27.603503/animSpeed) --delta=0.92
 				turn(torso, 3,  -4.043559, 32.896722/animSpeed) --delta=-1.10
 				turn(torso, 2, -13.926961, 54.957239/animSpeed) --delta=1.83
-			Sleep( (33*animSpeed) -1)
+				Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:44
 				if not Spring.GetUnitIsCloaked(unitID) then
@@ -812,7 +815,7 @@ function walk()
 				turn(torso, 1, -3.981459, 27.603503/animSpeed) --delta=0.92
 				turn(torso, 3,  -2.147426, 56.883980/animSpeed) --delta=-1.90
 				turn(torso, 2, -7.879434, 181.425790/animSpeed) --delta=6.05
-			Sleep( (33*animSpeed) -1)
+				Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:48
 				if (leftArm) then turn(biggun, 1, -50.493628, 80.119348/animSpeed) end--delta=-2.67
@@ -841,7 +844,7 @@ function walk()
 				turn(torso, 1, -4.594870, 18.402335/animSpeed) --delta=0.61
 				turn(torso, 3,  -0.000000, 64.422792/animSpeed) --delta=-2.15
 				turn(torso, 2, 0.000000, 236.383029/animSpeed) --delta=7.88
-			Sleep( (33*animSpeed) -1)
+				Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:52
 				if (leftArm) then turn(biggun, 1, -48.215180, 68.353460/animSpeed) end--delta=-2.28
