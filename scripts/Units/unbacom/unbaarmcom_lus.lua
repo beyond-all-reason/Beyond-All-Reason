@@ -528,7 +528,6 @@ function walk()
 				turn(torso, 3,  1.713372, 51.401158/animSpeed) --delta=-1.71
 				turn(torso, 2, 7.879434, 236.383029/animSpeed) --delta=7.88
 				Sleep( (33*animSpeed) -1)
-				Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.00001)
 		end
 		while(bMoving) do
 			if (bMoving) then --Frame:8
@@ -557,7 +556,6 @@ function walk()
 				turn(torso, 3,  4.188244, 74.246156/animSpeed) --delta=-2.47
 				turn(torso, 2, 13.926961, 181.425790/animSpeed) --delta=6.05
 				Sleep( (33*animSpeed) -1)
-				Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.00001)
 			end
 			if (bMoving) then --Frame:12
 				if (leftArm) then turn(biggun, 1, -46.110552, 16.959121/animSpeed) end--delta=-0.57
@@ -585,7 +583,6 @@ function walk()
 				turn(torso, 3,  5.140116, 28.556180/animSpeed) --delta=-0.95
 				turn(torso, 2, 15.758869, 54.957239/animSpeed) --delta=1.83
 				Sleep( (33*animSpeed) -1)
-				Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.00001)
 			end
 			if (bMoving) then --Frame:16
 
@@ -615,7 +612,6 @@ function walk()
 				turn(torso, 3,  4.074019, 31.982933/animSpeed) --delta=1.07
 				turn(torso, 2, 13.926961, 54.957239/animSpeed) --delta=-1.83
 				Sleep( (33*animSpeed) -1)
-				Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.00001)
 			end
 			if (bMoving) then --Frame:20
 				if not Spring.GetUnitIsCloaked(unitID) then
@@ -647,7 +643,6 @@ function walk()
 				turn(torso, 3,  2.056047, 60.539158/animSpeed) --delta=2.02
 				turn(torso, 2, 7.879434, 181.425790/animSpeed) --delta=-6.05
 				Sleep( (33*animSpeed) -1)
-				Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.00001)
 			end
 			if (bMoving) then --Frame:24
 				if (leftArm) then turn(biggun, 1, -52.006372, 80.119348/animSpeed) end--delta=2.67
@@ -677,7 +672,6 @@ function walk()
 				turn(torso, 3,  -0.000000, 61.681404/animSpeed) --delta=2.06
 				turn(torso, 2, 0.000000, 236.383029/animSpeed) --delta=-7.88
 				Sleep( (33*animSpeed) -1)
-				Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.00001)
 			end
 			if (bMoving) then --Frame:28
 				if (leftArm) then turn(biggun, 1, -53.142724, 34.090567/animSpeed) end--delta=1.14
@@ -707,7 +701,6 @@ function walk()
 				turn(torso, 3,  -2.053859, 61.615764/animSpeed) --delta=2.05
 				turn(torso, 2, -7.879434, 236.383029/animSpeed) --delta=-7.88
 				Sleep( (33*animSpeed) -1)
-				Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.00001)
 			end
 			if (bMoving) then --Frame:32
 				if (leftArm) then turn(biggun, 1, -55.253092, 63.311038/animSpeed) end--delta=2.11
@@ -734,7 +727,6 @@ function walk()
 				turn(torso, 3,  -4.074748, 60.626684/animSpeed) --delta=2.02
 				turn(torso, 2, -13.926961, 181.425790/animSpeed) --delta=-6.05
 				Sleep( (33*animSpeed) -1)
-				Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.00001)
 			end
 			if (bMoving) then --Frame:36
 
@@ -763,7 +755,6 @@ function walk()
 				turn(torso, 3,  -5.140116, 31.961046/animSpeed) --delta=1.07
 				turn(torso, 2, -15.758869, 54.957239/animSpeed) --delta=-1.83
 				Sleep( (33*animSpeed) -1)
-				Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.00001)
 			end
 			if (bMoving) then --Frame:40
 
@@ -794,7 +785,6 @@ function walk()
 				turn(torso, 3,  -4.043559, 32.896722/animSpeed) --delta=-1.10
 				turn(torso, 2, -13.926961, 54.957239/animSpeed) --delta=1.83
 				Sleep( (33*animSpeed) -1)
-				Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.00001)
 			end
 			if (bMoving) then --Frame:44
 				if not Spring.GetUnitIsCloaked(unitID) then
@@ -826,7 +816,6 @@ function walk()
 				turn(torso, 3,  -2.147426, 56.883980/animSpeed) --delta=-1.90
 				turn(torso, 2, -7.879434, 181.425790/animSpeed) --delta=6.05
 				Sleep( (33*animSpeed) -1)
-				Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.00001)
 			end
 			if (bMoving) then --Frame:48
 				if (leftArm) then turn(biggun, 1, -50.493628, 80.119348/animSpeed) end--delta=-2.67
@@ -856,7 +845,6 @@ function walk()
 				turn(torso, 3,  -0.000000, 64.422792/animSpeed) --delta=-2.15
 				turn(torso, 2, 0.000000, 236.383029/animSpeed) --delta=7.88
 				Sleep( (33*animSpeed) -1)
-				Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.00001)
 			end
 			if (bMoving) then --Frame:52
 				if (leftArm) then turn(biggun, 1, -48.215180, 68.353460/animSpeed) end--delta=-2.28
@@ -886,7 +874,6 @@ function walk()
 				turn(torso, 3,  1.713372, 51.401158/animSpeed) --delta=-1.71
 				turn(torso, 2, 7.879434, 236.383029/animSpeed) --delta=7.88
 				Sleep( (33*animSpeed) -1)
-				Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.0001)
 			end
 		end
 	end
