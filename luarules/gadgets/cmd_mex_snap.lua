@@ -228,7 +228,7 @@ function gadget:Initialize()
 	_G.MexSnap = {}
 	if not _G['resource_spot_finder'] or not _G['resource_spot_finder'].metalSpotsList then
 		Spring.Echo("<Snap Mex> This gadget requires the 'Metalspot Finder' gadget to run.")
-		gadgetHandler:Removegadget()
+		gadgetHandler:RemoveGadget()
 	end
 end
 
