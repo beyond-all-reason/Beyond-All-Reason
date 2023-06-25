@@ -192,6 +192,7 @@ local unitOrderTable = {
 	['armzeus']        = 006300, --MAIN BATTLE
 	['armmav']         = 006310,
 	['armbull']        = 006320,
+	['corftiger']      = 006325,
 	['correap']        = 006330,
 	['legsco']         = 006335,
 	['armmanni']       = 006340,

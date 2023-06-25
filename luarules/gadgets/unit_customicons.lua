@@ -473,6 +473,7 @@ local units = {
 	corfrad = { "radar_t1_0.9.png", 0.94499993 },
 	corfrock = { "aa.png", 0.89249998 },
 	corfrt = { "aa.png", 0.89249998 },
+	corftiger = { "vehicle_t2_tank.png", 1.46999991 },
 	corfus = { "fusion.png", 1.46999991 },
 	corgant = { "factory_gantry.png", 2.51999998 },
 	corgantuw = { "factory_gantry.png", 2.51999998 },

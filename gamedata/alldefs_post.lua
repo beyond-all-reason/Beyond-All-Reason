@@ -397,6 +397,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+1] = "corforge"
 			uDef.buildoptions[numBuildoptions+2] = "corprinter"
 			uDef.buildoptions[numBuildoptions+3] = "cortorch"
+			uDef.buildoptions[numBuildoptions+4] = "corftiger"
 		end
 	end
 
