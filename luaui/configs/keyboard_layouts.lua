@@ -76,7 +76,45 @@ scanToCode["dvorak"] = {
 	-- NEEDS CORRECTION ABOVE
 }
 
-local layouts = { 'qwerty', 'qwertz', 'azerty', 'dvorak' }
+scanToCode["colemak-dh"] = {
+	Q = "Q",
+	W = "W",
+	E = "F",
+	R = "P",
+	T = "B",
+	Y = "J",
+	U = "L",
+	I = "U",
+	O = "Y",
+	P = ";",
+	A = "A",
+	S = "R",
+	D = "S",
+	F = "T",
+	G = "G",
+	H = "M",
+	J = "N",
+	K = "E",
+	L = "I",
+	[";"] = "O",
+	Z = "Z",
+	X = "X",
+	C = "C",
+	V = "D",
+	B = "V",
+	N = "K",
+	M = "M",
+	["'"] = "'",
+	[","] = ",",
+	["."] = ".",
+	["/"] = "/",
+	["`"] = "`",
+	["-"] = "-",
+	["="] = "=",
+	["\\"] = "\\",
+}
+
+local layouts = { 'qwerty', 'qwertz', 'azerty', 'dvorak', 'colemak-dh' }
 
 local function sanitizeKey(key, layout)
 	if not (type(key) == "string") then
