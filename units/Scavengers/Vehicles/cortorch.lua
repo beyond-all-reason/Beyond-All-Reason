@@ -28,7 +28,8 @@ return {
 		objectname = "Units/scavboss/CORTORCH.s3o",
 		script = "Units/scavboss/CORTORCH.cob",
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGenericSelfd",
+		selfdestructas = "pyroselfd",
+		selfdestructcountdown = 1,
 		sightdistance = 308,
 		trackoffset = 0,
 		trackstrength = 6,
@@ -37,7 +38,7 @@ return {
 		turninplace = false,
 		--turninplaceanglelimit = 90,
 		turninplacespeedlimit = 4.7,
-		turnrate = 145.6,
+		turnrate = 364,
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "Flaka, Itanthias kitbash",
