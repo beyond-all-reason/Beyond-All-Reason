@@ -596,7 +596,7 @@ function widget:MouseRelease(mx, my, mButton)
         local _, dragDeltaPos = spTraceScreenRay(mx,my+selectionThreshold, true, false, false, true)
         local _, pos = spTraceScreenRay(mx, my, true, false, false, true)
         local dragDelta = 0
-        if dragDeltaPos then
+        if dragDeltaPos and pos then
             dragDelta = pos[3] - dragDeltaPos[3]
         end
         local adjustedMinFormationLength = max(dragDelta, minFormationLength)
