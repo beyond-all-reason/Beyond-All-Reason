@@ -23,7 +23,7 @@ return {
 		maxslope = 12,
 		maxvelocity = 4.70,
 		maxwaterdepth = 200,
-		movementclass = "MTANK2",
+		movementclass = "TANK2",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/CORTORCH.s3o",
 		script = "Units/scavboss/CORTORCH.cob",

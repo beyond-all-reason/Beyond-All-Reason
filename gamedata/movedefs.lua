@@ -102,7 +102,7 @@ local moveDatas = {
 	-- },
 	-- BOAT2 = {
 	-- 	crushstrength = 9,
-	-- 	footprintx = 2,     ------ Currently Unused
+	-- 	footprintx = 2,   
 	-- 	footprintz = 2,
 	-- 	minwaterdepth = 8,
 	-- },
@@ -180,7 +180,7 @@ local moveDatas = {
 	-- UBOAT6 = {
 	-- 	footprintx = 6,
 	-- 	footprintz = 6,
-	-- 	minwaterdepth = 15, -- Currently Unused
+	-- 	minwaterdepth = 15, 
 	-- 	crushstrength = 5,
 	-- 	subMarine = 1,
 	-- },
@@ -239,7 +239,7 @@ local moveDatas = {
 	-- lun/sokolov
 	--break line
 	--
-	-- corsok armlun
+	-- corsok armlun corthovr armthovr
 	HHOVER4 = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -251,18 +251,18 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 	-- transports
-	-- review this
-	--corthovr armthovr
-	HOVER4 = {
-		badslope = 22,
-		badwaterslope = 255,
-		crushstrength = 25,
-		footprintx = 4,
-		footprintz = 4, -- Currently Unused
-		maxslope = 22,
-		slopeMod = 18,
-		maxwaterslope = 255,
-	},
+	-- review this 
+	-- NOT USED
+	-- HOVER4 = {
+	-- 	badslope = 22,
+	-- 	badwaterslope = 255,
+	-- 	crushstrength = 25,
+	-- 	footprintx = 4,
+	-- 	footprintz = 4, -- Currently Unussed except that its costing us one move deff so it goes away now
+	-- 	maxslope = 22,
+	-- 	slopeMod = 18,
+	-- 	maxwaterslope = 255,
+	-- },
 	-- armamph
 	-- review this
 	-- armamph
@@ -290,7 +290,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- cormlv armmflash corgator legmrv armmlv leghades leghelops armfav corfav
+	-- cormlv armmflash corgator legmrv armmlv leghades leghelops armfav corfav armconsul armlatnk cortorch legmrrv
 	TANK2 = {
 		crushstrength = 18,
 		footprintx = 2,
@@ -319,20 +319,20 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- armconsul armlatnk cortorch legmrrv
-	MTANK2 = {
-		crushstrength = 18,
-		footprintx = 2,
-		footprintz = 2,
-		maxslope = 18,
-		slopeMod = 25,
-		maxwaterdepth = 22,
-		depthModParams = {
-			minHeight = 4,
-			linearCoeff = 0.03,
-			maxValue = 0.7,
-		}
-	},
+	-- NOT USED
+	-- MTANK2 = {
+	-- 	crushstrength = 18,
+	-- 	footprintx = 2,
+	-- 	footprintz = 2,
+	-- 	maxslope = 18,
+	-- 	slopeMod = 25,
+	-- 	maxwaterdepth = 22,
+	-- 	depthModParams = {
+	-- 		minHeight = 4,
+	-- 		linearCoeff = 0.03,
+	-- 		maxValue = 0.7,
+	-- 	}
+	-- },
 	--wtf is the diferece for htank 3 and mtank3 merge this
 	--
 	--corprinter correap armbull legsco
@@ -708,7 +708,7 @@ local moveDatas = {
 		maxwaterdepth = 99999,
 		maxwaterslope = 100,
 	},
-	-- unused
+	-- it is used by changedeffs
 	SCAVREZZER = {
 		crushstrength = 50,
 		depthModParams = {
@@ -765,7 +765,7 @@ local moveDatas = {
 	-- 	crushstrength = 9999,
 	-- 	footprintx = 5,
 	-- 	footprintz = 5,
-	-- 	maxslope = 36, -- Unused
+	-- 	maxslope = 36, -- 
 	-- 	maxwaterdepth = 9999,
 	-- 	maxwaterslope = 255,
 	-- 	speedModClass = 2,

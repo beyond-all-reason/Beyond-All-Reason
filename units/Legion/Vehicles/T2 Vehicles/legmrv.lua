@@ -22,7 +22,7 @@ return {
 		maxslope = 12,
 		maxvelocity = 3.3,
 		maxwaterdepth = 100,
-		movementclass = "MTANK2",
+		movementclass = "TANK2",
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGMRV.s3o",
 		script = "Units/LEGMRV.cob",
