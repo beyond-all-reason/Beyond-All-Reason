@@ -32,6 +32,8 @@ local math_isInRect = math.isInRect
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
+local isFFA = Spring.GetModOptions().ffa_mode
+
 local header = {
 	"frame",
 	"damageDealt",
@@ -70,7 +72,7 @@ local guiData = {
 }
 guiData.mainPanel.relSizes.x.length = (guiData.mainPanel.relSizes.x.max - guiData.mainPanel.relSizes.x.min) * 0.92
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.6) or 0.6)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.7) or 0.6)
 
 local glColor	= gl.Color
 local glCreateList = gl.CreateList
@@ -101,7 +103,7 @@ local borderRemap = {left={"x","min",-1},right={"x","max",1},top={"y","max",1},b
 
 local RectRound, UiElement, elementCorner
 
-local font, backgroundGuishader, gameStarted, bgpadding, gameover
+local font, font2, backgroundGuishader, gameStarted, bgpadding, gameover
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
@@ -225,14 +227,15 @@ function calcAbsSizes()
 	}
 end
 
+local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (vsy / 1080)
 
 	font = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(fontfile2, 1.3, math.max(0.16, 0.25 / widgetScale), math.max(4.5, 6 / widgetScale))
 	for _, data in pairs(headerRemap) do
-		maxColumnTextSize = max(font:GetTextWidth(data[1]),maxColumnTextSize)
-		maxColumnTextSize = max(font:GetTextWidth(data[2]),maxColumnTextSize)
+		maxColumnTextSize = max(font:GetTextWidth(data[2]), max(font:GetTextWidth(data[1]), maxColumnTextSize))
 	end
 
 	bgpadding = WG.FlowUI.elementPadding
@@ -435,10 +438,13 @@ function widget:GameFrame(n,forceupdate)
 				allyVec[teamInsertCount] = allyTotal
 			end
 			teamData[allyInsertCount] = allyVec
-			totalNumLines = totalNumLines + 1
+			if not isFFA then
+				totalNumLines = totalNumLines + 1
+			end
 			allyInsertCount = allyInsertCount + 1
 		end
 	end
+	totalNumLines = totalNumLines + 1
 	sort(teamData,compareAllyTeams)
 	guiData.mainPanel.absSizes.y.min = guiData.mainPanel.absSizes.y.max - totalNumLines*fontSize
 	prevNumLines = totalNumLines
@@ -549,7 +555,7 @@ local function DrawBackground()
 
 	gl.Color(0,0,0,WG['guishader'] and 0.8 or 0.85)
 	local x1,y1,x2,y2 = math.floor(guiData.mainPanel.absSizes.x.min), math.floor(guiData.mainPanel.absSizes.y.min), math.floor(guiData.mainPanel.absSizes.x.max), math.floor(guiData.mainPanel.absSizes.y.max)
-	UiElement(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, 1, 1, 1, 1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	UiElement(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, 1, 1, 1, 1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 	if WG['guishader'] then
 		if backgroundGuishader ~= nil then
 			glDeleteList(backgroundGuishader)
@@ -657,10 +663,11 @@ function ReGenerateTextDisplayList()
 			colCount = colCount + 1
 		end
 		lineCount = lineCount + 3
+
 		for _, allyTeamData in ipairs(teamData) do
 			for _, teamData in ipairs(allyTeamData) do
 				local colCount = 0
-				for _, varName in ipairs(header) do
+				for i, varName in ipairs(header) do
 					local value = teamData[varName]
 					if value == huge or value == -huge then
 						value = "-"
@@ -680,12 +687,20 @@ function ReGenerateTextDisplayList()
 					elseif lineCount % 2 == 1 then
 						color = '\255\200\200\200'
 					end
-					font:Print(color..value, baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*fontSize, (fontSize*fontSizePercentage), "dco")
+					if i == 1 then
+						font2:Begin()
+						font2:Print(color..value, baseXSize + columnSize*colCount, baseYSize+(heightCorrection*1.66)-lineCount*fontSize, (fontSize*fontSizePercentage), "dco")
+						font2:End()
+					else
+						font:Print(color..value, baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*fontSize, (fontSize*fontSizePercentage), "dco")
+					end
 					colCount = colCount + 1
 				end
 				lineCount = lineCount + 1
 			end
-			lineCount = lineCount + 1 -- add line break after end of allyteam
+			if not isFFA then
+				lineCount = lineCount + 1 -- add line break after end of allyteam
+			end
 		end
 	font:End()
 end

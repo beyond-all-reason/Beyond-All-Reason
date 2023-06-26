@@ -15,8 +15,6 @@ end
 
 local maxCommands = 100
 
-local mapBlackList = { "Brazillian_Battlefield_Remake_V2"  }
-
 local Game_extractorRadius = Game.extractorRadius
 local Game_extractorRadiusSq = Game_extractorRadius * Game_extractorRadius
 
@@ -41,9 +39,11 @@ local unitshape
 local curPosition
 
 local isMex = {}
+local unitSizesQuad = {}
 for uDefID, uDef in pairs(UnitDefs) do
 	if uDef.extractsMetal > 0 then
 		isMex[uDefID] = uDef.extractsMetal * 1000
+		unitSizesQuad[uDefID] = {uDef.xsize*4, uDef.zsize*4}
 	end
 end
 local isMexConstructor = {}
@@ -84,11 +84,10 @@ local function GetExtractionAmount(spot, metalExtracts, orders)
 end
 
 local function GetBuildingDimensions(uDefID, facing)
-	local bDef = UnitDefs[uDefID]
-	if (facing % 2 == 1) then
-		return 4 * bDef.zsize, 4 * bDef.xsize
+	if facing % 2 == 1 then
+		return unitSizesQuad[uDefID][2], unitSizesQuad[uDefID][1]
 	else
-		return 4 * bDef.xsize, 4 * bDef.zsize
+		return unitSizesQuad[uDefID][1], unitSizesQuad[uDefID][2]
 	end
 end
 
@@ -146,22 +145,23 @@ local function GetClashingOrdersGame()
 			end
 			if canBuild then
 				local unitOrders = spGetUnitCommands(unitID, maxCommands)
+				if unitOrders then
+					for _, order in pairs(unitOrders) do
+						local orderDefID = -order["id"]
+						local extractsMetal = isMex[orderDefID]
 
-				for _, order in pairs(unitOrders) do
-					local orderDefID = -order["id"]
-					local extractsMetal = isMex[orderDefID]
+						if extractsMetal then
+							local params = order["params"]
+							ordersCount = ordersCount + 1
+							orders[ordersCount] = { params, extractsMetal }
 
-					if extractsMetal then
-						local params = order["params"]
-						ordersCount = ordersCount + 1
-						orders[ordersCount] = { params, extractsMetal }
+							local obx, _, obz = spPos2BuildPos(orderDefID, params[1], params[2], params[3])
+							local buildData = { -activeCmdID, obx, nil, obz, params[4] or buildFacing }
+							local buildData2 = { orderDefID, bx, nil, bz, buildFacing }
 
-						local obx, _, obz = spPos2BuildPos(orderDefID, params[1], params[2], params[3])
-						local buildData = { -activeCmdID, obx, nil, obz, params[4] or buildFacing }
-						local buildData2 = { orderDefID, bx, nil, bz, buildFacing }
-
-						if DoBuildingsClash(buildData, buildData2) then
-							return nil
+							if DoBuildingsClash(buildData, buildData2) then
+								return nil
+							end
 						end
 					end
 				end
@@ -239,13 +239,6 @@ function widget:Initialize()
 		Spring.Echo("<Snap Mex> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget()
 	end
-
-	for _, value in ipairs(mapBlackList) do
-		if Game.mapName == value then
-			Spring.Echo("<Snap Mex> This map is incompatible - removing mex snap widget.")
-			widgetHandler:RemoveWidget()
-		end
-	end
 end
 
 function widget:Shutdown()
@@ -261,9 +254,6 @@ end
 
 local function clearCurPosition()
 	curPosition = nil
-	if not WG.MexSnap then
-		WG.MexSnap = {}
-	end
 	WG.MexSnap.curPosition = curPosition
 end
 
@@ -324,7 +314,6 @@ end
 
 function widget:DrawWorld()
 	if not WG.DrawUnitShapeGL4 then
-		widget:Shutdown()
 		return
 	end
 

@@ -28,7 +28,7 @@ Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique
 local defaultDelay = 0.37
 local cfgFontSize = 14
 
-local xOffset = 35
+local xOffset = 12
 local yOffset = -xOffset
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
@@ -148,7 +148,7 @@ function widget:ViewResize(x, y)
 	font2 = WG['fonts'].getFont(fontfile2)
 	widgetScale = (1 + ((vsy - 850) / 900)) * (0.95 + (ui_scale - 1) / 2.5)
 	usedFontSize = cfgFontSize * widgetScale
-	yOffset = -math.floor(xOffset*0.75) - usedFontSize
+	yOffset = -math.floor(xOffset*0.5) - usedFontSize
 
 	bgpadding = math.ceil(WG.FlowUI.elementPadding * 0.66)
 	RectRound = WG.FlowUI.Draw.RectRound

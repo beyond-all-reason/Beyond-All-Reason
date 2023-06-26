@@ -103,6 +103,7 @@ return {
 		"armmerl_scav",
 		"armbull_scav",
 		"corforge_scav",
+		"corftiger_scav",
 		"cormart_scav",
 		"corsent_scav",
 		"corseal_scav",
@@ -111,6 +112,7 @@ return {
 		"corvroc_scav",
 		"corban_scav",
 		"corparrow_scav",
+		"cortorch_scav",
 
 		-- Hovercraft
 		"corhal_scav",
@@ -123,6 +125,7 @@ return {
 		"corack_scav",
 		"cordecom_scav",
 		"coracv_scav",
+		"corprinter_scav",
 	},
 
 	T3 = {

@@ -153,6 +153,7 @@ local armorDefs = {
 		"corforge",
 		--"corfort",
 		"corfrt",
+		"corftiger",
 		"corgator",
 		"corgeo",
 		"corhlt",
@@ -174,6 +175,7 @@ local armorDefs = {
 		"cormstor",
 		"cornecro",
 		"corplat",
+		"corprinter",
 		"corraid",
 		"correap",
 		"corrl",
@@ -186,6 +188,7 @@ local armorDefs = {
 		"cortarg",
 		"cortermite",
 		"corthovr",
+		"cortorch",
 		"corthud",
 		"cortide",
 		"cortron",
@@ -546,6 +549,7 @@ local armorDefs = {
 		"chickenearty1",
 		"chickenelectricallterrain",
 		"chicken_hive",
+		"chicken_antinuke",
 	},
 }
 

@@ -184,6 +184,7 @@ return {
 				badtargetcategory = "VTOL",
 				def = "COR_BATS",
 				onlytargetcategory = "SURFACE",
+				fastautoretargeting = true,
 			},
 			[2] = {
 				def = "COR_BATSLASER",

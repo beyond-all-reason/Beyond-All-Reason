@@ -235,7 +235,7 @@ local function drawGameModeInfo()
 
 	-- background
 	local infoRect = {screenX - bgMargin, screenY - screenHeight - bgMargin, screenX + screenWidth + bgMargin, screenY + bgMargin}
-	UiElement(infoRect[1], infoRect[2], infoRect[3], infoRect[4], 0,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	UiElement(infoRect[1], infoRect[2], infoRect[3], infoRect[4], 0,1,1,1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 
 	-- close button
 	local size = closeButtonSize * 0.7
@@ -484,7 +484,7 @@ local function drawScoreboard()
 
 	-- background
 	elementRect = {scoreboardX - floor((bgMargin + (scoreboardWidth/2))*uiScale), scoreboardY - floor(((scoreboardHeight/2) + bgMargin)*uiScale), scoreboardX + floor(((scoreboardWidth/2) + bgMargin)*uiScale), scoreboardY + floor((bgMargin + (scoreboardHeight/2))*uiScale)}
-	UiElement(elementRect[1], elementRect[2], elementRect[3], elementRect[4], 0,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	UiElement(elementRect[1], elementRect[2], elementRect[3], elementRect[4], 0,1,1,1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 	if WG['guishader'] then
 		WG['guishader'].InsertRect(elementRect[1], elementRect[2], elementRect[3], elementRect[4], 'cv_scoreboard')
 	end

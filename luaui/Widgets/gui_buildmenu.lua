@@ -32,7 +32,6 @@ local dynamicIconsize = true
 local minColls = 4
 local maxColls = 5
 
-local showOrderDebug = false
 local smartOrderUnits = true
 
 local maxPosY = 0.74
@@ -67,29 +66,6 @@ local buildmenuShows = false
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local unbaStartBuildoptions = {}
-if Spring.GetModOptions().unba then
-	VFS.Include("unbaconfigs/buildoptions.lua")
-	for unitname,level in pairs(ArmBuildOptions) do
-		if level == 1 then
-			unbaStartBuildoptions[UnitDefNames[unitname].id] = unitname
-		end
-	end
-	ArmBuildOptions = nil
-	for unitname,level in pairs(CorBuildOptions) do
-		if level == 1 then
-			unbaStartBuildoptions[UnitDefNames[unitname].id] = unitname
-		end
-	end
-	CorBuildOptions = nil
-	ArmDefsBuildOptions = nil
-	CorDefsBuildOptions = nil
-	ArmBuildOptionsStop = nil
-	CorBuildOptionsStop = nil
-else
-	unbaStartBuildoptions = nil
-end
-
 local playSounds = true
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
@@ -101,8 +77,10 @@ local vsx, vsy = Spring.GetViewGeometry()
 local ordermenuLeft = vsx / 5
 local advplayerlistLeft = vsx * 0.8
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.6)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.7) or 0.6)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+
+local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
 
 local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
@@ -145,7 +123,6 @@ local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 
@@ -195,112 +172,6 @@ local groups = {
 }
 
 local disableWind = ((Game.windMin + Game.windMax) / 2) < 5
-
-local unitEnergyCost = {}
-local unitMetalCost = {}
-local unitGroup = {}
-local unitRestricted = {}
-local unitDisabled = {}
-local isBuilder = {}
-local isFactory = {}
-local unitIconType = {}
-local isMex = {}
-local isWaterUnit = {}
-local isGeothermalUnit = {}
-local unitMaxWeaponRange = {}
-
-for unitDefID, unitDef in pairs(UnitDefs) do
-	unitIconType[unitDefID] = unitDef.iconType
-	unitEnergyCost[unitDefID] = unitDef.energyCost
-	unitMetalCost[unitDefID] = unitDef.metalCost
-	unitGroup[unitDefID] = unitDef.customParams.unitgroup
-
-	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'
-		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
-		if not (unitDef.modCategories['hover'] or (unitDef.modCategories['mobile'] and unitDef.modCategories['canbeuw'])) then
-			isWaterUnit[unitDefID] = true
-		end
-	end
-	if unitDef.maxWeaponRange > 16 then
-		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
-	end
-	if unitDef.maxThisUnit == 0 then --or unitDef.name == 'armllt' or unitDef.name == 'armmakr' then
-		unitRestricted[unitDefID] = true
-	end
-	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
-		isBuilder[unitDefID] = unitDef.buildOptions
-	end
-	if unitDef.isFactory and #unitDef.buildOptions > 0 then
-		isFactory[unitDefID] = true
-	end
-	if unitDef.extractsMetal > 0 then
-		isMex[unitDefID] = true
-	end
-	if unitDef.needGeo then
-		isGeothermalUnit[unitDefID] = true
-	end
-	if unitDef.windGenerator > 0 and disableWind then
-		unitDisabled[unitDefID] = true
-	end
-end
-
-local unitOrder = {}
-local unitOrderManualOverrideTable = VFS.Include("luaui/configs/buildmenu_sorting.lua")
-
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitOrderManualOverrideTable[unitDefID] then
-		unitOrder[unitDefID] = -unitOrderManualOverrideTable[unitDefID]
-	else
-		unitOrder[unitDefID] = 9999999
-	end
-end
-
-local function getHighestOrderedUnit()
-	local highest = { 0, 0, false }
-	local firstOrderTest = true
-	local newSortingUnit = {}
-	for unitDefID, orderValue in pairs(unitOrder) do
-
-		if unitOrderManualOverrideTable[unitDefID] then
-			newSortingUnit[unitDefID] = true
-		else
-			newSortingUnit[unitDefID] = false
-		end
-
-		if firstOrderTest == true then
-			firstOrderTest = false
-			highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
-		--elseif orderValue > highest[2] then
-		elseif highest[3] == false and newSortingUnit[unitDefID] == true then
-			highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
-		elseif highest[3] == false and newSortingUnit[unitDefID] == false then
-			if orderValue > highest[2] then
-				highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
-			end
-		elseif highest[3] == true and newSortingUnit[unitDefID] == true then
-			if orderValue > highest[2] then
-				highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
-			end
-		end
-	end
-	return highest[1]
-end
-
-local unitsOrdered = {}
-local unitOrderDebug = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	local uDefID = getHighestOrderedUnit()
-	unitsOrdered[#unitsOrdered + 1] = uDefID
-	unitOrderDebug[uDefID] = unitOrder[uDefID]
-	unitOrder[uDefID] = nil
-end
-
-if not showOrderDebug then
-	unitOrderDebug = nil
-end
-unitOrder = unitsOrdered
-unitsOrdered = nil
-
 local voidWater = false
 local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
 if success and mapinfo then
@@ -315,38 +186,9 @@ if not voidWater and mapMinWater <= minWaterUnitDepth then
 end
 -- make them a disabled unit (instead of removing it entirely)
 if not showWaterUnits then
-	for unitDefID,_ in pairs(isWaterUnit) do
-		unitDisabled[unitDefID] = true
-	end
+	units.restrictWaterUnits(true)
 end
 
-local showGeothermalUnits = false
-local function checkGeothermalFeatures()
-	showGeothermalUnits = false
-	local geoThermalFeatures = {}
-	for defID, def in pairs(FeatureDefs) do
-		if def.geoThermal then
-			geoThermalFeatures[defID] = true
-		end
-	end
-	local features = Spring.GetAllFeatures()
-	for i = 1, #features do
-		if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
-			showGeothermalUnits = true
-			break
-		end
-	end
-	-- make them a disabled unit (instead of removing it entirely)
-	for unitDefID,_ in pairs(isGeothermalUnit) do
-		if not showGeothermalUnits then
-			unitDisabled[unitDefID] = true
-		else
-			if not isWaterUnit[unitDefID] or showWaterUnits then
-				unitDisabled[unitDefID] = nil
-			end
-		end
-	end
-end
 
 local function checkGuishader(force)
 	if WG['guishader'] then
@@ -385,7 +227,7 @@ local function RefreshCommands()
 					cmdUnitdefs[udefid] = i
 				end
 			end
-			for k, uDefID in pairs(unitOrder) do
+			for k, uDefID in pairs(units.unitOrder) do
 				if cmdUnitdefs[uDefID] then
 					cmdsCount = cmdsCount + 1
 					-- mimmick output of spGetActiveCmdDescs
@@ -409,7 +251,7 @@ local function RefreshCommands()
 					end
 				end
 			end
-			for k, uDefID in pairs(unitOrder) do
+			for k, uDefID in pairs(units.unitOrder) do
 				if cmdUnitdefs[uDefID] then
 					cmdsCount = cmdsCount + 1
 					cmds[cmdsCount] = activeCmdDescs[cmdUnitdefs[uDefID]]
@@ -530,11 +372,11 @@ function widget:Update(dt)
 		if SelectedUnitsCount > 0 then
 			local sel = Spring.GetSelectedUnits()
 			for _, unitID in pairs(sel) do
-				if isFactory[spGetUnitDefID(unitID)] then
+				if units.isFactory[spGetUnitDefID(unitID)] then
 					selectedFactories[unitID] = true
 					selectedFactoryCount = selectedFactoryCount + 1
 				end
-				if isBuilder[spGetUnitDefID(unitID)] then
+				if units.isBuilder[spGetUnitDefID(unitID)] then
 					selectedBuilders[unitID] = true
 					selectedBuilderCount = selectedBuilderCount + 1
 					doUpdate = true
@@ -552,24 +394,9 @@ function widget:Update(dt)
 			doUpdate = true
 		end
 
-		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-		if not voidWater and mapMinWater <= minWaterUnitDepth then
-			if not showWaterUnits then
-				showWaterUnits = true
-
-				for unitDefID,_ in pairs(isWaterUnit) do
-					if not isGeothermalUnit[unitDefID] or showGeothermalUnits then	-- make sure geothermal units keep being disabled if that should be the case
-						unitDisabled[unitDefID] = nil
-					end
-				end
-			end
-		end
-
 		if stickToBottom then
 			if WG['advplayerlist_api'] ~= nil then
-				local prevPos = advplayerlistPos
 				local advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-				local prevAdvplayerlistLeft = advplayerlistLeft
 				advplayerlistLeft = advplayerlistPos[2]
 			end
 		end
@@ -598,7 +425,6 @@ function widget:Update(dt)
 end
 
 function drawBuildmenuBg()
-	WG['buildmenu'].selectedID = nil
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
 end
 
@@ -620,9 +446,9 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled)
 		usedZoom,
 		nil, disabled and 0 or nil,
 		'#' .. uDefID,
-		showRadarIcon and (((unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypesMap[unitIconType[uDefID]] or nil)) or nil,
-		showGroupIcon and (groups[unitGroup[uDefID]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[unitGroup[uDefID]] or nil) or nil,
-		{unitMetalCost[uDefID], unitEnergyCost[uDefID]},
+		showRadarIcon and (((units.unitIconType[uDefID] and iconTypesMap[units.unitIconType[uDefID]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypesMap[units.unitIconType[uDefID]] or nil)) or nil,
+		showGroupIcon and (groups[units.unitGroup[uDefID]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[units.unitGroup[uDefID]] or nil) or nil,
+		{units.unitMetalCost[uDefID], units.unitEnergyCost[uDefID]},
 		tonumber(cmds[cellRectID].params[1])
 	)
 
@@ -659,17 +485,11 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled)
 		--doCircle(x, y, z, radius, sides)
 		local text
 		if disabled then
-			text = "\255\125\125\125" .. unitMetalCost[uDefID] .. "\n\255\135\135\135"
+			text = "\255\125\125\125" .. units.unitMetalCost[uDefID] .. "\n\255\135\135\135"
 		else
-			text = "\255\245\245\245" .. unitMetalCost[uDefID] .. "\n\255\255\255\000"
+			text = "\255\245\245\245" .. units.unitMetalCost[uDefID] .. "\n\255\255\255\000"
 		end
-		font2:Print(text .. unitEnergyCost[uDefID], cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
-	end
-
-	-- debug order value
-	if showOrderDebug and smartOrderUnits and unitOrderDebug[uDefID] then
-		local text = unitOrderDebug[uDefID]
-		font2:Print("\255\175\175\175" .. text, cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.05), cellRects[cellRectID][4] - cellPadding - priceFontSize, priceFontSize * 0.82, "o")
+		font2:Print(text .. units.unitEnergyCost[uDefID], cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
 	end
 
 	-- factory queue number
@@ -809,11 +629,8 @@ function drawBuildmenu()
 			local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
 			local usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 
-			if cellIsSelected then
-				WG['buildmenu'].selectedID = uDefID
-			end
 
-			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, unitRestricted[uDefID] or unitDisabled[uDefID])
+			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[uDefID])
 		end
 	end
 
@@ -841,7 +658,7 @@ end
 
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
 local function cacheUnitIcons()
-	local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalscavuniqueunits)
+	local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalextraunits)
 	local excludeChickens = not Spring.Utilities.Gametype.IsChickens()
 	gl.Translate(-vsx,0,0)
 	gl.Color(1, 1, 1, 0.001)
@@ -850,8 +667,8 @@ local function cacheUnitIcons()
 			if not excludeChickens or not string.find(unit.name,'chicken') then
 				gl.Texture('#'..id)
 				gl.TexRect(-1, -1, 0, 0)
-				if unitIconType[id] and iconTypesMap[unitIconType[id]] then
-					gl.Texture(':l:' .. iconTypesMap[unitIconType[id]])
+				if units.unitIconType[id] and iconTypesMap[units.unitIconType[id]] then
+					gl.Texture(':l:' .. iconTypesMap[units.unitIconType[id]])
 					gl.TexRect(-1, -1, 0, 0)
 				end
 			end
@@ -869,7 +686,14 @@ function widget:DrawScreen()
 
 	-- refresh buildmenu if active cmd changed
 	local prevActiveCmd = activeCmd
-	activeCmd = select(4, spGetActiveCommand())
+	if Spring.GetGameFrame() == 0 and WG['pregame-build'] then
+		activeCmd = WG['pregame-build'].selectedID
+		if activeCmd then
+			activeCmd = units.unitName[activeCmd]
+		end
+	else
+		activeCmd = select(4, spGetActiveCommand())
+	end
 	if activeCmd ~= prevActiveCmd then
 		doUpdate = true
 	end
@@ -931,7 +755,7 @@ function widget:DrawScreen()
 								-- when meta: unitstats does the tooltip
 								local text
 								local textColor = "\255\215\255\215"
-								if unitRestricted[uDefID] or unitDisabled[uDefID] then
+								if units.unitRestricted[uDefID] then
 									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].translatedHumanName, textColor = textColor, warnColor = "\255\166\166\166" })
 								else
 									text = UnitDefs[uDefID].translatedHumanName
@@ -1023,7 +847,7 @@ function widget:DrawScreen()
 									end
 									cellColor = { 1, 0.85, 0.2, 0.25 }
 								end
-								if not (unitRestricted[uDefID] or unitDisabled[uDefID]) then
+								if not (units.unitRestricted[uDefID]) then
 
 									local unsetShowPrice
 									if not showPrice then
@@ -1032,7 +856,7 @@ function widget:DrawScreen()
 									end
 
 									-- re-draw cell with hover zoom (and price shown)
-									drawCell(hoveredCellID, usedZoom, cellColor, unitRestricted[uDefID] or unitDisabled[uDefID])
+									drawCell(hoveredCellID, usedZoom, cellColor, units.unitRestricted[uDefID])
 
 									if unsetShowPrice then
 										showPrice = false
@@ -1101,7 +925,7 @@ function widget:DrawWorld()
 end
 
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdParams, cmdTag)
-	if isFactory[unitDefID] and cmdID < 0 then
+	if units.isFactory[unitDefID] and cmdID < 0 then
 		-- filter away non build cmd's
 		if doUpdateClock == nil then
 			doUpdateClock = os_clock() + 0.01
@@ -1124,10 +948,7 @@ end
 function widget:GameStart()
 	preGamestartPlayer = false
 
-	if checkGeothermalFeatures then
-		checkGeothermalFeatures()
-		checkGeothermalFeatures = nil
-	end
+	units.checkGeothermalFeatures()
 
 	unbindBuildUnits()
 end
@@ -1164,7 +985,7 @@ function widget:MousePress(x, y, button)
 			end
 			if not disableInput then
 				for cellRectID, cellRect in pairs(cellRects) do
-					if cmds[cellRectID].id and UnitDefs[-cmds[cellRectID].id].translatedHumanName and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (unitRestricted[-cmds[cellRectID].id] or unitDisabled[-cmds[cellRectID].id]) then
+					if cmds[cellRectID].id and UnitDefs[-cmds[cellRectID].id].translatedHumanName and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (units.unitRestricted[-cmds[cellRectID].id]) then
 						if button ~= 3 then
 							if playSounds then
 								Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
@@ -1201,7 +1022,7 @@ end
 local function buildUnitHandler(_, _, _, data)
 	-- sanity check
 	if not preGamestartPlayer then return end
-	if unitDisabled[data.unitDefID] then return end
+	if units.unitRestricted[data.unitDefID] then return end
 
 	local comDef = UnitDefs[startDefID]
 
@@ -1245,7 +1066,7 @@ local function buildUnitHandler(_, _, _, data)
 		if string.sub(keybind.command, 1, 10) == 'buildunit_' then
 			local uDefName = string.sub(keybind.command, 11)
 			local uDef = UnitDefNames[uDefName]
-			if comBuildOptions[comDef.name][uDef.id] and not unitDisabled[uDef.id] then
+			if comBuildOptions[comDef.name][uDef.id] and not units.unitRestricted[uDef.id] then
 				table.insert(buildCycle, uDef.id)
 			end
 		end
@@ -1283,7 +1104,7 @@ local function bindBuildUnits(widget)
 
 	for _, comDefName in ipairs({ "armcom", "corcom" }) do
 		for _, buildOption in ipairs(UnitDefNames[comDefName].buildOptions) do
-			if not unitDisabled[buildOption] then
+			if not units.unitRestricted[buildOption] then
 				local unitDefName = UnitDefs[buildOption].name
 
 				comBuildOptions[comDefName][buildOption] = true
@@ -1295,7 +1116,11 @@ local function bindBuildUnits(widget)
 end
 
 function widget:Initialize()
-	checkGeothermalFeatures()
+	units.checkGeothermalFeatures()
+	if disableWind then
+		units.restrictWindUnits(true)
+	end
+
 
 	iconTypesMap = {}
 	if Script.LuaRules('GetIconTypes') then
@@ -1316,10 +1141,10 @@ function widget:Initialize()
 
 	WG['buildmenu'] = {}
 	WG['buildmenu'].getGroups = function()
-		return groups, unitGroup
+		return groups, units.unitGroup
 	end
 	WG['buildmenu'].getOrder = function()
-		return unitOrder
+		return units.unitOrder
 	end
 	WG['buildmenu'].getShowPrice = function()
 		return showPrice

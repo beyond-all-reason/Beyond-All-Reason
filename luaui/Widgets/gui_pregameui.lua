@@ -39,7 +39,7 @@ local gameStarting = false
 local timer = 0
 local timer2 = 0
 local auto_ready_timer = 120
-local auto_ready = true
+local auto_ready = not Spring.Utilities.Gametype.IsSinglePlayer()
 
 local buttonPosX = 0.8
 local buttonPosY = 0.76
@@ -184,10 +184,13 @@ function widget:GameSetup(state, ready, playerStates)
 	ready = true
 	local playerList = Spring.GetPlayerList()
 	for _, playerID in pairs(playerList) do
-		local is_player_ready = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
-		--Spring.Echo(playerID,is_player_ready)
-		if is_player_ready == 0 or is_player_ready == 4 then
-			ready = false
+		local _, _, spectator_flag = Spring.GetPlayerInfo(playerID)
+		if spectator_flag == false then
+			local is_player_ready = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
+			--Spring.Echo(#playerList, playerID, is_player_ready)
+			if is_player_ready == 0 or is_player_ready == 4 then
+				ready = false
+			end
 		end
 	end
 

@@ -7,7 +7,7 @@ piece  flare, torso, head, pelvis, rthigh, rleg, lleg, lthigh,
        ruparm, luparm, lloarm, lhand, rloarm, gun1, gun2,
        barrel1, barrel2, laser, rhand, rfoot, lfoot, aimy1;
 
-static-var  GunOpen, bMoving, Static_Var_3, Static_Var_4, restore_delay, wpn1_lasthead, animSpeed, maxSpeed,
+static-var  GunOpen, bMoving, restore_delay, laser_persist, wpn1_lasthead, animSpeed, maxSpeed,
 			statechg_DesiredState, statechg_StateChanging, animFramesPerKeyframe,isAiming, shotcount;
 
 // Signal definitions
@@ -737,13 +737,8 @@ FoldGun()
 
 Go()
 {
-	Static_Var_3 = 1;
 	if( !GunOpen )
 	{
-		while( !Static_Var_4 )
-		{
-			sleep 150;
-		}
 		call-script OpenGun();
 		GunOpen = 1;
 	}
@@ -757,7 +752,6 @@ Stop()
 		call-script FoldGun();
 		isAiming = FALSE;
 	}
-	Static_Var_3 = 0;
 }
 
 
@@ -805,13 +799,12 @@ Create()
 	hide aimy1;
 	isAiming = FALSE;
 	bMoving = FALSE;
-	Static_Var_3 = 0;
-	Static_Var_4 = 1;
 	GunOpen = 0;
+	laser_persist = 3000; // miliseconds to hide laser after losing aim
 	hide flare;
 	animSpeed = 5;
 	turn flare to x-axis <-90> now;
-	restore_delay = 800;
+	restore_delay = 5000;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 }
@@ -820,12 +813,6 @@ lua_UnitScriptLight(lightIndex, count)
 {
 	return 0;
 }
-
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = 60000; //60000
-}
-
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -849,17 +836,17 @@ SetStunned(State)
 RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;
-	// hide laser after 3 sec inactivity
-	sleep 9000;
+	sleep (laser_persist);
 	hide laser;
-	sleep (restore_delay - 9000);
+	sleep (restore_delay - laser_persist);
 	start-script ExecuteRestoreAfterDelay();
 }
 AimPrimary(heading, pitch)
 {
+	signal SIG_AIM;
 	isAiming = TRUE;
 	start-script RequestState(0);
-	signal SIG_AIM;
+	start-script RestoreAfterDelay();
 	while( !GunOpen )
 	{
 		return(0);
@@ -878,7 +865,6 @@ AimPrimary(heading, pitch)
 		wait-for-turn rloarm around x-axis;
 	}
 	wpn1_lasthead = heading;
-	start-script RestoreAfterDelay();
 	return (1);
 }
 
@@ -895,12 +881,19 @@ FirePrimary()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = torso;
+	piecenum = aimy1;
 }
 
 QueryPrimary(piecenum)
 {
-	piecenum = flare;
+	if( GunOpen )
+	{
+		piecenum = flare;
+	}
+	else
+	{
+		piecenum = aimy1; //no aiming from ankle height
+	}
 }
 
 SweetSpot(piecenum)

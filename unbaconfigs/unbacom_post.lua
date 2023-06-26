@@ -4,7 +4,7 @@ function UnbaCom_Post(name)
 	local tablecom = table.copy(UnitDefs[name])
 	tablecom.autoheal = 2
 	tablecom.power = CommanderPower
-	tablecom.weapondefs[lowername.."laser"].weapontype = "LaserCannon"
+	tablecom.weapondefs[lowername.."laser"].weapontype = "BeamLaser"
 	tablecom.weapons = {}
 	tablecom.script = "scripts/Units/unbacom/unba"..lowername.."_lus.lua"
 	tablecom.objectname = "Units/"..uppername..".S3O"
@@ -29,9 +29,12 @@ function UnbaCom_Post(name)
 			H = tostring(i-1)
 			tablecom.weapondefs[lowername.."laser"..I] = table.copy(tablecom.weapondefs[lowername.."laser"..H])
 			tablecom.weapondefs[lowername.."laser"..I].damage.default = armDamages[i]
+			tablecom.weapondefs[lowername.."laser"..I].damage.bombers = armDamages[i]
+			tablecom.weapondefs[lowername.."laser"..I].damage.fighters = armDamages[i]
 			tablecom.weapondefs[lowername.."laser"..I].range = armRange[i]
 			tablecom.weapondefs[lowername.."laser"..I].areaofeffect = armAOE[i]
 			tablecom.weapondefs[lowername.."laser"..I].reloadtime = armReloadTime[i]
+			tablecom.weapondefs[lowername.."laser"..I].thickness = 2+(i*0.5)
 			if i == 3 then
 				tablecom.weapondefs[lowername.."laser3"].rgbcolor = "0.7 0.3 0"
 			elseif i == 4 then
@@ -186,9 +189,12 @@ function UnbaCom_Post(name)
 			H = tostring(i-1)
 			tablecom.weapondefs[lowername.."laser"..I] = table.copy(tablecom.weapondefs[lowername.."laser"..H])
 			tablecom.weapondefs[lowername.."laser"..I].damage.default = corDamages[i]
+			tablecom.weapondefs[lowername.."laser"..I].damage.bombers = corDamages[i]
+			tablecom.weapondefs[lowername.."laser"..I].damage.fighters = corDamages[i]
 			tablecom.weapondefs[lowername.."laser"..I].range = corRange[i]
 			tablecom.weapondefs[lowername.."laser"..I].areaofeffect = corAOE[i]
 			tablecom.weapondefs[lowername.."laser"..I].reloadtime = corReloadTime[i]
+			tablecom.weapondefs[lowername.."laser"..I].thickness = 2+(i*0.5)
 			if i == 3 then
 				tablecom.weapondefs[lowername.."laser3"].rgbcolor = "0.7 0.3 0"
 			elseif i == 4 then
@@ -300,9 +306,9 @@ function UnbaCom_Post(name)
 		tablecom.featuredefs["dead"..tostring(i)].metal = tablecom.featuredefs["dead"].metal * WreckMetal[i]
 		tablecom.featuredefs["heap"..tostring(i)].metal = tablecom.featuredefs["heap"].metal * WreckMetal[i]
 		tablecom.featuredefs["dead"..tostring(i)].featuredead = "heap"..tostring(i)
-		tablecom.featuredefs["dead"..tostring(i)].resurrectable = 0
+		--tablecom.featuredefs["dead"..tostring(i)].resurrectable = 0
 	end
-	tablecom.featuredefs["dead"].resurrectable = 0
+	--tablecom.featuredefs["dead"].resurrectable = 0
 	UnitDefs[name] = tablecom
 
 end

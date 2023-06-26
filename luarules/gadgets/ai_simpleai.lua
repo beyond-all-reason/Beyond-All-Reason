@@ -67,20 +67,12 @@ if gameShortName == "BYAR" then
 		"corint",
 
 		-- stockpilers
-		"armscab",
 		"armemp",
 		"armjuno",
-		"armamd",
-		"armmercury",
 		"armsilo",
-		"armcarry",
-		"corfmd",
 		"corjuno",
-		"corscreamer",
 		"corsilo",
 		"cortron",
-		"corcarry",
-		"cormabm",
 
 		-- minelayers
 		"armmlv",
@@ -94,10 +86,6 @@ if gameShortName == "BYAR" then
 		"armdrag",
 		"cordrag",
 	}
-end
-
-if gameShortName == "EvoRTS" then
-	BadUnitsList = {}
 end
 
 local function RandomChoiceArray(t)

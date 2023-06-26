@@ -32,7 +32,7 @@ for key, code in ipairs(languageCodes) do
 	languageNames[key] = Spring.I18N.languages[code]
 end
 
-local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
 local devMode = Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI()
 local advSettings = false
@@ -411,7 +411,8 @@ function updateInputDlist()
 
 		-- background
 		local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/5)))
-		UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 0,0,nil,nil, 0,nil,nil,nil, ui_opacity + 0.2)
+		chatInputArea = { activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance }
+		UiElement(chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4], 0,0,nil,nil, 0,nil,nil,nil, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 		if WG['guishader'] then
 			WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'optionsinput')
 		end
@@ -516,7 +517,7 @@ function DrawWindow()
 	windowRect = { screenX, screenY - screenHeight, screenX + screenWidth, screenY }
 
 	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, (showTextInput and inputText ~= '' and inputMode == '') and 1 or 0, 0, 1, (showTextInput and 0 or 1), 1, 1, 1, 1, ui_opacity + 0.2)
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, (showTextInput and inputText ~= '' and inputMode == '') and 1 or 0, 0, 1, (showTextInput and 0 or 1), 1, 1, 1, 1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 
 	-- title
 	local groupMargin = math.floor(bgpadding * 0.8)
@@ -1074,7 +1075,10 @@ function widget:DrawScreen()
 
 			--on window
 			local mx, my, ml = Spring.GetMouseState()
-			if math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then
+			if (math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4])) or
+					(titleRect and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4])) or
+					(chatInputArea and math_isInRect(mx, my, chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4]))
+			then
 				Spring.SetMouseCursor('cursornormal')
 			end
 			if groupRect ~= nil then
@@ -1086,9 +1090,6 @@ function widget:DrawScreen()
 						end
 					end
 				end
-			end
-			if titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-				Spring.SetMouseCursor('cursornormal')
 			end
 
 			-- draw the options panel
@@ -1514,22 +1515,34 @@ function mouseEvent(mx, my, button, release)
 	end
 
 	if show then
-		local returnTrue
-		if button == 3 then
-			if titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-				return
+		local windowClick = (math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]))
+		local titleClick = (titleRect and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]))
+		local chatinputClick = (chatInputArea and math_isInRect(mx, my, chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4]))
+		local tabClick
+		if not (inputText and inputText ~= '' and inputMode == '') and groupRect ~= nil then
+			for id, group in pairs(optionGroups) do
+				if devMode or group.id ~= 'dev' then
+					if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+						if not release then
+							currentGroupTab = group.id
+							startColumn = 1
+							showSelectOptions = nil
+							selectClickAllowHide = nil
+							if playSounds then
+								Spring.PlaySoundFile(sounds.paginatorClick, 0.9, 'ui')
+							end
+						end
+						tabClick = true
+					end
+				end
 			end
-		elseif button == 1 then
+		end
+
+		if button == 1 then
 			if release then
-				if not devMode and titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-					-- showhow rightmouse doesnt get triggered :S
+				if not devMode and titleClick then
 					advSettings = not advSettings
 					startColumn = 1
-					if windowList then
-						gl.DeleteList(windowList)
-					end
-					windowList = gl.CreateList(DrawWindow)
-					return
 				end
 				-- navigation buttons
 				if optionButtonForward ~= nil and math_isInRect(mx, my, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
@@ -1542,11 +1555,6 @@ function mouseEvent(mx, my, button, release)
 					end
 					showSelectOptions = nil
 					selectClickAllowHide = nil
-					if windowList then
-						gl.DeleteList(windowList)
-					end
-					windowList = gl.CreateList(DrawWindow)
-					return
 				end
 				if optionButtonBackward ~= nil and math_isInRect(mx, my, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
 					startColumn = startColumn - maxShownColumns
@@ -1558,11 +1566,6 @@ function mouseEvent(mx, my, button, release)
 					end
 					showSelectOptions = nil
 					selectClickAllowHide = nil
-					if windowList then
-						gl.DeleteList(windowList)
-					end
-					windowList = gl.CreateList(DrawWindow)
-					return
 				end
 
 				-- apply new slider value
@@ -1593,32 +1596,7 @@ function mouseEvent(mx, my, button, release)
 				end
 			end
 
-			local tabClicked = false
-			if not (inputText and inputText ~= '' and inputMode == '') then
-				if show and groupRect ~= nil then
-					for id, group in pairs(optionGroups) do
-						if devMode or group.id ~= 'dev' then
-							if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
-								if not release then
-									currentGroupTab = group.id
-									startColumn = 1
-									showSelectOptions = nil
-									selectClickAllowHide = nil
-									if playSounds then
-										Spring.PlaySoundFile(sounds.paginatorClick, 0.9, 'ui')
-									end
-								end
-								tabClicked = true
-								returnTrue = true
-							end
-						end
-					end
-				end
-			end
-
-			if tabClicked then
-
-			elseif math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then
+			if not tabClick and windowClick then
 				-- on window
 				if release then
 					-- select option
@@ -1646,8 +1624,7 @@ function mouseEvent(mx, my, button, release)
 						end
 
 					end
-				else
-					-- mousepress
+				else	-- press
 					if not showSelectOptions then
 						for i, o in pairs(optionButtons) do
 							if options[i].type == 'slider' and (math_isInRect(mx, my, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) or math_isInRect(mx, my, o[1], o[2], o[3], o[4])) then
@@ -1674,34 +1651,23 @@ function mouseEvent(mx, my, button, release)
 						end
 					end
 				end
-
-				if button == 1 or button == 3 then
-					return true
-				end
-				-- on title
-			elseif titleRect ~= nil and math_isInRect(mx, my, (titleRect[1] * widgetScale) - ((vsx * (widgetScale - 1)) / 2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale - 1)) / 2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale - 1)) / 2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale - 1)) / 2)) then
-				returnTrue = true
-			elseif not tabClicked then
-				if release and draggingSlider == nil then
-					showOnceMore = true        -- show once more because the guishader lags behind, though this will not fully fix it
-					show = false
-					cancelChatInput()
-				end
-				return true
-			end
-
-			if show then
-				if windowList then
-					gl.DeleteList(windowList)
-				end
-				windowList = gl.CreateList(DrawWindow)
-			end
-			if returnTrue then
-				return true
 			end
 		end
 
-		if math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then
+
+		if windowList then
+			gl.DeleteList(windowList)
+		end
+		windowList = gl.CreateList(DrawWindow)
+
+		if windowClick or titleClick or chatinputClick or tabClick then
+			return true
+		elseif not tabClick then
+			if release and draggingSlider == nil then
+				showOnceMore = true        -- show once more because the guishader lags behind, though this will not fully fix it
+				show = false
+				cancelChatInput()
+			end
 			return true
 		end
 	end
@@ -2759,7 +2725,7 @@ function init()
 		  end,
 		},
 
-		{ id = "notifications_set", group = "notif", category = types.dev, name = Spring.I18N('ui.settings.option.notifications_set'), type = "select", options = {}, value = 1,
+		{ id = "notifications_set", group = "notif", category = types.basic, name = Spring.I18N('ui.settings.option.notifications_set'), type = "select", options = {}, value = 1,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3073,7 +3039,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "invertmouse", group = "control", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.invertmouse'), type = "bool", value = tonumber(Spring.GetConfigInt("InvertMouse", 0)) == 1, description = "",
+		{ id = "invertmouse", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.invertmouse'), type = "bool", value = tonumber(Spring.GetConfigInt("InvertMouse", 0)) == 1, description = "",
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3138,12 +3104,12 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "guiopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guiopacity'), type = "slider", min = 0.3, max = 1, step = 0.01, value = Spring.GetConfigFloat("ui_opacity", 0.6), description = '',
+		{ id = "guiopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guiopacity'), type = "slider", min = 0.3, max = 1, step = 0.01, value = Spring.GetConfigFloat("ui_opacity", 0.7), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)
 			  Spring.SetConfigFloat("ui_opacity", value)
-			  ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+			  ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 			  forceUpdate = true
 
 			  if force then
@@ -3525,7 +3491,7 @@ function init()
 		  end,
 		},
 		{ id = "autoeraser", group = "ui", category = types.basic, widget = "Auto mapmark eraser", name = Spring.I18N('ui.settings.option.autoeraser'), type = "bool", value = GetWidgetToggleValue("Auto mapmark eraser"), description = Spring.I18N('ui.settings.option.autoeraser_descr') },
-		{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.autoeraser_erasetime'), type = "slider", min = 1, max = 240, step = 1, value = 100, description = Spring.I18N('ui.settings.option.autoeraser_erasetime_descr'),
+		{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.autoeraser_erasetime'), type = "slider", min = 10, max = 200, step = 1, value = 60, description = Spring.I18N('ui.settings.option.autoeraser_erasetime_descr'),
 		  onload = function(i)
 			  loadWidgetData("Auto mapmark eraser", "autoeraser_erasetime", { 'eraseTime' })
 		  end,
@@ -3661,6 +3627,8 @@ function init()
 		--	  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setTeamcolor', { 'useTeamcolor' }, value)
 		--  end,
 		--},
+
+		{ id = "highlightunit", group = "ui", category = types.advanced, widget = "Highlight Unit GL4", name = Spring.I18N('ui.settings.option.highlightunit'), type = "bool", value = GetWidgetToggleValue("Highlight Unit GL4"), description = Spring.I18N('ui.settings.option.highlightunit_descr') },
 
 		{ id = "cursorlight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.cursorlight'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.cursorlight_descr'),
 		  onload = function(i)
@@ -5913,6 +5881,15 @@ function widget:Initialize()
 		widgetHandler:EnableWidget("Pregame Queue")
 	end
 
+	-- enable GL4 unit rendering api's
+	if widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
+		widgetHandler:EnableWidget("DrawUnitShape GL4")
+	end
+	if widgetHandler.orderList["HighlightUnit API GL4"] < 0.5 then
+		widgetHandler:EnableWidget("HighlightUnit API GL4")
+	end
+
+
 	updateGrabinput()
 	widget:ViewResize()
 
@@ -5952,7 +5929,7 @@ function widget:Initialize()
 			Spring.SetConfigInt("ShadowMapSize", 1024)
 			Spring.SetConfigInt("Shadows", 0)
 			Spring.SetConfigInt("MSAALevel", 0)
-			Spring.SetConfigFloat("ui_opacity", 0.66)    -- set to be more opaque cause guishader isnt availible
+			Spring.SetConfigFloat("ui_opacity", 0.7)    -- set to be more opaque cause guishader isnt availible
 		else
 			Spring.SendCommands("water 4")
 			Spring.SetConfigInt("Water", 4)

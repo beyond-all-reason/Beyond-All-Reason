@@ -1888,7 +1888,7 @@ end
 ]]--
 
 Draw.Element = function(VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
-	local opacity = opacity or Spring.GetConfigFloat("ui_opacity", 0.6)
+	local opacity = opacity or Spring.GetConfigFloat("ui_opacity", 0.7)
 	local color1 = color1 or { 0, 0, 0, opacity}
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
 	local ui_scale = Spring.GetConfigFloat("ui_scale", 1)

@@ -10,6 +10,12 @@ function gadget:GetInfo()
 	}
 end
 
+local random = math.random
+local SpGetProjectileVelocity = Spring.GetProjectileVelocity
+local SpSetProjectileVelocity = Spring.SetProjectileVelocity
+local SpGetProjectileOwnerID = Spring.GetProjectileOwnerID
+local SpGetUnitStates = Spring.GetUnitStates
+
 if gadgetHandler:IsSyncedCode() then
 
 	local projectiles = {}
@@ -82,6 +88,28 @@ if gadgetHandler:IsSyncedCode() then
 
 	applyingFunctions.cruise = function (proID)
 		return false
+    end
+
+	checkingFunctions.siege = {}
+	checkingFunctions.siege["state==true"] = function (proID)
+		-- as soon as the siege projectile is created, pass true on the
+		-- checking function, to go to applying function
+		-- so the unit state is only checked when the projectile is created
+		return true
+	end
+
+	applyingFunctions.siege = function (proID)
+		local ownerID = SpGetProjectileOwnerID(proID)
+		local ownerState = SpGetUnitStates(ownerID)
+		if ownerState.active == true then
+			local infos = projectiles[proID]
+			factor = tonumber(infos.max_velocity_reduction)*random()
+			local vx, vy, vz = SpGetProjectileVelocity(proID)
+			vx = vx*(1-factor)
+			vy = vy*(1-factor)
+			vz = vz*(1-factor)
+			SpSetProjectileVelocity(proID,vx,vy,vz)
+		end
     end
 
 	checkingFunctions.cannonwaterpen = {}

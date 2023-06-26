@@ -1,3 +1,8 @@
+local comupdate = Spring.GetModOptions().comupdate
+if comupdate then
+	return
+end
+
 function widget:GetInfo()
 	return {
 		name = "Commblast Range GL4",

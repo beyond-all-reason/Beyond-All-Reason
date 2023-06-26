@@ -390,8 +390,19 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	-- Add prototype units to cor T2 vech
+	if Spring.GetModOptions().expandedcortexvehiclest2 then
+		if name == "coravp" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corforge"
+			uDef.buildoptions[numBuildoptions+2] = "corprinter"
+			uDef.buildoptions[numBuildoptions+3] = "cortorch"
+			uDef.buildoptions[numBuildoptions+4] = "corftiger"
+		end
+	end
+
 	-- Add scav units to normal factories and builders
-	if Spring.GetModOptions().experimentalscavuniqueunits then
+	if Spring.GetModOptions().experimentalextraunits then
 		if name == "armshltx" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
@@ -399,14 +410,14 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+3] = "armpwt4"
 			uDef.buildoptions[numBuildoptions+4] = "armvadert4"
 			-- uDef.buildoptions[numBuildoptions+5] = "armlunchbox"
-			-- uDef.buildoptions[numBuildoptions+6] = "armmeatball"
-			-- uDef.buildoptions[numBuildoptions+7] = "armassimilator"
+			uDef.buildoptions[numBuildoptions+6] = "armmeatball"
+			uDef.buildoptions[numBuildoptions+7] = "armassimilator"
 		elseif name == "armshltxuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
 			uDef.buildoptions[numBuildoptions+2] = "armpwt4"
 			uDef.buildoptions[numBuildoptions+3] = "armvadert4"
-			-- uDef.buildoptions[numBuildoptions+4] = "armmeatball"
+			uDef.buildoptions[numBuildoptions+4] = "armmeatball"
 		elseif name == "corgant" or name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cordemont4"
@@ -420,30 +431,19 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
 			uDef.buildoptions[numBuildoptions+2] = "corforge"
+			uDef.buildoptions[numBuildoptions+3] = "corprinter"
+			uDef.buildoptions[numBuildoptions+4] = "cortorch"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
-			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
-			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
-			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
 		elseif name == "corca" or name == "corck" or name == "corcv" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
-			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
-			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
-			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
 		elseif name == "legca" or name == "legck" or name == "legcv" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
-			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
-			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
-			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
 		elseif name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armapt3"
 			uDef.buildoptions[numBuildoptions+2] = "armminivulc"
 			uDef.buildoptions[numBuildoptions+3] = "armwint2"
-			uDef.buildoptions[numBuildoptions+4] = "corscavfort"
 			uDef.buildoptions[numBuildoptions+5] = "armbotrail"
 			uDef.buildoptions[numBuildoptions+6] = "armannit3"
 			uDef.buildoptions[numBuildoptions+7] = "armnanotct2"
@@ -453,7 +453,6 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
       		uDef.buildoptions[numBuildoptions+3] = "corwint2"
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
-			uDef.buildoptions[numBuildoptions+5] = "corscavfort"
 			uDef.buildoptions[numBuildoptions+6] = "cordoomt3"
 			uDef.buildoptions[numBuildoptions+7] = "cornanotct2"
 		elseif name == "legaca" or name == "legack" or name == "legacv" then
@@ -462,7 +461,6 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
       		uDef.buildoptions[numBuildoptions+3] = "corwint2"
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
-			uDef.buildoptions[numBuildoptions+5] = "corscavfort"
 			uDef.buildoptions[numBuildoptions+6] = "cordoomt3"
 			uDef.buildoptions[numBuildoptions+7] = "cornanotct2"
 		elseif name == "armasy" then
@@ -804,6 +802,14 @@ function UnitDef_Post(name, uDef)
 	-- Commander Update
 	
 	if Spring.GetModOptions().comupdate == true then
+		if name == "armdecom" then
+			uDef.maxdamage = 4000
+			uDef.autoheal = 0
+		end
+		if name == "cordecom" then
+			uDef.maxdamage = 4000
+			uDef.autoheal = 0
+		end
 		if name == "armllt" then
 			uDef.weapondefs.arm_lightlaser.damage = {
 					bombers = 5,

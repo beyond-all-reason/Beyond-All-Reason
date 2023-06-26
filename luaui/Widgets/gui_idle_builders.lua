@@ -393,6 +393,7 @@ local function checkUnitGroupsPos(isViewresize)
 		end
 	end
 end
+
 local checkgroups = false
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
@@ -446,6 +447,13 @@ function widget:ViewResize()
 	iconMargin = floor((backgroundPadding * 0.5) + 0.5)
 	groupSize = floor((height * vsy) - (posY-height > 0 and backgroundPadding or 0))
 	usedHeight = groupSize + (posY-height > 0 and backgroundPadding or 0)
+
+	if WG['unitgroups'] then
+		local px, py, sx, sy = WG['unitgroups'].getPosition()
+		local oldPosX, oldPosY = posX, posY
+		posY = py / vsy
+		posX = (sx + widgetSpaceMargin) / vsx
+	end
 end
 
 function widget:PlayerChanged(playerID)

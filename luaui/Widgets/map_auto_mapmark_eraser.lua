@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local eraseTime = 100
+local eraseTime = 60
 local frame = -1
 local pointsToErase = {}
 local recentlyErased = {}
@@ -66,11 +66,12 @@ function widget:GetConfigData()
 	return {
 		eraseTime = eraseTime,
 		pointsToErase = pointsToErase,
+		version = 1
 	}
 end
 
 function widget:SetConfigData(data)
-	if data.eraseTime ~= nil then
+	if data.version and data.eraseTime ~= nil then
 		eraseTime = data.eraseTime
 	end
 	if data.pointsToErase ~= nil and Spring.GetGameFrame() > 0 then

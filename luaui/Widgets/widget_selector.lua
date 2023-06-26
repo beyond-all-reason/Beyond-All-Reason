@@ -222,7 +222,8 @@ function drawChatInput()
 
 			-- background
 			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/2)))
-			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 0,0,nil,nil, 0,nil,nil,nil, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+			chatInputArea = { activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance }
+			UiElement(chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4], 0,0,nil,nil, 0,nil,nil,nil, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 			if WG['guishader'] then
 				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'selectorinput')
 			end
@@ -576,11 +577,11 @@ function widget:DrawScreen()
 
 	UpdateList()
 
-	local backgroundRect = { floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)) }
+	backgroundRect = { floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)) }
 
 	local title = Spring.I18N('ui.widgetselector.title')
 	local titleFontSize = 18 * widgetScale
-	local titleRect = { backgroundRect[1], backgroundRect[4], math.floor(backgroundRect[1] + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(backgroundRect[4] + (titleFontSize*1.7)) }
+	titleRect = { backgroundRect[1], backgroundRect[4], math.floor(backgroundRect[1] + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(backgroundRect[4] + (titleFontSize*1.7)) }
 
 	if WG['guishader'] == nil then
 		activeGuishader = false
@@ -603,10 +604,10 @@ function widget:DrawScreen()
 	local mx, my, lmb, mmb, rmb = Spring.GetMouseState()
 	local tcol = WhiteStr
 
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 1, 0, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 1, 0, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 
 	-- title background
-	gl.Color(0, 0, 0, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	gl.Color(0, 0, 0, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 
 	-- title
@@ -788,6 +789,13 @@ function widget:DrawScreen()
 		WG['guishader'].RemoveRect('selectorinput')
 		textInputDlist = gl.DeleteList(textInputDlist)
 	end
+
+	--local windowClick = (backgroundRect and math.isInRect(mx, my, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]))
+	--local titleClick = (titleRect and math.isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]))
+	--local chatinputClick = (chatInputArea and math.isInRect(mx, my, chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4]))
+	--if windowClick or titleClick or chatinputClick then
+	--	Spring.SetMouseCursor('cursornormal')
+	--end
 end
 
 function widget:MousePress(x, y, button)
@@ -796,6 +804,10 @@ function widget:MousePress(x, y, button)
 	end
 
 	UpdateList()
+
+	local windowClick = (backgroundRect and math.isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]))
+	local titleClick = (titleRect and math.isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]))
+	local chatinputClick = (chatInputArea and math.isInRect(x, y, chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4]))
 
 	if button == 1 then
 		-- above a button
@@ -841,15 +853,13 @@ function widget:MousePress(x, y, button)
 		end
 	end
 
-	local namedata = aboveLabel(x, y)
-	if not namedata then
+	if windowClick or titleClick or chatinputClick then
+		return true
+	else
 		show = false
 		widgetHandler.textOwner = nil		--widgetHandler:DisownText()
 		return false
 	end
-
-	return true
-
 end
 
 function widget:MouseMove(x, y, dx, dy, button)
@@ -1026,7 +1036,17 @@ function widget:TextCommand(s)
 	if n == 1 and token[1] == "factoryreset" then
 		-- tell the widget handler to disallow user widgets and reload with a blank config
 		widgetHandler.__blankOutConfig = true
-		widgetHandler.__allowUserWidgets = false
+		--widgetHandler.__allowUserWidgets = false
+		Spring.SendCommands("luarules reloadluaui")
+	end
+	if n == 1 and token[1] == "userwidgets" then
+		if widgetHandler.allowUserWidgets then
+			widgetHandler.__allowUserWidgets = false
+			Spring.Echo("Disallowed user widgets, reloading...")
+		else
+			widgetHandler.__allowUserWidgets = true
+			Spring.Echo("Allowed user widgets, reloading...")
+		end
 		Spring.SendCommands("luarules reloadluaui")
 	end
 end
