@@ -1,4 +1,4 @@
--- the commented out slopemod were there to compensate for modoption betterunitmovement
+-- the commented out slopemod were there to compensate for modoption betterunitmovementmrectr
 ----------------------------------------------------------------------------------
 --README
 --for organizational purposes all unit deffs must be added to thge movedeff name.
