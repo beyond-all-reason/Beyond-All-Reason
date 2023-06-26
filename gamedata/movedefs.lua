@@ -229,7 +229,7 @@ local moveDatas = {
 	-- HHOVER3 = {
 	-- 	badslope = 22,
 	-- 	badwaterslope = 255,
-	-- 	crushstrength = 252, -- Currently Unused
+	-- 	crushstrength = 252,  
 	-- 	footprintx = 3,
 	-- 	footprintz = 3,
 	-- 	maxslope = 22,
@@ -521,7 +521,7 @@ local moveDatas = {
 		maxwaterslope = 30,
 	},
 	-- review this as there is a possible set of merges
-	-- corkorg
+	-- corkorg armbanth
 	VBOT5 = {
 		crushstrength = 1400,
 		depthmod = 0,
@@ -708,22 +708,22 @@ local moveDatas = {
 		maxwaterdepth = 99999,
 		maxwaterslope = 100,
 	},
-	-- it is used by changedeffs
-	SCAVREZZER = {
-		crushstrength = 50,
-		depthModParams = {
-			minHeight = 0,
-			maxScale = 1.5,
-			quadraticCoeff = (9.9/22090)/2,
-			linearCoeff = (0.1/470)/2,
-			constantCoeff = 1,
-			},
-		footprintx = 2,
-		footprintz = 2,
-		maxslope = 36,
-		maxwaterdepth = 99999,
-		maxwaterslope = 100,
-	},
+	-- it is used by changedeffs being merged into commandermove deff
+	-- SCAVREZZER = {
+	-- 	crushstrength = 50,
+	-- 	depthModParams = {
+	-- 		minHeight = 0,
+	-- 		maxScale = 1.5,
+	-- 		quadraticCoeff = (9.9/22090)/2,
+	-- 		linearCoeff = (0.1/470)/2,
+	-- 		constantCoeff = 1,
+	-- 		},
+	-- 	footprintx = 2,
+	-- 	footprintz = 2,
+	-- 	maxslope = 36,
+	-- 	maxwaterdepth = 99999,
+	-- 	maxwaterslope = 100,
+	-- },
 
 	-- scavmist  scavmistxl scavmisstxxl
 	SCAVMIST = {

@@ -23,7 +23,7 @@ return {
 		maxslope = 17,
 		maxvelocity = 1.52,
 		maxwaterdepth = 12,
-		movementclass = "VBOT3",
+		movementclass = "VBOT5",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMBANTH.s3o",
 		pushresistant = true,
