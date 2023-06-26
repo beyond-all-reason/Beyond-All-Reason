@@ -268,7 +268,8 @@ if ValidID(unitID) then
 		Spring.MoveCtrl.Disable(unitID)
 	end
 	--if corMoveSpeed[level] then
-		Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", math.ceil(levelMoveSpeed[level]*30))
+		Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", math.ceil(levelMoveSpeedCortex[level]*30))
+		Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxWantedSpeed", math.ceil(levelMoveSpeedCortex[level]*30))
 	--end
 	if curMoveCtrl then
 		Spring.MoveCtrl.Enable(unitID)
@@ -507,7 +508,6 @@ function walk()
 			turn(torso, 1, 0.527975, 15.839238 / animSpeed)
 			turn(torso, 2, -16.999999, 509.999980 / animSpeed)
 			Sleep(197)
-			Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.000015)
 		end
 	while (bMoving) do
 		if (bMoving) then --Frame:12
@@ -543,7 +543,6 @@ function walk()
 			turn(torso, 3, -2.604197, 78.125917 / animSpeed)
 			turn(torso, 2, -11.687500, 159.374994 / animSpeed)
 			Sleep((33*animSpeed) -1)
-			Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.000015)
 		end
 		if (bMoving) then --Frame:18
 
@@ -581,7 +580,6 @@ function walk()
 			turn(torso, 3, -1.177850, 42.790427 / animSpeed)
 			turn(torso, 2, 0.000001, 350.625002 / animSpeed)
 			Sleep((33*animSpeed) -1)
-			Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.000015)
 		end
 		if (bMoving) then --Frame:24
 			if not Spring.GetUnitIsCloaked(unitID) then
@@ -622,7 +620,6 @@ function walk()
 			turn(torso, 3, -0.344737, 24.993395 / animSpeed)
 			turn(torso, 2, 11.687500, 350.624996 / animSpeed)
 			Sleep((33*animSpeed) -1)
-			Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.000015)
 		end
 		if (bMoving) then --Frame:30
 			if (rightArm) then turn(biggun, 1, -7.000000, 165.000000 / animSpeed)  end
@@ -658,7 +655,6 @@ function walk()
 			turn(torso, 3, -0.000000, 10.342095 / animSpeed)
 			turn(torso, 2, 16.999999, 159.374968 / animSpeed)
 			Sleep((33*animSpeed) -1)
-			Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.000015)
 		end
 		if (bMoving) then --Frame:36
 			if (rightArm) then turn(biggun, 1, -4.812500, 65.625000 / animSpeed)  end
@@ -695,7 +691,6 @@ function walk()
 			turn(torso, 3, 2.154603, 64.638097 / animSpeed)
 			turn(torso, 2, 11.687500, 159.374994 / animSpeed)
 			Sleep((33*animSpeed) -1)
-			Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.000015)
 		end
 		if (bMoving) then --Frame:42
 			if (rightArm) then turn(biggun, 1, 0.000000, 144.375003 / animSpeed)  end
@@ -732,7 +727,6 @@ function walk()
 			turn(torso, 3, 0.804385, 40.506543 / animSpeed)
 			turn(torso, 2, -0.000001, 350.625002 / animSpeed)
 			Sleep((33*animSpeed) -1)
-			Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.000015)
 		end
 		if (bMoving) then --Frame:48
 			if not Spring.GetUnitIsCloaked(unitID) then
@@ -773,7 +767,6 @@ function walk()
 			turn(torso, 3, 0.258552, 16.374982 / animSpeed)
 			turn(torso, 2, -11.687500, 350.624996 / animSpeed)
 			Sleep((33*animSpeed) -1)
-			Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.000015)
 		end
 		if (bMoving) then --Frame:54
 			if (rightArm) then turn(biggun, 1, 7.000000, 65.625012 / animSpeed)  end
@@ -810,7 +803,6 @@ function walk()
 			turn(torso, 3, -0.000000, 7.756572 / animSpeed)
 			turn(torso, 2, -16.999999, 159.374968 / animSpeed)
 			Sleep((33*animSpeed) -1)
-			Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.00015)
 		end
 	end
 end
@@ -954,7 +946,7 @@ end
 function ResumeBuilding()
 	Sleep(800)
 	if isBuilding and not isAiming then
-		Turn(aimy1, 2, buildheading - rad(20), rad(300.000000))
+		Turn(aimy1, 2, buildHeading - rad(20), rad(300.000000))
 		Turn(aimx1, 1, rad(-20.000000) - buildpitch, rad(90.000000))
 	end
 	return (0)

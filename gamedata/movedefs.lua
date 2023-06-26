@@ -335,7 +335,8 @@ local moveDatas = {
 	-- },
 	--wtf is the diferece for htank 3 and mtank3 merge this
 	--
-	--corprinter correap armbull legsco corgatreap
+
+	--corprinter correap corftiger armbull legsco
 	MTANK3 = {
 		crushstrength = 250,
 		footprintx = 3,
