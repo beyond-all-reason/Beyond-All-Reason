@@ -126,20 +126,20 @@ local moveDatas = {
 		minwaterdepth = 8,
 	},
 	-- cruisers / missile ships / transport ships
-	-- armtship cormship corcrus armmship cortship
+	-- armtship cormship corcrus armmship cortship armcrus
 	BOAT5 = {
 		crushstrength = 16,
 		footprintx = 5,
 		footprintz = 5,
 		minwaterdepth = 10,
 	},
-	-- armcrus
-	BOAT6 = {
-		crushstrength = 16,
-		footprintx = 6,
-		footprintz = 6,
-		minwaterdepth = 10,
-	},
+	-- not used
+	-- BOAT6 = {
+	-- 	crushstrength = 16,
+	-- 	footprintx = 6,
+	-- 	footprintz = 6,
+	-- 	minwaterdepth = 10,
+	-- },
 	-- battleships
 	--armbats corbats corcarry corcarry2
 	BOAT7 = {
@@ -159,7 +159,7 @@ local moveDatas = {
 	},
 
 	-- Subs possible merger with uboat4
-	-- correcl critter_goldfish corsub armsub corshark armrecl
+	--   corsub armsub corshark armrecl
 	UBOAT3 = {
 		footprintx = 3,
 		footprintz = 3,
@@ -168,7 +168,7 @@ local moveDatas = {
 		subMarine = 1,
 	},
 	-- Battle Subs
-	--coracsub armacsub armserp corrsub armsubk
+	--critter_goldfish coracsub armacsub armserp corrsub armsubk correcl
 	UBOAT4 = {
 		footprintx = 4,
 		footprintz = 4,
