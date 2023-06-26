@@ -15,6 +15,9 @@ local SpGetProjectileVelocity = Spring.GetProjectileVelocity
 local SpSetProjectileVelocity = Spring.SetProjectileVelocity
 local SpGetProjectileOwnerID = Spring.GetProjectileOwnerID
 local SpGetUnitStates = Spring.GetUnitStates
+local SpSetProjectileTarget = Spring.SetProjectileTarget
+local SpGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
+local SpGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -112,6 +115,36 @@ if gadgetHandler:IsSyncedCode() then
 		end
     end
 
+	checkingFunctions.retarget = {}
+	checkingFunctions.retarget["always"] = function (proID)
+		-- Might be slightly more optimal to check the unit itself if it changes target,
+		-- then tell the in-flight missiles to change target if the unit changes target
+		-- instead of checking each in-flight missile
+		-- but not sure if there is an easy hook function or callin function
+		-- that only runs if a unit changes target
+		if SpGetProjectileTimeToLive(proID) <= 0 then
+			-- stop missile retargeting when it runs out of fuel
+			return true
+		end
+		--hardcoded to assume the retarget weapon is the primary weapon.
+		--TODO, make this more general
+		local target_type,_,owner_target = SpGetUnitWeaponTarget(projectiles[proID].owner,1)
+		if target_type == 1 then
+			--hardcoded to assume the retarget weapon does not target features or intercept projectiles, only targets units if not shooting ground.
+			--TODO, make this more general
+			 SpSetProjectileTarget(proID,owner_target,string.byte('u'))
+		end
+		if target_type == 2 then
+			SpSetProjectileTarget(proID,owner_target[1],owner_target[2],owner_target[3])
+		end
+
+		return false
+	end
+
+	applyingFunctions.retarget = function (proID)
+		return false
+    end
+
 	checkingFunctions.cannonwaterpen = {}
 	checkingFunctions.cannonwaterpen["ypos<0"] = function (proID)
 		local _,y,_ = Spring.GetProjectilePosition(proID)
@@ -193,6 +226,7 @@ if gadgetHandler:IsSyncedCode() then
 		local wDefID = Spring.GetProjectileDefID(proID)
 		if specialWeaponCustomDefs[wDefID] then
 			projectiles[proID] = specialWeaponCustomDefs[wDefID]
+			projectiles[proID].owner = proOwnerID
 			active_projectiles[proID] = nil
 		end
 	end
