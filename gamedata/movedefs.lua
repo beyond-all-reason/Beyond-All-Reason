@@ -111,14 +111,14 @@ local moveDatas = {
 	
 	-- break line
 
-	-- corcs armsjam corpt armdecade armtorps corshark critter_goldfish armcs correcl armrecl armsub corsupp corsub corsjam cormls armpt
+	-- corcs armsjam corpt armdecade armtorps corshark critter_goldfish armcs correcl armrecl  corsupp  corsjam cormls armpt
 	BOAT3 = {
 		crushstrength = 9,
 		footprintx = 3,
 		footprintz = 3,
 		minwaterdepth = 8,
 	},
-	--armmls armroy armaas corrsub corroy armship coracsub armserp armsubk corpship armacsub corarch
+	--armmls armroy armaas corrsub corroy armship coracsub armserp  corpship  corarch
 	BOAT4 = {
 		crushstrength = 9,
 		footprintx = 4,
