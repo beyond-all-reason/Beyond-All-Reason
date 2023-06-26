@@ -272,7 +272,7 @@ return {
 				texture2 = "smoketrailbar",
 				tolerance = 15000,
 				tracks = true,
-				turnrate = 65384,
+				turnrate = 21800,
 				turret = true,
 				weaponacceleration = 250,
 				weapontimer = 5,
