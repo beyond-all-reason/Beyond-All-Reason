@@ -20,7 +20,7 @@ return {
 		maxdamage = 940,
 		maxvelocity = 2.385,
 		maxwaterdepth = 16,
-		movementclass = "TBOT2",
+		movementclass = "TBOT3",
 		mygravity = 10000,
 		nochasecategory = "ALL",
 		objectname = "pbr_cube.s3o",

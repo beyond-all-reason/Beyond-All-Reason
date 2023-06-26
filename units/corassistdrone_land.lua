@@ -24,7 +24,7 @@ return {
 		maxslope = 16,
 		maxvelocity = 1.25,
 		maxwaterdepth = 255,
-		movementclass = "ATANK2",
+		movementclass = "ATANK3",
 		objectname = "Units/corassistdrone_land.s3o",
 		script = "Units/CORMUSKRAT.cob",
 		seismicsignature = 0,

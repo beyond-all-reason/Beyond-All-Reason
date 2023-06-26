@@ -22,7 +22,7 @@ return {
 		maxslope = 16,
 		maxvelocity = 1.1,
 		maxwaterdepth = 12,
-		movementclass = "HTANK3",
+		movementclass = "MTANK3",
 		nochasecategory = "MOBILE VTOL",
 		objectname = "Units/CORVROC.s3o",
 		script = "Units/CORVROC.cob",

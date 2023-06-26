@@ -24,7 +24,7 @@ return {
 		maxdamage = 5000,
 		maxvelocity = 2.4,
 		minwaterdepth = 30,
-		movementclass = "BOAT6",
+		movementclass = "BOAT5",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMCRUS.s3o",
 		script = "Units/ARMCRUS.cob",

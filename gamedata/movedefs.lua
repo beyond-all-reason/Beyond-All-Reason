@@ -38,23 +38,23 @@ local moveDatas = {
 		maxwaterslope = 50,
 	},
 
-	-- vader/roach/skuttle
-	--corroach corsktl armvader
-	ABOTBOMB2 = {
-		crushstrength = 50,
-		depthmod = 0,
-		footprintx = 2,
-		footprintz = 2,
-		maxslope = 36,
-		maxwaterdepth = 5000,
-		maxwaterslope = 50,
-		depthModParams = {
-			constantCoeff = 1.5,
-		},
-	},
+	-- NOT USED AT THIS TIME
+	--
+	-- ABOTBOMB2 = {
+	-- 	crushstrength = 50,
+	-- 	depthmod = 0,
+	-- 	footprintx = 2,
+	-- 	footprintz = 2,
+	-- 	maxslope = 36,
+	-- 	maxwaterdepth = 5000,
+	-- 	maxwaterslope = 50,
+	-- 	depthModParams = {
+	-- 		constantCoeff = 1.5,
+	-- 	},
+	-- },
 
 	-- amphibious bots  possible merger with abotbomb2
-	--critter_crab chickens1 cormando chickens2 armaak corcrash chickems2_spectre armjeth coramph coraak
+	--critter_crab chickens1 cormando chickens2 armaak corcrash chickems2_spectre armjeth coramph coraak corroach corsktl armvader
 	ABOT2 = {
 		crushstrength = 50,
 		depthmod = 0,
@@ -66,18 +66,18 @@ local moveDatas = {
 	},
 	-- amphibious tanks
 	-- legassistdrone_land corassistdrone armassistdrone
-	ATANK2 = {
-		crushstrength = 30,
-		depthmod = 0,
-		footprintx = 2,
-		footprintz = 2,
-		maxslope = 36,
-		slopeMod = 18,
-		maxwaterdepth = 5000,
-		maxwaterslope = 80,
-	},
+	-- ATANK2 = {
+	-- 	crushstrength = 30,
+	-- 	depthmod = 0,
+	-- 	footprintx = 2,
+	-- 	footprintz = 2,
+	-- 	maxslope = 36,
+	-- 	slopeMod = 18,
+	-- 	maxwaterdepth = 5000,
+	-- 	maxwaterslope = 80,
+	-- },
 	-- amphibious tanks
-	-- corgarp armbeaver armmar corparrow armprow corseal cormuskrat armcroc armpincer 
+	-- corgarp armbeaver armmar corparrow armprow corseal cormuskrat armcroc armpincer corintr legassistdrone_land corassistdrone armassistdrone
 	ATANK3 = {
 		crushstrength = 30,
 		depthmod = 0,
@@ -88,21 +88,21 @@ local moveDatas = {
 		maxwaterdepth = 5000,
 		maxwaterslope = 80,
 	},
-	-- amphibious transport possible removal with the transport death
-	-- corintr
-	ATANK4 = {
-		crushstrength = 30,
-		depthmod = 0,
-		footprintx = 4,
-		footprintz = 4,
-		maxslope = 36,
-		slopeMod = 18,
-		maxwaterdepth = 5000,
-		maxwaterslope = 80,
-	},
+	--  
+	-- NOT USED AT THIS TIME.
+	-- ATANK4 = {
+	-- 	crushstrength = 30,
+	-- 	depthmod = 0,
+	-- 	footprintx = 4,
+	-- 	footprintz = 4,
+	-- 	maxslope = 36,
+	-- 	slopeMod = 18,
+	-- 	maxwaterdepth = 5000,
+	-- 	maxwaterslope = 80,
+	-- },
 	-- BOAT2 = {
 	-- 	crushstrength = 9,
-	-- 	footprintx = 2,     ------ Currently Unused
+	-- 	footprintx = 2,   
 	-- 	footprintz = 2,
 	-- 	minwaterdepth = 8,
 	-- },
@@ -111,14 +111,14 @@ local moveDatas = {
 	
 	-- break line
 
-	-- corcs armsjam corpt armdecade armtorps corshark critter_goldfish armcs correcl armrecl armsub corsupp corsub corsjam cormls armpt
+	-- corcs armsjam corpt armdecade armtorps corshark critter_goldfish armcs correcl armrecl  corsupp  corsjam cormls armpt
 	BOAT3 = {
 		crushstrength = 9,
 		footprintx = 3,
 		footprintz = 3,
 		minwaterdepth = 8,
 	},
-	--armmls armroy armaas corrsub corroy armship coracsub armserp armsubk corpship armacsub corarch
+	--armmls armroy armaas corrsub corroy armship coracsub armserp  corpship  corarch
 	BOAT4 = {
 		crushstrength = 9,
 		footprintx = 4,
@@ -126,20 +126,20 @@ local moveDatas = {
 		minwaterdepth = 8,
 	},
 	-- cruisers / missile ships / transport ships
-	-- armtship cormship corcrus armmship cortship
+	-- armtship cormship corcrus armmship cortship armcrus
 	BOAT5 = {
 		crushstrength = 16,
 		footprintx = 5,
 		footprintz = 5,
 		minwaterdepth = 10,
 	},
-	-- armcrus
-	BOAT6 = {
-		crushstrength = 16,
-		footprintx = 6,
-		footprintz = 6,
-		minwaterdepth = 10,
-	},
+	-- not used
+	-- BOAT6 = {
+	-- 	crushstrength = 16,
+	-- 	footprintx = 6,
+	-- 	footprintz = 6,
+	-- 	minwaterdepth = 10,
+	-- },
 	-- battleships
 	--armbats corbats corcarry corcarry2
 	BOAT7 = {
@@ -159,7 +159,7 @@ local moveDatas = {
 	},
 
 	-- Subs possible merger with uboat4
-	-- correcl critter_goldfish corsub armsub corshark armrecl
+	--      NOT USED
 	UBOAT3 = {
 		footprintx = 3,
 		footprintz = 3,
@@ -167,8 +167,8 @@ local moveDatas = {
 		crushstrength = 5,
 		subMarine = 1,
 	},
-	-- Battle Subs
-	--coracsub armacsub armserp corrsub armsubk
+	-- Battle Subs 
+	--critter_goldfish coracsub armacsub armserp corrsub armsubk correcl corshark corsub
 	UBOAT4 = {
 		footprintx = 4,
 		footprintz = 4,
@@ -180,7 +180,7 @@ local moveDatas = {
 	-- UBOAT6 = {
 	-- 	footprintx = 6,
 	-- 	footprintz = 6,
-	-- 	minwaterdepth = 15, -- Currently Unused
+	-- 	minwaterdepth = 15, 
 	-- 	crushstrength = 5,
 	-- 	subMarine = 1,
 	-- },
@@ -229,7 +229,7 @@ local moveDatas = {
 	-- HHOVER3 = {
 	-- 	badslope = 22,
 	-- 	badwaterslope = 255,
-	-- 	crushstrength = 252, -- Currently Unused
+	-- 	crushstrength = 252,  
 	-- 	footprintx = 3,
 	-- 	footprintz = 3,
 	-- 	maxslope = 22,
@@ -239,7 +239,7 @@ local moveDatas = {
 	-- lun/sokolov
 	--break line
 	--
-	-- corsok armlun
+	-- corsok armlun corthovr armthovr
 	HHOVER4 = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -251,18 +251,18 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 	-- transports
-	-- review this
-	--corthovr armthovr
-	HOVER4 = {
-		badslope = 22,
-		badwaterslope = 255,
-		crushstrength = 25,
-		footprintx = 4,
-		footprintz = 4, -- Currently Unused
-		maxslope = 22,
-		slopeMod = 18,
-		maxwaterslope = 255,
-	},
+	-- review this 
+	-- NOT USED
+	-- HOVER4 = {
+	-- 	badslope = 22,
+	-- 	badwaterslope = 255,
+	-- 	crushstrength = 25,
+	-- 	footprintx = 4,
+	-- 	footprintz = 4, -- Currently Unussed except that its costing us one move deff so it goes away now
+	-- 	maxslope = 22,
+	-- 	slopeMod = 18,
+	-- 	maxwaterslope = 255,
+	-- },
 	-- armamph
 	-- review this
 	-- armamph
@@ -276,21 +276,21 @@ local moveDatas = {
 		slopeMod = 18,
 		maxwaterslope = 255,
 	},
-	-- armfav/corfav
-	TANK1 = {
-		crushstrength = 10,
-		footprintx = 2,
-		footprintz = 2,
-		maxslope = 18,
-		slopeMod = 18,
-		maxwaterdepth = 22,
-		depthModParams = {
-			minHeight = 4,
-			linearCoeff = 0.03,
-			maxValue = 0.7,
-		}
-	},
-	-- cormlv armmflash corgator legmrv armmlv leghades leghelops
+	-- NOT USED
+	-- TANK1 = {
+	-- 	crushstrength = 10,
+	-- 	footprintx = 2,
+	-- 	footprintz = 2,
+	-- 	maxslope = 18,
+	-- 	slopeMod = 18,
+	-- 	maxwaterdepth = 22,
+	-- 	depthModParams = {
+	-- 		minHeight = 4,
+	-- 		linearCoeff = 0.03,
+	-- 		maxValue = 0.7,
+	-- 	}
+	-- },
+	-- cormlv armmflash corgator legmrv armmlv leghades leghelops armfav corfav armconsul armlatnk cortorch legmrrv
 	TANK2 = {
 		crushstrength = 18,
 		footprintx = 2,
@@ -319,22 +319,23 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- armconsul armlatnk cortorch legmrrv
-	MTANK2 = {
-		crushstrength = 18,
-		footprintx = 2,
-		footprintz = 2,
-		maxslope = 18,
-		slopeMod = 25,
-		maxwaterdepth = 22,
-		depthModParams = {
-			minHeight = 4,
-			linearCoeff = 0.03,
-			maxValue = 0.7,
-		}
-	},
+	-- NOT USED
+	-- MTANK2 = {
+	-- 	crushstrength = 18,
+	-- 	footprintx = 2,
+	-- 	footprintz = 2,
+	-- 	maxslope = 18,
+	-- 	slopeMod = 25,
+	-- 	maxwaterdepth = 22,
+	-- 	depthModParams = {
+	-- 		minHeight = 4,
+	-- 		linearCoeff = 0.03,
+	-- 		maxValue = 0.7,
+	-- 	}
+	-- },
 	--wtf is the diferece for htank 3 and mtank3 merge this
 	--
+
 	--corprinter correap corftiger armbull legsco
 	MTANK3 = {
 		crushstrength = 250,
@@ -349,7 +350,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corvoc corgatreap armmanni armmerl
+	-- corvoc  armmanni armmerl
 	HTANK3 = {
 		crushstrength = 250,
 		footprintx = 3,
@@ -510,18 +511,18 @@ local moveDatas = {
 		}
 	},
 	-- review this with a few other movedeff types possible merge
-	-- armbanth
-	VBOT3 = {
-		crushstrength = 1400,
-		depthmod = 0,
-		footprintx = 4,
-		footprintz = 4,
-		maxslope = 24,
-		maxwaterdepth = 5000,
-		maxwaterslope = 30,
-	},
+	-- NOT USED
+	-- VBOT3 = {
+	-- 	crushstrength = 1400,
+	-- 	depthmod = 0,
+	-- 	footprintx = 4,
+	-- 	footprintz = 4,
+	-- 	maxslope = 24,
+	-- 	maxwaterdepth = 5000,
+	-- 	maxwaterslope = 30,
+	-- },
 	-- review this as there is a possible set of merges
-	-- corkorg
+	-- corkorg armbanth
 	VBOT5 = {
 		crushstrength = 1400,
 		depthmod = 0,
@@ -546,19 +547,19 @@ local moveDatas = {
 		}
 	},
 
-	-- pbr_cube armspid dbg_sphere_fullmetal _dbgsphere
-	TBOT2 = {
-		crushstrength = 15,
-		footprintx = 2,
-		footprintz = 2,
-		maxwaterdepth = 22,
-		depthModParams = {
-			minHeight = 4,
-			linearCoeff = 0.03,
-			maxValue = 0.7,
-		}
-	},
-	-- legsrail armscab armsptk cortermite
+	-- NOT USED
+	-- TBOT2 = {
+	-- 	crushstrength = 15,
+	-- 	footprintx = 2,
+	-- 	footprintz = 2,
+	-- 	maxwaterdepth = 22,
+	-- 	depthModParams = {
+	-- 		minHeight = 4,
+	-- 		linearCoeff = 0.03,
+	-- 		maxValue = 0.7,
+	-- 	}
+	-- },
+	-- legsrail armscab armsptk cortermite armspid pbr_cube  dbg_sphere_fullmetal _dbgsphere
 	TBOT3 = {
 		crushstrength = 15,
 		footprintx = 3,
@@ -708,22 +709,22 @@ local moveDatas = {
 		maxwaterdepth = 99999,
 		maxwaterslope = 100,
 	},
-	-- unused
-	SCAVREZZER = {
-		crushstrength = 50,
-		depthModParams = {
-			minHeight = 0,
-			maxScale = 1.5,
-			quadraticCoeff = (9.9/22090)/2,
-			linearCoeff = (0.1/470)/2,
-			constantCoeff = 1,
-			},
-		footprintx = 2,
-		footprintz = 2,
-		maxslope = 36,
-		maxwaterdepth = 99999,
-		maxwaterslope = 100,
-	},
+	-- it is used by changedeffs being merged into commandermove deff
+	-- SCAVREZZER = {
+	-- 	crushstrength = 50,
+	-- 	depthModParams = {
+	-- 		minHeight = 0,
+	-- 		maxScale = 1.5,
+	-- 		quadraticCoeff = (9.9/22090)/2,
+	-- 		linearCoeff = (0.1/470)/2,
+	-- 		constantCoeff = 1,
+	-- 		},
+	-- 	footprintx = 2,
+	-- 	footprintz = 2,
+	-- 	maxslope = 36,
+	-- 	maxwaterdepth = 99999,
+	-- 	maxwaterslope = 100,
+	-- },
 
 	-- scavmist  scavmistxl scavmisstxxl
 	SCAVMIST = {
@@ -765,7 +766,7 @@ local moveDatas = {
 	-- 	crushstrength = 9999,
 	-- 	footprintx = 5,
 	-- 	footprintz = 5,
-	-- 	maxslope = 36, -- Unused
+	-- 	maxslope = 36, -- 
 	-- 	maxwaterdepth = 9999,
 	-- 	maxwaterslope = 255,
 	-- 	speedModClass = 2,

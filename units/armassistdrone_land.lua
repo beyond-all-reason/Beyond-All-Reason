@@ -24,7 +24,7 @@ return {
 		maxslope = 16,
 		maxvelocity = 1.25,
 		maxwaterdepth = 255,
-		movementclass = "ATANK2",
+		movementclass = "ATANK3",
 		objectname = "Units/armassistdrone_land.s3o",
 		script = "Units/ARMBEAVER.cob",
 		seismicsignature = 0,

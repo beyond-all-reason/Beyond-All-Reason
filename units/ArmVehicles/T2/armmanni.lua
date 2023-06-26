@@ -24,7 +24,7 @@ return {
 		maxslope = 12,
 		maxvelocity = 1.4,
 		maxwaterdepth = 0,
-		movementclass = "HTANK3",
+		movementclass = "HTANK4",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMANNI.s3o",
 		script = "Units/ARMMANNI.cob",
