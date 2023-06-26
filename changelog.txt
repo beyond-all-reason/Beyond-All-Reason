@@ -6,6 +6,10 @@
 
 Bugfixes
  • [Mines and Fiends] Fiends can now attack and damage mines.
+ • [Longbow and Messenger] Fixed rare case of door animation getting stuck and being unable to attack. 
+ • [Eel] Shift aimpoint of Eel so it no longer barely outranges torpedo launchers. 
+ • [Pitbull] Pitbull no longer blocked by T1 walls, it will correctly deploy and fire over T1 walls.
+ • [Resurrection] Fixed bug where units could sometimes be resurrected at full health instead of at 5% health. 
 
 # May 2023
 [Commander] default enabled modoption "comupdate":
@@ -15,9 +19,21 @@ Bugfixes
  • Death explosion inflict less damage.
  • No longer susceptible to special damage modifiers from certain units, such as Light Laser Towers.
 
+Bugfixes
+ • [Viper] No longer closed and armored when under construction.
+ • [Pitbull] Pitbull now closes into armored position after construction. 
+ • [Wrecks and Heaps] Pincer got a heap. Duck got a wreck. Karganeth got a heap. Garpike got a heap. Wolverine got a heap.
+ • [Recluse] Recluse got new cruise missile behavior to drastically reduce incidences of friendly fire on cliff corners.
+ • [Gunslinger] Minor unit script edit to reduce friendly fire incidents. 
+ • [Mobile Jammers] Now correctly turn back on after being damaged or stunned, and correctly turn off when stunned. 
+ • [Air Factories] Fixed bug where it thought it had an aircraft on the buildpad and would stop producing units.
+ • [Nukes] Animation is now interruptable if a nuke was not fired, so an accidently dropped target does not lock the silo into a long animation. Animation time standardized to 8.5 second door open time, and 30 second door close time. 
+ • [RFLRPC] Ragnarok now correctly has a 0.4 reload time at 0 XP. Both Ragnarok and Calamity have animations tied to XP gain, so they properly animate faster and gain firerate increases with XP gains. 
+
 Other
  • [Supporter] Reloadtime reduced from 1s->0.93s
  • [Roughneck] Projectile speed increased 450->800
+ • [Viper] Animation tweaks. Retains heading when closing up. 6 frames (0.2 sec) added to deploy animation, to match pitbull time-to-first-shot. Time to close into armored state after going idle now set to 3 seconds, to match pitbull.
 
 # April 2023
 
