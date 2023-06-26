@@ -128,7 +128,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		--hardcoded to assume the retarget weapon is the primary weapon.
 		--TODO, make this more general
-		local target_type,_,owner_target = SpGetUnitWeaponTarget(projectiles[proID].owner,1)
+		local target_type,_,owner_target = SpGetUnitWeaponTarget(SpGetProjectileOwnerID(proID),1)
 		if target_type == 1 then
 			--hardcoded to assume the retarget weapon does not target features or intercept projectiles, only targets units if not shooting ground.
 			--TODO, make this more general
@@ -226,7 +226,6 @@ if gadgetHandler:IsSyncedCode() then
 		local wDefID = Spring.GetProjectileDefID(proID)
 		if specialWeaponCustomDefs[wDefID] then
 			projectiles[proID] = specialWeaponCustomDefs[wDefID]
-			projectiles[proID].owner = proOwnerID
 			active_projectiles[proID] = nil
 		end
 	end
