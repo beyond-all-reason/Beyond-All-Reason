@@ -510,16 +510,16 @@ local moveDatas = {
 		}
 	},
 	-- review this with a few other movedeff types possible merge
-	-- armbanth
-	VBOT3 = {
-		crushstrength = 1400,
-		depthmod = 0,
-		footprintx = 4,
-		footprintz = 4,
-		maxslope = 24,
-		maxwaterdepth = 5000,
-		maxwaterslope = 30,
-	},
+	-- NOT USED
+	-- VBOT3 = {
+	-- 	crushstrength = 1400,
+	-- 	depthmod = 0,
+	-- 	footprintx = 4,
+	-- 	footprintz = 4,
+	-- 	maxslope = 24,
+	-- 	maxwaterdepth = 5000,
+	-- 	maxwaterslope = 30,
+	-- },
 	-- review this as there is a possible set of merges
 	-- corkorg armbanth
 	VBOT5 = {
@@ -546,7 +546,7 @@ local moveDatas = {
 		}
 	},
 
-	-- pbr_cube armspid dbg_sphere_fullmetal _dbgsphere
+	-- pbr_cube  dbg_sphere_fullmetal _dbgsphere
 	TBOT2 = {
 		crushstrength = 15,
 		footprintx = 2,
@@ -558,7 +558,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- legsrail armscab armsptk cortermite
+	-- legsrail armscab armsptk cortermite armspid
 	TBOT3 = {
 		crushstrength = 15,
 		footprintx = 3,

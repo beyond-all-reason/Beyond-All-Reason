@@ -28,7 +28,7 @@ return {
 		maxdamage = 1110,
 		maxvelocity = 2.385,
 		maxwaterdepth = 16,
-		movementclass = "TBOT2",
+		movementclass = "TBOT3",
 		mygravity = 10000,
 		nochasecategory = "ALL",
 		objectname = "Units/ARMSPID.s3o",
