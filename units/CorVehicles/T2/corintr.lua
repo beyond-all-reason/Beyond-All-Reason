@@ -25,7 +25,7 @@ return {
 		maxdamage = 22000,
 		maxvelocity = 1.8,
 		maxwaterdepth = 255,
-		movementclass = "ATANK4",
+		movementclass = "ATANK3",
 		objectname = "Units/CORINTR.s3o",
 		releaseheld = true,
 		script = "Units/CORINTR.cob",

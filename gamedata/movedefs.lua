@@ -38,8 +38,8 @@ local moveDatas = {
 		maxwaterslope = 50,
 	},
 
-	-- vader/roach/skuttle
-	--corroach corsktl armvader
+	-- NOT USED AT THIS TIME
+	--
 	-- ABOTBOMB2 = {
 	-- 	crushstrength = 50,
 	-- 	depthmod = 0,
@@ -54,7 +54,7 @@ local moveDatas = {
 	-- },
 
 	-- amphibious bots  possible merger with abotbomb2
-	--critter_crab chickens1 cormando chickens2 armaak corcrash chickems2_spectre armjeth coramph coraak
+	--critter_crab chickens1 cormando chickens2 armaak corcrash chickems2_spectre armjeth coramph coraak corroach corsktl armvader
 	ABOT2 = {
 		crushstrength = 50,
 		depthmod = 0,
@@ -77,7 +77,7 @@ local moveDatas = {
 		maxwaterslope = 80,
 	},
 	-- amphibious tanks
-	-- corgarp armbeaver armmar corparrow armprow corseal cormuskrat armcroc armpincer 
+	-- corgarp armbeaver armmar corparrow armprow corseal cormuskrat armcroc armpincer corintr
 	ATANK3 = {
 		crushstrength = 30,
 		depthmod = 0,
@@ -88,18 +88,18 @@ local moveDatas = {
 		maxwaterdepth = 5000,
 		maxwaterslope = 80,
 	},
-	-- amphibious transport possible removal with the transport death
-	-- corintr
-	ATANK4 = {
-		crushstrength = 30,
-		depthmod = 0,
-		footprintx = 4,
-		footprintz = 4,
-		maxslope = 36,
-		slopeMod = 18,
-		maxwaterdepth = 5000,
-		maxwaterslope = 80,
-	},
+	--  
+	-- NOT USED AT THIS TIME.
+	-- ATANK4 = {
+	-- 	crushstrength = 30,
+	-- 	depthmod = 0,
+	-- 	footprintx = 4,
+	-- 	footprintz = 4,
+	-- 	maxslope = 36,
+	-- 	slopeMod = 18,
+	-- 	maxwaterdepth = 5000,
+	-- 	maxwaterslope = 80,
+	-- },
 	-- BOAT2 = {
 	-- 	crushstrength = 9,
 	-- 	footprintx = 2,     ------ Currently Unused
