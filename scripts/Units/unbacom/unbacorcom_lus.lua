@@ -947,7 +947,7 @@ function ResumeBuilding()
 	Sleep(800)
 	if isBuilding and not isAiming then
 		Turn(aimy1, 2, buildHeading - rad(20), rad(300.000000))
-		Turn(aimx1, 1, rad(-20.000000) - buildpitch, rad(90.000000))
+		Turn(aimx1, 1, rad(-20.000000) - buildPitch, rad(90.000000))
 	end
 	return (0)
 end
