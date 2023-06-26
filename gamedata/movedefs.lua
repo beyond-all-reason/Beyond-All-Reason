@@ -276,21 +276,21 @@ local moveDatas = {
 		slopeMod = 18,
 		maxwaterslope = 255,
 	},
-	-- armfav/corfav
-	TANK1 = {
-		crushstrength = 10,
-		footprintx = 2,
-		footprintz = 2,
-		maxslope = 18,
-		slopeMod = 18,
-		maxwaterdepth = 22,
-		depthModParams = {
-			minHeight = 4,
-			linearCoeff = 0.03,
-			maxValue = 0.7,
-		}
-	},
-	-- cormlv armmflash corgator legmrv armmlv leghades leghelops
+	-- NOT USED
+	-- TANK1 = {
+	-- 	crushstrength = 10,
+	-- 	footprintx = 2,
+	-- 	footprintz = 2,
+	-- 	maxslope = 18,
+	-- 	slopeMod = 18,
+	-- 	maxwaterdepth = 22,
+	-- 	depthModParams = {
+	-- 		minHeight = 4,
+	-- 		linearCoeff = 0.03,
+	-- 		maxValue = 0.7,
+	-- 	}
+	-- },
+	-- cormlv armmflash corgator legmrv armmlv leghades leghelops armfav corfav
 	TANK2 = {
 		crushstrength = 18,
 		footprintx = 2,
