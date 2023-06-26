@@ -32,14 +32,14 @@ function gadget:UnitCreated(uID, uDefID, uTeam)
 	if isMine[uDefID] then
 		local x, _, z = Spring.GetUnitPosition(uID)
 		mines[uID] = { x, z }
-		spSetUnitBlocking(uID, false, false, false)
+		spSetUnitBlocking(uID, false, false)
 	end
 end
 
 function gadget:UnitDestroyed(uID, uDefID, uTeam)
 	if isMine[uDefID] and mines[uID] then
 		mines[uID] = nil
-		spSetUnitBlocking(uID, false, false, false)
+		spSetUnitBlocking(uID, false, false)
 	end
 end
 
