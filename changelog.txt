@@ -1,4 +1,6 @@
 ﻿# June 2023
+ • [Shiva] Weapon reloadtime reduced by 33% (3s->2s), damage per shot reduced 33% (900->600), turret turnrate increased.  Script and hitbox adjusted to reduce friendly fire.  
+ • [Karganeth] Cost increased by 50% (1650->2500m), damage per shot increased by 50% (120->180 per shot, dps 400->600), health increased by 25% (10000->12500), model size increased slightly.  Goal is to differentiate Karganeth and Shiva by increasing Karganeth's size and making it better at fighting single targets units while Shiva is better at dealing with large amounts of small units.
  • [Tremor] Weapon reworked, now has a higher aoe, firerate, and impulse but lower damage per shot.  The weapon is now stronger against groups of small units while significantly changing its strength against large units.  
  • [Incisor] Hitbox adjusted so incisors will fire more effectively in close formations, but will still obstruct each other's fire in large groups.  
 
