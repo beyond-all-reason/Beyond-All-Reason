@@ -23,7 +23,7 @@ return {
 		maxslope = 12,
 		maxvelocity = 2.30,
 		maxwaterdepth = 100,
-		movementclass = "HTANK3",
+		movementclass = "MTANK3",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/CORGATREAP.s3o",
 		script = "Units/scavboss/CORGATREAP.cob",

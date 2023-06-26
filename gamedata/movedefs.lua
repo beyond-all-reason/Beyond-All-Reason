@@ -159,7 +159,7 @@ local moveDatas = {
 	},
 
 	-- Subs possible merger with uboat4
-	--   corsub armsub corshark armrecl
+	--      NOT USED
 	UBOAT3 = {
 		footprintx = 3,
 		footprintz = 3,
@@ -167,8 +167,8 @@ local moveDatas = {
 		crushstrength = 5,
 		subMarine = 1,
 	},
-	-- Battle Subs
-	--critter_goldfish coracsub armacsub armserp corrsub armsubk correcl
+	-- Battle Subs 
+	--critter_goldfish coracsub armacsub armserp corrsub armsubk correcl corshark corsub
 	UBOAT4 = {
 		footprintx = 4,
 		footprintz = 4,
@@ -335,7 +335,7 @@ local moveDatas = {
 	-- },
 	--wtf is the diferece for htank 3 and mtank3 merge this
 	--
-	--corprinter correap armbull legsco
+	--corprinter correap armbull legsco corgatreap
 	MTANK3 = {
 		crushstrength = 250,
 		footprintx = 3,
@@ -349,7 +349,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corvoc corgatreap armmanni armmerl
+	-- corvoc  armmanni armmerl
 	HTANK3 = {
 		crushstrength = 250,
 		footprintx = 3,
