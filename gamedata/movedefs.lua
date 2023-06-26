@@ -546,19 +546,19 @@ local moveDatas = {
 		}
 	},
 
-	-- pbr_cube  dbg_sphere_fullmetal _dbgsphere
-	TBOT2 = {
-		crushstrength = 15,
-		footprintx = 2,
-		footprintz = 2,
-		maxwaterdepth = 22,
-		depthModParams = {
-			minHeight = 4,
-			linearCoeff = 0.03,
-			maxValue = 0.7,
-		}
-	},
-	-- legsrail armscab armsptk cortermite armspid
+	-- NOT USED
+	-- TBOT2 = {
+	-- 	crushstrength = 15,
+	-- 	footprintx = 2,
+	-- 	footprintz = 2,
+	-- 	maxwaterdepth = 22,
+	-- 	depthModParams = {
+	-- 		minHeight = 4,
+	-- 		linearCoeff = 0.03,
+	-- 		maxValue = 0.7,
+	-- 	}
+	-- },
+	-- legsrail armscab armsptk cortermite armspid pbr_cube  dbg_sphere_fullmetal _dbgsphere
 	TBOT3 = {
 		crushstrength = 15,
 		footprintx = 3,
