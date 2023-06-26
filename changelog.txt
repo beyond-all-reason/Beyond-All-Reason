@@ -4,6 +4,9 @@
  • [Tremor] Weapon reworked, now has a higher aoe, firerate, and impulse but lower damage per shot.  The weapon is now stronger against groups of small units while significantly changing its strength against large units.  
  • [Incisor] Hitbox adjusted so incisors will fire more effectively in close formations, but will still obstruct each other's fire in large groups.  
 
+Bugfixes
+ • [Mines and Fiends] Fiends can now attack and damage mines.
+
 # May 2023
 [Commander] default enabled modoption "comupdate":
  • Now immune to the D-Gun. 
