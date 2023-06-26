@@ -66,18 +66,18 @@ local moveDatas = {
 	},
 	-- amphibious tanks
 	-- legassistdrone_land corassistdrone armassistdrone
-	ATANK2 = {
-		crushstrength = 30,
-		depthmod = 0,
-		footprintx = 2,
-		footprintz = 2,
-		maxslope = 36,
-		slopeMod = 18,
-		maxwaterdepth = 5000,
-		maxwaterslope = 80,
-	},
+	-- ATANK2 = {
+	-- 	crushstrength = 30,
+	-- 	depthmod = 0,
+	-- 	footprintx = 2,
+	-- 	footprintz = 2,
+	-- 	maxslope = 36,
+	-- 	slopeMod = 18,
+	-- 	maxwaterdepth = 5000,
+	-- 	maxwaterslope = 80,
+	-- },
 	-- amphibious tanks
-	-- corgarp armbeaver armmar corparrow armprow corseal cormuskrat armcroc armpincer corintr
+	-- corgarp armbeaver armmar corparrow armprow corseal cormuskrat armcroc armpincer corintr legassistdrone_land corassistdrone armassistdrone
 	ATANK3 = {
 		crushstrength = 30,
 		depthmod = 0,
