@@ -486,18 +486,18 @@ local moveDatas = {
 		maxwaterslope = 80,
 	},
 	-- see if this one can be merged elsewhere
-	-- armmar
-	HABOT3 = {
-		crushstrength = 252,
-		depthmod = 0,
-		footprintx = 3,
-		footprintz = 3,
-		maxslope = 36,
-		maxwaterdepth = 5000,
-		maxwaterslope = 80,
-	},
+	-- not used
+	-- HABOT3 = {
+	-- 	crushstrength = 252,
+	-- 	depthmod = 0,
+	-- 	footprintx = 3,
+	-- 	footprintz = 3,
+	-- 	maxslope = 36,
+	-- 	maxwaterdepth = 5000,
+	-- 	maxwaterslope = 80,
+	-- },
 	-- review this
-	-- armvang corkarg
+	-- armvang corkarg armmar
 	HTBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,

@@ -22,7 +22,7 @@ return {
 		maxslope = 17,
 		maxvelocity = 3.15,
 		maxwaterdepth = 32,
-		movementclass = "HABOT3", --"ATANK3",
+		movementclass = "HABOT4", --"ATANK3",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMAR.s3o",
 		script = "Units/armmar.cob",
