@@ -448,7 +448,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	--  
+	--  not used
 	-- HBOT3 = {
 	-- 	crushstrength = 252,
 	-- 	footprintx = 3,
@@ -475,7 +475,7 @@ local moveDatas = {
 		}
 	},
 	-- see if this one can be merged elsewhere 
-	-- corshiva
+	-- corshiva armmar
 	HABOT4 = {
 		crushstrength = 252,
 		depthmod = 0,
@@ -497,7 +497,7 @@ local moveDatas = {
 	-- 	maxwaterslope = 80,
 	-- },
 	-- review this
-	-- armvang corkarg armmar
+	-- armvang corkarg 
 	HTBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,
