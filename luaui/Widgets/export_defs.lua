@@ -57,7 +57,7 @@ local function ExportDefs()
 end
 
 function widget:TextCommand(command)
-	if string.find(command, "exportdefs", nil, true) == 1 and string.len(command) == 10 then
+	if command == "exportdefs" then
 		ExportDefs()
 	end
 end
