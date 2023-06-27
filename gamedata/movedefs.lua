@@ -336,7 +336,7 @@ local moveDatas = {
 	--wtf is the diferece for htank 3 and mtank3 merge this
 	--
 
-	--corprinter correap corftiger armbull legsco
+	--corprinter correap corftiger armbull legsco corvoc armmerl
 	MTANK3 = {
 		crushstrength = 250,
 		footprintx = 3,
@@ -350,21 +350,21 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corvoc  armmanni armmerl
-	HTANK3 = {
-		crushstrength = 250,
-		footprintx = 3,
-		footprintz = 3,
-		maxslope = 18,
-		slopeMod = 36,
-		maxwaterdepth = 22,
-		depthModParams = {
-			minHeight = 4,
-			linearCoeff = 0.03,
-			maxValue = 0.7,
-		}
-	},
-	-- corgol leginf corban cortrem
+	--    not used
+	-- HTANK3 = {
+	-- 	crushstrength = 250,
+	-- 	footprintx = 3,
+	-- 	footprintz = 3,
+	-- 	maxslope = 18,
+	-- 	slopeMod = 36,
+	-- 	maxwaterdepth = 22,
+	-- 	depthModParams = {
+	-- 		minHeight = 4,
+	-- 		linearCoeff = 0.03,
+	-- 		maxValue = 0.7,
+	-- 	}
+	-- },
+	-- corgol leginf corban cortrem armmanni
 	HTANK4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -486,7 +486,7 @@ local moveDatas = {
 		maxwaterslope = 80,
 	},
 	-- see if this one can be merged elsewhere
-	-- 
+	-- not used
 	-- HABOT3 = {
 	-- 	crushstrength = 252,
 	-- 	depthmod = 0,
@@ -559,6 +559,8 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
+	--break line
+	--
 	-- legsrail armscab armsptk cortermite armspid pbr_cube  dbg_sphere_fullmetal _dbgsphere
 	TBOT3 = {
 		crushstrength = 15,
