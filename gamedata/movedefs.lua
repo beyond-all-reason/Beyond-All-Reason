@@ -448,20 +448,20 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	--  corsumo
-	HBOT3 = {
-		crushstrength = 252,
-		footprintx = 3,
-		footprintz = 3,
-		maxslope = 36,
-		maxwaterdepth = 22,
-		depthModParams = {
-			minHeight = 4,
-			linearCoeff = 0.03,
-			maxValue = 0.7,
-		}
-	},
-	-- armraz legpede corcat leginc armfboy
+	--  
+	-- HBOT3 = {
+	-- 	crushstrength = 252,
+	-- 	footprintx = 3,
+	-- 	footprintz = 3,
+	-- 	maxslope = 36,
+	-- 	maxwaterdepth = 22,
+	-- 	depthModParams = {
+	-- 		minHeight = 4,
+	-- 		linearCoeff = 0.03,
+	-- 		maxValue = 0.7,
+	-- 	}
+	-- },
+	-- armraz legpede corcat leginc armfboy corsumo
 	HBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,
