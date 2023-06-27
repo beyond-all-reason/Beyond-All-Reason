@@ -160,13 +160,13 @@ local moveDatas = {
 
 	-- Subs possible merger with uboat4
 	--      NOT USED
-	UBOAT3 = {
-		footprintx = 3,
-		footprintz = 3,
-		minwaterdepth = 15,
-		crushstrength = 5,
-		subMarine = 1,
-	},
+	-- UBOAT3 = {
+	-- 	footprintx = 3,
+	-- 	footprintz = 3,
+	-- 	minwaterdepth = 15,
+	-- 	crushstrength = 5,
+	-- 	subMarine = 1,
+	-- },
 	-- Battle Subs 
 	--critter_goldfish coracsub armacsub armserp corrsub armsubk correcl corshark corsub
 	UBOAT4 = {
