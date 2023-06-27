@@ -43,6 +43,15 @@ local function ExportDefs()
 			tbl[k] = v
 		end
 
+		-- parse wDefs, a list of weaponDef metatables
+		tbl["wDefs"] = {}
+		for i, weaponDef in pairs(unitDef.wDefs) do
+			tbl["wDefs"][weaponDef.id] = {}
+			for field_name, value in weaponDef:pairs() do
+				tbl["wDefs"][weaponDef.id][field_name] = value
+			end
+		end
+
 		TableToFile(tbl, string.format("%s/%s.json", export_folder_path, unitDef.name))
 	end
 end
