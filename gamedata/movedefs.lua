@@ -448,7 +448,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- armfboy corsumo
+	--  corsumo
 	HBOT3 = {
 		crushstrength = 252,
 		footprintx = 3,
@@ -461,7 +461,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- armraz legpede corcat leginc
+	-- armraz legpede corcat leginc armfboy
 	HBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,
