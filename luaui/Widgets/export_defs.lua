@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "Unitdefs JSON Export",
-		desc = "Exports UnitDefs into JSON files.",
+		desc = "Exports UnitDefs into JSON files.\nCommand: /exportdefs",
 		author = "Wereii",
 		date = "June 2023",
 		license = "GNU GPL, v2 or later",
