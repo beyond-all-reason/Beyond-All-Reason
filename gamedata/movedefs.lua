@@ -394,8 +394,8 @@ local moveDatas = {
 		}
 	},
 
-	--armflea 
-	-- make a suggestion thread 
+	--armflea critter_ant dice critter_penguinbro xmasball2
+	-- make a suggestion thread critterh
 	BOT1 = {
 		crushstrength = 5,
 		footprintx = 2,
@@ -679,7 +679,7 @@ local moveDatas = {
 		maxwaterdepth = 0,
 	},
 
-	-- dice critter_penguinbro xmasball2 critter_penguin critter_duck xmasball chip critter_penguinking
+	--    critter_penguin critter_duck xmasball chip critter_penguinking
 	CRITTERH = {
 		crushstrength = 0,
 		footprintx = 1,
@@ -690,15 +690,15 @@ local moveDatas = {
 		minwaterdepth = 15,
 		speedModClass = 2, -- 0 = tank, 1 = bot, 2 = hover, 3 = ship
 	},
-	-- critter_ant
-	-- merge into flee
-	ANT = {
-		footprintX = 1,
-		footprintZ = 1,
-		maxWaterDepth = 2,
-		crushStrength = 0,
-		speedModClass = 1, -- 0 = tank, 1 = bot, 2 = hover, 3 = ship
-	},
+	-- Not USED
+	-- merge into flea
+	-- ANT = {
+	-- 	footprintX = 1,
+	-- 	footprintZ = 1,
+	-- 	maxWaterDepth = 2,
+	-- 	crushStrength = 0,
+	-- 	speedModClass = 1, -- 0 = tank, 1 = bot, 2 = hover, 3 = ship
+	-- },
 
 	-- armcomboss corcomboss
 	SCAVCOMMANDERBOT = {
