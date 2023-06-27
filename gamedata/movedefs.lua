@@ -142,16 +142,16 @@ local moveDatas = {
 	-- 	minwaterdepth = 10,
 	-- },
 	-- battleships
-	--armbats corbats corcarry corcarry2
-	BOAT7 = {
-		crushstrength = 252,
-		footprintx = 7,
-		footprintz = 7,
-		minwaterdepth = 15,
-	},
+	--   not used 
+	-- BOAT7 = {
+	-- 	crushstrength = 252,
+	-- 	footprintx = 7,
+	-- 	footprintz = 7,
+	-- 	minwaterdepth = 15,
+	-- },
 	-- flagships/aircraft carriers 
 	--why are bb and flagships/carriers different merge both
-	-- armcarry armepoch corblackhy armcarry2
+	-- armcarry armepoch corblackhy armcarry2 armbats corbats corcarry corcarry2
 	BOAT8 = {
 		crushstrength = 252,
 		footprintx = 8,
@@ -394,7 +394,7 @@ local moveDatas = {
 		}
 	},
 
-	--armflea critter_ant dice critter_penguinbro xmasball2
+	--armflea critter_ant dice critter_penguinbro xmasball2 critter_penguin critter_duck xmasball chip
 	-- make a suggestion thread critterh
 	BOT1 = {
 		crushstrength = 5,
@@ -679,17 +679,17 @@ local moveDatas = {
 		maxwaterdepth = 0,
 	},
 
-	--    critter_penguin critter_duck xmasball chip critter_penguinking
-	CRITTERH = {
-		crushstrength = 0,
-		footprintx = 1,
-		footprintz = 1,
-		maxslope = 50,
-		maxwaterslope = 255,
-		maxWaterDepth = 255,
-		minwaterdepth = 15,
-		speedModClass = 2, -- 0 = tank, 1 = bot, 2 = hover, 3 = ship
-	},
+	--     NOT USED   
+	-- CRITTERH = {
+	-- 	crushstrength = 0,
+	-- 	footprintx = 1,
+	-- 	footprintz = 1,
+	-- 	maxslope = 50,
+	-- 	maxwaterslope = 255,
+	-- 	maxWaterDepth = 255,
+	-- 	minwaterdepth = 15,
+	-- 	speedModClass = 2, -- 0 = tank, 1 = bot, 2 = hover, 3 = ship
+	-- },
 	-- Not USED
 	-- merge into flea
 	-- ANT = {

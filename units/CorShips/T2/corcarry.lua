@@ -34,7 +34,7 @@ return {
 		maxdamage = 5000,
 		maxvelocity = 2.008,
 		minwaterdepth = 15,
-		movementclass = "BOAT7",
+		movementclass = "BOAT8",
 		nochasecategory = "ALL",
 		objectname = "Units/CORCARRY.s3o",
 		radardistance = 2700,
