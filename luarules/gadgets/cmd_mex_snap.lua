@@ -141,22 +141,23 @@ local function GetClashingOrdersGame()
 			end
 			if canBuild then
 				local unitOrders = spGetUnitCommands(unitID, 100)
+				if unitOrders then
+					for _, order in pairs(unitOrders) do
+						local orderDefID = -order["id"]
+						local extractsMetal = isMex[orderDefID]
 
-				for _, order in pairs(unitOrders) do
-					local orderDefID = -order["id"]
-					local extractsMetal = isMex[orderDefID]
+						if extractsMetal then
+							local params = order["params"]
+							ordersCount = ordersCount + 1
+							orders[ordersCount] = { params, extractsMetal }
 
-					if extractsMetal then
-						local params = order["params"]
-						ordersCount = ordersCount + 1
-						orders[ordersCount] = { params, extractsMetal }
+							local obx, _, obz = spPos2BuildPos(orderDefID, params[1], params[2], params[3])
+							local buildData = { -activeCmdID, obx, nil, obz, params[4] or buildFacing }
+							local buildData2 = { orderDefID, bx, nil, bz, buildFacing }
 
-						local obx, _, obz = spPos2BuildPos(orderDefID, params[1], params[2], params[3])
-						local buildData = { -activeCmdID, obx, nil, obz, params[4] or buildFacing }
-						local buildData2 = { orderDefID, bx, nil, bz, buildFacing }
-
-						if DoBuildingsClash(buildData, buildData2) then
-							return nil
+							if DoBuildingsClash(buildData, buildData2) then
+								return nil
+							end
 						end
 					end
 				end
@@ -228,7 +229,7 @@ function gadget:Initialize()
 	_G.MexSnap = {}
 	if not _G['resource_spot_finder'] or not _G['resource_spot_finder'].metalSpotsList then
 		Spring.Echo("<Snap Mex> This gadget requires the 'Metalspot Finder' gadget to run.")
-		gadgetHandler:Removegadget()
+		gadgetHandler:RemoveGadget()
 	end
 end
 

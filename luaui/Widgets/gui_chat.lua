@@ -855,7 +855,7 @@ local function processLine(i)
 				if chatLines[i].lineType == 3 then -- mapmark point
 					-- player name
 					font2:Begin()
-					font2:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset, usedFontSize, "or")
+					font2:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 					font2:End()
 					-- divider
 					font2:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), fontHeightOffset*0.07, usedFontSize, "oc")
@@ -867,7 +867,7 @@ local function processLine(i)
 				else
 					-- player name
 					font2:Begin()
-					font2:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset, usedFontSize, "or")
+					font2:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 					font2:End()
 					-- divider
 					font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")

@@ -25,7 +25,7 @@ return {
 		maxdamage = 420, --1170 --465,
 		maxvelocity = 2.23,
 		minwaterdepth = 15,
-		movementclass = "UBOAT3",
+		movementclass = "UBOAT4",
 		objectname = "Units/CORRECL.s3o",
 		reclaimspeed = 100,
 		script = "Units/CORRECL.cob",

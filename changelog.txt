@@ -1,6 +1,17 @@
 ﻿# June 2023
+ • [Shiva] Weapon reloadtime reduced by 33% (3s->2s), damage per shot reduced 33% (900->600), turret turnrate increased.  Script and hitbox adjusted to reduce friendly fire.  
+ • [Karganeth] Cost increased by 50% (1650->2500m), damage per shot increased by 50% (120->180 per shot, dps 400->600), health increased by 25% (10000->12500), model size increased slightly.  Missiles automatically retarget midflight after current target is destroyed.  Goal is to differentiate Karganeth and Shiva by increasing Karganeth's size and making it better at fighting single targets units while Shiva is better at dealing with large amounts of small units.
  • [Tremor] Weapon reworked, now has a higher aoe, firerate, and impulse but lower damage per shot.  The weapon is now stronger against groups of small units while significantly changing its strength against large units.  
  • [Incisor] Hitbox adjusted so incisors will fire more effectively in close formations, but will still obstruct each other's fire in large groups.  
+
+
+Bugfixes
+ • [Mines and Fiends] Fiends can now attack and damage mines.
+ • [Longbow and Messenger] Fixed rare case of door animation getting stuck and being unable to attack. 
+ • [Eel] Shift aimpoint of Eel so it no longer barely outranges torpedo launchers. 
+ • [Pitbull] Pitbull no longer blocked by T1 walls, it will correctly deploy and fire over T1 walls.
+ • [Resurrection] Fixed bug where units could sometimes be resurrected at full health instead of at 5% health. 
+
 
 # May 2023
 [Commander] default enabled modoption "comupdate":
@@ -10,9 +21,24 @@
  • Death explosion inflict less damage.
  • No longer susceptible to special damage modifiers from certain units, such as Light Laser Towers.
 
+
+Bugfixes
+ • [Viper] No longer closed and armored when under construction.
+ • [Pitbull] Pitbull now closes into armored position after construction. 
+ • [Wrecks and Heaps] Pincer got a heap. Duck got a wreck. Karganeth got a heap. Garpike got a heap. Wolverine got a heap.
+ • [Recluse] Recluse got new cruise missile behavior to drastically reduce incidences of friendly fire on cliff corners.
+ • [Gunslinger] Minor unit script edit to reduce friendly fire incidents. 
+ • [Mobile Jammers] Now correctly turn back on after being damaged or stunned, and correctly turn off when stunned. 
+ • [Air Factories] Fixed bug where it thought it had an aircraft on the buildpad and would stop producing units.
+ • [Nukes] Animation is now interruptable if a nuke was not fired, so an accidently dropped target does not lock the silo into a long animation. Animation time standardized to 8.5 second door open time, and 30 second door close time. 
+ • [RFLRPC] Ragnarok now correctly has a 0.4 reload time at 0 XP. Both Ragnarok and Calamity have animations tied to XP gain, so they properly animate faster and gain firerate increases with XP gains. 
+
+
 Other
  • [Supporter] Reloadtime reduced from 1s->0.93s
  • [Roughneck] Projectile speed increased 450->800
+ • [Viper] Animation tweaks. Retains heading when closing up. 6 frames (0.2 sec) added to deploy animation (total of 37 frames (1.23 seconds), to match pitbull time-to-first-shot. Time to close into armored state after going idle now set to 3 seconds, to match pitbull.
+
 
 # April 2023
 
@@ -21,6 +47,7 @@ Other
  • [Tick] Metal cost increased from 15->17
  • [T1 Vehicle Scouts] Damage per shot increased from 30->35 
  • Targeting improvements to tiger tank and turtle tank
+
 
 # March 2023
 
@@ -35,16 +62,42 @@ Other
 
  • [missiles] antinukes/nukes/tacnukes/empmissiles no longer collide into enemy (air) units
  • [Titan/Juggernaut] added foot stomp "weapon"
+ • [Advanced Exploiter] General fixing of cormexp behavior. Consistent rocket salvo of 5. No longer less armored when closed. Proper decoy for moho. Continues extracting metal when deployed and attacking. 
 
 
 # January 2023
 
+ • [Twin Guard and Beamer] Added 5 range to make sure that they can't be outranged by T1 rocket bots when firing at a different elevation.
+ • [Thor] EMP rocket now launches immediately. To compensate, overall missile flight time increased by 2.5 seconds. Model animation now reveals to opponent how many EMP missiles are loaded. 
  • [vehicle scouts] accuracies and turnrate increased, damage reduced slightly. Cortex more maneuverable but slightly slower than armada, with reduced health
+ • [Lighning Weapons] Increased consistency of fork damage. Lightning chaining now always occurs at the lighting bolt end point, instead of only when a unit is damaged. Removed double application of flanking damage multiplier. 
+ • [Flanking Damage] Flanking damage changed from min=0.9, max=1.9 to min=1.0, max=2.0. Approximately 5% nerf to overall bonus damage from flanking. All damage deals full 100% frontal damage instead of 90% frontal damage. All unit health increased by 11% to compensate. 
+Consequences include:
+ •  Wrecks are 11% more durable. 
+ •  Autoheal is 11% nerfed.
+ •  Impulse of weapons increased by 11%.
 
 
 # December 2022
 
+ • [Dragon Maw/Claw] Units now remember the location of revealed Dragon Maws/Claws even if fog-of-war covers them up.
+ • [Marauder] Change from tank movement to bot movement. Script fixes and torso turn rate buff to allow attacking while moving. Add 0.25 sec deploy animation to marauder AA cannons. 
  • [catalyst] Range -18% Nerf (2750 -> 2250), Area of Effect -26% Nerf (512 -> 380), Damage +60% Buff (2500 -> 4000)
+
+
+Bugfixes
+ • [artillery] Script changes to prevent units from aiming at "illegal" out-of-firing-arc headings. 
+
+
+# October 2022
+
+ • [Warden] AimFrom point adjusted to center of unit, so the HLT cannot shoot outside of its range circle.
+ • [Thor] Range reduced 640->540, damage per tick reduced 320->300.  Lightning chaining buffed, which better matches original intended behavior (forkdamage 0.33->0.5, maxunits 2->5, range 60->125). Overall script changes to make the commandfire EMP rocket, main tesla cannon, and side EMP turrets no longer interfere with each other. EMP rocket now takes starburst trajectory with a 3 second command delay. 
+
+
+# August 2022
+
+ • [Beamer] Script fix for continuous laser buffed effective DPS by 25%.
 
 
 # August 2022

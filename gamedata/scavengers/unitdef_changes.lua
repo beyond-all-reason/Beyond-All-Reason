@@ -542,6 +542,7 @@ customDefs.coravp = {
 		[numBuildoptions+2] = "corforge",
 		[numBuildoptions+3] = "corprinter",
 		[numBuildoptions+4] = "cortorch",
+		[numBuildoptions+5] = "corftiger",
 	},
 }
 
@@ -1029,7 +1030,7 @@ customDefs.armrectr = {
 	category = "ALL BOT MOBILE NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 	footprintx = 2,
 	footprintz = 2,
-	movementclass = "SCAVREZZER",
+	movementclass = "COMMANDERBOT",
 	-- workertime = 100 * ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
 }
 
@@ -1041,7 +1042,7 @@ customDefs.cornecro = {
 	category = "ALL BOT MOBILE NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 	footprintx = 2,
 	footprintz = 2,
-	movementclass = "SCAVREZZER",
+	movementclass = "COMMANDERBOT",
 	-- workertime = 100 * ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
 }
 

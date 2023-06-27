@@ -23,7 +23,7 @@ return {
 		maxdamage = 1060, --1410, -- 710,
 		maxvelocity = 2,
 		minwaterdepth = 15,
-		movementclass = "UBOAT3",
+		movementclass = "UBOAT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSUB.s3o",
 		script = "Units/CORSUB.cob",

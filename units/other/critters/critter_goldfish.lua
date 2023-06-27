@@ -28,7 +28,7 @@ return {
 		maxvelocity = 0.6,
 		mincloakdistance = 75,
 		minwaterdepth = 15,
-		movementclass = "UBOAT3",
+		movementclass = "UBOAT4",
 		noautofire = false,
 		nochasecategory = "MOBILE ",
 		objectname = "Critters/critter_goldfish.s3o",

@@ -23,7 +23,7 @@ return {
 		maxdamage = 5700,
 		maxvelocity = 1.77,
 		minwaterdepth = 12,
-		movementclass = "HOVER4",
+		movementclass = "HHOVER4",
 		nochasecategory = "ALL",
 		objectname = "Units/ARMTHOVR.s3o",
 		releaseheld = true,

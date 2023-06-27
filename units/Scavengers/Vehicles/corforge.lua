@@ -173,7 +173,7 @@ return {
 				--	light_color = "1 0.5 0.05",
 				},
 				damage = {
-					default = 8,
+					default = 5.25,
 				},
 			},
 		},
