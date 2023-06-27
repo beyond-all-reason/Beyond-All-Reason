@@ -407,22 +407,24 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy armfast
-	BOT2 = {
-		crushstrength = 10,
-		footprintx = 2,
-		footprintz = 2,
-		maxslope = 36,
-		maxwaterdepth = 22,
-		depthModParams = {
-			minHeight = 4,
-			linearCoeff = 0.03,
-			maxValue = 0.7,
-		}
-	},
+	--   not used         
+	-- BOT2 = {
+	-- 	crushstrength = 10,
+	-- 	footprintx = 2,
+	-- 	footprintz = 2,
+	-- 	maxslope = 36,
+	-- 	maxwaterdepth = 22,
+	-- 	depthModParams = {
+	-- 		minHeight = 4,
+	-- 		linearCoeff = 0.03,
+	-- 		maxValue = 0.7,
+	-- 	}
+	-- },
 	-- i dont see any diff between bot2 and bot3 that is truely meaningful merge
 	--armmark corspec corck corvoyr armzues corcan armham armck corack legck corstorm legbart corthud legbal legack armsnipe 
 	--corpyro armack armrock armmav cormort armaser armwar legcen legshot
+	--
+	--cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy armfast
 	BOT3 = {
 		crushstrength = 15,
 		footprintx = 2,

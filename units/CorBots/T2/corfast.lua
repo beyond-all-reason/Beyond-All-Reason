@@ -26,7 +26,7 @@ return {
 		maxslope = 17,
 		maxvelocity = 3,
 		maxwaterdepth = 22,
-		movementclass = "BOT2",
+		movementclass = "BOT3",
 		objectname = "Units/CORFAST.s3o",
 		script = "Units/CORFAST.cob",
 		seismicsignature = 0,

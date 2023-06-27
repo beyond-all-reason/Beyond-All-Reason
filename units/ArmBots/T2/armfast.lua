@@ -21,7 +21,7 @@ return {
 		maxslope = 17,
 		maxvelocity = 3.71,
 		maxwaterdepth = 12,
-		movementclass = "BOT2",
+		movementclass = "BOT3",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMFAST.s3o",
 		script = "Units/ARMFAST.cob",

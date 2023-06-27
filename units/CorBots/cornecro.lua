@@ -25,7 +25,7 @@ return {
 		maxslope = 14,
 		maxvelocity = 2.6,
 		maxwaterdepth = 22,
-		movementclass = "BOT2",
+		movementclass = "BOT3",
 		objectname = "Units/CORNECRO.s3o",
 		radardistance = 50,
 		script = "Units/CORNECRO.cob",

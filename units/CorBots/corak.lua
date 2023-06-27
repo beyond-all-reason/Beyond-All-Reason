@@ -21,7 +21,7 @@ return {
 		maxslope = 17,
 		maxvelocity = 2.8,
 		maxwaterdepth = 25,
-		movementclass = "BOT2",
+		movementclass = "BOT3",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORAK.s3o",
 		script = "Units/CORAK.cob",
