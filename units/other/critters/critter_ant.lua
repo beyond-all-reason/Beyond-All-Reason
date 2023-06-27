@@ -31,7 +31,7 @@ return {
 		maxslope = 90,
 		maxvelocity = 0.6,
 		maxwaterdepth = 2,
-		movementclass = "ANT",
+		movementclass = "BOT1",
 		movestate = -1,
 		noautofire = false,
 		nochasecategory = "MOBILE ",

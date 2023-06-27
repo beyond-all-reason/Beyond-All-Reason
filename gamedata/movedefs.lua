@@ -394,7 +394,7 @@ local moveDatas = {
 		}
 	},
 
-	--flea 
+	--armflea 
 	-- make a suggestion thread 
 	BOT1 = {
 		crushstrength = 5,
@@ -690,6 +690,8 @@ local moveDatas = {
 		minwaterdepth = 15,
 		speedModClass = 2, -- 0 = tank, 1 = bot, 2 = hover, 3 = ship
 	},
+	-- critter_ant
+	-- merge into flee
 	ANT = {
 		footprintX = 1,
 		footprintZ = 1,
