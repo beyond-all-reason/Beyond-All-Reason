@@ -2,8 +2,8 @@ return {
 	corforge = {
 		acceleration = 0.02547,
 		brakerate = 0.05093,
-		buildcostenergy = 6500,
-		buildcostmetal = 360,
+		buildcostenergy = 4700,
+		buildcostmetal = 330,
 		buildpic = "CORFORGE.DDS",
 		buildtime = 7200,
 		builddistance = 136,
@@ -39,7 +39,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.287,
 		turnrate = 363,
-		workertime = 100,
+		workertime = 140,
 		buildoptions = {
 			[1] = "corsolar",
 			[2] = "corwin",
@@ -165,13 +165,6 @@ return {
 				turret = true,
 				weapontype = "Flame",
 				weaponvelocity = 600, 
-				customparams = {
-					sizeclass_GL4 = "Micro",
-				--	expl_light_color = "1 0.33 0.04",
-				--	expl_light_life_mult = 1.1,
-				--	expl_light_radius_mult = 1.15,
-				--	light_color = "1 0.5 0.05",
-				},
 				damage = {
 					default = 5.25,
 				},

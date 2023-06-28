@@ -30,7 +30,7 @@ Bugfixes
  • [Gunslinger] Minor unit script edit to reduce friendly fire incidents. 
  • [Mobile Jammers] Now correctly turn back on after being damaged or stunned, and correctly turn off when stunned. 
  • [Air Factories] Fixed bug where it thought it had an aircraft on the buildpad and would stop producing units.
- • [Nukes] Animation is now interruptable if a nuke was not fired, so an accidently dropped target does not lock the silo into a long animation. Animation time standardized to 8.5 second door open time, and 30 second door close time. 
+ • [Nukes] Animation is now interruptible if a nuke was not fired, so an accidentally dropped target does not lock the silo into a long animation. Animation time standardized to 8.5 second door open time, and 30 second door close time. 
  • [RFLRPC] Ragnarok now correctly has a 0.4 reload time at 0 XP. Both Ragnarok and Calamity have animations tied to XP gain, so they properly animate faster and gain firerate increases with XP gains. 
 
 
@@ -70,7 +70,7 @@ Other
  • [Twin Guard and Beamer] Added 5 range to make sure that they can't be outranged by T1 rocket bots when firing at a different elevation.
  • [Thor] EMP rocket now launches immediately. To compensate, overall missile flight time increased by 2.5 seconds. Model animation now reveals to opponent how many EMP missiles are loaded. 
  • [vehicle scouts] accuracies and turnrate increased, damage reduced slightly. Cortex more maneuverable but slightly slower than armada, with reduced health
- • [Lighning Weapons] Increased consistency of fork damage. Lightning chaining now always occurs at the lighting bolt end point, instead of only when a unit is damaged. Removed double application of flanking damage multiplier. 
+ • [Lightning Weapons] Increased consistency of fork damage. Lightning chaining now always occurs at the lighting bolt end point, instead of only when a unit is damaged. Removed double application of flanking damage multiplier. 
  • [Flanking Damage] Flanking damage changed from min=0.9, max=1.9 to min=1.0, max=2.0. Approximately 5% nerf to overall bonus damage from flanking. All damage deals full 100% frontal damage instead of 90% frontal damage. All unit health increased by 11% to compensate. 
 Consequences include:
  •  Wrecks are 11% more durable. 

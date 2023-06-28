@@ -2,7 +2,7 @@ return {
 	corprinter = {
 		acceleration = 0.02547,
 		brakerate = 0.05093,
-		buildcostenergy = 6600,
+		buildcostenergy = 4700,
 		buildcostmetal = 330,
 		buildpic = "CORPRINTER.DDS",
 		buildtime = 10250,
@@ -21,7 +21,7 @@ return {
 		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 5125, 
-		maxvelocity = 1.4,
+		maxvelocity = 1.65,
 		maxwaterdepth = 0,
 		movementclass = "MTANK3",
 		nochasecategory = "NOTLAND VTOL",
