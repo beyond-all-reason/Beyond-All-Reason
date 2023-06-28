@@ -13,9 +13,9 @@ end
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx, vsy = Spring.GetViewGeometry()
 
-local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
-
 local changelogFile = VFS.LoadFile("changelog.txt")
+local changelogFileHash = VFS.CalculateHash(changelogFile, 0)
+local lastviewedHash = ''
 
 local screenHeightOrg = 520
 local screenWidthOrg = 1050
@@ -420,9 +420,15 @@ function widget:Initialize()
 			else
 				show = not show
 			end
+			if show then
+				lastviewedHash = changelogFileHash
+			end
 		end
 		WG['changelog'].isvisible = function()
 			return show
+		end
+		WG['changelog'].haschanges = function()
+			return lastviewedHash ~= changelogFileHash
 		end
 
 		-- somehow there are a few characters added at the start that we need to remove
@@ -464,4 +470,16 @@ end
 
 function widget:LanguageChanged()
 	widget:ViewResize()
+end
+
+function widget:GetConfigData()
+	return {
+		lastviewedHash = lastviewedHash
+	}
+end
+
+function widget:SetConfigData(data)
+	if data.lastviewedHash ~= nil then
+		lastviewedHash = data.lastviewedHash
+	end
 end
