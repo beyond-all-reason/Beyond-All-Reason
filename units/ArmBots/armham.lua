@@ -9,7 +9,7 @@ return {
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -2 0",
-		collisionvolumescales = "29 28 29",
+		collisionvolumescales = "29 30 29",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		explodeas = "smallexplosiongeneric",
