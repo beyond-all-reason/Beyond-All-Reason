@@ -738,16 +738,14 @@ addNewSquad({ type = "air", minAnger = 100, units = { "4 chickenbroodbomberh2" }
 
 addNewSquad({ type = "healer", minAnger = 0, units = { "1 chickenhealer1" }, maxAnger = 35 })
 
-addNewSquad({ type = "healer", minAnger = 25, units = { "3 chickenhealer1" }, maxAnger = 60 })
+addNewSquad({ type = "healer", minAnger = 25, units = { "2 chickenhealer1" }, maxAnger = 60 })
 addNewSquad({ type = "healer", minAnger = 25, units = { "1 chickenhealer2" }, maxAnger = 60 })
 
-addNewSquad({ type = "healer", minAnger = 50, units = { "6 chickenhealer1" }, maxAnger = 85 })
-addNewSquad({ type = "healer", minAnger = 50, units = { "3 chickenhealer2" }, maxAnger = 85 })
+addNewSquad({ type = "healer", minAnger = 50, units = { "2 chickenhealer2" }, maxAnger = 85 })
 addNewSquad({ type = "healer", minAnger = 50, units = { "1 chickenhealer3" }, maxAnger = 85 })
 
-addNewSquad({ type = "healer", minAnger = 75, units = { "9 chickenhealer1" }})
-addNewSquad({ type = "healer", minAnger = 75, units = { "6 chickenhealer2" }})
-addNewSquad({ type = "healer", minAnger = 75, units = { "3 chickenhealer3" }})
+
+addNewSquad({ type = "healer", minAnger = 75, units = { "2 chickenhealer3" }})
 addNewSquad({ type = "healer", minAnger = 75, units = { "1 chickenhealer4" }})
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
