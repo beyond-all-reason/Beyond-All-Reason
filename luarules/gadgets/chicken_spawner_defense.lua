@@ -1869,12 +1869,6 @@ if gadgetHandler:IsSyncedCode() then
 		--computerTeams[teamID] = nil
 	end
 
-	function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
-		if oldTeam == chickenTeamID and not string.find(UnitDefs[unitDefID].name, "lootbox") then
-			DestroyUnit(unitID, true)
-		end
-	end
-
 	function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 		if newTeam == chickenTeamID then
 			return false

@@ -559,6 +559,7 @@ function UnitDef_Post(name, uDef)
 		uDef.upright = false
 		uDef.floater = true
 		uDef.turninplaceanglelimit = 360
+		uDef.capturable = false
 		if uDef.sightdistance then
 			uDef.sonardistance = uDef.sightdistance*2
 			uDef.radardistance = uDef.sightdistance*2
