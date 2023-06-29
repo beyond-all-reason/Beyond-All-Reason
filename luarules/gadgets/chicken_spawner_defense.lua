@@ -83,16 +83,32 @@ if gadgetHandler:IsSyncedCode() then
 	local queenAngerAgressionLevel = 0
 	local difficultyCounter = config.difficulty
 	local waveParameters = {
-		baseCooldown = mRandom(3,5),
+		baseCooldown = 10,
+		waveSizeMultiplier = 1,
+		waveTimeMultiplier = 1,
+		waveAirPercentage = 20,
+		waveSpecialPercentage = 33,
 		airWave = {
-			cooldown = mRandom(1,2),
-		},
-		basicWave = {
-			cooldown = mRandom(5,10),
+			cooldown = 0,
 		},
 		specialWave = {
-			cooldown = mRandom(10,20),
+			cooldown = 0,
 		},
+		basicWave = {
+			cooldown = 0,
+		},
+		smallWave = {
+			cooldown = 0,
+		},
+		largerWave = {
+			cooldown = 0,
+		},
+		hugeWave = {
+			cooldown = 0,
+		},
+		epicWave = {
+			cooldown = 0,
+		}
 	}
 	local squadSpawnOptions = config.squadSpawnOptionsTable
 	--local miniBossCooldown = 0
@@ -627,7 +643,7 @@ if gadgetHandler:IsSyncedCode() then
 			local squad
 			local specialRandom = mRandom(1,100)
 			for _ = 1,1000 do
-				if specialRandom <= 33 then
+				if specialRandom <= waveParameters.waveSpecialPercentage then
 					local potentialSquad = squadSpawnOptions.special[mRandom(1, #squadSpawnOptions.special)]
 					if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger) 
 					or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
@@ -658,7 +674,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	
 	function SpawnBurrowTurret(burrowID, burrowX, burrowY, burrowZ, turretX, turretZ)
-		if mRandom() < config.spawnChance then
+		if mRandom() <= config.spawnChance then
 			local turretOptions = {}
 			for uName, uSettings in pairs(config.chickenTurrets) do
 				if not uSettings.maxQueenAnger then uSettings.maxQueenAnger = uSettings.minQueenAnger + 50 end
@@ -687,23 +703,23 @@ if gadgetHandler:IsSyncedCode() then
 		if SetCount(config.chickenTurrets) > 0 then
 			local r = math.random(1,100)
 			-- spawn some turrets
-			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius, z-config.burrowTurretSpawnRadius)
-			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius, z-config.burrowTurretSpawnRadius)
-			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius, z+config.burrowTurretSpawnRadius)
-			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius, z+config.burrowTurretSpawnRadius)
-			SpawnBurrowTurret(unitID, x, y, z, x+(config.burrowTurretSpawnRadius*1.5), z)
-			SpawnBurrowTurret(unitID, x, y, z, x-(config.burrowTurretSpawnRadius*1.5), z)
-			SpawnBurrowTurret(unitID, x, y, z, x, z+(config.burrowTurretSpawnRadius*1.5))
-			SpawnBurrowTurret(unitID, x, y, z, x, z-(config.burrowTurretSpawnRadius*1.5))
+			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius-mRandom(0,32), z-config.burrowTurretSpawnRadius-mRandom(0,32))
+			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius+mRandom(0,32), z-config.burrowTurretSpawnRadius-mRandom(0,32))
+			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius-mRandom(0,32), z+config.burrowTurretSpawnRadius+mRandom(0,32))
+			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius+mRandom(0,32), z+config.burrowTurretSpawnRadius+mRandom(0,32))
+			SpawnBurrowTurret(unitID, x, y, z, x+(config.burrowTurretSpawnRadius*1.5)+mRandom(0,32), z)
+			SpawnBurrowTurret(unitID, x, y, z, x-(config.burrowTurretSpawnRadius*1.5)-mRandom(0,32), z)
+			SpawnBurrowTurret(unitID, x, y, z, x, z+(config.burrowTurretSpawnRadius*1.5)+mRandom(0,32))
+			SpawnBurrowTurret(unitID, x, y, z, x, z-(config.burrowTurretSpawnRadius*1.5)-mRandom(0,32))
 
-			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius*0.5, z-config.burrowTurretSpawnRadius*1.25)
-			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius*1.25, z-config.burrowTurretSpawnRadius*0.5)
-			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius*1.25, z+config.burrowTurretSpawnRadius*0.5)
-			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius*0.5, z+config.burrowTurretSpawnRadius*1.25)
-			SpawnBurrowTurret(unitID, x, y, z, x+(config.burrowTurretSpawnRadius*1.25), z+config.burrowTurretSpawnRadius*0.5)
-			SpawnBurrowTurret(unitID, x, y, z, x-(config.burrowTurretSpawnRadius*1.25), z-config.burrowTurretSpawnRadius*0.5)
-			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius*0.5, z+(config.burrowTurretSpawnRadius*1.25))
-			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius*0.5, z-(config.burrowTurretSpawnRadius*1.25))
+			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius*0.5-mRandom(0,32), z-config.burrowTurretSpawnRadius*1.25-mRandom(0,32))
+			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius*1.25+mRandom(0,32), z-config.burrowTurretSpawnRadius*0.5-mRandom(0,32))
+			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius*1.25-mRandom(0,32), z+config.burrowTurretSpawnRadius*0.5+mRandom(0,32))
+			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius*0.5+mRandom(0,32), z+config.burrowTurretSpawnRadius*1.25+mRandom(0,32))
+			SpawnBurrowTurret(unitID, x, y, z, x+(config.burrowTurretSpawnRadius*1.25)+mRandom(0,32), z+config.burrowTurretSpawnRadius*0.5+mRandom(0,32))
+			SpawnBurrowTurret(unitID, x, y, z, x-(config.burrowTurretSpawnRadius*1.25)-mRandom(0,32), z-config.burrowTurretSpawnRadius*0.5-mRandom(0,32))
+			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius*0.5-mRandom(0,32), z+(config.burrowTurretSpawnRadius*1.25)+mRandom(0,32))
+			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius*0.5+mRandom(0,32), z-(config.burrowTurretSpawnRadius*1.25)-mRandom(0,32))
 		end
 	end
 
@@ -907,45 +923,101 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function Wave()
+
 		if gameOver then
 			return
 		end
+
 		squadManagerKillerLoop()
 		
-		local waveType = "normal"
 		waveParameters.baseCooldown = waveParameters.baseCooldown - 1
 		waveParameters.airWave.cooldown = waveParameters.airWave.cooldown - 1
 		waveParameters.basicWave.cooldown = waveParameters.basicWave.cooldown - 1
 		waveParameters.specialWave.cooldown = waveParameters.specialWave.cooldown - 1
+		waveParameters.smallWave.cooldown = waveParameters.smallWave.cooldown - 1
+		waveParameters.largerWave.cooldown = waveParameters.largerWave.cooldown - 1
+		waveParameters.hugeWave.cooldown = waveParameters.hugeWave.cooldown - 1
+		waveParameters.epicWave.cooldown = waveParameters.epicWave.cooldown - 1
 		
+		waveParameters.waveSpecialPercentage = mRandom(5,75)
+		waveParameters.waveAirPercentage = mRandom(5,75)
+
+		waveParameters.waveSizeMultiplier = 1
+		waveParameters.waveTimeMultiplier = 1
+
 		if waveParameters.baseCooldown <= 0 then
 			-- special waves
 			if techAnger > config.airStartAnger and waveParameters.airWave.cooldown <= 0 and mRandom() <= config.spawnChance then
-				waveParameters.airWave.cooldown = mRandom(5,10)
+
 				waveParameters.baseCooldown = mRandom(2,4)
-				waveType = "air"
-			elseif waveParameters.basicWave.cooldown <= 0 and mRandom() <= config.spawnChance then
-				waveParameters.basicWave.cooldown = mRandom(3,9)
-				waveParameters.baseCooldown = mRandom(1,2)
-				waveType = "basicOnly"
+				waveParameters.airWave.cooldown = mRandom(5,10)
+				
+				waveParameters.waveSpecialPercentage = 0
+				waveParameters.waveAirPercentage = 100
+
 			elseif waveParameters.specialWave.cooldown <= 0 and mRandom() <= config.spawnChance then
-				waveParameters.specialWave.cooldown = mRandom(10,20)
+
 				waveParameters.baseCooldown = mRandom(3,6)
-				waveType = "specialOnly"
+				waveParameters.specialWave.cooldown = mRandom(10,20)
+				
+				waveParameters.waveSpecialPercentage = 100
+				waveParameters.waveAirPercentage = 0
+
+			elseif waveParameters.basicWave.cooldown <= 0 and mRandom() <= config.spawnChance then
+
+				waveParameters.baseCooldown = mRandom(1,2)
+				waveParameters.basicWave.cooldown = mRandom(3,9)
+				
+				waveParameters.waveSpecialPercentage = 0
+				waveParameters.waveAirPercentage = 0
+
+			elseif waveParameters.smallWave.cooldown <= 0 and mRandom() <= config.spawnChance then
+
+				waveParameters.baseCooldown = mRandom(1,2)
+				waveParameters.smallWave.cooldown = mRandom(3,6)
+
+				waveParameters.waveSizeMultiplier = 0.5
+				waveParameters.waveTimeMultiplier = 0.5
+				
+			elseif waveParameters.largerWave.cooldown <= 0 and mRandom() <= config.spawnChance then
+
+				waveParameters.baseCooldown = mRandom(1,2)
+				waveParameters.largerWave.cooldown = mRandom(3,6)
+
+				waveParameters.waveSizeMultiplier = 1.5
+				waveParameters.waveTimeMultiplier = 1.5
+
+			elseif waveParameters.hugeWave.cooldown <= 0 and mRandom() <= config.spawnChance then
+
+				waveParameters.baseCooldown = mRandom(2,4)
+				waveParameters.hugeWave.cooldown = mRandom(6,12)
+
+				waveParameters.waveSizeMultiplier = 3
+				waveParameters.waveTimeMultiplier = 3
+
+			elseif waveParameters.epicWave.cooldown <= 0 and mRandom() <= config.spawnChance then
+
+				waveParameters.baseCooldown = mRandom(3,6)
+				waveParameters.epicWave.cooldown = mRandom(12,24)
+
+				waveParameters.waveSizeMultiplier = 6
+				waveParameters.waveTimeMultiplier = 6
+
 			end
 		end
 
 		local cCount = 0
 		local loopCounter = 0
 		local squadCounter = 0
+
 		repeat
 			loopCounter = loopCounter + 1
 			for burrowID in pairs(burrows) do
 				if mRandom() <= config.spawnChance then
 					squadCounter = 0
+					local airRandom = mRandom(1,100)
 					local squad
-					--if (waveType == "air" or (queenID and mRandom() <= 0.25)) and mRandom() <= 0.5 then
-					if waveType ~= "basicOnly" and waveType ~= "specialOnly" and ((waveType == "air") or (techAnger > config.airStartAnger and mRandom() <= 0.2)) then
+					if techAnger > config.airStartAnger and airRandom <= waveParameters.waveAirPercentage then
 						for _ = 1,1000 do
 							local potentialSquad = squadSpawnOptions.air[mRandom(1, #squadSpawnOptions.air)]
 							if potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
@@ -956,7 +1028,7 @@ if gadgetHandler:IsSyncedCode() then
 					else
 						local specialRandom = mRandom(1,100)
 						for _ = 1,1000 do
-							if (specialRandom <= 33 or waveType == "specialOnly") and waveType ~= "basicOnly" then
+							if specialRandom <= waveParameters.waveSpecialPercentage then
 								local potentialSquad = squadSpawnOptions.special[mRandom(1, #squadSpawnOptions.special)]
 								if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger) 
 								or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
@@ -983,23 +1055,19 @@ if gadgetHandler:IsSyncedCode() then
 							end
 							cCount = cCount + unitNumber
 						end
-						if waveType ~= "air" and loopCounter <= 1 then
+						if loopCounter <= 5 then
 							table.insert(spawnQueue, { burrow = burrowID, unitName = config.chickenHealers[mRandom(1,#config.chickenHealers)], team = chickenTeamID, squadID = 1 })
 							cCount = cCount + 1
 						end
 					end
 				end
 			end
-		until (cCount > currentMaxWaveSize or loopCounter >= 200*config.chickenSpawnMultiplier)
+		until (cCount > currentMaxWaveSize*waveParameters.waveSizeMultiplier or loopCounter >= 200*config.chickenSpawnMultiplier)
 
-		-- if waveType == "air" and cCount > 0 then
-		-- 	chickenEvent("airWave", cCount)
-		-- elseif config.useWaveMsg then
-		-- 	chickenEvent("wave", cCount)
-		-- end
 		if config.useWaveMsg then
 			chickenEvent("wave", cCount)
 		end
+
 		return cCount
 	end
 
@@ -1579,7 +1647,7 @@ if gadgetHandler:IsSyncedCode() then
 			if t > config.gracePeriod+5 then
 				if burrowCount > 0
 				and SetCount(spawnQueue) == 0
-				and ((config.chickenSpawnRate) < (t - timeOfLastWave)) then
+				and ((config.chickenSpawnRate*waveParameters.waveTimeMultiplier) < (t - timeOfLastWave)) then
 					Wave()
 					timeOfLastWave = t
 				end
