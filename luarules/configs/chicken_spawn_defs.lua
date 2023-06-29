@@ -171,6 +171,9 @@ chickenBehaviours = {
 	},
 	COWARD = { -- Run away from target after getting hit by enemy
 		[UnitDefNames["chickenhealer1"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenhealer2"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenhealer3"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenhealer4"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenh1b"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickens1"].id] = { distance = 270, chance = 0.5 },
 		[UnitDefNames["chickens2"].id] = { distance = 250, chance = 0.5 },
