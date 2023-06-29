@@ -1594,11 +1594,11 @@ function widget:DrawScreen()
 		glCallList(dlistButtons1)
 
 		-- changelog changes highlight
-		--if WG['changelog'] and WG['changelog'].haschanges() then
-		--	local button = 'changelog'
-		--	local paddingsize = 1
-		--	RectRound(buttonsArea['buttons'][button][1]+paddingsize, buttonsArea['buttons'][button][2]+paddingsize, buttonsArea['buttons'][button][3]-paddingsize, buttonsArea['buttons'][button][4]-paddingsize, 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 1,1,1, 0.1*blinkProgress })
-		--end
+		if WG['changelog'] and WG['changelog'].haschanges() then
+			local button = 'changelog'
+			local paddingsize = 1
+			RectRound(buttonsArea['buttons'][button][1]+paddingsize, buttonsArea['buttons'][button][2]+paddingsize, buttonsArea['buttons'][button][3]-paddingsize, buttonsArea['buttons'][button][4]-paddingsize, 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 1,1,1, 0.1*blinkProgress })
+		end
 
 		-- hovered?
 		if not showQuitscreen and buttonsArea['buttons'] ~= nil and math_isInRect(mx, my, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
