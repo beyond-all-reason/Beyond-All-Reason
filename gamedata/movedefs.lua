@@ -587,7 +587,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedmodclass = 2, -- hover
 	},
-	-- chickenh1 chicken2b chicken2_spectre chicken2 chickene1 chicken1_mini chicken_dodo1_electric chickens2 
+	-- chickenhealer1 chicken2b chicken2_spectre chicken2 chickene1 chicken1_mini chicken_dodo1_electric chickens2 
 	--chicken_dodo2_electric chickens1 chicken1y chicken1x chicken1z chicken1d chicken1c chicken1b chicken1 chickenh3 chickenh2
 	--chickenh4 chicken_dodo1 chicken_dodo2  chickenp2 chickenacidswarmer chicken1x_spectre chickenp1 chickenh5 chickens2_spectre
 	-- chickenh1b

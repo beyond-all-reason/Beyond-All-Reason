@@ -1055,9 +1055,28 @@ if gadgetHandler:IsSyncedCode() then
 							end
 							cCount = cCount + unitNumber
 						end
-						if loopCounter <= 5 then
-							table.insert(spawnQueue, { burrow = burrowID, unitName = config.chickenHealers[mRandom(1,#config.chickenHealers)], team = chickenTeamID, squadID = 1 })
-							cCount = cCount + 1
+					end
+					if loopCounter <= 5 then
+						squad = nil
+						squadCounter = 0
+						for _ = 1,1000 do
+							local potentialSquad = squadSpawnOptions.healer[mRandom(1, #squadSpawnOptions.healer)]
+							if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger) then -- Super Squad
+								squad = potentialSquad
+								break
+							end
+						end
+						if squad then
+							for i, sString in pairs(squad.units) do
+								local nEnd, _ = string.find(sString, " ")
+								local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
+								local chickenName = string.sub(sString, (nEnd + 1))
+								for j = 1, unitNumber, 1 do
+									squadCounter = squadCounter + 1
+									table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
+								end
+								cCount = cCount + unitNumber
+							end
 						end
 					end
 				end
@@ -1202,7 +1221,27 @@ if gadgetHandler:IsSyncedCode() then
 						chickenEvent("queenResistance", attackerDefID)
 						queenResistance[attackerDefID].notify = 1
 						if mRandom() < config.spawnChance then
-							SpawnRandomOffWaveSquad(queenID, config.chickenHealers[mRandom(1,#config.chickenHealers)], SetCount(humanTeams)*10)
+							local squad
+							local squadCounter = 0
+							for _ = 1,1000 do
+								local potentialSquad = squadSpawnOptions.healer[mRandom(1, #squadSpawnOptions.healer)]
+								if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger) then -- Super Squad
+									squad = potentialSquad
+									break
+								end
+							end
+							if squad then
+								for i, sString in pairs(squad.units) do
+									local nEnd, _ = string.find(sString, " ")
+									local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
+									local chickenName = string.sub(sString, (nEnd + 1))
+									for j = 1, unitNumber, 1 do
+										squadCounter = squadCounter + 1
+										table.insert(spawnQueue, { burrow = queenID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
+									end
+									cCount = cCount + unitNumber
+								end
+							end
 						end
 						for _ = 1,SetCount(humanTeams) do
 							if mRandom() < config.spawnChance then
@@ -1390,6 +1429,7 @@ if gadgetHandler:IsSyncedCode() then
 			squadCreationQueue.units[#squadCreationQueue.units+1] = unitID
 			if config.chickenBehaviours.HEALER[UnitDefNames[defs.unitName].id] then
 				squadCreationQueue.role = "healer"
+				squadCreationQueue.regroupenabled = false
 				if squadCreationQueue.life < 100 then
 					squadCreationQueue.life = 100
 				end

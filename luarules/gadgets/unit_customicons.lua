@@ -306,7 +306,10 @@ local units = {
 	chickenf1apex = { "chicken_air.png", 3 },
 	chickenf1apexb = { "chicken_air.png", 3 },
 
-	chickenh1 = { "chicken.png", 0.75 },
+	chickenhealer1 = { "chicken.png", 0.75 },
+	chickenhealer2 = { "chicken.png", 1.125 },
+	chickenhealer3 = { "chicken.png", 1.5 },
+	chickenhealer4 = { "chicken.png", 1.875 },
 	chickenh1b = { "chicken.png", 0.75 },
 
 	chickenh2 = { "chicken.png", 2 },
@@ -334,6 +337,10 @@ local units = {
 	chickenw1c = { "chicken_air.png", 1.5 },
 	chickenw1d = { "chicken_air.png", 1.5 },
 	chickenw2 = { "chicken_air.png", 2 },
+
+	chickenairscout1 = { "chicken_air.png", 1.25 },
+	chickenairscout2 = { "chicken_air.png", 1.75 },
+	chickenairscout3 = { "chicken_air.png", 2.25 },
 
 	chickene1 = { "chicken_paralyze.png", 1 },
 	chickene2 = { "chicken_paralyze.png", 2 },

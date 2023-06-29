@@ -69,13 +69,18 @@ local chickenEggs = { -- Specify eggs dropped by unit here, requires useEggs to 
 	chickenf1b     						=   "darkgreen",
 	chickenf1apex      					=   "darkgreen",
 	chickenf1apexb     					=   "darkgreen",
-	chickenf2      						=   "white",
+	chickenairscout1      				=   "white",
+	chickenairscout2      				=   "white",
+	chickenairscout3      				=   "white",
 	chickenc3      						=   "white",
 	chickenc3b     						=   "white",
 	chickenc3c     						=   "white",
 	chickenr1      						=   "darkgreen",
 	chickenr2      						=   "darkgreen",
-	chickenh1      						=   "white",
+	chickenhealer1      				=   "white",
+	chickenhealer2      				=   "white",
+	chickenhealer3      				=   "white",
+	chickenhealer4      				=   "white",
 	chickenh1b     						=   "white",
 	chickenh2      						=   "purple",
 	chickenh3      						=   "purple",
@@ -165,7 +170,7 @@ chickenBehaviours = {
 		[UnitDefNames["epic_chickenq"].id] = { distance = 500, chance = 0.005 },
 	},
 	COWARD = { -- Run away from target after getting hit by enemy
-		[UnitDefNames["chickenh1"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenhealer1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenh1b"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickens1"].id] = { distance = 270, chance = 0.5 },
 		[UnitDefNames["chickens2"].id] = { distance = 250, chance = 0.5 },
@@ -238,7 +243,10 @@ chickenBehaviours = {
 		[UnitDefNames["epic_chickenq"].id] = { chance = 0.05 },
 	},
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and queen
-		[UnitDefNames["chickenh1"].id] = true,
+		[UnitDefNames["chickenhealer1"].id] = true,
+		[UnitDefNames["chickenhealer2"].id] = true,
+		[UnitDefNames["chickenhealer3"].id] = true,
+		[UnitDefNames["chickenhealer4"].id] = true,
 		[UnitDefNames["chickenh1b"].id] = true,
 	},
 	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance, friendly fire enabled (assuming nothing else in the game stops it)
@@ -401,6 +409,7 @@ local squadSpawnOptionsTable = {
 	basic = {}, -- 67% spawn chance
 	special = {}, -- 33% spawn chance, there's 1% chance of Special squad spawning Super squad, which is specials but 30% anger earlier.
 	air = {}, -- Air waves
+	healer = {}, -- Healers/Medics
 }
 
 local function addNewSquad(squadParams) -- params: {type = "basic", minAnger = 0, maxAnger = 100, units = {"1 chicken1"}, weight = 1}
@@ -449,7 +458,10 @@ local chickenMinions = { -- Units spawning other units
 		"chickenacidallterrainassault",
 	},
 	["chicken_miniqueen_healer"] = {
-		"chickenh1",
+		"chickenhealer1",
+		"chickenhealer2",
+		"chickenhealer3",
+		"chickenhealer4",
 		--"chickenh1b",
 	},
 	["chicken_miniqueen_basic"] = {
@@ -518,11 +530,6 @@ local chickenMinions = { -- Units spawning other units
 		"chickenbroodartyh4small",
 	},
 }
-
-local chickenHealers = { -- Spawn indepedently from squads in small numbers
-	"chickenh1",
-	--"chickenh1b",
-},
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Squads -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -678,10 +685,14 @@ end
 -- Air --
 ---------
 
-local airStartAnger = 20 -- needed for air waves to work correctly.
+local airStartAnger = 0 -- needed for air waves to work correctly.
+
+addNewSquad({ type = "air", minAnger = 0, units = { "1 chickenairscout1" }, maxAnger = 40 })
 
 addNewSquad({ type = "air", minAnger = 20, units = { "4 chickenw1_mini" } })
 addNewSquad({ type = "air", minAnger = 20, units = { "4 chickenf1_mini" } })
+
+addNewSquad({ type = "air", minAnger = 33, units = { "1 chickenairscout2" }, maxAnger = 80 })
 
 addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1", } })
 addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1b", } })
@@ -694,6 +705,8 @@ addNewSquad({ type = "air", minAnger = 50, units = { "2 chickenbroodbomberh4" } 
 
 addNewSquad({ type = "air", minAnger = 60, units = { "4 chickenebomber1" } })
 addNewSquad({ type = "air", minAnger = 60, units = { "4 chickenacidbomber" } })
+
+addNewSquad({ type = "air", minAnger = 66, units = { "1 chickenairscout3" } })
 
 addNewSquad({ type = "air", minAnger = 70, units = { "10 chicken_dodoair" }, weight = 2 })
 addNewSquad({ type = "air", minAnger = 70, units = { "2 chickenbroodbomberh3" } })
@@ -715,6 +728,24 @@ addNewSquad({ type = "air", minAnger = 100, units = { "10 chicken_dodoair" }, we
 addNewSquad({ type = "air", minAnger = 100, units = { "4 chickenbroodbomberh4" } })
 addNewSquad({ type = "air", minAnger = 100, units = { "4 chickenbroodbomberh3" } })
 addNewSquad({ type = "air", minAnger = 100, units = { "4 chickenbroodbomberh2" } })
+
+------------
+-- Healer --
+------------
+
+addNewSquad({ type = "healer", minAnger = 0, units = { "1 chickenhealer1" }, maxAnger = 35 })
+
+addNewSquad({ type = "healer", minAnger = 25, units = { "3 chickenhealer1" }, maxAnger = 60 })
+addNewSquad({ type = "healer", minAnger = 25, units = { "1 chickenhealer2" }, maxAnger = 60 })
+
+addNewSquad({ type = "healer", minAnger = 50, units = { "6 chickenhealer1" }, maxAnger = 85 })
+addNewSquad({ type = "healer", minAnger = 50, units = { "3 chickenhealer2" }, maxAnger = 85 })
+addNewSquad({ type = "healer", minAnger = 50, units = { "1 chickenhealer3" }, maxAnger = 85 })
+
+addNewSquad({ type = "healer", minAnger = 75, units = { "9 chickenhealer1" }})
+addNewSquad({ type = "healer", minAnger = 75, units = { "6 chickenhealer2" }})
+addNewSquad({ type = "healer", minAnger = 75, units = { "3 chickenhealer3" }})
+addNewSquad({ type = "healer", minAnger = 75, units = { "1 chickenhealer4" }})
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these
@@ -790,7 +821,6 @@ local config = { -- Don't touch this! ------------------------------------------
 	difficulty             	= difficulty,
 	difficulties           	= difficulties,
 	chickenEggs			   	= table.copy(chickenEggs),
-	chickenHealers			= table.copy(chickenHealers),
 	burrowName             	= burrowName,   -- burrow unit name
 	burrowDef              	= UnitDefNames[burrowName].id,
 	chickenSpawnMultiplier 	= Spring.GetModOptions().chicken_spawncountmult,
