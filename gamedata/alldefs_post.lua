@@ -396,8 +396,8 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corforge"
 			uDef.buildoptions[numBuildoptions+2] = "corprinter"
-			uDef.buildoptions[numBuildoptions+3] = "cortorch"
-			uDef.buildoptions[numBuildoptions+4] = "corftiger"
+			uDef.buildoptions[numBuildoptions+3] = "corftiger"
+			--uDef.buildoptions[numBuildoptions+4] = "cortorch"
 		end
 	end
 
@@ -432,7 +432,8 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
 			uDef.buildoptions[numBuildoptions+2] = "corforge"
 			uDef.buildoptions[numBuildoptions+3] = "corprinter"
-			uDef.buildoptions[numBuildoptions+4] = "cortorch"
+			uDef.buildoptions[numBuildoptions+4] = "corftiger"
+			uDef.buildoptions[numBuildoptions+5] = "cortorch"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			local numBuildoptions = #uDef.buildoptions
 		elseif name == "corca" or name == "corck" or name == "corcv" then
