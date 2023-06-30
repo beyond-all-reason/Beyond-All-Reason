@@ -1175,8 +1175,10 @@ function widget:DrawScreen()
 						if options[i] and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' and options[i].type ~= 'text' then
 							-- display console command at the bottom
 							if (advSettings or devMode) and (options[i].onchange ~= nil or options[i].widget) then
-								if not lastConsoleCmdOption or lastConsoleCmdOption ~= options[i].id then
-									consoleCmdDlist = glDeleteList(consoleCmdDlist)
+								if not consoleCmdDlist or not lastConsoleCmdOption or lastConsoleCmdOption ~= options[i].id then
+									if consoleCmdDlist then
+										consoleCmdDlist = glDeleteList(consoleCmdDlist)
+									end
 									consoleCmdDlist = glCreateList(function()
 										font:Begin()
 										font:SetTextColor(0.5, 0.5, 0.5, 0.27)
