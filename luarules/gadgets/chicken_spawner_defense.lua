@@ -1241,7 +1241,6 @@ if gadgetHandler:IsSyncedCode() then
 										squadCounter = squadCounter + 1
 										table.insert(spawnQueue, { burrow = queenID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
 									end
-									cCount = cCount + unitNumber
 								end
 							end
 						end
