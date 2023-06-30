@@ -311,7 +311,8 @@ if gadgetHandler:IsSyncedCode() then
 		playerAgression = 0
 		queenAngerAgressionLevel = 0
 		pastFirstQueen = true
-		SetGameRulesParam("queenAnger", queenAnger)
+		SetGameRulesParam("chickenQueenAnger", queenAnger)
+		SetGameRulesParam("chickenTechAnger", techAnger)
 		local nextDifficulty
 		difficultyCounter = difficultyCounter + 1
 		if config.difficultyParameters[difficultyCounter] then
@@ -349,11 +350,12 @@ if gadgetHandler:IsSyncedCode() then
 	-- Game Rules
 	--
 
-	SetGameRulesParam("queenTime", queenTime)
-	SetGameRulesParam("queenLife", queenLifePercent)
-	SetGameRulesParam("queenAnger", queenAnger)
-	SetGameRulesParam("gracePeriod", config.gracePeriod)
-	SetGameRulesParam("difficulty", config.difficulty)
+	SetGameRulesParam("chickenQueenTime", queenTime)
+	SetGameRulesParam("chickenQueenHealth", queenLifePercent)
+	SetGameRulesParam("chickenQueenAnger", queenAnger)
+	SetGameRulesParam("chickenTechAnger", techAnger)
+	SetGameRulesParam("chickenGracePeriod", config.gracePeriod)
+	SetGameRulesParam("chickenDifficulty", config.difficulty)
 	SetGameRulesParam("ChickenQueenAngerGain_Base", 100/config.queenTime) 
 	SetGameRulesParam("ChickenQueenAngerGain_Aggression", 0)
 	SetGameRulesParam("ChickenQueenAngerGain_Eco", 0)
@@ -829,7 +831,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function updateQueenLife()
 		if not queenID then
-			SetGameRulesParam("queenLife", 0)
+			SetGameRulesParam("chickenQueenHealth", 0)
 			return
 		end
 		local curH, maxH = GetUnitHealth(queenID)
@@ -837,7 +839,7 @@ if gadgetHandler:IsSyncedCode() then
 		if queenLifePercent ~= lifeCheck then
 			-- health changed since last update, update it
 			queenLifePercent = lifeCheck
-			SetGameRulesParam("queenLife", queenLifePercent)
+			SetGameRulesParam("chickenQueenHealth", queenLifePercent)
 		end
 	end
 
@@ -1649,7 +1651,8 @@ if gadgetHandler:IsSyncedCode() then
 				SetGameRulesParam("ChickenQueenAngerGain_Aggression", (playerAgression*0.01)/(config.queenTime/3600))
 				SetGameRulesParam("ChickenQueenAngerGain_Eco", playerAgressionEcoValue)
 			end
-			SetGameRulesParam("queenAnger", queenAnger)
+			SetGameRulesParam("chickenQueenAnger", queenAnger)
+			SetGameRulesParam("chickenTechAnger", techAnger)
 
 			if queenAnger >= 100 then
 				-- check if the queen should be alive

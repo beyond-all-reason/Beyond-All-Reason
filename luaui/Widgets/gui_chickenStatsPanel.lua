@@ -23,7 +23,7 @@ if not Spring.Utilities.Gametype.IsChickens() then
 	return false
 end
 
-if not Spring.GetGameRulesParam("difficulty") then
+if not Spring.GetGameRulesParam("chickenDifficulty") then
 	return false
 end
 
@@ -67,12 +67,13 @@ local hasChickenEvent = false
 local difficultyOption = Spring.GetModOptions().chicken_difficulty
 
 local rules = {
-	"queenTime",
-	"queenAnger",
-	"gracePeriod",
-	"queenLife",
+	"chickenQueenTime",
+	"chickenQueenAnger",
+	"chickenTechAnger",
+	"chickenGracePeriod",
+	"chickenQueenHealth",
 	"lagging",
-	"difficulty",
+	"chickenDifficulty",
 	"chickenCount",
 	"chickenaCount",
 	"chickensCount",
@@ -164,8 +165,8 @@ local function CreatePanelDisplayList()
 	font:SetTextColor(1, 1, 1, 1)
 	font:SetOutlineColor(0, 0, 0, 1)
 	local currentTime = GetGameSeconds()
-	if currentTime > gameInfo.gracePeriod then
-		if gameInfo.queenAnger < 100 then
+	if currentTime > gameInfo.chickenGracePeriod then
+		if gameInfo.chickenQueenAnger < 100 then
 
 			local gain = 0
 			if Spring.GetGameRulesParam("ChickenQueenAngerGain_Base") then
@@ -174,16 +175,16 @@ local function CreatePanelDisplayList()
 				--font:Print(textColor .. Spring.I18N('ui.chickens.queenAngerEco', { value = math.round(Spring.GetGameRulesParam("ChickenQueenAngerGain_Eco"), 3) }), panelMarginX+5, PanelRow(5), panelFontSize, "")
 				gain = math.round(Spring.GetGameRulesParam("ChickenQueenAngerGain_Base"), 3) + math.round(Spring.GetGameRulesParam("ChickenQueenAngerGain_Aggression"), 3) + math.round(Spring.GetGameRulesParam("ChickenQueenAngerGain_Eco"), 3)
 			end
-			font:Print(textColor .. Spring.I18N('ui.chickens.queenAnger', { anger = gameInfo.queenAnger, gain = math.round(gain, 3) }), panelMarginX, PanelRow(1), panelFontSize, "")
+			font:Print(textColor .. Spring.I18N('ui.chickens.queenAnger', { anger = gameInfo.chickenQueenAnger, gain = math.round(gain, 3) }), panelMarginX, PanelRow(1), panelFontSize, "")
 
-			local totalSeconds = (100 - gameInfo.queenAnger) / gain
+			local totalSeconds = (100 - gameInfo.chickenQueenAnger) / gain
 			time = string.formatTime(totalSeconds)
 			font:Print(textColor .. Spring.I18N('ui.chickens.queenETA', { time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
 			if #currentlyResistantToNames > 0 then
 				currentlyResistantToNames = {}
 			end
 		else
-			font:Print(textColor .. Spring.I18N('ui.chickens.queenHealth', { health = gameInfo.queenLife }), panelMarginX, PanelRow(1), panelFontSize, "")
+			font:Print(textColor .. Spring.I18N('ui.chickens.queenHealth', { health = gameInfo.chickenQueenHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
 			for i = 1,#currentlyResistantToNames do
 				if i == 1 then
 					font:Print(textColor .. Spring.I18N('ui.chickens.queenResistantToList'), panelMarginX, PanelRow(11), panelFontSize, "")
@@ -192,7 +193,7 @@ local function CreatePanelDisplayList()
 			end
 		end
 	else
-		font:Print(textColor .. Spring.I18N('ui.chickens.gracePeriod', { time = string.formatTime(math.ceil(((currentTime - gameInfo.gracePeriod) * -1) - 0.5)) }), panelMarginX, PanelRow(1), panelFontSize, "")
+		font:Print(textColor .. Spring.I18N('ui.chickens.gracePeriod', { time = string.formatTime(math.ceil(((currentTime - gameInfo.chickenGracePeriod) * -1) - 0.5)) }), panelMarginX, PanelRow(1), panelFontSize, "")
 	end
 	
 	font:Print(textColor .. Spring.I18N('ui.chickens.chickenKillCount', { count = gameInfo.chickenKills }), panelMarginX, PanelRow(6), panelFontSize, "")
@@ -321,7 +322,7 @@ function ChickenEvent(chickenEventArgs)
 		end
 	end
 
-	if (chickenEventArgs.type == "wave" or chickenEventArgs.type == "airWave") and config.useWaveMsg and gameInfo.queenAnger <= 99 then
+	if (chickenEventArgs.type == "wave" or chickenEventArgs.type == "airWave") and config.useWaveMsg and gameInfo.chickenQueenAnger <= 99 then
 		waveCount = waveCount + 1
 		chickenEventArgs.waveCount = waveCount
 		showMarqueeMessage = true
