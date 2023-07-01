@@ -757,6 +757,8 @@ local spawnSquare = 90 -- size of the chicken spawn square centered on the burro
 local spawnSquareIncrement = 2 -- square size increase for each unit spawned
 local minBaseDistance = 256 -- Minimum distance of new burrows from players and other burrows
 local burrowTurretSpawnRadius = 80
+local bossFightWaveSizeScale = 25 -- Percentage
+local defaultChickenFirestate = 3 -- 0 - Hold Fire | 1 - Return Fire | 2 - Fire at Will | 3 - Fire at everything
 
 local ecoBuildingsPenalty = { -- Additional queen hatch per second from eco buildup (for 60 minutes queen time. scales to queen time)
 	--[[
@@ -841,6 +843,8 @@ local config = { -- Don't touch this! ------------------------------------------
 	airStartAnger			= airStartAnger,
 	ecoBuildingsPenalty		= ecoBuildingsPenalty,
 	highValueTargets		= highValueTargets,
+	bossFightWaveSizeScale  = bossFightWaveSizeScale,
+	defaultChickenFirestate = defaultChickenFirestate,
 }
 
 for key, value in pairs(optionValues[difficulty]) do

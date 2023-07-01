@@ -1172,7 +1172,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == chickenTeamID then
-			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{3},0)
+			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultChickenFirestate},0)
 			if UnitDefs[unitDefID].canCloak then
 				Spring.GiveOrderToUnit(unitID,37382,{1},0)
 			end
@@ -1627,7 +1627,7 @@ if gadgetHandler:IsSyncedCode() then
 			if not queenID then
 				currentMaxWaveSize = (minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))
 			else
-				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*0.25)
+				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(bossFightWaveSizeScale*0.01))
 			end
 			if t < config.gracePeriod then
 				queenAnger = 0
