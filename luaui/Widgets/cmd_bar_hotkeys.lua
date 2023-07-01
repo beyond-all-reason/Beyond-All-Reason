@@ -50,7 +50,7 @@ local legacyToTxt = {
 
 
 -- TODO: This code is exclusively to convert from the placeholder lua format to the more stable uikeys format
--- TODO: After a period of ~6 months it should be deleted (around December 2023 or later)
+-- TODO: After a period of ~6 months it should be deleted (around January 2024 or later)
 local function replaceLegacyPreset()
 	local keyFile = Spring.GetConfigString("KeybindingFile")
 	if not keyFile then return false end
@@ -62,7 +62,7 @@ local function replaceLegacyPreset()
 	if VFS.FileExists("uikeys.txt") then
 		Spring.Echo("BAR Hotkeys: Found existing unused uikeys file, creating a backup called uikeys_auto_backup.txt")
 		Spring.SendCommands("keyreload")
-		Spring.SendCommands("keysave uikeys_auto_backup.txt")
+		os.rename("uikeys.txt", "uikeys_auto_backup.txt")
 	end
 
 	-- output the current custom .lua bindings into a uikeys.txt file
@@ -75,6 +75,7 @@ local function replaceLegacyPreset()
 
 		Spring.SendCommands("keysave " .. newFormat)
 	else
+		Spring.SendCommands("unbindall")
 		Spring.SendCommands("keyreload " .. newFormat)
 	end
 
@@ -92,6 +93,7 @@ local function reloadBindings()
 	currentKeybindingsFile = Spring.GetConfigString("KeybindingFile", keyConfig.keybindingPresets["Default"])
 
 	if not hasLegacy then
+		Spring.SendCommands("unbindall")
 		if VFS.FileExists(currentKeybindingsFile) then
 			Spring.SendCommands("keyreload " .. currentKeybindingsFile)
 			Spring.Echo("BAR Hotkeys: Loaded " .. (keyConfig.presetKeybindings[currentKeybindingsFile] or currentKeybindingsFile))
