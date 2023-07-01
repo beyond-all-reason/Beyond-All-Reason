@@ -100,6 +100,7 @@ local moveDatas = {
 	-- 	maxwaterdepth = 5000,
 	-- 	maxwaterslope = 80,
 	-- },
+	-- notwasnt used
 	-- BOAT2 = {
 	-- 	crushstrength = 9,
 	-- 	footprintx = 2,   
@@ -141,16 +142,16 @@ local moveDatas = {
 	-- 	minwaterdepth = 10,
 	-- },
 	-- battleships
-	--armbats corbats corcarry corcarry2
-	BOAT7 = {
-		crushstrength = 252,
-		footprintx = 7,
-		footprintz = 7,
-		minwaterdepth = 15,
-	},
+	--   not used 
+	-- BOAT7 = {
+	-- 	crushstrength = 252,
+	-- 	footprintx = 7,
+	-- 	footprintz = 7,
+	-- 	minwaterdepth = 15,
+	-- },
 	-- flagships/aircraft carriers 
 	--why are bb and flagships/carriers different merge both
-	-- armcarry armepoch corblackhy armcarry2
+	-- armcarry armepoch corblackhy armcarry2 armbats corbats corcarry corcarry2
 	BOAT8 = {
 		crushstrength = 252,
 		footprintx = 8,
@@ -160,13 +161,13 @@ local moveDatas = {
 
 	-- Subs possible merger with uboat4
 	--      NOT USED
-	UBOAT3 = {
-		footprintx = 3,
-		footprintz = 3,
-		minwaterdepth = 15,
-		crushstrength = 5,
-		subMarine = 1,
-	},
+	-- UBOAT3 = {
+	-- 	footprintx = 3,
+	-- 	footprintz = 3,
+	-- 	minwaterdepth = 15,
+	-- 	crushstrength = 5,
+	-- 	subMarine = 1,
+	-- },
 	-- Battle Subs 
 	--critter_goldfish coracsub armacsub armserp corrsub armsubk correcl corshark corsub
 	UBOAT4 = {
@@ -336,7 +337,7 @@ local moveDatas = {
 	--wtf is the diferece for htank 3 and mtank3 merge this
 	--
 
-	--corprinter correap corftiger armbull legsco
+	--corprinter correap corftiger armbull legsco corvoc armmerl
 	MTANK3 = {
 		crushstrength = 250,
 		footprintx = 3,
@@ -350,21 +351,21 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corvoc  armmanni armmerl
-	HTANK3 = {
-		crushstrength = 250,
-		footprintx = 3,
-		footprintz = 3,
-		maxslope = 18,
-		slopeMod = 36,
-		maxwaterdepth = 22,
-		depthModParams = {
-			minHeight = 4,
-			linearCoeff = 0.03,
-			maxValue = 0.7,
-		}
-	},
-	-- corgol leginf corban cortrem
+	--    not used
+	-- HTANK3 = {
+	-- 	crushstrength = 250,
+	-- 	footprintx = 3,
+	-- 	footprintz = 3,
+	-- 	maxslope = 18,
+	-- 	slopeMod = 36,
+	-- 	maxwaterdepth = 22,
+	-- 	depthModParams = {
+	-- 		minHeight = 4,
+	-- 		linearCoeff = 0.03,
+	-- 		maxValue = 0.7,
+	-- 	}
+	-- },
+	-- corgol leginf corban cortrem armmanni
 	HTANK4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -393,8 +394,8 @@ local moveDatas = {
 		}
 	},
 
-	--flea 
-	-- make a suggestion thread 
+	--armflea critter_ant dice critter_penguinbro xmasball2 critter_penguin critter_duck xmasball chip
+	-- make a suggestion thread critterh
 	BOT1 = {
 		crushstrength = 5,
 		footprintx = 2,
@@ -407,22 +408,24 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy armfast
-	BOT2 = {
-		crushstrength = 10,
-		footprintx = 2,
-		footprintz = 2,
-		maxslope = 36,
-		maxwaterdepth = 22,
-		depthModParams = {
-			minHeight = 4,
-			linearCoeff = 0.03,
-			maxValue = 0.7,
-		}
-	},
+	--   not used         
+	-- BOT2 = {
+	-- 	crushstrength = 10,
+	-- 	footprintx = 2,
+	-- 	footprintz = 2,
+	-- 	maxslope = 36,
+	-- 	maxwaterdepth = 22,
+	-- 	depthModParams = {
+	-- 		minHeight = 4,
+	-- 		linearCoeff = 0.03,
+	-- 		maxValue = 0.7,
+	-- 	}
+	-- },
 	-- i dont see any diff between bot2 and bot3 that is truely meaningful merge
 	--armmark corspec corck corvoyr armzues corcan armham armck corack legck corstorm legbart corthud legbal legack armsnipe 
 	--corpyro armack armrock armmav cormort armaser armwar legcen legshot
+	--
+	--cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy armfast
 	BOT3 = {
 		crushstrength = 15,
 		footprintx = 2,
@@ -448,20 +451,20 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- armfboy corsumo
-	HBOT3 = {
-		crushstrength = 252,
-		footprintx = 3,
-		footprintz = 3,
-		maxslope = 36,
-		maxwaterdepth = 22,
-		depthModParams = {
-			minHeight = 4,
-			linearCoeff = 0.03,
-			maxValue = 0.7,
-		}
-	},
-	-- armraz legpede corcat leginc
+	-- not used
+	-- HBOT3 = {
+	-- 	crushstrength = 252,
+	-- 	footprintx = 3,
+	-- 	footprintz = 3,
+	-- 	maxslope = 36,
+	-- 	maxwaterdepth = 22,
+	-- 	depthModParams = {
+	-- 		minHeight = 4,
+	-- 		linearCoeff = 0.03,
+	-- 		maxValue = 0.7,
+	-- 	}
+	-- },
+	-- armraz legpede corcat leginc armfboy corsumo
 	HBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -475,7 +478,7 @@ local moveDatas = {
 		}
 	},
 	-- see if this one can be merged elsewhere 
-	-- corshiva
+	-- corshiva armmar
 	HABOT4 = {
 		crushstrength = 252,
 		depthmod = 0,
@@ -486,16 +489,16 @@ local moveDatas = {
 		maxwaterslope = 80,
 	},
 	-- see if this one can be merged elsewhere
-	-- armmar
-	HABOT3 = {
-		crushstrength = 252,
-		depthmod = 0,
-		footprintx = 3,
-		footprintz = 3,
-		maxslope = 36,
-		maxwaterdepth = 5000,
-		maxwaterslope = 80,
-	},
+	-- not used
+	-- HABOT3 = {
+	-- 	crushstrength = 252,
+	-- 	depthmod = 0,
+	-- 	footprintx = 3,
+	-- 	footprintz = 3,
+	-- 	maxslope = 36,
+	-- 	maxwaterdepth = 5000,
+	-- 	maxwaterslope = 80,
+	-- },
 	-- review this
 	-- armvang corkarg
 	HTBOT4 = {
@@ -559,6 +562,8 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
+	--break line
+	--
 	-- legsrail armscab armsptk cortermite armspid pbr_cube  dbg_sphere_fullmetal _dbgsphere
 	TBOT3 = {
 		crushstrength = 15,
@@ -674,24 +679,26 @@ local moveDatas = {
 		maxwaterdepth = 0,
 	},
 
-	-- dice critter_penguinbro xmasball2 critter_penguin critter_duck xmasball chip critter_penguinking
-	CRITTERH = {
-		crushstrength = 0,
-		footprintx = 1,
-		footprintz = 1,
-		maxslope = 50,
-		maxwaterslope = 255,
-		maxWaterDepth = 255,
-		minwaterdepth = 15,
-		speedModClass = 2, -- 0 = tank, 1 = bot, 2 = hover, 3 = ship
-	},
-	ANT = {
-		footprintX = 1,
-		footprintZ = 1,
-		maxWaterDepth = 2,
-		crushStrength = 0,
-		speedModClass = 1, -- 0 = tank, 1 = bot, 2 = hover, 3 = ship
-	},
+	--     NOT USED   
+	-- CRITTERH = {
+	-- 	crushstrength = 0,
+	-- 	footprintx = 1,
+	-- 	footprintz = 1,
+	-- 	maxslope = 50,
+	-- 	maxwaterslope = 255,
+	-- 	maxWaterDepth = 255,
+	-- 	minwaterdepth = 15,
+	-- 	speedModClass = 2, -- 0 = tank, 1 = bot, 2 = hover, 3 = ship
+	-- },
+	-- Not USED
+	-- merge into flea
+	-- ANT = {
+	-- 	footprintX = 1,
+	-- 	footprintZ = 1,
+	-- 	maxWaterDepth = 2,
+	-- 	crushStrength = 0,
+	-- 	speedModClass = 1, -- 0 = tank, 1 = bot, 2 = hover, 3 = ship
+	-- },
 
 	-- armcomboss corcomboss
 	SCAVCOMMANDERBOT = {

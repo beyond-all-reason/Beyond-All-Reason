@@ -31,7 +31,7 @@ return {
 		maxvelocity = 2.07,
 		maxwaterdepth = 112,
 		mincloakdistance = 75,
-		movementclass = "BOT2",
+		movementclass = "BOT3",
 		objectname = "Units/CORSPY.s3o",
 		onoffable = false,
 		script = "Units/CORSPY.cob",

@@ -23,7 +23,7 @@ return {
 		maxdamage = 11100,
 		maxvelocity = 1.77,
 		minwaterdepth = 15,
-		movementclass = "BOAT7",
+		movementclass = "BOAT8",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORBATS.s3o",
 		script = "Units/CORBATS.cob",
