@@ -267,12 +267,26 @@ elseif string.find(mapName, "kill the middle") then
 
 elseif string.find(mapName, "forge") then
 	lavaMap = true
-	lavaGrow = 0
-	lavaSwirlFreq = 0.025
-	lavaSwirlAmp = 0.003
-	lavaTideamplitude = 0
+	lavaLevel = 0
+	lavaDamage = 150 -- damage per second
+	lavaTideamplitude = 3
+	lavaTideperiod = 95
+	lavaDiffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
+	lavaNormalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
+	lavaLOSdarkness = 0.7
+	lavaColorCorrection = "vec3(1.1, 1.0, 0.88)"
+	lavaShadowStrength = 1.0 -- how much light a shadowed fragment can recieve
+	lavaCoastColor = "vec3(2.2, 0.4, 0.0)"
+	lavaCoastLightBoost = 0.7
+	lavaCoastWidth = 36.0
+	lavaFogFactor = 0.02 -- how dense the fog is
+	lavaFogColor = "vec3(2.0, 0.31, 0.0)"
+	lavaFogHeight = 35
+	lavaFogAbove = 0.18
+
+
 	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (1, 0.05, 5*6000)
+		addTideRhym (-1, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
 	end
 
 elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - keep at the very bottom
