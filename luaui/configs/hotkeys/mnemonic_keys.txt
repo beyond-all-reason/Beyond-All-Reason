@@ -1,6 +1,5 @@
 // BAR hotkey config file - for users with non-qwerty layouts who have
 // learned _mnemonic_ binds instead of _positional_ binds.
-local bindings = {
 bind esc quitmessage
 bind Shift+esc quitmenu
 bind Ctrl+Shift+esc quitforce
