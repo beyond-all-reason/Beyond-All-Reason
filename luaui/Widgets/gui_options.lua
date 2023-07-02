@@ -2886,7 +2886,7 @@ function init()
 
 		{ id = "keybindings", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.keybindings'), type = "select", options = keyLayouts.keybindingLayouts, value = 1, description = Spring.I18N('ui.settings.option.keybindings_descr'),
 			onload = function()
-				local keyFile = Spring.GetConfigString("KeybindingFile")
+				local keyFile = Spring.GetConfigString("KeybindingFile", keyLayouts.keybindingPresets["Default"])
 				local value = 1
 
 				if (not keyFile) or (keyFile == '') or (not VFS.FileExists(keyFile)) then
@@ -2906,15 +2906,18 @@ function init()
 			onchange = function(_, value)
 				local keyFile = keyLayouts.keybindingLayoutFiles[value]
 
-				if not keyFile or keyFile == '' or not VFS.FileExists(keyFile) then
+				if not keyFile or keyFile == '' then
 					return
 				end
 
-				Spring.SetConfigString("KeybindingFile", keyFile)
+				local isCustom = keyLayouts.keybindingPresets["Custom"] == keyFile
 
-				if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
-					WG['bar_hotkeys'].reloadBindings()
+				if isCustom and not VFS.FileExists(keyFile) then
+					Spring.SendCommands("keysave " .. keyFile)
+					Spring.Echo("Preset Custom selected, file saved at: " .. keyFile)
 				end
+
+				Spring.SetConfigString("KeybindingFile", keyFile)
 
 				-- enable grid menu for grid keybinds
 				Spring.Echo(options[getOptionByID('keybindings')].options[value])
@@ -2923,6 +2926,14 @@ function init()
 						widgetHandler:DisableWidget('Build menu')
 						widgetHandler:EnableWidget('Grid menu')
 					end
+				end
+
+				if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
+					WG['bar_hotkeys'].reloadBindings()
+				end
+
+				if isCustom then
+					Spring.Echo("To test your custom bindings after changes type in chat: /keyreload")
 				end
 			end,
 		},
