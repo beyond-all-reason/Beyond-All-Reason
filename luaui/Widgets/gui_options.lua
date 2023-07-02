@@ -816,8 +816,10 @@ local function updateGrabinput()
 				Spring.SendCommands("grabinput 1")
 			end
 		end
+	else
+        enabledGrabinput = false
+        Spring.SendCommands("grabinput 0")
 	end
-
 end
 
 local sec = 0
@@ -941,6 +943,8 @@ function widget:Update(dt)
 			apiUnitTrackerEnabledCount = apiUnitTrackerEnabledCount + 1
 			widgetHandler:EnableWidget("API Unit Tracker DEVMODE GL4")
 		end
+
+		updateGrabinput()
 	end
 
 	sec = sec + dt
@@ -2819,7 +2823,14 @@ function init()
 		  end,
 		},
 
-		{ id = "containmouse", group = "control", category = types.basic, widget = "Grabinput", name = Spring.I18N('ui.settings.option.containmouse'), type = "bool", value = GetWidgetToggleValue("Grabinput"), description = Spring.I18N('ui.settings.option.containmouse_descr') },
+		{ id = "containmouse", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.containmouse'), type = "bool", value = Spring.GetConfigInt('grabinput', 1) == 1, description = Spring.I18N('ui.settings.option.containmouse_descr'),
+          onload = function(i)
+          end,
+          onchange = function(i, value)
+              Spring.SetConfigInt("grabinput", (value and 1 or 0))
+              updateGrabinput()
+          end,
+        },
 
 		{ id = "doubleclicktime", group = "control", category = types.advanced, restart = true, name = Spring.I18N('ui.settings.option.doubleclicktime'), type = "slider", min = 150, max = 400, step = 10, value = Spring.GetConfigInt("DoubleClickTime", 200), description = Spring.I18N('ui.settings.option.doubleclicktime_descr'),
 		  onload = function(i)
