@@ -1,12 +1,13 @@
 return {
 	corprinter = {
 		acceleration = 0.02547,
+		autoheal = 5,
 		brakerate = 0.05093,
 		buildcostenergy = 4700,
 		buildcostmetal = 330,
 		buildpic = "CORPRINTER.DDS",
 		buildtime = 10250,
-		builddistance = 150,
+		builddistance = 200,
 		builder = true,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -14,6 +15,8 @@ return {
 		collisionvolumescales = "36 36 54",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
+		energymake = 25,
+		energystorage = 50,
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
