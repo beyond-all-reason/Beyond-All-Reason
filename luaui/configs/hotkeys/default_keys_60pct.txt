@@ -69,6 +69,8 @@ bind Shift+Alt+sc_z buildspacing inc
 bind Alt+sc_x buildspacing dec
 bind Shift+Alt+sc_x buildspacing dec
 
+keyload luaui/configs/hotkeys/gridmenu_keys.txt
+
 bind sc_a attack
 bind Shift+sc_a attack
 bind Alt+sc_a areaattack
