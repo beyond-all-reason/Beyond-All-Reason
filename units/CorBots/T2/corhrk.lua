@@ -9,7 +9,7 @@ return {
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 -1",
-		collisionvolumescales = "26 31 33",
+		collisionvolumescales = "26 31 33", -- single hitbox in the collisionvolumes.lua this line is not respected here
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		explodeas = "mediumexplosiongeneric",
