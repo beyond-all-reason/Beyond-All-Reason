@@ -8,8 +8,8 @@ return {
 		buildtime = 25706,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 -6 -7",
-		collisionvolumescales = "39 49 39",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "39 49 39", -- have this be defined in collisions.lua
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		explodeas = "penetrator",
