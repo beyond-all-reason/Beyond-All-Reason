@@ -53,7 +53,10 @@ local legacyToTxt = {
 -- TODO: After a period of ~6 months it should be deleted (around January 2024 or later)
 local function replaceLegacyPreset()
 	local keyFile = Spring.GetConfigString("KeybindingFile")
-	if not keyFile then return false end
+	local isLegacy = keyFile and string.find(keyFile, "bar_hotkeys_custom.lua") or false
+	if not keyFile or not isLegacy then
+		return false
+	end
 
 	local newFormat = legacyToTxt[keyFile]
 	if not newFormat then return false end
@@ -66,7 +69,7 @@ local function replaceLegacyPreset()
 	end
 
 	-- output the current custom .lua bindings into a uikeys.txt file
-	if keyFile == 'bar_hotkeys_custom.lua' then
+	if isLegacy then
 		Spring.Echo("BAR Hotkeys: bar_hotkeys_custom.lua found. This format is deprecated, a " .. newFormat .. " file was written to your bar folder")
 		if VFS.FileExists(keyFile) then
 			Spring.SendCommands("unbindall")
