@@ -97,26 +97,39 @@ if gadgetHandler:IsSyncedCode() then
 		return false
     end
 
-	checkingFunctions.siege = {}
-	checkingFunctions.siege["state==true"] = function (proID)
+	checkingFunctions.sector_fire = {}
+	checkingFunctions.sector_fire["always"] = function (proID)
 		-- as soon as the siege projectile is created, pass true on the
 		-- checking function, to go to applying function
 		-- so the unit state is only checked when the projectile is created
 		return true
 	end
 
-	applyingFunctions.siege = function (proID)
+	applyingFunctions.sector_fire = function (proID)
 		local ownerID = SpGetProjectileOwnerID(proID)
 		local ownerState = SpGetUnitStates(ownerID)
-		if ownerState.active == true then
-			local infos = projectiles[proID]
-			factor = tonumber(infos.max_velocity_reduction)*random()
-			local vx, vy, vz = SpGetProjectileVelocity(proID)
-			vx = vx*(1-factor)
-			vy = vy*(1-factor)
-			vz = vz*(1-factor)
-			SpSetProjectileVelocity(proID,vx,vy,vz)
-		end
+		--if ownerState.active == true then
+		local infos = projectiles[proID]
+		--x' = x cos θ − y sin θ
+		--y' = x sin θ + y cos θ
+		local vx, vy, vz = SpGetProjectileVelocity(proID)
+
+		angle_factor = tonumber(infos.spread_angle)*random()-tonumber(infos.spread_angle)*0.5
+		angle_factor = angle_factor*math.pi/180
+		vx_new = vx*math.cos(angle_factor) - vz*math.sin(angle_factor)
+		vz_new = vx*math.sin(angle_factor) + vz*math.cos(angle_factor)
+
+		--vx_new = vx
+		--vz_new = vz
+		velocity_reduction = 1-math.sqrt(1-tonumber(infos.max_range_reduction))
+		velocity_floor = (1-velocity_reduction)^2
+		velocity_factor = random()*(1-velocity_floor)
+		velocity_factor = math.sqrt(velocity_floor+velocity_factor)
+		vx = vx_new*velocity_factor
+		vy = vy*velocity_factor
+		vz = vz_new*velocity_factor
+		SpSetProjectileVelocity(proID,vx,vy,vz)
+		--end
     end
 
 	checkingFunctions.retarget = {}

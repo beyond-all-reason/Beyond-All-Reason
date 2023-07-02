@@ -523,6 +523,10 @@ AssignLightsToAllWeapons()
 
 -----------------Manual Overrides--------------------
 
+--cortrem
+explosionLights[WeaponDefNames["cortrem_tremor"].id] =
+GetLightClass("Explosion", nil, "Tiny", {colortime = 3.5, sustain = 1, lifetime = 1, scattering = 0.7})
+
 --corforge
 projectileDefLights[WeaponDefNames["corforge_flamethrower_ce"].id] =
 GetLightClass("FlameProjectile", "Fire", "Micro", {r = 1, a = 0.02791886, g = 0.94, b = 0.88})
