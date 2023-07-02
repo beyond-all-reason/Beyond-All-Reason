@@ -83,7 +83,6 @@ local function replaceLegacyPreset()
 
 		Spring.SendCommands("keysave " .. newFormat)
 	else
-		Spring.SendCommands("unbindall")
 		Spring.SendCommands("keyreload " .. newFormat)
 	end
 
@@ -101,7 +100,6 @@ local function reloadBindings()
 	currentKeybindingsFile = Spring.GetConfigString("KeybindingFile", keyConfig.keybindingPresets["Default"])
 
 	if not hasLegacy then
-		Spring.SendCommands("unbindall")
 		if VFS.FileExists(currentKeybindingsFile) then
 			Spring.SendCommands("keyreload " .. currentKeybindingsFile)
 			Spring.Echo("BAR Hotkeys: Loaded " .. (keyConfig.presetKeybindings[currentKeybindingsFile] or currentKeybindingsFile))
