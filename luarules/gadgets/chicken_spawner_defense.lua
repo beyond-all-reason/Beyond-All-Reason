@@ -1093,9 +1093,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function spawnCreepStructure(unitDefName, spread)
-		local structureDefID = UnitDefNames[unitDefName].id
 		local canSpawnStructure = true
-		local spread = spread or 128
+			  spread = spread or 128
 		local spawnPosX = mRandom(lsx1,lsx2)
 		local spawnPosZ = mRandom(lsz1,lsz2)
 
@@ -1112,20 +1111,21 @@ if gadgetHandler:IsSyncedCode() then
 			if canSpawnStructure then
 				if config.useScum and GG.IsPosInChickenScum(spawnPosX, spawnPosY, spawnPosZ) then
 					canSpawnStructure = true
-				elseif (not config.useScum) and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, true) then
+				elseif positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, true) and
+				(not positionCheckLibrary.VisibilityCheck(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, false, false)) then
 					canSpawnStructure = true
-				elseif playerAgressionLevel >= 5 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, true) then
+				elseif playerAgressionLevel >= 10 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, true) then
 					canSpawnStructure = true
-				elseif playerAgressionLevel >= 10 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, false) then
+				elseif playerAgressionLevel >= 20 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, false) then
 					canSpawnStructure = true
-				elseif playerAgressionLevel >= 15 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, false, false) then
+				elseif playerAgressionLevel >= 30 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, false, false) then
 					canSpawnStructure = true
 				else
 					canSpawnStructure = false
 				end
 			end
 			if canSpawnStructure then
-				local structureUnitID = Spring.CreateUnit(structureDefID, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), chickenTeamID)
+				local structureUnitID = Spring.CreateUnit(unitDefName, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), chickenTeamID)
 				if structureUnitID then
 					SetUnitBlocking(structureUnitID, false, false)
 					return structureUnitID, spawnPosX, spawnPosY, spawnPosZ
@@ -1145,7 +1145,13 @@ if gadgetHandler:IsSyncedCode() then
 						local attempts = 0
 						repeat
 							attempts = attempts + 1
-							local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName)
+							local footprintX = UnitDefNames[uName].footprintX
+							local footprintZ = UnitDefNames[uName].footprintZ
+							local footprintAvg = 128
+							if footprintX and footprintZ then
+								footprintAvg = ((footprintX+footprintZ))*8
+							end
+							local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName, footprintAvg+32)
 							if turretUnitID then
 								setChickenXP(turretUnitID)
 								Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
@@ -1627,7 +1633,7 @@ if gadgetHandler:IsSyncedCode() then
 			if not queenID then
 				currentMaxWaveSize = (minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))
 			else
-				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(bossFightWaveSizeScale*0.01))
+				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
 			if t < config.gracePeriod then
 				queenAnger = 0
