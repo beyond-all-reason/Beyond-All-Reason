@@ -840,9 +840,12 @@ function widget:Update(dt)
 		sceduleToggleWidget = nil
 	end
 
+	local prevIsOffscreen = isOffscreen
+	isOffscreen = select(6, Spring.GetMouseState())
+	if isOffscreen and enabledGrabinput then
+		enabledGrabinput = false
+	end
 	if Spring.GetConfigInt("muteOffscreen", 0) == 1 then
-		local prevIsOffscreen = isOffscreen
-		isOffscreen = select(6, Spring.GetMouseState())
 		if isOffscreen ~= prevIsOffscreen then
 			local prevIsOffscreenTime = isOffscreenTime
 			isOffscreenTime = os.clock()
