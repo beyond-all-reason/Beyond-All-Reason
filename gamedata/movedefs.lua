@@ -77,7 +77,7 @@ local moveDatas = {
 	-- 	maxwaterslope = 80,
 	-- },
 	-- amphibious tanks
-	-- corgarp armbeaver armmar corparrow armprow corseal cormuskrat armcroc armpincer corintr legassistdrone_land corassistdrone armassistdrone
+	-- corgarp armbeaver armmar corparrow armprow corseal corsala cormuskrat armcroc armpincer corintr legassistdrone_land corassistdrone armassistdrone
 	ATANK3 = {
 		crushstrength = 30,
 		depthmod = 0,

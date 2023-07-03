@@ -233,6 +233,7 @@ local unitOrderTable = {
 	['coramph']        = 006910,
 	['armcroc']        = 006920,
 	['corseal']        = 006930,
+	['corsala']        = 006935,
 	['corparrow']      = 006940,
 
    -- T2 HOVER
