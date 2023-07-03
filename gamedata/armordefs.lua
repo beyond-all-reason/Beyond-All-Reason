@@ -220,6 +220,7 @@ local armorDefs = {
 		"cormuskrat",
 		"corparrow",
 		"corseal",
+		"corsala",
 		"corintr",
 		"armmar",
 		"corshiva",

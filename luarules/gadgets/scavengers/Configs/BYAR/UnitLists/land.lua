@@ -107,6 +107,7 @@ return {
 		"cormart_scav",
 		"corsent_scav",
 		"corseal_scav",
+		"corsala_scav",
 		"correap_scav",
 		"corgatreap_scav",
 		"corvroc_scav",

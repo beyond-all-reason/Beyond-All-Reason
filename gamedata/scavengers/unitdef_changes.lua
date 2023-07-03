@@ -543,6 +543,7 @@ customDefs.coravp = {
 		[numBuildoptions+3] = "corprinter",
 		[numBuildoptions+4] = "cortorch",
 		[numBuildoptions+5] = "corftiger",
+		[numBuildoptions+6] = "corsala",
 	},
 }
 
