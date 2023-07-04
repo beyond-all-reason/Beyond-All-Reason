@@ -99,6 +99,10 @@ local function ReloadMusicPlaylists()
 	local newSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
 	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1
 
+	if Spring.GetConfigInt('UseSoundtrackNew', 1) == 0 and Spring.GetConfigInt('UseSoundtrackOld', 0) == 1 then
+		Spring.SetConfigInt('UseSoundtrackNew', 1)
+		Spring.SetConfigInt('UseSoundtrackOld', 0)
+	end
 	-------------------------------CREATE PLAYLISTS-----------------------------------
 
 	peaceTracks = {}
