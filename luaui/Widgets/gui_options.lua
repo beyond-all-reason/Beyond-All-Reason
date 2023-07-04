@@ -2326,16 +2326,9 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  if value then
-				  local id = getOptionByID('lighteffects')
-				  if options[id].value then
-					  options[id].onchange(id, false)
-				  end
 				  widgetHandler:EnableWidget("Deferred rendering GL4")
 			  else
-				  local id = getOptionByID('lighteffects')
-				  if not options[id].value then
-					  options[id].onchange(id, true)
-				  end
+				  widgetHandler:DisableWidget("Deferred rendering GL4")
 			  end
 		  end,
 		},
