@@ -70,26 +70,27 @@ local function ReloadMusicPlaylists()
 	deviceLostSafetyCheck = 0
 	---------------------------------COLLECT MUSIC------------------------------------
 
+	local allowedExtensions = "{*.ogg,*.mp3}"
 	-- New Soundtrack List
 	local musicDirNew 			= 'music/original'
-	local peaceTracksNew 			= VFS.DirList(musicDirNew..'/peace')
-	local warhighTracksNew 			= VFS.DirList(musicDirNew..'/warhigh')
-	local warlowTracksNew 			= VFS.DirList(musicDirNew..'/warlow')
-	local gameoverTracksNew 		= VFS.DirList(musicDirNew..'/gameover')
-	local bossFightTracksNew   		= VFS.DirList(musicDirNew..'/bossfight')
-	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu')
-	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading')
+	local peaceTracksNew 			= VFS.DirList(musicDirNew..'/peace', allowedExtensions)
+	local warhighTracksNew 			= VFS.DirList(musicDirNew..'/warhigh', allowedExtensions)
+	local warlowTracksNew 			= VFS.DirList(musicDirNew..'/warlow', allowedExtensions)
+	local gameoverTracksNew 		= VFS.DirList(musicDirNew..'/gameover', allowedExtensions)
+	local bossFightTracksNew   		= VFS.DirList(musicDirNew..'/bossfight', allowedExtensions)
+	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu', allowedExtensions)
+	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', allowedExtensions)
 
 	-- Custom Soundtrack List
 	local musicDirCustom 		= 'music/custom'
-	local peaceTracksCustom 		= VFS.DirList(musicDirCustom..'/peace')
-	local warhighTracksCustom 		= VFS.DirList(musicDirCustom..'/warhigh')
-	local warlowTracksCustom 		= VFS.DirList(musicDirCustom..'/warlow')
-	local warTracksCustom 			= VFS.DirList(musicDirCustom..'/war')
-	local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover')
-	local bossFightTracksCustom 	= VFS.DirList(musicDirCustom..'/bossfight')
-	local menuTracksCustom 			= VFS.DirList(musicDirCustom..'/menu')
-	local loadingTracksCustom  		= VFS.DirList(musicDirCustom..'/loading')
+	local peaceTracksCustom 		= VFS.DirList(musicDirCustom..'/peace', allowedExtensions)
+	local warhighTracksCustom 		= VFS.DirList(musicDirCustom..'/warhigh', allowedExtensions)
+	local warlowTracksCustom 		= VFS.DirList(musicDirCustom..'/warlow', allowedExtensions)
+	local warTracksCustom 			= VFS.DirList(musicDirCustom..'/war', allowedExtensions)
+	local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', allowedExtensions)
+	local bossFightTracksCustom 	= VFS.DirList(musicDirCustom..'/bossfight', allowedExtensions)
+	local menuTracksCustom 			= VFS.DirList(musicDirCustom..'/menu', allowedExtensions)
+	local loadingTracksCustom  		= VFS.DirList(musicDirCustom..'/loading', allowedExtensions)
 
 	-----------------------------------SETTINGS---------------------------------------
 
@@ -375,7 +376,7 @@ local function capitalize(text)
 end
 
 local function processTrackname(trackname)
-	trackname = string.gsub(trackname, ".ogg", "")
+	trackname = string.gsub(trackname, ".%w+$", "")
 	trackname = trackname:match("[^/|\\]*$")
 	return capitalize(trackname)
 end
