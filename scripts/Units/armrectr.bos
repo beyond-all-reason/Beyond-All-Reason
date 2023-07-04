@@ -12,6 +12,11 @@ static-var  bMoving, currentSpeed, animSpeed, maxSpeed, animFramesPerKeyframe, m
 #define MOVESCALE 100 //Higher values are bigger, 100 is default
 static-var animAmplitude; //Higher values are bigger, 100 is default
 
+lua_UnitScriptBuildStartStop(onOff, param1, param2, param3) 
+{
+	return 0;
+}
+
 #define SIG_WALK 4
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armrectr_anim_walk.blend 
 	set-signal-mask SIG_WALK;
@@ -302,12 +307,14 @@ StartBuilding(heading, pitch)
 	turn aimy1 to y-axis heading speed <260.000000>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
+	call-script lua_UnitScriptBuildStartStop(1, 2,3,4);
 	show armhexl_emit;
 }
 
 StopBuilding()
 {
 	hide nano;
+	call-script lua_UnitScriptBuildStartStop(0, 2,3,4);
 	signal SIG_BUILD;	
 	set INBUILDSTANCE to 0;
 	hide armhexl_emit;

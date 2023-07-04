@@ -89,8 +89,8 @@ void main()
 	float dt = fract(time /130 + vertexData.w);
 	
 	
-	piecePos.xyz = mix(piecePos.xyz, piecePos.xyz + worldposrad.xyz + (vertexData.xyz -0.5) * worldposrad.w*1, dt);
-	
+	piecePos.xyz = mix(piecePos.xyz, worldposrad.xyz + (vertexData.xyz -0.5) * (worldposrad.w*1.3+1), dt);
+
 	float pidt = dt * 3.1425 * 2;
 	
 	float sindt = sin(dt * 3.1425);
@@ -127,7 +127,7 @@ void main()
 		float animation = clamp(((timeInfo.x + timeInfo.w) - otherparams.x)/GROWTHRATE + INITIALSIZE, INITIALSIZE, 1.0) + sin((timeInfo.x)/BREATHERATE)*BREATHESIZE;
 		//v_lengthwidthcornerheight.xy *= animation; // modulate it with animation factor
 
-	v_numvertices = 4;
+
 	if (vertexClipped(gl_Position, CLIPTOLERANCE)) v_numvertices = 0; // Make no primitives on stuff outside of screen
 	// TODO: take into account size of primitive before clipping
 
@@ -144,4 +144,7 @@ void main()
 	#endif
 	if ((uni[instData.y].composite & 0x00000003u) < 1u ) v_numvertices = 0u; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon)) 
 	// TODO: allow overriding this check, to draw things even if unit (like a building) is not drawn
+	// NOCLIP:
+	
+	v_numvertices = 4;
 }

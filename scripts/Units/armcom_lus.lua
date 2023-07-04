@@ -1049,6 +1049,9 @@ function script.StartBuilding(heading, pitch)
 	Turn(ruparm, 1, rad(-55)-pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
 	WaitForTurn(ruparm,1)
 	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, true)
+	if Script.LuaRules("UnitScriptBuildStartStop") then 
+		Script.LuaRules.UnitScriptBuildStartStop(unitID, Spring.GetUnitDefID(unitID), nil, 1, 2,3,4)
+	end
 	buildHeading = heading
 	buildPitch = pitch
 	StartThread(SprayNano, heading, pitch)
@@ -1064,6 +1067,10 @@ function script.StopBuilding()
 	leftArm = true
 	isBuilding = false
 	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, false)
+	
+	if Script.LuaRules("UnitScriptBuildStartStop") then 
+		Script.LuaRules.UnitScriptBuildStartStop(unitID, Spring.GetUnitDefID(unitID), nil, 0, 2,3,4)
+	end
 	Signal(SIG_AIM)
 	SetSignalMask(SIG_AIM)
 	StartThread(Restore)

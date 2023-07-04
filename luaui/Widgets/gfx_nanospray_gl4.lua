@@ -31,6 +31,30 @@ end
 -- Needs stop and start times added to it
 -- If builder is not visible, then no nano spray produced (this is bad for LOS)
 
+-- See \luarules\gadgets\gfx_unit_script_buildstartstop.lua !!!!!!
+
+-- Fall back to drawpos if matrix not present
+
+-- 'Detach' sprays?
+-- direction
+-- timing
+-- strength
+-- velocity adjust
+-- 
+
+-- Build types
+	-- construction
+	-- repair
+	-- reclaim
+		-- feature
+		-- unit
+	-- resurrect
+		-- feature
+		-- unit
+	-- capture
+	-- restore
+-- Area Commands?
+
 ----------------------------- Localize for optmization ------------------------------------
 
 local glBlending = gl.Blending
@@ -51,7 +75,6 @@ local shaderConfig = {
 local intensityMultiplier = 1.0
 ------------------------------ Debug switches ------------------------------
 local autoupdate = true
-
 ------------------------------ Data structures and management variables ------------
 
 local nanoSprayVBO  -- for immobile targets
@@ -61,6 +84,7 @@ local nanoSprayShader
 
 local sprayRemoveQueue = {} -- stores sprays that have expired life {gameframe = {lightIDs ... }}
 
+local unitDefCanNanoSpray = {} -- maps unitDefID to wether a unit can ever spray nanos
 local unitDefPeiceMapCache = {} -- maps unitDefID to piecemap
 
 local nanoSprayCacheTable = {} -- this is a reusable table cache for saving memory later on
@@ -94,7 +118,7 @@ local spec = Spring.GetSpectatingState()
 ---------------------- INITIALIZATION FUNCTIONS ----------------------------------
 
 local function goodbye(reason)
-	Spring.Echo('Deferred Lights GL4 exiting:', reason)
+	Spring.Echo('Nanospray GL4 exiting:', reason)
 	widgetHandler:RemoveWidget()
 end
 
@@ -135,7 +159,7 @@ local function GetUnitNanoPieces(unitID)
 	if unitDefID == nil then return nil end
 	if unitDefPeiceMapCache[unitDefID] then return unitDefPeiceMapCache[unitDefID] end
 	local nanolist = Spring.GetUnitNanoPieces(unitID)
-	Spring.Echo("GetUnitNanoPieces", unitID, unitDefID, nanolist)
+	--Spring.Echo("GetUnitNanoPieces", unitID, unitDefID, nanolist)
 	if nanolist == nil then
 		return nil
 	else
@@ -159,15 +183,16 @@ local function calcLightExpiry(targetVBO, lightParamTable, instanceID)
 end
 
 ---AddSpray(instanceID, unitID, pieceIndex, nanoparams, noUpload)
-local function AddSpray(instanceID, unitID, pieceIndex, nanoparams, noUpload)
-	if autoupdate then Spring.Echo("AddSpray", unitID, pieceIndex) end
+local function AddSpray(instanceID, unitID, pieceIndex, noUpload, x,y,z,r,m )
+	--if autoupdate then Spring.Echo("AddSpray", unitID, pieceIndex, 'xyzrm', x,y,z,r,m ) end
 	if instanceID == nil then
 		autoSprayInstanceID = autoSprayInstanceID + 1
 		instanceID = autoSprayInstanceID
 	end
 	local gameFrame = Spring.GetGameFrame()
 	if noUpload then gameFrame = -500 end -- shitty hax
-	instanceID = pushElementInstance(nanoSprayVBO, {200,0,200,50, gameFrame,1000000,1023,1, pieceIndex, 0,0,0,0}, instanceID, true, noUpload, unitID)
+	--Spring.Echo(x,y,z,r)
+	instanceID = pushElementInstance(nanoSprayVBO, {x,y,z,r,gameFrame,1000000,1023,1, pieceIndex, 0,0,0,0}, instanceID, true, noUpload, unitID)
 	-- calcLightExpiry
 	return instanceID
 end
@@ -199,16 +224,17 @@ end
 
 -- multiple lights per unitdef/piece are possible, as the lights are keyed by lightname
 
-local function AddSprayForUnit(unitID, unitDefID, noUpload)
+local function AddSprayForUnit(unitID, unitDefID, noUpload, reason, x,y,z,r,m)
 	-- canbuild
 	local nanos = GetUnitNanoPieces(unitID)
-	Spring.Echo("AddSprayForUnit",unitID, unitDefID, noUpload,nanos)
+	--Spring.Debug.TraceEcho()
+	--Spring.Echo("AddSprayForUnit",unitID, unitDefID, noUpload,nanos)
 	if nanos then
 		if unitAttachedNanoSprays[unitID] == nil then
 			unitAttachedNanoSprays[unitID] = {}
 		end
 		for i,pieceIndex in ipairs(nanos) do
-			local instanceID = AddSpray(nil, unitID, pieceIndex)
+			local instanceID = AddSpray(nil, unitID, pieceIndex, noUpload, x,y,z,r,m)
 			unitAttachedNanoSprays[unitID][instanceID] = true
 		end
 	end
@@ -238,27 +264,61 @@ local function RemoveSprayForUnit(unitID, instanceID)
 	end
 	return numremoved
 end
-
 function widget:PlayerChanged(playerID)
 	spec = Spring.GetSpectatingState()
 	local _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID, false)
 end
 
+
+
+--[[
+Stuff needed in the cob script:
+
+lua_UnitScriptBuildStartStop(onoff, param1, param2, param3) 
+{
+	return 0;
+}
+
+call-script lua_UnitScriptBuildStartStop(onoff, 1,2,3);
+]]--
+-- only add them to a table for further processing!
+local unitScriptBuildEventQueue = {}
+
+local function UnitScriptBuildStartStop(unitID, unitDefID, onoff, param1, param2, param3)
+	--Spring.Echo("Widgetside UnitScriptBuildStartStop", unitID, unitDefID, whichDecal, posx,posz, heading)
+	if unitDefCanNanoSpray[unitDefID] and Spring.ValidUnitID(unitID) and Spring.GetUnitIsDead(unitID) == false then
+		--Spring.Echo("Queued spray for", unitID, unitDefID, onoff)
+		if Spring.IsUnitAllied(unitID) then 
+			unitScriptBuildEventQueue[unitID] = onoff
+		end
+	end
+end
+
+
 function widget:Initialize()
 	if initGL4() == false then return end
+	
+	-- find all builders
+	for unitDefID, unitDef in pairs(UnitDefs) do 
+		if unitDef.canAssist or unitDef.canRepair or unitDef.canReclaim or #unitDef.buildOptions > 0 then 
+			unitDefCanNanoSpray[unitDefID] = true
+		end
+	end
+	
+	widgetHandler:RegisterGlobal('UnitScriptBuildStartStop', UnitScriptBuildStartStop)
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
-	AddSprayForUnit(unitID, unitDefID, false, "VisibleUnitAdded")
+	--AddSprayForUnit(unitID, unitDefID, false, "VisibleUnitAdded")
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	clearInstanceTable(nanoSprayVBO) -- clear all instances
 	for unitID, unitDefID in pairs(extVisibleUnits) do
-		AddSprayForUnit(unitID, unitDefID, true, "VisibleUnitsChanged") -- add them with noUpload = true
+		--AddSprayForUnit(unitID, unitDefID, true, "VisibleUnitsChanged") -- add them with noUpload = true
 	end
 	uploadAllElements(nanoSprayVBO) -- upload them all
 end
@@ -268,10 +328,111 @@ function widget:VisibleUnitRemoved(unitID) -- remove all the lights for this uni
 	RemoveSprayForUnit(unitID)
 end
 
+
 function widget:Shutdown()
+	widgetHandler:DeregisterGlobal('UnitScriptBuildStartStop')
+end
+
+local function isMobile(unitID) 
+	local buildprogress = select(5,Spring.GetUnitHealth(unitID))
+	if not buildprogress then return nil end
+	if buildprogress < 1 then 
+		return nil
+	else
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		if UnitDefs[unitDefID].canMove then 
+			return unitID
+		else
+			return nil
+		end
+	end
+end
+
+
+-- This is the true hell!
+-- returns the x,y,z,radius,mobileUnitID or nil
+-- spraytype is 1=forward, -1=reverse, 0=bidirectional
+local function GetNanoSprayTargetType(unitID, unitDefID)
+	local index, name, cmdtype, cmdstr = Spring.GetActiveCommand(unitID)
+	local x,y,z,r,mobile
+	local spraytype = 1
+	local buildTargetID = Spring.GetUnitIsBuilding(unitID)
+	if buildTargetID then -- Easiest case, the unit is building something
+		_,_,_, x, y, z = Spring.GetUnitPosition(buildTargetID, true)
+		r = Spring.GetUnitRadius(buildTargetID)
+		mobile = isMobile(buildTargetID)
+	end
+	
+	
+	
+	local nanopieces =  Spring.GetUnitNanoPieces (  unitID ) --return: nil | { [1] = number piece1, etc ... }
+	local cmdID, cmdOpts, cmdTag, cmdParam1, cmdParam2, cmdParam3, cmdParam4 =  Spring.GetUnitCurrentCommand(unitID, 1)
+	
+	if cmdID == CMD.RECLAIM or cmdID == CMD.REPAIR or cmdID == CMD.CAPTURE then  
+		--Spring.Echo("Cmdtarget", cmdID, cmdOpts, cmdTag, cmdParam1, cmdParam2, cmdParam3)
+		buildTargetID = cmdParam1
+		if buildTargetID < 32000 then  
+			_,_,_, x, y, z = Spring.GetUnitPosition(buildTargetID, true)
+			r = Spring.GetUnitRadius(buildTargetID)
+			mobile = isMobile(buildTargetID)
+		else -- if buildTargetID > maxunits then its a feature
+			for i, featureID in ipairs(Spring.GetAllFeatures()) do 
+				--Spring.Echo(featureID, FeatureDefs[Spring.GetFeatureDefID(featureID)].name)
+			end
+			buildTargetID = buildTargetID - 32000
+			_,_,_, x, y, z = Spring.GetFeaturePosition(buildTargetID, true)
+			r = Spring.GetFeatureRadius(buildTargetID)
+		end
+			
+		if cmdID == CMD.RECLAIM then spraytype = -1	end
+		if cmdID == CMD.CAPTURE then spraytype = 0	end
+	end
+	
+	if cmdID == CMD.RESTORE then -- Resp
+		--Spring.Echo("CMD.RESTORE", cmdID, cmdOpts, cmdTag, cmdParam1, cmdParam2, cmdParam3, cmdParam4)
+		x,y,z,r = cmdParam1, cmdParam2, cmdParam3, cmdParam4
+		spraytype = 0
+	end
+	
+	if cmdID == CMD.RESURRECT then 
+		--Spring.Echo("CMD.RESURRECT", cmdID, cmdOpts, cmdTag, cmdParam1, cmdParam2, cmdParam3, cmdParam4)
+		buildTargetID = cmdParam1 - 32000
+		_,_,_, x, y, z = Spring.GetFeaturePosition(buildTargetID, true)
+		r = Spring.GetFeatureRadius(buildTargetID)
+		spraytype = 0
+	end
+	
+		
+		
+	
+	
+	--Spring.Echo("Target?", unitID, 'cmdID=', cmdID, 'cmdTag=',cmdTag, 'isbuilding=', isbuilding, 'nanopieces = ' , nanopieces, "xyzr", x,y,z,r, "buildTargetID=",buildTargetID)
+
+	
+	return x, y, z, r, mobile, spraytype
+
 end
 
 function widget:GameFrame(n)
+	
+	for unitID, buildstatus in pairs(unitScriptBuildEventQueue) do
+		local index, name, cmdtype, cmdstr = Spring.GetActiveCommand(unitID)
+		
+		local isbuilding = Spring.GetUnitIsBuilding ( unitID )
+		local nanopieces =  Spring.GetUnitNanoPieces (  unitID ) --return: nil | { [1] = number piece1, etc ... }
+		--Spring.Echo("TRY", unitID, isbuilding,nanopieces )
+		if buildstatus == 1 then 
+			local  x,y,z, r, mobileID, sprayType = GetNanoSprayTargetType(unitID)
+			if x then 
+				AddSprayForUnit(unitID, unitDefID, nil, "fuck", x,y,z,r, mobileID )
+			end
+		else
+			RemoveSprayForUnit(unitID)
+		end
+		unitScriptBuildEventQueue[unitID] = nil
+	end
+		
+	
 	gameFrame = n
 	if sprayRemoveQueue[n] then
 		for instanceID, _ in pairs(sprayRemoveQueue[n]) do
@@ -287,10 +448,10 @@ end
 
 -- Below are the registered spawners for events
 function widget:UnitIdle(unitID, unitDefID, teamID) -- oh man we need a sane way to handle height :D
-	eventLightSpawner("UnitIdle", unitID, unitDefID, teamID)
+	--eventLightSpawner("UnitIdle", unitID, unitDefID, teamID)
 end
 function widget:UnitFinished(unitID, unitDefID, teamID)
-	eventLightSpawner("UnitFinished", unitID, unitDefID, teamID)
+	--eventLightSpawner("UnitFinished", unitID, unitDefID, teamID)
 end
 local lastGameFrame = -1
 function widget:Update(dt)
@@ -310,7 +471,8 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	end
 
 	if nanoSprayVBO.usedElements > 0 then
-
+		--if Spring.GetDrawFrame() % 100 == 0 then Spring.Echo(nanoSprayVBO.usedElements) end 
+		gl.DepthTest(true)
 		gl.Texture(0, '$minimap')
 		nanoSprayShader:Activate()
 		--nanoSprayShader:SetUniformFloat("nightFactor", nightFactor)

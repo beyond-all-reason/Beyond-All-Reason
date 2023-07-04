@@ -23,6 +23,13 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 	return 0;
 }
 
+
+lua_UnitScriptBuildStartStop(onOff, param1, param2, param3) 
+{
+	return 0;
+}
+
+
 // Generated for N:\animations\armck_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
@@ -384,6 +391,7 @@ StartBuilding(heading, pitch)
 	move turret to y-axis [4.5] speed [16];
 	turn aimy1 to y-axis heading speed <600.000000>;
 	wait-for-turn aimy1 around y-axis;
+	call-script lua_UnitScriptBuildStartStop(1, 2,3,4);
 	set INBUILDSTANCE to 1;
 	show cagelight_emit;
 	spin cagelight_emit around z-axis speed <150>;
@@ -392,6 +400,7 @@ StartBuilding(heading, pitch)
 StopBuilding()
 {
 	hide nano;
+	call-script lua_UnitScriptBuildStartStop(0, 2,3,4);
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	hide cagelight_emit;
