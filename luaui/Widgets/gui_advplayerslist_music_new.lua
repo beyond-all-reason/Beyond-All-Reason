@@ -72,42 +72,31 @@ local function ReloadMusicPlaylists()
 
 	-- New Soundtrack List
 	local musicDirNew 			= 'music/original'
-	local peaceTracksNew 			= VFS.DirList(musicDirNew..'/peace', '*.ogg')
-	local warhighTracksNew 			= VFS.DirList(musicDirNew..'/warhigh', '*.ogg')
-	local warlowTracksNew 			= VFS.DirList(musicDirNew..'/warlow', '*.ogg')
-	local gameoverTracksNew 		= VFS.DirList(musicDirNew..'/gameover', '*.ogg')
-	local bossFightTracksNew   		= VFS.DirList(musicDirNew..'/bossfight', '*.ogg')
-	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu', '*.ogg')
-	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', '*.ogg')
-
-	-- Old Soundtrack List
-	local musicDirOld 			= 'music/legacy'
-	local peaceTracksOld 			= VFS.DirList(musicDirOld..'/peace', '*.ogg')
-	local warhighTracksOld 			= VFS.DirList(musicDirOld..'/warhigh', '*.ogg')
-	local warlowTracksOld 			= VFS.DirList(musicDirOld..'/warlow', '*.ogg')
-	local gameoverTracksOld 		= VFS.DirList(musicDirOld..'/gameover', '*.ogg')
-	local bossFightTracksOld  		= VFS.DirList(musicDirOld..'/bossfight', '*.ogg')
-	local menuTracksOld 			= VFS.DirList(musicDirOld..'/menu', '*.ogg')
-	local loadingTracksOld   		= VFS.DirList(musicDirOld..'/loading', '*.ogg')
+	local peaceTracksNew 			= VFS.DirList(musicDirNew..'/peace')
+	local warhighTracksNew 			= VFS.DirList(musicDirNew..'/warhigh')
+	local warlowTracksNew 			= VFS.DirList(musicDirNew..'/warlow')
+	local gameoverTracksNew 		= VFS.DirList(musicDirNew..'/gameover')
+	local bossFightTracksNew   		= VFS.DirList(musicDirNew..'/bossfight')
+	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu')
+	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading')
 
 	-- Custom Soundtrack List
 	local musicDirCustom 		= 'music/custom'
-	local baseTracksCustom 			= VFS.DirList(musicDirCustom, '*.ogg')
-	local peaceTracksCustom 		= VFS.DirList(musicDirCustom..'/peace', '*.ogg')
-	local warhighTracksCustom 		= VFS.DirList(musicDirCustom..'/warhigh', '*.ogg')
-	local warlowTracksCustom 		= VFS.DirList(musicDirCustom..'/warlow', '*.ogg')
-	local warTracksCustom 			= VFS.DirList(musicDirCustom..'/war', '*.ogg')
-	local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', '*.ogg')
-	local bossFightTracksCustom 	= VFS.DirList(musicDirCustom..'/bossfight', '*.ogg')
-	local menuTracksCustom 			= VFS.DirList(musicDirCustom..'/menu', '*.ogg')
-	local loadingTracksCustom  		= VFS.DirList(musicDirCustom..'/loading', '*.ogg')
+	local baseTracksCustom 			= VFS.DirList(musicDirCustom)
+	local peaceTracksCustom 		= VFS.DirList(musicDirCustom..'/peace')
+	local warhighTracksCustom 		= VFS.DirList(musicDirCustom..'/warhigh')
+	local warlowTracksCustom 		= VFS.DirList(musicDirCustom..'/warlow')
+	local warTracksCustom 			= VFS.DirList(musicDirCustom..'/war')
+	local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover')
+	local bossFightTracksCustom 	= VFS.DirList(musicDirCustom..'/bossfight')
+	local menuTracksCustom 			= VFS.DirList(musicDirCustom..'/menu')
+	local loadingTracksCustom  		= VFS.DirList(musicDirCustom..'/loading')
 
 	-----------------------------------SETTINGS---------------------------------------
 
 	interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
 	silenceTimerEnabled 			= Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
 	local newSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
-	local oldSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackOld', 0) == 1
 	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1
 
 	-------------------------------CREATE PLAYLISTS-----------------------------------
@@ -128,16 +117,6 @@ local function ReloadMusicPlaylists()
 		table.append(bossFightTracks, bossFightTracksNew)
 		table.append(menuTracks, menuTracksNew)
 		table.append(loadingTracks, loadingTracksNew)
-	end
-
-	if oldSoundtrackEnabled then
-		table.append(peaceTracks, peaceTracksOld)
-		table.append(warhighTracks, warhighTracksOld)
-		table.append(warlowTracks, warlowTracksOld)
-		table.append(gameoverTracks, gameoverTracksOld)
-		table.append(bossFightTracks, bossFightTracksOld)
-		table.append(menuTracks, menuTracksOld)
-		table.append(loadingTracks, loadingTracksOld)
 	end
 
 	if customSoundtrackEnabled then

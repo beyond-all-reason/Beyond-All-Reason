@@ -31,44 +31,31 @@ function addon.Initialize()
 	--end
 	if Spring.GetConfigInt('music_loadscreen', 1) == 1 then
 		local originalSoundtrackEnabled = Spring.GetConfigInt('UseSoundtrackNew', 1)
-		local legacySoundtrackEnabled 	= Spring.GetConfigInt('UseSoundtrackOld', 0)
 		local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1)
 
 
 		local musicPlaylist = {}
 		if originalSoundtrackEnabled == 1 then
 			local musicDirOriginal 		= 'music/original'
-			table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/loading', '*.ogg'))
-		end
-
-		-- Legacy Soundtrack List
-		if legacySoundtrackEnabled == 1 then
-			local musicDirLegacy 		= 'music/legacy'
-			table.append(musicPlaylist, VFS.DirList(musicDirLegacy..'/loading', '*.ogg'))
+			table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/loading'))
 		end
 
 		-- Custom Soundtrack List
 		if customSoundtrackEnabled == 1 then
 			local musicDirCustom 		= 'music/custom'
-			table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/loading', '*.ogg'))
+			table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/loading'))
 		end
 
 		if #musicPlaylist == 0 or math.random(0,3) == 0 then
 			if originalSoundtrackEnabled == 1 then
 				local musicDirOriginal 		= 'music/original'
-				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/peace', '*.ogg'))
-			end
-
-			-- Legacy Soundtrack List
-			if legacySoundtrackEnabled == 1 then
-				local musicDirLegacy 		= 'music/legacy'
-				table.append(musicPlaylist, VFS.DirList(musicDirLegacy..'/peace', '*.ogg'))
+				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/peace'))
 			end
 
 			-- Custom Soundtrack List
 			if customSoundtrackEnabled == 1 then
 				local musicDirCustom 		= 'music/custom'
-				table.append(musicPlaylist, VFS.DirList(musicDirCustom, '*.ogg'))
+				table.append(musicPlaylist, VFS.DirList(musicDirCustom))
 			end
 		end
 

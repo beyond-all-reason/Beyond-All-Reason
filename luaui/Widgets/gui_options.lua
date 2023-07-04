@@ -2685,15 +2685,6 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackOld", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackold'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackOld', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackold_descr'),
-			onchange = function(i, value)
-				Spring.SetConfigInt('UseSoundtrackOld', value and 1 or 0)
-				if WG['music'] and WG['music'].RefreshTrackList then
-					WG['music'].RefreshTrackList()
-					init()
-				end
-			end
-		},
 		{ id = "soundtrackCustom", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.soundtrackcustom'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackcustom_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackCustom', value and 1 or 0)
