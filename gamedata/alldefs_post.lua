@@ -393,19 +393,33 @@ function UnitDef_Post(name, uDef)
 	-- Add prototype units to cor T2 vech
 	if Spring.GetModOptions().expandedcortexvehiclest2 then
 		if name == "coravp" then
-			local numBuildoptions = 1
 			for ix, UnitName in pairs(uDef.buildoptions) do
-				if UnitName ~= "corseal" then
-					uDef.buildoptions[numBuildoptions] = UnitName
-					numBuildoptions = numBuildoptions + 1
+				if UnitName == "corseal" then
+					uDef.buildoptions[ix] = "corsala"
 				end
 			end
 
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corprinter"
-			uDef.buildoptions[numBuildoptions+2] = "corsala"
+			--uDef.buildoptions[numBuildoptions+2] = "corsala"
 			--uDef.buildoptions[numBuildoptions+3] = "corforge"
 			--uDef.buildoptions[numBuildoptions+4] = "cortorch"
+		end
+		if name == "coramsub" then
+			for ix, UnitName in pairs(uDef.buildoptions) do
+				if UnitName == "corseal" then
+					uDef.buildoptions[ix] = "corsala"
+				end
+			end
+
+		end
+		if name == "corgantuw" then
+			local numBuildoptions = 1
+			for ix, UnitName in pairs(uDef.buildoptions) do
+				if UnitName == "corseal" then
+					uDef.buildoptions[ix] = "corsala"
+				end
+			end
 		end
 	end
 
