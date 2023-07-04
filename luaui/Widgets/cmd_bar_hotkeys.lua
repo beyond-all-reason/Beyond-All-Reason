@@ -102,7 +102,7 @@ local function reloadBindings()
 	if not hasLegacy then
 		if VFS.FileExists(currentKeybindingsFile) then
 			Spring.SendCommands("keyreload " .. currentKeybindingsFile)
-			Spring.Echo("BAR Hotkeys: Loaded " .. (keyConfig.presetKeybindings[currentKeybindingsFile] or currentKeybindingsFile))
+			Spring.Echo("BAR Hotkeys: Loaded preset " .. keyConfig.presetKeybindings[currentKeybindingsFile] .. " from path: " .. currentKeybindingsFile)
 		else
 			Spring.Echo("BAR Hotkeys: Did not find keybindings file " .. currentKeybindingsFile ..". Loading defaults")
 			Spring.SendCommands("keyreload " .. keyConfig.keybindingPresets["Default"])
