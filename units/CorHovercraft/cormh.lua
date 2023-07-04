@@ -9,7 +9,7 @@ return {
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",
-		collisionvolumescales = "33 17 43",
+		collisionvolumescales = "38 17 38",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		explodeas = "mediumexplosiongeneric",

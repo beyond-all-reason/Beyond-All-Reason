@@ -9,7 +9,7 @@ return {
 		canmove = true,
 		category = "ALL HOVER WEAPON NOTSUB NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",
-		collisionvolumescales = "48 18 48",
+		collisionvolumescales = "42 18 42",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		explodeas = "mediumExplosionGeneric",
