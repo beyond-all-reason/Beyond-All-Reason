@@ -122,9 +122,9 @@ return {
 			},
 		},
 		weapondefs = {
-			tremor = {
-				
-				accuracy = 1190,
+			tremor_focus_fire = {
+					
+				accuracy = 0, --accuracy controlled by the customparams sector_fire
 				areaofeffect = 200,
 				avoidfeature = false,
 				cegtag = "arty-medium",
@@ -140,7 +140,7 @@ return {
 				proximitypriority = -3,
 				range = 1275,
 				mygravity = 0.1333,
-				reloadtime = 0.34,
+				reloadtime = 0.5,
 				soundhit = "xplomed4",
 				soundhitwet = "splslrg",
 				soundstart = "cannhvy2",
@@ -148,15 +148,56 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 420,
 				customparams = {
-					speceffect = "siege",
-					when = "state==true",
-					max_velocity_reduction = "0.125",
-					active_range = "1470",
-					active_accuracy = "2400",
+					speceffect = "sector_fire",
+					when = "always",
+					max_range_reduction = "0.25",
+					--active_range = "1275",
+					--active_accuracy = "0",
+					spread_angle = "15",
 				},
 				damage = {
 					bombers = 19,
-					default = 100,
+					default = 150,
+					fighters = 19,
+					subs = 75,
+					vtol = 19,
+				},
+				
+			},
+			tremor_spread_fire = {
+				
+				accuracy = 0, --accuracy controlled by the customparams sector_fire
+				areaofeffect = 200,
+				avoidfeature = false,
+				cegtag = "arty-medium",
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.9,
+				explosiongenerator = "custom:genericshellexplosion-medium",
+				gravityaffected = "true",
+				--impulseboost = 0.123,
+				impulsefactor = 1.8,
+				name = "RapidArtillery",
+				noselfdamage = true,
+				proximitypriority = -3,
+				range = 1470,
+				mygravity = 0.1333,
+				reloadtime = 0.5,
+				soundhit = "xplomed4",
+				soundhitwet = "splslrg",
+				soundstart = "cannhvy2",
+				turret = true,
+				weapontype = "Cannon",
+				weaponvelocity = 420,
+				customparams = {
+					speceffect = "sector_fire",
+					when = "always",
+					max_range_reduction = "0.35", 
+					spread_angle = "24",
+				},
+				damage = {
+					bombers = 19,
+					default = 150,
 					fighters = 19,
 					subs = 75,
 					vtol = 19,
@@ -167,7 +208,14 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "TREMOR",
+				def = "TREMOR_FOCUS_FIRE",
+				maindir = "0 0 1",
+				maxangledif = 270,
+				onlytargetcategory = "SURFACE",
+			},
+			[2] = {
+				badtargetcategory = "VTOL",
+				def = "TREMOR_SPREAD_FIRE",
 				maindir = "0 0 1",
 				maxangledif = 270,
 				onlytargetcategory = "SURFACE",
