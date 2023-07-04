@@ -82,7 +82,6 @@ local function ReloadMusicPlaylists()
 
 	-- Custom Soundtrack List
 	local musicDirCustom 		= 'music/custom'
-	local baseTracksCustom 			= VFS.DirList(musicDirCustom)
 	local peaceTracksCustom 		= VFS.DirList(musicDirCustom..'/peace')
 	local warhighTracksCustom 		= VFS.DirList(musicDirCustom..'/warhigh')
 	local warlowTracksCustom 		= VFS.DirList(musicDirCustom..'/warlow')
@@ -124,10 +123,6 @@ local function ReloadMusicPlaylists()
 	end
 
 	if customSoundtrackEnabled then
-		table.append(peaceTracks, baseTracksCustom)
-		table.append(warhighTracks, baseTracksCustom)
-		table.append(warlowTracks, baseTracksCustom)
-
 		table.append(peaceTracks, peaceTracksCustom)
 		table.append(warhighTracks, warhighTracksCustom)
 		table.append(warlowTracks, warlowTracksCustom)
