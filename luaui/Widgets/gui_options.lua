@@ -5581,6 +5581,11 @@ function init()
 		options[getOptionByID('commandsfxfilterai')] = nil
 	end
 
+	-- remove sound device selector if there is only 1 device
+	if not soundDevices[2] then
+		options[getOptionByID('snddevice')] = nil
+	end
+
 	-- add music tracks options
 	local trackList
 	if WG['music'] ~= nil then
