@@ -61,7 +61,7 @@ return {
                         // Multiply xy to decrease the period of the sine wave.
 			// This is just an arbitrary number. Lower numbers will result in
 			// wider lines and gaps.
-			xy *= 500.0;
+			xy *= 1000.0;
 
                         // We want to return a value between 0 and 1,
 			// so scale the sine wave amplitude and shift it up.
@@ -92,9 +92,10 @@ return {
 
                         // Line of sight (LOS), the higest level of intel
 			// losColor is the color of ground covered by direct vison (LOS).
-			float los = getTexel(tex0, texCoord).r;
+			// Often airlos is greater than groundlos.
+			float groundlos = getTexel(tex0, texCoord).r;
 			float airlos = getTexel(tex1, texCoord).r;
-			float losCombined = max(los, airlos);
+			float losCombined = mix(groundlos, airlos, 0.2);
 			gl_FragColor = max(gl_FragColor, losColor * losCombined);
 
                         // Radar jamming
