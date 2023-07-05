@@ -830,11 +830,11 @@ function makePlaneIndexVBO(xresolution, yresolution, cutcircle)
 	return planeIndexVBO, IndexVBOData
 end
 
-function makePointVBO(numPoints, randomFactor)
+function makePointVBO(numPoints, randomScale, normalize)
 	-- makes points with xyzw
 	-- can be used in both GL.LINES and GL.TRIANGLE_FAN mode
 	numPoints = numPoints or 1
-	randomFactor = randomFactor or 0
+	randomScale = randomScale or 0
 	local pointVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	if pointVBO == nil then return nil end
 
@@ -843,13 +843,33 @@ function makePointVBO(numPoints, randomFactor)
 	}
 
 	local VBOData = {}
-
-	for i = 1, numPoints  do -- 
-		VBOData[#VBOData+1] = randomFactor * math.random()-- X
-		VBOData[#VBOData+1] = randomFactor * math.random()-- Y
-		VBOData[#VBOData+1] = randomFactor * math.random()---Z
-		VBOData[#VBOData+1] = i/numPoints -- index for lolz?
-	end	
+	if normalize then	
+		local i = 0
+		while i < numPoints do 
+			local x = math.random()
+			local y = math.random()
+			local z = math.random()
+			local len = math.diag(x,y,z)
+			if len <=1 then 
+				i = i+1
+				VBOData[#VBOData+1] = randomScale * x-- X
+				VBOData[#VBOData+1] = randomScale * y-- Y
+				VBOData[#VBOData+1] = randomScale * z---Z
+				VBOData[#VBOData+1] = i/numPoints -- index for lolz?
+			end
+		end	
+	else
+		for i = 1, numPoints  do -- 
+			local x = math.random()
+			local y = math.random()
+			local z = math.random()
+			local len = math.diag(x,y,z)
+			VBOData[#VBOData+1] = randomScale * math.random() -- X
+			VBOData[#VBOData+1] = randomScale * math.random()-- Y
+			VBOData[#VBOData+1] = randomScale * math.random()---Z
+			VBOData[#VBOData+1] = i/numPoints -- index for lolz?
+		end	
+	end
 
 	pointVBO:Define(
 		numPoints,

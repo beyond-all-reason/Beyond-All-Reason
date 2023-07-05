@@ -10,6 +10,11 @@ piece  base, wingbr, wingbl, wingfr, wingfl, arm1, arm2, nano, emit, doorbl, doo
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
+lua_UnitScriptBuildStartStop(onOff, param1, param2, param3) 
+{
+	return 0;
+}
+
 
 activatescr()
 {
@@ -126,7 +131,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	hide emit;
+	show emit;
 	hide nano;
 	hide thrust;
 	hide nanolight;
@@ -164,6 +169,7 @@ StartBuilding(heading, pitch)
 	turn nano to x-axis <150> speed <300>;  
 	wait-for-turn arm1 around x-axis;
 	set INBUILDSTANCE to 1;
+	call-script lua_UnitScriptBuildStartStop(1, 2,3,4);
 	show nanolight;
 }
 
@@ -173,6 +179,7 @@ StopBuilding()
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	hide nanolight;
+	call-script lua_UnitScriptBuildStartStop(0, 2,3,4);
 	sleep 6000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	

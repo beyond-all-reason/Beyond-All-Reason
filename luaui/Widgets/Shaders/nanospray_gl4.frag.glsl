@@ -8,12 +8,19 @@
 #line 30000
 
 in DataGS {
-	vec4 g_color;
 	vec4 g_uv;
+	flat vec4 g_color;
 };
 
 uniform sampler2D DrawPrimitiveAtUnitTexture;
 out vec4 fragColor;
+
+vec2 rotate2D(vec2 v, float a) {
+	float s = sin(a);
+	float c = cos(a);
+	mat2 m = mat2(c, -s, s, c);
+	return m * v;
+}
 
 void main(void)
 {
@@ -28,7 +35,13 @@ void main(void)
 		if (fragColor.a < 0.01) discard;
 	#endif
 	fragColor.rgb = g_color.rgb;
-	vec2 centered = abs(g_uv.xy - vec2(0.5));
+	
+	
+	vec2 centered = (g_uv.xy - vec2(0.5)); // center the UV coordinates to the center of the billboard 
+	centered = rotate2D(centered, g_uv.z + timeInfo.x * 0.05);
+	
+	centered = abs(centered);
+	
 	fragColor.a = 1.0 - smoothstep(0.1,0.5, centered.x + centered.y);
 	fragColor.a *= g_color.a;
 	fragColor.rgba = clamp(fragColor.rgba, 0,1);

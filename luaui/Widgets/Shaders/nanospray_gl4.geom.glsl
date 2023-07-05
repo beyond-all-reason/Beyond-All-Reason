@@ -24,8 +24,8 @@ in DataVS {
 } dataIn[];
 
 out DataGS {
-	vec4 g_color;
 	vec4 g_uv;
+	flat vec4 g_color;
 };
 
 mat3 rotY;

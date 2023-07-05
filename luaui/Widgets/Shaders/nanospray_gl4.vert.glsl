@@ -9,7 +9,7 @@
 
 layout (location = 0) in vec4 vertexData;
 layout (location = 1) in vec4 worldposrad; // -- target world pos and radius
-layout (location = 2) in vec4 otherparams; // -- startframe, endframe, count, intensity
+layout (location = 2) in vec4 otherparams; // -- startframe, endframe, count, direction
 layout (location = 3) in uint pieceIndex;
 layout (location = 4) in uvec4 instData;
 
@@ -72,6 +72,7 @@ bool vertexClipped(vec4 clipspace, float tolerance) {
 #define BREATHERATE 1.0
 #define BREATHESIZE 1.0
 #define CLIPTOLERANCE 1.1
+#define TRAVELTIME 130.0
 
 void main()
 {
@@ -82,18 +83,33 @@ void main()
 		worldMatrix = worldMatrix * pieceMatrix;
 	}
 	
+	v_numvertices = 4;
 	vec4 piecePos = worldMatrix * vec4(0,0,0,1);
 	
+	if ((uni[instData.y].composite & 0x00000003u) < 1u ) {
+		//v_numvertices = 0u; 
+		// this checks the drawFlag of wether the unit is actually being drawn 
+		// (this is ==1 when then unit is both visible and drawn as a full model (not icon)) 
+		// in this case, fall  back to drawPos
+		piecePos.xyz = uni[instData.y].drawPos.xyz;
+	};
+	
 	float time = (timeInfo.x + timeInfo.w);
+	float deltaTime = fract(time /TRAVELTIME + vertexData.w);
 	
-	float dt = fract(time /130 + vertexData.w);
+	if ((time/TRAVELTIME) < (otherparams.x /TRAVELTIME + deltaTime)){
+		v_numvertices = 0;
+	}
+	// Only show ones after the time?
+	float distanceToTarget = length(piecePos.xyz- worldposrad.xyz);
 	
-	
-	piecePos.xyz = mix(piecePos.xyz, worldposrad.xyz + (vertexData.xyz -0.5) * (worldposrad.w*1.3+1), dt);
+	//float positionModifier = pow(deltaTime, clamp(1500/distanceToTarget, 0.2, 0.8));
+	float positionModifier = pow(deltaTime,0.4);
+	piecePos.xyz = mix(piecePos.xyz + (vertexData.xyz -0.5) * 2, worldposrad.xyz + (vertexData.xyz -0.5) * (worldposrad.w*1.3+1), positionModifier);
 
-	float pidt = dt * 3.1425 * 2;
+	float pidt = deltaTime * 3.1425 * 2;
 	
-	float sindt = sin(dt * 3.1425);
+	float sindt = sin(deltaTime * 3.1425);
 	
 	vec3 randopos = worldposrad.w* (-vertexData.xyz +0.5);
 
@@ -113,7 +129,7 @@ void main()
 	
 	//piecePos.xyz += worldposrad.w* (vertexData.xyz -0.5) * sindt;
 	
-	vec4 lengthwidthcornerheight = vec4(3,3,16,16);
+	vec4 lengthwidthcornerheight = vec4(6,6,16,16);
 
 	gl_Position = cameraViewProj * piecePos; // We transform this vertex into the center of the model
 	v_rotationY = 0;//atan(modelMatrix[0][2], modelMatrix[0][0]); // we can get the euler Y rot of the model from the model matrix
@@ -123,6 +139,7 @@ void main()
 	v_color.a *= 1.5 + sintimes.w ;
 	v_centerpos = vec4( piecePos.xyz, 1.0); // We are going to pass the centerpoint to the GS
 	v_lengthwidthcornerheight = lengthwidthcornerheight;
+	v_parameters.zw = vertexData.yz; // some useful randoms 
 
 		float animation = clamp(((timeInfo.x + timeInfo.w) - otherparams.x)/GROWTHRATE + INITIALSIZE, INITIALSIZE, 1.0) + sin((timeInfo.x)/BREATHERATE)*BREATHESIZE;
 		//v_lengthwidthcornerheight.xy *= animation; // modulate it with animation factor
@@ -142,9 +159,8 @@ void main()
 	#if (FULL_ROTATION == 1)
 		v_fullrotation = mat3(modelMatrix);
 	#endif
-	if ((uni[instData.y].composite & 0x00000003u) < 1u ) v_numvertices = 0u; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon)) 
+
 	// TODO: allow overriding this check, to draw things even if unit (like a building) is not drawn
 	// NOCLIP:
 	
-	v_numvertices = 4;
 }

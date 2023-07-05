@@ -31,27 +31,40 @@ end
 -- Needs stop and start times added to it
 -- If builder is not visible, then no nano spray produced (this is bad for LOS)
 
+-- If target is mobile, and unit has to chase it, the script_buildstartstop doenst get called multiple times
+
 -- See \luarules\gadgets\gfx_unit_script_buildstartstop.lua !!!!!!
 
+-- Change all nano-lights to hide only after some time, to allow for the last particles to get there
+
 -- Fall back to drawpos if matrix not present
+
+-- Handle Team Changes
 
 -- 'Detach' sprays?
 -- direction
 -- timing
 -- strength
 -- velocity adjust
--- 
+-- a mobile target can only ever be a unitID!
+
 
 -- Build types
 	-- construction
 	-- repair
+		-- mobile
+		-- immobile
 	-- reclaim
 		-- feature
 		-- unit
+		-- mobile
+		-- immobile
 	-- resurrect
 		-- feature
 		-- unit
 	-- capture
+		-- mobile
+		-- immobile
 	-- restore
 -- Area Commands?
 
@@ -69,7 +82,7 @@ local spGetUnitPosition  = Spring.GetUnitPosition
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local shaderConfig = {
-	POINTCOUNT = 1024,
+	POINTCOUNT = 512,
 }
 
 local intensityMultiplier = 1.0
@@ -146,7 +159,7 @@ local function initGL4()
 			{id = 4, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 	}
 
-	local vertexVBO, numVertices  = makePointVBO(shaderConfig.POINTCOUNT, 1)
+	local vertexVBO, numVertices  = makePointVBO(shaderConfig.POINTCOUNT, 1, true)
 	nanoSprayVBO = makeInstanceVBOTable( vboLayout, 16, "nanoSprayShader GL4", 4)
 	if vertexVBO == nil or nanoSprayVBO == nil then goodbye("Failed to make nanoSprayVBO") end
 	nanoSprayVBO.vertexVBO = vertexVBO
@@ -402,15 +415,9 @@ local function GetNanoSprayTargetType(unitID, unitDefID)
 		spraytype = 0
 	end
 	
-		
-		
-	
-	
 	--Spring.Echo("Target?", unitID, 'cmdID=', cmdID, 'cmdTag=',cmdTag, 'isbuilding=', isbuilding, 'nanopieces = ' , nanopieces, "xyzr", x,y,z,r, "buildTargetID=",buildTargetID)
 
-	
 	return x, y, z, r, mobile, spraytype
-
 end
 
 function widget:GameFrame(n)
