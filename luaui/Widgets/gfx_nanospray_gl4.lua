@@ -37,16 +37,16 @@ end
 
 -- Change all nano-lights to hide only after some time, to allow for the last particles to get there
 
--- Fall back to drawpos if matrix not present
+--X Fall back to drawpos if matrix not present
 
 -- Handle Team Changes
 
 -- 'Detach' sprays?
--- direction
+--X direction
 -- timing
 -- strength
 -- velocity adjust
--- a mobile target can only ever be a unitID!
+--X a mobile target can only ever be a unitID!
 
 
 -- Build types
@@ -357,8 +357,6 @@ local function GetNanoSprayTargetType(unitID, unitDefID)
 		r = Spring.GetUnitRadius(buildTargetID)
 		mobile = isMobile(buildTargetID)
 	end
-	
-	
 	
 	local nanopieces =  Spring.GetUnitNanoPieces (  unitID ) --return: nil | { [1] = number piece1, etc ... }
 	local cmdID, cmdOpts, cmdTag, cmdParam1, cmdParam2, cmdParam3, cmdParam4 =  Spring.GetUnitCurrentCommand(unitID, 1)

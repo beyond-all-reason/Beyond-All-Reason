@@ -51,6 +51,8 @@ local ruleName = "builderPriority"
 
 local resTable = {"metal","energy"}
 
+local unitBufferUniformCache = {100}
+
 local cmdPassiveDesc = {
       id      = CMD_PRIORITY,
       name    = 'priority',
@@ -73,6 +75,14 @@ local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spValidUnitID = Spring.ValidUnitID
 local spGetTeamInfo = Spring.GetTeamInfo
 local simSpeed = Game.gameSpeed
+--local glSetUnitBufferUniforms = gl.SetUnitBufferUniforms -- NO gl. in SYNCED CODE!
+
+local function spSetUnitBuildSpeedUniform(unitID, buildSpeed)
+	spSetUnitBuildSpeedUniform(unitID, buildSpeed)
+	unitBufferUniformCache[1] = buildSpeed
+	--glSetUnitBufferUniforms(unitID, unitBufferUniformCache, 12)
+end
+
 
 local max = math.max
 local floor = math.floor
@@ -111,7 +121,8 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
         if not passiveCons[teamID] then passiveCons[teamID] = {} end
         passiveCons[teamID][unitID] = spGetUnitRulesParam(unitID,ruleName) == 1 or nil
         currentBuildSpeed[unitID] = realBuildSpeed[unitID]
-        spSetUnitBuildSpeed(unitID, currentBuildSpeed[unitID]) -- to handle luarules reloads correctly
+        spSetUnitBuildSpeedUniform(unitID, currentBuildSpeed[unitID]) -- to handle luarules reloads correctly
+		gl.SetUnitBufferUniforms()
     end
 
     costID[unitID] = cost[unitDefID]
@@ -162,7 +173,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 			if cmdParams[1] == 0 then --
 				passiveCons[teamID][unitID] = true
 			elseif realBuildSpeed[unitID] then
-				spSetUnitBuildSpeed(unitID, realBuildSpeed[unitID])
+				spSetUnitBuildSpeedUniform(unitID, realBuildSpeed[unitID])
 				currentBuildSpeed[unitID] = realBuildSpeed[unitID]
 				passiveCons[teamID][unitID] = nil
 			end
@@ -264,13 +275,13 @@ local function UpdatePassiveBuilders(teamID, interval)
 		-- turn this passive builder on/off as appropriate
 		local wantedBuildSpeed = (wouldStall or not passiveConsExpense[builderID]) and 0 or realBuildSpeed[builderID]
 		if currentBuildSpeed[builderID] ~= wantedBuildSpeed then
-			spSetUnitBuildSpeed(builderID, wantedBuildSpeed)
+			spSetUnitBuildSpeedUniform(builderID, wantedBuildSpeed)
 			currentBuildSpeed[builderID] = wantedBuildSpeed
 		end
 
 		-- override buildTargetOwners build speeds for a single frame; let them build at a tiny rate to prevent nanoframes from possibly decaying
 		if buildTargetOwners[builderID] and currentBuildSpeed[builderID] == 0 then
-			spSetUnitBuildSpeed(builderID, 0.001) --(*)
+			spSetUnitBuildSpeedUniform(builderID, 0.001) --(*)
 		end
 	end
 end
@@ -299,7 +310,7 @@ end
 function gadget:GameFrame(n)
     for builderID, builtUnit in pairs(buildTargetOwners) do
         if spValidUnitID(builderID) and spGetUnitIsBuilding(builderID) == builtUnit then
-            spSetUnitBuildSpeed(builderID, currentBuildSpeed[builderID])
+            spSetUnitBuildSpeedUniform(builderID, currentBuildSpeed[builderID])
         end
         buildTargetOwners[builderID] = nil
         buildTargets[builtUnit] = nil
