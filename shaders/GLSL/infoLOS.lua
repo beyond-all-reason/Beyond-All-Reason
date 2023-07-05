@@ -117,7 +117,7 @@ return {
 
 			float los = getTexel(tex0, texCoord).r;
 			float airlos = getTexel(tex1, texCoord).r;
-			float losStatus = mix(los, airlos, 0.2);
+			float losStatus = max(los, airlos);
 
 			gl_FragColor += losColor * losStatus;
 
