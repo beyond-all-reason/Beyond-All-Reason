@@ -82,15 +82,6 @@ return {
 			return col;
 		}
 
-		float radarAnim(vec2 uv) {
-			float d = distance(vec2(0.5), uv);
-			float d0 = 0.1 * time;
-			float dt1 = 1.0 - smoothstep(0.0, 0.1, fract(4.0 * (d0 - d)));
-			dt1 = pow(dt1, 8.0);
-
-			return mix(1.0, 8.0, dt1);
-		}
-
 		float hex2(vec2 p, float width, float coreSize) {
 			p.x *= 0.57735 * 2.0;
 			p.y += mod(floor(p.x), 2.0) * 0.5;
@@ -113,7 +104,7 @@ return {
 			vec4 radarColor = mix(radarColor2 * radarEdge, radarColor1 * radarFull, radarJammer.r);
 
 			gl_FragColor += jamColor * radarJammer.g;
-			gl_FragColor += radarColor;// * hex2(64.0 * texCoord, 0.025, 0.2) * radarAnim(texCoord);
+			gl_FragColor += radarColor;
 
 			float los = getTexel(tex0, texCoord).r;
 			float airlos = getTexel(tex1, texCoord).r;
