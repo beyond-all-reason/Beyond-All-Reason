@@ -53,51 +53,60 @@ return {
 	#endif
 
 		float diagLines(vec2 uv) {
+		        // Returns a value between 0 and 1 that form a diagonal pattern.
+
 		        // To produce "diagonal values", we just add x and y.
 		        float xy = uv.x + uv.y;
 
                         // Multiply xy to decrease the period of the sine wave.
 			// This is just an arbitrary number. Lower numbers will result in
 			// wider lines and gaps.
-			xy *= 800.0;
+			xy *= 500.0;
 
-                        // Increase the amplitude of the sine wave, shift it up, then clamp.
-			// This will result in a more square wave, which will give the dark lines
-			// a sharper edge. The shift upwards will cause the dark lines to be thinner.
-			float s = sin(xy + time);
-			s *= 10.0;
-			s += 5.0;
-			return clamp(s, 0.0, 1.0);
+                        // We want to return a value between 0 and 1,
+			// so scale the sine wave amplitude and shift it up.
+			// Subtracting time causes the diagonal lines to move down
+			// from the top-left.
+                        return sin(xy - time) * 0.5 + 0.5;
 		}
 
 		void main() {
-			gl_FragColor  = vec4(0.0);
-			
-			float height = texture2D(tex3, texCoord).x;
-			float heightStatus = smoothstep(-3.0, 0.0, height);
+		        // There are 3 levels of intel, from highest to lowest:
+			// - Line of sight (LOS), direct vision
+			// - Radar
+			// - Fog of war, no vision or radar
+			// We want to color an area using its highest level of intel.
+			// Then, we add a final modifier to show jamming coverage.
 
-			vec2 radarJammer = getTexel(tex2, texCoord).rg;
+                        // Fog of war
+			// Draw alternating diagonal lines using the colors alwaysColor and radarColor1.
+			// alwaysColor is the fog of war color.
+			// radarColor1 indicates a lack of radar in the fog of war.
+			gl_FragColor = mix(alwaysColor, radarColor1, diagLines(texCoord));
 
-			float radarFull = step(0.8, radarJammer.r);
-			float radarEdge = float(radarJammer.r > 0.0 && radarJammer.r <= 0.9);
+                        // Radar
+			// radarColor2 is the color of ground covered by radar.
+			vec4 tex2Texel = getTexel(tex2, texCoord);
+			float radar = tex2Texel.r;
+			gl_FragColor = max(gl_FragColor, radarColor2 * radar);
 
-			vec4 radarColor = mix(radarColor2 * radarEdge, radarColor1 * radarFull, radarJammer.r);
-
-			gl_FragColor += jamColor * radarJammer.g;
-			gl_FragColor += radarColor;
-
+                        // Line of sight (LOS), the higest level of intel
+			// losColor is the color of ground covered by direct vison (LOS).
 			float los = getTexel(tex0, texCoord).r;
 			float airlos = getTexel(tex1, texCoord).r;
-			float losStatus = max(los, airlos);
+			float losCombined = max(los, airlos);
+			gl_FragColor = max(gl_FragColor, losColor * losCombined);
 
-			gl_FragColor += losColor * losStatus;
+                        // Radar jamming
+			// Unlike the other cases, we add the jamming color instead of taking the maximum.
+			// The jamming color may contain negative value. For instance, if you subtract
+			// blue and green, then this will give a red jamming color while maintaining a similar
+			// lighting intensity.
+			float jamming = tex2Texel.g;
+			gl_FragColor += jamColor * jamming;
 
-			float terraIncognitaStatus = 1.0 - max(radarFull, losStatus);
-			float terraIncognitaEffect = mix(diagLines(texCoord), diagLines(texCoord), heightStatus);
-			
-			gl_FragColor.rgb += alwaysColor.rgb * mix(1.0, terraIncognitaEffect, terraIncognitaStatus);
-
-			gl_FragColor.a = 0.03;
+                        // Finally, make sure nothing has changed our desired alpha value.
+                        gl_FragColor.a = 0.03;
 		}
 	]],
 	uniformFloat = {
