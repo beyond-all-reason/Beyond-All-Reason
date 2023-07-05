@@ -73,6 +73,7 @@ bool vertexClipped(vec4 clipspace, float tolerance) {
 #define BREATHESIZE 1.0
 #define CLIPTOLERANCE 1.1
 #define TRAVELTIME 130.0
+#define SPEEDPOWER 0.5
 
 void main()
 {
@@ -95,16 +96,40 @@ void main()
 	};
 	
 	float time = (timeInfo.x + timeInfo.w);
-	float deltaTime = fract(time /TRAVELTIME + vertexData.w);
+	
+	float randSeeded = fract(UNITID / 32768.0 + vertexData.w);
+	
+	float deltaTime = fract(time /TRAVELTIME + randSeeded);
 	
 	if ((time/TRAVELTIME) < (otherparams.x /TRAVELTIME + deltaTime)){
 		v_numvertices = 0;
 	}
 	// Only show ones after the time?
+	
+	
+	
 	float distanceToTarget = length(piecePos.xyz- worldposrad.xyz);
 	
+	float direction = otherparams.w; // 1 forward, -1 reverse, 0 bidirectoinal
+	
+	float positionModifier = deltaTime;
+	if (direction > 0.5 ){// forward
+		positionModifier = pow(deltaTime, SPEEDPOWER);
+	}else if (direction < -0.5) { //reverse
+		positionModifier = 1.0 - pow(deltaTime, SPEEDPOWER);
+	}else {
+		if (vertexData.y > 0.5) { // half reverse
+			positionModifier = 1.0 - pow(deltaTime, SPEEDPOWER);
+		}else{
+			positionModifier = pow(deltaTime, SPEEDPOWER);
+		}
+	
+	}
+	
+	
+	
 	//float positionModifier = pow(deltaTime, clamp(1500/distanceToTarget, 0.2, 0.8));
-	float positionModifier = pow(deltaTime,0.4);
+	
 	piecePos.xyz = mix(piecePos.xyz + (vertexData.xyz -0.5) * 2, worldposrad.xyz + (vertexData.xyz -0.5) * (worldposrad.w*1.3+1), positionModifier);
 
 	float pidt = deltaTime * 3.1425 * 2;
@@ -129,7 +154,7 @@ void main()
 	
 	//piecePos.xyz += worldposrad.w* (vertexData.xyz -0.5) * sindt;
 	
-	vec4 lengthwidthcornerheight = vec4(6,6,16,16);
+	vec4 lengthwidthcornerheight = vec4(5,5,16,16);
 
 	gl_Position = cameraViewProj * piecePos; // We transform this vertex into the center of the model
 	v_rotationY = 0;//atan(modelMatrix[0][2], modelMatrix[0][0]); // we can get the euler Y rot of the model from the model matrix
