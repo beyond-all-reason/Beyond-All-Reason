@@ -82,14 +82,6 @@ return {
 			return col;
 		}
 
-		float hex2(vec2 p, float width, float coreSize) {
-			p.x *= 0.57735 * 2.0;
-			p.y += mod(floor(p.x), 2.0) * 0.5;
-			p = abs((mod(p, 1.0) - 0.5));
-			float val = abs(max(p.x * 1.5 + p.y, p.y * 2.0) - 1.0);
-			return smoothstep(coreSize, width, val);
-		}
-
 		void main() {
 			gl_FragColor  = vec4(0.0);
 			
@@ -111,8 +103,6 @@ return {
 			float losStatus = max(los, airlos);
 
 			gl_FragColor += losColor * losStatus;
-
-			//gl_FragColor.rgb += alwaysColor.rgb * mix(hex2(64.0 * texCoord, 0.025, 0.2), 1.0, max(radarFull, losStatus));
 
 			float terraIncognitaStatus = 1.0 - max(radarFull, losStatus);
 			float terraIncognitaEffect = mix(diagLines2(texCoord), diagLines1(texCoord), heightStatus);
