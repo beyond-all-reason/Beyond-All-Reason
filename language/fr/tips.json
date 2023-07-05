@@ -6,7 +6,7 @@
 			"assistFactories": "Il est efficace de soutenir une usine avec des constructeurs, augmentant ainsi sa puissance de construction. Sélectionnez les constructeurs et cliquez avec le bouton droit sur l'usine pour la protéger.",
 			"autogroups": "Utilisez ALT+(0-9) pour affecter le(s) type(s) d'unité sélectionné(s) aux groupes automatiques. Les unités nouvellement construites du même type seront automatiquement ajoutées à leur groupe automatique. ALT+Backquote (`) supprime les unités.",
 			"buildingHotkeys": "La maîtrise des raccourcis clavier est la clé de la maitrise. Utilisez Z, X, C, V pour parcourir rapidement les structures les plus fréquemment construites.",
-			"completelyDisappear": "Combinez le camouflage avec le brouillage radar pour cacher complètement vos unités.",
+			"completelyDisappear": "Combinez camouflage et brouillage radar pour cacher entièrement vos unités.",
 			"destroyFighters":"Construisez un anti-aérien à longue portée sur une ligne de front étendue pour démanteler lentement le mur de chasseur de l'ennemi.",
 			"dGun": "Les commandants ont une arme manuelle \"D-Gun\", qui désintègre chaque unité d'un seul coup.\nAppuyez sur D pour lancer rapidement la visée.",
 			"dGunAssassin":"Le D-Gun de votre commandant peut être utilisé pour tuer instantanément des unités T3. N'oubliez pas de vous camoufler (K) en premier.",
