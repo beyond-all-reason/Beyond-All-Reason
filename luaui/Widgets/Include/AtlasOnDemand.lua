@@ -186,6 +186,9 @@ local function MakeAtlasOnDemand(config)
 		debug = config.debug,
 		hastasks = false,
 	}
+	
+	-- add an initial blanking command to the whole goddamned thing because AMD allocates garbage as texture memory
+	AtlasOnDemand.renderImageTaskList[1] = {id = AtlasOnDemand.blankimg, w = config.xresolution , h = config.yresolution, x = 0, y = 0 }
 	for x = 1, AtlasOnDemand.xslots do
 		AtlasOnDemand.fill[x] = {}
 		for y = 1, AtlasOnDemand.yslots do 
