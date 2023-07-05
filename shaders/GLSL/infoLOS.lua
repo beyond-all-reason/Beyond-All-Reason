@@ -52,34 +52,22 @@ return {
 		#define getTexel texture2D
 	#endif
 
-		const mat2 m = mat2(0.707107, -0.707107, 0.707107, 0.707107);
+		float diagLines(vec2 uv) {
+		        // To produce "diagonal values", we just add x and y.
+		        float xy = uv.x + uv.y;
 
-		float diagLines1(vec2 uv) {
-			float col = 1.0;
+                        // Multiply xy to decrease the period of the sine wave.
+			// This is just an arbitrary number. Lower numbers will result in
+			// wider lines and gaps.
+			xy *= 800.0;
 
-			uv = m * uv;
-			uv *= 2048.0;
-			uv += 2.0 * vec2(-time, -time);
-
-			float c = sin(uv.x) * 0.15;
-			col -= c;
-			col = pow(col, 2.75);
-
-			return col;
-		}
-		
-		float diagLines2(vec2 uv) {
-			float col = 1.0;
-
-			uv = m * uv;
-			uv *= 2048.0;
-			uv += 2.0 * vec2(-time, -time);
-
-			float c = sin(uv.x) * 0.20;
-			col -= c;
-			col = pow(col, 4.0);
-
-			return col;
+                        // Increase the amplitude of the sine wave, shift it up, then clamp.
+			// This will result in a more square wave, which will give the dark lines
+			// a sharper edge. The shift upwards will cause the dark lines to be thinner.
+			float s = sin(xy + time);
+			s *= 10.0;
+			s += 5.0;
+			return clamp(s, 0.0, 1.0);
 		}
 
 		void main() {
@@ -105,7 +93,7 @@ return {
 			gl_FragColor += losColor * losStatus;
 
 			float terraIncognitaStatus = 1.0 - max(radarFull, losStatus);
-			float terraIncognitaEffect = mix(diagLines2(texCoord), diagLines1(texCoord), heightStatus);
+			float terraIncognitaEffect = mix(diagLines(texCoord), diagLines(texCoord), heightStatus);
 			
 			gl_FragColor.rgb += alwaysColor.rgb * mix(1.0, terraIncognitaEffect, terraIncognitaStatus);
 
