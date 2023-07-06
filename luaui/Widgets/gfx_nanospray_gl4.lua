@@ -48,6 +48,7 @@ end
 -- velocity adjust
 --X a mobile target can only ever be a unitID!
 
+-- Allow a texture to be defined
 
 -- Build types
 	-- construction
@@ -82,7 +83,7 @@ local spGetUnitPosition  = Spring.GetUnitPosition
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local shaderConfig = {
-	POINTCOUNT = 512,
+	POINTCOUNT = 64,
 }
 
 local intensityMultiplier = 1.0

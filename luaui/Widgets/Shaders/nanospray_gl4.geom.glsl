@@ -8,7 +8,6 @@ layout(points) in;
 layout(triangle_strip, max_vertices = 4) out;
 #line 20000
 
-uniform float addRadius = 0.0;
 uniform float iconDistance = 20000.0;
 
 in DataVS {
@@ -25,6 +24,7 @@ in DataVS {
 
 out DataGS {
 	vec4 g_uv;
+	vec4 g_pos;
 	flat vec4 g_color;
 };
 
@@ -35,8 +35,9 @@ vec4 uvoffsets;
 void offsetVertex4( float x, float y, float z, float u, float v){
 	g_uv.xy = vec2(u,v);
 	vec3 primitiveCoords = vec3(x,y,z);
-	vec3 vecnorm = normalize(primitiveCoords);
-	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( addRadius * vecnorm + primitiveCoords ), 1.0);
+	vec4 g_pos = vec4(centerpos.xyz + rotY * (primitiveCoords ), 1.0);
+	gl_Position = cameraViewProj * g_pos; 
+	g_pos.w = max(abs(x),abs(z));
 	g_uv.zw = dataIn[0].v_parameters.zw;
 	EmitVertex();
 }

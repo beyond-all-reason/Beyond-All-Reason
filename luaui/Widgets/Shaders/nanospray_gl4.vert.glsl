@@ -74,6 +74,7 @@ bool vertexClipped(vec4 clipspace, float tolerance) {
 #define CLIPTOLERANCE 1.1
 #define TRAVELTIME 130.0
 #define SPEEDPOWER 0.5
+#define PARTICLESIZE 6.0
 
 void main()
 {
@@ -154,7 +155,7 @@ void main()
 	
 	//piecePos.xyz += worldposrad.w* (vertexData.xyz -0.5) * sindt;
 	
-	vec4 lengthwidthcornerheight = vec4(5,5,16,16);
+	vec4 lengthwidthcornerheight = vec4(PARTICLESIZE,PARTICLESIZE,16,16);
 
 	gl_Position = cameraViewProj * piecePos; // We transform this vertex into the center of the model
 	v_rotationY = 0;//atan(modelMatrix[0][2], modelMatrix[0][0]); // we can get the euler Y rot of the model from the model matrix
