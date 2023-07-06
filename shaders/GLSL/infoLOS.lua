@@ -79,10 +79,11 @@ return {
 			// Then, we add a final modifier to show jamming coverage.
 
                         // Fog of war
-			// Draw alternating diagonal lines using the colors alwaysColor and radarColor1.
+			// Draw alternating diagonal lines for the fog of war.
 			// alwaysColor is the fog of war color.
-			// radarColor1 indicates a lack of radar in the fog of war.
-			gl_FragColor = mix(alwaysColor, radarColor1, diagLines(texCoord));
+			// Squaring the diagLines sine wave causes more values to be near zero.
+			float diagonalLineStrength = pow(diagLines(texCoord), 2);
+			gl_FragColor = mix(alwaysColor, alwaysColor * 0.5, diagonalLineStrength);
 
                         // Radar
 			// radarColor2 is the color of ground covered by radar.
