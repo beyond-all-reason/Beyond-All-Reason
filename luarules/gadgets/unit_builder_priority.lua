@@ -78,7 +78,7 @@ local simSpeed = Game.gameSpeed
 --local glSetUnitBufferUniforms = gl.SetUnitBufferUniforms -- NO gl. in SYNCED CODE!
 
 local function spSetUnitBuildSpeedUniform(unitID, buildSpeed)
-	spSetUnitBuildSpeedUniform(unitID, buildSpeed)
+	spSetUnitBuildSpeed(unitID, buildSpeed)
 	unitBufferUniformCache[1] = buildSpeed
 	--glSetUnitBufferUniforms(unitID, unitBufferUniformCache, 12)
 end
