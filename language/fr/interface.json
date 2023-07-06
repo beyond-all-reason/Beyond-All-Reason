@@ -84,7 +84,7 @@
 			"milliseconds": "%{number}ms",
 			"seconds": "%{number}sec",
 			"resincome": "Production de ressources",
-			"commandDelay": "%{labelColor}Retard total de commande: %{delayColor}%{delay}",
+			"commandDelay": "%{labelColor}Retard total de commande : %{delayColor}%{delay}",
 			"cpu": "CPU: %{cpuUsage}%%",
 			"framerate": "FPS: %{fps}",
 			"gpuMemory": "Mémoire GPU: %{gpuUsage}%%",
