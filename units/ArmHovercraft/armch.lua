@@ -12,7 +12,7 @@ return {
 		category = "ALL HOVER MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 12 31",
-		collisionvolumetype = "CylY",
+		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energymake = 11,
 		energystorage = 75,
