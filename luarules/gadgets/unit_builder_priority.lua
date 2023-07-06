@@ -122,7 +122,6 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
         passiveCons[teamID][unitID] = spGetUnitRulesParam(unitID,ruleName) == 1 or nil
         currentBuildSpeed[unitID] = realBuildSpeed[unitID]
         spSetUnitBuildSpeedUniform(unitID, currentBuildSpeed[unitID]) -- to handle luarules reloads correctly
-		gl.SetUnitBufferUniforms()
     end
 
     costID[unitID] = cost[unitDefID]
