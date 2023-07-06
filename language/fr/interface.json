@@ -23,8 +23,8 @@
 				"resign": "Abandonner",
 				"reallyQuit": "Êtes-vous sûr de vouloir quitter?",
 				"reallyQuitResign": "Voulez-vous vraiment abandonner ou retourner au Salon du jeu ?",
-				"reallyResign": "Êtes-vous sûr de vouloir abandonner?",
-				"reallyResignSpectate": "Êtes-vous sûr de vouloir abandonner et passer spectateur?"
+				"reallyResign": "Êtes-vous sûr de vouloir abandonner ?",
+				"reallyResignSpectate": "Êtes-vous sûr de vouloir abandonner et passer spectateur ?"
 			},
 			"catchingUp": "Rattrapage",
 			"catchingUpTooltip": "Affiche la progression du rattrapage\nTemps de jeu : %{gameTime}",
