@@ -490,7 +490,7 @@ local function MakeAtlasOnDemand(config)
 	function AtlasOnDemand:RenderImageTasks() 
 		gl.Color(1,1,1,1) -- sanity check
 		--gl.Rect( 0,0,0.5,0.1)
-		--gl.Blending(GL.ONE, GL.ZERO) -- do full opaque
+		gl.Blending(GL.ONE, GL.ZERO) -- do full opaque
 		for i, task in ipairs(self.renderImageTaskList) do 
 			local drawmodeTexName = self.drawmode..task.id
 			gl.Texture(0, drawmodeTexName)
