@@ -8,7 +8,7 @@ function widget:GetInfo()
 		author = "Beherith",
 		date = "2023.01.04",
 		license = "Lua code is GPL V2, GLSL is (c) Beherith (mysterme@gmail.com)",
-		layer = -9999,
+		layer = 9999,
 		enabled = false
 	}
 end
