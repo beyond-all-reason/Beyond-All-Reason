@@ -148,6 +148,14 @@ function widget:DrawWorldPreUnit()
 
 		selectShader:Deactivate()
 		glTexture(0, false)
+		
+				
+		-- This is the correct way to exit out of the stencil mode, to not break drawing of area commands:
+		glStencilTest(false)
+		glStencilMask(255)
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+		glClear(GL_STENCIL_BUFFER_BIT)
+		-- All the above are needed :(
 	end
 end
 
