@@ -58,6 +58,8 @@ Create()
 	weapon1_active_accuracy = 0;
 	weapon1_default_range = get WEAPON_RANGE(1);
 	weapon2_default_range = get WEAPON_RANGE(2);
+	get WEAPON_RANGE(-1,get MIN(weapon1_default_range,weapon2_default_range));
+	get WEAPON_RANGE(-2,get MIN(weapon1_default_range,weapon2_default_range));
 	return (0);
 }
 
