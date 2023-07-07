@@ -80,11 +80,11 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spIsSphereInView  = Spring.IsSphereInView
 local spGetUnitPosition  = Spring.GetUnitPosition
 
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local shaderConfig = {
 	POINTCOUNT = 64,
 }
+local nanoParticleTexture = 'LuaUI/images/nanoparticle_gl4.tga'
 
 local intensityMultiplier = 1.0
 ------------------------------ Debug switches ------------------------------
@@ -121,7 +121,7 @@ local shaderSourceCache = {
 	fssrcpath = "LuaUI/Widgets/Shaders/nanospray_gl4.frag.glsl",
 	shaderConfig = shaderConfig,
 	uniformInt = {
-		colorTex1 = 0,
+		nanoParticleTexture = 0,
 		},
 	uniformFloat = {
 		nightFactor = 1.0,
@@ -354,7 +354,7 @@ local function GetNanoSprayTargetType(unitID, unitDefID)
 	local spraytype = 1
 	local buildTargetID = Spring.GetUnitIsBuilding(unitID)
 	if buildTargetID then -- Easiest case, the unit is building something
-		_,_,_, x, y, z = Spring.GetUnitPosition(buildTargetID, true)
+		_,_,_, x, y, z = spGetUnitPosition(buildTargetID, true)
 		r = Spring.GetUnitRadius(buildTargetID)
 		mobile = isMobile(buildTargetID)
 	end
@@ -366,7 +366,7 @@ local function GetNanoSprayTargetType(unitID, unitDefID)
 		--Spring.Echo("Cmdtarget", cmdID, cmdOpts, cmdTag, cmdParam1, cmdParam2, cmdParam3)
 		buildTargetID = cmdParam1
 		if buildTargetID < 32000 then  
-			_,_,_, x, y, z = Spring.GetUnitPosition(buildTargetID, true)
+			_,_,_, x, y, z = spGetUnitPosition(buildTargetID, true)
 			r = Spring.GetUnitRadius(buildTargetID)
 			mobile = isMobile(buildTargetID)
 		else -- if buildTargetID > maxunits then its a feature
@@ -408,7 +408,7 @@ end
 
 local updateSprayTable = {}
 local function updateSprayPosition(instanceID, mobileID)
-	local _,_,_,x,y,z = Spring.GetUnitPosition(mobileID, true)
+	local _,_,_,x,y,z = spGetUnitPosition(mobileID, true)
 	if x then 
 		local instanceIndex = nanoSprayVBO.instanceIDtoIndex[instanceID]
 		if instanceIndex == nil then return nil end
@@ -461,11 +461,7 @@ function widget:Update()
 	end
 end
 
-
--- local tf = Spring.GetTimerMicros()
 function widget:DrawWorld() -- We are drawing in world space, probably a bad idea but hey
-	--local t0 = Spring.GetTimerMicros()
-	--if true then return end
 	if autoupdate then
 		nanoSprayShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0) or nanoSprayShader
 	end
@@ -473,14 +469,10 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	if nanoSprayVBO.usedElements > 0 then
 		--if Spring.GetDrawFrame() % 100 == 0 then Spring.Echo(nanoSprayVBO.usedElements) end 
 		gl.DepthTest(true)
-		gl.Texture(0, '$minimap')
+		gl.Texture(0, nanoParticleTexture)
 		nanoSprayShader:Activate()
 		--nanoSprayShader:SetUniformFloat("nightFactor", nightFactor)
-		if autoupdate and ctrl then
-			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		else
-			glBlending(GL.SRC_ALPHA, GL.ONE)
-		end
+		glBlending(GL.SRC_ALPHA, GL.ONE)
 		nanoSprayVBO:draw(GL.POINTS)
 		nanoSprayShader:Deactivate()
 		gl.Texture(0, false)

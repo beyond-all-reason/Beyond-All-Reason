@@ -51,15 +51,11 @@ out DataVS {
 	vec4 v_lengthwidthcornerheight;
 	vec4 v_centerpos;
 	vec4 v_parameters;
-	#if (FULL_ROTATION == 1)
-		mat3 v_fullrotation;
-	#endif
 };
 
 layout(std140, binding=0) readonly buffer MatrixBuffer {
 	mat4 mat[];
 };
-
 
 bool vertexClipped(vec4 clipspace, float tolerance) {
   return any(lessThan(clipspace.xyz, -clipspace.www * tolerance)) ||
@@ -70,11 +66,15 @@ bool vertexClipped(vec4 clipspace, float tolerance) {
 #define GROWTHRATE 1.0
 #define INITIALSIZE 1.0
 #define BREATHERATE 1.0
-#define BREATHESIZE 1.0
+#define BREATHESIZE 0.1
 #define CLIPTOLERANCE 1.1
-#define TRAVELTIME 130.0
-#define SPEEDPOWER 0.5
-#define PARTICLESIZE 6.0
+#define TRAVELTIME 80.0
+#define SPEEDPOWER 0.6
+#define PARTICLESIZE 12.0
+
+// These control the speed and amount of XYZ wobble, and the Alpha wobble 
+#define FREQUENCIES vec4(10.0, 2.0, 3.0, 0.1)
+#define AMPLITUDES vec4(0.5, 0.5, 0.5, 10)
 
 void main()
 {
@@ -106,9 +106,7 @@ void main()
 		v_numvertices = 0;
 	}
 	// Only show ones after the time?
-	
-	
-	
+
 	float distanceToTarget = length(piecePos.xyz- worldposrad.xyz);
 	
 	float direction = otherparams.w; // 1 forward, -1 reverse, 0 bidirectoinal
@@ -141,13 +139,12 @@ void main()
 
 	//piecePos.xyz = mix(piecePos.xyz, piecePos.xyz + randopos, sindt);
 	//piecePos.y += 100 *sindt;
-	//
 	
-	vec4 periods = vec4(1,2,3,12);
+	vec4 frequencies = FREQUENCIES;
 	vec4 offsets = vec4(vertexData.xzyy);
-	vec4 amplitudes = vec4(10,10,10,1) * 0.3;
+	vec4 amplitudes = AMPLITUDES;
 	
-	vec4 sintimes = sin(pidt * (periods + 6.28*offsets));
+	vec4 sintimes = sin(pidt * (frequencies + 6.28*offsets));
 	
 	piecePos.xyz = mix(piecePos.xyz, piecePos.xyz + (sintimes.xyz * amplitudes.xyz), sindt);
 	
@@ -162,29 +159,26 @@ void main()
 	v_parameters = otherparams;
 	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
 	v_color = teamColor[teamIndex];  // We can lookup the teamcolor right here
-	v_color.a *= 1.5 + sintimes.w ;
+	v_color.a *= (1.0 + amplitudes.w * sintimes.w);
 	v_centerpos = vec4( piecePos.xyz, 1.0); // We are going to pass the centerpoint to the GS
 	v_lengthwidthcornerheight = lengthwidthcornerheight;
 	v_parameters.zw = vertexData.yz; // some useful randoms 
 
-		float animation = clamp(((timeInfo.x + timeInfo.w) - otherparams.x)/GROWTHRATE + INITIALSIZE, INITIALSIZE, 1.0) + sin((timeInfo.x)/BREATHERATE)*BREATHESIZE;
-		//v_lengthwidthcornerheight.xy *= animation; // modulate it with animation factor
+
+	float ageAnimation = clamp(((timeInfo.x + timeInfo.w) - otherparams.x)/GROWTHRATE + INITIALSIZE, INITIALSIZE, 1.0);
+	
+	float sizeAnimation =  sin((timeInfo.x)/BREATHERATE)*BREATHESIZE;
+	v_lengthwidthcornerheight.xy *= (ageAnimation+sizeAnimation); // modulate it with animation factor
 
 
 	if (vertexClipped(gl_Position, CLIPTOLERANCE)) v_numvertices = 0; // Make no primitives on stuff outside of screen
 	// TODO: take into account size of primitive before clipping
 
 	// this sets the num prims to 0 for units further from cam than iconDistance
-	float cameraDistance = length((cameraViewInv[3]).xyz - v_centerpos.xyz);
-	if (cameraDistance > iconDistance) v_numvertices = 0;
+	//float cameraDistance = length((cameraViewInv[3]).xyz - v_centerpos.xyz);
+	//if (cameraDistance > iconDistance) v_numvertices = 0;
 
-	if (dot(v_centerpos.xyz, v_centerpos.xyz) < 1.0) v_numvertices = 0; // if the center pos is at (0,0,0) then we probably dont have the matrix yet for this unit, because it entered LOS but has not been drawn yet.
-
-	v_centerpos.y += 0; // Add some height to ensure above groundness
-	//v_centerpos.y += lengthwidthcornerheight.w; // Add per-instance height offset
-	#if (FULL_ROTATION == 1)
-		v_fullrotation = mat3(modelMatrix);
-	#endif
+	//if (dot(v_centerpos.xyz, v_centerpos.xyz) < 1.0) v_numvertices = 0; // if the center pos is at (0,0,0) then we probably dont have the matrix yet for this unit, because it entered LOS but has not been drawn yet.
 
 	// TODO: allow overriding this check, to draw things even if unit (like a building) is not drawn
 	// NOCLIP:

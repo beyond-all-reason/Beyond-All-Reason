@@ -31,17 +31,30 @@ out DataGS {
 mat3 rotY;
 vec4 centerpos;
 vec4 uvoffsets;
+mat2 rotBillboard;
+
+// CUSTOM DEFINES
+
+#define ROTATIONSPEED 0.05
+
+vec2 rotate2D(vec2 v, float a) {
+	float s = sin(a);
+	float c = cos(a);
+	mat2 m = mat2(c, -s, s, c);
+	return m * v;
+}
 
 void offsetVertex4( float x, float y, float z, float u, float v){
 	g_uv.xy = vec2(u,v);
 	vec3 primitiveCoords = vec3(x,y,z);
+	primitiveCoords.xz = rotBillboard * primitiveCoords.xz;
 	vec4 g_pos = vec4(centerpos.xyz + rotY * (primitiveCoords ), 1.0);
 	gl_Position = cameraViewProj * g_pos; 
 	g_pos.w = max(abs(x),abs(z));
 	g_uv.zw = dataIn[0].v_parameters.zw;
 	EmitVertex();
 }
-#line 22000
+
 void main(){
 	uint numVertices = dataIn[0].v_numvertices;
 	centerpos = dataIn[0].v_centerpos;
@@ -50,13 +63,15 @@ void main(){
 
 	g_color = dataIn[0].v_color;
 
-
 	float length = dataIn[0].v_lengthwidthcornerheight.x;
 	float width = dataIn[0].v_lengthwidthcornerheight.y;
 	float cs = dataIn[0].v_lengthwidthcornerheight.z;
 	float height = dataIn[0].v_lengthwidthcornerheight.w;
 
 		if (numVertices == uint(4)){ // A quad
+			float r = 6*dataIn[0].v_parameters.z  + timeInfo.x * ROTATIONSPEED;
+			rotBillboard = mat2(cos(r), -sin(r), sin(r), cos(r));
+			
 			offsetVertex4( width * 0.5, 0.0,  length * 0.5, 0.0, 1.0);
 			offsetVertex4( width * 0.5, 0.0, -length * 0.5, 0.0, 0.0);
 			offsetVertex4(-width * 0.5, 0.0,  length * 0.5, 1.0, 1.0);
