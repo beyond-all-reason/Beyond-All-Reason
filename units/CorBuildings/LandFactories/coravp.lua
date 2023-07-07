@@ -49,6 +49,7 @@ return {
 			"cormabm",
 			"coreter",
 			"corvrad",
+			"corintr"
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
