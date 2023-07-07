@@ -183,6 +183,14 @@ pieceCollisionVolume['corsala'] = {
 	['0']={31,17,31,0,3.5,0,2,1},
 	['1']={12,5.75,15,0,1.875,1.5,2,1},
 }
+pieceCollisionVolume['correap'] = {
+	['0']={36,20,46,0,3.5,0,2,1},
+	['1']={24,14,15,0,1.875,1.5,2,1},
+}
+pieceCollisionVolume['corlevlr'] = {
+	['0']={31,17,31,0,3.5,0,2,1},
+	['1']={16,10,15,0,1.875,1.5,2,1},
+}
 for name, v in pairs(pieceCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do
 		if string.find(ud.name, name) then
