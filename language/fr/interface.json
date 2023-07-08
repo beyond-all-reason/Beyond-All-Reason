@@ -886,7 +886,7 @@
 				"fogmult": "quantité",
 				"fogmult_descr": "multiplicateur de brouillard",
 				"fog_start": "début",
-				"fog_end": "finir",
+				"fog_end": "fin",
 				"fog_reset": "réinitialiser les paramètres de la carte",
 				"ssao": "Occlusion ambiante",
 				"ssao_descr": "ATTENTION: peut causer de la latence",
