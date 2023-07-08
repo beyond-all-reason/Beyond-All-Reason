@@ -155,9 +155,9 @@ BoomExtend()
 
 BoomReset()
 {
-	turn arm1 to x-axis <0.000000> speed <60.000000>;
+//	turn arm1 to x-axis <0.000000> speed <60.000000>;
 
-	wait-for-turn arm1 around x-axis;
+//	wait-for-turn arm1 around x-axis;
 	turn turret to y-axis <0.000000> speed <200.000000>;
 	move arm2 to z-axis [0.000000] speed [50.000000];
 	move arm3 to z-axis [0.000000] speed [50.000000];
@@ -177,9 +177,9 @@ BoomReset()
 BoomToPad()
 {
 	start-script StartDoorOpen();
-	turn arm1 to x-axis <0.000000> speed <60.000000>;
+//	turn arm1 to x-axis <0.000000> speed <60.000000>;
 	
-	wait-for-turn arm1 around x-axis;
+//	wait-for-turn arm1 around x-axis;
 	turn turret to y-axis <0.000000> speed <200.000000>;
 	move arm2 to z-axis [0.000000] speed [60.000000];
 	move arm3 to z-axis [0.000000] speed [60.000000];
@@ -195,9 +195,9 @@ BoomToPad()
 	wait-for-move arm5 along z-axis;
 	wait-for-move arm6 along z-axis;
 	wait-for-move arm7 along z-axis;
-	turn arm1 to x-axis <-30.000000> speed <60.000000>;
+turn arm1 to x-axis <-30.000000> speed <60.000000>;
 	
-	wait-for-turn arm1 around x-axis;
+//	wait-for-turn arm1 around x-axis;
 }
 
 TransportPickup(unitid)
@@ -225,7 +225,7 @@ TransportDrop(unitid, position)
 	{
 		set BUSY to 1;
 		call-script BoomToPad();
-		//move link to y-axis [0.000000] - get UNIT_HEIGHT(unitid) now;
+		move link to y-axis [0.000000] - get UNIT_HEIGHT(unitid) now;
 		attach-unit unitid to link;
 		call-script BoomExtend();
 		call-script	StartDoorClose();
