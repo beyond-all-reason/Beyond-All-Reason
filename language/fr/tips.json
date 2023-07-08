@@ -111,7 +111,7 @@
 			"tutorialBuildenergy": "Vous devrez produire de l'énergie pour construire efficacement des unités. Construisez des éoliennes ou des panneaux solaires.",
 			"tutorialBuildFactory":"Bien joué ! Vous avez maintenant un revenu de métal et d'énergie. Il est temps de produire des unités mobiles. Choisissez et construisez l'usine de votre choix.",
 			"tutorialFactoryAir": "Vous pouvez maintenant produire des aéronefs. Ce sont de bonnes unités de soutient qui profitent d'une vitesse, de radars et d'une ligne de vue accrues.",
-			"tutorialFactorySeaplanes": "Vous pouvez maintenant produire des hydravions. Ils sont légèrement plus puissants que les avions T1 et sont capables de se poser sous l'eau.",
+			"tutorialFactorySeaplanes": "Vous pouvez maintenant produire des hydravions. Ils sont légèrement plus puissants que les aéronefs T1 et sont capables de se poser sous l'eau.",
 			"tutorialFactoryBots": "Vous pouvez produire des unités de robots mobiles maintenant. Les robots sont rapides et légers et peuvent gravir des pentes plus raides que les véhicules. Ils sont moins chers que les véhicules, mais sont également plus faibles.",
 			"tutorialFactoryHovercraft": "Vous pouvez maintenant faire de l'aéroglisseur. Ils sont bons pour les embuscades, mais leur armure ne résistera pas aux batailles acharnées.",
 			"tutorialFactoryVehicles": "Vous pouvez produire des véhicules et des chars. Les véhicules sont bien blindés et ont des armes plus lourdes. Ils sont plus lents et plus chers et ne peuvent pas traverser des sentiers escarpés.",
