@@ -1372,7 +1372,7 @@
 				"factoryrepeat": "récurrence",
 				"factoryrepeat_descr": "Si activé, les nouvelles usines seront automatiquement en mode Récurrence",
 				"transportai": "IA de transport",
-				"transportai_descr": "Les transports embarqueront automatiquement les nouvelles unités.",
+				"transportai_descr": "Les transports embarqueront automatiquement les nouvelles unités\nqui se dirigent vers le point de ralliement",
 				"settargetdefault": "Active \"Définir cible\" par défaut",
 				"settargetdefault_descr": "Remplace l'attaque par défaut par l'action \"Définir cible\"\n(lors d'un clic droit sur un ennemi)",
 				"dgunnogroundenemies": "Ne pas cibler les unités au sol avec le D-Gun",
