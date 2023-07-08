@@ -885,7 +885,7 @@
 				"fog": "Brouillard",
 				"fogmult": "quantité",
 				"fogmult_descr": "multiplicateur de brouillard",
-				"fog_start": "commencer",
+				"fog_start": "début",
 				"fog_end": "finir",
 				"fog_reset": "réinitialiser les paramètres de la carte",
 				"ssao": "Occlusion ambiante",
