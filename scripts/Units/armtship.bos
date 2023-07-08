@@ -121,9 +121,9 @@ BoomCalc(posxz, posy)
 {
 	var Func_Var_3, Func_Var_4, Func_Var_5;
 	Func_Var_3 = get PIECE_XZ(turret) - posxz;
-	Func_Var_4 = posy - get PIECE_Y(turret) + [5.000000];
+	Func_Var_4 = posy - get PIECE_Y(turret) + [3.2500000];
 	Func_Var_5 = get XZ_HYPOT(Func_Var_3);
-	TurretToUnitDistance = get HYPOT(Func_Var_5,Func_Var_4) - [15.000000];
+	TurretToUnitDistance = get HYPOT(Func_Var_5,Func_Var_4) - [5.000000];
 	TurretToUnitAngleY = get XZ_ATAN(Func_Var_3);
 	TurretToUnitAngleX = get ATAN(Func_Var_4,Func_Var_5);
 	bInDistance = TurretToUnitDistance < [220.000000]; //MAX distance at which a unit is picked up/put down
