@@ -1198,7 +1198,7 @@
 				"topbar_hidebuttons": "Cacher boutons auto.",
 				"continuouslyclearmapmarks": "Cacher les dessins/marques sur la carte",
 				"continuouslyclearmapmarks_descr": "Efface continuellement tous les marqueurs, dessins et points",
-				"autoeraser": "Effacer automatiquement les marquages sur la carte",
+				"autoeraser": "Effacer auto. marquages carte",
 				"autoeraser_descr": "Active le nettoyage automatique des marques et des dessins de la carte",
 				"autoeraser_erasetime": "Délai en secondes ",
 				"autoeraser_erasetime_descr": "Effacer les dessins/marquages de la carte après X secondes",
