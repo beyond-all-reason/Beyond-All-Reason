@@ -884,7 +884,7 @@
 				"sun_reset": "réinitialiser les paramètres de la carte",
 				"fog": "Brouillard",
 				"fogmult": "quantité",
-				"fogmult_descr": "multiplicateur de brouillard",
+				"fogmult_descr": "multiplicateur du brouillard",
 				"fog_start": "début",
 				"fog_end": "fin",
 				"fog_reset": "réinitialiser les paramètres de la carte",
