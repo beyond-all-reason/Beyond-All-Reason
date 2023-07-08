@@ -1392,7 +1392,7 @@
 				"customwidgets": "Autoriser widgets perso.",
 				"customwidgets_descr": "Permet l'utilisation de widgets personnalisés ( dans le dossier spring/luaui/widgets )",
 				"profiler": "Profiles de widget",
-				"framegrapher": "Graphiques de l'affichage",
+				"framegrapher": "Graphiques d'affichage",
 				"autocheat": "Activation auto. de la triche pour $VERSION",
 				"autocheat_descr": "Active les commandes : /cheat, /globallos, /godmode",
 				"restart": "Redémarrer",
