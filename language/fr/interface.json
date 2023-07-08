@@ -1103,7 +1103,7 @@
 				"minimap_maxheight": "hauteur",
 				"minimap_maxheight_descr": "Définit une hauteur maximale pour la minimap (NB: la largeur est limitée elle aussi)",
 				"minimapiconsize": "échelle d'icone",
-				"minimapleftclick": "Déplacer la caméra avec le clic gauche",
+				"minimapleftclick": "Déplacer caméra avec clic gauche",
 				"minimapleftclick_descr": "Le clic gauche de la souris permet de déplacer la caméra (par défaut, il s'agit du bouton de la molette de la souris).\nlorsqu'il est désactivé : le clic gauche (glisser) permet de sélectionner des unités.",
 				"minimapcanflip": "rotation auto",
 				"minimapcanflip_descr": "Inverse l'orientation de la minicarte lorsque la caméra du joueur est orienté à l'opposé",
