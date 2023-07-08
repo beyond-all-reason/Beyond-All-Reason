@@ -95,12 +95,27 @@ StartDoorOpen()
 {
 	signal 4;
 	set-signal-mask 4;
-	move door3 to z-axis [-20] speed [30];
-	move door2 to z-axis [-20] speed [30];
-	sleep 3000;
-	move door3 to z-axis [0] speed [30];
-	move door2 to z-axis [0] speed [30];
+	move door1 to z-axis [-8] speed [60];
+	wait-for-move door1 along z-axis;
+	move door2 to z-axis [-7] speed [60];
+	wait-for-move door2 along z-axis;
+	move door3 to z-axis [-6] speed [60];
+	wait-for-move door3 along z-axis;
+
 }
+
+StartDoorClose()
+{
+	move door1 to z-axis [0] speed [60];
+	wait-for-move door1 along z-axis;
+	move door2 to z-axis [0] speed [60];
+	wait-for-move door2 along z-axis;
+	move door3 to z-axis [0] speed [60];
+	wait-for-move door3 along z-axis;
+
+
+}
+
 
 BoomCalc(posxz, posy)
 {
@@ -118,7 +133,7 @@ BoomCalc(posxz, posy)
 
 BoomExtend()
 {
-	start-script StartDoorOpen();
+//	start-script StartDoorOpen();
 	turn arm1 to x-axis TurretToUnitAngleX speed <280.000000>;
 	wait-for-turn arm1 around x-axis;	
 	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <200.000000>;
@@ -141,7 +156,7 @@ BoomExtend()
 BoomReset()
 {
 	turn arm1 to x-axis <0.000000> speed <60.000000>;
-	
+
 	wait-for-turn arm1 around x-axis;
 	turn turret to y-axis <0.000000> speed <200.000000>;
 	move arm2 to z-axis [0.000000] speed [50.000000];
@@ -197,6 +212,8 @@ TransportPickup(unitid)
 		call-script BoomToPad();
 		attach-unit unitid to base;
 		call-script BoomReset();
+		call-script	StartDoorClose();
+
 		set BUSY to 0;
 	}
 }
@@ -211,6 +228,7 @@ TransportDrop(unitid, position)
 		//move link to y-axis [0.000000] - get UNIT_HEIGHT(unitid) now;
 		attach-unit unitid to link;
 		call-script BoomExtend();
+		call-script	StartDoorClose();
 		drop-unit unitid;
 		call-script BoomReset();
 		set BUSY to 0;
