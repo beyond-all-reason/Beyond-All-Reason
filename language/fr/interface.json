@@ -1375,7 +1375,7 @@
 				"transportai_descr": "Les transports embarqueront automatiquement les nouvelles unités\nqui se dirigent vers le point de ralliement",
 				"settargetdefault": "Active \"Définir cible\" par défaut",
 				"settargetdefault_descr": "Remplace l'attaque par défaut par l'action \"Définir cible\"\n(lors d'un clic droit sur un ennemi)",
-				"dgunnogroundenemies": "Ne pas cibler les unités au sol avec le D-Gun",
+				"dgunnogroundenemies": "Ignorer ciblage au sol du D-Gun",
 				"dgunnogroundenemies_descr": "Empêche le D-Gun de viser automatiquement les unités terrestres.\nGarder la touche MAJ enfoncée réinstaurera la visée automatique \n\nCependant, le D-Gun visera toujours automatiquement les unités aériennes, navales et aéroglisseurs",
 				"dgunstallassist": "Conservation énergétique pour D-Gun",
 				"dgunstallassist_descr": "Lorsque l'ordre d'utilisation D-Gun est donné, la consommation d'énergie de toutes les unités est mis en pause.",
