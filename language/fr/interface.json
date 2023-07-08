@@ -1359,7 +1359,7 @@
 				"builderpriority_labs_descr": "Activer pour assigner une faible priorité",
 				"autocloak": "Camoufler automatiquement les unités",
 				"unitreclaimer": "Recycleur d'unités",
-				"unitreclaimer_descr": "Recycle les épaves d'unités dans la zone.\nPositionnez le curseur au dessus d'une épave, maintenez CTRL et déplacez votre souris pour désigner une zone de recyclage. Utilisez ALT pour récupérer uniquement les unités du même type que celle en dessous de votre curseur.",
+				"unitreclaimer_descr": "Recycle les épaves d'unités dans la zone.\nPositionnez le curseur au dessus d'une épave, maintenez CTRL et déplacez \nvotre souris pour désigner une zone de recyclage. \nUtilisez ALT pour récupérer uniquement les unités du même type que celle en dessous de votre curseur.",
 				"autogroup_immediate": "Groupe automatique immédiat",
 				"autogroup_immediate_descr": "Les unités construites/réassemblées/reçues seront ajoutées aux groupes automatiques immédiatement, plutôt que lorsqu'elles sont inactives.\n\n(ajoutez des unités aux Groupes Automatiques avec ALT+nombre)",
 				"autogroup_persist": "Groupe automatique persistant",
