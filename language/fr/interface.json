@@ -1180,7 +1180,7 @@
 				"console_fontsize": "taille de la police",
 				"console_hide": "cacher le chat et la console",
 				"console_hide_descr": "cacher le chat et la console. (défilement toujours disponible)",
-				"console_hidespecchat": "cacher le chat des spectateurs",
+				"console_hidespecchat": "cacher le chat spectateur",
 				"console_hidespecchat_descr": "N'affichera pas les messages des spectateurs",
 				"console_showbackground": "afficher le fond",
 				"console_showbackground_descr": "Toujours montrer le fond (partiellement)",
