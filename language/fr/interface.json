@@ -299,7 +299,7 @@
 				"overview": "Basculer en vue d'ensemble",
 				"los": "Afficher le brouillard de guerre",
 				"heightmap": "Afficher l'altitude",
-				"traversability": "Afficher la praticabilité du terrain (pour l'unité sélectionnée)",
+				"traversability": "Affiche la praticabilité du terrain (pour l'unité sélectionnée)",
 				"mapmarks": "Parcourir les marqueurs",
 				"resourceSpots": "Afficher la carte des métaux",
 				"interface": "Masquer l'interface"
