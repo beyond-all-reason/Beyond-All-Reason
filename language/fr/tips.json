@@ -64,7 +64,7 @@
 			"friendlyCommanderSelfD": "Un commandant allié s'est autodétruit",
 			"commanderDamage": "Votre commandant subit de lourds dégâts",
 			"teamdownlastcommander": "Avertissement : Votre équipe n'a plus qu'un seul commandant.",
-			"youhavelastcommander": "Attention : Vous avez le dernier commandant.",
+			"youhavelastcommander": "Attention : Vous êtes le dernier commandant.",
 			"startingLocation": "Choisissez votre lieu de départ",
 			"gameStarted": "bataille commencée",
 			"battleEnded": "bataille terminée",
