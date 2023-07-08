@@ -936,7 +936,7 @@
 				"lighteffects_headlights": "phares",
 				"lighteffects_headlights_descr": "Ajoute des phares aux unités",
 				"lighteffects_buildlights": "lumières de construction",
-				"lighteffects_buildlights_descr": "Ajoute des lumières rotatives de construction aux unités",
+				"lighteffects_buildlights_descr": "Ajoute des lumières de construction rotatives aux unités",
 				"dof": "Profondeur de champ",
 				"dof_descr": "Rend flou les abords de la focalisation",
 				"dof_autofocus": "focalisation automatique",
