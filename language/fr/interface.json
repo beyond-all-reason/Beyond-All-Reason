@@ -1344,7 +1344,7 @@
 				"smartselect_includebuildings": "Bâtiments dans la sélection de zone",
 				"smartselect_includebuildings_descr": "Permet d'inclure les bâtiments dans la sélection de zone\n\nSi désactivé, les bâtiments seront exclus (maintenir MAJ pour les inclure)\nNote : les tourelles de construction seront systématiquement incluses.",
 				"smartselect_includebuilders": "Inclure constructeurs",
-				"smartselect_includebuilders_descr": "Lors de la sélection de zone, exclus les unités de construction (maintenir MAJ pour les inclure)",
+				"smartselect_includebuilders_descr": "Si désactivé, les unités de construction seront exclues de la sélection en zone \n(maintenir MAJ pour les inclure)",
 				"onlyfighterspatrol": "Patrouille de chasseurs uniquement",
 				"onlyfighterspatrol_descr": "Seuls les avions de chasse suivront les ordres \nde patrouille des usines après les avoir quittées",
 				"fightersfly": "Chasseurs en mode Vol",
