@@ -932,7 +932,7 @@
 				"lighteffects_brightness": "luminosité",
 				"lighteffects_brightness_descr": "Définit la luminosité des lumières",
 				"lighteffects_radius": "rayon",
-				"lighteffects_radius_descr": "Règle le rayon d'illumination\n\nATTENTION : plus le rayon est grand, plus la carte graphique est sollicitée",
+				"lighteffects_radius_descr": "Définit le rayon de l'illumination\n\nATTENTION : plus le rayon est grand, plus la carte graphique est sollicitée",
 				"lighteffects_headlights": "phares",
 				"lighteffects_headlights_descr": "Ajoute des phares aux unités",
 				"lighteffects_buildlights": "lumières de construction",
