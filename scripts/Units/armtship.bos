@@ -195,19 +195,19 @@ BoomToPad()
 	wait-for-move arm5 along z-axis;
 	wait-for-move arm6 along z-axis;
 	wait-for-move arm7 along z-axis;
-turn arm1 to x-axis <-30.000000> speed <60.000000>;
+	turn arm1 to x-axis <-30.000000> speed <60.000000>;
 	
-//	wait-for-turn arm1 around x-axis;
+	wait-for-turn arm1 around x-axis;
 }
 
 TransportPickup(unitid)
 {
-	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + get UNIT_HEIGHT(unitid));
+	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid));// + get UNIT_HEIGHT(unitid));
 	if( bInDistance AND get UNKNOWN_UNIT_VALUE(74)(unitid) == get UNKNOWN_UNIT_VALUE(74)(get UNKNOWN_UNIT_VALUE(71)) )
 	{
 		set BUSY to 1;
 		call-script BoomExtend();
-		move link to y-axis [0.000000] - get UNIT_HEIGHT(unitid) now;
+//		move link to y-axis [0.000000] - get UNIT_HEIGHT(unitid) now;
 		attach-unit unitid to link;
 		call-script BoomToPad();
 		attach-unit unitid to base;
@@ -220,7 +220,7 @@ TransportPickup(unitid)
 
 TransportDrop(unitid, position)
 {
-	call-script BoomCalc(position,get GROUND_HEIGHT(position) + get UNIT_HEIGHT(unitid));
+	call-script BoomCalc(position,get GROUND_HEIGHT(position));// + get UNIT_HEIGHT(unitid));
 	if( bInDistance )
 	{
 		set BUSY to 1;
