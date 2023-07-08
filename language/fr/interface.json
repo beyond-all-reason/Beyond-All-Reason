@@ -301,7 +301,7 @@
 				"heightmap": "Afficher l'altitude",
 				"traversability": "Affiche la praticabilité du terrain (pour l'unité sélectionnée)",
 				"mapmarks": "Parcourir les marqueurs",
-				"resourceSpots": "Afficher la carte des métaux",
+				"resourceSpots": "Afficher la carte du métal",
 				"interface": "Masquer l'interface"
 			},
 			"sound": {
