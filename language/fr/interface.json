@@ -1076,7 +1076,7 @@
 				"anonymous_b": "Bleu Anonyme",
 				"playercolors": "Couleurs d'équipe simple",
 				"simpleteamcolors": "simple",
-				"simpleteamcolors_reset": "Réinitialiser (réinitialise les paramètres)",
+				"simpleteamcolors_reset": "Réinitialiser\n(La position des curseurs réinitialisés ne s'affichera qu'après un redémarrage)",
 				"simpleteamcolors_use_gradient": "Utiliser une nuance différente pour chaque joueur",
 				"simpleteamcolors_player_r": "Joueur Rouge",
 				"simpleteamcolors_player_g": "Joueur Vert",
