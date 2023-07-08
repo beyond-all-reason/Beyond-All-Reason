@@ -848,7 +848,7 @@
 				"label_other": "Autre",
 				"label_teamcolors": "Couleurs d'équipe",
 				"preset": "Qualité générale",
-				"display": "Affichage",
+				"display": "Moniteur",
 				"resolution": "Résolution",
 				"resolution_descr": "ATTENTION : le moteur du jeu peut parfois geler en mode fenêtré",
 				"vsync": "Synchro. verticale",
