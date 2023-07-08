@@ -1179,7 +1179,7 @@
 				"console_capitalize": "chat en majuscule",
 				"console_fontsize": "taille de la police",
 				"console_hide": "cacher le chat et la console",
-				"console_hide_descr": "cacher le tchat et la console. (Interface défilante toujours disponible)",
+				"console_hide_descr": "cacher le chat et la console. (Interface défilante toujours disponible)",
 				"console_hidespecchat": "cacher le tchat des spectateurs",
 				"console_hidespecchat_descr": "N'affichera pas les messages des spectateurs",
 				"console_showbackground": "afficher le fond",
