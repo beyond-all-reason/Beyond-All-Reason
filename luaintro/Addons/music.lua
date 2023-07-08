@@ -32,30 +32,25 @@ function addon.Initialize()
 	if Spring.GetConfigInt('music_loadscreen', 1) == 1 then
 		local originalSoundtrackEnabled = Spring.GetConfigInt('UseSoundtrackNew', 1)
 		local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1)
+		local allowedExtensions = "{*.ogg,*.mp3}"
 
 
 		local musicPlaylist = {}
 		if originalSoundtrackEnabled == 1 then
 			local musicDirOriginal 		= 'music/original'
-			table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/loading'))
+			table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/loading', allowedExtensions))
 		end
 
 		-- Custom Soundtrack List
 		if customSoundtrackEnabled == 1 then
 			local musicDirCustom 		= 'music/custom'
-			table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/loading'))
+			table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/loading', allowedExtensions))
 		end
 
 		if #musicPlaylist == 0 or math.random(0,3) == 0 then
 			if originalSoundtrackEnabled == 1 then
 				local musicDirOriginal 		= 'music/original'
-				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/peace'))
-			end
-
-			-- Custom Soundtrack List
-			if customSoundtrackEnabled == 1 then
-				local musicDirCustom 		= 'music/custom'
-				table.append(musicPlaylist, VFS.DirList(musicDirCustom))
+				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/peace', allowedExtensions))
 			end
 		end
 
