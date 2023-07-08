@@ -1346,7 +1346,7 @@
 				"smartselect_includebuilders": "Inclure constructeurs (si précédent désactivé)",
 				"smartselect_includebuilders_descr": "Lors de la sélection de zone, exclus les unités de construction (maintenir MAJ pour les inclure)",
 				"onlyfighterspatrol": "Patrouille de chasseurs uniquement",
-				"onlyfighterspatrol_descr": "Seuls les avions de chasse suivent les ordres de patrouille d'une usine après l'avoir quittée",
+				"onlyfighterspatrol_descr": "Seuls les avions de chasse suivront les ordres \nde patrouille des usines après les avoir quittées",
 				"fightersfly": "Chasseurs en mode Vol",
 				"fightersfly_descr": "Assigne le mode Vol aux chasseurs lors de leur création",
 				"builderpriority": "Priorité des constructeurs",
