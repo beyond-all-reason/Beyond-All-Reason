@@ -1370,7 +1370,7 @@
 				"factoryholdpos": "maintenir la position",
 				"factoryholdpos_descr": "Les unités produites maintiendront leur position (aéronefs exclus)",
 				"factoryrepeat": "récurrence",
-				"factoryrepeat_descr": "Si activé, les nouvelles usines seront automatiquement en mode Récurrence",
+				"factoryrepeat_descr": "Si activé, les nouvelles usines seront automatiquement en mode Répétition",
 				"transportai": "IA de transport",
 				"transportai_descr": "Les transports embarqueront automatiquement les nouvelles unités\nqui se dirigent vers le point de ralliement",
 				"settargetdefault": "Active \"Définir cible\" par défaut",
