@@ -1339,7 +1339,7 @@
 				"loadscreen_tips_descr": "Affiche les astuces durant l'écran de chargement de démarrage",
 				"networksmoothing": "Fluidité réseau",
 				"networksmoothing_descr": "Ajoute un délai supplémentaire pour assurer la fluidité et la stabilité du jeu.\nDésactiver pour une meilleure réactivité (requiert une connexion internet stable/haut débit)",
-				"autoquit": "Quitter auto.",
+				"autoquit": "Quitter automatiquement",
 				"autoquit_descr": "Quitte automatiquement après la fin de la partie.\nÀ moins que la souris ne continue d'être déplacée.",
 				"smartselect_includebuildings": "Bâtiments dans la sélection de zone",
 				"smartselect_includebuildings_descr": "Lors de la sélection de zone, souhaitez-vous inclure les bâtiments ?\n\nSi désactivé : Les bâtiments seront exclus (maintenir MAJ pour les inclure)\nNote : les tourelles de construction seront systématiquement incluses.",
