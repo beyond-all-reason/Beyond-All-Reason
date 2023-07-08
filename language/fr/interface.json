@@ -889,7 +889,7 @@
 				"fog_end": "fin",
 				"fog_reset": "réinitialiser les paramètres de la carte",
 				"ssao": "Occlusion ambiante",
-				"ssao_descr": "ATTENTION: peut causer de la latence",
+				"ssao_descr": "ATTENTION : peut causer de la latence",
 				"ssao_strength": "force",
 				"ssao_quality": "qualité",
 				"ssao_quality_descr": "Les qualités plus basses ont une résolution SSAO plus basse ce qui peut engendrer des saccades lors du mouvement des unités/caméra",
