@@ -1017,7 +1017,7 @@
 				"setcamera_bugfix_descr": "Activer la fixation de la caméra sur toutes les images",
 				"cursorsize": "Taille du curseur",
 				"cursorsize_descr": "Noter que le curseur s'ajuste aussi avec la résolution d'écran.\n\nAjuster davantage la taille",
-				"doubleclicktime": "C'est l'heure du double-clique",
+				"doubleclicktime": "Vitesse double-clic",
 				"doubleclicktime_descr": "Temps en ms entre deux clics gauches consécutifs pour être considéré comme un double clic",
 				"dragthreshold": "Seuil de glissement",
 				"dragthreshold_descr": "Nombre de pixels de distance que la souris doit parcourir pour qu'un clic soit considéré comme un glissement",
