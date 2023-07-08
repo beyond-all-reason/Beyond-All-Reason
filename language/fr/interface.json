@@ -1205,7 +1205,7 @@
 				"idlebuilders": "Constructeurs inactifs",
 				"idlebuilders_descr": "Affiche une rangée d'unités de construction inactives en bas de l'écran.",
 				"buildbar": "Interface rapide des usines",
-				"buildbar_descr": "Affiche une colonne d'usines sur le côté droit de l'écran\nsurvolez et cliquez sur les unités pour les ajouter rapidement à la file d'attente de l'usine",
+				"buildbar_descr": "Affiche une colonne d'usines sur le côté droit de l'écran\ndepuis ce menu, cliquez sur les unités afin de les ajouter rapidement\nà la file d'attente construction",
 				"converterusage": "Utilisation du convertisseur d'énergie",
 				"converterusage_descr": "Affiche la consommation du convertisseur d'énergie en haut de l'écran",
 				"teamplatter": "Cadrant sur les unités alliés",
