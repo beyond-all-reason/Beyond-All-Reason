@@ -1170,7 +1170,7 @@
 				"mascot": "mascotte",
 				"mascot_descr": "Affiche une mascotte en haut de la liste des joueurs",
 				"unittotals": "Totaux des unités",
-				"unittotals_descr": "Afficher le total de vos unités en haut de la liste des joueurs",
+				"unittotals_descr": "Affiche le nombre total d'unités en haut de la liste des joueurs",
 				"musicplayer": "lecteur de musique",
 				"musicplayer_descr": "Affiche le lecteur de musique en haut de la liste des joueurs",
 				"console": "Console",
