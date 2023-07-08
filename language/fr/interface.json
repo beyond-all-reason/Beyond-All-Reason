@@ -977,7 +977,7 @@
 				"soundtrackcustom": "Thème customisé",
 				"soundtrackcustom_descr": "Ajoutez vos propres fichiers au format .ogg ou .mp3 à la playlist\nPlacez les fichiers dans data/music/custom/ sous-dossiers: peace/warlow/warhigh/bossfight/gameover",
 				"soundtracksilence": "Périodes sans musique",
-				"soundtracksilence_descr": "Rajoute des périodes de silence entre les musiques\npermet de donner du temps pour profiter des effets sonores\net rendre la musique moins répétitive.",
+				"soundtracksilence_descr": "Rajoute des périodes de silence entre les musiques\npermet de laisser du temps pour uniquement profiter effets sonores\net rendre la musique moins répétitive.",
 				"soundtrackinterruption": "Interruptions",
 				"soundtrackinterruption_descr": "Permet de faire correspondre la musique\nau niveau d'intensité du combat\nlorsque le combat s'intensifie brusquement.",
 				"soundtrackfades": "Fondu enchaîné",
