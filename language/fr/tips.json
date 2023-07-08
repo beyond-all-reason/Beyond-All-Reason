@@ -29,7 +29,7 @@
 			"queues": "Mettez en file d'attente plusieurs actions d'unités consécutives en maintenant SHIFT enfoncé.",
 			"reclaimWrecks": "Pensez à l'avance à récupérer le métal des épaves qui s'entassent sur le front.",
 			"resurrectFight": "Utilisez la commande Combat (F) avec vos robots de résurrection pour leur faire récupérer et réparer tout ce qui se trouve à proximité. \nActivez éventuellement Répéter pour les laisser faire cela pour toujours.",
-			"screenBombers":"Lorsque vous effectuez un bombardement aérien, envoyez vos avions d'attaque en premier pour éliminer ceux de l'ennemi.\nUtilisez la commande Attaque ou Patrouille pour un meilleur engagement.",
+			"screenBombers":"Lorsque vous cherchez à effectuer un bombardement aérien, pensez \npréalablement à prendre le contrôle du ciel en envoyant des chasseurs.\nUtilisez la commande Assaut ou Patrouille pour un engagement optimal.",
 			"selectCommander": "Appuyez sur CTRL+C pour sélectionner et centrer rapidement la caméra sur votre Commander.",
 			"selectSameType": "Sélectionnez toutes les unités du même type en appuyant sur CTRL+Z.",
 			"separateBuildings": "Étalez les bâtiments pour éviter les explosions en chaîne.\nAppuyez sur ALT+Z et ALT+X pour régler l'espacement automatique.",
