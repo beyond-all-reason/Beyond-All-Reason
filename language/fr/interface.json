@@ -1002,7 +1002,7 @@
 				"scav_voicenotifs_descr": "Activer/désactiver la voix de l'annonceur Charognard",
 				"notifications_set": "Voix",
 				"notifications_tutorial": "Mode tutoriel",
-				"notifications_tutorial_descr": "Rajoute des messages d'aide sur comment jouer\n\nNe répète pas les conseils déjà prodigués\n(Ré)activer ce paramètre pour le réinitialiser",
+				"notifications_tutorial_descr": "Affiche des messages d'aide sur comment jouer\nNe répète pas les conseils déjà prodigués\nRéactiver ce paramètre réinitialisera le tutoriel",
 				"notifications_messages": "Notifications écrites",
 				"notifications_messages_descr": "Affiche des notifications à l'écran",
 				"notifications_spoken": "Notifications audio",
