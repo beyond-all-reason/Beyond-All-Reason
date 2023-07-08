@@ -1099,7 +1099,7 @@
 				"minimap_enlarged": "élargi",
 				"minimap_enlarged_descr": "Déplace le menu de commandes pour faire de la place à la mini-carte.",
 				"minimapminimized": "réduit",
-				"minimapminimized_descr": "retirer la mini-carte",
+				"minimapminimized_descr": "cacher la mini-carte",
 				"minimap_maxheight": "hauteur",
 				"minimap_maxheight_descr": "Définit une hauteur maximale pour la minimap (rappel: la largeur est limitée aussi)",
 				"minimapiconsize": "échelle d'icone",
