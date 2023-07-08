@@ -894,7 +894,7 @@
 				"ssao_quality": "qualité",
 				"ssao_quality_descr": "Les qualités plus basses ont une résolution SSAO plus basse ce qui peut engendrer des saccades lors du mouvement des unités/caméra",
 				"bloomdeferred": "Flou lumineux",
-				"bloomdeferred_descr": "Fait briller le surlignage et les lumières issues des unités",
+				"bloomdeferred_descr": "Cause une diffraction de la lumière du surlignage \net des lumières issues des unités",
 				"bloomdeferredbrightness": "luminosité",
 				"bloomdeferred_quality": "qualité",
 				"bloomdeferred_quality_descr": "Les qualités graphiques plus basses ont une moins bonne résolution de flou lumineux, ce qui peut causer des clignotements.",
