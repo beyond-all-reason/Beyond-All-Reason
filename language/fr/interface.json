@@ -1288,7 +1288,7 @@
 				"commandsfxduration": "durée de vie",
 				"commandsfxuseteamcolors": "utiliser les couleurs d'équipes",
 				"commandsfxuseteamcolors_descr": "Utilise les couleurs d'équipes pour les lignes, à la place des couleurs de Commandant",
-				"commandsfxuseteamcolorswhenspec": "utiliser les couleurs d'équipes en spectateur",
+				"commandsfxuseteamcolorswhenspec": "couleurs d'équipes en spectateur",
 				"commandsfxuseteamcolorswhenspec_descr": "Utilise les couleurs d'équipes pour les lignes, à la place des couleurs de Commandant.",
 				"displaydps": "Afficher le DPS",
 				"displaydps_descr": "Affiche les dégâts par seconde lorsque la cible est touchée",
