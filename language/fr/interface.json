@@ -1269,7 +1269,7 @@
 				"allycursors_lightradius": "rayon",
 				"allycursors_lightstrength": "intensité",
 				"cursorlight": "Lumière du curseur",
-				"cursorlight_descr": "Ajoute une lumière sur/au-dessus de la position de votre curseur\n\nRequiert l'activation de \"Lumières\" (option graphique)",
+				"cursorlight_descr": "Ajoute une lumière sur de la position de votre curseur\n\nRequiert l'activation de \"Lumières\" (option graphique)",
 				"cursorlight_lightradius": "rayon",
 				"cursorlight_lightstrength": "intensité",
 				"showbuilderqueue": "Vision du constructeur",
