@@ -95,11 +95,11 @@ StartDoorOpen()
 {
 	signal 4;
 	set-signal-mask 4;
-	move door1 to z-axis [-8] speed [60];
+	move door1 to z-axis [-6] speed [60];
 	wait-for-move door1 along z-axis;
-	move door2 to z-axis [-7] speed [60];
+	move door2 to z-axis [-5] speed [60];
 	wait-for-move door2 along z-axis;
-	move door3 to z-axis [-6] speed [60];
+	move door3 to z-axis [-4] speed [60];
 	wait-for-move door3 along z-axis;
 
 }
