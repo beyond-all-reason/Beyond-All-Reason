@@ -851,7 +851,7 @@
 				"display": "Affichage",
 				"resolution": "Résolution",
 				"resolution_descr": "ATTENTION : le moteur du jeu peut parfois geler en mode fenêtré",
-				"vsync": "Synch. verticale",
+				"vsync": "Synchro. verticale",
 				"vsync_descr": "Empêche le déchirement vertical de l'image. Peut provoquer une légère latence. Essayez plutôt le mode adaptatif pour moins de délai d'affichage.",
 				"limitidlefps": "Limiter les IPS si inactif/hors-écran",
 				"limitidlefps_descr": "Réduit les IPS en cas d'inactivité (en réglant la synchro verticale sur un nombre élevé)\nPour l'affichage en mode fenêtré sans bordure et en plein écran, le jeu doit être hors fenêtre active\nPermet que votre ordinateur reste réactif/moins chaud lorsque vous faites des choses en dehors du jeu.\nLes mouvements de caméra interrompent le mode inactif",
