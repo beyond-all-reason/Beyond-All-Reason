@@ -962,7 +962,7 @@
 				"snowamount": "quantité",
 				"snowamount_descr": "désactiver l'option \"réduction automatique\" pour voir la quantité maximale de neige autorisé",
 				"resurrectionhalos": "Auréoles des unités réanimées",
-				"resurrectionhalos_descr": "Adjoint une petite auréole aux unités réanimées.",
+				"resurrectionhalos_descr": "Adjoint une auréole aux unités réanimées",
 				"xmas": "Boules de Noël",
 				"xmas_descr": "désactiver rendra les boules de Noël invisibles (les autres décorations restent)",
 				"tombstones": "Pierres tombales",
