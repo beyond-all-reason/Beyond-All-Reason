@@ -216,7 +216,7 @@
 			" Fly ": "Voler",
 			"Land": "Atterrir",
 			"idlemode_tooltip": "Définit ce que font les unités volantes lorsqu'elles sont inactives",
-			"apLandAt_tooltip": "Définit ce que font les avions lorsqu'ils quittent l'usine aéronautique",
+			"apLandAt_tooltip": "Définit le comportement des aéronefs lorsqu'ils quittent l'usine",
 			"LandAt 0": "Pas de retraite",
 			"LandAt 30": "Retraite à 30%%",
 			"LandAt 50": "Retraite à 50%%",
