@@ -623,7 +623,7 @@
 			"unit": "*%{unit}"
 		},
 		"messages": {
-			"scroll": "%{textColor} Appuyez sur %{highlightColor} CTRL+SHIFT %{textColor} pour activer l'affichage/le défilement du tchat."
+			"scroll": "%{textColor} Appuyez sur %{highlightColor} CTRL+SHIFT %{textColor} pour activer l'affichage/le défilement du chat."
 		},
 		"mapDrawBlocker": {
 			"block": "Ignorer les dessins de %{player}",
