@@ -1342,7 +1342,7 @@
 				"autoquit": "Quitter automatiquement",
 				"autoquit_descr": "Quitte automatiquement après la fin de la partie.\nÀ moins que la souris ne continue d'être déplacée.",
 				"smartselect_includebuildings": "Bâtiments dans la sélection de zone",
-				"smartselect_includebuildings_descr": "Lors de la sélection de zone, souhaitez-vous inclure les bâtiments ?\n\nSi désactivé : Les bâtiments seront exclus (maintenir MAJ pour les inclure)\nNote : les tourelles de construction seront systématiquement incluses.",
+				"smartselect_includebuildings_descr": "Permet d'inclure les bâtiments dans la sélection de zone\n\nSi désactivé, les bâtiments seront exclus (maintenir MAJ pour les inclure)\nNote : les tourelles de construction seront systématiquement incluses.",
 				"smartselect_includebuilders": "Inclure constructeurs (si précédent désactivé)",
 				"smartselect_includebuilders_descr": "Lors de la sélection de zone, exclus les unités de construction (maintenir MAJ pour les inclure)",
 				"onlyfighterspatrol": "Patrouille de chasseurs uniquement",
