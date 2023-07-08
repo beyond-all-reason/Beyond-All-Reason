@@ -847,7 +847,7 @@
 				"label_debug": "Débogage ",
 				"label_other": "Autre",
 				"label_teamcolors": "Couleurs d'équipe",
-				"preset": "Qualité des graphismes",
+				"preset": "Qualité graphique",
 				"display": "Affichage",
 				"resolution": "Résolution",
 				"resolution_descr": "ATTENTION : le moteur du jeu peut parfois geler en mode fenêtré",
