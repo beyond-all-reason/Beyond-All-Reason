@@ -43,6 +43,12 @@ return {
 		turninplacespeedlimit = 1.287,
 		turnrate = 363,
 		workertime = 200,
+		buildoptions = {
+			[1] = "cormex",
+			[2] = "corsolar",
+			[3] = "corrad",
+			[4] = "corfort",
+		},
 		customparams = {
 			unitgroup = 'buildert2',
 			model_author = "MASHUP, Itanthias, name inspired by Themitri",
