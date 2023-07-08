@@ -1235,7 +1235,7 @@
 				"metalspots": "Gisement de métal",
 				"metalspots_descr": "Affiche un cercle autour des gisements de métal (inoccupés) avec la quantité de métal s'y trouvant.",
 				"metalspots_opacity": "opacité",
-				"metalspots_values": "montrer les valeurs",
+				"metalspots_values": "afficher valeurs",
 				"metalspots_values_descr": "Affiche la valeur des points d'extractions de métal au cours de la partie\nDurant la phase de préparation ou si vous activez l'affichage des points d'extractions (F4), les valeurs seront aussi affichées.\n\nVeuillez noter qu'il est beaucoup plus coûteux d'afficher les valeurs textuelles.",
 				"metalspots_metalviewonly": "limiter à l'affichage F4 (métal)",
 				"metalspots_metalviewonly_descr": "Limite l'affichage à la phase de préparation ou à l'affichage des points d'extractions (F4)",
