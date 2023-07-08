@@ -1378,7 +1378,7 @@
 				"dgunnogroundenemies": "Ignorer ciblage au sol du D-Gun",
 				"dgunnogroundenemies_descr": "Empêche le D-Gun de viser automatiquement les unités terrestres.\nGarder la touche MAJ enfoncée réactivera la visée automatique \n\nCependant, le D-Gun visera toujours automatiquement les unités aériennes, navales et aéroglisseurs",
 				"dgunstallassist": "Conservation énergétique pour D-Gun",
-				"dgunstallassist_descr": "Lorsque l'ordre d'utilisation D-Gun est donné, la consommation d'énergie de toutes les unités est mis en pause.",
+				"dgunstallassist_descr": "Lorsque l'ordre d'utilisation du D-Gun est donné, la consommation d'énergie \nde toutes les autres unités sera mis en pause",
 				"singleplayerpause": "Pause dans menus paramètres/quitter/lobby",
 				"singleplayerpause_descr": "Exclusif au mode solo\n\nMet la partie en pause lorsque les menus du jeu sont ouverts\n(paramètres/quitter/lobby)",
 				"catchupsmoothness": "Fluidité du rattrapage",
