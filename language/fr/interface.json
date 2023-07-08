@@ -1327,7 +1327,7 @@
 				"antiranges_descr": "Affiche la portée des contre-mesures anti-nucléaires",
 				"allyselunits_select": "sélectionner unités",
 				"allyselunits_select_descr": "Lorsque vous suivez la caméra d'un joueur, sélectionne ce que le joueur a sélectionné",
-				"lockcamera_hideenemies": "Afficher seulement le point de vue du joueur sélectionné",
+				"lockcamera_hideenemies": "Point de vue du joueur sélectionné",
 				"lockcamera_hideenemies_descr": "Lorsque vous suivez la caméra d'un joueur, affiche ce que le joueur voit",
 				"lockcamera_los": "Afficher LoS du joueur sélectionné",
 				"lockcamera_los_descr": "Lorsque vous suivez la caméra et la ligne de vue d'un joueur, afficher \négalement son brouillard de guerre",
