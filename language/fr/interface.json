@@ -1101,7 +1101,7 @@
 				"minimapminimized": "réduit",
 				"minimapminimized_descr": "cacher la mini-carte",
 				"minimap_maxheight": "hauteur",
-				"minimap_maxheight_descr": "Définit une hauteur maximale pour la minimap (rappel: la largeur est limitée aussi)",
+				"minimap_maxheight_descr": "Définit une hauteur maximale pour la minimap (NB: la largeur est limitée elle aussi)",
 				"minimapiconsize": "échelle d'icone",
 				"minimapleftclick": "Déplacer la caméra avec le clic gauche",
 				"minimapleftclick_descr": "Le clic gauche de la souris permet de déplacer la caméra (par défaut, il s'agit du bouton de la molette de la souris).\nlorsqu'il est désactivé : le clic gauche (glisser) permet de sélectionner des unités.",
