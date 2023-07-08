@@ -1138,7 +1138,7 @@
 				"unitgroups_descr": "Affiche l'interface des groupes d'unités\nsitué en bas de l'écran (sauf si vous avez le menu de construction à cet endroit)",
 				"info": "Panneau d'informations",
 				"info_buildlist": "icônes d'options de construction",
-				"info_buildlist_descr": "Concernant les usines/constructeurs : affiche une liste d'icônes de toutes les unités constructibles au lieu d'autres informations.",
+				"info_buildlist_descr": "Pour les usines/constructeurs, affiche une liste d'icônes de toutes \nles unités constructibles au lieu d'autres informations.",
 				"info_mappos": "Afficher la position de la carte",
 				"info_mappos_descr": "Afficher la position et l'altitude du curseur de la souris sur la carte",
 				"info_alwaysshow": "toujours montrer",
