@@ -29,7 +29,7 @@
 			"catchingUp": "Rattrapage",
 			"catchingUpTooltip": "Affiche la progression du rattrapage\nTemps de jeu : %{gameTime}",
 			"commanderCount": "Nombre de Commandants",
-			"commanderCountTooltip": "Afficher le nombre de commandants alliés et ennemis",
+			"commanderCountTooltip": "Affiche le nombre de commandants alliés et ennemis",
 			"tidalspeed": "Vitesse de la marée",
 			"tidalspeedTooltip": "Vitesse de la marée sur la carte (toujours constante)",
 			"windspeed": "Vitesse du vent",
