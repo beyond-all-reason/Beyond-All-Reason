@@ -87,7 +87,7 @@
 			"commandDelay": "%{labelColor}Retard total de commande : %{delayColor}%{delay}",
 			"cpu": "CPU : %{cpuUsage}%%",
 			"framerate": "IPS : %{fps}",
-			"gpuMemory": "Mémoire GPU: %{gpuUsage}%%",
+			"gpuMemory": "Mémoire GPU : %{gpuUsage}%%",
 			"pointClickTooltip": "Cliquez pour aller au dernier point défini par le joueur",
 			"aiName": "%{name} (IA)",
 			"desynced": "Désynchronisé",
