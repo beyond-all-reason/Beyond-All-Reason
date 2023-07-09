@@ -971,7 +971,7 @@ function UnitDef_Post(name, uDef)
 			}
 		end
 		if name == "cormist" then
-			uDef.weapondefs.cortruck_missile.commanders = uDef.weapondefs.cortruck_missile.damage
+			uDef.weapondefs.cortruck_missile.damage.commanders = uDef.weapondefs.cortruck_missile.damage.default
 		end
 		if name == "corape" then
 			uDef.weapondefs.vtol_rocket.damage = {
