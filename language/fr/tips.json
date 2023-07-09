@@ -25,7 +25,7 @@
 			"mapmarks": "Utilisez Q + double clic gauche pour placer une étiquette avec du texte sur la carte. \nQ + clic du milieu pour une étiquette vide. Q + cliquer-glisser pour tracer des lignes",
 			"mohoGeoExplosion":"Ne construisez pas trop autour de vos centrales géothermiques T2, quand elles mourront, tout explosera !",
 			"nanoTurretFight": "Donnez à vos Tourelles de Construction un Ordre d'attaque (F) afin qu'elles réparent et récupèrent tout ce qu'il y a à leur portée.",
-			"overflowingEnergy":"Lorsque vous débordez d'énergie... construisez des convertisseurs d'énergie pour convertir l'énergie en métal.",
+			"overflowingEnergy":"Lorsque vous surproduisez de l'énergie, construisez des convertisseurs d'énergie pour augmenter votre production de métal.",
 			"queues": "Mettez en file d'attente plusieurs actions d'unités consécutives en maintenant SHIFT enfoncé.",
 			"reclaimWrecks": "Pensez à l'avance à récupérer le métal des épaves qui s'entassent sur le front.",
 			"resurrectFight": "Utilisez la commande Combat (F) avec vos robots de résurrection pour leur faire récupérer et réparer tout ce qui se trouve à proximité. \nActivez éventuellement Répéter pour les laisser faire cela pour toujours.",
