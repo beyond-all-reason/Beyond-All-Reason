@@ -1,7 +1,7 @@
 {
 	"tips": {
 		"loadscreen": {
-			"alwaysExpand": "L'expansion du territoire est essentielle pour obtenir un avantage économique. Essayez de sécuriser autant de gisement de métal et de fissure géothermiques que possible.",
+			"alwaysExpand": "L'expansion de votre territoire est un élément essentiel à l'obtention d'une économie robuste. \nTentez de sécuriser autant de gisements de métal et de fissures géothermiques que possible.",
 			"armyDiversity": "Pensez à l'avance et incluez des unités anti-aériennes et de soutien dans votre armée.",
 			"assistFactories": "Il est efficace de soutenir une usine avec des constructeurs, augmentant ainsi sa puissance de construction. Sélectionnez les constructeurs et cliquez avec le bouton droit sur l'usine pour la protéger.",
 			"autogroups": "Utilisez ALT+(0-9) pour affecter le(s) type(s) d'unité sélectionné(s) aux groupes automatiques. Les unités nouvellement construites du même type seront automatiquement ajoutées à leur groupe automatique. ALT+Backquote (`) supprime les unités.",
