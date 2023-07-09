@@ -264,9 +264,9 @@
 			"chat": {
 				"title": "Chat",
 				"send": "Envoyer un message dans le chat",
-				"alliesKey": "ALT + Entrée",
+				"alliesKey": "ALT + EntrÉe",
 				"allies": "Envoyer un message à vos alliés",
-				"spectatorsKey": "SHIFT + Entrée",
+				"spectatorsKey": "SHIFT + EntrÉe",
 				"spectators": "Envoyer un message aux observateurs",
 				"ignoreKey": "CTRL + Clic gauche sur le nom",
 				"ignore": "Ignorer le joueur"
