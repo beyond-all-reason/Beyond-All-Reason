@@ -411,7 +411,7 @@
 				"drawKey": "² + clic gauche (glisser)",
 				"draw": "Dessiner sur la carte",
 				"eraseKey": "² + clic droit (glisser)",
-				"erase": "Effacer les dessins et les marqueurs"
+				"erase": "Effacer dessins et marqueurs"
 			},
 			"console": {
 				"title": "Commandes de la console",
