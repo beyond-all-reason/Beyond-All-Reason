@@ -92,7 +92,7 @@
 			"t3Detected": "Unité Tech 3 détectée",
 			"aircraftSpotted": "Avion repéré",
 			"minesDetected": "Attention : des mines ont été détectées",
-			"stealthDetected": "Unités furtives détectées dans la zone de contre-mesures d'intrusion",
+			"stealthDetected": "Unités furtives détectées dans la zone du système anti-intrusion",
 			"lrpcDetected": "Canon(s) à plasma longue portée (LRPC) détecté(s)",
 			"empSiloDetected": "Silo de missiles EMP détecté",
 			"tacticalSiloDetected": "Silo nucléaire tactique détecté",
