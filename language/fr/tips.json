@@ -40,7 +40,7 @@
 			"takeUnits": "Votre coéquipier a-t-il abandonné le jeu ? Tapez /take pour ajouter toutes leurs unités à votre armée.",
 			"transportBuildings": "Les Tourelles de Construction peuvent être ramassées par des transporteurs. De cette manière, vous pouvez les déplacer là où vous avez besoin de plus de puissance de construction.",
 			"useAntiAir": "Les frappes aériennes et les largages aériens peuvent survenir à tout moment, ayez toujours au moins une unité anti-aérienne dans votre base.",
-			"useCloak": "Masquer votre commandant à l'arrêt draine 100 points d'énergie/seconde. Il coûte 1000 énergies/seconde en marchant.",
+			"useCloak": "Camoufler votre commandant alors qu'il est immobile draine 100 d'énergie/seconde. \nEn déplacement, ce coût s'élève à 1000 énergies/seconde.",
 			"useDragMove": "Il est efficace de déplacer vos unités en formations dispersées.\nCliquez et faites glisser votre souris tout en lançant un ordre de déplacement pour dessiner plusieurs point de passage.",
 			"useFighters": "La meilleure façon d'empêcher les frappes aériennes est de construire des chasseurs et de les mettre en patrouille devant votre base.",
 			"useJuno": "Les mines, radars et brouilleurs ennemis peuvent être désactivés à l'aide du Junon, constructible par les deux factions avec des constructeurs T1.",
