@@ -221,7 +221,7 @@
 			"LandAt 30": "Retraite à 30%%",
 			"LandAt 50": "Retraite à 50%%",
 			"LandAt 80": "Retraite à 80%%",
-			"autorepairlevel_tooltip": "Définit à quel niveau de PV%% cet appareil se retire vers l'aérodrome de maintenance le plus proche",
+			"autorepairlevel_tooltip": "Définit à quel niveau de PV %% cet appareil se retirera vers l'aérodrome de maintenance le plus proche",
 			"apAirRepair_tooltip": "Usine aéronautique: Définit à quel niveau de PV%% un appareil doit automatiquement aller atterrir à un aérodrome de maintenance",
 			"Low traj": "Haute Traj.",
 			"High traj": "Haute Traj.",
