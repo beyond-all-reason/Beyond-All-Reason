@@ -630,7 +630,7 @@
 			"unblock": "Afficher les dessins de %{player}"
 		},
 		"dynamicAlly": {
-			"create": "%{player} s'est allié avec vous.",
+			"create": "%{player} s'est allié à vous.",
 			"destroy": "%{player}a rompu leur alliance avec vous.",
 			"backstab": "%{player}a tenté de vous attaquer !"
 		},
