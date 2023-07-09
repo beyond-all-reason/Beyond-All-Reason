@@ -13,7 +13,7 @@
 			"disableAntiNukes": "Vous pouvez désactiver les contre-mesures anti-nucléaires ennemies à l'aide de missiles I.E.M., constructibles par Armada dès le T2.",
 			"factoryCannibalism": "Les usines T2 sont chères. Vous pouvez recycler votre usine T1 afin d'en faciliter la construction.",
 			"factoryRepeat": "En mode Répétition, les usines produiront en boucle les unités en file d'attente.",
-			"graphicsSettings": "Ajustez les préférences graphiques dans le menu des paramètres.\nLorsque vos performances baissent, passez à un préréglage graphique inférieur.",
+			"graphicsSettings": "Vous pouvez ajuster les graphismes dans le menu des paramètres.\nSi les performances graphiques sont faibles, il est judicieux d'envisager à un préréglage graphique inférieur.",
 			"groups": "Vous pouvez affecter des unités à des groupes en appuyant sur CTRL+(0-9).\nSélectionnez le groupe en appuyant sur le numéro de groupe (0-9).",
 			"howShieldsWork": "Les boucliers sont des \"boucliers déflecteurs de plasma\". Ils ne font que dévier les obus à plasma, tout le reste passera.",
 			"idleConstructors": "Gardez tous vos constructeurs occupés. \nAppuyez sur CTRL+B pour faire défiler vos constructeurs inactifs.",
