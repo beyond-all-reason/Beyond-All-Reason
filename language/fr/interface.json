@@ -51,7 +51,7 @@
 				"pullTooltip": "La demande actuelle souhaitée pour %{resource} (par seconde), sous réserve d'un approvisionnement et d'un stockage suffisant. Les constructeurs à faible priorité n'utilisant que les restes, ils ne sont pas pris en compte ici.",
 				"incomeTooltip": "%{resource}production (par seconde)",
 				"expenseTooltip": "%{resource} consommation (par seconde)",
-				"storageTooltip": "%{resource}réserve",
+				"storageTooltip": "%{resource} réserve",
 				"conversionTooltipTitle": "Curseur de conversion d'énergie",
 				"conversionTooltip": "L'excès d'énergie au-delà de ce niveau\nalimentera vos convertisseurs d'énergie"
 			},
