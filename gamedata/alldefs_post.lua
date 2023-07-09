@@ -869,12 +869,7 @@ function UnitDef_Post(name, uDef)
 			}
 		end
 		if name == "armsam" then
-			uDef.weapondefs.armtruck_missile.damage = {
-					bombers = 120,
-					default = 64,
-					fighters = 160,
-					vtol = 160,
-			}
+			uDef.weapondefs.armtruck_missile.damage.commanders = uDef.weapondefs.armtruck_missile.damage.default 
 		end
 		if name == "armkam" then
 			uDef.weapondefs.med_emg.damage = {
@@ -976,12 +971,7 @@ function UnitDef_Post(name, uDef)
 			}
 		end
 		if name == "cormist" then
-			uDef.weapondefs.cortruck_missile.damage = {
-					bombers = 120,
-					default = 47,
-					fighters = 120,
-					vtol = 120,
-			}
+			uDef.weapondefs.cortruck_missile.damage.commanders = uDef.weapondefs.cortruck_missile.damage.default
 		end
 		if name == "corape" then
 			uDef.weapondefs.vtol_rocket.damage = {
