@@ -229,7 +229,7 @@
 
 			"customOnOff": {
 				"lowTrajectory": "Tir direct",
-				"highTrajectory": "Tir Lobé",
+				"highTrajectory": "Tir parabolique",
 				"trajectory_tooltip": "Définit l'angle de tir de l'artillerie",
 				"gaussCannon": "Canon Gauss",
 				"heavyPlasma": "Plasma lourd",
