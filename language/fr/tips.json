@@ -7,7 +7,7 @@
 			"autogroups": "Utilisez ALT+(0-9) pour affecter le type d'unité sélectionné à un groupe automatique. \nLes unités nouvellement construites du même type seront automatiquement affectées au groupe correspondant. \nALT+² permet de supprimer des unités des groupes automatiques.",
 			"buildingHotkeys": "La maîtrise des raccourcis est la clé de l'efficacité. \nUtilisez Z, X, C, V pour parcourir rapidement les structures les plus fréquemment construites.",
 			"completelyDisappear": "Combinez camouflage et brouillage radar pour cacher entièrement vos unités.",
-			"destroyFighters":"Construisez un anti-aérien à longue portée sur une ligne de front étendue pour démanteler lentement le mur de chasseur de l'ennemi.",
+			"destroyFighters":"Sur une ligne de front avancée, construisez des batteries AA longue portée pour détruire les murs de chasseurs ennemis.",
 			"dGun": "Les commandants ont une arme à tir manuel, le D-Gun. Ce canon désintégrateur annihilera toutes les unités sur son passage.\nAppuyez sur D pour activer la visée du D-Gun.",
 			"dGunAssassin":"Le D-Gun de votre commandant peut être utilisé pour tuer instantanément des unités T3. \nN'oubliez pas de vous camoufler avant de vous approcher d'elles (raccourcis : K)",
 			"disableAntiNukes": "Vous pouvez désactiver les anti-nucléaires ennemis à l'aide de missiles I.E.M., disponibles pour Armada au T2.",
