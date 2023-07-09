@@ -132,7 +132,11 @@ BoomCalc(posxz, posy)
 	TurretToUnitAngleY = get XZ_ATAN(Func_Var_3);
 	TurretToUnitAngleX = get ATAN(Func_Var_4,Func_Var_5);
 	bInDistance = TurretToUnitDistance/65000 < maxDistance/65000; //MAX distance at which a unit is picked up/put down
-	get PRINT(1,bInDistance,TurretToUnitDistance/65000,maxDistance/65000);
+if(!bInDistance){
+//var msg;
+//msg =`Unit to far from transport to be loaded.`;
+//	get PRINT(msg);
+}
 	//get PRINT(1,TurretToUnitAngleX/182, TurretToUnitAngleY/182);
 }
 
@@ -507,6 +511,7 @@ TransportDrop(unitid, position)
 		call-script BoomToPad();
 		move link to y-axis [0.000000] - get UNIT_HEIGHT(unitid) now;
 		attach-unit unitid to link;
+	
 		call-script BoomExtendDrop(position);
 		call-script	StartDoorClose();
 		drop-unit unitid;
