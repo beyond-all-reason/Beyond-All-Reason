@@ -15,7 +15,7 @@
 			"factoryRepeat": "En mode Répétition, les usines produiront en boucle les unités en file d'attente.",
 			"graphicsSettings": "Vous pouvez ajuster les graphismes dans le menu des paramètres.\nSi les performances graphiques sont faibles, il est judicieux d'envisager à un préréglage graphique inférieur.",
 			"groups": "Vous pouvez affecter des unités à des groupes en appuyant sur CTRL+(0-9).\nSélectionnez le groupe en appuyant sur le numéro de groupe (0-9).",
-			"howShieldsWork": "Les boucliers sont des \"boucliers déflecteurs de plasma\". Ils ne font que dévier les obus à plasma, tout le reste passera.",
+			"howShieldsWork": "En réalité, les boucliers sont des déflecteurs de plasma. \nIls ne font que dévier les obus à plasma, les autres catégories de projectiles le traverseront.",
 			"idleConstructors": "Gardez tous vos constructeurs occupés. \nAppuyez sur CTRL+B pour faire défiler vos constructeurs inactifs.",
 			"insertFactoryQuickBuild": "Si vous avez besoin d'une unité rapidement, sans perturber une file d'attente de construction d'usine, appuyez sur ALT et faites un clic gauche sur l'unité dont vous avez besoin.",
 			"joinDiscord": "Si vous rencontrez un bug, avez une idée géniale ou souhaitez contribuer de quelque manière que ce soit, veuillez rejoindre BAR sur Discord.",
