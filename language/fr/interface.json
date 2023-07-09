@@ -47,7 +47,7 @@
 				"shareMetalTooltipTitle": "Niveau de partage du métal",
 				"shareMetalTooltip": "Partage l'excès de métal au-dessus de ce niveau avec votre équipe",
 				"shareEnergyTooltipTitle": "Niveau de partage d'énergie",
-				"shareEnergyTooltip": "Partager l'excès d'énergie au-dessus de ce niveau avec votre équipe",
+				"shareEnergyTooltip": "Partage l'excès d'énergie au-dessus de ce niveau avec votre équipe",
 				"pullTooltip": "La demande actuelle souhaitée pour %{resource} (par seconde), sous réserve d'un approvisionnement et d'un stockage suffisant. Les constructeurs à faible priorité n'utilisant que les restes, ils ne sont pas pris en compte ici.",
 				"incomeTooltip": "%{resource}production (par seconde)",
 				"expenseTooltip": "%{resource} consommation (par seconde)",
