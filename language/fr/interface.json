@@ -631,8 +631,8 @@
 		},
 		"dynamicAlly": {
 			"create": "%{player} s'est allié à vous.",
-			"destroy": "%{player}a rompu leur alliance avec vous.",
-			"backstab": "%{player}a tenté de vous attaquer !"
+			"destroy": "%{player} a rompu leur alliance avec vous.",
+			"backstab": "%{player} a tenté de vous attaquer !"
 		},
 		"idlePlayers": {
 			"shareAFK": "Impossible de partager avec des joueurs inactifs",
