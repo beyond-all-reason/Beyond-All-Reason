@@ -432,56 +432,56 @@ TransportPickup(unitid)
 		set BUSY to 1;
 
 
-	if(TurretToUnitDistance/65000< maxDistance/65000 ){
+	if(TurretToUnitDistance< maxDistance ){
 		call-script BoomExtendPickup(unitid);
 	}
-	if( TurretToUnitDistance/65000< maxDistance /65000 ){
+	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup2(unitid);
 	}
-	if( TurretToUnitDistance/65000< maxDistance /65000 ){
+	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup3(unitid);
 	}
-	if( TurretToUnitDistance/65000< maxDistance /65000){
+	if( TurretToUnitDistance< maxDistance ){
 		call-script BoomExtendPickup4(unitid);
 	}
-	if( TurretToUnitDistance/65000< maxDistance/65000  ){
+	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup5(unitid);
 	}
-	if( TurretToUnitDistance/65000< maxDistance/65000 ){
+	if( TurretToUnitDistance< maxDistance ){
 		call-script BoomExtendPickup6(unitid);
 	}
-	if( TurretToUnitDistance/65000< maxDistance /65000 ){
+	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup7(unitid);
 	}
-	if( TurretToUnitDistance/65000< maxDistance /65000 ){
+	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup8(unitid);
 	}
-	if( TurretToUnitDistance/65000< maxDistance /65000 ){
+	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup9(unitid);
 	}
-	if( TurretToUnitDistance/65000< maxDistance /65000 ){
+	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup10(unitid);
 	}
-	if( TurretToUnitDistance/65000< maxDistance/65000 ){
+	if( TurretToUnitDistance< maxDistance ){
 		call-script BoomExtendPickup11(unitid);
 	}
 
-	if( TurretToUnitDistance/65000< maxDistance /65000 ){
+	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup12(unitid);
 	}
 
-	if( TurretToUnitDistance/65000< maxDistance/65000  ){
+	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup13(unitid);
 	}
 
 
 //		move link to y-axis [0.000000] - get UNIT_HEIGHT(unitid) now;
-	if( TurretToUnitDistance/65000< maxDistance/65000  ){
+	if( TurretToUnitDistance< maxDistance  ){
 
 		attach-unit unitid to link;
 }
 		call-script BoomToPad();
-	if( TurretToUnitDistance/65000< maxDistance/65000  ){
+	if( TurretToUnitDistance< maxDistance ){
 
 		attach-unit unitid to base;
 }		
