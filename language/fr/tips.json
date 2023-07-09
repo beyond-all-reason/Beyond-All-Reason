@@ -93,7 +93,7 @@
 			"aircraftSpotted": "Avion repéré",
 			"minesDetected": "Attention : des mines ont été détectées",
 			"stealthDetected": "Unités furtives détectées dans la zone du système anti-intrusion",
-			"lrpcDetected": "Canon(s) à plasma longue portée (LRPC) détecté(s)",
+			"lrpcDetected": "Canon à plasma longue portée (LRPC) ennemi détecté",
 			"empSiloDetected": "Silo de missiles EMP détecté",
 			"tacticalSiloDetected": "Silo nucléaire tactique détecté",
 			"nukeSiloDetected": "Silo nucléaire détecté",
