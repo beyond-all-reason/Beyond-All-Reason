@@ -313,7 +313,7 @@
 			"selection": {
 				"title": "Sélection des unités",
 				"unitsKey": "Clic gauche (glisser)",
-				"units": "Sélectionner ou désélectionner des unités"
+				"units": "Sélect./désélect. des unités"
 			},
 			"issueContextOrders": {
 				"title": "Donner des ordres",
