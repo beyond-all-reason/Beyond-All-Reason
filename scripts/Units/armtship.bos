@@ -41,7 +41,7 @@ RockOnWaves()
 
 Create()
 {
-	maxDistance= [90.000000];
+	maxDistance= [65.000000];
 	pickUpSpeed=  <200.000000>;
 	dropOffSpeed=  <200.000000>;
 	turretSpeed= <200.000000>;
@@ -383,12 +383,12 @@ BoomReset()
 //	turn arm1 to x-axis <0.000000> speed <60.000000>;
 //	wait-for-turn arm1 around x-axis;
 	turn turret to y-axis <0.000000> speed <70.000000>;
-	move arm2 to z-axis [0.000000] speed [15.000000];
-	move arm3 to z-axis [0.000000] speed [15.000000];
-	move arm4 to z-axis [0.000000] speed [15.000000];
-	move arm5 to z-axis [0.000000] speed [15.000000];
-	move arm6 to z-axis [0.000000] speed [15.000000];
-	move arm7 to z-axis [0.000000] speed [15.000000];
+	move arm2 to z-axis [0.000000] speed [25.000000];
+	move arm3 to z-axis [0.000000] speed [25.000000];
+	move arm4 to z-axis [0.000000] speed [25.000000];
+	move arm5 to z-axis [0.000000] speed [25.000000];
+	move arm6 to z-axis [0.000000] speed [25.000000];
+	move arm7 to z-axis [0.000000] speed [25.000000];
 	wait-for-turn turret around y-axis;
 	wait-for-move arm2 along z-axis;
 	wait-for-move arm3 along z-axis;
@@ -410,12 +410,12 @@ BoomToPad()
 	
 //	wait-for-turn arm1 around x-axis;
 	turn turret to y-axis <0.000000> speed <70.000000>;
-	move arm2 to z-axis [-0.600000] speed [15.000000];
-	move arm3 to z-axis [-0.600000] speed [15.000000];
-	move arm4 to z-axis [-0.600000] speed [15.000000];
-	move arm5 to z-axis [-0.600000] speed [15.000000];
-	move arm6 to z-axis [-0.600000] speed [15.000000];
-	move arm7 to z-axis [-0.600000] speed [15.000000];
+	move arm2 to z-axis [-0.600000] speed [25.000000];
+	move arm3 to z-axis [-0.600000] speed [25.000000];
+	move arm4 to z-axis [-0.600000] speed [25.000000];
+	move arm5 to z-axis [-0.600000] speed [25.000000];
+	move arm6 to z-axis [-0.600000] speed [25.000000];
+	move arm7 to z-axis [-0.600000] speed [25.000000];
 	wait-for-turn turret around y-axis;
 	wait-for-turn arm1 around x-axis;
 	wait-for-move arm2 along z-axis;
@@ -424,7 +424,7 @@ BoomToPad()
 	wait-for-move arm5 along z-axis;
 	wait-for-move arm6 along z-axis;
 	wait-for-move arm7 along z-axis;
-	turn arm1 to x-axis <-30.000000> speed <25.000000>;
+	turn arm1 to x-axis <-20.000000> speed <50.000000>;
 	
 	wait-for-turn arm1 around x-axis;
 }
