@@ -18,7 +18,7 @@
 			"eventSwarm": "Attention ! Essaim charognard détecté.",
 			"eventMalfunctions": "Alerte ! Dysfonctionnement de la matrice des charognards détecté.",
 			"finalAttack": "Les charognards envoient tout ce qu'ils ont. L'assaut final a commencé.",
-			"finalBoss":"Commandant, nous avons détecté la signature d'une unité charognarde anormalement grande. Elle approche lentement dans notre direction. Préparez-vous au pire !",
+			"finalBoss":"Commandant, nous détectons la signature d'une unité particulièrement massive. Elle approche lentement dans notre direction. Préparez-vous au pire !",
 			"bossDetected": "Alerte Maximale ! Les charognards ont largué une unité de classe BOSS hautement meurtrière dans la zone, détruisez-la avant qu'elle n'atteigne votre base.",
 			"finalVictory": "Beau travail commandant. Vous avez survécu aux assauts des charognards. Vous êtes vainqueur ! Célébrez votre victoire puis tentez de les anéantir sur la carte suivante.",
 			"timeRemaining12": "12,5 minutes restantes. Encore un long combat à venir.",
