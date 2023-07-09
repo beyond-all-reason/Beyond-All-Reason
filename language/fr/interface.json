@@ -639,7 +639,7 @@
 			"takeEnemies": "Impossible de prendre des joueurs ennemis",
 			"nothingToTake": "Rien à prendre",
 			"lagging": "%{name} est en retard",
-			"resumed": "%{name}a fini de rattraper",
+			"resumed": "%{name} a fini de rattraper",
 			"afk": "%{name}est resté inactif",
 			"returned": "%{name} revenu",
 			"warning": "Vous êtes inactif, faites vite quelque chose ! (Les autres joueurs pourront bientôt prendre contrôle de vos unités)"
