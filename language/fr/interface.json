@@ -186,7 +186,7 @@
 			"unloadunits_tooltip": "Donne l'ordre de larguer les unités embarquées dans la zone désignée",
 			"landatairbase": "Bercail",
 			"landatairbase_tooltip": "Ordonne aux unités de se poser à l'aérodrome de maintenance le plus proche",
-			"stockpile": "Réserve%{stockpileStatus}",
+			"stockpile": "Réserve %{stockpileStatus}",
 			"stockpile_tooltip": "[ réserve ] / [ réserve cible ]",
 			"stopproduction": "Vider la file d'attente",
 			"stopproduction_tooltip": "Vider la file d'attente de construction des usines sélectionnées",
