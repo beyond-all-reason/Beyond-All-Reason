@@ -1133,7 +1133,7 @@
 				"ordermenu_alwaysshow": "toujours afficher",
 				"ordermenu_alwaysshow_descr": "Pas de masquage lorsqu'aucun bouton n'est disponible",
 				"ordermenu_hideset": "masquer les commandes courantes",
-				"ordermenu_hideset_descr": "Cacher les actions du menu de commande qui ont des raccourcis :\nDéplacer, Arrêter, Attaquer, Patrouiller, Combattre, Attendre, Garder, Récupérer, Réparer, D-Gun",
+				"ordermenu_hideset_descr": "Cacher les actions du menu de commandes qui ont des raccourcis :\nDéplacer, Arrêter, Attaquer, Patrouiller, Combattre, Attendre, Garder, Récupérer, Réparer, D-Gun",
 				"unitgroups": "Groupes d'unités",
 				"unitgroups_descr": "Affiche l'interface des groupes d'unités\nsitué en bas de l'écran (sauf si vous avez le menu de construction à cet endroit)",
 				"info": "Panneau d'informations",
