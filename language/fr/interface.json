@@ -424,7 +424,7 @@
 		"chat": {
 			"scroll": "%{textColor}Appuyez sur %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor}pour activer l'affichage et le défilement du journal de discussion",
 			"shortcut": "CTRL + SHIFT",
-			"everyone": "À tous",
+			"everyone": "Global",
 			"allies": "alliés",
 			"spectators": "spectateurs",
 			"cmd": "COMMANDE",
