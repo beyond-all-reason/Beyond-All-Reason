@@ -282,7 +282,7 @@
 				"title": "Mouvements de caméra",
 				"zoomKey": "Molette",
 				"zoom": "Zoom caméra ",
-				"panKey": "Flèches directionnelles / Souris au bord de l'écran",
+				"panKey": "FlÈches / souris au bord d'écran",
 				"pan": "Déplacer la caméra",
 				"tiltKey": "CTRL + Molette",
 				"tilt": "Changer l'angle de la caméra",
