@@ -1186,7 +1186,7 @@
 				"console_showbackground_descr": "Toujours montrer le fond (partiellement)",
 				"console_backgroundopacity": "opacité du fond",
 				"console_backgroundopacity_descr": "Montrer un fond transparent ",
-				"console_chatvolume": "message de chat",
+				"console_chatvolume": "messagerie",
 				"console_chatvolume_descr": "Ajuster le volume des messages entrant dans la discussion",
 				"console_mapmarkvolume": "point de repère",
 				"console_mapmarkvolume_descr": "Ajuster le volume des points de repères/messages",
