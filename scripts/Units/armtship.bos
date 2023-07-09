@@ -42,9 +42,9 @@ RockOnWaves()
 Create()
 {
 	maxDistance= [90.000000];
-	pickUpSpeed=  <120.000000>;
-	dropOffSpeed=  <120.000000>;
-	turretSpeed= <120.000000>;
+	pickUpSpeed=  <200.000000>;
+	dropOffSpeed=  <200.000000>;
+	turretSpeed= <200.000000>;
 
 	hide wake;
 	hide link;
