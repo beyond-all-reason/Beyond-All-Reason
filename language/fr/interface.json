@@ -225,7 +225,7 @@
 			"apAirRepair_tooltip": "Usine aéronautique: Définit à quel niveau de PV%% un appareil doit automatiquement aller atterrir à un aérodrome de maintenance",
 			"Low traj": "Haute Traj.",
 			"High traj": "Haute Traj.",
-			"trajectory_tooltip": "Définit la trajectoire des tirs en mode Artillerie (Tir lobé ou tir direct)",
+			"trajectory_tooltip": "Définit la trajectoire des tirs de l'artillerie (tir parabolique ou tir direct)",
 
 			"customOnOff": {
 				"lowTrajectory": "Tir direct",
