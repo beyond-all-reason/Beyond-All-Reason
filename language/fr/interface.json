@@ -115,7 +115,7 @@
 		},
 		"playerTV": {
 			"playerTV": "Télé",
-			"cancelPlayerTV": "Éteindre la Télé",
+			"cancelPlayerTV": "Éteindre la télé",
 			"cancelCamera": "Désactiver la caméra du joueur",
 			"tooltip": "Suivi caméra automatique des joueurs les mieux classés \n(par défaut, change de joueur toutes les 40 secondes)",
 			"playerView": "Vue joueur",
