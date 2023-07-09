@@ -231,7 +231,7 @@
 				"lowTrajectory": "Tir direct",
 				"highTrajectory": "Tir parabolique",
 				"trajectory_tooltip": "Définit l'angle de tir de l'artillerie",
-				"gaussCannon": "Canon Gauss",
+				"gaussCannon": "Canon gauss",
 				"heavyPlasma": "Plasma lourd",
 				"siegeMode": "Tir dispersé",
 				"suppressiveFire": "Tir focalisé",
