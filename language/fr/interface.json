@@ -473,7 +473,7 @@
 		"gametypeInfo": {
 			"killAllUnits": "Tuez toutes les unités ennemies",
 			"killAllCommanders": "Tuez tous les commandants ennemis",
-			"commandersSurviveDgun": "Les commandants survivent aux D-Guns et aux explosions des commandants",
+			"commandersSurviveDgun": "Les commandants survivent aux D-Guns et à l'explosion des autres commandants",
 			"unbalancedCommanders": "Les commandants déséquilibrés sont activés : le commandant monte de niveau et gagne des améliorations",
 			"victoryCondition": "Conditions de victoire",
 			"owncomends": "Perdre son commandant = perdre le contrôle de ses unités / abandonner",
