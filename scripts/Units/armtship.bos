@@ -5,7 +5,7 @@
 
 piece  base, turret, arm1, arm2, arm3, link, door1, door2, door3, magnet, arm4, arm5, arm6, arm7, ground, wake;
 
-static-var  Static_Var_1, TurretToUnitDistance, TurretToUnitAngleY, TurretToUnitAngleX, bInDistance,maxDistance;
+static-var  Static_Var_1, TurretToUnitDistance, TurretToUnitAngleY, TurretToUnitAngleX, bInDistance,maxDistance,pickUpSpeed,dropOffSpeed,turretSpeed;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -41,7 +41,11 @@ RockOnWaves()
 
 Create()
 {
-	maxDistance= [100.000000];
+	maxDistance= [90.000000];
+	pickUpSpeed=  <120.000000>;
+	dropOffSpeed=  <120.000000>;
+	turretSpeed= <120.000000>;
+
 	hide wake;
 	hide link;
 	hide ground;
@@ -136,10 +140,10 @@ BoomExtendPickUp(unitid)
 {
 //	start-script StartDoorOpen();
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <100.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
 	wait-for-turn turret around y-axis;
 }
 BoomExtendPickUp2(unitid)
@@ -147,10 +151,10 @@ BoomExtendPickUp2(unitid)
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
 	move arm2 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <100.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
 	wait-for-turn turret around y-axis;
 }
 BoomExtendPickUp3(unitid)
@@ -158,10 +162,10 @@ BoomExtendPickUp3(unitid)
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
 	move arm3 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <100.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
 	wait-for-turn turret around y-axis;
 }
 BoomExtendPickUp4(unitid)
@@ -169,10 +173,10 @@ BoomExtendPickUp4(unitid)
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
 	move arm4 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <100.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
 	wait-for-turn turret around y-axis;
 }
 BoomExtendPickUp5(unitid)
@@ -180,10 +184,10 @@ BoomExtendPickUp5(unitid)
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
 	move arm5 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <100.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
 	wait-for-turn turret around y-axis;
 }
 BoomExtendPickUp6(unitid)
@@ -191,10 +195,10 @@ BoomExtendPickUp6(unitid)
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
 	move arm6 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <100.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
 	wait-for-turn turret around y-axis;
 }
 BoomExtendPickUp7(unitid)
@@ -202,10 +206,10 @@ BoomExtendPickUp7(unitid)
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
 	move arm7 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <100.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
 	wait-for-turn turret around y-axis;
 }
 BoomExtendPickUp8(unitid)
@@ -213,10 +217,10 @@ BoomExtendPickUp8(unitid)
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
 	wait-for-move arm2 along z-axis;
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <100.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
 	wait-for-turn turret around y-axis;
 }
 BoomExtendPickUp9(unitid)
@@ -224,10 +228,10 @@ BoomExtendPickUp9(unitid)
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
 	wait-for-move arm3 along z-axis;
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <100.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
 	wait-for-turn turret around y-axis;
 }
 BoomExtendPickUp10(unitid)
@@ -235,10 +239,10 @@ BoomExtendPickUp10(unitid)
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
 	wait-for-move arm4 along z-axis;
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <100.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
 	wait-for-turn turret around y-axis;
 }
 BoomExtendPickUp11(unitid)
@@ -246,10 +250,10 @@ BoomExtendPickUp11(unitid)
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
 	wait-for-move arm5 along z-axis;
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <100.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
 	wait-for-turn turret around y-axis;
 }
 BoomExtendPickUp12(unitid)
@@ -257,10 +261,10 @@ BoomExtendPickUp12(unitid)
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
 	wait-for-move arm6 along z-axis;
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <100.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
 	wait-for-turn turret around y-axis;
 }
 BoomExtendPickUp13(unitid)
@@ -268,10 +272,10 @@ BoomExtendPickUp13(unitid)
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
 	wait-for-move arm7 along z-axis;
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <100.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
 	wait-for-turn turret around y-axis;
 
 }
@@ -279,96 +283,96 @@ BoomExtendPickUp13(unitid)
 BoomExtendDrop(position)
 {
 //	start-script StartDoorOpen();
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
 	wait-for-turn arm1 around x-axis;	
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed maxDistance;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
 	wait-for-turn turret around y-axis;
 	call-script BoomCalc(position,get GROUND_HEIGHT(position));// + get UNIT_HEIGHT(unitid));
 
 
 
 	move arm2 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
 	wait-for-turn arm1 around x-axis;	
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed maxDistance;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
 	wait-for-turn turret around y-axis;
 	call-script BoomCalc(position,get GROUND_HEIGHT(position));// + get UNIT_HEIGHT(unitid));
 
 	move arm3 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
 	wait-for-turn arm1 around x-axis;	
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed maxDistance;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
 	wait-for-turn turret around y-axis;
 	call-script BoomCalc(position,get GROUND_HEIGHT(position));// + get UNIT_HEIGHT(unitid));
 
 	move arm4 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
 	wait-for-turn arm1 around x-axis;	
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed maxDistance;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
 	wait-for-turn turret around y-axis;
 	call-script BoomCalc(position,get GROUND_HEIGHT(position));// + get UNIT_HEIGHT(unitid));
 
 	move arm5 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
 	wait-for-turn arm1 around x-axis;	
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <70.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
 	wait-for-turn turret around y-axis;
 	call-script BoomCalc(position,get GROUND_HEIGHT(position));// + get UNIT_HEIGHT(unitid));
 
 	move arm6 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
 	wait-for-turn arm1 around x-axis;	
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <70.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
 	wait-for-turn turret around y-axis;
 	call-script BoomCalc(position,get GROUND_HEIGHT(position));// + get UNIT_HEIGHT(unitid));
 
 	move arm7 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
 	wait-for-turn arm1 around x-axis;	
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <70.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
 	wait-for-turn turret around y-axis;
 	call-script BoomCalc(position,get GROUND_HEIGHT(position));// + get UNIT_HEIGHT(unitid));
 
 	wait-for-move arm2 along z-axis;
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
 	wait-for-turn arm1 around x-axis;	
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <70.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
 	wait-for-turn turret around y-axis;
 	call-script BoomCalc(position,get GROUND_HEIGHT(position));// + get UNIT_HEIGHT(unitid));
 
 	wait-for-move arm3 along z-axis;
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
 	wait-for-turn arm1 around x-axis;	
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <70.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
 	wait-for-turn turret around y-axis;
 	call-script BoomCalc(position,get GROUND_HEIGHT(position));// + get UNIT_HEIGHT(unitid));
 
 	wait-for-move arm4 along z-axis;
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
 	wait-for-turn arm1 around x-axis;	
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <70.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
 	wait-for-turn turret around y-axis;
 	call-script BoomCalc(position,get GROUND_HEIGHT(position));// + get UNIT_HEIGHT(unitid));
 
 	wait-for-move arm5 along z-axis;
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
 	wait-for-turn arm1 around x-axis;	
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <70.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
 	wait-for-turn turret around y-axis;
 	call-script BoomCalc(position,get GROUND_HEIGHT(position));// + get UNIT_HEIGHT(unitid));
 
 	wait-for-move arm6 along z-axis;
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
 	wait-for-turn arm1 around x-axis;	
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <70.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
 	wait-for-turn turret around y-axis;
 	call-script BoomCalc(position,get GROUND_HEIGHT(position));// + get UNIT_HEIGHT(unitid));
 
 
 	wait-for-move arm7 along z-axis;
-	turn arm1 to x-axis TurretToUnitAngleX speed <70.000000>;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
 	wait-for-turn arm1 around x-axis;	
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <70.000000>;
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
 	wait-for-turn turret around y-axis;
 	call-script BoomCalc(position,get GROUND_HEIGHT(position));// + get UNIT_HEIGHT(unitid));
 
