@@ -398,6 +398,11 @@ BoomReset()
 	wait-for-move arm7 along z-axis;
 }
 
+BoomUp(){
+	turn arm1 to x-axis <0.000000> speed <25.000000>;
+	
+	wait-for-turn arm1 around x-axis;
+}
 BoomToPad()
 {
 	start-script StartDoorOpen();
@@ -405,12 +410,12 @@ BoomToPad()
 	
 //	wait-for-turn arm1 around x-axis;
 	turn turret to y-axis <0.000000> speed <70.000000>;
-	move arm2 to z-axis [0.000000] speed [15.000000];
-	move arm3 to z-axis [0.000000] speed [15.000000];
-	move arm4 to z-axis [0.000000] speed [15.000000];
-	move arm5 to z-axis [0.000000] speed [15.000000];
-	move arm6 to z-axis [0.000000] speed [15.000000];
-	move arm7 to z-axis [0.000000] speed [15.000000];
+	move arm2 to z-axis [-0.600000] speed [15.000000];
+	move arm3 to z-axis [-0.600000] speed [15.000000];
+	move arm4 to z-axis [-0.600000] speed [15.000000];
+	move arm5 to z-axis [-0.600000] speed [15.000000];
+	move arm6 to z-axis [-0.600000] speed [15.000000];
+	move arm7 to z-axis [-0.600000] speed [15.000000];
 	wait-for-turn turret around y-axis;
 	wait-for-turn arm1 around x-axis;
 	wait-for-move arm2 along z-axis;
@@ -419,7 +424,7 @@ BoomToPad()
 	wait-for-move arm5 along z-axis;
 	wait-for-move arm6 along z-axis;
 	wait-for-move arm7 along z-axis;
-	turn arm1 to x-axis <0.000000> speed <15.000000>;
+	turn arm1 to x-axis <-30.000000> speed <25.000000>;
 	
 	wait-for-turn arm1 around x-axis;
 }
@@ -485,7 +490,7 @@ TransportPickup(unitid)
 
 		attach-unit unitid to base;
 }		
-		
+		call-script BoomUp();
 		call-script BoomReset();
 		call-script	StartDoorClose();
 
