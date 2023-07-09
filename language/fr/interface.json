@@ -33,7 +33,7 @@
 			"tidalspeed": "Vitesse de la marée",
 			"tidalspeedTooltip": "Vitesse de la marée sur la carte (toujours constante)",
 			"windspeed": "Vitesse du vent",
-			"windspeedTooltip": "(les nombres écris en petit sont le minimum et le maximum)\nLa vitesse moyenne du vent sur cette carte est de %{avgWindValue}\nLa fluctuation actuelle est de %{riskWindValue} (pourcentage du temps durant lequel la vitesse du vent sera inférieure à 6)\n%{warnColor}Il est préférable de construire des capteurs solaires lorsque \n la vitesse moyenne du vent est inférieure à 5 (Armada) ou 6 (Cortex)%{warnColor}",
+			"windspeedTooltip": "(les nombres écris en petit sont le minimum et le maximum)\nLa vitesse moyenne du vent sur cette carte est de %{avgWindValue}\nLa fluctuation actuelle est de %{riskWindValue} (pourcentage du temps durant lequel la vitesse du vent sera inférieure à 6)\n%{warnColor}Il est préférable de construire des capteurs solaires lorsque \n%{warnColor}la vitesse moyenne du vent est inférieure à 5 (Armada) ou 6 (Cortex)",
 			"wind": {
 				"nowind1": "Non",
 				"nowind2": "vent"
