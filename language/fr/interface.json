@@ -360,7 +360,7 @@
 			"buildOrders": {
 				"title": "Parcourir les entités",
 				"selectTileKey": "(souris)",
-				"selectTile": "Sélectionnez dans le menu de construction des unités",
+				"selectTile": "Sélectionner depuis menu de construction",
 				"metalKey": "z",
 				"metal": "Parcourir extracteurs de métal",
 				"energyKey": "x",
