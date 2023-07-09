@@ -19,7 +19,7 @@
 			"idleConstructors": "Gardez tous vos constructeurs occupés. \nAppuyez sur CTRL+B pour faire défiler vos constructeurs inactifs.",
 			"insertFactoryQuickBuild": "Si vous avez besoin d'une unité rapidement, sans perturber une file d'attente de construction d'usine, appuyez sur ALT et faites un clic gauche sur l'unité dont vous avez besoin.",
 			"joinDiscord": "Si vous rencontrez un bug, avez une idée géniale ou souhaitez contribuer de quelque manière que ce soit, veuillez rejoindre BAR sur Discord.",
-			"lastCommander": "Vérifiez toujours le compteur du commandant situé à côté des barres de ressources. Si vous avez le dernier commandant, vous feriez mieux de le cacher rapidement !",
+			"lastCommander": "Pensez à garder un œil sur le compteur de commandants encore en lisse, à côté des barres de ressources. \n\nSi vous êtes le dernier commandant, il serait judicieux de vous cacher. Et rapidement.",
 			"lastNotification": "Appuyez sur F3 pour accéder à l'emplacement de la dernière notification ou étiquette d'un coéquipier.",
 			"longRangeUnits": "La plupart des unités à longue portée sont très vulnérables en combat rapproché. Utilisez la commande Combat (F) pour toujours garder une bonne distance de vos cibles.",
 			"mapmarks": "Utilisez Q + double clic gauche pour placer une étiquette avec du texte sur la carte. \nQ + clic du milieu pour une étiquette vide. Q + cliquer-glisser pour tracer des lignes",
