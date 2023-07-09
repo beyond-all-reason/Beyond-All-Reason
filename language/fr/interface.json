@@ -640,8 +640,8 @@
 			"nothingToTake": "Rien à prendre",
 			"lagging": "%{name} est en retard",
 			"resumed": "%{name} a fini de rattraper",
-			"afk": "%{name}est resté inactif",
-			"returned": "%{name} revenu",
+			"afk": "%{name} est maintenant inactif",
+			"returned": "%{name} est revenu",
 			"warning": "Vous êtes inactif, faites vite quelque chose ! (Les autres joueurs pourront bientôt prendre contrôle de vos unités)"
 		},
 		"ffaNoOwner": {
