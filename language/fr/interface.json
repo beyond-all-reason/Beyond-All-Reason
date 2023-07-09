@@ -1019,7 +1019,7 @@
 				"cursorsize_descr": "Noter que le curseur s'ajuste aussi avec la résolution d'écran.\n\nAjuster davantage la taille",
 				"doubleclicktime": "Vitesse double-clic",
 				"doubleclicktime_descr": "Temps en ms entre deux clics gauches consécutifs pour être considéré comme un double clic",
-				"dragthreshold": "Seuil de glissement",
+				"dragthreshold": "Seuil du glissement",
 				"dragthreshold_descr": "Nombre de pixels de distance que la souris doit parcourir pour qu'un clic soit considéré comme un glissement",
 				"crossalpha": "Curseur 'croix' alpha",
 				"crossalpha_descr": "Opacité de l'icône de la souris au centre de l'écran lorsque vous êtes en mode panoramique\n\n(L'icône a un point au centre avec 4 flèches pointant dans toutes les directions)",
