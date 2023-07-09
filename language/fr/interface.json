@@ -348,7 +348,7 @@
 				"revert": "Revenir à l'ordre par défaut",
 				"revertKey": "Clic droit",
 				"formationKey": "Clic droit (glisser)",
-				"formation": "Donner ordre de formation"
+				"formation": "Définir la formation"
 			},
 			"queues": {
 				"title": "Enchaînement d'ordres",
