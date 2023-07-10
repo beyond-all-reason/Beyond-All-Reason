@@ -10,7 +10,7 @@
 			"unkownObjectsDetected": "Des objets non identifiés ont été détectés à proximité...",
 			"classifiedAsScavengers": "Les objets non identifiés sont désormais considérés comme appartenant aux charognards.",
 			"eventCloud": "Alerte ! Nuage charognard en approche.",
-			"dropPodsDetected": "Capsules de largage charognard détectées dans la zone.",
+			"dropPodsDetected": "Capsules de largage de charognards détectées dans la zone.",
 			"droppingUnits": "Les charognards larguent des unités dans notre zone.",
 			"heavyShipsDetected": "Alerte. Navires lourdement armés détectés dans la zone.",
 			"reinforcements":"Renforts de %{player} détecté. Type d'unité:%{unit}",
