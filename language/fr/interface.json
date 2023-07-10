@@ -1039,7 +1039,7 @@
 				"camerasmoothing": "lissage",
 				"camerasmoothness": "fluidité",
 				"camerasmoothness_descr": "Quelle doit être la fluidité des transitions des mouvements de caméra ?",
-				"camerapanspeed": "Vitesse de défilement avec la molette",
+				"camerapanspeed": "Vitesse défil. molette",
 				"camerapanspeed_descr": "Fluidité du déplacement de la caméra",
 				"cameramovespeed": "vitesse de déplacement",
 				"cameramovespeed_descr": "Fluidité du mode caméra libre",
