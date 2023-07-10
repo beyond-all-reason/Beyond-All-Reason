@@ -13,7 +13,7 @@
 			"dropPodsDetected": "Capsules de largage de charognards détectées dans la zone.",
 			"droppingUnits": "Les charognards larguent des unités dans notre zone.",
 			"heavyShipsDetected": "Alerte. Navires lourdement armés détectés dans la zone.",
-			"reinforcements":"Renforts de %{player} détecté. Type d'unité:%{unit}",
+			"reinforcements":"Renforts de %{player} détecté. Type d'unité : %{unit}",
 			"eventMiniboss": "Alerte ! Miniboss détecté.",
 			"eventSwarm": "Attention ! Essaim charognard détecté.",
 			"eventMalfunctions": "Alerte ! Dysfonctionnement de la matrice des charognards détecté.",
