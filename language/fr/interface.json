@@ -561,7 +561,7 @@
 		"scavengers": {
 			"techPercentage": "Agressivité du Boss : %{count} %%",
 			"techPercentageEndless": "Progression technologique : %{count} %%",
-			"techLevel": "Niveau des charognards : %{count}",
+			"techLevel": "Tier des charognards : %{count}",
 			"bossFightCountdown": "Le Boss arrive dans : %{count} secondes",
 			"bossHealth": "Santé du Boss : %{count} %%",
 			"gracePeriod": "Période de paix : %{count} secondes ",
