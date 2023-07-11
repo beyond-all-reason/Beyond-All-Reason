@@ -128,9 +128,9 @@ BoomCalc(posxz, posy)
 {
 	var Func_Var_3, Func_Var_4, Func_Var_5;
 	Func_Var_3 = get PIECE_XZ(turret) - posxz;
-	Func_Var_4 = posy - get PIECE_Y(turret) + [3.2500000];
+	Func_Var_4 = posy - get PIECE_Y(turret);// + [3.2500000];
 	Func_Var_5 = get XZ_HYPOT(Func_Var_3);
-	TurretToUnitDistance = get HYPOT(Func_Var_5,Func_Var_4)  - [5.000000];
+	TurretToUnitDistance = get HYPOT(Func_Var_5,Func_Var_4);  //- [5.000000];
 	TurretToUnitAngleY = get XZ_ATAN(Func_Var_3);
 	TurretToUnitAngleX = get ATAN(Func_Var_4,Func_Var_5);
 	bInDistance = TurretToUnitDistance/65000 < maxDistance/65000; //MAX distance at which a unit is picked up/put down
@@ -155,7 +155,7 @@ BoomExtendPickUp2(unitid)
 {
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid)  + (get UNIT_HEIGHT(unitid)));
-	move arm2 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
+	move arm2 to z-axis -1*TurretToUnitDistance / 7 speed [16.000000];
 	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
@@ -165,7 +165,7 @@ BoomExtendPickUp3(unitid)
 {
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + (get UNIT_HEIGHT(unitid)) );
-	move arm3 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
+	move arm3 to z-axis -1*TurretToUnitDistance / 7 speed [16.000000];
 	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
@@ -175,7 +175,7 @@ BoomExtendPickUp4(unitid)
 {
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + (get UNIT_HEIGHT(unitid)) );
-	move arm4 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
+	move arm4 to z-axis -1*TurretToUnitDistance / 7 speed [16.000000];
 	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
@@ -185,7 +185,7 @@ BoomExtendPickUp5(unitid)
 {
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + (get UNIT_HEIGHT(unitid)) );
-	move arm5 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
+	move arm5 to z-axis -1*TurretToUnitDistance / 7 speed [16.000000];
 	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
@@ -195,7 +195,7 @@ BoomExtendPickUp6(unitid)
 {
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + (get UNIT_HEIGHT(unitid)));
-	move arm6 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
+	move arm6 to z-axis -1*TurretToUnitDistance / 7 speed [16.000000];
 	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
@@ -205,7 +205,7 @@ BoomExtendPickUp7(unitid)
 {
 
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + (get UNIT_HEIGHT(unitid)) );
-	move arm7 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
+	move arm7 to z-axis -1*TurretToUnitDistance / 7 speed [16.000000];
 	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
 	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
@@ -476,9 +476,10 @@ TransportPickup(unitid)
 
 
 	if( TurretToUnitDistance< maxDistance  ){
-		move link to y-axis  [0.000000]- get UNIT_HEIGHT(unitid)*1.5 now;
 
 		attach-unit unitid to link;
+		move link to y-axis  [0.000000] - get UNIT_HEIGHT(unitid) speed  turretSpeed;
+
 	}
 		call-script BoomToPad();
 	if( TurretToUnitDistance< maxDistance ){
