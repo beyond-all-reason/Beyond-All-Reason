@@ -41,7 +41,7 @@ RockOnWaves()
 
 Create()
 {
-	maxDistance= [75.000000];
+	maxDistance= [70.000000];
 	pickUpSpeed=  <200.000000>;
 	dropOffSpeed=  <200.000000>;
 	turretSpeed= <200.000000>;
@@ -508,7 +508,13 @@ TransportPickup(unitid)
 	}		
 		call-script BoomUp();
 		call-script BoomReset();
+	if( TurretToUnitDistance< maxDistance ){
+
+		attach-unit unitid to 0 - 1;
+	}		
+
 		call-script	StartDoorClose();
+
 
 		set BUSY to 0;
 	}
