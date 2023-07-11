@@ -454,44 +454,84 @@ TransportPickup(unitid)
 
 	if(TurretToUnitDistance< maxDistance ){
 		call-script BoomExtendPickup(unitid);
+	}else{
+		call-script BoomReset();
+	return;
 	}
+	
 	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup2(unitid);
+	}else{
+		call-script BoomReset();
+	return;
 	}
 	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup3(unitid);
+	}else{
+		call-script BoomReset();
+	return;
 	}
 	if( TurretToUnitDistance< maxDistance ){
 		call-script BoomExtendPickup4(unitid);
+	}else{
+		call-script BoomReset();
+	return;
 	}
 	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup5(unitid);
+	}else{
+		call-script BoomReset();
+	return;
 	}
 	if( TurretToUnitDistance< maxDistance ){
 		call-script BoomExtendPickup6(unitid);
+	}else{
+		call-script BoomReset();
+	return;
 	}
 	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup7(unitid);
+	}else{
+		call-script BoomReset();
+	return;
 	}
 	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup8(unitid);
+	}else{
+		call-script BoomReset();
+	return;
 	}
 	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup9(unitid);
+	}else{
+		call-script BoomReset();
+	return;
 	}
 	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup10(unitid);
+	}else{
+		call-script BoomReset();
+	return;
 	}
 	if( TurretToUnitDistance< maxDistance ){
 		call-script BoomExtendPickup11(unitid);
+	}else{
+		call-script BoomReset();
+	return;
 	}
 
 	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup12(unitid);
+	}else{
+		call-script BoomReset();
+	return;
 	}
 
 	if( TurretToUnitDistance< maxDistance  ){
 		call-script BoomExtendPickup13(unitid);
+	}else{
+		call-script BoomReset();
+	return;
 	}
 
 
@@ -505,6 +545,9 @@ TransportPickup(unitid)
 	if( TurretToUnitDistance< maxDistance ){
 
 		attach-unit unitid to base;
+	}else{
+		call-script BoomReset();
+	return;
 	}		
 		call-script BoomUp();
 		call-script BoomReset();
