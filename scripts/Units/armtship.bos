@@ -46,7 +46,7 @@ Create()
 	dropOffSpeed=  <200.000000>;
 	turretSpeed= <200.000000>;
 	boomToPadSpeed=[80.000000];
-	boomResetSpeed=[80.000000];
+	boomResetSpeed= [60.000000];
 
 	hide wake;
 	hide link;
@@ -538,8 +538,8 @@ TransportPickup(unitid)
 	if( TurretToUnitDistance< maxDistance  ){
 
 		attach-unit unitid to link;
-		move link to y-axis  [0.000000] -( get UNIT_HEIGHT(unitid)) speed  turretSpeed;
-
+		move link to y-axis  [0.000000] -( get UNIT_HEIGHT(unitid)) speed  [100.000000];
+		wait-for-move link along y-axis;
 	}
 		call-script BoomToPad();
 	if( TurretToUnitDistance< maxDistance ){
@@ -552,6 +552,9 @@ TransportPickup(unitid)
 		call-script BoomUp();
 		call-script BoomReset();
 	if( TurretToUnitDistance< maxDistance ){
+
+//		move link to y-axis  [0.000000] -( get UNIT_HEIGHT(unitid)*3) speed  <30.000000>;
+//		wait-for-move link along y-axis;
 
 		attach-unit unitid to 0 - 1;
 	}		
