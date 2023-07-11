@@ -549,15 +549,18 @@ TransportPickup(unitid)
 		call-script BoomReset();
 	return;
 	}		
-		call-script BoomUp();
-		call-script BoomReset();
 	if( TurretToUnitDistance< maxDistance ){
 
 //		move link to y-axis  [0.000000] -( get UNIT_HEIGHT(unitid)*3) speed  <30.000000>;
 //		wait-for-move link along y-axis;
 
 		attach-unit unitid to 0 - 1;
-	}		
+	}
+
+
+		call-script BoomUp();
+		call-script BoomReset();
+		
 
 		call-script	StartDoorClose();
 
@@ -565,6 +568,37 @@ TransportPickup(unitid)
 		set BUSY to 0;
 	}
 }
+
+BeginTransport(Func_Var_1)
+{
+//the unit stops moving.
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+EndTransport()
+{
+//the unit moves away from the drop zone
+
+
+
+}
+
 
 TransportDrop(unitid, position)
 {
