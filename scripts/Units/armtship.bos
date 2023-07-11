@@ -376,7 +376,7 @@ BoomReset()
 //	turn arm1 to x-axis <0.000000> speed <60.000000>;
 //	wait-for-turn arm1 around x-axis;
 	turn turret to y-axis <0.000000> speed <70.000000>;
-//	wait-for-turn turret around y-axis;
+	wait-for-turn turret around y-axis;
 	move arm2 to z-axis [0.000000] speed boomResetSpeed;
 	wait-for-move arm2 along z-axis;
 	move arm3 to z-axis [0.000000] speed boomResetSpeed;
@@ -403,7 +403,7 @@ BoomToPad()
 
 	
 	turn turret to y-axis <0.000000> speed <70.000000>;
-//	wait-for-turn turret around y-axis;
+	wait-for-turn turret around y-axis;
 
 	move arm2 to z-axis [-0.600000] speed boomResetSpeed;
 	wait-for-move arm2 along z-axis;
@@ -478,7 +478,7 @@ TransportPickup(unitid)
 	if( TurretToUnitDistance< maxDistance  ){
 
 		attach-unit unitid to link;
-		move link to y-axis  [0.000000] - get UNIT_HEIGHT(unitid) speed  turretSpeed;
+		move link to y-axis  [0.000000] -( get UNIT_HEIGHT(unitid)) speed  turretSpeed;
 
 	}
 		call-script BoomToPad();
@@ -502,6 +502,8 @@ TransportDrop(unitid, position)
 		set BUSY to 1;
 		call-script BoomToPad();
 		move link to y-axis 0- get UNIT_HEIGHT(unitid) now;
+//		move link to y-axis 0- get UNIT_WIDTH(unitid) now;
+
 		attach-unit unitid to link;
 	
 		call-script BoomExtendDrop(position,unitid);
