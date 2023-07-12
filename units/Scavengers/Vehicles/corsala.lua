@@ -165,18 +165,14 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				damage = {
-					bombers = 4.7,
 					default = 10, --109
-					fighters = 4.7,
-					vtol = 4.7,
 				},
 			},
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
 				def = "cor_heat_laser",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},
