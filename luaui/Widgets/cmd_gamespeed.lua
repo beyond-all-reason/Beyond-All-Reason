@@ -28,10 +28,17 @@ local speedLevels = {
 	20,
 }
 
-local function setGameSpeed(speed)
-	if Spring.IsCheatingEnabled() then
-		Spring.SendCommands("setspeed " .. speed)
+local SpGetGameSpeed = Spring.GetGameSpeed
+function widget:GameFrame(f)
+	if SpGetGameSpeed() ~= 1 then
+		if not Spring.IsCheatingEnabled() and not Spring.IsReplay() then 
+			Spring.SendCommands("setspeed 1")
+		end
 	end
+end
+
+local function setGameSpeed(speed)
+	Spring.SendCommands("setspeed " .. speed)
 end
 
 local function increaseSpeed()
