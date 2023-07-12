@@ -34,7 +34,7 @@ return {
 		selfdestructas = "smallMex",
 		selfdestructcountdown = 1,
 		sightdistance = 273,
-    yardmap = "h yyyyyyyy yooooooy yobbbboy yobooboy yobooboy yobbbboy yooooooy yyyyyyyy",
+		yardmap = "h cccccccc csyssysc cybyobyc csoccysc csyccosc cyboybyc csyssysc cccccccc",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/cormex_aoplane.dds",
