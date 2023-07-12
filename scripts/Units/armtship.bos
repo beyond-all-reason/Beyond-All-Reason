@@ -43,6 +43,8 @@ FocusPickUp(unitid){
 					
 					turn arm1 to x-axis <-1.000000> speed <60.000000>;
 					wait-for-turn arm1 around x-axis;				
+					sleep 1000; 
+			get PRINT(7,7,7,7);
 					
 					}
 
@@ -51,8 +53,6 @@ FocusPickUp(unitid){
 				
 				//Now move the boom above the actual center of the unit.
 //				call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + (get UNIT_HEIGHT(unitid)) );
-
-
 
 				while( get UNIT_XZ(unitid) != get PIECE_XZ(magnet)){
 			
@@ -87,6 +87,8 @@ FocusPickUp(unitid){
 
 		//		sleep 100;
 				}
+
+
 		
 		get PRINT(3,3,3,3);
 
@@ -216,7 +218,7 @@ BoomCalc(posxz, posy)
 	Func_Var_3 = get PIECE_XZ(turret) - posxz;
 	Func_Var_4 = posy - get PIECE_Y(turret);// + [3.2500000];
 	Func_Var_5 = get XZ_HYPOT(Func_Var_3);
-	TurretToUnitDistance = get HYPOT(Func_Var_5,Func_Var_4);  //- [5.000000];
+	TurretToUnitDistance = get HYPOT(Func_Var_5,Func_Var_4)  - [5.000000];
 	TurretToUnitAngleY = get XZ_ATAN(Func_Var_3);
 	TurretToUnitAngleX = get ATAN(Func_Var_4,Func_Var_5);
 	bInDistance = TurretToUnitDistance/65000 < maxDistance/65000; //MAX distance at which a unit is picked up/put down
@@ -630,10 +632,14 @@ TransportPickup(unitid)
 
 
 	if( TurretToUnitDistance< maxDistance  ){
-	//		call-script FocusPickUp(unitid);
+			call-script FocusPickUp(unitid);
 		attach-unit unitid to link;
 
 	}
+
+
+		set BUSY to 0;
+		return;
 
 		call-script BoomToPad();
 	if( TurretToUnitDistance< maxDistance ){
