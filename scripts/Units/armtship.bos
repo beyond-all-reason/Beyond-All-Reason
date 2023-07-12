@@ -23,42 +23,72 @@ static-var  Static_Var_1, TurretToUnitDistance, TurretToUnitAngleY, TurretToUnit
 
 FocusPickUp(unitid){
 
+			get PRINT(6,6,6,6);
+
 //while the stupid link does not match the x/y of the unit, move the boom appropriately.
 			var diffBetweenY;diffBetweenY=get UNIT_Y(unitid) - get PIECE_Y(link);
 
-			var segment;segment = diffBetweenY/100;
-				while(get UNIT_Y(unitid) != get PIECE_Y(link) )
+			var segment;segment = <0.01>;
+
+
+
+				while(get UNIT_Y(unitid) != get PIECE_Y(magnet) )
 				{
-					//if the unit is lower than the y, move the link to it
-				move link to y-axis  get PIECE_Y(link) - segment speed <200.000000>;
-				sleep 100;
+				
+					//Move the boom up or down to get the right height;
+					if(get UNIT_Y(unitid) > get PIECE_Y(magnet) ){
+					turn arm1 to x-axis <1.000000> speed <60.000000>;
+					wait-for-turn arm1 around x-axis;				
+					}else{
+					
+					turn arm1 to x-axis <-1.000000> speed <60.000000>;
+					wait-for-turn arm1 around x-axis;				
+					
+					}
+
 				}
 		
-				while( get UNIT_XZ(unitid) != get PIECE_XZ(link)){
-			
-			
-				var	link_z;link_z = ( get PIECE_XZ(link) & 0x0000ffff); // silly unpack
-				var	link_x;link_x = ( get PIECE_XZ(link) & 0xffff0000) / 0x00010000; // yes this works
-				var	unit_z;unit_z = ( get UNIT_XZ(unitid) & 0x0000ffff); // silly unpack
-				var	unit_x;unit_x = ( get UNIT_XZ(unitid) & 0xffff0000) / 0x00010000; // yes this works
+				
+				//Now move the boom above the actual center of the unit.
+//				call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + (get UNIT_HEIGHT(unitid)) );
 
-					if(unit_z == link_x)
+
+
+				while( get UNIT_XZ(unitid) != get PIECE_XZ(magnet)){
+			
+			
+					var	link_z;link_z = ( get PIECE_XZ(link) & 0x0000ffff); // silly unpack
+					var	link_x;link_x = ( get PIECE_XZ(link) & 0xffff0000) / 0x00010000; // yes this works
+					var	unit_z;unit_z = ( get UNIT_XZ(unitid) & 0x0000ffff); // silly unpack
+					var	unit_x;unit_x = ( get UNIT_XZ(unitid) & 0xffff0000) / 0x00010000; // yes this works
+
+					if(unit_x == link_x)
 					{
 					}else{
-						move link to x-axis  link_x - segment speed <200.000000>;
+						if(unit_x>link_x){
+							move arm1 to x-axis  link_x + segment speed <200.000000>;
+					}else{
+							move arm1 to x-axis  link_x - segment speed <200.000000>;
+						}
 					}
 		
 					if(unit_z == link_z)
 					{
 					}else{
-						move link to z-axis  link_z - segment speed <200.000000>;
+					
+						if(unit_z>link_z){					
+							move arm1 to z-axis  link_z + segment speed <200.000000>;
+						}else{
+							move arm1 to z-axis  link_z - segment speed <200.000000>;
+						}
+
 					}
 
 
-				sleep 100;
+		//		sleep 100;
 				}
 		
-		attach-unit unitid to link;
+		get PRINT(3,3,3,3);
 
 }
 
@@ -600,7 +630,9 @@ TransportPickup(unitid)
 
 
 	if( TurretToUnitDistance< maxDistance  ){
-		call-script FocusPickUp(unitid);
+	//		call-script FocusPickUp(unitid);
+		attach-unit unitid to link;
+
 	}
 
 		call-script BoomToPad();
