@@ -45,7 +45,7 @@ Create()
 	pickUpSpeed=  <200.000000>;
 	dropOffSpeed=  <140.000000>;
 	turretSpeed= <200.000000>;
-	boomToPadSpeed= [15.000000];
+	boomToPadSpeed= [8.000000];
 	boomResetSpeed= [60.000000];
 
 	hide wake;
@@ -442,11 +442,11 @@ BoomToPad()
 	move arm6 to z-axis [-0.600000] speed boomToPadSpeed;
 //	wait-for-move arm6 along z-axis;
 	move arm7 to z-axis [-0.600000] speed boomToPadSpeed;
-//	wait-for-move arm7 along z-axis;
+	wait-for-move arm7 along z-axis;
 	
 	
 	
-	turn arm1 to x-axis <-20.000000> speed <50.000000>;
+	turn arm1 to x-axis <-25.000000> speed <60.000000>;
 	wait-for-turn arm1 around x-axis;
 }
 
