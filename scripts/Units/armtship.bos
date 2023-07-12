@@ -19,6 +19,29 @@ static-var  Static_Var_1, TurretToUnitDistance, TurretToUnitAngleY, TurretToUnit
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
+
+
+FocusPickUp(){
+
+//while the stupid link does not match the x/y of the unit, move the boom appropriately.
+
+
+
+
+
+}
+
+
+FocusDropOff(){
+
+//while the stupid link does not match the x/y of the unit, move the boom appropriately.
+
+
+
+
+
+}
+
 RockOnWaves()
 {
 	var rockDir, rockAng, rockSpeed;
@@ -422,8 +445,9 @@ BoomToPad()
 
 	
 	turn turret to y-axis <0.000000> speed <70.000000>;
-//	wait-for-turn turret around y-axis;
-     	call-script StartDoorOpen();
+//
+	wait-for-turn turret around y-axis;
+    call-script StartDoorOpen();
 
 
 	
@@ -543,6 +567,7 @@ TransportPickup(unitid)
 
 
 	if( TurretToUnitDistance< maxDistance  ){
+		call-script FocusPickUp(unitid);
 
 		attach-unit unitid to link;
 		move link to y-axis  [0.000000] -( get UNIT_HEIGHT(unitid)) speed  [100.000000];
@@ -559,24 +584,38 @@ TransportPickup(unitid)
 	return;
 	}		
 	if( TurretToUnitDistance< maxDistance ){
-
-//		move link to y-axis  [0.000000] -( get UNIT_HEIGHT(unitid)*3) speed  <30.000000>;
-//		wait-for-move link along y-axis;
-
 		attach-unit unitid to 0 - 1;
 	}
 
+		start-script	StartDoorClose();
 
-		call-script BoomUp();
-		call-script BoomReset();
+		start-script BoomUp();
+		start-script BoomReset();
 		
 
-		call-script	StartDoorClose();
 
 
 		set BUSY to 0;
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 BeginTransport(Func_Var_1)
 {
@@ -621,7 +660,7 @@ TransportDrop(unitid, position)
 
 		move link to y-axis 0- get UNIT_HEIGHT(unitid) now;
 //		move link to y-axis 0- get UNIT_WIDTH(unitid) now;
-
+		call-script FocusDropOff(unitid);
 		attach-unit unitid to link;
 	
 		call-script BoomExtendDrop(position,unitid);
