@@ -53,18 +53,35 @@ local function hasMexUnderneat(unitID)
 	local units = Spring.GetUnitsInCylinder(x, z, 10)
 	for k, uID in ipairs(units) do
 		if isT1Mex[Spring.GetUnitDefID(uID)] then
-			return uID
+			if unitID ~= uID then
+				return uID
+			end
 		end
 	end
 	return false
 end
 
 local function hasT15MexUnderneat(unitID)
+    local x, _, z = Spring.GetUnitPosition(unitID)
+    local units = Spring.GetUnitsInCylinder(x, z, 10)
+    for k, uID in ipairs(units) do
+        if isT15Mex[Spring.GetUnitDefID(uID)] then
+            if unitID ~= uID then
+                return uID
+            end
+        end
+    end
+    return false
+end
+
+local function hasT2MexUnderneat(unitID)
 	local x, _, z = Spring.GetUnitPosition(unitID)
 	local units = Spring.GetUnitsInCylinder(x, z, 10)
 	for k, uID in ipairs(units) do
-		if isT15Mex[Spring.GetUnitDefID(uID)] then
-			return uID
+        if isT2Mex[Spring.GetUnitDefID(uID)] then
+			if unitID ~= uID then
+				return uID
+			end
 		end
 	end
 	return false
@@ -72,34 +89,38 @@ end
 
 -- make t1 mex below unselectable
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	if isT2Mex[unitDefID] then
-		local t1Mex = hasMexUnderneat(unitID)
-		local t15Mex = hasT15MexUnderneat(unitID)
-		if t1Mex then
-			Spring.SetUnitNoSelect(t1Mex, true)
-		elseif t15Mex then
-			Spring.SetUnitNoSelect(t15Mex, true)
-		end
+	local t1Mex = hasMexUnderneat(unitID)
+	local t15Mex = hasT15MexUnderneat(unitID)
+	local t2Mex = hasT2MexUnderneat(unitID)
+    if t1Mex then
+		Spring.SetUnitNoSelect(t1Mex, true)
+    elseif t15Mex then
+		Spring.SetUnitNoSelect(t15Mex, true)
+    elseif t2Mex then
+		Spring.SetUnitNoSelect(t2Mex, true)
 	end
 end
 
 -- make t1 mex below selectable again
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-	if isT2Mex[unitDefID] then
-		local t1Mex = hasMexUnderneat(unitID)
-		local t15Mex = hasT15MexUnderneat(unitID)
-		if t1Mex then
-			Spring.SetUnitNoSelect(t1Mex, false)
-		elseif t15Mex then
-			Spring.SetUnitNoSelect(t15Mex, false)
-		end
+	local t1Mex = hasMexUnderneat(unitID)
+	local t15Mex = hasT15MexUnderneat(unitID)
+	local t2Mex = hasT2MexUnderneat(unitID)
+	if t1Mex then
+		Spring.SetUnitNoSelect(t1Mex, false)
+	elseif t15Mex then
+		Spring.SetUnitNoSelect(t15Mex, false)
+	elseif t2Mex then
+		Spring.SetUnitNoSelect(t2Mex, false)
 	end
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+    Spring.SetUnitCOBValue(unitID, COB.YARD_OPEN, 1)
 	if isT2Mex[unitDefID] then
 		local t1Mex = hasMexUnderneat(unitID)
 		local t15Mex = hasT15MexUnderneat(unitID)
+		local t2Mex = hasT2MexUnderneat(unitID)
 		if t1Mex then
 			local t1MexTeamID = Spring.GetUnitTeam(t1Mex)
 			Spring.DestroyUnit(t1Mex, false, true)
@@ -116,9 +137,29 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 				_G.transferredUnits[unitID] = Spring.GetGameFrame()
 				Spring.TransferUnit(unitID, t15MexTeamID)
 			end
+		elseif t2Mex then
+			local t2MexTeamID = Spring.GetUnitTeam(t2Mex)
+			Spring.DestroyUnit(t2Mex, false, true)
+			Spring.AddTeamResource(unitTeam, "metal", isT2Mex[Spring.GetUnitDefID(t2Mex)])
+			if t2MexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(t2MexTeamID, false)) then -- and Spring.AreTeamsAllied(t1MexTeamID, unitTeam) then
+				_G.transferredUnits[unitID] = Spring.GetGameFrame()
+				Spring.TransferUnit(unitID, t2MexTeamID)
+			end
 		end
 	elseif isT15Mex[unitDefID] then
 		local t1Mex = hasMexUnderneat(unitID)
+		if t1Mex then
+			local t1MexTeamID = Spring.GetUnitTeam(t1Mex)
+			Spring.DestroyUnit(t1Mex, false, true)
+			Spring.AddTeamResource(unitTeam, "metal", isT1Mex[Spring.GetUnitDefID(t1Mex)])
+			if t1MexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(t1MexTeamID, false)) then -- and Spring.AreTeamsAllied(t1MexTeamID, unitTeam) then
+				_G.transferredUnits[unitID] = Spring.GetGameFrame()
+				Spring.TransferUnit(unitID, t1MexTeamID)
+			end
+		end
+	elseif isT1Mex[unitDefID] then
+		local t1Mex = hasMexUnderneat(unitID)
+		local t15Mex = hasT15MexUnderneat(unitID)
 		if t1Mex then
 			local t1MexTeamID = Spring.GetUnitTeam(t1Mex)
 			Spring.DestroyUnit(t1Mex, false, true)
