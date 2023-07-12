@@ -24,8 +24,9 @@ static-var  Static_Var_1, TurretToUnitDistance, TurretToUnitAngleY, TurretToUnit
 FocusPickUp(unitid){
 
 //while the stupid link does not match the x/y of the unit, move the boom appropriately.
-			var diffBetweenY=get UNIT_Y(unitid) - get PIECE_Y(link);
-			var segment = diffBetweenY/100;
+			var diffBetweenY;diffBetweenY=get UNIT_Y(unitid) - get PIECE_Y(link);
+
+			var segment;segment = diffBetweenY/100;
 				while(get UNIT_Y(unitid) != get PIECE_Y(link) )
 				{
 					//if the unit is lower than the y, move the link to it
@@ -36,17 +37,21 @@ FocusPickUp(unitid){
 				while( get UNIT_XZ(unitid) != get PIECE_XZ(link)){
 			
 			
-				var	link_z = ( get PIECE_XZ(link) & 0x0000ffff); // silly unpack
-				var	link_x = ( get PIECE_XZ(link) & 0xffff0000) / 0x00010000; // yes this works
-				var	unit_z = ( get UNIT_XZ(unitid) & 0x0000ffff); // silly unpack
-				var	unit_x = ( get UNIT_XZ(unitid) & 0xffff0000) / 0x00010000; // yes this works
+				var	link_z;link_z = ( get PIECE_XZ(link) & 0x0000ffff); // silly unpack
+				var	link_x;link_x = ( get PIECE_XZ(link) & 0xffff0000) / 0x00010000; // yes this works
+				var	unit_z;unit_z = ( get UNIT_XZ(unitid) & 0x0000ffff); // silly unpack
+				var	unit_x;unit_x = ( get UNIT_XZ(unitid) & 0xffff0000) / 0x00010000; // yes this works
 
-					if(unit_z!=linkz){
-						move link to x-axis  get PIECE_Y(link) - segment speed <200.000000>;
+					if(unit_z == link_x)
+					{
+					}else{
+						move link to x-axis  link_x - segment speed <200.000000>;
 					}
 		
-					if(unit_z!=linkz){
-						move link to z-axis  get PIECE_Y(link) - segment speed <200.000000>;
+					if(unit_z == link_z)
+					{
+					}else{
+						move link to z-axis  link_z - segment speed <200.000000>;
 					}
 
 
@@ -61,6 +66,8 @@ FocusPickUp(unitid){
 FocusDropOff(){
 
 //while the stupid link does not match the x/y of the unit, move the boom appropriately.
+
+
 
 
 
