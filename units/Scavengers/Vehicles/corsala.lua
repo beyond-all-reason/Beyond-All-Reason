@@ -153,7 +153,7 @@ return {
 				impulsefactor = 0,
 				name = "HeatRay",
 				noselfdamage = true,
-				range = 440,
+				range = 350,
 				reloadtime = 0.7,
 				rgbcolor = "1 0.8 0",
 				rgbcolor2 = "0.8 0 0",
@@ -166,7 +166,7 @@ return {
 				weapontype = "BeamLaser",
 				damage = {
 					bombers = 4.7,
-					default = 8.25, --109
+					default = 10, --109
 					fighters = 4.7,
 					vtol = 4.7,
 				},
