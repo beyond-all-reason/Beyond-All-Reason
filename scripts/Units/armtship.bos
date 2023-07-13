@@ -23,6 +23,50 @@ static-var  Static_Var_1, TurretToUnitDistance, TurretToUnitAngleY, TurretToUnit
 
 FocusPickUp(unitid){
 
+	var	link_z;link_z = ( get PIECE_XZ(link) & 0x0000ffff); // silly unpack
+	var	link_x;link_x = ( get PIECE_XZ(link) & 0xffff0000) / 0x00010000; // yes this works
+
+	var	unit_z;unit_z = ( get UNIT_XZ(unitid) & 0x0000ffff); // silly unpack
+	var	unit_x;unit_x = ( get UNIT_XZ(unitid) & 0xffff0000) / 0x00010000; // yes this works
+
+			if(get UNIT_Y(unitid) > get PIECE_Y(magnet)){
+				while(get UNIT_Y(unitid) > get PIECE_Y(magnet) )
+				{
+					//Move the boom up or down to get the right height;
+					var x1;
+					x1 = arm1 current x-axis;
+					turn arm1 to x-axis <1.000000> speed <60.000000>;
+					wait-for-turn arm1 around x-axis;				
+					
+				}
+
+			}
+
+	attach-unit unitid to link;
+
+
+// Move the link to the unit.
+// Slowly Retract The Link;
+
+
+
+return;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 			get PRINT(6,6,6,6);
 
 //while the stupid link does not match the x/y of the unit, move the boom appropriately.
@@ -32,23 +76,7 @@ FocusPickUp(unitid){
 
 
 
-				while(get UNIT_Y(unitid) != get PIECE_Y(magnet) )
-				{
-				
-					//Move the boom up or down to get the right height;
-					if(get UNIT_Y(unitid) > get PIECE_Y(magnet) ){
-					turn arm1 to x-axis <1.000000> speed <60.000000>;
-					wait-for-turn arm1 around x-axis;				
-					}else{
-					
-					turn arm1 to x-axis <-1.000000> speed <60.000000>;
-					wait-for-turn arm1 around x-axis;				
-					sleep 1000; 
-			get PRINT(7,7,7,7);
-					
-					}
 
-				}
 		
 				
 				//Now move the boom above the actual center of the unit.
@@ -56,12 +84,7 @@ FocusPickUp(unitid){
 
 				while( get UNIT_XZ(unitid) != get PIECE_XZ(magnet)){
 			
-			
-					var	link_z;link_z = ( get PIECE_XZ(link) & 0x0000ffff); // silly unpack
-					var	link_x;link_x = ( get PIECE_XZ(link) & 0xffff0000) / 0x00010000; // yes this works
-					var	unit_z;unit_z = ( get UNIT_XZ(unitid) & 0x0000ffff); // silly unpack
-					var	unit_x;unit_x = ( get UNIT_XZ(unitid) & 0xffff0000) / 0x00010000; // yes this works
-
+		
 					if(unit_x == link_x)
 					{
 					}else{
@@ -633,8 +656,7 @@ TransportPickup(unitid)
 
 	if( TurretToUnitDistance< maxDistance  ){
 			call-script FocusPickUp(unitid);
-		attach-unit unitid to link;
-
+	
 	}
 
 
