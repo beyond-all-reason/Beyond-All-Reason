@@ -37,7 +37,7 @@ if(get UNIT_HEIGHT(unitid)>1700000){
 //
 		move link to y-axis 0-  get UNIT_HEIGHT(unitid)*2.5 now;
 
-//	wait-for-turn link around y-axis;	
+	wait-for-turn link around y-axis;	
 
 
 }else{
@@ -51,14 +51,24 @@ if(get UNIT_HEIGHT(unitid)>1700000){
 }
 
 
-FocusDropOff(){
+FocusDropOff(unitid,position){
 
 //while the stupid link does not match the x/y of the unit, move the boom appropriately.
+var yDiff;
+yDiff=get UNIT_Y(unitid)- get GROUND_HEIGHT(position);
 
 
+if(get UNIT_HEIGHT(unitid)>1700000){
 
+		move link to y-axis 0-  get UNIT_HEIGHT(unitid)+yDiff speed [25.000000];
+		wait-for-move link along y-axis;
 
+		
+}else{
+		move link to y-axis 0-  get UNIT_HEIGHT(unitid)+yDiff speed [25.000000];
+		wait-for-move link along y-axis;
 
+}
 
 
 }
@@ -93,7 +103,7 @@ Create()
 	boomResetSpeed= [120.000000];
 
 	hide wake;
-//.	hide link;
+	//hide link;
 	hide ground;
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -211,7 +221,7 @@ if(get UNIT_HEIGHT(unitid)>1700000){
 
 	Func_Var_4 = posy - get PIECE_Y(turret) + [4.5000000];
 }else{
-	Func_Var_4 = posy - get PIECE_Y(turret) +[4.500000];//- [3.0000000];
+	Func_Var_4 = posy - get PIECE_Y(turret)- [3.0000000];
 
 }
 
@@ -497,7 +507,7 @@ BoomToPad(unitid)
 if(get UNIT_HEIGHT(unitid)>1700000){
 get PRINT(77777);
 
-		move link to y-axis   <0.000000> speed <100.00000>;
+		move link to y-axis 0 speed <100.00000>;
 //	wait-for-move link along y-axis;
 
 }	
@@ -708,11 +718,12 @@ TransportDrop(unitid, position)
 
 		move link to y-axis 0- get UNIT_HEIGHT(unitid) now;
 //		move link to y-axis 0- get UNIT_WIDTH(unitid) now;
-		call-script FocusDropOff(unitid);
+//		call-script FocusDropOff(unitid);
 		attach-unit unitid to link;
 	
 		call-script BoomExtendDrop(position,unitid);
 		call-script	StartDoorClose();
+		call-script FocusDropOff(position);
 		drop-unit unitid;
 		call-script BoomReset();
 	
