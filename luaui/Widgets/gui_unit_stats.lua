@@ -749,7 +749,7 @@ local function drawStats(uDefID, uID)
 	end
 
 	if totaldps > 0 then
-		DrawText(texts.totaldmg..':', texts.dps.." = "..(format(yellow .. "%d", totaldps))..'; '..white..texts.burst.." = "..(format(yellow .. "%d", totalbDamages))..white..".")
+		DrawText(texts.totaldmg..':', texts.dps.." = "..(format(yellow .. "%d", totaldps))..white..'; '..texts.burst.." = "..(format(yellow .. "%d", totalbDamages))..white..".")
 		cY = cY - fontSize
 	end
 
