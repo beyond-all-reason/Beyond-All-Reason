@@ -109,7 +109,7 @@ local dlistGuishader, dlistGuishader2, lastStart
 local widgetScale = (vsy / 1080)
 
 local allowuserwidgets = true
-if not Spring.GetModOptions().allowuserwidgets then
+if not Spring.GetModOptions().allowuserwidgets and not Spring.IsReplay() then
 	allowuserwidgets = false
 	buttons[3] = ''
 end
