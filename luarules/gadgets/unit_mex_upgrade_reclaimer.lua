@@ -116,8 +116,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-    Spring.SetUnitCOBValue(unitID, COB.YARD_OPEN, 1)
 	if isT2Mex[unitDefID] then
+		Spring.SetUnitCOBValue(unitID, COB.YARD_OPEN, 1)
 		local t1Mex = hasMexUnderneat(unitID)
 		local t15Mex = hasT15MexUnderneat(unitID)
 		local t2Mex = hasT2MexUnderneat(unitID)
@@ -147,6 +147,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			end
 		end
 	elseif isT15Mex[unitDefID] then
+		Spring.SetUnitCOBValue(unitID, COB.YARD_OPEN, 1)
 		local t1Mex = hasMexUnderneat(unitID)
 		if t1Mex then
 			local t1MexTeamID = Spring.GetUnitTeam(t1Mex)
@@ -158,6 +159,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			end
 		end
 	elseif isT1Mex[unitDefID] then
+		Spring.SetUnitCOBValue(unitID, COB.YARD_OPEN, 1)
 		local t1Mex = hasMexUnderneat(unitID)
 		local t15Mex = hasT15MexUnderneat(unitID)
 		if t1Mex then
