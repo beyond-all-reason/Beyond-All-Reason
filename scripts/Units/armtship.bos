@@ -32,18 +32,34 @@ FocusPickUp(unitid){
 
 //	var	unit_z;unit_z = ( get UNIT_XZ(unitid) & 0x0000ffff); // silly unpack
 //	var	unit_x;unit_x = ( get UNIT_XZ(unitid) & 0xffff0000) / 0x00010000; // yes this works
-if(get UNIT_HEIGHT(unitid)>1700000){
-		move link to z-axis   get UNIT_HEIGHT(unitid) now;
-//
-		move link to y-axis 0-  get UNIT_HEIGHT(unitid)*2.5 now;
 
-	wait-for-turn link around y-axis;	
+	var link_y;link_y = get PIECE_Y(link);
+	var unit_y;unit_y = get UNIT_Y(unitid);	
+	
+	
+	var diffMe;
+		diffMe = link_y - unit_y;
+
+		get PRINT(diffMe,link_y,unit_y):
+	
+	
+	
+	
+if(get UNIT_HEIGHT(unitid)>1700000){
+//		move link to z-axis   get UNIT_HEIGHT(unitid)  speed [25.000000];
+//
+	//	move link to y-axis 0- diffMe  speed [25.000000];
+	//	wait-for-move link along y-axis;	
 
 
 }else{
-		move link to y-axis 0-  get UNIT_HEIGHT(unitid) now;
+		get PRINT(9,9,9,9):
+
+		move link to y-axis 0- diffMe  speed [25.000000];
+	wait-for-move link along y-axis;	
 
 }
+
 
 		attach-unit unitid to link;
 
@@ -55,17 +71,19 @@ FocusDropOff(unitid,position){
 
 //while the stupid link does not match the x/y of the unit, move the boom appropriately.
 var yDiff;
-yDiff=get UNIT_Y(unitid)- get GROUND_HEIGHT(position);
+yDiff=get UNIT_Y(unitid)-(get GROUND_HEIGHT(position)+ get UNIT_HEIGHT(unitid));
 
 
 if(get UNIT_HEIGHT(unitid)>1700000){
 
-		move link to y-axis 0-  get UNIT_HEIGHT(unitid)+yDiff speed [25.000000];
+		move link to y-axis 0-  (yDiff) speed [25.000000];
 		wait-for-move link along y-axis;
 
 		
 }else{
-		move link to y-axis 0-  get UNIT_HEIGHT(unitid)+yDiff speed [25.000000];
+
+yDiff = yDiff - 3.5;
+		move link to y-axis (yDiff) speed [25.000000];
 		wait-for-move link along y-axis;
 
 }
@@ -219,9 +237,9 @@ GroundCalc(posxz, posy,unitid)
 	Func_Var_3 = get PIECE_XZ(turret) - posxz;
 if(get UNIT_HEIGHT(unitid)>1700000){
 
-	Func_Var_4 = posy - get PIECE_Y(turret) + [4.5000000];
+	Func_Var_4 = posy - (get PIECE_Y(turret) + [4.5000000]);
 }else{
-	Func_Var_4 = posy - get PIECE_Y(turret)- [3.0000000];
+	Func_Var_4 = posy - (get PIECE_Y(turret)- [3.0000000]);
 
 }
 
