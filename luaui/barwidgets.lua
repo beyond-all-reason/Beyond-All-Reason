@@ -50,7 +50,7 @@ if anonymousMode ~= "disabled" then
 	Spring.SetTeamColor = function() return true end
 end
 
-if Spring.IsReplay() then
+if Spring.IsReplay() or Spring.GetSpectatingState() then
 	allowuserwidgets = true
 end
 
@@ -436,7 +436,7 @@ end
 
 function widgetHandler:LoadWidget(filename, fromZip)
 	local basename = Basename(filename)
-	local text = VFS.LoadFile(filename, (self.allowUserWidgets and allowuserwidgets) and VFS.RAW or VFS.ZIP)
+	local text = VFS.LoadFile(filename, (self.allowUserWidgets and allowuserwidgets) and nil or VFS.ZIP)
 	if text == nil then
 		Spring.Echo('Failed to load: ' .. basename .. '  (missing file: ' .. filename .. ')')
 		return nil
