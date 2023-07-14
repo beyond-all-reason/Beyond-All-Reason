@@ -831,6 +831,14 @@ local isOffscreen = false
 local isOffscreenTime
 local prevOffscreenVolume
 local apiUnitTrackerEnabledCount = 0
+
+function resetUserVolume()
+	if prevOffscreenVolume then
+		Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume)
+		prevOffscreenVolume = nil
+	end
+end
+
 function widget:Update(dt)
 	cursorBlinkTimer = cursorBlinkTimer + dt
 	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
@@ -865,7 +873,7 @@ function widget:Update(dt)
 				if isOffscreen then
 					Spring.SetConfigInt("snd_volmaster", 0)
 				else
-					Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume)
+					resetUserVolume()
 				end
 			end
 		end
@@ -2970,6 +2978,17 @@ function init()
 			  elseif value == 5 then
 				  Spring.SendCommands('viewfree')
 			  end
+			  init()
+		  end,
+		},
+		{ id = "springcamheightmode", group = "control", category = types.advanced, name = widgetOptionColor .. "     " .. Spring.I18N('ui.settings.option.springcamheightmode'), type = "select", options = { Spring.I18N('ui.settings.option.constant'), Spring.I18N('ui.settings.option.terrain'), Spring.I18N('ui.settings.option.smooth')}, value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 0) + 1, description = Spring.I18N('ui.settings.option.springcamheightmode_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("CamSpringTrackMapHeightMode", value - 1)
+		  end,
+		},
+		{ id = "mincamheight", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.mincamheight'), type = "slider", min = 0, max = 1500, step = 1, value = Spring.GetConfigInt("MinimumCameraHeight", 300), description = Spring.I18N('ui.settings.option.mincamheight_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("MinimumCameraHeight", value)
 		  end,
 		},
 		{ id = "camerashake", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.camerashake'), type = "slider", min = 0, max = 200, step = 10, value = 80, description = Spring.I18N('ui.settings.option.camerashake_descr'),
@@ -3059,6 +3078,7 @@ function init()
 		},
 		{ id = "scrolltoggleoverview", group = "control", category = types.advanced, widget = "Scrolldown Toggleoverview", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.scrolltoggleoverview'), type = "bool", value = GetWidgetToggleValue("Scrolldown Toggleoverview"), description = Spring.I18N('ui.settings.option.scrolltoggleoverview_descr') },
 
+
 		{ id = "lockcamera_transitiontime", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.lockcamera')..widgetOptionColor .. "   " ..Spring.I18N('ui.settings.option.lockcamera_transitiontime'), type = "slider", min = 0.5, max = 1.7, step = 0.01, value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockTransitionTime ~= nil and WG['advplayerlist_api'].GetLockTransitionTime()), description = Spring.I18N('ui.settings.option.lockcamera_transitiontime_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "lockcamera_transitiontime", { 'transitionTime' })
@@ -3067,7 +3087,6 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockTransitionTime', { 'transitionTime' }, value)
 		  end,
 		},
-
 
 		{ id = "allyselunits_select", group = "control", category = types.advanced, name = widgetOptionColor .. "   " ..Spring.I18N('ui.settings.option.allyselunits_select'), type = "bool", value = (WG['allyselectedunits'] ~= nil and WG['allyselectedunits'].getSelectPlayerUnits()), description = Spring.I18N('ui.settings.option.allyselunits_select_descr'),
 		  onload = function(i)
@@ -3091,12 +3110,6 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockLos', { 'lockcameraLos' }, value)
-		  end,
-		},
-
-		{ id = "mincamheight", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.mincamheight'), type = "slider", min = 0, max = 1500, step = 1, value = Spring.GetConfigInt("MinimumCameraHeight", 300), description = Spring.I18N('ui.settings.option.mincamheight_descr'),
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("MinimumCameraHeight", value)
 		  end,
 		},
 
@@ -5770,7 +5783,11 @@ function init()
 	end
 
 	if WG['advplayerlist_api'] == nil or WG['advplayerlist_api'].GetLockTransitionTime == nil then
-		options[getOptionByID('lockcamera_transitiontime')] = nil
+	end
+
+
+	if Spring.GetConfigInt("CamMode", 2) ~= 2 then
+		options[getOptionByID('springcamheightmode')] = nil
 	end
 
 	local processedOptions = {}
@@ -6088,6 +6105,8 @@ function widget:Shutdown()
 	glDeleteList(consoleCmdDlist)
 	glDeleteList(textInputDlist)
 	WG['options'] = nil
+
+	resetUserVolume()
 end
 
 local lastOptionCommand = 0
