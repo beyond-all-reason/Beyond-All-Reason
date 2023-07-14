@@ -93,7 +93,7 @@ function gadget:GameFrame()
 
 	for proID in pairs(groundedDGuns) do
 		local x, y, z = Spring.GetProjectilePosition(proID)
-		Spring.SetProjectilePosition(proID, x, Spring.GetGroundHeight(x, z) - 1, z)
+		Spring.SetProjectilePosition(proID, x, math.max(Spring.GetGroundHeight(x, z), 0) - 1, z)
 
 		-- NB: no removal; do this every frame so that it doesn't fly off a cliff or something
 	end
