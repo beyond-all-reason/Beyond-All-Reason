@@ -436,7 +436,7 @@ end
 
 function widgetHandler:LoadWidget(filename, fromZip)
 	local basename = Basename(filename)
-	local text = VFS.LoadFile(filename, (self.allowUserWidgets and allowuserwidgets) and nil or VFS.ZIP)
+	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets) and VFS.ZIP or VFS.RAW_FIRST)
 	if text == nil then
 		Spring.Echo('Failed to load: ' .. basename .. '  (missing file: ' .. filename .. ')')
 		return nil
