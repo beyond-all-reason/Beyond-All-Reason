@@ -1050,6 +1050,8 @@
 				"scrollinverse": "reverse scrolling",
 				"scrolltoggleoverview": "toggle overview on scroll",
 				"scrolltoggleoverview_descr": "toggle overview camera when using scrollwheel",
+				"springcamheightmode": "Spring Camera height",
+				"springcamheightmode_descr": "When moving spring camera over uneven terrain",
 				"minimumcameraheight": "minimum camera height",
 				"lockcamera": "Tracking cam",
 				"lockcamera_transitiontime": "smoothing",

@@ -3099,6 +3099,11 @@ function init()
 			  Spring.SetConfigInt("MinimumCameraHeight", value)
 		  end,
 		},
+		{ id = "springcamheightmode", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.springcamheightmode'), type = "select", options = { 'constant', 'terrain', 'smooth' }, value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 0) + 1, description = Spring.I18N('ui.settings.option.springcamheightmode_descr'),
+		  onchange = function(i, value)
+			 Spring.SetConfigInt("CamSpringTrackMapHeightMode", value - 1)
+		  end,
+		},
 
 		-- INTERFACE
 		{ id = "label_ui_interface", group = "ui", name = Spring.I18N('ui.settings.option.label_interface'), category = types.basic },
