@@ -831,6 +831,14 @@ local isOffscreen = false
 local isOffscreenTime
 local prevOffscreenVolume
 local apiUnitTrackerEnabledCount = 0
+
+function resetUserVolume()
+	if prevOffscreenVolume then
+		Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume)
+		prevOffscreenVolume = nil
+	end
+end
+
 function widget:Update(dt)
 	cursorBlinkTimer = cursorBlinkTimer + dt
 	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
@@ -865,7 +873,7 @@ function widget:Update(dt)
 				if isOffscreen then
 					Spring.SetConfigInt("snd_volmaster", 0)
 				else
-					Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume)
+					resetUserVolume()
 				end
 			end
 		end
@@ -6097,6 +6105,8 @@ function widget:Shutdown()
 	glDeleteList(consoleCmdDlist)
 	glDeleteList(textInputDlist)
 	WG['options'] = nil
+
+	resetUserVolume()
 end
 
 local lastOptionCommand = 0
