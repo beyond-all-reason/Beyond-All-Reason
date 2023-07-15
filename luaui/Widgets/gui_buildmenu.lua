@@ -183,6 +183,7 @@ local showWaterUnits = false
 local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
 if not voidWater and mapMinWater <= minWaterUnitDepth then
 	showWaterUnits = true
+	units.restrictWaterUnits(false)
 end
 -- make them a disabled unit (instead of removing it entirely)
 if not showWaterUnits then
