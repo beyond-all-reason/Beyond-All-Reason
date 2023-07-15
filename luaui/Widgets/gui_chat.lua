@@ -227,6 +227,7 @@ local autocompleteCommands = {
 	'increaseviewradius',
 	'info',
 	'inputtextgeo',
+	'keyreload',
 	'lastmsgpos',
 	'lessclouds',
 	'lesstrees',

@@ -260,7 +260,7 @@
 		"keybinds": {
 			"title": "Raccourcis",
 			"disclaimer": "Ces raccourcis clavier ont été définis par défaut. Si vous supprimez ou remplacez des widgets de raccourcis clavier ou utilisez vos propres uikeys, ils pourraient cesser de fonctionner !",
-			"howtochangekeybinds":"Pour les modifier : Allez dans Paramètres, onglet \"Commandes\", sélectionnez dans le menu déroulant de \"Raccourcis\" le mode \"Personnalisé\" afin de créer le fichier BAR/data/bar_hotkeys_custom.lua.\nÉditez ce fichier et sélectionnez de nouveau \"Personnalisé\" dans l'onglet \"Commandes\" pour appliquer vos modifications en jeu.",
+			"howtochangekeybinds":"Pour les modifier : Allez dans Paramètres, onglet \"Commandes\", sélectionnez dans le menu déroulant de \"Raccourcis\" le mode \"Personnalisé\" afin de créer le fichier BAR/data/uikeys.txt.\nÉditez ce fichier et sélectionnez de nouveau \"Personnalisé\" dans l'onglet \"Commandes\" pour appliquer vos modifications en jeu.",
 			"chat": {
 				"title": "Chat",
 				"send": "Envoyer un message dans le chat",

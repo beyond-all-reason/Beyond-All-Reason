@@ -2792,6 +2792,109 @@ function init()
 		{ id = "label_notif_messages_spacer", group = "notif", category = types.basic },
 
 		-- CONTROL
+		{ id = "label_ui_hotkeys", group = "control", name = Spring.I18N('ui.settings.option.label_hotkeys'), category = types.basic },
+		{ id = "label_ui_hotkeys_spacer", group = "control", category = types.basic },
+
+		{ id = "keylayout", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.keylayout'), type = "select", options = keyLayouts.layouts, value = 1, description = Spring.I18N('ui.settings.option.keylayout_descr'),
+		  onload = function()
+			  local keyLayout = Spring.GetConfigString("KeyboardLayout")
+
+			  if not keyLayout or keyLayout == '' then
+				  keyLayout = keyLayouts.layouts[1]
+				  Spring.SetConfigString("KeyboardLayout", keyLayouts.layouts[1])
+			  end
+
+			  local value = 1
+			  for i, v in ipairs(keyLayouts.layouts) do
+				  if v == keyLayout then
+					  value = i
+					  break
+				  end
+			  end
+
+			  options[getOptionByID('keylayout')].value = value
+		  end,
+		  onchange = function(_, value)
+			  Spring.SetConfigString("KeyboardLayout", keyLayouts.layouts[value])
+			  if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
+				  WG['bar_hotkeys'].reloadBindings()
+			  end
+		  end,
+		},
+
+		{ id = "keybindings", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.keybindings'), type = "select", options = keyLayouts.keybindingLayouts, value = 1, description = Spring.I18N('ui.settings.option.keybindings_descr'),
+		  onload = function()
+			  local keyFile = Spring.GetConfigString("KeybindingFile", keyLayouts.keybindingPresets["Default"])
+			  local value = 1
+
+			  if (not keyFile) or (keyFile == '') or (not VFS.FileExists(keyFile)) then
+				  keyFile = keyLayouts.keybindingLayoutFiles[1]
+				  Spring.SetConfigString("KeybindingFile", keyFile)
+			  end
+
+			  for i, v in ipairs(keyLayouts.keybindingLayoutFiles) do
+				  if v == keyFile then
+					  value = i
+					  break
+				  end
+			  end
+
+			  options[getOptionByID('keybindings')].value = value
+		  end,
+		  onchange = function(_, value)
+			  local keyFile = keyLayouts.keybindingLayoutFiles[value]
+
+			  if not keyFile or keyFile == '' then
+				  return
+			  end
+
+			  local isCustom = keyLayouts.keybindingPresets["Custom"] == keyFile
+
+			  if isCustom and not VFS.FileExists(keyFile) then
+				  Spring.SendCommands("keysave " .. keyFile)
+				  Spring.Echo("Preset Custom selected, file saved at: " .. keyFile)
+			  end
+
+			  Spring.SetConfigString("KeybindingFile", keyFile)
+			  if isCustom then
+				  Spring.Echo("To test your custom bindings after changes type in chat: /keyreload")
+			  end
+			  -- enable grid menu for grid keybinds
+			  local preset = options[getOptionByID('keybindings')].options[value]
+			  Spring.Echo(preset)
+			  if string.find(string.lower(preset), "grid") then
+				  widgetHandler:DisableWidget('Build menu')
+				  widgetHandler:EnableWidget('Grid menu')
+			  elseif preset == 'Custom' then
+			  	-- do stuff with custom preset
+			  else
+				  widgetHandler:EnableWidget('Build menu')
+				  widgetHandler:DisableWidget('Grid menu')
+			  end
+
+			  if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
+				  WG['bar_hotkeys'].reloadBindings()
+			  end
+			  init()
+		  end,
+		},
+
+		{ id = "gridmenu", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.gridmenu'), type = "bool", value = GetWidgetToggleValue("Grid menu"), description = Spring.I18N('ui.settings.option.gridmenu_descr'),
+		  onchange = function(i, value)
+			  if value then
+				  widgetHandler:DisableWidget('Build menu')
+				  widgetHandler:EnableWidget('Grid menu')
+			  else
+				  widgetHandler:DisableWidget('Grid menu')
+				  widgetHandler:EnableWidget('Build menu')
+			  end
+		  end,
+		},
+
+
+		{ id = "label_ui_cursor", group = "control", name = Spring.I18N('ui.settings.option.label_cursor'), category = types.basic },
+		{ id = "label_ui_cursor_spacer", group = "control", category = types.basic },
+
 		{ id = "hwcursor", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.hwcursor'), type = "bool", value = tonumber(Spring.GetConfigInt("HardwareCursor", 0) or 0) == 1, description = Spring.I18N('ui.settings.option.hwcursor_descr'),
 		  onload = function(i)
 		  end,
@@ -2846,89 +2949,7 @@ function init()
 		  end,
 		},
 	]]--
-		{ id = "label_ui_hotkeys", group = "control", name = Spring.I18N('ui.settings.option.label_hotkeys'), category = types.basic },
-		{ id = "label_ui_hotkeys_spacer", group = "control", category = types.basic },
 
-		{ id = "keylayout", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.keylayout'), type = "select", options = keyLayouts.layouts, value = 1, description = Spring.I18N('ui.settings.option.keylayout_descr'),
-			onload = function()
-				local keyLayout = Spring.GetConfigString("KeyboardLayout")
-
-				if not keyLayout or keyLayout == '' then
-					keyLayout = keyLayouts.layouts[1]
-					Spring.SetConfigString("KeyboardLayout", keyLayouts.layouts[1])
-				end
-
-				local value = 1
-				for i, v in ipairs(keyLayouts.layouts) do
-					if v == keyLayout then
-						value = i
-						break
-					end
-				end
-
-				options[getOptionByID('keylayout')].value = value
-			end,
-			onchange = function(_, value)
-				Spring.SetConfigString("KeyboardLayout", keyLayouts.layouts[value])
-				if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
-					WG['bar_hotkeys'].reloadBindings()
-				end
-			end,
-		},
-
-		{ id = "keybindings", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.keybindings'), type = "select", options = keyLayouts.keybindingLayouts, value = 1, description = Spring.I18N('ui.settings.option.keybindings_descr'),
-			onload = function()
-				local keyFile = Spring.GetConfigString("KeybindingFile", keyLayouts.keybindingPresets["Default"])
-				local value = 1
-
-				if (not keyFile) or (keyFile == '') or (not VFS.FileExists(keyFile)) then
-					keyFile = keyLayouts.keybindingLayoutFiles[1]
-					Spring.SetConfigString("KeybindingFile", keyFile)
-				end
-
-				for i, v in ipairs(keyLayouts.keybindingLayoutFiles) do
-					if v == keyFile then
-						value = i
-						break
-					end
-				end
-
-				options[getOptionByID('keybindings')].value = value
-			end,
-			onchange = function(_, value)
-				local keyFile = keyLayouts.keybindingLayoutFiles[value]
-
-				if not keyFile or keyFile == '' then
-					return
-				end
-
-				local isCustom = keyLayouts.keybindingPresets["Custom"] == keyFile
-
-				if isCustom and not VFS.FileExists(keyFile) then
-					Spring.SendCommands("keysave " .. keyFile)
-					Spring.Echo("Preset Custom selected, file saved at: " .. keyFile)
-				end
-
-				Spring.SetConfigString("KeybindingFile", keyFile)
-
-				-- enable grid menu for grid keybinds
-				Spring.Echo(options[getOptionByID('keybindings')].options[value])
-				if string.find(string.lower(options[getOptionByID('keybindings')].options[value]), "grid") then
-					if not options[getOptionByID('gridmenu')].value then
-						widgetHandler:DisableWidget('Build menu')
-						widgetHandler:EnableWidget('Grid menu')
-					end
-				end
-
-				if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
-					WG['bar_hotkeys'].reloadBindings()
-				end
-
-				if isCustom then
-					Spring.Echo("To test your custom bindings after changes type in chat: /keyreload")
-				end
-			end,
-		},
 
 		{ id = "label_ui_camera", group = "control", name = Spring.I18N('ui.settings.option.label_camera'), category = types.basic },
 		{ id = "label_ui_camera_spacer", group = "control", category = types.basic },
@@ -3234,17 +3255,6 @@ function init()
 		  onchange = function(i, value)
 			  saveOptionValue('Build menu', 'buildmenu', 'setBottomPosition', { 'stickToBottom' }, value)
 			  saveOptionValue('Grid menu', 'buildmenu', 'setBottomPosition', { 'stickToBottom' }, value)
-		  end,
-		},
-		{ id = "gridmenu", group = "ui", category = types.basic, name = widgetOptionColor.."   " .. Spring.I18N('ui.settings.option.gridmenu'), type = "bool", value = GetWidgetToggleValue("Grid menu"), description = Spring.I18N('ui.settings.option.gridmenu_descr'),
-		  onchange = function(i, value)
-			  if value then
-				  widgetHandler:DisableWidget('Build menu')
-				  widgetHandler:EnableWidget('Grid menu')
-			  else
-				  widgetHandler:DisableWidget('Grid menu')
-				  widgetHandler:EnableWidget('Build menu')
-			  end
 		  end,
 		},
 		{ id = "buildmenu_maxposy", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.buildmenu_maxposy'), type = "slider", min = 0.66, max = 0.88, step = 0.01, value = 0.74, description = Spring.I18N('ui.settings.option.buildmenu_maxposy_descr'),
@@ -5788,6 +5798,10 @@ function init()
 
 	if Spring.GetConfigInt("CamMode", 2) ~= 2 then
 		options[getOptionByID('springcamheightmode')] = nil
+	end
+
+	if Spring.GetConfigString("KeybindingFile", "uikeys.txt") ~= "uikeys.txt" then
+		options[getOptionByID('gridmenu')] = nil
 	end
 
 	local processedOptions = {}
