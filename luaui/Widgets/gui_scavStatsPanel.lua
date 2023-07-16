@@ -62,7 +62,7 @@ local guiPanel --// a displayList
 local updatePanel
 local hasChickenEvent = false
 
-local difficultyOption = Spring.GetModOptions().chicken_difficulty
+local difficultyOption = Spring.GetModOptions().raptor_difficulty
 
 -- local waveColors = {}
 -- waveColors[1] = "\255\184\100\255"

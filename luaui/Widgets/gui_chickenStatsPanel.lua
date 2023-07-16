@@ -19,7 +19,7 @@ local messageArgs, marqueeMessage
 local refreshMarqueeMessage = false
 local showMarqueeMessage = false
 
-if not Spring.Utilities.Gametype.IsChickens() then
+if not Spring.Utilities.Gametype.IsRaptors() then
 	return false
 end
 
@@ -64,7 +64,7 @@ local guiPanel --// a displayList
 local updatePanel
 local hasChickenEvent = false
 
-local difficultyOption = Spring.GetModOptions().chicken_difficulty
+local difficultyOption = Spring.GetModOptions().raptor_difficulty
 
 local rules = {
 	"chickenQueenTime",
@@ -198,7 +198,7 @@ local function CreatePanelDisplayList()
 	
 	font:Print(textColor .. Spring.I18N('ui.chickens.chickenKillCount', { count = gameInfo.chickenKills }), panelMarginX, PanelRow(6), panelFontSize, "")
 	local endless = ""
-	if Spring.GetModOptions().chicken_endless then
+	if Spring.GetModOptions().raptor_endless then
 		endless = ' (' .. Spring.I18N('ui.chickens.difficulty.endless') .. ')'
 	end
 	local difficultyCaption = Spring.I18N('ui.chickens.difficulty.' .. difficultyOption)

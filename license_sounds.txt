@@ -12,7 +12,7 @@ Check https://github.com/beyond-all-reason/Beyond-All-Reason/tree/master/sounds 
 /sounds/voice
 
 For the above mentioned folder the CC BY NC ND applies to all new sound effects created after january 2019.
-For the "chicken" sound effects created after july 2020
+For the "raptor" sound effects created after july 2020
 
 /sounds/chickens
 

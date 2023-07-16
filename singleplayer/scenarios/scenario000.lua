@@ -1233,7 +1233,7 @@ local scenariodata = {
 		version=<not-versioned>;
 		isfromdemo=0;
 		team=1;
-		shortname=ChickensAI;
+		shortname=RaptorsAI;
 		}
 		[modoptions]
 		{

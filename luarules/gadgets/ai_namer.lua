@@ -331,31 +331,31 @@ if gadgetHandler:IsSyncedCode() then
 		"Whirlwind",
 		"Wolverine"
 	}
-	local namelistChicken = {'Alien Raptors'}
+	local namelistRaptor = {'Alien Raptors'}
 	local namelistScavengers = {'Scavengers'}
 
 	local takenNames = {}
-	local takenNamesChicken = {}
+	local takenNamesRaptor = {}
 
-	function getName(teamID, chicken, scavenger)
+	function getName(teamID, raptor, scavenger)
 		local aiName
-		if chicken then
-			aiName = namelistChicken[math.random(1,#namelistChicken)]
+		if raptor then
+			aiName = namelistRaptor[math.random(1,#namelistRaptor)]
 		elseif scavenger then
 			aiName = namelistScavengers[math.random(1,#namelistScavengers)]
 		else
 			aiName = namelist[math.random(1,#namelist)]
 		end
-		if chicken and takenNamesChicken[aiName] == nil then
-			takenNamesChicken[aiName] = teamID
+		if raptor and takenNamesRaptor[aiName] == nil then
+			takenNamesRaptor[aiName] = teamID
 			return aiName
 		elseif scavenger then
 			return aiName
-		elseif not chicken and takenNames[aiName] == nil then
+		elseif not raptor and takenNames[aiName] == nil then
 			takenNames[aiName] = teamID
 			return aiName
 		else
-			return getName(teamID, chicken, scavenger)
+			return getName(teamID, raptor, scavenger)
 		end
 	end
 
@@ -366,7 +366,7 @@ if gadgetHandler:IsSyncedCode() then
 				if select(4,Spring.GetAIInfo(teamID)) == 'NullAI' then	-- doesnt seem to work
 					Spring.SetGameRulesParam('ainame_'..teamID, 'NullAI (idle)')
 				else
-					Spring.SetGameRulesParam('ainame_'..teamID, getName(teamID, string.find(Spring.GetTeamLuaAI(teamID) or '', "Chickens"), string.find(Spring.GetTeamLuaAI(teamID) or '', "Scavenger")))
+					Spring.SetGameRulesParam('ainame_'..teamID, getName(teamID, string.find(Spring.GetTeamLuaAI(teamID) or '', "Raptors"), string.find(Spring.GetTeamLuaAI(teamID) or '', "Scavenger")))
 				end
 			end
 		end

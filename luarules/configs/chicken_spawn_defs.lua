@@ -9,7 +9,7 @@ local difficulties = {
 	--survival = 6,
 }
 
-local difficulty = difficulties[Spring.GetModOptions().chicken_difficulty]
+local difficulty = difficulties[Spring.GetModOptions().raptor_difficulty]
 local burrowName = 'chicken_hive'
 
 local chickenTurrets
@@ -275,8 +275,8 @@ chickenBehaviours = {
 local optionValues = {
 
 	[difficulties.veryeasy] = {
-		gracePeriod       = 8 * Spring.GetModOptions().chicken_graceperiodmult * 60,
-		queenTime      	  = 50 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 8 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 50 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 120,
 		burrowSpawnRate   = 480,
 		turretSpawnRate   = 240,
@@ -294,8 +294,8 @@ local optionValues = {
 	},
 
 	[difficulties.easy] = {
-		gracePeriod       = 7 * Spring.GetModOptions().chicken_graceperiodmult * 60,
-		queenTime      	  = 45 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 7 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 45 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 90,
 		burrowSpawnRate   = 420,
 		turretSpawnRate   = 210,
@@ -312,8 +312,8 @@ local optionValues = {
 		queenResistanceMult   = 0.75,
 	},
 	[difficulties.normal] = {
-		gracePeriod       = 6 * Spring.GetModOptions().chicken_graceperiodmult * 60,
-		queenTime      	  = 40 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 6 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 40 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 60,
 		burrowSpawnRate   = 360,
 		turretSpawnRate   = 180,
@@ -330,8 +330,8 @@ local optionValues = {
 		queenResistanceMult   = 1,
 	},
 	[difficulties.hard] = {
-		gracePeriod       = 5 * Spring.GetModOptions().chicken_graceperiodmult * 60,
-		queenTime      	  = 40 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 5 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 40 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 50,
 		burrowSpawnRate   = 300,
 		turretSpawnRate   = 150,
@@ -348,8 +348,8 @@ local optionValues = {
 		queenResistanceMult   = 1.33,
 	},
 	[difficulties.veryhard] = {
-		gracePeriod       = 4 * Spring.GetModOptions().chicken_graceperiodmult * 60,
-		queenTime      	  = 35 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 4 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 35 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 40,
 		burrowSpawnRate   = 240,
 		turretSpawnRate   = 120,
@@ -366,8 +366,8 @@ local optionValues = {
 		queenResistanceMult   = 1.67,
 	},
 	[difficulties.epic] = {
-		gracePeriod       = 3 * Spring.GetModOptions().chicken_graceperiodmult * 60,
-		queenTime      	  = 30 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 3 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 30 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 30,
 		burrowSpawnRate   = 180,
 		turretSpawnRate   = 90,
@@ -385,8 +385,8 @@ local optionValues = {
 	},
 
 	-- [difficulties.survival] = {
-	-- 	gracePeriod       = 8 * Spring.GetModOptions().chicken_graceperiodmult * 60,
-	-- 	queenTime      	  = 50 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+	-- 	gracePeriod       = 8 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+	-- 	queenTime      	  = 50 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 	-- 	chickenSpawnRate  = 120,
 	-- 	burrowSpawnRate   = 480,
 	-- 	turretSpawnRate   = 240,
@@ -826,9 +826,9 @@ local config = { -- Don't touch this! ------------------------------------------
 	chickenEggs			   	= table.copy(chickenEggs),
 	burrowName             	= burrowName,   -- burrow unit name
 	burrowDef              	= UnitDefNames[burrowName].id,
-	chickenSpawnMultiplier 	= Spring.GetModOptions().chicken_spawncountmult,
-	burrowSpawnType        	= Spring.GetModOptions().chicken_chickenstart,
-	swarmMode			   	= Spring.GetModOptions().chicken_swarmmode,
+	chickenSpawnMultiplier 	= Spring.GetModOptions().raptor_spawncountmult,
+	burrowSpawnType        	= Spring.GetModOptions().raptor_chickenstart,
+	swarmMode			   	= Spring.GetModOptions().raptor_swarmmode,
 	spawnSquare            	= spawnSquare,       
 	spawnSquareIncrement   	= spawnSquareIncrement,         
 	minBaseDistance        	= minBaseDistance,
