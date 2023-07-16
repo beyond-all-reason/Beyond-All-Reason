@@ -518,7 +518,7 @@ else	-- UNSYNCED
 					b = hex2RGB(scavPurpColor)[3],
 				}
 
-			elseif isAI and string.find(isAI, "Chicken") then
+			elseif isAI and string.find(isAI, "Raptor") then
 
 				teamColorsTable[teamID] = {
 					r = hex2RGB(raptorOrangeColor)[1],
