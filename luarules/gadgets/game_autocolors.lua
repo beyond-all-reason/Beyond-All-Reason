@@ -51,7 +51,7 @@ end
 local armBlueColor       = "#004DFF" -- Armada Blue
 local corRedColor        = "#FF1005" -- Cortex Red
 local scavPurpColor      = "#6809A1" -- Scav Purple
-local raptorOrangeColor = "#CC8914" -- Chicken Orange
+local raptorOrangeColor  = "#CC8914" -- Raptor Orange
 local gaiaGrayColor      = "#7F7F7F" -- Gaia Grey
 
 
@@ -426,7 +426,7 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(scavPurpColor)[1])
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(scavPurpColor)[2])
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(scavPurpColor)[3])
-		elseif isAI and string.find(isAI, "Chicken") then
+		elseif isAI and string.find(isAI, "Raptor") then
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(raptorOrangeColor)[1])
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(raptorOrangeColor)[2])
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(raptorOrangeColor)[3])
