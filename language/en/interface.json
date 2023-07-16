@@ -1437,7 +1437,9 @@
 				"red": "red",
 				"green": "green",
 				"blue": "blue",
-				"language": "Language"
+				"language": "Language",
+				"reclaimfieldhighlight": "Reclaim Field Highlight",
+				"reclaimfieldhighlight_descr": "Highlights clusters of reclaimable metal"
 			}
 		}
 	}

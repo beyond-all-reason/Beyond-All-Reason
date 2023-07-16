@@ -3871,8 +3871,10 @@ function init()
 			  Spring.SetConfigInt("DisplayDPS", (value and 1 or 0))
 		  end,
 		},
+		
 		{ id = "givenunits", group = "ui", category = types.advanced, widget = "Given Units", name = Spring.I18N('ui.settings.option.givenunits'), type = "bool", value = GetWidgetToggleValue("Given Units"), description = Spring.I18N('ui.settings.option.givenunits_descr') },
-
+		
+		{ id = "reclaimfieldhighlight", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = Spring.I18N('ui.settings.option.reclaimfieldhighlight'), type = "bool", value = GetWidgetToggleValue("Reclaim Field Highlight"), description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_descr') },
 
 		{ id = "label_ui_ranges", group = "ui", name = Spring.I18N('ui.settings.option.label_ranges'), category = types.basic },
 		{ id = "label_ui_ranges_spacer", group = "ui", category = types.basic },
