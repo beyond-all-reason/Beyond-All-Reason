@@ -1,4 +1,8 @@
 ﻿# July 2023
+• [Whistler] Range decreased from 600 -> 575
+• [Lasher] Damage per shot decreased 47 -> 43
+• [Shellshocker] Reloadtime increased 5.7s -> 6.2s
+• [Wolverine] Reloadtime increased 6.6s -> 7.2s
 • [Dolphin] Cost increased from 165m 1400E -> 175m 1500E
 • [Herring] Cost decreased from 230m 1600E -> 210m 1400E
 • [Corsair] Depthcharge reloadtime decreased 2.24->2s
