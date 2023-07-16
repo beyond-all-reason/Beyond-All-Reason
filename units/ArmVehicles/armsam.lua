@@ -136,7 +136,7 @@ return {
 				model = "cormissile.s3o",
 				name = "Light g2g/g2a missile launcher",
 				noselfdamage = true,
-				range = 600,
+				range = 575,--600,
 				reloadtime = 3.33333,
 				smoketrail = true,
 				smokePeriod = 8,
