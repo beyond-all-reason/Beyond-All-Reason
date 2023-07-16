@@ -46,10 +46,24 @@ FocusPickUp(unitid){
 	
 	
 if(get UNIT_HEIGHT(unitid)>1700000){
-//		move link to z-axis   get UNIT_HEIGHT(unitid)  speed [25.000000];
+		move link to z-axis   get UNIT_HEIGHT(unitid)  speed [25.000000];
 //
-	//	move link to y-axis 0- diffMe  speed [25.000000];
-	//	wait-for-move link along y-axis;	
+		move link to y-axis 0- diffMe  speed [25.000000];
+		wait-for-move link along y-axis;	
+
+
+	var newAngle1;
+		newAngle1 = TurretToUnitAngleX - 90;
+		turn link to x-axis  newAngle1 now;
+
+		
+		
+		attach-unit unitid to link;
+
+//Rotate the unit to the right
+
+
+		
 
 
 }else{
@@ -57,11 +71,11 @@ if(get UNIT_HEIGHT(unitid)>1700000){
 
 		move link to y-axis 0- diffMe  speed [25.000000];
 	wait-for-move link along y-axis;	
+		attach-unit unitid to link;
+
 
 }
 
-
-		attach-unit unitid to link;
 
 
 }
@@ -69,6 +83,7 @@ if(get UNIT_HEIGHT(unitid)>1700000){
 
 FocusDropOff(unitid,position){
 
+return;
 //while the stupid link does not match the x/y of the unit, move the boom appropriately.
 var yDiff;
 yDiff=get UNIT_Y(unitid)-(get GROUND_HEIGHT(position)+ get UNIT_HEIGHT(unitid));
@@ -76,14 +91,15 @@ yDiff=get UNIT_Y(unitid)-(get GROUND_HEIGHT(position)+ get UNIT_HEIGHT(unitid));
 
 if(get UNIT_HEIGHT(unitid)>1700000){
 
-		move link to y-axis 0-  (yDiff) speed [25.000000];
+	//	move link to y-axis 0-  (yDiff) speed [25.000000];
+	//	wait-for-move link along y-axis;
+		move link to y-axis 0-(yDiff) speed [25.000000];
 		wait-for-move link along y-axis;
 
 		
 }else{
 
-yDiff = yDiff - 3.5;
-		move link to y-axis (yDiff) speed [25.000000];
+		move link to y-axis 0-(yDiff) speed [25.000000];
 		wait-for-move link along y-axis;
 
 }
@@ -236,8 +252,7 @@ GroundCalc(posxz, posy,unitid)
 	var Func_Var_3, Func_Var_4, Func_Var_5;
 	Func_Var_3 = get PIECE_XZ(turret) - posxz;
 if(get UNIT_HEIGHT(unitid)>1700000){
-
-	Func_Var_4 = posy - (get PIECE_Y(turret) + [4.5000000]);
+	Func_Var_4 = posy - (get PIECE_Y(turret) - [0.5000000]);
 }else{
 	Func_Var_4 = posy - (get PIECE_Y(turret)- [3.0000000]);
 
@@ -245,7 +260,7 @@ if(get UNIT_HEIGHT(unitid)>1700000){
 
 	Func_Var_5 = get XZ_HYPOT(Func_Var_3);
 	TurretToUnitDistance = get HYPOT(Func_Var_5,Func_Var_4);//  - [3.000000];
-	TurretToUnitAngleY = get XZ_ATAN(Func_Var_3);
+	TurretToUnitAngleY = get XZ_ATAN(Func_Var_3) ;
 	TurretToUnitAngleX = get ATAN(Func_Var_4,Func_Var_5);
 	bInDistance = TurretToUnitDistance/65000 < maxDistance/65000; //MAX distance at which a unit is picked up/put down
 if(!bInDistance){
@@ -490,6 +505,9 @@ BoomReset()
 {
 //	turn arm1 to x-axis <0.000000> speed <60.000000>;
 //	wait-for-turn arm1 around x-axis;
+//	move link to z-axis   0  speed [25.000000];
+
+
 	turn turret to y-axis <0.000000> speed <70.000000>;
 	wait-for-turn turret around y-axis;
 	move arm2 to z-axis [0.000000] speed boomResetSpeed;
@@ -504,6 +522,8 @@ BoomReset()
 	wait-for-move arm6 along z-axis;
 	move arm7 to z-axis [0.000000] speed boomResetSpeed;
 	wait-for-move arm7 along z-axis;
+
+	
 }
 
 BoomUp(){
@@ -514,6 +534,13 @@ BoomUp(){
 BoomToPad(unitid)
 {
 //	turn arm1 to x-axis <0.000000> speed <60.000000>;
+
+
+//	move link to y-axis 0 speed [5.000000];
+
+//	move link to x-axis 0  speed [5.000000];
+
+//	move link to z-axis 0  speed [5.000000];
 
 	
 	turn turret to y-axis <0.000000> speed <70.000000>;
