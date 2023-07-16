@@ -1058,7 +1058,7 @@ if gadgetHandler:IsSyncedCode() then
 							cCount = cCount + unitNumber
 						end
 					end
-					if loopCounter <= 5 then
+					if loopCounter <= 1 then
 						squad = nil
 						squadCounter = 0
 						for _ = 1,1000 do
