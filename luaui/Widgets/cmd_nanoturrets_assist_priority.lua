@@ -18,25 +18,12 @@ local UnitDefs = UnitDefs
 local CMD_REPAIR = CMD.REPAIR
 local CMD_FIGHT = CMD.FIGHT
 
-local nanoNames = {
-    armnanotc = true,
-    cornanotc = true,
-    armnanotct2 = true,
-    cornanotct2 = true,
-    armnanotcplat = true,
-    cornanotcplat = true,
-    armrespawn = true,
-    correspawn = true,
-}
 local nanoDefs = {}
 
-function widget:Initialize()
-    -- Spring.Echo(helloWorld)
-    for unitDefID, def in ipairs(UnitDefs) do
-        if nanoNames[def.name] then
-            nanoDefs[unitDefID] = def.buildDistance
-        end
-    end
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.isBuilder and not unitDef.canMove and not unitDef.isFactory then
+		nanoDefs[unitDefID] = unitDef.buildDistance
+	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
