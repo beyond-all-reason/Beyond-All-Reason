@@ -39,7 +39,7 @@ else
 end
 
 local chickenEggs = { -- Specify eggs dropped by unit here, requires useEggs to be true, if some unit is not specified here, it drops random egg colors.
-	chicken1       						=   "purple", 
+	chicken1       						=   "purple",
 	chicken1_mini						=   "purple",
 	chicken1b      						=   "pink",
 	chicken1c      						=   "purple",
@@ -137,7 +137,7 @@ chickenBehaviours = {
 		[UnitDefNames["chickenr1"].id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames["chickenr2"].id] = { distance = 500, chance = 0.01 },
 		[UnitDefNames["chickene1"].id] = { distance = 300, chance = 1 },
-		[UnitDefNames["chickene2"].id] = { distance = 200, chance = 0.01 },	
+		[UnitDefNames["chickene2"].id] = { distance = 200, chance = 0.01 },
 		[UnitDefNames["chickenelectricallterrainassault"].id] = { distance = 200, chance = 0.01 },
 		[UnitDefNames["chickenearty1"].id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames["chickenearty2"].id] = { distance = 500, chance = 0.01 },
@@ -788,7 +788,7 @@ local ecoBuildingsPenalty = { -- Additional queen hatch per second from eco buil
 	[UnitDefNames["cormakr"].id] 	= 0.00005,
 	[UnitDefNames["armfmkr"].id] 	= 0.00005,
 	[UnitDefNames["corfmkr"].id] 	= 0.00005,
-	
+
 	-- T2 Metal Makers
 	[UnitDefNames["armmmkr"].id] 	= 0.0005,
 	[UnitDefNames["cormmkr"].id] 	= 0.0005,
@@ -827,10 +827,10 @@ local config = { -- Don't touch this! ------------------------------------------
 	burrowName             	= burrowName,   -- burrow unit name
 	burrowDef              	= UnitDefNames[burrowName].id,
 	chickenSpawnMultiplier 	= Spring.GetModOptions().raptor_spawncountmult,
-	burrowSpawnType        	= Spring.GetModOptions().raptor_chickenstart,
+	burrowSpawnType        	= Spring.GetModOptions().raptor_raptorstart,
 	swarmMode			   	= Spring.GetModOptions().raptor_swarmmode,
-	spawnSquare            	= spawnSquare,       
-	spawnSquareIncrement   	= spawnSquareIncrement,         
+	spawnSquare            	= spawnSquare,
+	spawnSquareIncrement   	= spawnSquareIncrement,
 	minBaseDistance        	= minBaseDistance,
 	chickenTurrets			= table.copy(chickenTurrets),
 	miniBosses			   	= miniBosses,

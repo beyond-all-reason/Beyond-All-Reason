@@ -1203,7 +1203,7 @@ local scenariodata = {
 			{name = 'corbhmth', x = 10336, y = 54, z = 3024, rot = 16384 , team = 0},
 			{name = 'corageo', x = 14896, y = 79, z = 1904, rot = 16384 , team = 0},
 		},
-			
+
 		--featureloadout = {},
     },
     -- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
@@ -1239,9 +1239,9 @@ local scenariodata = {
 		{
 		scenariooptions=__SCENARIOOPTIONS__;
 		maxunits=10000;
-		chicken_graceperiod=5;
-		chicken_queentime=120;
-		chicken_chickenstart=alwaysbox;
+		raptor_graceperiod=5;
+		raptor_queentime=120;
+		raptor_raptorstart=alwaysbox;
 		startmetal=999999;
 		startenergy=999999;
 		}
@@ -1279,7 +1279,7 @@ local scenariodata = {
 		hostport=0;
 		numusers=2;
 		nohelperais=0;
-		
+
 		NumRestrictions=__NUMRESTRICTIONS__;
 		[RESTRICT]
 		{
