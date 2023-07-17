@@ -264,5 +264,3 @@ bind sc_y settargetnoground
 bind Ctrl+meta+sc_q group unset
 // if WG[bind Auto Group ] then
 bind Alt+sc_q remove_from_autogroup
-
-keyload luaui/configs/hotkeys/num_keys.txt
