@@ -15,11 +15,12 @@ end
 local config = {
 	gridSize = 3, -- smallest footprint is size 1 (perimeter camera), size 3 is the size of nanos, winds, etc
 	strongLineSpacing = 4, -- which interval produces heavy lines
-	strongLineOpacity = 0.75, -- opacity of heavy lines
-	weakLineOpacity = 0.25, -- opacity of intermediate lines
-	fadeDistance = 36, -- how far from the cursor the grid should show. Same units as gridSize
-	falloffStrength = 3.0, -- how sharply the grid should get cut off
-	lineColor = { 0.75, 1.0, 0.75 }, -- color of the lines
+	strongLineOpacity = 0.60, -- opacity of heavy lines
+	weakLineOpacity = 0.18, -- opacity of intermediate lines
+	gridRadius = 42, -- how far from the cursor the grid should show. Same units as gridSize
+	gridRadiusFalloff = 2.5, -- how sharply the grid should get cut off at max distance
+	maxViewDistance = 3000.0, -- distance at which the grid no longer renders
+	lineColor = { 0.70, 1.0, 0.70 }, -- color of the lines
 }
 
 local showGrid = true
@@ -32,8 +33,9 @@ local spacing = config.gridSize * 16 -- the repeat rate of the grid
 
 local shaderConfig = { -- These will be replaced in the shader using #defines's
 	LINECOLOR = "vec3(" .. config.lineColor[1] .. ", " .. config.lineColor[2] .. ", " .. config.lineColor[3] .. ")",
-	FADEDISTANCE = config.fadeDistance,
-	FADESTRENGTH = config.falloffStrength,
+	GRIDRADIUS = config.gridRadius,
+	RADIUSFALLOFF = config.gridRadiusFalloff,
+	MAXVIEWDIST = config.maxViewDistance,
 }
 
 
@@ -82,11 +84,15 @@ in vec4 v_color;
 out vec4 fragColor; // the output color
 
 void main(void) {
+	float maxDist = MAXVIEWDIST;
+	vec3 camPos = cameraViewInv[3].xyz;
     float dist = distance(v_worldPos.xyz, mouseWorldPos.xyz);
 	// Specifiy the color of the output line
-	float fadeDist = FADEDISTANCE * 16.0;
-    float alpha = smoothstep(0.0, 1.0, ((fadeDist / (dist / FADESTRENGTH))) - FADESTRENGTH);
-	fragColor.rgba = vec4(v_color.rgb, alpha * v_color.a);
+	float fadeDist = GRIDRADIUS * 16.0;
+    float alpha = smoothstep(0.0, 1.0, ((fadeDist / (dist / RADIUSFALLOFF))) - RADIUSFALLOFF);
+    float camDist = distance(camPos, mouseWorldPos.xyz);
+    float distAlpha = smoothstep(0.0, 1.0, 1.0 - (maxDist / camDist));
+	fragColor.rgba = vec4(v_color.rgb, (alpha - (distAlpha * 1.75)) * (v_color.a));
 }
 ]]
 
@@ -174,7 +180,7 @@ end
 
 function widget:DrawWorldPreUnit()
 	if not showGrid then return end
-	gl.LineWidth(2)
+	gl.LineWidth(1.75)
     gl.Culling(GL.BACK) -- not needed really, only for triangles
     gl.DepthTest(GL.ALWAYS) -- so that it wont be drawn behind terrain
     gl.DepthMask(false) -- so that we dont write the depth of the drawn pixels
