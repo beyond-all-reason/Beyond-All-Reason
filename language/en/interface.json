@@ -1439,7 +1439,9 @@
 				"blue": "blue",
 				"language": "Language",
 				"reclaimfieldhighlight": "Reclaim Field Highlight",
-				"reclaimfieldhighlight_descr": "Highlights clusters of reclaimable metal"
+				"reclaimfieldhighlight_descr": "Highlights clusters of reclaimable metal",
+				"buildinggrid": "Building Grid",
+				"buildinggrid_descr": "Shows a grid on the ground to assist building placement"
 			}
 		}
 	}
