@@ -5847,6 +5847,7 @@ function init()
 			end
 		end
 		options = filteredOptions
+		startColumn = 1
 	end
 
 	if not requireRestartDefaultsInit then
