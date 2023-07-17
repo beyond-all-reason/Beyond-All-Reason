@@ -1,25 +1,9 @@
 // BAR hotkey config file - for users with non-qwerty layouts who have
 // learned _mnemonic_ binds instead of _positional_ binds.
-local bindings = {
-bind esc quitmessage
-bind Shift+esc quitmenu
-bind Ctrl+Shift+esc quitforce
-bind Alt+Shift+esc reloadforce
-bind Any+escape edit_escape
-bind Any+pause pause
-bind esc teamstatus_close
-bind esc customgameinfo_close
-bind esc buildmenu_pregame_deselect
 
-bind Any+z selectbox_same // select only units that share type with current selection modifier | Smart Select Widget
-bind Any+space selectbox_idle // select only idle units modifier | Smart Select Widget
-bind Any+shift selectbox_all // select all units modifier | Smart Select Widget
-bind Any+ctrl selectbox_deselect // remove units from current selection modifier | Smart Select Widget
-bind Any+alt selectbox_mobile // select only mobile units modifier | Smart Select Widget
-
-bind Any+space selectloop // activate select shape | Loop Select Widget
-bind Any+ctrl selectloop_invert // select units not present in current selection modifier | Loop Select Widget
-bind Any+shift selectloop_add // add to selection modifier | Loop Select Widget
+// Load common keys
+keyload     luaui/configs/hotkeys/chat_and_ui_keys.txt
+keyload     luaui/configs/hotkeys/num_keys.txt
 
 bind Any+h sharedialog
 bind i customgameinfo
@@ -27,27 +11,6 @@ bind i customgameinfo
 bind Shift+backspace togglecammode
 bind Ctrl+backspace togglecammode
 bind Any+tab toggleoverview
-
-bind Any+enter chat
-bind Alt+ctrl+a chatswitchally
-bind Alt+ctrl+s chatswitchspec
-
-bind Any+tab edit_complete
-bind Any+backspace edit_backspace
-bind Any+delete edit_delete
-bind Any+home edit_home
-bind Alt+left edit_home
-bind Any+end edit_end
-bind Alt+right edit_end
-bind Any+up edit_prev_line
-bind Any+down edit_next_line
-bind Any+left edit_prev_char
-bind Any+right edit_next_char
-bind Ctrl+left edit_prev_word
-bind Ctrl+right edit_next_word
-bind Any+enter edit_return
-
-bind Ctrl+v pastetext
 
 bind Any+home increaseViewRadius
 bind Any+end decreaseViewRadius
@@ -145,20 +108,6 @@ bind Alt+enter fullscreen
 bind Any+sc_` drawinmap
 bind Any+sc_` drawlabel
 bind sc_`,sc_` drawlabel
-
-bind Any+up moveforward
-bind Any+down moveback
-bind Any+right moveright
-bind Any+left moveleft
-bind Any+pageup moveup
-bind Any+pagedown movedown
-
-bind Any+ctrl moveslow
-bind Any+shift movefast
-
-bind Any+alt movereset // fast camera reset on mousewheel
-bind Any+alt moverotate // rotate on x,y with mmb hold + move (Spring Camera)
-bind Any+ctrl movetilt // rotate on x with mousewheel
 
 bind Ctrl+a select AllMap++_ClearSelection_SelectAll+
 bind Ctrl+b select AllMap+_Builder_Idle+_ClearSelection_SelectOne+
@@ -323,5 +272,3 @@ bind y settargetnoground
 bind Ctrl+sc_` group unset
 // if WG[bind Auto Group ] then
 bind Alt+sc_` remove_from_autogroup
-
-keyload luaui/configs/hotkeys/num_keys.txt
