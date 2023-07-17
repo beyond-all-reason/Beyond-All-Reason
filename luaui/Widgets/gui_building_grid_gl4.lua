@@ -7,11 +7,11 @@ function widget:GetInfo()
         license = "GNU GPL, v2 or later",
 		version = 0.2,
         layer = -1,
-        enabled = true
+        enabled = false
     }
 end
 
-local opacity = 0.45
+local opacity = 0.5
 
 local config = {
 	gridSize = 3, -- smallest footprint is size 1 (perimeter camera), size 3 is the size of nanos, winds, etc
