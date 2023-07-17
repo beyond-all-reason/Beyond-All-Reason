@@ -22,7 +22,7 @@ local seaLevel
 local scavengerTeamID
 local scavengerAllyTeamID
 local chickenTeamID
-if Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsChickens() then
+if Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsRaptors() then
     local teams = Spring.GetTeamList()
     for i = 1,#teams do
         local luaAI = Spring.GetTeamLuaAI(teams[i])
@@ -33,7 +33,7 @@ if Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsChick
             end
         end
         if not chickenTeamID then
-            if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ChickensAI' then
+            if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
                 chickenTeamID = i - 1
                 _,_,_,_,_,chickenAllyTeamID = Spring.GetTeamInfo(chickenTeamID)
             end

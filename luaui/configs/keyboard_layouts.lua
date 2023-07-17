@@ -93,24 +93,39 @@ local function sanitizeKey(key, layout)
 	return key
 end
 
+local keybindingLayouts = {
+	'Default',
+	'Default (Mnemonic)',
+	'Default 60% Keyboard',
+	'Grid Optimized',
+	'Grid Optimized 60% Keyboard',
+	'Custom'
+}
+
+local keybindingPresets = {
+	['Default'] = 'luaui/configs/hotkeys/default_keys.txt',
+	['Default (Mnemonic)'] = 'luaui/configs/hotkeys/mnemonic_keys.txt',
+	['Default 60% Keyboard'] = 'luaui/configs/hotkeys/default_keys_60pct.txt',
+	['Grid Optimized'] = 'luaui/configs/hotkeys/grid_keys.txt',
+	['Grid Optimized 60% Keyboard'] = 'luaui/configs/hotkeys/grid_keys_60pct.txt',
+	['Custom'] = 'uikeys.txt',
+}
+
+local keybindingLayoutFiles = {}
+local presetKeybindings = {}
+
+for i, v in ipairs(keybindingLayouts) do
+	local file = keybindingPresets[v]
+	keybindingLayoutFiles[i] = file
+	presetKeybindings[file] = v
+end
+
 return {
 	layouts = layouts,
 	scanToCode = scanToCode,
 	sanitizeKey = sanitizeKey,
-	keybindingLayouts = {
-		'Default',
-		'Default (Mnemonic)',
-		'Default 60% Keyboard',
-		'Grid Optimized',
-		'Grid Optimized 60% Keyboard',
-		'Custom'
-	},
-	keybindingLayoutFiles = {
-		'luaui/configs/bar_hotkeys.lua',
-		'luaui/configs/bar_hotkeys_mnemonic.lua',
-		'luaui/configs/bar_hotkeys_60.lua',
-		'luaui/configs/bar_hotkeys_grid.lua',
-		'luaui/configs/bar_hotkeys_grid_60.lua',
-		'bar_hotkeys_custom.lua'
-	}
+	keybindingLayouts = keybindingLayouts,
+	keybindingLayoutFiles = keybindingLayoutFiles,
+	keybindingPresets = keybindingPresets,
+	presetKeybindings = presetKeybindings,
 }

@@ -254,7 +254,7 @@
 		"keybinds": {
 			"title": "Tastenbelegungen",
 			"disclaimer": "Diese Tastenbelegungen sind standardmäßig gesetzt. Wenn du Hotkey-Widgets entfernst/ersetzt oder deine eigenen UIKeys verwendest, funktionieren sie möglicherweise nicht mehr!",
-			"howtochangekeybinds":"Zum Ändern: in Einstellungen/Steuerung Tastenbelegungen auf \"Benutzerdefiniert\" setzen, um die Datei BAR/data/bar_hotkeys_custom.lua zu erstellen.\nBearbeite diese Datei und wähle \"Benutzerdefiniert\" wieder aus, um erneut zu laden.",
+			"howtochangekeybinds":"Zum Ändern: in Einstellungen/Steuerung Tastenbelegungen auf \"Benutzerdefiniert\" setzen, um die Datei BAR/data/uikeys.txt zu erstellen.\nBearbeite diese Datei und wähle \"Benutzerdefiniert\" wieder aus, um erneut zu laden.",
 			"chat": {
 				"title": "Chat",
 				"send": "Chatnachricht senden",

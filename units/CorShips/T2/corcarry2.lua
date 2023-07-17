@@ -34,7 +34,7 @@ return {
 		maxdamage = 3000,
 		maxvelocity = 2.008,
 		minwaterdepth = 15,
-		movementclass = "BOAT7",
+		movementclass = "BOAT8",
 		movestate = 1,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCARRY2.s3o",

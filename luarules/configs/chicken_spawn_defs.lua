@@ -9,7 +9,7 @@ local difficulties = {
 	--survival = 6,
 }
 
-local difficulty = difficulties[Spring.GetModOptions().chicken_difficulty]
+local difficulty = difficulties[Spring.GetModOptions().raptor_difficulty]
 local burrowName = 'chicken_hive'
 
 local chickenTurrets
@@ -39,7 +39,7 @@ else
 end
 
 local chickenEggs = { -- Specify eggs dropped by unit here, requires useEggs to be true, if some unit is not specified here, it drops random egg colors.
-	chicken1       						=   "purple", 
+	chicken1       						=   "purple",
 	chicken1_mini						=   "purple",
 	chicken1b      						=   "pink",
 	chicken1c      						=   "purple",
@@ -69,13 +69,18 @@ local chickenEggs = { -- Specify eggs dropped by unit here, requires useEggs to 
 	chickenf1b     						=   "darkgreen",
 	chickenf1apex      					=   "darkgreen",
 	chickenf1apexb     					=   "darkgreen",
-	chickenf2      						=   "white",
+	chickenairscout1      				=   "white",
+	chickenairscout2      				=   "white",
+	chickenairscout3      				=   "white",
 	chickenc3      						=   "white",
 	chickenc3b     						=   "white",
 	chickenc3c     						=   "white",
 	chickenr1      						=   "darkgreen",
 	chickenr2      						=   "darkgreen",
-	chickenh1      						=   "white",
+	chickenhealer1      				=   "white",
+	chickenhealer2      				=   "white",
+	chickenhealer3      				=   "white",
+	chickenhealer4      				=   "white",
 	chickenh1b     						=   "white",
 	chickenh2      						=   "purple",
 	chickenh3      						=   "purple",
@@ -132,7 +137,7 @@ chickenBehaviours = {
 		[UnitDefNames["chickenr1"].id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames["chickenr2"].id] = { distance = 500, chance = 0.01 },
 		[UnitDefNames["chickene1"].id] = { distance = 300, chance = 1 },
-		[UnitDefNames["chickene2"].id] = { distance = 200, chance = 0.01 },	
+		[UnitDefNames["chickene2"].id] = { distance = 200, chance = 0.01 },
 		[UnitDefNames["chickenelectricallterrainassault"].id] = { distance = 200, chance = 0.01 },
 		[UnitDefNames["chickenearty1"].id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames["chickenearty2"].id] = { distance = 500, chance = 0.01 },
@@ -165,7 +170,10 @@ chickenBehaviours = {
 		[UnitDefNames["epic_chickenq"].id] = { distance = 500, chance = 0.005 },
 	},
 	COWARD = { -- Run away from target after getting hit by enemy
-		[UnitDefNames["chickenh1"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenhealer1"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenhealer2"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenhealer3"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenhealer4"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenh1b"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickens1"].id] = { distance = 270, chance = 0.5 },
 		[UnitDefNames["chickens2"].id] = { distance = 250, chance = 0.5 },
@@ -238,7 +246,10 @@ chickenBehaviours = {
 		[UnitDefNames["epic_chickenq"].id] = { chance = 0.05 },
 	},
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and queen
-		[UnitDefNames["chickenh1"].id] = true,
+		[UnitDefNames["chickenhealer1"].id] = true,
+		[UnitDefNames["chickenhealer2"].id] = true,
+		[UnitDefNames["chickenhealer3"].id] = true,
+		[UnitDefNames["chickenhealer4"].id] = true,
 		[UnitDefNames["chickenh1b"].id] = true,
 	},
 	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance, friendly fire enabled (assuming nothing else in the game stops it)
@@ -264,8 +275,8 @@ chickenBehaviours = {
 local optionValues = {
 
 	[difficulties.veryeasy] = {
-		gracePeriod       = 8 * Spring.GetModOptions().chicken_graceperiodmult * 60,
-		queenTime      	  = 50 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 8 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 50 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 120,
 		burrowSpawnRate   = 480,
 		turretSpawnRate   = 240,
@@ -283,8 +294,8 @@ local optionValues = {
 	},
 
 	[difficulties.easy] = {
-		gracePeriod       = 7 * Spring.GetModOptions().chicken_graceperiodmult * 60,
-		queenTime      	  = 45 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 7 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 45 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 90,
 		burrowSpawnRate   = 420,
 		turretSpawnRate   = 210,
@@ -301,8 +312,8 @@ local optionValues = {
 		queenResistanceMult   = 0.75,
 	},
 	[difficulties.normal] = {
-		gracePeriod       = 6 * Spring.GetModOptions().chicken_graceperiodmult * 60,
-		queenTime      	  = 40 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 6 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 40 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 60,
 		burrowSpawnRate   = 360,
 		turretSpawnRate   = 180,
@@ -319,8 +330,8 @@ local optionValues = {
 		queenResistanceMult   = 1,
 	},
 	[difficulties.hard] = {
-		gracePeriod       = 5 * Spring.GetModOptions().chicken_graceperiodmult * 60,
-		queenTime      	  = 40 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 5 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 40 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 50,
 		burrowSpawnRate   = 300,
 		turretSpawnRate   = 150,
@@ -337,8 +348,8 @@ local optionValues = {
 		queenResistanceMult   = 1.33,
 	},
 	[difficulties.veryhard] = {
-		gracePeriod       = 4 * Spring.GetModOptions().chicken_graceperiodmult * 60,
-		queenTime      	  = 35 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 4 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 35 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 40,
 		burrowSpawnRate   = 240,
 		turretSpawnRate   = 120,
@@ -355,8 +366,8 @@ local optionValues = {
 		queenResistanceMult   = 1.67,
 	},
 	[difficulties.epic] = {
-		gracePeriod       = 3 * Spring.GetModOptions().chicken_graceperiodmult * 60,
-		queenTime      	  = 30 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 3 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 30 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		chickenSpawnRate  = 30,
 		burrowSpawnRate   = 180,
 		turretSpawnRate   = 90,
@@ -374,8 +385,8 @@ local optionValues = {
 	},
 
 	-- [difficulties.survival] = {
-	-- 	gracePeriod       = 8 * Spring.GetModOptions().chicken_graceperiodmult * 60,
-	-- 	queenTime      	  = 50 * Spring.GetModOptions().chicken_queentimemult * 60, -- time at which the queen appears, frames
+	-- 	gracePeriod       = 8 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+	-- 	queenTime      	  = 50 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 	-- 	chickenSpawnRate  = 120,
 	-- 	burrowSpawnRate   = 480,
 	-- 	turretSpawnRate   = 240,
@@ -401,6 +412,7 @@ local squadSpawnOptionsTable = {
 	basic = {}, -- 67% spawn chance
 	special = {}, -- 33% spawn chance, there's 1% chance of Special squad spawning Super squad, which is specials but 30% anger earlier.
 	air = {}, -- Air waves
+	healer = {}, -- Healers/Medics
 }
 
 local function addNewSquad(squadParams) -- params: {type = "basic", minAnger = 0, maxAnger = 100, units = {"1 chicken1"}, weight = 1}
@@ -449,7 +461,10 @@ local chickenMinions = { -- Units spawning other units
 		"chickenacidallterrainassault",
 	},
 	["chicken_miniqueen_healer"] = {
-		"chickenh1",
+		"chickenhealer1",
+		"chickenhealer2",
+		"chickenhealer3",
+		"chickenhealer4",
 		--"chickenh1b",
 	},
 	["chicken_miniqueen_basic"] = {
@@ -518,11 +533,6 @@ local chickenMinions = { -- Units spawning other units
 		"chickenbroodartyh4small",
 	},
 }
-
-local chickenHealers = { -- Spawn indepedently from squads in small numbers
-	"chickenh1",
-	--"chickenh1b",
-},
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Squads -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -678,10 +688,14 @@ end
 -- Air --
 ---------
 
-local airStartAnger = 20 -- needed for air waves to work correctly.
+local airStartAnger = 0 -- needed for air waves to work correctly.
+
+addNewSquad({ type = "air", minAnger = 0, units = { "1 chickenairscout1" }, maxAnger = 40 })
 
 addNewSquad({ type = "air", minAnger = 20, units = { "4 chickenw1_mini" } })
 addNewSquad({ type = "air", minAnger = 20, units = { "4 chickenf1_mini" } })
+
+addNewSquad({ type = "air", minAnger = 33, units = { "1 chickenairscout2" }, maxAnger = 80 })
 
 addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1", } })
 addNewSquad({ type = "air", minAnger = 40, units = { "4 chickenw1b", } })
@@ -694,6 +708,8 @@ addNewSquad({ type = "air", minAnger = 50, units = { "2 chickenbroodbomberh4" } 
 
 addNewSquad({ type = "air", minAnger = 60, units = { "4 chickenebomber1" } })
 addNewSquad({ type = "air", minAnger = 60, units = { "4 chickenacidbomber" } })
+
+addNewSquad({ type = "air", minAnger = 66, units = { "1 chickenairscout3" } })
 
 addNewSquad({ type = "air", minAnger = 70, units = { "10 chicken_dodoair" }, weight = 2 })
 addNewSquad({ type = "air", minAnger = 70, units = { "2 chickenbroodbomberh3" } })
@@ -716,6 +732,22 @@ addNewSquad({ type = "air", minAnger = 100, units = { "4 chickenbroodbomberh4" }
 addNewSquad({ type = "air", minAnger = 100, units = { "4 chickenbroodbomberh3" } })
 addNewSquad({ type = "air", minAnger = 100, units = { "4 chickenbroodbomberh2" } })
 
+------------
+-- Healer --
+------------
+
+addNewSquad({ type = "healer", minAnger = 0, units = { "1 chickenhealer1" }, maxAnger = 35 })
+
+addNewSquad({ type = "healer", minAnger = 25, units = { "2 chickenhealer1" }, maxAnger = 60 })
+addNewSquad({ type = "healer", minAnger = 25, units = { "1 chickenhealer2" }, maxAnger = 60 })
+
+addNewSquad({ type = "healer", minAnger = 50, units = { "2 chickenhealer2" }, maxAnger = 85 })
+addNewSquad({ type = "healer", minAnger = 50, units = { "1 chickenhealer3" }, maxAnger = 85 })
+
+
+addNewSquad({ type = "healer", minAnger = 75, units = { "2 chickenhealer3" }})
+addNewSquad({ type = "healer", minAnger = 75, units = { "1 chickenhealer4" }})
+
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these
 local useEggs = true -- Drop eggs (requires egg features from Beyond All Reason)
@@ -725,6 +757,8 @@ local spawnSquare = 90 -- size of the chicken spawn square centered on the burro
 local spawnSquareIncrement = 2 -- square size increase for each unit spawned
 local minBaseDistance = 256 -- Minimum distance of new burrows from players and other burrows
 local burrowTurretSpawnRadius = 80
+local bossFightWaveSizeScale = 25 -- Percentage
+local defaultChickenFirestate = 3 -- 0 - Hold Fire | 1 - Return Fire | 2 - Fire at Will | 3 - Fire at everything
 
 local ecoBuildingsPenalty = { -- Additional queen hatch per second from eco buildup (for 60 minutes queen time. scales to queen time)
 	--[[
@@ -754,7 +788,7 @@ local ecoBuildingsPenalty = { -- Additional queen hatch per second from eco buil
 	[UnitDefNames["cormakr"].id] 	= 0.00005,
 	[UnitDefNames["armfmkr"].id] 	= 0.00005,
 	[UnitDefNames["corfmkr"].id] 	= 0.00005,
-	
+
 	-- T2 Metal Makers
 	[UnitDefNames["armmmkr"].id] 	= 0.0005,
 	[UnitDefNames["cormmkr"].id] 	= 0.0005,
@@ -790,14 +824,13 @@ local config = { -- Don't touch this! ------------------------------------------
 	difficulty             	= difficulty,
 	difficulties           	= difficulties,
 	chickenEggs			   	= table.copy(chickenEggs),
-	chickenHealers			= table.copy(chickenHealers),
 	burrowName             	= burrowName,   -- burrow unit name
 	burrowDef              	= UnitDefNames[burrowName].id,
-	chickenSpawnMultiplier 	= Spring.GetModOptions().chicken_spawncountmult,
-	burrowSpawnType        	= Spring.GetModOptions().chicken_chickenstart,
-	swarmMode			   	= Spring.GetModOptions().chicken_swarmmode,
-	spawnSquare            	= spawnSquare,       
-	spawnSquareIncrement   	= spawnSquareIncrement,         
+	chickenSpawnMultiplier 	= Spring.GetModOptions().raptor_spawncountmult,
+	burrowSpawnType        	= Spring.GetModOptions().raptor_raptorstart,
+	swarmMode			   	= Spring.GetModOptions().raptor_swarmmode,
+	spawnSquare            	= spawnSquare,
+	spawnSquareIncrement   	= spawnSquareIncrement,
 	minBaseDistance        	= minBaseDistance,
 	chickenTurrets			= table.copy(chickenTurrets),
 	miniBosses			   	= miniBosses,
@@ -810,6 +843,8 @@ local config = { -- Don't touch this! ------------------------------------------
 	airStartAnger			= airStartAnger,
 	ecoBuildingsPenalty		= ecoBuildingsPenalty,
 	highValueTargets		= highValueTargets,
+	bossFightWaveSizeScale  = bossFightWaveSizeScale,
+	defaultChickenFirestate = defaultChickenFirestate,
 }
 
 for key, value in pairs(optionValues[difficulty]) do

@@ -54,6 +54,7 @@ return {
 			model_author = "MASHUP",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles/t2",
+			paralyzemultiplier = 0.04,
 			techlevel = 2,
 		},
 		featuredefs = {

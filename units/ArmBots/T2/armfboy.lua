@@ -22,7 +22,7 @@ return {
 		maxslope = 20,
 		maxvelocity = 1,
 		maxwaterdepth = 25,
-		movementclass = "HBOT3",
+		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMFBOY.s3o",
 		power = 5950, --compensation for XP rank with high AoE weapons

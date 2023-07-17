@@ -360,22 +360,22 @@ local options={
 	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	-- Chickens
+	-- Raptors
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	{
-		key 	= 'chicken_defense_options',
+		key 	= 'raptor_defense_options',
 		name 	= 'Raptors',
 		desc 	= 'Various gameplay options that will change how the Raptor Defense is played.',
 		type 	= 'section',
 	},
 	{
-		key="chicken_difficulty",
+		key="raptor_difficulty",
 		name="Base Difficulty",
 		desc="Raptors difficulty",
 		type="list",
 		def="normal",
-		section="chicken_defense_options",
+		section="raptor_defense_options",
 		items={
 			{key="veryeasy", name="Very Easy", desc="Very Easy"},
 			{key="easy", name="Easy", desc="Easy"},
@@ -388,28 +388,28 @@ local options={
 		}
 	},
 	{
-		key="chicken_chickenstart",
+		key="raptor_raptorstart",
 		name="Burrow Placement",
 		desc="Control where burrows spawn",
 		type="list",
 		def="initialbox",
-		section="chicken_defense_options",
+		section="raptor_defense_options",
 		items={
 			{key="avoid", name="Avoid Players", desc="Burrows avoid player units"},
-			{key="initialbox", name="Initial Start Box", desc="First wave spawns in chicken start box, following burrows avoid players"},
-			{key="alwaysbox", name="Always Start Box", desc="Burrows always spawn in chicken start box"},
+			{key="initialbox", name="Initial Start Box", desc="First wave spawns in raptor start box, following burrows avoid players"},
+			{key="alwaysbox", name="Always Start Box", desc="Burrows always spawn in raptor start box"},
 		}
 	},
 	{
-		key    = "chicken_endless",
+		key    = "raptor_endless",
 		name   = "Endless Mode",
 		desc   = "When you kill the queen, the game doesn't end, but loops around at higher difficulty instead, infinitely.",
 		type   = "bool",
 		def    = false,
-		section= "chicken_defense_options",
+		section= "raptor_defense_options",
 	},
 	{
-		key    = "chicken_queentimemult",
+		key    = "raptor_queentimemult",
 		name   = "Queen Hatching Time Multiplier",
 		desc   = "How quickly Queen Hatch goes from 0 to 100% (Range: 0.1 - 3)",
 		type   = "number",
@@ -417,10 +417,10 @@ local options={
 		min    = 0.1,
 		max    = 3,
 		step   = 0.1,
-		section= "chicken_defense_options",
+		section= "raptor_defense_options",
 	},
 	{
-		key    = "chicken_spawncountmult",
+		key    = "raptor_spawncountmult",
 		name   = "Unit Spawn Per Wave Multiplier",
 		desc   = "How many times more raptors will spawn per wave. (Range: 1 - 5)",
 		type   = "number",
@@ -428,10 +428,10 @@ local options={
 		min    = 1,
 		max    = 5,
 		step   = 1,
-		section= "chicken_defense_options",
+		section= "raptor_defense_options",
 	},
 	{
-		key    = "chicken_spawntimemult",
+		key    = "raptor_spawntimemult",
 		name   = "Time Between Waves Multiplier",
 		desc   = "How often new waves will spawn. (Range: 0.1 - 3)",
 		type   = "number",
@@ -439,10 +439,10 @@ local options={
 		min    = 0.1,
 		max    = 3,
 		step   = 0.1,
-		section= "chicken_defense_options",
+		section= "raptor_defense_options",
 	},
 	{
-		key    = "chicken_graceperiodmult",
+		key    = "raptor_graceperiodmult",
 		name   = "Grace Period Time Multiplier",
 		desc   = "Time before Raptors become active. (Range: 0.1 - 3)",
 		type   = "number",
@@ -450,7 +450,7 @@ local options={
 		min    = 0.1,
 		max    = 3,
 		step   = 0.1,
-		section= "chicken_defense_options",
+		section= "raptor_defense_options",
 	},
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1244,7 +1244,7 @@ local options={
 	{
 		key    = 'expandedcortexvehiclest2',
 		name   = 'Additional Cortex T2 Vehicles',
-		desc   = 'Adds Forge, a combat engineer like the butler with a flamethrower. Adds Printer, an armored field engineer. Adds Torch, a fast flame tank',
+		desc   = 'Adds Forge, a combat engineer like the butler with a flamethrower. Adds Printer, an armored field engineer. Adds Heat Tiger, Tiger with a heat laser',
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,
@@ -1399,7 +1399,7 @@ local options={
 			{key="armblue", name="Armada Blue", desc="description"},
 			{key="corred", name="Cortex Red", desc="description"},
 			{key="scavpurp", name="Scavenger Purple", desc="description"},
-			{key="chickenorange", name="Chicken Orange", desc="description"},
+			{key="raptororange", name="Raptor Orange", desc="description"},
 			{key="gaiagray", name="Gaia Gray", desc="description"},
 		}
 	},

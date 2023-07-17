@@ -17559,7 +17559,35 @@ local unitEventLights = {
 			},
 		},
 
+		[UnitDefNames['armdecom'].id] = {
+			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'lflare',
+				lightName = 'dgunbarrelglow',
+				alwaysVisible = true,
+				lightConfig = { posx = 0, posy = 7, posz = 31, radius = 80,
+					color2r = 1, color2g = 0.2, color2b = 0, colortime = 400,
+					r = 0.4, g = 0.06, b = 0, a = 0.9,
+					modelfactor = 2, specular = 1, scattering = 0.4, lensflare = 0,
+					lifetime = 200, sustain = 3},
+			},
+		},
+
 		[UnitDefNames['corcom'].id] = {
+			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'biggun',
+				lightName = 'corcombarrelglow',
+				alwaysVisible = true,
+				lightConfig = { posx = 0, posy = 0, posz = 22, radius = 16,
+					color2r = 0.55, color2g = 0.1, color2b = 0, colortime = 400,
+					r = 1, g = 0.3, b = 0, a = 0.55,
+					modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+					lifetime = 200, sustain = 2},
+			},
+		},
+
+		[UnitDefNames['cordecom'].id] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'biggun',

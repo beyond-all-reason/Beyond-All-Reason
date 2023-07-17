@@ -16,7 +16,7 @@ local teamList = Spring.GetTeamList()
 local allyTeamList = Spring.GetAllyTeamList()
 local teamCount = #teamList - 1
 local allyTeamCount = #allyTeamList - 1
-local isSurvival = Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsChickens()
+local isSurvival = Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsRaptors()
 
 local survivalColorNum = 1 -- Starting from color #1
 local survivalColorVariation = 0 -- Current color variation
@@ -51,7 +51,7 @@ end
 local armBlueColor       = "#004DFF" -- Armada Blue
 local corRedColor        = "#FF1005" -- Cortex Red
 local scavPurpColor      = "#6809A1" -- Scav Purple
-local chickenOrangeColor = "#CC8914" -- Chicken Orange
+local raptorOrangeColor  = "#CC8914" -- Raptor Orange
 local gaiaGrayColor      = "#7F7F7F" -- Gaia Grey
 
 
@@ -93,16 +93,16 @@ local survivalColors = {
 	"#0B3EF3", -- 1
 	"#FF1005", -- 2
 	"#0CE908", -- 3
-	"#F80889", -- 4
+	"#ffab8c", -- 4
 	"#09F5F5", -- 5
 	"#FCEEA4", -- 6
 	"#097E1C", -- 7
 	"#F190B3", -- 8
-	"#2C32AC", -- 9
+	"#F80889", -- 9
 	"#3EFFA2", -- 10
-	"#FF6058", -- 11
+	"#911806", -- 11
 	"#7CA1FF", -- 12
-	"#A35274", -- 13
+	"#3c7a74", -- 13
 	"#B04523", -- 14
 	"#B4FF39", -- 15
 	"#773A01", -- 16
@@ -127,12 +127,12 @@ local teamColors = {
 		{ -- First Team (Cool)
 			"#0B3EF3", --1
 			"#0CE908", --2
-			"#872DFA", --3
-			"#09F5F5", --4
-			"#097E1C", --5
-			"#7CA1FF", --6
-			"#B4FF39", --7
-			"#3EFFA2", --8
+			"#00f5e5", --3
+			"#6941f2", --4
+			"#8fff94", --5
+			"#1b702f", --6
+			"#7cc2ff", --7
+			"#a294ff", --8
 			"#0B849B", --9
 			"#689E3D", --10
 			"#4F2684", --11
@@ -152,7 +152,7 @@ local teamColors = {
 			"#FF6107", --3
 			"#F80889", --4
 			"#FCEEA4", --5
-			"#FF6058", --6
+			"#8a2828", --6
 			"#F190B3", --7
 			"#C88B2F", --8
 			"#B04523", --9
@@ -426,10 +426,10 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(scavPurpColor)[1])
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(scavPurpColor)[2])
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(scavPurpColor)[3])
-		elseif isAI and string.find(isAI, "Chicken") then
-			Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(chickenOrangeColor)[1])
-			Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(chickenOrangeColor)[2])
-			Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(chickenOrangeColor)[3])
+		elseif isAI and string.find(isAI, "Raptor") then
+			Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(raptorOrangeColor)[1])
+			Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(raptorOrangeColor)[2])
+			Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(raptorOrangeColor)[3])
 		elseif teamID == gaiaTeamID then
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(gaiaGrayColor)[1])
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(gaiaGrayColor)[2])
@@ -518,12 +518,12 @@ else	-- UNSYNCED
 					b = hex2RGB(scavPurpColor)[3],
 				}
 
-			elseif isAI and string.find(isAI, "Chicken") then
+			elseif isAI and string.find(isAI, "Raptor") then
 
 				teamColorsTable[teamID] = {
-					r = hex2RGB(chickenOrangeColor)[1],
-					g = hex2RGB(chickenOrangeColor)[2],
-					b = hex2RGB(chickenOrangeColor)[3],
+					r = hex2RGB(raptorOrangeColor)[1],
+					g = hex2RGB(raptorOrangeColor)[2],
+					b = hex2RGB(raptorOrangeColor)[3],
 				}
 
 			elseif teamID == gaiaTeamID then
@@ -558,7 +558,7 @@ else	-- UNSYNCED
 				end
 
 				-- Assigning R,G,B values with specified color variations
-				teamColorsTable[teamID] = {	
+				teamColorsTable[teamID] = {
 					r = hex2RGB(ffaColors[ffaColorNum])[1] + math.random(-ffaColorVariation, ffaColorVariation),
 					g = hex2RGB(ffaColors[ffaColorNum])[2] + math.random(-ffaColorVariation, ffaColorVariation),
 					b = hex2RGB(ffaColors[ffaColorNum])[3] + math.random(-ffaColorVariation, ffaColorVariation),
@@ -583,7 +583,7 @@ else	-- UNSYNCED
 					end
 
 					-- Assigning R,G,B values with specified color variations
-					teamColorsTable[teamID] = {	
+					teamColorsTable[teamID] = {
 						r = hex2RGB(teamColors[allyTeamCount][teamSizes[allyTeamID][1]][teamSizes[allyTeamID][2]])[1] + math.random(-teamSizes[allyTeamID][3], teamSizes[allyTeamID][3]),
 						g = hex2RGB(teamColors[allyTeamCount][teamSizes[allyTeamID][1]][teamSizes[allyTeamID][2]])[2] + math.random(-teamSizes[allyTeamID][3], teamSizes[allyTeamID][3]),
 						b = hex2RGB(teamColors[allyTeamCount][teamSizes[allyTeamID][1]][teamSizes[allyTeamID][2]])[3] + math.random(-teamSizes[allyTeamID][3], teamSizes[allyTeamID][3]),
@@ -592,7 +592,7 @@ else	-- UNSYNCED
 					teamSizes[allyTeamID][2] = teamSizes[allyTeamID][2] + 1 -- Will start from the next color next time
 				else
 					Spring.Echo("[AUTOCOLORS] Error: Team Colors Table is broken or missing for this allyteam set")
-					teamColorsTable[teamID] = {	
+					teamColorsTable[teamID] = {
 						r = 255,
 						g = 255,
 						b = 255,
@@ -607,7 +607,7 @@ else	-- UNSYNCED
 			}
 		end
 	end
-	
+
 	local function setUpAllLocalTeamColors()
 		survivalColorNum = 1 -- Starting from color #1
 		survivalColorVariation = 0 -- Current color variation
@@ -633,7 +633,7 @@ else	-- UNSYNCED
 		armblue       = armBlueColor,
 		corred        = corRedColor,
 		scavpurp      = scavPurpColor,
-		chickenorange = chickenOrangeColor,
+		raptororange  = raptorOrangeColor,
 		gaiagray      = gaiaGrayColor,
 	}
 

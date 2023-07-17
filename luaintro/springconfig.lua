@@ -15,6 +15,7 @@ Spring.SetConfigFloat("unitSunMult", 1.0)
 Spring.SetConfigFloat("unitExposureMult", 1.0)
 Spring.SetConfigFloat("modelGamma", 1.0)
 
+
 -- BAR requires higher textureatlas size for particles than the default of 2048x2048
 local maxTextureAtlasSize = 8192
 Spring.SetConfigInt("MaxTextureAtlasSizeX", maxTextureAtlasSize)
@@ -175,4 +176,12 @@ else
 	-- If user has configured a custom KeyChainTimeout, restore this setting
 	Spring.SetConfigInt("KeyChainTimeout", userKeyChainTimeout)
 end
+
+-- The default mouse drag threshold is set extremely low for engine by default, and fast clicking often results in a drag. 
+-- This is bad for single unit commands, which turn into empty area commmands as a result of the small drag 
+local baseDragThreshold = 32
+Spring.SetConfigInt("MouseDragSelectionThreshold", baseDragThreshold)
+Spring.SetConfigInt("MouseDragCircleCommandThreshold", baseDragThreshold)
+Spring.SetConfigInt("MouseDragBoxCommandThreshold", baseDragThreshold + 12)
+Spring.SetConfigInt("MouseDragFrontCommandThreshold", baseDragThreshold + 26)
 

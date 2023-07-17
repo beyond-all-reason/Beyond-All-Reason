@@ -91,7 +91,7 @@ return {
 				name = "METEORLAUNCHER",
 				proximitypriority = -6,
 				range = 72000,
-				reloadtime = 1,
+				reloadtime = 10,
 				soundhit = "nukecor",
 				soundhitwet = "nukewater",
 				soundstart = "bugarty",

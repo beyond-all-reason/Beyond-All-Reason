@@ -32,7 +32,7 @@ return {
 		maxslope = 45,
 		maxvelocity = 0.5,
 		maxwaterdepth = 22,
-		movementclass = "CRITTERH",
+		movementclass = "BOT1",
 		movestate = -1,
 		noautofire = false,
 		nochasecategory = "MOBILE ",

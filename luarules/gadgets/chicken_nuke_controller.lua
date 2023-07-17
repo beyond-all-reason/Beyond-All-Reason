@@ -14,7 +14,7 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
-if Spring.Utilities.Gametype.IsChickens() then
+if Spring.Utilities.Gametype.IsRaptors() then
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Chicken Defense Spawner Activated!")
 else
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Chicken Defense Spawner Deactivated!")

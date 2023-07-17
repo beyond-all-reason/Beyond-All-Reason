@@ -339,7 +339,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 		if not scenarioSpawnsUnits then
-			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "ChickensAI" or luaAI == "ScavReduxAI"))  then
+			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "RaptorsAI" or luaAI == "ScavReduxAI"))  then
 				local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
 				if unitID then
 					startUnitList[#startUnitList+1] = {unitID = unitID, teamID = teamID, x = x, y = y, z = z}

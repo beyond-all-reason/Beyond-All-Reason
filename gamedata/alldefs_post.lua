@@ -393,11 +393,33 @@ function UnitDef_Post(name, uDef)
 	-- Add prototype units to cor T2 vech
 	if Spring.GetModOptions().expandedcortexvehiclest2 then
 		if name == "coravp" then
+			for ix, UnitName in pairs(uDef.buildoptions) do
+				if UnitName == "corseal" then
+					uDef.buildoptions[ix] = "corsala"
+				end
+			end
+
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corforge"
-			uDef.buildoptions[numBuildoptions+2] = "corprinter"
-			uDef.buildoptions[numBuildoptions+3] = "cortorch"
-			uDef.buildoptions[numBuildoptions+4] = "corftiger"
+			uDef.buildoptions[numBuildoptions+1] = "corprinter"
+			--uDef.buildoptions[numBuildoptions+2] = "corsala"
+			--uDef.buildoptions[numBuildoptions+3] = "corforge"
+			--uDef.buildoptions[numBuildoptions+4] = "cortorch"
+		end
+		if name == "coramsub" then
+			for ix, UnitName in pairs(uDef.buildoptions) do
+				if UnitName == "corseal" then
+					uDef.buildoptions[ix] = "corsala"
+				end
+			end
+
+		end
+		if name == "corgantuw" then
+			local numBuildoptions = 1
+			for ix, UnitName in pairs(uDef.buildoptions) do
+				if UnitName == "corseal" then
+					uDef.buildoptions[ix] = "corsala"
+				end
+			end
 		end
 	end
 
@@ -432,7 +454,9 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
 			uDef.buildoptions[numBuildoptions+2] = "corforge"
 			uDef.buildoptions[numBuildoptions+3] = "corprinter"
-			uDef.buildoptions[numBuildoptions+4] = "cortorch"
+			uDef.buildoptions[numBuildoptions+4] = "corftiger"
+			uDef.buildoptions[numBuildoptions+5] = "cortorch"
+			uDef.buildoptions[numBuildoptions+6] = "corsala"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			local numBuildoptions = #uDef.buildoptions
 		elseif name == "corca" or name == "corck" or name == "corcv" then
@@ -559,6 +583,7 @@ function UnitDef_Post(name, uDef)
 		uDef.upright = false
 		uDef.floater = true
 		uDef.turninplaceanglelimit = 360
+		uDef.capturable = false
 		if uDef.sightdistance then
 			uDef.sonardistance = uDef.sightdistance*2
 			uDef.radardistance = uDef.sightdistance*2
@@ -844,12 +869,7 @@ function UnitDef_Post(name, uDef)
 			}
 		end
 		if name == "armsam" then
-			uDef.weapondefs.armtruck_missile.damage = {
-					bombers = 120,
-					default = 64,
-					fighters = 160,
-					vtol = 160,
-			}
+			uDef.weapondefs.armtruck_missile.damage.commanders = uDef.weapondefs.armtruck_missile.damage.default 
 		end
 		if name == "armkam" then
 			uDef.weapondefs.med_emg.damage = {
@@ -951,12 +971,7 @@ function UnitDef_Post(name, uDef)
 			}
 		end
 		if name == "cormist" then
-			uDef.weapondefs.cortruck_missile.damage = {
-					bombers = 120,
-					default = 47,
-					fighters = 120,
-					vtol = 120,
-			}
+			uDef.weapondefs.cortruck_missile.damage.commanders = uDef.weapondefs.cortruck_missile.damage.default
 		end
 		if name == "corape" then
 			uDef.weapondefs.vtol_rocket.damage = {

@@ -22,7 +22,7 @@ return {
 		maxslope = 17,
 		maxvelocity = 1.4,
 		maxwaterdepth = 12,
-		movementclass = "BOT2",
+		movementclass = "BOT3",
 		name = "Karkinos",
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGKARK.s3o",

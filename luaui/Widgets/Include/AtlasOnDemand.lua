@@ -33,7 +33,7 @@
 
 
 -- AtlasOnDemand class
--- Size in the total size of the texture
+-- Size in the total size of the texture 
 -- Resolution is the size of the splits (e.g. 128 size 'patches'
 -- Funny notes: Loading a texture in with gl.Texture(0,':n:'..name) nearest mode is actually slow!!
 
@@ -53,6 +53,8 @@
 -- maybe pad should be 8th param of uvcoords?
 -- Fix font color tracking
 -- Add a return value for fonts that show the descender line, to consistently be able to position fontses // https://springrts.com/wiki/GetTextHeight
+-- Handle text Ascender too!
+
 
 -- QuadTreePrototype:
 	-- Not always square!
@@ -186,6 +188,9 @@ local function MakeAtlasOnDemand(config)
 		debug = config.debug,
 		hastasks = false,
 	}
+	
+	-- add an initial blanking command to the whole goddamned thing because AMD allocates garbage as texture memory
+	AtlasOnDemand.renderImageTaskList[1] = {id = AtlasOnDemand.blankimg, w = config.xresolution , h = config.yresolution, x = 0, y = 0 }
 	for x = 1, AtlasOnDemand.xslots do
 		AtlasOnDemand.fill[x] = {}
 		for y = 1, AtlasOnDemand.yslots do 
@@ -308,7 +313,7 @@ local function MakeAtlasOnDemand(config)
 				
 		else
 				Spring.Echo(string.format("AtlasOnDemand %s Error: cant find space for %s of size %d x %d", self.name, tostring(id), xsize, ysize))
-				return {0,0,1,1,xsize, ysize,0}
+				return {x = 0,y = 0,X =1, Y = 1,w = xsize, h = ysize,d = 0}
 		end
 	end
 	
@@ -487,7 +492,7 @@ local function MakeAtlasOnDemand(config)
 	function AtlasOnDemand:RenderImageTasks() 
 		gl.Color(1,1,1,1) -- sanity check
 		--gl.Rect( 0,0,0.5,0.1)
-		--gl.Blending(GL.ONE, GL.ZERO) -- do full opaque
+		gl.Blending(GL.ONE, GL.ZERO) -- do full opaque
 		for i, task in ipairs(self.renderImageTaskList) do 
 			local drawmodeTexName = self.drawmode..task.id
 			gl.Texture(0, drawmodeTexName)

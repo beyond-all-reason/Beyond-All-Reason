@@ -24,7 +24,7 @@ return {
 		maxvelocity = 1.8,
 		maxwaterdepth = 20,
 		movementclass = "HTANK4",
-		nochasecategory = "VTOL",
+		--nochasecategory = "VTOL",
 		objectname = "Units/CORBAN.s3o",
 		script = "Units/CORBAN.cob",
 		seismicsignature = 0,

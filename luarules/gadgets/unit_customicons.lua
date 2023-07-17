@@ -306,7 +306,10 @@ local units = {
 	chickenf1apex = { "chicken_air.png", 3 },
 	chickenf1apexb = { "chicken_air.png", 3 },
 
-	chickenh1 = { "chicken.png", 0.75 },
+	chickenhealer1 = { "chicken.png", 0.75 },
+	chickenhealer2 = { "chicken.png", 1.125 },
+	chickenhealer3 = { "chicken.png", 1.5 },
+	chickenhealer4 = { "chicken.png", 1.875 },
 	chickenh1b = { "chicken.png", 0.75 },
 
 	chickenh2 = { "chicken.png", 2 },
@@ -334,6 +337,10 @@ local units = {
 	chickenw1c = { "chicken_air.png", 1.5 },
 	chickenw1d = { "chicken_air.png", 1.5 },
 	chickenw2 = { "chicken_air.png", 2 },
+
+	chickenairscout1 = { "chicken_air.png", 1.25 },
+	chickenairscout2 = { "chicken_air.png", 1.75 },
+	chickenairscout3 = { "chicken_air.png", 2.25 },
 
 	chickene1 = { "chicken_paralyze.png", 1 },
 	chickene2 = { "chicken_paralyze.png", 2 },
@@ -551,6 +558,7 @@ local units = {
 	corsd = { "seismic.png", 1.46999991 },
 	corseah = { "air_trans.png", 1.83749986 },
 	corseal = { "corseal_1.45.png", 1.52250004 },
+	corsala = { "corseal_1.45.png", 1.52250004 },
 	corseap = { "air_torp_sea.png", 1.57499993 },
 	corsent = { "vehicle_t2_aa.png", 1.36499989 },
 	corsfig = { "air_sea.png", 0.86099994 },
