@@ -46,14 +46,14 @@ local showHighlight_Always = false
 local includeEnergy = false
 
 --Metal value font
-local numberColor = {1, 1, 1, 0.8}
+local numberColor = {1, 1, 1, 0.75}
 local fontSizeMin = 30
-local fontSizeMax = 250
-local fontScaling = 0.6
+local fontSizeMax = 200
+local fontScaling = 0.45
 
 --Field color
-local reclaimColor = {0, 0, 0, 0.2}
-local reclaimEdgeColor = {1, 1, 1, 0.22}
+local reclaimColor = {0, 0, 0, 0.16}
+local reclaimEdgeColor = {1, 1, 1, 0.18}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
