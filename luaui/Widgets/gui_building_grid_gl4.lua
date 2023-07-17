@@ -11,13 +11,14 @@ function widget:GetInfo()
     }
 end
 
+local opacity = 0.45
 
 local config = {
 	gridSize = 3, -- smallest footprint is size 1 (perimeter camera), size 3 is the size of nanos, winds, etc
 	strongLineSpacing = 4, -- which interval produces heavy lines
 	strongLineOpacity = 0.60, -- opacity of heavy lines
 	weakLineOpacity = 0.18, -- opacity of intermediate lines
-	gridRadius = 42, -- how far from the cursor the grid should show. Same units as gridSize
+	gridRadius = 30, -- how far from the cursor the grid should show. Same units as gridSize
 	gridRadiusFalloff = 2.5, -- how sharply the grid should get cut off at max distance
 	maxViewDistance = 3000.0, -- distance at which the grid no longer renders
 	lineColor = { 0.70, 1.0, 0.70 }, -- color of the lines
@@ -120,6 +121,15 @@ function initShader()
 end
 
 function widget:Initialize()
+    WG['buildinggrid'] = {}
+    WG['buildinggrid'].getOpacity = function()
+        return opacity
+    end
+    WG['buildinggrid'].setOpacity = function(value)
+        opacity = value
+        -- widget needs reloading wholly
+    end
+
     initShader()
 
 	if gridVBO then return end
@@ -130,7 +140,7 @@ function widget:Initialize()
         for col = 0, Game.mapSizeZ, spacing do
             if row ~= Game.mapSizeX then -- skip last
 
-				local strength = (col/spacing) % config.strongLineSpacing == 0 and config.strongLineOpacity or config.weakLineOpacity
+				local strength = ((col/spacing) % config.strongLineSpacing == 0 and config.strongLineOpacity or config.weakLineOpacity) * opacity
                 -- vertical lines
                 VBOData[#VBOData + 1] = row
                 VBOData[#VBOData + 1] = col
@@ -141,7 +151,7 @@ function widget:Initialize()
             end
 
             if col ~= Game.mapSizeZ then -- skip last
-				local strength = (row/spacing) % config.strongLineSpacing == 0 and config.strongLineOpacity or config.weakLineOpacity
+				local strength = ((row/spacing) % config.strongLineSpacing == 0 and config.strongLineOpacity or config.weakLineOpacity) * opacity
                 -- horizonal lines
                 VBOData[#VBOData + 1] = row
                 VBOData[#VBOData + 1] = col
@@ -194,4 +204,14 @@ end
 
 function widget:GameStart()
 	isPregame = false
+end
+
+function widget:GetConfigData(data)
+    return {
+        opacity = opacity,
+    }
+end
+
+function widget:SetConfigData(data)
+    opacity = data.opacity or opacity
 end
