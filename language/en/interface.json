@@ -1250,6 +1250,7 @@
 				"geospots_opacity": "opacity",
 				"healthbars": "Health bars",
 				"healthbarsscale": "scale",
+				"healthbarsheight": "thickness",
 				"healthbarsdistance": "draw distance",
 				"healthbarsvariable": "variable sizes",
 				"healthbarsvariable_descr": "Increases healthbar sizes for bigger units",

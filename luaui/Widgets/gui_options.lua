@@ -3715,12 +3715,26 @@ function init()
 
 		{ id = "geospots", group = "ui", category = types.dev, widget = "Geothermalspots", name = Spring.I18N('ui.settings.option.geospots'), type = "bool", value = GetWidgetToggleValue("Metalspots"), description = Spring.I18N('ui.settings.option.geospots_descr') },
 
-    { id = "healthbarsscale", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.healthbars') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.healthbarsscale'), type = "slider", min = 0.6, max = 2.0, step = 0.1, value = 1, description = '',
+		{ id = "healthbarsscale", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.healthbars') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.healthbarsscale'), type = "slider", min = 0.6, max = 2.0, step = 0.1, value = 1, description = '',
 		  onload = function(i)
 			  loadWidgetData("Health Bars GL4", "healthbarsscale", { 'barScale' })
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Health Bars GL4', 'healthbars', 'setScale', { 'barScale' }, value)
+		  end,
+		},
+		{ id = "healthbarsheight", group = "ui", category = types.advanced, name = widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.healthbarsheight'), type = "slider", min = 0.7, max = 2, step = 0.1, value = 0.9, description = '',
+		  onload = function(i)
+			  loadWidgetData("Health Bars GL4", "healthbarsheight", { 'barHeight' })
+		  end,
+		  onchange = function(i, value)
+			  if widgetHandler.orderList["Health Bars GL4"] and widgetHandler.orderList["Health Bars GL4"] >= 0.5 then
+				  widgetHandler:DisableWidget("Health Bars GL4")
+				  saveOptionValue('Health Bars GL4', nil, nil, { 'barHeight' }, value)
+				  widgetHandler:EnableWidget("Health Bars GL4")
+			  else
+				  saveOptionValue('Health Bars GL4', nil, nil, { 'barHeight' }, value)
+			  end
 		  end,
 		},
 		{ id = "healthbarsvariable", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.healthbarsvariable'), type = "bool", value = (WG['healthbar'] ~= nil and WG['healthbar'].getVariableSizes()), description = Spring.I18N('ui.settings.option.healthbarsvariable_descr'),
