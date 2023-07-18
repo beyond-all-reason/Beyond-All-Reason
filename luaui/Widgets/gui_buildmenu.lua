@@ -180,11 +180,6 @@ end
 
 local minWaterUnitDepth = -11
 local showWaterUnits = false
-local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-if not voidWater and mapMinWater <= minWaterUnitDepth then
-	showWaterUnits = true
-	units.restrictWaterUnits(false)
-end
 -- make them a disabled unit (instead of removing it entirely)
 if not showWaterUnits then
 	units.restrictWaterUnits(true)
@@ -393,6 +388,12 @@ function widget:Update(dt)
 		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
 			widget:ViewResize()
 			doUpdate = true
+		end
+
+		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
+		if not voidWater and mapMinWater <= units.minWaterUnitDepth and not showWaterUnits then
+			showWaterUnits = true
+			units.restrictWaterUnits(false)
 		end
 
 		if stickToBottom then
