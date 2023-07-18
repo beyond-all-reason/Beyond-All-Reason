@@ -140,7 +140,7 @@ end
 
 --crashable aircraft
 for _, UnitDef in pairs(UnitDefs) do
-	if UnitDef.canFly == true and UnitDef.transportSize == 0 and string.sub(UnitDef.name, 1, 7) ~= "critter" and string.sub(UnitDef.name, 1, 7) ~= "chicken" then
+	if UnitDef.canFly == true and UnitDef.transportSize == 0 and string.sub(UnitDef.name, 1, 7) ~= "critter" and string.sub(UnitDef.name, 1, 7) ~= "raptor" then
 		crashable[UnitDef.id] = true
 	end
 end

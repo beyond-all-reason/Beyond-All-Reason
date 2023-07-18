@@ -67,7 +67,7 @@ local mySetMaterialUniform = {
 
 local armTanks = {}
 local corTanks = {}
-local chickenUnits = {}
+local raptorUnits = {}
 local otherUnits = {}
 local spGetUnitHealth = Spring.GetUnitHealth
 local unitsHealth = {} --cache
@@ -306,7 +306,7 @@ local materials = {
 
 		--UnitDamaged = UnitDamaged,
 	}),
-	unitsNormalMapChickens = table.merge(unitsNormalMapTemplate, {
+	unitsNormalMapRaptors = table.merge(unitsNormalMapTemplate, {
 		shaderOptions = {
 			normalmapping = true,
 			flashlights = false,
@@ -331,10 +331,10 @@ local materials = {
 		},
 
 		-- are these below required?
-		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(chickenUnits, unitID, unitDefID, mat) end,
-		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(chickenUnits, unitID, unitDefID) end,
+		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(raptorUnits, unitID, unitDefID, mat) end,
+		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(raptorUnits, unitID, unitDefID) end,
 
-		GameFrame = function (gf, mat) GameFrame(false, chickenUnits, gf, mat) end,
+		GameFrame = function (gf, mat) GameFrame(false, raptorUnits, gf, mat) end,
 
 		UnitDamaged = UnitDamaged,
 	}),
@@ -400,7 +400,7 @@ for id = 1, #UnitDefs do
 				unitMaterials[id] = {"unitsNormalMapOthersArmCor", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3]}
 			else
 				if facName == "chi" then
-					unitMaterials[id] = {"unitsNormalMapChickens", NORMALTEX = normalTex}
+					unitMaterials[id] = {"unitsNormalMapRaptors", NORMALTEX = normalTex}
 				else
 					unitMaterials[id] = {"unitsNormalMapOthers", NORMALTEX = normalTex}
 				end

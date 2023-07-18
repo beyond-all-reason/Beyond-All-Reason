@@ -516,10 +516,10 @@
 			"tidalStrength": "Tidal speed",
 			"windStrength": "Wind speed",
 			"waterDamage": "Water damage",
-			"chickenOptions": "Raptor options",
+			"raptorOptions": "Raptor options",
 			"modOptions": "Mod options"
 		},
-		"chickens": {
+		"raptors": {
 			"firstWave1": "The Raptors have arrived!",
 			"firstWave2": "Get ready to defend yourself!",
 			"airWave1": "Flying Raptors, incoming!",
@@ -530,9 +530,9 @@
 			"resistanceUnits": "The Queen is becoming resistant to:",
 			"wave1": "Wave %{waveNumber}",
 			"wave2": "%{unitCount} Raptors!",
-			"chickenCount": "Raptors: %{count}",
-			"chickenKillCount": "Raptors Killed: %{count}",
-			"chickenPlayerAgression": "Player Aggression Level: %{count}",
+			"raptorCount": "Raptors: %{count}",
+			"raptorKillCount": "Raptors Killed: %{count}",
+			"raptorPlayerAgression": "Player Aggression Level: %{count}",
 			"queenAnger": "Queen Hatch: %{anger}%% (+%{gain}%%/s)",
 			"queenAngerBase": "Base: +%{value}%%/s",
 			"queenAngerAggression": "Aggression: +%{value}%%/s",

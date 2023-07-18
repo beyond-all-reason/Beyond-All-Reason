@@ -151,7 +151,7 @@ local soundData = {
 	},
 
 	-- CHICKEN SOUNDS
-	['chickens'] = {
+	['raptors'] = {
 		gain = 1.2 * 0.5,
 		pitchmod = {
 			default = 0.23,

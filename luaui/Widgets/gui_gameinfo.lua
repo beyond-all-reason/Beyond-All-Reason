@@ -379,7 +379,7 @@ local function refreshContent()
 	content = content .. "\n"
 	if raptorsEnabled then
 		-- filter raptor modoptions
-		content = content .. titlecolor .. Spring.I18N('ui.gameInfo.chickenOptions') .. "\n"
+		content = content .. titlecolor .. Spring.I18N('ui.gameInfo.raptorOptions') .. "\n"
 		for key, params in pairs(changedRaptorModoptions) do
 			content = content .. keycolor .. string.sub(params.key, 9) .. separator .. valuecolor .. params.value .. "\n"
 		end

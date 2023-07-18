@@ -37,7 +37,7 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 
 		[UnitDefNames['armamd'].id] = 20,
 		[UnitDefNames['corfmd'].id] = 20,
-		[UnitDefNames['chicken_antinuke'].id] = 3,
+		[UnitDefNames['raptor_antinuke'].id] = 3,
 
 		[UnitDefNames['armjuno'].id] = 20,
 		[UnitDefNames['corjuno'].id] = 20,

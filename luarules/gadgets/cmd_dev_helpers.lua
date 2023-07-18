@@ -501,7 +501,7 @@ else	-- UNSYNCED
 
 	function gadget:Initialize()
 		-- doing it via GotChatMsg ensures it will only listen to the caller
-		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- Give a category of units, options /luarules givecat [cor|arm|scav|chicken]
+		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- Give a category of units, options /luarules givecat [cor|arm|scav|raptor]
 		gadgetHandler:AddChatAction('destroyunits', destroyUnits, "")  -- self-destrucs the selected units /luarules destroyunits
 		gadgetHandler:AddChatAction('wreckunits', wreckUnits, "")  -- turns the selected units into wrecks /luarules wreckunits
 		gadgetHandler:AddChatAction('reclaimunits', reclaimUnits, "")  -- reclaims and refunds the selected units /luarules reclaimUnits
@@ -982,9 +982,9 @@ else	-- UNSYNCED
 			end
 			Accept[#Accept + 1] = Condition
 		end
-		if string.find(line, "chicken") then
+		if string.find(line, "raptor") then
 			local Condition = function(ud)
-				return string.find(ud.name, 'chicken')
+				return string.find(ud.name, 'raptor')
 			end
 			Accept[#Accept + 1] = Condition
 		end
@@ -1054,7 +1054,7 @@ else	-- UNSYNCED
 		end
 		if string.find(line, "all") then
 			local Condition = function(ud)
-				local exlusions = { 'meteor', 'chicken_hive', 'nuketest', 'nuketestcor', 'nuketestcororg', 'nuketestorg', 'meteor_scav', 'chicken_hive_scav', 'nuketest_scav', 'nuketestcor_scav', 'nuketestcororg_scav', 'nuketestorg_scav' }
+				local exlusions = { 'meteor', 'raptor_hive', 'nuketest', 'nuketestcor', 'nuketestcororg', 'nuketestorg', 'meteor_scav', 'raptor_hive_scav', 'nuketest_scav', 'nuketestcor_scav', 'nuketestcororg_scav', 'nuketestorg_scav' }
 				for k, v in pairs(exlusions) do
 					if ud.name == v then
 						return

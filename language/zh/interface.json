@@ -98,7 +98,7 @@
           "changelog":{
             "title":"改动日志"
           },
-          "chickens":{
+          "raptors":{
             "queenIsAngry":"你激怒了女王!",
             "queenHealth":"女王血量: %{health}%%",
             "wave":"第%{waveNumber}波",
@@ -108,9 +108,9 @@
             "gracePeriod":"缓冲期: %{time}",
             "burrowCount":"巢穴数量: %{count}",
             "burrowKillCount":"已摧毁巢穴: %{count}",
-            "chickenKillCount":"已击杀外星大虾: %{count}",
+            "raptorKillCount":"已击杀外星大虾: %{count}",
             "queenAnger":"女王怒气值: %{anger}%%",
-            "chickenCount":"外星大虾数量: %{count}",
+            "raptorCount":"外星大虾数量: %{count}",
             "difficulty":{
               "epic":"史诗",
               "hard":"困难",
@@ -207,7 +207,7 @@
             "windStrength":"风速",
             "engineVersionError":"引擎版本出错",
             "waterDamage":"溺水伤害",
-            "chickenOptions":"外星大虾选项",
+            "raptorOptions":"外星大虾选项",
             "tidalStrength":"浪涌速度",
             "size":"大小",
             "hardness":"硬度",

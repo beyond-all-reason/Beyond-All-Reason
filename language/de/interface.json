@@ -510,10 +510,10 @@
 			"tidalStrength": "Gezeitengeschwindigkeit",
 			"windStrength": "Windgeschwindigkeit",
 			"waterDamage": "Wasserschaden ",
-			"chickenOptions": "Raptoreinstellungen",
+			"raptorOptions": "Raptoreinstellungen",
 			"modOptions": "Modeinstellungen"
 		},
-		"chickens": {
+		"raptors": {
 			"firstWave1": "Die Raptoren sind eingetroffen!",
 			"firstWave2": "Bereiten Sie sich für die Verteidigung vor!",
 			"airWave1": "Raptoren im Anflug!",
@@ -524,9 +524,9 @@
 			"resistanceUnits": "Die Königin wird resistent gegen:",
 			"wave1": "Welle %{waveNumber}",
 			"wave2": "%{unitCount} Raptoren!",
-			"chickenCount": "Raptoren: %{count}",
-			"chickenKillCount": "Raptoren getötet: %{count}",
-			"chickenPlayerAgression": "Spieler-Aggressivitätsniveau: %{count}",
+			"raptorCount": "Raptoren: %{count}",
+			"raptorKillCount": "Raptoren getötet: %{count}",
+			"raptorPlayerAgression": "Spieler-Aggressivitätsniveau: %{count}",
 			"queenAnger": "Königin schlüpft:%{anger}%% (+%{gain}%%/s)",
 			"queenAngerBase": "Basis: +%{value}%%/s",
 			"queenAngerAggression": "Aggressivität: +%{value}%%/s",

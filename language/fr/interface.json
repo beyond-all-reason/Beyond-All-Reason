@@ -516,10 +516,10 @@
 			"tidalStrength": "Force marémotrice",
 			"windStrength": "Vitesse du vent",
 			"waterDamage": "Dégâts d'eau",
-			"chickenOptions": "Options des Vespides",
+			"raptorOptions": "Options des Vespides",
 			"modOptions": "Options des mods"
 		},
-		"chickens": {
+		"raptors": {
 			"firstWave1": "Les Vespides sont arrivés !",
 			"firstWave2": "Préparez-vous à vous défendre !",
 			"airWave1": "Vespides volants en approche !",
@@ -530,9 +530,9 @@
 			"resistanceUnits": "La Reine devient résistante à :",
 			"wave1": "Vague %{waveNumber}",
 			"wave2": "%{unitCount} Vespides !",
-			"chickenCount": "Vespides : %{count}",
-			"chickenKillCount": "Vespides abattus : %{count}",
-			"chickenPlayerAgression": "Niveaux d'agressivité des joueurs : %{count}",
+			"raptorCount": "Vespides : %{count}",
+			"raptorKillCount": "Vespides abattus : %{count}",
+			"raptorPlayerAgression": "Niveaux d'agressivité des joueurs : %{count}",
 			"queenAnger": "Éclosion de la Reine : %{anger}%% (+%{gain}%%/s) ",
 			"queenAngerBase": "Base : +%{value}%%/s",
 			"queenAngerAggression": "Agression : +%{value}%%/s",

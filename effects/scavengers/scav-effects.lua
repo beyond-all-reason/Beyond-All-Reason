@@ -1458,7 +1458,7 @@ return {
         pos                = [[0, 1, 0]],
         sizegrowth         = -0.2,
         sizemod            = 1.0,
-        texture            = [[smoke-chickens]],
+        texture            = [[smoke-raptors]],
       },
     },
     exhale2 = {
@@ -1486,7 +1486,7 @@ return {
         pos                = [[0, 1, 0]],
         sizegrowth         = -0.07,
         sizemod            = 1.0,
-        texture            = [[smoke-chickens]],
+        texture            = [[smoke-raptors]],
       },
     },
     smoke = {

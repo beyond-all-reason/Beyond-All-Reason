@@ -54,7 +54,7 @@ local moveDatas = {
 	-- },
 
 	-- amphibious bots  possible merger with abotbomb2
-	--critter_crab chickens1 cormando chickens2 armaak corcrash chickems2_spectre armjeth coramph coraak corroach corsktl armvader
+	--critter_crab raptors1 cormando raptors2 armaak corcrash chickems2_spectre armjeth coramph coraak corroach corsktl armvader
 	ABOT2 = {
 		crushstrength = 50,
 		depthmod = 0,
@@ -578,9 +578,9 @@ local moveDatas = {
 		}
 	},
 
-	--Chicken Movedefs
-	--e_chickenq n_chickenq H_chickenq vc_chickenq vh_chickenq epic_chickenq chicken_miniqueen_fire chicken_miniqueen_acid chicken_miniqueen_basic chicken_miniqueen_healer
-	--chicken_miniqueen_spectre chicken_miniqueen_electric
+	--Raptor Movedefs
+	--e_raptorq n_raptorq H_raptorq vc_raptorq vh_raptorq epic_raptorq raptor_miniqueen_fire raptor_miniqueen_acid raptor_miniqueen_basic raptor_miniqueen_healer
+	--raptor_miniqueen_spectre raptor_miniqueen_electric
 	CHICKQUEENHOVER = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -592,10 +592,10 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedmodclass = 2, -- hover
 	},
-	-- chickenhealer1 chicken2b chicken2_spectre chicken2 chickene1 chicken1_mini chicken_dodo1_electric chickens2 
-	--chicken_dodo2_electric chickens1 chicken1y chicken1x chicken1z chicken1d chicken1c chicken1b chicken1 chickenh3 chickenh2
-	--chickenh4 chicken_dodo1 chicken_dodo2  chickenp2 chickenacidswarmer chicken1x_spectre chickenp1 chickenh5 chickens2_spectre
-	-- chickenh1b
+	-- raptorhealer1 raptor2b raptor2_spectre raptor2 raptore1 raptor1_mini raptor_dodo1_electric raptors2 
+	--raptor_dodo2_electric raptors1 raptor1y raptor1x raptor1z raptor1d raptor1c raptor1b raptor1 raptorh3 raptorh2
+	--raptorh4 raptor_dodo1 raptor_dodo2  raptorp2 raptoracidswarmer raptor1x_spectre raptorp1 raptorh5 raptors2_spectre
+	-- raptorh1b
 	CHICKSMALLHOVER = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -608,7 +608,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedmodclass = 2, -- hover
 	},
-	-- chickene2 chickenacidassualt chickena1 chickena1c chicken1b chickena1_spectre
+	-- raptore2 raptoracidassualt raptora1 raptora1c raptor1b raptora1_spectre
 	CHICKBIGHOVER = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -621,7 +621,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedmodclass = 2, -- hover
 	},
-	-- chickena2_spectre chickena2 chickena2b
+	-- raptora2_spectre raptora2 raptora2b
 	CHICKBIG2HOVER = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -634,7 +634,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedmodclass = 2, -- hover
 	},
-	-- chickenc3 chickenc3c chickenc3b chickenchickenacidallterrain chickenpyroallterrain chicken_6legged_I chickeneletricalallterrain
+	-- raptorc3 raptorc3c raptorc3b raptorraptoracidallterrain raptorpyroallterrain raptor_6legged_I raptoreletricalallterrain
 	CHICKALLTERRAINHOVER = {
 		crushstrength = 50,
 		depthmod = 0,
@@ -645,8 +645,8 @@ local moveDatas = {
 		maxwaterslope = 50,
 		speedmodclass = 2, -- hover
 	},
-	-- chickenr1 chickenacidarty chickenacidartyxl chickenearty1 chickenearty2 chickenbroodartyh4small chickenacidalllterrrainassual 
-	--chickenelectricallterrainassualt chickenallterraina1 chickenaallterraina1 chickenaallterrain1c chickenaallterrain1b
+	-- raptorr1 raptoracidarty raptoracidartyxl raptorearty1 raptorearty2 raptorbroodartyh4small raptoracidalllterrrainassual 
+	--raptorelectricallterrainassualt raptorallterraina1 raptoraallterraina1 raptoraallterrain1c raptoraallterrain1b
 	CHICKALLTERRAINBIGHOVER = {
 		crushstrength = 250,
 		depthmod = 0,
@@ -657,7 +657,7 @@ local moveDatas = {
 		maxwaterslope = 50,
 		speedmodclass = 2, -- hover
 	},
-	-- chickenr2 chickenbroodartyh4 chickenapexallterrainassualt chickenapexallterrainassualtb
+	-- raptorr2 raptorbroodartyh4 raptorapexallterrainassualt raptorapexallterrainassualtb
 	CHICKALLTERRAINBIG2HOVER = {
 		crushstrength = 250,
 		depthmod = 0,
@@ -670,7 +670,7 @@ local moveDatas = {
 	},
 
 
-	-- legdefcarryt1 armnanotc cornanotc cornanotcplat  chicken_worm_green chicken_turrets_acid chicken_turretxl_meteor
+	-- legdefcarryt1 armnanotc cornanotc cornanotcplat  raptor_worm_green raptor_turrets_acid raptor_turretxl_meteor
 	NANO = {
 		crushstrength = 0,
 		footprintx = 3,

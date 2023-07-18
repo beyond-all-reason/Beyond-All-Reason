@@ -32,7 +32,7 @@ end
 		-- Units
 			-- tanks : -- these are units actually
 			-- barunits :
-			-- chickens
+			-- raptors
 			-- scavengers
 			--
 
@@ -42,7 +42,7 @@ end
 
 	-- Textures:
 		-- arm/cor
-		-- 10x chickensets
+		-- 10x raptorsets
 		-- 5x featuresets
 		-- scavengers?
 	-- Objects (the VAO)
@@ -62,7 +62,7 @@ end
 	-- DONE treadoffset unitUniform
 	-- DONE: BITOPTIONS UNIFOOOOORM!
 	-- normalmapping
-	-- chickens
+	-- raptors
 	-- tanktracks
 	-- Reflection camera
 	-- refraction camera
@@ -143,7 +143,7 @@ end
 
 	-- TODO: check if LuaShader UniformLocations are cached
 
-	-- DONE: add a wreck texture to chickens! It uses lavadistortion texture, its fine
+	-- DONE: add a wreck texture to raptors! It uses lavadistortion texture, its fine
 
 	-- TODO: Use a 3d texture lookup instead of perlin implementation for damage shading
 
@@ -285,7 +285,7 @@ do --save a ton of locals
 			baseVertexDisplacement = 0.4,
 			brightnessFactor = 1.5,
 		},
-		chicken = {
+		raptor = {
 			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS  + OPTION_HEALTH_DISPLACE + OPTION_HEALTH_TEXCHICKS + OPTION_TREEWIND + OPTION_SHIFT_RGBHSV,
 			baseVertexDisplacement = 0.0,
 			brightnessFactor = 1.5,
@@ -766,7 +766,7 @@ local wreckAtlases = {
 		"unittextures/cor_other_wreck.dds",
 		"unittextures/cor_color_wreck_normal.dds",
 	},
-	["chicken"] = {
+	["raptor"] = {
 		"luaui/images/lavadistortion.png",
 	}
 }
@@ -871,10 +871,10 @@ local function initBinsAndTextures()
 				elseif 	unitDef.name:sub(1,3) == 'cor' then
 					objectDefToUniformBin[unitDefID] = 'corscavenger'
 				end
-			elseif unitDef.name:find("chicken", nil, true) or unitDef.name:find("chicken_hive", nil, true) then
-				textureTable[5] = wreckAtlases['chicken'][1]
-				objectDefToUniformBin[unitDefID] = 'chicken'
-				--Spring.Echo("Chickenwreck", textureTable[5])
+			elseif unitDef.name:find("raptor", nil, true) or unitDef.name:find("raptor_hive", nil, true) then
+				textureTable[5] = wreckAtlases['raptor'][1]
+				objectDefToUniformBin[unitDefID] = 'raptor'
+				--Spring.Echo("Raptorwreck", textureTable[5])
 			elseif wreckTex1 and wreckTex2 then -- just a true unit:
 				textureTable[3] = wreckTex1
 				textureTable[4] = wreckTex2
@@ -909,7 +909,7 @@ local function initBinsAndTextures()
 
 			objectDefToUniformBin[-1 * featureDefID] = 'feature'
 
-			if featureDef.name:find("chicken_egg", nil, true) then
+			if featureDef.name:find("raptor_egg", nil, true) then
 				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
 				--featuresDefsWithAlpha[-1 * featureDefID] = "yes"
 			elseif (featureDef.customParams and featureDef.customParams.treeshader == 'yes')

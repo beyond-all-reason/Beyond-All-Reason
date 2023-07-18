@@ -44,7 +44,7 @@ local Hats = {}  -- key of unitID of hat, value of wearer unitID
 
 local unitDefHat = {}
 for udid, ud in pairs(UnitDefs) do
-	--almost all chickens have dying anims
+	--almost all raptors have dying anims
 	if ud.customParams.subfolder and ud.customParams.subfolder == "other/hats" then
 		unitDefHat[udid] = true
 	end

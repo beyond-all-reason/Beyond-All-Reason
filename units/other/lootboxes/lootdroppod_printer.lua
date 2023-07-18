@@ -89,7 +89,7 @@ return {
 				weaponvelocity = 100,
 				wobble = 50,
 				damage = {
-					chicken = 1,
+					raptor = 1,
 					default = 1,
 				},
 			},

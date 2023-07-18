@@ -84,7 +84,7 @@ return {
 				weaponvelocity = 2000, -- elmos/sec
 				wobble = 50,
 				damage = {
-					chicken = 0,
+					raptor = 0,
 					default = 0,
 				},
 			},

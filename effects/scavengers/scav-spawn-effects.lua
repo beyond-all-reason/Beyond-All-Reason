@@ -392,7 +392,7 @@ return {
         pos                = [[-5 r10, 1, -5 r10]],
         sizegrowth         = -0.2,
         sizemod            = 1.0,
-        texture            = [[smoke-chickens]],
+        texture            = [[smoke-raptors]],
       },
     },
     exhale2 = {
@@ -420,7 +420,7 @@ return {
         pos                = [[-5 r10, 1, -5 r10]],
         sizegrowth         = -0.07,
         sizemod            = 1.0,
-        texture            = [[smoke-chickens]],
+        texture            = [[smoke-raptors]],
       },
     },
     -- trail = {

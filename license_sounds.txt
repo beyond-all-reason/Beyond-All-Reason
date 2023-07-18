@@ -4,7 +4,7 @@ Check https://github.com/beyond-all-reason/Beyond-All-Reason/tree/master/sounds 
 /sounds/atmos (Water Sound effects obtained from https://www.zapsplat.com)
 /sounds/atmoslocal
 /sounds/bombs
-/sounds/chickens
+/sounds/raptors
 /sounds/replies
 /sounds/ui
 /sounds/uw
@@ -14,7 +14,7 @@ Check https://github.com/beyond-all-reason/Beyond-All-Reason/tree/master/sounds 
 For the above mentioned folder the CC BY NC ND applies to all new sound effects created after january 2019.
 For the "raptor" sound effects created after july 2020
 
-/sounds/chickens
+/sounds/raptors
 
 CC BY NC ND applies to all sound effects in:
 /sounds/commands/

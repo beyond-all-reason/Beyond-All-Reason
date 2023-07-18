@@ -85,7 +85,7 @@ local TIMER_CHECK_FREQUENCY = 30 -- gameframes
 
 
 
---messages[1] = textColor .. Spring.I18N('ui.chickens.wave1', {waveNumber = chickenEventArgs.waveCount})
+--messages[1] = textColor .. Spring.I18N('ui.raptors.wave1', {waveNumber = raptorEventArgs.waveCount})
 
 
 

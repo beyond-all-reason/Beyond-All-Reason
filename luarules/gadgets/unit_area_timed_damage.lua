@@ -25,7 +25,7 @@ end
 -- resistance - defines which units are resistant to this type of damage when it matches with 'areadamageresistance' customparameter in a unit.
 
 local TimedDamageWeapons = {
-    [WeaponDefNames.chickenacidassault_acidspit.id] = {
+    [WeaponDefNames.raptoracidassault_acidspit.id] = {
         ceg = "acid-area-150", 
         damageCeg = "acid-damage-gen", 
         time = 10,
@@ -33,7 +33,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_CHICKENACID_",
     },
-    [WeaponDefNames.chickenacidarty_acidspit.id] = {
+    [WeaponDefNames.raptoracidarty_acidspit.id] = {
         ceg = "acid-area-150", 
         damageCeg = "acid-damage-gen", 
         time = 10,
@@ -41,7 +41,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_CHICKENACID_",
     },
-    [WeaponDefNames.chickenacidartyxl_acidspit.id] = {
+    [WeaponDefNames.raptoracidartyxl_acidspit.id] = {
         ceg = "acid-area-150", 
         damageCeg = "acid-damage-gen", 
         time = 10,
@@ -49,7 +49,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_CHICKENACID_",
     },
-    [WeaponDefNames.chickenacidbomber_acidbomb.id] = {
+    [WeaponDefNames.raptoracidbomber_acidbomb.id] = {
         ceg = "acid-area-150", 
         damageCeg = "acid-damage-gen", 
         time = 10,
@@ -57,7 +57,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_CHICKENACID_",
     },
-    [WeaponDefNames.chickenacidswarmer_acidspit.id] = {
+    [WeaponDefNames.raptoracidswarmer_acidspit.id] = {
         ceg = "acid-area-75", 
         damageCeg = "acid-damage-gen", 
         time = 10,
@@ -65,7 +65,7 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "_CHICKENACID_",
     },
-    [WeaponDefNames.chickenacidallterrain_acidspit.id] = {
+    [WeaponDefNames.raptoracidallterrain_acidspit.id] = {
         ceg = "acid-area-75", 
         damageCeg = "acid-damage-gen", 
         time = 10,
@@ -73,7 +73,7 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "_CHICKENACID_",
     },
-    [WeaponDefNames.chickenacidallterrainassault_acidspit.id] = {
+    [WeaponDefNames.raptoracidallterrainassault_acidspit.id] = {
         ceg = "acid-area-150", 
         damageCeg = "acid-damage-gen", 
         time = 10,
@@ -81,7 +81,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_CHICKENACID_",
     },
-    [WeaponDefNames.chicken_turrets_acid_acidspit.id] = {
+    [WeaponDefNames.raptor_turrets_acid_acidspit.id] = {
         ceg = "acid-area-75", 
         damageCeg = "acid-damage-gen", 
         time = 10,
@@ -89,7 +89,7 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "_CHICKENACID_",
     },
-    [WeaponDefNames.chicken_turretl_acid_acidspit.id] = {
+    [WeaponDefNames.raptor_turretl_acid_acidspit.id] = {
         ceg = "acid-area-150", 
         damageCeg = "acid-damage-gen", 
         time = 10,
@@ -97,7 +97,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_CHICKENACID_",
     },
-    [WeaponDefNames.chicken_miniqueen_acid_acidgoo.id] = {
+    [WeaponDefNames.raptor_miniqueen_acid_acidgoo.id] = {
         ceg = "acid-area-75", 
         damageCeg = "acid-damage-gen", 
         time = 10,
@@ -105,7 +105,7 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "_CHICKENACID_",
     },
-    [WeaponDefNames.chicken_miniqueen_acid_spike_acid_blob.id] = {
+    [WeaponDefNames.raptor_miniqueen_acid_spike_acid_blob.id] = {
         ceg = "acid-area-75", 
         damageCeg = "acid-damage-gen", 
         time = 10,
@@ -231,7 +231,7 @@ local TimedDamageWeapons = {
 }
 
 local TimedDamageDyingUnits = {
-    [UnitDefNames.chickenacidassault.id] = {
+    [UnitDefNames.raptoracidassault.id] = {
         ceg = "acid-area-150", 
         damageCeg = "acid-damage-gen", 
         time = 10,
@@ -239,7 +239,7 @@ local TimedDamageDyingUnits = {
         range = 150,
         resistance = "_CHICKENACID_",
     },
-    [UnitDefNames.chickenacidarty.id] = {
+    [UnitDefNames.raptoracidarty.id] = {
         ceg = "acid-area-150", 
         damageCeg = "acid-damage-gen", 
         time = 10,
@@ -247,7 +247,7 @@ local TimedDamageDyingUnits = {
         range = 150,
         resistance = "_CHICKENACID_",
     },
-    [UnitDefNames.chickenacidartyxl.id] = {
+    [UnitDefNames.raptoracidartyxl.id] = {
         ceg = "acid-area-150", 
         damageCeg = "acid-damage-gen", 
         time = 10,
@@ -255,7 +255,7 @@ local TimedDamageDyingUnits = {
         range = 150,
         resistance = "_CHICKENACID_",
     },
-    [UnitDefNames.chickenacidswarmer.id] = {
+    [UnitDefNames.raptoracidswarmer.id] = {
         ceg = "acid-area-75", 
         damageCeg = "acid-damage-gen", 
         time = 10,
@@ -263,7 +263,7 @@ local TimedDamageDyingUnits = {
         range = 75,
         resistance = "_CHICKENACID_",
     },
-    [UnitDefNames.chickenacidallterrain.id] = {
+    [UnitDefNames.raptoracidallterrain.id] = {
         ceg = "acid-area-75", 
         damageCeg = "acid-damage-gen", 
         time = 10,
