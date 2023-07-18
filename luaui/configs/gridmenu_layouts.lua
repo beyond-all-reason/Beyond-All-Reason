@@ -110,13 +110,13 @@ local labGrids = {
 	-- T1 boats
 	armsy = {
 		"armcs", "armrecl", "armdecade", "",              -- T1 sea con, rez sub, decade
-		"armpship", "armroy", "", "",                    -- frigate, destroyer, transport ("armtship",)
+		"armpship", "armroy", "armtship", "",                    -- frigate, destroyer, transport ("armtship",)
 		"armsub", "", "armpt",                            -- sub, PT boat
 	},
 
 	corsy = {
 		"corcs", "correcl", "coresupp", "",               -- T1 sea con, rez sub, supporter, missile boat
-		"corpship", "corroy", "", "",                    -- frigate, destroyer, transport ("cortship",)
+		"corpship", "corroy", "cortship", "",                    -- frigate, destroyer, transport ("cortship",)
 		"corsub", "", "corpt",                            -- sub, missile boat
 	},
 	-- T2 boats

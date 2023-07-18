@@ -5,7 +5,7 @@
 
 piece  base, turret, arm1, arm2, arm3, link, door1, door2, door3, magnet, arm4, arm5, arm6, arm7, ground, wake;
 
-static-var  Static_Var_1, TurretToUnitDistance, TurretToUnitAngleY, TurretToUnitAngleX, bInDistance;
+static-var  Static_Var_1, TurretToUnitDistance, TurretToUnitAngleY, TurretToUnitAngleX, bInDistance,maxDistance,pickUpSpeed,dropOffSpeed,turretSpeed,boomToPadSpeed,boomResetSpeed,newAngle;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -18,6 +18,94 @@ static-var  Static_Var_1, TurretToUnitDistance, TurretToUnitAngleY, TurretToUnit
 #define MAXTILT 100
 
 #include "unit_hitbyweaponid_and_smoke.h"
+
+
+
+FocusPickUp(unitid){
+		move link to y-axis 0 now;
+
+		move link to x-axis 0 now;
+
+		move link to z-axis 0 now;
+//	var	link_z;link_z = ( get PIECE_XZ(link) & 0x0000ffff); // silly unpack
+//	var	link_x;link_x = ( get PIECE_XZ(link) & 0xffff0000) / 0x00010000; // yes this works
+
+//	var	unit_z;unit_z = ( get UNIT_XZ(unitid) & 0x0000ffff); // silly unpack
+//	var	unit_x;unit_x = ( get UNIT_XZ(unitid) & 0xffff0000) / 0x00010000; // yes this works
+
+	var link_y;link_y = get PIECE_Y(link);
+	var unit_y;unit_y = get UNIT_Y(unitid);	
+	
+	
+	var diffMe;
+		diffMe = link_y - unit_y;
+
+		get PRINT(diffMe,link_y,unit_y):
+	
+	
+	
+	
+if(get UNIT_HEIGHT(unitid)>1700000){
+		move link to z-axis   get UNIT_HEIGHT(unitid)  speed [25.000000];
+//
+		move link to y-axis 0- diffMe  speed [25.000000];
+		wait-for-move link along y-axis;	
+
+
+	var newAngle1;
+		newAngle1 = TurretToUnitAngleX - 90;
+		turn link to x-axis  newAngle1 now;
+
+		
+		
+		attach-unit unitid to link;
+
+//Rotate the unit to the right
+
+
+		
+
+
+}else{
+		get PRINT(9,9,9,9):
+
+		move link to y-axis 0- diffMe  speed [25.000000];
+	wait-for-move link along y-axis;	
+		attach-unit unitid to link;
+
+
+}
+
+
+
+}
+
+
+FocusDropOff(unitid,position){
+
+return;
+//while the stupid link does not match the x/y of the unit, move the boom appropriately.
+var yDiff;
+yDiff=get UNIT_Y(unitid)-(get GROUND_HEIGHT(position)+ get UNIT_HEIGHT(unitid));
+
+
+if(get UNIT_HEIGHT(unitid)>1700000){
+
+	//	move link to y-axis 0-  (yDiff) speed [25.000000];
+	//	wait-for-move link along y-axis;
+		move link to y-axis 0-(yDiff) speed [25.000000];
+		wait-for-move link along y-axis;
+
+		
+}else{
+
+		move link to y-axis 0-(yDiff) speed [25.000000];
+		wait-for-move link along y-axis;
+
+}
+
+
+}
 
 RockOnWaves()
 {
@@ -41,8 +129,15 @@ RockOnWaves()
 
 Create()
 {
+	maxDistance= [70.000000];
+	pickUpSpeed=  <200.000000>;
+	dropOffSpeed=  <250.000000>;
+	turretSpeed= <200.000000>;
+	boomToPadSpeed= [12.000000];
+	boomResetSpeed= [120.000000];
+
 	hide wake;
-	hide link;
+	//hide link;
 	hide ground;
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -95,124 +190,588 @@ StartDoorOpen()
 {
 	signal 4;
 	set-signal-mask 4;
-	move door3 to z-axis [-20] speed [30];
-	move door2 to z-axis [-20] speed [30];
-	sleep 3000;
-	move door3 to z-axis [0] speed [30];
-	move door2 to z-axis [0] speed [30];
+	move door1 to z-axis [-6] speed [60];
+	wait-for-move door1 along z-axis;
+	move door2 to z-axis [-5] speed [60];
+	wait-for-move door2 along z-axis;
+	move door3 to z-axis [-4] speed [60];
+	wait-for-move door3 along z-axis;
+
 }
 
-BoomCalc(posxz, posy)
+StartDoorClose()
+{
+	move door1 to z-axis [0] speed [60];
+	wait-for-move door1 along z-axis;
+	move door2 to z-axis [0] speed [60];
+	wait-for-move door2 along z-axis;
+	move door3 to z-axis [0] speed [60];
+	wait-for-move door3 along z-axis;
+
+
+}
+
+
+BoomCalc(posxz, posy, unitid)
 {
 	var Func_Var_3, Func_Var_4, Func_Var_5;
 	Func_Var_3 = get PIECE_XZ(turret) - posxz;
-	Func_Var_4 = posy - get PIECE_Y(turret) + [5.000000];
+
+
+if(get UNIT_HEIGHT(unitid)>1700000){
+get PRINT(1111);
+
+	Func_Var_4 = (posy - get PIECE_Y(turret)) + [9.0000000];
+}else{
+	Func_Var_4 = (posy - get PIECE_Y(turret))- [2.000000];
+
+}
+
+
 	Func_Var_5 = get XZ_HYPOT(Func_Var_3);
-	TurretToUnitDistance = get HYPOT(Func_Var_5,Func_Var_4) - [15.000000];
+	TurretToUnitDistance = get HYPOT(Func_Var_5,Func_Var_4)  - [5.000000];
+
+	get PRINT(get UNIT_HEIGHT(unitid));
+
 	TurretToUnitAngleY = get XZ_ATAN(Func_Var_3);
+
 	TurretToUnitAngleX = get ATAN(Func_Var_4,Func_Var_5);
-	bInDistance = TurretToUnitDistance < [220.000000]; //MAX distance at which a unit is picked up/put down
-	//get PRINT(1,bInDistance,TurretToUnitDistance/65000);
+
+	bInDistance = TurretToUnitDistance/65000 < maxDistance/65000; //MAX distance at which a unit is picked up/put down
+if(!bInDistance){
+//var msg;
+//msg =`Unit to far from transport to be loaded.`;
+//	get PRINT(msg);
+}
 	//get PRINT(1,TurretToUnitAngleX/182, TurretToUnitAngleY/182);
 }
 
-BoomExtend()
+
+GroundCalc(posxz, posy,unitid)
 {
-	start-script StartDoorOpen();
-	turn arm1 to x-axis TurretToUnitAngleX speed <280.000000>;
+	var Func_Var_3, Func_Var_4, Func_Var_5;
+	Func_Var_3 = get PIECE_XZ(turret) - posxz;
+if(get UNIT_HEIGHT(unitid)>1700000){
+	Func_Var_4 = posy - (get PIECE_Y(turret) - [0.5000000]);
+}else{
+	Func_Var_4 = posy - (get PIECE_Y(turret)- [3.0000000]);
+
+}
+
+	Func_Var_5 = get XZ_HYPOT(Func_Var_3);
+	TurretToUnitDistance = get HYPOT(Func_Var_5,Func_Var_4);//  - [3.000000];
+	TurretToUnitAngleY = get XZ_ATAN(Func_Var_3) ;
+	TurretToUnitAngleX = get ATAN(Func_Var_4,Func_Var_5);
+	bInDistance = TurretToUnitDistance/65000 < maxDistance/65000; //MAX distance at which a unit is picked up/put down
+if(!bInDistance){
+//var msg;
+//msg =`Unit to far from transport to be loaded.`;
+//	get PRINT(msg);
+}
+	//get PRINT(1,TurretToUnitAngleX/182, TurretToUnitAngleY/182);
+}
+
+
+BoomExtendPickUp(unitid)
+{
+//	start-script StartDoorOpen();
+	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + (get UNIT_HEIGHT(unitid)),unitid);
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
+//	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
+//	wait-for-turn turret around y-axis;
+}
+BoomExtendPickUp2(unitid)
+{
+
+	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid)  + (get UNIT_HEIGHT(unitid)),unitid);
+	move arm2 to z-axis -1*TurretToUnitDistance / 7 speed [16.000000];
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
 	wait-for-turn arm1 around x-axis;	
-	turn turret to y-axis TurretToUnitAngleY - <180.0> speed <200.000000>;
-	wait-for-turn turret around y-axis;
-	move arm2 to z-axis -1*TurretToUnitDistance / 6 speed [60.000000];
-	move arm3 to z-axis -1*TurretToUnitDistance / 6 speed [60.000000];
-	move arm4 to z-axis -1*TurretToUnitDistance / 6 speed [60.000000];
-	move arm5 to z-axis -1*TurretToUnitDistance / 6 speed [60.000000];
-	move arm6 to z-axis -1*TurretToUnitDistance / 6 speed [60.000000];
-	move arm7 to z-axis -1*TurretToUnitDistance / 6 speed [60.000000];
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
+//	wait-for-turn turret around y-axis;
+}
+BoomExtendPickUp3(unitid)
+{
+
+	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + (get UNIT_HEIGHT(unitid)) ,unitid);
+	move arm3 to z-axis -1*TurretToUnitDistance / 7 speed [16.000000];
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
+	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
+	//wait-for-turn turret around y-axis;
+}
+BoomExtendPickUp4(unitid)
+{
+
+	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + (get UNIT_HEIGHT(unitid)) ,unitid);
+	move arm4 to z-axis -1*TurretToUnitDistance / 7 speed [16.000000];
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
+	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
+//	wait-for-turn turret around y-axis;
+}
+BoomExtendPickUp5(unitid)
+{
+
+	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + (get UNIT_HEIGHT(unitid)) ,unitid);
+	move arm5 to z-axis -1*TurretToUnitDistance / 7 speed [16.000000];
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
+	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
+//	wait-for-turn turret around y-axis;
+}
+BoomExtendPickUp6(unitid)
+{
+
+	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + (get UNIT_HEIGHT(unitid)),unitid);
+	move arm6 to z-axis -1*TurretToUnitDistance / 7 speed [16.000000];
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
+	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
+//	wait-for-turn turret around y-axis;
+}
+BoomExtendPickUp7(unitid)
+{
+
+	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + (get UNIT_HEIGHT(unitid)) ,unitid);
+	move arm7 to z-axis -1*TurretToUnitDistance / 7 speed [16.000000];
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
+	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
+//	wait-for-turn turret around y-axis;
+}
+BoomExtendPickUp8(unitid)
+{
+
+	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + (get UNIT_HEIGHT(unitid)) ,unitid);
+	wait-for-move arm2 along z-axis;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
+	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
+//	wait-for-turn turret around y-axis;
+}
+BoomExtendPickUp9(unitid)
+{
+
+	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + (get UNIT_HEIGHT(unitid)) ,unitid);
+	wait-for-move arm3 along z-axis;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
+	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
+//wait-for-turn turret around y-axis;
+}
+BoomExtendPickUp10(unitid)
+{
+
+	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + (get UNIT_HEIGHT(unitid)) ,unitid);
+	wait-for-move arm4 along z-axis;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
+	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
+//	wait-for-turn turret around y-axis;
+}
+BoomExtendPickUp11(unitid)
+{
+
+	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + (get UNIT_HEIGHT(unitid)) ,unitid);
+	wait-for-move arm5 along z-axis;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
+	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
+//	wait-for-turn turret around y-axis;
+}
+BoomExtendPickUp12(unitid)
+{
+
+	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid)  + (get UNIT_HEIGHT(unitid)),unitid);
+	wait-for-move arm6 along z-axis;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
+	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
+//	wait-for-turn turret around y-axis;
+}
+BoomExtendPickUp13(unitid)
+{
+
+	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid)  + (get UNIT_HEIGHT(unitid)),unitid);
+	wait-for-move arm7 along z-axis;
+	turn arm1 to x-axis TurretToUnitAngleX speed pickUpSpeed;
+	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
+//	wait-for-turn turret around y-axis;
+
+}
+
+BoomExtendDrop(position, unitid)
+{
+//	start-script StartDoorOpen();
+	call-script GroundCalc(position,get GROUND_HEIGHT(position) ,unitid);// + get UNIT_HEIGHT(unitid));
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
+//	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
+
+
+
+
+	move arm2 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
+//	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed turretSpeed;
+//	wait-for-turn turret around y-axis;
+	call-script GroundCalc(position,get GROUND_HEIGHT(position) ,unitid);// + get UNIT_HEIGHT(unitid));
+
+	move arm3 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
+//	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
+//	wait-for-turn turret around y-axis;
+	call-script GroundCalc(position,get GROUND_HEIGHT(position) ,unitid);// + get UNIT_HEIGHT(unitid));
+
+	move arm4 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
+//	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
+//	wait-for-turn turret around y-axis;
+	call-script GroundCalc(position,get GROUND_HEIGHT(position) ,unitid);// + get UNIT_HEIGHT(unitid));
+
+	move arm5 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
+//	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
+//	wait-for-turn turret around y-axis;
+	call-script GroundCalc(position,get GROUND_HEIGHT(position) ,unitid);// + get UNIT_HEIGHT(unitid));
+
+	move arm6 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
+//	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
+//	wait-for-turn turret around y-axis;
+	call-script GroundCalc(position,get GROUND_HEIGHT(position) ,unitid);// + get UNIT_HEIGHT(unitid));
+
+	move arm7 to z-axis -1*TurretToUnitDistance / 6 speed [16.000000];
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
+//	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
+//	wait-for-turn turret around y-axis;
+	call-script GroundCalc(position,get GROUND_HEIGHT(position) ,unitid);// + get UNIT_HEIGHT(unitid));
 
 	wait-for-move arm2 along z-axis;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
+//	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
+//	wait-for-turn turret around y-axis;
+	call-script GroundCalc(position,get GROUND_HEIGHT(position) ,unitid);// + get UNIT_HEIGHT(unitid));
+
 	wait-for-move arm3 along z-axis;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
+//	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
+//	wait-for-turn turret around y-axis;
+	call-script GroundCalc(position,get GROUND_HEIGHT(position) ,unitid);// + get UNIT_HEIGHT(unitid));
+
 	wait-for-move arm4 along z-axis;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
+//	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
+//	wait-for-turn turret around y-axis;
+	call-script GroundCalc(position,get GROUND_HEIGHT(position) ,unitid);// + get UNIT_HEIGHT(unitid));
+
 	wait-for-move arm5 along z-axis;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
+//	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
+//	wait-for-turn turret around y-axis;
+	call-script GroundCalc(position,get GROUND_HEIGHT(position) ,unitid);// + get UNIT_HEIGHT(unitid));
+
 	wait-for-move arm6 along z-axis;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
+//	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
+//	wait-for-turn turret around y-axis;
+	call-script GroundCalc(position,get GROUND_HEIGHT(position),unitid);// + get UNIT_HEIGHT(unitid));
+
+
 	wait-for-move arm7 along z-axis;
+	turn arm1 to x-axis TurretToUnitAngleX speed dropOffSpeed;
+//	wait-for-turn arm1 around x-axis;	
+	turn turret to y-axis TurretToUnitAngleY - <180.0> speed  turretSpeed;
+//	wait-for-turn turret around y-axis;
+	call-script GroundCalc(position,get GROUND_HEIGHT(position) ,unitid);// + get UNIT_HEIGHT(unitid));
+
 }
 
 BoomReset()
 {
-	turn arm1 to x-axis <0.000000> speed <60.000000>;
-	
-	wait-for-turn arm1 around x-axis;
-	turn turret to y-axis <0.000000> speed <200.000000>;
-	move arm2 to z-axis [0.000000] speed [50.000000];
-	move arm3 to z-axis [0.000000] speed [50.000000];
-	move arm4 to z-axis [0.000000] speed [50.000000];
-	move arm5 to z-axis [0.000000] speed [50.000000];
-	move arm6 to z-axis [0.000000] speed [50.000000];
-	move arm7 to z-axis [0.000000] speed [50.000000];
+//	turn arm1 to x-axis <0.000000> speed <60.000000>;
+//	wait-for-turn arm1 around x-axis;
+//	move link to z-axis   0  speed [25.000000];
+
+
+	turn turret to y-axis <0.000000> speed <70.000000>;
 	wait-for-turn turret around y-axis;
+	move arm2 to z-axis [0.000000] speed boomResetSpeed;
 	wait-for-move arm2 along z-axis;
+	move arm3 to z-axis [0.000000] speed boomResetSpeed;
 	wait-for-move arm3 along z-axis;
+	move arm4 to z-axis [0.000000] speed boomResetSpeed;
 	wait-for-move arm4 along z-axis;
+	move arm5 to z-axis [0.000000] speed boomResetSpeed;
 	wait-for-move arm5 along z-axis;
+	move arm6 to z-axis [0.000000] speed boomResetSpeed;
 	wait-for-move arm6 along z-axis;
+	move arm7 to z-axis [0.000000] speed boomResetSpeed;
 	wait-for-move arm7 along z-axis;
+
+	
 }
 
-BoomToPad()
+BoomUp(){
+	turn arm1 to x-axis <0.000000> speed <55.000000>;
+	
+	//wait-for-turn arm1 around x-axis;
+}
+BoomToPad(unitid)
 {
-	start-script StartDoorOpen();
-	turn arm1 to x-axis <0.000000> speed <60.000000>;
+//	turn arm1 to x-axis <0.000000> speed <60.000000>;
+
+
+//	move link to y-axis 0 speed [5.000000];
+
+//	move link to x-axis 0  speed [5.000000];
+
+//	move link to z-axis 0  speed [5.000000];
+
 	
-	wait-for-turn arm1 around x-axis;
-	turn turret to y-axis <0.000000> speed <200.000000>;
-	move arm2 to z-axis [0.000000] speed [60.000000];
-	move arm3 to z-axis [0.000000] speed [60.000000];
-	move arm4 to z-axis [0.000000] speed [60.000000];
-	move arm5 to z-axis [0.000000] speed [60.000000];
-	move arm6 to z-axis [0.000000] speed [60.000000];
-	move arm7 to z-axis [0.000000] speed [60.000000];
+	turn turret to y-axis <0.000000> speed <70.000000>;
+//
 	wait-for-turn turret around y-axis;
-	wait-for-turn arm1 around x-axis;
-	wait-for-move arm2 along z-axis;
-	wait-for-move arm3 along z-axis;
-	wait-for-move arm4 along z-axis;
-	wait-for-move arm5 along z-axis;
-	wait-for-move arm6 along z-axis;
-	wait-for-move arm7 along z-axis;
-	turn arm1 to x-axis <-30.000000> speed <60.000000>;
+    call-script StartDoorOpen();
+
+
+if(get UNIT_HEIGHT(unitid)>1700000){
+get PRINT(77777);
+
+		move link to y-axis 0 speed <100.00000>;
+//	wait-for-move link along y-axis;
+
+}	
 	
+		move arm2 to z-axis [-0.600000] speed boomToPadSpeed;
+//	wait-for-move arm2 along z-axis;
+
+	move arm3 to z-axis [-0.600000] speed boomToPadSpeed;
+//	wait-for-move arm3 along z-axis;
+
+	move arm4 to z-axis [-0.600000] speed boomToPadSpeed;
+//	wait-for-move arm4 along z-axis;
+
+	move arm5 to z-axis [-0.600000] speed boomToPadSpeed;
+//	wait-for-move arm5 along z-axis;
+	move arm6 to z-axis [-0.600000] speed boomToPadSpeed;
+//	wait-for-move arm6 along z-axis;
+	move arm7 to z-axis [-0.600000] speed boomToPadSpeed;
+	wait-for-move arm7 along z-axis;
+	
+	
+	
+	turn arm1 to x-axis <-25.000000> speed <60.000000>;
 	wait-for-turn arm1 around x-axis;
 }
+
 
 TransportPickup(unitid)
 {
-	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + get UNIT_HEIGHT(unitid));
+	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) );// + get UNIT_HEIGHT(unitid));
 	if( bInDistance AND get UNKNOWN_UNIT_VALUE(74)(unitid) == get UNKNOWN_UNIT_VALUE(74)(get UNKNOWN_UNIT_VALUE(71)) )
 	{
 		set BUSY to 1;
-		call-script BoomExtend();
-		move link to y-axis [0.000000] - get UNIT_HEIGHT(unitid) now;
-		attach-unit unitid to link;
-		call-script BoomToPad();
-		attach-unit unitid to base;
+
+
+	if(TurretToUnitDistance< maxDistance ){
+		call-script BoomExtendPickup(unitid);
+	}else{
 		call-script BoomReset();
+	return;
+	}
+	
+	if( TurretToUnitDistance< maxDistance  ){
+		call-script BoomExtendPickup2(unitid);
+	}else{
+		call-script BoomReset();
+	return;
+	}
+	if( TurretToUnitDistance< maxDistance  ){
+		call-script BoomExtendPickup3(unitid);
+	}else{
+		call-script BoomReset();
+	return;
+	}
+	if( TurretToUnitDistance< maxDistance ){
+		call-script BoomExtendPickup4(unitid);
+	}else{
+		call-script BoomReset();
+	return;
+	}
+	if( TurretToUnitDistance< maxDistance  ){
+		call-script BoomExtendPickup5(unitid);
+	}else{
+		call-script BoomReset();
+	return;
+	}
+	if( TurretToUnitDistance< maxDistance ){
+		call-script BoomExtendPickup6(unitid);
+	}else{
+		call-script BoomReset();
+	return;
+	}
+	if( TurretToUnitDistance< maxDistance  ){
+		call-script BoomExtendPickup7(unitid);
+	}else{
+		call-script BoomReset();
+	return;
+	}
+	if( TurretToUnitDistance< maxDistance  ){
+		call-script BoomExtendPickup8(unitid);
+	}else{
+		call-script BoomReset();
+	return;
+	}
+	if( TurretToUnitDistance< maxDistance  ){
+		call-script BoomExtendPickup9(unitid);
+	}else{
+		call-script BoomReset();
+	return;
+	}
+	if( TurretToUnitDistance< maxDistance  ){
+		call-script BoomExtendPickup10(unitid);
+	}else{
+		call-script BoomReset();
+	return;
+	}
+	if( TurretToUnitDistance< maxDistance ){
+		call-script BoomExtendPickup11(unitid);
+	}else{
+		call-script BoomReset();
+	return;
+	}
+
+	if( TurretToUnitDistance< maxDistance  ){
+		call-script BoomExtendPickup12(unitid);
+	}else{
+		call-script BoomReset();
+	return;
+	}
+
+	if( TurretToUnitDistance< maxDistance  ){
+		call-script BoomExtendPickup13(unitid);
+	}else{
+		call-script BoomReset();
+	return;
+	}
+
+
+	if( TurretToUnitDistance< maxDistance  ){
+			call-script FocusPickUp(unitid);
+	}
+
+
+		
+
+		call-script BoomToPad(unitid);
+	if( TurretToUnitDistance< maxDistance ){
+
+		attach-unit unitid to base;
+	}else{
+		call-script BoomReset();
+	return;
+	}		
+	if( TurretToUnitDistance< maxDistance ){
+		attach-unit unitid to 0 - 1;
+	}
+
+		start-script	StartDoorClose();
+
+		start-script BoomUp();
+		start-script BoomReset();
+		
+
+
+
 		set BUSY to 0;
 	}
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BeginTransport(Func_Var_1)
+{
+//the unit stops moving.
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+EndTransport()
+{
+//the unit moves away from the drop zone
+
+
+
+}
+
+
 TransportDrop(unitid, position)
 {
-	call-script BoomCalc(position,get GROUND_HEIGHT(position) + get UNIT_HEIGHT(unitid));
+	call-script GroundCalc(position,get GROUND_HEIGHT(position)+ get UNIT_HEIGHT(unitid));
 	if( bInDistance )
 	{
 		set BUSY to 1;
-		call-script BoomToPad();
-		//move link to y-axis [0.000000] - get UNIT_HEIGHT(unitid) now;
+		start-script StartDoorOpen();
+
+		call-script BoomToPad(unitid);
+
+		move link to y-axis 0- get UNIT_HEIGHT(unitid) now;
+//		move link to y-axis 0- get UNIT_WIDTH(unitid) now;
+//		call-script FocusDropOff(unitid);
 		attach-unit unitid to link;
-		call-script BoomExtend();
+	
+		call-script BoomExtendDrop(position,unitid);
+		call-script	StartDoorClose();
+		call-script FocusDropOff(position);
 		drop-unit unitid;
 		call-script BoomReset();
+	
 		set BUSY to 0;
 	}
 }

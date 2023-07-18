@@ -38,6 +38,7 @@ return {
 			[3] = "armanac",
 			[4] = "armah",
 			[5] = "armmh",
+			[6]= "armthovr"
 		},
 		customparams = {
 			unitgroup = 'builder',
