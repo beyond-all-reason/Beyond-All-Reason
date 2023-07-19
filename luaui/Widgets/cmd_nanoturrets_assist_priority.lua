@@ -17,6 +17,7 @@ local GetUnitDefID = Spring.GetUnitDefID
 local UnitDefs = UnitDefs
 local CMD_REPAIR = CMD.REPAIR
 local CMD_FIGHT = CMD.FIGHT
+local myTeam = Spring.GetMyTeamID()
 
 local nanoDefs = {}
 
@@ -27,6 +28,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+    if unitTeam ~= myTeam then
+        return
+    end
     if (nanoDefs[unitDefID] ~= nil) then
         -- Echo(turretCreatedMessage .. ": " .. unitID)
         local pos = {GetUnitPosition(unitID)}
