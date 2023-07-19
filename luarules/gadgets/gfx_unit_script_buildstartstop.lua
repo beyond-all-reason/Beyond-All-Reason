@@ -41,6 +41,13 @@ or for Lua it should be:
 	
 ]]--
 
+-- 2023.07.19 TODO:
+-- Batch the SendToUnsynced calls by using table.concat to create a large string of all units that must be turned on or off. 
+-- Otherwise the function call overhead might be more than expected
+-- This also allows batch push-popping in the future
+-- Send stopped and started as separate lua messages to unsynced
+
+
 
 if gadgetHandler:IsSyncedCode() then
 	local SendToUnsynced = SendToUnsynced
