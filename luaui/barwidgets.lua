@@ -434,6 +434,24 @@ function widgetHandler:Initialize()
 	self:SaveConfigData()
 end
 
+-- A few restricted callins can only be used in single-player mode and dev mode
+-- Blocked for unfairness or undesired effects
+-- The big questions is wether the fromZip can be relied upon at all, could a user, be using an unzipped rapid tagged .sdd?
+-- Default vfs mode is RAW_FIRST anyway...
+-- A conflicting basename widget could force itself in, as it already has its knownInfo
+-- TODO ADD: fromZip or singlePlayer
+
+local singlePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local springRestricted = {}
+local restrictedFunctions = {
+	"GetProjectilesInRectangle",	
+}
+
+for _, restrictedFunction in ipairs(restrictedFunctions) do 
+	springRestricted[restrictedFunction] = Spring[restrictedFunction]
+	Spring[restrictedFunction] = nil
+end
+
 function widgetHandler:LoadWidget(filename, fromZip)
 	local basename = Basename(filename)
 	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets) and VFS.ZIP or VFS.RAW_FIRST)
@@ -446,8 +464,10 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
 		return nil
 	end
-
-	local widget = widgetHandler:NewWidget()
+	
+	local exposeRestricted = fromZip --or singlePlayer
+	
+	local widget = widgetHandler:NewWidget(exposeRestricted)
 	setfenv(chunk, widget)
 	local success, err = pcall(chunk)
 	if not success then
@@ -532,7 +552,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
 	return widget
 end
 
-function widgetHandler:NewWidget()
+function widgetHandler:NewWidget(exposeRestricted)
 	local widget = {}
 	if true then
 		-- copy the system calls into the widget table
@@ -546,6 +566,11 @@ function widgetHandler:NewWidget()
 			__metatable = true,
 		})
 	end
+	
+	if exposeRestricted then 
+		widget.SpringRestricted = springRestricted
+	end
+	
 	widget.WG = self.WG    -- the shared table
 	widget.widget = widget -- easy self referencing
 
