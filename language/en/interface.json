@@ -1356,6 +1356,8 @@
 				"onlyfighterspatrol_descr": "Only fighters obey a factory's patrol route after leaving airlab.",
 				"fightersfly": "Set fighters on Fly mode",
 				"fightersfly_descr": "Setting fighters on Fly mode when created",
+				"prioconturrets": "Priority Construction Turrets",
+				"prioconturrets_descr": "When a new turret is started, local turrets on patrol will target it",
 				"builderpriority": "Builder Priority Restriction",
 				"builderpriority_descr": "Sets builders (construction turrets, factories and constructors) on low priority mode\n\nLow priority mode means that builders will only spend energy when its available.\nUsage: Set the most important builders on high and leave the rest on low priority",
 				"builderpriority_nanos": "construction turrets",

@@ -4116,6 +4116,9 @@ function init()
 		  end,
 		},
 
+
+		{ id = "prioconturrets", group = "game", category = types.basic, widget = "Priority Construction Turrets", name = Spring.I18N('ui.settings.option.prioconturrets'), type = "bool", value = GetWidgetToggleValue("Priority Construction Turrets"), description = Spring.I18N('ui.settings.option.prioconturrets_descr') },
+
 		{
 			id = "builderpriority",
 			group = "game",
