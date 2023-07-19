@@ -33,7 +33,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
-		yardmap = "h coccccoc osssssso cssssssc cssccssc cssccssc cssssssc osssssso coccccoc",
+		yardmap = "h bobbbbob osssssso bssssssb bssccssb bssccssb bssssssb osssssso bobbbbob",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armmoho_aoplane.dds",
