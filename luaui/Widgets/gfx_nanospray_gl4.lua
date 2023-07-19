@@ -105,6 +105,8 @@ local unitDefPeiceMapCache = {} -- maps unitDefID to piecemap
 
 local nanoSprayCacheTable = {} -- this is a reusable table cache for saving memory later on
 local unitAttachedNanoSprays = {}
+local numSprays = 0
+local numScriptEvents = 0
 
 local autoSprayInstanceID = 128000 -- as MAX_PROJECTILES = 128000, so they get unique ones
 
@@ -235,7 +237,7 @@ local function AddSprayForUnit(unitID, unitDefID, noUpload, reason, x,y,z,r,m, s
 	end
 end
 
-local function RemoveSprayForUnit(unitID, instanceID)
+local function RemoveSprayForUnit(unitID, instanceID, noUpload)
 	local numremoved = 0
 	if unitAttachedNanoSprays[unitID] then
 		if instanceID and unitAttachedNanoSprays[unitID][instanceID] then
@@ -357,6 +359,7 @@ local function GetNanoSprayTargetType(unitID, unitDefID)
 		_,_,_, x, y, z = spGetUnitPosition(buildTargetID, true)
 		r = Spring.GetUnitRadius(buildTargetID)
 		mobile = isMobile(buildTargetID)
+		return x, y, z, r, mobile, spraytype
 	end
 	
 	local nanopieces =  Spring.GetUnitNanoPieces (  unitID ) --return: nil | { [1] = number piece1, etc ... }
