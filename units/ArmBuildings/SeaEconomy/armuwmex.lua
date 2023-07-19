@@ -36,7 +36,7 @@ return {
 		sightdistance = 182,
 		usepiececollisionvolumes = true,
 		waterline = 0,
-    	yardmap = "h yyyyyyyy yooooooy yobbbboy yobooboy yobooboy yobbbboy yooooooy yyyyyyyy",
+		yardmap = "h bbbbbbbb bsyssysb bybyobyb bsoccysb bsyccosb byboybyb bsyssysb bbbbbbbb",
 		customparams = {
 			unitgroup = 'metal',
 			cvbuildable = true,

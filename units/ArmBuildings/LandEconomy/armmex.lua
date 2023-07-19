@@ -35,7 +35,7 @@ return {
 		selfdestructcountdown = 1,
 		sightdistance = 273,
 		--waterline = 0,
-    yardmap = "h yyyyyyyy yooooooy yobbbboy yobooboy yobooboy yobbbboy yooooooy yyyyyyyy",
+		yardmap = "h bbbbbbbb bsyssysb bybyobyb bsoccysb bsyccosb byboybyb bsyssysb bbbbbbbb",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armmex_aoplane.dds",

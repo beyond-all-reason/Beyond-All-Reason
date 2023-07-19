@@ -38,7 +38,7 @@ return {
 		selfdestructcountdown = 1,
 		sightdistance = 286,
 		stealth = true,
-    yardmap = "h yyyyyyyy yooooooy yobbbboy yobooboy yobooboy yobbbboy yooooooy yyyyyyyy",
+		yardmap = "h bbbbbbbb bsyssosb bobssbyb bssccssb bssccssb bybssbob bsossysb bbbbbbbb",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armamex_aoplane.dds",

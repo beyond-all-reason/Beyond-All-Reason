@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name      = "Mex Upgrade Reclaimer",
-		desc      = "Insta reclaims/refunds t1 mex when t2 on top has finished, also shares t2 mexes build upon ally t1 mex owner",
+		desc      = "Insta reclaims/refunds a mex when another mex on top has finished, also shares mexes build upon ally mex owner",
 		author    = "Floris",
 		date      = "October 2021",
 		license   = "GNU GPL, v2 or later",
@@ -15,19 +15,11 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 _G.transferredUnits = {}
-
-local isT1Mex = {}
-local isT15Mex = {}
-local isT2Mex = {}
+-- table of all mex unitDefIDs
+local isMex = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.extractsMetal > 0 then
-		if unitDef.customParams.techlevel and tonumber(unitDef.customParams.techlevel) >= 2 then
-			isT2Mex[unitDefID] = unitDef.metalCost
-		elseif unitDef.extractsMetal > 0.0015 and unitDef.extractsMetal < 0.004 then
-			isT15Mex[unitDefID] = unitDef.metalCost
-		else
-			isT1Mex[unitDefID] = unitDef.metalCost
-		end
+		isMex[unitDefID] = unitDef.metalCost
 	end
 end
 
@@ -48,84 +40,53 @@ end
 --	return true
 --end
 
-local function hasMexUnderneat(unitID)
+-- get the first mex bellow that isn't itself, stacking more than one should be prevented by yardmaps
+local function hasMexBeneath(unitID)
 	local x, _, z = Spring.GetUnitPosition(unitID)
 	local units = Spring.GetUnitsInCylinder(x, z, 10)
 	for k, uID in ipairs(units) do
-		if isT1Mex[Spring.GetUnitDefID(uID)] then
-			return uID
+		if isMex[Spring.GetUnitDefID(uID)] then
+			if unitID ~= uID then
+				return uID
+			end
 		end
 	end
 	return false
 end
 
-local function hasT15MexUnderneat(unitID)
-	local x, _, z = Spring.GetUnitPosition(unitID)
-	local units = Spring.GetUnitsInCylinder(x, z, 10)
-	for k, uID in ipairs(units) do
-		if isT15Mex[Spring.GetUnitDefID(uID)] then
-			return uID
-		end
-	end
-	return false
-end
-
--- make t1 mex below unselectable
-function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	if isT2Mex[unitDefID] then
-		local t1Mex = hasMexUnderneat(unitID)
-		local t15Mex = hasT15MexUnderneat(unitID)
-		if t1Mex then
-			Spring.SetUnitNoSelect(t1Mex, true)
-		elseif t15Mex then
-			Spring.SetUnitNoSelect(t15Mex, true)
+function gadget:UnitCreated(unitID, unitDefID)
+	-- make mex below unselectable
+	if isMex[unitDefID] then
+		local mex = hasMexBeneath(unitID)
+		if mex then
+			Spring.SetUnitNoSelect(mex, true)
 		end
 	end
 end
 
--- make t1 mex below selectable again
-function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-	if isT2Mex[unitDefID] then
-		local t1Mex = hasMexUnderneat(unitID)
-		local t15Mex = hasT15MexUnderneat(unitID)
-		if t1Mex then
-			Spring.SetUnitNoSelect(t1Mex, false)
-		elseif t15Mex then
-			Spring.SetUnitNoSelect(t15Mex, false)
+function gadget:UnitDestroyed(unitID, unitDefID)
+	-- make mex below selectable again
+	if isMex[unitDefID] then
+		local mex = hasMexBeneath(unitID)
+		if mex then
+			Spring.SetUnitNoSelect(mex, false)
 		end
-	end
+    end
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if isT2Mex[unitDefID] then
-		local t1Mex = hasMexUnderneat(unitID)
-		local t15Mex = hasT15MexUnderneat(unitID)
-		if t1Mex then
-			local t1MexTeamID = Spring.GetUnitTeam(t1Mex)
-			Spring.DestroyUnit(t1Mex, false, true)
-			Spring.AddTeamResource(unitTeam, "metal", isT1Mex[Spring.GetUnitDefID(t1Mex)])
-			if t1MexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(t1MexTeamID, false)) then -- and Spring.AreTeamsAllied(t1MexTeamID, unitTeam) then
+	-- on completion open up yardmap to allow for another mex to built ontop
+	if isMex[unitDefID] then
+        Spring.SetUnitCOBValue(unitID, COB.YARD_OPEN, 1)
+		-- if theres a mex below this one reclaim it, and donate this one to the owner of the previous mex
+		local mex = hasMexBeneath(unitID)
+		if mex then
+			local mexTeamID = Spring.GetUnitTeam(mex)
+			Spring.DestroyUnit(mex, false, true)
+			Spring.AddTeamResource(unitTeam, "metal", isMex[Spring.GetUnitDefID(mex)])
+			if mexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(mexTeamID, false)) then -- and Spring.AreTeamsAllied(t1MexTeamID, unitTeam) then
 				_G.transferredUnits[unitID] = Spring.GetGameFrame()
-				Spring.TransferUnit(unitID, t1MexTeamID)
-			end
-		elseif t15Mex then
-			local t15MexTeamID = Spring.GetUnitTeam(t15Mex)
-			Spring.DestroyUnit(t15Mex, false, true)
-			Spring.AddTeamResource(unitTeam, "metal", isT15Mex[Spring.GetUnitDefID(t15Mex)])
-			if t15MexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(t15MexTeamID, false)) then -- and Spring.AreTeamsAllied(t1MexTeamID, unitTeam) then
-				_G.transferredUnits[unitID] = Spring.GetGameFrame()
-				Spring.TransferUnit(unitID, t15MexTeamID)
-			end
-		end
-	elseif isT15Mex[unitDefID] then
-		local t1Mex = hasMexUnderneat(unitID)
-		if t1Mex then
-			local t1MexTeamID = Spring.GetUnitTeam(t1Mex)
-			Spring.DestroyUnit(t1Mex, false, true)
-			Spring.AddTeamResource(unitTeam, "metal", isT1Mex[Spring.GetUnitDefID(t1Mex)])
-			if t1MexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(t1MexTeamID, false)) then -- and Spring.AreTeamsAllied(t1MexTeamID, unitTeam) then
-				_G.transferredUnits[unitID] = Spring.GetGameFrame()
-				Spring.TransferUnit(unitID, t1MexTeamID)
+				Spring.TransferUnit(unitID, mexTeamID)
 			end
 		end
 	end
