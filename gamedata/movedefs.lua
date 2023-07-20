@@ -54,7 +54,7 @@ local moveDatas = {
 	-- },
 
 	-- amphibious bots  possible merger with abotbomb2
-	--critter_crab raptors1 cormando raptors2 armaak corcrash chickems2_spectre armjeth coramph coraak corroach corsktl armvader
+	--critter_crab raptors1 cormando raptors2 armaak corcrash raptorems2_spectre armjeth coramph coraak corroach corsktl armvader
 	ABOT2 = {
 		crushstrength = 50,
 		depthmod = 0,
@@ -581,7 +581,7 @@ local moveDatas = {
 	--Raptor Movedefs
 	--e_raptorq n_raptorq H_raptorq vc_raptorq vh_raptorq epic_raptorq raptor_miniqueen_fire raptor_miniqueen_acid raptor_miniqueen_basic raptor_miniqueen_healer
 	--raptor_miniqueen_spectre raptor_miniqueen_electric
-	CHICKQUEENHOVER = {
+	RAPTORQUEENHOVER = {
 		badslope = 22,
 		badwaterslope = 255,
 		crushstrength = 99999,
@@ -596,7 +596,7 @@ local moveDatas = {
 	--raptor_dodo2_electric raptors1 raptor1y raptor1x raptor1z raptor1d raptor1c raptor1b raptor1 raptorh3 raptorh2
 	--raptorh4 raptor_dodo1 raptor_dodo2  raptorp2 raptoracidswarmer raptor1x_spectre raptorp1 raptorh5 raptors2_spectre
 	-- raptorh1b
-	CHICKSMALLHOVER = {
+	RAPTORSMALLHOVER = {
 		badslope = 22,
 		badwaterslope = 255,
 		crushstrength = 25,
@@ -609,7 +609,7 @@ local moveDatas = {
 		speedmodclass = 2, -- hover
 	},
 	-- raptore2 raptoracidassualt raptora1 raptora1c raptor1b raptora1_spectre
-	CHICKBIGHOVER = {
+	RAPTORBIGHOVER = {
 		badslope = 22,
 		badwaterslope = 255,
 		crushstrength = 250,
@@ -622,7 +622,7 @@ local moveDatas = {
 		speedmodclass = 2, -- hover
 	},
 	-- raptora2_spectre raptora2 raptora2b
-	CHICKBIG2HOVER = {
+	RAPTORBIG2HOVER = {
 		badslope = 22,
 		badwaterslope = 255,
 		crushstrength = 1500,
@@ -635,7 +635,7 @@ local moveDatas = {
 		speedmodclass = 2, -- hover
 	},
 	-- raptorc3 raptorc3c raptorc3b raptorraptoracidallterrain raptorpyroallterrain raptor_6legged_I raptoreletricalallterrain
-	CHICKALLTERRAINHOVER = {
+	RAPTORALLTERRAINHOVER = {
 		crushstrength = 50,
 		depthmod = 0,
 		footprintx = 2,
@@ -647,7 +647,7 @@ local moveDatas = {
 	},
 	-- raptorr1 raptoracidarty raptoracidartyxl raptorearty1 raptorearty2 raptorbroodartyh4small raptoracidalllterrrainassual 
 	--raptorelectricallterrainassualt raptorallterraina1 raptoraallterraina1 raptoraallterrain1c raptoraallterrain1b
-	CHICKALLTERRAINBIGHOVER = {
+	RAPTORALLTERRAINBIGHOVER = {
 		crushstrength = 250,
 		depthmod = 0,
 		footprintx = 3,
@@ -658,7 +658,7 @@ local moveDatas = {
 		speedmodclass = 2, -- hover
 	},
 	-- raptorr2 raptorbroodartyh4 raptorapexallterrainassualt raptorapexallterrainassualtb
-	CHICKALLTERRAINBIG2HOVER = {
+	RAPTORALLTERRAINBIG2HOVER = {
 		crushstrength = 250,
 		depthmod = 0,
 		footprintx = 4,

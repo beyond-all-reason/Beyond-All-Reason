@@ -36,7 +36,7 @@ return {
 		maxvelocity = 1,
 		maxwaterdepth = 0,
 		mincloakdistance = 50,
-		movementclass = "CHICKBIG2HOVER",
+		movementclass = "RAPTORBIG2HOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Raptors/raptora2_spectre.s3o",

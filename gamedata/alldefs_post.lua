@@ -568,17 +568,17 @@ function UnitDef_Post(name, uDef)
 	end
 	]]
 	if string.find(name, "raptor") and uDef.maxdamage then
-		local chickHealth = uDef.maxdamage
+		local raptorHealth = uDef.maxdamage
 		uDef.activatewhenbuilt = true
-		uDef.buildcostmetal = chickHealth*0.5
-		uDef.buildcostenergy = chickHealth*5
-		uDef.buildtime = chickHealth*10
+		uDef.buildcostmetal = raptorHealth*0.5
+		uDef.buildcostenergy = raptorHealth*5
+		uDef.buildtime = raptorHealth*10
 		uDef.hidedamage = true
-		uDef.mass = chickHealth
+		uDef.mass = raptorHealth
 		uDef.canhover = true
-		uDef.autoheal = math.ceil(math.sqrt(chickHealth * 0.2))
+		uDef.autoheal = math.ceil(math.sqrt(raptorHealth * 0.2))
 		uDef.customparams.paralyzemultiplier = uDef.customparams.paralyzemultiplier or .2
-		uDef.idleautoheal = math.ceil(math.sqrt(chickHealth * 0.2))
+		uDef.idleautoheal = math.ceil(math.sqrt(raptorHealth * 0.2))
 		uDef.customparams.areadamageresistance = "_RAPTORACID_"
 		uDef.upright = false
 		uDef.floater = true

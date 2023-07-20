@@ -31,7 +31,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 1,
 		maxwaterdepth = 0,
-		movementclass = "CHICKALLTERRAINBIG2HOVER",
+		movementclass = "RAPTORALLTERRAINBIG2HOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Raptors/raptorapexallterrainassaultb.s3o",

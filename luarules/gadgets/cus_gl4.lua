@@ -257,7 +257,7 @@ do --save a ton of locals
 	local OPTION_THREADS_CORE     = 64
 	local OPTION_HEALTH_TEXTURING = 128
 	local OPTION_HEALTH_DISPLACE  = 256
-	local OPTION_HEALTH_TEXCHICKS = 512
+	local OPTION_HEALTH_TEXRAPTORS = 512
 	local OPTION_MODELSFOG        = 1024
 	local OPTION_TREEWIND         = 2048
 	local OPTION_PBROVERRIDE      = 4096
@@ -286,7 +286,7 @@ do --save a ton of locals
 			brightnessFactor = 1.5,
 		},
 		raptor = {
-			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS  + OPTION_HEALTH_DISPLACE + OPTION_HEALTH_TEXCHICKS + OPTION_TREEWIND + OPTION_SHIFT_RGBHSV,
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS  + OPTION_HEALTH_DISPLACE + OPTION_HEALTH_TEXRAPTORS + OPTION_TREEWIND + OPTION_SHIFT_RGBHSV,
 			baseVertexDisplacement = 0.0,
 			brightnessFactor = 1.5,
 		},

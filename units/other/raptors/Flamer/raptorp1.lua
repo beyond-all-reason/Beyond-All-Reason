@@ -29,7 +29,7 @@ return {
 		maxdamage = 1110,
 		maxvelocity = 4.5,
 		maxwaterdepth = 0,
-		movementclass = "CHICKSMALLHOVER",
+		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Raptors/raptorp2.s3o",
@@ -63,7 +63,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				--[1] = "custom:blank", --left over from morph of arty chick
+				--[1] = "custom:blank", --left over from morph of arty raptor
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",

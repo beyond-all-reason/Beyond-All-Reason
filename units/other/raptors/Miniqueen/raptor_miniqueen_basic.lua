@@ -37,7 +37,7 @@ return {
 		maxslope = 40,
 		maxvelocity = 2.25,
 		maxwaterdepth = 0,
-		movementclass = "CHICKQUEENHOVER",
+		movementclass = "RAPTORQUEENHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Raptors/raptor_miniqueen_basic.s3o",

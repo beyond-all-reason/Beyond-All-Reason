@@ -29,7 +29,7 @@ return {
 		maxdamage = 11100,
 		maxvelocity = 3.5,
 		maxwaterdepth = 0,
-		movementclass = "CHICKSMALLHOVER",
+		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Raptors/raptor_listener.s3o",

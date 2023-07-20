@@ -30,7 +30,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 2.7,
 		maxwaterdepth = 0,
-		movementclass = "CHICKSMALLHOVER",
+		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Raptors/raptore1.s3o",

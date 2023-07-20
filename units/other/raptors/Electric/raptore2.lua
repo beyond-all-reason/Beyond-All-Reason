@@ -30,7 +30,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 1.125,
 		maxwaterdepth = 0,
-		movementclass = "CHICKBIGHOVER",
+		movementclass = "RAPTORBIGHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Raptors/raptore2.s3o",

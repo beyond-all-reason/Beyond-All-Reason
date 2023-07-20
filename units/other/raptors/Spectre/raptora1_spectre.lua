@@ -35,7 +35,7 @@ return {
 		maxvelocity = 1.3,
 		maxwaterdepth = 0,
 		mincloakdistance = 50,
-		movementclass = "CHICKBIGHOVER",
+		movementclass = "RAPTORBIGHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Raptors/raptora_spectre.s3o",

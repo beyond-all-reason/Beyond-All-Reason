@@ -313,7 +313,7 @@ local materials = {
 			vertex_ao = true,
 			health_displace = true,
 			health_texturing = false,
-			health_texchicks = true,
+			health_texraptors = true,
 			treewind = true,
 		},
 		deferredOptions = {
@@ -322,7 +322,7 @@ local materials = {
 			vertex_ao = true,
 			health_displace = true,
 			health_texturing = false,
-			health_texchicks = true,
+			health_texraptors = true,
 			treewind = true,
 			materialIndex = 4,
 		},

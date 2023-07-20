@@ -32,7 +32,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 2.8,
 		maxwaterdepth = 0,
-		movementclass = "CHICKALLTERRAINBIGHOVER",
+		movementclass = "RAPTORALLTERRAINBIGHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Raptors/raptor_artillery_meteor_v2_acid.s3o",

@@ -41,7 +41,7 @@ return {
 		maxwaterdepth = 0,
 		metalstorage = 1000,
 		mobilestandorders = 1,
-		movementclass = "CHICKSMALLHOVER",
+		movementclass = "RAPTORSMALLHOVER",
 		noautofire = 0,
 		objectname = "Raptors/raptorhealer1.s3o",
 		reclaimspeed = 400,

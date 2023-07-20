@@ -36,7 +36,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 3.7,
 		maxwaterdepth = 0,
-		movementclass = "CHICKSMALLHOVER",
+		movementclass = "RAPTORSMALLHOVER",
 		nanocolor = "0.7 0.15 0.15",
 		noautofire = false,
 		nochasecategory = "VTOL",

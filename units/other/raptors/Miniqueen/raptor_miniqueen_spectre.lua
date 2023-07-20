@@ -42,7 +42,7 @@ return {
 		maxvelocity = 2.25,
 		maxwaterdepth = 0,
 		mincloakdistance = 200,
-		movementclass = "CHICKQUEENHOVER",
+		movementclass = "RAPTORQUEENHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Raptors/raptor_miniqueen_spectre.s3o",

@@ -36,7 +36,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 8,
 		maxwaterdepth = 0,
-		movementclass = "CHICKSMALLHOVER",
+		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL HOVER",
 		objectname = "Raptors/raptor_dodo2_electric.s3o",
