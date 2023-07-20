@@ -53,45 +53,45 @@ return {
 	#endif
 
 		float diagLines(vec2 uv) {
-		        // Returns a value between 0 and 1 that form a diagonal pattern.
+			// Returns a value between 0 and 1 that form a diagonal pattern.
 
-		        // To produce "diagonal values", we just add x and y.
-		        float xy = uv.x + uv.y;
+			// To produce "diagonal values", we just add x and y.
+			float xy = uv.x + uv.y;
 
-                        // Multiply xy to decrease the period of the sine wave.
+			// Multiply xy to decrease the period of the sine wave.
 			// This is just an arbitrary number. Lower numbers will result in
 			// wider lines and gaps.
 			xy *= 1000.0;
 
-                        // We want to return a value between 0 and 1,
+			// We want to return a value between 0 and 1,
 			// so scale the sine wave amplitude and shift it up.
 			// Subtracting time causes the diagonal lines to move down
 			// from the top-left.
-                        return sin(xy - time) * 0.5 + 0.5;
+			return sin(xy - time) * 0.5 + 0.5;
 		}
 
 		void main() {
-		        // There are 3 levels of intel, from highest to lowest:
+			// There are 3 levels of intel, from highest to lowest:
 			// - Line of sight (LOS), direct vision
 			// - Radar
 			// - Fog of war, no vision or radar
 			// We want to color an area using its highest level of intel.
 			// Then, we add a final modifier to show jamming coverage.
 
-                        // Fog of war
+			// Fog of war
 			// Draw alternating diagonal lines for the fog of war.
 			// alwaysColor is the fog of war color.
 			// Squaring the diagLines sine wave causes more values to be near zero.
 			float diagonalLineStrength = pow(diagLines(texCoord), 2);
 			gl_FragColor = mix(alwaysColor, alwaysColor * 0.5, diagonalLineStrength);
 
-                        // Radar
+			// Radar
 			// radarColor2 is the color of ground covered by radar.
 			vec4 tex2Texel = getTexel(tex2, texCoord);
 			float radar = tex2Texel.r;
 			gl_FragColor = max(gl_FragColor, radarColor2 * radar);
 
-                        // Line of sight (LOS), the higest level of intel
+			// Line of sight (LOS), the higest level of intel
 			// losColor is the color of ground covered by direct vison (LOS).
 			// Often airlos is greater than groundlos.
 			float groundlos = getTexel(tex0, texCoord).r;
@@ -99,7 +99,7 @@ return {
 			float losCombined = mix(groundlos, airlos, 0.2);
 			gl_FragColor = max(gl_FragColor, losColor * losCombined);
 
-                        // Radar jamming
+			// Radar jamming
 			// Unlike the other cases, we add the jamming color instead of taking the maximum.
 			// The jamming color may contain negative value. For instance, if you subtract
 			// blue and green, then this will give a red jamming color while maintaining a similar
@@ -107,8 +107,8 @@ return {
 			float jamming = tex2Texel.g;
 			gl_FragColor += jamColor * jamming;
 
-                        // Finally, make sure nothing has changed our desired alpha value.
-                        gl_FragColor.a = 0.03;
+			// Finally, make sure nothing has changed our desired alpha value.
+			gl_FragColor.a = 0.03;
 		}
 	]],
 	uniformFloat = {
