@@ -495,7 +495,6 @@ local raptorMinions = { -- Units spawning other units
 	},
 	["raptorbroodartyh4"] = {
 		"raptorh4",
-		"raptorbroodartyh4small",
 	},
 	["ve_raptorq"] = {
 		"raptorh2",
