@@ -163,7 +163,7 @@ function UnitDef_Post(name, uDef)
 	--[[if Spring.GetModOptions().newdgun then
 		if uDef.customparams.iscommander then
 			uDef.customparams.paralyzemultiplier = 0
-			
+
 			if uDef.weapondefs.disintegrator then
 				uDef.weapondefs.disintegrator = {
 					areaofeffect = 160,
@@ -579,7 +579,7 @@ function UnitDef_Post(name, uDef)
 		uDef.autoheal = math.ceil(math.sqrt(chickHealth * 0.2))
 		uDef.customparams.paralyzemultiplier = uDef.customparams.paralyzemultiplier or .2
 		uDef.idleautoheal = math.ceil(math.sqrt(chickHealth * 0.2))
-		uDef.customparams.areadamageresistance = "_CHICKENACID_"
+		uDef.customparams.areadamageresistance = "_RAPTORACID_"
 		uDef.upright = false
 		uDef.floater = true
 		uDef.turninplaceanglelimit = 360
@@ -825,7 +825,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Commander Update
-	
+
 	if Spring.GetModOptions().comupdate == true then
 		if name == "armdecom" then
 			uDef.maxdamage = 4000
@@ -869,7 +869,7 @@ function UnitDef_Post(name, uDef)
 			}
 		end
 		if name == "armsam" then
-			uDef.weapondefs.armtruck_missile.damage.commanders = uDef.weapondefs.armtruck_missile.damage.default 
+			uDef.weapondefs.armtruck_missile.damage.commanders = uDef.weapondefs.armtruck_missile.damage.default
 		end
 		if name == "armkam" then
 			uDef.weapondefs.med_emg.damage = {
@@ -891,7 +891,7 @@ function UnitDef_Post(name, uDef)
 					fighters = 2,
 					vtol = 2,
 			}
-		end		
+		end
 		if name == "armsaber" then
 			uDef.weapondefs.vtol_emg2.damage = {
 					bombers = 10,
@@ -981,7 +981,7 @@ function UnitDef_Post(name, uDef)
 					subs = 61,
 					vtol = 15,
 			}
-		end		
+		end
 		if name == "corcut" then
 			uDef.weapondefs.vtol_rocket2.damage = {
 					bombers = 9,
@@ -989,7 +989,7 @@ function UnitDef_Post(name, uDef)
 					fighters = 9,
 					vtol = 9,
 			}
-		end		
+		end
 		if name == "corseap" then
 			uDef.weapondefs.armseap_weapon1.damage = {
 					bombers = 15,
@@ -999,9 +999,9 @@ function UnitDef_Post(name, uDef)
 			}
 		end
 	end
-	
-		
-		
+
+
+
 
 	-- Multipliers Modoptions
 
@@ -1169,7 +1169,7 @@ function WeaponDef_Post(name, wDef)
 			}
 		end
 	end
-	
+
 	if Spring.GetModOptions().comupdate then
 		if name == 'commanderexplosion' then
 			wDef.AreaOfEffect = 700
@@ -1424,13 +1424,13 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			ud.transportbyenemy = false
 		end
 	end
-	
+
 	-- For Decals GL4, disables default groundscars for explosions
 	for id,wDef in pairs(WeaponDefs) do
 		wDef.explosionScar = false
 	end
 
-	
+
 	--[[
 	-- Make BeamLasers do their damage up front instead of over time
 	-- Do this at the end so that we don't mess up any magic math

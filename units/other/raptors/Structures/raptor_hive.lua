@@ -12,7 +12,7 @@ return {
 		buildpic = "raptors/raptor_hive.DDS",
 		buildtime = 10500,
 		capturable = false,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN EMPABLE",
+		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE RAPTOR EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "84 150 84",
 		collisionvolumetype = "box",
