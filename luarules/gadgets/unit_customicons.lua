@@ -752,7 +752,7 @@ local units = {
 	corscavfort = { "wall_0.4.png", 0.41999999 },
 	xmasball = { "blank.png", 1.04999995 },
 	xmasball2 = { "blank.png", 1.04999995 },
-	corfdoom = { "cordoom_1.95.png", 1.5 },
+	corfdoom = { "cordoom.png", 1.5 },
 }
 
 setmetatable(units, { __index = function(table, key)
