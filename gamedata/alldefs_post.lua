@@ -1361,7 +1361,7 @@ function WeaponDef_Post(name, wDef)
 	if wDef.damage and wDef.damage.default then
 		if string.find(name,'_', nil, true) then
 			local prefix = string.sub(name,1,3)
-			if prefix == 'arm' or prefix == 'cor' or prefix == 'leg' or prefix == 'chi' then
+			if prefix == 'arm' or prefix == 'cor' or prefix == 'leg' or prefix == 'rap' then
 				local globaldamage = math.max(30, wDef.damage.default / 20)
 				local defExpSpeed = (8 + (globaldamage * 2.5))/ (9 + (math.sqrt(globaldamage) * 0.70)) * 0.5
 				wDef.explosionSpeed = defExpSpeed * 2
