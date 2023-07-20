@@ -3,7 +3,7 @@ return {
 		acceleration = 0.0115,
 		activatewhenbuilt = true,
 		autoheal = 1,
-		bmcode = "0",
+
 		brakerate = 0.0115,
 		buildcostenergy = 3000,
 		buildcostmetal = 120,
@@ -45,7 +45,6 @@ return {
 		side = "THUNDERBIRDS",
 		sightdistance = 500,
 		smoothanim = true,
-		tedclass = "METAL",
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 1840,

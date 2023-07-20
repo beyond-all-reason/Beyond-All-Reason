@@ -3,7 +3,7 @@ return {
 		acceleration = 0.8,
 		airhoverfactor = 0,
 		attackrunlength = 32,
-		bmcode = "1",
+
 		brakerate = 0.1,
 		buildcostenergy = 4550,
 		buildcostmetal = 212,
@@ -54,8 +54,6 @@ return {
 		sightdistance = 1000,
 		smoothanim = true,
 		speedtofront = 0.07,
-		steeringmode = "2",
-		tedclass = "VTOL",
 		turninplace = true,
 		turnradius = 64,
 		turnrate = 1600,

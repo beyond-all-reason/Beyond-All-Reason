@@ -1,7 +1,7 @@
 return {
 	raptorpyroallterrain = {
 		acceleration = 1.4375,
-		bmcode = "1",
+
 		brakerate = 2.3,
 		buildcostenergy = 5280,
 		buildcostmetal = 99,
@@ -41,8 +41,6 @@ return {
 		sightdistance = 300,
 		smoothanim = true,
 		sonardistance = 450,
-		steeringmode = "2",
-		tedclass = "BOT",
 		trackoffset = 0.5,
 		trackstrength = 3,
 		trackstretch = 1,

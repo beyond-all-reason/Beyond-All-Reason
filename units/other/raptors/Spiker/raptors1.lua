@@ -1,7 +1,7 @@
 return {
 	raptors1 = {
 		acceleration = 1.725,
-		bmcode = "1",
+
 		brakerate = 1.4375,
 		buildcostenergy = 174,
 		buildcostmetal = 174,
@@ -43,8 +43,6 @@ return {
 		sightdistance = 525,
 		smoothanim = true,
 		sonardistance = 720,
-		steeringmode = "2",
-		tedclass = "ABOT2",
 		trackoffset = 6,
 		trackstrength = 3,
 		trackstretch = 1,

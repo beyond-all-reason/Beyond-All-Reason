@@ -2,7 +2,7 @@ return {
 	raptor2b = {
 		acceleration = 0.805,
 		autoheal = 20,
-		bmcode = "1",
+
 		brakerate = 5.75,
 		buildcostenergy = 1000,
 		buildcostmetal = 150,
@@ -41,8 +41,6 @@ return {
 		side = "THUNDERBIRDS",
 		sightdistance = 200,
 		smoothanim = true,
-		steeringmode = "2",
-		tedclass = "BOT",
 		trackoffset = 0,
 		trackstrength = 3,
 		trackstretch = 1,

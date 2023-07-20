@@ -3,7 +3,7 @@ return {
 		acceleration = 1,
 		activatewhenbuilt = true,
 		autoheal = 24,
-		bmcode = 1,
+
 		brakerate = 1,
 		buildcostenergy = 600,
 		buildcostmetal = 40,
@@ -54,8 +54,6 @@ return {
 		smoothanim = true,
 		standingmoveorder = 1,
 		stealth = 1,
-		steeringmode = "2",
-		tedclass = "BOT",
 		trackoffset = 1,
 		trackstrength = 3,
 		trackstretch = 1,

@@ -2,7 +2,7 @@ return {
 	critter_ant = {
 		acceleration = 0.575,
 		blocking = false,
-		bmcode = "1",
+
 		brakerate = 1.15,
 		buildcostenergy = 0,
 		buildcostmetal = 0,
@@ -44,8 +44,6 @@ return {
 		smoothanim = true,
 		sonarstealth = true,
 		stealth = true,
-		steeringmode = "1",
-		tedclass = "BOT",
 		trackoffset = 0,
 		trackstrength = 1.3,
 		trackstretch = 1,

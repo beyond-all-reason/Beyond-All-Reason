@@ -5,7 +5,7 @@ return {
 		amphibious = true,
 		autoheal = 10,
 		bankscale = "1",
-		bmcode = "1",
+
 		brakerate = 0.2,
 		buildcostenergy = 2200,
 		buildcostmetal = 72,
@@ -56,8 +56,6 @@ return {
 		sightdistance = 600,
 		smoothanim = true,
 		speedtofront = 0.07,
-		steeringmode = "1",
-		tedclass = "VTOL",
 		turninplace = true,
 		turnradius = 64,
 		turnrate = 1600,

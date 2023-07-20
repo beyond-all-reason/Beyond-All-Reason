@@ -3,7 +3,7 @@ return {
 		acceleration = 1.035,
 		activatewhenbuilt = true,
 		autoheal = 50,
-		bmcode = "1",
+
 		brakerate = 0.805,
 		buildcostenergy = 15000,
 		buildcostmetal = 250,
@@ -39,8 +39,6 @@ return {
 		side = "THUNDERBIRDS",
 		sightdistance = 300,
 		smoothanim = true,
-		steeringmode = "2",
-		tedclass = "BOT",
 		trackoffset = 0,
 		trackstrength = 3,
 		trackstretch = 1,

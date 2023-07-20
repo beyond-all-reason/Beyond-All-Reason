@@ -2,7 +2,7 @@ return {
 	raptora1_spectre = {
 		acceleration = 0.414,
 		airsightdistance = 650,
-		bmcode = "1",
+
 		brakerate = 0.46,
 		buildcostenergy = 3520,
 		buildcostmetal = 152,
@@ -47,8 +47,6 @@ return {
 		sightdistance = 300,
 		smoothanim = true,
 		stealth = 1,
-		steeringmode = "2",
-		tedclass = "BOT",
 		trackoffset = 7,
 		trackstrength = 3,
 		trackstretch = 1,

@@ -1,7 +1,7 @@
 return {
 	raptorbroodartyh4 = {
 		acceleration = 1.15,
-		bmcode = "1",
+
 		brakerate = 9.2,
 		buildcostenergy = 12320,
 		buildcostmetal = 396,
@@ -43,8 +43,6 @@ return {
 		side = "THUNDERBIRDS",
 		sightdistance = 1000,
 		smoothanim = true,
-		steeringmode = "2",
-		tedclass = "BOT",
 		trackoffset = 6,
 		trackstrength = 3,
 		trackstretch = 1,

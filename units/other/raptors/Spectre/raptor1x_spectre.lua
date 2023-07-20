@@ -2,7 +2,7 @@ return {
 	raptor1x_spectre = {
 		acceleration = 0.345,
 		autoheal = 3,
-		bmcode = "1",
+
 		brakerate = 0.345,
 		buildcostenergy = 79,
 		buildcostmetal = 79,
@@ -47,8 +47,6 @@ return {
 		sightdistance = 200,
 		smoothanim = true,
 		stealth = 1,
-		steeringmode = "2",
-		tedclass = "BOT",
 		trackoffset = 0,
 		trackstrength = 3,
 		trackstretch = 1,

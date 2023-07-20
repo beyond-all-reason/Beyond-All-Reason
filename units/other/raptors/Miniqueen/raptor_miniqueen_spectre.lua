@@ -3,7 +3,7 @@ return {
 		acceleration = 0.1,
 		airsightdistance = 2400,
 		autoheal = 5,
-		bmcode = "1",
+
 		brakerate = 0.1,
 		buildcostenergy = 2000000,
 		buildcostmetal = 50000,
@@ -54,8 +54,6 @@ return {
 		sightdistance = 500,
 		smoothanim = true,
 		stealth = 1,
-		steeringmode = "2",
-		tedclass = "BOT",
 		trackoffset = 18,
 		trackstrength = 3,
 		trackstretch = 1,

@@ -1,7 +1,7 @@
 return {
 	raptor1c = {
 		acceleration = 0.1725,
-		bmcode = "1",
+
 		brakerate = 0.575,
 		buildcostenergy = 53,
 		buildcostmetal = 25,
@@ -40,8 +40,6 @@ return {
 		side = "THUNDERBIRDS",
 		sightdistance = 200,
 		smoothanim = true,
-		steeringmode = "2",
-		tedclass = "BOT",
 		trackoffset = 0,
 		trackstrength = 3,
 		trackstretch = 1,
