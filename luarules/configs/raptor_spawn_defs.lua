@@ -15,24 +15,24 @@ local burrowName = 'raptor_hive'
 local raptorTurrets
 if not Spring.GetModOptions().unit_restrictions_nonukes then
 	raptorTurrets = {
-		["raptor_turrets"] 			= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,},
-		["raptor_turrets_antiair"] 	= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,},
+		["raptor_turrets"] 				= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,},
+		["raptor_turrets_antiair"] 		= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,},
 		["raptor_turrets_acid"] 		= { minQueenAnger = 25, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 75,},
 		["raptor_turrets_electric"] 	= { minQueenAnger = 25, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 75,},
-		["raptor_turretl"] 			= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
-		["raptor_turretl_antiair"] 	= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
+		["raptor_turretl"] 				= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
+		["raptor_turretl_antiair"] 		= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
 		["raptor_turretl_acid"] 		= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
 		["raptor_turretl_electric"] 	= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
 		["raptor_turretxl_meteor"]		= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
 	}
 else
 	raptorTurrets = {
-		["raptor_turrets"] 			= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,},
-		["raptor_turrets_antiair"] 	= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,},
+		["raptor_turrets"] 				= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,},
+		["raptor_turrets_antiair"] 		= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,},
 		["raptor_turrets_acid"] 		= { minQueenAnger = 25, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 75,},
 		["raptor_turrets_electric"] 	= { minQueenAnger = 25, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 75,},
-		["raptor_turretl"] 			= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
-		["raptor_turretl_antiair"] 	= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
+		["raptor_turretl"] 				= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
+		["raptor_turretl_antiair"] 		= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
 		["raptor_turretl_acid"] 		= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
 		["raptor_turretl_electric"] 	= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
 	}
@@ -53,8 +53,8 @@ local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to b
 	raptora1b     						=   "red",
 	raptora1c     						=   "red",
 	raptorallterraina1					=   "red",
-	raptorallterraina1b				=   "red",
-	raptorallterraina1c				=   "red",
+	raptorallterraina1b					=   "red",
+	raptorallterraina1c					=   "red",
 	raptora2      						=   "red",
 	raptora2b     						=   "red",
 	raptorapexallterrainassault 		=   "red",
@@ -64,7 +64,7 @@ local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to b
 	raptor_dodo1  						=   "red",
 	raptor_dodo2  						=   "red",
 	raptor_dodoair  					=   "red",
-	raptorf1_mini      				=   "darkgreen",
+	raptorf1_mini      					=   "darkgreen",
 	raptorf1      						=   "darkgreen",
 	raptorf1b     						=   "darkgreen",
 	raptorf1apex      					=   "darkgreen",
@@ -77,10 +77,10 @@ local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to b
 	raptorc3c     						=   "white",
 	raptorr1      						=   "darkgreen",
 	raptorr2      						=   "darkgreen",
-	raptorhealer1      				=   "white",
-	raptorhealer2      				=   "white",
-	raptorhealer3      				=   "white",
-	raptorhealer4      				=   "white",
+	raptorhealer1      					=   "white",
+	raptorhealer2      					=   "white",
+	raptorhealer3      					=   "white",
+	raptorhealer4      					=   "white",
 	raptorh1b     						=   "white",
 	raptorh2      						=   "purple",
 	raptorh3      						=   "purple",
@@ -89,10 +89,10 @@ local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to b
 	raptorbroodbomberh3 				= 	"purple",
 	raptorbroodbomberh4 				= 	"purple",
 	raptorbroodartyh4 					= 	"purple",
-	raptorbroodartyh4small 			= 	"purple",
+	raptorbroodartyh4small 				= 	"purple",
 	raptorh5      						=   "white",
 	raptorw1      						=   "purple",
-	raptorw1_mini      				=   "purple",
+	raptorw1_mini      					=   "purple",
 	raptorw1b     						=   "purple",
 	raptorw1c     						=   "purple",
 	raptorw1d     						=   "purple",
@@ -104,28 +104,28 @@ local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to b
 	raptore2	   						=   "blue",
 	raptorearty1  						=   "blue",
 	raptorearty2  						=   "blue",
-	raptorebomber1 					=   "blue",
+	raptorebomber1 						=   "blue",
 	raptorelectricallterrain 			=   "blue",
-	raptorelectricallterrainassault	=   "blue",
-	raptor_dodo1_electric  			=   "blue",
-	raptor_dodo2_electric  			=   "blue",
+	raptorelectricallterrainassault		=   "blue",
+	raptor_dodo1_electric  				=   "blue",
+	raptor_dodo2_electric  				=   "blue",
 	raptoracidswarmer 					=   "acidgreen",
 	raptoracidassault 					=   "acidgreen",
-	raptoracidarty 					=   "acidgreen",
+	raptoracidarty 						=   "acidgreen",
 	raptoracidartyxl 					=   "acidgreen",
 	raptoracidbomber 					=   "acidgreen",
 	raptoracidallterrain				=	"acidgreen",
-	raptoracidallterrainassault		=   "acidgreen",
+	raptoracidallterrainassault			=   "acidgreen",
 	raptor1x_spectre					=   "yellow",
-	raptor2_spectre					=   "yellow",
+	raptor2_spectre						=   "yellow",
 	raptora1_spectre					=   "yellow",
 	raptora2_spectre					=   "yellow",
 	raptors2_spectre					=   "yellow",
 
 	raptor_miniqueen_electric			=   "blue",
 	raptor_miniqueen_acid				=   "acidgreen",
-	raptor_miniqueen_healer			=  	"white",
-	raptor_miniqueen_basic 			=  	"pink",
+	raptor_miniqueen_healer				=  	"white",
+	raptor_miniqueen_basic 				=  	"pink",
 	raptor_miniqueen_fire 				=  	"darkred",
 	raptor_miniqueen_spectre 			=  	"yellow",
 }
@@ -277,7 +277,7 @@ local optionValues = {
 	[difficulties.veryeasy] = {
 		gracePeriod       = 8 * Spring.GetModOptions().raptor_graceperiodmult * 60,
 		queenTime      	  = 50 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
-		raptorSpawnRate  = 120,
+		raptorSpawnRate   = 120,
 		burrowSpawnRate   = 480,
 		turretSpawnRate   = 240,
 		queenSpawnMult    = 1,
@@ -296,11 +296,11 @@ local optionValues = {
 	[difficulties.easy] = {
 		gracePeriod       = 7 * Spring.GetModOptions().raptor_graceperiodmult * 60,
 		queenTime      	  = 45 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
-		raptorSpawnRate  = 90,
+		raptorSpawnRate   = 90,
 		burrowSpawnRate   = 420,
 		turretSpawnRate   = 210,
 		queenSpawnMult    = 1,
-		angerBonus        = 1,
+		angerBonus        = 1.2,
 		maxXP			  = 1,
 		spawnChance       = 0.2,
 		damageMod         = 0.6,
@@ -314,11 +314,11 @@ local optionValues = {
 	[difficulties.normal] = {
 		gracePeriod       = 6 * Spring.GetModOptions().raptor_graceperiodmult * 60,
 		queenTime      	  = 40 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
-		raptorSpawnRate  = 60,
+		raptorSpawnRate   = 60,
 		burrowSpawnRate   = 360,
 		turretSpawnRate   = 180,
 		queenSpawnMult    = 3,
-		angerBonus        = 1,
+		angerBonus        = 1.4,
 		maxXP			  = 1.5,
 		spawnChance       = 0.3,
 		damageMod         = 0.8,
@@ -332,11 +332,11 @@ local optionValues = {
 	[difficulties.hard] = {
 		gracePeriod       = 5 * Spring.GetModOptions().raptor_graceperiodmult * 60,
 		queenTime      	  = 40 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
-		raptorSpawnRate  = 50,
+		raptorSpawnRate   = 50,
 		burrowSpawnRate   = 300,
 		turretSpawnRate   = 150,
 		queenSpawnMult    = 3,
-		angerBonus        = 1,
+		angerBonus        = 1.6,
 		maxXP			  = 2,
 		spawnChance       = 0.4,
 		damageMod         = 1,
@@ -350,11 +350,11 @@ local optionValues = {
 	[difficulties.veryhard] = {
 		gracePeriod       = 4 * Spring.GetModOptions().raptor_graceperiodmult * 60,
 		queenTime      	  = 35 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
-		raptorSpawnRate  = 40,
+		raptorSpawnRate   = 40,
 		burrowSpawnRate   = 240,
 		turretSpawnRate   = 120,
 		queenSpawnMult    = 3,
-		angerBonus        = 1,
+		angerBonus        = 1.8,
 		maxXP			  = 2.5,
 		spawnChance       = 0.5,
 		damageMod         = 1.2,
@@ -368,11 +368,11 @@ local optionValues = {
 	[difficulties.epic] = {
 		gracePeriod       = 3 * Spring.GetModOptions().raptor_graceperiodmult * 60,
 		queenTime      	  = 30 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
-		raptorSpawnRate  = 30,
+		raptorSpawnRate   = 30,
 		burrowSpawnRate   = 180,
 		turretSpawnRate   = 90,
 		queenSpawnMult    = 3,
-		angerBonus        = 1,
+		angerBonus        = 2,
 		maxXP			  = 3,
 		spawnChance       = 0.6,
 		damageMod         = 1.4,
@@ -681,6 +681,7 @@ addNewSquad({ type = "special", minAnger = 100, units = { "2 raptorbroodartyh4" 
 
 for j = 1, #miniBosses do
 	addNewSquad({ type = "special", minAnger = 70, units = { "1 " .. miniBosses[j] }})
+	addNewSquad({ type = "special", minAnger = 85, units = { "1 " .. miniBosses[j] }})
 	addNewSquad({ type = "special", minAnger = 100, units = { "1 " .. miniBosses[j] }})
 end
 
@@ -741,10 +742,12 @@ addNewSquad({ type = "healer", minAnger = 0, units = { "1 raptorhealer1" }, maxA
 addNewSquad({ type = "healer", minAnger = 25, units = { "2 raptorhealer1" }, maxAnger = 60 })
 addNewSquad({ type = "healer", minAnger = 25, units = { "1 raptorhealer2" }, maxAnger = 60 })
 
+addNewSquad({ type = "healer", minAnger = 50, units = { "4 raptorhealer1" }, maxAnger = 85 })
 addNewSquad({ type = "healer", minAnger = 50, units = { "2 raptorhealer2" }, maxAnger = 85 })
 addNewSquad({ type = "healer", minAnger = 50, units = { "1 raptorhealer3" }, maxAnger = 85 })
 
-
+addNewSquad({ type = "healer", minAnger = 75, units = { "8 raptorhealer1" }})
+addNewSquad({ type = "healer", minAnger = 75, units = { "4 raptorhealer2" }})
 addNewSquad({ type = "healer", minAnger = 75, units = { "2 raptorhealer3" }})
 addNewSquad({ type = "healer", minAnger = 75, units = { "1 raptorhealer4" }})
 

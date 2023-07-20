@@ -83,31 +83,31 @@ if gadgetHandler:IsSyncedCode() then
 	local queenAngerAgressionLevel = 0
 	local difficultyCounter = config.difficulty
 	local waveParameters = {
-		baseCooldown = 10,
+		baseCooldown = 5,
 		waveSizeMultiplier = 1,
 		waveTimeMultiplier = 1,
 		waveAirPercentage = 20,
 		waveSpecialPercentage = 33,
 		airWave = {
-			cooldown = 0,
+			cooldown = mRandom(0,10),
 		},
 		specialWave = {
-			cooldown = 0,
+			cooldown = mRandom(0,10),
 		},
 		basicWave = {
-			cooldown = 0,
+			cooldown = mRandom(0,10),
 		},
 		smallWave = {
-			cooldown = 0,
+			cooldown = mRandom(0,10),
 		},
 		largerWave = {
-			cooldown = 0,
+			cooldown = mRandom(0,25),
 		},
 		hugeWave = {
-			cooldown = 0,
+			cooldown = mRandom(0,50),
 		},
 		epicWave = {
-			cooldown = 0,
+			cooldown = mRandom(0,100),
 		}
 	}
 	local squadSpawnOptions = config.squadSpawnOptionsTable
@@ -942,7 +942,7 @@ if gadgetHandler:IsSyncedCode() then
 		waveParameters.epicWave.cooldown = waveParameters.epicWave.cooldown - 1
 
 		waveParameters.waveSpecialPercentage = mRandom(5,75)
-		waveParameters.waveAirPercentage = mRandom(5,75)
+		waveParameters.waveAirPercentage = mRandom(5,50)
 
 		waveParameters.waveSizeMultiplier = 1
 		waveParameters.waveTimeMultiplier = 1
@@ -951,59 +951,65 @@ if gadgetHandler:IsSyncedCode() then
 			-- special waves
 			if techAnger > config.airStartAnger and waveParameters.airWave.cooldown <= 0 and mRandom() <= config.spawnChance then
 
-				waveParameters.baseCooldown = mRandom(2,4)
-				waveParameters.airWave.cooldown = mRandom(5,10)
+				waveParameters.baseCooldown = mRandom(0,2)
+				waveParameters.airWave.cooldown = mRandom(0,10)
 
 				waveParameters.waveSpecialPercentage = 0
 				waveParameters.waveAirPercentage = 100
 
 			elseif waveParameters.specialWave.cooldown <= 0 and mRandom() <= config.spawnChance then
 
-				waveParameters.baseCooldown = mRandom(3,6)
-				waveParameters.specialWave.cooldown = mRandom(10,20)
+				waveParameters.baseCooldown = mRandom(0,2)
+				waveParameters.specialWave.cooldown = mRandom(0,10)
 
 				waveParameters.waveSpecialPercentage = 100
 				waveParameters.waveAirPercentage = 0
 
 			elseif waveParameters.basicWave.cooldown <= 0 and mRandom() <= config.spawnChance then
 
-				waveParameters.baseCooldown = mRandom(1,2)
-				waveParameters.basicWave.cooldown = mRandom(3,9)
+				waveParameters.baseCooldown = mRandom(0,2)
+				waveParameters.basicWave.cooldown = mRandom(0,10)
 
 				waveParameters.waveSpecialPercentage = 0
 				waveParameters.waveAirPercentage = 0
 
 			elseif waveParameters.smallWave.cooldown <= 0 and mRandom() <= config.spawnChance then
 
-				waveParameters.baseCooldown = mRandom(1,2)
-				waveParameters.smallWave.cooldown = mRandom(3,6)
+				waveParameters.baseCooldown = mRandom(0,2)
+				waveParameters.smallWave.cooldown = mRandom(0,10)
 
 				waveParameters.waveSizeMultiplier = 0.5
 				waveParameters.waveTimeMultiplier = 0.5
 
 			elseif waveParameters.largerWave.cooldown <= 0 and mRandom() <= config.spawnChance then
 
-				waveParameters.baseCooldown = mRandom(1,2)
-				waveParameters.largerWave.cooldown = mRandom(3,6)
+				waveParameters.baseCooldown = mRandom(0,2)
+				waveParameters.largerWave.cooldown = mRandom(0,25)
 
 				waveParameters.waveSizeMultiplier = 1.5
-				waveParameters.waveTimeMultiplier = 1.5
+				waveParameters.waveTimeMultiplier = 1.25
+
+				waveParameters.waveAirPercentage = mRandom(5,50)
 
 			elseif waveParameters.hugeWave.cooldown <= 0 and mRandom() <= config.spawnChance then
 
-				waveParameters.baseCooldown = mRandom(2,4)
-				waveParameters.hugeWave.cooldown = mRandom(6,12)
+				waveParameters.baseCooldown = mRandom(0,2)
+				waveParameters.hugeWave.cooldown = mRandom(0,50)
 
 				waveParameters.waveSizeMultiplier = 3
-				waveParameters.waveTimeMultiplier = 3
+				waveParameters.waveTimeMultiplier = 1.5
+
+				waveParameters.waveAirPercentage = mRandom(5,25)
 
 			elseif waveParameters.epicWave.cooldown <= 0 and mRandom() <= config.spawnChance then
 
-				waveParameters.baseCooldown = mRandom(3,6)
-				waveParameters.epicWave.cooldown = mRandom(12,24)
+				waveParameters.baseCooldown = mRandom(0,2)
+				waveParameters.epicWave.cooldown = mRandom(0,100)
 
-				waveParameters.waveSizeMultiplier = 6
-				waveParameters.waveTimeMultiplier = 6
+				waveParameters.waveSizeMultiplier = 5
+				waveParameters.waveTimeMultiplier = 2.5
+
+				waveParameters.waveAirPercentage = mRandom(5,10)
 
 			end
 		end
@@ -1104,7 +1110,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if canSpawnStructure then
 			local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-			local canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+			canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
 			if canSpawnStructure then
 				canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
 			end
@@ -1114,11 +1120,11 @@ if gadgetHandler:IsSyncedCode() then
 				elseif positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, true) and
 				(not positionCheckLibrary.VisibilityCheck(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, false, false)) then
 					canSpawnStructure = true
-				elseif playerAgressionLevel >= 10 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, true) then
+				elseif playerAgressionLevel >= 20 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, true) then
 					canSpawnStructure = true
-				elseif playerAgressionLevel >= 20 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, false) then
+				elseif playerAgressionLevel >= 40 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, false) then
 					canSpawnStructure = true
-				elseif playerAgressionLevel >= 30 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, false, false) then
+				elseif playerAgressionLevel >= 60 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, false, false) then
 					canSpawnStructure = true
 				else
 					canSpawnStructure = false
@@ -1140,7 +1146,7 @@ if gadgetHandler:IsSyncedCode() then
 			--Spring.Debug.TableEcho(uSettings)
 			if not uSettings.maxQueenAnger then uSettings.maxQueenAnger = uSettings.minQueenAnger + 100 end
 			if uSettings.minQueenAnger <= techAnger and uSettings.maxQueenAnger >= techAnger then
-				for i = 1,math.floor((uSettings.spawnedPerWave*(1-config.raptorPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.raptorPerPlayerMultiplier)*SetCount(humanTeams)) do
+				for i = 1,math.floor((uSettings.spawnedPerWave*(1-config.raptorPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.raptorPerPlayerMultiplier)*SetCount(humanTeams)*config.raptorSpawnMultiplier) do
 					if mRandom() < config.spawnChance then
 						local attempts = 0
 						repeat
