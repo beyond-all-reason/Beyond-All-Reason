@@ -1054,12 +1054,6 @@ else	-- UNSYNCED
 		end
 		if string.find(line, "all") then
 			local Condition = function(ud)
-				local exlusions = { 'meteor', 'raptor_hive', 'nuketest', 'nuketestcor', 'nuketestcororg', 'nuketestorg', 'scavtacnukespawner', 'scavempspawner' }
-				for k, v in pairs(exlusions) do
-					if ud.name == v or ud.name == v..'_scav' then
-						return
-					end
-				end
 				return true
 			end
 			Accept[#Accept + 1] = Condition
@@ -1073,11 +1067,19 @@ else	-- UNSYNCED
 
 
 		-- give units
+		local exlusions = { meteor = true, raptor_hive = true, nuketest = true, nuketestcor = true, nuketestcororg = true, nuketestorg = true, scavtacnukespawner = true, scavempspawner = true }
+		local newExlusions = {}
+		for k, v in pairs(exlusions) do
+			newExlusions[k] = true
+			newExlusions[k..'_scav'] = true
+		end
+		exlusions = newExlusions
+		newExlusions = nil
 		local giveUnits = {}
 		for _, ud in pairs(UnitDefs) do
 			local give = true
 			for _, Condition in ipairs(Accept) do
-				if not Condition(ud) then
+				if not Condition(ud) or exlusions[ud.name] then
 					give = false
 					break
 				end
