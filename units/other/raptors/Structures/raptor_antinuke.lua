@@ -34,7 +34,7 @@ return {
 		customparams = {
 			unitgroup = 'antinuke',
 			model_author = "Mr Bob",
-			normaltex = "unittextures/raptor_l_normals.png",
+			normaltex = "unittextures/chicken_l_normals.png",
 			removestop = true,
 			removewait = true,
 			subfolder = "corbuildings/landdefenceoffence",

@@ -48,7 +48,7 @@ return {
 			subfolder = "other/raptors",
 			model_author = "FireStorm, Beherith",
 			normalmaps = "yes",
-			normaltex = "unittextures/raptor_l_normals.png",
+			normaltex = "unittextures/chicken_l_normals.png",
 			--treeshader = "yes",
 		},
 		featuredefs = {},

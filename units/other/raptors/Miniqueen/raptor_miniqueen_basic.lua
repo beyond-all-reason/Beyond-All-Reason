@@ -62,7 +62,7 @@ return {
 		workertime = 5000,
 		customparams = {
 			subfolder = "other/raptors",
-			normaltex = "unittextures/raptor_m_normals.png",
+			normaltex = "unittextures/chicken_m_normals.png",
 		},
 		sfxtypes = {
 			explosiongenerators = {

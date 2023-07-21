@@ -56,7 +56,7 @@ return {
 			subfolder = "other/raptors",
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
-			normaltex = "unittextures/raptor_s_normals.png",
+			normaltex = "unittextures/chicken_s_normals.png",
 			paralyzemultiplier = 0,
 			--treeshader = "no",
 		},

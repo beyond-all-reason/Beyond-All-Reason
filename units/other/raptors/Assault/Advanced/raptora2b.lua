@@ -59,7 +59,7 @@ return {
 			subfolder = "other/raptors",
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
-			normaltex = "unittextures/raptor_l_normals.png",
+			normaltex = "unittextures/chicken_l_normals.png",
 		},
 		sfxtypes = {
 			explosiongenerators = {
