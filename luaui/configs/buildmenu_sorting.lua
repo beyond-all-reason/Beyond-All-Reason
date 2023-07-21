@@ -58,6 +58,8 @@ local unitOrderTable = {
 
 	['armconsul']      = 003300, --VEH
 	['corprinter']     = 003325, --VEH
+	['corvac']		   = 003326, --VEH
+	['corvacct']       = 003327, --VEH
 	['corforge']       = 003350, --VEH
 
 	['armmls']         = 003400, --SHIP

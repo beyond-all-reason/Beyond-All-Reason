@@ -127,6 +127,7 @@ return {
 		"cordecom_scav",
 		"coracv_scav",
 		"corprinter_scav",
+		"corvac_scav",
 	},
 
 	T3 = {
