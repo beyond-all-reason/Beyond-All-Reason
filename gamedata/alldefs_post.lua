@@ -400,7 +400,7 @@ function UnitDef_Post(name, uDef)
 			end
 
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corprinter"
+			uDef.buildoptions[numBuildoptions+1] = "corvac" --corprinter
 			--uDef.buildoptions[numBuildoptions+2] = "corsala"
 			--uDef.buildoptions[numBuildoptions+3] = "corforge"
 			--uDef.buildoptions[numBuildoptions+4] = "cortorch"
@@ -453,7 +453,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
 			uDef.buildoptions[numBuildoptions+2] = "corforge"
-			uDef.buildoptions[numBuildoptions+3] = "corprinter"
+			uDef.buildoptions[numBuildoptions+3] = "corvac" --corprinter
 			uDef.buildoptions[numBuildoptions+4] = "corftiger"
 			uDef.buildoptions[numBuildoptions+5] = "cortorch"
 			uDef.buildoptions[numBuildoptions+6] = "corsala"

@@ -176,6 +176,8 @@ local armorDefs = {
 		"cornecro",
 		"corplat",
 		"corprinter",
+		"corvac",
+		"corvacct",
 		"corraid",
 		"correap",
 		"corrl",
