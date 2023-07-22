@@ -16,15 +16,10 @@ end
 
 _G.transferredUnits = {}
 
-local isT1Geo = {}
-local isT2Geo = {}
+local isGeo = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.geothermal then
-		if unitDef.customParams.techlevel and tonumber(unitDef.customParams.techlevel) >= 2 then
-			isT2Geo[unitDefID] = unitDef.metalCost
-		else
-			isT1Geo[unitDefID] = unitDef.metalCost
-		end
+		isGeo[unitDefID] = unitDef.metalCost
 	end
 end
 
@@ -33,8 +28,10 @@ local function hasGeoUnderneat(unitID)
 	local x, _, z = Spring.GetUnitPosition(unitID)
 	local units = Spring.GetUnitsInCylinder(x, z, 10)
 	for k, uID in ipairs(units) do
-		if isT1Geo[Spring.GetUnitDefID(uID)] then
-			return uID
+		if isGeo[Spring.GetUnitDefID(uID)] then
+			if unitID ~= uID then
+				return uID
+			end
 		end
 	end
 	return false
@@ -42,34 +39,35 @@ end
 
 -- make t1 geo below unselectable
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	if isT2Geo[unitDefID] then
-		local t1Geo = hasGeoUnderneat(unitID)
-		if t1Geo then
-			Spring.SetUnitNoSelect(t1Geo, true)
+	if isGeo[unitDefID] then
+		local geo = hasGeoUnderneat(unitID)
+		if geo then
+			Spring.SetUnitNoSelect(geo, true)
 		end
 	end
 end
 
 -- make t1 geo below selectable again
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-	if isT2Geo[unitDefID] then
-		local t1Geo = hasGeoUnderneat(unitID)
-		if t1Geo then
-			Spring.SetUnitNoSelect(t1Geo, false)
+	if isGeo[unitDefID] then
+		local geo = hasGeoUnderneat(unitID)
+		if geo then
+			Spring.SetUnitNoSelect(geo, false)
 		end
 	end
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if isT2Geo[unitDefID] then
-		local t1Geo = hasGeoUnderneat(unitID)
-		if t1Geo then
-			local t1GeoTeamID = Spring.GetUnitTeam(t1Geo)
-			Spring.DestroyUnit(t1Geo, false, true)
-			Spring.AddTeamResource(unitTeam, "metal", isT1Geo[Spring.GetUnitDefID(t1Geo)])
-			if t1GeoTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(t1GeoTeamID, false)) then -- and Spring.AreTeamsAllied(t1GeoTeamID, unitTeam) then
+	if isGeo[unitDefID] then
+		Spring.SetUnitCOBValue(unitID, COB.YARD_OPEN, 1)
+		local geo = hasGeoUnderneat(unitID)
+		if geo then
+			local geoTeamID = Spring.GetUnitTeam(geo)
+			Spring.DestroyUnit(geo, false, true)
+			Spring.AddTeamResource(unitTeam, "metal", isGeo[Spring.GetUnitDefID(geo)])
+			if geoTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(geoTeamID, false)) then -- and Spring.AreTeamsAllied(t1GeoTeamID, unitTeam) then
 				_G.transferredUnits[unitID] = Spring.GetGameFrame()
-				Spring.TransferUnit(unitID, t1GeoTeamID)
+				Spring.TransferUnit(unitID, geoTeamID)
 			end
 		end
 	end
