@@ -814,6 +814,7 @@
 				"audio": "Audio",
 				"notifications": "Notifications",
 				"accessibility": "Accessibility",
+				"custom": "Custom",
 				"dev": "Dev"
 			},
 			"filter": "filter",

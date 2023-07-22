@@ -159,6 +159,7 @@ local defaultMapFog = {
 	fogColor = { gl.GetAtmosphere("fogColor") },
 }
 local options = {}
+local customOptions = {}
 local optionGroups = {}
 local optionButtons = {}
 local optionHover = {}
@@ -465,18 +466,20 @@ function orderOptions()
 	local newOptions = {}
 	local newOptionsCount = 0
 	for id, group in pairs(optionGroups) do
-		local grOptions = groupOptions[group.id]
-		if #grOptions > 0 then
-			local name = group.name
-			if group.id == 'gfx' then
-				name = group.name .. '                                          \255\130\130\130' .. vsx .. ' x ' .. vsy
+		if group.numOptions > 0 then
+			local grOptions = groupOptions[group.id]
+			if #grOptions > 0 then
+				local name = group.name
+				if group.id == 'gfx' then
+					name = group.name .. '                                          \255\130\130\130' .. vsx .. ' x ' .. vsy
+				end
+				newOptionsCount = newOptionsCount + 1
+				newOptions[newOptionsCount] = { id = "group_" .. group.id, name = '\255\255\200\110'..name, type = "label"}
 			end
-			newOptionsCount = newOptionsCount + 1
-			newOptions[newOptionsCount] = { id = "group_" .. group.id, name = '\255\255\200\110'..name, type = "label"}
-		end
-		for i, option in pairs(grOptions) do
-			newOptionsCount = newOptionsCount + 1
-			newOptions[newOptionsCount] = option
+			for i, option in pairs(grOptions) do
+				newOptionsCount = newOptionsCount + 1
+				newOptions[newOptionsCount] = option
+			end
 		end
 	end
 	options = table.copy(newOptions)
@@ -551,34 +554,36 @@ function DrawWindow()
 		local groupPadding = 1
 		groupRect = {}
 		for id, group in pairs(optionGroups) do
-			groupRect[id] = { xpos, titleRect[2], math.floor(xpos + (font2:GetTextWidth(group.name) * tabFontSize) + (33 * widgetScale)), titleRect[4] }
-			if devMode or group.id ~= 'dev' then
-				xpos = groupRect[id][3]
-				if currentGroupTab == nil or currentGroupTab ~= group.id then
-					RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
-					RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.66, 1, 1, 0, 0, { 0.6, 0.47, 0.24, 0.2 }, { 0.88, 0.68, 0.33, 0.2 })
+			if group.numOptions > 0 then
+				groupRect[id] = { xpos, titleRect[2], math.floor(xpos + (font2:GetTextWidth(group.name) * tabFontSize) + (33 * widgetScale)), titleRect[4] }
+				if devMode or group.id ~= 'dev' then
+					xpos = groupRect[id][3]
+					if currentGroupTab == nil or currentGroupTab ~= group.id then
+						RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
+						RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.66, 1, 1, 0, 0, { 0.6, 0.47, 0.24, 0.2 }, { 0.88, 0.68, 0.33, 0.2 })
 
-					RectRound(groupRect[id][1] + groupMargin+groupPadding, groupRect[id][2], groupRect[id][3] - groupMargin-groupPadding, groupRect[id][4] - groupMargin-groupPadding, elementCorner * 0.5, 1, 1, 0, 0, { 0,0,0, 0.13 }, { 0,0,0, 0.13 })
+						RectRound(groupRect[id][1] + groupMargin+groupPadding, groupRect[id][2], groupRect[id][3] - groupMargin-groupPadding, groupRect[id][4] - groupMargin-groupPadding, elementCorner * 0.5, 1, 1, 0, 0, { 0,0,0, 0.13 }, { 0,0,0, 0.13 })
 
-					glBlending(GL_SRC_ALPHA, GL_ONE)
-					-- gloss
-					RectRound(groupRect[id][1] + groupMargin, groupRect[id][4] - groupMargin - ((groupRect[id][4] - groupRect[id][2]) * 0.5), groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding * 1.2, 1, 1, 0, 0, { 1, 0.88, 0.66, 0 }, { 1, 0.88, 0.66, 0.1 })
-					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+						glBlending(GL_SRC_ALPHA, GL_ONE)
+						-- gloss
+						RectRound(groupRect[id][1] + groupMargin, groupRect[id][4] - groupMargin - ((groupRect[id][4] - groupRect[id][2]) * 0.5), groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding * 1.2, 1, 1, 0, 0, { 1, 0.88, 0.66, 0 }, { 1, 0.88, 0.66, 0.1 })
+						glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-					font2:Begin()
-					font2:SetTextColor(0.7, 0.58, 0.44, 1)
-					font2:SetOutlineColor(0, 0, 0, 0.4)
-					font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (9 * widgetScale), tabFontSize, "con")
-					font2:End()
-				else
-					RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
-					RectRound(groupRect[id][1] + groupMargin, groupRect[id][2] - bgpadding, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.8, 1, 1, 0, 0, { 0.7, 0.7, 0.7, 0.15 }, { 0.8, 0.8, 0.8, 0.15 })
+						font2:Begin()
+						font2:SetTextColor(0.7, 0.58, 0.44, 1)
+						font2:SetOutlineColor(0, 0, 0, 0.4)
+						font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (9 * widgetScale), tabFontSize, "con")
+						font2:End()
+					else
+						RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
+						RectRound(groupRect[id][1] + groupMargin, groupRect[id][2] - bgpadding, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.8, 1, 1, 0, 0, { 0.7, 0.7, 0.7, 0.15 }, { 0.8, 0.8, 0.8, 0.15 })
 
-					font2:Begin()
-					font2:SetTextColor(1, 0.75, 0.4, 1)
-					font2:SetOutlineColor(0, 0, 0, 0.4)
-					font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (9 * widgetScale), tabFontSize, "con")
-					font2:End()
+						font2:Begin()
+						font2:SetTextColor(1, 0.75, 0.4, 1)
+						font2:SetOutlineColor(0, 0, 0, 0.4)
+						font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (9 * widgetScale), tabFontSize, "con")
+						font2:End()
+					end
 				end
 			end
 		end
@@ -1098,10 +1103,12 @@ function widget:DrawScreen()
 			end
 			if groupRect ~= nil then
 				for id, group in pairs(optionGroups) do
-					if devMode or group.id ~= 'dev' then
-						if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
-							Spring.SetMouseCursor('cursornormal')
-							break
+					if group.numOptions > 0 then
+						if devMode or group.id ~= 'dev' then
+							if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+								Spring.SetMouseCursor('cursornormal')
+								break
+							end
 						end
 					end
 				end
@@ -1120,9 +1127,11 @@ function widget:DrawScreen()
 						if not (showTextInput and inputText ~= '' and inputMode == '') then
 							guishaderedTabs = true
 							for id, group in pairs(optionGroups) do
-								if devMode or group.id ~= 'dev' then
-									if groupRect[id] then
-										RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0)
+								if group.numOptions > 0 then
+									if devMode or group.id ~= 'dev' then
+										if groupRect[id] then
+											RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0)
+										end
 									end
 								end
 							end
@@ -1148,9 +1157,11 @@ function widget:DrawScreen()
 			if not (showTextInput and inputText ~= '' and inputMode == '') then
 				if groupRect ~= nil then
 					for id, group in pairs(optionGroups) do
-						if devMode or group.id ~= 'dev' then
-							if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
-								mouseoverGroupTab(id)
+						if group.numOptions > 0 then
+							if devMode or group.id ~= 'dev' then
+								if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+									mouseoverGroupTab(id)
+								end
 							end
 						end
 					end
@@ -1538,18 +1549,20 @@ function mouseEvent(mx, my, button, release)
 		local tabClick
 		if not (inputText and inputText ~= '' and inputMode == '') and groupRect ~= nil then
 			for id, group in pairs(optionGroups) do
-				if devMode or group.id ~= 'dev' then
-					if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
-						if not release then
-							currentGroupTab = group.id
-							startColumn = 1
-							showSelectOptions = nil
-							selectClickAllowHide = nil
-							if playSounds then
-								Spring.PlaySoundFile(sounds.paginatorClick, 0.9, 'ui')
+				if group.numOptions > 0 then
+					if devMode or group.id ~= 'dev' then
+						if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+							if not release then
+								currentGroupTab = group.id
+								startColumn = 1
+								showSelectOptions = nil
+								selectClickAllowHide = nil
+								if playSounds then
+									Spring.PlaySoundFile(sounds.paginatorClick, 0.9, 'ui')
+								end
 							end
+							tabClick = true
 						end
-						tabClick = true
 					end
 				end
 			end
@@ -2016,14 +2029,15 @@ function init()
 
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
 	optionGroups = {
-		{ id = 'gfx', name = Spring.I18N('ui.settings.group.graphics') },
-		{ id = 'ui', name = Spring.I18N('ui.settings.group.interface') },
-		{ id = 'game', name = Spring.I18N('ui.settings.group.game') },
-		{ id = 'control', name = Spring.I18N('ui.settings.group.control') },
-		{ id = 'sound', name = Spring.I18N('ui.settings.group.audio') },
-		{ id = 'notif', name = Spring.I18N('ui.settings.group.notifications') },
-		{ id = 'accessibility', name = Spring.I18N('ui.settings.group.accessibility') },
-		{ id = 'dev', name = Spring.I18N('ui.settings.group.dev') },
+		{ id = 'gfx', name = Spring.I18N('ui.settings.group.graphics'), numOptions = 0 },
+		{ id = 'ui', name = Spring.I18N('ui.settings.group.interface'), numOptions = 0 },
+		{ id = 'game', name = Spring.I18N('ui.settings.group.game'), numOptions = 0 },
+		{ id = 'control', name = Spring.I18N('ui.settings.group.control'), numOptions = 0 },
+		{ id = 'sound', name = Spring.I18N('ui.settings.group.audio'), numOptions = 0 },
+		{ id = 'notif', name = Spring.I18N('ui.settings.group.notifications'), numOptions = 0 },
+		{ id = 'accessibility', name = Spring.I18N('ui.settings.group.accessibility'), numOptions = 0 },
+		{ id = 'custom', name = Spring.I18N('ui.settings.group.custom'), numOptions = 0 },
+		{ id = 'dev', name = Spring.I18N('ui.settings.group.dev'), numOptions = 0 },
 	}
 
 	if not currentGroupTab then
@@ -5839,9 +5853,17 @@ function init()
 		options[getOptionByID('gridmenu')] = nil
 	end
 
+
+	-- add custom added options (done via WG.options.addOption)
+	for k, option in pairs(customOptions) do
+		if not getOptionByID(option.name) then	-- prevent adding duplicate
+			options[#options+1] = option
+		end
+	end
+
+	-- make sure the slider knobs keeps within their slider's boudaries
 	local processedOptions = {}
 	local processedOptionsCount = 0
-
 	for i, option in pairs(options) do
 		if option.type == 'slider' and not option.steps then
 			if type(option.value) ~= 'number' then
@@ -5880,6 +5902,18 @@ function init()
 		end
 		options = filteredOptions
 		startColumn = 1
+	end
+
+	-- count num options in each group
+
+	local groups = {}
+	for id, group in pairs(optionGroups) do
+		groups[group.id] = id
+	end
+	for i, option in pairs(options) do
+		if groups[option.group] then
+			optionGroups[groups[option.group]].numOptions = optionGroups[groups[option.group]].numOptions + 1
+		end
 	end
 
 	if not requireRestartDefaultsInit then
@@ -6129,6 +6163,20 @@ function widget:Initialize()
 			return false
 		end
 	end
+	WG['options'].addOption = function(option)
+		option.group = "custom"
+		customOptions[#options+1] = option
+		init()
+	end
+	WG['options'].removeOption = function(name)
+		for i,option in pairs(customOptions) do
+			if option.id == name then
+				customOptions[i] = nil
+				init()
+				break
+			end
+		end
+	end
 end
 
 function widget:Shutdown()
@@ -6352,6 +6400,9 @@ function widget:SetConfigData(data)
 	end
 	if data.useNetworkSmoothing then
 		useNetworkSmoothing = data.useNetworkSmoothing
+	end
+	if data.customOptions then
+		--customOptions = data.customOptions
 	end
 end
 
