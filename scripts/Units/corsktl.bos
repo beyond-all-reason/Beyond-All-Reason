@@ -222,7 +222,8 @@ AimWeapon2()
 
 FireWeapon1()
 {
-	emit-sfx 4096 + 1 from base; //Weapon2 detonates the mine once weapon1 fires
+	get KILL_UNIT(get MY_ID,TRUE,FALSE);
+	//emit-sfx 4096 + 1 from base; //Weapon2 detonates the mine once weapon1 fires
 }
 
 QueryWeapon1(piecenum)
