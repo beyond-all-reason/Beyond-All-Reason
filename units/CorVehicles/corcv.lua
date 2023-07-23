@@ -1,7 +1,7 @@
 return {
 	corcv = {
 		acceleration = 0.03049,
-		brakerate = 0.06099,
+		brakerate = 0.12198,
 		buildcostenergy = 2100,
 		buildcostmetal = 145,
 		builddistance = 130,
