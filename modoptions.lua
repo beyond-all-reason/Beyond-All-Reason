@@ -1324,6 +1324,15 @@ local options={
 	},
 
 	{
+		key = 'comtestchanges',
+		name = 'Commander Test Changes',
+		desc = 'Comupdate, but with health 4000->3700, regen 0->5, and T1 turrets deal 1.5x damage to commanders',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
+	},
+
+	{
 		key    = 'experimentalmorphs',
 		name   = 'Upgradeable Units',
 		desc   = 'Upgradeable Units',
