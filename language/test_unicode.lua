@@ -193,6 +193,7 @@ return {
 				['Land'] = "Land",
 				idlemode_tooltip = "Sets what aircraft do when idle",
 				apLandAt_tooltip = "Sets what aircraft do when leaving air factory",
+				csSpawning_tooltip = "Sets the spawning state of the carrier",
 				['Low traj'] = "High Traj",
 				['High traj'] = "High Traj",
 				trajectory_tooltip = "Sets fire mode in artillery state (firing upwards instead of forwards)",
