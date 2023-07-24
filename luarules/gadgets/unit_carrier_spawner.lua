@@ -50,6 +50,10 @@ local spGetUnitAllyTeam 		= Spring.GetUnitAllyTeam
 local spGetUnitHealth 			= Spring.GetUnitHealth
 local spGetUnitCurrentCommand 	= Spring.GetUnitCurrentCommand
 local spGetUnitWeaponTarget		= Spring.GetUnitWeaponTarget
+local EditUnitCmdDesc			= Spring.EditUnitCmdDesc
+local FindUnitCmdDesc			= Spring.FindUnitCmdDesc
+local InsertUnitCmdDesc			= Spring.InsertUnitCmdDesc
+
 
 local mcEnable 				= Spring.MoveCtrl.Enable
 local mcSetPosition 		= Spring.MoveCtrl.SetPosition
@@ -82,6 +86,14 @@ local wantedList = {}
 
 local spawnList = {} -- [index] = {.spawnDef, .teamID, .x, .y, .z, .ownerID}
 local spawnCount = 0
+local spawnCmd = {
+	id = 31200,
+	name = "csSpawning",
+	action = "csSpawning",
+	type = CMDTYPE.ICON_MODE,
+	tooltip = "Enable/Disable drone spawning",
+	params = { '1', 'Spawning Disabled', 'Spawning Enabled' }
+}
 
 
 local carrierDockingList = {}
@@ -482,12 +494,15 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					decayRate = tonumber(spawnDef.decayRate) or 0,
 					activeDocking = false, --currently not in use
 					activeRecall = false,
-					activeSpawning = false,
+					activeSpawning = 1,
 					availablePieces = availablePieces,
 					carrierDeaththroe =spawnDef.carrierdeaththroe or "death",
 					parasite = "all",
 				}
 				carrierMetaList[unitID] = carrierData
+				--spSetUnitRulesParam(unitID, "is_carrier_unit", "enabled", PRIVATE)
+
+				InsertUnitCmdDesc(unitID, 500, spawnCmd) --temporary
 			end
 			
 		end
@@ -534,6 +549,20 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
 		carrierMetaList[unitID].subUnitsCommand.cmdParams = cmdParams
 	end
 end
+
+
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	if (cmdID == 31200) and carrierMetaList[unitID] then
+		local cmdDescID = FindUnitCmdDesc(unitID, 31200)
+		spawnCmd.params[1] = cmdParams[1]
+		EditUnitCmdDesc(unitID, cmdDescID, spawnCmd)
+		carrierMetaList[unitID].activeSpawning = cmdParams[1]
+		spawnCmd.params[1] = 1
+		return false
+	end
+	return true
+end
+
 
 function gadget:UnitDestroyed(unitID)
 	local carrierUnitID = spGetUnitRulesParam(unitID, "carrier_host_unit_id")
@@ -660,12 +689,12 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	local newOrder = true
 
 	
-	local activeSpawning = true
+	--local activeSpawning = true
 	local idleRadius = carrierMetaData.radius
 	if carrierStates then
 		if carrierStates.firestate == 0 then
 			idleRadius = 0
-			activeSpawning = false
+			--activeSpawning = false
 		elseif carrierStates.movestate == 0 then
 			idleRadius = 0
 		elseif carrierStates.movestate == 1 then
@@ -678,10 +707,10 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	if not buildProgress or not carrierMetaList[carrierID] then
 		return
 	elseif buildProgress < 1 then
-		activeSpawning = false
+		--activeSpawning = false
 	end
 	
-	carrierMetaList[carrierID].activeSpawning = activeSpawning
+	--carrierMetaList[carrierID].activeSpawning = activeSpawning
 	
 	local minEngagementRadius = carrierMetaData.minRadius
 	if carrierMetaData.subUnitsCommand.cmdID then
@@ -983,7 +1012,7 @@ function gadget:GameFrame(f)
 	if ((f % DEFAULT_SPAWN_CHECK_FREQUENCY) == 0) then
 		for unitID, _ in pairs(carrierMetaList) do
 			if carrierMetaList[unitID].spawnRateFrames == 0 then
-			elseif ((f % carrierMetaList[unitID].spawnRateFrames) == 0 and carrierMetaList[unitID].activeSpawning) then
+			elseif ((f % carrierMetaList[unitID].spawnRateFrames) == 0 and carrierMetaList[unitID].activeSpawning == 1) then
 				local spawnData = carrierMetaList[unitID].subInitialSpawnData
 				local x, y, z = spGetUnitPosition(unitID)
 				spawnData.x = x
