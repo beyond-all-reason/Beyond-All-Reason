@@ -859,6 +859,13 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	-- Metal Extraction Multiplier
+	if (uDef.extractsmetal and uDef.extractsmetal > 0) and (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
+		local x = Spring.GetModOptions().multiplier_metalextraction
+		uDef.extractsmetal = uDef.extractsmetal * x
+		uDef.customparams.metal_extractor = uDef.customparams.metal_extractor * x
+	end
+
 	-- Sensors range
 	if uDef.sightdistance then
 		local x = Spring.GetModOptions().multiplier_losrange

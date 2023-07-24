@@ -1086,6 +1086,18 @@ local options={
 	},
 
 	{
+		key    = 'multiplier_metalextraction',
+		name   = 'Metal Extraction Multiplier',
+		desc   = 'Metal Extraction Multiplier',
+		type   =  "number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
 		key    = 'multiplier_metalcost',
 		name   = 'Unit Cost Multiplier - Metal',
 		desc   = 'Unit Cost Multiplier - Metal',
