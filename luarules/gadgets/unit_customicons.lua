@@ -116,6 +116,7 @@ local units = {
 	armfast = { "bot_t2_raid.png", 1.15499997 },
 	armfatf = { "targetting.png", 1.36499989 },
 	armfav = { "vehicle.png", 0.57749999 },
+	armzapper = { "vehicle.png", 0.57749999 },
 	armfboy = { "bot_t2_plasma_aoe.png", 1.67999995 },
 	armfdrag = { "wall_0.4.png", 0.41999999 },
 	armfepocht4 = { "air_t4_flagship.png", 3.3599999 },
