@@ -305,7 +305,7 @@ function Optics.new(incPoints, incNeighborMatrix, incMinPoints)
 				for j = 1, #separators - 1 do
 					local sepStart = separators[j]
 					local sepEnd = separators[j + 1]
-					print(sepEnd, sepStart, sepEnd - sepStart, self.minPoints)
+					--print(sepEnd, sepStart, sepEnd - sepStart, self.minPoints)
 					if sepEnd - sepStart >= self.minPoints then
 						--Spring.Echo("sepEnd - sepStart >= self.minPoints")
 						--self.ordered[start:end]
