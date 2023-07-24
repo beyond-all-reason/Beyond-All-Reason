@@ -30,7 +30,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "geo",
 		sightdistance = 273,
-		yardmap = "h yooyyooy oyooooyo oobbbboo yobggboy yobggboy oobbbboo oyooooyo yooyyooy",
+		yardmap = "h bbobbobb bocoocob ocyyyyco boyggyob boyggyob ocyyyyco bocoocob bbobbobb",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armgeo_aoplane.dds",
