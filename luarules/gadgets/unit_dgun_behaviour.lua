@@ -1,5 +1,3 @@
-local newCommanderBehaviour = Spring.GetModOptions().comupdate
-
 function gadget:GetInfo()
 	return {
 		name = "D-Gun Behaviour",
@@ -100,14 +98,12 @@ function gadget:GameFrame()
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if newCommanderBehaviour then
 		if dgunWeapons[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
 			Spring.DeleteProjectile(projectileID)
 			local x, y, z = Spring.GetUnitPosition(unitID)		
 			Spring.SpawnCEG("dgun-deflect", x, y, z, 0, 0, 0, 0, 0)
 			return 0
 		end
-	end
 
 	return damage
 end

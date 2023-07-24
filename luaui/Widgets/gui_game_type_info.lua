@@ -57,11 +57,6 @@ function widget:Initialize()
 		message = Spring.I18N('ui.gametypeInfo.killAllCommanders')
 	end
 
-	local preventcombomb = not (Spring.GetModOptions().newdgun or Spring.GetModOptions().unba)
-	if preventcombomb then --Spring.GetModOptions().preventcombomb then
-		--message2 = Spring.I18N('ui.gametypeInfo.commandersSurviveDgun')
-	end
-
 	if Spring.GetModOptions().unba then
 		message3 = Spring.I18N('ui.gametypeInfo.unbalancedCommanders')
 	end
@@ -105,13 +100,11 @@ function widget:DrawScreen()
 	font:Print(msg, 0, 60 * widgetScale, 15.5 * widgetScale, "oc")
 	font:Print(msg2, 0, -35 * widgetScale, 13 * widgetScale, "oc")
 	font:Print(msg3, 0, 100 * widgetScale, 15.5 * widgetScale, "oc")
+
 	if Spring.GetModOptions().deathmode == "own_com" then
 		font:Print("\255\255\150\150" ..Spring.I18N('ui.gametypeInfo.owncomends'), 0, 40 * widgetScale, 13 * widgetScale, "oc")
 	end
-	--if Spring.GetModOptions().deathmode == "com" or Spring.GetModOptions().deathmode == "own_com" then
-	--	font:Print("\255\255\150\150" ..Spring.I18N('ui.gametypeInfo.dgunrule'), 0, 40 * widgetScale, 13 * widgetScale, "oc")
-	--	font:Print("\255\255\140\140" ..Spring.I18N('ui.gametypeInfo.dgunruleExplanation'), 0, 25 * widgetScale, 13 * widgetScale, "oc")
-	--end
+
 	font:End()
 	glPopMatrix()
 end
