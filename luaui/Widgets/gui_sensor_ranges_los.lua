@@ -80,7 +80,6 @@ local function initgl4()
 	if circleInstanceVBO then
 		clearInstanceTable(circleInstanceVBO)
 	end
-
 	circleShader = LuaShader.CheckShaderUpdates(shaderSourceCache,0)
 
 	if not circleShader then
@@ -95,7 +94,6 @@ local function initgl4()
 	circleInstanceVBO.numVertices = numVertices
 	circleInstanceVBO.vertexVBO = circleVBO
 	circleInstanceVBO.VAO = makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
-
 end
 
 -- Functions shortcuts
@@ -155,13 +153,24 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
+local function InitializeUnits()
+	unitList = {}
+	clearInstanceTable(circleInstanceVBO)
+	local units = Spring.GetAllUnits()
+	for i = 1, #units do
+		processUnit(units[i], spGetUnitDefID(units[i]), "Initialize")
+	end
+	uploadAllElements(circleInstanceVBO) --upload initialized at once
+end
+
+
 function widget:PlayerChanged()
 	local prevFullview = fullview
 	local myPrevAllyTeamID = allyTeamID
 	spec, fullview = spGetSpectatingState()
 	allyTeamID = Spring.GetMyAllyTeamID()
 	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
-		widget:Initialize()
+		InitializeUnits()
 	end
 end
 
@@ -231,13 +240,7 @@ function widget:Initialize()
 
 	initgl4()
 	widget:ViewResize()
-	unitList = {}
-	local units = Spring.GetAllUnits()
-	for i = 1, #units do
-		processUnit(units[i], spGetUnitDefID(units[i]), "Initialize")
-	end
-	uploadAllElements(circleInstanceVBO) --upload initialized at once
-
+	InitializeUnits()
 end
 
 function widget:Shutdown()
