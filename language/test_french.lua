@@ -526,7 +526,6 @@ return {
 			gametypeInfo = {
 				killAllUnits = "Le Kill all enemy units",
 				killAllCommanders = "Le Kill all enemy Commanders",
-				commandersSurviveDgun = "Le Commanders survive D-Guns and commander explosions",
 				unbalancedCommanders = "Le Unbalanced Commanders is enabled: Commander levels up and gains upgrades",
 				victoryCondition = "Le Victory condition",
 			},

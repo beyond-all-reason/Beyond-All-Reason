@@ -467,12 +467,9 @@
 		"gametypeInfo": {
 			"killAllUnits": "Vernichte alle feindlichen Einheiten",
 			"killAllCommanders": "Vernichte alle feindlichen Kommandanten",
-			"commandersSurviveDgun": "Kommandanten überleben D-Guns und Kommandantenexplosionen",
 			"unbalancedCommanders": "Unausgewogene Kommandanten sind aktiviert: Kommandanten steigen auf und erhalten Upgrades",
 			"victoryCondition": "Siegbedingung",
-			"owncomends": "Verlust des Kommandanten = Verlust der Kontrolle über eigene Einheiten / Aufgeben",
-			"dgunrule": "Wenn du nur noch 1 Kommandant hast: D-Gunning eines feindlichen Kommandanten resultiert in Niederlage ",
-			"dgunruleExplanation": "(diese Regel wurde eingeführt, um einen dreisten Sieg/Unentschieden zu verhindern)"
+			"owncomends": "Verlust des Kommandanten = Verlust der Kontrolle über eigene Einheiten / Aufgeben"
 		},
 		"startSpot": {
 			"startbox": "Wähle einen Startpunkt innerhalb des grünen Bereichs und klicke auf die Bereit-Knopf. (F4 hebt Metalladern hervor)",
