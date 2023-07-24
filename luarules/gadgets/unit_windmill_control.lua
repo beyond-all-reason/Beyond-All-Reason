@@ -15,12 +15,20 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+
 local windDefs = {
 	[UnitDefNames['armwint2'].id] = true,
 	[UnitDefNames['corwint2'].id] = true,
 	[UnitDefNames['armwint2_scav'].id] = true,
 	[UnitDefNames['corwint2_scav'].id] = true,
 }
+
+if Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome ~= 1 then -- Only apply these when resource multipliers are active, to save performance
+	windDefs[UnitDefNames['armwin'].id] = true
+	windDefs[UnitDefNames['corwin'].id] = true
+	windDefs[UnitDefNames['armwin_scav'].id] = true
+	windDefs[UnitDefNames['corwin_scav'].id] = true
+end
 
 local windmills = {}
 
@@ -54,7 +62,7 @@ local function SetupUnit(unitID, unitDefID)
 	windmills[unitID] = {
 		speed = GetCOBScriptID(unitID, "LuaSetSpeed"),
 		dir = GetCOBScriptID(unitID, "LuaSetDirection"),
-		mult = unitEnergyMultiplier[unitDefID] or 2.5,
+		mult = unitEnergyMultiplier[unitDefID] or 1,
 	}
 end
 

@@ -1073,10 +1073,23 @@ local options={
 		step   = 0.1,
 	},
 
-	{
+	{ 
 		key    = 'resourceincomemultiplier',
 		name   = 'Resource Income Multiplier',
 		desc   = 'Resource Income Multiplier',
+		type   =  "number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+		hidden = true,
+	},
+
+	{
+		key    = 'multiplier_resourceincome',
+		name   = 'Overall Resource Income Multiplier',
+		desc   = 'Overall Resource Income Multiplier',
 		type   =  "number",
 		section = 'options_multipliers',
 		def    = 1,
@@ -1089,6 +1102,30 @@ local options={
 		key    = 'multiplier_metalextraction',
 		name   = 'Metal Extraction Multiplier',
 		desc   = 'Metal Extraction Multiplier',
+		type   =  "number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_energyconversion',
+		name   = 'Energy Conversion Multiplier',
+		desc   = 'Energy Conversion Multiplier',
+		type   =  "number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_energyproduction',
+		name   = 'Energy Production Multiplier',
+		desc   = 'Energy Production Multiplier',
 		type   =  "number",
 		section = 'options_multipliers',
 		def    = 1,

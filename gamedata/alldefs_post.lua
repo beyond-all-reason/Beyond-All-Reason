@@ -859,11 +859,65 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+
+		
+	--energystorage
+	--metalstorage
 	-- Metal Extraction Multiplier
 	if (uDef.extractsmetal and uDef.extractsmetal > 0) and (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
-		local x = Spring.GetModOptions().multiplier_metalextraction
+		local x = Spring.GetModOptions().multiplier_metalextraction * Spring.GetModOptions().multiplier_resourceincome
 		uDef.extractsmetal = uDef.extractsmetal * x
 		uDef.customparams.metal_extractor = uDef.customparams.metal_extractor * x
+		if uDef.metalstorage then
+			uDef.metalstorage = uDef.metalstorage * x
+		end
+	end
+
+	-- Energy Production Multiplier
+	if uDef.energymake then
+		local x = Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome
+		uDef.energymake = uDef.energymake * x
+		if uDef.energystorage then
+			uDef.energystorage = uDef.energystorage * x
+		end
+	end
+	if uDef.windgenerator and uDef.windgenerator > 0 then
+		local x = Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome
+		uDef.windgenerator = uDef.windgenerator * x
+		if uDef.customparams.energymultiplier then
+			uDef.customparams.energymultiplier = tonumber(uDef.customparams.energymultiplier) * x
+		else
+			uDef.customparams.energymultiplier = x
+		end
+		if uDef.energystorage then
+			uDef.energystorage = uDef.energystorage * x
+		end
+	end
+	if uDef.tidalgenerator then
+		local x = Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome
+		uDef.tidalgenerator = uDef.tidalgenerator * x
+		if uDef.energystorage then
+			uDef.energystorage = uDef.energystorage * x
+		end
+	end
+	if name == "armsolar" or name == "corsolar" then -- special case
+		local x = Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome
+		uDef.energyuse = uDef.energyuse * x
+		if uDef.energystorage then
+			uDef.energystorage = uDef.energystorage * x
+		end
+	end
+
+	-- Energy Conversion Multiplier 
+	if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
+		local x = Spring.GetModOptions().multiplier_energyconversion * Spring.GetModOptions().multiplier_resourceincome
+		uDef.customparams.energyconv_capacity = uDef.customparams.energyconv_capacity * x
+		if uDef.metalstorage then
+			uDef.metalstorage = uDef.metalstorage * x
+		end
+		if uDef.energystorage then
+			uDef.energystorage = uDef.energystorage * x
+		end
 	end
 
 	-- Sensors range
