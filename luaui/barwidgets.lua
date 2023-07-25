@@ -2078,7 +2078,7 @@ end
 
 function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam)
 	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitFromFactory")
+	tracy.ZoneBeginN("W:UnitDestroyed")
 	for _, w in ipairs(self.UnitDestroyedList) do
 		w:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
@@ -2096,7 +2096,7 @@ function widgetHandler:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attacker
 end
 
 function widgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitDestroyedByTeam")
+	tracy.ZoneBeginN("W:RenderUnitDestroyed")
 	-- at the time of committing, this does not get called by the widgethandler
 	for _, w in ipairs(self.RenderUnitDestroyedList) do
 		w:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
