@@ -116,8 +116,6 @@ Spring.SetConfigInt("BumpWaterTexSizeReflection", 1024)
 
 Spring.SetConfigFloat("CrossAlpha", 0)	-- will be in effect next launch
 
-Spring.SetConfigInt("UnitLodDist", 999999)
-
 if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then
 	Spring.SetConfigInt("AdvModelShading", 1)
 end
