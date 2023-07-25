@@ -1156,7 +1156,7 @@
 			"corparrow": "Very Heavy Amphibious Tank",
 			"corplat": "Builds Seaplanes",
 			"corprinter": "Armored Field Engineer",
-			"corvac": "Armored Field Engineer. 200 BP and +25 E. Can repair on the move",
+			"corvac": "Armored Field Engineer. 200 BP and +25 E. Can repair/reclaim while moving",
 			"corpship": "Assault Frigate",
 			"corpt": "Missile Corvette / Light Anti Air / Sonar",
 			"corptl": "Pop-up Torpedo Launcher",
