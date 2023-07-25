@@ -458,9 +458,14 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		return nil -- widget asked for a silent death
 	end
 
-	-- raw access to widgetHandler
+	-- user widgets may not access widgetHandler
 	if widget.GetInfo and widget:GetInfo().handler then
-		widget.widgetHandler = self
+		if fromZip then 
+			widget.widgetHandler = self
+		else
+			Spring.Echo('Failed to load: ' .. basename .. '  (user widgets may not access widgetHandler)', fromZip, filename, allowuserwidgets)
+			return nil
+		end
 	end
 
 	self:FinalizeWidget(widget, filename, basename)
@@ -908,7 +913,7 @@ function widgetHandler:EnableWidget(name)
 		if not order or order <= 0 then
 			self.orderList[name] = 1
 		end
-		local w = self:LoadWidget(ki.filename)
+		local w = self:LoadWidget(ki.filename, ki.fromZip)
 		if not w then
 			return false
 		end
@@ -1170,7 +1175,7 @@ function widgetHandler:ConfigureLayout(command)
 				return true  -- there can only be one
 			end
 		end
-		local sw = self:LoadWidget(LUAUI_DIRNAME .. SELECTOR_BASENAME) -- load the game's included widget_selector.lua, instead of the default selector.lua
+		local sw = self:LoadWidget(LUAUI_DIRNAME .. SELECTOR_BASENAME, true) -- load the game's included widget_selector.lua, instead of the default selector.lua
 		self:InsertWidget(sw)
 		self:RaiseWidget(sw)
 		return true
