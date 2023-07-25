@@ -484,8 +484,9 @@ function widgetHandler:LoadWidget(filename, fromZip)
 	end
 
 	-- user widgets may not access widgetHandler
+	-- fixme: remove the or true part
 	if widget.GetInfo and widget:GetInfo().handler then
-		if fromZip then 
+		if fromZip or true then 
 			widget.widgetHandler = self
 		else
 			Spring.Echo('Failed to load: ' .. basename .. '  (user widgets may not access widgetHandler)', fromZip, filename, allowuserwidgets)
