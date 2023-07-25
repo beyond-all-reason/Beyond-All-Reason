@@ -71,6 +71,7 @@ widgetHandler = {
 	allowUserWidgets = true,
 
 	actionHandler = VFS.Include(LUAUI_DIRNAME .. "actions.lua", nil, VFS.ZIP),
+	widgetHashes = {}, -- this is a table of widget md5 values to file names, used for user widget hashing
 
 	WG = {}, -- shared table for widgets
 
@@ -434,6 +435,30 @@ function widgetHandler:Initialize()
 	self:SaveConfigData()
 end
 
+local function AddSpadsMessage(contents)
+	-- The canonical, agreed format is the following:
+	-- This must be called from an unsynced context, cause it needs playername and playerid and stuff
+	
+	-- The game sends a lua message, which should be base64'd to prevent wierd character bullshit:
+	-- Lua Message Format: 
+		-- leetspeek luaspads:base64message
+		-- lu@$p@d$:ABCEDFGS==
+		-- Must contain, with triangle bracket literals <playername>[space]<contents>[space]<gameseconds> 
+	-- will get parsed by barmanager, and forwarded to autohostmonitor as:
+	-- match-event <UnnamedPlayer> <LuaUI\Widgets\test_unitshape_instancing.lua/czE3YEocdDJ8bLoO5++a2A==> <35> 
+	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID,false)
+	local gameSeconds = math.max(0,math.round(Spring.GetGameFrame() / 30))
+	if type(contents) == 'table' then 
+		contents = Json.encode(contents) 
+	end
+	local rawmessage = string.format("<%s> <%s> <%d>", myPlayerName, contents, gameSeconds)
+	local b64message = 'lu@$p@d$:' .. string.base64Encode(rawmessage)
+	--Spring.Echo(rawmessage,b64message)
+	Spring.SendLuaRulesMsg(b64message)
+end
+			
+
 function widgetHandler:LoadWidget(filename, fromZip)
 	local basename = Basename(filename)
 	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets) and VFS.ZIP or VFS.RAW_FIRST)
@@ -527,7 +552,15 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		self.knownWidgets[name].active = false
 		return nil
 	end
-
+	if not fromZip then 
+		local md5 = VFS.CalculateHash(text,0)
+		if widgetHandler.widgetHashes[md5] == nil then 
+			widgetHandler.widgetHashes[md5] = filename
+			-- Embed LuaRules message that we enabled a new user widget
+			pcall(AddSpadsMessage, tostring(filename) .. ":" .. tostring(md5))
+		end
+	end
+	
 	-- load the config data
 	local config = self.configData[name]
 	if widget.SetConfigData and config then
