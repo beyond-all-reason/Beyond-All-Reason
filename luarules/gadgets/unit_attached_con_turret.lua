@@ -87,11 +87,9 @@ local function auto_repair_routine(unitID,unitDefID)
 	local tx, ty, tz
 	local radius = UnitDefs[unitDefID].buildDistance
 	local distance = radius^2 + 1
-	local mid_distance = 0
 	local object_radius = 0
 	if (commandQueue[1] ~= nil and commandQueue[1]["id"] < 0) then
         -- out of range build command
-		mid_distance = math.sqrt((ux-commandQueue[1]["params"][1])^2 + (uz-commandQueue[1]["params"][3])^2)
 		object_radius = SpGetUnitDefDimensions(-commandQueue[1]["id"]).radius
 		distance = math.sqrt((ux-commandQueue[1]["params"][1])^2 + (uz-commandQueue[1]["params"][3])^2) - object_radius
     end
@@ -105,7 +103,6 @@ local function auto_repair_routine(unitID,unitDefID)
 			object_radius = SpGetUnitRadius(commandQueue[1]["params"][1])
 		end
 		if tx ~= nil then
-			mid_distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) 
 			distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) - object_radius
 		end
     end
@@ -119,7 +116,6 @@ local function auto_repair_routine(unitID,unitDefID)
 			object_radius = SpGetUnitRadius(commandQueue[1]["params"][1])
 		end
 		if tx ~= nil then
-			mid_distance = math.sqrt((ux-tx)^2 + (uz-tz)^2)
 			distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) - object_radius
 		end
     end
