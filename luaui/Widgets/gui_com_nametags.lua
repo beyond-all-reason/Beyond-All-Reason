@@ -578,7 +578,9 @@ if unba then
 			--if math.floor(xp*100) ~= math.floor(oldXP*100) then
 				GetCommAttributes(unitID, unitDefID)
 				local name, _ = GetPlayerInfo(select(2, GetTeamInfo(unitTeam, false)), false)
-				comnameList[name] = gl.DeleteList(comnameList[name])
+				if name then
+					comnameList[name] = gl.DeleteList(comnameList[name])
+				end
 			--end
 		end
 	end
