@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 4700,
 		buildcostmetal = 330,
 		buildpic = "CORPRINTER.DDS",
-		buildtime = 7000,
+		buildtime = 9000,
 		builddistance = 200,
 		builder = true,
 		canmove = true,
