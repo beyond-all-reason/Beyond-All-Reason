@@ -303,6 +303,7 @@ if gadgetHandler:IsSyncedCode() then
 	local minWaveSize = ((config.minRaptors*(1-config.raptorPerPlayerMultiplier))+(config.minRaptors*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
 	config.raptorSpawnRate = config.raptorSpawnRate*Spring.GetModOptions().raptor_spawntimemult
 	local currentMaxWaveSize = minWaveSize
+	local endlessLoopCounter = 1
 	function updateDifficultyForSurvival()
 		t = GetGameSeconds()
 		config.gracePeriod = t-1
@@ -315,6 +316,7 @@ if gadgetHandler:IsSyncedCode() then
 		SetGameRulesParam("raptorTechAnger", techAnger)
 		local nextDifficulty
 		difficultyCounter = difficultyCounter + 1
+		endlessLoopCounter = endlessLoopCounter + 1
 		if config.difficultyParameters[difficultyCounter] then
 			nextDifficulty = config.difficultyParameters[difficultyCounter]
 			config.queenResistanceMult = nextDifficulty.queenResistanceMult
@@ -334,7 +336,7 @@ if gadgetHandler:IsSyncedCode() then
 		config.maxBurrows = nextDifficulty.maxBurrows
 		config.maxXP = nextDifficulty.maxXP
 		config.angerBonus = nextDifficulty.angerBonus
-		config.queenTime = math.ceil(nextDifficulty.queenTime*0.5)
+		config.queenTime = math.ceil(nextDifficulty.queenTime/endlessLoopCounter)
 		queenTime = (config.queenTime + config.gracePeriod)
 		maxBurrows = ((config.maxBurrows*(1-config.raptorPerPlayerMultiplier))+(config.maxBurrows*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
 		maxWaveSize = ((config.maxRaptors*(1-config.raptorPerPlayerMultiplier))+(config.maxRaptors*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
