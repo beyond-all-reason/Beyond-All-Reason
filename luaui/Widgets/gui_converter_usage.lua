@@ -79,7 +79,14 @@ local function updateUI()
 	dlistGuishader = glCreateList(function()
 		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1)
 	end)
-
+	
+    if WG['converter_usage'] == nil then
+        WG['converter_usage'] = {}
+        WG['converter_usage'].GetWidth = function()
+            return area[3] - area[1]
+        end
+    end
+	
     local fontSize = (area[4] - area[2]) * 0.4
     local color = "\255\255\255\255"
 	local tooltipTitle = Spring.I18N('ui.topbar.converter_usage.defaultTooltipTitle')
