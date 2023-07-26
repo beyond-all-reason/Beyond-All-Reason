@@ -796,6 +796,14 @@ end
 --  Init/GameStart (creating players)
 ---------------------------------------------------------------------------------------------------
 
+
+local function doPlayerUpdate()
+    GetAllPlayers()
+    SetModulesPositionX()
+    SortList()
+    CreateLists()
+end
+
 function widget:PlayerChanged(playerID)
     myPlayerID = Spring.GetMyPlayerID()
     myAllyTeamID = Spring.GetLocalAllyTeamID()
@@ -805,18 +813,20 @@ function widget:PlayerChanged(playerID)
     if mySpecStatus then
         hideShareIcons = true
     end
-    GetAllPlayers()
-    CreateLists()
+    doPlayerUpdate()
 end
 
 function widget:PlayerAdded(playerID)
-    GetAllPlayers()
-    CreateLists()
+    doPlayerUpdate()
 end
 
 function widget:PlayerRemoved(playerID, reason)
-    GetAllPlayers()
-    CreateLists()
+    doPlayerUpdate()
+end
+
+function widget:TeamDied(teamID)
+    player[teamID + specOffset] = CreatePlayerFromTeam(teamID)
+    doPlayerUpdate()
 end
 
 function widget:Initialize()
@@ -1212,9 +1222,9 @@ function CreatePlayerFromTeam(teamID)
     -- for when we don't have a human player occupying the slot, also when a player changes team (dies)
     local _, _, isDead, isAI, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(teamID, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(teamID)
-	if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
-		tred, tgreen, tblue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
-	end
+    if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
+        tred, tgreen, tblue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
+    end
     local tname, ttotake, tskill, tai
     local tdead = true
 
@@ -3431,6 +3441,7 @@ function CheckPlayersChange()
             end
             if player[i].name == nil then
                 player[i] = CreatePlayer(i)
+                doPlayerUpdate()
             end
             if allyTeamID ~= player[i].allyteam then
                 player[i].allyteam = allyTeamID
@@ -3503,11 +3514,6 @@ function Take(teamID, name, i)
     tookFrame = Spring.GetGameFrame()
 
     Spring_SendCommands("luarules take2 " .. teamID)
-end
-
-function widget:TeamDied(teamID)
-    player[teamID + specOffset] = CreatePlayerFromTeam(teamID)
-    SortList()
 end
 
 ---------------------------------------------------------------------------------------------------
