@@ -76,7 +76,7 @@ function gadget:GameFrame()
 		local x, y, z = Spring.GetProjectilePosition(proID)
 		local h = Spring.GetGroundHeight(x, z)
 
-		if y < h + 1 then -- assume ground collision
+		if y < h + 1 or y < 0 then -- assume ground or water collision
 			-- normalize horizontal velocity
 			local dx, _, dz, speed = Spring.GetProjectileVelocity(proID)
 			local norm = speed / math.sqrt(dx^2 + dz^2)
