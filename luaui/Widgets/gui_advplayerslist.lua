@@ -3441,7 +3441,9 @@ function CheckPlayersChange()
             end
             if player[i].name == nil then
                 player[i] = CreatePlayer(i)
-                doPlayerUpdate()
+                if player[i].name ~= nil then
+                    doPlayerUpdate()
+                end
             end
             if allyTeamID ~= player[i].allyteam then
                 player[i].allyteam = allyTeamID
