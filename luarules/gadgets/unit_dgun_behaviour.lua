@@ -92,8 +92,8 @@ function gadget:GameFrame()
 	for proID in pairs(groundedDGuns) do
 		local x, y, z = Spring.GetProjectilePosition(proID)
 		-- place projectile slightly under ground to ensure fiery trail
-		local verticalOffset = -1
-		Spring.SetProjectilePosition(proID, x, math.max(Spring.GetGroundHeight(x, z) - verticalOffset, verticalOffset), z)
+		local verticalOffset = 1
+		Spring.SetProjectilePosition(proID, x, math.max(Spring.GetGroundHeight(x, z), 0) - verticalOffset, z)
 
 		-- NB: no removal; do this every frame so that it doesn't fly off a cliff or something
 	end
@@ -102,7 +102,7 @@ end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if dgunWeapons[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
 			Spring.DeleteProjectile(projectileID)
-			local x, y, z = Spring.GetUnitPosition(unitID)		
+			local x, y, z = Spring.GetUnitPosition(unitID)
 			Spring.SpawnCEG("dgun-deflect", x, y, z, 0, 0, 0, 0, 0)
 
 			local armorClass = UnitDefs[unitDefID].armorType
