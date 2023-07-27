@@ -68,7 +68,6 @@ if gadgetHandler:IsSyncedCode() then
 	local queenLifePercent = 100
 	local maxTries = 30
 	local raptorUnitCap = math.floor(Game.maxUnits*0.95)
-	local damageMod = config.damageMod
 	local minBurrows = 1
 	local timeOfLastSpawn = -999999
 	local timeOfLastFakeSpawn = 0
@@ -320,11 +319,13 @@ if gadgetHandler:IsSyncedCode() then
 		if config.difficultyParameters[difficultyCounter] then
 			nextDifficulty = config.difficultyParameters[difficultyCounter]
 			config.queenResistanceMult = nextDifficulty.queenResistanceMult
+			config.damageMod = nextDifficulty.damageMod
 		else
 			difficultyCounter = difficultyCounter - 1
 			nextDifficulty = config.difficultyParameters[difficultyCounter]
 			config.raptorSpawnMultiplier = config.raptorSpawnMultiplier+1
 			config.queenResistanceMult = config.queenResistanceMult+0.5
+			config.damageMod = config.damageMod+0.25
 		end
 		config.queenName = nextDifficulty.queenName
 		config.burrowSpawnRate = nextDifficulty.burrowSpawnRate
@@ -337,6 +338,7 @@ if gadgetHandler:IsSyncedCode() then
 		config.maxXP = nextDifficulty.maxXP
 		config.angerBonus = nextDifficulty.angerBonus
 		config.queenTime = math.ceil(nextDifficulty.queenTime/endlessLoopCounter)
+		
 		queenTime = (config.queenTime + config.gracePeriod)
 		maxBurrows = ((config.maxBurrows*(1-config.raptorPerPlayerMultiplier))+(config.maxBurrows*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
 		maxWaveSize = ((config.maxRaptors*(1-config.raptorPerPlayerMultiplier))+(config.maxRaptors*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
@@ -1153,8 +1155,8 @@ if gadgetHandler:IsSyncedCode() then
 						local attempts = 0
 						repeat
 							attempts = attempts + 1
-							local footprintX = UnitDefNames[uName].footprintX
-							local footprintZ = UnitDefNames[uName].footprintZ
+							local footprintX = UnitDefNames[uName].xsize
+							local footprintZ = UnitDefNames[uName].zsize
 							local footprintAvg = 128
 							if footprintX and footprintZ then
 								footprintAvg = ((footprintX+footprintZ))*16
@@ -1214,7 +1216,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if attackerTeam == raptorTeamID then
-			damage = damage * damageMod
+			damage = damage * config.damageMod
 		end
 
 		if heroRaptor[unitID] then
