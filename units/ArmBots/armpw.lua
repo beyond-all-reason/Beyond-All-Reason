@@ -11,6 +11,7 @@ return {
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "22 30 22",
 		collisionvolumetype = "CylY",
+		usepiececollisionvolumes = 1, --- dont merge this 
 		corpse = "DEAD",
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
