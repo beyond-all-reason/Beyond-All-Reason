@@ -11,6 +11,7 @@ return {
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "24 32 24",
 		collisionvolumetype = "CylY",
+		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
