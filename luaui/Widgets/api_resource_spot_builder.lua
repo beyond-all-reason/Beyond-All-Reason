@@ -187,6 +187,10 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 					lastprocessedbestconstructor = id
 					mainBuildersCount = mainBuildersCount + 1
 					mainBuilders[mainBuildersCount] = id
+					if justDraw then
+						-- prevent complex calculations further down the line
+						break
+					end
 				end
 			else
 				-- guard to a main builder
