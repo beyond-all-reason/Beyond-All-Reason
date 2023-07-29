@@ -144,7 +144,6 @@ return {
 				soundstart = "junofir2",
 				stockpile = true,
 				stockpiletime = 75,
-				targetable = 0,
 				tolerance = 4000,
 				texture1 = "null",
 				texture2 = "smoketrailbar",
