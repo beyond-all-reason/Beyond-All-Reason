@@ -6,7 +6,7 @@ function gadget:GetInfo()
         date = "2023",
         license = "GNU GPL, v2 or later",
         layer = 0,
-        enabled = true
+        enabled = false -- we don't need it for now, but might need it later.
     }
 end
 
@@ -15,9 +15,9 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local unitAttachments = {
-    [UnitDefNames["raptor_hive"].id] = {
-        { unitType = "raptor_antinuke",   posx = 0, posz = 0, dir = 0 },
-    },
+    -- [UnitDefNames["raptor_hive"].id] = {
+    --     { unitType = "raptor_antinuke",   posx = 0, posz = 0, dir = 0 },
+    -- },
 }
 
 local deleteAttachments = {}

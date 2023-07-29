@@ -65,10 +65,13 @@ if gadgetHandler:IsSyncedCode() then
 		scumSpawnerIDs[UnitDefNames['raptor_turrets'].id] = {radius = 512, growthrate = 0.2}
 		scumSpawnerIDs[UnitDefNames['raptor_turretl_antiair'].id] = {radius = 1024, growthrate = 0.2}
 		scumSpawnerIDs[UnitDefNames['raptor_turrets_antiair'].id] = {radius = 512, growthrate = 0.2}
+		scumSpawnerIDs[UnitDefNames['raptor_turretxl_antiair'].id] = {radius = 1536, growthrate = 0.2}
 		scumSpawnerIDs[UnitDefNames['raptor_turretl_acid'].id] = {radius = 1024, growthrate = 0.2}
 		scumSpawnerIDs[UnitDefNames['raptor_turrets_acid'].id] = {radius = 512, growthrate = 0.2}
 		scumSpawnerIDs[UnitDefNames['raptor_turretl_electric'].id] = {radius = 1024, growthrate = 0.2}
 		scumSpawnerIDs[UnitDefNames['raptor_turrets_electric'].id] = {radius = 512, growthrate = 0.2}
+		scumSpawnerIDs[UnitDefNames['raptor_turretl_antinuke'].id] = {radius = 1024, growthrate = 0.2}
+		scumSpawnerIDs[UnitDefNames['raptor_turrets_antinuke'].id] = {radius = 512, growthrate = 0.2}
 		scumSpawnerIDs[UnitDefNames['raptor_turretxl_meteor'].id] = {radius = 1536, growthrate = 0.2}
 
 		for x= 0, math.ceil(mapSizeX/1024) do
