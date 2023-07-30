@@ -50,7 +50,7 @@ function gadget:Initialize()
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
-	if isBomber[unitDefID] then
+	if isBomber[unitDefID] and spGetUnitMoveTypeData(unitID).turnRadius then
 		Bombers[unitID] = unitDefID
 	end
 	if isFighter[unitDefID] then
@@ -86,7 +86,7 @@ local function processNextCmd(unitID, unitDefID, cmdID)
 		if curMoveCtrl then
 			spMoveCtrlEnable(unitID)
 		end
-	elseif spGetUnitMoveTypeData(unitID).turnRadius then
+	else--if spGetUnitMoveTypeData(unitID).turnRadius then -- checking this on UnitCreated now, cause this is expensive
 		local curMoveCtrl = spMoveCtrlIsEnabled(unitID)
 		if curMoveCtrl then
 			spMoveCtrlDisable(unitID)
