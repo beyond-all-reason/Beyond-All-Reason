@@ -31,6 +31,9 @@ local function OnGroupSelected(_, _, args)
 
 	local groupIndex = tonumber(args[unitGroupArgIdx])
 
+	-- 2nd arg can also be e.g. "set" - but we only want to react to a selection
+	if not groupIndex then return end
+
 	ClearSelectionIfGroupSelected(groupIndex)
 end
 
