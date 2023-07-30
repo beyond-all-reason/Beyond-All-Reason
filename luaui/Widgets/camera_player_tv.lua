@@ -845,7 +845,7 @@ function widget:SetConfigData(data)
 	if Spring.GetGameFrame() > 0 and data.toggled ~= nil then
 		toggled = data.toggled
 	end
-	if data.alwaysDisplayName then
+	if data.alwaysDisplayName ~= nil then
 		alwaysDisplayName = data.alwaysDisplayName
 	end
 	if data.playerChangeDelay then
