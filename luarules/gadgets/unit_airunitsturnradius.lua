@@ -70,6 +70,11 @@ function gadget:UnitDestroyed(unitID)
 		Bombers[unitID] = nil
 	end
 end
+function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+	if Bombers[unitID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
+		gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	end
+end
 
 local function processNextCmd(unitID, unitDefID, cmdID)
 	if not cmdID or cmdID == CMD_ATTACK then
@@ -96,22 +101,14 @@ end
 function gadget:GameFrame(n)
 	if n % 6 == 1 then
 		for unitID, unitDefID in pairs(Bombers) do
-			if spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-				Bombers[unitID] = nil
-			else
-				processNextCmd(unitID, unitDefID, spGetUnitCurrentCommand(unitID))
-			end
+			processNextCmd(unitID, unitDefID, spGetUnitCurrentCommand(unitID))
 		end
 	end
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if Bombers[unitID] then
-		if spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-			Bombers[unitID] = nil
-		else
-			processNextCmd(unitID, unitDefID, cmdID)
-		end
+		processNextCmd(unitID, unitDefID, cmdID)
 	end
 	return true
 end
