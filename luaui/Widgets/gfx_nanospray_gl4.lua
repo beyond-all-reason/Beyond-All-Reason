@@ -80,9 +80,11 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spIsSphereInView  = Spring.IsSphereInView
 local spGetUnitPosition  = Spring.GetUnitPosition
 
+local fadeout = 60
 
 local shaderConfig = {
 	POINTCOUNT = 64,
+	FADEOUT = fadeout,
 }
 local nanoParticleTexture = 'LuaUI/images/nanoparticle_gl4.tga'
 
@@ -159,7 +161,7 @@ local function initGL4()
 	-- init the VBO
 	local vboLayout = {
 			{id = 1, name = 'endworldposrad', size = 4}, -- target world pos and radius
-			{id = 2, name = 'otherparams', size = 4}, -- startframe, endframe, count, intensity
+			{id = 2, name = 'otherparams', size = 4}, -- startframe, endframe, count, direction
 			{id = 3, name = 'pieceIndex', size = 1, type = GL.UNSIGNED_INT},
 			{id = 4, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 	}
@@ -210,7 +212,7 @@ local function AddSpray(instanceID, unitID, pieceIndex, noUpload, x,y,z,r,m, spr
 	local gameFrame = Spring.GetGameFrame()
 	if noUpload then gameFrame = -500 end -- shitty hax
 	--Spring.Echo(x,y,z,r)
-	instanceID = pushElementInstance(nanoSprayVBO, {x,y,z,r,gameFrame,1000000,1023,sprayType, pieceIndex, 0,0,0,0}, instanceID, true, noUpload, unitID)
+	instanceID = pushElementInstance(nanoSprayVBO, {x,y,z,r,gameFrame,0,1023,sprayType, pieceIndex, 0,0,0,0}, instanceID, true, noUpload, unitID)
 	-- calcLightExpiry
 	return instanceID
 end
@@ -236,6 +238,8 @@ local function AddSprayForUnit(unitID, unitDefID, noUpload, reason, x,y,z,r,m, s
 		end
 	end
 end
+
+
 
 local function RemoveSprayForUnit(unitID, instanceID, noUpload)
 	local numremoved = 0
@@ -404,13 +408,8 @@ local function GetNanoSprayTargetType(unitID, unitDefID)
 	return x, y, z, r, mobile, spraytype
 end
 
-local newGameFrame = false
-function widget:GameFrame(n)
-	newGameFrame = true
-end
-
 local updateSprayTable = {}
-local function updateSprayPosition(instanceID, mobileID)
+local function UpdateSprayPosition(instanceID, mobileID)
 	local _,_,_,x,y,z = spGetUnitPosition(mobileID, true)
 	if x then 
 		local instanceIndex = nanoSprayVBO.instanceIDtoIndex[instanceID]
@@ -424,10 +423,31 @@ local function updateSprayPosition(instanceID, mobileID)
 	end
 end
 
+local function UpdateSprayDieTime(instanceID, gameFrame)
+	local instanceIndex = nanoSprayVBO.instanceIDtoIndex[instanceID]
+	if instanceIndex == nil then return nil end
+	getElementInstanceData(nanoSprayVBO, instanceID, updateSprayTable)
+	updateSprayTable[6] = gameFrame
+	updateSprayTable[9] = 0 -- try setting piece index to 0 
+	local unitID = nanoSprayVBO.indextoUnitID[instanceIndex]
+	pushElementInstance(nanoSprayVBO, updateSprayTable, instanceID, true, nil, unitID)
+end
 
+local function StopSprayForUnit(unitID, gameFrame, diequeue)
+	if unitAttachedNanoSprays[unitID] then
+		for instanceID, _ in pairs(unitAttachedNanoSprays[unitID]) do
+			UpdateSprayDieTime(instanceID, gameFrame)
+			diequeue[instanceID] = unitID
+		end
+	end
+end
+
+local lastGameFrame = Spring.GetGameFrame() -1 
 function widget:Update()
-	if newGameFrame then 
-		newGameFrame = false
+	local gameFrame = Spring.GetGameFrame()
+	
+	if gameFrame > lastGameFrame then 
+		lastGameFrame = gameFrame
 		
 		for unitID, buildstatus in pairs(unitScriptBuildEventQueue) do
 			local index, name, cmdtype, cmdstr = Spring.GetActiveCommand(unitID)
@@ -441,25 +461,35 @@ function widget:Update()
 					AddSprayForUnit(unitID, unitDefID, nil, "fuck", x,y,z,r, mobileID, sprayType )
 				end
 			else
-				RemoveSprayForUnit(unitID)
+				local dietime = gameFrame + fadeout
+				if sprayRemoveQueue[dietime] == nil then
+					sprayRemoveQueue[dietime] = {}
+				end
+				StopSprayForUnit(unitID, gameFrame, sprayRemoveQueue[dietime])
+				--RemoveSprayForUnit(unitID)
 			end
 			unitScriptBuildEventQueue[unitID] = nil
 		end
 			
 		for instanceID, mobileUnitID in pairs(mobileSprays) do 
-			updateSprayPosition(instanceID, mobileUnitID)
+			UpdateSprayPosition(instanceID, mobileUnitID)
 		end
 		
 		
-		gameFrame = n
-		if sprayRemoveQueue[n] then
-			for instanceID, _ in pairs(sprayRemoveQueue[n]) do
+		if sprayRemoveQueue[gameFrame] then
+			for instanceID, unitID in pairs(sprayRemoveQueue[gameFrame]) do
 				if nanoSprayVBO.instanceIDtoIndex[instanceID] then
 					--Spring.Echo("removing dead light", targetVBO.usedElements, 'id:', instanceID)
 					popElementInstance(nanoSprayVBO, instanceID)
+					unitAttachedNanoSprays[unitID][instanceID] = nil
+					if next(unitAttachedNanoSprays[unitID]) == nil then 
+						unitAttachedNanoSprays[unitID] = nil
+					end
 				end
+				
+
 			end
-			sprayRemoveQueue[n] = nil
+			sprayRemoveQueue[gameFrame] = nil
 		end
 	end
 end
