@@ -1153,14 +1153,14 @@ if gadgetHandler:IsSyncedCode() then
 				for i = 1,math.floor((uSettings.spawnedPerWave*(1-config.raptorPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.raptorPerPlayerMultiplier)*SetCount(humanTeams)*config.raptorSpawnMultiplier) do
 					if mRandom() < config.spawnChance then
 						local attempts = 0
+						local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
+						local footprintZ = UnitDefNames[uName].zsize -- why the fuck is this footprint *2??????
+						local footprintAvg = 128
+						if footprintX and footprintZ then
+							footprintAvg = ((footprintX+footprintZ))*4
+						end
 						repeat
 							attempts = attempts + 1
-							local footprintX = UnitDefNames[uName].xsize
-							local footprintZ = UnitDefNames[uName].zsize
-							local footprintAvg = 128
-							if footprintX and footprintZ then
-								footprintAvg = ((footprintX+footprintZ))*8
-							end
 							local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName, footprintAvg+32)
 							if turretUnitID then
 								setRaptorXP(turretUnitID)
