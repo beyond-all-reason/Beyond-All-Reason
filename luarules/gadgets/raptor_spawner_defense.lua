@@ -1159,7 +1159,7 @@ if gadgetHandler:IsSyncedCode() then
 							local footprintZ = UnitDefNames[uName].zsize
 							local footprintAvg = 128
 							if footprintX and footprintZ then
-								footprintAvg = ((footprintX+footprintZ))*16
+								footprintAvg = ((footprintX+footprintZ))*8
 							end
 							local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName, footprintAvg+32)
 							if turretUnitID then
