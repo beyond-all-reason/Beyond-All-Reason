@@ -821,9 +821,15 @@ local highValueTargets = { -- Priority targets for Raptors. Must be immobile to 
 	[UnitDefNames["cormmkr"].id] 	= true,
 	[UnitDefNames["armuwmmm"].id] 	= true,
 	[UnitDefNames["coruwmmm"].id] 	= true,
-
+	-- T2 Metal Extractors
 	[UnitDefNames["cormoho"].id] 	= true,
 	[UnitDefNames["armmoho"].id] 	= true,
+	-- Nukes
+	[UnitDefNames["corsilo"].id] 	= true,
+	[UnitDefNames["armsilo"].id] 	= true,
+	-- Antinukes
+	[UnitDefNames["armamd"].id] 	= true,
+	[UnitDefNames["corfmd"].id] 	= true,
 }
 
 local config = { -- Don't touch this! ---------------------------------------------------------------------------------------------------------------------------------------------
