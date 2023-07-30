@@ -153,6 +153,7 @@ local totalDroneCount = 0
 	-- dockinghealrate = 0,			Healing per second while docked. 
 	-- docktohealthreshold = 30,	If health percentage drops below the threshold the unit will attempt to dock for healing.
 	-- decayrate = 0,				health loss per second while not docked. 
+	-- deathdecayrate = 0,			health loss per second while not docked, and no carrier to land on. 
 	-- carrierdeaththroe = "death",	Behaviour for the drones when the carrier dies. "death": destroy the drones. "control": gain manual control of the drones. "capture": same as "control", but if an enemy is within control range, they get control of the drones instead. 
 	
 	-- },							 
@@ -189,6 +190,7 @@ for weaponDefID = 1, #WeaponDefs do
 			dockingArmor = wdcp.dockingarmor,
 			dockingHealrate = wdcp.dockinghealrate,
 			decayRate = wdcp.decayrate,
+			deathdecayRate = wdcp.deathdecayrate,
 			dockToHealThreshold = wdcp.docktohealthreshold,
 			carrierdeaththroe = wdcp.carrierdeaththroe
 		}
@@ -492,6 +494,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					dockedHealRate = tonumber(spawnDef.dockingHealrate) or 0,
 					dockToHealThreshold = tonumber(spawnDef.dockToHealThreshold) or 30,
 					decayRate = tonumber(spawnDef.decayRate) or 0,
+					deathdecayRate = tonumber(spawnDef.deathdecayRate) or tonumber(spawnDef.decayRate) or 0,
 					activeDocking = false, --currently not in use
 					activeRecall = false,
 					activeSpawning = 1,
@@ -652,7 +655,7 @@ function gadget:UnitDestroyed(unitID)
 						stayDocked = false,
 						activeDocking = false,
 						engaged = false,
-						decayRate = carrierMetaList[unitID].decayRate,
+						decayRate = carrierMetaList[unitID].deathdecayRate,
 					}
 					droneMetaList[subUnitID] = droneData
 				end
