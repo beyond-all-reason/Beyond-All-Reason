@@ -2098,6 +2098,11 @@ function init()
 			end,
 		},
 		{ id = "resolution", group = "gfx", category = types.basic, name = widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.resolution'), type = "select", options = resolutionNames, value = Spring.GetConfigInt('SelectedScreenMode', 1), description = Spring.I18N('ui.settings.option.resolution_descr'),
+		  	onload = function(i, value)
+				if Spring.GetConfigInt('SelectedScreenMode', -1) >= 1 then		-- chobby sets SelectedScreenMode to -1 when it changes game window mode
+					WG['screenMode'].SetScreenMode(Spring.GetConfigInt('SelectedScreenMode', 1))
+				end
+			end,
 			onchange = function(i, value)
 				Spring.SetConfigInt('SelectedScreenMode', value)
 
