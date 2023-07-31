@@ -16,7 +16,6 @@ local CMD_UNIT_SET_TARGET_NO_GROUND = 34922
 local CMD_UNIT_SET_TARGET = 34923
 local CMD_UNIT_CANCEL_TARGET = 34924
 local CMD_UNIT_SET_TARGET_RECTANGLE = 34925
-local pauseEnd = {}
 --export to CMD table
 CMD.CMD_UNIT_SET_TARGET_NO_GROUND = CMD_UNIT_SET_TARGET_NO_GROUND
 CMD[CMD_UNIT_SET_TARGET_NO_GROUND] = 'UNIT_SET_TARGET_NO_GROUND'
@@ -533,6 +532,20 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local count = 1
+
+	local waitingForInsertRemoval = {}
+	local function pauseTargetting(unitID)
+		if unitTargets[unitID] and not pausedTargets[unitID] then
+			pausedTargets[unitID] = unitTargets[unitID]
+			removeUnit(unitID, true)
+		end
+	end
+	local function unpauseTargetting(unitID)
+		addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true)
+		pausedTargets[unitID] = nil
+	end
+
 	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdTag, cmdParams, cmdOptions)
 		if type(cmdOptions) ~= 'table' then
 			-- does UnitCmdDone always returns number instead of table?
@@ -545,13 +558,19 @@ if gadgetHandler:IsSyncedCode() then
 			elseif pausedTargets[unitID] then
 				SendToUnsynced("targetList", unitID, 0)
 				pausedTargets[unitID] = nil
-				pauseEnd[unitID] = nil
 			end
-		elseif cmdID == CMD_DGUN then
-			if pausedTargets[unitID] then
-				addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true)
-				pausedTargets[unitID] = nil
-				pauseEnd[unitID] = nil
+		else
+			local activeCommandIsDgun = spGetCommandQueue(unitID, 0) ~= 0 and spGetCommandQueue(unitID, 1)[1].id == CMD_DGUN
+
+			if pausedTargets[unitID] and not activeCommandIsDgun then
+				if waitingForInsertRemoval[unitID] then
+					waitingForInsertRemoval[unitID] = nil
+				else
+					unpauseTargetting(unitID)
+				end
+			elseif not pausedTargets[unitID] and activeCommandIsDgun then
+				count = count + 1
+				pauseTargetting(unitID)
 			end
 		end
 	end
@@ -566,14 +585,12 @@ if gadgetHandler:IsSyncedCode() then
 				elseif pausedTargets[unitID] then
 					SendToUnsynced("targetList", unitID, 0)
 					pausedTargets[unitID] = nil
-					pauseEnd[unitID] = nil
 				end
-			elseif cmdID == CMD_DGUN or (cmdID == CMD.INSERT and cmdParams[2] == CMD_DGUN) then
-				if unitTargets[unitID] then
-					pausedTargets[unitID] = unitTargets[unitID]
-					removeUnit(unitID, true)
-					pauseEnd[unitID] = Spring.GetGameFrame() + 45
-				end
+			elseif cmdID == CMD_DGUN then
+				pauseTargetting(unitID)
+			elseif (cmdID == CMD.INSERT and cmdParams[2] == CMD_DGUN) then
+				pauseTargetting(unitID)
+				waitingForInsertRemoval[unitID] = true
 			end
 		end
 		return true  -- command was not used OR was used but not fully processed, so don't block command
@@ -589,17 +606,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- it might create a slight increase of cpu usage when hundreds of units gets
 		-- a set target command, howrever a quick test with 300 fidos only increased by 1%
 		-- sim here
-		for unitID, pauseend in pairs(pauseEnd) do
-			if pauseEnd[unitID] and pauseEnd[unitID] == n then
-				addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true)
-				pausedTargets[unitID] = nil
-				pauseEnd[unitID] = nil
-			else
-				if spGetCommandQueue(unitID, 0) == 2 then
-					pauseEnd[unitID] = Spring.GetGameFrame() + 15
-				end
-			end
-		end
+
 		for unitID, unitData in pairs(unitTargets) do
 			local targetIndex
 			for index, targetData in ipairs(unitData.targets) do
