@@ -568,7 +568,7 @@ if gadgetHandler:IsSyncedCode() then
 					pausedTargets[unitID] = nil
 					pauseEnd[unitID] = nil
 				end
-			elseif cmdID == CMD_DGUN then
+			elseif cmdID == CMD_DGUN or (cmdID == CMD.INSERT and cmdParams[2] == CMD_DGUN) then
 				if unitTargets[unitID] then
 					pausedTargets[unitID] = unitTargets[unitID]
 					removeUnit(unitID, true)
