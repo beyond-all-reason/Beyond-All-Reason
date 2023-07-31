@@ -269,12 +269,16 @@ function UnitDef_Post(name, uDef)
 				corap = true,
 				coraap = true,
 				corplat = true,
+				corapt3 = true,
+				armapt3 = true,
 				armap_scav = true,
 				armaap_scav = true,
 				armplat_scav = true,
 				corap_scav = true,
 				coraap_scav = true,
 				corplat_scav = true,
+				corapt3_scav = true,
+				armapt3_scav = true,
 			}
 			if AircraftFactories[name] then
 				uDef.unitrestricted = 0
