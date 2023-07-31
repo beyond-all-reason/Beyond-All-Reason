@@ -341,7 +341,6 @@ end
 
 function gadget:GameFrame(frame)
     if frame%22 == 10 then
-        Spring.Debug.TableEcho(aliveExplosions)
         local currentTime = Spring.GetGameSeconds()
         for explosionID, explosionStats in pairs(aliveExplosions) do
         --for i = 1,#aliveExplosions do
