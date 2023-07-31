@@ -1660,7 +1660,8 @@ if gadgetHandler:IsSyncedCode() then
 					minBurrows = SetCount(humanTeams)
 				else
 					queenAnger = 100
-					minBurrows = 1
+					techAnger = math.min(techAnger, 100)
+					minBurrows = SetCount(humanTeams)
 				end
 				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgression*0.01)/(config.queenTime/3600)) + playerAgressionEcoValue
 				SetGameRulesParam("RaptorQueenAngerGain_Aggression", (playerAgression*0.01)/(config.queenTime/3600))
