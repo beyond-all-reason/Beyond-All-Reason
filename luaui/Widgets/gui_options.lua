@@ -2099,9 +2099,10 @@ function init()
 		},
 		{ id = "resolution", group = "gfx", category = types.basic, name = widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.resolution'), type = "select", options = resolutionNames, value = Spring.GetConfigInt('SelectedScreenMode', 1), description = Spring.I18N('ui.settings.option.resolution_descr'),
 		  	onload = function(i, value)
-				if Spring.GetConfigInt('SelectedScreenMode', -1) >= 1 then		-- chobby sets SelectedScreenMode to -1 when it changes game window mode
-					WG['screenMode'].SetScreenMode(Spring.GetConfigInt('SelectedScreenMode', 1))
-				end
+				-- FIXME: disabled for now due to "Now whenever i do fullscreen or borderless the game will go to monitor 2 regardless of the chosen option. (I want the game on monitor 1)."
+				--if Spring.GetConfigInt('SelectedScreenMode', -1) >= 1 then		-- chobby sets SelectedScreenMode to -1 when it changes game window mode
+				--	WG['screenMode'].SetScreenMode(Spring.GetConfigInt('SelectedScreenMode', 1))
+				--end
 			end,
 			onchange = function(i, value)
 				Spring.SetConfigInt('SelectedScreenMode', value)
