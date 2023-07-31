@@ -271,6 +271,8 @@ function UnitDef_Post(name, uDef)
 				corplat = true,
 				corapt3 = true,
 				armapt3 = true,
+				legap = true,
+				legaap = true,
 				armap_scav = true,
 				armaap_scav = true,
 				armplat_scav = true,
@@ -279,6 +281,9 @@ function UnitDef_Post(name, uDef)
 				corplat_scav = true,
 				corapt3_scav = true,
 				armapt3_scav = true,
+				legap_scav = true,
+				legaap_scav = true,
+				
 			}
 			if AircraftFactories[name] then
 				uDef.unitrestricted = 0
