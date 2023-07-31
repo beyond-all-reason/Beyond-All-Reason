@@ -82,11 +82,11 @@ local TimedDamageWeapons = {
         resistance = "_RAPTORACID_",
     },
     [WeaponDefNames.raptor_turrets_acid_acidspit.id] = {
-        ceg = "acid-area-75",
+        ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
-        damage = 40,
-        range = 75,
+        damage = 100,
+        range = 150,
         resistance = "_RAPTORACID_",
     },
     [WeaponDefNames.raptor_turretl_acid_acidspit.id] = {
