@@ -275,20 +275,22 @@ local TimedDamageDyingUnits = {
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-local aliveExplosions = {}
+-- local aliveExplosions = {}
 
-local function getRandomFreeExplosionID()
-    local success = false
-    local attempts = 0
-    repeat 
-        attempts = attempts + 1
-        local number = math.random(1,100000)
-        if not aliveExplosions[number] then
-            return number
-        end
-    until attempts >= 100000
-    return nil
-end
+-- local function getRandomFreeExplosionID()
+--     local attempts = 0
+--     repeat 
+--         attempts = attempts + 1
+--         local number = math.random(1,100000)
+--         if not aliveExplosions[number] then
+--             return number
+--         end
+--     until attempts >= 100000
+--     return nil
+-- end
+
+local aliveExplosions = {}
+local aliveExplosionsCounter = 1
 
 function gadget:Initialize()
     for id, a in pairs(TimedDamageWeapons) do
@@ -299,43 +301,39 @@ end
 function gadget:Explosion(weaponDefID, px, py, pz, AttackerID, ProjectileID)
     if TimedDamageWeapons[weaponDefID] then
         local currentTime = Spring.GetGameSeconds()
-        local newExplosionID = getRandomFreeExplosionID()
-        if newExplosionID then
-            aliveExplosions[newExplosionID] = {
-                x = px,
-                y = math.max(Spring.GetGroundHeight(px, pz), 0),
-                z = pz,
-                endTime = currentTime + TimedDamageWeapons[weaponDefID].time,
-                damage = TimedDamageWeapons[weaponDefID].damage,
-                range = TimedDamageWeapons[weaponDefID].range,
-                ceg = TimedDamageWeapons[weaponDefID].ceg,
-                cegSpawned = false,
-                damageCeg = TimedDamageWeapons[weaponDefID].damageCeg,
-                resistance = TimedDamageWeapons[weaponDefID].resistance,
-            }
-        end
+        aliveExplosions[aliveExplosionsCounter] = {
+            x = px,
+            y = math.max(Spring.GetGroundHeight(px, pz), 0),
+            z = pz,
+            endTime = currentTime + TimedDamageWeapons[weaponDefID].time,
+            damage = TimedDamageWeapons[weaponDefID].damage,
+            range = TimedDamageWeapons[weaponDefID].range,
+            ceg = TimedDamageWeapons[weaponDefID].ceg,
+            cegSpawned = false,
+            damageCeg = TimedDamageWeapons[weaponDefID].damageCeg,
+            resistance = TimedDamageWeapons[weaponDefID].resistance,
+        }
+        aliveExplosionsCounter = aliveExplosionsCounter + 1
     end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
     if TimedDamageDyingUnits[unitDefID] then
         local currentTime = Spring.GetGameSeconds()
-        local newExplosionID = getRandomFreeExplosionID()
         local px, py, pz = Spring.GetUnitPosition(unitID)
-        if newExplosionID then
-            aliveExplosions[newExplosionID] = {
-                x = px,
-                y = math.max(Spring.GetGroundHeight(px, pz), 0),
-                z = pz,
-                endTime = currentTime + TimedDamageDyingUnits[unitDefID].time,
-                damage = TimedDamageDyingUnits[unitDefID].damage,
-                range = TimedDamageDyingUnits[unitDefID].range,
-                ceg = TimedDamageDyingUnits[unitDefID].ceg,
-                cegSpawned = false,
-                damageCeg = TimedDamageDyingUnits[unitDefID].damageCeg,
-                resistance = TimedDamageDyingUnits[unitDefID].resistance,
-            }
-        end
+        aliveExplosions[aliveExplosionsCounter] = {
+            x = px,
+            y = math.max(Spring.GetGroundHeight(px, pz), 0),
+            z = pz,
+            endTime = currentTime + TimedDamageDyingUnits[unitDefID].time,
+            damage = TimedDamageDyingUnits[unitDefID].damage,
+            range = TimedDamageDyingUnits[unitDefID].range,
+            ceg = TimedDamageDyingUnits[unitDefID].ceg,
+            cegSpawned = false,
+            damageCeg = TimedDamageDyingUnits[unitDefID].damageCeg,
+            resistance = TimedDamageDyingUnits[unitDefID].resistance,
+        }
+        aliveExplosionsCounter = aliveExplosionsCounter + 1
     end
 end
 
