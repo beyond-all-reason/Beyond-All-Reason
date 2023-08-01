@@ -103,7 +103,7 @@ return {
 				model = "Raptors/spike.s3o",
 				name = "Spike",
 				noselfdamage = true,
-				range = 600,
+				range = 1000,
 				reloadtime = 1.1,
 				soundstart = "talonattack",
 				startvelocity = 200,

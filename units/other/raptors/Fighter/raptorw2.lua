@@ -103,7 +103,7 @@ return {
 				name = "Spike",
 				noselfdamage = true,
 				predictboost = 1,
-				range = 800,
+				range = 1500,
 				reloadtime = 0.8,
 				smoketrail = true,
 				soundstart = "talonattack",

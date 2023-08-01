@@ -78,7 +78,7 @@ return {
 		},
 		weapondefs = {
 			aaweapon = {
-				areaofeffect = 128,
+				areaofeffect = 256,
 				avoidfriendly = false,
 				burnblow = true,
 				--cegtag = "sporetrail-large",
@@ -90,7 +90,7 @@ return {
 				edgeeffectiveness = 0.35,
 				explosiongenerator = "custom:genericshellexplosion-huge-bomb",
 				firestarter = 0,
-				flighttime = 2,
+				flighttime = 5,
 				firesubmersed = true,
 				impulseboost = 0,
 				impulsefactor = 0.4,
@@ -99,8 +99,8 @@ return {
 				model = "SimpleFlareXL.s3o",
 				name = "Deadly Defensive Spores",
 				noselfdamage = true,
-				range = 600,
-				reloadtime = 16,
+				range = 1000,
+				reloadtime = 10,
 				smoketrail = true,
 				smokePeriod = 2,
 				smoketime = 45,
@@ -123,10 +123,10 @@ return {
 				weaponvelocity = 2000,
 				wobble = 32000,
 				damage = {
-					default = 5,
-					bombers = 500,
-					fighters = 500,
-					vtol = 500,
+					default = 1,
+					bombers = 1000,
+					fighters = 1000,
+					vtol = 1000,
 				},
 			},
 			weapon = {
