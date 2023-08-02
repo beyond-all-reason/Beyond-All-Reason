@@ -25,7 +25,7 @@ return {
 		minwaterdepth = 6,
 		movementclass = "BOAT4",
 		nochasecategory = "VTOL UNDERWATER",
-		objectname = "Units/ARMLSHIP4.s3o",
+		objectname = "Units/ARMLSHIP.s3o",
 		radardistance = 750,
 		radaremitheight = 52,
 		script = "Units/ARMLSHIP.cob",
