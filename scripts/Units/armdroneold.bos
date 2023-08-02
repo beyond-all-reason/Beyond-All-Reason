@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, jet, thrustl, thrustr, rflare, lflare;
+piece  base, body, jetl, thrustl, jetr, thrustr, centerwing, centerpadd, w_glass, thrustm, sleeve, flare, barrel1, barrel2, barrel3, barrel4;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -12,7 +12,7 @@ piece  base, jet, thrustl, thrustr, rflare, lflare;
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
 
-static-var isIdle, IdleX, IdleY, IdleZ, wasIdle, gun_1;
+static-var isIdle, IdleX, IdleY, IdleZ, wasIdle;
 IdleHover()
 {
 	while(TRUE){
@@ -72,12 +72,11 @@ IdleHover()
 
 Create()
 {
-	hide rflare;
-	hide lflare;
+	hide flare;
 	hide thrustr;
 	hide thrustl;
-	gun_1 = 0;
-	turn jet to x-axis <-90.000000> now;
+	turn jetl to x-axis <-90.000000> now;
+	turn jetr to x-axis <-90.000000> now;
 	start-script IdleHover();
 }
 
@@ -89,6 +88,7 @@ Activate()
 
 Deactivate()
 {
+
 	hide thrustl;
 	hide thrustr;
 }
@@ -120,24 +120,40 @@ RestoreAfterDelay()
 #define UNITSIZE 1
 #define MAXTILT 100
 
-MoveRate0()
-{
-	turn jet to x-axis <-90.000000> speed <200.000000>;
-}
-
 MoveRate1()
 {
-	turn jet to x-axis <-45.000000> speed <100.000000>;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	turn jetl to x-axis <-70.000000> speed <75.000000>;
+	turn jetr to x-axis <-70.000000> speed <75.000000>;
+	turn base to z-axis <0.000000> speed <120.000000>;
+	//start-script ProcessFlames();
 }
 
 MoveRate2()
 {
-	turn jet to x-axis <0> speed <50.000000>;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	turn jetl to x-axis <-50.000000> speed <55.000000>;
+	turn jetr to x-axis <-50.000000> speed <55.000000>;
+	//start-script ProcessFlames();
+	sleep 1000;
+	turn base to z-axis <240.000000> speed <120.000000>;
+	wait-for-turn base around z-axis;
+	turn base to z-axis <120.000000> speed <180.000000>;
+	wait-for-turn base around z-axis;
+	turn base to z-axis <0.000000> speed <120.000000>;
+	
 }
 
 MoveRate3()
 {
-	turn jet to x-axis <0.000000> speed <100.000000>;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	turn jetl to x-axis <0.000000> speed <85.000000>;
+	turn jetr to x-axis <0.000000> speed <85.000000>;
+	//start-script ProcessFlames();
+	turn base to z-axis <0.000000> speed <120.000000>;
 }
 
 AimFromPrimary(piecenum)
@@ -152,16 +168,7 @@ AimPrimary(heading, pitch)
 
 QueryPrimary(piecenum)
 {
-	if (gun_1==0)
-	{
-		piecenum = lflare;
-		gun_1=1;
-	}
-	else 
-	{
-		piecenum=rflare;
-		gun_1=0;
-	}
+	piecenum = flare;
 }
 
 FirePrimary()

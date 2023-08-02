@@ -26,7 +26,7 @@ local myTeamID = Spring.GetMyTeamID()
 
 local isFighter = {}
 for udid, ud in pairs(UnitDefs) do
-    if ud.customParams.fighter then
+    if ud.customParams.fighter or ud.customParams.drone then
         isFighter[udid] = true
     end
 end
