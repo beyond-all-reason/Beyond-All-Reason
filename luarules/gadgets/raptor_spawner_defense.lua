@@ -68,7 +68,6 @@ if gadgetHandler:IsSyncedCode() then
 	local queenLifePercent = 100
 	local maxTries = 30
 	local raptorUnitCap = math.floor(Game.maxUnits*0.95)
-	local damageMod = config.damageMod
 	local minBurrows = 1
 	local timeOfLastSpawn = -999999
 	local timeOfLastFakeSpawn = 0
@@ -303,6 +302,7 @@ if gadgetHandler:IsSyncedCode() then
 	local minWaveSize = ((config.minRaptors*(1-config.raptorPerPlayerMultiplier))+(config.minRaptors*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
 	config.raptorSpawnRate = config.raptorSpawnRate*Spring.GetModOptions().raptor_spawntimemult
 	local currentMaxWaveSize = minWaveSize
+	local endlessLoopCounter = 1
 	function updateDifficultyForSurvival()
 		t = GetGameSeconds()
 		config.gracePeriod = t-1
@@ -315,14 +315,17 @@ if gadgetHandler:IsSyncedCode() then
 		SetGameRulesParam("raptorTechAnger", techAnger)
 		local nextDifficulty
 		difficultyCounter = difficultyCounter + 1
+		endlessLoopCounter = endlessLoopCounter + 1
 		if config.difficultyParameters[difficultyCounter] then
 			nextDifficulty = config.difficultyParameters[difficultyCounter]
 			config.queenResistanceMult = nextDifficulty.queenResistanceMult
+			config.damageMod = nextDifficulty.damageMod
 		else
 			difficultyCounter = difficultyCounter - 1
 			nextDifficulty = config.difficultyParameters[difficultyCounter]
 			config.raptorSpawnMultiplier = config.raptorSpawnMultiplier+1
 			config.queenResistanceMult = config.queenResistanceMult+0.5
+			config.damageMod = config.damageMod+0.25
 		end
 		config.queenName = nextDifficulty.queenName
 		config.burrowSpawnRate = nextDifficulty.burrowSpawnRate
@@ -334,7 +337,8 @@ if gadgetHandler:IsSyncedCode() then
 		config.maxBurrows = nextDifficulty.maxBurrows
 		config.maxXP = nextDifficulty.maxXP
 		config.angerBonus = nextDifficulty.angerBonus
-		config.queenTime = math.ceil(nextDifficulty.queenTime*0.5)
+		config.queenTime = math.ceil(nextDifficulty.queenTime/endlessLoopCounter)
+		
 		queenTime = (config.queenTime + config.gracePeriod)
 		maxBurrows = ((config.maxBurrows*(1-config.raptorPerPlayerMultiplier))+(config.maxBurrows*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
 		maxWaveSize = ((config.maxRaptors*(1-config.raptorPerPlayerMultiplier))+(config.maxRaptors*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
@@ -1149,14 +1153,14 @@ if gadgetHandler:IsSyncedCode() then
 				for i = 1,math.floor((uSettings.spawnedPerWave*(1-config.raptorPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.raptorPerPlayerMultiplier)*SetCount(humanTeams)*config.raptorSpawnMultiplier) do
 					if mRandom() < config.spawnChance then
 						local attempts = 0
+						local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
+						local footprintZ = UnitDefNames[uName].zsize -- why the fuck is this footprint *2??????
+						local footprintAvg = 128
+						if footprintX and footprintZ then
+							footprintAvg = ((footprintX+footprintZ))*4
+						end
 						repeat
 							attempts = attempts + 1
-							local footprintX = UnitDefNames[uName].footprintX
-							local footprintZ = UnitDefNames[uName].footprintZ
-							local footprintAvg = 128
-							if footprintX and footprintZ then
-								footprintAvg = ((footprintX+footprintZ))*16
-							end
 							local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName, footprintAvg+32)
 							if turretUnitID then
 								setRaptorXP(turretUnitID)
@@ -1212,7 +1216,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if attackerTeam == raptorTeamID then
-			damage = damage * damageMod
+			damage = damage * config.damageMod
 		end
 
 		if heroRaptor[unitID] then
@@ -1656,7 +1660,8 @@ if gadgetHandler:IsSyncedCode() then
 					minBurrows = SetCount(humanTeams)
 				else
 					queenAnger = 100
-					minBurrows = 1
+					techAnger = math.min(techAnger, 100)
+					minBurrows = SetCount(humanTeams)
 				end
 				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgression*0.01)/(config.queenTime/3600)) + playerAgressionEcoValue
 				SetGameRulesParam("RaptorQueenAngerGain_Aggression", (playerAgression*0.01)/(config.queenTime/3600))

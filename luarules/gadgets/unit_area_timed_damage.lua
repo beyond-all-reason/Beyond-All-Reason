@@ -82,11 +82,11 @@ local TimedDamageWeapons = {
         resistance = "_RAPTORACID_",
     },
     [WeaponDefNames.raptor_turrets_acid_acidspit.id] = {
-        ceg = "acid-area-75",
+        ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
-        damage = 40,
-        range = 75,
+        damage = 100,
+        range = 150,
         resistance = "_RAPTORACID_",
     },
     [WeaponDefNames.raptor_turretl_acid_acidspit.id] = {
@@ -275,7 +275,22 @@ local TimedDamageDyingUnits = {
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+-- local aliveExplosions = {}
+
+-- local function getRandomFreeExplosionID()
+--     local attempts = 0
+--     repeat 
+--         attempts = attempts + 1
+--         local number = math.random(1,100000)
+--         if not aliveExplosions[number] then
+--             return number
+--         end
+--     until attempts >= 100000
+--     return nil
+-- end
+
 local aliveExplosions = {}
+local aliveExplosionsCounter = 1
 
 function gadget:Initialize()
     for id, a in pairs(TimedDamageWeapons) do
@@ -286,7 +301,7 @@ end
 function gadget:Explosion(weaponDefID, px, py, pz, AttackerID, ProjectileID)
     if TimedDamageWeapons[weaponDefID] then
         local currentTime = Spring.GetGameSeconds()
-        aliveExplosions[#aliveExplosions+1] = {
+        aliveExplosions[aliveExplosionsCounter] = {
             x = px,
             y = math.max(Spring.GetGroundHeight(px, pz), 0),
             z = pz,
@@ -298,6 +313,7 @@ function gadget:Explosion(weaponDefID, px, py, pz, AttackerID, ProjectileID)
             damageCeg = TimedDamageWeapons[weaponDefID].damageCeg,
             resistance = TimedDamageWeapons[weaponDefID].resistance,
         }
+        aliveExplosionsCounter = aliveExplosionsCounter + 1
     end
 end
 
@@ -305,7 +321,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
     if TimedDamageDyingUnits[unitDefID] then
         local currentTime = Spring.GetGameSeconds()
         local px, py, pz = Spring.GetUnitPosition(unitID)
-        aliveExplosions[#aliveExplosions+1] = {
+        aliveExplosions[aliveExplosionsCounter] = {
             x = px,
             y = math.max(Spring.GetGroundHeight(px, pz), 0),
             z = pz,
@@ -317,73 +333,55 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
             damageCeg = TimedDamageDyingUnits[unitDefID].damageCeg,
             resistance = TimedDamageDyingUnits[unitDefID].resistance,
         }
+        aliveExplosionsCounter = aliveExplosionsCounter + 1
     end
 end
 
 function gadget:GameFrame(frame)
     if frame%22 == 10 then
-        if #aliveExplosions > 0 then
-            local safeForCleanup = true
-            local currentTime = Spring.GetGameSeconds()
-            for i = 1,#aliveExplosions do
-                if aliveExplosions[i].endTime >= currentTime then
-                    safeForCleanup = false
-
-                    local x = aliveExplosions[i].x
-                    local z = aliveExplosions[i].z
-                    local y = aliveExplosions[i].y or Spring.GetGroundHeight(x,z)
-
-                    if aliveExplosions[i].cegSpawned == false then
-                        Spring.SpawnCEG(aliveExplosions[i].ceg, x, y + 8, z, 0, 0, 0)
-                        aliveExplosions[i].cegSpawned = true
-                    end
-
-                    local damage = aliveExplosions[i].damage*0.733
-                    local range = aliveExplosions[i].range
-                    local resistance = aliveExplosions[i].resistance
-
-                    local unitsInRange = Spring.GetUnitsInSphere(x, y, z, range)
-                    for j = 1,#unitsInRange do
-                        local unitID = unitsInRange[j]
-                        local unitDefID = Spring.GetUnitDefID(unitID)
-                        if (not UnitDefs[unitDefID].canFly) and (not (UnitDefs[unitDefID].customParams and UnitDefs[unitDefID].customParams.areadamageresistance and string.find(UnitDefs[unitDefID].customParams.areadamageresistance, resistance))) then
-                            local health = Spring.GetUnitHealth(unitID)
-                            if health > damage then
-                                Spring.SetUnitHealth(unitID, health - damage)
-                            else
-                                Spring.DestroyUnit(unitID, false, false)
-                            end
-                            local ux, uy, uz = Spring.GetUnitPosition(unitID)
-                            Spring.SpawnCEG(aliveExplosions[i].damageCeg, ux, uy + 8, uz, 0, 0, 0)
-                        end
-                    end
-
-                    local featuresInRange = Spring.GetFeaturesInSphere(x, y, z, range)
-                    for j = 1,#featuresInRange do
-                        local featureID = featuresInRange[j]
-                        local health = Spring.GetFeatureHealth(featureID)
+        local currentTime = Spring.GetGameSeconds()
+        for explosionID, explosionStats in pairs(aliveExplosions) do
+        --for i = 1,#aliveExplosions do
+            if explosionStats.endTime >= currentTime then
+                local x = explosionStats.x
+                local z = explosionStats.z
+                local y = explosionStats.y or Spring.GetGroundHeight(x,z)
+                if explosionStats.cegSpawned == false then
+                    Spring.SpawnCEG(explosionStats.ceg, x, y + 8, z, 0, 0, 0)
+                    explosionStats.cegSpawned = true
+                end
+                local damage = explosionStats.damage*0.733
+                local range = explosionStats.range
+                local resistance = explosionStats.resistance
+                local unitsInRange = Spring.GetUnitsInSphere(x, y, z, range)
+                for j = 1,#unitsInRange do
+                    local unitID = unitsInRange[j]
+                    local unitDefID = Spring.GetUnitDefID(unitID)
+                    if (not UnitDefs[unitDefID].canFly) and (not (UnitDefs[unitDefID].customParams and UnitDefs[unitDefID].customParams.areadamageresistance and string.find(UnitDefs[unitDefID].customParams.areadamageresistance, resistance))) then
+                        local health = Spring.GetUnitHealth(unitID)
                         if health > damage then
-                            Spring.SetFeatureHealth(featureID, health - damage)
+                            Spring.SetUnitHealth(unitID, health - damage)
                         else
-                            Spring.DestroyFeature(featureID)
+                            Spring.DestroyUnit(unitID, false, false)
                         end
-                        local ux, uy, uz = Spring.GetFeaturePosition(featureID)
-                        Spring.SpawnCEG(aliveExplosions[i].damageCeg, ux, uy + 8, uz, 0, 0, 0)
+                        local ux, uy, uz = Spring.GetUnitPosition(unitID)
+                        Spring.SpawnCEG(explosionStats.damageCeg, ux, uy + 8, uz, 0, 0, 0)
                     end
                 end
-            end
-
-            if aliveExplosions[1].endTime < currentTime then -- The oldest explosion is outdated, it's safe to remove it
-                table.remove(aliveExplosions, 1)
-            end
-
-            if #aliveExplosions > 1000 then -- There's too many explosions! Most likely something went wrong, cleaning up the oldest explosion to save memory.
-                Spring.Echo("TimedDamageExplosionTable Emergency Cleanup")
-                table.remove(aliveExplosions, 1)
-            end
-
-            if safeForCleanup then -- No explosions are alive, we can safely clear the table without messing with table functions
-                aliveExplosions = {}
+                local featuresInRange = Spring.GetFeaturesInSphere(x, y, z, range)
+                for j = 1,#featuresInRange do
+                    local featureID = featuresInRange[j]
+                    local health = Spring.GetFeatureHealth(featureID)
+                    if health > damage then
+                        Spring.SetFeatureHealth(featureID, health - damage)
+                    else
+                        Spring.DestroyFeature(featureID)
+                    end
+                    local ux, uy, uz = Spring.GetFeaturePosition(featureID)
+                    Spring.SpawnCEG(explosionStats.damageCeg, ux, uy + 8, uz, 0, 0, 0)
+                end
+            else -- This explosion is outdated, we can remove it from the list
+                aliveExplosions[explosionID] = nil
             end
         end
     end

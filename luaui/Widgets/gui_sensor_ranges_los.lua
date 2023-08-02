@@ -153,27 +153,6 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
-local function InitializeUnits()
-	unitList = {}
-	clearInstanceTable(circleInstanceVBO)
-	local units = Spring.GetAllUnits()
-	for i = 1, #units do
-		processUnit(units[i], spGetUnitDefID(units[i]), "Initialize")
-	end
-	uploadAllElements(circleInstanceVBO) --upload initialized at once
-end
-
-
-function widget:PlayerChanged()
-	local prevFullview = fullview
-	local myPrevAllyTeamID = allyTeamID
-	spec, fullview = spGetSpectatingState()
-	allyTeamID = Spring.GetMyAllyTeamID()
-	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
-		InitializeUnits()
-	end
-end
-
 function widget:ViewResize(newX, newY)
 	vsx, vsy = Spring.GetViewGeometry()
 	lineScale = (vsy + 500)/ 1300
@@ -221,6 +200,26 @@ local function processUnit(unitID, unitDefID, caller, teamID)
 		unitID -- new unitID stuff
 	)
 
+end
+
+local function InitializeUnits()
+	unitList = {}
+	clearInstanceTable(circleInstanceVBO)
+	local units = Spring.GetAllUnits()
+	for i = 1, #units do
+		processUnit(units[i], spGetUnitDefID(units[i]), "Initialize")
+	end
+	uploadAllElements(circleInstanceVBO) --upload initialized at once
+end
+
+function widget:PlayerChanged()
+	local prevFullview = fullview
+	local myPrevAllyTeamID = allyTeamID
+	spec, fullview = spGetSpectatingState()
+	allyTeamID = Spring.GetMyAllyTeamID()
+	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
+		InitializeUnits()
+	end
 end
 
 function widget:Initialize()

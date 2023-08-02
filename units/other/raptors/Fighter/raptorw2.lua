@@ -85,7 +85,7 @@ return {
 		},
 		weapondefs = {
 			weapon = {
-				areaofeffect = 32,
+				areaofeffect = 64,
 				collidefriendly = 0,
 				collidefeature = 0,
 				avoidfeature = 0,
@@ -103,7 +103,7 @@ return {
 				name = "Spike",
 				noselfdamage = true,
 				predictboost = 1,
-				range = 800,
+				range = 1500,
 				reloadtime = 0.8,
 				smoketrail = true,
 				soundstart = "talonattack",
@@ -115,7 +115,7 @@ return {
 				weapontimer = 1,
 				weaponvelocity = 1000,
 				damage = {
-					default = 3200,
+					default = 2000,
 				},
 			},
 		},

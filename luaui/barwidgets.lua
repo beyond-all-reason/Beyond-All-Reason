@@ -71,6 +71,7 @@ widgetHandler = {
 	allowUserWidgets = true,
 
 	actionHandler = VFS.Include(LUAUI_DIRNAME .. "actions.lua", nil, VFS.ZIP),
+	widgetHashes = {}, -- this is a table of widget md5 values to file names, used for user widget hashing
 
 	WG = {}, -- shared table for widgets
 
@@ -434,6 +435,30 @@ function widgetHandler:Initialize()
 	self:SaveConfigData()
 end
 
+local function AddSpadsMessage(contents)
+	-- The canonical, agreed format is the following:
+	-- This must be called from an unsynced context, cause it needs playername and playerid and stuff
+	
+	-- The game sends a lua message, which should be base64'd to prevent wierd character bullshit:
+	-- Lua Message Format: 
+		-- leetspeek luaspads:base64message
+		-- lu@$p@d$:ABCEDFGS==
+		-- Must contain, with triangle bracket literals <playername>[space]<contents>[space]<gameseconds> 
+	-- will get parsed by barmanager, and forwarded to autohostmonitor as:
+	-- match-event <UnnamedPlayer> <LuaUI\Widgets\test_unitshape_instancing.lua/czE3YEocdDJ8bLoO5++a2A==> <35> 
+	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID,false)
+	local gameSeconds = math.max(0,math.round(Spring.GetGameFrame() / 30))
+	if type(contents) == 'table' then 
+		contents = Json.encode(contents) 
+	end
+	local rawmessage = string.format("<%s> <%s> <%d>", myPlayerName, contents, gameSeconds)
+	local b64message = 'lu@$p@d$:' .. string.base64Encode(rawmessage)
+	--Spring.Echo(rawmessage,b64message)
+	Spring.SendLuaRulesMsg(b64message)
+end
+			
+
 function widgetHandler:LoadWidget(filename, fromZip)
 	local basename = Basename(filename)
 	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets) and VFS.ZIP or VFS.RAW_FIRST)
@@ -458,9 +483,15 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		return nil -- widget asked for a silent death
 	end
 
-	-- raw access to widgetHandler
+	-- user widgets may not access widgetHandler
+	-- fixme: remove the or true part
 	if widget.GetInfo and widget:GetInfo().handler then
-		widget.widgetHandler = self
+		if fromZip or true then 
+			widget.widgetHandler = self
+		else
+			Spring.Echo('Failed to load: ' .. basename .. '  (user widgets may not access widgetHandler)', fromZip, filename, allowuserwidgets)
+			return nil
+		end
 	end
 
 	self:FinalizeWidget(widget, filename, basename)
@@ -522,7 +553,15 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		self.knownWidgets[name].active = false
 		return nil
 	end
-
+	if not fromZip then 
+		local md5 = VFS.CalculateHash(text,0)
+		if widgetHandler.widgetHashes[md5] == nil then 
+			widgetHandler.widgetHashes[md5] = filename
+			-- Embed LuaRules message that we enabled a new user widget
+			pcall(AddSpadsMessage, tostring(filename) .. ":" .. tostring(md5))
+		end
+	end
+	
 	-- load the config data
 	local config = self.configData[name]
 	if widget.SetConfigData and config then
@@ -908,7 +947,7 @@ function widgetHandler:EnableWidget(name)
 		if not order or order <= 0 then
 			self.orderList[name] = 1
 		end
-		local w = self:LoadWidget(ki.filename)
+		local w = self:LoadWidget(ki.filename, ki.fromZip)
 		if not w then
 			return false
 		end
@@ -1170,7 +1209,7 @@ function widgetHandler:ConfigureLayout(command)
 				return true  -- there can only be one
 			end
 		end
-		local sw = self:LoadWidget(LUAUI_DIRNAME .. SELECTOR_BASENAME) -- load the game's included widget_selector.lua, instead of the default selector.lua
+		local sw = self:LoadWidget(LUAUI_DIRNAME .. SELECTOR_BASENAME, true) -- load the game's included widget_selector.lua, instead of the default selector.lua
 		self:InsertWidget(sw)
 		self:RaiseWidget(sw)
 		return true
@@ -2078,7 +2117,7 @@ end
 
 function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam)
 	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitFromFactory")
+	tracy.ZoneBeginN("W:UnitDestroyed")
 	for _, w in ipairs(self.UnitDestroyedList) do
 		w:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
@@ -2096,7 +2135,7 @@ function widgetHandler:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attacker
 end
 
 function widgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitDestroyedByTeam")
+	tracy.ZoneBeginN("W:RenderUnitDestroyed")
 	-- at the time of committing, this does not get called by the widgethandler
 	for _, w in ipairs(self.RenderUnitDestroyedList) do
 		w:RenderUnitDestroyed(unitID, unitDefID, unitTeam)

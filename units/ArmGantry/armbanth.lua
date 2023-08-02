@@ -184,7 +184,6 @@ return {
 				soundhitwet = "splsmed",
 				soundstart = "rapidrocket3",
 				startvelocity = 10,
-				targetable = 0,
 				texture1 = "null",
 				texture2 = "smoketrailbar",
 				texture3 = "null",
@@ -261,7 +260,7 @@ return {
 					nodecal = true,
 				},
 				damage = {
-					default = 0,	
+					default = 0,
 				},
 			},
 		},

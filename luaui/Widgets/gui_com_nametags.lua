@@ -190,7 +190,7 @@ local function GetCommAttributes(unitID, unitDefID)
 		if not xp then
 			xp = GetUnitExperience(unitID)
 		end
-		if comms[unitID] and xp ~= comms[unitID][7] and comnameList[name] then
+		if comms[unitID] and xp ~= comms[unitID][7] and name and comnameList[name] then
 			comnameList[name] = gl.DeleteList(comnameList[name])
 		end
 	end
@@ -578,7 +578,9 @@ if unba then
 			--if math.floor(xp*100) ~= math.floor(oldXP*100) then
 				GetCommAttributes(unitID, unitDefID)
 				local name, _ = GetPlayerInfo(select(2, GetTeamInfo(unitTeam, false)), false)
-				comnameList[name] = gl.DeleteList(comnameList[name])
+				if name and comnameList[name] then
+					comnameList[name] = gl.DeleteList(comnameList[name])
+				end
 			--end
 		end
 	end

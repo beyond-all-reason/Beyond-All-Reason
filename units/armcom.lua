@@ -300,6 +300,7 @@ return {
 				weapontype = "DGun",
 				weaponvelocity = 300,
 				damage = {
+					commanders = 0,
 					default = 99999,
 					scavboss = 1000,
 				},

@@ -960,7 +960,16 @@ local unitNightFactor = 1 -- applied above nightFactor default 1.2
 local adjustfornight = {'unitAmbientColor', 'unitDiffuseColor', 'unitSpecularColor','groundAmbientColor', 'groundDiffuseColor', 'groundSpecularColor' }
 
 
+local targetable = {}
+for wdid, wd in pairs(WeaponDefs) do
+	if wd.targetable then
+		targetable[wdid] = true
+	end
+end
 local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
+	if targetable[weaponID] and py-300 > Spring.GetGroundHeight(px, pz) then	-- dont add light to (likely) intercepted explosions (mainly to curb nuke flashes)
+		return
+	end
 	if explosionLights[weaponID] then
 		local lightParamTable = explosionLights[weaponID].lightParamTable
 		if explosionLights[weaponID].alwaysVisible or spIsSphereInView(px,py,pz, lightParamTable[4]) then

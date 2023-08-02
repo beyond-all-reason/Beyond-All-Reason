@@ -2098,6 +2098,12 @@ function init()
 			end,
 		},
 		{ id = "resolution", group = "gfx", category = types.basic, name = widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.resolution'), type = "select", options = resolutionNames, value = Spring.GetConfigInt('SelectedScreenMode', 1), description = Spring.I18N('ui.settings.option.resolution_descr'),
+		  	onload = function(i, value)
+				-- FIXME: disabled for now due to "Now whenever i do fullscreen or borderless the game will go to monitor 2 regardless of the chosen option. (I want the game on monitor 1)."
+				--if Spring.GetConfigInt('SelectedScreenMode', -1) >= 1 then		-- chobby sets SelectedScreenMode to -1 when it changes game window mode
+				--	WG['screenMode'].SetScreenMode(Spring.GetConfigInt('SelectedScreenMode', 1))
+				--end
+			end,
 			onchange = function(i, value)
 				Spring.SetConfigInt('SelectedScreenMode', value)
 
@@ -2177,7 +2183,7 @@ function init()
 		  end,
 		},
 
-		{ id = "cas_sharpness", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.cas_sharpness'), min = 0.75, max = 1.1, step = 0.01, type = "slider", value = 1.0, description = Spring.I18N('ui.settings.option.cas_sharpness_descr'),
+		{ id = "cas_sharpness", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.cas_sharpness'), min = 0.5, max = 1.1, step = 0.01, type = "slider", value = 1.0, description = Spring.I18N('ui.settings.option.cas_sharpness_descr'),
 		  onload = function(i)
 			  loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", { 'SHARPNESS' })
 		  end,

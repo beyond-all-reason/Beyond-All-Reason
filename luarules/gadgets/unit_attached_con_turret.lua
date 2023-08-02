@@ -3,7 +3,7 @@ function gadget:GetInfo()
         name      = 'Attached Construction Turret',
         desc      = 'Attaches a builder to another mobile unit, so builder can repair while moving',
         author    = 'Itanthias',
-        version   = 'v1.0',
+        version   = 'v1.1',
         date      = 'July 2023',
         license   = 'GNU GPL, v2 or later',
         layer     = 12, 
@@ -29,6 +29,29 @@ local SpGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local SpGetFeatureDefID = Spring.GetFeatureDefID
 local SpGetFeatureResurrect = Spring.GetFeatureResurrect
 local SpGetUnitHealth = Spring.GetUnitHealth
+local SpGetUnitDefDimensions = Spring.GetUnitDefDimensions
+local SpGetFeatureRadius = Spring.GetFeatureRadius
+local SpGetUnitRadius = Spring.GetUnitRadius
+local SpGetUnitFeatureSeparation = Spring.GetUnitFeatureSeparation
+local SpGetUnitSeparation = Spring.GetUnitSeparation
+
+local SpGetHeadingFromVector = Spring.GetHeadingFromVector
+local SpGetUnitHeading = Spring.GetUnitHeading
+local SpCallCOBScript = Spring.CallCOBScript
+
+--repairs and reclaims start at the edge of the unit radius
+--so we need to increase our search radius by the maximum unit radius
+local max_unit_radius = 0
+function gadget:Initialize()
+
+	local radius = 0
+	for ix, udef in pairs(UnitDefs) do
+		dimensions = SpGetUnitDefDimensions(udef.id)
+		radius = dimensions.radius
+		max_unit_radius = math.max(radius,max_unit_radius)
+	end
+
+end
 
 local function auto_repair_routine(unitID,unitDefID)
 
@@ -64,48 +87,60 @@ local function auto_repair_routine(unitID,unitDefID)
 	local tx, ty, tz
 	local radius = UnitDefs[unitDefID].buildDistance
 	local distance = radius^2 + 1
+	local object_radius = 0
 	if (commandQueue[1] ~= nil and commandQueue[1]["id"] < 0) then
         -- out of range build command
-		distance = (ux-commandQueue[1]["params"][1])^2 + (uz-commandQueue[1]["params"][3])^2
+		object_radius = SpGetUnitDefDimensions(-commandQueue[1]["id"]).radius
+		distance = math.sqrt((ux-commandQueue[1]["params"][1])^2 + (uz-commandQueue[1]["params"][3])^2) - object_radius
     end
     if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_REPAIR) then
         -- out of range repair command
 		if (commandQueue[1]["params"][1] > Game.maxUnits) then
 			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1]-Game.maxUnits)
+			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1]-Game.maxUnits)
 		else
 			tx,ty,tz = SpGetUnitPosition(commandQueue[1]["params"][1])
+			object_radius = SpGetUnitRadius(commandQueue[1]["params"][1])
 		end
 		if tx ~= nil then
-			distance = (ux-tx)^2 + (uz-tz)^2
+			distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) - object_radius
 		end
     end
 	if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_RECLAIM) then
 		-- out of range reclaim command
 		if (commandQueue[1]["params"][1] > Game.maxUnits) then
 			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1]-Game.maxUnits)
+			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1]-Game.maxUnits)
 		else
 			tx,ty,tz = SpGetUnitPosition(commandQueue[1]["params"][1])
+			object_radius = SpGetUnitRadius(commandQueue[1]["params"][1])
 		end
 		if tx ~= nil then
-			distance = (ux-tx)^2 + (uz-tz)^2
+			distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) - object_radius
 		end
     end
-	if (distance <= radius^2) then
+	if (distance <= radius) then
 		--let auto con turret continue its thing
+		--update heading, by calling into unit script
+		heading1 = SpGetHeadingFromVector(ux-tx,uz-tz)
+		heading2 = SpGetUnitHeading(unitID)
+		SpCallCOBScript(unitID, 'UpdateHeading', 0, heading1-heading2+32768)
 		return
 	end
 	
 	-- next, check to see if valid repair/reclaim targets in range
-	local near_units = SpGetUnitsInCylinder(ux,uz,radius)
+	local near_units = SpGetUnitsInCylinder(ux,uz,radius + max_unit_radius)
 
 	for XX, near_unit in pairs(near_units) do
 		-- check for free repairs
 		local near_defid = SpGetUnitDefID(near_unit)
 		if SpGetUnitAllyTeam(near_unit) == SpGetUnitAllyTeam(unitID) then
-			local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = SpGetUnitHealth(near_unit)
-			if buildProgress == 1 and health < maxHealth and UnitDefs[near_defid].repairable and near_unit ~= attached_builders[unitID] then
-				SpGiveOrderToUnit(unitID,CMD_REPAIR,{near_unit}, {})
-				return
+			if ( (SpGetUnitSeparation(near_unit,unitID,true) - SpGetUnitRadius(near_unit)) < radius) then
+				local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = SpGetUnitHealth(near_unit)
+				if buildProgress == 1 and health < maxHealth and UnitDefs[near_defid].repairable and near_unit ~= attached_builders[unitID] then
+					SpGiveOrderToUnit(unitID,CMD_REPAIR,{near_unit}, {})
+					return
+				end
 			end
 		end
 	end
@@ -114,20 +149,24 @@ local function auto_repair_routine(unitID,unitDefID)
 		-- check for enemy to reclaim
 		local near_defid = SpGetUnitDefID(near_unit)
 		if SpGetUnitAllyTeam(near_unit) ~= SpGetUnitAllyTeam(unitID) then
-			if UnitDefs[near_defid].reclaimable then
-				SpGiveOrderToUnit(unitID,CMD_RECLAIM,{near_unit}, {})
-				return
+			if ( (SpGetUnitSeparation(near_unit,unitID,true) - SpGetUnitRadius(near_unit)) < radius) then
+				if UnitDefs[near_defid].reclaimable then
+					SpGiveOrderToUnit(unitID,CMD_RECLAIM,{near_unit}, {})
+					return
+				end
 			end
 		end
 	end
 	
-	local near_features = SpGetFeaturesInCylinder(ux,uz,radius)
+	local near_features = SpGetFeaturesInCylinder(ux,uz,radius + max_unit_radius)
 	for XX, near_feature in pairs(near_features) do
 		-- check for non resurrectable feature to reclaim
 		local near_defid = SpGetFeatureDefID(near_feature)
-		if FeatureDefs[near_defid].reclaimable and SpGetFeatureResurrect(near_feature) == "" then
-			SpGiveOrderToUnit(unitID,CMD_RECLAIM,{near_feature+Game.maxUnits}, {})
-			return
+		if ( (SpGetUnitFeatureSeparation(unitID,near_feature,true) - SpGetFeatureRadius(near_feature)) < radius) then
+			if FeatureDefs[near_defid].reclaimable and SpGetFeatureResurrect(near_feature) == "" then
+				SpGiveOrderToUnit(unitID,CMD_RECLAIM,{near_feature+Game.maxUnits}, {})
+				return
+			end
 		end
 	end
 
@@ -135,10 +174,12 @@ local function auto_repair_routine(unitID,unitDefID)
 		-- check for nanoframe to build
 		local near_defid = SpGetUnitDefID(near_unit)
 		if SpGetUnitAllyTeam(near_unit) == SpGetUnitAllyTeam(unitID) then
-			local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = SpGetUnitHealth(near_unit)
-			if buildProgress < 1 then
-				SpGiveOrderToUnit(unitID,CMD_REPAIR,{near_unit}, {})
-				return
+			if ( (SpGetUnitSeparation(near_unit,unitID,true) - SpGetUnitRadius(near_unit)) < radius) then
+				local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = SpGetUnitHealth(near_unit)
+				if buildProgress < 1 then
+					SpGiveOrderToUnit(unitID,CMD_REPAIR,{near_unit}, {})
+					return
+				end
 			end
 		end
 	end
