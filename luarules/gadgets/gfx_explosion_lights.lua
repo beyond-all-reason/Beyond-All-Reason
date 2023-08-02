@@ -56,7 +56,7 @@ if gadgetHandler:IsSyncedCode() then
         end
     end
 
-    function gadget:Explosion(weaponID, px, py, pz, ownerID)
+    function gadget:Explosion(weaponID, px, py, pz, ownerID, projectileID)
         SendToUnsynced("explosion_light", px, py, pz, weaponID, ownerID)
     end
 
@@ -94,7 +94,7 @@ else
 					if Script.LuaUI("GadgetWeaponExplosionGrass") then
 						Script.LuaUI.GadgetWeaponExplosionGrass(px, py, pz, weaponID, ownerID)
 					end
-					
+
 					if Script.LuaUI("GadgetWeaponExplosionDecal") then
 						Script.LuaUI.GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 					end

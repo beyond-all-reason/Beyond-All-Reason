@@ -256,7 +256,10 @@ function widget:Initialize()
 	end
 
 	WG['screenMode'].SetScreenMode = function(index)
+		local prevScreenmode = screenModeIndex
 		screenModeIndex = index
-		changeScreenMode(screenModeIndex)
+		if screenModeIndex ~= prevScreenmode then
+			changeScreenMode(screenModeIndex)
+		end
 	end
 end

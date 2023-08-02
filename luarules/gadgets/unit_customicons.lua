@@ -119,6 +119,7 @@ local units = {
 	armfast = { "bot_t2_raid.png", 1.15499997 },
 	armfatf = { "targetting.png", 1.36499989 },
 	armfav = { "vehicle.png", 0.57749999 },
+	armzapper = { "vehicle.png", 0.57749999 },
 	armfboy = { "bot_t2_plasma_aoe.png", 1.67999995 },
 	armfdrag = { "wall_0.4.png", 0.41999999 },
 	armfepocht4 = { "air_t4_flagship.png", 3.3599999 },
@@ -366,13 +367,17 @@ local units = {
 
 	raptor_turrets = { "raptor_tentacle.png", 2 },
 	raptor_turrets_antiair = { "raptor_tentacle.png", 2 },
+	
 	raptor_turretl = { "raptor_tentacle2.png", 3 },
 	raptor_turretl_antiair = { "raptor_tentacle2.png", 3 },
 	raptor_turrets_electric = { "raptor_tentacle.png", 2 },
 	raptor_turretl_electric  = { "raptor_tentacle2.png", 3 },
 	raptor_turrets_acid  = { "raptor_tentacle.png", 2 },
 	raptor_turretl_acid  = { "raptor_tentacle2.png", 3 },
+	raptor_turrets_antinuke = { "raptor_tentacle.png", 2 },
+	raptor_turretl_antinuke = { "raptor_tentacle2.png", 3 },
 	raptor_turretxl_meteor = { "raptor_tentacle2.png", 5 },
+	raptor_turretxl_antiair = { "raptor_tentacle2.png", 5 },
 	raptor_hive = { "raptor_roost.png", 2 },
 	raptor_antinuke = { "raptor_roost.png", 0 },
 

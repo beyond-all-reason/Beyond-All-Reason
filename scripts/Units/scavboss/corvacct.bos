@@ -114,6 +114,10 @@ SetStunned(State)
 	}
 }
 
+UpdateHeading(heading)
+{
+	start-script Deploy_Nano(heading);
+}
 
 StartBuilding(heading, pitch)
 {

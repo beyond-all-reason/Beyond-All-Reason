@@ -12,30 +12,28 @@ local difficulties = {
 local difficulty = difficulties[Spring.GetModOptions().raptor_difficulty]
 local burrowName = 'raptor_hive'
 
-local raptorTurrets
+local raptorTurrets = {}
+
+raptorTurrets["raptor_turrets"] 				= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,}
+raptorTurrets["raptor_turrets_acid"] 			= { minQueenAnger = 25, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 75,}
+raptorTurrets["raptor_turrets_electric"] 		= { minQueenAnger = 25, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 75,}
+raptorTurrets["raptor_turretl"] 				= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turretl_acid"] 			= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turretl_electric"] 		= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,}
+
 if not Spring.GetModOptions().unit_restrictions_nonukes then
-	raptorTurrets = {
-		["raptor_turrets"] 				= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,},
-		["raptor_turrets_antiair"] 		= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,},
-		["raptor_turrets_acid"] 		= { minQueenAnger = 25, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 75,},
-		["raptor_turrets_electric"] 	= { minQueenAnger = 25, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 75,},
-		["raptor_turretl"] 				= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
-		["raptor_turretl_antiair"] 		= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
-		["raptor_turretl_acid"] 		= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
-		["raptor_turretl_electric"] 	= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
-		["raptor_turretxl_meteor"]		= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
-	}
-else
-	raptorTurrets = {
-		["raptor_turrets"] 				= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,},
-		["raptor_turrets_antiair"] 		= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,},
-		["raptor_turrets_acid"] 		= { minQueenAnger = 25, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 75,},
-		["raptor_turrets_electric"] 	= { minQueenAnger = 25, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 75,},
-		["raptor_turretl"] 				= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
-		["raptor_turretl_antiair"] 		= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,},
-		["raptor_turretl_acid"] 		= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
-		["raptor_turretl_electric"] 	= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,},
-	}
+
+	raptorTurrets["raptor_turrets_antinuke"] 	= { minQueenAnger = 25, 	spawnedPerWave = 1,		spawnOnBurrows = true,	maxQueenAnger = 75,}
+	raptorTurrets["raptor_turretl_antinuke"] 	= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = true,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretxl_meteor"]		= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,}
+
+end
+if not Spring.GetModOptions().unit_restrictions_noair then
+
+	raptorTurrets["raptor_turrets_antiair"] 	= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 50,}
+	raptorTurrets["raptor_turretl_antiair"] 	= { minQueenAnger = 50, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretxl_antiair"]	= { minQueenAnger = 75, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,}
+
 end
 
 local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to be true, if some unit is not specified here, it drops random egg colors.
@@ -815,9 +813,15 @@ local highValueTargets = { -- Priority targets for Raptors. Must be immobile to 
 	[UnitDefNames["cormmkr"].id] 	= true,
 	[UnitDefNames["armuwmmm"].id] 	= true,
 	[UnitDefNames["coruwmmm"].id] 	= true,
-
+	-- T2 Metal Extractors
 	[UnitDefNames["cormoho"].id] 	= true,
 	[UnitDefNames["armmoho"].id] 	= true,
+	-- Nukes
+	[UnitDefNames["corsilo"].id] 	= true,
+	[UnitDefNames["armsilo"].id] 	= true,
+	-- Antinukes
+	[UnitDefNames["armamd"].id] 	= true,
+	[UnitDefNames["corfmd"].id] 	= true,
 }
 
 local config = { -- Don't touch this! ---------------------------------------------------------------------------------------------------------------------------------------------

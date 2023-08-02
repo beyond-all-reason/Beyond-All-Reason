@@ -304,12 +304,21 @@ function UnitDef_Post(name, uDef)
 				corap = true,
 				coraap = true,
 				corplat = true,
+				corapt3 = true,
+				armapt3 = true,
+				legap = true,
+				legaap = true,
 				armap_scav = true,
 				armaap_scav = true,
 				armplat_scav = true,
 				corap_scav = true,
 				coraap_scav = true,
 				corplat_scav = true,
+				corapt3_scav = true,
+				armapt3_scav = true,
+				legap_scav = true,
+				legaap_scav = true,
+				
 			}
 			if AircraftFactories[name] then
 				uDef.unitrestricted = 0
@@ -438,6 +447,9 @@ function UnitDef_Post(name, uDef)
 		elseif name == "corgantuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgolt4"
+		elseif name == "armvp" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "armzapper"
 		elseif name == "coravp" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
@@ -447,11 +459,11 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+5] = "cortorch"
 			uDef.buildoptions[numBuildoptions+6] = "corsala"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
-			local numBuildoptions = #uDef.buildoptions
+			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "corca" or name == "corck" or name == "corcv" then
-			local numBuildoptions = #uDef.buildoptions
+			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "legca" or name == "legck" or name == "legcv" then
-			local numBuildoptions = #uDef.buildoptions
+			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armapt3"

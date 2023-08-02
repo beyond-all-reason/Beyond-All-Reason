@@ -116,8 +116,6 @@ Spring.SetConfigInt("BumpWaterTexSizeReflection", 1024)
 
 Spring.SetConfigFloat("CrossAlpha", 0)	-- will be in effect next launch
 
-Spring.SetConfigInt("UnitLodDist", 999999)
-
 if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then
 	Spring.SetConfigInt("AdvModelShading", 1)
 end
@@ -179,9 +177,15 @@ end
 
 -- The default mouse drag threshold is set extremely low for engine by default, and fast clicking often results in a drag. 
 -- This is bad for single unit commands, which turn into empty area commmands as a result of the small drag 
-local baseDragThreshold = 32
+local xresolution = math.max(Spring.GetConfigInt("XResolution", 1920), Spring.GetConfigInt("XResolutionWindowed", 1920))
+local yresolution = math.max(Spring.GetConfigInt("YResolution", 1080), Spring.GetConfigInt("YResolutionWindowed", 1080))
+
+local baseDragThreshold = 16
+baseDragThreshold = math.round(baseDragThreshold * (xresolution + yresolution) * ( 1/3000) ) -- is 16 at 1080p
+baseDragThreshold = math.max(8, math.min(40, baseDragThreshold)) -- clamp between 8 and 40
+Spring.Echo(string.format("Setting Mouse Drag thresholds based on resolution (%dx%d) for Selection to %d, and Command to %d", xresolution,yresolution,baseDragThreshold, baseDragThreshold + 16))
 Spring.SetConfigInt("MouseDragSelectionThreshold", baseDragThreshold)
-Spring.SetConfigInt("MouseDragCircleCommandThreshold", baseDragThreshold)
-Spring.SetConfigInt("MouseDragBoxCommandThreshold", baseDragThreshold + 12)
-Spring.SetConfigInt("MouseDragFrontCommandThreshold", baseDragThreshold + 26)
+Spring.SetConfigInt("MouseDragCircleCommandThreshold", baseDragThreshold + 16)
+Spring.SetConfigInt("MouseDragBoxCommandThreshold", baseDragThreshold + 16)
+Spring.SetConfigInt("MouseDragFrontCommandThreshold", baseDragThreshold + 16)
 
