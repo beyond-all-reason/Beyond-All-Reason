@@ -85,7 +85,7 @@ return {
 		},
 		weapondefs = {
 			weapon = {
-				areaofeffect = 32,
+				areaofeffect = 64,
 				collidefriendly = 0,
 				collidefeature = 0,
 				avoidfeature = 0,

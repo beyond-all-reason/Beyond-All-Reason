@@ -91,7 +91,7 @@ return {
 				collidefeature = 0,
 				avoidfeature = 0,
 				avoidfriendly = 0,
-				areaofeffect = 32,
+				areaofeffect = 64,
 				burnblow = true,
 				craterboost = 0,
 				cratermult = 0,
