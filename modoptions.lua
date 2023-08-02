@@ -1333,6 +1333,15 @@ local options={
 	},
 
 	{
+		key = 'expandedt2sea',
+		name = 'Expanded T2 Sea',
+		desc = 'T2 sea is expanded to include a lightning ship for arm and a flamethrower ship for cor, and both factions get a drone carrier ship and an anti-nuke support ship to replace the aircraft carrier.  Cruisers rebalanced to be slower and lower range but higher health and dps for a more defensive role',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
+	},
+
+	{
 		key    = 'experimentalmorphs',
 		name   = 'Upgradeable Units',
 		desc   = 'Upgradeable Units',

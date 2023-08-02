@@ -448,6 +448,8 @@ local armorDefs = {
 		"legaca",
 		"armdrone",
 		"cordrone",
+		"armdroneold",
+		"cordroneold",
 		"legdrone",
 	},
 	shields = {

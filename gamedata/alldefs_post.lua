@@ -158,6 +158,41 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	if Spring.GetModOptions().expandedt2sea == true then
+		if name == "corcrus" then
+			uDef.maxvelocity = 2
+			uDef.maxdamage = 6700
+			uDef.weapondefs.adv_decklaser.reloadtime = 0.333
+			uDef.weapondefs.cor_crus.range = 500
+		end
+		if name == "armcrus" then
+			uDef.maxvelocity = 2.2
+			uDef.maxdamage = 6000
+			uDef.weapondefs.laser.reloadtime = 0.333
+			uDef.weapondefs.gauss.range = 500
+		end
+		if name == "armasy" then
+			for ix, UnitName in pairs(uDef.buildoptions) do
+				if UnitName == "armcarry" then
+					uDef.buildoptions[ix] = "armantiship"
+				end
+			end
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "armdronecarry"
+			uDef.buildoptions[numBuildoptions+2] = "armlship"
+		end
+		if name == "corasy" then
+			for ix, UnitName in pairs(uDef.buildoptions) do
+				if UnitName == "corcarry" then
+					uDef.buildoptions[ix] = "corantiship"
+				end
+			end
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "cordronecarry"
+			uDef.buildoptions[numBuildoptions+2] = "corfship"
+		end
+	end
+
 	-- Control Mode Tweaks
 	if Spring.GetModOptions().scoremode ~= "disabled" then
 		if Spring.GetModOptions().scoremode_chess == true then
