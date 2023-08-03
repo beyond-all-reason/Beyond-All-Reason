@@ -88,25 +88,25 @@ if gadgetHandler:IsSyncedCode() then
 		waveAirPercentage = 20,
 		waveSpecialPercentage = 33,
 		airWave = {
-			cooldown = mRandom(0,10),
+			cooldown = mRandom(5,15),
 		},
 		specialWave = {
-			cooldown = mRandom(0,10),
+			cooldown = mRandom(5,15),
 		},
 		basicWave = {
-			cooldown = mRandom(0,10),
+			cooldown = mRandom(5,15),
 		},
 		smallWave = {
-			cooldown = mRandom(0,10),
+			cooldown = mRandom(5,15),
 		},
 		largerWave = {
-			cooldown = mRandom(0,25),
+			cooldown = mRandom(10,30),
 		},
 		hugeWave = {
-			cooldown = mRandom(0,50),
+			cooldown = mRandom(15,50),
 		},
 		epicWave = {
-			cooldown = mRandom(0,100),
+			cooldown = mRandom(20,75),
 		}
 	}
 	local squadSpawnOptions = config.squadSpawnOptionsTable
@@ -945,7 +945,7 @@ if gadgetHandler:IsSyncedCode() then
 		waveParameters.hugeWave.cooldown = waveParameters.hugeWave.cooldown - 1
 		waveParameters.epicWave.cooldown = waveParameters.epicWave.cooldown - 1
 
-		waveParameters.waveSpecialPercentage = mRandom(5,75)
+		waveParameters.waveSpecialPercentage = mRandom(5,50)
 		waveParameters.waveAirPercentage = mRandom(5,50)
 
 		waveParameters.waveSizeMultiplier = 1
@@ -993,7 +993,8 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.waveSizeMultiplier = 1.5
 				waveParameters.waveTimeMultiplier = 1.25
 
-				waveParameters.waveAirPercentage = mRandom(5,50)
+				waveParameters.waveAirPercentage = mRandom(5,40)
+				waveParameters.waveSpecialPercentage = mRandom(5,40)
 
 			elseif waveParameters.hugeWave.cooldown <= 0 and mRandom() <= config.spawnChance then
 
@@ -1004,6 +1005,7 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.waveTimeMultiplier = 1.5
 
 				waveParameters.waveAirPercentage = mRandom(5,25)
+				waveParameters.waveSpecialPercentage = mRandom(5,25)
 
 			elseif waveParameters.epicWave.cooldown <= 0 and mRandom() <= config.spawnChance then
 
@@ -1014,6 +1016,7 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.waveTimeMultiplier = 2.5
 
 				waveParameters.waveAirPercentage = mRandom(5,10)
+				waveParameters.waveSpecialPercentage = mRandom(5,10)
 
 			end
 		end
