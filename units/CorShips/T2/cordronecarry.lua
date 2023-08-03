@@ -158,19 +158,19 @@ return {
 					buildcostenergy = 1000,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
 					buildcostmetal = 40,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
 					controlradius = 1300,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit. 
-					decayrate = 5,
+					decayrate = 6,
 					--attackformationspread = 120,	--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out. 
 					--attackformationoffset = 30,	--Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
 					carrierdeaththroe = "control",
 					dockingarmor = 0.2,
-					dockinghealrate = 25,
+					dockinghealrate = 30,
 					docktohealthreshold = 50,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpiecestart = 9,		--First model piece to be used for docking.
 					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit. 
 					dockingpieceend = 19,		--Last model piece used for docking. Will loop back to first when exceeded. 
-					dockingradius = 240,			--The range at which the units snap to the carrier unit when docking.
+					dockingradius = 300,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},
 		},

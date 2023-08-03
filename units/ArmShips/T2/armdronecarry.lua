@@ -170,7 +170,7 @@ return {
 					dockingpiecestart = 11,		--First model piece to be used for docking.
 					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit. 
 					dockingpieceend = 27,		--Last model piece used for docking. Will loop back to first when exceeded. 
-					dockingradius = 240,			--The range at which the units snap to the carrier unit when docking.
+					dockingradius = 300,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},
 		},

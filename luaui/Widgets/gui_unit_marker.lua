@@ -25,6 +25,8 @@ local unitsOfInterest = {
 	[UnitDefNames["corfmd"].id] = true,
 	[UnitDefNames["cormabm"].id] = true,
 	[UnitDefNames["armscab"].id] = true,
+	[UnitDefNames["corantiship"].id] = true,
+	[UnitDefNames["armantiship"].id] = true,
 
 	-- Missile Silos
 	[UnitDefNames["armsilo"].id] = true,

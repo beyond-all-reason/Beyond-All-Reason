@@ -103,6 +103,8 @@ local unitArray_ = {
   "cormabm",
   "armcarry",
   "corcarry",
+  "armantiship",
+  "corantiship",
 
   --misc
   
