@@ -1,8 +1,8 @@
 return {
 	cordrone = {
-		acceleration = 0.25,
+		acceleration = 0.18,
 		blocking = false,
-		brakerate = 0.55,
+		brakerate = 0.4,
 		buildcostenergy = 1000,
 		buildcostmetal = 40,
 		buildpic = "CORBW.DDS",
@@ -22,7 +22,7 @@ return {
 		idletime = 1800,
 		maxdamage = 500,
 		maxslope = 10,
-		maxvelocity = 9.35,
+		maxvelocity = 8,
 		maxwaterdepth = 0,
 		nochasecategory = "COMMANDER VTOL",
 		objectname = "Units/CORDRONE.s3o",
@@ -31,7 +31,7 @@ return {
 		selfdestructas = "tinyExplosionGenericSelfd",
 		sightdistance = 500,
 		turninplaceanglelimit = 360,
-		turnrate = 1100,
+		turnrate = 800,
 		upright = true,
 		usesmoothmesh = 0,
 		customparams = {
