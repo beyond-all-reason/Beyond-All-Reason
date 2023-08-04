@@ -39,7 +39,7 @@ return {
 		customparams = {
 			unitgroup = 'weapon',
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "coreships",
+			subfolder = "corships",
 		},
 		featuredefs = {
 			dead = {
