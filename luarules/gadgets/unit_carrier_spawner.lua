@@ -166,6 +166,9 @@ local totalDroneCount = 0
 	-- test all command states
 	-- rearming stockpiles mechanic similarly to the healing behaviour
 	-- add firewhiledocked as an option.
+	--Known bugs:
+		-- Land carriers struggling with the attack formations
+		-- Drones occationally stuck hovering near the carrier instead of following the active command
 
 for weaponDefID = 1, #WeaponDefs do
 	local wdcp = WeaponDefs[weaponDefID].customParams
@@ -713,13 +716,14 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 		end
 	end
 	
-	local _, _, _, _, buildProgress = Spring.GetUnitHealth(carrierID)
+	-- local _, _, _, _, buildProgress = Spring.GetUnitHealth(carrierID)
 	
-	if not buildProgress or not carrierMetaList[carrierID] then
-		return
-	elseif buildProgress < 1 then
-		--activeSpawning = false
-	end
+	-- if not buildProgress or not carrierMetaList[carrierID] then
+	-- 	return
+	-- elseif buildProgress < 1 then
+	-- 	--activeSpawning = false
+	-- 	carrierMetaList[carrierID].activeSpawning = false
+	-- end
 	
 	--carrierMetaList[carrierID].activeSpawning = activeSpawning
 	
@@ -745,6 +749,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 		
 	--Handles an attack order given to the carrier.
 	if not recallDrones and cmdID == CMD.ATTACK then
+		
 		carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 		if cmdParam_1 and not cmdParam_2 then
 			target = cmdParam_1
@@ -868,13 +873,21 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 							UnDockUnit(carrierID, subUnitID)
 							--end
 							carrierMetaData.subUnitsList[subUnitID].inFormation = true
-	
-							
+														
 							local p2tvx, p2tvz = attackFormationPosition*attackFormationSide*perpendicularvectorx/magnitude, attackFormationPosition*attackFormationSide*perpendicularvectorz/magnitude
 
 							local formationx, formationz = carrierx+targetvectorx+p2tvx, carrierz+targetvectorz+p2tvz
 							
 							spGiveOrderToUnit(subUnitID, CMD.MOVE, {formationx, targety, formationz}, 0)
+
+							if fightOrder then
+								local figthRadius = carrierMetaData.radius*0.2
+								rx, rz = RandomPointInUnitCircle(5)
+								spGiveOrderToUnit(subUnitID, CMD.FIGHT, {targetx+rx*figthRadius, targety, targetz+rz*figthRadius}, CMD.OPT_SHIFT)
+							else
+								spGiveOrderToUnit(subUnitID, CMD.ATTACK, target, CMD.OPT_SHIFT)
+							end
+							-- spGiveOrderToUnit(subUnitID, CMD.MOVE, {targetx, targety, targetz}, CMD.OPT_SHIFT)
 							
 							
 							if attackFormationSide == -1 then
@@ -888,18 +901,18 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 						end
 						
 						if carrierMetaData.subUnitsList[subUnitID].inFormation then
-							local subunitcommand = spGetUnitCurrentCommand(subUnitID,1)
-							Spring.Echo("subunitcmd: ", subunitcommand)
 							
-							if not subunitcommand then
-								spGiveOrderToUnit(subUnitID, CMD.MOVE, {targetx, targety, targetz}, 0)
+								
+							if droneDistance > (magnitude*carrierMetaData.attackFormationOffset/100) then 
 								carrierMetaData.subUnitsList[subUnitID].inFormation = false
+
 							end
 
-							
 						else
 							if fightOrder then
-								spGiveOrderToUnit(subUnitID, CMD.FIGHT, {targetx, targety, targetz}, 0)
+								local figthRadius = carrierMetaData.radius*0.2
+								rx, rz = RandomPointInUnitCircle(5)
+								spGiveOrderToUnit(subUnitID, CMD.FIGHT, {targetx+rx*figthRadius, targety, targetz+rz*figthRadius}, 0)
 							else
 								spGiveOrderToUnit(subUnitID, CMD.ATTACK, target, 0)
 							end
@@ -1070,8 +1083,9 @@ function gadget:GameFrame(f)
 
 	if ((f % DEFAULT_SPAWN_CHECK_FREQUENCY) == 0) then
 		for unitID, _ in pairs(carrierMetaList) do
+			local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
 			if carrierMetaList[unitID].spawnRateFrames == 0 then
-			elseif ((f % carrierMetaList[unitID].spawnRateFrames) == 0 and carrierMetaList[unitID].activeSpawning == 1) then
+			elseif ((f % carrierMetaList[unitID].spawnRateFrames) == 0 and carrierMetaList[unitID].activeSpawning == 1 and buildProgress == 1) then
 				local spawnData = carrierMetaList[unitID].subInitialSpawnData
 				local x, y, z = spGetUnitPosition(unitID)
 				spawnData.x = x
