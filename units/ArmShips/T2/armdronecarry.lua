@@ -153,14 +153,14 @@ return {
 					-- carried_unit2... 			Currently not implemented, but planned.
 					engagementrange = 1200, 	
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently. 
-					spawnrate = 6.5, 				--Spawnrate roughly in seconds. 
+					spawnrate = 7, 				--Spawnrate roughly in seconds. 
 					maxunits = 16,				--Will spawn units until this amount has been reached. 
 					buildcostenergy = 750,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
 					buildcostmetal = 30,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
 					controlradius = 1300,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit. 
 					decayrate = 6,
-					--attackformationspread = 120,	--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out. 
-					--attackformationoffset = 30,	--Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
+					attackformationspread = 120,	--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out. 
+					attackformationoffset = 30,	--Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
 					carrierdeaththroe = "control",
 					dockingarmor = 0.2,
 					dockinghealrate = 24,
