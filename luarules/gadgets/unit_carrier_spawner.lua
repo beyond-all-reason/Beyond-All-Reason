@@ -152,7 +152,10 @@ local totalDroneCount = 0
 	-- dockingHelperSpeed = 10,		The speed used when helping the unit onto the carrier. Set this to 0 to disable the helper and just snap to the carrier unit when within the docking range. 
 	-- dockinghealrate = 0,			Healing per second while docked. 
 	-- docktohealthreshold = 30,	If health percentage drops below the threshold the unit will attempt to dock for healing.
+	-- attackformationspread = 0,	Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out. 
+	-- attackformationoffset = 0,	Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
 	-- decayrate = 0,				health loss per second while not docked. 
+	-- deathdecayrate = 0,			health loss per second while not docked, and no carrier to land on. 
 	-- carrierdeaththroe = "death",	Behaviour for the drones when the carrier dies. "death": destroy the drones. "control": gain manual control of the drones. "capture": same as "control", but if an enemy is within control range, they get control of the drones instead. 
 	
 	-- },							 
@@ -163,6 +166,9 @@ local totalDroneCount = 0
 	-- test all command states
 	-- rearming stockpiles mechanic similarly to the healing behaviour
 	-- add firewhiledocked as an option.
+	--Known bugs:
+		-- Land carriers struggling with the attack formations
+		-- Drones occationally stuck hovering near the carrier instead of following the active command
 
 for weaponDefID = 1, #WeaponDefs do
 	local wdcp = WeaponDefs[weaponDefID].customParams
@@ -188,7 +194,10 @@ for weaponDefID = 1, #WeaponDefs do
 			dockingHelperSpeed = wdcp.dockinghelperspeed,
 			dockingArmor = wdcp.dockingarmor,
 			dockingHealrate = wdcp.dockinghealrate,
+			attackFormationSpread = wdcp.attackformationspread,
+			attackFormationOffset = wdcp.attackformationoffset,
 			decayRate = wdcp.decayrate,
+			deathdecayRate = wdcp.deathdecayrate,
 			dockToHealThreshold = wdcp.docktohealthreshold,
 			carrierdeaththroe = wdcp.carrierdeaththroe
 		}
@@ -384,6 +393,7 @@ local function SpawnUnit(spawnData)
 						docked = false, --
 						stayDocked = false,
 						activeDocking = false,
+						inFormation = false,
 						engaged = false,
 						dockingPiece = dockingpiece, --
 						dockingPieceIndex = dockingpieceindex,
@@ -491,7 +501,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					dockArmor = tonumber(spawnDef.dockingArmor),
 					dockedHealRate = tonumber(spawnDef.dockingHealrate) or 0,
 					dockToHealThreshold = tonumber(spawnDef.dockToHealThreshold) or 30,
+					attackFormationSpread = tonumber(spawnDef.attackFormationSpread) or 0,
+					attackFormationOffset = tonumber(spawnDef.attackFormationOffset) or 0,
 					decayRate = tonumber(spawnDef.decayRate) or 0,
+					deathdecayRate = tonumber(spawnDef.deathdecayRate) or tonumber(spawnDef.decayRate) or 0,
 					activeDocking = false, --currently not in use
 					activeRecall = false,
 					activeSpawning = 1,
@@ -650,9 +663,10 @@ function gadget:UnitDestroyed(unitID)
 						active = true,
 						docked = false, --
 						stayDocked = false,
+						inFormation = false,
 						activeDocking = false,
 						engaged = false,
-						decayRate = carrierMetaList[unitID].decayRate,
+						decayRate = carrierMetaList[unitID].deathdecayRate,
 					}
 					droneMetaList[subUnitID] = droneData
 				end
@@ -678,8 +692,8 @@ end
 local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	local cmdID, _, _, cmdParam_1, cmdParam_2, cmdParam_3 = spGetUnitCurrentCommand(carrierID)
 	local droneSendDistance = nil
-	local ox, oy, oz
-	local px, py, pz
+	local carrierx, carriery, carrierz
+	local targetx, targety, targetz
 	local target
 	local recallDrones = carrierMetaData.activeRecall
 	local attackOrder = false
@@ -702,13 +716,14 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 		end
 	end
 	
-	local _, _, _, _, buildProgress = Spring.GetUnitHealth(carrierID)
+	-- local _, _, _, _, buildProgress = Spring.GetUnitHealth(carrierID)
 	
-	if not buildProgress or not carrierMetaList[carrierID] then
-		return
-	elseif buildProgress < 1 then
-		--activeSpawning = false
-	end
+	-- if not buildProgress or not carrierMetaList[carrierID] then
+	-- 	return
+	-- elseif buildProgress < 1 then
+	-- 	--activeSpawning = false
+	-- 	carrierMetaList[carrierID].activeSpawning = false
+	-- end
 	
 	--carrierMetaList[carrierID].activeSpawning = activeSpawning
 	
@@ -734,17 +749,18 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 		
 	--Handles an attack order given to the carrier.
 	if not recallDrones and cmdID == CMD.ATTACK then
-		ox, oy, oz = spGetUnitPosition(carrierID)
+		
+		carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 		if cmdParam_1 and not cmdParam_2 then
 			target = cmdParam_1
-			px, py, pz = spGetUnitPosition(cmdParam_1)
+			targetx, targety, targetz = spGetUnitPosition(cmdParam_1)
 		else
 			target = {cmdParam_1, cmdParam_2, cmdParam_3}
-			px, py, pz = cmdParam_1, cmdParam_2, cmdParam_3
+			targetx, targety, targetz = cmdParam_1, cmdParam_2, cmdParam_3
 		end
-		if px then
-			-- droneSendDistance = GetDistance(ox, px, oz, pz)
-			droneSendDistance = diag((ox-px), (oz-pz))
+		if targetx then
+			-- droneSendDistance = GetDistance(carrierx, targetx, carrierz, targetz)
+			droneSendDistance = diag((carrierx-targetx), (carrierz-targetz))
 		end
 		attackOrder = true --attack order overrides set target
 	end
@@ -752,12 +768,12 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	
 	--Handles a fight order given to the carrier.
 	if not recallDrones and cmdID == CMD.FIGHT then
-		ox, oy, oz = spGetUnitPosition(carrierID)
-		px, py, pz = cmdParam_1, cmdParam_2, cmdParam_3
+		carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
+		targetx, targety, targetz = cmdParam_1, cmdParam_2, cmdParam_3
 		target = {cmdParam_1, cmdParam_2, cmdParam_3}
-		if px then
-			-- droneSendDistance = GetDistance(ox, px, oz, pz)
-			droneSendDistance = diag((ox-px), (oz-pz))
+		if targetx then
+			-- droneSendDistance = GetDistance(carrierx, targetx, carrierz, targetz)
+			droneSendDistance = diag((carrierx-targetx), (carrierz-targetz))
 		end
 		fightOrder = true 
 	end
@@ -766,21 +782,21 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	if not recallDrones and not attackOrder then
 		local targetType,_,setTarget = spGetUnitWeaponTarget(carrierID, 1)
 		if targetType and targetType > 0 then
-			ox, oy, oz = spGetUnitPosition(carrierID)
+			carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 			if targetType == 2 then --targeting ground
-				px = setTarget[1]
-				py = setTarget[2]
-				pz = setTarget[3]
+				targetx = setTarget[1]
+				targety = setTarget[2]
+				targetz = setTarget[3]
 				target = setTarget
 			end
 			if targetType == 1 then --targeting units
 				local target_id = setTarget
 				target = target_id
-				px, py, pz = spGetUnitPosition(target_id)
+				targetx, targety, targetz = spGetUnitPosition(target_id)
 			end
-			if px then
-				-- droneSendDistance = GetDistance(ox, px, oz, pz)
-				droneSendDistance = diag((ox-px), (oz-pz))
+			if targetx then
+				-- droneSendDistance = GetDistance(carrierx, targetx, carrierz, targetz)
+				droneSendDistance = diag((carrierx-targetx), (carrierz-targetz))
 			end
 			setTargetOrder = true
 		end
@@ -788,11 +804,23 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 
 	local rx, rz
 	local resourceFrames = (frame - previousHealFrame) / 30
+	local attackFormationPosition = 0
+	local attackFormationSide = 0
+	
+	local magnitude
+	local targetvectorx, targetvectorz
+	local perpendicularvectorx, perpendicularvectorz
+	if targetx then
+		magnitude = diag((carrierx-targetx), (carrierz-targetz))
+		targetvectorx, targetvectorz = targetx-carrierx, targetz-carrierz
+		targetvectorx, targetvectorz = carrierMetaData.attackFormationOffset*targetvectorx/100, carrierMetaData.attackFormationOffset*targetvectorz/100
+		perpendicularvectorx, perpendicularvectorz = -targetvectorz, targetvectorx
+	end
+	carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 	for subUnitID,value in pairs(carrierMetaData.subUnitsList) do
-		ox, oy, oz = spGetUnitPosition(carrierID)
 		local sx, sy, sz = spGetUnitPosition(subUnitID)
-		-- local droneDistance = GetDistance(ox, sx, oz, sz)
-		local droneDistance = diag((ox-sx), (oz-sz))
+		-- local droneDistance = GetDistance(carrierx, sx, carrierz, sz)
+		local droneDistance = diag((carrierx-sx), (carrierz-sz))
 
 		--local stayDocked = false
 		local h, mh = spGetUnitHealth(subUnitID)
@@ -817,33 +845,77 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 
 		if carrierMetaList[carrierID] then
 			if carrierMetaList[carrierID].subUnitsList[subUnitID] and droneDistance then
-				if attackOrder or setTargetOrder or fightOrder then
+				if (attackOrder or setTargetOrder or fightOrder) and not carrierMetaData.subUnitsList[subUnitID].inFormation then
 					-- drones fire at will if carrier has an attack/target order
 					-- a drone bomber probably should not do this
 					spGiveOrderToUnit(subUnitID, CMD.FIRE_STATE, 2, 0)
 				end
 				if recallDrones or (droneDistance > carrierMetaData.controlRadius) then
 					-- move drones to carrier
-					px, py, pz = spGetUnitPosition(carrierID)
+					carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 					rx, rz = RandomPointInUnitCircle(5)
 					carrierMetaData.subUnitsCommand.cmdID = nil
 					carrierMetaData.subUnitsCommand.cmdParams = nil
 					if idleRadius == 0 then
 						DockUnitQueue(carrierID, subUnitID)
 					else
-						spGiveOrderToUnit(subUnitID, CMD.MOVE, {px + rx*idleRadius, py, pz + rz*idleRadius}, 0)
+						spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
 						spGiveOrderToUnit(subUnitID, CMD.GUARD, carrierID, CMD.OPT_SHIFT)
 					end
 				elseif droneSendDistance and droneSendDistance < carrierMetaData.radius then
 					-- attacking
 					if target then
-						if not stayDocked then
+
+
+						if carrierMetaData.subUnitsList[subUnitID].docked and magnitude then
+							
+							--if not stayDocked then
 							UnDockUnit(carrierID, subUnitID)
+							--end
+							carrierMetaData.subUnitsList[subUnitID].inFormation = true
+														
+							local p2tvx, p2tvz = attackFormationPosition*attackFormationSide*perpendicularvectorx/magnitude, attackFormationPosition*attackFormationSide*perpendicularvectorz/magnitude
+
+							local formationx, formationz = carrierx+targetvectorx+p2tvx, carrierz+targetvectorz+p2tvz
+							
+							spGiveOrderToUnit(subUnitID, CMD.MOVE, {formationx, targety, formationz}, 0)
+
+							if fightOrder then
+								local figthRadius = carrierMetaData.radius*0.2
+								rx, rz = RandomPointInUnitCircle(5)
+								spGiveOrderToUnit(subUnitID, CMD.FIGHT, {targetx+rx*figthRadius, targety, targetz+rz*figthRadius}, CMD.OPT_SHIFT)
+							else
+								spGiveOrderToUnit(subUnitID, CMD.ATTACK, target, CMD.OPT_SHIFT)
+							end
+							-- spGiveOrderToUnit(subUnitID, CMD.MOVE, {targetx, targety, targetz}, CMD.OPT_SHIFT)
+							
+							
+							if attackFormationSide == -1 then
+								attackFormationSide = 1
+								attackFormationPosition = attackFormationPosition + carrierMetaData.attackFormationSpread
+							elseif attackFormationSide == 1 then
+								attackFormationSide = -1
+							else
+								attackFormationSide = 1
+							end
 						end
-						if fightOrder then
-							spGiveOrderToUnit(subUnitID, CMD.FIGHT, {px, py, pz}, 0)
+						
+						if carrierMetaData.subUnitsList[subUnitID].inFormation then
+							
+								
+							if droneDistance > (magnitude*carrierMetaData.attackFormationOffset/100) then 
+								carrierMetaData.subUnitsList[subUnitID].inFormation = false
+
+							end
+
 						else
-							spGiveOrderToUnit(subUnitID, CMD.ATTACK, target, 0)
+							if fightOrder then
+								local figthRadius = carrierMetaData.radius*0.2
+								rx, rz = RandomPointInUnitCircle(5)
+								spGiveOrderToUnit(subUnitID, CMD.FIGHT, {targetx+rx*figthRadius, targety, targetz+rz*figthRadius}, 0)
+							else
+								spGiveOrderToUnit(subUnitID, CMD.ATTACK, target, 0)
+							end
 						end
 					elseif ((frame % DEFAULT_UPDATE_ORDER_FREQUENCY) == 0) then
 						
@@ -852,7 +924,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 						else
 							UnDockUnit(carrierID, subUnitID)
 							rx, rz = RandomPointInUnitCircle(5)
-							spGiveOrderToUnit(subUnitID, CMD.MOVE, {px + rx*idleRadius, py, pz + rz*idleRadius}, 0)
+							spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
 						end
 					end
 				elseif not carrierMetaData.subUnitsList[subUnitID].keepDocked then
@@ -871,10 +943,10 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 						if idleRadius == 0 then
 							DockUnitQueue(carrierID, subUnitID)
 						else
-							px, py, pz = spGetUnitPosition(carrierID)
+							carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 							rx, rz = RandomPointInUnitCircle(5)
 							UnDockUnit(carrierID, subUnitID)
-							spGiveOrderToUnit(subUnitID, CMD.MOVE, {px + rx*idleRadius, py, pz + rz*idleRadius}, 0)
+							spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
 							spGiveOrderToUnit(subUnitID, CMD.GUARD, carrierID, CMD.OPT_SHIFT)
 						end
 					end
@@ -1011,8 +1083,9 @@ function gadget:GameFrame(f)
 
 	if ((f % DEFAULT_SPAWN_CHECK_FREQUENCY) == 0) then
 		for unitID, _ in pairs(carrierMetaList) do
+			local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
 			if carrierMetaList[unitID].spawnRateFrames == 0 then
-			elseif ((f % carrierMetaList[unitID].spawnRateFrames) == 0 and carrierMetaList[unitID].activeSpawning == 1) then
+			elseif ((f % carrierMetaList[unitID].spawnRateFrames) == 0 and carrierMetaList[unitID].activeSpawning == 1 and buildProgress == 1) then
 				local spawnData = carrierMetaList[unitID].subInitialSpawnData
 				local x, y, z = spGetUnitPosition(unitID)
 				spawnData.x = x
