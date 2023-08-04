@@ -20,8 +20,12 @@ static-var  Static_Var_1, TurretToUnitDistance, TurretToUnitAngleY, TurretToUnit
 #include "unit_hitbyweaponid_and_smoke.h"
 
 
-
 FocusPickUp(unitid){
+
+
+	var lastHeading;
+	lastHeading = get HEADING(0);
+
 		move link to y-axis 0 now;
 
 		move link to x-axis 0 now;
@@ -39,42 +43,32 @@ FocusPickUp(unitid){
 	
 	var diffMe;
 		diffMe = link_y - unit_y;
-
-		get PRINT(diffMe,link_y,unit_y):
-	
-	
-	
-	
-if(get UNIT_HEIGHT(unitid)>1700000){
-		move link to z-axis   get UNIT_HEIGHT(unitid)  speed [25.000000];
-//
-		move link to y-axis 0- diffMe  speed [25.000000];
+		move link to y-axis 0- diffMe now;
 		wait-for-move link along y-axis;	
 
-
-	var newAngle1;
-		newAngle1 = TurretToUnitAngleX - 90;
-		turn link to x-axis  newAngle1 now;
-
-		
-		
-		attach-unit unitid to link;
-
-//Rotate the unit to the right
-
-
-		
-
-
-}else{
-		get PRINT(9,9,9,9):
-
-		move link to y-axis 0- diffMe  speed [25.000000];
-	wait-for-move link along y-axis;	
 		attach-unit unitid to link;
 
 
-}
+		get PRINT(lastHeading,lastHeading,TurretToUnitAngleX,TurretToUnitAngleX):
+		turn link to x-axis  lastHeading  speed <5.000000>;
+		wait-for-turn link around x-axis;	
+
+
+	//What is the angle of the ship???
+	//TODO Rotate around that angle
+
+	
+		sleep 5000;
+
+// TODO: ADJUST Distance between ground
+
+//		move link to z-axis   get UNIT_HEIGHT(unitid)  speed [5.000000];
+
+//		wait-for-move link along z-axis;	
+
+
+
+
 
 
 
@@ -673,6 +667,8 @@ TransportPickup(unitid)
 
 	if( TurretToUnitDistance< maxDistance  ){
 			call-script FocusPickUp(unitid);
+		drop-unit unitid;
+return;
 	}
 
 
