@@ -110,12 +110,16 @@ local droneMetaList = {}
 
 
 
--- These control the frequency, in gameframes, of different actions. Increasing these will improve overall game performance at the cost of this gadgets responsiveness.
-local DEFAULT_UPDATE_ORDER_FREQUENCY = 60	-- Idle movement orders for drones. Must be a multiple of the CARRIER_UPDATE_FREQUENCY to be enabled.
-local CARRIER_UPDATE_FREQUENCY = 30			-- Update dronestates and orders. 
-local DEFAULT_SPAWN_CHECK_FREQUENCY = 30 	-- Controls the minimum possible spawnrate. Do not change. Todo: make changes to the spawnrate check to enable changing this value.
-local DEFAULT_DOCK_CHECK_FREQUENCY = 30		-- Checks the docking queue. Increasing this will decrease docking responsiveness, and may cause some drones to dock too late. 
 
+
+
+
+
+
+
+local lastCarrierUpdate = 0
+local lastSpawnCheck = 0
+local lastDockCheck = 0
 
 local coroutine = coroutine
 local Sleep     = coroutine.yield
@@ -127,7 +131,17 @@ local coroutines = {}
 --TEMPORARY for debugging
 local totalDroneCount = 0
 
--- ZECRUS, values can be tuned in the unitdef file. Add the section below to a weaponDef list in the unitdef file.
+
+-- For ZECRUS:
+
+-- These control the frequency, in gameframes, of different actions. Increasing these will improve overall game performance at the cost of this gadgets responsiveness.
+local DEFAULT_UPDATE_ORDER_FREQUENCY = 60	-- Idle movement orders for drones. How frequently the drones change direction when idling around the carrier. 
+local CARRIER_UPDATE_FREQUENCY = 15			-- Update dronestates and orders. Increasing this will decrease responsiveness when issuing new commands. 
+local DEFAULT_SPAWN_CHECK_FREQUENCY = 3 	-- Controls the minimum possible spawnrate. Increasing this will give less accurate spawnrates.
+local DEFAULT_DOCK_CHECK_FREQUENCY = 15		-- Checks the docking queue. Increasing this will decrease docking responsiveness, and may cause some drones to dock too late. 
+
+
+-- These values can be tuned in the unitdef file. Add the section below to a weaponDef list in the unitdef file.
 --customparams = {
 	--	-- Required:				
 	-- carried_unit = "unitname"     Name of the unit spawned by this carrier unit. 
@@ -312,6 +326,7 @@ local function UnDockUnit(unitID, subUnitID)
 	elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
 		return
 	elseif carrierMetaList[unitID].subUnitsList[subUnitID].docked == true and not carrierMetaList[unitID].subUnitsList[subUnitID].stayDocked then
+		Spring.SetUnitCOBValue(subUnitID, COB.ACTIVATION, 1)
 		spUnitDetach(subUnitID)
 		mcDisable(subUnitID)
 		SetUnitNoSelect(subUnitID, true)
@@ -419,6 +434,7 @@ local function SpawnUnit(spawnData)
 					if carrierMetaList[ownerID].dockArmor then
 						spSetUnitArmored(subUnitID, true, carrierMetaList[ownerID].dockArmor)
 					end
+					Spring.SetUnitCOBValue(subUnitID, COB.ACTIVATION, 0)
 				else
 					spGiveOrderToUnit(subUnitID, CMD.MOVE, {spawnData.x, spawnData.y, spawnData.z}, 0)
 				end
@@ -492,6 +508,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					},
 					subInitialSpawnData = spawnData,
 					spawnRateFrames = tonumber(spawnDef.spawnRate) * 30 or 30,
+					lastSpawn = 0,
+					lastOrderUpdate = 0,
 					maxunits = maxunits,
 					metalCost = tonumber(spawnDef.metalPerUnit),
 					energyCost = tonumber(spawnDef.energyPerUnit),
@@ -817,6 +835,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 		perpendicularvectorx, perpendicularvectorz = -targetvectorz, targetvectorx
 	end
 	carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
+	local orderUpdate = false
 	for subUnitID,value in pairs(carrierMetaData.subUnitsList) do
 		local sx, sy, sz = spGetUnitPosition(subUnitID)
 		-- local droneDistance = GetDistance(carrierx, sx, carrierz, sz)
@@ -917,8 +936,9 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 								spGiveOrderToUnit(subUnitID, CMD.ATTACK, target, 0)
 							end
 						end
-					elseif ((frame % DEFAULT_UPDATE_ORDER_FREQUENCY) == 0) then
-						
+					-- elseif ((frame % DEFAULT_UPDATE_ORDER_FREQUENCY) == 0) then
+					elseif ((DEFAULT_UPDATE_ORDER_FREQUENCY + carrierMetaData.lastOrderUpdate) < frame) then
+						orderUpdate = true
 						if idleRadius == 0 then
 							DockUnitQueue(carrierID, subUnitID)
 						else
@@ -939,7 +959,9 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 						end
 					end
 					carrierMetaData.subUnitsList[subUnitID].engaged = engaged
-					if not engaged and ((frame % DEFAULT_UPDATE_ORDER_FREQUENCY) == 0) then
+					-- if not engaged and ((frame % DEFAULT_UPDATE_ORDER_FREQUENCY) == 0) then
+					if not engaged and ((DEFAULT_UPDATE_ORDER_FREQUENCY + carrierMetaData.lastOrderUpdate) < frame) then
+						orderUpdate = true
 						if idleRadius == 0 then
 							DockUnitQueue(carrierID, subUnitID)
 						else
@@ -956,6 +978,9 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 		
 	
 		
+	end
+	if orderUpdate then
+		lastOrderUpdate = frame
 	end
 	
 
@@ -1032,7 +1057,7 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 									spGiveOrderToUnit(subUnitID, CMD.STOP, {}, 0)
 									spGiveOrderToUnit(subUnitID, CMD.MOVE, {px, py, pz}, 0)
 								end
-			
+								
 								
 								carrierMetaList[unitID].activeDocking = true
 								if carrierMetaList[unitID].dockHelperSpeed == 0 then
@@ -1040,8 +1065,8 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 								else
 									dockingSnapRange = carrierMetaList[unitID].dockHelperSpeed
 								end
-							
-			
+								
+								
 								if distance < dockingSnapRange and heightDifference < dockingSnapRange and carrierMetaList[unitID].subUnitsList[subUnitID].docked ~= true then
 									spUnitAttach(unitID, subUnitID, pieceNumber)
 									spGiveOrderToUnit(subUnitID, CMD.STOP, {}, 0)
@@ -1053,6 +1078,7 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 									if carrierMetaList[unitID].dockArmor then
 										spSetUnitArmored(subUnitID, true, carrierMetaList[unitID].dockArmor)
 									end
+									Spring.SetUnitCOBValue(subUnitID, COB.ACTIVATION, 0)
 								end
 			
 								Sleep()
@@ -1081,26 +1107,32 @@ function gadget:GameFrame(f)
 
 
 
-	if ((f % DEFAULT_SPAWN_CHECK_FREQUENCY) == 0) then
+	-- if ((f % DEFAULT_SPAWN_CHECK_FREQUENCY) == 0) then
+	if ((DEFAULT_SPAWN_CHECK_FREQUENCY + lastSpawnCheck) < f) then
+		lastSpawnCheck = f
 		for unitID, _ in pairs(carrierMetaList) do
 			local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
 			if carrierMetaList[unitID].spawnRateFrames == 0 then
-			elseif ((f % carrierMetaList[unitID].spawnRateFrames) == 0 and carrierMetaList[unitID].activeSpawning == 1 and buildProgress == 1) then
+				-- elseif ((f % carrierMetaList[unitID].spawnRateFrames) == 0 and carrierMetaList[unitID].activeSpawning == 1 and buildProgress == 1) then
+			elseif ((carrierMetaList[unitID].spawnRateFrames + carrierMetaList[unitID].lastSpawn) < f and carrierMetaList[unitID].activeSpawning == 1 and buildProgress == 1) then
 				local spawnData = carrierMetaList[unitID].subInitialSpawnData
 				local x, y, z = spGetUnitPosition(unitID)
 				spawnData.x = x
 				spawnData.y = y
 				spawnData.z = z
-
+				
 				if x then
 					SpawnUnit(spawnData)
+					carrierMetaList[unitID].lastSpawn = f
 				end
 			end
 		end
 	end
 
 
-	if ((f % CARRIER_UPDATE_FREQUENCY) == 0) then
+	-- if ((f % CARRIER_UPDATE_FREQUENCY) == 0) then
+	if ((CARRIER_UPDATE_FREQUENCY + lastCarrierUpdate) < f) then
+		lastCarrierUpdate = f
 		for unitID, _ in pairs(carrierMetaList) do
 			UpdateCarrier(unitID, carrierMetaList[unitID], f)
 		end
@@ -1109,7 +1141,9 @@ function gadget:GameFrame(f)
 	end
 
 	
-	if ((f % DEFAULT_DOCK_CHECK_FREQUENCY) == 0) then
+	-- if ((f % DEFAULT_DOCK_CHECK_FREQUENCY) == 0) then
+	if ((DEFAULT_DOCK_CHECK_FREQUENCY + lastDockCheck) < f) then
+		lastDockCheck = f
 		if carrierQueuedDockingCount > 0 then -- Initiate docking for units in the docking queue and reset the queue.
 			local availableDockingCount = (carrierAvailableDockingCount-#coroutines)
 			local carrierActiveDockingList = {}
