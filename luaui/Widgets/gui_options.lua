@@ -526,13 +526,14 @@ function DrawWindow()
 	-- title
 	local groupMargin = math.floor(bgpadding * 0.8)
 	local color2 = '\255\125\125\125'
+	local color = '\255\255\255\255'
 	local title = ""
 	if devMode then
 		title = devOptionColor .. Spring.I18N('ui.settings.option.devmode')
 	elseif advSettings then
 		title = "" .. color2 .. Spring.I18N('ui.settings.basic') .. "  /  " .. color .. Spring.I18N('ui.settings.advanced')
 	else
-		title = "" .. optionColor .. Spring.I18N('ui.settings.basic') .. color2 .. "  /  " .. Spring.I18N('ui.settings.advanced')
+		title = "" .. color .. Spring.I18N('ui.settings.basic') .. color2 .. "  /  " .. Spring.I18N('ui.settings.advanced')
 	end
 	local titleFontSize = 18 * widgetScale
 	titleRect = { math.floor((screenX + screenWidth) - ((font2:GetTextWidth(title) * titleFontSize) + (titleFontSize * 1.5))), screenY, screenX + screenWidth, math.floor(screenY + (titleFontSize * 1.7)) }
@@ -2204,7 +2205,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setGamma', { 'gamma' }, value)
 		  end,
 		},
-		{ id = "sepiatone_saturation", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_saturation'), min = 0, max = 1.5, step = 0.02, type = "slider", value = 0.5,
+		{ id = "sepiatone_saturation", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_saturation'), min = 0, max = 1, step = 0.02, type = "slider", value = 0.5,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_saturation", { 'saturation' })
 		  end,
@@ -5872,7 +5873,7 @@ function init()
 			if data.author and data.author ~= '' then
 				desc = desc .. (desc ~= '' and '\n' or '')..widgetOptionColor..Spring.I18N('ui.settings.option.author')..': '.. data.author
 			end
-			options[#options+1] = { id = "widget_"..data.basename, group = "custom", category = types.basic, widget = name, name = name, type = "bool", value = GetWidgetToggleValue(name), description = desc }
+			options[#options+1] = { id = "widget_"..string.gsub(data.basename, ".lua", ""), group = "custom", category = types.basic, widget = name, name = name, type = "bool", value = GetWidgetToggleValue(name), description = desc }
 		end
 	end
 
