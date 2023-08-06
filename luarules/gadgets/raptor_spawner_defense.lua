@@ -300,7 +300,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	local maxWaveSize = ((config.maxRaptors*(1-config.raptorPerPlayerMultiplier))+(config.maxRaptors*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
 	local minWaveSize = ((config.minRaptors*(1-config.raptorPerPlayerMultiplier))+(config.minRaptors*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
-	config.raptorSpawnRate = config.raptorSpawnRate*Spring.GetModOptions().raptor_spawntimemult
 	local currentMaxWaveSize = minWaveSize
 	local endlessLoopCounter = 1
 	function updateDifficultyForSurvival()
@@ -343,7 +342,7 @@ if gadgetHandler:IsSyncedCode() then
 		maxBurrows = ((config.maxBurrows*(1-config.raptorPerPlayerMultiplier))+(config.maxBurrows*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
 		maxWaveSize = ((config.maxRaptors*(1-config.raptorPerPlayerMultiplier))+(config.maxRaptors*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
 		minWaveSize = ((config.minRaptors*(1-config.raptorPerPlayerMultiplier))+(config.minRaptors*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
-		config.raptorSpawnRate = nextDifficulty.raptorSpawnRate*Spring.GetModOptions().raptor_spawntimemult
+		config.raptorSpawnRate = nextDifficulty.raptorSpawnRate
 		currentMaxWaveSize = minWaveSize
 		SetGameRulesParam("RaptorQueenAngerGain_Base", 100/config.queenTime)
 	end
@@ -680,7 +679,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function SpawnBurrowTurret(burrowID, burrowX, burrowY, burrowZ, turretX, turretZ)
-		if mRandom() <= 0.2 then
+		if mRandom() <= 0.3 then
 			local turretOptions = {}
 			for uName, uSettings in pairs(config.raptorTurrets) do
 				if not uSettings.maxQueenAnger then uSettings.maxQueenAnger = uSettings.minQueenAnger + 50 end
@@ -1153,7 +1152,7 @@ if gadgetHandler:IsSyncedCode() then
 			--Spring.Debug.TableEcho(uSettings)
 			if not uSettings.maxQueenAnger then uSettings.maxQueenAnger = uSettings.minQueenAnger + 100 end
 			if uSettings.minQueenAnger <= techAnger and uSettings.maxQueenAnger >= techAnger then
-				local numOfTurrets = math.floor((uSettings.spawnedPerWave*(1-config.raptorPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.raptorPerPlayerMultiplier)*SetCount(humanTeams)*config.raptorSpawnMultiplier)
+				local numOfTurrets = math.floor((uSettings.spawnedPerWave*(1-config.raptorPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))
 				for i = 1, numOfTurrets do
 					if mRandom() < config.spawnChance and Spring.GetTeamUnitDefCount(raptorTeamID, UnitDefNames[uName].id) <= numOfTurrets*10 then
 						local attempts = 0
