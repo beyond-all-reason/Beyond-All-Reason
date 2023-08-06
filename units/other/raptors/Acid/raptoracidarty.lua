@@ -40,7 +40,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "LOBBER_MORPH",
 		side = "THUNDERBIRDS",
-		sightdistance = 1000,
+		sightdistance = 750,
 		smoothanim = true,
 		trackoffset = 6,
 		trackstrength = 3,
@@ -75,7 +75,7 @@ return {
 		},
 		weapondefs = {
 			acidspit = {
-				accuracy = 512,
+				accuracy = 1024,
 				areaofeffect = 150,
 				collidefriendly = 0,
 				collidefeature = 0,
@@ -106,7 +106,7 @@ return {
 				rgbcolor = "0.8 0.99 0.11",
 				soundhit = "bloodsplash3",
 				soundstart = "alien_bombrel",
-				sprayangle = 512,
+				sprayangle = 1024,
 				tolerance = 5000,
 				turret = true,
 				weapontimer = 0.2,
