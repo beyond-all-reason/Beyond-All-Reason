@@ -5887,13 +5887,18 @@ function init()
 				options[#options+1] = { id = "label_custom_widgets_spacer", group = "custom", category = types.basic }
 			end
 			local desc = data.desc or ''
+			if desc ~= '' then
+				local maxWidth = WG['tooltip'].getFontsize() * 90
+				local textLines, numLines = font:WrapText(desc, maxWidth)
+				desc = string.gsub(textLines, '[\n]', '\n')
+			end
 			if data.author and data.author ~= '' then
 				desc = desc .. (desc ~= '' and '\n' or '')..widgetOptionColor..Spring.I18N('ui.settings.option.author')..': '.. data.author
 			end
 			options[#options+1] = { id = "widget_"..string.gsub(data.basename, ".lua", ""), group = "custom", category = types.basic, widget = name, name = name, type = "bool", value = GetWidgetToggleValue(name), description = desc }
 			if userwidgetOptions[name] then
 				for k, customOption in pairs(userwidgetOptions[name]) do
-					options[#options+1] = customOptions[customOption]
+					options[#options+1] = table.copy(customOptions[customOption])
 					options[#options].name = widgetOptionColor..'  '..options[#options].name
 					usedCustomOptions[customOption] = true
 				end
