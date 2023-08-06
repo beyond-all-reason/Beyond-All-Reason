@@ -165,7 +165,10 @@ function widget:DrawScreen()
 
 	gl.PushMatrix()
 	gl.Color(0.0, 0.0, 0.0, 1.0)
-	gl.Rect(viewSizeX - timerwidth,viewSizeY - timerYoffset,viewSizeX,viewSizeY - timerYoffset + timerheight);
+	--background rect
+	gl.Rect(viewSizeX - timerwidth,viewSizeY - timerYoffset-96,viewSizeX,viewSizeY - timerYoffset + timerheight);
+	
+	
 	gl.Color(1.0, 0.0, 1.0, 1.0)
 	gl.Rect(viewSizeX - (timerwidth*0.5),viewSizeY - timerYoffset + timerheight /2 ,viewSizeX + timerwidth * 0.5 - (timerwidth * (1.0 - deltajitter*30)),viewSizeY - timerYoffset + timerheight );
 
@@ -190,7 +193,12 @@ function widget:DrawScreen()
 	gl.Color(1.0, 1.0, 1.0, 1.0)
 
 	gl.PopMatrix()
-
+	
+	
+	-- Frame Drop Indicator!!
+	local df = Spring.GetDrawFrame()
+	local offset =  32 * (df%8)
+	gl.Rect( viewSizeX - timerwidth + offset, viewSizeY - timerYoffset + timerheight-116, viewSizeX - timerwidth + 32 +offset,   viewSizeY - timerYoffset + timerheight-116 -32)
 	if drawframeload > 0 then Loadms(drawframeload, drawframespread) end
 end
 
