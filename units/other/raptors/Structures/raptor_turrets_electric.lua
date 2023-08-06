@@ -43,7 +43,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "bug_death",
 		side = "THUNDERBIRDS",
-		sightdistance = 500,
+		sightdistance = 750,
 		smoothanim = true,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -74,7 +74,7 @@ return {
 		},
 		weapondefs = {
 			raptorparalyzersmall = {
-				accuracy = 512,
+				accuracy = 1024,
 				areaofeffect = 220,
 				collidefriendly = 0,
 				collidefeature = 0,
@@ -105,7 +105,7 @@ return {
 				sizedecay = 0.09,
 				soundhit = "empbomb",
 				soundstart = "bugarty",
-				sprayangle = 512,
+				sprayangle = 1024,
 				tolerance = 5000,
 				turret = true,
 				weapontype = "Cannon",

@@ -35,9 +35,10 @@ return {
 		workertime = 600,
 		yardmap = "oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo oooooooooooooooooo ",
 		buildoptions = {
-			[1] = "armaca",
-			[2] = "armthundt4",
-			[3] = "armfepocht4",
+			"armaca",
+			"armthundt4",
+			"armfepocht4",
+			"armlichet4",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

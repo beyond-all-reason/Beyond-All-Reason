@@ -32,7 +32,7 @@ return {
 		script = "Raptors/raptor_hive2_l.cob",
 		seismicsignature = 0,
 		selfdestructas = "ROOST_DEATH",
-		sightdistance = 500,
+		sightdistance = 750,
 		side = "THUNDERBIRDS",
 		smoothanim = true,
 		turninplace = true,

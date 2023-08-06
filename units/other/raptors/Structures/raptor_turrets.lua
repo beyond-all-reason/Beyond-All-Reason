@@ -43,7 +43,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "bug_death",
 		side = "THUNDERBIRDS",
-		sightdistance = 500,
+		sightdistance = 750,
 		smoothanim = true,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -73,7 +73,7 @@ return {
 		},
 		weapondefs = {
 			weapon = {
-				accuracy = 512,
+				accuracy = 1024,
 				areaofeffect = 256,
 				collidefriendly = 0,
 				collidefeature = 0,
@@ -102,7 +102,7 @@ return {
 				sizedecay = 0.09,
 				soundhit = "bombsmed2",
 				soundstart = "bugarty",
-				sprayangle = 512,
+				sprayangle = 1024,
 				tolerance = 5000,
 				turret = true,
 				weapontimer = 0.2,

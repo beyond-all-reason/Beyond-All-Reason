@@ -351,6 +351,7 @@ local armorDefs = {
 		"armthund",
 		"corshad",
 		"armliche",
+		"armlichet4",
 		"armlance",
 		"armpnix",
 		"armsb",

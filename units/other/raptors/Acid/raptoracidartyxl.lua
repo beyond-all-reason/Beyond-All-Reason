@@ -75,7 +75,7 @@ return {
 		},
 		weapondefs = {
 			acidspit = {
-				accuracy = 1024,
+				accuracy = 2048,
 				areaofeffect = 150,
 				collidefriendly = 0,
 				collidefeature = 0,
@@ -106,7 +106,7 @@ return {
 				rgbcolor = "0.8 0.99 0.11",
 				soundhit = "bloodsplash3",
 				soundstart = "alien_bombrel",
-				sprayangle = 1024,
+				sprayangle = 2048,
 				tolerance = 5000,
 				turret = true,
 				weapontimer = 0.2,

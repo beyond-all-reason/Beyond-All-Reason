@@ -76,7 +76,7 @@ return {
 		},
 		weapondefs = {
 			goolauncher = {
-				accuracy = 1024,
+				accuracy = 2048,
 				areaofeffect = 220,
 				collidefriendly = 0,
 				collidefeature = 0,
@@ -107,7 +107,7 @@ return {
 				sizedecay = 0.09,
 				soundhit = "empbomb",
 				soundstart = "bugarty",
-				sprayangle = 1024,
+				sprayangle = 2048,
 				tolerance = 5000,
 				turret = true,
 				weapontype = "Cannon",

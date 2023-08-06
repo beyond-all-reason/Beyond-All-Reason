@@ -42,6 +42,7 @@ local pauseGameWhenSingleplayer = true
 local cameraTransitionTime = 0.18
 local cameraPanTransitionTime = 0.03
 
+local optionColor = '\255\255\255\255'
 local widgetOptionColor = '\255\160\160\160'
 local musicOptionColor = '\255\130\160\130'
 local devOptionColor = '\255\200\110\100'
@@ -524,8 +525,8 @@ function DrawWindow()
 
 	-- title
 	local groupMargin = math.floor(bgpadding * 0.8)
-	local color = '\255\255\255\255'
 	local color2 = '\255\125\125\125'
+	local color = '\255\255\255\255'
 	local title = ""
 	if devMode then
 		title = devOptionColor .. Spring.I18N('ui.settings.option.devmode')
@@ -1222,7 +1223,7 @@ function widget:DrawScreen()
 								if options[i].restart then
 									desc = desc..'\n\n\255\255\120\120'..Spring.I18N('ui.settings.changesrequirerestart')
 								end
-								WG.tooltip.ShowTooltip('options_description', desc)--, nil, nil, "\255\255\255\255"..options[i].name)
+								WG.tooltip.ShowTooltip('options_description', desc)--, nil, nil, optionColor..options[i].name)
 							end
 							break
 						end
@@ -1282,11 +1283,11 @@ function widget:DrawScreen()
 						end
 						if options[showSelectOptions].optionsFont and fontOption then
 							fontOption[i]:Begin()
-							fontOption[i]:Print('\255\255\255\255' .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2) - oPadding, fontSize, "no")
+							fontOption[i]:Print(optionColor .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2) - oPadding, fontSize, "no")
 							fontOption[i]:End()
 						else
 							font:Begin()
-							font:Print('\255\255\255\255' .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2) - oPadding, fontSize, "no")
+							font:Print(optionColor .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2) - oPadding, fontSize, "no")
 							font:End()
 						end
 					end
@@ -2204,7 +2205,7 @@ function init()
 			  saveOptionValue('Sepia Tone', 'sepia', 'setGamma', { 'gamma' }, value)
 		  end,
 		},
-		{ id = "sepiatone_saturation", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_saturation'), min = 0, max = 1.5, step = 0.02, type = "slider", value = 0.5,
+		{ id = "sepiatone_saturation", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sepiatone_saturation'), min = 0, max = 1, step = 0.02, type = "slider", value = 0.5,
 		  onload = function(i)
 			  loadWidgetData("Sepia Tone", "sepiatone_saturation", { 'saturation' })
 		  end,
@@ -5859,11 +5860,55 @@ function init()
 		options[getOptionByID('gridmenu')] = nil
 	end
 
+	-- add user widgets
+
+
+	-- look for custom widget options
+	local userwidgetOptions = {}
+	local usedCustomOptions = {}
+	local customOptionsCount = #customOptions
+	if customOptions[1] then
+		for k, option in pairs(customOptions) do
+			if not getOptionByID(option.name) and option.widgetname then	-- prevent adding duplicate
+				if not userwidgetOptions[option.widgetname] then
+					userwidgetOptions[option.widgetname] = {}
+				end
+				userwidgetOptions[option.widgetname][#userwidgetOptions[option.widgetname]+1] = k
+				customOptionsCount = customOptionsCount -1
+			end
+		end
+	end
+	local userwidgetsDetected = false
+	for name, data in pairs(widgetHandler.knownWidgets) do
+		if not data.fromZip then
+			if not userwidgetsDetected then
+				userwidgetsDetected = true
+				options[#options+1] = { id = "label_custom_widgets", group = "custom", name = Spring.I18N('ui.settings.option.label_widgets'), category = types.basic }
+				options[#options+1] = { id = "label_custom_widgets_spacer", group = "custom", category = types.basic }
+			end
+			local desc = data.desc or ''
+			if data.author and data.author ~= '' then
+				desc = desc .. (desc ~= '' and '\n' or '')..widgetOptionColor..Spring.I18N('ui.settings.option.author')..': '.. data.author
+			end
+			options[#options+1] = { id = "widget_"..string.gsub(data.basename, ".lua", ""), group = "custom", category = types.basic, widget = name, name = name, type = "bool", value = GetWidgetToggleValue(name), description = desc }
+			if userwidgetOptions[name] then
+				for k, customOption in pairs(userwidgetOptions[name]) do
+					options[#options+1] = customOptions[customOption]
+					options[#options].name = widgetOptionColor..'  '..options[#options].name
+					usedCustomOptions[customOption] = true
+				end
+			end
+		end
+	end
 
 	-- add custom added options (done via WG.options.addOption)
-	for k, option in pairs(customOptions) do
-		if not getOptionByID(option.name) then	-- prevent adding duplicate
-			options[#options+1] = option
+	if customOptionsCount > 0 then
+		options[#options+1] = { id = "label_custom_options", group = "custom", name = Spring.I18N('ui.settings.option.label_options'), category = types.basic }
+		options[#options+1] = { id = "label_custom_options_spacer", group = "custom", category = types.basic }
+		for k, option in pairs(customOptions) do
+			if not getOptionByID(option.name) and not usedCustomOptions[k] then	-- prevent adding duplicate
+				options[#options+1] = option
+			end
 		end
 	end
 
@@ -5911,7 +5956,6 @@ function init()
 	end
 
 	-- count num options in each group
-
 	local groups = {}
 	for id, group in pairs(optionGroups) do
 		groups[group.id] = id
@@ -6171,7 +6215,7 @@ function widget:Initialize()
 	end
 	WG['options'].addOption = function(option)
 		option.group = "custom"
-		customOptions[#options+1] = option
+		customOptions[#customOptions+1] = option
 		init()
 	end
 	WG['options'].removeOption = function(name)

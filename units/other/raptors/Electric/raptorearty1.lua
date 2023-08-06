@@ -40,7 +40,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "raptor_empdeath_small",
 		side = "THUNDERBIRDS",
-		sightdistance = 1000,
+		sightdistance = 750,
 		smoothanim = true,
 		trackoffset = 6,
 		trackstrength = 3,
@@ -76,7 +76,7 @@ return {
 		},
 		weapondefs = {
 			goolauncher = {
-				accuracy = 512,
+				accuracy = 1024,
 				areaofeffect = 220,
 				collidefriendly = 0,
 				collidefeature = 0,
@@ -107,7 +107,7 @@ return {
 				sizedecay = 0.09,
 				soundhit = "empbomb",
 				soundstart = "bugarty",
-				sprayangle = 512,
+				sprayangle = 1024,
 				tolerance = 5000,
 				turret = true,
 				weapontype = "Cannon",

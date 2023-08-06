@@ -680,7 +680,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function SpawnBurrowTurret(burrowID, burrowX, burrowY, burrowZ, turretX, turretZ)
-		if mRandom() <= config.spawnChance then
+		if mRandom() <= 0.2 then
 			local turretOptions = {}
 			for uName, uSettings in pairs(config.raptorTurrets) do
 				if not uSettings.maxQueenAnger then uSettings.maxQueenAnger = uSettings.minQueenAnger + 50 end
@@ -1153,8 +1153,9 @@ if gadgetHandler:IsSyncedCode() then
 			--Spring.Debug.TableEcho(uSettings)
 			if not uSettings.maxQueenAnger then uSettings.maxQueenAnger = uSettings.minQueenAnger + 100 end
 			if uSettings.minQueenAnger <= techAnger and uSettings.maxQueenAnger >= techAnger then
-				for i = 1,math.floor((uSettings.spawnedPerWave*(1-config.raptorPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.raptorPerPlayerMultiplier)*SetCount(humanTeams)*config.raptorSpawnMultiplier) do
-					if mRandom() < config.spawnChance then
+				local numOfTurrets = math.floor((uSettings.spawnedPerWave*(1-config.raptorPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.raptorPerPlayerMultiplier)*SetCount(humanTeams)*config.raptorSpawnMultiplier)
+				for i = 1, numOfTurrets do
+					if mRandom() < config.spawnChance and Spring.GetTeamUnitDefCount(raptorTeamID, UnitDefNames[uName].id) <= numOfTurrets*10 then
 						local attempts = 0
 						local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
 						local footprintZ = UnitDefNames[uName].zsize -- why the fuck is this footprint *2??????

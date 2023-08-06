@@ -40,7 +40,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIGBUG_DEATH",
 		side = "THUNDERBIRDS",
-		sightdistance = 1000,
+		sightdistance = 750,
 		smoothanim = true,
 		trackoffset = 6,
 		trackstrength = 3,
@@ -75,7 +75,7 @@ return {
 		},
 		weapondefs = {
 			goolauncher = {
-				accuracy = 512,
+				accuracy = 1024,
 				areaofeffect = 256,
 				collidefriendly = 0,
 				collidefeature = 0,
@@ -104,7 +104,7 @@ return {
 				sizedecay = 0.09,
 				soundhit = "bombsmed2",
 				soundstart = "bugarty",
-				sprayangle = 512,
+				sprayangle = 1024,
 				tolerance = 5000,
 				turret = true,
 				weapontimer = 0.2,
