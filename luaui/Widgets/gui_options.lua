@@ -5861,6 +5861,23 @@ function init()
 	end
 
 	-- add user widgets
+
+
+	-- look for custom widget options
+	local userwidgetOptions = {}
+	local usedCustomOptions = {}
+	local customOptionsCount = #customOptions
+	if customOptions[1] then
+		for k, option in pairs(customOptions) do
+			if not getOptionByID(option.name) and option.widgetname then	-- prevent adding duplicate
+				if not userwidgetOptions[option.widgetname] then
+					userwidgetOptions[option.widgetname] = {}
+				end
+				userwidgetOptions[option.widgetname][#userwidgetOptions[option.widgetname]+1] = k
+				customOptionsCount = customOptionsCount -1
+			end
+		end
+	end
 	local userwidgetsDetected = false
 	for name, data in pairs(widgetHandler.knownWidgets) do
 		if not data.fromZip then
@@ -5874,15 +5891,22 @@ function init()
 				desc = desc .. (desc ~= '' and '\n' or '')..widgetOptionColor..Spring.I18N('ui.settings.option.author')..': '.. data.author
 			end
 			options[#options+1] = { id = "widget_"..string.gsub(data.basename, ".lua", ""), group = "custom", category = types.basic, widget = name, name = name, type = "bool", value = GetWidgetToggleValue(name), description = desc }
+			if userwidgetOptions[name] then
+				for k, customOption in pairs(userwidgetOptions[name]) do
+					options[#options+1] = customOptions[customOption]
+					options[#options].name = widgetOptionColor..'  '..options[#options].name
+					usedCustomOptions[customOption] = true
+				end
+			end
 		end
 	end
 
 	-- add custom added options (done via WG.options.addOption)
-	if customOptions[1] then
+	if customOptionsCount > 0 then
 		options[#options+1] = { id = "label_custom_options", group = "custom", name = Spring.I18N('ui.settings.option.label_options'), category = types.basic }
 		options[#options+1] = { id = "label_custom_options_spacer", group = "custom", category = types.basic }
 		for k, option in pairs(customOptions) do
-			if not getOptionByID(option.name) then	-- prevent adding duplicate
+			if not getOptionByID(option.name) and not usedCustomOptions[k] then	-- prevent adding duplicate
 				options[#options+1] = option
 			end
 		end
