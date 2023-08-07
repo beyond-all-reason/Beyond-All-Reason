@@ -131,6 +131,11 @@ local mapSunLighting = {
 		modelShadowDensity = 0.82,
 		groundShadowDensity = 0.9,
 	},
+	['delta siege dry v5.3'] = {
+		unitAmbientColor = { 0.3, 0.3, 0.3 },
+		unitDiffuseColor = {0.7, 0.6, 0.6},
+		unitSpecularColor = {1.2, 1.05, 1},
+	},
 }
 
 local mapSun = {
@@ -171,7 +176,7 @@ end
 function widget:Initialize()
 	widgetHandler:RegisterGlobal("NightFactorChanged",NightFactorChanged )
 	WG['NightFactor'] = {red = 1, green = 1, blue = 1, shadow = 1, altitude = 1}
-	
+
 	if not mapSunLighting[currentMapname] and not mapSun[currentMapname] then return end
 	if Spring.GetGameFrame() < 1 then
 		if mapSun[currentMapname] then
@@ -186,7 +191,7 @@ function widget:Initialize()
 	end
 end
 
-local lastSunChanged = -1 
+local lastSunChanged = -1
 function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
 	local df = Spring.GetDrawFrame()
 	--Spring.Echo("widget:SunChanged", df)
