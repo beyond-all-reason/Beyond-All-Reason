@@ -96,7 +96,7 @@ return {
 				noselfdamage = true,
 				proximitypriority = -4,
 				range = 1500,
-				reloadtime = 5,
+				reloadtime = 10,
 				rgbcolor = "1 0.5 0.1",
 				size = 5.5,
 				sizedecay = 0.09,
