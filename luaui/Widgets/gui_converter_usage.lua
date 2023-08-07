@@ -18,7 +18,7 @@ local font2
 
 local RectRound, UiElement
 local dlistGuishader, dlistCU
-local area = {}
+local area = {0,0,0,0}
 
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
@@ -160,6 +160,7 @@ function widget:Shutdown()
     if dlistCU ~= nil then
         glDeleteList(dlistCU)
     end
+	WG['converter_usage'] = nil
 end
 
 function widget:ViewResize()
@@ -173,6 +174,11 @@ end
 
 function widget:Initialize()
     widget:ViewResize()
+
+	WG['converter_usage'] = {}
+	WG['converter_usage'].GetPosition = function()
+		return area
+	end
 end
 
 function widget:GameFrame()
