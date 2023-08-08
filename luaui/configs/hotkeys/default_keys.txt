@@ -117,6 +117,9 @@ bind Any+sc_l togglelos
 bind Ctrl+sc_t trackmode
 bind Any+sc_t track
 
+bind Any+ctrl moveslow
+bind Any+shift movefast
+
 bind Ctrl+f1 viewfps
 bind Ctrl+f2 viewta
 bind Ctrl+f3 viewspring
