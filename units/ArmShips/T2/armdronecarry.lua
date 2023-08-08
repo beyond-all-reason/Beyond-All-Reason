@@ -32,7 +32,7 @@ return {
 		maxvelocity = 2.1,
 		minwaterdepth = 15,
 		movementclass = "BOAT5",
-		nochasecategory = "ALL",
+		nochasecategory = "VTOL",
 		objectname = "Units/ARMDRONECARRY.s3o",
 		radardistance = 1500,
 		radaremitheight = 56,
