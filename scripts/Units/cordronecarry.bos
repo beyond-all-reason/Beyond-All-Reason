@@ -102,6 +102,17 @@ Create()
 	start-script RockOnWaves();
 }
 
+Activate()
+{
+	start-script Lights();
+	start-script Go();
+}
+
+Deactivate()
+{
+	start-script Stop();
+}
+
 waveSplash()
 {
 	while( TRUE )
@@ -161,13 +172,13 @@ FirePrimary()
 
 QueryPrimary(piecenum)
 {
-	piecenum = base;
+	piecenum = radar;
 	return (0);
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = base;
+	piecenum = radar;
 	return (0);
 }
 
