@@ -37,20 +37,53 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
     end
 end
 
+local gridSize = 500
+local mapSizeX = Game.mapSizeX
+local mapSizeZ = Game.mapSizeZ
+local targetGridCells = {}
+local numOfCellsX = math.ceil(mapSizeX/gridSize)
+local numOfCellsZ = math.ceil(mapSizeZ/gridSize)
+local GetGameSeconds = Spring.GetGameSeconds
+
+for cellX = 1, numOfCellsX do
+    for cellZ = 1, numOfCellsZ do
+        if not targetGridCells[cellX] then targetGridCells[cellX] = {} end
+        targetGridCells[cellX][cellZ] = {
+            -- xmin = (cellX-1)*gridSize,
+            -- zmin = (cellZ-1)*gridSize,
+            -- xmax = cellX*gridSize,
+            -- zmax = cellZ*gridSize,
+            locked = 0,
+        }
+    end
+end
+
+function checkTargetCell(posx, posz, nukeID)
+    local cellX = math.ceil(posx/gridSize)
+    local cellZ = math.ceil(posz/gridSize)
+    local cellData = targetGridCells[cellX][cellZ]
+    if cellData.locked < GetGameSeconds() then
+        cellData.locked = GetGameSeconds() + math.random(90,300)
+        return true
+    end
+    aliveNukeLaunchers[nukeID] = GetGameSeconds() + math.random(5,10)
+    return false
+end
+
 function gadget:GameFrame(frame)
     if frame%30 == 17 then
         local allUnits = Spring.GetAllUnits()
         for nukeID, cooldown in pairs(aliveNukeLaunchers) do
-            if cooldown <= Spring.GetGameSeconds() then
+            if cooldown <= GetGameSeconds() then
                 local targetID = allUnits[math.random(1,#allUnits)]
                 if Spring.GetUnitTeam(targetID) ~= Spring.GetUnitTeam(nukeID) then
                     local x,y,z = Spring.GetUnitPosition(targetID)
                     x = x + math.random(-1024,1024)
                     z = z + math.random(-1024,1024)
                     y = math.max(Spring.GetGroundHeight(x,z), 0)
-                    if x and z and x > 0 and x < Game.mapSizeX and z > 0 and z < Game.mapSizeZ then
+                    if x and z and x > 0 and x < mapSizeX and z > 0 and z < mapSizeZ and checkTargetCell(x,z,nukeID) then
                         Spring.GiveOrderToUnit(nukeID, CMD.ATTACK, {x, y, z}, {"shift"})
-                        aliveNukeLaunchers[nukeID] = Spring.GetGameSeconds() + math.random(10,90)
+                        aliveNukeLaunchers[nukeID] = GetGameSeconds() + math.random(5,10)
                     end
                 end
             end
