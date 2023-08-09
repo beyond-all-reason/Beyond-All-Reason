@@ -58,7 +58,6 @@ FocusPickUp(unitid){
 	//TODO Rotate around that angle
 
 	
-		sleep 5000;
 
 // TODO: ADJUST Distance between ground
 
@@ -76,8 +75,8 @@ FocusPickUp(unitid){
 
 
 FocusDropOff(unitid,position){
-
 return;
+
 //while the stupid link does not match the x/y of the unit, move the boom appropriately.
 var yDiff;
 yDiff=get UNIT_Y(unitid)-(get GROUND_HEIGHT(position)+ get UNIT_HEIGHT(unitid));
@@ -667,8 +666,7 @@ TransportPickup(unitid)
 
 	if( TurretToUnitDistance< maxDistance  ){
 			call-script FocusPickUp(unitid);
-		drop-unit unitid;
-return;
+//		drop-unit unitid;
 	}
 
 
@@ -764,7 +762,7 @@ TransportDrop(unitid, position)
 	
 		call-script BoomExtendDrop(position,unitid);
 		call-script	StartDoorClose();
-		call-script FocusDropOff(position);
+//		call-script FocusDropOff(position);
 		drop-unit unitid;
 		call-script BoomReset();
 	
