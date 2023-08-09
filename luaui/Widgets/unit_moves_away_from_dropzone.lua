@@ -115,7 +115,7 @@ function widget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 		local x, y, z = GetUnitPosition(unitID)
 		local tx, ty, tz = GetUnitPosition(transportID)
 
-	local d =200
+	local d =100
 		--Distance2D(transportID,x,z)/72
 	local minD=d/2
 
@@ -159,6 +159,7 @@ function widget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 
 		if	groundLevel <= waterlevel then
 			Echo("uh oh below water")
+
 		end
 
 
