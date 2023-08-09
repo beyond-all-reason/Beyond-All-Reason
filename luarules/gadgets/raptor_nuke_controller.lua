@@ -50,7 +50,7 @@ function gadget:GameFrame(frame)
                     y = math.max(Spring.GetGroundHeight(x,z), 0)
                     if x and z and x > 0 and x < Game.mapSizeX and z > 0 and z < Game.mapSizeZ then
                         Spring.GiveOrderToUnit(nukeID, CMD.ATTACK, {x, y, z}, {"shift"})
-                        aliveNukeLaunchers[nukeID] = Spring.GetGameSeconds() + math.random(5,45)
+                        aliveNukeLaunchers[nukeID] = Spring.GetGameSeconds() + math.random(10,90)
                     end
                 end
             end
