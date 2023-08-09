@@ -27,7 +27,7 @@ local aliveNukeLaunchers = {}
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     if nukeDefs[unitDefID] then
-        aliveNukeLaunchers[unitID] = Spring.GetGameSeconds() + math.random(5,15)
+        aliveNukeLaunchers[unitID] = Spring.GetGameSeconds() + math.random(5,10)
     end
 end
 
@@ -37,7 +37,15 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
     end
 end
 
-local gridSize = 500
+local difficulties = {
+	veryeasy = 1500,
+	easy 	 = 1000,
+	normal   = 800,
+	hard     = 600,
+	veryhard = 500,
+	epic     = 400,
+}
+local gridSize = difficulties[Spring.GetModOptions().raptor_difficulty]
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
 local targetGridCells = {}
@@ -66,7 +74,7 @@ function checkTargetCell(posx, posz, nukeID)
         cellData.locked = GetGameSeconds() + math.random(90,300)
         return true
     end
-    aliveNukeLaunchers[nukeID] = GetGameSeconds() + math.random(5,10)
+    aliveNukeLaunchers[nukeID] = GetGameSeconds() + math.random(1,10)
     return false
 end
 
@@ -83,7 +91,7 @@ function gadget:GameFrame(frame)
                     y = math.max(Spring.GetGroundHeight(x,z), 0)
                     if x and z and x > 0 and x < mapSizeX and z > 0 and z < mapSizeZ and checkTargetCell(x,z,nukeID) then
                         Spring.GiveOrderToUnit(nukeID, CMD.ATTACK, {x, y, z}, {"shift"})
-                        aliveNukeLaunchers[nukeID] = GetGameSeconds() + math.random(5,10)
+                        aliveNukeLaunchers[nukeID] = GetGameSeconds() + math.random(1,10)
                     end
                 end
             end
