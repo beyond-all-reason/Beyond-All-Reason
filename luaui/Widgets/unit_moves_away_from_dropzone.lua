@@ -29,6 +29,7 @@ local coreThoverUnitDefID = UnitDefNames["corthovr"].id
 local coreIntrUnitDefID = UnitDefNames["corintr"].id
 
 local GiveOrderToUnit = Spring.GiveOrderToUnit
+
 local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitDirection = Spring.GetUnitDirection
 local GetMyTeamID = Spring.GetMyTeamID
@@ -70,16 +71,31 @@ function widget:Initialize()
 		maybeRemoveSelf()
 	end
 	--for unitDefID,unitDef in pairs(UnitDefs) do
-	--	if unitDef.canMove and unitDef.speed > 0 then --mobile builder
-	--				moveUnitsDefs[buildeeDefID] = true --mark the mobile unit
-	--		end
-	--	end
+	--	--	if unitDef.canMove and unitDef.speed > 0 then --mobile builder
+	--	--				moveUnitsDefs[buildeeDefID] = true --mark the mobile unit
+	--	--		end
+	--	--	end
+	--	--local units = Spring.GetTeamUnits(myTeamID);
+	--	--for i=1,#units do
+	--	--	local unitID = units[i]
+	--	--	widget:UnitCreated(unitID,GetUnitDefID(unitID),myTeamID)
+	--	--end
+end
 
-	--local units = Spring.GetTeamUnits(myTeamID);
-	--for i=1,#units do
-	--	local unitID = units[i]
-	--	widget:UnitCreated(unitID,GetUnitDefID(unitID),myTeamID)
-	--end
+
+
+
+function Distance2D(unitID, px, pz)
+	if not Spring.ValidUnitID(unitID) then
+		return end
+	if not px or not pz then
+		Spring.Echo(" Invalid px or pz")
+		return end
+
+	local ux, _, uz = GetUnitPosition(unitID)
+	local dx, dz = ux - px, uz - pz
+	local dist = dx * dx + dz * dz
+	return dist
 end
 
 
@@ -91,32 +107,67 @@ function widget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 
 	local transportDefId =GetUnitDefID(transportID)
 
-
 	--only run this script if it from a sea or hover or ground transport
 	if transportDefId == coreIntrUnitDefID or transportDefId == armTshipUnitDefID or transportDefId==coreTshipUnitDefID or transportDefId == coreThoverUnitDefID or transportDefId==armThoverUnitDefID then
 
 		Echo("Unlloaded ".. unitID.. " from "..transportDefId)
 
 		local x, y, z = GetUnitPosition(unitID)
+		local tx, ty, tz = GetUnitPosition(transportID)
 
-		local t_x, t_y, t_z = GetUnitPosition(transportID)
+	local d =200
+		--Distance2D(transportID,x,z)/72
+	local minD=d/2
 
-		--calc the angle Dif so we know what direction to unload in
+		Echo(" DISTANCE FROM transport???".. d)
+
 		local dx,dy,dz = GetUnitDirection(transportID)
-
 		local moveDist = 100
-		local new_x = x+dx*moveDist;
-		local new_z=z+dz*moveDist;
+
+
+		local new_x =0
+		local new_z= 0
+--		ECHO('Unloading '..x..y.." -- "..tx..ty)
+
+		if x>tx then
+			if z>tz then
+			    new_x = x- (-minD+(math.random()*dx*d))
+				new_z= z- (-minD+(math.random()*dz*d))
+
+			else
+
+				new_x = x- (-minD+(math.random()*dx*d))
+				new_z= z+ (-minD+(math.random()*dz*d))
+
+			end
+		else
+			if z>tz then
+
+				new_x = x+ (-minD+(math.random()*dx*d))
+				new_z= z- (-minD+(math.random()*dz*d))
+
+			else
+				new_x = x+ (-minD+(math.random()*dx*d))
+				new_z= z+ (-minD+(math.random()*dz*d))
+
+			end
+
+		end
 
 		--if for some reason the destination is underwater, we need a different target destination
 		local groundLevel=Spring.GetGroundHeight( new_x, new_z )
+
 		if	groundLevel <= waterlevel then
-			new_x = x+dx-moveDist;
-			new_z=z+dz-moveDist;
+			Echo("uh oh below water")
 		end
 
 
 		GiveOrderToUnit(unitID, CMD_MOVE, {new_x, y, new_z}, 0)
+
+
+
+
+
 		--//end
 
 	end
