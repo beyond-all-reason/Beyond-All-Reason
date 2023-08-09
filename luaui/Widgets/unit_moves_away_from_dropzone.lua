@@ -22,6 +22,11 @@ function widget:GetInfo()
 		enabled		= true	--	loaded by default?
 	}
 end
+local armTshipUnitDefID = UnitDefNames["armtship"].id
+local coreTshipUnitDefID = UnitDefNames["cortship"].id
+local armThoverUnitDefID = UnitDefNames["armthovr"].id
+local coreThoverUnitDefID = UnitDefNames["corthovr"].id
+local coreIntrUnitDefID = UnitDefNames["corintr"].id
 
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local GetUnitPosition = Spring.GetUnitPosition
@@ -33,7 +38,7 @@ local Echo = Spring.Echo
 local CMD_MOVE = CMD.MOVE
 
 --------------------------------------------------------------------------------
-
+local waterlevel
 local myTeamID = GetMyTeamID()
 local moveUnitsDefs = {}
 local gameStarted
@@ -56,8 +61,10 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
+ waterlevel = Spring.GetModOptions().map_waterlevel
 
-	Echo("Initializin with unit moves away scrip ####...")
+
+	Echo("Initializin with unit moves away scrip ####..." ..armTshipUnitDefID)
 
 	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
 		maybeRemoveSelf()
@@ -78,37 +85,44 @@ end
 
 function widget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 --function widget:UnitCreated(unitID, unitDefID, unitTeam,builderID)
-	Echo("Unit Unloaded YYYYY")
+	if teamID ~= myTeamID then
+		return
+	end
+
+	local transportDefId =GetUnitDefID(transportID)
 
 
-	--if unitTeam ~= myTeamID then
-	--	return
-	--end
-	Echo("Unit Unloaded XXXX")
+	--only run this script if it from a sea or hover or ground transport
+	if transportDefId == coreIntrUnitDefID or transportDefId == armTshipUnitDefID or transportDefId==coreTshipUnitDefID or transportDefId == coreThoverUnitDefID or transportDefId==armThoverUnitDefID then
 
-	--//if  moveUnitsDefs[unitDefID]then
-
-		Echo("Moving The unit away after uploading...")
+		Echo("Unlloaded ".. unitID.. " from "..transportDefId)
 
 		local x, y, z = GetUnitPosition(unitID)
+
+		local t_x, t_y, t_z = GetUnitPosition(transportID)
+
+		--calc the angle Dif so we know what direction to unload in
 		local dx,dy,dz = GetUnitDirection(transportID)
+
 		local moveDist = 100
+		local new_x = x+dx*moveDist;
+		local new_z=z+dz*moveDist;
+
+		--if for some reason the destination is underwater, we need a different target destination
+		local groundLevel=Spring.GetGroundHeight( new_x, new_z )
+		if	groundLevel <= waterlevel then
+			new_x = x+dx-moveDist;
+			new_z=z+dz-moveDist;
+		end
 
 
-		GiveOrderToUnit(unitID, CMD_MOVE, {x+dx*moveDist, y, z+dz*moveDist}, 0)
-	--//end
+		GiveOrderToUnit(unitID, CMD_MOVE, {new_x, y, new_z}, 0)
+		--//end
+
+	end
 end
 
 
---function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeamID)
---	widget:UnitDestroyed(unitID)
---	widget:UnitCreated(unitID, unitDefID, newTeam)
---end
---
---function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeam)
---	widget:UnitDestroyed(unitID)
---	widget:UnitCreated(unitID, unitDefID, newTeam)
---end
 
 
 
