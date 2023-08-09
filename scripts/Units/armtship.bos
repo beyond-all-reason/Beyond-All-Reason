@@ -75,8 +75,8 @@ FocusPickUp(unitid){
 
 
 FocusDropOff(unitid,position){
-return;
 
+return;
 //while the stupid link does not match the x/y of the unit, move the boom appropriately.
 var yDiff;
 yDiff=get UNIT_Y(unitid)-(get GROUND_HEIGHT(position)+ get UNIT_HEIGHT(unitid));
@@ -666,7 +666,6 @@ TransportPickup(unitid)
 
 	if( TurretToUnitDistance< maxDistance  ){
 			call-script FocusPickUp(unitid);
-//		drop-unit unitid;
 	}
 
 
@@ -697,26 +696,10 @@ TransportPickup(unitid)
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 BeginTransport(Func_Var_1)
 {
-//the unit stops moving.
+//the unit stops moving, but maybe the transport is slowing or moving
+
 
 
 
@@ -726,14 +709,6 @@ BeginTransport(Func_Var_1)
 
 
 }
-
-
-
-
-
-
-
-
 
 
 EndTransport()
@@ -762,7 +737,7 @@ TransportDrop(unitid, position)
 	
 		call-script BoomExtendDrop(position,unitid);
 		call-script	StartDoorClose();
-//		call-script FocusDropOff(position);
+		call-script FocusDropOff(position);
 		drop-unit unitid;
 		call-script BoomReset();
 	
