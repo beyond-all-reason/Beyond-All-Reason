@@ -70,7 +70,9 @@ function checkTargetCell(posx, posz, nukeID)
     local cellX = math.ceil(posx/gridSize)
     local cellZ = math.ceil(posz/gridSize)
     local cellData = targetGridCells[cellX][cellZ]
-    if cellData.locked < GetGameSeconds() then
+    if cellData.locked == 0 then
+        cellData.locked = GetGameSeconds() + math.random(10,120)
+    elseif cellData.locked < GetGameSeconds() then
         cellData.locked = GetGameSeconds() + math.random(90,300)
         return true
     end
