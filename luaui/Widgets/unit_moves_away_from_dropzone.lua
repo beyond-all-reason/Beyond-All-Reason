@@ -98,6 +98,15 @@ function Distance2D(unitID, px, pz)
 	return dist
 end
 
+function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+
+	Echo("Unit Command ".. unitID.. " from "..cmdID)
+	--prevent dropping of any unit when its full,(nanos)
+
+
+end
+
+
 
 function widget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 --function widget:UnitCreated(unitID, unitDefID, unitTeam,builderID)
