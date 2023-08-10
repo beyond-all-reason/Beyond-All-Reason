@@ -38,6 +38,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft",
 			drone = 1,
+			nohealthbars = 1,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
