@@ -12,6 +12,12 @@ positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_check
 nearbyCaptureLibrary = VFS.Include("luarules/utilities/damgam_lib/nearby_capture.lua")
 unitSwapLibrary = VFS.Include("luarules/utilities/damgam_lib/unit_swap.lua")
 
+local ignoreDefs = {}
+for udefID,def in ipairs(UnitDefs) do
+	if def.modCategories['object'] or def.customParams.objectify or def.customParams.drone then
+		ignoreDefs[udefID] = true
+	end
+end
 function ScavSendMessage(message)
 	if scavconfig.messenger then
 		SendToUnsynced("SendMessage", message)
@@ -263,74 +269,76 @@ function gadget:GameFrame(n)
 		if scavengerunits and scavengerGamePhase ~= "initial" then
 			for _, scav in ipairs(scavengerunits) do
 				local scavDef = Spring.GetUnitDefID(scav)
-				local collectorRNG = math_random(0,5)
-				local scavFirestate = Spring.GetUnitStates(scav)["firestate"]
-				if (scavFirestate ~= 2) or (scavFirestate ~= 1 and scavengerGamePhase == "initial") then
-					if scavengerGamePhase == "initial" then
-						Spring.GiveOrderToUnit(scav,CMD.FIRE_STATE,{1},0)
-					else
-						Spring.GiveOrderToUnit(scav,CMD.FIRE_STATE,{2},0)
+				if not ignoreDefs[scavDef] then
+					local collectorRNG = math_random(0,5)
+					local scavFirestate = Spring.GetUnitStates(scav)["firestate"]
+					if (scavFirestate ~= 2) or (scavFirestate ~= 1 and scavengerGamePhase == "initial") then
+						if scavengerGamePhase == "initial" then
+							Spring.GiveOrderToUnit(scav,CMD.FIRE_STATE,{1},0)
+						else
+							Spring.GiveOrderToUnit(scav,CMD.FIRE_STATE,{2},0)
+						end
 					end
-				end
 
-				if n%300 == 0 and scavconfig.modules.stockpilers == true then
-					if scavStockpiler[scav] == true then
-						stockpilingController.ScavStockpile(n, scav)
+					if n%300 == 0 and scavconfig.modules.stockpilers == true then
+						if scavStockpiler[scav] == true then
+							stockpilingController.ScavStockpile(n, scav)
+						end
 					end
-				end
 
-				if not scavteamhasplayers and scavconfig.modules.nukes then
-					if scavNuke[scav] then
-						nukeController.SendRandomNukeOrder(n, scav)
+					if not scavteamhasplayers and scavconfig.modules.nukes then
+						if scavNuke[scav] then
+							nukeController.SendRandomNukeOrder(n, scav)
+						end
 					end
-				end
 
-				if scavteamhasplayers == false  then
-					if scavconfig.modules.constructorControllerModule and scavconfig.constructorControllerModuleConfig.useconstructors then
-						if scavConstructor[scav] then
-							if Spring.GetCommandQueue(scav, 0) <= 0 then
-								constructorController.ConstructNewBlueprint(n, scav)
+					if scavteamhasplayers == false  then
+						if scavconfig.modules.constructorControllerModule and scavconfig.constructorControllerModuleConfig.useconstructors then
+							if scavConstructor[scav] then
+								if Spring.GetCommandQueue(scav, 0) <= 0 then
+									constructorController.ConstructNewBlueprint(n, scav)
+								end
 							end
 						end
-					end
 
-					if not scavteamhasplayers and scavconfig.constructorControllerModuleConfig.useresurrectors and collectorRNG == 0 then
-						if scavResurrector[scav] then
-							constructorController.ResurrectorOrders(n, scav)
+						if not scavteamhasplayers and scavconfig.constructorControllerModuleConfig.useresurrectors and collectorRNG == 0 then
+							if scavResurrector[scav] then
+								constructorController.ResurrectorOrders(n, scav)
+							end
+						end
+
+						if not scavteamhasplayers and scavconfig.constructorControllerModuleConfig.usecollectors and collectorRNG == 0 then
+							if scavCollector[scav] then
+								constructorController.CollectorOrders(n, scav)
+							end
+							if scavCapturer[scav] then
+								constructorController.CapturerOrders(n, scav)
+							end
+							if scavReclaimer[scav] then
+								constructorController.ReclaimerOrders(n, scav)
+							end
+						end
+
+						if scavAssistant[scav] and Spring.GetCommandQueue(scav, 0) <= 0 then
+							constructorController.AssistantOrders(n, scav)
 						end
 					end
 
-					if not scavteamhasplayers and scavconfig.constructorControllerModuleConfig.usecollectors and collectorRNG == 0 then
-						if scavCollector[scav] then
-							constructorController.CollectorOrders(n, scav)
-						end
-						if scavCapturer[scav] then
-							constructorController.CapturerOrders(n, scav)
-						end
-						if scavReclaimer[scav] then
-							constructorController.ReclaimerOrders(n, scav)
-						end
+					if not scavteamhasplayers then
+						factoryController.BuildUnit(scav, scavDef)
 					end
 
-					if scavAssistant[scav] and Spring.GetCommandQueue(scav, 0) <= 0 then
-						constructorController.AssistantOrders(n, scav)
+					if scavteamhasplayers == false and n%900 == 0 and not scavStructure[scav] and not scavAssistant[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
+						unitController.SelfDestructionControls(n, scav, scavDef, false)
 					end
-				end
-
-				if not scavteamhasplayers then
-					factoryController.BuildUnit(scav, scavDef)
-				end
-
-				if scavteamhasplayers == false and n%900 == 0 and not scavStructure[scav] and not scavAssistant[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
-					unitController.SelfDestructionControls(n, scav, scavDef, false)
-				end
-				if scavteamhasplayers == false and not scavStructure[scav] and not scavConstructor[scav] and not scavReclaimer[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavCapturer[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
-					if Spring.GetCommandQueue(scav, 0) <= 3 then
-						unitController.ArmyMoveOrders(n, scav, scavDef)
-					elseif math.random(1,10) == 1 then
-						Spring.GiveOrderToUnit(scav, CMD.STOP, 0, 0)
-						Spring.GiveOrderToUnit(scav, CMD.STOP, 0, 0)
-						unitController.ArmyMoveOrders(n, scav, scavDef)
+					if scavteamhasplayers == false and not scavStructure[scav] and not scavConstructor[scav] and not scavReclaimer[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavCapturer[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
+						if Spring.GetCommandQueue(scav, 0) <= 3 then
+							unitController.ArmyMoveOrders(n, scav, scavDef)
+						elseif math.random(1,10) == 1 then
+							Spring.GiveOrderToUnit(scav, CMD.STOP, 0, 0)
+							Spring.GiveOrderToUnit(scav, CMD.STOP, 0, 0)
+							unitController.ArmyMoveOrders(n, scav, scavDef)
+						end
 					end
 				end
 			end
