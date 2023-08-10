@@ -689,7 +689,6 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	local carrierStates = spGetUnitStates(carrierID)
 	local newOrder = true
 
-
 	--local activeSpawning = true
 	local idleRadius = carrierMetaData.radius
 	if carrierStates then
@@ -704,14 +703,12 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	end
 
 	-- local _, _, _, _, buildProgress = Spring.GetUnitHealth(carrierID)
-
 	-- if not buildProgress or not carrierMetaList[carrierID] then
 	-- 	return
 	-- elseif buildProgress < 1 then
 	-- 	--activeSpawning = false
 	-- 	carrierMetaList[carrierID].activeSpawning = false
 	-- end
-
 	--carrierMetaList[carrierID].activeSpawning = activeSpawning
 
 	local minEngagementRadius = carrierMetaData.minRadius
@@ -730,8 +727,6 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 			newOrder = false
 		end
 	end
-
-
 
 
 	--Handles an attack order given to the carrier.
@@ -807,138 +802,138 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	local orderUpdate = false
 	for subUnitID,value in pairs(carrierMetaData.subUnitsList) do
 		local sx, sy, sz = spGetUnitPosition(subUnitID)
-		-- local droneDistance = GetDistance(carrierx, sx, carrierz, sz)
-		local droneDistance = diag((carrierx-sx), (carrierz-sz))
+		if not sy then
+			carrierMetaData.subUnitsList[subUnitID] = nil
+		else
+			-- local droneDistance = GetDistance(carrierx, sx, carrierz, sz)
+			local droneDistance = diag((carrierx-sx), (carrierz-sz))
 
-		--local stayDocked = false
-		local h, mh = spGetUnitHealth(subUnitID)
+			--local stayDocked = false
+			local h, mh = spGetUnitHealth(subUnitID)
 
-		if h then
-			if carrierMetaData.dockedHealRate > 0 and carrierMetaData.subUnitsList[subUnitID].docked then
-				if h == mh then
-					-- fully healed
-					carrierMetaData.subUnitsList[subUnitID].stayDocked = false
-				else
-					-- still needs healing
-					carrierMetaData.subUnitsList[subUnitID].stayDocked = true
-					HealUnit(subUnitID, carrierMetaData.dockedHealRate, resourceFrames, h, mh)
-				end
-			else
-				HealUnit(subUnitID, -carrierMetaData.decayRate, resourceFrames, h, mh)
-			end
-			if 100*h/mh < carrierMetaData.dockToHealThreshold then
-				DockUnitQueue(carrierID, subUnitID)
-			end
-		end
-
-		if carrierMetaList[carrierID] then
-			if carrierMetaList[carrierID].subUnitsList[subUnitID] and droneDistance then
-				if (attackOrder or setTargetOrder or fightOrder) and not carrierMetaData.subUnitsList[subUnitID].inFormation then
-					-- drones fire at will if carrier has an attack/target order
-					-- a drone bomber probably should not do this
-					spGiveOrderToUnit(subUnitID, CMD.FIRE_STATE, 2, 0)
-				end
-				if recallDrones or (droneDistance > carrierMetaData.controlRadius) then
-					-- move drones to carrier
-					carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
-					rx, rz = RandomPointInUnitCircle(5)
-					carrierMetaData.subUnitsCommand.cmdID = nil
-					carrierMetaData.subUnitsCommand.cmdParams = nil
-					if idleRadius == 0 then
-						DockUnitQueue(carrierID, subUnitID)
+			if h then
+				if carrierMetaData.dockedHealRate > 0 and carrierMetaData.subUnitsList[subUnitID].docked then
+					if h == mh then
+						-- fully healed
+						carrierMetaData.subUnitsList[subUnitID].stayDocked = false
 					else
-						spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
-						spGiveOrderToUnit(subUnitID, CMD.GUARD, carrierID, CMD.OPT_SHIFT)
+						-- still needs healing
+						carrierMetaData.subUnitsList[subUnitID].stayDocked = true
+						HealUnit(subUnitID, carrierMetaData.dockedHealRate, resourceFrames, h, mh)
 					end
-				elseif droneSendDistance and droneSendDistance < carrierMetaData.radius then
-					-- attacking
-					if target then
+				else
+					HealUnit(subUnitID, -carrierMetaData.decayRate, resourceFrames, h, mh)
+				end
+				if 100*h/mh < carrierMetaData.dockToHealThreshold then
+					DockUnitQueue(carrierID, subUnitID)
+				end
+			end
 
-
-						if carrierMetaData.subUnitsList[subUnitID].docked and magnitude then
-
-							--if not stayDocked then
-							UnDockUnit(carrierID, subUnitID)
-							--end
-							carrierMetaData.subUnitsList[subUnitID].inFormation = true
-
-							local p2tvx, p2tvz = attackFormationPosition*attackFormationSide*perpendicularvectorx/magnitude, attackFormationPosition*attackFormationSide*perpendicularvectorz/magnitude
-
-							local formationx, formationz = carrierx+targetvectorx+p2tvx, carrierz+targetvectorz+p2tvz
-
-							spGiveOrderToUnit(subUnitID, CMD.MOVE, {formationx, targety, formationz}, 0)
-
-							if fightOrder then
-								local figthRadius = carrierMetaData.radius*0.2
-								rx, rz = RandomPointInUnitCircle(5)
-								spGiveOrderToUnit(subUnitID, CMD.FIGHT, {targetx+rx*figthRadius, targety, targetz+rz*figthRadius}, CMD.OPT_SHIFT)
-							else
-								spGiveOrderToUnit(subUnitID, CMD.ATTACK, target, CMD.OPT_SHIFT)
-							end
-							-- spGiveOrderToUnit(subUnitID, CMD.MOVE, {targetx, targety, targetz}, CMD.OPT_SHIFT)
-
-
-							if attackFormationSide == -1 then
-								attackFormationSide = 1
-								attackFormationPosition = attackFormationPosition + carrierMetaData.attackFormationSpread
-							elseif attackFormationSide == 1 then
-								attackFormationSide = -1
-							else
-								attackFormationSide = 1
-							end
-						end
-
-						if carrierMetaData.subUnitsList[subUnitID].inFormation then
-
-
-							if droneDistance > (magnitude*carrierMetaData.attackFormationOffset/100) then
-								carrierMetaData.subUnitsList[subUnitID].inFormation = false
-
-							end
-
-						else
-							if fightOrder then
-								local figthRadius = carrierMetaData.radius*0.2
-								rx, rz = RandomPointInUnitCircle(5)
-								spGiveOrderToUnit(subUnitID, CMD.FIGHT, {targetx+rx*figthRadius, targety, targetz+rz*figthRadius}, 0)
-							else
-								spGiveOrderToUnit(subUnitID, CMD.ATTACK, target, 0)
-							end
-						end
-					-- elseif ((frame % DEFAULT_UPDATE_ORDER_FREQUENCY) == 0) then
-					elseif ((DEFAULT_UPDATE_ORDER_FREQUENCY + carrierMetaData.lastOrderUpdate) < frame) then
-						orderUpdate = true
+			if carrierMetaList[carrierID] then
+				if carrierMetaList[carrierID].subUnitsList[subUnitID] and droneDistance then
+					if (attackOrder or setTargetOrder or fightOrder) and not carrierMetaData.subUnitsList[subUnitID].inFormation then
+						-- drones fire at will if carrier has an attack/target order
+						-- a drone bomber probably should not do this
+						spGiveOrderToUnit(subUnitID, CMD.FIRE_STATE, 2, 0)
+					end
+					if recallDrones or (droneDistance > carrierMetaData.controlRadius) then
+						-- move drones to carrier
+						carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
+						rx, rz = RandomPointInUnitCircle(5)
+						carrierMetaData.subUnitsCommand.cmdID = nil
+						carrierMetaData.subUnitsCommand.cmdParams = nil
 						if idleRadius == 0 then
 							DockUnitQueue(carrierID, subUnitID)
 						else
-							UnDockUnit(carrierID, subUnitID)
-							rx, rz = RandomPointInUnitCircle(5)
-							spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
-						end
-					end
-				elseif not carrierMetaData.subUnitsList[subUnitID].keepDocked then
-					-- return to carrier unless in combat
-					local cQueue = GetCommandQueue(subUnitID, -1)
-					local engaged = false
-					for j = 1, (cQueue and #cQueue or 0) do
-						if cQueue[j].id == CMD.ATTACK and carrierStates.firestate > 0 then
-							-- if currently fighting AND not on hold fire
-							engaged = true
-							break
-						end
-					end
-					carrierMetaData.subUnitsList[subUnitID].engaged = engaged
-					-- if not engaged and ((frame % DEFAULT_UPDATE_ORDER_FREQUENCY) == 0) then
-					if not engaged and ((DEFAULT_UPDATE_ORDER_FREQUENCY + carrierMetaData.lastOrderUpdate) < frame) then
-						orderUpdate = true
-						if idleRadius == 0 then
-							DockUnitQueue(carrierID, subUnitID)
-						else
-							carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
-							rx, rz = RandomPointInUnitCircle(5)
-							UnDockUnit(carrierID, subUnitID)
 							spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
 							spGiveOrderToUnit(subUnitID, CMD.GUARD, carrierID, CMD.OPT_SHIFT)
+						end
+					elseif droneSendDistance and droneSendDistance < carrierMetaData.radius then
+						-- attacking
+						if target then
+
+
+							if carrierMetaData.subUnitsList[subUnitID].docked and magnitude then
+
+								--if not stayDocked then
+								UnDockUnit(carrierID, subUnitID)
+								--end
+								carrierMetaData.subUnitsList[subUnitID].inFormation = true
+
+								local p2tvx, p2tvz = attackFormationPosition*attackFormationSide*perpendicularvectorx/magnitude, attackFormationPosition*attackFormationSide*perpendicularvectorz/magnitude
+
+								local formationx, formationz = carrierx+targetvectorx+p2tvx, carrierz+targetvectorz+p2tvz
+
+								spGiveOrderToUnit(subUnitID, CMD.MOVE, {formationx, targety, formationz}, 0)
+
+								if fightOrder then
+									local figthRadius = carrierMetaData.radius*0.2
+									rx, rz = RandomPointInUnitCircle(5)
+									spGiveOrderToUnit(subUnitID, CMD.FIGHT, {targetx+rx*figthRadius, targety, targetz+rz*figthRadius}, CMD.OPT_SHIFT)
+								else
+									spGiveOrderToUnit(subUnitID, CMD.ATTACK, target, CMD.OPT_SHIFT)
+								end
+								-- spGiveOrderToUnit(subUnitID, CMD.MOVE, {targetx, targety, targetz}, CMD.OPT_SHIFT)
+
+								if attackFormationSide == -1 then
+									attackFormationSide = 1
+									attackFormationPosition = attackFormationPosition + carrierMetaData.attackFormationSpread
+								elseif attackFormationSide == 1 then
+									attackFormationSide = -1
+								else
+									attackFormationSide = 1
+								end
+							end
+
+							if carrierMetaData.subUnitsList[subUnitID].inFormation then
+								if droneDistance > (magnitude*carrierMetaData.attackFormationOffset/100) then
+									carrierMetaData.subUnitsList[subUnitID].inFormation = false
+
+								end
+							else
+								if fightOrder then
+									local figthRadius = carrierMetaData.radius*0.2
+									rx, rz = RandomPointInUnitCircle(5)
+									spGiveOrderToUnit(subUnitID, CMD.FIGHT, {targetx+rx*figthRadius, targety, targetz+rz*figthRadius}, 0)
+								else
+									spGiveOrderToUnit(subUnitID, CMD.ATTACK, target, 0)
+								end
+							end
+							-- elseif ((frame % DEFAULT_UPDATE_ORDER_FREQUENCY) == 0) then
+						elseif ((DEFAULT_UPDATE_ORDER_FREQUENCY + carrierMetaData.lastOrderUpdate) < frame) then
+							orderUpdate = true
+							if idleRadius == 0 then
+								DockUnitQueue(carrierID, subUnitID)
+							else
+								UnDockUnit(carrierID, subUnitID)
+								rx, rz = RandomPointInUnitCircle(5)
+								spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
+							end
+						end
+					elseif not carrierMetaData.subUnitsList[subUnitID].keepDocked then
+						-- return to carrier unless in combat
+						local cQueue = GetCommandQueue(subUnitID, -1)
+						local engaged = false
+						for j = 1, (cQueue and #cQueue or 0) do
+							if cQueue[j].id == CMD.ATTACK and carrierStates.firestate > 0 then
+								-- if currently fighting AND not on hold fire
+								engaged = true
+								break
+							end
+						end
+						carrierMetaData.subUnitsList[subUnitID].engaged = engaged
+						-- if not engaged and ((frame % DEFAULT_UPDATE_ORDER_FREQUENCY) == 0) then
+						if not engaged and ((DEFAULT_UPDATE_ORDER_FREQUENCY + carrierMetaData.lastOrderUpdate) < frame) then
+							orderUpdate = true
+							if idleRadius == 0 then
+								DockUnitQueue(carrierID, subUnitID)
+							else
+								carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
+								rx, rz = RandomPointInUnitCircle(5)
+								UnDockUnit(carrierID, subUnitID)
+								spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
+								spGiveOrderToUnit(subUnitID, CMD.GUARD, carrierID, CMD.OPT_SHIFT)
+							end
 						end
 					end
 				end
@@ -949,7 +944,6 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 		lastOrderUpdate = frame
 	end
 end
-
 
 
 local function DockUnits(dockingqueue, queuestart, queueend)
@@ -968,92 +962,84 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 				if carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece then
 					local pieceNumber = carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece
 					--local distance = GetDistance(ox, subx, oz, subz)
-						local function LandLoop()
+					local function LandLoop()
+						if not carrierMetaList[unitID] then
+							return
+						elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
+							return
+						end
+						while not carrierMetaList[unitID].subUnitsList[subUnitID].docked do
+
+							local px, py, pz = Spring.GetUnitPiecePosDir(unitID, pieceNumber)
+							--ox, oy, oz = spGetUnitPosition(unitID)
+							subx, suby, subz = spGetUnitPosition(subUnitID)
+							-- local distance = GetDistance(px, subx, pz, subz)
+							local distance = diag((px-subx), (pz-subz))
+							-- local heightDifference = GetDistance(py, suby, 0, 0)
+							local heightDifference = diag(py-suby)
+
+							if not distance then
+								return
+							end
+							if distance < 25 and subunitDef.isAirUnit then
+								local landingspeed = carrierMetaList[unitID].dockHelperSpeed
+								if 0.2*heightDifference > landingspeed then
+									landingspeed = 0.2*heightDifference
+								end
+								-- local vx, vy, vz = GetDirectionalVector(landingspeed, subx, px, suby, py, subz, pz)
+								local magnitude = diag((subx-px), (suby-py), (subz-pz))
+								local vx, vy, vz = px-subx, py-suby, pz-subz
+								vx, vy, vz = landingspeed*vx/magnitude, landingspeed*vy/magnitude, landingspeed*vz/magnitude
+								spSetUnitVelocity(subUnitID, vx, vy, vz)
+
+							elseif distance < carrierMetaList[unitID].dockRadius then
+								local landingspeed = carrierMetaList[unitID].dockHelperSpeed
+								-- local vx, vy, vz = GetDirectionalVector(carrierMetaList[unitID].dockHelperSpeed, subx, px, suby, py, subz, pz)
+								local magnitude = diag((subx-px), (suby-py), (subz-pz))
+								local vx, vy, vz = px-subx, py-suby, pz-subz
+								vx, vy, vz = landingspeed*vx/magnitude, landingspeed*vy/magnitude, landingspeed*vz/magnitude
+								Spring.MoveCtrl.Enable(subUnitID)
+								mcSetPosition(subUnitID, subx+vx, suby, subz+vz)
+								Spring.MoveCtrl.Disable(subUnitID)
+								spSetUnitVelocity(subUnitID, vx, 0, vz)
+								heightDifference = 0
+
+							else
+								spGiveOrderToUnit(subUnitID, CMD.STOP, {}, 0)
+								spGiveOrderToUnit(subUnitID, CMD.MOVE, {px, py, pz}, 0)
+							end
+
+							carrierMetaList[unitID].activeDocking = true
+							if carrierMetaList[unitID].dockHelperSpeed == 0 then
+								dockingSnapRange = carrierMetaList[unitID].dockRadius
+							else
+								dockingSnapRange = carrierMetaList[unitID].dockHelperSpeed
+							end
+
+							if distance < dockingSnapRange and heightDifference < dockingSnapRange and carrierMetaList[unitID].subUnitsList[subUnitID].docked ~= true then
+								spUnitAttach(unitID, subUnitID, pieceNumber)
+								spGiveOrderToUnit(subUnitID, CMD.STOP, {}, 0)
+								Spring.MoveCtrl.Disable(subUnitID)
+								spSetUnitVelocity(subUnitID, 0, 0, 0)
+								SetUnitNoSelect(subUnitID, true)
+								carrierMetaList[unitID].subUnitsList[subUnitID].docked = true
+								carrierMetaList[unitID].subUnitsList[subUnitID].activeDocking = false
+								if carrierMetaList[unitID].dockArmor then
+									spSetUnitArmored(subUnitID, true, carrierMetaList[unitID].dockArmor)
+								end
+								Spring.SetUnitCOBValue(subUnitID, COB.ACTIVATION, 0)
+							end
+
+							Sleep()
 							if not carrierMetaList[unitID] then
 								return
 							elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
 								return
 							end
-							while not carrierMetaList[unitID].subUnitsList[subUnitID].docked do
-
-								local px, py, pz = Spring.GetUnitPiecePosDir(unitID, pieceNumber)
-
-
-
-								--ox, oy, oz = spGetUnitPosition(unitID)
-								subx, suby, subz = spGetUnitPosition(subUnitID)
-								-- local distance = GetDistance(px, subx, pz, subz)
-								local distance = diag((px-subx), (pz-subz))
-								-- local heightDifference = GetDistance(py, suby, 0, 0)
-								local heightDifference = diag(py-suby)
-
-
-
-								if not distance then
-									return
-								end
-								if distance < 25 and subunitDef.isAirUnit then
-									local landingspeed = carrierMetaList[unitID].dockHelperSpeed
-									if 0.2*heightDifference > landingspeed then
-										landingspeed = 0.2*heightDifference
-									end
-									-- local vx, vy, vz = GetDirectionalVector(landingspeed, subx, px, suby, py, subz, pz)
-									local magnitude = diag((subx-px), (suby-py), (subz-pz))
-									local vx, vy, vz = px-subx, py-suby, pz-subz
-									vx, vy, vz = landingspeed*vx/magnitude, landingspeed*vy/magnitude, landingspeed*vz/magnitude
-									spSetUnitVelocity(subUnitID, vx, vy, vz)
-
-								elseif distance < carrierMetaList[unitID].dockRadius then
-									local landingspeed = carrierMetaList[unitID].dockHelperSpeed
-									-- local vx, vy, vz = GetDirectionalVector(carrierMetaList[unitID].dockHelperSpeed, subx, px, suby, py, subz, pz)
-									local magnitude = diag((subx-px), (suby-py), (subz-pz))
-									local vx, vy, vz = px-subx, py-suby, pz-subz
-									vx, vy, vz = landingspeed*vx/magnitude, landingspeed*vy/magnitude, landingspeed*vz/magnitude
-									Spring.MoveCtrl.Enable(subUnitID)
-									mcSetPosition(subUnitID, subx+vx, suby, subz+vz)
-									Spring.MoveCtrl.Disable(subUnitID)
-									spSetUnitVelocity(subUnitID, vx, 0, vz)
-									heightDifference = 0
-
-								else
-									spGiveOrderToUnit(subUnitID, CMD.STOP, {}, 0)
-									spGiveOrderToUnit(subUnitID, CMD.MOVE, {px, py, pz}, 0)
-								end
-
-
-								carrierMetaList[unitID].activeDocking = true
-								if carrierMetaList[unitID].dockHelperSpeed == 0 then
-									dockingSnapRange = carrierMetaList[unitID].dockRadius
-								else
-									dockingSnapRange = carrierMetaList[unitID].dockHelperSpeed
-								end
-
-
-								if distance < dockingSnapRange and heightDifference < dockingSnapRange and carrierMetaList[unitID].subUnitsList[subUnitID].docked ~= true then
-									spUnitAttach(unitID, subUnitID, pieceNumber)
-									spGiveOrderToUnit(subUnitID, CMD.STOP, {}, 0)
-									Spring.MoveCtrl.Disable(subUnitID)
-									spSetUnitVelocity(subUnitID, 0, 0, 0)
-									SetUnitNoSelect(subUnitID, true)
-									carrierMetaList[unitID].subUnitsList[subUnitID].docked = true
-									carrierMetaList[unitID].subUnitsList[subUnitID].activeDocking = false
-									if carrierMetaList[unitID].dockArmor then
-										spSetUnitArmored(subUnitID, true, carrierMetaList[unitID].dockArmor)
-									end
-									Spring.SetUnitCOBValue(subUnitID, COB.ACTIVATION, 0)
-								end
-
-								Sleep()
-								if not carrierMetaList[unitID] then
-									return
-								elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
-									return
-								end
-							end
 						end
+					end
 
-						StartScript(LandLoop)
-
+					StartScript(LandLoop)
 				end
 			end
 		end
@@ -1066,8 +1052,6 @@ function gadget:GameFrame(f)
 	if f % GAME_SPEED ~= 0 then
 		return
 	end
-
-
 
 	-- if ((f % DEFAULT_SPAWN_CHECK_FREQUENCY) == 0) then
 	if ((DEFAULT_SPAWN_CHECK_FREQUENCY + lastSpawnCheck) < f) then
@@ -1091,7 +1075,6 @@ function gadget:GameFrame(f)
 		end
 	end
 
-
 	-- if ((f % CARRIER_UPDATE_FREQUENCY) == 0) then
 	if ((CARRIER_UPDATE_FREQUENCY + lastCarrierUpdate) < f) then
 		lastCarrierUpdate = f
@@ -1101,7 +1084,6 @@ function gadget:GameFrame(f)
 		UpdateStandaloneDrones(f)
 		previousHealFrame = f
 	end
-
 
 	-- if ((f % DEFAULT_DOCK_CHECK_FREQUENCY) == 0) then
 	if ((DEFAULT_DOCK_CHECK_FREQUENCY + lastDockCheck) < f) then
