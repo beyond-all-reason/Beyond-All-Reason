@@ -944,16 +944,10 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 				end
 			end
 		end
-
-
-
 	end
 	if orderUpdate then
 		lastOrderUpdate = frame
 	end
-
-
-
 end
 
 
@@ -967,7 +961,6 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 		local ox, oy, oz = spGetUnitPosition(unitID)
 		local subx, suby, subz = spGetUnitPosition(subUnitID)
 		local dockingSnapRange
-
 
 		if unitID and subUnitID and carrierMetaList[unitID] then
 
@@ -1133,9 +1126,18 @@ function gadget:GameFrame(f)
 
 end
 
+function gadget:Initialize()
+	local allUnits = Spring.GetAllUnits()
+	for i = 1, #allUnits do
+		local unitID = allUnits[i]
+		gadget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
+	end
+end
 
-
-
-
-
-
+function gadget:Shutdown()
+	for unitID, _ in pairs(carrierMetaList) do
+		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
+			spDestroyUnit(subUnitID, true, true)
+		end
+	end
+end

@@ -328,6 +328,12 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 19, length = 38, piece = "thrustl2", light = 0.62 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 19, length = 38, piece = "thrustr2", light = 0.62 },
 	},
+	["cordronecarryair"] = {
+		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 25, piece = "thrustl1", light = 0.58 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 25, piece = "thrustr1", light = 0.58 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 25, piece = "thrustl2", light = 0.58 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 25, piece = "thrustr2", light = 0.58 },
+	},
 }
 
 local function deepcopy(orig)
