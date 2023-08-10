@@ -48,7 +48,7 @@ return {
 			model_author = "Odin",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "scavengers/vehicles",
-			techlevel = 2,
+			techlevel = 3,
 		},
 		featuredefs = {
 			dead = {
