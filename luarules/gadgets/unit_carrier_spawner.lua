@@ -316,8 +316,7 @@ local function SpawnUnit(spawnData)
 		local validSurface = false
 		if not spawnDef.surface then
 			validSurface = true
-		end
-		if spawnData.x > 0 and spawnData.x < mapsizeX and spawnData.z > 0 and spawnData.z < mapsizeZ then
+		elseif not spawnData.x > 0 and spawnData.x < mapsizeX and spawnData.z > 0 and spawnData.z < mapsizeZ then
 			local y = spGetGroundHeight(spawnData.x, spawnData.z)
 			if string.find(spawnDef.surface, "LAND") and y > 0 then
 				validSurface = true
