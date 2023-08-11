@@ -223,7 +223,7 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "annigun1",
 				soundtrigger = 1,
-				targetmoveerror = 0.2,
+				targetmoveerror = 0,
 				thickness = 4.7,
 				tolerance = 10000,
 				turret = true,
