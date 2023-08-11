@@ -316,7 +316,7 @@ local function SpawnUnit(spawnData)
 		local validSurface = false
 		if not spawnDef.surface then
 			validSurface = true
-		elseif not spawnData.x > 0 and spawnData.x < mapsizeX and spawnData.z > 0 and spawnData.z < mapsizeZ then
+		elseif spawnData.x > 0 and spawnData.x < mapsizeX and spawnData.z > 0 and spawnData.z < mapsizeZ then
 			local y = spGetGroundHeight(spawnData.x, spawnData.z)
 			if string.find(spawnDef.surface, "LAND") and y > 0 then
 				validSurface = true
@@ -1084,6 +1084,7 @@ function gadget:GameFrame(f)
 		UpdateStandaloneDrones(f)
 		previousHealFrame = f
 	end
+
 
 	-- if ((f % DEFAULT_DOCK_CHECK_FREQUENCY) == 0) then
 	if ((DEFAULT_DOCK_CHECK_FREQUENCY + lastDockCheck) < f) then
