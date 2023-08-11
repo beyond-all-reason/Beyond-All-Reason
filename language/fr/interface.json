@@ -474,8 +474,8 @@
 			"paralyze": "Paralyser"
 		},
 		"gametypeInfo": {
-			"killAllUnits": "Tuez toutes les unités ennemies",
-			"killAllCommanders": "Tuez tous les commandants ennemis",
+			"killAllUnits": "Annihilez toutes les unités ennemies",
+			"killAllCommanders": "Annihilez tous les commandants ennemis",
 			"commandersSurviveDgun": "Les commandants survivent aux D-Guns et à l'explosion des autres commandants",
 			"unbalancedCommanders": "Les commandants déséquilibrés sont activés : \nles commandants montent de niveau et gagnent des améliorations",
 			"victoryCondition": "Conditions de victoire",
