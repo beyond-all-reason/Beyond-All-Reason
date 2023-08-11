@@ -98,12 +98,12 @@ Steering(heading, steer, currentSpeed)
 	while(1)
 	{
 		heading = get HEADING;
-		steer = (heading - oldheading)*3.5;
+		steer = (heading - oldheading)*4;
 		turn frontwheels to y-axis steer speed <25>;
 		turn backwheels to y-axis steer * -1 speed <25>;
 		currentSpeed = <3.92> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
-		sleep 80;
+		sleep 85;
 		oldheading = heading;
 	}
 }
