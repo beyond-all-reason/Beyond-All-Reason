@@ -432,6 +432,7 @@ function UnitDef_Post(name, uDef)
 			-- uDef.buildoptions[numBuildoptions+5] = "armlunchbox"
 			uDef.buildoptions[numBuildoptions+6] = "armmeatball"
 			uDef.buildoptions[numBuildoptions+7] = "armassimilator"
+			uDef.buildoptions[numBuildoptions+8] = "armdronecarryland"
 		elseif name == "armshltxuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
@@ -444,6 +445,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "corkarganetht4"
 			uDef.buildoptions[numBuildoptions+3] = "corgolt4"
 			uDef.buildoptions[numBuildoptions+4] = "corakt4"
+			uDef.buildoptions[numBuildoptions+5] = "cordronecarryair"
 		elseif name == "corgantuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgolt4"

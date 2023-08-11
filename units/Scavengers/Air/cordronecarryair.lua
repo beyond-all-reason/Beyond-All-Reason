@@ -18,7 +18,7 @@ return {
 		collisionvolumescales = "48 48 136",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		cruisealt = 70,
+		cruisealt = 100,
 		energymake = 25,
 		energystorage = 1500,
 		energyuse = 25,

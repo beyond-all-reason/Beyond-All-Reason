@@ -49,6 +49,7 @@ return {
 		"corape_scav",
 		"corcrw_scav",
 		"legfort_scav",
+		
 	},
 
 	T4 = {
