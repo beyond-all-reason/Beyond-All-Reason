@@ -110,6 +110,7 @@ local units = {
 	armdrag = { "wall_0.4.png", 0.41999999 },
 	armdrone = { "air_hover.png", 0.35 },
 	armdronecarry = { "ship_t2_dronecarry.png", 2.45 },
+	armdronecarryland = { "vehicle_t2_dronecarryland.png", 2.45 },
 	armdroneold = { "air_hover.png", 0.5 },
 	armemp = { "emp.png", 1.88999987 },
 	armepoch = { "ship_t2_flagship.png", 3.46499968 },
@@ -368,7 +369,7 @@ local units = {
 
 	raptor_turrets = { "raptor_tentacle.png", 2 },
 	raptor_turrets_antiair = { "raptor_tentacle.png", 2 },
-	
+
 	raptor_turretl = { "raptor_tentacle2.png", 3 },
 	raptor_turretl_antiair = { "raptor_tentacle2.png", 3 },
 	raptor_turrets_electric = { "raptor_tentacle.png", 2 },
@@ -466,6 +467,7 @@ local units = {
 	cordrag = { "wall_0.4.png", 0.41999999 },
 	cordrone = { "air_bladew.png", 0.5 },
 	cordronecarry = { "ship_t2_dronecarry.png", 2.45 },
+	cordronecarryair = { "air_t2_dronecarryair.png", 2.45 },
 	cordroneold = { "air_hover.png", 0.35 },
 	corenaa = { "aa_flak_t2.png", 1.46999991 },
 	corerad = { "aa_t1_long.png", 1.30 },

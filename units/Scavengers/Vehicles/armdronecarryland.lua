@@ -177,7 +177,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "PLASMA",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},
