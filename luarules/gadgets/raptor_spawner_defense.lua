@@ -729,105 +729,70 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function SpawnBurrow(number)
-
-		--local unitDefID = UnitDefNames[config.burrowName].id
-
 		for i = 1, (number or 1) do
-			local x, z, y
-			local tries = 0
 			local canSpawnBurrow = false
-			repeat
-				if config.burrowSpawnType == "initialbox" or config.burrowSpawnType == "initialbox_post" or config.burrowSpawnType == "alwaysbox" then
-					x = mRandom(lsx1, lsx2)
-					z = mRandom(lsz1, lsz2)
-				else
-					x = mRandom(config.spawnSquare, MAPSIZEX - config.spawnSquare)
-					z = mRandom(config.spawnSquare, MAPSIZEZ - config.spawnSquare)
-				end
-
-				y = GetGroundHeight(x, z)
-				tries = tries + 1
-
-				canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, true)
-
+			local spread = ((config.burrowTurretSpawnRadius+32)*math.max(1, SetCount(burrows) - minBurrows) or (config.burrowTurretSpawnRadius+32))
+			local spawnPosX, spawnPosY, spawnPosZ
+			for _ = 1,100 do -- Attempt #1 Force spawn in Startbox, ignore any kind of player vision
+				spawnPosX = mRandom(RaptorStartboxXMin + spread, RaptorStartboxXMax - spread)
+				spawnPosZ = mRandom(RaptorStartboxZMin + spread, RaptorStartboxZMax - spread)
+				spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+				canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
 				if canSpawnBurrow then
-					if config.useScum and GG.IsPosInRaptorScum(x, y, z) and mRandom(1,5) == 1 then
-						canSpawnBurrow = true
-					else
-						if tries < maxTries*3 then
-							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, raptorAllyTeamID, true, true, true)
-						else
-							canSpawnBurrow = false
-						end
+					canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+				end
+				if canSpawnBurrow then
+					break
+				end
+			end
+
+			if (not canSpawnBurrow) then -- Attempt #2 Find some good position in Spawnbox (not Startbox)
+				for _ = 1,100 do
+					spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
+					spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
+					spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+					canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+					if canSpawnBurrow then
+						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+					end
+					if canSpawnBurrow then
+						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, true)
+					end
+					if canSpawnBurrow then
+						canSpawnBurrow = not (positionCheckLibrary.VisibilityCheck(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, false, false)) -- we need to reverse result of this, because we want this to be true when pos is in LoS of Raptor team, and the visibility check does the opposite.
+					end
+					if canSpawnBurrow then
+						break
 					end
 				end
+			end
 
-				if canSpawnBurrow then
-					canSpawnBurrow = positionCheckLibrary.OccupancyCheck(x, y, z, config.minBaseDistance)
-				end
-
-				if canSpawnBurrow then
-					canSpawnBurrow = positionCheckLibrary.MapEdgeCheck(x, y, z, 256)
-				end
-
-				if canSpawnBurrow then
-					for burrowID, _ in pairs(burrows) do
-						local bx, _, bz = Spring.GetUnitPosition(burrowID)
-						local spread = config.minBaseDistance
-						if x > bx-spread and x < bx+spread and z > bz-spread and z < bz+spread then
-							canSpawnBurrow = false
-							break
-						end
+			if (not canSpawnBurrow) and config.useScum and config.burrowSpawnType ~= "alwaysbox" then -- Attempt #3, find position in creep/scum (skipped if creep is disabled or alwaysbox is enabled)
+				for _ = 1,100 do
+					spawnPosX = mRandom(spread, MAPSIZEX - spread)
+					spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
+					spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+					canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+					if canSpawnBurrow then
+						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+					end
+					if canSpawnBurrow then
+						canSpawnBurrow = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
+					end
+					if canSpawnBurrow then
+						break
 					end
 				end
-
-			until (canSpawnBurrow == true or tries >= maxTries * 4)
+			end
 
 			if canSpawnBurrow then
-				local unitID = CreateUnit(config.burrowName, x, y, z, mRandom(0,3), raptorTeamID)
-				if unitID then
-					SetupBurrow(unitID, x, y, z)
+				local burrowID = CreateUnit(config.burrowName, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), raptorTeamID)
+				if burrowID then
+					SetupBurrow(burrowID, spawnPosX, spawnPosY, spawnPosZ)
 				end
 			else
-				for j = 1,100 do
-					x = mRandom(RaptorStartboxXMin, RaptorStartboxXMax)
-					z = mRandom(RaptorStartboxZMin, RaptorStartboxZMax)
-					y = GetGroundHeight(x, z)
-
-					canSpawnBurrow = positionCheckLibrary.StartboxCheck(x, y, z, raptorAllyTeamID)
-					if canSpawnBurrow then
-						canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, true)
-					end
-					if canSpawnBurrow then
-						canSpawnBurrow = positionCheckLibrary.MapEdgeCheck(x, y, z, 128)
-					end
-					if canSpawnBurrow then
-						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(x, y, z, 128)
-					end
-					if canSpawnBurrow and playerAggression > config.angerBonus*10 then
-						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, raptorAllyTeamID, true, true, false)
-					end
-					if canSpawnBurrow then
-						for burrowID, _ in pairs(burrows) do
-							local bx, _, bz = Spring.GetUnitPosition(burrowID)
-							local spread = 100*SetCount(burrows)
-							if x > bx-spread and x < bx+spread and z > bz-spread and z < bz+spread then
-								canSpawnBurrow = false
-								break
-							end
-						end
-					end
-					if canSpawnBurrow then
-						local unitID = CreateUnit(config.burrowName, x, y, z, mRandom(0,3), raptorTeamID)
-						if unitID then
-							SetupBurrow(unitID, x, y, z)
-							break
-						end
-					elseif j == 100 then
-						timeOfLastSpawn = GetGameSeconds()
-						playerAggression = playerAggression + (config.angerBonus*(queenAnger*0.01))
-					end
-				end
+				timeOfLastSpawn = GetGameSeconds()
+				playerAggression = playerAggression + (config.angerBonus*(queenAnger*0.01))
 			end
 		end
 	end
@@ -885,14 +850,14 @@ if gadgetHandler:IsSyncedCode() then
 
 			if canSpawnQueen then
 				if tries < maxTries*3 then
-					canSpawnQueen = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, raptorAllyTeamID, true, true, true)
+					canSpawnQueen = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.burrowTurretSpawnRadius, raptorAllyTeamID, true, true, true)
 				else
-					canSpawnQueen = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, raptorAllyTeamID, true, true, false)
+					canSpawnQueen = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.burrowTurretSpawnRadius, raptorAllyTeamID, true, true, false)
 				end
 			end
 
 			if canSpawnQueen then
-				canSpawnQueen = positionCheckLibrary.OccupancyCheck(x, y, z, config.minBaseDistance*0.25)
+				canSpawnQueen = positionCheckLibrary.OccupancyCheck(x, y, z, config.burrowTurretSpawnRadius*0.25)
 			end
 
 			if canSpawnQueen then
@@ -1105,37 +1070,71 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function spawnCreepStructure(unitDefName, spread)
-		local canSpawnStructure = true
+		local canSpawnStructure = false
 		spread = spread or 128
-		local spawnPosX, spawnPosZ
-		spawnPosX = mRandom(spread, MAPSIZEX - spread)
-		spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
-
-		local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-		canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-		if canSpawnStructure then
-			canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-		end
-		if canSpawnStructure then
-			if config.useScum and GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ) then
-				canSpawnStructure = true
-			elseif (not config.useScum) and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, true) and
-				(not positionCheckLibrary.VisibilityCheck(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, false, false)) then
-					canSpawnStructure = true
-			elseif config.burrowSpawnType ~= "alwaysbox" then
-				if playerAggressionLevel >= 50 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, true) then
-					canSpawnStructure = true
-				elseif playerAggressionLevel >= 100 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, false) then
-					canSpawnStructure = true
-				elseif playerAggressionLevel >= 200 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, false, false) then
-					canSpawnStructure = true
-				else
-					canSpawnStructure = false
+		local spawnPosX, spawnPosY, spawnPosZ
+		-- Attempt #1, find position in creep/scum (skipped if creep is disabled)
+		if config.useScum then
+			for _ = 1,100 do
+				spawnPosX = mRandom(spread, MAPSIZEX - spread)
+				spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
+				spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+				canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+				if canSpawnStructure then
+					canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
 				end
-			else
-				canSpawnStructure = false
+				if canSpawnStructure then
+					canSpawnStructure = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
+				end
+				if canSpawnStructure then
+					break
+				end
+			end
+		else -- Attempt #1 for case if creep/scum is disabled
+			for _ = 1,100 do
+				spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
+				spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
+				spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+				canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+				if canSpawnStructure then
+					canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+				end
+				if canSpawnStructure then
+					canSpawnStructure = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, true)
+				end
+				if canSpawnStructure then
+					canSpawnStructure = not (positionCheckLibrary.VisibilityCheck(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, false, false)) -- we need to reverse result of this, because we want this to be true when pos is in LoS of Raptor team, and the visibility check does the opposite.
+				end
+				if canSpawnStructure then
+					break
+				end
 			end
 		end
+
+		if (not canSpawnStructure) and playerAggressionLevel >= 50 then	-- Attempt #2 Players got "a bit" aggressive so let's give Raptors more freedom.
+			for _ = 1,100 do
+				spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
+				spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
+				spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+				canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+				if canSpawnStructure then
+					canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+				end
+				if canSpawnStructure then
+					if positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, true) then -- no need to check for aggression level here, we already did it above
+						canSpawnStructure = true
+					elseif playerAggressionLevel >= 100 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, false) then
+						canSpawnStructure = true
+					elseif playerAggressionLevel >= 200 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, false, false) then
+						canSpawnStructure = true
+					end
+				end
+				if canSpawnStructure then
+					break
+				end
+			end
+		end
+
 		if canSpawnStructure then
 			local structureUnitID = Spring.CreateUnit(unitDefName, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), raptorTeamID)
 			if structureUnitID then
