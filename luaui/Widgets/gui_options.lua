@@ -1281,7 +1281,7 @@ function widget:DrawScreen()
 							end
 							prevSelectHover = k
 						end
-						if options[showSelectOptions].optionsFont and fontOption then
+						if options[showSelectOptions].optionsFont and fontOption and fontOption[i] then
 							fontOption[i]:Begin()
 							fontOption[i]:Print(optionColor .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2) - oPadding, fontSize, "no")
 							fontOption[i]:End()
@@ -5703,7 +5703,6 @@ function init()
 		local currentVoiceSetOption
 		local sets = {}
 		local files = VFS.SubDirs('sounds/voice', '*')
-		fontOption = {}
 		for k, file in ipairs(files) do
 			local dirname = string.sub(file, 14, string.len(file)-1)
 			sets[#sets+1] = dirname
