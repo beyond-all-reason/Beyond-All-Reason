@@ -1120,10 +1120,7 @@ if gadgetHandler:IsSyncedCode() then
 			if config.useScum and GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ) then
 				canSpawnStructure = true
 			elseif config.burrowSpawnType ~= "alwaysbox" then
-				if positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, true) and
-				(not positionCheckLibrary.VisibilityCheck(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, false, false)) then
-					canSpawnStructure = true
-				elseif playerAggressionLevel >= 50 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, true) then
+				if playerAggressionLevel >= 50 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, true) then
 					canSpawnStructure = true
 				elseif playerAggressionLevel >= 100 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, false) then
 					canSpawnStructure = true
@@ -1529,10 +1526,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	function updateRaptorSpawnBox()
 		if config.burrowSpawnType == "initialbox_post" then
-			lsx1 = math.max(RaptorStartboxXMin - ((MAPSIZEX*0.01) * queenAnger), 0)
-			lsz1 = math.max(RaptorStartboxZMin - ((MAPSIZEZ*0.01) * queenAnger), 0)
-			lsx2 = math.min(RaptorStartboxXMax + ((MAPSIZEX*0.01) * queenAnger), MAPSIZEX)
-			lsz2 = math.min(RaptorStartboxZMax + ((MAPSIZEZ*0.01) * queenAnger), MAPSIZEZ)
+			lsx1 = math.max(RaptorStartboxXMin - ((MAPSIZEX*0.01) * techAnger), 0)
+			lsz1 = math.max(RaptorStartboxZMin - ((MAPSIZEZ*0.01) * techAnger), 0)
+			lsx2 = math.min(RaptorStartboxXMax + ((MAPSIZEX*0.01) * techAnger), MAPSIZEX)
+			lsz2 = math.min(RaptorStartboxZMax + ((MAPSIZEZ*0.01) * techAnger), MAPSIZEZ)
 		end
 	end
 
