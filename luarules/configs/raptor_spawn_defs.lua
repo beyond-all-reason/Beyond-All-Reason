@@ -14,25 +14,25 @@ local burrowName = 'raptor_hive'
 
 local raptorTurrets = {}
 
-raptorTurrets["raptor_turrets"] 				= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 100,}
-raptorTurrets["raptor_turrets_acid"] 			= { minQueenAnger = 33, 	spawnedPerWave = 1,		spawnOnBurrows = true,	maxQueenAnger = 100,}
-raptorTurrets["raptor_turrets_electric"] 		= { minQueenAnger = 33, 	spawnedPerWave = 1,		spawnOnBurrows = true,	maxQueenAnger = 100,}
-raptorTurrets["raptor_turretl"] 				= { minQueenAnger = 33, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,}
-raptorTurrets["raptor_turretl_acid"] 			= { minQueenAnger = 66, 	spawnedPerWave = 1,		spawnOnBurrows = true,	maxQueenAnger = 1000,}
-raptorTurrets["raptor_turretl_electric"] 		= { minQueenAnger = 66, 	spawnedPerWave = 1,		spawnOnBurrows = true,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turrets"] 				= { minQueenAnger = 0, 		spawnedPerWave = 2, maxExisting = 20,	spawnOnBurrows = true,	maxQueenAnger = 100,}
+raptorTurrets["raptor_turrets_acid"] 			= { minQueenAnger = 33, 	spawnedPerWave = 1, maxExisting = 10,	spawnOnBurrows = true,	maxQueenAnger = 100,}
+raptorTurrets["raptor_turrets_electric"] 		= { minQueenAnger = 33, 	spawnedPerWave = 1, maxExisting = 10,	spawnOnBurrows = true,	maxQueenAnger = 100,}
+raptorTurrets["raptor_turretl"] 				= { minQueenAnger = 33, 	spawnedPerWave = 2, maxExisting = 10,	spawnOnBurrows = true,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turretl_acid"] 			= { minQueenAnger = 66, 	spawnedPerWave = 1, maxExisting = 5,	spawnOnBurrows = true,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turretl_electric"] 		= { minQueenAnger = 66, 	spawnedPerWave = 1, maxExisting = 5,	spawnOnBurrows = true,	maxQueenAnger = 1000,}
 
 if not Spring.GetModOptions().unit_restrictions_nonukes then
 
-	raptorTurrets["raptor_turrets_antinuke"] 	= { minQueenAnger = 0, 		spawnedPerWave = 1,		spawnOnBurrows = true,	maxQueenAnger = 100,}
-	raptorTurrets["raptor_turretl_antinuke"] 	= { minQueenAnger = 33, 	spawnedPerWave = 1,		spawnOnBurrows = true,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turretxl_meteor"]		= { minQueenAnger = 66, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turrets_antinuke"] 	= { minQueenAnger = 0, 		spawnedPerWave = 1, maxExisting = 5,	spawnOnBurrows = true,	maxQueenAnger = 100,}
+	raptorTurrets["raptor_turretl_antinuke"] 	= { minQueenAnger = 33, 	spawnedPerWave = 1, maxExisting = 5,	spawnOnBurrows = true,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretxl_meteor"]		= { minQueenAnger = 66, 	spawnedPerWave = 1, maxExisting = 5,	spawnOnBurrows = false,	maxQueenAnger = 1000,}
 
 end
 if not Spring.GetModOptions().unit_restrictions_noair then
 
-	raptorTurrets["raptor_turrets_antiair"] 	= { minQueenAnger = 0, 		spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 100,}
-	raptorTurrets["raptor_turretl_antiair"] 	= { minQueenAnger = 33, 	spawnedPerWave = 2,		spawnOnBurrows = true,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turretxl_antiair"]	= { minQueenAnger = 66, 	spawnedPerWave = 1,		spawnOnBurrows = false,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turrets_antiair"] 	= { minQueenAnger = 0, 		spawnedPerWave = 2, maxExisting = 20,	spawnOnBurrows = true,	maxQueenAnger = 100,}
+	raptorTurrets["raptor_turretl_antiair"] 	= { minQueenAnger = 33, 	spawnedPerWave = 2, maxExisting = 10,	spawnOnBurrows = true,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretxl_antiair"]	= { minQueenAnger = 66, 	spawnedPerWave = 1, maxExisting = 5,	spawnOnBurrows = false,	maxQueenAnger = 1000,}
 
 end
 
