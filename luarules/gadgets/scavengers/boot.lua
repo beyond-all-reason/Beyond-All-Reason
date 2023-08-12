@@ -347,6 +347,9 @@ function gadget:GameFrame(n)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	if ignoreDefs[unitDefID] then
+		return
+	end
 	local unitName = UnitDefs[unitDefID].name
 	--Spring.Echo(Spring.GetUnitHeading(unitID))
 	if unitName == staticUnitList.friendlySpawnEffectUnit then
@@ -360,6 +363,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	if ignoreDefs[unitDefID] then
+		return
+	end
 	local unitName = UnitDefs[unitDefID].name
 	-- if unitName == "armassistdrone" or unitName == "corassistdrone" then
 	-- 	constructorController.AssistDroneRespawn(unitID, unitName)
@@ -372,6 +378,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
+	if ignoreDefs[unitDefID] then
+		return
+	end
 	local unitName = UnitDefs[unitDefID].name
 	if unitOldTeam == ScavengerTeamID then
 		unitAddOrRemoveAPI.CaptureScavUnit(unitID, unitDefID, unitName, unitNewTeam, unitOldTeam)
@@ -386,6 +395,9 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	if ignoreDefs[unitDefID] then
+		return
+	end
 	if unitTeam == ScavengerTeamID then
 		-- CMD.CLOAK = 37382
 		local UnitName = UnitDefs[unitDefID].name
@@ -424,6 +436,9 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam)
+	if ignoreDefs[unitDefID] then
+		return
+	end
 	if unitTeam == ScavengerTeamID then
 		local unitName = UnitDefs[unitDefID].name
 		for i = 1,#bossUnitList.Bosses do
