@@ -1126,6 +1126,8 @@ if gadgetHandler:IsSyncedCode() then
 					canSpawnStructure = true
 				elseif playerAggressionLevel >= 200 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, false, false) then
 					canSpawnStructure = true
+				else
+					canSpawnStructure = false
 				end
 			else
 				canSpawnStructure = false
@@ -1148,7 +1150,7 @@ if gadgetHandler:IsSyncedCode() then
 			if uSettings.minQueenAnger <= techAnger and uSettings.maxQueenAnger >= techAnger then
 				local numOfTurrets = math.floor((uSettings.spawnedPerWave*(1-config.raptorPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))
 				for i = 1, numOfTurrets do
-					if mRandom() < config.spawnChance and Spring.GetTeamUnitDefCount(raptorTeamID, UnitDefNames[uName].id) <= numOfTurrets*10 then
+					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and Spring.GetTeamUnitDefCount(raptorTeamID, UnitDefNames[uName].id) <= numOfTurrets*10 then
 						local attempts = 0
 						local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
 						local footprintZ = UnitDefNames[uName].zsize -- why the fuck is this footprint *2??????
@@ -1642,16 +1644,15 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
+			if pastFirstQueen then
+				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((queenTime/Spring.GetModOptions().raptor_queentimemult) - config.gracePeriod) * 100) - (playerAggressionLevel*1) + queenAngerAggressionLevel, 999), 0)
+			else
+				techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) / ((queenTime/Spring.GetModOptions().raptor_queentimemult) - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) * 100) - (playerAggressionLevel*1) + queenAngerAggressionLevel, 999), 0)
+			end
 			if t < config.gracePeriod then
 				queenAnger = 0
-				techAnger = 0
-				minBurrows = SetCount(humanTeams)
+				minBurrows = SetCount(humanTeams)*(t/config.gracePeriod)
 			else
-				if pastFirstQueen then
-					techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((queenTime/Spring.GetModOptions().raptor_queentimemult) - config.gracePeriod) * 100) - (playerAggressionLevel*1) + queenAngerAggressionLevel, 999), 0)
-				else
-					techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) / ((queenTime/Spring.GetModOptions().raptor_queentimemult) - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) * 100) - (playerAggressionLevel*1) + queenAngerAggressionLevel, 999), 0)
-				end
 				if not queenID then
 					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + queenAngerAggressionLevel, 100), 0)
 					minBurrows = SetCount(humanTeams)
@@ -1673,6 +1674,10 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			local burrowCount = SetCount(burrows)
+			if burrowCount < minBurrows then
+				SpawnBurrow()
+				timeOfLastSpawn = t
+			end
 
 			if config.burrowSpawnRate < (t - timeOfLastFakeSpawn) then
 				-- This block is all about setting the correct burrow target
@@ -1686,11 +1691,10 @@ if gadgetHandler:IsSyncedCode() then
 				if firstSpawn then
 					SpawnBurrow()
 					timeOfLastWave = (config.gracePeriod + 10) - config.raptorSpawnRate
+					timeOfLastSpawn = t
 					firstSpawn = false
 				else
 					SpawnBurrow()
-				end
-				if burrowCount >= minBurrows then
 					timeOfLastSpawn = t
 				end
 				raptorEvent("burrowSpawn")
