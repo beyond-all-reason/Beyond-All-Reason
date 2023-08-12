@@ -1119,6 +1119,9 @@ if gadgetHandler:IsSyncedCode() then
 		if canSpawnStructure then
 			if config.useScum and GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ) then
 				canSpawnStructure = true
+			elseif (not config.useScum) and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, true) and
+				(not positionCheckLibrary.VisibilityCheck(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, false, false)) then
+					canSpawnStructure = true
 			elseif config.burrowSpawnType ~= "alwaysbox" then
 				if playerAggressionLevel >= 50 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, true) then
 					canSpawnStructure = true
