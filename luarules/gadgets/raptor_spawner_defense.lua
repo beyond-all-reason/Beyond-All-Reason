@@ -1129,7 +1129,7 @@ if gadgetHandler:IsSyncedCode() then
 					canSpawnStructure = true
 				elseif playerAggressionLevel >= 200 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, false, false) then
 					canSpawnStructure = true
-				else
+				end
 			else
 				canSpawnStructure = false
 			end
