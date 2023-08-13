@@ -102,7 +102,7 @@ if gadgetHandler:IsSyncedCode() then
 			local scumradius = scum.radius
 			if sqrdistance < (scumradius * scumradius) then
 				local currentscumradius = GetScumCurrentRadius(scum, gf)
-				--Spring.Echo("testing ScumID", scumID, sqrdistance, scumradius, currentscumradius)
+				--Spring.Echo("testing ScumID", scumID, sqrt(sqrdistance), scumradius, currentscumradius)
 				if currentscumradius  - sqrt(sqrdistance) > boundary then
 					return scumID
 				end
@@ -117,7 +117,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function UpdateBins(scumID, removeScum)
 		local scumTable = scums[scumID]
 		if scumTable == nil then
-			Spring.Echo("Tried to update a scumID",scumID,"that no longer exists because it probably shrank to death, remove = ", removeScum)
+			--Spring.Echo("Tried to update a scumID",scumID,"that no longer exists because it probably shrank to death, remove = ", removeScum)
 			return nil
 		end
 
@@ -176,10 +176,19 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			scum.growthrate = growthrate
+			
 
 			if debugmode then Spring.Echo("Updated scum", scumID, "it was", currentradius,"/", scum.radius, "sized, growing at", growthrate) end
 		end
 		--Spring.Echo(scumID, growthrate, radius, gf)
+
+		if scum.growthrate < 0 then
+			if debugmode then Spring.Echo("Removal of scum ID", scumID,"Scheduled for ",  deathtime - gf , "from now" ) end
+			if scumRemoveQueue[deathtime] == nil then
+				scumRemoveQueue[deathtime] = {}
+			end
+			scumRemoveQueue[deathtime][scumID] = true
+		end
 
 		return scumID
 	end
@@ -199,7 +208,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitDestroyed(unitID, unitDefID)
 		if scumSpawnerIDs[unitDefID] and scums[unitID] then
-			AddOrUpdateScum(nil,nil,nil,nil, math.abs(scums[unitID].growthrate), unitID)
+			AddOrUpdateScum(nil,nil,nil,nil, -10*math.abs(scums[unitID].growthrate), unitID)
 			SendToUnsynced("ScumRemoved", unitID)
 		end
 	end
@@ -589,7 +598,7 @@ else
 	local function UpdateBins(scumID, removeScum)
 		local scumTable = scums[scumID]
 		if scumTable == nil then
-			Spring.Echo("Tried to update a scumID",scumID,"that no longer exists because it probably shrank to death, remove = ", removeScum)
+			--Spring.Echo("Tried to update a scumID",scumID,"that no longer exists because it probably shrank to death, remove = ", removeScum)
 			return nil
 		end
 
