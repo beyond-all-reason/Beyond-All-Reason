@@ -10,16 +10,13 @@ function widget:GetInfo()
 		date = "May 13, 2023",
 		license = "GNU GPL, v2 or later",
 		layer = 1,
-		enabled = false
+		enabled = true
 	}
 end
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local camKeys = {} -- list of buttons that switch to Overview
-local prevCamState = nil;
-
-
--- INITIALIZATION
+local prevCamState
 
 local function storeCamKeys()
 	camKeys = {}
@@ -33,9 +30,6 @@ end
 function widget:Initialize()
 	storeCamKeys()
 end
-
-
--- HELPER FUNCTIONS
 
 -- works only with single key binds
 local function isCamKey(keyNum)
@@ -53,15 +47,12 @@ local function isOverview()
 end
 
 
--- BUSINESS LOGIC
-
 function widget:MouseWheel(up, value)
 	if isOverview() and up then
 		Spring.SendCommands({ "toggleoverview" })
 		return true;
 	end
-	
-	--legacy behavior here
+
 	return false
 end
 
@@ -69,7 +60,7 @@ function widget:KeyPress(key, modifier)
 	if isOverview() then
 		if prevCamState ~= nil then
 			Spring.SetCameraState(prevCamState, 1)
-		end 
+		end
 	else
 		prevCamState = Spring.GetCameraState()
 	end
