@@ -323,7 +323,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
     if TimedDamageDyingUnits[unitDefID] then
         local currentTime = Spring.GetGameSeconds()
         local px, py, pz = Spring.GetUnitPosition(unitID)
-        if py <= math.max(Spring.GetGroundHeight(px, pz), 0) + TimedDamageWeapons[weaponDefID].range*0.5 then
+        if py <= math.max(Spring.GetGroundHeight(px, pz), 0) + TimedDamageDyingUnits[weaponDefID].range*0.5 then
             aliveExplosions[aliveExplosionsCounter] = {
                 x = px,
                 y = math.max(Spring.GetGroundHeight(px, pz), 0),
