@@ -121,7 +121,6 @@ if gadgetHandler:IsSyncedCode() then
 	local raptorTeamID, raptorAllyTeamID
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
-	local burrowTurrets = {}
 	local heroRaptor = {}
 	local aliveEggsTable = {}
 	local squadsTable = {}
@@ -678,60 +677,16 @@ if gadgetHandler:IsSyncedCode() then
 		return squadCounter
 	end
 
-	function SpawnBurrowTurret(burrowID, burrowX, burrowY, burrowZ, turretX, turretZ)
-		if mRandom() <= 0.3 then
-			local turretOptions = {}
-			for uName, uSettings in pairs(config.raptorTurrets) do
-				if not uSettings.maxQueenAnger then uSettings.maxQueenAnger = uSettings.minQueenAnger + 50 end
-				if uSettings.minQueenAnger <= techAnger and uSettings.maxQueenAnger >= techAnger and uSettings.spawnOnBurrows then
-					for i = 1,uSettings.spawnedPerWave do
-						table.insert(turretOptions, uName)
-					end
-				end
-			end
-			if #turretOptions > 0 then
-				local turretID = CreateUnit(turretOptions[mRandom(1,#turretOptions)], turretX, burrowY, turretZ, mRandom(0,3), raptorTeamID)
-				if turretID then
-					SetUnitBlocking(turretID, false, false)
-					setRaptorXP(turretID)
-					Spring.GiveOrderToUnit(turretID, CMD.PATROL, {burrowX, burrowY, burrowZ}, {"meta"})
-					burrowTurrets[turretID] = burrowID
-				end
-			end
-		end
-	end
-
 	function SetupBurrow(unitID, x, y, z)
 		burrows[unitID] = 0
 		SetUnitBlocking(unitID, false, false)
 		setRaptorXP(unitID)
-		if SetCount(config.raptorTurrets) > 0 then
-			local r = math.random(1,100)
-			-- spawn some turrets
-			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius-mRandom(0,32), z-config.burrowTurretSpawnRadius-mRandom(0,32))
-			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius+mRandom(0,32), z-config.burrowTurretSpawnRadius-mRandom(0,32))
-			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius-mRandom(0,32), z+config.burrowTurretSpawnRadius+mRandom(0,32))
-			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius+mRandom(0,32), z+config.burrowTurretSpawnRadius+mRandom(0,32))
-			SpawnBurrowTurret(unitID, x, y, z, x+(config.burrowTurretSpawnRadius*1.5)+mRandom(0,32), z)
-			SpawnBurrowTurret(unitID, x, y, z, x-(config.burrowTurretSpawnRadius*1.5)-mRandom(0,32), z)
-			SpawnBurrowTurret(unitID, x, y, z, x, z+(config.burrowTurretSpawnRadius*1.5)+mRandom(0,32))
-			SpawnBurrowTurret(unitID, x, y, z, x, z-(config.burrowTurretSpawnRadius*1.5)-mRandom(0,32))
-
-			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius*0.5-mRandom(0,32), z-config.burrowTurretSpawnRadius*1.25-mRandom(0,32))
-			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius*1.25+mRandom(0,32), z-config.burrowTurretSpawnRadius*0.5-mRandom(0,32))
-			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius*1.25-mRandom(0,32), z+config.burrowTurretSpawnRadius*0.5+mRandom(0,32))
-			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius*0.5+mRandom(0,32), z+config.burrowTurretSpawnRadius*1.25+mRandom(0,32))
-			SpawnBurrowTurret(unitID, x, y, z, x+(config.burrowTurretSpawnRadius*1.25)+mRandom(0,32), z+config.burrowTurretSpawnRadius*0.5+mRandom(0,32))
-			SpawnBurrowTurret(unitID, x, y, z, x-(config.burrowTurretSpawnRadius*1.25)-mRandom(0,32), z-config.burrowTurretSpawnRadius*0.5-mRandom(0,32))
-			SpawnBurrowTurret(unitID, x, y, z, x-config.burrowTurretSpawnRadius*0.5-mRandom(0,32), z+(config.burrowTurretSpawnRadius*1.25)+mRandom(0,32))
-			SpawnBurrowTurret(unitID, x, y, z, x+config.burrowTurretSpawnRadius*0.5+mRandom(0,32), z-(config.burrowTurretSpawnRadius*1.25)-mRandom(0,32))
-		end
 	end
 
 	function SpawnBurrow(number)
 		for i = 1, (number or 1) do
 			local canSpawnBurrow = false
-			local spread = config.burrowTurretSpawnRadius*1.5
+			local spread = config.burrowSize*1.5
 			local spawnPosX, spawnPosY, spawnPosZ
 			for _ = 1,100 do -- Attempt #1 Force spawn in Startbox, ignore any kind of player vision
 				spawnPosX = mRandom(RaptorStartboxXMin + spread, RaptorStartboxXMax - spread)
@@ -850,14 +805,14 @@ if gadgetHandler:IsSyncedCode() then
 
 			if canSpawnQueen then
 				if tries < maxTries*3 then
-					canSpawnQueen = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.burrowTurretSpawnRadius, raptorAllyTeamID, true, true, true)
+					canSpawnQueen = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.burrowSize, raptorAllyTeamID, true, true, true)
 				else
-					canSpawnQueen = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.burrowTurretSpawnRadius, raptorAllyTeamID, true, true, false)
+					canSpawnQueen = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.burrowSize, raptorAllyTeamID, true, true, false)
 				end
 			end
 
 			if canSpawnQueen then
-				canSpawnQueen = positionCheckLibrary.OccupancyCheck(x, y, z, config.burrowTurretSpawnRadius*0.25)
+				canSpawnQueen = positionCheckLibrary.OccupancyCheck(x, y, z, config.burrowSize*0.25)
 			end
 
 			if canSpawnQueen then
@@ -1254,15 +1209,6 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			return damage
 		end
-
-		if burrowTurrets[unitID] and (not paralyzer) then
-			local health, maxHealth = Spring.GetUnitHealth(burrowTurrets[unitID])
-			if health and maxHealth then
-				Spring.SetUnitHealth(burrowTurrets[unitID], health-damage)
-				--Spring.AddUnitDamage(burrowTurrets[unitID], damage)
-			end
-			damage = 0
-		end
 		return damage, 1
 	end
 
@@ -1498,9 +1444,11 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		else
 			if mRandom() < config.spawnChance / 15 then
-				SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
-				SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
-				--SpawnRandomOffWaveSquad(queenID)
+				for i = 1,config.queenSpawnMult do
+					SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
+					SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
+
+				end
 			end
 		end
 	end
@@ -1691,14 +1639,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 
-			for turret,burrow in pairs(burrowTurrets) do
-				local h,mh = Spring.GetUnitHealth(burrow)
-				if h and mh then
-					Spring.SetUnitMaxHealth(turret, mh)
-					Spring.SetUnitHealth(turret, h)
-				end
-			end
-
 			updateRaptorSpawnBox()
 		end
 		if n%((math.ceil(config.turretSpawnRate))*30) == 0 and n > 900 and raptorTeamUnitCount < raptorUnitCap then
@@ -1753,7 +1693,6 @@ if gadgetHandler:IsSyncedCode() then
 		manageAllSquads()
 	end
 
-	local deleteBurrowTurrets = {}
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
 		if unitTeam == raptorTeamID then
@@ -1765,19 +1704,6 @@ if gadgetHandler:IsSyncedCode() then
 				if mRandom() <= config.spawnChance then
 					spawnCreepStructuresWave()
 				end
-				for turret, burrow in pairs(burrowTurrets) do
-					if burrowTurrets[turret] == unitID then
-						table.insert(deleteBurrowTurrets, turret)
-					end
-				end
-				if #deleteBurrowTurrets > 0 then
-					for i = 1,#deleteBurrowTurrets do
-						Spring.DestroyUnit(deleteBurrowTurrets[i], false, false)
-					end
-					deleteBurrowTurrets = {}
-				end
-			elseif config.raptorTurrets[UnitDefs[unitDefID].name] then
-				burrowTurrets[unitID] = nil
 			end
 		end
 

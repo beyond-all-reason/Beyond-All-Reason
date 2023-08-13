@@ -14,25 +14,25 @@ local burrowName = 'raptor_hive'
 
 local raptorTurrets = {}
 
-raptorTurrets["raptor_turrets"] 				= { minQueenAnger = 0, 		spawnedPerWave = 2, maxExisting = 20,	spawnOnBurrows = true,	maxQueenAnger = 100,}
-raptorTurrets["raptor_turrets_acid"] 			= { minQueenAnger = 33, 	spawnedPerWave = 1, maxExisting = 10,	spawnOnBurrows = true,	maxQueenAnger = 100,}
-raptorTurrets["raptor_turrets_electric"] 		= { minQueenAnger = 33, 	spawnedPerWave = 1, maxExisting = 10,	spawnOnBurrows = true,	maxQueenAnger = 100,}
-raptorTurrets["raptor_turretl"] 				= { minQueenAnger = 33, 	spawnedPerWave = 2, maxExisting = 10,	spawnOnBurrows = true,	maxQueenAnger = 1000,}
-raptorTurrets["raptor_turretl_acid"] 			= { minQueenAnger = 66, 	spawnedPerWave = 1, maxExisting = 5,	spawnOnBurrows = true,	maxQueenAnger = 1000,}
-raptorTurrets["raptor_turretl_electric"] 		= { minQueenAnger = 66, 	spawnedPerWave = 1, maxExisting = 5,	spawnOnBurrows = true,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turrets"] 				= { minQueenAnger = 0, 	spawnedPerWave = 2, maxExisting = 20,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turrets_acid"] 			= { minQueenAnger = 20, spawnedPerWave = 1, maxExisting = 10,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turrets_electric"] 		= { minQueenAnger = 20, spawnedPerWave = 1, maxExisting = 10,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turretl"] 				= { minQueenAnger = 40, spawnedPerWave = 2, maxExisting = 10,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turretl_acid"] 			= { minQueenAnger = 60, spawnedPerWave = 1, maxExisting = 5,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turretl_electric"] 		= { minQueenAnger = 60, spawnedPerWave = 1, maxExisting = 5,	maxQueenAnger = 1000,}
 
 if not Spring.GetModOptions().unit_restrictions_nonukes then
 
-	raptorTurrets["raptor_turrets_antinuke"] 	= { minQueenAnger = 0, 		spawnedPerWave = 1, maxExisting = 5,	spawnOnBurrows = true,	maxQueenAnger = 100,}
-	raptorTurrets["raptor_turretl_antinuke"] 	= { minQueenAnger = 33, 	spawnedPerWave = 1, maxExisting = 5,	spawnOnBurrows = true,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turretxl_meteor"]		= { minQueenAnger = 66, 	spawnedPerWave = 1, maxExisting = 5,	spawnOnBurrows = false,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turrets_antinuke"] 	= { minQueenAnger = 0, 	spawnedPerWave = 1, maxExisting = 5,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretl_antinuke"] 	= { minQueenAnger = 40, spawnedPerWave = 1, maxExisting = 5,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretxl_meteor"]		= { minQueenAnger = 70, spawnedPerWave = 2, maxExisting = 5,	maxQueenAnger = 1000,}
 
 end
 if not Spring.GetModOptions().unit_restrictions_noair then
 
-	raptorTurrets["raptor_turrets_antiair"] 	= { minQueenAnger = 0, 		spawnedPerWave = 2, maxExisting = 20,	spawnOnBurrows = true,	maxQueenAnger = 100,}
-	raptorTurrets["raptor_turretl_antiair"] 	= { minQueenAnger = 33, 	spawnedPerWave = 2, maxExisting = 10,	spawnOnBurrows = true,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turretxl_antiair"]	= { minQueenAnger = 66, 	spawnedPerWave = 1, maxExisting = 5,	spawnOnBurrows = false,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turrets_antiair"] 	= { minQueenAnger = 0, 	spawnedPerWave = 2, maxExisting = 20,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretl_antiair"] 	= { minQueenAnger = 40, spawnedPerWave = 2, maxExisting = 10,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretxl_antiair"]	= { minQueenAnger = 70, spawnedPerWave = 1, maxExisting = 5,	maxQueenAnger = 1000,}
 
 end
 
@@ -58,7 +58,7 @@ local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to b
 	raptorapexallterrainassault 		=   "red",
 	raptorapexallterrainassaultb 		=   "red",
 	raptors1      						=   "green",
-	raptors2      						=   "green",
+	raptors2      						=   "darkgreen",
 	raptor_dodo1  						=   "red",
 	raptor_dodo2  						=   "red",
 	raptor_dodoair  					=   "red",
@@ -119,6 +119,19 @@ local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to b
 	raptora1_spectre					=   "yellow",
 	raptora2_spectre					=   "yellow",
 	raptors2_spectre					=   "yellow",
+
+	raptor_turrets						=	"white",
+	raptor_turretl						=	"white",
+	raptor_turrets_electric				=   "blue",
+	raptor_turretl_electric				=   "blue",
+	raptor_turrets_acid					=   "acidgreen",
+	raptor_turretl_acid					=   "acidgreen",
+	raptor_turrets_antinuke				= 	"white",
+	raptor_turretl_antinuke				= 	"white",
+	raptor_turrets_antiair				=	"red",
+	raptor_turretl_antiair				=	"red",
+	raptor_turretxl_antiair				=	"red",
+	raptor_turretxl_meteor				=	"darkgreen",
 
 	raptor_miniqueen_electric			=   "blue",
 	raptor_miniqueen_acid				=   "acidgreen",
@@ -498,36 +511,47 @@ local raptorMinions = { -- Units spawning other units
 		"raptorh2",
 		"raptorh3",
 		"raptorh4",
+		"raptorhealer1",
 	},
 	["e_raptorq"] = {
 		"raptorh2",
 		"raptorh3",
 		"raptorh4",
 		"raptorbroodartyh4small",
+		"raptorhealer1",
+		"raptorhealer2",
 	},
 	["n_raptorq"] = {
 		"raptorh2",
 		"raptorh3",
 		"raptorh4",
 		"raptorbroodartyh4small",
+		"raptorhealer2",
+		"raptorhealer3",
 	},
 	["h_raptorq"] = {
 		"raptorh2",
 		"raptorh3",
 		"raptorh4",
 		"raptorbroodartyh4small",
+		"raptorhealer2",
+		"raptorhealer3",
 	},
 	["vh_raptorq"] = {
 		"raptorh2",
 		"raptorh3",
 		"raptorh4",
 		"raptorbroodartyh4small",
+		"raptorhealer3",
+		"raptorhealer4",
 	},
 	["epic_raptorq"] = {
 		"raptorh2",
 		"raptorh3",
 		"raptorh4",
 		"raptorbroodartyh4small",
+		"raptorhealer3",
+		"raptorhealer4",
 	},
 }
 
@@ -978,8 +1002,8 @@ local useScum = true -- Use scum as space where turrets can spawn (requires scum
 local useWaveMsg = true -- Show dropdown message whenever new wave is spawning
 local spawnSquare = 90 -- size of the raptor spawn square centered on the burrow
 local spawnSquareIncrement = 2 -- square size increase for each unit spawned
-local burrowTurretSpawnRadius = 80
-local bossFightWaveSizeScale = 25 -- Percentage
+local burrowSize = 80
+local bossFightWaveSizeScale = 10 -- Percentage
 local defaultRaptorFirestate = 3 -- 0 - Hold Fire | 1 - Return Fire | 2 - Fire at Will | 3 - Fire at everything
 
 local ecoBuildingsPenalty = { -- Additional queen hatch per second from eco buildup (for 60 minutes queen time. scales to queen time)
@@ -1065,7 +1089,7 @@ local config = { -- Don't touch this! ------------------------------------------
 	raptorBehaviours 		= raptorBehaviours,
 	difficultyParameters   	= optionValues,
 	useWaveMsg 				= useWaveMsg,
-	burrowTurretSpawnRadius = burrowTurretSpawnRadius,
+	burrowSize 				= burrowSize,
 	squadSpawnOptionsTable	= squadSpawnOptionsTable,
 	airStartAnger			= airStartAnger,
 	ecoBuildingsPenalty		= ecoBuildingsPenalty,
