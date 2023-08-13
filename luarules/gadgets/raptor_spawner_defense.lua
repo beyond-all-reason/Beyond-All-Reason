@@ -1073,8 +1073,8 @@ if gadgetHandler:IsSyncedCode() then
 		local canSpawnStructure = false
 		spread = spread or 128
 		local spawnPosX, spawnPosY, spawnPosZ
-		-- Attempt #1, find position in creep/scum (skipped if creep is disabled)
-		if config.useScum then
+
+		if config.useScum then -- If creep/scum is enabled, only allow to spawn turrets on the creep
 			for _ = 1,100 do
 				spawnPosX = mRandom(spread, MAPSIZEX - spread)
 				spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
@@ -1090,7 +1090,7 @@ if gadgetHandler:IsSyncedCode() then
 					break
 				end
 			end
-		else -- Attempt #1 for case if creep/scum is disabled
+		else -- Otherwise use Raptor LoS as creep with Players sensors being the safety zone
 			for _ = 1,100 do
 				spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
 				spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
@@ -1104,30 +1104,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				if canSpawnStructure then
 					canSpawnStructure = not (positionCheckLibrary.VisibilityCheck(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, false, false)) -- we need to reverse result of this, because we want this to be true when pos is in LoS of Raptor team, and the visibility check does the opposite.
-				end
-				if canSpawnStructure then
-					break
-				end
-			end
-		end
-
-		if (not canSpawnStructure) and playerAggressionLevel >= 50 then	-- Attempt #2 Players got "a bit" aggressive so let's give Raptors more freedom.
-			for _ = 1,100 do
-				spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
-				spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
-				spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-				canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-				if canSpawnStructure then
-					canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-				end
-				if canSpawnStructure then
-					if positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, true) then -- no need to check for aggression level here, we already did it above
-						canSpawnStructure = true
-					elseif playerAggressionLevel >= 100 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, false) then
-						canSpawnStructure = true
-					elseif playerAggressionLevel >= 200 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, false, false) then
-						canSpawnStructure = true
-					end
 				end
 				if canSpawnStructure then
 					break
