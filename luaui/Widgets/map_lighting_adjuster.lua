@@ -136,6 +136,10 @@ local mapSunLighting = {
 		unitDiffuseColor = {0.7, 0.6, 0.6},
 		unitSpecularColor = {1.2, 1.05, 1},
 	},
+	['swirly rock v1.1'] = {
+		unitAmbientColor = { 0.44, 0.44, 0.44 },
+		unitDiffuseColor = { 0.88, 0.88, 0.88 },
+	},
 }
 
 local mapSun = {
