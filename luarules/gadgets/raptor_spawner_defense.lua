@@ -1144,7 +1144,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 
-		if unitTeam == raptorTeamID and attackerTeam == raptorTeamID and (not (attackerDefID and config.raptorBehaviours.ARTILLERY[attackerDefID])) then
+		if unitTeam == raptorTeamID and attackerTeam == raptorTeamID and (not (attackerDefID and config.raptorBehaviours.ALLOWFRIENDLYFIRE[attackerDefID])) then
 			return 0
 		end
 

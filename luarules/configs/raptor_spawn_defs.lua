@@ -280,6 +280,13 @@ raptorBehaviours = {
 		[UnitDefNames["raptor_dodo1_electric"].id] = true,
 		[UnitDefNames["raptor_dodo2_electric"].id] = true,
 	},
+	ALLOWFRIENDLYFIRE = {
+		[UnitDefNames["raptorr1"].id] = true,
+		[UnitDefNames["raptorr2"].id] = true,
+		[UnitDefNames["raptor_turrets"].id] = true,
+		[UnitDefNames["raptor_turretl"].id] = true,
+		[UnitDefNames["raptor_turretxl_meteor"].id] = true,
+	}
 	PROBE_UNIT = UnitDefNames["raptor2"].id, -- tester unit for picking viable spawn positions - use some medium sized unit
 }
 
