@@ -21,6 +21,13 @@ local queenUnits = {
     [UnitDefNames["h_raptorq"].id] = true,
     [UnitDefNames["vh_raptorq"].id] = true,
     [UnitDefNames["epic_raptorq"].id] = true,
+    
+    [UnitDefNames["raptor_miniqueen_spectre"].id] = true,
+	[UnitDefNames["raptor_miniqueen_electric"].id] = true,
+	[UnitDefNames["raptor_miniqueen_acid"].id] = true,
+	[UnitDefNames["raptor_miniqueen_healer"].id] = true,
+	[UnitDefNames["raptor_miniqueen_basic"].id] = true,
+	[UnitDefNames["raptor_miniqueen_fire"].id] = true,
 }
 
 local queenTargets = {}
