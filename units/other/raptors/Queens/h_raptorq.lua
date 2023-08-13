@@ -133,7 +133,7 @@ return {
 				name = "RaptorClaws",
 				noselfdamage = true,
 				proximitypriority = -3,
-				range = 400,
+				range = 600,
 				reloadtime = 1,
 				soundstart = "bigraptorbreath",
 				tolerance = 5000,
