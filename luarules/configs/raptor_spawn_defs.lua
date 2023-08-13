@@ -652,6 +652,21 @@ addNewSquad({ type = "special", minAnger = 20, units = { "3 raptore1", "3 raptor
 
 addNewSquad({ type = "special", minAnger = 50, units = { "10 raptore1", "10 raptoracidswarmer" } })
 
+
+addNewSquad({ type = "special", minAnger = 40, units = 	{ "10 raptor1x", "10 raptor1x_spectre" }})
+addNewSquad({ type = "special", minAnger = 40, units = 	{ "10 raptor1y", "10 raptor1x_spectre" }})
+addNewSquad({ type = "special", minAnger = 40, units = 	{ "10 raptor1z", "10 raptor1x_spectre" }})
+
+
+addNewSquad({ type = "special", minAnger = 70, units = { "4 raptor2b", "4 raptor2_spectre" }, maxAnger = 1000 })
+addNewSquad({ type = "special", minAnger = 70, units = { "4 raptor2", "4 raptor2_spectre" }, maxAnger = 1000 })
+
+addNewSquad({ type = "special", minAnger = 85, units = { "4 raptor2b", "4 raptor2_spectre" }, maxAnger = 1000 })
+addNewSquad({ type = "special", minAnger = 85, units = { "4 raptor2", "4 raptor2_spectre" }, maxAnger = 1000 })
+
+addNewSquad({ type = "special", minAnger = 100, units = { "8 raptor2b", "8 raptor2_spectre" }, maxAnger = 1000 })
+addNewSquad({ type = "special", minAnger = 100, units = { "8 raptor2", "8 raptor2_spectre" }, maxAnger = 1000 })
+
 --All Terrain Swarmers------------------------------------------------------------------------------------------------------  
 
 addNewSquad({ type = "special", minAnger = 20, units = 	{ "5 raptorc3" }, weight = 2, maxAnger = 60 })
@@ -720,7 +735,6 @@ addNewSquad({ type = "special", minAnger = 90, units = 	{ "4 raptora2_spectre" }
 addNewSquad({ type = "special", minAnger = 100, units = { "10 raptora2_spectre" }, maxAnger = 1000 })
 
 
-
 addNewSquad({ type = "special", minAnger = 60, units = 	{ "3 raptore2" } })
 
 addNewSquad({ type = "special", minAnger = 100, units = { "5 raptore2" }, maxAnger = 1000 })
@@ -740,6 +754,20 @@ addNewSquad({ type = "special", minAnger = 70, units = { "3 raptoracidallterrain
 
 addNewSquad({ type = "special", minAnger = 100, units = { "5 raptoracidallterrainassault" }, maxAnger = 1000 })
 
+
+addNewSquad({ type = "special", minAnger = 35, units = 	{ "3 raptora1", "3 raptora1_spectre" }, weight = 2 })
+addNewSquad({ type = "special", minAnger = 35, units = 	{ "3 raptora1b", "3 raptora1_spectre" }, weight = 2 })
+addNewSquad({ type = "special", minAnger = 35, units = 	{ "3 raptora1c", "3 raptora1_spectre" }, weight = 2 })
+
+addNewSquad({ type = "special", minAnger = 80, units = 	{ "1 raptora2", "2 raptora2_spectre" }})
+addNewSquad({ type = "special", minAnger = 80, units = 	{ "1 raptora2b", "2 raptora2_spectre" }})
+
+addNewSquad({ type = "special", minAnger = 90, units = 	{ "1 raptora2", "2 raptora2_spectre" }})
+addNewSquad({ type = "special", minAnger = 90, units = 	{ "1 raptora2b", "2 raptora2_spectre" }})
+
+addNewSquad({ type = "special", minAnger = 100, units = { "3 raptora2", "2 raptora2_spectre" }, maxAnger = 1000})
+addNewSquad({ type = "special", minAnger = 100, units = { "3 raptora2b", "2 raptora2_spectre" }, maxAnger = 1000})
+
 --Spikers------------------------------------------------------------------------------------------------------  
 
 addNewSquad({ type = "special", minAnger = 30, units = 	{ "5 raptors1" }, weight = 3 })
@@ -753,6 +781,11 @@ addNewSquad({ type = "special", minAnger = 100, units = { "10 raptors2" }, weigh
 addNewSquad({ type = "special", minAnger = 70, units = 	{ "10 raptors2_spectre" } })
 
 addNewSquad({ type = "special", minAnger = 100, units = { "10 raptors2_spectre" }, maxAnger = 1000 })
+
+
+addNewSquad({ type = "special", minAnger = 70, units = 	{ "5 raptors2", "5 raptors2_spectre" } })
+
+addNewSquad({ type = "special", minAnger = 100, units = { "5 raptors2", "5 raptors2_spectre" }, maxAnger = 1000 })
 
 --Kamikaze------------------------------------------------------------------------------------------------------  
 
@@ -853,44 +886,44 @@ addNewSquad({ type = "special", minAnger = 100, units = { "2 raptorbroodartyh4" 
 
 --Brood------------------------------------------------------------------------------------------------------  
 
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "5 raptorh4" } })
+addNewSquad({ type = "special", minAnger = 50, units = 	{ "1 raptorh4" } })
 
-addNewSquad({ type = "special", minAnger = 60, units = 	{ "5 raptorh4" } })
+addNewSquad({ type = "special", minAnger = 60, units = 	{ "2 raptorh4" } })
 
-addNewSquad({ type = "special", minAnger = 70, units = 	{ "5 raptorh4" } })
+addNewSquad({ type = "special", minAnger = 70, units = 	{ "4 raptorh4" } })
 
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "10 raptorh4" } })
+addNewSquad({ type = "special", minAnger = 80, units = 	{ "8 raptorh4" } })
 
-addNewSquad({ type = "special", minAnger = 90, units = 	{ "10 raptorh4" } })
+addNewSquad({ type = "special", minAnger = 90, units = 	{ "16 raptorh4" } })
 
-addNewSquad({ type = "special", minAnger = 100, units = { "20 raptorh4" }, maxAnger = 1000 })
-
-
-addNewSquad({ type = "special", minAnger = 60, units = 	{ "3 raptorh3" } })
-
-addNewSquad({ type = "special", minAnger = 70, units = 	{ "3 raptorh3" } })
-
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "3 raptorh3" } })
-
-addNewSquad({ type = "special", minAnger = 90, units = 	{ "3 raptorh3" } })
-
-addNewSquad({ type = "special", minAnger = 100, units = { "6 raptorh3" }, maxAnger = 1000 })
+addNewSquad({ type = "special", minAnger = 100, units = { "32 raptorh4" }, maxAnger = 1000 })
 
 
-addNewSquad({ type = "special", minAnger = 70, units = 	{ "2 raptorh2" } })
+addNewSquad({ type = "special", minAnger = 60, units = 	{ "1 raptorh3" } })
+
+addNewSquad({ type = "special", minAnger = 70, units = 	{ "2 raptorh3" } })
+
+addNewSquad({ type = "special", minAnger = 80, units = 	{ "4 raptorh3" } })
+
+addNewSquad({ type = "special", minAnger = 90, units = 	{ "8 raptorh3" } })
+
+addNewSquad({ type = "special", minAnger = 100, units = { "16 raptorh3" }, maxAnger = 1000 })
+
+
+addNewSquad({ type = "special", minAnger = 70, units = 	{ "1 raptorh2" } })
 
 addNewSquad({ type = "special", minAnger = 80, units = 	{ "2 raptorh2" } })
 
-addNewSquad({ type = "special", minAnger = 90, units = 	{ "2 raptorh2" } })
+addNewSquad({ type = "special", minAnger = 90, units = 	{ "4 raptorh2" } })
 
-addNewSquad({ type = "special", minAnger = 100, units = { "4 raptorh2" }, maxAnger = 1000 })
+addNewSquad({ type = "special", minAnger = 100, units = { "8 raptorh2" }, maxAnger = 1000 })
 
 --Matriarchs------------------------------------------------------------------------------------------------------  
 
 for j = 1, #miniBosses do
-	addNewSquad({ type = "special", minAnger = 70, units = { "1 " .. miniBosses[j] }, maxAnger = 1000 })
-	addNewSquad({ type = "special", minAnger = 85, units = { "1 " .. miniBosses[j] }, maxAnger = 1000 })
-	addNewSquad({ type = "special", minAnger = 100, units = { "1 " .. miniBosses[j] }, maxAnger = 1000 })
+	addNewSquad({ type = "special", minAnger = 70, units = { "2 " .. miniBosses[j] }, maxAnger = 1000 })
+	addNewSquad({ type = "special", minAnger = 85, units = { "2 " .. miniBosses[j] }, maxAnger = 1000 })
+	addNewSquad({ type = "special", minAnger = 100, units = { "2 " .. miniBosses[j] }, maxAnger = 1000 })
 end
 
 ---------------------------------------------
