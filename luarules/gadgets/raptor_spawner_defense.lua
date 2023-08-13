@@ -731,7 +731,7 @@ if gadgetHandler:IsSyncedCode() then
 	function SpawnBurrow(number)
 		for i = 1, (number or 1) do
 			local canSpawnBurrow = false
-			local spread = ((config.burrowTurretSpawnRadius+32)*math.max(1, SetCount(burrows) - minBurrows) or (config.burrowTurretSpawnRadius+32))
+			local spread = config.burrowTurretSpawnRadius*1.5
 			local spawnPosX, spawnPosY, spawnPosZ
 			for _ = 1,100 do -- Attempt #1 Force spawn in Startbox, ignore any kind of player vision
 				spawnPosX = mRandom(RaptorStartboxXMin + spread, RaptorStartboxXMax - spread)
