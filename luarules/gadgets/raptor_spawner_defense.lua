@@ -1806,7 +1806,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			SetGameRulesParam("raptor_hiveCount", SetCount(burrows))
 		elseif UnitDefs[unitDefID].isBuilding then
-			playerAggression = playerAggression + ((config.angerBonus/config.raptorSpawnMultiplier)*0.1)
+			playerAggression = playerAggression + ((config.angerBonus/config.raptorSpawnMultiplier)*0.01)
 		end
 		if unitTeleportCooldown[unitID] then
 			unitTeleportCooldown[unitID] = nil
