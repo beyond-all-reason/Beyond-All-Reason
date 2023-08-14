@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		blocking = false,
 		brakerate = 0.123,
-		buildcostenergy = 0,
+		buildcostenergy = 1,
 		buildcostmetal = 0,
 		builder = false,
 		buildpic = "critters/critter_goldfish.DDS",

@@ -70,46 +70,39 @@ local function ReloadMusicPlaylists()
 	deviceLostSafetyCheck = 0
 	---------------------------------COLLECT MUSIC------------------------------------
 
+	local allowedExtensions = "{*.ogg,*.mp3}"
 	-- New Soundtrack List
 	local musicDirNew 			= 'music/original'
-	local peaceTracksNew 			= VFS.DirList(musicDirNew..'/peace', '*.ogg')
-	local warhighTracksNew 			= VFS.DirList(musicDirNew..'/warhigh', '*.ogg')
-	local warlowTracksNew 			= VFS.DirList(musicDirNew..'/warlow', '*.ogg')
-	local gameoverTracksNew 		= VFS.DirList(musicDirNew..'/gameover', '*.ogg')
-	local bossFightTracksNew   		= VFS.DirList(musicDirNew..'/bossfight', '*.ogg')
-	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu', '*.ogg')
-	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', '*.ogg')
-
-	-- Old Soundtrack List
-	local musicDirOld 			= 'music/legacy'
-	local peaceTracksOld 			= VFS.DirList(musicDirOld..'/peace', '*.ogg')
-	local warhighTracksOld 			= VFS.DirList(musicDirOld..'/warhigh', '*.ogg')
-	local warlowTracksOld 			= VFS.DirList(musicDirOld..'/warlow', '*.ogg')
-	local gameoverTracksOld 		= VFS.DirList(musicDirOld..'/gameover', '*.ogg')
-	local bossFightTracksOld  		= VFS.DirList(musicDirOld..'/bossfight', '*.ogg')
-	local menuTracksOld 			= VFS.DirList(musicDirOld..'/menu', '*.ogg')
-	local loadingTracksOld   		= VFS.DirList(musicDirOld..'/loading', '*.ogg')
+	local peaceTracksNew 			= VFS.DirList(musicDirNew..'/peace', allowedExtensions)
+	local warhighTracksNew 			= VFS.DirList(musicDirNew..'/warhigh', allowedExtensions)
+	local warlowTracksNew 			= VFS.DirList(musicDirNew..'/warlow', allowedExtensions)
+	local gameoverTracksNew 		= VFS.DirList(musicDirNew..'/gameover', allowedExtensions)
+	local bossFightTracksNew   		= VFS.DirList(musicDirNew..'/bossfight', allowedExtensions)
+	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu', allowedExtensions)
+	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', allowedExtensions)
 
 	-- Custom Soundtrack List
 	local musicDirCustom 		= 'music/custom'
-	local baseTracksCustom 			= VFS.DirList(musicDirCustom, '*.ogg')
-	local peaceTracksCustom 		= VFS.DirList(musicDirCustom..'/peace', '*.ogg')
-	local warhighTracksCustom 		= VFS.DirList(musicDirCustom..'/warhigh', '*.ogg')
-	local warlowTracksCustom 		= VFS.DirList(musicDirCustom..'/warlow', '*.ogg')
-	local warTracksCustom 			= VFS.DirList(musicDirCustom..'/war', '*.ogg')
-	local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', '*.ogg')
-	local bossFightTracksCustom 	= VFS.DirList(musicDirCustom..'/bossfight', '*.ogg')
-	local menuTracksCustom 			= VFS.DirList(musicDirCustom..'/menu', '*.ogg')
-	local loadingTracksCustom  		= VFS.DirList(musicDirCustom..'/loading', '*.ogg')
+	local peaceTracksCustom 		= VFS.DirList(musicDirCustom..'/peace', allowedExtensions)
+	local warhighTracksCustom 		= VFS.DirList(musicDirCustom..'/warhigh', allowedExtensions)
+	local warlowTracksCustom 		= VFS.DirList(musicDirCustom..'/warlow', allowedExtensions)
+	local warTracksCustom 			= VFS.DirList(musicDirCustom..'/war', allowedExtensions)
+	local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', allowedExtensions)
+	local bossFightTracksCustom 	= VFS.DirList(musicDirCustom..'/bossfight', allowedExtensions)
+	local menuTracksCustom 			= VFS.DirList(musicDirCustom..'/menu', allowedExtensions)
+	local loadingTracksCustom  		= VFS.DirList(musicDirCustom..'/loading', allowedExtensions)
 
 	-----------------------------------SETTINGS---------------------------------------
 
 	interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
 	silenceTimerEnabled 			= Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
 	local newSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
-	local oldSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackOld', 0) == 1
 	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1
 
+	if Spring.GetConfigInt('UseSoundtrackNew', 1) == 0 and Spring.GetConfigInt('UseSoundtrackOld', 0) == 1 then
+		Spring.SetConfigInt('UseSoundtrackNew', 1)
+		Spring.SetConfigInt('UseSoundtrackOld', 0)
+	end
 	-------------------------------CREATE PLAYLISTS-----------------------------------
 
 	peaceTracks = {}
@@ -130,21 +123,7 @@ local function ReloadMusicPlaylists()
 		table.append(loadingTracks, loadingTracksNew)
 	end
 
-	if oldSoundtrackEnabled then
-		table.append(peaceTracks, peaceTracksOld)
-		table.append(warhighTracks, warhighTracksOld)
-		table.append(warlowTracks, warlowTracksOld)
-		table.append(gameoverTracks, gameoverTracksOld)
-		table.append(bossFightTracks, bossFightTracksOld)
-		table.append(menuTracks, menuTracksOld)
-		table.append(loadingTracks, loadingTracksOld)
-	end
-
 	if customSoundtrackEnabled then
-		table.append(peaceTracks, baseTracksCustom)
-		table.append(warhighTracks, baseTracksCustom)
-		table.append(warlowTracks, baseTracksCustom)
-
 		table.append(peaceTracks, peaceTracksCustom)
 		table.append(warhighTracks, warhighTracksCustom)
 		table.append(warlowTracks, warlowTracksCustom)
@@ -397,7 +376,7 @@ local function capitalize(text)
 end
 
 local function processTrackname(trackname)
-	trackname = string.gsub(trackname, ".ogg", "")
+	trackname = string.gsub(trackname, ".%w+$", "")
 	trackname = trackname:match("[^/|\\]*$")
 	return capitalize(trackname)
 end

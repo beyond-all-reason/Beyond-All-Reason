@@ -5,7 +5,7 @@ return {
 		bankscale = 1,
 		blocking = false,
 		brakerate = 3.75,
-		buildcostenergy = 0,
+		buildcostenergy = 1,
 		buildcostmetal = 0,
 		builder = false,
 		buildpic = "critters/critter_gull.DDS",

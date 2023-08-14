@@ -254,7 +254,7 @@
 		"keybinds": {
 			"title": "Tastenbelegungen",
 			"disclaimer": "Diese Tastenbelegungen sind standardmäßig gesetzt. Wenn du Hotkey-Widgets entfernst/ersetzt oder deine eigenen UIKeys verwendest, funktionieren sie möglicherweise nicht mehr!",
-			"howtochangekeybinds":"Zum Ändern: in Einstellungen/Steuerung Tastenbelegungen auf \"Benutzerdefiniert\" setzen, um die Datei BAR/data/bar_hotkeys_custom.lua zu erstellen.\nBearbeite diese Datei und wähle \"Benutzerdefiniert\" wieder aus, um erneut zu laden.",
+			"howtochangekeybinds":"Zum Ändern: in Einstellungen/Steuerung Tastenbelegungen auf \"Benutzerdefiniert\" setzen, um die Datei BAR/data/uikeys.txt zu erstellen.\nBearbeite diese Datei und wähle \"Benutzerdefiniert\" wieder aus, um erneut zu laden.",
 			"chat": {
 				"title": "Chat",
 				"send": "Chatnachricht senden",
@@ -467,12 +467,9 @@
 		"gametypeInfo": {
 			"killAllUnits": "Vernichte alle feindlichen Einheiten",
 			"killAllCommanders": "Vernichte alle feindlichen Kommandanten",
-			"commandersSurviveDgun": "Kommandanten überleben D-Guns und Kommandantenexplosionen",
 			"unbalancedCommanders": "Unausgewogene Kommandanten sind aktiviert: Kommandanten steigen auf und erhalten Upgrades",
 			"victoryCondition": "Siegbedingung",
-			"owncomends": "Verlust des Kommandanten = Verlust der Kontrolle über eigene Einheiten / Aufgeben",
-			"dgunrule": "Wenn du nur noch 1 Kommandant hast: D-Gunning eines feindlichen Kommandanten resultiert in Niederlage ",
-			"dgunruleExplanation": "(diese Regel wurde eingeführt, um einen dreisten Sieg/Unentschieden zu verhindern)"
+			"owncomends": "Verlust des Kommandanten = Verlust der Kontrolle über eigene Einheiten / Aufgeben"
 		},
 		"startSpot": {
 			"startbox": "Wähle einen Startpunkt innerhalb des grünen Bereichs und klicke auf die Bereit-Knopf. (F4 hebt Metalladern hervor)",
@@ -510,10 +507,10 @@
 			"tidalStrength": "Gezeitengeschwindigkeit",
 			"windStrength": "Windgeschwindigkeit",
 			"waterDamage": "Wasserschaden ",
-			"chickenOptions": "Raptoreinstellungen",
+			"raptorOptions": "Raptoreinstellungen",
 			"modOptions": "Modeinstellungen"
 		},
-		"chickens": {
+		"raptors": {
 			"firstWave1": "Die Raptoren sind eingetroffen!",
 			"firstWave2": "Bereiten Sie sich für die Verteidigung vor!",
 			"airWave1": "Raptoren im Anflug!",
@@ -524,9 +521,9 @@
 			"resistanceUnits": "Die Königin wird resistent gegen:",
 			"wave1": "Welle %{waveNumber}",
 			"wave2": "%{unitCount} Raptoren!",
-			"chickenCount": "Raptoren: %{count}",
-			"chickenKillCount": "Raptoren getötet: %{count}",
-			"chickenPlayerAgression": "Spieler-Aggressivitätsniveau: %{count}",
+			"raptorCount": "Raptoren: %{count}",
+			"raptorKillCount": "Raptoren getötet: %{count}",
+			"raptorPlayerAgression": "Spieler-Aggressivitätsniveau: %{count}",
 			"queenAnger": "Königin schlüpft:%{anger}%% (+%{gain}%%/s)",
 			"queenAngerBase": "Basis: +%{value}%%/s",
 			"queenAngerAggression": "Aggressivität: +%{value}%%/s",

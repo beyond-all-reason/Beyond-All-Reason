@@ -101,7 +101,7 @@ for _, teamID in ipairs(myAllyTeamList) do
 	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
 		local luaAI = Spring.GetTeamLuaAI(teamID)
 		if luaAI and luaAI ~= "" then
-			if string.find(luaAI, 'Scavengers') or string.find(luaAI, 'Chickens') then
+			if string.find(luaAI, 'Scavengers') or string.find(luaAI, 'Raptors') then
 				supressOverflowNotifs = true
 				break
 			end

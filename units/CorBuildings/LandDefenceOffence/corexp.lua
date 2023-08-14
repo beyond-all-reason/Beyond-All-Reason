@@ -36,7 +36,7 @@ return {
 		selfdestructas = "mediumBuildingExplosionGeneric",
 		selfdestructcountdown = 1,
 		sightdistance = 455,
-    	yardmap = "h yyyyyyyy yooooooy yobbbboy yobooboy yobooboy yobbbboy yooooooy yyyyyyyy",
+		yardmap = "h cbbbbbbc bssssosb bosbbssb bsbbbbsb bsbbbbsb bssbbsob bsossssb cbbbbbbc",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/corexp_aoplane.dds",
@@ -158,7 +158,6 @@ return {
 				weaponvelocity = 2250,
 				damage = {
 					bombers = 5,
-					commanders = 140,
 					default = 75,
 					fighters = 5,
 					vtol = 5,

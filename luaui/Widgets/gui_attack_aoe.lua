@@ -221,6 +221,38 @@ local function SetupUnitDef(unitDefID, unitDef)
 		return
 	end
 
+	-- put this block here, to hand ON/OFF dual weapons
+	for ii, weapon in ipairs(unitDef.weapons) do
+		if weapon.weaponDef then
+			local weaponDef = WeaponDefs[weapon.weaponDef]
+			if weaponDef then
+				if weaponDef.customParams then
+					-- for now, just handling tremor sector fire
+					if weaponDef.customParams.speceffect == "sector_fire" then
+						if not weaponInfo[unitDefID] then
+							weaponInfo[unitDefID] = { type = "sector"}
+						end
+						weaponInfo[unitDefID].type = "sector"
+						if ii == 2 then -- hard assumption the second weapon is the active ON weapon
+							weaponInfo[unitDefID].ONOFF = true
+							weaponInfo[unitDefID].sector_angle_active = tonumber(weaponDef.customParams.spread_angle)
+							weaponInfo[unitDefID].sector_shortfall_active = tonumber(weaponDef.customParams.max_range_reduction)
+						else
+							weaponInfo[unitDefID].sector_angle = tonumber(weaponDef.customParams.spread_angle)
+							weaponInfo[unitDefID].sector_shortfall = tonumber(weaponDef.customParams.max_range_reduction)
+						end
+					end
+				end
+			end
+		end
+	end
+	-- break early if sector weapon
+	if weaponInfo[unitDefID] then
+		if weaponInfo[unitDefID].type == "sector" then
+			return
+		end
+	end
+
 	local maxSpread = minSpread
 	local maxWeaponDef
 
@@ -566,6 +598,46 @@ local function DrawBallisticScatter(scatter, v, fx, fy, fz, tx, ty, tz, trajecto
 end
 
 --------------------------------------------------------------------------------
+--sector
+--------------------------------------------------------------------------------
+local function DrawSectorScatter(angle, shortfall, fx, fy, fz, tx, ty, tz, active)
+	--x2=cosβx1−sinβy1
+	--y2=sinβx1+cosβy1
+	local bars = {}
+	local vx = tx - fx
+	local vz = tz - fz
+
+	local vx2 = 0
+	local vz2 = 0
+	local count = 1
+	for ii = -3, 3 do
+		vx2 = vx*math.cos(0.5*angle*ii/3*math.pi/180) - vz*math.sin(0.5*angle*ii/3*math.pi/180)
+		vz2 = vx*math.sin(0.5*angle*ii/3*math.pi/180) + vz*math.cos(0.5*angle*ii/3*math.pi/180)
+		bars[count] = {fx+vx2, ty, fz+vz2}
+		count = count + 1
+	end
+	bars[count] = {fx+(1-shortfall)*vx2, ty, fz+(1-shortfall)*vz2}
+	count = count + 1
+	for ii = 3, -3, -1 do
+		vx2 = vx*math.cos(0.5*angle*ii/3*math.pi/180) - vz*math.sin(0.5*angle*ii/3*math.pi/180)
+		vz2 = vx*math.sin(0.5*angle*ii/3*math.pi/180) + vz*math.cos(0.5*angle*ii/3*math.pi/180)
+		bars[count] = {fx+(1-shortfall)*vx2, ty, fz+(1-shortfall)*vz2}
+		count = count + 1
+	end
+	bars[count] = {fx+vx2, ty, fz+vz2}
+	count = count + 1
+	glLineWidth(scatterLineWidthMult / mouseDistance)
+	glPointSize(pointSizeMult / mouseDistance)
+	glColor(scatterColor)
+	glDepthTest(false)
+	glBeginEnd(GL.LINE_STRIP, VertexList, bars)
+	glDepthTest(true)
+	glColor(1, 1, 1, 1)
+	glPointSize(1)
+	glLineWidth(1)
+end
+
+--------------------------------------------------------------------------------
 --wobble
 --------------------------------------------------------------------------------
 local function DrawWobbleScatter(scatter, fx, fy, fz, tx, ty, tz, rangeScatter, range)
@@ -752,6 +824,22 @@ function widget:DrawWorld()
 		glLineWidth(1.5)
 		glDrawGroundCircle(fx, fy, fz, info.range, circleDivs)
 		glColor(1, 1, 1, 1)
+	end
+
+	-- tremor customdef weapon
+	if (weaponType == "sector") then
+		local angle = info.sector_angle
+		local shortfall = info.sector_shortfall
+		-- case to catch ON/OFF weapons
+		if info.ONOFF == true then
+			local unitStates = Spring.GetUnitStates(aimingUnitID)
+			if unitStates.active == true then
+				angle = info.sector_angle_active
+				shortfall = info.sector_shortfall_active
+			end
+		end
+		DrawSectorScatter(angle, shortfall, fx, fy, fz, tx, ty, tz)
+		return
 	end
 
 

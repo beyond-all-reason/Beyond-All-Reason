@@ -1,7 +1,7 @@
 return {
 	xmasball2 = {
 		blocking = true,
-		buildcostenergy = 0,
+		buildcostenergy = 1,
 		buildcostmetal = 0,
 		buildpic = "other/xmasball2.dds",
 		buildtime = 255,

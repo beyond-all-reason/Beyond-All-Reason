@@ -4,11 +4,11 @@ if modOptions.scoremode == "disabled" then
 	return
 end
 
---Make controlvictory exit if chickens are present
+--Make controlvictory exit if raptors are present
 local pveEnabled = Spring.Utilities.Gametype.IsPvE()
 
 if pveEnabled then
-	Spring.Echo("[ControlVictory] Deactivated because Chickens or Scavengers are present!")
+	Spring.Echo("[ControlVictory] Deactivated because Raptors or Scavengers are present!")
 	return false
 end
 

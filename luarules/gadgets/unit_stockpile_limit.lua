@@ -37,10 +37,17 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 
 		[UnitDefNames['armamd'].id] = 20,
 		[UnitDefNames['corfmd'].id] = 20,
-		[UnitDefNames['chicken_antinuke'].id] = 3,
+		[UnitDefNames['raptor_turrets_antinuke'].id] = 5,
+		[UnitDefNames['raptor_turretl_antinuke'].id] = 10,
+
+		[UnitDefNames['armjuno'].id] = 20,
+		[UnitDefNames['corjuno'].id] = 20,
 
 		[UnitDefNames['armcarry'].id] = 20,
 		[UnitDefNames['corcarry'].id] = 20,
+		
+		[UnitDefNames['armantiship'].id] = 20,
+		[UnitDefNames['corantiship'].id] = 20,
 
 		[UnitDefNames['armscab'].id] = 20,
 		[UnitDefNames['cormabm'].id] = 20,
@@ -87,12 +94,12 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 	end
 
 	function UpdateStockpile(unitID, unitDefID)
-		local MaxStockpile = math.min(isStockpilingUnit[unitDefID] or defaultStockpileLimit, StockpileDesiredTarget[unitID])
+		local MaxStockpile = math.max(math.min(isStockpilingUnit[unitDefID] or defaultStockpileLimit, StockpileDesiredTarget[unitID]), 0)
 
 		local stock,queued = GetUnitStockpile(unitID)
 		if queued and stock then
 			local count = stock + queued - MaxStockpile
-			while count < 0  do
+			while count < 0 do
 				if count <= -100 then
 					GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "ctrl", "shift" })
 					count = count + 100
@@ -128,11 +135,10 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) -- Can't use StockPileChanged because that doesn't get called when the stockpile queue changes
 		if unitID then
 			if cmdID == CMD_STOCKPILE or (cmdID == CMD_INSERT and cmdParams[2]==CMD_STOCKPILE) then
-				local pile,pileQ = Spring.GetUnitStockpile(unitID)
-				if pile == nil then
+				local stock, _ = Spring.GetUnitStockpile(unitID)
+				if stock == nil then
 					return true
 				end
-				local pilelimit = math.min(isStockpilingUnit[unitDefID] or defaultStockpileLimit, StockpileDesiredTarget[unitID])
 				local addQ = 1
 				if cmdOptions.shift then
 					if cmdOptions.ctrl then
@@ -146,14 +152,10 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 				if cmdOptions.right then
 					addQ = -addQ
 				end
-				if fromLua == true then 	-- fromLua is *true* if command is sent from a gadget and *false* if it's sent by a player
-					if pile+pileQ+addQ <= pilelimit then
-						return true
-					else
-						return false
-					end
+				if fromLua == true and fromSynced == true then 	-- fromLua is *true* if command is sent from a gadget and *false* if it's sent by a player.
+					return true
 				else
-					StockpileDesiredTarget[unitID] = math.max(math.min(StockpileDesiredTarget[unitID] + addQ, isStockpilingUnit[unitDefID] or defaultStockpileLimit),0) -- let's make sure desired target doesn't go above maximum of this unit
+					StockpileDesiredTarget[unitID] = math.max(math.min(StockpileDesiredTarget[unitID] + addQ, isStockpilingUnit[unitDefID] or defaultStockpileLimit), 0) -- let's make sure desired target doesn't go above maximum of this unit, and doesn't go below 0
 					UpdateStockpile(unitID, unitDefID)
 					return false
 				end

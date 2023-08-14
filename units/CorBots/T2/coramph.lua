@@ -10,7 +10,7 @@ return {
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTHOVER NOTSUB SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "32 29 32",
+		collisionvolumescales = "32 29 32", -- possible multihotbox scheme here
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		explodeas = "smallExplosionGeneric-phib",
@@ -170,7 +170,7 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrhvy3",
 				soundtrigger = 1,
-				targetmoveerror = 0.25,
+				targetmoveerror = 0,
 				thickness = 2.4,
 				tolerance = 10000,
 				turret = true,

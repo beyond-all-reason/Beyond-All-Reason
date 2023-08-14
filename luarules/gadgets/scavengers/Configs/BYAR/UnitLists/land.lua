@@ -35,6 +35,7 @@ return {
 		"armsam_scav",
 		"armpincer_scav",
 		"armjanus_scav",
+		"armzapper_scav",
 		"corgator_scav",
 		"cormist_scav",
 		"corwolv_scav",
@@ -107,6 +108,7 @@ return {
 		"cormart_scav",
 		"corsent_scav",
 		"corseal_scav",
+		"corsala_scav",
 		"correap_scav",
 		"corgatreap_scav",
 		"corvroc_scav",
@@ -126,6 +128,7 @@ return {
 		"cordecom_scav",
 		"coracv_scav",
 		"corprinter_scav",
+		"corvac_scav",
 	},
 
 	T3 = {

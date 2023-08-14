@@ -1,11 +1,9 @@
-local gadgetEnabled = true	--not (Spring.GetModOptions().newdgun or Spring.GetModOptions().unba)
-
-local ignoreDgunPart = Spring.GetModOptions().comupdate or Spring.GetModOptions().newdgun or Spring.GetModOptions().unba
+local gadgetEnabled = true	--not Spring.GetModOptions().unba
 
 function gadget:GetInfo()
 	return {
 		name      = "preventcombomb",
-		desc      = "Commanders survive commander blast and DGun",
+		desc      = "Commanders survive commander blast",
 		author    = "TheFatController",
 		date      = "Aug 31, 2009",
 		license   = "GNU GPL, v2 or later",
@@ -74,8 +72,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		return 0, 0
 	end
 
-	if (isDGUN[weaponID] and not ignoreDgunPart) or weaponID == COM_BLAST then
-
+	if weaponID == COM_BLAST then
 		local hp,_ = GetUnitHealth(unitID)
 		hp = hp or 0
 		local combombDamage = hp-200-math_random(1,10)

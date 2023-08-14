@@ -32,7 +32,7 @@ end
 		-- Units
 			-- tanks : -- these are units actually
 			-- barunits :
-			-- chickens
+			-- raptors
 			-- scavengers
 			--
 
@@ -42,7 +42,7 @@ end
 
 	-- Textures:
 		-- arm/cor
-		-- 10x chickensets
+		-- 10x raptorsets
 		-- 5x featuresets
 		-- scavengers?
 	-- Objects (the VAO)
@@ -62,7 +62,7 @@ end
 	-- DONE treadoffset unitUniform
 	-- DONE: BITOPTIONS UNIFOOOOORM!
 	-- normalmapping
-	-- chickens
+	-- raptors
 	-- tanktracks
 	-- Reflection camera
 	-- refraction camera
@@ -143,7 +143,7 @@ end
 
 	-- TODO: check if LuaShader UniformLocations are cached
 
-	-- DONE: add a wreck texture to chickens! It uses lavadistortion texture, its fine
+	-- DONE: add a wreck texture to raptors! It uses lavadistortion texture, its fine
 
 	-- TODO: Use a 3d texture lookup instead of perlin implementation for damage shading
 
@@ -257,7 +257,7 @@ do --save a ton of locals
 	local OPTION_THREADS_CORE     = 64
 	local OPTION_HEALTH_TEXTURING = 128
 	local OPTION_HEALTH_DISPLACE  = 256
-	local OPTION_HEALTH_TEXCHICKS = 512
+	local OPTION_HEALTH_TEXRAPTORS = 512
 	local OPTION_MODELSFOG        = 1024
 	local OPTION_TREEWIND         = 2048
 	local OPTION_PBROVERRIDE      = 4096
@@ -285,8 +285,8 @@ do --save a ton of locals
 			baseVertexDisplacement = 0.4,
 			brightnessFactor = 1.5,
 		},
-		chicken = {
-			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS  + OPTION_HEALTH_DISPLACE + OPTION_HEALTH_TEXCHICKS + OPTION_TREEWIND + OPTION_SHIFT_RGBHSV,
+		raptor = {
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS  + OPTION_HEALTH_DISPLACE + OPTION_HEALTH_TEXRAPTORS + OPTION_TREEWIND + OPTION_SHIFT_RGBHSV,
 			baseVertexDisplacement = 0.0,
 			brightnessFactor = 1.5,
 		},
@@ -766,7 +766,7 @@ local wreckAtlases = {
 		"unittextures/cor_other_wreck.dds",
 		"unittextures/cor_color_wreck_normal.dds",
 	},
-	["chicken"] = {
+	["raptor"] = {
 		"luaui/images/lavadistortion.png",
 	}
 }
@@ -871,10 +871,10 @@ local function initBinsAndTextures()
 				elseif 	unitDef.name:sub(1,3) == 'cor' then
 					objectDefToUniformBin[unitDefID] = 'corscavenger'
 				end
-			elseif unitDef.name:find("chicken", nil, true) or unitDef.name:find("chicken_hive", nil, true) then
-				textureTable[5] = wreckAtlases['chicken'][1]
-				objectDefToUniformBin[unitDefID] = 'chicken'
-				--Spring.Echo("Chickenwreck", textureTable[5])
+			elseif unitDef.name:find("raptor", nil, true) or unitDef.name:find("raptor_hive", nil, true) then
+				textureTable[5] = wreckAtlases['raptor'][1]
+				objectDefToUniformBin[unitDefID] = 'raptor'
+				--Spring.Echo("Raptorwreck", textureTable[5])
 			elseif wreckTex1 and wreckTex2 then -- just a true unit:
 				textureTable[3] = wreckTex1
 				textureTable[4] = wreckTex2
@@ -909,7 +909,7 @@ local function initBinsAndTextures()
 
 			objectDefToUniformBin[-1 * featureDefID] = 'feature'
 
-			if featureDef.name:find("chicken_egg", nil, true) then
+			if featureDef.name:find("raptor_egg", nil, true) then
 				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
 				--featuresDefsWithAlpha[-1 * featureDefID] = "yes"
 			elseif (featureDef.customParams and featureDef.customParams.treeshader == 'yes')
@@ -919,7 +919,7 @@ local function initBinsAndTextures()
 			elseif featureDef.name:find("_dead", nil, true) or featureDef.name:find("_heap", nil, true) then
 				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
 			elseif featureDef.name:find("pilha_crystal", nil, true) or (featureDef.customParams and featureDef.customParams.cuspbr) then
-				objectDefToUniformBin[-1 * featureDefID] = 'featurepbr'	
+				objectDefToUniformBin[-1 * featureDefID] = 'featurepbr'
 			end
 			--Spring.Echo("Assigned normal map to", featureDef.name, normalTex)
 
@@ -1915,7 +1915,7 @@ function gadget:DrawWorldPreUnit()
 		end
 
 		if numdestroyedFeatures > 0 then
-			
+
 			ProcessFeatures(destroyedFeatureIDs, destroyedFeatureDrawFlags, "destroyed")
 			for i=numdestroyedFeatures,1,-1 do
 				destroyedFeatureIDs[i] = nil
@@ -1923,30 +1923,30 @@ function gadget:DrawWorldPreUnit()
 			end
 			numdestroyedFeatures = 0
 		end
-		if firstDraw then 
+		if firstDraw then
 			local firstfeatures = Spring.GetVisibleFeatures()
 			local firstdrawFlagsFeatures = {}
 			local validFirstFeatures = {}
 			local numfirstfeatures = 0
-			for i, featureID in ipairs(firstfeatures) do 
+			for i, featureID in ipairs(firstfeatures) do
 				local flag = Spring.GetFeatureDrawFlag(featureID)
-				if flag and flag > 0 then 
-					numfirstfeatures = numfirstfeatures + 1 
+				if flag and flag > 0 then
+					numfirstfeatures = numfirstfeatures + 1
 					validFirstFeatures[numfirstfeatures] = featureID
 					firstdrawFlagsFeatures[numfirstfeatures] = flag
 				end
-					
-			end 
+
+			end
 			ProcessFeatures(validFirstFeatures, firstdrawFlagsFeatures, "firstDraw")
-			
+
 			local firstunits = Spring.GetVisibleUnits()
 			local firstdrawFlagsUnits = {}
-			for i, unitID in ipairs(firstunits) do firstdrawFlagsUnits[i] = 1 + 4 + 16 end 
+			for i, unitID in ipairs(firstunits) do firstdrawFlagsUnits[i] = 1 + 4 + 16 end
 			ProcessUnits(firstunits, firstdrawFlagsUnits, "firstDraw")
-			
+
 			firstDraw = false
 		end
-		
+
 
 		ProcessUnits(units, drawFlagsUnits, "changed")
 		ProcessFeatures(features, drawFlagsFeatures, "changed")
@@ -1976,19 +1976,19 @@ function gadget:DrawWorldPreUnit()
 end
 
 local nightFactorBins = {tree = 1.3, feature = 1.3, featurepbr = 1.3, treepbr = 1.3}
-local lastSunChanged = -1 
+local lastSunChanged = -1
 function gadget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
 	local df = Spring.GetDrawFrame()
 	if df == lastSunChanged then return end
 	lastSunChanged = df
 	local nightFactor = 1.0
-	if GG['NightFactor'] then 
+	if GG['NightFactor'] then
 		local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
 		nightFactor = (GG['NightFactor'].red + GG['NightFactor'].green + GG['NightFactor'].blue) * 0.33
 	end
-	for uniformBinName, defaultBrightnessFactor in pairs(nightFactorBins) do 
+	for uniformBinName, defaultBrightnessFactor in pairs(nightFactorBins) do
 		uniformBins[uniformBinName].brightnessFactor = defaultBrightnessFactor * nightFactor
-	end 
+	end
 end
 
 local function drawPassBitsToNumber(opaquePass, deferredPass, drawReflection, drawRefraction)

@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		autoheal = 1.8,
 		blocking = false,
-		bmcode = "0",
+
 		brakerate = 0,
 		buildcostenergy = 10,
 		buildcostmetal = 10,
@@ -32,7 +32,6 @@ return {
 		selfdestructas = "",
 		selfdestructcountdown = 0,
 		smoothanim = true,
-		tedclass = "ENERGY",
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 0,
@@ -84,7 +83,7 @@ return {
 				weaponvelocity = 2000, -- elmos/sec
 				wobble = 50,
 				damage = {
-					chicken = 0,
+					raptor = 0,
 					default = 0,
 				},
 			},

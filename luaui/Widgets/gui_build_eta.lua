@@ -184,7 +184,7 @@ local function drawEtaText(timeLeft, yoffset)
 	glBillboard()
 	glTranslate(0, 5, 0)
 	font:Begin()
-	font:Print(etaText, 0, 0, 5.75, "co")
+	font:Print(etaText, 0, 0, 6, "co")
 	font:End()
 end
 

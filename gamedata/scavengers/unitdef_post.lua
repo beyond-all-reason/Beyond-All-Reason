@@ -29,7 +29,7 @@ local function scavUnitDef_Post(name, uDef)
 	if uDef.buildpic then
 		--local nonScavName = string.sub(uDef.unitname, 1, string.len(uDef.unitname)-5)
 		if (not string.find(uDef.buildpic, "scavengers"))
-		and (not string.find(uDef.buildpic, "chicken"))
+		and (not string.find(uDef.buildpic, "raptor"))
 		and (not string.find(uDef.buildpic, "critters"))
 		and (not string.find(uDef.buildpic, "lootboxes"))
 		and (not string.find(uDef.buildpic, "other"))

@@ -166,8 +166,8 @@ local isT2 = {}
 local isT3mobile = {}
 local isMine = {}
 for udefID,def in ipairs(UnitDefs) do
-	-- not critter/chicken/object
-	if not string.find(def.name, 'critter') and not string.find(def.name, 'chicken') and (not def.modCategories or not def.modCategories.object) then
+	-- not critter/raptor/object
+	if not string.find(def.name, 'critter') and not string.find(def.name, 'raptor') and (not def.modCategories or not def.modCategories.object) then
 		if def.canFly then
 			isAircraft[udefID] = true
 		end

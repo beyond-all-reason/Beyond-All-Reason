@@ -24,7 +24,6 @@ local function bossWaveTimer(n)
 			SpawnBeacons = {}
 			for i = 1,#scavengerunits do
 				local scav = scavengerunits[i]
-				local scavDef = Spring.GetUnitDefID(scav)
 				if scavSpawnBeacon[scav] then
 					table.insert(SpawnBeacons,scav)
 				end
@@ -174,7 +173,6 @@ local function unitGroupSpawn(n)
 			SpawnBeacons = {}
 			for i = 1,#scavengerunits do
 				local scav = scavengerunits[i]
-				local scavDef = Spring.GetUnitDefID(scav)
 				if scavSpawnBeacon[scav] then
 					table.insert(SpawnBeacons,scav)
 				end

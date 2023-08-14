@@ -28,7 +28,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 273,
-		yardmap = "ooooooooooooooooooooooooo",
+		yardmap = "oooo oooo oooo oooo",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/cormstor_aoplane.dds",

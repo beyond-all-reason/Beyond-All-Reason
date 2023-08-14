@@ -37,7 +37,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 676,
-		yardmap = "h yyooooyy yyssssyy ossoosso osossoso osossoso ossoosso yyssssyy yyooooyy",
+		yardmap = "h oooooooo osssssso osssssso ossoosso ossoosso osssssso osssssso oooooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/cormoho_aoplane.dds",
@@ -155,7 +155,6 @@ return {
 				weaponvelocity = 750,
 				damage = {
 					bombers = 45,
-					commanders = 550,
 					default = 260,
 					fighters = 45,
 					vtol = 45,

@@ -136,7 +136,7 @@ return {
 				model = "cormissile.s3o",
 				name = "Light g2g/g2a missile launcher",
 				noselfdamage = true,
-				range = 600,
+				range = 575,--600,
 				reloadtime = 3.33333,
 				smoketrail = true,
 				smokePeriod = 8,
@@ -163,7 +163,6 @@ return {
 				weaponvelocity = 670,
 				damage = {
 					bombers = 120,
-					commanders = 44,
 					default = 64,
 					fighters = 160,
 					vtol = 160,

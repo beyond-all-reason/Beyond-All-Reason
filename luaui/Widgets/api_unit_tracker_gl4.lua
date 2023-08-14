@@ -59,7 +59,7 @@ local gameFrame = Spring.GetGameFrame()
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams and unitDef.customParams.nohealthbars then
-		unitDefIgnore[unitDefID] = true
+		--unitDefIgnore[unitDefID] = true
 	end --ignore debug units
 end
 

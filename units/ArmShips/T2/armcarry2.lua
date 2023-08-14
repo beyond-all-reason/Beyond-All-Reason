@@ -207,7 +207,7 @@ return {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "armdrone",     --Name of the unit spawned by this carrier unit. 
+					carried_unit = "armdroneold",     --Name of the unit spawned by this carrier unit. 
 					-- carried_unit2... 			Currently not implemented, but planned.
 					engagementrange = 1200, 	
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently. 

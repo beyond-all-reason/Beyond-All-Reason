@@ -30,7 +30,7 @@ factionTeams = {
 	cor = 1, --// cortex
 	scav = 2,
 	legion = 2,
-	chicken = 2, --// chicken
+	raptor = 2, --// raptor
 	unknown = 2, --// unknown
 }
 
@@ -40,7 +40,7 @@ factionColors = function(faction)
 	color = {
 		arm = { 0.08, 0.17, 1.0 }, --// armada
 		cor = { 1.0, 0.03, 0.0 }, --// cortex
-		chicken = { 0.8, 0.53, 0.07 }, --// chicken
+		raptor = { 0.8, 0.53, 0.07 }, --// raptor
 		scav = { 0.38, 0, 0.38 }, --// scavengers
 		legion = {0, 1, 0}, --// legion
 		unknown = { 0.03, 1, 0.03 }, --// unknown

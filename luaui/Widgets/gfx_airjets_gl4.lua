@@ -120,10 +120,14 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 12, piece = "thrustr", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 15, piece = "thrustm", light = 1 }, --, xzVelocity = 1.5 -- removed xzVelocity else the other thrusters get disabled as well
 	},
-	["armdrone"] = {
+	["armdroneold"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustl", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustr", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 8, piece = "thrustm", light = 1 }, --, xzVelocity = 1.5 -- removed xzVelocity else the other thrusters get disabled as well
+	},
+	["armdrone"] = {
+		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustl", light = 1 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustr", light = 1 },
 	},
 	["corvalk"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust1", emitVector = { 0, 1, 0 }, light = 1 },
@@ -196,6 +200,10 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 1.8, length = 7.5, piece = "thrusta", limit = true  },
 		{ color = { 0.1, 0.4, 0.6 }, width = 1.8, length = 7.5, piece = "thrustb", limit = true  },
 	},
+	["cordroneold"] = {
+		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrusta", limit = true  },
+		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrustb", limit = true  },
+	},
 	["cordrone"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrusta", limit = true  },
 		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrustb", limit = true  },
@@ -233,6 +241,11 @@ local effectDefs = {
 		{ color = { 0.8, 0.15, 0.15 }, width = 3.5, length = 44, piece = "thrusta", light = 1 },
 		{ color = { 0.8, 0.15, 0.15 }, width = 3.5, length = 44, piece = "thrustb", light = 1 },
 		{ color = { 0.8, 0.15, 0.15 }, width = 3.5, length = 44, piece = "thrustc", light = 1 },
+	},
+	["armlichet4"] = {
+		{ color = { 0.8, 0.15, 0.15 }, width = 10.5, length = 132, piece = "thrusta", light = 1.5 },
+		{ color = { 0.8, 0.15, 0.15 }, width = 10.5, length = 132, piece = "thrustb", light = 1.5 },
+		{ color = { 0.8, 0.15, 0.15 }, width = 10.5, length = 132, piece = "thrustc", light = 1.5 },
 	},
 	["cortitan"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta1", light = 1 },
@@ -314,6 +327,12 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 14, length = 27, piece = "thrustr1", light = 0.62 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 19, length = 38, piece = "thrustl2", light = 0.62 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 19, length = 38, piece = "thrustr2", light = 0.62 },
+	},
+	["cordronecarryair"] = {
+		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 25, piece = "thrustl1", light = 0.58 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 25, piece = "thrustr1", light = 0.58 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 25, piece = "thrustl2", light = 0.58 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 25, piece = "thrustr2", light = 0.58 },
 	},
 }
 
@@ -464,8 +483,9 @@ struct SUniformsBuffer {
     float unused5;
     float unused6;
 
+    vec4 drawPos;
     vec4 speed;
-    vec4[5] userDefined; //can't use float[20] because float in arrays occupies 4 * float space
+    vec4[4] userDefined; //can't use float[16] because float in arrays occupies 4 * float space
 };
 
 layout(std140, binding=1) readonly buffer UniformsBuffer {

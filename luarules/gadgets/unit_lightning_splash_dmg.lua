@@ -48,8 +48,8 @@ local immuneToSplash = {
 	[UnitDefNames.armlatnk.id] = true,
     [UnitDefNames.armclaw.id] = true,
     [UnitDefNames.armthor.id] = true,
-    [UnitDefNames.chickene1.id] = true,
-    [UnitDefNames.chickene2.id] = true,
+    [UnitDefNames.raptore1.id] = true,
+    [UnitDefNames.raptore2.id] = true,
 }
 for udid, ud in pairs(UnitDefs) do
     for id, v in pairs(immuneToSplash) do

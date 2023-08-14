@@ -149,7 +149,7 @@ return {
 				name = "Long-range high-trajectory g2g plasma cannon",
 				noselfdamage = true,
 				range = 710,
-				reloadtime = 5.7,
+				reloadtime = 6.1,--5.7,
 				soundhit = "tawf113a",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy3",

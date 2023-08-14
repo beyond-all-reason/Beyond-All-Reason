@@ -3,7 +3,7 @@ return {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		autoheal = 1.8,
-		bmcode = "0",
+
 		blocking = false,
 		brakerate = 0,
 		buildcostenergy = 10,
@@ -33,7 +33,6 @@ return {
 		selfdestructcountdown = 5,
 		selfdestructas = "",
 		smoothanim = true,
-		tedclass = "ENERGY",
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 0,
@@ -92,7 +91,7 @@ return {
 				weaponvelocity = 1500,
 				wobble = 50,
 				damage = {
-					chicken = 0,
+					raptor = 0,
 					default = 0,
 				},
 			},

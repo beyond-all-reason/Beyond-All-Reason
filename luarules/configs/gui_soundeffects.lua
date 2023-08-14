@@ -2351,8 +2351,8 @@ end
 table.mergeInPlace(GUIUnitSoundEffects, scavCopies)
 
 for _, udef in pairs(UnitDefs) do
-	if (not GUIUnitSoundEffects[udef.name]) and string.find(udef.name, "chicken") then
-		--Spring.Echo("[RESPONSEDOUND FALLBACK]: Chicken", udef.name)
+	if (not GUIUnitSoundEffects[udef.name]) and string.find(udef.name, "raptor") then
+		--Spring.Echo("[RESPONSEDOUND FALLBACK]: Raptor", udef.name)
 		GUIUnitSoundEffects[udef.name] = {}
 	elseif not GUIUnitSoundEffects[udef.name] then
 		if string.find(udef.name, "arm") then

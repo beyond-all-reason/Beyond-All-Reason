@@ -67,8 +67,8 @@ Create()
 	hide frflare;
 	hide blflare;
 	hide brflare;
-	gun_1 = fturret;
-	gun_2 = fturret;
+	gun_1 = 0;
+	gun_2 = 0;
 	restore_delay = 3000;
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -174,7 +174,7 @@ FirePrimary()
 	++gun_1;
 	if( gun_1 == 2 )
 	{
-		gun_1 = base;
+		gun_1 = 0;
 	}
 	return (0);
 }
@@ -220,7 +220,7 @@ FireSecondary()
 	++gun_2;
 	if( gun_2 == 2 )
 	{
-		gun_2 = base;
+		gun_2 = 0;
 	}
 	return (0);
 }

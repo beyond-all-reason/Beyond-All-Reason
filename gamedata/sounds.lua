@@ -150,8 +150,8 @@ local soundData = {
 		rolloff = 1.5,
 	},
 
-	-- CHICKEN SOUNDS
-	['chickens'] = {
+	-- RAPTOR SOUNDS
+	['raptors'] = {
 		gain = 1.2 * 0.5,
 		pitchmod = {
 			default = 0.23,

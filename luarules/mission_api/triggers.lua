@@ -48,8 +48,6 @@ local function prevalidateTriggers()
 end
 
 local function preprocessRawTriggers(rawTriggers)
-	Spring.Echo("[Mission API] Processing mission triggers")
-
 	for triggerId, rawTrigger in pairs(rawTriggers) do
 		local settings = rawTrigger.settings or {}
 		settings.prerequisites = settings.prerequisites or {}

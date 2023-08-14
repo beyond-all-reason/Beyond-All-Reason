@@ -1082,8 +1082,8 @@ local function GetUnitSide(name)--TODO change to the internal name armada cortex
 		return 'arm'
 	elseif string.find(name, 'cor') then
 		return 'core'
-	elseif string.find(name, 'chicken') then
-		return 'chicken'
+	elseif string.find(name, 'raptor') then
+		return 'raptor'
 	end
 	return 'unknown'
 end
