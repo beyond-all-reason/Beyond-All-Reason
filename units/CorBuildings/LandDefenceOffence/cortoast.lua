@@ -32,7 +32,7 @@ return {
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 416,
 		usepiececollisionvolumes = 1,
-		yardmap = "ooooooooo",
+		yardmap = "oooo oooo oooo oooo",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/cortoast_aoplane.dds",
