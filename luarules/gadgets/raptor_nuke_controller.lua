@@ -71,10 +71,9 @@ function checkTargetCell(posx, posz, nukeID)
     local cellZ = math.ceil(posz/gridSize)
     local cellData = targetGridCells[cellX][cellZ]
     if cellData.locked < GetGameSeconds() then
-        cellData.locked = GetGameSeconds() + math.random(90,300)
+        cellData.locked = GetGameSeconds() + math.random(180,300)
         return true
     end
-    aliveNukeLaunchers[nukeID] = GetGameSeconds() + math.random(1,10)
     return false
 end
 
@@ -91,7 +90,7 @@ function gadget:GameFrame(frame)
                     y = math.max(Spring.GetGroundHeight(x,z), 0)
                     if x and z and x > 0 and x < mapSizeX and z > 0 and z < mapSizeZ and checkTargetCell(x,z,nukeID) then
                         Spring.GiveOrderToUnit(nukeID, CMD.ATTACK, {x, y, z}, {"shift"})
-                        aliveNukeLaunchers[nukeID] = GetGameSeconds() + math.random(1,10)
+                        aliveNukeLaunchers[nukeID] = GetGameSeconds() + math.random(10,90)
                     end
                 end
             end

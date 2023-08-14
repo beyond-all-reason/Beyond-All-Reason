@@ -25,7 +25,7 @@ if not Spring.GetModOptions().unit_restrictions_nonukes then
 
 	raptorTurrets["raptor_turrets_antinuke"] 	= { minQueenAnger = 0, 	spawnedPerWave = 1, maxExisting = 5,	maxQueenAnger = 1000,}
 	raptorTurrets["raptor_turretl_antinuke"] 	= { minQueenAnger = 40, spawnedPerWave = 1, maxExisting = 5,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turretxl_meteor"]		= { minQueenAnger = 70, spawnedPerWave = 2, maxExisting = 5,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretxl_meteor"]		= { minQueenAnger = 70, spawnedPerWave = 1, maxExisting = 5,	maxQueenAnger = 1000,}
 
 end
 if not Spring.GetModOptions().unit_restrictions_noair then
