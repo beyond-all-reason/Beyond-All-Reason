@@ -267,6 +267,7 @@ raptorBehaviours = {
 		[UnitDefNames["raptor_dodo2"].id] = true,
 		[UnitDefNames["raptor_dodo1_electric"].id] = true,
 		[UnitDefNames["raptor_dodo2_electric"].id] = true,
+		[UnitDefNames["raptor_dodoair"].id] = true,
 	},
 	ALLOWFRIENDLYFIRE = {
 		[UnitDefNames["raptorr1"].id] = true,

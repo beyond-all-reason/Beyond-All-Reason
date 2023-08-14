@@ -130,6 +130,7 @@ if gadgetHandler:IsSyncedCode() then
 	local unitTargetPool = {}
 	local unitCowardCooldown = {}
 	local unitTeleportCooldown = {}
+	local unitSpawnProtectionFrame = {}
 	local squadCreationQueue = {
 		units = {},
 		role = false,
@@ -1121,6 +1122,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == raptorTeamID then
+			if UnitDefs[unitDefID].isBuilding then
+				unitSpawnProtectionFrame[unitID] = Spring.GetGameFrame()+(150*playerAggressionLevel)
+			end
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultRaptorFirestate},0)
 			if UnitDefs[unitDefID].canCloak then
 				Spring.GiveOrderToUnit(unitID,37382,{1},0)
@@ -1143,10 +1147,18 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-
-		if unitTeam == raptorTeamID and attackerTeam == raptorTeamID and (not (attackerDefID and config.raptorBehaviours.ALLOWFRIENDLYFIRE[attackerDefID])) then
-			return 0
+		if unitTeam == raptorTeamID then
+			if attackerTeam == raptorTeamID and (not (attackerDefID and config.raptorBehaviours.ALLOWFRIENDLYFIRE[attackerDefID])) then
+				return 0
+			end
+			if unitSpawnProtectionFrame[unitID] then
+				local x,y,z = Spring.GetUnitPosition(unitID)
+				Spring.SpawnCEG("dgun-deflect", x, y, z, 0,0,0)
+				return 0
+			end
 		end
+
+		
 
 		if attackerTeam == raptorTeamID then
 			damage = damage * config.damageMod
@@ -1561,6 +1573,19 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+		if n%30 == 24 then
+			for unitID, spawnProtectionFrame in pairs(unitSpawnProtectionFrame) do
+				if spawnProtectionFrame < n then
+					unitSpawnProtectionFrame[unitID] = nil
+				end
+			end
+
+
+
+
+			
+		end
+
 		if n%30 == 16 then
 			t = GetGameSeconds()
 			playerAggression = playerAggression*0.99
@@ -1696,6 +1721,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
 		if unitTeam == raptorTeamID then
+			unitSpawnProtectionFrame[unitID] = nil
 			if config.useEggs and (not (gameIsOver or queenID)) then
 				local x,y,z = Spring.GetUnitPosition(unitID)
 				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 1)
@@ -1779,6 +1805,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			SetGameRulesParam("raptor_hiveCount", SetCount(burrows))
+		elseif UnitDefs[unitDefID].isBuilding then
+			playerAggression = playerAggression + ((config.angerBonus/config.raptorSpawnMultiplier)*0.1)
 		end
 		if unitTeleportCooldown[unitID] then
 			unitTeleportCooldown[unitID] = nil

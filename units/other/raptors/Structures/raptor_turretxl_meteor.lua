@@ -39,7 +39,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "Raptors/raptor_turretxl_meteor_v2.s3o",
 		--reclaimspeed = 200,
-		repairable = false,
+		repairable = true,
 		script = "Raptors/raptor_turretxl_v2.cob",
 		seismicsignature = 0,
 		selfdestructas = "tentacle_death",
@@ -53,6 +53,7 @@ return {
 		upright = false,
 		waterline = 1,
 		workertime = 100,
+		yardmap = "oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo",
 		customparams = {
 			subfolder = "other/raptors",
 			model_author = "LathanStanley, Beherith",
