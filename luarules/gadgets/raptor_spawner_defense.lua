@@ -1579,6 +1579,9 @@ if gadgetHandler:IsSyncedCode() then
 				if spawnProtectionFrame < n then
 					unitSpawnProtectionFrame[unitID] = nil
 					Spring.SetUnitNeutral(unitID, false)
+				else
+					local x,y,z = Spring.GetUnitPosition(unitID)
+					Spring.SpawnCEG("dgun-deflect", x, y, z, 0,0,0)
 				end
 			end
 		end
