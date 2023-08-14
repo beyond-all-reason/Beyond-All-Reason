@@ -1124,6 +1124,7 @@ if gadgetHandler:IsSyncedCode() then
 		if unitTeam == raptorTeamID then
 			if UnitDefs[unitDefID].isBuilding then
 				unitSpawnProtectionFrame[unitID] = Spring.GetGameFrame()+(150*playerAggressionLevel)
+				Spring.SetUnitNeutral(unitID, true)
 			end
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultRaptorFirestate},0)
 			if UnitDefs[unitDefID].canCloak then
@@ -1577,6 +1578,7 @@ if gadgetHandler:IsSyncedCode() then
 			for unitID, spawnProtectionFrame in pairs(unitSpawnProtectionFrame) do
 				if spawnProtectionFrame < n then
 					unitSpawnProtectionFrame[unitID] = nil
+					Spring.SetUnitNeutral(unitID, false)
 				end
 			end
 		end
