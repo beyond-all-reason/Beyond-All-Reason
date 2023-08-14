@@ -1,6 +1,16 @@
 // BAR hotkey config file - for users with non-qwerty layouts who have
 // learned _mnemonic_ binds instead of _positional_ binds.
 
+bind esc quitmessage
+bind Shift+esc quitmenu
+bind Ctrl+Shift+esc quitforce
+bind Alt+Shift+esc reloadforce
+bind Any+escape edit_escape
+bind Any+pause pause
+bind esc teamstatus_close
+bind esc customgameinfo_close
+bind esc buildmenu_pregame_deselect
+
 // Load common keys
 keyload     luaui/configs/hotkeys/chat_and_ui_keys.txt
 keyload     luaui/configs/hotkeys/num_keys.txt
