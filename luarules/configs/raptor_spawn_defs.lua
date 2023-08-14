@@ -275,6 +275,7 @@ raptorBehaviours = {
 		[UnitDefNames["raptor_turrets"].id] = true,
 		[UnitDefNames["raptor_turretl"].id] = true,
 		[UnitDefNames["raptor_turretxl_meteor"].id] = true,
+		[UnitDefNames["raptor_hive"].id] = true,
 	},
 	PROBE_UNIT = UnitDefNames["raptor2"].id, -- tester unit for picking viable spawn positions - use some medium sized unit
 }
