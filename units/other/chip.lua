@@ -1,7 +1,7 @@
 return {
 	chip = {
 		blocking = true,
-		buildcostenergy = 0,
+		buildcostenergy = 1,
 		buildcostmetal = 0,
 		buildpic = "other/chip.dds",
 		buildtime = 255,

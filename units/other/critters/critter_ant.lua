@@ -4,7 +4,7 @@ return {
 		blocking = false,
 
 		brakerate = 1.15,
-		buildcostenergy = 0,
+		buildcostenergy = 1,
 		buildcostmetal = 0,
 		builder = false,
 		buildpic = "critters/critter_ant.DDS",
