@@ -1579,11 +1579,6 @@ if gadgetHandler:IsSyncedCode() then
 					unitSpawnProtectionFrame[unitID] = nil
 				end
 			end
-
-
-
-
-			
 		end
 
 		if n%30 == 16 then
