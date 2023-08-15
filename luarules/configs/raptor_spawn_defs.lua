@@ -17,7 +17,7 @@ local raptorTurrets = {}
 raptorTurrets["raptor_turrets"] 				= { minQueenAnger = 0, 	spawnedPerWave = 2, maxExisting = 20,	maxQueenAnger = 1000,}
 raptorTurrets["raptor_turrets_acid"] 			= { minQueenAnger = 15, spawnedPerWave = 1, maxExisting = 10,	maxQueenAnger = 1000,}
 raptorTurrets["raptor_turrets_electric"] 		= { minQueenAnger = 15, spawnedPerWave = 1, maxExisting = 10,	maxQueenAnger = 1000,}
-raptorTurrets["raptor_turretl"] 				= { minQueenAnger = 30, spawnedPerWave = 2, maxExisting = 5,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turretl"] 				= { minQueenAnger = 30, spawnedPerWave = 2, maxExisting = 6,	maxQueenAnger = 1000,}
 raptorTurrets["raptor_turretl_acid"] 			= { minQueenAnger = 45, spawnedPerWave = 1, maxExisting = 3,	maxQueenAnger = 1000,}
 raptorTurrets["raptor_turretl_electric"] 		= { minQueenAnger = 45, spawnedPerWave = 1, maxExisting = 3,	maxQueenAnger = 1000,}
 
@@ -25,13 +25,13 @@ if not Spring.GetModOptions().unit_restrictions_nonukes then
 
 	raptorTurrets["raptor_turrets_antinuke"] 	= { minQueenAnger = 15, spawnedPerWave = 1, maxExisting = 10,	maxQueenAnger = 1000,}
 	raptorTurrets["raptor_turretl_antinuke"] 	= { minQueenAnger = 45, spawnedPerWave = 1, maxExisting = 3,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turretxl_meteor"]		= { minQueenAnger = 75, spawnedPerWave = 2, maxExisting = 5,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretxl_meteor"]		= { minQueenAnger = 75, spawnedPerWave = 2, maxExisting = 6,	maxQueenAnger = 1000,}
 
 end
 if not Spring.GetModOptions().unit_restrictions_noair then
 
 	raptorTurrets["raptor_turrets_antiair"] 	= { minQueenAnger = 0, 	spawnedPerWave = 2, maxExisting = 20,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turretl_antiair"] 	= { minQueenAnger = 30, spawnedPerWave = 2, maxExisting = 5,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretl_antiair"] 	= { minQueenAnger = 30, spawnedPerWave = 2, maxExisting = 6,	maxQueenAnger = 1000,}
 	raptorTurrets["raptor_turretxl_antiair"]	= { minQueenAnger = 60, spawnedPerWave = 1, maxExisting = 2,	maxQueenAnger = 1000,}
 
 end
