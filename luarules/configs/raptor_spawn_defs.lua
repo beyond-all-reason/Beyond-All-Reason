@@ -128,10 +128,13 @@ local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to b
 
 	raptor_turrets						=	"white",
 	raptor_turretl						=	"white",
+	raptor_turretxl						=	"white",
 	raptor_turrets_electric				=   "blue",
 	raptor_turretl_electric				=   "blue",
+	raptor_turretxl_electric			=   "blue",
 	raptor_turrets_acid					=   "acidgreen",
 	raptor_turretl_acid					=   "acidgreen",
+	raptor_turretxl_acid				=   "acidgreen",
 	raptor_turrets_antinuke				= 	"white",
 	raptor_turretl_antinuke				= 	"white",
 	raptor_turrets_antiair				=	"red",
