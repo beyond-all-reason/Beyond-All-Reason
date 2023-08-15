@@ -66,11 +66,45 @@ for key, value in pairs(modoptions) do
 	end
 end
 
+
 for key, value in pairs(modoptions) do
 	if modoptionsDefault[key] and value == modoptionsDefault[key].def then
 		unchangedModoptions[key] = tostring(value)
 	else
-		changedModoptions[key] = tostring(value)
+		if not string.find(key, 'tweakunits') then
+			changedModoptions[key] = tostring(value)
+		else
+			local success, tweaks = pcall(Spring.Utilities.CustomKeyToUsefulTable, value)
+			if success and type(tweaks) == "table" then
+				local text = ''
+				for name, ud in pairs(tweaks) do
+					if UnitDefNames[name] then
+						text = text .. '\n' .. valuecolor.. name..valuegreycolor..' = \{'
+						for k, v in pairs(ud) do
+							if type(v) == "table" then
+								text = text ..valuegreycolor..'\n    ' ..tostring(k)..' = \{'
+								for k2, v2 in pairs(v) do
+									if type(v) == "table" then
+										text = text ..valuegreycolor..'\n        ' ..tostring(k2)..' = \{'
+										for k3, v3 in pairs(v2) do
+											text = text ..valuegreycolor..'\n            ' ..tostring(k3)..' = '..tostring(v3)
+										end
+									else
+										text = text ..valuegreycolor..'\n        ' ..tostring(k2)..' = '..tostring(v2)
+									end
+								end
+							else
+								text = text ..valuegreycolor..'\n    ' ..tostring(k)..' = '..tostring(v)
+							end
+						end
+						text = text .. '\n' .. '\}'
+					end
+				end
+				changedModoptions[key] = text
+			else
+				changedModoptions[key] = tostring(value)
+			end
+		end
 	end
 end
 
