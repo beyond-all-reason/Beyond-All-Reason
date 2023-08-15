@@ -589,9 +589,9 @@ addNewSquad({ type = "basic", minAnger = 45, units = { "4 raptor1x", "4 raptor1y
 addNewSquad({ type = "basic", minAnger = 45, units = { "4 raptor1y", "4 raptor1z" }, maxAnger = 90 })
 addNewSquad({ type = "basic", minAnger = 45, units = { "4 raptor1z", "4 raptor1x" }, maxAnger = 90 })
 
-addNewSquad({ type = "basic", minAnger = 65, units = { "4 raptor1x", "4 raptor1y", "4 raptor1z" }, maxAnger = 1000 })
-addNewSquad({ type = "basic", minAnger = 65, units = { "4 raptor1y", "4 raptor1z", "4 raptor1x" }, maxAnger = 1000 })
-addNewSquad({ type = "basic", minAnger = 65, units = { "4 raptor1z", "4 raptor1x", "4 raptor1y" }, maxAnger = 1000 })
+addNewSquad({ type = "basic", minAnger = 65, units = { "4 raptor1x", "4 raptor1y", "4 raptor1z" }, maxAnger = 125 })
+addNewSquad({ type = "basic", minAnger = 65, units = { "4 raptor1y", "4 raptor1z", "4 raptor1x" }, maxAnger = 125 })
+addNewSquad({ type = "basic", minAnger = 65, units = { "4 raptor1z", "4 raptor1x", "4 raptor1y" }, maxAnger = 125 })
 
 -- Apex Swarmer
 
@@ -659,6 +659,7 @@ addNewSquad({ type = "special", minAnger = 100, units = { "8 raptor2", "8 raptor
 
 --All Terrain Swarmers------------------------------------------------------------------------------------------------------  
 
+addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptorc3" }, maxAnger = 20 })
 addNewSquad({ type = "special", minAnger = 20, units = 	{ "5 raptorc3" }, weight = 2, maxAnger = 60 })
 addNewSquad({ type = "special", minAnger = 50, units = 	{ "10 raptorc3" }, weight = 2, maxAnger = 90 })
 addNewSquad({ type = "special", minAnger = 80, units = 	{ "15 raptorc3" }, weight = 2, maxAnger = 1000 })
@@ -684,6 +685,10 @@ addNewSquad({ type = "special", minAnger = 50, units = 	{ "5 raptorelectricallte
 addNewSquad({ type = "special", minAnger = 80, units = 	{ "10 raptorelectricallterrain", "10 raptoracidallterrain"}, maxAnger = 1000 })
 
 --Brawlers------------------------------------------------------------------------------------------------------  
+
+addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptora1" }, maxAnger = 35 })
+addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptora1b" }, maxAnger = 35 })
+addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptora1c" }, maxAnger = 35 })
 
 addNewSquad({ type = "special", minAnger = 35, units = 	{ "6 raptora1" }, weight = 2 })
 addNewSquad({ type = "special", minAnger = 35, units = 	{ "6 raptora1b" }, weight = 2 })
@@ -760,6 +765,8 @@ addNewSquad({ type = "special", minAnger = 100, units = { "3 raptora2b", "2 rapt
 
 --Spikers------------------------------------------------------------------------------------------------------  
 
+addNewSquad({ type = "special", minAnger = 10, units = 	{ "1 raptors1" }, maxAnger = 30 })
+
 addNewSquad({ type = "special", minAnger = 30, units = 	{ "5 raptors1" }, weight = 3 })
 
 
@@ -801,6 +808,8 @@ addNewSquad({ type = "special", minAnger = 100, units = { "20 raptor_dodo2", "20
 
 --Flamers------------------------------------------------------------------------------------------------------  
 
+addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptorp1" }, maxAnger = 20 })
+
 addNewSquad({ type = "special", minAnger = 20, units = 	{ "5 raptorp1" } })
 
 addNewSquad({ type = "special", minAnger = 30, units = 	{ "10 raptorp1" } })
@@ -814,6 +823,8 @@ addNewSquad({ type = "special", minAnger = 60, units = 	{ "8 raptorp2" } })
 addNewSquad({ type = "special", minAnger = 100, units = { "10 raptorp2" }, maxAnger = 1000 })
 
 --Artillery------------------------------------------------------------------------------------------------------  
+
+addNewSquad({ type = "special", minAnger = 10, units = 	{ "1 raptorr1" }, maxAnger = 50})
 
 addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptorr1" }, weight = 3 })
 
@@ -833,6 +844,8 @@ addNewSquad({ type = "special", minAnger = 90, units = 	{ "1 raptorr2" } })
 addNewSquad({ type = "special", minAnger = 100, units = { "2 raptorr2" }, maxAnger = 1000 })
 
 
+addNewSquad({ type = "special", minAnger = 20, units = 	{ "1 raptoracidarty" }, maxAnger = 50 })
+
 addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptoracidarty" } })
 
 addNewSquad({ type = "special", minAnger = 100, units = { "3 raptoracidarty" }, maxAnger = 1000 })
@@ -846,6 +859,8 @@ addNewSquad({ type = "special", minAnger = 90, units = 	{ "1 raptoracidartyxl" }
 
 addNewSquad({ type = "special", minAnger = 100, units = { "2 raptoracidartyxl" }, maxAnger = 1000 })
 
+
+addNewSquad({ type = "special", minAnger = 20, units = 	{ "1 raptorearty1" }, maxAnger = 50 })
 
 addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptorearty1" } })
 
@@ -876,35 +891,35 @@ addNewSquad({ type = "special", minAnger = 100, units = { "2 raptorbroodartyh4" 
 
 --Brood------------------------------------------------------------------------------------------------------  
 
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "1 raptorh4" } })
+addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptorh4" } })
 
-addNewSquad({ type = "special", minAnger = 60, units = 	{ "2 raptorh4" } })
+addNewSquad({ type = "special", minAnger = 20, units = 	{ "2 raptorh4" } })
 
-addNewSquad({ type = "special", minAnger = 70, units = 	{ "4 raptorh4" } })
+addNewSquad({ type = "special", minAnger = 40, units = 	{ "4 raptorh4" } })
 
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "8 raptorh4" } })
+addNewSquad({ type = "special", minAnger = 60, units = 	{ "8 raptorh4" } })
 
-addNewSquad({ type = "special", minAnger = 90, units = 	{ "16 raptorh4" } })
+addNewSquad({ type = "special", minAnger = 80, units = 	{ "16 raptorh4" } })
 
 addNewSquad({ type = "special", minAnger = 100, units = { "32 raptorh4" }, maxAnger = 1000 })
 
 
-addNewSquad({ type = "special", minAnger = 60, units = 	{ "1 raptorh3" } })
+addNewSquad({ type = "special", minAnger = 20, units = 	{ "1 raptorh3" } })
 
-addNewSquad({ type = "special", minAnger = 70, units = 	{ "2 raptorh3" } })
+addNewSquad({ type = "special", minAnger = 40, units = 	{ "2 raptorh3" } })
 
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "4 raptorh3" } })
+addNewSquad({ type = "special", minAnger = 60, units = 	{ "4 raptorh3" } })
 
-addNewSquad({ type = "special", minAnger = 90, units = 	{ "8 raptorh3" } })
+addNewSquad({ type = "special", minAnger = 80, units = 	{ "8 raptorh3" } })
 
 addNewSquad({ type = "special", minAnger = 100, units = { "16 raptorh3" }, maxAnger = 1000 })
 
 
-addNewSquad({ type = "special", minAnger = 70, units = 	{ "1 raptorh2" } })
+addNewSquad({ type = "special", minAnger = 40, units = 	{ "1 raptorh2" } })
 
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "2 raptorh2" } })
+addNewSquad({ type = "special", minAnger = 60, units = 	{ "2 raptorh2" } })
 
-addNewSquad({ type = "special", minAnger = 90, units = 	{ "4 raptorh2" } })
+addNewSquad({ type = "special", minAnger = 80, units = 	{ "4 raptorh2" } })
 
 addNewSquad({ type = "special", minAnger = 100, units = { "8 raptorh2" }, maxAnger = 1000 })
 
@@ -923,13 +938,17 @@ end
 local airStartAnger = 0 -- needed for air waves to work correctly.
 --Scouts------------------------------------------------------------------------------------------------------  
 
-addNewSquad({ type = "air", minAnger = 0, units = { "1 raptorairscout1" }, maxAnger = 40 })
+addNewSquad({ type = "air", minAnger = 0, units = { "10 raptorairscout1" }, maxAnger = 20 })
+
+addNewSquad({ type = "air", minAnger = 20, units = { "1 raptorairscout1" }, maxAnger = 40 })
 
 addNewSquad({ type = "air", minAnger = 33, units = { "1 raptorairscout2" }, maxAnger = 80 })
 
 addNewSquad({ type = "air", minAnger = 66, units = { "1 raptorairscout3" }, maxAnger = 1000 })
 
 --Fighters------------------------------------------------------------------------------------------------------  
+
+addNewSquad({ type = "air", minAnger = 0, units = { "1 raptorw1_mini" }, maxAnger = 20 })
 
 addNewSquad({ type = "air", minAnger = 20, units = { "4 raptorw1_mini" }, maxAnger = 60 })
 
@@ -950,6 +969,8 @@ addNewSquad({ type = "air", minAnger = 80, units = { "6 raptorw2" }, weight = 2 
 addNewSquad({ type = "air", minAnger = 100, units = { "8 raptorw2" }, weight = 2, maxAnger = 1000 })
 
 --Bombers------------------------------------------------------------------------------------------------------  
+
+addNewSquad({ type = "air", minAnger = 0, units = { "1 raptorf1_mini" }, maxAnger = 20 })
 
 addNewSquad({ type = "air", minAnger = 20, units = { "4 raptorf1_mini" }, maxAnger = 60 })
 
