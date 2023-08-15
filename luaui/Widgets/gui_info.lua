@@ -1186,9 +1186,6 @@ local function drawUnitInfo()
 		if unitDefInfo[displayUnitDefID].weapons then
 			local reloadTimeSpeedup = 1.0
 			local currentReloadTime = unitDefInfo[displayUnitDefID].reloadTime
-
-			-- If the time to finish a full burst is greater than the reload time,
-			-- then the units reload time is irrelevant and will continuously fire.
 			local burstRate = unitDefInfo[displayUnitDefID].burstRate or 0
 			local isFireContinuous = hasContinuousFire(unitDefInfo[displayUnitDefID].burst, burstRate, unitDefInfo[displayUnitDefID].reloadTime)
 
@@ -1785,6 +1782,8 @@ function widget:DrawScreen()
 	end
 end
 
+-- If the time to finish a full burst is greater than the reload time,
+-- then the units reload time is irrelevant and will continuously fire.
 function hasContinuousFire(burstCount, burstRate, reloadTime)
 	local burstRate = round(burstRate, 3)
 	local totalBurstTime = burstCount * burstRate
