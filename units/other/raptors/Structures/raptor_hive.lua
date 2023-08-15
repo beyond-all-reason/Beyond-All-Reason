@@ -66,7 +66,7 @@ return {
 		},
 		weapondefs = {
 			antiground = {
-				accuracy = 4096,
+				accuracy = 2048,
 				areaofeffect = 256,
 				collidefriendly = 0,
 				collidefeature = 0,
@@ -89,20 +89,20 @@ return {
 				noselfdamage = true,
 				proximitypriority = -4,
 				range = 1000,
-				reloadtime = 10,
+				reloadtime = 20,
 				rgbcolor = "1 0.5 0.1",
 				size = 5.5,
 				sizedecay = 0.09,
 				soundhit = "bombsmed2",
 				soundstart = "bugarty",
-				sprayangle = 4096,
+				sprayangle = 2048,
 				tolerance = 5000,
 				turret = true,
 				weapontimer = 0.2,
 				weaponvelocity = 520,
 				damage = {
-					default = 640,
-					shields = 160,
+					default = 1280,
+					shields = 320,
 				},
 			},
 			antiair = {
