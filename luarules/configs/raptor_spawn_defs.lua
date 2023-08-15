@@ -32,8 +32,14 @@ if not Spring.GetModOptions().unit_restrictions_noair then
 
 	raptorTurrets["raptor_turrets_antiair"] 	= { minQueenAnger = 0, 	spawnedPerWave = 2, maxExisting = 20,	maxQueenAnger = 1000,}
 	raptorTurrets["raptor_turretl_antiair"] 	= { minQueenAnger = 40, spawnedPerWave = 2, maxExisting = 10,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turretxl_antiair"]	= { minQueenAnger = 70, spawnedPerWave = 1, maxExisting = 5,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretxl_antiair"]	= { minQueenAnger = 70, spawnedPerWave = 1, maxExisting = 3,	maxQueenAnger = 1000,}
 
+end
+if not Spring.GetModOptions().unit_restrictions_nolrpc then
+	
+	raptorTurrets["raptor_turretxl"]			= { minQueenAnger = 70, spawnedPerWave = 1, maxExisting = 3,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretxl_electric"]	= { minQueenAnger = 80, spawnedPerWave = 1, maxExisting = 3,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretxl_acid"]		= { minQueenAnger = 80, spawnedPerWave = 1, maxExisting = 3,	maxQueenAnger = 1000,}
 end
 
 local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to be true, if some unit is not specified here, it drops random egg colors.
