@@ -15,31 +15,31 @@ local burrowName = 'raptor_hive'
 local raptorTurrets = {}
 
 raptorTurrets["raptor_turrets"] 				= { minQueenAnger = 0, 	spawnedPerWave = 2, maxExisting = 20,	maxQueenAnger = 1000,}
-raptorTurrets["raptor_turrets_acid"] 			= { minQueenAnger = 20, spawnedPerWave = 1, maxExisting = 10,	maxQueenAnger = 1000,}
-raptorTurrets["raptor_turrets_electric"] 		= { minQueenAnger = 20, spawnedPerWave = 1, maxExisting = 10,	maxQueenAnger = 1000,}
-raptorTurrets["raptor_turretl"] 				= { minQueenAnger = 40, spawnedPerWave = 2, maxExisting = 5,	maxQueenAnger = 1000,}
-raptorTurrets["raptor_turretl_acid"] 			= { minQueenAnger = 60, spawnedPerWave = 1, maxExisting = 3,	maxQueenAnger = 1000,}
-raptorTurrets["raptor_turretl_electric"] 		= { minQueenAnger = 60, spawnedPerWave = 1, maxExisting = 3,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turrets_acid"] 			= { minQueenAnger = 15, spawnedPerWave = 1, maxExisting = 10,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turrets_electric"] 		= { minQueenAnger = 15, spawnedPerWave = 1, maxExisting = 10,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turretl"] 				= { minQueenAnger = 30, spawnedPerWave = 2, maxExisting = 5,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turretl_acid"] 			= { minQueenAnger = 45, spawnedPerWave = 1, maxExisting = 3,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turretl_electric"] 		= { minQueenAnger = 45, spawnedPerWave = 1, maxExisting = 3,	maxQueenAnger = 1000,}
 
 if not Spring.GetModOptions().unit_restrictions_nonukes then
 
-	raptorTurrets["raptor_turrets_antinuke"] 	= { minQueenAnger = 20, spawnedPerWave = 1, maxExisting = 10,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turretl_antinuke"] 	= { minQueenAnger = 60, spawnedPerWave = 1, maxExisting = 3,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turretxl_meteor"]		= { minQueenAnger = 80, spawnedPerWave = 2, maxExisting = 5,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turrets_antinuke"] 	= { minQueenAnger = 15, spawnedPerWave = 1, maxExisting = 10,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretl_antinuke"] 	= { minQueenAnger = 45, spawnedPerWave = 1, maxExisting = 3,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretxl_meteor"]		= { minQueenAnger = 75, spawnedPerWave = 2, maxExisting = 5,	maxQueenAnger = 1000,}
 
 end
 if not Spring.GetModOptions().unit_restrictions_noair then
 
 	raptorTurrets["raptor_turrets_antiair"] 	= { minQueenAnger = 0, 	spawnedPerWave = 2, maxExisting = 20,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turretl_antiair"] 	= { minQueenAnger = 40, spawnedPerWave = 2, maxExisting = 5,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretl_antiair"] 	= { minQueenAnger = 30, spawnedPerWave = 2, maxExisting = 5,	maxQueenAnger = 1000,}
 	raptorTurrets["raptor_turretxl_antiair"]	= { minQueenAnger = 60, spawnedPerWave = 1, maxExisting = 2,	maxQueenAnger = 1000,}
 
 end
 if not Spring.GetModOptions().unit_restrictions_nolrpc then
 	
 	raptorTurrets["raptor_turretxl"]			= { minQueenAnger = 60, spawnedPerWave = 1, maxExisting = 2,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turretxl_electric"]	= { minQueenAnger = 80, spawnedPerWave = 1, maxExisting = 1,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turretxl_acid"]		= { minQueenAnger = 80, spawnedPerWave = 1, maxExisting = 1,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretxl_electric"]	= { minQueenAnger = 75, spawnedPerWave = 1, maxExisting = 1,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turretxl_acid"]		= { minQueenAnger = 75, spawnedPerWave = 1, maxExisting = 1,	maxQueenAnger = 1000,}
 end
 
 local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to be true, if some unit is not specified here, it drops random egg colors.
