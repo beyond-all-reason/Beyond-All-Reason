@@ -23,6 +23,10 @@ local unbacoms = {
     [UnitDefNames["armcom"].id] = true,
     [UnitDefNames["cordecom"].id] = true,
     [UnitDefNames["armdecom"].id] = true,
+    [UnitDefNames["legcom"].id] = true,
+    [UnitDefNames["legcomlvl2"].id] = true,
+    [UnitDefNames["legcomlvl3"].id] = true,
+    [UnitDefNames["legcomlvl4"].id] = true,
 }
 
 local unbaRanks = {
