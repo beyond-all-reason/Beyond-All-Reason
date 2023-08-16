@@ -573,9 +573,9 @@ local raptorMinions = { -- Units spawning other units
 -- Basic Swarmer
 
 addNewSquad({ type = "basic", minAnger = 0, units = { "4 raptor1_mini" }, weight = 10, maxAnger = 30 })
-addNewSquad({ type = "basic", minAnger = 10, units = { "8 raptor1_mini" }, weight = 10, maxAnger = 40 })
-addNewSquad({ type = "basic", minAnger = 20, units = { "16 raptor1_mini" }, weight = 10, maxAnger = 50 })
-addNewSquad({ type = "basic", minAnger = 30, units = { "32 raptor1_mini" }, weight = 10, maxAnger = 60 })
+addNewSquad({ type = "basic", minAnger = 10, units = { "8 raptor1_mini" }, maxAnger = 40 })
+addNewSquad({ type = "basic", minAnger = 20, units = { "16 raptor1_mini" }, maxAnger = 50 })
+addNewSquad({ type = "basic", minAnger = 30, units = { "32 raptor1_mini" }, maxAnger = 60 })
 
 addNewSquad({ type = "basic", minAnger = 5, units = { "4 raptor1" }, maxAnger = 50 })
 addNewSquad({ type = "basic", minAnger = 5, units = { "4 raptor1b" }, maxAnger = 50 })
