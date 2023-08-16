@@ -1123,7 +1123,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == raptorTeamID then
 			if UnitDefs[unitDefID].isBuilding then
-				unitSpawnProtectionFrame[unitID] = Spring.GetGameFrame()+(150*playerAggressionLevel)
+				unitSpawnProtectionFrame[unitID] = Spring.GetGameFrame()+(300*playerAggressionLevel)
 				Spring.SetUnitNeutral(unitID, true)
 			end
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultRaptorFirestate},0)
@@ -1588,7 +1588,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if n%30 == 16 then
 			t = GetGameSeconds()
-			playerAggression = playerAggression*0.99
+			playerAggression = playerAggression*0.995
 			playerAggressionLevel = math.floor(playerAggression)
 			SetGameRulesParam("raptorPlayerAggressionLevel", playerAggressionLevel)
 			if not queenID then
