@@ -132,7 +132,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.30,
-				energypershot = 6000,
+				energypershot = 7000,
 				explosiongenerator = "custom:laserhit-large-blue",
 				firestarter = 90,
 				impulseboost = 0,
@@ -159,7 +159,7 @@ return {
 				weaponvelocity = 3100,
 				damage = {
 					commanders = 480,
-					default = 43200,
+					default = 48000,
 				},
 			},
 		},
