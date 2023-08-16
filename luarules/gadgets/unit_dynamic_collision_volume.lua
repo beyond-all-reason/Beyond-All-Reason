@@ -14,7 +14,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- Pop-up style unit and per piece collision volume definitions
 	local popupUnits = {}		--list of pop-up style units
-	local unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume
+	local onoffableUnits = {}   --list of onoffable units with dynamic collision
+	local unitCollisionVolumeActivation, unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume
 
 	-- Localization and speedups
 	local spSetPieceCollisionData = Spring.SetUnitPieceCollisionVolumeData
@@ -33,6 +34,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetFeatureHeight = Spring.GetFeatureHeight
 
 	local spArmor = Spring.GetUnitArmored
+	local spGetUnitIsActive = Spring.GetUnitIsActive
 	local pairs = pairs
 	
 	local unitDefMidAndAimPos = {} -- this is a table read from customparams mapping unitDefID to 
@@ -79,7 +81,7 @@ if gadgetHandler:IsSyncedCode() then
 	--Process all initial map features
 	function gadget:Initialize()
 		--loading the file here allows to have /luarules reload dyn reload it as necessary
-		unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume = include("LuaRules/Configs/CollisionVolumes.lua")
+		unitCollisionVolumeActivation, unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume = include("LuaRules/Configs/CollisionVolumes.lua")
 		local mapConfig = "LuaRules/Configs/DynCVmapCFG/" .. Game.mapName .. ".lua"
 
 		local allFeatures = Spring.GetAllFeatures()
@@ -241,6 +243,11 @@ if gadgetHandler:IsSyncedCode() then
 		elseif dynamicPieceCollisionVolume[un] then
 			popupUnits[unitID]={name=un, state=-1, perPiece=true, numPieces = #spGetPieceList(unitID)-1}
 		end
+
+		if unitCollisionVolumeActivation[un] then
+			onoffableUnits[unitID]={name=un, state=-1, perPiece=false}
+		end
+
 	end
 
 
@@ -278,6 +285,9 @@ if gadgetHandler:IsSyncedCode() then
 		if popupUnits[unitID] then
 			popupUnits[unitID] = nil
 		end
+		if onoffableUnits[unitID] then
+			onoffableUnits[unitID] = nil
+		end
 	end
 
 
@@ -288,6 +298,30 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 		local p, t, stateString, stateInt
+		for unitID,defs in pairs(onoffableUnits) do
+			if spGetUnitIsActive(unitID) then
+				stateString = "on"
+				stateInt = 1
+			else
+				stateString = "off"
+				stateInt = 0
+			end
+			if defs.state ~= stateInt then
+				local unitHeight = spGetUnitHeight(unitID)
+				if unitHeight == nil then  -- had error once, hope this nil check helps
+					onoffableUnits[unitID] = nil
+				else
+					p = unitCollisionVolumeActivation[defs.name][stateString]
+					spSetUnitCollisionData(unitID, p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9])
+					if p[10] then
+						spSetUnitMidAndAimPos(unitID, 0, unitHeight/2, 0, p[10], p[11], p[12],true)
+					end
+				end
+				if onoffableUnits[unitID] ~= nil then
+					onoffableUnits[unitID].state = stateInt
+				end
+			end
+		end
 		for unitID,defs in pairs(popupUnits) do
 			if spArmor(unitID) then
 				stateString = "off"

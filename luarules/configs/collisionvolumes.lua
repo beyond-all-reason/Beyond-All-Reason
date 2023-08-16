@@ -72,11 +72,23 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 ]]--
 
 --Collision volume definitions, ones entered here are for TA, for other mods modify apropriatly
-local unitCollisionVolume = {}			--dynamic collision volume definitions
+local unitCollisionVolume = {}			--dynamic collision volume definitions, based on armored status
+local unitCollisionVolumeActivation = {}			--dynamic collision volume definitions, based on activation status
 local pieceCollisionVolume = {}			--per piece collision volume definitions
 local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume definitions
 
+unitCollisionVolumeActivation['armsolar'] = {
+	on={73,73,73,0,-16,0,3,1,0},
+	off={50,50,50,0,-16,0,3,1,0},
+}
 
+for name, v in pairs(unitCollisionVolumeActivation) do
+	for udid, ud in pairs(UnitDefs) do
+		if string.find(ud.name, name) then
+			unitCollisionVolumeActivation[ud.name] = v
+		end
+	end
+end
 
 unitCollisionVolume['armanni'] = {
 	on={54,81,54,0,-2,0,2,1,0},
@@ -98,10 +110,12 @@ unitCollisionVolume['armplat'] = {
 	on={105,66,105,0,33,0,2,1,0},
 	off={105,44,105,0,0,0,2,1,0},
 }
-unitCollisionVolume['armsolar'] = {
-	on={73,76,73,0,-18,1,0,1,0},
-	off={50,76,50,0,-18,1,0,1,0},
-}
+--unitCollisionVolume['armsolar'] = {
+	--on={73,76,73,0,-18,1,0,1,0},
+	--off={50,76,50,0,-18,1,0,1,0},
+--	on={73,73,73,0,-16,0,3,1,0},
+--	off={50,50,50,0,-16,0,3,1,0},
+--}
 unitCollisionVolume['armvp'] = {
 	on={120,34,92,0,0,0,2,1,0},
 	off={90,34,92,0,0,0,2,1,0},
@@ -215,4 +229,4 @@ for name, v in pairs(dynamicPieceCollisionVolume) do
 	end
 end
 
-return unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume
+return unitCollisionVolumeActivation, unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume
