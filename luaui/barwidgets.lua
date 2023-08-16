@@ -559,10 +559,10 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		if widgetHandler.widgetHashes[md5] == nil then 
 			widgetHandler.widgetHashes[md5] = filename
 			-- Embed LuaRules message that we enabled a new user widget
-			local success, err = pcall(widgetHandler.AddSpadsMessage, widgetHandler, tostring(filename) .. ":" .. tostring(md5))
-			if success == false then
-				Spring.Echo("widgetHandler.AddSpadsMessage call failed", tostring(err))
-			end
+			--local success, err = pcall(widgetHandler.AddSpadsMessage, widgetHandler, tostring(filename) .. ":" .. tostring(md5))
+			--if success == false then
+			--	Spring.Echo("widgetHandler.AddSpadsMessage call failed", tostring(err))
+			--end
 		end
 	end
 	
