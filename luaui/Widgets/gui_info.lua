@@ -1785,10 +1785,10 @@ end
 -- If the time to finish a full burst is greater than the reload time,
 -- then the units reload time is irrelevant and will continuously fire.
 function hasContinuousFire(burstCount, burstRate, reloadTime)
-	local burstRate = round(burstRate, 3)
+	local burstRate = burstRate
 	local totalBurstTime = burstCount * burstRate
 
-	return totalBurstTime >= tonumber(round(reloadTime, 3))
+	return totalBurstTime >= reloadTime
 end
 
 function getHighestDamageValue(damageValues)
