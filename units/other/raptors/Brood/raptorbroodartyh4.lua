@@ -83,6 +83,7 @@ return {
 				avoidfriendly = 0,
 				burst = 4,
 				burstrate = 0.001,
+				canattackground = false,
 				cegtag = "arty-heavy-purple",
 				craterareaofeffect = 128,
 				craterboost = 0.2,

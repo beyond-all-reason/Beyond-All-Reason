@@ -90,6 +90,7 @@ return {
 				areaofeffect = 128,
 				burst = 1,
 				burstrate = 0.033,
+				canattackground = false,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.45,
