@@ -53,6 +53,8 @@ local numVisibleUnits = 0
 
 local unitDefIgnore = {}
 
+local factoryUnitDefIDs = {} -- key unitdefid, internalname
+
 local lastknownunitpos = {} -- table on unitID to {x,y,z}
 
 local gameFrame = Spring.GetGameFrame()
@@ -61,6 +63,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams and unitDef.customParams.nohealthbars then
 		--unitDefIgnore[unitDefID] = true
 	end --ignore debug units
+	if unitDef.isFactory then 
+		factoryUnitDefIDs[unitDefID] = unitDef.name
+	end
+	
 end
 
 --- GL4 STUFF ---
@@ -364,6 +370,9 @@ end
 function widget:UnitFinished(unitID, unitDefID, unitTeam) -- todo, this should probably add-remove a unit
 	widget:UnitDestroyed(unitID, unitDefID, unitTeam, "UnitFinished")
 	widget:UnitCreated(unitID, unitDefID, unitTeam, nil, "UnitFinished")
+	if unitTeam == myTeamID and factoryUnitDefIDs[unitDefID] then 
+		widgetHandler:AddSpadsMessage("UnitFinished:"..tostring(factoryUnitDefIDs[unitDefID]))
+	end
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam) --1.  this is only called when one if my units gets captured
