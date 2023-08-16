@@ -689,16 +689,22 @@ if gadgetHandler:IsSyncedCode() then
 			local canSpawnBurrow = false
 			local spread = config.burrowSize*1.5
 			local spawnPosX, spawnPosY, spawnPosZ
-			for _ = 1,100 do -- Attempt #1 Force spawn in Startbox, ignore any kind of player vision
-				spawnPosX = mRandom(RaptorStartboxXMin + spread, RaptorStartboxXMax - spread)
-				spawnPosZ = mRandom(RaptorStartboxZMin + spread, RaptorStartboxZMax - spread)
-				spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-				canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-				if canSpawnBurrow then
-					canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-				end
-				if canSpawnBurrow then
-					break
+
+			if config.useScum and config.burrowSpawnType ~= "alwaysbox" then -- Attempt #1, find position in creep/scum (skipped if creep is disabled or alwaysbox is enabled)
+				for _ = 1,100 do
+					spawnPosX = mRandom(spread, MAPSIZEX - spread)
+					spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
+					spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+					canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+					if canSpawnBurrow then
+						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+					end
+					if canSpawnBurrow then
+						canSpawnBurrow = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
+					end
+					if canSpawnBurrow then
+						break
+					end
 				end
 			end
 
@@ -723,17 +729,14 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 
-			if (not canSpawnBurrow) and config.useScum and config.burrowSpawnType ~= "alwaysbox" then -- Attempt #3, find position in creep/scum (skipped if creep is disabled or alwaysbox is enabled)
-				for _ = 1,100 do
-					spawnPosX = mRandom(spread, MAPSIZEX - spread)
-					spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
+			if (not canSpawnBurrow) then -- Attempt #3 Force spawn in Startbox, ignore any kind of player vision
+				for _ = 1,100 do 
+					spawnPosX = mRandom(RaptorStartboxXMin + spread, RaptorStartboxXMax - spread)
+					spawnPosZ = mRandom(RaptorStartboxZMin + spread, RaptorStartboxZMax - spread)
 					spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
 					canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
 					if canSpawnBurrow then
 						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-					end
-					if canSpawnBurrow then
-						canSpawnBurrow = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
 					end
 					if canSpawnBurrow then
 						break
