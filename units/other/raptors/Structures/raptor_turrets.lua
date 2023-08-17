@@ -106,6 +106,7 @@ return {
 				sprayangle = 1024,
 				tolerance = 5000,
 				turret = true,
+				weapontype = "Cannon",
 				weapontimer = 0.2,
 				weaponvelocity = 520,
 				damage = {
