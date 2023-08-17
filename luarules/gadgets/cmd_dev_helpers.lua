@@ -185,6 +185,33 @@ if gadgetHandler:IsSyncedCode() then
 	local debugcommands = nil
 	function gadget:Initialize()
 		if Spring.GetModOptions() and Spring.GetModOptions().debugcommands then
+
+			-- "for fun" option to invert map
+			-- if debugcommands = invertmap
+			-- or if debugcommands = invertmap wet
+			-- this code block runs
+			-- still some odd behavior with start box highlighting
+			if string.find(Spring.GetModOptions().debugcommands,"invertmap") then
+				local invertmap = string.split(Spring.GetModOptions().debugcommands, ' ')
+				local ymax = -1000000
+				for z=0,Game.mapSizeZ, Game.squareSize do
+					for x=0,Game.mapSizeX, Game.squareSize do
+						ymax = math.max(ymax,Spring.GetGroundHeight ( x, z ))
+					end
+				end
+				if (invertmap[2] == "wet") then
+					ymax = 0
+				end
+				Spring.SetHeightMapFunc(function()
+					for z=0,Game.mapSizeZ, Game.squareSize do
+						for x=0,Game.mapSizeX, Game.squareSize do
+							Spring.SetHeightMap( x, z, ymax-Spring.GetGroundHeight ( x, z ))
+						end
+					end
+				end)
+			-- END "for fun" option to invert map
+			else
+
 			debugcommands = {}
 			local commands = string.split(Spring.GetModOptions().debugcommands, '|')
 			for i,command in ipairs(commands) do
@@ -193,6 +220,8 @@ if gadgetHandler:IsSyncedCode() then
 					debugcommands[tonumber(cmdsplit[1])] = cmdsplit[2]
 					Spring.Echo("Adding debug command",cmdsplit[1], cmdsplit[2])
 				end
+			end
+
 			end
 
 		end
