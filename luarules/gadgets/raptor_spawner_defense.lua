@@ -738,6 +738,9 @@ if gadgetHandler:IsSyncedCode() then
 					if canSpawnBurrow then
 						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
 					end
+					if canSpawnBurrow and noRaptorStartbox then -- this is for case where they have no startbox. We don't want them spawning on top of your stuff.
+						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, true)
+					end
 					if canSpawnBurrow then
 						break
 					end
