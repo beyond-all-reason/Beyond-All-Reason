@@ -1183,7 +1183,7 @@ local function drawUnitInfo()
 			end
 		end
 
-		if unitDefInfo[displayUnitDefID].weapons then
+		if unitDefInfo[displayUnitDefID].weapons and unitDefInfo[displayUnitDefID].burst then
 			local reloadTimeSpeedup = 1.0
 			local currentReloadTime = unitDefInfo[displayUnitDefID].reloadTime
 			local burstRate = unitDefInfo[displayUnitDefID].burstRate or 0
@@ -1218,7 +1218,7 @@ local function drawUnitInfo()
 				elseif isFireContinuous then
 					addTextInfo(unitStatsTexts.firerate, math.floor(1/unitDefInfo[displayUnitDefID].burstRate))
 				end
-				
+
 			end
 
 			--addTextInfo('weapons', #unitWeapons[displayUnitDefID])
@@ -1804,7 +1804,7 @@ end
 function getDPS(damage, burstCount, burstRate, reloadTime)
 	if hasContinuousFire(burstCount, burstRate, reloadTime) then
 		return math_floor(damage / burstRate)
-	else 
+	else
 		return math_floor(damage * burstCount / reloadTime)
 	end
 end

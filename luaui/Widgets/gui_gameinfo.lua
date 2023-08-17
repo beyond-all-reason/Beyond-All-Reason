@@ -67,6 +67,31 @@ for key, value in pairs(modoptions) do
 end
 
 
+
+local function stringifyDefTable(t, path, pathAddition)
+	if not path then path = {} end
+	path = table.copy(path)
+	if pathAddition then
+		path[#path+1] = pathAddition
+	end
+	if #path > 10 then return '...' end
+	local text = ''
+	local depthSpacing = ''
+	for i=1, #path, 1 do
+		depthSpacing = depthSpacing .. '     '
+	end
+	for k, v in pairs(t) do
+		if type(v) == "table" then
+			text = text .. '\n' .. valuegreycolor .. depthSpacing .. tostring(k) .. ' = \{'
+			text = text .. stringifyDefTable(v, path, k)
+			text = text .. '\n' .. valuegreycolor .. depthSpacing .. '\}'
+		else
+			text = text .. '\n' .. valuegreycolor .. depthSpacing .. tostring(k) .. ' = ' .. tostring(v)
+		end
+	end
+	return text
+end
+
 for key, value in pairs(modoptions) do
 	if modoptionsDefault[key] and value == modoptionsDefault[key].def then
 		unchangedModoptions[key] = tostring(value)
@@ -80,23 +105,7 @@ for key, value in pairs(modoptions) do
 				for name, ud in pairs(tweaks) do
 					if UnitDefNames[name] then
 						text = text .. '\n' .. valuecolor.. name..valuegreycolor..' = \{'
-						for k, v in pairs(ud) do
-							if type(v) == "table" then
-								text = text ..valuegreycolor..'\n    ' ..tostring(k)..' = \{'
-								for k2, v2 in pairs(v) do
-									if type(v) == "table" then
-										text = text ..valuegreycolor..'\n        ' ..tostring(k2)..' = \{'
-										for k3, v3 in pairs(v2) do
-											text = text ..valuegreycolor..'\n            ' ..tostring(k3)..' = '..tostring(v3)
-										end
-									else
-										text = text ..valuegreycolor..'\n        ' ..tostring(k2)..' = '..tostring(v2)
-									end
-								end
-							else
-								text = text ..valuegreycolor..'\n    ' ..tostring(k)..' = '..tostring(v)
-							end
-						end
+						text = text..stringifyDefTable(ud, {}, name)
 						text = text .. '\n' .. '\}'
 					end
 				end
