@@ -107,10 +107,9 @@ return {
 		weapons = {
 			[1] = {
 				def = "WEAPON",
+				onlytargetcategory = "NONE",
 			},
-			-- [2] = {
-			-- 	def = "CC_LASER",
-			-- },
+
 		},
 	},
 }
