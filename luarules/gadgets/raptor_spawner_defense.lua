@@ -1096,7 +1096,7 @@ if gadgetHandler:IsSyncedCode() then
 				local maxAllowedToSpawn = math.ceil(maxExisting*((techAnger-uSettings.minQueenAnger)/(math.min(100-uSettings.minQueenAnger, uSettings.maxQueenAnger-uSettings.minQueenAnger)))) -- i don't know how this works but it does. scales maximum amount of turrets allowed to spawn with techAnger.
 				--Spring.Echo(uName,"MaxExisting",maxExisting,"MaxAllowed",maxAllowedToSpawn)
 				for i = 1, numOfTurrets do
-					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and (Spring.GetTeamUnitDefCount(raptorTeamID, UnitDefNames[uName].id) <= maxAllowedToSpawn or mRandom() <= 0.1) then
+					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and (Spring.GetTeamUnitDefCount(raptorTeamID, UnitDefNames[uName].id) <= maxAllowedToSpawn) then
 						local attempts = 0
 						local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
 						local footprintZ = UnitDefNames[uName].zsize -- why the fuck is this footprint *2??????
@@ -1858,6 +1858,14 @@ if gadgetHandler:IsSyncedCode() then
 		-- don't end game in survival mode
 		if config.difficulty ~= config.difficulties.survival then
 			gameOver = GetGameFrame()
+		end
+	end
+
+	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID)--, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+		if teamID == raptorTeamID and cmdID == CMD.SELFD then
+			return false
+		else
+			return true
 		end
 	end
 
