@@ -161,7 +161,7 @@ return {
 				},
 			},
 			spawnmeteor = {
-				areaofeffect = 450,
+				areaofeffect = 144,
 				avoidfriendly = 0,
 				cegtag = "nuketrail-roost",
 				collidefriendly = 0,

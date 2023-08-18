@@ -70,7 +70,6 @@ if gadgetHandler:IsSyncedCode() then
 	local raptorUnitCap = math.floor(Game.maxUnits*0.95)
 	local minBurrows = 1
 	local timeOfLastSpawn = -999999
-	local timeOfLastFakeSpawn = 0
 	local timeOfLastWave = 0
 	local t = 0 -- game time in secondstarget
 	local queenAnger = 0
@@ -747,6 +746,10 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 
+			if canSpawnBurrow and GetGameSeconds() < config.gracePeriod and GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ) then -- Don't spawn new burrows in existing creep during grace period - Force them to spread as much as they can..... AT LEAST THAT'S HOW IT'S SUPPOSED TO WORK, lol.
+				canSpawnBurrow = false
+			end
+
 			if canSpawnBurrow then
 				local burrowID = CreateUnit(config.burrowName, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), raptorTeamID)
 				if burrowID then
@@ -1088,10 +1091,12 @@ if gadgetHandler:IsSyncedCode() then
 			--Spring.Debug.TableEcho(uSettings)
 			if not uSettings.maxQueenAnger then uSettings.maxQueenAnger = uSettings.minQueenAnger + 100 end
 			if uSettings.minQueenAnger <= techAnger and uSettings.maxQueenAnger >= techAnger then
-				local numOfTurrets = math.floor((uSettings.spawnedPerWave*(1-config.raptorPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))
-				local maxExisting = math.floor((uSettings.maxExisting*(1-config.raptorPerPlayerMultiplier))+(uSettings.maxExisting*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))
+				local numOfTurrets = math.ceil((uSettings.spawnedPerWave*(1-config.raptorPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))
+				local maxExisting = math.ceil((uSettings.maxExisting*(1-config.raptorPerPlayerMultiplier))+(uSettings.maxExisting*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))
+				local maxAllowedToSpawn = math.ceil(maxExisting*((techAnger-uSettings.minQueenAnger)/(math.min(100-uSettings.minQueenAnger, uSettings.maxQueenAnger-uSettings.minQueenAnger)))) -- i don't know how this works but it does. scales maximum amount of turrets allowed to spawn with techAnger.
+				--Spring.Echo(uName,"MaxExisting",maxExisting,"MaxAllowed",maxAllowedToSpawn)
 				for i = 1, numOfTurrets do
-					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and (Spring.GetTeamUnitDefCount(raptorTeamID, UnitDefNames[uName].id) <= maxExisting or mRandom() <= 0.1) then
+					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and (Spring.GetTeamUnitDefCount(raptorTeamID, UnitDefNames[uName].id) <= maxAllowedToSpawn or mRandom() <= 0.1) then
 						local attempts = 0
 						local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
 						local footprintZ = UnitDefNames[uName].zsize -- why the fuck is this footprint *2??????
@@ -1635,14 +1640,13 @@ if gadgetHandler:IsSyncedCode() then
 			if burrowCount < minBurrows then
 				SpawnBurrow()
 				timeOfLastSpawn = t
+				if firstSpawn then
+					timeOfLastWave = (config.gracePeriod + 10) - config.raptorSpawnRate
+					firstSpawn = false
+				end
 			end
 
-			if config.burrowSpawnRate < (t - timeOfLastFakeSpawn) then
-				-- This block is all about setting the correct burrow target
-				timeOfLastFakeSpawn = t
-			end
-
-			if t > config.burrowSpawnRate and burrowCount < minBurrows or (config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount < maxBurrows) then
+			if (t > config.burrowSpawnRate and burrowCount < minBurrows and (t > timeOfLastSpawn + 10 or burrowCount == 0)) or (config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount < maxBurrows) then
 				if (config.burrowSpawnType == "initialbox") and (t > config.gracePeriod) then
 					config.burrowSpawnType = "initialbox_post"
 				end

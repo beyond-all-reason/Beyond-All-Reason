@@ -1080,7 +1080,7 @@ local useScum = true -- Use scum as space where turrets can spawn (requires scum
 local useWaveMsg = true -- Show dropdown message whenever new wave is spawning
 local spawnSquare = 90 -- size of the raptor spawn square centered on the burrow
 local spawnSquareIncrement = 2 -- square size increase for each unit spawned
-local burrowSize = 80
+local burrowSize = 144
 local bossFightWaveSizeScale = 10 -- Percentage
 local defaultRaptorFirestate = 3 -- 0 - Hold Fire | 1 - Return Fire | 2 - Fire at Will | 3 - Fire at everything
 
