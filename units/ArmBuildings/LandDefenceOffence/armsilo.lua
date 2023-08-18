@@ -192,14 +192,12 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "MOBILE",
 				def = "NUCLEAR_MISSILE",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "NONE",
 			},
 			[2] = {
-				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "NUCLEAR_LAUNCH",
-				onlytargetcategory = "LAND",
+				onlytargetcategory = "NONE",
 			},
 		},
 	},

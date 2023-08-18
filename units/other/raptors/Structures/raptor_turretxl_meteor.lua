@@ -39,7 +39,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "Raptors/raptor_turretxl_meteor_v2.s3o",
 		--reclaimspeed = 200,
-		repairable = false,
+		repairable = true,
 		script = "Raptors/raptor_turretxl_v2.cob",
 		seismicsignature = 0,
 		selfdestructas = "tentacle_death",
@@ -53,6 +53,7 @@ return {
 		upright = false,
 		waterline = 1,
 		workertime = 100,
+		yardmap = "oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo",
 		customparams = {
 			subfolder = "other/raptors",
 			model_author = "LathanStanley, Beherith",
@@ -90,7 +91,7 @@ return {
 				name = "METEORLAUNCHER",
 				proximitypriority = -6,
 				range = 72000,
-				reloadtime = 10,
+				reloadtime = 30,
 				soundhit = "nukecor",
 				soundhitwet = "nukewater",
 				soundstart = "bugarty",
@@ -106,10 +107,9 @@ return {
 		weapons = {
 			[1] = {
 				def = "WEAPON",
+				onlytargetcategory = "NONE",
 			},
-			-- [2] = {
-			-- 	def = "CC_LASER",
-			-- },
+
 		},
 	},
 }

@@ -14,6 +14,10 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+
+local transferInstantly = true	-- false = transfer mex on completion
+
+
 _G.transferredUnits = {}
 -- table of all mex unitDefIDs
 local isMex = {}
@@ -54,12 +58,19 @@ local function hasMexBeneath(unitID)
 	return false
 end
 
-function gadget:UnitCreated(unitID, unitDefID)
+function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	-- make mex below unselectable
 	if isMex[unitDefID] then
 		local mex = hasMexBeneath(unitID)
 		if mex then
 			Spring.SetUnitNoSelect(mex, true)
+			if transferInstantly then
+				local mexTeamID = Spring.GetUnitTeam(mex)
+				if mexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(mexTeamID, false)) then
+					_G.transferredUnits[unitID] = Spring.GetGameFrame()
+					Spring.TransferUnit(unitID, mexTeamID)
+				end
+			end
 		end
 	end
 end
@@ -84,7 +95,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			local mexTeamID = Spring.GetUnitTeam(mex)
 			Spring.DestroyUnit(mex, false, true)
 			Spring.AddTeamResource(unitTeam, "metal", isMex[Spring.GetUnitDefID(mex)])
-			if mexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(mexTeamID, false)) then -- and Spring.AreTeamsAllied(t1MexTeamID, unitTeam) then
+			if not transferInstantly and mexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(mexTeamID, false)) then
 				_G.transferredUnits[unitID] = Spring.GetGameFrame()
 				Spring.TransferUnit(unitID, mexTeamID)
 			end

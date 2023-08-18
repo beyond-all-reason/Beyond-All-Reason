@@ -219,7 +219,7 @@ return {
 				noselfdamage = true,
 				proximitypriority = 0,
 				range = 650,
-				reloadtime = 0.53333,
+				reloadtime = 0.26,
 				rgbcolor = "0 1 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",

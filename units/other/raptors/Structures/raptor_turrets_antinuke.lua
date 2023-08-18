@@ -37,7 +37,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "Raptors/raptor_turrets_antinuke_v2.s3o",
 		--reclaimspeed = 200,
-		repairable = false,
+		repairable = true,
 		script = "Raptors/raptor_turrets_v2.cob",
 		seismicsignature = 0,
 		selfdestructas = "bug_death",
@@ -51,6 +51,7 @@ return {
 		upright = false,
 		waterline = 1,
 		workertime = 200,
+		yardmap = "oo oo",
 		customparams = {
 			subfolder = "other/raptors",
 			model_author = "LathanStanley, Beherith",

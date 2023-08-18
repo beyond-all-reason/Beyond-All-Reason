@@ -128,7 +128,7 @@ return {
 				model = "Raptors/spike.s3o",
 				name = "RaptorClaws",
 				noselfdamage = true,
-				range = 400,
+				range = 600,
 				reloadtime = 1,
 				soundstart = "bigraptorbreath",
 				tolerance = 5000,

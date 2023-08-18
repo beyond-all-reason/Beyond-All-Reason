@@ -32,7 +32,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "fusionExplosionSelfd",
 		sightdistance = 273,
-		yardmap = "oooooooooooooooooooo",
+		yardmap = "oooooo oooooo oooooo oooooo oooooo",
 		customparams = {
 			unitgroup = 'energy',
 			model_author = "Cremuss",

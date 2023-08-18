@@ -29,7 +29,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "advgeo",
 		sightdistance = 273,
-		yardmap = "h bbsbbsbb bscsscsb scyoyycs bsyjjosb bsojjysb scyyoycs bscsscsb bbsbbsbb",
+		yardmap = "h cysoosyc ysbssbsy sbbjjbbs osjbbjso osjbbjso sbbjjbbs ysbssbsy cysoosyc",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armageo_aoplane.dds",

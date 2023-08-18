@@ -1,4 +1,11 @@
-﻿# July 2023
+﻿# August 2023
+• [Laser/Lightning Weapons] targetmovererror set to zero for T2+ units. 
+    - Hitscan weapons no longer randomly miss small fast moving targets.
+    - Affected Armada Units: Platypus, Welder, Titan blue laser, Thor side EMP lasers, Starlight.
+    - Affected Cortex Units: Duck, Sumo, Mammoth, Termite, Behemoth red lasers, Juggernaut heat ray.
+    - This matches existing behavior of Jaguar, Razorback, Thor main cannon, and Cataphract.
+
+# July 2023
 • [Whistler] Range decreased from 600 -> 575
 • [Lasher] Damage per shot decreased 47 -> 43
 • [Shellshocker] Reloadtime increased 5.7s -> 6.2s

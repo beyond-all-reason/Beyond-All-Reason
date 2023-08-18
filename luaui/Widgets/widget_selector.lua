@@ -763,7 +763,7 @@ function widget:DrawScreen()
 				end
 			end
 			local tooltip = ''
-			local maxWidth = WG['tooltip'].getFontsize() * 100
+			local maxWidth = WG['tooltip'].getFontsize() * 90
 			if d.desc and d.desc ~= '' then
 				local textLines, numLines = font:WrapText(d.desc, maxWidth)
 				tooltip = tooltip..WhiteStr..string.gsub(textLines, '[\n]', '\n'..WhiteStr)..'\n'

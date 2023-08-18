@@ -435,7 +435,7 @@ function widgetHandler:Initialize()
 	self:SaveConfigData()
 end
 
-local function AddSpadsMessage(contents)
+function widgetHandler:AddSpadsMessage(contents)
 	-- The canonical, agreed format is the following:
 	-- This must be called from an unsynced context, cause it needs playername and playerid and stuff
 	
@@ -457,7 +457,8 @@ local function AddSpadsMessage(contents)
 	--Spring.Echo(rawmessage,b64message)
 	Spring.SendLuaRulesMsg(b64message)
 end
-			
+
+
 
 function widgetHandler:LoadWidget(filename, fromZip)
 	local basename = Basename(filename)
@@ -558,7 +559,10 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		if widgetHandler.widgetHashes[md5] == nil then 
 			widgetHandler.widgetHashes[md5] = filename
 			-- Embed LuaRules message that we enabled a new user widget
-			pcall(AddSpadsMessage, tostring(filename) .. ":" .. tostring(md5))
+			--local success, err = pcall(widgetHandler.AddSpadsMessage, widgetHandler, tostring(filename) .. ":" .. tostring(md5))
+			--if success == false then
+			--	Spring.Echo("widgetHandler.AddSpadsMessage call failed", tostring(err))
+			--end
 		end
 	end
 	

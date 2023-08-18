@@ -377,11 +377,17 @@ function widget:DrawWorld()
 	end
 end
 
+local lastMexCmd = 0
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
+
 	local metalExtracts = isMex[-cmdID]
 
 	if not metalExtracts then return end
+
 	if cmdOpts.mexsnap then return end -- notifying order
+
+	if lastMexCmd+0.1 > os.clock() then return end	-- ignore accidental line-drag cmd
+	lastMexCmd = os.clock()
 
 	local cbx, cbz = cmdParams[1], cmdParams[3]
 

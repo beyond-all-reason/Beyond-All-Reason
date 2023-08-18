@@ -1,7 +1,7 @@
 return {
 	dice = {
 		blocking = true,
-		buildcostenergy = 0,
+		buildcostenergy = 1,
 		buildcostmetal = 0,
 		buildpic = "other/dice.dds",
 		buildtime = 255,

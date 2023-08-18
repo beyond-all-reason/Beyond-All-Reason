@@ -66,11 +66,54 @@ for key, value in pairs(modoptions) do
 	end
 end
 
+
+
+local function stringifyDefTable(t, path, pathAddition)
+	if not path then path = {} end
+	path = table.copy(path)
+	if pathAddition then
+		path[#path+1] = pathAddition
+	end
+	if #path > 10 then return '...' end
+	local text = ''
+	local depthSpacing = ''
+	for i=1, #path, 1 do
+		depthSpacing = depthSpacing .. '     '
+	end
+	for k, v in pairs(t) do
+		if type(v) == "table" then
+			text = text .. '\n' .. valuegreycolor .. depthSpacing .. tostring(k) .. ' = \{'
+			text = text .. stringifyDefTable(v, path, k)
+			text = text .. '\n' .. valuegreycolor .. depthSpacing .. '\}'
+		else
+			text = text .. '\n' .. valuegreycolor .. depthSpacing .. tostring(k) .. ' = ' .. tostring(v)
+		end
+	end
+	return text
+end
+
 for key, value in pairs(modoptions) do
 	if modoptionsDefault[key] and value == modoptionsDefault[key].def then
 		unchangedModoptions[key] = tostring(value)
 	else
-		changedModoptions[key] = tostring(value)
+		if not string.find(key, 'tweakunits') then
+			changedModoptions[key] = tostring(value)
+		else
+			local success, tweaks = pcall(Spring.Utilities.CustomKeyToUsefulTable, value)
+			if success and type(tweaks) == "table" then
+				local text = ''
+				for name, ud in pairs(tweaks) do
+					if UnitDefNames[name] then
+						text = text .. '\n' .. valuecolor.. name..valuegreycolor..' = \{'
+						text = text..stringifyDefTable(ud, {}, name)
+						text = text .. '\n' .. '\}'
+					end
+				end
+				changedModoptions[key] = text
+			else
+				changedModoptions[key] = tostring(value)
+			end
+		end
 	end
 end
 

@@ -253,11 +253,17 @@ local function refreshUnitInfo()
 						reloadTime = weaponDef.reload
 					end
 				end
-				local dps = math_floor(maxDmg * weaponDef.salvoSize / weaponDef.reload)
+
+				local burstRate = weaponDef.salvoDelay or 0
+				local dps = getDPS(maxDmg, weaponDef.salvoSize, burstRate, weaponDef.reload)
+
 				if dps > unitDefInfo[unitDefID].dps then
 					--unitDefInfo[unitDefID].dps = dps
 					unitDefInfo[unitDefID].reloadTime = reloadTime	-- only main weapon is relevant
 					unitDefInfo[unitDefID].mainWeapon = i
+					unitDefInfo[unitDefID].damage = maxDmg
+					unitDefInfo[unitDefID].burst = weaponDef.salvoSize
+					unitDefInfo[unitDefID].burstRate = weaponDef.salvoDelay
 				end
 				totalDps = totalDps + dps
 				unitDefInfo[unitDefID].dps = totalDps
@@ -415,6 +421,7 @@ function widget:Initialize()
 	refreshUnitInfo()
 
 	texts = Spring.I18N('ui.info')
+	unitStatsTexts = Spring.I18N('ui.unitstats')
 
 	checkGeothermalFeatures()
 
@@ -1176,23 +1183,29 @@ local function drawUnitInfo()
 			end
 		end
 
-		if unitDefInfo[displayUnitDefID].weapons then
+		if unitDefInfo[displayUnitDefID].weapons and unitDefInfo[displayUnitDefID].burst then
 			local reloadTimeSpeedup = 1.0
 			local currentReloadTime = unitDefInfo[displayUnitDefID].reloadTime
+			local burstRate = unitDefInfo[displayUnitDefID].burstRate or 0
+			local isFireContinuous = hasContinuousFire(unitDefInfo[displayUnitDefID].burst, burstRate, unitDefInfo[displayUnitDefID].reloadTime)
+
 			if exp and exp > 0.009 then
 				addTextInfo(texts.xp, round(exp, 2))
 				addTextInfo(texts.maxhealth, '+' .. round((maxHealth / unitDefInfo[displayUnitDefID].health - 1) * 100, 0) .. '%')
 				currentReloadTime = spGetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, 'reloadTimeXP')
 				if unitDefInfo[displayUnitDefID].reloadTime then
-					reloadTimeSpeedup = currentReloadTime / unitDefInfo[displayUnitDefID].reloadTime
+					local totalBurstTime = (unitDefInfo[displayUnitDefID].burst or 0) * (unitDefInfo[displayUnitDefID].burstRate or 0)
 					local reloadTimeSpeedupPercentage = tonumber(round((1 - reloadTimeSpeedup) * 100, 0))
-					if reloadTimeSpeedupPercentage > 0 then
+
+					isFireContinuous = hasContinuousFire(unitDefInfo[displayUnitDefID].burst, burstRate, currentReloadTime)
+					reloadTimeSpeedup = currentReloadTime / unitDefInfo[displayUnitDefID].reloadTime
+					if reloadTimeSpeedupPercentage > 0 and not isFireContinuous then
 						addTextInfo(texts.reload, '-' .. reloadTimeSpeedupPercentage .. '%')
 					end
 				end
 			end
 			if dps then
-				dps = round(dps / reloadTimeSpeedup, 0)
+				dps = getDPS(unitDefInfo[displayUnitDefID].damage, unitDefInfo[displayUnitDefID].burst, burstRate, currentReloadTime)
 				addTextInfo(texts.dps, dps)
 
 				if unitDefInfo[displayUnitDefID].maxCoverage then
@@ -1200,9 +1213,12 @@ local function drawUnitInfo()
 				elseif maxRange then
 					addTextInfo(texts.weaponrange, math_floor(maxRange))
 				end
-				if currentReloadTime and currentReloadTime > 0 then
+				if currentReloadTime and currentReloadTime > 0 and not isFireContinuous then
 					addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
+				elseif isFireContinuous then
+					addTextInfo(unitStatsTexts.firerate, math.floor(1/unitDefInfo[displayUnitDefID].burstRate))
 				end
+
 			end
 
 			--addTextInfo('weapons', #unitWeapons[displayUnitDefID])
@@ -1763,6 +1779,33 @@ function widget:DrawScreen()
 				WG['unitstats'].showUnit(displayUnitID)
 			end
 		end
+	end
+end
+
+-- If the time to finish a full burst is greater than the reload time,
+-- then the units reload time is irrelevant and will continuously fire.
+function hasContinuousFire(burstCount, burstRate, reloadTime)
+	local burstRate = burstRate
+	local totalBurstTime = burstCount * burstRate
+
+	return totalBurstTime >= reloadTime
+end
+
+function getHighestDamageValue(damageValues)
+	local highestDamage = 0;
+	for _, v in pairs(damageValues) do
+		if v > highestDamage then
+			highestDamage = v
+		end
+	end
+	return highestDamage
+end
+
+function getDPS(damage, burstCount, burstRate, reloadTime)
+	if hasContinuousFire(burstCount, burstRate, reloadTime) then
+		return math_floor(damage / burstRate)
+	else
+		return math_floor(damage * burstCount / reloadTime)
 	end
 end
 

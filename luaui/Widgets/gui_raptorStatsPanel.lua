@@ -183,6 +183,7 @@ local function CreatePanelDisplayList()
 			font:Print(textColor .. Spring.I18N('ui.raptors.queenETA', { time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
 			if #currentlyResistantToNames > 0 then
 				currentlyResistantToNames = {}
+				currentlyResistantTo = {}
 			end
 		else
 			font:Print(textColor .. Spring.I18N('ui.raptors.queenHealth', { health = gameInfo.raptorQueenHealth }), panelMarginX, PanelRow(1), panelFontSize, "")

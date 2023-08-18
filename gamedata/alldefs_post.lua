@@ -318,7 +318,7 @@ function UnitDef_Post(name, uDef)
 				armapt3_scav = true,
 				legap_scav = true,
 				legaap_scav = true,
-				
+
 			}
 			if AircraftFactories[name] then
 				uDef.unitrestricted = 0
@@ -432,6 +432,7 @@ function UnitDef_Post(name, uDef)
 			-- uDef.buildoptions[numBuildoptions+5] = "armlunchbox"
 			uDef.buildoptions[numBuildoptions+6] = "armmeatball"
 			uDef.buildoptions[numBuildoptions+7] = "armassimilator"
+			uDef.buildoptions[numBuildoptions+8] = "armdronecarryland"
 		elseif name == "armshltxuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
@@ -1012,7 +1013,7 @@ if Spring.GetModOptions().comtestchanges == true then
 	end
 
 
-		
+
 	--energystorage
 	--metalstorage
 	-- Metal Extraction Multiplier
@@ -1060,7 +1061,7 @@ if Spring.GetModOptions().comtestchanges == true then
 		end
 	end
 
-	-- Energy Conversion Multiplier 
+	-- Energy Conversion Multiplier
 	if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
 		local x = Spring.GetModOptions().multiplier_energyconversion * Spring.GetModOptions().multiplier_resourceincome
 		uDef.customparams.energyconv_capacity = uDef.customparams.energyconv_capacity * x
@@ -1155,7 +1156,7 @@ function WeaponDef_Post(name, wDef)
 		-- Standard Gravity
 		local gravityModOption = Spring.GetModOptions().experimentalstandardgravity
 
-		Spring.Echo(wDef.name,wDef.mygravity)
+		--Spring.Echo(wDef.name,wDef.mygravity)
 		if gravityModOption == "low" then
 			if wDef.mygravity == nil then
 				wDef.mygravity = 0.0889 --80/900

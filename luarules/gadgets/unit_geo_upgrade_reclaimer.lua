@@ -14,6 +14,10 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+
+local transferInstantly = true	-- false = transfer geo on completion
+
+
 _G.transferredUnits = {}
 
 local isGeo = {}
@@ -43,6 +47,13 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		local geo = hasGeoUnderneat(unitID)
 		if geo then
 			Spring.SetUnitNoSelect(geo, true)
+			if transferInstantly then
+				local mexTeamID = Spring.GetUnitTeam(geo)
+				if mexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(mexTeamID, false)) then
+					_G.transferredUnits[unitID] = Spring.GetGameFrame()
+					Spring.TransferUnit(unitID, mexTeamID)
+				end
+			end
 		end
 	end
 end
@@ -65,7 +76,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			local geoTeamID = Spring.GetUnitTeam(geo)
 			Spring.DestroyUnit(geo, false, true)
 			Spring.AddTeamResource(unitTeam, "metal", isGeo[Spring.GetUnitDefID(geo)])
-			if geoTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(geoTeamID, false)) then -- and Spring.AreTeamsAllied(t1GeoTeamID, unitTeam) then
+			if not transferInstantly and geoTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(geoTeamID, false)) then
 				_G.transferredUnits[unitID] = Spring.GetGameFrame()
 				Spring.TransferUnit(unitID, geoTeamID)
 			end

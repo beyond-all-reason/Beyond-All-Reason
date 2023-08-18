@@ -13,7 +13,7 @@ local factions = {
 	{ startUnit = UnitDefNames.corcom.id, faction = 'cor' },
 	{ startUnit = UnitDefNames.armcom.id, faction = 'arm' },
 }
-if not Spring.GetModOptions().unba and Spring.GetModOptions().experimentallegionfaction then
+if Spring.GetModOptions().experimentallegionfaction then
 	factions[#factions+1] = { startUnit = UnitDefNames.legcom.id, faction = 'leg' }
 end
 

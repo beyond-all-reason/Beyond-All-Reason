@@ -37,7 +37,7 @@ local TimedDamageWeapons = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
-        damage = 100,
+        damage = 200,
         range = 150,
         resistance = "_RAPTORACID_",
     },
@@ -45,7 +45,7 @@ local TimedDamageWeapons = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
-        damage = 100,
+        damage = 200,
         range = 150,
         resistance = "_RAPTORACID_",
     },
@@ -85,7 +85,7 @@ local TimedDamageWeapons = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
-        damage = 100,
+        damage = 200,
         range = 150,
         resistance = "_RAPTORACID_",
     },
@@ -93,7 +93,15 @@ local TimedDamageWeapons = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
-        damage = 100,
+        damage = 200,
+        range = 150,
+        resistance = "_RAPTORACID_",
+    },
+    [WeaponDefNames.raptor_turretxl_acid_acidspit.id] = {
+        ceg = "acid-area-150",
+        damageCeg = "acid-damage-gen",
+        time = 10,
+        damage = 200,
         range = 150,
         resistance = "_RAPTORACID_",
     },
@@ -301,19 +309,21 @@ end
 function gadget:Explosion(weaponDefID, px, py, pz, AttackerID, ProjectileID)
     if TimedDamageWeapons[weaponDefID] then
         local currentTime = Spring.GetGameSeconds()
-        aliveExplosions[aliveExplosionsCounter] = {
-            x = px,
-            y = math.max(Spring.GetGroundHeight(px, pz), 0),
-            z = pz,
-            endTime = currentTime + TimedDamageWeapons[weaponDefID].time,
-            damage = TimedDamageWeapons[weaponDefID].damage,
-            range = TimedDamageWeapons[weaponDefID].range,
-            ceg = TimedDamageWeapons[weaponDefID].ceg,
-            cegSpawned = false,
-            damageCeg = TimedDamageWeapons[weaponDefID].damageCeg,
-            resistance = TimedDamageWeapons[weaponDefID].resistance,
-        }
-        aliveExplosionsCounter = aliveExplosionsCounter + 1
+        if py <= math.max(Spring.GetGroundHeight(px, pz), 0) + TimedDamageWeapons[weaponDefID].range*0.5 then
+            aliveExplosions[aliveExplosionsCounter] = {
+                x = px,
+                y = math.max(Spring.GetGroundHeight(px, pz), 0),
+                z = pz,
+                endTime = currentTime + TimedDamageWeapons[weaponDefID].time,
+                damage = TimedDamageWeapons[weaponDefID].damage,
+                range = TimedDamageWeapons[weaponDefID].range,
+                ceg = TimedDamageWeapons[weaponDefID].ceg,
+                cegSpawned = false,
+                damageCeg = TimedDamageWeapons[weaponDefID].damageCeg,
+                resistance = TimedDamageWeapons[weaponDefID].resistance,
+            }
+            aliveExplosionsCounter = aliveExplosionsCounter + 1
+        end
     end
 end
 
@@ -321,19 +331,21 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
     if TimedDamageDyingUnits[unitDefID] then
         local currentTime = Spring.GetGameSeconds()
         local px, py, pz = Spring.GetUnitPosition(unitID)
-        aliveExplosions[aliveExplosionsCounter] = {
-            x = px,
-            y = math.max(Spring.GetGroundHeight(px, pz), 0),
-            z = pz,
-            endTime = currentTime + TimedDamageDyingUnits[unitDefID].time,
-            damage = TimedDamageDyingUnits[unitDefID].damage,
-            range = TimedDamageDyingUnits[unitDefID].range,
-            ceg = TimedDamageDyingUnits[unitDefID].ceg,
-            cegSpawned = false,
-            damageCeg = TimedDamageDyingUnits[unitDefID].damageCeg,
-            resistance = TimedDamageDyingUnits[unitDefID].resistance,
-        }
-        aliveExplosionsCounter = aliveExplosionsCounter + 1
+        if py <= math.max(Spring.GetGroundHeight(px, pz), 0) + TimedDamageDyingUnits[unitDefID].range*0.5 then
+            aliveExplosions[aliveExplosionsCounter] = {
+                x = px,
+                y = math.max(Spring.GetGroundHeight(px, pz), 0),
+                z = pz,
+                endTime = currentTime + TimedDamageDyingUnits[unitDefID].time,
+                damage = TimedDamageDyingUnits[unitDefID].damage,
+                range = TimedDamageDyingUnits[unitDefID].range,
+                ceg = TimedDamageDyingUnits[unitDefID].ceg,
+                cegSpawned = false,
+                damageCeg = TimedDamageDyingUnits[unitDefID].damageCeg,
+                resistance = TimedDamageDyingUnits[unitDefID].resistance,
+            }
+            aliveExplosionsCounter = aliveExplosionsCounter + 1
+        end
     end
 end
 
