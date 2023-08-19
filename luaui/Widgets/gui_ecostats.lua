@@ -82,7 +82,7 @@ local avgFrames = 8
 local xRelPos, yRelPos = 1, 1
 local widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 local singleTeams = (#Spring.GetTeamList() - 1 == #Spring.GetAllyTeamList() - 1)
-local enableStartposbuttons = not Spring.GetModOptions().ffa_mode	-- spots wont match when ffa
+local enableStartposbuttons = not Spring.Utilities.Gametype.IsFFA()	-- spots wont match when ffa
 local myFullview = select(2, Spring.GetSpectatingState())
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()

@@ -21,7 +21,7 @@ local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutline
 local uiScale = (0.7 + (vsx * vsy / 6500000))
 local myPlayerID = Spring.GetMyPlayerID()
 local _, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
-local ffaMode = Spring.GetModOptions().ffa_mode
+local isFFA = Spring.Utilities.Gametype.IsFFA()
 local isReplay = Spring.IsReplay()
 
 local readyButtonColor = {0.05, 0.28, 0}
@@ -162,12 +162,12 @@ function widget:GameSetup(state, ready, playerStates)
 	end
 
 	-- if we can't choose startpositions, no need for ready button etc
-	if Game.startPosType ~= 2 or ffaMode then
+	if Game.startPosType ~= 2 or isFFA then
 		return true, true
 	end
 
 	-- set my readyState to true if ffa
-	if ffaMode and (not readied or not ready) then
+	if isFFA and (not readied or not ready) then
 		readied = true
 		return true, true
 	end
@@ -280,7 +280,7 @@ function widget:Initialize()
 	end
 
 	if mySpec and enableSubbing then
-		if numPlayers <= 4 or isReplay or ffaMode then
+		if numPlayers <= 4 or isReplay or isFFA then
 			eligibleAsSub = false
 		else
 			eligibleAsSub = true
