@@ -11,12 +11,12 @@ local function getSettings()
 	local isSinglePlayer, is1v1, isTeams, isBigTeams, isSmallTeams, isRaptors, isScavengers, isPvE, isCoop, isFFA, isSandbox = false, false, false, false, false, false, false, false, false, false, false
 
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
-	local allyTeamList = Spring.GetAllyTeamList()
-	local actualAllyTeamList = {}
-	local actualAllyTeamSizes = {}
+	local springAllyTeamList = Spring.GetAllyTeamList()
+	local allyTeamList = {}
+	local allyTeamSizes = {}
 	local entirelyHumanAllyTeams = {}
 
-	for _, allyTeam in ipairs(allyTeamList) do
+	for _, allyTeam in ipairs(springAllyTeamList) do
 		local teamList = Spring.GetTeamList(allyTeam) or {}
 		local allyteamEntirelyHuman = true
 
@@ -47,8 +47,8 @@ local function getSettings()
 			end
 
 			if isAllyTeamValid then
-				actualAllyTeamList[#actualAllyTeamList+1] = allyTeam
-				actualAllyTeamSizes[#actualAllyTeamSizes+1] = #teamList
+				allyTeamList[#allyTeamList+1] = allyTeam
+				allyTeamSizes[#allyTeamSizes+1] = #teamList
 			end
 
 			if allyteamEntirelyHuman then
@@ -57,10 +57,10 @@ local function getSettings()
 		end
 	end
 
-	teamCount = #actualAllyTeamList
+	teamCount = #allyTeamList
 
 	isSmallTeams = true
-	for _, teamSize in ipairs(actualAllyTeamSizes) do
+	for _, teamSize in ipairs(allyTeamSizes) do
 		if teamSize > 1 then
 			isTeams = true
 		end
@@ -89,6 +89,7 @@ local function getSettings()
 
 	settings = {
 		teamCount = teamCount,
+		allyTeamList = allyTeamList,
 		playerCount = playerCount,
 		isSinglePlayer = isSinglePlayer,
 		is1v1 = is1v1,
@@ -107,8 +108,11 @@ local function getSettings()
 end
 
 return {
-	GetTeamCount   = function () return getSettings().teamCount end,
-	GetPlayerCount = function () return getSettings().playerCount end,
+	GetTeamCount     = function() return getSettings().teamCount end,
+	---Get ally team list (humans or AIs, but not Raptors and Scavengers).
+	---@return integer[] allyTeamList table[i] = allyTeamID
+	GetAllyTeamList  = function () return getSettings().allyTeamList end,
+	GetPlayerCount   = function () return getSettings().playerCount end,
 	Gametype = {
 		IsSinglePlayer = function () return getSettings().isSinglePlayer end,
 		Is1v1          = function () return getSettings().is1v1          end,
