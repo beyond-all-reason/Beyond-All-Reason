@@ -1775,7 +1775,7 @@ if gadgetHandler:IsSyncedCode() then
 			SetGameRulesParam(config.burrowName .. "Kills", kills + 1)
 
 			burrows[unitID] = nil
-			if attackerID then
+			if attackerID and Spring.GetUnitTeam(attackerID) ~= raptorTeamID then
 				playerAggression = playerAggression + (config.angerBonus/config.raptorSpawnMultiplier)
 				config.maxXP = config.maxXP*1.01
 			end
@@ -1794,7 +1794,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			SetGameRulesParam("raptor_hiveCount", SetCount(burrows))
-		elseif unitTeam == raptorTeamID and UnitDefs[unitDefID].isBuilding and attackerID then
+		elseif unitTeam == raptorTeamID and UnitDefs[unitDefID].isBuilding and (attackerID and Spring.GetUnitTeam(attackerID) ~= raptorTeamID) then
 			playerAggression = playerAggression + ((config.angerBonus/config.raptorSpawnMultiplier)*0.1)
 		end
 		if unitTeleportCooldown[unitID] then
