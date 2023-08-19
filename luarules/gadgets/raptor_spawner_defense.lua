@@ -1775,8 +1775,10 @@ if gadgetHandler:IsSyncedCode() then
 			SetGameRulesParam(config.burrowName .. "Kills", kills + 1)
 
 			burrows[unitID] = nil
-			playerAggression = playerAggression + (config.angerBonus/config.raptorSpawnMultiplier)
-			config.maxXP = config.maxXP*1.01
+			if attackerID then
+				playerAggression = playerAggression + (config.angerBonus/config.raptorSpawnMultiplier)
+				config.maxXP = config.maxXP*1.01
+			end
 
 			for i, defs in pairs(spawnQueue) do
 				if defs.burrow == unitID then
@@ -1792,7 +1794,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			SetGameRulesParam("raptor_hiveCount", SetCount(burrows))
-		elseif unitTeam == raptorTeamID and UnitDefs[unitDefID].isBuilding then
+		elseif unitTeam == raptorTeamID and UnitDefs[unitDefID].isBuilding and attackerID then
 			playerAggression = playerAggression + ((config.angerBonus/config.raptorSpawnMultiplier)*0.1)
 		end
 		if unitTeleportCooldown[unitID] then
@@ -1838,13 +1840,13 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID)--, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-		if teamID == raptorTeamID and cmdID == CMD.SELFD then
-			return false
-		else
-			return true
-		end
-	end
+	-- function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	-- 	if teamID == raptorTeamID and cmdID == CMD.SELFD then
+	-- 		return false
+	-- 	else
+	-- 		return true
+	-- 	end
+	-- end
 
 else	-- UNSYNCED
 
