@@ -7,7 +7,7 @@ local function getSettings()
 		return settings
 	end
 
-	local teamCount, playerCount = 0, 0
+	local allyTeamCount, playerCount = 0, 0
 	local isSinglePlayer, is1v1, isTeams, isBigTeams, isSmallTeams, isRaptors, isScavengers, isPvE, isCoop, isFFA, isSandbox = false, false, false, false, false, false, false, false, false, false, false
 
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
@@ -57,7 +57,7 @@ local function getSettings()
 		end
 	end
 
-	teamCount = #allyTeamList
+	allyTeamCount = #allyTeamList
 
 	isSmallTeams = true
 	for _, teamSize in ipairs(allyTeamSizes) do
@@ -73,11 +73,11 @@ local function getSettings()
 	isBigTeams = isTeams and not isSmallTeams
 	isPvE = isRaptors or isScavengers
 
-	if teamCount > 2 then
+	if allyTeamCount > 2 then
 		isFFA = true
-	elseif teamCount < 2 and not isPvE then
+	elseif allyTeamCount < 2 and not isPvE then
 		isSandbox = true
-	elseif teamCount == 2 and not isTeams then
+	elseif allyTeamCount == 2 and not isTeams then
 		is1v1 = true
 	end
 
@@ -88,7 +88,7 @@ local function getSettings()
 	initialized = true
 
 	settings = {
-		teamCount = teamCount,
+		allyTeamCount = allyTeamCount,
 		allyTeamList = allyTeamList,
 		playerCount = playerCount,
 		isSinglePlayer = isSinglePlayer,
@@ -108,8 +108,9 @@ local function getSettings()
 end
 
 return {
-	GetTeamCount     = function() return getSettings().teamCount end,
-	---Get ally team list (humans or AIs, but not Raptors and Scavengers).
+	---Get number of ally teams (humans and AIs, but not Raptors and Scavengers).
+	GetAllyTeamCount = function() return getSettings().allyTeamCount end,
+	---Get ally team list (humans and AIs, but not Raptors and Scavengers).
 	---@return integer[] allyTeamList table[i] = allyTeamID
 	GetAllyTeamList  = function () return getSettings().allyTeamList end,
 	GetPlayerCount   = function () return getSettings().playerCount end,
