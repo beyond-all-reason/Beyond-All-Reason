@@ -1092,7 +1092,12 @@ if gadgetHandler:IsSyncedCode() then
 			if uSettings.minQueenAnger <= techAnger and uSettings.maxQueenAnger >= techAnger then
 				local numOfTurrets = math.ceil((uSettings.spawnedPerWave*(1-config.raptorPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))
 				local maxExisting = math.ceil((uSettings.maxExisting*(1-config.raptorPerPlayerMultiplier))+(uSettings.maxExisting*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))
-				local maxAllowedToSpawn = math.ceil(maxExisting*((techAnger-uSettings.minQueenAnger)/(math.min(100-uSettings.minQueenAnger, uSettings.maxQueenAnger-uSettings.minQueenAnger)))) -- i don't know how this works but it does. scales maximum amount of turrets allowed to spawn with techAnger.
+				local maxAllowedToSpawn
+				if techAnger <= 100 then  -- i don't know how this works but it does. scales maximum amount of turrets allowed to spawn with techAnger.
+					maxAllowedToSpawn = math.ceil(maxExisting*((techAnger-uSettings.minQueenAnger)/(math.min(100-uSettings.minQueenAnger, uSettings.maxQueenAnger-uSettings.minQueenAnger))))
+				else
+					maxAllowedToSpawn = math.ceil(maxExisting*(techAnger*0.01))
+				end
 				--Spring.Echo(uName,"MaxExisting",maxExisting,"MaxAllowed",maxAllowedToSpawn)
 				for i = 1, numOfTurrets do
 					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and (Spring.GetTeamUnitDefCount(raptorTeamID, UnitDefNames[uName].id) <= maxAllowedToSpawn) then
