@@ -468,6 +468,11 @@ function UnitDef_Post(name, uDef)
 		elseif name == "corcs" or name == "corcsa" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgplat"
+			uDef.buildoptions[numBuildoptions+2] = "corfrock"
+		elseif name == "armcs" or name == "armcsa" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "armgplat"
+			uDef.buildoptions[numBuildoptions+2] = "armfrock"
 		elseif name == "coracsub" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corfgate"
