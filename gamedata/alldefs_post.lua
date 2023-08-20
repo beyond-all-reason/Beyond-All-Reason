@@ -465,6 +465,15 @@ function UnitDef_Post(name, uDef)
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "legca" or name == "legck" or name == "legcv" then
 			--local numBuildoptions = #uDef.buildoptions
+		elseif name == "corcs" or name == "corcsa" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corgplat"
+		elseif name == "coracsub" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corfgate"
+		elseif name == "armacsub" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "armfgate"
 		elseif name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armapt3"
