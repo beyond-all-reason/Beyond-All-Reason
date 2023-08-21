@@ -163,6 +163,9 @@ AimControl()
 				// velocity match to chassis heading change
 				if ( (restore_position == 0) ){
 					aimy1velocity = (-1)*deltaheading;
+					// clamp velocity to max value
+					aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity); 
+					aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity);
 				}
 				else
 				{
