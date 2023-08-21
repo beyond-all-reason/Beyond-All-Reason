@@ -153,7 +153,7 @@ return {
 					-- carried_unit2... 			Currently not implemented, but planned.
 					engagementrange = 1200,
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 7, 				--Spawnrate roughly in seconds.
+					spawnrate = 5, 				--Spawnrate roughly in seconds.
 					maxunits = 16,				--Will spawn units until this amount has been reached.
 					buildcostenergy = 750,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					buildcostmetal = 30,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.

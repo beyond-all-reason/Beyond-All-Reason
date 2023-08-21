@@ -160,13 +160,13 @@ function UnitDef_Post(name, uDef)
 
 	if Spring.GetModOptions().expandedt2sea == true then
 		if name == "corcrus" then
-			uDef.maxvelocity = 1.9
+			uDef.maxvelocity = 1.8
 			uDef.maxdamage = 6200
 			uDef.weapondefs.adv_decklaser.reloadtime = 0.333
 			uDef.weapondefs.cor_crus.range = 500
 		end
 		if name == "armcrus" then
-			uDef.maxvelocity = 2.1
+			uDef.maxvelocity = 2.0
 			uDef.maxdamage = 5600
 			uDef.weapondefs.laser.reloadtime = 0.333
 			uDef.weapondefs.gauss.range = 500
