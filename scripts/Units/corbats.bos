@@ -6,12 +6,15 @@
 piece  flarea, barrelb1, barrelb2, barrelb3, base, guna, turreta, turretb,
        flareb1, flareb2, flareb3, wake, bow, sleeveb1, sleeveb2, sleeveb3, sleevea, barrela1, barrela2, barrela3;
 
-static-var  gun_2, bAiming, restore_delay, gun_1, Static_Var_7, Static_Var_8, aimDir;
-
+static-var  gun_2, restore_delay, Static_Var_7, Static_Var_8;
+static-var reloading_barrel_1, reloading_barrel_2;
+static-var deltaheading, newchassisheading, chassisheading, restore_position;
 // Signal definitions
-#define SIG_AIM_2			2
-#define SIG_AIM				4
-#define SIG_MOVE			8
+#define SIG_AIM_1			2
+#define SIG_AIM_2			4
+#define SIG_AIM_3			8
+#define SIG_AIM_4			16
+#define SIG_MOVE			32
 
 #define BASEPIECE base
 #define HITSPEED <20.0>
@@ -67,8 +70,8 @@ ProjXPW(Func_Var_1, Func_Var_2)
 
 RockZ(Func_Var_1, Func_Var_2)
 {
-	signal 16;
-	set-signal-mask 16;
+	signal 64;
+	set-signal-mask 64;
 	call-script ProjXPW(10920 / Func_Var_2,Func_Var_1);
 	Static_Var_8 = Static_Var_8 + Static_Var_7;
 	Static_Var_7 = get ABS(Static_Var_8);
@@ -80,6 +83,127 @@ RockZ(Func_Var_1, Func_Var_2)
 		Static_Var_7 = get ABS(Static_Var_8);
 	}
 	turn base to z-axis <0.000000> speed <1.5>;
+}
+
+//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
+// MaxVelocity and acceleration are in degrees per frame (not second!)
+// Jerk is the minimum velocity of the turret
+// A high precision requirement can result in overshoots if desired 
+// (c) CC BY NC ND Beherith mysterme@gmail.com
+// adjustments by Itanthias
+#define MAX_AIMY1_VELOCITY <2.20>
+#define AIMY1_ACCELERATION <0.13>
+#define AIMY1_SNAP_TOLERANCE <0.5>
+#define AIMY1_PRECISION <1.2>
+#define AIMY1_RESTORE_SPEED <1.0>
+
+static-var aimy1delta, timetozero, deceleratethreshold;
+static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
+static-var  Stunned;
+
+ExecuteRestoreAfterDelay()
+{
+    while (Stunned) {
+		sleep 1;
+    }
+
+	restore_position = 1;
+	turn sleeveb1 to x-axis <0.000000> speed <30.000000>;
+	turn sleeveb2 to x-axis <0.000000> speed <30.000000>;
+	turn sleeveb3 to x-axis <0.000000> speed <30.000000>;
+	
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+AimControl()
+{
+	
+	//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
+	while( TRUE  ){
+		// only turn when not stunned
+		if (Stunned == 0){
+
+			// apply correction for chassis turning
+			newchassisheading = GET 82; //get heading
+			deltaheading = newchassisheading - chassisheading;
+			chassisheading = newchassisheading;
+			aimy1target = aimy1target - deltaheading;
+
+			// apply aimy1target for neutral, restored, position
+			if (restore_position == 1)
+			{
+				aimy1target = 0;
+			}
+	
+			aimy1delta = aimy1target - aimy1position ; 	
+			//Clamp angles between <-180>;<180>
+			while (aimy1target >  <180>) aimy1target = aimy1target - <360>;
+			while (aimy1target < <-180>) aimy1target = aimy1target + <360>;
+			while (aimy1position >  <180>) aimy1position = aimy1position - <360>;
+			while (aimy1position < <-180>) aimy1position = aimy1position + <360>;
+			while (aimy1delta >  <180>) aimy1delta = aimy1delta - <360>;
+			while (aimy1delta < <-180>) aimy1delta = aimy1delta + <360>;
+			
+			// Snap turret exactly to aimy1target if within snap tolerance
+			if (get ABS(aimy1delta) < AIMY1_SNAP_TOLERANCE) {
+				aimy1position = aimy1target;
+				turn turretb to y-axis aimy1position now;	
+
+				// velocity match to chassis heading change
+				if ( (restore_position == 0) ){
+					aimy1velocity = (-1)*deltaheading;
+				}
+				else
+				{
+					aimy1velocity = 0;
+				}
+			}
+			else
+			{
+
+				//number of frames required to decelerate to 0
+				//account for chassis rotation speed
+				timetozero = get ABS(aimy1velocity - deltaheading) / AIMY1_ACCELERATION;
+			
+				//distance from target where we should start decelerating, always 'positive'
+				//pos = t * v - (t*(t-1)*a/2)
+				deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_ACCELERATION / 2); 
+			
+				if (get ABS(aimy1delta) <= deceleratethreshold){ //we need to decelerate
+					if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
+					else 				   aimy1velocity = aimy1velocity + AIMY1_ACCELERATION;
+			
+				}	
+				else //we need to accelerate
+				{
+					if (aimy1delta > 0) aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity + AIMY1_ACCELERATION); 
+					else                aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity - AIMY1_ACCELERATION);
+				}
+
+				if (get ABS(aimy1velocity) < (2 * AIMY1_SNAP_TOLERANCE) ){
+					if (get ABS(aimy1delta) < AIMY1_SNAP_TOLERANCE) aimy1velocity = aimy1delta;
+					//if ((aimy1delta >        AIMY1_JERK)) aimy1velocity =        AIMY1_JERK;
+					//if ((aimy1delta < (-1) * AIMY1_JERK)) aimy1velocity = (-1) * AIMY1_JERK;
+				}
+			
+				aimy1position = aimy1position + aimy1velocity; 
+				turn turretb to y-axis aimy1position now;
+			}
+
+		}
+		sleep 30;
+	}
 }
 
 Create()
@@ -95,151 +219,102 @@ Create()
 	hide flareb2;
 	hide flareb3;
 	gun_2 = 1;
-	bAiming = 0;
-	gun_1 = 0;
+
+	chassisheading = GET 82; //get heading
+	newchassisheading = chassisheading;
+	deltaheading = 0;
+
+	restore_position = 1;
+
+	aimy1position = 0;
+	aimy1target = 0;
+	aimy1delta = 0;
+
 	restore_delay = 3000;	
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
 	}
 	start-script RockOnWaves();
+	start-script AimControl();
 }
 
 SetMaxReloadTime(Func_Var_1)
 {
 	restore_delay = Func_Var_1 * 3;
 }
-// XXXXXXXXX
-
-//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
-// MaxVelocity and acceleration are in degrees per frame (not second!)
-// Jerk is the minimum velocity of the turret
-// A high precision requirement can result in overshoots if desired 
-// (c) CC BY NC ND Beherith mysterme@gmail.com
-#define MAX_AIMY1_VELOCITY <2.20>
-#define AIMY1_ACCELERATION <0.13>
-#define AIMY1_JERK <0.5>
-#define AIMY1_PRECISION <1.2>
-#define AIMY1_RESTORE_SPEED <1.0>
-
-static-var aimy1delta, timetozero, deceleratethreshold;
-static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
-static-var  Stunned;
-
-ExecuteRestoreAfterDelay()
-{
-    if (Stunned) {
-        return (1);
-    }
-	turn sleeveb1 to x-axis <0.000000> speed <30.000000>;
-	turn sleeveb2 to x-axis <0.000000> speed <30.000000>;
-	turn sleeveb3 to x-axis <0.000000> speed <30.000000>;
-	while ( get ABS(aimy1position) > AIMY1_RESTORE_SPEED){
-		if (aimy1position > 0 ) {
-			aimy1position = aimy1position - AIMY1_RESTORE_SPEED;
-			aimy1velocity = (-1) * AIMY1_RESTORE_SPEED;
-		}
-		else
-		{
-			aimy1position = aimy1position + AIMY1_RESTORE_SPEED;
-			aimy1velocity = AIMY1_RESTORE_SPEED;
-		}
-		turn turretb to y-axis aimy1position speed 30 * AIMY1_RESTORE_SPEED;
-		aimDir = aimy1position;
-		sleep 30;
-	}
-	aimy1velocity = 0;
-}
-SetStunned(State)
-{
-    Stunned = State;
-	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
-	}
-}
-RestoreAfterDelay()
-{
-	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelay();
-}
 
 AimWeapon1(heading, pitch)
 {
 
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	
-	//bAiming = TRUE;
-	//signal SIG_HEAD;
+	signal SIG_AIM_1;
+	set-signal-mask SIG_AIM_1;
+
 	//We can do this any time
+	restore_position = 0;
 	turn sleeveb1 to x-axis <0.000000> - pitch speed <30.000000>;
 	turn sleeveb2 to x-axis <0.000000> - pitch speed <30.000000>;
 	turn sleeveb3 to x-axis <0.000000> - pitch speed <30.000000>;
-	
-	aimy1target = heading;
-	aimy1delta = aimy1target - aimy1position;
-
-	while( ( get ABS(aimy1delta) > AIMY1_PRECISION ) OR (get ABS(aimy1velocity) > AIMY1_JERK)){
-		if (gameFrame != get(GAME_FRAME)){ //this is to make sure we dont get double-called, as previous aimweapon thread runs before new aimweaponthread can signal-kill previous one 
-			gameFrame = get(GAME_FRAME);
-	
-			//Clamp aimy1position and aimy1delta between <-180>;<180>
-			while (aimy1position >  <180>) aimy1position = aimy1position - <360>;
-			while (aimy1position < <-180>) aimy1position = aimy1position + <360>;
-			while (aimy1delta >  <180>) aimy1delta = aimy1delta - <360>;
-			while (aimy1delta < <-180>) aimy1delta = aimy1delta + <360>;
-		
-			//number of frames required to decelerate to 0
-			timetozero = get ABS(aimy1velocity) / AIMY1_ACCELERATION;
-			
-			//distance from target where we should start decelerating, always 'positive'
-			//pos = t * v - (t*(t-1)*a/2)
-			deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_ACCELERATION / 2); 
-			
-			//get PRINT ( aimy1delta , deceleratethreshold, aimy1velocity, timetozero );
-			
-			if (get ABS(aimy1delta) <= deceleratethreshold){ //we need to decelerate
-				if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
-				else 				   aimy1velocity = aimy1velocity + AIMY1_ACCELERATION;
-			}	
-			else //we need to accelerate
-			{
-				if (aimy1delta > 0) aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity + AIMY1_ACCELERATION); 
-				else                aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity - AIMY1_ACCELERATION);
-			}
-			
-			//Apply jerk at very low velocities
-			if (get ABS(aimy1velocity) < AIMY1_JERK){
-				if ((aimy1delta >        AIMY1_JERK)) aimy1velocity =        AIMY1_JERK;
-				if ((aimy1delta < (-1) * AIMY1_JERK)) aimy1velocity = (-1) * AIMY1_JERK;
-			}
-			
-			aimy1position = aimy1position + aimy1velocity; 
-			aimDir = aimy1position;
-			turn turretb to y-axis aimy1position now;
-			aimy1delta = aimy1target - aimy1position ; 	
-		}
-		sleep 30;
-	}
-	aimy1velocity = 0;
-	while( gun_1 )
-	{
-		wait-for-move barrelb1 along z-axis;
-		wait-for-move barrelb2 along z-axis;
-		wait-for-move barrelb3 along z-axis;
-		bAiming = 0;
-		gun_1 = 0;
-	}
 	start-script RestoreAfterDelay();
-	return (1);
+
+	// let AimControl know what to aim at
+	aimy1target = heading;
+	while ( TRUE )
+	{
+		// condition 1, is aim good?
+		aimy1delta = aimy1target - aimy1position ; 	
+		if (get ABS(aimy1delta) < AIMY1_PRECISION) {
+			return (1); 
+		}
+		sleep 1;
+	}
 }
 
-// XXXXXXXXX
+AimWeapon2(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	aimy1target = heading;
+	while ( TRUE )
+	{
+		// condition 1, is aim good?
+		aimy1delta = aimy1target - aimy1position ; 	
+		if (get ABS(aimy1delta) < AIMY1_PRECISION) {
+			// condition 2, is barrel 1 reloading?
+			reloading_barrel_1 = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
+			if (reloading_barrel_1) {
+				return (1); 
+			}
+		}
+		sleep 2;
+	}
+}
 
-RestoreSecondary()
+AimWeapon3(heading, pitch)
+{
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	aimy1target = heading;
+	while ( TRUE )
+	{
+		// condition 1, is aim good?
+		aimy1delta = aimy1target - aimy1position; 	
+		if (get ABS(aimy1delta) < AIMY1_PRECISION) {
+			// condition 2, are barrels 1 and 2 reloading?
+			reloading_barrel_1 = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
+			reloading_barrel_2 = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
+			if (reloading_barrel_1 AND reloading_barrel_2) {
+				return (1);
+			}
+		}
+		sleep 3;
+	}
+}
+
+RestoreLaser()
 {
 	sleep restore_delay;
-	set-signal-mask 0;
+	//set-signal-mask 0;
 	turn turreta to y-axis <0.000000> speed <100.000000>;
 }
 
@@ -282,19 +357,17 @@ StopMoving()
 	move base to y-axis [0.0] speed [0.17];
 }
 
-AimSecondary(heading, pitch)
+AimWeapon4(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIG_AIM_4;
+	set-signal-mask SIG_AIM_4;
 	turn turreta to y-axis heading speed <200.000000>;
 	wait-for-turn turreta around y-axis;
-	start-script RestoreSecondary();
+	start-script RestoreLaser();
 	return (1);
 }
 
-
-
-FireSecondary()
+FireWeapon4()
 {
 	if( gun_2 == 0 )
 	{
@@ -318,52 +391,86 @@ FireSecondary()
 	if( gun_2 >= 3 ) gun_2 = 0;
 }
 
-FirePrimary()
+FireWeapon1()
 {
-	start-script RockZ(-13, aimDir);
-	if( bAiming == 0 )
-	{
-	    emit-sfx 1024 + 0 from flareb1;
-		move barrelb1 to z-axis [-2.500000] now;
-		sleep 100;
-		move barrelb1 to z-axis [0.000000] speed [1.000000];
-	}
-	else if( bAiming == 1 )
-	{
-	    emit-sfx 1024 + 0 from flareb2;
-		move barrelb2 to z-axis [-2.500000] now;
-		sleep 100;
-		move barrelb2 to z-axis [0.000000] speed [1.000000];
-	}
-	else if( bAiming == 2 )
-	{
-	    emit-sfx 1024 + 0 from flareb3;
-		gun_1 = 1;
-		move barrelb3 to z-axis [-2.500000] now;
-		sleep 100;
-		move barrelb3 to z-axis [0.000000] speed [1.000000];
-	}
-	++bAiming;
+	//delays other barrels from firing for 15 frames
+	get WEAPON_RELOADSTATE(-2,get MAX(get GAME_FRAME + 15,get WEAPON_RELOADSTATE(2)));
+	get WEAPON_RELOADSTATE(-3,get MAX(get GAME_FRAME + 15,get WEAPON_RELOADSTATE(3)));
+
+	start-script RockZ(-13, aimy1position);
+	emit-sfx 1024 + 0 from flareb1;
+	move barrelb1 to z-axis [-5.00000] now; // [-2.500000]
+	sleep 100;
+	move barrelb1 to z-axis [0.000000] speed [2.000000];
+
 }
 
-AimFromSecondary(piecenum)
+FireWeapon2()
 {
-	piecenum = turreta;
+	//delays other barrels from firing for 15 frames
+	get WEAPON_RELOADSTATE(-1,get MAX(get GAME_FRAME + 15,get WEAPON_RELOADSTATE(1)));
+	get WEAPON_RELOADSTATE(-3,get MAX(get GAME_FRAME + 15,get WEAPON_RELOADSTATE(3)));
+
+	start-script RockZ(-13, aimy1position);
+	emit-sfx 1024 + 0 from flareb2;
+	move barrelb2 to z-axis [-5.000000] now;
+	sleep 100;
+	move barrelb2 to z-axis [0.000000] speed [2.000000];
+
 }
 
-QuerySecondary(piecenum)
+FireWeapon3()
 {
-	piecenum = flarea;
+	//delays other barrels from firing for 15 frames
+	get WEAPON_RELOADSTATE(-1,get MAX(get GAME_FRAME + 15,get WEAPON_RELOADSTATE(1)));
+	get WEAPON_RELOADSTATE(-2,get MAX(get GAME_FRAME + 15,get WEAPON_RELOADSTATE(2)));
+
+	start-script RockZ(-13, aimy1position);
+	emit-sfx 1024 + 0 from flareb3;
+	move barrelb3 to z-axis [-5.000000] now;
+	sleep 100;
+	move barrelb3 to z-axis [0.000000] speed [2.000000];
+
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = turretb;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
-	piecenum = flareb1 + bAiming;
+	piecenum = flareb1;
+}
+
+AimFromWeapon2(piecenum)
+{
+	piecenum = turretb;
+}
+
+QueryWeapon2(piecenum)
+{
+	piecenum = flareb2;
+}
+
+AimFromWeapon3(piecenum)
+{
+	piecenum = turretb;
+}
+
+QueryWeapon3(piecenum)
+{
+	piecenum = flareb3;
+}
+
+AimFromWeapon4(piecenum)
+{
+	piecenum = turreta;
+}
+
+QueryWeapon4(piecenum)
+{
+	piecenum = flarea;
 }
 
 SweetSpot(piecenum)
