@@ -745,8 +745,8 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 
-			if canSpawnBurrow and GetGameSeconds() < config.gracePeriod and GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ) then -- Don't spawn new burrows in existing creep during grace period - Force them to spread as much as they can..... AT LEAST THAT'S HOW IT'S SUPPOSED TO WORK, lol.
-				canSpawnBurrow = false
+			if canSpawnBurrow and GetGameSeconds() < config.gracePeriod then -- Don't spawn new burrows in existing creep during grace period - Force them to spread as much as they can..... AT LEAST THAT'S HOW IT'S SUPPOSED TO WORK, lol.
+				canSpawnBurrow = not GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
 			end
 
 			if canSpawnBurrow then
