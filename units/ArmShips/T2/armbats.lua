@@ -147,8 +147,6 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_BATS",
-				maindir = "0 0 1",
-				maxangledif = 330,
 				onlytargetcategory = "SURFACE",
 				fastautoretargeting = true,
 			},
