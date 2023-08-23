@@ -129,7 +129,7 @@ return {
 				name = "Heavy g2g barrage plasma battery",
 				noselfdamage = true,
 				range = 1650,
-				reloadtime = 0.5,
+				reloadtime = 4.166,
 				soundhit = "xplonuk5",
 				soundhitwet = "splslrg",
 				soundstart = "xplolrg5",
@@ -149,6 +149,16 @@ return {
 		},
 		weapons = {
 			[1] = {
+				badtargetcategory = "VTOL",
+				def = "CORBHMTH_WEAPON",
+				onlytargetcategory = "SURFACE",
+			},
+			[2] = {
+				badtargetcategory = "VTOL",
+				def = "CORBHMTH_WEAPON",
+				onlytargetcategory = "SURFACE",
+			},
+			[3] = {
 				badtargetcategory = "VTOL",
 				def = "CORBHMTH_WEAPON",
 				onlytargetcategory = "SURFACE",
