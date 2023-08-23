@@ -69,6 +69,14 @@ local options={
 		section		= 'restrictions',
 	},
 	{
+		key    		= "allowpausegameplay",
+		name   		= "Allow gameplay while paused",
+		desc   		= "Allow giving unit commands while paused",
+		type   		= "bool",
+		def    		= true,
+		section		= 'restrictions',
+	},
+	{
 		key    		= 'fixedallies',
 		name   		= 'Disabled dynamic alliances',
 		desc   		= 'Disables the possibility of players to dynamically change alliances ingame',
