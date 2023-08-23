@@ -10,7 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-if not Spring.GetModOptions().ffa_mode then
+if not Spring.Utilities.Gametype.IsFFA() then
 	return false
 end
 

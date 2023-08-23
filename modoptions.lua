@@ -561,15 +561,6 @@ local options={
 		section= "options",
 	},
 	{
-		key    = "ffa_mode",
-		name   = "FFA Mode",
-		desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
-		hidden = true,
-		type   = "bool",
-		def    = false,
-		section= "options",
-	},
-	{
 		key    = "ffa_wreckage",
 		name   = "FFA Mode Wreckage",
 		desc   = "Killed players will blow up but leave wreckages",

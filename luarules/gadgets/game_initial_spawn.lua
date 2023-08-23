@@ -71,7 +71,7 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- ffaStartPoints is "global"
 	local useFFAStartPoints = false
-	if Spring.GetModOptions().ffa_mode then
+	if Spring.Utilities.Gametype.IsFFA() then
 		useFFAStartPoints = true
 	end
 

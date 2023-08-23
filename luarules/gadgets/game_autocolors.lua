@@ -408,12 +408,7 @@ local function shuffleAllColors()
 	end
 end
 
-local isFFA = false
-if #teamList == #allyTeamList and teamCount > 2 then
-	isFFA = true
-elseif not teamColors[allyTeamCount] then
-	isFFA = true
-end
+local isFFA = Spring.Utilities.Gametype.IsFFA()
 
 if gadgetHandler:IsSyncedCode() then
 
