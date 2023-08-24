@@ -63,11 +63,11 @@ end
 function gadget:GameFrame(frame)
     for unitID, statsTable in pairs(aliveHealers) do
         if unitID%30 == frame%30 then
-            if not aliveHealers[unitID] then
-                local x,y,z = Spring.GetUnitPosition(unitID)
-                local surroundingUnits = Spring.GetUnitsInSphere(x, y, z, statsTable.healingrange)
-                for i = 1,#surroundingUnits do
-                    local healedUnitID = surroundingUnits[i]
+            local x,y,z = Spring.GetUnitPosition(unitID)
+            local surroundingUnits = Spring.GetUnitsInSphere(x, y, z, statsTable.healingrange)
+            for i = 1,#surroundingUnits do
+                local healedUnitID = surroundingUnits[i]
+                if not aliveHealers[healedUnitID] then
                     if Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), Spring.GetUnitTeam(healedUnitID)) == true then
                         local oldHP, maxHP = Spring.GetUnitHealth(healedUnitID)
                         if oldHP < maxHP then
