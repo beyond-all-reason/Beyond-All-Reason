@@ -39,6 +39,10 @@ local healersTable = {
         healingpower = UnitDefNames["raptorhealer4"].repairSpeed,
         healingrange = UnitDefNames["raptorhealer4"].buildDistance*2,
     },
+    [UnitDefNames["raptor_miniqueen_healer"].id] = {
+        healingpower = UnitDefNames["raptor_miniqueen_healer"].repairSpeed,
+        healingrange = UnitDefNames["raptor_miniqueen_healer"].buildDistance*2,
+    },
 }
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)

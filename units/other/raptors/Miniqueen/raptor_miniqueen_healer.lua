@@ -7,7 +7,7 @@ return {
 		brakerate = 0.1,
 		buildcostenergy = 2000000,
 		buildcostmetal = 50000,
-		builddistance = 1000,
+		builddistance = 500,
 		builder = true,
 		buildpic = "raptors/raptor_miniqueen_healer.DDS",
 		buildtime = 1500000,
@@ -59,7 +59,7 @@ return {
 		unitname = "raptor_miniqueen_healer",
 		upright = false,
 		waterline = 40,
-		workertime = 5000,
+		workertime = 2500,
 		customparams = {
 			subfolder = "other/raptors",
 			normaltex = "unittextures/chicken_l_normals.png",
