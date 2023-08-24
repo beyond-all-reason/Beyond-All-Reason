@@ -61,9 +61,29 @@ end
 if not voiceSetFound then
 	voiceSet = 'allison'
 end
+local soundFolder = "Sounds/voice/"..voiceSet.."/"
 
-soundFolder = "Sounds/voice/"..voiceSet.."/"
-VFS.Include(soundFolder .. 'config.lua')
+-- load and parse sound files/notifications
+local soundsTable = VFS.Include(soundFolder .. 'config.lua')
+for notifID, notifDef in pairs(soundsTable) do -- Temporary to keep it working for now
+	local notifSounds = {}
+	local notifTexts = {}
+	for i = 1, #notifDef.sound do
+		if notifDef.sound[i].file then
+			if VFS.FileExists(soundFolder .. notifDef.sound[i].file) then
+				notifSounds[i] = soundFolder .. notifDef.sound[i].file
+				notifTexts[i] = notifDef.sound[i].text
+			else
+				Spring.Echo('missing voice notification file: "'..soundFolder .. notifDef.sound[i].file..'"   ('..notifID..')')
+			end
+		end
+	end
+	if notifSounds[1] then
+		addSound(notifID, notifSounds, notifDef.delay, notifDef.length, notifDef.sound[1].text, notifDef.unlisted) -- bandaid, picking text from first variation always.
+	end
+end
+
+
 
 unitsOfInterest = {}
 unitsOfInterest[UnitDefNames['armemp'].id] = 'EMPmissilesiloDetected'
