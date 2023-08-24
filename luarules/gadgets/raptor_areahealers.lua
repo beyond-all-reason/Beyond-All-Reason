@@ -14,6 +14,13 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
+if Spring.Utilities.Gametype.IsRaptors() then
+	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Activated!")
+else
+	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Deactivated!")
+	return false
+end
+
 local aliveHealers = {}
 local healersTable = {
     [UnitDefNames["raptorhealer1"].id] = {
