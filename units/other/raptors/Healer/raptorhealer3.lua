@@ -7,7 +7,7 @@ return {
 		brakerate = 1,
 		buildcostenergy = 600,
 		buildcostmetal = 40,
-		builddistance = 600,
+		builddistance = 300,
 		builder = 1,
 		buildpic = "raptors/raptorhealer.DDS",
 		buildtime = 750,
@@ -65,7 +65,7 @@ return {
 		unitname = "raptorhealer3",
 		upright = false,
 		waterline = 12,
-		workertime = 1500,
+		workertime = 750,
 		customparams = {
 			subfolder = "other/raptors",
 			model_author = "KDR_11k, Beherith",
