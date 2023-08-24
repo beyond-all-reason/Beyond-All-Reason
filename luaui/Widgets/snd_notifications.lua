@@ -338,6 +338,12 @@ function widget:Initialize()
 			queueNotification(value, force)
 		end
 	end
+	WG['notifications'].playNotification = function(value)
+		if Sound[value] and Sound[value].file and Sound[value].file[1] ~= '' then
+			local m = math.random(1,#Sound[value].file)
+			Spring.PlaySoundFile(Sound[value].file[m], globalVolume, 'ui')
+		end
+	end
 end
 
 function widget:Shutdown()

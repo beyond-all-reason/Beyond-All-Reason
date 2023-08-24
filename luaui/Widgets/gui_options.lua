@@ -5736,9 +5736,14 @@ function init()
 					if type(v) == 'table' then
 						count = count + 1
 						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
-											  onchange = function(i, value)
-												  saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
-											  end,
+							  onchange = function(i, value)
+								  saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
+							  end,
+							  onclick = function()
+								  if WG['notifications'] ~= nil and WG['notifications'].playNotification then
+									  WG['notifications'].playNotification(v[1])
+								  end
+							  end,
 						}
 					end
 				end
