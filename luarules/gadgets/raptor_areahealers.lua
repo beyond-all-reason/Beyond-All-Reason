@@ -52,20 +52,22 @@ end
 function gadget:GameFrame(frame)
     for unitID, statsTable in pairs(aliveHealers) do
         if unitID%30 == frame%30 then
-            local x,y,z = Spring.GetUnitPosition(unitID)
-            local surroundingUnits = Spring.GetUnitsInSphere(x, y, z, statsTable.healingrange)
-            for i = 1,#surroundingUnits do
-                local healedUnitID = surroundingUnits[i]
-                if Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), Spring.GetUnitTeam(healedUnitID)) == true then
-                    local oldHP, maxHP = Spring.GetUnitHealth(healedUnitID)
-                    if oldHP < maxHP then
-                        local healedUnitDefID = Spring.GetUnitDefID(healedUnitID)
-                        local healedUnitBuildTime = UnitDefs[healedUnitDefID].buildTime
-                        local healValue = (maxHP/healedUnitBuildTime)*statsTable.healingpower
-                        Spring.SetUnitHealth(healedUnitID, oldHP+healValue)
-                        if math.random() <= 0.5 then
-                            local x2, y2, z2 = Spring.GetUnitPosition(healedUnitID)
-                            Spring.SpawnCEG("heal", x2, y2+10, z2, 0,1,0)
+            if not aliveHealers[unitID] then
+                local x,y,z = Spring.GetUnitPosition(unitID)
+                local surroundingUnits = Spring.GetUnitsInSphere(x, y, z, statsTable.healingrange)
+                for i = 1,#surroundingUnits do
+                    local healedUnitID = surroundingUnits[i]
+                    if Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), Spring.GetUnitTeam(healedUnitID)) == true then
+                        local oldHP, maxHP = Spring.GetUnitHealth(healedUnitID)
+                        if oldHP < maxHP then
+                            local healedUnitDefID = Spring.GetUnitDefID(healedUnitID)
+                            local healedUnitBuildTime = UnitDefs[healedUnitDefID].buildTime
+                            local healValue = (maxHP/healedUnitBuildTime)*statsTable.healingpower
+                            Spring.SetUnitHealth(healedUnitID, oldHP+healValue)
+                            if math.random() <= 0.5 then
+                                local x2, y2, z2 = Spring.GetUnitPosition(healedUnitID)
+                                Spring.SpawnCEG("heal", x2, y2+10, z2, 0,1,0)
+                            end
                         end
                     end
                 end
