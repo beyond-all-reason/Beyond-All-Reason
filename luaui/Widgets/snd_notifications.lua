@@ -330,9 +330,9 @@ function widget:Initialize()
 	WG['notifications'].setPlayTrackedPlayerNotifs = function(value)
 		playTrackedPlayerNotifs = value
 	end
-	WG['notifications'].addSound = function(name, file, minDelay, duration, messageKey, unlisted)
-		addSound(name, file, minDelay, duration, messageKey, unlisted)
-	end
+	--WG['notifications'].addSound = function(name, file, minDelay, duration, messageKey, unlisted)
+	--	addSound(name, file, minDelay, duration, messageKey, unlisted)
+	--end
 	WG['notifications'].addEvent = function(value, force)
 		if Sound[value] then
 			queueNotification(value, force)
@@ -371,7 +371,7 @@ function widget:GameFrame(gf)
 				queueTutorialNotification('t_buildenergy')
 			end
 			if e_income >= 50 and m_income >= 4 then
-				queueTutorialNotification('t_nowproduce')
+				queueTutorialNotification('t_makefactory')
 			end
 			if not hasMadeT2 and e_income >= 600 and m_income >= 12 then
 				queueTutorialNotification('t_readyfortech2')
@@ -706,7 +706,7 @@ end
 
 function widget:GetConfigData(data)
 	return {
-		Sound = Sound,
+		--Sound = Sound,
 		soundList = soundList,
 		globalVolume = globalVolume,
 		spoken = spoken,
@@ -721,7 +721,7 @@ end
 
 function widget:SetConfigData(data)
 	if data.Sound ~= nil and Spring.GetGameFrame() > 0 then
-		Sound = data.Sound
+		--Sound = data.Sound
 	end
 	if data.soundList ~= nil then
 		for sound, enabled in pairs(data.soundList) do
