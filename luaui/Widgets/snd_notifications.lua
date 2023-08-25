@@ -11,6 +11,11 @@ function widget:GetInfo()
 	}
 end
 
+local defaultVoiceSet = 'allison'
+
+local useDefaultVoiceFallback = true	-- when a voiceset has missing file, try to load the default voiceset file instead
+local useDefaultVoiceFallbackCustom = true	-- only used for dynamicly added notifications like scavengers do
+
 local silentTime = 0.7	-- silent time between queued notifications
 local globalVolume = 0.7
 local playTrackedPlayerNotifs = false
@@ -25,8 +30,8 @@ local tutorialPlayLimit = 2		-- display the same tutorial message only this many
 --------------------------------------------------------------------------------
 
 local LastPlay = {}
-
 local Sound = {}
+local customNotifications = {}
 local soundList = {}
 local SoundOrder = {}
 local spGetGameFrame = Spring.GetGameFrame
@@ -48,7 +53,7 @@ function addSound(name, file, minDelay, duration, messageKey, unlisted)
 	end
 end
 
-local voiceSet = Spring.GetConfigString('voiceset', 'allison')
+local voiceSet = Spring.GetConfigString('voiceset', defaultVoiceSet)
 local voiceSetFound = false
 local files = VFS.SubDirs('sounds/voice', '*')
 for k, file in ipairs(files) do
@@ -59,9 +64,11 @@ for k, file in ipairs(files) do
 	end
 end
 if not voiceSetFound then
-	voiceSet = 'allison'
+	voiceSet = defaultVoiceSet
 end
+
 local soundFolder = "Sounds/voice/"..voiceSet.."/"
+local defaultSoundFolder = "Sounds/voice/"..defaultVoiceSet.."/"
 
 -- load and parse sound files/notifications
 local soundsTable = VFS.Include(soundFolder .. 'config.lua')
@@ -73,6 +80,10 @@ for notifID, notifDef in pairs(soundsTable) do -- Temporary to keep it working f
 			if VFS.FileExists(soundFolder .. notifDef.sound[i].file) then
 				notifSounds[i] = soundFolder .. notifDef.sound[i].file
 				notifTexts[i] = notifDef.sound[i].text
+			elseif useDefaultVoiceFallback and VFS.FileExists(soundFolder .. notifDef.sound[i].file) then
+				notifSounds[i] = defaultSoundFolder .. notifDef.sound[i].file
+				notifTexts[i] = notifDef.sound[i].text
+				--Spring.Echo('missing voice notification file: "'..soundFolder .. notifDef.sound[i].file..'"   ('..notifID..'),  using default voiceset instead ('..defaultVoiceSet..')')
 			else
 				Spring.Echo('missing voice notification file: "'..soundFolder .. notifDef.sound[i].file..'"   ('..notifID..')')
 			end
@@ -83,6 +94,24 @@ for notifID, notifDef in pairs(soundsTable) do -- Temporary to keep it working f
 	end
 end
 
+
+local function AddNotification(name, files, minDelay, duration, messageKey, unlisted)
+	customNotifications[name] = { files, minDelay, duration, messageKey, unlisted }
+	local newFiles = {}
+	for i, file in pairs(files) do
+		if VFS.FileExists(soundFolder .. file) then
+			newFiles[#newFiles+1] = soundFolder..file
+		elseif useDefaultVoiceFallbackCustom and VFS.FileExists(defaultSoundFolder .. file) then
+			newFiles[#newFiles+1] = defaultSoundFolder..file
+			--Spring.Echo('missing custom voice notification file: "'.. soundFolder..file..'"   ('..name..'),  using default voiceset instead ('..defaultVoiceSet..')')
+		else
+			Spring.Echo('missing custom voice notification file: "'.. soundFolder..file..'"   ('..name..')
+		end
+	end
+	if newFiles[1] then
+		addSound(name, newFiles, minDelay, duration, messageKey, unlisted)
+	end
+end
 
 
 unitsOfInterest = {}
@@ -293,7 +322,7 @@ function widget:Initialize()
 	end
 
 	widgetHandler:RegisterGlobal('EventBroadcast', eventBroadcast)
-	widgetHandler:RegisterGlobal('AddNotification', addSound)
+	widgetHandler:RegisterGlobal('AddNotification', AddNotification)
 
 	WG['notifications'] = {}
 	for sound, params in pairs(Sound) do
@@ -363,6 +392,10 @@ function widget:Initialize()
 			local m = math.random(1,#Sound[value].file)
 			Spring.PlaySoundFile(Sound[value].file[m], globalVolume, 'ui')
 		end
+	end
+
+	for name, params in pairs(customNotifications) do
+		AddNotification(name, params[1], params[2], params[3], params[4], params[5])
 	end
 end
 
@@ -651,9 +684,6 @@ local function playNextSound()
 				m = math.random(1,#Sound[event].file)
 				Spring.PlaySoundFile(Sound[event].file[m], globalVolume, 'ui')
 			end
-			-- if displayMessages and WG['messages'] and Sound[event].messageKey and Sound[event].messageKey[m] then -- Ready for fix with variation text
-			-- 	WG['messages'].addMessage(Spring.I18N(Sound[event].messageKey[m]))
-			-- end
 			if displayMessages and WG['messages'] and Sound[event].messageKey then
 				WG['messages'].addMessage(Spring.I18N(Sound[event].messageKey))
 			end
@@ -732,7 +762,7 @@ end
 
 function widget:GetConfigData(data)
 	return {
-		--Sound = Sound,
+		customNotifications = customNotifications,
 		soundList = soundList,
 		globalVolume = globalVolume,
 		spoken = spoken,
@@ -746,8 +776,8 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-	if data.Sound ~= nil and Spring.GetGameFrame() > 0 then
-		--Sound = data.Sound
+	if data.customNotifications ~= nil and Spring.GetGameFrame() > 0 then
+		customNotifications = data.customNotifications
 	end
 	if data.soundList ~= nil then
 		for sound, enabled in pairs(data.soundList) do

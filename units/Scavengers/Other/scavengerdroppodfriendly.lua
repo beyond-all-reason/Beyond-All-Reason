@@ -73,7 +73,7 @@ return {
 				reloadtime = 5,
 				rgbcolor = "0 1 0",
 				smoketrail = 1,
-				soundhit = "voice/scavengers/scavspawn",
+				soundhit = "voice/allison/scavengers/scavspawn",
 				startvelocity = 2000, -- === weaponvelocity to ensure consistent speed
 				targetborder = 0.75,
 				turret = 1,
