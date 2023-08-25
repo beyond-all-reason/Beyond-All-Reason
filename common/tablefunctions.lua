@@ -1,3 +1,9 @@
+--[[
+IMPORTANT NOTICE: Tests for these functions are provided via
+`common/tableFunctionsTests.lua`, but the tests do not run unless you uncomment
+them in `init.lua` (because they're not free to run, so we don't want them to
+run for end users.)
+]]
 
 if not table.copy then
 	function table:copy()
