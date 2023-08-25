@@ -116,3 +116,49 @@ if not table.append then
 		end
 	end
 end
+
+if not table.count then
+	---Count the number of values in table.
+	---Note that this always works, whereas the default length operator (#table)
+	---only works if the table is a Lua sequence (i.e. indexes form a contiguous
+	---sequence starting from 1).
+	---@param tbl table
+	---@return integer
+	function table.count(tbl)
+		local count = 0
+		for _ in pairs(tbl) do
+			count = count + 1
+		end
+		return count
+	end
+end
+
+if not table.getKeyOf then
+	---Find key of value in table.
+	---Will always return the first key found, no matter if the table contains
+	---multiple instances of the value.
+	---@generic K, V
+	---@param tbl table<K, V>
+	---@param value V
+	---@return K? # key if found, nil otherwise
+	function table.getKeyOf(tbl, value)
+		for key, v in pairs(tbl) do
+			if v == value then
+				return key
+			end
+		end
+		return nil
+	end
+end
+
+if not table.contains then
+	---Check if value is in table.
+	---@generic V
+	---@param tbl table<any, V>
+	---@param value V
+	---@return boolean
+	function table.contains(tbl, value)
+		return table.getKeyOf(tbl, value) ~= nil
+	end
+end
+
