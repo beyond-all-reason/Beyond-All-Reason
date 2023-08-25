@@ -105,7 +105,7 @@ local function AddNotification(name, files, minDelay, duration, messageKey, unli
 			newFiles[#newFiles+1] = defaultSoundFolder..file
 			--Spring.Echo('missing custom voice notification file: "'.. soundFolder..file..'"   ('..name..'),  using default voiceset instead ('..defaultVoiceSet..')')
 		else
-			Spring.Echo('missing custom voice notification file: "'.. soundFolder..file..'"   ('..name..')
+			Spring.Echo('missing custom voice notification file: "'.. soundFolder..file..'"   ('..name..')')
 		end
 	end
 	if newFiles[1] then
