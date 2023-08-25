@@ -83,7 +83,7 @@ if not table.toString then
 		elseif dataType == "table" then
 			local str
 			if key then
-				str = key ..  "={"
+				str = key .. "={"
 			else
 				str = "{"
 			end
@@ -107,7 +107,6 @@ if not table.invert then
 		return inverted
 	end
 end
-
 
 if not table.append then
 	function table.append(appendTarget, appendData)
@@ -231,3 +230,29 @@ if not table.shuffle then
 	end
 end
 
+if not pairsByKeys then
+	---pairs-like iterator function traversing the table in the order of its keys.
+	---Natural sort order will be used by default, optionally pass a comparator
+	---function for custom sorting.
+	---@generic K, V
+	---@param tbl table<K, V>
+	---@param keySortFunction? fun(a: K, b: K): boolean comparator function passed to table.sort for sorting keys
+	---@return fun(table: table<K, V>, index?: K): K, V
+	---@return table<K, V>
+	---(Implementation copied straight from the docs at https://www.lua.org/pil/19.3.html.)
+	function pairsByKeys(tbl, keySortFunction)
+		local keys = {}
+		for key in pairs(tbl) do table.insert(keys, key) end
+		table.sort(keys, keySortFunction)
+		local i = 0           -- iterator variable
+		local iter = function() -- iterator function
+			i = i + 1
+			if keys[i] == nil then
+				return nil
+			else
+				return keys[i], tbl[keys[i]]
+			end
+		end
+		return iter
+	end
+end
