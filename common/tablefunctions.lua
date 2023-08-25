@@ -162,3 +162,59 @@ if not table.contains then
 	end
 end
 
+if not table.removeIf then
+	---Remove values in table if they match the given predicate.
+	---@generic V
+	---@param tbl table<any, V>
+	---@param predicate fun(value: V): boolean
+	function table.removeIf(tbl, predicate)
+		for key, value in pairs(tbl) do
+			if predicate(value) then
+				tbl[key] = nil
+			end
+		end
+	end
+end
+
+if not table.removeAll then
+	---Remove all instances of value in table.
+	---@generic V
+	---@param tbl table<any, V>
+	---@param value V
+	function table.removeAll(tbl, value)
+		table.removeIf(tbl, function(v) return v == value end)
+	end
+end
+
+if not table.removeFirst then
+	---Remove first instance of value in table.
+	---If table is a Lua sequence (i.e. indexes form a contiguous sequence
+	---starting from 1), it will use `table.remove` to keep the sequence
+	---contiguous, otherwise it will `nil` the instance.
+	---@generic V
+	---@param tbl V[]|table<any, V>
+	---@param value V
+	---@return boolean # true if a value was removed, false otherwise
+	function table.removeFirst(tbl, value)
+		-- first, try to handle the table as a proper Lua sequence
+		-- this will fail as soon as there's a gap (missing integer index), but if
+		-- the table is a sequence then we want to keep that property by using
+		-- `table.remove` to keep the sequence intact without any gaps
+		for index, v in ipairs(tbl) do
+			if v == value then
+				table.remove(tbl, index)
+				return true
+			end
+		end
+
+		-- otherwise, try to handle the table normally and simply `nil` the value
+		local found = table.getKeyOf(tbl, value)
+		if found ~= nil then
+			tbl[found] = nil
+			return true
+		end
+
+		return false
+	end
+end
+
