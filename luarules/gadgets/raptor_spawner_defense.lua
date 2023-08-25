@@ -335,7 +335,7 @@ if gadgetHandler:IsSyncedCode() then
 		config.maxXP = nextDifficulty.maxXP
 		config.angerBonus = nextDifficulty.angerBonus
 		config.queenTime = math.ceil(nextDifficulty.queenTime/endlessLoopCounter)
-		
+
 		queenTime = (config.queenTime + config.gracePeriod)
 		maxBurrows = ((config.maxBurrows*(1-config.raptorPerPlayerMultiplier))+(config.maxBurrows*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
 		maxWaveSize = ((config.maxRaptors*(1-config.raptorPerPlayerMultiplier))+(config.maxRaptors*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
@@ -707,7 +707,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if (not canSpawnBurrow) and config.burrowSpawnType ~= "avoid" then -- Attempt #2 Force spawn in Startbox, ignore any kind of player vision
-				for _ = 1,100 do 
+				for _ = 1,100 do
 					spawnPosX = mRandom(RaptorStartboxXMin + spread, RaptorStartboxXMax - spread)
 					spawnPosZ = mRandom(RaptorStartboxZMin + spread, RaptorStartboxZMax - spread)
 					spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
@@ -1164,7 +1164,7 @@ if gadgetHandler:IsSyncedCode() then
 			if attackerTeam == raptorTeamID and (not (attackerDefID and config.raptorBehaviours.ALLOWFRIENDLYFIRE[attackerDefID])) then
 				return 0
 			end
-			
+
 		end
 
 		if attackerTeam == raptorTeamID then
@@ -1763,12 +1763,30 @@ if gadgetHandler:IsSyncedCode() then
 				gameOver = GetGameFrame() + 200
 				spawnQueue = {}
 				gameIsOver = true
-				-- kill whole allyteam  (game_end gadget will destroy leftover units)
+
 				if not killedRaptorsAllyTeam then
 					killedRaptorsAllyTeam = true
+
+					-- kill raptor team
+					Spring.KillTeam(raptorTeamID)
+
+					-- check if scavengers are in the same allyteam and alive
+					local scavengersFoundAlive = false
 					for _, teamID in ipairs(Spring.GetTeamList(raptorAllyTeamID)) do
-						if not select(3, Spring.GetTeamInfo(teamID, false)) then
-							Spring.KillTeam(teamID)
+						local luaAI = Spring.GetTeamLuaAI(teamID)
+						local leaderPlayerID, isDead, isAiTeam = Spring.GetTeamInfo(teamID)
+						if luaAI and (luaAI:find("Scavengers") or luaAI:find("ScavReduxAI")) and not isDead then
+							scavengersFoundAlive = true
+						end
+					end
+
+					-- kill whole allyteam
+					if not scavengersFoundAlive then
+						local scavengerAllyTeamID = select(6, Spring.GetTeamInfo(raptorAllyTeamID,false))
+						for _, teamID in ipairs(Spring.GetTeamList(scavengerAllyTeamID)) do
+							if not select(3, Spring.GetTeamInfo(teamID, false)) then
+								Spring.KillTeam(teamID)
+							end
 						end
 					end
 				end
