@@ -134,7 +134,7 @@ return {
 				model = "crblmssl.s3o",
 				name = "Intercontinental ballistic nuclear warhead",
 				range = 72000,
-				reloadtime = 2,
+				reloadtime = 30,
 				smoketrail = true,
 				smokePeriod = 10,
 				smoketime = 130,
@@ -158,6 +158,9 @@ return {
 				weapontimer = 5.5,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1600,
+				customparams = {
+					place_target_on_ground = "true",
+				},
 				damage = {
 					commanders = 2500,
 					default = 9500,
@@ -176,7 +179,7 @@ return {
 				metalpershot = 0,
 				name = "Nuclear Launch",
 				range = 0,
-				reloadtime = 2,
+				reloadtime = 30,
 				soundhit = "nukelaunchalarm",
 				soundhitvolume = 50,
 				tolerance = 10000,
@@ -193,11 +196,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "NUCLEAR_MISSILE",
-				onlytargetcategory = "NONE",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				def = "NUCLEAR_LAUNCH",
-				onlytargetcategory = "NONE",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},
