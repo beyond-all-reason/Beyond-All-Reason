@@ -130,6 +130,79 @@ return {
 }
 ```
 
+## Generating config files with the in-game editor
+
+An in-game editor companion widget **FFA start points picker**
+(`dbg_ffa_startpoints_picker.lua`) is provided to generate configs in a
+convenient way. The widget will only work in solo games (nothing but the player,
+not even AIs) with dev mode and cheats enabled. It will not allow itself to run
+in any other situation, including replays and singleplayer games where the
+player is alone but there are AIs.
+
+The in-game editor is extremely op because it uses Armada commanders. (gg.) The
+general principle is to position as many commanders around the map as necessary,
+each commander materializing a potential start point (typically near a bunch of
+mexes). After commanders have been positioned as desired, the editor allows to
+create layouts containing X number of start points, materializing a specific
+start point setup for an X-way FFA. Once layouts have been finalized, the editor
+then allows to export to a config file formatted as expected above. It can also
+load config files for editing.
+
+To get started, jump into a solo game (no AIs) in dev mode, and make sure the
+widget is enabled via Widget Selector (F11 or `/widgetselector`). If it does not
+load when you enable it, you probably need to enable cheats (`/cheats` or enable
+the autocheat widget), then reload the widget. Check `infolog.txt` for more
+details what is blocker the loading if needed.
+
+### Creating a config file for a new map from scratch
+
+- Use `Ctrl`+`A` to add a new start point (commander) at the cursor. You can
+  then move the commander around and have it build nearby mexes etc. so as to
+  adjust its position as precisely as you like. Repeat for all start points on
+  the map.
+- Use `Ctrl`+`D` to remove all currently selected start points.
+
+Once satisfied with the start points:
+
+- Use `A` to add a new X-way layout based on the selected start points (minimum
+  3). Repeat for all desired layouts.
+- Use `D` to remove the currently selected layout.
+- Use `Q`/`E` to cycle layout pages if needed. By default all are shown but
+  depending on your resolution and the amount of layouts, they might overflow
+  at the bottom, so you can display 3- to 9-way and 10- to 16-way separately.
+
+Note that start points can still be added or removed at this stage, however
+removing any start point will also delete all existing layouts containing that
+start point.
+
+Once satisfied with the layouts:
+
+- Use `Ctrl`+`C` to copy the config to the clipboard, and also store an
+  ephemeral version. You can then use `Ctrl`+`Z` to reset to this state. This
+  allows you to quickly save something you're satisfied with right now, try
+  something wacky, and reset to the last known good state.
+- Use `Ctrl`+`W` to save the config to a WIP file, which will be located in the
+  game's directory at `data/LuaUI/dbg_ffa_<map name>-<count>.lua` (with
+  `<count>` increasing on subsequent `Ctrl`+`W`). This WIP config file can be
+  reloaded later via `Ctrl`+`L` (see next section).
+
+### Loading an existing config file for editing
+
+Use `Ctrl`+`L` to load existing config files. It will check for, in order:
+
+- WIP config files saved previously via `Ctrl`+`W` and located in
+  `data/LuaUI/dbg_ffa_<map name>-<count>.lua`. This allows you to save your work
+  at any time, close BAR, and go do something else before coming back to it. If
+  there are multiple matches, the last WIP config file (as denoted by `<count>`)
+  will be used. (One caveat: freshly saved WIP configs are not available for
+  loading during the same session as when they were created. This is a
+  limitation of the VFS filesystem, use `Ctrl`+`C` / `Ctrl`+`Z` instead for this
+  use case.)
+- Config files provided by BAR for the current map. This allows you to edit them
+  in an easy way. Note that any comments from the original file are lost, so in
+  this case you'll likely want to do a manual merge of the differences between
+  your new version and the old one, rather than just an overwrite.
+
 ## Testing config files
 
 A companion Python utility `start_scripts_generator.py` is provided to generate
@@ -163,3 +236,7 @@ the engine is not happy):
   --write-dir 'D:\Games\Beyond-All-Reason\data' `
   'D:\Games\Beyond-All-Reason\data\games\BAR.sdd\luarules\configs\ffa_startpoints\start_scripts\Throne_V8_FFA_7-way.txt'
 ```
+
+Note that on top of generating a start script for each requested configuration,
+a `Solo` start script will also be generated, which can be handy to quickly use
+the in-game editor on any map.

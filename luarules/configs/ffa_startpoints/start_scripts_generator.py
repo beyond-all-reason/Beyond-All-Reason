@@ -82,6 +82,11 @@ if __name__ == "__main__":
     shutil.rmtree(START_SCRIPTS_DIRECTORY, ignore_errors=True)
     os.makedirs(START_SCRIPTS_DIRECTORY)
     for map_name, configs in CONFIGURATIONS.items():
+        # always build a config with no AIs for use with picker
+        start_script = gen_start_script(map_name, PLAYER_NAME, 1)
+        with open(f"{START_SCRIPTS_DIRECTORY}/{map_name}_Solo.txt", "w") as f:
+            f.write(start_script)
+
         # build from configs
         for nb_teams in configs:
             start_script = gen_start_script(map_name, PLAYER_NAME, nb_teams)
