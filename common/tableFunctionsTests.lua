@@ -130,8 +130,71 @@ local function testTableRemoveFirst()
   Spring.Echo("[test] [table.removeFirst] success")
 end
 
+local function testTableShuffle()
+  Spring.Echo("[test] [table.shuffle] start")
+  local t = { "a", "b", "c" }
+  local t0 = { [0] = "a", "b", "c" }
+  local results = { abc = 0, acb = 0, bac = 0, bca = 0, cab = 0, cba = 0 }
+  local results0 = { abc = 0, acb = 0, bac = 0, bca = 0, cab = 0, cba = 0 }
+
+  local roundsPerCombination = 1000000
+  local rounds = roundsPerCombination * table.count(results)
+  for _ = 1, rounds do
+    table.shuffle(t)
+    table.shuffle(t0, 0)
+    local r = t[1] .. t[2] .. t[3]
+    local r0 = t0[0] .. t0[1] .. t0[2]
+    results[r] = results[r] + 1
+    results0[r0] = results0[r0] + 1
+  end
+
+  Spring.Echo(string.format("[test] [table.shuffle] results : %s", table.toString(results)))
+  Spring.Echo(string.format("[test] [table.shuffle] results0: %s", table.toString(results0)))
+
+  local function mean(tbl)
+    local sum = 0
+    local count = 0
+
+    for _, value in pairs(tbl) do
+      sum = sum + value
+      count = count + 1
+    end
+    return (sum / count)
+  end
+
+  local function standardDeviation(tbl)
+    local meanValue
+    local deviation
+    local sum = 0
+    local count = 0
+
+    meanValue = mean(tbl)
+    for _, value in pairs(tbl) do
+      deviation = value - meanValue
+      sum = sum + (deviation * deviation)
+      count = count + 1
+    end
+    return math.sqrt(sum / (count - 1))
+  end
+
+  local standardDeviationResults = standardDeviation(results)
+  local standardDeviationResults0 = standardDeviation(results0)
+  Spring.Echo(string.format("[test] [table.shuffle] [results ] standardDeviation: %s", standardDeviationResults))
+  Spring.Echo(string.format("[test] [table.shuffle] [results0] standardDeviation: %s", standardDeviationResults0))
+
+  local threshold = rounds * 0.005 -- this is not a p-norm but it'll be good enough
+  assert(standardDeviationResults < threshold,
+    string.format("expected results standard deviation to be below %s (actual: %s)", threshold, standardDeviationResults))
+  assert(standardDeviationResults0 < threshold,
+    string.format("expected results0 standard deviation to be below %s (actual: %s)", threshold,
+      standardDeviationResults0))
+
+  Spring.Echo("[test] [table.shuffle] success")
+end
+
 testMergeInPlace(false)
 testMergeInPlace(true)
 testTableRemoveIf()
 testTableRemoveAll()
 testTableRemoveFirst()
+testTableShuffle()
