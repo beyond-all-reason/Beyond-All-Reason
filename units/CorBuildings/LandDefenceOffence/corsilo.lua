@@ -158,6 +158,9 @@ return {
 				weapontimer = 5.5,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1600,
+				customparams = {
+					place_target_on_ground = "true",
+				},
 				damage = {
 					commanders = 2500,
 					default = 11500,
@@ -193,11 +196,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "CRBLMSSL",
-				onlytargetcategory = "NONE",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				def = "NUCLEAR_LAUNCH",
-				onlytargetcategory = "NONE",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},
