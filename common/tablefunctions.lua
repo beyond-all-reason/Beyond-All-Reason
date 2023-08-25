@@ -20,19 +20,23 @@ if not table.copy then
 end
 
 if not table.merge then
-	-- Recursively merge two tables and return the result in a new table.
-	-- When there is a conflict, values in 'secondary' override values in 'primary'.
-	function table.merge(primary, secondary)
-		local new = table.copy(primary)
-		for key, v in pairs(secondary) do
+	---Return a new table of values from mergeData recursively merged into
+	---mergeTarget, using deep copies. When there is a conflict, values in
+	---mergeData take precedence.
+	---@param mergeTarget table
+	---@param mergeData table
+	---@return table
+	function table.merge(mergeTarget, mergeData)
+		local new = table.copy(mergeTarget)
+		for key, value in pairs(mergeData) do
 			-- key not used in default, assign it the value at same key in override
-			if not new[key] and type(v) == "table" then
-				new[key] = table.copy(v)
+			if not new[key] and type(value) == "table" then
+				new[key] = table.copy(value)
 				-- values at key in both default and override are tables, merge those
-			elseif type(new[key]) == "table" and type(v) == "table"  then
-				new[key] = table.merge(new[key], v)
+			elseif type(new[key]) == "table" and type(value) == "table" then
+				new[key] = table.merge(new[key], value)
 			else
-				new[key] = v
+				new[key] = value
 			end
 		end
 		return new
@@ -40,30 +44,24 @@ if not table.merge then
 end
 
 if not table.mergeInPlace then
-	-- Recursively merge values, mutating the table 'mergeTarget'.
-	-- When there is a conflict, values in 'mergeData' take precedence.
+	---Recursively in-place merge values from mergeData into mergeTarget. When
+	---there is a conflict, values in mergeData take precedence.
+	---@param mergeTarget table
+	---@param mergeData table
+	---@param deep? boolean if true, deep copy tables coming from mergeData (default: false)
+	---@return table mergeTarget
 	function table.mergeInPlace(mergeTarget, mergeData, deep)
-		if not deep then
-			local mergedData = table.merge(mergeTarget, mergeData)
-
-			for key, value in pairs(mergedData) do
+		deep = deep or false
+		for key, value in pairs(mergeData) do
+			if type(value) == 'table' and type(mergeTarget[key] or false) == 'table' then
+				table.mergeInPlace(mergeTarget[key], value, deep)
+			elseif type(value) == "table" and deep then
+				mergeTarget[key] = table.copy(value)
+			else
 				mergeTarget[key] = value
 			end
-
-			return
 		end
-
-		for i, v in pairs(mergeData) do
-			if mergeTarget[i] and type(mergeTarget[i]) == "table" and type(v) == "table"  then
-				table.mergeInPlace(mergeTarget[i], v, deep)
-			else
-				if type(v) == "table" then
-					mergeTarget[i] = table.copy(v)
-				else
-					mergeTarget[i] = v
-				end
-			end
-		end
+		return mergeTarget
 	end
 end
 
