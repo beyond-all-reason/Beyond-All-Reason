@@ -1010,19 +1010,19 @@ if Spring.GetModOptions().comtestchanges == true then
 	if uDef.buildcostmetal then
 		local x = Spring.GetModOptions().multiplier_metalcost
 		if x ~= 1 then
-			uDef.buildcostmetal = uDef.buildcostmetal*x
+			uDef.buildcostmetal = math.min(uDef.buildcostmetal*x, 16000000)
 		end
 	end
 	if uDef.buildcostenergy then
 		local x = Spring.GetModOptions().multiplier_energycost
 		if x ~= 1 then
-			uDef.buildcostenergy = uDef.buildcostenergy*x
+			uDef.buildcostenergy = math.min(uDef.buildcostenergy*x, 16000000)
 		end
 	end
 	if uDef.buildtime then
 		local x = Spring.GetModOptions().multiplier_buildtimecost
 		if x ~= 1 then
-			uDef.buildtime = uDef.buildtime*x
+			uDef.buildtime = math.min(uDef.buildtime*x, 16000000)
 		end
 	end
 
