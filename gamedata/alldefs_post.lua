@@ -587,8 +587,8 @@ function UnitDef_Post(name, uDef)
 		local raptorHealth = uDef.maxdamage
 		uDef.activatewhenbuilt = true
 		uDef.buildcostmetal = raptorHealth*0.5
-		uDef.buildcostenergy = raptorHealth*5
-		uDef.buildtime = raptorHealth*10
+		uDef.buildcostenergy = math.min(raptorHealth*5, 16000000)
+		uDef.buildtime = math.min(raptorHealth*10, 16000000)
 		uDef.hidedamage = true
 		uDef.mass = raptorHealth
 		uDef.canhover = true
