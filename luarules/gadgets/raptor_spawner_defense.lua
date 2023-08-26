@@ -1774,16 +1774,14 @@ if gadgetHandler:IsSyncedCode() then
 					local scavengersFoundAlive = false
 					for _, teamID in ipairs(Spring.GetTeamList(raptorAllyTeamID)) do
 						local luaAI = Spring.GetTeamLuaAI(teamID)
-						local leaderPlayerID, isDead, isAiTeam = Spring.GetTeamInfo(teamID)
-						if luaAI and (luaAI:find("Scavengers") or luaAI:find("ScavReduxAI")) and not isDead then
+						if luaAI and (luaAI:find("Scavengers") or luaAI:find("ScavReduxAI")) and not select(3, Spring.GetTeamInfo(teamID, false)) then
 							scavengersFoundAlive = true
 						end
 					end
 
 					-- kill whole allyteam
 					if not scavengersFoundAlive then
-						local scavengerAllyTeamID = select(6, Spring.GetTeamInfo(raptorAllyTeamID,false))
-						for _, teamID in ipairs(Spring.GetTeamList(scavengerAllyTeamID)) do
+						for _, teamID in ipairs(Spring.GetTeamList(raptorAllyTeamID)) do
 							if not select(3, Spring.GetTeamInfo(teamID, false)) then
 								Spring.KillTeam(teamID)
 							end

@@ -93,15 +93,13 @@ local function bossWaveTimer(n)
 				local raptorsFoundAlive = false
 				for _, teamID in ipairs(Spring.GetTeamList(scavengerAllyTeamID)) do
 					local luaAI = Spring.GetTeamLuaAI(teamID)
-					local leaderPlayerID, isDead, isAiTeam = Spring.GetTeamInfo(teamID)
-					if luaAI and luaAI:find("Raptors") and not isDead then
+					if luaAI and luaAI:find("Raptors") and not select(3, Spring.GetTeamInfo(teamID, false)) then
 						raptorsFoundAlive = true
 					end
 				end
 
 				-- kill whole allyteam
 				if not raptorsFoundAlive then
-					local scavengerAllyTeamID = select(6, Spring.GetTeamInfo(scavengerAITeamID,false))
 					for _, teamID in ipairs(Spring.GetTeamList(scavengerAllyTeamID)) do
 						if not select(3, Spring.GetTeamInfo(teamID, false)) then
 							Spring.KillTeam(teamID)
