@@ -109,40 +109,11 @@ function gadget:Initialize()
 	end
 end
 
--- local empedMexes = {}
--- local empCount = 0
--- local function checkEmps()
--- 	if empCount == 0 then return end
--- 	for uID, uTeam in pairs(empedMexes) do
--- 		local _, maxHealth, paralyzeDamage, _, _ = spGetUnitHealth(uID)
--- 		local relativeParDmg = paralyzeDamage - maxHealth
--- 		if relativeParDmg < 0 then
--- 			local mexi = spGetUnitMetalExtraction(uID)
--- 			local allyTeamID = allyTeamMap[uTeam]
--- 			mexInfo[uID] = mexi
--- 			teamMexIncomes[uTeam] = teamMexIncomes[uTeam] + mexi
--- 			allyTeamIncome[allyTeamID] = allyTeamIncome[allyTeamID] + mexi
--- 			empedMexes[uID] = nil
--- 			empCount = empCount - 1
--- 		end
--- 	end
--- end
-
--- local function unitIsEmped(uID, teamID)
--- 	local allyTeamID = allyTeamMap[teamID]
--- 	empCount = empCount + 1
--- 	empedMexes[uID] = teamID
--- 	teamMexIncomes[teamID] = teamMexIncomes[teamID] - mexInfo[uID]
--- 	allyTeamIncome[allyTeamID] = allyTeamIncome[allyTeamID] - mexInfo[uID]
--- 	mexInfo[uID] = nil
--- end
-
 function gadget:GameFrame(n)
 	if n % 15 ~= 3 then return end
 	local i
 	local j
 	local frameIncome = {}
-	-- checkEmps()
 	for i = 1, #teamList do
 		local tID = teamList[i]
 		frameIncome[tID] = teamMexIncomes[tID]
@@ -211,17 +182,6 @@ function gadget:UnitStunned(uID, uDefID, uTeam, stunned)
 			allyTeamIncome[allyTeamID] = allyTeamIncome[allyTeamID] + mexi
 		end
 	end
-end
-
-function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer)
-	-- TODO: emp stuff
-	-- if paralyzer and mexDefs[uDefID] then
-	-- 	local _, maxHealth, paralyzeDamage, _, _ = spGetUnitHealth(uID)
-	-- 	local relativeParDmg = paralyzeDamage - maxHealth
-	-- 	if relativeParDmg > 0 then
-	-- 		unitIsEmped(uID, uTeam)
-	-- 	end
-	-- end
 end
 
 function gadget:UnitDestroyed(uID, uDefID, uTeam)
