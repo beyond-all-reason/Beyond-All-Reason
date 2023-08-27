@@ -1,4 +1,8 @@
 ﻿# August 2023
+• [Shellshocker] Reworked to be the lighter version of t1 veh artillery while cor remains the heavy version.  Reloadtime decreased 6.1 -> 4.3, damage per shot decreased 260 -> 182, inaccuracy reduced to 50% current area, area of effect reduced to 50% current area (-30% radius).  Model size and collision volume decreased by 10%
+• [Wolverine] Cost increased from 155m 2300E -> 170m 2500E.  Model size and collision volume increased by 15%.  Max health 640->750, max velocity 51->48.
+• [Rocketeer] Damage per shot increased 10% (157->173), reloadtime increased 5% (3.8->4)
+• [Aggravator] Damage per shot increased 10% (157->173), reloadtime increased 5% (3.8->4)
 • [Laser/Lightning Weapons] targetmovererror set to zero for T2+ units. 
     - Hitscan weapons no longer randomly miss small fast moving targets.
     - Affected Armada Units: Platypus, Welder, Titan blue laser, Thor side EMP lasers, Starlight.
@@ -8,7 +12,7 @@
 # July 2023
 • [Whistler] Range decreased from 600 -> 575
 • [Lasher] Damage per shot decreased 47 -> 43
-• [Shellshocker] Reloadtime increased 5.7s -> 6.2s
+• [Shellshocker] Reloadtime increased 5.7s -> 6.1s
 • [Wolverine] Reloadtime increased 6.6s -> 7.2s
 • [Dolphin] Cost increased from 165m 1400E -> 175m 1500E
 • [Herring] Cost decreased from 230m 1600E -> 210m 1400E
