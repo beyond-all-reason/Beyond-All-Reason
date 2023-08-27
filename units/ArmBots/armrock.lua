@@ -128,7 +128,7 @@ return {
 				name = "Medium g2g rocket launcher",
 				noselfdamage = true,
 				range = 475,
-				reloadtime = 3.8,
+				reloadtime = 4,--3.8,
 				smoketrail = true,
 				smokePeriod = 11,
 				smoketime = 28,
@@ -147,7 +147,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 190,
 				damage = {
-					default = 157,
+					default = 173,--157,
 				},
 			},
 		},
