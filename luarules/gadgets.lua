@@ -1659,6 +1659,12 @@ function gadgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyze
 	tracy.ZoneEnd()
 end
 
+function gadgetHandler:UnitStunned(unitID, unitDefID, unitTeam, stunned)
+	for _, g in ipairs(self.UnitStunnedList) do
+		g:UnitStunned(unitID, unitDefID, unitTeam, stunned)
+	end
+end
+
 function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 

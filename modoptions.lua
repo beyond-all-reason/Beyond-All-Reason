@@ -490,6 +490,14 @@ local options={
 		step   = 1,
 	},
 	{
+		key     = "mexsharing",
+		name    = "Metal Extractor Sharing",
+		desc    = "Share metal extractor income equally between all teammates",
+		type    = "bool",
+		section = "options",
+		def     = false,
+	},
+	{
 		key="map_tidal",
 		name="Tidal Strength",
 		desc="Unchanged = map setting, low = 13e/sec, medium = 18e/sec, high = 23e/sec.",

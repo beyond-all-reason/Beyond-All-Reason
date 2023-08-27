@@ -155,6 +155,12 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if showcallins then addEvent(unitID, "UnitDamaged") end 
 end
 
+function gadget:UnitStunned(unitID, unitDefID, unitTeam, stunned)
+	if enabledcallins.UnitStunned == nil then return end
+	if printcallins then Spring.Echo("g:UnitStunned", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, stunned) end
+	if showcallins then addEvent(unitID, "UnitStunned") end
+end
+
 function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	if enabledcallins.UnitGiven == nil then return end
 	if printcallins then Spring.Echo("g:UnitGiven",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, oldTeam) end
