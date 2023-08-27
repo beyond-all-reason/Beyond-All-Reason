@@ -4,7 +4,36 @@ import shutil
 START_SCRIPTS_DIRECTORY = os.path.join(os.path.dirname(__file__), "start_scripts")
 PLAYER_NAME = "gg"
 CONFIGURATIONS = {
+    "Altair_Crossing_V4.1": [4],
     "Carrot Mountains v1.0": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+    "Charlie In The Hills Remake v1.1": [4],
+    "Cloud9_V2": [4, 5, 8, 9],
+    "Colorado_V2 1.1": [4],
+    "Crescent_Bay_V2": [4, 8, 16],
+    "Darkside v3.0": [4, 5, 6, 7, 8],
+    "DSD 8 Way 1.1": [4, 8, 16],
+    "DWorld_V4": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+    "Factions and Factious 0.9": [3, 4, 5, 6, 7, 8, 9, 10],
+    "Forge v2.3": [4],
+    "Ghenna Rising 4.0": [4, 8, 12],
+    "Kolmogorov Remake 3.0": [3, 4, 5, 6, 7, 8, 9, 10],
+    "Krakatoa_V2.0": [4, 8, 12, 16],
+    "LV412 1.3": [4],
+    "Mediterraneum_V1": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+    "Melting Glacier v1.1": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+    "Neurope_Remake 4.2": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+    "Omega Valley V0.1": [4],
+    "Oort_Cloud_V2": [3, 4, 6, 8, 12, 16],
+    "Red Triangle Remake v1.3": [3, 6, 9],
+    "Ring Atoll Remake v2.0": [5, 10],
+    "Riverrun_V1": [4, 6, 8],
+    "Serene Caldera v1.3": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+    "Sunderance V1.3": [4, 8],
+    "The Cold Place BAR v1.1": [3, 6],
+    "Throne_V8": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+    "To Kill The Middle v1.0": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+    "Tundra_V2": [4],
+    "Valles Marineris 2.6": [4],
 }
 
 
