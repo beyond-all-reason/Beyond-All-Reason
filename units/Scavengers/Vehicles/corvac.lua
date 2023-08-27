@@ -42,7 +42,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.287,
 		turnrate = 363,
-		workertime = 1,
+		workertime = 200,
 		buildoptions = {
 			[1] = "cormex",
 			[2] = "corsolar",
