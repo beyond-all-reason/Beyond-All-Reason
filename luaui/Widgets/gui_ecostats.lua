@@ -118,17 +118,11 @@ local function round(num, idp)
 end
 
 local function formatRes(number)
-	local label
-	if number > 10000 then
-		label = tconcat({ floor(round(number / 1000)), "k" })
-	elseif number > 1000 then
-		label = tconcat({ strsub(round(number / 1000, 1), 1, 2 + (strfind(round(number / 1000, 1), ".", nil, true) or 0)), "k" })
-	elseif number > 10 then
-		label = strsub(round(number, 0), 1, 3 + (strfind(round(number, 0), ".", nil, true) or 0))
+	if number < 1000 then
+		return string.format("%d", number)
 	else
-		label = strsub(round(number, 1), 1, 2 + (strfind(round(number, 1), ".", nil, true) or 0))
+		return string.format("%.1fk", number / 1000)
 	end
-	return tostring(label)
 end
 
 local function getTeamSum(allyIndex, param)
