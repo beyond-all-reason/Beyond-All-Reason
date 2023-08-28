@@ -56,7 +56,7 @@ end
 
 
 
-local function commanderDeath(teamID, attackerUnitID, originX, originZ) -- optional: attackerUnitID, originX, originZ
+local function commanderDeath(teamID, originX, originZ) -- optional: attackerUnitID, originX, originZ
 	local allyTeamID = select(6, Spring.GetTeamInfo(teamID, false))
 	aliveComCount[allyTeamID] = aliveComCount[allyTeamID] - 1
 	aliveTeamComCount[teamID] = aliveTeamComCount[teamID] - 1
@@ -80,7 +80,7 @@ function gadget:GameFrame(gf)
 	-- execute 1 frame delayed destroyedunit (because a unit can be taken before its given which could make the game end)
 	-- untested if this actually is the case
 	for unitID, params in pairs(commanderDeathQueue) do
-		commanderDeath(params[1], params[2], params[3], params[4])
+		commanderDeath(params[1], params[2], params[3])
 		commanderDeathQueue[unitID] = nil
 	end
 end
@@ -93,25 +93,35 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitGiven(unitID, unitDefID, unitTeam)
-	if isCommander[unitDefID] and unitTeam ~= gaiaTeamID then
-		local allyTeam = GetUnitAllyTeam(unitID)
-		aliveComCount[allyTeam] = aliveComCount[allyTeam] + 1
-		aliveTeamComCount[unitTeam] = aliveTeamComCount[unitTeam] + 1
-	end
-end
-
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	if isCommander[unitDefID] and not ignoredTeams[unitTeam] then
 		local x,_,z = Spring.GetUnitPosition(unitID)
-		commanderDeathQueue[unitID] = {unitTeam, attackerDefID, x, z}
+		commanderDeathQueue[unitID] = {unitTeam, x, z}
+	end
+end
+
+local function transferCommander(unitID, unitTeam, newTeam)
+	local allyTeamID = select(6, Spring.GetTeamInfo(unitTeam, false))
+	local newAllyTeamID = select(6, Spring.GetTeamInfo(newTeam, false))
+	if allyTeamID ~= newAllyTeamID then
+		-- add to newTeam
+		aliveComCount[newAllyTeamID] = aliveComCount[newAllyTeamID] + 1
+		aliveTeamComCount[newTeam] = aliveTeamComCount[newTeam] + 1
+		-- remove from unitTeam
+		local x,_,z = Spring.GetUnitPosition(unitID)
+		commanderDeathQueue[unitID] = {unitTeam, x, z}
+	end
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeam, unitTeam)
+	if isCommander[unitDefID] and not ignoredTeams[unitTeam] then
+		transferCommander(unitID, unitTeam, newTeam)
 	end
 end
 
 function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	if isCommander[unitDefID] and not ignoredTeams[unitTeam]  then
-		local x,_,z = Spring.GetUnitPosition(unitID)
-		commanderDeathQueue[unitID] = {unitTeam, nil, x, z}
+	if isCommander[unitDefID] and not ignoredTeams[unitTeam] then
+		transferCommander(unitID, unitTeam, newTeam)
 	end
 end
 
