@@ -199,6 +199,26 @@ pieceCollisionVolume['corgarp'] = {
 	['0']={30,21,42,0,0,6,2,1},
 	['6']={16,7,15,0,-2,1.5,2,1},
 }
+pieceCollisionVolume['armflash'] = {
+	['0']={24,13,31,0,0,0,2,1},
+	['1']={16,12,16,0,0,0,2,1},
+}
+pieceCollisionVolume['armstump'] = {
+	['0']={34,18,40,0,-5,0,2,1},
+	['18']={17,16,16,1,0,0,2,1},
+}
+pieceCollisionVolume['armsam'] = {
+	['0']={26,26,43,0,0,-2,2,1},
+	['8']={16,16,20,0,0,0,2,1},
+}
+pieceCollisionVolume['armpincer'] = {
+	['0']={31,13,31,0,5,0,2,1},
+	['1']={16,12,20,0,0,0,2,1},
+}
+pieceCollisionVolume['armjanus'] = {
+	['0']={26,12,35,0,0,0,2,1},
+	['1']={20,10,20,0,0,0,2,1},
+}
 for name, v in pairs(pieceCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do
 		if string.find(ud.name, name) then
