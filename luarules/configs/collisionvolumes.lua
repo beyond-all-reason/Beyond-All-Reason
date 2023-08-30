@@ -188,7 +188,7 @@ pieceCollisionVolume['corlevlr'] = {
 	['1']={16,10,15,0,1.875,1.5,2,1},
 }
 pieceCollisionVolume['corraid'] = {
-	['0']={32,18,32,0,3.5,0,2,1},
+	['0']={33,18,39,0,3.5,0,2,1},
 	['2']={16,7,15,0,0,1,2,1},
 }
 pieceCollisionVolume['cormist'] = {
@@ -196,7 +196,7 @@ pieceCollisionVolume['cormist'] = {
 	['1']={20,28,24,0,0,1.5,2,1},
 }
 pieceCollisionVolume['corgarp'] = {
-	['0']={30,21,36,0,0,0,2,1},
+	['0']={30,21,42,0,0,6,2,1},
 	['6']={16,7,15,0,-2,1.5,2,1},
 }
 for name, v in pairs(pieceCollisionVolume) do
