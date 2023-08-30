@@ -31,7 +31,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 260,
-		yardmap = "oooo oooo yooy yooy",
+		yardmap = "oooo oooo oooo oooo",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armadvsol_aoplane.dds",
