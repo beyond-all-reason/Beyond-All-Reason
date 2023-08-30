@@ -86,7 +86,7 @@ function gadget:Initialize()
 		local unitID = allUnits[i]
 		if select(5, Spring.GetUnitHealth(unitID)) == 1 then
 			gadget:UnitFinished(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
-			if spGetUnitIsStunned(unitID) then
+			if storageunits[unitID] and spGetUnitIsStunned(unitID) then
 				storageunits[unitID].stunned = true
 			end
 		end
