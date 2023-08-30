@@ -887,7 +887,7 @@ RestorePosition()
 {
 	gun_3 = torso;
 	set-signal-mask SIG_AIM;
-	sleep 700;
+	sleep 2000;
 	turn aimy1 to y-axis <0.000000> speed <90.000000>;
 	turn aimx1 to x-axis <0> speed <90>;
 	//wait-for-turn aimy1 around y-axis;
