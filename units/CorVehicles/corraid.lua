@@ -11,6 +11,7 @@ return {
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "32 16 32",
 		collisionvolumetype = "Box",
+		usepiececollisionvolumes = 1, --------use collisionvolumes.lua
 		corpse = "DEAD",
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
