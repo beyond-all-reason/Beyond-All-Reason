@@ -14,25 +14,14 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local storageDefs = {
-	[UnitDefNames.armmstor.id] = true,
-	[UnitDefNames.armuwms.id] = true,
-	[UnitDefNames.armuwadvms.id] = true,
-
-	[UnitDefNames.cormstor.id] = true,
-	[UnitDefNames.coruwms.id] = true,
-	[UnitDefNames.coruwadvms.id] = true,
-}
+local storageDefs = {}
 for udid, ud in pairs(UnitDefs) do
-	for id, v in pairs(storageDefs) do
-		if string.find(ud.name, UnitDefs[id].name) and ud.height ~= nil then
-			storageDefs[udid] = {ud.metalStorage, ud.height}
-		end
+	if ud.metalStorage >= 50 then
+		storageDefs[udid] = ud.metalStorage
 	end
 end
 
 local storageunits = {}
-local stunnedstorage = {}
 
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -43,26 +32,21 @@ function gadget:GameFrame(n)
 			if not spGetUnitDefID(unitID) then
 				break
 			end
-			if not storageunits[unitID].isEMPed and spGetUnitIsStunned(unitID)then
-				local currentLevel, totalstorage = Spring.GetTeamResources(Spring.GetUnitTeam(unitID), "metal")
+			local isStunned = spGetUnitIsStunned(unitID)
+
+			-- when freshly EMP'd: reduce total metal storage
+			if not storageunits[unitID].stunned and isStunned then
+				local teamID = Spring.GetUnitTeam(unitID)
+				local _, totalstorage = Spring.GetTeamResources(teamID, "metal")
 				local newstoragetotal = totalstorage - storageunits[unitID].storage
-				Spring.SetTeamResource(Spring.GetUnitTeam(unitID), "ms", newstoragetotal)
-				if currentLevel > newstoragetotal then
-					local x, y, z = Spring.GetUnitPosition(unitID)
-					local height = storageunits[unitID].height * 0.70
-					Spring.SpawnCEG("METAL_STORAGE_LEAK", x, y + height, z, 0, 0, 0)
-				end
-				storageunits[unitID].isEMPed = true
-				stunnedstorage[unitID] = true
-			end
-		end
-		for unitID, _ in pairs(stunnedstorage) do
-			local team = Spring.GetUnitTeam(unitID)
-			if team ~= nil and not spGetUnitIsStunned(unitID) then
-				local _, totalstorage = Spring.GetTeamResources(team, "metal")
+				Spring.SetTeamResource(teamID, "ms", newstoragetotal)
+				storageunits[unitID].stunned = true
+
+			-- when EMP ran out: restore total metal storage
+			elseif storageunits[unitID].stunned and not isStunned then
+				local _, totalstorage = Spring.GetTeamResources(Spring.GetUnitTeam(unitID), "metal")
 				Spring.SetTeamResource(Spring.GetUnitTeam(unitID), "ms", totalstorage + storageunits[unitID].storage)
-				stunnedstorage[unitID] = nil
-				storageunits[unitID].isEMPed = false
+				storageunits[unitID].stunned = false
 			end
 		end
 	end
@@ -71,15 +55,14 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if storageDefs[unitDefID] then
 		storageunits[unitID] = {
-			isEMPed = false,
-			storage = storageDefs[unitDefID][1],
-			height = storageDefs[unitDefID][2],
+			stunned = false,
+			storage = storageDefs[unitDefID],
 		}
 	end
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	if storageunits[unitID] and storageunits[unitID].isEMPed then
+	if storageunits[unitID] and storageunits[unitID].stunned then
 		local _, totalstorage = Spring.GetTeamResources(oldTeam, "metal")
 		Spring.SetTeamResource(oldTeam, "ms", totalstorage + storageunits[unitID].storage)
 		_, totalstorage = Spring.GetTeamResources(newTeam, "metal")
@@ -88,12 +71,24 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	if stunnedstorage[unitID] then
-		if storageunits[unitID] and storageunits[unitID].isEMPed then
+	if storageunits[unitID] then
+		if storageunits[unitID].stunned then
 			local _, totalstorage = Spring.GetTeamResources(unitTeam, "metal")
-			Spring.SetTeamResource(unitTeam, "ms", totalstorage + storageunits[unitID].storage) --Add back before unit is destoryed
+			Spring.SetTeamResource(unitTeam, "ms", totalstorage + storageunits[unitID].storage) --Add back before unit is destroyed
 		end
-		stunnedstorage[unitID] = nil
 		storageunits[unitID] = nil
+	end
+end
+
+function gadget:Initialize()
+	local allUnits = Spring.GetAllUnits()
+	for i = 1, #allUnits do
+		local unitID = allUnits[i]
+		if select(5, Spring.GetUnitHealth(unitID)) == 1 then
+			gadget:UnitFinished(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+			if spGetUnitIsStunned(unitID) then
+				storageunits[unitID].stunned = true
+			end
+		end
 	end
 end
