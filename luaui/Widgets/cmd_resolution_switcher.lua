@@ -220,7 +220,7 @@ local function changeScreenMode(index)
 	elseif screenMode.type == windowType.multimonitor then
 		Spring.SetWindowGeometry(screenMode.actualDisplay, screenMode.x or 0, screenMode.y or 0, screenMode.width, screenMode.height, false, true)
 	elseif screenMode.type == windowType.windowed then
-		-- Windowed mode has a chicken-and-egg problem, where window borders can't be known until after switching to windowed mode
+		-- Windowed mode has a raptor-and-egg problem, where window borders can't be known until after switching to windowed mode
 		-- This cannot be done in two consecutive SetWindowGeometry() calls, as there must be a two draw frame delay
 		-- (one to write, one to read), before the values of GetWindowGeometry() are updated
 		local _, _, _, _ , borderTop, borderLeft, borderBottom, borderRight = Spring.GetWindowGeometry()
@@ -256,7 +256,10 @@ function widget:Initialize()
 	end
 
 	WG['screenMode'].SetScreenMode = function(index)
+		local prevScreenmode = screenModeIndex
 		screenModeIndex = index
-		changeScreenMode(screenModeIndex)
+		if screenModeIndex ~= prevScreenmode then
+			changeScreenMode(screenModeIndex)
+		end
 	end
 end

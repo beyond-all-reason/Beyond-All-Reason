@@ -110,6 +110,11 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			SendToUnsynced("crashingAircraft", unitID, unitDefID, unitTeam)
+
+			if attackerID then
+				local kills = Spring.GetUnitRulesParam(attackerID, "kills") or 0
+				Spring.SetUnitRulesParam(attackerID, "kills", kills + 1)
+			end
 			--end
 		end
 		return damage,1

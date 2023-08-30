@@ -40,27 +40,27 @@ local groupsize = math.ceil(groupsize*(teamcount/2))
 end
 
 
-local function chickenInvasion1(currentFrame)
-	Spring.Echo("Chicken Invasion Event")
+local function raptorInvasion1(currentFrame)
+	Spring.Echo("Raptor Invasion Event")
 	local scavUnits = Spring.GetTeamUnits(ScavengerTeamID)
-	local chickens = {"chicken1_scav","chicken1b_scav","chicken1c_scav","chicken1d_scav","chicken1x_scav","chicken1y_scav","chicken1z_scav","chickens1_scav","chicken_dodo1_scav","chickenc3_scav","chickenc3b_scav","chickenc3c_scav","chickenw2_scav",}
+	local raptors = {"raptor1_scav","raptor1b_scav","raptor1c_scav","raptor1d_scav","raptor1x_scav","raptor1y_scav","raptor1z_scav","raptors1_scav","raptor_dodo1_scav","raptorc3_scav","raptorc3b_scav","raptorc3c_scav","raptorw2_scav",}
 	for y = 1,#scavUnits do
 		local unitID = scavUnits[y]
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitName = UnitDefs[unitDefID].name
-		if unitName == "chicken_hive_scav" then
-			EventChickenSpawner = unitID
+		if unitName == "raptor_hive_scav" then
+			EventRaptorSpawner = unitID
 			local posx, posy, posz = Spring.GetUnitPosition(unitID)
 			
 			local groupsize = (globalScore / scavconfig.unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier
 			local groupsize = groupsize*scavconfig.unitSpawnerModuleConfig.landmultiplier*scavconfig.unitSpawnerModuleConfig.t0multiplier
 			local groupsize = math.ceil(groupsize*(teamcount/2))
 			for z = 1,groupsize do
-				Spring.CreateUnit(chickens[math_random(1,#chickens)], posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),ScavengerTeamID)
+				Spring.CreateUnit(raptors[math_random(1,#raptors)], posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),ScavengerTeamID)
 			end
 			break
 		end
-		if y == #scavUnits and unitName ~= "chicken_hive_scav" then
+		if y == #scavUnits and unitName ~= "raptor_hive_scav" then
 			for i = 1,1000 do
 				local posx = math_random(300,mapsizeX-300)
 				local posz = math_random(300,mapsizeZ-300)
@@ -79,20 +79,20 @@ local function chickenInvasion1(currentFrame)
 					CanSpawnEvent = positionCheckLibrary.MapEdgeCheck(posx, posy, posz, 300)
 				end
 				if CanSpawnEvent then
-					Spring.CreateUnit("chicken_hive_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID)
-					Spring.CreateUnit("chicken_turrets_scav", posx+200+(math_random(-100,100)), posy, posz, math_random(0,3),ScavengerTeamID)
-					Spring.CreateUnit("chicken_turrets_scav", posx-200+(math_random(-100,100)), posy, posz, math_random(0,3),ScavengerTeamID)
-					Spring.CreateUnit("chicken_turrets_scav", posx, posy, posz+200+(math_random(-100,100)), math_random(0,3),ScavengerTeamID)
-					Spring.CreateUnit("chicken_turrets_scav", posx, posy, posz-200+(math_random(-100,100)), math_random(0,3),ScavengerTeamID)
-					Spring.CreateUnit("chicken_turrets_scav", posx-200+(math_random(-100,100)), posy, posz-200+(math_random(-100,100)), math_random(0,3),ScavengerTeamID)
-					Spring.CreateUnit("chicken_turrets_scav", posx+200+(math_random(-100,100)), posy, posz-200+(math_random(-100,100)), math_random(0,3),ScavengerTeamID)
-					Spring.CreateUnit("chicken_turrets_scav", posx-200+(math_random(-100,100)), posy, posz+200+(math_random(-100,100)), math_random(0,3),ScavengerTeamID)
-					Spring.CreateUnit("chicken_turrets_scav", posx+200+(math_random(-100,100)), posy, posz+200+(math_random(-100,100)), math_random(0,3),ScavengerTeamID)
+					Spring.CreateUnit("raptor_hive_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID)
+					Spring.CreateUnit("raptor_turrets_scav", posx+200+(math_random(-100,100)), posy, posz, math_random(0,3),ScavengerTeamID)
+					Spring.CreateUnit("raptor_turrets_scav", posx-200+(math_random(-100,100)), posy, posz, math_random(0,3),ScavengerTeamID)
+					Spring.CreateUnit("raptor_turrets_scav", posx, posy, posz+200+(math_random(-100,100)), math_random(0,3),ScavengerTeamID)
+					Spring.CreateUnit("raptor_turrets_scav", posx, posy, posz-200+(math_random(-100,100)), math_random(0,3),ScavengerTeamID)
+					Spring.CreateUnit("raptor_turrets_scav", posx-200+(math_random(-100,100)), posy, posz-200+(math_random(-100,100)), math_random(0,3),ScavengerTeamID)
+					Spring.CreateUnit("raptor_turrets_scav", posx+200+(math_random(-100,100)), posy, posz-200+(math_random(-100,100)), math_random(0,3),ScavengerTeamID)
+					Spring.CreateUnit("raptor_turrets_scav", posx-200+(math_random(-100,100)), posy, posz+200+(math_random(-100,100)), math_random(0,3),ScavengerTeamID)
+					Spring.CreateUnit("raptor_turrets_scav", posx+200+(math_random(-100,100)), posy, posz+200+(math_random(-100,100)), math_random(0,3),ScavengerTeamID)
 					local groupsize = (globalScore / scavconfig.unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier
 					local groupsize = groupsize*scavconfig.unitSpawnerModuleConfig.landmultiplier*scavconfig.unitSpawnerModuleConfig.t0multiplier
 					local groupsize = math.ceil(groupsize*(teamcount/2))*3
 					for z = 1,groupsize do
-						Spring.CreateUnit(chickens[math_random(1,#chickens)], posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),ScavengerTeamID)
+						Spring.CreateUnit(raptors[math_random(1,#raptors)], posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),ScavengerTeamID)
 					end
 					break
 				end
@@ -103,5 +103,5 @@ end
 
 return {
 	-- invasion,
-	-- chickenInvasion1,
+	-- raptorInvasion1,
 }

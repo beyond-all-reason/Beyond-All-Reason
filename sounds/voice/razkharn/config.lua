@@ -1,4 +1,4 @@
-local soundsTable = {
+return {
 
     -- Commanders
     ['EnemyCommanderDied'] = {
@@ -673,14 +673,3 @@ local soundsTable = {
        unlisted = true,
     },
 }
-
-for notifID, notifDef in pairs(soundsTable) do -- Temporary to keep it working for now
-    local notifSounds = {}
-    local notifTexts = {}
-    for i = 1,#notifDef.sound do
-        notifSounds[i] = soundFolder .. notifDef.sound[i].file
-        notifTexts[i] = notifDef.sound[i].text
-    end
-    --addSound(notifID, notifSounds, notifDef.delay, notifDef.length, notifTexts, notifDef.unlisted)
-    addSound(notifID, notifSounds, notifDef.delay, notifDef.length, notifDef.sound[1].text, notifDef.unlisted) -- bandaid, picking text from first variation always.
-end

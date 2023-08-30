@@ -208,8 +208,8 @@ function widget:DrawScreen()
 		if dlistGuishader and WG['guishader'] then
 			WG['guishader'].RemoveDlist('minimap')
 			dlistGuishader = gl.DeleteList(dlistGuishader)
-			wasOverview = true
 		end
+		wasOverview = true
 
 	elseif not (minimized or maximized) or (wasOverview and Spring.GetConfigInt("MinimapMinimize", 0) == 0) then
 		if wasOverview and Spring.GetConfigInt("MinimapMinimize", 0) == 0 then

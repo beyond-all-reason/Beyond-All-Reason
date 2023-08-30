@@ -12,7 +12,8 @@ local utilities = {
 
 	MakeRealTable = syncFunctions.MakeRealTable,
 
-	GetTeamCount = team.GetTeamCount,
+	GetAllyTeamCount = team.GetAllyTeamCount,
+	GetAllyTeamList = team.GetAllyTeamList,
 	GetPlayerCount = team.GetPlayerCount,
 	Gametype = team.Gametype,
 

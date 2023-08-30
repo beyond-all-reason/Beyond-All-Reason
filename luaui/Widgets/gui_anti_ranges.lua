@@ -49,9 +49,11 @@ local fadeStartDistance			= 3500
 local arm_anti					= UnitDefNames.armamd.id
 local arm_mobile_anti			= UnitDefNames.armscab.id
 local arm_mobile_anti_water		= UnitDefNames.armcarry.id
+local arm_mobile_anti_water_2	= UnitDefNames.armantiship.id
 local cor_anti					= UnitDefNames.corfmd.id
 local cor_mobile_anti			= UnitDefNames.cormabm.id
 local cor_mobile_anti_water		= UnitDefNames.corcarry.id
+local cor_mobile_anti_water_2	= UnitDefNames.corantiship.id
 
 local glColor					= gl.Color
 local glDepthTest				= gl.DepthTest
@@ -75,6 +77,8 @@ local coverageRangeArm			= WeaponDefs[UnitDefNames.armscab.weapons[1].weaponDef]
 local coverageRangeCore			= WeaponDefs[UnitDefNames.cormabm.weapons[1].weaponDef].coverageRange
 local coverageRangeArmWater		= WeaponDefs[UnitDefNames.armcarry.weapons[1].weaponDef].coverageRange
 local coverageRangeCoreWater	= WeaponDefs[UnitDefNames.corcarry.weapons[1].weaponDef].coverageRange
+local coverageRangeArmWater2	= WeaponDefs[UnitDefNames.armantiship.weapons[1].weaponDef].coverageRange
+local coverageRangeCoreWater2	= WeaponDefs[UnitDefNames.corantiship.weapons[1].weaponDef].coverageRange
 
 local diag = math.diag
 
@@ -184,7 +188,7 @@ end
 function processVisibleUnit(unitID)
     local unitDefId = spGetUnitDefID(unitID);
     if unitDefId == arm_anti or unitDefId == cor_anti or unitDefId == arm_mobile_anti or unitDefId == cor_mobile_anti
-            or unitDefId == arm_mobile_anti_water or unitDefId == cor_mobile_anti_water then
+            or unitDefId == arm_mobile_anti_water or unitDefId == cor_mobile_anti_water or unitDefId == arm_mobile_anti_water_2 or unitDefId == cor_mobile_anti_water_2 then
         local x, y, z = spGetUnitPosition(unitID)
         local pos = {x,y,z}
 
@@ -196,6 +200,10 @@ function processVisibleUnit(unitID)
             pos[4] = coverageRangeCoreStatic
         elseif unitDefId == arm_mobile_anti_water then
             pos[4] = coverageRangeArmWater
+		elseif unitDefId == arm_mobile_anti_water_2 then
+            pos[4] = coverageRangeArmWater2
+		elseif unitDefId == cor_mobile_anti_water_2 then
+            pos[4] = coverageRangeCoreWater2
         elseif unitDefId == cor_mobile_anti then
             pos[4] = coverageRangeCore
         else
@@ -209,7 +217,7 @@ end
 
 function widget:UnitLeftLos(unitID)
     local unitDefId = spGetUnitDefID(unitID);
-    if unitDefId == arm_anti or unitDefId == cor_anti or unitDefId == arm_mobile_anti or unitDefId == cor_mobile_anti or unitDefId == arm_mobile_anti_water or unitDefId == cor_mobile_anti_water then
+    if unitDefId == arm_anti or unitDefId == cor_anti or unitDefId == arm_mobile_anti or unitDefId == cor_mobile_anti or unitDefId == arm_mobile_anti_water or unitDefId == cor_mobile_anti_water or unitDefId == arm_mobile_anti_water_2 or unitDefId == cor_mobile_anti_water_2 then
         local x, y, z = spGetUnitPosition(unitID)
         local pos = {(x or antiInLos[unitID][1]), (y or antiInLos[unitID][2]), (z or antiInLos[unitID][3])}
 
@@ -217,6 +225,10 @@ function widget:UnitLeftLos(unitID)
             pos[4] = coverageRangeArm
         elseif unitDefId == arm_mobile_anti_water then
             pos[4] = coverageRangeArmWater
+		elseif unitDefId == arm_mobile_anti_water_2 then
+            pos[4] = coverageRangeArmWater2
+		elseif unitDefId == cor_mobile_anti_water_2 then
+            pos[4] = coverageRangeCoreWater2
         elseif unitDefId == cor_mobile_anti then
             pos[4] = coverageRangeCore
         else

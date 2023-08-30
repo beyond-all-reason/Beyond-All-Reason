@@ -25,7 +25,7 @@ for i = 1, #teams do
 end
 
 if pveEnabled then
-	Spring.Echo("[ControlVictoryAI] Deactivated because Chickens or Scavengers are present!")
+	Spring.Echo("[ControlVictoryAI] Deactivated because Raptors or Scavengers are present!")
 	gadgetEnabled = false
 end
 

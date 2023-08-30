@@ -53,9 +53,17 @@ local legacyToTxt = {
 -- TODO: After a period of ~6 months it should be deleted (around January 2024 or later)
 local function replaceLegacyPreset()
 	local keyFile = Spring.GetConfigString("KeybindingFile")
-	if not keyFile then return false end
+	-- sometimes this file can be in other directories, we do a string match
+	local isCustom = keyFile and keyFile:match("bar_hotkeys_custom.lua") ~= nil or false
+	if not keyFile or not isCustom then
+		return false
+	end
+
 
 	local newFormat = legacyToTxt[keyFile]
+	if isCustom then -- in case the dir is not root, just pass the filename not the whole path
+		newFormat = legacyToTxt["bar_hotkeys_custom.lua"]
+	end
 	if not newFormat then return false end
 
 	-- in case the user has a uikeys file already, we need to back it up because it could potentially get overwritten by the following steps
@@ -66,7 +74,7 @@ local function replaceLegacyPreset()
 	end
 
 	-- output the current custom .lua bindings into a uikeys.txt file
-	if keyFile == 'bar_hotkeys_custom.lua' then
+	if isCustom then
 		Spring.Echo("BAR Hotkeys: bar_hotkeys_custom.lua found. This format is deprecated, a " .. newFormat .. " file was written to your bar folder")
 		if VFS.FileExists(keyFile) then
 			Spring.SendCommands("unbindall")
@@ -75,7 +83,6 @@ local function replaceLegacyPreset()
 
 		Spring.SendCommands("keysave " .. newFormat)
 	else
-		Spring.SendCommands("unbindall")
 		Spring.SendCommands("keyreload " .. newFormat)
 	end
 
@@ -93,10 +100,9 @@ local function reloadBindings()
 	currentKeybindingsFile = Spring.GetConfigString("KeybindingFile", keyConfig.keybindingPresets["Default"])
 
 	if not hasLegacy then
-		Spring.SendCommands("unbindall")
 		if VFS.FileExists(currentKeybindingsFile) then
 			Spring.SendCommands("keyreload " .. currentKeybindingsFile)
-			Spring.Echo("BAR Hotkeys: Loaded " .. (keyConfig.presetKeybindings[currentKeybindingsFile] or currentKeybindingsFile))
+			Spring.Echo("BAR Hotkeys: Loaded preset " .. keyConfig.presetKeybindings[currentKeybindingsFile] .. " from path: " .. currentKeybindingsFile)
 		else
 			Spring.Echo("BAR Hotkeys: Did not find keybindings file " .. currentKeybindingsFile ..". Loading defaults")
 			Spring.SendCommands("keyreload " .. keyConfig.keybindingPresets["Default"])

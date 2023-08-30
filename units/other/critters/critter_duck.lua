@@ -2,9 +2,9 @@ return {
 	critter_duck = {
 		acceleration = 0.12,
 		blocking = false,
-		bmcode = "1",
+
 		brakerate = 1,
-		buildcostenergy = 0,
+		buildcostenergy = 1,
 		buildcostmetal = 0,
 		builder = false,
 		buildpic = "critters/critter_duck.DDS",
@@ -44,8 +44,6 @@ return {
 		smoothanim = true,
 		sonarstealth = true,
 		stealth = true,
-		steeringmode = "1",
-		tedclass = "TANK",
 		trackoffset = 0,
 		trackstrength = 3,
 		trackstretch = 1,

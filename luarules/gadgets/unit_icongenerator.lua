@@ -986,8 +986,8 @@ else
 			return 'cor'
 		elseif string.sub(name, 1, 3) == "leg" then
 			return 'legion'
-		elseif string.find(name, 'chicken') then
-			return 'chicken'
+		elseif string.find(name, 'raptor') then
+			return 'raptor'
 		end
 		return 'unknown'
 	end

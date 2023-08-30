@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 		name = "Scavengers Stats Panel",
 		desc = "Shows statistics and progress when fighting vs Scavengers",
-		author = "Damgam, original chicken panel by quantum",
+		author = "Damgam, original raptor panel by quantum",
 		date = "May 04, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = -9,
@@ -60,9 +60,9 @@ local scoreCount = 0
 
 local guiPanel --// a displayList
 local updatePanel
-local hasChickenEvent = false
+local hasRaptorEvent = false
 
-local difficultyOption = Spring.GetModOptions().chicken_difficulty
+local difficultyOption = Spring.GetModOptions().raptor_difficulty
 
 -- local waveColors = {}
 -- waveColors[1] = "\255\184\100\255"
@@ -77,18 +77,18 @@ local difficultyOption = Spring.GetModOptions().chicken_difficulty
 -- waveColors[10] = "\255\200\050\050"
 -- waveColors[11] = "\255\255\255\255"
 
--- local chickenTypes = {
--- 	"chicken",
--- 	"chickena",
--- 	"chickenh",
--- 	"chickens",
--- 	"chickenw",
--- 	"chicken_dodo",
--- 	"chickenp",
--- 	"chickenf",
--- 	"chickenc",
--- 	"chickenr",
--- 	"chicken_turret",
+-- local raptorTypes = {
+-- 	"raptor",
+-- 	"raptora",
+-- 	"raptorh",
+-- 	"raptors",
+-- 	"raptorw",
+-- 	"raptor_dodo",
+-- 	"raptorp",
+-- 	"raptorf",
+-- 	"raptorc",
+-- 	"raptorr",
+-- 	"raptor_turret",
 -- }
 
 local function commaValue(amount)
@@ -146,12 +146,12 @@ end
 ---------------------------------------------------------------------------------------------------
 ----------DRAW STATS-----------------------------------------------------------------------------------------
 
--- local function getChickenCounts(type)
+-- local function getRaptorCounts(type)
 -- 	local total = 0
 -- 	local subtotal
 
--- 	for _, chickenType in ipairs(chickenTypes) do
--- 		subtotal = gameInfo[chickenType .. type]
+-- 	for _, raptorType in ipairs(raptorTypes) do
+-- 		subtotal = gameInfo[raptorType .. type]
 -- 		total = total + subtotal
 -- 	end
 
@@ -215,15 +215,15 @@ local function CreatePanelDisplayList()
 	font:End()
 
 	--font:Print(techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
-	--font:Print(Spring.I18N('ui.scavengers.techLevel', { count = gameInfo.chickenCounts }), panelMarginX, PanelRow(2), panelFontSize, "")
-	--font:Print(Spring.I18N('ui.chickens.chickenKillCount', { count = gameInfo.chickenKills }), panelMarginX, PanelRow(3), panelFontSize, "")
-	--font:Print(Spring.I18N('ui.chickens.burrowCount', { count = gameInfo.roostCount }), panelMarginX, PanelRow(4), panelFontSize, "")
-	--font:Print(Spring.I18N('ui.chickens.burrowKillCount', { count = gameInfo.roostKills }), panelMarginX, PanelRow(5), panelFontSize, "")
+	--font:Print(Spring.I18N('ui.scavengers.techLevel', { count = gameInfo.raptorCounts }), panelMarginX, PanelRow(2), panelFontSize, "")
+	--font:Print(Spring.I18N('ui.raptors.raptorKillCount', { count = gameInfo.raptorKills }), panelMarginX, PanelRow(3), panelFontSize, "")
+	--font:Print(Spring.I18N('ui.raptors.burrowCount', { count = gameInfo.roostCount }), panelMarginX, PanelRow(4), panelFontSize, "")
+	--font:Print(Spring.I18N('ui.raptors.burrowKillCount', { count = gameInfo.roostKills }), panelMarginX, PanelRow(5), panelFontSize, "")
 
 	-- if gotScore then
-	-- 	font:Print(Spring.I18N('ui.chickens.score', { score = commaValue(scoreCount) }), 88, h - 170, panelFontSize "")
+	-- 	font:Print(Spring.I18N('ui.raptors.score', { score = commaValue(scoreCount) }), 88, h - 170, panelFontSize "")
 	-- else
-	-- 	local difficultyCaption = Spring.I18N('ui.chickens.difficulty.' .. difficultyOption)
+	-- 	local difficultyCaption = Spring.I18N('ui.raptors.difficulty.' .. difficultyOption)
 	--
 	-- end
 
@@ -232,14 +232,14 @@ local function CreatePanelDisplayList()
 	gl.PopMatrix()
 end
 
--- local function getMarqueeMessage(chickenEventArgs)
+-- local function getMarqueeMessage(raptorEventArgs)
 -- 	local messages = {}
 
--- 	if chickenEventArgs.type == "wave" then
--- 		messages[1] = Spring.I18N('ui.chickens.wave', { waveNumber = chickenEventArgs.waveCount })
--- 		messages[2] = waveColors[chickenEventArgs.tech] .. Spring.I18N('ui.chickens.waveCount', { count = chickenEventArgs.number })
--- 	elseif chickenEventArgs.type == "queen" then
--- 		messages[1] = Spring.I18N('ui.chickens.queenIsAngry')
+-- 	if raptorEventArgs.type == "wave" then
+-- 		messages[1] = Spring.I18N('ui.raptors.wave', { waveNumber = raptorEventArgs.waveCount })
+-- 		messages[2] = waveColors[raptorEventArgs.tech] .. Spring.I18N('ui.raptors.waveCount', { count = raptorEventArgs.number })
+-- 	elseif raptorEventArgs.type == "queen" then
+-- 		messages[1] = Spring.I18N('ui.raptors.queenIsAngry')
 -- 	end
 
 -- 	refreshMarqueeMessage = false
@@ -287,26 +287,26 @@ local function Draw()
 	-- end
 end
 
--- function ChickenEvent(chickenEventArgs)
--- 	if chickenEventArgs.type == "wave" then
+-- function RaptorEvent(raptorEventArgs)
+-- 	if raptorEventArgs.type == "wave" then
 -- 		if gameInfo.roostCount < 1 then
 -- 			return
 -- 		end
 -- 		waveCount = waveCount + 1
--- 		chickenEventArgs.waveCount = waveCount
+-- 		raptorEventArgs.waveCount = waveCount
 -- 		showMarqueeMessage = true
 -- 		refreshMarqueeMessage = true
--- 		messageArgs = chickenEventArgs
+-- 		messageArgs = raptorEventArgs
 -- 		waveTime = Spring.GetTimer()
--- 	elseif chickenEventArgs.type == "burrowSpawn" then
+-- 	elseif raptorEventArgs.type == "burrowSpawn" then
 -- 		UpdateRules()
--- 	elseif chickenEventArgs.type == "queen" then
+-- 	elseif raptorEventArgs.type == "queen" then
 -- 		showMarqueeMessage = true
 -- 		refreshMarqueeMessage = true
--- 		messageArgs = chickenEventArgs
+-- 		messageArgs = raptorEventArgs
 -- 		waveTime = Spring.GetTimer()
--- 	elseif chickenEventArgs.type == "score" .. (Spring.GetMyTeamID()) then
--- 		gotScore = chickenEventArgs.number
+-- 	elseif raptorEventArgs.type == "score" .. (Spring.GetMyTeamID()) then
+-- 		gotScore = raptorEventArgs.number
 -- 	end
 -- end
 
@@ -320,7 +320,7 @@ function widget:Initialize()
 		gl.TexRect(0, 0, w, h)
 	end)
 
-	widgetHandler:RegisterGlobal("ChickenEvent", ChickenEvent)
+	widgetHandler:RegisterGlobal("RaptorEvent", RaptorEvent)
 	UpdateRules()
 	viewSizeX, viewSizeY = gl.GetViewSizes()
 	local x = math.abs(math.floor(viewSizeX - 320))
@@ -329,8 +329,8 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if hasChickenEvent then
-		Spring.SendCommands({ "luarules HasChickenEvent 0" })
+	if hasRaptorEvent then
+		Spring.SendCommands({ "luarules HasRaptorEvent 0" })
 	end
 
 	if guiPanel then
@@ -340,13 +340,13 @@ function widget:Shutdown()
 
 	gl.DeleteList(displayList)
 	gl.DeleteTexture(panelTexture)
-	widgetHandler:DeregisterGlobal("ChickenEvent")
+	widgetHandler:DeregisterGlobal("RaptorEvent")
 end
 
 function widget:GameFrame(n)
-	if not hasChickenEvent and n > 1 then
-		Spring.SendCommands({ "luarules HasChickenEvent 1" })
-		hasChickenEvent = true
+	if not hasRaptorEvent and n > 1 then
+		Spring.SendCommands({ "luarules HasRaptorEvent 1" })
+		hasRaptorEvent = true
 	end
 	if n % 30 < 1 then
 		UpdateRules()

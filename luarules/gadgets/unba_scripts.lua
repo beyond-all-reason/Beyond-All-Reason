@@ -21,6 +21,12 @@ VFS.Include("unbaconfigs/stats.lua")
 local unbacoms = {
     [UnitDefNames["corcom"].id] = true,
     [UnitDefNames["armcom"].id] = true,
+    [UnitDefNames["cordecom"].id] = true,
+    [UnitDefNames["armdecom"].id] = true,
+    [UnitDefNames["legcom"].id] = true,
+    [UnitDefNames["legcomlvl2"].id] = true,
+    [UnitDefNames["legcomlvl3"].id] = true,
+    [UnitDefNames["legcomlvl4"].id] = true,
 }
 
 local unbaRanks = {
@@ -45,6 +51,18 @@ local unbaRanks = {
 }
 
 local aliveUnbaComs = {}
+local topCommanderXP = 0
+
+local function getTopCommanderXP()
+    local topXP = 0
+    for unitID, _ in pairs(aliveUnbaComs) do
+        local thisXP = Spring.GetUnitExperience(unitID)
+        if thisXP > topXP then
+            topXP = thisXP
+        end
+    end
+    return topXP
+end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     if unbacoms[unitDefID] then
@@ -76,27 +94,27 @@ end
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
     if aliveUnbaComs[unitID] and attackerID and unitTeam ~= attackerTeam and select(6, Spring.GetTeamInfo(unitTeam)) ~= select(6, Spring.GetTeamInfo(attackerTeam)) then
         local curHealth, maxHealth = Spring.GetUnitHealth(unitID)
-        Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+(0.01*(damage/curHealth)))
-        --Spring.Echo("Added " .. (0.005*(damage/curHealth)) .. "XP from taking damage", frame)
+        local xpDifferenceToTop = topCommanderXP - Spring.GetUnitExperience(unitID)
+        Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+((0.01*(damage/curHealth))*(1+xpDifferenceToTop)))
     end
 end
 
 function gadget:GameFrame(frame)
     if frame%30 == 12 then
         for unitID, _ in pairs(aliveUnbaComs) do
+            local xpDifferenceToTop = topCommanderXP - Spring.GetUnitExperience(unitID)
             if Spring.GetUnitCurrentBuildPower(unitID) > 0 then
-                Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+(0.0004*Spring.GetUnitCurrentBuildPower(unitID)))
-                --Spring.Echo("Added " .. (0.0002*Spring.GetUnitCurrentBuildPower(unitID)) .. "XP from buildpower", frame)
+                Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+((0.0004*Spring.GetUnitCurrentBuildPower(unitID))*(1+xpDifferenceToTop)))
             end
             local velx, vely, velz = Spring.GetUnitVelocity(unitID)
             if velx > 0 or velz > 0 or vely > 0 then
-                Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.00005)
-                --Spring.Echo("Added " .. 0.0001 .. "XP from walking", frame)
+                Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+((0.00005)*(1+xpDifferenceToTop)))
             end
             if Spring.GetUnitNearestEnemy(unitID, 1500) then
-                Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+0.0001)
-                --Spring.Echo("Added " .. 0.0001 .. "XP from nearby enemy", frame)
+                Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+((0.0001)*(1+xpDifferenceToTop)))
             end
         end
+
+        topCommanderXP = getTopCommanderXP()
     end
 end

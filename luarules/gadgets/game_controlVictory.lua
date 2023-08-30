@@ -95,7 +95,7 @@ local nonCapturingUnits = VFS.Include "LuaRules/Configs/cv_nonCapturingUnits.lua
 local pveEnabled = Spring.Utilities.Gametype.IsPvE()
 
 if pveEnabled then
-	Spring.Echo("[ControlVictory] Deactivated because Chickens or Scavengers are present!")
+	Spring.Echo("[ControlVictory] Deactivated because Raptors or Scavengers are present!")
 	return false
 end
 

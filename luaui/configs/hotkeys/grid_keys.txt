@@ -1,49 +1,11 @@
 // BAR hotkey config file: ergokeys for grid menu
 
 
-bind                esc  select AllMap++_ClearSelection_SelectNum_0+
-bind                esc  quitmessage
-bind          Shift+esc  quitmenu
-bind     Ctrl+Shift+esc  quitforce
-bind      Alt+Shift+esc  reloadforce
-bind         Any+escape  edit_escape
-bind          Any+pause  pause
-bind                esc  teamstatus_close
-bind                esc  customgameinfo_close
-bind                esc  buildmenu_pregame_deselect
-
-bind           Any+sc_z  selectbox_same     // select only units that share type with current selection modifier | Smart Select Widget
-bind          Any+space  selectbox_idle     // select only idle units modifier | Smart Select Widget
-bind          Any+shift  selectbox_all      // select all units modifier | Smart Select Widget
-bind           Any+ctrl  selectbox_deselect // remove units from current selection modifier | Smart Select Widget
-bind            Any+alt  selectbox_mobile   // select only mobile units modifier | Smart Select Widget
-
-bind          Any+space  selectloop         // activate select shape | Loop Select Widget
-bind           Any+ctrl  selectloop_invert  // select units not present in current selection modifier | Loop Select Widget
-bind          Any+shift  selectloop_add     // add to selection modifier | Loop Select Widget
-
+// Load common keys
+keyload     luaui/configs/hotkeys/chat_and_ui_keys.txt
 keyload     luaui/configs/hotkeys/gridmenu_keys.txt
+keyload     luaui/configs/hotkeys/num_keys.txt
 
-bind          Any+enter  chat
-bind      Alt+ctrl+sc_a  chatswitchally
-bind      Alt+ctrl+sc_s  chatswitchspec
-
-bind            Any+tab  edit_complete
-bind      Any+backspace  edit_backspace
-bind         Any+delete  edit_delete
-bind           Any+home  edit_home
-bind           Alt+left  edit_home
-bind            Any+end  edit_end
-bind          Alt+right  edit_end
-bind             Any+up  edit_prev_line
-bind           Any+down  edit_next_line
-bind           Any+left  edit_prev_char
-bind          Any+right  edit_next_char
-bind          Ctrl+left  edit_prev_word
-bind         Ctrl+right  edit_next_word
-bind          Any+enter  edit_return
-
-bind             Ctrl+v  pastetext
 
 bind           Alt+sc_=  increasespeed
 bind           Alt+sc_-  decreasespeed
@@ -157,17 +119,6 @@ bind           Alt+sc_`  remove_from_autogroup
 bind          sc_`,sc_`  drawlabel
 bind               sc_`  drawinmap
 
-bind             Any+up  moveforward
-bind           Any+down  moveback
-bind          Any+right  moveright
-bind           Any+left  moveleft
-bind         Any+pageup  moveup
-bind       Any+pagedown  movedown
-
-bind            Any+alt  movereset      // fast camera reset on mousewheel
-bind            Any+alt  moverotate     // rotate on x,y with mmb hold + move (Spring Camera)
-bind           Any+ctrl  movetilt       // rotate on x with mousewheel
-
 bind          Ctrl+sc_e  select AllMap++_ClearSelection_SelectAll+
 bind           Ctrl+tab  select AllMap+_Builder_Idle+_ClearSelection_SelectOne+
 bind                tab  select AllMap+_ManualFireUnit_Not_IdMatches_cordecom_Not_IdMatches_armdecom_Not_IdMatches_armthor+_ClearSelection_SelectOne+
@@ -192,8 +143,6 @@ bind            numpad+  snd_volume_increase
 bind               sc_=  snd_volume_increase
 bind               sc_-  snd_volume_decrease
 bind            numpad-  snd_volume_decrease
-
-keyload luaui/configs/hotkeys/num_keys.txt
 
 // camera anchors
 bind            Ctrl+F1  set_camera_anchor 1

@@ -18,11 +18,11 @@ local mapSizeZ = Game.mapSizeZ
 local landLevel
 local seaLevel
 
--- Get TeamIDs and AllyTeamIDs of Scavengers and Chickens
+-- Get TeamIDs and AllyTeamIDs of Scavengers and Raptors
 local scavengerTeamID
 local scavengerAllyTeamID
-local chickenTeamID
-if Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsChickens() then
+local raptorTeamID
+if Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsRaptors() then
     local teams = Spring.GetTeamList()
     for i = 1,#teams do
         local luaAI = Spring.GetTeamLuaAI(teams[i])
@@ -32,10 +32,10 @@ if Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsChick
                 _,_,_,_,_,scavengerAllyTeamID = Spring.GetTeamInfo(scavengerTeamID)
             end
         end
-        if not chickenTeamID then
-            if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ChickensAI' then
-                chickenTeamID = i - 1
-                _,_,_,_,_,chickenAllyTeamID = Spring.GetTeamInfo(chickenTeamID)
+        if not raptorTeamID then
+            if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
+                raptorTeamID = i - 1
+                _,_,_,_,_,raptorAllyTeamID = Spring.GetTeamInfo(raptorTeamID)
             end
         end
     end

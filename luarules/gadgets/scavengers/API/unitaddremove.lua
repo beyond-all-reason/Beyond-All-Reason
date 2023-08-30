@@ -23,15 +23,24 @@ local function AddScavUnit(unitID, unitDefID, unitName, unitTeam)
 			end
 		end
 	end
+
+	local ignoreDefs = {}
+	for udefID,def in ipairs(UnitDefs) do
+		if def.modCategories['object'] or def.customParams.objectify or def.customParams.drone then
+			ignoreDefs[udefID] = true
+		end
+	end
 	for i = 1,#bossUnitList.Bosses do
 		if unitName == bossUnitList.Bosses[i] then
 			Spring.SetGameRulesParam("BossFightStarted", 1)
 			FinalBossUnitID = unitID
 			initialbosshealth = Spring.GetUnitHealth(unitID)
-			local stopScavUnits = Spring.GetTeamUnits(ScavengerTeamID)
-			for y = 1,#stopScavUnits do
-				local unitID = stopScavUnits[y]
-				Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+			local scavengerunits = Spring.GetTeamUnits(ScavengerTeamID)
+			for y = 1, #scavengerunits do
+				local unitID = scavengerunits[y]
+				if not ignoreDefs[Spring.GetUnitDefID(unitID)] then
+					Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+				end
 			end
 
 		end

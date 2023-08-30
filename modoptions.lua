@@ -69,6 +69,14 @@ local options={
 		section		= 'restrictions',
 	},
 	{
+		key    		= "allowpausegameplay",
+		name   		= "Allow gameplay while paused",
+		desc   		= "Allow giving unit commands while paused",
+		type   		= "bool",
+		def    		= true,
+		section		= 'restrictions',
+	},
+	{
 		key    		= 'fixedallies',
 		name   		= 'Disabled dynamic alliances',
 		desc   		= 'Disables the possibility of players to dynamically change alliances ingame',
@@ -360,22 +368,22 @@ local options={
 	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	-- Chickens
+	-- Raptors
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	{
-		key 	= 'chicken_defense_options',
+		key 	= 'raptor_defense_options',
 		name 	= 'Raptors',
 		desc 	= 'Various gameplay options that will change how the Raptor Defense is played.',
 		type 	= 'section',
 	},
 	{
-		key="chicken_difficulty",
+		key="raptor_difficulty",
 		name="Base Difficulty",
 		desc="Raptors difficulty",
 		type="list",
 		def="normal",
-		section="chicken_defense_options",
+		section="raptor_defense_options",
 		items={
 			{key="veryeasy", name="Very Easy", desc="Very Easy"},
 			{key="easy", name="Easy", desc="Easy"},
@@ -388,28 +396,28 @@ local options={
 		}
 	},
 	{
-		key="chicken_chickenstart",
+		key="raptor_raptorstart",
 		name="Burrow Placement",
 		desc="Control where burrows spawn",
 		type="list",
 		def="initialbox",
-		section="chicken_defense_options",
+		section="raptor_defense_options",
 		items={
 			{key="avoid", name="Avoid Players", desc="Burrows avoid player units"},
-			{key="initialbox", name="Initial Start Box", desc="First wave spawns in chicken start box, following burrows avoid players"},
-			{key="alwaysbox", name="Always Start Box", desc="Burrows always spawn in chicken start box"},
+			{key="initialbox", name="Initial Start Box", desc="First wave spawns in raptor start box, following burrows avoid players"},
+			{key="alwaysbox", name="Always Start Box", desc="Burrows always spawn in raptor start box"},
 		}
 	},
 	{
-		key    = "chicken_endless",
+		key    = "raptor_endless",
 		name   = "Endless Mode",
 		desc   = "When you kill the queen, the game doesn't end, but loops around at higher difficulty instead, infinitely.",
 		type   = "bool",
 		def    = false,
-		section= "chicken_defense_options",
+		section= "raptor_defense_options",
 	},
 	{
-		key    = "chicken_queentimemult",
+		key    = "raptor_queentimemult",
 		name   = "Queen Hatching Time Multiplier",
 		desc   = "How quickly Queen Hatch goes from 0 to 100% (Range: 0.1 - 3)",
 		type   = "number",
@@ -417,10 +425,10 @@ local options={
 		min    = 0.1,
 		max    = 3,
 		step   = 0.1,
-		section= "chicken_defense_options",
+		section= "raptor_defense_options",
 	},
 	{
-		key    = "chicken_spawncountmult",
+		key    = "raptor_spawncountmult",
 		name   = "Unit Spawn Per Wave Multiplier",
 		desc   = "How many times more raptors will spawn per wave. (Range: 1 - 5)",
 		type   = "number",
@@ -428,10 +436,10 @@ local options={
 		min    = 1,
 		max    = 5,
 		step   = 1,
-		section= "chicken_defense_options",
+		section= "raptor_defense_options",
 	},
 	{
-		key    = "chicken_spawntimemult",
+		key    = "raptor_spawntimemult",
 		name   = "Time Between Waves Multiplier",
 		desc   = "How often new waves will spawn. (Range: 0.1 - 3)",
 		type   = "number",
@@ -439,10 +447,10 @@ local options={
 		min    = 0.1,
 		max    = 3,
 		step   = 0.1,
-		section= "chicken_defense_options",
+		section= "raptor_defense_options",
 	},
 	{
-		key    = "chicken_graceperiodmult",
+		key    = "raptor_graceperiodmult",
 		name   = "Grace Period Time Multiplier",
 		desc   = "Time before Raptors become active. (Range: 0.1 - 3)",
 		type   = "number",
@@ -450,7 +458,7 @@ local options={
 		min    = 0.1,
 		max    = 3,
 		step   = 0.1,
-		section= "chicken_defense_options",
+		section= "raptor_defense_options",
 	},
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -558,15 +566,6 @@ local options={
 		type   = "bool",
 		def    = true,
 		hidden = true,
-		section= "options",
-	},
-	{
-		key    = "ffa_mode",
-		name   = "FFA Mode",
-		desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
-		hidden = true,
-		type   = "bool",
-		def    = false,
 		section= "options",
 	},
 	{
@@ -1083,6 +1082,55 @@ local options={
 		min    = 0.1,
 		max    = 10,
 		step   = 0.1,
+		hidden = true,
+	},
+
+	{
+		key    = 'multiplier_resourceincome',
+		name   = 'Overall Resource Income Multiplier',
+		desc   = 'Overall Resource Income Multiplier',
+		type   =  "number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_metalextraction',
+		name   = 'Metal Extraction Multiplier',
+		desc   = 'Metal Extraction Multiplier',
+		type   =  "number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_energyconversion',
+		name   = 'Energy Conversion Multiplier',
+		desc   = 'Energy Conversion Multiplier',
+		type   =  "number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_energyproduction',
+		name   = 'Energy Production Multiplier',
+		desc   = 'Energy Production Multiplier',
+		type   =  "number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
 	},
 
 	{
@@ -1233,6 +1281,21 @@ local options={
 	},
 
 	{
+		key    = 'experimentalstandardgravity',
+		name   = 'Standard Gravity',
+		desc   = 'Override map gravity for weapons',
+		type   = 'list',
+		section = 'options_experimental',
+		def  = "mapgravity",
+		items={
+			{key="mapgravity", name="Map Gravity", desc="Uses map defined gravity"},
+			{key="low", name="Low Gravity", desc="80 gravity"},
+			{key="standard", name="Standard Gravity", desc="120 gravity"},
+			{key="high", name="High Gravity", desc="150 gravity"},
+		}
+	},
+
+	{
 		key    = 'experimentalextraunits',
 		name   = 'Extra Unit Pack',
 		desc   = 'Formerly known as Scavenger units. Addon pack of units for Armada and Cortex, including various "fun" units',
@@ -1253,30 +1316,28 @@ local options={
 	{
 		key    = 'experimentallegionfaction',
 		name   = 'Legion Faction',
-		desc   = '3rd experimental faction (does not work with unba enabled!)',
+		desc   = '3rd experimental faction',
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,
 	},
 
 	{
-		key = 'newdgun',
-		name = 'New D-Gun Mechanics',
-		desc = 'New D-Gun Mechanics',
-		type = 'bool',
-		section = 'options_experimental',
-		def = false,
-
-	},
-
-	{
-		key = 'comupdate',
-		name = 'Commander Update',
-		desc = 'Increased commander HP, reduced comblast, reduced wreckmetal, com-to-com dgun rework.',
+		key = 'comtestchanges',
+		name = 'Commander Test Changes',
+		desc = 'Comupdate, but with health 4000->3700, regen 0->5, and T1 turrets deal 1.5x damage to commanders',
 		type = 'bool',
 		section = 'options_experimental',
 		def = true,
+	},
 
+	{
+		key = 'expandedt2sea',
+		name = 'Expanded T2 Sea',
+		desc = 'T2 sea is expanded to include a lightning ship for arm and a flamethrower ship for cor, and both factions get a drone carrier ship and an anti-nuke support ship to replace the aircraft carrier.  Cruisers rebalanced to be slower and lower range but higher health and dps for a more defensive role',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
 	},
 
 	{
@@ -1399,7 +1460,7 @@ local options={
 			{key="armblue", name="Armada Blue", desc="description"},
 			{key="corred", name="Cortex Red", desc="description"},
 			{key="scavpurp", name="Scavenger Purple", desc="description"},
-			{key="chickenorange", name="Chicken Orange", desc="description"},
+			{key="raptororange", name="Raptor Orange", desc="description"},
 			{key="gaiagray", name="Gaia Gray", desc="description"},
 		}
 	},

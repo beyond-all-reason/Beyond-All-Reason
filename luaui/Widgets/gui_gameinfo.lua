@@ -22,7 +22,7 @@ local font, font2, loadedFontSize, mainDList, titleRect, backgroundGuishader, sh
 local maxLines = 22
 local math_isInRect = math.isInRect
 
-local chickensEnabled = Spring.Utilities.Gametype.IsChickens()
+local raptorsEnabled = Spring.Utilities.Gametype.IsRaptors()
 
 local content = ''
 
@@ -52,25 +52,68 @@ end
 local modoptions = Spring.GetModOptions()
 local changedModoptions = {}
 local unchangedModoptions = {}
-local changedChickenModoptions = {}
-local unchangedChickenModoptions = {}
+local changedRaptorModoptions = {}
+local unchangedRaptorModoptions = {}
 for key, value in pairs(modoptions) do
-	if string.sub(key, 1, 8) == 'chicken_' then
-		if chickensEnabled then
+	if string.sub(key, 1, 8) == 'raptor_' then
+		if raptorsEnabled then
 			if value == modoptionsDefault[key].def then
-				unchangedChickenModoptions[key] = tostring(value)
+				unchangedRaptorModoptions[key] = tostring(value)
 			else
-				changedChickenModoptions[key] = tostring(value)
+				changedRaptorModoptions[key] = tostring(value)
 			end
 		end
 	end
+end
+
+
+
+local function stringifyDefTable(t, path, pathAddition)
+	if not path then path = {} end
+	path = table.copy(path)
+	if pathAddition then
+		path[#path+1] = pathAddition
+	end
+	if #path > 10 then return '...' end
+	local text = ''
+	local depthSpacing = ''
+	for i=1, #path, 1 do
+		depthSpacing = depthSpacing .. '     '
+	end
+	for k, v in pairs(t) do
+		if type(v) == "table" then
+			text = text .. '\n' .. valuegreycolor .. depthSpacing .. tostring(k) .. ' = \{'
+			text = text .. stringifyDefTable(v, path, k)
+			text = text .. '\n' .. valuegreycolor .. depthSpacing .. '\}'
+		else
+			text = text .. '\n' .. valuegreycolor .. depthSpacing .. tostring(k) .. ' = ' .. tostring(v)
+		end
+	end
+	return text
 end
 
 for key, value in pairs(modoptions) do
 	if modoptionsDefault[key] and value == modoptionsDefault[key].def then
 		unchangedModoptions[key] = tostring(value)
 	else
-		changedModoptions[key] = tostring(value)
+		if not string.find(key, 'tweakunits') then
+			changedModoptions[key] = tostring(value)
+		else
+			local success, tweaks = pcall(Spring.Utilities.CustomKeyToUsefulTable, value)
+			if success and type(tweaks) == "table" then
+				local text = ''
+				for name, ud in pairs(tweaks) do
+					if UnitDefNames[name] then
+						text = text .. '\n' .. valuecolor.. name..valuegreycolor..' = \{'
+						text = text..stringifyDefTable(ud, {}, name)
+						text = text .. '\n' .. '\}'
+					end
+				end
+				changedModoptions[key] = text
+			else
+				changedModoptions[key] = tostring(value)
+			end
+		end
 	end
 end
 
@@ -100,8 +143,8 @@ local function SortFunc(myTable)
 end
 changedModoptions = SortFunc(changedModoptions)
 unchangedModoptions = SortFunc(unchangedModoptions)
-changedChickenModoptions = SortFunc(changedChickenModoptions)
-unchangedChickenModoptions = SortFunc(unchangedChickenModoptions)
+changedRaptorModoptions = SortFunc(changedRaptorModoptions)
+unchangedRaptorModoptions = SortFunc(unchangedRaptorModoptions)
 
 local screenHeightOrg = 540
 local screenWidthOrg = 540
@@ -377,13 +420,13 @@ local function refreshContent()
 	end
 	content = content .. keycolor .. Spring.I18N('ui.gameInfo.waterDamage') .. separator .. vcolor .. Game.waterDamage .. keycolor .. "\n"
 	content = content .. "\n"
-	if chickensEnabled then
-		-- filter chicken modoptions
-		content = content .. titlecolor .. Spring.I18N('ui.gameInfo.chickenOptions') .. "\n"
-		for key, params in pairs(changedChickenModoptions) do
+	if raptorsEnabled then
+		-- filter raptor modoptions
+		content = content .. titlecolor .. Spring.I18N('ui.gameInfo.raptorOptions') .. "\n"
+		for key, params in pairs(changedRaptorModoptions) do
 			content = content .. keycolor .. string.sub(params.key, 9) .. separator .. valuecolor .. params.value .. "\n"
 		end
-		for key, params in pairs(unchangedChickenModoptions) do
+		for key, params in pairs(unchangedRaptorModoptions) do
 			content = content .. keycolor .. string.sub(params.key, 9) .. separator .. valuegreycolor .. params.value .. "\n"
 		end
 		content = content .. "\n"

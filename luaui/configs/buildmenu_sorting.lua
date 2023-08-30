@@ -58,6 +58,8 @@ local unitOrderTable = {
 
 	['armconsul']      = 003300, --VEH
 	['corprinter']     = 003325, --VEH
+	['corvac']		   = 003326, --VEH
+	['corvacct']       = 003327, --VEH
 	['corforge']       = 003350, --VEH
 
 	['armmls']         = 003400, --SHIP
@@ -312,11 +314,17 @@ local unitOrderTable = {
 	['corroy']         = 009230,
 
 	-- T2 WATER ATTACK
+	['armlship']       = 009280, --ANTISWARM
+	['corfship']       = 009290,
+	
 	['armcrus']        = 009300, --MAIN BATTLE
 	['corcrus']        = 009310,
 
 	['armmship']       = 009340, --ROCKETS
 	['cormship']       = 009350,
+	
+	['armdronecarry']  = 009360, --DRONE CARRIERS
+	['cordronecarry']  = 009361,
 
 	['armbats']        = 009370, --STRONK
 	['corbats']        = 009380,
@@ -373,8 +381,10 @@ local unitOrderTable = {
 	['cormabm']        = 020010,
 
 	['armcarry']       = 020100,
+	['armantiship']	   = 020101,
 	['armcarry2']      = 020105,
 	['corcarry']       = 020110,
+	['corantiship']    = 020111,
 	['corcarry2']      = 020115,
 
 -- BUILDINGS

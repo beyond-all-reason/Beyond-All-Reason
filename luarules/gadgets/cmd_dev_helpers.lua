@@ -185,6 +185,33 @@ if gadgetHandler:IsSyncedCode() then
 	local debugcommands = nil
 	function gadget:Initialize()
 		if Spring.GetModOptions() and Spring.GetModOptions().debugcommands then
+
+			-- "for fun" option to invert map
+			-- if debugcommands = invertmap
+			-- or if debugcommands = invertmap wet
+			-- this code block runs
+			-- still some odd behavior with start box highlighting
+			if string.find(Spring.GetModOptions().debugcommands,"invertmap") then
+				local invertmap = string.split(Spring.GetModOptions().debugcommands, ' ')
+				local ymax = -1000000
+				for z=0,Game.mapSizeZ, Game.squareSize do
+					for x=0,Game.mapSizeX, Game.squareSize do
+						ymax = math.max(ymax,Spring.GetGroundHeight ( x, z ))
+					end
+				end
+				if (invertmap[2] == "wet") then
+					ymax = 0
+				end
+				Spring.SetHeightMapFunc(function()
+					for z=0,Game.mapSizeZ, Game.squareSize do
+						for x=0,Game.mapSizeX, Game.squareSize do
+							Spring.SetHeightMap( x, z, ymax-Spring.GetGroundHeight ( x, z ))
+						end
+					end
+				end)
+			-- END "for fun" option to invert map
+			else
+
 			debugcommands = {}
 			local commands = string.split(Spring.GetModOptions().debugcommands, '|')
 			for i,command in ipairs(commands) do
@@ -193,6 +220,8 @@ if gadgetHandler:IsSyncedCode() then
 					debugcommands[tonumber(cmdsplit[1])] = cmdsplit[2]
 					Spring.Echo("Adding debug command",cmdsplit[1], cmdsplit[2])
 				end
+			end
+
 			end
 
 		end
@@ -213,16 +242,16 @@ if gadgetHandler:IsSyncedCode() then
 		for word in msg:gmatch("[%-_%w]+") do
 			table.insert(words, word)
 		end
-		
+
 		if words[1] == 'desync' then
 			Spring.Echo("Synced: Attempting to trigger a /desync")
 			Spring.SendCommands("desync")
 		end
-		
+
 		if not isAuthorized(playerID) then
 			return
 		end
-		
+
 		if words[1] == "givecat" then
 			GiveCat(words)
 		elseif words[1] == "xpunits" then
@@ -501,7 +530,7 @@ else	-- UNSYNCED
 
 	function gadget:Initialize()
 		-- doing it via GotChatMsg ensures it will only listen to the caller
-		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- Give a category of units, options /luarules givecat [cor|arm|scav|chicken]
+		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- Give a category of units, options /luarules givecat [cor|arm|scav|raptor]
 		gadgetHandler:AddChatAction('destroyunits', destroyUnits, "")  -- self-destrucs the selected units /luarules destroyunits
 		gadgetHandler:AddChatAction('wreckunits', wreckUnits, "")  -- turns the selected units into wrecks /luarules wreckunits
 		gadgetHandler:AddChatAction('reclaimunits', reclaimUnits, "")  -- reclaims and refunds the selected units /luarules reclaimUnits
@@ -532,7 +561,7 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('dumpfeatures')
 		gadgetHandler:RemoveChatAction('removeunitdefs')
 		gadgetHandler:RemoveChatAction('clearwrecks')
-		gadgetHandler:RemoveChatAction('fightertest')		
+		gadgetHandler:RemoveChatAction('fightertest')
 		gadgetHandler:RemoveChatAction('desync') -- /luarules fightertest unitdefname1 unitdefname2 count
 
 	end
@@ -637,28 +666,28 @@ else	-- UNSYNCED
 			camState["height"] = mapcy + 2000
 			camState["dist"] = mapcy + 2000
 			camState["name"] = "spring"
-			
+
 			Spring.SetCameraState(camState, 0.75)
 		end
 	end
-	
+
 	------------------------------UNSYNCED-----------------------------
 	local fightertestactive = false
-	local fighterteststats 
-	
-	
+	local fighterteststats
+
+
 	-- An Update is always done before a Draw Frame
 	-- An Update always Start with Gadget:Update
 	-- A draw frame actually spans from DrawGenesis to DrawScreenPost!
 	-- The timer of every sim frame ends with a lastFrameTime
-	-- A Sim frame starts at gadget:GameFrame. 
+	-- A Sim frame starts at gadget:GameFrame.
 	-- The end of a Sim Frame is unknown
-	
+
 	-- A
-	
-	
+
+
 	-- Spring.DiffTimers(Spring.GetTimerMicros(),tus)
-	
+
 	local lastDrawTimerUS = Spring.GetTimerMicros()
 	local lastSimTimerUS = Spring.GetTimerMicros()
 	local lastUpdateTimerUs = Spring.GetTimerMicros()
@@ -668,17 +697,17 @@ else	-- UNSYNCED
 	local updateTime = 0
 	local isBenchMark = false
 	local benchMarkFrames = 0
-	
+
 	local ss = 0
 	local sd = 0
 	local su = 0
 	local alpha = 0.98
-	
-	
+
+
 	function gadget:Update() -- START OF UPDATE
-		if fightertestactive then 
+		if fightertestactive then
 			local now = Spring.GetTimerMicros()
-			if lastFrameType == 'draw' then 
+			if lastFrameType == 'draw' then
 				-- We are doing a double draw
 			else
 				-- We are ending a sim frame, so better push the sim frame time number
@@ -689,25 +718,25 @@ else	-- UNSYNCED
 			lastUpdateTimerUs = Spring.GetTimerMicros()
 		end
 	end
-	
+
 	function gadget:GameFrame(n) -- START OF SIM FRAME
-		if fightertestactive then 
+		if fightertestactive then
 			local now = Spring.GetTimerMicros()
-			if lastFrameType == 'sim' then 
+			if lastFrameType == 'sim' then
 				-- We are doing double sim, push a sim frame time number
 				simTime = Spring.DiffTimers(now, lastSimTimerUS)
 				fighterteststats.simFrameTimes[#fighterteststats.simFrameTimes + 1] = simTime
 				ss = alpha * ss + (1-alpha) * simTime
 			else -- we are coming off a draw frame
-				
+
 			end
 			lastSimTimerUS = now
 			lastFrameType = 'sim'
 		end
 	end
-	
+
 	function gadget:DrawGenesis() -- START OF DRAW
-		if fightertestactive then 
+		if fightertestactive then
 			local now = Spring.GetTimerMicros()
 			updateTime = Spring.DiffTimers(now, lastUpdateTimerUs)
 			fighterteststats.updateFrameTimes[#fighterteststats.updateFrameTimes + 1] = updateTime
@@ -715,7 +744,7 @@ else	-- UNSYNCED
 			lastDrawTimerUS = now
 		end
 	end
-	
+
 	function gadget:DrawScreenPost() -- END OF DRAW
 		if fightertestactive then
 			drawTime = Spring.DiffTimers(Spring.GetTimerMicros(), lastDrawTimerUS)
@@ -726,90 +755,90 @@ else	-- UNSYNCED
 			dt = drawTime
 		end
 	end
-	
+
 	function gadget:DrawScreen()
-		if fightertestactive or isBenchMark then 
+		if fightertestactive or isBenchMark then
 			local s = ""
-			if isBenchMark then 
+			if isBenchMark then
 				s = s .. string.format("Benchmark Frame %d/%d\n", #fighterteststats.simFrameTimes,benchMarkFrames)
 			end
-			
-			s = s .. string.format("Sim = ~%3.2fms  (%3.2fms)\nUpdate = ~%3.2fms (%3.2fms)\nDraw = ~%3.2fms (%3.2fms)", 
+
+			s = s .. string.format("Sim = ~%3.2fms  (%3.2fms)\nUpdate = ~%3.2fms (%3.2fms)\nDraw = ~%3.2fms (%3.2fms)",
 				ss, simTime, su, updateTime, sd,  drawTime)
 			gl.Text(s, 600,600,16)
 		end
 	end
-	
+
 	function gadget:UnitCreated()
-		if fightertestactive then 
+		if fightertestactive then
 			fighterteststats.numunitscreated = fighterteststats.numunitscreated + 1
 		end
 	end
-	
+
 	function gadget:UnitDestroyed()
-		if fightertestactive then 
+		if fightertestactive then
 			fighterteststats.numunitsdestroyed = fighterteststats.numunitsdestroyed + 1
 		end
 	end
-	
+
 	function fightertest(_, line, words, playerID, action)
-	
+
 		Spring.Echo("Fightertest",line, words, playerID, action)
 		if not isAuthorized(Spring.GetMyPlayerID()) then
 			return
 		end
-		if fightertestactive then 
+		if fightertestactive then
 			-- We need to dump the stats
 			local s1 = string.format("Fightertest complete, #created = %d, #destroyed = %d",  fighterteststats.numunitscreated, fighterteststats.numunitsdestroyed)
 			Spring.Echo(s1)
 			local res = {}
 			local stats = {}
-			for n, t in pairs({Sim = fighterteststats.simFrameTimes, Draw = fighterteststats.drawFrameTimes, Update = fighterteststats.updateFrameTimes}) do 
+			for n, t in pairs({Sim = fighterteststats.simFrameTimes, Draw = fighterteststats.drawFrameTimes, Update = fighterteststats.updateFrameTimes}) do
 				local ms = {
 					count = 0,
 					total = 0,
 					mean = 0,
 					spread = 0,
 					percentiles = {},
-				
+
 				}  --mystats
 				-- Discard first 10%
-				local ct = {} -- cleantable 
+				local ct = {} -- cleantable
 				local oldtotal = #t
-				for i,v in ipairs(t) do 
-					if i > (oldtotal * 0.1) then 
+				for i,v in ipairs(t) do
+					if i > (oldtotal * 0.1) then
 						ms.count = ms.count + 1
 						ct[ms.count] = v
 						ms.total = ms.total + v
 					end
 				end
-				
+
 				ms.mean = ms.total/ms.count
 				table.sort(ct)
-				
-				for i, v in ipairs(ct) do 
+
+				for i, v in ipairs(ct) do
 					ms.spread = ms.spread + math.abs( v - ms.mean)
 				end
 				ms.spread = ms.spread/ms.count
 
-				for _,i in ipairs({0,1,2,5,10,20,35,50,65,80,90,95,98,99,100}) do 
+				for _,i in ipairs({0,1,2,5,10,20,35,50,65,80,90,95,98,99,100}) do
 					ms.percentiles[i] = ct[math.min(#ct, 1 + math.floor(i*0.01 * #ct))]
 				end
-				
+
 				stats[n] = ms
-				
+
 				local total = 0
-				for i,v in ipairs(t) do 
+				for i,v in ipairs(t) do
 					total = total + v
 				end
-				
-				local s2 = string.format("%s %d frames, %3.2fms per frame, %4.2fs total", 
+
+				local s2 = string.format("%s %d frames, %3.2fms per frame, %4.2fs total",
 						n, ms.count, ms.mean, ms.total)
 				res[#res+1] = s2
 				Spring.Echo(s2)
 			end
-			
-			if isBenchMark then 
+
+			if isBenchMark then
 				--stats.scenariooptions = Spring.GetModOptions().scenariooptions -- pass it back so we know difficulty
 				stats.benchmarkcommand = isBenchMark
 				stats.mapName = Game.mapName
@@ -819,19 +848,19 @@ else	-- UNSYNCED
 				stats.cpu = Platform.hwConfig
 				local vsx,vsy = Spring.GetViewGeometry()
 				stats.display = tostring(vsx) ..'x' .. tostring(vsy)
-				
+
 				Spring.Echo("Benchmark Results")
 				Spring.Debug.TableEcho(stats)
-				
-				
+
+
 				if Spring.GetMenuName then
 					local message = Json.encode(stats)
 					--Spring.Echo("Sending Message", message)
 					Spring.SendLuaMenuMsg("ScenarioGameEnd " .. message)
 				end
 			end
-			
-			
+
+
 			-- clean up
 			--fighterteststats = {}
 		else
@@ -982,9 +1011,9 @@ else	-- UNSYNCED
 			end
 			Accept[#Accept + 1] = Condition
 		end
-		if string.find(line, "chicken") then
+		if string.find(line, "raptor") then
 			local Condition = function(ud)
-				return string.find(ud.name, 'chicken')
+				return string.find(ud.name, 'raptor')
 			end
 			Accept[#Accept + 1] = Condition
 		end
@@ -1054,12 +1083,6 @@ else	-- UNSYNCED
 		end
 		if string.find(line, "all") then
 			local Condition = function(ud)
-				local exlusions = { 'meteor', 'chicken_hive', 'nuketest', 'nuketestcor', 'nuketestcororg', 'nuketestorg', 'meteor_scav', 'chicken_hive_scav', 'nuketest_scav', 'nuketestcor_scav', 'nuketestcororg_scav', 'nuketestorg_scav' }
-				for k, v in pairs(exlusions) do
-					if ud.name == v then
-						return
-					end
-				end
 				return true
 			end
 			Accept[#Accept + 1] = Condition
@@ -1073,11 +1096,19 @@ else	-- UNSYNCED
 
 
 		-- give units
+		local exlusions = { meteor = true, raptor_hive = true, nuketest = true, nuketestcor = true, nuketestcororg = true, nuketestorg = true, scavtacnukespawner = true, scavempspawner = true }
+		local newExlusions = {}
+		for k, v in pairs(exlusions) do
+			newExlusions[k] = true
+			newExlusions[k..'_scav'] = true
+		end
+		exlusions = newExlusions
+		newExlusions = nil
 		local giveUnits = {}
 		for _, ud in pairs(UnitDefs) do
 			local give = true
 			for _, Condition in ipairs(Accept) do
-				if not Condition(ud) then
+				if not Condition(ud) or exlusions[ud.name] then
 					give = false
 					break
 				end
@@ -1105,5 +1136,5 @@ else	-- UNSYNCED
 
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
 	end
-	
+
 end

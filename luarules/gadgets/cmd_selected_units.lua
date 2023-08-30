@@ -71,7 +71,7 @@ else
 
 	function handleSelectionUpdateEvent(_,playerID,msg,compressed)
 		local spec, fullView = GetSpectatingState()
-		if not spec or not fullView then
+		if not spec then
 			local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID,false)
 			if targetSpec or allyTeamID ~= select(5,GetPlayerInfo(myPlayerID,false)) then
 				return

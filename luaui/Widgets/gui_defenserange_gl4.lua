@@ -121,6 +121,8 @@ local mobileAntiUnitDefs = {
 	[UnitDefNames.armcarry.id] = true,
 	[UnitDefNames.cormabm.id ] = true,
 	[UnitDefNames.corcarry.id] = true,
+	[UnitDefNames.armantiship.id] = true,
+	[UnitDefNames.corantiship.id] = true,
 }
 
 local defensePosHash = {} -- key: {poshash=unitID}
@@ -238,6 +240,8 @@ local function initUnitList()
 		[UnitDefNames['armcarry'].id] =  { weapons = { 3 } },
 		[UnitDefNames['cormabm'].id] =  { weapons = { 3 } },
 		[UnitDefNames['corcarry'].id] =  { weapons = { 3 } },
+		[UnitDefNames['armantiship'].id] =  { weapons = { 3 } },
+		[UnitDefNames['corantiship'].id] =  { weapons = { 3 } },
 
 		-- SCAVENGERS
 		[UnitDefNames['scavengerdroppodbeacon_scav'].id]  = { weapons = { 1 } },

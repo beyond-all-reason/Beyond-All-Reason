@@ -24,6 +24,8 @@ local excluded = {
     [UnitDefNames.cormabm.id] = true,
     [UnitDefNames.corcarry.id] = true,
     [UnitDefNames.armcarry.id] = true,
+	[UnitDefNames.armantiship.id] = true,
+	[UnitDefNames.corantiship.id] = true,
 }
 local isBuilding = {}
 for udid, ud in pairs(UnitDefs) do

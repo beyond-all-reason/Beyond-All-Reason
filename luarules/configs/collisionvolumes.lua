@@ -118,10 +118,6 @@ unitCollisionVolume['corplat'] = {
 	on={112,60,112,0,28,0,1,1,1},
 	off={112,35,112,0,0,0,1,1,1},
 }
-unitCollisionVolume['cormaw'] = {
-	on={35,57,35,0,-5,-3,0,1,0},
-	off={35,31,35,0,-5,-3,0,1,0},
-}
 
 for name, v in pairs(unitCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do

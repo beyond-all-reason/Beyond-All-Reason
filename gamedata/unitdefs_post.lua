@@ -78,12 +78,6 @@ if Spring.GetModOptions().unba then
 	UnbaCom_Post("corcom")
 end
 
-if Spring.GetModOptions().comupdate then
-	VFS.Include("unbaconfigs/comupdate_post.lua")
-	ComUpdate_Post("armcom")
-	ComUpdate_Post("corcom")
-end
-
 local function getDimensions(scale)
 	if not scale then
 		return false
@@ -183,7 +177,7 @@ local function createScavengerUnitDefs()
 	local customScavDefs = VFS.Include("gamedata/scavengers/unitdef_changes.lua")
 
 	for name, unitDef in pairs(UnitDefs) do
-		if not string.find(name, '_scav') and not string.find(name, 'critter')  and not string.find(name, 'chicken') then
+		if not string.find(name, '_scav') and not string.find(name, 'critter')  and not string.find(name, 'raptor') then
 			local scavName = name .. '_scav'
 			if customScavDefs[name] ~= nil then
 				scavengerUnitDefs[scavName] = tableMergeSpecial(unitDef, customScavDefs[name])

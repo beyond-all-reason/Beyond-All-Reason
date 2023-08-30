@@ -21,8 +21,17 @@ local function ClearSelectionIfGroupSelected(groupIndex)
 end
 
 local function OnGroupSelected(_, _, args)
-	local groupIndex = args and tonumber(args[1])
+	if not args then return end
 
+	local unitGroupArgIdx = 1
+	-- variant: if "select" is first argument, then unit group is second
+	if args[1] == "select" then
+		unitGroupArgIdx = 2
+	end
+
+	local groupIndex = tonumber(args[unitGroupArgIdx])
+
+	-- 2nd arg can also be e.g. "set" - but we only want to react to a selection
 	if not groupIndex then return end
 
 	ClearSelectionIfGroupSelected(groupIndex)

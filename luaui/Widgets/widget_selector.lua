@@ -109,7 +109,7 @@ local dlistGuishader, dlistGuishader2, lastStart
 local widgetScale = (vsy / 1080)
 
 local allowuserwidgets = true
-if not Spring.GetModOptions().allowuserwidgets then
+if not Spring.GetModOptions().allowuserwidgets and not Spring.IsReplay() then
 	allowuserwidgets = false
 	buttons[3] = ''
 end
@@ -763,7 +763,7 @@ function widget:DrawScreen()
 				end
 			end
 			local tooltip = ''
-			local maxWidth = WG['tooltip'].getFontsize() * 100
+			local maxWidth = WG['tooltip'].getFontsize() * 90
 			if d.desc and d.desc ~= '' then
 				local textLines, numLines = font:WrapText(d.desc, maxWidth)
 				tooltip = tooltip..WhiteStr..string.gsub(textLines, '[\n]', '\n'..WhiteStr)..'\n'

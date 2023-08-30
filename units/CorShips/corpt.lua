@@ -11,8 +11,8 @@ return {
 		buildtime = 2500,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 4 -1",
-		collisionvolumescales = "20 26 60",
+		collisionvolumeoffsets = "0 1 -1",
+		collisionvolumescales = "20 20 60",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		explodeas = "smallExplosionGeneric",
@@ -39,7 +39,6 @@ return {
 		waterline = 0,
 		customparams = {
 			unitgroup = 'weaponaa',
-			maxrange = "260",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.3,
@@ -140,7 +139,6 @@ return {
 				smokesize = 6.0,
 				smokecolor = 0.7,
 				smokeTrailCastShadow = false,
-				castshadow = false,
 				castshadow = true, --projectile
 				soundhit = "rockhit2",
 				soundhitwet = "splssml",

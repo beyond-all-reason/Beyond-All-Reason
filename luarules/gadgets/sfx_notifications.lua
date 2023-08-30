@@ -52,8 +52,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local isT2Mex = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		-- not critter/chicken/object
-		if not string.find(unitDef.name, 'critter') and not string.find(unitDef.name, 'chicken') and (not unitDef.modCategories or not unitDef.modCategories.object) then
+		-- not critter/raptor/object
+		if not string.find(unitDef.name, 'critter') and not string.find(unitDef.name, 'raptor') and (not unitDef.modCategories or not unitDef.modCategories.object) then
 			if unitDef.extractsMetal >= 0.004 then
 				isT2Mex[unitDefID] = unitDef.extractsMetal
 			end
@@ -64,8 +64,8 @@ if gadgetHandler:IsSyncedCode() then
 		[WeaponDefNames["corsilo_crblmssl"].id] = true,
 		[WeaponDefNames["armsilo_scav_nuclear_missile"].id] = true,
 		[WeaponDefNames["corsilo_scav_crblmssl"].id] = true,
-		[WeaponDefNames["chicken_turretxl_meteor_weapon"].id] = true,
-		--WeaponDefNames["chickenr2_meteorlauncher"].id] = true,
+		[WeaponDefNames["raptor_turretxl_meteor_weapon"].id] = true,
+		--WeaponDefNames["raptorr2_meteorlauncher"].id] = true,
 	}
 	local gamestarted = (Spring.GetGameFrame() > 0)
 	local gameover = false
@@ -193,8 +193,8 @@ else
 	local isMex = {}
 	local isLrpc = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		-- not critter/chicken/object
-		if not string.find(unitDef.name, 'critter') and not string.find(unitDef.name, 'chicken') and (not unitDef.modCategories or not unitDef.modCategories.object) then
+		-- not critter/raptor/object
+		if not string.find(unitDef.name, 'critter') and not string.find(unitDef.name, 'raptor') and (not unitDef.modCategories or not unitDef.modCategories.object) then
 			if unitDef.customParams.iscommander and not string.find(unitDef.name,'_scav') then
 				isCommander[unitDefID] = true
 			end
@@ -229,7 +229,7 @@ else
 		if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
 			local luaAI = Spring.GetTeamLuaAI(teamID)
 			if luaAI and luaAI ~= "" then
-				if string.find(luaAI, 'Scavengers') or string.find(luaAI, 'Chickens') then
+				if string.find(luaAI, 'Scavengers') or string.find(luaAI, 'Raptors') then
 					playingAsHorde = true
 				end
 			end

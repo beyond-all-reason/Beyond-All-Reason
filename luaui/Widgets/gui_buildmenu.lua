@@ -180,10 +180,6 @@ end
 
 local minWaterUnitDepth = -11
 local showWaterUnits = false
-local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-if not voidWater and mapMinWater <= minWaterUnitDepth then
-	showWaterUnits = true
-end
 -- make them a disabled unit (instead of removing it entirely)
 if not showWaterUnits then
 	units.restrictWaterUnits(true)
@@ -392,6 +388,12 @@ function widget:Update(dt)
 		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
 			widget:ViewResize()
 			doUpdate = true
+		end
+
+		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
+		if not voidWater and mapMinWater <= units.minWaterUnitDepth and not showWaterUnits then
+			showWaterUnits = true
+			units.restrictWaterUnits(false)
 		end
 
 		if stickToBottom then
@@ -659,12 +661,12 @@ end
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
 local function cacheUnitIcons()
 	local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalextraunits)
-	local excludeChickens = not Spring.Utilities.Gametype.IsChickens()
+	local excludeRaptors = not Spring.Utilities.Gametype.IsRaptors()
 	gl.Translate(-vsx,0,0)
 	gl.Color(1, 1, 1, 0.001)
 	for id, unit in pairs(UnitDefs) do
 		if not excludeScavs or not string.find(unit.name,'_scav') then
-			if not excludeChickens or not string.find(unit.name,'chicken') then
+			if not excludeRaptors or not string.find(unit.name,'raptor') then
 				gl.Texture('#'..id)
 				gl.TexRect(-1, -1, 0, 0)
 				if units.unitIconType[id] and iconTypesMap[units.unitIconType[id]] then

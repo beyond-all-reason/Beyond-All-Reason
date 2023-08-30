@@ -32,7 +32,7 @@ return {
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 416,
 		usepiececollisionvolumes = 1,
-		yardmap = "ooooooooo",
+		yardmap = "oooo oooo oooo oooo",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/cortoast_aoplane.dds",
@@ -145,7 +145,6 @@ return {
 				weaponvelocity = 450,
 				damage = {
 					bombers = 90,
-					commanders = 420,
 					default = 420,
 					fighters = 90,
 					hvyboats = 420,
@@ -182,7 +181,6 @@ return {
 				weaponvelocity = 440,
 				damage = {
 					bombers = 90,
-					commanders = 960,
 					default = 960,
 					fighters = 90,
 					hvyboats = 960,

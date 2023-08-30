@@ -41,8 +41,8 @@ SArmorInfo InitArmordef()
 		"lboats",
 		"hvyboats",
 		"subs",
-		"tinychicken",
-		"chicken"
+		"tinyraptor",
+		"raptor"
 	};
 	armors.sortAsc();
 	armors.insertAt(0, "default");

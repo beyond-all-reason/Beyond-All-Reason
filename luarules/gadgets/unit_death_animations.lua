@@ -34,8 +34,8 @@ local hasDeathAnim = {
 
 local dyingUnits = {}
 
-for udid, ud in pairs(UnitDefs) do --almost all chickens have dying anims
-	if string.find(ud.name, "chicken") or (ud.customParams.subfolder and ud.customParams.subfolder == "other/chickens") then
+for udid, ud in pairs(UnitDefs) do --almost all raptors have dying anims
+	if string.find(ud.name, "raptor") or (ud.customParams.subfolder and ud.customParams.subfolder == "other/raptors") then
 		hasDeathAnim[udid] = true
 	end
 end

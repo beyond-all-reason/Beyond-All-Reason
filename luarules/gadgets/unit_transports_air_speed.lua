@@ -46,14 +46,17 @@ local function updateAllowedSpeed(transportId)
 
 	-- get sum of mass and size for all transported units
 	currentMassUsage = 0
-	for _,tUnitId in pairs(spGetUnitIsTransporting(transportId)) do
-		currentMassUsage = currentMassUsage + unitMass[spGetUnitDefID(tUnitId)]
-	end
-	massUsageFraction = (currentMassUsage / unitTransportMass[uDefID])
-	allowedSpeed = unitSpeed[uDefID] * (1 - massUsageFraction * TRANSPORTED_MASS_SPEED_PENALTY) / FRAMES_PER_SECOND
-	--Spring.Echo("unit "..transportUnitDef.name.." is air transport at  "..(massUsageFraction*100).."%".." load, curSpeed="..vw.." allowedSpeed="..allowedSpeed)
+	local units = spGetUnitIsTransporting(transportId)
+	if units then
+		for _,tUnitId in pairs(units) do
+			currentMassUsage = currentMassUsage + unitMass[spGetUnitDefID(tUnitId)]
+		end
+		massUsageFraction = (currentMassUsage / unitTransportMass[uDefID])
+		allowedSpeed = unitSpeed[uDefID] * (1 - massUsageFraction * TRANSPORTED_MASS_SPEED_PENALTY) / FRAMES_PER_SECOND
+		--Spring.Echo("unit "..transportUnitDef.name.." is air transport at  "..(massUsageFraction*100).."%".." load, curSpeed="..vw.." allowedSpeed="..allowedSpeed)
 
-	airTransportMaxSpeeds[transportId] = allowedSpeed
+		airTransportMaxSpeeds[transportId] = allowedSpeed
+	end
 end
 
 
@@ -91,7 +94,8 @@ end
 
 function gadget:UnitUnloaded(unitId, unitDefId, teamId, transportId)
 	if canFly[spGetUnitDefID(transportId)] then
-		if airTransports[transportId] and not spGetUnitIsTransporting(transportId)[1] then
+		local units = airTransports[transportId] and spGetUnitIsTransporting(transportId) or {}
+		if airTransports[transportId] and not units[1] then
 			-- transport is empty, cleanup tables
 			airTransports[transportId] = nil
 			airTransportMaxSpeeds[transportId] = nil

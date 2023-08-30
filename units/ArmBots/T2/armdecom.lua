@@ -2,7 +2,7 @@ return {
 	armdecom = {
 		acceleration = 0.18,
 		activatewhenbuilt = true,
-		autoheal = 5,
+		autoheal = 0,
 		brakerate = 1.125,
 		buildcostenergy = 12000,
 		buildcostmetal = 770,
@@ -32,7 +32,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 4900,
-		maxdamage = 3350,
+		maxdamage = 4000,
 		maxslope = 20,
 		maxvelocity = 1.25,
 		maxwaterdepth = 35,

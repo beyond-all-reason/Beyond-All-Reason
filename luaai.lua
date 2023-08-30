@@ -41,8 +41,8 @@ return {
     desc = 'Shard - Basic Shard AI'
   },
   {
-    name = 'ChickensAI',
-    desc = 'Chicken Defence'
+    name = 'RaptorsAI',
+    desc = 'Raptor Defence'
   },
 }
 

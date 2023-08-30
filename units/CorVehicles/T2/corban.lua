@@ -63,9 +63,9 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "0.597640991211 -2.38606030273 0.928077697754",
-				collisionvolumescales = "41.3831787109 15.9763793945 46.5609588623",
-				collisionvolumetype = "Box",
+				collisionvolumeoffsets = "0 -9 1",
+				collisionvolumescales = "42 42 42",
+				collisionvolumetype = "BOX",
 				damage = 2000,
 				energy = 0,
 				featuredead = "HEAP",
@@ -174,7 +174,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 650,
 				damage = {
-					commanders = 1000,
 					default = 1000,
 					subs = 500,
 				},

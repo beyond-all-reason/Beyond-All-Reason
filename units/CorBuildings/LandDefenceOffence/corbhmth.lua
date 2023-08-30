@@ -31,7 +31,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 650,
-		yardmap = "h oyyooyyo yossssoy ysoooosy osojjoso osojjoso ysoooosy yossssoy oyyooyyo",
+		yardmap = "h cosyysyc ysbssbso sbbjjbbs ysjbbjsy ysjbbjsy sbbjjbbs osbssbsy cysyysoc",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/corbhmth_aoplane.dds",
@@ -129,7 +129,7 @@ return {
 				name = "Heavy g2g barrage plasma battery",
 				noselfdamage = true,
 				range = 1650,
-				reloadtime = 0.5,
+				reloadtime = 4.166,
 				soundhit = "xplonuk5",
 				soundhitwet = "splslrg",
 				soundstart = "xplolrg5",
@@ -140,7 +140,6 @@ return {
 				weaponvelocity = 620,
 				damage = {
 					bombers = 110,
-					commanders = 900,
 					default = 450,
 					fighters = 110,
 					subs = 150,
@@ -150,6 +149,16 @@ return {
 		},
 		weapons = {
 			[1] = {
+				badtargetcategory = "VTOL",
+				def = "CORBHMTH_WEAPON",
+				onlytargetcategory = "SURFACE",
+			},
+			[2] = {
+				badtargetcategory = "VTOL",
+				def = "CORBHMTH_WEAPON",
+				onlytargetcategory = "SURFACE",
+			},
+			[3] = {
 				badtargetcategory = "VTOL",
 				def = "CORBHMTH_WEAPON",
 				onlytargetcategory = "SURFACE",
