@@ -1049,11 +1049,11 @@ addNewSquad({ type = "air", minAnger = 100, units = { "4 raptorbroodbomberh2" },
 
 --Kamikaze------------------------------------------------------------------------------------------------------  
 
-addNewSquad({ type = "air", minAnger = 70, units = { "10 raptor_dodoair" } })
+-- addNewSquad({ type = "air", minAnger = 70, units = { "10 raptor_dodoair" } })
 
-addNewSquad({ type = "air", minAnger = 90, units = { "10 raptor_dodoair" } })
+-- addNewSquad({ type = "air", minAnger = 90, units = { "10 raptor_dodoair" } })
 
-addNewSquad({ type = "air", minAnger = 100, units = { "10 raptor_dodoair" }, maxAnger = 1000 })
+-- addNewSquad({ type = "air", minAnger = 100, units = { "10 raptor_dodoair" }, maxAnger = 1000 })
 
 ------------------------------------------------
 -- Healer --------------------------------------
