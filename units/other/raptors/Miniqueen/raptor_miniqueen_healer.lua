@@ -42,6 +42,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "Raptors/raptor_miniqueen_healer.s3o",
 		pushresistant = true,
+		repairable = false,
 		script = "Raptors/raptor_miniqueen.cob",
 		seismicsignature = 0,
 		selfdestructas = "BUG_DEATH",
