@@ -102,7 +102,7 @@ return {
 				impulsefactor = 0,
 				metalpershot = 0,
 				model = "cormissile.s3o",
-				name = "Guided a2a/a2g missile launcher",
+				name = "Guided a2a missile launcher",
 				noselfdamage = true,
 				range = 710,
 				reloadtime = 0.83333,
