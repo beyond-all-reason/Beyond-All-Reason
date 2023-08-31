@@ -219,6 +219,10 @@ pieceCollisionVolume['armjanus'] = {
 	['0']={26,12,35,0,0,0,2,1},
 	['1']={20,10,20,0,0,0,2,1},
 }
+pieceCollisionVolume['armanac'] = {
+	['0']={40,19,40,0,0,0,1,1},
+	['2']={16,10,16,0,5,0,2,1},
+}
 for name, v in pairs(pieceCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do
 		if string.find(ud.name, name) then
