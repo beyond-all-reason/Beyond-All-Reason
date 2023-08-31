@@ -17,17 +17,21 @@ end
 local storageDefs = {}
 local isCommander = {}
 for udid, ud in pairs(UnitDefs) do
-	if ud.metalStorage >= 50 then
-		if not storageDefs[udid] then
-			storageDefs[udid] = {}
+
+	if not ud.canMove then	-- this is to exclude transportable units since they get stunned while being transported
+
+		if ud.metalStorage >= 50 then
+			if not storageDefs[udid] then
+				storageDefs[udid] = {}
+			end
+			storageDefs[udid].metal = ud.metalStorage
 		end
-		storageDefs[udid].metal = ud.metalStorage
-	end
-	if ud.energyStorage >= 100 then
-		if not storageDefs[udid] then
-			storageDefs[udid] = {}
+		if ud.energyStorage >= 100 then
+			if not storageDefs[udid] then
+				storageDefs[udid] = {}
+			end
+			storageDefs[udid].energy = ud.energyStorage
 		end
-		storageDefs[udid].energy = ud.energyStorage
 	end
 	if ud.customParams.iscommander then
 		isCommander[udid] = true
