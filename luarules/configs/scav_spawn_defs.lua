@@ -25,10 +25,10 @@ local difficultyParameters = {
 		spawnChance       		= 0.1,
 		damageMod         		= 0.4,
 		maxBurrows        		= 1000,
-		minScav		  			= 5,
-		maxScav		  			= 25,
+		minScavs		  			= 5,
+		maxScavs		  			= 25,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 've_scavq',
+		queenName         		= 'corcomboss',
 		queenResistanceMult   	= 0.5,
 	},
 
@@ -44,10 +44,10 @@ local difficultyParameters = {
 		spawnChance       		= 0.2,
 		damageMod         		= 0.6,
 		maxBurrows        		= 1000,
-		minScav		  			= 5,
-		maxScav		  			= 30,
+		minScavs		  			= 5,
+		maxScavs		  			= 30,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 'e_scavq',
+		queenName         		= 'corcomboss',
 		queenResistanceMult   	= 0.75,
 	},
 	[difficulties.normal] = {
@@ -62,10 +62,10 @@ local difficultyParameters = {
 		spawnChance       		= 0.3,
 		damageMod         		= 0.8,
 		maxBurrows        		= 1000,
-		minScav		  			= 5,
-		maxScav		  			= 35,
+		minScavs		  			= 5,
+		maxScavs		  			= 35,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 'n_scavq',
+		queenName         		= 'corcomboss',
 		queenResistanceMult  	= 1,
 	},
 	[difficulties.hard] = {
@@ -80,10 +80,10 @@ local difficultyParameters = {
 		spawnChance       		= 0.4,
 		damageMod         		= 1,
 		maxBurrows        		= 1000,
-		minScav		  			= 5,
-		maxScav		  			= 40,
+		minScavs		  			= 5,
+		maxScavs		  			= 40,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 'h_scavq',
+		queenName         		= 'corcomboss',
 		queenResistanceMult   	= 1.33,
 	},
 	[difficulties.veryhard] = {
@@ -98,10 +98,10 @@ local difficultyParameters = {
 		spawnChance       		= 0.5,
 		damageMod         		= 1.2,
 		maxBurrows        		= 1000,
-		minScav		  			= 5,
-		maxScav		  			= 45,
+		minScavs		  			= 5,
+		maxScavs		  			= 45,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 'vh_scavq',
+		queenName         		= 'corcomboss',
 		queenResistanceMult   	= 1.67,
 	},
 	[difficulties.epic] = {
@@ -116,16 +116,16 @@ local difficultyParameters = {
 		spawnChance       		= 0.6,
 		damageMod         		= 1.4,
 		maxBurrows        		= 1000,
-		minScav		  			= 5,
-		maxScav		  			= 50,
+		minScavs		  			= 5,
+		maxScavs		  			= 50,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 'epic_scavq',
+		queenName         		= 'corcomboss',
 		queenResistanceMult   	= 2,
 	},
 
 }
 
-local burrowName = 'raptor_hive'
+local burrowName = 'scavengerdroppodbeacon'
 
 --[[
 	So here we define lists of units from which behaviours tables and spawn tables are created dynamically.
@@ -169,82 +169,137 @@ local TierIntroductionAnger = { -- Double for basic squads
 local LandUnitsList = {
 		Raid = {
 			[1] = {
-				["armpw"] = 1,
+				["armflea_scav"] = 1,
+				["armpw_scav"] = 1,
+				["corak_scav"] = 1,
 			},
 			[2] = {
-				["armpw"] = 1,
+				["armpw_scav"] = 1,
+				["corak_scav"] = 1,
 			},
 			[3] = {
-				["armpw"] = 1,
+				["armpw_scav"] = 1,
+				["corak_scav"] = 1,
 			},
 			[4] = {
-				["armpw"] = 1,
+				["armpw_scav"] = 1,
+				["corak_scav"] = 1,
 			},
 			[5] = {
-				["armpw"] = 1,
+				["armpw_scav"] = 1,
+				["corak_scav"] = 1,
 			},
 			[6] = {
-				["armpw"] = 1,
+				["armpw_scav"] = 1,
+				["corak_scav"] = 1,
 			},
 		},
 		Assault = {
 			[1] = {
-				["armwar"] = 1,
+				["armwar_scav"] = 1,
+				["armham_scav"] = 1,
+				["corthud_scav"] = 1,
 			},
 			[2] = {
-				["armwar"] = 1,
+				["armwar_scav"] = 1,
+				["armham_scav"] = 1,
+				["corthud_scav"] = 1,
 			},
 			[3] = {
-				["armwar"] = 1,
+				["armwar_scav"] = 1,
+				["armham_scav"] = 1,
+				["corthud_scav"] = 1,
 			},
 			[4] = {
-				["armwar"] = 1,
+				["armwar_scav"] = 1,
+				["armham_scav"] = 1,
+				["corthud_scav"] = 1,
 			},
 			[5] = {
-				["armwar"] = 1,
+				["armwar_scav"] = 1,
+				["armham_scav"] = 1,
+				["corthud_scav"] = 1,
 			},
 			[6] = {
-				["armwar"] = 1,
+				["armwar_scav"] = 1,
+				["armham_scav"] = 1,
+				["corthud_scav"] = 1,
 			},
 		},
 		Support = {
 			[1] = {
-				["armrock"] = 1,
+				["armrock_scav"] = 1,
+				["corstorm_scav"] = 1,
+				["armjeth_scav"] = 1,
+				["corcrash_scav"] = 1,
 			},
 			[2] = {
-				["armrock"] = 1,
+				["armrock_scav"] = 1,
+				["corstorm_scav"] = 1,
+				["armjeth_scav"] = 1,
+				["corcrash_scav"] = 1,
 			},
 			[3] = {
-				["armrock"] = 1,
+				["armrock_scav"] = 1,
+				["corstorm_scav"] = 1,
+				["armjeth_scav"] = 1,
+				["corcrash_scav"] = 1,
 			},
 			[4] = {
-				["armrock"] = 1,
+				["armrock_scav"] = 1,
+				["corstorm_scav"] = 1,
+				["armjeth_scav"] = 1,
+				["corcrash_scav"] = 1,
 			},
 			[5] = {
-				["armrock"] = 1,
+				["armrock_scav"] = 1,
+				["corstorm_scav"] = 1,
+				["armjeth_scav"] = 1,
+				["corcrash_scav"] = 1,
 			},
 			[6] = {
-				["armrock"] = 1,
+				["armrock_scav"] = 1,
+				["corstorm_scav"] = 1,
+				["armjeth_scav"] = 1,
+				["corcrash_scav"] = 1,
 			},
 		},
 		Healer = {
 			[1] = {
-				["armck"] = 1,
+				["armck_scav"] = 1,
+				["corck_scav"] = 1,
+				["armrectr_scav"] = 1,
+				["cornecro_scav"] = 1,
 			},
 			[2] = {
-				["armck"] = 1,
+				["armck_scav"] = 1,
+				["corck_scav"] = 1,
+				["armrectr_scav"] = 1,
+				["cornecro_scav"] = 1,
 			},
 			[3] = {
-				["armck"] = 1,
+				["armck_scav"] = 1,
+				["corck_scav"] = 1,
+				["armrectr_scav"] = 1,
+				["cornecro_scav"] = 1,
 			},
 			[4] = {
-				["armck"] = 1,
+				["armck_scav"] = 1,
+				["corck_scav"] = 1,
+				["armrectr_scav"] = 1,
+				["cornecro_scav"] = 1,
 			},
 			[5] = {
-				["armck"] = 1,
+				["armck_scav"] = 1,
+				["corck_scav"] = 1,
+				["armrectr_scav"] = 1,
+				["cornecro_scav"] = 1,
 			},
 			[6] = {
-				["armck"] = 1,
+				["armck_scav"] = 1,
+				["corck_scav"] = 1,
+				["armrectr_scav"] = 1,
+				["cornecro_scav"] = 1,
 			},
 		},
 	}
@@ -256,82 +311,82 @@ local LandUnitsList = {
 local SeaUnitsList = {
 		Raid = {
 			[1] = {
-				["armpt"] = 1,
+				["armpt_scav"] = 1,
 			},
 			[2] = {
-				["armdecade"] = 1,
+				["armdecade_scav"] = 1,
 			},
 			[3] = {
-				["armdecade"] = 1,
+				["armdecade_scav"] = 1,
 			},
 			[4] = {
-				["armdecade"] = 1,
+				["armdecade_scav"] = 1,
 			},
 			[5] = {
-				["armdecade"] = 1,
+				["armdecade_scav"] = 1,
 			},
 			[6] = {
-				["armdecade"] = 1,
+				["armdecade_scav"] = 1,
 			},
 		},
 		Assault = {
 			[1] = {
-				["armpship"] = 1,
+				["armpship_scav"] = 1,
 			},
 			[2] = {
-				["armpship"] = 1,
+				["armpship_scav"] = 1,
 			},
 			[3] = {
-				["armpship"] = 1,
+				["armpship_scav"] = 1,
 			},
 			[4] = {
-				["armpship"] = 1,
+				["armpship_scav"] = 1,
 			},
 			[5] = {
-				["armpship"] = 1,
+				["armpship_scav"] = 1,
 			},
 			[6] = {
-				["armpship"] = 1,
+				["armpship_scav"] = 1,
 			},
 		},
 		Support = {
 			[1] = {
-				["armroy"] = 1,
+				["armroy_scav"] = 1,
 			},
 			[2] = {
-				["armroy"] = 1,
+				["armroy_scav"] = 1,
 			},
 			[3] = {
-				["armroy"] = 1,
+				["armroy_scav"] = 1,
 			},
 			[4] = {
-				["armroy"] = 1,
+				["armroy_scav"] = 1,
 			},
 			[5] = {
-				["armroy"] = 1,
+				["armroy_scav"] = 1,
 			},
 			[6] = {
-				["armroy"] = 1,
+				["armroy_scav"] = 1,
 			},
 		},
 		Healer = {
 			[1] = {
-				["armcs"] = 1,
+				["armcs_scav"] = 1,
 			},
 			[2] = {
-				["armcs"] = 1,
+				["armcs_scav"] = 1,
 			},
 			[3] = {
-				["armcs"] = 1,
+				["armcs_scav"] = 1,
 			},
 			[4] = {
-				["armcs"] = 1,
+				["armcs_scav"] = 1,
 			},
 			[5] = {
-				["armcs"] = 1,
+				["armcs_scav"] = 1,
 			},
 			[6] = {
-				["armcs"] = 1,
+				["armcs_scav"] = 1,
 			},
 		},
 	}
@@ -342,47 +397,51 @@ local SeaUnitsList = {
 
 local AirUnitsList = {
 		[1] = {
-			["armpeep"] = 1,
+			["armpeep_scav"] = 1,
 		},
 		[2] = {
-			["armkam"] = 1,
+			["armkam_scav"] = 1,
 		},
 		[3] = {
-			["armkam"] = 1,
+			["armkam_scav"] = 1,
 		},
 		[4] = {
-			["armkam"] = 1,
+			["armkam_scav"] = 1,
 		},
 		[5] = {
-			["armkam"] = 1,
+			["armkam_scav"] = 1,
 		},
 		[6] = {
-			["armkam"] = 1,
+			["armkam_scav"] = 1,
 		},
 	}
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
 -- types: normal, antiair, nuke, lrpc
+-- surfaces: land, sea, mixed
 -- don't put the same turret twice in here, ever.
 local Turrets = {
 		[1] = {
-			["armllt"] = {type = "normal", spawnedPerWave = 1, maxExisting = 10},
+			["armllt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 10},
+			["corllt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 10},
+			["armrl_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 10},
+			["corrl_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 10},
 		},
 		[2] = {
-			["armllt"] = {type = "normal", spawnedPerWave = 1, maxExisting = 10},
+
 		},
 		[3] = {
-			["armllt"] = {type = "normal", spawnedPerWave = 1, maxExisting = 10},
+
 		},
 		[4] = {
-			["armllt"] = {type = "normal", spawnedPerWave = 1, maxExisting = 10},
+
 		},
 		[5] = {
-			["armllt"] = {type = "normal", spawnedPerWave = 1, maxExisting = 10},
+
 		},
 		[6] = {
-			["armllt"] = {type = "normal", spawnedPerWave = 1, maxExisting = 10},
+
 		},
 	}
 
@@ -396,14 +455,15 @@ local scavTurrets = {}
 for tier, _ in pairs(Turrets) do
 	for turret, turretInfo in pairs(Turrets[tier]) do
 		if (not scavTurrets[turret]) and
-		((not Spring.GetModOptions().unit_restrictions_noair) and turretInfo.type ~= "antiair") and
-		((not Spring.GetModOptions().unit_restrictions_nonukes) and turretInfo.type ~= "nuke") and
-		((not Spring.GetModOptions().unit_restrictions_nolrpc) and turretInfo.type ~= "lrpc") then
+		(not ( Spring.GetModOptions().unit_restrictions_noair and turretInfo.type == "antiair")) and
+		(not ( Spring.GetModOptions().unit_restrictions_nonukes and turretInfo.type == "nuke")) and
+		(not (Spring.GetModOptions().unit_restrictions_nolrpc and turretInfo.type == "lrpc")) then
 			scavTurrets[turret] = { 
 				minQueenAnger = TierIntroductionAnger[tier],
-				spawnedPerWave = turretInfo.spawnedPerWave,
-				maxExisting = turretInfo.maxExisting,
-				maxQueenAnger = 1000,
+				spawnedPerWave = turretInfo.spawnedPerWave or 1,
+				maxExisting = turretInfo.maxExisting or 10,
+				maxQueenAnger = turretInfo.maxQueenAnger or 1000,
+				surfaceType = turretInfo.surface or "land",
 			}
 		end
 	end
@@ -467,56 +527,64 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------- LAND
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 
-for tier, unitName in pairs(LandUnitsList.Raid) do
-	local unitWeight = LandUnitsList.Raid[tier][unitName]
-	if tier < #TierIntroductionAnger then
-		addNewSquad({ type = "basicLand", minAnger = TierIntroductionAnger[tier]*2, units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]*2 })
-		addNewSquad({ type = "specialLand", minAnger = TierIntroductionAnger[tier], units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
-	else
-		addNewSquad({ type = "basicLand", minAnger = TierIntroductionAnger[tier]*2, units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
-		addNewSquad({ type = "specialLand", minAnger = TierIntroductionAnger[tier], units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+for tier, _ in pairs(LandUnitsList.Raid) do
+	for unitName, _ in pairs(LandUnitsList.Raid[tier]) do
+		local unitWeight = LandUnitsList.Raid[tier][unitName]
+		if tier < #TierIntroductionAnger then
+			addNewSquad({ type = "basicLand", minAnger = TierIntroductionAnger[tier]*2, units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]*2 })
+			addNewSquad({ type = "specialLand", minAnger = TierIntroductionAnger[tier], units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
+		else
+			addNewSquad({ type = "basicLand", minAnger = TierIntroductionAnger[tier]*2, units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+			addNewSquad({ type = "specialLand", minAnger = TierIntroductionAnger[tier], units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+		end
 	end
 end
 
-for tier, unitName in pairs(LandUnitsList.Assault) do
-	local unitWeight = LandUnitsList.Assault[tier][unitName]
-	if not scavBehaviours.BERSERK[UnitDefNames[supunitName].id] then
-		scavBehaviours.BERSERK[UnitDefNames[supunitName].id] = {distance = 2000, chance = 0.01}
-	end
-	if tier < #TierIntroductionAnger then
-		addNewSquad({ type = "basicLand", minAnger = TierIntroductionAnger[tier]*2, units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]*2 })
-		addNewSquad({ type = "specialLand", minAnger = TierIntroductionAnger[tier], units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
-	else
-		addNewSquad({ type = "basicLand", minAnger = TierIntroductionAnger[tier]*2, units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
-		addNewSquad({ type = "specialLand", minAnger = TierIntroductionAnger[tier], units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
-	end
-end
-
-for tier, unitName in pairs(LandUnitsList.Support) do
-	local unitWeight = LandUnitsList.Support[tier][unitName]
-	if not scavBehaviours.SKIRMISH[UnitDefNames[unitName].id] then
-		scavBehaviours.SKIRMISH[UnitDefNames[unitName].id] = {distance = 500, chance = 0.1}
-		scavBehaviours.COWARD[UnitDefNames[unitName].id] = {distance = 500, chance = 0.75}
-		scavBehaviours.ARTILLERY[UnitDefNames[unitName].id] = true
-	end
-	if tier < #TierIntroductionAnger then
-		addNewSquad({ type = "basicLand", minAnger = TierIntroductionAnger[tier]*2, units = {"1 " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]*2 })
-		addNewSquad({ type = "specialLand", minAnger = TierIntroductionAnger[tier], units = {"1 " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
-	else
-		addNewSquad({ type = "basicLand", minAnger = TierIntroductionAnger[tier]*2, units = {"1 " .. unitName}, weight = unitWeight, maxAnger = 1000 })
-		addNewSquad({ type = "specialLand", minAnger = TierIntroductionAnger[tier], units = {"1 " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+for tier, _ in pairs(LandUnitsList.Assault) do
+	for unitName, _ in pairs(LandUnitsList.Assault[tier]) do
+		local unitWeight = LandUnitsList.Assault[tier][unitName]
+		if not scavBehaviours.BERSERK[UnitDefNames[unitName].id] then
+			scavBehaviours.BERSERK[UnitDefNames[unitName].id] = {distance = 2000, chance = 0.01}
+		end
+		if tier < #TierIntroductionAnger then
+			addNewSquad({ type = "basicLand", minAnger = TierIntroductionAnger[tier]*2, units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]*2 })
+			addNewSquad({ type = "specialLand", minAnger = TierIntroductionAnger[tier], units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
+		else
+			addNewSquad({ type = "basicLand", minAnger = TierIntroductionAnger[tier]*2, units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+			addNewSquad({ type = "specialLand", minAnger = TierIntroductionAnger[tier], units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+		end
 	end
 end
 
-for tier, unitName in pairs(LandUnitsList.Healer) do
-	local unitWeight = LandUnitsList.Healer[tier][unitName]
-	if not scavBehaviours.HEALER[UnitDefNames[unitName].id] then
-		scavBehaviours.HEALER[UnitDefNames[unitName].id] = true
+for tier, _ in pairs(LandUnitsList.Support) do
+	for unitName, _ in pairs(LandUnitsList.Support[tier]) do
+		local unitWeight = LandUnitsList.Support[tier][unitName]
+		if not scavBehaviours.SKIRMISH[UnitDefNames[unitName].id] then
+			scavBehaviours.SKIRMISH[UnitDefNames[unitName].id] = {distance = 500, chance = 0.1}
+			scavBehaviours.COWARD[UnitDefNames[unitName].id] = {distance = 500, chance = 0.75}
+			scavBehaviours.ARTILLERY[UnitDefNames[unitName].id] = true
+		end
+		if tier < #TierIntroductionAnger then
+			addNewSquad({ type = "basicLand", minAnger = TierIntroductionAnger[tier]*2, units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]*2 })
+			addNewSquad({ type = "specialLand", minAnger = TierIntroductionAnger[tier], units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
+		else
+			addNewSquad({ type = "basicLand", minAnger = TierIntroductionAnger[tier]*2, units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+			addNewSquad({ type = "specialLand", minAnger = TierIntroductionAnger[tier], units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+		end
 	end
-	if tier < #TierIntroductionAnger then
-		addNewSquad({ type = "healerLand", minAnger = TierIntroductionAnger[tier], units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
-	else
-		addNewSquad({ type = "healerLand", minAnger = TierIntroductionAnger[tier], units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+end
+
+for tier, _ in pairs(LandUnitsList.Healer) do
+	for unitName, _ in pairs(LandUnitsList.Healer[tier]) do
+		local unitWeight = LandUnitsList.Healer[tier][unitName]
+		if not scavBehaviours.HEALER[UnitDefNames[unitName].id] then
+			scavBehaviours.HEALER[UnitDefNames[unitName].id] = true
+		end
+		if tier < #TierIntroductionAnger then
+			addNewSquad({ type = "healerLand", minAnger = TierIntroductionAnger[tier], units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
+		else
+			addNewSquad({ type = "healerLand", minAnger = TierIntroductionAnger[tier], units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+		end
 	end
 end
 
@@ -524,56 +592,64 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------- SEA
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 
-for tier, unitName in pairs(SeaUnitsList.Raid) do
-	local unitWeight = SeaUnitsList.Raid[tier][unitName]
-	if tier < #TierIntroductionAnger then
-		addNewSquad({ type = "basicSea", minAnger = TierIntroductionAnger[tier]*2, units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]*2 })
-		addNewSquad({ type = "specialSea", minAnger = TierIntroductionAnger[tier], units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
-	else
-		addNewSquad({ type = "basicSea", minAnger = TierIntroductionAnger[tier]*2, units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
-		addNewSquad({ type = "specialSea", minAnger = TierIntroductionAnger[tier], units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+for tier, _ in pairs(SeaUnitsList.Raid) do
+	for unitName, _ in pairs(SeaUnitsList.Raid[tier]) do
+		local unitWeight = SeaUnitsList.Raid[tier][unitName]
+		if tier < #TierIntroductionAnger then
+			addNewSquad({ type = "basicSea", minAnger = TierIntroductionAnger[tier]*2, units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]*2 })
+			addNewSquad({ type = "specialSea", minAnger = TierIntroductionAnger[tier], units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
+		else
+			addNewSquad({ type = "basicSea", minAnger = TierIntroductionAnger[tier]*2, units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+			addNewSquad({ type = "specialSea", minAnger = TierIntroductionAnger[tier], units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+		end
 	end
 end
 
-for tier, unitName in pairs(SeaUnitsList.Assault) do
-	local unitWeight = SeaUnitsList.Assault[tier][unitName]
-	if not scavBehaviours.BERSERK[UnitDefNames[supunitName].id] then
-		scavBehaviours.BERSERK[UnitDefNames[supunitName].id] = {distance = 2000, chance = 0.01}
-	end
-	if tier < #TierIntroductionAnger then
-		addNewSquad({ type = "basicSea", minAnger = TierIntroductionAnger[tier]*2, units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]*2 })
-		addNewSquad({ type = "specialSea", minAnger = TierIntroductionAnger[tier], units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
-	else
-		addNewSquad({ type = "basicSea", minAnger = TierIntroductionAnger[tier]*2, units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
-		addNewSquad({ type = "specialSea", minAnger = TierIntroductionAnger[tier], units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
-	end
-end
-
-for tier, unitName in pairs(SeaUnitsList.Support) do
-	local unitWeight = SeaUnitsList.Support[tier][unitName]
-	if not scavBehaviours.SKIRMISH[UnitDefNames[unitName].id] then
-		scavBehaviours.SKIRMISH[UnitDefNames[unitName].id] = {distance = 500, chance = 0.1}
-		scavBehaviours.COWARD[UnitDefNames[unitName].id] = {distance = 500, chance = 0.75}
-		scavBehaviours.ARTILLERY[UnitDefNames[unitName].id] = true
-	end
-	if tier < #TierIntroductionAnger then
-		addNewSquad({ type = "basicSea", minAnger = TierIntroductionAnger[tier]*2, units = {"1 " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]*2 })
-		addNewSquad({ type = "specialSea", minAnger = TierIntroductionAnger[tier], units = {"1 " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
-	else
-		addNewSquad({ type = "basicSea", minAnger = TierIntroductionAnger[tier]*2, units = {"1 " .. unitName}, weight = unitWeight, maxAnger = 1000 })
-		addNewSquad({ type = "specialSea", minAnger = TierIntroductionAnger[tier], units = {"1 " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+for tier, _ in pairs(SeaUnitsList.Assault) do
+	for unitName, _ in pairs(SeaUnitsList.Assault[tier]) do
+		local unitWeight = SeaUnitsList.Assault[tier][unitName]
+		if not scavBehaviours.BERSERK[UnitDefNames[unitName].id] then
+			scavBehaviours.BERSERK[UnitDefNames[unitName].id] = {distance = 2000, chance = 0.01}
+		end
+		if tier < #TierIntroductionAnger then
+			addNewSquad({ type = "basicSea", minAnger = TierIntroductionAnger[tier]*2, units = { math.ceil((#TierIntroductionAnger+1-tier)/2) .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]*2 })
+			addNewSquad({ type = "specialSea", minAnger = TierIntroductionAnger[tier], units = { math.ceil((#TierIntroductionAnger+1-tier)/2) .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
+		else
+			addNewSquad({ type = "basicSea", minAnger = TierIntroductionAnger[tier]*2, units = { math.ceil((#TierIntroductionAnger+1-tier)/2) .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+			addNewSquad({ type = "specialSea", minAnger = TierIntroductionAnger[tier], units = { math.ceil((#TierIntroductionAnger+1-tier)/2) .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+		end
 	end
 end
 
-for tier, unitName in pairs(SeaUnitsList.Healer) do
-	local unitWeight = SeaUnitsList.Healer[tier][unitName]
-	if not scavBehaviours.HEALER[UnitDefNames[unitName].id] then
-		scavBehaviours.HEALER[UnitDefNames[unitName].id] = true
+for tier, _ in pairs(SeaUnitsList.Support) do
+	for unitName, _ in pairs(SeaUnitsList.Support[tier]) do
+		local unitWeight = SeaUnitsList.Support[tier][unitName]
+		if not scavBehaviours.SKIRMISH[UnitDefNames[unitName].id] then
+			scavBehaviours.SKIRMISH[UnitDefNames[unitName].id] = {distance = 500, chance = 0.1}
+			scavBehaviours.COWARD[UnitDefNames[unitName].id] = {distance = 500, chance = 0.75}
+			scavBehaviours.ARTILLERY[UnitDefNames[unitName].id] = true
+		end
+		if tier < #TierIntroductionAnger then
+			addNewSquad({ type = "basicSea", minAnger = TierIntroductionAnger[tier]*2, units = { math.ceil((#TierIntroductionAnger+1-tier)/2) .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]*2 })
+			addNewSquad({ type = "specialSea", minAnger = TierIntroductionAnger[tier], units = { math.ceil((#TierIntroductionAnger+1-tier)/2) .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
+		else 
+			addNewSquad({ type = "basicSea", minAnger = TierIntroductionAnger[tier]*2, units = { math.ceil((#TierIntroductionAnger+1-tier)/2) .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+			addNewSquad({ type = "specialSea", minAnger = TierIntroductionAnger[tier], units = { math.ceil((#TierIntroductionAnger+1-tier)/2) .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+		end
 	end
-	if tier < #TierIntroductionAnger then
-		addNewSquad({ type = "healerSea", minAnger = TierIntroductionAnger[tier], units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
-	else
-		addNewSquad({ type = "healerSea", minAnger = TierIntroductionAnger[tier], units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+end
+
+for tier, _ in pairs(SeaUnitsList.Healer) do
+	for unitName, _ in pairs(SeaUnitsList.Healer[tier]) do
+		local unitWeight = SeaUnitsList.Healer[tier][unitName]
+		if not scavBehaviours.HEALER[UnitDefNames[unitName].id] then
+			scavBehaviours.HEALER[UnitDefNames[unitName].id] = true
+		end
+		if tier < #TierIntroductionAnger then
+			addNewSquad({ type = "healerSea", minAnger = TierIntroductionAnger[tier], units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
+		else
+			addNewSquad({ type = "healerSea", minAnger = TierIntroductionAnger[tier], units = { #TierIntroductionAnger+1-tier .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+		end
 	end
 end
 
@@ -581,12 +657,14 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------- AIR
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 
-for tier, unitName in pairs(AirUnitsList) do
-	local unitWeight = AirUnitsList[tier][unitName]
-	if tier < #TierIntroductionAnger then
-		addNewSquad({ type = "air", minAnger = TierIntroductionAnger[tier], units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
-	else
-		addNewSquad({ type = "air", minAnger = TierIntroductionAnger[tier], units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+for tier, _ in pairs(AirUnitsList) do
+	for unitName, _ in pairs(AirUnitsList[tier]) do
+		local unitWeight = AirUnitsList[tier][unitName]
+		if tier < #TierIntroductionAnger then
+			addNewSquad({ type = "air", minAnger = TierIntroductionAnger[tier], units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier] })
+		else
+			addNewSquad({ type = "air", minAnger = TierIntroductionAnger[tier], units = { (#TierIntroductionAnger+1-tier)*2 .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+		end
 	end
 end
 

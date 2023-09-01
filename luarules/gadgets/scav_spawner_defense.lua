@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "27 February, 2012",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = false,
+		enabled = true,
 	}
 end
 
@@ -643,19 +643,35 @@ if gadgetHandler:IsSyncedCode() then
 			squadCounter = 0
 			local squad
 			local specialRandom = mRandom(1,100)
+			local burrowX, burrowY, burrowZ = Spring.GetUnitPosition(burrowID)
+			local surface = positionCheckLibrary.LandOrSeaCheck(burrowX, burrowY, burrowZ, config.burrowSize)
 			for _ = 1,1000 do
+				local potentialSquad
 				if specialRandom <= waveParameters.waveSpecialPercentage then
-					local potentialSquad = squadSpawnOptions.special[mRandom(1, #squadSpawnOptions.special)]
-					if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger)
-					or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
-						squad = potentialSquad
-						break
+					if surface == "land" then
+						potentialSquad = squadSpawnOptions.specialLand[mRandom(1, #squadSpawnOptions.specialLand)]
+					elseif surface == "sea" then
+						potentialSquad = squadSpawnOptions.specialSea[mRandom(1, #squadSpawnOptions.specialSea)]
+					end
+					if potentialSquad then
+						if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger)
+						or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
+							squad = potentialSquad
+							break
+						end
 					end
 				else
-					local potentialSquad = squadSpawnOptions.basic[mRandom(1, #squadSpawnOptions.basic)]
-					if potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
-						squad = potentialSquad
-						break
+					if surface == "land" then
+						potentialSquad = squadSpawnOptions.basicLand[mRandom(1, #squadSpawnOptions.basicLand)]
+					elseif surface == "sea" then
+						potentialSquad = squadSpawnOptions.basicSea[mRandom(1, #squadSpawnOptions.basicSea)]
+					end
+					if potentialSquad then
+						if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger)
+						or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
+							squad = potentialSquad
+							break
+						end
 					end
 				end
 			end
@@ -958,6 +974,8 @@ if gadgetHandler:IsSyncedCode() then
 					squadCounter = 0
 					local airRandom = mRandom(1,100)
 					local squad
+					local burrowX, burrowY, burrowZ = Spring.GetUnitPosition(burrowID)
+					local surface = positionCheckLibrary.LandOrSeaCheck(burrowX, burrowY, burrowZ, config.burrowSize)
 					if techAnger > config.airStartAnger and airRandom <= waveParameters.waveAirPercentage then
 						for _ = 1,1000 do
 							local potentialSquad = squadSpawnOptions.air[mRandom(1, #squadSpawnOptions.air)]
@@ -969,18 +987,32 @@ if gadgetHandler:IsSyncedCode() then
 					else
 						local specialRandom = mRandom(1,100)
 						for _ = 1,1000 do
+							local potentialSquad
 							if specialRandom <= waveParameters.waveSpecialPercentage then
-								local potentialSquad = squadSpawnOptions.special[mRandom(1, #squadSpawnOptions.special)]
-								if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger)
-								or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
-									squad = potentialSquad
-									break
+								if surface == "land" then
+									potentialSquad = squadSpawnOptions.specialLand[mRandom(1, #squadSpawnOptions.specialLand)]
+								elseif surface == "sea" then
+									potentialSquad = squadSpawnOptions.specialSea[mRandom(1, #squadSpawnOptions.specialSea)]
+								end
+								if potentialSquad then
+									if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger)
+									or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
+										squad = potentialSquad
+										break
+									end
 								end
 							else
-								local potentialSquad = squadSpawnOptions.basic[mRandom(1, #squadSpawnOptions.basic)]
-								if potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
-									squad = potentialSquad
-									break
+								if surface == "land" then
+									potentialSquad = squadSpawnOptions.basicLand[mRandom(1, #squadSpawnOptions.basicLand)]
+								elseif surface == "sea" then
+									potentialSquad = squadSpawnOptions.basicSea[mRandom(1, #squadSpawnOptions.basicSea)]
+								end
+								if potentialSquad then
+									if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger)
+									or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
+										squad = potentialSquad
+										break
+									end
 								end
 							end
 						end
@@ -1001,10 +1033,17 @@ if gadgetHandler:IsSyncedCode() then
 						squad = nil
 						squadCounter = 0
 						for _ = 1,1000 do
-							local potentialSquad = squadSpawnOptions.healer[mRandom(1, #squadSpawnOptions.healer)]
-							if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger) then -- Super Squad
-								squad = potentialSquad
-								break
+							local potentialSquad
+							if surface == "land" then
+								potentialSquad = squadSpawnOptions.healerLand[mRandom(1, #squadSpawnOptions.healerLand)]
+							elseif surface == "sea" then
+								potentialSquad = squadSpawnOptions.healerSea[mRandom(1, #squadSpawnOptions.healerSea)]
+							end
+							if potentialSquad then
+								if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger) then -- Super Squad
+									squad = potentialSquad
+									break
+								end
 							end
 						end
 						if squad then
@@ -1031,7 +1070,7 @@ if gadgetHandler:IsSyncedCode() then
 		return cCount
 	end
 
-	function spawnCreepStructure(unitDefName, spread)
+	function spawnCreepStructure(unitDefName, unitSettings, spread)
 		local canSpawnStructure = false
 		spread = spread or 128
 		local spawnPosX, spawnPosY, spawnPosZ
@@ -1073,6 +1112,10 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+		if (unitSettings.surface == "land" and spawnPosY <= 0) or (unitSettings.surface == "sea" and spawnPosY > 0) then
+			canSpawnStructure = false
+		end
+
 		if canSpawnStructure then
 			local structureUnitID = Spring.CreateUnit(unitDefName, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), scavTeamID)
 			if structureUnitID then
@@ -1108,7 +1151,7 @@ if gadgetHandler:IsSyncedCode() then
 						end
 						repeat
 							attempts = attempts + 1
-							local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName, footprintAvg+32)
+							local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName, uSettings, footprintAvg+32)
 							if turretUnitID then
 								setScavXP(turretUnitID)
 								Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
