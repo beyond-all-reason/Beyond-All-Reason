@@ -37,6 +37,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
 			subfolder = "armbuildings/seadefence",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
