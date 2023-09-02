@@ -95,7 +95,7 @@
 			"stealthDetected": "Stealthy units detected within the Intrusion Countermeasure range",
 			"lrpcDetected": "Long Range Plasma Cannon(s) (LRPC) detected",
 			"empSiloDetected": "EMP missile silo detected",
-			"tacticalSiloDetected": "Tactical nuke silo detected",
+			"tacticalSiloDetected": "Tactical Missile Launcher detected",
 			"nukeSiloDetected": "Nuclear silo detected",
 			"nukeBomberDetected": "Nuclear bomber detected",
 			"t3MobileTurretDetected": "Behemoth detected",
