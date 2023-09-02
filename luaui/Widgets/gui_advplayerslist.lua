@@ -2272,17 +2272,11 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead, m
 end
 
 local function formatRes(number)
-    local label
-    if number > 10000 then
-        label = table.concat({ math.floor(math.round(number / 1000)), "k" })
-    elseif number > 1000 then
-        label = table.concat({ string.sub(math.round(number / 1000, 1), 1, 2 + (string.find(math.round(number / 1000, 1), ".", nil, true) or 0)), "k" })
-    elseif number > 10 then
-        label = string.sub(math.round(number, 0), 1, 3 + (string.find(math.round(number, 0), ".", nil, true) or 0))
+    if number < 1000 then
+        return string.format("%d", number)
     else
-        label = string.sub(math.round(number, 1), 1, 2 + (string.find(math.round(number, 1), ".", nil, true) or 0))
+        return string.format("%.1fk", number / 1000)
     end
-    return tostring(label)
 end
 
 function DrawIncome(energy, metal, posY, dead)
