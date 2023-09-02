@@ -2275,7 +2275,7 @@ local function formatRes(number)
     if number < 1000 then
         return string.format("%d", number)
     else
-        return string.format("%.1fk", number / 1000);
+        return string.format("%.1fk", number / 1000)
     end
 end
 
