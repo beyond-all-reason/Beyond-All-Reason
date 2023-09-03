@@ -40,10 +40,11 @@ local function NearbyCapture(unitID, difficulty, range)
             if nearestAttacker then
                 local attackerTeamID = Spring.GetUnitTeam(nearestAttacker)
                 Spring.TransferUnit(unitID, attackerTeamID, false)
-                Spring.SetUnitHealth(unitID, {capture = 0})
+                Spring.SetUnitHealth(unitID, {capture = 0.75})
             end
+        else
+            Spring.SetUnitHealth(unitID, {capture = captureProgress + captureDamage})
         end
-        Spring.SetUnitHealth(unitID, {capture = captureProgress + captureDamage})
     end
 end
 

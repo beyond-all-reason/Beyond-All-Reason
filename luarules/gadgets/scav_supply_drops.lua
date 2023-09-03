@@ -23,7 +23,7 @@ if Spring.GetModOptions().lootboxes == "enabled" or (Spring.GetModOptions().loot
 else
 	lootboxSpawnEnabled = false
 end
-NameSuffix = ""
+
 
 function gadget:GetInfo()
     return {
@@ -138,7 +138,12 @@ local function SpawnLootbox(posx, posy, posz)
 	else
 		lootboxToSpawn = lootboxesListT1[math_random(1,#lootboxesListT1)]
 	end
-	local spawnedUnit = spCreateUnit(lootboxToSpawn..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+	local spawnedUnit = spCreateUnit(lootboxToSpawn, posx, posy, posz, math_random(0,3), spGaiaTeam)
+	if scavengersAIEnabled then
+		spCreateUnit("lootdroppod_gold_scav", posx, posy, posz, math_random(0,3), spGaiaTeam)
+	else
+		spCreateUnit("lootdroppod_gold", posx, posy, posz, math_random(0,3), spGaiaTeam)
+	end
 	if spawnedUnit then
 		
 		Spring.SetUnitNeutral(spawnedUnit, true)
@@ -173,7 +178,7 @@ function gadget:GameFrame(n)
 					canSpawnLootbox = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 128)
 				end
 				if canSpawnLootbox then
-					if Spring.Utilities.Gametype.IsScavengers() then
+					if Spring.Utilities.Gametype.IsScavengers() and math.random() <= 0.5 then
 						canSpawnLootbox = GG.IsPosInRaptorScum(posx, posy, posz)
 					else
 						canSpawnLootbox = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 32, spGaiaAllyTeam, true, true, true)
@@ -199,7 +204,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		aliveLootboxesCount = aliveLootboxesCount + 1
 
 		for i = 1,#lootboxesListT1 do
-			if lootboxesListT1[i]..NameSuffix == UnitName then
+			if lootboxesListT1[i] == UnitName then
 				aliveLootboxesT1[#aliveLootboxesT1+1] = unitID
 				aliveLootboxesCountT1 = aliveLootboxesCountT1 + 1
 				aliveLootboxCaptureDifficulty[unitID] = 2
@@ -209,7 +214,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			end
 		end
 		for i = 1,#lootboxesListT2 do
-			if lootboxesListT2[i]..NameSuffix == UnitName then
+			if lootboxesListT2[i] == UnitName then
 				aliveLootboxesT2[#aliveLootboxesT2+1] = unitID
 				aliveLootboxesCountT2 = aliveLootboxesCountT2 + 1
 				aliveLootboxCaptureDifficulty[unitID] = 4
@@ -219,7 +224,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			end
 		end
 		for i = 1,#lootboxesListT3 do
-			if lootboxesListT3[i]..NameSuffix == UnitName then
+			if lootboxesListT3[i] == UnitName then
 				aliveLootboxesT3[#aliveLootboxesT3+1] = unitID
 				aliveLootboxesCountT3 = aliveLootboxesCountT3 + 1
 				aliveLootboxCaptureDifficulty[unitID] = 8
@@ -229,7 +234,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			end
 		end
 		for i = 1,#lootboxesListT4 do
-			if lootboxesListT4[i]..NameSuffix == UnitName then
+			if lootboxesListT4[i] == UnitName then
 				aliveLootboxesT4[#aliveLootboxesT4+1] = unitID
 				aliveLootboxesCountT4 = aliveLootboxesCountT4 + 1
 				aliveLootboxCaptureDifficulty[unitID] = 16
