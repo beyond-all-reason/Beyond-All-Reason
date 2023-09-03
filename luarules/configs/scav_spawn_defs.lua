@@ -28,7 +28,7 @@ local difficultyParameters = {
 		minScavs		  		= 5,
 		maxScavs		  		= 25,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 'corcomboss_scav',
+		queenName         		= 'armscavengerbossv2_scav',
 		queenResistanceMult   	= 0.5,
 	},
 
@@ -47,7 +47,7 @@ local difficultyParameters = {
 		minScavs		  		= 5,
 		maxScavs		  		= 30,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 'corcomboss_scav',
+		queenName         		= 'armscavengerbossv2_scav',
 		queenResistanceMult   	= 0.75,
 	},
 	[difficulties.normal] = {
@@ -65,7 +65,7 @@ local difficultyParameters = {
 		minScavs		  		= 5,
 		maxScavs		  		= 35,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 'corcomboss_scav',
+		queenName         		= 'armscavengerbossv2_scav',
 		queenResistanceMult  	= 1,
 	},
 	[difficulties.hard] = {
@@ -83,7 +83,7 @@ local difficultyParameters = {
 		minScavs		  		= 5,
 		maxScavs		  		= 40,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 'corcomboss_scav',
+		queenName         		= 'armscavengerbossv2_scav',
 		queenResistanceMult   	= 1.33,
 	},
 	[difficulties.veryhard] = {
@@ -101,7 +101,7 @@ local difficultyParameters = {
 		minScavs		  		= 5,
 		maxScavs		  		= 45,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 'corcomboss_scav',
+		queenName         		= 'armscavengerbossv2_scav',
 		queenResistanceMult   	= 1.67,
 	},
 	[difficulties.epic] = {
@@ -119,7 +119,7 @@ local difficultyParameters = {
 		minScavs		  		= 5,
 		maxScavs		  		= 50,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 'corcomboss_scav',
+		queenName         		= 'armscavengerbossv2_scav',
 		queenResistanceMult   	= 2,
 	},
 
@@ -165,408 +165,565 @@ local TierIntroductionAnger = { -- Double for basic squads
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
 local LandUnitsList = {
-		Raid = {
-			[1] = {
-				--Armada 
-				["armflea_scav"] = 2,
-				["armpw_scav"] = 3,
-				["armfav_scav"] = 2,
-				["armsh_scav"] = 1,
-				--Cortex
-				["corak_scav"] = 3,
-				["corfav_scav"] = 2,
-				["corsh_scav"] = 1,
-				--Legion
-				["leggob_scav"] = 2,
-			},
-			[2] = {
-				--Armada
-				["armflash_scav"] = 2,
-				["armzapper_scav"] = 1,
-		        --Cortex
-				["corgator_scav"] = 2,
-                --Legion
-				["leghades_scav"] = 2,
-			},
-			[3] = {
-                --Armada
-				["armlatnk_scav"] = 3,
-				["armamph_scav"] = 1,
-				["armfast_scav"] = 3,
-				--Cortex
-				["cortorch_scav"] = 1,
-				["corsala_scav"] = 1,
-				["corpyro_scav"] = 3,
-				["corseal_scav"] = 1,
-				["coramph_scav"] = 1,
-				--Legion
-				["legmrv_scav"] = 1,
-				["legstr_scav"] = 3,
-			},
-			[4] = {
-                --Armada
-
-				--Cortex
-
-				--Legion
-
-
-			},
-			[5] = {
-				--Armada
-				["armpwt4_scav"] = 1,
-				["armmar_scav"] = 1,
-				--Cortex
-				["corakt4_scav"] = 1,
-				--Legion
-                --N/A
-			},
-			[6] = {
-			    --Armada
-				["armraz_scav"] = 1,
-				--Cortex
-				["cordemont4_scav"] = 1,
-				--Legion	
-                --N/A
-			},
+	Raid = {
+		[1] = {
+			--Armada 
+			["armflea_scav"] = 2,
+			["armpw_scav"] = 3,
+			["armfav_scav"] = 2,
+			["armsh_scav"] = 1,
+			--Cortex
+			["corak_scav"] = 3,
+			["corfav_scav"] = 2,
+			["corsh_scav"] = 1,
+			--Legion
+			["leggob_scav"] = 2,
 		},
-		Assault = {
-			[1] = {
-				--Armada
-				["armham_scav"] = 3,
-				["armpincer_scav"] = 1,
-				--Cortex
-				["corthud_scav"] = 3,
-				["corgarp_scav"] = 1,
-				--Legion
-				["legcen_scav"] = 1,
-				["leglob_scav"] = 2,
-			},
-			[2] = {
-				--Armada
-				["armwar_scav"] = 2,
-				["armstump_scav"] = 2,
-				["armjanus_scav"] = 1,
-				["armanac_scav"] = 1,
-				--Cortex
-				["corraid_scav"] = 2,
-				["corlevlr_scav"] = 2,
-				["corhal_scav"] = 1,
-				["corsnap_scav"] = 1,
-				--Legion
-				["leggat_scav"] = 2,
-				["legkark_scav"] = 2,
-			},
-			[3] = {
-				--Armada
-				["armzeus_scav"] = 1,
-				--Cortex
-				["corcan_scav"] = 1,
-				--Legion
-				["legshot_scav"] = 1,
-
-			},
-			[4] = {
-				--Armada
-				["armsnipe_scav"] = 2,
-				["armvader_scav"] = 1,
-				["armsptk_scav"] = 1,
-				["armbull_scav"] = 3,
-				["armcroc_scav"] = 1,
-				--Cortex
-				["corparrow_scav"] = 1,
-				["corftiger_scav"] = 3,
-				["corgol_scav"] = 1,
-				["corroach_scav"] = 1,
-				["corsktl_scav"] = 1,
-				["cortermite_scav"] = 1,
-				["corsumo_scav"] = 2,
-				["correap_scav"] = 3,
-				["corgatreap_scav"] = 2,
-				--Legion
-				["legsco_scav"] = 1,
-				["leginc_scav"] = 1,
-			},
-			[5] = {
-				--Armada
-				["armassimilator_scav"] = 1,
-				["armmeatball_scav"] = 1,
-				["armlun_scav"] = 1,
-				--Cortex
-				["corshiva_scav"] = 2,
-				["corkarg_scav"] = 1,
-				["corsok_scav"] = 1,
-				--Legion
-				--N/A
-			},
-			[6] = {
-				--Armada
-				["armthor_scav"] = 1,
-				["armbanth_scav"] = 1,
-				["armrattet4_scav"] = 1,
-				["armvadert4_scav"] = 1,
-				["armsptkt4_scav"] = 1,
-				--Cortex
-				["corjugg_scav"] = 1,
-				["corkorg_scav"] = 1,
-				["corkarganetht4_scav"] = 1,
-				["corgolt4_scav"] = 1,
-				--Legion
-				["legpede_scav"] = 1,
-			},
+		[2] = {
+			--Armada
+			["armflash_scav"] = 2,
+			["armzapper_scav"] = 1,
+			--Cortex
+			["corgator_scav"] = 2,
+			--Legion
+			["leghades_scav"] = 2,
 		},
-		Support = {
-			[1] = {
-				--Armada
-				["armrock_scav"] = 2,
-				["armjeth_scav"] = 1,
-				["armah_scav"] = 1,
-				--Cortex	
-				["corstorm_scav"] = 2,
-				["corcrash_scav"] = 1,
-				["corah_scav"] = 1,
-				--Legion
-				["legbal_scav"] = 2,
-			},
-			[2] = {
-				--Armada
-				["armart_scav"] = 2,
-				["armsam_scav"] = 1,
-				["armmh_scav"] = 1,
-				--Cortex
-				["corwolv_scav"] = 2,
-				["cormist_scav"] = 1,
-				["cormh_scav"] = 1,
-				--Legion
-				["leghelios_scav"] = 1,
-				["legbar_scav"] = 1,
-				["legrail_scav"] = 1,
-			},
-			[3] = {
-				--Armada	
-				["armfido_scav"] = 2,
-				["armaak_scav"] = 1,
-				["armmav_scav"] = 1,
-				["armyork_scav"] = 1,
-				["armmart_scav"] = 1,
-				--Cortex
-				["cormart_scav"] = 1,
-				["corsent_scav"] = 1,
-				["coraak_scav"] = 1,
-				["cormort_scav"] = 2,
-				--Legion
-				["legvcarry_scav"] = 1,
-				["legbart_scav"] = 1,
-
-			},
-			[4] = {
-				--Armada
-				["armfboy_scav"] = 1,
-				["armmanni_scav"] = 1,
-				["armmerl_scav"] = 1,
-				--Cortex
-				["corban_scav"] = 1,
-				["corvroc_scav"] = 1,
-				["cortrem_scav"] = 1,
-				["corhrk_scav"] = 1,
-				--Legion
-				["leginf_scav"] = 1,
-
-			},
-			[5] = {
-				--Armada
-				["armvang_scav"] = 1,
-				--Cortex
-				["corcat_scav"] = 1,
-				--Legion
-			},
-			[6] = {
-				--Armada
-				
-				--Cortex
-				
-				--Legion
-				--N/A
-			},
+		[3] = {
+			--Armada
+			["armlatnk_scav"] = 3,
+			["armamph_scav"] = 1,
+			["armfast_scav"] = 3,
+			--Cortex
+			["cortorch_scav"] = 1,
+			["corsala_scav"] = 1,
+			["corpyro_scav"] = 3,
+			["corseal_scav"] = 1,
+			["coramph_scav"] = 1,
+			--Legion
+			["legmrv_scav"] = 1,
+			["legstr_scav"] = 3,
 		},
-		Healer = {
-			[1] = {
-				--Armada
-				["armck_scav"] = 1,
-				["armrectr_scav"] = 20,
-				["armcv_scav"] = 1,
-				--Cortex
-				["corck_scav"] = 1,
-				["cornecro_scav"] = 20,
-				["corcv_scav"] = 1,
-				--Legion
-				["legcv_scav"] = 1,
-				["legck_scav"] = 1,
-			},
-			[2] = {
-				--Armada
+		[4] = {
+			--Armada
 
-				--Cortex
+			--Cortex
 
-				--Legion
+			--Legion
 
-			},
-			[3] = {
-				--Armada	
-				["armack_scav"] = 1,
-				["armacv_scav"] = 1,
-				["armfark_scav"] = 1,
-				["armdecom_scav"] = 1,
-				["armconsul_scav"] = 1,
-				--Cortex
-				["corack_scav"] = 1,
-				["coracv_scav"] = 1,
-				["corfast_scav"] = 1,
-				["cordecom_scav"] = 1,
-				["corvac_scav"] = 1,
-				["cormando_scav"] = 1,
-				["corforge_scav"] = 1,
-				--Legion
-				["legacv_scav"] = 1,
-				["legack_scav"] = 1,
 
-			},
-			[4] = {
-				--Armada	
-
-				--Cortex
-
-				--Legion
-
-			},
-			[5] = {
-				--Armada
-
-				--Cortex
-
-				--Legion
-			},
-			[6] = {
-				--Armada
-
-				--Cortex
-
-				--Legion
-			},
 		},
-	}
+		[5] = {
+			--Armada
+			["armpwt4_scav"] = 1,
+			["armmar_scav"] = 1,
+			--Cortex
+			["corakt4_scav"] = 1,
+			--Legion
+			--N/A
+		},
+		[6] = {
+			--Armada
+			["armraz_scav"] = 1,
+			--Cortex
+			["cordemont4_scav"] = 1,
+			--Legion	
+			--N/A
+		},
+	},
+	Assault = {
+		[1] = {
+			--Armada
+			["armham_scav"] = 3,
+			["armpincer_scav"] = 1,
+			--Cortex
+			["corthud_scav"] = 3,
+			["corgarp_scav"] = 1,
+			--Legion
+			["legcen_scav"] = 1,
+			["leglob_scav"] = 2,
+		},
+		[2] = {
+			--Armada
+			["armwar_scav"] = 2,
+			["armstump_scav"] = 2,
+			["armjanus_scav"] = 1,
+			["armanac_scav"] = 1,
+			--Cortex
+			["corraid_scav"] = 2,
+			["corlevlr_scav"] = 2,
+			["corhal_scav"] = 1,
+			["corsnap_scav"] = 1,
+			--Legion
+			["leggat_scav"] = 2,
+			["legkark_scav"] = 2,
+		},
+		[3] = {
+			--Armada
+			["armzeus_scav"] = 1,
+			--Cortex
+			["corcan_scav"] = 1,
+			--Legion
+			["legshot_scav"] = 1,
+
+		},
+		[4] = {
+			--Armada
+			["armsnipe_scav"] = 2,
+			["armvader_scav"] = 1,
+			["armsptk_scav"] = 1,
+			["armbull_scav"] = 3,
+			["armcroc_scav"] = 1,
+			--Cortex
+			["corparrow_scav"] = 1,
+			["corftiger_scav"] = 3,
+			["corgol_scav"] = 1,
+			["corroach_scav"] = 1,
+			["corsktl_scav"] = 1,
+			["cortermite_scav"] = 1,
+			["corsumo_scav"] = 2,
+			["correap_scav"] = 3,
+			["corgatreap_scav"] = 2,
+			--Legion
+			["legsco_scav"] = 1,
+			["leginc_scav"] = 1,
+		},
+		[5] = {
+			--Armada
+			["armassimilator_scav"] = 1,
+			["armmeatball_scav"] = 1,
+			["armlun_scav"] = 1,
+			--Cortex
+			["corshiva_scav"] = 2,
+			["corkarg_scav"] = 1,
+			["corsok_scav"] = 1,
+			--Legion
+			--N/A
+		},
+		[6] = {
+			--Armada
+			["armthor_scav"] = 1,
+			["armbanth_scav"] = 1,
+			["armrattet4_scav"] = 1,
+			["armvadert4_scav"] = 1,
+			["armsptkt4_scav"] = 1,
+			--Cortex
+			["corjugg_scav"] = 1,
+			["corkorg_scav"] = 1,
+			["corkarganetht4_scav"] = 1,
+			["corgolt4_scav"] = 1,
+			--Legion
+			["legpede_scav"] = 1,
+		},
+	},
+	Support = {
+		[1] = {
+			--Armada
+			["armrock_scav"] = 2,
+			["armjeth_scav"] = 1,
+			["armah_scav"] = 1,
+			--Cortex	
+			["corstorm_scav"] = 2,
+			["corcrash_scav"] = 1,
+			["corah_scav"] = 1,
+			--Legion
+			["legbal_scav"] = 2,
+		},
+		[2] = {
+			--Armada
+			["armart_scav"] = 2,
+			["armsam_scav"] = 1,
+			["armmh_scav"] = 1,
+			--Cortex
+			["corwolv_scav"] = 2,
+			["cormist_scav"] = 1,
+			["cormh_scav"] = 1,
+			--Legion
+			["leghelios_scav"] = 1,
+			["legbar_scav"] = 1,
+			["legrail_scav"] = 1,
+		},
+		[3] = {
+			--Armada	
+			["armfido_scav"] = 2,
+			["armaak_scav"] = 1,
+			["armmav_scav"] = 1,
+			["armyork_scav"] = 1,
+			["armmart_scav"] = 1,
+			--Cortex
+			["cormart_scav"] = 1,
+			["corsent_scav"] = 1,
+			["coraak_scav"] = 1,
+			["cormort_scav"] = 2,
+			--Legion
+			["legvcarry_scav"] = 1,
+			["legbart_scav"] = 1,
+
+		},
+		[4] = {
+			--Armada
+			["armfboy_scav"] = 2,
+			["armmanni_scav"] = 1,
+			["armmerl_scav"] = 1,
+			--Cortex
+			["corban_scav"] = 2,
+			["corvroc_scav"] = 1,
+			["cortrem_scav"] = 1,
+			["corhrk_scav"] = 1,
+			--Legion
+			["leginf_scav"] = 1,
+
+		},
+		[5] = {
+			--Armada
+			["armvang_scav"] = 3,
+			["armdronecarryland_scav"] = 3,
+			["armscab_scav"] = 1,
+			--Cortex
+			["corcat_scav"] = 3,
+			["cormabm_scav"] = 1,
+			--Legion
+		},
+		[6] = {
+			--Armada
+			
+			--Cortex
+			
+			--Legion
+			--N/A
+		},
+	},
+	Healer = {
+		[1] = {
+			--Armada
+			["armck_scav"] = 1,
+			["armrectr_scav"] = 20,
+			["armcv_scav"] = 1,
+			--Cortex
+			["corck_scav"] = 1,
+			["cornecro_scav"] = 20,
+			["corcv_scav"] = 1,
+			--Legion
+			["legcv_scav"] = 1,
+			["legck_scav"] = 1,
+		},
+		[2] = {
+			--Armada
+
+			--Cortex
+
+			--Legion
+
+		},
+		[3] = {
+			--Armada	
+			["armack_scav"] = 1,
+			["armacv_scav"] = 1,
+			["armfark_scav"] = 1,
+			["armdecom_scav"] = 1,
+			["armconsul_scav"] = 1,
+			--Cortex
+			["corack_scav"] = 1,
+			["coracv_scav"] = 1,
+			["corfast_scav"] = 1,
+			["cordecom_scav"] = 1,
+			["cormando_scav"] = 1,
+			["corforge_scav"] = 1,
+			--Legion
+			["legacv_scav"] = 1,
+			["legack_scav"] = 1,
+
+		},
+		[4] = {
+			--Armada	
+
+			--Cortex
+
+			--Legion
+
+		},
+		[5] = {
+			--Armada
+
+			--Cortex
+
+			--Legion
+		},
+		[6] = {
+			--Armada
+
+			--Cortex
+
+			--Legion
+		},
+	},
+}
 
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
 
 local SeaUnitsList = {
-		Raid = {
-			[1] = {
-				["armpt_scav"] = 1,
-			},
-			[2] = {
-				["armdecade_scav"] = 1,
-			},
-			[3] = {
-				["armdecade_scav"] = 1,
-			},
-			[4] = {
-				["armdecade_scav"] = 1,
-			},
-			[5] = {
-				["armdecade_scav"] = 1,
-			},
-			[6] = {
-				["armdecade_scav"] = 1,
-			},
+	Raid = {
+		[1] = {
+		--Armada	
+		["armdecade_scav"] = 1,
+		--Cortex
+		["coresupp_scav"] = 1,
 		},
-		Assault = {
-			[1] = {
-				["armpship_scav"] = 1,
-			},
-			[2] = {
-				["armpship_scav"] = 1,
-			},
-			[3] = {
-				["armpship_scav"] = 1,
-			},
-			[4] = {
-				["armpship_scav"] = 1,
-			},
-			[5] = {
-				["armpship_scav"] = 1,
-			},
-			[6] = {
-				["armpship_scav"] = 1,
-			},
+		[2] = {
+		--Armada	
+
+		--Cortex
+
 		},
-		Support = {
-			[1] = {
-				["armroy_scav"] = 1,
-			},
-			[2] = {
-				["armroy_scav"] = 1,
-			},
-			[3] = {
-				["armroy_scav"] = 1,
-			},
-			[4] = {
-				["armroy_scav"] = 1,
-			},
-			[5] = {
-				["armroy_scav"] = 1,
-			},
-			[6] = {
-				["armroy_scav"] = 1,
-			},
+		[3] = {
+		--Armada	
+		["armlship_scav"] = 1,
+		--Cortex
+		["corfship_scav"] = 1,
 		},
-		Healer = {
-			[1] = {
-				["armcs_scav"] = 1,
-			},
-			[2] = {
-				["armcs_scav"] = 1,
-			},
-			[3] = {
-				["armcs_scav"] = 1,
-			},
-			[4] = {
-				["armcs_scav"] = 1,
-			},
-			[5] = {
-				["armcs_scav"] = 1,
-			},
-			[6] = {
-				["armcs_scav"] = 1,
-			},
+		[4] = {
+		--Armada	
+		["armsubk_scav"] = 1,
+		--Cortex
+		["corshark_scav"] = 1,
 		},
-	}
+		[5] = {
+		--Armada	
+
+		--Cortex
+
+		},
+		[6] = {
+		--Armada	
+
+		--Cortex
+
+		},
+	},
+	Assault = {
+		[1] = {
+		--Armada	
+
+		--Cortex
+		},
+		[2] = {
+		--Armada	
+		["armpship_scav"] = 2,
+		["armroy_scav"] = 1,
+		--Cortex
+		["corpship_scav"] = 2,
+		["corroy_scav"] = 1,
+		},
+		[3] = {
+		--Armada	
+		["armcrus_scav"] = 1,
+		--Cortex
+		["corcrus_scav"] = 1,
+		},
+		[4] = {
+		--Armada	
+		["armbats_scav"] = 1,
+		--Cortex
+		["corbats_scav"] = 1,
+		},
+		[5] = {
+		--Armada	
+		["armpshipt3_scav"] = 2,
+		["armptt2_scav"] = 2,
+		--Cortex
+		["corblackhy_scav"] = 1,
+		},
+		[6] = {
+		--Armada	
+		["armepoch_scav"] = 1,
+		["armserpt3_scav"] = 1,
+		--Cortex
+		["coresuppt3_scav"] = 1,
+		},
+	},
+	Support = {
+		[1] = {
+		--Armada	
+		["armpt_scav"] = 1,
+		--Cortex
+		["corpt_scav"] = 1,
+		},
+		[2] = {
+		--Armada	
+		["armsub_scav"] = 1,
+		--Cortex
+		["corsub_scav"] = 1,
+		},
+		[3] = {
+		--Armada	
+		["armcarry2_scav"] = 2,
+		["armantiship_scav"] = 1,
+		["armdronecarry_scav"] = 2,
+		["armaas_scav"] = 1,
+		--Cortex
+		["cordronecarry_scav"] = 2,
+		["corantiship_scav"] = 1,
+		["corcarry2_scav"] = 2,
+		["corarch_scav"] = 1,
+		},
+		[4] = {
+		--Armada	
+		["armserp_scav"] = 2,
+		["armmship_scav"] = 2,
+		["armsjam_scav"] = 1,
+		--Cortex
+		["corssub_scav"] = 2,
+		["cormship_scav"] = 2,
+		["corsjam_scav"] = 1,
+		},
+		[5] = {
+		--Armada	
+		
+		--Cortex
+		
+		},
+		[6] = {
+		--Armada	
+		["armdecadet3_scav"] = 2,
+		--Cortex
+		["corslrpc_scav"] = 2,
+		},
+	},
+	Healer = {
+		[1] = {
+		--Armada	
+
+		--Cortex
+		
+		},
+		[2] = {
+		--Armada	
+		["armcs_scav"] = 1,
+		["armrecl_scav"] = 3,
+		--Cortex
+		["corcs_scav"] = 1,
+		["correcl_scav"] = 3,
+		},
+		[3] = {
+		--Armada	
+		["armacsub_scav"] = 2,
+		["armmls_scav"] = 1,
+		--Cortex
+		["coracsub_scav"] = 2,
+		["cormls_scav"] = 1,
+		},
+		[4] = {
+		--Armada	
+
+		--Cortex
+		},
+		[5] = {
+		--Armada	
+
+		--Cortex
+		},
+		[6] = {
+		--Armada	
+
+		--Cortex
+		},
+	},
+}
 
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
 
 local AirUnitsList = {
-		[1] = {
-			["armpeep_scav"] = 1,
-		},
-		[2] = {
-			["armkam_scav"] = 1,
-		},
-		[3] = {
-			["armkam_scav"] = 1,
-		},
-		[4] = {
-			["armkam_scav"] = 1,
-		},
-		[5] = {
-			["armkam_scav"] = 1,
-		},
-		[6] = {
-			["armkam_scav"] = 1,
-		},
-	}
+	[1] = {
+	--Armada
+	["armpeep_scav"] = 1,
+	["armsehak_scav"]= 1,
+	--Cortex
+	["corfink_scav"] = 1,
+	["corbw_scav"] = 1,
+	["corhunt_scav"] = 1,
+	--Legion
+	["legfig_scav"] = 1,
+		
+	},
+	[2] = {
+	--Armada
+	["armca_scav"] = 1,
+	["armfig_scav"] = 1,
+	["armkam_scav"] = 1,
+	["armthund_scav"] = 1,
+	["armsfig_scav"] = 1,
+	["armcsa_scav"] = 1,
+	--Cortex
+	["corca_scav"] = 1,
+	["corveng_scav"] = 1,
+	["corshad_scav"] = 1,
+	["corsfig_scav"] = 1,
+	["corcsa_scav"] = 1,
+	--Legion
+	["legca_scav"] = 1,
+	["legmos_scav"] = 1,
+	["legcib_scav"] = 1,
+	["legkam_scav"] = 1,
+		
+	},
+	[3] = {
+	--Armada
+	["armaca_scav"] = 1,
+	["armawac_scav"] = 1,
+	["armsaber_scav"] = 2,
+	["armseap_scav"] = 1,
+	["armsb_scav"] = 1,
+	["armlance_scav"] = 1,
+	--Cortex
+	["coraca_scav"] = 1,
+	["corawac_scav"] = 1,
+	["corcut_scav"] = 2,
+	["corsb_scav"] = 1,
+	["corseap_scav"] = 1,
+	["cortitan_scav"] = 1,
+	--Legion
+	["legaca_scav"] = 1,
+	},
+	[4] = {
+	--Armada
+	["armhawk_scav"] = 1,
+	["armbrawl_scav"] = 1,
+	["armpnix_scav"] = 1,
+	["armstil_scav"] = 1,
+	["armblade_scav"] = 1,
+	["armliche_scav"] = 1,
+	--Cortex
+	["corvamp_scav"] = 1,
+	["corape_scav"] = 1,
+	["corhurc_scav"] = 1,
+	["corcrw_scav"] = 1,
+	--Legion
+	["legnap_scav"] = 1,
+	["legmineb_scav"] = 1,
+	["legfort_scav"] = 1,
+	},
+	[5] = {
+	--Armada
+	["armthundt4_scav"] = 1,
+	--Cortex
+	["cordronecarryair_scav"] = 1,
+	--Legion
+	--N/A
+	},
+	[6] = {
+	--Armada
+	["armfepocht4_scav"] = 1,
+	["armlichet4_scav"] = 1,
+	--Cortex
+	["corfblackhyt4_scav"] = 1,
+	["corcrwt4_scav"] = 1,
+	--Legion
+	--N/A
+	},
+}
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
@@ -574,28 +731,111 @@ local AirUnitsList = {
 -- surfaces: land, sea, mixed
 -- don't put the same turret twice in here, ever.
 local Turrets = {
-		[1] = {
-			["armllt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 10},
-			["corllt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 10},
-			["armrl_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 10},
-			["corrl_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 10},
-		},
-		[2] = {
-
-		},
-		[3] = {
-
-		},
-		[4] = {
-
-		},
-		[5] = {
-
-		},
-		[6] = {
-
-		},
-	}
+	[1] = {
+		["armllt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 10},
+		["corllt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 10},
+		["armrl_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 10},
+		["corrl_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 10},
+		--["cordl_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 1, maxExisting = 1},
+		--["armdl_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 1, maxExisting = 1},
+		--Sea Only
+		["armfhlt_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5},
+		["corflhlt_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5},
+		["armfrt_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 1, maxExisting = 2},
+		["corfrt_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 1, maxExisting = 2},
+		["cortl_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 4},
+		["armtl_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 4},
+		["armfrock_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 1, maxExisting = 2},
+		["corfrock_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 1, maxExisting = 2},
+		["corgplat_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		["armgplat_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		--radar/jam
+		["corrad_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["corjamt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["armrad_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["armjamt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+	},
+	[2] = {
+		["armbeamer_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		["corhllt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		["cormaw_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 4},
+		["armclaw_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 4},
+		["armferret_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["cormadsam_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		["corhlt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["corpun_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["armhlt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		["armguard_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["corscavdtl_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["corscavdtf_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["corscavdtm_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["legdefcarryt1_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+	},
+	[3] = {
+		["armcir_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["corerad_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		--Sea
+		["corfdoom_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5},
+		["coratl_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5},
+		["corenaa_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 1, maxExisting = 5},
+		["corason_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 1},
+		["armkraken_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5},
+		["armfflak_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 1, maxExisting = 5},
+		["armatl_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5},
+		["armason_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 1},
+		--T2 Radar/jam
+		["corarad_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["corshroud_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["armarad_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["armveil_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		--T2 Popups
+		["armlwall_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["cormwall_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["armpb_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["corvipe_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		--Misc
+		["corhllllt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["armgate_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["corgate_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		--T2 AA
+		["corflak_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 4},
+		["armflak_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 4},
+		["armmercury_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["corscreamer_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+	},
+	[4] = {
+		-- T2 popup arty
+		["armamb_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["cortoast_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		-- Pulsar and Bulwark normals
+		["armanni_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["cordoom_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		--LRPC
+		["armbrtha_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["corint_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		--nukes
+		["corsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["armsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["armamd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["corfmd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		--Tactical Weapons
+		["cortron_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["armemp_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+	
+	},
+	[5] = {
+		["arminivulc_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["corminibuzz_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["armbotrail_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+	},
+	[6] = {
+		--Epic Bulwark and Pulsar/rag/cal
+		["armannit3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["cordoomt3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["armvulc_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 1, maxExisting = 1},
+		["corbuzz_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 1, maxExisting = 1},
+	},
+}
 
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
@@ -610,6 +850,8 @@ for tier, _ in pairs(Turrets) do
 		(not ( Spring.GetModOptions().unit_restrictions_noair and turretInfo.type == "antiair")) and
 		(not ( Spring.GetModOptions().unit_restrictions_nonukes and turretInfo.type == "nuke")) and
 		(not (Spring.GetModOptions().unit_restrictions_nolrpc and turretInfo.type == "lrpc")) then
+			Spring.Echo("---")
+			Spring.Echo(turret)
 			Spring.Echo(UnitDefs[UnitDefNames[turret].id].name)
 			scavTurrets[turret] = { 
 				minQueenAnger = TierIntroductionAnger[tier],
@@ -625,13 +867,13 @@ end
 
 scavBehaviours = {
 	SKIRMISH = { -- Run away from target after target gets hit
-		--[UnitDefNames["raptor1x_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["armscavengerbossv2_scav"].id] = { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 60,},
 	},
 	COWARD = { -- Run away from target after getting hit by enemy
-		--[UnitDefNames["raptor1x_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["armscavengerbossv2_scav"].id] = { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 60,},
 	},
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
-		--[UnitDefNames["raptor1x_spectre"].id] = { distance = 1000, chance = 0.25},
+		[UnitDefNames["armscavengerbossv2_scav"].id] = { distance = 2000, chance = 0.001},
 	},
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and queen
 		--[UnitDefNames["raptorhealer1"].id] = true,

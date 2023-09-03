@@ -95,6 +95,7 @@ local units = {
 	armcom = { "armcom.png", 1.83749986 },
 	armcomcon = { "armcom.png", 1.83749986 },
 	armcomboss = { "armcomboss.png", 4.19999981 },
+	armscavengerbossv2 = { "armcomboss.png", 4.19999981 },
 	armconsul = { "armconsul_1.35.png", 1.41750002 },
 	armcroc = { "armcroc.png", 1.67999995 },
 	armcrus = { "ship_t2_cruiser_plasma.png", 2.25749993 },

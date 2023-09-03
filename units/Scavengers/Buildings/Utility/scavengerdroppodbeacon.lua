@@ -21,7 +21,7 @@ return {
 		metalstorage = 1000,
 		energymake = 10000,
 		metalmake = 1000,
-		explodeas = "lootboxExplosion2",
+		explodeas = "commanderExplosion",
 		floater = false,
 		footprintx = 0,
 		footprintz = 0,
