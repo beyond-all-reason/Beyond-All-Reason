@@ -1132,8 +1132,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-
-		if (unitSettings.surface == "land" and spawnPosY <= 0) or (unitSettings.surface == "sea" and spawnPosY > 0) then
+		if (unitSettings.surfaceType == "land" and spawnPosY <= 0) or (unitSettings.surfaceType == "sea" and spawnPosY > 0) then
 			canSpawnStructure = false
 		end
 

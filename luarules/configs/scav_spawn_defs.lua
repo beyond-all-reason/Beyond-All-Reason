@@ -18,7 +18,7 @@ local difficultyParameters = {
 		queenTime      	  		= 50 * Spring.GetModOptions().scav_queentimemult * 60, -- time at which the queen appears, frames
 		scavSpawnRate   		= 120 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 240 * Spring.GetModOptions().scav_spawntimemult,
-		turretSpawnRate   		= 120 * Spring.GetModOptions().scav_spawntimemult,
+		turretSpawnRate   		= 260 * Spring.GetModOptions().scav_spawntimemult,
 		queenSpawnMult    		= 1,
 		angerBonus        		= 1,
 		maxXP			  		= 0.5,
@@ -37,7 +37,7 @@ local difficultyParameters = {
 		queenTime      	  		= 45 * Spring.GetModOptions().scav_queentimemult * 60, -- time at which the queen appears, frames
 		scavSpawnRate   		= 90 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 210 * Spring.GetModOptions().scav_spawntimemult,
-		turretSpawnRate   		= 100 * Spring.GetModOptions().scav_spawntimemult,
+		turretSpawnRate   		= 230 * Spring.GetModOptions().scav_spawntimemult,
 		queenSpawnMult    		= 1,
 		angerBonus        		= 1.2,
 		maxXP			  		= 1,
@@ -55,7 +55,7 @@ local difficultyParameters = {
 		queenTime      	  		= 40 * Spring.GetModOptions().scav_queentimemult * 60, -- time at which the queen appears, frames
 		scavSpawnRate   		= 60 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 180 * Spring.GetModOptions().scav_spawntimemult,
-		turretSpawnRate   		= 80 * Spring.GetModOptions().scav_spawntimemult,
+		turretSpawnRate   		= 200 * Spring.GetModOptions().scav_spawntimemult,
 		queenSpawnMult    		= 3,
 		angerBonus        		= 1.4,
 		maxXP			  		= 1.5,
@@ -73,7 +73,7 @@ local difficultyParameters = {
 		queenTime      	  		= 40 * Spring.GetModOptions().scav_queentimemult * 60, -- time at which the queen appears, frames
 		scavSpawnRate   		= 50 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 150 * Spring.GetModOptions().scav_spawntimemult,
-		turretSpawnRate   		= 60 * Spring.GetModOptions().scav_spawntimemult,
+		turretSpawnRate   		= 170 * Spring.GetModOptions().scav_spawntimemult,
 		queenSpawnMult    		= 3,
 		angerBonus        		= 1.6,
 		maxXP			  		= 2,
@@ -91,7 +91,7 @@ local difficultyParameters = {
 		queenTime      	  		= 35 * Spring.GetModOptions().scav_queentimemult * 60, -- time at which the queen appears, frames
 		scavSpawnRate  			= 40 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 120 * Spring.GetModOptions().scav_spawntimemult,
-		turretSpawnRate   		= 40 * Spring.GetModOptions().scav_spawntimemult,
+		turretSpawnRate   		= 140 * Spring.GetModOptions().scav_spawntimemult,
 		queenSpawnMult    		= 3,
 		angerBonus        		= 1.8,
 		maxXP			  		= 2.5,
@@ -109,7 +109,7 @@ local difficultyParameters = {
 		queenTime      	  		= 30 * Spring.GetModOptions().scav_queentimemult * 60, -- time at which the queen appears, frames
 		scavSpawnRate   		= 30 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 90 * Spring.GetModOptions().scav_spawntimemult,
-		turretSpawnRate   		= 20 * Spring.GetModOptions().scav_spawntimemult,
+		turretSpawnRate   		= 110 * Spring.GetModOptions().scav_spawntimemult,
 		queenSpawnMult    		= 3,
 		angerBonus        		= 2,
 		maxXP			  		= 3,
@@ -740,20 +740,15 @@ local Turrets = {
 		--["armdl_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 1, maxExisting = 1},
 		--Sea Only
 		["armfhlt_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5},
-		["corflhlt_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5},
+		["corfhlt_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5},
 		["armfrt_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 1, maxExisting = 2},
 		["corfrt_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 1, maxExisting = 2},
 		["cortl_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 4},
 		["armtl_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 4},
 		["armfrock_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 1, maxExisting = 2},
 		["corfrock_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 1, maxExisting = 2},
-		["corgplat_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
-		["armgplat_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
-		--radar/jam
-		["corrad_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
-		["corjamt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
-		["armrad_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
-		["armjamt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["corgplat_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5},
+		["armgplat_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5},
 	},
 	[2] = {
 		["armbeamer_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
@@ -770,6 +765,11 @@ local Turrets = {
 		["corscavdtf_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
 		["corscavdtm_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
 		["legdefcarryt1_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		--radar/jam
+		["corrad_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["corjamt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["armrad_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["armjamt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
 	},
 	[3] = {
 		["armcir_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 3},
@@ -800,8 +800,6 @@ local Turrets = {
 		--T2 AA
 		["corflak_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 4},
 		["armflak_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 4},
-		["armmercury_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 2},
-		["corscreamer_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 2},
 	},
 	[4] = {
 		-- T2 popup arty
@@ -813,18 +811,22 @@ local Turrets = {
 		--LRPC
 		["armbrtha_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 1, maxExisting = 2},
 		["corint_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 1, maxExisting = 2},
-		--nukes
-		["corsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 2},
-		["armsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		--antinukes
 		["armamd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 2},
 		["corfmd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 2},
 		--Tactical Weapons
 		["cortron_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
 		["armemp_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
-	
+		--T2 AA
+		["armmercury_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["corscreamer_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 2},
 	},
 	[5] = {
-		["arminivulc_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		-- nukes
+		["corsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["armsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+
+		["armminivulc_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
 		["corminibuzz_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
 		["armbotrail_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
 	},
@@ -832,8 +834,8 @@ local Turrets = {
 		--Epic Bulwark and Pulsar/rag/cal
 		["armannit3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
 		["cordoomt3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
-		["armvulc_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 1, maxExisting = 1},
-		["corbuzz_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 1, maxExisting = 1},
+		-- ["armvulc_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 1, maxExisting = 1},
+		-- ["corbuzz_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 1, maxExisting = 1},
 	},
 }
 

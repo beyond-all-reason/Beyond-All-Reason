@@ -1105,15 +1105,15 @@ customDefs.corjuno = {
 -- 	},
 -- }
 
--- customDefs.armbotrail = {
--- 	weapondefs = {
--- 		arm_botrail = {
--- 			customparams = {
--- 				spawns_name = "armpw_scav",
--- 			},
--- 		},
--- 	},
--- }
+customDefs.armbotrail = {
+	weapondefs = {
+		arm_botrail = {
+			customparams = {
+				spawns_name = "armpw_scav",
+			},
+		},
+	},
+}
 
 -- customDefs.corhrk = {
 -- 	weapondefs = {
