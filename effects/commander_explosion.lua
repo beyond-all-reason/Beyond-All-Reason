@@ -250,7 +250,7 @@ return {
 	        frontoffset        = 0,
 	        fronttexture       = [[blastwave]],
 	        length             = 400,
-	        sidetexture        = [[blastwave]],
+	        sidetexture        = [[none]],
 	        size               = 10,
 	        sizegrowth         = [[-29 r6]],
 	        ttl                = 34,
