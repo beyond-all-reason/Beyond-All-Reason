@@ -37,14 +37,15 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 				if not isSinglePlayer then
 					offenceFrames[gf] = true
 					totalOffence = totalOffence + 1
-					if totalOffence == 3 then
-						--Spring.I18N('ui.cmdlimiter.forceresignwarning')
-						Spring.Echo("You queued too much buildings a few time, continue this and you will get forcefully resigned.")
-					elseif totalOffence >= 5 then
+					if totalOffence >= 5 then
 						--Spring.I18N('ui.cmdlimiter.forceresign')
 						Spring.Echo("You queued too much buildings too many times, you have been force resigned!")
 						Spring.SendCommands("spectator")
+					elseif totalOffence >= 3 then
+						--Spring.I18N('ui.cmdlimiter.forceresignwarning')
+						Spring.Echo("You queued too much buildings a few time, continue this and you will get forcefully resigned.")
 					end
+					totalCmdCount = totalCmdCount - 100	-- remove some so user can instantly queue somehting next without instantly being warned again
 				end
 				return true
 			end
@@ -56,7 +57,7 @@ end
 
 function gadget:GameFrame(gf)
 	if history[gf - historyFrames] then
-		totalCmdCount = totalCmdCount - history[gf - historyFrames]
+		totalCmdCount = math.max(0, totalCmdCount - history[gf - historyFrames])
 		history[gf - historyFrames] = nil
 	end
 end
