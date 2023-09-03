@@ -477,13 +477,26 @@ if gadgetHandler:IsSyncedCode() then
 					if ValidUnitID(unitID) and not GetUnitIsDead(unitID) and not GetUnitNeutral(unitID) then
 						-- Spring.Echo("GiveOrderToUnit #" .. i)
 						if not unitCowardCooldown[unitID] then
-							if role == "assault" or role == "healer" or role == "artillery" then
+							if role == "assault" or role == "artillery" then
 								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
 							elseif role == "raid" then
 								Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
 							elseif role == "aircraft" or role == "kamikaze" then
 								local pos = getRandomEnemyPos()
-								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x, pos.y, pos.z} , {})
+								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256)} , {})
+							elseif role == "healer" then
+								local pos = getRandomEnemyPos()
+								Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, {})
+								if math.random() <= 0.33 then
+									Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 10000} , {"shift"})
+								end
+								if math.random() <= 0.33 then
+									Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 10000} , {"shift"})
+								end
+								if math.random() <= 0.33 then
+									Spring.GiveOrderToUnit(unitID, CMD.REPAIR, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 10000} , {"shift"})
+								end
+								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x, pos.y, pos.z} , {"shift"})
 							end
 						end
 					end
@@ -901,14 +914,14 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.airWave.cooldown = mRandom(0,10)
 
 				waveParameters.waveSpecialPercentage = 0
-				waveParameters.waveAirPercentage = 100
+				waveParameters.waveAirPercentage = 50
 
 			elseif waveParameters.specialWave.cooldown <= 0 and mRandom() <= config.spawnChance then
 
 				waveParameters.baseCooldown = mRandom(0,2)
 				waveParameters.specialWave.cooldown = mRandom(0,10)
 
-				waveParameters.waveSpecialPercentage = 100
+				waveParameters.waveSpecialPercentage = 50
 				waveParameters.waveAirPercentage = 0
 
 			elseif waveParameters.basicWave.cooldown <= 0 and mRandom() <= config.spawnChance then
@@ -1029,7 +1042,7 @@ if gadgetHandler:IsSyncedCode() then
 							cCount = cCount + unitNumber
 						end
 					end
-					if loopCounter <= 1 then
+					if loopCounter <= 1 and math.random() <= config.spawnChance then
 						squad = nil
 						squadCounter = 0
 						for _ = 1,1000 do
@@ -1174,10 +1187,14 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	-- Call-ins
 	--------------------------------------------------------------------------------
-
-
+	local createUnitQueue = {}
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == scavTeamID then
+			if (not UnitDefs[unitDefID].isscavenger) and UnitDefs[unitDefID] and UnitDefs[unitDefID].name and UnitDefNames[UnitDefs[unitDefID].name .. "_scav"] then
+				local x,y,z = Spring.GetUnitPosition(unitID)
+				Spring.DestroyUnit(unitID, true, true)
+				createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, 0, scavTeamID}
+			end
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultScavFirestate},0)
 			if UnitDefs[unitDefID].canCloak then
 				Spring.GiveOrderToUnit(unitID,37382,{1},0)
@@ -1307,8 +1324,8 @@ if gadgetHandler:IsSyncedCode() then
 				if ax and separation < (config.scavBehaviours.BERSERK[unitDefID].distance or 10000) then
 					if config.scavBehaviours.BERSERK[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
 						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
-						ax = ax + mRandom(-64,64)
-						az = az + mRandom(-64,64)
+						ax = ax + mRandom(-256,256)
+						az = az + mRandom(-256,256)
 						Spring.SetUnitPosition(unitID, ax, ay, az)
 						Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
 						Spring.SpawnCEG("scav-spawnexplo", ax, ay, az, 0,0,0)
@@ -1325,8 +1342,8 @@ if gadgetHandler:IsSyncedCode() then
 				if ax and separation < (config.scavBehaviours.BERSERK[attackerDefID].distance or 10000) then
 					if config.scavBehaviours.BERSERK[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
 						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
-						ax = ax + mRandom(-64,64)
-						az = az + mRandom(-64,64)
+						ax = ax + mRandom(-256,256)
+						az = az + mRandom(-256,256)
 						Spring.SetUnitPosition(attackerID, ax, ay, az)
 						Spring.GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
 						Spring.SpawnCEG("scav-spawnexplo", ax, ay, az, 0,0,0)
@@ -1502,6 +1519,18 @@ if gadgetHandler:IsSyncedCode() then
 
 	local announcedFirstWave = false
 	function gadget:GameFrame(n)
+
+		if #createUnitQueue > 0 then
+			for i = 1,#createUnitQueue do
+				local unitID = Spring.CreateUnit(createUnitQueue[i][1],createUnitQueue[i][2],createUnitQueue[i][3],createUnitQueue[i][4],createUnitQueue[i][5],createUnitQueue[i][6])
+				if unitID then
+					Spring.SetUnitHealth(unitID, 10)
+				end
+			end
+			createUnitQueue = {}
+		end
+
+
 
 		if announcedFirstWave == false and GetGameSeconds() > config.gracePeriod then
 			scavEvent("firstWave")
@@ -1769,14 +1798,6 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:TeamDied(teamID)
 		humanTeams[teamID] = nil
 		--computerTeams[teamID] = nil
-	end
-
-	function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-		if newTeam == scavTeamID then
-			return false
-		else
-			return true
-		end
 	end
 
 	function gadget:FeatureCreated(featureID, featureAllyTeamID)

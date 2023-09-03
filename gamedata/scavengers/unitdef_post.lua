@@ -22,8 +22,10 @@
 -- end
 
 local function scavUnitDef_Post(name, uDef)
+
 	uDef.category = uDef.category .. ' SCAVENGER'
 	uDef.customparams.isscavenger = true
+	uDef.capturable = false
 
  	-- replaced uniticons
 	if uDef.buildpic then
@@ -126,31 +128,24 @@ local function scavUnitDef_Post(name, uDef)
 -- 		uDef.metalmake = math.ceil(uDef.metalmake * baseMultiplier * randomMultiplier())
 -- 	end
 
--- 	-- Wrecks
--- 	if uDef.featuredefs then
--- 		if uDef.featuredefs.dead then
--- 			if uDef.featuredefs.dead.damage then
--- 				uDef.featuredefs.dead.damage = math.ceil(uDef.featuredefs.dead.damage * baseMultiplier * randomMultiplier())
--- 			end
--- 			if uDef.featuredefs.dead.metal then
--- 				uDef.featuredefs.dead.metal = math.ceil(uDef.featuredefs.dead.metal * baseMultiplier * randomMultiplier())
--- 			end
--- 			if uDef.featuredefs.dead.energy then
--- 				uDef.featuredefs.dead.energy = math.ceil(uDef.featuredefs.dead.energy * baseMultiplier * randomMultiplier())
--- 			end
--- 		end
--- 		if uDef.featuredefs.heap then
--- 			if uDef.featuredefs.heap.damage then
--- 				uDef.featuredefs.heap.damage = math.ceil(uDef.featuredefs.heap.damage * baseMultiplier * randomMultiplier())
--- 			end
--- 			if uDef.featuredefs.heap.metal then
--- 				uDef.featuredefs.heap.metal = math.ceil(uDef.featuredefs.heap.metal * baseMultiplier * randomMultiplier())
--- 			end
--- 			if uDef.featuredefs.heap.energy then
--- 				uDef.featuredefs.heap.energy = math.ceil(uDef.featuredefs.heap.energy * baseMultiplier * randomMultiplier())
--- 			end
--- 		end
--- 	end
+	-- Wrecks
+	uDef.corpse = nil
+	if uDef.featuredefs then
+		if uDef.featuredefs.heap then
+			uDef.corpse = "HEAP"
+		end
+		-- if uDef.featuredefs.heap then
+		-- 	if uDef.featuredefs.heap.damage then
+		-- 		uDef.featuredefs.heap.damage = math.ceil(uDef.featuredefs.heap.damage * baseMultiplier * randomMultiplier())
+		-- 	end
+		-- 	if uDef.featuredefs.heap.metal then
+		-- 		uDef.featuredefs.heap.metal = math.ceil(uDef.featuredefs.heap.metal * baseMultiplier * randomMultiplier())
+		-- 	end
+		-- 	if uDef.featuredefs.heap.energy then
+		-- 		uDef.featuredefs.heap.energy = math.ceil(uDef.featuredefs.heap.energy * baseMultiplier * randomMultiplier())
+		-- 	end
+		-- end
+	end
 
 -- 	if uDef.maxdamage then
 -- 		if name ~= 'armcomboss_scav' and name ~= 'corcomboss_scav' then

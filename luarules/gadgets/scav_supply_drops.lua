@@ -19,15 +19,11 @@ end
 
 if Spring.GetModOptions().lootboxes == "enabled" or (Spring.GetModOptions().lootboxes == "scav_only" and scavengersAIEnabled) then
 	lootboxSpawnEnabled = true
+	--Spring.Echo("LOOTBOXES ENABLED")
 else
 	lootboxSpawnEnabled = false
 end
-
-if scavengersAIEnabled then
-	NameSuffix = "_scav"
-else
-	NameSuffix = ""
-end
+NameSuffix = ""
 
 function gadget:GetInfo()
     return {
@@ -53,46 +49,21 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local lootboxesListT1 = {
-    "lootboxbronze",
-    "lootboxbronze",
-	"lootboxbronze",
-    "lootboxbronze",
-	"lootboxnano_t1",
-}
-
-local lootboxesListT2 = {
-    "lootboxsilver",
-	"lootboxsilver",
-	"lootboxsilver",
-	"lootboxsilver",
-	"lootboxnano_t2",
-}
-
-local lootboxesListT3 = {
-    "lootboxgold",
-	"lootboxgold",
-	"lootboxgold",
-	"lootboxgold",
-	"lootboxnano_t3",
-}
-
-local lootboxesListT4 = {
-    "lootboxplatinum",
-	"lootboxplatinum",
-	"lootboxplatinum",
-	"lootboxplatinum",
-	"lootboxnano_t4",
-}
-
-local LootboxCaptureExcludedUnits = {
-	"armdrag",
-	"armfdrag",
-	"cordrag",
-	"corfdrag",
-	"armfort",
-	"corfort",
-}
+local lootboxesListT1 = {}
+local lootboxesListT2 = {}
+local lootboxesListT3 = {}
+local lootboxesListT4 = {}
+if scavengersAIEnabled then
+	lootboxesListT1[#lootboxesListT1+1] = "lootboxbronze_scav"
+	lootboxesListT2[#lootboxesListT2+1] = "lootboxsilver_scav"
+	lootboxesListT3[#lootboxesListT3+1] = "lootboxgold_scav"
+	lootboxesListT4[#lootboxesListT4+1] = "lootboxplatinum_scav"
+else
+	lootboxesListT1[#lootboxesListT1+1] = "lootboxbronze"
+	lootboxesListT2[#lootboxesListT2+1] = "lootboxsilver"
+	lootboxesListT3[#lootboxesListT3+1] = "lootboxgold"
+	lootboxesListT4[#lootboxesListT4+1] = "lootboxplatinum"
+end
 
 
 -- locals
@@ -135,7 +106,7 @@ elseif lootboxesDensity == "verydense" then
 	lootboxDensityMultiplier = 5
 end
 
-local SpawnChance = math.ceil(75/lootboxDensityMultiplier)
+local SpawnChance = math.ceil(20/lootboxDensityMultiplier)
 
 if scavengersAIEnabled then
 	spGaiaTeam = scavengerAITeamID
@@ -157,22 +128,42 @@ local nearbyCaptureLibrary = VFS.Include("luarules/utilities/damgam_lib/nearby_c
 
 -- callins
 
+local function SpawnLootbox(posx, posy, posz)
+	if math.random() < math.min(0.8, aliveLootboxesCountT3*0.05) then
+		lootboxToSpawn = lootboxesListT4[math_random(1,#lootboxesListT4)]
+	elseif math.random() < math.min(0.8, aliveLootboxesCountT2*0.05) then
+		lootboxToSpawn = lootboxesListT3[math_random(1,#lootboxesListT3)]
+	elseif math.random() < math.min(0.8, aliveLootboxesCountT1*0.05) then
+		lootboxToSpawn = lootboxesListT2[math_random(1,#lootboxesListT2)]
+	else
+		lootboxToSpawn = lootboxesListT1[math_random(1,#lootboxesListT1)]
+	end
+	local spawnedUnit = spCreateUnit(lootboxToSpawn..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+	if spawnedUnit then
+		
+		Spring.SetUnitNeutral(spawnedUnit, true)
+		Spring.SetUnitAlwaysVisible(spawnedUnit, true)
+	end
+end
+
 function gadget:GameFrame(n)
 
     if n%30 == 0 and n > 2 then
 		if math.random(0,SpawnChance) == 0 then
-			LootboxesToSpawn = LootboxesToSpawn+0.25
-		-- elseif #aliveLootboxes < math.ceil((n/30)/(SpawnChance*2)) then
-			-- TryToSpawn = true
+			LootboxesToSpawn = LootboxesToSpawn+0.1
+			if LootboxesToSpawn < 0 then 
+				LootboxesToSpawn = 0 
+			end
 		end
 
         if aliveLootboxesCount > 0 then
 			for i = 1,#aliveLootboxes do --for lootboxID,_ in pairs(aliveLootboxes) do
 				local lootboxID = aliveLootboxes[i]
-				nearbyCaptureLibrary.NearbyCapture(lootboxID, aliveLootboxCaptureDifficulty[lootboxID], 256)
+				nearbyCaptureLibrary.NearbyCapture(lootboxID, aliveLootboxCaptureDifficulty[lootboxID], 1024)
 			end
         end
         if LootboxesToSpawn >= 1 and lootboxSpawnEnabled then
+			--Spring.Echo("LOOTBOXES ENABLED, We're Spawning!")
             for k = 1,20 do
                 local posx = math.floor(math_random(xBorder,mapsizeX-xBorder)/16)*16
                 local posz = math.floor(math_random(zBorder,mapsizeZ-zBorder)/16)*16
@@ -182,41 +173,14 @@ function gadget:GameFrame(n)
 					canSpawnLootbox = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 128)
 				end
 				if canSpawnLootbox then
-					canSpawnLootbox = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 128, spGaiaAllyTeam, true, true, true)
-				end
-				if canSpawnLootbox then
-					canSpawnLootbox = positionCheckLibrary.StartboxCheck(posx, posy, posz, spGaiaAllyTeam, true)
+					if Spring.Utilities.Gametype.IsScavengers() then
+						canSpawnLootbox = GG.IsPosInRaptorScum(posx, posy, posz)
+					else
+						canSpawnLootbox = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 32, spGaiaAllyTeam, true, true, true)
+					end	
 				end
                 if canSpawnLootbox then
-					--aliveLootboxesCountT1
-					if aliveLootboxesCountT4 >= 4 and aliveLootboxesCountT3 >= 4 and aliveLootboxesCountT2 >= 3 and aliveLootboxesCountT1 >= 3 then
-						local r = math.random(0,3)
-						if r == 0 then
-							lootboxToSpawn = lootboxesListT4[math_random(1,#lootboxesListT4)]
-						elseif r == 1 then
-							lootboxToSpawn = lootboxesListT3[math_random(1,#lootboxesListT3)]
-						elseif r == 2 then
-							lootboxToSpawn = lootboxesListT2[math_random(1,#lootboxesListT2)]
-						else
-							lootboxToSpawn = lootboxesListT1[math_random(1,#lootboxesListT1)]
-						end
-					elseif aliveLootboxesCountT3 >= 4 then
-						lootboxToSpawn = lootboxesListT4[math_random(1,#lootboxesListT4)]
-					elseif aliveLootboxesCountT2 >= 4 then
-						lootboxToSpawn = lootboxesListT3[math_random(1,#lootboxesListT3)]
-					elseif aliveLootboxesCountT1 >= 4 then
-						lootboxToSpawn = lootboxesListT2[math_random(1,#lootboxesListT2)]
-					else
-						lootboxToSpawn = lootboxesListT1[math_random(1,#lootboxesListT1)]
-					end
-					if string.find(lootboxToSpawn, "lootboxnano_t") then
-						lootboxToSpawn = lootboxToSpawn.."_var"..math.random(1,9)
-					end
-					local spawnedUnit = spCreateUnit(lootboxToSpawn..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
-					if spawnedUnit then
-						Spring.SetUnitNeutral(spawnedUnit, true)
-					end
-					spCreateUnit("lootdroppod_gold"..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+					SpawnLootbox(posx, posy, posz)
                     break
                 end
             end
@@ -229,6 +193,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     local UnitName = UnitDefs[unitDefID].name
 	if isLootbox[unitDefID] then
 		Spring.SetUnitNeutral(unitID, true)
+		Spring.SetUnitAlwaysVisible(unitID, true)
 		LootboxesToSpawn = LootboxesToSpawn-1
 		aliveLootboxes[#aliveLootboxes+1] = unitID
 		aliveLootboxesCount = aliveLootboxesCount + 1
@@ -238,6 +203,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				aliveLootboxesT1[#aliveLootboxesT1+1] = unitID
 				aliveLootboxesCountT1 = aliveLootboxesCountT1 + 1
 				aliveLootboxCaptureDifficulty[unitID] = 2
+				--Spring.PlaySoundFile("lootboxdetectedt1", 1)
+				--Spring.Echo("A Tech 1 Lootbox has been detected!")
 				break
 			end
 		end
@@ -246,6 +213,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				aliveLootboxesT2[#aliveLootboxesT2+1] = unitID
 				aliveLootboxesCountT2 = aliveLootboxesCountT2 + 1
 				aliveLootboxCaptureDifficulty[unitID] = 4
+				--Spring.PlaySoundFile("lootboxdetectedt2", 1)
+				--Spring.Echo("A Tech 2 Lootbox has been detected!")
 				break
 			end
 		end
@@ -254,6 +223,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				aliveLootboxesT3[#aliveLootboxesT3+1] = unitID
 				aliveLootboxesCountT3 = aliveLootboxesCountT3 + 1
 				aliveLootboxCaptureDifficulty[unitID] = 8
+				--Spring.PlaySoundFile("lootboxdetectedt3", 1)
+				--Spring.Echo("A Tech 3 Lootbox has been detected!")
 				break
 			end
 		end
@@ -262,12 +233,15 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				aliveLootboxesT4[#aliveLootboxesT4+1] = unitID
 				aliveLootboxesCountT4 = aliveLootboxesCountT4 + 1
 				aliveLootboxCaptureDifficulty[unitID] = 16
+				--PlaySoundFile("lootboxdetectedt4", 1)
+				--Spring.Echo("A Tech 4 Lootbox has been detected!")
 				break
 			end
 		end
 	end
 	if UnitName == "lootdroppod_gold" or UnitName == "lootdroppod_gold_scav" then
 		Spring.SetUnitNeutral(unitID, true)
+		Spring.SetUnitAlwaysVisible(unitID, true)
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 	end
 end
@@ -276,7 +250,7 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	for i = 1,#aliveLootboxes do
 		if unitID == aliveLootboxes[i] then
-			LootboxesToSpawn = LootboxesToSpawn+0.75
+			LootboxesToSpawn = LootboxesToSpawn+0.5
 			table.remove(aliveLootboxes, i)
 			aliveLootboxesCount = aliveLootboxesCount - 1
 			aliveLootboxCaptureDifficulty[unitID] = nil
@@ -311,12 +285,21 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 			break
 		end
 	end
+	if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
+		if math.random() <= 0.33 then
+			local posx, posy, posz = Spring.GetUnitPosition(unitID)
+			SpawnLootbox(posx, posy, posz)
+		else
+			LootboxesToSpawn = LootboxesToSpawn+0.33
+		end
+	end
 end
 
 function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 	for i = 1,#aliveLootboxes do
 		if unitID == aliveLootboxes[i] then
 			Spring.SetUnitNeutral(unitID, true)
+			Spring.SetUnitAlwaysVisible(unitID, true)
 		end
 	end
 end

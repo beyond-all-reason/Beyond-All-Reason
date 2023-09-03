@@ -564,18 +564,43 @@
 				"endless": "Endless"
 			}
 		},
-		"scavengers": {
-			"techPercentage": "Boss Anger: %{count}%%",
-			"techPercentageEndless": "Tech Progress: %{count}%%",
-			"techLevel": "Scavengers Tier: %{count}",
-			"bossFightCountdown": "Boss arrives in: %{count} Seconds",
-			"bossHealth": "Boss Health: %{count}%%",
-			"gracePeriod": "Grace Period: %{count} Seconds",
-			"killedScavengers": "Killed Scavengers: %{count}",
-			"aliveScavengers": "Scavengers: %{count}",
-			"aliveBeacons": "Beacons: %{count}",
-			"aliveCommanders": "Commanders: %{count}",
-			"difficultyLevel": "Difficulty: %{count}"
+		"scavs": {
+			"firstWave1": "The Scavengers have arrived!",
+			"firstWave2": "Get ready to defend yourself!",
+			"queenIsAngry1": "The Boss is here!",
+			"queenIsAngry2": "Prepare yourself for the final battle!",
+			"queenResistant": "The Boss is becoming resistant to %{unit} attacks!",
+			"resistanceUnits": "The Boss is becoming resistant to:",
+			"wave1": "Wave %{waveNumber}",
+			"wave2": "%{unitCount} Scavs!",
+			"scavCount": "Scavs: %{count}",
+			"scavKillCount": "Scavs Killed: %{count}",
+			"scavPlayerAgression": "Player Aggression Level: %{count}",
+			"queenAngerWithGain": "Boss Anger: %{anger}%% (+%{gain}%%/s)",
+			"queenAngerWithTech": "Boss Anger: %{anger}%% (Tech: %{techAnger}%%)",
+			"queenAngerBase": "Base: +%{value}%%/s",
+			"queenAngerAggression": "Aggression: +%{value}%%/s",
+			"queenAngerEco": "Economy: +%{value}%%/s",
+			"queenETA": "Boss arrives in: %{time}.",
+			"queenHealth": "Boss Health: %{health}%%",
+			"queenResistantToList": "Boss is resistant to:",
+			"gracePeriod": "Grace Period: %{time}",
+			"burrowCount": "Burrows: %{count}",
+			"burrowKillCount": "Burrows Killed: %{count}",
+			"mode": "Mode: %{mode}",
+			"score": "Your Score: %{score}",
+			"difficulty": {
+				"veryeasy": "Very Easy",
+				"easy": "Easy",
+				"normal": "Normal",
+				"hard": "Hard",
+				"veryhard": "Very Hard",
+				"insane": "Insane",
+				"epic": "Epic",
+				"unbeatable": "Unbeatable",
+				"survival": "Survival",
+				"endless": "Endless"
+			}
 		},
 		"loadScreen": {
 			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly."

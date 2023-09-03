@@ -1,8 +1,8 @@
 function widget:GetInfo()
 	return {
-		name = "Scavengers Stats Panel",
-		desc = "Shows statistics and progress when fighting vs Scavengers",
-		author = "Damgam, original raptor panel by quantum",
+		name = "Scav Stats Panel",
+		desc = "Shows statistics and progress when fighting vs Scavs",
+		author = "quantum",
 		date = "May 04, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = -9,
@@ -10,8 +10,7 @@ function widget:GetInfo()
 	}
 end
 
----------------------------------------------------------------------------------------------------
-----------LOCALS-----------------------------------------------------------------------------------
+local config = VFS.Include('LuaRules/Configs/scav_spawn_defs.lua')
 
 local customScale = 1
 local widgetScale = customScale
@@ -24,9 +23,9 @@ if not Spring.Utilities.Gametype.IsScavengers() then
 	return false
 end
 
--- if not Spring.GetGameRulesParam("difficulty") then
--- 	return false
--- end
+if not Spring.GetGameRulesParam("scavDifficulty") then
+	return false
+end
 
 local GetGameSeconds = Spring.GetGameSeconds
 
@@ -46,50 +45,40 @@ local x1 = 0
 local y1 = 0
 local panelMarginX = 15
 local panelMarginY = 25
-local panelSpacingY = 7
+local panelSpacingY = 5
 local waveSpacingY = 7
 local moving
 local capture
 local gameInfo
--- local waveSpeed = 0.2
+local waveSpeed = 0.1
 local waveCount = 0
 local waveTime
 local enabled
 local gotScore
 local scoreCount = 0
+local resistancesTable = {}
+local currentlyResistantTo = {}
+local currentlyResistantToNames = {}
 
 local guiPanel --// a displayList
 local updatePanel
-local hasRaptorEvent = false
+local hasScavEvent = false
 
-local difficultyOption = Spring.GetModOptions().raptor_difficulty
+local difficultyOption = Spring.GetModOptions().scav_difficulty
 
--- local waveColors = {}
--- waveColors[1] = "\255\184\100\255"
--- waveColors[2] = "\255\120\50\255"
--- waveColors[3] = "\255\255\153\102"
--- waveColors[4] = "\255\120\230\230"
--- waveColors[5] = "\255\100\255\100"
--- waveColors[6] = "\255\150\001\001"
--- waveColors[7] = "\255\255\255\100"
--- waveColors[8] = "\255\100\255\255"
--- waveColors[9] = "\255\100\100\255"
--- waveColors[10] = "\255\200\050\050"
--- waveColors[11] = "\255\255\255\255"
+local rules = {
+	"scavQueenTime",
+	"scavQueenAnger",
+	"scavTechAnger",
+	"scavGracePeriod",
+	"scavQueenHealth",
+	"lagging",
+	"scavDifficulty",
+	"scavCount",
+}
 
--- local raptorTypes = {
--- 	"raptor",
--- 	"raptora",
--- 	"raptorh",
--- 	"raptors",
--- 	"raptorw",
--- 	"raptor_dodo",
--- 	"raptorp",
--- 	"raptorf",
--- 	"raptorc",
--- 	"raptorr",
--- 	"raptor_turret",
--- }
+local waveColor = "\255\255\0\0"
+local textColor = "\255\255\255\255"
 
 local function commaValue(amount)
 	local formatted = amount
@@ -103,60 +92,12 @@ local function commaValue(amount)
 	return formatted
 end
 
-----------END OF LOCALS----------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------
-----------COLLECT STATS----------------------------------------------------------------------------
+local function getScavCounts(type)
+	local total = 0
+	local subtotal
 
-local rules = {
-	"scavStatsGracePeriodLeft",
-	"scavStatsGracePeriod",
-	"scavStatsScavCommanders",
-	"scavStatsScavSpawners",
-	"scavStatsScavUnits",
-	"scavStatsScavUnitsKilled",
-	"scavStatsGlobalScore",
-	"scavStatsTechLevel",
-	"scavStatsTechPercentage",
-	"scavStatsBossFightCountdownStarted",
-	"scavStatsBossFightCountdown",
-	"scavStatsBossSpawned",
-	"scavStatsBossMaxHealth",
-	"scavStatsBossHealth",
-	"scavStatsDifficulty",
-}
-
-local function UpdateRules()
-
-	if not gameInfo then
-		gameInfo = {}
-	end
-
-	scavStatsAvailable = Spring.GetGameRulesParam("scavStatsAvailable")
-
-	if scavStatsAvailable == 1 then
-		for _, rule in ipairs(rules) do
-			gameInfo[rule] = Spring.GetGameRulesParam(rule) or 999
-		end
-		updatePanel = true
-	end
-
+	return total
 end
-
-----------END OF STATS COLLECTION------------------------------------------------------------------
----------------------------------------------------------------------------------------------------
-----------DRAW STATS-----------------------------------------------------------------------------------------
-
--- local function getRaptorCounts(type)
--- 	local total = 0
--- 	local subtotal
-
--- 	for _, raptorType in ipairs(raptorTypes) do
--- 		subtotal = gameInfo[raptorType .. type]
--- 		total = total + subtotal
--- 	end
-
--- 	return total
--- end
 
 local function updatePos(x, y)
 	x1 = math.min((viewSizeX * 0.94) - (w * widgetScale) / 2, x)
@@ -177,75 +118,93 @@ local function CreatePanelDisplayList()
 	gl.Translate(x1, y1, 0)
 	gl.Scale(widgetScale, widgetScale, 1)
 	gl.CallList(displayList)
-
-	local currentTime = GetGameSeconds()
-	local techLevel = ""
-
-	-- Tech Level Counters
 	font:Begin()
 	font:SetTextColor(1, 1, 1, 1)
 	font:SetOutlineColor(0, 0, 0, 1)
-	if currentTime > gameInfo.scavStatsGracePeriod then
-		if gameInfo.scavStatsBossFightCountdownStarted == 0 then
-			-- Tech Percentage
-			if Spring.GetModOptions().scavendless then
-				font:Print(Spring.I18N('ui.scavengers.techPercentageEndless', { count = gameInfo.scavStatsTechPercentage }), panelMarginX, PanelRow(1), panelFontSize, "")
-			else
-				font:Print(Spring.I18N('ui.scavengers.techPercentage', { count = gameInfo.scavStatsTechPercentage }), panelMarginX, PanelRow(1), panelFontSize, "")
+	local currentTime = GetGameSeconds()
+	if currentTime > gameInfo.scavGracePeriod then
+		if gameInfo.scavQueenAnger < 100 then
+
+			local gain = 0
+			if Spring.GetGameRulesParam("ScavQueenAngerGain_Base") then
+				font:Print(textColor .. Spring.I18N('ui.scavs.queenAngerBase', { value = math.round(Spring.GetGameRulesParam("ScavQueenAngerGain_Base"), 3) }), panelMarginX+5, PanelRow(3), panelFontSize, "")
+				font:Print(textColor .. Spring.I18N('ui.scavs.queenAngerAggression', { value = math.round(Spring.GetGameRulesParam("ScavQueenAngerGain_Aggression"), 3) }), panelMarginX+5, PanelRow(4), panelFontSize, "")
+				--font:Print(textColor .. Spring.I18N('ui.scavs.queenAngerEco', { value = math.round(Spring.GetGameRulesParam("ScavQueenAngerGain_Eco"), 3) }), panelMarginX+5, PanelRow(5), panelFontSize, "")
+				gain = math.round(Spring.GetGameRulesParam("ScavQueenAngerGain_Base"), 3) + math.round(Spring.GetGameRulesParam("ScavQueenAngerGain_Aggression"), 3) + math.round(Spring.GetGameRulesParam("ScavQueenAngerGain_Eco"), 3)
 			end
-			font:Print(Spring.I18N('ui.scavengers.techLevel', { count = gameInfo.scavStatsTechLevel }), panelMarginX, PanelRow(2), panelFontSize, "")
-		elseif gameInfo.scavStatsBossSpawned == 0 then
-			-- Boss Countdown
-			font:Print(Spring.I18N('ui.scavengers.bossFightCountdown', { count = gameInfo.scavStatsBossFightCountdown }), panelMarginX, PanelRow(1), panelFontSize, "")
-		elseif gameInfo.scavStatsBossSpawned == 1 then
-			-- Boss Health
-			font:Print(Spring.I18N('ui.scavengers.bossHealth', { count = math.floor((gameInfo.scavStatsBossHealth/gameInfo.scavStatsBossMaxHealth)*100) }), panelMarginX, PanelRow(1), panelFontSize, "")
+			--font:Print(textColor .. Spring.I18N('ui.scavs.queenAngerWithGain', { anger = gameInfo.scavQueenAnger, gain = math.round(gain, 3) }), panelMarginX, PanelRow(1), panelFontSize, "")
+			font:Print(textColor .. Spring.I18N('ui.scavs.queenAngerWithTech', { anger = gameInfo.scavQueenAnger, techAnger = gameInfo.scavTechAnger}), panelMarginX, PanelRow(1), panelFontSize, "")
+
+			local totalSeconds = (100 - gameInfo.scavQueenAnger) / gain
+			time = string.formatTime(totalSeconds)
+			font:Print(textColor .. Spring.I18N('ui.scavs.queenETA', { time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
+			if #currentlyResistantToNames > 0 then
+				currentlyResistantToNames = {}
+				currentlyResistantTo = {}
+			end
+		else
+			font:Print(textColor .. Spring.I18N('ui.scavs.queenHealth', { health = gameInfo.scavQueenHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
+			for i = 1,#currentlyResistantToNames do
+				if i == 1 then
+					font:Print(textColor .. Spring.I18N('ui.scavs.queenResistantToList'), panelMarginX, PanelRow(12), panelFontSize, "")
+				end
+				font:Print(textColor .. currentlyResistantToNames[i], panelMarginX+20, PanelRow(12+i), panelFontSize, "")
+			end
 		end
 	else
-		-- Grace Period Time
-		font:Print(Spring.I18N('ui.scavengers.gracePeriod', { count = gameInfo.scavStatsGracePeriodLeft }), panelMarginX, PanelRow(1), panelFontSize, "")
+		font:Print(textColor .. Spring.I18N('ui.scavs.gracePeriod', { time = string.formatTime(math.ceil(((currentTime - gameInfo.scavGracePeriod) * -1) - 0.5)) }), panelMarginX, PanelRow(1), panelFontSize, "")
 	end
-
-	font:Print(Spring.I18N('ui.scavengers.aliveScavengers', { count = gameInfo.scavStatsScavUnits }), panelMarginX, PanelRow(4), panelFontSize, "")
-	font:Print(Spring.I18N('ui.scavengers.aliveBeacons', { count = gameInfo.scavStatsScavSpawners }), panelMarginX, PanelRow(5), panelFontSize, "")
-	font:Print(Spring.I18N('ui.scavengers.aliveCommanders', { count = gameInfo.scavStatsScavCommanders }), panelMarginX, PanelRow(6), panelFontSize, "")
-	font:Print(Spring.I18N('ui.scavengers.killedScavengers', { count = gameInfo.scavStatsScavUnitsKilled }), panelMarginX, PanelRow(7), panelFontSize, "")
-
-	font:Print(Spring.I18N('ui.scavengers.difficultyLevel', { count = gameInfo.scavStatsDifficulty }), panelMarginX, PanelRow(9), panelFontSize, "")
+	
+	-- font:Print(textColor .. Spring.I18N('ui.scavs.scavKillCount', { count = gameInfo.scavKills }), panelMarginX, PanelRow(6), panelFontSize, "")
+	local endless = ""
+	if Spring.GetModOptions().scav_endless then
+		endless = ' (' .. Spring.I18N('ui.scavs.difficulty.endless') .. ')'
+	end
+	local difficultyCaption = Spring.I18N('ui.scavs.difficulty.' .. difficultyOption)
+	font:Print(textColor .. Spring.I18N('ui.scavs.mode', { mode = difficultyCaption }) .. endless, panelMarginX, h - 195, panelFontSize, "")
 	font:End()
-
-	--font:Print(techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
-	--font:Print(Spring.I18N('ui.scavengers.techLevel', { count = gameInfo.raptorCounts }), panelMarginX, PanelRow(2), panelFontSize, "")
-	--font:Print(Spring.I18N('ui.raptors.raptorKillCount', { count = gameInfo.raptorKills }), panelMarginX, PanelRow(3), panelFontSize, "")
-	--font:Print(Spring.I18N('ui.raptors.burrowCount', { count = gameInfo.roostCount }), panelMarginX, PanelRow(4), panelFontSize, "")
-	--font:Print(Spring.I18N('ui.raptors.burrowKillCount', { count = gameInfo.roostKills }), panelMarginX, PanelRow(5), panelFontSize, "")
-
-	-- if gotScore then
-	-- 	font:Print(Spring.I18N('ui.raptors.score', { score = commaValue(scoreCount) }), 88, h - 170, panelFontSize "")
-	-- else
-	-- 	local difficultyCaption = Spring.I18N('ui.raptors.difficulty.' .. difficultyOption)
-	--
-	-- end
-
 
 	gl.Texture(false)
 	gl.PopMatrix()
 end
 
--- local function getMarqueeMessage(raptorEventArgs)
--- 	local messages = {}
+local function getMarqueeMessage(scavEventArgs)
+	local messages = {}
+	if scavEventArgs.type == "firstWave" then
+		messages[1] = textColor .. Spring.I18N('ui.scavs.firstWave1')
+		messages[2] = textColor .. Spring.I18N('ui.scavs.firstWave2')
+	elseif scavEventArgs.type == "queen" then
+		messages[1] = textColor .. Spring.I18N('ui.scavs.queenIsAngry1')
+		messages[2] = textColor .. Spring.I18N('ui.scavs.queenIsAngry2')
+	elseif scavEventArgs.type == "airWave" then
+		messages[1] = textColor .. Spring.I18N('ui.scavs.wave1', {waveNumber = scavEventArgs.waveCount})
+		messages[2] = textColor .. Spring.I18N('ui.scavs.airWave1')
+		messages[3] = textColor .. Spring.I18N('ui.scavs.airWave2', {unitCount = scavEventArgs.number})
+	elseif scavEventArgs.type == "wave" then
+		messages[1] = textColor .. Spring.I18N('ui.scavs.wave1', {waveNumber = scavEventArgs.waveCount})
+		messages[2] = textColor .. Spring.I18N('ui.scavs.wave2', {unitCount = scavEventArgs.number})
+	end
 
--- 	if raptorEventArgs.type == "wave" then
--- 		messages[1] = Spring.I18N('ui.raptors.wave', { waveNumber = raptorEventArgs.waveCount })
--- 		messages[2] = waveColors[raptorEventArgs.tech] .. Spring.I18N('ui.raptors.waveCount', { count = raptorEventArgs.number })
--- 	elseif raptorEventArgs.type == "queen" then
--- 		messages[1] = Spring.I18N('ui.raptors.queenIsAngry')
--- 	end
+	refreshMarqueeMessage = false
 
--- 	refreshMarqueeMessage = false
+	return messages
+end
 
--- 	return messages
--- end
+local function getResistancesMessage()
+	local messages = {}
+	messages[1] = textColor .. Spring.I18N('ui.scavs.resistanceUnits')
+	for i = 1,#resistancesTable do
+		local attackerName = UnitDefs[resistancesTable[i]].name
+		messages[i+1] = textColor .. Spring.I18N('units.names.' .. attackerName)
+		currentlyResistantToNames[#currentlyResistantToNames+1] = Spring.I18N('units.names.' .. attackerName)
+	end
+	resistancesTable = {}
+
+	refreshMarqueeMessage = false
+
+
+	return messages
+end
 
 local function Draw()
 	if not enabled or not gameInfo then
@@ -265,50 +224,72 @@ local function Draw()
 		gl.CallList(guiPanel)
 	end
 
-	-- if showMarqueeMessage then
-	-- 	local t = Spring.GetTimer()
+	if showMarqueeMessage then
+		local t = Spring.GetTimer()
 
-	-- 	local waveY = viewSizeY - Spring.DiffTimers(t, waveTime) * waveSpeed * viewSizeY
-	-- 	if waveY > 0 then
-	-- 		if refreshMarqueeMessage or not marqueeMessage then
-	-- 			marqueeMessage = getMarqueeMessage(messageArgs)
-	-- 		end
+		local waveY = viewSizeY - Spring.DiffTimers(t, waveTime) * waveSpeed * viewSizeY
+		if waveY > 0 then
+			if refreshMarqueeMessage or not marqueeMessage then
+				marqueeMessage = getMarqueeMessage(messageArgs)
+			end
 
-	-- 		font2:Begin()
-	-- 		for i, message in ipairs(marqueeMessage) do
-	-- 			font2:Print(message, viewSizeX / 2, waveY - WaveRow(i), waveFontSize * widgetScale, "co")
-	-- 		end
-	-- 		font2:End()
-	-- 	else
-	-- 		showMarqueeMessage = false
-	-- 		messageArgs = nil
-	-- 		waveY = viewSizeY
-	-- 	end
-	-- end
+			font2:Begin()
+			for i, message in ipairs(marqueeMessage) do
+				font2:Print(message, viewSizeX / 2, waveY - WaveRow(i), waveFontSize * widgetScale, "co")
+			end
+			font2:End()
+		else
+			showMarqueeMessage = false
+			messageArgs = nil
+			waveY = viewSizeY
+		end
+	elseif #resistancesTable > 0 then
+		marqueeMessage = getResistancesMessage()
+		waveTime = Spring.GetTimer()
+		showMarqueeMessage = true
+	end
 end
 
--- function RaptorEvent(raptorEventArgs)
--- 	if raptorEventArgs.type == "wave" then
--- 		if gameInfo.roostCount < 1 then
--- 			return
--- 		end
--- 		waveCount = waveCount + 1
--- 		raptorEventArgs.waveCount = waveCount
--- 		showMarqueeMessage = true
--- 		refreshMarqueeMessage = true
--- 		messageArgs = raptorEventArgs
--- 		waveTime = Spring.GetTimer()
--- 	elseif raptorEventArgs.type == "burrowSpawn" then
--- 		UpdateRules()
--- 	elseif raptorEventArgs.type == "queen" then
--- 		showMarqueeMessage = true
--- 		refreshMarqueeMessage = true
--- 		messageArgs = raptorEventArgs
--- 		waveTime = Spring.GetTimer()
--- 	elseif raptorEventArgs.type == "score" .. (Spring.GetMyTeamID()) then
--- 		gotScore = raptorEventArgs.number
--- 	end
--- end
+local function UpdateRules()
+	if not gameInfo then
+		gameInfo = {}
+	end
+
+	for _, rule in ipairs(rules) do
+		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 0
+	end
+	gameInfo.scavCounts = getScavCounts('Count')
+	gameInfo.scavKills = getScavCounts('Kills')
+
+	updatePanel = true
+end
+
+function ScavEvent(scavEventArgs)
+	if scavEventArgs.type == "firstWave" or scavEventArgs.type == "queen" then
+		showMarqueeMessage = true
+		refreshMarqueeMessage = true
+		messageArgs = scavEventArgs
+		waveTime = Spring.GetTimer()
+	end
+
+	if scavEventArgs.type == "queenResistance" then
+		if scavEventArgs.number then
+			if not currentlyResistantTo[scavEventArgs.number] then
+				table.insert(resistancesTable, scavEventArgs.number)
+				currentlyResistantTo[scavEventArgs.number] = true
+			end
+		end
+	end
+
+	if (scavEventArgs.type == "wave" or scavEventArgs.type == "airWave") and config.useWaveMsg and gameInfo.scavQueenAnger <= 99 then
+		waveCount = waveCount + 1
+		scavEventArgs.waveCount = waveCount
+		showMarqueeMessage = true
+		refreshMarqueeMessage = true
+		messageArgs = scavEventArgs
+		waveTime = Spring.GetTimer()
+	end
+end
 
 function widget:Initialize()
 	widget:ViewResize()
@@ -320,17 +301,23 @@ function widget:Initialize()
 		gl.TexRect(0, 0, w, h)
 	end)
 
-	widgetHandler:RegisterGlobal("RaptorEvent", RaptorEvent)
+	widgetHandler:RegisterGlobal("ScavEvent", ScavEvent)
 	UpdateRules()
 	viewSizeX, viewSizeY = gl.GetViewSizes()
 	local x = math.abs(math.floor(viewSizeX - 320))
 	local y = math.abs(math.floor(viewSizeY - 300))
+
+	-- reposition if scavengers panel is shown as well
+	if Spring.Utilities.Gametype.IsScavengers() then
+		x = x - 315
+	end
+
 	updatePos(x, y)
 end
 
 function widget:Shutdown()
-	if hasRaptorEvent then
-		Spring.SendCommands({ "luarules HasRaptorEvent 0" })
+	if hasScavEvent then
+		Spring.SendCommands({ "luarules HasScavEvent 0" })
 	end
 
 	if guiPanel then
@@ -340,13 +327,13 @@ function widget:Shutdown()
 
 	gl.DeleteList(displayList)
 	gl.DeleteTexture(panelTexture)
-	widgetHandler:DeregisterGlobal("RaptorEvent")
+	widgetHandler:DeregisterGlobal("ScavEvent")
 end
 
 function widget:GameFrame(n)
-	if not hasRaptorEvent and n > 1 then
-		Spring.SendCommands({ "luarules HasRaptorEvent 1" })
-		hasRaptorEvent = true
+	if not hasScavEvent and n > 1 then
+		Spring.SendCommands({ "luarules HasScavEvent 1" })
+		hasScavEvent = true
 	end
 	if n % 30 < 1 then
 		UpdateRules()
