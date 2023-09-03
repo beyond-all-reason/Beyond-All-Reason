@@ -26,9 +26,6 @@ for udid,ud in ipairs(UnitDefs) do
 			armourTurrets[udid] = true
 		end
 	end
-    --if string.find(ud.name, "cormaw") or string.find(ud.name, "armclaw")  then
-    --    armourTurrets[udid] = true
-    --end
 end
 local UPDATE = 30
 local timeCounter = 15

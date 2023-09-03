@@ -38,7 +38,7 @@ return {
 		customparams = {
 			neutral_when_closed = true,
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/armfort_aoplane.dds",
+			buildinggrounddecaltype = "decals/corfort_aoplane.dds",
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,
