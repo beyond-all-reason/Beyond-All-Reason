@@ -650,6 +650,7 @@ customDefs.armaca = {
 		[numBuildoptions+4] = "corscavfort",
 		[numBuildoptions+5] = "armbotrail",
 		[numBuildoptions+6] = "armannit3",
+		[numBuildoptions+7] = "armlwall",
 	},
 }
 
@@ -662,6 +663,7 @@ customDefs.armack = {
 		[numBuildoptions+4] = "corscavfort",
 		[numBuildoptions+5] = "armbotrail",
 		[numBuildoptions+6] = "armannit3",
+		[numBuildoptions+7] = "armlwall",
 	},
 }
 
@@ -674,6 +676,7 @@ customDefs.armacv = {
 		[numBuildoptions+4] = "corscavfort",
 		[numBuildoptions+5] = "armbotrail",
 		[numBuildoptions+6] = "armannit3",
+		[numBuildoptions+7] = "armlwall",
 	},
 }
 
@@ -686,6 +689,7 @@ customDefs.coraca = {
 		[numBuildoptions+4] = "corhllllt",
 		[numBuildoptions+5] = "corscavfort",
 		[numBuildoptions+6] = "cordoomt3",
+		[numBuildoptions+7] = "cormwall",
 	},
 }
 
@@ -698,6 +702,7 @@ customDefs.corack = {
 		[numBuildoptions+4] = "corhllllt",
 		[numBuildoptions+5] = "corscavfort",
 		[numBuildoptions+6] = "cordoomt3",
+		[numBuildoptions+7] = "cormwall",
 	},
 }
 
@@ -710,6 +715,7 @@ customDefs.coracv = {
 		[numBuildoptions+4] = "corhllllt",
 		[numBuildoptions+5] = "corscavfort",
 		[numBuildoptions+6] = "cordoomt3",
+		[numBuildoptions+7] = "cormwall",
 	},
 }
 
