@@ -487,13 +487,13 @@ if gadgetHandler:IsSyncedCode() then
 							elseif role == "healer" then
 								local pos = getRandomEnemyPos()
 								Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, {})
-								if math.random() <= 0.33 then
+								if mRandom() <= 0.33 then
 									Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 10000} , {"shift"})
 								end
-								if math.random() <= 0.33 then
+								if mRandom() <= 0.33 then
 									Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 10000} , {"shift"})
 								end
-								if math.random() <= 0.33 then
+								if mRandom() <= 0.33 then
 									Spring.GiveOrderToUnit(unitID, CMD.REPAIR, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 10000} , {"shift"})
 								end
 								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x, pos.y, pos.z} , {"shift"})
@@ -648,8 +648,10 @@ if gadgetHandler:IsSyncedCode() then
 				local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
 				local scavName = string.sub(sString, (nEnd + 1))
 				for j = 1, unitNumber, 1 do
-					squadCounter = squadCounter + 1
-					table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
+					if mRandom() <= config.spawnChance or j == 1 then
+						squadCounter = squadCounter + 1
+						table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
+					end
 				end
 			end
 		else
@@ -694,8 +696,10 @@ if gadgetHandler:IsSyncedCode() then
 					local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
 					local scavName = string.sub(sString, (nEnd + 1))
 					for j = 1, unitNumber, 1 do
-						squadCounter = squadCounter + 1
-						table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
+						if mRandom() <= config.spawnChance or j == 1 then
+							squadCounter = squadCounter + 1
+							table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
+						end
 					end
 				end
 			end
@@ -1036,13 +1040,15 @@ if gadgetHandler:IsSyncedCode() then
 							local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
 							local scavName = string.sub(sString, (nEnd + 1))
 							for j = 1, unitNumber, 1 do
-								squadCounter = squadCounter + 1
-								table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
+								if mRandom() <= config.spawnChance or j == 1 then
+									squadCounter = squadCounter + 1
+									table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
+									cCount = cCount + 1
+								end
 							end
-							cCount = cCount + unitNumber
 						end
 					end
-					if loopCounter <= 1 and math.random() <= config.spawnChance then
+					if loopCounter <= 1 and mRandom() <= config.spawnChance then
 						squad = nil
 						squadCounter = 0
 						for _ = 1,1000 do
@@ -1065,10 +1071,12 @@ if gadgetHandler:IsSyncedCode() then
 								local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
 								local scavName = string.sub(sString, (nEnd + 1))
 								for j = 1, unitNumber, 1 do
-									squadCounter = squadCounter + 1
-									table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
+									if mRandom() <= config.spawnChance or j == 1 then
+										squadCounter = squadCounter + 1
+										table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
+										cCount = cCount + 1
+									end
 								end
-								cCount = cCount + unitNumber
 							end
 						end
 					end
@@ -1237,33 +1245,6 @@ if gadgetHandler:IsSyncedCode() then
 					if queenResistance[attackerDefID].notify == 0 then
 						scavEvent("queenResistance", attackerDefID)
 						queenResistance[attackerDefID].notify = 1
-						if mRandom() < config.spawnChance then
-							local squad
-							local squadCounter = 0
-							for _ = 1,1000 do
-								local potentialSquad = squadSpawnOptions.healer[mRandom(1, #squadSpawnOptions.healer)]
-								if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger) then -- Super Squad
-									squad = potentialSquad
-									break
-								end
-							end
-							if squad then
-								for i, sString in pairs(squad.units) do
-									local nEnd, _ = string.find(sString, " ")
-									local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-									local scavName = string.sub(sString, (nEnd + 1))
-									for j = 1, unitNumber, 1 do
-										squadCounter = squadCounter + 1
-										table.insert(spawnQueue, { burrow = queenID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
-									end
-								end
-							end
-						end
-						for _ = 1,SetCount(humanTeams) do
-							if mRandom() < config.spawnChance then
-								SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
-							end
-						end
 						spawnCreepStructuresWave()
 					end
 					damage = damage - (damage * resistPercent)
@@ -1487,6 +1468,8 @@ if gadgetHandler:IsSyncedCode() then
 				_, queenMaxHP = GetUnitHealth(queenID)
 				SetUnitExperience(queenID, 0)
 				timeOfLastWave = t
+				burrows[queenID] = 0
+				SetUnitBlocking(queenID, false, false)
 				for burrowID, _ in pairs(burrows) do
 					if mRandom() < config.spawnChance then
 						SpawnRandomOffWaveSquad(burrowID)
@@ -1496,14 +1479,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				Spring.SetGameRulesParam("BossFightStarted", 1)
 				Spring.SetUnitAlwaysVisible(queenID, true)
-			end
-		else
-			if mRandom() < config.spawnChance / 15 then
-				for i = 1,config.queenSpawnMult do
-					SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
-					SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
-
-				end
 			end
 		end
 	end
@@ -1571,9 +1546,9 @@ if gadgetHandler:IsSyncedCode() then
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
 			if pastFirstQueen then
-				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((queenTime/Spring.GetModOptions().scav_queentimemult) - config.gracePeriod) * 100) - (playerAggressionLevel*1) + queenAngerAggressionLevel, 999), 0)
+				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((queenTime/Spring.GetModOptions().scav_queentimemult) - config.gracePeriod) * 100), 999), 0)
 			else
-				techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().scav_graceperiodmult)) / ((queenTime/Spring.GetModOptions().scav_queentimemult) - (config.gracePeriod/Spring.GetModOptions().scav_graceperiodmult)) * 100) - (playerAggressionLevel*1) + queenAngerAggressionLevel, 999), 0)
+				techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().scav_graceperiodmult)) / ((queenTime/Spring.GetModOptions().scav_queentimemult) - (config.gracePeriod/Spring.GetModOptions().scav_graceperiodmult)) * 100), 999), 0)
 			end
 			if t < config.gracePeriod then
 				queenAnger = 0
@@ -1785,7 +1760,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			SetGameRulesParam("scav_hiveCount", SetCount(burrows))
 		elseif unitTeam == scavTeamID and UnitDefs[unitDefID].isBuilding and (attackerID and Spring.GetUnitTeam(attackerID) ~= scavTeamID) then
-			playerAggression = playerAggression + ((config.angerBonus/config.scavSpawnMultiplier)*0.1)
+			playerAggression = playerAggression + ((config.angerBonus/config.scavSpawnMultiplier)*0.01)
 		end
 		if unitTeleportCooldown[unitID] then
 			unitTeleportCooldown[unitID] = nil
