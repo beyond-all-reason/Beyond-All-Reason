@@ -520,6 +520,10 @@
 			"raptorOptions": "Raptor options",
 			"modOptions": "Mod options"
 		},
+		"cmdlimiter": {
+			"forceresignwarning": "You queued too much buildings a few time, continue this and you will get forcefully resigned.",
+			"forceresign": "You queued too much buildings too many times, you have been force resigned!"
+		},
 		"raptors": {
 			"firstWave1": "The Raptors have arrived!",
 			"firstWave2": "Get ready to defend yourself!",
