@@ -395,6 +395,13 @@ local LandUnitsList = {
 	Healer = {
 		[1] = {
 			--Armada
+
+			--Cortex
+
+			--Legion
+		},
+		[2] = {
+			--Armada
 			["armck_scav"] = 1,
 			["armrectr_scav"] = 20,
 			["armcv_scav"] = 1,
@@ -405,14 +412,6 @@ local LandUnitsList = {
 			--Legion
 			["legcv_scav"] = 1,
 			["legck_scav"] = 1,
-		},
-		[2] = {
-			--Armada
-
-			--Cortex
-
-			--Legion
-
 		},
 		[3] = {
 			--Armada	
