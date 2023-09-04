@@ -100,13 +100,9 @@ elseif lootboxesDensity == "rare" then
 	lootboxDensityMultiplier = 0.5
 elseif lootboxesDensity == "normal" then
 	lootboxDensityMultiplier = 1
-elseif lootboxesDensity == "dense" then
-	lootboxDensityMultiplier = 2
-elseif lootboxesDensity == "verydense" then
-	lootboxDensityMultiplier = 5
 end
 
-local SpawnChance = math.ceil(20/lootboxDensityMultiplier)
+local SpawnChance = math.ceil(15/lootboxDensityMultiplier)
 
 if scavengersAIEnabled then
 	spGaiaTeam = scavengerAITeamID
