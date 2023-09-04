@@ -86,7 +86,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function gadget:GameFrame(frame)
-    if frame%30 == 12 and Spring.GetGameRulesParam("scavQueenAnger") >= 1 and Spring.GetGameRulesParam("scavTechAnger") >= config.airStartAnger then
+    if frame%30 == 12 and Spring.GetGameRulesParam("scavBossAnger") >= 1 and Spring.GetGameRulesParam("scavTechAnger") >= config.airStartAnger then
         if aliveLootboxesCount > 0 and aliveSpawnersCount > 0 then
             if SetCount(handledLootboxesList) > 0 then
                 handledLootboxesList = {}

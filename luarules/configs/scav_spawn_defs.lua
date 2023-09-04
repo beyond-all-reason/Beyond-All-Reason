@@ -15,11 +15,11 @@ local difficultyParameters = {
 
 	[difficulties.veryeasy] = {
 		gracePeriod       		= 8 * Spring.GetModOptions().scav_graceperiodmult * 60,
-		queenTime      	  		= 50 * Spring.GetModOptions().scav_queentimemult * 60, -- time at which the queen appears, frames
+		bossTime      	  		= 50 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
 		scavSpawnRate   		= 120 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 240 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 260 * Spring.GetModOptions().scav_spawntimemult,
-		queenSpawnMult    		= 1,
+		bossSpawnMult    		= 1,
 		angerBonus        		= 1,
 		maxXP			  		= 0.5,
 		spawnChance       		= 0.1,
@@ -28,17 +28,17 @@ local difficultyParameters = {
 		minScavs		  		= 5,
 		maxScavs		  		= 25,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 'armscavengerbossv2_scav',
-		queenResistanceMult   	= 0.5,
+		bossName         		= 'armscavengerbossv2_scav',
+		bossResistanceMult   	= 0.5,
 	},
 
 	[difficulties.easy] = {
 		gracePeriod       		= 7 * Spring.GetModOptions().scav_graceperiodmult * 60,
-		queenTime      	  		= 45 * Spring.GetModOptions().scav_queentimemult * 60, -- time at which the queen appears, frames
+		bossTime      	  		= 45 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
 		scavSpawnRate   		= 90 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 210 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 230 * Spring.GetModOptions().scav_spawntimemult,
-		queenSpawnMult    		= 1,
+		bossSpawnMult    		= 1,
 		angerBonus        		= 1.2,
 		maxXP			  		= 1,
 		spawnChance       		= 0.2,
@@ -47,16 +47,16 @@ local difficultyParameters = {
 		minScavs		  		= 5,
 		maxScavs		  		= 30,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 'armscavengerbossv2_scav',
-		queenResistanceMult   	= 0.75,
+		bossName         		= 'armscavengerbossv2_scav',
+		bossResistanceMult   	= 0.75,
 	},
 	[difficulties.normal] = {
 		gracePeriod       		= 6 * Spring.GetModOptions().scav_graceperiodmult * 60,
-		queenTime      	  		= 40 * Spring.GetModOptions().scav_queentimemult * 60, -- time at which the queen appears, frames
+		bossTime      	  		= 40 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
 		scavSpawnRate   		= 60 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 180 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 200 * Spring.GetModOptions().scav_spawntimemult,
-		queenSpawnMult    		= 3,
+		bossSpawnMult    		= 3,
 		angerBonus        		= 1.4,
 		maxXP			  		= 1.5,
 		spawnChance       		= 0.3,
@@ -65,16 +65,16 @@ local difficultyParameters = {
 		minScavs		  		= 5,
 		maxScavs		  		= 35,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 'armscavengerbossv2_scav',
-		queenResistanceMult  	= 1,
+		bossName         		= 'armscavengerbossv2_scav',
+		bossResistanceMult  	= 1,
 	},
 	[difficulties.hard] = {
 		gracePeriod       		= 5 * Spring.GetModOptions().scav_graceperiodmult * 60,
-		queenTime      	  		= 40 * Spring.GetModOptions().scav_queentimemult * 60, -- time at which the queen appears, frames
+		bossTime      	  		= 40 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
 		scavSpawnRate   		= 50 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 150 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 170 * Spring.GetModOptions().scav_spawntimemult,
-		queenSpawnMult    		= 3,
+		bossSpawnMult    		= 3,
 		angerBonus        		= 1.6,
 		maxXP			  		= 2,
 		spawnChance       		= 0.4,
@@ -83,16 +83,16 @@ local difficultyParameters = {
 		minScavs		  		= 5,
 		maxScavs		  		= 40,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 'armscavengerbossv2_scav',
-		queenResistanceMult   	= 1.33,
+		bossName         		= 'armscavengerbossv2_scav',
+		bossResistanceMult   	= 1.33,
 	},
 	[difficulties.veryhard] = {
 		gracePeriod       		= 4 * Spring.GetModOptions().scav_graceperiodmult * 60,
-		queenTime      	  		= 35 * Spring.GetModOptions().scav_queentimemult * 60, -- time at which the queen appears, frames
+		bossTime      	  		= 35 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
 		scavSpawnRate  			= 40 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 120 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 140 * Spring.GetModOptions().scav_spawntimemult,
-		queenSpawnMult    		= 3,
+		bossSpawnMult    		= 3,
 		angerBonus        		= 1.8,
 		maxXP			  		= 2.5,
 		spawnChance       		= 0.5,
@@ -101,16 +101,16 @@ local difficultyParameters = {
 		minScavs		  		= 5,
 		maxScavs		  		= 45,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 'armscavengerbossv2_scav',
-		queenResistanceMult   	= 1.67,
+		bossName         		= 'armscavengerbossv2_scav',
+		bossResistanceMult   	= 1.67,
 	},
 	[difficulties.epic] = {
 		gracePeriod       		= 3 * Spring.GetModOptions().scav_graceperiodmult * 60,
-		queenTime      	  		= 30 * Spring.GetModOptions().scav_queentimemult * 60, -- time at which the queen appears, frames
+		bossTime      	  		= 30 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
 		scavSpawnRate   		= 30 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 90 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 110 * Spring.GetModOptions().scav_spawntimemult,
-		queenSpawnMult    		= 3,
+		bossSpawnMult    		= 3,
 		angerBonus        		= 2,
 		maxXP			  		= 3,
 		spawnChance       		= 0.6,
@@ -119,8 +119,8 @@ local difficultyParameters = {
 		minScavs		  		= 5,
 		maxScavs		  		= 50,
 		scavPerPlayerMultiplier = 0.25,
-		queenName         		= 'armscavengerbossv2_scav',
-		queenResistanceMult   	= 2,
+		bossName         		= 'armscavengerbossv2_scav',
+		bossResistanceMult   	= 2,
 	},
 
 }
@@ -855,10 +855,10 @@ for tier, _ in pairs(Turrets) do
 			Spring.Echo(turret)
 			Spring.Echo(UnitDefs[UnitDefNames[turret].id].name)
 			scavTurrets[turret] = { 
-				minQueenAnger = TierIntroductionAnger[tier],
+				minBossAnger = TierIntroductionAnger[tier],
 				spawnedPerWave = turretInfo.spawnedPerWave or 1,
 				maxExisting = turretInfo.maxExisting or 10,
-				maxQueenAnger = turretInfo.maxQueenAnger or 1000,
+				maxBossAnger = turretInfo.maxBossAnger or 1000,
 				surfaceType = turretInfo.surface or "land",
 			}
 		end
@@ -876,7 +876,7 @@ scavBehaviours = {
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
 		[UnitDefNames["armscavengerbossv2_scav"].id] = { distance = 2000, chance = 0.001},
 	},
-	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and queen
+	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and boss
 		--[UnitDefNames["raptorhealer1"].id] = true,
 	},
 	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance
@@ -1106,7 +1106,7 @@ local burrowSize = 144
 local bossFightWaveSizeScale = 100 -- Percentage
 local defaultScavFirestate = 3 -- 0 - Hold Fire | 1 - Return Fire | 2 - Fire at Will | 3 - Fire at everything
 
-local ecoBuildingsPenalty = { -- Additional queen hatch per second from eco buildup (for 60 minutes queen time. scales to queen time)
+local ecoBuildingsPenalty = { -- Additional boss hatch per second from eco buildup (for 60 minutes boss time. scales to boss time)
 	--[[
 	-- T1 Energy
 	[UnitDefNames["armsolar"].id] 	= 0.0000001,

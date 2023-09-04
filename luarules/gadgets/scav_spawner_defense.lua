@@ -65,20 +65,20 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
 	Spring.SetGameRulesParam("BossFightStarted", 0)
-	local queenLifePercent = 100
+	local bossLifePercent = 100
 	local maxTries = 30
 	local scavUnitCap = math.floor(Game.maxUnits*0.95)
 	local minBurrows = 1
 	local timeOfLastSpawn = -999999
 	local timeOfLastWave = 0
 	local t = 0 -- game time in secondstarget
-	local queenAnger = 0
+	local bossAnger = 0
 	local techAnger = 0
-	local queenMaxHP = 0
+	local bossMaxHP = 0
 	local playerAggression = 0
 	local playerAggressionLevel = 0
 	local playerAggressionEcoValue = 0
-	local queenAngerAggressionLevel = 0
+	local bossAngerAggressionLevel = 0
 	local difficultyCounter = config.difficulty
 	local waveParameters = {
 		baseCooldown = 5,
@@ -115,8 +115,8 @@ if gadgetHandler:IsSyncedCode() then
 	local humanTeams = {}
 	local spawnQueue = {}
 	local deathQueue = {}
-	local queenResistance = {}
-	local queenID
+	local bossResistance = {}
+	local bossID
 	local scavTeamID, scavAllyTeamID
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
@@ -276,8 +276,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	function setScavXP(unitID)
 		local maxXP = config.maxXP
-		local queenAnger = queenAnger or 0
-		local xp = mRandom(0, math.ceil((queenAnger*0.01) * maxXP * 1000))*0.001
+		local bossAnger = bossAnger or 0
+		local xp = mRandom(0, math.ceil((bossAnger*0.01) * maxXP * 1000))*0.001
 		SetUnitExperience(unitID, xp)
 		return xp
 	end
@@ -290,9 +290,9 @@ if gadgetHandler:IsSyncedCode() then
     --
 
 	local maxBurrows = ((config.maxBurrows*(1-config.scavPerPlayerMultiplier))+(config.maxBurrows*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
-	local queenTime = (config.queenTime + config.gracePeriod)
+	local bossTime = (config.bossTime + config.gracePeriod)
 	if config.difficulty == config.difficulties.survival then
-		queenTime = math.ceil(queenTime*0.5)
+		bossTime = math.ceil(bossTime*0.5)
 	end
 	local maxWaveSize = ((config.maxScavs*(1-config.scavPerPlayerMultiplier))+(config.maxScavs*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
 	local minWaveSize = ((config.minScavs*(1-config.scavPerPlayerMultiplier))+(config.minScavs*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
@@ -301,46 +301,46 @@ if gadgetHandler:IsSyncedCode() then
 	function updateDifficultyForSurvival()
 		t = GetGameSeconds()
 		config.gracePeriod = t-1
-		queenAnger = 0  -- reenable scav spawning
+		bossAnger = 0  -- reenable scav spawning
 		techAnger = 0
 		playerAggression = 0
-		queenAngerAggressionLevel = 0
-		pastFirstQueen = true
-		SetGameRulesParam("scavQueenAnger", queenAnger)
+		bossAngerAggressionLevel = 0
+		pastFirstBoss = true
+		SetGameRulesParam("scavBossAnger", bossAnger)
 		SetGameRulesParam("scavTechAnger", techAnger)
 		local nextDifficulty
 		difficultyCounter = difficultyCounter + 1
 		endlessLoopCounter = endlessLoopCounter + 1
 		if config.difficultyParameters[difficultyCounter] then
 			nextDifficulty = config.difficultyParameters[difficultyCounter]
-			config.queenResistanceMult = nextDifficulty.queenResistanceMult
+			config.bossResistanceMult = nextDifficulty.bossResistanceMult
 			config.damageMod = nextDifficulty.damageMod
 		else
 			difficultyCounter = difficultyCounter - 1
 			nextDifficulty = config.difficultyParameters[difficultyCounter]
 			config.scavSpawnMultiplier = config.scavSpawnMultiplier+1
-			config.queenResistanceMult = config.queenResistanceMult+0.5
+			config.bossResistanceMult = config.bossResistanceMult+0.5
 			config.damageMod = config.damageMod+0.25
 		end
-		config.queenName = nextDifficulty.queenName
+		config.bossName = nextDifficulty.bossName
 		config.burrowSpawnRate = nextDifficulty.burrowSpawnRate
 		config.turretSpawnRate = nextDifficulty.turretSpawnRate
-		config.queenSpawnMult = nextDifficulty.queenSpawnMult
+		config.bossSpawnMult = nextDifficulty.bossSpawnMult
 		config.spawnChance = nextDifficulty.spawnChance
 		config.maxScavs = nextDifficulty.maxScavs
 		config.minScavs = nextDifficulty.minScavs
 		config.maxBurrows = nextDifficulty.maxBurrows
 		config.maxXP = nextDifficulty.maxXP
 		config.angerBonus = nextDifficulty.angerBonus
-		config.queenTime = math.ceil(nextDifficulty.queenTime/endlessLoopCounter)
+		config.bossTime = math.ceil(nextDifficulty.bossTime/endlessLoopCounter)
 
-		queenTime = (config.queenTime + config.gracePeriod)
+		bossTime = (config.bossTime + config.gracePeriod)
 		maxBurrows = ((config.maxBurrows*(1-config.scavPerPlayerMultiplier))+(config.maxBurrows*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
 		maxWaveSize = ((config.maxScavs*(1-config.scavPerPlayerMultiplier))+(config.maxScavs*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
 		minWaveSize = ((config.minScavs*(1-config.scavPerPlayerMultiplier))+(config.minScavs*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
 		config.scavSpawnRate = nextDifficulty.scavSpawnRate
 		currentMaxWaveSize = minWaveSize
-		SetGameRulesParam("ScavQueenAngerGain_Base", 100/config.queenTime)
+		SetGameRulesParam("ScavBossAngerGain_Base", 100/config.bossTime)
 	end
 
 	--------------------------------------------------------------------------------
@@ -349,15 +349,15 @@ if gadgetHandler:IsSyncedCode() then
 	-- Game Rules
 	--
 
-	SetGameRulesParam("scavQueenTime", queenTime)
-	SetGameRulesParam("scavQueenHealth", queenLifePercent)
-	SetGameRulesParam("scavQueenAnger", queenAnger)
+	SetGameRulesParam("scavBossTime", bossTime)
+	SetGameRulesParam("scavBossHealth", bossLifePercent)
+	SetGameRulesParam("scavBossAnger", bossAnger)
 	SetGameRulesParam("scavTechAnger", techAnger)
 	SetGameRulesParam("scavGracePeriod", config.gracePeriod)
 	SetGameRulesParam("scavDifficulty", config.difficulty)
-	SetGameRulesParam("ScavQueenAngerGain_Base", 100/config.queenTime)
-	SetGameRulesParam("ScavQueenAngerGain_Aggression", 0)
-	SetGameRulesParam("ScavQueenAngerGain_Eco", 0)
+	SetGameRulesParam("ScavBossAngerGain_Base", 100/config.bossTime)
+	SetGameRulesParam("ScavBossAngerGain_Aggression", 0)
+	SetGameRulesParam("ScavBossAngerGain_Eco", 0)
 
 
 	function scavEvent(type, num, tech)
@@ -404,7 +404,7 @@ if gadgetHandler:IsSyncedCode() then
 			if squadsTable[i].squadLife <= 0 then
 				-- Spring.Echo("Life is 0, time to do some killing")
 				if SetCount(squadsTable[i].squadUnits) > 0 then
-					if squadsTable[i].squadBurrow and (not queenID) then
+					if squadsTable[i].squadBurrow and (not bossID) then
 						Spring.DestroyUnit(squadsTable[i].squadBurrow, true, false)
 					end
 					-- Spring.Echo("There are some units to kill, so let's kill them")
@@ -787,31 +787,31 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			else
 				timeOfLastSpawn = GetGameSeconds()
-				playerAggression = playerAggression + (config.angerBonus*(queenAnger*0.01))
+				playerAggression = playerAggression + (config.angerBonus*(bossAnger*0.01))
 			end
 		end
 	end
 
-	function updateQueenLife()
-		if not queenID then
-			SetGameRulesParam("scavQueenHealth", 0)
+	function updateBossLife()
+		if not bossID then
+			SetGameRulesParam("scavBossHealth", 0)
 			return
 		end
-		local curH, maxH = GetUnitHealth(queenID)
+		local curH, maxH = GetUnitHealth(bossID)
 		local lifeCheck = math.ceil(((curH / maxH) * 100) - 0.5)
-		if queenLifePercent ~= lifeCheck then
+		if bossLifePercent ~= lifeCheck then
 			-- health changed since last update, update it
-			queenLifePercent = lifeCheck
-			SetGameRulesParam("scavQueenHealth", queenLifePercent)
+			bossLifePercent = lifeCheck
+			SetGameRulesParam("scavBossHealth", bossLifePercent)
 		end
 	end
 
-	function SpawnQueen()
+	function SpawnBoss()
 		local bestScore = 0
 		local bestBurrowID
 		local sx, sy, sz
 		for burrowID, _ in pairs(burrows) do
-			-- Try to spawn the queen at the 'best' burrow
+			-- Try to spawn the boss at the 'best' burrow
 			local x, y, z = GetUnitPosition(burrowID)
 			if x and y and z then
 				local score = 0
@@ -830,57 +830,57 @@ if gadgetHandler:IsSyncedCode() then
 			if bestBurrowID then
 				Spring.DestroyUnit(bestBurrowID, true, false)
 			end
-			return CreateUnit(config.queenName, sx, sy, sz, mRandom(0,3), scavTeamID), burrowID
+			return CreateUnit(config.bossName, sx, sy, sz, mRandom(0,3), scavTeamID), burrowID
 		end
 
 		local x, z, y
 		local tries = 0
-		local canSpawnQueen = false
+		local canSpawnBoss = false
 		repeat
 			x = mRandom(ScavStartboxXMin, ScavStartboxXMax)
 			z = mRandom(ScavStartboxZMin, ScavStartboxZMax)
 			y = GetGroundHeight(x, z)
 			tries = tries + 1
-			canSpawnQueen = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, true)
+			canSpawnBoss = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, true)
 
-			if canSpawnQueen then
+			if canSpawnBoss then
 				if tries < maxTries*3 then
-					canSpawnQueen = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.burrowSize, scavAllyTeamID, true, true, true)
+					canSpawnBoss = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.burrowSize, scavAllyTeamID, true, true, true)
 				else
-					canSpawnQueen = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.burrowSize, scavAllyTeamID, true, true, false)
+					canSpawnBoss = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.burrowSize, scavAllyTeamID, true, true, false)
 				end
 			end
 
-			if canSpawnQueen then
-				canSpawnQueen = positionCheckLibrary.OccupancyCheck(x, y, z, config.burrowSize*0.25)
+			if canSpawnBoss then
+				canSpawnBoss = positionCheckLibrary.OccupancyCheck(x, y, z, config.burrowSize*0.25)
 			end
 
-			if canSpawnQueen then
-				canSpawnQueen = positionCheckLibrary.MapEdgeCheck(x, y, z, 256)
+			if canSpawnBoss then
+				canSpawnBoss = positionCheckLibrary.MapEdgeCheck(x, y, z, 256)
 			end
 
-		until (canSpawnQueen == true or tries >= maxTries * 6)
+		until (canSpawnBoss == true or tries >= maxTries * 6)
 
-		if canSpawnQueen then
-			return CreateUnit(config.queenName, x, y, z, mRandom(0,3), scavTeamID)
+		if canSpawnBoss then
+			return CreateUnit(config.bossName, x, y, z, mRandom(0,3), scavTeamID)
 		else
 			for i = 1,100 do
 				x = mRandom(ScavStartboxXMin, ScavStartboxXMax)
 				z = mRandom(ScavStartboxZMin, ScavStartboxZMax)
 				y = GetGroundHeight(x, z)
 
-				canSpawnQueen = positionCheckLibrary.StartboxCheck(x, y, z, scavAllyTeamID)
-				if canSpawnQueen then
-					canSpawnQueen = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, true)
+				canSpawnBoss = positionCheckLibrary.StartboxCheck(x, y, z, scavAllyTeamID)
+				if canSpawnBoss then
+					canSpawnBoss = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, true)
 				end
-				if canSpawnQueen then
-					canSpawnQueen = positionCheckLibrary.MapEdgeCheck(x, y, z, 128)
+				if canSpawnBoss then
+					canSpawnBoss = positionCheckLibrary.MapEdgeCheck(x, y, z, 128)
 				end
-				if canSpawnQueen then
-					canSpawnQueen = positionCheckLibrary.OccupancyCheck(x, y, z, 128)
+				if canSpawnBoss then
+					canSpawnBoss = positionCheckLibrary.OccupancyCheck(x, y, z, 128)
 				end
-				if canSpawnQueen then
-					return CreateUnit(config.queenName, x, y, z, mRandom(0,3), scavTeamID)
+				if canSpawnBoss then
+					return CreateUnit(config.bossName, x, y, z, mRandom(0,3), scavTeamID)
 				end
 			end
 		end
@@ -1149,13 +1149,13 @@ if gadgetHandler:IsSyncedCode() then
 		for uName, uSettings in pairs(config.scavTurrets) do
 			--Spring.Echo(uName)
 			--Spring.Debug.TableEcho(uSettings)
-			if not uSettings.maxQueenAnger then uSettings.maxQueenAnger = uSettings.minQueenAnger + 100 end
-			if uSettings.minQueenAnger <= techAnger and uSettings.maxQueenAnger >= techAnger then
+			if not uSettings.maxBossAnger then uSettings.maxBossAnger = uSettings.minBossAnger + 100 end
+			if uSettings.minBossAnger <= techAnger and uSettings.maxBossAnger >= techAnger then
 				local numOfTurrets = math.ceil((uSettings.spawnedPerWave*(1-config.scavPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.scavPerPlayerMultiplier)*SetCount(humanTeams))
 				local maxExisting = math.ceil((uSettings.maxExisting*(1-config.scavPerPlayerMultiplier))+(uSettings.maxExisting*config.scavPerPlayerMultiplier)*SetCount(humanTeams))
 				local maxAllowedToSpawn
 				if techAnger <= 100 then  -- i don't know how this works but it does. scales maximum amount of turrets allowed to spawn with techAnger.
-					maxAllowedToSpawn = math.ceil(maxExisting*((techAnger-uSettings.minQueenAnger)/(math.min(100-uSettings.minQueenAnger, uSettings.maxQueenAnger-uSettings.minQueenAnger))))
+					maxAllowedToSpawn = math.ceil(maxExisting*((techAnger-uSettings.minBossAnger)/(math.min(100-uSettings.minBossAnger, uSettings.maxBossAnger-uSettings.minBossAnger))))
 				else
 					maxAllowedToSpawn = math.ceil(maxExisting*(techAnger*0.01))
 				end
@@ -1219,7 +1219,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if config.ecoBuildingsPenalty[unitDefID] then
-			playerAggressionEcoValue = playerAggressionEcoValue + (config.ecoBuildingsPenalty[unitDefID]/(config.queenTime/3600)) -- scale to 60minutes = 3600seconds queen time
+			playerAggressionEcoValue = playerAggressionEcoValue + (config.ecoBuildingsPenalty[unitDefID]/(config.bossTime/3600)) -- scale to 60minutes = 3600seconds boss time
 		end
 	end
 
@@ -1229,27 +1229,27 @@ if gadgetHandler:IsSyncedCode() then
 			damage = damage * config.damageMod
 		end
 
-		if unitID == queenID then -- Queen Resistance
+		if unitID == bossID then -- Boss Resistance
 			if attackerDefID then
 				if weaponID == -1 and damage > 1 then
 					damage = 1
 				end
-				if not queenResistance[attackerDefID] then
-					queenResistance[attackerDefID] = {}
-					queenResistance[attackerDefID].damage = (damage * 4 * config.queenResistanceMult)
-					queenResistance[attackerDefID].notify = 0
+				if not bossResistance[attackerDefID] then
+					bossResistance[attackerDefID] = {}
+					bossResistance[attackerDefID].damage = (damage * 4 * config.bossResistanceMult)
+					bossResistance[attackerDefID].notify = 0
 				end
-				local resistPercent = math.min((queenResistance[attackerDefID].damage) / queenMaxHP, 0.95)
+				local resistPercent = math.min((bossResistance[attackerDefID].damage) / bossMaxHP, 0.95)
 				if resistPercent > 0.5 then
-					if queenResistance[attackerDefID].notify == 0 then
-						scavEvent("queenResistance", attackerDefID)
-						queenResistance[attackerDefID].notify = 1
+					if bossResistance[attackerDefID].notify == 0 then
+						scavEvent("bossResistance", attackerDefID)
+						bossResistance[attackerDefID].notify = 1
 						spawnCreepStructuresWave()
 					end
 					damage = damage - (damage * resistPercent)
 
 				end
-				queenResistance[attackerDefID].damage = queenResistance[attackerDefID].damage + (damage * 4 * config.queenResistanceMult)
+				bossResistance[attackerDefID].damage = bossResistance[attackerDefID].damage + (damage * 4 * config.bossResistanceMult)
 			else
 				damage = 1
 			end
@@ -1334,14 +1334,14 @@ if gadgetHandler:IsSyncedCode() then
 					unitCowardCooldown[attackerID] = Spring.GetGameFrame() + 900
 				end
 			end
-			if queenID and unitID == queenID then
+			if bossID and unitID == bossID then
 				local curH, maxH = GetUnitHealth(unitID)
 				if curH and maxH then
 					curH = math.max(curH, maxH*0.05)
 					local spawnChance = math.max(0, math.ceil(curH/maxH*10000))
 					if mRandom(0,spawnChance) == 1 then
-						SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
-						SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
+						SpawnMinions(bossID, Spring.GetUnitDefID(bossID))
+						SpawnMinions(bossID, Spring.GetUnitDefID(bossID))
 					end
 				end
 			end
@@ -1452,23 +1452,23 @@ if gadgetHandler:IsSyncedCode() then
 		spawnQueue[i] = nil
 	end
 
-	function updateSpawnQueen()
-		if not queenID and not gameOver then
-			-- spawn queen if not exists
-			queenID = SpawnQueen()
-			if queenID then
-				queenSquad = table.copy(squadCreationQueueDefaults)
-				queenSquad.life = 999999
-				queenSquad.role = "raid"
-				queenSquad.units = {queenID}
-				createSquad(queenSquad)
+	function updateSpawnBoss()
+		if not bossID and not gameOver then
+			-- spawn boss if not exists
+			bossID = SpawnBoss()
+			if bossID then
+				bossSquad = table.copy(squadCreationQueueDefaults)
+				bossSquad.life = 999999
+				bossSquad.role = "raid"
+				bossSquad.units = {bossID}
+				createSquad(bossSquad)
 				spawnQueue = {}
-				scavEvent("queen") -- notify unsynced about queen spawn
-				_, queenMaxHP = GetUnitHealth(queenID)
-				SetUnitExperience(queenID, 0)
+				scavEvent("boss") -- notify unsynced about boss spawn
+				_, bossMaxHP = GetUnitHealth(bossID)
+				SetUnitExperience(bossID, 0)
 				timeOfLastWave = t
-				burrows[queenID] = 0
-				SetUnitBlocking(queenID, false, false)
+				burrows[bossID] = 0
+				SetUnitBlocking(bossID, false, false)
 				for burrowID, _ in pairs(burrows) do
 					if mRandom() < config.spawnChance then
 						SpawnRandomOffWaveSquad(burrowID)
@@ -1477,7 +1477,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				Spring.SetGameRulesParam("BossFightStarted", 1)
-				Spring.SetUnitAlwaysVisible(queenID, true)
+				Spring.SetUnitAlwaysVisible(bossID, true)
 			end
 		end
 	end
@@ -1539,38 +1539,38 @@ if gadgetHandler:IsSyncedCode() then
 			playerAggression = playerAggression*0.995
 			playerAggressionLevel = math.floor(playerAggression)
 			SetGameRulesParam("scavPlayerAggressionLevel", playerAggressionLevel)
-			if not queenID then
+			if not bossID then
 				currentMaxWaveSize = (minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))
 			else
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
-			if pastFirstQueen then
-				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((queenTime/Spring.GetModOptions().scav_queentimemult) - config.gracePeriod) * 100), 999), 0)
+			if pastFirstBoss then
+				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((bossTime/Spring.GetModOptions().scav_bosstimemult) - config.gracePeriod) * 100), 999), 0)
 			else
-				techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().scav_graceperiodmult)) / ((queenTime/Spring.GetModOptions().scav_queentimemult) - (config.gracePeriod/Spring.GetModOptions().scav_graceperiodmult)) * 100), 999), 0)
+				techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().scav_graceperiodmult)) / ((bossTime/Spring.GetModOptions().scav_bosstimemult) - (config.gracePeriod/Spring.GetModOptions().scav_graceperiodmult)) * 100), 999), 0)
 			end
 			if t < config.gracePeriod then
-				queenAnger = 0
+				bossAnger = 0
 				minBurrows = SetCount(humanTeams)*(t/config.gracePeriod)
 			else
-				if not queenID then
-					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + queenAngerAggressionLevel, 100), 0)
+				if not bossID then
+					bossAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (bossTime - config.gracePeriod) * 100) + bossAngerAggressionLevel, 100), 0)
 					minBurrows = SetCount(humanTeams)
 				else
-					queenAnger = 100
+					bossAnger = 100
 					minBurrows = SetCount(humanTeams)
 				end
-				queenAngerAggressionLevel = queenAngerAggressionLevel + ((playerAggression*0.01)/(config.queenTime/3600)) + playerAggressionEcoValue
-				SetGameRulesParam("ScavQueenAngerGain_Aggression", (playerAggression*0.01)/(config.queenTime/3600))
-				SetGameRulesParam("ScavQueenAngerGain_Eco", playerAggressionEcoValue)
+				bossAngerAggressionLevel = bossAngerAggressionLevel + ((playerAggression*0.01)/(config.bossTime/3600)) + playerAggressionEcoValue
+				SetGameRulesParam("ScavBossAngerGain_Aggression", (playerAggression*0.01)/(config.bossTime/3600))
+				SetGameRulesParam("ScavBossAngerGain_Eco", playerAggressionEcoValue)
 			end
-			SetGameRulesParam("scavQueenAnger", queenAnger)
+			SetGameRulesParam("scavBossAnger", bossAnger)
 			SetGameRulesParam("scavTechAnger", techAnger)
 
-			if queenAnger >= 100 then
-				-- check if the queen should be alive
-				updateSpawnQueen()
-				updateQueenLife()
+			if bossAnger >= 100 then
+				-- check if the boss should be alive
+				updateSpawnBoss()
+				updateBossLife()
 			end
 
 			local burrowCount = SetCount(burrows)
@@ -1694,10 +1694,10 @@ if gadgetHandler:IsSyncedCode() then
 			SetGameRulesParam("scav" .. "Kills", kills + 1)
 		end
 
-		if unitID == queenID then
-			-- queen destroyed
-			queenID = nil
-			queenResistance = {}
+		if unitID == bossID then
+			-- boss destroyed
+			bossID = nil
+			bossResistance = {}
 			Spring.SetGameRulesParam("BossFightStarted", 0)
 
 			if Spring.GetModOptions().scav_endless then
@@ -1765,7 +1765,7 @@ if gadgetHandler:IsSyncedCode() then
 			unitTeleportCooldown[unitID] = nil
 		end
 		if unitTeam ~= scavTeamID and config.ecoBuildingsPenalty[unitDefID] then
-			playerAggressionEcoValue = playerAggressionEcoValue - (config.ecoBuildingsPenalty[unitDefID]/(config.queenTime/3600)) -- scale to 60minutes = 3600seconds queen time
+			playerAggressionEcoValue = playerAggressionEcoValue - (config.ecoBuildingsPenalty[unitDefID]/(config.bossTime/3600)) -- scale to 60minutes = 3600seconds boss time
 		end
 	end
 
