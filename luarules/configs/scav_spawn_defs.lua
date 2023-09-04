@@ -25,8 +25,8 @@ local difficultyParameters = {
 		spawnChance       		= 0.1,
 		damageMod         		= 0.5,
 		maxBurrows        		= 1000,
-		minScavs		  		= 5,
-		maxScavs		  		= 25,
+		minScavs		  		= 10,
+		maxScavs		  		= 20,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_scav',
 		bossResistanceMult   	= 0.5,
@@ -44,8 +44,8 @@ local difficultyParameters = {
 		spawnChance       		= 0.2,
 		damageMod         		= 0.75,
 		maxBurrows        		= 1000,
-		minScavs		  		= 5,
-		maxScavs		  		= 30,
+		minScavs		  		= 15,
+		maxScavs		  		= 25,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_scav',
 		bossResistanceMult   	= 0.75,
@@ -62,8 +62,8 @@ local difficultyParameters = {
 		spawnChance       		= 0.3,
 		damageMod         		= 1,
 		maxBurrows        		= 1000,
-		minScavs		  		= 5,
-		maxScavs		  		= 35,
+		minScavs		  		= 20,
+		maxScavs		  		= 30,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_scav',
 		bossResistanceMult  	= 1,
@@ -80,8 +80,8 @@ local difficultyParameters = {
 		spawnChance       		= 0.4,
 		damageMod         		= 1.25,
 		maxBurrows        		= 1000,
-		minScavs		  		= 5,
-		maxScavs		  		= 40,
+		minScavs		  		= 25,
+		maxScavs		  		= 35,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_scav',
 		bossResistanceMult   	= 1.33,
@@ -98,8 +98,8 @@ local difficultyParameters = {
 		spawnChance       		= 0.5,
 		damageMod         		= 1.5,
 		maxBurrows        		= 1000,
-		minScavs		  		= 5,
-		maxScavs		  		= 45,
+		minScavs		  		= 30,
+		maxScavs		  		= 40,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_scav',
 		bossResistanceMult   	= 1.67,
@@ -116,7 +116,7 @@ local difficultyParameters = {
 		spawnChance       		= 0.6,
 		damageMod         		= 2,
 		maxBurrows        		= 1000,
-		minScavs		  		= 5,
+		minScavs		  		= 40,
 		maxScavs		  		= 50,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_scav',
@@ -1086,9 +1086,9 @@ for tier, _ in pairs(AirUnitsList) do
 		Spring.Echo(unitName)
 		for i = 1,5 do
 			if tier < #TierIntroductionAnger and i < 5 then
-				addNewSquad({ type = "air", minAnger = TierIntroductionAnger[tier]+((i-1)*5), units = { (#TierIntroductionAnger+1-tier)*2+((i-1)*3) .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]+5+((i-1)*5) })
+				addNewSquad({ type = "air", minAnger = TierIntroductionAnger[tier]+((i-1)*5), units = { (#TierIntroductionAnger+1-tier)*2+((i-1)*10) .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]+5+((i-1)*5) })
 			else
-				addNewSquad({ type = "air", minAnger = TierIntroductionAnger[tier]+((i-1)*5), units = { (#TierIntroductionAnger+1-tier)*2+((i-1)*3) .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+				addNewSquad({ type = "air", minAnger = TierIntroductionAnger[tier]+((i-1)*5), units = { (#TierIntroductionAnger+1-tier)*2+((i-1)*10) .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
 			end
 		end
 	end
