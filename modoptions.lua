@@ -231,8 +231,8 @@ local options={
 	},
 	{
 		key    = "scav_bosstimemult",
-		name   = "Boss Hatching Time Multiplier",
-		desc   = "How quickly Boss Hatch goes from 0 to 100% (Range: 0.1 - 3)",
+		name   = "Boss Preparation Time Multiplier",
+		desc   = "How quickly Boss Anger goes from 0 to 100% (Range: 0.1 - 3)",
 		type   = "number",
 		def    = 1,
 		min    = 0.1,
