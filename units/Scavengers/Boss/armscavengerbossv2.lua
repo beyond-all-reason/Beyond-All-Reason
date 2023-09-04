@@ -1,5 +1,39 @@
-return {
-	armscavengerbossv2 = {
+local difficultyParams = {
+	["veryeasy"] = {
+		maxDamage = 400000,
+		dgunStockpile = 60,
+		dgunReload = 6,
+	},
+	["easy"] = {
+		maxDamage = 600000,
+		dgunStockpile = 50,
+		dgunReload = 5,
+	},
+	["normal"] = {
+		maxDamage = 800000,
+		dgunStockpile = 40,
+		dgunReload = 4,
+	},
+	["hard"] = {
+		maxDamage = 1000000,
+		dgunStockpile = 30,
+		dgunReload = 3,
+	},
+	["veryhard"] = {
+		maxDamage = 1200000,
+		dgunStockpile = 20,
+		dgunReload = 2,
+	},
+	["epic"] = {
+		maxDamage = 1400000,
+		dgunStockpile = 10,
+		dgunReload = 1,
+	},
+}
+
+local unitsTable = {}
+for difficulty, stats in pairs(difficultyParams) do
+	unitsTable["armscavengerbossv2_" .. difficulty] = {
 		acceleration = 0.01,
 		activatewhenbuilt = true,
 		autoheal = 10,--10,
@@ -25,13 +59,13 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		icontype = "armcommander",
 		idleautoheal = 5,
 		idletime = 1800,
 		losemitheight = 40,
 		mass = 9999999,
-		maxdamage = 500000, --4450,
+		maxdamage = stats.maxDamage, --4450,
 		maxslope = 20,
 		maxvelocity = 0.625, --1.65, --1.083,
 		maxwaterdepth = 35,
@@ -45,7 +79,7 @@ return {
 		radardistance = 500,
 		radaremitheight = 54,
 		reclaimable = false,
-   		releaseheld  = true,
+		releaseheld  = true,
 		script = "Units/scavboss/armscavengerbossv2.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -68,6 +102,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			i18nfromunit = 'armscavengerbossv2'
 		},
 		featuredefs = {
 			dead = {
@@ -243,7 +278,6 @@ return {
 				bouncerebound = 0,
 				cameraShake = 500,
 				cegtag = "gausscannonprojectilexl",
-				commandfire = true,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -261,11 +295,11 @@ return {
 				name = "Darkmatter Photon-Disruptor",
 				noexplode = true,
 				noselfdamage = true,
-				range = 1500,
-				reloadtime = 5,
+				range = 1100,
+				reloadtime = stats.dgunReload,
 				stockpile = true,
-				stockpiletime = 30,
-				sprayangle = 5000,
+				stockpiletime = stats.dgunStockpile,
+				sprayangle = 5500,
 				rgbcolor = "0.7 0.3 1.0",
 				size = 8.5,
 				soundhit = "xplomas2",
@@ -344,5 +378,7 @@ return {
 				onlytargetcategory = "NOTSUB",
 			},
 		},
-	},
-}
+	}
+end
+
+return unitsTable

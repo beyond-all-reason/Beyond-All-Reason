@@ -28,7 +28,7 @@ local difficultyParameters = {
 		minScavs		  		= 10,
 		maxScavs		  		= 20,
 		scavPerPlayerMultiplier = 0.25,
-		bossName         		= 'armscavengerbossv2_scav',
+		bossName         		= 'armscavengerbossv2_veryeasy_scav',
 		bossResistanceMult   	= 0.5,
 	},
 
@@ -47,7 +47,7 @@ local difficultyParameters = {
 		minScavs		  		= 15,
 		maxScavs		  		= 25,
 		scavPerPlayerMultiplier = 0.25,
-		bossName         		= 'armscavengerbossv2_scav',
+		bossName         		= 'armscavengerbossv2_easy_scav',
 		bossResistanceMult   	= 0.75,
 	},
 	[difficulties.normal] = {
@@ -65,7 +65,7 @@ local difficultyParameters = {
 		minScavs		  		= 20,
 		maxScavs		  		= 30,
 		scavPerPlayerMultiplier = 0.25,
-		bossName         		= 'armscavengerbossv2_scav',
+		bossName         		= 'armscavengerbossv2_normal_scav',
 		bossResistanceMult  	= 1,
 	},
 	[difficulties.hard] = {
@@ -83,7 +83,7 @@ local difficultyParameters = {
 		minScavs		  		= 25,
 		maxScavs		  		= 35,
 		scavPerPlayerMultiplier = 0.25,
-		bossName         		= 'armscavengerbossv2_scav',
+		bossName         		= 'armscavengerbossv2_hard_scav',
 		bossResistanceMult   	= 1.33,
 	},
 	[difficulties.veryhard] = {
@@ -101,7 +101,7 @@ local difficultyParameters = {
 		minScavs		  		= 30,
 		maxScavs		  		= 40,
 		scavPerPlayerMultiplier = 0.25,
-		bossName         		= 'armscavengerbossv2_scav',
+		bossName         		= 'armscavengerbossv2_veryhard_scav',
 		bossResistanceMult   	= 1.67,
 	},
 	[difficulties.epic] = {
@@ -119,7 +119,7 @@ local difficultyParameters = {
 		minScavs		  		= 40,
 		maxScavs		  		= 50,
 		scavPerPlayerMultiplier = 0.25,
-		bossName         		= 'armscavengerbossv2_scav',
+		bossName         		= 'armscavengerbossv2_epic_scav',
 		bossResistanceMult   	= 2,
 	},
 
@@ -868,13 +868,28 @@ end
 
 scavBehaviours = {
 	SKIRMISH = { -- Run away from target after target gets hit
-		[UnitDefNames["armscavengerbossv2_scav"].id] = { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 60,},
+		[UnitDefNames["armscavengerbossv2_veryeasy_scav"].id] 	= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 60,},
+		[UnitDefNames["armscavengerbossv2_easy_scav"].id] 		= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 50,},
+		[UnitDefNames["armscavengerbossv2_normal_scav"].id] 	= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 40,},
+		[UnitDefNames["armscavengerbossv2_hard_scav"].id] 		= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 30,},
+		[UnitDefNames["armscavengerbossv2_veryhard_scav"].id] 	= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 20,},
+		[UnitDefNames["armscavengerbossv2_epic_scav"].id] 		= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 10,},
 	},
 	COWARD = { -- Run away from target after getting hit by enemy
-		[UnitDefNames["armscavengerbossv2_scav"].id] = { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 60,},
+		[UnitDefNames["armscavengerbossv2_veryeasy_scav"].id] 	= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 60,},
+		[UnitDefNames["armscavengerbossv2_easy_scav"].id] 		= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 50,},
+		[UnitDefNames["armscavengerbossv2_normal_scav"].id] 	= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 40,},
+		[UnitDefNames["armscavengerbossv2_hard_scav"].id] 		= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 30,},
+		[UnitDefNames["armscavengerbossv2_veryhard_scav"].id] 	= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 20,},
+		[UnitDefNames["armscavengerbossv2_epic_scav"].id] 		= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 10,},
 	},
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
-		[UnitDefNames["armscavengerbossv2_scav"].id] = { distance = 2000, chance = 0.001},
+		[UnitDefNames["armscavengerbossv2_veryeasy_scav"].id]	= { distance = 2000, chance = 0.001},
+		[UnitDefNames["armscavengerbossv2_easy_scav"].id] 		= { distance = 2000, chance = 0.001},
+		[UnitDefNames["armscavengerbossv2_normal_scav"].id] 	= { distance = 2000, chance = 0.001},
+		[UnitDefNames["armscavengerbossv2_hard_scav"].id] 		= { distance = 2000, chance = 0.001},
+		[UnitDefNames["armscavengerbossv2_veryhard_scav"].id] 	= { distance = 2000, chance = 0.001},
+		[UnitDefNames["armscavengerbossv2_epic_scav"].id]		= { distance = 2000, chance = 0.001},
 	},
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and boss
 		--[UnitDefNames["raptorhealer1"].id] = true,
