@@ -87,7 +87,7 @@ if gadgetHandler:IsSyncedCode() then
 				if footprintX and footprintZ then
 					footprintSquare = (footprintX+footprintZ)*0.5
 				end
-				scumSpawnerIDs[unitDefID] = {radius = footprintSquare*200, growthrate = 0.1*footprintSquare}
+				scumSpawnerIDs[unitDefID] = {radius = footprintSquare*300, growthrate = 0.1*footprintSquare}
 			end
 		end
 
