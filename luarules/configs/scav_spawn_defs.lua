@@ -916,6 +916,8 @@ local squadSpawnOptionsTable = {
 	healerLand = {}, -- Healers/Medics
 	healerSea = {}, -- Healers/Medics
 	air = {}, 		-- Aircrafts
+	airLand = {},
+	airSea = {},
 }
 
 local scavMinions = {} -- Units spawning other units
@@ -1101,9 +1103,11 @@ for tier, _ in pairs(AirUnitsList) do
 		Spring.Echo(unitName)
 		for i = 1,5 do
 			if tier < #TierIntroductionAnger and i < 5 then
-				addNewSquad({ type = "air", minAnger = TierIntroductionAnger[tier]+((i-1)*5), units = { (#TierIntroductionAnger+1-tier)*2+((i-1)*10) .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]+5+((i-1)*5) })
+				addNewSquad({ type = "airLand", minAnger = TierIntroductionAnger[tier]+((i-1)*5), units = { (#TierIntroductionAnger+1-tier)*2+((i-1)*10) .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]+5+((i-1)*5) })
+				addNewSquad({ type = "airSea", minAnger = TierIntroductionAnger[tier]+((i-1)*5), units = { (#TierIntroductionAnger+1-tier)*2+((i-1)*10) .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]+5+((i-1)*5) })
 			else
-				addNewSquad({ type = "air", minAnger = TierIntroductionAnger[tier]+((i-1)*5), units = { (#TierIntroductionAnger+1-tier)*2+((i-1)*10) .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+				addNewSquad({ type = "airLand", minAnger = TierIntroductionAnger[tier]+((i-1)*5), units = { (#TierIntroductionAnger+1-tier)*2+((i-1)*10) .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+				addNewSquad({ type = "airSea", minAnger = TierIntroductionAnger[tier]+((i-1)*5), units = { (#TierIntroductionAnger+1-tier)*2+((i-1)*10) .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
 			end
 		end
 	end

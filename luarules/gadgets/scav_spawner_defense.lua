@@ -995,7 +995,12 @@ if gadgetHandler:IsSyncedCode() then
 					local surface = positionCheckLibrary.LandOrSeaCheck(burrowX, burrowY, burrowZ, config.burrowSize)
 					if techAnger > config.airStartAnger and airRandom <= waveParameters.waveAirPercentage then
 						for _ = 1,1000 do
-							local potentialSquad = squadSpawnOptions.air[mRandom(1, #squadSpawnOptions.air)]
+							local potentialSquad
+							if surface == "land" then
+								potentialSquad = squadSpawnOptions.airLand[mRandom(1, #squadSpawnOptions.specialLand)]
+							elseif surface == "sea" then
+								potentialSquad = squadSpawnOptions.airSea[mRandom(1, #squadSpawnOptions.specialSea)]
+							end
 							if potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
 								squad = potentialSquad
 								break
