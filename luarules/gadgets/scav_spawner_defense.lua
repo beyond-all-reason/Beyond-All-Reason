@@ -1202,12 +1202,13 @@ if gadgetHandler:IsSyncedCode() then
 	local createUnitQueue = {}
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == scavTeamID then
+			local x,y,z = Spring.GetUnitPosition(unitID)
 			if (not UnitDefs[unitDefID].isscavenger) and UnitDefs[unitDefID] and UnitDefs[unitDefID].name and UnitDefNames[UnitDefs[unitDefID].name .. "_scav"] then
-				local x,y,z = Spring.GetUnitPosition(unitID)
 				Spring.DestroyUnit(unitID, true, true)
 				createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, 0, scavTeamID}
 			end
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultScavFirestate},0)
+			Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
 			if UnitDefs[unitDefID].canCloak then
 				Spring.GiveOrderToUnit(unitID,37382,{1},0)
 			end
