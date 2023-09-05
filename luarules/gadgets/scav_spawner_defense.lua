@@ -488,6 +488,9 @@ if gadgetHandler:IsSyncedCode() then
 								local pos = getRandomEnemyPos()
 								Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, {})
 								if mRandom() <= 0.33 then
+									Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 10000} , {"shift"})
+								end
+								if mRandom() <= 0.33 then
 									Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 10000} , {"shift"})
 								end
 								if mRandom() <= 0.33 then
@@ -1423,16 +1426,13 @@ if gadgetHandler:IsSyncedCode() then
 			if config.scavBehaviours.HEALER[UnitDefNames[defs.unitName].id] then
 				squadCreationQueue.role = "healer"
 				squadCreationQueue.regroupenabled = false
-				if squadCreationQueue.life < 100 then
-					squadCreationQueue.life = 100
+				if squadCreationQueue.life < 20 then
+					squadCreationQueue.life = 20
 				end
 			end
 			if config.scavBehaviours.ARTILLERY[UnitDefNames[defs.unitName].id] then
 				squadCreationQueue.role = "artillery"
 				squadCreationQueue.regroupenabled = false
-				if squadCreationQueue.life < 100 then
-					squadCreationQueue.life = 100
-				end
 			end
 			if config.scavBehaviours.KAMIKAZE[UnitDefNames[defs.unitName].id] then
 				squadCreationQueue.role = "kamikaze"
@@ -1764,8 +1764,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			SetGameRulesParam("scav_hiveCount", SetCount(burrows))
-		elseif unitTeam == scavTeamID and UnitDefs[unitDefID].isBuilding and (attackerID and Spring.GetUnitTeam(attackerID) ~= scavTeamID) then
-			playerAggression = playerAggression + ((config.angerBonus/config.scavSpawnMultiplier)*0.01)
+		-- elseif unitTeam == scavTeamID and UnitDefs[unitDefID].isBuilding and (attackerID and Spring.GetUnitTeam(attackerID) ~= scavTeamID) then
+		-- 	playerAggression = playerAggression + ((config.angerBonus/config.scavSpawnMultiplier)*0.01)
 		end
 		if unitTeleportCooldown[unitID] then
 			unitTeleportCooldown[unitID] = nil

@@ -1060,7 +1060,7 @@ addNewSquad({ type = "basicLand", minAnger = 0, units = { "20 armfav_scav","20 c
 addNewSquad({ type = "basicLand", minAnger = 5, units = { "6 armflash_scav","6 corgator_scav","6 leghelios_scav",}, weight = 4, maxAnger = 20}) --T1 Veh Raid
 addNewSquad({ type = "basicLand", minAnger = 5, units = { "5 armstump_scav","5 corraid_scav","5 leggat_scav",}, weight = 4, maxAnger = 25}) --T1 Veh Assault
 addNewSquad({ type = "basicLand", minAnger = 10, units = { "2 armjanus_scav","2 corlevlr_scav","2 legrail_scav",}, weight = 4, maxAnger = 25}) --T1 Veh Unique
-addNewSquad({ type = "basicLand", minAnger = 10, units = { "1 armart_scav","2 armsam_scav","1 corwolv_scav","2 cormist","2 legbar_scav"}, weight = 4, maxAnger = 25}) --T1 Arty/AA
+addNewSquad({ type = "basicLand", minAnger = 10, units = { "1 armart_scav","2 armsam_scav","1 corwolv_scav","2 cormist_scav","2 legbar_scav"}, weight = 4, maxAnger = 25}) --T1 Arty/AA
 --AirLand
 addNewSquad({ type = "airLand", minAnger = 10, units = { "3 armpeep_scav","3 corfink_scav","9 legfig_scav",}, weight = 4, maxAnger = 20}) --T1 Air Scouts
 addNewSquad({ type = "airLand", minAnger = 10, units = { "12 corbw_scav",}, weight = 4, maxAnger = 20}) --Bladewings

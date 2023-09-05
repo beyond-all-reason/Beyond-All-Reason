@@ -1,33 +1,51 @@
 local difficultyParams = {
 	["veryeasy"] = {
 		maxDamage = 400000,
+		autoHeal = 0,
 		dgunStockpile = 60,
 		dgunReload = 6,
+		minigunDamage = 100,
+		topTurretsDamage = 3300,
 	},
 	["easy"] = {
 		maxDamage = 600000,
+		autoHeal = 5,
 		dgunStockpile = 50,
 		dgunReload = 5,
+		minigunDamage = 150,
+		topTurretsDamage = 4400,
 	},
 	["normal"] = {
 		maxDamage = 800000,
+		autoHeal = 10,
 		dgunStockpile = 40,
 		dgunReload = 4,
+		minigunDamage = 200,
+		topTurretsDamage = 5500,
 	},
 	["hard"] = {
 		maxDamage = 1000000,
+		autoHeal = 20,
 		dgunStockpile = 30,
 		dgunReload = 3,
+		minigunDamage = 250,
+		topTurretsDamage = 6600,
 	},
 	["veryhard"] = {
-		maxDamage = 1200000,
+		maxDamage = 1500000,
+		autoHeal = 50,
 		dgunStockpile = 20,
 		dgunReload = 2,
+		minigunDamage = 350,
+		topTurretsDamage = 8000,
 	},
 	["epic"] = {
-		maxDamage = 1400000,
+		maxDamage = 2000000,
+		autoHeal = 100,
 		dgunStockpile = 10,
 		dgunReload = 1,
+		minigunDamage = 500,
+		topTurretsDamage = 10000,
 	},
 }
 
@@ -36,7 +54,7 @@ for difficulty, stats in pairs(difficultyParams) do
 	unitsTable["armscavengerbossv2_" .. difficulty] = {
 		acceleration = 0.01,
 		activatewhenbuilt = true,
-		autoheal = 10,--10,
+		autoheal = stats.autoHeal,--10,
 		brakerate = 0.01,
 		buildcostenergy = 5000000,
 		buildcostmetal = 500000,
@@ -223,10 +241,10 @@ for difficulty, stats in pairs(difficultyParams) do
 					--damagetype		     = "ehbotkarganneth", 
 				}, 
 				damage                   = {
-					default              = 200,
-					bombers				 = 500,
-					fighters 			 = 500,
-					vtol				 = 500,
+					default              = stats.minigunDamage,
+					bombers				 = stats.minigunDamage*3,
+					fighters 			 = stats.minigunDamage*3,
+					vtol				 = stats.minigunDamage*3,
 				},
 			},
 			torpedo = {
@@ -350,9 +368,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					commanders = 1200,
-					default = 5500,
-					vtol = 2750,
+					default = stats.topTurretsDamage,
 				},
 			},
 		},
