@@ -16,7 +16,7 @@ local difficultyParameters = {
 	[difficulties.veryeasy] = {
 		gracePeriod       		= 8 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 50 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 120 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate   		= 156 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 240 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 260 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 1,
@@ -25,7 +25,7 @@ local difficultyParameters = {
 		spawnChance       		= 0.1,
 		damageMod         		= 0.5,
 		maxBurrows        		= 1000,
-		minScavs		  		= 10,
+		minScavs		  		= 5,
 		maxScavs		  		= 20,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_veryeasy_scav',
@@ -35,7 +35,7 @@ local difficultyParameters = {
 	[difficulties.easy] = {
 		gracePeriod       		= 7 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 45 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 90 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate   		= 120 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 210 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 230 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 1,
@@ -44,7 +44,7 @@ local difficultyParameters = {
 		spawnChance       		= 0.2,
 		damageMod         		= 0.75,
 		maxBurrows        		= 1000,
-		minScavs		  		= 15,
+		minScavs		  		= 10,
 		maxScavs		  		= 25,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_easy_scav',
@@ -53,7 +53,7 @@ local difficultyParameters = {
 	[difficulties.normal] = {
 		gracePeriod       		= 6 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 40 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 60 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate   		= 80 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 180 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 200 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 3,
@@ -62,7 +62,7 @@ local difficultyParameters = {
 		spawnChance       		= 0.3,
 		damageMod         		= 1,
 		maxBurrows        		= 1000,
-		minScavs		  		= 20,
+		minScavs		  		= 15,
 		maxScavs		  		= 30,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_normal_scav',
@@ -71,7 +71,7 @@ local difficultyParameters = {
 	[difficulties.hard] = {
 		gracePeriod       		= 5 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 40 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 50 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate   		= 75 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 150 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 170 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 3,
@@ -80,7 +80,7 @@ local difficultyParameters = {
 		spawnChance       		= 0.4,
 		damageMod         		= 1.25,
 		maxBurrows        		= 1000,
-		minScavs		  		= 25,
+		minScavs		  		= 20,
 		maxScavs		  		= 35,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_hard_scav',
@@ -89,7 +89,7 @@ local difficultyParameters = {
 	[difficulties.veryhard] = {
 		gracePeriod       		= 4 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 35 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate  			= 40 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate  			= 50 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 120 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 140 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 3,
@@ -98,7 +98,7 @@ local difficultyParameters = {
 		spawnChance       		= 0.5,
 		damageMod         		= 1.5,
 		maxBurrows        		= 1000,
-		minScavs		  		= 30,
+		minScavs		  		= 25,
 		maxScavs		  		= 40,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_veryhard_scav',
@@ -107,7 +107,7 @@ local difficultyParameters = {
 	[difficulties.epic] = {
 		gracePeriod       		= 3 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 30 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
-		scavSpawnRate   		= 30 * Spring.GetModOptions().scav_spawntimemult,
+		scavSpawnRate   		= 35 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 90 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 110 * Spring.GetModOptions().scav_spawntimemult,
 		bossSpawnMult    		= 3,
@@ -116,7 +116,7 @@ local difficultyParameters = {
 		spawnChance       		= 0.6,
 		damageMod         		= 2,
 		maxBurrows        		= 1000,
-		minScavs		  		= 40,
+		minScavs		  		= 30,
 		maxScavs		  		= 50,
 		scavPerPlayerMultiplier = 0.25,
 		bossName         		= 'armscavengerbossv2_epic_scav',
@@ -164,6 +164,7 @@ local TierIntroductionAnger = { -- Double for basic squads
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
+
 local LandUnitsList = {
 	Raid = {
 		[1] = {
@@ -843,7 +844,6 @@ local Turrets = {
 ----------------------------------------------------------------------------------------------
 
 local scavTurrets = {}
-
 -- Turrets table creation loop
 for tier, _ in pairs(Turrets) do
 	for turret, turretInfo in pairs(Turrets[tier]) do
@@ -865,23 +865,31 @@ for tier, _ in pairs(Turrets) do
 	end
 end
 
-
 scavBehaviours = {
 	SKIRMISH = { -- Run away from target after target gets hit
-		[UnitDefNames["armscavengerbossv2_veryeasy_scav"].id] 	= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 60,},
-		[UnitDefNames["armscavengerbossv2_easy_scav"].id] 		= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 50,},
-		[UnitDefNames["armscavengerbossv2_normal_scav"].id] 	= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 40,},
-		[UnitDefNames["armscavengerbossv2_hard_scav"].id] 		= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 30,},
-		[UnitDefNames["armscavengerbossv2_veryhard_scav"].id] 	= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 20,},
-		[UnitDefNames["armscavengerbossv2_epic_scav"].id] 		= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 10,},
+		[UnitDefNames["armscavengerbossv2_veryeasy_scav"].id] 	= { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 60,},
+		[UnitDefNames["armscavengerbossv2_easy_scav"].id] 		= { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 50,},
+		[UnitDefNames["armscavengerbossv2_normal_scav"].id] 	= { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 40,},
+		[UnitDefNames["armscavengerbossv2_hard_scav"].id] 		= { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 30,},
+		[UnitDefNames["armscavengerbossv2_veryhard_scav"].id] 	= { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 20,},
+		[UnitDefNames["armscavengerbossv2_epic_scav"].id] 		= { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 10,},
+		---------------------------------------------------------------------------------------------------------------------------------------
+		[UnitDefNames["armjanus_scav"].id] 		                = { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 10,}, --Janus
+		[UnitDefNames["legrail_scav"].id] 		                = { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 10,}, --Railgun
 	},
 	COWARD = { -- Run away from target after getting hit by enemy
-		[UnitDefNames["armscavengerbossv2_veryeasy_scav"].id] 	= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 60,},
-		[UnitDefNames["armscavengerbossv2_easy_scav"].id] 		= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 50,},
-		[UnitDefNames["armscavengerbossv2_normal_scav"].id] 	= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 40,},
-		[UnitDefNames["armscavengerbossv2_hard_scav"].id] 		= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 30,},
-		[UnitDefNames["armscavengerbossv2_veryhard_scav"].id] 	= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 20,},
-		[UnitDefNames["armscavengerbossv2_epic_scav"].id] 		= { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 10,},
+		[UnitDefNames["armscavengerbossv2_veryeasy_scav"].id] 	= { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 60,},
+		[UnitDefNames["armscavengerbossv2_easy_scav"].id] 		= { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 50,},
+		[UnitDefNames["armscavengerbossv2_normal_scav"].id] 	= { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 40,},
+		[UnitDefNames["armscavengerbossv2_hard_scav"].id] 		= { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 30,},
+		[UnitDefNames["armscavengerbossv2_veryhard_scav"].id] 	= { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 20,},
+		[UnitDefNames["armscavengerbossv2_epic_scav"].id] 		= { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 10,},
+		---------------------------------------------------------------------------------------------------------------------------------------
+		[UnitDefNames["armart_scav"].id] 		                = { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 10,}, --Arm Arty T1
+		[UnitDefNames["corwolv_scav"].id] 		                = { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 10,}, --Cor Arty T1
+		[UnitDefNames["armsam_scav"].id] 		                = { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 10,}, --Arm Whistler T1
+		[UnitDefNames["cormist_scav"].id] 		                = { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 10,}, --Cor Whistler T1
+		[UnitDefNames["legbar_scav"].id] 		                = { distance = 500, chance = 0.001, teleport = false, teleportcooldown = 10,}, --leg Arty T1
 	},
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
 		[UnitDefNames["armscavengerbossv2_veryeasy_scav"].id]	= { distance = 2000, chance = 0.001},
@@ -893,6 +901,8 @@ scavBehaviours = {
 	},
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and boss
 		--[UnitDefNames["raptorhealer1"].id] = true,
+		[UnitDefNames["armrectr_scav"].id] = true,--Armada Rezzer
+		[UnitDefNames["cornecro_scav"].id] = true,--Cortex Rezzer
 	},
 	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance
 		--[UnitDefNames["raptorr1"].id] = true,
@@ -915,7 +925,6 @@ local squadSpawnOptionsTable = {
 	specialSea = {}, -- 33% spawn chance, there's 1% chance of Special squad spawning Super squad, which is specials but 30% anger earlier.
 	healerLand = {}, -- Healers/Medics
 	healerSea = {}, -- Healers/Medics
-	air = {}, 		-- Aircrafts
 	airLand = {},
 	airSea = {},
 }
@@ -939,6 +948,7 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------------------------------------------------------------------- LAND
 --------------------------------------------------------------------------------------------------------------------------------------------------------
+
 for tier, _ in pairs(LandUnitsList.Raid) do
 	for unitName, _ in pairs(LandUnitsList.Raid[tier]) do
 		local unitWeight = LandUnitsList.Raid[tier][unitName]
@@ -1103,15 +1113,53 @@ for tier, _ in pairs(AirUnitsList) do
 		Spring.Echo(unitName)
 		for i = 1,5 do
 			if tier < #TierIntroductionAnger and i < 5 then
-				addNewSquad({ type = "airLand", minAnger = TierIntroductionAnger[tier]+((i-1)*5), units = { (#TierIntroductionAnger+1-tier)*2+((i-1)*10) .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]+5+((i-1)*5) })
+				--addNewSquad({ type = "airLand", minAnger = TierIntroductionAnger[tier]+((i-1)*5), units = { (#TierIntroductionAnger+1-tier)*2+((i-1)*10) .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]+5+((i-1)*5) })
 				addNewSquad({ type = "airSea", minAnger = TierIntroductionAnger[tier]+((i-1)*5), units = { (#TierIntroductionAnger+1-tier)*2+((i-1)*10) .. " " .. unitName}, weight = unitWeight, maxAnger = TierIntroductionAnger[tier]+5+((i-1)*5) })
 			else
-				addNewSquad({ type = "airLand", minAnger = TierIntroductionAnger[tier]+((i-1)*5), units = { (#TierIntroductionAnger+1-tier)*2+((i-1)*10) .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
+				--addNewSquad({ type = "airLand", minAnger = TierIntroductionAnger[tier]+((i-1)*5), units = { (#TierIntroductionAnger+1-tier)*2+((i-1)*10) .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
 				addNewSquad({ type = "airSea", minAnger = TierIntroductionAnger[tier]+((i-1)*5), units = { (#TierIntroductionAnger+1-tier)*2+((i-1)*10) .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
 			end
 		end
 	end
 end
+
+------Tier 1 0-25% (Land and Airland)
+addNewSquad({ type = "healerLand", minAnger = 0, units = { "6 armrectr_scav","6 cornecro_scav",}, weight = 8, maxAnger = 1000}) --Rezzers/Entire Game
+--Land
+addNewSquad({ type = "basicLand", minAnger = 0, units = { "20 armfav_scav","20 corfav_scav",}, weight = 6, maxAnger = 25}) --Rovers/Whole Tier Length
+addNewSquad({ type = "basicLand", minAnger = 5, units = { "6 armflash_scav","6 corgator_scav","6 leghelios_scav",}, weight = 4, maxAnger = 20}) --T1 Veh Raid
+addNewSquad({ type = "basicLand", minAnger = 5, units = { "5 armstump_scav","5 corraid_scav","5 leggat_scav",}, weight = 4, maxAnger = 25}) --T1 Veh Assault
+addNewSquad({ type = "basicLand", minAnger = 10, units = { "2 armjanus_scav","2 corlevlr_scav","2 legrail_scav",}, weight = 4, maxAnger = 25}) --T1 Veh Unique
+addNewSquad({ type = "basicLand", minAnger = 10, units = { "1 armart_scav","2 armsam_scav","1 corwolv_scav","2 cormist","2 legbar"}, weight = 4, maxAnger = 25}) --T1 Arty/AA
+--AirLand
+addNewSquad({ type = "airLand", minAnger = 10, units = { "3 armpeep_scav","3 corfink_scav","9 legfig_scav",}, weight = 4, maxAnger = 20}) --T1 Air Scouts
+addNewSquad({ type = "airLand", minAnger = 10, units = { "12 corbw_scav",}, weight = 4, maxAnger = 20}) --Bladewings
+addNewSquad({ type = "airLand", minAnger = 15, units = { "20 armfig_scav","20 corveng_scav",}, weight = 4, maxAnger = 25}) --Fighters
+addNewSquad({ type = "airLand", minAnger = 15, units = { "12 armthund_scav","12 corshad_scav","5 legcib_scav",}, weight = 4, maxAnger = 25}) --Bombers
+------Tier 2 25-60%
+addNewSquad({ type = "basicLand", minAnger = 25, units = { "10 armfav_scav","10 corfav_scav","25 armzapper_scav",}, weight = 6, maxAnger = 60}) --Rover and EMP Rover/Whole Tier Length
+--Land
+addNewSquad({ type = "basicLand", minAnger = 30, units = { "6 armlatnk_scav","6 cortorch_scav","6 legmrv_scav",}, weight = 4, maxAnger = 55}) --T2 Veh Raid
+addNewSquad({ type = "basicLand", minAnger = 30, units = { "6 armbull_scav","6 correap_scav","1 corgol_scav","5 legsco","2 armyork_scav","2 corsent",}, weight = 4, maxAnger = 60}) --T2 Veh Assault/AA
+addNewSquad({ type = "basicLand", minAnger = 40, units = { "2 armmanni_scav","2 corban_scav","1 legvcarry_scav",}, weight = 4, maxAnger = 60}) --T2 Veh Unique
+addNewSquad({ type = "basicLand", minAnger = 40, units = { "3 armmart_scav","1 armmerl_scav","1 armyork_scav","3 cormart","1 corvroc","1 corsent","1 leginf",}, weight = 4, maxAnger = 60}) --T2 Arty/AA
+--AirLand
+addNewSquad({ type = "airLand", minAnger = 40, units = { "3 armawac_scav","3 corawak_scav",}, weight = 4, maxAnger = 50}) --T2 Air Scouts
+addNewSquad({ type = "airLand", minAnger = 40, units = { "2 armstil_scav",}, weight = 4, maxAnger = 50}) --EMP Bombers
+addNewSquad({ type = "airLand", minAnger = 50, units = { "20 armhawk_scav","20 corvamp",}, weight = 4, maxAnger = 60}) --Fighters
+addNewSquad({ type = "airLand", minAnger = 50, units = { "1 armblade_scav","15 armbrawl","1 legfort","1 corcrw","15 corape"}, weight = 4, maxAnger = 60}) --T2 Gunships
+------Tier 3 60-80%
+--Dilluters
+addNewSquad({ type = "basicLand", minAnger = 60, units = { "15 armfav_scav","15 corfav_scav","25 armzapper_scav",}, weight = 8, maxAnger = 80}) --Rover and EMP Rover/Whole Tier Length
+addNewSquad({ type = "basicLand", minAnger = 60, units = { "6 armlatnk_scav","6 cortorch_scav","6 legmrv_scav",}, weight = 3, maxAnger = 80}) --T2 Veh Raid
+--Land
+addNewSquad({ type = "basicLand", minAnger = 60, units = { "12 armmar",}, weight = 3, maxAnger = 80}) --T3 Raid
+addNewSquad({ type = "basicLand", minAnger = 60, units = { "6 armmeatball_scav","6 armassimilator_scav","2 armyork_scav","2 corsent",}, weight = 4, maxAnger = 80}) --T3 Assault/AA
+addNewSquad({ type = "basicLand", minAnger = 60, units = { "6 corshiva_scav","2 armraz_scav","1 legpede_scav","1 armyork_scav","1 corsent",}, weight = 4, maxAnger = 80}) --T3 Assault/AA
+addNewSquad({ type = "basicLand", minAnger = 70, units = { "2 armvang_scav","2 corcat_scav","1 armyork_scav","1 corsent",}, weight = 4, maxAnger = 80}) --T3 Arty/AA
+--AirLand
+addNewSquad({ type = "airLand", minAnger = 65, units = { "40 armfig_scav","40 corveng_scav",}, weight = 1, maxAnger = 80}) --T2 Fighters
+addNewSquad({ type = "airLand", minAnger = 65, units = { "1 armblade_scav","15 armbrawl","1 legfort","1 corcrw","15 corape"}, weight = 4, maxAnger = 80}) --T2 Gunships
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these
