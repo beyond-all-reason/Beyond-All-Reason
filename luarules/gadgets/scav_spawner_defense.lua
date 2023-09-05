@@ -997,9 +997,9 @@ if gadgetHandler:IsSyncedCode() then
 						for _ = 1,1000 do
 							local potentialSquad
 							if surface == "land" then
-								potentialSquad = squadSpawnOptions.airLand[mRandom(1, #squadSpawnOptions.specialLand)]
+								potentialSquad = squadSpawnOptions.airLand[mRandom(1, #squadSpawnOptions.airLand)]
 							elseif surface == "sea" then
-								potentialSquad = squadSpawnOptions.airSea[mRandom(1, #squadSpawnOptions.specialSea)]
+								potentialSquad = squadSpawnOptions.airSea[mRandom(1, #squadSpawnOptions.airSea)]
 							end
 							if potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
 								squad = potentialSquad
