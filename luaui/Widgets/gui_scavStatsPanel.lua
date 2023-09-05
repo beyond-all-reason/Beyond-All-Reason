@@ -154,7 +154,7 @@ local function CreatePanelDisplayList()
 	else
 		font:Print(textColor .. Spring.I18N('ui.scavs.gracePeriod', { time = string.formatTime(math.ceil(((currentTime - gameInfo.scavGracePeriod) * -1) - 0.5)) }), panelMarginX, PanelRow(1), panelFontSize, "")
 	end
-	
+
 	-- font:Print(textColor .. Spring.I18N('ui.scavs.scavKillCount', { count = gameInfo.scavKills }), panelMarginX, PanelRow(6), panelFontSize, "")
 	local endless = ""
 	if Spring.GetModOptions().scav_endless then
@@ -235,7 +235,7 @@ local function Draw()
 
 			font2:Begin()
 			for i, message in ipairs(marqueeMessage) do
-				font2:Print(message, viewSizeX / 2, waveY - WaveRow(i), waveFontSize * widgetScale, "co")
+				font2:Print(message, viewSizeX / 2, waveY - (WaveRow(i) * widgetScale), waveFontSize * widgetScale, "co")
 			end
 			font2:End()
 		else
@@ -304,13 +304,13 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal("ScavEvent", ScavEvent)
 	UpdateRules()
 	viewSizeX, viewSizeY = gl.GetViewSizes()
-	local x = math.abs(math.floor(viewSizeX - 320))
-	local y = math.abs(math.floor(viewSizeY - 300))
+	local x = math.abs(math.floor(viewSizeX - 220))
+	local y = math.abs(math.floor(viewSizeY - 220))
 
-	-- reposition if scavengers panel is shown as well
-	if Spring.Utilities.Gametype.IsScavengers() then
-		x = x - 315
-	end
+	-- reposition if raptors panel is shown as well
+	--if Spring.Utilities.Gametype.IsRaptors() then
+	--	x = x - 315
+	--end
 
 	updatePos(x, y)
 end
@@ -401,6 +401,6 @@ function widget:ViewResize()
 end
 
 function widget:LanguageChanged()
-	refreshMarqueeMessage = true;
-	updatePanel = true;
+	refreshMarqueeMessage = true
+	updatePanel = true
 end
