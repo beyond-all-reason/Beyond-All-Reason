@@ -25,7 +25,7 @@ local difficultyParams = {
 	},
 	["hard"] = {
 		maxDamage = 1000000,
-		autoHeal = 20,
+		autoHeal = 15,
 		dgunStockpile = 30,
 		dgunReload = 3,
 		minigunDamage = 250,
@@ -33,7 +33,7 @@ local difficultyParams = {
 	},
 	["veryhard"] = {
 		maxDamage = 1500000,
-		autoHeal = 50,
+		autoHeal = 20,
 		dgunStockpile = 20,
 		dgunReload = 2,
 		minigunDamage = 350,
@@ -41,7 +41,7 @@ local difficultyParams = {
 	},
 	["epic"] = {
 		maxDamage = 2000000,
-		autoHeal = 100,
+		autoHeal = 25,
 		dgunStockpile = 10,
 		dgunReload = 1,
 		minigunDamage = 500,
@@ -61,7 +61,7 @@ for difficulty, stats in pairs(difficultyParams) do
 		builddistance = 750,
 		builder = true,
 		buildpic = "LEGCOM.DDS",
-		buildtime = 500000,
+		buildtime = stats.maxDamage,
 		cancapture = true,
 		canmanualfire = true,
 		canmove = true,
