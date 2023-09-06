@@ -1403,13 +1403,20 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			return
 		end
-		local x, y, z = getScavSpawnLoc(defs.burrow, UnitDefNames[defs.unitName].id)
-		if not x or not y or not z then
+
+		if UnitDefNames[defs.unitName] then
+			local x, y, z = getScavSpawnLoc(defs.burrow, UnitDefNames[defs.unitName].id)
+			if not x or not y or not z then
+				spawnQueue[i] = nil
+				return
+			end
+			local unitID = CreateUnit(defs.unitName, x, y, z, mRandom(0,3), defs.team)
+		else
+			Spring.Echo("Error: Cannot spawn unit " .. defs.unitName .. ", invalid name.")
 			spawnQueue[i] = nil
 			return
 		end
-		local unitID = CreateUnit(defs.unitName, x, y, z, mRandom(0,3), defs.team)
-
+		
 		if unitID then
 			if (not defs.squadID) or (defs.squadID and defs.squadID == 1) then
 				if #squadCreationQueue.units > 0 then
