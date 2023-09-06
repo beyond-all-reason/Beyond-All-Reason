@@ -304,8 +304,8 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal("ScavEvent", ScavEvent)
 	UpdateRules()
 	viewSizeX, viewSizeY = gl.GetViewSizes()
-	local x = math.abs(math.floor(viewSizeX - 220))
-	local y = math.abs(math.floor(viewSizeY - 220))
+	local x = math.abs(math.floor(viewSizeX - 320))
+	local y = math.abs(math.floor(viewSizeY - 300))
 
 	-- reposition if raptors panel is shown as well
 	--if Spring.Utilities.Gametype.IsRaptors() then

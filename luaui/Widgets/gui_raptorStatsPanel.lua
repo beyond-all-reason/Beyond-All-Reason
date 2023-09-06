@@ -347,8 +347,8 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal("RaptorEvent", RaptorEvent)
 	UpdateRules()
 	viewSizeX, viewSizeY = gl.GetViewSizes()
-	local x = math.abs(math.floor(viewSizeX - 220))
-	local y = math.abs(math.floor(viewSizeY - 220))
+	local x = math.abs(math.floor(viewSizeX - 320))
+	local y = math.abs(math.floor(viewSizeY - 300))
 
 	-- reposition if scavengers panel is shown as well
 	if Spring.Utilities.Gametype.IsScavengers() then
