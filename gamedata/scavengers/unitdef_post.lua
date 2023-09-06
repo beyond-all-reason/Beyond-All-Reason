@@ -81,12 +81,19 @@ local function scavUnitDef_Post(name, uDef)
     end
 
 	-- Wrecks
-	uDef.corpse = nil
+	
 	if uDef.featuredefs then
-		if uDef.featuredefs.heap and uDef.buildoptions then
-			uDef.corpse = "HEAP"
+		if uDef.buildoptions then
+			uDef.corpse = nil
+			if uDef.featuredefs.dead then
+				uDef.featuredefs.dead = nil
+			end
+			if uDef.featuredefs.heap then
+				uDef.corpse = "HEAP"
+			end
 		end
 	end
+	
 
 	if uDef.maxdamage then
 		if not string.find(name, "armscavengerbossv2") then
