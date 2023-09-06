@@ -83,7 +83,7 @@ local function scavUnitDef_Post(name, uDef)
 	-- Wrecks
 	
 	if uDef.featuredefs then
-		if uDef.buildoptions then
+		if uDef.buildoptions or (not uDef.canmove) then
 			uDef.corpse = nil
 			if uDef.featuredefs.dead then
 				uDef.featuredefs.dead = nil

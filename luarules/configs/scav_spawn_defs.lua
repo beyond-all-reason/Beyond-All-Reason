@@ -1074,7 +1074,7 @@ addNewSquad({ type = "basicLand", minAnger = 30, units = { "6 armbull_scav","6 c
 addNewSquad({ type = "basicLand", minAnger = 40, units = { "2 armmanni_scav","2 corban_scav","1 legvcarry_scav",}, weight = 4, maxAnger = 60}) --T2 Veh Unique
 addNewSquad({ type = "basicLand", minAnger = 40, units = { "3 armmart_scav","1 armmerl_scav","1 armyork_scav","3 cormart_scav","1 corvroc_scav","1 corsent_scav","1 leginf_scav",}, weight = 4, maxAnger = 60}) --T2 Arty/AA
 --AirLand
-addNewSquad({ type = "airLand", minAnger = 40, units = { "3 armawac_scav","3 corawak_scav",}, weight = 4, maxAnger = 50}) --T2 Air Scouts
+addNewSquad({ type = "airLand", minAnger = 40, units = { "3 armawac_scav","3 corawac_scav",}, weight = 4, maxAnger = 50}) --T2 Air Scouts
 addNewSquad({ type = "airLand", minAnger = 40, units = { "2 armstil_scav",}, weight = 4, maxAnger = 50}) --EMP Bombers
 addNewSquad({ type = "airLand", minAnger = 50, units = { "20 armhawk_scav","20 corvamp_scav",}, weight = 4, maxAnger = 60}) --Fighters
 addNewSquad({ type = "airLand", minAnger = 50, units = { "1 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav","15 corape_scav"}, weight = 4, maxAnger = 60}) --T2 Gunships
