@@ -12,6 +12,8 @@ end
 
 if (not gadgetHandler:IsSyncedCode()) or (not Spring.Utilities.Gametype.IsScavengers()) or Spring.GetModOptions().unit_restrictions_noair then
 	return false
+elseif Spring.Utilities.Gametype.IsRaptors() then
+    return false
 end
 
 function SetCount(set)

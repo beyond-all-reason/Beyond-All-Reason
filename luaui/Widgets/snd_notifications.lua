@@ -80,7 +80,7 @@ for notifID, notifDef in pairs(soundsTable) do -- Temporary to keep it working f
 			if VFS.FileExists(soundFolder .. notifDef.sound[i].file) then
 				notifSounds[i] = soundFolder .. notifDef.sound[i].file
 				notifTexts[i] = notifDef.sound[i].text
-			elseif useDefaultVoiceFallback and VFS.FileExists(soundFolder .. notifDef.sound[i].file) then
+			elseif useDefaultVoiceFallback and VFS.FileExists(defaultSoundFolder .. notifDef.sound[i].file) then
 				notifSounds[i] = defaultSoundFolder .. notifDef.sound[i].file
 				notifTexts[i] = notifDef.sound[i].text
 				--Spring.Echo('missing voice notification file: "'..soundFolder .. notifDef.sound[i].file..'"   ('..notifID..'),  using default voiceset instead ('..defaultVoiceSet..')')
@@ -397,6 +397,10 @@ function widget:Initialize()
 	for name, params in pairs(customNotifications) do
 		AddNotification(name, params[1], params[2], params[3], params[4], params[5])
 	end
+
+	if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
+		queueNotification('RaptorsAndScavsMixed')
+	end
 end
 
 function widget:Shutdown()
@@ -435,6 +439,11 @@ function widget:GameFrame(gf)
 			if not hasMadeT2 and e_income >= 600 and m_income >= 12 then
 				queueTutorialNotification('t_readyfortech2')
 			end
+		end
+
+		-- raptors and scavs mixed check
+		if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
+			queueNotification('RaptorsAndScavsMixed')
 		end
 
 		-- low power check
