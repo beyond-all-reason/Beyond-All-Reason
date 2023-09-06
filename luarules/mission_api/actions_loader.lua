@@ -15,7 +15,7 @@ local actions = {}
 local function prevalidateActions()
 	for actionId, action in pairs(actions) do
 		if not action.type then
-			Spring.Log('actions.lua', LOG.ERROR, "[Mission API] Action missing type: " .. actionId)
+			Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Action missing type: " .. actionId)
 		end
 
 		for _, parameter in pairs(parameters[action.type]) do
@@ -23,11 +23,11 @@ local function prevalidateActions()
 			local type = type(value)
 
 			if value == nil and parameter.required then
-				Spring.Log('actions.lua', LOG.ERROR, "[Mission API] Action missing required parameter. Action: " .. actionId .. ", Parameter: " .. parameter.name)
+				Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Action missing required parameter. Action: " .. actionId .. ", Parameter: " .. parameter.name)
 			end
 
 			if value ~= nil and type ~= parameter.type then
-				Spring.Log('actions.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameter.type .. ", got " .. type .. ". Action: " .. actionId .. ", Parameter: " .. parameter.name)
+				Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameter.type .. ", got " .. type .. ". Action: " .. actionId .. ", Parameter: " .. parameter.name)
 			end
 		end
 	end

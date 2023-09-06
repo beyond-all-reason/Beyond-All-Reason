@@ -25,11 +25,11 @@ local triggers = {}
 local function prevalidateTriggers()
 	for triggerId, trigger in pairs(triggers) do
 		if not trigger.type then
-			Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Trigger missing type: " .. triggerId)
+			Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger missing type: " .. triggerId)
 		end
 
 		if not trigger.actions or next(trigger.actions) == nil then
-			Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Trigger has no actions: " .. triggerId)
+			Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger has no actions: " .. triggerId)
 		end
 
 		for _, parameter in pairs(parameters[trigger.type]) do
@@ -37,11 +37,11 @@ local function prevalidateTriggers()
 			local type = type(value)
 
 			if value == nil and parameter.required then
-				Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Trigger missing required parameter. Trigger: " .. triggerId .. ", Parameter: " .. parameter.name)
+				Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger missing required parameter. Trigger: " .. triggerId .. ", Parameter: " .. parameter.name)
 			end
 
 			if value ~= nil and type ~= parameter.type then
-				Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameter.type .. ", got " .. type .. ". Trigger: " .. triggerId .. ", Parameter: " .. parameter.name)
+				Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameter.type .. ", got " .. type .. ". Trigger: " .. triggerId .. ", Parameter: " .. parameter.name)
 			end
 		end
 	end
@@ -72,7 +72,7 @@ local function postvalidateTriggers()
 	for triggerId, trigger in pairs(triggers) do
 		for _, actionId in pairs(trigger.actions) do
 			if not actions[actionId] then
-				Spring.Log('triggers.lua', LOG.ERROR, "[Mission API] Trigger has action that does not exist. Trigger: " .. triggerId .. ", Action: " .. actionId)
+				Spring.Log('triggers_loader.lua', LOG.ERROR, "[Mission API] Trigger has action that does not exist. Trigger: " .. triggerId .. ", Action: " .. actionId)
 			end
 		end
 	end
