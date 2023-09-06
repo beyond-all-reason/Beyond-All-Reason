@@ -1,33 +1,8 @@
 local actionsSchema = VFS.Include('luarules/mission_api/actions_schema.lua')
+local actionFunctions = VFS.Include('luarules/mission_api/actions.lua')
 local parameterSchema = actionsSchema.Parameters
 local types = GG['MissionAPI'].ActionTypes
 local actions = GG['MissionAPI'].Actions
-local trackedUnits = GG['MissionAPI'].TrackedUnits
-
-local function sendMessage(message)
-	Spring.Echo(message)
-end
-
-local function spawnUnits(nickname, unitDefName, quantity, x, y, z)
-	y = y or Spring.GetGroundHeight(x, z)
-
-	local unitId = Spring.CreateUnit(unitDefName, x, y, z, "south", 0)
-
-	if unitId and nickname then
-		trackedUnits[nickname] = unitId
-		trackedUnits[unitId] = nickname
-	end
-end
-
-local function despawnUnits(nickname, unitId)
-	unitId = trackedUnits[nickname] or unitId
-	nickname = trackedUnits[unitId]
-
-	trackedUnits[nickname] = nil
-	trackedUnits[unitId] = nil
-
-	Spring.DestroyUnit(unitId, false, true)
-end
 
 local typeMapping = {
 	-- [types.EnableTrigger] = ,
@@ -38,9 +13,9 @@ local typeMapping = {
 	-- [types.AlterBuildlist] = ,
 	-- [types.EnableBuildOption] = ,
 	-- [types.DisableBuildOption] = ,
-	[types.SpawnUnits] = spawnUnits,
+	[types.SpawnUnits] = actionFunctions.SpawnUnits,
 	-- [types.SpawnConstruction] = ,
-	[types.DespawnUnits] = despawnUnits,
+	[types.DespawnUnits] = actionFunctions.DespawnUnits,
 	-- [types.SpawnWeapons] = ,
 	-- [types.SpawnEffects] = ,
 	-- [types.RevealLOS] = ,
@@ -51,7 +26,7 @@ local typeMapping = {
 	-- [types.Pause] = ,
 	-- [types.Unpause] = ,
 	-- [types.PlayMedia] = ,
-	[types.SendMessage] = sendMessage,
+	[types.SendMessage] = actionFunctions.SendMessage,
 	-- [types.Victory] = ,
 	-- [types.Defeat] = ,
 }

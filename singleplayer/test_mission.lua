@@ -52,8 +52,8 @@ local actions = {
 		parameters = {
 			nickname = 'hero',
 			unitDefName = 'corkorg',
-			x = 10,
-			z = 10,
+			x = 100,
+			z = 100,
 		},
 	},
 
