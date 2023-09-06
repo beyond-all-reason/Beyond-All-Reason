@@ -83,7 +83,7 @@ local function scavUnitDef_Post(name, uDef)
 	-- Wrecks
 	uDef.corpse = nil
 	if uDef.featuredefs then
-		if uDef.featuredefs.heap then
+		if uDef.featuredefs.heap and uDef.buildoptions then
 			uDef.corpse = "HEAP"
 		end
 	end
