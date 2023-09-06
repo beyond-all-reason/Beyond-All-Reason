@@ -439,6 +439,7 @@ local armorDefs = {
 		"corcrwt4",
 		"armfepocht4",
 		"corfblackhyt4",
+		"cordronecarryair",
 		"armthundt4",
 		"armassistdrone",
 		"corassistdrone",
