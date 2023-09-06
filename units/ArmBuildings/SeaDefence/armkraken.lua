@@ -1,4 +1,3 @@
-local unitName = "Kraken"
 return {
 	armkraken = {
 		acceleration = 0,
