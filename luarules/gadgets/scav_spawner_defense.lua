@@ -1004,7 +1004,7 @@ if gadgetHandler:IsSyncedCode() then
 							elseif surface == "sea" then
 								potentialSquad = squadSpawnOptions.airSea[mRandom(1, #squadSpawnOptions.airSea)]
 							end
-							if potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
+							if potentialSquad and potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
 								squad = potentialSquad
 								break
 							end
