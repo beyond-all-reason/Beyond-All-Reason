@@ -1732,6 +1732,42 @@ if gadgetHandler:IsSyncedCode() then
 		manageAllSquads()
 	end
 
+	function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+
+		if oldTeam == scavTeamID then
+			if unitSquadTable[unitID] then
+				for index, id in ipairs(squadsTable[unitSquadTable[unitID]].squadUnits) do
+					if id == unitID then
+						table.remove(squadsTable[unitSquadTable[unitID]].squadUnits, index)
+					end
+				end
+				unitSquadTable[unitID] = nil
+			end
+		end
+
+		if newTeam == scavTeamID then
+			squadPotentialTarget[unitID] = nil
+			squadPotentialHighValueTarget[unitID] = nil
+			for squad in ipairs(unitTargetPool) do
+				if unitTargetPool[squad] == unitID then
+					refreshSquad(squad)
+				end
+			end
+
+			local x,y,z = Spring.GetUnitPosition(unitID)
+			if (not UnitDefs[unitDefID].isscavenger) and UnitDefs[unitDefID] and UnitDefs[unitDefID].name and UnitDefNames[UnitDefs[unitDefID].name .. "_scav"] then
+				Spring.DestroyUnit(unitID, true, true)
+				createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, 0, scavTeamID}
+			end
+			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultScavFirestate},0)
+			Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+			if UnitDefs[unitDefID].canCloak then
+				Spring.GiveOrderToUnit(unitID,37382,{1},0)
+			end
+			return
+		end
+	end
+
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
 		if unitTeam == scavTeamID then
