@@ -722,44 +722,66 @@ if gadgetHandler:IsSyncedCode() then
 			local spread = config.burrowSize*1.5
 			local spawnPosX, spawnPosY, spawnPosZ
 
-			if config.useScum and config.burrowSpawnType ~= "alwaysbox" and GetGameSeconds() > config.gracePeriod then -- Attempt #1, find position in creep/scum (skipped if creep is disabled or alwaysbox is enabled)
-				for _ = 1,100 do
-					spawnPosX = mRandom(spread, MAPSIZEX - spread)
-					spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
-					spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-					canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-					if canSpawnBurrow then
-						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-					end
-					if canSpawnBurrow then
-						canSpawnBurrow = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
-					end
-					if canSpawnBurrow then
-						break
-					end
-				end
-			end
-
-			if (not canSpawnBurrow) and config.burrowSpawnType ~= "avoid" then -- Attempt #2 Force spawn in Startbox, ignore any kind of player vision
-				for _ = 1,100 do
-					spawnPosX = mRandom(ScavStartboxXMin + spread, ScavStartboxXMax - spread)
-					spawnPosZ = mRandom(ScavStartboxZMin + spread, ScavStartboxZMax - spread)
-					spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-					canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-					if canSpawnBurrow then
-						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-					end
-					if canSpawnBurrow and noScavStartbox then -- this is for case where they have no startbox. We don't want them spawning on top of your stuff.
-						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
-					end
-					if canSpawnBurrow then
-						break
+			if config.burrowSpawnType ~= "avoid" then
+				if config.useScum and config.burrowSpawnType ~= "alwaysbox" and GetGameSeconds() > config.gracePeriod then -- Attempt #1, find position in creep/scum (skipped if creep is disabled or alwaysbox is enabled)
+					for _ = 1,100 do
+						spawnPosX = mRandom(spread, MAPSIZEX - spread)
+						spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
+						spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+						canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+						if canSpawnBurrow then
+							canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+						end
+						if canSpawnBurrow then
+							canSpawnBurrow = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
+						end
+						if canSpawnBurrow then
+							break
+						end
 					end
 				end
-			end
 
-			if (not canSpawnBurrow) then -- Attempt #3 Find some good position in Spawnbox (not Startbox)
-				for _ = 1,100 do
+				if (not canSpawnBurrow) and config.burrowSpawnType ~= "avoid" then -- Attempt #2 Force spawn in Startbox, ignore any kind of player vision
+					for _ = 1,100 do
+						spawnPosX = mRandom(ScavStartboxXMin + spread, ScavStartboxXMax - spread)
+						spawnPosZ = mRandom(ScavStartboxZMin + spread, ScavStartboxZMax - spread)
+						spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+						canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+						if canSpawnBurrow then
+							canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+						end
+						if canSpawnBurrow and noScavStartbox then -- this is for case where they have no startbox. We don't want them spawning on top of your stuff.
+							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
+						end
+						if canSpawnBurrow then
+							break
+						end
+					end
+				end
+
+				if (not canSpawnBurrow) then -- Attempt #3 Find some good position in Spawnbox (not Startbox)
+					for _ = 1,100 do
+						spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
+						spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
+						spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+						canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+						if canSpawnBurrow then
+							canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+						end
+						if canSpawnBurrow then
+							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
+						end
+						if canSpawnBurrow then
+							canSpawnBurrow = not (positionCheckLibrary.VisibilityCheck(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, false, false)) -- we need to reverse result of this, because we want this to be true when pos is in LoS of Scav team, and the visibility check does the opposite.
+						end
+						if canSpawnBurrow then
+							break
+						end
+					end
+				end
+			else -- Avoid Players burrow setup. Spawns anywhere that isn't in player sensor range.
+				
+				for _ = 1,100 do  -- Attempt #1 Avoid all sensors
 					spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
 					spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
 					spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
@@ -771,15 +793,48 @@ if gadgetHandler:IsSyncedCode() then
 						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
 					end
 					if canSpawnBurrow then
-						canSpawnBurrow = not (positionCheckLibrary.VisibilityCheck(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, false, false)) -- we need to reverse result of this, because we want this to be true when pos is in LoS of Scav team, and the visibility check does the opposite.
-					end
-					if canSpawnBurrow then
 						break
+					end
+				end
+
+				if (not canSpawnBurrow) then -- Attempt #2 Don't avoid radars
+					for _ = 1,100 do
+						spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
+						spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
+						spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+						canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+						if canSpawnBurrow then
+							canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+						end
+						if canSpawnBurrow then
+							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, false)
+						end
+						if canSpawnBurrow then
+							break
+						end
+					end
+				end
+
+				if (not canSpawnBurrow) then -- Attempt #3 Only avoid LoS
+					for _ = 1,100 do
+						spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
+						spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
+						spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+						canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+						if canSpawnBurrow then
+							canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+						end
+						if canSpawnBurrow then
+							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, false, false)
+						end
+						if canSpawnBurrow then
+							break
+						end
 					end
 				end
 			end
 
-			if canSpawnBurrow and GetGameSeconds() < config.gracePeriod then -- Don't spawn new burrows in existing creep during grace period - Force them to spread as much as they can..... AT LEAST THAT'S HOW IT'S SUPPOSED TO WORK, lol.
+			if (canSpawnBurrow and GetGameSeconds() < config.gracePeriod) or (canSpawnBurrow and config.burrowSpawnType == "avoid") then -- Don't spawn new burrows in existing creep during grace period - Force them to spread as much as they can..... AT LEAST THAT'S HOW IT'S SUPPOSED TO WORK, lol.
 				canSpawnBurrow = not GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
 			end
 
