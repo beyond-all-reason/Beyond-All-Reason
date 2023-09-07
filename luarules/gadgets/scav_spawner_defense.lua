@@ -1405,8 +1405,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local unitID
+		local x,y,z
 		if UnitDefNames[defs.unitName] then
-			local x, y, z = getScavSpawnLoc(defs.burrow, UnitDefNames[defs.unitName].id)
+			x, y, z = getScavSpawnLoc(defs.burrow, UnitDefNames[defs.unitName].id)
 			if not x or not y or not z then
 				spawnQueue[i] = nil
 				return
