@@ -1344,7 +1344,7 @@ function WeaponDef_Post(name, wDef)
 			-- 	wDef.mygravity = 0.12 -- this is some really weird number totally not related to numbers defined in map file
 			-- end
 			if wDef.weaponvelocity and wDef.weapontype == "Cannon" and wDef.gravityaffected == "true" then
-				wDef.weaponvelocity = wDef.weaponvelocity*x
+				wDef.weaponvelocity = wDef.weaponvelocity*math.sqrt(x)
 			end
 			if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
 				wDef.weapontimer = wDef.weapontimer+(wDef.weapontimer*((x-1)*0.4))
