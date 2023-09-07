@@ -100,6 +100,41 @@ local function FlatAreaCheck(posx, posy, posz, posradius, heightTollerance, chec
 
 end
 
+local function LandOrSeaCheck(posx, posy, posz, posradius) -- returns string, "land", "sea", "mixed", "death"
+    local posradius = posradius or 1000
+    local deathwater = Game.waterDamage
+    local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+
+        -- Check height of test points in all 8 directions.
+	local testpos1 = Spring.GetGroundHeight((posx + posradius), (posz + posradius) )
+	local testpos2 = Spring.GetGroundHeight((posx + posradius), (posz - posradius) )
+	local testpos3 = Spring.GetGroundHeight((posx - posradius), (posz + posradius) )
+	local testpos4 = Spring.GetGroundHeight((posx - posradius), (posz - posradius) )
+	local testpos5 = Spring.GetGroundHeight((posx + posradius), posz )
+	local testpos6 = Spring.GetGroundHeight(posx, (posz + posradius) )
+	local testpos7 = Spring.GetGroundHeight((posx - posradius), posz )
+	local testpos8 = Spring.GetGroundHeight(posx, (posz - posradius) )
+
+    local minimumheight = math.min(testpos1, testpos2, testpos3, testpos4, testpos5, testpos6, testpos7, testpos8)
+    local maximumheight = math.min(testpos1, testpos2, testpos3, testpos4, testpos5, testpos6, testpos7, testpos8)
+
+    if (deathwater > 0 and minimumheight <= 0) or (lavaLevel and (minimumheight <= lavaLevel)) then
+        return "death"
+    end
+    
+    if minimumheight <= 0 and maximumheight <= 0 then
+        return "sea"
+    end
+
+    if minimumheight > 0 and maximumheight > 0 then
+        return "land"
+    end
+
+    if minimumheight <= 0 and maximumheight > 0 then
+        return "mixed"
+    end
+end
+
 local function OccupancyCheck(posx, posy, posz, posradius) -- Returns true if there are no units in the spawn area
 	local posradius = posradius or 1000
 	local unitcount = #Spring.GetUnitsInRectangle(posx-posradius, posz-posradius, posx+posradius, posz+posradius)
@@ -321,6 +356,7 @@ return {
     SurfaceCheck = SurfaceCheck,
     LavaCheck = LavaCheck,
     MapIsLandOrSea = MapIsLandOrSea,
+    LandOrSeaCheck = LandOrSeaCheck,
 
     -- Scavengers
     ScavengerSpawnAreaCheck = ScavengerSpawnAreaCheck,

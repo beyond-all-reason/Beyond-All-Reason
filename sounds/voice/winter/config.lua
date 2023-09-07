@@ -175,6 +175,16 @@ return {
        length = 2.36,
        delay = 1,
     },
+    ['RaptorsAndScavsMixed'] = {
+        sound = {
+            [1] = {
+                file = 'RaptorsAndScavsMixed.wav',
+                text = 'tips.notifications.raptorsAndScavsMixed',
+            },
+        },
+        length = 12.8,
+        delay = 15,
+    },
 
     -- Awareness
 

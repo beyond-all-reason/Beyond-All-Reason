@@ -16,8 +16,10 @@ end
 
 if Spring.Utilities.Gametype.IsRaptors() then
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Activated!")
+elseif Spring.Utilities.Gametype.IsScavengers() then
+    Spring.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Activated!")
 else
-	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Deactivated!")
+	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Defense Spawner Deactivated!")
 	return false
 end
 
@@ -26,30 +28,47 @@ local healersTable = {
     [UnitDefNames["raptorhealer1"].id] = {
         healingpower = UnitDefNames["raptorhealer1"].repairSpeed,
         healingrange = UnitDefNames["raptorhealer1"].buildDistance*2,
+        canbehealed = false,
     },
     [UnitDefNames["raptorhealer2"].id] = {
         healingpower = UnitDefNames["raptorhealer2"].repairSpeed,
         healingrange = UnitDefNames["raptorhealer2"].buildDistance*2,
+        canbehealed = false,
     },
     [UnitDefNames["raptorhealer3"].id] = {
         healingpower = UnitDefNames["raptorhealer3"].repairSpeed,
         healingrange = UnitDefNames["raptorhealer3"].buildDistance*2,
+        canbehealed = false,
     },
     [UnitDefNames["raptorhealer4"].id] = {
         healingpower = UnitDefNames["raptorhealer4"].repairSpeed,
         healingrange = UnitDefNames["raptorhealer4"].buildDistance*2,
+        canbehealed = false,
     },
     [UnitDefNames["raptor_miniqueen_healer"].id] = {
         healingpower = UnitDefNames["raptor_miniqueen_healer"].repairSpeed,
         healingrange = UnitDefNames["raptor_miniqueen_healer"].buildDistance*2,
+        canbehealed = false,
     },
 }
+
+for unitDefID, unitDef in pairs(UnitDefs) do
+    if unitDef.customParams.isscavenger and unitDef.canRepair and unitDef.repairSpeed and unitDef.buildDistance then
+        healersTable[unitDefID] = {
+            healingpower = unitDef.repairSpeed,
+            healingrange = unitDef.buildDistance*2,
+            canbehealed = true,
+        }
+    end
+end
+
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     if healersTable[unitDefID] then
         aliveHealers[unitID] = {
             healingpower = healersTable[unitDefID].healingpower,
             healingrange = healersTable[unitDefID].healingrange,
+            canbehealed = healersTable[unitDefID].canbehealed,
         }
     end
 end
@@ -67,7 +86,7 @@ function gadget:GameFrame(frame)
             local surroundingUnits = Spring.GetUnitsInSphere(x, y, z, statsTable.healingrange)
             for i = 1,#surroundingUnits do
                 local healedUnitID = surroundingUnits[i]
-                if not aliveHealers[healedUnitID] then
+                if (not aliveHealers[healedUnitID]) or (aliveHealers[healedUnitID].canbehealed and unitID ~= healedUnitID) then
                     if Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), Spring.GetUnitTeam(healedUnitID)) == true then
                         local oldHP, maxHP = Spring.GetUnitHealth(healedUnitID)
                         if oldHP < maxHP then
@@ -75,10 +94,8 @@ function gadget:GameFrame(frame)
                             local healedUnitBuildTime = UnitDefs[healedUnitDefID].buildTime
                             local healValue = (maxHP/healedUnitBuildTime)*statsTable.healingpower
                             Spring.SetUnitHealth(healedUnitID, oldHP+healValue)
-                            if math.random() <= 0.5 then
-                                local x2, y2, z2 = Spring.GetUnitPosition(healedUnitID)
-                                Spring.SpawnCEG("heal", x2, y2+10, z2, 0,1,0)
-                            end
+                            local x2, y2, z2 = Spring.GetUnitPosition(healedUnitID)
+                            Spring.SpawnCEG("heal", x2, y2+10, z2, 0,1,0)
                         end
                     end
                 end

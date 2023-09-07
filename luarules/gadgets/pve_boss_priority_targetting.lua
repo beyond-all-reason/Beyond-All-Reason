@@ -28,6 +28,13 @@ local queenUnits = {
 	[UnitDefNames["raptor_miniqueen_healer"].id] = true,
 	[UnitDefNames["raptor_miniqueen_basic"].id] = true,
 	[UnitDefNames["raptor_miniqueen_fire"].id] = true,
+
+    [UnitDefNames["armscavengerbossv2_veryeasy"].id] = true,
+    [UnitDefNames["armscavengerbossv2_easy"].id] = true,
+    [UnitDefNames["armscavengerbossv2_normal"].id] = true,
+    [UnitDefNames["armscavengerbossv2_hard"].id] = true,
+    [UnitDefNames["armscavengerbossv2_veryhard"].id] = true,
+    [UnitDefNames["armscavengerbossv2_epic"].id] = true,
 }
 
 local queenTargets = {}

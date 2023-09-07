@@ -77,6 +77,20 @@ if gadgetHandler:IsSyncedCode() then
 		scumSpawnerIDs[UnitDefNames['raptor_turrets_antinuke'].id] = {radius = 512, growthrate = 0.2}
 		scumSpawnerIDs[UnitDefNames['raptor_turretxl_meteor'].id] = {radius = 1536, growthrate = 0.8}
 
+		scumSpawnerIDs[UnitDefNames['scavengerdroppodbeacon_scav'].id] = {radius = 800, growthrate = 0.8}
+
+		for unitDefID, unitDef in pairs(UnitDefs) do
+			if unitDef.customParams.isscavenger and (not unitDef.canMove) and (not string.find(unitDef.name, "lootbox")) and not scumSpawnerIDs[unitDefID] then
+				local footprintX = unitDef.xsize*0.5 -- why the fuck is this footprint *2??????
+				local footprintZ = unitDef.zsize*0.5 -- why the fuck is this footprint *2??????
+				local footprintSquare = 2
+				if footprintX and footprintZ then
+					footprintSquare = (footprintX+footprintZ)*0.5
+				end
+				scumSpawnerIDs[unitDefID] = {radius = footprintSquare*300, growthrate = 0.1*footprintSquare}
+			end
+		end
+
 		for x= 0, math.ceil(mapSizeX/1024) do
 			for z = 0, math.ceil(mapSizeZ/1024) do
 				scumBins[x*1024+z] = {}
@@ -233,7 +247,7 @@ if gadgetHandler:IsSyncedCode() then
 			scumRemoveQueue[n] = nil
 		end
 	end
-else
+elseif not Spring.Utilities.Gametype.IsScavengers() then
 
 
 	local texcolorheight = "LuaUI/images/raptor_scum/alien_guts_colorheight.dds"

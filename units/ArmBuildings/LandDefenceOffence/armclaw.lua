@@ -38,6 +38,7 @@ return {
 		upright = true,
 		yardmap = "ffff",
 		customparams = {
+			neutral_when_closed = true,
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armclaw_aoplane.dds",
 			buildinggrounddecalsizey = 4,

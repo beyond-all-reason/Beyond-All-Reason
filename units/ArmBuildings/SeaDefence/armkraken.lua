@@ -1,4 +1,3 @@
-local unitName = "Kraken"
 return {
 	armkraken = {
 		acceleration = 0,
@@ -37,6 +36,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
 			subfolder = "armbuildings/seadefence",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

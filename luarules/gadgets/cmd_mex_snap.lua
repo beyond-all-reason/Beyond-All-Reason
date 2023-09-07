@@ -368,6 +368,7 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if not isMex[-cmdID] or cmdOpts.mexsnap then
 		return
 	end
+
 	local orders = cmdOpts.shift and GetClashingOrders() or {}
 	local closestSpot = GetClosestMex(bx, bz, _G['resource_spot_finder'].metalSpotsList, isMex[-cmdID], orders)
 
@@ -379,8 +380,14 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			-- this will cancel the order but it fails to give a new order somehow :S
 			cmdOpts.mexsnap = true
 			GiveNotifyingOrder(cmdID, {bestPos.x, bestPos.y, bestPos.z, bface}, cmdOpts)
+			return true
 		end
 	end
-	return true
+	local _, metal, metal2 = Spring.GetGroundInfo(cmdParams[1], cmdParams[3])
+	if type(metal) == 'string' and metal2 > 0 then
+		return false
+	else
+		return true
+	end
 end
 

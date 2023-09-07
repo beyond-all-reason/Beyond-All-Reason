@@ -6,10 +6,13 @@ local scenariodata = {
 	author			= "wilkubyk", -- your name here
 	imagepath		= "scenario021.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "Ghost time", -- This text will be drawn over image
-    summary         = [[Incoming Transmission: Commander...intel report that it is cortex ba... ,it is...functio...,seek and des... transmission interrupted!]],
-	briefing 		= [[Tips:  - Get in to near Water as soon as you can and setup Advanced Shipyard 
-								 - Build Shield as soon as possible
+    summary         = [[Incoming Transmission:
+
+Commander...intel report that it is cortex ba... ,it is...functio...,seek and des... transmission interrupted!
+    					 ]],
+	briefing 		= [[Tips:  - Build a Shield as soon as possible
 								 - Try to Capture enemy constructor to gain access to foe Tech
+								 - Don't forget early AA
 ]],
 
 	mapfilename		= "Death Valley v1", -- the name of the map to be displayed here, and which to play on, no .smf ending needed

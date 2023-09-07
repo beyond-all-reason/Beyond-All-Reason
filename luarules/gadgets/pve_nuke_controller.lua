@@ -16,12 +16,18 @@ end
 
 if Spring.Utilities.Gametype.IsRaptors() then
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Activated!")
+elseif Spring.Utilities.Gametype.IsScavengers() then
+    Spring.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Activated!")
 else
-	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Deactivated!")
+	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Defense Spawner Deactivated!")
 	return false
 end
 local nukeDefs = {
     [UnitDefNames["raptor_turretxl_meteor"].id] = true,
+    [UnitDefNames["corsilo_scav"].id] = true,
+    [UnitDefNames["armsilo_scav"].id] = true,
+    [UnitDefNames["corjuno_scav"].id] = true,
+    [UnitDefNames["armjuno_scav"].id] = true,
 }
 local aliveNukeLaunchers = {}
 

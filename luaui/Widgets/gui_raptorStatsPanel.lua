@@ -197,7 +197,7 @@ local function CreatePanelDisplayList()
 	else
 		font:Print(textColor .. Spring.I18N('ui.raptors.gracePeriod', { time = string.formatTime(math.ceil(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5)) }), panelMarginX, PanelRow(1), panelFontSize, "")
 	end
-	
+
 	font:Print(textColor .. Spring.I18N('ui.raptors.raptorKillCount', { count = gameInfo.raptorKills }), panelMarginX, PanelRow(6), panelFontSize, "")
 	local endless = ""
 	if Spring.GetModOptions().raptor_endless then
@@ -278,7 +278,7 @@ local function Draw()
 
 			font2:Begin()
 			for i, message in ipairs(marqueeMessage) do
-				font2:Print(message, viewSizeX / 2, waveY - WaveRow(i), waveFontSize * widgetScale, "co")
+				font2:Print(message, viewSizeX / 2, waveY - (WaveRow(i) * widgetScale), waveFontSize * widgetScale, "co")
 			end
 			font2:End()
 		else
@@ -444,6 +444,6 @@ function widget:ViewResize()
 end
 
 function widget:LanguageChanged()
-	refreshMarqueeMessage = true;
-	updatePanel = true;
+	refreshMarqueeMessage = true
+	updatePanel = true
 end

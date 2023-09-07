@@ -520,6 +520,10 @@
 			"raptorOptions": "Raptor options",
 			"modOptions": "Mod options"
 		},
+		"cmdlimiter": {
+			"forceresignwarning": "You queued too much buildings a few time, continue this and you will get forcefully resigned.",
+			"forceresign": "You queued too much buildings too many times, you have been force resigned!"
+		},
 		"raptors": {
 			"firstWave1": "The Raptors have arrived!",
 			"firstWave2": "Get ready to defend yourself!",
@@ -560,21 +564,46 @@
 				"endless": "Endless"
 			}
 		},
-		"scavengers": {
-			"techPercentage": "Boss Anger: %{count}%%",
-			"techPercentageEndless": "Tech Progress: %{count}%%",
-			"techLevel": "Scavengers Tier: %{count}",
-			"bossFightCountdown": "Boss arrives in: %{count} Seconds",
-			"bossHealth": "Boss Health: %{count}%%",
-			"gracePeriod": "Grace Period: %{count} Seconds",
-			"killedScavengers": "Killed Scavengers: %{count}",
-			"aliveScavengers": "Scavengers: %{count}",
-			"aliveBeacons": "Beacons: %{count}",
-			"aliveCommanders": "Commanders: %{count}",
-			"difficultyLevel": "Difficulty: %{count}"
+		"scavs": {
+			"firstWave1": "The Scavengers have arrived!",
+			"firstWave2": "Get ready to defend yourself!",
+			"bossIsAngry1": "The Boss is here!",
+			"bossIsAngry2": "Prepare yourself for the final battle!",
+			"bossResistant": "The Boss is becoming resistant to %{unit} attacks!",
+			"resistanceUnits": "The Boss is becoming resistant to:",
+			"wave1": "Wave %{waveNumber}",
+			"wave2": "%{unitCount} Scavs!",
+			"scavCount": "Scavs: %{count}",
+			"scavKillCount": "Scavs Killed: %{count}",
+			"scavPlayerAgression": "Player Aggression Level: %{count}",
+			"bossAngerWithGain": "Boss Anger: %{anger}%% (+%{gain}%%/s)",
+			"bossAngerWithTech": "Boss Anger: %{anger}%% (Tech: %{techAnger}%%)",
+			"bossAngerBase": "Base: +%{value}%%/s",
+			"bossAngerAggression": "Aggression: +%{value}%%/s",
+			"bossAngerEco": "Economy: +%{value}%%/s",
+			"bossETA": "Boss arrives in: %{time}.",
+			"bossHealth": "Boss Health: %{health}%%",
+			"bossResistantToList": "Boss is resistant to:",
+			"gracePeriod": "Grace Period: %{time}",
+			"burrowCount": "Burrows: %{count}",
+			"burrowKillCount": "Burrows Killed: %{count}",
+			"mode": "Mode: %{mode}",
+			"score": "Your Score: %{score}",
+			"difficulty": {
+				"veryeasy": "Very Easy",
+				"easy": "Easy",
+				"normal": "Normal",
+				"hard": "Hard",
+				"veryhard": "Very Hard",
+				"insane": "Insane",
+				"epic": "Epic",
+				"unbeatable": "Unbeatable",
+				"survival": "Survival",
+				"endless": "Endless"
+			}
 		},
 		"loadScreen": {
-			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't work properly."
+			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly."
 		},
 		"initialSpawn": {
 			"ready": "Ready",
@@ -860,8 +889,10 @@
 				"resolution_descr": "WARNING: sometimes freezes game engine in windowed mode",
 				"vsync": "VSync",
 				"vsync_descr": "Prevent vertical screen tearing. Note this can introduce slight lag. Try adaptive for less screen draw delay.",
-				"limitidlefps": "Limit FPS when idle/offscreen",
-				"limitidlefps_descr": "Reduces fps when idle (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode",
+				"limitoffscreenfps": "Limit FPS when offscreen",
+				"limitoffscreenfps_descr": "Reduces fps when offscreen (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode",
+				"limitidlefps": "also limit when idle",
+				"limitidlefps_descr": "Reduces fps when idle for a minute (by setting vsync to a high number)\nCamera movement will break idle mode",
 				"msaa": "Anti Aliasing",
 				"msaa_descr": "Enables multisample anti-aliasing. NOTE: Can be expensive!",
 				"cas_sharpness": "Sharpness",
@@ -1395,7 +1426,7 @@
 				"dgunnogroundenemies": "Dont snap DGun to ground units",
 				"dgunnogroundenemies_descr": "Prevents dgun aim to snap onto enemy ground units.\nholding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)",
 				"dgunstallassist": "Conserve energy when DGunning",
-				"dgunstallassist_descr": "When the D-Gun order is active, units that drain energy are pause their energy use.",
+				"dgunstallassist_descr": "When the D-Gun order is active, units that drain energy will pause their energy use.",
 				"singleplayerpause": "Pause when in settings/quit/lobby",
 				"singleplayerpause_descr": "Exclusively in singleplayer mode...\n\nPauses the game when showing the settings/quit window or lobby",
 				"catchupsmoothness": "Catch up smoothness",

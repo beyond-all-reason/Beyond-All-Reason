@@ -2272,17 +2272,11 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead, m
 end
 
 local function formatRes(number)
-    local label
-    if number > 10000 then
-        label = table.concat({ math.floor(math.round(number / 1000)), "k" })
-    elseif number > 1000 then
-        label = table.concat({ string.sub(math.round(number / 1000, 1), 1, 2 + (string.find(math.round(number / 1000, 1), ".", nil, true) or 0)), "k" })
-    elseif number > 10 then
-        label = string.sub(math.round(number, 0), 1, 3 + (string.find(math.round(number, 0), ".", nil, true) or 0))
+    if number < 1000 then
+        return string.format("%d", number)
     else
-        label = string.sub(math.round(number, 1), 1, 2 + (string.find(math.round(number, 1), ".", nil, true) or 0))
+        return string.format("%.1fk", number / 1000)
     end
-    return tostring(label)
 end
 
 function DrawIncome(energy, metal, posY, dead)
@@ -2832,6 +2826,7 @@ function CreateShareSlider()
     end
 
     ShareSlider = gl_CreateList(function()
+		gl_Color(1,1,1,1)
         if sliderPosition then
             font:Begin()
             local posY
@@ -3668,16 +3663,16 @@ function widget:ViewResize()
     font2 = WG['fonts'].getFont(fontfile2, 1.1, math.max(0.16, 0.25 / widgetScale), math.max(4.5, 6 / widgetScale))
 
 	local MakeAtlasOnDemand = VFS.Include("LuaUI/Widgets/include/AtlasOnDemand.lua")
-	if AdvPlayersListAtlas then 
+	if AdvPlayersListAtlas then
 		--AdvPlayersListAtlas:Delete()
 	end
-	
+
 	local cellheight = math.min(32, math.ceil(math.max(font.size, font2.size) + 4))
 	local cellwidth = math.ceil(cellheight*1.25)
 	local cellcount = math.ceil(math.sqrt(32+32 + 200))
 	local atlasconfig = {sizex = cellheight * cellcount, sizey =  cellwidth*cellcount, xresolution = cellheight, yresolution = cellwidth, name = "AdvPlayersListAtlas", defaultfont = {font = font, options = 'o'}}
 	AdvPlayersListAtlas = MakeAtlasOnDemand(atlasconfig)
-	for i = 0, 99 do 
+	for i = 0, 99 do
 		AdvPlayersListAtlas:AddText(string.format("%02d", i))
 	end
     forceMainListRefresh = true
