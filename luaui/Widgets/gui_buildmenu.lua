@@ -219,7 +219,7 @@ local function RefreshCommands()
 
 			local cmdUnitdefs = {}
 			for i, udefid in pairs(UnitDefs[startDefID].buildOptions) do
-				if not unbaStartBuildoptions or unbaStartBuildoptions[udefid] then
+				if not units.unbaStartBuildoptions or units.unbaStartBuildoptions[udefid] then
 					cmdUnitdefs[udefid] = i
 				end
 			end
