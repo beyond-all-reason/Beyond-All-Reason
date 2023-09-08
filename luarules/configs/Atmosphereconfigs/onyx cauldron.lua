@@ -74,8 +74,8 @@ function gadget:GameFrame(n)
 	end	
 
 -- random rain
-	if n%3400 == 1600 then
-		SpawnCEGInRandomMapPosBelowY("rain", 0, 250, _, _, _, "rainlight", 1)
-	end
+	-- if n%3400 == 1600 then
+	-- 	SpawnCEGInRandomMapPosBelowY("rain", 0, 250, _, _, _, "rainlight", 1)
+	-- end
 
 end
