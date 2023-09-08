@@ -50,17 +50,17 @@ local actions = {
 	spawnHero = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			nickname = 'hero',
+			name = 'hero',
 			unitDefName = 'corkorg',
-			x = 10,
-			z = 10,
+			x = 100,
+			z = 100,
 		},
 	},
 
 	despawnHero = {
 		type = actionTypes.DespawnUnits,
 		parameters = {
-			nickname = 'hero',
+			name = 'hero',
 		},
 	},
 }

@@ -49,8 +49,8 @@ function gadget:Initialize()
 
 	GG['MissionAPI'].TrackedUnits = {}
 
-	triggersController = VFS.Include('luarules/mission_api/triggers.lua')
-	actionsController = VFS.Include('luarules/mission_api/actions.lua')
+	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
+	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 
 	loadMission();
 end
