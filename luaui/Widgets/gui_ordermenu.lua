@@ -241,7 +241,7 @@ local function refreshCommands()
 				isStateCommand[command.id] = true
 			end
 			if not hiddenCommands[command.id] and not hiddenCommandTypes[command.type] and command.action ~= nil and not command.disabled then
-				if command.type == CMDTYPE_ICON_BUILDING then
+				if command.type == CMDTYPE_ICON_BUILDING or (string.sub(command.action, 1, 10) == 'buildunit_') then
 					-- intentionally empty, no action to take
 				elseif isStateCommand[command.id] then
 					stateCommandsCount = stateCommandsCount + 1

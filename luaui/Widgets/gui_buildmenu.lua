@@ -111,8 +111,6 @@ local pages = 1
 local paginatorRects = {}
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
 
-local CMDTYPE_ICON_BUILDING = CMDTYPE.ICON_BUILDING
-
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -244,7 +242,7 @@ local function RefreshCommands()
 			local cmdUnitdefs = {}
 			for index, cmd in pairs(activeCmdDescs) do
 				if type(cmd) == "table" then
-					if not cmd.disabled and cmd.type == CMDTYPE_ICON_BUILDING then
+					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						cmdUnitdefs[cmd.id * -1] = index
 					end
 				end
@@ -258,7 +256,7 @@ local function RefreshCommands()
 		else
 			for index, cmd in pairs(activeCmdDescs) do
 				if type(cmd) == "table" then
-					if not cmd.disabled and cmd.type == CMDTYPE_ICON_BUILDING then
+					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						cmdsCount = cmdsCount + 1
 						cmds[cmdsCount] = cmd
 					end
