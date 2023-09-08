@@ -2894,8 +2894,8 @@ function init()
 			  elseif preset == 'Custom' then
 			  	-- do stuff with custom preset
 			  else
-				  widgetHandler:EnableWidget('Build menu')
 				  widgetHandler:DisableWidget('Grid menu')
+				  widgetHandler:EnableWidget('Build menu')
 			  end
 
 			  if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
