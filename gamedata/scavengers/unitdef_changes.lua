@@ -36,6 +36,112 @@ for name,uDef in pairs(UnitDefs) do
 	end
 end
 
+customDefs.armsilo = {
+	weapondefs = {
+		nuclear_missile = {
+			stockpile = false,
+			stockpiletime = 0,
+			reloadtime = 30,
+			commandfire = true,
+			customparams = {
+				scavforcecommandfire = true,
+			},
+		},
+	},
+}
+
+customDefs.corsilo = {
+	weapondefs = {
+		crblmssl = {
+			stockpile = false,
+			stockpiletime = 0,
+			reloadtime = 30,
+			commandfire = true,
+			customparams = {
+				scavforcecommandfire = true,
+			},
+		},
+	},
+}
+
+customDefs.armjuno = {
+	weapondefs = {
+		juno_pulse = {
+			stockpile = false,
+			stockpiletime = 0,
+			explosiongenerator = "custom:juno-explo-purple",
+			reloadtime = 30,
+			commandfire = true,
+			customparams = {
+				scavforcecommandfire = true,
+			},
+		},
+	},
+}
+
+customDefs.corjuno = {
+	weapondefs = {
+		juno_pulse = {
+			stockpile = false,
+			stockpiletime = 0,
+			explosiongenerator = "custom:juno-explo-purple",
+			reloadtime = 30,
+			commandfire = true,
+			customparams = {
+				scavforcecommandfire = true,
+			},
+		},
+	},
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+customDefs.armdecom = {
+	decoyfor = "armcom_scav",
+}
+
+customDefs.cordecom = {
+	decoyfor = "cordecom_scav",
+}
+
+customDefs.armclaw = {
+	decoyfor = "armdrag_scav",
+}
+
+customDefs.cormaw = {
+	decoyfor = "cordrag_scav",
+}
+
+customDefs.armdf = {
+	decoyfor = "armfus_scav",
+}
+
+customDefs.corscavdtf = {
+	decoyfor = "corscavdrag_scav",
+}
+
+customDefs.corscavdtm = {
+	decoyfor = "corscavdrag_scav",
+}
+
+customDefs.corscavdtl = {
+	decoyfor = "corscavdrag_scav",
+}
+
+
 -- local scavConstructorsList = {
 -- 	-- rezzers
 -- 	"armrectr",
@@ -368,38 +474,6 @@ end
 -- 	},
 -- }
 
-customDefs.armdecom = {
-	decoyfor = "armcom_scav",
-}
-
-customDefs.cordecom = {
-	decoyfor = "cordecom_scav",
-}
-
-customDefs.armclaw = {
-	decoyfor = "armdrag_scav",
-}
-
-customDefs.cormaw = {
-	decoyfor = "cordrag_scav",
-}
-
-customDefs.armdf = {
-	decoyfor = "armfus_scav",
-}
-
-customDefs.corscavdtf = {
-	decoyfor = "corscavdrag_scav",
-}
-
-customDefs.corscavdtm = {
-	decoyfor = "corscavdrag_scav",
-}
-
-customDefs.corscavdtl = {
-	decoyfor = "corscavdrag_scav",
-}
-
 -- ----CUSTOM UNITS---
 
 -- -- Bladewing do damage instead of paralyzer
@@ -712,23 +786,6 @@ customDefs.corscavdtl = {
 -- 		[numBuildoptions+6] = "cordoomt3",
 -- 	},
 -- }
-
--- Purple Juno
-customDefs.armjuno = {
-	weapondefs = {
-		juno_pulse = {
-			explosiongenerator = "custom:juno-explo-purple",
-		},
-	},
-}
-
-customDefs.corjuno = {
-	weapondefs = {
-		juno_pulse = {
-			explosiongenerator = "custom:juno-explo-purple",
-		},
-	},
-}
 
 -- --[[
 -- -- Cloaked Radar

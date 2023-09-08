@@ -770,6 +770,8 @@ local Turrets = {
 		["corjamt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
 		["armrad_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
 		["armjamt_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["armjuno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["corjuno_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 2},
 	},
 	[3] = {
 		["armcir_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 3},

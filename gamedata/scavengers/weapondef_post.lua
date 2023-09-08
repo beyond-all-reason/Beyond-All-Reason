@@ -8,7 +8,10 @@ local function convertToPurple(value)
 end
 
 function scav_Wdef_Post(name, wDef)
-    if wDef.commandfire then wDef.commandfire = false end
+    if not wDef.customparams then wDef.customparams = {} end
+    if wDef.commandfire and (not wDef.customparams.scavforcecommandfire) then wDef.commandfire = false end
+    wDef.metalpershot = 0
+    wDef.energypershot = 0
     if wDef.weapontype == "Cannon" then
 		wDef.rgbcolor = {0.96, 0.42, 1}
         --if wDef.intensity then
