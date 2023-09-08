@@ -139,8 +139,8 @@ local critterConfig = {
 		{ spawnCircle = { x = 7450, z = 4500, r = 60 }, unitNames = { ["critter_goldfish"] = rnd(-4, 1) }, nowatercheck = true },
 		{ spawnCircle = { x = 7450, z = 4200, r = 500 }, unitNames = { ["critter_gull"] = rnd(-3, 1) } },
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 10200, z2 = 6100 }, unitNames = { ["critter_gull"] = rnd(3, 8) } },
-		{ spawnCircle = { x = 3533, z = 3566, r = 450 }, unitNames = { ["critter_duck"] = rnd(0, 2) } },
-		{ spawnCircle = { x = 5533, z = 5595, r = 450 }, unitNames = { ["critter_duck"] = rnd(0, 2) } },
+		{ spawnCircle = { x = 2833, z = 966, r = 450 }, unitNames = { ["critter_duck"] = rnd(0, 2) } },
+		{ spawnCircle = { x = 7033, z = 5695, r = 450 }, unitNames = { ["critter_duck"] = rnd(0, 2) } },
 	},
 
 	["pawn retreat"] = {

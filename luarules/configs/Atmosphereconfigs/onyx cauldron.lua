@@ -58,8 +58,8 @@ function gadget:GameFrame(n)
 		SpawnCEGInPositionGround("fogdirty", 3321, 0, 87)
 		SpawnCEGInPositionGround("fogdirty", 3173, 32, 73)
 
-		SpawnCEGInPositionGround("fogdirty", 11, 0, 1887)
-		SpawnCEGInPositionGround("fogdirty", 39, 32, 1973)
+		SpawnCEGInPositionGround("fogdirty", 1, 0, 1887)
+		SpawnCEGInPositionGround("fogdirty", 9, 32, 1973)
 
 		SpawnCEGInPositionGround("fogdirty", 21, 0, 4587)
 		SpawnCEGInPositionGround("fogdirty", 79, 32, 4873)
