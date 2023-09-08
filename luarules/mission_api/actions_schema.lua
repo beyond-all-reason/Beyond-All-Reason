@@ -44,7 +44,7 @@ local parameters = {
 
 	[actionTypes.SpawnUnits] = {
 		[1] = {
-			name = 'nickname',
+			name = 'name',
 			required = false,
 			type = 'string',
 		},
@@ -78,14 +78,9 @@ local parameters = {
 	[actionTypes.SpawnConstruction] = {  },
 	[actionTypes.DespawnUnits] = { 
 		[1] = {
-			name = 'nickname',
-			required = false,
+			name = 'name',
+			required = true,
 			type = 'string',
-		},
-		[2] = {
-			name = 'unitId',
-			required = false,
-			type = 'number',
 		},
 	 },
 	[actionTypes.SpawnWeapons] = {  },
