@@ -1058,7 +1058,7 @@ end
 --Manual Squads/Interesting Game Events
 ----------------------------------------------------------------------------------------------------------------------------------------------------------
 ------Tier 1 0-25% (Land and Airland)
-addNewSquad({ type = "healerLand", minAnger = 0, units = { "6 armrectr_scav","6 cornecro_scav",}, weight = 10, maxAnger = 1000}) --Rezzers/Entire Game
+addNewSquad({ type = "healerLand", minAnger = 0, units = { "6 armrectr_scav","6 cornecro_scav",}, weight = 20, maxAnger = 1000}) --Rezzers/Entire Game
 --Land
 addNewSquad({ type = "basicLand", minAnger = 0, units = { "20 armfav_scav","20 corfav_scav",}, weight = 6, maxAnger = 25}) --Rover Whole Tier Length
 addNewSquad({ type = "basicLand", minAnger = 5, units = { "6 armflash_scav","6 corgator_scav","6 leghelios_scav",}, weight = 4, maxAnger = 20}) --T1 Veh Raid
