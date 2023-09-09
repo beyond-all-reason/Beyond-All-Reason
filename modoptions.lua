@@ -661,7 +661,6 @@ local options={
 
 
 
-
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Control Victory Options
@@ -681,6 +680,7 @@ local options={
 		type="list",
 		def="disabled",
 		section="controlvictoryoptions",
+		hidden = true, -- Should NOT be hidden when we work on this again.
 		items={
 			{key="disabled", name="Disabled", desc="Disable Control Points as a victory condition."},
 			{key="countdown", name="Countdown", desc="A Control Point decreases all opponents' scores, zero means defeat."},
@@ -694,6 +694,7 @@ local options={
 		desc   = 'No basebuilding',
 		type   = 'bool',
 		section= 'controlvictoryoptions',
+		hidden = true, -- Should NOT be hidden when we work on this again.
 		def  = true,
 	},
 	{
@@ -702,6 +703,7 @@ local options={
 		desc   = 'Each player gets diffrent set of units',
 		type   = 'bool',
 		section= 'controlvictoryoptions',
+		hidden = true, -- Should NOT be hidden when we work on this again.
 		def  = false,
 	},
 	{
@@ -710,6 +712,7 @@ local options={
 		desc   = 'Time Between New Units Add-up.',
 		type   = 'number',
 		section= 'controlvictoryoptions',
+		hidden = true, -- Should NOT be hidden when we work on this again.
 		def    = 1,
 		min    = 1,
 		max    = 10,
@@ -735,6 +738,7 @@ local options={
 		desc   = 'Initial score amount available.',
 		type   = 'number',
 		section= 'controlvictoryoptions',
+		hidden = true, -- Should NOT be hidden when we work on this again.
 		def    = 300,
 		min    = 100,
 		max    = 10000,
@@ -771,6 +775,7 @@ local options={
 		type   = 'bool',
 		def    = false,
 		section= "controlvictoryoptions",
+		hidden = true, -- Should NOT be hidden when we work on this again.
     },
 	{
 		key    = 'captureradius',
