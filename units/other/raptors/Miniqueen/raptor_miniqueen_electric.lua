@@ -60,6 +60,7 @@ return {
 		customparams = {
 			subfolder = "other/raptors",
 			normaltex = "unittextures/chicken_l_normals.png",
+			paralyzemultiplier = 0,
 		},
 		sfxtypes = {
 			explosiongenerators = {
