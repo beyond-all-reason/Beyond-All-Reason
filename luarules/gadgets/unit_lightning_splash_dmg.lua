@@ -11,7 +11,6 @@ function gadget:GetInfo()
 	}
 end
 
---only run code in synced space
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
@@ -19,7 +18,6 @@ end
 -- Options here
 local terminal_spark_effect = "genericshellexplosion-splash-lightning" -- can refactor into sparkWeapons if per-unit effects defined by customParams are desired
 local visual_chain_weapon = WeaponDefNames["lightning_chain"].id -- can refactor into sparkWeapons if per-unit effects defined by customParams are desired
-
 
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -32,7 +30,11 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 
-local random = math.random
+local math_random = math.random
+local math_pi = math.pi
+local math_max = math.max
+local math_cos = math.cos
+local math_sin = math.sin
 
 -- dictionary for in-game spark weapons
 local sparkWeapons = {}
@@ -40,7 +42,6 @@ for wdid, wd in pairs(WeaponDefNames) do
 	if wd.customParams ~= nil then
 		if wd.customParams.spark_forkdamage ~= nil then
 			Script.SetWatchWeapon(wd.id, true) -- watch weapon so ProjectileCreated works
-			-- ZECRUS, values can be tuned in the unitdef file
 			sparkWeapons[wd.id] = 	{
 				ceg = wd.customParams.spark_ceg, -- currently overridden by above "global" options
 				basedamage = tonumber(wd.damages[0]), --spark damage is assumed to be based on default damage
@@ -55,17 +56,15 @@ end
 -- look at this later, currently this makes these units completely immune to spark damage, friend or foe
 local immuneToSplash = {}
 for udid, ud in pairs(UnitDefs) do
-	if #ud.weapons > 0 then
-		for i, v in pairs(ud.weapons) do
-			if WeaponDefs[ud.weapons[i].weaponDef] and WeaponDefs[ud.weapons[i].weaponDef].type == "LightningCannon" then
-				immuneToSplash[udid] = true
-				break
-			end
+	for i, v in pairs(ud.weapons) do
+		if WeaponDefs[ud.weapons[i].weaponDef] and WeaponDefs[ud.weapons[i].weaponDef].type == "LightningCannon" then
+			immuneToSplash[udid] = true
+			break
 		end
 	end
 end
 
-local lightning_info = {} -- stores information related to every lighting bolt created in-game
+local lightningProjectiles = {} -- stores information related to every lighting bolt created in-game
 local lightning_shooter = {} -- stores information related to units directly hit by lighting bolts
 local lightning_shooter_ttl = {} -- stores information related to how long ago a unit was directly hit by lighting bolts
 
@@ -85,21 +84,19 @@ end
 -- this part handles the actual spark and chaining effect and applies damage
 -- for a typical lighting bolt ttl = 1, main bolt strikes frame 1, spark bolts strike frame 2
 function gadget:ProjectileDestroyed(proID)
-	if lightning_info[proID] ~= nil then -- make sure we are handling lightning weapons
-
-		local lightning = lightning_info[proID] -- shorter name
+	if lightningProjectiles[proID] then
+		local lightning = lightningProjectiles[proID] -- localizing
+		local count = lightning.spark_maxunits
 		local nearUnits = spGetUnitsInSphere(lightning.x,lightning.y,lightning.z,lightning.spark_range) -- get list of units in spark range
-		local count = lightning.spark_maxunits -- set counter
-
-		for i=1, #nearUnits do -- loop over nearby units
+		local nearUnit, nearUnitDefID
+		for i=1, #nearUnits do
 			if count == 0 then -- exit if maximum chain is reached
-				-- clear from table
-				lightning_info[proID] = nil
+				lightningProjectiles[proID] = nil
 				return
 			end
 
-			local nearUnit = nearUnits[i] -- get nearest unit
-			local nearUnitDefID = spGetUnitDefID(nearUnit) -- get its unitdefID
+			nearUnit = nearUnits[i] -- get nearest unit
+			nearUnitDefID = spGetUnitDefID(nearUnit) -- get its unitdefID
 			if not immuneToSplash[nearUnitDefID] then -- check if unit is immune to sparking
 				if not spGetUnitIsDead(nearUnit) then -- check if unit is in "death animation", so sparks do not chain to dying units.
 					if lightning_shooter[lightning.proOwnerID] ~= nearUnit then --check if main bolt has hit this target or not
@@ -121,27 +118,26 @@ function gadget:ProjectileDestroyed(proID)
 		-- special effects, for leftover chain
 		local angle, pitch, newx, newz, height1, height2
 		for i=1, count, 3 do
-			angle = random()*2*math.pi -- random angle, in radians
-			pitch = random()*math.pi/2 -- random pitch, in radians
+			angle = math_random()*2*math_pi -- random angle, in radians
+			pitch = math_random()*math_pi/2 -- random pitch, in radians
 			-- convert to x,z and offset from main bolt termination point
-			newx = lightning.x + math.cos(pitch)*math.sin(angle)*lightning.spark_range
-			newz = lightning.z + math.cos(pitch)*math.cos(angle)*lightning.spark_range
+			newx = lightning.x + math_cos(pitch)*math_sin(angle)*lightning.spark_range
+			newz = lightning.z + math_cos(pitch)*math_cos(angle)*lightning.spark_range
 			-- get height of random spark bolt termination point
 			-- This may need to be tuned, steep slopes, cliffs, and uneven terrain may create weird visuals
-			height1 = math.max(spGetGroundHeight(lightning.x,lightning.z),lightning.y) -- no vertical offset from ground seems needed for ground-strike bolts
-			height2 = spGetGroundHeight(newx,newz)+5+(math.sin(pitch)*lightning.spark_range/2)
+			height1 = math_max(spGetGroundHeight(lightning.x,lightning.z),lightning.y) -- no vertical offset from ground seems needed for ground-strike bolts
+			height2 = spGetGroundHeight(newx,newz)+5+(math_sin(pitch)*lightning.spark_range/2)
 			-- offset by 5 units seems good for termination point of spark
 			-- also pitch height is added, and squashed by a factor of 2 for an "ellipsoid" strike surface
 
 			-- create effects
 			-- using special defined thinner bolt for left-over chain bolts
 			spSpawnProjectile(visual_chain_weapon, {["pos"]={lightning.x,height1,lightning.z},["end"] = {newx,height2,newz}, ["ttl"] = 2, ["owner"] = -1})
-			--spSpawnProjectile(lightning.weaponDefID, {["pos"]={lightning.x,height1,lightning.z},["end"] = {newx,height2,newz}, ["ttl"] = 2, ["owner"] = -1})
 			spSpawnCEG(terminal_spark_effect,newx,height2,newz,0,0,0)
 		end
 
 		-- clear from table
-		lightning_info[proID] = nil
+		lightningProjectiles[proID] = nil
 	end
 end
 
@@ -155,19 +151,19 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 			local xv,yv,zv = spGetProjectileVelocity(proID) -- get bolt length
 
 			-- fill table, to be used in ProjectileDestroyed
-			lightning_info[proID] = {}
-			lightning_info[proID].weaponDefID = weaponDefID -- the lighting weapon used
-			lightning_info[proID].proOwnerID = proOwnerID -- who shot it
-			lightning_info[proID].spark_ceg = sparkWeapons[weaponDefID].ceg
-			lightning_info[proID].spark_basedamage = sparkWeapons[weaponDefID].basedamage
-			lightning_info[proID].spark_forkdamage = sparkWeapons[weaponDefID].forkdamage
-			lightning_info[proID].spark_range = sparkWeapons[weaponDefID].range
-			lightning_info[proID].spark_maxunits = sparkWeapons[weaponDefID].maxunits
-			-- main bolt termination point
-			lightning_info[proID].x = xp+xv
-			lightning_info[proID].y = yp+yv
-			lightning_info[proID].z = zp+zv
-
+			lightningProjectiles[proID] = {
+				weaponDefID = weaponDefID,
+				proOwnerID = proOwnerID,
+				spark_ceg = sparkWeapons[weaponDefID].ceg,
+				spark_basedamage = sparkWeapons[weaponDefID].basedamage,
+				spark_forkdamage = sparkWeapons[weaponDefID].forkdamage,
+				spark_range = sparkWeapons[weaponDefID].range,
+				spark_maxunits = sparkWeapons[weaponDefID].maxunits,
+				-- main bolt termination point
+				x = xp+xv,
+				y = yp+yv,
+				z = zp+zv,
+			}
 		end
 	end
 end
@@ -181,7 +177,6 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		-- as a workaround, if a unit is shot by a lightning unit, make it immune to that unit's chaining for 3 frames
 		lightning_shooter[attackerID] = unitID
 		lightning_shooter_ttl[attackerID] = 3
-
 	end
 	return damage,1
 end
