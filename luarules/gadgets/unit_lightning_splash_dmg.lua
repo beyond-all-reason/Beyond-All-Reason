@@ -53,18 +53,14 @@ for wdid, wd in pairs(WeaponDefNames) do
 end
 
 -- look at this later, currently this makes these units completely immune to spark damage, friend or foe
-local immuneToSplash = {
-	[UnitDefNames.armzeus.id] = true,
-	[UnitDefNames.armlatnk.id] = true,
-	[UnitDefNames.armclaw.id] = true,
-	[UnitDefNames.armthor.id] = true,
-	[UnitDefNames.raptore1.id] = true,
-	[UnitDefNames.raptore2.id] = true,
-}
+local immuneToSplash = {}
 for udid, ud in pairs(UnitDefs) do
-	for id, v in pairs(immuneToSplash) do
-		if string.find(ud.name, UnitDefs[id].name) then
-			immuneToSplash[udid] = v
+	if #ud.weapons > 0 then
+		for i, v in pairs(ud.weapons) do
+			if WeaponDefs[ud.weapons[i].weaponDef] and WeaponDefs[ud.weapons[i].weaponDef].type == "LightningCannon" then
+				immuneToSplash[udid] = true
+				break
+			end
 		end
 	end
 end
