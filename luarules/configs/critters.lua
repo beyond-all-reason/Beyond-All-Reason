@@ -129,6 +129,20 @@ local critterConfig = {
 		{ spawnBox = { x1 = 100, z1 = 100, x2 = 16200, z2 = 8150 }, unitNames = { ["critter_gull"] = rnd(15, 20) } },
 	},
 
+	["onyx cauldron"] = {
+		--{ spawnBox = { x1 = 50, z1 = 50, x2 = 10000, z2 = 10000 }, unitNames = { ["critter_gull"] = rnd(5, 20) } },
+		{ spawnCircle = { x = 4493, z = 3775, r = 120 }, unitNames = { ["critter_goldfish"] = rnd(-4, 1) }, nowatercheck = true },
+		{ spawnCircle = { x = 3593, z = 775, r = 60 }, unitNames = { ["critter_goldfish"] = rnd(-4, 1) }, nowatercheck = true },
+		{ spawnCircle = { x = 1933, z = 6080, r = 500 }, unitNames = { ["critter_gull"] = rnd(-3, 1) } },
+		{ spawnCircle = { x = 6050, z = 2583, r = 30 }, unitNames = { ["critter_goldfish"] = rnd(-4, 1) }, nowatercheck = true },
+		{ spawnCircle = { x = 7400, z = 970, r = 500 }, unitNames = { ["critter_gull"] = rnd(-3, 1) } },
+		{ spawnCircle = { x = 7450, z = 4500, r = 60 }, unitNames = { ["critter_goldfish"] = rnd(-4, 1) }, nowatercheck = true },
+		{ spawnCircle = { x = 7450, z = 4200, r = 500 }, unitNames = { ["critter_gull"] = rnd(-3, 1) } },
+		{ spawnBox = { x1 = 50, z1 = 50, x2 = 10200, z2 = 6100 }, unitNames = { ["critter_gull"] = rnd(3, 8) } },
+		{ spawnCircle = { x = 2833, z = 966, r = 450 }, unitNames = { ["critter_duck"] = rnd(0, 2) } },
+		{ spawnCircle = { x = 7033, z = 5695, r = 450 }, unitNames = { ["critter_duck"] = rnd(0, 2) } },
+	},
+
 	["pawn retreat"] = {
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 10000, z2 = 10000 }, unitNames = { ["critter_gull"] = rnd(5, 20) } },
 	},
