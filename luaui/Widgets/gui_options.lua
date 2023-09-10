@@ -4255,6 +4255,16 @@ function init()
 		  end,
 		},
 
+		{ id = "shared_unit_orders", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.shared_unit_orders'), type = "select", options = { 'movement', 'all', 'none'}, description = Spring.I18N('ui.settings.option.shared_unit_orders_descr'),
+			value = 1,
+			onload = function(i)
+				loadWidgetData("Handle Orders on Share", "shared_unit_orders", { 'shareCommands' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Handle Orders on Share', 'shared_unit_orders', 'setOption', { 'shareCommands' }, value, {'shareCommands', value})
+			end,
+		},
+
 		{ id = "label_ui_cloak", group = "game", name = Spring.I18N('ui.settings.option.label_cloak'), category = types.basic },
 		{ id = "label_ui_cloak_spacer", group = "game", category = types.basic },
 
@@ -6465,3 +6475,4 @@ end
 function widget:LanguageChanged()
 	init()
 end
+
