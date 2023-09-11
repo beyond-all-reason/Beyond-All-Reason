@@ -273,9 +273,15 @@ if gadgetHandler:IsSyncedCode() then
 			if not append then
 				data.targets = {}
 			end
+			local currentTargets = {}
+			for i, targetData in ipairs(data.targets) do
+				currentTargets[targetData.target] = true
+			end
 			for _, targetData in ipairs(targets) do
-				if checkTarget(unitID, targetData.target) then
-					data.targets[#data.targets + 1] = targetData
+				if not currentTargets[targetData.target] then	-- check if this target isnt already in targetData
+					if checkTarget(unitID, targetData.target) then
+						data.targets[#data.targets + 1] = targetData
+					end
 				end
 			end
 			if #data.targets == 0 then
