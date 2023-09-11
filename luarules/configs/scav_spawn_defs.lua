@@ -825,8 +825,8 @@ local Turrets = {
 	},
 	[5] = {
 		-- nukes
-		["corsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 2},
-		["armsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["corsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 1},
+		["armsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 1},
 
 		["armminivulc_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
 		["corminibuzz_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 3},
