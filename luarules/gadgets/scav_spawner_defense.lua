@@ -67,7 +67,7 @@ if gadgetHandler:IsSyncedCode() then
 	Spring.SetGameRulesParam("BossFightStarted", 0)
 	local bossLifePercent = 100
 	local maxTries = 30
-	local scavUnitCap = math.floor(Game.maxUnits*0.95)
+	local scavUnitCap = math.floor(Game.maxUnits*0.80)
 	local minBurrows = 1
 	local timeOfLastSpawn = -999999
 	local timeOfLastWave = 0
@@ -1443,83 +1443,85 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function SpawnScavs()
-		local i, defs = next(spawnQueue)
-		if not i or not defs then
-			if #squadCreationQueue.units > 0 then
-				if mRandom(1,5) == 1 then
-					squadCreationQueue.regroupenabled = false
-				end
-				local squadID = createSquad(squadCreationQueue)
-				squadCreationQueue.units = {}
-				refreshSquad(squadID)
-				-- Spring.Echo("[RAPTOR] Number of active Squads: ".. #squadsTable)
-				-- Spring.Echo("[RAPTOR] Wave spawn complete.")
-				-- Spring.Echo(" ")
-			end
-			return
-		end
-
-		local unitID
-		local x,y,z
-		if UnitDefNames[defs.unitName] then
-			x, y, z = getScavSpawnLoc(defs.burrow, UnitDefNames[defs.unitName].id)
-			if not x or not y or not z then
-				spawnQueue[i] = nil
-				return
-			end
-			unitID = CreateUnit(defs.unitName, x, y, z, mRandom(0,3), defs.team)
-		else
-			Spring.Echo("Error: Cannot spawn unit " .. defs.unitName .. ", invalid name.")
-			spawnQueue[i] = nil
-			return
-		end
-		
-		if unitID then
-			if (not defs.squadID) or (defs.squadID and defs.squadID == 1) then
+		local squadDone = false
+		repeat
+			local i, defs = next(spawnQueue)
+			if not i or not defs then
 				if #squadCreationQueue.units > 0 then
 					if mRandom(1,5) == 1 then
 						squadCreationQueue.regroupenabled = false
 					end
-					createSquad(squadCreationQueue)
+					local squadID = createSquad(squadCreationQueue)
+					squadDone = true
+					squadCreationQueue.units = {}
+					refreshSquad(squadID)
+					-- Spring.Echo("[RAPTOR] Number of active Squads: ".. #squadsTable)
+					-- Spring.Echo("[RAPTOR] Wave spawn complete.")
+					-- Spring.Echo(" ")
 				end
-			end
-			if defs.burrow and (not squadCreationQueue.burrow) then
-				squadCreationQueue.burrow = defs.burrow
-			end
-			squadCreationQueue.units[#squadCreationQueue.units+1] = unitID
-			if config.scavBehaviours.HEALER[UnitDefNames[defs.unitName].id] then
-				squadCreationQueue.role = "healer"
-				squadCreationQueue.regroupenabled = false
-				if squadCreationQueue.life < 20 then
-					squadCreationQueue.life = 20
-				end
-			end
-			if config.scavBehaviours.ARTILLERY[UnitDefNames[defs.unitName].id] then
-				squadCreationQueue.role = "artillery"
-				squadCreationQueue.regroupenabled = false
-			end
-			if config.scavBehaviours.KAMIKAZE[UnitDefNames[defs.unitName].id] then
-				squadCreationQueue.role = "kamikaze"
-				squadCreationQueue.regroupenabled = false
-				if squadCreationQueue.life < 100 then
-					squadCreationQueue.life = 100
-				end
-			end
-			if UnitDefNames[defs.unitName].canFly then
-				squadCreationQueue.role = "aircraft"
-				squadCreationQueue.regroupenabled = false
-				if squadCreationQueue.life < 100 then
-					squadCreationQueue.life = 100
-				end
+				return
 			end
 
-			GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, { "shift" })
-			GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
-			GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
+			local unitID
+			local x,y,z
+			if UnitDefNames[defs.unitName] then
+				x, y, z = getScavSpawnLoc(defs.burrow, UnitDefNames[defs.unitName].id)
+				if not x or not y or not z then
+					spawnQueue[i] = nil
+					return
+				end
+				unitID = CreateUnit(defs.unitName, x, y, z, mRandom(0,3), defs.team)
+			else
+				Spring.Echo("Error: Cannot spawn unit " .. defs.unitName .. ", invalid name.")
+				spawnQueue[i] = nil
+				return
+			end
 
-			setScavXP(unitID)
-		end
-		spawnQueue[i] = nil
+			if unitID then
+				if (not defs.squadID) or (defs.squadID and defs.squadID == 1) then
+					if #squadCreationQueue.units > 0 then
+						createSquad(squadCreationQueue)
+						squadDone = true
+					end
+				end
+				if defs.burrow and (not squadCreationQueue.burrow) then
+					squadCreationQueue.burrow = defs.burrow
+				end
+				squadCreationQueue.units[#squadCreationQueue.units+1] = unitID
+				if config.scavBehaviours.HEALER[UnitDefNames[defs.unitName].id] then
+					squadCreationQueue.role = "healer"
+					squadCreationQueue.regroupenabled = false
+					if squadCreationQueue.life < 20 then
+						squadCreationQueue.life = 20
+					end
+				end
+				if config.scavBehaviours.ARTILLERY[UnitDefNames[defs.unitName].id] then
+					squadCreationQueue.role = "artillery"
+					squadCreationQueue.regroupenabled = false
+				end
+				if config.scavBehaviours.KAMIKAZE[UnitDefNames[defs.unitName].id] then
+					squadCreationQueue.role = "kamikaze"
+					squadCreationQueue.regroupenabled = false
+					if squadCreationQueue.life < 100 then
+						squadCreationQueue.life = 100
+					end
+				end
+				if UnitDefNames[defs.unitName].canFly then
+					squadCreationQueue.role = "aircraft"
+					squadCreationQueue.regroupenabled = false
+					if squadCreationQueue.life < 100 then
+						squadCreationQueue.life = 100
+					end
+				end
+
+				GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, { "shift" })
+				GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
+				GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
+
+				setScavXP(unitID)
+			end
+			spawnQueue[i] = nil
+		until squadDone == true
 	end
 
 	function updateSpawnBoss()
@@ -1594,7 +1596,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local scavTeamUnitCount = GetTeamUnitCount(scavTeamID) or 0
-		if scavTeamUnitCount < scavUnitCap then
+		if scavTeamUnitCount < scavUnitCap and n%15 == 9 then
 			SpawnScavs()
 		end
 

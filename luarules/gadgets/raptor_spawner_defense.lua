@@ -67,7 +67,7 @@ if gadgetHandler:IsSyncedCode() then
 	Spring.SetGameRulesParam("BossFightStarted", 0)
 	local queenLifePercent = 100
 	local maxTries = 30
-	local raptorUnitCap = math.floor(Game.maxUnits*0.95)
+	local raptorUnitCap = math.floor(Game.maxUnits*0.8)
 	local minBurrows = 1
 	local timeOfLastSpawn = -999999
 	local timeOfLastWave = 0
@@ -1407,87 +1407,92 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function SpawnRaptors()
-		local i, defs = next(spawnQueue)
-		if not i or not defs then
-			if #squadCreationQueue.units > 0 then
-				if mRandom(1,5) == 1 then
-					squadCreationQueue.regroupenabled = false
-				end
-				local squadID = createSquad(squadCreationQueue)
-				squadCreationQueue.units = {}
-				refreshSquad(squadID)
-				-- Spring.Echo("[RAPTOR] Number of active Squads: ".. #squadsTable)
-				-- Spring.Echo("[RAPTOR] Wave spawn complete.")
-				-- Spring.Echo(" ")
-			end
-			return
-		end
-		local x, y, z = getRaptorSpawnLoc(defs.burrow, config.raptorBehaviours.PROBE_UNIT)
-		if not x or not y or not z then
-			spawnQueue[i] = nil
-			return
-		end
-		local unitID = CreateUnit(defs.unitName, x, y, z, mRandom(0,3), defs.team)
-
-		if unitID then
-			if (not defs.squadID) or (defs.squadID and defs.squadID == 1) then
+		local squadDone = false
+		repeat
+			local i, defs = next(spawnQueue)
+			if not i or not defs then
 				if #squadCreationQueue.units > 0 then
 					if mRandom(1,5) == 1 then
 						squadCreationQueue.regroupenabled = false
 					end
-					createSquad(squadCreationQueue)
+					local squadID = createSquad(squadCreationQueue)
+					squadDone = true
+					squadCreationQueue.units = {}
+					refreshSquad(squadID)
+					-- Spring.Echo("[RAPTOR] Number of active Squads: ".. #squadsTable)
+					-- Spring.Echo("[RAPTOR] Wave spawn complete.")
+					-- Spring.Echo(" ")
 				end
+				return
 			end
-			if defs.burrow and (not squadCreationQueue.burrow) then
-				squadCreationQueue.burrow = defs.burrow
+			local x, y, z = getRaptorSpawnLoc(defs.burrow, config.raptorBehaviours.PROBE_UNIT)
+			if not x or not y or not z then
+				spawnQueue[i] = nil
+				return
 			end
-			squadCreationQueue.units[#squadCreationQueue.units+1] = unitID
-			if config.raptorBehaviours.HEALER[UnitDefNames[defs.unitName].id] then
-				squadCreationQueue.role = "healer"
-				squadCreationQueue.regroupenabled = false
-				if squadCreationQueue.life < 100 then
-					squadCreationQueue.life = 100
-				end
-			end
-			if config.raptorBehaviours.ARTILLERY[UnitDefNames[defs.unitName].id] then
-				squadCreationQueue.role = "artillery"
-				squadCreationQueue.regroupenabled = false
-				if squadCreationQueue.life < 100 then
-					squadCreationQueue.life = 100
-				end
-			end
-			if config.raptorBehaviours.KAMIKAZE[UnitDefNames[defs.unitName].id] then
-				squadCreationQueue.role = "kamikaze"
-				squadCreationQueue.regroupenabled = false
-				if squadCreationQueue.life < 100 then
-					squadCreationQueue.life = 100
-				end
-			end
-			if UnitDefNames[defs.unitName].canFly then
-				squadCreationQueue.role = "aircraft"
-				squadCreationQueue.regroupenabled = false
-				if squadCreationQueue.life < 100 then
-					squadCreationQueue.life = 100
-				end
-			end
+			local unitID = CreateUnit(defs.unitName, x, y, z, mRandom(0,3), defs.team)
 
-			GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, { "shift" })
-			GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
-			GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
-
-			setRaptorXP(unitID)
-			if mRandom() < 0.1 then
-				local mod = 0.75 - (mRandom() * 0.25)
-				if mRandom() < 0.1 then
-					mod = mod - (mRandom() * 0.2)
-					if mRandom() < 0.1 then
-						mod = mod - (mRandom() * 0.2)
+			if unitID then
+				if (not defs.squadID) or (defs.squadID and defs.squadID == 1) then
+					if #squadCreationQueue.units > 0 then
+						if mRandom(1,5) == 1 then
+							squadCreationQueue.regroupenabled = false
+						end
+						createSquad(squadCreationQueue)
+						squadDone = true
 					end
 				end
-				heroRaptor[unitID] = mod
+				if defs.burrow and (not squadCreationQueue.burrow) then
+					squadCreationQueue.burrow = defs.burrow
+				end
+				squadCreationQueue.units[#squadCreationQueue.units+1] = unitID
+				if config.raptorBehaviours.HEALER[UnitDefNames[defs.unitName].id] then
+					squadCreationQueue.role = "healer"
+					squadCreationQueue.regroupenabled = false
+					if squadCreationQueue.life < 100 then
+						squadCreationQueue.life = 100
+					end
+				end
+				if config.raptorBehaviours.ARTILLERY[UnitDefNames[defs.unitName].id] then
+					squadCreationQueue.role = "artillery"
+					squadCreationQueue.regroupenabled = false
+					if squadCreationQueue.life < 100 then
+						squadCreationQueue.life = 100
+					end
+				end
+				if config.raptorBehaviours.KAMIKAZE[UnitDefNames[defs.unitName].id] then
+					squadCreationQueue.role = "kamikaze"
+					squadCreationQueue.regroupenabled = false
+					if squadCreationQueue.life < 100 then
+						squadCreationQueue.life = 100
+					end
+				end
+				if UnitDefNames[defs.unitName].canFly then
+					squadCreationQueue.role = "aircraft"
+					squadCreationQueue.regroupenabled = false
+					if squadCreationQueue.life < 100 then
+						squadCreationQueue.life = 100
+					end
+				end
+
+				GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, { "shift" })
+				GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
+				GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
+
+				setRaptorXP(unitID)
+				if mRandom() < 0.1 then
+					local mod = 0.75 - (mRandom() * 0.25)
+					if mRandom() < 0.1 then
+						mod = mod - (mRandom() * 0.2)
+						if mRandom() < 0.1 then
+							mod = mod - (mRandom() * 0.2)
+						end
+					end
+					heroRaptor[unitID] = mod
+				end
 			end
-		end
-		spawnQueue[i] = nil
+			spawnQueue[i] = nil
+		until squadDone == true
 	end
 
 	function updateSpawnQueen()
@@ -1625,7 +1630,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local raptorTeamUnitCount = GetTeamUnitCount(raptorTeamID) or 0
-		if raptorTeamUnitCount < raptorUnitCap then
+		if raptorTeamUnitCount < raptorUnitCap and n%15 == 9 then
 			SpawnRaptors()
 		end
 
