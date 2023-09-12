@@ -11,8 +11,14 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
-
 local dgunWeapons = {}
+for weaponDefID, weaponDef in ipairs(WeaponDefs) do
+	if weaponDef.type == 'DGun' then
+		Script.SetWatchProjectile(weaponDefID, true)
+		dgunWeapons[weaponDefID] = weaponDef
+	end
+end
+
 local isCommander = {}
 local isDecoyCommander = {}
 local commanderNames = {}
@@ -20,12 +26,9 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
 		commanderNames[unitDef.name] = true
-		if WeaponDefNames[ unitDef.name..'_disintegrator' ] then
-			local weaponDef = WeaponDefNames[ unitDef.name..'_disintegrator' ]
-			Script.SetWatchProjectile(weaponDef.id, true)
-			dgunWeapons[ weaponDef.id ] = weaponDef
-		end
 	end
+end
+for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.customParams.decoyfor and commanderNames[unitDef.customParams.decoyfor] then
 		isDecoyCommander[unitDefID] = true
 	end
