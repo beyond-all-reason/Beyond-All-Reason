@@ -16,13 +16,6 @@ local dgunWeapons = {}
 local isCommander = {}
 local isDecoyCommander = {}
 local commanderNames = {}
-Spring.Echo('-=-7=-=-=-')
-Spring.Echo('-=-8=-=-=-')
-Spring.Echo('-=-9=-=-=-')
-Spring.Echo('-=-0=-=-=-')
-Spring.Echo('-=-1=-=-=-')
-Spring.Echo('-=-=-2=-=-')
-Spring.Echo('-=-=-=3-=-')
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
