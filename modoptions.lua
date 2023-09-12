@@ -495,7 +495,6 @@ local options={
 		min    = 0.5,
 		max    = 5,
 		step   = 0.1,
-		hidden = true,
 	},
 
 	{
@@ -1128,6 +1127,18 @@ local options={
 	},
 
 	{
+		key    = 'assistdronesbuildpowermultiplier',
+		name   = 'Starter Construction Drones: Buildpower Multiplier (Range 0.5 - 3)',
+		desc   = 'How many assist drones per commander should be spawned',
+		type   = 'number',
+		section= 'options_extra',
+		def    = 1,
+		min    = 0.5,
+		max    = 5,
+		step   = 1,
+	},
+
+	{
 		key    = 'assistdronescount',
 		name   = 'Assist Drones: Count',
 		desc   = 'How many assist drones per commander should be spawned',
@@ -1164,10 +1175,9 @@ local options={
 
 	{
 		key    = 'commanderbuildersrange',
-		name   = 'Base Construction Turret: Range',
+		name   = 'Starter Construction Turret: Buildrange (Range 500 - 2000)',
 		type   = 'number',
 		section= 'options_extra',
-		hidden = true,
 		def    = 1000,
 		min    = 500,
 		max    = 2000,
@@ -1176,10 +1186,9 @@ local options={
 
 	{
 		key    = 'commanderbuildersbuildpower',
-		name   = 'Base Construction Turret: Buildpower',
+		name   = 'Starter Construction Turret: Buildpower (Range 100 - 1000)',
 		type   = 'number',
 		section= 'options_extra',
-		hidden = true,
 		def    = 400,
 		min    = 100,
 		max    = 1000,

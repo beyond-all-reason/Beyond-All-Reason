@@ -72,4 +72,22 @@ function gadget:GameFrame(n)
             end
         end
     end
+    if n > 90 and n%1800 == 0 then -- Drone respawn
+        for comID, _ in pairs(commandersList) do
+            local comDefID = Spring.GetUnitDefID(comID)
+            local comTeam = Spring.GetUnitTeam(comID)
+            local droneName = drones[comDefID]
+            local droneDefID = UnitDefNames[droneName].id
+            if Spring.GetTeamUnitDefCount(comTeam, droneDefID) < droneCount then
+                local posx, posy, posz = Spring.GetUnitPosition(comID)
+                posx = posx+math.random(-64,64)
+                posz = posz+math.random(-64,64)
+                local droneID = Spring.CreateUnit(droneName, posx, posy+10, posz, 0, comTeam)
+                if droneID then
+                    Spring.SpawnCEG("scav-spawnexplo", posx, posy+10, posz,0,0,0)
+                    Spring.GiveOrderToUnit(droneID, CMD.GUARD, comID, {})
+                end
+            end
+        end
+    end
 end
