@@ -475,13 +475,13 @@ local options={
 
 	{
 		key    = "startmetalstorage",
-		name   = "Starting metal storage - Only works if it's higher than Starting metal (Range 1000 - 10000)",
+		name   = "Starting metal storage - Only works if it's higher than Starting metal (Range 1000 - 20000)",
 		desc   = "Determines amount of metal and metal storage that each player will start with",
 		type   = "number",
 		section= "options_resources",
 		def    = 1000,
 		min    = 1000,
-		max    = 10000,
+		max    = 20000,
 		step   = 1,
 	},
 
