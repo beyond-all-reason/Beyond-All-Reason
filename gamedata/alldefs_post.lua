@@ -1211,9 +1211,9 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		if Spring.GetModOptions().experimentalshieldpower then
+		if Spring.GetModOptions().multiplier_shieldpower then
 			if wDef.shield then
-				local multiplier = Spring.GetModOptions().experimentalshieldpower
+				local multiplier = Spring.GetModOptions().multiplier_shieldpower
 				if wDef.shield.power then
 					wDef.shield.power = wDef.shield.power*multiplier
 				end

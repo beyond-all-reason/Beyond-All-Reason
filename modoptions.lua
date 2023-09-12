@@ -36,10 +36,27 @@ local options={
 		desc   	= '',
 		type   	= 'section',
 	},
+
+	{
+		key="deathmode",
+		name="Game End Mode",
+		desc="What it takes to eliminate a team",
+		type="list",
+		def="com",
+		section="restrictions",
+		items={
+			{key="neverend", 	name="Never ending", desc="Teams are never eliminated"},
+			{key="com", 		name="Kill all enemy Commanders", desc="When a team has no Commanders left, it loses"},
+			{key="builders", 	name="Kill all Builders"},
+			{key="killall", 	name="Kill everything", desc="Every last unit must be eliminated, no exceptions!"},
+			{key="own_com", 	name="Player resign on Com death", desc="When player commander dies, you auto-resign."},
+		}
+	},
+
 	{
 		key    = 'maxunits',
-		name   = 'Max units',
-		desc   = 'Maximum number of units (including buildings) for each team allowed at the same time',
+		name   = 'Max units per player',
+		desc   = 'Keep in mind there is an absolute limit of units, 32000, divided between each team. If you set this value higher than possible it will force itself down to the maximum it can be.',
 		type   = 'number',
 		def    = 2000,
 		min    = 500,
@@ -47,6 +64,7 @@ local options={
 		step   = 1,  -- quantization is aligned to the def value, (step <= 0) means that there is no quantization
 		section= "restrictions",
 	},
+
 	{
 		key="transportenemy",
 		name="Enemy Transporting",
@@ -70,7 +88,7 @@ local options={
 	},
 	{
 		key    		= "allowpausegameplay",
-		name   		= "Allow gameplay while paused",
+		name   		= "Allow commands while paused",
 		desc   		= "Allow giving unit commands while paused",
 		type   		= "bool",
 		def    		= true,
@@ -82,28 +100,17 @@ local options={
 		desc   		= 'Disables the possibility of players to dynamically change alliances ingame',
 		type   		= 'bool',
 		def    		= true,
+		hidden 		= true,
 		section		= "restrictions",
 	},
 
 	{
-		key    		= 'norush',
-		name   		= "No Rush mode - Work in Progress, Requires Startboxes (doesn't work in FFA or 1v1 preset)",
-		desc   		= 'No Rush mode',
-		type   		= "bool",
-		section		= 'restrictions',
-		def    		= false,
-	},
-
-	{
-		key    		= 'norushtimer',
-		name   		= "No Rush Time (in minutes)",
-		desc   		= 'No Rush Time (in minutes)',
-		type   		= "number",
-		section		= 'restrictions',
-		def    		= 5,
-		min    		= 5,
-		max    		= 30,
-		step   		= 1,
+		key    = 'disablemapdamage',
+		name   = 'Disable Map Deformation',
+		desc   = 'Prevents the map shape from being changed by weapons',
+		type   = 'bool',
+		def    = false,
+		section= "restrictions",
 	},
 
 	{
@@ -231,8 +238,8 @@ local options={
 	},
 	{
 		key    = "scav_bosstimemult",
-		name   = "Boss Preparation Time Multiplier",
-		desc   = "How quickly Boss Anger goes from 0 to 100% (Range: 0.1 - 3)",
+		name   = "Boss Preparation Time Multiplier (Range: 0.1 - 3)",
+		desc   = "How quickly Boss Anger goes from 0 to 100%.",
 		type   = "number",
 		def    = 1,
 		min    = 0.1,
@@ -242,8 +249,8 @@ local options={
 	},
 	{
 		key    = "scav_spawncountmult",
-		name   = "Unit Spawn Per Wave Multiplier",
-		desc   = "How many times more scavs will spawn per wave. (Range: 1 - 5)",
+		name   = "Unit Spawn Per Wave Multiplier (Range: 1 - 5)",
+		desc   = "How many times more scavs will spawn per wave.",
 		type   = "number",
 		def    = 1,
 		min    = 1,
@@ -253,8 +260,8 @@ local options={
 	},
 	{
 		key    = "scav_spawntimemult",
-		name   = "Time Between Waves Multiplier",
-		desc   = "How often new waves will spawn. (Range: 0.1 - 3)",
+		name   = "Time Between Waves Multiplier (Range: 0.1 - 3)",
+		desc   = "How often new waves will spawn.",
 		type   = "number",
 		def    = 1,
 		min    = 0.1,
@@ -264,8 +271,8 @@ local options={
 	},
 	{
 		key    = "scav_graceperiodmult",
-		name   = "Grace Period Time Multiplier",
-		desc   = "Time before Scavs become active. (Range: 0.1 - 3)",
+		name   = "Grace Period Time Multiplier (Range: 0.1 - 3)",
+		desc   = "Time before Scavs become active.",
 		type   = "number",
 		def    = 1,
 		min    = 0.1,
@@ -325,8 +332,8 @@ local options={
 	},
 	{
 		key    = "raptor_queentimemult",
-		name   = "Queen Hatching Time Multiplier",
-		desc   = "How quickly Queen Hatch goes from 0 to 100% (Range: 0.1 - 3)",
+		name   = "Queen Hatching Time Multiplier (Range: 0.1 - 3)",
+		desc   = "How quickly Queen Hatch goes from 0 to 100%",
 		type   = "number",
 		def    = 1,
 		min    = 0.1,
@@ -336,8 +343,8 @@ local options={
 	},
 	{
 		key    = "raptor_spawncountmult",
-		name   = "Unit Spawn Per Wave Multiplier",
-		desc   = "How many times more raptors will spawn per wave. (Range: 1 - 5)",
+		name   = "Unit Spawn Per Wave Multiplier (Range: 1 - 5)",
+		desc   = "How many times more raptors will spawn per wave.",
 		type   = "number",
 		def    = 1,
 		min    = 1,
@@ -347,8 +354,8 @@ local options={
 	},
 	{
 		key    = "raptor_spawntimemult",
-		name   = "Time Between Waves Multiplier",
-		desc   = "How often new waves will spawn. (Range: 0.1 - 3)",
+		name   = "Time Between Waves Multiplier (Range: 0.1 - 3)",
+		desc   = "How often new waves will spawn.",
 		type   = "number",
 		def    = 1,
 		min    = 0.1,
@@ -358,8 +365,8 @@ local options={
 	},
 	{
 		key    = "raptor_graceperiodmult",
-		name   = "Grace Period Time Multiplier",
-		desc   = "Time before Raptors become active. (Range: 0.1 - 3)",
+		name   = "Grace Period Time Multiplier (Range: 0.1 - 3)",
+		desc   = "Time before Raptors become active. ",
 		type   = "number",
 		def    = 1,
 		min    = 0.1,
@@ -381,29 +388,6 @@ local options={
 		type	= "section",
 	},
 
-	{
-		key    = "startmetal",
-		name   = "Starting metal",
-		desc   = "Determines amount of metal and metal storage that each player will start with",
-		type   = "number",
-		section= "options",
-		def    = 1000,
-		min    = 0,
-		max    = 10000,
-		step   = 1,
-	},
-
-	{
-		key    = "startenergy",
-		name   = "Starting energy",
-		desc   = "Determines amount of energy and energy storage that each player will start with",
-		type   = "number",
-		section= "options",
-		def    = 1000,
-		min    = 0,
-		max    = 10000,
-		step   = 1,
-	},
 	{
 		key="map_tidal",
 		name="Tidal Strength",
@@ -432,40 +416,7 @@ local options={
 		max    = 2,
 		step   = 0.2,
 	},
-	{
-		key="deathmode",
-		name="Game End Mode",
-		desc="What it takes to eliminate a team",
-		type="list",
-		def="com",
-		section="options",
-		items={
-			{key="neverend", 	name="Never ending", desc="Teams are never eliminated"},
-			{key="com", 		name="Kill all enemy Commanders", desc="When a team has no Commanders left, it loses"},
-			{key="builders", 	name="Kill all Builders"},
-			{key="killall", 	name="Kill everything", desc="Every last unit must be eliminated, no exceptions!"},
-			{key="own_com", 	name="Player resign on Com death", desc="When player commander dies, you auto-resign."},
-		}
-	},
-	{
-		key="map_waterlevel",
-		name="Water Level",
-		desc=" <0 = Decrease water level, >0 = Increase water level",
-		type="number",
-		def    = 0,
-		min    = -10000,
-		max    = 10000,
-		step   = 1,
-		section="options",
-	},
-	{
-		key    = "map_waterislava",
-		name   = "Water Is Lava",
-		desc   = "Turns water into Lava",
-		type   = "bool",
-		def    = false,
-		section= "options",
-	},
+
 	{
 		key    = "map_atmosphere",
 		name   = "Map Atmosphere and Ambient Sounds",
@@ -485,21 +436,6 @@ local options={
 		section= "options",
 	},
 
-	{
-		key    = 'teamcolors_anonymous_mode',
-		name   = 'Anonymous Mode',
-		desc   = 'Anonimizes players in the match so you have harder time telling who is who.',
-		type   = 'list',
-		section = 'options',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="Anonymous Mode disabled."},
-			{key="allred", name="Force SimpleColors", desc="All players have simple colors enabled, enemies cannot be recognized from each other."},
-			{key="global", name="Shuffle Globally", desc="Player colors order is shuffled globally, everyone see the same colors"},
-			{key="local", name="Shuffle Locally", desc="Player colors order is shuffled locally, everyone see different colors"},
-			--{key="disco", name="Shuffle Locally - DiscoMode", desc="Player colors order is shuffled locally, everyone see different colors that change every once a while randomly"},
-		}
-	},
 
 	{
 		key    = 'coop',
@@ -511,21 +447,607 @@ local options={
 		section= 'options',
 	},
 
+
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Resources
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 	{
-		key    = 'disablemapdamage',
-		name   = 'Undeformable map',
-		desc   = 'Prevents the map shape from being changed by weapons',
+		key		= "options_resources",
+		name	= "Resources",
+		desc	= "Resource options",
+		type	= "section",
+	},
+
+	{
+		key    = "startmetal",
+		name   = "Starting metal (Range 0 - 10000)",
+		desc   = "Determines amount of metal and metal storage that each player will start with",
+		type   = "number",
+		section= "options_resources",
+		def    = 1000,
+		min    = 0,
+		max    = 10000,
+		step   = 1,
+	},
+
+	{
+		key    = "startenergy",
+		name   = "Starting energy (Range 0 - 10000)",
+		desc   = "Determines amount of energy and energy storage that each player will start with",
+		type   = "number",
+		section= "options_resources",
+		def    = 1000,
+		min    = 0,
+		max    = 10000,
+		step   = 1,
+	},
+
+	{
+		key    = 'multiplier_resourceincome',
+		name   = 'Overall Resource Income Multiplier - Stacks up with the three options below. (Range 0.5 - 5)',
+		desc   = 'Overall Resource Income Multiplier',
+		type   =  "number",
+		section = 'options_resources',
+		def    = 1,
+		min    = 0.5,
+		max    = 5,
+		step   = 0.1,
+		hidden = true,
+	},
+
+	{
+		key    = 'multiplier_metalextraction',
+		name   = 'Metal Extraction Multiplier (Range 0.5 - 5)',
+		desc   = 'Metal Extraction Multiplier',
+		type   =  "number",
+		section = 'options_resources',
+		def    = 1,
+		min    = 0.5,
+		max    = 5,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_energyconversion',
+		name   = 'Energy Conversion Multiplier (Range 0.5 - 5)',
+		desc   = 'Energy Conversion Multiplier',
+		type   =  "number",
+		section = 'options_resources',
+		def    = 1,
+		min    = 0.5,
+		max    = 5,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_energyproduction',
+		name   = 'Energy Production Multiplier (Range 0.5 - 5)',
+		desc   = 'Energy Production Multiplier',
+		type   =  "number",
+		section = 'options_resources',
+		def    = 1,
+		min    = 0.5,
+		max    = 5,
+		step   = 0.1,
+	},
+
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Multiplier Options
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	{
+		key		= "options_unit_modifiers",
+		name	= "Unit Modifiers",
+		desc	= "Multipliers options",
+		type	= "section",
+	},
+
+
+	{
+		key    = 'multiplier_maxdamage',
+		name   = 'Health Multiplier (Range 0.1 - 5)',
+		desc   = 'Health Multiplier',
+		type   ="number",
+		section = 'options_unit_modifiers',
+		def    = 1,
+		min    = 0.1,
+		max    = 5,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_maxvelocity',
+		name   = 'Unit Max Velocity Multiplier (Range 0.5 - 5)',
+		desc   = 'Unit Max Velocity Multiplier',
+		type   ="number",
+		section = 'options_unit_modifiers',
+		def    = 1,
+		min    = 0.5,
+		max    = 5,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_turnrate',
+		name   = 'Unit Turn Rate Multiplier (Range 0.5 - 5)',
+		desc   = 'Unit Turn Rate Multiplier',
+		type   ="number",
+		section = 'options_unit_modifiers',
+		def    = 1,
+		min    = 0.5,
+		max    = 5,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_builddistance',
+		name   = 'Build Range Multiplier (Range 1 - 3)',
+		desc   = 'Build Range Multiplier',
+		type   ="number",
+		section = 'options_unit_modifiers',
+		def    = 1,
+		min    = 1,
+		max    = 3,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_buildpower',
+		name   = 'Build Power Multiplier (Range 0.5 - 3)',
+		desc   = 'Build Power Multiplier',
+		type   ="number",
+		section = 'options_unit_modifiers',
+		def    = 1,
+		min    = 0.5,
+		max    = 3,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_metalcost',
+		name   = 'Unit Cost Multiplier - Metal',
+		desc   = 'Unit Cost Multiplier - Metal',
+		type   ="number",
+		section = 'options_unit_modifiers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+		hidden = true,
+	},
+
+	{
+		key    = 'multiplier_energycost',
+		name   = 'Unit Cost Multiplier - Energy',
+		desc   = 'Unit Cost Multiplier - Energy',
+		type   ="number",
+		section = 'options_unit_modifiers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+		hidden = true,
+	},
+
+	{
+		key    = 'multiplier_buildtimecost',
+		name   = 'Unit Cost Multiplier - Time',
+		desc   = 'Unit Cost Multiplier - Time',
+		type   ="number",
+		section = 'options_unit_modifiers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+		hidden = true,
+	},
+
+	{
+		key    = 'multiplier_losrange',
+		name   = 'Vision Range Multiplier (Range 0.5 - 3)',
+		desc   = 'Vision Range Multiplier',
+		type   ="number",
+		section = 'options_unit_modifiers',
+		def    = 1,
+		min    = 0.5,
+		max    = 3,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_radarrange',
+		name   = 'Radar and Sonar Range Multiplier (Range 0.5 - 3)',
+		desc   = 'Radar and Sonar Range Multiplier',
+		type   ="number",
+		section = 'options_unit_modifiers',
+		def    = 1,
+		min    = 0.5,
+		max    = 3,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_weaponrange',
+		name   = 'Weapon Range Multiplier (Range 0.5 - 3)',
+		desc   = 'Weapon Range Multiplier',
+		type   ="number",
+		section = 'options_unit_modifiers',
+		def    = 1,
+		min    = 0.5,
+		max    = 3,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_weapondamage',
+		name   = 'Weapon Damage Multiplier',
+		desc   = 'Weapon Damage Multiplier (Also affects unit death explosions)',
+		type   ="number",
+		section = 'options_unit_modifiers',
+		hidden = true,
+		def    = 1,
+		min    = 0.5,
+		max    = 5,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_shieldpower',
+		name   = 'Shield Power Multiplier (Range 0.5 - 5)',
+		desc   = 'Shield Power Multiplier',
+		type   ="number",
+		section = 'options_unit_modifiers',
+		def    = 1,
+		min    = 0.5,
+		max    = 5,
+		step   = 0.1,
+	},
+
+	{
+		key		= "experimentalreversegear",
+		name	= "Reverse gear - Allows units to move backwards over short distances",
+		desc	= "Allows units to move backwards over short distances",
+		type	= "bool",
+		def		= false,
+		section	= "options_unit_modifiers",
+	},
+
+	{
+		key     = "tweakunits",
+		name    = "Tweak Units for advanced users!   ",
+		desc    = "A base64 encoded lua table of unit parameters to change.",
+		section = 'options_unit_modifiers',
+		type    = "string",
+		def     = "",
+	},
+
+	{
+		key     = "tweakdefs",
+		name    = "Tweak Defs for advanced users!   ",
+		desc    = "A base64 encoded snippet of code that modifies game definitions.",
+		section = 'options_unit_modifiers',
+		type    = "string",
+		def     = "",
+	},
+
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Experimental Options
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	{
+		key		= "options_experimental",
+		name	= "Experimental",
+		desc	= "Experimental options",
+		type	= "section",
+	},
+
+	{
+		key    = 'experimentalnoaircollisions',
+		name   = 'Aircraft Collisions Override',
+		desc   = 'Aircraft Collisions Override',
+		hidden = true,
 		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
+	{
+		key    = 'experimentalshields',
+		name   = 'Shield Override',
+		desc   = 'Shield Override',
+		type   = 'list',
+		section = 'options_experimental',
+		def  = "unchanged",
+		items={
+			{key="unchanged", name="Unchanged", desc="Unchanged"},
+			{key="absorbplasma", name="Absorb Plasma", desc="Collisions Disabled"},
+			{key="absorbeverything", name="Absorb Everything", desc="Collisions Enabled"},
+			{key="bounceeverything", name="Deflect Everything", desc="Collisions Enabled"},
+		}
+	},
+
+	{
+		key    = 'experimentalxpgain',
+		name   = 'XP Gain Multiplier',
+		desc   = 'XP Gain Multiplier',
+		hidden = true,
+		type   ="number",
+		section = 'options_experimental',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'experimentalstandardgravity',
+		name   = 'Gravity Override',
+		desc   = 'Override map gravity for weapons',
+		type   = 'list',
+		section = 'options_experimental',
+		def  = "mapgravity",
+		items={
+			{key="mapgravity", name="Map Gravity", desc="Uses map defined gravity"},
+			{key="low", name="Low Gravity", desc="80 gravity"},
+			{key="standard", name="Standard Gravity", desc="120 gravity"},
+			{key="high", name="High Gravity", desc="150 gravity"},
+		}
+	},
+
+	{
+		key    = 'expandedcortexvehiclest2',
+		name   = 'Additional Cortex T2 Vehicles',
+		desc   = 'Adds Forge, a combat engineer like the butler with a flamethrower. Adds Printer, an armored field engineer. Adds Heat Tiger, Tiger with a heat laser',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
+	{
+		key    = 'experimentallegionfaction',
+		name   = 'Legion Faction',
+		desc   = '3rd experimental faction',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
+	{
+		key = 'comtestchanges',
+		name = 'Commander Test Changes',
+		desc = 'Comupdate, but with health 4000->3700, regen 0->5, and T1 turrets deal 1.5x damage to commanders',
+		type = 'bool',
+		section = 'options_experimental',
+		def = true,
+		hidden = true,
+	},
+
+	{
+		key = 'expandedt2sea',
+		name = 'Expanded T2 Sea',
+		desc = 'T2 sea is expanded to include a lightning ship for arm and a flamethrower ship for cor, and both factions get a drone carrier ship and an anti-nuke support ship to replace the aircraft carrier.  Cruisers rebalanced to be slower and lower range but higher health and dps for a more defensive role',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
+	},
+
+	{
+		key    = 'experimentalmorphs',
+		name   = 'Upgradeable Units',
+		desc   = 'Upgradeable Units',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+		hidden = true,
+	},
+
+	{
+		key    = 'experimentalimprovedtransports',
+		name   = 'Transport Units Rework',
+		desc   = 'Transport Units Rework',
+		hidden = true,
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
+	{
+		key    = 'experimentalmassoverride',
+		name   = 'Mass Override',
+		desc   = 'Mass Override',
+		hidden = true,
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
+	{
+		key    = 'experimentalrebalancet2labs',
+		name   = 'Rebalance Candidate: Cheaper T2 Factories',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+		hidden = true,
+	},
+
+	{
+		key    = 'experimentalrebalancet2metalextractors',
+		name   = 'Rebalance Candidate: Cheaper T2 Metal Extractors (Metal Extraction x4 -> x2)',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+		hidden = true,
+	},
+
+	{
+		key    = 'experimentalrebalancet2energy',
+		name   = 'Rebalance Candidate: T2 Energy rebalance (Currently only adds T2 wind generator)',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+		hidden = true,
+	},
+
+	{
+		key    = 'experimentalrebalancehovercrafttech',
+		name   = 'Rebalance Candidate: Hovercraft rebalance - Cheaper lab with buildpower 200 -> 100, can Tech2 into Vehicles and Ships',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = true,
+		hidden = true,
+	},
+
+	{
+		key    = 'experimentalrebalancewreckstandarization',
+		name   = 'Rebalance Candidate: Standarized wreck metal values. *0.6 of metal cost for wreck, *0.25 for heap.',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = true,
+		hidden = true,
+	},
+
+	{
+		key		= "unified_maxslope",
+		name	= "Standardized land unit maxslope",
+		desc	= "All land units have minimum maxslope of 36",
+		type	= "bool",
+		def		= false,
+		section	= "options_experimental",
+	},
+
+	{
+		key    		= 'norush',
+		name   		= "No Rush mode - Unfinished - Missing visual indicators, Requires Startboxes (doesn't work in FFA or 1v1 preset)",
+		desc   		= 'No Rush mode',
+		type   		= "bool",
+		section		= 'options_experimental',
+		def    		= false,
+	},
+
+	{
+		key    		= 'norushtimer',
+		name   		= "No Rush Time (in minutes)",
+		desc   		= 'No Rush Time (in minutes)',
+		type   		= "number",
+		section		= 'options_experimental',
+		def    		= 5,
+		min    		= 5,
+		max    		= 30,
+		step   		= 1,
+	},
+
+	{
+		key    = 'teamcolors_icon_dev_mode',
+		name   = "Icon Dev Mode (Don't use in normal games)",
+		desc   = 'Forces teamcolors to be an specific one, for all teams',
+		type   = 'list',
+		section = 'options_experimental',
+		def  = "disabled",
+		items={
+			{key="disabled", name="Disabled", desc="description"},
+			{key="armblue", name="Armada Blue", desc="description"},
+			{key="corred", name="Cortex Red", desc="description"},
+			{key="scavpurp", name="Scavenger Purple", desc="description"},
+			{key="raptororange", name="Raptor Orange", desc="description"},
+			{key="gaiagray", name="Gaia Gray", desc="description"},
+		}
+	},
+
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Extra Options
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	{
+		key		= "options_extra",
+		name	= "Extras",
+		desc	= "Extra options",
+		type	= "section",
+	},
+
+	{
+		key="map_waterlevel",
+		name="Water Level (Doesn't work if Map Deformation is disabled!)",
+		desc=" <0 = Decrease water level, >0 = Increase water level",
+		type="number",
+		def    = 0,
+		min    = -10000,
+		max    = 10000,
+		step   = 1,
+		section="options_extra",
+	},
+
+	{
+		key    = "map_waterislava",
+		name   = "Water Is Lava",
+		desc   = "Turns water into Lava",
+		type   = "bool",
 		def    = false,
-		section= "options",
+		section= "options_extra",
+	},
+
+	{
+		key    = 'experimentalextraunits',
+		name   = 'Extra Units Pack',
+		desc   = 'Formerly known as Scavenger units. Addon pack of units for Armada and Cortex, including various "fun" units',
+		type   = 'bool',
+		section = 'options_extra',
+		def  = false,
+	},
+
+	{
+		key		= "unba",
+		name	= "UnbaCom - Commanders gaining upgrades with experience",
+		desc	= "Commander levels up with XP, gaining better weapons, more health and higher tech buildlist.",
+		type	= "bool",
+		def		= false,
+		section	= "options_extra",
+	},
+
+	{
+		key		= "unbatech",
+		name	= "UnbaTech - Reworked Tech Progression (Requires UnbaCom)",
+		desc	= "Constructors cannot build Tech2 factories. In order to reach Tech2 you have to level up your commander.",
+		type	= "bool",
+		def		= false,
+		section	= "options_extra",
+		hidden = true,
+	},
+
+	{
+		key    = 'teamcolors_anonymous_mode',
+		name   = 'Anonymous Mode',
+		desc   = 'Anonimizes players in the match so you have harder time telling who is who.',
+		type   = 'list',
+		section = 'options_extra',
+		def  = "disabled",
+		items={
+			{key="disabled", name="Disabled", desc="Anonymous Mode disabled."},
+			{key="allred", name="Force SimpleColors", desc="All players have simple colors enabled, enemies cannot be recognized from each other."},
+			{key="global", name="Shuffle Globally", desc="Player colors order is shuffled globally, everyone see the same colors"},
+			{key="local", name="Shuffle Locally", desc="Player colors order is shuffled locally, everyone see different colors"},
+			--{key="disco", name="Shuffle Locally - DiscoMode", desc="Player colors order is shuffled locally, everyone see different colors that change every once a while randomly"},
+		}
 	},
 
 	{
 		key="ruins",
-		name="Ruins",
+		name="Ruins - Remains of the battles once fought",
 		type="list",
 		def="scav_only",
-		section="options",
+		section="options_extra",
 		items={
 			{key="enabled", name="Enabled"},
 			{key="scav_only", name="Enabled for Scavengers only"},
@@ -538,7 +1060,8 @@ local options={
 		name="Ruins: Density",
 		type="list",
 		def="normal",
-		section="options",
+		section="options_extra",
+		hidden = true,
 		items={
 			{key="normal", name="Normal"},
 			{key="rarer", name="Rare"},
@@ -550,8 +1073,9 @@ local options={
 		key    = 'ruins_only_t1',
 		name   = 'Ruins: Only T1',
 		type   = 'bool',
-		def    = false,
-		section= "options",
+		def    = true,
+		hidden = true,
+		section= "options_extra",
 	},
 
 	{
@@ -565,10 +1089,10 @@ local options={
 
 	{
 		key="lootboxes",
-		name="Lootboxes",
+		name="Lootboxes - Random drops of valuable stuff.",
 		type="list",
 		def="scav_only",
-		section="options",
+		section="options_extra",
 		items={
 			{key="enabled", name="Enabled"},
 			{key="scav_only", name="Enabled for Scavengers only"},
@@ -581,7 +1105,8 @@ local options={
 		name="Lootboxes: Density",
 		type="list",
 		def="normal",
-		section="options",
+		section="options_extra",
+		hidden = true,
 		items={
 			{key="normal", name="Normal"},
 			{key="rarer", name="Rare"},
@@ -591,10 +1116,10 @@ local options={
 
 	{
 		key="assistdronesenabled",
-		name="Assist Drones",
+		name="Starter Construction Drones",
 		type="list",
 		def="pve_only",
-		section="options",
+		section="options_extra",
 		items={
 			{key="enabled", name="Enabled"},
 			{key="pve_only", name="Enabled for PvE only"},
@@ -607,8 +1132,9 @@ local options={
 		name   = 'Assist Drones: Count',
 		desc   = 'How many assist drones per commander should be spawned',
 		type   = 'number',
-		section= 'options',
-		def    = 3,
+		section= 'options_extra',
+		hidden = true,
+		def    = 4,
 		min    = 1,
 		max    = 30,
 		step   = 1,
@@ -620,15 +1146,15 @@ local options={
 		type   = 'bool',
 		def    = true,
 		hidden = true,
-		section= "options",
+		section= "options_extra",
 	},
 
 	{
 		key="commanderbuildersenabled",
-		name="Base Construction Turret",
+		name="Starter Construction Turret",
 		type="list",
 		def="pve_only",
-		section="options",
+		section="options_extra",
 		items={
 			{key="enabled", name="Enabled"},
 			{key="pve_only", name="Enabled for PvE only"},
@@ -640,10 +1166,11 @@ local options={
 		key    = 'commanderbuildersrange',
 		name   = 'Base Construction Turret: Range',
 		type   = 'number',
-		section= 'options',
+		section= 'options_extra',
+		hidden = true,
 		def    = 1000,
-		min    = 100,
-		max    = 5000,
+		min    = 500,
+		max    = 2000,
 		step   = 1,
 	},
 
@@ -651,19 +1178,106 @@ local options={
 		key    = 'commanderbuildersbuildpower',
 		name   = 'Base Construction Turret: Buildpower',
 		type   = 'number',
-		section= 'options',
+		section= 'options_extra',
+		hidden = true,
 		def    = 400,
 		min    = 100,
-		max    = 4000,
+		max    = 1000,
 		step   = 1,
 	},
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	-- Control Victory Options
+	-- Unused Options
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+	{
+		key		= "modes",
+		name	= "GameModes",
+		desc	= "Game Modes",
+		hidden = true,
+		type	= "section",
+	},
+
+
+	{
+		key    = "shareddynamicalliancevictory",
+		name   = "Dynamic Ally Victory",
+		desc   = "Ingame alliance should count for game over condition.",
+		hidden = true,
+		type   = "bool",
+		section= 'options',
+		def    = false,
+	},
+
+	{
+		key    = 'ai_incomemultiplier',
+		name   = 'AI Income Multiplier',
+		desc   = 'Multiplies AI resource income',
+		hidden = true,
+		type   = 'number',
+		section= 'options',
+		def    = 1,
+		min    = 1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key     = "debugcommands",
+		name    = "Debug Commands",
+		desc    = "A pipe separated list of commands to execute at [gameframe]:luarules fightertest|100:forcequit...", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+		section = 'options_experimental',
+		type    = "string",
+		def     = "",
+	},
+
+	{
+		key     = "defaultdecals",
+		name    = "Default Decals",
+		desc    = "Use the default explosion decals instead of Decals GL4", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+		section = 'options_experimental',
+		type    = "bool",
+		def     =  true,
+		hidden = true,
+	},
+
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Control Victory Options -- Unused gamemode
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -913,552 +1527,6 @@ local options={
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	-- Multiplier Options
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-	{
-		key		= "options_multipliers",
-		name	= "Multipliers",
-		desc	= "Multipliers options",
-		type	= "section",
-	},
-
-	{
-		key    = 'multiplier_maxdamage',
-		name   = 'Health Multiplier',
-		desc   = 'Health Multiplier',
-		type   ="number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'multiplier_maxvelocity',
-		name   = 'Unit MaxSpeed Multiplier',
-		desc   = 'Unit MaxSpeed Multiplier',
-		type   ="number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'multiplier_turnrate',
-		name   = 'Unit TurnSpeed Multiplier',
-		desc   = 'Unit TurnSpeed Multiplier',
-		type   ="number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'multiplier_builddistance',
-		name   = 'Build Range Multiplier',
-		desc   = 'Build Range Multiplier',
-		type   ="number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'multiplier_buildpower',
-		name   = 'Build Power Multiplier',
-		desc   = 'Build Power Multiplier',
-		type   ="number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'resourceincomemultiplier',
-		name   = 'Resource Income Multiplier',
-		desc   = 'Resource Income Multiplier',
-		type   =  "number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-		hidden = true,
-	},
-
-	{
-		key    = 'multiplier_resourceincome',
-		name   = 'Overall Resource Income Multiplier',
-		desc   = 'Overall Resource Income Multiplier',
-		type   =  "number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'multiplier_metalextraction',
-		name   = 'Metal Extraction Multiplier',
-		desc   = 'Metal Extraction Multiplier',
-		type   =  "number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'multiplier_energyconversion',
-		name   = 'Energy Conversion Multiplier',
-		desc   = 'Energy Conversion Multiplier',
-		type   =  "number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'multiplier_energyproduction',
-		name   = 'Energy Production Multiplier',
-		desc   = 'Energy Production Multiplier',
-		type   =  "number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'multiplier_metalcost',
-		name   = 'Unit Cost Multiplier - Metal',
-		desc   = 'Unit Cost Multiplier - Metal',
-		type   ="number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'multiplier_energycost',
-		name   = 'Unit Cost Multiplier - Energy',
-		desc   = 'Unit Cost Multiplier - Energy',
-		type   ="number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'multiplier_buildtimecost',
-		name   = 'Unit Cost Multiplier - Time',
-		desc   = 'Unit Cost Multiplier - Time',
-		type   ="number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'multiplier_losrange',
-		name   = 'Vision Range Multiplier',
-		desc   = 'Vision Range Multiplier',
-		type   ="number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'multiplier_radarrange',
-		name   = 'Radar and Sonar Range Multiplier',
-		desc   = 'Radar and Sonar Range Multiplier',
-		type   ="number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'multiplier_weaponrange',
-		name   = 'Weapon Range Multiplier',
-		desc   = 'Weapon Range Multiplier',
-		type   ="number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'multiplier_weapondamage',
-		name   = 'Weapon Damage Multiplier',
-		desc   = 'Weapon Damage Multiplier (Also affects unit death explosions)',
-		type   ="number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'experimentalshieldpower',
-		name   = 'Shield Power Multiplier',
-		desc   = 'Shield Power Multiplier',
-		type   ="number",
-		section = 'options_multipliers',
-		def    = 1,
-		min    = 0.01,
-		max    = 100,
-		step   = 0.01,
-	},
-
-
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	-- Experimental Options
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	{
-		key		= "options_experimental",
-		name	= "Experimental",
-		desc	= "Experimental options",
-		type	= "section",
-	},
-
-	{
-		key    = 'experimentalnoaircollisions',
-		name   = 'Aircraft Collisions Override',
-		desc   = 'Aircraft Collisions Override',
-		hidden = true,
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-	},
-
-	{
-		key    = 'experimentalshields',
-		name   = 'Shield Override',
-		desc   = 'Shield Override',
-		type   = 'list',
-		section = 'options_experimental',
-		def  = "unchanged",
-		items={
-			{key="unchanged", name="Unchanged", desc="Unchanged"},
-			{key="absorbplasma", name="Absorb Plasma", desc="Collisions Disabled"},
-			{key="absorbeverything", name="Absorb Everything", desc="Collisions Enabled"},
-			{key="bounceeverything", name="Deflect Everything", desc="Collisions Enabled"},
-		}
-	},
-
-	{
-		key    = 'experimentalxpgain',
-		name   = 'XP Gain Multiplier',
-		desc   = 'XP Gain Multiplier',
-		hidden = true,
-		type   ="number",
-		section = 'options_experimental',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'experimentalstandardgravity',
-		name   = 'Standard Gravity',
-		desc   = 'Override map gravity for weapons',
-		type   = 'list',
-		section = 'options_experimental',
-		def  = "mapgravity",
-		items={
-			{key="mapgravity", name="Map Gravity", desc="Uses map defined gravity"},
-			{key="low", name="Low Gravity", desc="80 gravity"},
-			{key="standard", name="Standard Gravity", desc="120 gravity"},
-			{key="high", name="High Gravity", desc="150 gravity"},
-		}
-	},
-
-	{
-		key    = 'experimentalextraunits',
-		name   = 'Extra Unit Pack',
-		desc   = 'Formerly known as Scavenger units. Addon pack of units for Armada and Cortex, including various "fun" units',
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-	},
-
-	{
-		key    = 'expandedcortexvehiclest2',
-		name   = 'Additional Cortex T2 Vehicles',
-		desc   = 'Adds Forge, a combat engineer like the butler with a flamethrower. Adds Printer, an armored field engineer. Adds Heat Tiger, Tiger with a heat laser',
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-	},
-
-	{
-		key    = 'experimentallegionfaction',
-		name   = 'Legion Faction',
-		desc   = '3rd experimental faction',
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-	},
-
-	{
-		key = 'comtestchanges',
-		name = 'Commander Test Changes',
-		desc = 'Comupdate, but with health 4000->3700, regen 0->5, and T1 turrets deal 1.5x damage to commanders',
-		type = 'bool',
-		section = 'options_experimental',
-		def = true,
-	},
-
-	{
-		key = 'expandedt2sea',
-		name = 'Expanded T2 Sea',
-		desc = 'T2 sea is expanded to include a lightning ship for arm and a flamethrower ship for cor, and both factions get a drone carrier ship and an anti-nuke support ship to replace the aircraft carrier.  Cruisers rebalanced to be slower and lower range but higher health and dps for a more defensive role',
-		type = 'bool',
-		section = 'options_experimental',
-		def = false,
-	},
-
-	{
-		key    = 'experimentalmorphs',
-		name   = 'Upgradeable Units',
-		desc   = 'Upgradeable Units',
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-		hidden = true,
-	},
-
-	{
-		key    = 'experimentalimprovedtransports',
-		name   = 'Transport Units Rework',
-		desc   = 'Transport Units Rework',
-		hidden = true,
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-	},
-
-	{
-		key    = 'experimentalmassoverride',
-		name   = 'Mass Override',
-		desc   = 'Mass Override',
-		hidden = true,
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-	},
-
-	{
-		key    = 'experimentalrebalancet2labs',
-		name   = 'Rebalance Candidate: Cheaper T2 Factories',
-		desc   = '',
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-		hidden = true,
-	},
-
-	{
-		key    = 'experimentalrebalancet2metalextractors',
-		name   = 'Rebalance Candidate: Cheaper T2 Metal Extractors (Metal Extraction x4 -> x2)',
-		desc   = '',
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-		hidden = true,
-	},
-
-	{
-		key    = 'experimentalrebalancet2energy',
-		name   = 'Rebalance Candidate: T2 Energy rebalance (Currently only adds T2 wind generator)',
-		desc   = '',
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-		hidden = true,
-	},
-
-	{
-		key    = 'experimentalrebalancehovercrafttech',
-		name   = 'Rebalance Candidate: Hovercraft rebalance - Cheaper lab with buildpower 200 -> 100, can Tech2 into Vehicles and Ships',
-		desc   = '',
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = true,
-		hidden = true,
-	},
-
-	{
-		key    = 'experimentalrebalancewreckstandarization',
-		name   = 'Rebalance Candidate: Standarized wreck metal values. *0.6 of metal cost for wreck, *0.25 for heap.',
-		desc   = '',
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = true,
-		hidden = true,
-	},
-
-	{
-		key		= "experimentalreversegear",
-		name	= "Reverse gear - Allows units to move backwards over short distances",
-		desc	= "Allows units to move backwards over short distances",
-		type	= "bool",
-		def		= false,
-		section	= "options_experimental",
-	},
-
-	{
-		key		= "unba",
-		name	= "UnbaCom - Reworked Commanders",
-		desc	= "Commander levels up with XP, gaining better weapons, more health and higher tech buildlist.",
-		type	= "bool",
-		def		= false,
-		section	= "options_experimental",
-	},
-
-	{
-		key		= "unbatech",
-		name	= "UnbaTech - Reworked Tech Progression (Requires UnbaCom)",
-		desc	= "Constructors cannot build Tech2 factories. In order to reach Tech2 you have to level up your commander.",
-		type	= "bool",
-		def		= false,
-		section	= "options_experimental",
-		hidden = true,
-	},
-
-	{
-		key    = 'teamcolors_icon_dev_mode',
-		name   = "Icon Dev Mode (Don't use in normal games)",
-		desc   = 'Forces teamcolors to be an specific one, for all teams',
-		type   = 'list',
-		section = 'options_experimental',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="description"},
-			{key="armblue", name="Armada Blue", desc="description"},
-			{key="corred", name="Cortex Red", desc="description"},
-			{key="scavpurp", name="Scavenger Purple", desc="description"},
-			{key="raptororange", name="Raptor Orange", desc="description"},
-			{key="gaiagray", name="Gaia Gray", desc="description"},
-		}
-	},
-
-	{
-		key		= "unified_maxslope",
-		name	= "Standardized land unit maxslope",
-		desc	= "All land units have minimum maxslope of 36",
-		type	= "bool",
-		def		= false,
-		section	= "options_experimental",
-	},
-
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	-- Unused Options
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-	{
-		key		= "modes",
-		name	= "GameModes",
-		desc	= "Game Modes",
-		hidden = true,
-		type	= "section",
-	},
-
-
-	{
-		key    = "shareddynamicalliancevictory",
-		name   = "Dynamic Ally Victory",
-		desc   = "Ingame alliance should count for game over condition.",
-		hidden = true,
-		type   = "bool",
-		section= 'options',
-		def    = false,
-	},
-
-	{
-		key    = 'ai_incomemultiplier',
-		name   = 'AI Income Multiplier',
-		desc   = 'Multiplies AI resource income',
-		hidden = true,
-		type   = 'number',
-		section= 'options',
-		def    = 1,
-		min    = 1,
-		max    = 10,
-		step   = 0.1,
-	},
-	{
-		key     = "tweakunits",
-		name    = "Tweak Units",
-		desc    = "A base64 encoded lua table of unit parameters to change.",
-		section = 'options_experimental',
-		type    = "string",
-		def     = "",
-	},
-	{
-		key     = "tweakdefs",
-		name    = "Tweak Defs",
-		desc    = "A base64 encoded snippet of code that modifies game definitions.",
-		section = 'options_experimental',
-		type    = "string",
-		def     = "",
-	},
-	{
-		key     = "debugcommands",
-		name    = "Debug Commands",
-		desc    = "A pipe separated list of commands to execute at [gameframe]:luarules fightertest|100:forcequit...", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
-		section = 'options_experimental',
-		type    = "string",
-		def     = "",
-	},
-
-	{
-		key     = "defaultdecals",
-		name    = "Default Decals",
-		desc    = "Use the default explosion decals instead of Decals GL4", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
-		section = 'options_experimental',
-		type    = "bool",
-		def     =  true,
-	},
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- End Options
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1470,7 +1538,7 @@ for i = 1, 9 do
 		key     = "tweakunits" .. i,
 		name    = "Tweak Units " .. i,
 		desc    = "A base64 encoded lua table of unit parameters to change.",
-		section = 'options_experimental',
+		section = 'options_extra',
 		type    = "string",
 		def     = "",
 		hidden = true,
@@ -1482,7 +1550,7 @@ for i = 1, 9 do
 		key     = "tweakdefs" .. i,
 		name    = "Tweak Defs " .. i,
 		desc    = "A base64 encoded snippet of code that modifies game definitions.",
-		section = 'options_experimental',
+		section = 'options_extra',
 		type    = "string",
 		def     = "",
 		hidden = true,
