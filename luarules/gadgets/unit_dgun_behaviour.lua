@@ -13,21 +13,31 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local dgunWeapons = {}
-
-for weaponDefID, weaponDef in ipairs(WeaponDefs) do
-	if weaponDef.type == 'DGun' then
-		Script.SetWatchProjectile(weaponDefID, true)
-		dgunWeapons[weaponDefID] = weaponDef
-	end
-end
-
 local isCommander = {}
-
+local isDecoyCommander = {}
+local commanderNames = {}
+Spring.Echo('-=-7=-=-=-')
+Spring.Echo('-=-8=-=-=-')
+Spring.Echo('-=-9=-=-=-')
+Spring.Echo('-=-0=-=-=-')
+Spring.Echo('-=-1=-=-=-')
+Spring.Echo('-=-=-2=-=-')
+Spring.Echo('-=-=-=3-=-')
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
+		commanderNames[unitDef.name] = true
+		if WeaponDefNames[ unitDef.name..'_disintegrator' ] then
+			local weaponDef = WeaponDefNames[ unitDef.name..'_disintegrator' ]
+			Script.SetWatchProjectile(weaponDef.id, true)
+			dgunWeapons[ weaponDef.id ] = weaponDef
+		end
+	end
+	if unitDef.customParams.decoyfor and commanderNames[unitDef.customParams.decoyfor] then
+		isDecoyCommander[unitDefID] = true
 	end
 end
+commanderNames = nil
 
 local flyingDGuns = {}
 local groundedDGuns = {}
@@ -36,7 +46,6 @@ local function addVolumetricDamage(projectileID)
 	local weaponDefID = Spring.GetProjectileDefID(projectileID)
 	local ownerID = Spring.GetProjectileOwnerID(projectileID)
 	local x,y,z = Spring.GetProjectilePosition(projectileID)
-
 	local explosionParame ={
 		weaponDef = weaponDefID,
 		owner = ownerID,
@@ -52,7 +61,6 @@ local function addVolumetricDamage(projectileID)
 		ignoreOwner = dgunWeapons[weaponDefID].noSelfDamage,
 		damageGround = true,
 	}
-
 	Spring.SpawnExplosion(x, y ,z, 0, 0, 0, explosionParame)
 end
 
@@ -100,15 +108,16 @@ function gadget:GameFrame()
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-		if dgunWeapons[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
+	if dgunWeapons[weaponDefID] and isCommander[attackerDefID] and (isCommander[unitDefID] or isDecoyCommander[unitDefID]) then
+		if isDecoyCommander[unitDefID] then
+			return dgunWeapons[weaponDefID].damages[0]
+		else
 			Spring.DeleteProjectile(projectileID)
 			local x, y, z = Spring.GetUnitPosition(unitID)
 			Spring.SpawnCEG("dgun-deflect", x, y, z, 0, 0, 0, 0, 0)
-
 			local armorClass = UnitDefs[unitDefID].armorType
-			local dgunFixedDamage = dgunWeapons[weaponDefID].damages[armorClass]
-			return dgunFixedDamage
+			return dgunWeapons[weaponDefID].damages[armorClass]
 		end
-
+	end
 	return damage
 end
