@@ -840,7 +840,14 @@ void main(void)
 	threadMask = quadGetThreadMask(quadVector);
 	const float expfactor = fogExpFactor * -0.0001;
 	// Calculate the UV coordinates of the depth textures
-	vec2 screenUV = gl_FragCoord.xy * RESOLUTION / viewGeometry.xy;
+  
+  
+  #if (RESOLUTION == 2)
+    // Exploit hardware linear sampling in best case
+    vec2 screenUV = (gl_FragCoord.xy * RESOLUTION + 0.5) / viewGeometry.xy;
+  #else
+    vec2 screenUV = gl_FragCoord.xy * RESOLUTION / viewGeometry.xy;
+  #endif
 
 	// Sample the depth buffers, and choose whichever is closer to the screen (TexelFetch is no better in perf)
 	float mapdepth = texture(mapDepths, screenUV).x; 
@@ -878,23 +885,23 @@ void main(void)
 	// ----------------- END UNIVERSAL PART -------------------------------
 	
 	// ----------------- BEGIN DISTANCE-BASED FOG ------------------------------
-	#line 33400
-	// calculate the distance fog density
-	float distanceFogAmount = fogGlobalDensity * lengthMapFromCam;
-	
-	// Modulate distance fog density with angle of ray compared to sky?
-	vec3 fromCameraNormalized = mapFromCam / lengthMapFromCam;
-	float rayUpness = 1.0;
-	if (fromCameraNormalized.y > 0) {
-		rayUpness = pow(1.0 - fromCameraNormalized.y, 8.0);
-		distanceFogAmount *= rayUpness;
-	}
-	float distanceFogAmountExp = exp(distanceFogAmount * expfactor);
-	// power easing distance fog
-	distanceFogAmountExp = 1.0 - pow(1.0 - distanceFogAmountExp, EASEGLOBAL);
-	vec4 distanceFogColor = vec4(fogGlobalColor.rgb, distanceFogAmountExp);
+		#line 33400
+		// calculate the distance fog density
+		float distanceFogAmount = fogGlobalDensity * lengthMapFromCam;
+		
+		// Modulate distance fog density with angle of ray compared to sky?
+		vec3 fromCameraNormalized = mapFromCam / lengthMapFromCam;
+		float rayUpness = 1.0;
+		if (fromCameraNormalized.y > 0) {
+			rayUpness = pow(1.0 - fromCameraNormalized.y, 8.0);
+			distanceFogAmount *= rayUpness;
+		}
+		float distanceFogAmountExp = exp(distanceFogAmount * expfactor);
+		// power easing distance fog
+		distanceFogAmountExp = pow(1.0 - distanceFogAmountExp, EASEGLOBAL);
+		vec4 distanceFogColor = vec4(fogGlobalColor.rgb, distanceFogAmountExp);
+		//fragColor.rgba = distanceFogColor;	return; // OUTPUT DISTANCE-BASED FOG
 	// ----------------- END DISTANCE-BASED FOG ------------------------------
-	
 	
 	
 	// ----------------- BEGIN HEIGHT-BASED FOG -------------------------------
@@ -973,6 +980,13 @@ void main(void)
 	float heightBasedFogExp = 1.0 - exp(heightBasedFog * expfactor);
 	heightBasedFogColor.rgb = mix(fogShadowedColor.rgb, fogGlobalColor.rgb, heightShadow);
 	heightBasedFogColor.a = heightBasedFogExp;
+	
+	//Debug shadowing of fog:
+	//fragColor.rgba = vec4(vec3(heightShadow),0.9); return;
+	
+	//Debug purely height-based fog
+	//fragColor.rgba = vec4(heightBasedFogColor.rgba);	return;
+
 	// ----------------- END HEIGHT-BASED FOG -------------------------------
 	
 	

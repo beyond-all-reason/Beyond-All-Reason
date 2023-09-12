@@ -14,6 +14,7 @@ function widget:GetInfo()
 end
 
 local GL_RGBA32F_ARB = 0x8814
+local GL_R32F = 0x822E
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- TODO: 2022.11.30
@@ -86,6 +87,7 @@ local shaderConfig = {
 
 local definesSlidersParamsList = {
 	{name = 'RESOLUTION', default = 1, min = 1, max = 8, digits = 0, tooltip = 'Fog resolution divider, 1 = full resolution, 2 = half'},
+	{name = 'MINISHADOWS', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Wether to draw a downsampled shadow sampler'},
 	{name = 'RAYTRACING', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use any raytracing, 1 = yes, 0 = no'},
 	{name = 'SHADOWMARCHSTEPS', default = 32, min = 1, max = 128, digits = 0, tooltip =  'How many times to sample shadows'},
 	{name = 'HEIGHTSHADOWSTEPS', default = 12, min = 0, max = 64, digits = 0, tooltip =  'How many times to sample shadows for pure height-based fog'},
@@ -210,6 +212,9 @@ local combineShader
 local fogTexture
 local distortiontex = "LuaUI/images/fractal_voronoi_tiled_1024_1.png"
 
+local shadowTexture
+local quadVAO
+local shadowShader
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
@@ -267,7 +272,15 @@ local function makeFogTexture()
 		wrap_t = GL.CLAMP_TO_EDGE,
 		fbo = true,
 		format = GL_RGBA32F_ARB,
-		})
+  })
+  shadowTexture = gl.CreateTexture(math.min( vsx/shaderConfig.RESOLUTION, vsy/shaderConfig.RESOLUTION),math.min( vsx/shaderConfig.RESOLUTION, vsy/shaderConfig.RESOLUTION),{
+    min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = true,
+		format = GL_R32F,
+    })
 end
 
 
@@ -281,6 +294,10 @@ local function initGL4()
 	-- init the VBO
 	local planeVBO, numVertices = makePlaneVBO(1,1,Game.mapSizeX/resolution,Game.mapSizeZ/resolution)
 	local planeIndexVBO, numIndices =  makePlaneIndexVBO(Game.mapSizeX/resolution,Game.mapSizeZ/resolution)
+  local quadVBO,numVertices = makeRectVBO(-1,0,1,-1,0,1,1,0)
+  quadVAO = gl.GetVAO()
+  quadVAO:AttachVertexBuffer(quadVBO)
+  
 	fogPlaneVAO = gl.GetVAO()
 	fogPlaneVAO:AttachVertexBuffer(planeVBO)
 	fogPlaneVAO:AttachIndexBuffer(planeIndexVBO)
@@ -340,6 +357,17 @@ local combineShaderSourceCache = {
 		shaderName = "Ground Fog Combine GL4",
 		shaderConfig = {VSX =vsx, VSY = vsy}
 	}
+  
+local shadowMinifierShaderSourceCache = {
+		vssrcpath = "LuaUI/Widgets/Shaders/shadow_downsample.vert.glsl",
+		fssrcpath = "LuaUI/Widgets/Shaders/shadow_downsample.frag.glsl",
+		--gssrcpath = gsSrcPath,
+		uniformInt = { shadowTex = 0},
+		uniformFloat = { gameframe = 0, distortionlevel = 0, resolution = 2},
+		shaderName = "shadowMinifierShader",
+		shaderConfig = {VSX = vsx, VSY = vsy}
+}
+
 local initfps = 1
 local lastfps = 1
 function widget:Initialize()
@@ -370,6 +398,14 @@ function widget:Initialize()
 		goodbye("[Global Fog::combineShader] combineShader compilation failed")
 		return false
 	end
+  
+	shadowShader  =  LuaShader.CheckShaderUpdates(shadowMinifierShaderSourceCache)
+  	if (shadowShader == nil) then
+	
+		widgetHandler:RemoveWidget()
+		goodbye("[Global Fog::shadowShader] shadowShader compilation failed")
+		return false
+	end
 	WG['SetFogParams'] = SetFogParams
 	
 	if WG['flowui_gl4'] then 
@@ -393,7 +429,7 @@ function widget:Initialize()
 	end
 	
 	if vsx%4~=0 or vsy%4 ~= 0 then 
-		Spring.Echo("Global Fog Warning: viewport is not even!", vsx, vsy)
+		Spring.Echo("Global Fog Warning: viewport is not even!", vsx, vsy, vsx/2, vsy/2)
 	end
 	return true
 end
@@ -426,16 +462,30 @@ local function renderToTextureFunc() -- this draws the fogspheres onto the textu
 	fogPlaneVAO:DrawElements(GL.TRIANGLES)
 end
 
+local function minifyShadowToTextureFunc()
+  gl.Texture(0, "$shadow")
+  quadVAO:DrawArrays(GL.TRIANGLES)
+end
+
 function widget:DrawWorld() 
 
 	if autoreload then
 		groundFogShader =  LuaShader.CheckShaderUpdates(shaderSourceCache) or groundFogShader
 		combineShader =  LuaShader.CheckShaderUpdates(combineShaderSourceCache) or combineShader
+		shadowShader =  LuaShader.CheckShaderUpdates(shadowMinifierShaderSourceCache) or shadowShader
 	end
+  
 	gl.DepthMask(false) -- dont write to depth buffer
 
 	gl.Culling(GL.FRONT) -- cause our tris are reversed in plane vbo
-	gl.Texture(0, "$map_gbuffer_zvaltex")
+	
+  if shaderConfig.MINISHADOWS == 1 then 
+    shadowShader:Activate()
+    gl.RenderToTexture(shadowTexture, minifyShadowToTextureFunc)
+    shadowShader:Deactivate()
+  end
+  
+  gl.Texture(0, "$map_gbuffer_zvaltex")
 	gl.Texture(1, "$model_gbuffer_zvaltex")
 	gl.Texture(2, distortiontex)
 	if shaderConfig.USELOS == 1 and WG['infolosapi'].GetInfoLOSTexture then 
@@ -443,8 +493,12 @@ function widget:DrawWorld()
 	else
 		gl.Texture(3, "$info") --$info:los
 	end
-	gl.Texture(4, "$shadow")
-	gl.Texture(5, noisetex3dcube)
+  if shaderConfig.MINISHADOWS ==1 then 
+    gl.Texture(4, shadowTexture)
+  else
+    gl.Texture(4, "$shadow")
+	end
+  gl.Texture(5, noisetex3dcube)
 
 	if shaderConfig.USEMINIMAP > 0 then 
 		gl.Texture(6, '$minimap')
