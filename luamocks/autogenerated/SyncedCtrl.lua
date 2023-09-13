@@ -8,6 +8,15 @@
 ---@return nil
 function Spring.SetAlly(firstAllyTeamID, secondAllyTeamID, ally) end
 
+---Changes the start box position of an allyTeam.
+---@param allyTeamID integer
+---@param xMin integer left start box boundary (elmos)
+---@param zMin integer top start box boundary (elmos)
+---@param xMax integer right start box boundary (elmos)
+---@param zMax integer bottom start box boundary (elmos)
+---@return nil
+function Spring.SetAllyTeamStartBox(allyTeamID, xMin, zMin, xMax, zMax) end
+
 ---Parameters
 ---@param playerID number
 ---@param teamID number
