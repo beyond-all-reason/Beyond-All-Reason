@@ -15,7 +15,7 @@ return {
 		canreclaim = true,
 		canrepeat = false,
 		canstop = true,
-		cantbetransported = false,
+		cantbetransported = true, -- transports cannot drop them back into water, reenable once that works
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 50 31",
@@ -49,7 +49,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/seautil",
