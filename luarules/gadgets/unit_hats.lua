@@ -1,3 +1,8 @@
+
+if Spring.GetModOptions().teamcolors_anonymous_mode ~= "disabled" then
+	return
+end
+
 function gadget:GetInfo()
 	return {
 		name = "Hats",
