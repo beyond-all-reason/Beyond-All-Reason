@@ -9,24 +9,24 @@ Lights()
 	while( TRUE )
 	{
 		show blinka;
-		sleep 300;
+		sleep 100;
 		show blinkb;
-		sleep 300;
+		sleep 100;
 		show blinkc;	
-		sleep 300;
+		sleep 100;
 		show blinkd;
-		sleep 300;
+		sleep 600;
 		hide blinka;
-		sleep 300;
+		sleep 100;
 		hide blinkb;
-		sleep 300;
+		sleep 100;
 		hide blinkc;
-		sleep 300;
+		sleep 100;
 		hide blinkd;
-		sleep 300;
+		sleep 600;
 
 	}
-	sleep 300;
+	sleep 600;
 	start-script Lights();
 }
 
@@ -35,9 +35,9 @@ Beacon()
 	while( TRUE )
 	{
 		emit-sfx 1024 + 1 from groundblink;
-		sleep 5000;
+		sleep 30000;
 	}
-	sleep 5000;
+	sleep 30000;
 	start-script Beacon();
 }
 

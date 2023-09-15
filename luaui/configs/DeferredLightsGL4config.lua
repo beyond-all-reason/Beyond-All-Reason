@@ -15790,7 +15790,7 @@ local unitDefLights = {
 		emit = {
 			lightType = 'point',
 			pieceName = 'emit',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 75,
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 100,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = -1, g = 1, b = 1, a = 0.5,
 							modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0,
@@ -15837,7 +15837,7 @@ local unitDefLights = {
 		emit = {
 			lightType = 'point',
 			pieceName = 'emit',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 100,
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = -1, g = 1, b = 1, a = 0.5,
 							modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0,
@@ -15884,7 +15884,7 @@ local unitDefLights = {
 		emit = {
 			lightType = 'point',
 			pieceName = 'emit',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 125,
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = -1, g = 1, b = 1, a = 0.5,
 							modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0,
