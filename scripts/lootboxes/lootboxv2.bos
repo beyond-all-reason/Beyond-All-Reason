@@ -1,0 +1,48 @@
+#define TA			// This is a TA script
+
+
+
+piece  base, emit, e1, blinka, e2, blinkb, e3, blinkc, e4, blinkd, bowl, groundblink;
+
+Lights()
+{
+	while( TRUE )
+	{
+		show blinka;
+		sleep 300;
+		show blinkb;
+		sleep 300;
+		show blinkc;	
+		sleep 300;
+		show blinkd;
+		sleep 300;
+		hide blinka;
+		sleep 300;
+		hide blinkb;
+		sleep 300;
+		hide blinkc;
+		sleep 300;
+		hide blinkd;
+		sleep 300;
+
+	}
+	sleep 300;
+	start-script Lights();
+}
+
+Beacon()
+{
+	while( TRUE )
+	{
+		emit-sfx 1024 + 1 from groundblink;
+		sleep 5000;
+	}
+	sleep 5000;
+	start-script Beacon();
+}
+
+Create()
+{
+	start-script Lights();
+	start-script Beacon();
+}

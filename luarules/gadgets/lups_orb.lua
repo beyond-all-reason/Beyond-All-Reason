@@ -122,6 +122,22 @@ local UnitEffects = {
 		{ class = 'ShieldSphere', options = table.merge(armgateShieldSphere, { pos = { 0, 25, 0 } }) },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 	},
+	["lootboxbronze"] = {
+		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 34, 0 }, size = 10} ) },
+		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 34, 0 }, size = 10.5, precision = 22, repeatEffect = true } },
+	},
+	["lootboxsilver"] = {
+		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 52, 0 }, size = 15} ) },
+		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 52, 0 }, size = 15.5, precision = 22, repeatEffect = true } },
+	},
+	["lootboxgold"] = {
+		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 69, 0 }, size = 20} ) },
+		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 69, 0 }, size = 20.5, precision = 22, repeatEffect = true } },
+	},
+	["lootboxplatinum"] = {
+		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 87, 0 }, size = 25} ) },
+		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 87, 0 }, size = 25.5, precision = 22, repeatEffect = true } },
+	},
 
 }
 
