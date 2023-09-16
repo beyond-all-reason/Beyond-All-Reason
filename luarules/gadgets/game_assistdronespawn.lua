@@ -7,6 +7,7 @@ local droneCount = Spring.GetModOptions().assistdronescount
 local teamIDDroneList = {}
 
 local UDN = UnitDefNames
+local teamsList = Spring.GetTeamList()
 
 function gadget:GetInfo()
     return {
@@ -73,8 +74,11 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
     if commandersList[unitID] then
         commandersList[unitID] = nil
     end
-    if teamIDDroneList[unitTeam] and teamIDDroneList[unitTeam][unitID] then
-        teamIDDroneList[unitTeam][unitID] = nil
+    for _, teamID in pairs(teamsList) do
+        if teamIDDroneList[teamID] and teamIDDroneList[teamID][unitID] then
+            teamIDDroneList[teamID][unitID] = nil
+            break
+        end
     end
 end
 
