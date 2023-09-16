@@ -2,47 +2,67 @@
 
 
 
-piece  base, emit, e1, blinka, e2, blinkb, e3, blinkc, e4, blinkd, bowl, groundblink;
+piece  base, emit, light, dome, cap, blinka, blinkb, blinkc, blinkd, blinktop, bowl, groundblink;
 
 Lights()
 {
 	while( TRUE )
 	{
 		show blinka;
-		sleep 100;
+		sleep Rand(400,600);
 		show blinkb;
-		sleep 100;
+		sleep Rand(400,600);
 		show blinkc;	
-		sleep 100;
+		sleep Rand(400,600);
 		show blinkd;
-		sleep 600;
+		sleep Rand(1000,10000);
 		hide blinka;
-		sleep 100;
+		sleep Rand(400,600);
 		hide blinkb;
-		sleep 100;
+		sleep Rand(400,600);
 		hide blinkc;
-		sleep 100;
+		sleep Rand(400,600);
 		hide blinkd;
-		sleep 600;
+		sleep Rand(1000,10000);
 
 	}
-	sleep 600;
+	sleep 2000;
 	start-script Lights();
 }
 
-Beacon()
+TopLight()
 {
 	while( TRUE )
 	{
-		emit-sfx 1024 + 1 from groundblink;
-		sleep 30000;
+		show blinktop;
+		sleep Rand(150,250);
+		hide blinktop;
+		sleep Rand(1000,10000);
+
 	}
-	sleep 30000;
-	start-script Beacon();
+	sleep 600;
+	start-script TopLight();
 }
 
+// Beacon()
+// 	{
+// 		while( TRUE )
+// 		{
+// 			emit-sfx 1024 + 1 from groundblink;
+// 			sleep 33453;
+// 		}
+// 		sleep 33453;
+// 		start-script Beacon();
+//}
+
 Create()
-{
+{	
+	hide blinka;
+	hide blinkb;
+	hide blinkc;
+	hide blinkd;
+	hide blinktop;
 	start-script Lights();
-	start-script Beacon();
+	start-script TopLight();
+	// start-script Beacon();
 }
