@@ -38,9 +38,9 @@ function SpawnAssistTurret(unitID, unitDefID, unitTeam)
         posx = posx + math.random(-k-64, k+64)
         posz = posz + math.random(-k-64, k+64)
         posy = Spring.GetGroundHeight(posx, posz)
-        local canSpawnTurret = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 64)
+        local canSpawnTurret = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 96)
         if canSpawnTurret then
-            canSpawnTurret = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 64)
+            canSpawnTurret = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 96)
         end
         if canSpawnTurret then
             spawnpadID = Spring.CreateUnit(spawnpadunit, posx, posy, posz, 0, unitTeam)
@@ -50,7 +50,7 @@ function SpawnAssistTurret(unitID, unitDefID, unitTeam)
 	if spawnpadID then
         Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz,0,0,0)
 		Spring.GiveOrderToUnit(spawnpadID, CMD.GUARD, unitID, {})
-		Spring.SetUnitBlocking(spawnpadID, false)
+		--Spring.SetUnitBlocking(spawnpadID, false)
 	end
 end
 
