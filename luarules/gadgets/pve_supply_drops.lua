@@ -174,7 +174,7 @@ function gadget:GameFrame(n)
 					canSpawnLootbox = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 128)
 				end
 				if canSpawnLootbox then
-					canSpawnLootbox = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 32, spGaiaAllyTeam, true, true, true)
+					canSpawnLootbox = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 32, spGaiaAllyTeam, true, true, false)
 				end
                 if canSpawnLootbox then
 					SpawnLootbox(posx, posy, posz)
