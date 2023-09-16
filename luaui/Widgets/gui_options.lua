@@ -1818,7 +1818,7 @@ local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 100
 if not gpuMem then
 	gpuMem = 0
 end
-if gpuMem > 0 and gpuMem < 1800 then
+if gpuMem > 0 and gpuMem < 2500 then
 	isPotatoGpu = true
 end
 if not Platform.glHaveGL4 then
@@ -5622,7 +5622,7 @@ function init()
 			options[getOptionByID('could_opacity')] = nil
 
 			-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
-			if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 1800 then
+			if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500 then
 				options[getOptionByID('shadowslider')] = nil
 				options[getOptionByID('shadows_opacity')] = nil
 
