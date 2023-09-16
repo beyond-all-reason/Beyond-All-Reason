@@ -174,11 +174,7 @@ function gadget:GameFrame(n)
 					canSpawnLootbox = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 128)
 				end
 				if canSpawnLootbox then
-					if Spring.Utilities.Gametype.IsScavengers() and math.random() <= 0.5 then
-						canSpawnLootbox = GG.IsPosInRaptorScum(posx, posy, posz)
-					else
-						canSpawnLootbox = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 32, spGaiaAllyTeam, true, true, true)
-					end	
+					canSpawnLootbox = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 32, spGaiaAllyTeam, true, true, true)
 				end
                 if canSpawnLootbox then
 					SpawnLootbox(posx, posy, posz)
