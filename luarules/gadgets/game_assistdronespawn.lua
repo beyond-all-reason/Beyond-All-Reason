@@ -60,6 +60,12 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
     end
 end
 
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam) 
+    if commandersList[unitID] then 
+        commandersList[unitID] = nil 
+    end
+end
+
 function gadget:GameFrame(n)
     if n == 90 then
         local units = Spring.GetAllUnits()
