@@ -1139,7 +1139,7 @@ local options={
 
 	{
 		key="assistdronesenabled",
-		name="Starter Construction Drones",
+		name="Construction Drones",
 		type="list",
 		def="pve_only",
 		section="options_extra",
@@ -1152,7 +1152,7 @@ local options={
 
 	{
 		key    = 'assistdronesbuildpowermultiplier',
-		name   = 'Starter Construction Drones: Buildpower Multiplier (Range 0.5 - 3)',
+		name   = 'Construction Drones: Buildpower Multiplier (Range 0.5 - 3)',
 		desc   = 'How many assist drones per commander should be spawned',
 		type   = 'number',
 		section= 'options_extra',
@@ -1169,7 +1169,7 @@ local options={
 		type   = 'number',
 		section= 'options_extra',
 		hidden = true,
-		def    = 4,
+		def    = 10,
 		min    = 1,
 		max    = 30,
 		step   = 1,

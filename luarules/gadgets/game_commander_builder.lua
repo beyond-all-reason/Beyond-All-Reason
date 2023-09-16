@@ -22,18 +22,33 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
+
 local spawnpads = {
     [UDN.armcom.id] = "armrespawn",
     [UDN.corcom.id] = "correspawn",
 	[UDN.legcom.id] = "correspawn",
 }
 
-function SpawnAssistDrones(unitID, unitDefID, unitTeam)
+function SpawnAssistTurret(unitID, unitDefID, unitTeam)
 	local posx, posy, posz = Spring.GetUnitPosition(unitID)
     local spawnpadunit = spawnpads[unitDefID]
-    local spawnpadID = Spring.CreateUnit(spawnpadunit, posx, posy, posz, 0, unitTeam)
-    --Spring.SpawnCEG("scav-spawnexplo", posx, posy+10, posz,0,0,0)
+    local spawnpadID
+    for k = 1,10000 do
+        posx = posx + math.random(-k-64, k+64)
+        posz = posz + math.random(-k-64, k+64)
+        posy = Spring.GetGroundHeight(posx, posz)
+        local canSpawnTurret = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 64)
+        if canSpawnTurret then
+            canSpawnTurret = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 64)
+        end
+        if canSpawnTurret then
+            spawnpadID = Spring.CreateUnit(spawnpadunit, posx, posy, posz, 0, unitTeam)
+            break
+        end
+    end
 	if spawnpadID then
+        Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz,0,0,0)
 		Spring.GiveOrderToUnit(spawnpadID, CMD.GUARD, unitID, {})
 		Spring.SetUnitBlocking(spawnpadID, false)
 	end
@@ -46,16 +61,18 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
     end
 end
 
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam) 
+    if commandersList[unitID] then
+        commandersList[unitID] = nil
+    end
+end
+
 function gadget:GameFrame(n)
-    if n == 90 then
-        local units = Spring.GetAllUnits()
-        for i = 1,#units do
-            if commandersList[units[i]] then
-                local unitID = units[i]
-                local unitDefID = Spring.GetUnitDefID(unitID)
-                local unitTeam = Spring.GetUnitTeam(unitID)
-                SpawnAssistDrones(unitID, unitDefID, unitTeam)
-            end
+    if n == 150 then
+        for comID, _ in pairs(commandersList) do
+            local comDefID = Spring.GetUnitDefID(comID)
+            local comTeam = Spring.GetUnitTeam(comID)
+            SpawnAssistTurret(comID, comDefID, comTeam)
         end
     end
 end
