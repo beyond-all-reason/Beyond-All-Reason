@@ -5440,6 +5440,10 @@ function init()
 	--	options[getOptionByID('xmas')] = nil
 	--end
 
+	if not isPotatoGpu and gpuMem <= 4500 then
+		options[getOptionByID('advmapshading')].category = types.basic
+	end
+
 	-- reset tonemap defaults (only once)
 	if not resettedTonemapDefault then
 		local optionID = getOptionByID('tonemapDefaults')
