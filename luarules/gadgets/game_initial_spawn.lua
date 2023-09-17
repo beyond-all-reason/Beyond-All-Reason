@@ -41,7 +41,6 @@ if gadgetHandler:IsSyncedCode() then
 	local validStartUnits = {
 		[armcomDefID] = true,
 		[corcomDefID] = true,
-		[legcomDefID] = true,
 	}
 	if Spring.GetModOptions().experimentallegionfaction then
 		validStartUnits[legcomDefID] = true
