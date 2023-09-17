@@ -635,7 +635,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 		if commanders[unitID] then
 			local x, y, z = Spring.GetUnitPosition(unitID)
 			local camX, camY, camZ = Spring.GetCamersaPosition()
-			if spIsUnitInView(unitID) or math.diag(camX-x, camY-y, camZ-z) > 3000 then
+			if not spIsUnitInView(unitID) or math.diag(camX-x, camY-y, camZ-z) > 3000 then
 				if not commandersDamages[unitID] then
 					commandersDamages[unitID] = {}
 				end
