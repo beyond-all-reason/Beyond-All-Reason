@@ -634,7 +634,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 		-- notify when commander gets damaged
 		if commanders[unitID] then
 			local x, y, z = Spring.GetUnitPosition(unitID)
-			local camX, camY, camZ = Spring.GetCamersaPosition()
+			local camX, camY, camZ = Spring.GetCameraPosition()
 			if not spIsUnitInView(unitID) or math.diag(camX-x, camY-y, camZ-z) > 3000 then
 				if not commandersDamages[unitID] then
 					commandersDamages[unitID] = {}
