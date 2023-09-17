@@ -7,32 +7,33 @@ local scenariodata = {
 	isnew 			= true,
 	imagepath		= "scenario023.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "Units will act automatically during the benchmark", -- This text will be drawn over image
-    summary         = [[This is a quick, 3 minute benchmark script. You may leave after the benchmark is complete.]],
-	briefing 		= [[This scenario starts a benchmark by spawning 1000 Grunts to continously fight against 1000 Pawns. The average Sim, Draw and Update times are shown on screen. The game will automatically center the camera over the units, do not move the camera while the benchmark is running, and do not interact with the units. The game will return after printing the results to screen and infolog, and submitting them to the server.
+    summary         = [[This is a quick, 3 minute benchmark script (except of "collision" scenario). You may leave after the benchmark is complete.]],
+	briefing 		= [[This scenario starts a benchmark by spawning 650 Grunts to continously fight against 650 Pawns. The average Sim, Draw and Update times are shown on screen. The game will automatically center the camera over the units, do not move the camera while the benchmark is running, and do not interact with the units. The game will return after printing the results to screen and infolog, and submitting them to the server.
 		
-	A total of 4000 simulation frames are tested. 
+	A total of 2000 simulation frames are tested. 
 	
 	The internal command to run a benchmark of various units against each other needs cheating enabled, and is the following:
 
 	/luarules fightertest [unitname1] [unitname2] [maxunits] [spawnstep] [spawnradius] 
 	For this benchmark, it is
 
-	/luarules fightertest corak armpw 1000 30 3000
+	/luarules fightertest corak armpw 650 10 2040
 
 	]],
 
-	mapfilename		= "Lightside Darkside v2.0", -- the name of the map to be displayed here
+	mapfilename		= "Starwatcher 1.0", -- the name of the map to be displayed here
 	playerstartx	= "10%", -- X position of where player comm icon should be drawn, from top left of the map
 	playerstarty	= "10%", -- Y position of where player comm icon should be drawn, from top left of the map
 	partime 		= 180, -- par time in seconds
 	parresources	= 1, -- par resource amount
-	difficulty		= 11, -- Percieved difficulty at 'normal' level: integer 1-10
+	difficulty		= 15, -- Percieved difficulty at 'normal' level: integer 1-10
     defaultdifficulty = "Bots", -- an entry of the difficulty table
     difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
-		{name = "Bots", playerhandicap = "corak armpw 1000 30 3000" , enemyhandicap = 0},
-		{name = "Tanks", playerhandicap = "armbull armbull 300 30 2000" , enemyhandicap = 0},
-		{name = "Pathing", playerhandicap = "corcv armck 1000 30 4000" , enemyhandicap = 0},
-		{name = "Aircraft", playerhandicap = "corvamp armhawk 1000 50 3000" , enemyhandicap = 0},
+		{name = "Bots", playerhandicap = "corak armpw 650 10 2040" , enemyhandicap = 0},
+		{name = "Tanks", playerhandicap = "armbull armbull 650 10 2040" , enemyhandicap = 0},
+		{name = "Pathing", playerhandicap = "corcv armck 2000 15 11000" , enemyhandicap = 0},
+		{name = "Aircraft", playerhandicap = "corvamp armhawk 650 10 2040" , enemyhandicap = 0},
+		{name = "Collision", obstacles = "give 100 armdrag 0 @6200,0,4200p", playerhandicap = "armack armack 2000 2 1" , enemyhandicap = 0},
     },
     allowedsides     = {""}, --these are the permitted factions for this mission
 	victorycondition= "None", -- This is plaintext, but should be reflected in startscript
@@ -42,8 +43,8 @@ local scenariodata = {
         --myoption = "dostuff",
         scenarioid = "benchmark_lightside", --must be present for scores
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
-		benchmarkcommand = "luarules fightertest corak armpw 1000 30 3000", -- make sure the matches the debugcommands identically named modoption's info
-		benchmarkframes = 4000,
+		benchmarkcommand = "luarules fightertest corak armpw 650 10 2040", -- make sure the matches the debugcommands identically named modoption's info
+		benchmarkframes = 2000,
 		-- quiteforce sucks, does not end the game. 
 		--unitloadout = {},	
 		--featureloadout = {},
@@ -87,7 +88,7 @@ local scenariodata = {
 	[modoptions]
 	{
         scenariooptions = __SCENARIOOPTIONS__;
-		debugcommands = 150:cheat|151:vsync 0|180:luarules fightertest __PLAYERHANDICAP__|4138:screenshot|4140:luarules fightertest|4300:vsync 1;
+		debugcommands = 1:cheat|10:__OBSTACLES__|15:luarules fightertest __PLAYERHANDICAP__|20:vsync 0|25:deselect|2015:screenshot|2016:luarules fightertest|2020:vsync 1;
 	}
 
 	[allyTeam1]
