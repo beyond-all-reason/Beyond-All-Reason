@@ -631,26 +631,30 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 			queueTutorialNotification('t_paralyzer')
 		end
 
-		-- notify when commander gets heavy damage
-		if commanders[unitID] and not spIsUnitInView(unitID) then
-			if not commandersDamages[unitID] then
-				commandersDamages[unitID] = {}
-			end
-			local gameframe = spGetGameFrame()
-			commandersDamages[unitID][gameframe] = damage		-- if widget:UnitDamaged can be called multiple times during 1 gameframe then you need to add those up, i dont know
-
-			-- count total damage of last few secs
-			local totalDamage = 0
-			local startGameframe = gameframe - (5.5 * 30)
-			for gf,damage in pairs(commandersDamages[unitID]) do
-				if gf > startGameframe then
-					totalDamage = totalDamage + damage
-				else
-					commandersDamages[unitID][gf] = nil
+		-- notify when commander gets damaged
+		if commanders[unitID] then
+			local x, y, z = Spring.GetUnitPosition(unitID)
+			local camX, camY, camZ = Spring.GetCamersaPosition()
+			if spIsUnitInView(unitID) or math.diag(camX-x, camY-y, camZ-z) > 3000 then
+				if not commandersDamages[unitID] then
+					commandersDamages[unitID] = {}
 				end
-			end
-			if totalDamage >= commanders[unitID] * 0.12 then
-				queueNotification('ComHeavyDamage')
+				local gameframe = spGetGameFrame()
+				commandersDamages[unitID][gameframe] = damage		-- if widget:UnitDamaged can be called multiple times during 1 gameframe then you need to add those up, i dont know
+
+				-- count total damage of last few secs
+				local totalDamage = 0
+				local startGameframe = gameframe - (5.5 * 30)
+				for gf,damage in pairs(commandersDamages[unitID]) do
+					if gf > startGameframe then
+						totalDamage = totalDamage + damage
+					else
+						commandersDamages[unitID][gf] = nil
+					end
+				end
+				if totalDamage >= commanders[unitID] * 0.12 then
+					queueNotification('ComHeavyDamage')
+				end
 			end
 		end
 	end
