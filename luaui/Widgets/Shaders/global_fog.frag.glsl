@@ -12,6 +12,7 @@
 
 in DataVS {
 	vec4 v_worldPos;
+	vec4 sampleUVs;
 };
 
 uniform sampler2D mapDepths;
@@ -783,6 +784,24 @@ vec4 quadGatherSortFloat(vec4 unsorted){ // this could really use modification i
 	return sorted;
 }
 
+vec4 debugQuad(vec2 qv){
+	// Returns a checkerboard pattern of quads. Yay?
+	// B R
+	// G Y
+	vec2 sharedCoords = quadGatherSum2D(gl_FragCoord.xy);
+	float quadAlpha = 0.0;
+	if (fract((sharedCoords.x + sharedCoords.y) * 0.2) > 0.25) quadAlpha = 1.0;
+	vec3 QVC = vec3(// [[BR],[GY]]
+		step(0, qv.x), // red if x positive
+		step(qv.y, 0), // Green if y negative
+		step(qv.x, 0) * step(0, qv.y)    // blue if x negative and y positive
+	);
+	//if (step(0, qv.x) * step(qv.y, 0) > 0 ){
+	//	
+	//}
+	return vec4(QVC,quadAlpha);
+}
+
 
 
 // Use this to sample 4 octaves on any noise you want, and return the sum of its octaves
@@ -825,6 +844,9 @@ float fastQuadTexture2DLookupInd(sampler2D t, vec2 Pos, vec2 stepsize, vec4 weig
 }
 #endif
 
+////----------------------------------------------------------------
+////------------------------------MAIN------------------------------
+////----------------------------------------------------------------
 
 #line 33000
 void main(void)
@@ -837,23 +859,32 @@ void main(void)
 	#if 1 
 	#line 33200
 	quadVector = quadGetQuadVector(gl_FragCoord.xy);
+
+	//fragColor.rgba = debugQuad(quadVector);return;
 	threadMask = quadGetThreadMask(quadVector);
 	const float expfactor = fogExpFactor * -0.0001;
-	// Calculate the UV coordinates of the depth textures
+	// ---------- Calculate the UV coordinates of the depth textures ---------
   
   
   #if (RESOLUTION == 2)
     // Exploit hardware linear sampling in best case
-    vec2 screenUV = (gl_FragCoord.xy * RESOLUTION + 0.5) / viewGeometry.xy;
+	vec2 screenUV = sampleUVs.zw;
+
   #else
     vec2 screenUV = gl_FragCoord.xy * RESOLUTION / viewGeometry.xy;
   #endif
+
+	if (any(lessThan(abs(gl_FragCoord.xy - 1.5) ,vec2( 0.5)))) {
+		fragColor.rgba = vec4(1,1,0,1); return;
+	}
+	// clamp the UV's of deferred buffer fetches as they are not edge repeats.
+	//screenUV = clamp(screenUV, vec2(0.5/VSX, 0.5/VSY), vec2(1.0) - vec2(0.5/VSX, 0.5/VSY));
 
 	// Sample the depth buffers, and choose whichever is closer to the screen (TexelFetch is no better in perf)
 	float mapdepth = texture(mapDepths, screenUV).x; 
 	float modeldepth = texture(modelDepths, screenUV).x;
 	mapdepth = min(mapdepth, modeldepth);
-	
+
 	// Transform screen-space depth to world-space position
 	vec4 mapWorldPos =  vec4( vec3(screenUV.xy * 2.0 - 1.0, mapdepth),  1.0);
 	mapWorldPos = cameraViewProjInv * mapWorldPos;
@@ -1110,9 +1141,19 @@ void main(void)
 	fragColor.rgba = fogRGBA;
 	//fragColor.a = heightBasedFogExp; 
 	fragColor.a = 1.0 - exp(-1 * myfog * 0.1);
+	
+	vec4 dbgQuad = debugQuad(quadVector);
+	//fragColor.a *=(1.0 - dbgQuad.b);
+	return;
 	#if (FULLALPHA == 1) 
 		fragColor.a = 1.0;
 	#endif
+	
+	fragColor.rgb = fragColor.rgb * debugQuad(quadVector).rgb * 0.5;
+	if (step(0, quadVector.x) * step(quadVector.y, 0) > 0 ){
+		//fragColor.rgb = vec3(step(modeldepth, mapdepth));
+	}
+	fragColor.b = step(modeldepth, mapdepth) * 0.75;
 	return;
 	// ********************************* END COMPLETE REWRITE *******************************
 	// ********************************* END COMPLETE REWRITE *******************************

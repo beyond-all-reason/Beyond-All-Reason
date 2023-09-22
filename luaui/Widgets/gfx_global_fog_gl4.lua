@@ -62,6 +62,7 @@ local GL_R32F = 0x822E
 
 
 local vsx, vsy = Spring.GetViewGeometry()
+local hsx, hsy
 
 local sliderStack = {}
 
@@ -83,11 +84,17 @@ local shaderConfig = {
 	MAPSIZEX = Game.mapSizeX,
 	MAPSIZEZ = Game.mapSizeZ,
 	MAPSIZEY = maxHeight,
+	VSX = vsx,
+	VSY = vsy,
+	HSX = hsx,
+	HSY = hsy,
 }
 
+-- THIS IS UNIFIED BETWEEN FOG SHADER AND COMBINE SHADER
 local definesSlidersParamsList = {
-	{name = 'RESOLUTION', default = 1, min = 1, max = 8, digits = 0, tooltip = 'Fog resolution divider, 1 = full resolution, 2 = half'},
+	{name = 'RESOLUTION', default = 2, min = 1, max = 8, digits = 0, tooltip = 'Fog resolution divider, 1 = full resolution, 2 = half'},
 	{name = 'MINISHADOWS', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Wether to draw a downsampled shadow sampler'},
+	{name = 'HALFSHIFT', default = 1, min = 0, max = 1, digits = 0, tooltip = 'If the resolution is half, perform a half-pixel shifting'},
 	{name = 'RAYTRACING', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use any raytracing, 1 = yes, 0 = no'},
 	{name = 'SHADOWMARCHSTEPS', default = 32, min = 1, max = 128, digits = 0, tooltip =  'How many times to sample shadows'},
 	{name = 'HEIGHTSHADOWSTEPS', default = 12, min = 0, max = 64, digits = 0, tooltip =  'How many times to sample shadows for pure height-based fog'},
@@ -128,7 +135,7 @@ local fogUniforms = {
 	fogPlaneTop = (math.max(minHeight,0) + maxHeight) /1.7 , -- Start of the height thing
 	fogPlaneBottom = 100, -- Start of the height thing
 	fogGlobalDensity = 1.50, -- How dense the global fog is
-	fogGroundDensity = 0.25, -- How dense the height-based fog is
+	fogGroundDensity = 0.1, -- How dense the height-based fog is
 	fogExpFactor = 1.0, -- Overall density multiplier
 	cloudVolumeMin = {0,maxHeight/2,0,0}, -- XYZ coords of the fog volume start, along with the bottom density in W
 	cloudVolumeMax= {Game.mapSizeX, maxHeight, Game.mapSizeZ,0}, -- XYZ coords of fog volume end, along with the top density
@@ -260,27 +267,63 @@ local shaderSourceCache = {
 		shaderConfig = shaderConfig
 	}
 
+
+local vsSrcPathCombine = "LuaUI/Widgets/Shaders/global_fog_combine.vert.glsl"
+local fsSrcPathCombine = "LuaUI/Widgets/Shaders/global_fog_combine.frag.glsl"
+
+local combineShaderSourceCache = {
+		vssrcpath = vsSrcPathCombine,
+		fssrcpath = fsSrcPathCombine,
+		--gssrcpath = gsSrcPath,
+		uniformInt = { mapDepths = 0, modelDepths = 1,  fogbase = 2, distortion = 3},
+		uniformFloat = { gameframe = 0, distortionlevel = 0, resolution = 2},
+		shaderName = "Global Fog Combine GL4",
+		shaderConfig = shaderConfig,
+	}
+  
+
 local function makeFogTexture()
-	vsx, vsy = Spring.GetViewGeometry()
-
 	if fogTexture then gl.DeleteTexture(fogTexture) end
-
-	fogTexture = gl.CreateTexture(vsx/ shaderConfig.RESOLUTION, vsy/shaderConfig.RESOLUTION, {
-		min_filter = GL.LINEAR,
-		mag_filter = GL.LINEAR,
+	
+	vsx, vsy = Spring.GetViewGeometry()
+	
+	hsx =  math.ceil(vsx / shaderConfig.RESOLUTION )
+	hsy =  math.ceil(vsy / shaderConfig.RESOLUTION )
+	if shaderConfig.HALFSHIFT == 1 then
+		hsx =  math.ceil((vsx +1) / shaderConfig.RESOLUTION )
+		hsy =  math.ceil((vsy +1) / shaderConfig.RESOLUTION )
+	end
+	
+	shaderConfig.HSX = hsx
+	shaderConfig.HSY = hsy
+	shaderConfig.VSX = vsx
+	shaderConfig.VSY = vsy
+	
+	
+	combineShaderSourceCache.shaderConfig.forceupdate = true
+	shaderSourceCache.forceupdate = true
+	
+	combineShader =  LuaShader.CheckShaderUpdates(combineShaderSourceCache) or combineShader
+	
+	fogTexture = gl.CreateTexture(hsx, hsy, {
+		min_filter = GL.LINEAR,	mag_filter = GL.LINEAR,
+		--min_filter = GL.NEAREST,	mag_filter = GL.NEAREST,
 		wrap_s = GL.CLAMP_TO_EDGE,
 		wrap_t = GL.CLAMP_TO_EDGE,
 		fbo = true,
 		format = GL_RGBA32F_ARB,
   })
-  shadowTexture = gl.CreateTexture(math.min( vsx/shaderConfig.RESOLUTION, vsy/shaderConfig.RESOLUTION),math.min( vsx/shaderConfig.RESOLUTION, vsy/shaderConfig.RESOLUTION),{
-    min_filter = GL.LINEAR,
+	if shadowTexture then gl.DeleteTexture(shadowTexture) end 
+  shadowTexture = gl.CreateTexture(math.min(vsx/shaderConfig.RESOLUTION, vsy/shaderConfig.RESOLUTION),math.min( vsx/shaderConfig.RESOLUTION, vsy/shaderConfig.RESOLUTION),{
+		min_filter = GL.LINEAR,
 		mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP_TO_EDGE,
 		wrap_t = GL.CLAMP_TO_EDGE,
 		fbo = true,
 		format = GL_R32F,
     })
+	Spring.Echo("MakeFogTexture", vsx, vsy, hsx, hsy, shaderConfig.HALFSHIFT)
+	
 end
 
 
@@ -324,8 +367,10 @@ local function shaderDefinesChangedCallback(name, value, index, oldvalue)
 	if value ~= oldvalue then 
 		shaderSourceCache.forceupdate = true
 		groundFogShader =  LuaShader.CheckShaderUpdates(shaderSourceCache) or groundFogShader
-		if name == 'RESOLUTION' then 
+		if name == 'RESOLUTION' or name == 'HALFSHIFT' then 
 			makeFogTexture()
+			combineShaderSourceCache.forceUpdate = true
+			combineShader =  LuaShader.CheckShaderUpdates(combineShaderSourceCache) or combineShader
 		end
 	end
 end
@@ -345,19 +390,6 @@ shaderDefinedSliders.top = shaderDefinedSliders.bottom + shaderDefinedSliders.sl
 
 local shaderDefinedSlidersLayer, shaderDefinedSlidersWindow
 
-local vsSrcPathCombine = "LuaUI/Widgets/Shaders/global_fog_combine.vert.glsl"
-local fsSrcPathCombine = "LuaUI/Widgets/Shaders/global_fog_combine.frag.glsl"
-
-local combineShaderSourceCache = {
-		vssrcpath = vsSrcPathCombine,
-		fssrcpath = fsSrcPathCombine,
-		--gssrcpath = gsSrcPath,
-		uniformInt = { mapDepths = 0, modelDepths = 1,  fogbase = 2, distortion = 3},
-		uniformFloat = { gameframe = 0, distortionlevel = 0, resolution = 2},
-		shaderName = "Ground Fog Combine GL4",
-		shaderConfig = {VSX =vsx, VSY = vsy}
-	}
-  
 local shadowMinifierShaderSourceCache = {
 		vssrcpath = "LuaUI/Widgets/Shaders/shadow_downsample.vert.glsl",
 		fssrcpath = "LuaUI/Widgets/Shaders/shadow_downsample.frag.glsl",
@@ -365,7 +397,7 @@ local shadowMinifierShaderSourceCache = {
 		uniformInt = { shadowTex = 0},
 		uniformFloat = { gameframe = 0, distortionlevel = 0, resolution = 2},
 		shaderName = "shadowMinifierShader",
-		shaderConfig = {VSX = vsx, VSY = vsy}
+		shaderConfig = {VSX = vsx, VSY = vsy, HSX = hsx, HSY = hsy}
 }
 
 local initfps = 1
@@ -386,12 +418,12 @@ function widget:Initialize()
 	end
 	if initGL4() == false then return end
 	
-		widget:ViewResize()
+	widget:ViewResize()
 	
 	-- https://github.com/libretro/common-shaders/blob/master/include/quad-pixel-communication.h
 	-- Getting neighbouring pixel info!
 
-	combineShader =  LuaShader.CheckShaderUpdates(combineShaderSourceCache)
+	combineShader =  LuaShader.CheckShaderUpdates(combineShaderSourceCache) or combineShader
 	if (combineShader == nil) then
 	
 		widgetHandler:RemoveWidget()
@@ -465,6 +497,21 @@ end
 local function minifyShadowToTextureFunc()
   gl.Texture(0, "$shadow")
   quadVAO:DrawArrays(GL.TRIANGLES)
+end
+
+function YCLine(horz, vert)
+	local vsx, vsy = Spring.GetViewGeometry()
+	if horz then
+		gl.Color(1,1,0,1)
+		gl.Rect(2 , horz, vsx -2 , horz+1)
+		gl.Color(0,1,1,1)
+		gl.Rect(2 , horz, vsx -2 , horz-1)
+	else
+		gl.Color(1,1,0,1)
+		gl.Rect(vert , 2, vert+1 ,vsy -2 )
+		gl.Color(0,1,1,1)
+		gl.Rect(vert , 2, vert-1 ,vsy -2 )
+	end
 end
 
 function widget:DrawWorld() 
