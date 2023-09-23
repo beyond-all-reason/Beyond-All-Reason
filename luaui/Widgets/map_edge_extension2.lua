@@ -565,6 +565,9 @@ end
 ]]--
 
 function widget:DrawGroundDeferred()
+	if #mirrorParams == 0 then
+		return
+	end
 	--if true then return end
 	--Spring.Echo('widget:DrawGroundDeferred')
 		--local q = gl.CreateQuery()
