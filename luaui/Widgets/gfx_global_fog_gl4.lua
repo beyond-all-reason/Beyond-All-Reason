@@ -119,6 +119,7 @@ local definesSlidersParamsList = {
 	{name = 'EASEGLOBAL', default = 2, min = 1, max = 50, digits = 2, tooltip = 'How much to reduce global fog close to camera'},
 	{name = 'EASEHEIGHT', default = 1, min = 0.0, max = 5, digits = 2, tooltip = 'How much to reduce height-based fog close to camera'},
 	{name = 'CLOUDSHADOWS', default = 8, min = 0, max = 16, digits = 0, tooltip = 'How many rays to cast in the direction of the sun for shadows'},
+	{name = 'ENABLED', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Dont do anything'},
 }
 
 for i, shaderDefine in ipairs(definesSlidersParamsList) do 
@@ -311,7 +312,7 @@ local function makeFogTexture()
 		wrap_s = GL.CLAMP_TO_EDGE,
 		wrap_t = GL.CLAMP_TO_EDGE,
 		fbo = true,
-		format = GL_RGBA32F_ARB,
+		--format = GL_RGBA32F_ARB,
   })
 	if shadowTexture then gl.DeleteTexture(shadowTexture) end 
   shadowTexture = gl.CreateTexture(math.min(vsx/shaderConfig.RESOLUTION, vsy/shaderConfig.RESOLUTION),math.min( vsx/shaderConfig.RESOLUTION, vsy/shaderConfig.RESOLUTION),{
@@ -514,14 +515,15 @@ function YCLine(horz, vert)
 	end
 end
 
-function widget:DrawWorld() 
+function widget:DrawWorld()
 
 	if autoreload then
 		groundFogShader =  LuaShader.CheckShaderUpdates(shaderSourceCache) or groundFogShader
 		combineShader =  LuaShader.CheckShaderUpdates(combineShaderSourceCache) or combineShader
 		shadowShader =  LuaShader.CheckShaderUpdates(shadowMinifierShaderSourceCache) or shadowShader
 	end
-  
+	if shaderConfig.ENABLED == 0 then return end
+	
 	gl.DepthMask(false) -- dont write to depth buffer
 
 	gl.Culling(GL.FRONT) -- cause our tris are reversed in plane vbo

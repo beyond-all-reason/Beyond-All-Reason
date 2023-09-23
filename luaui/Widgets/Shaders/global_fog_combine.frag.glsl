@@ -77,6 +77,17 @@ vec2 quadGatherSum2D(vec2 input){
 			dot( vec4(input.y, inputadjx.y, inputadjy.y, inputdiag.y), vec4(1.0))
 			);
 }
+vec4 quadGatherSum4D(vec4 input){
+		vec4 inputadjx = input - dFdx(input) * quadVector.x;
+		vec4 inputadjy = input - dFdy(input) * quadVector.y;
+		vec4 inputdiag = inputadjx - dFdy(inputadjx) * quadVector.y;
+		return vec4(
+			dot( vec4(input.x, inputadjx.x, inputadjy.x, inputdiag.x), vec4(1.0)),
+			dot( vec4(input.y, inputadjx.y, inputadjy.y, inputdiag.y), vec4(1.0)),
+			dot( vec4(input.z, inputadjx.z, inputadjy.z, inputdiag.z), vec4(1.0)),
+			dot( vec4(input.w, inputadjx.w, inputadjy.w, inputdiag.w), vec4(1.0))
+			);
+}
 
 vec4 debugQuad(vec2 qv){
 	// Returns a checkerboard pattern of quads. Yay?
@@ -94,231 +105,99 @@ vec4 debugQuad(vec2 qv){
 void main(void) {
 	if (abs(resolution - 2.0) > 0.01){
 		gl_FragColor = texture2D(fogbase, gl_TexCoord[0].st);
-		
-		//gl_FragColor = texelFetch(fogbase, ivec2(gl_TexCoord[0].st * (vec2(VSX,VSY) ) /int(resolution) ),0); // for debugging!
+		//gl_FragColor = texelFetch(fogbase, ivec2(gl_TexCoord[0].st * (vec2(VSX,VSY) ) /int(resolution) ),0); return; // for debugging!
 		
 	}else{ // this part only works with half-rez!
-    vec2 screenUVTexelCentered = gl_TexCoord[0].st; // This matches gl_FragCoord.xy/viewSizes, so it is texel centered
-	
-	#if 1
-		screenUVTexelCentered = gl_TexCoord[0].st;
-		//gl_FragColor = vec4(screenUVTexelCentered.x , screenUVTexelCentered.y, 0, 1); return;
-	#endif
-    
-    quadVector = quadGetQuadVector( gl_FragCoord.xy);	
-	//quadVector.y *= -1;
-	
-	vec3 QVC = vec3(// [[BR],[GY]]
-		quadVector.x > 0 ? 1: 0,
-		quadVector.y < 0 ? 1: 0,
-		(quadVector.x < 0 && quadVector.y >0) ? 1 : 0
-	);
-	//gl_FragColor.rgba = debugQuad(quadVector);return;
-	
-  
-    float mapdepth = texture(mapDepths, screenUVTexelCentered).x;
-    float modeldepth = texture(modelDepths, screenUVTexelCentered).x;
-
-	float screendepth = min(mapdepth, modeldepth);
-    
-    
-    float ndc = screendepth * 2.0 - 1.0;   
-    float near = 0.1; 
-    float far  = 100.0; 
-    float linearDepth = (2.0 * near * far) / (far + near - ndc * (far - near)) * 100;	// wow this is almost elmos resolution!
-    
-    vec4 my_and_neighbour_depth = quadGather(linearDepth, quadVector.xy);
-    
-    gl_FragColor = vec4(fract(my_and_neighbour_depth.x - my_and_neighbour_depth.y),0.0,0.0,1.0);
-    //gl_FragColor = vec4(quadVector.xy,0.0,1.0);
-    
-    
-    float dx = dFdx(linearDepth); // positive if right pixel is bigger
-    float dy = dFdy(linearDepth); // positive if top pixel is more
-    vec2 fogUV = gl_TexCoord[0].zw;
-    gl_FragColor = texture2D(fogbase, fogUV);
-	//gl_FragColor.a = min(gl_FragColor.a, 0.5);
-	//return;
-	
-    vec2 pixelShift = 2.0 / vec2(VSX, VSY);
-
-    bool smoothed = false;
-    if (abs(dx) > 32.0){ // left-right depth discontinuity of 32 elmos
-       smoothed = true;
-       fogUV.x += sign(quadVector.x - 0.5) * pixelShift.x; // move right pixels right, left pixels left
-    }
-
-    if (abs(dy) > 32.0){ // up-down depth discontinuity of 32 elmos
-        smoothed = true;
-        fogUV.y += sign(quadVector.y - 0.5) * pixelShift.y; // move top pixels up, buttom pixels down
-    }
-    //fogUV = screenUVTexelCentered;
-	//fogUV = gl_TexCoord[0].zw + 0.25 * quadVector.xy * pixelShift;
-    vec4 fogRGBA = texture2D(fogbase, fogUV);
-    fogRGBA = texture2D(fogbase, gl_TexCoord[0].zw);
-    //gl_FragColor = vec4(gl_TexCoord[0].xy,0.0,1.0);return;
-    gl_FragColor = vec4(fogRGBA.rgb, fogRGBA.a); // smooth where it should be smooth
-	//gl_FragColor.ba += smoothed ? 1 : 0;
-    vec2 qV_uvCorrect = quadVector.xy * vec2(1,-1);
-    float offset = 0.33;
-    vec2 fogUVquad = screenUVTexelCentered + qV_uvCorrect * pixelShift *offset - pixelShift * 0.5;
-    vec4 fogQuadColor = texture2D(fogbase, fogUVquad);
-    vec4 fogAlphaNeighbours = quadGather(fogQuadColor.a, quadVector.xy);
-    float blendedFog = dot(vec4(0.5, 0.2, 0.2, 0.1), fogAlphaNeighbours);
-    if (smoothed == false && fract(gl_FragCoord.x * 0.01)< 0.5 ){
-      //gl_FragColor = vec4(0.96 * fogRGBA.rgb, blendedFog); // smooth where it should be smooth
-    }
-	
-	//
-	vec4 dbgColor = debugQuad(quadVector);
-	
-	
-	// Try to gather all 4 neighbour fog alphas:
-	vec2 quadShift = (0.5 / vec2(VSX, VSY)) * (quadVector * vec2(1.0, 1.0));
-	vec4 quadFog = texture2D(fogbase, gl_TexCoord[0].zw + quadShift);
-	
-	gl_FragColor = quadFog;
-
-	
-	vec4 gatherAlpha = quadGather(quadFog.a, quadVector);
-	float minAlpha =  min(min(gatherAlpha.x,gatherAlpha.y),	min(gatherAlpha.z,gatherAlpha.w));
-	float maxAlpha =  max(max(gatherAlpha.x,gatherAlpha.y),	max(gatherAlpha.z,gatherAlpha.w));
-	
-	// Proper bilinear smoothing vector:
-	#define F 0.75
-	vec4 smoothingvec = vec4(F*F, F*(1.0-F), F*(1.0-F), (1.0-F)*(1.0-F)); // F*F, F*(1.0-F), F*(1.0-F), (1-F)*(1-F)
-	
-	float localsmoothalpha = dot(gatherAlpha, smoothingvec);
-	
-	gl_FragColor.a = localsmoothalpha;
-	if (dx < -32.0 ){
-		//gl_FragColor.a = minAlpha;
-	}
-	
-	if (dx > 32.0){
-		//gl_FragColor.a = maxAlpha;
-	}
-	float ismodel = step(modeldepth + 0.00001, mapdepth);
-	float allmodel = quadGatherSumFloat(ismodel);
-	float discontinuity = step(32,abs(dx) + abs(dy));
-	if (discontinuity < 0.5){ // NOT discontinous
-		if (allmodel > 0.33) gl_FragColor.a = minAlpha;
-		//gl_FragColor.a = (ismodel > 0.5 ? minAlpha :maxAlpha);
-	}else{ // has a discont
-		if (ismodel > 0.2) gl_FragColor.a = minAlpha;
-		else gl_FragColor.a = maxAlpha;
-		//if (allmodel > 0.45) gl_FragColor.a = minAlpha;
-		//gl_FragColor.a = minAlpha;
-		//gl_FragColor.a = (ismodel > 0.5 ? minAlpha :maxAlpha);
-		//if (dx < -32.0) gl_FragColor.a = maxAlpha;
-		//if (dx >  32.0) gl_FragColor.a = maxAlpha;
-		//if (dy < -32.0) gl_FragColor.a = minAlpha;
-		//if (dy >  32.0) gl_FragColor.a = minAlpha;
-		// Need to order fucking pixels within a quad? for fuck's sake
-	}
-	
-	if (abs(dx) > 32.0){
-		//gl_FragColor.a = gatherAlpha.y;
-	}
-	//if (dbgColor.a < 0.1){
-	//}
-	
-	//gl_FragColor.r += step(modeldepth, mapdepth);
-	gl_FragColor.a = min(gl_FragColor.a, 0.99) ;
-	//gl_FragColor.a *= dbgColor.a;
-	//gl_FragColor.a = gatherAlpha.a;
-	
-// ----------------------------------- END ----------------------
-// ----------------------------------- END ----------------------
-// ----------------------------------- END ----------------------
-    
-    #if 0
-        //vec2 distUV = gl_TexCoord[0].st * 4 + vec2(0, - gameframe*4);
-        //distUV = vec2(0.0);
-        //vec4 dist = (texture2D(distortion, distUV) * 2.0 - 1.0) * distortionlevel;
-        //vec4 dx = dFdx(dist);
-        //vec4 dy = dFdy(dist);
-      vec2 screenUVTexelCentered = gl_TexCoord[0].st; // This matches gl_FragCoord.xy/viewSizes, so it is texel centered
-       
-      vec2 viewSizes = vec2(VSX,VSY);
-      // These are centered upon texel centers, with 0.5s, e.g. 87.5
-      vec2 fragCoords = gl_FragCoord.xy; 
-      vec2 texelCenterUV = gl_FragCoord.xy/viewSizes;
-      //gl_FragColor.rgba = vec4(100*abs(gl_FragCoord.xy - uv*viewSizes),0,1); return;
-      
-      //gl_FragColor.rgba = vec4(fragCoords.x, fragCoords.y, 0,1); return;
-          
-      //gl_FragColor = texelFetch(fogbase, ivec2(gl_TexCoord[0].st * (vec2(VSX,VSY) ) /int(resolution) ),0); // for debugging!
-      
-      float mapdepth = texture(mapDepths, screenUVTexelCentered).x;
-      float modeldepth = texture(modelDepths, screenUVTexelCentered).x;
-      mapdepth = min(mapdepth, modeldepth);
-      
-      float ndc = mapdepth * 2.0 - 1.0; 
-      float near = 0.1; 
-      float far  = 100.0; 
-      float linearDepth = (2.0 * near * far) / (far + near - ndc * (far - near)) * 100;	// wow this is almost elmos resolution!
-      
-      // http://www.aclockworkberry.com/shader-derivative-functions/
-      float dx = dFdx(linearDepth); // positive if right pixel is bigger
-      float dy = dFdy(linearDepth); // positive if top pixel is more
-      
-      // z is X, w is Y
-      vec4 quadvector = get_quad_vector_naive(vec4(uv, gl_FragCoord.xy)); 
-      
-      float pixelShift = 0.7;
-      
-      uv = gl_TexCoord[0].st;
-
-      bool smoothed = false;
-      if (abs(dx) > 32.0){ // left-right depth discontinuity of 32 elmos
-        smoothed = true;
-        uv.x += sign(quadvector.z - 0.5) * pixelShift/VSX; // move right pixels right, left pixels left
-      }
-      
-      if (abs(dy) > 32.0){ // up-down depth discontinuity of 32 elmos
-        smoothed = true;
-        uv.y += sign(quadvector.w - 0.5) * pixelShift/VSY; // move top pixels up, buttom pixels down
-      }
-      gl_FragColor = texture2D(fogbase, screenUVTexelCentered); // smooth where it should be smooth
-
-      gl_FragColor = texelFetch(fogbase, ivec2(screenUVTexelCentered * (vec2(VSX,VSY) ) /2 ),0);
-
-      //gl_FragColor.rgba = vec4(fract(linearDepth * 0.001));
-    #endif
-		#if 0 // debug
-			if (abs(gl_FragCoord.x - VSX/2 + 0.5) < 0.1){
-				gl_FragColor.rgb = vec3(quadvector.w);
-			}
-			if (smoothed){ // TOP KEKS CAS is eating my gains!
-					//uv += 0.55/vec2(VSX,VSY);
-					gl_FragColor = vec4(1.0,0.0,0.0,0.3);
-			}
-			
-			if (gl_FragCoord.x > VSX/2){ // keep right half unsmoothed
-				uv = gl_TexCoord[0].st;
-				gl_FragColor = texture2D(fogbase, uv);
-			}
-
-			
-			if (abs(gl_FragCoord.x - VSX/2 + 0.5) < 0.1){
-				gl_FragColor.rgb = vec3(quadvector.w);
-			}
-			
-			if (abs(dy) > 60){
-				if (quadvector.z > 0)
-					gl_FragColor.ra = vec2(1.0);
-				
-			}
+		vec2 screenUVTexelCentered = gl_TexCoord[0].st; // This matches gl_FragCoord.xy/viewSizes, so it is texel centered
 		
-			if (gl_FragCoord.y > VSY * 0.75){
-				gl_FragColor.rgb = vec3(quadvector.z, quadvector.w,0) * 0.1;
-				gl_FragColor.b = float(abs(dy) > 10);
-				gl_FragColor.a = 1.0;
+		quadVector = quadGetQuadVector(gl_FragCoord.xy);	
+		//gl_FragColor.rgba = debugQuad(quadVector);return;
+	  
+		float mapdepth = texture(mapDepths, screenUVTexelCentered).x;
+		float modeldepth = texture(modelDepths, screenUVTexelCentered).x;
+
+		float screendepth = min(mapdepth, modeldepth);
+		
+		float ndc = screendepth * 2.0 - 1.0;   
+		float near = 0.1; 
+		float far  = 100.0; 
+		float linearDepth = (2.0 * near * far) / (far + near - ndc * (far - near)) * 100;	// wow this is almost elmos resolution!
+		
+		float dx = dFdx(linearDepth); // positive if right pixel is bigger
+		float dy = dFdy(linearDepth); // positive if top pixel is more
+		
+		// Indicators
+		float ismodel = step(modeldepth + 0.00001, mapdepth);
+		float modelpercent = quadGatherSumFloat(ismodel);
+		float discontinuity = step(32,abs(dx) + abs(dy));
+		
+		// Define our "base" fog UV coords
+		vec2 fogUV = gl_TexCoord[0].zw;
+
+		
+		// Try to gather all 4 neighbour fog alphas:
+		vec2 quadShift = (0.5 / vec2(VSX, VSY)) * (quadVector * vec2(1.0, 1.0));
+		vec4 quadFog = texture2D(fogbase, fogUV + quadShift);
+		
+		// get the local fog colors, linearly smoothed
+		quadFog.rgb = texture2D(fogbase, fogUV).rgb;
+		
+		// what if, according to my own quad, we sampled once very far out per quad?
+		// THIS IS THE GOLDEN SAMPLE!
+		vec4 smoothcolor = quadGatherSum4D(texture2D(fogbase, fogUV + 3*quadShift)) * 0.25;
+		quadFog.rgb = mix(smoothcolor.rgb, quadFog.rgb, 0.3);
+		
+		
+		
+		
+		
+		gl_FragColor = quadFog;
+
+		
+		vec4 gatherAlpha = quadGather(quadFog.a, quadVector);
+		float minAlpha =  min(min(gatherAlpha.x,gatherAlpha.y),	min(gatherAlpha.z,gatherAlpha.w));
+		float maxAlpha =  max(max(gatherAlpha.x,gatherAlpha.y),	max(gatherAlpha.z,gatherAlpha.w));
+		
+		// Proper bilinear smoothing vector:
+		#define F 0.75
+		vec4 smoothingvec = vec4(F*F, F*(1.0-F), F*(1.0-F), (1.0-F)*(1.0-F)); // F*F, F*(1.0-F), F*(1.0-F), (1-F)*(1-F)
+		
+		float localsmoothalpha = dot(gatherAlpha, smoothingvec);
+		
+		gl_FragColor.a = localsmoothalpha;
+
+
+		if (discontinuity < 0.5){ // NOT discontinous
+			if (modelpercent > 0.33) gl_FragColor.a = minAlpha;
+			
+			//gl_FragColor.a = (ismodel > 0.5 ? minAlpha :maxAlpha);
+		}else{ // has a discontinuity
+			//TODO: also modulate color!
+			
+			if (ismodel > 0.2) gl_FragColor.a = minAlpha;
+			else{
+			
+				//if (dy * quadVector.y > 32 ) gl_FragColor.a = maxAlpha;
+				//if (dy * quadVector.y < -32 ) gl_FragColor.a = minAlpha;
+				
+				//if (dx * quadVector.x > 32 ) gl_FragColor.a = minAlpha;
+				//if (dx * quadVector.x < -32 ) gl_FragColor.a = maxAlpha;
+				
+				
+				//if (dy > 32) gl_FragColor.a = 1.0;
+				//if (dx < -32) gl_FragColor.a = minAlpha;
+			
+				//if (dx > 32) gl_FragColor.a = maxAlpha;
+				//if (dx < -32) gl_FragColor.a = minAlpha;
+			
 			}
-		#endif
-		//gl_FragColor.rgb = fract(gl_FragCoord.xyx);
-		//gl_FragColor.rgb = fract(gl_FragCoord.xyx);
-		//gl_FragColor.a = 1.0;
+			//else gl_FragColor.a = maxAlpha;
+			// Need to order fucking pixels within a quad? for fuck's sake
+		}
+		
+		
+		//gl_FragColor.r += step(modeldepth, mapdepth);
+		gl_FragColor.a = min(gl_FragColor.a, 0.99) ;
+		//gl_FragColor.a = gatherAlpha.a;
 	}
 }
