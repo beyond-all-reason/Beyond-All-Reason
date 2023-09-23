@@ -12,7 +12,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "32 22 32",
+		collisionvolumescales = "32 54 32",
 		collisionvolumetype = "CylY",
 		corpse = "ROCKTEETH",
 		crushresistance = 250,
