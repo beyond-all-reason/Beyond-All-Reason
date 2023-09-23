@@ -50,6 +50,7 @@ local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 
 local restoreMapBorder = true
 local mapExtensionShader = nil
+local mapExtensionShaderDeferred = nil
 local terrainVAO = nil
 local terrainInstanceVBO = nil
 
@@ -59,6 +60,9 @@ local terrainInstanceVBO = nil
 local function UpdateShader()
 	mapExtensionShader:ActivateWith(function()
 		mapExtensionShader:SetUniformAlways("shaderParams", gridSize, brightness * nightFactor, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
+	end)
+	mapExtensionShaderDeferred:ActivateWith(function()
+		mapExtensionShaderDeferred:SetUniformAlways("shaderParams", gridSize, brightness * nightFactor, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
 	end)
 end
 
@@ -75,6 +79,7 @@ local vsSrc = [[
 
 layout (location = 0) in vec4 aMirrorParams;
 
+//__DEFINES__
 //__ENGINEUNIFORMBUFFERDEFS__
 
 uniform vec4 shaderParams;
@@ -114,9 +119,15 @@ layout (triangle_strip, max_vertices = 4) out;
 
 #line 20090
 
+//__DEFINES__
 //__ENGINEUNIFORMBUFFERDEFS__
 
 uniform sampler2D heightTex;
+#ifdef DEFERRED_MODE
+	uniform sampler2D mapNormalTex;
+#endif
+
+
 uniform vec4 shaderParams;
 
 #define gridSize shaderParams.x
@@ -131,6 +142,9 @@ out DataGS {
 	///
 	vec2 alphaFog;
 	vec2 uv;
+	#ifdef DEFERRED_MODE
+		vec2 normalxz;
+	#endif
 };
 
 
@@ -142,6 +156,10 @@ bool MyEmitTestVertex(vec2 xzVec, bool testme) {
 	uv = worldPos.xz / mapSize.xy;
 	vec2 UVHM =  heighmapUVatWorldPos(worldPos.xz);
 	worldPos.y = textureLod(heightTex, UVHM, 0.0).x;
+	
+	#ifdef DEFERRED_MODE
+		normalxz = textureLod(mapNormalTex, UVHM, 0.0).ra;
+	#endif
 
 	const vec2 edgeTightening = vec2(0.5); // to tighten edges a little better
 	worldPos.xz = abs(dataIn[0].vMirrorParams.xy * mapSize.xy - worldPos.xz);
@@ -216,7 +234,18 @@ local fsSrc = [[
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 
+//__DEFINES__
 //__ENGINEUNIFORMBUFFERDEFS__
+
+#ifdef DEFERRED_MODE
+	#define GBUFFER_NORMTEX_IDX 0
+	#define GBUFFER_DIFFTEX_IDX 1
+	#define GBUFFER_SPECTEX_IDX 2
+	#define GBUFFER_EMITTEX_IDX 3
+	#define GBUFFER_MISCTEX_IDX 4
+
+	#define GBUFFER_COUNT 5
+#endif
 
 uniform sampler2D colorTex;
 
@@ -226,11 +255,17 @@ uniform vec4 shaderParams;
 in DataGS {
 	///
 	vec2 alphaFog;
-	vec2 uv;
+	vec2 uv;	
+	#ifdef DEFERRED_MODE
+		vec2 normalxz;
+	#endif
 };
 
-out vec4 fragColor;
-
+#ifdef DEFERRED_MODE
+	out vec4 fragData[GBUFFER_COUNT];
+#else
+	out vec4 fragColor;
+#endif
 const mat3 RGB2YCBCR = mat3(
 	0.2126, -0.114572, 0.5,
 	0.7152, -0.385428, -0.454153,
@@ -242,18 +277,30 @@ const mat3 YCBCR2RGB = mat3(
 	1.5748, -0.468124, -5.55112e-17);
 
 void main() {
+	
 
-	fragColor = texture(colorTex, uv);
+	vec4 finalColor = texture(colorTex, uv);
 	#if 1
-		vec3 yCbCr = RGB2YCBCR * fragColor.rgb;
+		vec3 yCbCr = RGB2YCBCR * finalColor.rgb;
 		yCbCr.x = clamp(yCbCr.x * brightness, 0.0, 1.0);
-		fragColor.rgb = YCBCR2RGB * yCbCr;
+		finalColor.rgb = YCBCR2RGB * yCbCr;
 	#else
-		fragColor.rgb *= brightness;
+		finalColor.rgb *= brightness;
 	#endif
 
-	fragColor.rgb = mix(fogColor.rgb, fragColor.rgb, alphaFog.y);
-	fragColor.a = alphaFog.x;
+	finalColor.rgb = mix(fogColor.rgb, finalColor.rgb, alphaFog.y);
+	finalColor.a = alphaFog.x;
+	#ifdef DEFERRED_MODE
+		vec3 normals = vec3(normalxz.x,  sqrt(1.0 - (dot(normalxz,normalxz))), normalxz.y);
+		fragData[GBUFFER_NORMTEX_IDX] = vec4(normals * 0.5 + 0.5, 1);
+		fragData[GBUFFER_DIFFTEX_IDX] = finalColor;
+		fragData[GBUFFER_SPECTEX_IDX] = vec4(0);
+		fragData[GBUFFER_EMITTEX_IDX] = vec4(0);
+		fragData[GBUFFER_MISCTEX_IDX] = vec4(0);
+	#else
+		fragColor = finalColor;
+	#endif
+	
 	//fragColor.a *= 0.5;
 }
 ]]
@@ -336,13 +383,32 @@ function widget:Initialize()
 		uniformInt = {
 			colorTex = 0,
 			heightTex = 1,
-			mapDepthTex = 2,
 		},
 		uniformFloat = {
 			shaderParams = {gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0},
 		},
 	}, "Map Extension Shader2")
 	local shaderCompiled = mapExtensionShader:Initialize()
+
+	if not shaderCompiled then
+		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
+		widgetHandler:RemoveWidget()
+	end
+	
+	mapExtensionShaderDeferred = LuaShader({
+		vertex = vsSrc:gsub("//__DEFINES__","#define DEFERRED_MODE 1"),
+		geometry = gsSrc:gsub("//__DEFINES__","#define DEFERRED_MODE 1"),
+		fragment = fsSrc:gsub("//__DEFINES__","#define DEFERRED_MODE 1"),
+		uniformInt = {
+			colorTex = 0,
+			heightTex = 1,
+			mapNormalTex = 2,
+		},
+		uniformFloat = {
+			shaderParams = {gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0},
+		},
+	}, "Map Extension Shader2")
+	local shaderCompiled = mapExtensionShaderDeferred:Initialize()
 
 	if not shaderCompiled then
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
@@ -497,6 +563,39 @@ end
 	false
 	GL_CULL_FACE_MODE = GL_BACK
 ]]--
+
+function widget:DrawGroundDeferred()
+	--if true then return end
+	--Spring.Echo('widget:DrawGroundDeferred')
+		--local q = gl.CreateQuery()
+	if hasBadCulling then
+		--gl.Culling(true)
+	else
+		--gl.Culling(false) -- amdlinux on steam deck or else half the tris are invisible
+	end
+	--gl.DepthTest(GL.LEQUAL)
+	--gl.DepthMask(true)
+
+	gl.Texture(0, colorTex)
+	gl.Texture(1, "$heightmap")
+	gl.Texture(2, "$normals")
+	mapExtensionShaderDeferred:Activate()
+	mapExtensionShaderDeferred:SetUniform("shaderParams", gridSize, brightness * nightFactor, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
+	--gl.RunQuery(q, function()
+		terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
+	--end)
+	mapExtensionShaderDeferred:Deactivate()
+	gl.Texture(0, false)
+	gl.Texture(1, false)
+	gl.Texture(2, false)
+
+	--gl.DepthTest(GL.ALWAYS)
+	--gl.DepthTest(false)
+	--gl.DepthMask(false)
+	--gl.Culling(GL.BACK)
+
+end
+
 
 function widget:DrawWorldPreUnit()
 	UpdateMirrorParams()
