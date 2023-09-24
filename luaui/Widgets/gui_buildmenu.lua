@@ -1118,6 +1118,10 @@ local function bindBuildUnits(widget)
 end
 
 function widget:Initialize()
+	if widgetHandler:IsWidgetKnown("Grid menu") then
+		widgetHandler:DisableWidget("Grid menu")
+	end
+
 	units.checkGeothermalFeatures()
 	if disableWind then
 		units.restrictWindUnits(true)
