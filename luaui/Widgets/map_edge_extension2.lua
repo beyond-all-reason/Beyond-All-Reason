@@ -23,6 +23,7 @@ local fogEffect = true
 local mapBorderStyle = 'texture'	-- either 'texture' or 'cutaway'
 
 local gridSize = 32
+local gridSizeDeferred = 2*gridSize
 
 local hasBadCulling = false
 
@@ -54,6 +55,9 @@ local mapExtensionShader = nil
 local mapExtensionShaderDeferred = nil
 local terrainVAO = nil
 local terrainInstanceVBO = nil
+local terrainInstanceVBODeferred = nil
+
+local planeVAO
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -226,6 +230,19 @@ void main() {
 ]]
 
 
+--[[
+
+Results:
+no deferred pass: 428 fps
+depth only (GBUFFER_COUNT ==0) 423fps
+1 buffer: 373 fps
+2 buffers: 399 fps
+3 buffers: 388 fps
+4 buffers: 379 fps
+5 buffers: 370 fps 
+
+]]--
+
 local fsSrc = [[
 #version 330
 
@@ -242,7 +259,7 @@ local fsSrc = [[
 	#define GBUFFER_EMITTEX_IDX 3
 	#define GBUFFER_MISCTEX_IDX 4
 
-	#define GBUFFER_COUNT 5
+	#define GBUFFER_COUNT 2
 #endif
 
 uniform sampler2D colorTex;
@@ -257,7 +274,9 @@ in DataGS {
 };
 
 #ifdef DEFERRED_MODE
-	out vec4 fragData[GBUFFER_COUNT];
+	#if GBUFFER_COUNT > 0
+		out vec4 fragData[GBUFFER_COUNT];
+	#endif
 #else
 	out vec4 fragColor;
 #endif
@@ -293,11 +312,21 @@ void main() {
 	finalColor.a = alphaFog.x;
 	#ifdef DEFERRED_MODE
 		// TODO: normals arent correct, they are mirrored :/ 
-		fragData[GBUFFER_NORMTEX_IDX] = vec4(mapNormal * 0.5 + 0.5, 1);
-		fragData[GBUFFER_DIFFTEX_IDX] = finalColor;
-		fragData[GBUFFER_SPECTEX_IDX] = vec4(0);
-		fragData[GBUFFER_EMITTEX_IDX] = vec4(0);
-		fragData[GBUFFER_MISCTEX_IDX] = vec4(0);
+		#if GBUFFER_COUNT > 0
+			fragData[GBUFFER_NORMTEX_IDX] = vec4(mapNormal * 0.5 + 0.5, 1);
+		#endif
+		#if GBUFFER_COUNT > 1
+			fragData[GBUFFER_DIFFTEX_IDX] = finalColor;
+		#endif
+		#if GBUFFER_COUNT > 2
+			fragData[GBUFFER_SPECTEX_IDX] = vec4(0);		
+		#endif
+		#if GBUFFER_COUNT > 3
+			fragData[GBUFFER_EMITTEX_IDX] = vec4(0);
+		#endif
+		#if GBUFFER_COUNT > 4
+			fragData[GBUFFER_MISCTEX_IDX] = vec4(0);
+		#endif
 	#else
 		fragColor = finalColor;
 	#endif
@@ -306,9 +335,108 @@ void main() {
 }
 ]]
 
+local vsSrcDeferred = [[
+
+#version 330
+
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+
+#line 10077
+
+layout (location = 0) in vec2 xyworld_xyfract;
+
+//xy is flipx flipy
+//zw is offsetx offsety
+layout (location = 1) in vec4 aMirrorParams;
+
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
+
+uniform sampler2D heightTex;
+uniform vec4 shaderParams;
+
+#define gridSize shaderParams.x
+#define curvature shaderParams.z
+#define edgeFog shaderParams.w
+
+
+#define NORM2SNORM(value) (value * 2.0 - 1.0)
+#define SNORM2NORM(value) (value * 0.5 + 0.5)
+
+out DataGS {
+	vec2 alphaFog;
+	vec2 uv;
+};
+
+void main() {
+	vec2 flip = aMirrorParams.xy;
+	vec2 offset = aMirrorParams.zw;
+
+	uv = xyworld_xyfract * 0.5 + 0.5;
+	vec4 worldPos = vec4(uv.x, 0.0, uv.y, 1.0);
+	
+	
+	//worldPos.xz = mix(worldPos.xz, 1.0 - worldPos.xz, flip) + offset;
+	worldPos.xz += offset;
+	
+	worldPos.xz *= mapSize.xy;
+	
+	uv = mix(uv, 1.0 - uv, flip);
+	
+	worldPos.y = textureLod(heightTex, heighmapUVatWorldPos(uv * mapSize.xy), 0.0).x;
+	
+	const vec2 edgeTightening = vec2(0.5); // to tighten edges a little better
+	//worldPos.xz = abs(flip * mapSize.xy - worldPos.xz);
+	worldPos.xz -= offset * edgeTightening;
+	
+
+	float alpha = 1.0;
+
+	if (curvature == 1.0) {
+		const float curvatureBend = 150.0;
+
+		alpha = 0.0;
+
+		vec2 refPoint = SNORM2NORM(offset) * mapSize.xy;
+		if (flip.x != 0.0) {
+			worldPos.y -= pow((worldPos.x - refPoint.x) / curvatureBend, 2.0);
+			alpha -= pow((worldPos.x - refPoint.x) / mapSize.x, 2.0);
+		}
+
+		if (flip.y != 0.0) {
+			worldPos.y -= pow((worldPos.z - refPoint.y) / curvatureBend, 2.0);
+			alpha -= pow((worldPos.z - refPoint.y) / mapSize.y, 2.0);
+		}
+
+		alpha = 1.0 + (6.0 * (alpha + 0.18));
+		alpha = clamp(alpha, 0.0, 1.0);
+	}
+	
+
+	float fogFactor = 1.0;
+	if (edgeFog == 1.0) {
+		vec4 fogCoord = cameraView * worldPos;
+		// emulate linear fog
+		// vec4 fogParams; //fog {start, end, 0.0, scale}
+		float fogDist = length(fogCoord.xyz);
+		fogFactor = (fogParams.y - fogDist) * fogParams.w;
+		fogFactor = clamp(fogFactor, 0.0, 1.0);
+	}
+
+	alphaFog = vec2(alpha, fogFactor);
+	//alphaFog = vec2(1,1);
+	gl_Position = cameraViewProj * worldPos;
+}
+
+
+]]
 
 local numPoints
 local mirrorParams = {}
+
+
+VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
@@ -360,6 +488,7 @@ function widget:Initialize()
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget()
 	end
+	
 	-----------
 
 	numPoints = (mapSizeX / gridSize) * (mapSizeZ / gridSize)
@@ -369,6 +498,22 @@ function widget:Initialize()
 	})
 
 	terrainVAO:AttachInstanceBuffer(terrainInstanceVBO)
+	
+	
+	
+	terrainInstanceVBODeferred = gl.GetVBO(GL.ARRAY_BUFFER, true)
+	
+	terrainInstanceVBODeferred:Define(8, {
+		{id = 1, name = "mirrorParams", size = 4},
+	})
+	
+	local planeVBO, numVertices = makePlaneVBO(1,1,Game.mapSizeX/gridSizeDeferred,Game.mapSizeZ/gridSizeDeferred)
+	local planeIndexVBO, numIndices =  makePlaneIndexVBO(Game.mapSizeX/gridSizeDeferred,Game.mapSizeZ/gridSizeDeferred)
+	planeVAO = gl.GetVAO()
+	planeVAO:AttachVertexBuffer(planeVBO)
+	planeVAO:AttachIndexBuffer(planeIndexVBO)
+	planeVAO:AttachInstanceBuffer(terrainInstanceVBODeferred)
+
 
 	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == false)
 	--Spring.Echo(gsSrc)
@@ -398,9 +543,11 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 	end
 	
+	
+	vsSrcDeferred = vsSrcDeferred:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	mapExtensionShaderDeferred = LuaShader({
-		vertex = vsSrc:gsub("//__DEFINES__","#define DEFERRED_MODE 1"),
-		geometry = gsSrc:gsub("//__DEFINES__","#define DEFERRED_MODE 1"),
+		vertex = vsSrcDeferred:gsub("//__DEFINES__","#define DEFERRED_MODE 1"),
+		--geometry = gsSrc:gsub("//__DEFINES__","#define DEFERRED_MODE 1"),
 		fragment = fsSrc:gsub("//__DEFINES__","#define DEFERRED_MODE 1"),
 		uniformInt = {
 			colorTex = 0,
@@ -410,7 +557,7 @@ function widget:Initialize()
 		uniformFloat = {
 			shaderParams = {gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0},
 		},
-	}, "Map Extension Shader2")
+	}, "Map Extension Shader Deferred")
 	local shaderCompiled = mapExtensionShaderDeferred:Initialize()
 
 	if not shaderCompiled then
@@ -544,6 +691,7 @@ local function UpdateMirrorParams()
 	end
 	if #mirrorParams > 0 then
 		terrainInstanceVBO:Upload(mirrorParams)
+		terrainInstanceVBODeferred:Upload(mirrorParams)
 	end
 end
 
@@ -574,7 +722,7 @@ function widget:DrawGroundDeferred()
 	if #mirrorParams == 0 then
 		return
 	end
-	
+	--if true then return end
 	--local q = gl.CreateQuery()
 	if hasBadCulling then
 		gl.Culling(true)
@@ -584,13 +732,16 @@ function widget:DrawGroundDeferred()
 	--gl.DepthTest(GL.LEQUAL)
 	--gl.DepthMask(true)
 
+		--gl.Culling(false) -- needed for deferred one, as flipping fucks tri order	
 	gl.Texture(0, colorTex)
 	gl.Texture(1, "$heightmap")
 	gl.Texture(2, "$normals")
 	mapExtensionShaderDeferred:Activate()
 	mapExtensionShaderDeferred:SetUniform("shaderParams", gridSize, brightness * nightFactor, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
 	--gl.RunQuery(q, function()
-		terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
+		--terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
+		--planeVAO:DrawElements(GL.TRIANGLES, 1000, 0, 8 ,0)
+		planeVAO:DrawElements(GL.TRIANGLES, nil, 0, #mirrorParams / 4)
 	--end)
 	mapExtensionShaderDeferred:Deactivate()
 	gl.Texture(0, false)
