@@ -219,14 +219,14 @@ FirePrimary()
 	start-script RockZ(-9,aimDir);
 	if( gun_1 )
 	{
-	    emit-sfx 1024 + 0 from flare1;
+	    emit-sfx 1024 + 0 from flare2;
 		move barrel2 to z-axis [-3.000000] speed [500.000000];
 		wait-for-move barrel2 along z-axis;
 		move barrel2 to z-axis [0.000000] speed [3.000000];
 	}
 	else
 	{
-	    emit-sfx 1024 + 0 from flare2;
+	    emit-sfx 1024 + 0 from flare1;
 		move barrel1 to z-axis [-3.000000] speed [500.000000];
 		wait-for-move barrel1 along z-axis;
 		move barrel1 to z-axis [0.000000] speed [3.000000];
