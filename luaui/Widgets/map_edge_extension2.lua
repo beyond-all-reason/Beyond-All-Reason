@@ -140,12 +140,8 @@ in DataVS {
 } dataIn[];
 
 out DataGS {
-	///
 	vec2 alphaFog;
 	vec2 uv;
-	#ifdef DEFERRED_MODE
-		vec2 normalxz;
-	#endif
 };
 
 
@@ -160,7 +156,7 @@ bool MyEmitTestVertex(vec2 xzVec, bool testme) {
 	worldPos.y = textureLod(heightTex, UVHM, 0.0).x;
 	
 	#ifdef DEFERRED_MODE
-		normalxz = textureLod(mapNormalTex, UVHM, 0.0).ra;
+		//normalxz = textureLod(mapNormalTex, UVHM, 0.0).ra;
 	#endif
 
 	const vec2 edgeTightening = vec2(0.5); // to tighten edges a little better
@@ -256,12 +252,8 @@ uniform vec4 shaderParams;
 #define brightness shaderParams.y
 
 in DataGS {
-	///
 	vec2 alphaFog;
 	vec2 uv;	
-	#ifdef DEFERRED_MODE
-		vec2 normalxz;
-	#endif
 };
 
 #ifdef DEFERRED_MODE
@@ -280,9 +272,10 @@ const mat3 YCBCR2RGB = mat3(
 	1.5748, -0.468124, -5.55112e-17);
 
 void main() {
+	// remove tiling seams from minimap texel edges
+	vec2 clampeduv = clamp(uv, 0.5/1024.0,1.0 - 0.5/1024.0); 
 	
-
-	vec4 finalColor = texture(colorTex, uv);
+	vec4 finalColor = texture(colorTex, clampeduv);
 	#if 1
 		vec3 yCbCr = RGB2YCBCR * finalColor.rgb;
 		yCbCr.x = clamp(yCbCr.x * brightness, 0.0, 1.0);
@@ -299,8 +292,8 @@ void main() {
 	finalColor.rgb = mix(fogColor.rgb, finalColor.rgb, alphaFog.y);
 	finalColor.a = alphaFog.x;
 	#ifdef DEFERRED_MODE
-		vec3 normals = vec3(normalxz.x,  sqrt(1.0 - (dot(normalxz,normalxz))), normalxz.y);
-		fragData[GBUFFER_NORMTEX_IDX] = vec4(normals * 0.5 + 0.5, 1);
+		// TODO: normals arent correct, they are mirrored :/ 
+		fragData[GBUFFER_NORMTEX_IDX] = vec4(mapNormal * 0.5 + 0.5, 1);
 		fragData[GBUFFER_DIFFTEX_IDX] = finalColor;
 		fragData[GBUFFER_SPECTEX_IDX] = vec4(0);
 		fragData[GBUFFER_EMITTEX_IDX] = vec4(0);
@@ -574,17 +567,19 @@ end
 	GL_CULL_FACE_MODE = GL_BACK
 ]]--
 
+
+-- This requires both the callin and the config int to be enabled
+-- Note that the performance of this draw call is somehow much greater than the screen space one. Very sad :?
 function widget:DrawGroundDeferred()
 	if #mirrorParams == 0 then
 		return
 	end
-	--if true then return end
-	--Spring.Echo('widget:DrawGroundDeferred')
-		--local q = gl.CreateQuery()
+	
+	--local q = gl.CreateQuery()
 	if hasBadCulling then
-		--gl.Culling(true)
+		gl.Culling(true)
 	else
-		--gl.Culling(false) -- amdlinux on steam deck or else half the tris are invisible
+		gl.Culling(false) -- amdlinux on steam deck or else half the tris are invisible
 	end
 	--gl.DepthTest(GL.LEQUAL)
 	--gl.DepthMask(true)
@@ -605,7 +600,7 @@ function widget:DrawGroundDeferred()
 	--gl.DepthTest(GL.ALWAYS)
 	--gl.DepthTest(false)
 	--gl.DepthMask(false)
-	--gl.Culling(GL.BACK)
+	gl.Culling(GL.BACK)
 
 end
 
