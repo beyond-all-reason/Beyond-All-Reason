@@ -1728,7 +1728,7 @@ function widget:DrawScreen()
 				end
 
 				-- resign button
-				if not spec then
+				if not spec and not gameIsOver then
 					if math_isInRect(mx, my, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
 						color1 = { 0.28, 0.28, 0.28, 0.4 + (0.5 * fadeProgress) }
 						color2 = { 0.45, 0.45, 0.45, 0.4 + (0.5 * fadeProgress) }
