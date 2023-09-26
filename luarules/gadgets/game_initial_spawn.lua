@@ -217,12 +217,11 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.MarkerAddPoint(x,y,z,name .. " " .. readyState)
 		--]]
 
+		-- if startPosType is not set to choose-in-game, we will handle start positions manually
 		if Game.startPosType ~= 2 then
 			return true
-		end -- accept blindly unless we are in choose-in-game mode
-		if useFFAStartPoints then
-			return true
 		end
+
 		if select(4, Spring.GetTeamInfo(teamID)) then  -- isAiTeam
 			return false
 		end
