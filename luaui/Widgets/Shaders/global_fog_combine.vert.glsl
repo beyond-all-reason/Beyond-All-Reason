@@ -20,6 +20,9 @@ void main(void)
 		
 		// When VSY is odd:
 		gl_TexCoord[0].zw = vec2(VSX/(2.0*HSX), VSY/(2.0*HSY)) * gl_TexCoord[0].xy + vec2(1.0/VSX, - 1.0/VSY) ;
+		
+		// WTF WHY IS VSX ZERO? ARE QUADS STARTING SOMEWHERE ELSE?
+		gl_TexCoord[0].zw = vec2(VSX/(2.0*HSX), VSY/(2.0*HSY)) * gl_TexCoord[0].xy + vec2(0.0/VSX, - 1.0/VSY) ;
 	#endif
 
 	

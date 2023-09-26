@@ -103,6 +103,7 @@ local definesSlidersParamsList = {
 	{name = 'BLUENOISESTRENGTH', default = 1.1, min = 0, max = 1.1, digits = 1, tooltip =  'Amount of blue noise added to shadow sampling'},
 	{name = 'TEXTURESAMPLER', default = 1, min = 0, max = 6, digits = 0,  tooltip = '0:None 1=Packed3D 2=Tex2D 3=Tex2D 4=FBM 5=Value3D 6=SimplexPerlin'},
 	{name = 'QUADNOISEFETCHING', default = 1, min = 0, max = 1, digits = 0,  tooltip = 'Enable Quad Message Passing [0 or 1]'},
+	{name = 'WEIGHTFACTOR', default = 0.56, min = 0, max = 1, digits = 2,  tooltip = 'Squared weight for each texel in PQM'},
 	{name = 'NOISESAMPLES',default = 16, min = 1, max = 64, digits = 0, tooltip = 'How many samples of 3D noise to take'},
 	{name = 'NOISESCALE', default = 0.2, min = 0, max = 2, digits = 2, tooltip = 'The tiling frequency of noise'},
 	{name = 'NOISETHRESHOLD', default = 0, min = -1, max = 1, digits = 2, tooltip =  'The 0 level of noise'},
@@ -119,7 +120,9 @@ local definesSlidersParamsList = {
 	{name = 'EASEGLOBAL', default = 2, min = 1, max = 50, digits = 2, tooltip = 'How much to reduce global fog close to camera'},
 	{name = 'EASEHEIGHT', default = 1, min = 0.0, max = 5, digits = 2, tooltip = 'How much to reduce height-based fog close to camera'},
 	{name = 'CLOUDSHADOWS', default = 8, min = 0, max = 16, digits = 0, tooltip = 'How many rays to cast in the direction of the sun for shadows'},
+	{name = 'COMBINESHADER', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Run the combine shader if RESOLUTION > 1'},
 	{name = 'ENABLED', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Dont do anything'},
+	
 }
 
 for i, shaderDefine in ipairs(definesSlidersParamsList) do 
@@ -582,7 +585,7 @@ function widget:DrawWorld()
 	gl.Culling(false)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	-- glColorMask(false, false, false, false)
-	if toTexture then 
+	if toTexture and shaderConfig.COMBINESHADER == 1 then 
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		combineShader:Activate()
 		combineShader:SetUniformFloat("resolution", shaderConfig.RESOLUTION)

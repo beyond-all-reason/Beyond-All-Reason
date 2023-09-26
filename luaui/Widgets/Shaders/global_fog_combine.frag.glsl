@@ -118,11 +118,13 @@ void main(void) {
 
 		float screendepth = min(mapdepth, modeldepth);
 		
+		// Convert to approximate depth metric
 		float ndc = screendepth * 2.0 - 1.0;   
 		float near = 0.1; 
 		float far  = 100.0; 
 		float linearDepth = (2.0 * near * far) / (far + near - ndc * (far - near)) * 100;	// wow this is almost elmos resolution!
 		
+		// Calculate Derivatives
 		float dx = dFdx(linearDepth); // positive if right pixel is bigger
 		float dy = dFdy(linearDepth); // positive if top pixel is more
 		
@@ -133,26 +135,26 @@ void main(void) {
 		
 		// Define our "base" fog UV coords
 		vec2 fogUV = gl_TexCoord[0].zw;
-
+		//gl_FragColor = texture(fogbase, fogUV); return;
 		
 		// Try to gather all 4 neighbour fog alphas:
-		vec2 quadShift = (0.5 / vec2(VSX, VSY)) * (quadVector * vec2(1.0, 1.0));
-		vec4 quadFog = texture2D(fogbase, fogUV + quadShift);
+		vec2 quadShift = (0.5 / vec2(1*VSX, VSY)) * (quadVector * vec2(1.0, 1.0));
+		vec4 quadFog = texture(fogbase, fogUV + quadShift);
+		//gl_FragColor = quadFog; return;
 		
 		// get the local fog colors, linearly smoothed
-		quadFog.rgb = texture2D(fogbase, fogUV).rgb;
+		quadFog.rgb = texture(fogbase, fogUV).rgb;
 		
 		// what if, according to my own quad, we sampled once very far out per quad?
 		// THIS IS THE GOLDEN SAMPLE!
-		vec4 smoothcolor = quadGatherSum4D(texture2D(fogbase, fogUV + 3*quadShift)) * 0.25;
-		quadFog.rgb = mix(smoothcolor.rgb, quadFog.rgb, 0.3);
-		
+		vec4 smoothcolor = quadGatherSum4D(texture(fogbase, fogUV + 3*quadShift)) * 0.25;
+		quadFog.rgb = mix(smoothcolor.rgb, quadFog.rgb,  0.7 * discontinuity + 0.3);
 		
 		
 		
 		
 		gl_FragColor = quadFog;
-
+		//gl_FragColor = smoothcolor; return;
 		
 		vec4 gatherAlpha = quadGather(quadFog.a, quadVector);
 		float minAlpha =  min(min(gatherAlpha.x,gatherAlpha.y),	min(gatherAlpha.z,gatherAlpha.w));
@@ -180,12 +182,12 @@ void main(void) {
 				//if (dy * quadVector.y > 32 ) gl_FragColor.a = maxAlpha;
 				//if (dy * quadVector.y < -32 ) gl_FragColor.a = minAlpha;
 				
-				//if (dx * quadVector.x > 32 ) gl_FragColor.a = minAlpha;
-				//if (dx * quadVector.x < -32 ) gl_FragColor.a = maxAlpha;
+				//if (dx * quadVector.x > 32 ) gl_FragColor.a = maxAlpha;
+				//if (dx * quadVector.x < -32 ) gl_FragColor.a = minAlpha;
 				
 				
-				//if (dy > 32) gl_FragColor.a = 1.0;
-				//if (dx < -32) gl_FragColor.a = minAlpha;
+				if (dx > 32) gl_FragColor.a = maxAlpha;
+				if (dx < -32) gl_FragColor.a = minAlpha;
 			
 				//if (dx > 32) gl_FragColor.a = maxAlpha;
 				//if (dx < -32) gl_FragColor.a = minAlpha;

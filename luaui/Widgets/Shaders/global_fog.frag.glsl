@@ -621,8 +621,10 @@ vec4 quad_gather_sum(const vec4 quad_vector, const vec4 curr)
 vec2 quadVector = vec2(0); // REQUIRED, contains the [-1,1] mappings
 // one-hot encoding of thread ID
 vec4 threadMask = vec4(0); // contains the thread ID in one-hot
+
+vec4 selfWeights = vec4(WEIGHTFACTOR*WEIGHTFACTOR, WEIGHTFACTOR*(1.0-WEIGHTFACTOR), WEIGHTFACTOR*(1.0-WEIGHTFACTOR), (1.0-WEIGHTFACTOR)*(1.0-WEIGHTFACTOR)); // F*F, F*(1.0-F), F*(1.0-F), (1-F)*(1-F)
 #define selfWeightFactor 0.07
-vec4 selfWeights = vec4(0.25) + vec4(selfWeightFactor, selfWeightFactor/ -3.0, selfWeightFactor/ -3.0, selfWeightFactor/-3.0);
+//vec4 selfWeights = vec4(0.25) + vec4(selfWeightFactor, selfWeightFactor/ -3.0, selfWeightFactor/ -3.0, selfWeightFactor/-3.0);
 
 vec4 quadGetThreadMask(vec2 qv){ 
 	vec4 threadMask =  step(vec4(qv.xy,0,0),vec4( 0,0,qv.xy));
@@ -911,7 +913,8 @@ void main(void)
 	
 	float noiseScale =  NOISESCALE/256.0;
 	time = fract(time/16384) * 16384;
-	vec3 noiseOffset = vec3(-1 * windX, - time * 0.025,-1* windZ) * noiseScale * WINDSTRENGTH * 5;
+	vec3 noiseOffset = vec3(-1 * windX, - time * 0.025,-1* windZ ) * noiseScale * WINDSTRENGTH * 5;
+	vec3 noiseOffset2 = vec3(-0.9 * windX, - time * 0.025,-1* windZ ) * noiseScale * WINDSTRENGTH * 1.3;
 	
 	// ----------------- END UNIVERSAL PART -------------------------------
 	
@@ -975,7 +978,7 @@ void main(void)
 			heightShadow = 0;
 			
 			#if HEIGHTSHADOWQUAD > 0 
-				selfWeights = vec4(0.5, 0.2, 0.2, 0.1);
+				//selfWeights = vec4(0.5, 0.2, 0.2, 0.1);
 			#endif
 			
 			for (uint i = 0; i < HEIGHTSHADOWSTEPS; i++){
@@ -1003,7 +1006,7 @@ void main(void)
 	float startDensity = clamp( (fogPlaneTop - rayStart.y) * fogPlaneSizeInv, 0, 1);
 	float endDensity = clamp( (fogPlaneTop - rayEnd.y) * fogPlaneSizeInv, 0, 1);
 	heightBasedFog = (startDensity + endDensity) * 0.5 * rayLength;
-	heightBasedFog *=  densityModulation ;
+	//heightBasedFog *=  densityModulation ;
 	
 	// A very simple approach to ease height based fog with distance from camera
 	heightBasedFog = fogGroundDensity * heightBasedFog * 100 * smoothstep(0.0,2000.0 * EASEHEIGHT, length(rayStart-camPos));
@@ -1034,7 +1037,7 @@ void main(void)
 	
 	// take the ray start, and clamp it to the most distant of all 
 	
-	vec3 cloudBoxSize = (cloudVolumeMax.xyz - cloudVolumeMin.xyz) * 0.5;
+	vec3 cloudBoxSize = (cloudVolumeMax.xyz - cloudVolumeMin.xyz) * 1;
 	vec3 cloudBoxCenter = (cloudVolumeMax.xyz + cloudVolumeMin.xyz) * 0.5;
 	
 	vec3 rayOriginInbox = camPos - cloudBoxCenter;
@@ -1087,13 +1090,15 @@ void main(void)
 			vec3 rayPos = cloudRayStart + cloudRayStep * float(ns) ;
 			vec4 perturbation = vec4(0.0);
 			#if 1
-				vec3 noisePos = (rayPos * noiseScale * noiseParams.z  + 2* noiseOffset); // 
+				vec3 noisePos = (rayPos * noiseScale * noiseParams.z  + 1.7* noiseOffset2); // 
+				noisePos.xyz -= 0.2 * noisePos.zxy;
 				perturbation =  texture(uniformNoiseTex, noisePos) ;
 			#endif
 			
 			#line 36300
 
 			vec3 noiseTexUVW = (rayPos * noiseScale * noiseParams.x + noiseOffset + perturbation.rgb * noiseParams.w * noiseParams.z * 0.1);
+			noiseTexUVW.xyz += 0.2 * noiseTexUVW.zxy; // THIS IS ABSOLUTELY REQUIRED!!!!!!
 			vec4 textureNoise = vec4(0.0);
 			#if (TEXTURESAMPLER == 1)
 				#if (QUADNOISEFETCHING == 0)
@@ -1101,9 +1106,11 @@ void main(void)
 				#else
 					//noiseTexUVW = (rayPos * noiseScale * noiseParams.x + noiseOffset + qfbm * 0.1);
 					textureNoise = getPackedNoise(noiseTexUVW.xyz ); // texture(ttt, Pos + stepsize * dot(threadMask, offsets)).r * dot(threadMask, weights);
+					textureNoise.r = textureNoise.g;
 					#if 1 // use gathersum
 						//vec4 weightedGather = quadGather(textureNoise.r);
-						textureNoise.r = quadGatherSumFloat(textureNoise.r);
+						//textureNoise.r = quadGatherSumFloat(textureNoise.r);
+						textureNoise.r = quadGatherWeighted(textureNoise.r);
 					#endif
 					
 				#endif 
@@ -1155,10 +1162,10 @@ void main(void)
 	}
 	fragColor.b = step(modeldepth, mapdepth) * 0.75;
 	return;
-	// ********************************* END COMPLETE REWRITE *******************************
-	// ********************************* END COMPLETE REWRITE *******************************
-	// ********************************* END COMPLETE REWRITE *******************************
-	
+// ********************************* END COMPLETE REWRITE *******************************
+// ********************************* END COMPLETE REWRITE *******************************
+// ********************************* END COMPLETE REWRITE *******************************
+
 	
 	// compilation helpers
 	float collectedShadow = 0;
@@ -1564,7 +1571,7 @@ void main(void)
 	totalfog = sqrt(totalfog * totalfog + (1.0 - fogGlobalColor.a) * 0.1);
 	fragColor.a = min(1.0, max(0, 1.0 - totalfog));
 	
-	// Colorize fog based on view angle: TODO do this on center weigth of both !
+	// Colorize fog based on view angle: TODO do this on center weight of both !
 	float sunAngleCos =  dot( fromCameraNormalized, sunDir.xyz); // this goes from into sun at 1 to sun behind us at -1 
 	float sunPower = (1.0 + fogSunColor.a * 8);
 	float sunRatio = 1.0;
