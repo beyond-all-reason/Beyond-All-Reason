@@ -1,0 +1,174 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  rmis, lmis, rlauncher, llauncher, flare, turret, wake, support, cannon,
+       body, base;
+
+static-var  Static_Var_1, bAiming;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_AIM_2			4
+#define SIG_MOVE			8
+#define SIG_IDLE			16
+
+
+
+#define BASEPIECE base
+#define HITSPEED <25.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 10
+#define MAXTILT 200
+
+#include "unit_hitbyweaponid_and_smoke.h"
+
+HoverIdle()
+{
+	signal SIG_IDLE;
+	set-signal-mask SIG_IDLE;
+	while( TRUE )
+	{
+	    emit-sfx 1024 + 2 from wake;
+	    sleep 1800;
+	}
+}
+
+Create()
+{
+	hide wake;
+	hide flare;
+	hide rmis;
+	hide lmis;
+	cache body;
+	cache turret;
+	bAiming = FALSE;
+	return (0);
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	bAiming = FALSE;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	}
+}
+RestoreAfterDelay()
+{
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flare;
+	return (0);
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = turret;
+	return (0);
+}
+
+FirePrimary()
+{	
+	emit-sfx 1024 + 0 from flare;
+	move cannon to z-axis [-10.00000] speed [1250.00000];
+	sleep 150;
+	move cannon to z-axis [0.00000] speed [7.50000];
+	return (0);
+}
+
+AimPrimary(heading, pitch)
+{
+	//signal SIG_AIM;
+	//set-signal-mask SIG_AIM;
+	//bAiming = TRUE;
+	//dont-cache turret;
+	//dont-cache support;
+	//dont-cache cannon;
+	return (1);
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+FireSecondary()
+{	
+	return (0);
+}
+
+AimSecondary(heading, pitch)
+{
+	//signal SIG_AIM_2;
+	//set-signal-mask SIG_AIM_2;
+	//start-script RestoreAfterDelay();
+	return (1);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = body;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	hide flare;
+	hide rmis;
+	hide lmis;
+	if( Static_Var_1 >= 4 )
+	{
+		if( severity <= 25 )
+		{
+			corpsetype = 1;
+			explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+			return (corpsetype);
+		}
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode cannon type FALL | BITMAP1 | NOHEATCLOUD;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | BITMAP4 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode cannon type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode body type FIRE | SMOKE | FALL | BITMAP4 | NOHEATCLOUD;
+		//explode support type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		//explode rlauncher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		//explode llauncher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | BITMAP4 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode cannon type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode body type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode support type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	//explode rlauncher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	//explode llauncher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode turret type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	return (corpsetype);
+}
