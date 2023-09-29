@@ -35,10 +35,13 @@ local GL_R32F = 0x822E
 -- DONE: better LOS shader usage?
 -- DONE: minimap color backscatter
 -- DONE: Fix blending of shadowed and non-shadowed
--- handle out-of-map better!
+-- DONE handle out-of-map better!
 -- DONE: Fix non raytraced fog nonlinearity
 -- TODO: Make it also be clouds
 -- TODO: handle pullback of min(mapdepth, modeldepth); better than now.
+-- TODO: Volumetric "water shadow scattering" pass
+-- TODO: Reflections shader
+-- TODO: HDR blending
 -- VERY IMPORTANT NOTES:
 -- WHEN NOT USING RAYTRACING, SET FOG RESOLUTION TO 1!!!!!!!!!
 
@@ -100,12 +103,12 @@ local definesSlidersParamsList = {
 	{name = 'HEIGHTSHADOWSTEPS', default = 12, min = 0, max = 64, digits = 0, tooltip =  'How many times to sample shadows for pure height-based fog'},
 	{name = 'HEIGHTSHADOWQUAD', default = 2, min = 0, max = 2, digits = 0, tooltip =  'How to Quad sample height-based fog'},
 	{name = 'SHADOWSAMPLER', default = 2, min = 0, max = 3, digits = 0, tooltip =  '0 use texture fetch, 1 use sampler fetch, 2 use texelfetch'},
-	{name = 'BLUENOISESTRENGTH', default = 1.1, min = 0, max = 1.1, digits = 1, tooltip =  'Amount of blue noise added to shadow sampling'},
+	--{name = 'BLUENOISESTRENGTH', default = 1.1, min = 0, max = 1.1, digits = 1, tooltip =  'Amount of blue noise added to shadow sampling'},
 	{name = 'TEXTURESAMPLER', default = 1, min = 0, max = 6, digits = 0,  tooltip = '0:None 1=Packed3D 2=Tex2D 3=Tex2D 4=FBM 5=Value3D 6=SimplexPerlin'},
 	{name = 'QUADNOISEFETCHING', default = 1, min = 0, max = 1, digits = 0,  tooltip = 'Enable Quad Message Passing [0 or 1]'},
 	{name = 'WEIGHTFACTOR', default = 0.56, min = 0, max = 1, digits = 2,  tooltip = 'Squared weight for each texel in PQM'},
 	{name = 'NOISESAMPLES',default = 16, min = 1, max = 64, digits = 0, tooltip = 'How many samples of 3D noise to take'},
-	{name = 'NOISESCALE', default = 0.2, min = 0, max = 2, digits = 2, tooltip = 'The tiling frequency of noise'},
+	{name = 'NOISESCALE', default = 0.3, min = 0.001, max = 0.999, digits = 3, tooltip = 'The tiling frequency of noise'},
 	{name = 'NOISETHRESHOLD', default = 0, min = -1, max = 1, digits = 2, tooltip =  'The 0 level of noise'},
 	{name = 'USELOS', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use the LOS map at all, 1 = yes, 0 = no'},
 	{name = 'USEMINIMAP', default = 0, min = 0, max = 1, digits = 0, tooltip = '0 or 1 to use the minimap for back-scatter'},
@@ -113,7 +116,8 @@ local definesSlidersParamsList = {
 	{name = 'USEDDS', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Use DDS compressed version of packedNoise'},
 	{name = 'LOSREDUCEFOG', default = 0, min = 0, max = 1, digits = 2, tooltip = 'How much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los'},
 	{name = 'LOSFOGUNDISCOVERED', default = 1.0, min = 0, max = 1, digits= 2, tooltip = 'This specifies how much more fog there should be where the map has not yet been discovered ever (0 is none, 1 is a lot)'},
-	{name = 'WINDSTRENGTH', default = 1.0, min = 0, max = 4, digits = 2, tooltip = 'Speed multiplier for wind'},
+	{name = 'WINDSTRENGTH', default = 0.01, min = 0, max = 0.1, digits = 2, tooltip = 'Speed multiplier for wind'},
+	{name = 'RISERATE', default = 0.025, min = 0.00, max = 0.2, digits = 3, tooltip = 'Rate at which cloud noise rises, in elmos per frame'},
 	{name = 'HEIGHTDENSITY', default = 2, min = 1, max = 10, digits = 2, tooltip = 'How quickly height fog reaches its max density'},
 	{name = 'SUNCHROMASHIFT', default = 0.2,  min = -0.5, max = 1, digits = 2, tooltip = 'How much colors are shifted towards sun'},
 	{name = 'MINIMAPSCATTER', default = 0.1, min = -0.5, max = 0.5, digits = 2, tooltip = 'How much the minimap color sdditively back-scatters into fog color, 0 is off'},
@@ -144,9 +148,15 @@ local fogUniforms = {
 	cloudVolumeMin = {0,maxHeight/2,0,0}, -- XYZ coords of the fog volume start, along with the bottom density in W
 	cloudVolumeMax= {Game.mapSizeX, maxHeight, Game.mapSizeZ,0}, -- XYZ coords of fog volume end, along with the top density
 	scavengerPlane = {Game.mapSizeX, Game.mapSizeZ, 100,100}, -- The assumption here is that we can specify an X and Z limit on fog, and a density transition function. negative numbers should swap plane dir 
-	noiseParams = {
-		1.4, -- high-frequency cloud noise, lower numbers = lower frequency
-		0.2, -- noise bias, [-1,1] high numbers denser
+	noiseLFParams = {
+		0.31, -- high-frequency cloud noise, lower numbers = lower frequency
+		0.4, -- noise bias, [-1,1] high numbers denser
+		0.77, -- low frequency big cloud noise, lower numbers = lower frequency
+		0.0, -- low frequency noise bias, keep between [-1,1]
+		},
+	noiseHFParams = {
+		0.4, -- high-frequency cloud noise, lower numbers = lower frequency
+		0.39, -- noise bias, [-1,1] high numbers denser
 		0.77, -- low frequency big cloud noise, lower numbers = lower frequency
 		0.0, -- low frequency noise bias, keep between [-1,1]
 		},
@@ -160,7 +170,7 @@ local fogUniformSliders = {
 	left = vsx - 270, 
 	right = vsx - 270 + 250,
 	bottom = 200,
-	top = 900,
+	top = 1000,
 	width = 250, 
 	height = 20,
 	sliderheight = 20,
@@ -179,7 +189,8 @@ local fogUniformSliders = {
 		{name = 'fogGlobalDensity', min = 0.01, max = 10, digits = 2, tooltip =  'How dense the global fog is'},
 		{name = 'fogGroundDensity', min = 0.01, max = 1, digits = 2, tooltip =  'How dense the height-based fog is'},
 		{name = 'fogExpFactor', min = 0.000, max = 5, digits = 2, tooltip =  'Overall density multiplier'},
-		{name = 'noiseParams', min = -1, max = 5, digits = 3, tooltip =  'High and low frequency gain, bias multipliers'},
+		{name = 'noiseLFParams', min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: threshold, 3-4 unused'},
+		{name = 'noiseHFParams', min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: Perturb, 3: SpeedX, 4: SpeedZ'},
 	},
 	callbackfunc = nil
 }
@@ -194,12 +205,6 @@ local fogUniformsBluish = { -- bluish tint, not very good
 	fogGlobalDensity = 1.0,
 	fogGroundDensity = 0.3,
 	fogExpFactor = -0.0001, -- yes these are small negative numbers
-	noiseParams = {
-		4.2, -- high-frequency cloud noise, lower numbers = lower frequency
-		0.1, -- noise bias, [-1,1] high numbers denser
-		1.5, -- low frequency big cloud noise, lower numbers = lower frequency
-		0.0,
-		},
 	}
 
 ---------------------------------------------------------------------------
@@ -209,6 +214,7 @@ local autoreload = true
 local noisetex3dcube =  "LuaUI/images/noisetextures/cloudy8_256x256x64_L.dds"
 local noisetex3dcube =  "LuaUI/images/noisetextures/worley_rgbnorm_01_asum_128_v1_mip.dds"
 local blueNoise64 =  "LuaUI/images/noisetextures/blue_noise_64.tga"
+--local uniformNoiseTex =  "LuaUI/images/noisetextures/worley_rgbnorm_01_asum_128_v1_mip.dds"
 local uniformNoiseTex =  "LuaUI/images/noisetextures/uniform3d_16x16x16_RGBA.dds"
 --local noisetex3dcube =  "LuaUI/images/noisetextures/cloudy8_a_128x128x32_L.dds"
 local simpledither = "LuaUI/images/noisetextures/rgba_noise_256.tga"
@@ -315,7 +321,7 @@ local function makeFogTexture()
 		wrap_s = GL.CLAMP_TO_EDGE,
 		wrap_t = GL.CLAMP_TO_EDGE,
 		fbo = true,
-		--format = GL_RGBA32F_ARB,
+		format = GL_RGBA32F_ARB, -- we need this to be able to do hdr
   })
 	if shadowTexture then gl.DeleteTexture(shadowTexture) end 
   shadowTexture = gl.CreateTexture(math.min(vsx/shaderConfig.RESOLUTION, vsy/shaderConfig.RESOLUTION),math.min( vsx/shaderConfig.RESOLUTION, vsy/shaderConfig.RESOLUTION),{
@@ -481,8 +487,21 @@ local windX = 0
 local windZ = 0
 function widget:GameFrame(n)
 	local windDirX, _, windDirZ, windStrength = Spring.GetWind()
-	windX = windX + windDirX *  0.016
-	windZ = windZ + windDirZ * 0.016	
+	windX = windX + windDirX * shaderConfig.WINDSTRENGTH
+	windZ = windZ + windDirZ * shaderConfig.WINDSTRENGTH
+	
+	-- This part is to ensure that the fractional part of the noiseOffset fragment shader coordinates dont vanish
+	-- This "rolls over" when the noiseOffset would roll over 1
+	local windXFract = windX * shaderConfig.NOISESCALE  / 1024.0
+	if windXFract > 1 or windXFract < 0 then 
+		Spring.Echo("windXFract", windXFract, windX)
+		windX = 1024.0 * (windXFract - math.floor(windXFract))/ shaderConfig.NOISESCALE
+	end
+	local windZFract = windZ * shaderConfig.NOISESCALE / 1024.0
+	if windZFract > 1 or windZFract < 0 then 
+		Spring.Echo("windZFract", windZFract, windZ)
+		windZ = 1024.0 * (windZFract - math.floor(windZFract)) / shaderConfig.NOISESCALE 
+	end
 end
 
 function widget:Update()

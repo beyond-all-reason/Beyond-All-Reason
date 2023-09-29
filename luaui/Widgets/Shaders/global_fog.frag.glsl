@@ -36,7 +36,8 @@ uniform float windZ;
 uniform vec4 fogGlobalColor;
 uniform vec4 fogSunColor;
 uniform vec4 fogShadowedColor;
-uniform vec4 noiseParams;
+uniform vec4 noiseLFParams;
+uniform vec4 noiseHFParams;
 
 uniform float fogGlobalDensity;
 uniform float fogGroundDensity;
@@ -163,7 +164,6 @@ vec4 FBMNoise3DDeriv(in vec3 x) // uses S
 	vec4 mix2_4 = mix(hash_0, hash_1, f2.x);
 	vec2 mix2_2 = mix(mix2_4.xz, mix2_4.yw, f2.y);
 	float myn2 = mix(mix2_2.x, mix2_2.y, f2.z);
-	
 	vec3 deriv =  vec3(myn - myn2)/ stepsize;
 	return vec4(myn, deriv * myn);
 }
@@ -846,6 +846,47 @@ float fastQuadTexture2DLookupInd(sampler2D t, vec2 Pos, vec2 stepsize, vec4 weig
 }
 #endif
 
+////------------------------------GLOBAL NOISE SAMPLING FUNCTIONS ---------------------------------
+
+// static vars:
+
+// everything that has to do with initializing the actual noise stuff 
+vec2 initNoise(){
+	return vec2(0,0);
+}
+
+vec2 hfnoisesampler(){
+	return vec2(0,0);
+}
+
+vec2 sampleWorldNoise(){
+	return vec2(0,0);
+}
+
+
+////-----------------------------STATIC DEFINES-----------------
+// These defines were empirically determined to be the kind that its not worth fucking with
+
+#define BLUENOISESTRENGTH 1.1
+#define NOISESKEW vec3(0.21, 0.32, 0.26)
+
+#define FASTSMOOTHSTEP(A) (A * A * (3.0 - 2.0 * A))
+// HIGHFREQUENCY UNIFORM NOISE PARAMS
+// noiseHFParams perturbation stuff
+// this is uniform 16x16x16 noise, fucking fast
+// x - relative scale (FROM NOISE)
+// y - perturb strength
+// z - offset speedx, as a fraction of base speed
+// w - offset speedy, as a fraction of base speed
+
+// LOWFREQUENCY WORLEY NOISE PARAMS
+// x - scale
+// y - threshold
+
+// Oooh cool mie func: https://research.nvidia.com/labs/rtr/approximate-mie/
+// bitsquid.blogspot.com/2016/07/volumetric-clouds.html
+// https://advances.realtimerendering.com/s2015/The%20Real-time%20Volumetric%20Cloudscapes%20of%20Horizon%20-%20Zero%20Dawn%20-%20ARTR.pdf
+
 ////----------------------------------------------------------------
 ////------------------------------MAIN------------------------------
 ////----------------------------------------------------------------
@@ -867,14 +908,12 @@ void main(void)
 	const float expfactor = fogExpFactor * -0.0001;
 	// ---------- Calculate the UV coordinates of the depth textures ---------
   
-  
-  #if (RESOLUTION == 2)
-    // Exploit hardware linear sampling in best case
-	vec2 screenUV = sampleUVs.zw;
-
-  #else
-    vec2 screenUV = gl_FragCoord.xy * RESOLUTION / viewGeometry.xy;
-  #endif
+	#if (RESOLUTION == 2)
+		// Exploit hardware linear sampling in best case
+		vec2 screenUV = sampleUVs.zw;
+	#else
+		vec2 screenUV = gl_FragCoord.xy * RESOLUTION / viewGeometry.xy;
+	#endif
 
 	if (any(lessThan(abs(gl_FragCoord.xy - 1.5) ,vec2( 0.5)))) {
 		fragColor.rgba = vec4(1,1,0,1); return;
@@ -911,11 +950,15 @@ void main(void)
 	vec4 blueNoiseSample = textureLod(blueNoise64,gl_FragCoord.xy/64, 0) *BLUENOISESTRENGTH;
 	
 	
-	float noiseScale =  NOISESCALE/256.0;
-	time = fract(time/16384) * 16384;
-	vec3 noiseOffset = vec3(-1 * windX, - time * 0.025,-1* windZ ) * noiseScale * WINDSTRENGTH * 5;
-	vec3 noiseOffset2 = vec3(-0.9 * windX, - time * 0.025,-1* windZ ) * noiseScale * WINDSTRENGTH * 1.3;
-	
+	float noiseScale =  NOISESCALE;
+	#define NOISESCALE1024 NOISESCALE/1024.0
+	//time = fract(time/16384) * 16384; 
+	// this must be moved to lua side
+	// we must ensure that this is rolled over, especially the time part at units of 1
+	vec3 noiseOffset =  vec3(windX, - time * RISERATE, windZ ) * NOISESCALE1024;
+	noiseOffset.y = fract(noiseOffset.y); // time can only be rolled over here
+	vec3 noiseOffset2 = vec3(windX, - time * RISERATE, windZ ) * NOISESCALE1024 * 5.0; // This must be an integer multiplier!
+	noiseOffset2.y = fract(noiseOffset2.y); // time can only be rolled over here
 	// ----------------- END UNIVERSAL PART -------------------------------
 	
 	// ----------------- BEGIN DISTANCE-BASED FOG ------------------------------
@@ -1084,56 +1127,55 @@ void main(void)
 		#else
 			cloudRayStart += cloudRayStep  * blueNoiseSample.g * BLUENOISESTRENGTH;
 		#endif
-
+		
 		#if (NOISESAMPLES > 0)
+		float rayIndexFloat = 0.0;
 		for (uint ns = 0; ns < NOISESAMPLES; ns++){
-			vec3 rayPos = cloudRayStart + cloudRayStep * float(ns) ;
-			vec4 perturbation = vec4(0.0);
-			#if 1
-				vec3 noisePos = (rayPos * noiseScale * noiseParams.z  + 1.7* noiseOffset2); // 
-				noisePos.xyz -= 0.2 * noisePos.zxy;
-				perturbation =  texture(uniformNoiseTex, noisePos) ;
-			#endif
+			vec3 rayPos = cloudRayStart + cloudRayStep * rayIndexFloat;
+			rayIndexFloat += 1.0;
+			
+			vec3 noiseLFSpacePos = rayPos * NOISESCALE1024 * noiseLFParams.x; // LF SCALE NOISESPACE
+			
+			// THIS IS ABSOLUTELY REQUIRED!!!!!!
+			// This skew _must_ be done before noiseOffset is added, as noiseOffset is fract-ed from lua cause of wind
+			noiseLFSpacePos += noiseLFSpacePos.zxx * NOISESKEW * 1.5; // LF SKEW TO REDUCE TILING
+
+			vec3 noiseHFSpacePos = noiseLFSpacePos * noiseHFParams.x * 10; // 
+			noiseHFSpacePos -= 0.2 * noiseHFSpacePos.zxx;
+			noiseHFSpacePos -= noiseHFSpacePos.zxx * NOISESKEW;
+			noiseHFSpacePos.xz += time * noiseHFParams.zw * 0.001;
+			noiseHFSpacePos += noiseOffset ;	
+			vec4 highFreqNoise =  texture(uniformNoiseTex, noiseHFSpacePos );
+			highFreqNoise = highFreqNoise * 0.5 - 0.25;
 			
 			#line 36300
+			
 
-			vec3 noiseTexUVW = (rayPos * noiseScale * noiseParams.x + noiseOffset + perturbation.rgb * noiseParams.w * noiseParams.z * 0.1);
-			noiseTexUVW.xyz += 0.2 * noiseTexUVW.zxy; // THIS IS ABSOLUTELY REQUIRED!!!!!!
+
+			
+			noiseLFSpacePos += highFreqNoise.rgb * noiseHFParams.y ;
 			vec4 textureNoise = vec4(0.0);
+			
 			#if (TEXTURESAMPLER == 1)
-				#if (QUADNOISEFETCHING == 0)
-					textureNoise = getPackedNoise(noiseTexUVW.xyz); 
-				#else
-					//noiseTexUVW = (rayPos * noiseScale * noiseParams.x + noiseOffset + qfbm * 0.1);
-					textureNoise = getPackedNoise(noiseTexUVW.xyz ); // texture(ttt, Pos + stepsize * dot(threadMask, offsets)).r * dot(threadMask, weights);
-					textureNoise.r = textureNoise.g;
-					#if 1 // use gathersum
-						//vec4 weightedGather = quadGather(textureNoise.r);
-						//textureNoise.r = quadGatherSumFloat(textureNoise.r);
-						textureNoise.r = quadGatherWeighted(textureNoise.r);
-					#endif
-					
-				#endif 
+				textureNoise = getPackedNoise(noiseLFSpacePos); 
 			#endif
 			#if (TEXTURESAMPLER == 2)
-				#if (QUADNOISEFETCHING == 1)
-					textureNoise = texture(noise64cube, noiseTexUVW.xzy).argb; // almost universally the best :'( 
-					textureNoise.r = quadGatherSumFloat(textureNoise.r);
-				#else
-					textureNoise = texture(noise64cube, noiseTexUVW.xzy).argb; // almost universally the best :'( 
-				#endif
+				textureNoise = texture(noise64cube, noiseLFSpacePos.xzy).argb; // almost universally the best :'( 
 			#endif
 			#if (TEXTURESAMPLER == 3)
-				textureNoise = 1.0 - Cellular3D_Deriv(noiseTexUVW.xzy).rgba; // almost universally the best :'( 
+				textureNoise = 1.0 - Cellular3D_Deriv(noiseLFSpacePos.xzy).rgba; // almost universally the best :'( 
 			#endif
 			
+			#if (QUADNOISEFETCHING == 1)
+				textureNoise.r = quadGatherWeighted(textureNoise.r);
+			#endif
 			
 			// Modulate the noise based on its depth below fogplane, this is 1 at 0 height, and 0 at fogPlaneTop
 			float rayDepthratio = 1.0; //clamp((1.0 - rayPos.y * fogPlaneTopInv) * HEIGHTDENSITY,0,1);
 			
-			float clampedNoise = clamp(fogGroundDensity * (textureNoise.r  - noiseParams.y) * rayDepthratio * stepLength, 0, 100);
-			//noiseValues[ns] = clampedNoise;
-			//float shadeFactor = max(0.0, textureNoise.g -noiseParams.y) ;
+			float clampedNoise = clamp(fogGroundDensity * (textureNoise.r  - noiseLFParams.y) * rayDepthratio * stepLength, 0, 100);
+
+			//float shadeFactor = max(0.0, textureNoise.g -noiseLFParams.y) ;
 			//vec3 fogShaded = mix(fogGlobalColor.rgb, fogShadowedColor.rgb,  rayDepthratio * rayDepthratio* shadeFactor*0 );
 			//clampedNoise = step(sin(time * 0.01) * 0.1 + 0.5, clampedNoise);
 			//fogRGBA.rgb = fogShaded.rgb * clampedNoise + fogRGBA.rgb * (1.0 - clampedNoise);
@@ -1146,15 +1188,16 @@ void main(void)
 	
 	
 	fragColor.rgba = fogRGBA;
+	//fragColor.rgb *= 2.0;
 	//fragColor.a = heightBasedFogExp; 
 	fragColor.a = 1.0 - exp(-1 * myfog * 0.1);
 	
 	vec4 dbgQuad = debugQuad(quadVector);
 	//fragColor.a *=(1.0 - dbgQuad.b);
-	return;
 	#if (FULLALPHA == 1) 
 		fragColor.a = 1.0;
 	#endif
+	return;
 	
 	fragColor.rgb = fragColor.rgb * debugQuad(quadVector).rgb * 0.5;
 	if (step(0, quadVector.x) * step(quadVector.y, 0) > 0 ){
@@ -1229,11 +1272,11 @@ void main(void)
 		
 		const float stepsInv = 1.0 / SHADOWMARCHSTEPS;
 
-		//vec3 noiseOffset = vec3(0, - time*4, 0) * noiseScale * WINDSTRENGTH * 0.3;
+		//vec3 noiseOffset = vec3(0, - time*4, 0) * NOISESCALE1024 * WINDSTRENGTH * 0.3;
 		float rayJitterOffset = 0;
 		
 		//manually set packedNoiseLod
-		packedNoiseLod = floor(lengthMapFromCam * 0.00003 * noiseParams.x);
+		packedNoiseLod = floor(lengthMapFromCam * 0.00003 * noiseLFParams.x);
 		
 		// in-progress blending
 		vec4 groundRGBA = vec4(fogShadowedColor.rgb, 0);
@@ -1260,7 +1303,7 @@ void main(void)
 						vec3 rayPos = rayStart + rayStep * (float(ns) + rayJitterOffset*0.00 );
 						
 						#if 1
-							vec3 noisePos = rot3 * rayPos * noiseScale * noiseParams.z * 1.0 + noiseOffset; // this sure as fuck aint free!
+							vec3 noisePos = rot3 * rayPos * NOISESCALE1024 * noiseLFParams.x * 1.0 + noiseOffset; // this sure as fuck aint free!
 							//vec4 simplexDeriv = vec4(0.0); // no-op
 							//vec4 simplexDeriv = SimplexPerlin3D_Deriv(noisePos);
 							//vec4 simplexDeriv = FBMNoise3DDeriv(noisePos + FBMNoise3D((noisePos +  noiseOffset) * 1.42) * 2 );
@@ -1280,31 +1323,31 @@ void main(void)
 							
 							//vec4 simplexDeriv =  vec4(quadGatherSumFloat(FBMNoise2D(rayPos.xz * dot(threadMask, freqs) * 0.002) * 0.3));  
 							//vec4 simplexDeriv =  texture(heightmapTex, (rayPos.xz * 0.0002) * 0.01);  
-							vec4 simplexDeriv =  texture(uniformNoiseTex, (rayPos.xyz * 0.0002 * noiseParams.x)) * (0.01+noiseParams.w);  
+							vec4 simplexDeriv =  texture(uniformNoiseTex, (rayPos.xyz * 0.0002 * noiseHFParams.x)) * (0.01+noiseLFParams.y);  
 							//vec4 simplexDeriv =  vec4(FBMNoise2D(rayPos.xz *0.01)) * 0.1;  
 							
-							//vec4 simplexDeriv = quadFBM(noisePos* noiseParams.w, freqs, screenUV, gl_FragCoord.xy*2);
+							//vec4 simplexDeriv = quadFBM(noisePos* noiseLFParams.y, freqs, screenUV, gl_FragCoord.xy*2);
 							//simplexDeriv = vec4(0.0);
 							fragColor.rgba = vec4(simplexDeriv.rgb, 1.0);
 							//return;
-							vec3 qfbm = simplexDeriv.rgb;// *noiseParams.w;
+							vec3 qfbm = simplexDeriv.rgb;// *noiseLFParams.y;
 							fragColor.rgba = vec4(simplexDeriv.rgb,1.0);
 							//return ;
 							float simplexnoise = simplexDeriv.r;
 							//densityposition.xzy += simplexDeriv.yzw;// * simplexDeriv.x;
-							//float simplexnoise =  SimplexPerlin3D(rayPos * noiseScale * noiseParams.z * 1.0 + noiseOffset); // range [-1;1]
-							//float simplexnoise =  SimplexPerlin3D(rayPos * noiseScale * noiseParams.z * 1.0 + noiseOffset); // range [-1;1]
+							//float simplexnoise =  SimplexPerlin3D(rayPos * NOISESCALE1024 * noiseLFParams.x * 1.0 + noiseOffset); // range [-1;1]
+							//float simplexnoise =  SimplexPerlin3D(rayPos * NOISESCALE1024 * noiseLFParams.x * 1.0 + noiseOffset); // range [-1;1]
 						#endif
 						
 						#line 35300
 						vec4 textureNoise = vec4(qfbm.r); // None
 						#if (TEXTURESAMPLER == 1)
 							#if (QUADNOISEFETCHING == 0)
-								vec3 noiseTexUVW = (rayPos * noiseScale * noiseParams.x + noiseOffset + qfbm * 1.1);
+								vec3 noiseTexUVW = (rayPos * NOISESCALE1024 * noiseHFParams.x + noiseOffset + qfbm * 1.1);
 								textureNoise = getPackedNoise(noiseTexUVW.xyz); 
 							#else
-								//noiseTexUVW = (rayPos * noiseScale * noiseParams.x + noiseOffset + qfbm * 0.1);
-								vec3 noiseTexUVW = ((rayPos + quadStep) * noiseScale * noiseParams.x + noiseOffset + qfbm * 1.1);
+								//noiseTexUVW = (rayPos * NOISESCALE1024 * noiseHFParams.x + noiseOffset + qfbm * 0.1);
+								vec3 noiseTexUVW = ((rayPos + quadStep) * NOISESCALE1024 * noiseHFParams.x + noiseOffset + qfbm * 1.1);
 								textureNoise = getPackedNoise(noiseTexUVW.xyz ); // texture(ttt, Pos + stepsize * dot(threadMask, offsets)).r * dot(threadMask, weights);
 								#if 1 // use gathersum
 									//vec4 weightedGather = quadGather(textureNoise.r);
@@ -1329,14 +1372,14 @@ void main(void)
 							textureNoise = vec4(SimplexPerlin3D(noiseTexUVW.xyz)); 
 						#endif
 						
-						simplexnoise = simplexnoise - noiseParams.w;
+						simplexnoise = simplexnoise - noiseLFParams.y;
 						
 						// Modulate the noise based on its depth below fogplane, this is 1 at 0 height, and 0 at fogPlaneTop
 						float rayDepthratio = clamp((1.0 - rayPos.y * fogPlaneTopInv) * HEIGHTDENSITY,0,1);
 						
-						float clampedNoise = clamp(0.1 * fogGroundDensity * (textureNoise.r * noiseParams.z - noiseParams.y) * rayDepthratio * stepLength, 0, 1);
+						float clampedNoise = clamp(0.1 * fogGroundDensity * (textureNoise.r * noiseLFParams.x - noiseLFParams.y) * rayDepthratio * stepLength, 0, 1);
 						noiseValues[ns] = clampedNoise;
-						float shadeFactor = max(0.0, textureNoise.g -noiseParams.y) ;
+						float shadeFactor = max(0.0, textureNoise.g -noiseLFParams.y) ;
 						vec3 fogShaded = mix(fogGlobalColor.rgb, fogShadowedColor.rgb,  rayDepthratio * rayDepthratio* shadeFactor*0 );
 						//clampedNoise = step(sin(time * 0.01) * 0.1 + 0.5, clampedNoise);
 						fogRGBA.rgb = fogShaded.rgb * clampedNoise + fogRGBA.rgb * (1.0 - clampedNoise);
@@ -1387,12 +1430,12 @@ void main(void)
 						
 						float shadowJitterOffset = rayJitterOffset;
 						rayStep = sunDir.xyz * ((fogPlaneTop - rayStart.y) / sunDir.y) / CLOUDSHADOWS;
-						quadStep = rayStep * dot(threadMask,quadoffsets) * noiseScale * noiseParams.x;
+						quadStep = rayStep * dot(threadMask,quadoffsets) * NOISESCALE1024 * noiseHFParams.x;
 						float stepLength = length(rayStep);
 						float numShadowSamplesTaken = 0;
 						for (uint i = 0; i < CLOUDSHADOWS; i++){
 							vec3 rayPos = rayStart + rayStep * (float(i) + rayJitterOffset *0.00001);
-							vec3 noiseTexUVW = (rayPos * noiseScale * noiseParams.x + noiseOffset + 0.0 * 0.1);
+							vec3 noiseTexUVW = (rayPos * NOISESCALE1024 * noiseHFParams.x + noiseOffset + 0.0 * 0.1);
 							//vec4 textureNoise = texture(noise64cube, noiseTexUVW.xzy, 1); // give it a hefty LOD bias for speed and clarity
 							#if QUADNOISEFETCHING == 0
 								vec4 textureNoise = getPackedNoise(noiseTexUVW.xyz);
@@ -1404,10 +1447,10 @@ void main(void)
 							
 							float rayDepthratio = clamp((1.0 - rayPos.y * fogPlaneTopInv) * HEIGHTDENSITY,0,1);
 							
-							float clampedTextureNoise = max(0.0, (textureNoise.r - noiseParams.y) * (1.0 - noiseParams.y));
+							float clampedTextureNoise = max(0.0, (textureNoise.r - noiseLFParams.y) * (1.0 - noiseLFParams.y));
 							cloudstrength += clampedTextureNoise * rayDepthratio;
 							
-							float clampedNoise = clamp(0.1 * fogGroundDensity * (textureNoise.r * noiseParams.z - noiseParams.y) * rayDepthratio * stepLength, 0, 1);
+							float clampedNoise = clamp(0.1 * fogGroundDensity * (textureNoise.r * noiseLFParams.x - noiseLFParams.y) * rayDepthratio * stepLength, 0, 1);
 							groundRGBA.a = clampedNoise + groundRGBA.a * (1.0 - clampedNoise);
 							//if (rayPos.y > fogPlaneTop) groundRGBA.rgba = vec4(1.0);
 						}
@@ -1458,11 +1501,11 @@ void main(void)
 							float f = float(i) / (NOISESAMPLES);
 							vec3 rayPos = mix(rayStart.xyz, rayEnd, f + 0.005 * rayJitterOffset);
 						//if (1 == 1){
-							vec4 localNoise =  texture(noise64cube, rayPos.xyz * noiseScale  + noiseOffset); // TODO: SUBSAMPLE THIS ONE!
+							vec4 localNoise =  texture(noise64cube, rayPos.xyz * NOISESCALE1024  + noiseOffset); // TODO: SUBSAMPLE THIS ONE!
 							
-							float simplexnoise = SimplexPerlin3D ((rayPos ) * noiseScale * noiseParams.z + noiseOffset);
+							float simplexnoise = SimplexPerlin3D ((rayPos ) * NOISESCALE1024 * noiseLFParams.x + noiseOffset);
 
-							float thisraynoise = max(0,localNoise.a + noiseParams.y - simplexnoise);
+							float thisraynoise = max(0,localNoise.a + noiseLFParams.y - simplexnoise);
 							collectedNoise += thisraynoise;
 						}
 						heightBasedFog *= collectedNoise/(NOISESAMPLES);
@@ -1478,12 +1521,12 @@ void main(void)
 							
 							vec3 rayPos = mix(rayStart.xyz, rayEnd, f + 0.5 * rayJitterOffset);
 							
-							//vec4 localNoise =  texture(noise64cube, rayPos.xyz * noiseScale + noiseOffset); // TODO: SUBSAMPLE THIS ONE!
-							vec3 skewed3dpos = (rayPos.xyz * noiseScale * noiseParams.x + noiseOffset) * vec3(1,4,1);
+							//vec4 localNoise =  texture(noise64cube, rayPos.xyz * NOISESCALE1024 + noiseOffset); // TODO: SUBSAMPLE THIS ONE!
+							vec3 skewed3dpos = (rayPos.xyz * NOISESCALE1024 * noiseHFParams.x + noiseOffset) * vec3(1,4,1);
 							float localNoise = 1.0 - texture(noise64cube, skewed3dpos.xzy).r; // TODO: SUBSAMPLE THIS ONE!
 							#if 1
-								float simplexnoise =  SimplexPerlin3D((rayPos) * noiseScale * noiseParams.x +
-								noiseOffset) * noiseParams.w;
+								float simplexnoise =  SimplexPerlin3D((rayPos) * NOISESCALE1024 * noiseHFParams.x +
+								noiseOffset) * noiseLFParams.y;
 							#else // yeah nested perlin is uggo
 								float a = 0.001;
 								vec3 swirlpos = rayPos.xyz * vec3(1.0, 1.1, 1.2) * a + vec3(time)*a * 0.0001 ;
@@ -1491,7 +1534,7 @@ void main(void)
 								float simplexnoise = SimplexPerlin3D(swirlpos + swirly * 1.5) * 0.5 + 0.5;
 								//perlinswirl = noise(swirlpos + swirly * 3);
 							#endif
-							float thisraynoise = max(0, localNoise.r + noiseParams.y - simplexnoise);
+							float thisraynoise = max(0, localNoise.r + noiseLFParams.y - simplexnoise);
 							
 							// Modulate the noise based on its depth below fogplane, this is 1 at 0 height, and 0 at fogPlaneTop
 							float rayDepthratio = 1.0 - rayPos.y / (fogPlaneTop);
