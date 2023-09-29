@@ -869,20 +869,10 @@ end
 
 scavBehaviours = {
 	SKIRMISH = { -- Run away from target after target gets hit
-		[UnitDefNames["armscavengerbossv2_veryeasy_scav"].id] 	= { distance = 500, chance = 0.001},
-		[UnitDefNames["armscavengerbossv2_easy_scav"].id] 		= { distance = 500, chance = 0.001},
-		[UnitDefNames["armscavengerbossv2_normal_scav"].id] 	= { distance = 500, chance = 0.001},
-		[UnitDefNames["armscavengerbossv2_hard_scav"].id] 		= { distance = 500, chance = 0.001},
-		[UnitDefNames["armscavengerbossv2_veryhard_scav"].id] 	= { distance = 500, chance = 0.001},
-		[UnitDefNames["armscavengerbossv2_epic_scav"].id] 		= { distance = 500, chance = 0.001},
+
 	},
 	COWARD = { -- Run away from target after getting hit by enemy
-		[UnitDefNames["armscavengerbossv2_veryeasy_scav"].id] 	= { distance = 500, chance = 0.001},
-		[UnitDefNames["armscavengerbossv2_easy_scav"].id] 		= { distance = 500, chance = 0.001},
-		[UnitDefNames["armscavengerbossv2_normal_scav"].id] 	= { distance = 500, chance = 0.001},
-		[UnitDefNames["armscavengerbossv2_hard_scav"].id] 		= { distance = 500, chance = 0.001},
-		[UnitDefNames["armscavengerbossv2_veryhard_scav"].id] 	= { distance = 500, chance = 0.001},
-		[UnitDefNames["armscavengerbossv2_epic_scav"].id] 		= { distance = 500, chance = 0.001},
+
 	},
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
 		[UnitDefNames["armscavengerbossv2_veryeasy_scav"].id]	= { distance = 2000, chance = 0.001},
