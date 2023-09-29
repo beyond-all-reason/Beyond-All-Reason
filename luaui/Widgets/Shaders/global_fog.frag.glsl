@@ -846,22 +846,6 @@ float fastQuadTexture2DLookupInd(sampler2D t, vec2 Pos, vec2 stepsize, vec4 weig
 }
 #endif
 
-////------------------------------GLOBAL NOISE SAMPLING FUNCTIONS ---------------------------------
-
-// static vars:
-
-// everything that has to do with initializing the actual noise stuff 
-vec2 initNoise(){
-	return vec2(0,0);
-}
-
-vec2 hfnoisesampler(){
-	return vec2(0,0);
-}
-
-vec2 sampleWorldNoise(){
-	return vec2(0,0);
-}
 
 
 ////-----------------------------STATIC DEFINES-----------------
@@ -869,6 +853,7 @@ vec2 sampleWorldNoise(){
 
 #define BLUENOISESTRENGTH 1.1
 #define NOISESKEW vec3(0.21, 0.32, 0.26)
+#define NOISESCALE1024 NOISESCALE/1024.0
 
 #define FASTSMOOTHSTEP(A) (A * A * (3.0 - 2.0 * A))
 // HIGHFREQUENCY UNIFORM NOISE PARAMS
@@ -887,6 +872,35 @@ vec2 sampleWorldNoise(){
 // bitsquid.blogspot.com/2016/07/volumetric-clouds.html
 // https://advances.realtimerendering.com/s2015/The%20Real-time%20Volumetric%20Cloudscapes%20of%20Horizon%20-%20Zero%20Dawn%20-%20ARTR.pdf
 
+
+
+////------------------------------GLOBAL NOISE SAMPLING FUNCTIONS ---------------------------------
+
+// static vars:
+vec3 noiseOffset;
+// everything that has to do with initializing the actual noise stuff 
+vec2 initNoise(){
+	return vec2(0,0);
+}
+
+vec2 hfnoisesampler(){
+	return vec2(0,0);
+}
+
+vec2 sampleWorldNoise(){
+	return vec2(0,0);
+}
+
+void WorldToNoiseSpace(in vec3 wp, out vec3 lf, out vec3 hf){
+	lf = wp * NOISESCALE1024 * noiseLFParams.x;
+	hf = lf * noiseHFParams.x * 10;
+	hf -= hf.zxx * NOISESKEW;
+	hf.xz += (timeInfo.x + timeInfo.w) * noiseHFParams.zw * 0.001;
+	hf += noiseOffset;
+
+	lf += lf.zxx * NOISESKEW * 1.0;
+	lf += noiseOffset;
+}
 ////----------------------------------------------------------------
 ////------------------------------MAIN------------------------------
 ////----------------------------------------------------------------
@@ -951,11 +965,10 @@ void main(void)
 	
 	
 	float noiseScale =  NOISESCALE;
-	#define NOISESCALE1024 NOISESCALE/1024.0
 	//time = fract(time/16384) * 16384; 
 	// this must be moved to lua side
 	// we must ensure that this is rolled over, especially the time part at units of 1
-	vec3 noiseOffset =  vec3(windX, - time * RISERATE, windZ ) * NOISESCALE1024;
+	noiseOffset =  vec3(windX, - time * RISERATE, windZ ) * NOISESCALE1024;
 	noiseOffset.y = fract(noiseOffset.y); // time can only be rolled over here
 	vec3 noiseOffset2 = vec3(windX, - time * RISERATE, windZ ) * NOISESCALE1024 * 5.0; // This must be an integer multiplier!
 	noiseOffset2.y = fract(noiseOffset2.y); // time can only be rolled over here
@@ -1072,8 +1085,7 @@ void main(void)
 	#line 34000
 	vec4 fogRGBA = vec4(fogGlobalColor.rgb, 0);
 	// Start by calculating the absolute, mapdepth scaled ray start and ray end factors
-	vec3 cloudRayStart = mapWorldPos.xyz; 
-	vec3 cloudRayEnd = camPos; 
+
 	vec3 cloudRayDir = fromCameraNormalized;
 	vec3 cloudRayDirInv = 1.0 / fromCameraNormalized;
 	vec3 cloudRayOrigin = camPos;
@@ -1085,7 +1097,6 @@ void main(void)
 	
 	vec3 rayOriginInbox = camPos - cloudBoxCenter;
 	
-	
 	vec3 rayNormal = cloudRayDirInv * rayOriginInbox;
 	vec3 k = abs(cloudRayDirInv) * cloudBoxSize;
 	vec3 t1 = -rayNormal - k;
@@ -1094,66 +1105,67 @@ void main(void)
 	float nearDist = max( max( t1.x, t1.y ), t1.z );
 	float farDist = min( min( t2.x, t2.y ), t2.z );
 	
-	cloudRayEnd = camPos + nearDist * cloudRayDir;
-	cloudRayStart = camPos  + farDist * cloudRayDir;
+	vec3 cloudRayStart = camPos + nearDist * cloudRayDir;
+	vec3 cloudRayEnd = camPos  + farDist * cloudRayDir;
+
 	lengthMapFromCam = length(camPos - mapWorldPos.xyz);
-	if (farDist > lengthMapFromCam) cloudRayStart = mapWorldPos.xyz; // map is closer than back of cloud box
-	if (nearDist < 0) cloudRayEnd = camPos; // we are in the box
-	if (nearDist > lengthMapFromCam) cloudRayEnd = mapWorldPos.xyz; // the map is closer than the front of the cloud box
+	if (farDist > lengthMapFromCam) cloudRayEnd = mapWorldPos.xyz; // map is closer than back of cloud box
+	if (nearDist < 0) cloudRayStart = camPos; // we are in the box
+	if (nearDist > lengthMapFromCam) cloudRayStart = mapWorldPos.xyz; // the map is closer than the front of the cloud box
 	
-	if (step(nearDist, farDist) * step(0.0,farDist) < 0.5) cloudRayEnd = cloudRayStart;
+	if (step(nearDist, farDist) * step(0.0,farDist) < 0.5) cloudRayStart = cloudRayEnd;
 
-	vec3 rayStartFromBox = abs(cloudRayStart - cloudBoxCenter) - cloudBoxSize;
-	float rayStartDistFromBox = length(max(rayStartFromBox,0.0)) + min(max(cloudBoxSize.x,max(cloudBoxSize.y,cloudBoxSize.z)),0.0);
+	//vec3 rayStartFromBox = abs(cloudRayEnd - cloudBoxCenter) - cloudBoxSize;
+	//float rayStartDistFromBox = length(max(rayStartFromBox,0.0)) + min(max(cloudBoxSize.x,max(cloudBoxSize.y,cloudBoxSize.z)),0.0);
+	//fragColor.rgba = vec4 (fract((cloudRayEnd + 0.5) /1024), step(nearDist, farDist) * step(0.0,farDist));
+	//fragColor.rgba = vec4 (fract((vec3(cloudRayStart) + 0.5) /256), step(nearDist, farDist) * step(0.0,farDist));
+	//fragColor.rgba = vec4(fract((cloudRayStart - cloudRayEnd) + 0.5) /1024, length(cloudRayStart - cloudRayEnd) * 0.1); return;
 	
-	
-	
-	//fragColor.rgba = vec4 (fract((cloudRayStart + 0.5) /1024), step(nearDist, farDist) * step(0.0,farDist));
-	//fragColor.rgba = vec4 (fract((vec3(cloudRayEnd) + 0.5) /256), step(nearDist, farDist) * step(0.0,farDist));
-	
-	//fragColor.rgba = vec4(fract((cloudRayEnd - cloudRayStart) + 0.5) /1024, length(cloudRayEnd - cloudRayStart) * 0.001);
-	//return;
-
-	float cloudRayLength = length(cloudRayEnd-cloudRayStart);
+	float cloudRayLength = length(cloudRayStart-cloudRayEnd);
 	float myfog = 0;
 	vec4 cloudColor = vec4(0.0);
 	if (cloudRayLength > 0 ){
-		vec3 cloudRayStep = (cloudRayEnd - cloudRayStart) / NOISESAMPLES;
+		vec3 cloudRayStep = (cloudRayStart - cloudRayEnd) / NOISESAMPLES;
 		float stepLength = cloudRayLength/NOISESAMPLES; 
 		vec4 quadoffsets = vec4(0,0.25,0.5, 0.75);// * blueNoiseSample.g * BLUENOISESTRENGTH; 
 		vec3 quadStep = cloudRayStep * dot(threadMask,quadoffsets);
 		#if (QUADNOISEFETCHING == 1)
 			cloudRayStart += quadStep;
+			cloudRayEnd += quadStep;
 		#else
-			cloudRayStart += cloudRayStep  * blueNoiseSample.g * BLUENOISESTRENGTH;
+			//cloudRayStart += cloudRayStep  * blueNoiseSample.g * BLUENOISESTRENGTH;
+			//cloudRayEnd += cloudRayStep  * blueNoiseSample.g * BLUENOISESTRENGTH;
 		#endif
 		
 		#if (NOISESAMPLES > 0)
+		
+		vec3 noiseLFStart;
+		vec3 noiseLFEndStep;
+		vec3 noiseHFStart;
+		vec3 noiseHFEndStep;
+		WorldToNoiseSpace(cloudRayStart, noiseLFStart, noiseHFStart);
+		WorldToNoiseSpace(cloudRayEnd, noiseLFEndStep, noiseHFEndStep);
+		noiseLFEndStep = (noiseLFEndStep - noiseLFStart) / NOISESAMPLES;
+		noiseHFEndStep = (noiseHFEndStep - noiseHFStart) / NOISESAMPLES;
+		
 		float rayIndexFloat = 0.0;
 		for (uint ns = 0; ns < NOISESAMPLES; ns++){
-			vec3 rayPos = cloudRayStart + cloudRayStep * rayIndexFloat;
+			// A rule of thumb: Each line here, at 16 samples costs 1 fps, texture lookups cost 5 fps 
+			
+			//vec3 rayPos = cloudRayStart - cloudRayStep * rayIndexFloat;
+			
 			rayIndexFloat += 1.0;
 			
-			vec3 noiseLFSpacePos = rayPos * NOISESCALE1024 * noiseLFParams.x; // LF SCALE NOISESPACE
-			
-			// THIS IS ABSOLUTELY REQUIRED!!!!!!
-			// This skew _must_ be done before noiseOffset is added, as noiseOffset is fract-ed from lua cause of wind
-			noiseLFSpacePos += noiseLFSpacePos.zxx * NOISESKEW * 1.5; // LF SKEW TO REDUCE TILING
-
-			vec3 noiseHFSpacePos = noiseLFSpacePos * noiseHFParams.x * 10; // 
-			noiseHFSpacePos -= 0.2 * noiseHFSpacePos.zxx;
-			noiseHFSpacePos -= noiseHFSpacePos.zxx * NOISESKEW;
-			noiseHFSpacePos.xz += time * noiseHFParams.zw * 0.001;
-			noiseHFSpacePos += noiseOffset ;	
+			vec3 noiseHFSpacePos = noiseHFStart + rayIndexFloat * noiseHFEndStep;
 			vec4 highFreqNoise =  texture(uniformNoiseTex, noiseHFSpacePos );
-			highFreqNoise = highFreqNoise * 0.5 - 0.25;
+			
+			highFreqNoise.rgb = highFreqNoise.rgb * 0.5 - 0.25; // scale down to [-0.25, 0.25]
+			highFreqNoise *= (highFreqNoise.a); // Further modulate with own alpha channel
 			
 			#line 36300
+		
+			vec3 noiseLFSpacePos = noiseLFStart + rayIndexFloat * noiseLFEndStep + highFreqNoise.rgb * noiseHFParams.y;
 			
-
-
-			
-			noiseLFSpacePos += highFreqNoise.rgb * noiseHFParams.y ;
 			vec4 textureNoise = vec4(0.0);
 			
 			#if (TEXTURESAMPLER == 1)
@@ -1173,7 +1185,7 @@ void main(void)
 			// Modulate the noise based on its depth below fogplane, this is 1 at 0 height, and 0 at fogPlaneTop
 			float rayDepthratio = 1.0; //clamp((1.0 - rayPos.y * fogPlaneTopInv) * HEIGHTDENSITY,0,1);
 			
-			float clampedNoise = clamp(fogGroundDensity * (textureNoise.r  - noiseLFParams.y) * rayDepthratio * stepLength, 0, 100);
+			float clampedNoise = max(0, (textureNoise.r  - noiseLFParams.y) * fogGroundDensity * rayDepthratio * stepLength);
 
 			//float shadeFactor = max(0.0, textureNoise.g -noiseLFParams.y) ;
 			//vec3 fogShaded = mix(fogGlobalColor.rgb, fogShadowedColor.rgb,  rayDepthratio * rayDepthratio* shadeFactor*0 );

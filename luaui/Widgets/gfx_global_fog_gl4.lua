@@ -156,9 +156,9 @@ local fogUniforms = {
 		},
 	noiseHFParams = {
 		0.4, -- high-frequency cloud noise, lower numbers = lower frequency
-		0.39, -- noise bias, [-1,1] high numbers denser
-		0.77, -- low frequency big cloud noise, lower numbers = lower frequency
-		0.0, -- low frequency noise bias, keep between [-1,1]
+		0.1, -- Pertubation factor
+		0.2, -- SpeedX
+		0.2, -- SpeedZ
 		},
 
 	}
@@ -544,7 +544,11 @@ function widget:DrawWorld()
 		combineShader =  LuaShader.CheckShaderUpdates(combineShaderSourceCache) or combineShader
 		shadowShader =  LuaShader.CheckShaderUpdates(shadowMinifierShaderSourceCache) or shadowShader
 	end
-	if shaderConfig.ENABLED == 0 then return end
+	if shaderConfig.ENABLED == 0 then 
+		
+		initfps = Spring.GetFPS()
+		return 
+	end
 	
 	gl.DepthMask(false) -- dont write to depth buffer
 
