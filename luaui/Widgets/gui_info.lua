@@ -54,6 +54,7 @@ local tooltipValueWhiteColor = '\255\255\255\255'
 local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor .. ": Select\n " .. tooltipTextColor .. "   + CTRL" .. tooltipLabelTextColor .. ": Select units of this type on map\n " .. tooltipTextColor .. "   + ALT" .. tooltipLabelTextColor .. ": Select 1 single unit of this unit type\n " .. tooltipTextColor .. "Right click" .. tooltipLabelTextColor .. ": Remove\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Remove only 1 unit from that unit type\n " .. tooltipTextColor .. "Middle click" .. tooltipLabelTextColor .. ": Move to center location\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Move to center off whole selection"
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousName = '?????'
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local iconTypesMap, dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
@@ -1088,7 +1089,7 @@ local function drawUnitInfo()
 				name = GetAIName(teamID)
 			end
 			if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode ~= 'disabled' then
-				name = "??????"
+				name = anonymousName
 			end
 			if name then
 				local fontSizeOwner = fontSize * 0.87
