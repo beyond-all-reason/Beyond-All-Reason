@@ -1342,7 +1342,7 @@ function WeaponDef_Post(name, wDef)
 			-- if wDef.mygravity and wDef.mygravity ~= 0 then
 			-- 	wDef.mygravity = wDef.mygravity*(1/x)
 			-- else
-			-- 	wDef.mygravity = 0.12 -- this is some really weird number totally not related to numbers defined in map file
+			-- 	wDef.mygravity = Game.gravity / (Game.gameSpeed ^ 2) / x
 			-- end
 			if wDef.weaponvelocity and wDef.weapontype == "Cannon" and wDef.gravityaffected == "true" then
 				wDef.weaponvelocity = wDef.weaponvelocity*math.sqrt(x)
