@@ -44,6 +44,11 @@ local GL_R32F = 0x822E
 -- TODO: HDR blending
 -- VERY IMPORTANT NOTES:
 -- WHEN NOT USING RAYTRACING, SET FOG RESOLUTION TO 1!!!!!!!!!
+-- TODO: Switch to premultiplied alpha, which is needed for proper raymarchcing compositing:
+	-- https://lightrun.com/answers/mrdoob-three-js-incorrect-brightness-when-gl_fragcolor-is-semi-transparent
+	-- So gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA) -- GL.ONE instead of GL.SRC_ALPHA
+	-- Which means that the final, compositing fragment output needs its fragColor.rgb = fragColor.rgb * fragColor.a
+
 
 -- Most fucked up idea ever:
 	-- a simple 2d texture lookup is _still_ faster than a fucking noise gen, even the cheapest goddamned FBM noise too
@@ -138,6 +143,7 @@ end
 
 local fogUniforms = {
 	fogGlobalColor = {0.6,0.7,0.8,0.98}, -- bluish, alpha is the ABSOLUTE MAXIMUM FOG
+	cloudGlobalColor = {0.6,0.7,0.8,0.98}, -- bluish, alpha is the ABSOLUTE MAXIMUM FOG
 	fogSunColor = {1.0,0.9,0.8,0.35}, -- yellowish, alpha is power
 	fogShadowedColor = {0.1,0.05,0.1,0.5}, -- purleish tint, alpha is power
 	fogPlaneTop = (math.max(minHeight,0) + maxHeight) /1.7 , -- Start of the height thing
@@ -170,13 +176,14 @@ local fogUniformSliders = {
 	left = vsx - 270, 
 	right = vsx - 270 + 250,
 	bottom = 200,
-	top = 1000,
+	top = 1200,
 	width = 250, 
 	height = 20,
 	sliderheight = 20,
 	valuetarget = fogUniforms,
 	sliderParamsList = {
 		{name = 'fogGlobalColor', min = 0, max = 1, digits = 3, tooltip =  'fogGlobalColor, alpha is the ABSOLUTE MAXIMUM FOG'},
+		{name = 'cloudGlobalColor', min = 0, max = 1, digits = 3, tooltip =  'cloudGlobalColor, alpha is the ABSOLUTE MAXIMUM FOG'},
 		{name = 'fogSunColor', min = 0, max = 1, digits = 3, tooltip =  'fogSunColor, alpha is power'},
 		{name = 'fogShadowedColor', min = 0, max = 1, digits = 3, tooltip =  'fogShadowedColor'},
 		{name = 'fogPlaneTop', min = math.floor(minHeight), max = math.floor(maxHeight * 2), digits = 0, tooltip =  'fogPlaneTop, in elmos'},
@@ -219,7 +226,9 @@ local uniformNoiseTex =  "LuaUI/images/noisetextures/uniform3d_16x16x16_RGBA.dds
 --local noisetex3dcube =  "LuaUI/images/noisetextures/cloudy8_a_128x128x32_L.dds"
 local simpledither = "LuaUI/images/noisetextures/rgba_noise_256.tga"
 local worley3d128 = "LuaUI/images/noisetextures/worley_rgbnorm_01_asum_128_v1.dds"
-local dithernoise2d =  "LuaUI/images/lavadistortion.png"
+local dithernoise2d =  "LuaUI/images/lavadistortion.png"	
+local packedNoise =  "LuaUI/images/noisetextures/worley3_256x128x64_RBGA_LONG." .. ((shaderConfig.USEDDS == 1 ) and 'dds' or 'png')
+
 
 local fogPlaneVAO 
 local resolution = 64
@@ -578,7 +587,6 @@ function widget:DrawWorld()
 	if shaderConfig.USEMINIMAP > 0 then 
 		gl.Texture(6, '$minimap')
 	end
-	local packedNoise =  "LuaUI/images/noisetextures/worley3_256x128x64_RBGA_LONG." .. ((shaderConfig.USEDDS == 1 ) and 'dds' or 'png')
 	gl.Texture(7, packedNoise)
 	gl.Texture(8, blueNoise64)
 	gl.Texture(9, uniformNoiseTex)
@@ -599,17 +607,16 @@ function widget:DrawWorld()
 	if toTexture then 
 		gl.RenderToTexture(fogTexture, renderToTextureFunc)
 	else
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
 		fogPlaneVAO:DrawElements(GL.TRIANGLES)
 	end
 
 	groundFogShader:Deactivate()
 	
 	gl.Culling(false)
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	-- glColorMask(false, false, false, false)
 	if toTexture and shaderConfig.COMBINESHADER == 1 then 
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
 		combineShader:Activate()
 		combineShader:SetUniformFloat("resolution", shaderConfig.RESOLUTION)
 		--combineShader:SetUniformFloat("distortionlevel", 0.0001) -- 0.001
@@ -619,8 +626,10 @@ function widget:DrawWorld()
 		combineShader:Deactivate()
 		--gl.TexRect(0, 0, 10000, 10000, 0, 0, 1, 1) -- dis is for debuggin!
 	end
+	
 	for i = 0, 8 do gl.Texture(i, false) end 
-  gl.DepthMask(false) --"BK OpenGL state resets", reset to default state
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- reset GL state
+  	gl.DepthMask(false) --"BK OpenGL state resets", reset to default state
 end
 
 function widget:DrawScreen()

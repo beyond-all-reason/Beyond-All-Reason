@@ -200,6 +200,7 @@ void main(void) {
 		
 		//gl_FragColor.r += step(modeldepth, mapdepth);
 		gl_FragColor.a = min(gl_FragColor.a, 0.99) ;
+		gl_FragColor.rgb *= gl_FragColor.a;
 		//gl_FragColor.a = gatherAlpha.a;
 	}
 }

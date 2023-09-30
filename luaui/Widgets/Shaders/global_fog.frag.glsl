@@ -34,6 +34,7 @@ uniform sampler3D uniformNoiseTex;
 uniform float windX;
 uniform float windZ;
 uniform vec4 fogGlobalColor;
+uniform vec4 cloudGlobalColor;
 uniform vec4 fogSunColor;
 uniform vec4 fogShadowedColor;
 uniform vec4 noiseLFParams;
@@ -871,6 +872,9 @@ float fastQuadTexture2DLookupInd(sampler2D t, vec2 Pos, vec2 stepsize, vec4 weig
 // Oooh cool mie func: https://research.nvidia.com/labs/rtr/approximate-mie/
 // bitsquid.blogspot.com/2016/07/volumetric-clouds.html
 // https://advances.realtimerendering.com/s2015/The%20Real-time%20Volumetric%20Cloudscapes%20of%20Horizon%20-%20Zero%20Dawn%20-%20ARTR.pdf
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/volume-rendering-for-developers/intro-volume-rendering.html
+//https://www.scratchapixel.com/lessons/3d-basic-rendering/volume-rendering-for-developers/ray-marching-algorithm.html
+//https://pbr-book.org/3ed-2018/contents
 
 
 
@@ -901,6 +905,72 @@ void WorldToNoiseSpace(in vec3 wp, out vec3 lf, out vec3 hf){
 	lf += lf.zxx * NOISESKEW * 1.0;
 	lf += noiseOffset;
 }
+
+vec4 SampleNoiseSpace(in vec3 noiseLFSpacePos, in vec3 noiseHFSpacePos){
+
+	vec4 highFreqNoise =  texture(uniformNoiseTex, noiseHFSpacePos);
+	
+	highFreqNoise.rgb = highFreqNoise.rgb * 0.5 - 0.25; // scale down to [-0.25, 0.25]
+	highFreqNoise *= (highFreqNoise.a); // Further modulate with own alpha channel
+	
+	noiseLFSpacePos += highFreqNoise.rgb * noiseHFParams.y;
+	
+	vec4 textureNoise = vec4(0.0);
+
+	#if (TEXTURESAMPLER == 1)
+		textureNoise = getPackedNoise(noiseLFSpacePos); 
+	#endif
+	#if (TEXTURESAMPLER == 2)
+		textureNoise = texture(noise64cube, noiseLFSpacePos.xzy).argb; // almost universally the best :'( 
+	#endif
+	#if (TEXTURESAMPLER == 3)
+		textureNoise = 1.0 - Cellular3D_Deriv(noiseLFSpacePos.xzy).rgba; // almost universally the best :'( 
+	#endif
+	
+	#if (QUADNOISEFETCHING == 1)
+		textureNoise.r = quadGatherWeighted(textureNoise.r);
+		textureNoise.g = quadGatherWeighted(textureNoise.g);
+	#endif
+
+	return textureNoise;
+}
+
+
+float expImpulse( float x, float k )
+{
+    float h = k*x;
+    return h*exp(1.0-h);
+}
+
+
+float expSustainedImpulse( float x, float f, float k )
+{
+    float s = max(x-f,0.0);
+    return min( x*x/(f*f), 1.0+(2.0/f)*s*exp(-k*s));
+}
+
+float BeersLaw(float d,float k){
+	return exp(-1*k*d);
+}
+
+float PowderLaw(float d, float k){
+	return 1.0 - exp(-2*k*d);
+}
+
+float BeersPowder(float d, float k){
+	return BeersLaw(d,k) * PowderLaw(d,k);
+}
+
+//https://encreative.blogspot.com/2019/05/forward-and-backward-alpha-blending-for.html 
+
+// remember that accumulatedColor.a is (1.0 - alpha)
+void BackwardBlend(inout vec4 accumulatedColor, in vec4 currentColor){
+	accumulatedColor.rgb += accumulatedColor.rgb * (accumulatedColor.a * currentColor.a);
+	accumulatedColor.a *= (1.0 - currentColor.a);
+}
+//------------------------------------
+
+
 ////----------------------------------------------------------------
 ////------------------------------MAIN------------------------------
 ////----------------------------------------------------------------
@@ -1083,12 +1153,11 @@ void main(void)
 	
 	// ----------------- BEGIN CLOUD LAYER -------------------------------
 	#line 34000
-	vec4 fogRGBA = vec4(fogGlobalColor.rgb, 0);
+	vec4 cloudRGBA = vec4(cloudGlobalColor.rgb, 0);
 	// Start by calculating the absolute, mapdepth scaled ray start and ray end factors
 
 	vec3 cloudRayDir = fromCameraNormalized;
 	vec3 cloudRayDirInv = 1.0 / fromCameraNormalized;
-	vec3 cloudRayOrigin = camPos;
 	
 	// take the ray start, and clamp it to the most distant of all 
 	
@@ -1123,18 +1192,22 @@ void main(void)
 	
 	float cloudRayLength = length(cloudRayStart-cloudRayEnd);
 	float myfog = 0;
-	vec4 cloudColor = vec4(0.0);
+	vec4 cloudColor = vec4(cloudGlobalColor.rgb,1);
+	vec4 cloudBlendRGBT = vec4(0,0,0, 1); // Zero color, and Transparency of 1
 	if (cloudRayLength > 0 ){
 		vec3 cloudRayStep = (cloudRayStart - cloudRayEnd) / NOISESAMPLES;
 		float stepLength = cloudRayLength/NOISESAMPLES; 
-		vec4 quadoffsets = vec4(0,0.25,0.5, 0.75);// * blueNoiseSample.g * BLUENOISESTRENGTH; 
+		// this needs to be shuffled further:
+		vec4 quadoffsets = 0.125 + vec4(0.5,0.25,0.0, 0.75);// * blueNoiseSample.g * BLUENOISESTRENGTH; 
+		//vec4 quadoffsets = 0.125 + vec4(0.0,0.25,0.5, 0.75);// * blueNoiseSample.g * BLUENOISESTRENGTH; 
+		//vec4 quadoffsets = vec4(-0.375,0.125,-0.125, 0.375);// * blueNoiseSample.g * BLUENOISESTRENGTH; 
 		vec3 quadStep = cloudRayStep * dot(threadMask,quadoffsets);
 		#if (QUADNOISEFETCHING == 1)
 			cloudRayStart += quadStep;
 			cloudRayEnd += quadStep;
 		#else
-			//cloudRayStart += cloudRayStep  * blueNoiseSample.g * BLUENOISESTRENGTH;
-			//cloudRayEnd += cloudRayStep  * blueNoiseSample.g * BLUENOISESTRENGTH;
+			cloudRayStart += cloudRayStep  * blueNoiseSample.g * BLUENOISESTRENGTH;
+			cloudRayEnd += cloudRayStep  * blueNoiseSample.g * BLUENOISESTRENGTH;
 		#endif
 		
 		#if (NOISESAMPLES > 0)
@@ -1143,63 +1216,61 @@ void main(void)
 		vec3 noiseLFEndStep;
 		vec3 noiseHFStart;
 		vec3 noiseHFEndStep;
+
 		WorldToNoiseSpace(cloudRayStart, noiseLFStart, noiseHFStart);
 		WorldToNoiseSpace(cloudRayEnd, noiseLFEndStep, noiseHFEndStep);
+		
 		noiseLFEndStep = (noiseLFEndStep - noiseLFStart) / NOISESAMPLES;
 		noiseHFEndStep = (noiseHFEndStep - noiseHFStart) / NOISESAMPLES;
-		
+
+		vec3 noiseLFSunDir;
+		vec3 noiseHFSunDir;
+		WorldToNoiseSpace(sunDir.xyz, noiseLFSunDir, noiseHFSunDir);
+
+		float fogHeightInv  = 1.0/(cloudVolumeMax.y - cloudVolumeMin.y); 
+		#line 36300
 		float rayIndexFloat = 0.0;
 		for (uint ns = 0; ns < NOISESAMPLES; ns++){
 			// A rule of thumb: Each line here, at 16 samples costs 1 fps, texture lookups cost 5 fps 
-			
+			float heightFraction = clamp( ((cloudRayStart.y - cloudRayStep.y *  rayIndexFloat ) - cloudVolumeMin.y) *fogHeightInv,0,1);
 			//vec3 rayPos = cloudRayStart - cloudRayStep * rayIndexFloat;
 			
+			vec3 noiseHFSpacePos = noiseHFStart + rayIndexFloat * noiseHFEndStep;
+			vec3 noiseLFSpacePos = noiseLFStart + rayIndexFloat * noiseLFEndStep;
 			rayIndexFloat += 1.0;
 			
-			vec3 noiseHFSpacePos = noiseHFStart + rayIndexFloat * noiseHFEndStep;
-			vec4 highFreqNoise =  texture(uniformNoiseTex, noiseHFSpacePos );
-			
-			highFreqNoise.rgb = highFreqNoise.rgb * 0.5 - 0.25; // scale down to [-0.25, 0.25]
-			highFreqNoise *= (highFreqNoise.a); // Further modulate with own alpha channel
-			
-			#line 36300
-		
-			vec3 noiseLFSpacePos = noiseLFStart + rayIndexFloat * noiseLFEndStep + highFreqNoise.rgb * noiseHFParams.y;
-			
-			vec4 textureNoise = vec4(0.0);
-			
-			#if (TEXTURESAMPLER == 1)
-				textureNoise = getPackedNoise(noiseLFSpacePos); 
-			#endif
-			#if (TEXTURESAMPLER == 2)
-				textureNoise = texture(noise64cube, noiseLFSpacePos.xzy).argb; // almost universally the best :'( 
-			#endif
-			#if (TEXTURESAMPLER == 3)
-				textureNoise = 1.0 - Cellular3D_Deriv(noiseLFSpacePos.xzy).rgba; // almost universally the best :'( 
-			#endif
-			
-			#if (QUADNOISEFETCHING == 1)
-				textureNoise.r = quadGatherWeighted(textureNoise.r);
-			#endif
-			
+			vec4 textureNoise = SampleNoiseSpace(noiseLFSpacePos, noiseHFSpacePos);
+
 			// Modulate the noise based on its depth below fogplane, this is 1 at 0 height, and 0 at fogPlaneTop
 			float rayDepthratio = 1.0; //clamp((1.0 - rayPos.y * fogPlaneTopInv) * HEIGHTDENSITY,0,1);
 			
 			float clampedNoise = max(0, (textureNoise.r  - noiseLFParams.y) * fogGroundDensity * rayDepthratio * stepLength);
-
+			float occludedness = textureNoise.g;
 			//float shadeFactor = max(0.0, textureNoise.g -noiseLFParams.y) ;
-			//vec3 fogShaded = mix(fogGlobalColor.rgb, fogShadowedColor.rgb,  rayDepthratio * rayDepthratio* shadeFactor*0 );
+			//vec3 fogShaded = mix(cloudGlobalColor.rgb, fogShadowedColor.rgb,  rayDepthratio * rayDepthratio* shadeFactor*0 );
 			//clampedNoise = step(sin(time * 0.01) * 0.1 + 0.5, clampedNoise);
-			//fogRGBA.rgb = fogShaded.rgb * clampedNoise + fogRGBA.rgb * (1.0 - clampedNoise);
+			//cloudRGBA.rgb = fogShaded.rgb * clampedNoise + cloudRGBA.rgb * (1.0 - clampedNoise);
 			myfog += clampedNoise;
-			fogRGBA.a = clampedNoise + fogRGBA.a * (1.0 - clampedNoise); // the sA*sA term is questionable here!
+			cloudRGBA.a = clampedNoise + cloudRGBA.a * (1.0 - clampedNoise); // the sA*sA term is questionable here!
+			//cloudRGBA.rgb += cloudRGBA.a;
+			//cloudBlendRGBT
+			//cloudRGBA.rgb = mix(cloudColor.rgb, cloudColor.rgb * (1.0-textureNoise.g) , clampedNoise);
+			vec4 nowColor = vec4(cloudColor.rgb, 1.0 - exp(-1 * clampedNoise * cloudGlobalColor.a));
+			nowColor.rgb = nowColor.rgb * BeersPowder(clampedNoise, cloudGlobalColor.a * 10) * 0.0;
+			BackwardBlend(cloudBlendRGBT, nowColor);
+			//https://encreative.blogspot.com/2019/05/forward-and-backward-alpha-blending-for.html 
+
 		}
+		float beerpowder = expImpulse(myfog, cloudGlobalColor.a * 1);
+		//cloudRGBA.rgb = cloudRGBA.rgb *beerpowder;
+		//cloudRGBA.rgb = vec3(beerpowder);
+		//float beer-powder = 
 		#endif
 	}
+	//fragColor.rgba = vec4(cloudBlendRGBT.rgb, 1.0 - cloudBlendRGBT.a); return;
 	
 	
-	
-	fragColor.rgba = fogRGBA;
+	fragColor.rgba = cloudRGBA;
 	//fragColor.rgb *= 2.0;
 	//fragColor.a = heightBasedFogExp; 
 	fragColor.a = 1.0 - exp(-1 * myfog * 0.1);
@@ -1208,6 +1279,9 @@ void main(void)
 	//fragColor.a *=(1.0 - dbgQuad.b);
 	#if (FULLALPHA == 1) 
 		fragColor.a = 1.0;
+	#endif
+	#if (RESOLUTION == 1) // When not using combine shader, we must pre-multiple color with alpha!
+		fragColor.rgb *= fragColor.a;
 	#endif
 	return;
 	
