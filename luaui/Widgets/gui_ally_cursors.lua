@@ -479,21 +479,6 @@ local function DrawCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity)
 	end
 end
 
-local function updateCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity, sl)
-  if cursors[playerID] == nil then
-			cursors[playerID] = { wx, wy, wz, camX, camY, camZ, opacity, sl}
-  else
-    cursors[playerID][1] = wx
-    cursors[playerID][2] = wy
-    cursors[playerID][3] = wz
-    cursors[playerID][4] = camX
-    cursors[playerID][5] = camY
-    cursors[playerID][6] = camZ
-    cursors[playerID][7] = opacity
-    cursors[playerID][8] = sl
-  end
-end
-
 
 local sec = 0
 function widget:Update(dt)
@@ -523,7 +508,6 @@ function widget:Update(dt)
 	for playerID, data in pairs(alliedCursorsPos) do
 		local wx, wz = data[1], data[2]
 		local lastUpdatedDiff = now - data[#data - 2] + 0.025
-
 		if lastUpdatedDiff < packetInterval then
 			local scale = (1 - (lastUpdatedDiff / packetInterval)) * numMousePos
 			local iscale = min(floor(scale), numMousePos - 1)
@@ -533,19 +517,29 @@ function widget:Update(dt)
 		end
 
 		if notIdle[playerID] then
-			-- and alliedCursorsTime[playerID] > (time-idleCursorTime)
 			local opacity = 1
-			if specList[playerID] then
+			if specList[playerID] and showSpectatorName then
 				opacity = 1 - ((now - alliedCursorsTime[playerID]) / idleCursorTime)
 				if opacity > 1 then
 					opacity = 1
 				end
 			end
+			if specList[playerID] and not showSpectatorName then
+				opacity = 0	-- doing this cause somehow setting cursors[playerID][8]=true doesnt remove the light but setting cursors[playerID]=nil does
+			end
 			if opacity > 0.1 then
-				local wy = spGetGroundHeight(wx, wz)
-				updateCursor(playerID,wx, wy, wz, camX, camY, camZ, opacity, specList[playerID])
-        -- for future reference, avoid recreating tables every frame, just update it with a function
-				--cursors[playerID] = { wx, wy, wz, camX, camY, camZ, opacity, specList[playerID] }
+				if not cursors[playerID] then
+					cursors[playerID] = { wx, spGetGroundHeight(wx, wz), wz, camX, camY, camZ, opacity, specList[playerID]}
+				else
+					cursors[playerID][1] = wx
+					cursors[playerID][2] = spGetGroundHeight(wx, wz)
+					cursors[playerID][3] = wz
+					cursors[playerID][4] = camX
+					cursors[playerID][5] = camY
+					cursors[playerID][6] = camZ
+					cursors[playerID][7] = opacity
+					cursors[playerID][8] = specList[playerID]
+				end
 			else
 				notIdle[playerID] = nil
 				cursors[playerID] = nil
@@ -553,7 +547,7 @@ function widget:Update(dt)
 		else
 			-- mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
 			if wx and wz and wz_old and wz_old and (abs(wx_old - wx) >= 1 or abs(wz_old - wz) >= 1) then
-				--abs is needed because of floating point used in interpolation
+				-- abs is needed because of floating point used in interpolation
 				notIdle[playerID] = true
 				wx_old = nil
 				wz_old = nil
