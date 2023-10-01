@@ -6293,6 +6293,7 @@ function widget:Shutdown()
 	WG['options'] = nil
 
 	resetUserVolume()
+	Spring.SendCommands("grabinput 0")
 end
 
 local lastOptionCommand = 0
