@@ -54,21 +54,56 @@ Spring.SetGameRulesParam("slowState",1)
 
 local function updateSlow(unitID, state)
 Spring.Echo("hornet upd slow unit id " .. unitID .. "  state.slowDamage " .. state.slowDamage  .. "  max slow factor " .. MAX_SLOW_FACTOR)
-	local health = spGetUnitHealth(unitID)
+	local health, maxHealth, paralyzeDamage, capture, build  = spGetUnitHealth(unitID)
 
-	if health then
-		local maxSlow = health*(MAX_SLOW_FACTOR + (state.extraSlowBound or 0))
-		if state.slowDamage > maxSlow then
-			state.slowDamage = maxSlow
+
+
+	-- overslow seems to be a stacked slow aside from the existing, purpose unclear
+	
+	-- EITHER tune the multiplier to cap at maybe a 80% of that needed for an EMP stun ? so it's max slowed for a long while before halting
+	---  OR rig the whole mess to just watch EMP damage specifically. in theory this is better but bends away from original code more
+	
+	
+	-- 'sometimes' units are left slowed after the EMP wears off, a long while after so they must have fallen off of the update system
+	-- once units hit 0 emp, maybe explicitly reset and remove. try to trigger with solo unit, if no 'removed' message appears, it must be dropping out of the revisit loop somehow
+
+	
+	
+
+
+		if health then
+			local maxSlow = health*(MAX_SLOW_FACTOR + (state.extraSlowBound or 0))
+			
+			if state.slowDamage > maxSlow then
+				state.slowDamage = maxSlow
+			
+			--if paralyzeDamage > maxSlow then
+				--paralyzeDamage = maxSlow
+			end
+			
+			--local percentSlow = state.slowDamage/health
+			local percentSlow = paralyzeDamage/health
+			-- 0.5  == 50% ?
+
+			Spring.Echo("hornet pd=" .. (paralyzeDamage or 0))
+
+
+
+
+			Spring.Echo("hornet updateSlow unit id " .. unitID .. " slowperc " .. percentSlow)
+			spSetUnitRulesParam(unitID,"slowState",percentSlow, LOS_ACCESS)
+			GG.UpdateUnitAttributes(unitID)
+			
+			if paralyzeDamage < 5 then
+				Spring.Echo("hornetdebug removing unit" .. unitID)
+
+				slowedUnits[unitID] = nil
+				--reset speeds to max in case something lingered?
+				spSetUnitRulesParam(unitID,"slowState",0, LOS_ACCESS)
+				GG.UpdateUnitAttributes(unitID)
+				
+			end
 		end
-		
-		local percentSlow = state.slowDamage/health
-		-- so ... is this 0.5% or 50% ?
-
-		Spring.Echo("hornet updateSlow unit id " .. unitID .. " slowperc " .. percentSlow)
-		spSetUnitRulesParam(unitID,"slowState",percentSlow, LOS_ACCESS)
-		GG.UpdateUnitAttributes(unitID)
-	end
 end
 
 function gadget:UnitPreDamaged_GetWantedWeaponDef()
@@ -107,11 +142,10 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	slowedUnits[unitID].slowDamage = slowedUnits[unitID].slowDamage + slowdown
 	slowedUnits[unitID].degradeTimer = DEGRADE_TIMER
 	
-	Spring.Echo('slowDamage' .. slowDamage);
-	Spring.Echo('degradeTimer' .. degradeTimer);
+	Spring.Echo('hornet debug slowDamage' .. slowDamage .. '  degradeTimer' .. degradeTimer);
 	
 	if slowDef.overslow then
-		slowedUnits[unitID].extraSlowBound = math.max(slowedUnits[unitID].extraSlowBound or 0, slowDef.overslow)
+		--slowedUnits[unitID].extraSlowBound = math.max(slowedUnits[unitID].extraSlowBound or 0, slowDef.overslow)
 	end
 
 	if GG.Awards and GG.Awards.AddAwardPoints then
