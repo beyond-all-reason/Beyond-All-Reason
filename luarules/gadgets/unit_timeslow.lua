@@ -53,7 +53,7 @@ local slowedUnits = {}
 Spring.SetGameRulesParam("slowState",1)
 
 local function updateSlow(unitID, state)
-Spring.Echo(unitID)
+Spring.Echo("hornet upd slow unit id " .. unitID)
 	local health = spGetUnitHealth(unitID)
 
 	if health then
@@ -64,6 +64,7 @@ Spring.Echo(unitID)
 		
 		local percentSlow = state.slowDamage/health
 
+		Spring.Echo("hornet updateSlow unit id " .. unitID .. " slowperc " .. percentSlow)
 		spSetUnitRulesParam(unitID,"slowState",percentSlow, LOS_ACCESS)
 		GG.UpdateUnitAttributes(unitID)
 	end
@@ -104,6 +105,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 
 	slowedUnits[unitID].slowDamage = slowedUnits[unitID].slowDamage + slowdown
 	slowedUnits[unitID].degradeTimer = DEGRADE_TIMER
+	
+	Spring.Echo('slowDamage' .. slowDamage);
+	Spring.Echo('degradeTimer' .. degradeTimer);
 	
 	if slowDef.overslow then
 		slowedUnits[unitID].extraSlowBound = math.max(slowedUnits[unitID].extraSlowBound or 0, slowDef.overslow)

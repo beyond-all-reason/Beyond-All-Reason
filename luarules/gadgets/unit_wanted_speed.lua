@@ -27,16 +27,54 @@ end
 ---local CMD_WANTED_SPEED = Spring.Utilities.CMD.WANTED_SPEED
 
 --local wantedCommand = {
+
 	--[CMD_WANTED_SPEED] = true,
 --}
 
-local units = {}
 
+
+
+
+
+
+		Spring.Echo('hornetdebug wanted_speed loaded')
+
+
+
+local units = {}
 local moveTypeByDefID = {}
+local moveType = 0
 do
-	local getMovetype = Spring.Utilities.getMovetype
+
+
+	--local moveData = {}
+	--local moveType = 0
+		
+			
+			
+	--local getMovetype = Spring.Utilities.getMovetype
 	for i = 1, #UnitDefs do
-		moveTypeByDefID[i] = getMovetype(UnitDefs[i])
+		--moveTypeByDefID[i] = getMovetype(UnitDefs[i])
+		--moveData = spGetUnitMoveTypeData(i)
+		
+		
+		--Spring.Echo("hornet movedef name" .. UnitDefs[i].moveDef.name)
+		Spring.Echo("hornet movedef name")
+		
+		
+		Spring.Echo('hornetdebug UnitDefs[i]')
+		Spring.Echo(UnitDefs[i])
+		for k,v in pairs(UnitDefs[i]) do
+		  Spring.Echo(k,v)
+		end		
+		
+		
+		
+		
+		
+		moveType = 0
+		if UnitDefs[i].moveDef.name == "ground" then moveType = 2 end
+		moveTypeByDefID[i] = moveType
 	end
 end
 

@@ -271,14 +271,27 @@ local function UpdateMovementSpeed(unitID, unitDefID, speedFactor, turnAccelFact
 		
 		
 		
+		Spring.Echo('hornetdebug movedata')
+		Spring.Echo(moveData)
+		for k,v in pairs(moveData) do
+		  Spring.Echo(k,v)
+		end		
+		
+		Spring.Echo('ud speed')
+		Spring.Echo(ud.speed)
 		Spring.Echo('ud table')
 
 		for k,v in pairs(ud) do
-		  print(k,v)
+		  Spring.Echo(k,v)
 		end		
 		
 		
+		---
+		state.movetype = 0
 		
+		
+		--find out what actually is/means what?
+		if moveData.name == "ground" then state.movetype = 2 end
 		
 		-- returns 0 1 or 2, --maybe-- land, air, gunship? 
 		state.movetype = 2--Spring.Utilities.getMovetype(ud)
