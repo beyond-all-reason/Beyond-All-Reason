@@ -48,6 +48,33 @@ local spGetUnitHealth = Spring.GetUnitHealth
 
 function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
     if paralyzer then
+	
+	
+	
+	
+	
+	-- debug dump out from here first off, see what I have
+	
+	Spring.Echo("hornetdebug" .. uID .. "" .. uDefID .. "" .. uTeam .. "" .. damage)
+
+
+	GG.addSlowDamage(uID, damage, 0)
+	
+	-- what does overslow do
+
+
+	
+	
+	-- can maybe simply bolt a slow on here?
+	
+	
+	
+	
+	
+	
+	
+	
+	
         -- restrict the max paralysis time of mobile units to 15 sec
         if aDefID and uDefID and weaponID and not isBuilding[uDefID] and not excluded[uDefID] then
             local max_para_time = weaponParalyzeDamageTime[weaponID]
