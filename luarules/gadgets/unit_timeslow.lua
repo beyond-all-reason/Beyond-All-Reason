@@ -53,7 +53,7 @@ local slowedUnits = {}
 Spring.SetGameRulesParam("slowState",1)
 
 local function updateSlow(unitID, state)
-Spring.Echo("hornet upd slow unit id " .. unitID)
+Spring.Echo("hornet upd slow unit id " .. unitID .. "  state.slowDamage " .. state.slowDamage  .. "  max slow factor " .. MAX_SLOW_FACTOR)
 	local health = spGetUnitHealth(unitID)
 
 	if health then
@@ -63,6 +63,7 @@ Spring.Echo("hornet upd slow unit id " .. unitID)
 		end
 		
 		local percentSlow = state.slowDamage/health
+		-- so ... is this 0.5% or 50% ?
 
 		Spring.Echo("hornet updateSlow unit id " .. unitID .. " slowperc " .. percentSlow)
 		spSetUnitRulesParam(unitID,"slowState",percentSlow, LOS_ACCESS)

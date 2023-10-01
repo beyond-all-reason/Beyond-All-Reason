@@ -82,6 +82,10 @@ end
 -------------------------------------------------------------------------------------
 
 local function SetUnitWantedSpeed(unitID, unitDefID, wantedSpeed, forceUpdate)
+
+
+Spring.Echo("hornet SetUnitWantedSpeed" .. unitID .. "wanted speed " .. (wantedSpeed or 'nil'))
+
 	if not unitDefID then
 		return
 	end
@@ -118,6 +122,9 @@ local function SetUnitWantedSpeed(unitID, unitDefID, wantedSpeed, forceUpdate)
 	end
 end
 
+
+
+---this makes no sense, why does this chain exist
 function GG.ForceUpdateWantedMaxSpeed(unitID, unitDefID, clearWanted)
 	SetUnitWantedSpeed(unitID, unitDefID, (not clearWanted) and units and units[unitID] and units[unitID].lastWantedSpeed, true)
 end

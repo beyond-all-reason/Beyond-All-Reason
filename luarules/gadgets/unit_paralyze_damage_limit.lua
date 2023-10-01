@@ -55,18 +55,14 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 	
 	-- debug dump out from here first off, see what I have
 	
-	Spring.Echo("hornetdebug" .. uID .. "" .. uDefID .. "" .. uTeam .. "" .. damage)
+	Spring.Echo("hornetdebug predamaged uid" .. uID .. " udefid " .. uDefID .. " damage: " .. damage)
 
 
-	GG.addSlowDamage(uID, damage, 0)
+	GG.addSlowDamage(uID, damage, 50)
 	
-	-- what does overslow do
+	-- overslow seems to be a stacked slow aside from the existing, purpose unclear
 
 
-	
-	
-	-- can maybe simply bolt a slow on here?
-	
 	
 	
 	
