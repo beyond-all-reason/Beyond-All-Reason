@@ -170,6 +170,7 @@ local showOnceMore = false        -- used because of GUI shader delay
 local resettedTonemapDefault = false
 local heightmapChangeClock
 local requireRestartDefaults = {}
+local gameOver = false
 
 local presetCodes = {}
 local presetNames = {}
@@ -810,7 +811,7 @@ end
 
 local function updateGrabinput()
 	-- grabinput makes alt-tabbing harder, so loosen grip a bit when in lobby would be wise
-	if Spring.GetConfigInt('grabinput', 1) == 1 then
+	if Spring.GetConfigInt('grabinput', 1) == 1 and not gameOver then
 		if chobbyInterface then
 			if enabledGrabinput then
 				enabledGrabinput = false
@@ -6040,6 +6041,11 @@ function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 		end
 		heightmapChangeBuffer[#heightmapChangeBuffer + 1] = { x1 * 8, z1 * 8, x2 * 8, z2 * 8 }
 	end
+end
+
+function widget:GameOver()
+	gameOver = true
+	updateGrabinput()
 end
 
 function widget:Initialize()
