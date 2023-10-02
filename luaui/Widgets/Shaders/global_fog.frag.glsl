@@ -778,6 +778,18 @@ vec4 quadGatherSum4D(vec4 input){
 			);
 }
 
+vec4 quadGatherWeighted4D(vec4 input){
+		vec4 inputadjx = input - dFdx(input) * quadVector.x;
+		vec4 inputadjy = input - dFdy(input) * quadVector.y;
+		vec4 inputdiag = inputadjx - dFdy(inputadjx) * quadVector.y;
+		return vec4(
+			dot( vec4(input.x, inputadjx.x, inputadjy.x, inputdiag.x), selfWeights),
+			dot( vec4(input.y, inputadjx.y, inputadjy.y, inputdiag.y), selfWeights),
+			dot( vec4(input.z, inputadjx.z, inputadjy.z, inputdiag.z), selfWeights),
+			dot( vec4(input.w, inputadjx.w, inputadjy.w, inputdiag.w), selfWeights)
+			);
+}
+
 vec4 quadGatherSortFloat(vec4 unsorted){ // this could really use modification into a threadmask matrix!
 	vec4 sorted = vec4(0.0);
 	sorted.r = dot(unsorted.xyzw, threadMask);
@@ -853,7 +865,8 @@ float fastQuadTexture2DLookupInd(sampler2D t, vec2 Pos, vec2 stepsize, vec4 weig
 // These defines were empirically determined to be the kind that its not worth fucking with
 
 #define BLUENOISESTRENGTH 1.1
-#define NOISESKEW vec3(0.21, 0.32, 0.26)
+//#define NOISESKEW vec3(0.21, 0.32, 0.26)
+#define NOISESKEW vec3(0.0, 0.1, 0.0)
 #define NOISESCALE1024 NOISESCALE/1024.0
 
 #define FASTSMOOTHSTEP(A) (A * A * (3.0 - 2.0 * A))
@@ -926,6 +939,12 @@ vec4 SampleNoiseSpace(in vec3 noiseLFSpacePos, in vec3 noiseHFSpacePos){
 	#if (TEXTURESAMPLER == 3)
 		textureNoise = 1.0 - Cellular3D_Deriv(noiseLFSpacePos.xzy).rgba; // almost universally the best :'( 
 	#endif
+	#if (TEXTURESAMPLER == 4)
+		//textureNoise = 1.0 - noiseLFSpacePos.xzy;
+		vec3 centers = fract(noiseLFSpacePos.xyz) - 0.5;
+		float disttocenter = max(0, 1.0 - sqrt(dot (centers, centers)));
+		textureNoise = vec4(step(0.6,disttocenter),disttocenter,disttocenter,disttocenter);
+	#endif
 	
 	#if (QUADNOISEFETCHING == 1)
 		textureNoise.r = quadGatherWeighted(textureNoise.r);
@@ -970,6 +989,12 @@ void BackwardBlend(inout vec4 accumulatedColor, in vec4 currentColor){
 }
 //------------------------------------
 
+vec4 WorldToShadowSpace(vec3 worldPos){
+		vec4 shadowVertexPos = shadowView * vec4(worldPos,1.0);
+		shadowVertexPos.xy += vec2(0.5);
+		return shadowVertexPos;
+		//return clamp(textureProj(shadowTex, shadowVertexPos), 0.0, 1.0);
+}
 
 ////----------------------------------------------------------------
 ////------------------------------MAIN------------------------------
@@ -1014,6 +1039,8 @@ void main(void)
 	vec4 mapWorldPos =  vec4( vec3(screenUV.xy * 2.0 - 1.0, mapdepth),  1.0);
 	mapWorldPos = cameraViewProjInv * mapWorldPos;
 	mapWorldPos.xyz = mapWorldPos.xyz / mapWorldPos.w; // YAAAY this works!
+
+	vec3 trueMapWorldPos = mapWorldPos.xyz;
 	
 	// if mapworldpos is below 0, then pull it back to waterlevel
 	vec3 mapFromCam = mapWorldPos.xyz - camPos;
@@ -1128,6 +1155,45 @@ void main(void)
 	#else
 	#endif
 	// ----------------- END HEIGHT-BASED FOG SHADOWING -------------------------------
+
+	// ----------------- BEGIN UNDERWATER SHADOW RAYS -------------------------------
+	#line 33800
+
+	vec4 uwShadowRays = vec4(0,0,0,0);
+	float lastunderwatershadow =1;
+	#if HEIGHTSHADOWSTEPS > 0
+		if (rayLength > 0.01 && trueMapWorldPos.y < 0) {
+			// Draw these back to front
+			// Each shadow sample costs on average, 0.5 FPS at 1080p and half resolution
+			// Indeed, stepping in shadow space is much faster, and possible due to the linear transformation of it. 
+			// Now to also handle clipping within shadow space as not to get out of hand!
+			// NEEDS SHADOWSAMPLER == 1 
+			vec4 shadStart = WorldToShadowSpace(trueMapWorldPos); 
+			vec4 shadEnd = WorldToShadowSpace(mapWorldPos.xyz);
+			vec4 shadStep =  (shadStart - shadEnd) / HEIGHTSHADOWSTEPS;
+			shadStart -= blueNoiseSample.r * shadStep;
+
+			float rayIndex = 0;
+			for (uint i = 0; i < HEIGHTSHADOWSTEPS; i++){
+				vec4 shadPos = shadStart - shadStep * rayIndex;
+				float shadowSample = clamp(textureProj(shadowTex, shadPos, -2).r, 0.0, 1.0); // 1 for lit, 0 
+				uwShadowRays.w += shadowSample;
+				lastunderwatershadow = 0.5 * lastunderwatershadow +  0.5 * shadowSample;
+				rayIndex += 1.0;
+			}
+			// Special sauce PQM
+			uwShadowRays.w = quadGatherWeighted(uwShadowRays.w);
+			// Discount by # rays
+			uwShadowRays.w /= HEIGHTSHADOWSTEPS;
+			// half it a little bit:
+			uwShadowRays.a = (1.0 - uwShadowRays.a) * 0.5;
+			// modulate density up to shallowdepth:
+			uwShadowRays.a += 0.15 * (1.0 - quadGatherWeighted(lastunderwatershadow)); // This was Floris's idea
+			uwShadowRays.a *= smoothstep(0, 20, -1 * trueMapWorldPos.y);
+		}
+	#endif
+	// ----------------- END UNDERWATER SHADOW RAYS -------------------------------
+
 	// just use the density function of fogtop-fogbottom
 	float startDensity = clamp( (fogPlaneTop - rayStart.y) * fogPlaneSizeInv, 0, 1);
 	float endDensity = clamp( (fogPlaneTop - rayEnd.y) * fogPlaneSizeInv, 0, 1);
@@ -1184,6 +1250,11 @@ void main(void)
 	
 	if (step(nearDist, farDist) * step(0.0,farDist) < 0.5) cloudRayStart = cloudRayEnd;
 
+	// reverse the order!
+	vec3 tmp = cloudRayStart;
+	cloudRayStart = cloudRayEnd;
+	cloudRayEnd = tmp;
+
 	//vec3 rayStartFromBox = abs(cloudRayEnd - cloudBoxCenter) - cloudBoxSize;
 	//float rayStartDistFromBox = length(max(rayStartFromBox,0.0)) + min(max(cloudBoxSize.x,max(cloudBoxSize.y,cloudBoxSize.z)),0.0);
 	//fragColor.rgba = vec4 (fract((cloudRayEnd + 0.5) /1024), step(nearDist, farDist) * step(0.0,farDist));
@@ -1225,12 +1296,12 @@ void main(void)
 
 		vec3 noiseLFSunDir;
 		vec3 noiseHFSunDir;
-		WorldToNoiseSpace(sunDir.xyz, noiseLFSunDir, noiseHFSunDir);
+		WorldToNoiseSpace(sunDir.xyz * vec3(0,0,0), noiseLFSunDir, noiseHFSunDir);
 
 		float fogHeightInv  = 1.0/(cloudVolumeMax.y - cloudVolumeMin.y); 
 		#line 36300
 		float rayIndexFloat = 0.0;
-		for (uint ns = 0; ns < NOISESAMPLES; ns++){
+		for (uint ns = 0; ns < NOISESAMPLES; ns++){ // We march backwards, from furthest to closest
 			// A rule of thumb: Each line here, at 16 samples costs 1 fps, texture lookups cost 5 fps 
 			float heightFraction = clamp( ((cloudRayStart.y - cloudRayStep.y *  rayIndexFloat ) - cloudVolumeMin.y) *fogHeightInv,0,1);
 			//vec3 rayPos = cloudRayStart - cloudRayStep * rayIndexFloat;
@@ -1239,42 +1310,106 @@ void main(void)
 			vec3 noiseLFSpacePos = noiseLFStart + rayIndexFloat * noiseLFEndStep;
 			rayIndexFloat += 1.0;
 			
-			vec4 textureNoise = SampleNoiseSpace(noiseLFSpacePos, noiseHFSpacePos);
-
-			// Modulate the noise based on its depth below fogplane, this is 1 at 0 height, and 0 at fogPlaneTop
 			float rayDepthratio = 1.0; //clamp((1.0 - rayPos.y * fogPlaneTopInv) * HEIGHTDENSITY,0,1);
+			//vec4 textureNoise = SampleNoiseSpace(noiseLFSpacePos, noiseHFSpacePos);
+			float t0 = abs(sin(timeInfo.x * 0.03)) * 1;
+			vec3 sunSampleOffset = sunDir.xyz * NOISESCALE1024 * stepLength * dot(threadMask,quadoffsets) * 15 * t0;
+			vec4 textureNoise = SampleNoiseSpace(noiseLFSpacePos, noiseHFSpacePos );
+
+			vec4 sunSampleNoise = SampleNoiseSpace(noiseLFSpacePos - sunSampleOffset, noiseHFSpacePos - sunSampleOffset);
 			
-			float clampedNoise = max(0, (textureNoise.r  - noiseLFParams.y) * fogGroundDensity * rayDepthratio * stepLength);
-			float occludedness = textureNoise.g;
+			float clampedNoise = max(0, (textureNoise.r  - noiseLFParams.y) * fogGroundDensity * rayDepthratio * stepLength) * 1.0;
+			myfog += clampedNoise;
+			
+			float clampedNoiseSun = (1.0 - heightFraction) *  max(0, (sunSampleNoise.r  - noiseLFParams.y) * fogGroundDensity * rayDepthratio ) * 1.0;
+			//clampedNoise = clampedNoiseSun* stepLength;
+			clampedNoiseSun = textureNoise.g;
+			// Consts:
+			float sigma_attentuation = fogGroundDensity; // absorbtion
+			float sigma_scattering =  cloudGlobalColor.a;// scattering
+			float sigma_total = sigma_attentuation + sigma_scattering; 
+			float g = 0;
+
+			float density = max(0, (textureNoise.r  - noiseLFParams.y)) * 0.1;
+
+			// This is near 1 when empty space, and approaches 0 on denser regions
+			float sample_transparency = exp(- density * sigma_total * stepLength ); 
+
+			// So transparency doesnt change on empty space, and can only ever decrease
+	        cloudBlendRGBT.w *= sample_transparency;
+
+			//if (density > 0){
+				float light_ray_att = exp( - density * textureNoise.g*   sigma_total    ); // this number is near 1 
+				cloudBlendRGBT.rgb +=  cloudGlobalColor.rgb * light_ray_att * 1.0 * sigma_scattering * density * stepLength;
+			//}
+			cloudBlendRGBT.rgb *= sample_transparency; // this is the very problematic one, 
+			//cloudBlendRGBT.rgb = vec3(heightFraction);
+			// Modulate the noise based on its depth below fogplane, this is 1 at 0 height, and 0 at fogPlaneTop
+			
+			
+
+
+			/*float occludedness = textureNoise.g * ( 1.0- heightFraction);
+
+			float attenuation = exp(-1.0 * clampedNoise) ;
+			cloudBlendRGBT.w *= attenuation;
+
+			//float inscatter = max(0, (textureNoise.g ) * fogGroundDensity * rayDepthratio ) * 2;
+			float inscatter = max(0, (1 ) * fogGroundDensity * rayDepthratio ) * 2;
+			inscatter = exp(-1.0*inscatter);
+
+			cloudBlendRGBT.rgb += cloudBlendRGBT.w * cloudGlobalColor.rgb *  attenuation * stepLength * 0.002;*/
+
+
+			////float shadeFactor = max(0.0, textureNoise.g -noiseLFParams.y) ;
 			//float shadeFactor = max(0.0, textureNoise.g -noiseLFParams.y) ;
-			//vec3 fogShaded = mix(cloudGlobalColor.rgb, fogShadowedColor.rgb,  rayDepthratio * rayDepthratio* shadeFactor*0 );
+			//vec3 fogShaded = mix(clo1rgb, fogShadowedColor.rgb,  rayDepthratio * rayDepthratio* shadeFactor*0 );
 			//clampedNoise = step(sin(time * 0.01) * 0.1 + 0.5, clampedNoise);
 			//cloudRGBA.rgb = fogShaded.rgb * clampedNoise + cloudRGBA.rgb * (1.0 - clampedNoise);
-			myfog += clampedNoise;
+
+			/*
 			cloudRGBA.a = clampedNoise + cloudRGBA.a * (1.0 - clampedNoise); // the sA*sA term is questionable here!
 			//cloudRGBA.rgb += cloudRGBA.a;
 			//cloudBlendRGBT
-			//cloudRGBA.rgb = mix(cloudColor.rgb, cloudColor.rgb * (1.0-textureNoise.g) , clampedNoise);
-			vec4 nowColor = vec4(cloudColor.rgb, 1.0 - exp(-1 * clampedNoise * cloudGlobalColor.a));
-			nowColor.rgb = nowColor.rgb * BeersPowder(clampedNoise, cloudGlobalColor.a * 10) * 0.0;
-			BackwardBlend(cloudBlendRGBT, nowColor);
-			//https://encreative.blogspot.com/2019/05/forward-and-backward-alpha-blending-for.html 
 
+			vec3 localCloudColor = mix(cloudGlobalColor.rgb,fogShadowedColor.rgb,  occludedness);
+
+			float cloudColorExpPart = exp(-1 * clampedNoise) * 1.0; // 1 if no cloud
+			cloudColor.rgb = mix(localCloudColor, cloudColor.rgb,  cloudColorExpPart * 1.0);
+			//cloudColor.rgb = localCloudColor;
+			//myfog += 0;
+			cloudRGBA.rgb = mix(cloudColor.rgb, cloudColor.rgb * (1.0-textureNoise.g) , clampedNoise);
+			//vec4 nowColor = vec4(cloudColor.rgb, 1.0 - exp(-1 * clampedNoise * cloudGlobalColor.a));
+			//nowColor.rgb = nowColor.rgb * BeersPowder(clampedNoise, cloudGlobalColor.a * 10) * 0.0;
+			//BackwardBlend(cloudBlendRGBT, nowColor);
+			//https://encreative.blogspot.com/2019/05/forward-and-backward-alpha-blending-for.html
+			*/
 		}
 		float beerpowder = expImpulse(myfog, cloudGlobalColor.a * 1);
 		//cloudRGBA.rgb = cloudRGBA.rgb *beerpowder;
 		//cloudRGBA.rgb = vec3(beerpowder);
 		//float beer-powder = 
+		
 		#endif
 	}
-	//fragColor.rgba = vec4(cloudBlendRGBT.rgb, 1.0 - cloudBlendRGBT.a); return;
-	
-	
-	fragColor.rgba = cloudRGBA;
+	float alpha =  1.0 -  cloudBlendRGBT.w;
+	float transparency = cloudBlendRGBT.w;
+	fragColor.rgba = vec4(cloudBlendRGBT.rgba);
+	//fragColor.rgb *= alpha;
+	//fragColor.g = fract(fragColor.g * 10);
+	fragColor.a = alpha;
+	//vec4 debugtransp = vec4 (alpha, alpha, alpha, 1.0);
+	vec4 debugtransp = vec4 (1,1,1, alpha);
+	//fragColor.rgba = debugtransp;
+	//fragColor.rgb = cloudColor.rgb;
 	//fragColor.rgb *= 2.0;
 	//fragColor.a = heightBasedFogExp; 
-	fragColor.a = 1.0 - exp(-1 * myfog * 0.1);
+	//fragColor.a = 1.0 - exp(-1 * myfog * 0.1);
 	
+	// Blend the UW rays:
+	fragColor.rgb = mix(fragColor.rgb, uwShadowRays.rgb,uwShadowRays.a );
+	fragColor.a += uwShadowRays.a ;
+
 	vec4 dbgQuad = debugQuad(quadVector);
 	//fragColor.a *=(1.0 - dbgQuad.b);
 	#if (FULLALPHA == 1) 
@@ -1283,6 +1418,9 @@ void main(void)
 	#if (RESOLUTION == 1) // When not using combine shader, we must pre-multiple color with alpha!
 		fragColor.rgb *= fragColor.a;
 	#endif
+
+
+
 	return;
 	
 	fragColor.rgb = fragColor.rgb * debugQuad(quadVector).rgb * 0.5;

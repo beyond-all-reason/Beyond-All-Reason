@@ -107,7 +107,7 @@ local definesSlidersParamsList = {
 	{name = 'SHADOWMARCHSTEPS', default = 32, min = 1, max = 128, digits = 0, tooltip =  'How many times to sample shadows'},
 	{name = 'HEIGHTSHADOWSTEPS', default = 12, min = 0, max = 64, digits = 0, tooltip =  'How many times to sample shadows for pure height-based fog'},
 	{name = 'HEIGHTSHADOWQUAD', default = 2, min = 0, max = 2, digits = 0, tooltip =  'How to Quad sample height-based fog'},
-	{name = 'SHADOWSAMPLER', default = 2, min = 0, max = 3, digits = 0, tooltip =  '0 use texture fetch, 1 use sampler fetch, 2 use texelfetch'},
+	{name = 'SHADOWSAMPLER', default = 1, min = 0, max = 3, digits = 0, tooltip =  '0 use texture fetch, 1 use sampler fetch, 2 use texelfetch'},
 	--{name = 'BLUENOISESTRENGTH', default = 1.1, min = 0, max = 1.1, digits = 1, tooltip =  'Amount of blue noise added to shadow sampling'},
 	{name = 'TEXTURESAMPLER', default = 1, min = 0, max = 6, digits = 0,  tooltip = '0:None 1=Packed3D 2=Tex2D 3=Tex2D 4=FBM 5=Value3D 6=SimplexPerlin'},
 	{name = 'QUADNOISEFETCHING', default = 1, min = 0, max = 1, digits = 0,  tooltip = 'Enable Quad Message Passing [0 or 1]'},
