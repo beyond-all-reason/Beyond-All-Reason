@@ -34,10 +34,22 @@ end
 
 
 
+local function getMovetype(ud)
+	if ud.canFly or ud.isAirUnit then
+		if ud.isHoveringAirUnit then
+			return 1 -- gunship
+		else
+			return 0 -- fixedwing
+		end
+	elseif not ud.isImmobile then
+		return 2 -- ground/sea
+	end
+	return false -- For structures or any other invalid movetype
+end
 
 
 
-		Spring.Echo('hornetdebug wanted_speed loaded')
+		--Spring.Echo('hornetdebug wanted_speed loaded')
 
 
 
@@ -49,33 +61,38 @@ do
 
 	--local moveData = {}
 	--local moveType = 0
-		
-			
+
+	-- why is this cached
+	---local getMovetype = UTC.getMovetype
+	for i = 1, #UnitDefs do
+		moveTypeByDefID[i] = getMovetype(UnitDefs[i])
+	end
+
 			
 	--local getMovetype = Spring.Utilities.getMovetype
-	for i = 1, #UnitDefs do
+	--for i = 1, #UnitDefs do
 		--moveTypeByDefID[i] = getMovetype(UnitDefs[i])
 		--moveData = spGetUnitMoveTypeData(i)
 		
 		
 		--Spring.Echo("hornet movedef name" .. UnitDefs[i].moveDef.name)
-		Spring.Echo("hornet movedef name")
+		--Spring.Echo("hornet movedef name")
 		
 		
-		Spring.Echo('hornetdebug UnitDefs[i]')
-		Spring.Echo(UnitDefs[i])
-		for k,v in pairs(UnitDefs[i]) do
-		  Spring.Echo(k,v)
-		end		
+		--Spring.Echo('hornetdebug UnitDefs[i]')
+		--Spring.Echo(UnitDefs[i])
+		--for k,v in pairs(UnitDefs[i]) do
+		--  Spring.Echo(k,v)
+		--end		
 		
 		
+		--moveType = 0
+		--moveType = SU.getMovetypeByID(UnitDefs[i])
 		
 		
-		
-		moveType = 0
-		if UnitDefs[i].moveDef.name == "ground" then moveType = 2 end
-		moveTypeByDefID[i] = moveType
-	end
+		--if UnitDefs[i].moveDef.name == "ground" then moveType = 2 end
+		--moveTypeByDefID[i] = moveType
+	--end
 end
 
 -------------------------------------------------------------------------------------
@@ -84,7 +101,7 @@ end
 local function SetUnitWantedSpeed(unitID, unitDefID, wantedSpeed, forceUpdate)
 
 
-Spring.Echo("hornet SetUnitWantedSpeed" .. unitID .. "wanted speed " .. (wantedSpeed or 'nil'))
+--Spring.Echo("hornet SetUnitWantedSpeed" .. unitID .. "wanted speed " .. (wantedSpeed or 'nil'))
 
 	if not unitDefID then
 		return

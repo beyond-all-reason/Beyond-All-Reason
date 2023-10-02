@@ -18,7 +18,7 @@ function gadget:GetInfo()
 end
 
 
-Spring.Echo("Hornetdebug unit attributes loaded");
+--Spring.Echo("Hornetdebug unit attributes loaded");
 
 
 
@@ -271,26 +271,19 @@ local function UpdateMovementSpeed(unitID, unitDefID, speedFactor, turnAccelFact
 		
 		
 		
-		Spring.Echo('hornetdebug movedata')
-		Spring.Echo(moveData)
-		for k,v in pairs(moveData) do
-		  Spring.Echo(k,v)
-		end		
+		--Spring.Echo('hornetdebug movedata')
+		--Spring.Echo(moveData)
+		--for k,v in pairs(moveData) do
+		 -- Spring.Echo(k,v)
+		--end		
 		
-		Spring.Echo('ud speed')
-		Spring.Echo(ud.speed)
-		Spring.Echo('ud table')
 
-		for k,v in pairs(ud) do
-		  Spring.Echo(k,v)
-		end		
-		
 		
 		---
-		state.movetype = 0
+		state.movetype = 0--UTC.getMovetype(ud)
 		
 		
-		--find out what actually is/means what?
+		--is this robust enough?
 		if moveData.name == "ground" then state.movetype = 2 end
 		
 		-- returns 0 1 or 2, --maybe-- land, air, gunship? 
@@ -420,7 +413,7 @@ local function removeUnit(unitID)
 end
 
 
-Spring.Echo("Hornetdebug UpdateUnitAttributes defined")
+--Spring.Echo("Hornetdebug UpdateUnitAttributes defined")
 
 function UpdateUnitAttributes(unitID, frame)
 	if not spValidUnitID(unitID) then
@@ -455,8 +448,10 @@ function UpdateUnitAttributes(unitID, frame)
 	
 	-- SLOW --
 	local slowState = spGetUnitRulesParam(unitID,"slowState")
-	if slowState and slowState > 0.7 then
-		slowState = 0.7 -- Maximum slow
+	local reloadslowState = slowState
+
+	if slowState and slowState > 0.9 then
+		slowState = 0.9 -- Maximum slow --maybe tie to global ?
 	end
 	local zombieSpeedMult = spGetUnitRulesParam(unitID,"zombieSpeedMult")
 	local buildpowerMult = spGetUnitRulesParam(unitID, "buildpower_mult")
@@ -487,9 +482,19 @@ function UpdateUnitAttributes(unitID, frame)
 		local buildMult  = (baseSpeedMult)*(1 - disarmed)*(1 - completeDisable)*(selfIncomeChange or 1)*(buildpowerMult or 1)
 		local moveMult   = (baseSpeedMult)*(selfMoveSpeedChange or 1)*(1 - completeDisable)*(upgradesSpeedMult or 1)
 		local turnMult   = (baseSpeedMult)*(selfMoveSpeedChange or 1)*(selfTurnSpeedChange or 1)*(1 - completeDisable)
-		local reloadMult = (baseSpeedMult)*(selfReloadSpeedChange or 1)*(1 - disarmed)*(1 - completeDisable)
+		--local reloadMult = (baseSpeedMult)*(selfReloadSpeedChange or 1)*(1 - disarmed)*(1 - completeDisable)
+		local reloadMult = math.min(1, (1 - (reloadslowState*4))) *(1 - disarmed)*(1 - completeDisable)
 		local maxAccMult = (baseSpeedMult)*(selfMaxAccelerationChange or 1)*(upgradesSpeedMult or 1)
 
+		
+		if reloadslowState then
+			if reloadMult<0 then reloadMult = 0 end
+		else
+			reloadMult = 0
+		end
+		
+		--Spring.Echo("hornet debug reloadmult" .. reloadMult)
+	
 		if fullDisable then
 			buildMult = 0
 			moveMult = 0
@@ -596,7 +601,7 @@ function gadget:Initialize()
 	GG.UpdateUnitAttributes = UpdateUnitAttributes
 	GG.SetAllowUnitCoast = SetAllowUnitCoast
 	
-	Spring.Echo("Hornetdebug UpdateUnitAttributes pinned to GG.")
+	--Spring.Echo("Hornetdebug UpdateUnitAttributes pinned to GG.")
 
 end
 
