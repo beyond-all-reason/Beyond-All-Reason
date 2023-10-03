@@ -3,8 +3,8 @@
 
 function gadget:GetInfo()
    return {
-      name      = "Time slow v2",
-      desc      = "Time slow Weapon",
+      name      = "Unit Slowing",
+      desc      = "Unit movement and firerate slowing effects, used by EMP Rework",
       author    = "Google Frog , (MidKnight made orig)",
       date      = "2010-05-31",
       license   = "GNU GPL, v2 or later",
