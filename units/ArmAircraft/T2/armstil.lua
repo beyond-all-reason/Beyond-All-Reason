@@ -90,8 +90,8 @@ return {
 			stiletto_bomb = {
 				areaofeffect = 340,
 				avoidfeature = false,
-				burst = 1,
-				burstrate = 0.16667,
+				burst = 3,
+				burstrate = 0.3333,
 				collidefriendly = false,
 				commandfire = true,
 				craterboost = 0,
@@ -116,7 +116,7 @@ return {
 				tolerance = 7000,
 				weapontype = "AircraftBomb",
 				damage = {
-					default = 3000,
+					default = 1500,
 				},
 			},
 		},

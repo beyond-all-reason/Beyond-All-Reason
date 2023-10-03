@@ -133,17 +133,21 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	--if (not spValidUnitID(unitID)) or (not weaponID) or (not attritionWeaponDefs[weaponID]) or ((not attackerID) and attritionWeaponDefs[weaponID].noDeathBlast)
 	
 	
+	if Spring.GetModOptions().emprework == true then
+	--if true then
 	
-	
-	if (not spValidUnitID(unitID)) or (not weaponID) or not paralyzer then
-		return damage
+		if (not spValidUnitID(unitID)) or (not weaponID) or not paralyzer then
+			return damage
+		else
+
+			GG.addSlowDamage(unitID, damage*1, 0)
+		
+
+		end
+		
 	else
-
-		GG.addSlowDamage(unitID, damage*1, 0)
-	
-
+		return damage
 	end
-
 
 
 end
@@ -160,22 +164,26 @@ function maybe_irrelevant_code_please_ignore()
 	local slowDef = attritionWeaponDefs[weaponID]
 
 
+
+    local timeslow_damagefactor = 12
+       local timeslow_smartretarget = 0.33
+       local timeslow_smartretargethealth = 50
 	
 
 	-- add slow damage
-	local slowdown = slowDef.slowDamage
-	if slowDef.scaleSlow then
-		slowdown = slowdown * (damage / slowDef.rawDamage)
-	end --scale slow damage based on real damage (i.e. take into account armortypes etc.)
+	--local slowdown = slowDef.slowDamage
+	--if slowDef.scaleSlow then
+		--slowdown = slowdown * (damage / slowDef.rawDamage)
+	--end --scale slow damage based on real damage (i.e. take into account armortypes etc.)
 
-	slowedUnits[unitID].slowDamage = slowedUnits[unitID].slowDamage + slowdown
-	slowedUnits[unitID].degradeTimer = DEGRADE_TIMER
+	--slowedUnits[unitID].slowDamage = slowedUnits[unitID].slowDamage + slowdown
+	--slowedUnits[unitID].degradeTimer = DEGRADE_TIMER
 	
 	--Spring.Echo('hornet debug UPD slowDamage' .. slowDamage .. '  degradeTimer' .. degradeTimer);
 	
-	if slowDef.overslow then
+	--if slowDef.overslow then
 		--slowedUnits[unitID].extraSlowBound = math.max(slowedUnits[unitID].extraSlowBound or 0, slowDef.overslow)
-	end
+	--end
 
 	--if GG.Awards and GG.Awards.AddAwardPoints then
 		----local _, maxHp = spGetUnitHealth(unitID)
@@ -188,7 +196,7 @@ function maybe_irrelevant_code_please_ignore()
 	-- also only change if the units health is above the health threshold smartRetargetHealth
 	
 	
-	-- BUT WHY
+	
 	if spValidUnitID(attackerID) and slowDef.smartRetarget then
 		local health = spGetUnitHealth(unitID)
 		if slowedUnits[unitID].slowDamage > health*slowDef.smartRetarget and health > (slowDef.smartRetargetHealth or 0) then

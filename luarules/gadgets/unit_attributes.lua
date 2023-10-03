@@ -504,7 +504,7 @@ function UpdateUnitAttributes(unitID, frame)
 		local moveMult   = (baseSpeedMult)*(selfMoveSpeedChange or 1)*(1 - completeDisable)*(upgradesSpeedMult or 1)
 		local turnMult   = (baseSpeedMult)*(selfMoveSpeedChange or 1)*(selfTurnSpeedChange or 1)*(1 - completeDisable)
 		--local reloadMult = (baseSpeedMult)*(selfReloadSpeedChange or 1)*(1 - disarmed)*(1 - completeDisable)
-		local reloadMult = math.min(1, (1 - (reloadslowState*4))) *(1 - disarmed)*(1 - completeDisable)
+		local reloadMult = math.min(1, (1 - (reloadslowState*2))) *(1 - disarmed)*(1 - completeDisable)
 		local maxAccMult = (baseSpeedMult)*(selfMaxAccelerationChange or 1)*(upgradesSpeedMult or 1)
 
 		
