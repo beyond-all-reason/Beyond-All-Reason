@@ -1160,7 +1160,6 @@ void main(void)
 	#line 33800
 
 	vec4 uwShadowRays = vec4(0,0,0,0);
-	float lastunderwatershadow =1;
 	#if HEIGHTSHADOWSTEPS > 0
 		if (rayLength > 0.01 && trueMapWorldPos.y < 0) {
 			// Draw these back to front
@@ -1178,7 +1177,6 @@ void main(void)
 				vec4 shadPos = shadStart - shadStep * rayIndex;
 				float shadowSample = clamp(textureProj(shadowTex, shadPos, -2).r, 0.0, 1.0); // 1 for lit, 0 
 				uwShadowRays.w += shadowSample;
-				lastunderwatershadow = 0.5 * lastunderwatershadow +  0.5 * shadowSample;
 				rayIndex += 1.0;
 			}
 			// Special sauce PQM
@@ -1187,9 +1185,12 @@ void main(void)
 			uwShadowRays.w /= HEIGHTSHADOWSTEPS;
 			// half it a little bit:
 			uwShadowRays.a = (1.0 - uwShadowRays.a) * 0.5;
+			// This was Floris's idea
+			float lastunderwatershadow =  clamp(textureProj(shadowTex, shadEnd, -2).r, 0.0, 1.0);
+			uwShadowRays.a += 0.15 * (1.0 - quadGatherWeighted(lastunderwatershadow));
 			// modulate density up to shallowdepth:
-			uwShadowRays.a += 0.15 * (1.0 - quadGatherWeighted(lastunderwatershadow)); // This was Floris's idea
 			uwShadowRays.a *= smoothstep(0, 20, -1 * trueMapWorldPos.y);
+			uwShadowRays.a = clamp(uwShadowRays.a, 0,1);
 		}
 	#endif
 	// ----------------- END UNDERWATER SHADOW RAYS -------------------------------
@@ -1240,20 +1241,16 @@ void main(void)
 	float nearDist = max( max( t1.x, t1.y ), t1.z );
 	float farDist = min( min( t2.x, t2.y ), t2.z );
 	
-	vec3 cloudRayStart = camPos + nearDist * cloudRayDir;
-	vec3 cloudRayEnd = camPos  + farDist * cloudRayDir;
+	vec3 cloudRayEnd = camPos + nearDist * cloudRayDir; // Near point
+	vec3 cloudRayStart = camPos  + farDist * cloudRayDir; // Far Point
 
 	lengthMapFromCam = length(camPos - mapWorldPos.xyz);
-	if (farDist > lengthMapFromCam) cloudRayEnd = mapWorldPos.xyz; // map is closer than back of cloud box
-	if (nearDist < 0) cloudRayStart = camPos; // we are in the box
-	if (nearDist > lengthMapFromCam) cloudRayStart = mapWorldPos.xyz; // the map is closer than the front of the cloud box
+	if (farDist > lengthMapFromCam) cloudRayStart = mapWorldPos.xyz; // map is closer than back of cloud box
+	if (nearDist < 0) cloudRayEnd = camPos; // we are in the box
+	if (nearDist > lengthMapFromCam) cloudRayEnd = mapWorldPos.xyz; // the map is closer than the front of the cloud box
 	
-	if (step(nearDist, farDist) * step(0.0,farDist) < 0.5) cloudRayStart = cloudRayEnd;
+	if (step(nearDist, farDist) * step(0.0,farDist) < 0.5) cloudRayStart = cloudRayEnd; // cant remember what clipping this solves
 
-	// reverse the order!
-	vec3 tmp = cloudRayStart;
-	cloudRayStart = cloudRayEnd;
-	cloudRayEnd = tmp;
 
 	//vec3 rayStartFromBox = abs(cloudRayEnd - cloudBoxCenter) - cloudBoxSize;
 	//float rayStartDistFromBox = length(max(rayStartFromBox,0.0)) + min(max(cloudBoxSize.x,max(cloudBoxSize.y,cloudBoxSize.z)),0.0);
@@ -1266,7 +1263,7 @@ void main(void)
 	vec4 cloudColor = vec4(cloudGlobalColor.rgb,1);
 	vec4 cloudBlendRGBT = vec4(0,0,0, 1); // Zero color, and Transparency of 1
 	if (cloudRayLength > 0 ){
-		vec3 cloudRayStep = (cloudRayStart - cloudRayEnd) / NOISESAMPLES;
+		vec3 cloudRayStep = (cloudRayEnd - cloudRayStart) / NOISESAMPLES; // Points towards camera
 		float stepLength = cloudRayLength/NOISESAMPLES; 
 		// this needs to be shuffled further:
 		vec4 quadoffsets = 0.125 + vec4(0.5,0.25,0.0, 0.75);// * blueNoiseSample.g * BLUENOISESTRENGTH; 
@@ -1288,8 +1285,8 @@ void main(void)
 		vec3 noiseHFStart;
 		vec3 noiseHFEndStep;
 
-		WorldToNoiseSpace(cloudRayStart, noiseLFStart, noiseHFStart);
-		WorldToNoiseSpace(cloudRayEnd, noiseLFEndStep, noiseHFEndStep);
+		WorldToNoiseSpace(cloudRayStart, noiseLFStart, noiseHFStart); // near point
+		WorldToNoiseSpace(cloudRayEnd, noiseLFEndStep, noiseHFEndStep); // far point
 		
 		noiseLFEndStep = (noiseLFEndStep - noiseLFStart) / NOISESAMPLES;
 		noiseHFEndStep = (noiseHFEndStep - noiseHFStart) / NOISESAMPLES;
@@ -1326,21 +1323,21 @@ void main(void)
 			clampedNoiseSun = textureNoise.g;
 			// Consts:
 			float sigma_attentuation = fogGroundDensity; // absorbtion
-			float sigma_scattering =  cloudGlobalColor.a;// scattering
+			float sigma_scattering =  cloudGlobalColor.a * 2;// scattering
 			float sigma_total = sigma_attentuation + sigma_scattering; 
 			float g = 0;
 
-			float density = max(0, (textureNoise.r  - noiseLFParams.y)) * 0.1;
+			float density = max(0, (textureNoise.r  - noiseLFParams.y))  * 0.01;
 
 			// This is near 1 when empty space, and approaches 0 on denser regions
-			float sample_transparency = exp(- density * sigma_total * stepLength ); 
+			float sample_transparency = exp(- density * sigma_total * stepLength ) ; 
 
 			// So transparency doesnt change on empty space, and can only ever decrease
 	        cloudBlendRGBT.w *= sample_transparency;
 
 			//if (density > 0){
-				float light_ray_att = exp( - density * textureNoise.g*   sigma_total    ); // this number is near 1 
-				cloudBlendRGBT.rgb +=  cloudGlobalColor.rgb * light_ray_att * 1.0 * sigma_scattering * density * stepLength;
+				float light_ray_att = exp( - density * textureNoise.g * sigma_total  ); // this number is near 1 
+				cloudBlendRGBT.rgb +=  cloudGlobalColor.rgb * light_ray_att  * sigma_scattering * density * stepLength;
 			//}
 			cloudBlendRGBT.rgb *= sample_transparency; // this is the very problematic one, 
 			//cloudBlendRGBT.rgb = vec3(heightFraction);
@@ -1394,10 +1391,26 @@ void main(void)
 	}
 	float alpha =  1.0 -  cloudBlendRGBT.w;
 	float transparency = cloudBlendRGBT.w;
-	fragColor.rgba = vec4(cloudBlendRGBT.rgba);
+
+
+	// Composite uwShadorRays with cloudBlendRGBT
+	fragColor = vec4(0.0);
+
+	// we need to *subtract darken* the uwshadowed bit.
+	fragColor.rgb = cloudBlendRGBT.rgb;
+	fragColor.rgb -= cloudBlendRGBT.rgb * (uwShadowRays.a) *( 1.0 - alpha);
+	
+	fragColor.a = clamp( alpha + uwShadowRays.a * (1.0 - alpha) ,0, 1);
+	
+
+	//fragColor.rgb = cloudBlendRGBT.rgb; * min(1.0, (1.0 - uwShadowRays.a) ) ;
+	//fragColor.a = alpha + uwShadowRays.a * (1.0 - alpha);
+	
+	//fragColor.rgba = vec4(cloudBlendRGBT.rgb, alpha);
+	
 	//fragColor.rgb *= alpha;
 	//fragColor.g = fract(fragColor.g * 10);
-	fragColor.a = alpha;
+	//fragColor.a = alpha;
 	//vec4 debugtransp = vec4 (alpha, alpha, alpha, 1.0);
 	vec4 debugtransp = vec4 (1,1,1, alpha);
 	//fragColor.rgba = debugtransp;
@@ -1407,8 +1420,7 @@ void main(void)
 	//fragColor.a = 1.0 - exp(-1 * myfog * 0.1);
 	
 	// Blend the UW rays:
-	fragColor.rgb = mix(fragColor.rgb, uwShadowRays.rgb,uwShadowRays.a );
-	fragColor.a += uwShadowRays.a ;
+	//fragColor.rgb = mix(fragColor.rgb, uwShadowRays.rgb,uwShadowRays.a );
 
 	vec4 dbgQuad = debugQuad(quadVector);
 	//fragColor.a *=(1.0 - dbgQuad.b);
