@@ -50,9 +50,6 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
     if paralyzer then
 	
 
-	--hook for EMP slowing
-	GG.addSlowDamage(uID, damage*1, 0)
-	
 
 	
 	

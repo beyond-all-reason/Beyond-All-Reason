@@ -169,7 +169,7 @@ return {
 			},
 
 			empmissile = {
-				areaofeffect = 196,
+				areaofeffect = 250,
 				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
@@ -178,7 +178,7 @@ return {
 				commandfire = true,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 1,
+				edgeeffectiveness = 0.40,
 				energypershot = 5000,
 				explosiongenerator = "custom:genericshellexplosion-huge-lightning",
 				firestarter = 0,
@@ -211,7 +211,7 @@ return {
 				weapontimer = 2.5,
 				weaponvelocity = 500,
 				damage = {
-					default = 80000,
+					default = 10000,
 				},
 			},
 
@@ -250,7 +250,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
 				damage = {
-					default = 300,
+					default = 400,
 				},
 			},
 		},

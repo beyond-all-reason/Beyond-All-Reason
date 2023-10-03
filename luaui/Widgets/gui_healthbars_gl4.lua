@@ -1132,7 +1132,9 @@ function widget:GameFrame(n)
 				--uniformcache[1] = math.floor((paralyzeDamage - maxHealth)) / (maxHealth * empDecline))
 				if paralyzeDamage then
 					uniformcache[1] = paralyzeDamage / maxHealth
-					--Spring.Echo("Paralyze damage", paralyzeDamage, maxHealth)
+					--Spring.Echo("Paralyze damages", paralyzeDamage, maxHealth)
+					--Spring.Echo("Paralyze damage cur", math.floor(paralyzeDamage - maxHealth))
+					--Spring.Echo("Paralyze damage dec", math.floor((paralyzeDamage - maxHealth)) / (maxHealth * empDecline))
 					gl.SetUnitBufferUniforms(unitID, uniformcache, 4)
 				end
 			else

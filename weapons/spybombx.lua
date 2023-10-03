@@ -1,10 +1,10 @@
 return {
 	spybombx = {
-		areaofeffect = 360,
+		areaofeffect = 500,
 		commandfire = 1,
 		craterboost = 0,
 		cratermult = 0,
-		edgeeffectiveness = 0.75,
+		edgeeffectiveness = 0.05,
 		explosiongenerator = "custom:genericshellexplosion-huge-lightning",
 		firestarter = 90,
 		impulseboost = 0,
@@ -12,7 +12,7 @@ return {
 		name = "spyexplosion",
 		noselfdamage = 1,
 		paralyzer = 1,
-		paralyzetime = 35,
+		paralyzetime = 20,
 		range = 1280,
 		reloadtime = 0.30000001192093,
 		soundhit = "EMGPULS1",
@@ -21,7 +21,7 @@ return {
 		tolerance = 7000,
 		turret = 1,
 		damage = {
-			default = 56000,
+			default = 10000,
 		},
 	},
 	spybombxscav = {
@@ -29,7 +29,7 @@ return {
 		commandfire = 1,
 		craterboost = 0,
 		cratermult = 0,
-		edgeeffectiveness = 0.75,
+		edgeeffectiveness = 0.50,
 		explosiongenerator = "custom:genericshellexplosion-huge-lightning",
 		firestarter = 90,
 		impulseboost = 0,
@@ -37,7 +37,7 @@ return {
 		name = "spyscavexplosion",
 		noselfdamage = 1,
 		paralyzer = 1,
-		paralyzetime = 45,
+		paralyzetime = 35,
 		range = 1280,
 		reloadtime = 0.30000001192093,
 		soundhit = "EMGPULS1",

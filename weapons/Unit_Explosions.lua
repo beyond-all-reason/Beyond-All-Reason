@@ -16,11 +16,11 @@ local unitDeaths = {
 	},
 
 	empblast = {    -- for armamex
-		areaofeffect = 400,
+		areaofeffect = 500,
 		commandfire = 1,
 		craterboost = 0,
 		cratermult = 0,
-		edgeeffectiveness = 0.75,
+		edgeeffectiveness = 0.45,
 		explosiongenerator = "custom:genericshellexplosion-huge-lightning",
 		impulseboost = 0,
 		impulsefactor = 0,
@@ -30,7 +30,7 @@ local unitDeaths = {
 		soundhit = "EMGPULS1",
 		soundstart = "bombrel",
 		damage = {
-			default = 4450,
+			default = 3000,
 		},
 		customparams = {
 			unitexplosion = 1,

@@ -75,6 +75,29 @@ GG.att_out_buildSpeed = {}
 
 local allowUnitCoast = {}
 
+
+
+
+
+
+
+
+
+local function getMovetype(ud)
+	if ud.canFly or ud.isAirUnit then
+		if ud.isHoveringAirUnit then
+			return 1 -- gunship
+		else
+			return 0 -- fixedwing
+		end
+	elseif not ud.isImmobile then
+		return 2 -- ground/sea
+	end
+	return false -- For structures or any other invalid movetype
+end
+
+
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- UnitDefs caching
@@ -100,9 +123,9 @@ for unitDefID, ud in pairs(UnitDefs) do
 	if ud.radarDistance > 0 then
 		radarUnitDef[unitDefID] = ud.radarDistance
 	end
-	--if ud.sonarDistance > 0 and tobool(ud.customParams.sonar_can_be_disabled) then
-		--sonarUnitDef[unitDefID] = ud.sonarDistance
-	--end
+	if ud.sonarDistance > 0 then-- and tobool(ud.customParams.sonar_can_be_disabled)
+		sonarUnitDef[unitDefID] = ud.sonarDistance
+	end
 	if ud.radarDistanceJam > 0 then
 		jammerUnitDef[unitDefID] = ud.radarDistanceJam
 	end
@@ -280,14 +303,12 @@ local function UpdateMovementSpeed(unitID, unitDefID, speedFactor, turnAccelFact
 
 		
 		---
-		state.movetype = 0--UTC.getMovetype(ud)
 		
 		
-		--is this robust enough?
-		if moveData.name == "ground" then state.movetype = 2 end
 		
-		-- returns 0 1 or 2, --maybe-- land, air, gunship? 
-		state.movetype = 2--Spring.Utilities.getMovetype(ud)
+		
+
+		state.movetype = getMovetype(ud)
 	end
 	
 	local state = origUnitSpeed[unitDefID]

@@ -113,15 +113,15 @@ end
 
 
 --nani the what now
-function gadget:UnitPreDamaged_GetWantedWeaponDef()
-	local wantedWeaponList = {}
-	for wdid = 1, #WeaponDefs do
-		if attritionWeaponDefs[wdid] then
-			wantedWeaponList[#wantedWeaponList + 1] = wdid
-		end
-	end
-	return wantedWeaponList
-end
+--function gadget:UnitPreDamaged_GetWantedWeaponDef()
+--	local wantedWeaponList = {}
+--	for wdid = 1, #WeaponDefs do
+--		if attritionWeaponDefs[wdid] then
+--			wantedWeaponList[#wantedWeaponList + 1] = wdid
+--		end
+--	end
+--	return wantedWeaponList
+--end
 
 
 
@@ -130,11 +130,26 @@ end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID,
                             attackerID, attackerDefID, attackerTeam)
 
-	if (not spValidUnitID(unitID)) or (not weaponID) or (not attritionWeaponDefs[weaponID]) or ((not attackerID) and attritionWeaponDefs[weaponID].noDeathBlast)
-		or (attritionWeaponDefs[weaponID].scaleSlow and damage == 0) then
+	--if (not spValidUnitID(unitID)) or (not weaponID) or (not attritionWeaponDefs[weaponID]) or ((not attackerID) and attritionWeaponDefs[weaponID].noDeathBlast)
+	
+	
+	
+	
+	if (not spValidUnitID(unitID)) or (not weaponID) or not paralyzer then
 		return damage
+	else
+
+		GG.addSlowDamage(unitID, damage*1, 0)
+	
+
 	end
 
+
+
+end
+
+
+function maybe_irrelevant_code_please_ignore()
 	-- add stats that the unit requires for this gadget
 	if not slowedUnits[unitID] then
 		slowedUnits[unitID] = {
