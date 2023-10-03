@@ -1,0 +1,412 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+//piece  base, turret, barrel, sleeve, flare ,smoke1, smoke2, smoke3;
+piece  base, chamber_flare_fixed, chamber_flare, barrel_glow, flare, gun, chamber, r1, r2, r3, l1, l2, l3, hood, panels, smoke1, aimfromy;
+
+static-var  fireMode, bMoving, moveSpeed, currentSpeed, animSpeed, terrain,  restore_delay;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_MOVE			4
+
+UnitSpeed()
+{
+	while(TRUE)
+	{
+		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
+		if (currentSpeed<4) currentSpeed=4;
+		animSpeed = 1800 / currentSpeed;
+		sleep 142;
+	}
+}
+
+Smoke()
+{
+	while( TRUE )
+	{
+		if ( bMoving )
+		{
+			if( terrain == 4 )
+			{
+				emit-sfx 1024 + 1 from smoke1;
+				//emit-sfx 1024 + 1 from smoke2;
+				//emit-sfx 1024 + 1 from smoke3;
+			}
+		}
+		sleep animSpeed;
+	}
+}
+
+
+
+#define BASEPIECE base
+#define HITSPEED <45.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 7
+#define MAXTILT 100
+
+#include "unit_hitbyweaponid_and_smoke.h"
+
+RockUnit(anglex, anglez)
+{
+	turn base to x-axis anglex speed <50.000000>;
+	turn base to z-axis <0> - anglez speed <50.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <20.000000>;
+	turn base to x-axis <0.000000> speed <20.000000>;
+}
+
+Create()
+{
+	
+	hide r1;
+	hide r2;
+	hide r3;
+	hide l1;
+	hide l2;
+	hide l3;
+	//hide smoke3;
+	hide flare;
+	//hide smoke2;
+	hide smoke1;
+	bMoving = FALSE;
+	moveSpeed = get (MAX_SPEED);
+	animSpeed = 100;
+	restore_delay = 3000;
+	start-script SmokeUnit();
+}
+
+setSFXoccupy(state)
+{
+	terrain = state;
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+}
+
+StartMoving()
+{
+	bMoving = TRUE;  
+  signal SIG_MOVE;
+  set-signal-mask SIG_MOVE;
+  start-script UnitSpeed();
+	start-script Smoke();
+}
+
+
+StopMoving()
+{
+	bMoving = FALSE;
+  signal SIG_MOVE;
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn gun to y-axis <0.000000> speed <45.000000>;
+	//turn turret to x-axis <0.000000> speed <23.000000>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+
+
+
+
+
+
+
+Activate()
+{
+	// signal kills any current aim animations
+	signal SIG_AIM;
+	// variable setting weapon state
+	fireMode = 0;
+
+
+	move r1 to x-axis [2.500000] speed [0.600000];
+	move r2 to x-axis [2.500000] speed [0.600000];
+	move r3 to x-axis [2.500000] speed [0.600000];
+	move l1 to x-axis [-2.500000] speed [0.600000];
+	move l2 to x-axis [-2.500000] speed [0.600000];
+	move l3 to x-axis [-2.500000] speed [0.600000];
+
+
+	sleep 4250;
+	//recheck just in case someone plays silly spammers with firemode
+	if (fireMode==0) {
+	hide r1;
+	hide r2;
+	hide r3;
+	hide l1;
+	hide l2;
+	hide l3;
+	}
+	
+
+}
+
+Deactivate()
+{
+	// signal kills any current aim animations
+	signal SIG_AIM;
+	// variable setting weapon state
+	fireMode = 1;
+	
+	show r1;
+	show r2;
+	show r3;
+	show l1;
+	show l2;
+	show l3;
+	
+	
+	move r1 to x-axis [0.000000] speed [0.600000];
+	move r2 to x-axis [0.000000] speed [0.600000];
+	move r3 to x-axis [0.000000] speed [0.600000];
+	move l1 to x-axis [0.000000] speed [0.600000];
+	move l2 to x-axis [0.000000] speed [0.600000];
+	move l3 to x-axis [0.000000] speed [0.600000];
+}
+
+
+
+
+
+lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
+}
+
+AimPrimary(heading, pitch)
+{
+	
+	//potshotmode
+	if( fireMode == 1 )
+	{
+		return(0);
+	}
+	
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	//turn gun to y-axis heading speed <55.000000>;
+	turn gun to x-axis <0.000000> - pitch speed <35.000000>;
+	turn chamber to x-axis <0.000000> - pitch speed <35.000000>;
+	//wait-for-turn turret around y-axis;
+	wait-for-turn gun around x-axis;
+	wait-for-turn chamber around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+
+
+AimSecondary(heading, pitch)
+{
+	// FIRE EVERYTHING
+	if( fireMode == 0 )
+	{
+		return(0);
+	}
+
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	//turn gun to y-axis heading speed <55.000000>;
+	turn gun to x-axis <0.000000> - pitch speed <35.000000>;
+	turn chamber to x-axis <0.000000> - pitch speed <35.000000>;
+	//wait-for-turn turret around y-axis;
+	wait-for-turn gun around x-axis;
+	wait-for-turn chamber around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+
+
+FirePrimary()
+{
+
+
+
+
+	call-script lua_UnitScriptLight(1, 1);//, shotcount);
+
+	//emit-sfx 1024 + 0 from flare;
+	//emit-sfx 1024 + 2 from chamber;
+	move gun to z-axis [-2.5.000000] speed [350.000000];
+	//wait-for-move gun along z-axis;
+	
+	move chamber to z-axis [-4.000000] speed [500.000000];
+	wait-for-move chamber along z-axis;
+	
+	
+	move chamber to z-axis [0.000000] speed [4.000000];
+	wait-for-move chamber along z-axis;	
+	
+	move gun to z-axis [0.000000] speed [6.000000];
+	wait-for-move gun along z-axis;
+	
+	
+	//barrel split effects?
+	
+	//start shot inside?
+	
+	//make as beamweapon?
+	
+	//chamber
+	//queue reload rods
+	
+
+
+	
+}
+
+
+
+FireSecondary()
+{
+
+
+	show r1;
+	show r2;
+	show r3;
+	show l1;
+	show l2;
+	show l3;
+	
+	move r1 to x-axis [2.500000] speed [100.000000];
+	move r2 to x-axis [2.500000] speed [100.000000];
+	move r3 to x-axis [2.500000] speed [100.000000];
+	move l1 to x-axis [-2.500000] speed [100.000000];
+	move l2 to x-axis [-2.500000] speed [100.000000];
+	move l3 to x-axis [-2.500000] speed [100.000000];
+
+
+
+	call-script lua_UnitScriptLight(1, 1);//, shotcount ?
+
+	//emit-sfx 1024 + 0 from flare;
+	//emit-sfx 1024 + 2 from chamber;
+	move gun to z-axis [-4.000000] speed [500.000000];
+	//wait-for-move gun along z-axis;
+	
+	move chamber to z-axis [-6.000000] speed [600.000000];
+	wait-for-move chamber along z-axis;
+	
+	
+	move chamber to z-axis [0.000000] speed [3.000000];
+	wait-for-move chamber along z-axis;	
+	
+	move gun to z-axis [0.000000] speed [6.000000];
+	wait-for-move gun along z-axis;
+	
+
+	
+
+	move r1 to x-axis [0.000000] speed [0.3300000];
+	move r2 to x-axis [0.000000] speed [0.6600000];
+	move r3 to x-axis [0.000000] speed [1.000000];
+	move l1 to x-axis [0.000000] speed [0.3300000];
+	move l2 to x-axis [0.000000] speed [0.6600000];
+	move l3 to x-axis [0.000000] speed [1.000000];
+
+
+
+}
+
+
+
+QueryPrimary(piecenum)
+{
+	piecenum = chamber_flare_fixed;
+}
+QuerySecondary(piecenum)
+{
+	piecenum = chamber_flare_fixed;
+}
+
+AimFromPrimary(piecenum)
+{
+
+	piecenum = aimfromy;
+}
+AimFromSecondary(piecenum)
+{
+
+	piecenum = aimfromy;
+}
+
+
+
+
+
+
+
+
+
+
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode gun type BITMAPONLY | NOHEATCLOUD;
+		explode hood type BITMAPONLY | NOHEATCLOUD;
+		explode chamber type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode gun type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode hood type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode chamber type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode gun type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode hood type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode chamber type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode gun type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode hood type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode chamber type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

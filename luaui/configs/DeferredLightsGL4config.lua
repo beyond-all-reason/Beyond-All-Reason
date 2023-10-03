@@ -33,6 +33,111 @@ local exampleLight = {
 -- multiple lights per unitdef/piece are possible, as the lights are keyed by lightname
 
 local unitDefLights = {
+
+
+	[UnitDefNames['corsiegebreaker'].id] = {
+
+
+		eyes1 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 10, posz = 35, radius = 11,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.09,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		eyes2 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 4, posy = 10, posz = 31, radius = 9,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.07,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		eyes3 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = -4, posy = 10, posz = 31, radius = 9,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.07,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+
+
+		r1 = {
+			lightType = 'point',
+			pieceName = 'r1',
+			lightConfig = { posx = 10.3, posy = 13.6, posz = 9.2, radius = 4,
+							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+							r = 1, g = 0.3, b = 0.0, a = 1,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		r2 = {
+			lightType = 'point',
+			pieceName = 'r2',
+			lightConfig = { posx = 11, posy = 14, posz = 3.6, radius = 4,
+							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+							r = 1, g = 0.3, b = 0, a = 1,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		r3 = {
+			lightType = 'point',
+			pieceName = 'r3',
+			lightConfig = { posx = 13, posy = 12.5, posz = 4, radius = 4,
+							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+							r = 1, g = 0.3, b = 0.0, a = 1,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		-- this has a _g but not using for testing atm
+		-- seems to be using x offsets from piece origin but not y or z ???
+
+		l1 = {
+			lightType = 'point',
+			pieceName = 'l1',
+			lightConfig = { posx = -10.3, posy = 13.6, posz = 9.2, radius = 4,
+							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+							r = 1, g = 0.3, b = 0.0, a = 1,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		l2 = {
+			lightType = 'point',
+			pieceName = 'l2',
+			lightConfig = { posx = -11, posy = 14, posz = 3.6, radius = 4,
+							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+							r = 1, g = 0.3, b = 0, a = 1,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		l3 = {
+			lightType = 'point',
+			pieceName = 'l3',
+			lightConfig = { posx = -13, posy = 12.5, posz = 4, radius = 4,
+							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+							r = 1, g = 0.3, b = 0.0, a = 1,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+
+
+		chamberglow = {
+			lightType = 'point',
+			pieceName = 'chamber_flare',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 2,
+							color2r = 1, color2g = 0.8, color2b = 0, color2a = 30, colortime = 0,
+							r = 1, g = 0.3, b = 0.0, a = 0.8,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+
+
+	},
 	[UnitDefNames['armpw'].id] = {
 		-- headlightpw = { -- this is the lightname
 		-- 	lightType = 'cone',
@@ -18030,6 +18135,20 @@ local unitEventLights = {
 					r = 1.1, g = 0.45, b = 0, a = 0.66,
 					modelfactor = 2, specular = 1, scattering = 0.5, lensflare = 0,
 					lifetime = 200, sustain = 15, animtype = 0},
+			},
+		},
+
+		[UnitDefNames['corsiegebreaker'].id] = {
+			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'barrel_glow',
+				lightName = 'siegebreakerbarrelglow',
+				alwaysVisible = true,
+			lightConfig = { posx = 0, posy = 3, posz = 3, radius = 20,
+					color2r = 0.6, color2g = 0.07, color2b = 0, colortime = 400,
+					r = 1.1, g = 0.45, b = 0, a = 0.46,
+					modelfactor = 2, specular = 1, scattering = 0.5, lensflare = 0,
+					lifetime = 250, sustain = 15, animtype = 0},
 			},
 		},
 

@@ -119,6 +119,11 @@ unitCollisionVolume['corplat'] = {
 	off={112,35,112,0,0,0,1,1,1},
 }
 
+
+
+
+
+
 for name, v in pairs(unitCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do
 		if string.find(ud.name, name) then
@@ -179,6 +184,16 @@ pieceCollisionVolume['corsala'] = {
 	['0']={31,17,31,0,3.5,0,2,1},
 	['1']={12,5.75,15,0,1.875,1.5,2,1},
 }
+
+-- Volume X scale, Volume Y scale, Volume Z scale,
+	--	    0,15,0,    -- Volume X offset, Volume Y offset, Volume Z offset,
+---fully untuned, out of time to tweak numbers
+pieceCollisionVolume['corsiegebreaker'] = {
+	['0']={36,20,46,0,3.5,0,2,1},
+	['1']={24,14,24,0,1.875,1.5,2,1},
+}
+
+
 for name, v in pairs(pieceCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do
 		if string.find(ud.name, name) then
