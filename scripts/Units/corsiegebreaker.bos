@@ -63,6 +63,10 @@ RockUnit(anglex, anglez)
 Create()
 {
 	
+	
+	turn gun to x-axis <0.000000> speed <45.000000>;
+	turn gun to y-axis <0.000000> speed <45.000000>;
+	
 	hide r1;
 	hide r2;
 	hide r3;
@@ -112,6 +116,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
+	turn gun to x-axis <0.000000> speed <45.000000>;
 	turn gun to y-axis <0.000000> speed <45.000000>;
 	//turn turret to x-axis <0.000000> speed <23.000000>;
 }
@@ -210,10 +215,10 @@ AimPrimary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	//turn gun to y-axis heading speed <55.000000>;
 	turn gun to x-axis <0.000000> - pitch speed <35.000000>;
-	turn chamber to x-axis <0.000000> - pitch speed <35.000000>;
+	//turn chamber to x-axis <0.000000> - pitch speed <35.000000>;
 	//wait-for-turn turret around y-axis;
 	wait-for-turn gun around x-axis;
-	wait-for-turn chamber around x-axis;
+	//wait-for-turn chamber around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -232,10 +237,10 @@ AimSecondary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	//turn gun to y-axis heading speed <55.000000>;
 	turn gun to x-axis <0.000000> - pitch speed <35.000000>;
-	turn chamber to x-axis <0.000000> - pitch speed <35.000000>;
+	//turn chamber to x-axis <0.000000> - pitch speed <35.000000>;
 	//wait-for-turn turret around y-axis;
 	wait-for-turn gun around x-axis;
-	wait-for-turn chamber around x-axis;
+	//wait-for-turn chamber around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -252,7 +257,7 @@ FirePrimary()
 
 	//emit-sfx 1024 + 0 from flare;
 	//emit-sfx 1024 + 2 from chamber;
-	move gun to z-axis [-2.5.000000] speed [350.000000];
+	move gun to z-axis [-2.5000000] speed [350.000000];
 	//wait-for-move gun along z-axis;
 	
 	move chamber to z-axis [-4.000000] speed [500.000000];

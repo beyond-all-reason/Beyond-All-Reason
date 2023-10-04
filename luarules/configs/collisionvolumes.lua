@@ -185,12 +185,9 @@ pieceCollisionVolume['corsala'] = {
 	['1']={12,5.75,15,0,1.875,1.5,2,1},
 }
 
--- Volume X scale, Volume Y scale, Volume Z scale,
-	--	    0,15,0,    -- Volume X offset, Volume Y offset, Volume Z offset,
----fully untuned, out of time to tweak numbers
 pieceCollisionVolume['corsiegebreaker'] = {
-	['0']={36,20,46,0,3.5,0,2,1},
-	['1']={24,14,24,0,1.875,1.5,2,1},
+['0']={37,22,61,0,3.5,3,2,1},
+['1']={18,14,24,0,-1,1.5,2,1},
 }
 
 
