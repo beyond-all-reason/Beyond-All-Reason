@@ -108,7 +108,7 @@ local modrules = {
 
 	paralyze = {
 		paralyzeOnMaxHealth = true,	-- Are units paralyzed when the level of emp is greater than their current health or their maximum health?
-		paralyzeDeclineRate = 20,	-- default: 40.
+		paralyzeDeclineRate = Spring.GetModOptions().emprework==true and 20 or 40,	-- default: 40.
 	},
 
 	experience = {

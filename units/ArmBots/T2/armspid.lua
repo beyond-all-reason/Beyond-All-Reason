@@ -142,7 +142,7 @@ return {
 				name = "Close-quarters light EMP laser",
 				noselfdamage = true,
 				paralyzer = true,
-				paralyzetime = 20,
+				paralyzetime = 9,
 				range = 280,
 				reloadtime = 1.73333,
 				rgbcolor = "0.7 0.7 1",
@@ -156,7 +156,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
 				damage = {
-					default = 2000,
+					default = 850,
 				},
 			},
 		},

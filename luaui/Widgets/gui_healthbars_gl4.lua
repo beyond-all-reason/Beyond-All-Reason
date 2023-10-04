@@ -1133,6 +1133,7 @@ function widget:GameFrame(n)
 				if paralyzeDamage then
 				
 					-- this returns something like 1.20 which somehow turns into seconds somewhere unsearchable, currently wrong display
+					-- this needs conditional fixing within an if Spring.GetModOptions().emprework
 					uniformcache[1] = paralyzeDamage / maxHealth
 					--Spring.Echo("Paralyze damages", paralyzeDamage, maxHealth)
 					--Spring.Echo("Paralyze damage cur", (paralyzeDamage / maxHealth))

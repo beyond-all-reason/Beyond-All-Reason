@@ -14,7 +14,7 @@ function gadget:GetInfo()
 		date      = "11 November 2018",
 		license   = "GNU GPL, v2 or later",
 		layer     = -9999999999, -- Before every state toggle gadget.
-		enabled   = not CMD.SET_WANTED_MAX_SPEED  --  loaded by default?
+		enabled   = Spring.GetModOptions().emprework==true -- not CMD.SET_WANTED_MAX_SPEED  --  loaded by default?
 	}
 end
 

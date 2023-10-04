@@ -9,7 +9,7 @@ function gadget:GetInfo()
       date      = "2010-05-31",
       license   = "GNU GPL, v2 or later",
       layer     = 0,
-      enabled   = true
+      enabled   = Spring.GetModOptions().emprework
    }
 end
 
@@ -61,14 +61,6 @@ local function updateSlow(unitID, state)
 
 
 	-- overslow seems to be a stacked slow aside from the existing, purpose unclear
-	
-	-- re-rigged the whole mess to just watch EMP damage specifically
-	
-	
-	-- 'sometimes' units are left slowed after the EMP wears off, a long while after, so they must have fallen off of the update system
-	-- once units hit 0 emp, maybe explicitly reset and remove. try to trigger with solo unit, if no 'removed' message appears, it must be dropping out of the revisit loop somehow
-
-	
 	
 
 
@@ -125,8 +117,7 @@ end
 
 
 
----this one might be redundant now too? or maybe hook here instead, that code must do something useful?
----need to gut out refs to scaleslow if so, look for paralyzer instead
+
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID,
                             attackerID, attackerDefID, attackerTeam)
 
@@ -293,7 +284,6 @@ end
 
 
 
---currently used by paralyse_damage_multiplier.lua as the hook. might move inhouse.
 GG.addSlowDamage = addSlowDamage
 
 local function removeUnit(unitID)

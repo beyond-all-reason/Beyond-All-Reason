@@ -88,15 +88,15 @@ return {
 		},
 		weapondefs = {
 			stiletto_bomb = {
-				areaofeffect = 340,
+				areaofeffect = 240,
 				avoidfeature = false,
-				burst = 3,
-				burstrate = 0.3333,
+				burst = 5,
+				burstrate = 0.16667,
 				collidefriendly = false,
 				commandfire = true,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.35,
+				edgeeffectiveness = 0.25,
 				explosiongenerator = "custom:genericshellexplosion-large-lightning",
 				firestarter = 90,
 				gravityaffected = "true",
@@ -116,7 +116,7 @@ return {
 				tolerance = 7000,
 				weapontype = "AircraftBomb",
 				damage = {
-					default = 1500,
+					default = 4000,
 				},
 			},
 		},

@@ -13,7 +13,7 @@ function gadget:GetInfo()
       date      = "2009-11-27", --last update 2014-2-19
       license   = "GNU GPL, v2 or later",
       layer     = -1,
-      enabled   = true,
+      enabled   = Spring.GetModOptions().emprework,
    }
 end
 
