@@ -48,11 +48,6 @@ local spGetUnitHealth = Spring.GetUnitHealth
 
 function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
     if paralyzer then
-	
-
-
-	
-	
         -- restrict the max paralysis time of mobile units to 15 sec
         if aDefID and uDefID and weaponID and not isBuilding[uDefID] and not excluded[uDefID] then
             local max_para_time = weaponParalyzeDamageTime[weaponID]
