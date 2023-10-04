@@ -126,6 +126,13 @@ function UnitDef_Post(name, uDef)
 			uDef.maxdamage = 2800 --3500
 			uDef.energyuse = 10 --20
 		end
+		if name == "armshockwave" then
+			uDef.extractsmetal = 0.002 --0.004
+			uDef.buildcostmetal = 2000 --2400
+			uDef.buildcostenergy = 8500 --12000
+			uDef.maxdamage = 2800 --3500
+			uDef.energyuse = 10 --20
+		end
 	end
 
 	if Spring.GetModOptions().experimentalrebalancet2energy == true then

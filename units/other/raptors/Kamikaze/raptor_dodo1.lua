@@ -39,7 +39,7 @@ return {
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL HOVER",
-		objectname = "Raptors/raptor_dodo.s3o",
+		objectname = "Raptors/boomertailtoo.s3o",
 		script = "Raptors/raptor_dodo1.cob",
 		seismicsignature = 2,
 		selfdestructas = "DODO_DEATH1",
@@ -62,7 +62,7 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/raptors",
-			model_author = "KDR_11k, Beherith",
+			model_author = "KDR_11k, Beherith, Hornet",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
 			--treeshader = "no",
