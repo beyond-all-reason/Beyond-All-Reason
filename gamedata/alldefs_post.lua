@@ -846,10 +846,10 @@ function UnitDef_Post(name, uDef)
 if Spring.GetModOptions().emprework == true then
 
 		if name == "armstil" then		
-			uDef.weapondefs.stiletto_bomb.areaofeffect = 340
+			uDef.weapondefs.stiletto_bomb.areaofeffect = 250
 			uDef.weapondefs.stiletto_bomb.burst = 3
 			uDef.weapondefs.stiletto_bomb.burstrate = 0.3333
-			uDef.weapondefs.stiletto_bomb.edgeeffectiveness = 0.35
+			uDef.weapondefs.stiletto_bomb.edgeeffectiveness = 0.30
 			uDef.weapondefs.stiletto_bomb.damage.default = 1500
 		end
 
