@@ -30,7 +30,7 @@ return {
 		script = "Units/CORSIEGEBREAKER.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
-		sightdistance = 500,
+		sightdistance = 1500,--500
 		trackoffset = -6,
 		trackstrength = 10,
 		tracktype = "corparrowtracks",
@@ -54,9 +54,9 @@ return {
 			sleevename = "sleeve",
 			subfolder = "corvehicles/t2",
 			techlevel = 2,
-			turretname = "turret",
-			wpn1turretx = "35",
-			wpn1turrety = "55",
+			turretname = "gun",
+			wpn1turretx = "1",
+			wpn1turrety = "1",
 		},
 		featuredefs = {
 			dead = {
@@ -133,7 +133,7 @@ return {
 		},
 		weapondefs = {
 			dreadshot = {
-				areaofeffect = 50,
+				areaofeffect = 40,
 				avoidfeature = false,
 				beamtime = 0.7,
 				corethickness = 0.39,
@@ -141,7 +141,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				energypershot = 150,
+				energypershot = 1,--150
 				explosiongenerator = "custom:burnblackbig",
 				firestarter = 70,
 				impulseboost = 0.4,
@@ -160,7 +160,7 @@ return {
 				targetmoveerror = 0,
 				thickness = 1.6,
 				tolerance = 10000,
-				turret = false,
+				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 1250,
 				damage = {
@@ -172,7 +172,7 @@ return {
 				},
 			},
 			dreadovercharge = {
-				areaofeffect = 50,
+				areaofeffect = 60,
 				avoidfeature = false,
 				beamtime = 0.7,
 				corethickness = 0.49,
@@ -180,7 +180,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				energypershot = 450,
+				energypershot = 1,--450
 				explosiongenerator = "custom:burnblackbig",
 				firestarter = 70,
 				impulseboost = 1.3,
@@ -199,7 +199,7 @@ return {
 				targetmoveerror = 0,
 				thickness = 2.6,
 				tolerance = 10000,
-				turret = false,
+				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1250,
 				damage = {
@@ -217,7 +217,7 @@ return {
 				badtargetcategory = "VTOL",
 				def = "DREADSHOT",
 				maindir = "0 0 1",
-				maxangledif = 20,
+				maxangledif = 10,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
