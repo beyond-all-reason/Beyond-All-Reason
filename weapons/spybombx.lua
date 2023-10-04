@@ -21,7 +21,7 @@ return {
 		tolerance = 7000,
 		turret = 1,
 		damage = {
-			default = 560000,
+			default = 56000,
 		},
 	},
 	spybombxscav = {
