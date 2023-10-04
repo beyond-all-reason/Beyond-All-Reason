@@ -106,6 +106,7 @@ local definesSlidersParamsList = {
 	{name = 'RAYTRACING', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use any raytracing, 1 = yes, 0 = no'},
 	{name = 'SHADOWMARCHSTEPS', default = 32, min = 1, max = 128, digits = 0, tooltip =  'How many times to sample shadows'},
 	{name = 'HEIGHTSHADOWSTEPS', default = 12, min = 0, max = 64, digits = 0, tooltip =  'How many times to sample shadows for pure height-based fog'},
+	{name = 'UNDERWATERSHADOWSTEPS', default = (minHeight < -20) and 8 or 0, min = 0, max = 64, digits = 0, tooltip =  'How many times to sample shadows for underwater scattering'},
 	{name = 'HEIGHTSHADOWQUAD', default = 2, min = 0, max = 2, digits = 0, tooltip =  'How to Quad sample height-based fog'},
 	{name = 'SHADOWSAMPLER', default = 1, min = 0, max = 3, digits = 0, tooltip =  '0 use texture fetch, 1 use sampler fetch, 2 use texelfetch'},
 	--{name = 'BLUENOISESTRENGTH', default = 1.1, min = 0, max = 1.1, digits = 1, tooltip =  'Amount of blue noise added to shadow sampling'},
@@ -305,7 +306,8 @@ local function makeFogTexture()
 	if fogTexture then gl.DeleteTexture(fogTexture) end
 	
 	vsx, vsy = Spring.GetViewGeometry()
-	
+	-- TODO:
+	-- We need to ensure that HSX ans HSY are even!
 	hsx =  math.ceil(vsx / shaderConfig.RESOLUTION )
 	hsy =  math.ceil(vsy / shaderConfig.RESOLUTION )
 	if shaderConfig.HALFSHIFT == 1 then
@@ -326,7 +328,7 @@ local function makeFogTexture()
 	
 	fogTexture = gl.CreateTexture(hsx, hsy, {
 		min_filter = GL.LINEAR,	mag_filter = GL.LINEAR,
-		--min_filter = GL.NEAREST,	mag_filter = GL.NEAREST,
+		--min_filter = GL.NEAREST,	mag_filter = GL.NEAREST, -- this is purely for debugging
 		wrap_s = GL.CLAMP_TO_EDGE,
 		wrap_t = GL.CLAMP_TO_EDGE,
 		fbo = true,

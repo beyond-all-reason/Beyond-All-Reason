@@ -88,7 +88,9 @@ vec4 quadGatherSum4D(vec4 input){
 			dot( vec4(input.w, inputadjx.w, inputadjy.w, inputdiag.w), vec4(1.0))
 			);
 }
-vec4 selfWeights = vec4(WEIGHTFACTOR*WEIGHTFACTOR, WEIGHTFACTOR*(1.0-WEIGHTFACTOR), WEIGHTFACTOR*(1.0-WEIGHTFACTOR), (1.0-WEIGHTFACTOR)*(1.0-WEIGHTFACTOR)); // F*F, F*(1.0-F), F*(1.0-F), (1-F)*(1-F)
+#define WF 0.56
+//vec4 selfWeights = vec4(WEIGHTFACTOR*WEIGHTFACTOR, WEIGHTFACTOR*(1.0-WEIGHTFACTOR), WEIGHTFACTOR*(1.0-WEIGHTFACTOR), (1.0-WEIGHTFACTOR)*(1.0-WEIGHTFACTOR)); // F*F, F*(1.0-F), F*(1.0-F), (1-F)*(1-F)
+vec4 selfWeights = vec4(WF*WF, WF*(1.0-WF), WF*(1.0-WF), (1.0-WF)*(1.0-WF)); // F*F, F*(1.0-F), F*(1.0-F), (1-F)*(1-F)
 
 vec4 quadGatherWeighted4D(vec4 input){
 		vec4 inputadjx = input - dFdx(input) * quadVector.x;
@@ -162,9 +164,7 @@ void main(void) {
 		// THIS IS THE GOLDEN SAMPLE!
 		//vec4 smoothcolor = quadGatherSum4D(texture(fogbase, fogUV + 3*quadShift)) * 0.25;
 		vec4 smoothcolor = quadGatherWeighted4D(texture(fogbase, fogUV + 3*quadShift));
-		quadFog.rgb = mix(smoothcolor.rgb, quadFog.rgb,  0.7 * discontinuity + 0.3);
-		
-		
+		quadFog.rgb = mix(smoothcolor.rgb, quadFog.rgb,  0.5 * discontinuity + 0.5);
 		
 		
 		gl_FragColor = quadFog;
@@ -181,7 +181,6 @@ void main(void) {
 		float localsmoothalpha = dot(gatherAlpha, smoothingvec);
 		
 		gl_FragColor.a = localsmoothalpha;
-
 
 		if (discontinuity < 0.5){ // NOT discontinous
 			if (modelpercent > 0.33) gl_FragColor.a = minAlpha;

@@ -13,7 +13,7 @@ layout (location = 0) in vec4 positionxy_xyfract; // l w rot and maxalpha
 #line 10000
 
 out DataVS {
-	vec4 v_worldPos;
+	//vec4 v_worldPos;
 	vec4 sampleUVs; //xy contains [0,1], however zw contains the pixel adjusted locs 
 };
 
