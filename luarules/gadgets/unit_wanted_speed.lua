@@ -13,7 +13,7 @@ function gadget:GetInfo()
 		author    = "GoogleFrog",
 		date      = "11 November 2018",
 		license   = "GNU GPL, v2 or later",
-		layer     = -9999999999, -- Before every state toggle gadget.
+		layer     = -1000000, -- Before every state toggle gadget.
 		enabled   = Spring.GetModOptions().emprework==true -- not CMD.SET_WANTED_MAX_SPEED  --  loaded by default?
 	}
 end
