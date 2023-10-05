@@ -18,15 +18,18 @@
 //redo model & animation to unfold properly
 
 
+//seems to start with active state set incorrectly ? needs on/off spamming several times
+
+
 
 #define TA			// This is a TA script
 
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, hatch, post, p1, p2, p3, turret, sleeve, barrel, dish, flare, antenna, light, tail, fins, core, con, base, wake;
+piece  base, hatch1, hatch2, post, p1, p2, p3, turret, sleeve, barrel, flare, antenna, light, lightpoint, tail, fins, core, con, condar, base, wake;
 
-static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateChanging, shooting, shotcount;
+static-var  activated, restore_delay, statechg_DesiredState, statechg_StateChanging, shooting, shotcount, deployed, modpitch;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -34,27 +37,44 @@ static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateCh
 
 activatescr()
 {	
+	//move antenna to y-axis <15> speed <22>;
 	if( TRUE )
 	{
-		//turn doorl to z-axis <0> speed <90>;
-		turn hatch to x-axis <0> speed <90>;
+		turn hatch1 to z-axis <120> speed <120>;
+		turn hatch2 to z-axis <-120> speed <120>;
 		sleep 1000;
 	}
 	if( TRUE )
 	{
-		move post to y-axis [0] speed [52];
-		move p1 to y-axis [0] speed [32];
-		move p2 to y-axis [0] speed [16];
-		move p3 to y-axis [0] speed [8];
+		turn post to x-axis <90> speed <90>;
+		turn sleeve to x-axis <-90> speed <90>;
 		sleep 1000;
 	}
 	if( TRUE )
 	{
-		spin dish around y-axis speed <90>;
-		move barrel to z-axis [0] speed [24];
-		move light to z-axis [0] speed [16];
-		turn antenna to x-axis <0> speed <90>;
+		move p1 to z-axis [-25] speed [52];
+		move p2 to z-axis [-25] speed [30];
+		move p3 to z-axis [-25] speed [18];
 		sleep 1000;
+	}
+
+
+	if( TRUE )
+	{
+		turn condar to x-axis <-90> speed <90>;
+		move barrel to z-axis [8] speed [24];
+		move light to z-axis [5] speed [16];
+		move antenna to z-axis <-9> speed <22>;
+		sleep 1000;
+	}
+
+	if( TRUE )
+	{
+		spin condar around y-axis speed <90>;
+		show lightpoint;
+		//light
+		sleep 1000;
+		deployed = 1;
 	}
 
 	sleep 33;
@@ -62,49 +82,67 @@ activatescr()
 
 deactivatescr()
 {
+	deployed = 0;
 	if( TRUE )
 	{
-		stop-spin dish around y-axis;
-		turn turret to y-axis <0.000000> speed <100.000000>;
-		turn sleeve to x-axis <0.000000> speed <100.000000>;
-		move barrel to z-axis [-24] speed [24];
-		move light to z-axis [-16] speed [16];
-		turn antenna to x-axis <90> speed <90>;
-		sleep 1000;
-		wait-for-turn turret around y-axis;
-		wait-for-turn sleeve around x-axis;
+		hide lightpoint;
+		stop-spin condar around y-axis;
+		turn condar to y-axis <0> speed <90>;
+		sleep 400;
+		wait-for-turn condar around y-axis;
 	}
 	if( TRUE )
 	{
-		move post to y-axis [-52] speed [52];
-		move p1 to y-axis [-52] speed [32];
-		move p2 to y-axis [-52] speed [18];
-		move p3 to y-axis [-52] speed [8];
+		hide lightpoint;
+		turn condar to x-axis <0> speed <90>;
+		move barrel to z-axis [0] speed [24];
+		move light to z-axis [0] speed [16];
+		move antenna to z-axis <0> speed <22>;
 		sleep 1000;
+		wait-for-turn condar around x-axis;
 	}
+
 	if( TRUE )
 	{
-		// doorl to z-axis <-90> speed <90>;
-		turn hatch to x-axis <-90> speed <90>;
+		move p1 to z-axis [0] speed [52];
+		move p2 to z-axis [0] speed [30];
+		move p3 to z-axis [0] speed [18];
 		sleep 1000;
 	}
+
+
+	if( TRUE )
+	{
+		turn post to x-axis <00> speed <90>;
+		turn sleeve to x-axis <0> speed <90>;
+		sleep 1000;
+	}
+
+	if( TRUE )
+	{
+		turn hatch1 to z-axis <0> speed <120>;
+		turn hatch2 to z-axis <0> speed <120>;
+		sleep 1000;
+	}
+
+
 	sleep 33;
 }
 
+
 Go()
 {
-
 	set ARMORED to 0;
-	if( !Static_Var_1 )
+	if( !activated )
 	{
 		call-script activatescr();
 	}
-	Static_Var_1 = 1;
+	activated = 1;
 }
 
 Stop()
 {
-	Static_Var_1 = 0;
+	activated = 0;
 	call-script deactivatescr();
 	set ARMORED to 1;
 
@@ -147,7 +185,7 @@ Create()
 	hide flare;
 
 
-	Static_Var_1 = 1;
+	activated = 0;
 	call-script InitState();
 	restore_delay = 3000;
 	shooting = 0;
@@ -156,7 +194,7 @@ Create()
 	{
 		sleep 250;
 	}
-	spin dish around y-axis speed <90>;
+	//spin dish around y-axis speed <90>;
 }
 
 lua_UnitScriptLight(lightIndex, count)
@@ -169,13 +207,13 @@ lua_UnitScriptLight(lightIndex, count)
 
 Activate()
 {
-	start-script RequestState(0);
+	start-script RequestState(0);//was 0
 }
 
 Deactivate()
 {
 	signal SIG_AIM;
-	start-script RequestState(1);
+	start-script RequestState(1);//was 1
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -186,14 +224,16 @@ SetMaxReloadTime(Func_Var_1)
 AimPrimary(heading, pitch)
 {
     if (shooting==1) {return(0);}
+    if (deployed==0) {return(0);}//currentstate?
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	while( !Static_Var_1 )
+	while( !activated )
 	{
 		sleep 150;
 	}
-	turn turret to y-axis heading speed <50.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <50.000000>;
+	modpitch = pitch + 90;
+	turn turret to z-axis heading speed <50.000000>;
+	turn sleeve to x-axis <0.000000> - modpitch speed <50.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	return (1);
@@ -235,7 +275,7 @@ Killed(severity, corpsetype)
 		explode sleeve type BITMAPONLY | NOHEATCLOUD;
 		explode antenna type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode light type BITMAPONLY | NOHEATCLOUD;
-		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode condar type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type BITMAPONLY | NOHEATCLOUD;
 		explode flare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
@@ -248,7 +288,7 @@ Killed(severity, corpsetype)
 		explode sleeve type FALL | NOHEATCLOUD;
 		explode antenna type FALL | NOHEATCLOUD;
 		explode light type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode dish type FALL | NOHEATCLOUD;
+		explode condar type FALL | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -262,7 +302,7 @@ Killed(severity, corpsetype)
 		explode sleeve type SMOKE | FALL | NOHEATCLOUD;
 		explode antenna type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode light type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode condar type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -274,7 +314,7 @@ Killed(severity, corpsetype)
 		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode antenna type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode light type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode condar type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
