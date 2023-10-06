@@ -226,6 +226,13 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 				end)
+				-- update feature height positions too
+				local featuretable = Spring.GetAllFeatures()
+				local x, y, z
+				for i = 1, #featuretable do
+					x, y, z = Spring.GetFeaturePosition(featuretable[i])
+					Spring.SetFeaturePosition(featuretable[i], x,  y,  z ,true) -- snaptoground = true
+				end
 			-- END "for fun" option to invert map
 			else
 
