@@ -8,7 +8,7 @@ function widget:GetInfo()
 		name = "Overview Camera TAB hold & release",
 		desc = "TAB button works as hold & release",
 		author = "klakier",
-		date = "Maj 8, 2023",
+		date = "May 8, 2023",
 		license = "GNU GPL, v2 or later",
 		layer = -9999999,
 		enabled = true

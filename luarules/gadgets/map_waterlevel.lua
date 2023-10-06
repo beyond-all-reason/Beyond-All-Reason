@@ -66,7 +66,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		local playername, _, spec = Spring.GetPlayerInfo(playerID, false)
 		local authorized = false
-		for _, name in ipairs(_G.permissions.waterlevel) do
+		for _, name in pairs(_G.permissions.waterlevel) do
 			if playername == name then
 				authorized = true
 				break
