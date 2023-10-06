@@ -431,12 +431,12 @@ FireSecondary()
 
 	
 
-	move r1 to x-axis [0.000000] speed [0.1200000];
-	move r2 to x-axis [0.000000] speed [0.2500000];
-	move r3 to x-axis [0.000000] speed [0.500000];
-	move l1 to x-axis [0.000000] speed [0.1200000];
-	move l2 to x-axis [0.000000] speed [0.2500000];
-	move l3 to x-axis [0.000000] speed [0.500000];
+	move r1 to x-axis [0.000000] speed [0.200000];
+	move r2 to x-axis [0.000000] speed [0.400000];
+	move r3 to x-axis [0.000000] speed [0.70000];
+	move l1 to x-axis [0.000000] speed [0.200000];
+	move l2 to x-axis [0.000000] speed [0.400000];
+	move l3 to x-axis [0.000000] speed [0.700000];
 
 	sleep 1400;
 	shooting=0;
