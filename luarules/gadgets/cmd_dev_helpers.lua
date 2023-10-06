@@ -194,18 +194,35 @@ if gadgetHandler:IsSyncedCode() then
 			if string.find(Spring.GetModOptions().debugcommands,"invertmap") then
 				local invertmap = string.split(Spring.GetModOptions().debugcommands, ' ')
 				local ymax = -1000000
-				for z=0,Game.mapSizeZ, Game.squareSize do
-					for x=0,Game.mapSizeX, Game.squareSize do
-						ymax = math.max(ymax,Spring.GetGroundHeight ( x, z ))
-					end
-				end
 				if (invertmap[2] == "wet") then
 					ymax = 0
+				else
+					for z=0,Game.mapSizeZ, Game.squareSize do
+						for x=0,Game.mapSizeX, Game.squareSize do
+							ymax = math.max(ymax,Spring.GetGroundHeight ( x, z ))
+						end
+					end
 				end
 				Spring.SetHeightMapFunc(function()
 					for z=0,Game.mapSizeZ, Game.squareSize do
 						for x=0,Game.mapSizeX, Game.squareSize do
 							Spring.SetHeightMap( x, z, ymax-Spring.GetGroundHeight ( x, z ))
+						end
+					end
+				end)
+				-- temporary smooth mesh, inverting doesn't work as transition ends up inside the ground
+				Spring.SetSmoothMeshFunc(function()
+					for z=0,Game.mapSizeZ, Game.squareSize do
+						for x=0,Game.mapSizeX, Game.squareSize do
+							Spring.SetSmoothMesh( x, z, 50+Spring.GetGroundHeight ( x, z ))
+						end
+					end
+				end)
+				-- orginal height map so that restore ground command doesn't dig trenches or construct mountains
+				Spring.SetOriginalHeightMapFunc(function()
+					for z=0,Game.mapSizeZ, Game.squareSize do
+						for x=0,Game.mapSizeX, Game.squareSize do
+							Spring.SetOriginalHeightMap( x, z, ymax-Spring.GetGroundOrigHeight ( x, z ))
 						end
 					end
 				end)
