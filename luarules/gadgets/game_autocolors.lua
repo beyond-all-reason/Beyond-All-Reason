@@ -408,12 +408,8 @@ local function shuffleAllColors()
 	end
 end
 
-local isFFA = false
-if #teamList == #allyTeamList and teamCount > 2 then
-	isFFA = true
-elseif not teamColors[allyTeamCount] then
-	isFFA = true
-end
+-- we don't want to use FFA colors for TeamFFA, because we want each team to have its own color theme
+local useFFAColors = Spring.Utilities.Gametype.IsFFA() and not Spring.Utilities.Gametype.IsTeams()
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -445,7 +441,7 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(survivalColors[survivalColorNum])[2] + math.random(-survivalColorVariation, survivalColorVariation))
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(survivalColors[survivalColorNum])[3] + math.random(-survivalColorVariation, survivalColorVariation))
 			survivalColorNum = survivalColorNum + 1 -- Will start from the next color next time
-		elseif isFFA then
+		elseif useFFAColors then
 			if not ffaColors[ffaColorNum] then -- If we have no color for this team anymore
 				ffaColorNum = 1 -- Starting from the first color again..
 				ffaColorVariation = ffaColorVariation + colorVariationDelta -- ..but adding random color variations with increasing amplitude with every cycle
@@ -550,7 +546,7 @@ else	-- UNSYNCED
 
 				survivalColorNum = survivalColorNum + 1 -- Will start from the next color next time
 
-			elseif isFFA then
+			elseif useFFAColors then
 
 				if not ffaColors[ffaColorNum] then -- If we have no color for this team anymore
 					ffaColorNum = 1 -- Starting from the first color again..
