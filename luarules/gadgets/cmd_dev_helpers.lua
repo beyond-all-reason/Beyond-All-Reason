@@ -226,13 +226,6 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 				end)
-				-- update feature height positions too
-				local featuretable = Spring.GetAllFeatures()
-				local x, y, z
-				for i = 1, #featuretable do
-					x, y, z = Spring.GetFeaturePosition(featuretable[i])
-					Spring.SetFeaturePosition(featuretable[i], x,  y,  z ,true) -- snaptoground = true
-				end
 			-- END "for fun" option to invert map
 			else
 
@@ -395,7 +388,20 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+
+	local function adjustFeatureHeight()
+		local featuretable = Spring.GetAllFeatures()
+		local x, y, z
+		for i = 1, #featuretable do
+			x, y, z = Spring.GetFeaturePosition(featuretable[i])
+			Spring.SetFeaturePosition(featuretable[i], x,  Spring.GetGroundHeight(x, z),  z , true) -- snaptoground = true
+		end
+	end
+
 	function gadget:GameFrame(n)
+		if n == 1 and string.find(Spring.GetModOptions().debugcommands,"invertmap") then
+			adjustFeatureHeight()
+		end
 		if fightertestenabled then
 			if (n % 3 == 0)  then
 				SpawnUnitDefsForTeamSynced(0, team1unitDefName)
