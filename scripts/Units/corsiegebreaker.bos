@@ -6,7 +6,7 @@
 //piece  base, turret, barrel, sleeve, flare ,smoke1, smoke2, smoke3;
 piece  base, chamber_flare_fixed, chamber_flare, barrel_glow, flare, gun, chamber, r1, r2, r3, l1, l2, l3, hood, panels, smoke1, aimfromy;
 
-static-var  fireMode, bMoving, moveSpeed, currentSpeed, animSpeed, terrain,  restore_delay;
+static-var  fireMode, bMoving, moveSpeed, currentSpeed, animSpeed, terrain,  restore_delay, activated, restore_delay, statechg_DesiredState, statechg_StateChanging, shooting, pshotcount, sshotcount;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -67,6 +67,14 @@ Create()
 	turn gun to x-axis <0.000000> speed <45.000000>;
 	turn gun to y-axis <0.000000> speed <45.000000>;
 	
+	
+	activated = 0;
+	fireMode = 0;
+	call-script InitState();
+	shooting = 0;
+	pshotcount = 0;	
+	sshotcount = 0;	
+	
 	hide r1;
 	hide r2;
 	hide r3;
@@ -84,11 +92,151 @@ Create()
 	start-script SmokeUnit();
 }
 
+
+activatescr()
+{	
+	if( TRUE )
+	{
+		
+		
+		// signal kills any current aim animations
+		signal SIG_AIM;
+		// variable setting weapon state
+		fireMode = 0;
+
+
+		move r1 to x-axis [2.500000] speed [0.600000];
+		move r2 to x-axis [2.500000] speed [0.600000];
+		move r3 to x-axis [2.500000] speed [0.600000];
+		move l1 to x-axis [-2.500000] speed [0.600000];
+		move l2 to x-axis [-2.500000] speed [0.600000];
+		move l3 to x-axis [-2.500000] speed [0.600000];
+
+
+		hide r1;
+		hide r2;
+		hide r3;
+		hide l1;
+		hide l2;
+		hide l3;
+	
+		sleep 3000;
+
+	}
+
+	
+
+	sleep 33;
+}
+
+
+
+deactivatescr()
+{
+
+
+	if( TRUE )
+	{
+
+		// signal kills any current aim animations
+		signal SIG_AIM;
+		// variable setting weapon state
+		fireMode = 1;
+		
+		show r1;
+		show r2;
+		show r3;
+		show l1;
+		show l2;
+		show l3;
+		
+		
+		move r1 to x-axis [0.000000] speed [0.600000];
+		move r2 to x-axis [0.000000] speed [0.600000];
+		move r3 to x-axis [0.000000] speed [0.600000];
+		move l1 to x-axis [0.000000] speed [0.600000];
+		move l2 to x-axis [0.000000] speed [0.600000];
+		move l3 to x-axis [0.000000] speed [0.600000];
+
+		sleep 3000;
+
+	}
+
+	sleep 33;
+}
+
+
+
+
+// why is this so daisychained, can it be combined? are stop & go magic autofuncs too?
+Go()
+{
+	if( !activated )
+	{
+		call-script activatescr();
+	}
+	activated = 1;
+}
+
+Stop()
+{
+	activated = 0;
+	call-script deactivatescr();
+
+}
+
+Activate()
+{
+	start-script RequestState(0);//was 0
+}
+
+Deactivate()
+{
+	signal SIG_AIM;
+	start-script RequestState(1);//was 1
+}
+
+
+
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+//nani
 setSFXoccupy(state)
 {
 	terrain = state;
 }
-
+//also nani
 SetMaxReloadTime(Func_Var_1)
 {
 	restore_delay = Func_Var_1 * 2;
@@ -110,6 +258,9 @@ StopMoving()
   signal SIG_MOVE;
 }
 
+
+
+// test later without, this might be fighting firing if tries to reset? can aim signal be checked?
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
@@ -137,61 +288,6 @@ RestoreAfterDelay()
 
 
 
-//somewhere, need to account for weapons switching during reload periods
-
-
-Activate()
-{
-	// signal kills any current aim animations
-	signal SIG_AIM;
-	// variable setting weapon state
-	fireMode = 0;
-
-
-	move r1 to x-axis [2.500000] speed [0.600000];
-	move r2 to x-axis [2.500000] speed [0.600000];
-	move r3 to x-axis [2.500000] speed [0.600000];
-	move l1 to x-axis [-2.500000] speed [0.600000];
-	move l2 to x-axis [-2.500000] speed [0.600000];
-	move l3 to x-axis [-2.500000] speed [0.600000];
-
-
-	sleep 4250;
-	//recheck just in case someone plays silly spammers with firemode
-	if (fireMode==0) {
-	hide r1;
-	hide r2;
-	hide r3;
-	hide l1;
-	hide l2;
-	hide l3;
-	}
-	
-
-}
-
-Deactivate()
-{
-	// signal kills any current aim animations
-	signal SIG_AIM;
-	// variable setting weapon state
-	fireMode = 1;
-	
-	show r1;
-	show r2;
-	show r3;
-	show l1;
-	show l2;
-	show l3;
-	
-	
-	move r1 to x-axis [0.000000] speed [0.600000];
-	move r2 to x-axis [0.000000] speed [0.600000];
-	move r3 to x-axis [0.000000] speed [0.600000];
-	move l1 to x-axis [0.000000] speed [0.600000];
-	move l2 to x-axis [0.000000] speed [0.600000];
-	move l3 to x-axis [0.000000] speed [0.600000];
-}
 
 
 
@@ -206,11 +302,16 @@ AimPrimary(heading, pitch)
 {
 	
 	//potshotmode
-	if( fireMode == 1 )
-	{
-		return(0);
-	}
+
+
+    if (shooting==1) {return(0);}
+    if (fireMode==1) {return(0);}
 	
+	
+
+
+
+
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	//turn gun to y-axis heading speed <55.000000>;
@@ -228,6 +329,9 @@ AimPrimary(heading, pitch)
 AimSecondary(heading, pitch)
 {
 	// FIRE EVERYTHING
+	
+    if (shooting==1) {return(0);}
+
 	if( fireMode == 0 )
 	{
 		return(0);
@@ -250,10 +354,14 @@ AimSecondary(heading, pitch)
 FirePrimary()
 {
 
+    shooting=1;
+    pshotcount = pshotcount + 1;
+    //emit-sfx 1024 + 2 from flare;
+    call-script lua_UnitScriptLight(1, pshotcount);
 
 
 
-	call-script lua_UnitScriptLight(1, 1);//, shotcount);
+	//call-script lua_UnitScriptLight(1, 1);//, shotcount);
 
 	//emit-sfx 1024 + 0 from flare;
 	//emit-sfx 1024 + 2 from chamber;
@@ -270,18 +378,9 @@ FirePrimary()
 	move gun to z-axis [0.000000] speed [6.000000];
 	wait-for-move gun along z-axis;
 	
+	sleep 400;
+	shooting=0;
 	
-	//barrel split effects?
-	
-	//start shot inside?
-	
-	//make as beamweapon?
-	
-	//chamber
-	//queue reload rods
-	
-
-
 	
 }
 
@@ -289,6 +388,11 @@ FirePrimary()
 
 FireSecondary()
 {
+
+
+    shooting=1;
+    sshotcount = sshotcount + 1;
+
 
 
 	show r1;
@@ -306,8 +410,8 @@ FireSecondary()
 	move l3 to x-axis [-2.500000] speed [100.000000];
 
 
+    call-script lua_UnitScriptLight(1, sshotcount);
 
-	call-script lua_UnitScriptLight(2, 1);//, shotcount ?
 
 	//emit-sfx 1024 + 0 from flare;
 	//emit-sfx 1024 + 2 from chamber;
@@ -327,14 +431,15 @@ FireSecondary()
 
 	
 
-	move r1 to x-axis [0.000000] speed [0.3300000];
-	move r2 to x-axis [0.000000] speed [0.6600000];
-	move r3 to x-axis [0.000000] speed [1.000000];
-	move l1 to x-axis [0.000000] speed [0.3300000];
-	move l2 to x-axis [0.000000] speed [0.6600000];
-	move l3 to x-axis [0.000000] speed [1.000000];
+	move r1 to x-axis [0.000000] speed [0.1200000];
+	move r2 to x-axis [0.000000] speed [0.2500000];
+	move r3 to x-axis [0.000000] speed [0.500000];
+	move l1 to x-axis [0.000000] speed [0.1200000];
+	move l2 to x-axis [0.000000] speed [0.2500000];
+	move l3 to x-axis [0.000000] speed [0.500000];
 
-
+	sleep 1400;
+	shooting=0;
 
 }
 
