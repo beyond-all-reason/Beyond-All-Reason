@@ -30,7 +30,7 @@ return {
 		script = "Units/CORSIEGEBREAKER.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
-		sightdistance = 1500,--500
+		sightdistance = 500,--500
 		trackoffset = -6,
 		trackstrength = 10,
 		tracktype = "corparrowtracks",
@@ -144,7 +144,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				energypershot = 1,--450
+				energypershot = 550,
 				explosiongenerator = "custom:laserhit-large-blue",
 				firestarter = 70,
 				impulseboost = 0.3,
@@ -185,7 +185,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				energypershot = 1,--1200
+				energypershot = 1200,
 				explosiongenerator = "custom:laserhit-large-blue",
 				firestarter = 70,
 				impulseboost = 0.8,
