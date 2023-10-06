@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, wingl, wingr, fanl, fanr, turretl, turretr, flarel, flarer, thrust;
+piece  flarel, flarer, base, wingl, wingr, fanl, fanr, turretl, turretr, thrust;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging, gun_1;
 
@@ -144,6 +144,10 @@ StopMoving()
 AimPrimary(heading, pitch)
 {
 	return (1);
+}
+
+AimFromPrimary(piecenum) {
+	piecenum = base;
 }
 
 FirePrimary()
