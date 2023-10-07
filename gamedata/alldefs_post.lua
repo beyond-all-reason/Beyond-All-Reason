@@ -861,7 +861,6 @@ if Spring.GetModOptions().emprework == true then
 
 		if name == "armemp" then
 			uDef.weapondefs.armemp_weapon.areaofeffect = 512
-			uDef.weapondefs.armemp_weapon.burst = 3
 			uDef.weapondefs.armemp_weapon.burstrate = 0.3333
 			uDef.weapondefs.armemp_weapon.edgeeffectiveness = 0.05
 			uDef.weapondefs.armemp_weapon.paralyzetime = 30
@@ -874,7 +873,7 @@ if Spring.GetModOptions().emprework == true then
 			uDef.weapondefs.empmissile.areaofeffect = 250
 			uDef.weapondefs.empmissile.edgeeffectiveness = 0.40
 			uDef.weapondefs.empmissile.damage.default = 10000
-			uDef.weapondefs.emp.damage.default = 10000
+			uDef.weapondefs.emp.damage.default = 600
 		end
 
 		if name == "corbw" then
