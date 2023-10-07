@@ -856,7 +856,7 @@ if Spring.GetModOptions().emprework == true then
 
 		if name == "armspid" then
 			uDef.weapondefs.spider.paralyzetime = 5			
-			uDef.weapondefs.spider.damage.default = 2000
+			uDef.weapondefs.spider.damage.default = 1500
 		end
 
 		if name == "armdfly" then
@@ -1253,7 +1253,7 @@ function WeaponDef_Post(name, wDef)
 				wDef.areaofeffect = 500
 				wDef.edgeeffectiveness = 0.05
 				wDef.paralyzetime = 5
-				wDef.damage.default = 3000
+				wDef.damage.default = 6000
 			end
 			if name == 'spybombxscav' then
 				wDef.edgeeffectiveness = 0.50
