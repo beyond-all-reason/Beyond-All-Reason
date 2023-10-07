@@ -842,6 +842,56 @@ function UnitDef_Post(name, uDef)
 		uDef = unbaUnits.unbaUnitTweaks(name, uDef)
 	end
 
+
+if Spring.GetModOptions().emprework == true then
+
+		if name == "armstil" then		
+			uDef.weapondefs.stiletto_bomb.areaofeffect = 250
+			uDef.weapondefs.stiletto_bomb.burst = 3
+			uDef.weapondefs.stiletto_bomb.burstrate = 0.3333
+			uDef.weapondefs.stiletto_bomb.edgeeffectiveness = 0.30
+			uDef.weapondefs.stiletto_bomb.damage.default = 1500
+			uDef.weapondefs.stiletto_bomb.paralyzetime = 5			
+		end
+
+		if name == "armspid" then
+			uDef.weapondefs.spider.paralyzetime = 5			
+			uDef.weapondefs.spider.damage.default = 1500
+		end
+
+		if name == "armdfly" then
+			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 5			
+		end
+		
+
+		if name == "armemp" then
+			uDef.weapondefs.armemp_weapon.areaofeffect = 512
+			uDef.weapondefs.armemp_weapon.burstrate = 0.3333
+			uDef.weapondefs.armemp_weapon.edgeeffectiveness = 0.05
+			uDef.weapondefs.armemp_weapon.paralyzetime = 5
+			uDef.weapondefs.armemp_weapon.damage.default = 40000
+			
+		end
+		
+
+		if name == "armthor" then
+			uDef.weapondefs.empmissile.areaofeffect = 250
+			uDef.weapondefs.empmissile.edgeeffectiveness = 0.40
+			uDef.weapondefs.empmissile.damage.default = 10000
+			uDef.weapondefs.empmissile.paralyzetime = 5	
+			uDef.weapondefs.emp.damage.default = 600
+			uDef.weapondefs.emp.paralyzetime = 5	
+		end
+
+		if name == "corbw" then
+			uDef.weapondefs.bladewing_lyzer.damage.default = 400
+			uDef.weapondefs.bladewing_lyzer.paralyzetime = 5	
+		end
+		
+
+end
+
+
 if Spring.GetModOptions().comtestchanges == true then
 		if name == "armdecom" then
 			uDef.maxdamage = 3700
@@ -1186,6 +1236,32 @@ function WeaponDef_Post(name, wDef)
 			if wDef.mygravity == nil then
 				wDef.mygravity = 0.1667 --150/900
 			end
+		end
+
+
+
+		----EMP rework
+
+		if Spring.GetModOptions().emprework==true then
+
+			if name == 'empblast' then
+				wDef.areaofeffect = 500
+				wDef.edgeeffectiveness = 0.45
+				wDef.paralyzetime = 5
+				wDef.damage.default = 3000
+			end
+			if name == 'spybombx' then
+				wDef.areaofeffect = 500
+				wDef.edgeeffectiveness = 0.05
+				wDef.paralyzetime = 5
+				wDef.damage.default = 6000
+			end
+			if name == 'spybombxscav' then
+				wDef.edgeeffectiveness = 0.50
+				wDef.paralyzetime = 5
+			end
+
+
 		end
 
 
