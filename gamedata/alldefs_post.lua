@@ -851,11 +851,16 @@ if Spring.GetModOptions().emprework == true then
 			uDef.weapondefs.stiletto_bomb.burstrate = 0.3333
 			uDef.weapondefs.stiletto_bomb.edgeeffectiveness = 0.30
 			uDef.weapondefs.stiletto_bomb.damage.default = 1500
+			uDef.weapondefs.stiletto_bomb.paralyzetime = 10			
 		end
 
 		if name == "armspid" then
-			uDef.weapondefs.spider.paralyzetime = 20			
+			uDef.weapondefs.spider.paralyzetime = 10			
 			uDef.weapondefs.spider.damage.default = 2000
+		end
+
+		if name == "armdfly" then
+			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 10			
 		end
 		
 
@@ -863,7 +868,7 @@ if Spring.GetModOptions().emprework == true then
 			uDef.weapondefs.armemp_weapon.areaofeffect = 512
 			uDef.weapondefs.armemp_weapon.burstrate = 0.3333
 			uDef.weapondefs.armemp_weapon.edgeeffectiveness = 0.05
-			uDef.weapondefs.armemp_weapon.paralyzetime = 30
+			uDef.weapondefs.armemp_weapon.paralyzetime = 10
 			uDef.weapondefs.armemp_weapon.damage.default = 40000
 			
 		end
@@ -873,11 +878,14 @@ if Spring.GetModOptions().emprework == true then
 			uDef.weapondefs.empmissile.areaofeffect = 250
 			uDef.weapondefs.empmissile.edgeeffectiveness = 0.40
 			uDef.weapondefs.empmissile.damage.default = 10000
+			uDef.weapondefs.empmissile.paralyzetime = 10	
 			uDef.weapondefs.emp.damage.default = 600
+			uDef.weapondefs.emp.paralyzetime = 10	
 		end
 
 		if name == "corbw" then
 			uDef.weapondefs.bladewing_lyzer.damage.default = 400
+			uDef.weapondefs.bladewing_lyzer.paralyzetime = 10	
 		end
 		
 
@@ -1238,17 +1246,18 @@ function WeaponDef_Post(name, wDef)
 			if name == 'empblast' then
 				wDef.areaofeffect = 500
 				wDef.edgeeffectiveness = 0.45
+				wDef.paralyzetime = 10
 				wDef.damage.default = 3000
 			end
 			if name == 'spybombx' then
 				wDef.areaofeffect = 500
 				wDef.edgeeffectiveness = 0.05
-				wDef.paralyzetime = 20
+				wDef.paralyzetime = 10
 				wDef.damage.default = 3000
 			end
 			if name == 'spybombxscav' then
 				wDef.edgeeffectiveness = 0.50
-				wDef.paralyzetime = 35
+				wDef.paralyzetime = 10
 			end
 
 
