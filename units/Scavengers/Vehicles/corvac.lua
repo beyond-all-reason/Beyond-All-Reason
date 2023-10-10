@@ -53,7 +53,6 @@ return {
 			unitgroup = 'buildert2',
 			model_author = "Itanthias, carved up corintr, with bolted on nanotower",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 0.06875,
 			subfolder = "corvehicles/t2",
 			techlevel = 2,
 		},
