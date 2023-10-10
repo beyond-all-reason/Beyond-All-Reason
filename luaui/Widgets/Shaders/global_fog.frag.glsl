@@ -1152,26 +1152,31 @@ void main(void)
 		//fragColor.rgba = vec4(vec3( fract(inmapness * 0.01)),1.0);
 		//return;
 		if (rayLength > 0.01 && inmapness < 512.0) {
-			vec4 heightShadowStart = WorldToShadowSpace(rayStart); // The more distant position
-			vec4 heightShadowEnd   = WorldToShadowSpace(rayEnd); // The position closer to camera
-			vec4 heightShadowStep  = (heightShadowStart - heightShadowEnd) / HEIGHTSHADOWSTEPS; // points toward camera
-			heightShadowStart += blueNoiseSample.r * heightShadowStep; // Give it some jitter for smoothing
+			vec4 heightShadowStartPos = WorldToShadowSpace(rayStart); // The more distant position
+			vec4 heightShadowEndStep   = WorldToShadowSpace(rayEnd); // The position closer to camera
+			heightShadowEndStep  = ( heightShadowEndStep- heightShadowStartPos) / HEIGHTSHADOWSTEPS; // points toward camera
+			heightShadowStartPos += blueNoiseSample.r * heightShadowEndStep; // Give it some jitter for smoothing
 			
-			vec3 rayStep = (rayEnd - rayStart) / HEIGHTSHADOWSTEPS;
-			vec3 shadowRayStart = rayStart + blueNoiseSample.r * rayStep; // Pull back the start with blue noise
+			vec3 shadowRayStep = (rayEnd - rayStart) / HEIGHTSHADOWSTEPS;
+			vec3 shadowRayStart = rayStart + blueNoiseSample.r * shadowRayStep; // Pull back the start with blue noise
 			float stepSize = rayLength / HEIGHTSHADOWSTEPS;
 			heightShadow = 0;
 
 			for (uint i = 0; i < HEIGHTSHADOWSTEPS; i++){
-				heightShadow += textureProj(shadowTex, heightShadowStart - heightShadowStep * float(i), -2).r; // 1 for lit, 0 
+				heightShadow += textureProj(shadowTex, heightShadowStartPos, -2).r; // 1 for lit, 0 
+				heightShadowStartPos += heightShadowEndStep;
 
-				vec3 rayPos = shadowRayStart + rayStep * (float(i)) ;
-				rayPos += rayPos*NOISESKEW;
-				rayPos *= 0.0002;
+				//rayPos += rayPos*NOISESKEW;
 				//maek cloudy:
-				vec4 noisebloise = texture(uniformNoiseTex,rayPos);
-				float mahnoise = min(noisebloise.r, noisebloise.g);
-				densityModulation +=  mahnoise;
+				#if 0
+					vec4 noisebloise = texture(uniformNoiseTex,shadowRayStart * 0.002);
+					shadowRayStart += shadowRayStep;
+					
+					float mahnoise = min(noisebloise.r, noisebloise.g);
+					densityModulation +=  mahnoise;
+				#else
+					densityModulation = 1.0;
+				#endif
 			}
 
 			heightShadow = quadGatherWeighted(heightShadow);
@@ -1225,7 +1230,8 @@ void main(void)
 			shadStart += blueNoiseSample.r * shadStep;
 
 			for (uint i = 0; i < UNDERWATERSHADOWSTEPS ; i++){
-				uwShadowRays.w += textureProj(shadowTex, shadStart + shadStep * float(i), -2).r; // 1 for lit, 0 
+				uwShadowRays.w += textureProj(shadowTex, shadStart, -2).r; // 1 for lit, 0 
+				shadStart += shadStep;
 			}
 			// This was Floris's idea, to add a bit of additional surface shadow
 			float lastunderwatershadow = quadGatherWeighted(textureProj(shadowTex, shadEnd, -2).r);
@@ -1247,7 +1253,6 @@ void main(void)
 	
 	// ----------------- BEGIN CLOUD LAYER -------------------------------
 	#line 34000
-	vec4 cloudRGBA = vec4(cloudGlobalColor.rgb, 0);
 	// Start by calculating the absolute, mapdepth scaled ray start and ray end factors
 
 	vec3 cloudRayDir = fromCameraNormalized;
@@ -1287,7 +1292,7 @@ void main(void)
 	
 	float cloudRayLength = length(cloudRayStart-cloudRayEnd);
 	float myfog = 0;
-	vec4 cloudColor = vec4(cloudGlobalColor.rgb,1);
+
 	vec4 cloudBlendRGBT = vec4(0,0,0, 1); // Zero color, and Transparency of 1
 	if (cloudRayLength > 0 ){
 		vec3 cloudRayStep = (cloudRayEnd - cloudRayStart) / NOISESAMPLES; // Points towards camera
@@ -1311,7 +1316,7 @@ void main(void)
 		vec3 noiseLFEndStep;
 		vec3 noiseHFStart;
 		vec3 noiseHFEndStep;
-
+		
 		WorldToNoiseSpace(cloudRayStart, noiseLFStart, noiseHFStart); // near point
 		WorldToNoiseSpace(cloudRayEnd, noiseLFEndStep, noiseHFEndStep); // far point
 		
@@ -1327,44 +1332,28 @@ void main(void)
 		float rayIndexFloat = 0.0;
 		float prevdensity = 0.0;
 		cloudBlendRGBT.rgb +=  cloudGlobalColor.rgb;
+
+		float heightFractionStartPos = clamp( (cloudRayStart.y  - cloudVolumeMin.y) *fogHeightInv,0,1);
+		float heightFractionEndStep   = clamp( (cloudRayEnd.y    - cloudVolumeMin.y) *fogHeightInv,0,1);
+		heightFractionEndStep = (heightFractionStartPos - heightFractionEndStep) / NOISESAMPLES; 
+
+	
 		for (uint ns = 0; ns < NOISESAMPLES; ns++){ // We march backwards, from furthest to closest
 			// A rule of thumb: Each line here, at 16 samples costs 1 fps, texture lookups cost 5 fps 
-			float heightFraction = clamp( ((cloudRayStart.y + cloudRayStep.y *  rayIndexFloat ) - cloudVolumeMin.y) *fogHeightInv,0,1); // 1 at the top of fog, 0 at the bottom
-			float perturbmod = (1.0 - heightFraction) *  (1.0 - heightFraction) * 2;
-			//vec3 rayPos = cloudRayStart - cloudRayStep * rayIndexFloat;
-			
-			vec3 noiseHFSpacePos = noiseHFStart + rayIndexFloat * noiseHFEndStep;
-			vec3 noiseLFSpacePos = noiseLFStart + rayIndexFloat * noiseLFEndStep;
-			rayIndexFloat += 1.0;
-			
-			float rayDepthratio = 1.0; //clamp((1.0 - rayPos.y * fogPlaneTopInv) * HEIGHTDENSITY,0,1);
-			//vec4 textureNoise = SampleNoiseSpace(noiseLFSpacePos, noiseHFSpacePos);
-			float t0 = abs(sin(timeInfo.x * 0.03)) * 1;
-			vec3 sunSampleOffset = sunDir.xyz * NOISESCALE1024 * stepLength * dot(threadMask,quadoffsets) * 15 * t0;
-			vec4 textureNoise = SampleNoiseSpace(noiseLFSpacePos, noiseHFSpacePos,  perturbmod);
+			//float heightFraction = clamp( ((cloudRayStart.y + cloudRayStep.y *  rayIndexFloat ) - cloudVolumeMin.y) *fogHeightInv,0,1); // 1 at the top of fog, 0 at the bottom
+			float perturbmod = (1.0 - heightFractionStartPos) *  (1.0 - heightFractionStartPos) * 2;
+			heightFractionStartPos += heightFractionEndStep;
+	
+			vec4 textureNoise = SampleNoiseSpace(noiseLFStart, noiseHFStart,  perturbmod);
+			noiseHFStart += noiseHFEndStep;
+			noiseLFStart += noiseLFEndStep;
 
-			vec4 sunSampleNoise = SampleNoiseSpace(noiseLFSpacePos - sunSampleOffset, noiseHFSpacePos - sunSampleOffset, perturbmod);
-			
-			float clampedNoise = max(0, (textureNoise.r  - noiseLFParams.y) * fogGroundDensity * rayDepthratio * stepLength) * 1.0;
+			float clampedNoise = max(0, (textureNoise.r  - noiseLFParams.y) * fogGroundDensity * (1.0 - heightFractionStartPos) * stepLength) * 1.0;
 			//myfog += clampedNoise; // FUCKING KEEP THIS!
-			
-			float clampedNoiseSun = (1.0 - heightFraction) *  max(0, (sunSampleNoise.r  - noiseLFParams.y) * fogGroundDensity * rayDepthratio ) * 1.0;
-			//clampedNoise = clampedNoiseSun* stepLength;
-			clampedNoiseSun = textureNoise.g;
-			// Consts:
-			float sigma_attentuation = fogGroundDensity; // absorbtion
-			float sigma_scattering =  cloudGlobalColor.a * 2;// scattering
-			float sigma_total = sigma_attentuation + sigma_scattering; 
-			float g = 0;
-
-			float heightthin = 1.0;// - heightFraction * heightFraction;
-			float density = max(0, (textureNoise.r  - noiseLFParams.y))  * 0.01 * heightthin;
-			float sample_transparency = exp(- density * sigma_total * stepLength ) ; 
 			
 			// Try a gradient based approach to density
 			// for now, quickly assume we go over top
-
-			float currdens =  clampedNoise * heightthin;
+			float currdens =  clampedNoise ;
 			myfog += currdens;
 			
 			currdens /= stepLength;
@@ -1373,75 +1362,12 @@ void main(void)
 			gradient_density *= 10;
 			gradient_density -= gradient_density * step(0,gradient_density) * 10.5; 
 			cloudBlendRGBT.rgb = mix (cloudBlendRGBT.rgb, vec3(0.0),gradient_density * 0.05 );
-
-
-			// This is near 1 when empty space, and approaches 0 on denser regions
-
-			// So transparency doesnt change on empty space, and can only ever decrease
-	        cloudBlendRGBT.w *= sample_transparency;
-
 			
-			#if 0
-				float light_ray_att = exp( - density * textureNoise.g * sigma_total  ); // this number is near 1 
-				cloudBlendRGBT.rgb +=  cloudGlobalColor.rgb * light_ray_att  * sigma_scattering * density * stepLength;
-				cloudBlendRGBT.rgb *= sample_transparency; // this is the very problematic one, 
-			#endif
-			
-
-
-			/*float occludedness = textureNoise.g * ( 1.0- heightFraction);
-
-			float attenuation = exp(-1.0 * clampedNoise) ;
-			cloudBlendRGBT.w *= attenuation;
-
-			//float inscatter = max(0, (textureNoise.g ) * fogGroundDensity * rayDepthratio ) * 2;
-			float inscatter = max(0, (1 ) * fogGroundDensity * rayDepthratio ) * 2;
-			inscatter = exp(-1.0*inscatter);
-
-			cloudBlendRGBT.rgb += cloudBlendRGBT.w * cloudGlobalColor.rgb *  attenuation * stepLength * 0.002;*/
-
-
-			////float shadeFactor = max(0.0, textureNoise.g -noiseLFParams.y) ;
-			//float shadeFactor = max(0.0, textureNoise.g -noiseLFParams.y) ;
-			//vec3 fogShaded = mix(clo1rgb, fogShadowedColor.rgb,  rayDepthratio * rayDepthratio* shadeFactor*0 );
-			//clampedNoise = step(sin(time * 0.01) * 0.1 + 0.5, clampedNoise);
-			//cloudRGBA.rgb = fogShaded.rgb * clampedNoise + cloudRGBA.rgb * (1.0 - clampedNoise);
-
-			/*
-			cloudRGBA.a = clampedNoise + cloudRGBA.a * (1.0 - clampedNoise); // the sA*sA term is questionable here!
-			//cloudRGBA.rgb += cloudRGBA.a;
-			//cloudBlendRGBT
-
-			vec3 localCloudColor = mix(cloudGlobalColor.rgb,fogShadowedColor.rgb,  occludedness);
-
-			float cloudColorExpPart = exp(-1 * clampedNoise) * 1.0; // 1 if no cloud
-			cloudColor.rgb = mix(localCloudColor, cloudColor.rgb,  cloudColorExpPart * 1.0);
-			//cloudColor.rgb = localCloudColor;
-			//myfog += 0;
-			cloudRGBA.rgb = mix(cloudColor.rgb, cloudColor.rgb * (1.0-textureNoise.g) , clampedNoise);
-			//vec4 nowColor = vec4(cloudColor.rgb, 1.0 - exp(-1 * clampedNoise * cloudGlobalColor.a));
-			//nowColor.rgb = nowColor.rgb * BeersPowder(clampedNoise, cloudGlobalColor.a * 10) * 0.0;
-			//BackwardBlend(cloudBlendRGBT, nowColor);
-			//https://encreative.blogspot.com/2019/05/forward-and-backward-alpha-blending-for.html
-			*/
 		}
 		float beerpowder = expImpulse(myfog, cloudGlobalColor.a * 1);
-		//cloudRGBA.rgb = cloudRGBA.rgb *beerpowder;
-		//cloudRGBA.rgb = vec3(beerpowder);
-		//float beer-powder = 
-		// attenuate along map edges: 
-		//vec2 mapdist 
-		//max( linearDistanceMap(cloudRayEnd), linearDistanceMap(cloudRayEnd));
-
 		#endif
 	}
-	float alpha =  1.0 -  cloudBlendRGBT.w;
-	float transparency = cloudBlendRGBT.w;
-	alpha = 1.0 - exp(-1 * myfog * 0.1);
-	alpha = quadGatherWeighted(alpha);
-	// invert cloud colorificatoin
-	//vec3 cloudColorInv = 1.0 - cloudBlendRGBT.rgb;
-	//cloudBlendRGBT.rgb = cloudColorInv.bgr * 2.0;
+	float alpha = quadGatherWeighted(1.0 - exp(-1 * myfog * 0.1));
 
 	#if 0 
 		// ----------------- BEGIN CLOUD SHADOWS -------------------------------
