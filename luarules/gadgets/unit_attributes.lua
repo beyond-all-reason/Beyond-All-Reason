@@ -188,9 +188,9 @@ local function UpdateBuildSpeed(unitID, unitDefID, speedFactor)
 	end
 
 
-	--Spring.Echo('hornet debug updatebuildspeed')
-	--Spring.Echo(speedFactor)
-	--Spring.Echo(buildSpeed)
+	Spring.Echo('hornet debug updatebuildspeed')
+	Spring.Echo(speedFactor)
+	Spring.Echo(buildSpeed)
 
 	GG.att_out_buildSpeed[unitID] = buildSpeed*speedFactor
 
