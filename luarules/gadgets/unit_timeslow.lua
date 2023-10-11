@@ -54,7 +54,7 @@ Spring.SetGameRulesParam("slowState",1)
 
 local function updateSlow(unitID, state)
 
-	Spring.Echo("hornet upd slow unit id " .. unitID .. "  state.slowDamage " .. state.slowDamage)--  .. "  max slow factor " .. MAX_SLOW_FACTOR)
+	--Spring.Echo("hornet upd slow unit id " .. unitID .. "  state.slowDamage " .. state.slowDamage)--  .. "  max slow factor " .. MAX_SLOW_FACTOR)
 
 	local health, maxHealth, paralyzeDamage, capture, build  = spGetUnitHealth(unitID)
 
@@ -125,7 +125,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	
 	
 	if Spring.GetModOptions().emprework == true then
-	--if true then
+	
 	
 		if (not spValidUnitID(unitID)) or (not weaponID) or not paralyzer then
 			return damage

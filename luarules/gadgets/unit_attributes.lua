@@ -18,8 +18,6 @@ function gadget:GetInfo()
 end
 
 
---Spring.Echo("Hornetdebug unit attributes loaded");
-
 
 
 --------------------------------------------------------------------------------
@@ -142,13 +140,13 @@ local sonarUnitDef = {}
 local jammerUnitDef = {}
 
 for unitDefID, ud in pairs(UnitDefs) do
-	if ud.radarDistance > 0 then
+	if (ud.radarDistance or 0) > 0 then
 		radarUnitDef[unitDefID] = ud.radarDistance
 	end
-	if ud.sonarDistance > 0 then-- and tobool(ud.customParams.sonar_can_be_disabled)
+	if (ud.sonarDistance or 0) > 0 then-- and tobool(ud.customParams.sonar_can_be_disabled)
 		sonarUnitDef[unitDefID] = ud.sonarDistance
 	end
-	if ud.radarDistanceJam > 0 then
+	if (ud.radarDistanceJam or 0) > 0 then
 		jammerUnitDef[unitDefID] = ud.radarDistanceJam
 	end
 end
@@ -179,7 +177,6 @@ end
 -- Build Speed Handling
 
 
-
 local function UpdateBuildSpeed(unitID, unitDefID, speedFactor)
 	local buildSpeed = (buildSpeedDef[unitDefID] or 0)
 	local reclaimSpeed = (reclaimSpeedDef[unitDefID] or 0)
@@ -188,9 +185,10 @@ local function UpdateBuildSpeed(unitID, unitDefID, speedFactor)
 	end
 
 
-	Spring.Echo('hornet debug updatebuildspeed')
-	Spring.Echo(speedFactor)
-	Spring.Echo(buildSpeed)
+	--Spring.Echo('hornet debug updatebuildspeed')
+	--Spring.Echo(speedFactor)
+	--Spring.Echo(buildSpeed*speedFactor / REPAIR_ENERGY_COST_FACTOR)
+	--Spring.Echo(buildSpeed)
 
 	GG.att_out_buildSpeed[unitID] = buildSpeed*speedFactor
 
@@ -542,9 +540,9 @@ function UpdateUnitAttributes(unitID, frame)
 			reloadMult = 0
 		end
 		
-		Spring.Echo("hornet debug buildpowermult" .. buildpowerMult)
-		Spring.Echo("hornet debug buildmult" .. buildMult)
-		Spring.Echo("hornet debug reloadmult" .. reloadMult)
+		--Spring.Echo("hornet debug buildpowermult" .. (buildpowerMult or 0))
+		---Spring.Echo("hornet debug buildmult" .. buildMult)
+		--Spring.Echo("hornet debug reloadmult" .. reloadMult)
 	
 		if fullDisable then
 			buildMult = 0
@@ -662,6 +660,13 @@ function gadget:GameFrame(f)
 			UpdatePausedReload(unitID, unitDefID, f)
 		end
 	end
+	
+	
+	
+	if false and f % 50 == 1 then
+		Spring.Debug.TableEcho(unitSlowed)
+	end
+	
 end
 
 function gadget:UnitDestroyed(unitID)
