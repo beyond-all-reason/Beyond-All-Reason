@@ -1373,6 +1373,7 @@ void main(void)
 		#endif
 	}
 	float alpha = quadGatherWeighted(1.0 - exp(-1 * myfog * 0.1));
+	cloudBlendRGBT.a = alpha;
 
 	// ----------------- BEGIN CLOUD SHADOWS -------------------------------
 	#if 1
@@ -1446,7 +1447,34 @@ void main(void)
 
 	//fragColor = vec4(threadMask.rgb, 1.0);return;
 	// ----------------- END CLOUD SHADOWS -------------------------------
+	
+	// ----------------- BEGIN CHROMA SHIFTING /SCATTERING ---------------------
+	// ----------------- END CHROMA SHIFTING /SCATTERING ---------------------
 
+	// ----------------- BEGIN COMPOSITING ---------------------
+	vec4 outColor = vec4(0.0);
+	// 1. Blend uwShadowRays.rgba
+	outColor.a += uwShadowRays.a;
+
+	// 2. Blend cloudShadowColor.rgba
+	outColor.a += cloudShadowColor.a;
+
+	// 3. Blend heightBasedFogColor.rgba
+	outColor.rgb = mix(outColor.rgb, heightBasedFogColor.rgb, heightBasedFogColor.a);
+	outColor.a += heightBasedFogColor.a;
+	// 4. Blend cloudBlendRGBT.rgba
+
+	outColor.rgb = mix(outColor.rgb, cloudBlendRGBT.rgb, cloudBlendRGBT.a);
+	outColor.a += cloudBlendRGBT.a;
+	// 5. Blend distanceFogColor.rgba
+	outColor.rgb = mix(outColor.rgb, distanceFogColor.rgb, distanceFogColor.a);
+	outColor.a += distanceFogColor.a;
+	fragColor = outColor; return;
+
+
+	// ----------------- END COMPOSITING   ---------------------
+
+	// -----------------
 	// Composite uwShadorRays with cloudBlendRGBT
 	fragColor = vec4(0.0);
 
@@ -1486,7 +1514,7 @@ void main(void)
 		fragColor.rgb *= fragColor.a;
 	#endif
 	
-
+	
 
 	return;
 	
