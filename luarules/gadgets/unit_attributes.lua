@@ -104,14 +104,36 @@ end
 
 local shieldWeaponDef = {}
 local buildSpeedDef = {}
+local reclaimSpeedDef = {}
+
 
 for i = 1, #UnitDefs do
 	local ud = UnitDefs[i]
+	local cur = 0
 	if ud.shieldWeaponDef then
 		shieldWeaponDef[i] = true
 	end
+	--Spring.Echo(ud.name)
 	if (ud.buildSpeed or 0) ~= 0 then
+
 		buildSpeedDef[i] = ud.buildSpeed
+		reclaimSpeedDef[i] = ud.reclaimSpeed or 0
+		
+		
+		
+		--cur = ud.buildSpeed
+		--if (ud.repairSpeed ~= cur or ud.reclaimSpeed ~= cur or ud.resurrectSpeed ~= cur) then
+		
+			----Spring.Echo(ud.name)
+			--Spring.Echo(ud.buildSpeed)
+			--Spring.Echo(ud.repairSpeed)
+			--Spring.Echo(ud.reclaimSpeed)
+			---Spring.Echo(ud.resurrectSpeed)
+		---end
+	--else
+		--Spring.Echo(ud.name)
+		--Spring.Echo(ud.buildSpeed)
+
 	end
 end
 
@@ -160,17 +182,23 @@ end
 
 local function UpdateBuildSpeed(unitID, unitDefID, speedFactor)
 	local buildSpeed = (buildSpeedDef[unitDefID] or 0)
+	local reclaimSpeed = (reclaimSpeedDef[unitDefID] or 0)
 	if buildSpeed == 0 then
 		return
 	end
+
+
+	--Spring.Echo('hornet debug updatebuildspeed')
+	--Spring.Echo(speedFactor)
+	--Spring.Echo(buildSpeed)
 
 	GG.att_out_buildSpeed[unitID] = buildSpeed*speedFactor
 
 	spSetUnitBuildSpeed(unitID,
 		buildSpeed*speedFactor, -- build
 		buildSpeed*speedFactor, -- repair
-		buildSpeed*speedFactor, -- reclaim
-		0.5*buildSpeed*speedFactor) -- rezz
+		reclaimSpeed*speedFactor, -- reclaim
+		buildSpeed*speedFactor) -- rezz
 
 end
 
@@ -434,7 +462,7 @@ local function removeUnit(unitID)
 end
 
 
---Spring.Echo("Hornetdebug UpdateUnitAttributes defined")
+--Spring.Echo("Hornet debug UpdateUnitAttributes defined")
 
 function UpdateUnitAttributes(unitID, frame)
 	if not spValidUnitID(unitID) then
@@ -514,7 +542,9 @@ function UpdateUnitAttributes(unitID, frame)
 			reloadMult = 0
 		end
 		
-		--Spring.Echo("hornet debug reloadmult" .. reloadMult)
+		Spring.Echo("hornet debug buildpowermult" .. buildpowerMult)
+		Spring.Echo("hornet debug buildmult" .. buildMult)
+		Spring.Echo("hornet debug reloadmult" .. reloadMult)
 	
 		if fullDisable then
 			buildMult = 0
