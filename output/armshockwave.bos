@@ -160,7 +160,6 @@ AimFromPrimary(piecenum)
 	piecenum = aimy;
 }
 
-
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
