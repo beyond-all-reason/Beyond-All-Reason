@@ -31,6 +31,7 @@ local excluded = {
 local isBuilding = {}
 local unitOhms = {}
 for udid, ud in pairs(UnitDefs) do
+
     for id, v in pairs(excluded) do
         if string.find(ud.name, UnitDefs[id].name) then
             excluded[udid] = v
@@ -38,13 +39,16 @@ for udid, ud in pairs(UnitDefs) do
         if ud.isBuilding then
             isBuilding[udid] = true
         end
-
-
-		if Spring.GetModOptions().emprework==true then
-			unitOhms[udid] = UnitDefs[id].customParams.paralyzemultiplier
-		end
-
     end
+
+
+	if Spring.GetModOptions().emprework==true then
+		unitOhms[udid] = ud.customParams.paralyzemultiplier or 0.6
+		Spring.Echo('ohm', ud.customParams.paralyzemultiplier)
+		
+		
+	end
+
 end
 
 local weaponParalyzeDamageTime = {}
@@ -56,7 +60,7 @@ local spGetUnitHealth = Spring.GetUnitHealth
 
 
 		Spring.Echo('hornet debug emp loaded')
-
+Spring.Debug.TableEcho(unitOhms)
 function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
 
 
@@ -69,15 +73,21 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 			local hp, maxHP, currentEmp = spGetUnitHealth(uID)
 			local effectiveHP = Game.paralyzeOnMaxHealth and maxHP or hp
 			local paralyzeDeclineRate = Game.paralyzeDeclineRate
-			local thismaxtime = weaponParalyzeDamageTime[weaponID] * unitOhms[uDefID]
 			
-			Spring.Echo('times', weaponParalyzeDamageTime[weaponID], thismaxtime)
-
+			--ohms not always saved / treated as int? tf
+			local ohm = unitOhms[uDefID]--	 or 0)) <= 0 and 0.6 or unitOhms[uDefID]
+			local thismaxtime = weaponParalyzeDamageTime[weaponID] * ohm -- consider the 0.6 default here?
+			
+			Spring.Echo('id orig ohm new', uDefID, unitOhms[uDefID], ohm)
+			
+			thismaxtime = math.min(maxTime, thismaxtime)
+			Spring.Echo('times', weaponParalyzeDamageTime[weaponID], thismaxtime, unitOhms[uDefID] or 1)
+			
 			
 			local maxEmpDamage = (1 + (thismaxtime / paralyzeDeclineRate)) * effectiveHP
 
 			newdamage = math.max(0, math.min(damage, maxEmpDamage - currentEmp))
-            Spring.Echo('h mh ph wpt old new',h,mh, ph, thismaxtime, damage, newdamage)
+            Spring.Echo('h mh ph wpt old new',hp,maxHP, currentEmp, thismaxtime, damage, newdamage)
 
             Spring.Echo(Game.paralyzeDeclineRate)
             Spring.Echo(Game.paralyzeOnMaxHealth)
