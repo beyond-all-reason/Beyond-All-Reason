@@ -159,15 +159,13 @@ for i, shaderDefine in ipairs(definesSlidersParamsList) do
 end
 
 local fogUniforms = {
-	fogGlobalColor = {0.6,0.7,0.8,0.98}, -- bluish, alpha is the ABSOLUTE MAXIMUM FOG
+	heightFogColor = {0.6,0.7,0.8,0.98}, -- bluish, alpha is the ABSOLUTE MAXIMUM FOG
 	cloudGlobalColor = {0.6,0.7,0.8,0.98}, -- bluish, alpha is the ABSOLUTE MAXIMUM FOG
 	distanceFogColor = {1.0,0.9,0.8,0.35}, -- yellowish, alpha is power
 	shadowedColor = {0.1,0.05,0.1,0.5}, -- purleish tint, alpha is power
 	heightFogTop = maxHeight * 0.5 , -- Start of the height thing
 	heightFogBottom = 0, -- Start of the height thing
-	fogGlobalDensity = 1.50, -- How dense the global fog is
 	cloudDensity = 0.01, -- How dense the height-based fog is
-	fogExpFactor = 1.0, -- Overall density multiplier
 	cloudVolumeMin = {0,maxHeight,0,0}, -- XYZ coords of the cloud volume start, along with the bottom density in W
 	cloudVolumeMax= {Game.mapSizeX, 2* maxHeight, Game.mapSizeZ,0}, -- XYZ coords of fog volume end, along with the top density
 	scavengerPlane = {Game.mapSizeX, Game.mapSizeZ, 100,100}, -- The assumption here is that we can specify an X and Z limit on fog, and a density transition function. negative numbers should swap plane dir 
@@ -199,7 +197,7 @@ local fogUniformSliders = {
 	sliderheight = 20,
 	valuetarget = fogUniforms,
 	sliderParamsList = {
-		{name = 'fogGlobalColor', min = 0, max = 2, digits = 3, tooltip =  'fogGlobalColor, alpha is the ABSOLUTE MAXIMUM FOG'},
+		{name = 'heightFogColor', min = 0, max = 2, digits = 3, tooltip =  'heightFogColor, alpha is the ABSOLUTE MAXIMUM FOG'},
 		{name = 'cloudGlobalColor', min = 0, max = 2, digits = 3, tooltip =  'cloudGlobalColor, alpha is the ABSOLUTE MAXIMUM FOG'},
 		{name = 'distanceFogColor', min = 0, max = 2, digits = 3, tooltip =  'distanceFogColor, alpha is density multiplier'},
 		{name = 'shadowedColor', min = 0, max = 2, digits = 3, tooltip =  'shadowedColor, Color of the shadowed areas, ideally black, alpha is strength'},
@@ -210,9 +208,7 @@ local fogUniformSliders = {
 		{name = 'cloudVolumeMax', min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'End of the cloud volume'},
 		{name = 'scavengerPlane', min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'Where the scavenger cloud is'},
 		
-		{name = 'fogGlobalDensity', min = 0.01, max = 10, digits = 2, tooltip =  'How dense the global fog is'},
-		{name = 'cloudDensity', min = 0.000, max = 0.1, digits = 3, tooltip =  'How dense the height-based fog is'},
-		{name = 'fogExpFactor', min = 0.000, max = 5, digits = 2, tooltip =  'Overall density multiplier'},
+		{name = 'cloudDensity', min = 0.000, max = 0.1, digits = 3, tooltip =  'How dense the clouds are'},
 		{name = 'noiseLFParams', min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: threshold, 3-4 unused'},
 		{name = 'noiseHFParams', min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: Perturb, 3: SpeedX, 4: SpeedZ'},
 	},
@@ -222,13 +218,11 @@ local fogUniformSliders = {
 local uniformSlidersLayer, uniformSlidersWindow
 	
 local fogUniformsBluish = { -- bluish tint, not very good
-	fogGlobalColor = {0.5,0.6,0.7,1}, -- bluish
+	heightFogColor = {0.5,0.6,0.7,1}, -- bluish
 	distanceFogColor = {1.0,0.9,0.8,1}, -- yellowish
 	shadowedColor = {0.1,0.05,0.1,1}, -- purleish tint
 	heightFogTop = (math.max(minHeight,0) + maxHeight) /2 ,
-	fogGlobalDensity = 1.0,
 	cloudDensity = 0.3,
-	fogExpFactor = -0.0001, -- yes these are small negative numbers
 	}
 
 ---------------------------------------------------------------------------
@@ -290,14 +284,12 @@ local shaderSourceCache = {
 		uniformFloat = {
 			windX = 0,
 			windZ = 0,
-			fogGlobalColor = fogUniforms.fogGlobalColor,
+			heightFogColor = fogUniforms.heightFogColor,
 			distanceFogColor = fogUniforms.distanceFogColor,
 			shadowedColor = fogUniforms.shadowedColor,
-			fogGlobalDensity = fogUniforms.fogGlobalDensity,
 			cloudDensity = fogUniforms.cloudDensity, 
 			heightFogTop = fogUniforms.heightFogTop,
 			heightFogBottom = fogUniforms.heightFogBottom,
-			fogExpFactor = fogUniforms.fogExpFactor,
 		},
 		shaderName = "Ground Fog GL4",
 		shaderConfig = shaderConfig

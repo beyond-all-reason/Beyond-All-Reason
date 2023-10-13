@@ -32,18 +32,16 @@ uniform sampler3D uniformNoiseTex;
 
 uniform float windX;
 uniform float windZ;
-uniform vec4 fogGlobalColor;
+uniform vec4 heightFogColor;
 uniform vec4 cloudGlobalColor;
 uniform vec4 distanceFogColor;
 uniform vec4 shadowedColor;
 uniform vec4 noiseLFParams;
 uniform vec4 noiseHFParams;
 
-uniform float fogGlobalDensity;
 uniform float cloudDensity;
 uniform float heightFogTop;
 uniform float heightFogBottom;
-uniform float fogExpFactor;
 
 uniform vec4 cloudVolumeMin;
 uniform vec4 cloudVolumeMax;
@@ -1050,7 +1048,6 @@ void main(void)
 	// Note that the offsets are not in ascending order. This has the fun side effect of being bluer in noise
 	float thisQuadOffset = dot (quadGetThreadMask(quadVector), vec4(0.5, 0.25, 0.0, 0.75)); 
 
-	const float expfactor = fogExpFactor * -0.0001;
 	// ---------- Calculate the UV coordinates of the depth textures ---------
   
 	#if (RESOLUTION == 2)
@@ -1111,7 +1108,7 @@ void main(void)
 	// ----------------- BEGIN DISTANCE-BASED FOG ------------------------------
 		#line 33400
 		// calculate the distance fog density
-		float distanceFogAmount = fogGlobalDensity * lengthMapFromCam;
+		float distanceFogAmount = lengthMapFromCam;
 		
 		// Modulate distance fog density with angle of ray compared to sky?
 		vec3 camToMapNorm = mapFromCam / lengthMapFromCam;
@@ -1120,9 +1117,9 @@ void main(void)
 			rayUpness = pow(1.0 - camToMapNorm.y, 8.0);
 			distanceFogAmount *= rayUpness;
 		}
-		float distanceFogAmountExp = exp(distanceFogAmount * expfactor * distanceFogColor.a);
+		float distanceFogAmountExp = exp(-1 * distanceFogAmount * 0.0005 * distanceFogColor.a);
 		// power easing distance fog
-		distanceFogAmountExp = pow(1.0 - distanceFogAmountExp, EASEGLOBAL);
+		distanceFogAmountExp =  pow(1.0 - distanceFogAmountExp, EASEGLOBAL);
 		//fragColor.rgba = vec4(distanceFogColor.rgb, distanceFogAmountExp);	return; // OUTPUT DISTANCE-BASED FOG
 	// ----------------- END DISTANCE-BASED FOG ------------------------------
 	
@@ -1209,10 +1206,10 @@ void main(void)
 	heightBasedFog *=  densityModulation ;
 	
 	// A very simple approach to ease height based fog with distance from camera
-	heightBasedFog = cloudDensity * heightBasedFog * 100 * smoothstep(0.0,2000.0 * EASEHEIGHT, length(rayStart-camPos));
+	heightBasedFog = cloudDensity * heightBasedFog  * smoothstep(0.0,2000.0 * EASEHEIGHT, length(rayStart-camPos));
 	
-	float heightBasedFogExp = 1.0 - exp(heightBasedFog * expfactor );
-	heightBasedFogColor.rgb = mix(shadowedColor.rgb, fogGlobalColor.rgb, heightShadow);
+	float heightBasedFogExp = 1.0 - exp(heightBasedFog * heightFogColor.a * 0.1);
+	heightBasedFogColor.rgb = mix(shadowedColor.rgb, heightFogColor.rgb, heightShadow);
 	heightBasedFogColor.a = heightBasedFogExp;	
 	//Debug shadowing of fog:
 	//fragColor.rgba = vec4(vec3(heightShadow),0.9); return;
@@ -1376,7 +1373,7 @@ void main(void)
 			
 		}
 	}
-	cloudBlendRGBT.a  = quadGatherWeighted(1.0 - exp(-1 * cloudBlendRGBT.w));
+	cloudBlendRGBT.a  = quadGatherWeighted(1.0 - exp(-1 * cloudBlendRGBT.w * cloudGlobalColor.a));
 	#endif
 	// ----------------- BEGIN CLOUD SHADOWS -------------------------------
 
@@ -1447,22 +1444,23 @@ void main(void)
 	// 1. Blend uwShadowRays.rgba
 	outColor.a = outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - uwShadowRays.a);
 
+	outColor.rgb = outColor.rgb * (1.0 - uwShadowRays.a) + shadowedColor.rgb * uwShadowRays.a;
+
 	// 2. Blend cloudShadowColor.rgba
 	outColor.a = outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - cloudShadowColor.a);
-
+	outColor.rgb = outColor.rgb * (1.0 - cloudShadowColor.a) + shadowedColor.rgb * cloudShadowColor.a;
 
 	// 3. Blend heightBasedFogColor.rgba
+	outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - heightBasedFogColor.a);
 	outColor.rgb = mix(outColor.rgb, heightBasedFogColor.rgb, heightBasedFogColor.a);
 
-	outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - heightBasedFogColor.a);
 	// 4. Blend cloudBlendRGBT.rgba
-
 	outColor.rgb = mix(outColor.rgb, cloudBlendRGBT.rgb, cloudBlendRGBT.a);
-
 	outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - cloudBlendRGBT.a);
+
 	// 5. Blend distanceFogColor.rgba
-	outColor.rgb = mix(outColor.rgb, distanceFogColor.rgb, distanceFogAmountExp);
 	outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - distanceFogAmountExp);
+	outColor.rgb = mix(outColor.rgb, distanceFogColor.rgb, distanceFogAmountExp);
 
 	//outColor *= 1.5 - outColor.a * 0.5; 
 
@@ -1705,7 +1703,7 @@ void main(void)
 						float clampedNoise = clamp( cloudDensity * (textureNoise.r * noiseLFParams.x - noiseLFParams.y) * rayDepthratio * stepLength, 0, 1);
 						noiseValues[ns] = clampedNoise;
 						float shadeFactor = max(0.0, textureNoise.g -noiseLFParams.y) ;
-						vec3 fogShaded = mix(fogGlobalColor.rgb, shadowedColor.rgb,  rayDepthratio * rayDepthratio* shadeFactor*0 );
+						vec3 fogShaded = mix(heightFogColor.rgb, shadowedColor.rgb,  rayDepthratio * rayDepthratio* shadeFactor*0 );
 						//clampedNoise = step(sin(time * 0.01) * 0.1 + 0.5, clampedNoise);
 						fogRGBA.rgb = fogShaded.rgb * clampedNoise + fogRGBA.rgb * (1.0 - clampedNoise);
 						fogRGBA.a = clampedNoise + fogRGBA.a * (1.0 - clampedNoise); // the sA*sA term is questionable here!
@@ -1936,7 +1934,7 @@ void main(void)
 	float totalfog = heightBasedFogExp * distanceFogAmountExp;
 	
 	// Clamp the total amout of fog at 99% outputfogalpha, see quilezs Almost Identity (II)
-	totalfog = sqrt(totalfog * totalfog + (1.0 - fogGlobalColor.a) * 0.1);
+	totalfog = sqrt(totalfog * totalfog + (1.0 - heightFogColor.a) * 0.1);
 	fragColor.a = min(1.0, max(0, 1.0 - totalfog));
 	
 	// Colorize fog based on view angle: TODO do this on center weight of both !
@@ -1956,15 +1954,15 @@ void main(void)
 	
 	
 	// This will be our output color
-	vec3 fogColor = fogGlobalColor.rgb;
+	vec3 fogColor = heightFogColor.rgb;
 	
 	//colorize based on the sun level
 	//fogColor = mix(fogColor, 2*distanceFogColor.rgb, sphericalharmonic);
 	fogColor = mix(fogColor, 2*distanceFogColor.rgb, chromaSphericalHarmonic);
 	
 	// Set the base color depending on how shadowed it is, 
-	// shadowed components should tend toward fogGlobalColor
-	vec3 heightFogColor = mix(fogGlobalColor.rgb, fogColor, collectedShadow);
+	// shadowed components should tend toward heightFogColor
+	vec3 heightFogColor = mix(heightFogColor.rgb, fogColor, collectedShadow);
 	
 	// Darkened the shadowed bits towards shadowedColor
 	fragColor.rgb = mix(vec3(shadowedColor), heightFogColor.rgb, collectedShadow);	
