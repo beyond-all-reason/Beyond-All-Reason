@@ -117,6 +117,22 @@ vec4 debugQuad(vec2 qv){
 	return vec4(QVC,quadAlpha);
 }
 
+
+#define gamma 2.2
+vec3 LINEARtoSRGB(vec3 c) {
+	if (gamma == 1.0)
+		return c;
+
+	float invGamma = 1.0 / gamma;
+	return pow(c, vec3(1.0 / 2.2));
+}
+vec3 Reinhard(const vec3 x) {
+	// Reinhard et al. 2002, "Photographic Tone Reproduction for Digital Images", Eq. 3
+	return pow((x / (1.0 + dot(vec3(0.2126, 0.7152, 0.0722), x))), vec3(1.0 / 2.2));
+}
+
+
+
 void main(void) {
 	if (abs(resolution - 2.0) > 0.01){
 		gl_FragColor = texture2D(fogbase, gl_TexCoord[0].st);
@@ -212,8 +228,12 @@ void main(void) {
 		
 		
 		//gl_FragColor.r += step(modeldepth, mapdepth);
+		// handle Luma Bleed:
+		// https://blog.demofox.org/2018/07/13/blending-an-hdr-color-into-a-u8-buffer/
+		//Reinhard
 		gl_FragColor.a = min(gl_FragColor.a, 0.99) ;
 		gl_FragColor.rgb *= gl_FragColor.a;
+		//gl_FragColor.rgb = Reinhard(gl_FragColor.rgb);
 		//gl_FragColor.a = gatherAlpha.a;
 	}
 }

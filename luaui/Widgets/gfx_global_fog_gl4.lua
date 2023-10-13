@@ -60,6 +60,22 @@ local GL_R32F = 0x822E
 	-- 
 	-- Alpha of it should contain like a global noise offset, which should blow with the wind, but contain some underlying moderate frequency noise
 
+-- Performance Notes 2023.10.13
+	-- Combine Shader eats .35 ms in rez == 2 mode, but only 100 ms in rez >= 3
+	-- Total cost at rez = 2 is like 2.4 ms, broken down into:
+		-- combine shader 0.35ms
+		-- clouds 0.85ms
+		-- cloud shadows 0.45ms
+		-- uw shadows 0.10 ms
+		-- height fog 0.2 ms
+		-- rest of the shit 0.4 ms
+		-- VGPR Pressure according to RGA tool is 48. This did require some finagling:
+			-- layout(binding = 4) uniform sampler2D modelDepths;
+			-- layout(set=0, binding = 15) uniform TheBlock{
+				-- uniform float windX;
+				-- 
+
+
 ------------- Literature and Reading: ---
 -- blue noise sampling:  https://blog.demofox.org/2020/05/10/ray-marching-fog-with-blue-noise/
 -- Inigo quliez fog lighting tips: https://iquilezles.org/articles/fog/
@@ -145,8 +161,8 @@ end
 local fogUniforms = {
 	fogGlobalColor = {0.6,0.7,0.8,0.98}, -- bluish, alpha is the ABSOLUTE MAXIMUM FOG
 	cloudGlobalColor = {0.6,0.7,0.8,0.98}, -- bluish, alpha is the ABSOLUTE MAXIMUM FOG
-	fogSunColor = {1.0,0.9,0.8,0.35}, -- yellowish, alpha is power
-	fogShadowedColor = {0.1,0.05,0.1,0.5}, -- purleish tint, alpha is power
+	distanceFogColor = {1.0,0.9,0.8,0.35}, -- yellowish, alpha is power
+	shadowedColor = {0.1,0.05,0.1,0.5}, -- purleish tint, alpha is power
 	heightFogTop = maxHeight * 0.5 , -- Start of the height thing
 	heightFogBottom = 0, -- Start of the height thing
 	fogGlobalDensity = 1.50, -- How dense the global fog is
@@ -183,10 +199,10 @@ local fogUniformSliders = {
 	sliderheight = 20,
 	valuetarget = fogUniforms,
 	sliderParamsList = {
-		{name = 'fogGlobalColor', min = 0, max = 1, digits = 3, tooltip =  'fogGlobalColor, alpha is the ABSOLUTE MAXIMUM FOG'},
-		{name = 'cloudGlobalColor', min = 0, max = 1, digits = 3, tooltip =  'cloudGlobalColor, alpha is the ABSOLUTE MAXIMUM FOG'},
-		{name = 'fogSunColor', min = 0, max = 1, digits = 3, tooltip =  'fogSunColor, alpha is power'},
-		{name = 'fogShadowedColor', min = 0, max = 1, digits = 3, tooltip =  'fogShadowedColor'},
+		{name = 'fogGlobalColor', min = 0, max = 2, digits = 3, tooltip =  'fogGlobalColor, alpha is the ABSOLUTE MAXIMUM FOG'},
+		{name = 'cloudGlobalColor', min = 0, max = 2, digits = 3, tooltip =  'cloudGlobalColor, alpha is the ABSOLUTE MAXIMUM FOG'},
+		{name = 'distanceFogColor', min = 0, max = 2, digits = 3, tooltip =  'distanceFogColor, alpha is density multiplier'},
+		{name = 'shadowedColor', min = 0, max = 2, digits = 3, tooltip =  'shadowedColor, Color of the shadowed areas, ideally black, alpha is strength'},
 		{name = 'heightFogTop', min = math.floor(minHeight), max = math.floor(maxHeight * 2), digits = 0, tooltip =  'heightFogTop, in elmos'},
 		{name = 'heightFogBottom', min = math.floor(minHeight), max = math.floor(maxHeight), digits = 0, tooltip =  'heightFogBottom, in elmos'},
 		
@@ -207,8 +223,8 @@ local uniformSlidersLayer, uniformSlidersWindow
 	
 local fogUniformsBluish = { -- bluish tint, not very good
 	fogGlobalColor = {0.5,0.6,0.7,1}, -- bluish
-	fogSunColor = {1.0,0.9,0.8,1}, -- yellowish
-	fogShadowedColor = {0.1,0.05,0.1,1}, -- purleish tint
+	distanceFogColor = {1.0,0.9,0.8,1}, -- yellowish
+	shadowedColor = {0.1,0.05,0.1,1}, -- purleish tint
 	heightFogTop = (math.max(minHeight,0) + maxHeight) /2 ,
 	fogGlobalDensity = 1.0,
 	cloudDensity = 0.3,
@@ -275,8 +291,8 @@ local shaderSourceCache = {
 			windX = 0,
 			windZ = 0,
 			fogGlobalColor = fogUniforms.fogGlobalColor,
-			fogSunColor = fogUniforms.fogSunColor,
-			fogShadowedColor = fogUniforms.fogShadowedColor,
+			distanceFogColor = fogUniforms.distanceFogColor,
+			shadowedColor = fogUniforms.shadowedColor,
 			fogGlobalDensity = fogUniforms.fogGlobalDensity,
 			cloudDensity = fogUniforms.cloudDensity, 
 			heightFogTop = fogUniforms.heightFogTop,
@@ -635,6 +651,27 @@ function widget:DrawWorld()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- reset GL state
   	gl.DepthMask(false) --"BK OpenGL state resets", reset to default state
 end
+
+local function DumpShaderSource(srccache)
+	for keyname, fileextension in pairs({vsSrcComplete = ".vert", fsSrcComplete = '.frag', gsSrcComplete = '.geom'}) do 
+		if srccache[keyname] then 
+			local outf = io.open(srccache.shaderName .. fileextension,'w')
+			--Spring.Echo(srccache[keyname])
+			outf:write(srccache[keyname])
+			outf:close()
+		end
+	end
+end
+
+
+function widget:TextCommand(cmd)
+	if string.find(cmd, "fogdumpshaders", nil,true) then 
+		Spring.Echo("Dumping shaders")
+		DumpShaderSource(combineShaderSourceCache)
+		DumpShaderSource(shaderSourceCache)
+	end
+end
+
 
 function widget:DrawScreen()
 	if autoreload then 

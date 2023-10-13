@@ -34,8 +34,8 @@ uniform float windX;
 uniform float windZ;
 uniform vec4 fogGlobalColor;
 uniform vec4 cloudGlobalColor;
-uniform vec4 fogSunColor;
-uniform vec4 fogShadowedColor;
+uniform vec4 distanceFogColor;
+uniform vec4 shadowedColor;
 uniform vec4 noiseLFParams;
 uniform vec4 noiseHFParams;
 
@@ -52,7 +52,6 @@ uniform vec4 scavengerPlane;
 out vec4 fragColor;
 
 float frequency;
-float packedNoiseLod = 0;
 
 #if 1 // These are globally useful helpers
 	float shadowAtWorldPos(vec3 worldPos){
@@ -456,36 +455,40 @@ vec4 Cellular3D_Deriv( vec3 P )
 #endif
 
 #if 1 // The packed 3D noise sampler by Beherith
+
+float packedNoiseLod = 0;
 vec4 getPackedNoise(vec3 P){
-	//worley3_256x128x64_RBGA_LONG.png/dds
+	// e.g. worley3_256x128x64_RBGA_LONG.png/dds
+	// This system assumes that a noise texture is packed into 2D with the following rules:
+	// The noises Z axis is tiled along the X axis of the 2D texture
+	// The G and A channels are higher precision in DXT5
+	// The R ang B channels are lower precision
+	// the RG and BA channels are offset by one step along the Z tiling so that interpolation can be done
 	// needs textureLOD to prevent seams from warping.
-	// perf Benefits from DDS compression greatly, but quality suffers a lot
-	// but lod level selection needs to be done carefully, as DDS suffers from shitty compression artifacts
+	// perf Benefits from DDS compression greatly, but quality suffers a bit
+	// The LOD level selection needs to be done carefully, as DDS suffers from shitty compression artifacts
 	// can we fix LOD issues? yes cause .png suffers from bad lodding and hammering the memory subsystem, which is fixed by the packedNoiseLod dependent on camera distance.
 	// VERY IMPORTANT NOTE: the fract operations + wide texture means precision is lost after a lot of offset in X
-	// returns noise G + A in x, R + B in y
+	// Thus must be mitigated by FRACT-ing the wind offsets from Lua to ensure they stay within [0-1] throughout the game
+	// returns noise G + A in x, R + B in y, and the uninterpolated results in zw
 	
 	#define PACKX 256 // MUST BE SET TO PACKED TEXTURE DIMS
 	#define PACKY 128
 	#define PACKZ 64
-	P = P.xzy;
+	P = P.xzy; // swizzle coords here, because Z and Y are swapped
 	P = P * vec3(1,2,4);
 	
 
 	//X is Y, 
-	//P.x = 0.5;
 	// Split Z into PACKZ levels, and put it into Y
-	vec3 packedUV = vec3(P.x, fract(P.y), fract(P.z));
+	vec2 packedUV = vec2(P.x, fract(P.y));
 	float fractZ = fract(P.z * PACKZ);
 	float floorz = P.z * PACKZ - fractZ;
-	//float floorz = (P.z - fractZ) * PACKZ;
-	packedUV.y = (packedUV.y + floorz)/PACKZ;
-	packedUV.z = fractZ;// * fractZ * (3.0 - 2.0 * fractZ);
-	
-	vec4 packedSample = textureLod(packedNoise, packedUV.yx, packedNoiseLod); 
-	vec2 mixedSample = mix(packedSample.rg, packedSample.ba,  packedUV.z );
-	//mixedSample.y = mix(packedSample.g, packedSample.a,1);
-	//mixedSample.y = packedSample.r;
+	packedUV.y = (packedUV.y + floorz) / PACKZ;
+	//fractZ *= fractZ * fractZ * (3.0 - 2.0 * fractZ); // optional smoothing?
+	vec4 packedSample = textureLod(packedNoise, packedUV.yx, packedNoiseLod); //yz is swapped here cause tex is tiled along X
+	vec2 mixedSample = mix(packedSample.rg, packedSample.ba,  fractZ );
+ 
 	return vec4(mixedSample.y, mixedSample.x,packedSample.w, packedSample.z);
 }
 #endif
@@ -620,7 +623,7 @@ vec4 quad_gather_sum(const vec4 quad_vector, const vec4 curr)
 
 vec2 quadVector = vec2(0); // REQUIRED, contains the [-1,1] mappings
 // one-hot encoding of thread ID
-vec4 threadMask = vec4(0); // contains the thread ID in one-hot
+//vec4 threadMask = vec4(0); // contains the thread ID in one-hot
 
 vec4 selfWeights = vec4(WEIGHTFACTOR*WEIGHTFACTOR, WEIGHTFACTOR*(1.0-WEIGHTFACTOR), WEIGHTFACTOR*(1.0-WEIGHTFACTOR), (1.0-WEIGHTFACTOR)*(1.0-WEIGHTFACTOR)); // F*F, F*(1.0-F), F*(1.0-F), (1-F)*(1-F)
 #define selfWeightFactor 0.07
@@ -643,6 +646,7 @@ vec2 quadGetQuadVector(vec2 screenCoords){
 // Only needed if thread order matters, unlike with Sum
 // NOTE THAT THIS ALLOWS FOR AMAZING FILTERING STEPS!
 mat4 quadGetThreadMatrix(float smoothfactor){
+	vec4 threadMask =  step(vec4(quadVector.xy,0,0),vec4( 0,0,quadVector.xy));
 	return mat4(
 		clamp(vec4(threadMask.xyzw),smoothfactor/3, 1.0-smoothfactor),
 		clamp(vec4(threadMask.yxwz),smoothfactor/3, 1.0-smoothfactor),
@@ -697,14 +701,14 @@ vec4 quadFBM(vec3 Pos, vec4 frequencies, vec2 screenUV, vec2 screenCoords){
 		float nadjy = noise - dFdy(noise) * quad_vector.w;
 		float ndiag = nadjx - dFdy(nadjx) * quad_vector.w;
 		
-		vec4 output = vec4(0.0);
+		vec4 result = vec4(0.0);
 		octaves = vec4(noise , nadjx, nadjy, ndiag);
 		#if 0
-			output.r = dot(octaves.xyzw,threadMask);
-			output.g = dot(octaves.yxwz,threadMask);
-			output.b = dot(octaves.zwxy,threadMask);
-			output.a = dot(octaves.wzyx,threadMask);
-			octaves = output;
+			result.r = dot(octaves.xyzw,threadMask);
+			result.g = dot(octaves.yxwz,threadMask);
+			result.b = dot(octaves.zwxy,threadMask);
+			result.a = dot(octaves.wzyx,threadMask);
+			octaves = result;
 		#else 
 			octaves = vec4(dot(vec4(0.25), octaves));
 		#endif
@@ -715,90 +719,90 @@ vec4 quadFBM(vec3 Pos, vec4 frequencies, vec2 screenUV, vec2 screenCoords){
 
 #line 32300
 // takes a float, and gathers it from the adjacent fragments
-vec4 quadGather(float input){
-		float inputadjx = input - dFdx(input) * quadVector.x;
-		float inputadjy = input - dFdy(input) * quadVector.y;
+vec4 quadGather(float myvalue){
+		float inputadjx = myvalue - dFdx(myvalue) * quadVector.x;
+		float inputadjy = myvalue - dFdy(myvalue) * quadVector.y;
 		float inputdiag = inputadjx - dFdy(inputadjx) * quadVector.y;
-		return vec4(input, inputadjx, inputadjy, inputdiag);
+		return vec4(myvalue, inputadjx, inputadjy, inputdiag);
 }
 
-
-vec4 quadGather(float input, vec2 qv){
-		float inputadjx = input - dFdx(input) * quadVector.x;
-		float inputadjy = input - dFdy(input) * quadVector.y;
+vec4 quadGather(float myvalue, vec2 qv){
+		float inputadjx = myvalue - dFdx(myvalue) * quadVector.x;
+		float inputadjy = myvalue - dFdy(myvalue) * quadVector.y;
 		float inputdiag = inputadjx - dFdy(inputadjx) * quadVector.y;
-		return vec4(input, inputadjx, inputadjy, inputdiag);
+		return vec4(myvalue, inputadjx, inputadjy, inputdiag);
 }
 
-float quadGatherWeighted(float input){
-		float inputadjx = input - dFdx(input) * quadVector.x;
-		float inputadjy = input - dFdy(input) * quadVector.y;
+float quadGatherWeighted(float myvalue){
+		float inputadjx = myvalue - dFdx(myvalue) * quadVector.x;
+		float inputadjy = myvalue - dFdy(myvalue) * quadVector.y;
 		float inputdiag = inputadjx - dFdy(inputadjx) * quadVector.y;
-		return dot( vec4(input, inputadjx, inputadjy, inputdiag), selfWeights);
+		return dot( vec4(myvalue, inputadjx, inputadjy, inputdiag), selfWeights);
 }
 
 // takes a gentype, and gathers and sums it from adjacent fragments
-float quadGatherSumFloat(float input){
-		float inputadjx = input - dFdx(input) * quadVector.x;
-		float inputadjy = input - dFdy(input) * quadVector.y;
+float quadGatherSumFloat(float myvalue){
+		float inputadjx = myvalue - dFdx(myvalue) * quadVector.x;
+		float inputadjy = myvalue - dFdy(myvalue) * quadVector.y;
 		float inputdiag = inputadjx - dFdy(inputadjx) * quadVector.y;
-		return dot( vec4(input, inputadjx, inputadjy, inputdiag), vec4(0.25));
+		return dot( vec4(myvalue, inputadjx, inputadjy, inputdiag), vec4(0.25));
 }
 
 
-vec2 quadGatherSum2D(vec2 input){
-		vec2 inputadjx = input - dFdx(input) * quadVector.x;
-		vec2 inputadjy = input - dFdy(input) * quadVector.y;
+vec2 quadGatherSum2D(vec2 myvalue){
+		vec2 inputadjx = myvalue - dFdx(myvalue) * quadVector.x;
+		vec2 inputadjy = myvalue - dFdy(myvalue) * quadVector.y;
 		vec2 inputdiag = inputadjx - dFdy(inputadjx) * quadVector.y;
 		return vec2(
-			dot( vec4(input.x, inputadjx.x, inputadjy.x, inputdiag.x), vec4(1.0)),
-			dot( vec4(input.y, inputadjx.y, inputadjy.y, inputdiag.y), vec4(1.0))
+			dot( vec4(myvalue.x, inputadjx.x, inputadjy.x, inputdiag.x), vec4(1.0)),
+			dot( vec4(myvalue.y, inputadjx.y, inputadjy.y, inputdiag.y), vec4(1.0))
 			);
 }
-vec3 quadGatherSum3D(vec3 input){
-		vec3 inputadjx = input - dFdx(input) * quadVector.x;
-		vec3 inputadjy = input - dFdy(input) * quadVector.y;
+vec3 quadGatherSum3D(vec3 myvalue){
+		vec3 inputadjx = myvalue - dFdx(myvalue) * quadVector.x;
+		vec3 inputadjy = myvalue - dFdy(myvalue) * quadVector.y;
 		vec3 inputdiag = inputadjx - dFdy(inputadjx) * quadVector.y;
 		return vec3(
-			dot( vec4(input.x, inputadjx.x, inputadjy.x, inputdiag.x), vec4(1.0)),
-			dot( vec4(input.y, inputadjx.y, inputadjy.y, inputdiag.y), vec4(1.0)),
-			dot( vec4(input.z, inputadjx.z, inputadjy.z, inputdiag.z), vec4(1.0))
+			dot( vec4(myvalue.x, inputadjx.x, inputadjy.x, inputdiag.x), vec4(1.0)),
+			dot( vec4(myvalue.y, inputadjx.y, inputadjy.y, inputdiag.y), vec4(1.0)),
+			dot( vec4(myvalue.z, inputadjx.z, inputadjy.z, inputdiag.z), vec4(1.0))
 			);
 }
-vec4 quadGatherSum4D(vec4 input){
-		vec4 inputadjx = input - dFdx(input) * quadVector.x;
-		vec4 inputadjy = input - dFdy(input) * quadVector.y;
+vec4 quadGatherSum4D(vec4 myvalue){
+		vec4 inputadjx = myvalue - dFdx(myvalue) * quadVector.x;
+		vec4 inputadjy = myvalue - dFdy(myvalue) * quadVector.y;
 		vec4 inputdiag = inputadjx - dFdy(inputadjx) * quadVector.y;
 		return vec4(
-			dot( vec4(input.x, inputadjx.x, inputadjy.x, inputdiag.x), vec4(1.0)),
-			dot( vec4(input.y, inputadjx.y, inputadjy.y, inputdiag.y), vec4(1.0)),
-			dot( vec4(input.z, inputadjx.z, inputadjy.z, inputdiag.z), vec4(1.0)),
-			dot( vec4(input.w, inputadjx.w, inputadjy.w, inputdiag.w), vec4(1.0))
+			dot( vec4(myvalue.x, inputadjx.x, inputadjy.x, inputdiag.x), vec4(1.0)),
+			dot( vec4(myvalue.y, inputadjx.y, inputadjy.y, inputdiag.y), vec4(1.0)),
+			dot( vec4(myvalue.z, inputadjx.z, inputadjy.z, inputdiag.z), vec4(1.0)),
+			dot( vec4(myvalue.w, inputadjx.w, inputadjy.w, inputdiag.w), vec4(1.0))
 			);
 }
 
-vec4 quadGatherWeighted4D(vec4 input){
-		vec4 inputadjx = input - dFdx(input) * quadVector.x;
-		vec4 inputadjy = input - dFdy(input) * quadVector.y;
+vec4 quadGatherWeighted4D(vec4 myvalue){
+		vec4 inputadjx = myvalue - dFdx(myvalue) * quadVector.x;
+		vec4 inputadjy = myvalue - dFdy(myvalue) * quadVector.y;
 		vec4 inputdiag = inputadjx - dFdy(inputadjx) * quadVector.y;
 		return vec4(
-			dot( vec4(input.x, inputadjx.x, inputadjy.x, inputdiag.x), selfWeights),
-			dot( vec4(input.y, inputadjx.y, inputadjy.y, inputdiag.y), selfWeights),
-			dot( vec4(input.z, inputadjx.z, inputadjy.z, inputdiag.z), selfWeights),
-			dot( vec4(input.w, inputadjx.w, inputadjy.w, inputdiag.w), selfWeights)
+			dot( vec4(myvalue.x, inputadjx.x, inputadjy.x, inputdiag.x), selfWeights),
+			dot( vec4(myvalue.y, inputadjx.y, inputadjy.y, inputdiag.y), selfWeights),
+			dot( vec4(myvalue.z, inputadjx.z, inputadjy.z, inputdiag.z), selfWeights),
+			dot( vec4(myvalue.w, inputadjx.w, inputadjy.w, inputdiag.w), selfWeights)
 			);
 }
-vec2 quadGatherWeighted2D(vec2 input){
-		vec2 inputadjx = input - dFdx(input) * quadVector.x;
-		vec2 inputadjy = input - dFdy(input) * quadVector.y;
+vec2 quadGatherWeighted2D(vec2 myvalue){
+		vec2 inputadjx = myvalue - dFdx(myvalue) * quadVector.x;
+		vec2 inputadjy = myvalue - dFdy(myvalue) * quadVector.y;
 		vec2 inputdiag = inputadjx - dFdy(inputadjx) * quadVector.y;
 		return vec2(
-			dot( vec4(input.x, inputadjx.x, inputadjy.x, inputdiag.x), selfWeights),
-			dot( vec4(input.y, inputadjx.y, inputadjy.y, inputdiag.y), selfWeights)
+			dot( vec4(myvalue.x, inputadjx.x, inputadjy.x, inputdiag.x), selfWeights),
+			dot( vec4(myvalue.y, inputadjx.y, inputadjy.y, inputdiag.y), selfWeights)
 			);
 }
 
 vec4 quadGatherSortFloat(vec4 unsorted){ // this could really use modification into a threadmask matrix!
+	vec4 threadMask =  step(vec4(quadVector.xy,0,0),vec4( 0,0,quadVector.xy));
 	vec4 sorted = vec4(0.0);
 	sorted.r = dot(unsorted.xyzw, threadMask);
 	sorted.g = dot(unsorted.yxwz, threadMask);
@@ -960,7 +964,7 @@ vec4 SampleNoiseSpace(in vec3 noiseLFSpacePos, in vec3 noiseHFSpacePos, in float
 		//textureNoise.g = quadGatherWeighted(textureNoise.g);
 	#endif
 
-	return textureNoise;
+	return textureNoise.xyzw;
 }
 
 
@@ -1043,8 +1047,8 @@ void main(void)
 	quadVector = quadGetQuadVector(gl_FragCoord.xy);
 
 	//fragColor.rgba = debugQuad(quadVector);return;
-	threadMask = quadGetThreadMask(quadVector);
-	float thisQuadOffset = dot (threadMask, vec4(0.5,0.25,0.0, 0.75));
+	// Note that the offsets are not in ascending order. This has the fun side effect of being bluer in noise
+	float thisQuadOffset = dot (quadGetThreadMask(quadVector), vec4(0.5, 0.25, 0.0, 0.75)); 
 
 	const float expfactor = fogExpFactor * -0.0001;
 	// ---------- Calculate the UV coordinates of the depth textures ---------
@@ -1056,6 +1060,7 @@ void main(void)
 		vec2 screenUV = gl_FragCoord.xy * RESOLUTION / viewGeometry.xy;
 	#endif
 
+	// This is the debugging yellow row that should be present in bottom left
 	if (any(lessThan(abs(gl_FragCoord.xy - 1.5) ,vec2( 0.5)))) {
 		fragColor.rgba = vec4(1,1,0,1); return;
 	}
@@ -1109,17 +1114,16 @@ void main(void)
 		float distanceFogAmount = fogGlobalDensity * lengthMapFromCam;
 		
 		// Modulate distance fog density with angle of ray compared to sky?
-		vec3 fromCameraNormalized = mapFromCam / lengthMapFromCam;
+		vec3 camToMapNorm = mapFromCam / lengthMapFromCam;
 		float rayUpness = 1.0;
-		if (fromCameraNormalized.y > 0) {
-			rayUpness = pow(1.0 - fromCameraNormalized.y, 8.0);
+		if (camToMapNorm.y > 0) {
+			rayUpness = pow(1.0 - camToMapNorm.y, 8.0);
 			distanceFogAmount *= rayUpness;
 		}
-		float distanceFogAmountExp = exp(distanceFogAmount * expfactor);
+		float distanceFogAmountExp = exp(distanceFogAmount * expfactor * distanceFogColor.a);
 		// power easing distance fog
 		distanceFogAmountExp = pow(1.0 - distanceFogAmountExp, EASEGLOBAL);
-		vec4 distanceFogColor = vec4(fogGlobalColor.rgb, distanceFogAmountExp);
-		//fragColor.rgba = distanceFogColor;	return; // OUTPUT DISTANCE-BASED FOG
+		//fragColor.rgba = vec4(distanceFogColor.rgb, distanceFogAmountExp);	return; // OUTPUT DISTANCE-BASED FOG
 	// ----------------- END DISTANCE-BASED FOG ------------------------------
 	
 	
@@ -1208,7 +1212,7 @@ void main(void)
 	heightBasedFog = cloudDensity * heightBasedFog * 100 * smoothstep(0.0,2000.0 * EASEHEIGHT, length(rayStart-camPos));
 	
 	float heightBasedFogExp = 1.0 - exp(heightBasedFog * expfactor );
-	heightBasedFogColor.rgb = mix(fogShadowedColor.rgb, fogGlobalColor.rgb, heightShadow);
+	heightBasedFogColor.rgb = mix(shadowedColor.rgb, fogGlobalColor.rgb, heightShadow);
 	heightBasedFogColor.a = heightBasedFogExp;	
 	//Debug shadowing of fog:
 	//fragColor.rgba = vec4(vec3(heightShadow),0.9); return;
@@ -1251,12 +1255,12 @@ void main(void)
 			// Discount by # rays
 			uwShadowRays.w /= UNDERWATERSHADOWSTEPS;
 			// half it a little bit:
-			uwShadowRays.a = (1.0 - uwShadowRays.w) * 0.5;
+			uwShadowRays.a = (1.0 - uwShadowRays.w) ;
 			// This was Floris's idea, to add a bit of additional surface shadow
-			uwShadowRays.a += 0.15 * (1.0 - lastunderwatershadow);
+			uwShadowRays.a += 0.3 * (1.0 - lastunderwatershadow);
 			// modulate density up to shallowdepth:
 			uwShadowRays.a *= smoothstep(0, 20, -1 * trueMapWorldPos.y);
-			uwShadowRays.a = clamp(uwShadowRays.a, 0, 1);
+			uwShadowRays.a = clamp(uwShadowRays.a, 0, 1) * shadowedColor.a;
 		}
 		// Debug underwater shadow rays:
 		//fragColor.rgba = vec4(vec3(uwShadowRays.rgb),uwShadowRays.a * 2); return;	
@@ -1271,8 +1275,8 @@ void main(void)
 	vec4 cloudBlendRGBT = vec4(0,0,0, 0); // Zero color, and Transparency of 1
 
 	#if (CLOUDSTEPS > 0)
-	vec3 cloudRayDir = fromCameraNormalized;
-	vec3 cloudRayDirInv = 1.0 / fromCameraNormalized;
+	vec3 cloudRayDir = camToMapNorm;
+	vec3 cloudRayDirInv = 1.0 / camToMapNorm;
 	
 	// take the ray start, and clamp it to the most distant of all 
 	
@@ -1379,48 +1383,42 @@ void main(void)
 		#line 38000
 		vec4 cloudShadowColor = vec4(0);
 		#if (CLOUDSHADOWS > 0 )
-			float cloudstrength  =0; // yes indeedy do
-			// could use a lower res, or a forced lower LOD bias for sampling at speed?
-			// TODO: this means we actually have to get back to 3 pass rendering, at the very least :/ 
+
+		if (mapdepth < 0.9998 ){ // No cloud shadows on distant areas
+				// TODO: also clip to within cloudvolume
+					
+				// this was used to prevent secondary shadowing, might want to think about it...
+				//float shadowRayStart = shadowAtWorldPos(rayStart + sunDir.xyz * 1); 
 				
-			// this was used to prevent secondary shadowing, might want to think about it...
-			//float shadowRayStart = shadowAtWorldPos(rayStart + sunDir.xyz * 1); 
+				vec3 cloudShadowRayGroundPos = trueMapWorldPos.xyz;
+
+				// adjust rayEnd to point from rayStart to the sun direction!
+				// the pos at which the vector in sun dir intercepts fog plane
+
+				//
+				float cloudBottomDistanceMultiplier = (cloudVolumeMin.y - cloudShadowRayGroundPos.y) / sunDir.y;
+				vec3 cloudShadowRayStartPos = cloudShadowRayGroundPos + sunDir.xyz * cloudBottomDistanceMultiplier;
+
+				float cloudTopDistanceMultiplier = (cloudVolumeMax.y - cloudShadowRayGroundPos.y) / sunDir.y;
+				vec3 cloudShadowRayEndStep = cloudShadowRayGroundPos + sunDir.xyz * cloudTopDistanceMultiplier;
+
+				float stepLength = length(cloudShadowRayStartPos-cloudShadowRayEndStep)/CLOUDSHADOWS; 
+
+				vec3 noiseLFStart;
+				vec3 noiseLFEndStep;
+				vec3 noiseHFStart;
+				vec3 noiseHFEndStep;
+				
+				WorldToNoiseSpace(cloudShadowRayStartPos, noiseLFStart, noiseHFStart); // near point
+				WorldToNoiseSpace(cloudShadowRayEndStep, noiseLFEndStep, noiseHFEndStep); // far point
+				
+				noiseLFEndStep = (noiseLFEndStep - noiseLFStart) / CLOUDSHADOWS;
+				noiseHFEndStep = (noiseHFEndStep - noiseHFStart) / CLOUDSHADOWS;
+
+				noiseLFStart.xyz += noiseLFEndStep *( thisQuadOffset + 0.25 * blueNoiseSample.r ) ;
 			
-			vec3 cloudShadowRayGroundPos = trueMapWorldPos.xyz;
 
-			// adjust rayEnd to point from rayStart to the sun direction!
-			// the pos at which the vector in sun dir intercepts fog plane
 
-			//
-			float cloudBottomDistanceMultiplier = (cloudVolumeMin.y - cloudShadowRayGroundPos.y) / sunDir.y;
-			vec3 cloudShadowRayStartPos = cloudShadowRayGroundPos + sunDir.xyz * cloudBottomDistanceMultiplier;
-
-			float cloudTopDistanceMultiplier = (cloudVolumeMax.y - cloudShadowRayGroundPos.y) / sunDir.y;
-			vec3 cloudShadowRayEndStep = cloudShadowRayGroundPos + sunDir.xyz * cloudTopDistanceMultiplier;
-
-			float stepLength = length(cloudShadowRayStartPos-cloudShadowRayEndStep)/CLOUDSHADOWS; 
-
-			vec3 noiseLFStart;
-			vec3 noiseLFEndStep;
-			vec3 noiseHFStart;
-			vec3 noiseHFEndStep;
-			
-			WorldToNoiseSpace(cloudShadowRayStartPos, noiseLFStart, noiseHFStart); // near point
-			WorldToNoiseSpace(cloudShadowRayEndStep, noiseLFEndStep, noiseHFEndStep); // far point
-			
-			noiseLFEndStep = (noiseLFEndStep - noiseLFStart) / CLOUDSHADOWS;
-			noiseHFEndStep = (noiseHFEndStep - noiseHFStart) / CLOUDSHADOWS;
-			//vec4 quadoffsets = vec4(0.0,0.0,0.5, 0.0) * 1.0; 
-			//TODO: BIG PROBLEM! THE THREAD MASK HERE HAS NO EFFECT!
-			//vec3 quadStep = noiseLFEndStep* dot(threadMask,quadoffsets);
-			noiseLFStart.xyz += noiseLFEndStep *( dot(threadMask,
-					vec4(0.0, 0.25, 0.5, 0.75)) + 0.25 * blueNoiseSample.r ) ;
-		
-
-			if (mapdepth < 0.9998 ){
-
-				//noiseLFStart += blueNoiseSample.b * noiseLFEndStep;
-				//noiseHFStart += (thisQuadOffset ) * noiseHFEndStep;
 				for (uint i = 0; i < CLOUDSHADOWS; i++){
 					float perturbmod = 1.0;
 					vec4 textureNoise = SampleNoiseSpace(noiseLFStart, noiseHFStart,  perturbmod);
@@ -1429,13 +1427,10 @@ void main(void)
 
 					float clampedNoise = max(0, (textureNoise.r  - noiseLFParams.y) * cloudDensity * stepLength);
 					cloudShadowColor.w += clampedNoise;
-					//cloudShadowColor.w = textureNoise.r;
 				}
 				cloudShadowColor.w = quadGatherWeighted(cloudShadowColor.w);
-
-				
 			}
-		cloudShadowColor.w = 1.0 - exp(-1 * cloudShadowColor.w );
+		cloudShadowColor.w = (1.0 - exp(-1 * cloudShadowColor.w ) ) * shadowedColor.a;
 		#endif
 		//fragColor = vec4(step(0.5,threadMask.rga), 1.0);return;
 		//fragColor.rgba = vec4(vec3(1.0 - cloudShadowColor.w), 0.95); return;
@@ -1466,9 +1461,27 @@ void main(void)
 
 	outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - cloudBlendRGBT.a);
 	// 5. Blend distanceFogColor.rgba
-	outColor.rgb = mix(outColor.rgb, distanceFogColor.rgb, distanceFogColor.a);
-	outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - distanceFogColor.a);
-	fragColor = outColor; return;
+	outColor.rgb = mix(outColor.rgb, distanceFogColor.rgb, distanceFogAmountExp);
+	outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - distanceFogAmountExp);
+
+	//outColor *= 1.5 - outColor.a * 0.5; 
+
+
+	// Fake Reinhard ToneMapping:
+	//vec3 fakerein = outColor.rgb * outColor.a;
+	//fakerein = pow((fakerein / (1.0 + dot(vec3(0.2126, 0.7152, 0.0722), fakerein))), vec3(1.0 / 2.2));
+	//outColor.rgb = fakerein / outColor.a; 
+	
+	fragColor = outColor; 
+	
+	#if (FULLALPHA == 1) 
+		fragColor.a = 1.0;
+	#endif
+	#if (RESOLUTION == 1) // When not using combine shader, we must pre-multiple color with alpha!
+		fragColor.rgb *= fragColor.a;
+	#endif
+	
+	return;
 
 
 	// ----------------- END COMPOSITING   ---------------------
@@ -1506,13 +1519,7 @@ void main(void)
 
 	vec4 dbgQuad = debugQuad(quadVector);
 	//fragColor.a *=(1.0 - dbgQuad.b);
-	#if (FULLALPHA == 1) 
-		fragColor.a = 1.0;
-	#endif
-	#if (RESOLUTION == 1) // When not using combine shader, we must pre-multiple color with alpha!
-		fragColor.rgb *= fragColor.a;
-	#endif
-	
+
 	
 
 	return;
@@ -1597,7 +1604,7 @@ void main(void)
 		packedNoiseLod = floor(lengthMapFromCam * 0.00003 * noiseLFParams.x);
 		
 		// in-progress blending
-		vec4 groundRGBA = vec4(fogShadowedColor.rgb, 0);
+		vec4 groundRGBA = vec4(shadowedColor.rgb, 0);
 		
 		mat3 rot3 = transpose(mat3(vec3(0.3120517, -0.7351478,  0.6018150), 
 						 vec3(0.9490337,  0.2116918, -0.2334984),
@@ -1698,7 +1705,7 @@ void main(void)
 						float clampedNoise = clamp( cloudDensity * (textureNoise.r * noiseLFParams.x - noiseLFParams.y) * rayDepthratio * stepLength, 0, 1);
 						noiseValues[ns] = clampedNoise;
 						float shadeFactor = max(0.0, textureNoise.g -noiseLFParams.y) ;
-						vec3 fogShaded = mix(fogGlobalColor.rgb, fogShadowedColor.rgb,  rayDepthratio * rayDepthratio* shadeFactor*0 );
+						vec3 fogShaded = mix(fogGlobalColor.rgb, shadowedColor.rgb,  rayDepthratio * rayDepthratio* shadeFactor*0 );
 						//clampedNoise = step(sin(time * 0.01) * 0.1 + 0.5, clampedNoise);
 						fogRGBA.rgb = fogShaded.rgb * clampedNoise + fogRGBA.rgb * (1.0 - clampedNoise);
 						fogRGBA.a = clampedNoise + fogRGBA.a * (1.0 - clampedNoise); // the sA*sA term is questionable here!
@@ -1777,11 +1784,11 @@ void main(void)
 						//collectedShadow -= cloudstrength *10;
 						//heightBasedFog = 10000;
 						float shadtest = sin(time * 0.1) * 0.5  + 0.5;
-						shadtest = fogShadowedColor.a;
+						shadtest = shadowedColor.a;
 						groundRGBA.a = clamp(groundRGBA.a,0,1);
 						groundRGBA.a = groundRGBA.a  * shadtest;
 						groundRGBA.rgb = mix(fogRGBA.rgb, groundRGBA.rgb,  groundRGBA.a);
-						//groundRGBA = vec4(fogShadowedColor.rgb, cloudstrength * 10);
+						//groundRGBA = vec4(shadowedColor.rgb, cloudstrength * 10);
 					}
 				#endif
 				//fogRGBA.a = 0;
@@ -1883,7 +1890,7 @@ void main(void)
 						collectedShadow /= numShadowSamplesTaken; // get the true litness by only taking into account actual samples taken
 						
 						//apply shadow power:
-						collectedShadow = pow(collectedShadow, 2* fogShadowedColor.a);
+						collectedShadow = pow(collectedShadow, 2* shadowedColor.a);
 						
 						densityposition.xyz /= densityposition.w;
 
@@ -1906,10 +1913,10 @@ void main(void)
 	//const float expfactor = fogExpFactor * -0.0001;
 	
 	// Modulate distance fog density with angle of ray compared to sky?
-	//vec3 fromCameraNormalized = normalize(mapFromCam);
+	//vec3 camToMapNorm = normalize(mapFromCam);
 	//float rayUpness = 1.0;
-	if (fromCameraNormalized.y > 0) {
-		rayUpness = pow(1.0 - fromCameraNormalized.y, 8.0);
+	if (camToMapNorm.y > 0) {
+		rayUpness = pow(1.0 - camToMapNorm.y, 8.0);
 		distanceFogAmount *= rayUpness;
 	}
 	
@@ -1933,8 +1940,8 @@ void main(void)
 	fragColor.a = min(1.0, max(0, 1.0 - totalfog));
 	
 	// Colorize fog based on view angle: TODO do this on center weight of both !
-	float sunAngleCos =  dot( fromCameraNormalized, sunDir.xyz); // this goes from into sun at 1 to sun behind us at -1 
-	float sunPower = (1.0 + fogSunColor.a * 8);
+	float sunAngleCos =  dot( camToMapNorm, sunDir.xyz); // this goes from into sun at 1 to sun behind us at -1 
+	float sunPower = (1.0 + distanceFogColor.a * 8);
 	float sunRatio = 1.0;
 	if (sunAngleCos < 0 ){ // SUN IS BEHIND US
 		sunPower *= 2;
@@ -1952,20 +1959,20 @@ void main(void)
 	vec3 fogColor = fogGlobalColor.rgb;
 	
 	//colorize based on the sun level
-	//fogColor = mix(fogColor, 2*fogSunColor.rgb, sphericalharmonic);
-	fogColor = mix(fogColor, 2*fogSunColor.rgb, chromaSphericalHarmonic);
+	//fogColor = mix(fogColor, 2*distanceFogColor.rgb, sphericalharmonic);
+	fogColor = mix(fogColor, 2*distanceFogColor.rgb, chromaSphericalHarmonic);
 	
 	// Set the base color depending on how shadowed it is, 
 	// shadowed components should tend toward fogGlobalColor
 	vec3 heightFogColor = mix(fogGlobalColor.rgb, fogColor, collectedShadow);
 	
-	// Darkened the shadowed bits towards fogShadowedColor
-	fragColor.rgb = mix(vec3(fogShadowedColor), heightFogColor.rgb, collectedShadow);	
+	// Darkened the shadowed bits towards shadowedColor
+	fragColor.rgb = mix(vec3(shadowedColor), heightFogColor.rgb, collectedShadow);	
 	
 	//Calculate backscatter color from minimap if possible?
 	#if (USEMINIMAP == 1) 
 		vec4 minimapcolor = textureLod(miniMapTex, heighmapUVatWorldPosMirrored(mapWorldPos.xz), 4.0);
-		//if (fromCameraNormalized.y > 0 && mapdepth > 0.9999) rayUpness = 0;
+		//if (camToMapNorm.y > 0 && mapdepth > 0.9999) rayUpness = 0;
 		fragColor.rgb += minimapcolor.rgb * MINIMAPSCATTER * collectedShadow * rayUpness ;
 	#endif
 	
