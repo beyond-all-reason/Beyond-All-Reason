@@ -889,6 +889,10 @@ if Spring.GetModOptions().emprework == true then
 		end
 
 
+		if name == "corsumo" then
+			uDef.customparams.paralyzemultiplier = 1.2
+		end
+		
 		if name == "armmar" then
 			uDef.customparams.paralyzemultiplier = 1.5
 		end
