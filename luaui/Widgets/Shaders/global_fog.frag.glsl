@@ -40,9 +40,9 @@ uniform vec4 noiseLFParams;
 uniform vec4 noiseHFParams;
 
 uniform float fogGlobalDensity;
-uniform float fogGroundDensity;
-uniform float fogPlaneTop;
-uniform float fogPlaneBottom;
+uniform float cloudDensity;
+uniform float heightFogTop;
+uniform float heightFogBottom;
 uniform float fogExpFactor;
 
 uniform vec4 cloudVolumeMin;
@@ -929,7 +929,8 @@ void WorldToNoiseSpace(in vec3 wp, out vec3 lf, out vec3 hf){
 
 vec4 SampleNoiseSpace(in vec3 noiseLFSpacePos, in vec3 noiseHFSpacePos, in float perturbfactor){
 
-	vec4 highFreqNoise =  texture(uniformNoiseTex, noiseHFSpacePos);
+	vec4 highFreqNoise =  textureLod(uniformNoiseTex, noiseHFSpacePos,0);
+	//vec4 highFreqNoise =  texture(uniformNoiseTex, noiseHFSpacePos);
 	
 	highFreqNoise.rgb = highFreqNoise.rgb * 0.5 - 0.25; // scale down to [-0.25, 0.25]
 	highFreqNoise *= (highFreqNoise.a) * perturbfactor; // Further modulate with own alpha channel
@@ -1126,16 +1127,16 @@ void main(void)
 	#line 33600
 	vec4 heightBasedFogColor = vec4(0);
 	// If raystart is above the fog plane height
-	if (mapWorldPos.y > fogPlaneTop) {
-		if (camPos.y < fogPlaneTop) { // But cam is below fog (C)
-			float rayFractionInFog = clamp((fogPlaneTop - camPos.y)/(mapWorldPos.y - camPos.y), 0, 1);
-			rayStart = rayEnd * (1.0 - rayFractionInFog) + rayStart * rayFractionInFog; // pull back rayStart to fogPlaneTop
+	if (mapWorldPos.y > heightFogTop) {
+		if (camPos.y < heightFogTop) { // But cam is below fog (C)
+			float rayFractionInFog = clamp((heightFogTop - camPos.y)/(mapWorldPos.y - camPos.y), 0, 1);
+			rayStart = rayEnd * (1.0 - rayFractionInFog) + rayStart * rayFractionInFog; // pull back rayStart to heightFogTop
 		}else{ // Cam and Ray both above fog
 			rayStart = rayEnd;
 		}
 	}else{ // Ray starts below fog plane
-		if (camPos.y > fogPlaneTop) { // Camera is Above fog (A) 
-			float rayFractionInFog = clamp((fogPlaneTop - mapWorldPos.y)/(camPos.y - mapWorldPos.y), 0, 1);
+		if (camPos.y > heightFogTop) { // Camera is Above fog (A) 
+			float rayFractionInFog = clamp((heightFogTop - mapWorldPos.y)/(camPos.y - mapWorldPos.y), 0, 1);
 			rayEnd = rayStart + (rayEnd - rayStart) * rayFractionInFog; // pull back 
 		}
 	}
@@ -1144,7 +1145,7 @@ void main(void)
 	
 	float heightBasedFog = 0;
 	float heightShadow = 1; // What fraction of samples were LIT along the way.
-	float fogPlaneSizeInv = 1.0 / (fogPlaneTop - fogPlaneBottom);
+	float fogPlaneSizeInv = 1.0 / (heightFogTop - heightFogBottom);
 	
 	float densityModulation = 0.0;
 	// ----------------- BEGIN HEIGHT-BASED FOG SHADOWING -------------------------------
@@ -1198,13 +1199,13 @@ void main(void)
 	#endif
 
 		// just use the density function of fogtop-fogbottom
-	float startDensity = clamp( (fogPlaneTop - rayStart.y) * fogPlaneSizeInv, 0, 1);
-	float endDensity = clamp( (fogPlaneTop - rayEnd.y) * fogPlaneSizeInv, 0, 1);
+	float startDensity = clamp( (heightFogTop - rayStart.y) * fogPlaneSizeInv, 0, 1);
+	float endDensity = clamp( (heightFogTop - rayEnd.y) * fogPlaneSizeInv, 0, 1);
 	heightBasedFog = (startDensity + endDensity) * 2 * rayLength;
 	heightBasedFog *=  densityModulation ;
 	
 	// A very simple approach to ease height based fog with distance from camera
-	heightBasedFog = fogGroundDensity * heightBasedFog * 100 * smoothstep(0.0,2000.0 * EASEHEIGHT, length(rayStart-camPos));
+	heightBasedFog = cloudDensity * heightBasedFog * 100 * smoothstep(0.0,2000.0 * EASEHEIGHT, length(rayStart-camPos));
 	
 	float heightBasedFogExp = 1.0 - exp(heightBasedFog * expfactor );
 	heightBasedFogColor.rgb = mix(fogShadowedColor.rgb, fogGlobalColor.rgb, heightShadow);
@@ -1267,6 +1268,9 @@ void main(void)
 	#line 34000
 	// Start by calculating the absolute, mapdepth scaled ray start and ray end factors
 
+	vec4 cloudBlendRGBT = vec4(0,0,0, 0); // Zero color, and Transparency of 1
+
+	#if (CLOUDSTEPS > 0)
 	vec3 cloudRayDir = fromCameraNormalized;
 	vec3 cloudRayDirInv = 1.0 / fromCameraNormalized;
 	
@@ -1303,19 +1307,17 @@ void main(void)
 	//fragColor.rgba = vec4(fract((cloudRayStart - cloudRayEnd) + 0.5) /1024, length(cloudRayStart - cloudRayEnd) * 0.1); return;
 	
 	float cloudRayLength = length(cloudRayStart-cloudRayEnd);
-	float myfog = 0;
 
-	vec4 cloudBlendRGBT = vec4(0,0,0, 1); // Zero color, and Transparency of 1
 	if (cloudRayLength > 0 ){
-		vec3 cloudRayStep = (cloudRayEnd - cloudRayStart) / NOISESAMPLES; // Points towards camera
-		float stepLength = cloudRayLength/NOISESAMPLES; 
+		vec3 cloudRayStep = (cloudRayEnd - cloudRayStart) / CLOUDSTEPS; // Points towards camera
+		float stepLength = cloudRayLength/CLOUDSTEPS; 
 
-		vec3 quadStep = cloudRayStep * (thisQuadOffset + ( NOISESAMPLES / 128) * blueNoiseSample.g); 
+		vec3 quadStep = cloudRayStep * (thisQuadOffset + ( CLOUDSTEPS / 128) * blueNoiseSample.g); 
 
 		float fogHeightInv  = 1.0/(cloudVolumeMax.y - cloudVolumeMin.y); 
 		float heightFractionStartPos = clamp( (cloudRayStart.y  - cloudVolumeMin.y) *fogHeightInv,0,1); // starts at 0.0 at bottom
 		float heightFractionEndStep   = clamp( (cloudRayEnd.y    - cloudVolumeMin.y) *fogHeightInv,0,1); // ends a 1.0 at top
-		heightFractionEndStep = ( heightFractionEndStep - heightFractionStartPos) / NOISESAMPLES; 
+		heightFractionEndStep = ( heightFractionEndStep - heightFractionStartPos) / CLOUDSTEPS; 
 		// Todo: There could be use in adaptively stepping more frequently through denser regions of the clouds
 		
 		#if (QUADNOISEFETCHING == 1)
@@ -1326,7 +1328,6 @@ void main(void)
 			cloudRayEnd += cloudRayStep  * blueNoiseSample.g * BLUENOISESTRENGTH;
 		#endif
 		
-		#if (NOISESAMPLES > 0)
 		
 		vec3 noiseLFStart;
 		vec3 noiseLFEndStep;
@@ -1336,15 +1337,15 @@ void main(void)
 		WorldToNoiseSpace(cloudRayStart, noiseLFStart, noiseHFStart); // near point
 		WorldToNoiseSpace(cloudRayEnd, noiseLFEndStep, noiseHFEndStep); // far point
 		
-		noiseLFEndStep = (noiseLFEndStep - noiseLFStart) / NOISESAMPLES;
-		noiseHFEndStep = (noiseHFEndStep - noiseHFStart) / NOISESAMPLES;
+		noiseLFEndStep = (noiseLFEndStep - noiseLFStart) / CLOUDSTEPS;
+		noiseHFEndStep = (noiseHFEndStep - noiseHFStart) / CLOUDSTEPS;
 
 		#line 36300
 		float prevdensity = 0.0;
 		cloudBlendRGBT.rgb +=  cloudGlobalColor.rgb;
 
 	
-		for (uint ns = 0; ns < NOISESAMPLES; ns++){ // We march backwards, from furthest to closest
+		for (uint ns = 0; ns < CLOUDSTEPS; ns++){ // We march backwards, from furthest to closest
 			// A rule of thumb: Each line here, at 16 samples costs 1 fps, texture lookups cost 5 fps 
 			//float heightFraction = clamp( ((cloudRayStart.y + cloudRayStep.y *  rayIndexFloat ) - cloudVolumeMin.y) *fogHeightInv,0,1); // 1 at the top of fog, 0 at the bottom
 			float perturbmod = 1;//(1.0 - heightFractionStartPos) *  (1.0 - heightFractionStartPos) * 1;
@@ -1354,13 +1355,13 @@ void main(void)
 			noiseHFStart += noiseHFEndStep;
 			noiseLFStart += noiseLFEndStep;
 
-			float clampedNoise = max(0, (textureNoise.r  - noiseLFParams.y) * fogGroundDensity * ( 1.0 - heightFractionStartPos) * stepLength) * 1.0;
-			//myfog += clampedNoise; // FUCKING KEEP THIS!
+			float clampedNoise = max(0, (textureNoise.r  - noiseLFParams.y) * cloudDensity * ( 1.0 - heightFractionStartPos) * stepLength) * 1.0;
+			//cloudBlendRGBT.w += clampedNoise; // FUCKING KEEP THIS!
 			
 			// Try a gradient based approach to density
 			// for now, quickly assume we go over top
 			float currdens =  clampedNoise ;
-			myfog += currdens;
+			cloudBlendRGBT.w += currdens;
 			
 			currdens /= stepLength;
 			float gradient_density = currdens - prevdensity ; // positive if increasing
@@ -1370,16 +1371,14 @@ void main(void)
 			cloudBlendRGBT.rgb = mix (cloudBlendRGBT.rgb, vec3(0.0),gradient_density * 0.05 );
 			
 		}
-		#endif
 	}
-	float alpha = quadGatherWeighted(1.0 - exp(-1 * myfog * 0.1));
-	cloudBlendRGBT.a = alpha;
-
+	cloudBlendRGBT.a  = quadGatherWeighted(1.0 - exp(-1 * cloudBlendRGBT.w));
+	#endif
 	// ----------------- BEGIN CLOUD SHADOWS -------------------------------
-	#if 1
+
 		#line 38000
 		vec4 cloudShadowColor = vec4(0);
-		#if (CLOUDSHADOWS > 0 && NOISESAMPLES > 0)
+		#if (CLOUDSHADOWS > 0 )
 			float cloudstrength  =0; // yes indeedy do
 			// could use a lower res, or a forced lower LOD bias for sampling at speed?
 			// TODO: this means we actually have to get back to 3 pass rendering, at the very least :/ 
@@ -1428,7 +1427,7 @@ void main(void)
 					noiseHFStart += noiseHFEndStep;
 					noiseLFStart += noiseLFEndStep;
 
-					float clampedNoise = max(0, (textureNoise.r  - noiseLFParams.y) * fogGroundDensity * ( 1.0 ) * stepLength) * 1.0;
+					float clampedNoise = max(0, (textureNoise.r  - noiseLFParams.y) * cloudDensity * stepLength);
 					cloudShadowColor.w += clampedNoise;
 					//cloudShadowColor.w = textureNoise.r;
 				}
@@ -1436,16 +1435,13 @@ void main(void)
 
 				
 			}
+		cloudShadowColor.w = 1.0 - exp(-1 * cloudShadowColor.w );
 		#endif
-		//cloudShadowColor.w = (1.0 - exp(-1 * gatherrez.a * 0.1));
-		cloudShadowColor.w = 1.0 - exp(-1 * cloudShadowColor.w * 0.1);
-
 		//fragColor = vec4(step(0.5,threadMask.rga), 1.0);return;
 		//fragColor.rgba = vec4(vec3(1.0 - cloudShadowColor.w), 0.95); return;
 		
-	#endif
 
-	//fragColor = vec4(threadMask.rgb, 1.0);return;
+
 	// ----------------- END CLOUD SHADOWS -------------------------------
 	
 	// ----------------- BEGIN CHROMA SHIFTING /SCATTERING ---------------------
@@ -1454,21 +1450,24 @@ void main(void)
 	// ----------------- BEGIN COMPOSITING ---------------------
 	vec4 outColor = vec4(0.0);
 	// 1. Blend uwShadowRays.rgba
-	outColor.a += uwShadowRays.a;
+	outColor.a = outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - uwShadowRays.a);
 
 	// 2. Blend cloudShadowColor.rgba
-	outColor.a += cloudShadowColor.a;
+	outColor.a = outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - cloudShadowColor.a);
+
 
 	// 3. Blend heightBasedFogColor.rgba
 	outColor.rgb = mix(outColor.rgb, heightBasedFogColor.rgb, heightBasedFogColor.a);
-	outColor.a += heightBasedFogColor.a;
+
+	outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - heightBasedFogColor.a);
 	// 4. Blend cloudBlendRGBT.rgba
 
 	outColor.rgb = mix(outColor.rgb, cloudBlendRGBT.rgb, cloudBlendRGBT.a);
-	outColor.a += cloudBlendRGBT.a;
+
+	outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - cloudBlendRGBT.a);
 	// 5. Blend distanceFogColor.rgba
 	outColor.rgb = mix(outColor.rgb, distanceFogColor.rgb, distanceFogColor.a);
-	outColor.a += distanceFogColor.a;
+	outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - distanceFogColor.a);
 	fragColor = outColor; return;
 
 
@@ -1480,10 +1479,10 @@ void main(void)
 
 	// we need to *subtract darken* the uwshadowed bit.
 	fragColor.rgb = cloudBlendRGBT.rgb;
-	fragColor.rgb -= cloudBlendRGBT.rgb * (sqrt(uwShadowRays.a + cloudShadowColor.a)) *( 1.0 - alpha);
+	fragColor.rgb -= cloudBlendRGBT.rgb * (sqrt(uwShadowRays.a + cloudShadowColor.a)) *( 1.0 - cloudBlendRGBT.a);
 	
 	//fragColor.a = clamp( alpha + cloudShadowColor.a * (1.0 - alpha) ,0, 1);
-	fragColor.a = clamp( alpha + (uwShadowRays.a + cloudShadowColor.a ) * (1.0 - alpha) ,0, 1);
+	fragColor.a = clamp( cloudBlendRGBT.a + (uwShadowRays.a + cloudShadowColor.a ) * (1.0 - cloudBlendRGBT.a) ,0, 1);
 	
 
 	//fragColor.rgb = cloudBlendRGBT.rgb; * min(1.0, (1.0 - uwShadowRays.a) ) ;
@@ -1495,7 +1494,7 @@ void main(void)
 	//fragColor.g = fract(fragColor.g * 10);
 	//fragColor.a = alpha;
 	//vec4 debugtransp = vec4 (alpha, alpha, alpha, 1.0);
-	vec4 debugtransp = vec4 (1,1,1, alpha);
+	vec4 debugtransp = vec4 (1,1,1, cloudBlendRGBT.a);
 	//fragColor.rgba = debugtransp;
 	//fragColor.rgb = cloudColor.rgb;
 	//fragColor.rgb *= 2.0;
@@ -1528,7 +1527,7 @@ void main(void)
 // ********************************* END COMPLETE REWRITE *******************************
 // ********************************* END COMPLETE REWRITE *******************************
 
-	
+/*	
 	// compilation helpers
 	float collectedShadow = 0;
 	
@@ -1540,7 +1539,7 @@ void main(void)
 	float inlos = 0;
 	vec4 densityposition = vec4(0);
 	
-	float fogPlaneTopInv = 1.0 / fogPlaneTop; 
+	float heightFogTopInv = 1.0 / heightFogTop; 
 	
 	#if (USELOS == 1)
 		inlos = losLevelAtWorldPos( mapWorldPos.xyz);
@@ -1555,11 +1554,11 @@ void main(void)
 		// With raytracing off, we have a bit more freedom in the height-based fog.
 		collectedShadow = 1.0;
 		
-		// Modulate the noise based on its depth below fogplane, this is 1 at 0 height, and 0 at fogPlaneTop
-		float rayStartDepthRatio = 1.0 - rayStart.y * fogPlaneTopInv;
+		// Modulate the noise based on its depth below fogplane, this is 1 at 0 height, and 0 at heightFogTop
+		float rayStartDepthRatio = 1.0 - rayStart.y * heightFogTopInv;
 		rayStartDepthRatio = clamp(rayStartDepthRatio * HEIGHTDENSITY, 0, 1);
 		
-		float rayEndDepthRatio = 1.0 - rayEnd.y * fogPlaneTopInv;
+		float rayEndDepthRatio = 1.0 - rayEnd.y * heightFogTopInv;
 		rayEndDepthRatio = clamp(rayEndDepthRatio * HEIGHTDENSITY, 0, 1);
 		
 		float rayDepthratio = (rayStartDepthRatio + rayEndDepthRatio) * 0.5;
@@ -1585,7 +1584,7 @@ void main(void)
 		// ==============   End Quad Message Passing ====================
 		
 		vec4 blueNoiseSample = textureLod(blueNoise64,gl_FragCoord.xy/64, 0);
-		float noiseValues[NOISESAMPLES+1];
+		float noiseValues[CLOUDSTEPS+1];
 		vec4 shadedFogColor = vec4(0);
 		noiseValues[0] = 1;
 		
@@ -1610,15 +1609,15 @@ void main(void)
 				fragColor.rgb = blueNoiseSample.rgb;
 
 				rayJitterOffset = rand(screenUV + vec2(time) * 0.0000) * 1.0  ;
-				vec3 rayStep = (rayEnd - rayStart) / NOISESAMPLES;
-				float stepLength = rayLength/NOISESAMPLES;
+				vec3 rayStep = (rayEnd - rayStart) / CLOUDSTEPS;
+				float stepLength = rayLength/CLOUDSTEPS;
 				
 				vec4 quadoffsets = vec4(0,0.25,0.5, 0.75) * 1.0; 
 				vec3 quadStep = rayStep * dot(threadMask,quadoffsets);
 				
-				#if (NOISESAMPLES > 0)
-				float noiseJitterOffset = rayJitterOffset * (1.0 / NOISESAMPLES);
-				for (uint ns = 0; ns < NOISESAMPLES; ns++){
+				#if (CLOUDSTEPS > 0)
+				float noiseJitterOffset = rayJitterOffset * (1.0 / CLOUDSTEPS);
+				for (uint ns = 0; ns < CLOUDSTEPS; ns++){
 						vec3 rayPos = rayStart + rayStep * (float(ns) + rayJitterOffset*0.00 );
 						
 						#if 1
@@ -1693,10 +1692,10 @@ void main(void)
 						
 						simplexnoise = simplexnoise - noiseLFParams.y;
 						
-						// Modulate the noise based on its depth below fogplane, this is 1 at 0 height, and 0 at fogPlaneTop
-						float rayDepthratio = clamp((1.0 - rayPos.y * fogPlaneTopInv) * HEIGHTDENSITY,0,1);
+						// Modulate the noise based on its depth below fogplane, this is 1 at 0 height, and 0 at heightFogTop
+						float rayDepthratio = clamp((1.0 - rayPos.y * heightFogTopInv) * HEIGHTDENSITY,0,1);
 						
-						float clampedNoise = clamp(0.1 * fogGroundDensity * (textureNoise.r * noiseLFParams.x - noiseLFParams.y) * rayDepthratio * stepLength, 0, 1);
+						float clampedNoise = clamp( cloudDensity * (textureNoise.r * noiseLFParams.x - noiseLFParams.y) * rayDepthratio * stepLength, 0, 1);
 						noiseValues[ns] = clampedNoise;
 						float shadeFactor = max(0.0, textureNoise.g -noiseLFParams.y) ;
 						vec3 fogShaded = mix(fogGlobalColor.rgb, fogShadowedColor.rgb,  rayDepthratio * rayDepthratio* shadeFactor*0 );
@@ -1712,7 +1711,7 @@ void main(void)
 					rayStep = (rayEnd - rayStart) / SHADOWMARCHSTEPS;
 					float numShadowSamplesTaken = 0;
 					for (uint i = 0; i < SHADOWMARCHSTEPS; i++){
-						uint noiseIndex = (i * NOISESAMPLES) / SHADOWMARCHSTEPS;
+						uint noiseIndex = (i * CLOUDSTEPS) / SHADOWMARCHSTEPS;
 						float currentnoise = 1;//noiseValues[noiseIndex];
 						if (currentnoise > 0 || 1 == 1){
 						//if (currentnoise > 0.01){
@@ -1722,7 +1721,7 @@ void main(void)
 							
 							
 							float shadowDelta = 0.25 * (abs(dFdx(localShadow)) + abs(dFdy(localShadow)));
-							float rayDepthratio = clamp((1.0 - rayPos.y * fogPlaneTopInv) * HEIGHTDENSITY,0,1);
+							float rayDepthratio = clamp((1.0 - rayPos.y * heightFogTopInv) * HEIGHTDENSITY,0,1);
 							
 							localShadow = mix(shadowDelta, 1.0 - shadowDelta, localShadow);
 							collectedShadow += max(localShadow, 1.0 - rayDepthratio);
@@ -1733,7 +1732,7 @@ void main(void)
 				#else
 				#endif
 				
-				#if (CLOUDSHADOWS > 0 && NOISESAMPLES > 0)
+				#if (CLOUDSHADOWS > 0 && CLOUDSTEPS > 0)
 					float cloudstrength  =0; // yes indeedy do
 					// adjust rayEnd to point from rayStart to the sun direction!
 					// the pos at which the vector in sun dir intercepts fog plane
@@ -1748,7 +1747,7 @@ void main(void)
 						
 						
 						float shadowJitterOffset = rayJitterOffset;
-						rayStep = sunDir.xyz * ((fogPlaneTop - rayStart.y) / sunDir.y) / CLOUDSHADOWS;
+						rayStep = sunDir.xyz * ((heightFogTop - rayStart.y) / sunDir.y) / CLOUDSHADOWS;
 						quadStep = rayStep * dot(threadMask,quadoffsets) * NOISESCALE1024 * noiseHFParams.x;
 						float stepLength = length(rayStep);
 						float numShadowSamplesTaken = 0;
@@ -1764,14 +1763,14 @@ void main(void)
 							#endif
 							
 							
-							float rayDepthratio = clamp((1.0 - rayPos.y * fogPlaneTopInv) * HEIGHTDENSITY,0,1);
+							float rayDepthratio = clamp((1.0 - rayPos.y * heightFogTopInv) * HEIGHTDENSITY,0,1);
 							
 							float clampedTextureNoise = max(0.0, (textureNoise.r - noiseLFParams.y) * (1.0 - noiseLFParams.y));
 							cloudstrength += clampedTextureNoise * rayDepthratio;
 							
-							float clampedNoise = clamp(0.1 * fogGroundDensity * (textureNoise.r * noiseLFParams.x - noiseLFParams.y) * rayDepthratio * stepLength, 0, 1);
+							float clampedNoise = clamp(cloudDensity * (textureNoise.r * noiseLFParams.x - noiseLFParams.y) * rayDepthratio * stepLength, 0, 1);
 							groundRGBA.a = clampedNoise + groundRGBA.a * (1.0 - clampedNoise);
-							//if (rayPos.y > fogPlaneTop) groundRGBA.rgba = vec4(1.0);
+							//if (rayPos.y > heightFogTop) groundRGBA.rgba = vec4(1.0);
 						}
 						
 						cloudstrength = cloudstrength/CLOUDSHADOWS;
@@ -1815,9 +1814,9 @@ void main(void)
 					#else
 						collectedShadow = 1.0;
 					#endif
-					#if (NOISESAMPLES > 0)
-						for (uint i = 0; i < (NOISESAMPLES); i++){
-							float f = float(i) / (NOISESAMPLES);
+					#if (CLOUDSTEPS > 0)
+						for (uint i = 0; i < (CLOUDSTEPS); i++){
+							float f = float(i) / (CLOUDSTEPS);
 							vec3 rayPos = mix(rayStart.xyz, rayEnd, f + 0.005 * rayJitterOffset);
 						//if (1 == 1){
 							vec4 localNoise =  texture(noise64cube, rayPos.xyz * NOISESCALE1024  + noiseOffset); // TODO: SUBSAMPLE THIS ONE!
@@ -1827,16 +1826,16 @@ void main(void)
 							float thisraynoise = max(0,localNoise.a + noiseLFParams.y - simplexnoise);
 							collectedNoise += thisraynoise;
 						}
-						heightBasedFog *= collectedNoise/(NOISESAMPLES);
+						heightBasedFog *= collectedNoise/(CLOUDSTEPS);
 					#endif
 					
 				#else // new interleaved sampling
-					#if ((SHADOWMARCHSTEPS > 0) && (NOISESAMPLES >0))
+					#if ((SHADOWMARCHSTEPS > 0) && (CLOUDSTEPS >0))
 						float numShadowSamplesTaken = 0.001;
-						uint shadowSteps = SHADOWMARCHSTEPS / NOISESAMPLES;
+						uint shadowSteps = SHADOWMARCHSTEPS / CLOUDSTEPS;
 						float rayJitterOffset = (1 * rand(screenUV)) * stepsInv ;
-						for (uint n = 0; n < NOISESAMPLES; n ++){
-							float f = float(n) / NOISESAMPLES;
+						for (uint n = 0; n < CLOUDSTEPS; n ++){
+							float f = float(n) / CLOUDSTEPS;
 							
 							vec3 rayPos = mix(rayStart.xyz, rayEnd, f + 0.5 * rayJitterOffset);
 							
@@ -1855,8 +1854,8 @@ void main(void)
 							#endif
 							float thisraynoise = max(0, localNoise.r + noiseLFParams.y - simplexnoise);
 							
-							// Modulate the noise based on its depth below fogplane, this is 1 at 0 height, and 0 at fogPlaneTop
-							float rayDepthratio = 1.0 - rayPos.y / (fogPlaneTop);
+							// Modulate the noise based on its depth below fogplane, this is 1 at 0 height, and 0 at heightFogTop
+							float rayDepthratio = 1.0 - rayPos.y / (heightFogTop);
 							
 							// Fog reaches full density at half depth to waterplane
 							rayDepthratio = clamp(rayDepthratio * HEIGHTDENSITY, 0, 1);
@@ -1869,7 +1868,7 @@ void main(void)
 							//if (thisraynoise > 0) { // only sample shadow if we have actual fog here!
 								for (uint m = 0; m < shadowSteps; m++){ // step through the small local volume 
 									f += (float(m)) * stepsInv; 
-									//float f = (float(m) + float(n) * NOISESAMPLES)/ steps;
+									//float f = (float(m) + float(n) * CLOUDSTEPS)/ steps;
 									vec3 rayPos = mix(rayStart.xyz, rayEnd, f + rayJitterOffset);
 									
 									float localShadow= shadowAtWorldPos(rayPos); // 1 for lit, 0 for unlit
@@ -1888,7 +1887,7 @@ void main(void)
 						
 						densityposition.xyz /= densityposition.w;
 
-						heightBasedFog *= collectedNoise/(NOISESAMPLES);
+						heightBasedFog *= collectedNoise/(CLOUDSTEPS);
 					#else // fall back to retard mode
 						collectedShadow = 1.0;
 						densityposition.xyz = (rayStart + rayEnd)*0.5;
@@ -1985,4 +1984,5 @@ void main(void)
 	//fragColor.a = 1.0;  
 
 	return;
+	*/
 }

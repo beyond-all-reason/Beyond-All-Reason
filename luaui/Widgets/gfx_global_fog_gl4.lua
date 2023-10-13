@@ -113,7 +113,7 @@ local definesSlidersParamsList = {
 	{name = 'TEXTURESAMPLER', default = 1, min = 0, max = 6, digits = 0,  tooltip = '0:None 1=Packed3D 2=Tex2D 3=Tex2D 4=FBM 5=Value3D 6=SimplexPerlin'},
 	{name = 'QUADNOISEFETCHING', default = 1, min = 0, max = 1, digits = 0,  tooltip = 'Enable Quad Message Passing [0 or 1]'},
 	{name = 'WEIGHTFACTOR', default = 0.56, min = 0, max = 1, digits = 2,  tooltip = 'Squared weight for each texel in PQM'},
-	{name = 'NOISESAMPLES',default = 16, min = 1, max = 64, digits = 0, tooltip = 'How many samples of 3D noise to take'},
+	{name = 'CLOUDSTEPS',default = 16, min = 0, max = 64, digits = 0, tooltip = 'How many Cloud samples to take, 0 to disable clouds'},
 	{name = 'NOISESCALE', default = 0.3, min = 0.001, max = 0.999, digits = 3, tooltip = 'The tiling frequency of noise'},
 	{name = 'NOISETHRESHOLD', default = 0, min = -1, max = 1, digits = 2, tooltip =  'The 0 level of noise'},
 	{name = 'USELOS', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use the LOS map at all, 1 = yes, 0 = no'},
@@ -147,13 +147,13 @@ local fogUniforms = {
 	cloudGlobalColor = {0.6,0.7,0.8,0.98}, -- bluish, alpha is the ABSOLUTE MAXIMUM FOG
 	fogSunColor = {1.0,0.9,0.8,0.35}, -- yellowish, alpha is power
 	fogShadowedColor = {0.1,0.05,0.1,0.5}, -- purleish tint, alpha is power
-	fogPlaneTop = (math.max(minHeight,0) + maxHeight) /1.7 , -- Start of the height thing
-	fogPlaneBottom = 100, -- Start of the height thing
+	heightFogTop = maxHeight * 0.5 , -- Start of the height thing
+	heightFogBottom = 0, -- Start of the height thing
 	fogGlobalDensity = 1.50, -- How dense the global fog is
-	fogGroundDensity = 0.1, -- How dense the height-based fog is
+	cloudDensity = 0.01, -- How dense the height-based fog is
 	fogExpFactor = 1.0, -- Overall density multiplier
-	cloudVolumeMin = {0,maxHeight/2,0,0}, -- XYZ coords of the fog volume start, along with the bottom density in W
-	cloudVolumeMax= {Game.mapSizeX, maxHeight, Game.mapSizeZ,0}, -- XYZ coords of fog volume end, along with the top density
+	cloudVolumeMin = {0,maxHeight,0,0}, -- XYZ coords of the cloud volume start, along with the bottom density in W
+	cloudVolumeMax= {Game.mapSizeX, 2* maxHeight, Game.mapSizeZ,0}, -- XYZ coords of fog volume end, along with the top density
 	scavengerPlane = {Game.mapSizeX, Game.mapSizeZ, 100,100}, -- The assumption here is that we can specify an X and Z limit on fog, and a density transition function. negative numbers should swap plane dir 
 	noiseLFParams = {
 		0.31, -- high-frequency cloud noise, lower numbers = lower frequency
@@ -187,15 +187,15 @@ local fogUniformSliders = {
 		{name = 'cloudGlobalColor', min = 0, max = 1, digits = 3, tooltip =  'cloudGlobalColor, alpha is the ABSOLUTE MAXIMUM FOG'},
 		{name = 'fogSunColor', min = 0, max = 1, digits = 3, tooltip =  'fogSunColor, alpha is power'},
 		{name = 'fogShadowedColor', min = 0, max = 1, digits = 3, tooltip =  'fogShadowedColor'},
-		{name = 'fogPlaneTop', min = math.floor(minHeight), max = math.floor(maxHeight * 2), digits = 0, tooltip =  'fogPlaneTop, in elmos'},
-		{name = 'fogPlaneBottom', min = math.floor(minHeight), max = math.floor(maxHeight), digits = 0, tooltip =  'fogPlaneBottom, in elmos'},
+		{name = 'heightFogTop', min = math.floor(minHeight), max = math.floor(maxHeight * 2), digits = 0, tooltip =  'heightFogTop, in elmos'},
+		{name = 'heightFogBottom', min = math.floor(minHeight), max = math.floor(maxHeight), digits = 0, tooltip =  'heightFogBottom, in elmos'},
 		
 		{name = 'cloudVolumeMin', min = 0,max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'Start of the cloud volume'},
 		{name = 'cloudVolumeMax', min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'End of the cloud volume'},
 		{name = 'scavengerPlane', min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'Where the scavenger cloud is'},
 		
 		{name = 'fogGlobalDensity', min = 0.01, max = 10, digits = 2, tooltip =  'How dense the global fog is'},
-		{name = 'fogGroundDensity', min = 0.01, max = 1, digits = 2, tooltip =  'How dense the height-based fog is'},
+		{name = 'cloudDensity', min = 0.000, max = 0.1, digits = 3, tooltip =  'How dense the height-based fog is'},
 		{name = 'fogExpFactor', min = 0.000, max = 5, digits = 2, tooltip =  'Overall density multiplier'},
 		{name = 'noiseLFParams', min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: threshold, 3-4 unused'},
 		{name = 'noiseHFParams', min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: Perturb, 3: SpeedX, 4: SpeedZ'},
@@ -209,9 +209,9 @@ local fogUniformsBluish = { -- bluish tint, not very good
 	fogGlobalColor = {0.5,0.6,0.7,1}, -- bluish
 	fogSunColor = {1.0,0.9,0.8,1}, -- yellowish
 	fogShadowedColor = {0.1,0.05,0.1,1}, -- purleish tint
-	fogPlaneTop = (math.max(minHeight,0) + maxHeight) /2 ,
+	heightFogTop = (math.max(minHeight,0) + maxHeight) /2 ,
 	fogGlobalDensity = 1.0,
-	fogGroundDensity = 0.3,
+	cloudDensity = 0.3,
 	fogExpFactor = -0.0001, -- yes these are small negative numbers
 	}
 
@@ -278,9 +278,9 @@ local shaderSourceCache = {
 			fogSunColor = fogUniforms.fogSunColor,
 			fogShadowedColor = fogUniforms.fogShadowedColor,
 			fogGlobalDensity = fogUniforms.fogGlobalDensity,
-			fogGroundDensity = fogUniforms.fogGroundDensity, 
-			fogPlaneTop = fogUniforms.fogPlaneTop,
-			fogPlaneBottom = fogUniforms.fogPlaneBottom,
+			cloudDensity = fogUniforms.cloudDensity, 
+			heightFogTop = fogUniforms.heightFogTop,
+			heightFogBottom = fogUniforms.heightFogBottom,
 			fogExpFactor = fogUniforms.fogExpFactor,
 		},
 		shaderName = "Ground Fog GL4",
@@ -516,7 +516,7 @@ function widget:GameFrame(n)
 end
 
 function widget:Update()
-	--SetFogParams("fogGroundDensity", 0.1)
+	--SetFogParams("cloudDensity", 0.1)
 end
 
 local toTexture = true
@@ -589,6 +589,7 @@ function widget:DrawWorld()
 	if shaderConfig.USEMINIMAP > 0 then 
 		gl.Texture(6, '$minimap')
 	end
+	packedNoise =  "LuaUI/images/noisetextures/worley20231012_sdf_256x128x64_RBGA_LONG." .. ((shaderConfig.USEDDS == 1 ) and 'dds' or 'tga')
 	packedNoise =  "LuaUI/images/noisetextures/worley3_256x128x64_RBGA_LONG." .. ((shaderConfig.USEDDS == 1 ) and 'dds' or 'png')
 	gl.Texture(7, packedNoise)
 	gl.Texture(8, blueNoise64)
