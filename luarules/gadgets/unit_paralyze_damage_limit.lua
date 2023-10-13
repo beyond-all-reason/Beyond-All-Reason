@@ -43,9 +43,11 @@ for udid, ud in pairs(UnitDefs) do
 
 
 	if Spring.GetModOptions().emprework==true then
-		unitOhms[udid] = ud.customParams.paralyzemultiplier or 0.6
-		Spring.Echo('ohm', ud.customParams.paralyzemultiplier)
-		
+		unitOhms[udid] = ud.customParams.paralyzemultiplier or 1
+		--Spring.Echo('ohm', ud.customParams.paralyzemultiplier)
+		if tonumber(ud.customParams.paralyzemultiplier) or 0 > 0 then
+		--Spring.Echo('ohm', ud.name, ud.customParams.paralyzemultiplier)
+		end
 		
 	end
 
@@ -60,7 +62,7 @@ local spGetUnitHealth = Spring.GetUnitHealth
 
 
 		Spring.Echo('hornet debug emp loaded')
-Spring.Debug.TableEcho(unitOhms)
+--Spring.Debug.TableEcho(unitOhms)
 function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
 
 
@@ -76,12 +78,12 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 			
 			--ohms not always saved / treated as int? tf
 			local ohm = unitOhms[uDefID]--	 or 0)) <= 0 and 0.6 or unitOhms[uDefID]
-			local thismaxtime = weaponParalyzeDamageTime[weaponID] * ohm -- consider the 0.6 default here?
+			local thismaxtime = weaponParalyzeDamageTime[weaponID] * ((ohm == 1 and 0.5) or ohm)
 			
-			Spring.Echo('id orig ohm new', uDefID, unitOhms[uDefID], ohm)
+			Spring.Echo('raw stuntime, ohm, using mult value, caltime', weaponParalyzeDamageTime[weaponID], ohm, ((ohm == 1 and 0.5) or ohm), thismaxtime)
 			
 			thismaxtime = math.min(maxTime, thismaxtime)
-			Spring.Echo('times', weaponParalyzeDamageTime[weaponID], thismaxtime, unitOhms[uDefID] or 1)
+			--Spring.Echo('times', weaponParalyzeDamageTime[weaponID], thismaxtime, unitOhms[uDefID] or 1)
 			
 			
 			local maxEmpDamage = (1 + (thismaxtime / paralyzeDeclineRate)) * effectiveHP
