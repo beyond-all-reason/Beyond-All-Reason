@@ -868,7 +868,7 @@ if Spring.GetModOptions().emprework == true then
 			uDef.weapondefs.armemp_weapon.areaofeffect = 512
 			uDef.weapondefs.armemp_weapon.burstrate = 0.3333
 			uDef.weapondefs.armemp_weapon.edgeeffectiveness = 0.05
-			uDef.weapondefs.armemp_weapon.paralyzetime = 5
+			uDef.weapondefs.armemp_weapon.paralyzetime = 12
 			uDef.weapondefs.armemp_weapon.damage.default = 40000
 			
 		end
@@ -1280,18 +1280,18 @@ function WeaponDef_Post(name, wDef)
 			if name == 'empblast' then
 				wDef.areaofeffect = 500
 				wDef.edgeeffectiveness = 0.45
-				wDef.paralyzetime = 5
+				wDef.paralyzetime = 12
 				wDef.damage.default = 3000
 			end
 			if name == 'spybombx' then
 				wDef.areaofeffect = 500
 				wDef.edgeeffectiveness = 0.05
-				wDef.paralyzetime = 5
+				wDef.paralyzetime = 12
 				wDef.damage.default = 6000
 			end
 			if name == 'spybombxscav' then
 				wDef.edgeeffectiveness = 0.50
-				wDef.paralyzetime = 5
+				wDef.paralyzetime = 12
 			end
 
 

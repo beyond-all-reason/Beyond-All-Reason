@@ -58,17 +58,16 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
         if aDefID and uDefID and weaponID and not isBuilding[uDefID] and not excluded[uDefID] then
 		Spring.Echo('hornet debug emp')
 			
-			--local hp, maxHP, currentEmp = spGetUnitHealth(uID)
-			--local effectiveHP = maxHP --Game.paralyzeOnMaxHealth and maxHP or hp
-			--local paralyzeDeclineRate = 30 --Game.modrules.paralyze.paralyzeDeclineRate
-			--local maxEmpDamage = (1 + (weaponParalyzeDamageTime[weaponID] / paralyzeDeclineRate)) * effectiveHP
+			local hp, maxHP, currentEmp = spGetUnitHealth(uID)
+			local effectiveHP = Game.paralyzeOnMaxHealth and maxHP or hp
+			local paralyzeDeclineRate = Game.paralyzeDeclineRate
+			local maxEmpDamage = (1 + (weaponParalyzeDamageTime[weaponID] / paralyzeDeclineRate)) * effectiveHP
             --Spring.Echo(Game.paralyze.paralyzeDeclineRate)
-            --Spring.Echo('old',h,mh, ph, damage)
-			--damage = math.max(0, math.min(damage, maxEmpDamage - currentEmp))
-           -- Spring.Echo('new',h,mh, ph, damage)
+			newdamage = math.max(0, math.min(damage, maxEmpDamage - currentEmp))
+            Spring.Echo('h mh ph old new',h,mh, ph, damage, newdamage)
 
-            --Spring.Echo(Game.paralyzeDeclineRate)
-            --Spring.Echo(Game.paralyzeOnMaxHealth)
+            Spring.Echo(Game.paralyzeDeclineRate)
+            Spring.Echo(Game.paralyzeOnMaxHealth)
 			--Spring.Debug.TableEcho(Game)
             --damage = mh +6 
             --Spring.Echo('new',h,mh, ph, max_para_damage, max_para_time, damage)
