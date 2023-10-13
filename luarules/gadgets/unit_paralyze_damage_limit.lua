@@ -16,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-local maxTime = Spring.GetModOptions().emprework==true and 10 or 20 --- this is ignored in EMP rework and vanilla, bug is probably below, maybe L56
+local maxTime = Spring.GetModOptions().emprework==true and 10 or 20 --- bug fixed
 
 
 local excluded = {
@@ -85,7 +85,7 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 			thismaxtime = math.min(maxTime, thismaxtime)
 			--Spring.Echo('times', weaponParalyzeDamageTime[weaponID], thismaxtime, unitOhms[uDefID] or 1)
 			
-			
+			--thanks to sprung for this arcane spell
 			local maxEmpDamage = (1 + (thismaxtime / paralyzeDeclineRate)) * effectiveHP
 
 			newdamage = math.max(0, math.min(damage, maxEmpDamage - currentEmp))

@@ -1282,13 +1282,13 @@ function WeaponDef_Post(name, wDef)
 		if Spring.GetModOptions().emprework==true then
 
 			if name == 'empblast' then
-				wDef.areaofeffect = 500
-				wDef.edgeeffectiveness = 0.75
+				wDef.areaofeffect = 350
+				wDef.edgeeffectiveness = 0.6
 				wDef.paralyzetime = 12
-				wDef.damage.default = 35000
+				wDef.damage.default = 50000
 			end
 			if name == 'spybombx' then
-				wDef.areaofeffect = 500
+				wDef.areaofeffect = 400
 				wDef.edgeeffectiveness = 0.75
 				wDef.paralyzetime = 12
 				wDef.damage.default = 15000
