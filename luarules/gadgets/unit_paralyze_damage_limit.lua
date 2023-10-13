@@ -29,6 +29,7 @@ local excluded = {
 	[UnitDefNames.corantiship.id] = true,
 }
 local isBuilding = {}
+local unitOhms = {}
 for udid, ud in pairs(UnitDefs) do
     for id, v in pairs(excluded) do
         if string.find(ud.name, UnitDefs[id].name) then
@@ -37,6 +38,12 @@ for udid, ud in pairs(UnitDefs) do
         if ud.isBuilding then
             isBuilding[udid] = true
         end
+
+
+		if Spring.GetModOptions().emprework==true then
+			unitOhms[udid] = UnitDefs[id].UnitDefs[id].customParams.paralyzemultiplier
+		end
+
     end
 end
 
@@ -61,13 +68,19 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 			local hp, maxHP, currentEmp = spGetUnitHealth(uID)
 			local effectiveHP = Game.paralyzeOnMaxHealth and maxHP or hp
 			local paralyzeDeclineRate = Game.paralyzeDeclineRate
-			local maxEmpDamage = (1 + (weaponParalyzeDamageTime[weaponID] / paralyzeDeclineRate)) * effectiveHP
-            --Spring.Echo(Game.paralyze.paralyzeDeclineRate)
+			local thismaxtime = weaponParalyzeDamageTime[weaponID] * unitOhms[uDefID]
+			
+			Spring.Echo('times', weaponParalyzeDamageTime[weaponID], thismaxtime)
+
+			
+			local maxEmpDamage = (1 + (thismaxtime / paralyzeDeclineRate)) * effectiveHP
+
 			newdamage = math.max(0, math.min(damage, maxEmpDamage - currentEmp))
-            Spring.Echo('h mh ph old new',h,mh, ph, damage, newdamage)
+            Spring.Echo('h mh ph wpt old new',h,mh, ph, thismaxtime, damage, newdamage)
 
             Spring.Echo(Game.paralyzeDeclineRate)
             Spring.Echo(Game.paralyzeOnMaxHealth)
+			damage = newdamage
 			--Spring.Debug.TableEcho(Game)
             --damage = mh +6 
             --Spring.Echo('new',h,mh, ph, max_para_damage, max_para_time, damage)
