@@ -66,6 +66,8 @@ local brightShader = nil
 local brightTexture1 = nil
 local brightTexture2 = nil
 
+local rectVAO = nil
+
 local combineShader = nil
 
 local glGetSun = gl.GetSun
@@ -124,6 +126,7 @@ local function MakeBloomShaders()
 	iqvsx, iqvsy = 1.0 / qvsx, 1.0 / qvsy
 	glDeleteTexture(brightTexture1 or "")
 	glDeleteTexture(brightTexture2 or "")
+	--Spring.Echo(vsx, vsy, qvsx,qvsy)
 
 	brightTexture1 = glCreateTexture(math.max(1,qvsx), math.max(1,qvsy), {
 		fbo = true,
@@ -162,16 +165,15 @@ local function MakeBloomShaders()
 					a.a= 1.0;
 				}
 				gl_FragColor = a;
+				//gl_FragColor.rg = gl_TexCoord[0].st; // to debug texture coordinates
 			}
 		]],
 		--while this vertex shader seems to do nothing, it actually does the very important world space to screen space mapping for gl.TexRect!
 		vertex = [[
 			#version 150 compatibility
-			void main(void)
-			{
-				gl_TexCoord[0] = gl_MultiTexCoord0;
-				gl_Position    = gl_Vertex;
-			}
+			void main(void)	{
+				gl_TexCoord[0] = vec4(gl_Vertex.zwzw);
+				gl_Position    = vec4(gl_Vertex.xy, 0, 1);	}
 		]],
 		uniformInt = {
 			texture0 = 0,
@@ -189,6 +191,12 @@ local function MakeBloomShaders()
 	 -- TODO:  all this simplification may result in the accumulation of quantizing errors due to the small numbers that get pushed into the BrightTexture
 
 	blurShader = glCreateShader({
+		vertex = [[
+			#version 150 compatibility
+			void main(void)	{
+				gl_TexCoord[0] = vec4(gl_Vertex.zwzw);
+				gl_Position    = vec4(gl_Vertex.xy, 0, 1);	}
+		]],
 		fragment = "#version 150 compatibility\n"..
 			"#define IQVSX " .. tostring(iqvsx) .. "\n" ..
 			"#define IQVSY " .. tostring(iqvsy) .. "\n" .. [[
@@ -241,6 +249,12 @@ local function MakeBloomShaders()
 
 
 	brightShader = glCreateShader({
+		vertex = [[
+			#version 150 compatibility
+			void main(void)	{
+				gl_TexCoord[0] = vec4(gl_Vertex.zwzw);
+				gl_Position    = vec4(gl_Vertex.xy, 0, 1);	}
+		]],
 		fragment =
 			"#version 150 compatibility \n" ..
 			"#define IQVSX " .. tostring(iqvsx) .. "\n" ..
@@ -263,6 +277,14 @@ local function MakeBloomShaders()
 				//float time0 = sin(time*0.01);
 				vec2 texCoors = vec2(gl_TexCoord[0]);
 				float modelDepth = texture2D(modelDepthTex, texCoors).r;
+
+				//Bail early if this is not a model fragment
+				if (modelDepth > 0.9999) {
+					gl_FragColor = 	vec4(0.0, 0.0, 0.0, 1.0);
+					return;
+				}
+
+				
 				float mapDepth = texture2D(mapDepthTex, texCoors).r;
 				float unoccludedModel = float(modelDepth < mapDepth); // this is 1 for a model fragment
 
@@ -329,6 +351,9 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	MakeBloomShaders()
 end
 
+local luaShaderDir = "LuaUI/Widgets/Include/"
+VFS.Include(luaShaderDir.."instancevbotable.lua")
+
 function widget:Initialize()
 
 	if glCreateShader == nil then
@@ -362,6 +387,7 @@ function widget:Initialize()
 	end
 
 	MakeBloomShaders()
+	rectVAO = MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
 end
 
 function widget:Shutdown()
@@ -372,6 +398,13 @@ function widget:Shutdown()
 		if combineShader ~= nil then glDeleteShader(combineShader or 0) end
 	end
 	WG['bloomdeferred'] = nil
+end
+
+local function FullScreenQuad()
+	--gl.DepthMask(true)
+	--gl.DepthTest(GL.NOTEQUAL)
+	-- TODO: instead of drawing full screen quads, draw a billboard around every unit
+	rectVAO:DrawArrays(GL.TRIANGLES)
 end
 
 local df = 0
@@ -392,7 +425,8 @@ local function Bloom()
 		glTexture(2, "$model_gbuffer_zvaltex")
 		glTexture(3, "$map_gbuffer_zvaltex")
 
-		glRenderToTexture(brightTexture1, gl.TexRect, -1, 1, 1, -1)
+		--glRenderToTexture(brightTexture1, gl.TexRect, -1, 1, 1, -1)
+		glRenderToTexture(brightTexture1, FullScreenQuad)
 
 		glTexture(0, false)
 		glTexture(1, false)
@@ -408,13 +442,15 @@ local function Bloom()
 					glUniform(blurShaderFragLoc, blurAmplifier)
 					glUniform(blurShaderHorizontalLoc, 0)
 					glTexture(brightTexture1)
-					glRenderToTexture(brightTexture2, gl.TexRect, -1, 1, 1, -1)
+					--glRenderToTexture(brightTexture2, gl.TexRect, -1, 1, 1, -1)
+					glRenderToTexture(brightTexture2, FullScreenQuad)
 					glTexture(false)
 
 					glUniform(blurShaderFragLoc, blurAmplifier)
 					glUniform(blurShaderHorizontalLoc, 1)
 					glTexture(brightTexture2)
-					glRenderToTexture(brightTexture1, gl.TexRect, -1, 1, 1, -1)
+					--glRenderToTexture(brightTexture1, gl.TexRect, -1, 1, 1, -1)
+					glRenderToTexture(brightTexture1, FullScreenQuad)
 					glTexture(false)
 			end
 			glUseShader(0)
@@ -430,7 +466,8 @@ local function Bloom()
 	glUseShader(combineShader)
 		glUniformInt(combineShaderDebgDrawLoc, dbgDraw)
 		glTexture(0, brightTexture1)
-		gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+		--gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+		rectVAO:DrawArrays(GL.TRIANGLES)
 		glTexture(0, false)
 	glUseShader(0)
 
@@ -441,7 +478,6 @@ end
 function widget:DrawWorld()
 	Bloom()
 end
-
 
 function widget:GetConfigData()
 	return {
