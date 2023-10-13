@@ -47,15 +47,63 @@ end
 
 local spGetUnitHealth = Spring.GetUnitHealth
 
+
+
 function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
+
+
     if paralyzer then
+--Spring.Echo('hornet debug here2')
         -- restrict the max paralysis time of mobile units to 15 sec
         if aDefID and uDefID and weaponID and not isBuilding[uDefID] and not excluded[uDefID] then
+--Spring.Echo('hornet debug here3')
             local max_para_time = weaponParalyzeDamageTime[weaponID]
             local h,mh,ph = spGetUnitHealth(uID)
             local max_para_damage = mh + ((max_para_time<maxTime) and mh or mh*maxTime/max_para_time)
+			
+			
+			--actual_maximum_time = max_para_time<maxTime and max_para_time or maxTime
+			
+			
+			-----paralyzeDamage may not get higher than baseHealth * (paralyzeTime + 1),
+			
+			--max_para_damage = mh + actual_maximum_time
+			
+			
+			--required logic
+			-- find if weapon max time or global max time is the lower
+			--evaluate if incoming damage would exceed that required to stun for more than the max time
+			--if so, reduce damage to the maximum permissible
+            --Spring.Echo(max_para_time, maxTime, max_para_time<maxTime)
+            --Spring.Echo(mh + ((max_para_time<maxTime) and mh))
+            --Spring.Echo(mh*maxTime/max_para_time)
+			
+			--4650, 4650, 157.083923, 9300, 7, 159.609848
+			
+			--
+            --Spring.Echo('max-ph', max_para_damage-ph)
+            --Spring.Echo(h,mh, ph, max_para_damage, max_para_time, damage)
             --Spring.Echo(h,mh, ph, max_para_damage, max_para_time, damage)
             damage = math.min(damage, math.max(0,max_para_damage-ph) )
+			
+			--notes:
+			--mh + mh = 10s stun visually
+			--mh + mh/10 = 10s stun visually
+			--mh - mh/2 = 10s stun visually
+            --damage = mh/100 - 3% charge on a bull
+            --damage = mh/20 - 12-15% charge
+            --damage = mh/10 - 30% charge
+            --damage = mh/5 - 60% charge
+			-- /4 72% on bull
+			-- /2 full and 10s stun , 3% on an afus
+			
+			
+			
+			
+
+			
+			
+            --damage = mh +6 
             --Spring.Echo('new',h,mh, ph, max_para_damage, max_para_time, damage)
         end
         return damage, 1

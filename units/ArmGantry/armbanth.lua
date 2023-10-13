@@ -42,7 +42,7 @@ return {
 			customrange = 460,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			paralyzemultiplier = 3,
+			paralyzemultiplier = 0.9,
 			subfolder = "armgantry",
 			techlevel = 3,
 		},

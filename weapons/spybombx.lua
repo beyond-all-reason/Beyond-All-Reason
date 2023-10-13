@@ -1,6 +1,6 @@
 return {
 	spybombx = {
-		areaofeffect = 400,
+		areaofeffect = 360,
 		commandfire = 1,
 		craterboost = 0,
 		cratermult = 0,
@@ -12,7 +12,7 @@ return {
 		name = "spyexplosion",
 		noselfdamage = 1,
 		paralyzer = 1,
-		paralyzetime = 20,
+		paralyzetime = 15,
 		range = 1280,
 		reloadtime = 0.30000001192093,
 		soundhit = "EMGPULS1",
@@ -21,7 +21,7 @@ return {
 		tolerance = 7000,
 		turret = 1,
 		damage = {
-			default = 100000,
+			default = 150000,
 		},
 	},
 	spybombxscav = {

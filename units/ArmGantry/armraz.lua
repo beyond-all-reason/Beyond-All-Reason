@@ -38,7 +38,6 @@ return {
 			unitgroup = 'weapon',
 			model_author = "PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
-			paralyzemultiplier = 1.5,
 			subfolder = "armgantry",
 			techlevel = 3,
 			wpn1turretx = 200,

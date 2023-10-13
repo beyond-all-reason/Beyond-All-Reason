@@ -39,7 +39,6 @@ return {
 			customrange = 650,
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 1.3,
 			subfolder = "corgantry",
 			techlevel = 3,
 		},

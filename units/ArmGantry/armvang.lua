@@ -39,7 +39,6 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
-			paralyzemultiplier = 1.2,
 			subfolder = "armgantry",
 			onoffname = "trajectory",
 			techlevel = 3,

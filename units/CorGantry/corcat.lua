@@ -38,7 +38,6 @@ return {
 			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 1.25,
 			subfolder = "corgantry",
 			techlevel = 3,
 		},

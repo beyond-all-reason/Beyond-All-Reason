@@ -842,7 +842,7 @@ function UnitDef_Post(name, uDef)
 		uDef = unbaUnits.unbaUnitTweaks(name, uDef)
 	end
 
-
+Spring.Echo('hornet debug here')
 if Spring.GetModOptions().emprework == true then
 
 		if name == "armstil" then		
@@ -850,7 +850,7 @@ if Spring.GetModOptions().emprework == true then
 			uDef.weapondefs.stiletto_bomb.burst = 3
 			uDef.weapondefs.stiletto_bomb.burstrate = 0.3333
 			uDef.weapondefs.stiletto_bomb.edgeeffectiveness = 0.30
-			uDef.weapondefs.stiletto_bomb.damage.default = 1500
+			uDef.weapondefs.stiletto_bomb.damage.default = 1200
 			uDef.weapondefs.stiletto_bomb.paralyzetime = 5			
 		end
 
@@ -887,7 +887,41 @@ if Spring.GetModOptions().emprework == true then
 			uDef.weapondefs.bladewing_lyzer.damage.default = 400
 			uDef.weapondefs.bladewing_lyzer.paralyzetime = 5	
 		end
+
+
+		if name == "armmar" then
+			uDef.customparams.paralyzemultiplier = 1.5
+		end
 		
+		if name == "armbanth" then
+			uDef.customparams.paralyzemultiplier = 3.2
+		end
+
+		if name == "armraz" then
+			uDef.customparams.paralyzemultiplier = 1.9
+		end
+		if name == "armvang" then
+			uDef.customparams.paralyzemultiplier = 1.3
+		end
+		
+		if name == "armlun" then
+			uDef.customparams.paralyzemultiplier = 1.2
+		end
+		
+		if name == "corshiva" then
+			uDef.customparams.paralyzemultiplier = 1.8
+		end
+		
+		if name == "corcat" then
+			uDef.customparams.paralyzemultiplier = 1.25
+		end
+		
+		if name == "corkarg" then
+			uDef.customparams.paralyzemultiplier = 1.8
+		end
+		if name == "corsok" then
+			uDef.customparams.paralyzemultiplier = 1.2
+		end
 
 end
 

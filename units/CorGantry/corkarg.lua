@@ -38,7 +38,6 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 1.4,
 			subfolder = "corgantry",
 			techlevel = 3,
 		},
