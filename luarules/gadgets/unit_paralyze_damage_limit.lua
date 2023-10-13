@@ -41,7 +41,7 @@ for udid, ud in pairs(UnitDefs) do
 
 
 		if Spring.GetModOptions().emprework==true then
-			unitOhms[udid] = UnitDefs[id].UnitDefs[id].customParams.paralyzemultiplier
+			unitOhms[udid] = UnitDefs[id].customParams.paralyzemultiplier
 		end
 
     end
@@ -55,6 +55,7 @@ end
 local spGetUnitHealth = Spring.GetUnitHealth
 
 
+		Spring.Echo('hornet debug emp loaded')
 
 function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
 

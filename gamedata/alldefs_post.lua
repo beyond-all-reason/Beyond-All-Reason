@@ -1279,9 +1279,9 @@ function WeaponDef_Post(name, wDef)
 
 			if name == 'empblast' then
 				wDef.areaofeffect = 500
-				wDef.edgeeffectiveness = 0.65
+				wDef.edgeeffectiveness = 0.75
 				wDef.paralyzetime = 12
-				wDef.damage.default = 15000
+				wDef.damage.default = 35000
 			end
 			if name == 'spybombx' then
 				wDef.areaofeffect = 500
