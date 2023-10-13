@@ -2444,7 +2444,7 @@ function widget:Initialize()
 	end
 	
 	--makebuttonarray()
-	makeunitbuttonarray()
+	--makeunitbuttonarray()
 	--makeSliderList(sliderListConfig)
 	--AddRecursivelySplittingButton()
 	--local mywindow = metaElement:NewWindow({name = 'W'..tostring(i), left = 300+1*200, right = 490+1*200, top = 600, bottom = 200, testsliders = true})
