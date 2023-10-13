@@ -2836,32 +2836,20 @@ function CreateShareSlider()
                 DrawRect(m_share.posX + widgetPosX + (16*playerScale), posY - (3*playerScale), m_share.posX + widgetPosX + (34*playerScale), posY + shareSliderHeight + (18*playerScale))
                 gl_Texture(pics["energyPic"])
                 DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale) + sliderPosition)
-                gl_Texture(pics["amountPic"])
-                if right then
-                    DrawRect(m_share.posX + widgetPosX - (28*playerScale), posY - 1 + sliderPosition, m_share.posX + widgetPosX + (19*playerScale), posY + (17*playerScale) + sliderPosition)
-                    gl_Texture(false)
-                    font:Print(shareAmount, m_share.posX + widgetPosX - (5*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
-                else
-                    DrawRect(m_share.posX + widgetPosX + (76*playerScale), posY - 1 + sliderPosition, m_share.posX + widgetPosX + (31*playerScale), posY + (17*playerScale) + sliderPosition)
-                    gl_Texture(false)
-                    font:Print(shareAmount, m_share.posX + widgetPosX + (55*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
-                end
+                gl_Texture(false)
+				gl_Color(0.45,0.45,0.45,1)
+				RectRound(math.floor(m_share.posX + widgetPosX - (28*playerScale)), math.floor(posY - 1 + sliderPosition), math.floor(m_share.posX + widgetPosX + (19*playerScale)), math.floor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
+				font:Print("\255\255\255\255"..shareAmount, m_share.posX + widgetPosX - (5*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
             elseif metalPlayer ~= nil then
                 posY = widgetPosY + widgetHeight - metalPlayer.posY
                 gl_Texture(pics["barPic"])
                 DrawRect(m_share.posX + widgetPosX + (32*playerScale), posY - 3, m_share.posX + widgetPosX + (50*playerScale), posY + shareSliderHeight + (18*playerScale))
                 gl_Texture(pics["metalPic"])
                 DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale) + sliderPosition)
-                gl_Texture(pics["amountPic"])
-                if right then
-                    DrawRect(m_share.posX + widgetPosX - (12*playerScale), posY - 1 + sliderPosition, m_share.posX + widgetPosX + (35*playerScale), posY + (17*playerScale) + sliderPosition)
-                    gl_Texture(false)
-                    font:Print(shareAmount, m_share.posX + widgetPosX + (11*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
-                else
-                    DrawRect(m_share.posX + widgetPosX + (88*playerScale), posY - 1 + sliderPosition, m_share.posX + widgetPosX + (47*playerScale), posY + (17*playerScale) + sliderPosition)
-                    gl_Texture(false)
-                    font:Print(shareAmount, m_share.posX + widgetPosX + (71*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
-                end
+                gl_Texture(false)
+				gl_Color(0.45,0.45,0.45,1)
+				RectRound(math.floor(m_share.posX + widgetPosX - (12*playerScale)), math.floor(posY - 1 + sliderPosition), math.floor(m_share.posX + widgetPosX + (35*playerScale)), math.floor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
+				font:Print("\255\255\255\255"..shareAmount, m_share.posX + widgetPosX + (11*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
             end
             font:End()
         end
