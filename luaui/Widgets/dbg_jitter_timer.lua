@@ -18,6 +18,7 @@ end
 
 ---------------------------Speedups-----------------------------
 local spGetTimer = Spring.GetTimer
+local spGetTimerMicros = Spring.GetTimerMicros
 local spDiffTimers = Spring.DiffTimers
 ---------------------------Internal vars---------------------------
 
@@ -51,11 +52,11 @@ local drawframespread = 0
 local function Loadms(millisecs, spread)
 	if spread ~= nil then millisecs = millisecs + math.min(10*spread, -1.0 * spread * math.log(1.0 - math.random())) end
 	--Spring.Echo(millisecs)
-	local starttimer = Spring.GetTimer()
+	local starttimer = Spring.GetTimerMicros()
 	local nowtimer
 	for i = 1, 10000000 do
-		nowtimer = Spring.GetTimer()
-		if Spring.DiffTimers(nowtimer, starttimer )*1000 >= millisecs then
+		nowtimer = Spring.GetTimerMicros()
+		if Spring.DiffTimers(nowtimer, starttimer, false) >= millisecs then
 			break
 		end
 	end
@@ -94,8 +95,10 @@ local prevframems = 0
 local gameFrameHappened = false
 local drawspergameframe = 0
 local actualdrawspergameframe = 0
+local consecutiveDraws = 0
 
 function widget:GameFrame(n)
+  consecutiveDraws = 0
   simtime = simtime + 1
   wasgameframe =  wasgameframe + 1
   gameFrameHappened = true
@@ -186,12 +189,20 @@ function widget:DrawScreen()
 
 	--gl.Text(string.format("CamSpread = %.3f, CamMean = %.3f deltacam = %.3f jitter = %.3f",cammovespread, cammovemean, deltacam,camerarelativejitter), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-84, 16, "d")
 	gl.Text(string.format("CamJitter = %.3f",camerarelativejitter), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-84, 16, "d")
-	gl.Text(string.format("DrawFrame = %d",Spring.GetDrawFrame()), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-116, 32, "d")
+	gl.Text(string.format("DrawFrame = %d   #%s",Spring.GetDrawFrame(), (consecutiveDraws==0) and "" or tostring(consecutiveDraws)), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-116, 32, "d")
 	gl.Color(1.0, 1.0, 1.0, 1.0)
+-- Frame Drop Indicator!!
 
 	gl.PopMatrix()
 
 	if drawframeload > 0 then Loadms(drawframeload, drawframespread) end
+	consecutiveDraws = consecutiveDraws + 1
 end
 
 
+function widget:DrawScreenPost()
+		local df = Spring.GetDrawFrame()
+	local offset =  32 * (df%8)
+	gl.Color(1.0, 1.0, 1.0, 1.0)
+	gl.Rect( viewSizeX - timerwidth + offset, viewSizeY - timerYoffset + timerheight-116, viewSizeX - timerwidth + 32 +offset,   viewSizeY - timerYoffset + timerheight-116 -32)
+end
