@@ -555,6 +555,9 @@ function widget:Update(dt)
 				wx_old = wx
 				wz_old = wz
 			end
+			if specList[playerID] and not showSpectatorName then
+				cursors[playerID] = nil
+			end
 		end
 	end
 end

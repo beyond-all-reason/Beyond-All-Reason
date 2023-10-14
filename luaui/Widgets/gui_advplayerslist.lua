@@ -131,7 +131,6 @@ local pics = {
     pingPic = imageDirectory .. "ping.dds",
     cpuPic = imageDirectory .. "cpu.dds",
     barPic = imageDirectory .. "bar.png",
-    amountPic = imageDirectory .. "amount.png",
     pointPic = imageDirectory .. "point.dds",
     lowPic = imageDirectory .. "low.dds",
     arrowPic = imageDirectory .. "arrow.dds",
@@ -2257,7 +2256,13 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
     end
 
     if metalShare < 0.99 then  -- default = 0.99
-        gl_Color(1, 0, 0, 1)
+        gl_Color(0,0,0, 0.18)
+        gl_Texture(false)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) - 1.3,
+                posY + y1Offset + 1.1,
+                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) + 1.3,
+                posY + y2Offset - 1.1)
+        gl_Color(1, 0.25, 0.25, 1)
         gl_Texture(pics["resbarPic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) - 0.75,
                 posY + y1Offset + 0.55,
@@ -2292,6 +2297,12 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
     end
 
     if energyConversion ~= 0.75 and not dead then    -- default = 0.75
+        gl_Color(0,0,0, 0.125)
+        gl_Texture(false)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) - 1.45,
+                posY + y1Offset + 1.25,
+                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) + 1.45,
+                posY + y2Offset - 1.25)
         gl_Color(0.9, 0.9, 0.82, 1)
         gl_Texture(pics["resbarPic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) - 0.75,
@@ -2301,7 +2312,13 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
     end
 
     if energyShare < 0.94 or energyShare > 0.96 then  -- default = 0.94999999
-        gl_Color(1, 0, 0, 1)
+        gl_Color(0,0,0, 0.18)
+        gl_Texture(false)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) - 1.3,
+                posY + y1Offset + 1.1,
+                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) + 1.3,
+                posY + y2Offset - 1.1)
+        gl_Color(1, 0.25, 0.25, 1)
         gl_Texture(pics["resbarPic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) - 0.75,
                 posY + y1Offset + 0.55,
