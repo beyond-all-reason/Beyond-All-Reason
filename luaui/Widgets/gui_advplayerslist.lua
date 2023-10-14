@@ -2222,7 +2222,7 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
     -- limit to prevent going out of bounds when losing storage
     energy = math.min(energy, energyStorage)
     metal = math.min(metal, metalStorage)
-
+    local bordersize = 0.75
     local paddingLeft = 2
     local paddingRight = 2
     local barWidth = m_resources.width - paddingLeft - paddingRight
@@ -2237,6 +2237,9 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
         y2Offset = 8.6 * sizeMult
     end
     local maxStorage = (maxAllyTeamMetalStorage and maxAllyTeamMetalStorage or metalStorage)
+    --gl_Color(0,0,0, 0.05)
+    --gl_Texture(false)
+    --DrawRect(m_resources.posX + widgetPosX + paddingLeft-bordersize, posY + y1Offset+bordersize, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (metalStorage/maxStorage))+bordersize, posY + y2Offset-bordersize)
     gl_Color(1, 1, 1, 0.18)
     gl_Texture(pics["resbarBgPic"])
     DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (metalStorage/maxStorage)), posY + y2Offset)
@@ -2258,10 +2261,10 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
     if metalShare < 0.99 then  -- default = 0.99
         gl_Color(0,0,0, 0.18)
         gl_Texture(false)
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) - 1.3,
-                posY + y1Offset + 1.1,
-                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) + 1.3,
-                posY + y2Offset - 1.1)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) - 0.75 - bordersize,
+                posY + y1Offset + 0.55 + bordersize,
+                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) + 0.75 + bordersize,
+                posY + y2Offset - 0.55 - bordersize)
         gl_Color(1, 0.25, 0.25, 1)
         gl_Texture(pics["resbarPic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) - 0.75,
@@ -2278,6 +2281,9 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
        y2Offset = 5 * sizeMult
     end
     maxStorage = (maxAllyTeamEnergyStorage and maxAllyTeamEnergyStorage or energyStorage)
+    --gl_Color(0,0,0, 0.05)
+    --gl_Texture(false)
+    --DrawRect(m_resources.posX + widgetPosX + paddingLeft -bordersize, posY + y1Offset+bordersize, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (energyStorage/maxStorage))+bordersize, posY + y2Offset-bordersize)
     gl_Color(1, 1, 0, 0.18)
     gl_Texture(pics["resbarBgPic"])
     DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (energyStorage/maxStorage)), posY + y2Offset)
@@ -2299,11 +2305,11 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
     if energyConversion ~= 0.75 and not dead then    -- default = 0.75
         gl_Color(0,0,0, 0.125)
         gl_Texture(false)
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) - 1.45,
-                posY + y1Offset + 1.25,
-                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) + 1.45,
-                posY + y2Offset - 1.25)
-        gl_Color(0.9, 0.9, 0.82, 1)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) - 0.75 - bordersize,
+                posY + y1Offset + 0.55 + bordersize,
+                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) + 0.75 + bordersize,
+                posY + y2Offset - 0.55 - bordersize)
+        gl_Color(0.9, 0.9, 0.73, 1)
         gl_Texture(pics["resbarPic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) - 0.75,
                 posY + y1Offset + 0.55,
@@ -2314,9 +2320,9 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
     if energyShare < 0.94 or energyShare > 0.96 then  -- default = 0.94999999
         gl_Color(0,0,0, 0.18)
         gl_Texture(false)
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) - 1.3,
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) - 0.75 - bordersize,
                 posY + y1Offset + 1.1,
-                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) + 1.3,
+                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) + 0.75 + bordersize,
                 posY + y2Offset - 1.1)
         gl_Color(1, 0.25, 0.25, 1)
         gl_Texture(pics["resbarPic"])
