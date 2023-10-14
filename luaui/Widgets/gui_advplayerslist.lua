@@ -1157,10 +1157,10 @@ function CreatePlayer(playerID)
     tcpu = tcpu * 100 - ((tcpu * 100) % 1)
 
     -- resources
-    local energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0, 1, 0, 1, 0, 0
+    local energy, energyStorage, energyIncome, energyShare, metal, metalStorage, metalIncome, metalShare = 0, 1, 0, 0, 1, 0, 0, 0
     if aliveAllyTeams[tallyteam] ~= nil and (mySpecStatus or myAllyTeamID == tallyteam) then
-        energy, energyStorage, _, energyIncome = Spring_GetTeamResources(tteam, "energy")
-        metal, metalStorage, _, metalIncome = Spring_GetTeamResources(tteam, "metal")
+        energy, energyStorage, _, energyIncome, _, energyShare = Spring_GetTeamResources(tteam, "energy")
+        metal, metalStorage, _, metalIncome, _, metalShare = Spring_GetTeamResources(tteam, "metal")
         if energy then
             energy = math.floor(energy)
             metal = math.floor(metal)
@@ -1196,8 +1196,11 @@ function CreatePlayer(playerID)
         ai = false,
         energy = energy,
         energyStorage = energyStorage,
+        energyShare = energyShare,
+        energyConversion = Spring.GetTeamRulesParam(tteam, 'mmLevel'),
         metal = metal,
         metalStorage = metalStorage,
+        metalShare = metalShare,
         incomeMultiplier = tincomeMultiplier,
 		desynced = desynced,
     }
@@ -1252,10 +1255,10 @@ function CreatePlayerFromTeam(teamID)
     tskill = ""
 
     -- resources
-    local energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0, 1, 0, 1, 0, 0
+    local energy, energyStorage, energyIncome, energyShare, metal, metalStorage, metalIncome, metalShare = 0, 1, 0, 0, 1, 0, 0, 0
     if aliveAllyTeams[tallyteam] ~= nil and (mySpecStatus or myAllyTeamID == tallyteam) then
-        energy, energyStorage, _, energyIncome = Spring_GetTeamResources(teamID, "energy")
-        metal, metalStorage, _, metalIncome = Spring_GetTeamResources(teamID, "metal")
+        energy, energyStorage, _, energyIncome, _, energyShare = Spring_GetTeamResources(teamID, "energy")
+        metal, metalStorage, _, metalIncome, _, metalShare = Spring_GetTeamResources(teamID, "metal")
         energy = math.floor(energy or 0)
         metal = math.floor(metal or 0)
         if energy < 0 then
@@ -1283,21 +1286,24 @@ function CreatePlayerFromTeam(teamID)
         ai = tai,
         energy = energy,
         energyStorage = energyStorage,
+        energyShare = energyShare,
+        energyConversion = Spring.GetTeamRulesParam(teamID, 'mmLevel'),
         metal = metal,
         metalStorage = metalStorage,
+        metalShare = metalShare,
         incomeMultiplier = tincomeMultiplier,
     }
 end
 
 function UpdatePlayerResources()
     allyTeamMaxStorage = {}
-    local energy, energyStorage, metal, metalStorage = 0, 1, 0, 1
+    local energy, energyStorage, energyShare, metal, metalStorage, metalShare = 0, 1, 0, 0, 1, 0
     local energyIncome, metalIncome
     for playerID, _ in pairs(player) do
         if player[playerID].name and not player[playerID].spec and player[playerID].team then
             if aliveAllyTeams[player[playerID].allyteam] ~= nil and (mySpecStatus or myAllyTeamID == player[playerID].allyteam) then
-                energy, energyStorage, _, energyIncome = Spring_GetTeamResources(player[playerID].team, "energy")
-                metal, metalStorage, _, metalIncome = Spring_GetTeamResources(player[playerID].team, "metal")
+                energy, energyStorage, _, energyIncome, _, energyShare = Spring_GetTeamResources(player[playerID].team, "energy")
+                metal, metalStorage, _, metalIncome, _, metalShare = Spring_GetTeamResources(player[playerID].team, "metal")
                 if energy == nil then
                     -- need to be there for when you do /specfullview
                     energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0, 0, 0, 0, 0, 0
@@ -1314,9 +1320,12 @@ function UpdatePlayerResources()
                 player[playerID].energy = energy
                 player[playerID].energyIncome = energyIncome
                 player[playerID].energyStorage = energyStorage
+                player[playerID].energyShare = energyShare
+                player[playerID].energyConversion = Spring.GetTeamRulesParam(player[playerID].team, 'mmLevel')
                 player[playerID].metal = metal
                 player[playerID].metalIncome = metalIncome
                 player[playerID].metalStorage = metalStorage
+                player[playerID].metalShare = metalShare
                 if not allyTeamMaxStorage[player[playerID].allyteam] then
                     allyTeamMaxStorage[player[playerID].allyteam] = {}
                 end
@@ -2099,12 +2108,15 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                 local e = player[playerID].energy
                 local es = player[playerID].energyStorage
                 local ei = player[playerID].energyIncome
+                local esh = player[playerID].energyShare
+                local ec = player[playerID].energyConversion
                 local m = player[playerID].metal
                 local ms = player[playerID].metalStorage
                 local mi = player[playerID].metalIncome
+                local msh = player[playerID].metalShare
                 if es > 0 then
                     if onlyMainList3 and m_resources.active and (not dead or (e > 0 or m > 0)) then
-                        DrawResources(e, es, m, ms, posY, dead, (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][1])), (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][2])))
+                        DrawResources(e, es, esh, ec, m, ms, msh, posY, dead, (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][1])), (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][2])))
                         if tipY then
                             ResourcesTip(mouseX, e, es, ei, m, ms, mi)
                         end
@@ -2207,7 +2219,7 @@ function DrawChatButton(posY)
     DrawRect(m_chat.posX + widgetPosX + (1*playerScale), posY, m_chat.posX + widgetPosX + (17*playerScale), posY + (16*playerScale))
 end
 
-function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead, maxAllyTeamEnergyStorage, maxAllyTeamMetalStorage)
+function DrawResources(energy, energyStorage, energyShare, energyConversion, metal, metalStorage, metalShare, posY, dead, maxAllyTeamEnergyStorage, maxAllyTeamMetalStorage)
     -- limit to prevent going out of bounds when losing storage
     energy = math.min(energy, energyStorage)
     metal = math.min(metal, metalStorage)
@@ -2244,6 +2256,15 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead, m
         DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal), posY + y2Offset - glowsize)
     end
 
+    if metalShare < 0.99 then  -- default = 0.99
+        gl_Color(1, 0, 0, 1)
+        gl_Texture(pics["resbarPic"])
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) - 0.75,
+                posY + y1Offset + 0.55,
+                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) + 0.75,
+                posY + y2Offset - 0.55)
+    end
+
     if dead then
         y1Offset = 7.4 * sizeMult
         y2Offset = 6 * sizeMult
@@ -2268,6 +2289,24 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead, m
         gl_Texture(pics["barGlowEdgePic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft - (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft, posY + y2Offset - glowsize)
         DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset - glowsize)
+    end
+
+    if energyConversion ~= 0.75 and not dead then    -- default = 0.75
+        gl_Color(0.9, 0.9, 0.82, 1)
+        gl_Texture(pics["resbarPic"])
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) - 0.75,
+                posY + y1Offset + 0.55,
+                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) + 0.75,
+                posY + y2Offset - 0.55)
+    end
+
+    if energyShare < 0.94 or energyShare > 0.96 then  -- default = 0.94999999
+        gl_Color(1, 0, 0, 1)
+        gl_Texture(pics["resbarPic"])
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) - 0.75,
+                posY + y1Offset + 0.55,
+                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) + 0.75,
+                posY + y2Offset - 0.55)
     end
 end
 
