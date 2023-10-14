@@ -22,7 +22,7 @@ return {
 		idletime = 1800,
 		maxdamage = 300,
 		maxslope = 10,
-		maxvelocity = 9,
+		maxvelocity = 11,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMDRONE.s3o",

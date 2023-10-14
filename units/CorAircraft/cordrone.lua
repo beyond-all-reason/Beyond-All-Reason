@@ -21,7 +21,7 @@ return {
 		idletime = 1800,
 		maxdamage = 450,
 		maxslope = 10,
-		maxvelocity = 8.5,
+		maxvelocity = 10.5,
 		maxwaterdepth = 0,
 		nochasecategory = "COMMANDER VTOL",
 		objectname = "Units/CORDRONE.s3o",
