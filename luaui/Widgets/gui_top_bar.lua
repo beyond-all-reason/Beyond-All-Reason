@@ -31,8 +31,9 @@ local relXpos = 0.3
 local borderPadding = 5
 local bladeSpeedMultiplier = 0.2
 
+local wholeTeamWastingMetalCount = 0
+
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
-local stripesTexture = "LuaUI/Images/stripes.png"
 local showButtons = true
 local autoHideButtons = false
 
@@ -90,7 +91,7 @@ local spec = spGetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
-local isReplay = Spring.IsReplay()
+
 comTexture = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
 
 local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
@@ -623,7 +624,10 @@ local function updateResbarText(res)
 						if not supressOverflowNotifs and  WG['notifications'] and not isMetalmap and (not WG.sharedMetalFrame or WG.sharedMetalFrame+60 < gameFrame) then
 							if allyteamOverflowingMetal then
 								if numTeamsInAllyTeam > 1 then
-									WG['notifications'].addEvent('WholeTeamWastingMetal')
+									if wholeTeamWastingMetalCount < 5 then
+										wholeTeamWastingMetalCount = wholeTeamWastingMetalCount + 1
+										WG['notifications'].addEvent('WholeTeamWastingMetal')
+									end
 								else
 									--WG['notifications'].addEvent('YouAreWastingMetal')
 								end

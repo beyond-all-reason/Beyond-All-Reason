@@ -100,7 +100,7 @@ for key, value in pairs(modoptions) do
 			changedModoptions[key] = tostring(value)
 		else
 			if string.find(key, 'tweakdefs') then
-				changedModoptions[key] = string.base64Decode(value)
+				changedModoptions[key] = '\n' .. string.base64Decode(value)
 			else
 				local success, tweaks = pcall(Spring.Utilities.CustomKeyToUsefulTable, value)
 				if success and type(tweaks) == "table" then
