@@ -96,22 +96,26 @@ for key, value in pairs(modoptions) do
 	if modoptionsDefault[key] and value == modoptionsDefault[key].def then
 		unchangedModoptions[key] = tostring(value)
 	else
-		if not string.find(key, 'tweakunits') then
+		if not string.find(key, 'tweakunits') and not string.find(key, 'tweakdefs') then
 			changedModoptions[key] = tostring(value)
 		else
-			local success, tweaks = pcall(Spring.Utilities.CustomKeyToUsefulTable, value)
-			if success and type(tweaks) == "table" then
-				local text = ''
-				for name, ud in pairs(tweaks) do
-					if UnitDefNames[name] then
-						text = text .. '\n' .. valuecolor.. name..valuegreycolor..' = \{'
-						text = text..stringifyDefTable(ud, {}, name)
-						text = text .. '\n' .. '\}'
-					end
-				end
-				changedModoptions[key] = text
+			if string.find(key, 'tweakdefs') then
+				changedModoptions[key] = string.base64Decode(value)
 			else
-				changedModoptions[key] = tostring(value)
+				local success, tweaks = pcall(Spring.Utilities.CustomKeyToUsefulTable, value)
+				if success and type(tweaks) == "table" then
+					local text = ''
+					for name, ud in pairs(tweaks) do
+						if UnitDefNames[name] then
+							text = text .. '\n' .. valuecolor.. name..valuegreycolor..' = \{'
+							text = text..stringifyDefTable(ud, {}, name)
+							text = text .. '\n' .. '\}'
+						end
+					end
+					changedModoptions[key] = text
+				else
+					changedModoptions[key] = tostring(value)
+				end
 			end
 		end
 	end
