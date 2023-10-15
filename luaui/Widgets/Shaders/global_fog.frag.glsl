@@ -181,6 +181,41 @@ float FBMNoise3D(in vec3 x) // nah this is the fastest!
 	float myn = mix(mix_2.x, mix_2.y, f.z);
 	return myn;
 }
+float FBMNoise3DXF(in vec3 x) // nah this is the fastest!
+{
+	vec3 p = floor(x);
+	vec3 f = x - p;
+	 
+	//f = f * f * (3.0 - 2.0 * f);
+	
+	float n = p.x + p.y * 57.0 + p.z * 113.0;
+	//vec4 H1Pre = sin(vec4(0, 57, 113, 170)+ n    ) ;
+	vec4 hash_0 = fract(sin(vec4(0, 57, 113, 170)+ n    ) * 43758.5453);
+	vec4 hash_1 = fract(sin(vec4(0, 57, 113, 170)+ n  + 1) * 43758.5453);
+	vec4 mix_4 = mix(hash_0, hash_1, f.x);
+	vec2 mix_2 = mix(mix_4.xz, mix_4.yw, f.y);
+	float myn = mix(mix_2.x, mix_2.y, f.z);
+	return myn;
+}
+
+
+
+vec3 FBMNoise3D3(in vec3 x) // nah this is the fastest!
+{
+	vec3 p = floor(x);
+	vec3 f = x-p;//fract
+	
+	f = f * f * (3.0 - 2.0 * f);
+	
+	float n = p.x + p.y * 57.0 + p.z * 113.0;
+	
+	vec4 hash_0 = fract(sin(vec4(0, 57, 113, 170)+ n    ) * 43758.5453);
+	vec4 hash_1 = fract(sin(vec4(0, 57, 113, 170)+ n + 1) * 43758.5453);
+	vec4 mix_4 = mix(hash_0, hash_1, f.x);
+	vec2 mix_2 = mix(mix_4.xz, mix_4.yw, f.y);
+	float myn = mix(mix_2.x, mix_2.y, f.z);
+	return f;
+}
 
 //https://www.shadertoy.com/view/4sfGzS
 
@@ -1164,30 +1199,37 @@ void main(void)
 			
 			// Ray Coords for noise-space
 			vec3 shadowRayStep = (rayEnd - rayStart) / HEIGHTSHADOWSTEPS;
-			vec3 shadowRayStart = rayStart + blueNoiseSample.r * shadowRayStep; // Pull back the start with blue noise
+			vec3 shadowRayStart = rayStart + (thisQuadOffset + blueNoiseSample.r * 0.25) * shadowRayStep; // Pull back the start with blue noise
 			float stepSize = rayLength / HEIGHTSHADOWSTEPS;
 			heightShadow = 0;
-
+			vec3 sinstart = sin (5.0 * rayStart * vec3(0.001,0.0011,0.0012));
 			for (uint i = 0; i < HEIGHTSHADOWSTEPS; i++){
 				heightShadow += textureProj(shadowTex, heightShadowStartPos, -2).r; // 1 for lit, 0 
+				//heightShadow += 1 ;
 				heightShadowStartPos += heightShadowEndStep;
 
 				//rayPos += rayPos*NOISESKEW;
 				//maek cloudy:
 				// Todo, weight shadow samples with gathered density modulation
 				#if 1
-					vec4 noisebloise = texture(uniformNoiseTex,shadowRayStart * 0.0005);
+					//vec4 noisebloise = texture(uniformNoiseTex,shadowRayStart * 0.0005);
+					
+					//float mahnoise = max(max(noisebloise.r, noisebloise.g), noisebloise.b);
+					//mahnoise = mahnoise;
+					vec3 lfnoisepos = shadowRayStart * NOISESCALE1024 * 50 + noiseOffset;
+					lfnoisepos += lfnoisepos.zzx * NOISESKEW;
+					float myfreq = (thisQuadOffset + 0.25);
+
+					float cloudy = 1.3 - texture(noise64cube, 0.06* lfnoisepos.zxy * vec3(1,1,4)).r;
+					densityModulation +=  cloudy ;
 					shadowRayStart += shadowRayStep;
 					
-					float mahnoise = max(max(noisebloise.r, noisebloise.g), noisebloise.b);
-					mahnoise = mahnoise;
-					densityModulation +=  mahnoise;
 				#else
 					densityModulation = 1.0;
 				#endif
 			}
 
-			heightShadow = quadGatherWeighted(heightShadow);
+			heightShadow =  quadGatherWeighted(heightShadow);
 
 			
 			heightShadow /= HEIGHTSHADOWSTEPS;
@@ -1208,7 +1250,7 @@ void main(void)
 	// A very simple approach to ease height based fog with distance from camera
 	heightBasedFog = cloudDensity * heightBasedFog  * smoothstep(0.0,2000.0 * EASEHEIGHT, length(rayStart-camPos));
 	
-	float heightBasedFogExp = 1.0 - exp(heightBasedFog * heightFogColor.a * 0.1);
+	float heightBasedFogExp = 1.0 - exp( - 1 * heightBasedFog * heightFogColor.a * 0.1);
 	heightBasedFogColor.rgb = mix(shadowedColor.rgb, heightFogColor.rgb, heightShadow);
 	heightBasedFogColor.a = heightBasedFogExp;	
 	//Debug shadowing of fog:
@@ -1451,8 +1493,9 @@ void main(void)
 	outColor.rgb = outColor.rgb * (1.0 - cloudShadowColor.a) + shadowedColor.rgb * cloudShadowColor.a;
 
 	// 3. Blend heightBasedFogColor.rgba
-	outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - heightBasedFogColor.a);
-	outColor.rgb = mix(outColor.rgb, heightBasedFogColor.rgb, heightBasedFogColor.a);
+	float newalpha =  1.0 -  (1.0 - outColor.a) * (1.0 - heightBasedFogColor.a);
+	outColor.rgb = mix(outColor.rgb, heightBasedFogColor.rgb,heightBasedFogColor.a - outColor.a * outColor.a);
+	outColor.a = newalpha;
 
 	// 4. Blend cloudBlendRGBT.rgba
 	outColor.rgb = mix(outColor.rgb, cloudBlendRGBT.rgb, cloudBlendRGBT.a);
