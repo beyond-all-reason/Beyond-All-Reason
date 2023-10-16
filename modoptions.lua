@@ -871,16 +871,6 @@ local options={
 	},
 
 	{
-		key    = 'experimentalmorphs',
-		name   = 'Upgradeable Units',
-		desc   = 'Upgradeable Units',
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-		hidden = true,
-	},
-
-	{
 		key    = 'experimentalimprovedtransports',
 		name   = 'Transport Units Rework',
 		desc   = 'Transport Units Rework',
