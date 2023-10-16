@@ -92,7 +92,7 @@ end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, attackerID, attackerDefID, attackerTeam)
 	--if (not spValidUnitID(unitID)) or (not weaponID) or (not attritionWeaponDefs[weaponID]) or ((not attackerID) and attritionWeaponDefs[weaponID].noDeathBlast)
 
-	if not spValidUnitID(unitID) or not weaponID or not paralyzer then
+	if not weaponID or not paralyzer or not spValidUnitID(unitID) then
 		return damage
 	else
 		if not slowedUnits[unitID] then
