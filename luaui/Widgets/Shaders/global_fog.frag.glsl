@@ -170,16 +170,23 @@ vec4 Value3D_Deriv( vec3 P )
 	// DERIVATIVES
 	#define DERIVSTEP 1024.0
 	vec3 derivatives = vec3(0);
-	vec3 blendderiv = min(vec3(1), blend + 1.0/DERIVSTEP); // The min is to ensure we dont move out of smoothstep range
-
+	vec3 blendderiv = min(vec3(1), Pf + 1.0/DERIVSTEP); // The min is to ensure we dont move out of smoothstep range
+	blendderiv =   blendderiv * blendderiv * (3.0 - 2.0 * blendderiv);
 	// Calculate the same three as above, just at a the derivative step
-	vec4 res0deriv =  mix(hash_lowz   , hash_highz  , blendderiv.z);
-	vec2 res1deriv =  mix(res0deriv.xy, res0deriv.zw, blendderiv.y);
-	float res2deriv = mix(res1deriv.x , res1deriv.y , blendderiv.x);
+	vec4 res0deriv =   mix(hash_lowz   , hash_highz  , blendderiv.z);
+	vec2 res1derivz =  mix(res0deriv.xy, res0deriv.zw, blend.y);
+	derivatives.z    = mix(res1derivz.x, res1derivz.y, blend.x);
+
+	vec2 res1derivy =  mix(res0.xy  , res0.zw   , blendderiv.y);
+	derivatives.y =    mix(res1derivy.x   , res1derivy.y    , blend.x);
 	
-	derivatives.z = dot((res0 - res0deriv), vec4(DERIVSTEP/4.0)); // This one is trivial. 
-	derivatives.y = dot((res1 - res1deriv), vec2(DERIVSTEP/2.0));
-	derivatives.x =    ((res2 - res2deriv) *    (DERIVSTEP/1.0));
+	derivatives.x =    mix(res1.x   , res1.y    , blendderiv.x);
+	derivatives = (res2 - derivatives) * DERIVSTEP;
+
+	
+//	derivatives.z = dot((res0 - res0deriv), vec4(DERIVSTEP/4.0)); // This one is trivial. 
+//	derivatives.y = dot((res1 - res1deriv), vec2(DERIVSTEP/2.0));
+//	derivatives.x =    ((res2 - res2deriv) *    (DERIVSTEP/1.0));
     return vec4(derivatives, res2);
 }
 
@@ -1319,7 +1326,7 @@ void main(void)
 					//cloudy =  texture(uniformNoiseTex, 0.06* lfnoisepos.zxy * vec3(1,1,4)).r;
 					//cloudy =  FBMNoise3DXF(lfnoisepos.xyz * vec3(1,1,1)) * 4 ;
 					//cloudy = Value3D(lfnoisepos.xyz * vec3(1,1,1)*myfreq) /myfreq ;
-					cloudy = abs( Value3D_Deriv(lfnoisepos.xyz * vec3(1,1,1)*myfreq).b /myfreq) ;
+					cloudy = abs(0.5 +  Value3D_Deriv(lfnoisepos.yxz * vec3(1,1,1)*myfreq).b) /myfreq ;
 					//cloudy = dot(FBMNoise3D_rg( lfnoisepos.xyz * vec3(1,1,1)), vec2(0.5));
 					//cloudy = dot(FBMNoise3D_rgba( lfnoisepos.xyz * vec3(1,1,1)), vec4(0.25));
 					
