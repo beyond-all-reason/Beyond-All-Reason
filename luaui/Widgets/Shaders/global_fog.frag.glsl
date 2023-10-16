@@ -105,7 +105,7 @@ float frequency;
 
 #if 1 // These are all standard, useful Noise functions 
 //  https://github.com/BrianSharpe/Wombat/blob/master/Value3D.glsl
-float Value3D( vec3 P )
+float Value3D( vec3 P )// actually works and is correct and fast and random
 {
     // establish our grid cell and unit position
     vec3 Pi = floor(P);
@@ -132,7 +132,7 @@ float Value3D( vec3 P )
     return dot( res0, blend2.zxzx * blend2.wwyy );
 }
 
-vec4 Value3D_Deriv( vec3 P )
+vec4 Value3D_Deriv( vec3 P ) // actually works and is correct and fast and random
 {
     // establish our grid cell and unit position
     vec3 Pi = floor(P);
@@ -150,47 +150,39 @@ vec4 Value3D_Deriv( vec3 P )
     vec4 hash_lowz = fract( Pt * hash_mod.xxxx );
     vec4 hash_highz = fract( Pt * hash_mod.yyyy );
 
-    //	blend the results and return
-    //vec3 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
-    //vec3 blend = smoothstep(0,1,Pf); // better than 5th order as above (and faster)
-    vec3 blend = Pf * Pf * (3.0 - 2.0 * Pf); // better than 5th order as above (and faster)
+	// better than 5th order poly used previously
+    vec3 blend = Pf * Pf * (3.0 - 2.0 * Pf); 
 
+    //	blend the results and return
 	// res0 results in the 2d squash along Z:
     vec4 res0 =  mix(hash_lowz, hash_highz, blend.z );
 	vec2 res1 =  mix(res0.xy  , res0.zw   , blend.y);
 	float res2 = mix(res1.x   , res1.y    , blend.x);
 
-	// Blend2 is the vector used to blend these 4 remaining 2d values  
-	//vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) ); 
-
-	// Cross multiply their weights efficiently, to squash along both XY axis easily
-	//float noiseresult = dot( res0, blend2.zxzx * blend2.wwyy )
-
 	// Below is the simple derivative based approach
 	// DERIVATIVES
 	#define DERIVSTEP 1024.0
 	vec3 derivatives = vec3(0);
+	// Move the Pf vector a bit
 	vec3 blendderiv = min(vec3(1), Pf + 1.0/DERIVSTEP); // The min is to ensure we dont move out of smoothstep range
 	blendderiv =   blendderiv * blendderiv * (3.0 - 2.0 * blendderiv);
-	// Calculate the same three as above, just at a the derivative step
-	vec4 res0deriv =   mix(hash_lowz   , hash_highz  , blendderiv.z);
-	vec2 res1derivz =  mix(res0deriv.xy, res0deriv.zw, blend.y);
+	// Calculate the same three as above, just at a the derivative step of Z
+	vec4 res0deriv   = mix(hash_lowz   , hash_highz  , blendderiv.z);
+	vec2 res1derivz  = mix(res0deriv.xy, res0deriv.zw, blend.y);
 	derivatives.z    = mix(res1derivz.x, res1derivz.y, blend.x);
 
+	// Then on derivative step of Y
 	vec2 res1derivy =  mix(res0.xy  , res0.zw   , blendderiv.y);
-	derivatives.y =    mix(res1derivy.x   , res1derivy.y    , blend.x);
+	derivatives.y   =  mix(res1derivy.x   , res1derivy.y    , blend.x);
 	
-	derivatives.x =    mix(res1.x   , res1.y    , blendderiv.x);
+	// then on derivatie step of X
+	derivatives.x   =  mix(res1.x   , res1.y    , blendderiv.x);
 	derivatives = (res2 - derivatives) * DERIVSTEP;
-
-	
-//	derivatives.z = dot((res0 - res0deriv), vec4(DERIVSTEP/4.0)); // This one is trivial. 
-//	derivatives.y = dot((res1 - res1deriv), vec2(DERIVSTEP/2.0));
-//	derivatives.x =    ((res2 - res2deriv) *    (DERIVSTEP/1.0));
     return vec4(derivatives, res2);
 }
 
 // fastest 3d noise ever? https://www.shadertoy.com/view/WslGWl
+// its nice, but not random enough
 float fbmhash(float n){return fract(sin(n) * 43758.5453);}
 vec4 FBMNoise3DDeriv(in vec3 x) // uses S
 {
@@ -1321,12 +1313,12 @@ void main(void)
 					//lfnoisepos += lfnoisepos.zzx * NOISESKEW;
 					//lfnoisepos.y = 0;
 					float cloudy = 1.0;
-					myfreq = 0.1;
+					//myfreq = 0.1;
 					//cloudy =  texture(noise64cube, 0.06* lfnoisepos.zxy * vec3(1,1,4)).r;
 					//cloudy =  texture(uniformNoiseTex, 0.06* lfnoisepos.zxy * vec3(1,1,4)).r;
 					//cloudy =  FBMNoise3DXF(lfnoisepos.xyz * vec3(1,1,1)) * 4 ;
-					//cloudy = Value3D(lfnoisepos.xyz * vec3(1,1,1)*myfreq) /myfreq ;
-					cloudy = abs(0.5 +  Value3D_Deriv(lfnoisepos.yxz * vec3(1,1,1)*myfreq).b) /myfreq ;
+					cloudy = Value3D(lfnoisepos.xyz * vec3(1,1,1)*myfreq) /myfreq ;
+					//cloudy = abs(0.5 +  Value3D_Deriv(lfnoisepos.yxz * vec3(1,1,1)*myfreq).a) /myfreq ;
 					//cloudy = dot(FBMNoise3D_rg( lfnoisepos.xyz * vec3(1,1,1)), vec2(0.5));
 					//cloudy = dot(FBMNoise3D_rgba( lfnoisepos.xyz * vec3(1,1,1)), vec4(0.25));
 					
@@ -1422,7 +1414,7 @@ void main(void)
 	
 	// take the ray start, and clamp it to the most distant of all 
 	
-	vec3 cloudBoxSize = (cloudVolumeMax.xyz - cloudVolumeMin.xyz) * 1;
+	vec3 cloudBoxSize = (cloudVolumeMax.xyz - cloudVolumeMin.xyz) * 0.5;
 	vec3 cloudBoxCenter = (cloudVolumeMax.xyz + cloudVolumeMin.xyz) * 0.5;
 	
 	vec3 rayOriginInbox = camPos - cloudBoxCenter;
