@@ -1253,7 +1253,15 @@ local options={
 
 
 
-
+	-- this setting is actually used as a top level/lobby option by chobby, this just bootstraps the process
+	{
+		key="unranked_game",
+		name   		= "Unranked Game",
+		desc   		= "Game results do not affect OpenSkill",
+		type   		= "bool",
+		def    		= false,
+		hidden		= true,
+	},
 
 
 
