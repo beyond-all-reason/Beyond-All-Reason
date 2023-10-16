@@ -953,9 +953,9 @@ addNewSquad({ type = "special", minAnger = 100, units = { "8 raptorh2" }, maxAng
 --Matriarchs------------------------------------------------------------------------------------------------------  
 
 for j = 1, #miniBosses do
-	addNewSquad({ type = "special", minAnger = 70, units = { "2 " .. miniBosses[j] }, maxAnger = 1000 })
-	addNewSquad({ type = "special", minAnger = 85, units = { "2 " .. miniBosses[j] }, maxAnger = 1000 })
-	addNewSquad({ type = "special", minAnger = 100, units = { "2 " .. miniBosses[j] }, maxAnger = 1000 })
+	addNewSquad({ type = "special", minAnger = 70, units = { "1 " .. miniBosses[j] }, maxAnger = 1000 })
+	addNewSquad({ type = "special", minAnger = 85, units = { "1 " .. miniBosses[j] }, maxAnger = 1000 })
+	addNewSquad({ type = "special", minAnger = 100, units = { "1 " .. miniBosses[j] }, maxAnger = 1000 })
 end
 
 ---------------------------------------------
