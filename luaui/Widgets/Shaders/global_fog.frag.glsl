@@ -1300,7 +1300,7 @@ void main(void)
 				heightShadow =  quadGatherWeighted(heightShadow);
 			#endif
 			
-
+			// TODO: add correct wind
 			#if HEIGHTNOISESTEPS > 0
 				// Ray Coords for noise-space
 				vec3 shadowRayStep = (rayEnd - rayStart) / HEIGHTNOISESTEPS;
