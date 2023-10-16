@@ -110,7 +110,6 @@ float Value3D( vec3 P )
     // establish our grid cell and unit position
     vec3 Pi = floor(P);
     vec3 Pf = P - Pi;
-    vec3 Pf_min1 = Pf - 1.0;
 
     // clamp the domain
     Pi.xyz = Pi.xyz - floor(Pi.xyz * ( 1.0 / 69.0 )) * 69.0;
@@ -131,6 +130,57 @@ float Value3D( vec3 P )
     vec4 res0 = mix( hash_lowz, hash_highz, blend.z );
     vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) );
     return dot( res0, blend2.zxzx * blend2.wwyy );
+}
+
+vec4 Value3D_Deriv( vec3 P )
+{
+    // establish our grid cell and unit position
+    vec3 Pi = floor(P);
+    vec3 Pf = P - Pi;
+
+    // clamp the domain
+    Pi.xyz = Pi.xyz - floor(Pi.xyz * ( 1.0 / 69.0 )) * 69.0;
+    vec3 Pi_inc1 = step( Pi, vec3( 69.0 - 1.5 ) ) * ( Pi + 1.0 );
+
+    // calculate the hash
+    vec4 Pt = vec4( Pi.xy, Pi_inc1.xy ) + vec2( 50.0, 161.0 ).xyxy;
+    Pt *= Pt;
+    Pt = Pt.xzxz * Pt.yyww;
+    vec2 hash_mod = vec2( 1.0 / ( 635.298681 + vec2( Pi.z, Pi_inc1.z ) * 48.500388 ) );
+    vec4 hash_lowz = fract( Pt * hash_mod.xxxx );
+    vec4 hash_highz = fract( Pt * hash_mod.yyyy );
+
+    //	blend the results and return
+    //vec3 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
+    //vec3 blend = smoothstep(0,1,Pf); // better than 5th order as above (and faster)
+    vec3 blend = Pf * Pf * (3.0 - 2.0 * Pf); // better than 5th order as above (and faster)
+
+	// res0 results in the 2d squash along Z:
+    vec4 res0 =  mix(hash_lowz, hash_highz, blend.z );
+	vec2 res1 =  mix(res0.xy  , res0.zw   , blend.y);
+	float res2 = mix(res1.x   , res1.y    , blend.x);
+
+	// Blend2 is the vector used to blend these 4 remaining 2d values  
+	//vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) ); 
+
+	// Cross multiply their weights efficiently, to squash along both XY axis easily
+	//float noiseresult = dot( res0, blend2.zxzx * blend2.wwyy )
+
+	// Below is the simple derivative based approach
+	// DERIVATIVES
+	#define DERIVSTEP 1024.0
+	vec3 derivatives = vec3(0);
+	vec3 blendderiv = min(vec3(1), blend + 1.0/DERIVSTEP); // The min is to ensure we dont move out of smoothstep range
+
+	// Calculate the same three as above, just at a the derivative step
+	vec4 res0deriv =  mix(hash_lowz   , hash_highz  , blendderiv.z);
+	vec2 res1deriv =  mix(res0deriv.xy, res0deriv.zw, blendderiv.y);
+	float res2deriv = mix(res1deriv.x , res1deriv.y , blendderiv.x);
+	
+	derivatives.z = dot((res0 - res0deriv), vec4(DERIVSTEP/4.0)); // This one is trivial. 
+	derivatives.y = dot((res1 - res1deriv), vec2(DERIVSTEP/2.0));
+	derivatives.x =    ((res2 - res2deriv) *    (DERIVSTEP/1.0));
+    return vec4(derivatives, res2);
 }
 
 // fastest 3d noise ever? https://www.shadertoy.com/view/WslGWl
@@ -181,13 +231,13 @@ float FBMNoise3D(in vec3 x) // nah this is the fastest!
 	float myn = mix(mix_2.x, mix_2.y, f.z);
 	return myn;
 }
+
 float FBMNoise3DXF(in vec3 x) // nah this is the fastest!
 {
 	vec3 p = floor(x);
 	vec3 f = x - p;
 	 
 	//f = f * f * (3.0 - 2.0 * f);
-	
 	float n = p.x + p.y * 57.0 + p.z * 113.0;
 	//vec4 H1Pre = sin(vec4(0, 57, 113, 170)+ n    ) ;
 	vec4 hash_0 = fract(sin(vec4(0, 57, 113, 170)+ n    ) * 43758.5453);
@@ -199,23 +249,66 @@ float FBMNoise3DXF(in vec3 x) // nah this is the fastest!
 }
 
 
-
-vec3 FBMNoise3D3(in vec3 x) // nah this is the fastest!
+vec2 FBMNoise3D_rg(in vec3 x) // return two noise floats
 {
 	vec3 p = floor(x);
-	vec3 f = x-p;//fract
+	vec3 f = x - p;
+	 
+	//f = f * f * (3.0 - 2.0 * f);
 	
+	float n = p.x + p.y * 57.0 + p.z * 113.0;
+	//vec4 H1Pre = sin(vec4(0, 57, 113, 170)+ n    ) ;
+	vec4 pos_0 = sin(vec4(0, 57, 113, 170)+ n    );
+	vec4 pos_1 = sin(vec4(0, 57, 113, 170)+ n  + 1);
+
+	vec4 hash_r_0 = fract( pos_0 * 43758.5453);
+	vec4 hash_r_1 = fract( pos_1 * 43758.5453);
+	vec4 mix_r_4 = mix(hash_r_0, hash_r_1, f.x);
+
+	vec4 hash_g_0 = fract( pos_0 * 41758.5453);
+	vec4 hash_g_1 = fract( pos_1 * 41758.5453);
+	vec4 mix_g_4 = mix(hash_g_0, hash_g_1, f.x);
+	
+	vec4 mix_rg = mix(vec4(mix_r_4.xz, mix_g_4.xz), vec4(mix_r_4.yw, mix_g_4.yw), f.y);
+	return mix(mix_rg.xz, mix_rg.yw,f.z);
+}
+
+vec4 FBMNoise3D_rgba(in vec3 x) // return 4 noise floats
+{
+	vec3 p = floor(x);
+	vec3 f = x - p;
+	 
 	f = f * f * (3.0 - 2.0 * f);
 	
 	float n = p.x + p.y * 57.0 + p.z * 113.0;
+	//vec4 H1Pre = sin(vec4(0, 57, 113, 170)+ n    ) ;
+	vec4 pos_0 = sin(vec4(0, 57, 113, 170)+ n    );
+	vec4 pos_1 = sin(vec4(0, 57, 113, 170)+ n  + 1);
+
+	vec4 hash_r_0 = fract( pos_0 * 43758.5453);
+	vec4 hash_r_1 = fract( pos_1 * 43758.5453);
+	vec4 mix_r_4 = mix(hash_r_0, hash_r_1, f.x);
+
+	vec4 hash_g_0 = fract( pos_0 * 41758.5453);
+	vec4 hash_g_1 = fract( pos_1 * 41758.5453);
+	vec4 mix_g_4 = mix(hash_g_0, hash_g_1, f.x);
 	
-	vec4 hash_0 = fract(sin(vec4(0, 57, 113, 170)+ n    ) * 43758.5453);
-	vec4 hash_1 = fract(sin(vec4(0, 57, 113, 170)+ n + 1) * 43758.5453);
-	vec4 mix_4 = mix(hash_0, hash_1, f.x);
-	vec2 mix_2 = mix(mix_4.xz, mix_4.yw, f.y);
-	float myn = mix(mix_2.x, mix_2.y, f.z);
-	return f;
+	vec4 mix_rg = mix(vec4(mix_r_4.xz, mix_g_4.xz), vec4(mix_r_4.yw, mix_g_4.yw), f.y);
+
+	vec4 hash_b_0 = fract( pos_0 * 39758.5453);
+	vec4 hash_b_1 = fract( pos_1 * 39758.5453);
+	vec4 mix_b_4 = mix(hash_b_0, hash_b_1, f.x);
+
+	vec4 hash_a_0 = fract( pos_0 * 31758.5453);
+	vec4 hash_a_1 = fract( pos_1 * 31758.5453);
+	vec4 mix_a_4 = mix(hash_a_0, hash_a_1, f.x);
+
+	vec4 mix_ba = mix(vec4(mix_b_4.xz, mix_a_4.xz), vec4(mix_b_4.yw, mix_a_4.yw), f.y);
+	
+	return mix(vec4(mix_rg.xz, mix_ba.xz), vec4(mix_rg.yw, mix_ba.yw),f.z);
 }
+
+
 
 //https://www.shadertoy.com/view/4sfGzS
 
@@ -907,7 +1000,7 @@ float fastQuadTexture2DLookupInd(sampler2D t, vec2 Pos, vec2 stepsize, vec4 weig
 
 
 ////-----------------------------STATIC DEFINES-----------------
-// These defines were empirically determined to be the kind that its not worth fucking with
+// These defines were empirically determined to be the kind that its not worth touching
 
 #define BLUENOISESTRENGTH 1.1
 #define NOISESKEW vec3(0.21, 0.32, 0.26)
@@ -917,7 +1010,7 @@ float fastQuadTexture2DLookupInd(sampler2D t, vec2 Pos, vec2 stepsize, vec4 weig
 #define FASTSMOOTHSTEP(A) (A * A * (3.0 - 2.0 * A))
 // HIGHFREQUENCY UNIFORM NOISE PARAMS
 // noiseHFParams perturbation stuff
-// this is uniform 16x16x16 noise, fucking fast
+// this is uniform 16x16x16 noise, pretty fast
 // x - relative scale (FROM NOISE)
 // y - perturb strength
 // z - offset speedx, as a fraction of base speed
@@ -966,7 +1059,7 @@ void WorldToNoiseSpace(in vec3 wp, out vec3 lf, out vec3 hf){
 
 vec4 SampleNoiseSpace(in vec3 noiseLFSpacePos, in vec3 noiseHFSpacePos, in float perturbfactor){
 
-	vec4 highFreqNoise =  textureLod(uniformNoiseTex, noiseHFSpacePos,0);
+	vec4 highFreqNoise = textureLod(uniformNoiseTex, noiseHFSpacePos,0);
 	//vec4 highFreqNoise =  texture(uniformNoiseTex, noiseHFSpacePos);
 	
 	highFreqNoise.rgb = highFreqNoise.rgb * 0.5 - 0.25; // scale down to [-0.25, 0.25]
@@ -1183,62 +1276,65 @@ void main(void)
 	float heightShadow = 1; // What fraction of samples were LIT along the way.
 	float fogPlaneSizeInv = 1.0 / (heightFogTop - heightFogBottom);
 	
-	float densityModulation = 0.0;
+	float densityModulation = 0.5;
 	// ----------------- BEGIN HEIGHT-BASED FOG SHADOWING -------------------------------
 	#line 33700
-	#if HEIGHTSHADOWSTEPS > 0
+	#if (HEIGHTSHADOWSTEPS > 0) || (HEIGHTNOISESTEPS > 0)
 		float inmapness = 0;// max( linearDistanceMap(rayEnd), linearDistanceMap(rayStart));
 		//fragColor.rgba = vec4(vec3( fract(inmapness * 0.01)),1.0);
 		//return;
 		if (rayLength > 0.01 && inmapness < 512.0) {
-			// Ray Coords for shadow-space
-			vec4 heightShadowStartPos = WorldToShadowSpace(rayStart); // The more distant position
-			vec4 heightShadowEndStep   = WorldToShadowSpace(rayEnd); // The position closer to camera
-			heightShadowEndStep  = ( heightShadowEndStep- heightShadowStartPos) / HEIGHTSHADOWSTEPS; // points toward camera
-			heightShadowStartPos +=  heightShadowEndStep * (thisQuadOffset + blueNoiseSample.r * 0.25); // Give it some jitter for smoothing
+
+			#if (HEIGHTSHADOWSTEPS > 0)
+				// Ray Coords for shadow-space
+				vec4 heightShadowStartPos = WorldToShadowSpace(rayStart); // The more distant position
+				vec4 heightShadowEndStep   = WorldToShadowSpace(rayEnd); // The position closer to camera
+				heightShadowEndStep  = ( heightShadowEndStep- heightShadowStartPos) / HEIGHTSHADOWSTEPS; // points toward camera
+				heightShadowStartPos +=  heightShadowEndStep * (thisQuadOffset + blueNoiseSample.r * 0.25); // Give it some jitter for smoothing
 			
-			// Ray Coords for noise-space
-			vec3 shadowRayStep = (rayEnd - rayStart) / HEIGHTSHADOWSTEPS;
-			vec3 shadowRayStart = rayStart + (thisQuadOffset + blueNoiseSample.r * 0.25) * shadowRayStep; // Pull back the start with blue noise
-			float stepSize = rayLength / HEIGHTSHADOWSTEPS;
-			heightShadow = 0;
-			vec3 sinstart = sin (5.0 * rayStart * vec3(0.001,0.0011,0.0012));
-			for (uint i = 0; i < HEIGHTSHADOWSTEPS; i++){
-				heightShadow += textureProj(shadowTex, heightShadowStartPos, -2).r; // 1 for lit, 0 
-				//heightShadow += 1 ;
-				heightShadowStartPos += heightShadowEndStep;
+				heightShadow = 0;
+				for (uint i = 0; i < HEIGHTSHADOWSTEPS; i++){
+					heightShadow += textureProj(shadowTex, heightShadowStartPos, -2).r; // 1 for lit, 0 
+					//heightShadow += 1 ;
+					heightShadowStartPos += heightShadowEndStep;
+				}
+				heightShadow =  quadGatherWeighted(heightShadow);
+			#endif
+			
 
-				//rayPos += rayPos*NOISESKEW;
-				//maek cloudy:
-				// Todo, weight shadow samples with gathered density modulation
-				#if 1
-					//vec4 noisebloise = texture(uniformNoiseTex,shadowRayStart * 0.0005);
+			#if HEIGHTNOISESTEPS > 0
+				// Ray Coords for noise-space
+				vec3 shadowRayStep = (rayEnd - rayStart) / HEIGHTNOISESTEPS;
+				vec3 shadowRayStart = rayStart + (thisQuadOffset + blueNoiseSample.r * (HEIGHTNOISESTEPS / 64 )) * shadowRayStep; // Pull back the start with blue noise
+				float stepSize = rayLength / HEIGHTNOISESTEPS;
+				float myfreq = (thisQuadOffset + 0.1);
+				densityModulation = 0.0;
+				for (uint i = 0; i < HEIGHTNOISESTEPS; i++){
+					vec3 lfnoisepos = shadowRayStart * NOISESCALE1024 * 100.1 + noiseOffset;
+					//lfnoisepos += lfnoisepos.zzx * NOISESKEW;
+					//lfnoisepos.y = 0;
+					float cloudy = 1.0;
+					myfreq = 0.1;
+					//cloudy =  texture(noise64cube, 0.06* lfnoisepos.zxy * vec3(1,1,4)).r;
+					//cloudy =  texture(uniformNoiseTex, 0.06* lfnoisepos.zxy * vec3(1,1,4)).r;
+					//cloudy =  FBMNoise3DXF(lfnoisepos.xyz * vec3(1,1,1)) * 4 ;
+					//cloudy = Value3D(lfnoisepos.xyz * vec3(1,1,1)*myfreq) /myfreq ;
+					cloudy = abs( Value3D_Deriv(lfnoisepos.xyz * vec3(1,1,1)*myfreq).b /myfreq) ;
+					//cloudy = dot(FBMNoise3D_rg( lfnoisepos.xyz * vec3(1,1,1)), vec2(0.5));
+					//cloudy = dot(FBMNoise3D_rgba( lfnoisepos.xyz * vec3(1,1,1)), vec4(0.25));
 					
-					//float mahnoise = max(max(noisebloise.r, noisebloise.g), noisebloise.b);
-					//mahnoise = mahnoise;
-					vec3 lfnoisepos = shadowRayStart * NOISESCALE1024 * 50 + noiseOffset;
-					lfnoisepos += lfnoisepos.zzx * NOISESKEW;
-					float myfreq = (thisQuadOffset + 0.25);
-
-					float cloudy = 1.3 - texture(noise64cube, 0.06* lfnoisepos.zxy * vec3(1,1,4)).r;
 					densityModulation +=  cloudy ;
 					shadowRayStart += shadowRayStep;
-					
-				#else
-					densityModulation = 1.0;
-				#endif
-			}
+				}
+				
+				densityModulation = quadGatherSumFloat(densityModulation);
+				densityModulation = densityModulation/(HEIGHTNOISESTEPS);
+			#endif
 
-			heightShadow =  quadGatherWeighted(heightShadow);
 
-			
 			heightShadow /= HEIGHTSHADOWSTEPS;
-			densityModulation = quadGatherWeighted(densityModulation);
-			densityModulation = densityModulation/(HEIGHTSHADOWSTEPS);
 		}
 		// Fun idea: since shadow darkness shafts always follow a known sun-based pattern, they could be directionally blurred in combine shader, if draw to a separate render target
-	#else
-		densityModulation = 0.5;
 	#endif
 
 		// just use the density function of fogtop-fogbottom
@@ -1330,10 +1426,10 @@ void main(void)
 	vec3 t2 = -rayNormal + k;
 	
 	float nearDist = max( max( t1.x, t1.y ), t1.z );
-	float farDist = min( min( t2.x, t2.y ), t2.z );
+	float farDist  = min( min( t2.x, t2.y ), t2.z );
 	
-	vec3 cloudRayEnd = camPos + nearDist * cloudRayDir; // Near point
-	vec3 cloudRayStart = camPos  + farDist * cloudRayDir; // Far Point
+	vec3 cloudRayEnd   = camPos + nearDist * cloudRayDir; // Near point
+	vec3 cloudRayStart = camPos + farDist  * cloudRayDir; // Far Point
 
 	lengthMapFromCam = length(camPos - mapWorldPos.xyz);
 	if (farDist > lengthMapFromCam) cloudRayStart = mapWorldPos.xyz; // map is closer than back of cloud box
@@ -1636,7 +1732,7 @@ void main(void)
 		vec4 shadedFogColor = vec4(0);
 		noiseValues[0] = 1;
 		
-		const float stepsInv = 1.0 / SHADOWMARCHSTEPS;
+		const float stepsInv = 1.0 / HEIGHTSHADOWSTEPS;
 
 		//vec3 noiseOffset = vec3(0, - time*4, 0) * NOISESCALE1024 * WINDSTRENGTH * 0.3;
 		float rayJitterOffset = 0;
@@ -1754,12 +1850,12 @@ void main(void)
 				#endif
 				
 	
-				#if (SHADOWMARCHSTEPS > 0)
+				#if (HEIGHTSHADOWSTEPS > 0)
 					float shadowJitterOffset = rayJitterOffset;
-					rayStep = (rayEnd - rayStart) / SHADOWMARCHSTEPS;
+					rayStep = (rayEnd - rayStart) / HEIGHTSHADOWSTEPS;
 					float numShadowSamplesTaken = 0;
-					for (uint i = 0; i < SHADOWMARCHSTEPS; i++){
-						uint noiseIndex = (i * CLOUDSTEPS) / SHADOWMARCHSTEPS;
+					for (uint i = 0; i < HEIGHTSHADOWSTEPS; i++){
+						uint noiseIndex = (i * CLOUDSTEPS) / HEIGHTSHADOWSTEPS;
 						float currentnoise = 1;//noiseValues[noiseIndex];
 						if (currentnoise > 0 || 1 == 1){
 						//if (currentnoise > 0.01){
@@ -1845,8 +1941,8 @@ void main(void)
 			#else
 				#if 0 // old deprecated method
 					float rayJitterOffset = (1 * rand(screenUV)) *  stepsInv;
-					#if (SHADOWMARCHSTEPS > 0)
-					for (uint i = 0; i < SHADOWMARCHSTEPS; i++){
+					#if (HEIGHTSHADOWSTEPS > 0)
+					for (uint i = 0; i < HEIGHTSHADOWSTEPS; i++){
 						float f = float(i) stepsInv;
 						vec3 rayPos = mix(rayStart.xyz, rayEnd, f + rayJitterOffset);
 						
@@ -1878,9 +1974,9 @@ void main(void)
 					#endif
 					
 				#else // new interleaved sampling
-					#if ((SHADOWMARCHSTEPS > 0) && (CLOUDSTEPS >0))
+					#if ((HEIGHTSHADOWSTEPS > 0) && (CLOUDSTEPS >0))
 						float numShadowSamplesTaken = 0.001;
-						uint shadowSteps = SHADOWMARCHSTEPS / CLOUDSTEPS;
+						uint shadowSteps = HEIGHTSHADOWSTEPS / CLOUDSTEPS;
 						float rayJitterOffset = (1 * rand(screenUV)) * stepsInv ;
 						for (uint n = 0; n < CLOUDSTEPS; n ++){
 							float f = float(n) / CLOUDSTEPS;
