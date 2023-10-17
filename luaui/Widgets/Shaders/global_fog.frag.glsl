@@ -1180,21 +1180,32 @@ void main(void)
 	#if (RESOLUTION == 2)
 		// Exploit hardware linear sampling in best case
 		vec2 screenUV = sampleUVs.zw;
+		// The following clamp is needed cause the UV's of gbuffers arent clamped for some reason
+		screenUV = clamp(screenUV, vec2(0.5/VSX, 0.5/VSY), vec2(1.0 - 0.5/VSY,1.0 - 0.5/VSY));
 	#else
 		vec2 screenUV = gl_FragCoord.xy * RESOLUTION / viewGeometry.xy;
 	#endif
 
 	// This is the debugging yellow row that should be present in bottom left
-	if (any(lessThan(abs(gl_FragCoord.xy - 1.5) ,vec2( 0.5)))) {
+	if (any(lessThan(abs(gl_FragCoord.xy - 2.5) ,vec2( 0.5)))) {
 		fragColor.rgba = vec4(1,1,0,1); return;
 	}
+
+
 	// clamp the UV's of deferred buffer fetches as they are not edge repeats.
 	//screenUV = clamp(screenUV, vec2(0.5/VSX, 0.5/VSY), vec2(1.0) - vec2(0.5/VSX, 0.5/VSY));
 
 	// Sample the depth buffers, and choose whichever is closer to the screen (TexelFetch is no better in perf)
 	float mapdepth = texture(mapDepths, screenUV).x; 
 	float modeldepth = texture(modelDepths, screenUV).x;
+
+	
+	if (any(lessThan(fract(gl_FragCoord.xy / 64.0) ,vec2( 1.0/64.0)))) {
+		fragColor.rgba = vec4(0,step( modeldepth, 0.9999),0,1); return;
+	}
+
 	mapdepth = min(mapdepth, modeldepth);
+
 
 	// Transform screen-space depth to world-space position
 	vec4 mapWorldPos =  vec4( vec3(screenUV.xy * 2.0 - 1.0, mapdepth),  1.0);
@@ -1275,14 +1286,14 @@ void main(void)
 	float heightShadow = 1; // What fraction of samples were LIT along the way.
 	float fogPlaneSizeInv = 1.0 / (heightFogTop - heightFogBottom);
 	
-	float densityModulation = 0.5;
+	float densityModulation = 1.0;
 	// ----------------- BEGIN HEIGHT-BASED FOG SHADOWING -------------------------------
 	#line 33700
 	#if (HEIGHTSHADOWSTEPS > 0) || (HEIGHTNOISESTEPS > 0)
 		float inmapness = 0;// max( linearDistanceMap(rayEnd), linearDistanceMap(rayStart));
 		//fragColor.rgba = vec4(vec3( fract(inmapness * 0.01)),1.0);
 		//return;
-		if (rayLength > 0.01 && inmapness < 512.0) {
+		if (quadGatherSumFloat(rayLength) > 0.01 && inmapness < 512.0) {
 
 			#if (HEIGHTSHADOWSTEPS > 0)
 				// Ray Coords for shadow-space
@@ -1298,13 +1309,16 @@ void main(void)
 					heightShadowStartPos += heightShadowEndStep;
 				}
 				heightShadow =  quadGatherWeighted(heightShadow);
+
+				heightShadow /= HEIGHTSHADOWSTEPS;
 			#endif
 			
 			// TODO: add correct wind
 			#if HEIGHTNOISESTEPS > 0
 				// Ray Coords for noise-space
 				vec3 shadowRayStep = (rayEnd - rayStart) / HEIGHTNOISESTEPS;
-				vec3 shadowRayStart = rayStart + (thisQuadOffset + blueNoiseSample.r * (HEIGHTNOISESTEPS / 64 )) * shadowRayStep; // Pull back the start with blue noise
+				vec3 shadowRayStart = (quadGatherSum3D(rayStart) * 0.33) + (thisQuadOffset + blueNoiseSample.r * (HEIGHTNOISESTEPS / 64 )) * shadowRayStep; // Pull back the start with blue noise
+				
 				float stepSize = rayLength / HEIGHTNOISESTEPS;
 				float myfreq = (thisQuadOffset + 0.1);
 				densityModulation = 0.0;
@@ -1330,8 +1344,6 @@ void main(void)
 				densityModulation = densityModulation/(HEIGHTNOISESTEPS);
 			#endif
 
-
-			heightShadow /= HEIGHTSHADOWSTEPS;
 		}
 		// Fun idea: since shadow darkness shafts always follow a known sun-based pattern, they could be directionally blurred in combine shader, if draw to a separate render target
 	#endif

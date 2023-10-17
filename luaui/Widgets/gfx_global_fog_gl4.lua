@@ -118,9 +118,11 @@ local shaderConfig = {
 local definesSlidersParamsList = {
 	{name = 'RESOLUTION', default = 2, min = 1, max = 8, digits = 0, tooltip = 'Fog resolution divider, 1 = full resolution, 2 = half'},
 	--{name = 'MINISHADOWS', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Wether to draw a downsampled shadow sampler'},
+	{name = 'OFFSETX', default = 0, min = -4, max = 4, digits = 0, tooltip = 'OFFSETX'},
+	{name = 'OFFSETY', default = 0, min = -4, max = 4, digits = 0, tooltip = 'OFFSETY'},
 	{name = 'HALFSHIFT', default = 1, min = 0, max = 1, digits = 0, tooltip = 'If the resolution is half, perform a half-pixel shifting'},
 	--{name = 'RAYTRACING', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use any raytracing, 1 = yes, 0 = no'},
-	{name = 'HEIGHTNOISESTEPS', default = 8, min = 1, max = 32, digits = 0, tooltip =  'How many times to sample shadows'},
+	{name = 'HEIGHTNOISESTEPS', default = 8, min = 0, max = 32, digits = 0, tooltip =  'How many times to sample shadows'},
 	{name = 'HEIGHTSHADOWSTEPS', default = 12, min = 0, max = 32, digits = 0, tooltip =  'How many times to sample shadows for pure height-based fog'},
 	{name = 'UNDERWATERSHADOWSTEPS', default = (minHeight < -20) and 8 or 0, min = 0, max = 64, digits = 0, tooltip =  'How many times to sample shadows for underwater scattering'},
 	{name = 'HEIGHTSHADOWQUAD', default = 2, min = 0, max = 2, digits = 0, tooltip =  'How to Quad sample height-based fog'},
@@ -316,12 +318,12 @@ local function makeFogTexture()
 	
 	vsx, vsy = Spring.GetViewGeometry()
 	-- TODO:
-	-- We need to ensure that HSX ans HSY are even!
+	-- We need to ensure that HSX and HSY are even!
 	hsx =  math.ceil(vsx / shaderConfig.RESOLUTION )
 	hsy =  math.ceil(vsy / shaderConfig.RESOLUTION )
 	if shaderConfig.HALFSHIFT == 1 then
-		hsx =  math.ceil((vsx +1) / shaderConfig.RESOLUTION )
-		hsy =  math.ceil((vsy +1) / shaderConfig.RESOLUTION )
+		hsx =  math.ceil(math.ceil((vsx +1) / shaderConfig.RESOLUTION )/2) * 2
+		hsy =  math.ceil(math.ceil((vsy +1) / shaderConfig.RESOLUTION )/2) * 2
 	end
 	
 	shaderConfig.HSX = hsx
@@ -330,7 +332,7 @@ local function makeFogTexture()
 	shaderConfig.VSY = vsy
 	
 	
-	combineShaderSourceCache.shaderConfig.forceupdate = true
+	combineShaderSourceCache.forceupdate = true
 	shaderSourceCache.forceupdate = true
 	
 	combineShader =  LuaShader.CheckShaderUpdates(combineShaderSourceCache) or combineShader
@@ -341,7 +343,7 @@ local function makeFogTexture()
 		wrap_s = GL.CLAMP_TO_EDGE,
 		wrap_t = GL.CLAMP_TO_EDGE,
 		fbo = true,
-		format = GL_RGBA32F_ARB, -- we need this to be able to do hdr
+		format = GL_RGBA32F_ARB, -- we need this to be able to do hdr, if needed. But we dont _really_ need it
   })
 	if shadowTexture then gl.DeleteTexture(shadowTexture) end 
   shadowTexture = gl.CreateTexture(math.min(vsx/shaderConfig.RESOLUTION, vsy/shaderConfig.RESOLUTION),math.min( vsx/shaderConfig.RESOLUTION, vsy/shaderConfig.RESOLUTION),{
@@ -392,12 +394,13 @@ local function SetFogParams(paramname, paramvalue, paramIndex)
 	end
 end
 
+local combineShaderTriggers = {RESOLUTION = true, HALFSHIFT = true, OFFSETX = true, OFFSETY = true}
 local function shaderDefinesChangedCallback(name, value, index, oldvalue)
 	--Spring.Echo("shaderDefinesChangedCallback()", name, value, shaderConfig[name])
 	if value ~= oldvalue then 
 		shaderSourceCache.forceupdate = true
 		groundFogShader =  LuaShader.CheckShaderUpdates(shaderSourceCache) or groundFogShader
-		if name == 'RESOLUTION' or name == 'HALFSHIFT' then 
+		if combineShaderTriggers[name]  then 
 			makeFogTexture()
 			combineShaderSourceCache.forceUpdate = true
 			combineShader =  LuaShader.CheckShaderUpdates(combineShaderSourceCache) or combineShader
@@ -491,7 +494,7 @@ function widget:Initialize()
 	end
 	
 	if vsx%4~=0 or vsy%4 ~= 0 then 
-		Spring.Echo("Global Fog Warning: viewport is not even!", vsx, vsy, vsx/2, vsy/2)
+		Spring.Echo("Global Fog Warning: viewport is not even!", vsx, vsy, vsx/2, vsy/2, hsx, hsy)
 	end
 	return true
 end

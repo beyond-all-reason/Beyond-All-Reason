@@ -29,7 +29,37 @@ void main()
 			sampleUVs.zw = vec2(HSX*2.0/VSX, HSY*2.0/VSY) * sampleUVs.xy + vec2(0.0, -(2.0*HSY - VSY)/(VSY)) ;
 		#else
 			// This is for offsetting
-			sampleUVs.zw = vec2(HSX*2.0/VSX, HSY*2.0/VSY) * sampleUVs.xy + vec2(-1.0/VSX, 1.0/VSY);
+			
+			// old approach which allowed odd sized halfsize textures
+			//sampleUVs.zw = vec2(HSX*2.0/VSX, HSY*2.0/VSY) * sampleUVs.xy + vec2(-1.0/VSX, 1.0/VSY);
+
+			// new approach which does not allow odd, half sized textures
+			// on the X axis, we need to increase the size of the view, and offset it 
+			// we must map the input 0-1 range.
+			sampleUVs.z = sampleUVs.x * (HSX * 2.0 / VSX) - ((1.0+OFFSETX)/VSX);
+
+			sampleUVs.w = sampleUVs.y * (HSY * 2.0 / VSY) + ((2 * HSY - VSY - 1.0 + OFFSETY) /VSY);
+			/*
+			
+			#if ((2 * HSY - VSY) == 1) // we need it to be 1 bigger in Y, e.g. VSY = 7, HSY = 4 
+				sampleUVs.w = sampleUVs.y * (HSY * 2.0 / VSY) + (0.0 /VSY);
+			#endif
+
+			#if ((2 * HSY - VSY) == 2) // we need it to be 2 bigger in Y, e.g. VSY = 6, HSY = 4 
+				sampleUVs.w = sampleUVs.y * (HSY * 2.0 / VSY) + (-1.0 /VSY);
+			#endif
+
+			#if ((2 * HSY - VSY) == 2) // we need it to be 3 bigger in Y, e.g. VSY = 5, HSY = 4 
+				sampleUVs.w = sampleUVs.y * (HSY * 2.0 / VSY) + (-2.0 /VSY);
+			#endif
+
+			#if ((2 * HSY - VSY) == 4) // we need it to be 3 bigger in Y, e.g. VSY = 4, HSY = 4 
+				sampleUVs.w = sampleUVs.y * (HSY * 2.0 / VSY) + (-3.0 /VSY);
+			#endif
+			*/
+
+			//sampleUVs.zw = vec2(HSX*2.0/VSX, HSY*2.0/VSY) * sampleUVs.xy + vec2(-1.0/VSX, 1.0/VSY);
+
 		#endif
 	#endif
 }
