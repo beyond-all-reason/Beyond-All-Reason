@@ -1197,7 +1197,6 @@ else
 
 		gadget.DrawGenesis = ProcessJobs
 		gadgetHandler:UpdateCallIn("DrawGenesis")
-		gadgetHandler:UpdateCallIn("DrawGenesis") --stupid bug
 	end
 
 	local function UnitCreated(_, uid, defname)
@@ -1210,7 +1209,6 @@ else
 
 		gadget.DrawGenesis = ProcessJobs
 		gadgetHandler:UpdateCallIn("DrawGenesis")
-		gadgetHandler:UpdateCallIn("DrawGenesis") --stupid bug
 	end
 
 	function gadget:Initialize()
