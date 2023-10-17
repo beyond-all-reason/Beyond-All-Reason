@@ -427,9 +427,10 @@ local optionValues = {
 -------------------------------------------------------------------------------
 
 local squadSpawnOptionsTable = {
-	basic = {}, -- 67% spawn chance
-	special = {}, -- 33% spawn chance, there's 1% chance of Special squad spawning Super squad, which is specials but 30% anger earlier.
-	air = {}, -- Air waves
+	basic = {},
+	special = {},
+	basicAir = {},
+	specialAir = {},
 	healer = {}, -- Healers/Medics
 }
 
@@ -686,7 +687,6 @@ addNewSquad({ type = "special", minAnger = 100, units = { "8 raptor2", "8 raptor
 
 --All Terrain Swarmers------------------------------------------------------------------------------------------------------  
 
-addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptorc3" }, maxAnger = 20 })
 addNewSquad({ type = "special", minAnger = 20, units = 	{ "5 raptorc3" }, weight = 2, maxAnger = 60 })
 addNewSquad({ type = "special", minAnger = 50, units = 	{ "10 raptorc3" }, weight = 2, maxAnger = 90 })
 addNewSquad({ type = "special", minAnger = 80, units = 	{ "15 raptorc3" }, weight = 2, maxAnger = 1000 })
@@ -851,7 +851,7 @@ addNewSquad({ type = "special", minAnger = 100, units = { "10 raptorp2" }, maxAn
 
 --Artillery------------------------------------------------------------------------------------------------------  
 
-addNewSquad({ type = "special", minAnger = 10, units = 	{ "1 raptorr1" }, maxAnger = 50})
+addNewSquad({ type = "special", minAnger = 20, units = 	{ "1 raptorr1" }, maxAnger = 50})
 
 addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptorr1" }, weight = 3 })
 
@@ -918,8 +918,6 @@ addNewSquad({ type = "special", minAnger = 100, units = { "2 raptorbroodartyh4" 
 
 --Brood------------------------------------------------------------------------------------------------------  
 
-addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptorh4" } })
-
 addNewSquad({ type = "special", minAnger = 20, units = 	{ "2 raptorh4" } })
 
 addNewSquad({ type = "special", minAnger = 40, units = 	{ "4 raptorh4" } })
@@ -965,95 +963,95 @@ end
 local airStartAnger = 0 -- needed for air waves to work correctly.
 --Scouts------------------------------------------------------------------------------------------------------  
 
-addNewSquad({ type = "air", minAnger = 0, units = { "10 raptorairscout1" }, maxAnger = 20 })
+addNewSquad({ type = "basicAir", minAnger = 0, units = { "3 raptorairscout1" }, maxAnger = 20, weight = 10, })
 
-addNewSquad({ type = "air", minAnger = 20, units = { "1 raptorairscout1" }, maxAnger = 40 })
+addNewSquad({ type = "basicAir", minAnger = 20, units = { "1 raptorairscout1" }, maxAnger = 40 })
 
-addNewSquad({ type = "air", minAnger = 33, units = { "1 raptorairscout2" }, maxAnger = 80 })
+addNewSquad({ type = "basicAir", minAnger = 33, units = { "1 raptorairscout2" }, maxAnger = 80 })
 
-addNewSquad({ type = "air", minAnger = 66, units = { "1 raptorairscout3" }, maxAnger = 1000 })
+addNewSquad({ type = "basicAir", minAnger = 66, units = { "1 raptorairscout3" }, maxAnger = 1000 })
 
 --Fighters------------------------------------------------------------------------------------------------------  
 
-addNewSquad({ type = "air", minAnger = 0, units = { "1 raptorw1_mini" }, maxAnger = 20 })
+addNewSquad({ type = "basicAir", minAnger = 0, units = { "1 raptorw1_mini" }, maxAnger = 20 })
 
-addNewSquad({ type = "air", minAnger = 20, units = { "4 raptorw1_mini" }, maxAnger = 60 })
-
-
-addNewSquad({ type = "air", minAnger = 40, units = { "4 raptorw1", } })
-addNewSquad({ type = "air", minAnger = 40, units = { "4 raptorw1b", } })
-addNewSquad({ type = "air", minAnger = 40, units = { "4 raptorw1c", } })
-addNewSquad({ type = "air", minAnger = 40, units = { "4 raptorw1d", } })
-
-addNewSquad({ type = "air", minAnger = 60, units = { "4 raptorw1", } })
-addNewSquad({ type = "air", minAnger = 60, units = { "4 raptorw1b", } })
-addNewSquad({ type = "air", minAnger = 60, units = { "4 raptorw1c", } })
-addNewSquad({ type = "air", minAnger = 60, units = { "4 raptorw1d", } })
+addNewSquad({ type = "basicAir", minAnger = 20, units = { "4 raptorw1_mini" }, maxAnger = 60 })
 
 
-addNewSquad({ type = "air", minAnger = 80, units = { "6 raptorw2" }, weight = 2 })
+addNewSquad({ type = "basicAir", minAnger = 40, units = { "4 raptorw1", } })
+addNewSquad({ type = "basicAir", minAnger = 40, units = { "4 raptorw1b", } })
+addNewSquad({ type = "basicAir", minAnger = 40, units = { "4 raptorw1c", } })
+addNewSquad({ type = "basicAir", minAnger = 40, units = { "4 raptorw1d", } })
 
-addNewSquad({ type = "air", minAnger = 100, units = { "8 raptorw2" }, weight = 2, maxAnger = 1000 })
+addNewSquad({ type = "basicAir", minAnger = 60, units = { "4 raptorw1", } })
+addNewSquad({ type = "basicAir", minAnger = 60, units = { "4 raptorw1b", } })
+addNewSquad({ type = "basicAir", minAnger = 60, units = { "4 raptorw1c", } })
+addNewSquad({ type = "basicAir", minAnger = 60, units = { "4 raptorw1d", } })
+
+
+addNewSquad({ type = "basicAir", minAnger = 80, units = { "6 raptorw2" }, weight = 2 })
+
+addNewSquad({ type = "basicAir", minAnger = 100, units = { "8 raptorw2" }, weight = 2, maxAnger = 1000 })
 
 --Bombers------------------------------------------------------------------------------------------------------  
 
-addNewSquad({ type = "air", minAnger = 0, units = { "1 raptorf1_mini" }, maxAnger = 20 })
+addNewSquad({ type = "basicAir", minAnger = 0, units = { "1 raptorf1_mini" }, maxAnger = 20 })
 
-addNewSquad({ type = "air", minAnger = 20, units = { "4 raptorf1_mini" }, maxAnger = 60 })
-
-
-addNewSquad({ type = "air", minAnger = 40, units = { "4 raptorf1", }, weight = 2 })
-addNewSquad({ type = "air", minAnger = 40, units = { "4 raptorf1b", }, weight = 2 })
-
-addNewSquad({ type = "air", minAnger = 60, units = { "4 raptorf1", }, weight = 2 })
-addNewSquad({ type = "air", minAnger = 60, units = { "4 raptorf1b", }, weight = 2 })
+addNewSquad({ type = "basicAir", minAnger = 20, units = { "4 raptorf1_mini" }, maxAnger = 60 })
 
 
-addNewSquad({ type = "air", minAnger = 80, units = { "2 raptorf1apex" } })
-addNewSquad({ type = "air", minAnger = 80, units = { "2 raptorf1apexb" } })
+addNewSquad({ type = "basicAir", minAnger = 40, units = { "4 raptorf1", }, weight = 2 })
+addNewSquad({ type = "basicAir", minAnger = 40, units = { "4 raptorf1b", }, weight = 2 })
 
-addNewSquad({ type = "air", minAnger = 100, units = { "3 raptorf1apex" }, maxAnger = 1000 })
-addNewSquad({ type = "air", minAnger = 100, units = { "3 raptorf1apexb" }, maxAnger = 1000 })
-
-
-addNewSquad({ type = "air", minAnger = 50, units = { "1 raptorebomber1" } })
-
-addNewSquad({ type = "air", minAnger = 60, units = { "2 raptorebomber1" } })
-
-addNewSquad({ type = "air", minAnger = 70, units = { "4 raptorebomber1" } })
-
-addNewSquad({ type = "air", minAnger = 80, units = { "6 raptorebomber1" } })
-
-addNewSquad({ type = "air", minAnger = 90, units = { "8 raptorebomber1" }, maxAnger = 1000 })
+addNewSquad({ type = "basicAir", minAnger = 60, units = { "4 raptorf1", }, weight = 2 })
+addNewSquad({ type = "basicAir", minAnger = 60, units = { "4 raptorf1b", }, weight = 2 })
 
 
-addNewSquad({ type = "air", minAnger = 50, units = { "1 raptoracidbomber" } })
+addNewSquad({ type = "basicAir", minAnger = 80, units = { "2 raptorf1apex" } })
+addNewSquad({ type = "basicAir", minAnger = 80, units = { "2 raptorf1apexb" } })
 
-addNewSquad({ type = "air", minAnger = 70, units = { "4 raptoracidbomber" } })
+addNewSquad({ type = "basicAir", minAnger = 100, units = { "3 raptorf1apex" }, maxAnger = 1000 })
+addNewSquad({ type = "basicAir", minAnger = 100, units = { "3 raptorf1apexb" }, maxAnger = 1000 })
 
-addNewSquad({ type = "air", minAnger = 90, units = { "8 raptoracidbomber" }, maxAnger = 1000 })
+
+addNewSquad({ type = "specialAir", minAnger = 50, units = { "1 raptorebomber1" } })
+
+addNewSquad({ type = "specialAir", minAnger = 60, units = { "2 raptorebomber1" } })
+
+addNewSquad({ type = "specialAir", minAnger = 70, units = { "4 raptorebomber1" } })
+
+addNewSquad({ type = "specialAir", minAnger = 80, units = { "6 raptorebomber1" } })
+
+addNewSquad({ type = "specialAir", minAnger = 90, units = { "8 raptorebomber1" }, maxAnger = 1000 })
 
 
-addNewSquad({ type = "air", minAnger = 50, units = { "1 raptorbroodbomberh4" } })
+addNewSquad({ type = "specialAir", minAnger = 50, units = { "1 raptoracidbomber" } })
 
-addNewSquad({ type = "air", minAnger = 70, units = { "1 raptorbroodbomberh3" } })
-addNewSquad({ type = "air", minAnger = 70, units = { "2 raptorbroodbomberh4" } })
+addNewSquad({ type = "specialAir", minAnger = 70, units = { "4 raptoracidbomber" } })
 
-addNewSquad({ type = "air", minAnger = 90, units = { "1 raptorbroodbomberh2" } })
-addNewSquad({ type = "air", minAnger = 90, units = { "2 raptorbroodbomberh3" } })
-addNewSquad({ type = "air", minAnger = 90, units = { "4 raptorbroodbomberh4" } })
+addNewSquad({ type = "specialAir", minAnger = 90, units = { "8 raptoracidbomber" }, maxAnger = 1000 })
 
-addNewSquad({ type = "air", minAnger = 100, units = { "4 raptorbroodbomberh4" }, maxAnger = 1000 })
-addNewSquad({ type = "air", minAnger = 100, units = { "4 raptorbroodbomberh3" }, maxAnger = 1000 })
-addNewSquad({ type = "air", minAnger = 100, units = { "4 raptorbroodbomberh2" }, maxAnger = 1000 })
+
+addNewSquad({ type = "specialAir", minAnger = 50, units = { "1 raptorbroodbomberh4" } })
+
+addNewSquad({ type = "specialAir", minAnger = 70, units = { "1 raptorbroodbomberh3" } })
+addNewSquad({ type = "specialAir", minAnger = 70, units = { "2 raptorbroodbomberh4" } })
+
+addNewSquad({ type = "specialAir", minAnger = 90, units = { "1 raptorbroodbomberh2" } })
+addNewSquad({ type = "specialAir", minAnger = 90, units = { "2 raptorbroodbomberh3" } })
+addNewSquad({ type = "specialAir", minAnger = 90, units = { "4 raptorbroodbomberh4" } })
+
+addNewSquad({ type = "specialAir", minAnger = 100, units = { "4 raptorbroodbomberh4" }, maxAnger = 1000 })
+addNewSquad({ type = "specialAir", minAnger = 100, units = { "4 raptorbroodbomberh3" }, maxAnger = 1000 })
+addNewSquad({ type = "specialAir", minAnger = 100, units = { "4 raptorbroodbomberh2" }, maxAnger = 1000 })
 
 --Kamikaze------------------------------------------------------------------------------------------------------  
 
--- addNewSquad({ type = "air", minAnger = 70, units = { "10 raptor_dodoair" } })
+-- addNewSquad({ type = "specialAir", minAnger = 70, units = { "10 raptor_dodoair" } })
 
--- addNewSquad({ type = "air", minAnger = 90, units = { "10 raptor_dodoair" } })
+-- addNewSquad({ type = "specialAir", minAnger = 90, units = { "10 raptor_dodoair" } })
 
--- addNewSquad({ type = "air", minAnger = 100, units = { "10 raptor_dodoair" }, maxAnger = 1000 })
+-- addNewSquad({ type = "specialAir", minAnger = 100, units = { "10 raptor_dodoair" }, maxAnger = 1000 })
 
 ------------------------------------------------
 -- Healer --------------------------------------
@@ -1071,7 +1069,16 @@ addNewSquad({ type = "healer", minAnger = 50, units = { "1 raptorhealer3" }, max
 addNewSquad({ type = "healer", minAnger = 75, units = { "8 raptorhealer1" }, maxAnger = 100 })
 addNewSquad({ type = "healer", minAnger = 75, units = { "4 raptorhealer2" }, maxAnger = 200 })
 addNewSquad({ type = "healer", minAnger = 75, units = { "2 raptorhealer3" }, maxAnger = 300 })
-addNewSquad({ type = "healer", minAnger = 75, units = { "1 raptorhealer4" }, maxAnger = 1000 })
+addNewSquad({ type = "healer", minAnger = 75, units = { "1 raptorhealer4" }, maxAnger = 400 })
+
+addNewSquad({ type = "healer", minAnger = 100, units = { "8 raptorhealer2" }, maxAnger = 300 })
+addNewSquad({ type = "healer", minAnger = 100, units = { "4 raptorhealer3" }, maxAnger = 400 })
+addNewSquad({ type = "healer", minAnger = 100, units = { "2 raptorhealer4" }, maxAnger = 500 })
+
+addNewSquad({ type = "healer", minAnger = 125, units = { "8 raptorhealer3" }, maxAnger = 500 })
+addNewSquad({ type = "healer", minAnger = 125, units = { "4 raptorhealer4" }, maxAnger = 600 })
+
+addNewSquad({ type = "healer", minAnger = 150, units = { "8 raptorhealer4" }, maxAnger = 1000 })
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these

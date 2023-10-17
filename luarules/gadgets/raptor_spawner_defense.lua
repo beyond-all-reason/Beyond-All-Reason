@@ -931,8 +931,8 @@ if gadgetHandler:IsSyncedCode() then
 		waveParameters.waveSpecialPercentage = mRandom(5,25)
 		waveParameters.waveAirPercentage = mRandom(5,25)
 
-		waveParameters.waveSizeMultiplier = 1
-		waveParameters.waveTimeMultiplier = 1
+		waveParameters.waveSizeMultiplier = mRandom(5,20)*0.1
+		waveParameters.waveTimeMultiplier = mRandom(5,20)*0.1
 
 		if waveParameters.baseCooldown <= 0 then
 			-- special waves
@@ -941,8 +941,10 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.baseCooldown = mRandom(0,2)
 				waveParameters.airWave.cooldown = mRandom(0,10)
 
-				waveParameters.waveSpecialPercentage = 0
+				waveParameters.waveSpecialPercentage = mRandom(5,25)
 				waveParameters.waveAirPercentage = 50
+				waveParameters.waveSizeMultiplier = 2
+				waveParameters.waveTimeMultiplier = 2
 
 			elseif waveParameters.specialWave.cooldown <= 0 and mRandom() <= config.spawnChance then
 
@@ -950,7 +952,10 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.specialWave.cooldown = mRandom(0,10)
 
 				waveParameters.waveSpecialPercentage = 50
-				waveParameters.waveAirPercentage = 0
+				waveParameters.waveAirPercentage = mRandom(5,25)
+
+				waveParameters.waveSizeMultiplier = 2
+				waveParameters.waveTimeMultiplier = 2
 
 			elseif waveParameters.basicWave.cooldown <= 0 and mRandom() <= config.spawnChance then
 
@@ -959,6 +964,9 @@ if gadgetHandler:IsSyncedCode() then
 
 				waveParameters.waveSpecialPercentage = 0
 				waveParameters.waveAirPercentage = 0
+
+				waveParameters.waveSizeMultiplier = 2
+				waveParameters.waveTimeMultiplier = 2
 
 			elseif waveParameters.smallWave.cooldown <= 0 and mRandom() <= config.spawnChance then
 
@@ -974,10 +982,10 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.largerWave.cooldown = mRandom(0,25)
 
 				waveParameters.waveSizeMultiplier = 1.5
-				waveParameters.waveTimeMultiplier = 1.25
+				waveParameters.waveTimeMultiplier = 1.5
 
-				waveParameters.waveAirPercentage = mRandom(5,40)
-				waveParameters.waveSpecialPercentage = mRandom(5,40)
+				waveParameters.waveAirPercentage = mRandom(5,20)
+				waveParameters.waveSpecialPercentage = mRandom(5,20)
 
 			elseif waveParameters.hugeWave.cooldown <= 0 and mRandom() <= config.spawnChance then
 
@@ -985,10 +993,10 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.hugeWave.cooldown = mRandom(0,50)
 
 				waveParameters.waveSizeMultiplier = 3
-				waveParameters.waveTimeMultiplier = 1.5
+				waveParameters.waveTimeMultiplier = 2
 
-				waveParameters.waveAirPercentage = mRandom(5,25)
-				waveParameters.waveSpecialPercentage = mRandom(5,25)
+				waveParameters.waveAirPercentage = mRandom(5,15)
+				waveParameters.waveSpecialPercentage = mRandom(5,15)
 
 			elseif waveParameters.epicWave.cooldown <= 0 and mRandom() <= config.spawnChance then
 
@@ -1014,17 +1022,26 @@ if gadgetHandler:IsSyncedCode() then
 				if mRandom() <= config.spawnChance then
 					squadCounter = 0
 					local airRandom = mRandom(1,100)
+					local specialRandom = mRandom(1,100)
 					local squad
 					if techAnger > config.airStartAnger and airRandom <= waveParameters.waveAirPercentage then
 						for _ = 1,1000 do
-							local potentialSquad = squadSpawnOptions.air[mRandom(1, #squadSpawnOptions.air)]
-							if potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
-								squad = potentialSquad
-								break
+							if specialRandom <= waveParameters.waveSpecialPercentage then
+								local potentialSquad = squadSpawnOptions.specialAir[mRandom(1, #squadSpawnOptions.specialAir)]
+								if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger)
+								or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
+									squad = potentialSquad
+									break
+								end
+							else
+								local potentialSquad = squadSpawnOptions.basicAir[mRandom(1, #squadSpawnOptions.basicAir)]
+								if potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger then
+									squad = potentialSquad
+									break
+								end
 							end
 						end
 					else
-						local specialRandom = mRandom(1,100)
 						for _ = 1,1000 do
 							if specialRandom <= waveParameters.waveSpecialPercentage then
 								local potentialSquad = squadSpawnOptions.special[mRandom(1, #squadSpawnOptions.special)]
