@@ -315,11 +315,10 @@ function gadget:GameFrame(n)
         if spValidUnitID(builderID) and spGetUnitIsBuilding(builderID) == builtUnit then
             spSetUnitBuildSpeed(builderID, currentBuildSpeed[builderID])
         end
-        buildTargetOwners[builderID] = nil
-        buildTargets[builtUnit] = nil
     end
-
+	buildTargetOwners = {}
     buildTargets = {}
+
 	for i=1, #teamList do
 		local teamID = teamList[i]
 		if not deadTeamList[teamID] then -- isnt dead
