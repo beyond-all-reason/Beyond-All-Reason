@@ -442,21 +442,19 @@ if gadgetHandler:IsSyncedCode() then
 	gadget.UnitGiven = gadget.UnitCreated
 	gadget.UnitCaptured = gadget.UnitCreated
 
-
+	local notScoremode = Spring.GetModOptions().scoremode == "disabled" or not Spring.GetModOptions().scoremode_chess
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID)
 		if not ignoredTeams[unitTeamID] then
-			if Spring.GetModOptions().scoremode == "disabled" or Spring.GetModOptions().scoremode_chess == false then
+			if notScoremode then
 				local allyTeamID = teamToAllyTeam[unitTeamID]
 				local allyTeamInfo = allyTeamInfos[allyTeamID]
-				local teamUnitCount = allyTeamInfo.teams[unitTeamID].unitCount - 1
-				local allyTeamUnitCount = allyTeamInfo.unitCount - 1
-				allyTeamInfo.teams[unitTeamID].unitCount = teamUnitCount
-				allyTeamInfo.unitCount = allyTeamUnitCount
+				allyTeamInfo.teams[unitTeamID].unitCount = allyTeamInfo.teams[unitTeamID].unitCount - 1
+				allyTeamInfo.unitCount = allyTeamInfo.unitCount - 1
 				if unitDecoration[unitDefID] then
 					allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount - 1
 				end
 				allyTeamInfos[allyTeamID] = allyTeamInfo
-				if allyTeamUnitCount <= allyTeamInfo.unitDecorationCount then
+				if allyTeamInfo.unitCount <= allyTeamInfo.unitDecorationCount then
 					for teamID in pairs(allyTeamInfo.teams) do
 						KillTeam(teamID)
 						killTeamQueue[teamID] = nil
