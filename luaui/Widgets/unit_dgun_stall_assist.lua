@@ -85,79 +85,45 @@ function widget:Update(dt)
 	if activeCmdID == CMD_DGUN then
 		local selection = Spring.GetSelectedUnitsCounts()
 		local stallUnitSelected = false
-		local myTeamID = spGetMyTeamID()
-		local currentEnergy, energyStorage = spGetTeamResources(myTeamID, "energy")
 
 		for i = 1, #stallIds do
 			if selection[stallIds[i]] then
 				stallUnitSelected = true
 			end
 		end
-
-		if currentEnergy < targetEnergy and stallUnitSelected then
+		
+		if (stallUnitSelected) then
 			watchTime = watchForTime
-		else
-			watchTime = watchTime - dt
-			if waitedUnits and (watchTime < 0 or currentEnergy >= targetEnergy) then
-
-				if currentEnergy >= targetEnergy then
-					watchTime = 0
-				end
-				local toUnwait = {}
-				for i = 1, #waitedUnits do
-					local uID = waitedUnits[i]
-					local uDefID = spGetUnitDefID(uID)
-					if isFactory[uDefID] then
-						local uCmds = spGetFactoryCommands(uID, 1)
-						if uCmds and #uCmds > 0 and uCmds[1].id == CMD_WAIT then
-							toUnwait[#toUnwait + 1] = uID
-						end
-					else
-						local uCmd = spGetUnitCurrentCommand(uID, 1)
-						if uCmd and uCmd == CMD_WAIT then
-							toUnwait[#toUnwait + 1] = uID
-						end
-					end
-				end
-				spGiveOrderToUnitArray(toUnwait, CMD_WAIT, {}, 0)
-
-				waitedUnits = nil
-			end
 		end
 	else
 		watchTime = watchTime - dt
-		if (waitedUnits) then
-			local myTeamID = spGetMyTeamID()
-			local currentEnergy, energyStorage = spGetTeamResources(myTeamID, "energy")
-			if watchTime < 0 or currentEnergy >= targetEnergy then
 
-				if currentEnergy >= targetEnergy then
-					watchTime = 0
-				end
-				local toUnwait = {}
-				for i = 1, #waitedUnits do
-					local uID = waitedUnits[i]
-					local uDefID = spGetUnitDefID(uID)
-					if isFactory[uDefID] then
-						local uCmds = spGetFactoryCommands(uID, 1)
-						if uCmds and #uCmds > 0 and uCmds[1].id == CMD_WAIT then
-							toUnwait[#toUnwait + 1] = uID
-						end
-					else
-						local uCmd = spGetUnitCurrentCommand(uID, 1)
-						if uCmd and uCmd == CMD_WAIT then
-							toUnwait[#toUnwait + 1] = uID
-						end
+		if waitedUnits and (watchTime < 0) then
+
+			local toUnwait = {}
+			for i = 1, #waitedUnits do
+				local uID = waitedUnits[i]
+				local uDefID = spGetUnitDefID(uID)
+				if isFactory[uDefID] then
+					local uCmds = spGetFactoryCommands(uID, 1)
+					if uCmds and #uCmds > 0 and uCmds[1].id == CMD_WAIT then
+						toUnwait[#toUnwait + 1] = uID
+					end
+				else
+					local uCmd = spGetUnitCurrentCommand(uID, 1)
+					if uCmd and uCmd == CMD_WAIT then
+						toUnwait[#toUnwait + 1] = uID
 					end
 				end
-				spGiveOrderToUnitArray(toUnwait, CMD_WAIT, {}, 0)
-
-				waitedUnits = nil
 			end
+			spGiveOrderToUnitArray(toUnwait, CMD_WAIT, {}, 0)
+
+			waitedUnits = nil
 		end
 	end
 
 	if (watchTime > 0) and (not waitedUnits) then
+
 		local myTeamID = spGetMyTeamID()
 		local currentEnergy, energyStorage = spGetTeamResources(myTeamID, "energy")
 		if (currentEnergy < targetEnergy) and (energyStorage >= targetEnergy) then
