@@ -1242,9 +1242,15 @@ local options={
 
 
 
-
-
-
+	-- this setting is actually used as a top level/lobby option by chobby, this just bootstraps the process
+	{
+		key="ranked_game",
+		name   		= "Ranked Game",
+		desc   		= "Should game results affect OpenSkill",
+		type   		= "bool",
+		def    		= true,
+		hidden		= true,
+	},
 
 
 
