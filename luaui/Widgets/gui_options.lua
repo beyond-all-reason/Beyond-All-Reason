@@ -2283,7 +2283,7 @@ function init()
 				  options[getOptionByID('shadowslider')].options[6] = 'insane'
 			  end
 			  local quality = {
-				  ['lowest'] = 2048, ['low'] = 3584, ['medium'] = 6144, ['high'] = 8192, ['ultra'] = 10240, ['insane'] = 12288
+				  ['lowest'] = 1792, ['low'] = 2560, ['medium'] = 4096, ['high'] = 6144, ['ultra'] = 8192, ['insane'] = 10240
 			  }
 			  if ShadowMapSize == 0 then
 				  --options[getOptionByID('shadowslider')].value = 1
@@ -2297,7 +2297,7 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  local quality = {
-				  [1] = 2048, [2] = 3584, [3] = 6144, [4] = 8192, [5] = 10240, [6] = 12288
+				  [1] = 1792, [2] = 2560, [3] = 4096, [4] = 6144, [5] = 8192, [6] = 10240
 			  }
 			  if options[getOptionByID('shadowslider')].options[value] == nil then
 				  value = (value == 1 and 2 or 4)
