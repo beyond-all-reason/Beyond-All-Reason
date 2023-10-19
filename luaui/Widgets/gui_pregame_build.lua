@@ -14,6 +14,9 @@ end
 local buildQueue = {}
 local selBuildQueueDefID
 local facingMap = {south=0, east=1, north=2, west=3}
+local buildDistanceColor = { 0.3, 1.0, 0.3, 0.6 }
+local builderCentricBuildRanges = false  -- If true, will draw where a commander can stand to build.
+local buildingCentricBuildRanges = true  -- If true, will draw where buildings can be centered to be built.
 
 local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
@@ -205,7 +208,7 @@ local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID)
 end
 
 
-local function DrawBuilding(buildData, borderColor, drawRanges)
+local function DrawBuilding(builderRange, buildData, borderColor, drawRanges)
 	local bDefID, bx, by, bz, facing = buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]
 	local bw, bh = GetBuildingDimensions(bDefID, facing)
 
@@ -216,6 +219,12 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 							 { v = { bx + bw, by, bz - bh } },
 							 { v = { bx + bw, by, bz + bh } },
 							 { v = { bx - bw, by, bz + bh } } })
+
+	-- indicate where a builder can stand to build this building
+	if builderRange then
+		gl.Color(buildDistanceColor)
+		gl.DrawGroundCircle(bx, by, bz, builderRange, 128)
+	end
 
 	if drawRanges then
 		local isMex = UnitDefs[uDefID] and UnitDefs[uDefID].extractsMetal > 0
@@ -333,7 +342,6 @@ function widget:DrawWorld()
 	if not preGamestartPlayer then return end
 
 	-- draw pregame build queue
-	local buildDistanceColor = { 0.3, 1.0, 0.3, 0.6 }
 	local buildLinesColor = { 0.3, 1.0, 0.3, 0.6 }
 	local borderNormalColor = { 0.3, 1.0, 0.3, 0.5 }
 	local borderClashColor = { 0.7, 0.3, 0.3, 1.0 }
@@ -360,13 +368,20 @@ function widget:DrawWorld()
 
 	local sx, sy, sz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
 	local startChosen = (sx ~= -100)
-	if startChosen and startDefID then
-		-- Correction for start positions in the air
-		sy = Spring.GetGroundHeight(sx, sz)
+	local builderRange = 0
+	if startDefID then
+		builderRange = UnitDefs[startDefID].buildDistance
+		if startChosen and builderCentricBuildRanges then
+			-- Correction for start positions in the air
+			sy = Spring.GetGroundHeight(sx, sz)
 
-		-- Draw start units build radius
-		gl.Color(buildDistanceColor)
-		gl.DrawGroundCircle(sx, sy, sz, UnitDefs[startDefID].buildDistance, 40)
+			-- Draw start units build radius
+			gl.Color(buildDistanceColor)
+			gl.DrawGroundCircle(sx, sy, sz, builderRange, 128)
+		end
+	end
+	if not buildingCentricBuildRanges then
+		builderRange = 0
 	end
 
 	-- Check for faction change
@@ -392,9 +407,9 @@ function widget:DrawWorld()
 		local buildData = buildQueue[b]
 
 		if selBuildData and DoBuildingsClash(selBuildData, buildData) then
-			DrawBuilding(buildData, borderClashColor)
+			DrawBuilding(builderRange, buildData, borderClashColor)
 		else
-			DrawBuilding(buildData, borderNormalColor)
+			DrawBuilding(builderRange, buildData, borderNormalColor)
 		end
 
 		queueLineVerts[#queueLineVerts + 1] = { v = { buildData[2], buildData[3], buildData[4] } }
@@ -409,9 +424,9 @@ function widget:DrawWorld()
 	-- Draw selected building
 	if selBuildData then
 		if Spring.TestBuildOrder(selBuildQueueDefID, selBuildData[2], selBuildData[3], selBuildData[4], selBuildData[5]) ~= 0 then
-			DrawBuilding(selBuildData, borderValidColor, true)
+			DrawBuilding(builderRange, selBuildData, borderValidColor, true)
 		else
-			DrawBuilding(selBuildData, borderInvalidColor, true)
+			DrawBuilding(builderRange, selBuildData, borderInvalidColor, true)
 		end
 	end
 
