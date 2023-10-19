@@ -529,6 +529,9 @@ function widget:DrawWorldPreUnit()
 	if Spring.GetGameFrame() == 0 then
 		checkMetalspots()
 	end
+
+	gl.Texture(0, false)
+	gl.Texture(1, false)
 end
 
 function widget:GetConfigData(data)
