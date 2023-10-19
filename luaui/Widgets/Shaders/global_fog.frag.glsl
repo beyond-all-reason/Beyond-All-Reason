@@ -30,8 +30,7 @@ uniform sampler2D blueNoise64;
 uniform sampler2D packedNoise;
 uniform sampler3D uniformNoiseTex;
 
-uniform float windX;
-uniform float windZ;
+uniform vec4 windFractFull;
 uniform vec4 heightFogColor;
 uniform vec4 cloudGlobalColor;
 uniform vec4 distanceFogColor;
@@ -95,12 +94,41 @@ float frequency;
 		return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 	}
 	
-	float linearDistanceMap(vec3 wp){
+	// returns the linear distance to the closest edge of the map in 3d
+	float linearDistanceMap(vec3 worldpos){
 		vec3 worldMax = vec3(float(MAPSIZEX), float(MAPSIZEY),float(MAPSIZEZ));
-		vec3 minDist = max(-1 * wp, wp - worldMax);
+		vec3 minDist = max(-1 * worldpos, worldpos - worldMax);
 		minDist = max(minDist, vec3(0.0));
 		return max(minDist.x, max(minDist.y, minDist.z));
 	}
+
+	// returns the linear distance to the closest edge of the map, in elmos
+	vec2 linearDistanceMapXZ(vec2 worldpos){
+		vec2 worldMax = vec2(float(MAPSIZEX), float(MAPSIZEZ));
+		vec2 minDist = max(-1 * worldpos, worldpos - worldMax);
+		minDist = max(minDist, vec2(0.0));
+		return minDist;
+	}
+
+	float linearDistanceMapXZThreshold(vec2 worldpos, float thresholdElmos){
+		vec2 worldMax = vec2(float(MAPSIZEX), float(MAPSIZEZ));
+		vec2 minDist = max(-1 * worldpos, worldpos - worldMax);
+		minDist = max(minDist, vec2(0.0));
+		float realdist = sqrt(dot(minDist, minDist));
+		realdist = (thresholdElmos - realdist + 1)/ max(1,thresholdElmos);
+		return realdist;
+	}
+	// This will bound within the min/max values, with feathering along the w coordinates of CloudVolume
+	float CloudVoumeWeight(vec2 worldpos){
+		vec2 cloudDist = max(vec2(0), max(cloudVolumeMin.xz - worldpos, worldpos - cloudVolumeMax.xz));
+		float cloudEdgeDistanceWeight = sqrt(dot(cloudDist, cloudDist));
+		cloudEdgeDistanceWeight = ((cloudVolumeMax.w + 1) - cloudEdgeDistanceWeight)/(1 +cloudVolumeMax.w);
+		cloudEdgeDistanceWeight = clamp(cloudEdgeDistanceWeight,0,1);
+		cloudEdgeDistanceWeight = sqrt(cloudEdgeDistanceWeight);
+		return cloudEdgeDistanceWeight;
+	}
+	
+
 #endif
 
 #if 1 // These are all standard, useful Noise functions 
@@ -1049,11 +1077,11 @@ void WorldToNoiseSpace(in vec3 wp, out vec3 lf, out vec3 hf){
 	lf = wp * NOISESCALE1024 * noiseLFParams.x;
 	hf = lf * noiseHFParams.x * 10;
 	hf -= hf.zxx * NOISESKEW;
-	hf.xz += (timeInfo.x + timeInfo.w) * noiseHFParams.zw * 0.001;
-	hf += noiseOffset;
+	hf.xz += noiseOffset.xz * noiseHFParams.zw * 1;
+	hf -= noiseOffset.xyz;
 
 	lf += lf.zxx * NOISESKEW * 1.0;
-	lf += noiseOffset;
+	lf -= noiseOffset.xyz;
 }
 
 vec4 SampleNoiseSpace(in vec3 noiseLFSpacePos, in vec3 noiseHFSpacePos, in float perturbfactor){
@@ -1186,10 +1214,6 @@ void main(void)
 		vec2 screenUV = gl_FragCoord.xy * RESOLUTION / viewGeometry.xy;
 	#endif
 
-	// This is the debugging yellow row that should be present in bottom left
-	if (any(lessThan(abs(gl_FragCoord.xy - 2.5) ,vec2( 0.5)))) {
-		fragColor.rgba = vec4(1,1,0,1); return;
-	}
 
 
 	// clamp the UV's of deferred buffer fetches as they are not edge repeats.
@@ -1199,11 +1223,16 @@ void main(void)
 	float mapdepth = texture(mapDepths, screenUV).x; 
 	float modeldepth = texture(modelDepths, screenUV).x;
 
-	
-	if (any(lessThan(fract(gl_FragCoord.xy / 64.0) ,vec2( 1.0/64.0)))) {
-		fragColor.rgba = vec4(0,step( modeldepth, 0.9999),0,1); return;
-	}
-
+	#if 0
+		// This is the debugging yellow row that should be present in bottom left
+		if (any(lessThan(abs(gl_FragCoord.xy - 2.5) ,vec2( 0.5)))) {
+			fragColor.rgba = vec4(1,1,0,1); return;
+		}
+		// This is the debug grid
+		if (any(lessThan(fract(gl_FragCoord.xy / 64.0) ,vec2( 1.0/64.0)))) {
+			fragColor.rgba = vec4(0,step( modeldepth, 0.9999),0,1); return;
+		}
+	#endif
 	mapdepth = min(mapdepth, modeldepth);
 
 
@@ -1233,14 +1262,13 @@ void main(void)
 	vec4 blueNoiseSample = textureLod(blueNoise64,gl_FragCoord.xy/64, 0) *BLUENOISESTRENGTH;
 	
 	
-	float noiseScale =  NOISESCALE;
+	float noiseScale = NOISESCALE;
 	//time = fract(time/16384) * 16384; 
 	// this must be moved to lua side
 	// we must ensure that this is rolled over, especially the time part at units of 1
-	noiseOffset =  vec3(windX, - time * RISERATE, windZ ) * NOISESCALE1024;
+	noiseOffset = vec3(windFractFull.x,  time * RISERATE, windFractFull.y ) * NOISESCALE1024;
 	noiseOffset.y = fract(noiseOffset.y); // time can only be rolled over here
-	vec3 noiseOffset2 = vec3(windX, - time * RISERATE, windZ ) * NOISESCALE1024 * 5.0; // This must be an integer multiplier!
-	noiseOffset2.y = fract(noiseOffset2.y); // time can only be rolled over here
+
 	// ----------------- END UNIVERSAL PART -------------------------------
 	
 	// ----------------- BEGIN DISTANCE-BASED FOG ------------------------------
@@ -1279,15 +1307,22 @@ void main(void)
 			rayEnd = rayStart + (rayEnd - rayStart) * rayFractionInFog; // pull back 
 		}
 	}
+
 	float rayLength = length(rayEnd - rayStart);
-	
+
+	// Average the distance to the center of the ray?
+	//vec2 avgDistanceMapEdge = linearDistanceMapXZ((rayEnd.xz + rayStart.xz) * 0.5 ) ;
+	float edgeDistanceWeight = linearDistanceMapXZThreshold((rayEnd.xz + rayStart.xz) * 0.5, max(MAPSIZEX, MAPSIZEZ) * 0.25);
+	//sqrt(dot(avgDistanceMapEdge,avgDistanceMapEdge)); //
+	//edgeDistanceWeight = (max(MAPSIZEX, MAPSIZEZ) * 0.25 - edgeDistanceWeight) / (max(MAPSIZEX, MAPSIZEZ) * 0.25);
+	if (edgeDistanceWeight <= 0 ) rayLength = 0.0;
+	//fragColor.rgba = vec4(vec3(edgeDistanceWeight), 1.0); return;
 	
 	float heightBasedFog = 0;
 	float heightShadow = 1; // What fraction of samples were LIT along the way.
-	float fogPlaneSizeInv = 1.0 / (heightFogTop - heightFogBottom);
 	
 	float densityModulation = 1.0;
-	// ----------------- BEGIN HEIGHT-BASED FOG SHADOWING -------------------------------
+	// ----------------- BEGIN HEIGHT-BASED FOG AND SHADOWING -------------------------------
 	#line 33700
 	#if (HEIGHTSHADOWSTEPS > 0) || (HEIGHTNOISESTEPS > 0)
 		float inmapness = 0;// max( linearDistanceMap(rayEnd), linearDistanceMap(rayStart));
@@ -1316,14 +1351,17 @@ void main(void)
 			// TODO: add correct wind
 			#if HEIGHTNOISESTEPS > 0
 				// Ray Coords for noise-space
-				vec3 shadowRayStep = (rayEnd - rayStart) / HEIGHTNOISESTEPS;
-				vec3 shadowRayStart = (quadGatherSum3D(rayStart) * 0.33) + (thisQuadOffset + blueNoiseSample.r * (HEIGHTNOISESTEPS / 64 )) * shadowRayStep; // Pull back the start with blue noise
+				vec3 noiseOffset2 = vec3(windFractFull.z, time * RISERATE, windFractFull.w) *  5.0 ; // This must be an integer multiplier!
+				//noiseOffset2.y = fract(noiseOffset2.y); // time can only be rolled over here
+
+				vec3 heightFogRayStep = (rayEnd - rayStart) / HEIGHTNOISESTEPS;
+				vec3 heightFogRayStart = (quadGatherSum3D(rayStart) * 0.33) + (thisQuadOffset + blueNoiseSample.r * (HEIGHTNOISESTEPS / 64 )) * heightFogRayStep; // Pull back the start with blue noise
 				
 				float stepSize = rayLength / HEIGHTNOISESTEPS;
 				float myfreq = (thisQuadOffset + 0.1);
 				densityModulation = 0.0;
 				for (uint i = 0; i < HEIGHTNOISESTEPS; i++){
-					vec3 lfnoisepos = shadowRayStart * NOISESCALE1024 * 100.1 + noiseOffset;
+					vec3 lfnoisepos = (heightFogRayStart *  0.1 - noiseOffset2.xyz * 0.01  ) *NOISESCALE  ;
 					//lfnoisepos += lfnoisepos.zzx * NOISESKEW;
 					//lfnoisepos.y = 0;
 					float cloudy = 1.0;
@@ -1337,7 +1375,7 @@ void main(void)
 					//cloudy = dot(FBMNoise3D_rgba( lfnoisepos.xyz * vec3(1,1,1)), vec4(0.25));
 					
 					densityModulation +=  cloudy ;
-					shadowRayStart += shadowRayStep;
+					heightFogRayStart += heightFogRayStep;
 				}
 				
 				densityModulation = quadGatherSumFloat(densityModulation);
@@ -1349,6 +1387,8 @@ void main(void)
 	#endif
 
 		// just use the density function of fogtop-fogbottom
+		
+	float fogPlaneSizeInv = 1.0 / (heightFogTop - heightFogBottom);
 	float startDensity = clamp( (heightFogTop - rayStart.y) * fogPlaneSizeInv, 0, 1);
 	float endDensity = clamp( (heightFogTop - rayEnd.y) * fogPlaneSizeInv, 0, 1);
 	heightBasedFog = (startDensity + endDensity) * 2 * rayLength;
@@ -1359,13 +1399,13 @@ void main(void)
 	
 	float heightBasedFogExp = 1.0 - exp( - 1 * heightBasedFog * heightFogColor.a * 0.1);
 	heightBasedFogColor.rgb = mix(shadowedColor.rgb, heightFogColor.rgb, heightShadow);
-	heightBasedFogColor.a = heightBasedFogExp;	
+	heightBasedFogColor.a = heightBasedFogExp * edgeDistanceWeight;	
 	//Debug shadowing of fog:
 	//fragColor.rgba = vec4(vec3(heightShadow),0.9); return;
 	// TODO: BLEND ORDER OF HEIGHT-BASED and CLOUD LAYER MUST BE DEPENDENT ON VIEW ANGLE
 	//Debug purely height-based fog
 	//fragColor.rgba = vec4(heightBasedFogColor.rgba);	return;
-	// ----------------- END HEIGHT-BASED FOG SHADOWING -------------------------------
+	// ----------------- END HEIGHT-BASED FOG AND SHADOWING -------------------------------
 
 
 
@@ -1426,7 +1466,7 @@ void main(void)
 	
 	// take the ray start, and clamp it to the most distant of all 
 	
-	vec3 cloudBoxSize = (cloudVolumeMax.xyz - cloudVolumeMin.xyz) * 0.5;
+	vec3 cloudBoxSize = (cloudVolumeMax.xyz - cloudVolumeMin.xyz ) * 0.5 + vec3(cloudVolumeMax.w, 0, cloudVolumeMax.w) * 1;
 	vec3 cloudBoxCenter = (cloudVolumeMax.xyz + cloudVolumeMin.xyz) * 0.5;
 	
 	vec3 rayOriginInbox = camPos - cloudBoxCenter;
@@ -1448,8 +1488,15 @@ void main(void)
 	if (nearDist > lengthMapFromCam) cloudRayEnd = mapWorldPos.xyz; // the map is closer than the front of the cloud box
 	
 	if (step(nearDist, farDist) * step(0.0,farDist) < 0.5) cloudRayStart = cloudRayEnd; // cant remember what clipping this solves
+	/*
+	float cloudEdgeDistanceWeight = dot(max(vec3(0),vec3( 
+		CloudVoumeWeight((cloudRayStart.xz + cloudRayEnd.xz) * 0.5),
+		CloudVoumeWeight((cloudRayStart.xz ) ),
+		CloudVoumeWeight((cloudRayEnd.xz) ))),
+		vec3(0.33))	;
+	*/
 
-
+	float cloudEdgeDistanceWeight =	CloudVoumeWeight((cloudRayStart.xz + cloudRayEnd.xz) * 0.5);
 	//vec3 rayStartFromBox = abs(cloudRayEnd - cloudBoxCenter) - cloudBoxSize;
 	//float rayStartDistFromBox = length(max(rayStartFromBox,0.0)) + min(max(cloudBoxSize.x,max(cloudBoxSize.y,cloudBoxSize.z)),0.0);
 	//fragColor.rgba = vec4 (fract((cloudRayEnd + 0.5) /1024), step(nearDist, farDist) * step(0.0,farDist));
@@ -1457,6 +1504,7 @@ void main(void)
 	//fragColor.rgba = vec4(fract((cloudRayStart - cloudRayEnd) + 0.5) /1024, length(cloudRayStart - cloudRayEnd) * 0.1); return;
 	
 	float cloudRayLength = length(cloudRayStart-cloudRayEnd);
+	if (cloudEdgeDistanceWeight <= 0) cloudRayLength = 0;
 
 	if (cloudRayLength > 0 ){
 		vec3 cloudRayStep = (cloudRayEnd - cloudRayStart) / CLOUDSTEPS; // Points towards camera
@@ -1522,7 +1570,8 @@ void main(void)
 			
 		}
 	}
-	cloudBlendRGBT.a  = quadGatherWeighted(1.0 - exp(-1 * cloudBlendRGBT.w * cloudGlobalColor.a));
+	cloudBlendRGBT.a  = quadGatherWeighted(1.0 - exp(-1 * cloudBlendRGBT.w ))* cloudGlobalColor.a;
+	cloudBlendRGBT.a *= cloudEdgeDistanceWeight;
 	#endif
 	// ----------------- BEGIN CLOUD SHADOWS -------------------------------
 
@@ -1547,8 +1596,14 @@ void main(void)
 
 				float cloudTopDistanceMultiplier = (cloudVolumeMax.y - cloudShadowRayGroundPos.y) / sunDir.y;
 				vec3 cloudShadowRayEndStep = cloudShadowRayGroundPos + sunDir.xyz * cloudTopDistanceMultiplier;
+				
+				float cloudShadowEdgeDistanceWeight = CloudVoumeWeight((cloudShadowRayStartPos.xz + cloudShadowRayEndStep.xz) * 0.5);
+
+				if (cloudShadowEdgeDistanceWeight > 0){
 
 				float stepLength = length(cloudShadowRayStartPos-cloudShadowRayEndStep)/CLOUDSHADOWS; 
+
+				
 
 				vec3 noiseLFStart;
 				vec3 noiseLFEndStep;
@@ -1575,8 +1630,10 @@ void main(void)
 					cloudShadowColor.w += clampedNoise;
 				}
 				cloudShadowColor.w = quadGatherWeighted(cloudShadowColor.w);
+				cloudShadowColor.w *=cloudShadowEdgeDistanceWeight;
+				}
 			}
-		cloudShadowColor.w = (1.0 - exp(-1 * cloudShadowColor.w ) ) * shadowedColor.a;
+		cloudShadowColor.w = (1.0 - exp(-1 * cloudShadowColor.w ) ) * shadowedColor.a * cloudGlobalColor.a;
 		#endif
 		//fragColor = vec4(step(0.5,threadMask.rga), 1.0);return;
 		//fragColor.rgba = vec4(vec3(1.0 - cloudShadowColor.w), 0.95); return;
@@ -1599,6 +1656,18 @@ void main(void)
 	outColor.a = outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - cloudShadowColor.a);
 	outColor.rgb = outColor.rgb * (1.0 - cloudShadowColor.a) + shadowedColor.rgb * cloudShadowColor.a;
 
+	// The order here has to be dependent on which is first!
+	if ((camToMapNorm.y > 0) && (mapWorldPos.y > heightFogTop)){
+		
+	// 4. Blend cloudBlendRGBT.rgba
+	outColor.rgb = mix(outColor.rgb, cloudBlendRGBT.rgb, cloudBlendRGBT.a);
+	outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - cloudBlendRGBT.a);
+	// 3. Blend heightBasedFogColor.rgba
+	float newalpha =  1.0 -  (1.0 - outColor.a) * (1.0 - heightBasedFogColor.a);
+	outColor.rgb = mix(outColor.rgb, heightBasedFogColor.rgb,heightBasedFogColor.a - outColor.a * outColor.a);
+	outColor.a = newalpha;
+
+	}else{
 	// 3. Blend heightBasedFogColor.rgba
 	float newalpha =  1.0 -  (1.0 - outColor.a) * (1.0 - heightBasedFogColor.a);
 	outColor.rgb = mix(outColor.rgb, heightBasedFogColor.rgb,heightBasedFogColor.a - outColor.a * outColor.a);
@@ -1607,6 +1676,8 @@ void main(void)
 	// 4. Blend cloudBlendRGBT.rgba
 	outColor.rgb = mix(outColor.rgb, cloudBlendRGBT.rgb, cloudBlendRGBT.a);
 	outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - cloudBlendRGBT.a);
+
+	}
 
 	// 5. Blend distanceFogColor.rgba
 	outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - distanceFogAmountExp);

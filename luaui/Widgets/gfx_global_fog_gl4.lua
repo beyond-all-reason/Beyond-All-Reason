@@ -169,7 +169,7 @@ local fogUniforms = {
 	heightFogBottom = 0, -- Start of the height thing
 	cloudDensity = 0.01, -- How dense the height-based fog is
 	cloudVolumeMin = {0,maxHeight,0,0}, -- XYZ coords of the cloud volume start, along with the bottom density in W
-	cloudVolumeMax= {Game.mapSizeX, 2* maxHeight, Game.mapSizeZ,0}, -- XYZ coords of fog volume end, along with the top density
+	cloudVolumeMax= {Game.mapSizeX, 2* maxHeight, Game.mapSizeZ,1024}, -- XYZ coords of fog volume end, along with the top density
 	scavengerPlane = {Game.mapSizeX, Game.mapSizeZ, 100,100}, -- The assumption here is that we can specify an X and Z limit on fog, and a density transition function. negative numbers should swap plane dir 
 	noiseLFParams = {
 		0.31, -- high-frequency cloud noise, lower numbers = lower frequency
@@ -285,8 +285,7 @@ local shaderSourceCache = {
 			uniformNoiseTex = 9,
 		},
 		uniformFloat = {
-			windX = 0,
-			windZ = 0,
+			windFractFull = {0,0,0,0},
 			heightFogColor = fogUniforms.heightFogColor,
 			distanceFogColor = fogUniforms.distanceFogColor,
 			shadowedColor = fogUniforms.shadowedColor,
@@ -505,10 +504,8 @@ function widget:Shutdown()
 	if fogUniformSliders.Destroy then fogUniformSliders:Destroy() end
 	if shaderDefinedSlidersLayer.Destroy then shaderDefinedSlidersLayer:Destroy() end 
 end
-
-local windX = 0
-local windZ = 0
-function widget:GameFrame(n)
+--[[
+function widget:GameFrame(n) -- should be done every goddamned draw frame for ultimate smoothness!!!!!
 	local windDirX, _, windDirZ, windStrength = Spring.GetWind()
 	windX = windX + windDirX * shaderConfig.WINDSTRENGTH
 	windZ = windZ + windDirZ * shaderConfig.WINDSTRENGTH
@@ -526,9 +523,41 @@ function widget:GameFrame(n)
 		windZ = 1024.0 * (windZFract - math.floor(windZFract)) / shaderConfig.NOISESCALE 
 	end
 end
+]]--
 
+local windFractFull = {0,0,0,0} -- fractX, fractZ, fullX, fullZ
+
+local lastGameFrame = Spring.GetGameFrame()
 function widget:Update()
-	--SetFogParams("cloudDensity", 0.1)
+	local thisGameFrame = Spring.GetGameFrame()
+	local deltaFrame = thisGameFrame - lastGameFrame + Spring.GetFrameTimeOffset()
+	
+	local windDirX, _, windDirZ = Spring.GetWind()
+	local windStrength = shaderConfig.WINDSTRENGTH * deltaFrame
+	local deltaWindX = windDirX * windStrength
+	local deltaWindZ = windDirZ * windStrength
+	windFractFull[3] = windFractFull[3] + deltaWindX
+	windFractFull[4] = windFractFull[4] + deltaWindZ
+
+	windFractFull[1] = windFractFull[1] + deltaWindX
+	windFractFull[2] = windFractFull[2] * deltaWindZ
+	
+	local noiseScale = shaderConfig.NOISESCALE / 1024.0
+	-- assume NOISESCALE is 20
+	-- This part is to ensure that the fractional part of the noiseOffset fragment shader coordinates dont vanish
+	-- This "rolls over" when the noiseOffset would roll over 1
+	local windXFract = windFractFull[1] * noiseScale
+	if windXFract > 1 or windXFract < 0 then 
+		Spring.Echo("windXFract", windXFract, windFractFull[1])
+		windFractFull[1] = 1024.0 * (windXFract - math.floor(windXFract))/ shaderConfig.NOISESCALE
+	end
+	local windZFract = windFractFull[2] * noiseScale
+	if windZFract > 1 or windZFract < 0 then 
+		Spring.Echo("windZFract", windZFract, windZ)
+		windFractFull[2]  = 1024.0 * (windZFract - math.floor(windZFract)) / shaderConfig.NOISESCALE 
+	end
+	lastGameFrame = thisGameFrame
+
 end
 
 local toTexture = true
@@ -608,8 +637,7 @@ function widget:DrawWorld()
 	gl.Texture(9, uniformNoiseTex)
 	
 	groundFogShader:Activate()
-	groundFogShader:SetUniformFloat("windX", windX)
-	groundFogShader:SetUniformFloat("windZ", windZ)
+	groundFogShader:SetUniformFloat("windFractFull", windFractFull[1],windFractFull[2],windFractFull[3],windFractFull[4])
 	
 	for uniformName, uniformValue in pairs(fogUniforms) do 
 		local vtype = type(uniformValue)
