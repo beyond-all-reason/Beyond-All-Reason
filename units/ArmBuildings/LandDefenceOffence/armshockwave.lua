@@ -39,6 +39,7 @@ return {
 		sightdistance = 455,
 		sonarstealth = true,
 		stealth = true,
+		usepiececollisionvolumes = 1,
 		yardmap = "h cbbbbbbc bssssosb bosbbssb bsbbbbsb bsbbbbsb bssbbsob bsossssb cbbbbbbc",
 		customparams = {
 			usebuildinggrounddecal = true,
