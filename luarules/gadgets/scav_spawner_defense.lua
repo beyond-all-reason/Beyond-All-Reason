@@ -1225,7 +1225,7 @@ if gadgetHandler:IsSyncedCode() then
 				--Spring.Echo(uName,"MaxExisting",maxExisting,"MaxAllowed",maxAllowedToSpawn)
 				for i = 1, math.ceil(numOfTurrets) do
 					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and (Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[uName].id) <= maxAllowedToSpawn) then
-						if math.random()*math.ceil(numOfTurrets) <= numOfTurrets then
+						if i <= numOfTurrets or math.random() <= numOfTurrets%1 then
 							local attempts = 0
 							local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
 							local footprintZ = UnitDefNames[uName].zsize -- why the fuck is this footprint *2??????
