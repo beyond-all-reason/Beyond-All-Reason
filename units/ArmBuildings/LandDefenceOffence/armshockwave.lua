@@ -40,7 +40,7 @@ return {
 		sonarstealth = true,
 		stealth = true,
 		usepiececollisionvolumes = 1,
-		yardmap = "h cbbbbbbc bssssosb bosbbssb bsbbbbsb bsbbbbsb bssbbsob bsossssb cbbbbbbc",
+		yardmap = "h oooooooo osssssso osssssso ossoosso ossoosso osssssso osssssso oooooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/corexp_aoplane.dds",
