@@ -388,8 +388,8 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- Add prototype units to cor T2 vech
-	if Spring.GetModOptions().expandedcortexvehiclest2 then
+	-- Add balanced extras
+	if Spring.GetModOptions().releasecandidates then
 		if name == "coravp" then
 			for ix, UnitName in pairs(uDef.buildoptions) do
 				if UnitName == "corseal" then
@@ -411,6 +411,18 @@ function UnitDef_Post(name, uDef)
 			end
 
 		end
+		
+		-- demon
+		
+		if name == "corgant" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "cordemont4"		
+		end
+		
+		--T2 EMP mex to follow in next commit
+		
+
+		
 		if name == "corgantuw" then
 			local numBuildoptions = 1
 			for ix, UnitName in pairs(uDef.buildoptions) do

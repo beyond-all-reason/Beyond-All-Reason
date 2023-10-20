@@ -824,9 +824,9 @@ local options={
 	},
 
 	{
-		key    = 'expandedcortexvehiclest2',
-		name   = 'Additional Cortex T2 Vehicles',
-		desc   = 'Adds Forge, a combat engineer like the butler with a flamethrower. Adds Printer, an armored field engineer. Adds Heat Tiger, Tiger with a heat laser',
+		key    = 'releasecandidates',
+		name   = 'Release Candidate Units',
+		desc   = 'Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently, adds Printer, Demon, Salamander, and Shockwave (Arm T2 EMP Mex)',
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,
