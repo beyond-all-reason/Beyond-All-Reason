@@ -17,8 +17,6 @@ body:
     attributes:
       label: Problems this will solve
       description: Explain the issues that this client mod would solve
-    validations:
-      required: true
 
   - type: textarea
     id: other
