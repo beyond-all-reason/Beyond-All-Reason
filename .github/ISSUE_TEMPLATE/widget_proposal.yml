@@ -9,16 +9,16 @@ body:
     attributes:
       label: Short Description
       description: Provide a brief description of what the client mod should do
-      validations:
-        required: true
+    validations:
+      required: true
 
   - type: textarea
     id: problems
     attributes:
       label: Problems to Solve
       description: Explain the problems or challenges that this client mod would solve
-      validations:
-        required: true
+    validations:
+      required: true
 
   - type: textarea
     id: implementation_notes
