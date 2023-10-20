@@ -419,6 +419,7 @@ function UnitDef_Post(name, uDef)
 
 		end
 
+
 		-- demon
 
 		if name == "corgant" then
@@ -430,7 +431,6 @@ function UnitDef_Post(name, uDef)
 
 
 
-		if name == "corgantuw" then
 		if name == "corgantuw" then
 			local numBuildoptions = 1
 			for ix, UnitName in pairs(uDef.buildoptions) do
