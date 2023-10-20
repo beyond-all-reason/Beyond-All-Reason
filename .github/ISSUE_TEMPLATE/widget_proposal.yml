@@ -1,13 +1,13 @@
 name: Client Mod Proposal
 description: Use this template to submit a proposal for a new client mod
 title: '[Client Mod Proposal] - '
-labels: ["Client Mod Proposal", "enhancement", "awaiting approval", "approved", "rejected"]
+labels: ["Client Mod Proposal", "enhancement", "Awaiting Approval", "Approved", "Rejected"]
 
 body:
   - type: textarea
     id: description
     attributes:
-      label: Short Description
+      label: Short description
       description: Provide a brief description of what the client mod should do
     validations:
       required: true
@@ -15,13 +15,13 @@ body:
   - type: textarea
     id: problems
     attributes:
-      label: Problems to Solve
-      description: Explain the problems or challenges that this client mod would solve
+      label: Problems this will solve
+      description: Explain the issues that this client mod would solve
     validations:
       required: true
 
   - type: textarea
-    id: implementation_notes
+    id: other
     attributes:
-      label: Implementation Notes (Optional)
-      description: Include any optional implementation notes or ideas
+      label: Other (optional)
+      description: Optionally, you can provide implementation notes for developers, further ways this idea could be enhanced, potential issues this mod could introduce and how those problems could be mitigated, or anything else you wish to add here
