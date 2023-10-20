@@ -824,9 +824,9 @@ local options={
 	},
 
 	{
-		key    = 'expandedcortexvehiclest2',
-		name   = 'Additional Cortex T2 Vehicles',
-		desc   = 'Adds Forge, a combat engineer like the butler with a flamethrower. Adds Printer, an armored field engineer. Adds Heat Tiger, Tiger with a heat laser',
+		key    = 'releasecandidates',
+		name   = 'Release Candidate Units',
+		desc   = 'Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently, adds Printer, Demon, Salamander, and Shockwave (Arm T2 EMP Mex)',
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,
@@ -855,6 +855,16 @@ local options={
 		key = 'expandedt2sea',
 		name = 'Expanded T2 Sea',
 		desc = 'T2 sea is expanded to include a lightning ship for arm and a flamethrower ship for cor, and both factions get a drone carrier ship and an anti-nuke support ship to replace the aircraft carrier.  Cruisers rebalanced to be slower and lower range but higher health and dps for a more defensive role',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
+	},
+
+
+	{
+		key = 'emprework',
+		name = 'EMP Rework',
+		desc = 'EMP is changed to slow units movement and firerate, before eventually stunning.',
 		type = 'bool',
 		section = 'options_experimental',
 		def = false,

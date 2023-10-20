@@ -126,13 +126,6 @@ function UnitDef_Post(name, uDef)
 			uDef.maxdamage = 2800 --3500
 			uDef.energyuse = 10 --20
 		end
-		if name == "armshockwave" then
-			uDef.extractsmetal = 0.002 --0.004
-			uDef.buildcostmetal = 2000 --2400
-			uDef.buildcostenergy = 8500 --12000
-			uDef.maxdamage = 2800 --3500
-			uDef.energyuse = 10 --20
-		end
 	end
 
 	if Spring.GetModOptions().experimentalrebalancet2energy == true then
@@ -395,25 +388,21 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- Add prototype units to cor T2 vech
-	if Spring.GetModOptions().expandedcortexvehiclest2 then
+	-- Add balanced extras
+	if Spring.GetModOptions().releasecandidates then
 
-			
+		--Shockwave mex
 		if name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armshockwave"
-		end
-			
-
+		end	
+	
 		if name == "coravp" then
 			for ix, UnitName in pairs(uDef.buildoptions) do
 				if UnitName == "corseal" then
 					uDef.buildoptions[ix] = "corsala"
 				end
 			end
-			
-
-			
 
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corvac" --corprinter
@@ -429,6 +418,19 @@ function UnitDef_Post(name, uDef)
 			end
 
 		end
+
+		-- demon
+
+		if name == "corgant" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "cordemont4"		
+		end
+
+
+
+
+
+		if name == "corgantuw" then
 		if name == "corgantuw" then
 			local numBuildoptions = 1
 			for ix, UnitName in pairs(uDef.buildoptions) do
@@ -860,6 +862,56 @@ function UnitDef_Post(name, uDef)
 		uDef = unbaUnits.unbaUnitTweaks(name, uDef)
 	end
 
+
+if Spring.GetModOptions().emprework == true then
+
+		if name == "armstil" then		
+			uDef.weapondefs.stiletto_bomb.areaofeffect = 250
+			uDef.weapondefs.stiletto_bomb.burst = 3
+			uDef.weapondefs.stiletto_bomb.burstrate = 0.3333
+			uDef.weapondefs.stiletto_bomb.edgeeffectiveness = 0.30
+			uDef.weapondefs.stiletto_bomb.damage.default = 1500
+			uDef.weapondefs.stiletto_bomb.paralyzetime = 5			
+		end
+
+		if name == "armspid" then
+			uDef.weapondefs.spider.paralyzetime = 5			
+			uDef.weapondefs.spider.damage.default = 1500
+		end
+
+		if name == "armdfly" then
+			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 5			
+		end
+		
+
+		if name == "armemp" then
+			uDef.weapondefs.armemp_weapon.areaofeffect = 512
+			uDef.weapondefs.armemp_weapon.burstrate = 0.3333
+			uDef.weapondefs.armemp_weapon.edgeeffectiveness = 0.05
+			uDef.weapondefs.armemp_weapon.paralyzetime = 5
+			uDef.weapondefs.armemp_weapon.damage.default = 40000
+			
+		end
+		
+
+		if name == "armthor" then
+			uDef.weapondefs.empmissile.areaofeffect = 250
+			uDef.weapondefs.empmissile.edgeeffectiveness = 0.40
+			uDef.weapondefs.empmissile.damage.default = 10000
+			uDef.weapondefs.empmissile.paralyzetime = 5	
+			uDef.weapondefs.emp.damage.default = 600
+			uDef.weapondefs.emp.paralyzetime = 5	
+		end
+
+		if name == "corbw" then
+			uDef.weapondefs.bladewing_lyzer.damage.default = 400
+			uDef.weapondefs.bladewing_lyzer.paralyzetime = 5	
+		end
+		
+
+end
+
+
 if Spring.GetModOptions().comtestchanges == true then
 		if name == "armdecom" then
 			uDef.maxdamage = 3700
@@ -1098,7 +1150,8 @@ if Spring.GetModOptions().comtestchanges == true then
 	-- Energy Conversion Multiplier
 	if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
 		local x = Spring.GetModOptions().multiplier_energyconversion * Spring.GetModOptions().multiplier_resourceincome
-		uDef.customparams.energyconv_capacity = uDef.customparams.energyconv_capacity * x
+		--uDef.customparams.energyconv_capacity = uDef.customparams.energyconv_capacity * x
+		uDef.customparams.energyconv_efficiency = uDef.customparams.energyconv_efficiency * x
 		if uDef.metalstorage then
 			uDef.metalstorage = uDef.metalstorage * x
 		end
@@ -1203,6 +1256,32 @@ function WeaponDef_Post(name, wDef)
 			if wDef.mygravity == nil then
 				wDef.mygravity = 0.1667 --150/900
 			end
+		end
+
+
+
+		----EMP rework
+
+		if Spring.GetModOptions().emprework==true then
+
+			if name == 'empblast' then
+				wDef.areaofeffect = 500
+				wDef.edgeeffectiveness = 0.45
+				wDef.paralyzetime = 5
+				wDef.damage.default = 3000
+			end
+			if name == 'spybombx' then
+				wDef.areaofeffect = 500
+				wDef.edgeeffectiveness = 0.05
+				wDef.paralyzetime = 5
+				wDef.damage.default = 6000
+			end
+			if name == 'spybombxscav' then
+				wDef.edgeeffectiveness = 0.50
+				wDef.paralyzetime = 5
+			end
+
+
 		end
 
 
@@ -1359,7 +1438,7 @@ function WeaponDef_Post(name, wDef)
 			-- if wDef.mygravity and wDef.mygravity ~= 0 then
 			-- 	wDef.mygravity = wDef.mygravity*(1/x)
 			-- else
-			-- 	wDef.mygravity = 0.12 -- this is some really weird number totally not related to numbers defined in map file
+			-- 	wDef.mygravity = Game.gravity / (Game.gameSpeed ^ 2) / x
 			-- end
 			if wDef.weaponvelocity and wDef.weapontype == "Cannon" and wDef.gravityaffected == "true" then
 				wDef.weaponvelocity = wDef.weaponvelocity*math.sqrt(x)
