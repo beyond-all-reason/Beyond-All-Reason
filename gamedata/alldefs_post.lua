@@ -1150,8 +1150,7 @@ if Spring.GetModOptions().comtestchanges == true then
 	-- Energy Conversion Multiplier
 	if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
 		local x = Spring.GetModOptions().multiplier_energyconversion * Spring.GetModOptions().multiplier_resourceincome
-		--uDef.customparams.energyconv_capacity = uDef.customparams.energyconv_capacity * x
-		uDef.customparams.energyconv_efficiency = uDef.customparams.energyconv_efficiency * x
+		uDef.customparams.energyconv_capacity = uDef.customparams.energyconv_capacity * x
 		if uDef.metalstorage then
 			uDef.metalstorage = uDef.metalstorage * x
 		end
