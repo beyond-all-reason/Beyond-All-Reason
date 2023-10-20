@@ -1,7 +1,7 @@
 name: Client Mod Proposal
 description: Use this template to submit a proposal for a new client mod
 title: '[Client Mod Proposal] - '
-labels: ["Client Mod Proposal", "enhancement", "Awaiting Approval", "Approved", "Rejected"]
+labels: ["Client Mod Proposal", "enhancement", "Awaiting Approval"]
 
 body:
   - type: textarea
