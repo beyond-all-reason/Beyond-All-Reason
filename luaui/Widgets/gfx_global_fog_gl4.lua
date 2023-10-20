@@ -528,9 +528,13 @@ end
 local windFractFull = {0,0,0,0} -- fractX, fractZ, fullX, fullZ
 
 local lastGameFrame = Spring.GetGameFrame()
+local prevTimeOffset = Spring.GetFrameTimeOffset()
 function widget:Update()
 	local thisGameFrame = Spring.GetGameFrame()
-	local deltaFrame = thisGameFrame - lastGameFrame + Spring.GetFrameTimeOffset()
+	local thisTimeOffset = Spring.GetFrameTimeOffset()
+	local deltaOffset = math.max(0, thisTimeOffset- prevTimeOffset)
+	prevTimeOffset = thisTimeOffset
+	local deltaFrame = thisGameFrame - lastGameFrame + deltaOffset
 	
 	local windDirX, _, windDirZ = Spring.GetWind()
 	local windStrength = shaderConfig.WINDSTRENGTH * deltaFrame
@@ -707,6 +711,6 @@ function widget:DrawScreen()
 		local fogdrawus = (1000/newfps - 1000/initfps)
 		local fogdrawlast = (1000/lastfps - 1000/initfps)
 		gl.Text(string.format("fog %.3f ms last %.3f ms", fogdrawus, fogdrawlast),  vsx - 600,  100, 16, "d")
-		gl.Text(string.format("%.3f dms  %.1fpct", fogdrawus-fogdrawlast, 100*fogdrawus/fogdrawlast  ),  vsx - 600,  80, 16, "d")
+		gl.Text(string.format("%.3f dms  %.1fpct \n%.3fmstotal", fogdrawus-fogdrawlast, 100*fogdrawus/fogdrawlast , 1000/newfps ),  vsx - 600,  80, 16, "d")
 	end
 end
