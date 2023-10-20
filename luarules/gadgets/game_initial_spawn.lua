@@ -431,7 +431,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		if n == 91 then
+		if n > 90 then
 			gadgetHandler:RemoveGadget(self)
 		end
 	end
@@ -454,7 +454,7 @@ else -- UNSYNCED
 		if n == 60 then
 			Spring.PlaySoundFile("commanderspawn", 0.6, 'ui')
 		end
-		if n == 91 then
+		if n > 90 then
 			gadgetHandler:RemoveGadget(self)
 		end
 	end
