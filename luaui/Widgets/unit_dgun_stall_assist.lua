@@ -27,6 +27,8 @@ local isFactory = {} -- isFactory[uDefID] = true / nil
 
 local gameStarted
 
+local stallIds = {UnitDefNames['armcom'].id, UnitDefNames['corcom'].id}
+
 ----------------------------------------------------------------
 -- Speedups
 ----------------------------------------------------------------
@@ -81,7 +83,18 @@ function widget:Update(dt)
 
 	local _, activeCmdID = spGetActiveCommand()
 	if activeCmdID == CMD_DGUN then
-		watchTime = watchForTime
+		local selection = Spring.GetSelectedUnitsCounts()
+		local stallUnitSelected = false
+
+		for i = 1, #stallIds do
+			if selection[stallIds[i]] then
+				stallUnitSelected = true
+			end
+		end
+		
+		if (stallUnitSelected) then
+			watchTime = watchForTime
+		end
 	else
 		watchTime = watchTime - dt
 

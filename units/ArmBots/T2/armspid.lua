@@ -150,7 +150,7 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "hackshot",
 				soundtrigger = 1,
-				targetmoveerror = 0.3,
+				targetmoveerror = 0,
 				thickness = 1.2,
 				turret = true,
 				weapontype = "BeamLaser",

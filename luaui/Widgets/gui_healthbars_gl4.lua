@@ -1131,8 +1131,13 @@ function widget:GameFrame(n)
 				local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
 				--uniformcache[1] = math.floor((paralyzeDamage - maxHealth)) / (maxHealth * empDecline))
 				if paralyzeDamage then
+				
+					-- this returns something like 1.20 which somehow turns into seconds somewhere unsearchable, currently wrong display
+					-- this needs conditional fixing within an if Spring.GetModOptions().emprework
 					uniformcache[1] = paralyzeDamage / maxHealth
-					--Spring.Echo("Paralyze damage", paralyzeDamage, maxHealth)
+					--Spring.Echo("Paralyze damages", paralyzeDamage, maxHealth)
+					--Spring.Echo("Paralyze damage cur", (paralyzeDamage / maxHealth))
+
 					gl.SetUnitBufferUniforms(unitID, uniformcache, 4)
 				end
 			else

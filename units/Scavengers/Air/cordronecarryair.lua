@@ -163,7 +163,7 @@ return {
 					decayrate = 9,
 					attackformationspread = 200,	--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
 					attackformationoffset = 30,	--Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
-					carrierdeaththroe = "control",
+					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 36,
 					docktohealthreshold = 50,

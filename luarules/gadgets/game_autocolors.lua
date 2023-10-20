@@ -408,12 +408,8 @@ local function shuffleAllColors()
 	end
 end
 
-local isFFA = false
-if #teamList == #allyTeamList and teamCount > 2 then
-	isFFA = true
-elseif not teamColors[allyTeamCount] then
-	isFFA = true
-end
+-- we don't want to use FFA colors for TeamFFA, because we want each team to have its own color theme
+local useFFAColors = Spring.Utilities.Gametype.IsFFA() and not Spring.Utilities.Gametype.IsTeams()
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -445,7 +441,7 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(survivalColors[survivalColorNum])[2] + math.random(-survivalColorVariation, survivalColorVariation))
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(survivalColors[survivalColorNum])[3] + math.random(-survivalColorVariation, survivalColorVariation))
 			survivalColorNum = survivalColorNum + 1 -- Will start from the next color next time
-		elseif isFFA then
+		elseif useFFAColors then
 			if not ffaColors[ffaColorNum] then -- If we have no color for this team anymore
 				ffaColorNum = 1 -- Starting from the first color again..
 				ffaColorVariation = ffaColorVariation + colorVariationDelta -- ..but adding random color variations with increasing amplitude with every cycle
@@ -550,7 +546,7 @@ else	-- UNSYNCED
 
 				survivalColorNum = survivalColorNum + 1 -- Will start from the next color next time
 
-			elseif isFFA then
+			elseif useFFAColors then
 
 				if not ffaColors[ffaColorNum] then -- If we have no color for this team anymore
 					ffaColorNum = 1 -- Starting from the first color again..
@@ -640,13 +636,40 @@ else	-- UNSYNCED
 	local iconDevMode = Spring.GetModOptions().teamcolors_icon_dev_mode
 	local iconDevModeColor = iconDevModeColors[iconDevMode]
 
-	local function updateTeamColors()
-		if math.random(0,30) == 0 and anonymousMode == "disco" and not Spring.GetSpectatingState() then
-			shuffleAllColors()
-			setUpAllLocalTeamColors()
+	local function isDiscoEnabled()
+		return anonymousMode == "disco" and not Spring.GetSpectatingState()
+	end
+
+	---shuffle colors for all teams except ourselves
+	local function discoShuffle(myTeamID)
+		-- store own color and do regular shuffle
+		local myColor = teamColorsTable[myTeamID]
+		shuffleAllColors()
+		setUpAllLocalTeamColors()
+
+		-- swap color with any team that might have been assigned own color
+		local teamIDToSwapWith = nil
+		for teamID, color in pairs(teamColorsTable) do
+			if myColor.r == color.r and myColor.g == color.g and myColor.b == color.b then
+				teamIDToSwapWith = teamID
+				break
+			end
 		end
+		if teamIDToSwapWith ~= nil then
+			teamColorsTable[teamIDToSwapWith] = teamColorsTable[myTeamID]
+		end
+
+		-- restore own color
+		teamColorsTable[myTeamID] = myColor
+	end
+
+	local function updateTeamColors()
 		local myTeamID = Spring.GetMyTeamID()
 		local myAllyTeamID = Spring.GetMyAllyTeamID()
+
+		if isDiscoEnabled() then
+			discoShuffle(myTeamID)
+		end
 
 		local next_team_brightness_offset = 1.0
 		local next_opponent_brightness_offset = 1.0
@@ -698,9 +721,15 @@ else	-- UNSYNCED
 	end
 	updateTeamColors()
 
+	local discoTimer = 0
+	local discoTimerThreshold = 2 * 60 -- shuffle every 2 minutes with disco mode enabled
 	function gadget:Update()
-		if math.random(0,60) == 0 then
-			updateTeamColors()
+		if isDiscoEnabled() then
+			discoTimer = discoTimer + Spring.GetLastUpdateSeconds()
+			if discoTimer > discoTimerThreshold then
+				discoTimer = 0
+				updateTeamColors()
+			end
 		elseif Spring.GetConfigInt("UpdateTeamColors", 0) == 1 then
 			updateTeamColors()
 			Spring.SetConfigInt("UpdateTeamColors", 0)

@@ -751,7 +751,7 @@ function widget:Update(dt)
 		else
 			isIdle = false
 		end
-		if WG['topbar'] and WG['topbar'].showingRejoining and WG['topbar'].showingRejoining() then
+		if WG['rejoin'] and WG['rejoin'].showingRejoining() then
 			isIdle = true
 		end
 	end

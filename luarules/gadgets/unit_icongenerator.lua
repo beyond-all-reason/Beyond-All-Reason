@@ -141,8 +141,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:find("buildicon", 1, true) then
-			if (not Spring.IsCheatingEnabled()) then
+		if msg:sub(1, 9) == "buildicon" then
+			if not Spring.IsCheatingEnabled() then
 				Spring.SendMessageToPlayer(playerID, "Cheating must be enabled")
 				return true
 			end
@@ -967,14 +967,14 @@ else
 		end
 
 		if #jobs == 0 then
-			--gadget.DrawGenesis = nil
-			--gadgetHandler:UpdateCallIn("DrawGenesis")
+			gadget.DrawGenesis = nil
+			gadgetHandler:UpdateCallIn("DrawGenesis")
 		end
 	end
 
-	function gadget:DrawGenesis()
-		ProcessJobs()
-	end
+	--function gadget:DrawGenesis()
+	--	ProcessJobs()
+	--end
 
 	local function GetFaction(unitdef)
 		local name = unitdef.name
@@ -1195,9 +1195,8 @@ else
 			end
 		end
 
-		--gadget.DrawGenesis = ProcessJobs
-		--gadgetHandler:UpdateCallIn("DrawGenesis")
-		--gadgetHandler:UpdateCallIn("DrawGenesis") --stupid bug
+		gadget.DrawGenesis = ProcessJobs
+		gadgetHandler:UpdateCallIn("DrawGenesis")
 	end
 
 	local function UnitCreated(_, uid, defname)
@@ -1210,7 +1209,6 @@ else
 
 		gadget.DrawGenesis = ProcessJobs
 		gadgetHandler:UpdateCallIn("DrawGenesis")
-		gadgetHandler:UpdateCallIn("DrawGenesis") --stupid bug
 	end
 
 	function gadget:Initialize()
