@@ -68,7 +68,7 @@ local vikings = {
 	["trash_panda"] = true,
 }
 local kings = {
-	["MightySheep"] = true,
+	["[teh]Teddy"] = true,
 }
 local goldMedals = {
 }

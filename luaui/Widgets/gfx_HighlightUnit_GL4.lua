@@ -22,9 +22,9 @@ local uniqueID = 0
 local debugmode = 0
 
 local highlightunitShaderConfig = {
-	ANIMSPEED = 0.066,
-	ANIMFREQUENCY = 0.033,
-	SKINSUPPORT = Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and 1 or 0,
+	ANIMSPEED = 2 / Game.gameSpeed,
+	ANIMFREQUENCY = 1 / Game.gameSpeed,
+	SKINSUPPORT = Script.IsEngineMinVersion(105, 0, 1653) and 1 or 0,
 }
 
 local vsSrc =

@@ -16,7 +16,8 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-local maxTime = 20 -- in seconds
+local maxTime = Spring.GetModOptions().emprework==true and 10 or 20 --- this is ignored in EMP rework and vanilla, bug is probably below, maybe L56
+
 
 local excluded = {
     -- mobile units that are excluded from the maxTime limit
@@ -53,8 +54,9 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
             local max_para_time = weaponParalyzeDamageTime[weaponID]
             local h,mh,ph = spGetUnitHealth(uID)
             local max_para_damage = mh + ((max_para_time<maxTime) and mh or mh*maxTime/max_para_time)
-            damage = math.min(damage, math.max(0,max_para_damage-ph) )
             --Spring.Echo(h,mh, ph, max_para_damage, max_para_time, damage)
+            damage = math.min(damage, math.max(0,max_para_damage-ph) )
+            --Spring.Echo('new',h,mh, ph, max_para_damage, max_para_time, damage)
         end
         return damage, 1
     end

@@ -1,0 +1,25 @@
+name: Client Mod Proposal
+description: Use this template to submit a proposal for a new client mod
+title: '[Client Mod Proposal] - '
+labels: ["Client Mod Proposal", "enhancement", "Awaiting Approval"]
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Short description
+      description: Provide a brief description of what the client mod should do
+    validations:
+      required: true
+
+  - type: textarea
+    id: problems
+    attributes:
+      label: Problems this will solve
+      description: Explain the issues that this client mod would solve
+
+  - type: textarea
+    id: other
+    attributes:
+      label: Other (optional)
+      description: Optionally, you can provide implementation notes for developers, further ways this idea could be enhanced, potential issues this mod could introduce and how those problems could be mitigated, or anything else you wish to add here

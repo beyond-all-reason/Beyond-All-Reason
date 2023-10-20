@@ -33,13 +33,5 @@ return {
 	['IceXuick'] = everything,
 	['[teh]Beherith'] = everything,
 	['PtaQ'] = everything,
-	['TarnishedKnight'] = everything,
-
-	['Teifion'] = moderator,
-	['[Fx]Jazcash'] = moderator,
-	['Damgam98'] = moderator,
-	['[Z]ecrus'] = moderator,
-	['Fire[Z]torm_'] = moderator,
-	['Flaka'] = moderator,
-	['WatchTheFort'] = moderator,
+	['TarnishedKnight'] = everything
 }

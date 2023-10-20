@@ -29,6 +29,7 @@ return {
 		maxwaterdepth = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/LEGFIG.s3o",
+		radardistance = 400,
 		script = "Units/LEGFIG.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericAir",

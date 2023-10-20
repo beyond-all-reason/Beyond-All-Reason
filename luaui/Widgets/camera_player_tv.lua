@@ -435,8 +435,8 @@ function widget:Update(dt)
 	end
 
 	local prevRejoining = rejoining
-	if WG['topbar'] then
-		rejoining = WG['topbar'].showingRejoining()
+	if WG['rejoin'] then
+		rejoining = WG['rejoin'].showingRejoining()
 	end
 	if isSpec and toggled and Spring.GetGameFrame() % 30 == 5 then
 		if rejoining and prevRejoining ~= rejoining then

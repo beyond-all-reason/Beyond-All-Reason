@@ -79,6 +79,8 @@ local floor = math.floor
 
 local updateFrame = {}
 
+local teamList
+local deadTeamList = {}
 local canPassive = {} -- canPassive[unitDefID] = nil / true
 local cost = {} -- cost[unitDefID] = {metal=value,energy=value}
 local unitBuildSpeed = {}
@@ -94,10 +96,15 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     end
 end
 
+local function updateTeamList()
+	teamList = spGetTeamList()
+end
+
 function gadget:Initialize()
     for _,unitID in pairs(Spring.GetAllUnits()) do
         gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
     end
+	updateTeamList()
 end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
@@ -295,21 +302,26 @@ local function GetUpdateInterval(teamID)
 	return maxInterval
 end
 
+function gadget:TeamDied(teamID)
+	deadTeamList[teamID] = true
+end
+
+function gadget:TeamChanged(teamID)
+	updateTeamList()
+end
 
 function gadget:GameFrame(n)
     for builderID, builtUnit in pairs(buildTargetOwners) do
         if spValidUnitID(builderID) and spGetUnitIsBuilding(builderID) == builtUnit then
             spSetUnitBuildSpeed(builderID, currentBuildSpeed[builderID])
         end
-        buildTargetOwners[builderID] = nil
-        buildTargets[builtUnit] = nil
     end
-
+	buildTargetOwners = {}
     buildTargets = {}
-	local teams = spGetTeamList()
-	for i=1, #teams do
-		local teamID = teams[i]
-		if not select(3, spGetTeamInfo(teamID,false)) then -- isnt dead
+
+	for i=1, #teamList do
+		local teamID = teamList[i]
+		if not deadTeamList[teamID] then -- isnt dead
 			if n == updateFrame[teamID] then
 				local interval = GetUpdateInterval(teamID)
 				UpdatePassiveBuilders(teamID, interval)

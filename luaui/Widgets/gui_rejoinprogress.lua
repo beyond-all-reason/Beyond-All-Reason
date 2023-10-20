@@ -224,10 +224,11 @@ function widget:GameStart()
 end
 
 function widget:Initialize()
-	if WG['topbar'] then
-		showRejoinUI = WG['topbar'].showingRejoining()
-	end
 	widget:ViewResize()
+	WG['rejoin'] = {}
+	WG['rejoin'].showingRejoining = function()
+		return showRejoinUI
+	end
 end
 
 function widget:Shutdown()
@@ -237,4 +238,5 @@ function widget:Shutdown()
 	if dlistRejoinGuishader ~= nil and WG['guishader'] then
 		WG['guishader'].RemoveDlist('rejoinprogress')
 	end
+	WG['rejoin'] = nil
 end

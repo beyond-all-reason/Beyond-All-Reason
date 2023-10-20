@@ -85,7 +85,7 @@ for difficulty, stats in pairs(difficultyParams) do
 		mass = 9999999,
 		maxdamage = stats.maxDamage, --4450,
 		maxslope = 20,
-		maxvelocity = 0.625, --1.65, --1.083,
+		maxvelocity = 1.25, --1.65, --1.083,
 		maxwaterdepth = 35,
 		metalmake = 2,
 		metalstorage = 500,

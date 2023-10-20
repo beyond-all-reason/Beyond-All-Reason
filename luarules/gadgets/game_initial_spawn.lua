@@ -2,8 +2,8 @@ function gadget:GetInfo()
 	return {
 		name = 'Initial Spawn',
 		desc = 'Handles initial spawning of units',
-		author = 'Niobium',
-		version = 'v1.0',
+		author = 'Niobium, nbusseneau',
+		version = 'v2.0',
 		date = 'April 2011',
 		license = 'GNU GPL, v2 or later',
 		layer = 0,
@@ -12,6 +12,11 @@ function gadget:GetInfo()
 end
 
 -- Note: (31/03/13) coop_II deals with the extra startpoints etc needed for teamsIDs with more than one playerID.
+
+-- 2023-08-19: FFA start points configuration is now offloaded to a dedicated `game_ffa_start_setup` gadget and has been
+-- reworked with a new format without global variables. The `game_initial_spawn` gadget is now consuming the data
+-- provided by `game_ffa_start_setup` instead of also handling FFA start points. Backwards compatibility to the previous
+-- FFA start points config format is handled by `game_ffa_start_setup`.
 
 ----------------------------------------------------------------
 -- Synced
@@ -45,8 +50,8 @@ if gadgetHandler:IsSyncedCode() then
 	if Spring.GetModOptions().experimentallegionfaction then
 		validStartUnits[legcomDefID] = true
 	end
-	local spawnTeams = {} -- spawnTeams[teamID] = allyID
-	local spawnTeamsCount
+	local teams = {} -- teams[teamID] = allyID
+	local teamsCount
 
 	-- each player gets to choose a faction
 	local playerStartingUnits = {} -- playerStartingUnits[unitID] = unitDefID
@@ -57,34 +62,23 @@ if gadgetHandler:IsSyncedCode() then
 	GG.teamStartPoints = teamStartPoints
 	local startPointTable = {}
 
-	local allyTeamsCount
-	local allyTeams = {} --allyTeams[allyTeamID] is non-nil if this allyTeam will spawn at least one starting unit
-
 	----------------------------------------------------------------
 	-- Start Point Guesser
 	----------------------------------------------------------------
 	include("luarules/gadgets/lib_startpoint_guesser.lua") -- start point guessing routines
 
 	----------------------------------------------------------------
-	-- FFA Startpoints (modoption)
+	-- FFA start points (provided by `game_ffa_start_setup`)
 	----------------------------------------------------------------
-	-- ffaStartPoints is "global"
-	local useFFAStartPoints = false
-	if Spring.Utilities.Gametype.IsFFA() then
-		useFFAStartPoints = true
-	end
-
-	local function getFFAStartPoints()
-		include("luarules/configs/ffa_startpoints/ffa_startpoints.lua") -- if we have a ffa start points config for this map, use it
-		if not ffaStartPoints and VFS.FileExists("luarules/configs/ffa_startpoints.lua") then
-			include("luarules/configs/ffa_startpoints.lua") -- if we don't have one, see if the map has one
-		end
-	end
+	local isFFA = Spring.Utilities.Gametype.IsFFA()
+	local isTeamFFA = isFFA and Spring.Utilities.Gametype.IsTeams()
 
 	----------------------------------------------------------------
 	-- Initialize
 	----------------------------------------------------------------
 	function gadget:Initialize()
+		Spring.SetLogSectionFilterLevel(gadget:GetInfo().name, LOG.INFO)
+
 		local gaiaTeamID = Spring.GetGaiaTeamID()
 		local teamList = Spring.GetTeamList()
 		for i = 1, #teamList do
@@ -99,36 +93,18 @@ if gadgetHandler:IsSyncedCode() then
 					comDefID = legcomDefID
 				end
 				spSetTeamRulesParam(teamID, startUnitParamName, comDefID, { allied = true, public = false })
-				spawnTeams[teamID] = teamAllyID
-
-				-- record that this allyteam will spawn something
-				local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
-				allyTeams[allyTeamID] = allyTeamID
+				teams[teamID] = teamAllyID
 			end
 		end
 
-		allyTeamsCount = 0
-		for k, v in pairs(allyTeams) do
-			allyTeamsCount = allyTeamsCount + 1
-		end
-
-		spawnTeamsCount = 0
-		for k, v in pairs(spawnTeams) do
-			spawnTeamsCount = spawnTeamsCount + 1
-		end
-
-		-- create the ffaStartPoints table, if we need it & can get it
-		if useFFAStartPoints then
-			getFFAStartPoints()
-		end
-		-- make the relevant part of ffaStartPoints accessible to all, if it is use-able
-		if ffaStartPoints then
-			GG.ffaStartPoints = ffaStartPoints[allyTeamsCount] -- NOT indexed by allyTeamID
+		teamsCount = 0
+		for k, v in pairs(teams) do
+			teamsCount = teamsCount + 1
 		end
 
 		-- mark all players as 'not yet placed' and 'not yet readied'
 		local initState
-		if Game.startPosType ~= 2 or ffaStartPoints then
+		if Game.startPosType ~= 2 then
 			initState = -1 -- if players won't be allowed to place startpoints
 		else
 			initState = 0 -- players will be allowed to place startpoints
@@ -217,13 +193,12 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.MarkerAddPoint(x,y,z,name .. " " .. readyState)
 		--]]
 
+		-- if startPosType is not set to choose-in-game, we will handle start positions manually
 		if Game.startPosType ~= 2 then
 			return true
-		end -- accept blindly unless we are in choose-in-game mode
-		if useFFAStartPoints then
-			return true
 		end
-		if select(4, Spring.GetTeamInfo(teamID)) then  -- isAiTeam
+
+		if select(4, Spring.GetTeamInfo(teamID)) then -- isAiTeam
 			return false
 		end
 
@@ -240,7 +215,8 @@ if gadgetHandler:IsSyncedCode() then
 		if xmin >= xmax or zmin >= zmax then
 			return true
 		else
-			local isOutsideStartbox = (xmin + 1 >= x) or (x >= xmax - 1) or (zmin + 1 >= z) or (z >= zmax - 1) -- the engine rounds startpoints to integers but does not round the startbox (wtf)
+			local isOutsideStartbox = (xmin + 1 >= x) or (x >= xmax - 1) or (zmin + 1 >= z) or
+					(z >= zmax - 1) -- the engine rounds startpoints to integers but does not round the startbox (wtf)
 			if isOutsideStartbox then
 				return false
 			end
@@ -313,7 +289,7 @@ if gadgetHandler:IsSyncedCode() then
 	local startUnitList = {}
 	local function spawnStartUnit(teamID, x, z)
 		local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
-		local luaAI = Spring.GetTeamLuaAI (teamID)
+		local luaAI = Spring.GetTeamLuaAI(teamID)
 
 		local _, _, _, isAI, sideName = Spring.GetTeamInfo(teamID)
 		if sideName == "random" then
@@ -338,18 +314,18 @@ if gadgetHandler:IsSyncedCode() then
 
 
 		if not scenarioSpawnsUnits then
-			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "RaptorsAI" or luaAI == "ScavReduxAI"))  then
+			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "RaptorsAI" or luaAI == "ScavReduxAI")) then
 				local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
 				if unitID then
-					startUnitList[#startUnitList+1] = {unitID = unitID, teamID = teamID, x = x, y = y, z = z}
+					startUnitList[#startUnitList + 1] = { unitID = unitID, teamID = teamID, x = x, y = y, z = z }
 					if not isAI then
 						Spring.MoveCtrl.Enable(unitID)
 					end
 					Spring.SetUnitNoDraw(unitID, true)
 					local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(unitID)
-					local paralyzemult = 3*0.025 -- 3 seconds of paralyze
-					local paralyzedamage = (umaxhealth-uparalyze)+(umaxhealth*paralyzemult)
-					Spring.SetUnitHealth(unitID, {paralyze = paralyzedamage})
+					local paralyzemult = 3 * 0.025 -- 3 seconds of paralyze
+					local paralyzedamage = (umaxhealth - uparalyze) + (umaxhealth * paralyzemult)
+					Spring.SetUnitHealth(unitID, { paralyze = paralyzedamage })
 				end
 			end
 		end
@@ -362,27 +338,30 @@ if gadgetHandler:IsSyncedCode() then
 		-- team storage is set up by game_team_resources
 	end
 
-	local function spawnFFAStartUnit(nSpawns, spawnID, teamID)
-		-- get allyTeam start pos
-		local startPos = ffaStartPoints[nSpawns][spawnID]
-		local x = startPos.x
-		local z = startPos.z
+	local function spawnUsingFFAStartPoints(teamID, allyTeamID)
+		-- get ally team start point
+		local startPoint = GG.ffaStartPoints[allyTeamID]
+		local x = startPoint.x
+		local z = startPoint.z
 
-		-- get team start pos; randomly move slightly to make it look nicer and (w.h.p.) avoid coms in same place in team ffa
-		local r = math.random(50, 120)
-		local theta = math.random(100) / 100 * 2 * math.pi
-		local cx = x + r * math.cos(theta)
-		local cz = z + r * math.sin(theta)
-		if not IsSteep(cx, cz) then
-			-- IsSteep comes from lib_startpoint_guesser, returns true if pos is too steep for com to walk on
-			x = cx
-			z = cz
+		-- if we are in TeamFFA but still using automatic spawning (i.e. no start boxes), we want to avoid
+		-- spawning all commanders in the exact same position
+		if isTeamFFA then
+			local r = math.random(50, 120)
+			local theta = math.random(100) / 100 * 2 * math.pi
+			local cx = x + r * math.cos(theta)
+			local cz = z + r * math.sin(theta)
+			if not IsSteep(cx, cz) then
+				-- IsSteep comes from lib_startpoint_guesser, returns true if pos is too steep for com to walk on
+				x = cx
+				z = cz
+			end
 		end
 
 		spawnStartUnit(teamID, x, z)
 	end
 
-	local function spawnTeamStartUnit(teamID, allyTeamID)
+	local function spawnRegularly(teamID, allyTeamID)
 		local x, _, z = Spring.GetTeamStartPosition(teamID)
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
 
@@ -407,30 +386,27 @@ if gadgetHandler:IsSyncedCode() then
 	-- Spawning
 	----------------------------------------------------------------
 	function gadget:GameStart()
-
-		-- ffa mode spawning
-		if useFFAStartPoints and ffaStartPoints and ffaStartPoints[allyTeamsCount] and #(ffaStartPoints[allyTeamsCount]) == allyTeamsCount then
-			-- cycle over ally teams and spawn starting units
-			local allyTeamSpawn = setPermutedSpawns(allyTeamsCount, allyTeams)
-			for teamID, allyTeamID in pairs(spawnTeams) do
-				spawnFFAStartUnit(allyTeamsCount, allyTeamSpawn[allyTeamID], teamID)
+		-- if this a FFA match with automatic spawning (i.e. no start boxes) and a list of start points was provided by
+		-- `game_ffa_start_setup` for the ally teams in this match
+		if isFFA and Game.startPosType == 1 and GG.ffaStartPoints then
+			Spring.Log(gadget:GetInfo().name, LOG.INFO, "spawn using FFA start points config")
+			for teamID, allyTeamID in pairs(teams) do
+				spawnUsingFFAStartPoints(teamID, allyTeamID)
 			end
-			return
-		end
-
-		-- use ffa mode startpoints for random spawning, if possible, but per team instead of per allyTeam
-		if Game.startPosType == 1 and ffaStartPoints and ffaStartPoints[spawnTeamsCount] and #(ffaStartPoints[spawnTeamsCount]) == spawnTeamsCount then
-			local teamSpawn = setPermutedSpawns(spawnTeamsCount, spawnTeams)
-			for teamID, allyTeamID in pairs(spawnTeams) do
-				spawnFFAStartUnit(spawnTeamsCount, teamSpawn[teamID], teamID)
+		else
+			-- otherwise default to spawning regularly
+			if Game.startPosType == 2 then
+				Spring.Log(gadget:GetInfo().name, LOG.INFO, "manual spawning based on positions chosen by players in start boxes")
+			elseif Game.startPosType == 1 then
+				Spring.Log(gadget:GetInfo().name, LOG.INFO,
+					"automatic spawning using default map start positions, in random order")
+			elseif Game.startPosType == 0 then
+				Spring.Log(gadget:GetInfo().name, LOG.INFO,
+					"automatic spawning using default map start positions, in fixed order")
 			end
-			return
-		end
-
-		-- normal spawning (also used as fallback if ffaStartPoints fails)
-		-- cycle through teams and call spawn team starting unit
-		for teamID, allyTeamID in pairs(spawnTeams) do
-			spawnTeamStartUnit(teamID, allyTeamID)
+			for teamID, allyTeamID in pairs(teams) do
+				spawnRegularly(teamID, allyTeamID)
+			end
 		end
 	end
 
@@ -438,32 +414,31 @@ if gadgetHandler:IsSyncedCode() then
 		if not scenarioSpawnsUnits then
 			if Spring.GetModOptions().scoremode == "disabled" or Spring.GetModOptions().scoremode_chess == false then
 				if n == 60 then
-					for i = 1,#startUnitList do
+					for i = 1, #startUnitList do
 						local x = startUnitList[i].x
 						local y = startUnitList[i].y
 						local z = startUnitList[i].z
-						Spring.SpawnCEG("commander-spawn",x,y,z,0,0,0)
+						Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
 					end
 				end
 				if n == 90 then
-					for i = 1,#startUnitList do
+					for i = 1, #startUnitList do
 						local unitID = startUnitList[i].unitID
 						Spring.MoveCtrl.Disable(unitID)
 						Spring.SetUnitNoDraw(unitID, false)
-						Spring.SetUnitHealth(unitID, {paralyze = 0})
+						Spring.SetUnitHealth(unitID, { paralyze = 0 })
 					end
 				end
 			end
 		end
-		if n == 91 then
+		if n > 90 then
 			gadgetHandler:RemoveGadget(self)
 		end
 	end
 
-
-else  -- UNSYNCED
-
-
+	------------------------------------------------------------------------------
+	------------------------------------------------------------------------------
+else -- UNSYNCED
 	local function positionTooClose(_, playerID)
 		if Script.LuaUI('GadgetMessageProxy') then
 			local message = Script.LuaUI.GadgetMessageProxy('ui.initialSpawn.tooClose')
@@ -479,7 +454,7 @@ else  -- UNSYNCED
 		if n == 60 then
 			Spring.PlaySoundFile("commanderspawn", 0.6, 'ui')
 		end
-		if n == 91 then
+		if n > 90 then
 			gadgetHandler:RemoveGadget(self)
 		end
 	end
@@ -488,4 +463,3 @@ else  -- UNSYNCED
 		gadgetHandler:RemoveSyncAction("PositionTooClose")
 	end
 end
-
