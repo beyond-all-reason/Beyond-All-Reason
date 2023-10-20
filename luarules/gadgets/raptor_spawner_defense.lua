@@ -1162,8 +1162,8 @@ if gadgetHandler:IsSyncedCode() then
 			--Spring.Debug.TableEcho(uSettings)
 			if not uSettings.maxQueenAnger then uSettings.maxQueenAnger = uSettings.minQueenAnger + 100 end
 			if uSettings.minQueenAnger <= techAnger and uSettings.maxQueenAnger >= techAnger then
-				local numOfTurrets = math.ceil((uSettings.spawnedPerWave*(1-config.raptorPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))
-				local maxExisting = math.ceil((uSettings.maxExisting*(1-config.raptorPerPlayerMultiplier))+(uSettings.maxExisting*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))
+				local numOfTurrets = (uSettings.spawnedPerWave*(1-config.raptorPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.raptorPerPlayerMultiplier)*SetCount(humanTeams)
+				local maxExisting = (uSettings.maxExisting*(1-config.raptorPerPlayerMultiplier))+(uSettings.maxExisting*config.raptorPerPlayerMultiplier)*SetCount(humanTeams)
 				local maxAllowedToSpawn
 				if techAnger <= 100 then  -- i don't know how this works but it does. scales maximum amount of turrets allowed to spawn with techAnger.
 					maxAllowedToSpawn = math.ceil(maxExisting*((techAnger-uSettings.minQueenAnger)/(math.min(100-uSettings.minQueenAnger, uSettings.maxQueenAnger-uSettings.minQueenAnger))))
@@ -1171,23 +1171,25 @@ if gadgetHandler:IsSyncedCode() then
 					maxAllowedToSpawn = math.ceil(maxExisting*(techAnger*0.01))
 				end
 				--Spring.Echo(uName,"MaxExisting",maxExisting,"MaxAllowed",maxAllowedToSpawn)
-				for i = 1, numOfTurrets do
+				for i = 1, math.ceil(numOfTurrets) do
 					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and (Spring.GetTeamUnitDefCount(raptorTeamID, UnitDefNames[uName].id) <= maxAllowedToSpawn) then
-						local attempts = 0
-						local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
-						local footprintZ = UnitDefNames[uName].zsize -- why the fuck is this footprint *2??????
-						local footprintAvg = 128
-						if footprintX and footprintZ then
-							footprintAvg = ((footprintX+footprintZ))*4
-						end
-						repeat
-							attempts = attempts + 1
-							local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName, footprintAvg+32)
-							if turretUnitID then
-								setRaptorXP(turretUnitID)
-								Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
+						if math.random()*math.ceil(numOfTurrets) <= numOfTurrets then
+							local attempts = 0
+							local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
+							local footprintZ = UnitDefNames[uName].zsize -- why the fuck is this footprint *2??????
+							local footprintAvg = 128
+							if footprintX and footprintZ then
+								footprintAvg = ((footprintX+footprintZ))*4
 							end
-						until turretUnitID or attempts > 100
+							repeat
+								attempts = attempts + 1
+								local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName, footprintAvg+32)
+								if turretUnitID then
+									setRaptorXP(turretUnitID)
+									Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
+								end
+							until turretUnitID or attempts > 100
+						end
 					end
 				end
 			end
