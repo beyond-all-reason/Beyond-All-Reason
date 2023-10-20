@@ -225,7 +225,7 @@ local critterConfig = {
 		{ spawnBox = { x1 = 100, z1 = 100, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_goldfish"] = rnd(50, 100) } },
 	},
 
-	["supreme strait"] = {
+	["supreme isthmus"] = {
 		{ spawnCircle = { x = 8700, z = 9300, r = 2000 }, unitNames = { ["critter_goldfish"] = rnd(2, 10) } },
 		{ spawnCircle = { x = 3200, z = 2500, r = 2000 }, unitNames = { ["critter_goldfish"] = rnd(2, 10) } },
 		{ spawnCircle = { x = 9700, z = 3232, r = 500 }, unitNames = { ["critter_goldfish"] = rnd(1, 3) } },
