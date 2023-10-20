@@ -18,6 +18,10 @@ end
 -- Constants
 -----------------------------------------------------------------
 
+-- Beheriths' note:
+	-- Pre-optimization for PQM
+		-- take 0.3ms per frame at 1440p on 70% rtx2060
+
 --local GL_RGBA8 = 0x8058
 
 local SHARPNESS = 1.0
@@ -77,20 +81,64 @@ uniform float sharpness;
 in vec2 viewPos;
 out vec4 fragColor;
 
+vec2 quadGetQuadVector(vec2 screenCoords){
+	vec2 quadVector =  fract(floor(screenCoords) * 0.5) * 4.0 - 1.0;
+	vec2 odd_start_mirror = 0.5 * vec2(dFdx(quadVector.x), dFdy(quadVector.y));
+	quadVector = quadVector * odd_start_mirror;
+	return sign(quadVector);
+}
+
 vec3 CASPass(ivec2 tc) {
 	// fetch a 3x3 neighborhood around the pixel 'e',
 	//  a b c
 	//  d(e)f
 	//  g h i
-	vec3 a = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2(-1, -1)).rgb;
-	vec3 b = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 0, -1)).rgb;
-	vec3 c = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 1, -1)).rgb;
-	vec3 d = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2(-1,  0)).rgb;
-	vec3 e = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 0,  0)).rgb;
-	vec3 f = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 1,  0)).rgb;
-	vec3 g = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2(-1,  1)).rgb;
-	vec3 h = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 0,  1)).rgb;
-	vec3 i = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 1,  1)).rgb;
+	// 
+
+	#if 0
+		vec3 a = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2(-1, -1)).rgb;
+		vec3 b = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 0, -1)).rgb;
+		vec3 c = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 1, -1)).rgb;
+		vec3 d = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2(-1,  0)).rgb;
+		vec3 e = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 0,  0)).rgb;
+		vec3 f = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 1,  0)).rgb;
+		vec3 g = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2(-1,  1)).rgb;
+		vec3 h = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 0,  1)).rgb;
+		vec3 i = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 1,  1)).rgb;
+	#else
+		//amazingly useless pixel quad message passing for less hammering of membus? 4 lookups instead of 9
+					
+		vec2 quadVector = quadGetQuadVector(gl_FragCoord.xy);
+		ivec2 qi = ivec2(quadVector);
+		// wait a minute, this whole goddamned matrix is fucking symmetric! 
+		// it doesnt matter the least which is which!, so assume the top left is getting fetched:
+		//  a b c   c b a
+		//  d(e)f   f(e)d
+		//  g h i   i h g
+		//
+		//  g h i   i h g
+		//  d(e)f   f(e)d
+		//  a b c   c b a
+			
+		// errybody get their own, and pass to the left-right
+		vec3 e = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 0,  0)).rgb;
+		vec3 f = e - dFdx(e) * quadVector.x;
+		
+		vec3 b = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 0,  qi.y)).rgb;
+		vec3 c = b - dFdx(b) * quadVector.x;
+		
+		// pass up-down
+		vec3 h = e - dFdy(e) * quadVector.y;
+		vec3 a = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( qi.x,  qi.y)).rgb;
+
+		vec3 d = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( qi.x,  0)).rgb;
+		vec3 g = d - dFdy(d) * quadVector.y;
+		
+		// diagonal pass 
+		vec3 i = f - dFdy(f) * quadVector.y;
+
+		
+	#endif
 
 	// Soft min and max.
 	//  a b c			 b

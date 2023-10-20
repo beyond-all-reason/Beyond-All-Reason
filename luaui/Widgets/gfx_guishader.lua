@@ -162,6 +162,13 @@ function CreateShaders()
 		uniform float ivsx;
 		uniform float ivsy;
 
+		vec2 quadGetQuadVector(vec2 screenCoords){
+			vec2 quadVector =  fract(floor(screenCoords) * 0.5) * 4.0 - 1.0;
+			vec2 odd_start_mirror = 0.5 * vec2(dFdx(quadVector.x), dFdy(quadVector.y));
+			quadVector = quadVector * odd_start_mirror;
+			return sign(quadVector);
+		}
+		
 		void main(void)
 		{
 			vec2 texCoord = vec2(gl_TextureMatrix[0] * gl_TexCoord[0]);
@@ -173,15 +180,36 @@ function CreateShaders()
 			}else{
 				gl_FragColor = vec4(0.0,0.0,0.0,1.0);
 				vec4 sum = vec4(0.0);
-				vec2 subpixel = vec2(ivsx, ivsy) ;
-				//subpixel *= 0.0;
-				for (int i = -1; i <= 1; ++i) {
-					for (int j = -1; j <= 1; ++j) {
-						vec2 samplingCoords = texCoord + vec2(i, j) * 6.0 * subpixel + subpixel;
-						sum += texture2D(tex0, samplingCoords);
+				#if 0
+					vec2 subpixel = vec2(ivsx, ivsy) ;
+					//subpixel *= 0.0;
+					for (int i = -1; i <= 1; ++i) {
+						for (int j = -1; j <= 1; ++j) {
+							vec2 samplingCoords = texCoord + vec2(i, j) * 6.0 * subpixel + subpixel;
+							sum += texture2D(tex0, samplingCoords);
+						}
 					}
-				}
-				gl_FragColor.rgba = sum/9.0;
+					gl_FragColor.rgba = sum/9.0;
+				#else 
+					//amazingly useless pixel quad message passing for less hammering of membus? 4 lookups instead of 9
+					vec2 quadVector = quadGetQuadVector(gl_FragCoord.xy);
+					vec2 subpixel = vec2(ivsx, ivsy) ;
+					subpixel *= quadVector;
+					//subpixel *= 0.0;
+					for (int i = 0; i <= 1; ++i) {
+						for (int j = 0; j <= 1; ++j) {
+							vec2 samplingCoords = texCoord + vec2(i, j) * 6.0 * subpixel + subpixel;
+							sum += texture2D(tex0, samplingCoords);
+						}
+					}
+
+					vec4 inputadjx = sum - dFdx(sum) * quadVector.x;
+					vec4 inputadjy = sum - dFdy(sum) * quadVector.y;
+					vec4 inputdiag = inputadjx - dFdy(inputadjx) * quadVector.y;
+					sum += inputadjx + inputadjy + inputdiag;
+
+					gl_FragColor.rgba = sum/16.0;
+				#endif
 				//gl_FragColor.rgba = vec4(1.0);
 			}
 		}
@@ -276,14 +304,16 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 		gl.Blending(true)
 		gl.Texture(screencopy)
 		gl.Texture(2, stenciltex)
-		gl.UseShader(blurShader)
+		if 1 == 1 then 
+			gl.UseShader(blurShader)
 
-		gl.Uniform(intensityLoc, math.max(blurIntensity, 0.0015))
-		gl.Uniform(ivsxLoc, 0.5/vsx)
-		gl.Uniform(ivsyLoc, 0.5/vsy)
+			gl.Uniform(intensityLoc, math.max(blurIntensity, 0.0015))
+			gl.Uniform(ivsxLoc, 0.5/vsx)
+			gl.Uniform(ivsyLoc, 0.5/vsy)
 
-		gl.TexRect(0, vsy, vsx, 0) -- draw the blurred version
-		gl.UseShader(0)
+			gl.TexRect(0, vsy, vsx, 0) -- draw the blurred version
+			gl.UseShader(0)
+		end
 		gl.Texture(2, false)
 		gl.Texture(false)
 		gl.Blending(false)
@@ -309,6 +339,7 @@ local function DrawScreen() -- This blurs the UI elements obscured by other UI e
 		gl.Texture(screencopyUI)
 
 		gl.Texture(2, stenciltexScreen)
+		if 1 == 1 then 
 		gl.UseShader(blurShader)
 
 		gl.Uniform(intensityLoc, math.max(blurIntensity, 0.0015))
@@ -317,6 +348,7 @@ local function DrawScreen() -- This blurs the UI elements obscured by other UI e
 
 		gl.TexRect(0, vsy, vsx, 0) -- draw the blurred version
 		gl.UseShader(0)
+		end
 		gl.Texture(2, false)
 		gl.Texture(false)
 	end
