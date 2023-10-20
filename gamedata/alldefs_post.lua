@@ -390,6 +390,14 @@ function UnitDef_Post(name, uDef)
 
 	-- Add balanced extras
 	if Spring.GetModOptions().releasecandidates then
+
+		--Shockwave mex
+		if name == "armaca" or name == "armack" or name == "armacv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "armshockwave"
+		end	
+	
+
 		if name == "coravp" then
 			for ix, UnitName in pairs(uDef.buildoptions) do
 				if UnitName == "corseal" then
@@ -411,18 +419,14 @@ function UnitDef_Post(name, uDef)
 			end
 
 		end
-		
+
 		-- demon
-		
+
 		if name == "corgant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cordemont4"		
 		end
-		
-		--T2 EMP mex to follow in next commit
-		
 
-		
 		if name == "corgantuw" then
 			local numBuildoptions = 1
 			for ix, UnitName in pairs(uDef.buildoptions) do

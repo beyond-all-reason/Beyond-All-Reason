@@ -236,6 +236,7 @@ local units = {
 	armsh = { "hover_raid.png", 1.10249984 },
 	armshltx = { "factory_gantry.png", 2.51999998 },
 	armshltxuw = { "factory_gantry_uw.png", 2.51999998 },
+	armshockwave = { "mex_t2_emp.png", 1.20749986 },
 	armsilo = { "nuke.png", 2.51999998 },
 	armsjam = { "ship_t2_jammer.png", 1.73249984 },
 	armsnipe = { "armsnipe_1.3.png", 1.36499989 },

@@ -103,6 +103,7 @@ local armorDefs = {
 		"armscab",
 		"armsd",
 		"armsh",
+		"armshockwave",
 		"armsnipe",
 		"armsolar",
 		"armspid",
