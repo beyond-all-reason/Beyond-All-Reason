@@ -65,34 +65,35 @@ if gadgetHandler:IsSyncedCode() then
 	---------------------------------------------------------------------------------------------------
 	-- if faction limiter is on, sqush out what letters a/c/l it can into team faction lists
 	-- this should also mean that writing "armada,cortex,legion" is as valid as writing "a,c,l" as non of the faction's have each other's first character
+	local factionStrings = include("gamedata/sidedata.lua")
+	if Spring.GetModOptions().experimentallegionfaction then
+		factionStrings[#factionStrings + 1] = {
+			name = "Legion",
+			startunit = 'legcom'
+		}
+	end
+	for _,factionData in pairs(factionStrings) do
+		factionData.name = string.lower(factionData.name)
+	end
 	local faction_limiter = Spring.GetModOptions().faction_limiter
 	local faction_limiter_valid = false
-	local faction_limited_options = {[1]={[armcomDefID] = false, [corcomDefID] = false, [legcomDefID] = false}}
+	local faction_limited_options = {}
 	if faction_limiter then
-		local letter = nil
 		local teamGroupID = 1
-		for i = 1, #faction_limiter do
-			letter = string.sub(faction_limiter, i, i)
-			-- can we turn this into a team?
-			if letter == 'a' or letter == 'c' or (letter == 'l' and validStartUnits[legcomDefID] == true) then
-				if faction_limited_options[teamGroupID] == nil then
-					faction_limited_options[teamGroupID] = {}
-				end
-				if letter == 'a' then
-					faction_limited_options[teamGroupID][armcomDefID] = true
-					faction_limiter_valid = true
-				elseif letter == 'c' then
-					faction_limited_options[teamGroupID][corcomDefID] = true
-					faction_limiter_valid = true
-				elseif letter == 'l' and validStartUnits[legcomDefID] == true then
-					faction_limited_options[teamGroupID][legcomDefID] = true
+		local teamLists = string.split(faction_limiter, ',')
+		for i = 1, #teamLists do
+			local team = teamLists[i]
+			for _, faction in pairs(factionStrings) do
+				if string.find(team, faction.name) then
+					if faction_limited_options[teamGroupID] == nil then
+						faction_limited_options[teamGroupID] = {}
+					end
+					faction_limited_options[teamGroupID][UnitDefNames[faction.startunit].id] = true
 					faction_limiter_valid = true
 				end
-			elseif letter == ',' then
-				-- only make another team faction list if this one recived a faction
-				if faction_limited_options[teamGroupID] ~= nil then
-					teamGroupID = teamGroupID + 1
-				end
+			end
+			if faction_limited_options[teamGroupID] ~= nil then
+				teamGroupID = teamGroupID + 1
 			end
 		end
 	end
