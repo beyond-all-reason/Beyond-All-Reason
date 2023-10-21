@@ -62,6 +62,41 @@ if gadgetHandler:IsSyncedCode() then
 	GG.teamStartPoints = teamStartPoints
 	local startPointTable = {}
 
+	---------------------------------------------------------------------------------------------------
+	-- if faction limiter is on, sqush out what letters a/c/l it can into team faction lists
+	-- this should also mean that writing "armada,cortex,legion" is as valid as writing "a,c,l" as non of the faction's have each other's first character
+	local faction_limiter = Spring.GetModOptions().faction_limiter
+	local faction_limiter_valid = false
+	local faction_limited_options = {[1]={[armcomDefID] = false, [corcomDefID] = false, [legcomDefID] = false}}
+	if faction_limiter then
+		local letter = nil
+		local teamGroupID = 1
+		for i = 1, #faction_limiter do
+			letter = string.sub(faction_limiter, i, i)
+			-- can we turn this into a team?
+			if letter == 'a' or letter == 'c' or (letter == 'l' and validStartUnits[legcomDefID] == true) then
+				if faction_limited_options[teamGroupID] == nil then
+					faction_limited_options[teamGroupID] = {}
+				end
+				if letter == 'a' then
+					faction_limited_options[teamGroupID][armcomDefID] = true
+					faction_limiter_valid = true
+				elseif letter == 'c' then
+					faction_limited_options[teamGroupID][corcomDefID] = true
+					faction_limiter_valid = true
+				elseif letter == 'l' and validStartUnits[legcomDefID] == true then
+					faction_limited_options[teamGroupID][legcomDefID] = true
+					faction_limiter_valid = true
+				end
+			elseif letter == ',' then
+				-- only make another team faction list if this one recived a faction
+				if faction_limited_options[teamGroupID] ~= nil then
+					teamGroupID = teamGroupID + 1
+				end
+			end
+		end
+	end
+
 	----------------------------------------------------------------
 	-- Start Point Guesser
 	----------------------------------------------------------------
@@ -87,10 +122,28 @@ if gadgetHandler:IsSyncedCode() then
 				-- set & broadcast (current) start unit
 				local _, _, _, _, teamSide, teamAllyID = spGetTeamInfo(teamID, false)
 				local comDefID = armcomDefID
-				if teamSide == 'cortex' then
-					comDefID = corcomDefID
-				elseif teamSide == 'legion' then
-					comDefID = legcomDefID
+				-- we try to give you your faction, if we can't we find the first available faction, loops around once list exhausted
+				if faction_limiter_valid then
+					if teamSide == 'cortex' and faction_limited_options[ teamAllyID % #faction_limited_options + 1][corcomDefID] then
+						comDefID = corcomDefID
+					elseif teamSide == 'legion' and faction_limited_options[ teamAllyID % #faction_limited_options + 1][legcomDefID] then
+						comDefID = legcomDefID
+					elseif faction_limited_options[teamAllyID % #faction_limited_options + 1][armcomDefID] ~= true then
+						if faction_limited_options[ teamAllyID % #faction_limited_options + 1][corcomDefID] then
+							comDefID = corcomDefID
+						elseif faction_limited_options[teamAllyID % #faction_limited_options + 1][legcomDefID] then
+							comDefID = legcomDefID
+						else
+							Spring.Echo("gadget/game_initial_spawn - how did we get here?")
+						end
+					end
+				-- otherwise default behaviour
+				else
+					if teamSide == 'cortex' then
+						comDefID = corcomDefID
+					elseif teamSide == 'legion' then
+						comDefID = legcomDefID
+					end
 				end
 				spSetTeamRulesParam(teamID, startUnitParamName, comDefID, { allied = true, public = false })
 				teams[teamID] = teamAllyID
@@ -127,7 +180,8 @@ if gadgetHandler:IsSyncedCode() then
 	-- keep track of choosing faction ingame
 	function gadget:RecvLuaMsg(msg, playerID)
 		local startUnit = tonumber(msg:match(changeStartUnitRegex))
-		if startUnit and validStartUnits[startUnit] then
+		local _, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID)
+		if startUnit and ((validStartUnits[startUnit] and faction_limiter_valid == false) or (faction_limited_options[ allyTeamID % #faction_limited_options + 1][startUnit] and faction_limiter_valid == true)) then
 			local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID, false)
 			if not playerIsSpec then
 				playerStartingUnits[playerID] = startUnit
