@@ -1572,9 +1572,9 @@ if gadgetHandler:IsSyncedCode() then
 		local size
 		local color
 
-		if featureValueMetal <= 1000 then
+		if featureValueMetal <= 500 then
 			size = "s"
-		elseif featureValueMetal <= 5000 then
+		elseif featureValueMetal <= 3000 then
 			size = "m"
 		else
 			size = "l"
