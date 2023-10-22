@@ -185,6 +185,14 @@ local options={
 		section		= 'restrictions',
 		def    		= false,
 	},
+	{
+		key    		= 'faction_limiter',
+		name   		= 'Limit which factions a team can play.',
+		desc   		= 'Input the factions a team should play, seperating teams by a comma, e.g. "armada cortex, legion" = cor/arm vs legion.',
+		type   		= "string",
+		section		= 'restrictions',
+		def			= "",
+	},
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
