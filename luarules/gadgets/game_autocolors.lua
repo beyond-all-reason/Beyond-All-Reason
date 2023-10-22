@@ -539,6 +539,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	Spring.SendLuaRulesMsg("AutoColors" .. Json.encode(AutoColors))
 else -- UNSYNCED
+	local myPlayerID = Spring.GetLocalPlayerID()
+	local mySpecState = Spring.GetSpectatingState()
 	local teamColorsTable = {}
 
 	local function setUpLocalTeamColor(teamID, allyTeamID, isAI)
@@ -669,7 +671,7 @@ else -- UNSYNCED
 	local iconDevModeColor = iconDevModeColors[iconDevMode]
 
 	local function isDiscoEnabled()
-		return anonymousMode == "disco" and not Spring.GetSpectatingState()
+		return anonymousMode == "disco" and not mySpecState
 	end
 
 	---shuffle colors for all teams except ourselves
@@ -726,8 +728,7 @@ else -- UNSYNCED
 					hex2RGB(iconDevModeColor)[3] / 255
 				)
 			elseif
-				Spring.GetConfigInt("SimpleTeamColors", 0) == 1
-				or (anonymousMode == "allred" and not Spring.GetSpectatingState())
+				Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or (anonymousMode == "allred" and not mySpecState)
 			then
 				local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
 				if teamID == myTeamID then
@@ -786,5 +787,15 @@ else -- UNSYNCED
 			Spring.SetConfigInt("UpdateTeamColors", 0)
 			Spring.SetConfigInt("SimpleTeamColors_Reset", 0)
 		end
+	end
+
+	function gadget:PlayerChanged(playerID)
+		if playerID ~= myPlayerID then
+			return
+		end
+
+		mySpecState = Spring.GetSpectatingState()
+
+		Spring.SetConfigInt("UpdateTeamColors", 1)
 	end
 end
