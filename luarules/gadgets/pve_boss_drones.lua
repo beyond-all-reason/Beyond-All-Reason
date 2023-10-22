@@ -14,18 +14,237 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
+local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
+
 local unitList = {
-    [UnitDefNames["raptor_hive"].id] = {
+    -- Brood Raptors
+    [UnitDefNames["raptorh2"].id] = {
         [1] = {
-            name = "raptor1_mini",
+            name = "raptorh3",
             type = "ground",
-            spawnRadius = 1,
-            fightRadius = 300,
+            spawnRadius = 100,
+            fightRadius = 500,
             spawnedPerWave = 1,
-            maxAllowed = 10,
-            spawnTimer = 120,
+            maxAllowed = 1,
+            spawnTimer = 30,
+        },
+        [2] = {
+            name = "raptorh4",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 4,
+            maxAllowed = 4,
+            spawnTimer = 34,
         },
     },
+    [UnitDefNames["raptorh3"].id] = {
+        [1] = {
+            name = "raptorh4",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 2,
+            maxAllowed = 2,
+            spawnTimer = 34,
+        },
+    },
+
+    -- Miniqueens
+    [UnitDefNames["raptor_miniqueen_basic"].id] = {
+        [1] = {
+            name = "raptor1x",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 3,
+            spawnTimer = 20,
+        },
+        [2] = {
+            name = "raptor1y",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 3,
+            spawnTimer = 22,
+        },
+        [3] = {
+            name = "raptor1z",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 3,
+            spawnTimer = 24,
+        },
+        [4] = {
+            name = "raptor2",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 3,
+            spawnTimer = 26,
+        },
+        [5] = {
+            name = "raptor2b",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 3,
+            spawnTimer = 28,
+        },
+    },
+    [UnitDefNames["raptor_miniqueen_healer"].id] = {
+        [1] = {
+            name = "raptorhealer1",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 4,
+            spawnTimer = 20,
+        },
+        [2] = {
+            name = "raptorhealer2",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 3,
+            spawnTimer = 22,
+        },
+        [3] = {
+            name = "raptorhealer3",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 2,
+            spawnTimer = 24,
+        },
+        [4] = {
+            name = "raptorhealer4",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 1,
+            spawnTimer = 26,
+        },
+    },
+    [UnitDefNames["raptor_miniqueen_acid"].id] = {
+        [1] = {
+            name = "raptoracidswarmer",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 5,
+            spawnTimer = 20,
+        },
+        [2] = {
+            name = "raptoracidassault",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 1,
+            spawnTimer = 22,
+        },
+        [3] = {
+            name = "raptoracidarty",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 1,
+            spawnTimer = 24,
+        },
+    },
+    [UnitDefNames["raptor_miniqueen_electric"].id] = {
+        [1] = {
+            name = "raptore1",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 5,
+            spawnTimer = 20,
+        },
+        [2] = {
+            name = "raptore2",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 1,
+            spawnTimer = 22,
+        },
+        [3] = {
+            name = "raptorearty1",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 1,
+            spawnTimer = 24,
+        },
+    },
+    [UnitDefNames["raptor_miniqueen_fire"].id] = {
+        [1] = {
+            name = "raptorp1",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 5,
+            spawnTimer = 20,
+        },
+        [2] = {
+            name = "raptorp2",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 1,
+            spawnTimer = 22,
+        },
+    },
+    [UnitDefNames["raptor_miniqueen_spectre"].id] = {
+        [1] = {
+            name = "raptor1x_spectre",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 5,
+            spawnTimer = 20,
+        },
+        [2] = {
+            name = "raptora1_spectre",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 1,
+            spawnTimer = 22,
+        },
+        [3] = {
+            name = "raptors2_spectre",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 1,
+            spawnTimer = 24,
+        },
+    },
+
+    -- Queens
     [UnitDefNames["ve_raptorq"].id] = {
         [1] = {
             name = "raptorw1_mini",
@@ -44,6 +263,15 @@ local unitList = {
             spawnedPerWave = 2,
             maxAllowed = 4,
             spawnTimer = 31,
+        },
+        [3] = {
+            name = "raptorh2",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 5,
+            spawnTimer = 34,
         },
     },
     [UnitDefNames["e_raptorq"].id] = {
@@ -65,6 +293,15 @@ local unitList = {
             maxAllowed = 6,
             spawnTimer = 26,
         },
+        [3] = {
+            name = "raptorh2",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 2,
+            maxAllowed = 10,
+            spawnTimer = 34,
+        },
     },
     [UnitDefNames["n_raptorq"].id] = {
         [1] = {
@@ -84,6 +321,15 @@ local unitList = {
             spawnedPerWave = 4,
             maxAllowed = 8,
             spawnTimer = 21,
+        },
+        [3] = {
+            name = "raptorh2",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 3,
+            maxAllowed = 15,
+            spawnTimer = 34,
         },
     },
     [UnitDefNames["h_raptorq"].id] = {
@@ -105,7 +351,7 @@ local unitList = {
             maxAllowed = 10,
             spawnTimer = 16,
         },
-        [4] = {
+        [3] = {
             name = "raptor_dodoair",
             type = "air",
             spawnRadius = 100,
@@ -113,6 +359,15 @@ local unitList = {
             spawnedPerWave = 5,
             maxAllowed = 10,
             spawnTimer = 180,
+        },
+        [4] = {
+            name = "raptorh2",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 4,
+            maxAllowed = 20,
+            spawnTimer = 34,
         },
     },
     [UnitDefNames["vh_raptorq"].id] = {
@@ -143,6 +398,15 @@ local unitList = {
             maxAllowed = 12,
             spawnTimer = 120,
         },
+        [4] = {
+            name = "raptorh2",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 5,
+            maxAllowed = 25,
+            spawnTimer = 34,
+        },
     },
     [UnitDefNames["epic_raptorq"].id] = {
         [1] = {
@@ -171,6 +435,15 @@ local unitList = {
             spawnedPerWave = 7,
             maxAllowed = 14,
             spawnTimer = 60,
+        },
+        [4] = {
+            name = "raptorh2",
+            type = "ground",
+            spawnRadius = 100,
+            fightRadius = 500,
+            spawnedPerWave = 6,
+            maxAllowed = 30,
+            spawnTimer = 34,
         },
     },
 }
@@ -216,19 +489,24 @@ function gadget:GameFrame(frame)
                     for _ = 1,unitList[unitDefID][index].spawnedPerWave do
                         local x,y,z = Spring.GetUnitPosition(unitID)
                         local spawnx = x + math.random(-unitList[unitDefID][index].spawnRadius, unitList[unitDefID][index].spawnRadius)
-                        local spawny = y + 200
+                        local spawny = y
                         local spawnz = z + math.random(-unitList[unitDefID][index].spawnRadius, unitList[unitDefID][index].spawnRadius)
-                        local droneID = Spring.CreateUnit(unitList[unitDefID][index].name, spawnx, spawny, spawnz, math.random(0,3), Spring.GetUnitTeam(unitID))
-                        if droneID then
-                            aliveDrones[droneID] = {
-                                owner = unitID,
-                                ownerDefID = unitDefID,
-                                index = index,
-                                fightRadius = unitList[unitDefID][index].fightRadius,
-                            }
-                            aliveCarriers[unitID][index].aliveDrones = aliveCarriers[unitID][index].aliveDrones + 1
-                            aliveCarriers[unitID][index].lastSpawned = Spring.GetGameSeconds()
-                            --Spring.GiveOrderToUnit(droneID, CMD.MOVE_STATE, 2, 0)
+                        if (unitList[unitDefID][index].type == "air" and UnitDefNames[unitList[unitDefID][index].name].canFly) or
+                        (unitList[unitDefID][index].type == "ground" and positionCheckLibrary.FlatAreaCheck(spawnx, spawny, spawnz, 64, 30, true)) or
+                        (unitList[unitDefID][index].type == "land" and positionCheckLibrary.FlatAreaCheck(spawnx, spawny, spawnz, 64, 30, true) and Spring.GetGroundHeight(spawnx, spawnz) > 0) or
+                        (unitList[unitDefID][index].type == "sea" and positionCheckLibrary.FlatAreaCheck(spawnx, spawny, spawnz, 64, 30, true) and Spring.GetGroundHeight(spawnx, spawnz) <= 0) then
+                            local droneID = Spring.CreateUnit(unitList[unitDefID][index].name, spawnx, spawny, spawnz, math.random(0,3), Spring.GetUnitTeam(unitID))
+                            if droneID then
+                                aliveDrones[droneID] = {
+                                    owner = unitID,
+                                    ownerDefID = unitDefID,
+                                    index = index,
+                                    fightRadius = unitList[unitDefID][index].fightRadius,
+                                }
+                                aliveCarriers[unitID][index].aliveDrones = aliveCarriers[unitID][index].aliveDrones + 1
+                                aliveCarriers[unitID][index].lastSpawned = Spring.GetGameSeconds()
+                                --Spring.GiveOrderToUnit(droneID, CMD.MOVE_STATE, 2, 0)
+                            end
                         end
                     end
                 end
