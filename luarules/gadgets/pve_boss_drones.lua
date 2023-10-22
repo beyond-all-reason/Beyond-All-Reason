@@ -505,6 +505,7 @@ function gadget:GameFrame(frame)
                                 }
                                 aliveCarriers[unitID][index].aliveDrones = aliveCarriers[unitID][index].aliveDrones + 1
                                 aliveCarriers[unitID][index].lastSpawned = Spring.GetGameSeconds()
+                                Spring.GiveOrderToUnit(droneID,37382,{1},0)
                                 --Spring.GiveOrderToUnit(droneID, CMD.MOVE_STATE, 2, 0)
                             end
                         end
