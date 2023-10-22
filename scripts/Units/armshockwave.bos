@@ -135,6 +135,13 @@ SweetSpot(piecenum)
 
 AimPrimary(heading, pitch)
 {
+	
+	  if ( meatspin == 0 ) // only allow attacking when extracting
+		  {
+		  return (0);
+		  }
+
+	
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	turn shaft to y-axis heading speed <60>;
@@ -161,48 +168,50 @@ AimFromPrimary(piecenum)
 }
 
 
+
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode pins type BITMAPONLY;
-		explode shaft type BITMAPONLY;
-		explode emp type FIRE | SMOKE | FALL;
-		explode flare type BITMAPONLY;
-		explode clock type BITMAPONLY;
-		explode aimy type BITMAPONLY;
-		return(0);
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode pins type BITMAPONLY | NOHEATCLOUD;
+		explode shaft type BITMAPONLY | NOHEATCLOUD;
+		explode emp type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type BITMAPONLY | NOHEATCLOUD;
+		explode clock type BITMAPONLY | NOHEATCLOUD;
+		explode aimy type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
-		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode shaft type FIRE | SMOKE | FALL;
-		explode emp type FIRE | SMOKE | FALL;
-		explode flare type FALL;
-		explode aimy type FALL;
-		return(0);
+		corpsetype = 2;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode shaft type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode emp type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type FALL | NOHEATCLOUD;
+		explode aimy type FALL | NOHEATCLOUD;
+		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
-		corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode pins type BITMAPONLY;
-		explode shaft type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode emp type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode flare type SMOKE | FALL;
-		explode clock type BITMAPONLY;
-		explode aimy type EXPLODE_ON_HIT | SMOKE | FALL;
-		return(0);
+		corpsetype = 3;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode pins type BITMAPONLY | NOHEATCLOUD;
+		explode shaft type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode emp type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type SMOKE | FALL | NOHEATCLOUD;
+		explode clock type BITMAPONLY | NOHEATCLOUD;
+		explode aimy type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
 	}
-	corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode pins type EXPLODE_ON_HIT | FIRE | FALL;
-		explode shaft type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode emp type EXPLODE_ON_HIT | FIRE | FALL;
-		explode flare type EXPLODE_ON_HIT | FIRE | FALL;
-		explode clock type EXPLODE_ON_HIT | FIRE | FALL;
-		explode aimy type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+	corpsetype = 3;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode pins type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode shaft type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode emp type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode clock type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode aimy type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return(corpsetype);
 }
