@@ -1209,6 +1209,30 @@ local unitGrids = {
 			{ },                          --
 		}
 	},
+	
+	--corprinter
+	corprinter = {
+		{
+			{'corsolar', 'cormex' },        
+			{ },                                             
+			{ },                          -- solar, mex
+		},
+		{
+			{ },        
+			{ },                                             
+			{ },                          
+		},
+		{
+			{ 'corrad','', 'corfort'},        
+			{ },                                             
+			{ },                          --radar, t2 wall
+		},
+		{
+			{ },        
+			{ },                                             
+			{ },                          
+		}
+	},
 
 	--naval engineers
 	armmls = {
