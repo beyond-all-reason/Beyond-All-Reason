@@ -183,9 +183,8 @@ if gadgetHandler:IsSyncedCode() then
 	-- keep track of choosing faction ingame
 	function gadget:RecvLuaMsg(msg, playerID)
 		local startUnit = tonumber(msg:match(changeStartUnitRegex))
-		local _, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID)
+		local _, _, playerIsSpec, playerTeam, allyTeamID = Spring.GetPlayerInfo(playerID, false)
 		if startUnit and ((validStartUnits[startUnit] and faction_limiter_valid == false) or (faction_limited_options[ allyTeamID % #faction_limited_options + 1][startUnit] and faction_limiter_valid == true)) then
-			local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID, false)
 			if not playerIsSpec then
 				playerStartingUnits[playerID] = startUnit
 				spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, { allied = true, public = false }) -- visible to allies only, set visible to all on GameStart
