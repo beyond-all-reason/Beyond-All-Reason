@@ -63,8 +63,9 @@ if gadgetHandler:IsSyncedCode() then
 	local startPointTable = {}
 
 	---------------------------------------------------------------------------------------------------
-	-- if faction limiter is on, sqush out what letters a/c/l it can into team faction lists
-	-- this should also mean that writing "armada,cortex,legion" is as valid as writing "a,c,l" as non of the faction's have each other's first character
+	-- the faction limiter attemtps to group strings seperated by comma and turn any faction names it finds in that into a team limiter.
+	-- any groups that are not found to have a valid faction do not expand the pool.
+	-- if the pool is insufficent for the number of teams, then the list is read looping back from the start
 	local factionStrings = include("gamedata/sidedata.lua")
 	if Spring.GetModOptions().experimentallegionfaction then
 		factionStrings[#factionStrings + 1] = {
@@ -79,6 +80,7 @@ if gadgetHandler:IsSyncedCode() then
 	local faction_limiter_valid = false
 	local faction_limited_options = {}
 	if faction_limiter then
+		faction_limiter = string.lower(faction_limiter)
 		local teamGroupID = 1
 		local teamLists = string.split(faction_limiter, ',')
 		for i = 1, #teamLists do
@@ -123,7 +125,7 @@ if gadgetHandler:IsSyncedCode() then
 				-- set & broadcast (current) start unit
 				local _, _, _, _, teamSide, teamAllyID = spGetTeamInfo(teamID, false)
 				local comDefID = armcomDefID
-				-- we try to give you your faction, if we can't we find the first available faction, loops around once list exhausted
+				-- we try to give you your faction, if we can't, we find the first available faction, loops around if the list isn't long enough to include current team
 				if faction_limiter_valid then
 					if teamSide == 'cortex' and faction_limited_options[ teamAllyID % #faction_limited_options + 1][corcomDefID] then
 						comDefID = corcomDefID
