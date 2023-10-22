@@ -136,7 +136,7 @@ return {
 		},
 		weapondefs = {
 			hllt_bottom = {
-				areaofeffect = 220,
+				areaofeffect = 150,
 				avoidfeature = false,
 				corethickness = 0.175,
 				craterareaofeffect = 0,
@@ -156,7 +156,7 @@ return {
 				paralyzetime = 5,
 				proximitypriority = 3,
 				range = 500,
-				reloadtime = 1,
+				reloadtime = 1.3,
 				rgbcolor = "0.8 0.8 1",
 				soundhitdry = "EMGPULS1",
 				soundhitwet = "splsslrg",
@@ -170,7 +170,7 @@ return {
 				weaponvelocity = 540,
 				damage = {
 					bombers = 0,
-					default = 1000,
+					default = 800,
 					fighters = 0,
 					vtol = 0,
 				},
