@@ -250,6 +250,7 @@ local unitOrderTable = {
 	['corshiva']       = 007050,
 	['legpede']        = 007055,
 	['armthor']        = 007060,
+	['leegmech']        = 007065,
 	['corkorg']        = 007070,
 	['armbanth']       = 007080,
 	['corjugg']        = 007090,

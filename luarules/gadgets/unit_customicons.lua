@@ -659,6 +659,7 @@ local units = {
 	freefusion = { "fusion.png", 1.46999991 },
 	cor_hat_viking = { "blank.png", 1.04999995 },
 
+	leegmech = { "bantha.png", 2.3 },
 	legaap = { "factory_air_t2.png", 1.9425 },
 	legaca = { "air_t2_worker.png", 1.62749982 },
 	legack = { "bot_t2_worker.png", 1.39649999 },
