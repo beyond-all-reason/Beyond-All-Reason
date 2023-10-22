@@ -464,7 +464,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- armraz legpede corcat leginc armfboy corsumo
+	-- armraz legpede corcat leginc armfboy corsumo legmech
 	HBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,
