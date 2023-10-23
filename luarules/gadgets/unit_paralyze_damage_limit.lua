@@ -68,7 +68,7 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 
     if paralyzer then
 --Spring.Echo('hornet debug here2')
-        -- restrict the max paralysis time of mobile units to 15 sec
+        -- restrict the max paralysis time of mobile units
         if aDefID and uDefID and weaponID and not isBuilding[uDefID] and not excluded[uDefID] then
 		Spring.Echo('hornet debug emp')
 			
@@ -76,11 +76,15 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 			local effectiveHP = Game.paralyzeOnMaxHealth and maxHP or hp
 			local paralyzeDeclineRate = Game.paralyzeDeclineRate
 			
-			--ohms not always saved / treated as int? tf
+
 			local ohm = unitOhms[uDefID]--	 or 0)) <= 0 and 0.6 or unitOhms[uDefID]
-			local thismaxtime = weaponParalyzeDamageTime[weaponID] * ((ohm == 1 and 0.5) or ohm)
+			-- if default resistance, maxstun cap slightly lowered
+			-- if nondefault, max stun affected by resistance, as drain is static this is only way to limit that variably, which is needed for t3 impact of EMP
+			local thismaxtime = weaponParalyzeDamageTime[weaponID] * ((ohm == 1 and 0.75) or ohm)
 			
-			Spring.Echo('raw stuntime, ohm, using mult value, caltime', weaponParalyzeDamageTime[weaponID], ohm, ((ohm == 1 and 0.5) or ohm), thismaxtime)
+			Spring.Echo('raw stuntime, ohm, using mult value, thismaxtime (pre-minumum)', weaponParalyzeDamageTime[weaponID], ohm, ((ohm == 1 and 0.5) or ohm), thismaxtime)
+			--thismaxtime = math.max(1, thismaxtime)--prevent microstuns (compounds oddly with shuri unfortunately)
+			
 			
 			thismaxtime = math.min(maxTime, thismaxtime)
 			--Spring.Echo('times', weaponParalyzeDamageTime[weaponID], thismaxtime, unitOhms[uDefID] or 1)

@@ -842,7 +842,7 @@ function UnitDef_Post(name, uDef)
 		uDef = unbaUnits.unbaUnitTweaks(name, uDef)
 	end
 
-Spring.Echo('hornet debug here')
+
 if Spring.GetModOptions().emprework == true then
 
 		if name == "armstil" then		
@@ -867,19 +867,19 @@ if Spring.GetModOptions().emprework == true then
 		if name == "armemp" then
 			uDef.weapondefs.armemp_weapon.areaofeffect = 512
 			uDef.weapondefs.armemp_weapon.burstrate = 0.3333
-			uDef.weapondefs.armemp_weapon.edgeeffectiveness = 0.05
+			uDef.weapondefs.armemp_weapon.edgeeffectiveness = -0.30
 			uDef.weapondefs.armemp_weapon.paralyzetime = 12
-			uDef.weapondefs.armemp_weapon.damage.default = 40000
+			uDef.weapondefs.armemp_weapon.damage.default = 50000
 			
 		end
 		
 
 		if name == "armthor" then
 			uDef.weapondefs.empmissile.areaofeffect = 250
-			uDef.weapondefs.empmissile.edgeeffectiveness = 0.40
-			uDef.weapondefs.empmissile.damage.default = 10000
+			uDef.weapondefs.empmissile.edgeeffectiveness = -0.50
+			uDef.weapondefs.empmissile.damage.default = 20000
 			uDef.weapondefs.empmissile.paralyzetime = 5	
-			uDef.weapondefs.emp.damage.default = 600
+			uDef.weapondefs.emp.damage.default = 450
 			uDef.weapondefs.emp.paralyzetime = 5	
 		end
 
@@ -890,40 +890,43 @@ if Spring.GetModOptions().emprework == true then
 
 
 		if name == "corsumo" then
-			uDef.customparams.paralyzemultiplier = 1.2
+			uDef.customparams.paralyzemultiplier = 0.9
 		end
 		
 		if name == "armmar" then
-			uDef.customparams.paralyzemultiplier = 1.5
-		end
-		
-		if name == "armbanth" then
-			uDef.customparams.paralyzemultiplier = 3.2
-		end
-
-		if name == "armraz" then
-			uDef.customparams.paralyzemultiplier = 1.9
-		end
-		if name == "armvang" then
 			uDef.customparams.paralyzemultiplier = 1.3
 		end
 		
-		if name == "armlun" then
+		if name == "armbanth" then
+			uDef.customparams.paralyzemultiplier = 2
+		end
+
+		if name == "armraz" then
 			uDef.customparams.paralyzemultiplier = 1.2
+		end
+		if name == "armvang" then
+			uDef.customparams.paralyzemultiplier = 1.1
+		end
+		
+		if name == "armlun" then
+			uDef.customparams.paralyzemultiplier = 1.05
 		end
 		
 		if name == "corshiva" then
-			uDef.customparams.paralyzemultiplier = 1.8
+			uDef.customparams.paralyzemultiplier = 1.1
 		end
 		
 		if name == "corcat" then
-			uDef.customparams.paralyzemultiplier = 1.25
+			uDef.customparams.paralyzemultiplier = 1.05
 		end
 		
 		if name == "corkarg" then
-			uDef.customparams.paralyzemultiplier = 1.8
+			uDef.customparams.paralyzemultiplier = 1.2
 		end
 		if name == "corsok" then
+			uDef.customparams.paralyzemultiplier = 1.1
+		end
+		if name == "cordemont4" then
 			uDef.customparams.paralyzemultiplier = 1.2
 		end
 
@@ -1288,10 +1291,10 @@ function WeaponDef_Post(name, wDef)
 				wDef.damage.default = 50000
 			end
 			if name == 'spybombx' then
-				wDef.areaofeffect = 400
-				wDef.edgeeffectiveness = 0.75
+				wDef.areaofeffect = 350
+				wDef.edgeeffectiveness = 0.30
 				wDef.paralyzetime = 12
-				wDef.damage.default = 15000
+				wDef.damage.default = 30000
 			end
 			if name == 'spybombxscav' then
 				wDef.edgeeffectiveness = 0.50
