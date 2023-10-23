@@ -6,13 +6,13 @@ return {
 		cratermult = 0,
 		edgeeffectiveness = 0.75,
 		explosiongenerator = "custom:genericshellexplosion-huge-lightning",
-		firestarter = 0,
+		firestarter = 90,
 		impulseboost = 0,
 		impulsefactor = 0,
 		name = "spyexplosion",
 		noselfdamage = 1,
 		paralyzer = 1,
-		paralyzetime = 15,
+		paralyzetime = 35,
 		range = 1280,
 		reloadtime = 0.30000001192093,
 		soundhit = "EMGPULS1",
@@ -21,7 +21,7 @@ return {
 		tolerance = 7000,
 		turret = 1,
 		damage = {
-			default = 150000,
+			default = 56000,
 		},
 	},
 	spybombxscav = {
@@ -45,7 +45,7 @@ return {
 		tolerance = 7000,
 		turret = 1,
 		damage = {
-			default = 156000,
+			default = 56000,
 		},
 	},
 }
