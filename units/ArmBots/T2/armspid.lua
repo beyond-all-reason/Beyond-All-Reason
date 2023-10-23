@@ -42,7 +42,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.749,
 		turnrate = 1290.29993,
-		workertime = 100,
+		workertime = 150,
 		customparams = {
 			unitgroup = 'emp',
 			model_author = "Kaiser",
