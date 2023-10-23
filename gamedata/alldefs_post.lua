@@ -868,7 +868,7 @@ if Spring.GetModOptions().emprework == true then
 			uDef.weapondefs.armemp_weapon.areaofeffect = 512
 			uDef.weapondefs.armemp_weapon.burstrate = 0.3333
 			uDef.weapondefs.armemp_weapon.edgeeffectiveness = -0.30
-			uDef.weapondefs.armemp_weapon.paralyzetime = 12
+			uDef.weapondefs.armemp_weapon.paralyzetime = 15
 			uDef.weapondefs.armemp_weapon.damage.default = 50000
 			
 		end
