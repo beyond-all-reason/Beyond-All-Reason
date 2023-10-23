@@ -23,6 +23,9 @@ function widget:GetInfo()
     }
 end
 
+-- pre unitStencilTexture it takes 800 ms per frame
+-- todo: fake more ground ao in blur pass?
+
 -----------------------------------------------------------------
 -- Constants
 -----------------------------------------------------------------
@@ -45,10 +48,10 @@ local GL_FUNC_REVERSE_SUBTRACT = 0x800B
 -----------------------------------------------------------------
 
 local SSAO_KERNEL_SIZE = 48 -- how many samples are used for SSAO spatial sampling
-local SSAO_RADIUS = 5 -- world space maximum sampling radius
+local SSAO_RADIUS = 8 -- world space maximum sampling radius
 local SSAO_MIN = 1.0 -- minimum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Absolute value in world space coords.
 local SSAO_MAX = 1.0 -- maximum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Percentage of SSAO_RADIUS.
-local SSAO_ALPHA_POW = 8.0 -- consider this as SSAO effect strength
+local SSAO_ALPHA_POW = 1.0 -- consider this as SSAO effect strength
 
 local BLUR_HALF_KERNEL_SIZE = 4 -- (BLUR_HALF_KERNEL_SIZE + BLUR_HALF_KERNEL_SIZE + 1) samples are used to perform the blur
 local BLUR_PASSES = 3 -- number of blur passes
@@ -56,7 +59,8 @@ local BLUR_SIGMA = 1.8 -- Gaussian sigma of a single blur pass, other factors li
 
 local DOWNSAMPLE = 2 -- increasing downsapling will reduce GPU RAM occupation (a little bit), increase performace (a little bit), introduce occlusion blockiness
 
-local MERGE_MISC = true -- for future material indices based SSAO evaluation
+
+local MERGE_MISC = false -- for future material indices based SSAO evaluation
 local DEBUG_SSAO = false -- use for debug
 
 local math_sqrt = math.sqrt
@@ -70,11 +74,22 @@ local initialTonemapE = Spring.GetConfigFloat("tonemapE", 1.0)
 
 local preset = 2
 local presets = {
-	{
+	
+	--[[{ -- remove potato preset
 		SSAO_KERNEL_SIZE = 32,
 		DOWNSAMPLE = 3,
 		BLUR_HALF_KERNEL_SIZE = 4,
-		BLUR_PASSES = 2,
+		BLUR_PASSES = 1,
+		BLUR_SIGMA = 4,
+		tonemapA = 0.45,
+		tonemapD = -0.25,
+		tonemapE = -0.03,
+	},]]--
+	{
+		SSAO_KERNEL_SIZE = 32,
+		DOWNSAMPLE = 2,
+		BLUR_HALF_KERNEL_SIZE = 6,
+		BLUR_PASSES = 1, -- 0.15 ms
 		BLUR_SIGMA = 4,
 		tonemapA = 0.45,
 		tonemapD = -0.25,
@@ -82,19 +97,19 @@ local presets = {
 	},
 	{
 		SSAO_KERNEL_SIZE = 32,
-		DOWNSAMPLE = 2,
-		BLUR_HALF_KERNEL_SIZE = 4,
-		BLUR_PASSES = 2,
-		BLUR_SIGMA = 4,
-		tonemapA = 0.45,
+		DOWNSAMPLE = 1,
+		BLUR_HALF_KERNEL_SIZE = 3,
+		BLUR_PASSES = 1,
+		BLUR_SIGMA = 2,
+		tonemapA = 0.4,
 		tonemapD = -0.25,
-		tonemapE = -0.03,
+		tonemapE = -0.025,
 	},
 	{
-		SSAO_KERNEL_SIZE = 48,
+		SSAO_KERNEL_SIZE = 64,
 		DOWNSAMPLE = 1,
-		BLUR_HALF_KERNEL_SIZE = 6,
-		BLUR_PASSES = 3,
+		BLUR_HALF_KERNEL_SIZE = 8,
+		BLUR_PASSES = 1,
 		BLUR_SIGMA = 6,
 		tonemapA = 0.4,
 		tonemapD = -0.25,
@@ -116,6 +131,8 @@ local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 
 local vsx, vsy, vpx, vpy
+local texPaddingX, texPaddingY = 0,0
+
 local firstTime
 
 local screenQuadList
@@ -135,6 +152,9 @@ local ssaoShader
 local gbuffFuseShader
 local gaussianBlurShader
 
+local unitStencilTexture
+
+local unitStencil = nil
 -----------------------------------------------------------------
 -- Local Functions
 -----------------------------------------------------------------
@@ -162,18 +182,47 @@ local function GetGaussDiscreteWeightsOffsets(sigma, kernelHalfSize, valMult)
 	return weights, offsets
 end
 
+local function tabletostring(t)
+	local res = '{'
+	for k,v in pairs(t) do 
+		res = res .. tostring(k) .. "=" .. tostring(v) .. ', '
+	end
+	return res .. '}'
+end
+
 --see http://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
 local function GetGaussLinearWeightsOffsets(sigma, kernelHalfSize, valMult)
-	local dWeights, dOffsets = GetGaussDiscreteWeightsOffsets(sigma, kernelHalfSize, 1.0)
+	local dWeights, dOffsets = GetGaussDiscreteWeightsOffsets(sigma, (kernelHalfSize-1) * 2 + 1 , 1.0)
+	-- at khs = 4 
+	-- dWeights, {1=0.1112202, 2=0.10779832, 3=0.09815148, 4=0.08395342, 5=0.06745847, 6=0.05092032, 7=0.03610791, }
+	-- dOffsets, {1=0, 2=1, 3=2, 4=3, 5=4, 6=5, 7=6, }
 
 	local weights = {dWeights[1]}
 	local offsets = {dOffsets[1]}
-
-	for i = 1, (kernelHalfSize - 1) / 2 do
-		local newWeight = dWeights[2 * i] + dWeights[2 * i + 1]
+	local totalweights = dWeights[1]
+	local offsetstr = 'offsets:'
+	
+	-- for 4 this should go to 3
+	for i = 1, kernelHalfSize -1  do -- for khs 4 this goes from 1 to , well 1. 
+		local newWeight = dWeights[2 * i ] + dWeights[2 * i + 1]
 		weights[i + 1] = newWeight * valMult
 		offsets[i + 1] = (dOffsets[2 * i] * dWeights[2 * i] + dOffsets[2 * i + 1] * dWeights[2 * i + 1]) / newWeight
+
+
+		--totalweights = totalweights + 2* weights[i + 1] -- 2x cause symmetric kernel
+		--offsetstr = offsetstr ..  ",".. tostring(offsets[i + 1])
 	end
+
+	for i = 2, kernelHalfSize do 
+		totalweights = totalweights + 2 * weights[i] -- 2x cause symmetric kernel
+	end
+	-- OH GOD THIS IS COMPLETELY FUCKED UP!
+	Spring.Echo("GetGaussLinearWeightsOffsets(sigma, kernelHalfSize, valMult)",sigma, kernelHalfSize, valMult, 'total = ', totalweights)
+	Spring.Echo('dWeights',tabletostring(dWeights))
+	Spring.Echo('dOffsets',tabletostring(dOffsets))
+	Spring.Echo('weights',tabletostring(weights)) -- these are way too small!
+	Spring.Echo('offsets',tabletostring(offsets))
+	
 	return weights, offsets
 end
 
@@ -289,11 +338,16 @@ function widget:Initialize()
 	commonTexOpts.mag_filter = GL.LINEAR
 
 	commonTexOpts.format = GL_RGBA8
-	ssaoTex = gl.CreateTexture(vsx / presets[preset].DOWNSAMPLE, vsy / presets[preset].DOWNSAMPLE, commonTexOpts)
+	texPaddingX = presets[preset].DOWNSAMPLE * math.ceil(vsx / presets[preset].DOWNSAMPLE) - vsx
+	texPaddingY = presets[preset].DOWNSAMPLE * math.ceil(vsy / presets[preset].DOWNSAMPLE) - vsy
+	Spring.Echo("SSAO SIZING",presets[preset].DOWNSAMPLE, vsx, vsy, texPaddingX, texPaddingY)
+
+
+	ssaoTex = gl.CreateTexture(math.ceil(vsx / presets[preset].DOWNSAMPLE), math.ceil(vsy / presets[preset].DOWNSAMPLE), commonTexOpts)
 
 	commonTexOpts.format = GL_RGBA8
 	for i = 1, 2 do
-		ssaoBlurTexes[i] = gl.CreateTexture(vsx / presets[preset].DOWNSAMPLE, vsy / presets[preset].DOWNSAMPLE, commonTexOpts)
+		ssaoBlurTexes[i] = gl.CreateTexture(math.ceil(vsx / presets[preset].DOWNSAMPLE), math.ceil(vsy / presets[preset].DOWNSAMPLE), commonTexOpts)
 	end
 
 	if MERGE_MISC then
@@ -337,11 +391,17 @@ function widget:Initialize()
 	local gbuffFuseShaderVert = VFS.LoadFile(shadersDir.."identity.vert.glsl")
 	local gbuffFuseShaderFrag = VFS.LoadFile(shadersDir.."gbuffFuse.frag.glsl")
 
+
+
+	unitStencil = WG['unitstencilapi'].members
+	unitStencil = {}
+
 	gbuffFuseShaderFrag = gbuffFuseShaderFrag:gsub("###DEPTH_CLIP01###", tostring((Platform.glSupportClipSpaceControl and 1) or 0))
 	gbuffFuseShaderFrag = gbuffFuseShaderFrag:gsub("###MERGE_MISC###", tostring((MERGE_MISC and 1) or 0))
 
 	gbuffFuseShader = LuaShader({
-		vertex = gbuffFuseShaderVert,
+		vertex = unitStencil.vsSrc or gbuffFuseShaderVert,
+		geom = unitStencil.gsSrc or nil,
 		fragment = gbuffFuseShaderFrag,
 		uniformInt = {
 			-- be consistent with gfx_deferred_rendering.lua
@@ -357,12 +417,14 @@ function widget:Initialize()
 
 			modelMiscTex = 5,
 			mapMiscTex = 6,
+			unitStencilTex = 7,
 		},
 		uniformFloat = {
 			viewPortSize = {vsx, vsy},
 		},
 	}, widgetName..": G-buffer Fuse")
 	gbuffFuseShader:Initialize()
+	unitStencilTexture = WG['unitstencilapi'].GetUnitStencilTexture()
 
 
 	local ssaoShaderVert = VFS.LoadFile(shadersDir.."identity.vert.glsl")
@@ -384,6 +446,7 @@ function widget:Initialize()
 			viewPosTex = 0,
 			viewNormalTex = 1,
 			miscTex = 2,
+			unitStencilTex = 7,
 		},
 		uniformFloat = {
 			viewPortSize = {vsx / presets[preset].DOWNSAMPLE, vsy / presets[preset].DOWNSAMPLE},
@@ -404,12 +467,14 @@ function widget:Initialize()
 	local gaussianBlurFrag = VFS.LoadFile(shadersDir.."gaussianBlur.frag.glsl")
 
 	gaussianBlurFrag = gaussianBlurFrag:gsub("###BLUR_HALF_KERNEL_SIZE###", tostring(presets[preset].BLUR_HALF_KERNEL_SIZE))
+	Spring.Echo("BLUR_HALF_KERNEL_SIZE", tostring(presets[preset].BLUR_HALF_KERNEL_SIZE))
 
 	gaussianBlurShader = LuaShader({
 		vertex = gaussianBlurVert,
 		fragment = gaussianBlurFrag,
 		uniformInt = {
 			tex = 0,
+			unitStencilTex = 7,
 		},
 		uniformFloat = {
 			viewPortSize = {vsx / presets[preset].DOWNSAMPLE, vsy / presets[preset].DOWNSAMPLE},
@@ -418,6 +483,8 @@ function widget:Initialize()
 	gaussianBlurShader:Initialize()
 
 	local gaussWeights, gaussOffsets = GetGaussLinearWeightsOffsets(presets[preset].BLUR_SIGMA, presets[preset].BLUR_HALF_KERNEL_SIZE, 1.0)
+
+	Spring.Echo("#gaussWeights", #gaussWeights, "#gaussOffsets", #gaussOffsets)
 
 	gaussianBlurShader:ActivateWith( function()
 		gaussianBlurShader:SetUniformFloatArrayAlways("weights", gaussWeights)
@@ -493,21 +560,20 @@ local function DoDrawSSAO(isScreenSpace)
 
 
 	if firstTime then
-		screenQuadList = gl.CreateList(gl.TexRect, -1, -1, 1, 1)
+		screenQuadList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, 0, 0, 1.0 - texPaddingX/vsx, 1.0 - texPaddingY/vsy)
 		if isScreenSpace then
 			screenWideList = gl.CreateList(gl.TexRect, 0, vsy, vsx, 0)
 		else
-			screenWideList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, false, true)
+			screenWideList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, 0, 0, 1.0 + texPaddingX/vsx, 1.0 + texPaddingY/vsy)
 		end
 		firstTime = false
 	end
-
+	
 	local prevFBO
 	prevFBO = gl.RawBindFBO(gbuffFuseFBO)
-		gbuffFuseShader:Activate()
+		gbuffFuseShader:Activate() -- ~0.25ms
 
-			gbuffFuseShader:SetUniformMatrix("invProjMatrix", "projectioninverse")
-			gbuffFuseShader:SetUniformMatrix("viewMatrix", "view")
+
 
 			gl.Texture(0, "$model_gbuffer_normtex")
 			gl.Texture(1, "$model_gbuffer_zvaltex")
@@ -519,9 +585,38 @@ local function DoDrawSSAO(isScreenSpace)
 				gl.Texture(5, "$model_gbuffer_misctex")
 				gl.Texture(6, "$map_gbuffer_misctex")
 			end
+			gl.Texture(7, unitStencilTexture)
 
 
-			gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
+			if false and  unitStencil then
+
+
+			
+				gl.MatrixMode(GL.MODELVIEW)
+				gl.PopMatrix()
+				gl.MatrixMode(GL.PROJECTION)
+				gl.PopMatrix()
+			
+
+				gl.Blending(GL.ONE, GL.ZERO)
+				gl.Culling(false)	
+				unitStencil.featureStencilVBO.VAO:DrawArrays(GL.POINTS, unitStencil.featureStencilVBO.usedElements)
+				unitStencil.unitStencilVBO.VAO:DrawArrays(GL.POINTS, unitStencil.unitStencilVBO.usedElements)
+			
+				gl.MatrixMode(GL.PROJECTION)
+				gl.PushMatrix()
+				gl.LoadIdentity()
+				gl.MatrixMode(GL.MODELVIEW)
+				gl.PushMatrix()
+				gl.LoadIdentity()
+			
+			else
+				if true or Spring.GetDrawFrame() % 20 == 0 then 
+				gbuffFuseShader:SetUniformMatrix("invProjMatrix", "projectioninverse")
+				gbuffFuseShader:SetUniformMatrix("viewMatrix", "view")
+				gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
+				end
+			end
 			--gl.TexRect(-1, -1, 1, 1)
 
 			gl.Texture(0, false)
@@ -583,14 +678,24 @@ local function DoDrawSSAO(isScreenSpace)
 
 	if DEBUG_SSAO then
 		gl.Blending(false)
+		--gl.Blending(GL.SRC_ALPHA,GL.SRC_ALPHA)
+		
+
+		gl.Blending(GL.ONE, GL.ZERO) -- now blurred tex contains normals
+		-- How to only show alpha?
+
 	else
-		gl.BlendEquation(GL_FUNC_REVERSE_SUBTRACT)
-		--gl.Blending("alpha")
 		gl.Blending(true)
-		gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ZERO, GL.ONE)
+		
+		-- Old: 
+		--gl.BlendEquation(GL_FUNC_REVERSE_SUBTRACT)
+		--gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ZERO, GL.ONE)
+		
 		--gl.BlendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) --alpha NO pre-multiply
 		--gl.BlendFunc(GL.ONE, GL.ONE_MINUS_SRC_ALPHA) --alpha pre-multiply
-		--gl.BlendFunc(GL.ZERO, GL.ONE)
+		--gl.BlendFunc(GL.ZERO, GL.ONE) 
+		-- assume that it should only ever darken
+		gl.Blending(GL.ZERO, GL.SRC_ALPHA) -- now blurred tex contains normals
 	end
 
 	-- Already bound
