@@ -1301,7 +1301,7 @@ function WeaponDef_Post(name, wDef)
 				wDef.areaofeffect = 350
 				wDef.edgeeffectiveness = 0.30
 				wDef.paralyzetime = 12
-				wDef.damage.default = 30000
+				wDef.damage.default = 20000
 			end
 			if name == 'spybombxscav' then
 				wDef.edgeeffectiveness = 0.50
