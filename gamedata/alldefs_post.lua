@@ -867,10 +867,17 @@ if Spring.GetModOptions().emprework == true then
 		if name == "armemp" then
 			uDef.weapondefs.armemp_weapon.areaofeffect = 512
 			uDef.weapondefs.armemp_weapon.burstrate = 0.3333
-			uDef.weapondefs.armemp_weapon.edgeeffectiveness = -0.30
+			uDef.weapondefs.armemp_weapon.edgeeffectiveness = -0.10
 			uDef.weapondefs.armemp_weapon.paralyzetime = 15
-			uDef.weapondefs.armemp_weapon.damage.default = 50000
+			uDef.weapondefs.armemp_weapon.damage.default = 60000
 			
+		end
+		if name == "armshockwave" then
+			uDef.weapondefs.hllt_bottom.areaofeffect = 150
+			uDef.weapondefs.hllt_bottom.edgeeffectiveness = 0.15
+			uDef.weapondefs.hllt_bottom.reloadtime = 1.4
+			uDef.weapondefs.hllt_bottom.paralyzetime = 5
+			uDef.weapondefs.hllt_bottom.damage.default = 800
 		end
 		
 
