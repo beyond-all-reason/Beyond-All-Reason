@@ -73,6 +73,7 @@ local definesSlidersParamsList = {
 	{name = 'DEBUG_BLUR', default = 0, min = 0, max = 1, digits = 0, tooltip = 'DEBUG_BLUR show the result of the blur only'},
 
 	{name = 'USE_STENCIL', default = 1, min = 0, max = 1, digits = 0, tooltip = 'USE_STENCIL set to zero if you dont wanna'},
+	{name = 'OFFSET', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Set to 2 for half-rez buffers'},
 	{name = 'DOWNSAMPLE', default = 1, min = 1, max = 2, digits = 0, tooltip = 'Set to 2 for half-rez buffers'},
 	{name = 'ENABLE', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Disable the whole SSAO'},
 	{name = 'SLOWFUSE', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Only fuse every 30 frames'},
@@ -120,7 +121,7 @@ local initialTonemapA = Spring.GetConfigFloat("tonemapA", 4.75)
 local initialTonemapD = Spring.GetConfigFloat("tonemapD", 0.85)
 local initialTonemapE = Spring.GetConfigFloat("tonemapE", 1.0)
 
-local preset = 2
+local preset = 3
 local presets = {
 	{
 		SSAO_KERNEL_SIZE = 32,
@@ -135,7 +136,6 @@ local presets = {
 		SSAO_KERNEL_SIZE = 32,
 		DOWNSAMPLE = 1,
 		BLUR_HALF_KERNEL_SIZE = 4,
-		SSAO_RADIUS = 8;
 		BLUR_SIGMA = 3,
 		tonemapA = 0.4,
 		tonemapD = -0.25,
@@ -144,11 +144,14 @@ local presets = {
 	{
 		SSAO_KERNEL_SIZE = 64,
 		DOWNSAMPLE = 1,
-		BLUR_HALF_KERNEL_SIZE = 8,
-		BLUR_SIGMA = 6,
+		BLUR_HALF_KERNEL_SIZE = 4,
+		BLUR_SIGMA = 1.8,
+		MINCOSANGLE = 0.75, 
+		SSAO_RADIUS = 12,
 		tonemapA = 0.4,
 		tonemapD = -0.25,
 		tonemapE = -0.025,
+		SSAO_RADIUS = 12,
 	},
 }
 
@@ -397,22 +400,22 @@ local function InitGL()
 		Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, "Invalid ssaoFBO"))
 	end
 
-	--for i = 1, 2 do
-		ssaoBlurFBOs[1] = gl.CreateFBO({
-			color0 = ssaoBlurTex,
-			drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
-		})
-		if not gl.IsValidFBO(ssaoBlurFBOs[1]) then
-			Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, string.format("Invalid ssaoBlurFBOs[%d]", 1)))
-		end
-		ssaoBlurFBOs[2] = gl.CreateFBO({
-			color0 = ssaoTex,
-			drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
-		})
-		if not gl.IsValidFBO(ssaoBlurFBOs[2]) then
-			Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, string.format("Invalid ssaoBlurFBOs[%d]", 2)))
-		end
-	--end
+
+	ssaoBlurFBOs[1] = gl.CreateFBO({
+		color0 = ssaoBlurTex,
+		drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
+	})
+	if not gl.IsValidFBO(ssaoBlurFBOs[1]) then
+		Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, string.format("Invalid ssaoBlurFBOs[%d]", 1)))
+	end
+	ssaoBlurFBOs[2] = gl.CreateFBO({
+		color0 = ssaoTex,
+		drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
+	})
+	if not gl.IsValidFBO(ssaoBlurFBOs[2]) then
+		Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, string.format("Invalid ssaoBlurFBOs[%d]", 2)))
+	end
+
 
 	if shaderConfig.USE_STENCIL == 1 then 
 		unitStencilTexture = WG['unitstencilapi'].GetUnitStencilTexture()
@@ -437,6 +440,7 @@ local function InitGL()
 		},
 		uniformFloat = {
 		},
+		silent = true, -- suppress compilation messages
 		shaderConfig = shaderConfig,
 		shaderName = widgetName..": G-buffer Fuse",
 	}	
@@ -455,6 +459,7 @@ local function InitGL()
 		},
 		uniformFloat = {
 		},
+		silent = true, -- suppress compilation messages
 		shaderConfig = shaderConfig,
 		shaderName = widgetName..": SSAO",
 	}
@@ -484,6 +489,7 @@ local function InitGL()
 			lastpass = 0, -- on last pass, output different stuff
 			strengthMult = 1,
 		},
+		silent = true, -- suppress compilation messages
 		shaderConfig = shaderConfig,
 		shaderName = widgetName..": gaussianBlur",
 	}

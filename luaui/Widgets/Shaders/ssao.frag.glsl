@@ -38,12 +38,12 @@ uniform vec3 samplingKernel[kernelSize];
 // generally follow https://github.com/McNopper/OpenGL/blob/master/Example28/shader/ssao.frag.glsl
 void main() {
 	
-	vec2 texelSize = 0.25 / vec2(VSX,VSY);
+	vec2 texelSize = 0.53 / vec2(VSX,VSY);
 	#if DOWNSAMPLE == 1 
-		vec2 uv = gl_TexCoord[0].xy - texelSize;
+		vec2 uv = gl_TexCoord[0].xy;
 	#else
 		vec2 uv = gl_TexCoord[0].xy * 2 - texelSize;
-		//gl_FragColor = vec4(fract(uv), 0,1); return;
+		//gl_FragColor = vec4(fract((uv- 8* texelSize)*128 ), 0,1); return;
 	#endif
 	//vec2 uv = gl_TexCoord[0].xy * vec2(2,-2) + vec2(0,2.0);
 	//gl_FragColor = vec4(uv.xy, 0.0, 1.0); return;
@@ -97,7 +97,7 @@ void main() {
 
 		for (int i = 0; i < SSAO_KERNEL_SIZE; ++i) {
 			// silly resample:
-			#if 0
+			#if OFFSET == 1
 				if ( (i % (SSAO_KERNEL_SIZE/4)) == (SSAO_KERNEL_SIZE/4 - 1) ){
 					vec2 newUV = uv;
 					if (i == SSAO_KERNEL_SIZE/4 - 1) newUV.x += texelSize.x;

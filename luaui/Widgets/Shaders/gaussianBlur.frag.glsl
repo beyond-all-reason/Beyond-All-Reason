@@ -45,11 +45,16 @@ void main(void)
 		vec3 myNormal = NORM2SNORM(texSample.rgb);
 		myNormal.z = texSample.z;
 
+		float imground = step(dot(myNormal.xy, myNormal.xy), 0.1);
+		
 		float weightSum = weights[0];
-		float howLit = texSample.a * weights[0];
+		if (imground > 0.5) {
+			//weightSum = 1.0/(2 * BLUR_HALF_KERNEL_SIZE-1);
+			
+		}
+		float howLit = texSample.a * weightSum;
 		float unWeighted = howLit;
 
-		float imground = step(dot(myNormal.xy, myNormal.xy), 0.1);
 
 		// possibly better L1 cache locality via non expanding stepping?
 		for (int i = 1; i < (BLUR_HALF_KERNEL_SIZE  ); ++i) { // i goes from 1 to BLUR_HALF_KERNEL_SIZE-1
@@ -59,6 +64,13 @@ void main(void)
 
 			float weightP = weights[i];
 			float weightN = weights[i];
+			if (imground > 0.5) {
+				//weightP = 1.0/(2 * BLUR_HALF_KERNEL_SIZE-1);
+				//weightN = 1.0/(2* BLUR_HALF_KERNEL_SIZE-1);
+				//uvP = uv + 2*float(i) *  dir / vec2(HSX,HSY);
+				//uvN = uv - 2*float(i) *  dir / vec2(HSX,HSY);
+			}
+
 
 			vec4 leftSample = texture( tex, uvP );
 			float zclosel = step(abs(myNormal.z - leftSample.z), ZTHRESHOLD);
@@ -79,9 +91,8 @@ void main(void)
 			unWeighted += weightP * rightSample.a;
 		}
 
-
 		howLit = howLit / weightSum;		
-		if (weightSum <= (weights[0] + MINSELFWEIGHT) ){
+		if (weightSum < (weights[0] + MINSELFWEIGHT) ){
 			howLit = mix(howLit,unWeighted, OUTLIERCORRECTIONFACTOR);
 
 		};
@@ -89,6 +100,7 @@ void main(void)
 
 		// FINAL MIXDOWN, vert pass last
 		if (dir.y > 0.5) { 
+			if (imground > 0.5) howLit = howLit * howLit;
 			howLit = pow(howLit, BLUR_POWER);
 			howLit = sqrt(howLit * howLit + BLUR_CLAMP);
 			#if DEBUG_BLUR == 1 
