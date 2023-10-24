@@ -388,8 +388,16 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- Add prototype units to cor T2 vech
-	if Spring.GetModOptions().expandedcortexvehiclest2 then
+	-- Add balanced extras
+	if Spring.GetModOptions().releasecandidates then
+
+		--Shockwave mex
+		if name == "armaca" or name == "armack" or name == "armacv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "armshockwave"
+		end	
+	
+
 		if name == "coravp" then
 			for ix, UnitName in pairs(uDef.buildoptions) do
 				if UnitName == "corseal" then
@@ -411,6 +419,14 @@ function UnitDef_Post(name, uDef)
 			end
 
 		end
+
+		-- demon
+
+		if name == "corgant" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "cordemont4"		
+		end
+
 		if name == "corgantuw" then
 			local numBuildoptions = 1
 			for ix, UnitName in pairs(uDef.buildoptions) do
@@ -1178,7 +1194,8 @@ if Spring.GetModOptions().comtestchanges == true then
 	-- Energy Conversion Multiplier
 	if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
 		local x = Spring.GetModOptions().multiplier_energyconversion * Spring.GetModOptions().multiplier_resourceincome
-		uDef.customparams.energyconv_capacity = uDef.customparams.energyconv_capacity * x
+		--uDef.customparams.energyconv_capacity = uDef.customparams.energyconv_capacity * x
+		uDef.customparams.energyconv_efficiency = uDef.customparams.energyconv_efficiency * x
 		if uDef.metalstorage then
 			uDef.metalstorage = uDef.metalstorage * x
 		end
@@ -1466,7 +1483,7 @@ function WeaponDef_Post(name, wDef)
 			-- if wDef.mygravity and wDef.mygravity ~= 0 then
 			-- 	wDef.mygravity = wDef.mygravity*(1/x)
 			-- else
-			-- 	wDef.mygravity = 0.12 -- this is some really weird number totally not related to numbers defined in map file
+			-- 	wDef.mygravity = Game.gravity / (Game.gameSpeed ^ 2) / x
 			-- end
 			if wDef.weaponvelocity and wDef.weapontype == "Cannon" and wDef.gravityaffected == "true" then
 				wDef.weaponvelocity = wDef.weaponvelocity*math.sqrt(x)

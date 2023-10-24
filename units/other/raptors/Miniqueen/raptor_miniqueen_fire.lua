@@ -117,7 +117,7 @@ return {
 				weapontype = "Flame",
 				weaponvelocity = 265,
 				damage = {
-					default = 40,
+					default = 20,
 				},
 			},
 			flamethrowermain = {
@@ -160,7 +160,7 @@ return {
 				weapontype = "Flame",
 				weaponvelocity = 265,
 				damage = {
-					default = 80,
+					default = 40,
 				},
 			},
 		},

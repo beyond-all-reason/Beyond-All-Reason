@@ -291,7 +291,9 @@ local function RefreshCommands()
 	if activeBuilder then
 		if builderIsFactory then
 			local activeCmdDescs = Spring.GetUnitCmdDescs(selectedFactoryUID)
-			gridOpts = grid.getSortedGridForLab(activeBuilder, activeCmdDescs)
+			if activeCmdDescs then
+				gridOpts = grid.getSortedGridForLab(activeBuilder, activeCmdDescs)
+			end
 		else
 			categories = Cfgs.buildCategories
 			local buildOptions = UnitDefs[activeBuilder].buildOptions

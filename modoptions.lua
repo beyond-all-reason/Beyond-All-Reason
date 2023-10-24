@@ -185,6 +185,14 @@ local options={
 		section		= 'restrictions',
 		def    		= false,
 	},
+	{
+		key    		= 'faction_limiter',
+		name   		= 'Limit which factions a team can play.',
+		desc   		= 'Input the factions a team should play, seperating teams by a comma, e.g. "armada cortex, legion" = cor/arm vs legion.',
+		type   		= "string",
+		section		= 'restrictions',
+		def			= "",
+	},
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -535,13 +543,13 @@ local options={
 
 	{
 		key    = 'multiplier_energyconversion',
-		name   = 'Energy Conversion Multiplier (Range 0.1 - 10)',
-		desc   = 'Energy Conversion Multiplier',
+		name   = 'Energy Conversion Efficiency Multiplier (Range 0.1 - 1)',
+		desc   = 'Efficiency of energy convertors (lower means you get less metal per energy converted)',
 		type   =  "number",
 		section = 'options_resources',
 		def    = 1,
 		min    = 0.1,
-		max    = 10,
+		max    = 1,
 		step   = 0.1,
 	},
 
@@ -824,9 +832,9 @@ local options={
 	},
 
 	{
-		key    = 'expandedcortexvehiclest2',
-		name   = 'Additional Cortex T2 Vehicles',
-		desc   = 'Adds Forge, a combat engineer like the butler with a flamethrower. Adds Printer, an armored field engineer. Adds Heat Tiger, Tiger with a heat laser',
+		key    = 'releasecandidates',
+		name   = 'Release Candidate Units',
+		desc   = 'Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently, adds Printer, Demon, Salamander, and Shockwave (Arm T2 EMP Mex)',
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,
@@ -868,16 +876,6 @@ local options={
 		type = 'bool',
 		section = 'options_experimental',
 		def = false,
-	},
-
-	{
-		key    = 'experimentalmorphs',
-		name   = 'Upgradeable Units',
-		desc   = 'Upgradeable Units',
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-		hidden = true,
 	},
 
 	{
@@ -1252,9 +1250,15 @@ local options={
 
 
 
-
-
-
+	-- this setting is actually used as a top level/lobby option by chobby, this just bootstraps the process
+	{
+		key="ranked_game",
+		name   		= "Ranked Game",
+		desc   		= "Should game results affect OpenSkill",
+		type   		= "bool",
+		def    		= true,
+		hidden		= true,
+	},
 
 
 

@@ -142,7 +142,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 2500,
 				damage = {
-					default = 12500,
+					default = 6250,
 				},
 			},
 			yellow_missile = {
