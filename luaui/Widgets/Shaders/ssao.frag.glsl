@@ -39,7 +39,12 @@ uniform vec3 samplingKernel[kernelSize];
 void main() {
 	
 	vec2 texelSize = 0.25 / vec2(VSX,VSY);
-	vec2 uv = gl_TexCoord[0].xy - texelSize;
+	#if DOWNSAMPLE == 1 
+		vec2 uv = gl_TexCoord[0].xy - texelSize;
+	#else
+		vec2 uv = gl_TexCoord[0].xy * 2 - texelSize;
+		//gl_FragColor = vec4(fract(uv), 0,1); return;
+	#endif
 	//vec2 uv = gl_TexCoord[0].xy * vec2(2,-2) + vec2(0,2.0);
 	//gl_FragColor = vec4(uv.xy, 0.0, 1.0); return;
 

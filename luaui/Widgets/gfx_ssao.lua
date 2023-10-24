@@ -190,7 +190,7 @@ local gbuffFuseViewPosTex
 local gbuffFuseViewNormalTex
 local gbuffFuseMiscTex
 local ssaoTex
-local ssaoBlurTexes = {}
+local ssaoBlurTex 
 
 local ssaoShader
 local gbuffFuseShader
@@ -341,10 +341,10 @@ local function InitGL()
 	}
 
 	commonTexOpts.format = GL_RGB16F
-	gbuffFuseViewPosTex = gl.CreateTexture(vsx, vsy, commonTexOpts)
+	gbuffFuseViewPosTex = gl.CreateTexture(vsx, vsy, commonTexOpts) -- at 1080p this is 16MB
 
 	commonTexOpts.format = GL_RGB8_SNORM
-	gbuffFuseViewNormalTex = gl.CreateTexture(vsx, vsy, commonTexOpts)
+	gbuffFuseViewNormalTex = gl.CreateTexture(vsx, vsy, commonTexOpts) -- at 1080p thi is 8MB
 
 	if shaderConfig.MERGE_MISC ==1 then
 		commonTexOpts.format = GL_RGBA8
@@ -367,11 +367,8 @@ local function InitGL()
 
 
 	ssaoTex = gl.CreateTexture(shaderConfig.HSX, shaderConfig.HSY , commonTexOpts)
+	ssaoBlurTex = gl.CreateTexture(shaderConfig.HSX, shaderConfig.HSY, commonTexOpts)
 
-	commonTexOpts.format = GL_RGBA8
-	for i = 1, 2 do
-		ssaoBlurTexes[i] = gl.CreateTexture(shaderConfig.HSX, shaderConfig.HSY, commonTexOpts)
-	end
 
 	if shaderConfig.MERGE_MISC ==1 then
 		gbuffFuseFBO = gl.CreateFBO({
@@ -400,15 +397,22 @@ local function InitGL()
 		Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, "Invalid ssaoFBO"))
 	end
 
-	for i = 1, 2 do
-		ssaoBlurFBOs[i] = gl.CreateFBO({
-			color0 = ssaoBlurTexes[i],
+	--for i = 1, 2 do
+		ssaoBlurFBOs[1] = gl.CreateFBO({
+			color0 = ssaoBlurTex,
 			drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
 		})
 		if not gl.IsValidFBO(ssaoBlurFBOs[i]) then
-			Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, string.format("Invalid ssaoBlurFBOs[%d]", i)))
+			Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, string.format("Invalid ssaoBlurFBOs[%d]", 1)))
 		end
-	end
+		ssaoBlurFBOs[2] = gl.CreateFBO({
+			color0 = ssaoTex,
+			drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
+		})
+		if not gl.IsValidFBO(ssaoBlurFBOs[2]) then
+			Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, string.format("Invalid ssaoBlurFBOs[%d]", 2)))
+		end
+	--end
 
 	if shaderConfig.USE_STENCIL == 1 then 
 		unitStencilTexture = WG['unitstencilapi'].GetUnitStencilTexture()
@@ -515,9 +519,9 @@ local function CleanGL()
 		gl.DeleteTexture(gbuffFuseMiscTex)
 	end
 
-	for i = 1, 2 do
-		gl.DeleteTexture(ssaoBlurTexes[i])
-	end
+	
+	gl.DeleteTexture(ssaoBlurTex)
+
 
 	gl.DeleteFBO(ssaoFBO)
 	gl.DeleteFBO(gbuffFuseFBO)
@@ -694,13 +698,13 @@ local function DoDrawSSAO()
 				prevFBO = gl.RawBindFBO(ssaoBlurFBOs[1])
 				gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
 				gl.RawBindFBO(nil, nil, prevFBO)
-				gl.Texture(0, ssaoBlurTexes[1])
+				gl.Texture(0, ssaoBlurTex)
 
 				gaussianBlurShader:SetUniform("dir", 0.0, 1.0) --vertical blur
 				prevFBO = gl.RawBindFBO(ssaoBlurFBOs[2])
 				gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
 				gl.RawBindFBO(nil, nil, prevFBO)
-				gl.Texture(0, ssaoBlurTexes[2])
+				gl.Texture(0, ssaoTex)
 
 			gaussianBlurShader:Deactivate()
 		if shaderConfig.DEBUG_BLUR == 1 then

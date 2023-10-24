@@ -19,7 +19,12 @@ uniform vec2 viewPortSize;
 void main(void)
 {
 	//vec2 uv = gl_FragCoord.xy / viewPortSize;
-	vec2 uv = gl_TexCoord[0].xy;
+	#if DOWNSAMPLE == 1 
+		vec2 uv = gl_TexCoord[0].xy;
+	#else
+		vec2 uv = gl_TexCoord[0].xy * 2 ;
+		//gl_FragColor = vec4(fract(uv), 0,1); return;
+	#endif
 
 	#if USE_STENCIL == 1 
 		if (texture(unitStencilTex, uv).r < 0.1) {
