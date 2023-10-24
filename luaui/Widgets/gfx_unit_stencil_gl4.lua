@@ -268,7 +268,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID)
     if unitDimensionsXYZ[unitDefID] == nil then
         local unitDef = UnitDefs[unitDefID]
         unitDimensionsXYZ[unitDefID] = {
-            unitDef.model.minx,  unitDef.model.miny, unitDef.model.minz,
+            unitDef.model.minx,  math.min(0, unitDef.model.miny), unitDef.model.minz,
             unitDef.model.maxx,  unitDef.model.maxy, unitDef.model.maxz,
         }
         local dimsXYZ  = unitDimensionsXYZ[unitDefID]
