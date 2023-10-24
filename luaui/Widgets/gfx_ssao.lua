@@ -58,13 +58,13 @@ local definesSlidersParamsList = {
 	{name = 'SSAO_RADIUS', default = 8, min = 4, max = 16, digits = 1, tooltip = 'world space maximum sampling radius'},
 	{name = 'SSAO_MIN', default = 1, min = 0, max = 4, digits = 2, tooltip = 'minimum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Absolute value in world space coords.'},
 	{name = 'SSAO_OCCLUSION_POWER', default = 3, min = 0, max = 16, digits = 1, tooltip = 'how much effect each SSAO sample has'},
-	{name = 'SSAO_FADE_DIST_1', default = 800, min = 200, max = 3000, digits = 1, tooltip = 'near distance for max SSAO'},
+	{name = 'SSAO_FADE_DIST_1', default = 1200, min = 200, max = 3000, digits = 1, tooltip = 'near distance for max SSAO'},
 	{name = 'SSAO_FADE_DIST_0', default = 2400, min = 1000, max = 4000, digits = 1, tooltip = 'far distance for min SSAO'},
 	{name = 'DEBUG_SSAO', default = 0, min = 0, max = 1, digits = 0, tooltip = 'DEBUG_SSAO show the raw samples'},
 
 	{name = 'BLUR_HALF_KERNEL_SIZE', default = 3, min = 1, max = 12, digits = 0, tooltip = 'BLUR_HALF_KERNEL_SIZE*2 - 1 samples for blur'},
 	{name = 'BLUR_SIGMA', default = 3, min = 1, max = 10, digits = 1, tooltip = 'Sigma width of blur filter'},
-	{name = 'MINCOSANGLE', default = -0.5, min = -3, max = 1, digits = 2, tooltip = 'the minimum angle for considering a sample colinear when blurring'},
+	{name = 'MINCOSANGLE', default = -0.15, min = -3, max = 1, digits = 2, tooltip = 'the minimum angle for considering a sample colinear when blurring'},
 	{name = 'ZTHRESHOLD', default = 0.005, min = 0.0, max = 4/255.0, digits = 3, tooltip = 'Should be more than 1.0'},
 	{name = 'MINSELFWEIGHT', default = 0.2, min = 0.0, max = 1, digits = 2, tooltip = 'The minimum weight a sample needs to gather to be considered a non-outlier'},
 	{name = 'OUTLIERCORRECTIONFACTOR', default = 0.5, min = 0.0, max = 1, digits = 2, tooltip = 'How strongly to use blurred result for outliers'},
@@ -724,10 +724,14 @@ local function DoDrawSSAO()
 	gl.Texture(1, false)
 	gl.Texture(2, false)
 	gl.Texture(3, false)
+	gl.Texture(4, false)
+	gl.Texture(5, false)
+	gl.Texture(6, false)
+	gl.Texture(7, false)
 
-	gl.Blending("alpha")
-	--gl.DepthMask(true) --"BK OpenGL state resets", already commented out
-	--gl.DepthTest(true) --"BK OpenGL state resets", already commented out
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.DepthMask(true) --"BK OpenGL state resets", already commented out
+	gl.DepthTest(true) --"BK OpenGL state resets", already commented out
 end
 
 function widget:DrawWorld()

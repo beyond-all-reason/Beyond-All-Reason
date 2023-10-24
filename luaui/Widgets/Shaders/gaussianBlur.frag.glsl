@@ -47,7 +47,7 @@ void main(void)
 		float imground = step(dot(myNormal.xy, myNormal.xy), 0.1);
 
 		// possibly better L1 cache locality via non expanding stepping?
-		for (int i = 1; i < (BLUR_HALF_KERNEL_SIZE  ); ++i) { // THIS IS TAKING DOUBLE THE SAMPLES IT SHOULD!
+		for (int i = 1; i < (BLUR_HALF_KERNEL_SIZE  ); ++i) { // i goes from 1 to BLUR_HALF_KERNEL_SIZE-1
 			vec2 uvOff = offsets[i] * dir / vec2(HSX,HSY);
 			vec2 uvP = uv + uvOff;
 			vec2 uvN = uv - uvOff;

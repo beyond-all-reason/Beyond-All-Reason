@@ -358,6 +358,7 @@ local function DrawMe() -- about 0.025 ms
 	    	unitStencilVBO.VAO:DrawArrays(GL.POINTS, unitStencilVBO.usedElements)
         end
 		unitStencilShader:Deactivate()
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
 end
 
