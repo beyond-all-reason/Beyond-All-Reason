@@ -86,7 +86,7 @@ return {
 				name = "HeatRay",
 				noselfdamage = true,
 				range = 360,
-				reloadtime = 1.5,
+				reloadtime = 1.35,
 				rgbcolor = "1 0.8 0",
 				rgbcolor2 = "0.8 0 0",
 				soundhitdry = "",
