@@ -97,7 +97,7 @@ return {
 				noselfdamage = true,
 				ownerExpAccWeight = 2.0,
 				range = 350,
-				reloadtime = 2,
+				reloadtime = 1.8,
 				rgbcolor = "1 0.95 0.4",
 				--size = 2.25,
 				soundhit = "bimpact3",
