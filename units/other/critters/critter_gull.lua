@@ -44,7 +44,6 @@ return {
 		turnrate = 500,
 		upright = false,
 		customparams = {
-			paralyzemultiplier = 0,
 			nohealthbars = true,
 			subfolder = "other/critters",
 		},

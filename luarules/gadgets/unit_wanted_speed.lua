@@ -49,7 +49,7 @@ end
 
 
 
-		--Spring.Echo('hornet debug wanted_speed loaded')
+		--Spring.Echo('hornetdebug wanted_speed loaded')
 
 
 
