@@ -1,7 +1,6 @@
 #version 150 compatibility
 
-#define DEPTH_CLIP01 ###DEPTH_CLIP01###
-#define MERGE_MISC ###MERGE_MISC###
+//__DEFINES__
 
 uniform sampler2D modelDepthTex;
 uniform sampler2D mapDepthTex;
@@ -14,8 +13,6 @@ uniform sampler2D modelMiscTex;
 uniform sampler2D mapMiscTex;
 
 uniform sampler2D unitStencilTex;
-
-uniform vec2 viewPortSize;
 
 uniform mat4 invProjMatrix;
 uniform mat4 viewMatrix;
@@ -43,18 +40,19 @@ vec4 GetViewPos(vec2 texCoord, float sampledDepth) {
 
 void main() {
 	
-	vec2 uv = gl_FragCoord.xy / viewPortSize;
+	vec2 uv = gl_FragCoord.xy * vec2(1.0/VSX, 1.0/VSY);
 	//vec2 uv = gl_TexCoord[0].xy * vec2(2,-2) + vec2(0,2.0);
 	//gl_FragColor = vec4(uv.xy, 0.0, 1.0); return;
-	
-	if (texture(unitStencilTex, uv).r < 0.1) {
-		gl_FragData[0] = vec4(0,0,0,0) ; 
-		gl_FragData[1] = vec4(0,0,0,0) ; 
-		#if (MERGE_MISC == 1)
-			gl_FragData[2] = vec4(0,0,0,0);
-		#endif
-		return;
-	}
+	#if USE_STENCIL == 1 
+		if (texture(unitStencilTex, uv).r < 0.1) {
+			gl_FragData[0] = vec4(0,0,0,0) ; 
+			gl_FragData[1] = vec4(0,0,0,0) ; 
+			#if (MERGE_MISC == 1)
+				gl_FragData[2] = vec4(0,0,0,0);
+			#endif
+			return;
+		}
+	#endif
 
 	float modelAlpha = texture(modelDiffTex, uv, 0).a;
 	float validFragment = step(3.0 / 255.0, modelAlpha); //agressive approach
@@ -82,6 +80,7 @@ void main() {
 		vec3 mapNormal = texture(mapNormalTex, uv).rgb;
 
 		viewNormal = mix(mapNormal, modelNormal, modelOccludesMap);
+		//viewNormal = mix(mapNormal, modelNormal, 0.25);
 	}
 	float validNormal = step(0.2, length(viewNormal)); //empty spaces in g-buffer will have vec3(0.0) normals
 
