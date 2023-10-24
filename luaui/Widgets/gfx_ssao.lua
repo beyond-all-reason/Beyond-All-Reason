@@ -402,7 +402,7 @@ local function InitGL()
 			color0 = ssaoBlurTex,
 			drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
 		})
-		if not gl.IsValidFBO(ssaoBlurFBOs[i]) then
+		if not gl.IsValidFBO(ssaoBlurFBOs[1]) then
 			Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, string.format("Invalid ssaoBlurFBOs[%d]", 1)))
 		end
 		ssaoBlurFBOs[2] = gl.CreateFBO({
