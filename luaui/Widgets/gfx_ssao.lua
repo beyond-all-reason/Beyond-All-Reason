@@ -65,7 +65,7 @@ local definesSlidersParamsList = {
 	{name = 'BLUR_HALF_KERNEL_SIZE', default = 3, min = 1, max = 12, digits = 0, tooltip = 'BLUR_HALF_KERNEL_SIZE*2 - 1 samples for blur'},
 	{name = 'BLUR_SIGMA', default = 3, min = 1, max = 10, digits = 1, tooltip = 'Sigma width of blur filter'},
 	{name = 'MINCOSANGLE', default = -0.5, min = -3, max = 1, digits = 2, tooltip = 'the minimum angle for considering a sample colinear when blurring'},
-	{name = 'ZTHRESHOLD', default = 1/255.0, min = 0.0, max = 4/255.0, digits = 3, tooltip = 'Should be more than 1.0'},
+	{name = 'ZTHRESHOLD', default = 0.005, min = 0.0, max = 4/255.0, digits = 3, tooltip = 'Should be more than 1.0'},
 	{name = 'MINSELFWEIGHT', default = 0.2, min = 0.0, max = 1, digits = 2, tooltip = 'The minimum weight a sample needs to gather to be considered a non-outlier'},
 	{name = 'OUTLIERCORRECTIONFACTOR', default = 0.5, min = 0.0, max = 1, digits = 2, tooltip = 'How strongly to use blurred result for outliers'},
 	{name = 'BLUR_POWER', default = 2, min = 1, max = 8, digits = 1, tooltip = 'Post-blur correction factor'},
@@ -95,8 +95,8 @@ end
 local vsx, vsy = Spring.GetViewGeometry()
 
 local shaderDefinedSliders = {
-	windowtitle = "Fog Defines",
-	name = "shaderDefinedSliders",
+	windowtitle = "SSAO Defines",
+	name = "SSAOParams",
 	left = vsx - 540, 
 	bottom = 200, 
 	right = vsx - 540 + 250,
@@ -760,6 +760,21 @@ function widget:GetConfigData(data)
 		radius = shaderConfig.SSAO_RADIUS,
 		preset = preset
 	}
+end
+
+local lastfps = Spring.GetFPS()
+function widget:DrawScreen()
+	if shaderDefinedSlidersLayer then 
+		local newfps = Spring.GetFPS()
+		if ssaoShaderCache.updateFlag then 
+			ssaoShaderCache.updateFlag = nil
+			lastfps = newfps
+		end
+		local totaldrawus = (1000/newfps)
+		local lastdelta = (1000/lastfps - 1000/newfps)
+		
+		gl.Text(string.format("SSAO total %.3f ms delta %.3f ms", totaldrawus, lastdelta),  vsx - 600,  100, 16, "do")
+	end
 end
 
 function widget:SetConfigData(data)

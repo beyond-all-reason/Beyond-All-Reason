@@ -80,7 +80,6 @@ void main() {
 		vec3 mapNormal = texture(mapNormalTex, uv).rgb;
 
 		viewNormal = mix(mapNormal, modelNormal, modelOccludesMap);
-		//viewNormal = mix(mapNormal, modelNormal, 0.25);
 	}
 	float validNormal = step(0.2, length(viewNormal)); //empty spaces in g-buffer will have vec3(0.0) normals
 
