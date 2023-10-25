@@ -18,29 +18,22 @@ VFS.Include("LuaRules/Configs/customcmds.h.lua")
 --------------------------------------------------------------------------------
 -- Options
 
+
 --[[----------------------------------------------------------------------------
 	When to show reclaim highlight?
 	In addition to options below you can bind "reclaim_highlight" action to a key
 	and show reclaim when that key is pressed
 ------------------------------------------------------------------------------]]
-
---Always show reclaim highlight
-local showHighlight_Always = false
-
-	--Show reclaim when f4 resource view is active
-	local showHighlight_Ecoview = true
-
-	--Show reclaim when any unit that can reclaim is selected
-	local showHighlight_AnyReclaimerSelected = true
-
-		--Show reclaim when a ressurection bot is selected
-		local showHighlight_ResBotSelected = true
-
-		--Show reclaim when reclaim order is selected
-		local showHighlight_ReclaimOrder = true
-
-
---------------------------------------------------------------------------------
+local showOption = 3
+--[[
+	From settings (gui_options.lua)
+	1 - always
+	2 - resource view only
+	3 - reclaimer selected
+	4 - resbot selected
+	5 - reclaim order active
+	6 - disabled
+]]
 
 --If true energy reclaim will be converted into metal (1 / 70) and added to the reclaim field value
 local includeEnergy = false
@@ -58,6 +51,7 @@ local reclaimEdgeColor = {1, 1, 1, 0.18}
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Priority Queue
+
 local min = math.min
 local max = math.max
 local mathHuge = math.huge
@@ -127,8 +121,8 @@ function PriorityQueue.new(cmp, initial)
 	return pq
 end
 
--------
--------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Optics
 
@@ -151,10 +145,9 @@ function Optics.new(incPoints, incNeighborMatrix, incMinPoints)
 			unprocessed = {},
 			ordered = {},
 
-			-- get ready for a clustering run
+			-- Get ready for a clustering run
 			_Setup = function(self)
 				local points, unprocessed = self.points, self.unprocessed
-				--Spring.Echo("epsSq", self.epsSq, "minPoints", self.minPoints)
 
 				for pIdx, point in pairs(points) do
 					point.rd = nil
@@ -165,7 +158,7 @@ function Optics.new(incPoints, incNeighborMatrix, incMinPoints)
 				end
 			end,
 
-			-- distance from a point to its nth neighbor (n = minPoints - 1)
+			-- Distance from a point to its nth neighbor (n = minPoints - 1)
 			_CoreDistance = function(self, point, neighbors)
 				if point.cd then
 					return point.cd
@@ -178,7 +171,6 @@ function Optics.new(incPoints, incNeighborMatrix, incMinPoints)
 						distTable[#distTable + 1] = DistSq(point, neighbor)
 					end
 					table.sort(distTable)
-					--TableEcho({point=point, neighbors=neighbors, distTable=distTable}, "_CoreDistance (#neighbors >= self.minPoints - 1)")
 
 					point.cd = distTable[self.minPoints - 1] --return (minPoints - 1) farthest distance as CoreDistance
 					return point.cd
@@ -186,21 +178,19 @@ function Optics.new(incPoints, incNeighborMatrix, incMinPoints)
 				return nil
 			end,
 
-			-- neighbors for a point within eps
+			-- Neighbors for a point within eps
 			_Neighbors = function(self, pIdx)
 				local neighbors = {}
 
 				for pIdx2, _ in pairs(self.neighborMatrix[pIdx]) do
 					neighbors[#neighbors + 1] = self.pointByfID[pIdx2]
 				end
-				--Spring.Echo("#neighbors", #neighbors)
 
 				return neighbors
 			end,
 
-			-- mark a point as processed
+			-- Mark a point as processed
 			_Processed = function(self, point)
-				--Spring.Echo("_Processed")
 				point.processed = true
 				self.unprocessed[point] = nil
 
@@ -208,7 +198,7 @@ function Optics.new(incPoints, incNeighborMatrix, incMinPoints)
 				ordered[#ordered + 1] = point
 			end,
 
-			-- update seeds if a smaller reachability distance is found
+			-- Update seeds if a smaller reachability distance is found
 			_Update = function(self, neighbors, point, seedsPQ)
 				for ni = 1, #neighbors do
 					local n = neighbors[ni]
@@ -429,9 +419,6 @@ local screenx, screeny
 
 local gaiaTeamId = spGetGaiaTeamID()
 
-local scanInterval = 1 * Game.gameSpeed
-local scanForRemovalInterval = 2 * Game.gameSpeed --2 sec
-
 local minDistance = 300
 local minSqDistance = minDistance^2
 local minPoints = 2
@@ -470,21 +457,22 @@ local function disableHighlight()
 end
 
 local function UpdateDrawEnabled()
+	local ecoView = spGetMapDrawMode() == 'metal'
+
 	if actionActive then return true end
-	local ecoview = (spGetMapDrawMode() == 'metal')
-	if showHighlight_Always or
-		(showHighlight_Ecoview and ecoview) or
-		(showHighlight_AnyReclaimerSelected and reclaimerSelected) or
-		(showHighlight_ResBotSelected and resBotSelected) then
-		return true
-	end
-	if showHighlight_ReclaimOrder then
+	if showOption == 1 then return true end
+	if showOption == 2 then return ecoView or ecoView end
+	if showOption == 3 then return reclaimerSelected or ecoView end
+	if showOption == 4 then return resBotSelected or ecoView end
+	if showOption == 5 then
 		local currentCmd = spGetActiveCommand()
 		if currentCmd then
 			local activeCmdDesc = spGetActiveCmdDesc(currentCmd)
-			return (activeCmdDesc and (activeCmdDesc.name == "Reclaim"))
+			return (activeCmdDesc and (activeCmdDesc.name == "Reclaim")) or ecoView
 		end
 	end
+	if showOption == 6 then widgetHandler:RemoveWidget() end
+
 	return false
 end
 
@@ -544,7 +532,33 @@ local featureClusters = {}
 local E2M = 1 / 70 --solar ratio
 
 local featuresUpdated = false
-local clusterMetalUpdated = false
+
+local function ProcessFeature(featureID)
+	local metal, _, energy = spGetFeatureResources(featureID)
+
+	if includeEnergy then metal = metal + energy * E2M end
+
+	if (not knownFeatures[featureID]) and (metal >= minFeatureMetal) then
+		local f = {}
+
+		local fx, _, fz = spGetFeaturePosition(featureID)
+		local fy = spGetGroundHeight(fx, fz)
+		f.x = fx
+		f.y = fy
+		f.z = fz
+
+		f.isGaia = (spGetFeatureTeam(featureID) == gaiaTeamId)
+		f.height = spGetFeatureHeight(featureID)
+		f.drawAlt = ((fy > 0 and fy) or 0) --+ f.height
+
+		f.metal = metal
+
+		knownFeatures[featureID] = f
+
+		UpdateFeatureNeighborsMatrix(featureID, true, false, false)
+		featuresUpdated = true
+	end
+end
 
 local function UpdateFeatures(gf)
 	featuresUpdated = false
@@ -555,9 +569,8 @@ local function UpdateFeatures(gf)
 
 		if includeEnergy then metal = metal + energy * E2M end
 
-		if (not knownFeatures[fID]) and (metal >= minFeatureMetal) then --first time seen
+		if (not knownFeatures[fID]) and (metal >= minFeatureMetal) then
 			local f = {}
-			f.lastScanned = gf
 
 			local fx, _, fz = spGetFeaturePosition(fID)
 			local fy = spGetGroundHeight(fx, fz)
@@ -577,9 +590,7 @@ local function UpdateFeatures(gf)
 			featuresUpdated = true
 		end
 
-		if knownFeatures[fID] and gf - knownFeatures[fID].lastScanned >= scanInterval then
-			knownFeatures[fID].lastScanned = gf
-
+		if knownFeatures[fID] then
 			local fx, _, fz = spGetFeaturePosition(fID)
 			local fy = spGetGroundHeight(fx, fz)
 
@@ -591,19 +602,16 @@ local function UpdateFeatures(gf)
 				knownFeatures[fID].drawAlt = ((fy > 0 and fy) or 0) --+ knownFeatures[fID].height
 
 				UpdateFeatureNeighborsMatrix(fID, false, true, false)
-			featuresUpdated = true
+			    featuresUpdated = true
 			end
 
 			if knownFeatures[fID].metal ~= metal then
-				--spEcho("knownFeatures[fID].metal ~= metal", metal)
 				if knownFeatures[fID].clID then
-					--spEcho("knownFeatures[fID].clID")
-					local thisCluster = featureClusters[ knownFeatures[fID].clID ]
+					local thisCluster = featureClusters[knownFeatures[fID].clID]
 					thisCluster.metal = thisCluster.metal - knownFeatures[fID].metal
 					if metal >= minFeatureMetal then
 						thisCluster.metal = thisCluster.metal + metal
 						knownFeatures[fID].metal = metal
-						--spEcho("clusterMetalUpdated = true", thisCluster.metal)
 						clusterMetalUpdated = true
 					else
 						UpdateFeatureNeighborsMatrix(fID, false, false, true)
@@ -616,17 +624,7 @@ local function UpdateFeatures(gf)
 	end
 
 	for fID, fInfo in pairs(knownFeatures) do
-
 		if fInfo.isGaia and spValidFeatureID(fID) == false then
-			--spEcho("fInfo.isGaia and spValidFeatureID(fID) == false")
-
-			UpdateFeatureNeighborsMatrix(fID, false, false, true)
-			fInfo = nil
-			knownFeatures[fID] = nil
-			featuresUpdated = true
-		end
-
-		if fInfo and gf - fInfo.lastScanned >= scanForRemovalInterval then --long time unseen features, maybe they were relcaimed or destroyed?
 			UpdateFeatureNeighborsMatrix(fID, false, false, true)
 			fInfo = nil
 			knownFeatures[fID] = nil
@@ -637,16 +635,12 @@ local function UpdateFeatures(gf)
 			knownFeatures[fID].clID = nil
 		end
 	end
-	
 end
-
 
 local function ClusterizeFeatures()
 	local pointsTable = {}
 
 	local unclusteredPoints  = {}
-
-	--spEcho("#knownFeatures", #knownFeatures)
 
 	for fID, fInfo in pairs(knownFeatures) do
 		pointsTable[#pointsTable + 1] = {
@@ -656,8 +650,6 @@ local function ClusterizeFeatures()
 		}
 		unclusteredPoints[fID] = true
 	end
-
-	--TableEcho(featureNeighborsMatrix, "featureNeighborsMatrix")
 
 	local opticsObject = Optics.new(pointsTable, featureNeighborsMatrix, minPoints)
 	opticsObject:Run()
@@ -671,7 +663,6 @@ local function ClusterizeFeatures()
 		thisCluster.xmax = -mathHuge
 		thisCluster.zmin = mathHuge
 		thisCluster.zmax = -mathHuge
-
 
 		local metal = 0
 		for j = 1, #thisCluster.members do
@@ -691,7 +682,7 @@ local function ClusterizeFeatures()
 		thisCluster.metal = metal
 	end
 
-	for fID, _ in pairs(unclusteredPoints) do --add Singlepoint featureClusters
+	for fID, _ in pairs(unclusteredPoints) do
 		local fInfo = knownFeatures[fID]
 		local thisCluster = {}
 
@@ -716,11 +707,11 @@ local function lineCheck(points)
 	for i = 2, #points - 1 do
 		local pt2 = points[i]
 		local pt3 = points[i + 1]
-		--Heron formula to get triangle area
+		-- Heron formula to get triangle area
 		local a = sqrt((pt2.x - pt1.x)^2 + (pt2.z - pt1.z)^2)
 		local b = sqrt((pt3.x - pt2.x)^2 + (pt3.z - pt2.z)^2)
 		local c = sqrt((pt3.x - pt1.x)^2 + (pt3.z - pt1.z)^2)
-		local p = (a + b + c)/2 --half perimeter
+		local p = (a + b + c)/2 -- Half perimeter
 
 		local triangleArea = sqrt(p * (p - a) * (p - b) * (p - c))
 		totalArea = totalArea + triangleArea
@@ -736,7 +727,6 @@ local featureConvexHulls = {}
 local function ClustersToConvexHull()
 
 	featureConvexHulls = {}
-	--spEcho("#featureClusters", #featureClusters)
 	for fc = 1, #featureClusters do
 		local clusterPoints = {}
 
@@ -825,14 +815,43 @@ local function ClustersToConvexHull()
 	end
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function widget:Initialize()
 	screenx, screeny = widgetHandler:GetViewSizes()
 	
 	widgetHandler:AddAction("reclaim_highlight", enableHighlight, nil, "p")
 	widgetHandler:AddAction("reclaim_highlight", disableHighlight, nil, "r")
+
+	WG['reclaimfieldhighlight'] = {}
+	WG['reclaimfieldhighlight'].getShowOption = function()
+		return showOption
+	end
+	WG['reclaimfieldhighlight'].setShowOption = function(value)
+		showOption = value
+	end
+
+	for _, fID in ipairs(spGetAllFeatures()) do
+		ProcessFeature(fID)
+	end
+end
+
+function widget:FeatureCreated(featureID, allyTeamID)
+	ProcessFeature(featureID)
+end
+
+function widget:FeatureDestroyed(featureID, allyTeamID)
+	knownFeatures[featureID] = nil
+end
+
+function widget:GetConfigData(data)
+    return {
+        showOption = showOption
+    }
+end
+
+function widget:SetConfigData(data)
+	if data.showOption ~= nil then
+		showOption = data.showOption
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -881,7 +900,6 @@ local function DrawFeatureClusterText()
 			glRotate(rotationAngle, 0, 0, 1)
 		end
 
-
 		local fontSize = fontSizeMin * fontScaling
 		local area = featureConvexHulls[i].area
 		fontSize = sqrt(area) * fontSize / minDim
@@ -890,7 +908,7 @@ local function DrawFeatureClusterText()
 
 		local metal = featureClusters[i].metal
 		local metalText
-		--Spring.Debug.TableEcho(Spring.GetCameraState())
+
 		if metal < 1000 then
 			metalText = string.format("%.0f", metal) --exact number
 		elseif metal < 10000 then
@@ -901,7 +919,7 @@ local function DrawFeatureClusterText()
 
 		glColor(numberColor)
 
-		glText(metalText, 0, 0, fontSize, "cv")--cvo for outline
+		glText(metalText, 0, 0, fontSize, "cv") --cvo for outline
 
 		glPopMatrix()
 	end
@@ -955,7 +973,7 @@ function widget:GameFrame(frame)
 
 
 	local camUpVectorCurrent = spGetCameraVectors().up
-	if textParametersChanged or featuresUpdated or clusterMetalUpdated or drawFeatureClusterTextList == nil or camUpVectorCurrent ~= camUpVector then
+	if textParametersChanged or featuresUpdated or drawFeatureClusterTextList == nil or camUpVectorCurrent ~= camUpVector then
 		camUpVector = camUpVectorCurrent
 		if drawFeatureClusterTextList then
 			glDeleteList(drawFeatureClusterTextList)
@@ -981,7 +999,6 @@ function widget:DrawWorld()
 
 	if drawFeatureClusterTextList then
 		glCallList(drawFeatureClusterTextList)
-		--DrawFeatureClusterText()
 	end
 
 	glDepthTest(true)
@@ -998,14 +1015,12 @@ function widget:DrawWorldPreUnit()
 	if drawFeatureConvexHullSolidList then
 		glColor(reclaimColor)
 		glCallList(drawFeatureConvexHullSolidList)
-		--DrawFeatureConvexHullSolid()
 	end
 
 	if drawFeatureConvexHullEdgeList then
 		glLineWidth(6.0 / cameraScale)
 		glColor(reclaimEdgeColor)
 		glCallList(drawFeatureConvexHullEdgeList)
-		--DrawFeatureConvexHullEdge()
 		glLineWidth(1.0)
 	end
 
