@@ -62,15 +62,18 @@ local definesSlidersParamsList = {
 	{name = 'SSAO_FADE_DIST_0', default = 2400, min = 1000, max = 4000, digits = 1, tooltip = 'far distance for min SSAO'},
 	{name = 'DEBUG_SSAO', default = 0, min = 0, max = 1, digits = 0, tooltip = 'DEBUG_SSAO show the raw samples'},
 
+	
+	{name = 'BRIGHTEN', default = 0, min = 0, max = 255, digits = 0, tooltip = 'Should SSAO Brighten Models, if yes by how much'},
 	{name = 'BLUR_HALF_KERNEL_SIZE', default = 3, min = 1, max = 12, digits = 0, tooltip = 'BLUR_HALF_KERNEL_SIZE*2 - 1 samples for blur'},
 	{name = 'BLUR_SIGMA', default = 3, min = 1, max = 10, digits = 1, tooltip = 'Sigma width of blur filter'},
 	{name = 'MINCOSANGLE', default = -0.15, min = -3, max = 1, digits = 2, tooltip = 'the minimum angle for considering a sample colinear when blurring'},
 	{name = 'ZTHRESHOLD', default = 0.005, min = 0.0, max = 4/255.0, digits = 3, tooltip = 'Should be more than 1.0'},
-	{name = 'MINSELFWEIGHT', default = 0.2, min = 0.0, max = 1, digits = 2, tooltip = 'The minimum weight a sample needs to gather to be considered a non-outlier'},
-	{name = 'OUTLIERCORRECTIONFACTOR', default = 0.5, min = 0.0, max = 1, digits = 2, tooltip = 'How strongly to use blurred result for outliers'},
+	{name = 'MINSELFWEIGHT', default = 0.2, min = 0.0, max = 1, digits = 2, tooltip = 'The minimum additional weight a sample needs to gather to be considered a non-outlier'},
+	{name = 'OUTLIERCORRECTIONFACTOR', default = 0.5, min = 0.0, max = 1, digits = 2, tooltip = 'How strongly to use blurred result instead for outliers'},
 	{name = 'BLUR_POWER', default = 2, min = 1, max = 8, digits = 1, tooltip = 'Post-blur correction factor'},
-	{name = 'BLUR_CLAMP', default = 0.05, min = 0, max = 1, digits = 3, tooltip = 'The smallest amount of allowed SSAO post-blur'},
+	{name = 'BLUR_CLAMP', default = 0.05, min = 0, max = 1, digits = 3, tooltip = 'Limit occlusion post-blur'},
 	{name = 'DEBUG_BLUR', default = 0, min = 0, max = 1, digits = 0, tooltip = 'DEBUG_BLUR show the result of the blur only'},
+	
 
 	{name = 'USE_STENCIL', default = 1, min = 0, max = 1, digits = 0, tooltip = 'USE_STENCIL set to zero if you dont wanna'},
 	{name = 'OFFSET', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Set to 2 for half-rez buffers'},
@@ -126,8 +129,13 @@ local presets = {
 	{
 		SSAO_KERNEL_SIZE = 32,
 		DOWNSAMPLE = 2,
-		BLUR_HALF_KERNEL_SIZE = 6,
-		BLUR_SIGMA = 4,
+		OFFSET = 1,
+		BLUR_HALF_KERNEL_SIZE = 3,
+		BLUR_SIGMA = 2,
+		MINCOSANGLE = -0.5, 
+		MINSELFWEIGHT = 0.3,
+		OUTLIERCORRECTIONFACTOR = 0.7,
+		SSAO_RADIUS = 8,
 		tonemapA = 0.45,
 		tonemapD = -0.25,
 		tonemapE = -0.03,
@@ -146,12 +154,11 @@ local presets = {
 		DOWNSAMPLE = 1,
 		BLUR_HALF_KERNEL_SIZE = 4,
 		BLUR_SIGMA = 1.8,
-		MINCOSANGLE = 0.75, 
+		MINCOSANGLE = 0.75,
 		SSAO_RADIUS = 12,
 		tonemapA = 0.4,
 		tonemapD = -0.25,
 		tonemapE = -0.025,
-		SSAO_RADIUS = 12,
 	},
 }
 
@@ -625,10 +632,9 @@ local function DoDrawSSAO()
 
 	if firstTime then
 		-- These are now offset by the half pixel that is needed here due to ceil(vsx/rez)
-		screenQuadList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, 0, 0, 
+		screenQuadList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, 0.0, 0.0, 1.0, 1.0)
+		screenWideList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, 0.0, 0.0,
 			1.0 - shaderConfig.TEXPADDINGX/shaderConfig.VSX, 1.0 - shaderConfig.TEXPADDINGY/shaderConfig.VSY)
-		screenWideList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, 0, 0,
-			1.0 + shaderConfig.TEXPADDINGX/shaderConfig.VSX, 1.0 + shaderConfig.TEXPADDINGY/shaderConfig.VSY)
 		firstTime = false
 	end
 	
@@ -697,7 +703,7 @@ local function DoDrawSSAO()
 
 	gl.Texture(0, ssaoTex)
 
-	if shaderConfig.DEBUG_SSAO == 0 then 
+	if shaderConfig.DEBUG_SSAO == 0 then -- dont debug ssao
 			gaussianBlurShader:Activate()
 
 				gaussianBlurShader:SetUniform("dir", 1.0, 0.0) --horizontal blur
@@ -716,13 +722,17 @@ local function DoDrawSSAO()
 		if shaderConfig.DEBUG_BLUR == 1 then
 			gl.Blending(false) -- now blurred tex contains normals
 		else
-			gl.Blending(GL.ZERO, GL.SRC_ALPHA) -- now blurred tex contains normals
+			if shaderConfig.BRIGHTEN == 0 then 
+				gl.Blending(GL.ZERO, GL.SRC_ALPHA) -- now blurred tex contains normals
+			else
+			-- at this point, Alpha contains occlusoin, and rgb contains brighten factor
+				gl.Blending(GL.DST_COLOR, GL.SRC_ALPHA) -- now blurred tex contains normals
+			end
 		end
 	else
 		if shaderConfig.DEBUG_BLUR == 1 then
 			gl.Blending(false) -- now blurred tex contains normals
 		else
-			gl.Blending(false) -- now blurred tex contains normals
 		end
 	end
 	-- Already bound
@@ -792,6 +802,7 @@ function widget:DrawScreen()
 end
 
 function widget:SetConfigData(data)
+	Spring.Echo("widget:SetConfigData", preset)
 	if data.strength ~= nil then
 		shaderConfig.SSAO_ALPHA_POW = data.strength
 	end
@@ -804,4 +815,6 @@ function widget:SetConfigData(data)
 			preset = 3
 		end
 	end
+	ActivatePreset(preset)
+	--widget:ViewResize()
 end

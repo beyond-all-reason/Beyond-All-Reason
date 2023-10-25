@@ -38,11 +38,13 @@ uniform vec3 samplingKernel[kernelSize];
 // generally follow https://github.com/McNopper/OpenGL/blob/master/Example28/shader/ssao.frag.glsl
 void main() {
 	
-	vec2 texelSize = 0.53 / vec2(VSX,VSY);
 	#if DOWNSAMPLE == 1 
-		vec2 uv = gl_TexCoord[0].xy;
+		vec2 uv = gl_FragCoord.xy / vec2(VSX,VSY);
 	#else
-		vec2 uv = gl_TexCoord[0].xy * 2 - texelSize;
+		vec2 texelSize = 0.5 / vec2(VSX,VSY);
+		vec2 uv = gl_FragCoord.xy * 2 / vec2(VSX,VSY);
+		
+	
 		//gl_FragColor = vec4(fract((uv- 8* texelSize)*128 ), 0,1); return;
 	#endif
 	//vec2 uv = gl_TexCoord[0].xy * vec2(2,-2) + vec2(0,2.0);
@@ -97,7 +99,7 @@ void main() {
 
 		for (int i = 0; i < SSAO_KERNEL_SIZE; ++i) {
 			// silly resample:
-			#if OFFSET == 1
+			#if ((OFFSET == 1) && (DOWNSAMPLE> 1 ))
 				if ( (i % (SSAO_KERNEL_SIZE/4)) == (SSAO_KERNEL_SIZE/4 - 1) ){
 					vec2 newUV = uv;
 					if (i == SSAO_KERNEL_SIZE/4 - 1) newUV.x += texelSize.x;
@@ -143,15 +145,8 @@ void main() {
 
 			float delta = viewPositionSampled.z - viewTestPosition.z;
 
-			#if 1
-				float occlusionCondition = float(delta >= SSAO_MIN && delta <= SSAO_RADIUS);
-			#else
-				float occlusionCondition = float(delta >= SSAO_MIN) * smoothstep(SSAO_RADIUS, 0.5 * SSAO_RADIUS, delta);//Results are /undefined if edge0 ≥ edge1. 
-				//float occlusionCondition = float(delta >= SSAO_MIN) * smoothstep(0.5 * SSAO_MAX, SSAO_MAX,  delta);//Results are undefined if edge0 ≥ edge1. 
-				
-				//float occlusionCondition = float(delta >= SSAO_MIN) * smoothstep(SSAO_MIN, SSAO_RADIUS* SSAO_MAX,  abs(delta)	);//Results are undefined if edge0 ≥ edge1. 
-				//occlusionCondition = step(SSAO_MIN, delta) * step(delta, SSAO_RADIUS) * smoothstep(SSAO_MIN,SSAO_RADIUS, delta ) ;
-			#endif
+			float occlusionCondition = float(delta >= SSAO_MIN) * (1.0 - smoothstep(SSAO_RADIUS * 0.75, SSAO_RADIUS, delta) );
+
 
 			sampstaken += float(delta >= SSAO_MIN && delta <= SSAO_RADIUS);
 			occlusion += occlusionCondition;

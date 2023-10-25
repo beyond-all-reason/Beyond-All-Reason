@@ -15,20 +15,17 @@ uniform float weights[BLUR_HALF_KERNEL_SIZE];
 uniform vec2 dir;
 
 uniform vec2 viewPortSize;
-
+#line 1018
 void main(void)
 {
 	//vec2 uv = gl_FragCoord.xy / viewPortSize;
-	#if DOWNSAMPLE == 1 
-		vec2 uv = gl_TexCoord[0].xy;
-	#else
-		vec2 uv = gl_TexCoord[0].xy * 2 ;
-		//gl_FragColor = vec4(fract(uv), 0,1); return;
-	#endif
+
+	vec2 uv = gl_FragCoord.xy / vec2(HSX,HSY);
+
 
 	#if USE_STENCIL == 1 
 		if (texture(unitStencilTex, uv).r < 0.1) {
-			gl_FragColor = vec4(0.9,0.9, 0.9, 1.0);	return;
+			gl_FragColor = vec4(0.0,0.0, 0.0, 1.0);	return;
 		}
 	#endif
 
@@ -54,11 +51,12 @@ void main(void)
 		}
 		float howLit = texSample.a * weightSum;
 		float unWeighted = howLit;
-
+		float myDistance = myNormal.z; // 1 at full distance, 0 at camera
+		vec2 texelOffset = dir / vec2(HSX,HSY);
 
 		// possibly better L1 cache locality via non expanding stepping?
 		for (int i = 1; i < (BLUR_HALF_KERNEL_SIZE  ); ++i) { // i goes from 1 to BLUR_HALF_KERNEL_SIZE-1
-			vec2 uvOff = offsets[i] * dir / vec2(HSX,HSY);
+			vec2 uvOff = offsets[i] * texelOffset ;
 			vec2 uvP = uv + uvOff;
 			vec2 uvN = uv - uvOff;
 
@@ -73,7 +71,7 @@ void main(void)
 
 
 			vec4 leftSample = texture( tex, uvP );
-			float zclosel = step(abs(myNormal.z - leftSample.z), ZTHRESHOLD);
+			float zclosel = step(abs(myDistance - leftSample.z), ZTHRESHOLD);
 			float dotclosel = smoothstep(MINCOSANGLE, 1.0, dot(myNormal.xy, NORM2SNORM(leftSample.xy)));
 			dotclosel = max(dotclosel, imground);
 			float leftWeight = weightP * dotclosel * zclosel;
@@ -82,7 +80,7 @@ void main(void)
 			unWeighted += weightP * leftSample.a;
 
 			vec4 rightSample = texture( tex, uvN );
-			float zcloser = step(abs(myNormal.z - rightSample.z), ZTHRESHOLD);
+			float zcloser = step(abs(myDistance - rightSample.z), ZTHRESHOLD);
 			float dotcloser = smoothstep(MINCOSANGLE, 1.0, dot(myNormal.xy, NORM2SNORM(rightSample.xy)));
 			dotcloser = max(dotclosel, imground);
 			float rightWeight = weightN * dotcloser * zcloser;
@@ -105,7 +103,21 @@ void main(void)
 			howLit = sqrt(howLit * howLit + BLUR_CLAMP);
 			#if DEBUG_BLUR == 1 
 				gl_FragColor.rgba = vec4(howLit);
+			#else
+				gl_FragColor.rgba = vec4(howLit);
+				#if (BRIGHTEN != 0) 
+					if (imground < 0.5) {  // is model fragment
+						float distRatio = SSAO_FADE_DIST_1/(1.0 * SSAO_FADE_DIST_0);
+						float distFactor = 1.0 - smoothstep(0, distRatio, myDistance - distRatio ); // 0 at far distance, 1 at near distance
+
+						float brightenFactor = (BRIGHTEN/255.0) * howLit * distFactor;
+						gl_FragColor.rgb = vec3(brightenFactor);
+					}else{
+						gl_FragColor.rgb = vec3(0);
+
+					}
+				#endif
 			#endif
-			gl_FragColor.rgba = vec4(howLit);
+
 		};
 }
