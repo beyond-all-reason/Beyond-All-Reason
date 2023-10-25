@@ -125,7 +125,7 @@ void offsetVertex4( float x, float y, float z){
 	vec3 primitiveCoords = vec3(x,y,z);
     primitiveCoords*= 1;
 	vec3 vecnorm = sign(primitiveCoords);
-	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( addRadius * vecnorm + primitiveCoords ), 1.0);
+	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( vec3(addRadius ,0,addRadius)* vecnorm + primitiveCoords ), 1.0);
 	EmitVertex();
 }
 
