@@ -93,6 +93,8 @@ return {
 			},
 		},
 		weapondefs = {
+		
+
 			dmaw = {
 				areaofeffect = 128,
 				avoidfeature = false,
@@ -114,6 +116,7 @@ return {
 				impulsefactor = 0,
 				intensity = 0.85,
 				name = "Heavy long range AoE flamethrower",
+				noexplode = true,
 				noselfdamage = true,
 				proximitypriority = 3,
 				range = 500,--450,
@@ -135,6 +138,9 @@ return {
 				damage = {
 					default = 60,--100,
 					subs = 20,
+				},
+				customparams = {
+					single_hit = 'true'
 				},
 			},
 			karg_shoulder = {
