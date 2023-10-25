@@ -176,6 +176,16 @@ local presetCodes = {}
 local presetNames = {}
 local presets = {}
 
+local reclaimFieldHighlightOptions = {
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_always'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_resource'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_reclaimer'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_resbot'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_order'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_disabled'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_always')
+}
+
 local startScript = VFS.LoadFile("_script.txt")
 if not startScript then
 	local modoptions = ''
@@ -3917,7 +3927,7 @@ function init()
 
 		{ id = "givenunits", group = "ui", category = types.advanced, widget = "Given Units", name = Spring.I18N('ui.settings.option.givenunits'), type = "bool", value = GetWidgetToggleValue("Given Units"), description = Spring.I18N('ui.settings.option.givenunits_descr') },
 
-		{ id = "reclaimfieldhighlight", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = Spring.I18N('ui.settings.option.reclaimfieldhighlight'), type = "select", options = { "always enabled", "resource view only", "reclaimer selected", "resbot selected", "reclaim order active", "disabled" }, value = 3, description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_descr'),
+		{ id = "reclaimfieldhighlight", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = Spring.I18N('ui.settings.option.reclaimfieldhighlight'), type = "select", options = reclaimFieldHighlightOptions, value = 3, description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_descr'),
 			onload = function(i)
 				loadWidgetData("Reclaim Field Highlight", "reclaimfieldhighlight", { 'showOption' })
 			end,
