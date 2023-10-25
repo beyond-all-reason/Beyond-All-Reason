@@ -3917,7 +3917,7 @@ function init()
 
 		{ id = "givenunits", group = "ui", category = types.advanced, widget = "Given Units", name = Spring.I18N('ui.settings.option.givenunits'), type = "bool", value = GetWidgetToggleValue("Given Units"), description = Spring.I18N('ui.settings.option.givenunits_descr') },
 
-		{ id = "reclaimfieldhighlight", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = Spring.I18N('ui.settings.option.reclaimfieldhighlight'), type = "select", options = { "always", "resource view only", "reclaimer selected", "resbot selected", "reclaim order active", "disabled" }, value = 3, description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_descr'),
+		{ id = "reclaimfieldhighlight", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = Spring.I18N('ui.settings.option.reclaimfieldhighlight'), type = "select", options = { "always enabled", "resource view only", "reclaimer selected", "resbot selected", "reclaim order active", "disabled" }, value = 3, description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_descr'),
 			onload = function(i)
 				loadWidgetData("Reclaim Field Highlight", "reclaimfieldhighlight", { 'showOption' })
 			end,
