@@ -36,6 +36,7 @@ return {
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
+			maxrange = "350",
 			model_author = "PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armgantry",
