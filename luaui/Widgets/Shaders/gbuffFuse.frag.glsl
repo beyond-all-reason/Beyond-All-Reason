@@ -45,17 +45,17 @@ void main() {
 	//gl_FragColor = vec4(uv.xy, 0.0, 1.0); return;
 	#if USE_STENCIL == 1 
 		if (texture(unitStencilTex, uv).r < 0.1) {
-			gl_FragData[0] = vec4(0,0,0,0) ; 
-			gl_FragData[1] = vec4(0,0,0,0) ; 
+			gl_FragColor = vec4(0,0,0,0) ; 
+			//gl_FragData[1] = vec4(0,0,0,0) ; 
 			#if (MERGE_MISC == 1)
-				gl_FragData[2] = vec4(0,0,0,0);
+				//gl_FragData[2] = vec4(0,0,0,0);
 			#endif
 			return;
 		}
 	#endif
 
-	float modelAlpha = texture(modelDiffTex, uv, 0).a;
-	float validFragment = step(3.0 / 255.0, modelAlpha); //agressive approach
+	//float modelAlpha = texture(modelDiffTex, uv, 0).a;
+	//float validFragment = step(3.0 / 255.0, modelAlpha); //agressive approach
 
 	/*if (validFragment < 0.1) { // more early bails
 		gl_FragData[0] = vec4(0,0,0,0) ; 
@@ -73,7 +73,7 @@ void main() {
 	float depth = mix(mapDepth, modelDepth, modelOccludesMap);
 
 	vec4 viewPosition = GetViewPos(uv, depth);
-	
+	/*
 	vec3 viewNormal = vec3 (0.0);
 	if (validFragment > 0.5){
 		vec3 modelNormal = texture(modelNormalTex, uv).rgb;
@@ -92,15 +92,17 @@ void main() {
 		vec4 mapMiscInfo = texture(mapMiscTex, uv);
 		vec4 miscInfo = mix(mapMiscInfo, modelMiscInfo, modelOccludesMap);
 	#endif
+	*/
 
 	// MRT output:
 	//[0] = gbuffFuseViewPosTex
 	//[1] = gbuffFuseViewNormalTex
 	//[2] = gbuffFuseMiscTex (conditional to MERGE_MISC == 1)
-	gl_FragData[0].xyz = mix( vec3(0.0), viewPosition.xyz, 1);
-	gl_FragData[1].xyz = mix( vec3(0.0), viewNormal.xyz, validFragment * validNormal);
+	if (modelOccludesMap < 0.5) viewPosition.z *= -1.0;
+	gl_FragColor.xyz = viewPosition.xyz;
+	//gl_FragData[1].xyz = mix( vec3(0.0), viewNormal.xyz, validFragment * validNormal);
 	//gl_FragData[1].a = validFragment * validNormal;
 	#if (MERGE_MISC == 1)
-		gl_FragData[2] = miscInfo;
+		//gl_FragData[2] = miscInfo;
 	#endif
 }

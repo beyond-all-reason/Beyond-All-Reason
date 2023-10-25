@@ -80,6 +80,7 @@ local definesSlidersParamsList = {
 	{name = 'DOWNSAMPLE', default = 1, min = 1, max = 2, digits = 0, tooltip = 'Set to 2 for half-rez buffers'},
 	{name = 'ENABLE', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Disable the whole SSAO'},
 	{name = 'SLOWFUSE', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Only fuse every 30 frames'},
+	{name = 'NOFUSE', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Dont use the gbuf fuse texture'},
 }
 
 for i, shaderDefine in ipairs(definesSlidersParamsList) do 
@@ -390,8 +391,8 @@ local function InitGL()
 	else
 		gbuffFuseFBO = gl.CreateFBO({
 			color0 = gbuffFuseViewPosTex,
-			color1 = gbuffFuseViewNormalTex,
-			drawbuffers = {GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT},
+			--color1 = gbuffFuseViewNormalTex,
+			drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
 		})
 	end
 
@@ -445,8 +446,7 @@ local function InitGL()
 
 			unitStencilTex = 7,
 		},
-		uniformFloat = {
-		},
+		uniformFloat = {},
 		silent = true, -- suppress compilation messages
 		shaderConfig = shaderConfig,
 		shaderName = widgetName..": G-buffer Fuse",
@@ -458,9 +458,14 @@ local function InitGL()
 		vssrcpath = shadersDir.."identity_texrect.vert.glsl",
 		fssrcpath = shadersDir.."ssao.frag.glsl",
 		uniformInt = {
-			viewPosTex = 0,
-			viewNormalTex = 1,
+			viewPosTex = 5,
+			viewNormalTex = 6,
 			miscTex = 2,
+
+			modelNormalTex = 0,
+			modelDepthTex = 1,
+			mapNormalTex = 3,
+			mapDepthTex = 4,
 
 			unitStencilTex = 7,
 		},
@@ -644,8 +649,11 @@ local function DoDrawSSAO()
 		gl.Texture(7, unitStencilTexture)
 	end
 
+	
+
 	local prevFBO
-	if (shaderConfig.SLOWFUSE == 0) or Spring.GetDrawFrame()%30==0 then 
+	
+	if ((shaderConfig.SLOWFUSE == 0) or Spring.GetDrawFrame()%30==0) and (shaderConfig.NOFUSE >= 0) then 
 	prevFBO = gl.RawBindFBO(gbuffFuseFBO)
 		gbuffFuseShader:Activate() -- ~0.25ms
 
@@ -682,17 +690,22 @@ local function DoDrawSSAO()
 	prevFBO = gl.RawBindFBO(ssaoFBO)
 		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 		ssaoShader:Activate()
-			ssaoShader:SetUniformMatrix("projMatrix", "projection")
 			local shadowDensity = gl.GetSun("shadowDensity", "unit")
 			ssaoShader:SetUniformFloat("shadowDensity", shadowDensity)
-
-			gl.Texture(0, gbuffFuseViewPosTex)
-			gl.Texture(1, gbuffFuseViewNormalTex)
+			if shaderConfig.NOFUSE > 0 then 
+				gl.Texture(0, "$model_gbuffer_normtex")
+				gl.Texture(1, "$model_gbuffer_zvaltex")
+				gl.Texture(3, "$map_gbuffer_normtex")
+				gl.Texture(4, "$map_gbuffer_zvaltex")
+			end
+			gl.Texture(5, gbuffFuseViewPosTex)
+			gl.Texture(6, gbuffFuseViewNormalTex)
 			if shaderConfig.MERGE_MISC ==1 then
 				gl.Texture(2, gbuffFuseMiscTex)
 			end
 			gl.CallList(screenQuadList) 
 
+			for i = 0, 7 do gl.Texture(i,false) end  
 			gl.Texture(0, false)
 			gl.Texture(1, false)
 			if shaderConfig.MERGE_MISC ==1 then
