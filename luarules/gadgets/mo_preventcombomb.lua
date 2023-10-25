@@ -40,8 +40,10 @@ for udefID, def in pairs(UnitDefs) do
 		if WeaponDefNames[ def.name..'_disintegrator' ] then
 			isDGUN[ WeaponDefNames[ def.name..'_disintegrator' ].id ] = true
 		else
-			Spring.Echo('ERROR: preventcombomb: No disintegrator weapon found for: '..def.name)
-			isCommander[udefID] = nil
+			if string.sub(def.name, 1, 6) ~= 'legcom' then
+				Spring.Echo('ERROR: preventcombomb: No disintegrator weapon found for: '..def.name)
+				isCommander[udefID] = nil
+			end
 		end
 	end
 end
