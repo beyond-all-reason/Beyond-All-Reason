@@ -182,8 +182,7 @@ local reclaimFieldHighlightOptions = {
 	Spring.I18N('ui.settings.option.reclaimfieldhighlight_reclaimer'),
 	Spring.I18N('ui.settings.option.reclaimfieldhighlight_resbot'),
 	Spring.I18N('ui.settings.option.reclaimfieldhighlight_order'),
-	Spring.I18N('ui.settings.option.reclaimfieldhighlight_disabled'),
-	Spring.I18N('ui.settings.option.reclaimfieldhighlight_always')
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_disabled')
 }
 
 local startScript = VFS.LoadFile("_script.txt")
