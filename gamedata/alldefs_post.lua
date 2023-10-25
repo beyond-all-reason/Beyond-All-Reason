@@ -428,7 +428,9 @@ function UnitDef_Post(name, uDef)
 		end
 
 		if name == "corgantuw" then
-			local numBuildoptions = 1
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "cordemont4"
+			
 			for ix, UnitName in pairs(uDef.buildoptions) do
 				if UnitName == "corseal" then
 					uDef.buildoptions[ix] = "corsala"
