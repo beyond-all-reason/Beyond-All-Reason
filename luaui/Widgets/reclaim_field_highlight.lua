@@ -27,7 +27,7 @@ VFS.Include("LuaRules/Configs/customcmds.h.lua")
 local showOption = 3
 --[[
 	From settings (gui_options.lua)
-	1 - always
+	1 - always enabled
 	2 - resource view only
 	3 - reclaimer selected
 	4 - resbot selected
