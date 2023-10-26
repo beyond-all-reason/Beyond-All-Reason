@@ -184,9 +184,25 @@ void main() {
 			#else
 				viewPositionSampledZ = -1 * abs(texture(viewPosTex, texSampingPoint).z);
 			#endif
-			float delta = viewPositionSampledZ - viewTestPosition.z; // Should we always assume this to be positive?
+			// Delta is how much deeper our ray is compared to sample, in elmos
+			// negative numbers mean ray is in front of sample, no occulsion
+			// positive means ray is behind sample, thus occlusion
+			float delta = viewPositionSampledZ - viewTestPosition.z;
 
-			float occlusionCondition = float(delta >= SSAO_MIN) * (1.0 - smoothstep(SSAO_RADIUS * 0.75, SSAO_RADIUS * 1.0, delta) );
+			float occlusionCondition = float(delta >= SSAO_MIN); 
+			// longer rays should occlude less 
+			float myraylen = 1;//1.3 - dot(viewSampleVector, viewSampleVector); // 1-0;
+
+			// smaller delta hits should occlude less
+			float occlDelta = smoothstep(0,1,delta);
+
+			// hits further thay the rays length shouldnt occlude either
+
+			float toofar = 1.0 - smoothstep (SSAO_RADIUS * 0.75, SSAO_RADIUS * 1.25, delta);
+
+			occlusionCondition *= myraylen * occlDelta *toofar;
+			// old method:
+			//float occlusionCondition = float(delta >= SSAO_MIN) * (1.0 - smoothstep(SSAO_RADIUS * 0.75, SSAO_RADIUS * 1.0, delta) );
 
 			occlusion += occlusionCondition;
 		}

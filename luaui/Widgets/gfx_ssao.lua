@@ -46,8 +46,9 @@ local shaderConfig = {
 }
 
 local definesSlidersParamsList = {
+	{name = 'SSAO_FIBONACCI', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use uniformly distributed rays intead of randomly distributed ones'},
 	{name = 'SSAO_KERNEL_MINZ', default = 0.04, min = 0, max = 0.2, digits = 2, tooltip = 'How close vectors can be to tangent plane'},
-	{name = 'SSAO_RANDOM_LENGTH', default = 1, min = 0.2, max = 3, digits = 2, tooltip = 'A power term for the lenghts of the random vectors, small numbers are longer vectors'},
+	{name = 'SSAO_RANDOM_LENGTH', default = 0.6, min = 0.2, max = 3, digits = 2, tooltip = 'A power term for the lenghts of the random vectors, small numbers are longer vectors'},
 	{name = 'SSAO_KERNEL_SIZE', default = 32, min = 1, max = 64, digits = 0, tooltip = 'how many samples are used for SSAO spatial sampling'},
 	--{name = 'MINISHADOWS', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Wether to draw a downsampled shadow sampler'},
 	{name = 'SSAO_RADIUS', default = 8, min = 4, max = 16, digits = 1, tooltip = 'world space maximum sampling radius'},
@@ -285,24 +286,48 @@ end
 local function GetSamplingVectorArray(kernelSize)
 	local result = {}
 	math.randomseed(kernelSize) -- for repeatability
-	for i = 0, kernelSize - 1 do
-		local x, y, z = math.random(), math.random(), math.random() -- [0, 1]^3
+	if shaderConfig.SSAO_FIBONACCI == 1 then
+		local points = {}
+		local phi = math.pi * (math.sqrt(5.) - 1.)--  # golden angle in radians
+		local samples = 2*kernelSize + math.floor((100 * shaderConfig.SSAO_KERNEL_MINZ))
+	
+		for i =0, samples do
+			local y = 1 - (i / (samples - 1)) * 2  -- y goes from 1 to -1
+			local radius = math.sqrt(1 - y * y)  -- radius at y
+	
+			local theta = phi * i  -- golden angle increment
+	
+			local x = math.cos(theta) * radius
+			local z = math.sin(theta) * radius
+			local randlength = math.max(0.2, math.pow(math.random(), shaderConfig.SSAO_RANDOM_LENGTH) )
+			points[i+1] = {x = x * randlength, y = z* randlength,z =  y* randlength} -- note the swizzle of zy
+		end
 
-		x, y = 2.0 * x - 1.0, 2.0 * y - 1.0 -- xy:[-1, 1]^2, z:[0, 1]
-		z = z + shaderConfig.SSAO_KERNEL_MINZ --dont make them fully planar, its wasteful
+		for i = 0, kernelSize-1 do 
+			result[i] = points[i +1]
+		end
+		return result
 
-		local l = math_sqrt(x * x + y * y + z * z) --norm
-		x, y, z = x / l, y / l, z / l --normalize
+	else
+		for i = 0, kernelSize - 1 do
+			local x, y, z = math.random(), math.random(), math.random() -- [0, 1]^3
 
-		local scale = i / (kernelSize - 1)
-		--scale = scale * scale -- shift most samples closer to the origin
-		scale = math.pow(scale, shaderConfig.SSAO_RANDOM_LENGTH)
-		scale = math.min(math.max(scale, 0.1), 1.0) --clamp
+			x, y = 2.0 * x - 1.0, 2.0 * y - 1.0 -- xy:[-1, 1]^2, z:[0, 1]
+			z = z + shaderConfig.SSAO_KERNEL_MINZ --dont make them fully planar, its wasteful
 
-		x, y, z = x * scale, y * scale, z * scale -- scale
-		result[i] = {x = x, y = y, z = z}
+			local l = math_sqrt(x * x + y * y + z * z) --norm
+			x, y, z = x / l, y / l, z / l --normalize
+
+			local scale = i / (kernelSize - 1)
+			--scale = scale * scale -- shift most samples closer to the origin
+			scale = math.pow(scale, shaderConfig.SSAO_RANDOM_LENGTH)
+			scale = math.min(math.max(scale, 0.2), 1.0) --clamp
+
+			x, y, z = x * scale, y * scale, z * scale -- scale
+			result[i] = {x = x, y = y, z = z}
+		end
+		return result
 	end
-	return result
 end
 
 -----------------------------------------------------------------
@@ -435,7 +460,7 @@ local function InitGL()
 		for i = 0, shaderConfig.SSAO_KERNEL_SIZE - 1 do
 			local sv = samplingKernel[i]
 			local success = ssaoShader:SetUniformFloatAlways(string.format("samplingKernel[%d]", i), sv.x, sv.y, sv.z)
-			--Spring.Echo("ssaoShader:SetUniformFloatAlways",success, sv.x, sv.y, sv.z)
+			--Spring.Echo("ssaoShader:SetUniformFloatAlways",success, i, sv.x, sv.y, sv.z)
 		end
 		ssaoShader:SetUniformFloatAlways("testuniform", 1.0)
 	end)
