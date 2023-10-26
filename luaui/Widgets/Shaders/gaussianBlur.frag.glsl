@@ -42,12 +42,11 @@ void main(void)
 		vec3 myNormal = NORM2SNORM(texSample.rgb);
 		myNormal.z = texSample.z;
 
-		float imground = step(dot(myNormal.xy, myNormal.xy), 0.1);
+		float imground =step(dot(myNormal.xy, myNormal.xy), 0.1);
 		
 		float weightSum = weights[0];
 		if (imground > 0.5) {
 			//weightSum = 1.0/(2 * BLUR_HALF_KERNEL_SIZE-1);
-			
 		}
 		float howLit = texSample.a * weightSum;
 		float unWeighted = howLit;

@@ -4,10 +4,6 @@
 #extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 
-// This shader is (c) Beherith (mysterme@gmail.com)
-
-//layout (location = 0) in vec4 positionxy_xyfract; // l w rot and maxalpha
-
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 
@@ -20,7 +16,6 @@ uniform sampler2D modelDepthTex;
 uniform sampler2D mapDepthTex;
 
 uniform sampler2D modelNormalTex;
-uniform sampler2D mapNormalTex;
 
 
 #if (USE_MATERIAL_INDICES == 1)
@@ -30,7 +25,6 @@ uniform sampler2D mapNormalTex;
 uniform vec2 viewPortSize;
 
 //uniform float shadowDensity;
-
 
 #define NORM2SNORM(value) (value * 2.0 - 1.0)
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
