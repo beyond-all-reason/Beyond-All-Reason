@@ -46,10 +46,12 @@ local shaderConfig = {
 }
 
 local definesSlidersParamsList = {
+	{name = 'SSAO_KERNEL_MINZ', default = 0.04, min = 0, max = 0.2, digits = 2, tooltip = 'How close vectors can be to tangent plane'},
+	{name = 'SSAO_RANDOM_LENGTH', default = 1, min = 0.2, max = 3, digits = 2, tooltip = 'A power term for the lenghts of the random vectors, small numbers are longer vectors'},
 	{name = 'SSAO_KERNEL_SIZE', default = 32, min = 1, max = 64, digits = 0, tooltip = 'how many samples are used for SSAO spatial sampling'},
 	--{name = 'MINISHADOWS', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Wether to draw a downsampled shadow sampler'},
 	{name = 'SSAO_RADIUS', default = 8, min = 4, max = 16, digits = 1, tooltip = 'world space maximum sampling radius'},
-	{name = 'SSAO_MIN', default = 1, min = 0, max = 4, digits = 2, tooltip = 'minimum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Absolute value in world space coords.'},
+	{name = 'SSAO_MIN', default = 0.7, min = 0, max = 4, digits = 2, tooltip = 'minimum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Absolute value in world space coords.'},
 	{name = 'SSAO_OCCLUSION_POWER', default = 3, min = 0, max = 16, digits = 1, tooltip = 'how much effect each SSAO sample has'},
 	{name = 'SSAO_FADE_DIST_1', default = 1200, min = 200, max = 3000, digits = 1, tooltip = 'near distance for max SSAO'},
 	{name = 'SSAO_FADE_DIST_0', default = 2400, min = 1000, max = 4000, digits = 1, tooltip = 'far distance for min SSAO'},
@@ -60,7 +62,7 @@ local definesSlidersParamsList = {
 	{name = 'BLUR_HALF_KERNEL_SIZE', default = 3, min = 1, max = 12, digits = 0, tooltip = 'BLUR_HALF_KERNEL_SIZE*2 - 1 samples for blur'},
 	{name = 'BLUR_SIGMA', default = 3, min = 1, max = 10, digits = 1, tooltip = 'Sigma width of blur filter'},
 	{name = 'MINCOSANGLE', default = -0.15, min = -3, max = 1, digits = 2, tooltip = 'the minimum angle for considering a sample colinear when blurring'},
-	{name = 'ZTHRESHOLD', default = 0.005, min = 0.0, max = 4/255.0, digits = 3, tooltip = 'Should be more than 1.0'},
+	{name = 'ZTHRESHOLD', default = 0.005, min = 0.0, max = 4/255.0, digits = 3, tooltip = 'Should be more than 1.0. Do not touch'},
 	{name = 'MINSELFWEIGHT', default = 0.2, min = 0.0, max = 1, digits = 2, tooltip = 'The minimum additional weight a sample needs to gather to be considered a non-outlier'},
 	{name = 'OUTLIERCORRECTIONFACTOR', default = 0.5, min = 0.0, max = 1, digits = 2, tooltip = 'How strongly to use blurred result instead for outliers'},
 	{name = 'BLUR_POWER', default = 2, min = 1, max = 8, digits = 1, tooltip = 'Post-blur correction factor'},
@@ -72,16 +74,18 @@ local definesSlidersParamsList = {
 	{name = 'OFFSET', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Set to 2 for half-rez buffers'},
 	{name = 'DOWNSAMPLE', default = 1, min = 1, max = 2, digits = 0, tooltip = 'Set to 2 for half-rez buffers'},
 	{name = 'ENABLE', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Disable the whole SSAO'},
-	{name = 'SLOWFUSE', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Only fuse every 30 frames'},
+	{name = 'SLOWFUSE', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Only fuse every 30 frames. DO NOT TOUCH!'},
 	{name = 'NOFUSE', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Dont use the gbuf fuse texture'},
 }
-
-for i, shaderDefine in ipairs(definesSlidersParamsList) do 
-	-- dont overwrite existing, externally defined values with the defaults:
-	if shaderConfig[shaderDefine.name] == nil then 
-		shaderConfig[shaderDefine.name] = shaderDefine.default;
+local function InitShaderDefines()
+	for i, shaderDefine in ipairs(definesSlidersParamsList) do 
+		-- dont overwrite existing, externally defined values with the defaults:
+		if shaderConfig[shaderDefine.name] == nil then 
+			shaderConfig[shaderDefine.name] = shaderDefine.default;
+		end
 	end
 end
+InitShaderDefines()
 
 local function shaderDefinesChangedCallback(name, value, index, oldvalue)
 	--Spring.Echo("shaderDefinesChangedCallback()", name, value, shaderConfig[name])
@@ -107,8 +111,6 @@ shaderDefinedSliders.top = shaderDefinedSliders.bottom + shaderDefinedSliders.sl
 
 local shaderDefinedSlidersLayer, shaderDefinedSlidersWindow
 
-
-
 local math_sqrt = math.sqrt
 
 local cusMult = 1.4
@@ -130,20 +132,15 @@ local presets = {
 		MINSELFWEIGHT = 0.3,
 		OUTLIERCORRECTIONFACTOR = 0.7,
 		SSAO_RADIUS = 8,
-		tonemapA = 0.45,
-		tonemapD = -0.25,
-		tonemapE = -0.03,
 		USE_STENCIL = 0, -- There is a non-zero cpu cost of drawing the stencil, and at low resolutions, it doesnt help really
+		NOFUSE = 1, -- at low quality, some vram can be saved 
 	},
 	{ -- MEDIUM QUALITY
 		SSAO_KERNEL_SIZE = 32,
 		DOWNSAMPLE = 1,
 		BLUR_HALF_KERNEL_SIZE = 4,
 		BLUR_SIGMA = 3,
-		MINCOSANGLE = -0.15,
-		tonemapA = 0.4,
-		tonemapD = -0.25,
-		tonemapE = -0.025,
+		MINCOSANGLE = -0.15,	
 	},
 	{ -- HIGH QUALITY
 		SSAO_KERNEL_SIZE = 64,
@@ -151,10 +148,6 @@ local presets = {
 		BLUR_HALF_KERNEL_SIZE = 4,
 		BLUR_SIGMA = 1.8,
 		MINCOSANGLE = 0.75,
-		SSAO_RADIUS = 12,
-		tonemapA = 0.4,
-		tonemapD = -0.25,
-		tonemapE = -0.025,
 	},
 }
 
@@ -163,7 +156,7 @@ local function ActivatePreset(presetID)
 		for k,v in pairs(presets[presetID]) do 
 			shaderConfig[k] = v
 		end
-	end	
+	end
 end
 
 ActivatePreset(preset)
@@ -190,13 +183,11 @@ local screenWideList
 
 local gbuffFuseFBO
 local ssaoFBO
-local ssaoBlurFBOs = {}
+local ssaoBlurFBO
 
 local gbuffFuseViewPosTex
-local gbuffFuseViewNormalTex
-local gbuffFuseMiscTex
 local ssaoTex
-local ssaoBlurTex 
+local ssaoBlurTex
 
 local ssaoShader
 local gbuffFuseShader
@@ -298,12 +289,14 @@ local function GetSamplingVectorArray(kernelSize)
 		local x, y, z = math.random(), math.random(), math.random() -- [0, 1]^3
 
 		x, y = 2.0 * x - 1.0, 2.0 * y - 1.0 -- xy:[-1, 1]^2, z:[0, 1]
+		z = z + shaderConfig.SSAO_KERNEL_MINZ --dont make them fully planar, its wasteful
 
 		local l = math_sqrt(x * x + y * y + z * z) --norm
 		x, y, z = x / l, y / l, z / l --normalize
 
 		local scale = i / (kernelSize - 1)
-		scale = scale * scale -- shift most samples closer to the origin
+		--scale = scale * scale -- shift most samples closer to the origin
+		scale = math.pow(scale, shaderConfig.SSAO_RANDOM_LENGTH)
 		scale = math.min(math.max(scale, 0.1), 1.0) --clamp
 
 		x, y, z = x * scale, y * scale, z * scale -- scale
@@ -335,6 +328,15 @@ local function InitGL()
 	firstTime = true
 	vsx, vsy = Spring.GetViewGeometry()
 
+	shaderConfig.VSX = vsx
+	shaderConfig.VSY = vsy
+	shaderConfig.HSX = math.ceil(vsx / shaderConfig.DOWNSAMPLE)
+	shaderConfig.HSY = math.ceil(vsy / shaderConfig.DOWNSAMPLE)
+	shaderConfig.TEXPADDINGX = shaderConfig.DOWNSAMPLE * shaderConfig.HSX - vsx
+	shaderConfig.TEXPADDINGY = shaderConfig.DOWNSAMPLE * shaderConfig.HSY - vsy
+
+	--Spring.Echo("SSAO SIZING",shaderConfig.DOWNSAMPLE, vsx, vsy, shaderConfig.TEXPADDINGX, shaderConfig.TEXPADDINGY)
+
 	local commonTexOpts = {
 		target = GL_TEXTURE_2D,
 		border = false,
@@ -345,33 +347,25 @@ local function InitGL()
 		wrap_t = GL.CLAMP_TO_EDGE,
 	}
 
-	commonTexOpts.format = GL_RGB16F
-	gbuffFuseViewPosTex = gl.CreateTexture(vsx, vsy, commonTexOpts) -- at 1080p this is 16MB
-
+	if shaderConfig.NOFUSE == 0 then
+		commonTexOpts.format = GL_RGB16F
+		gbuffFuseViewPosTex = gl.CreateTexture(vsx, vsy, commonTexOpts) -- at 1080p this is 16MB
+	
+		gbuffFuseFBO = gl.CreateFBO({
+			color0 = gbuffFuseViewPosTex,
+			drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
+		})
+		if not gl.IsValidFBO(gbuffFuseFBO) then
+			Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, "Invalid gbuffFuseFBO"))
+		end	
+	end
+	
 	commonTexOpts.min_filter = GL.LINEAR
 	commonTexOpts.mag_filter = GL.LINEAR
-
 	commonTexOpts.format = GL_RGBA8
-
-	shaderConfig.VSX = vsx
-	shaderConfig.VSY = vsy
-	shaderConfig.HSX = math.ceil(vsx / shaderConfig.DOWNSAMPLE)
-	shaderConfig.HSY = math.ceil(vsy / shaderConfig.DOWNSAMPLE)
-	shaderConfig.TEXPADDINGX = shaderConfig.DOWNSAMPLE * shaderConfig.HSX - vsx
-	shaderConfig.TEXPADDINGY = shaderConfig.DOWNSAMPLE * shaderConfig.HSY - vsy
-
-	--Spring.Echo("SSAO SIZING",shaderConfig.DOWNSAMPLE, vsx, vsy, shaderConfig.TEXPADDINGX, shaderConfig.TEXPADDINGY)
 
 	ssaoTex = gl.CreateTexture(shaderConfig.HSX, shaderConfig.HSY , commonTexOpts)
 	ssaoBlurTex = gl.CreateTexture(shaderConfig.HSX, shaderConfig.HSY, commonTexOpts)
-
-	gbuffFuseFBO = gl.CreateFBO({
-		color0 = gbuffFuseViewPosTex,
-		drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
-	})
-	if not gl.IsValidFBO(gbuffFuseFBO) then
-		Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, "Invalid gbuffFuseFBO"))
-	end
 
 	ssaoFBO = gl.CreateFBO({
 		color0 = ssaoTex,
@@ -381,22 +375,15 @@ local function InitGL()
 		Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, "Invalid ssaoFBO"))
 	end
 
-	ssaoBlurFBOs[1] = gl.CreateFBO({
+	ssaoBlurFBO = gl.CreateFBO({
 		color0 = ssaoBlurTex,
 		drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
 	})
-	if not gl.IsValidFBO(ssaoBlurFBOs[1]) then
-		Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, string.format("Invalid ssaoBlurFBOs[%d]", 1)))
+	if not gl.IsValidFBO(ssaoBlurFBO) then
+		Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, string.format("Invalid ssaoBlurFBO")))
 	end
 
-	ssaoBlurFBOs[2] = gl.CreateFBO({
-		color0 = ssaoTex,
-		drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
-	})
-	if not gl.IsValidFBO(ssaoBlurFBOs[2]) then
-		Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, string.format("Invalid ssaoBlurFBOs[%d]", 2)))
-	end
-
+	-- ensure stencil is available
 	if shaderConfig.USE_STENCIL == 1 then 
 		unitStencilTexture = WG['unitstencilapi'].GetUnitStencilTexture()
 		shaderConfig.USE_STENCIL = unitStencilTexture and 1 or 0
@@ -493,16 +480,13 @@ local function CleanGL()
 	end
 
 	gl.DeleteTexture(ssaoTex)
-	gl.DeleteTexture(gbuffFuseViewPosTex)
-
+	if gbuffFuseViewPosTex then gl.DeleteTexture(gbuffFuseViewPosTex) end
 	gl.DeleteTexture(ssaoBlurTex)
 
 
 	gl.DeleteFBO(ssaoFBO)
-	gl.DeleteFBO(gbuffFuseFBO)
-	for i = 1, 2 do
-		gl.DeleteFBO(ssaoBlurFBOs[i])
-	end
+	if gbuffFuseFBO then gl.DeleteFBO(gbuffFuseFBO) end
+	gl.DeleteFBO(ssaoBlurFBO)
 
 	ssaoShader:Finalize()
 	gbuffFuseShader:Finalize()
@@ -522,6 +506,7 @@ function widget:Initialize()
 	end
 	WG['ssao'].setPreset = function(value)
 		preset = value
+		InitShaderDefines()
 		ActivatePreset(preset)
 		CleanGL()
 		InitGL()
@@ -583,6 +568,8 @@ function widget:Shutdown()
 	end
 	
 	if shaderDefinedSlidersLayer and shaderDefinedSlidersLayer.Destroy then shaderDefinedSlidersLayer:Destroy() end 
+	--if shaderDefinedSlidersWindow and shaderDefinedSlidersWindow.Destroy then shaderDefinedSlidersWindow:Destroy() end 
+
 	CleanGL()
 end
 
@@ -652,9 +639,10 @@ local function DoDrawSSAO()
 			if shaderConfig.NOFUSE > 0 then 
 				glTexture(1, "$model_gbuffer_zvaltex")
 				glTexture(4, "$map_gbuffer_zvaltex")
+			else
+				glTexture(5, gbuffFuseViewPosTex)
 			end
 			glTexture(0, "$model_gbuffer_normtex")
-			glTexture(5, gbuffFuseViewPosTex)
 
 			gl.CallList(screenQuadList) 
 
@@ -668,7 +656,7 @@ local function DoDrawSSAO()
 			gaussianBlurShader:Activate()
 
 				gaussianBlurShader:SetUniform("dir", 1.0, 0.0) --horizontal blur
-				prevFBO = gl.RawBindFBO(ssaoBlurFBOs[1])
+				prevFBO = gl.RawBindFBO(ssaoBlurFBO)
 				gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
 				gl.RawBindFBO(nil, nil, prevFBO)
 				glTexture(0, ssaoBlurTex)
@@ -762,6 +750,7 @@ function widget:SetConfigData(data)
 		end
 	end
 	Spring.Echo("widget:SetConfigData SSAO preset=", preset)
+	InitShaderDefines()
 	ActivatePreset(preset)
 	--widget:ViewResize()
 end

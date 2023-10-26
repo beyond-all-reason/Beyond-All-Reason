@@ -106,15 +106,15 @@ void main() {
 	//--------------------------- DEBUG---------------
 
 	vec4 collectedNormal = vec4(viewNormal, 1.0);
-	vec2 collectedDistance = vec2(viewPosition.z, 1.0);
+	vec2 collectedDistance = vec2(abs(viewPosition.z), 1.0);
 	float fragDistFactor = smoothstep( SSAO_FADE_DIST_0 * 1.0, SSAO_FADE_DIST_1 * 1.0, -viewPosition.z );
 	//gl_FragColor = vec4(fract(viewPosition.xyz * 0.1), 1.0); return;
 
-	fragColor = vec4(SNORM2NORM(normalize(collectedNormal.xy)), (-collectedDistance.x / (SSAO_FADE_DIST_0)), 1.0);
+	//fragColor = vec4(SNORM2NORM(normalize(collectedNormal.xy)), (abs(viewPosition.z) / (SSAO_FADE_DIST_0)), 1.0); return;
 	
 	// Indicate that we are sampling a ground position, so pass zero vector as normal in RG
 	// Also pass distance in B channel, and no occlusion (1.0) in alpha
-	fragColor = vec4(vec2(0.5), (-collectedDistance.x / (SSAO_FADE_DIST_0)), 1.0);
+	fragColor = vec4(vec2(0.5), (abs(viewPosition.z) / (SSAO_FADE_DIST_0)), 1.0);
 
 	if ( dot(viewNormal, viewNormal) > 0.1 && fragDistFactor > 0.0 && (validFragment > 0.5) ) {
 		// Calculate the rotation matrix for the kernel.
@@ -149,14 +149,17 @@ void main() {
 					viewNormalSample = GetModelNormalCameraSpace( newUV);
 					if (dot(viewNormalSample.xyz, viewNormalSample.xyz) > 0.1  && viewNormalSample.a > 0.5){
 						viewNormal = viewNormalSample.xyz;
-						
-						viewPosition = vec4( texture(viewPosTex, newUV).xyz, 1.0 );
+						#if NOFUSE == 1 
+							viewPosition = GetViewPos(uv) ;
+						#else
+							viewPosition = vec4( texture(viewPosTex, newUV).xyz, 1.0 );
+						#endif
 						viewTangent = normalize(randomVector - dot(randomVector, viewNormal) * viewNormal);
 						viewBitangent = cross(viewNormal, viewTangent);
 						kernelMatrix = mat3(viewTangent, viewBitangent, viewNormal);
 					}
 					collectedNormal+= vec4(viewNormal, 1.0);
-					collectedDistance += vec2(viewPosition.z, 1.0);
+					collectedDistance += vec2(abs(viewPosition.z), 1.0);
 				}
 			#endif
 
@@ -207,6 +210,6 @@ void main() {
 		// And pass the occlusion level in alpha
 		collectedNormal.xyz /= collectedNormal.w;
 		collectedDistance.x /= collectedDistance.y;
-		fragColor = vec4(vec3(SNORM2NORM(normalize(collectedNormal.xy)), (-collectedDistance.x / (SSAO_FADE_DIST_0)) ), fullylit);
+		fragColor = vec4(vec3(SNORM2NORM(normalize(collectedNormal.xy)), (abs(collectedDistance.x )/ (SSAO_FADE_DIST_0)) ), fullylit);
 	}
 }
