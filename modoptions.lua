@@ -384,7 +384,7 @@ local options={
 	},
 	{
 		key    = "raptor_eggresourcemult",
-		name   = "Egg Resource Reclaim Multiplier (Range: 0.1 - 3)",
+		name   = "Egg Resource Reclaim Multiplier (Range: 0.1 - 10)",
 		desc   = "Multiplier for the resources reclaimed from defeated raptors. ",
 		type   = "number",
 		def    = 1,
