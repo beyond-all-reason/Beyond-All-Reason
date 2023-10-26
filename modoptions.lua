@@ -382,6 +382,18 @@ local options={
 		step   = 0.1,
 		section= "raptor_defense_options",
 	},
+	{
+		key    = "raptor_eggresourcemult",
+		name   = "Egg Resource Reclaim Multiplier (Range: 0.1 - 3)",
+		desc   = "Multiplier for the resources reclaimed from defeated raptors. ",
+		type   = "number",
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+		section= "raptor_defense_options",
+	},
+
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

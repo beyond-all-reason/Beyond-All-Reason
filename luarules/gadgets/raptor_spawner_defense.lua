@@ -1568,10 +1568,12 @@ if gadgetHandler:IsSyncedCode() then
 
 		local featureValueMetal = math.ceil(unit.metalCost*0.25)
 		local featureValueEnergy = featureValueMetal*10
+		local featureMultiplier = Spring.GetModOptions().raptor_eggresourcemult
 
 		local size
 		local color
 
+		-- Don't apply multipliers before the visual type is decided
 		if featureValueMetal <= 500 then
 			size = "s"
 		elseif featureValueMetal <= 3000 then
@@ -1585,6 +1587,10 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			color = raptorEggColors[mRandom(1,#raptorEggColors)]
 		end
+
+		-- Apply Multipliers before creating egg
+		featureValueMetal = featureValueMetal*featureMultiplier
+		featureValueEnergy = featureValueEnergy*featureMultiplier
 
 		local egg = Spring.CreateFeature("raptor_egg_"..size.."_"..color, x, y + 20, z, mRandom(-999999,999999), raptorTeamID)
 		if egg then
