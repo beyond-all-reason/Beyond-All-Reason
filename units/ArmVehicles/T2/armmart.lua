@@ -24,7 +24,7 @@ return {
 		maxvelocity = 1.7,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
-		nochasecategory = "NOTLAND VTOL",
+		nochasecategory = "VTOL",
 		objectname = "Units/ARMMART.s3o",
 		script = "Units/ARMMART.cob",
 		seismicsignature = 0,
