@@ -13,6 +13,7 @@ uniform float weights[BLUR_HALF_KERNEL_SIZE];
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
 
 uniform vec2 dir;
+uniform float strengthMult;
 
 uniform vec2 viewPortSize;
 #line 1018
@@ -93,6 +94,7 @@ void main(void)
 			howLit = mix(howLit,unWeighted, OUTLIERCORRECTIONFACTOR);
 
 		};
+		//if (imground > 0.5) {howLit = unWeighted;}
 		gl_FragColor = vec4(texSample.rgb, howLit);
 
 		// FINAL MIXDOWN, vert pass last
@@ -116,6 +118,8 @@ void main(void)
 
 					}
 				#endif
+				gl_FragColor.rgb *= strengthMult;
+				gl_FragColor.a = 1.0 - ((1.0 - gl_FragColor.a) * strengthMult );
 			#endif
 
 		};

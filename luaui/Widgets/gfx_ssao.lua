@@ -199,7 +199,6 @@ local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 local vsx, vsy, vpx, vpy
 local texPaddingX, texPaddingY = 0,0
 
-local firstTime
 
 local screenQuadList
 local screenWideList
@@ -372,7 +371,6 @@ local function InitGL()
 		Spring.SendCommands("luarules updatesun")
 	end
 
-	firstTime = true
 	vsx, vsy = Spring.GetViewGeometry()
 
 	shaderConfig.VSX = vsx
@@ -513,10 +511,35 @@ local function InitGL()
 		gaussianBlurShader:SetUniformFloatArrayAlways("offsets", gaussOffsets)
 	end)
 
+	-- These are now offset by the half pixel that is needed here due to ceil(vsx/rez)
+	screenQuadList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, 0.0, 0.0, 1.0, 1.0)
+	--screenWideList = gl.CreateList(gl.TexRect, -1, -1, 1000, 1000, 0.0, 0.0,
+	--	1.0 - shaderConfig.TEXPADDINGX/shaderConfig.VSX, 1.0 - shaderConfig.TEXPADDINGY/shaderConfig.VSY)
+	screenWideList = gl.CreateList(function() 
+
+		gl.MatrixMode(GL.MODELVIEW)
+		gl.PushMatrix()
+		gl.LoadIdentity()
+	
+			gl.MatrixMode(GL.PROJECTION)
+			gl.PushMatrix()
+			gl.LoadIdentity()
+	
+
+			gl.TexRect(-1, -1, 1, 1, 0.0, 0.0,
+				1.0 - shaderConfig.TEXPADDINGX/shaderConfig.VSX, 1.0 - shaderConfig.TEXPADDINGY/shaderConfig.VSY)
+			
+			gl.MatrixMode(GL.PROJECTION)
+			gl.PopMatrix()
+	
+		gl.MatrixMode(GL.MODELVIEW)
+		gl.PopMatrix()
+		end
+	)
+
 end
 
 local function CleanGL()
-	firstTime = nil
 
 	if screenQuadList then
 		gl.DeleteList(screenQuadList)
@@ -625,35 +648,6 @@ local function DoDrawSSAO()
 	gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 	gl.Blending(false)
 
-	if firstTime then
-		-- These are now offset by the half pixel that is needed here due to ceil(vsx/rez)
-		screenQuadList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, 0.0, 0.0, 1.0, 1.0)
-		--screenWideList = gl.CreateList(gl.TexRect, -1, -1, 1000, 1000, 0.0, 0.0,
-		--	1.0 - shaderConfig.TEXPADDINGX/shaderConfig.VSX, 1.0 - shaderConfig.TEXPADDINGY/shaderConfig.VSY)
-		screenWideList = gl.CreateList(function() 
-
-			gl.MatrixMode(GL.MODELVIEW)
-			gl.PushMatrix()
-			gl.LoadIdentity()
-		
-				gl.MatrixMode(GL.PROJECTION)
-				gl.PushMatrix()
-				gl.LoadIdentity()
-		
-	
-				gl.TexRect(-1, -1, 1, 1, 0.0, 0.0,
-					1.0 - shaderConfig.TEXPADDINGX/shaderConfig.VSX, 1.0 - shaderConfig.TEXPADDINGY/shaderConfig.VSY)
-				
-				gl.MatrixMode(GL.PROJECTION)
-				gl.PopMatrix()
-		
-			gl.MatrixMode(GL.MODELVIEW)
-			gl.PopMatrix()
-			end
-		)
-		firstTime = false
-	end
-	
 	if shaderConfig.USE_STENCIL == 1 and unitStencilTexture then 	
 		unitStencilTexture = WG['unitstencilapi'].GetUnitStencilTexture() -- needs this to notify that we want it next frame too
 		glTexture(7, unitStencilTexture)
@@ -708,6 +702,7 @@ local function DoDrawSSAO()
 				gl.RawBindFBO(nil, nil, prevFBO)
 				glTexture(0, ssaoBlurTex)
 
+				gaussianBlurShader:SetUniform("strengthMult", shaderConfig.SSAO_ALPHA_POW/ 7.0) --vertical blur
 				gaussianBlurShader:SetUniform("dir", 0.0, 1.0) --vertical blur
 				prevFBO = gl.RawBindFBO(ssaoFBO)
 				gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
