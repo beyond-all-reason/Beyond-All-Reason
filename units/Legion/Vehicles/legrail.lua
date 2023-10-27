@@ -140,7 +140,7 @@ return {
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 3,
-				range = 650,
+				range = 675,
 				reloadtime = 9,
 				rgbcolor = "0.34 0.64 0.94",
 				soundhit = "mavgun3",
@@ -165,6 +165,8 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR",
 				def = "RAILGUN",
+				maindir = "0 0.5 1",
+				maxangledif = 210,
 				onlytargetcategory = "NOTSUB",
 			},
 		},

@@ -24,10 +24,10 @@ Spring.CreateDir("music/custom/menu")
 ----------------------------------------------------------------------
 
 local showGUI = true
-local minSilenceTime = 60
-local maxSilenceTime = 300
+local minSilenceTime = 30
+local maxSilenceTime = 120
 local warLowLevel = 1000
-local warHighLevel = 20000
+local warHighLevel = 30000
 local warMeterResetTime = 30 -- seconds
 local interruptionMinimumTime = 20 -- seconds
 local interruptionMaximumTime = 40 -- seconds
@@ -1015,10 +1015,10 @@ function widget:GameFrame(n)
 						fadeOutSkipTrack = true
 					elseif (interruptionEnabled and (playedTime >= interruptionTime) and gameFrame >= serverFrame-300)
 					  and ((currentTrackListString == "intro" and n > 90)
-						or (currentTrackListString == "peace" and warMeter > warLowLevel * 2) -- Peace in battle times, let's play some WarLow music at double of WarLow threshold
-						or (currentTrackListString == "warLow" and warMeter > warHighLevel * 2) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at double of WarHigh threshold
-						or (currentTrackListString == "warHigh" and warMeter <= warHighLevel * 0.5) -- WarHigh music is playing, but it has been quite peaceful recently. Let's switch to WarLow music at 50% of WarHigh threshold
-						or (currentTrackListString == "warLow" and warMeter <= warLowLevel * 0.5 )) then -- WarLow music is playing, but it has been quite peaceful recently. Let's switch to peace music at 50% of WarLow threshold
+						or (currentTrackListString == "peace" and warMeter > warHighLevel * 0.5 ) -- Peace in battle times, let's play some WarLow music at half of WarHigh threshold
+						or (currentTrackListString == "warLow" and warMeter > warHighLevel * 2 ) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at double of WarHigh threshold
+						or (currentTrackListString == "warHigh" and warMeter <= warLowLevel * 0.5 ) -- WarHigh music is playing, but it has been quite peaceful recently. Let's switch to peace music at 50% of WarLow threshold
+						or (currentTrackListString == "warLow" and warMeter <= warLowLevel * 0.25 )) then -- WarLow music is playing, but it has been quite peaceful recently. Let's switch to peace music at 25% of WarLow threshold
 							fadeDirection = -2
 							fadeOutSkipTrack = true
 					elseif (playedTime >= totalTime - 12 and Spring.GetConfigInt("UseSoundtrackFades", 1) == 1) then

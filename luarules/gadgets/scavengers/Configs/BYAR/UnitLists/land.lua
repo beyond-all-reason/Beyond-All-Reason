@@ -152,6 +152,7 @@ return {
 		"armmeatball_scav",
 		"armassimilator_scav",
 		"legpede_scav",
+		"leegmech_scav",
 
 		-- Vehicles
 		"armthor_scav",

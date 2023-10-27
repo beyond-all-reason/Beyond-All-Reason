@@ -626,7 +626,7 @@ function widget:TextCommand(command)
 	return false
 end
 
-if Spring.Utilities.EngineVersionAtLeast(105,1,1,1422) then
+if Script.IsEngineMinVersion(105, 0, 1422) then
 	function widget:DrawPreDecals()
 		DrawDecals()
 	end

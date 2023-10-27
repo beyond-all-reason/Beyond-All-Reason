@@ -585,6 +585,7 @@ function gadget:UnitDestroyed(unitID)
 		for subUnitID,value in pairs(carrierMetaList[unitID].subUnitsList) do
 			if carrierMetaList[unitID].subUnitsList[subUnitID] then
 				local standalone = false
+				local wild = false
 				if carrierMetaList[unitID].carrierDeaththroe == "death" then
 					spDestroyUnit(subUnitID, true)
 
@@ -596,6 +597,9 @@ function gadget:UnitDestroyed(unitID)
 					end
 				elseif carrierMetaList[unitID].carrierDeaththroe == "control" then
 					standalone = true
+				elseif carrierMetaList[unitID].carrierDeaththroe == "release" then
+					standalone = true
+					wild = true
 				elseif carrierMetaList[unitID].carrierDeaththroe == "parasite" then
 					local newCarrier
 					local ox, oy, oz = spGetUnitPosition(subUnitID)
@@ -644,7 +648,9 @@ function gadget:UnitDestroyed(unitID)
 				end
 
 				if standalone then
-					SetUnitNoSelect(subUnitID, false)
+					if not wild then
+						SetUnitNoSelect(subUnitID, false)
+					end
 					spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", nil, PRIVATE)
 					local droneData = {
 						active = true,
@@ -653,7 +659,10 @@ function gadget:UnitDestroyed(unitID)
 						inFormation = false,
 						activeDocking = false,
 						engaged = false,
+						wild = wild,
 						decayRate = carrierMetaList[unitID].deathdecayRate,
+						idleRadius = carrierMetaList[unitID].radius,
+						lastOrderUpdate = 0;
 					}
 					droneMetaList[subUnitID] = droneData
 				end
@@ -669,6 +678,28 @@ end
 local function UpdateStandaloneDrones(frame)
 	local resourceFrames = (frame - previousHealFrame) / 30
 	for unitID,value in pairs(droneMetaList) do
+		if droneMetaList[unitID].wild then
+			-- move around unless in combat
+			local cQueue = GetCommandQueue(unitID, -1)
+			local engaged = false
+			for j = 1, (cQueue and #cQueue or 0) do
+				if cQueue[j].id == CMD.ATTACK then
+					-- if currently fighting
+					engaged = true
+					break
+				end
+			end
+			droneMetaList[unitID].engaged = engaged
+			if not engaged and ((DEFAULT_UPDATE_ORDER_FREQUENCY + droneMetaList[unitID].lastOrderUpdate) < frame) then
+				local idleRadius = droneMetaList[unitID].idleRadius
+				droneMetaList[unitID].lastOrderUpdate = frame
+			
+				dronex, droney, dronez = spGetUnitPosition(unitID)
+				rx, rz = RandomPointInUnitCircle(5)
+				spGiveOrderToUnit(unitID, CMD.MOVE, {dronex + rx*idleRadius, droney, dronez + rz*idleRadius}, 0)
+			end
+		end
+
 		if droneMetaList[unitID].decayRate > 0 then
 			local h, mh = spGetUnitHealth(unitID)
 			HealUnit(unitID, -droneMetaList[unitID].decayRate, resourceFrames, h, mh)

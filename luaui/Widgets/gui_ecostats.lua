@@ -708,7 +708,7 @@ local function DrawEBar(tE, tEp, vOffset)
 			widgetPosY + widgetHeight - vOffset + dy - barheight
 	)
 	-- energy total
-	glColor(1, 1, 0, 0.7)
+	glColor(0.7, 0.7, 0.7, 1)
 	gl.Texture(images["bar"])
 	glTexRect(
 			widgetPosX + dx,
@@ -804,7 +804,7 @@ local function DrawMBar(tM, tMp, vOffset)
 			widgetPosY + widgetHeight - vOffset + dy - barheight
 	)
 	-- metal total
-	glColor(1, 1, 1, 0.7)
+	glColor(0.7, 0.7, 0.7, 1)
 	gl.Texture(images["bar"])
 	glTexRect(
 			widgetPosX + dx,

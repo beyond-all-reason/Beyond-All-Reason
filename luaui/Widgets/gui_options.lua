@@ -170,10 +170,20 @@ local showOnceMore = false        -- used because of GUI shader delay
 local resettedTonemapDefault = false
 local heightmapChangeClock
 local requireRestartDefaults = {}
+local gameOver = false
 
 local presetCodes = {}
 local presetNames = {}
 local presets = {}
+
+local reclaimFieldHighlightOptions = {
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_always'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_resource'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_reclaimer'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_resbot'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_order'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_disabled')
+}
 
 local startScript = VFS.LoadFile("_script.txt")
 if not startScript then
@@ -810,7 +820,7 @@ end
 
 local function updateGrabinput()
 	-- grabinput makes alt-tabbing harder, so loosen grip a bit when in lobby would be wise
-	if Spring.GetConfigInt('grabinput', 1) == 1 then
+	if Spring.GetConfigInt('grabinput', 1) == 1 and not gameOver then
 		if chobbyInterface then
 			if enabledGrabinput then
 				enabledGrabinput = false
@@ -2282,7 +2292,7 @@ function init()
 				  options[getOptionByID('shadowslider')].options[6] = 'insane'
 			  end
 			  local quality = {
-				  ['lowest'] = 2048, ['low'] = 3584, ['medium'] = 6144, ['high'] = 8192, ['ultra'] = 10240, ['insane'] = 12288
+				  ['lowest'] = 1792, ['low'] = 2560, ['medium'] = 4096, ['high'] = 6144, ['ultra'] = 8192, ['insane'] = 10240
 			  }
 			  if ShadowMapSize == 0 then
 				  --options[getOptionByID('shadowslider')].value = 1
@@ -2296,7 +2306,7 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  local quality = {
-				  [1] = 2048, [2] = 3584, [3] = 6144, [4] = 8192, [5] = 10240, [6] = 12288
+				  [1] = 1792, [2] = 2560, [3] = 4096, [4] = 6144, [5] = 8192, [6] = 10240
 			  }
 			  if options[getOptionByID('shadowslider')].options[value] == nil then
 				  value = (value == 1 and 2 or 4)
@@ -3916,7 +3926,19 @@ function init()
 
 		{ id = "givenunits", group = "ui", category = types.advanced, widget = "Given Units", name = Spring.I18N('ui.settings.option.givenunits'), type = "bool", value = GetWidgetToggleValue("Given Units"), description = Spring.I18N('ui.settings.option.givenunits_descr') },
 
-		{ id = "reclaimfieldhighlight", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = Spring.I18N('ui.settings.option.reclaimfieldhighlight'), type = "bool", value = GetWidgetToggleValue("Reclaim Field Highlight"), description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_descr') },
+		{ id = "reclaimfieldhighlight", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = Spring.I18N('ui.settings.option.reclaimfieldhighlight'), type = "select", options = reclaimFieldHighlightOptions, value = 3, description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_descr'),
+			onload = function(i)
+				loadWidgetData("Reclaim Field Highlight", "reclaimfieldhighlight", { 'showOption' })
+			end,
+			onchange = function(i, value)
+				if widgetHandler.orderList["Reclaim Field Highlight"] and widgetHandler.orderList["Reclaim Field Highlight"] >= 0.5 then
+					widgetHandler:EnableWidget("Reclaim Field Highlight")
+					saveOptionValue('Reclaim Field Highlight', 'reclaimfieldhighlight', 'setShowOption', { 'showOption' }, value)
+				else
+					saveOptionValue('Reclaim Field Highlight', 'reclaimfieldhighlight', 'setShowOption', { 'showOption' }, value)
+				end
+			end,
+		},
 
 		{ id = "buildinggrid", group = "ui", category = types.basic, widget = "Building Grid GL4", name = Spring.I18N('ui.settings.option.buildinggrid'), type = "bool", value = GetWidgetToggleValue("Building Grid GL4"), description = Spring.I18N('ui.settings.option.buildinggrid_descr') },
 		{ id = "buildinggridopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.buildinggridopacity'), type = "slider", min = 0.3, max = 1, step = 0.05, value = (WG['buildinggrid'] ~= nil and WG['buildinggrid'].getOpacity ~= nil and WG['buildinggrid'].getOpacity()) or 1, description = '',
@@ -6042,6 +6064,11 @@ function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 	end
 end
 
+function widget:GameOver()
+	gameOver = true
+	updateGrabinput()
+end
+
 function widget:Initialize()
 
 	-- disable ambient player widget
@@ -6293,6 +6320,7 @@ function widget:Shutdown()
 	WG['options'] = nil
 
 	resetUserVolume()
+	Spring.SendCommands("grabinput 0")
 end
 
 local lastOptionCommand = 0

@@ -152,7 +152,7 @@ return {
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 3,
-				range = 400,
+				range = 420,--400,
 				reloadtime = 0.4,
 				rgbcolor = "1 0.95 0.4",
 				--size = 2.25,

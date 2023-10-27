@@ -769,7 +769,7 @@ local unitGrids = {
 	armack = {
 		{
 			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
-			{ "armmmkr", "armageo", "armckfus", },                     -- T2 converter, T2 geo, cloaked fusion
+			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion
 			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
@@ -839,7 +839,7 @@ local unitGrids = {
 	armacv = {
 		{
 			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
-			{ "armmmkr", "armageo", "armckfus", },                     -- T2 converter, T2 geo, cloaked fusion
+			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion
 			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
@@ -909,7 +909,7 @@ local unitGrids = {
 	armaca = {
 		{
 			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
-			{ "armmmkr", "armageo", "armckfus", },                     -- T2 converter, T2 geo, cloaked fusion
+			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion
 			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
@@ -1207,6 +1207,30 @@ local unitGrids = {
 			{ },        --
 			{ },                                             --
 			{ },                          --
+		}
+	},
+	
+	--corprinter
+	corprinter = {
+		{
+			{'corsolar', 'cormex' },        
+			{ },                                             
+			{ },                          -- solar, mex
+		},
+		{
+			{ },        
+			{ },                                             
+			{ },                          
+		},
+		{
+			{ 'corrad','', 'corfort'},        
+			{ },                                             
+			{ },                          --radar, t2 wall
+		},
+		{
+			{ },        
+			{ },                                             
+			{ },                          
 		}
 	},
 

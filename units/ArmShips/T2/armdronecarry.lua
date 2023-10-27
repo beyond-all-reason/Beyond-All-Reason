@@ -31,7 +31,7 @@ return {
 		maxdamage = 3500,
 		maxvelocity = 2.1,
 		minwaterdepth = 15,
-		movementclass = "BOAT5",
+		movementclass = "BOAT8",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMDRONECARRY.s3o",
 		radardistance = 1500,
@@ -136,7 +136,7 @@ return {
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
 				noselfdamage = true,
-				range = 1200,
+				range = 1300,
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",--"xplomed2",
@@ -151,19 +151,19 @@ return {
 				customparams = {
 					carried_unit = "armdrone",     --Name of the unit spawned by this carrier unit.
 					-- carried_unit2... 			Currently not implemented, but planned.
-					engagementrange = 1200,
+					engagementrange = 1300,
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 5, 				--Spawnrate roughly in seconds.
+					spawnrate = 4, 				--Spawnrate roughly in seconds.
 					maxunits = 16,				--Will spawn units until this amount has been reached.
 					buildcostenergy = 750,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					buildcostmetal = 30,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1300,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					controlradius = 1400,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 6,
 					attackformationspread = 120,	--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
 					attackformationoffset = 30,	--Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
-					carrierdeaththroe = "control",
+					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
-					dockinghealrate = 24,
+					dockinghealrate = 36,
 					docktohealthreshold = 50,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,

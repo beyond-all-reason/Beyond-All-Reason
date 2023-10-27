@@ -1488,6 +1488,12 @@
 				"language": "Language",
 				"reclaimfieldhighlight": "Reclaim Field Highlight",
 				"reclaimfieldhighlight_descr": "Highlights clusters of reclaimable metal",
+				"reclaimfieldhighlight_always": "Always enabled",
+				"reclaimfieldhighlight_resource": "Resource view only",
+				"reclaimfieldhighlight_reclaimer": "Reclaimer selected",
+				"reclaimfieldhighlight_resbot": "Resurrector selected",
+				"reclaimfieldhighlight_order": "Reclaim order active",
+				"reclaimfieldhighlight_disabled": "Disabled",
 				"buildinggrid": "Building Grid",
 				"buildinggrid_descr": "Shows a grid on the ground to assist building placement",
 				"buildinggridopacity": "opacity"

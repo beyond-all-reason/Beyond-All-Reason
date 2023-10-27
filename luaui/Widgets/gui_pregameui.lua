@@ -162,13 +162,11 @@ function widget:GameSetup(state, ready, playerStates)
 	end
 
 	-- if we can't choose startpositions, no need for ready button etc
-	if Game.startPosType ~= 2 or isFFA then
-		return true, true
-	end
-
-	-- set my readyState to true if ffa
-	if isFFA and (not readied or not ready) then
-		readied = true
+	if Game.startPosType ~= 2 then
+		-- additionally automatically set readyState to true if this is a FFA game
+		if isFFA and (not readied or not ready) then
+			readied = true
+		end
 		return true, true
 	end
 
