@@ -987,7 +987,7 @@
 			"raptorhealer2": "Medic Raptor.",
 			"raptorhealer3": "Medic Raptor.",
 			"raptorhealer4": "Medic Raptor.",
-			"raptorh1b": "Garbage collector", //unused
+			"raptorh1b": "Garbage collector",
 			"raptorh2": "They multiply!",
 			"raptorh3": "They multiply!",
 			"raptorh4": "They multiply!",
@@ -996,7 +996,7 @@
 			"raptorbroodbomberh4": "They multiply!",
 			"raptorbroodartyh4": "They multiply!",
 			"raptorbroodartyh4small": "They multiply!",
-			"raptorh5": "Raptor Commander.", //unused
+			"raptorh5": "Raptor Commander.",
 			"raptorp1": "Flamethrower Raptor.",
 			"raptorp2": "Flamethrower Raptor.",
 			"raptorpyroallterrain": "Flamethrower Raptor.",
@@ -1004,7 +1004,7 @@
 			"raptorr2": "Artillery Raptor.",
 			"raptors1": "Sniper Raptor.",
 			"raptors2": "Sniper Raptor.",
-			"raptors3": "Flying spike spitter", //unused
+			"raptors3": "Flying spike spitter",
 			"raptorw1": "Flying Fighter Raptor.",
 			"raptorw1b": "Flying Fighter Raptor.",
 			"raptorw1c": "Flying Fighter Raptor.",
