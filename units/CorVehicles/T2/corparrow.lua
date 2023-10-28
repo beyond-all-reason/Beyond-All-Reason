@@ -36,6 +36,7 @@ return {
 		tracktype = "corparrowtracks",
 		trackwidth = 46,
 		turninplace = true,
+		usePieceCollisionVolumes=true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.31,
 		turnrate = 400,
