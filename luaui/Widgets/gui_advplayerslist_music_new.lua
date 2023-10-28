@@ -548,7 +548,7 @@ function widget:Initialize()
 	end
 	WG['music'].SetMusicVolume = function(value)
 		maxMusicVolume = value
-		Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume))
+		Spring.SetConfigInt("snd_volmusic", math.ceil(maxMusicVolume))
 		if fadeDirection then
 			setMusicVolume(fadeLevel)
 		end
@@ -658,7 +658,7 @@ end
 function widget:MouseMove(x, y)
 	if showGUI and draggingSlider ~= nil then
 		if draggingSlider == 'musicvolume' then
-			maxMusicVolume = math.floor(getVolumeCoef(getSliderValue(draggingSlider, x)) * 100)
+			maxMusicVolume = math.ceil(getVolumeCoef(getSliderValue(draggingSlider, x)) * 100)
 			Spring.SetConfigInt("snd_volmusic", maxMusicVolume)
 			if fadeDirection then
 				setMusicVolume(fadeLevel)
@@ -666,7 +666,7 @@ function widget:MouseMove(x, y)
 			createList()
 		end
 		if draggingSlider == 'volume' then
-			volume = math.floor(getVolumeCoef(getSliderValue(draggingSlider, x)) * 200)
+			volume = math.ceil(getVolumeCoef(getSliderValue(draggingSlider, x)) * 200)
 			Spring.SetConfigInt("snd_volmaster", volume)
 			createList()
 		end
@@ -682,14 +682,14 @@ local function mouseEvent(x, y, button, release)
 			local button = 'musicvolume'
 			if math_isInRect(x, y, buttons[button][1] - sliderWidth, buttons[button][2], buttons[button][3] + sliderWidth, buttons[button][4]) then
 				draggingSlider = button
-				maxMusicVolume = math.floor(getVolumeCoef(getSliderValue(button, x)) * 100)
+				maxMusicVolume = math.ceil(getVolumeCoef(getSliderValue(button, x)) * 100)
 				Spring.SetConfigInt("snd_volmusic", maxMusicVolume)
 				createList()
 			end
 			button = 'volume'
 			if math_isInRect(x, y, buttons[button][1] - sliderWidth, buttons[button][2], buttons[button][3] + sliderWidth, buttons[button][4]) then
 				draggingSlider = button
-				volume = math.floor(getVolumeCoef(getSliderValue(button, x)) * 200)
+				volume = math.ceil(getVolumeCoef(getSliderValue(button, x)) * 200)
 				Spring.SetConfigInt("snd_volmaster", volume)
 				createList()
 			end
