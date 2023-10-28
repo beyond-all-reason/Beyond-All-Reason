@@ -11,14 +11,14 @@ function gadget:GetInfo()
 	}
 end
 
-if gadgetHandler:IsSyncedCode() then
+if gadgetHandler:IsSyncedCode() or Spring.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
-
 local historyFrames = 180
-local maxCommands = 450
+local maxCommands = 600
+local startWarningOffences = 3
+local maxOffences = 6
 
 local history = {}
 local totalCmdCount = 0
@@ -34,19 +34,17 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			history[gf] = (history[gf] or 0) + 1
 			totalCmdCount = totalCmdCount + 1
 			if totalCmdCount > maxCommands then
-				if not isSinglePlayer then
-					offenceFrames[gf] = true
-					totalOffence = totalOffence + 1
-					if totalOffence >= 5 then
-						--Spring.I18N('ui.cmdlimiter.forceresign')
-						Spring.Echo("You queued too much buildings too many times, you have been force resigned!")
-						Spring.SendCommands("spectator")
-					elseif totalOffence >= 3 then
-						--Spring.I18N('ui.cmdlimiter.forceresignwarning')
-						Spring.Echo("You queued too much buildings a few time, continue this and you will get forcefully resigned.")
-					end
-					totalCmdCount = totalCmdCount - 100	-- remove some so user can instantly queue somehting next without instantly being warned again
+				offenceFrames[gf] = true
+				totalOffence = totalOffence + 1
+				if totalOffence >= maxOffences then
+					--Spring.I18N('ui.cmdlimiter.forceresign')
+					Spring.Echo("\255\255\040\040YOU QUEUED TOO MUCH BUILDINGS TOO MANY TIMES, YOU HAVE BEEN FORCE RESIGNED!")
+					Spring.SendCommands("spectator")
+				elseif totalOffence >= startWarningOffences then
+					--Spring.I18N('ui.cmdlimiter.forceresignwarning')
+					Spring.Echo("\255\255\085\085YOU HAVE QUEUED TOO MUCH BUILDINGS IN A SHORT PERIOD, KEEP DOING THIS AND YOU WILL GET AUTO RESIGNED!")
 				end
+				totalCmdCount = totalCmdCount - 100	-- remove some so user can instantly queue somehting next without instantly being warned again
 				return true
 			end
 		end
