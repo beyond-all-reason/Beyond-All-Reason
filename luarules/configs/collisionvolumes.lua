@@ -71,12 +71,13 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 	   unit's on/off status, unarmored for on and armored for off
 ]]--
 
---Collision volume definitions, ones entered here are for TA, for other mods modify apropriatly
+--Collision volume definitions, ones entered here are for TA, for other mods modify apropriatly 
 local unitCollisionVolume = {}			--dynamic collision volume definitions
 local pieceCollisionVolume = {}			--per piece collision volume definitions
 local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume definitions
 
-
+-- number of times this table had to be touched since 2022 ~22
+-- increase this number eachtime this table gets touched
 
 unitCollisionVolume['armanni'] = {
 	on={54,81,54,0,-2,0,2,1,0},
