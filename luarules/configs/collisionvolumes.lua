@@ -282,7 +282,7 @@ pieceCollisionVolume['armlatnk'] = {
 }
 pieceCollisionVolume['armmanni'] = {
 	['0']={48,34,38,0,10,0,2,1},
-	['1']={24,48,24,0,0,0,2,1},
+	['1']={24,52,24,0,0,0,2,1},
 }
 for name, v in pairs(pieceCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do
