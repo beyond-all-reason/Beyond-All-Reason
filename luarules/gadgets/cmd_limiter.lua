@@ -44,7 +44,7 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 					--Spring.I18N('ui.cmdlimiter.forceresignwarning')
 					Spring.Echo("\255\255\085\085YOU HAVE QUEUED TOO MUCH BUILDINGS IN A SHORT PERIOD, KEEP DOING THIS AND YOU WILL GET AUTO RESIGNED!")
 				end
-				totalCmdCount = totalCmdCount - 100	-- remove some so user can instantly queue somehting next without instantly being warned again
+				totalCmdCount = totalCmdCount - math.floor(maxCommands/2)	-- remove some so user can instantly queue something next without instantly being warned again
 				return true
 			end
 		end
