@@ -268,6 +268,22 @@ pieceCollisionVolume['cormart'] = {
 	['0']={26,28,34,0,0,0,2,1},
 	['1']={12,25,12,0,0,0,2,1},
 }
+pieceCollisionVolume['armmart'] = {
+	['0']={48,44,56,0,0,0,2,1},
+	['3']={24,24,24,0,0,0,2,1},
+}
+pieceCollisionVolume['armbull'] = {
+	['0']={48,44,56,0,0,0,2,1},
+	['3']={24,24,24,0,0,0,2,1},
+}
+pieceCollisionVolume['armlatnk'] = {
+	['0']={48,44,56,0,0,0,2,1},
+	['3']={24,24,24,0,0,0,2,1},
+}
+pieceCollisionVolume['armmanni'] = {
+	['0']={48,44,56,0,0,0,2,1},
+	['3']={24,24,24,0,0,0,2,1},
+}
 for name, v in pairs(pieceCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do
 		if string.find(ud.name, name) then

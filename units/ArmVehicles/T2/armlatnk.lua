@@ -34,6 +34,7 @@ return {
 		tracktype = "armacv_tracks",
 		trackwidth = 36,
 		turninplace = true,
+		usepiececollisionvolumes = 1,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 2.19516,
 		turnrate = 440,
