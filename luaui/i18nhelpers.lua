@@ -1,10 +1,11 @@
 local unitI18Nfile = VFS.LoadFile('language/en/units.json')
 local unitI18Nlua = Json.decode(unitI18Nfile)
 local i18nDescriptionEntries = unitI18Nlua.units.descriptions
+local i18nTipsEntries = unitI18Nlua.units.tips
 
 local function refreshUnitDefs()
 	for unitDefName, unitDef in pairs(UnitDefNames) do
-		local humanName, tooltip
+		local humanName, tooltip, helptip
 		local isScavenger = unitDef.customParams.isscavenger
 
 		if isScavenger then
@@ -26,8 +27,15 @@ local function refreshUnitDefs()
 			tooltip = Spring.I18N('units.descriptions.' .. proxyUnitDefName)
 		end
 
+		if i18nTipsEntries[unitDefName] then
+			helptip = Spring.I18N("units.tips." .. unitDefName)
+		else
+			helptip = ""
+		end
+
 		unitDef.translatedHumanName = humanName
 		unitDef.translatedTooltip = tooltip
+		unitDef.translatedHelptip = helptip
 	end
 end
 

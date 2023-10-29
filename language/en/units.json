@@ -1389,6 +1389,11 @@
 			"vh_raptorq": "The Mother of Them ALL! ",
 			"xmasball": "Xmas ball",
 			"xmasball2": "Xmas ball"
-		}
+		},
+        "tips": {
+            "armfido": "Use the Gauss Cannon mode to accurately pick off fast-moving units.",
+            "armspy": "Self-destructs in an EMP blast, disabling nearby units.",
+            "corspy": "Self-destructs in an EMP blast, disabling nearby units."
+        }
 	}
 }

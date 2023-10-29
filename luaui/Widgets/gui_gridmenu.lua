@@ -1578,14 +1578,21 @@ function widget:DrawScreen()
 							local _, _, meta, _ = Spring.GetModKeyState()
 							if WG['tooltip'] and not meta then
 								-- when meta: unitstats does the tooltip
-								local text
+								local text, tooltip_text
 								local textColor = "\255\215\255\215"
 								if units.unitRestricted[uDefID] then
 									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].translatedHumanName, textColor = textColor, warnColor = "\255\166\166\166" })
 								else
 									text = UnitDefs[uDefID].translatedHumanName
 								end
-								WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240"..UnitDefs[uDefID].translatedTooltip, nil, nil, text)
+								if UnitDefs[uDefID].translatedHelptip ~= "" then
+									tooltip_text = UnitDefs[uDefID].translatedTooltip
+										.. "\n"
+										.. UnitDefs[uDefID].translatedHelptip
+								else
+									tooltip_text = UnitDefs[uDefID].translatedTooltip
+								end
+								WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240"..tooltip_text, nil, nil, text)
 							end
 
 							-- highlight --if b and not disableInput then

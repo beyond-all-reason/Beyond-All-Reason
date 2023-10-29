@@ -423,6 +423,10 @@ local function drawStats(uDefID, uID)
 	------------------------------------------------------------------------------------
 	-- Generic information, cost, move, class
 	------------------------------------------------------------------------------------
+	--
+	if uDef.translatedHelptip ~= "" then
+		DrawText("Tips:", uDef.translatedHelptip)
+	end
 
 	--DrawText('Height:', uDefs[spGetUnitDefID(uID)].height)
 
