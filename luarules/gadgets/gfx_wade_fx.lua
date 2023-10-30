@@ -115,7 +115,7 @@ function gadget:GameFrame(n)
 				local x,y,z = spGetUnitPosition(unitID)
 				local h = data.h
 
-				if y > h and y <= 0 then
+				if y and y > h and y <= 0 then
 					local _, _, _, speed = spGetUnitVelocity(unitID)
 					if speed and speed > 0 and not spGetUnitIsCloaked(unitID) then
 						-- 1 is the pieceID, most likely it's usually the base piece
