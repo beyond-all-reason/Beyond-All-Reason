@@ -28,7 +28,7 @@ local minSilenceTime = 30
 local maxSilenceTime = 120
 local warLowLevel = 1000
 local warHighLevel = 30000
-local warMeterResetTime = 30 -- seconds
+local warMeterResetTime = 60 -- seconds
 local interruptionMinimumTime = 20 -- seconds
 local interruptionMaximumTime = 40 -- seconds
 
