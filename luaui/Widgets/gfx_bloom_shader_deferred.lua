@@ -191,7 +191,7 @@ local function MakeBloomShaders()
 			"#version 150 compatibility\n" .. definesString ..[[
 			void main(void)	{
 				gl_TexCoord[0] = vec4(gl_Vertex.zwzw);
-				#if DOWNSCALE == 2 
+				#if DOWNSCALE >= 2 
 					gl_TexCoord[0].xy = vec2(gl_TexCoord[0].xy * vec2(DOWNSCALE * HSX, DOWNSCALE * HSY ) /  vec2(VSX, VSY));
 				#endif
 				gl_Position    = vec4(gl_Vertex.xy, 0, 1);	}
@@ -400,46 +400,64 @@ local function MakeBloomShaders()
 
 			void main(void) {
 				vec2 halfpixeloffset = vec2(IHSX, IHSY);
-				float time0 = sin(time*0.01);
+				float time0 = sin(time*0.003);
 				// mega debugging:
 				//if (dot(vec2(1.0), abs(gl_FragCoord.xy - (vec2(HSX,HSY) - 150))) < 40){ gl_FragColor = vec4(1); return;}
 				
+				// Center texture coordinates correctly
+				vec2 texCoors = vec2(gl_TexCoord[0].xy * vec2(VSX, VSY) / vec2(DOWNSCALE * HSX, DOWNSCALE * HSY ));
+				#if DOWNSCALE <= 2
+					float modelDepth = texture2D(modelDepthTex, texCoors).r;
 
-				vec2 texCoors = vec2(gl_TexCoord[0]);
-				#if DOWNSCALE == 2 
-					texCoors = vec2(gl_TexCoord[0].xy * vec2(VSX, VSY) / vec2(DOWNSCALE * HSX, DOWNSCALE * HSY ));
+					//Bail early if this is not a model fragment
+					if (modelDepth > 0.9999) {
+						gl_FragColor = 	vec4(0.0, 0.0, 0.0, 1.0);
+						return;
+					}
+					
+		
+					float mapDepth = texture2D(mapDepthTex, texCoors).r;
+					float unoccludedModel = float(modelDepth < mapDepth); // this is 1 for a model fragment
+
+					//texCoors +=  halfpixeloffset *  0.25 * time0;
+
+					vec4 color = vec4(texture2D(modelDiffuseTex, texCoors));
+					vec4 colorEmit = texture2D(modelEmitTex, texCoors);
+
+				#else
+					// this is for downscale by 3 case
+					vec2 offset = vec2(1.0/VSX, 1.0/VSY) * 0.56;
+					float modelDepth1 = texture2D(modelDepthTex, texCoors + offset).r;
+					float modelDepth2 = texture2D(modelDepthTex, texCoors - offset).r;
+
+					//Bail early if this is not a model fragment
+					if ((modelDepth1 + modelDepth2) > 1.9999) {
+						gl_FragColor = 	vec4(0.0, 0.0, 0.0, 1.0);
+						return;
+					}
+					
+		
+					float mapDepth = texture2D(mapDepthTex, texCoors).r;
+					float unoccludedModel = float((modelDepth1 + modelDepth2) * 0.5 < mapDepth); // this is 1 for a model fragment
+
+					//texCoors +=  halfpixeloffset *  0.25 * time0;
+
+					vec4 color = vec4(texture2D(modelDiffuseTex, texCoors+ offset));
+						 color += vec4(texture2D(modelDiffuseTex, texCoors- offset));
+						 color *= 0.5;
+					vec4 colorEmit = texture2D(modelEmitTex, texCoors+ offset);
+						 colorEmit *=2;
+						 colorEmit += texture2D(modelEmitTex, texCoors- offset);
+
 				#endif
+
 				
-				float modelDepth = texture2D(modelDepthTex, texCoors).r;
-
-				//Bail early if this is not a model fragment
-				if (modelDepth > 0.9999) {
-					gl_FragColor = 	vec4(0.0, 0.0, 0.0, 1.0);
-					return;
-				}
-				
-	
-				float mapDepth = texture2D(mapDepthTex, texCoors).r;
-				float unoccludedModel = float(modelDepth < mapDepth); // this is 1 for a model fragment
-
-				if (unoccludedModel < 0.5) {
-
-					//gl_FragColor = 	vec4(0.0, 0.0, 0.0, 1.0);
-					//return;
-
-				}
-
-				//texCoors +=  halfpixeloffset *  0.25 * time0;
-
-				vec4 color = vec4(texture2D(modelDiffuseTex, texCoors));
-				vec4 colorEmit = texture2D(modelEmitTex, texCoors);
-
-
 				//Handle transparency in color.a
 				color.rgb = color.rgb * color.a;
 
 				//calculate the resulting color by adding the emit color
 				color.rgb += colorEmit.rgb;
+
 
 				//Make the bloom more sensitive to luminance in green channel
 				float illum = dot(color.rgb, vec3(0.2990, 0.4870, 0.2140)); //adjusted from the real values of  vec3(0.2990, 0.5870, 0.1140)
