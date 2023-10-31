@@ -2,8 +2,8 @@ return {
 	corhp = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 4200,
-		buildcostmetal = 1100,
+		buildcostenergy = 3000,
+		buildcostmetal = 900,
 		builder = true,
 		buildpic = "CORHP.DDS",
 		buildtime = 11000,
@@ -30,7 +30,7 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 312,
 		terraformspeed = 1000,
-		workertime = 200,
+		workertime = 100,
 		yardmap = "occccccooccccccooccccccooccccccooccccccooccccccoocccccco",
 		buildoptions = {
 			[1] = "corch",
