@@ -497,6 +497,16 @@ end
 -- return true if tidal speed is *relevant*, enough water in the world (>= 10%)
 local function checkTidalRelevant()
 	local _, _, mapMinHeight, mapMaxHeight = Spring.GetGroundExtremes()
+	-- account for invertmap to the best of our abiltiy
+	if string.find(Spring.GetModOptions().debugcommands,"invertmap") then
+		if string.find(Spring.GetModOptions().debugcommands,"wet") then
+			-- this test can end up running several times, before and after inversion, if it passed once before, as such a false positive is better than false negative
+			mapMinHeight = math.min(mapMinHeight, 0 - mapMaxHeight)
+		else
+			mapMinHeight = 0
+		end
+	end
+	mapMinHeight = mapMinHeight - (Spring.GetModOptions().map_waterlevel or 0)
 	return mapMinHeight <= -20	-- armtide/cortide can be built from 20 waterdepth (hardcoded here cause am too lazy to auto cycle trhough unitdefs and read it from there)
 end
 
