@@ -1035,6 +1035,15 @@ end
 		end
 	end
 
+	-- commanders and lootboxes
+	if (uDef.metalmake and uDef.metalmake > 0) then
+		local x = Spring.GetModOptions().multiplier_resourceincome
+		uDef.metalmake = uDef.metalmake * x
+		if uDef.metalstorage then
+			uDef.metalstorage = uDef.metalstorage * x
+		end
+	end
+
 	-- Energy Production Multiplier
 	if uDef.energymake then
 		local x = Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome
