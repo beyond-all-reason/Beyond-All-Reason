@@ -7,7 +7,7 @@ piece  pelvis, torso, rthigh, rleg, rfoot, lthigh, lleg, lfoot,lbturret, lbbarre
 rbbarrel1, rbbarrel2,luparm, llarm, lfbarrel1, lfbarrel2,ruparm, rlarm, rfbarrel1, rfbarrel2,
 lfflare1, lfflare2, rfflare1, rfflare2,lbflare, rbflare,head, aimx1, aimy1, aaturretl, aaturretr, boxl, boxr, aaflarel, aaflarer;
 
-static-var  gun_1, bMoving, bAiming, gun_2;
+static-var  gun_1, bMoving, bAiming, gun_2, current_flare;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
@@ -882,6 +882,7 @@ Create()
 	hide aimy1;
 	gun_1 = 1;
 	gun_2 = 0;
+	current_flare = rfflare1;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	animSpeed = 6;
@@ -1002,29 +1003,117 @@ QueryTertiary(piecenum)
 AimTertiary(heading, pitch)
 {
 	signal SIG_AIM;
-	//if(gun_1 == 1)
-	//{
-		//emit-sfx 2048 from flare;
-		//start-script RestoreAfterDelay();
-		//return (0);
-	//}
-	//*
-	turn aimy1 to y-axis heading speed <15.000000>;
-	turn barrel to x-axis -1*pitch speed <7.000000>;
-	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 500) AND ((get ABS(wpn2_lasthead - heading)) < 65036)))
+	
+	if( gun_1 == 1 )
 	{
-		wpn2_lasthead = 1000000;
-		wait-for-turn aimy1 around y-axis;
-		wait-for-turn barrel around x-axis;
+		gun_1 = 2;
+		//this could be looped later
+		emit-sfx 2048 from lfflare1;
+		sleep (33);
+		emit-sfx 2048 from lfflare1;
+		sleep (33);
+		emit-sfx 2048 from lfflare1;
+		sleep (33);
+		emit-sfx 2048 from lfflare1;
+		sleep (33);
+		emit-sfx 2048 from lfflare1;
+		sleep (33);		
 	}
-	wpn2_lasthead = heading;//*/
+	if( gun_1 == 2 )
+	{
+		gun_1 = 3;
+		
+		emit-sfx 2048 from rfflare1;
+		sleep (33);
+		emit-sfx 2048 from rfflare1;
+		sleep (33);
+		emit-sfx 2048 from rfflare1;
+		sleep (33);
+		emit-sfx 2048 from rfflare1;
+		sleep (33);
+		emit-sfx 2048 from rfflare1;
+		sleep (33);		
+	}
+	if( gun_1 == 3 )
+	{
+		gun_1 = 4;
+		
+		emit-sfx 2048 from lfflare2;
+		sleep (33);
+		emit-sfx 2048 from lfflare2;
+		sleep (33);
+		emit-sfx 2048 from lfflare2;
+		sleep (33);
+		emit-sfx 2048 from lfflare2;
+		sleep (33);
+		emit-sfx 2048 from lfflare2;
+		sleep (33);		
+
+	}
+	if( gun_1 == 4 )
+	{
+		gun_1 = 1;
+		
+		emit-sfx 2048 from rfflare2;
+		sleep (33);
+		emit-sfx 2048 from rfflare2;
+		sleep (33);
+		emit-sfx 2048 from rfflare2;
+		sleep (33);
+		emit-sfx 2048 from rfflare2;
+		sleep (33);
+		emit-sfx 2048 from rfflare2;
+		sleep (33);		
+
+	}	
+	
+	
+	
+
+
+	
+
 	//start-script RestoreAfterDelay();
 	return (1);
 }
 
 FireTertiary()
-{
-	//gun_1 = 1;
+{/*
+	if( gun_1 == 1 )
+	{
+		turn aimy1 to x-axis <-1> now; // dont always do this
+		turn aimy1 to x-axis <0> speed <5>;
+		
+		gun_1 = 2;
+		move lfbarrel1 to z-axis [-1] speed [750.000000];
+		sleep 150;
+		move lfbarrel1 to z-axis [0.000000] speed [8.750000];
+		return (0);
+	}
+	if( gun_1 == 2 )
+	{
+		gun_1 = 3;
+		move rfbarrel1 to z-axis [-1] speed [750.000000];
+		sleep 150;
+		move rfbarrel1 to z-axis [0.000000] speed [8.750000];
+		return (0);
+	}
+	if( gun_1 == 3 )
+	{
+		gun_1 = 4;
+		move lfbarrel2 to z-axis [-1] speed [750.000000];
+		sleep 150;
+		move lfbarrel2 to z-axis [0.000000] speed [8.750000];
+		return (0);
+	}
+	if( gun_1 == 4 )
+	{
+		gun_1 = 1;
+		move rfbarrel2 to z-axis [-1] speed [750.000000];
+		sleep 150;
+		move rfbarrel2 to z-axis [0.000000] speed [8.750000];
+		return (0);
+	}//*/
 	return (1);
 }
 
