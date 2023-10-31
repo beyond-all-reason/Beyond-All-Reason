@@ -44,6 +44,10 @@ local singleHitUnitId = {}
 
 local singleHitMultiWeapon = {}
 local singleHitProjectile = {}
+local fireballWeapons = {}
+
+local flyingFireballs = {}
+local groundedFireballs = {}
 
 function gadget:Initialize()
 	for wdid = 1, #WeaponDefs do
@@ -58,7 +62,9 @@ function gadget:Initialize()
 				Spring.Echo(wd.name, wd.id, wdid)
 				singleHitMultiWeapon[wd.id] = true;
 				wantedWeaponList[#wantedWeaponList + 1] = wdid
-				
+				--if wd.type == 'Flame'
+					--fireballWeapons[weaponDefID] = weaponDef
+				--end
 				-- later move fireWeapons here
 				Script.SetWatchProjectile(wd.id, true)
 			end
@@ -68,12 +74,14 @@ function gadget:Initialize()
 	--Spring.Debug.TableEcho(wantedWeaponList)
 end
 
---TableEcho = {
---1 = 578
---2 = 580
---}
-	
-local fireballWeapons = {}
+
+
+
+
+--tried to fake 3d damage, it was weird at best. might be fixable / reusable, I wish you luck.
+--[[
+
+
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if weaponDef.customParams then
 		if weaponDef.customParams.single_hit_multi and weaponDef.type == 'Flame' then
@@ -85,17 +93,11 @@ end
 --Spring.Echo('hornet debug degunweapons')
 --Spring.Debug.TableEcho(fireballWeapons)
 
---     578 = {
---         pairs = , <function>
---         next = , <function>
---     },
 
 
-local flyingFireballs = {}
-local groundedFireballs = {}
 
 local function addVolumetricDamage(projectileID)
-	--Spring.Echo('hornet debug AVD run')
+	Spring.Echo('hornet debug AVD run')
 	
 	local weaponDefID = Spring.GetProjectileDefID(projectileID)
 	local ownerID = Spring.GetProjectileOwnerID(projectileID)
@@ -115,7 +117,7 @@ local function addVolumetricDamage(projectileID)
 		ignoreOwner = fireballWeapons[weaponDefID].noSelfDamage,
 		damageGround = true,
 	}
-	--Spring.SpawnExplosion(x, y ,z, 0, 0, 0, explosionParams)
+	Spring.SpawnExplosion(x, y ,z, 0, 0, 0, explosionParams)
 end
 
 
@@ -152,10 +154,7 @@ function gadget:GameFrame()
 		-- NB: no removal; do this every frame so that it doesn't fly off a cliff or something
 	end
 end
-
-
-
-
+]]--
 
 
 
@@ -167,10 +166,10 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponID)
 
 
 	Spring.Echo('hornet debug ProjectileCreated run')
-	if fireballWeapons[weaponID] then
-		flyingFireballs[proID] = true
-		Spring.Echo('hornet debug tracking proID', proID)
-	end
+	--if fireballWeapons[weaponID] then
+		--flyingFireballs[proID] = true
+		--Spring.Echo('hornet debug tracking proID', proID)
+	--end
 
 	if singleHitMultiWeapon[weaponID] then
 		singleHitProjectile[proID] = {}
@@ -179,8 +178,8 @@ end
 
 function gadget:ProjectileDestroyed(proID)
 
-	flyingFireballs[proID] = nil
-	groundedFireballs[proID] = nil
+	--flyingFireballs[proID] = nil
+	--groundedFireballs[proID] = nil
 
 
 	if singleHitMultiWeapon[proID] then
@@ -193,7 +192,7 @@ function gadget:UnitPreDamaged_GetWantedWeaponDef()
 end
 
 
-function gadget:UnitPreDamaged(unitID,unitDefID,_, damage,_, weaponDefID,attackerID,_,_, projectileID)
+function gadget:UnitPreDamaged(unitID,unitDefID,_, damage,_, weaponDefID,projectileID,attackerID,_,_)
 	if singleHitWeapon[weaponDefID] then
 		if attackerID then
 			local frame = spGetGameFrame()

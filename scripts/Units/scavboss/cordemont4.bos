@@ -964,6 +964,72 @@ AimFromSecondary(piecenum)
 	}
 }
 
+//aiming weapon only, never fired
+//tried to copy all logic from earlier weapons as leginc does
+//however something goes amiss, maybe the gun_1 switch being invalid
+//I've tried variants without it also
+// possibly also this using baiming , and I don't pretend to understand aiming signals
+// RestoreAfterDelay will cause it to loop infinitely twitching about
+AimFromTertiary(piecenum)
+{
+	piecenum = torso;
+}
+
+QueryTertiary(piecenum)
+{
+	if( gun_1 == 1 )
+	{
+		piecenum = lfflare1;
+		return (0);
+	}
+	if( gun_1 == 2 )
+	{
+		piecenum = rfflare1;
+		return (0);
+	}
+	if( gun_1 == 3 )
+	{
+		piecenum = lfflare2;
+		return (0);
+	}
+	if( gun_1 == 4 )
+	{
+		piecenum = rfflare2;
+		return (0);
+	}
+}
+
+AimTertiary(heading, pitch)
+{
+	signal SIG_AIM;
+	//if(gun_1 == 1)
+	//{
+		//emit-sfx 2048 from flare;
+		//start-script RestoreAfterDelay();
+		//return (0);
+	//}
+	//*
+	turn aimy1 to y-axis heading speed <15.000000>;
+	turn barrel to x-axis -1*pitch speed <7.000000>;
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 500) AND ((get ABS(wpn2_lasthead - heading)) < 65036)))
+	{
+		wpn2_lasthead = 1000000;
+		wait-for-turn aimy1 around y-axis;
+		wait-for-turn barrel around x-axis;
+	}
+	wpn2_lasthead = heading;//*/
+	//start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireTertiary()
+{
+	//gun_1 = 1;
+	return (1);
+}
+
+
+
 /* 
 // Removed awesome constant acceleration aiming cause of complaints that "now the unit doesnt aim well when there are multiple targets"
 
