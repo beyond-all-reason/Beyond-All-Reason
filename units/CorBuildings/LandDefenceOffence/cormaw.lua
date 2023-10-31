@@ -166,6 +166,7 @@ return {
 				weapontype = "Flame",
 				weaponvelocity = 300,
 				damage = {
+					commanders = 33,
 					default = 22,
 					subs = 5.5,
 				},
