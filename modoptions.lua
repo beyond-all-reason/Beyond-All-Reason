@@ -862,16 +862,6 @@ local options={
 	},
 
 	{
-		key = 'comtestchanges',
-		name = 'Commander Test Changes',
-		desc = 'Comupdate, but with health 4000->3700, regen 0->5, and T1 turrets deal 1.5x damage to commanders',
-		type = 'bool',
-		section = 'options_experimental',
-		def = true,
-		hidden = true,
-	},
-
-	{
 		key = 'expandedt2sea',
 		name = 'Expanded T2 Sea',
 		desc = 'T2 sea is expanded to include a lightning ship for arm and a flamethrower ship for cor, and both factions get a drone carrier ship and an anti-nuke support ship to replace the aircraft carrier.  Cruisers rebalanced to be slower and lower range but higher health and dps for a more defensive role',
