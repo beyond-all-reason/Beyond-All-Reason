@@ -2,8 +2,8 @@ return {
 	corfhp = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 4200,
-		buildcostmetal = 1100,
+		buildcostenergy = 3000,
+		buildcostmetal = 900,
 		builder = true,
 		buildpic = "CORFHP.DDS",
 		buildtime = 11000,
@@ -30,7 +30,7 @@ return {
 		sightdistance = 312,
 		terraformspeed = 1000,
 		waterline = 4,
-		workertime = 200,
+		workertime = 100,
 		yardmap = "wCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCw",
 		buildoptions = {
 			[1] = "corch",

@@ -139,25 +139,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	if Spring.GetModOptions().experimentalrebalancehovercrafttech == true then
-		if name == "corhp" or name == "corfhp" or name == "armhp" or name == "armfhp" then
-			uDef.buildcostmetal = 900 --730 --1100
-			uDef.buildcostenergy = 3000 --1800 --4200
-			uDef.buildtime = 11000 --7150 --11000
-			uDef.workertime = 100 --200
-		end
-		if name == "armch" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "armavp"
-			uDef.buildoptions[numBuildoptions+2] = "armasy"
-		end
-		if name == "corch" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "coravp"
-			uDef.buildoptions[numBuildoptions+2] = "corasy"
-		end
-	end
-
 	if Spring.GetModOptions().expandedt2sea == true then
 		if name == "corcrus" then
 			uDef.maxvelocity = 1.8

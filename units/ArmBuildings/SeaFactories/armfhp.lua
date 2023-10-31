@@ -2,11 +2,11 @@ return {
 	armfhp = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 4200,
-		buildcostmetal = 1020,
+		buildcostenergy = 3000,
+		buildcostmetal = 900,
 		builder = true,
 		buildpic = "ARMFHP.DDS",
-		buildtime = 10200,
+		buildtime = 11000,
 		canmove = true,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumescales = "120 32 106",
@@ -30,7 +30,7 @@ return {
 		sightdistance = 286,
 		terraformspeed = 1000,
 		waterline = 4,
-		workertime = 200,
+		workertime = 100,
 		yardmap = "wCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCw",
 		buildoptions = {
 			[1] = "armch",

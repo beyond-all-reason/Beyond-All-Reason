@@ -941,16 +941,6 @@ local options={
 	},
 
 	{
-		key    = 'experimentalrebalancehovercrafttech',
-		name   = 'Rebalance Candidate: Hovercraft rebalance - Cheaper lab with buildpower 200 -> 100, can Tech2 into Vehicles and Ships',
-		desc   = '',
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = true,
-		hidden = true,
-	},
-
-	{
 		key    = 'experimentalrebalancewreckstandarization',
 		name   = 'Rebalance Candidate: Standarized wreck metal values. *0.6 of metal cost for wreck, *0.25 for heap.',
 		desc   = '',
