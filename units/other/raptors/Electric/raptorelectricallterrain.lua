@@ -100,7 +100,7 @@ return {
 				noselfdamage = true,
 				paralyzer = true,
 				paralyzetime = 20,
-				range = 300,
+				range = 250,
 				reloadtime = 1.5,
 				rgbcolor = "0.5 0.5 1",
 				--soundhit = "xplomed3",

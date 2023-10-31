@@ -26,7 +26,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 1,
-            spawnTimer = 30,
+            spawnTimer = 120,
         },
         [2] = {
             name = "raptorh4",
@@ -35,7 +35,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 2,
             maxAllowed = 2,
-            spawnTimer = 15,
+            spawnTimer = 60,
         },
     },
     [UnitDefNames["raptorh3"].id] = {
@@ -46,7 +46,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 2,
             maxAllowed = 2,
-            spawnTimer = 30,
+            spawnTimer = 120,
         },
     },
 
@@ -59,7 +59,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 3,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
         [2] = {
             name = "raptor1y",
@@ -68,7 +68,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 3,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
         [3] = {
             name = "raptor1z",
@@ -77,7 +77,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 3,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
         [4] = {
             name = "raptor2",
@@ -86,7 +86,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 3,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
         [5] = {
             name = "raptor2b",
@@ -95,7 +95,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 3,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
     },
     [UnitDefNames["raptor_miniqueen_healer"].id] = {
@@ -106,7 +106,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 4,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
         [2] = {
             name = "raptorhealer2",
@@ -115,7 +115,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 3,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
         [3] = {
             name = "raptorhealer3",
@@ -124,7 +124,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 2,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
         [4] = {
             name = "raptorhealer4",
@@ -133,7 +133,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 1,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
     },
     [UnitDefNames["raptor_miniqueen_acid"].id] = {
@@ -144,7 +144,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 10,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
         [2] = {
             name = "raptoracidassault",
@@ -153,7 +153,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 2,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
         [3] = {
             name = "raptoracidarty",
@@ -162,7 +162,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 1,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
     },
     [UnitDefNames["raptor_miniqueen_electric"].id] = {
@@ -173,7 +173,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 10,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
         [2] = {
             name = "raptore2",
@@ -182,7 +182,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 2,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
         [3] = {
             name = "raptorearty1",
@@ -191,7 +191,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 1,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
     },
     [UnitDefNames["raptor_miniqueen_fire"].id] = {
@@ -202,7 +202,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 10,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
         [2] = {
             name = "raptorp2",
@@ -211,7 +211,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 2,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
     },
     [UnitDefNames["raptor_miniqueen_spectre"].id] = {
@@ -222,7 +222,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 5,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
         [2] = {
             name = "raptora1_spectre",
@@ -231,7 +231,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 2,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
         [3] = {
             name = "raptors2_spectre",
@@ -240,7 +240,7 @@ local unitList = {
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 5,
-            spawnTimer = 1,
+            spawnTimer = 10,
         },
     },
 
@@ -249,7 +249,7 @@ local unitList = {
         [1] = {
             name = "raptorw1_mini",
             type = "air",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 1000,
             spawnedPerWave = 2,
             maxAllowed = 4,
@@ -258,7 +258,7 @@ local unitList = {
         [2] = {
             name = "raptorf1_mini",
             type = "air",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 1000,
             spawnedPerWave = 2,
             maxAllowed = 4,
@@ -267,18 +267,27 @@ local unitList = {
         [3] = {
             name = "raptorh2",
             type = "ground",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 1,
             spawnTimer = 1,
+        },
+        [4] = {
+            name = "raptorhealer4",
+            type = "ground",
+            spawnRadius = 500,
+            fightRadius = 500,
+            spawnedPerWave = 1,
+            maxAllowed = 1,
+            spawnTimer = 10,
         },
     },
     [UnitDefNames["e_raptorq"].id] = {
         [1] = {
             name = "raptorw1_mini",
             type = "air",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 3,
             maxAllowed = 6,
@@ -287,7 +296,7 @@ local unitList = {
         [2] = {
             name = "raptorf1_mini",
             type = "air",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 3,
             maxAllowed = 6,
@@ -296,18 +305,27 @@ local unitList = {
         [3] = {
             name = "raptorh2",
             type = "ground",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 2,
             spawnTimer = 1,
+        },
+        [4] = {
+            name = "raptorhealer4",
+            type = "ground",
+            spawnRadius = 500,
+            fightRadius = 500,
+            spawnedPerWave = 2,
+            maxAllowed = 2,
+            spawnTimer = 10,
         },
     },
     [UnitDefNames["n_raptorq"].id] = {
         [1] = {
             name = "raptorw1_mini",
             type = "air",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 4,
             maxAllowed = 8,
@@ -316,7 +334,7 @@ local unitList = {
         [2] = {
             name = "raptorf1_mini",
             type = "air",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 4,
             maxAllowed = 8,
@@ -325,18 +343,27 @@ local unitList = {
         [3] = {
             name = "raptorh2",
             type = "ground",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 3,
             spawnTimer = 1,
+        },
+        [4] = {
+            name = "raptorhealer4",
+            type = "ground",
+            spawnRadius = 500,
+            fightRadius = 500,
+            spawnedPerWave = 3,
+            maxAllowed = 3,
+            spawnTimer = 10,
         },
     },
     [UnitDefNames["h_raptorq"].id] = {
         [1] = {
             name = "raptorw1",
             type = "air",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 5,
             maxAllowed = 10,
@@ -345,7 +372,7 @@ local unitList = {
         [2] = {
             name = "raptorf1",
             type = "air",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 5,
             maxAllowed = 10,
@@ -354,7 +381,7 @@ local unitList = {
         [3] = {
             name = "raptor_dodoair",
             type = "air",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 5,
             maxAllowed = 10,
@@ -363,18 +390,27 @@ local unitList = {
         [4] = {
             name = "raptorh2",
             type = "ground",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 4,
             spawnTimer = 1,
+        },
+        [5] = {
+            name = "raptorhealer4",
+            type = "ground",
+            spawnRadius = 500,
+            fightRadius = 500,
+            spawnedPerWave = 4,
+            maxAllowed = 4,
+            spawnTimer = 10,
         },
     },
     [UnitDefNames["vh_raptorq"].id] = {
         [1] = {
             name = "raptorw1",
             type = "air",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 6,
             maxAllowed = 12,
@@ -383,7 +419,7 @@ local unitList = {
         [2] = {
             name = "raptorf1",
             type = "air",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 6,
             maxAllowed = 12,
@@ -392,7 +428,7 @@ local unitList = {
         [3] = {
             name = "raptor_dodoair",
             type = "air",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 6,
             maxAllowed = 12,
@@ -401,18 +437,27 @@ local unitList = {
         [4] = {
             name = "raptorh2",
             type = "ground",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 5,
             spawnTimer = 1,
+        },
+        [5] = {
+            name = "raptorhealer4",
+            type = "ground",
+            spawnRadius = 500,
+            fightRadius = 500,
+            spawnedPerWave = 5,
+            maxAllowed = 5,
+            spawnTimer = 10,
         },
     },
     [UnitDefNames["epic_raptorq"].id] = {
         [1] = {
             name = "raptorw2",
             type = "air",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 7,
             maxAllowed = 14,
@@ -421,7 +466,7 @@ local unitList = {
         [2] = {
             name = "raptorf1apex",
             type = "air",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 7,
             maxAllowed = 14,
@@ -430,7 +475,7 @@ local unitList = {
         [3] = {
             name = "raptor_dodoair",
             type = "air",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 7,
             maxAllowed = 14,
@@ -439,11 +484,20 @@ local unitList = {
         [4] = {
             name = "raptorh2",
             type = "ground",
-            spawnRadius = 100,
+            spawnRadius = 500,
             fightRadius = 500,
             spawnedPerWave = 1,
             maxAllowed = 6,
             spawnTimer = 1,
+        },
+        [5] = {
+            name = "raptorhealer4",
+            type = "ground",
+            spawnRadius = 500,
+            fightRadius = 500,
+            spawnedPerWave = 6,
+            maxAllowed = 6,
+            spawnTimer = 10,
         },
     },
 }
