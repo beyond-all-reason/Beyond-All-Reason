@@ -24,7 +24,9 @@ local function setup(addResources)
 	local startEnergy = Spring.GetModOptions().startenergy
 	local startMetalStorage = Spring.GetModOptions().startmetalstorage
 	local startEnergyStorage = Spring.GetModOptions().startenergystorage
-
+	-- include commander storage potentially being higher than starting metal ammount to prevent going into negatives (can still reach zero)
+	local comBasedMinMetal = UnitDefNames.corcom.metalStorage or 0
+	local comBasedMinEnergy = UnitDefNames.corcom.energyStorage or 0
 	if GG.coopMode then
 
 		local teamPlayerCounts = {}
@@ -41,8 +43,8 @@ local function setup(addResources)
 		for i = 1, #teamList do
 			local teamID = teamList[i]
 			local multiplier = teamPlayerCounts[teamID] or 1 -- Gaia has no players
-			Spring.SetTeamResource(teamID, 'ms', math.max(minStorageMetal, startMetalStorage * multiplier, startMetal * multiplier))
-			Spring.SetTeamResource(teamID, 'es',  math.max(minStorageEnergy, startEnergyStorage * multiplier, startEnergy * multiplier))
+			Spring.SetTeamResource(teamID, 'ms', math.max(minStorageMetal, startMetalStorage * multiplier, startMetal * multiplier, comBasedMinMetal))
+			Spring.SetTeamResource(teamID, 'es',  math.max(minStorageEnergy, startEnergyStorage * multiplier, startEnergy * multiplier, comBasedMinEnergy))
 			if addResources then
 				Spring.SetTeamResource(teamID, 'm', startMetal * multiplier)
 				Spring.SetTeamResource(teamID, 'e', startEnergy * multiplier)
@@ -52,8 +54,8 @@ local function setup(addResources)
 		local teamList = Spring.GetTeamList()
 		for i = 1, #teamList do
 			local teamID = teamList[i]
-			Spring.SetTeamResource(teamID, 'ms', math.max(minStorageMetal, startMetalStorage, startMetal))
-			Spring.SetTeamResource(teamID, 'es',  math.max(minStorageEnergy, startEnergyStorage,  startEnergy))
+			Spring.SetTeamResource(teamID, 'ms', math.max(minStorageMetal, startMetalStorage, startMetal, comBasedMinMetal))
+			Spring.SetTeamResource(teamID, 'es',  math.max(minStorageEnergy, startEnergyStorage,  startEnergy, comBasedMinEnergy))
 			if addResources then
 				Spring.SetTeamResource(teamID, 'm', startMetal)
 				Spring.SetTeamResource(teamID, 'e', startEnergy)
