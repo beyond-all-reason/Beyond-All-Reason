@@ -227,7 +227,7 @@ return {
 				turret = true,
 				--weapontimer = 1,
 				weapontype = "LaserCannon",
-				weaponvelocity = 950,
+				weaponvelocity = 999,
 				damage = {
 					bombers = 44,
 					commanders = 22,
