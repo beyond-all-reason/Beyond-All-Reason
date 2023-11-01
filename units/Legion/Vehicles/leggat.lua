@@ -152,7 +152,7 @@ return {
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 3,
-				range = 420,--400,
+				range = 400,
 				reloadtime = 0.4,
 				rgbcolor = "1 0.95 0.4",
 				--size = 2.25,
@@ -166,7 +166,7 @@ return {
 				turret = true,
 				--weapontimer = 1,
 				weapontype = "LaserCannon",
-				weaponvelocity = 950,
+				weaponvelocity = 921,
 				damage = {
 					bombers = 12,
 					commanders = 6,
