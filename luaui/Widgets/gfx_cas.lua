@@ -162,7 +162,16 @@ vec3 CASPass(ivec2 tc) {
 
 	float peak = 8.0 - 3.0 * sharpness;
 	vec3 wRGB = vec3(-1.0) / (ampRGB * peak);
+	
+	// almost-identity the wRGB factors
 
+	float almostident = 0.0;
+	
+	wRGB *= -1;
+	wRGB = mix( sqrt(wRGB * wRGB + almostident * almostident) - almostident, wRGB,wRGB);
+	wRGB *= -1;
+	//return -wRGB;
+	
 	vec3 rcpWeightRGB = vec3(1.0) / (1.0 + 4.0 * wRGB);
 
 	//						  0 w 0
@@ -281,6 +290,8 @@ function widget:ViewResize()
 	widget:Initialize()
 end
 
+local casList
+
 function widget:DrawScreenEffects()
 	--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
 	if WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
@@ -292,6 +303,22 @@ function widget:DrawScreenEffects()
 		return false
 	end
 	if screenCopyTex == nil then return end
+
+	--[[
+	glTexture(0, screenCopyTex)
+	if casList == nil then 
+		casList = gl.CreateList( function()
+			glBlending(false)
+			casShader:Activate()
+			fullTexQuad:DrawArrays(GL.TRIANGLES, 3)
+			casShader:Deactivate()
+			glBlending(true)
+			glTexture(0, false)
+		end)
+	else
+		gl.CallList(casList)
+	end]]--
+
 	glTexture(0, screenCopyTex)
 	glBlending(false)
 	casShader:Activate()
