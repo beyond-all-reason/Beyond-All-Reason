@@ -67,15 +67,27 @@ if gadgetHandler:IsSyncedCode() then
 	-- any groups that are not found to have a valid faction do not expand the pool.
 	-- if the pool is insufficent for the number of teams, then the list is read looping back from the start
 	local factionStrings = include("gamedata/sidedata.lua")
+	-- legion is not inside the sidedata file
 	if Spring.GetModOptions().experimentallegionfaction then
 		factionStrings[#factionStrings + 1] = {
 			name = "Legion",
 			startunit = 'legcom'
 		}
 	end
+	-- Clean up the faction names to lower case
 	for _,factionData in pairs(factionStrings) do
 		factionData.name = string.lower(factionData.name)
 	end
+	
+	------------------------------------------------------------
+	-- faction restrictions
+	--		list of allowed units exposed via game rule params
+	--		param `faction_list_count`	- contains count of team locks avialable before needing to loop around
+	--									- check if not nil before trying to get a faction list
+	--		param "faction_list_"..n	- provides list of unit def ids, sperated by commas
+	--									- where n is found via ( allyTeamID % faction_list_count + 1 )
+	------------------------------------------------------------
+	-- process the faction to team locking
 	local faction_limiter = Spring.GetModOptions().faction_limiter
 	local faction_limiter_valid = false
 	local faction_limited_options = {}
@@ -96,6 +108,17 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			if faction_limited_options[teamGroupID] ~= nil then
 				teamGroupID = teamGroupID + 1
+			end
+		end
+		if faction_limiter_valid then
+			Spring.SetGameRulesParam("faction_list_count", #faction_limited_options)
+			local msg
+			for i = 1, #faction_limited_options do
+				msg = ""
+				for lim, _ in pairs(faction_limited_options[i]) do
+					msg = msg..lim..","
+				end
+				Spring.SetGameRulesParam("faction_list_"..i, msg)
 			end
 		end
 	end
@@ -125,22 +148,19 @@ if gadgetHandler:IsSyncedCode() then
 				-- set & broadcast (current) start unit
 				local _, _, _, _, teamSide, teamAllyID = spGetTeamInfo(teamID, false)
 				local comDefID = armcomDefID
-				-- we try to give you your faction, if we can't, we find the first available faction, loops around if the list isn't long enough to include current team
+
+				-- we try to give you your faction's commanders, if we can't, we find the first available faction/unit
 				if faction_limiter_valid then
 					if teamSide == 'cortex' and faction_limited_options[ teamAllyID % #faction_limited_options + 1][corcomDefID] then
 						comDefID = corcomDefID
 					elseif teamSide == 'legion' and faction_limited_options[ teamAllyID % #faction_limited_options + 1][legcomDefID] then
 						comDefID = legcomDefID
 					elseif faction_limited_options[teamAllyID % #faction_limited_options + 1][armcomDefID] ~= true then
-						if faction_limited_options[ teamAllyID % #faction_limited_options + 1][corcomDefID] then
-							comDefID = corcomDefID
-						elseif faction_limited_options[teamAllyID % #faction_limited_options + 1][legcomDefID] then
-							comDefID = legcomDefID
-						else
-							Spring.Echo("gadget/game_initial_spawn - how did we get here?")
-						end
+						-- the limter should have never activated if this table was never given an entry
+						comDefID, _ = next(faction_limited_options[teamAllyID % #faction_limited_options + 1], nil)
 					end
-				-- otherwise default behaviour
+
+				-- otherwise default start commander behaviour
 				else
 					if teamSide == 'cortex' then
 						comDefID = corcomDefID
@@ -184,7 +204,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:RecvLuaMsg(msg, playerID)
 		local startUnit = tonumber(msg:match(changeStartUnitRegex))
 		local _, _, playerIsSpec, playerTeam, allyTeamID = Spring.GetPlayerInfo(playerID, false)
-		if startUnit and ((validStartUnits[startUnit] and faction_limiter_valid == false) or (faction_limited_options[ allyTeamID % #faction_limited_options + 1][startUnit] and faction_limiter_valid == true)) then
+		if startUnit and ((faction_limiter_valid == false and validStartUnits[startUnit]) or (faction_limiter_valid == true and faction_limited_options[ allyTeamID % #faction_limited_options + 1][startUnit])) then
 			if not playerIsSpec then
 				playerStartingUnits[playerID] = startUnit
 				spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, { allied = true, public = false }) -- visible to allies only, set visible to all on GameStart
