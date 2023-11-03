@@ -76,7 +76,9 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		return
 	end
 
-	for i = 1, #commands do
+	local startIndex = math.min(2, #commands) -- We want to remove all except first command, unless only one command
+
+	for i = startIndex, #commands do
 		spGiveOrderToUnit(unitID, CMD_REMOVE, commands[i].tag, CMD_OPT_CTRL)
 	end
 	spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- Removes wait if there is a wait but doesn't readd it.
