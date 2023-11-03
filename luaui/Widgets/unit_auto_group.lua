@@ -207,9 +207,6 @@ function widget:Initialize()
 	WG['autogroup'].setPersist = function(value)
 		persist = value
 	end
-	WG['autogroup'].getGroups = function()
-		return unit2group
-	end
 end
 
 function widget:Shutdown()
