@@ -7,7 +7,7 @@ piece  pelvis, torso, rthigh, rleg, rfoot, lthigh, lleg, lfoot,lbturret, lbbarre
 rbbarrel1, rbbarrel2,luparm, llarm, lfbarrel1, lfbarrel2,ruparm, rlarm, rfbarrel1, rfbarrel2,
 lfflare1, lfflare2, rfflare1, rfflare2,lbflare, rbflare,head, aimx1, aimy1, aaturretl, aaturretr, boxl, boxr, aaflarel, aaflarer;
 
-static-var  gun_1, bMoving, bAiming, gun_2, targetswap, oldheading, isfiring;
+static-var  gun_1, bMoving, bAiming, gun_2, targetswap, oldheading, isfiring, issmoking;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
@@ -884,6 +884,7 @@ Create()
 	gun_2 = 0;
 	targetswap = 0;
 	isfiring = 0;
+	issmoking = 0;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	animSpeed = 6;
@@ -978,6 +979,24 @@ RestoreAfterDelay()
 	turn aaturretr to x-axis <0.000000> speed <80.000000>;
 	turn aaturretr to y-axis  <0.000000> speed <80.000000>;
 }
+SmokeItUp()
+{
+	if (issmoking == 0 OR TRUE){
+		
+		issmoking = 1;
+		
+		emit-sfx 257 from lbbarrel1;
+		emit-sfx 258 from rbflare;
+		sleep 45;
+		emit-sfx 258 from lbflare;
+		emit-sfx 257 from rbbarrel1;
+		sleep 45;
+
+		
+		
+		issmoking = 0;
+	}
+}
 
 SweepFire()
 {
@@ -1040,6 +1059,7 @@ AimPrimary(heading, pitch)
 		sleep 33;
 		targetswap = targetswap - 1;
 	}
+	start-script SmokeItUp();
 	oldheading = heading;
 	start-script RestoreAfterDelay();
 	wait-for-turn aimy1 around y-axis;
