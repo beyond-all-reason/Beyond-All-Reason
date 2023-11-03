@@ -235,9 +235,10 @@ local function preProcessTweakOptions()
 						Spring.Echo("Error executing tweakdef", name, postsFuncStr, "Error :" .. result)
 					end
 				end
-				append = (append or 0) + 1
-				name = "tweakdefs" .. append
 			end
+
+			append = (append or 0) + 1
+			name = "tweakdefs" .. append
 		end
 	end
 
@@ -264,9 +265,10 @@ local function preProcessTweakOptions()
 						end
 					end
 				end
-				append = (append or 0) + 1
-				modoptName = "tweakunits" .. append
 			end
+
+			append = (append or 0) + 1
+			modoptName = "tweakunits" .. append
 		end
 	end
 end
