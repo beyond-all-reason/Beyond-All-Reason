@@ -7,7 +7,7 @@ piece  pelvis, torso, rthigh, rleg, rfoot, lthigh, lleg, lfoot,lbturret, lbbarre
 rbbarrel1, rbbarrel2,luparm, llarm, lfbarrel1, lfbarrel2,ruparm, rlarm, rfbarrel1, rfbarrel2,
 lfflare1, lfflare2, rfflare1, rfflare2,lbflare, rbflare,head, aimx1, aimy1, aaturretl, aaturretr, boxl, boxr, aaflarel, aaflarer;
 
-static-var  gun_1, bMoving, bAiming, gun_2, current_flare;
+static-var  gun_1, bMoving, bAiming, gun_2, targetswap, oldheading, isfiring;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
@@ -882,7 +882,8 @@ Create()
 	hide aimy1;
 	gun_1 = 1;
 	gun_2 = 0;
-	current_flare = rfflare1;
+	targetswap = 0;
+	isfiring = 0;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	animSpeed = 6;
@@ -944,7 +945,6 @@ QuerySecondary(piecenum)
 	}
 }
 
-
 AimFromPrimary(piecenum)
 {
 	piecenum = torso;
@@ -965,264 +965,12 @@ AimFromSecondary(piecenum)
 	}
 }
 
-//aiming weapon only, never fired
-//tried to copy all logic from earlier weapons as leginc does
-//however something goes amiss, maybe the gun_1 switch being invalid
-//I've tried variants without it also
-// possibly also this using baiming , and I don't pretend to understand aiming signals
-// RestoreAfterDelay will cause it to loop infinitely twitching about
-AimFromTertiary(piecenum)
-{
-	piecenum = torso;
-}
-
-QueryTertiary(piecenum)
-{
-	if( gun_1 == 1 )
-	{
-		piecenum = lfflare1;
-		return (0);
-	}
-	if( gun_1 == 2 )
-	{
-		piecenum = rfflare1;
-		return (0);
-	}
-	if( gun_1 == 3 )
-	{
-		piecenum = lfflare2;
-		return (0);
-	}
-	if( gun_1 == 4 )
-	{
-		piecenum = rfflare2;
-		return (0);
-	}
-}
-
-AimTertiary(heading, pitch)
-{
-	signal SIG_AIM;
-	
-	if( gun_1 == 1 )
-	{
-		gun_1 = 2;
-		//this could be looped later
-		emit-sfx 2048 from lfflare1;
-		sleep (33);
-		emit-sfx 2048 from lfflare1;
-		sleep (33);
-		emit-sfx 2048 from lfflare1;
-		sleep (33);
-		emit-sfx 2048 from lfflare1;
-		sleep (33);
-		emit-sfx 2048 from lfflare1;
-		sleep (33);		
-	}
-	if( gun_1 == 2 )
-	{
-		gun_1 = 3;
-		
-		emit-sfx 2048 from rfflare1;
-		sleep (33);
-		emit-sfx 2048 from rfflare1;
-		sleep (33);
-		emit-sfx 2048 from rfflare1;
-		sleep (33);
-		emit-sfx 2048 from rfflare1;
-		sleep (33);
-		emit-sfx 2048 from rfflare1;
-		sleep (33);		
-	}
-	if( gun_1 == 3 )
-	{
-		gun_1 = 4;
-		
-		emit-sfx 2048 from lfflare2;
-		sleep (33);
-		emit-sfx 2048 from lfflare2;
-		sleep (33);
-		emit-sfx 2048 from lfflare2;
-		sleep (33);
-		emit-sfx 2048 from lfflare2;
-		sleep (33);
-		emit-sfx 2048 from lfflare2;
-		sleep (33);		
-
-	}
-	if( gun_1 == 4 )
-	{
-		gun_1 = 1;
-		
-		emit-sfx 2048 from rfflare2;
-		sleep (33);
-		emit-sfx 2048 from rfflare2;
-		sleep (33);
-		emit-sfx 2048 from rfflare2;
-		sleep (33);
-		emit-sfx 2048 from rfflare2;
-		sleep (33);
-		emit-sfx 2048 from rfflare2;
-		sleep (33);		
-
-	}	
-	
-	
-	
-
-
-	
-
-	//start-script RestoreAfterDelay();
-	return (1);
-}
-
-FireTertiary()
-{/*
-	if( gun_1 == 1 )
-	{
-		turn aimy1 to x-axis <-1> now; // dont always do this
-		turn aimy1 to x-axis <0> speed <5>;
-		
-		gun_1 = 2;
-		move lfbarrel1 to z-axis [-1] speed [750.000000];
-		sleep 150;
-		move lfbarrel1 to z-axis [0.000000] speed [8.750000];
-		return (0);
-	}
-	if( gun_1 == 2 )
-	{
-		gun_1 = 3;
-		move rfbarrel1 to z-axis [-1] speed [750.000000];
-		sleep 150;
-		move rfbarrel1 to z-axis [0.000000] speed [8.750000];
-		return (0);
-	}
-	if( gun_1 == 3 )
-	{
-		gun_1 = 4;
-		move lfbarrel2 to z-axis [-1] speed [750.000000];
-		sleep 150;
-		move lfbarrel2 to z-axis [0.000000] speed [8.750000];
-		return (0);
-	}
-	if( gun_1 == 4 )
-	{
-		gun_1 = 1;
-		move rfbarrel2 to z-axis [-1] speed [750.000000];
-		sleep 150;
-		move rfbarrel2 to z-axis [0.000000] speed [8.750000];
-		return (0);
-	}//*/
-	return (1);
-}
-
-
-
-/* 
-// Removed awesome constant acceleration aiming cause of complaints that "now the unit doesnt aim well when there are multiple targets"
-
-static-var aimy1delta, timetozero, deceleratethreshold;
-static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
-
-//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
-// MaxVelocity and acceleration are in degrees per frame (not second!)
-// Jerk is the minimum velocity of the turret
-// A high precision requirement can result in overshoots if desired 
-// (c) CC BY NC ND Beherith mysterme@gmail.com
-
-#define MAX_AIMY1_VELOCITY <5.00>
-#define AIMY1_ACCELERATION <0.3>
-#define AIMY1_JERK <2.0>
-#define AIMY1_PRECISION <1.2>
-#define AIMY1_RESTORE_SPEED <2.0>
-
-RestoreAfterDelay()
-{
-	sleep 3000;
-	turn aimx1 to x-axis <0.000000> speed <80.000000>;
-	bAiming = FALSE;
-	while ( get ABS(aimy1position) > AIMY1_RESTORE_SPEED){
-		if (aimy1position > 0 ) {
-			aimy1position = aimy1position - AIMY1_RESTORE_SPEED;
-			aimy1velocity = (-1) * AIMY1_RESTORE_SPEED;
-		}
-		else
-		{
-			aimy1position = aimy1position + AIMY1_RESTORE_SPEED;
-			aimy1velocity = AIMY1_RESTORE_SPEED;
-		}
-		turn aimy1 to y-axis aimy1position speed 30 * AIMY1_RESTORE_SPEED;
-		sleep 30;
-	}
-	aimy1velocity = 0;
-}
-
-AimWeapon1(heading, pitch)
-{
-
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	
-	bAiming = TRUE;
-	//We can do this any time
-	turn aimx1 to x-axis <0.000000> - pitch speed <85.000000>;
-	
-	aimy1target = heading;
-	aimy1delta = aimy1target - aimy1position;
-
-	
-	while( ( get ABS(aimy1delta) > AIMY1_PRECISION ) OR (get ABS(aimy1velocity) > AIMY1_JERK)){
-		if (gameFrame != get(GAME_FRAME)){ //this is to make sure we dont get double-called, as previous aimweapon thread runs before new aimweaponthread can signal-kill previous one 
-			gameFrame = get(GAME_FRAME);
-	
-			//Clamp aimy1position and aimy1delta between <-180>;<180>
-			while (aimy1position >  <180>) aimy1position = aimy1position - <360>;
-			while (aimy1position < <-180>) aimy1position = aimy1position + <360>;
-			while (aimy1delta >  <180>) aimy1delta = aimy1delta - <360>;
-			while (aimy1delta < <-180>) aimy1delta = aimy1delta + <360>;
-		
-			//number of frames required to decelerate to 0
-			timetozero = get ABS(aimy1velocity) / AIMY1_ACCELERATION;
-			
-			//distance from target where we should start decelerating, always 'positive'
-			//pos = t * v - (t*(t-1)*a/2)
-			deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_ACCELERATION / 2); 
-			
-			//get PRINT ( aimy1delta , deceleratethreshold, aimy1velocity, timetozero );
-			
-			if (get ABS(aimy1delta) <= deceleratethreshold){ //we need to decelerate
-				if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
-				else 				   aimy1velocity = aimy1velocity + AIMY1_ACCELERATION;
-			}	
-			else //we need to accelerate
-			{
-				if (aimy1delta > 0) aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity + AIMY1_ACCELERATION); 
-				else                aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity - AIMY1_ACCELERATION);
-			}
-			
-			//Apply jerk at very low velocities
-			if (get ABS(aimy1velocity) < AIMY1_JERK){
-				if ((aimy1delta >        AIMY1_JERK)) aimy1velocity =        AIMY1_JERK;
-				if ((aimy1delta < (-1) * AIMY1_JERK)) aimy1velocity = (-1) * AIMY1_JERK;
-			}
-			
-			aimy1position = aimy1position + aimy1velocity; 
-			turn aimy1 to y-axis aimy1position now;
-			aimy1delta = aimy1target - aimy1position ; 	
-		}
-		sleep 30;		
-	}
-	aimy1velocity = 0;
-	start-script RestoreAfterDelay();
-	return (1);
-}
-*/
-
 RestoreAfterDelay()
 {
 	sleep 3000;
 	bAiming = FALSE;
+	isfiring = 0;
+	targetswap = 0;
 	turn aimx1 to x-axis <0.000000> speed <80.000000>;
 	turn aimy1 to y-axis  <0.000000> speed <80.000000>;
 	turn aaturretl to x-axis <0.000000> speed <80.000000>;
@@ -1231,19 +979,71 @@ RestoreAfterDelay()
 	turn aaturretr to y-axis  <0.000000> speed <80.000000>;
 }
 
+SweepFire()
+{
+	if( gun_1 == 1 AND isfiring == 1)
+	{
+		emit-sfx 2048 from lfflare1;
+		emit-sfx 1024 + 0 from lfflare2;
+		emit-sfx 1024 + 0 from rfflare1;
+	}
+	if( gun_1 == 2 AND isfiring == 1)
+	{
+		emit-sfx 2048 from rfflare1;
+		emit-sfx 1024 + 0 from lfflare2;
+		emit-sfx 1024 + 0 from rfflare1;
+	}
+	if( gun_1 == 3 AND isfiring == 1)
+	{
+		emit-sfx 2048 from lfflare2;
+		emit-sfx 1024 + 0 from lfflare2;
+		emit-sfx 1024 + 0 from rfflare1;
+	}
+	if( gun_1 == 4 AND isfiring == 1)
+	{
+		gun_1 = 0;
+		emit-sfx 2048 from rfflare2;
+		emit-sfx 1024 + 0 from lfflare2;
+		emit-sfx 1024 + 0 from rfflare1;
+	}
+	gun_1 = gun_1 + 1;
+}
+
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
-
-
-	turn aimy1 to y-axis heading speed <150.000000>;
+	turn aimy1 to y-axis heading speed <100.000000>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <120.000000>;
-	
+	if ( (oldheading - heading) > 5000)
+	{
+		targetswap = (oldheading - heading)/5000;
+	}
+	if ( (oldheading - heading) < -5000)
+	{
+		targetswap = -1*(oldheading - heading)/5000;
+	}
+	if ( targetswap > 0 AND isfiring == 1 AND FALSE)
+	{
+		start-script SweepFire();
+		sleep 33;
+		start-script SweepFire();
+		sleep 33;
+		start-script SweepFire();
+		sleep 33;
+		start-script SweepFire();
+		sleep 33;
+		start-script SweepFire();
+		sleep 33;
+		start-script SweepFire();
+		sleep 33;
+		targetswap = targetswap - 1;
+	}
+	oldheading = heading;
+	start-script RestoreAfterDelay();
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
-	start-script RestoreAfterDelay();
 	return (1);
 }
 
@@ -1261,7 +1061,6 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-
 Shot1()
 {
 	call-script lua_FlameShot(1);
@@ -1272,6 +1071,7 @@ Shot1()
 
 FirePrimary()
 {
+	isfiring = 1;
 	if( gun_1 == 1 )
 	{
 		turn aimy1 to x-axis <-1> now; // dont always do this

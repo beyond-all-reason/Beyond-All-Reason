@@ -96,6 +96,7 @@ return {
 		weapondefs = {
 		
 			newdmaw = { -- fire based with trailing AoE on particles (or not, atm)
+				accuracy = 0,
 				areaofeffect = 128,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -104,7 +105,6 @@ return {
 				burstrate = 0.03333,
 				bouncerebound = 1,
 				cegtag = "burnflamexl",
-				commandfire = true,
 				craterboost = 0,
 				cratermult = 0.01,
 				edgeeffectiveness = 0.01,
@@ -256,11 +256,6 @@ return {
 				badtargetcategory = "NOTAIR GROUNDSCOUT",
 				def = "KARG_SHOULDER",
 				onlytargetcategory = "VTOL",
-			},
-			[3] = {
-				badtargetcategory = "GROUNDSCOUT VTOL",
-				def = "dmaw",
-				onlytargetcategory = "SURFACE",
 			},
 		},
 	},
