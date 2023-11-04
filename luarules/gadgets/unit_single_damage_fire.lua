@@ -9,7 +9,7 @@ function gadget:GetInfo()
 		enabled = true
 	}
 end
-Spring.Echo('hornet debug USDF loaded US')
+--Spring.Echo('hornet debug USDF loaded US')
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 if not gadgetHandler:IsSyncedCode() then
@@ -21,7 +21,7 @@ end
 
 
 
-Spring.Echo('hornet debug USDF loaded synced')
+--Spring.Echo('hornet debug USDF loaded synced')
 
 
 
@@ -58,8 +58,8 @@ function gadget:Initialize()
 				wantedWeaponList[#wantedWeaponList + 1] = wdid
 			end
 			if wd.customParams.single_hit_multi then
-				Spring.Echo('hornet debug wantedweapon multi')
-				Spring.Echo(wd.name, wd.id, wdid)
+				--Spring.Echo('hornet debug wantedweapon multi')
+				--Spring.Echo(wd.name, wd.id, wdid)
 				singleHitMultiWeapon[wd.id] = true;
 				wantedWeaponList[#wantedWeaponList + 1] = wdid
 				--if wd.type == 'Flame'
@@ -161,11 +161,11 @@ end
 
 
 
-Spring.Echo('hornet debug ProjectileCreated')
+--Spring.Echo('hornet debug ProjectileCreated')
 function gadget:ProjectileCreated(proID, proOwnerID, weaponID)
 
 
-	Spring.Echo('hornet debug ProjectileCreated run')
+	--Spring.Echo('hornet debug ProjectileCreated run')
 	--if fireballWeapons[weaponID] then
 		--flyingFireballs[proID] = true
 		--Spring.Echo('hornet debug tracking proID', proID)
@@ -215,15 +215,15 @@ function gadget:UnitPreDamaged(unitID,unitDefID,_, damage,_, weaponDefID,project
 		if not singleHitProjectile[projectileID] then
 			singleHitProjectile[projectileID] = {}
 		end
-			Spring.Echo('hornet debug pid uid', projectileID, unitID)
-			Spring.Echo('hornet debug singleHitProjectile[projectileID][unitID]=', singleHitProjectile[projectileID][unitID])
+			--Spring.Echo('hornet debug pid uid', projectileID, unitID)
+			--Spring.Echo('hornet debug singleHitProjectile[projectileID][unitID]=', singleHitProjectile[projectileID][unitID])
 		
 		if singleHitProjectile[projectileID][unitID] then
-			Spring.Echo('hornet debug singleHitProjectile[projectileID][unitID] set, ignoring')
+			--Spring.Echo('hornet debug singleHitProjectile[projectileID][unitID] set, ignoring')
 			
 			return 0
 		else
-			Spring.Echo('hornet debug setting singleHitProjectile[projectileID][unitID]', projectileID, unitID)
+			--Spring.Echo('hornet debug setting singleHitProjectile[projectileID][unitID]', projectileID, unitID)
 			singleHitProjectile[projectileID][unitID] = true
 		end
 		return damage

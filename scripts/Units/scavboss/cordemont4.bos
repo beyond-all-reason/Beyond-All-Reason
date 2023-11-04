@@ -5,9 +5,9 @@
 
 piece  pelvis, torso, rthigh, rleg, rfoot, lthigh, lleg, lfoot,lbturret, lbbarrel1, lbbarrel2, rbturret,
 rbbarrel1, rbbarrel2,luparm, llarm, lfbarrel1, lfbarrel2,ruparm, rlarm, rfbarrel1, rfbarrel2,
-lfflare1, lfflare2, rfflare1, rfflare2,lbflare, rbflare,head, aimx1, aimy1, aaturretl, aaturretr, boxl, boxr, aaflarel, aaflarer;
+lfflare1, lfflare2, rfflare1, rfflare2,lbflare, rbflare, head, head2, aimx1, aimy1, aaturretl, aaturretr, boxl, boxr, aaflarel, aaflarer;
 
-static-var  gun_1, bMoving, bAiming, gun_2, targetswap, oldheading, isfiring, issmoking;
+static-var  gun_1, bMoving, bAiming, gun_2, targetswap, oldheading, isfiring, issmoking, shotcount;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
@@ -885,6 +885,7 @@ Create()
 	targetswap = 0;
 	isfiring = 0;
 	issmoking = 0;
+	shotcount = 0;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	animSpeed = 6;
@@ -968,7 +969,7 @@ AimFromSecondary(piecenum)
 
 RestoreAfterDelay()
 {
-	sleep 3000;
+	sleep 1000;
 	bAiming = FALSE;
 	isfiring = 0;
 	targetswap = 0;
@@ -979,53 +980,63 @@ RestoreAfterDelay()
 	turn aaturretr to x-axis <0.000000> speed <80.000000>;
 	turn aaturretr to y-axis  <0.000000> speed <80.000000>;
 }
+
+lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
+}
+
+
 SmokeItUp()
 {
-	if (issmoking == 0 OR TRUE){
-		
+	if (issmoking == 0 OR TRUE)
+	{
 		issmoking = 1;
-		
 		emit-sfx 257 from lbbarrel1;
 		emit-sfx 258 from rbflare;
 		sleep 45;
 		emit-sfx 258 from lbflare;
 		emit-sfx 257 from rbbarrel1;
 		sleep 45;
-
-		
-		
 		issmoking = 0;
 	}
 }
 
 SweepFire()
 {
-	if( gun_1 == 1 AND isfiring == 1)
+	start-script SmokeItUp();
+	if( gun_1 == 1 )
 	{
 		emit-sfx 2048 from lfflare1;
-		emit-sfx 1024 + 0 from lfflare2;
-		emit-sfx 1024 + 0 from rfflare1;
-	}
-	if( gun_1 == 2 AND isfiring == 1)
-	{
 		emit-sfx 2048 from rfflare1;
 		emit-sfx 1024 + 0 from lfflare2;
 		emit-sfx 1024 + 0 from rfflare1;
 	}
-	if( gun_1 == 3 AND isfiring == 1)
+	if( gun_1 == 2 )
 	{
+		emit-sfx 2048 from rfflare1;
 		emit-sfx 2048 from lfflare2;
 		emit-sfx 1024 + 0 from lfflare2;
 		emit-sfx 1024 + 0 from rfflare1;
 	}
-	if( gun_1 == 4 AND isfiring == 1)
+	if( gun_1 == 3 )
 	{
 		gun_1 = 0;
+		emit-sfx 2048 from lfflare2;
 		emit-sfx 2048 from rfflare2;
 		emit-sfx 1024 + 0 from lfflare2;
 		emit-sfx 1024 + 0 from rfflare1;
 	}
-	gun_1 = gun_1 + 1;
+	if( gun_1 == 4 )
+	{
+		gun_1 = 1;
+		emit-sfx 2048 from rfflare2;
+		emit-sfx 2048 from lfflare1;
+		emit-sfx 1024 + 0 from lfflare2;
+		emit-sfx 1024 + 0 from rfflare1;
+	}
+	gun_1 = gun_1 + 2;
+	return (0);
 }
 
 AimPrimary(heading, pitch)
@@ -1034,15 +1045,16 @@ AimPrimary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	turn aimy1 to y-axis heading speed <100.000000>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <120.000000>;
-	if ( (oldheading - heading) > 5000)
+	turn aimx1 to x-axis <10.000000> - pitch speed <120.000000>;
+	if ( (oldheading - heading) > 5000 AND targetswap <= 0)
 	{
-		targetswap = (oldheading - heading)/5000;
+		targetswap = (oldheading - heading)/3034;
 	}
-	if ( (oldheading - heading) < -5000)
+	if ( (oldheading - heading) < -5000 AND targetswap <= 0)
 	{
-		targetswap = -1*(oldheading - heading)/5000;
+		targetswap = -1*(oldheading - heading)/3034;
 	}
+	oldheading = heading;
 	if ( targetswap > 0 AND isfiring == 1 AND FALSE)
 	{
 		start-script SweepFire();
@@ -1051,19 +1063,21 @@ AimPrimary(heading, pitch)
 		sleep 33;
 		start-script SweepFire();
 		sleep 33;
-		start-script SweepFire();
-		sleep 33;
-		start-script SweepFire();
-		sleep 33;
-		start-script SweepFire();
-		sleep 33;
+		//start-script SweepFire();
+		//sleep 33;
+		//start-script SweepFire();
+		//sleep 33;
+		//start-script SweepFire();
+		//sleep 33;
 		targetswap = targetswap - 1;
+		start-script RestoreAfterDelay();
+		return (0);
 	}
-	start-script SmokeItUp();
 	oldheading = heading;
-	start-script RestoreAfterDelay();
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
+	start-script RestoreAfterDelay();
+	isfiring = 1;
 	return (1);
 }
 
@@ -1091,40 +1105,46 @@ Shot1()
 
 FirePrimary()
 {
-	isfiring = 1;
+	shotcount = shotcount + 1;
+	start-script SmokeItUp();
+	//isfiring = 1;
 	if( gun_1 == 1 )
 	{
 		turn aimy1 to x-axis <-1> now; // dont always do this
 		turn aimy1 to x-axis <0> speed <5>;
-		
+		call-script lua_UnitScriptLight(1, shotcount);
 		gun_1 = 2;
-		move lfbarrel1 to z-axis [-1] speed [750.000000];
-		sleep 150;
-		move lfbarrel1 to z-axis [0.000000] speed [8.750000];
+		//move lfbarrel1 to z-axis [-1] speed [750.000000];
+		//sleep 150;
+		//move lfbarrel1 to z-axis [0.000000] speed [8.750000];
 		return (0);
 	}
 	if( gun_1 == 2 )
 	{
+		
+		call-script lua_UnitScriptLight(3, shotcount);
 		gun_1 = 3;
-		move rfbarrel1 to z-axis [-1] speed [750.000000];
-		sleep 150;
-		move rfbarrel1 to z-axis [0.000000] speed [8.750000];
+		//move rfbarrel1 to z-axis [-1] speed [750.000000];
+		//sleep 150;
+		//move rfbarrel1 to z-axis [0.000000] speed [8.750000];
 		return (0);
 	}
 	if( gun_1 == 3 )
 	{
+		call-script lua_UnitScriptLight(2, shotcount);
 		gun_1 = 4;
-		move lfbarrel2 to z-axis [-1] speed [750.000000];
-		sleep 150;
-		move lfbarrel2 to z-axis [0.000000] speed [8.750000];
+		//move lfbarrel2 to z-axis [-1] speed [750.000000];
+		//sleep 150;
+		//move lfbarrel2 to z-axis [0.000000] speed [8.750000];
 		return (0);
 	}
 	if( gun_1 == 4 )
 	{
+		call-script lua_UnitScriptLight(4, shotcount);
 		gun_1 = 1;
-		move rfbarrel2 to z-axis [-1] speed [750.000000];
-		sleep 150;
-		move rfbarrel2 to z-axis [0.000000] speed [8.750000];
+		//move rfbarrel2 to z-axis [-1] speed [750.000000];
+		//sleep 150;
+		//move rfbarrel2 to z-axis [0.000000] speed [8.750000];
 		return (0);
 	}
 }
