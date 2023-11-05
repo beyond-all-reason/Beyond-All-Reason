@@ -126,8 +126,6 @@ return {
 				reloadtime = 0.39996,
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 20000,
 				turret = true,
