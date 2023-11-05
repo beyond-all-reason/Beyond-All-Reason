@@ -6,10 +6,10 @@ function gadget:GetInfo()
 		date = "25.10.2023",
 		license = "Public domain",
 		layer = 21,
-		enabled = true
+		enabled = false
 	}
 end
---Spring.Echo('hornet debug USDF loaded US')
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 if not gadgetHandler:IsSyncedCode() then
@@ -21,7 +21,7 @@ end
 
 
 
---Spring.Echo('hornet debug USDF loaded synced')
+
 
 
 
