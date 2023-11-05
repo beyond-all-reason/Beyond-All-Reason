@@ -78,7 +78,7 @@ end
 
 
 
---tried to fake 3d damage, it was weird at best. might be fixable / reusable, I wish you luck.
+--tried to create real 3d damage, it was weird at best. might be fixable / reusable, I wish you luck.
 --[[
 
 

@@ -15,6 +15,7 @@ static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 #define SIG_AIM			2
 #define SIG_WALK		4
 #define SIG_AIM_2		8
+#define SIG_FIRE1 		16
 
 lua_FlameShot(weapon) //Distortion and lups flame effect
 {
@@ -1044,6 +1045,7 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
+	start-script SmokeItUp();
 	turn aimy1 to y-axis heading speed <100.000000>;
 	turn aimx1 to x-axis <10.000000> - pitch speed <120.000000>;
 	if ( (oldheading - heading) > 5000 AND targetswap <= 0)
@@ -1095,58 +1097,50 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-Shot1()
+
+Shot1(zero)
 {
+	signal SIG_FIRE1;
+	
+	set-signal-mask SIG_FIRE1;
 	call-script lua_FlameShot(1);
 	emit-sfx 1024 + 0 from lfflare2;
 	emit-sfx 1024 + 0 from rfflare1;
-	return (TRUE);
+	//start-script SmokeItUp();
+	shotcount = shotcount + 1;
+	if( gun_1 == 1 )
+	{
+		turn aimy1 to x-axis <-1> now; 
+		call-script lua_UnitScriptLight(1, shotcount);
+		gun_1 = 2;
+		return(1);
+	}
+	if( gun_1 == 2 )
+	{
+		call-script lua_UnitScriptLight(3, shotcount);
+		gun_1 = 3;
+		return(1);
+	}
+	if( gun_1 == 3 )
+
+	{
+		call-script lua_UnitScriptLight(2, shotcount);
+		gun_1 = 4;
+		return(1);
+	}
+	if( gun_1 == 4 )
+	{
+	
+		call-script lua_UnitScriptLight(4, shotcount);
+
+		gun_1 = 1;
+		return(1);
+	}
 }
 
 FirePrimary()
 {
-	shotcount = shotcount + 1;
-	start-script SmokeItUp();
-	//isfiring = 1;
-	if( gun_1 == 1 )
-	{
-		turn aimy1 to x-axis <-1> now; // dont always do this
-		turn aimy1 to x-axis <0> speed <5>;
-		call-script lua_UnitScriptLight(1, shotcount);
-		gun_1 = 2;
-		//move lfbarrel1 to z-axis [-1] speed [750.000000];
-		//sleep 150;
-		//move lfbarrel1 to z-axis [0.000000] speed [8.750000];
-		return (0);
-	}
-	if( gun_1 == 2 )
-	{
-		
-		call-script lua_UnitScriptLight(3, shotcount);
-		gun_1 = 3;
-		//move rfbarrel1 to z-axis [-1] speed [750.000000];
-		//sleep 150;
-		//move rfbarrel1 to z-axis [0.000000] speed [8.750000];
-		return (0);
-	}
-	if( gun_1 == 3 )
-	{
-		call-script lua_UnitScriptLight(2, shotcount);
-		gun_1 = 4;
-		//move lfbarrel2 to z-axis [-1] speed [750.000000];
-		//sleep 150;
-		//move lfbarrel2 to z-axis [0.000000] speed [8.750000];
-		return (0);
-	}
-	if( gun_1 == 4 )
-	{
-		call-script lua_UnitScriptLight(4, shotcount);
-		gun_1 = 1;
-		//move rfbarrel2 to z-axis [-1] speed [750.000000];
-		//sleep 150;
-		//move rfbarrel2 to z-axis [0.000000] speed [8.750000];
-		return (0);
-	}
+	return(1);
 }
 
 FireSecondary()
