@@ -97,6 +97,7 @@ local convertedUnits = {
 	[UnitDefNames.leggat.id] = 5,
 	[UnitDefNames.leggob.id] = 5,
 	[UnitDefNames.leginc.id] = 10,
+	[UnitDefNames.cordemont4.id] = 6,
 	[UnitDefNames.leglob.id] = 5,
 	[UnitDefNames.legmos.id] = 5,
 	[UnitDefNames.leghades.id] = 5,

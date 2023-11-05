@@ -18027,10 +18027,38 @@ local unitEventLights = {
 				alwaysVisible = true,
 				lightConfig = { posx = 0, posy = 7, posz = -5, radius = 24,
 					color2r = 0.6, color2g = 0.07, color2b = 0, colortime = 400,
-					r = 1.1, g = 0.45, b = 0, a = 0.66,
+					r = 1.1, g = 0.45, b = 0, a = 0.36,
 					modelfactor = 2, specular = 1, scattering = 0.5, lensflare = 0,
 					lifetime = 200, sustain = 15, animtype = 0},
 			},
+		},
+
+		[UnitDefNames['cordemont4'].id] = {
+
+
+			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'lfbarrel2',
+				lightName = 'cordemonl2glow',
+				alwaysVisible = true,
+				lightConfig = { posx = 0, posy = 4, posz = 8, radius = 58,
+					color2r = 0.8, color2g = 0.37, color2b = 0, colortime = 300,
+					r = 0, g = 0, b = 0, a = 0.06,
+					modelfactor = 2, specular = 1, scattering = 0.5, lensflare = 0,
+					lifetime = 200, sustain = 5, animtype = 0},
+			},			
+			[2] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'rfbarrel2',
+				lightName = 'cordemonr2glow',
+				alwaysVisible = true,
+				lightConfig = { posx = 0, posy = 4, posz = 8, radius = 58,
+					color2r = 0.8, color2g = 0.37, color2b = 0, colortime = 300,
+					r = 0, g = 0, b = 0, a = 0.06,
+					modelfactor = 2, specular = 1, scattering = 0.5, lensflare = 0,
+					lifetime = 200, sustain = 5, animtype = 0},
+			},
+			
 		},
 
 		[UnitDefNames['armraz'].id] = {
