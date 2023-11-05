@@ -43,7 +43,7 @@ return {
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "ALL",
-		objectname = "Units/CORCOM_hw.s3o",
+		objectname = "Units/CORCOM.s3o",
 		pushresistant = true,
 		radardistance = 700,
 		radaremitheight = 40,

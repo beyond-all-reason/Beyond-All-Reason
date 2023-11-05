@@ -105,7 +105,7 @@ return {
 				turret = false,
 				weapontimer = 1,
 				weapontype = "LaserCannon",
-				weaponvelocity = 1000,
+				weaponvelocity = 980,
 				damage = {
 					bombers = 10,
 					default = 60,

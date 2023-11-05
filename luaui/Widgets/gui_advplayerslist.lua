@@ -1994,6 +1994,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 
     local name = player[playerID].name
     local team = player[playerID].team
+    if not team then return end -- this prevents error when co-op / joinas is active
+
     local allyteam = player[playerID].allyteam
     local pingLvl = player[playerID].pingLvl
     local cpuLvl = player[playerID].cpuLvl

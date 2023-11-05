@@ -136,7 +136,7 @@ return {
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 3,
-				range = 900,
+				range = 850,
 				reloadtime = 4.5,
 				rgbcolor = "0.74 0.64 0.94",
 				soundhit = "mavgun3",
@@ -147,7 +147,7 @@ return {
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 3000,
+				weaponvelocity = 3180,
 				damage = {
 					commanders = 250,
 					default = 500,
