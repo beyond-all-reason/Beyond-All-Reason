@@ -344,9 +344,6 @@ local units = {
 	raptorr1 = { "raptor_arty.png", 1.5 },
 	raptorr2 = { "raptor_arty.png", 3 },
 
-	raptors1 = { "raptor_spike.png", 1.5 },
-	raptors2 = { "raptor_spike.png", 2 },
-
 	raptorw1_mini = { "raptor_air.png", 1.25 },
 	raptorw1 = { "raptor_air.png", 1.5 },
 	raptorw1b = { "raptor_air.png", 1.5 },
@@ -399,8 +396,6 @@ local units = {
 	raptor2_spectre = { "raptor.png", 1.5 },
 	raptora1_spectre = { "raptor.png", 2 },
 	raptora2_spectre = { "raptor.png", 3 },
-	raptors2_spectre = { "raptor_spike.png", 2 },
-
 	raptor_miniqueen_electric = { "raptor_queen.png", 3 },
 	raptor_miniqueen_acid = { "raptor_queen.png", 3 },
 	raptor_miniqueen_healer = { "raptor_queen.png", 3 },
@@ -414,6 +409,11 @@ local units = {
 	n_raptorq = { "raptor_queen.png", 5 },
 	vh_raptorq = { "raptor_queen.png", 5 },
 	epic_raptorq = { "raptor_queen.png", 5 },
+
+	--new raptor
+	raptor_land_sniper_basic_t2_var1 = { "raptor_spike.png", 1.5 },
+	raptor_land_sniper_basic_t4_var1 = { "raptor_spike.png", 2 },
+	raptor_land_sniper_spectre_t4_var1 = { "raptor_spike.png", 2 },
 
 	-----------------------------------------------------------------------
 
