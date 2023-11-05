@@ -5,7 +5,7 @@
 
 piece  pelvis, torso, rthigh, rleg, rfoot, lthigh, lleg, lfoot,lbturret, lbbarrel1, lbbarrel2, rbturret,
 rbbarrel1, rbbarrel2,luparm, llarm, lfbarrel1, lfbarrel2,ruparm, rlarm, rfbarrel1, rfbarrel2,
-lfflare1, lfflare2, rfflare1, rfflare2,lbflare, rbflare, head, head2, aimx1, aimy1, aaturretl, aaturretr, boxl, boxr, aaflarel, aaflarer;
+lfflare1, lfflare2, rfflare1, rfflare2,lbflare, rbflare, head, horns, aimx1, aimy1, aaturretl, aaturretr, boxl, boxr, aaflarel, aaflarer;
 
 static-var  gun_1, bMoving, bAiming, gun_2, targetswap, oldheading, isfiring, issmoking, shotcount;
 
@@ -1108,30 +1108,33 @@ Shot1(zero)
 	emit-sfx 1024 + 0 from rfflare1;
 	//start-script SmokeItUp();
 	shotcount = shotcount + 1;
+	
+	//call-script lua_UnitScriptLight(5, shotcount);
+	//call-script lua_UnitScriptLight(6, shotcount);
 	if( gun_1 == 1 )
 	{
 		turn aimy1 to x-axis <-1> now; 
-		call-script lua_UnitScriptLight(1, shotcount);
+		//call-script lua_UnitScriptLight(1, shotcount);
 		gun_1 = 2;
 		return(1);
 	}
 	if( gun_1 == 2 )
 	{
-		call-script lua_UnitScriptLight(3, shotcount);
+		//call-script lua_UnitScriptLight(2, shotcount);
 		gun_1 = 3;
 		return(1);
 	}
 	if( gun_1 == 3 )
 
 	{
-		call-script lua_UnitScriptLight(2, shotcount);
+		call-script lua_UnitScriptLight(1, shotcount);
 		gun_1 = 4;
 		return(1);
 	}
 	if( gun_1 == 4 )
 	{
 	
-		call-script lua_UnitScriptLight(4, shotcount);
+		call-script lua_UnitScriptLight(2, shotcount);
 
 		gun_1 = 1;
 		return(1);
