@@ -1058,19 +1058,19 @@ local options={
 	},
 
 	{
-		key    = 'teamcolors_anonymous_mode',
-		name   = 'Anonymous Mode',
-		desc   = 'Anonimizes players in the match so you have harder time telling who is who.',
-		type   = 'list',
+		key     = 'teamcolors_anonymous_mode',
+		name    = 'Anonymous Mode',
+		desc    = "Anonymize players by changing colors (based on chosen mode) and replacing names with question marks, making it harder to know who's who.",
+		type    = 'list',
 		section = 'options_extra',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="Anonymous Mode disabled."},
-			{key="allred", name="Force SimpleColors", desc="All players have simple colors enabled, enemies cannot be recognized from each other."},
-			{key="global", name="Shuffle Globally", desc="Player colors order is shuffled globally, everyone see the same colors"},
-			{key="local", name="Shuffle Locally", desc="Player colors order is shuffled locally, everyone see different colors"},
-			{key="disco", name="Shuffle Locally - DiscoMode", desc="Player colors order is shuffled locally, everyone see different colors that change every 2 minutes"},
-		}
+		def     = "disabled",
+		items   = {
+			{key="disabled", name="Disabled"},
+			{key="global", name="Global", desc="You can distinguish different players and everyone sees the same colors globally. Diplomacy is the same as usual except using colors instead of names (e.g. \"Red, let's ally against Blue\")."},
+			{key="local", name="Local", desc="You can distinguish different players but everyone sees different colors locally. Diplomacy is harder but possible using positions (e.g. \"Southeast, let's ally against Northeast\")."},
+			{key="disco", name="Local (Disco)", desc="Same as local, except that colors are reshuffled every 2 mins for extra spicyness."},
+			{key="allred", name="All red", desc="You cannot distinguish different players, they all have the same color (red by default, can be changed in accessibility settings). Diplomacy is very hard."},
+		},
 	},
 
 	{
