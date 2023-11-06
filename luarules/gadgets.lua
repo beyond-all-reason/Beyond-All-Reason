@@ -1984,7 +1984,9 @@ end
 function gadgetHandler:DrawWorld()
 	tracy.ZoneBeginN("G:DrawWorld") 
 	for _, g in ipairs(self.DrawWorldList) do
+		tracy.ZoneBeginN("G:DrawWorld:" .. g.ghInfo.name)
 		g:DrawWorld()
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return
