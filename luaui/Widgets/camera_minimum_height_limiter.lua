@@ -15,7 +15,7 @@ local desiredLevel = Spring.GetConfigInt("MinimumCameraHeight", defaultDesiredLe
 local optionRefresh = 0
 
 function widget:Update()
-	if WG['advplayerlist_api'] and WG['advplayerlist_api'].SetLockPlayerID ~= nil then
+	if WG['advplayerlist_api'] and WG['advplayerlist_api'].GetLockPlayerID() ~= nil then
 		return
 	end
 
