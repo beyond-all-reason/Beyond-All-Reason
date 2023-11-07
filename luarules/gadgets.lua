@@ -1079,7 +1079,12 @@ function gadgetHandler:GamePaused(playerID, paused)
 end
 
 function gadgetHandler:RecvFromSynced(...)
-	tracy.ZoneBeginN("G:RecvFromSynced")
+	local arg1, arg2 = ...
+  if (type(arg1) == 'string') then 
+		tracy.ZoneBeginN("G:RecvFromSynced:"..arg1)
+	else
+		tracy.ZoneBeginN("G:RecvFromSynced")
+	end
 	if actionHandler.RecvFromSynced(...) then
 		tracy.ZoneEnd()
 		return
