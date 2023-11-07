@@ -1889,16 +1889,20 @@ end
 --
 
 function gadgetHandler:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
+	tracy.ZoneBeginN("G:ProjectileCreated") 
 	for _, g in ipairs(self.ProjectileCreatedList) do
 		g:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function gadgetHandler:ProjectileDestroyed(proID)
+	tracy.ZoneBeginN("G:ProjectileDestroyed") 
 	for _, g in ipairs(self.ProjectileDestroyedList) do
 		g:ProjectileDestroyed(proID)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
