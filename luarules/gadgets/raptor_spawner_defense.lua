@@ -27,6 +27,16 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	--
 	-- Speed-ups
+	if tracy == nil then
+		--Spring.Echo("Gadgetside tracy: No support detected, replacing tracy.* with function stubs.")
+		tracy = {}
+		tracy.ZoneBeginN = function () return end 
+		tracy.ZoneBegin = function () return end 
+		tracy.ZoneEnd = function () return end --Spring.Echo("No Tracy") return end 
+		tracy.Message = function () return end 
+		tracy.ZoneName = function () return end 
+		tracy.ZoneText = function () return end 
+	end
 	--
 
 	local ValidUnitID = Spring.ValidUnitID
@@ -174,7 +184,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	humanTeams[gaiaTeamID] = nil
 
-	function PutRaptorAlliesInRaptorTeam(n)
+	local function PutRaptorAlliesInRaptorTeam(n)
 		local players = Spring.GetPlayerList()
 		for i = 1,#players do
 			local player = players[i]
@@ -236,6 +246,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function getRandomEnemyPos()
+		tracy.ZoneBeginN("Raptors:getRandomEnemyPos")
 		local loops = 0
 		local targetCount = SetCount(squadPotentialTarget)
 		local highValueTargetCount = SetCount(squadPotentialHighValueTarget)
@@ -272,7 +283,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not pos.x then
 			pos = getRandomMapPos()
 		end
-
+		tracy.ZoneEnd()
 		return pos, pickedTarget
 	end
 
@@ -300,6 +311,7 @@ if gadgetHandler:IsSyncedCode() then
 	local minWaveSize = ((config.minRaptors*(1-config.raptorPerPlayerMultiplier))+(config.minRaptors*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
 	local currentMaxWaveSize = minWaveSize
 	local endlessLoopCounter = 1
+	local pastFirstQueen = false
 	function updateDifficultyForSurvival()
 		t = GetGameSeconds()
 		config.gracePeriod = t-1
@@ -362,7 +374,7 @@ if gadgetHandler:IsSyncedCode() then
 	SetGameRulesParam("RaptorQueenAngerGain_Eco", 0)
 
 
-	function raptorEvent(type, num, tech)
+	local function raptorEvent(type, num, tech)
 		SendToUnsynced("RaptorEvent", type, num, tech)
 	end
 
@@ -432,6 +444,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	--or Spring.GetGameSeconds() <= config.gracePeriod
 	function squadCommanderGiveOrders(squadID, targetx, targety, targetz)
+		tracy.ZoneBeginN("Raptors:squadCommanderGiveOrders")
 		local units = squadsTable[squadID].squadUnits
 		local role = squadsTable[squadID].squadRole
 		if SetCount(units) > 0 and squadsTable[squadID].target and squadsTable[squadID].target.x then
@@ -498,9 +511,11 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
+		tracy.ZoneEnd()
 	end
 
 	function refreshSquad(squadID) -- Get new target for a squad
+		tracy.ZoneBeginN("Raptors:refreshSquad")
 		local pos, pickedTarget = getRandomEnemyPos()
 		--Spring.Echo(pos.x, pos.y, pos.z, pickedTarget)
 		unitTargetPool[squadID] = pickedTarget
@@ -509,6 +524,7 @@ if gadgetHandler:IsSyncedCode() then
 		local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
 		squadsTable[squadID].squadNeedsRefresh = true
 		--squadCommanderGiveOrders(squadID, targetx, targety, targetz)
+		tracy.ZoneEnd()
 	end
 
 	function createSquad(newSquad)
@@ -683,6 +699,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function SpawnBurrow(number)
+		tracy.ZoneBeginN("Raptors:SpawnBurrow")
 		for i = 1, (number or 1) do
 			local canSpawnBurrow = false
 			local spread = config.burrowSize*1.5
@@ -814,6 +831,7 @@ if gadgetHandler:IsSyncedCode() then
 				playerAggression = playerAggression + (config.angerBonus*(queenAnger*0.01))
 			end
 		end
+		tracy.ZoneEnd()
 	end
 
 	function updateQueenLife()
@@ -1157,6 +1175,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function spawnCreepStructuresWave()
+		tracy.ZoneBeginN("Raptors:spawnCreepStructuresWave")
 		for uName, uSettings in pairs(config.raptorTurrets) do
 			--Spring.Echo(uName)
 			--Spring.Debug.TableEcho(uSettings)
@@ -1194,6 +1213,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
+		tracy.ZoneEnd()
 	end
 
 	function SpawnMinions(unitID, unitDefID)
@@ -1425,7 +1445,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not lsz2 then lsz2 = Game.mapSizeZ end
 	end
 
-	function SpawnRaptors()
+	local function SpawnRaptors()
 		local squadDone = false
 		repeat
 			local i, defs = next(spawnQueue)
@@ -1514,7 +1534,7 @@ if gadgetHandler:IsSyncedCode() then
 		until squadDone == true
 	end
 
-	function updateSpawnQueen()
+	local function updateSpawnQueen()
 		if not queenID and not gameOver then
 			-- spawn queen if not exists
 			queenID = SpawnQueen()
@@ -1596,6 +1616,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function decayRandomEggs()
+		tracy.ZoneBeginN("Raptors:decayRandomEggs")
 		for eggID, _ in pairs(aliveEggsTable) do
 			if mRandom(1,18) == 1 then -- scaled to decay 1000hp egg in about 3 minutes +/- RNG
 				local fx, fy, fz = Spring.GetFeaturePosition(eggID)
@@ -1605,6 +1626,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
+		tracy.ZoneEnd()
 	end
 
 	local announcedFirstWave = false
@@ -1629,7 +1651,9 @@ if gadgetHandler:IsSyncedCode() then
 
 		local raptorTeamUnitCount = GetTeamUnitCount(raptorTeamID) or 0
 		if raptorTeamUnitCount < raptorUnitCap and n%15 == 9 then
+			tracy.ZoneBeginN("Raptors:SpawnRaptors")
 			SpawnRaptors()
+			tracy.ZoneEnd()
 		end
 
 		for unitID, defs in pairs(deathQueue) do
@@ -1932,11 +1956,11 @@ else	-- UNSYNCED
 	local hasRaptorEvent = false
 	local mRandom = math.random
 
-	function HasRaptorEvent(ce)
+	local function HasRaptorEvent(ce)
 		hasRaptorEvent = (ce ~= "0")
 	end
 
-	function WrapToLuaUI(_, type, num, tech)
+	local function WrapToLuaUI(_, type, num, tech)
 		if hasRaptorEvent then
 			local raptorEventArgs = {}
 			if type ~= nil then
