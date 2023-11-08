@@ -1056,8 +1056,19 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 	if showPrice then
 		local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
 		local energyColor = disabled and "\n\255\135\135\135" or "\n\255\255\255\000"
-		local text = metalColor .. units.unitMetalCost[uid] .. energyColor
-		font2:Print(text .. units.unitEnergyCost[uid], rect.x + cellPadding + (cellInnerSize * 0.048), rect.y + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
+		local function AddSpaces(price)
+			if price >= 1000 then
+				return string.format("%s %03d", AddSpaces(math_floor(price / 1000)), price % 1000)
+			end
+			return price
+		end
+		local metalPrice = AddSpaces(units.unitMetalCost[uid])
+		local energyPrice = AddSpaces(units.unitEnergyCost[uid])
+		local metalPriceText = metalColor .. metalPrice
+		local energyPriceText = energyColor .. energyPrice
+		local energyPriceTextHeight = font2:GetTextHeight(energyPriceText) * priceFontSize
+		font2:Print(metalPriceText, rect.xEnd - cellPadding - (cellInnerSize * 0.048), rect.y + cellPadding + (priceFontSize * 1.35) + energyPriceTextHeight, priceFontSize, "ro")
+		font2:Print(energyPriceText, rect.xEnd - cellPadding - (cellInnerSize * 0.048), rect.y + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
 	end
 
 	-- hotkey draw

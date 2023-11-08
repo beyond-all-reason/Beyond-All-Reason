@@ -484,14 +484,21 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled)
 
 	-- price
 	if showPrice then
-		--doCircle(x, y, z, radius, sides)
-		local text
-		if disabled then
-			text = "\255\125\125\125" .. units.unitMetalCost[uDefID] .. "\n\255\135\135\135"
-		else
-			text = "\255\245\245\245" .. units.unitMetalCost[uDefID] .. "\n\255\255\255\000"
+		local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
+		local energyColor = disabled and "\n\255\135\135\135" or "\n\255\255\255\000"
+		local function AddSpaces(price)
+			if price >= 1000 then
+				return string.format("%s %03d", AddSpaces(math_floor(price / 1000)), price % 1000)
+			end
+			return price
 		end
-		font2:Print(text .. units.unitEnergyCost[uDefID], cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
+		local metalPrice = AddSpaces(units.unitMetalCost[uDefID])
+		local energyPrice = AddSpaces(units.unitEnergyCost[uDefID])
+		local metalPriceText = metalColor .. metalPrice
+		local energyPriceText = energyColor .. energyPrice
+		local energyPriceTextHeight = font2:GetTextHeight(energyPriceText) * priceFontSize
+		font2:Print(metalPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35) + energyPriceTextHeight, priceFontSize, "ro")
+		font2:Print(energyPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
 	end
 
 	-- factory queue number
