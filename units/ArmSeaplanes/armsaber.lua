@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 6400,
 		buildcostmetal = 210,
 		buildpic = "ARMSABER.DDS",
-		buildtime = 9016,
+		buildtime = 9000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

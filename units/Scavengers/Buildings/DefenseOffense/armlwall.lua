@@ -4,7 +4,7 @@ return {
 		buildcostenergy = 4800, --3x armclaw
 		buildcostmetal = 1020, --3x armclaw
 		buildpic = "ARMLWALL.DDS",
-		buildtime = 13914, --3x armclaw
+		buildtime = 14000, --3x armclaw
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -3 0",

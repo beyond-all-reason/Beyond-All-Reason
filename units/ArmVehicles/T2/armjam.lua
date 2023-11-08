@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 1700,
 		buildcostmetal = 105,
 		buildpic = "ARMJAM.DDS",
-		buildtime = 5933,
+		buildtime = 5930,
 		canattack = false,
 		canmove = true,
 		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

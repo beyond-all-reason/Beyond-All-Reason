@@ -8,7 +8,7 @@ return {
 		buildcostenergy = 25000,
 		buildcostmetal = 890,
 		buildpic = "CORENAA.DDS",
-		buildtime = 23129,
+		buildtime = 23100,
 		canrepeat = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -10 0",

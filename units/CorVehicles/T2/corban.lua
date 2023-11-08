@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 23000,
 		buildcostmetal = 1000,
 		buildpic = "CORBAN.DDS",
-		buildtime = 23129,
+		buildtime = 23100,
 		canmove = true,
 		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -9 1",

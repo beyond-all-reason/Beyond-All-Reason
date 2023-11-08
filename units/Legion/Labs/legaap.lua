@@ -6,7 +6,7 @@ return {
 		buildcostmetal = 3200,
 		builder = true,
 		buildpic = "LEGAAP.DDS",
-		buildtime = 20678,
+		buildtime = 20700,
 		canmove = true,
 		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 10 -2",

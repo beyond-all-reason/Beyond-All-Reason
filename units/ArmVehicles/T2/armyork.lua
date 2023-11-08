@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 9100,
 		buildcostmetal = 450,
 		buildpic = "ARMYORK.DDS",
-		buildtime = 9964,
+		buildtime = 9950,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -10 -2",

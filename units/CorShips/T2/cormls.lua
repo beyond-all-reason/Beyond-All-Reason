@@ -7,7 +7,7 @@ return {
 		builddistance = 250,
 		builder = true,
 		buildpic = "CORMLS.DDS",
-		buildtime = 4816.80029,
+		buildtime = 4800,
 		canmove = true,
 		category = "ALL NOWEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "-2 -3 0",

@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 2600,
 		buildcostmetal = 170,
 		buildpic = "ARMASON.DDS",
-		buildtime = 6152,
+		buildtime = 6150,
 		canattack = false,
 		canrepeat = false,
 		category = "ALL UNDERWATER NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

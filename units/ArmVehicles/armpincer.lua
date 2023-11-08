@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 2000,
 		buildcostmetal = 200,
 		buildpic = "ARMPINCER.DDS",
-		buildtime = 2613,
+		buildtime = 2610,
 		canmove = true,
 		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 0 1",

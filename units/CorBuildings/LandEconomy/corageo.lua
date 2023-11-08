@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 27000,
 		buildcostmetal = 1500,
 		buildpic = "CORAGEO.DDS",
-		buildtime = 32078,
+		buildtime = 32000,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",

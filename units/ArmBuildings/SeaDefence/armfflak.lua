@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 23000,
 		buildcostmetal = 850,
 		buildpic = "ARMFFLAK.DDS",
-		buildtime = 21855,
+		buildtime = 21900,
 		canrepeat = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -10 0",

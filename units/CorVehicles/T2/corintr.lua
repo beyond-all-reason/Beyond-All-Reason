@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 16000,
 		buildcostmetal = 1350,
 		buildpic = "CORINTR.DDS",
-		buildtime = 14177,
+		buildtime = 14200,
 		canmove = true,
 		cantbetransported = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE CANBEUW EMPABLE",

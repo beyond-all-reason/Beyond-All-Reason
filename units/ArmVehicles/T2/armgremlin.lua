@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 3700,
 		buildcostmetal = 230,
 		buildpic = "ARMGREMLIN.DDS",
-		buildtime = 6704,
+		buildtime = 6700,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		cloakcost = 5,

@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 6900,
 		buildcostmetal = 130,
 		buildpic = "CORHUNT.DDS",
-		buildtime = 9512,
+		buildtime = 9500,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
