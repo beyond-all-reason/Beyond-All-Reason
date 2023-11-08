@@ -298,8 +298,8 @@ if gadgetHandler:IsSyncedCode() then
 				if not candidateWinners then
 					candidateWinners = {}
 				end
-				candidateWinners[winnerCount] = allyTeamID
 				winnerCount = winnerCount + 1
+				candidateWinners[winnerCount] = allyTeamID
 			end
 		end
 		if winnerCount > 1 then
