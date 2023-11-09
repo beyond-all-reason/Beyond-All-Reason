@@ -615,39 +615,22 @@ function UnitDef_Post(name, uDef)
 		uDef.autoheal = math.ceil(math.sqrt(raptorHealth * 0.2))
 		uDef.customparams.paralyzemultiplier = uDef.customparams.paralyzemultiplier or .2
 		uDef.idleautoheal = math.ceil(math.sqrt(raptorHealth * 0.2))
-		uDef.idletime = 1
 		uDef.customparams.areadamageresistance = "_RAPTORACID_"
 		uDef.upright = false
 		uDef.floater = true
-		uDef.turninplace = true
 		uDef.turninplaceanglelimit = 360
 		uDef.capturable = false
-		uDef.leavetracks = false
-		uDef.maxwaterdepth = 0
-
-		if uDef.cancloak then
-			uDef.cloakcost = 0
-			uDef.cloakcostmoving = 0
-			uDef.mincloakdistance = 100
-			uDef.seismicsignature = 3
-			uDef.initcloaked = 1
-		else
-			uDef.seismicsignature = 0
-		end
-
 		if uDef.sightdistance then
 			uDef.sonardistance = uDef.sightdistance*2
 			uDef.radardistance = uDef.sightdistance*2
 			uDef.airsightdistance = uDef.sightdistance*2
 		end
-
 		if (not uDef.canfly) and uDef.maxvelocity then
 			uDef.maxreversevelocity = uDef.maxvelocity*0.65
 			uDef.turnrate = uDef.maxvelocity*300
 			uDef.acceleration = uDef.maxvelocity*0.05
 			uDef.brakerate = uDef.maxvelocity*0.05
 		end
-		
 	end
 
 	-- if (uDef.buildpic and uDef.buildpic == "") or not uDef.buildpic then

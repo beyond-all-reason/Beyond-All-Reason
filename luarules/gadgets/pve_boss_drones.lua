@@ -234,7 +234,7 @@ local unitList = {
             spawnTimer = 10,
         },
         [3] = {
-            name = "raptor_land_sniper_spectre_t4_var1",
+            name = "raptors2_spectre",
             type = "ground",
             spawnRadius = 100,
             fightRadius = 500,
