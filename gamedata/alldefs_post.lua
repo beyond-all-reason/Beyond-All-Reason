@@ -646,7 +646,7 @@ function UnitDef_Post(name, uDef)
 			uDef.turnrate = uDef.maxvelocity*300
 			uDef.acceleration = uDef.maxvelocity*0.05
 			uDef.brakerate = uDef.maxvelocity*0.05
-		elseif uDef.canfly and string.find(name, "bomber") then
+		elseif uDef.canfly then
 			uDef.acceleration = 0.8
 			uDef.brakerate = 0.1
 			uDef.usesmoothmesh = true
