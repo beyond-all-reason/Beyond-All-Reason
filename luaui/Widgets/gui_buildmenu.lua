@@ -24,7 +24,8 @@ local alwaysShow = false
 local cfgCellPadding = 0.007
 local cfgIconPadding = 0.015 -- space between icons
 local cfgIconCornerSize = 0.025
-local cfgPriceFontSize = 0.19
+local cfgPriceFontSizeFourColls = 0.16
+local cfgPriceFontSizeFiveColls = 0.19
 local cfgActiveAreaMargin = 0.1 -- (# * bgpadding) space between the background border and active area
 
 local defaultColls = 5
@@ -430,7 +431,7 @@ function drawBuildmenuBg()
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
 end
 
-local function drawCell(cellRectID, usedZoom, cellColor, disabled)
+local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 	local uDefID = cmds[cellRectID].id * -1
 
 	-- unit icon
@@ -596,7 +597,7 @@ function drawBuildmenu()
 	iconPadding = math_max(1, math_floor(cellSize * cfgIconPadding))
 	cornerSize = math_floor(cellSize * cfgIconCornerSize)
 	cellInnerSize = cellSize - cellPadding - cellPadding
-	priceFontSize = math_floor((cellInnerSize * cfgPriceFontSize) + 0.5)
+	priceFontSize = math_floor((cellInnerSize * (colls == 5 and cfgPriceFontSizeFiveColls or cfgPriceFontSizeFourColls)) + 0.5)
 
 	cellRects = {}
 	local numCellsPerPage = rows * colls
