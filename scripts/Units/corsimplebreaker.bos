@@ -259,10 +259,11 @@ setSFXoccupy(state)
 {
 	terrain = state;
 }
-//also nani
+
+
 SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = Func_Var_1;
 }
 
 StartMoving()
@@ -477,8 +478,8 @@ FireSecondary()
 	move gun to z-axis [0.000000] speed [6.000000];
 	wait-for-move gun along z-axis;
 	
-	start-script SetMaxReloadTime(2500);
-	sleep 2500;
+	start-script SetMaxReloadTime(4500);
+	sleep 4500;
 	shooting=0;
 	
 	
@@ -542,8 +543,8 @@ FirePrimary()
 	move l2 to x-axis [0.000000] speed [0.400000];
 	move l3 to x-axis [0.000000] speed [0.700000];
 
-	start-script SetMaxReloadTime(6000);
-	sleep 6000;
+	start-script SetMaxReloadTime(9000);
+	sleep 9000;
 	shooting=0;
 
 }

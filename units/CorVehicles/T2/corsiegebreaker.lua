@@ -22,7 +22,7 @@ return {
 		leavetracks = true,
 		maxdamage = 2300,
 		maxslope = 12,
-		maxvelocity = 1.3,
+		maxvelocity = 1.8,
 		movementclass = "ATANK3",
 		nochasecategory = "VTOL",
 		onoffable = true,
@@ -38,7 +38,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.21,
-		turnrate = 200,
+		turnrate = 300,
 		customparams = {
 			unitgroup = 'weapon',
 			basename = "base",
@@ -49,6 +49,7 @@ return {
 			kickback = "-4",
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",
+			onoffname = "dreadshot",
 			restoretime = "3000",
 			rockstrength = "5.5",
 			sleevename = "sleeve",
@@ -134,7 +135,7 @@ return {
 		weapondefs = {
 			dreadshot = {
 				areaofeffect = 40,
-				avoidfeature = true,
+				avoidfeature = false,
 				avoidfriendly = true,
 				beamtime = 0.7,
 				collidefeature = true,
@@ -153,6 +154,7 @@ return {
 				minintensity = 1,
 				name = "Dreadshot Ion Accelerator",
 				noselfdamage = true,
+				predictboost = 1,
 				proximitypriority = -1.5,
 				range = 820,
 				reloadtime = 4.5,
@@ -167,7 +169,7 @@ return {
 				tolerance = 10000,
 				turret = true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 1250,
+				weaponvelocity = 3060,
 				damage = {
 					commanders = 800,
 					default = 1800,
@@ -175,7 +177,7 @@ return {
 			},
 			dreadovercharge = {
 				areaofeffect = 60,
-				avoidfeature = true,
+				avoidfeature = false,
 				avoidfriendly = true,
 				beamtime = 0.7,
 				collidefeature = true,
@@ -192,9 +194,10 @@ return {
 				impulsefactor = 1.2,
 				largebeamlaser = true,
 				laserflaresize = 12.25,
-				minintensity = 0.8,--mild dropoff
+				minintensity = 0.9,--slight dropoff
 				name = "Overcharged Dreadshot Ion Accelerator",
 				noselfdamage = true,
+				predictboost = 1,
 				proximitypriority = -1.5,
 				range = 910,
 				reloadtime = 9,
@@ -212,24 +215,24 @@ return {
 				weaponvelocity = 1250,
 				damage = {
 					commanders = 1000,
-					default = 4000,--high, but has long reload and some damage falloff, isn't 'over' units like the starlight or magic bullet like the sniper, and deals FF damage. these are intentionally hard to mass fire in this mode as tradeoff for high alpha. may still be too dps inefficient even now, esp compared to starlight.
+					default = 4000,--high, but has long reload and some damage falloff, isn't 'over' units like the starlight or magic bullet like the sniper, and deals FF damage. these are intentionally hard to mass fire in this mode as tradeoff for high alpha. may still be too dps inefficient even now, esp compared to starlight which can kite and be screened
 				},
 
 			},
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
-				def = "DREADSHOT",
+				badtargetcategory = "VTOL GROUNDSCOUT",
+				def = "DREADOVERCHARGE",
 				maindir = "0 0 1",
-				maxangledif = 40,
+				maxangledif = 10,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				badtargetcategory = "VTOL",
-				def = "DREADOVERCHARGE",
+				badtargetcategory = "VTOL GROUNDSCOUT",
+				def = "DREADSHOT",
 				maindir = "0 0 1",
-				maxangledif = 30,
+				maxangledif = 10,
 				onlytargetcategory = "SURFACE",
 			},
 		},

@@ -14,4 +14,9 @@ cmdArray = {
 		action		= "customOnOff.siege",
 		params		= { '0', "customOnOff.suppressiveFire", "customOnOff.siegeMode" }
 	},
+	dreadshot = {
+		name		= "Normal/Overcharge",
+		action		= "customOnOff.dreadshot",
+		params		= { '1', "customOnOff.overcharge", "customOnOff.dreadshot" }
+	},
 }
