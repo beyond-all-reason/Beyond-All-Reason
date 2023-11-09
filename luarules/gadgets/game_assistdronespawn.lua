@@ -59,6 +59,7 @@ function SpawnAssistDrone(unitID, unitDefID, unitTeam)
             Spring.SpawnCEG("scav-spawnexplo", posx, posy+100, posz,0,0,0)
             Spring.GiveOrderToUnit(droneID, CMD.GUARD, unitID, {})
             teamIDDroneList[unitTeam][droneID] = true
+            Spring.SetUnitCosts(droneID, {buildTime = 500, metalCost = 1, energyCost = 1})
         end
     end
 end
