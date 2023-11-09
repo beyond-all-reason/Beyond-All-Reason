@@ -91,6 +91,8 @@ if gadgetHandler:IsSyncedCode() then
 	local queenAngerAggressionLevel = 0
 	local difficultyCounter = config.difficulty
 	local waveParameters = {
+		waveCounter = 0,
+		firstWavesBoost = Spring.GetModOptions().raptor_firstwavesboost,
 		baseCooldown = 5,
 		waveSizeMultiplier = 1,
 		waveTimeMultiplier = 1,
@@ -931,12 +933,13 @@ if gadgetHandler:IsSyncedCode() then
 
 	function Wave()
 
+
 		if gameOver then
 			return
 		end
 
 		squadManagerKillerLoop()
-
+		waveParameters.waveCounter = waveParameters.waveCounter + 1
 		waveParameters.baseCooldown = waveParameters.baseCooldown - 1
 		waveParameters.airWave.cooldown = waveParameters.airWave.cooldown - 1
 		waveParameters.basicWave.cooldown = waveParameters.basicWave.cooldown - 1
@@ -1028,7 +1031,10 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.waveSpecialPercentage = mRandom(5,10)
 
 			end
+			
 		end
+
+		waveParameters.waveSizeMultiplier = waveParameters.waveSizeMultiplier*waveParameters.firstWavesBoost
 
 		local cCount = 0
 		local loopCounter = 0
@@ -1119,6 +1125,8 @@ if gadgetHandler:IsSyncedCode() then
 		if config.useWaveMsg then
 			raptorEvent("wave", cCount)
 		end
+
+		waveParameters.firstWavesBoost = math.max(1, waveParameters.firstWavesBoost - 1)
 
 		return cCount
 	end

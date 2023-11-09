@@ -14,8 +14,8 @@ local difficulty = difficulties[Spring.GetModOptions().scav_difficulty]
 local difficultyParameters = {
 
 	[difficulties.veryeasy] = {
-		gracePeriod       		= 8 * Spring.GetModOptions().scav_graceperiodmult * 60,
-		bossTime      	  		= 50 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
+		gracePeriod       		= 9 * Spring.GetModOptions().scav_graceperiodmult * 60,
+		bossTime      	  		= 55 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
 		scavSpawnRate   		= 240 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 240 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 260 * Spring.GetModOptions().scav_spawntimemult,
@@ -33,8 +33,8 @@ local difficultyParameters = {
 	},
 
 	[difficulties.easy] = {
-		gracePeriod       		= 7 * Spring.GetModOptions().scav_graceperiodmult * 60,
-		bossTime      	  		= 45 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
+		gracePeriod       		= 8 * Spring.GetModOptions().scav_graceperiodmult * 60,
+		bossTime      	  		= 50 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
 		scavSpawnRate   		= 210 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 210 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 230 * Spring.GetModOptions().scav_spawntimemult,
@@ -51,8 +51,8 @@ local difficultyParameters = {
 		bossResistanceMult   	= 0.75,
 	},
 	[difficulties.normal] = {
-		gracePeriod       		= 6 * Spring.GetModOptions().scav_graceperiodmult * 60,
-		bossTime      	  		= 40 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
+		gracePeriod       		= 7 * Spring.GetModOptions().scav_graceperiodmult * 60,
+		bossTime      	  		= 45 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
 		scavSpawnRate   		= 180 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 180 * Spring.GetModOptions().scav_spawntimemult,
 		turretSpawnRate   		= 200 * Spring.GetModOptions().scav_spawntimemult,
@@ -69,7 +69,7 @@ local difficultyParameters = {
 		bossResistanceMult  	= 1,
 	},
 	[difficulties.hard] = {
-		gracePeriod       		= 5 * Spring.GetModOptions().scav_graceperiodmult * 60,
+		gracePeriod       		= 6 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 40 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
 		scavSpawnRate   		= 150 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 150 * Spring.GetModOptions().scav_spawntimemult,
@@ -87,7 +87,7 @@ local difficultyParameters = {
 		bossResistanceMult   	= 1.33,
 	},
 	[difficulties.veryhard] = {
-		gracePeriod       		= 4 * Spring.GetModOptions().scav_graceperiodmult * 60,
+		gracePeriod       		= 5 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 35 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
 		scavSpawnRate  			= 120 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 120 * Spring.GetModOptions().scav_spawntimemult,
@@ -105,7 +105,7 @@ local difficultyParameters = {
 		bossResistanceMult   	= 1.67,
 	},
 	[difficulties.epic] = {
-		gracePeriod       		= 3 * Spring.GetModOptions().scav_graceperiodmult * 60,
+		gracePeriod       		= 4 * Spring.GetModOptions().scav_graceperiodmult * 60,
 		bossTime      	  		= 30 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, frames
 		scavSpawnRate   		= 90 * Spring.GetModOptions().scav_spawntimemult,
 		burrowSpawnRate   		= 90 * Spring.GetModOptions().scav_spawntimemult,
