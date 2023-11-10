@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 6700,
 		buildcostmetal = 880,
 		buildpic = "CORVROC.DDS",
-		buildtime = 15002,
+		buildtime = 15000,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -9 -2",

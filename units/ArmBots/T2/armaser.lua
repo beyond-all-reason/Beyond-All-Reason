@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 1400,
 		buildcostmetal = 78,
 		buildpic = "ARMASER.DDS",
-		buildtime = 4937,
+		buildtime = 4940,
 		canattack = false,
 		canmove = true,
 		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

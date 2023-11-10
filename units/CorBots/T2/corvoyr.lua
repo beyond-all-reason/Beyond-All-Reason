@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 1350,
 		buildcostmetal = 99,
 		buildpic = "CORVOYR.DDS",
-		buildtime = 3945,
+		buildtime = 3950,
 		canattack = false,
 		canmove = true,
 		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

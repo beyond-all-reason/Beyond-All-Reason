@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 6500,
 		buildcostmetal = 290,
 		buildpic = "ARMSEAP.DDS",
-		buildtime = 14825,
+		buildtime = 14800,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

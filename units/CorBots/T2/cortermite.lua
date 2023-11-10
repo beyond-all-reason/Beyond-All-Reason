@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 12000,
 		buildcostmetal = 700,
 		buildpic = "CORTERMITE.DDS",
-		buildtime = 18834,
+		buildtime = 18800,
 		canmove = true,
 		category = "ALL BOT WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",

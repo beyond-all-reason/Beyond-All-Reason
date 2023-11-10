@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 71000,
 		buildcostmetal = 3300,
 		buildpic = "ARMVANG.DDS",
-		buildtime = 91096,
+		buildtime = 91000,
 		canmove = true,
 		category = "ALL NOTSUB WEAPON NOTAIR NOTHOVER SURFACE BOT EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",

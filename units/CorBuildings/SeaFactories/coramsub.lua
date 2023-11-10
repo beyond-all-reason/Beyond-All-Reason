@@ -6,7 +6,7 @@ return {
 		buildcostmetal = 1200,
 		builder = true,
 		buildpic = "CORAMSUB.DDS",
-		buildtime = 11402,
+		buildtime = 11400,
 		canmove = true,
 		category = "ALL NOWEAPON NOTSUB NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		collisionvolumeoffsets = "0 0 -2",

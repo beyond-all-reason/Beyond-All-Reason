@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 3700,
 		buildcostmetal = 105,
 		buildpic = "CORVAMP.DDS",
-		buildtime = 6554,
+		buildtime = 6550,
 		canfly = true,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON VTOL NOTSUB NOTSHIP NOTHOVER",

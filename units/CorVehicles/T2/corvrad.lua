@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 1300,
 		buildcostmetal = 92,
 		buildpic = "CORVRAD.DDS",
-		buildtime = 4223,
+		buildtime = 4220,
 		canattack = false,
 		canmove = true,
 		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

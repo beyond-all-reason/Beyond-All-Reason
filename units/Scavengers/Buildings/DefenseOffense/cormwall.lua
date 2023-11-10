@@ -4,7 +4,7 @@ return {
 		buildcostenergy = 4800, --was 4850
 		buildcostmetal = 1020, --was 485
 		buildpic = "CORMWALL.DDS",
-		buildtime = 13914, -- was 12214
+		buildtime = 14000, -- was 12214
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -3 0",

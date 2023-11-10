@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 8300,
 		buildcostmetal = 700,
 		buildpic = "ARMTHOVR.DDS",
-		buildtime = 20341,
+		buildtime = 20350,
 		canmove = true,
 		cantbetransported = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",

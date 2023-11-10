@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 1550,
 		buildcostmetal = 290,
 		buildpic = "CORSCAVDTM.DDS",
-		buildtime = 4419,
+		buildtime = 4400,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",

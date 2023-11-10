@@ -8,7 +8,7 @@ return {
 		builddistance = 140,
 		builder = true,
 		buildpic = "CORRECL.DDS",
-		buildtime = 5962.5,
+		buildtime = 5960,
 		canassist = false,
 		canmove = true,
 		canresurrect = true,

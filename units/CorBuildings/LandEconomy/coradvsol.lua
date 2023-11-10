@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 4000,
 		buildcostmetal = 370,
 		buildpic = "CORADVSOL.DDS",
-		buildtime = 8143,
+		buildtime = 8150,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -2",

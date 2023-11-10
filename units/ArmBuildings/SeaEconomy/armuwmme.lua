@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 650,
 		buildingmask = 0,
 		buildpic = "ARMUWMME.DDS",
-		buildtime = 24759,
+		buildtime = 24800,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		corpse = "DEAD",

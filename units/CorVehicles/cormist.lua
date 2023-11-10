@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 2400,
 		buildcostmetal = 155,
 		buildpic = "CORMIST.DDS",
-		buildtime = 3435,
+		buildtime = 3440,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -6 1",

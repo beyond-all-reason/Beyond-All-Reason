@@ -8,7 +8,7 @@ return {
 		buildcostenergy = 500,
 		buildcostmetal = 40,
 		buildpic = "scavengers/SCAVFORT.DDS",
-		buildtime = 1065,
+		buildtime = 1000,
 		canattack = false,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",

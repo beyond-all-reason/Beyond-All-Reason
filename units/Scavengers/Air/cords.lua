@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 14600,
 		buildcostmetal = 1000,
 		buildpic = "CORSHAD.DDS",
-		buildtime = 5054,
+		buildtime = 5000,
 		canfly = true,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND VTOL NOTSUB NOTSHIP NOTHOVER",
