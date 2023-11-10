@@ -967,10 +967,20 @@ local function drawUnitInfo()
 			{unitDefInfo[displayUnitDefID].metalCost, unitDefInfo[displayUnitDefID].energyCost}
 		)
 		-- price
+		local function AddSpaces(price)
+			if price >= 1000 then
+				return string.format("%s %03d", AddSpaces(math_floor(price / 1000)), price % 1000)
+			end
+			return price
+		end
 		local halfSize = iconSize * 0.5
 		local padding = (halfSize + halfSize) * 0.045
 		local size = (halfSize + halfSize) * 0.18
-		font3:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "o")
+		local metalPriceText = "\255\245\245\245" .. AddSpaces(unitDefInfo[displayUnitDefID].metalCost)
+		local energyPriceText = "\n\255\255\255\000" .. AddSpaces(unitDefInfo[displayUnitDefID].energyCost)
+		local energyPriceTextHeight = font2:GetTextHeight(energyPriceText) * size
+		font3:Print(metalPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07) + energyPriceTextHeight, size, "ro")
+		font3:Print(energyPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "ro")
 	end
 	iconSize = iconSize + iconPadding
 
