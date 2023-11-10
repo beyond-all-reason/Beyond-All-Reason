@@ -19,7 +19,7 @@ function widget:GameStart()
   widget:PlayerChanged()
 end
 
-function widget:PlayerChanged(playerID)
+function widget:PlayerChanged()
     if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
         widgetHandler:RemoveWidget()
     end
@@ -83,10 +83,10 @@ local function GetCommandPos(command)	--- get the command position
   command.id == CMD.RESURRECT or command.id == CMD.DGUN or command.id == CMD.GUARD or
   command.id == CMD.FIGHT or command.id == CMD.ATTACK then
     if table.getn(command.params) >= 3 then
-		  return command.params[1], command.params[2], command.params[3]			
+		  return command.params[1], command.params[2], command.params[3]
 	  elseif table.getn(command.params) >= 1 then
 		  return GetUnitOrFeaturePosition(command.params[1])
-	  end	
+	  end
 	end
   return -10,-10,-10
 end
@@ -99,12 +99,11 @@ function widget:CommandNotify(id, params, options)
   end
 
   local opt = 0
-  local insertfront = false
   if options.alt then opt = opt + CMD.OPT_ALT end
-  if options.ctrl then opt = opt + CMD.OPT_CTRL end    
+  if options.ctrl then opt = opt + CMD.OPT_CTRL end
   if options.right then opt = opt + CMD.OPT_RIGHT end
-  if options.shift then 
-    opt = opt + CMD.OPT_SHIFT       
+  if options.shift then
+    opt = opt + CMD.OPT_SHIFT
   else
     Spring.GiveOrder(CMD.INSERT,{0,id,opt,unpack(params)},{"alt"})
 
@@ -124,10 +123,9 @@ function widget:CommandNotify(id, params, options)
     local commands = Spring.GetCommandQueue(unit_id,100)
     local px,py,pz = Spring.GetUnitPosition(unit_id)
     local min_dlen = 1000000
-    local insert_tag = 0
     local insert_pos = 0
-    for i=1,#commands do
-      local command = commands[i]
+    for j=1,#commands do
+      local command = commands[j]
       --Spring.Echo("cmd:"..table.tostring(command))
       local px2,py2,pz2 = GetCommandPos(command)
       if px2 and px2>-1 then
@@ -135,11 +133,10 @@ function widget:CommandNotify(id, params, options)
         --Spring.Echo("dlen "..dlen)
         if dlen < min_dlen then
           min_dlen = dlen
-          insert_tag = command.tag
-          insert_pos = i
+          insert_pos = j
         end
         px,py,pz = px2,py2,pz2
-      end   
+      end
     end
     -- check for insert at end of queue if its shortest walk.
     local dlen = math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(py-cy)))
@@ -148,7 +145,7 @@ function widget:CommandNotify(id, params, options)
       --options.shift=true
       --Spring.GiveOrderToUnit(unit_id,id,params,options)
       Spring.GiveOrderToUnit(unit_id, id, params, {"shift"})
-    else   
+    else
       Spring.GiveOrderToUnit(unit_id, CMD.INSERT, {insert_pos-1, id, opt, unpack(params)}, {"alt"})
     end
   end
