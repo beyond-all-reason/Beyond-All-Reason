@@ -32,19 +32,17 @@ local cantFall = {}
 
 local COM_BLAST = WeaponDefNames['commanderexplosion'].id
 
+local isDGUN = {}
 local isCommander = {}
-for udefID,def in pairs(UnitDefs) do
+for udefID, def in pairs(UnitDefs) do
 	if def.customParams.iscommander then
 		isCommander[udefID] = true
-	end
-end
-local isDGUN = {}
-for udefID,_ in pairs(isCommander) do
-	if WeaponDefNames[ UnitDefs[ udefID ].name..'_disintegrator' ] then
-		isDGUN[ WeaponDefNames[ UnitDefs[udefID].name..'_disintegrator' ].id ] = true
-	else
-		Spring.Echo('ERROR: preventcombomb: No disintegrator weapon found for: '..UnitDefs[udefID].name)
-		isCommander[udefID] = nil
+		if WeaponDefNames[ def.name..'_disintegrator' ] then
+			isDGUN[ WeaponDefNames[ def.name..'_disintegrator' ].id ] = true
+		else
+			--Spring.Echo('ERROR: preventcombomb: No disintegrator weapon found for: '..def.name)
+			isCommander[udefID] = nil
+		end
 	end
 end
 local armcomDefID = UnitDefNames["armcom"].id
@@ -110,7 +108,6 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			end
 		end
 	end
-
 	return damage
 end
 

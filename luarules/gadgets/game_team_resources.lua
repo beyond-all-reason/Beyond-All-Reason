@@ -14,10 +14,16 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local minStorageMetal = 1000
+local minStorageEnergy = 1000
+
+
 local function setup(addResources)
 
 	local startMetal = Spring.GetModOptions().startmetal
 	local startEnergy = Spring.GetModOptions().startenergy
+	local startMetalStorage = Spring.GetModOptions().startmetalstorage
+	local startEnergyStorage = Spring.GetModOptions().startenergystorage
 
 	if GG.coopMode then
 
@@ -35,8 +41,8 @@ local function setup(addResources)
 		for i = 1, #teamList do
 			local teamID = teamList[i]
 			local multiplier = teamPlayerCounts[teamID] or 1 -- Gaia has no players
-			Spring.SetTeamResource(teamID, 'es', startEnergy * multiplier)
-			Spring.SetTeamResource(teamID, 'ms', startMetal * multiplier)
+			Spring.SetTeamResource(teamID, 'ms', math.max(minStorageMetal, startMetalStorage * multiplier, startMetal * multiplier))
+			Spring.SetTeamResource(teamID, 'es',  math.max(minStorageEnergy, startEnergyStorage * multiplier, startEnergy * multiplier))
 			if addResources then
 				Spring.SetTeamResource(teamID, 'm', startMetal * multiplier)
 				Spring.SetTeamResource(teamID, 'e', startEnergy * multiplier)
@@ -46,8 +52,8 @@ local function setup(addResources)
 		local teamList = Spring.GetTeamList()
 		for i = 1, #teamList do
 			local teamID = teamList[i]
-			Spring.SetTeamResource(teamID, 'ms', startMetal)
-			Spring.SetTeamResource(teamID, 'es', startEnergy)
+			Spring.SetTeamResource(teamID, 'ms', math.max(minStorageMetal, startMetalStorage, startMetal))
+			Spring.SetTeamResource(teamID, 'es',  math.max(minStorageEnergy, startEnergyStorage,  startEnergy))
 			if addResources then
 				Spring.SetTeamResource(teamID, 'm', startMetal)
 				Spring.SetTeamResource(teamID, 'e', startEnergy)

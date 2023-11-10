@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 19000,
 		buildcostmetal = 560,
 		buildpic = "CORARAD.DDS",
-		buildtime = 11960,
+		buildtime = 12000,
 		canattack = false,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

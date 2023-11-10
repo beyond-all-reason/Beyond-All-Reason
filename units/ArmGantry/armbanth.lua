@@ -39,7 +39,7 @@ return {
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
-			customrange = 460,
+			customrange = 465,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.9,
@@ -150,7 +150,7 @@ return {
 				tolerance = 10000,
 				turret = true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 1050,
+				weaponvelocity = 1072,
 				damage = {
 					default = 730,
 				},

@@ -7,7 +7,7 @@ return {
 		builddistance = 150,
 		builder = true,
 		buildpic = "ARMCH.DDS",
-		buildtime = 4472,
+		buildtime = 4470,
 		canmove = true,
 		category = "ALL HOVER MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",

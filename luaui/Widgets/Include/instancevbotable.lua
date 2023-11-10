@@ -663,7 +663,6 @@ function compactInstanceVBO(iT, removelist, keeplist)
 	if usedElements == 0 then return 0 end
 	local instanceStep = iT.instanceStep
 	local instanceData = iT.instanceData
-	local instanceIDtoIndex = iT.instanceIDtoIndex
 	local indextoInstanceID = iT.indextoInstanceID
 	local newindextoInstanceID = {}
 	local newinstanceIDtoIndex = {}
@@ -685,11 +684,12 @@ function compactInstanceVBO(iT, removelist, keeplist)
 			numremoved = numremoved + 1
 		end
 	end
-	
-	iT.dirty = true -- we set the flag to notify that CPU and GPU contents dont match!
-	iT.usedElements = newUsedElements
-	iT.instanceIDtoIndex = newinstanceIDtoIndex
-	iT.indextoInstanceID = newindextoInstanceID
+	if numremoved > 0 then 
+		iT.dirty = true -- we set the flag to notify that CPU and GPU contents dont match!
+		iT.usedElements = newUsedElements
+		iT.instanceIDtoIndex = newinstanceIDtoIndex
+		iT.indextoInstanceID = newindextoInstanceID
+	end
 	return numremoved
 end
 

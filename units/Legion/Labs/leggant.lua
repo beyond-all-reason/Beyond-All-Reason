@@ -6,7 +6,7 @@ return {
 		buildcostmetal = 8400,
 		builder = true,
 		buildpic = "LEGGANT.DDS",
-		buildtime = 67321,
+		buildtime = 67300,
 		canmove = true,
 		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -5 8",
@@ -42,6 +42,7 @@ return {
 			[5] = "corcat",
 			[6] = "corsok",
 			[7] = "legpede",
+			[8] = "leegmech",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 3900,
 		builder = 0,
 		buildpic = "ARMFGATE.DDS",
-		buildtime = 59060,
+		buildtime = 59000,
 		canattack = false,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",

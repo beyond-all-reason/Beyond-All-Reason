@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 8000,
 		buildcostmetal = 400,
 		buildpic = "ARMLANCE.DDS",
-		buildtime = 15096,
+		buildtime = 15100,
 		canfly = true,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB VTOL NOTSHIP NOTHOVER",

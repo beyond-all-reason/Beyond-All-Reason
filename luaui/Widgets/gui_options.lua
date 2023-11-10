@@ -170,10 +170,20 @@ local showOnceMore = false        -- used because of GUI shader delay
 local resettedTonemapDefault = false
 local heightmapChangeClock
 local requireRestartDefaults = {}
+local gameOver = false
 
 local presetCodes = {}
 local presetNames = {}
 local presets = {}
+
+local reclaimFieldHighlightOptions = {
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_always'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_resource'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_reclaimer'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_resbot'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_order'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_disabled')
+}
 
 local startScript = VFS.LoadFile("_script.txt")
 if not startScript then
@@ -810,7 +820,7 @@ end
 
 local function updateGrabinput()
 	-- grabinput makes alt-tabbing harder, so loosen grip a bit when in lobby would be wise
-	if Spring.GetConfigInt('grabinput', 1) == 1 then
+	if Spring.GetConfigInt('grabinput', 1) == 1 and not gameOver then
 		if chobbyInterface then
 			if enabledGrabinput then
 				enabledGrabinput = false
@@ -990,7 +1000,7 @@ function widget:Update(dt)
 			if WG['music'] and WG['music'].GetMusicVolume then
 				options[getOptionByID('sndvolmusic')].value = WG['music'].GetMusicVolume()
 			else
-				options[getOptionByID('sndvolmusic')].value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20)
+				options[getOptionByID('sndvolmusic')].value = tonumber(Spring.GetConfigInt("snd_volmusic", 50) or 50)
 			end
 		end
 	end
@@ -1818,7 +1828,7 @@ local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 100
 if not gpuMem then
 	gpuMem = 0
 end
-if gpuMem > 0 and gpuMem < 1800 then
+if gpuMem > 0 and gpuMem < 2500 then
 	isPotatoGpu = true
 end
 if not Platform.glHaveGL4 then
@@ -2157,7 +2167,12 @@ function init()
 			  Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
 		  end,
 		},
-		{ id = "limitidlefps", group = "gfx", category = types.advanced, widget = "Limit idle FPS", name = Spring.I18N('ui.settings.option.limitidlefps'), type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = Spring.I18N('ui.settings.option.limitidlefps_descr') },
+		{ id = "limitoffscreenfps", group = "gfx", category = types.advanced, widget = "Limit idle FPS", name = Spring.I18N('ui.settings.option.limitoffscreenfps'), type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = Spring.I18N('ui.settings.option.limitoffscreenfps_descr') },
+		{ id = "limitidlefps", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.limitidlefps'), type = "bool", value = (Spring.GetConfigInt("LimitIdleFps", 0) == 1), description = Spring.I18N('ui.settings.option.limitidlefps_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("LimitIdleFps", (value and 1 or 0))
+		  end,
+		},
 
 		{ id = "msaa", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.msaa'), type = "select", options = { 'off', 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0), description = Spring.I18N('ui.settings.option.msaa_descr'),
 		  onload = function(i)
@@ -2277,7 +2292,7 @@ function init()
 				  options[getOptionByID('shadowslider')].options[6] = 'insane'
 			  end
 			  local quality = {
-				  ['lowest'] = 2048, ['low'] = 3584, ['medium'] = 6144, ['high'] = 8192, ['ultra'] = 10240, ['insane'] = 12288
+				  ['lowest'] = 1792, ['low'] = 2560, ['medium'] = 4096, ['high'] = 6144, ['ultra'] = 8192, ['insane'] = 10240
 			  }
 			  if ShadowMapSize == 0 then
 				  --options[getOptionByID('shadowslider')].value = 1
@@ -2291,7 +2306,7 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  local quality = {
-				  [1] = 2048, [2] = 3584, [3] = 6144, [4] = 8192, [5] = 10240, [6] = 12288
+				  [1] = 1792, [2] = 2560, [3] = 4096, [4] = 6144, [5] = 8192, [6] = 10240
 			  }
 			  if options[getOptionByID('shadowslider')].options[value] == nil then
 				  value = (value == 1 and 2 or 4)
@@ -2611,7 +2626,7 @@ function init()
 		  end,
 		},
 
-		{ id = "sndvolmaster", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.volume') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.sndvolmaster'), type = "slider", min = 0, max = 200, step = 2, value = tonumber(Spring.GetConfigInt("snd_volmaster", 1) or 100),
+		{ id = "sndvolmaster", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.volume') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.sndvolmaster'), type = "slider", min = 0, max = 80, step = 2, value = tonumber(Spring.GetConfigInt("snd_volmaster", 1) or 80),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2662,7 +2677,7 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setMapmarkVolume', { 'sndMapmarkFileVolume' }, value)
 		  end,
 		},
-		{ id = "sndvolmusic", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolmusic'), type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
+		{ id = "sndvolmusic", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolmusic'), type = "slider", min = 0, max = 99, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 50) or 50),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2889,8 +2904,8 @@ function init()
 			  elseif preset == 'Custom' then
 			  	-- do stuff with custom preset
 			  else
-				  widgetHandler:EnableWidget('Build menu')
 				  widgetHandler:DisableWidget('Grid menu')
+				  widgetHandler:EnableWidget('Build menu')
 			  end
 
 			  if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
@@ -2909,6 +2924,13 @@ function init()
 				  widgetHandler:DisableWidget('Grid menu')
 				  widgetHandler:EnableWidget('Build menu')
 			  end
+		  end,
+		},
+		{ id = "gridmenu_alwaysreturn", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_alwaysreturn'), type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowPrice ~= nil and WG['buildmenu'].getShowPrice()), description = Spring.I18N('ui.settings.option.gridmenu_alwaysreturn_descr'),
+		  onload = function()
+		  end,
+		  onchange = function(_, value)
+			  saveOptionValue('Grid menu', 'gridmenu', 'setAlwaysReturn', { 'alwaysReturn' }, value)
 		  end,
 		},
 
@@ -3911,7 +3933,19 @@ function init()
 
 		{ id = "givenunits", group = "ui", category = types.advanced, widget = "Given Units", name = Spring.I18N('ui.settings.option.givenunits'), type = "bool", value = GetWidgetToggleValue("Given Units"), description = Spring.I18N('ui.settings.option.givenunits_descr') },
 
-		{ id = "reclaimfieldhighlight", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = Spring.I18N('ui.settings.option.reclaimfieldhighlight'), type = "bool", value = GetWidgetToggleValue("Reclaim Field Highlight"), description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_descr') },
+		{ id = "reclaimfieldhighlight", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = Spring.I18N('ui.settings.option.reclaimfieldhighlight'), type = "select", options = reclaimFieldHighlightOptions, value = 3, description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_descr'),
+			onload = function(i)
+				loadWidgetData("Reclaim Field Highlight", "reclaimfieldhighlight", { 'showOption' })
+			end,
+			onchange = function(i, value)
+				if widgetHandler.orderList["Reclaim Field Highlight"] and widgetHandler.orderList["Reclaim Field Highlight"] >= 0.5 then
+					widgetHandler:EnableWidget("Reclaim Field Highlight")
+					saveOptionValue('Reclaim Field Highlight', 'reclaimfieldhighlight', 'setShowOption', { 'showOption' }, value)
+				else
+					saveOptionValue('Reclaim Field Highlight', 'reclaimfieldhighlight', 'setShowOption', { 'showOption' }, value)
+				end
+			end,
+		},
 
 		{ id = "buildinggrid", group = "ui", category = types.basic, widget = "Building Grid GL4", name = Spring.I18N('ui.settings.option.buildinggrid'), type = "bool", value = GetWidgetToggleValue("Building Grid GL4"), description = Spring.I18N('ui.settings.option.buildinggrid_descr') },
 		{ id = "buildinggridopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.buildinggridopacity'), type = "slider", min = 0.3, max = 1, step = 0.05, value = (WG['buildinggrid'] ~= nil and WG['buildinggrid'].getOpacity ~= nil and WG['buildinggrid'].getOpacity()) or 1, description = '',
@@ -3983,6 +4017,24 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Sensor Ranges LOS', 'losrange', 'setUseTeamColors', { 'useteamcolors' }, value)
+		  end,
+		},
+
+		{ id = "attackrange", group = "ui", category = types.basic, widget = "Attack Range GL4", name = Spring.I18N('ui.settings.option.attackrange'), type = "bool", value = GetWidgetToggleValue("Defense Range"), description = Spring.I18N('ui.settings.option.attackrange_descr') },
+		{ id = "attackrange_shiftonly", category = types.dev, group = "ui", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.attackrange_shiftonly'), type = "bool", value = (WG['attackrange'] ~= nil and WG['attackrange'].getShiftOnly ~= nil and WG['attackrange'].getShiftOnly()), description = Spring.I18N('ui.settings.option.attackrange_shiftonly_descr'),
+		  onload = function(i)
+			loadWidgetData("Attack Range GL4", "attackrange_shiftonly", { 'shift_only' })
+		  end,
+		  onchange = function(i, value)
+			saveOptionValue('Attack Range GL4', 'attackrange', 'setShiftOnly', { 'shift_only' }, value)
+		  end,
+		},
+		{ id = "attackrange_cursorunitrange", category = types.dev, group = "ui", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.attackrange_cursorunitrange'), type = "bool", value = (WG['attackrange'] ~= nil and WG['attackrange'].setCursorUnitRange ~= nil and WG['attackrange'].setCursorUnitRange()), description = Spring.I18N('ui.settings.option.attackrange_cursorunitrange_descr'),
+		  onload = function(i)
+			  loadWidgetData("Attack Range GL4", "attackrange_cursorunitrange", { 'cursor_unit_range' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Attack Range GL4', 'attackrange', 'setCursorUnitRange', { 'cursor_unit_range' }, value)
 		  end,
 		},
 
@@ -5417,6 +5469,10 @@ function init()
 	--	options[getOptionByID('xmas')] = nil
 	--end
 
+	if not isPotatoGpu and gpuMem <= 4500 then
+		options[getOptionByID('advmapshading')].category = types.basic
+	end
+
 	-- reset tonemap defaults (only once)
 	if not resettedTonemapDefault then
 		local optionID = getOptionByID('tonemapDefaults')
@@ -5444,6 +5500,11 @@ function init()
 		options[getOptionByID('scav_voicenotifs')] = nil
 		options[getOptionByID('scav_messages')] = nil
 	end
+
+	if not GetWidgetToggleValue('Grid menu') then
+		options[getOptionByID('gridmenu_alwaysreturn')] = nil
+	end
+
 
 	-- add fonts
 	if getOptionByID('font') then
@@ -5599,7 +5660,7 @@ function init()
 			options[getOptionByID('could_opacity')] = nil
 
 			-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
-			if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 1800 then
+			if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500 then
 				options[getOptionByID('shadowslider')] = nil
 				options[getOptionByID('shadows_opacity')] = nil
 
@@ -6015,6 +6076,11 @@ function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 	end
 end
 
+function widget:GameOver()
+	gameOver = true
+	updateGrabinput()
+end
+
 function widget:Initialize()
 
 	-- disable ambient player widget
@@ -6136,10 +6202,10 @@ function widget:Initialize()
 			Spring.SetConfigInt("MaxSounds", 128)
 		end
 
-		-- limit music volume
-		if Spring.GetConfigInt("snd_volmusic", 20) > 50 then
-			Spring.SetConfigInt("snd_volmusic", 50)
-		end
+		-- limit music volume -- why?
+		-- if Spring.GetConfigInt("snd_volmusic", 50) > 50 then
+		-- 	Spring.SetConfigInt("snd_volmusic", 50)
+		-- end
 
 		-- enable advanced model shading
 		if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then
@@ -6266,6 +6332,7 @@ function widget:Shutdown()
 	WG['options'] = nil
 
 	resetUserVolume()
+	Spring.SendCommands("grabinput 0")
 end
 
 local lastOptionCommand = 0

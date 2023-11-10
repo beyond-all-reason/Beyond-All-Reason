@@ -7,7 +7,7 @@ return {
 		builddistance = 110,
 		builder = true,
 		buildpic = "CORMUSKRAT.DDS",
-		buildtime = 6864,
+		buildtime = 6860,
 		canmove = true,
 		category = "ALL TANK PHIB NOTSUB  NOWEAPON NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 0 1",

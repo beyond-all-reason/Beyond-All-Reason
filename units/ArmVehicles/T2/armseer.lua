@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 2000,
 		buildcostmetal = 125,
 		buildpic = "ARMSEER.DDS",
-		buildtime = 6186,
+		buildtime = 6200,
 		canattack = false,
 		canmove = true,
 		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

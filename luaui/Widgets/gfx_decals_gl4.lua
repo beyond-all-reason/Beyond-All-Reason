@@ -626,7 +626,7 @@ function widget:TextCommand(command)
 	return false
 end
 
-if Spring.Utilities.EngineVersionAtLeast(105,1,1,1422) then
+if Script.IsEngineMinVersion(105, 0, 1422) then
 	function widget:DrawPreDecals()
 		DrawDecals()
 	end
@@ -649,17 +649,26 @@ local function RemoveDecal(instanceID)
 	decalTimes[instanceID] = nil
 end
 
+local numDecalsToRemove = 0
+
 function widget:GameFrame(n)
 	if decalRemoveQueue[n] then
 		for i=1, #decalRemoveQueue[n] do
 			local decalID = decalRemoveQueue[n][i]
 			decalRemoveList[decalID] = true
+			numDecalsToRemove = numDecalsToRemove + 1
 			--RemoveDecal(decalID)
 		end
 		decalRemoveQueue[n] = nil
 	end
 
-	if n % 271 == 0 then
+	if n % 67 == 0 then -- About every 2 seconds
+		local totalDecalCount = decalVBO.usedElements + decalLargeVBO.usedElements +  decalExtraLargeVBO.usedElements
+		
+		-- Perform a compacting step if about half of our decals should be removed
+		if totalDecalCount == 0 or (numDecalsToRemove/totalDecalCount < 0.5) then return end
+		
+		numDecalsToRemove = 0
 		local removed = 0
 		removed = removed + compactInstanceVBO(decalVBO, decalRemoveList)
 		removed = removed + compactInstanceVBO(decalLargeVBO, decalRemoveList)
@@ -667,13 +676,12 @@ function widget:GameFrame(n)
 		decalRemoveList = {}
 
 		if autoupdate and removed > 0 then
-			Spring.Echo("Removed",removed,"decals from decal instance tables: s=",decalVBO.usedElements,' l=', decalLargeVBO.usedElements,'xl=', decalExtraLargeVBO.usedElements)
+			Spring.Echo("Removed",removed,"decals from decal instance tables: s=",decalVBO.usedElements,' l=', decalLargeVBO.usedElements,'xl=', decalExtraLargeVBO.usedElements, "Tot=", totalDecalCount, "Rem=",numDecalsToRemove)
 		end
-		if removed > 0 then
-			uploadAllElements(	decalVBO)
-			uploadAllElements(	decalLargeVBO)
-			uploadAllElements(	decalExtraLargeVBO)
-		end
+		if decalVBO.dirty then 	uploadAllElements(	decalVBO) end
+		if decalLargeVBO.dirty then 	uploadAllElements(	decalLargeVBO) end
+		if decalExtraLargeVBO.dirty then 	uploadAllElements(	decalExtraLargeVBO) end
+		
 	end
 end
 

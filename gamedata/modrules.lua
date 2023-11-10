@@ -2,6 +2,7 @@ VFS.Include('init.lua')
 
 -- See: https://springrts.com/wiki/Modrules.lua
 local xpmultiplier = Spring.GetModOptions().experimentalxpgain
+local useQTPFS = Script.IsEngineMinVersion(105, 0, 2020)
 
 XPValues = {
 	experienceMult = 0.3,
@@ -91,7 +92,7 @@ local modrules = {
 
 	system = {
 		enableSmoothMesh = true,
-		pathFinderSystem = 0,			-- Which pathfinder does the game use? Can be 0 - The legacy default pathfinder, 1 - Quad-Tree Pathfinder System (QTPFS) or -1 - disabled.
+		pathFinderSystem = useQTPFS and 1 or 0,			-- Which pathfinder does the game use? Can be 0 - The legacy default pathfinder, 1 - Quad-Tree Pathfinder System (QTPFS) or -1 - disabled.
 		pathFinderUpdateRate = 0.0001,	-- default: 0.007.  Controls how often the pathfinder updates; larger values means more rapid updates.
 		pathFinderRawDistMult = 100000,	-- default: 1.25.  Engine does raw move with a limited distance, this multiplier adjusts that
 		allowTake = true,				-- Enables and disables the /take UI command.
@@ -108,7 +109,7 @@ local modrules = {
 
 	paralyze = {
 		paralyzeOnMaxHealth = true,	-- Are units paralyzed when the level of emp is greater than their current health or their maximum health?
-		paralyzeDeclineRate = 40,	-- default: 40.
+		paralyzeDeclineRate = Spring.GetModOptions().emprework==true and 30 or 40,	-- default: 40.
 	},
 
 	experience = {

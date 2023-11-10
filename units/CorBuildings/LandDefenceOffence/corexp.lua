@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 240,
 		buildingmask = 0,
 		buildpic = "COREXP.DDS",
-		buildtime = 2724,
+		buildtime = 2720,
 		canattack = true,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

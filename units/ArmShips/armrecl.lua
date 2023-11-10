@@ -8,7 +8,7 @@ return {
 		builddistance = 140,
 		builder = true,
 		buildpic = "ARMRECL.DDS",
-		buildtime = 6187.5,
+		buildtime = 6200,
 		canassist = false,
 		canmove = true,
 		canresurrect = true,

@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 50,
 		buildingmask = 0,
 		buildpic = "LEGMEX.DDS",
-		buildtime = 1874,
+		buildtime = 1880,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE CANBEUW UNDERWATER",
 		collisionvolumeoffsets = "0 -3 0",

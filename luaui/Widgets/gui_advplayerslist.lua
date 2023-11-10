@@ -131,7 +131,6 @@ local pics = {
     pingPic = imageDirectory .. "ping.dds",
     cpuPic = imageDirectory .. "cpu.dds",
     barPic = imageDirectory .. "bar.png",
-    amountPic = imageDirectory .. "amount.png",
     pointPic = imageDirectory .. "point.dds",
     lowPic = imageDirectory .. "low.dds",
     arrowPic = imageDirectory .. "arrow.dds",
@@ -1157,10 +1156,10 @@ function CreatePlayer(playerID)
     tcpu = tcpu * 100 - ((tcpu * 100) % 1)
 
     -- resources
-    local energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0, 1, 0, 1, 0, 0
+    local energy, energyStorage, energyIncome, energyShare, metal, metalStorage, metalIncome, metalShare = 0, 1, 0, 0, 1, 0, 0, 0
     if aliveAllyTeams[tallyteam] ~= nil and (mySpecStatus or myAllyTeamID == tallyteam) then
-        energy, energyStorage, _, energyIncome = Spring_GetTeamResources(tteam, "energy")
-        metal, metalStorage, _, metalIncome = Spring_GetTeamResources(tteam, "metal")
+        energy, energyStorage, _, energyIncome, _, energyShare = Spring_GetTeamResources(tteam, "energy")
+        metal, metalStorage, _, metalIncome, _, metalShare = Spring_GetTeamResources(tteam, "metal")
         if energy then
             energy = math.floor(energy)
             metal = math.floor(metal)
@@ -1196,8 +1195,11 @@ function CreatePlayer(playerID)
         ai = false,
         energy = energy,
         energyStorage = energyStorage,
+        energyShare = energyShare,
+        energyConversion = Spring.GetTeamRulesParam(tteam, 'mmLevel'),
         metal = metal,
         metalStorage = metalStorage,
+        metalShare = metalShare,
         incomeMultiplier = tincomeMultiplier,
 		desynced = desynced,
     }
@@ -1252,10 +1254,10 @@ function CreatePlayerFromTeam(teamID)
     tskill = ""
 
     -- resources
-    local energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0, 1, 0, 1, 0, 0
+    local energy, energyStorage, energyIncome, energyShare, metal, metalStorage, metalIncome, metalShare = 0, 1, 0, 0, 1, 0, 0, 0
     if aliveAllyTeams[tallyteam] ~= nil and (mySpecStatus or myAllyTeamID == tallyteam) then
-        energy, energyStorage, _, energyIncome = Spring_GetTeamResources(teamID, "energy")
-        metal, metalStorage, _, metalIncome = Spring_GetTeamResources(teamID, "metal")
+        energy, energyStorage, _, energyIncome, _, energyShare = Spring_GetTeamResources(teamID, "energy")
+        metal, metalStorage, _, metalIncome, _, metalShare = Spring_GetTeamResources(teamID, "metal")
         energy = math.floor(energy or 0)
         metal = math.floor(metal or 0)
         if energy < 0 then
@@ -1283,21 +1285,24 @@ function CreatePlayerFromTeam(teamID)
         ai = tai,
         energy = energy,
         energyStorage = energyStorage,
+        energyShare = energyShare,
+        energyConversion = Spring.GetTeamRulesParam(teamID, 'mmLevel'),
         metal = metal,
         metalStorage = metalStorage,
+        metalShare = metalShare,
         incomeMultiplier = tincomeMultiplier,
     }
 end
 
 function UpdatePlayerResources()
     allyTeamMaxStorage = {}
-    local energy, energyStorage, metal, metalStorage = 0, 1, 0, 1
+    local energy, energyStorage, energyShare, metal, metalStorage, metalShare = 0, 1, 0, 0, 1, 0
     local energyIncome, metalIncome
     for playerID, _ in pairs(player) do
         if player[playerID].name and not player[playerID].spec and player[playerID].team then
             if aliveAllyTeams[player[playerID].allyteam] ~= nil and (mySpecStatus or myAllyTeamID == player[playerID].allyteam) then
-                energy, energyStorage, _, energyIncome = Spring_GetTeamResources(player[playerID].team, "energy")
-                metal, metalStorage, _, metalIncome = Spring_GetTeamResources(player[playerID].team, "metal")
+                energy, energyStorage, _, energyIncome, _, energyShare = Spring_GetTeamResources(player[playerID].team, "energy")
+                metal, metalStorage, _, metalIncome, _, metalShare = Spring_GetTeamResources(player[playerID].team, "metal")
                 if energy == nil then
                     -- need to be there for when you do /specfullview
                     energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0, 0, 0, 0, 0, 0
@@ -1314,9 +1319,12 @@ function UpdatePlayerResources()
                 player[playerID].energy = energy
                 player[playerID].energyIncome = energyIncome
                 player[playerID].energyStorage = energyStorage
+                player[playerID].energyShare = energyShare
+                player[playerID].energyConversion = Spring.GetTeamRulesParam(player[playerID].team, 'mmLevel')
                 player[playerID].metal = metal
                 player[playerID].metalIncome = metalIncome
                 player[playerID].metalStorage = metalStorage
+                player[playerID].metalShare = metalShare
                 if not allyTeamMaxStorage[player[playerID].allyteam] then
                     allyTeamMaxStorage[player[playerID].allyteam] = {}
                 end
@@ -1986,6 +1994,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 
     local name = player[playerID].name
     local team = player[playerID].team
+    if not team then return end -- this prevents error when co-op / joinas is active
+
     local allyteam = player[playerID].allyteam
     local pingLvl = player[playerID].pingLvl
     local cpuLvl = player[playerID].cpuLvl
@@ -2099,12 +2109,15 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                 local e = player[playerID].energy
                 local es = player[playerID].energyStorage
                 local ei = player[playerID].energyIncome
+                local esh = player[playerID].energyShare
+                local ec = player[playerID].energyConversion
                 local m = player[playerID].metal
                 local ms = player[playerID].metalStorage
                 local mi = player[playerID].metalIncome
+                local msh = player[playerID].metalShare
                 if es > 0 then
                     if onlyMainList3 and m_resources.active and (not dead or (e > 0 or m > 0)) then
-                        DrawResources(e, es, m, ms, posY, dead, (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][1])), (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][2])))
+                        DrawResources(e, es, esh, ec, m, ms, msh, posY, dead, (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][1])), (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][2])))
                         if tipY then
                             ResourcesTip(mouseX, e, es, ei, m, ms, mi)
                         end
@@ -2207,11 +2220,11 @@ function DrawChatButton(posY)
     DrawRect(m_chat.posX + widgetPosX + (1*playerScale), posY, m_chat.posX + widgetPosX + (17*playerScale), posY + (16*playerScale))
 end
 
-function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead, maxAllyTeamEnergyStorage, maxAllyTeamMetalStorage)
+function DrawResources(energy, energyStorage, energyShare, energyConversion, metal, metalStorage, metalShare, posY, dead, maxAllyTeamEnergyStorage, maxAllyTeamMetalStorage)
     -- limit to prevent going out of bounds when losing storage
     energy = math.min(energy, energyStorage)
     metal = math.min(metal, metalStorage)
-
+    local bordersize = 0.75
     local paddingLeft = 2
     local paddingRight = 2
     local barWidth = m_resources.width - paddingLeft - paddingRight
@@ -2226,6 +2239,9 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead, m
         y2Offset = 8.6 * sizeMult
     end
     local maxStorage = (maxAllyTeamMetalStorage and maxAllyTeamMetalStorage or metalStorage)
+    --gl_Color(0,0,0, 0.05)
+    --gl_Texture(false)
+    --DrawRect(m_resources.posX + widgetPosX + paddingLeft-bordersize, posY + y1Offset+bordersize, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (metalStorage/maxStorage))+bordersize, posY + y2Offset-bordersize)
     gl_Color(1, 1, 1, 0.18)
     gl_Texture(pics["resbarBgPic"])
     DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (metalStorage/maxStorage)), posY + y2Offset)
@@ -2244,6 +2260,21 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead, m
         DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal), posY + y2Offset - glowsize)
     end
 
+    if metalShare < 0.99 then  -- default = 0.99
+        gl_Color(0,0,0, 0.18)
+        gl_Texture(false)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) - 0.75 - bordersize,
+                posY + y1Offset + 0.55 + bordersize,
+                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) + 0.75 + bordersize,
+                posY + y2Offset - 0.55 - bordersize)
+        gl_Color(1, 0.25, 0.25, 1)
+        gl_Texture(pics["resbarPic"])
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) - 0.75,
+                posY + y1Offset + 0.55,
+                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) + 0.75,
+                posY + y2Offset - 0.55)
+    end
+
     if dead then
         y1Offset = 7.4 * sizeMult
         y2Offset = 6 * sizeMult
@@ -2252,6 +2283,9 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead, m
        y2Offset = 5 * sizeMult
     end
     maxStorage = (maxAllyTeamEnergyStorage and maxAllyTeamEnergyStorage or energyStorage)
+    --gl_Color(0,0,0, 0.05)
+    --gl_Texture(false)
+    --DrawRect(m_resources.posX + widgetPosX + paddingLeft -bordersize, posY + y1Offset+bordersize, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (energyStorage/maxStorage))+bordersize, posY + y2Offset-bordersize)
     gl_Color(1, 1, 0, 0.18)
     gl_Texture(pics["resbarBgPic"])
     DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (energyStorage/maxStorage)), posY + y2Offset)
@@ -2269,20 +2303,44 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead, m
         DrawRect(m_resources.posX + widgetPosX + paddingLeft - (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft, posY + y2Offset - glowsize)
         DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset - glowsize)
     end
+
+    if energyConversion ~= 0.75 and not dead then    -- default = 0.75
+        gl_Color(0,0,0, 0.125)
+        gl_Texture(false)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) - 0.75 - bordersize,
+                posY + y1Offset + 0.55 + bordersize,
+                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) + 0.75 + bordersize,
+                posY + y2Offset - 0.55 - bordersize)
+        gl_Color(0.9, 0.9, 0.73, 1)
+        gl_Texture(pics["resbarPic"])
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) - 0.75,
+                posY + y1Offset + 0.55,
+                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) + 0.75,
+                posY + y2Offset - 0.55)
+    end
+
+    if energyShare < 0.94 or energyShare > 0.96 then  -- default = 0.94999999
+        gl_Color(0,0,0, 0.18)
+        gl_Texture(false)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) - 0.75 - bordersize,
+                posY + y1Offset + 1.1,
+                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) + 0.75 + bordersize,
+                posY + y2Offset - 1.1)
+        gl_Color(1, 0.25, 0.25, 1)
+        gl_Texture(pics["resbarPic"])
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) - 0.75,
+                posY + y1Offset + 0.55,
+                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) + 0.75,
+                posY + y2Offset - 0.55)
+    end
 end
 
 local function formatRes(number)
-    local label
-    if number > 10000 then
-        label = table.concat({ math.floor(math.round(number / 1000)), "k" })
-    elseif number > 1000 then
-        label = table.concat({ string.sub(math.round(number / 1000, 1), 1, 2 + (string.find(math.round(number / 1000, 1), ".", nil, true) or 0)), "k" })
-    elseif number > 10 then
-        label = string.sub(math.round(number, 0), 1, 3 + (string.find(math.round(number, 0), ".", nil, true) or 0))
+    if number < 1000 then
+        return string.format("%d", number)
     else
-        label = string.sub(math.round(number, 1), 1, 2 + (string.find(math.round(number, 1), ".", nil, true) or 0))
+        return string.format("%.1fk", number / 1000)
     end
-    return tostring(label)
 end
 
 function DrawIncome(energy, metal, posY, dead)
@@ -2832,6 +2890,7 @@ function CreateShareSlider()
     end
 
     ShareSlider = gl_CreateList(function()
+		gl_Color(1,1,1,1)
         if sliderPosition then
             font:Begin()
             local posY
@@ -2841,32 +2900,20 @@ function CreateShareSlider()
                 DrawRect(m_share.posX + widgetPosX + (16*playerScale), posY - (3*playerScale), m_share.posX + widgetPosX + (34*playerScale), posY + shareSliderHeight + (18*playerScale))
                 gl_Texture(pics["energyPic"])
                 DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale) + sliderPosition)
-                gl_Texture(pics["amountPic"])
-                if right then
-                    DrawRect(m_share.posX + widgetPosX - (28*playerScale), posY - 1 + sliderPosition, m_share.posX + widgetPosX + (19*playerScale), posY + (17*playerScale) + sliderPosition)
-                    gl_Texture(false)
-                    font:Print(shareAmount, m_share.posX + widgetPosX - (5*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
-                else
-                    DrawRect(m_share.posX + widgetPosX + (76*playerScale), posY - 1 + sliderPosition, m_share.posX + widgetPosX + (31*playerScale), posY + (17*playerScale) + sliderPosition)
-                    gl_Texture(false)
-                    font:Print(shareAmount, m_share.posX + widgetPosX + (55*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
-                end
+                gl_Texture(false)
+				gl_Color(0.45,0.45,0.45,1)
+				RectRound(math.floor(m_share.posX + widgetPosX - (28*playerScale)), math.floor(posY - 1 + sliderPosition), math.floor(m_share.posX + widgetPosX + (19*playerScale)), math.floor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
+				font:Print("\255\255\255\255"..shareAmount, m_share.posX + widgetPosX - (5*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
             elseif metalPlayer ~= nil then
                 posY = widgetPosY + widgetHeight - metalPlayer.posY
                 gl_Texture(pics["barPic"])
                 DrawRect(m_share.posX + widgetPosX + (32*playerScale), posY - 3, m_share.posX + widgetPosX + (50*playerScale), posY + shareSliderHeight + (18*playerScale))
                 gl_Texture(pics["metalPic"])
                 DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale) + sliderPosition)
-                gl_Texture(pics["amountPic"])
-                if right then
-                    DrawRect(m_share.posX + widgetPosX - (12*playerScale), posY - 1 + sliderPosition, m_share.posX + widgetPosX + (35*playerScale), posY + (17*playerScale) + sliderPosition)
-                    gl_Texture(false)
-                    font:Print(shareAmount, m_share.posX + widgetPosX + (11*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
-                else
-                    DrawRect(m_share.posX + widgetPosX + (88*playerScale), posY - 1 + sliderPosition, m_share.posX + widgetPosX + (47*playerScale), posY + (17*playerScale) + sliderPosition)
-                    gl_Texture(false)
-                    font:Print(shareAmount, m_share.posX + widgetPosX + (71*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
-                end
+                gl_Texture(false)
+				gl_Color(0.45,0.45,0.45,1)
+				RectRound(math.floor(m_share.posX + widgetPosX - (12*playerScale)), math.floor(posY - 1 + sliderPosition), math.floor(m_share.posX + widgetPosX + (35*playerScale)), math.floor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
+				font:Print("\255\255\255\255"..shareAmount, m_share.posX + widgetPosX + (11*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
             end
             font:End()
         end
@@ -3668,16 +3715,16 @@ function widget:ViewResize()
     font2 = WG['fonts'].getFont(fontfile2, 1.1, math.max(0.16, 0.25 / widgetScale), math.max(4.5, 6 / widgetScale))
 
 	local MakeAtlasOnDemand = VFS.Include("LuaUI/Widgets/include/AtlasOnDemand.lua")
-	if AdvPlayersListAtlas then 
+	if AdvPlayersListAtlas then
 		--AdvPlayersListAtlas:Delete()
 	end
-	
+
 	local cellheight = math.min(32, math.ceil(math.max(font.size, font2.size) + 4))
 	local cellwidth = math.ceil(cellheight*1.25)
 	local cellcount = math.ceil(math.sqrt(32+32 + 200))
 	local atlasconfig = {sizex = cellheight * cellcount, sizey =  cellwidth*cellcount, xresolution = cellheight, yresolution = cellwidth, name = "AdvPlayersListAtlas", defaultfont = {font = font, options = 'o'}}
 	AdvPlayersListAtlas = MakeAtlasOnDemand(atlasconfig)
-	for i = 0, 99 do 
+	for i = 0, 99 do
 		AdvPlayersListAtlas:AddText(string.format("%02d", i))
 	end
     forceMainListRefresh = true

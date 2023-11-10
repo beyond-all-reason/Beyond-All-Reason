@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 19000,
 		buildcostmetal = 230,
 		buildpic = "ARMSTIL.DDS",
-		buildtime = 21522,
+		buildtime = 21500,
 		canfly = true,
 		canmove = true,
 		category = "ALL MOBILE WEAPON VTOL NOTSUB NOTHOVER",

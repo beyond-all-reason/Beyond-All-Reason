@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 23000,
 		buildcostmetal = 1550,
 		buildpic = "CORSHIVA.DDS",
-		buildtime = 30609,
+		buildtime = 30600,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -5 0",

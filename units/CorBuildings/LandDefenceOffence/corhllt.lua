@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 1750,
 		buildcostmetal = 195,
 		buildpic = "CORHLLT.DDS",
-		buildtime = 5448,
+		buildtime = 5440,
 		canrepeat = false,
 		cantbetransported = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

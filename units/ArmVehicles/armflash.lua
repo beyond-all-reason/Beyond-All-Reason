@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 911,
 		buildcostmetal = 109,
 		buildpic = "ARMFLASH.DDS",
-		buildtime = 1963,
+		buildtime = 1960,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -2 -1",

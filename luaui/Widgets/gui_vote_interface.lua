@@ -364,7 +364,7 @@ end
 
 function widget:AddConsoleLine(lines, priority)
 
-	if not WG['topbar'] or not WG['topbar'].showingRejoining() then
+	if not WG['rejoin'] or not WG['rejoin'].showingRejoining() then
 
 		lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
 		for line in lines:gmatch("[^\n]+") do

@@ -5,16 +5,16 @@ local scenariodata = {
 	title			= "Tick Tock", -- can be anything
 	author			= "Zow", -- your name here
 	imagepath		= "scenario011.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-	imageflavor		= "Enemy Juggernauts", -- This text will be drawn over image
-    summary         = [[On the metal-rich Speed Metal road, you find yourself face to face with an enemy Cortex commander and its four pet Juggernauts.]],
-	briefing 		= [[You've been tasked to defeat an enemy who is rumored to have four of the tankiest units in the game: the Cortex Juggernaut. While they are slow, they spell almost certain doom for your base should they reach it. Your intelligence team has snuck dragon eyes into the enemy base and along the long Speed Metal road to report on the position of these beasts, but are otherwise defenseless against them. Perhaps you must snipe the enemy commander to demoralize their army...
+	imageflavor		= "Enemy Behemoths", -- This text will be drawn over image
+    summary         = [[On the metal-rich Speed Metal road, you find yourself face to face with an enemy Cortex commander and its four pet Behemoths.]],
+	briefing 		= [[You've been tasked to defeat an enemy who is rumored to have four of the tankiest units in the game: the Cortex Behemoth. While they are slow, they spell almost certain doom for your base should they reach it. Your intelligence team has snuck dragon eyes into the enemy base and along the long Speed Metal road to report on the position of these beasts, but are otherwise defenseless against them. Perhaps you must snipe the enemy commander to demoralize their army...
 
 Tips:
  - On Speed Metal, metal extractors can be built anywhere and have a rather high output. Wind generators are by far the best energy source here, being consistently set to the maximum possible wind (25 e/s).
- - You start with a dozen dragon eyes and enough energy to keep them cloaked. Use this to tell how much time you have before the enemy Juggernauts reach your base.
- - Since most land options will likely be blocked by the garguantuan Juggernauts, consider using air options to infiltrate. Armada has two main air assault options: the Banshee, a more mobile light gunship with a machine gun weapon, and the Thunder, a traditional bomber that drops 5 bombs in a line. If you choose to make bombers, be sure to send air scouts before them to scout out the enemy.
- - The Atlas air transport may be used to drop units to the enemy base, but be careful as the enemy has light anti-air turrets that will shoot mediocre drop attempts down.
- - As a last ditch attempt, the commander may attempt to D-gun the Juggernauts, which will one tap them. Be wary that if your commander dies, you lose!
+ - You start with a dozen dragon eyes and enough energy to keep them cloaked. Use this to tell how much time you have before the enemy Behemoths reach your base.
+ - Since most land options will likely be blocked by the garguantuan Behemoths, consider using air options to infiltrate. Armada has two main air assault options: the Banshee, a more mobile light gunship with a machine gun weapon, and the Stormbringer, a traditional bomber that drops 5 bombs in a line. If you choose to make bombers, be sure to send air scouts before them to scout out the enemy.
+ - The Stork air transport may be used to drop units to the enemy base, but be careful as the enemy has light anti-air turrets that will shoot mediocre drop attempts down.
+ - As a last ditch attempt, the commander may attempt to D-gun the Behemoths, which will one tap them. Be wary that if your commander dies, you lose!
 
 Scoring:
  - Time taken to complete the scenario

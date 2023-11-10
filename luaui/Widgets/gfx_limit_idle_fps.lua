@@ -12,42 +12,18 @@ function widget:GetInfo()
 end
 
 local offscreenDelay = 3
-local idleTime = 60
+local idleDelay = Spring.GetConfigInt("LimitIdleFpsDelay", 60)
 local vsyncValueActive = Spring.GetConfigInt("VSyncGame", 0)
 local vsyncValueIdle = Spring.GetConfigInt("IdleFpsDivider", 4)    -- sometimes vsync > 4 doesnt work at all
 
-local isIdle = false
+local limitFpsWhenIdle = Spring.GetConfigInt("LimitIdleFps", 0) == 1
+
+local restrictFps = false
 local lastUserInputTime = os.clock()
 local lastMouseX, lastMouseY = Spring.GetMouseState()
 local prevCamX, prevCamY, prevCamZ = Spring.GetCameraPosition()
 local lastMouseOffScreen = false
 local chobbyInterface = false
-
--- disabled code below because it did work on my separate 144hz monitor, not on my laptop 144hz monitor somehow (then 6 results in more fps than even 4)
---
--- detect display frequency > 60 and set vsyncValueIdle to 6
---local infolog = VFS.LoadFile("infolog.txt")
---if infolog then
---
---	-- store changelog into table
---	local fileLines = string.lines(infolog)
---
---	for i, line in ipairs(fileLines) do
---		if string.sub(line, 1, 3) == '[F='  then
---			break
---		end
---
---		if line:find('(display%-mode set to )') then
---			local s_displaymode = line:sub( line:find('(display%-mode set to )') + 20)
---			if s_displaymode:find('%@') then
---				local frequency = s_displaymode:sub(s_displaymode:find('%@')+1, s_displaymode:find('Hz ')-1)
---				if tonumber(frequency) > 60 then
---					vsyncValueIdle = 6
---				end
---			end
---		end
---	end
---end
 
 
 function widget:Shutdown()
@@ -60,16 +36,16 @@ function widget:RecvLuaMsg(msg, playerID)
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
 		lastUserInputTime = os.clock()
 		if chobbyInterface then
-			isIdle = false
-			Spring.SetConfigInt("VSync", (isIdle and vsyncValueIdle or vsyncValueActive))
+			restrictFps = false
+			Spring.SetConfigInt("VSync", (restrictFps and vsyncValueIdle or vsyncValueActive))
 		end
 	end
 end
 
 function widget:Initialize()
 	WG['limitidlefps'] = {}
-	WG['limitidlefps'].isIdle = function()
-		return isIdle
+	WG['limitidlefps'].restrictFps = function()
+		return restrictFps
 	end
 	WG['limitidlefps'].update = function()
 		lastUserInputTime = os.clock()
@@ -82,6 +58,8 @@ function widget:Update(dt)
 	if sec > 2 then
 		sec = 0
 		vsyncValueActive = Spring.GetConfigInt("VSyncGame", 0)
+		limitFpsWhenIdle = Spring.GetConfigInt("LimitIdleFps", 0) == 1
+		idleDelay = Spring.GetConfigInt("LimitIdleFpsDelay", 40)
 	end
 	-- detect change by user
 	local curVsync = Spring.GetConfigInt("VSync",1)
@@ -90,7 +68,7 @@ function widget:Update(dt)
 	end
 
 	if not chobbyInterface then
-		local prevIsIdle = isIdle
+		local prevRestrictFps = restrictFps
 		local mouseX, mouseY, lmb, mmb, rmb, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
 		if mouseX ~= lastMouseX or mouseY ~= lastMouseY or lmb or mmb or rmb  then
 			lastMouseX, lastMouseY = mouseX, mouseY
@@ -106,16 +84,16 @@ function widget:Update(dt)
 			lastUserInputTime = os.clock()
 		end
 		if lastMouseOffScreen ~= mouseOffScreen then
-			lastUserInputTime = os.clock() - idleTime-0.01+offscreenDelay
+			lastUserInputTime = os.clock() - idleDelay-0.01+offscreenDelay
 		end
 		lastMouseOffScreen = mouseOffScreen
-		if lastUserInputTime < os.clock() - idleTime then
-			isIdle = true
+		if (limitFpsWhenIdle or mouseOffScreen) and lastUserInputTime < os.clock() - idleDelay then
+			restrictFps = true
 		else
-			isIdle = false
+			restrictFps = false
 		end
-		if isIdle ~= prevIsIdle then
-			Spring.SetConfigInt("VSync", (isIdle and vsyncValueIdle or vsyncValueActive))
+		if restrictFps ~= prevRestrictFps then
+			Spring.SetConfigInt("VSync", (restrictFps and vsyncValueIdle or vsyncValueActive))
 		end
 	end
 end

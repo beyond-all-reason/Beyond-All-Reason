@@ -250,6 +250,7 @@ local unitOrderTable = {
 	['corshiva']       = 007050,
 	['legpede']        = 007055,
 	['armthor']        = 007060,
+	['leegmech']        = 007065,
 	['corkorg']        = 007070,
 	['armbanth']       = 007080,
 	['corjugg']        = 007090,
@@ -399,6 +400,7 @@ local unitOrderTable = {
    ['armmoho']        = 100200,
    ['cormoho']        = 100250,
    ['legmext2']       = 100260,
+   ['armshockwave']   = 100290,
    ['cormexp']        = 100300,
 
    --ECO ENERGY CONVERTERS
@@ -509,8 +511,10 @@ local unitOrderTable = {
    ['corfort']        = 104400,
    ['corscavfort']    = 104505, --scavengers
    ['armclaw']        = 104600,
+   ['armlwall']       = 104650,
    ['corscavdtl']     = 104705, --scavengers
    ['cormaw']         = 104800,
+   ['cormwall']       = 104850,
    ['corscavdtf']     = 104905, --scavengers
    ['corscavdtm']     = 104915, --scavengers
 

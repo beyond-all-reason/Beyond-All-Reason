@@ -80,7 +80,7 @@ for notifID, notifDef in pairs(soundsTable) do -- Temporary to keep it working f
 			if VFS.FileExists(soundFolder .. notifDef.sound[i].file) then
 				notifSounds[i] = soundFolder .. notifDef.sound[i].file
 				notifTexts[i] = notifDef.sound[i].text
-			elseif useDefaultVoiceFallback and VFS.FileExists(soundFolder .. notifDef.sound[i].file) then
+			elseif useDefaultVoiceFallback and VFS.FileExists(defaultSoundFolder .. notifDef.sound[i].file) then
 				notifSounds[i] = defaultSoundFolder .. notifDef.sound[i].file
 				notifTexts[i] = notifDef.sound[i].text
 				--Spring.Echo('missing voice notification file: "'..soundFolder .. notifDef.sound[i].file..'"   ('..notifID..'),  using default voiceset instead ('..defaultVoiceSet..')')
@@ -397,6 +397,10 @@ function widget:Initialize()
 	for name, params in pairs(customNotifications) do
 		AddNotification(name, params[1], params[2], params[3], params[4], params[5])
 	end
+
+	if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
+		queueNotification('RaptorsAndScavsMixed')
+	end
 end
 
 function widget:Shutdown()
@@ -435,6 +439,11 @@ function widget:GameFrame(gf)
 			if not hasMadeT2 and e_income >= 600 and m_income >= 12 then
 				queueTutorialNotification('t_readyfortech2')
 			end
+		end
+
+		-- raptors and scavs mixed check
+		if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
+			queueNotification('RaptorsAndScavsMixed')
 		end
 
 		-- low power check
@@ -622,26 +631,30 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 			queueTutorialNotification('t_paralyzer')
 		end
 
-		-- notify when commander gets heavy damage
-		if commanders[unitID] and not spIsUnitInView(unitID) then
-			if not commandersDamages[unitID] then
-				commandersDamages[unitID] = {}
-			end
-			local gameframe = spGetGameFrame()
-			commandersDamages[unitID][gameframe] = damage		-- if widget:UnitDamaged can be called multiple times during 1 gameframe then you need to add those up, i dont know
-
-			-- count total damage of last few secs
-			local totalDamage = 0
-			local startGameframe = gameframe - (5.5 * 30)
-			for gf,damage in pairs(commandersDamages[unitID]) do
-				if gf > startGameframe then
-					totalDamage = totalDamage + damage
-				else
-					commandersDamages[unitID][gf] = nil
+		-- notify when commander gets damaged
+		if commanders[unitID] then
+			local x, y, z = Spring.GetUnitPosition(unitID)
+			local camX, camY, camZ = Spring.GetCameraPosition()
+			if not spIsUnitInView(unitID) or math.diag(camX-x, camY-y, camZ-z) > 3000 then
+				if not commandersDamages[unitID] then
+					commandersDamages[unitID] = {}
 				end
-			end
-			if totalDamage >= commanders[unitID] * 0.12 then
-				queueNotification('ComHeavyDamage')
+				local gameframe = spGetGameFrame()
+				commandersDamages[unitID][gameframe] = damage		-- if widget:UnitDamaged can be called multiple times during 1 gameframe then you need to add those up, i dont know
+
+				-- count total damage of last few secs
+				local totalDamage = 0
+				local startGameframe = gameframe - (5.5 * 30)
+				for gf,damage in pairs(commandersDamages[unitID]) do
+					if gf > startGameframe then
+						totalDamage = totalDamage + damage
+					else
+						commandersDamages[unitID][gf] = nil
+					end
+				end
+				if totalDamage >= commanders[unitID] * 0.12 then
+					queueNotification('ComHeavyDamage')
+				end
 			end
 		end
 	end
@@ -738,7 +751,7 @@ function widget:Update(dt)
 		else
 			isIdle = false
 		end
-		if WG['topbar'] and WG['topbar'].showingRejoining and WG['topbar'].showingRejoining() then
+		if WG['rejoin'] and WG['rejoin'].showingRejoining() then
 			isIdle = true
 		end
 	end

@@ -54,6 +54,7 @@ local tooltipValueWhiteColor = '\255\255\255\255'
 local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor .. ": Select\n " .. tooltipTextColor .. "   + CTRL" .. tooltipLabelTextColor .. ": Select units of this type on map\n " .. tooltipTextColor .. "   + ALT" .. tooltipLabelTextColor .. ": Select 1 single unit of this unit type\n " .. tooltipTextColor .. "Right click" .. tooltipLabelTextColor .. ": Remove\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Remove only 1 unit from that unit type\n " .. tooltipTextColor .. "Middle click" .. tooltipLabelTextColor .. ": Move to center location\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Move to center off whole selection"
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousName = '?????'
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local iconTypesMap, dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
@@ -966,10 +967,20 @@ local function drawUnitInfo()
 			{unitDefInfo[displayUnitDefID].metalCost, unitDefInfo[displayUnitDefID].energyCost}
 		)
 		-- price
+		local function AddSpaces(price)
+			if price >= 1000 then
+				return string.format("%s %03d", AddSpaces(math_floor(price / 1000)), price % 1000)
+			end
+			return price
+		end
 		local halfSize = iconSize * 0.5
 		local padding = (halfSize + halfSize) * 0.045
 		local size = (halfSize + halfSize) * 0.18
-		font3:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "o")
+		local metalPriceText = "\255\245\245\245" .. AddSpaces(unitDefInfo[displayUnitDefID].metalCost)
+		local energyPriceText = "\n\255\255\255\000" .. AddSpaces(unitDefInfo[displayUnitDefID].energyCost)
+		local energyPriceTextHeight = font2:GetTextHeight(energyPriceText) * size
+		font3:Print(metalPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07) + energyPriceTextHeight, size, "ro")
+		font3:Print(energyPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "ro")
 	end
 	iconSize = iconSize + iconPadding
 
@@ -1088,7 +1099,7 @@ local function drawUnitInfo()
 				name = GetAIName(teamID)
 			end
 			if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode ~= 'disabled' then
-				name = "??????"
+				name = anonymousName
 			end
 			if name then
 				local fontSizeOwner = fontSize * 0.87

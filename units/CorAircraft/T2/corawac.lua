@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 8300,
 		buildcostmetal = 180,
 		buildpic = "CORAWAC.DDS",
-		buildtime = 13264,
+		buildtime = 13300,
 		canfly = true,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",

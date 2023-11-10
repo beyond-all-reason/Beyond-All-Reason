@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 3300,
 		buildcostmetal = 320,
 		buildpic = "CORSNAP.DDS",
-		buildtime = 3791,
+		buildtime = 3800,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",

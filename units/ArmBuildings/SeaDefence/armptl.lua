@@ -28,7 +28,7 @@ return {
 		sonardistance = 230,
 		yardmap = "ooooooooo",
 		customparams = {
-			unitgroup = 'weaponaa',
+			unitgroup = 'sub',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,

@@ -7,7 +7,7 @@ local scenariodata = {
 	author			= "Beherith", -- your name here
 	imagepath		= "scenario012.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "Mines explode on the slightest touch", -- This text will be drawn over image
-    summary         = [[The Armada are amassing reinforcements	 at a rally point near one of your stealthy outposts. You do not have any technology except for minelayers and scouts. Lay mines around the area, and then you must distract and draw these forces onto minefields, without allowing Armada to detect and destroy your base of operations.]],
+    summary         = [[The Armada are amassing reinforcements at a rally point near one of your stealthy outposts. You do not have any technology except for minelayers and scouts. Lay mines around the area, and then you must distract and draw these forces onto minefields, without allowing Armada to detect and destroy your base of operations.]],
 	briefing 		= [[
 Tips:
  - Mines automatically detonate if an enemy gets within range of it, or if it is destroyed.

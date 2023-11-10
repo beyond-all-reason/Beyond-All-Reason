@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 2200,
 		buildcostmetal = 410,
 		buildpic = "CORMORT.DDS",
-		buildtime = 5139,
+		buildtime = 5140,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "2 0 0",

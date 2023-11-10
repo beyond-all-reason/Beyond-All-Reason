@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 1500,
 		buildcostmetal = 190,
 		buildpic = "armbeamer.DDS",
-		buildtime = 5324,
+		buildtime = 5320,
 		canrepeat = false,
 		cantbetransported = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

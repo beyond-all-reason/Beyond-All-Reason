@@ -14,69 +14,69 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local spGetUnitIsStunned = Spring.GetUnitIsStunned
+local spGetTeamResources = Spring.GetTeamResources
+local spSetTeamResource = Spring.SetTeamResource
+
+local storageUnits = {}
+
 local storageDefs = {}
 local isCommander = {}
 for udid, ud in pairs(UnitDefs) do
-	if ud.metalStorage >= 50 then
-		if not storageDefs[udid] then
-			storageDefs[udid] = {}
+	if not ud.canMove then	-- this is to exclude transportable units since they get stunned while being transported
+		if ud.metalStorage >= 50 then
+			if not storageDefs[udid] then
+				storageDefs[udid] = {}
+			end
+			storageDefs[udid].metal = ud.metalStorage
 		end
-		storageDefs[udid].metal = ud.metalStorage
-	end
-	if ud.energyStorage >= 100 then
-		if not storageDefs[udid] then
-			storageDefs[udid] = {}
+		if ud.energyStorage >= 100 then
+			if not storageDefs[udid] then
+				storageDefs[udid] = {}
+			end
+			storageDefs[udid].energy = ud.energyStorage
 		end
-		storageDefs[udid].energy = ud.energyStorage
 	end
 	if ud.customParams.iscommander then
 		isCommander[udid] = true
 	end
 end
 
-local storageUnits = {}
-
-local spGetUnitIsStunned = Spring.GetUnitIsStunned
-local spGetUnitDefID = Spring.GetUnitDefID
 
 function gadget:GameFrame(n)
-	for unitID, _ in pairs(storageUnits) do
-		local unitDefID = spGetUnitDefID(unitID)
-		if not unitDefID then
-			break
-		end
+	if n % 5 == 1 then
+		for unitID, params in pairs(storageUnits) do
+			if not isCommander[params.unitDefID] or n > 150 then	-- workaround to prevent commander-gate paralyze effect to rob you of half your starting resources
 
-		if not isCommander[unitDefID] or n > 150 then	-- workaround to prevent commander-gate paralyze effect to rob you of half your starting resources
+				local isStunned = spGetUnitIsStunned(unitID)
 
-			local isStunned = spGetUnitIsStunned(unitID)
+				-- when freshly EMP'd: reduce total storage
+				if not storageUnits[unitID].stunned and isStunned then
+					storageUnits[unitID].stunned = true
 
-			-- when freshly EMP'd: reduce total storage
-			if not storageUnits[unitID].stunned and isStunned then
-				storageUnits[unitID].stunned = true
+					if params.metal then
+						local _, totalStorage = spGetTeamResources(params.teamID, "metal")
+						local newStorageTotal = totalStorage - params.metal
+						spSetTeamResource(params.teamID, "ms", newStorageTotal)
+					end
+					if params.energy then
+						local _, totalStorage = spGetTeamResources(params.teamID, "energy")
+						local newStorageTotal = totalStorage - params.energy
+						spSetTeamResource(params.teamID, "es", newStorageTotal)
+					end
 
-				local teamID = Spring.GetUnitTeam(unitID)
-				if storageDefs[spGetUnitDefID(unitID)].metal then
-					local _, totalStorage = Spring.GetTeamResources(teamID, "metal")
-					local newStorageTotal = totalStorage - storageUnits[unitID].metal
-					Spring.SetTeamResource(teamID, "ms", newStorageTotal)
-				end
-				if storageDefs[spGetUnitDefID(unitID)].energy then
-					local _, totalStorage = Spring.GetTeamResources(teamID, "energy")
-					local newStorageTotal = totalStorage - storageUnits[unitID].energy
-					Spring.SetTeamResource(teamID, "es", newStorageTotal)
-				end
-
-				-- when EMP ran out: restore total storage
-			elseif storageUnits[unitID].stunned and not isStunned then
-				if storageDefs[spGetUnitDefID(unitID)].metal then
-					local _, totalStorage = Spring.GetTeamResources(Spring.GetUnitTeam(unitID), "metal")
-					Spring.SetTeamResource(Spring.GetUnitTeam(unitID), "ms", totalStorage + storageUnits[unitID].metal)
-					storageUnits[unitID].stunned = false
-				end
-				if storageDefs[spGetUnitDefID(unitID)].energy then
-					local _, totalStorage = Spring.GetTeamResources(Spring.GetUnitTeam(unitID), "energy")
-					Spring.SetTeamResource(Spring.GetUnitTeam(unitID), "es", totalStorage + storageUnits[unitID].energy)
-					storageUnits[unitID].stunned = false
+					-- when EMP ran out: restore total storage
+				elseif storageUnits[unitID].stunned and not isStunned then
+					if params.metal then
+						local _, totalStorage = spGetTeamResources(params.teamID, "metal")
+						spSetTeamResource(params.teamID, "ms", totalStorage + params.metal)
+						storageUnits[unitID].stunned = false
+					end
+					if params.energy then
+						local _, totalStorage = spGetTeamResources(params.teamID, "energy")
+						spSetTeamResource(params.teamID, "es", totalStorage + params.energy)
+						storageUnits[unitID].stunned = false
+					end
 				end
 			end
 		end
@@ -86,9 +86,11 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if storageDefs[unitDefID] then
 		storageUnits[unitID] = {
+			unitDefID = unitDefID,
 			stunned = false,
 			metal = storageDefs[unitDefID].metal,
 			energy = storageDefs[unitDefID].energy,
+			teamID = unitTeam,
 		}
 	end
 end
@@ -96,18 +98,23 @@ end
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if storageUnits[unitID] and storageUnits[unitID].stunned then
 		if storageUnits[unitID].metal then
-			local _, totalStorage = Spring.GetTeamResources(oldTeam, "metal")
-			Spring.SetTeamResource(oldTeam, "ms", totalStorage + storageUnits[unitID].metal)
-			_, totalStorage = Spring.GetTeamResources(newTeam, "metal")
-			Spring.SetTeamResource(newTeam, "ms", totalStorage - storageUnits[unitID].metal)
+			local _, totalStorage = spGetTeamResources(oldTeam, "metal")
+			spSetTeamResource(oldTeam, "ms", totalStorage + storageUnits[unitID].metal)
+			_, totalStorage = spGetTeamResources(newTeam, "metal")
+			spSetTeamResource(newTeam, "ms", totalStorage - storageUnits[unitID].metal)
 		end
 		if storageUnits[unitID].energy then
-			local _, totalStorage = Spring.GetTeamResources(oldTeam, "energy")
-			Spring.SetTeamResource(oldTeam, "es", totalStorage + storageUnits[unitID].energy)
-			_, totalStorage = Spring.GetTeamResources(newTeam, "energy")
-			Spring.SetTeamResource(newTeam, "es", totalStorage - storageUnits[unitID].energy)
+			local _, totalStorage = spGetTeamResources(oldTeam, "energy")
+			spSetTeamResource(oldTeam, "es", totalStorage + storageUnits[unitID].energy)
+			_, totalStorage = spGetTeamResources(newTeam, "energy")
+			spSetTeamResource(newTeam, "es", totalStorage - storageUnits[unitID].energy)
 		end
+		storageDefs[unitDefID].teamID = newTeam
 	end
+end
+
+function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+	gadget:UnitGiven(unitID, unitDefID, newTeam, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
@@ -116,12 +123,12 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 
 			-- restore before unit is destroyed
 			if storageUnits[unitID].metal then
-				local _, totalStorage = Spring.GetTeamResources(unitTeam, "metal")
-				Spring.SetTeamResource(unitTeam, "ms", totalStorage + storageUnits[unitID].metal)
+				local _, totalStorage = spGetTeamResources(unitTeam, "metal")
+				spSetTeamResource(unitTeam, "ms", totalStorage + storageUnits[unitID].metal)
 			end
 			if storageUnits[unitID].energy then
-				local _, totalStorage = Spring.GetTeamResources(unitTeam, "energy")
-				Spring.SetTeamResource(unitTeam, "es", totalStorage + storageUnits[unitID].energy)
+				local _, totalStorage = spGetTeamResources(unitTeam, "energy")
+				spSetTeamResource(unitTeam, "es", totalStorage + storageUnits[unitID].energy)
 			end
 		end
 		storageUnits[unitID] = nil

@@ -9,7 +9,7 @@ for i = 1,#teams do
 	end
 end
 if scavengersAIEnabled then
-	enabled = true
+	enabled = false
 end
 
 function gadget:GetInfo()

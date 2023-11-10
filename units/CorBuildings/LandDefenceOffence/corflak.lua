@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 14000,
 		buildcostmetal = 850,
 		buildpic = "CORFLAK.DDS",
-		buildtime = 20112,
+		buildtime = 20100,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
@@ -155,7 +155,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1600,
 				damage = {
-					default = 125,
+					--default = 125,
 					bombers = 250,
 					fighters = 500,
 					vtol = 250,

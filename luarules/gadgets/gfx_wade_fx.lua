@@ -87,7 +87,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 	if maxDepth then
 		unitsCount = unitsCount + 1
 		unitsData[unitsCount] = unitID
-		unit[unitID] = {id = unitsCount, h = maxDepth, fx = wadeSfxID[unitDefID]}
+		unit[unitID] = {id = unitsCount, h = maxDepth, fx = wadeSfxID[unitDefID], defid = unitDefID}
 	end
 end
 
@@ -110,17 +110,19 @@ function gadget:GameFrame(n)
 		for i = current_fold, unitsCount, n_folds do
 			local unitID = listData[i]
 			local data = unit[unitID]
-			local unitDefID = spGetUnitDefID(unitID)
+			local unitDefID = data.defid
 			if data and data.h and unitWadeCeg[unitDefID] then
 				local x,y,z = spGetUnitPosition(unitID)
 				local h = data.h
 
-				local _, _, _, speed = spGetUnitVelocity(unitID)
-				if speed and y > h and y <= 0 and speed > 0 and not spGetUnitIsCloaked(unitID) then
-					-- 1 is the pieceID, most likely it's usually the base piece
-					-- but even if it isn't, it doesn't really matter
-					--spusCallAsUnit(unitID, spusEmitSfx, 1, data.fx)
-					spSpawnCEG(unitWadeCeg[unitDefID], x, 0, z, 0, 0, 0)
+				if y and y > h and y <= 0 then
+					local _, _, _, speed = spGetUnitVelocity(unitID)
+					if speed and speed > 0 and not spGetUnitIsCloaked(unitID) then
+						-- 1 is the pieceID, most likely it's usually the base piece
+						-- but even if it isn't, it doesn't really matter
+						--spusCallAsUnit(unitID, spusEmitSfx, 1, data.fx)
+						spSpawnCEG(unitWadeCeg[unitDefID], x, 0, z, 0, 0, 0)
+					end
 				end
 			end
 		end

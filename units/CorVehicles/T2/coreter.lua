@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 1900,
 		buildcostmetal = 105,
 		buildpic = "CORETER.DDS",
-		buildtime = 6404,
+		buildtime = 6400,
 		canattack = false,
 		canmove = true,
 		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

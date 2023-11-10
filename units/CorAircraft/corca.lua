@@ -8,7 +8,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "CORCA.DDS",
-		buildtime = 8357,
+		buildtime = 8360,
 		canfly = true,
 		canmove = true,
 		category = "ALL MOBILE NOTLAND NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",

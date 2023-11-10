@@ -151,7 +151,7 @@ return {
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 3000,
+				weaponvelocity = 3240,
 				damage = {
 					bombers = 700,
 					commanders = 125,
@@ -165,6 +165,8 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR",
 				def = "RAILGUN",
+				maindir = "0 0.5 1",
+				maxangledif = 210,
 				onlytargetcategory = "NOTSUB",
 			},
 		},

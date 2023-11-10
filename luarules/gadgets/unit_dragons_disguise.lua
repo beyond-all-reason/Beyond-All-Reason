@@ -21,9 +21,11 @@ local ValidUnitID = Spring.ValidUnitID
 local neutralUnits = {}
 local armourTurrets = {}
 for udid,ud in ipairs(UnitDefs) do
-    if string.find(ud.name, "cormaw") or string.find(ud.name, "armclaw")  then
-        armourTurrets[udid] = true
-    end
+	if ud.customParams then
+		if ud.customParams.neutral_when_closed then
+			armourTurrets[udid] = true
+		end
+	end
 end
 local UPDATE = 30
 local timeCounter = 15

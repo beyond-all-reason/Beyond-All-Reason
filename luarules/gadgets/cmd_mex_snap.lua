@@ -369,11 +369,10 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return
 	end
 
-	local cbx, cbz = cmdParams[1], cmdParams[3]
 	local orders = cmdOpts.shift and GetClashingOrders() or {}
 	local closestSpot = GetClosestMex(bx, bz, _G['resource_spot_finder'].metalSpotsList, isMex[-cmdID], orders)
 
-	if closestSpot then -- and not _G['resource_spot_finder'].IsMexPositionValid(closestSpot, cbx, cbz) then
+	if closestSpot then -- and not _G['resource_spot_finder'].IsMexPositionValid(closestSpot, cmdParams[1], cmdParams[3]) then
 		local cbface = cmdParams[4]
 		local mexPositions = _G['resource_spot_finder'].GetBuildingPositions(closestSpot, -cmdID, cbface, true)
 		local bestPos = GetClosestPosition(bx, bz, mexPositions)
@@ -384,11 +383,11 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			return true
 		end
 	end
-	--local _, metal, metal2 = Spring.GetGroundInfo(cbx, cbz)
-	--if type(metal) == 'string' and metal2 > 0 then
-	--	return false
-	--else
-	--	return true
-	--end
+	local _, metal, metal2 = Spring.GetGroundInfo(cmdParams[1], cmdParams[3])
+	if type(metal) == 'string' and metal2 > 0 then
+		return false
+	else
+		return true
+	end
 end
 
