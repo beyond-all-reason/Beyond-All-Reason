@@ -103,9 +103,15 @@ function widget:CommandNotify(id, params, options)
       opt = opt + CMD.OPT_SHIFT       
     else
       Spring.GiveOrder(CMD.INSERT,{0,id,opt,unpack(params)},{"alt"})
+
+      -- When we are building we want to keep same active command after unset by engine
+      if id < 0 then
+      	Spring.SetActiveCommand(Spring.GetCmdDescIndex(id), 1, true, false, options.alt, options.ctrl, false, false)
+      end
+
       return true
     end
-    
+
     -- Spring.GiveOrder(CMD.INSERT,{0,id,opt,unpack(params)},{"alt"})
     local my_command = {["id"]=id, ["params"]=params, ["options"]=options}
     local cx,cy,cz = GetCommandPos(my_command)
@@ -147,7 +153,14 @@ function widget:CommandNotify(id, params, options)
         Spring.GiveOrderToUnit(unit_id, CMD.INSERT, {insert_pos-1, id, opt, unpack(params)}, {"alt"})
       end
     end
+
+    -- When we are building we want to keep same active command after unset by engine
+    if id < 0 then
+      Spring.SetActiveCommand(Spring.GetCmdDescIndex(id), 1, true, false, options.alt, options.ctrl, false, false)
+    end
+
     return true
   end
+
   return false
 end
