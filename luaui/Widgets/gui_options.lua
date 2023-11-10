@@ -5501,6 +5501,11 @@ function init()
 		options[getOptionByID('scav_messages')] = nil
 	end
 
+	if not GetWidgetToggleValue('Grid menu') then
+		options[getOptionByID('gridmenu_alwaysreturn')] = nil
+	end
+
+
 	-- add fonts
 	if getOptionByID('font') then
 		local fonts = {}
