@@ -93,74 +93,70 @@ end
 
 function widget:CommandNotify(id, params, options)
   local _,_,meta,_ = Spring.GetModKeyState()
-  if (meta) then
-    local opt = 0
-    local insertfront = false
-    if options.alt then opt = opt + CMD.OPT_ALT end
-    if options.ctrl then opt = opt + CMD.OPT_CTRL end    
-    if options.right then opt = opt + CMD.OPT_RIGHT end
-    if options.shift then 
-      opt = opt + CMD.OPT_SHIFT       
-    else
-      Spring.GiveOrder(CMD.INSERT,{0,id,opt,unpack(params)},{"alt"})
 
-      -- When we are building we want to keep same active command after unset by engine
-      if id < 0 then
-      	Spring.SetActiveCommand(Spring.GetCmdDescIndex(id), 1, true, false, options.alt, options.ctrl, false, false)
-      end
+  if not meta then
+  	return false
+  end
 
-      return true
-    end
-
-    -- Spring.GiveOrder(CMD.INSERT,{0,id,opt,unpack(params)},{"alt"})
-    local my_command = {["id"]=id, ["params"]=params, ["options"]=options}
-    local cx,cy,cz = GetCommandPos(my_command)
-    if cx < -1 then
-      return false
-    end
-
-    local units = Spring.GetSelectedUnits()
-    for i=1,#units do
-      local unit_id = units[i]
-      local commands = Spring.GetCommandQueue(unit_id,100)
-      local px,py,pz = Spring.GetUnitPosition(unit_id)
-      local min_dlen = 1000000
-      local insert_tag = 0
-      local insert_pos = 0
-      for i=1,#commands do
-        local command = commands[i]
-        --Spring.Echo("cmd:"..table.tostring(command))
-        local px2,py2,pz2 = GetCommandPos(command)
-        if px2 and px2>-1 then
-          local dlen = math_sqrt(((px2-cx)*(px2-cx)) + ((py2-cy)*(py2-cy)) + ((pz2-cz)*(pz2-cz))) + math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(pz-cz))) - math_sqrt((((px2-px)*(px2-px)) + ((py2-py)*(py2-py)) + ((py2-py)*(py2-py))))
-          --Spring.Echo("dlen "..dlen)
-          if dlen < min_dlen then
-            min_dlen = dlen
-            insert_tag = command.tag
-            insert_pos = i
-          end
-          px,py,pz = px2,py2,pz2
-        end   
-      end
-      -- check for insert at end of queue if its shortest walk.
-      local dlen = math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(py-cy)))
-      if dlen < min_dlen then
-        --options.meta=nil
-        --options.shift=true
-        --Spring.GiveOrderToUnit(unit_id,id,params,options)
-        Spring.GiveOrderToUnit(unit_id, id, params, {"shift"})
-      else   
-        Spring.GiveOrderToUnit(unit_id, CMD.INSERT, {insert_pos-1, id, opt, unpack(params)}, {"alt"})
-      end
-    end
-
-    -- When we are building we want to keep same active command after unset by engine
-    if id < 0 then
-      Spring.SetActiveCommand(Spring.GetCmdDescIndex(id), 1, true, false, options.alt, options.ctrl, false, false)
-    end
+  local opt = 0
+  local insertfront = false
+  if options.alt then opt = opt + CMD.OPT_ALT end
+  if options.ctrl then opt = opt + CMD.OPT_CTRL end    
+  if options.right then opt = opt + CMD.OPT_RIGHT end
+  if options.shift then 
+    opt = opt + CMD.OPT_SHIFT       
+  else
+    Spring.GiveOrder(CMD.INSERT,{0,id,opt,unpack(params)},{"alt"})
 
     return true
   end
 
-  return false
+  -- Spring.GiveOrder(CMD.INSERT,{0,id,opt,unpack(params)},{"alt"})
+  local my_command = {["id"]=id, ["params"]=params, ["options"]=options}
+  local cx,cy,cz = GetCommandPos(my_command)
+  if cx < -1 then
+    return false
+  end
+
+  local units = Spring.GetSelectedUnits()
+  for i=1,#units do
+    local unit_id = units[i]
+    local commands = Spring.GetCommandQueue(unit_id,100)
+    local px,py,pz = Spring.GetUnitPosition(unit_id)
+    local min_dlen = 1000000
+    local insert_tag = 0
+    local insert_pos = 0
+    for i=1,#commands do
+      local command = commands[i]
+      --Spring.Echo("cmd:"..table.tostring(command))
+      local px2,py2,pz2 = GetCommandPos(command)
+      if px2 and px2>-1 then
+        local dlen = math_sqrt(((px2-cx)*(px2-cx)) + ((py2-cy)*(py2-cy)) + ((pz2-cz)*(pz2-cz))) + math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(pz-cz))) - math_sqrt((((px2-px)*(px2-px)) + ((py2-py)*(py2-py)) + ((py2-py)*(py2-py))))
+        --Spring.Echo("dlen "..dlen)
+        if dlen < min_dlen then
+          min_dlen = dlen
+          insert_tag = command.tag
+          insert_pos = i
+        end
+        px,py,pz = px2,py2,pz2
+      end   
+    end
+    -- check for insert at end of queue if its shortest walk.
+    local dlen = math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(py-cy)))
+    if dlen < min_dlen then
+      --options.meta=nil
+      --options.shift=true
+      --Spring.GiveOrderToUnit(unit_id,id,params,options)
+      Spring.GiveOrderToUnit(unit_id, id, params, {"shift"})
+    else   
+      Spring.GiveOrderToUnit(unit_id, CMD.INSERT, {insert_pos-1, id, opt, unpack(params)}, {"alt"})
+    end
+  end
+
+  -- When we are editing the build order we want to keep same active command after unset by engine
+  if id < 0 then
+    Spring.SetActiveCommand(Spring.GetCmdDescIndex(id), 1, true, false, options.alt, options.ctrl, false, false)
+  end
+
+  return true
 end
