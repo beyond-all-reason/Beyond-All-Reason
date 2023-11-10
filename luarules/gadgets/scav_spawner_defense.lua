@@ -1598,7 +1598,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local scavTeamUnitCount = GetTeamUnitCount(scavTeamID) or 0
-		if scavTeamUnitCount < scavUnitCap and n%15 == 9 then
+		if scavTeamUnitCount < scavUnitCap and n%5 == 4 then
 			SpawnScavs()
 		end
 
