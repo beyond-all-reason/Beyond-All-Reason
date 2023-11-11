@@ -1658,7 +1658,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local raptorTeamUnitCount = GetTeamUnitCount(raptorTeamID) or 0
-		if raptorTeamUnitCount < raptorUnitCap and n%5 == 4 then
+		if raptorTeamUnitCount < raptorUnitCap and (n%5 == 4 or waveParameters.firstWavesBoost > 1) then
 			tracy.ZoneBeginN("Raptors:SpawnRaptors")
 			SpawnRaptors()
 			tracy.ZoneEnd()
