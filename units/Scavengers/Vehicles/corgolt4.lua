@@ -47,7 +47,7 @@ return {
 			firingceg = "barrelshot-tiny",
 			flare1name = "flash",
 			kickback = "-4",
-			model_author = "Mr Bob",
+			model_author = "Mr Bob, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			restoretime = "3000",
 			rockstrength = "10",
