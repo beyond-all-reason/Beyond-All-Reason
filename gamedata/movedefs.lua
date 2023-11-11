@@ -500,7 +500,7 @@ local moveDatas = {
 	-- 	maxwaterslope = 80,
 	-- },
 	-- review this
-	-- armvang corkarg
+	-- armvang corkarg corthermite
 	HTBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,
