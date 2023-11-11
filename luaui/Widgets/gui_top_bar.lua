@@ -56,7 +56,7 @@ local xPos = math_floor(vsx * relXpos)
 local currentWind = 0
 local gameStarted = (Spring.GetGameFrame() > 0)
 local displayComCounter = false
-local displayTidalSpeed = true
+local displayTidalSpeed = not (Spring.GetModOptions().map_waterislava or Game.waterDamage > 0)
 local updateTextClock = os.clock()
 
 local glTranslate = gl.Translate
@@ -138,8 +138,6 @@ if riskWindValue == nil then
 		riskWindValue = "100"
 	end
 end
-
-local lavaMap = Spring.GetModOptions().map_waterislava or Game.waterDamage > 0
 
 local tidalSpeed = Game.tidal
 local tidalWaveAnimationHeight = 10
@@ -993,7 +991,7 @@ function init()
 	updateWind()
 
 	-- tidal
-	if displayTidalSpeed and not lavaMap then
+	if displayTidalSpeed then
 		if not checkTidalRelevant() then
 			displayTidalSpeed = false
 		else
