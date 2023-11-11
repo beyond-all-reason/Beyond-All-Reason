@@ -139,6 +139,8 @@ if riskWindValue == nil then
 	end
 end
 
+local lavaMap = Spring.GetModOptions().map_waterislava or Game.waterDamage > 0
+
 local tidalSpeed = Game.tidal
 local tidalWaveAnimationHeight = 10
 local windRotation = 0
@@ -991,7 +993,7 @@ function init()
 	updateWind()
 
 	-- tidal
-	if displayTidalSpeed then
+	if displayTidalSpeed and not lavaMap then
 		if not checkTidalRelevant() then
 			displayTidalSpeed = false
 		else
