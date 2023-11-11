@@ -3,13 +3,15 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, flare, turret, sleeve, barrel, smoke1, smoke2;
+piece  base, flare, turret, sleeve, barrel, smoke1, smoke2, lflare, rflare, lball, rball, lbarrel, rbarrel;
 
-static-var  bMoving, moveSpeed, currentSpeed, animSpeed, restore_delay;
+static-var  bMoving, moveSpeed, currentSpeed, animSpeed, restore_delay, last_lball_heading, last_rball_heading;
 
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_MOVE				4
+#define SIG_AIML				8
+#define SIG_AIMR				16
 
 UnitSpeed()
 {
@@ -110,6 +112,8 @@ Create()
 	hide flare;
 	restore_delay = 3000;
 	start-script SmokeUnit();
+	last_lball_heading = -1000000;
+	last_rball_heading = -1000000;
 }
 
 StartMoving()
@@ -140,8 +144,10 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	turn turret to y-axis <0.000000> speed <35.005495>;
-	turn sleeve to x-axis <0.000000> speed <15.000000>;
+	turn sleeve to x-axis <0.000000> speed <15.000000>;	
+	
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -155,6 +161,30 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
+
+RestoreAfterDelay_lspon()
+{
+	set-signal-mask SIG_AIML; //ensures restore animation is killed if this weapon is aimed
+	sleep restore_delay;
+	//large negative values to let wait-for-turn happen on first target
+	last_lball_heading = -1000000;
+	turn lball to y-axis <0> speed <90>;
+	turn lbarrel to x-axis <0.000000> speed <15>;
+}
+
+RestoreAfterDelay_rspon()
+{
+	set-signal-mask SIG_AIMR; //ensures restore animation is killed if this weapon is aimed
+	sleep restore_delay;
+	//large negative values to let wait-for-turn happen on first target
+	last_rball_heading = -1000000;
+	turn rball to y-axis <0> speed <90>;
+	turn rbarrel to x-axis <0.000000> speed <15>;
+}
+
+
+
+
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
@@ -164,16 +194,17 @@ AimPrimary(heading, pitch)
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();
-	return (1);
+	return (1);//*/
 }
 
 FirePrimary()
 {
+
 	emit-sfx 1024 + 0 from flare;
 	move barrel to z-axis [-2.400000] speed [500.000000];
 	emit-sfx 1024 + 0 from flare;
 	wait-for-move barrel along z-axis;
-	move barrel to z-axis [0.000000] speed [3.000000];
+	move barrel to z-axis [0.000000] speed [3.000000];//*/
 }
 
 AimFromPrimary(piecenum)
@@ -185,6 +216,137 @@ QueryPrimary(piecenum)
 {
 	piecenum = flare;
 }
+
+
+
+
+//left
+AimSecondary(heading, pitch)
+{
+
+
+	// logic to restrict turret rotation due to unitdef maxangledif
+	// maxangledif=180 = 0 to 180 degrees = 0 to 32,768
+	// does no turn animation if the target heading is out of firing arc
+	// out of firing arc aim calls happen during "preaiming" logic
+	if ( (heading<0) )
+	{
+		return (0);
+	}
+	signal SIG_AIML;
+	set-signal-mask SIG_AIML;
+
+	// values in <> are degrees per second
+	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
+	// In general, 6 cau per frame ~= 1 degree per second
+	turn lball to y-axis heading speed <120>;
+	// if weapon will take more than 1 frame to turn to new angle, wait for turn
+	if ( (get ABS(last_lball_heading - heading) > 720) )
+	{
+		// seems to take 3 frames for wait-for-turn to process
+		wait-for-turn lball around y-axis;
+	}
+	last_lball_heading = heading;
+	//return (1);	
+	//get PRINT(get GAME_FRAME, heading, pitch);
+
+	turn lbarrel to x-axis <0.000000> - pitch speed <80.000000>;
+	wait-for-turn lbarrel around x-axis;
+	get PRINT(321);
+	start-script RestoreAfterDelay_lspon();
+	return (1);
+}
+
+FireSecondary()
+{
+	move lbarrel to z-axis [-1] speed [62.500000];
+	wait-for-move lbarrel along z-axis;
+	move lbarrel to z-axis [0.000000] speed [4.000000];
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = lball;
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = lflare;
+}
+
+
+
+
+
+AimTertiary(heading, pitch)
+{
+
+//get PRINT(heading);
+	// logic to restrict turret rotation due to unitdef maxangledif
+	// maxangledif=180 = -180 to 0 degrees = -32,768 to 0
+	// does no turn animation if the target heading is out of firing arc
+	// out of firing arc aim calls happen during "preaiming" logic
+	if ( (heading>0) )
+	{
+		return (0);
+	}
+	signal SIG_AIMR;
+	set-signal-mask SIG_AIMR;
+	// values in <> are degrees per second
+	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
+	// In general, 6 cau per frame ~= 1 degree per second
+	turn rball to y-axis heading speed <120>;
+	// if weapon will take more than 1 frame to turn to new angle, wait for turn
+	if ( (get ABS(last_rball_heading - heading)>720) )
+	{
+		// seems to take 3 frames for wait-for-turn to process
+		wait-for-turn rball around y-axis;
+	}
+	last_rball_heading=heading;
+
+
+	//get PRINT(get GAME_FRAME, heading, pitch);
+	turn rbarrel to x-axis <0.000000> - pitch speed <80.000000>;
+	wait-for-turn rbarrel around x-axis;
+
+	
+	start-script RestoreAfterDelay_rspon();
+	return (1);
+}	
+	
+	
+
+
+FireTertiary()
+{
+	move rbarrel to z-axis [-1] speed [62.500000];
+	wait-for-move rbarrel along z-axis;
+	move rbarrel to z-axis [0.000000] speed [4.000000];
+}
+
+AimFromTertiary(piecenum)
+{
+	piecenum = rball;
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = rflare;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 SweetSpot(piecenum)
 {
@@ -200,6 +362,8 @@ Killed(severity, corpsetype)
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode sleeve type BITMAPONLY | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -210,6 +374,10 @@ Killed(severity, corpsetype)
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type FALL | NOHEATCLOUD;
+		explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lball type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rball type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -220,6 +388,10 @@ Killed(severity, corpsetype)
 		explode turret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lball type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rball type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
