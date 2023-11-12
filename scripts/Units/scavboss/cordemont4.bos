@@ -989,7 +989,7 @@ lua_UnitScriptLight(lightIndex, count)
 
 
 SmokeItUp()
-{
+{	
 	if (issmoking == 0 OR TRUE)
 	{
 		issmoking = 1;
@@ -1047,7 +1047,7 @@ AimPrimary(heading, pitch)
 	bAiming = TRUE;
 	start-script SmokeItUp();
 	turn aimy1 to y-axis heading speed <100.000000>;
-	turn aimx1 to x-axis <10.000000> - pitch speed <120.000000>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <120.000000>;
 	if ( (oldheading - heading) > 5000 AND targetswap <= 0)
 	{
 		targetswap = (oldheading - heading)/3034;
@@ -1143,11 +1143,13 @@ Shot1(zero)
 
 FirePrimary()
 {
+	
 	return(1);
 }
 
 FireSecondary()
 {
+
 	if( gun_2 == 0 )
 	{
 		turn aimy1 to x-axis <-1> now; // dont always do this

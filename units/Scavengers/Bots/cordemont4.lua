@@ -130,7 +130,6 @@ return {
 				tolerance = 20000,
 				turret = true,
 				waterweapon = false,
-				weapontimer = 4.2,
 				weapontype = "Flame",
 				weaponvelocity = 500,
 				damage = {

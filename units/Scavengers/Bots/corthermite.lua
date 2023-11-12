@@ -83,11 +83,13 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:flamestreamthermite",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
 				[3] = "deathceg4",
-				[4] = "flamestreamthermite",
 			},
 		},
 		sounds = {
@@ -188,7 +190,6 @@ return {
 				tolerance = 20000,
 				turret = true,
 				waterweapon = false,
-				weapontimer = 4.2,
 				weapontype = "Flame",
 				weaponvelocity = 500,
 				damage = {
