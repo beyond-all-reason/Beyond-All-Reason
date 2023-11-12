@@ -323,7 +323,7 @@ lua_UnitScriptLight(lightIndex, count)
 }
 
 
-#define TURNRATE 300
+#define TURNRATE 200
 
 ResetAim() {
 	sleep 9000;
@@ -348,7 +348,7 @@ AimPrimary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	if ((bMoving AND heading>1200) OR (bMoving AND heading<-1200)) return 0;
 	
-	turn gun to x-axis 0 - pitch speed <35>;
+	turn gun to x-axis 0 - pitch speed <35>;//*
 	//*
 	while(heading > TURNRATE) {
 		set HEADING to (get HEADING) + TURNRATE;
@@ -430,7 +430,7 @@ AimSecondary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	if ((bMoving AND heading>800) OR (bMoving AND heading<-800)) return 0;
 	//start-script ResetAim();
-	turn gun to x-axis 0 - pitch speed <35>;
+	turn gun to x-axis 0 - pitch speed <35>;//*
 	while(heading > TURNRATE) {
 		set HEADING to (get HEADING) + TURNRATE;
 		heading=heading - TURNRATE;
@@ -441,7 +441,7 @@ AimSecondary(heading, pitch)
 		heading=heading + TURNRATE;
 		sleep 30;
 	}
-	set HEADING to (get HEADING) + heading;
+	set HEADING to (get HEADING) + heading;//*/
 	wait-for-turn gun around x-axis;
 	return 1;
 }
