@@ -801,6 +801,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 				)
 	end
 
+	local scumModulo = 1
 	function gadget:GameFrame(n)
 		if scumRemoveQueue[n] then
 			for scumID, _ in pairs(scumRemoveQueue[n]) do
@@ -809,9 +810,10 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 			scumRemoveQueue[n] = nil
 		end
 
-		if n % 37 == 1 and Script.LuaUI("GadgetRemoveGrass") then
+		if n % 39 == 1 and Script.LuaUI("GadgetRemoveGrass") then
+			scumModulo = (scumModulo + 1) % 4
 			for scumID, scum in pairs(scums) do
-				if scum.growthrate > 0 then
+				if ((scumID % 4) == scumModulo) and scum.growthrate > 0 then
 					local currentRadius = GetScumCurrentRadius(scum, n)
 					if currentRadius < scum.radius then
 						Script.LuaUI.GadgetRemoveGrass(scum.posx, scum.posz, currentRadius * 0.87)
