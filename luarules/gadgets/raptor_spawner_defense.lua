@@ -950,7 +950,7 @@ if gadgetHandler:IsSyncedCode() then
 		waveParameters.epicWave.cooldown = waveParameters.epicWave.cooldown - 1
 
 		waveParameters.waveSpecialPercentage = mRandom(5,25)
-		waveParameters.waveAirPercentage = mRandom(5,25)
+		waveParameters.waveAirPercentage = mRandom(5,33)
 
 		waveParameters.waveSizeMultiplier = mRandom(5,20)*0.1
 		waveParameters.waveTimeMultiplier = mRandom(5,20)*0.1
@@ -963,7 +963,7 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.airWave.cooldown = mRandom(0,10)
 
 				waveParameters.waveSpecialPercentage = mRandom(5,25)
-				waveParameters.waveAirPercentage = 50
+				waveParameters.waveAirPercentage = 75
 				waveParameters.waveSizeMultiplier = 2
 				waveParameters.waveTimeMultiplier = 2
 
@@ -973,7 +973,7 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.specialWave.cooldown = mRandom(0,10)
 
 				waveParameters.waveSpecialPercentage = 50
-				waveParameters.waveAirPercentage = mRandom(5,25)
+				waveParameters.waveAirPercentage = mRandom(5,33)
 
 				waveParameters.waveSizeMultiplier = 2
 				waveParameters.waveTimeMultiplier = 2
