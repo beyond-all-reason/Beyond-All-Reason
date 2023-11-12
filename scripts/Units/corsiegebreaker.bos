@@ -340,11 +340,14 @@ AimPrimary(heading, pitch)
     if (fireMode!=0) {return(0);}//if inactive, go to secondary weapon eg normalfire
 	
 	
+
+	//start-script ResetAim();
 	
+	//get PRINT(heading);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	//start-script ResetAim();
-	if (bMoving) return 0;
+	if ((bMoving AND heading>1200) OR (bMoving AND heading<-1200)) return 0;
+	
 	turn gun to x-axis 0 - pitch speed <35>;
 	//*
 	while(heading > TURNRATE) {
@@ -422,11 +425,11 @@ AimSecondary(heading, pitch)
 	return (1);
 	*/
 	
-	
+	//get PRINT(heading);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
+	if ((bMoving AND heading>800) OR (bMoving AND heading<-800)) return 0;
 	//start-script ResetAim();
-	if (bMoving) return 0;
 	turn gun to x-axis 0 - pitch speed <35>;
 	while(heading > TURNRATE) {
 		set HEADING to (get HEADING) + TURNRATE;

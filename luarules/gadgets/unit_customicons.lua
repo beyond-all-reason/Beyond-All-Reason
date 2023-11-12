@@ -588,6 +588,7 @@ local units = {
 	corsd = { "seismic.png", 1.46999991 },
 	corseah = { "air_trans.png", 1.83749986 },
 	corseal = { "corseal.png", 1.52250004 },
+	corsiegebreaker = { "vehicle_t2_tank_laser.png", 1.46999991 },
 	corsala = { "corseal.png", 1.52250004 },
 	corseap = { "air_torp_sea.png", 1.57499993 },
 	corsent = { "vehicle_t2_aa_flak.png", 1.36499989 },

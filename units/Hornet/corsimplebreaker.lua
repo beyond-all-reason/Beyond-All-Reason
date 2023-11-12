@@ -1,5 +1,5 @@
 return {
-	corsiegebreaker = {
+	corsimplebreaker = {
 		acceleration = 0.0206,
 		activatewhenbuilt = true,
 		brakerate = 0.05321,
@@ -27,7 +27,7 @@ return {
 		nochasecategory = "VTOL",
 		onoffable = true,
 		objectname = "Units/CORSIEGEBREAKER.s3o",
-		script = "Units/CORSIEGEBREAKER.cob",
+		script = "Units/CORSIMPLEBREAKER.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
 		sightdistance = 500,--500
@@ -194,7 +194,7 @@ return {
 				impulsefactor = 1.2,
 				largebeamlaser = true,
 				laserflaresize = 12.25,
-				minintensity = 0.9,--slight dropoff
+				minintensity = 0.8,--mild dropoff
 				name = "Overcharged Dreadshot Ion Accelerator",
 				noselfdamage = true,
 				predictboost = 1,
@@ -215,21 +215,21 @@ return {
 				weaponvelocity = 1250,
 				damage = {
 					commanders = 1000,
-					default = 4000,--high, but has long reload and some damage falloff, isn't 'over' units like the starlight or magic bullet like the sniper, and deals FF damage. these are intentionally hard to mass fire in this mode as tradeoff for high alpha. may still be too dps inefficient even now, esp compared to starlight which can kite and be screened
+					default = 4000,--high, but has long reload and some damage falloff, isn't 'over' units like the starlight or magic bullet like the sniper, and deals FF damage. these are intentionally hard to mass fire in this mode as tradeoff for high alpha. may still be too dps inefficient even now, esp compared to starlight.
 				},
 
 			},
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL GROUNDSCOUT",
+				badtargetcategory = "VTOL",
 				def = "DREADOVERCHARGE",
 				maindir = "0 0 1",
 				maxangledif = 10,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				badtargetcategory = "VTOL GROUNDSCOUT",
+				badtargetcategory = "VTOL",
 				def = "DREADSHOT",
 				maindir = "0 0 1",
 				maxangledif = 10,
