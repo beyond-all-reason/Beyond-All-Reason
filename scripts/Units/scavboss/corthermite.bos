@@ -256,6 +256,10 @@ Create()
 	WALK_PERIOD=400;
 }
 
+lua_FlameShot(weapon) //Distortion and lups flame effect
+{
+  return 0;
+}
 
 SweetSpot(piecenum)
 {
@@ -389,7 +393,7 @@ AimSecondary(heading, pitch)
 
 FireSecondary()
 {
-
+	call-script lua_FlameShot(2);
 	emit-sfx 1024 + 3 from flameflarer;
 
 }
