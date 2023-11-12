@@ -5,7 +5,7 @@
 
 piece  body, head, barrel1, barrel2, flare1, flare2,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b, aimy1, turretr, borer, barrelr, flameflarer;
 
-static-var  moving, Static_Var_2, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, shotcount, shotcount2;
+static-var  moving, Static_Var_2, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, shotcount, shotcount2, rand, chillshots, isreset, rollingchill;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -245,7 +245,11 @@ Create()
 	hide flare1;
 	hide flare2;
 	hide aimy1;
+	rand = 0;
 	moving = FALSE;
+	isreset = TRUE;
+	rollingchill = FALSE;
+	chillshots = 0;
 	gun_1 = 0;
 	shotcount = 0;
 	shotcount2 = 0;
@@ -268,13 +272,44 @@ lua_UnitScriptLight(lightIndex, count)
 	return 0;
 }
 
-/*
-puff() {
-		emit-sfx 1024 + 0 from flameflarer;
 
+//if firing, delay a 'chilltime' check with 1 as param
+//threshold shotcount when that pops vs saved original, if idle and much shooting down, puff()
+//if still firing (use something in restore to check) delay another chilltime and pass in current different as param
+
+//*
+
+chilltime(current) {
+		
+		//chillshots = chillshots + current;
+		
+		if (moving==FALSE AND isreset) {
+			
+			if(Rand(1,6)==1) {
+				//get PRINT(shotcount2 - chillshots);
+				if ((shotcount2 - chillshots) > 20) {
+					start-script puff();
+				}
+			}
+			rollingchill = FALSE;
+			chillshots = 0;
+		
+		} else {
+				sleep 5000;
+				start-script chilltime(1);
+		}
+
+}
+
+puff() {
+		emit-sfx 1024 + 1 from flameflarer;
 		sleep 5000;
-		start-script puff();
+		rand = Rand( 3, 5 );
+		sleep rand * 1000;
+		rand = Rand( 1, 5 );
+		if (rand<5) start-script puff();
 }// nothing to see here */
+
 
 SweetSpot(piecenum)
 {
@@ -292,8 +327,10 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
+	isreset = TRUE;
 	turn head to y-axis <0.000000> speed <55.000000>;
 	turn head to x-axis <0.000000> speed <55.000000>;
+	turn turretr to x-axis <0.000000> speed <55.000000>;
 	wait-for-turn head around y-axis;
 	wpn1_lasthead = 1000000;
 	wpn2_lasthead = 1000000;
@@ -332,7 +369,7 @@ AimPrimary(heading, pitch)
 FirePrimary()
 {
 	
-	
+	isreset = FALSE;
 	shotcount = shotcount + 1;
 
 	gun_1 = !gun_1;
@@ -389,7 +426,8 @@ QueryPrimary(piecenum)
 AimSecondary(heading, pitch)
 {
 	
-	
+	isreset = FALSE;
+
 	// logic to restrict turret rotation due to unitdef maxangledif
 	// maxangledif=180 = 0 to 180 degrees = 0 to 32,768
 	// does no turn animation if the target heading is out of firing arc
@@ -400,7 +438,9 @@ AimSecondary(heading, pitch)
 	{
 		return (0);
 	}
-	
+		
+
+
 	signal SIG_AIM2;
 	turn turretr to y-axis heading speed <180.000000>;
 	turn turretr to x-axis <0.000000> - pitch speed <110.000000>;
@@ -409,12 +449,17 @@ AimSecondary(heading, pitch)
 	start-script RestoreAfterDelay();
 	wpn1_lasthead = heading;
 	return (1);
+	
 }
 
 FireSecondary()
 {
-
-
+	if (rollingchill==FALSE) {
+		rollingchill = TRUE;
+		chillshots = shotcount2;
+		sleep 5000;
+		start-script chilltime(1);
+	}
 
 }
 

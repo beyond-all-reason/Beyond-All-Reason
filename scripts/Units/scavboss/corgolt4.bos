@@ -104,9 +104,9 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 {
 	
 		
-	get PRINT(dmg, waslaughing, islaughing, willlaughing);
+	//get PRINT(dmg, waslaughing, islaughing, willlaughing);
 	if ((dmg<5000) AND (waslaughing==0) AND (islaughing==0) AND (willlaughing==0)) {
-		get PRINT(123);
+		//get PRINT(123);
 		start-script startLaughing();
 	}
 	
@@ -332,7 +332,7 @@ AimSecondary(heading, pitch)
 
 	turn lbarrel to x-axis <0.000000> - pitch speed <80.000000>;
 	wait-for-turn lbarrel around x-axis;
-	get PRINT(321);
+	//get PRINT(321);
 	start-script RestoreAfterDelay_lspon();
 	return (1);
 }

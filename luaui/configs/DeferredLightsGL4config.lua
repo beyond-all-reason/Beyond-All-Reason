@@ -18155,7 +18155,7 @@ local unitEventLights = {
 				pieceName = 'flameflarer',
 				lightName = 'thermiteflame',
 				alwaysVisible = true,
-				lightConfig = { posx = 0, posy = 4, posz = 8, radius = 23,
+				lightConfig = { posx = 0, posy = 4, posz = 8, radius = 15,
 					color2r = 0.8, color2g = 0.37, color2b = 0, colortime = 300,
 					r = 0, g = 0, b = 0, a = 0.03,
 					modelfactor = 2, specular = 1, scattering = 0.05, lensflare = 0,

@@ -807,6 +807,37 @@ return {
       },
     },
   },
+  ["thermitesmoke"] = {
+   flame = {
+      air                = true,--this is a useful function for experimenting with the particle physics
+      class              = [[CSimpleParticleSystem]],
+      count              = 1000,
+      ground             = true,
+      properties = {
+        airdrag            = 0.98,
+        colormap           = [[0.1 0.12 0.1 0.01   0.3 0.3 0.3 0.01  0.82 0.88 0.77 0.015   0.4 0.55 0.3 0.01   1 0 0 0]],
+        directional        = true,
+        emitrot            = 30,
+        emitrotspread      = 1,
+        emitvector         = [[dir]],
+        emitmul            = [[1.7, 4.8, 1.7]],
+        gravity            = [[0, 0.05, 0]],
+        numparticles       = [[0.95 r0.86]],
+        particlelife       = 190,
+        particlelifespread = 130,
+        particlesize       = 1.5,
+        particlesizespread = -0.2,
+        particlespeed      = 0.7,
+        particlespeedspread = 0.01,
+        rotParams          = [[0, 0, 0]],
+        pos                = [[99,1,1]],
+        sizegrowth         = 0.39,
+        sizemod            = 0.79,
+        texture            = [[smoke]],
+        drawOrder          = 1,
+      },
+    },
+	},
   ["flamestreamthermite"] = {
    flame = {
       air                = true,
