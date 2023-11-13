@@ -220,7 +220,11 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	--
 	-- Utility
-	--
+	
+	local SetListUtilities = VFS.Include('common/SetList.lua')
+
+	squadPotentialTarget = SetListUtilities.NewSetListNoTable()
+	squadPotentialHighValueTarget = SetListUtilities.NewSetListNoTable()
 
 	function SetToList(set)
 		local list = {}
@@ -248,35 +252,31 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function getRandomEnemyPos()
+		-- Pre-opt: 224 us, sigma 105 us!
+		-- Post-opt: 3 us, sigma 1us
 		tracy.ZoneBeginN("Raptors:getRandomEnemyPos")
 		local loops = 0
-		local targetCount = SetCount(squadPotentialTarget)
-		local highValueTargetCount = SetCount(squadPotentialHighValueTarget)
+		local targetCount = squadPotentialTarget.count
+		local highValueTargetCount = squadPotentialHighValueTarget.count
 		local pos = {}
 		local pickedTarget = nil
 		repeat
 			loops = loops + 1
 			if highValueTargetCount > 0 and mRandom() <= 0.75 then
-				for target in pairs(squadPotentialHighValueTarget) do
-					if mRandom(1,highValueTargetCount) == 1 then
-						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
-							local x,y,z = Spring.GetUnitPosition(target)
-							pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
-							pickedTarget = target
-							break
-						end
-					end
+				local target = squadPotentialHighValueTarget:GetRandom()
+				if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+					local x,y,z = Spring.GetUnitPosition(target)
+					pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
+					pickedTarget = target
+					break
 				end
 			else
-				for target in pairs(squadPotentialTarget) do
-					if mRandom(1,targetCount) == 1 then
-						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
-							local x,y,z = Spring.GetUnitPosition(target)
-							pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
-							pickedTarget = target
-							break
-						end
-					end
+				local target = squadPotentialTarget:GetRandom()
+				if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+					local x,y,z = Spring.GetUnitPosition(target)
+					pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
+					pickedTarget = target
+					break
 				end
 			end
 
@@ -1245,14 +1245,15 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			return
 		end
-		if squadPotentialTarget[unitID] or squadPotentialHighValueTarget[unitID] then
-			squadPotentialTarget[unitID] = nil
-			squadPotentialHighValueTarget[unitID] = nil
-		end
+		
+		squadPotentialTarget:Remove(unitID)
+		squadPotentialHighValueTarget:Remove(unitID)
+	
+
 		if not UnitDefs[unitDefID].canMove then
-			squadPotentialTarget[unitID] = true
+			squadPotentialTarget:Add(unitID)
 			if config.highValueTargets[unitDefID] then
-				squadPotentialHighValueTarget[unitID] = true
+				squadPotentialHighValueTarget:Add(unitID)
 			end
 		end
 		if config.ecoBuildingsPenalty[unitDefID] then
@@ -1828,8 +1829,8 @@ if gadgetHandler:IsSyncedCode() then
 			unitSquadTable[unitID] = nil
 		end
 
-		squadPotentialTarget[unitID] = nil
-		squadPotentialHighValueTarget[unitID] = nil
+		squadPotentialTarget:Remove(unitID)
+		squadPotentialHighValueTarget:Remove(unitID)
 		for squad in ipairs(unitTargetPool) do
 			if unitTargetPool[squad] == unitID then
 				refreshSquad(squad)
