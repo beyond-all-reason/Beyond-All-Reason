@@ -467,13 +467,20 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 		outcolor = outcolor * (  loslevel * (lightamount ) * 0.5) + outcolor * specular * shadow;
 		fragColor.rgba = vec4(outcolor, 1.0 );
 
-		// do hermitian interpolation on 0.1 of this shit
-
-
+		
 		// darken outside
 
 		fragColor.a = 1.0 - radialScum*3;
 		fragColor.rgb *= ((fragColor.a  -0.3)*2.0) ;
+		
+		// emulate linear fog
+		// vec4 fogParams; //fog {start, end, 0.0, scale}
+		float fogFactor = 1.0;
+		float fogDist = length(worldtocam.xyz);
+		fogFactor = (fogParams.y - fogDist) * fogParams.w;
+		fogFactor = clamp(fogFactor, 0.0, 1.0);
+		fragColor.rgb = mix( fogColor.rgb, fragColor.rgb,fogFactor);
+
 		
 		fragColor.rgb *= nightFactor.rgb;
 
