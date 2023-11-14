@@ -65,6 +65,8 @@ local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to b
 	raptora2b     						=   "red",
 	raptorapexallterrainassault 		=   "red",
 	raptorapexallterrainassaultb 		=   "red",
+	raptors1      						=   "green",
+	raptors2      						=   "darkgreen",
 	raptor_dodo1  						=   "red",
 	raptor_dodo2  						=   "red",
 	raptor_dodoair  					=   "red",
@@ -124,7 +126,8 @@ local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to b
 	raptor2_spectre						=   "yellow",
 	raptora1_spectre					=   "yellow",
 	raptora2_spectre					=   "yellow",
-	
+	raptors2_spectre					=   "yellow",
+
 	raptor_turrets						=	"white",
 	raptor_turretl						=	"white",
 	raptor_turretxl						=	"white",
@@ -147,16 +150,12 @@ local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to b
 	raptor_miniqueen_basic 				=  	"pink",
 	raptor_miniqueen_fire 				=  	"darkred",
 	raptor_miniqueen_spectre 			=  	"yellow",
-
-	raptor_land_sniper_basic_t2_var1    =   "green",
-	raptor_land_sniper_basic_t4_var1    =   "darkgreen",
-	raptor_land_sniper_spectre_t4_var1	=   "yellow",
 }
 
 raptorBehaviours = {
 	SKIRMISH = { -- Run away from target after target gets hit
-		[UnitDefNames["raptor_land_sniper_basic_t2_var1"].id] = { distance = 270, chance = 0.5 },
-		[UnitDefNames["raptor_land_sniper_basic_t4_var1"].id] = { distance = 250, chance = 0.5 },
+		[UnitDefNames["raptors1"].id] = { distance = 270, chance = 0.5 },
+		[UnitDefNames["raptors2"].id] = { distance = 250, chance = 0.5 },
 		[UnitDefNames["raptorr1"].id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames["raptorr2"].id] = { distance = 500, chance = 0.01 },
 		[UnitDefNames["raptore1"].id] = { distance = 300, chance = 1 },
@@ -176,7 +175,7 @@ raptorBehaviours = {
 		[UnitDefNames["raptorbroodartyh4"].id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames["raptor1x_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["raptor2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
-		[UnitDefNames["raptor_land_sniper_spectre_t4_var1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["raptors2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["raptora1_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["raptora2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["raptor_miniqueen_spectre"].id] = {distance = 500, chance = 0.001, teleport = true, teleportcooldown = 2 },
@@ -192,8 +191,8 @@ raptorBehaviours = {
 		[UnitDefNames["raptorhealer3"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["raptorhealer4"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["raptorh1b"].id] = { distance = 500, chance = 1 },
-		[UnitDefNames["raptor_land_sniper_basic_t2_var1"].id] = { distance = 270, chance = 0.5 },
-		[UnitDefNames["raptor_land_sniper_basic_t4_var1"].id] = { distance = 250, chance = 0.5 },
+		[UnitDefNames["raptors1"].id] = { distance = 270, chance = 0.5 },
+		[UnitDefNames["raptors2"].id] = { distance = 250, chance = 0.5 },
 		[UnitDefNames["raptorr1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["raptorr2"].id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames["raptorearty1"].id] = { distance = 500, chance = 1 },
@@ -206,7 +205,7 @@ raptorBehaviours = {
 		[UnitDefNames["raptorh3"].id] = { distance = 500, chance = 0.25 },
 		[UnitDefNames["raptor1x_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["raptor2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
-		[UnitDefNames["raptor_land_sniper_spectre_t4_var1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["raptors2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["raptora1_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["raptora2_spectre"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["raptor_miniqueen_spectre"].id] = { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 2 },
@@ -217,7 +216,7 @@ raptorBehaviours = {
 		[UnitDefNames["raptor_miniqueen_fire"].id] = { distance = 500, chance = 0.001 },
 	},
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
-		[UnitDefNames["raptor_land_sniper_basic_t4_var1"].id] = {chance = 0.2, distance = 750},
+		[UnitDefNames["raptors2"].id] = {chance = 0.2, distance = 750},
 		[UnitDefNames["raptora1"].id] = { chance = 0.2, distance = 1500 },
 		[UnitDefNames["raptora1b"].id] = { chance = 0.2, distance = 1500 },
 		[UnitDefNames["raptora1c"].id] = { chance = 0.2, distance = 1500 },
@@ -242,7 +241,7 @@ raptorBehaviours = {
 		[UnitDefNames["raptor2_spectre"].id] = { distance = 1000, chance = 0.25},
 		[UnitDefNames["raptora1_spectre"].id] = { distance = 1000, chance = 0.25},
 		[UnitDefNames["raptora2_spectre"].id] = { distance = 1000, chance = 0.25},
-		[UnitDefNames["raptor_land_sniper_spectre_t4_var1"].id] = { distance = 1000, chance = 0.25},
+		[UnitDefNames["raptors2_spectre"].id] = { distance = 1000, chance = 0.25},
 		[UnitDefNames["raptor_miniqueen_spectre"].id] = {distance = 500, chance = 0.01 },
 		[UnitDefNames["raptor_miniqueen_electric"].id] = {distance = 500, chance = 0.01 },
 		[UnitDefNames["raptor_miniqueen_acid"].id] = { distance = 500, chance = 0.01 },
@@ -296,8 +295,8 @@ raptorBehaviours = {
 local optionValues = {
 
 	[difficulties.veryeasy] = {
-		gracePeriod       = 8 * Spring.GetModOptions().raptor_graceperiodmult * 60,
-		queenTime      	  = 50 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 9 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 55 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		raptorSpawnRate   = 120 * Spring.GetModOptions().raptor_spawntimemult,
 		burrowSpawnRate   = 240 * Spring.GetModOptions().raptor_spawntimemult,
 		turretSpawnRate   = 120 * Spring.GetModOptions().raptor_spawntimemult,
@@ -315,8 +314,8 @@ local optionValues = {
 	},
 
 	[difficulties.easy] = {
-		gracePeriod       = 7 * Spring.GetModOptions().raptor_graceperiodmult * 60,
-		queenTime      	  = 45 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 8 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 50 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		raptorSpawnRate   = 90 * Spring.GetModOptions().raptor_spawntimemult,
 		burrowSpawnRate   = 210 * Spring.GetModOptions().raptor_spawntimemult,
 		turretSpawnRate   = 100 * Spring.GetModOptions().raptor_spawntimemult,
@@ -333,8 +332,8 @@ local optionValues = {
 		queenResistanceMult   = 0.75,
 	},
 	[difficulties.normal] = {
-		gracePeriod       = 6 * Spring.GetModOptions().raptor_graceperiodmult * 60,
-		queenTime      	  = 40 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 7 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 45 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		raptorSpawnRate   = 60 * Spring.GetModOptions().raptor_spawntimemult,
 		burrowSpawnRate   = 180 * Spring.GetModOptions().raptor_spawntimemult,
 		turretSpawnRate   = 80 * Spring.GetModOptions().raptor_spawntimemult,
@@ -351,7 +350,7 @@ local optionValues = {
 		queenResistanceMult   = 1,
 	},
 	[difficulties.hard] = {
-		gracePeriod       = 5 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		gracePeriod       = 6 * Spring.GetModOptions().raptor_graceperiodmult * 60,
 		queenTime      	  = 40 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		raptorSpawnRate   = 50 * Spring.GetModOptions().raptor_spawntimemult,
 		burrowSpawnRate   = 150 * Spring.GetModOptions().raptor_spawntimemult,
@@ -369,7 +368,7 @@ local optionValues = {
 		queenResistanceMult   = 1.33,
 	},
 	[difficulties.veryhard] = {
-		gracePeriod       = 4 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		gracePeriod       = 5 * Spring.GetModOptions().raptor_graceperiodmult * 60,
 		queenTime      	  = 35 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		raptorSpawnRate   = 40 * Spring.GetModOptions().raptor_spawntimemult,
 		burrowSpawnRate   = 120 * Spring.GetModOptions().raptor_spawntimemult,
@@ -387,7 +386,7 @@ local optionValues = {
 		queenResistanceMult   = 1.67,
 	},
 	[difficulties.epic] = {
-		gracePeriod       = 3 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		gracePeriod       = 4 * Spring.GetModOptions().raptor_graceperiodmult * 60,
 		queenTime      	  = 30 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		raptorSpawnRate   = 30 * Spring.GetModOptions().raptor_spawntimemult,
 		burrowSpawnRate   = 90 * Spring.GetModOptions().raptor_spawntimemult,
@@ -502,7 +501,7 @@ local raptorMinions = { -- Units spawning other units
 		"raptorpyroallterrain",
 	},
 	["raptor_miniqueen_spectre"] = {
-		"raptor_land_sniper_spectre_t4_var1",
+		"raptors2_spectre",
 		"raptor1x_spectre",
 		"raptor2_spectre",
 		"raptora1_spectre",
@@ -795,24 +794,24 @@ addNewSquad({ type = "special", minAnger = 100, units = { "3 raptora2b", "2 rapt
 
 --Spikers------------------------------------------------------------------------------------------------------  
 
-addNewSquad({ type = "special", minAnger = 10, units = 	{ "1 raptor_land_sniper_basic_t2_var1" }, maxAnger = 30 })
+addNewSquad({ type = "special", minAnger = 10, units = 	{ "1 raptors1" }, maxAnger = 30 })
 
-addNewSquad({ type = "special", minAnger = 30, units = 	{ "5 raptor_land_sniper_basic_t2_var1" }, weight = 3 })
-
-
-addNewSquad({ type = "special", minAnger = 60, units = 	{ "10 raptor_land_sniper_basic_t4_var1" }, weight = 2 })
-
-addNewSquad({ type = "special", minAnger = 100, units = { "10 raptor_land_sniper_basic_t4_var1" }, weight = 2, maxAnger = 1000 })
+addNewSquad({ type = "special", minAnger = 30, units = 	{ "5 raptors1" }, weight = 3 })
 
 
-addNewSquad({ type = "special", minAnger = 70, units = 	{ "10 raptor_land_sniper_spectre_t4_var1" } })
+addNewSquad({ type = "special", minAnger = 60, units = 	{ "10 raptors2" }, weight = 2 })
 
-addNewSquad({ type = "special", minAnger = 100, units = { "10 raptor_land_sniper_spectre_t4_var1" }, maxAnger = 1000 })
+addNewSquad({ type = "special", minAnger = 100, units = { "10 raptors2" }, weight = 2, maxAnger = 1000 })
 
 
-addNewSquad({ type = "special", minAnger = 70, units = 	{ "5 raptor_land_sniper_basic_t4_var1", "5 raptor_land_sniper_spectre_t4_var1" } })
+addNewSquad({ type = "special", minAnger = 70, units = 	{ "10 raptors2_spectre" } })
 
-addNewSquad({ type = "special", minAnger = 100, units = { "5 raptor_land_sniper_basic_t4_var1", "5 raptor_land_sniper_spectre_t4_var1" }, maxAnger = 1000 })
+addNewSquad({ type = "special", minAnger = 100, units = { "10 raptors2_spectre" }, maxAnger = 1000 })
+
+
+addNewSquad({ type = "special", minAnger = 70, units = 	{ "5 raptors2", "5 raptors2_spectre" } })
+
+addNewSquad({ type = "special", minAnger = 100, units = { "5 raptors2", "5 raptors2_spectre" }, maxAnger = 1000 })
 
 --Kamikaze------------------------------------------------------------------------------------------------------  
 

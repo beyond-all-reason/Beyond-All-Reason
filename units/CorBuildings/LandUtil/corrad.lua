@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 630,
 		buildcostmetal = 60,
 		buildpic = "CORRAD.DDS",
-		buildtime = 1137,
+		buildtime = 1140,
 		canattack = false,
 		canrepeat = false,
 		cantbetransported = false,

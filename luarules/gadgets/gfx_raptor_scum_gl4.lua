@@ -467,13 +467,20 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 		outcolor = outcolor * (  loslevel * (lightamount ) * 0.5) + outcolor * specular * shadow;
 		fragColor.rgba = vec4(outcolor, 1.0 );
 
-		// do hermitian interpolation on 0.1 of this shit
-
-
+		
 		// darken outside
 
 		fragColor.a = 1.0 - radialScum*3;
 		fragColor.rgb *= ((fragColor.a  -0.3)*2.0) ;
+		
+		// emulate linear fog
+		// vec4 fogParams; //fog {start, end, 0.0, scale}
+		float fogFactor = 1.0;
+		float fogDist = length(worldtocam.xyz);
+		fogFactor = (fogParams.y - fogDist) * fogParams.w;
+		fogFactor = clamp(fogFactor, 0.0, 1.0);
+		fragColor.rgb = mix( fogColor.rgb, fragColor.rgb,fogFactor);
+
 		
 		fragColor.rgb *= nightFactor.rgb;
 
@@ -801,6 +808,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 				)
 	end
 
+	local scumModulo = 1
 	function gadget:GameFrame(n)
 		if scumRemoveQueue[n] then
 			for scumID, _ in pairs(scumRemoveQueue[n]) do
@@ -809,9 +817,10 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 			scumRemoveQueue[n] = nil
 		end
 
-		if n % 37 == 1 and Script.LuaUI("GadgetRemoveGrass") then
+		if n % 39 == 1 and Script.LuaUI("GadgetRemoveGrass") then
+			scumModulo = (scumModulo + 1) % 4
 			for scumID, scum in pairs(scums) do
-				if scum.growthrate > 0 then
+				if ((scumID % 4) == scumModulo) and scum.growthrate > 0 then
 					local currentRadius = GetScumCurrentRadius(scum, n)
 					if currentRadius < scum.radius then
 						Script.LuaUI.GadgetRemoveGrass(scum.posx, scum.posz, currentRadius * 0.87)

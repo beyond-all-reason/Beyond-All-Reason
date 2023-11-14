@@ -7,7 +7,7 @@ return {
 		builddistance = 130,
 		builder = true,
 		buildpic = "CORCK.DDS",
-		buildtime = 3551,
+		buildtime = 3550,
 		canmove = true,
 		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -1",

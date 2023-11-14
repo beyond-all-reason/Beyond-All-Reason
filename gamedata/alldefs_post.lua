@@ -646,8 +646,26 @@ function UnitDef_Post(name, uDef)
 			uDef.turnrate = uDef.maxvelocity*300
 			uDef.acceleration = uDef.maxvelocity*0.05
 			uDef.brakerate = uDef.maxvelocity*0.05
+		elseif uDef.canfly then
+			uDef.acceleration = 0.8
+			uDef.brakerate = 0.1
+			uDef.usesmoothmesh = true
+
+			-- flightmodel
+			uDef.maxacc = 0.25
+			uDef.maxaileron = 0.025
+			uDef.maxbank = 0.8
+			uDef.maxelevator = 0.025
+			uDef.maxpitch = 0.75
+			uDef.maxrudder = 0.025
+			uDef.wingangle = 0.06593
+			uDef.wingdrag = 0.835
+			uDef.turnradius = 64
+			uDef.turnrate = 1600
+			uDef.speedtofront = 0.01
+			uDef.cruisealt = 220
+			--uDef.attackrunlength = 32
 		end
-		
 	end
 
 	-- if (uDef.buildpic and uDef.buildpic == "") or not uDef.buildpic then

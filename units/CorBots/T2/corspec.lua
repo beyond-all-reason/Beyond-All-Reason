@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 1550,
 		buildcostmetal = 75,
 		buildpic = "CORSPEC.DDS",
-		buildtime = 5439,
+		buildtime = 5440,
 		canattack = false,
 		canmove = true,
 		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

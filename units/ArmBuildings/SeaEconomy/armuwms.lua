@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 1200,
 		buildcostmetal = 400,
 		buildpic = "ARMUWMS.DDS",
-		buildtime = 3741,
+		buildtime = 3750,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		corpse = "DEAD",

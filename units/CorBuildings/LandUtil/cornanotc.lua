@@ -7,7 +7,7 @@ return {
 		builddistance = 400,
 		builder = true,
 		buildpic = "CORNANOTC.DDS",
-		buildtime = 5312,
+		buildtime = 5300,
 		canassist = true,
 		canfight = true,
 		canguard = true,

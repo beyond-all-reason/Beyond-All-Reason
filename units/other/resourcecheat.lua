@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 1,
 		buildcostmetal = 1,
 		buildpic = "other/resourcecheat.dds",
-		buildtime = 312498,
+		buildtime = 312500,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",

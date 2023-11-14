@@ -740,7 +740,7 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 		local iconPadding = math.floor((sx - px) * 0.03)
 		gl.Color(1, 1, 1, 0.9)
 		gl.Texture(radarTexture)
-		gl.BeginEnd(GL.QUADS, WG.FlowUI.Draw.TexRectRound, sx - iconPadding - iconSize, py + iconPadding, sx - iconPadding, py + iconPadding + iconSize,  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
+		gl.BeginEnd(GL.QUADS, WG.FlowUI.Draw.TexRectRound, px + iconPadding, py + iconPadding, px + iconPadding + iconSize, py + iconPadding + iconSize,  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
 		--gl.TexRect(sx - iconPadding - iconSize, py + iconPadding, sx - iconPadding, py + iconPadding + iconSize)
 		gl.Texture(false)
 	end

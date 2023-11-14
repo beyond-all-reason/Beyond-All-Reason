@@ -9,7 +9,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "ARMASP.DDS",
-		buildtime = 9090,
+		buildtime = 9100,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -10 0",

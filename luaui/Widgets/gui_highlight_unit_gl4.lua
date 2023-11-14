@@ -146,8 +146,8 @@ end
 
 function widget:Update()
 	if WG.StopHighlightUnitGL4 then
-		local mx, my, _, mmb, _, mouseOffScreen, cameraPanMode  = spGetMouseState()
-		if mouseOffScreen or cameraPanMode or mmb then
+		local mx, my, p1, mmb, _, mouseOffScreen, cameraPanMode  = spGetMouseState()
+		if mouseOffScreen or cameraPanMode or mmb or p1 then
 			removeUnitShape()
 		else
 			local type, data = spTraceScreenRay(mx, my)

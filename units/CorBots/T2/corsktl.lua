@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 26000,
 		buildcostmetal = 540,
 		buildpic = "CORSKTL.DDS",
-		buildtime = 16975,
+		buildtime = 17000,
 		canmove = true,
 		cantbetransported = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",

@@ -520,6 +520,7 @@ local function world2grassmap(wx, wz) -- returns an index into the elements of a
 	return index
 end
 
+local gCT = {} -- Grass Cache Table 
 local function updateGrassInstanceVBO(wx, wz, size, sizemod, vboOffset)
 	-- we are assuming that we can do this
 	--Spring.Echo(wx, wz, sizemod)
@@ -554,7 +555,8 @@ local function updateGrassInstanceVBO(wx, wz, size, sizemod, vboOffset)
 	grassInstanceData[vboOffset + 4] = size
 	--Spring.Echo("updateGrassInstanceVBO:",oldpx, "x", wx, oldpz ,"z", wz, oldsize, "s", size)
 	--size_t LuaVBOImpl::Upload(const sol::stack_table& luaTblData, const sol::optional<int> attribIdxOpt, const sol::optional<int> elemOffsetOpt, const sol::optional<int> luastartInstanceIndexndexOpt, const sol::optional<int> luaFinishIndexOpt)
-	grassInstanceVBO:Upload({oldpx, oldry, oldpz, size}, 7, vboOffset/4) -- We _must_ upload whole instance params at once
+	gCT[1], gCT[2], gCT[3], gCT[4] = oldpx, oldry, oldpz, size 
+	grassInstanceVBO:Upload(gCT, 7, vboOffset/4) -- We _must_ upload whole instance params at once
 end
 
 function widget:KeyPress(key, modifier, isRepeat)
@@ -565,15 +567,16 @@ function widget:KeyPress(key, modifier, isRepeat)
 end
 
 local function adjustGrass(px, pz, radius, multiplier)
-	local params = {math.floor(px),math.floor(pz)}
-	for x = params[1] - radius, params[1] + radius, grassConfig.patchResolution do
+	--local params = {math.floor(px),math.floor(pz)}
+	px, pz = math.floor(px), math.floor(pz)
+	for x = px - radius, px + radius, grassConfig.patchResolution do
 		if x >= 0 and x <= mapSizeX then
-			for z = params[2] - radius, params[2] + radius, grassConfig.patchResolution do
+			for z = pz - radius, pz + radius, grassConfig.patchResolution do
 				if z >= 0 and z <= mapSizeZ then
-					if (x-params[1])*(x-params[1]) + (z-params[2])*(z-params[2]) < radius*radius then
+					if (x-px)*(x-px) + (z-pz)*(z-pz) < radius*radius then
 						local vboOffset = world2grassmap(x,z) * grassInstanceVBOStep
 						if vboOffset then
-							local sizeMod = 1-(math.abs(((x-params[1])/radius)) + math.abs(((z-params[2])/radius))) / 2	-- sizemode in range 0...1
+							local sizeMod = 1-(math.abs(((x-px)/radius)) + math.abs(((z-pz)/radius))) / 2	-- sizemode in range 0...1
 							sizeMod = (sizeMod*2-math.min(0.66, radius/100))	-- adjust sizemod so inner grass is gone fully and not just the very center dot
 							sizeMod = sizeMod*multiplier	-- apply multiplier to animate it over time
 							updateGrassInstanceVBO(x,z, 1, 1-sizeMod, vboOffset)

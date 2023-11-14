@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 19000,
 		buildcostmetal = 125,
 		buildpic = "ARMVEIL.DDS",
-		buildtime = 9080,
+		buildtime = 9100,
 		canattack = false,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

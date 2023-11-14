@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 5500,
 		buildcostmetal = 230,
 		buildpic = "CORSEAP.DDS",
-		buildtime = 10698,
+		buildtime = 10700,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

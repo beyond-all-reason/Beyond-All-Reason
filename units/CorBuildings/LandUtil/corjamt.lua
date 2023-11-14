@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 5200,
 		buildcostmetal = 115,
 		buildpic = "CORJAMT.DDS",
-		buildtime = 4577,
+		buildtime = 4570,
 		canattack = false,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
