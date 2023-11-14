@@ -291,10 +291,11 @@ end
 
 local function adjustShadowQuality()
 	local quality = Spring.GetConfigInt("ShadowQuality", 3)
-	local shadowMapSize = 1300 + math.min(10240, (vsy+vsx)*0.75)*(quality*0.35)
+	local shadowMapSize = 600 + math.min(10240, (vsy+vsx)*0.37)*(quality*0.5)
 	Spring.SetConfigInt("Shadows", 1)
 	Spring.SetConfigInt("ShadowMapSize", shadowMapSize)
 	Spring.SendCommands("shadows 1 " .. shadowMapSize)
+	--Spring.Echo(shadowMapSize)
 end
 
 function widget:ViewResize()
