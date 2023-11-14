@@ -51,6 +51,7 @@ return {
 			kickback = "-2.4",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
+			paralyzemultiplier = 0.25,
 			restoretime = "3000",
 			rockstrength = "4.5",
 			sleevename = "sleeves",
