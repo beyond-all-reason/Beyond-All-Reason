@@ -38,6 +38,7 @@ local moveDatas = {
 		maxwaterslope = 50,
 	},
 
+	--corroach corsktl armvader
 	ABOTBOMB2 = {
 	 	crushstrength = 50,
 	 	depthmod = 0,
@@ -52,7 +53,7 @@ local moveDatas = {
 	},
 
 	-- amphibious bots  possible merger with abotbomb2
-	--critter_crab raptors1 cormando raptors2 armaak corcrash raptorems2_spectre armjeth coramph coraak corroach corsktl armvader
+	--critter_crab raptors1 cormando raptors2 armaak corcrash raptorems2_spectre armjeth coramph coraak 
 	ABOT2 = {
 		crushstrength = 50,
 		depthmod = 0,
