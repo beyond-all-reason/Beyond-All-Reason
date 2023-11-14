@@ -547,6 +547,8 @@ local armorDefs = {
 		"raptorh4",
 		"raptorh5",
 		"raptorr3",
+		"raptors1",
+		"raptors2",
 		"raptorp1",
 		"raptorp2",
 		"raptorpyroallterrain",
@@ -565,10 +567,6 @@ local armorDefs = {
 		"raptorelectricallterrain",
 		"raptor_hive",
 		"raptor_antinuke",
-
-		"raptor_land_sniper_basic_t2_var1",
-		"raptor_land_sniper_basic_t4_var1",
-		"raptor_land_sniper_spectre_t4_var1",
 	},
 }
 

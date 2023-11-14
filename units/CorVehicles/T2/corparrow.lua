@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 29000,
 		buildcostmetal = 1050,
 		buildpic = "CORPARROW.DDS",
-		buildtime = 22181,
+		buildtime = 22200,
 		canmove = true,
 		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -10 1",

@@ -9,7 +9,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "CORASP.DDS",
-		buildtime = 9315,
+		buildtime = 9300,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -9 0",

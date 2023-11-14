@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 26000,
 		buildcostmetal = 4700,
 		buildpic = "ARMCKFUS.DDS",
-		buildtime = 84389,
+		buildtime = 84400,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		cloakcost = 100,

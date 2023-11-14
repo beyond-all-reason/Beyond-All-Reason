@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 40000,
 		buildcostmetal = 4000,
 		buildpic = "ARMAWAC.DDS",
-		buildtime = 12819,
+		buildtime = 12800,
 		canfly = true,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE NOTSUB NOWEAPON NOTSHIP NOTHOVER SPACE",

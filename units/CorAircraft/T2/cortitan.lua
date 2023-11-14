@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 8200,
 		buildcostmetal = 410,
 		buildpic = "CORTITAN.DDS",
-		buildtime = 14722,
+		buildtime = 14700,
 		canfly = true,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON VTOL NOTSUB NOTSHIP NOTHOVER",

@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 48000,
 		buildcostmetal = 9700,
 		buildpic = "CORAFUS.DDS",
-		buildtime = 329243,
+		buildtime = 329200,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",

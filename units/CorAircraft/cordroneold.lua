@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 650,
 		buildcostmetal = 29,
 		buildpic = "CORBW.DDS",
-		buildtime = 1036,
+		buildtime = 1040,
 		canfly = true,
 		canmove = true,
 		cantbetransported = false,

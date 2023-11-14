@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 2300,
 		buildcostmetal = 135,
 		buildpic = "ARMKAM.DDS",
-		buildtime = 5046,
+		buildtime = 5050,
 		canfly = true,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",

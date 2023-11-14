@@ -4,8 +4,8 @@ return {
 	correspawn = {
 		acceleration = 0,
 		brakerate = 4.5,
-		buildcostenergy = 500,
-		buildcostmetal = 50,
+		buildcostenergy = 1,
+		buildcostmetal = 1,
 		builddistance = range,
 		builder = true,
 		buildpic = "CORNANOTCPLAT.DDS",

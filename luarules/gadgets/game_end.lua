@@ -185,10 +185,9 @@ if gadgetHandler:IsSyncedCode() then
 		allyTeamInfos[allyTeamID].teams[teamID] = team
 
 		-- if player is an AI controller, then mark all hosted AIs as uncontrolled
-		if playerIDtoAIs[playerID] then
-			for AITeam, AIAllyTeam in pairs(playerIDtoAIs[playerID]) do
-				allyTeamInfos[AIAllyTeam].teams[AITeam].isControlled = active
-			end
+		local AIHostList = playerIDtoAIs[playerID] or {}
+		for AITeam, AIAllyTeam in pairs(AIHostList) do
+			allyTeamInfos[AIAllyTeam].teams[AITeam].isControlled = active
 		end
 
 		UpdateAllyTeamIsDead(allyTeamID)
@@ -292,14 +291,11 @@ if gadgetHandler:IsSyncedCode() then
 	-- find the last remaining allyteam
 	local function CheckSingleAllyVictoryEnd()
 		local winnerCount = 0
-		local candidateWinners
+		local candidateWinners = {}
 		for allyTeamID in pairs(allyTeamInfos) do
 			if not allyTeamInfos[allyTeamID].dead then
-				if not candidateWinners then
-					candidateWinners = {}
-				end
-				candidateWinners[winnerCount] = allyTeamID
 				winnerCount = winnerCount + 1
+				candidateWinners[winnerCount] = allyTeamID
 			end
 		end
 		if winnerCount > 1 then
@@ -311,9 +307,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- we have to cross check all the alliances
 	local function CheckSharedAllyVictoryEnd()
+		local candidateWinners = {}
 		local winnerCountSquared = 0
 		local aliveCount = 0
-		local candidateWinners
 		for allyTeamA in pairs(allyTeamInfos) do
 			if not allyTeamInfos[allyTeamA].dead then
 				aliveCount = aliveCount + 1
@@ -321,9 +317,6 @@ if gadgetHandler:IsSyncedCode() then
 					if not allyTeamInfos[allyTeamB].dead and AreAllyTeamsDoubleAllied(allyTeamA, allyTeamB) then
 						-- store both check directions
 						-- since we're gonna check if we're allied against ourself, only secondAllyTeamID needs to be stored
-						if not candidateWinners then
-							candidateWinners = {}
-						end
 						candidateWinners[allyTeamB] = true
 						winnerCountSquared = winnerCountSquared + 1
 					end
@@ -367,8 +360,8 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			local winners
 			if fixedallies then
-				if gf < 30 or gf % 60 == 1 then
-					CheckAllPlayers()	-- checking for activity
+				if gf < 30 or gf % 30 == 1 then
+					CheckAllPlayers()
 				end
 				winners = CheckSingleAllyVictoryEnd()
 			else
@@ -442,19 +435,21 @@ if gadgetHandler:IsSyncedCode() then
 	gadget.UnitGiven = gadget.UnitCreated
 	gadget.UnitCaptured = gadget.UnitCreated
 
-	local notScoremode = Spring.GetModOptions().scoremode == "disabled" or not Spring.GetModOptions().scoremode_chess
+
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID)
 		if not ignoredTeams[unitTeamID] then
-			if notScoremode then
+			if Spring.GetModOptions().scoremode == "disabled" or Spring.GetModOptions().scoremode_chess == false then
 				local allyTeamID = teamToAllyTeam[unitTeamID]
 				local allyTeamInfo = allyTeamInfos[allyTeamID]
-				allyTeamInfo.teams[unitTeamID].unitCount = allyTeamInfo.teams[unitTeamID].unitCount - 1
-				allyTeamInfo.unitCount = allyTeamInfo.unitCount - 1
+				local teamUnitCount = allyTeamInfo.teams[unitTeamID].unitCount - 1
+				local allyTeamUnitCount = allyTeamInfo.unitCount - 1
+				allyTeamInfo.teams[unitTeamID].unitCount = teamUnitCount
+				allyTeamInfo.unitCount = allyTeamUnitCount
 				if unitDecoration[unitDefID] then
 					allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount - 1
 				end
 				allyTeamInfos[allyTeamID] = allyTeamInfo
-				if allyTeamInfo.unitCount <= allyTeamInfo.unitDecorationCount then
+				if allyTeamUnitCount <= allyTeamInfo.unitDecorationCount then
 					for teamID in pairs(allyTeamInfo.teams) do
 						KillTeam(teamID)
 						killTeamQueue[teamID] = nil

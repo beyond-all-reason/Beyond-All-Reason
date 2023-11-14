@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 4100,
 		builder = 0,
 		buildpic = "CORFGATE.DDS",
-		buildtime = 59060,
+		buildtime = 59000,
 		canattack = false,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",

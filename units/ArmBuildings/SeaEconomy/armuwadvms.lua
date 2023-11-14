@@ -4,7 +4,7 @@ return {
 		buildcostenergy = 11500,
 		buildcostmetal = 750,
 		buildpic = "ARMUWADVMS.DDS",
-		buildtime = 20391,
+		buildtime = 20400,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		collisionvolumeoffsets = "0 0 0",

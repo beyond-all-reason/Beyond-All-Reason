@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 50,
 		buildingmask = 0,
 		buildpic = "CORUWMEX.DDS",
-		buildtime = 1887,
+		buildtime = 1880,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		collisionvolumeoffsets = "0 -55 0",

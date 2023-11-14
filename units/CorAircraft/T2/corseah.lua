@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 6400,
 		buildcostmetal = 370,
 		buildpic = "CORSEAH.DDS",
-		buildtime = 15289,
+		buildtime = 15300,
 		canfly = true,
 		canmove = true,
 		category = "ALL NOTSUB VTOL NOWEAPON NOTHOVER",
