@@ -1595,15 +1595,15 @@ if gadgetHandler:IsSyncedCode() then
 
 		local unit = UnitDefNames[name]
 
-		local featureValueMetal = math.ceil(unit.metalCost*0.25)
+		local featureValueMetal = math.ceil(unit.metalCost)
 		local featureValueEnergy = featureValueMetal*10
 
 		local size
 		local color
 
-		if featureValueMetal <= 500 then
+		if featureValueMetal <= 1000 then
 			size = "s"
-		elseif featureValueMetal <= 3000 then
+		elseif featureValueMetal <= 6000 then
 			size = "m"
 		else
 			size = "l"
@@ -1627,9 +1627,9 @@ if gadgetHandler:IsSyncedCode() then
 	function decayRandomEggs()
 		tracy.ZoneBeginN("Raptors:decayRandomEggs")
 		for eggID, _ in pairs(aliveEggsTable) do
-			if mRandom(1,18) == 1 then -- scaled to decay 1000hp egg in about 3 minutes +/- RNG
+			if mRandom(1,18) == 1 then -- scaled to decay 1000hp egg in about 1 and half minutes +/- RNG
 				local fx, fy, fz = Spring.GetFeaturePosition(eggID)
-				Spring.SetFeatureHealth(eggID, Spring.GetFeatureHealth(eggID) - 20)
+				Spring.SetFeatureHealth(eggID, Spring.GetFeatureHealth(eggID) - 40)
 				if Spring.GetFeatureHealth(eggID) <= 0 then
 					Spring.DestroyFeature(eggID)
 				end
