@@ -1596,7 +1596,7 @@ if gadgetHandler:IsSyncedCode() then
 		local unit = UnitDefNames[name]
 
 		local featureValueMetal = math.ceil(unit.metalCost)
-		local featureValueEnergy = featureValueMetal*10
+		local featureValueEnergy = featureValueMetal
 
 		local size
 		local color
