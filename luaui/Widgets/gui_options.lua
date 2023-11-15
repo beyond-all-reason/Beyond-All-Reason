@@ -342,7 +342,7 @@ function widget:ViewResize()
 		backgroundGuishader = glDeleteList(backgroundGuishader)
 	end
 
-	if isPotatoGpu or (Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500) then
+	if not (Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500) then
 		adjustShadowQuality()
 	end
 end
@@ -6156,6 +6156,7 @@ function widget:Initialize()
 			Spring.SetConfigInt("AdvMapShading", 0)
 			Spring.SendCommands("advmapshading 0")
 			Spring.SendCommands("Shadows 0 1024")
+			Spring.GetConfigInt("ShadowQuality", 1)
 			Spring.SetConfigInt("ShadowMapSize", 1024)
 			Spring.SetConfigInt("Shadows", 0)
 			Spring.SetConfigInt("MSAALevel", 0)
