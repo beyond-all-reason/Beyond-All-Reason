@@ -2293,7 +2293,20 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-geo-t2-explo",
 	},
-
+	
+	
+	corgolt4 = {
+		BaseSoundSelectType = "cor-tnk-huge-sel",
+		BaseSoundMovementType = "cor-tnk-huge-ok",
+		BaseSoundWeaponType = "plasma-huge",
+	},	
+	corthermite = {
+		BaseSoundSelectType = "cor-bot-t3-at-sel",
+		BaseSoundMovementType = "cor-bot-t3-at-ok",
+		BaseSoundWeaponType = "heatray-xl",
+	},
+	
+	
 	armuwmex = {},
 	coruwmex = {},
 	armgplat = {},

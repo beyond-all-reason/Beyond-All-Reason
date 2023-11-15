@@ -61,6 +61,26 @@ return {
 				reclaimable = true,
 				world = "All Worlds",
 			},
+			heap = {
+				blocking = false,
+				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
+				damage = 10000,
+				energy = 0,
+				featurereclamate = "SMUDGE01",
+				footprintx = 5,
+				footprintz = 5,
+				height = 4,
+				hitdensity = 100,
+				metal = 2750,
+				object = "Units/arm2X2D.s3o",
+				reclaimable = true,
+				resurrectable = 0,
+				seqnamereclamate = "TREE1RECLAMATE",
+				world = "All Worlds",
+			},
+			
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -99,7 +119,7 @@ return {
 				accuracy = 0,
 				areaofeffect = 128,
 				avoidfeature = false,
-				avoidfriendly = false,
+				avoidfriendly = true,
 				avoidground = false,
 				burst = 12,
 				burstrate = 0.03333,
@@ -130,7 +150,6 @@ return {
 				tolerance = 20000,
 				turret = true,
 				waterweapon = false,
-				weapontimer = 4.2,
 				weapontype = "Flame",
 				weaponvelocity = 500,
 				damage = {
