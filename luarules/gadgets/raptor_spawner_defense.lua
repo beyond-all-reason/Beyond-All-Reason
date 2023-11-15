@@ -1600,26 +1600,34 @@ if gadgetHandler:IsSyncedCode() then
 
 		local size
 		local color
+		local chance
 
-		if featureValueMetal <= 1000 then
+		if featureValueMetal <= 1500 then
 			size = "s"
-		elseif featureValueMetal <= 6000 then
+			chance = 0.2
+		elseif featureValueMetal <= 7500 then
 			size = "m"
+			chance = 0.5
 		else
 			size = "l"
+			chance = 1
 		end
 
-		if config.raptorEggs[name] and config.raptorEggs[name] ~= "" then
-			color = config.raptorEggs[name]
-		else
-			color = raptorEggColors[mRandom(1,#raptorEggColors)]
-		end
+		if mRandom() <= chance then
 
-		local egg = Spring.CreateFeature("raptor_egg_"..size.."_"..color, x, y + 20, z, mRandom(-999999,999999), raptorTeamID)
-		if egg then
-			Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
-			Spring.SetFeatureVelocity(egg, mRandom(-30,30)*0.01, mRandom(150,350)*0.01, mRandom(-30,30)*0.01)
-			Spring.SetFeatureResources(egg, featureValueMetal, featureValueEnergy, featureValueMetal, 1.0, featureValueMetal, featureValueEnergy)
+			if config.raptorEggs[name] and config.raptorEggs[name] ~= "" then
+				color = config.raptorEggs[name]
+			else
+				color = raptorEggColors[mRandom(1,#raptorEggColors)]
+			end
+
+			local egg = Spring.CreateFeature("raptor_egg_"..size.."_"..color, x, y + 20, z, mRandom(-999999,999999), raptorTeamID)
+			if egg then
+				Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
+				Spring.SetFeatureVelocity(egg, mRandom(-30,30)*0.01, mRandom(150,350)*0.01, mRandom(-30,30)*0.01)
+				Spring.SetFeatureResources(egg, featureValueMetal, featureValueEnergy, featureValueMetal, 1.0, featureValueMetal, featureValueEnergy)
+			end
+
 		end
 
 	end
