@@ -99,7 +99,7 @@ return {
 				accuracy = 0,
 				areaofeffect = 128,
 				avoidfeature = false,
-				avoidfriendly = false,
+				avoidfriendly = true,
 				avoidground = false,
 				burst = 12,
 				burstrate = 0.03333,

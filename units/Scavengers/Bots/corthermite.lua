@@ -118,6 +118,7 @@ return {
 			thermite_laser = {
 				areaofeffect = 72,
 				avoidfeature = false,
+				avoidfriendly = true,
 				beamtime = 0.6,
 				camerashake = 0.1,
 				corethickness = 0.35,
@@ -158,7 +159,7 @@ return {
 				accuracy = 700,
 				areaofeffect = 128,
 				avoidfeature = false,
-				avoidfriendly = false,
+				avoidfriendly = true,
 				avoidground = false,
 				burst = 12,
 				burstrate = 0.03333,
