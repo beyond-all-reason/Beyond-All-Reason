@@ -1628,7 +1628,7 @@ if gadgetHandler:IsSyncedCode() then
 		tracy.ZoneBeginN("Raptors:decayRandomEggs")
 		for eggID, _ in pairs(aliveEggsTable) do
 			if mRandom(1,18) == 1 then -- scaled to decay 1000hp egg in about 1 and half minutes +/- RNG
-				local fx, fy, fz = Spring.GetFeaturePosition(eggID)
+				--local fx, fy, fz = Spring.GetFeaturePosition(eggID)
 				Spring.SetFeatureHealth(eggID, Spring.GetFeatureHealth(eggID) - 40)
 				if Spring.GetFeatureHealth(eggID) <= 0 then
 					Spring.DestroyFeature(eggID)
