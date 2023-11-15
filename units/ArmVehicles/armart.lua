@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 2200,
 		buildcostmetal = 135,
 		buildpic = "armart.DDS",
-		buildtime = 2998,
+		buildtime = 3000,
 		canmove = true,
 		category = "ALL TANK WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -5 3",

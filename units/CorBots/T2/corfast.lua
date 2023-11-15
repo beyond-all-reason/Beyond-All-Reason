@@ -7,7 +7,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "CORFAST.DDS",
-		buildtime = 6488,
+		buildtime = 6500,
 		canmove = true,
 		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
@@ -62,6 +62,7 @@ return {
 			[20] = "coramph",
 			[21] = "corcs",
 			[22] = "corroy",
+			[23] = "cortermite",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

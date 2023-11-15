@@ -111,7 +111,6 @@ for name, def in pairs(weaponDefs) do
 	if ((type(model) == 'string') and (#model > 0)) then
 		local modelFile = 'objects3d/' .. model
 		if ((not VFS.FileExists(modelFile)) and
-				(not VFS.FileExists(modelFile .. '.3do')) and
 				(not VFS.FileExists(modelFile .. '.s3o'))) then
 			weaponDefs[name] = nil
 			Spring.Log(section, LOG.ERROR, 'removed ' .. name .. ' weaponDef, missing model')

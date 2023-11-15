@@ -8,7 +8,7 @@ return {
 		buildcostenergy = 72000,
 		buildcostmetal = 5100,
 		buildpic = "CORCRW.DDS",
-		buildtime = 84229,
+		buildtime = 84200,
 		canfly = true,
 		canmove = true,
 		category = "ALL WEAPON VTOL NOTSUB NOTHOVER",

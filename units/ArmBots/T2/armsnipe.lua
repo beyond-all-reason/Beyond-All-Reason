@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 20000,
 		buildcostmetal = 680,
 		buildpic = "ARMSNIPE.DDS",
-		buildtime = 19137,
+		buildtime = 19000,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTHOVER NOTSUB SURFACE EMPABLE",
 		cloakcost = 75,

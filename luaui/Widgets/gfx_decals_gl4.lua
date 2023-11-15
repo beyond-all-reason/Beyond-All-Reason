@@ -458,6 +458,9 @@ end
 
 -----------------------------------------------------------------------------------------------
 
+local dCT = {} -- decalCacheTable
+
+
 local function AddDecal(decaltexturename, posx, posz, rotation,
 	width, length,
 	heatstart, heatdecay, alphastart, alphadecay,
@@ -523,14 +526,16 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	elseif math.min(width,length) > largesizethreshold then
 		targetVBO = decalLargeVBO
 	end
+	
+	dCT[1],  dCT[2],  dCT[3],  dCT[4]  = length, width, rotation, maxalpha   -- lengthwidthrotation maxalpha
+	dCT[5],  dCT[6],  dCT[7],  dCT[8]  = p,q,s,t -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+	dCT[9],  dCT[10], dCT[11], dCT[12] = alphastart, alphadecay, heatstart, heatdecay -- alphastart_alphadecay_heatstart_heatdecay
+	dCT[13], dCT[14], dCT[15], dCT[16] = posx, posy, posz, spawnframe
+	dCT[17], dCT[18], dCT[19], dCT[20] = bwfactor, glowsustain, glowadd, fadeintime -- params
 
 	pushElementInstance(
 		targetVBO, -- push into this Instance VBO Table
-			{length, width, rotation, maxalpha ,  -- lengthwidthrotation maxalpha
-			p,q,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
-			alphastart, alphadecay, heatstart, heatdecay, -- alphastart_alphadecay_heatstart_heatdecay
-			posx, posy, posz, spawnframe,
-			bwfactor, glowsustain, glowadd, fadeintime}, -- params
+			dCT,-- decalCacheTable
 		decalIndex, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		false) -- noupload, dont use unless you know what you want to batch push/pop
@@ -649,17 +654,26 @@ local function RemoveDecal(instanceID)
 	decalTimes[instanceID] = nil
 end
 
+local numDecalsToRemove = 0
+
 function widget:GameFrame(n)
 	if decalRemoveQueue[n] then
 		for i=1, #decalRemoveQueue[n] do
 			local decalID = decalRemoveQueue[n][i]
 			decalRemoveList[decalID] = true
+			numDecalsToRemove = numDecalsToRemove + 1
 			--RemoveDecal(decalID)
 		end
 		decalRemoveQueue[n] = nil
 	end
 
-	if n % 271 == 0 then
+	if n % 67 == 0 then -- About every 2 seconds
+		local totalDecalCount = decalVBO.usedElements + decalLargeVBO.usedElements +  decalExtraLargeVBO.usedElements
+		
+		-- Perform a compacting step if about half of our decals should be removed
+		if totalDecalCount == 0 or (numDecalsToRemove/totalDecalCount < 0.5) then return end
+		
+		numDecalsToRemove = 0
 		local removed = 0
 		removed = removed + compactInstanceVBO(decalVBO, decalRemoveList)
 		removed = removed + compactInstanceVBO(decalLargeVBO, decalRemoveList)
@@ -667,13 +681,12 @@ function widget:GameFrame(n)
 		decalRemoveList = {}
 
 		if autoupdate and removed > 0 then
-			Spring.Echo("Removed",removed,"decals from decal instance tables: s=",decalVBO.usedElements,' l=', decalLargeVBO.usedElements,'xl=', decalExtraLargeVBO.usedElements)
+			Spring.Echo("Removed",removed,"decals from decal instance tables: s=",decalVBO.usedElements,' l=', decalLargeVBO.usedElements,'xl=', decalExtraLargeVBO.usedElements, "Tot=", totalDecalCount, "Rem=",numDecalsToRemove)
 		end
-		if removed > 0 then
-			uploadAllElements(	decalVBO)
-			uploadAllElements(	decalLargeVBO)
-			uploadAllElements(	decalExtraLargeVBO)
-		end
+		if decalVBO.dirty then 	uploadAllElements(	decalVBO) end
+		if decalLargeVBO.dirty then 	uploadAllElements(	decalLargeVBO) end
+		if decalExtraLargeVBO.dirty then 	uploadAllElements(	decalExtraLargeVBO) end
+		
 	end
 end
 

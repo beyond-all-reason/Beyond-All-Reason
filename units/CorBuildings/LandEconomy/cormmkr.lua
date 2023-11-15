@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 21000,
 		buildcostmetal = 370,
 		buildpic = "CORMMKR.DDS",
-		buildtime = 31253,
+		buildtime = 31300,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",

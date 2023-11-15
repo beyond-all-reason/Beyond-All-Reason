@@ -9,7 +9,7 @@ return {
 		builddistance = 275,
 		builder = true,
 		buildpic = "CORMANDO.DDS",
-		buildtime = 17131,
+		buildtime = 17100,
 		canassist = true,
 		canmove = true,
 		canreclaim = true,

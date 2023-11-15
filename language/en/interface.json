@@ -1154,6 +1154,8 @@
 				"minimapcanflip_descr": "will automatically flip the minimap when camera perspective is from the other side",
 				"gridmenu": "Use Gridmenu",
 				"gridmenu_descr": "Alternative build menu, designed for comprehensive hotkey use",
+				"gridmenu_alwaysreturn": "Grid always returns to categories",
+				"gridmenu_alwaysreturn_descr": "While queueing commands, return to categories page after issuing",
 				"keylayout": "Keyboard Layout",
 				"keylayout_descr": "Set the keyboard layout",
 				"keybindings": "Keybind Preset",

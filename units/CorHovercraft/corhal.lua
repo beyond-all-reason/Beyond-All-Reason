@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 13000,
 		buildcostmetal = 640,
 		buildpic = "CORHAL.DDS",
-		buildtime = 12907,
+		buildtime = 12900,
 		canmove = true,
 		category = "ALL HOVER WEAPON NOTSUB NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",

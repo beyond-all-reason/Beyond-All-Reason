@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 68000,
 		buildcostmetal = 3800,
 		buildpic = "ARMRAZ.DDS",
-		buildtime = 88566,
+		buildtime = 88600,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",

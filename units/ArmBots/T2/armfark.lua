@@ -8,7 +8,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "ARMFARK.DDS",
-		buildtime = 4302,
+		buildtime = 4300,
 		canmove = true,
 		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -1",

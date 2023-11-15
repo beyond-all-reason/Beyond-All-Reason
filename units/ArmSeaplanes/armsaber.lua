@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 6400,
 		buildcostmetal = 210,
 		buildpic = "ARMSABER.DDS",
-		buildtime = 9016,
+		buildtime = 9000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -105,7 +105,7 @@ return {
 				turret = false,
 				weapontimer = 1,
 				weapontype = "LaserCannon",
-				weaponvelocity = 1000,
+				weaponvelocity = 980,
 				damage = {
 					bombers = 10,
 					default = 60,

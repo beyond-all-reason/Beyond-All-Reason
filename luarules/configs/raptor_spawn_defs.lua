@@ -295,8 +295,8 @@ raptorBehaviours = {
 local optionValues = {
 
 	[difficulties.veryeasy] = {
-		gracePeriod       = 8 * Spring.GetModOptions().raptor_graceperiodmult * 60,
-		queenTime      	  = 50 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 9 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 55 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		raptorSpawnRate   = 120 * Spring.GetModOptions().raptor_spawntimemult,
 		burrowSpawnRate   = 240 * Spring.GetModOptions().raptor_spawntimemult,
 		turretSpawnRate   = 120 * Spring.GetModOptions().raptor_spawntimemult,
@@ -314,8 +314,8 @@ local optionValues = {
 	},
 
 	[difficulties.easy] = {
-		gracePeriod       = 7 * Spring.GetModOptions().raptor_graceperiodmult * 60,
-		queenTime      	  = 45 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 8 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 50 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		raptorSpawnRate   = 90 * Spring.GetModOptions().raptor_spawntimemult,
 		burrowSpawnRate   = 210 * Spring.GetModOptions().raptor_spawntimemult,
 		turretSpawnRate   = 100 * Spring.GetModOptions().raptor_spawntimemult,
@@ -332,8 +332,8 @@ local optionValues = {
 		queenResistanceMult   = 0.75,
 	},
 	[difficulties.normal] = {
-		gracePeriod       = 6 * Spring.GetModOptions().raptor_graceperiodmult * 60,
-		queenTime      	  = 40 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
+		gracePeriod       = 7 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		queenTime      	  = 45 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		raptorSpawnRate   = 60 * Spring.GetModOptions().raptor_spawntimemult,
 		burrowSpawnRate   = 180 * Spring.GetModOptions().raptor_spawntimemult,
 		turretSpawnRate   = 80 * Spring.GetModOptions().raptor_spawntimemult,
@@ -350,7 +350,7 @@ local optionValues = {
 		queenResistanceMult   = 1,
 	},
 	[difficulties.hard] = {
-		gracePeriod       = 5 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		gracePeriod       = 6 * Spring.GetModOptions().raptor_graceperiodmult * 60,
 		queenTime      	  = 40 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		raptorSpawnRate   = 50 * Spring.GetModOptions().raptor_spawntimemult,
 		burrowSpawnRate   = 150 * Spring.GetModOptions().raptor_spawntimemult,
@@ -368,7 +368,7 @@ local optionValues = {
 		queenResistanceMult   = 1.33,
 	},
 	[difficulties.veryhard] = {
-		gracePeriod       = 4 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		gracePeriod       = 5 * Spring.GetModOptions().raptor_graceperiodmult * 60,
 		queenTime      	  = 35 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		raptorSpawnRate   = 40 * Spring.GetModOptions().raptor_spawntimemult,
 		burrowSpawnRate   = 120 * Spring.GetModOptions().raptor_spawntimemult,
@@ -386,7 +386,7 @@ local optionValues = {
 		queenResistanceMult   = 1.67,
 	},
 	[difficulties.epic] = {
-		gracePeriod       = 3 * Spring.GetModOptions().raptor_graceperiodmult * 60,
+		gracePeriod       = 4 * Spring.GetModOptions().raptor_graceperiodmult * 60,
 		queenTime      	  = 30 * Spring.GetModOptions().raptor_queentimemult * 60, -- time at which the queen appears, frames
 		raptorSpawnRate   = 30 * Spring.GetModOptions().raptor_spawntimemult,
 		burrowSpawnRate   = 90 * Spring.GetModOptions().raptor_spawntimemult,

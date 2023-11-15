@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 25000,
 		buildcostmetal = 1150,
 		buildpic = "ARMGMM.DDS",
-		buildtime = 41347,
+		buildtime = 41500,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 6 0",
