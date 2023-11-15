@@ -1629,7 +1629,7 @@ if gadgetHandler:IsSyncedCode() then
 			if egg then
 				Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
 				Spring.SetFeatureVelocity(egg, mRandom(-30,30)*0.01, mRandom(150,350)*0.01, mRandom(-30,30)*0.01)
-				Spring.SetFeatureResources(egg, featureValueMetal, featureValueEnergy, featureValueMetal, 1.0, featureValueMetal, featureValueEnergy)
+				Spring.SetFeatureResources(egg, featureValueMetal, featureValueEnergy, featureValueMetal*10, 1.0, featureValueMetal, featureValueEnergy)
 			end
 
 		end
