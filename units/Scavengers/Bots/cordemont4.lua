@@ -61,6 +61,26 @@ return {
 				reclaimable = true,
 				world = "All Worlds",
 			},
+			heap = {
+				blocking = false,
+				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
+				damage = 10000,
+				energy = 0,
+				featurereclamate = "SMUDGE01",
+				footprintx = 5,
+				footprintz = 5,
+				height = 4,
+				hitdensity = 100,
+				metal = 2750,
+				object = "Units/arm2X2D.s3o",
+				reclaimable = true,
+				resurrectable = 0,
+				seqnamereclamate = "TREE1RECLAMATE",
+				world = "All Worlds",
+			},
+			
 		},
 		sfxtypes = {
 			explosiongenerators = {
