@@ -756,12 +756,12 @@ local function GenFastTextureKey(objectDefID, objectDef, normaltexpath, texturet
 end
 
 local wreckAtlases = {
-	["arm"] = {
+	["arm"] = { -- these are only here for posterity
 		"unittextures/Arm_wreck_color.dds",
 		"unittextures/Arm_wreck_other.dds",
 		"unittextures/Arm_wreck_color_normal.dds",
 	},
-	["cor"] = {
+	["cor"] = { 
 		"unittextures/cor_color_wreck.dds",
 		"unittextures/cor_other_wreck.dds",
 		"unittextures/cor_color_wreck_normal.dds",
@@ -779,11 +779,18 @@ local existingfilecache = {} -- this speeds up the VFS calls
 local function GetNormal(unitDef, featureDef)
 	local normalMap = blankNormalMap
 
-	if unitDef and unitDef.customParams and unitDef.customParams.normaltex and
-		(existingfilecache[unitDef.customParams.normaltex] or VFS.FileExists(unitDef.customParams.normaltex)) then
-
-		existingfilecache[unitDef.customParams.normaltex] = true
-		return unitDef.customParams.normaltex
+	if unitDef and unitDef.model then
+		if existingfilecache[unitDef.model.textures.tex1] == nil and VFS.FileExists(unitDef.model.textures.tex1) then
+			existingfilecache[unitDef.model.textures.tex1] = string.format("%%%i:0", unitDef.id)
+		end
+		if existingfilecache[unitDef.model.textures.tex2] == nil and VFS.FileExists(unitDef.model.textures.tex2) then
+			existingfilecache[unitDef.model.textures.tex2] = string.format("%%%i:1", unitDef.id)
+		end
+		if unitDef.customParams and unitDef.customParams.normaltex and
+			(existingfilecache[unitDef.customParams.normaltex] or VFS.FileExists(unitDef.customParams.normaltex)) then
+			existingfilecache[unitDef.customParams.normaltex] = true
+			return unitDef.customParams.normaltex
+		end
 	end
 
 	if featureDef then
@@ -801,8 +808,8 @@ local function GetNormal(unitDef, featureDef)
 		if  (existingfilecache[unittexttures .. tex1] or VFS.FileExists(unittexttures .. tex1)) and
 			(existingfilecache[unittexttures .. tex2] or VFS.FileExists(unittexttures .. tex2)) then
 
-			existingfilecache[unittexttures .. tex1] = true
-			existingfilecache[unittexttures .. tex2] = true
+			existingfilecache[unittexttures .. tex1] = string.format("%%%i:0", -1*featureDef.id)
+			existingfilecache[unittexttures .. tex2] = string.format("%%%i:1", -1*featureDef.id)
 			normalMap = unittexttures .. tex1:gsub("%.","_normals.")
 			-- Spring.Echo(normalMap)
 			if (existingfilecache[normalMap] or VFS.FileExists(normalMap)) then
@@ -824,11 +831,9 @@ end
 -- 
 -- %34:1 = unitDef 34 s3o tex2 (:0->tex1,:1->tex2)
 -- %-102:0 = featureDef 102 s3o tex1 
+-- The problem here being hat tex1 and tex2 dont participate in texture key hashing.
+-- so e.g. raptors may have been drawn with incorrect textures all along, due to them being keyed 
 
-local objectdeftotex1 = {} -- maps unitdefID or negative featuredefID to tex1 string. e.g. [100] = "arm_color.dds"
-local tex1toluatexstring = {} -- maps "arm_color.dds" to its 'lua tex name', wether its an unitdef or featuredef, shouldnt matter
-local objectdeftotex2 = {} -- maps unitdefID or negative featuredefID to tex2 string. 
-local tex2toluatexstring = {} -- maps "arm_color.dds" to its 'lua tex name', wether its an unitdef or featuredef, shouldnt matter
 
 
 local knowntrees = VFS.Include("modelmaterials_gl4/known_feature_trees.lua")
@@ -909,12 +914,19 @@ local function initBinsAndTextures()
 			local lowercasetex2 = string.lower(unitDef.model.textures.tex2 or "")
 			local lowercasenormaltex = string.lower(normalTex or "")
 
+			
 			local wreckTex1 = (lowercasetex1:find("arm_color", nil, true) and "unittextures/Arm_wreck_color.dds") or
-								(lowercasetex1:find("cor_color", nil, true) and "unittextures/Cor_color_wreck.dds")  or false
+								(lowercasetex1:find("cor_color", nil, true) and "unittextures/cor_color_wreck.dds")  or false
+			if wreckTex1 and existingfilecache[wreckTex1] then -- this part is what ensures that these textures dont get loaded separately, but instead use ones provided by featuredefs
+				wreckTex1 = existingfilecache[wreckTex1]
+			end
 			local wreckTex2 = (lowercasetex2:find("arm_other", nil, true) and "unittextures/Arm_wreck_other.dds") or
-								(lowercasetex2:find("cor_other", nil, true) and "unittextures/Cor_other_wreck.dds")  or false
+								(lowercasetex2:find("cor_other", nil, true) and "unittextures/cor_other_wreck.dds")  or false
+			if wreckTex2 and existingfilecache[wreckTex2] then  -- this part is what ensures that these textures dont get loaded separately, but instead use ones provided by featuredefs
+				wreckTex2 = existingfilecache[wreckTex2]
+			end
 			local wreckNormalTex = (lowercasenormaltex:find("arm_normal") and "unittextures/Arm_wreck_color_normal.dds") or
-					(lowercasenormaltex:find("cor_normal") and "unittextures/Cor_color_wreck_normal.dds") or false
+					(lowercasenormaltex:find("cor_normal") and "unittextures/cor_color_wreck_normal.dds") or false
 
 			if unitDef.name:find("_scav", nil, true) then -- it better be a scavenger unit, or ill kill you
 				textureTable[3] = wreckTex1
@@ -951,16 +963,16 @@ local function PreloadTextures()
 	Spring.Echo("[CUS GL4] Cache Textures")
 	-- init the arm and core wrecks, and wreck normals
 	gl.Texture(0, "unittextures/Arm_wreck_color_normal.dds")
-	gl.Texture(0, "unittextures/Arm_wreck_color.dds")
-	gl.Texture(0, "unittextures/Arm_wreck_other.dds")
+	--gl.Texture(0, "unittextures/Arm_wreck_color.dds")
+	--gl.Texture(0, "unittextures/Arm_wreck_other.dds")
 	gl.Texture(0, "unittextures/Arm_normal.dds")
 	--gl.Texture(0, "unittextures/Arm_color.dds") -- these absolutely never need to be loaded like this
 	--gl.Texture(0, "unittextures/Arm_other.dds")
 	gl.Texture(0, "unittextures/cor_normal.dds")
 	--gl.Texture(0, "unittextures/cor_other.dds")
 	--gl.Texture(0, "unittextures/cor_color.dds")
-	gl.Texture(0, "unittextures/cor_other_wreck.dds")
-	gl.Texture(0, "unittextures/cor_color_wreck.dds")
+	--gl.Texture(0, "unittextures/cor_other_wreck.dds")
+	--gl.Texture(0, "unittextures/cor_color_wreck.dds")
 	gl.Texture(0, "unittextures/cor_color_wreck_normal.dds")
 	gl.Texture(0, false)
 	preloadedTextures = true
