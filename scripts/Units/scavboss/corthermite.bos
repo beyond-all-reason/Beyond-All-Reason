@@ -299,6 +299,7 @@ chilltime(current) {
 }
 
 puff() {
+
 		if(isreset) {
 			set-signal-mask SIG_PUFF;
 			emit-sfx 1024 + 1 from flameflarer;
@@ -308,6 +309,7 @@ puff() {
 			rand = Rand( 1, 5 );
 			if (rand<5) start-script puff();
 		}
+
 }// nothing to see here */
 
 
