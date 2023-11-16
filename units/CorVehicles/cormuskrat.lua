@@ -15,7 +15,6 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energymake = 8,
-		energyuse = 8,
 		explodeas = "mediumexplosiongeneric-phib",
 		footprintx = 3,
 		footprintz = 3,

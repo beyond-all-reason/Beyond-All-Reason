@@ -17,7 +17,6 @@ return {
 		cruisealt = 50,
 		energymake = 20,
 		energystorage = 75,
-		energyuse = 20,
 		explodeas = "smallexplosiongeneric-builder",
 		footprintx = 2,
 		footprintz = 2,
