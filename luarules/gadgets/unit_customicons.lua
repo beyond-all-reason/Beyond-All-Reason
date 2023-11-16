@@ -616,6 +616,7 @@ local units = {
 	corsy = { "factory_ship.png", 1.52250004 },
 	cortarg = { "targetting.png", 1.36499989 },
 	cortermite = { "cortermite_1.5.png", 1.57499993 },
+	corthermite = { "corthermite.png", 2.4249992 },
 	corthovr = { "hovertrans.png", 1.78499997 },
 	corthud = { "bot_plasma_t1.png", 1.10249984 },
 	cortide = { "energy1_1.0.png", 1.04999995 },

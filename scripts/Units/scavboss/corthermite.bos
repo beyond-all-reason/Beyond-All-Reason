@@ -12,6 +12,8 @@ static-var  moving, Static_Var_2, restore_delay, gun_1,moveSpeed, currentSpeed,W
 #define SIG_AIM2				128
 
 #define SIG_MOVE 8
+#define SIG_SIG_CHILL 16
+
 
 #define FRONT_RIGHT_UP\
 	turn leg6a to y-axis <70> speed <12.5> *1000/(WALK_PERIOD);\
@@ -247,6 +249,7 @@ Create()
 	hide aimy1;
 	rand = 0;
 	moving = FALSE;
+	firing = FALSE;
 	isreset = TRUE;
 	rollingchill = FALSE;
 	chillshots = 0;
@@ -274,10 +277,12 @@ lua_UnitScriptLight(lightIndex, count)
 
 
 chilltime(current) {
-		
+		signal SIG_CHILL;
+		set-signal-mask SIG_CHILL;
+
 		if (moving==FALSE AND isreset) {
 			
-			if(Rand(1,6)==1) {
+			if(Rand(1,10)==1) {
 				//get PRINT(shotcount2 - chillshots);
 				if ((shotcount2 - chillshots) > 20) {
 					start-script puff();
@@ -294,12 +299,17 @@ chilltime(current) {
 }
 
 puff() {
-		emit-sfx 1024 + 1 from flameflarer;
-		sleep 5000;
-		rand = Rand( 3, 5 );
-		sleep rand * 1000;
-		rand = Rand( 1, 5 );
-		if (rand<5) start-script puff();
+
+		if(isreset) {
+			set-signal-mask SIG_PUFF;
+			emit-sfx 1024 + 1 from flameflarer;
+			sleep 5000;
+			rand = Rand( 3, 5 );
+			sleep rand * 1000;
+			rand = Rand( 1, 5 );
+			if (rand<5) start-script puff();
+		}
+
 }// nothing to see here */
 
 
