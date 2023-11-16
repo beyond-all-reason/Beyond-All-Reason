@@ -296,7 +296,6 @@ local LandUnitsList = {
 			--Cortex
 			["corshiva_scav"] = 1,
 			["corkarg_scav"] = 1,
-			["corthermite_scav"] = 1,
 			["corsok_scav"] = 1,
 			--Legion
 			--N/A
