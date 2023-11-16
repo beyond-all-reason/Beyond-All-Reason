@@ -11,7 +11,7 @@ return {
 		buildtime = 4450,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 -6 -2",
+		collisionvolumeoffsets = "0 -7 -2",
 		collisionvolumescales = "25 24 71",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
