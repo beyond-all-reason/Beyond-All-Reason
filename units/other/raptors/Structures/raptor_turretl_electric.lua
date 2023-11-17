@@ -100,7 +100,7 @@ return {
 				paralyzetime = 20,
 				proximitypriority = -4,
 				range = 2000,
-				reloadtime = 10,
+				reloadtime = 80,
 				rgbcolor = "0.2 0.5 0.9",
 				size = 5.5,
 				sizedecay = 0.09,
