@@ -7,7 +7,7 @@ piece pelvis, lthigh, lknee, lleg, Main_hull, AA_turret_main, AA_turret_gun_hull
 			AA_turret_gun_2, AA_turret_radar, Left_turret_main, Left_turret_gun, Right_turret_main, Right_turret_gun, 
 			Torso_turret_main, Torso_turret_left_hull_1, Torso_turret_left_hull_2, Torso_turret_left_gun, 
 			Torso_turret_right_hull_1, Torso_turret_right_hull_2, Torso_turret_right_gun, rthigh, rknee, rleg, AA_turret_gun_1_flare, AA_turret_gun_2_flare, Left_turret_gun_flare, Right_turret_gun_flare,
-			Torso_turret_left_gun_flare, Torso_turret_right_gun_flare;  
+			Torso_turret_left_gun_flare, Torso_turret_right_gun_flare, Ref_Point;  
 
 static-var gun_1, torsoaim, miniguncount, animFramesPerKeyframe, movespeed,
             restore_delay, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, wpn4_lasthead, bMoving, animSpeed, maxspeed;
@@ -374,6 +374,7 @@ Create(){
 	hide Right_turret_gun_flare;
 	hide Torso_turret_left_gun_flare;
 	hide Torso_turret_right_gun_flare;
+	hide Ref_Point;
 }
 
 RestoreAfterDelay(){
@@ -416,7 +417,53 @@ AimWeapon1(heading, pitch)
 	signal SIG_AIM_1;
 	set-signal-mask SIG_AIM_1;
 	turn Main_hull to y-axis heading speed <90.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
-	torsoaim = heading;
+	var gun_xz;
+    gun_xz = get PIECE_XZ(Main_hull);                                //get packed gun coordinates
+    var gun_x;
+    gun_x = (gun_xz & 0xffff0000) / 0x00010000;                //unpack x coordinates of gun (credit for unpack code goes to Beherith)
+    var gun_z;
+    gun_z = (gun_xz & 0x0000ffff);                            //unpack z coordinates of gun
+    
+    var turret_xz;
+    turret_xz = get PIECE_XZ(Torso_turret_main);                        //get packed turret coordinates
+    var turret_x;
+    turret_x = (turret_xz & 0xffff0000) / 0x00010000;        //unpack x coordinates of turret
+    var turret_z;
+    turret_z = (turret_xz & 0x0000ffff);                    //unpack z coordinates of turret
+    
+    var aim_x;
+    var aim_z;
+    aim_x = gun_x - turret_x;                                //calculate relative coordinates of the gun to the turret (how far away it is in each direction)
+    aim_z = gun_z - turret_z;
+    
+    
+    var hull_xz;
+    hull_xz = get PIECE_XZ(pelvis);                            //get packed hull coordinates
+    var hull_x;
+    hull_x = (hull_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of hull
+    var hull_z;
+    hull_z = (hull_xz & 0x0000ffff);                        //unpack z coordinates of hull
+    
+    var smoke_xz;
+    smoke_xz = get PIECE_XZ(Ref_Point);                            //get packed smoke coordinates
+    var smoke_x;
+    smoke_x = (smoke_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of smoke
+    var smoke_z;
+    smoke_z = (smoke_xz & 0x0000ffff);                        //unpack z coordinates of smoke
+    
+    var face_x;
+    var face_z;
+    face_x = hull_x - smoke_x;                                //calculate relative coordinates of the hull to the smoke (how far away it is in each direction)
+    face_z = hull_z - smoke_z;
+	
+	var cauaim;
+    var cauface;
+    cauaim = get ATAN(aim_z, aim_x);                        //use arctan (ATAN) to calculate the angle of the turret. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
+    cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
+    
+    //var torsoaim;
+    torsoaim = cauface - cauaim;                                //calculate angle of turret relative to the hull
+	//torsoaim = heading;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
