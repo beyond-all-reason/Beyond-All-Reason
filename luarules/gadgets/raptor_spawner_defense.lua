@@ -1604,17 +1604,17 @@ if gadgetHandler:IsSyncedCode() then
 
 		if featureValueMetal <= 1500 then
 			size = "s"
-			chance = 0.3
+			chance = 0.33
 		elseif featureValueMetal <= 7500 then
 			size = "m"
-			chance = 0.5
-			featureValueMetal = math.ceil(featureValueMetal*0.5)
-			featureValueEnergy = math.ceil(featureValueEnergy*0.5)
+			chance = 0.66
+			featureValueMetal = math.ceil(featureValueMetal*0.66)
+			featureValueEnergy = math.ceil(featureValueEnergy*0.66)
 		else
 			size = "l"
 			chance = 1
-			featureValueMetal = math.ceil(featureValueMetal*0.3)
-			featureValueEnergy = math.ceil(featureValueEnergy*0.3)
+			featureValueMetal = math.ceil(featureValueMetal*0.33)
+			featureValueEnergy = math.ceil(featureValueEnergy*0.33)
 		end
 
 		if mRandom() <= chance then
