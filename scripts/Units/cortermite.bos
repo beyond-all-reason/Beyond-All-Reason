@@ -246,6 +246,8 @@ Create()
 	hide aimy1;
 	moving = FALSE;
 	gun_1 = 0;
+	turn body to x-axis <-15.000000> speed <55.000000>;
+	turn aimy1 to x-axis <15.000000> speed <55.000000>;
 	restore_delay = 3000;
 	turn leg6a to y-axis <30> now;
 	turn leg4a to y-axis <-30> now;

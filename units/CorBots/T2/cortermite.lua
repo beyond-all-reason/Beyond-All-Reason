@@ -34,6 +34,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.0626,
 		turnrate = 1214.40002,
+		usepiececollisionvolumes = 1,
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "Beherith",
@@ -114,6 +115,7 @@ return {
 			cor_termite_laser = {
 				areaofeffect = 42,
 				avoidfeature = false,
+				avoidfriendly = true,
 				beamtime = 0.55,
 				corethickness = 0.2,
 				craterareaofeffect = 0,
