@@ -29,6 +29,7 @@ local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 
 local CMD_WAIT = CMD.WAIT
 local EMPTY = {}
+local DEQUEUE_OPTS = { "right", "ctrl", "shift" } -- right: dequeue, ctrl+shift: 100
 
 include("luarules/configs/customcmds.h.lua")
 
@@ -65,9 +66,9 @@ function gadget:AllowCommand_GetWantedUnitDefID()
 end
 
 local function orderDequeue(unitID, buildDefID, count)
-	local opts = { "right", "ctrl", "shift" }
-
 	while count > 0 do
+		-- The commented code below might still be useful in some circumstance we need 'perfect' dequeue
+		--
 		-- if count >= 100 then
 		count = count - 100
 		-- elseif count >= 20 then
@@ -80,7 +81,7 @@ local function orderDequeue(unitID, buildDefID, count)
 		-- 	count = count - 1
 		-- end
 
-		spGiveOrderToUnit(unitID, -buildDefID, {}, opts)
+		spGiveOrderToUnit(unitID, -buildDefID, EMPTY, DEQUEUE_OPTS)
 	end
 end
 
