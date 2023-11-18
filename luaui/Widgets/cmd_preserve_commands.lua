@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 local orders = {}
-local ignoreInitialMoveCommands = true
+local ignoreInitialCommands = { CMD.MOVE, CMD.GUARD, CMD.LOAD_ONTO }
 
 function widget:Initialize()
     if Spring.IsReplay() then
@@ -26,14 +26,10 @@ end
 function widget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
     if (orders[unitID] and #orders[unitID]) then
         local newOrders = {}
-        local noMoreInitialMoveCommands = false
 
         for i, command in ipairs(orders[unitID]) do
-            if (noMoreInitialMoveCommands == false and command.id ~= CMD.MOVE) then
-                noMoreInitialMoveCommands = true
-            end
-            if (ignoreInitialMoveCommands == false or (ignoreInitialMoveCommands and noMoreInitialMoveCommands)) then
-                newOrders[i] = {command.id, command.params, command.options}
+            if (i > 1 or not table.contains(ignoreInitialCommands, command.id)) then
+                table.insert(newOrders, {command.id, command.params, command.options})
             end
         end
 
