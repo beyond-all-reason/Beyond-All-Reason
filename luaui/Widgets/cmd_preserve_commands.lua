@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 local orders = {}
-local ignoreInitialCommands = { CMD.MOVE, CMD.GUARD }
+local ignoreInitialCommands = { CMD.MOVE, CMD.GUARD, CMD.LOAD_ONTO }
 
 function widget:Initialize()
     if Spring.IsReplay() then
