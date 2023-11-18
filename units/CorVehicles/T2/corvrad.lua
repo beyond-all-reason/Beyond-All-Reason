@@ -22,7 +22,7 @@ return {
 		leavetracks = true,
 		maxdamage = 570,
 		maxslope = 16,
-		maxvelocity = 1.2,
+		maxvelocity = 1.6,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		objectname = "Units/CORVRAD.s3o",
