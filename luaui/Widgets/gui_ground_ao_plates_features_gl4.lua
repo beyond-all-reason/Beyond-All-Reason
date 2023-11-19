@@ -129,6 +129,7 @@ local firstRun = true
 function widget:DrawWorldPreUnit()
 	if firstRun then 
 		glTexture(0, atlas.atlasimage)
+		glTexture(0, false)
 		firstRun = false
 	end
 		

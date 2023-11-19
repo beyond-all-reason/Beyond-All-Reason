@@ -576,8 +576,16 @@ end
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local skipdraw = false
+local firstRun = true
 
 local function DrawDecals()
+	if firstRun then 
+		glTexture(0, "luaui/images/decals_gl4/decalsgl4_atlas_diffuse.dds")
+		glTexture(0, false)
+		glTexture(0, "luaui/images/decals_gl4/decalsgl4_atlas_normal.dds")
+		glTexture(0, false)
+	end
+	
 	if skipdraw then return end
 	local alt, ctrl = Spring.GetModKeyState()
 	if alt and (isSinglePlayer) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
