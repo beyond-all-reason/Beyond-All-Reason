@@ -2280,6 +2280,22 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "laser-large",
 	},
 
+	--Legion Units
+
+	leginfestor = {
+		BaseSoundSelectType = "cor-bot-at-sel",
+		BaseSoundMovementType = "cor-bot-at-ok",
+		BaseSoundWeaponType = "heatray",
+	},
+
+
+
+
+
+
+
+
+
 	--Various Random Units
 
 	freefusion = {

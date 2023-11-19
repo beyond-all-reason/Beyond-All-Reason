@@ -563,7 +563,7 @@ local moveDatas = {
 	-- },
 	--break line
 	--
-	-- legsrail armscab armsptk cortermite armspid pbr_cube  dbg_sphere_fullmetal _dbgsphere
+	-- legsrail armscab armsptk cortermite armspid pbr_cube  dbg_sphere_fullmetal _dbgsphere leginfestor
 	TBOT3 = {
 		crushstrength = 15,
 		footprintx = 3,

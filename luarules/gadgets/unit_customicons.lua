@@ -698,6 +698,7 @@ local units = {
 	leghelios = {"vehicle_t1_tank.png", 0.95},
 	leginc = { "corsumo.png", 1.85 },
 	leginf = { "cortrem_t2.png", 1.9425 },
+	leginfestor = { "cortermite_1.5.png", 1.57499993 },
 	legkam = { "air_kamikaze.png", 1 },
 	legkark = { "legkark.png", 1.2 },
 	leglab = { "factory_bot.png", 1.52250004 },
