@@ -66,6 +66,10 @@ local vikings = {
 	["Raghna"] = true,
 	["Malady"] = true,
 	["trash_panda"] = true,
+	["Jazcash"] = true,
+	["PRO_Shamon"] = true,
+	["PRO_rANDY"] = true,
+	["LSR"] = true
 }
 local kings = {
 	["[teh]Teddy"] = true,
