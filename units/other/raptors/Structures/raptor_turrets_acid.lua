@@ -100,7 +100,7 @@ return {
 				stages = 8,
 				--paralyzetime = 20,
 				proximitypriority = -4,
-				range = 1500,
+				range = 750,
 				reloadtime = 20,
 				rgbcolor = "0.8 0.99 0.11",
 				soundhit = "bloodsplash3",

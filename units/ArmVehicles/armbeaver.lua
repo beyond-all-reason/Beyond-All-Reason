@@ -16,7 +16,6 @@ return {
 		corpse = "DEAD",
 		energymake = 8,
 		energystorage = 50,
-		energyuse = 8,
 		explodeas = "mediumexplosiongeneric-phib",
 		footprintx = 3,
 		footprintz = 3,

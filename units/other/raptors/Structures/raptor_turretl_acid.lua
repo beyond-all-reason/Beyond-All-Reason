@@ -101,7 +101,7 @@ return {
 				--paralyzetime = 20,
 				proximitypriority = -4,
 				range = 2000,
-				reloadtime = 10,
+				reloadtime = 40,
 				rgbcolor = "0.8 0.99 0.11",
 				soundhit = "bloodsplash3",
 				soundstart = "alien_bombrel",

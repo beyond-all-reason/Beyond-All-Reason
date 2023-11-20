@@ -217,6 +217,7 @@ local unitOrderTable = {
 
 	['armsptk']        = 006600, --ALL-TERRAIN
 	['cortermite']     = 006610,
+	['legsinfestor']   = 006614,
 	['legsrail']       = 006615,
 
 	['armfboy']        = 006700, --STRONK
@@ -269,6 +270,7 @@ local unitOrderTable = {
 	['armsptkt4']      = 007320,
 	['cordemont4']     = 007330,
 	['corkarganetht4'] = 007340,
+	['corthermite'] = 007341,
 
 	['armvadert4']     = 007400,
 	['armrattet4']     = 007410,
