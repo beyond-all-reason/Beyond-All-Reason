@@ -184,7 +184,10 @@ pieceCollisionVolume['armshockwave'] = {
     ['2']={22,22,22,0,10,0,1,1},
     ['0']={60,65,60,0,20,0,1,1,0},
 }
-
+pieceCollisionVolume['leginfestor'] = {
+	['0']={42,28,50,0,7,0,1,1},
+	['1']={12,11,12,0,25,0,2,1},
+}
 
 for name, v in pairs(pieceCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do

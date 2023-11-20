@@ -93,6 +93,7 @@ return {
 		"legbart",
 		"legshot",
 		"legsrail",
+		"leginfestor",
 		"legstr",
 
 		-- Vehicles
