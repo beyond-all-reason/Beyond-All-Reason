@@ -290,21 +290,6 @@ StopBuilding()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 SweetSpot(piecenum)
 {
 	piecenum = body;
@@ -467,18 +452,18 @@ Killed(severity, corpsetype)
 	}
 	corpsetype = 3 ;
 		explode body type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg5a type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode leg5b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode leg6a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg6b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg4b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode leg3a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg3b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode leg1a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg1b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode leg2a type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode leg2b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode leg5a type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode leg5b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode leg6a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leg6b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leg4a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leg4b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode leg3a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leg3b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode leg1a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leg1b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leg2a type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode leg2b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode barrel1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
