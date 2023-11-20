@@ -66,6 +66,8 @@ local groundscarsPath = "luaui/images/decals_gl4/groundscars/"	-- old: "luaui/im
 local footprintsPath = "luaui/images/decals_gl4/footprints/"	-- old: "luaui/images/decals_gl4/oldscars/"
 local additionalcrap = {} -- a list of paths to also include for i dunno, sprays and stuff?
 
+local atlas = nil
+
 -- large decal resolution, 16x16 grid is ok
 local resolution = 16 -- 32 is 2k tris, a tad pricey...
 local largesizethreshold  = 512 -- if min(width,height)> than this, then we use the large version!
@@ -86,13 +88,33 @@ local atlasNormals = nil
 local atlasHeights = nil
 local atlasRG = nil
 
-local atlasSize = 4096
+local atlas = VFS.Include("luaui/images/decals_gl4/decalsgl4_atlas_diffuse.lua")
+local upperkeys = {}
+for k,v in pairs(atlas) do
+	if type(v) == "table" then
+		if string.lower(k) ~= k then
+			upperkeys[k] = true
+		end
+	end
+end
+for k,_ in pairs(upperkeys) do
+	atlas[string.lower(k)] = atlas[k]
+	atlas[k] = nil 
+end
+upperkeys = nil
+
+local getUVCoords = atlas.getUVCoords
+atlas.flip(atlas)
+
+local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 4 , sizez = 4}
+
+
+--[[local atlasSize = 4096
 local atlasType = 1 -- 0 is legacy, 1 is quadtree type with no padding
 -- ATLASTYPE 0 HAS WIIIIIIERD MINIFICATION ARTIFACTS!
 -- atlastype 1 is da bomb
 -- atlastype 2 seems oddly slow?
 local atlassedImages = {}
-local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 4 , sizez = 4}
 -- remember, we can use xXyY = gl.GetAtlasTexture(atlasID, texture) to query the atlas
 local decalImageCoords = {} -- Key filepath, value is {p,q,s,t}
 local numFiles = 0
@@ -170,7 +192,7 @@ local function makeAtlases()
 	end
 	return true
 end
-
+]]--
 local decalVBO = nil
 local decalLargeVBO = nil
 local decalExtraLargeVBO = nil
@@ -505,10 +527,10 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	local p,q,s,t = 0,1,0,1
 
 	--Spring.Echo(decaltexturename) --used for displaying which decal texture is spawned
-	if decalImageCoords[decaltexturename] == nil then
+	if atlas[decaltexturename] == nil then
 		Spring.Echo("Tried to spawn a decal gl4 with a texture not present in the atlas:",decaltexturename)
 	else
-		local uvs = decalImageCoords[decaltexturename]
+		local uvs = atlas[decaltexturename]
 		p,q,s,t = uvs[1], uvs[2], uvs[3], uvs[4]
 	end
 
@@ -576,8 +598,8 @@ local function DrawDecals()
 		glTexture(2, '$info')
 		glTexture(3, '$shadow')
 		glTexture(4, '$normals')
-		glTexture(5, atlasColorAlpha)
-		glTexture(6, atlasNormals)
+		glTexture(5, "luaui/images/decals_gl4/decalsgl4_atlas_diffuse.dds")
+		glTexture(6, "luaui/images/decals_gl4/decalsgl4_atlas_normal.dds")
 		if shaderConfig.PARALLAX == 1 then glTexture(7, atlasHeights) end
 		--if shaderConfig.AMBIENTOCCLUSION == 1 then glTexture(8, atlasRG) end
 		--if shaderConfig.USEGLOW == 1 then glTexture(9, atlasRG) end
@@ -692,11 +714,15 @@ end
 
 local function randtablechoice (t)
 	local i = 0
-	for _ in pairs(t) do i = i+1 end
+	for k,v in pairs(t) do
+		if type(v) == "table" then 
+			i = i+1 
+		end
+	end
 	local randi = math.floor(math.random()*i)
 	local j = 0
 	for k,v in pairs(t) do
-		if j > randi then return k,v end
+		if type(v) == "table" and j > randi then return k,v end
 		j = j+1
 	end
 	return next(t)
@@ -1852,24 +1878,24 @@ end
 
 function widget:Initialize()
 	local t0 = Spring.GetTimer()
-	if makeAtlases() == false then
-		goodbye("Failed to init texture atlas for DecalsGL4")
-		return
-	end
+	--if makeAtlases() == false then
+	--	goodbye("Failed to init texture atlas for DecalsGL4")
+	--	return
+	--end
 	local initsuccess = initGL4("DecalsGL4")
 	if initsuccess == nil then
 		widgetHandler:RemoveWidget()
 		return
 	end
 	initAreas()
-	math.randomseed(1)
 	if autoupdate then
+		math.randomseed(1)
 		for i= 1, 100 do
 			local w = math.random() * 15 + 7
 			w = w * w
 			local j = math.floor(math.random()*20+1)
 			--local texture = string.format(groundscarsPath.."t_groundcrack_%02d_a.tga", j)
-			local texture = randtablechoice(decalImageCoords)
+			local texture =  randtablechoice(atlas)
 			--Spring.Echo(texture)
 			AddDecal(
 				texture,
@@ -1898,7 +1924,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)
 	widgetHandler:RegisterGlobal('GadgetWeaponExplosionDecal', GadgetWeaponExplosionDecal)
 	widgetHandler:RegisterGlobal('UnitScriptDecal', UnitScriptDecal)
-	Spring.Echo(string.format("Decals GL4 loaded %d textures in %.3fs",numFiles, Spring.DiffTimers(Spring.GetTimer(), t0)))
+	--Spring.Echo(string.format("Decals GL4 loaded %d textures in %.3fs",numFiles, Spring.DiffTimers(Spring.GetTimer(), t0)))
 	--Spring.Echo("Trying to access _G[NightModeParams]", _G["NightModeParams"])
 	
 	--pre-optimize UnitScriptDecals:
@@ -1906,10 +1932,10 @@ function widget:Initialize()
 		for i, decalTable in ipairs(UnitScriptDecalSet) do 
 			local p,q,s,t = 0,1,0,1
 
-			if decalImageCoords[decalTable.texture] == nil then
+			if atlas[decalTable.texture] == nil then
 				Spring.Echo("Tried to spawn a decal gl4 with a texture not present in the atlas:",decalTable.texture)
 			else
-				local uvs = decalImageCoords[decalTable.texture]
+				local uvs = atlas[decalTable.texture]
 				p,q,s,t = uvs[1], uvs[2], uvs[3], uvs[4]
 				if decalTable.fliphorizontal then
 					p, q = q, p
@@ -1958,6 +1984,7 @@ function widget:SunChanged()
 end
 
 function widget:ShutDown()
+	--[[
 	if atlasColorAlpha ~= nil then
 		gl.DeleteTextureAtlas(atlasColorAlpha)
 	end
@@ -1970,6 +1997,7 @@ function widget:ShutDown()
 	if atlasRG ~= nil then
 		gl.DeleteTextureAtlas(atlasRG)
 	end
+	]]--
 
 	WG['decalsgl4'] = nil
 	widgetHandler:DeregisterGlobal('AddDecalGL4')

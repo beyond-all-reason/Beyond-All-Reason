@@ -1595,31 +1595,43 @@ if gadgetHandler:IsSyncedCode() then
 
 		local unit = UnitDefNames[name]
 
-		local featureValueMetal = math.ceil(unit.metalCost*0.25)
-		local featureValueEnergy = featureValueMetal*10
+		local featureValueMetal = math.ceil(unit.metalCost)
+		local featureValueEnergy = featureValueMetal
 
 		local size
 		local color
+		local chance
 
-		if featureValueMetal <= 500 then
+		if featureValueMetal <= 1500 then
 			size = "s"
-		elseif featureValueMetal <= 3000 then
+			chance = 0.33
+		elseif featureValueMetal <= 7500 then
 			size = "m"
+			chance = 0.66
+			featureValueMetal = math.ceil(featureValueMetal*0.66)
+			featureValueEnergy = math.ceil(featureValueEnergy*0.66)
 		else
 			size = "l"
+			chance = 1
+			featureValueMetal = math.ceil(featureValueMetal*0.33)
+			featureValueEnergy = math.ceil(featureValueEnergy*0.33)
 		end
 
-		if config.raptorEggs[name] and config.raptorEggs[name] ~= "" then
-			color = config.raptorEggs[name]
-		else
-			color = raptorEggColors[mRandom(1,#raptorEggColors)]
-		end
+		if mRandom() <= chance then
 
-		local egg = Spring.CreateFeature("raptor_egg_"..size.."_"..color, x, y + 20, z, mRandom(-999999,999999), raptorTeamID)
-		if egg then
-			Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
-			Spring.SetFeatureVelocity(egg, mRandom(-30,30)*0.01, mRandom(150,350)*0.01, mRandom(-30,30)*0.01)
-			Spring.SetFeatureResources(egg, featureValueMetal, featureValueEnergy, featureValueMetal, 1.0, featureValueMetal, featureValueEnergy)
+			if config.raptorEggs[name] and config.raptorEggs[name] ~= "" then
+				color = config.raptorEggs[name]
+			else
+				color = raptorEggColors[mRandom(1,#raptorEggColors)]
+			end
+
+			local egg = Spring.CreateFeature("raptor_egg_"..size.."_"..color, x, y + 20, z, mRandom(-999999,999999), raptorTeamID)
+			if egg then
+				Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
+				Spring.SetFeatureVelocity(egg, mRandom(-30,30)*0.01, mRandom(150,350)*0.01, mRandom(-30,30)*0.01)
+				Spring.SetFeatureResources(egg, featureValueMetal, featureValueEnergy, featureValueMetal*10, 1.0, featureValueMetal, featureValueEnergy)
+			end
+
 		end
 
 	end
@@ -1627,9 +1639,9 @@ if gadgetHandler:IsSyncedCode() then
 	function decayRandomEggs()
 		tracy.ZoneBeginN("Raptors:decayRandomEggs")
 		for eggID, _ in pairs(aliveEggsTable) do
-			if mRandom(1,18) == 1 then -- scaled to decay 1000hp egg in about 3 minutes +/- RNG
-				local fx, fy, fz = Spring.GetFeaturePosition(eggID)
-				Spring.SetFeatureHealth(eggID, Spring.GetFeatureHealth(eggID) - 20)
+			if mRandom(1,18) == 1 then -- scaled to decay 1000hp egg in about 1 and half minutes +/- RNG
+				--local fx, fy, fz = Spring.GetFeaturePosition(eggID)
+				Spring.SetFeatureHealth(eggID, Spring.GetFeatureHealth(eggID) - 40)
 				if Spring.GetFeatureHealth(eggID) <= 0 then
 					Spring.DestroyFeature(eggID)
 				end
