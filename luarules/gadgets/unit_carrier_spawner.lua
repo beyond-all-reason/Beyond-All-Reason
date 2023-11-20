@@ -852,7 +852,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 						carrierMetaData.subUnitsList[subUnitID].stayDocked = true
 						HealUnit(subUnitID, carrierMetaData.dockedHealRate, resourceFrames, h, mh)
 					end
-				else
+				else if carrierMetaData.subUnitsList[subUnitID].activeDocking == false then
 					HealUnit(subUnitID, -carrierMetaData.decayRate, resourceFrames, h, mh)
 				end
 				if 100*h/mh < carrierMetaData.dockToHealThreshold then
@@ -974,6 +974,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	if orderUpdate then
 		lastOrderUpdate = frame
 	end
+end
 end
 
 
