@@ -252,7 +252,7 @@ Create()
 	turn leg1a to y-axis <-30> now;//2
 	turn leg3a to y-axis <30> now;//5
 	moveSpeed = (get MAX_SPEED);
-	WALK_PERIOD=400;
+	WALK_PERIOD=320;
 }
 
 
@@ -346,7 +346,7 @@ FirePrimary() {
 	//gun_1 = !gun_1;
 	//if( gun_1 == 0 )
 	//{
-		move barrel1 to z-axis [-3.000000] speed [400.000000];
+		move barrel1 to z-axis [-2.000000] speed [400.000000];
 		wait-for-move barrel1 along z-axis;
 		move barrel1 to z-axis [0.000000] speed [3.000000];
 	//}
