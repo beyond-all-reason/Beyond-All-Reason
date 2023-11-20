@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  body, turret, sleeve, barrel1, barrel2, flare1, flare2,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b, aimy, aimfromy, nanof;
+piece  body, turret, sleeve, barrel1, flare1,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b, aimy, aimfromy, nanof;
 
 static-var  moving, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead;
 
@@ -243,7 +243,6 @@ StopMoving()
 Create()
 {
 	hide flare1;
-	hide flare2;
 	hide aimy;
 	moving = FALSE;
 	gun_1 = 0;
@@ -344,19 +343,19 @@ AimPrimary(heading, pitch)
 
 FirePrimary() {
 
-	gun_1 = !gun_1;
-	if( gun_1 == 0 )
-	{
+	//gun_1 = !gun_1;
+	//if( gun_1 == 0 )
+	//{
 		move barrel1 to z-axis [-3.000000] speed [400.000000];
 		wait-for-move barrel1 along z-axis;
 		move barrel1 to z-axis [0.000000] speed [3.000000];
-	}
-	if( gun_1 == 1 )
-	{
-		move barrel2 to z-axis [-3.000000] speed [400.000000];
-		wait-for-move barrel2 along z-axis;
-		move barrel2 to z-axis [0.000000] speed [3.000000];
-	}
+	//}
+	//if( gun_1 == 1 )
+	//{
+		//move barrel2 to z-axis [-3.000000] speed [400.000000];
+		//wait-for-move barrel2 along z-axis;
+		//move barrel2 to z-axis [0.000000] speed [3.000000];
+	//}
 	return (0);
 }
 
@@ -369,16 +368,10 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	if( gun_1 == 0 )
-	{
+
 		piecenum = flare1;
 		return (0);
-	}
-	if( gun_1 == 1 )
-	{
-		piecenum = flare2;
-		return (0);
-	}
+
 
 }
 
@@ -402,7 +395,6 @@ Killed(severity, corpsetype)
 		//explode leg2b type BITMAPONLY | NOHEATCLOUD;
 		explode barrel1 type BITMAPONLY | NOHEATCLOUD;
 		//explode flare1 type BITMAPONLY | NOHEATCLOUD;
-		explode barrel2 type BITMAPONLY | NOHEATCLOUD;
 		//explode flare2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -424,7 +416,6 @@ Killed(severity, corpsetype)
 		//explode leg2b type FALL | NOHEATCLOUD;
 		explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode barrel2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -446,7 +437,6 @@ Killed(severity, corpsetype)
 		//explode leg2b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode barrel2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -466,7 +456,6 @@ Killed(severity, corpsetype)
 		explode leg2b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode barrel1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode barrel2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		//explode flare2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
