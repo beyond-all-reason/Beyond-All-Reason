@@ -852,7 +852,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 						carrierMetaData.subUnitsList[subUnitID].stayDocked = true
 						HealUnit(subUnitID, carrierMetaData.dockedHealRate, resourceFrames, h, mh)
 					end
-				else
+				elseif carrierMetaData.subUnitsList[subUnitID].activeDocking == false then
 					HealUnit(subUnitID, -carrierMetaData.decayRate, resourceFrames, h, mh)
 				end
 				if 100*h/mh < carrierMetaData.dockToHealThreshold then
@@ -1062,11 +1062,20 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 							end
 
 							Sleep()
+							
 							if not carrierMetaList[unitID] then
 								return
 							elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
 								return
+							else
+								local h = spGetUnitHealth(subUnitID)
+								if not h then
+									return
+								elseif h <= 0 then
+									return
+								end
 							end
+							
 						end
 					end
 
