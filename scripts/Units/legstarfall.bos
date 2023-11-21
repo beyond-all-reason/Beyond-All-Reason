@@ -21,8 +21,6 @@ Create()
 
 
 	turn tubes to x-axis <20> speed <20>;
-	turn cog2 to y-axis <30> speed <200>;
-	turn cog4 to y-axis <25> speed <200>;
 
 	guncount = 60;//changed to 0 first fire cycle
 	restore_delay = 500;
@@ -49,27 +47,45 @@ AimPrimary(heading, pitch)
 
 	turn cog to y-axis heading speed <15.000000>;
 
-	//turn other cogs - direction is questionable, cointoss for now. not simple maths as things loop around 0 / 65536 and 'where am I pointing currently' is ... 'interesting'. PRs welcome.
+	//turn other cogs
+	//thanks to Zecrus for wrangling the maths for the spinny blighters
+	
+	
+	
+	//seems first rotation can be wrong (as no reference available) and if so that misaligns the gears for every turn thereafter - but at least they turn the right way
 
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
 	// only wait-for-turn if it takes more than 3 frames to finish the turn
-	if ( (get ABS(last_primary_heading - heading)>270) )
+	if ( (last_primary_heading - heading) > <0> AND (last_primary_heading - heading) < <180> )
 	{
 		// seems to take 3 frames for wait-for-turn to process
 		//wait-for-turn cog around y-axis;
-		spin cog1 around y-axis speed <60.000000>;
-		spin cog2 around y-axis speed <60.000000>;
-		spin cog3 around y-axis speed <60.000000>;
-		spin cog4 around y-axis speed <60.000000>;
+		spin cog1 around y-axis speed <80.000000>;
+		spin cog2 around y-axis speed <80.000000>;
+		spin cog3 around y-axis speed <80.000000>;
+		spin cog4 around y-axis speed <80.000000>;
 		wait-for-turn cog around y-axis;
 		stop-spin cog1 around y-axis;
 		stop-spin cog2 around y-axis;
 		stop-spin cog3 around y-axis;
 		stop-spin cog4 around y-axis;
 	}
-	
+	if ( (last_primary_heading - heading) < <0> OR (last_primary_heading - heading) > <180> )
+	{
+		// seems to take 3 frames for wait-for-turn to process
+		//wait-for-turn cog around y-axis;
+		spin cog1 around y-axis speed <-80.000000>;
+		spin cog2 around y-axis speed <-80.000000>;
+		spin cog3 around y-axis speed <-80.000000>;
+		spin cog4 around y-axis speed <-80.000000>;
+		wait-for-turn cog around y-axis;
+		stop-spin cog1 around y-axis;
+		stop-spin cog2 around y-axis;
+		stop-spin cog3 around y-axis;
+		stop-spin cog4 around y-axis;
+	}
 	last_primary_heading = heading;
 	last_primary_pitch = pitch;
 	start-script RestoreAfterDelay();
