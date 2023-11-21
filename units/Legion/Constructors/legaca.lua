@@ -63,7 +63,7 @@ return {
 			"corfmd",
 			"corsilo",
 			"corint",
-			"corbuzz",
+			"legstarfall",
 			"legap",
 			"legaap",
 			"corplat",

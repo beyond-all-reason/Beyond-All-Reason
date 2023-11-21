@@ -197,7 +197,7 @@ else
 			if unitDef.customParams.iscommander and not string.find(unitDef.name,'_scav') then
 				isCommander[unitDefID] = true
 			end
-			if string.find(unitDef.name,'corint') or string.find(unitDef.name,'armbrtha') or string.find(unitDef.name,'corbuzz') or string.find(unitDef.name,'armvulc') then
+			if string.find(unitDef.name,'corint') or string.find(unitDef.name,'armbrtha') or string.find(unitDef.name,'corbuzz') or string.find(unitDef.name,'armvulc') or string.find(unitDef.name,'legstarfall') then
 				isLrpc[unitDefID] = true
 			end
 			if unitDef.isBuilding and unitDef.radarRadius > 1900 then
