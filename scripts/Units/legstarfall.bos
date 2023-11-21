@@ -17,7 +17,12 @@ static-var  guncount, restore_delay, shotcount, spin_speed, spin_delay, time_to_
 Create()
 {
 
+
+
+
 	turn tubes to x-axis <20> speed <20>;
+	turn cog2 to y-axis <30> speed <200>;
+	turn cog4 to y-axis <25> speed <200>;
 
 	guncount = 60;//changed to 0 first fire cycle
 	restore_delay = 500;
@@ -44,10 +49,7 @@ AimPrimary(heading, pitch)
 
 	turn cog to y-axis heading speed <15.000000>;
 
-	//turn other cogs - direction is questionable, cointoss for now
-	
-	
-	
+	//turn other cogs - direction is questionable, cointoss for now. not simple maths as things loop around 0 / 65536 and 'where am I pointing currently' is ... 'interesting'. PRs welcome.
 
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
