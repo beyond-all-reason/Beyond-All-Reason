@@ -1,5 +1,5 @@
 return {
-	raptoracidallterrainassault = {
+	raptor_allterrain_assault_acid_t2_v1 = {
 		acceleration = 0.414,
 		airsightdistance = 650,
 

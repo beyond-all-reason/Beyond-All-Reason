@@ -373,8 +373,8 @@ local units = {
 	raptoracidbomber = { "raptor_air_acid.png", 2.5 },
 	raptoracidarty = { "raptor_acid_arty.png", 1.5 },
 	raptoracidartyxl = { "raptor_arty.png", 3 },
-	raptoracidallterrain = { "raptor_acid.png", 1.5 },
-	raptoracidallterrainassault = { "raptor_acid.png", 2 },
+	raptor_allterrain_swarmer_acid_t2_v1 = { "raptor_acid.png", 1.5 },
+	raptor_allterrain_assault_acid_t2_v1 = { "raptor_acid.png", 2 },
 
 	raptor_turrets = { "raptor_tentacle.png", 2 },
 	raptor_turrets_antiair = { "raptor_tentacle.png", 2 },

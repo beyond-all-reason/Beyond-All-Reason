@@ -120,8 +120,8 @@ local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to b
 	raptoracidarty 						=   "acidgreen",
 	raptoracidartyxl 					=   "acidgreen",
 	raptoracidbomber 					=   "acidgreen",
-	raptoracidallterrain				=	"acidgreen",
-	raptoracidallterrainassault			=   "acidgreen",
+	raptor_allterrain_swarmer_acid_t2_v1				=	"acidgreen",
+	raptor_allterrain_assault_acid_t2_v1			=   "acidgreen",
 	raptor1x_spectre					=   "yellow",
 	raptor2_spectre						=   "yellow",
 	raptora1_spectre					=   "yellow",
@@ -166,10 +166,10 @@ raptorBehaviours = {
 		[UnitDefNames["raptorelectricallterrain"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["raptoracidswarmer"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["raptoracidassault"].id] = { distance = 200, chance = 1 },
-		[UnitDefNames["raptoracidallterrainassault"].id] = { distance = 200, chance = 1 },
+		[UnitDefNames["raptor_allterrain_assault_acid_t2_v1"].id] = { distance = 200, chance = 1 },
 		[UnitDefNames["raptoracidarty"].id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames["raptoracidartyxl"].id] = { distance = 500, chance = 0.01 },
-		[UnitDefNames["raptoracidallterrain"].id] = { distance = 300, chance = 1 },
+		[UnitDefNames["raptor_allterrain_swarmer_acid_t2_v1"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["raptorh2"].id] = { distance = 500, chance = 0.25 },
 		[UnitDefNames["raptorbroodartyh4small"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["raptorbroodartyh4"].id] = { distance = 500, chance = 0.1 },
@@ -230,9 +230,9 @@ raptorBehaviours = {
 		[UnitDefNames["raptore2"].id] = { chance = 0.05 },
 		[UnitDefNames["raptorelectricallterrainassault"].id] = { chance = 0.05 },
 		[UnitDefNames["raptoracidassault"].id] = { chance = 0.05 },
-		[UnitDefNames["raptoracidallterrainassault"].id] = { chance = 0.05 },
+		[UnitDefNames["raptor_allterrain_assault_acid_t2_v1"].id] = { chance = 0.05 },
 		[UnitDefNames["raptoracidswarmer"].id] = { chance = 0.01 },
-		[UnitDefNames["raptoracidallterrain"].id] = { chance = 0.01 },
+		[UnitDefNames["raptor_allterrain_swarmer_acid_t2_v1"].id] = { chance = 0.01 },
 		[UnitDefNames["raptorp1"].id] = { chance = 0.2 },
 		[UnitDefNames["raptorp2"].id] = { chance = 0.2 },
 		[UnitDefNames["raptorpyroallterrain"].id] = { chance = 0.2 },
@@ -478,8 +478,8 @@ local raptorMinions = { -- Units spawning other units
 		"raptoracidswarmer",
 		"raptoracidassault",
 		--"raptoracidarty",
-		"raptoracidallterrain",
-		"raptoracidallterrainassault",
+		"raptor_allterrain_swarmer_acid_t2_v1",
+		"raptor_allterrain_assault_acid_t2_v1",
 	},
 	["raptor_miniqueen_healer"] = {
 		"raptorhealer1",
@@ -704,14 +704,14 @@ addNewSquad({ type = "special", minAnger = 50, units = 	{ "10 raptorelectricallt
 addNewSquad({ type = "special", minAnger = 80, units = 	{ "20 raptorelectricallterrain" }, maxAnger = 1000 })
 
 
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "10 raptoracidallterrain" } })
+addNewSquad({ type = "special", minAnger = 50, units = 	{ "10 raptor_allterrain_swarmer_acid_t2_v1" } })
 
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "20 raptoracidallterrain" }, maxAnger = 1000 })
+addNewSquad({ type = "special", minAnger = 80, units = 	{ "20 raptor_allterrain_swarmer_acid_t2_v1" }, maxAnger = 1000 })
 
 
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "5 raptorelectricallterrain", "5 raptoracidallterrain"} })
+addNewSquad({ type = "special", minAnger = 50, units = 	{ "5 raptorelectricallterrain", "5 raptor_allterrain_swarmer_acid_t2_v1"} })
 
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "10 raptorelectricallterrain", "10 raptoracidallterrain"}, maxAnger = 1000 })
+addNewSquad({ type = "special", minAnger = 80, units = 	{ "10 raptorelectricallterrain", "10 raptor_allterrain_swarmer_acid_t2_v1"}, maxAnger = 1000 })
 
 --Brawlers------------------------------------------------------------------------------------------------------  
 
@@ -774,9 +774,9 @@ addNewSquad({ type = "special", minAnger = 60, units = 	{ "3 raptorelectricallte
 addNewSquad({ type = "special", minAnger = 100, units = { "5 raptorelectricallterrainassault" }, maxAnger = 1000 })
 
 
-addNewSquad({ type = "special", minAnger = 70, units = { "3 raptoracidallterrainassault" } })
+addNewSquad({ type = "special", minAnger = 70, units = { "3 raptor_allterrain_assault_acid_t2_v1" } })
 
-addNewSquad({ type = "special", minAnger = 100, units = { "5 raptoracidallterrainassault" }, maxAnger = 1000 })
+addNewSquad({ type = "special", minAnger = 100, units = { "5 raptor_allterrain_assault_acid_t2_v1" }, maxAnger = 1000 })
 
 
 addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptora1", "3 raptora1_spectre" }, weight = 2 })

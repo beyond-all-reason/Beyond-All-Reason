@@ -633,7 +633,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedmodclass = 2, -- hover
 	},
-	-- raptorc3 raptorc3c raptorc3b raptorraptoracidallterrain raptorpyroallterrain raptor_6legged_I raptoreletricalallterrain
+	-- raptorc3 raptorc3c raptorc3b raptor_allterrain_swarmer_acid_t2_v1 raptorpyroallterrain raptor_6legged_I raptoreletricalallterrain
 	RAPTORALLTERRAINHOVER = {
 		crushstrength = 50,
 		depthmod = 0,

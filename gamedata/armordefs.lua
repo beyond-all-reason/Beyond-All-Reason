@@ -559,7 +559,7 @@ local armorDefs = {
 		"raptorh1b",
 		"raptoracidallterrain",
 		"raptoracidarty",
-		"raptoracidassault",
+		"raptor_allterrain_swarmer_acid_t2_v1",
 		"raptoracidswarmer",
 		"raptore1",
 		"raptore2",

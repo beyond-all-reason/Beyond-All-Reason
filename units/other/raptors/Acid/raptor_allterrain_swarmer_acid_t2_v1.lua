@@ -1,5 +1,5 @@
 return {
-	raptoracidallterrain = {
+	raptor_allterrain_swarmer_acid_t2_v1 = {
 		acceleration = 1.4375,
 
 		brakerate = 2.3,
