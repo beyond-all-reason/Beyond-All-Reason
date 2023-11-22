@@ -2,10 +2,10 @@ return {
 	cortermite = {
 		acceleration = 0.19665,
 		brakerate = 0.60375,
-		buildcostenergy = 9000,
-		buildcostmetal = 600,
+		buildcostenergy = 12000,
+		buildcostmetal = 700,
 		buildpic = "CORTERMITE.DDS",
-		buildtime = 15000,
+		buildtime = 18800,
 		canmove = true,
 		category = "ALL BOT WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",

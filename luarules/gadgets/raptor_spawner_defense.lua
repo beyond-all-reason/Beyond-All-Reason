@@ -220,11 +220,7 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	--
 	-- Utility
-	
-	local SetListUtilities = VFS.Include('common/SetList.lua')
-
-	squadPotentialTarget = SetListUtilities.NewSetListNoTable()
-	squadPotentialHighValueTarget = SetListUtilities.NewSetListNoTable()
+	--
 
 	function SetToList(set)
 		local list = {}
@@ -252,31 +248,35 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function getRandomEnemyPos()
-		-- Pre-opt: 224 us, sigma 105 us!
-		-- Post-opt: 3 us, sigma 1us
 		tracy.ZoneBeginN("Raptors:getRandomEnemyPos")
 		local loops = 0
-		local targetCount = squadPotentialTarget.count
-		local highValueTargetCount = squadPotentialHighValueTarget.count
+		local targetCount = SetCount(squadPotentialTarget)
+		local highValueTargetCount = SetCount(squadPotentialHighValueTarget)
 		local pos = {}
 		local pickedTarget = nil
 		repeat
 			loops = loops + 1
 			if highValueTargetCount > 0 and mRandom() <= 0.75 then
-				local target = squadPotentialHighValueTarget:GetRandom()
-				if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
-					local x,y,z = Spring.GetUnitPosition(target)
-					pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
-					pickedTarget = target
-					break
+				for target in pairs(squadPotentialHighValueTarget) do
+					if mRandom(1,highValueTargetCount) == 1 then
+						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+							local x,y,z = Spring.GetUnitPosition(target)
+							pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
+							pickedTarget = target
+							break
+						end
+					end
 				end
 			else
-				local target = squadPotentialTarget:GetRandom()
-				if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
-					local x,y,z = Spring.GetUnitPosition(target)
-					pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
-					pickedTarget = target
-					break
+				for target in pairs(squadPotentialTarget) do
+					if mRandom(1,targetCount) == 1 then
+						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+							local x,y,z = Spring.GetUnitPosition(target)
+							pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
+							pickedTarget = target
+							break
+						end
+					end
 				end
 			end
 
@@ -950,7 +950,7 @@ if gadgetHandler:IsSyncedCode() then
 		waveParameters.epicWave.cooldown = waveParameters.epicWave.cooldown - 1
 
 		waveParameters.waveSpecialPercentage = mRandom(5,25)
-		waveParameters.waveAirPercentage = mRandom(5,33)
+		waveParameters.waveAirPercentage = mRandom(5,25)
 
 		waveParameters.waveSizeMultiplier = mRandom(5,20)*0.1
 		waveParameters.waveTimeMultiplier = mRandom(5,20)*0.1
@@ -963,7 +963,7 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.airWave.cooldown = mRandom(0,10)
 
 				waveParameters.waveSpecialPercentage = mRandom(5,25)
-				waveParameters.waveAirPercentage = 75
+				waveParameters.waveAirPercentage = 50
 				waveParameters.waveSizeMultiplier = 2
 				waveParameters.waveTimeMultiplier = 2
 
@@ -973,7 +973,7 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.specialWave.cooldown = mRandom(0,10)
 
 				waveParameters.waveSpecialPercentage = 50
-				waveParameters.waveAirPercentage = mRandom(5,33)
+				waveParameters.waveAirPercentage = mRandom(5,25)
 
 				waveParameters.waveSizeMultiplier = 2
 				waveParameters.waveTimeMultiplier = 2
@@ -1245,15 +1245,14 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			return
 		end
-		
-		squadPotentialTarget:Remove(unitID)
-		squadPotentialHighValueTarget:Remove(unitID)
-	
-
+		if squadPotentialTarget[unitID] or squadPotentialHighValueTarget[unitID] then
+			squadPotentialTarget[unitID] = nil
+			squadPotentialHighValueTarget[unitID] = nil
+		end
 		if not UnitDefs[unitDefID].canMove then
-			squadPotentialTarget:Add(unitID)
+			squadPotentialTarget[unitID] = true
 			if config.highValueTargets[unitDefID] then
-				squadPotentialHighValueTarget:Add(unitID)
+				squadPotentialHighValueTarget[unitID] = true
 			end
 		end
 		if config.ecoBuildingsPenalty[unitDefID] then
@@ -1595,43 +1594,31 @@ if gadgetHandler:IsSyncedCode() then
 
 		local unit = UnitDefNames[name]
 
-		local featureValueMetal = math.ceil(unit.metalCost)
-		local featureValueEnergy = featureValueMetal
+		local featureValueMetal = math.ceil(unit.metalCost*0.25)
+		local featureValueEnergy = featureValueMetal*10
 
 		local size
 		local color
-		local chance
 
-		if featureValueMetal <= 1500 then
+		if featureValueMetal <= 500 then
 			size = "s"
-			chance = 0.2
-		elseif featureValueMetal <= 7500 then
+		elseif featureValueMetal <= 3000 then
 			size = "m"
-			chance = 0.5
-			featureValueMetal = math.ceil(featureValueMetal*0.5)
-			featureValueEnergy = math.ceil(featureValueEnergy*0.5)
 		else
 			size = "l"
-			chance = 1
-			featureValueMetal = math.ceil(featureValueMetal*0.2)
-			featureValueEnergy = math.ceil(featureValueEnergy*0.2)
 		end
 
-		if mRandom() <= chance then
+		if config.raptorEggs[name] and config.raptorEggs[name] ~= "" then
+			color = config.raptorEggs[name]
+		else
+			color = raptorEggColors[mRandom(1,#raptorEggColors)]
+		end
 
-			if config.raptorEggs[name] and config.raptorEggs[name] ~= "" then
-				color = config.raptorEggs[name]
-			else
-				color = raptorEggColors[mRandom(1,#raptorEggColors)]
-			end
-
-			local egg = Spring.CreateFeature("raptor_egg_"..size.."_"..color, x, y + 20, z, mRandom(-999999,999999), raptorTeamID)
-			if egg then
-				Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
-				Spring.SetFeatureVelocity(egg, mRandom(-30,30)*0.01, mRandom(150,350)*0.01, mRandom(-30,30)*0.01)
-				Spring.SetFeatureResources(egg, featureValueMetal, featureValueEnergy, featureValueMetal*10, 1.0, featureValueMetal, featureValueEnergy)
-			end
-
+		local egg = Spring.CreateFeature("raptor_egg_"..size.."_"..color, x, y + 20, z, mRandom(-999999,999999), raptorTeamID)
+		if egg then
+			Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
+			Spring.SetFeatureVelocity(egg, mRandom(-30,30)*0.01, mRandom(150,350)*0.01, mRandom(-30,30)*0.01)
+			Spring.SetFeatureResources(egg, featureValueMetal, featureValueEnergy, featureValueMetal, 1.0, featureValueMetal, featureValueEnergy)
 		end
 
 	end
@@ -1639,9 +1626,9 @@ if gadgetHandler:IsSyncedCode() then
 	function decayRandomEggs()
 		tracy.ZoneBeginN("Raptors:decayRandomEggs")
 		for eggID, _ in pairs(aliveEggsTable) do
-			if mRandom(1,18) == 1 then -- scaled to decay 1000hp egg in about 1 and half minutes +/- RNG
-				--local fx, fy, fz = Spring.GetFeaturePosition(eggID)
-				Spring.SetFeatureHealth(eggID, Spring.GetFeatureHealth(eggID) - 40)
+			if mRandom(1,18) == 1 then -- scaled to decay 1000hp egg in about 3 minutes +/- RNG
+				local fx, fy, fz = Spring.GetFeaturePosition(eggID)
+				Spring.SetFeatureHealth(eggID, Spring.GetFeatureHealth(eggID) - 20)
 				if Spring.GetFeatureHealth(eggID) <= 0 then
 					Spring.DestroyFeature(eggID)
 				end
@@ -1671,7 +1658,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local raptorTeamUnitCount = GetTeamUnitCount(raptorTeamID) or 0
-		if raptorTeamUnitCount < raptorUnitCap and (n%5 == 4 or waveParameters.firstWavesBoost > 1) then
+		if raptorTeamUnitCount < raptorUnitCap and n%5 == 4 then
 			tracy.ZoneBeginN("Raptors:SpawnRaptors")
 			SpawnRaptors()
 			tracy.ZoneEnd()
@@ -1817,7 +1804,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
 		if unitTeam == raptorTeamID then
-			if config.useEggs and (not gameIsOver) then
+			if config.useEggs and (not (gameIsOver or queenID)) then
 				local x,y,z = Spring.GetUnitPosition(unitID)
 				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
 			end
@@ -1841,8 +1828,8 @@ if gadgetHandler:IsSyncedCode() then
 			unitSquadTable[unitID] = nil
 		end
 
-		squadPotentialTarget:Remove(unitID)
-		squadPotentialHighValueTarget:Remove(unitID)
+		squadPotentialTarget[unitID] = nil
+		squadPotentialHighValueTarget[unitID] = nil
 		for squad in ipairs(unitTargetPool) do
 			if unitTargetPool[squad] == unitID then
 				refreshSquad(squad)

@@ -22,7 +22,7 @@ return {
 		maxslope = 32,
 		maxvelocity = 2.7,
 		maxwaterdepth = 112,
-		movementclass = "ABOTBOMB2",
+		movementclass = "ABOT2",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORROACH.s3o",
 		script = "Units/CORROACH.cob",

@@ -819,63 +819,9 @@ local function GetNormal(unitDef, featureDef)
 	end
 	return blankNormalMap
 end
--- BIG TODO:
--- Replace lua texture names with overrides of WreckTex et al!
--- 
--- %34:1 = unitDef 34 s3o tex2 (:0->tex1,:1->tex2)
--- %-102:0 = featureDef 102 s3o tex1 
-
-local objectdeftotex1 = {} -- maps unitdefID or negative featuredefID to tex1 string. e.g. [100] = "arm_color.dds"
-local tex1toluatexstring = {} -- maps "arm_color.dds" to its 'lua tex name', wether its an unitdef or featuredef, shouldnt matter
-local objectdeftotex2 = {} -- maps unitdefID or negative featuredefID to tex2 string. 
-local tex2toluatexstring = {} -- maps "arm_color.dds" to its 'lua tex name', wether its an unitdef or featuredef, shouldnt matter
-
 
 local knowntrees = VFS.Include("modelmaterials_gl4/known_feature_trees.lua")
 local function initBinsAndTextures()
-	
-	-- init features first, to gain access to stored wreck textures!
-	Spring.Echo("[CUS GL4] Init Feature bins")
-	for featureDefID, featureDef in pairs(FeatureDefs) do
-		if featureDef.model then -- this is kind of a hack to work around specific modelless features metalspots found on Otago 1.4
-			local normalTex = GetNormal(nil, featureDef)
-			local textureTable = {
-				[0] = string.format("%%-%s:%i", featureDefID, 0),
-				[1] = string.format("%%-%s:%i", featureDefID, 1),
-				[2] = normalTex,
-				[3] = false,
-				[4] = false,
-				[5] = false,
-				[6] = "$shadow",
-				[7] = "$reflection",
-				[8] = "$info",
-				[9] = brdfLUT,
-				[10] = noisetex3dcube,
-				--[10] = envLUT,
-			}
-
-			objectDefToUniformBin[-1 * featureDefID] = 'feature'
-
-			if featureDef.name:find("raptor_egg", nil, true) then
-				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
-				--featuresDefsWithAlpha[-1 * featureDefID] = "yes"
-			elseif (featureDef.customParams and featureDef.customParams.treeshader == 'yes')
-				or knowntrees[featureDef.name] then
-				objectDefToUniformBin[-1 * featureDefID] = 'tree'
-				featuresDefsWithAlpha[-1 * featureDefID] = "yes"
-			elseif featureDef.name:find("_dead", nil, true) or featureDef.name:find("_heap", nil, true) then
-				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
-			elseif featureDef.name:find("pilha_crystal", nil, true) or (featureDef.customParams and featureDef.customParams.cuspbr) then
-				objectDefToUniformBin[-1 * featureDefID] = 'featurepbr'
-			end
-			--Spring.Echo("Assigned normal map to", featureDef.name, normalTex)
-
-			local texKeyFast = GenFastTextureKey(-1 * featureDefID, featureDef, normalTex, textureTable)
-			if textureKeytoSet[texKeyFast] == nil then
-				textureKeytoSet[texKeyFast] = textureTable
-			end
-		end
-	end
 	--if true then return end
 	Spring.Echo("[CUS GL4] Init Unit bins")
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -942,7 +888,47 @@ local function initBinsAndTextures()
 		end
 	end
 
+	Spring.Echo("[CUS GL4] Init Feature bins")
+	for featureDefID, featureDef in pairs(FeatureDefs) do
+		if featureDef.model then -- this is kind of a hack to work around specific modelless features metalspots found on Otago 1.4
+			local normalTex = GetNormal(nil, featureDef)
+			local textureTable = {
+				[0] = string.format("%%-%s:%i", featureDefID, 0),
+				[1] = string.format("%%-%s:%i", featureDefID, 1),
+				[2] = normalTex,
+				[3] = false,
+				[4] = false,
+				[5] = false,
+				[6] = "$shadow",
+				[7] = "$reflection",
+				[8] = "$info",
+				[9] = brdfLUT,
+				[10] = noisetex3dcube,
+				--[10] = envLUT,
+			}
 
+			objectDefToUniformBin[-1 * featureDefID] = 'feature'
+
+			if featureDef.name:find("raptor_egg", nil, true) then
+				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
+				--featuresDefsWithAlpha[-1 * featureDefID] = "yes"
+			elseif (featureDef.customParams and featureDef.customParams.treeshader == 'yes')
+				or knowntrees[featureDef.name] then
+				objectDefToUniformBin[-1 * featureDefID] = 'tree'
+				featuresDefsWithAlpha[-1 * featureDefID] = "yes"
+			elseif featureDef.name:find("_dead", nil, true) or featureDef.name:find("_heap", nil, true) then
+				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
+			elseif featureDef.name:find("pilha_crystal", nil, true) or (featureDef.customParams and featureDef.customParams.cuspbr) then
+				objectDefToUniformBin[-1 * featureDefID] = 'featurepbr'
+			end
+			--Spring.Echo("Assigned normal map to", featureDef.name, normalTex)
+
+			local texKeyFast = GenFastTextureKey(-1 * featureDefID, featureDef, normalTex, textureTable)
+			if textureKeytoSet[texKeyFast] == nil then
+				textureKeytoSet[texKeyFast] = textureTable
+			end
+		end
+	end
 
 end
 
@@ -954,11 +940,11 @@ local function PreloadTextures()
 	gl.Texture(0, "unittextures/Arm_wreck_color.dds")
 	gl.Texture(0, "unittextures/Arm_wreck_other.dds")
 	gl.Texture(0, "unittextures/Arm_normal.dds")
-	--gl.Texture(0, "unittextures/Arm_color.dds") -- these absolutely never need to be loaded like this
-	--gl.Texture(0, "unittextures/Arm_other.dds")
+	gl.Texture(0, "unittextures/Arm_color.dds")
+	gl.Texture(0, "unittextures/Arm_other.dds")
 	gl.Texture(0, "unittextures/cor_normal.dds")
-	--gl.Texture(0, "unittextures/cor_other.dds")
-	--gl.Texture(0, "unittextures/cor_color.dds")
+	gl.Texture(0, "unittextures/cor_other.dds")
+	gl.Texture(0, "unittextures/cor_color.dds")
 	gl.Texture(0, "unittextures/cor_other_wreck.dds")
 	gl.Texture(0, "unittextures/cor_color_wreck.dds")
 	gl.Texture(0, "unittextures/cor_color_wreck_normal.dds")
@@ -1485,7 +1471,6 @@ local function ExecuteDrawPass(drawPass)
 	local batches = 0
 	local units = 0
 	local shaderswaps = 0
-	local unbindtextures = false
 	gl.Culling(GL.BACK)
 	--for shaderName, data in pairs(unitDrawBins[drawPass]) do
 	for _, shaderName in ipairs(shaderOrder) do
@@ -1519,6 +1504,9 @@ local function ExecuteDrawPass(drawPass)
 							units = units + texAndObj.numobjects
 							local mybinVAO = texAndObj.VAO
 							for bindPosition, tex in pairs(texAndObj.textures) do
+								if Spring.GetGameFrame() % 60 == 0 then
+									--Spring.Echo(bindPosition, tex)
+								end
 								gl.Texture(bindPosition, tex)
 							end
 
@@ -1528,20 +1516,16 @@ local function ExecuteDrawPass(drawPass)
 							mybinVAO:Submit()
 
 							SetFixedStatePost(drawPass, shaderTable)
-							unbindtextures = true
-				
+
+							for bindPosition, tex in pairs(texAndObj.textures) do
+								gl.Texture(bindPosition, false)
+							end
 						end
 					end
 				end
 
 				gl.UseShader(0)
 			end
-		end
-	end
-	
-	if unbindtextures then 
-		for i=0,10 do
-			gl.Texture(i, false)
 		end
 	end
 

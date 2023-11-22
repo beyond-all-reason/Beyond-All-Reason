@@ -167,13 +167,12 @@ Hook = function(gadget, callinName)
 		inHook = true
 		hookPreRealFunction(gname, callinName)
 
-		-- Use this to prevent allocating nearly empty tables every single time, instead of return unpack({realFunc(...)})
-		local r1, r2, r3, r4, r5, r6, r7, r8 = realFunc(...) 
+		local results = { realFunc(...) }
 
 		hookPostRealFunction(gname, callinName)
 		inHook = false
 
-		return r1, r2, r3, r4, r5, r6, r7, r8
+		return unpack(results)
 	end
 
 	listOfHooks[hook_func] = true -- !!!note: using functions as keys is unsafe in synced code!!!

@@ -22,7 +22,7 @@ VFS.Include("luarules/configs/customcmds.h.lua")
 
 SYMKEYS = table.invert(KEYSYMS)
 
-local alwaysReturn = false
+local alwaysReturn = true
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
@@ -2154,7 +2154,7 @@ end
 
 function widget:GetConfigData()
 	return {
-		alwaysReturn = alwaysReturn,
+		returnToCategoriesOnPick = returnToCategoriesOnPick,
 		showPrice = showPrice,
 		showRadarIcon = showRadarIcon,
 		showGroupIcon = showGroupIcon,
@@ -2165,8 +2165,8 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	if data.alwaysReturn ~= nil then
-		alwaysReturn = data.alwaysReturn
+	if data.returnToCategoriesOnPick ~= nil then
+		returnToCategoriesOnPick = data.returnToCategoriesOnPick
 	end
 	if data.showPrice ~= nil then
 		showPrice = data.showPrice

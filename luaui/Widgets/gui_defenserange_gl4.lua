@@ -677,7 +677,7 @@ local function initGL4()
 	smallCircleVBO = makeCircleVBO(smallCircleSegments)
 	largeCircleVBO = makeCircleVBO(largeCircleSegments)
 	for i,defRangeClass in ipairs(defenseRangeClasses) do
-		defenseRangeVAOs[defRangeClass] = makeInstanceVBOTable(circleInstanceVBOLayout,16,defRangeClass .. "_defenserange_gl4")
+		defenseRangeVAOs[defRangeClass] = makeInstanceVBOTable(circleInstanceVBOLayout,16,defRangeClass)
 		if defRangeClass:find("cannon", nil, true) or defRangeClass:find("nuke", nil, true) then
 			defenseRangeVAOs[defRangeClass].vertexVBO = largeCircleVBO
 			defenseRangeVAOs[defRangeClass].numVertices = largeCircleSegments
@@ -838,9 +838,7 @@ local function removeUnit(unitID,defense)
 	defensePosHash[hashPos(defense.posx,defense.posz)] = nil
 	for instanceKey,vaoKey in pairs(defense.vaokeys) do
 		--Spring.Echo(vaoKey,instanceKey)
-		if defenseRangeVAOs[vaoKey].instanceIDtoIndex[instanceKey] then
-			popElementInstance(defenseRangeVAOs[vaoKey],instanceKey)
-		end
+		popElementInstance(defenseRangeVAOs[vaoKey],instanceKey)
 	end
 	defenses[unitID] = nil
 end

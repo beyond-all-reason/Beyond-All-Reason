@@ -85,7 +85,6 @@ return {
 				laserflaresize = 5,
 				name = "HeatRay",
 				noselfdamage = true,
-				predictboost = 1,
 				range = 360,
 				reloadtime = 1.35,
 				rgbcolor = "1 0.8 0",

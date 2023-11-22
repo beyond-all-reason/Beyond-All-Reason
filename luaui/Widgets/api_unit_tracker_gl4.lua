@@ -327,7 +327,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 	]]--
 
 	if gameFrame <= 0 and not fullview then
-		local currentAllyTeamID = Spring.GetMyAllyTeamID()
+		currentAllyTeamID = Spring.GetMyAllyTeamID()
 		if myAllyTeamID ~= currentAllyTeamID then
 			widget:PlayerChanged()
 		end

@@ -1,15 +1,4 @@
-﻿# November 2023
-• [Consul] Hound removed from build list, Sprinter and Platypus added to build list
-• [Twitcher] Termite added to build list
-• [Termite] Cost reduced from 700m 12000E -> 600m 9000E
-• [Turtle] Cost reduced from 750m 18000E -> 750m 15000E
-• [T2 Amphib Tanks] Paralyze damage taken reduced to 25%
-• [T2 Cruisers] Fires 1 depthcharge at a time instead of 2 round bursts, projectile sped up and tracking improved
-
-# October 2023
-• [Webber] Reclaim speed increased from 100->150.
-
-# August 2023
+﻿# August 2023
 • [Shellshocker] Reworked to be the lighter version of t1 veh artillery while cor remains the heavy version.  Reloadtime decreased 6.1 -> 4.3, damage per shot decreased 260 -> 182, inaccuracy reduced to 50% current area, area of effect reduced to 50% current area (-30% radius).  Model size and collision volume decreased by 10%
 • [Wolverine] Cost increased from 155m 2300E -> 170m 2500E.  Model size and collision volume increased by 15%.  Max health 640->750, max velocity 51->48.
 • [Rocketeer] Damage per shot increased 10% (157->173), reloadtime increased 5% (3.8->4)

@@ -1215,7 +1215,7 @@ local unitGrids = {
 		{
 			{ "corhllt", "corpyro", "cortoast", },                    -- HLLT, pyro, toaster
 			{ "corflak", "cormadsam", "corcrash", "corak", },         -- flak, SAM, T1 aa bot, AK
-			{ "cordl", "corroy", "cortermite", "coramph", },          -- coastal torp launcher, destroyer, termite, gimp
+			{ "cordl", "corroy", "coramph", },                        -- coastal torp launcher, destroyer, gimp
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },        -- adv radar, camera, wall, adv jammer
@@ -1237,9 +1237,9 @@ local unitGrids = {
 			{ },                                                      --
 		},
 		{
-			{ "armbeamer", "armfast", "armamb", "armmav", },          -- beamer, sprinter, ambusher, maverick
+			{ "armbeamer", "armfido", "armamb", "armmav", },          -- beamer, fido, ambusher, maverick
 			{ "armflak", "armferret", "armjeth", "armpw", },          -- flak, ferret, T1 aa bot, peewee
-			{ "armdl", "armroy", "armsptk", "armamph", },                        -- coastal torp launcher, destroyer, missile spider, platypus
+			{ "armdl", "armroy", "armsptk", },                        -- coastal torp launcher, destroyer, missile spider
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armveil", },          -- adv radar, camera, wall, adv jammer

@@ -168,21 +168,18 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-	
 
-	function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
-		local event = "IntrusionCountermeasure"
-		local players = AllPlayers()
-		local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
-		for ct, playerID in pairs (players) do
-			if tostring(playerID) then
-				local _, _, spec, _, playerAllyTeam = Spring.GetPlayerInfo(playerID, false)
-				if not spec and playerAllyTeam == allyTeam and unitAllyTeam ~= playerAllyTeam then
-					SendToUnsynced("EventBroadcast", event, tostring(playerID))
-				end
+
+	function gadget:UnitSeismicPing(x, y, z, strength, unitAllyTeam, unitID, unitDefID)
+		local players = Spring.GetPlayerList()
+		for ct, playerID in pairs(players) do
+			local _, _, spec, _, allyTeam = Spring.GetPlayerInfo(playerID, false)
+			if not spec and allyTeam == unitAllyTeam and unitAllyTeam ~= allyTeam then
+				SendToUnsynced("EventBroadcast", "IntrusionCountermeasure", tostring(playerID))
 			end
 		end
 	end
+
 else
 
 	local enableLastcomNotif = (Spring.GetModOptions().deathmode == 'com' and Spring.GetModOptions().scoremode == 'disabled')

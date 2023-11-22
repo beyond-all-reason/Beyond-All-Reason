@@ -211,12 +211,11 @@ function gadget:GameFrame(n)
 		end
 	end
 
-	for unitID, previousActiveState in pairs(ActiveStateTrackingUnitList) do
-		local unitDefID = units[unitID]
+	for unitID, unitDefID in pairs(units) do
+		if ActiveStateTrackingUnitList[unitID] then
+			local currentlyActive = spGetUnitIsActive(unitID) and 2 or 1
 
-		local currentlyActive = spGetUnitIsActive(unitID) and 2 or 1
-
-			if previousActiveState ~= currentlyActive then
+			if ActiveStateTrackingUnitList[unitID] ~= currentlyActive then
 				local posx, posy, posz = spGetUnitPosition(unitID)
 				if currentlyActive == 1 then
 					ActiveStateTrackingUnitList[unitID] = 1
@@ -249,6 +248,7 @@ function gadget:GameFrame(n)
 					end
 				end
 			end
+		end
 	end
 end
 
