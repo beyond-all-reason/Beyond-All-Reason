@@ -138,7 +138,7 @@ local unitList = {
     },
     [UnitDefNames["raptor_miniqueen_acid"].id] = {
         [1] = {
-            name = "raptoracidswarmer",
+            name = "raptor_land_swarmer_acids_t2_v1",
             type = "ground",
             spawnRadius = 100,
             fightRadius = 500,
@@ -147,7 +147,7 @@ local unitList = {
             spawnTimer = 10,
         },
         [2] = {
-            name = "raptoracidassault",
+            name = "raptor_land_assault_acid_t2_v1",
             type = "ground",
             spawnRadius = 100,
             fightRadius = 500,
@@ -156,7 +156,7 @@ local unitList = {
             spawnTimer = 10,
         },
         [3] = {
-            name = "raptoracidarty",
+            name = "raptor_land_arty_acid_t2_v1",
             type = "ground",
             spawnRadius = 100,
             fightRadius = 500,
@@ -256,7 +256,7 @@ local unitList = {
             spawnTimer = 1,
         },
         [2] = {
-            name = "raptorf1_mini",
+            name = "raptor_air_bomber_basic_t1_v1",
             type = "air",
             spawnRadius = 500,
             fightRadius = 1000,
@@ -294,7 +294,7 @@ local unitList = {
             spawnTimer = 1,
         },
         [2] = {
-            name = "raptorf1_mini",
+            name = "raptor_air_bomber_basic_t1_v1",
             type = "air",
             spawnRadius = 500,
             fightRadius = 500,
@@ -332,7 +332,7 @@ local unitList = {
             spawnTimer = 1,
         },
         [2] = {
-            name = "raptorf1_mini",
+            name = "raptor_air_bomber_basic_t1_v1",
             type = "air",
             spawnRadius = 500,
             fightRadius = 500,
@@ -370,7 +370,7 @@ local unitList = {
             spawnTimer = 1,
         },
         [2] = {
-            name = "raptorf1",
+            name = "raptor_air_bomber_basic_t2_v1",
             type = "air",
             spawnRadius = 500,
             fightRadius = 500,
@@ -417,7 +417,7 @@ local unitList = {
             spawnTimer = 1,
         },
         [2] = {
-            name = "raptorf1",
+            name = "raptor_air_bomber_basic_t2_v1",
             type = "air",
             spawnRadius = 500,
             fightRadius = 500,
@@ -464,7 +464,7 @@ local unitList = {
             spawnTimer = 1,
         },
         [2] = {
-            name = "raptorf1apex",
+            name = "raptor_air_bomber_basic_t4_v1",
             type = "air",
             spawnRadius = 500,
             fightRadius = 500,

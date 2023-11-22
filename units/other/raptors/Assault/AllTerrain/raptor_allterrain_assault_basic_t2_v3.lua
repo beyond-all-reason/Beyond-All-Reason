@@ -1,5 +1,5 @@
 return {
-	raptorallterraina1 = {
+	raptor_allterrain_assault_basic_t2_v3 = {
 		acceleration = 0.414,
 		airsightdistance = 650,
 
@@ -7,8 +7,8 @@ return {
 		buildcostenergy = 3520,
 		buildcostmetal = 152,
 		builder = false,
-		buildpic = "raptors/raptorallterraina1.DDS",
-		buildtime = 9000,
+		buildpic = "raptors/raptorallterraina1c.DDS",
+		buildtime = 7500,
 		canattack = true,
 		canguard = true,
 		canmove = true,
@@ -26,14 +26,14 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 100000,
-		maxdamage = 7800,
+		maxdamage = 6700,
 		maxslope = 18,
 		maxvelocity = 1.3,
 		maxwaterdepth = 0,
 		movementclass = "RAPTORALLTERRAINBIGHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
-		objectname = "Raptors/raptorallterraina1.s3o",
+		objectname = "Raptors/raptorallterraina1c.s3o",
 		onlytargetcategory2 = "VTOL",
 		script = "Raptors/raptorallterraina1.cob",
 		seismicsignature = 0,
@@ -49,7 +49,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 920,
-		unitname = "raptora1",
+		unitname = "raptor_allterrain_assault_basic_t2_v3",
 		upright = false,
 		waterline = 23,
 		workertime = 0,
@@ -62,13 +62,10 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:blood_spray", --cob 1024
+				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
 				[4] = "custom:blob_fire",
-				[5] = "custom:blood_explode",
-				[6] = "custom:blood_spray",
-				[7] = "custom:dirt",
 			},
 			pieceexplosiongenerators = {
 				[1] = "blood_spray",
@@ -146,8 +143,8 @@ return {
 				model = "Raptors/spike.s3o",
 				name = "Claws",
 				noselfdamage = true,
-				range = 200,
-				reloadtime = 0.5,
+				range = 300,
+				reloadtime = 0.9,
 				soundstart = "smallraptorattack",
 				targetborder = 1,
 				tolerance = 5000,
@@ -156,7 +153,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1500,
 				damage = {
-					default = 200,
+					default = 250,
 				},
 			},
 		},

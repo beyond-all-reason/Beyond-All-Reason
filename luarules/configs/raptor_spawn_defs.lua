@@ -55,34 +55,34 @@ local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to b
 	raptor1z      						=   "pink",
 	raptor2       						=   "pink",
 	raptor2b      						=   "pink",
-	raptora1      						=   "red",
-	raptora1b     						=   "red",
-	raptora1c     						=   "red",
-	raptorallterraina1					=   "red",
-	raptorallterraina1b					=   "red",
-	raptorallterraina1c					=   "red",
-	raptora2      						=   "red",
-	raptora2b     						=   "red",
-	raptorapexallterrainassault 		=   "red",
-	raptorapexallterrainassaultb 		=   "red",
+	raptor_land_assault_basic_t2_v1      						=   "red",
+	raptor_land_assault_basic_t2_v2     						=   "red",
+	raptor_land_assault_basic_t2_v3     						=   "red",
+	raptor_allterrain_assault_basic_t2_v1					=   "red",
+	raptor_allterrain_assault_basic_t2_v2					=   "red",
+	raptor_allterrain_assault_basic_t2_v3					=   "red",
+	raptor_land_assault_basic_t4_v1      						=   "red",
+	raptor_land_assault_basic_t4_v2     						=   "red",
+	raptor_allterrain_assault_basic_t4_v1 		=   "red",
+	raptor_allterrain_assault_basic_t4_v2 		=   "red",
 	raptors1      						=   "green",
 	raptors2      						=   "darkgreen",
 	raptor_dodo1  						=   "red",
 	raptor_dodo2  						=   "red",
 	raptor_dodoair  					=   "red",
-	raptorf1_mini      					=   "darkgreen",
-	raptorf1      						=   "darkgreen",
-	raptorf1b     						=   "darkgreen",
-	raptorf1apex      					=   "darkgreen",
-	raptorf1apexb     					=   "darkgreen",
+	raptor_air_bomber_basic_t1_v1      					=   "darkgreen",
+	raptor_air_bomber_basic_t2_v1      						=   "darkgreen",
+	raptor_air_bomber_basic_t2_v2     						=   "darkgreen",
+	raptor_air_bomber_basic_t4_v1      					=   "darkgreen",
+	raptor_air_bomber_basic_t4_v2     					=   "darkgreen",
 	raptorairscout1      				=   "white",
 	raptorairscout2      				=   "white",
 	raptorairscout3      				=   "white",
 	raptorc3      						=   "white",
 	raptorc3b     						=   "white",
 	raptorc3c     						=   "white",
-	raptorr1      						=   "darkgreen",
-	raptorr2      						=   "darkgreen",
+	raptor_land_arty_basic_t2_v1      						=   "darkgreen",
+	raptor_land_arty_basic_t4_v1      						=   "darkgreen",
 	raptorhealer1      					=   "white",
 	raptorhealer2      					=   "white",
 	raptorhealer3      					=   "white",
@@ -115,16 +115,16 @@ local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to b
 	raptorelectricallterrainassault		=   "blue",
 	raptor_dodo1_electric  				=   "blue",
 	raptor_dodo2_electric  				=   "blue",
-	raptoracidswarmer 					=   "acidgreen",
-	raptoracidassault 					=   "acidgreen",
-	raptoracidarty 						=   "acidgreen",
-	raptoracidartyxl 					=   "acidgreen",
-	raptoracidbomber 					=   "acidgreen",
+	raptor_land_swarmer_acids_t2_v1 					=   "acidgreen",
+	raptor_land_assault_acid_t2_v1 					=   "acidgreen",
+	raptor_land_arty_acid_t2_v1 						=   "acidgreen",
+	raptor_land_arty_acid_t4_v1 					=   "acidgreen",
+	raptor_air_bomber_acid_t2_v1 					=   "acidgreen",
 	raptor_allterrain_swarmer_acid_t2_v1				=	"acidgreen",
 	raptor_allterrain_assault_acid_t2_v1			=   "acidgreen",
 	raptor1x_spectre					=   "yellow",
 	raptor2_spectre						=   "yellow",
-	raptora1_spectre					=   "yellow",
+	raptor_land_assault_basic_t2_v1_spectre					=   "yellow",
 	raptora2_spectre					=   "yellow",
 	raptors2_spectre					=   "yellow",
 
@@ -156,19 +156,19 @@ raptorBehaviours = {
 	SKIRMISH = { -- Run away from target after target gets hit
 		[UnitDefNames["raptors1"].id] = { distance = 270, chance = 0.5 },
 		[UnitDefNames["raptors2"].id] = { distance = 250, chance = 0.5 },
-		[UnitDefNames["raptorr1"].id] = { distance = 500, chance = 0.1 },
-		[UnitDefNames["raptorr2"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["raptor_land_arty_basic_t2_v1"].id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames["raptor_land_arty_basic_t4_v1"].id] = { distance = 500, chance = 0.01 },
 		[UnitDefNames["raptore1"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["raptore2"].id] = { distance = 200, chance = 0.01 },
 		[UnitDefNames["raptorelectricallterrainassault"].id] = { distance = 200, chance = 0.01 },
 		[UnitDefNames["raptorearty1"].id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames["raptorearty2"].id] = { distance = 500, chance = 0.01 },
 		[UnitDefNames["raptorelectricallterrain"].id] = { distance = 300, chance = 1 },
-		[UnitDefNames["raptoracidswarmer"].id] = { distance = 300, chance = 1 },
-		[UnitDefNames["raptoracidassault"].id] = { distance = 200, chance = 1 },
+		[UnitDefNames["raptor_land_swarmer_acids_t2_v1"].id] = { distance = 300, chance = 1 },
+		[UnitDefNames["raptor_land_assault_acid_t2_v1"].id] = { distance = 200, chance = 1 },
 		[UnitDefNames["raptor_allterrain_assault_acid_t2_v1"].id] = { distance = 200, chance = 1 },
-		[UnitDefNames["raptoracidarty"].id] = { distance = 500, chance = 0.1 },
-		[UnitDefNames["raptoracidartyxl"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["raptor_land_arty_acid_t2_v1"].id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames["raptor_land_arty_acid_t4_v1"].id] = { distance = 500, chance = 0.01 },
 		[UnitDefNames["raptor_allterrain_swarmer_acid_t2_v1"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["raptorh2"].id] = { distance = 500, chance = 0.25 },
 		[UnitDefNames["raptorbroodartyh4small"].id] = { distance = 500, chance = 1 },
@@ -193,12 +193,12 @@ raptorBehaviours = {
 		[UnitDefNames["raptorh1b"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["raptors1"].id] = { distance = 270, chance = 0.5 },
 		[UnitDefNames["raptors2"].id] = { distance = 250, chance = 0.5 },
-		[UnitDefNames["raptorr1"].id] = { distance = 500, chance = 1 },
-		[UnitDefNames["raptorr2"].id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames["raptor_land_arty_basic_t2_v1"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["raptor_land_arty_basic_t4_v1"].id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames["raptorearty1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["raptorearty2"].id] = { distance = 500, chance = 0.1 },
-		[UnitDefNames["raptoracidarty"].id] = { distance = 500, chance = 1 },
-		[UnitDefNames["raptoracidartyxl"].id] = { distance = 500, chance = 0.1 },
+		[UnitDefNames["raptor_land_arty_acid_t2_v1"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["raptor_land_arty_acid_t4_v1"].id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames["raptorbroodartyh4small"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["raptorbroodartyh4"].id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames["raptorh2"].id] = { distance = 500, chance = 1 },
@@ -217,21 +217,21 @@ raptorBehaviours = {
 	},
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
 		[UnitDefNames["raptors2"].id] = {chance = 0.2, distance = 750},
-		[UnitDefNames["raptora1"].id] = { chance = 0.2, distance = 1500 },
-		[UnitDefNames["raptora1b"].id] = { chance = 0.2, distance = 1500 },
-		[UnitDefNames["raptora1c"].id] = { chance = 0.2, distance = 1500 },
-		[UnitDefNames["raptorallterraina1"].id] = { chance = 0.2, distance = 1500 },
-		[UnitDefNames["raptorallterraina1b"].id] = { chance = 0.2, distance = 1500 },
-		[UnitDefNames["raptorallterraina1c"].id] = { chance = 0.2, distance = 1500 },
-		[UnitDefNames["raptora2"].id] = { chance = 0.2, distance = 3000 },
-		[UnitDefNames["raptora2b"].id] = { chance = 0.2, distance = 3000 },
-		[UnitDefNames["raptorapexallterrainassault"].id] = { chance = 0.2, distance = 3000 },
-		[UnitDefNames["raptorapexallterrainassaultb"].id] = { chance = 0.2, distance = 3000 },
+		[UnitDefNames["raptor_land_assault_basic_t2_v1"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["raptor_land_assault_basic_t2_v2"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["raptor_land_assault_basic_t2_v3"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["raptor_allterrain_assault_basic_t2_v1"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["raptor_allterrain_assault_basic_t2_v2"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["raptor_allterrain_assault_basic_t2_v3"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["raptor_land_assault_basic_t4_v1"].id] = { chance = 0.2, distance = 3000 },
+		[UnitDefNames["raptor_land_assault_basic_t4_v2"].id] = { chance = 0.2, distance = 3000 },
+		[UnitDefNames["raptor_allterrain_assault_basic_t4_v1"].id] = { chance = 0.2, distance = 3000 },
+		[UnitDefNames["raptor_allterrain_assault_basic_t4_v2"].id] = { chance = 0.2, distance = 3000 },
 		[UnitDefNames["raptore2"].id] = { chance = 0.05 },
 		[UnitDefNames["raptorelectricallterrainassault"].id] = { chance = 0.05 },
-		[UnitDefNames["raptoracidassault"].id] = { chance = 0.05 },
+		[UnitDefNames["raptor_land_assault_acid_t2_v1"].id] = { chance = 0.05 },
 		[UnitDefNames["raptor_allterrain_assault_acid_t2_v1"].id] = { chance = 0.05 },
-		[UnitDefNames["raptoracidswarmer"].id] = { chance = 0.01 },
+		[UnitDefNames["raptor_land_swarmer_acids_t2_v1"].id] = { chance = 0.01 },
 		[UnitDefNames["raptor_allterrain_swarmer_acid_t2_v1"].id] = { chance = 0.01 },
 		[UnitDefNames["raptorp1"].id] = { chance = 0.2 },
 		[UnitDefNames["raptorp2"].id] = { chance = 0.2 },
@@ -263,12 +263,12 @@ raptorBehaviours = {
 		[UnitDefNames["raptorh1b"].id] = true,
 	},
 	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance, friendly fire enabled (assuming nothing else in the game stops it)
-		[UnitDefNames["raptorr1"].id] = true,
-		[UnitDefNames["raptorr2"].id] = true,
+		[UnitDefNames["raptor_land_arty_basic_t2_v1"].id] = true,
+		[UnitDefNames["raptor_land_arty_basic_t4_v1"].id] = true,
 		[UnitDefNames["raptorearty1"].id] = true,
 		[UnitDefNames["raptorearty2"].id] = true,
-		[UnitDefNames["raptoracidarty"].id] = true,
-		[UnitDefNames["raptoracidartyxl"].id] = true,
+		[UnitDefNames["raptor_land_arty_acid_t2_v1"].id] = true,
+		[UnitDefNames["raptor_land_arty_acid_t4_v1"].id] = true,
 		[UnitDefNames["raptorbroodartyh4"].id] = true,
 		[UnitDefNames["raptorbroodartyh4small"].id] = true,
 		[UnitDefNames["raptor_turretxl_meteor"].id] = true,
@@ -281,8 +281,8 @@ raptorBehaviours = {
 		[UnitDefNames["raptor_dodoair"].id] = true,
 	},
 	ALLOWFRIENDLYFIRE = {
-		[UnitDefNames["raptorr1"].id] = true,
-		[UnitDefNames["raptorr2"].id] = true,
+		[UnitDefNames["raptor_land_arty_basic_t2_v1"].id] = true,
+		[UnitDefNames["raptor_land_arty_basic_t4_v1"].id] = true,
 		[UnitDefNames["raptor_turrets"].id] = true,
 		[UnitDefNames["raptor_turretl"].id] = true,
 		[UnitDefNames["raptor_turretxl"].id] = true,
@@ -475,9 +475,9 @@ local raptorMinions = { -- Units spawning other units
 		"raptorelectricallterrainassault",
 	},
 	["raptor_miniqueen_acid"] = {
-		"raptoracidswarmer",
-		"raptoracidassault",
-		--"raptoracidarty",
+		"raptor_land_swarmer_acids_t2_v1",
+		"raptor_land_assault_acid_t2_v1",
+		--"raptor_land_arty_acid_t2_v1",
 		"raptor_allterrain_swarmer_acid_t2_v1",
 		"raptor_allterrain_assault_acid_t2_v1",
 	},
@@ -664,13 +664,13 @@ addNewSquad({ type = "special", minAnger = 20, units = { "3 raptore1" } })
 
 addNewSquad({ type = "special", minAnger = 50, units = { "10 raptore1" } })
 
-addNewSquad({ type = "special", minAnger = 20, units = { "3 raptoracidswarmer" } })
+addNewSquad({ type = "special", minAnger = 20, units = { "3 raptor_land_swarmer_acids_t2_v1" } })
 
-addNewSquad({ type = "special", minAnger = 50, units = { "10 raptoracidswarmer" } })
+addNewSquad({ type = "special", minAnger = 50, units = { "10 raptor_land_swarmer_acids_t2_v1" } })
 
-addNewSquad({ type = "special", minAnger = 20, units = { "3 raptore1", "3 raptoracidswarmer" } })
+addNewSquad({ type = "special", minAnger = 20, units = { "3 raptore1", "3 raptor_land_swarmer_acids_t2_v1" } })
 
-addNewSquad({ type = "special", minAnger = 50, units = { "10 raptore1", "10 raptoracidswarmer" } })
+addNewSquad({ type = "special", minAnger = 50, units = { "10 raptore1", "10 raptor_land_swarmer_acids_t2_v1" } })
 
 
 addNewSquad({ type = "special", minAnger = 40, units = 	{ "10 raptor1x", "10 raptor1x_spectre" }})
@@ -715,38 +715,38 @@ addNewSquad({ type = "special", minAnger = 80, units = 	{ "10 raptorelectricallt
 
 --Brawlers------------------------------------------------------------------------------------------------------  
 
-addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptora1" }, maxAnger = 35 })
-addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptora1b" }, maxAnger = 35 })
-addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptora1c" }, maxAnger = 35 })
+addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptor_land_assault_basic_t2_v1" }, maxAnger = 35 })
+addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptor_land_assault_basic_t2_v2" }, maxAnger = 35 })
+addNewSquad({ type = "special", minAnger = 0, units = 	{ "1 raptor_land_assault_basic_t2_v3" }, maxAnger = 35 })
 
-addNewSquad({ type = "special", minAnger = 35, units = 	{ "3 raptora1" }, weight = 2 })
-addNewSquad({ type = "special", minAnger = 35, units = 	{ "3 raptora1b" }, weight = 2 })
-addNewSquad({ type = "special", minAnger = 35, units = 	{ "3 raptora1c" }, weight = 2 })
-
-
-addNewSquad({ type = "special", minAnger = 65, units = 	{ "2 raptora2" }})
-addNewSquad({ type = "special", minAnger = 65, units = 	{ "2 raptora2b" }})
-
-addNewSquad({ type = "special", minAnger = 75, units = 	{ "2 raptora2" }})
-addNewSquad({ type = "special", minAnger = 75, units = 	{ "2 raptora2b" }})
-
-addNewSquad({ type = "special", minAnger = 85, units = 	{ "5 raptora2" }, maxAnger = 1000})
-addNewSquad({ type = "special", minAnger = 85, units = 	{ "5 raptora2b" }, maxAnger = 1000})
+addNewSquad({ type = "special", minAnger = 35, units = 	{ "3 raptor_land_assault_basic_t2_v1" }, weight = 2 })
+addNewSquad({ type = "special", minAnger = 35, units = 	{ "3 raptor_land_assault_basic_t2_v2" }, weight = 2 })
+addNewSquad({ type = "special", minAnger = 35, units = 	{ "3 raptor_land_assault_basic_t2_v3" }, weight = 2 })
 
 
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptorallterraina1" }, weight = 2 })
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptorallterraina1b" }, weight = 2 })
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptorallterraina1c" }, weight = 2 })
+addNewSquad({ type = "special", minAnger = 65, units = 	{ "2 raptor_land_assault_basic_t4_v1" }})
+addNewSquad({ type = "special", minAnger = 65, units = 	{ "2 raptor_land_assault_basic_t4_v2" }})
+
+addNewSquad({ type = "special", minAnger = 75, units = 	{ "2 raptor_land_assault_basic_t4_v1" }})
+addNewSquad({ type = "special", minAnger = 75, units = 	{ "2 raptor_land_assault_basic_t4_v2" }})
+
+addNewSquad({ type = "special", minAnger = 85, units = 	{ "5 raptor_land_assault_basic_t4_v1" }, maxAnger = 1000})
+addNewSquad({ type = "special", minAnger = 85, units = 	{ "5 raptor_land_assault_basic_t4_v2" }, maxAnger = 1000})
 
 
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "2 raptorapexallterrainassault" } })
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "2 raptorapexallterrainassaultb" } })
+addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptor_allterrain_assault_basic_t2_v1" }, weight = 2 })
+addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptor_allterrain_assault_basic_t2_v2" }, weight = 2 })
+addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptor_allterrain_assault_basic_t2_v3" }, weight = 2 })
 
-addNewSquad({ type = "special", minAnger = 90, units = 	{ "2 raptorapexallterrainassault" } })
-addNewSquad({ type = "special", minAnger = 90, units = 	{ "2 raptorapexallterrainassaultb" } })
 
-addNewSquad({ type = "special", minAnger = 100, units = { "5 raptorapexallterrainassault" }, maxAnger = 1000 })
-addNewSquad({ type = "special", minAnger = 100, units = { "5 raptorapexallterrainassaultb" }, maxAnger = 1000 })
+addNewSquad({ type = "special", minAnger = 80, units = 	{ "2 raptor_allterrain_assault_basic_t4_v1" } })
+addNewSquad({ type = "special", minAnger = 80, units = 	{ "2 raptor_allterrain_assault_basic_t4_v2" } })
+
+addNewSquad({ type = "special", minAnger = 90, units = 	{ "2 raptor_allterrain_assault_basic_t4_v1" } })
+addNewSquad({ type = "special", minAnger = 90, units = 	{ "2 raptor_allterrain_assault_basic_t4_v2" } })
+
+addNewSquad({ type = "special", minAnger = 100, units = { "5 raptor_allterrain_assault_basic_t4_v1" }, maxAnger = 1000 })
+addNewSquad({ type = "special", minAnger = 100, units = { "5 raptor_allterrain_assault_basic_t4_v2" }, maxAnger = 1000 })
 
 
 addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptora1_spectre" } })
@@ -764,9 +764,9 @@ addNewSquad({ type = "special", minAnger = 60, units = 	{ "3 raptore2" } })
 addNewSquad({ type = "special", minAnger = 100, units = { "5 raptore2" }, maxAnger = 1000 })
 
 
-addNewSquad({ type = "special", minAnger = 70, units = { "3 raptoracidassault" } })
+addNewSquad({ type = "special", minAnger = 70, units = { "3 raptor_land_assault_acid_t2_v1" } })
 
-addNewSquad({ type = "special", minAnger = 100, units = { "5 raptoracidassault" }, maxAnger = 1000 })
+addNewSquad({ type = "special", minAnger = 100, units = { "5 raptor_land_assault_acid_t2_v1" }, maxAnger = 1000 })
 
 
 addNewSquad({ type = "special", minAnger = 60, units = 	{ "3 raptorelectricallterrainassault" } })
@@ -779,18 +779,18 @@ addNewSquad({ type = "special", minAnger = 70, units = { "3 raptor_allterrain_as
 addNewSquad({ type = "special", minAnger = 100, units = { "5 raptor_allterrain_assault_acid_t2_v1" }, maxAnger = 1000 })
 
 
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptora1", "3 raptora1_spectre" }, weight = 2 })
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptora1b", "3 raptora1_spectre" }, weight = 2 })
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptora1c", "3 raptora1_spectre" }, weight = 2 })
+addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptor_land_assault_basic_t2_v1", "3 raptora1_spectre" }, weight = 2 })
+addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptor_land_assault_basic_t2_v2", "3 raptora1_spectre" }, weight = 2 })
+addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptor_land_assault_basic_t2_v3", "3 raptora1_spectre" }, weight = 2 })
 
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "1 raptora2", "2 raptora2_spectre" }})
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "1 raptora2b", "2 raptora2_spectre" }})
+addNewSquad({ type = "special", minAnger = 80, units = 	{ "1 raptor_land_assault_basic_t4_v1", "2 raptora2_spectre" }})
+addNewSquad({ type = "special", minAnger = 80, units = 	{ "1 raptor_land_assault_basic_t4_v2", "2 raptora2_spectre" }})
 
-addNewSquad({ type = "special", minAnger = 90, units = 	{ "1 raptora2", "2 raptora2_spectre" }})
-addNewSquad({ type = "special", minAnger = 90, units = 	{ "1 raptora2b", "2 raptora2_spectre" }})
+addNewSquad({ type = "special", minAnger = 90, units = 	{ "1 raptor_land_assault_basic_t4_v1", "2 raptora2_spectre" }})
+addNewSquad({ type = "special", minAnger = 90, units = 	{ "1 raptor_land_assault_basic_t4_v2", "2 raptora2_spectre" }})
 
-addNewSquad({ type = "special", minAnger = 100, units = { "3 raptora2", "2 raptora2_spectre" }, maxAnger = 1000})
-addNewSquad({ type = "special", minAnger = 100, units = { "3 raptora2b", "2 raptora2_spectre" }, maxAnger = 1000})
+addNewSquad({ type = "special", minAnger = 100, units = { "3 raptor_land_assault_basic_t4_v1", "2 raptora2_spectre" }, maxAnger = 1000})
+addNewSquad({ type = "special", minAnger = 100, units = { "3 raptor_land_assault_basic_t4_v2", "2 raptora2_spectre" }, maxAnger = 1000})
 
 --Spikers------------------------------------------------------------------------------------------------------  
 
@@ -853,40 +853,40 @@ addNewSquad({ type = "special", minAnger = 100, units = { "10 raptorp2" }, maxAn
 
 --Artillery------------------------------------------------------------------------------------------------------  
 
-addNewSquad({ type = "special", minAnger = 20, units = 	{ "1 raptorr1" }, maxAnger = 50})
+addNewSquad({ type = "special", minAnger = 20, units = 	{ "1 raptor_land_arty_basic_t2_v1" }, maxAnger = 50})
 
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptorr1" }, weight = 3 })
+addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptor_land_arty_basic_t2_v1" }, weight = 3 })
 
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "3 raptorr1" }, weight = 3 })
+addNewSquad({ type = "special", minAnger = 80, units = 	{ "3 raptor_land_arty_basic_t2_v1" }, weight = 3 })
 
-addNewSquad({ type = "special", minAnger = 90, units = 	{ "3 raptorr1" }, weight = 3 })
+addNewSquad({ type = "special", minAnger = 90, units = 	{ "3 raptor_land_arty_basic_t2_v1" }, weight = 3 })
 
-addNewSquad({ type = "special", minAnger = 100, units = { "3 raptorr1" }, weight = 3, maxAnger = 1000 })
-
-
-addNewSquad({ type = "special", minAnger = 70, units = 	{ "1 raptorr2" } })
-
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "1 raptorr2" } })
-
-addNewSquad({ type = "special", minAnger = 90, units = 	{ "1 raptorr2" } })
-
-addNewSquad({ type = "special", minAnger = 100, units = { "2 raptorr2" }, maxAnger = 1000 })
+addNewSquad({ type = "special", minAnger = 100, units = { "3 raptor_land_arty_basic_t2_v1" }, weight = 3, maxAnger = 1000 })
 
 
-addNewSquad({ type = "special", minAnger = 20, units = 	{ "1 raptoracidarty" }, maxAnger = 50 })
+addNewSquad({ type = "special", minAnger = 70, units = 	{ "1 raptor_land_arty_basic_t4_v1" } })
 
-addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptoracidarty" } })
+addNewSquad({ type = "special", minAnger = 80, units = 	{ "1 raptor_land_arty_basic_t4_v1" } })
 
-addNewSquad({ type = "special", minAnger = 100, units = { "3 raptoracidarty" }, maxAnger = 1000 })
+addNewSquad({ type = "special", minAnger = 90, units = 	{ "1 raptor_land_arty_basic_t4_v1" } })
+
+addNewSquad({ type = "special", minAnger = 100, units = { "2 raptor_land_arty_basic_t4_v1" }, maxAnger = 1000 })
 
 
-addNewSquad({ type = "special", minAnger = 70, units = 	{ "1 raptoracidartyxl" } })
+addNewSquad({ type = "special", minAnger = 20, units = 	{ "1 raptor_land_arty_acid_t2_v1" }, maxAnger = 50 })
 
-addNewSquad({ type = "special", minAnger = 80, units = 	{ "1 raptoracidartyxl" } })
+addNewSquad({ type = "special", minAnger = 50, units = 	{ "3 raptor_land_arty_acid_t2_v1" } })
 
-addNewSquad({ type = "special", minAnger = 90, units = 	{ "1 raptoracidartyxl" } })
+addNewSquad({ type = "special", minAnger = 100, units = { "3 raptor_land_arty_acid_t2_v1" }, maxAnger = 1000 })
 
-addNewSquad({ type = "special", minAnger = 100, units = { "2 raptoracidartyxl" }, maxAnger = 1000 })
+
+addNewSquad({ type = "special", minAnger = 70, units = 	{ "1 raptor_land_arty_acid_t4_v1" } })
+
+addNewSquad({ type = "special", minAnger = 80, units = 	{ "1 raptor_land_arty_acid_t4_v1" } })
+
+addNewSquad({ type = "special", minAnger = 90, units = 	{ "1 raptor_land_arty_acid_t4_v1" } })
+
+addNewSquad({ type = "special", minAnger = 100, units = { "2 raptor_land_arty_acid_t4_v1" }, maxAnger = 1000 })
 
 
 addNewSquad({ type = "special", minAnger = 20, units = 	{ "1 raptorearty1" }, maxAnger = 50 })
@@ -997,23 +997,23 @@ addNewSquad({ type = "basicAir", minAnger = 100, units = { "8 raptorw2" }, weigh
 
 --Bombers------------------------------------------------------------------------------------------------------  
 
-addNewSquad({ type = "basicAir", minAnger = 0, units = { "1 raptorf1_mini" }, maxAnger = 20 })
+addNewSquad({ type = "basicAir", minAnger = 0, units = { "1 raptor_air_bomber_basic_t1_v1" }, maxAnger = 20 })
 
-addNewSquad({ type = "basicAir", minAnger = 20, units = { "4 raptorf1_mini" }, maxAnger = 60 })
-
-
-addNewSquad({ type = "basicAir", minAnger = 40, units = { "4 raptorf1", }, weight = 2 })
-addNewSquad({ type = "basicAir", minAnger = 40, units = { "4 raptorf1b", }, weight = 2 })
-
-addNewSquad({ type = "basicAir", minAnger = 60, units = { "4 raptorf1", }, weight = 2 })
-addNewSquad({ type = "basicAir", minAnger = 60, units = { "4 raptorf1b", }, weight = 2 })
+addNewSquad({ type = "basicAir", minAnger = 20, units = { "4 raptor_air_bomber_basic_t1_v1" }, maxAnger = 60 })
 
 
-addNewSquad({ type = "basicAir", minAnger = 80, units = { "2 raptorf1apex" } })
-addNewSquad({ type = "basicAir", minAnger = 80, units = { "2 raptorf1apexb" } })
+addNewSquad({ type = "basicAir", minAnger = 40, units = { "4 raptor_air_bomber_basic_t2_v1", }, weight = 2 })
+addNewSquad({ type = "basicAir", minAnger = 40, units = { "4 raptor_air_bomber_basic_t2_v2", }, weight = 2 })
 
-addNewSquad({ type = "basicAir", minAnger = 100, units = { "3 raptorf1apex" }, maxAnger = 1000 })
-addNewSquad({ type = "basicAir", minAnger = 100, units = { "3 raptorf1apexb" }, maxAnger = 1000 })
+addNewSquad({ type = "basicAir", minAnger = 60, units = { "4 raptor_air_bomber_basic_t2_v1", }, weight = 2 })
+addNewSquad({ type = "basicAir", minAnger = 60, units = { "4 raptor_air_bomber_basic_t2_v2", }, weight = 2 })
+
+
+addNewSquad({ type = "basicAir", minAnger = 80, units = { "2 raptor_air_bomber_basic_t4_v1" } })
+addNewSquad({ type = "basicAir", minAnger = 80, units = { "2 raptor_air_bomber_basic_t4_v2" } })
+
+addNewSquad({ type = "basicAir", minAnger = 100, units = { "3 raptor_air_bomber_basic_t4_v1" }, maxAnger = 1000 })
+addNewSquad({ type = "basicAir", minAnger = 100, units = { "3 raptor_air_bomber_basic_t4_v2" }, maxAnger = 1000 })
 
 
 addNewSquad({ type = "specialAir", minAnger = 50, units = { "1 raptorebomber1" } })
@@ -1027,11 +1027,11 @@ addNewSquad({ type = "specialAir", minAnger = 80, units = { "6 raptorebomber1" }
 addNewSquad({ type = "specialAir", minAnger = 90, units = { "8 raptorebomber1" }, maxAnger = 1000 })
 
 
-addNewSquad({ type = "specialAir", minAnger = 50, units = { "1 raptoracidbomber" } })
+addNewSquad({ type = "specialAir", minAnger = 50, units = { "1 raptor_air_bomber_acid_t2_v1" } })
 
-addNewSquad({ type = "specialAir", minAnger = 70, units = { "4 raptoracidbomber" } })
+addNewSquad({ type = "specialAir", minAnger = 70, units = { "4 raptor_air_bomber_acid_t2_v1" } })
 
-addNewSquad({ type = "specialAir", minAnger = 90, units = { "8 raptoracidbomber" }, maxAnger = 1000 })
+addNewSquad({ type = "specialAir", minAnger = 90, units = { "8 raptor_air_bomber_acid_t2_v1" }, maxAnger = 1000 })
 
 
 addNewSquad({ type = "specialAir", minAnger = 50, units = { "1 raptorbroodbomberh4" } })

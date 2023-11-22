@@ -1,5 +1,5 @@
 return {
-	raptora1c = {
+	raptor_land_assault_basic_t2_v1 = {
 		acceleration = 0.414,
 		airsightdistance = 650,
 
@@ -7,8 +7,8 @@ return {
 		buildcostenergy = 3520,
 		buildcostmetal = 152,
 		builder = false,
-		buildpic = "raptors/raptora1c.DDS",
-		buildtime = 7500,
+		buildpic = "raptors/raptora1.DDS",
+		buildtime = 9000,
 		canattack = true,
 		canguard = true,
 		canmove = true,
@@ -26,16 +26,16 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 100000,
-		maxdamage = 4450,
+		maxdamage = 5600,
 		maxslope = 18,
 		maxvelocity = 1.3,
 		maxwaterdepth = 0,
 		movementclass = "RAPTORBIGHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
-		objectname = "Raptors/raptorac.s3o",
+		objectname = "Raptors/raptora.s3o",
 		onlytargetcategory2 = "VTOL",
-		script = "Raptors/raptora1c.cob",
+		script = "Raptors/raptora1.cob",
 		seismicsignature = 0,
 		selfdestructas = "BIGBUG_DEATH",
 		side = "THUNDERBIRDS",
@@ -49,7 +49,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 920,
-		unitname = "raptora1c",
+		unitname = "raptor_land_assault_basic_t2_v1",
 		upright = false,
 		waterline = 24,
 		workertime = 0,
@@ -62,10 +62,13 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:blood_spray",
+				[1] = "custom:blood_spray", --cob 1024
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
 				[4] = "custom:blob_fire",
+				[5] = "custom:blood_explode",
+				[6] = "custom:blood_spray",
+				[7] = "custom:dirt",
 			},
 			pieceexplosiongenerators = {
 				[1] = "blood_spray",
@@ -143,8 +146,8 @@ return {
 				model = "Raptors/spike.s3o",
 				name = "Claws",
 				noselfdamage = true,
-				range = 300,
-				reloadtime = 0.9,
+				range = 200,
+				reloadtime = 0.5,
 				soundstart = "smallraptorattack",
 				targetborder = 1,
 				tolerance = 5000,
@@ -153,7 +156,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1500,
 				damage = {
-					default = 250,
+					default = 200,
 				},
 			},
 		},

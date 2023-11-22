@@ -593,7 +593,7 @@ local moveDatas = {
 	},
 	-- raptorhealer1 raptor2b raptor2_spectre raptor2 raptore1 raptor1_mini raptor_dodo1_electric raptors2 
 	--raptor_dodo2_electric raptors1 raptor1y raptor1x raptor1z raptor1d raptor1c raptor1b raptor1 raptorh3 raptorh2
-	--raptorh4 raptor_dodo1 raptor_dodo2  raptorp2 raptoracidswarmer raptor1x_spectre raptorp1 raptorh5 raptors2_spectre
+	--raptorh4 raptor_dodo1 raptor_dodo2  raptorp2 raptor_land_swarmer_acids_t2_v1 raptor1x_spectre raptorp1 raptorh5 raptors2_spectre
 	-- raptorh1b
 	RAPTORSMALLHOVER = {
 		badslope = 22,
@@ -607,7 +607,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedmodclass = 2, -- hover
 	},
-	-- raptore2 raptoracidassualt raptora1 raptora1c raptor1b raptora1_spectre
+	-- raptore2 raptoracidassualt raptor_land_assault_basic_t2_v1 raptor_land_assault_basic_t2_v3 raptor1b raptora1_spectre
 	RAPTORBIGHOVER = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -620,7 +620,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedmodclass = 2, -- hover
 	},
-	-- raptora2_spectre raptora2 raptora2b
+	-- raptora2_spectre raptora2 raptor_land_assault_basic_t4_v2
 	RAPTORBIG2HOVER = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -644,8 +644,8 @@ local moveDatas = {
 		maxwaterslope = 50,
 		speedmodclass = 2, -- hover
 	},
-	-- raptorr1 raptoracidarty raptoracidartyxl raptorearty1 raptorearty2 raptorbroodartyh4small raptoracidalllterrrainassual 
-	--raptorelectricallterrainassualt raptorallterraina1 raptoraallterraina1 raptoraallterrain1c raptoraallterrain1b
+	-- raptor_land_arty_basic_t2_v1 raptor_land_arty_acid_t2_v1 raptor_land_arty_acid_t4_v1 raptorearty1 raptorearty2 raptorbroodartyh4small raptoracidalllterrrainassual 
+	--raptorelectricallterrainassualt raptor_allterrain_assault_basic_t2_v1 raptoraallterraina1 raptoraallterrain1c raptoraallterrain1b
 	RAPTORALLTERRAINBIGHOVER = {
 		crushstrength = 250,
 		depthmod = 0,
@@ -656,7 +656,7 @@ local moveDatas = {
 		maxwaterslope = 50,
 		speedmodclass = 2, -- hover
 	},
-	-- raptorr2 raptorbroodartyh4 raptorapexallterrainassualt raptorapexallterrainassualtb
+	-- raptor_land_arty_basic_t4_v1 raptorbroodartyh4 raptorapexallterrainassualt raptorapexallterrainassualtb
 	RAPTORALLTERRAINBIG2HOVER = {
 		crushstrength = 250,
 		depthmod = 0,

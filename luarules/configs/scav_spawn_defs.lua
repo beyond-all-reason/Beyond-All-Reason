@@ -891,13 +891,13 @@ scavBehaviours = {
 		[UnitDefNames["cornecro_scav"].id] = true,--Cortex Rezzer
 	},
 	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance
-		--[UnitDefNames["raptorr1"].id] = true,
+		--[UnitDefNames["raptor_land_arty_basic_t2_v1"].id] = true,
 	},
 	KAMIKAZE = { -- Long lifetime and no regrouping, always uses Move command to rush into the enemy
 		--[UnitDefNames["raptor_dodo1"].id] = true,
 	},
 	ALLOWFRIENDLYFIRE = {
-		--[UnitDefNames["raptorr1"].id] = true,
+		--[UnitDefNames["raptor_land_arty_basic_t2_v1"].id] = true,
 	},
 }
 
