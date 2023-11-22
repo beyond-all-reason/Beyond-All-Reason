@@ -35,7 +35,7 @@ return {
 		yardmap = "ffff",
 		customparams = {
 			usebuildinggrounddecal = false,
-			buildinggrounddecaltype = "decals/cordrag_aoplane.dds",
+			buildinggrounddecaltype = "decals/scavdtf_aoplane.dds",
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,
