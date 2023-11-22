@@ -458,6 +458,9 @@ end
 
 -----------------------------------------------------------------------------------------------
 
+local dCT = {} -- decalCacheTable
+
+
 local function AddDecal(decaltexturename, posx, posz, rotation,
 	width, length,
 	heatstart, heatdecay, alphastart, alphadecay,
@@ -523,14 +526,16 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	elseif math.min(width,length) > largesizethreshold then
 		targetVBO = decalLargeVBO
 	end
+	
+	dCT[1],  dCT[2],  dCT[3],  dCT[4]  = length, width, rotation, maxalpha   -- lengthwidthrotation maxalpha
+	dCT[5],  dCT[6],  dCT[7],  dCT[8]  = p,q,s,t -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+	dCT[9],  dCT[10], dCT[11], dCT[12] = alphastart, alphadecay, heatstart, heatdecay -- alphastart_alphadecay_heatstart_heatdecay
+	dCT[13], dCT[14], dCT[15], dCT[16] = posx, posy, posz, spawnframe
+	dCT[17], dCT[18], dCT[19], dCT[20] = bwfactor, glowsustain, glowadd, fadeintime -- params
 
 	pushElementInstance(
 		targetVBO, -- push into this Instance VBO Table
-			{length, width, rotation, maxalpha ,  -- lengthwidthrotation maxalpha
-			p,q,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
-			alphastart, alphadecay, heatstart, heatdecay, -- alphastart_alphadecay_heatstart_heatdecay
-			posx, posy, posz, spawnframe,
-			bwfactor, glowsustain, glowadd, fadeintime}, -- params
+			dCT,-- decalCacheTable
 		decalIndex, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		false) -- noupload, dont use unless you know what you want to batch push/pop

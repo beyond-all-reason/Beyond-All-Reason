@@ -15,6 +15,14 @@ end
 
 local math_sqrt = math.sqrt
 
+local modifiers = {
+	prepend_between = false,
+	prepend_queue = false,
+}
+
+-- Current position in prepend queue for prepend_queue mode
+local prependPos = 0
+
 function widget:GameStart()
   widget:PlayerChanged()
 end
@@ -25,10 +33,33 @@ function widget:PlayerChanged()
     end
 end
 
+local function pressHandler(_, _, args)
+	if not args then return end
+
+	if modifiers[args[1]] == nil then return end
+
+	modifiers[args[1]] = true
+
+	if args[1] == 'prepend_queue' then
+		prependPos = 0
+	end
+end
+
+local function releaseHandler(_, _, args)
+	if not args then return end
+
+	if modifiers[args[1]] == nil then return end
+
+	modifiers[args[1]] = false
+end
+
 function widget:Initialize()
     if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
         widget:PlayerChanged()
     end
+
+	widgetHandler:AddAction("commandinsert", pressHandler, nil, "p")
+	widgetHandler:AddAction("commandinsert", releaseHandler, nil, "r")
 end
 
 --[[
@@ -92,9 +123,7 @@ local function GetCommandPos(command)	--- get the command position
 end
 
 function widget:CommandNotify(id, params, options)
-  local _,_,meta,_ = Spring.GetModKeyState()
-
-  if not meta then
+  if not (modifiers.prepend_between or modifiers.prepend_queue) then
   	return false
   end
 
@@ -104,6 +133,14 @@ function widget:CommandNotify(id, params, options)
   if options.right then opt = opt + CMD.OPT_RIGHT end
   if options.shift then
     opt = opt + CMD.OPT_SHIFT
+
+	if modifiers.prepend_queue then
+		Spring.GiveOrder(CMD.INSERT, { prependPos, id, opt, unpack(params) }, { "alt" })
+
+		prependPos = prependPos + 1
+
+		return true
+	end
   else
     Spring.GiveOrder(CMD.INSERT,{0,id,opt,unpack(params)},{"alt"})
 

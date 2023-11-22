@@ -29,7 +29,7 @@ local sizes = {"s","m","l",}
 local colors = {"pink","white","red", "blue", "darkgreen", "purple", "green", "yellow", "darkred", "acidgreen"}
 local mvalues = {s = 200, m = 500, l = 2000}
 local evalues = {s = 2000, m = 4000, l = 20000}
-local healthvalues = {s = 1000, m = 2000, l = 3000}
+local healthvalues = {s = 2000, m = 5000, l = 8000}
 
 for _, size in pairs(sizes) do
     for _, color in pairs(colors) do

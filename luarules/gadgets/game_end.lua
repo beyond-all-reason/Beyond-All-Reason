@@ -360,8 +360,8 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			local winners
 			if fixedallies then
-				if gf < 30 or gf % 60 == 1 then
-					CheckAllPlayers()	-- checking for activity
+				if gf < 30 or gf % 30 == 1 then
+					CheckAllPlayers()
 				end
 				winners = CheckSingleAllyVictoryEnd()
 			else
@@ -436,10 +436,9 @@ if gadgetHandler:IsSyncedCode() then
 	gadget.UnitCaptured = gadget.UnitCreated
 
 
-	local notScoremode = Spring.GetModOptions().scoremode == "disabled" or not Spring.GetModOptions().scoremode_chess
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID)
 		if not ignoredTeams[unitTeamID] then
-			if notScoremode then
+			if Spring.GetModOptions().scoremode == "disabled" or Spring.GetModOptions().scoremode_chess == false then
 				local allyTeamID = teamToAllyTeam[unitTeamID]
 				local allyTeamInfo = allyTeamInfos[allyTeamID]
 				local teamUnitCount = allyTeamInfo.teams[unitTeamID].unitCount - 1

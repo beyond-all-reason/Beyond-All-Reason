@@ -62,10 +62,11 @@ return {
 			[16] = "armpw",
 			[17] = "armjeth",
 			[18] = "armsptk",
-			[19] = "armfido",
+			[19] = "armfast",
 			[20] = "armmav",
 			[21] = "armcs",
 			[22] = "armroy",
+			[23] = "armamph",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

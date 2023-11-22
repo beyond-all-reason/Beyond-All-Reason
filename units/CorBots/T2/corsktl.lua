@@ -24,7 +24,7 @@ return {
 		maxvelocity = 2.8,
 		maxwaterdepth = 30,
 		mincloakdistance = 60,
-		movementclass = "ABOT2",
+		movementclass = "ABOTBOMB2",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSKTL.s3o",
 		script = "Units/CORSKTL.cob",
