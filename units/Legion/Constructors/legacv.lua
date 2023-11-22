@@ -68,7 +68,7 @@ return {
 			[23] = "corfmd",
 			[24] = "corsilo",
 			[25] = "corint",
-			[26] = "corbuzz",
+			[26] = "legstarfall",
 			[27] = "legvp",
 			[28] = "legavp",
 			[29] = "leggant",

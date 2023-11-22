@@ -2288,6 +2288,11 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "heatray",
 	},
 
+	legstarfall = {
+		BaseSoundSelectType = "lrpc",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-lolcannon",
+	},
 
 
 

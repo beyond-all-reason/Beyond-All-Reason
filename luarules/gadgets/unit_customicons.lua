@@ -716,10 +716,13 @@ local units = {
 	legsco = { "vehicle_t2_sco.png", 1.65 },
 	legshot = { "kbot_t2_shotgun.png", 1.6 },
 	legsrail = { "allterrain_t2_rail.png", 1.85 },
+	legstarfall = { "armvulc.png", 3.25499964 },
 	legstr = { "bot_t2_raid.png", 1.3 },
 	legvp = { "factory_vehicle.png", 1.52250004 },
 	legvcarry = { "vehicle_t2_carry.png", 1.65 },
 	legdefcarryt1 = { "legdefcarryt1.png", 1.66 },
+	
+
 
 	lootboxbronze = { "lootbox.png", 1.04999995 },
 	lootboxgold = { "lootboxt3.png", 1.20749986 },

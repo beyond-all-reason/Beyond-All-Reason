@@ -66,7 +66,7 @@ return {
 			"corfmd",
 			"corsilo",
 			"corint",
-			"corbuzz",
+			"legstarfall",
 			"leglab",
 			"legalab",
 		},
