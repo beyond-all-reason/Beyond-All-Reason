@@ -531,8 +531,6 @@ local featureClusters = {}
 
 local E2M = 1 / 70 --solar ratio
 
-local featuresUpdated = false
-
 local function ProcessFeature(featureID)
 	local metal, _, energy = spGetFeatureResources(featureID)
 
@@ -556,12 +554,10 @@ local function ProcessFeature(featureID)
 		knownFeatures[featureID] = f
 
 		UpdateFeatureNeighborsMatrix(featureID, true, false, false)
-		featuresUpdated = true
 	end
 end
 
 local function UpdateFeatures(gf)
-	featuresUpdated = false
 	clusterMetalUpdated = false
 
 	for _, fID in ipairs(spGetAllFeatures()) do
@@ -587,7 +583,6 @@ local function UpdateFeatures(gf)
 			knownFeatures[fID] = f
 
 			UpdateFeatureNeighborsMatrix(fID, true, false, false)
-			featuresUpdated = true
 		end
 
 		if knownFeatures[fID] then
@@ -602,7 +597,6 @@ local function UpdateFeatures(gf)
 				knownFeatures[fID].drawAlt = ((fy > 0 and fy) or 0) --+ knownFeatures[fID].height
 
 				UpdateFeatureNeighborsMatrix(fID, false, true, false)
-			    featuresUpdated = true
 			end
 
 			if knownFeatures[fID].metal ~= metal then
@@ -616,7 +610,6 @@ local function UpdateFeatures(gf)
 					else
 						UpdateFeatureNeighborsMatrix(fID, false, false, true)
 						knownFeatures[fID] = nil
-						featuresUpdated = true
 					end
 				end
 			end
@@ -628,10 +621,9 @@ local function UpdateFeatures(gf)
 			UpdateFeatureNeighborsMatrix(fID, false, false, true)
 			fInfo = nil
 			knownFeatures[fID] = nil
-			featuresUpdated = true
 		end
 
-		if fInfo and featuresUpdated then
+		if fInfo then
 			knownFeatures[fID].clID = nil
 		end
 	end
@@ -639,7 +631,6 @@ end
 
 local function ClusterizeFeatures()
 	local pointsTable = {}
-
 	local unclusteredPoints  = {}
 
 	for fID, fInfo in pairs(knownFeatures) do
@@ -950,13 +941,10 @@ function widget:GameFrame(frame)
 	end
 
 	UpdateFeatures(frame)
+	ClusterizeFeatures()
+	ClustersToConvexHull()
 
-	if featuresUpdated then
-		ClusterizeFeatures()
-		ClustersToConvexHull()
-	end
-
-	if featuresUpdated or drawFeatureConvexHullSolidList == nil then
+	if drawFeatureConvexHullSolidList == nil then
 		if drawFeatureConvexHullSolidList then
 			glDeleteList(drawFeatureConvexHullSolidList)
 			drawFeatureConvexHullSolidList = nil
@@ -973,7 +961,7 @@ function widget:GameFrame(frame)
 
 
 	local camUpVectorCurrent = spGetCameraVectors().up
-	if textParametersChanged or featuresUpdated or drawFeatureClusterTextList == nil or camUpVectorCurrent ~= camUpVector then
+	if textParametersChanged or drawFeatureClusterTextList == nil or camUpVectorCurrent ~= camUpVector then
 		camUpVector = camUpVectorCurrent
 		if drawFeatureClusterTextList then
 			glDeleteList(drawFeatureClusterTextList)
