@@ -557,35 +557,15 @@ local function ProcessFeature(featureID)
 	end
 end
 
-local function UpdateFeatures(gf)
+local function UpdateFeatures()
 	clusterMetalUpdated = false
 
-	for _, fID in ipairs(spGetAllFeatures()) do
+	for _, fID in ipairs(knownFeatures) do
 		local metal, _, energy = spGetFeatureResources(fID)
 
 		if includeEnergy then metal = metal + energy * E2M end
 
-		if (not knownFeatures[fID]) and (metal >= minFeatureMetal) then
-			local f = {}
-
-			local fx, _, fz = spGetFeaturePosition(fID)
-			local fy = spGetGroundHeight(fx, fz)
-			f.x = fx
-			f.y = fy
-			f.z = fz
-
-			f.isGaia = (spGetFeatureTeam(fID) == gaiaTeamId)
-			f.height = spGetFeatureHeight(fID)
-			f.drawAlt = ((fy > 0 and fy) or 0) --+ f.height
-
-			f.metal = metal
-
-			knownFeatures[fID] = f
-
-			UpdateFeatureNeighborsMatrix(fID, true, false, false)
-		end
-
-		if knownFeatures[fID] then
+		if and (metal >= minFeatureMetal) then
 			local fx, _, fz = spGetFeaturePosition(fID)
 			local fy = spGetGroundHeight(fx, fz)
 
@@ -940,25 +920,24 @@ function widget:GameFrame(frame)
 		return
 	end
 
-	UpdateFeatures(frame)
+	UpdateFeatures()
 	ClusterizeFeatures()
 	ClustersToConvexHull()
 
+	if drawFeatureConvexHullSolidList then
+		glDeleteList(drawFeatureConvexHullSolidList)
+		drawFeatureConvexHullSolidList = nil
+	end
+
+	if drawFeatureConvexHullEdgeList then
+		glDeleteList(drawFeatureConvexHullEdgeList)
+		drawFeatureConvexHullEdgeList = nil
+	end
+
 	if drawFeatureConvexHullSolidList == nil then
-		if drawFeatureConvexHullSolidList then
-			glDeleteList(drawFeatureConvexHullSolidList)
-			drawFeatureConvexHullSolidList = nil
-		end
-
-		if drawFeatureConvexHullEdgeList then
-			glDeleteList(drawFeatureConvexHullEdgeList)
-			drawFeatureConvexHullEdgeList = nil
-		end
-
 		drawFeatureConvexHullSolidList = glCreateList(DrawFeatureConvexHullSolid)
 		drawFeatureConvexHullEdgeList = glCreateList(DrawFeatureConvexHullEdge)
 	end
-
 
 	local camUpVectorCurrent = spGetCameraVectors().up
 	if textParametersChanged or drawFeatureClusterTextList == nil or camUpVectorCurrent ~= camUpVector then
