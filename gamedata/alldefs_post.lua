@@ -357,11 +357,13 @@ function UnitDef_Post(name, uDef)
 				armvulc = true,
 				corint = true,
 				corbuzz = true,
+				legstarfall = true,
 				armbotrail_scav = true,
 				armbrtha_scav = true,
 				armvulc_scav = true,
 				corint_scav = true,
 				corbuzz_scav = true,
+				legstarfall_scav = true,
 			}
 			if LRPCs[name] then
 				uDef.unitrestricted = 0
