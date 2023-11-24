@@ -1,4 +1,6 @@
 ﻿# November 2023
+• [Omen] Cor T2 radar vehicle's movement speed increased 36 -> 48 to be closer to arm T2 radar vehicle (57 speed)
+• [Crawling Bombs] Movement speed while underwater reduced to 2/3 speed on land
 • [Consul] Hound removed from build list, Sprinter and Platypus added to build list
 • [Twitcher] Termite added to build list
 • [Termite] Cost reduced from 700m 12000E -> 600m 9000E
