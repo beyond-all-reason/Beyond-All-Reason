@@ -565,7 +565,7 @@ local function UpdateFeatures()
 
 		if includeEnergy then metal = metal + energy * E2M end
 
-		if and (metal >= minFeatureMetal) then
+		if metal >= minFeatureMetal then
 			local fx, _, fz = spGetFeaturePosition(fID)
 			local fy = spGetGroundHeight(fx, fz)
 
@@ -710,16 +710,16 @@ local function ClustersToConvexHull()
 			}
 			--Spring.MarkerAddPoint(knownFeatures[fID].x, 0, knownFeatures[fID].z, string.format("%i(%i)", fc, fcm))
 		end
-		
+
 		--- TODO perform pruning as described in the article below, if convex hull algo will start to choke out
 		-- http://mindthenerd.blogspot.ru/2012/05/fastest-convex-hull-algorithm-ever.html
-		
+
 		local convexHull
 		if #clusterPoints >= 3 and lineCheck(clusterPoints) then
 			--spEcho("#clusterPoints >= 3")
 			--convexHull = ConvexHull.JarvisMarch(clusterPoints)
 			convexHull = MonotoneChain(clusterPoints) --twice faster
-		else 
+		else
 			--spEcho("not #clusterPoints >= 3")
 			local thisCluster = featureClusters[fc]
 
@@ -757,7 +757,7 @@ local function ClustersToConvexHull()
 			cz = cz + convexHullPoint.z
 			cy = max(cy, convexHullPoint.y)
 		end
-		
+
 		local totalArea = 0
 		local pt1 = convexHull[1]
 		for i = 2, #convexHull - 1 do
@@ -772,7 +772,7 @@ local function ClustersToConvexHull()
 			local triangleArea = sqrt(p * (p - a) * (p - b) * (p - c))
 			totalArea = totalArea + triangleArea
 		end
-		
+
 		convexHull.area = totalArea
 		convexHull.center = {x = cx/#convexHull, z = cz/#convexHull, y = cy + 1}
 
@@ -788,7 +788,7 @@ end
 
 function widget:Initialize()
 	screenx, screeny = widgetHandler:GetViewSizes()
-	
+
 	widgetHandler:AddAction("reclaim_highlight", enableHighlight, nil, "p")
 	widgetHandler:AddAction("reclaim_highlight", disableHighlight, nil, "r")
 
