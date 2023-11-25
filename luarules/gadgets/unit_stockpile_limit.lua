@@ -62,6 +62,8 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 		[UnitDefNames['legcomlvl3'].id] = 3,
 		[UnitDefNames['legcomlvl4'].id] = 4,
 		
+		[UnitDefNames['legstarfall'].id] = 1,
+		
 	}
 	----------------------------------------------------------------------------
 	-- Scav copies

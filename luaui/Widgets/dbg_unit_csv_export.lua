@@ -39,7 +39,8 @@ function widget:Initialize()
         'radaricon'..columnSeparator..
         'height'..columnSeparator..
         'metalcost'..columnSeparator..
-        'energycost'..columnSeparator..
+		'energycost'..columnSeparator..
+		'buildspeed'..columnSeparator..
         'metalmake'..columnSeparator..
         'energymake'..columnSeparator..
         'buildpower'..columnSeparator..
@@ -304,7 +305,8 @@ function widget:Initialize()
                     (iconTypesMap[unitDef.iconType] and string.gsub(string.gsub(iconTypesMap[unitDef.iconType], 'icons/', ''), '.png', '') or '')..columnSeparator..
                     round(unitDef.height, 0)..columnSeparator..
                     unitDef.metalCost..columnSeparator..
-                    unitDef.energyCost..columnSeparator..
+					unitDef.energyCost..columnSeparator..
+					unitDef.buildSpeed..columnSeparator..
                     metalMake..columnSeparator..
                     energyMake..columnSeparator..
                     unitDef.buildSpeed..columnSeparator..

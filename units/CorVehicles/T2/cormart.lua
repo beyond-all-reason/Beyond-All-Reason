@@ -24,7 +24,7 @@ return {
 		maxvelocity = 1.6,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
-		nochasecategory = "NOTLAND VTOL",
+		nochasecategory = "VTOL",
 		objectname = "Units/CORMART.s3o",
 		script = "Units/CORMART.cob",
 		seismicsignature = 0,
@@ -39,7 +39,7 @@ return {
 		turninplacespeedlimit = 1.13,
 		turnrate = 270,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			canareaattack = 1,
 			cannon1name = "barrel",

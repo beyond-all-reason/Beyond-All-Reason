@@ -38,7 +38,7 @@ return {
 		turninplacespeedlimit = 0.792,
 		turnrate = 520.29999,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles/t2",
@@ -160,6 +160,7 @@ return {
 		},
 		weapons = {
 			[1] = {
+				badtargetcategory = "MOBILE",
 				def = "CORTRUCK_ROCKET",
 				onlytargetcategory = "SURFACE",
 			},
