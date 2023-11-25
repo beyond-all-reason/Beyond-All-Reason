@@ -2907,6 +2907,7 @@ function init()
 				  widgetHandler:DisableWidget('Grid menu')
 				  widgetHandler:EnableWidget('Build menu')
 			  end
+			  init()
 		  end,
 		},
 		{ id = "gridmenu_alwaysreturn", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_alwaysreturn'), type = "bool", value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getAlwaysReturn ~= nil and WG['gridmenu'].getAlwaysReturn()), description = Spring.I18N('ui.settings.option.gridmenu_alwaysreturn_descr'),
@@ -2914,6 +2915,13 @@ function init()
 		  end,
 		  onchange = function(_, value)
 			  saveOptionValue('Grid menu', 'gridmenu', 'setAlwaysReturn', { 'alwaysReturn' }, value)
+		  end,
+		},
+		{ id = "gridmenu_autoselectfirst", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_autoselectfirst'), type = "bool", value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getAutoSelectFirst ~= nil and WG['gridmenu'].getAutoSelectFirst()), description = Spring.I18N('ui.settings.option.gridmenu_autoselectfirst_descr'),
+		  onload = function()
+		  end,
+		  onchange = function(_, value)
+			  saveOptionValue('Grid menu', 'gridmenu', 'setAutoSelectFirst', { 'autoSelectFirst' }, value)
 		  end,
 		},
 
@@ -5486,6 +5494,7 @@ function init()
 
 	if not GetWidgetToggleValue('Grid menu') then
 		options[getOptionByID('gridmenu_alwaysreturn')] = nil
+		options[getOptionByID('gridmenu_autoselectfirst')] = nil
 	end
 
 

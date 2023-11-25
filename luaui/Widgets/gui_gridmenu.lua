@@ -23,6 +23,7 @@ VFS.Include("luarules/configs/customcmds.h.lua")
 SYMKEYS = table.invert(KEYSYMS)
 
 local alwaysReturn = false
+local autoSelectFirst = true
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
@@ -657,6 +658,12 @@ function widget:Initialize()
 	end
 	WG["gridmenu"].setAlwaysReturn = function(value)
 		alwaysReturn = value
+	end
+	WG["gridmenu"].getAutoSelectFirst = function()
+		return autoSelectFirst
+	end
+	WG["gridmenu"].setAutoSelectFirst = function(value)
+		autoSelectFirst = value
 	end
 
 	WG["buildmenu"] = {}
@@ -1568,7 +1575,7 @@ local function drawGrid()
 		end
 	end
 
-	if cellcmds[1] and (activeBuilder or isPregame) and switchedCategory then
+	if cellcmds[1] and autoSelectFirst and (activeBuilder or isPregame) and switchedCategory then
 		selectNextFrame = cellcmds[1].id
 	end
 end
