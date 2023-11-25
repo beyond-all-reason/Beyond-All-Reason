@@ -119,7 +119,7 @@ return {
 					default = 1,
 				},
 				customparams = {
-					spawns_name = "raptorh2",
+					spawns_name = "raptor_land_swarmer_brood_t4_v1",
 					spawns_surface = "LAND SEA", -- Available: "LAND SEA"
 				},
 			},
