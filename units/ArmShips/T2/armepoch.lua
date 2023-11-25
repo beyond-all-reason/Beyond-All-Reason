@@ -153,8 +153,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1550,
 				damage = {
-					bombers = 250,
-					fighters = 250,
 					vtol = 250,
 				},
 				rgbcolor = {
@@ -187,9 +185,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 600,
 				damage = {
-					bombers = 130,
 					default = 290,
-					fighters = 130,
 					-- subs = 5,
 					vtol = 130,
 				},
@@ -218,9 +214,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 570,
 				damage = {
-					bombers = 65,
 					default = 270,
-					fighters = 65,
 					-- subs = 5,
 					vtol = 65,
 				},
@@ -272,8 +266,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
 				damage = {
-					bombers = 150,
-					fighters = 150,
 					vtol = 150,
 					commanders = 1,
 				},

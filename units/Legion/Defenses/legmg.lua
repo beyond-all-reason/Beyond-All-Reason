@@ -155,10 +155,8 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 958,
 				damage = {
-					bombers = 18,
 					commanders = 5,
 					default = 18,
-					fighters = 18,
 					vtol = 18,
 				},
 			},

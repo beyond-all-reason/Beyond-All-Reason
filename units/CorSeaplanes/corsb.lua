@@ -122,7 +122,6 @@ return {
 				waterbounce = true,
 				weapontype = "AircraftBomb",
 				damage = {
-					bombers = 10,
 					default = 50,
 				},
 			},

@@ -151,9 +151,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 230,
 				damage = {
-					bombers = 35,
 					default = 330,
-					fighters = 35,
 					subs = 110,
 					vtol = 35,
 				},

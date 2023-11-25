@@ -114,7 +114,6 @@ return {
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 				},
 				damage = {
-					bombers = 20,
 					default = 100,
 					subs = 30,
 				},
