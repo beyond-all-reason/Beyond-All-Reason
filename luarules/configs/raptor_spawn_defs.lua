@@ -124,7 +124,7 @@ local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to b
 	raptor_allterrain_assault_acid_t2_v1			=   "acidgreen",
 	raptor_land_swarmer_spectre_t3_v1					=   "yellow",
 	raptor_land_swarmer_spectre_t4_v1						=   "yellow",
-	raptor_land_assault_basic_t2_v1_spectre					=   "yellow",
+	raptor_land_assault_spectre_t2_v1					=   "yellow",
 	raptor_land_assault_spectre_t4_v1					=   "yellow",
 	raptor_land_spiker_spectre_t4_v1					=   "yellow",
 
@@ -253,7 +253,7 @@ raptorBehaviours = {
 		[UnitDefNames["raptor_queen_normal"].id] = { chance = 0.005 },
 		[UnitDefNames["raptor_queen_hard"].id] = { chance = 0.005 },
 		[UnitDefNames["raptor_queen_veryhard"].id] = { chance = 0.005 },
-		[UnitDefNames["raptor_queen_epiq"].id] = { chance = 0.005 },
+		[UnitDefNames["raptor_queen_epic"].id] = { chance = 0.005 },
 	},
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and queen
 		[UnitDefNames["raptor_land_swarmer_heal_t1_v1"].id] = true,
@@ -400,7 +400,7 @@ local optionValues = {
 		minRaptors		  = 5,
 		maxRaptors		  = 50,
 		raptorPerPlayerMultiplier = 0.25,
-		queenName         = 'raptor_queen_epiq',
+		queenName         = 'raptor_queen_epic',
 		queenResistanceMult   = 2,
 	},
 
@@ -555,7 +555,7 @@ local raptorMinions = { -- Units spawning other units
 		"raptor_land_swarmer_heal_t3_v1",
 		"raptor_land_swarmer_heal_t4_v1",
 	},
-	["raptor_queen_epiq"] = {
+	["raptor_queen_epic"] = {
 		"raptor_land_swarmer_brood_t4_v1",
 		"raptor_land_swarmer_brood_t3_v1",
 		"raptor_land_swarmer_brood_t2_v1",

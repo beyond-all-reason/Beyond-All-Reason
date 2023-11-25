@@ -578,7 +578,7 @@ local moveDatas = {
 	},
 
 	--Raptor Movedefs
-	--raptor_queen_easy raptor_queen_normal raptor_queen_hard vc_raptorq raptor_queen_veryhard raptor_queen_epiq raptor_matriarch_fire raptor_matriarch_acid raptor_matriarch_basic raptor_matriarch_healer
+	--raptor_queen_easy raptor_queen_normal raptor_queen_hard vc_raptorq raptor_queen_veryhard raptor_queen_epic raptor_matriarch_fire raptor_matriarch_acid raptor_matriarch_basic raptor_matriarch_healer
 	--raptor_matriarch_spectre raptor_matriarch_electric
 	RAPTORQUEENHOVER = {
 		badslope = 22,

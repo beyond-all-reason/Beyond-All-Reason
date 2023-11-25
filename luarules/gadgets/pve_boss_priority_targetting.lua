@@ -20,7 +20,7 @@ local queenUnits = {
     [UnitDefNames["raptor_queen_normal"].id] = true,
     [UnitDefNames["raptor_queen_hard"].id] = true,
     [UnitDefNames["raptor_queen_veryhard"].id] = true,
-    [UnitDefNames["raptor_queen_epiq"].id] = true,
+    [UnitDefNames["raptor_queen_epic"].id] = true,
     
     [UnitDefNames["raptor_matriarch_spectre"].id] = true,
 	[UnitDefNames["raptor_matriarch_electric"].id] = true,

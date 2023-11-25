@@ -1,5 +1,5 @@
 return {
-	raptor_land_arty_acid_t4_v1 = {
+	raptor_allterrain_arty_acid_t4_v1 = {
 		acceleration = 0.115,
 
 		brakerate = 0.414,
@@ -50,7 +50,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 1840,
-		unitname = "raptor_land_arty_acid_t4_v1",
+		unitname = "raptor_allterrain_arty_acid_t4_v1",
 		upright = false,
 		workertime = 0,
 		waterline = 10,

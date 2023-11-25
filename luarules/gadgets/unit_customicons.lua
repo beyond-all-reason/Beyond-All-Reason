@@ -413,7 +413,7 @@ local units = {
 	raptor_queen_hard = { "raptor_queen.png", 5 },
 	raptor_queen_normal = { "raptor_queen.png", 5 },
 	raptor_queen_veryhard = { "raptor_queen.png", 5 },
-	raptor_queen_epiq = { "raptor_queen.png", 5 },
+	raptor_queen_epic = { "raptor_queen.png", 5 },
 
 	-----------------------------------------------------------------------
 

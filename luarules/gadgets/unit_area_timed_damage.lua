@@ -33,7 +33,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptor_land_arty_acid_t2_v1_acidspit.id] = {
+    [WeaponDefNames.raptor_allterrain_arty_acid_t2_v1_acidspit.id] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -41,7 +41,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptor_land_arty_acid_t4_v1_acidspit.id] = {
+    [WeaponDefNames.raptor_allterrain_arty_acid_t4_v1_acidspit.id] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -247,7 +247,7 @@ local TimedDamageDyingUnits = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [UnitDefNames.raptor_land_arty_acid_t2_v1.id] = {
+    [UnitDefNames.raptor_allterrain_arty_acid_t2_v1.id] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -255,7 +255,7 @@ local TimedDamageDyingUnits = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [UnitDefNames.raptor_land_arty_acid_t4_v1.id] = {
+    [UnitDefNames.raptor_allterrain_arty_acid_t4_v1.id] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,

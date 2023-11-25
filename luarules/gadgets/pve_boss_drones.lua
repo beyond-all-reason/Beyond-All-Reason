@@ -453,7 +453,7 @@ local unitList = {
             spawnTimer = 10,
         },
     },
-    [UnitDefNames["raptor_queen_epiq"].id] = {
+    [UnitDefNames["raptor_queen_epic"].id] = {
         [1] = {
             name = "raptor_air_fighter_basic_t4_v1",
             type = "air",

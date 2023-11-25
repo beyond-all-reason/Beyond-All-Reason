@@ -1,5 +1,5 @@
 return {
-	raptor_queen_epiq = {
+	raptor_queen_epic = {
 		acceleration = 0.1,
 		airsightdistance = 4000,
 		autoheal = 90,
@@ -53,7 +53,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 1,
 		turnrate = 100,
-		unitname = "raptor_queen_epiq",
+		unitname = "raptor_queen_epic",
 		upright = false,
 		waterline = 80,
 		workertime = 0,

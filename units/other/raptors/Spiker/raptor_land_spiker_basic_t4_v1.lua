@@ -1,5 +1,5 @@
 return {
-	raptors2 = {
+	raptor_land_spiker_basic_t4_v1 = {
 		acceleration = 3.45,
 
 		brakerate = 3.45,
@@ -56,7 +56,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 1840,
-		unitname = "raptors2",
+		unitname = "raptor_land_spiker_basic_t4_v1",
 		upright = false,
 		workertime = 0,
 		waterline = 29,
