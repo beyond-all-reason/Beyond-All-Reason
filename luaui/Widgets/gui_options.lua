@@ -5583,6 +5583,13 @@ function init()
 		--	options[id].onchange(id, options[id].value)
 		--end
 
+		-- disable engine decals (footprints)
+		options[getOptionByID('decals')] = nil
+		if Spring.GetConfigInt("GroundDecals", 3) > 0 then
+			Spring.SendCommands("GroundDecals 0")
+			Spring.SetConfigInt("GroundDecals", 0)
+		end
+
 		if isPotatoGpu then
 			Spring.SendCommands("luarules disablecusgl4")
 			options[getOptionByID('cusgl4')] = nil
