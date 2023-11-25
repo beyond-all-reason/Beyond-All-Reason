@@ -156,9 +156,7 @@ return {
 					spread_angle = "15",
 				},
 				damage = {
-					bombers = 19,
 					default = 150,
-					fighters = 19,
 					subs = 75,
 					vtol = 19,
 				},
@@ -196,9 +194,7 @@ return {
 					spread_angle = "24",
 				},
 				damage = {
-					bombers = 19,
 					default = 150,
-					fighters = 19,
 					subs = 75,
 					vtol = 19,
 				},

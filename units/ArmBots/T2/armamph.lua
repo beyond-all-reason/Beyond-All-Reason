@@ -153,8 +153,6 @@ return {
 				customparams = {
 				},
 				damage = {
-					bombers = 85,
-					fighters = 85,
 					vtol = 85,
 				},
 			},
@@ -188,9 +186,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 500,
 				damage = {
-					bombers = 15,
 					default = 80,
-					fighters = 15,
 					vtol = 15,
 				},
 			},

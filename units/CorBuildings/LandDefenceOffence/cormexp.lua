@@ -154,9 +154,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 750,
 				damage = {
-					bombers = 45,
 					default = 260,
-					fighters = 45,
 					vtol = 45,
 				},
 			},
@@ -192,9 +190,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
 				damage = {
-					bombers = 50,
 					default = 215,
-					fighters = 50,
 					vtol = 50,
 				},
 			},
