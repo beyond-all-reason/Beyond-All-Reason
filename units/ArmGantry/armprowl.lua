@@ -160,8 +160,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
 				damage = {
-					bombers = 85,
-					fighters = 85,
 					vtol = 85,
 				},
 			},
@@ -189,9 +187,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 600,
 				damage = {
-					bombers = 60,
 					default = 235,
-					fighters = 60,
 					vtol = 60,
 				},
 			},

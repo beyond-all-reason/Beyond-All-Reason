@@ -1011,82 +1011,64 @@ if Spring.GetModOptions().comtestchanges == true then
 		end
 		if name == "armllt" then
 			uDef.weapondefs.arm_lightlaser.damage = {
-					bombers = 5,
 					commanders = 112.5,
 					default = 75,
-					fighters = 5,
 					subs = 5,
 					vtol = 5,
 			}
 		end
 		if name == "armbeamer" then
 			uDef.weapondefs.armbeamer_weapon.damage = {
-					bombers = 2,
 					commanders = 40,
 					default = 26.6,
-					fighters = 2,
 					vtol = 2,
 			}
 		end
 		if name == "armclaw" then
 			uDef.weapondefs.dclaw.damage = {
-					bombers = 2.5,
 					commanders = 31.5,
 					default = 21,
-					fighters = 2.5,
 					vtol = 2.5,
 			}
 		end
 		if name == "armhlt" then
 			uDef.weapondefs.arm_laserh1.damage = {
-					bombers = 35,
 					commanders = 580.5,
 					default = 387,
-					fighters = 35,
 					vtol = 35,
 			}
 		end
 		if name == "corllt" then
 			uDef.weapondefs.cor_lightlaser.damage = {
-					bombers = 5,
 					commanders = 112.5,
 					default = 75,
-					fighters = 5,
 					subs = 5,
 					vtol = 5,
 			}
 		end
 		if name == "corexp" then
 			uDef.weapondefs.hllt_bottom.damage = {
-					bombers = 5,
 					commanders = 112.5,
 					default = 75,
-					fighters = 5,
 					vtol = 5,
 			}
 		end
 		if name == "corhllt" then
 			uDef.weapondefs.hllt_bottom.damage = {
-					bombers = 5,
 					commanders = 112.5,
 					default = 75,
-					fighters = 5,
 					vtol = 5,
 			}
 			uDef.weapondefs.hllt_top.damage = {
-					bombers = 5,
 					commanders = 112.5,
 					default = 75,
-					fighters = 5,
 					vtol = 5,
 			}
 		end
 		if name == "corhlt" then
 			uDef.weapondefs.cor_laserh1.damage = {
-					bombers = 35,
 					commanders = 392,
 					default = 261,
-					fighters = 35,
 					vtol = 35,
 			}
 		end

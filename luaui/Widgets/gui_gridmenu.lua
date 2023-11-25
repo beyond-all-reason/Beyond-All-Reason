@@ -23,6 +23,7 @@ VFS.Include("luarules/configs/customcmds.h.lua")
 SYMKEYS = table.invert(KEYSYMS)
 
 local alwaysReturn = false
+local autoSelectFirst = true
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
@@ -658,6 +659,12 @@ function widget:Initialize()
 	WG["gridmenu"].setAlwaysReturn = function(value)
 		alwaysReturn = value
 	end
+	WG["gridmenu"].getAutoSelectFirst = function()
+		return autoSelectFirst
+	end
+	WG["gridmenu"].setAutoSelectFirst = function(value)
+		autoSelectFirst = value
+	end
 
 	WG["buildmenu"] = {}
 	WG["buildmenu"].getGroups = function()
@@ -1129,7 +1136,7 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 	-- price
 	if showPrice then
 		local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
-		local energyColor = disabled and "\n\255\135\135\135" or "\n\255\255\255\000"
+		local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
 		local function AddSpaces(price)
 			if price >= 1000 then
 				return string.format("%s %03d", AddSpaces(math_floor(price / 1000)), price % 1000)
@@ -1140,18 +1147,17 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 		local energyPrice = AddSpaces(units.unitEnergyCost[uid])
 		local metalPriceText = metalColor .. metalPrice
 		local energyPriceText = energyColor .. energyPrice
-		local energyPriceTextHeight = font2:GetTextHeight(energyPriceText) * priceFontSize
 		font2:Print(
 			metalPriceText,
 			rect.xEnd - cellPadding - (cellInnerSize * 0.048),
-			rect.y + cellPadding + (priceFontSize * 1.35) + energyPriceTextHeight,
+			rect.y + cellPadding + (priceFontSize * 1.35),
 			priceFontSize,
 			"ro"
 		)
 		font2:Print(
 			energyPriceText,
 			rect.xEnd - cellPadding - (cellInnerSize * 0.048),
-			rect.y + cellPadding + (priceFontSize * 1.35),
+			rect.y + cellPadding + (priceFontSize * 0.35),
 			priceFontSize,
 			"ro"
 		)
@@ -1568,7 +1574,7 @@ local function drawGrid()
 		end
 	end
 
-	if cellcmds[1] and (activeBuilder or isPregame) and switchedCategory then
+	if cellcmds[1] and autoSelectFirst and (activeBuilder or isPregame) and switchedCategory then
 		selectNextFrame = cellcmds[1].id
 	end
 end
@@ -2155,6 +2161,7 @@ end
 function widget:GetConfigData()
 	return {
 		alwaysReturn = alwaysReturn,
+		autoSelectFirst = autoSelectFirst,
 		showPrice = showPrice,
 		showRadarIcon = showRadarIcon,
 		showGroupIcon = showGroupIcon,
@@ -2167,6 +2174,9 @@ end
 function widget:SetConfigData(data)
 	if data.alwaysReturn ~= nil then
 		alwaysReturn = data.alwaysReturn
+	end
+	if data.autoSelectFirst ~= nil then
+		autoSelectFirst = data.autoSelectFirst
 	end
 	if data.showPrice ~= nil then
 		showPrice = data.showPrice

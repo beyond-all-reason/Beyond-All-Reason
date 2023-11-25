@@ -149,9 +149,7 @@ return {
 					--when = "ypos<0",
 				},
 				damage = {
-					bombers = 60,
 					default = 370,
-					fighters = 60,
 					subs = 370,
 					vtol = 60,
 				},
@@ -185,9 +183,7 @@ return {
 
 				},
 				damage = {
-					bombers = 60,
 					default = 370,
-					fighters = 60,
 					subs = 370,
 					vtol = 60,
 				},
@@ -226,9 +222,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 230,
 				damage = {
-					bombers = 35,
 					default = 330,
-					fighters = 35,
 					subs = 165,
 					vtol = 35,
 				},
