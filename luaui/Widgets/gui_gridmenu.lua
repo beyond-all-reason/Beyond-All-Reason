@@ -1136,7 +1136,7 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 	-- price
 	if showPrice then
 		local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
-		local energyColor = disabled and "\n\255\135\135\135" or "\n\255\255\255\000"
+		local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
 		local function AddSpaces(price)
 			if price >= 1000 then
 				return string.format("%s %03d", AddSpaces(math_floor(price / 1000)), price % 1000)
@@ -1147,18 +1147,17 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 		local energyPrice = AddSpaces(units.unitEnergyCost[uid])
 		local metalPriceText = metalColor .. metalPrice
 		local energyPriceText = energyColor .. energyPrice
-		local energyPriceTextHeight = font2:GetTextHeight(energyPriceText) * priceFontSize
 		font2:Print(
 			metalPriceText,
 			rect.xEnd - cellPadding - (cellInnerSize * 0.048),
-			rect.y + cellPadding + (priceFontSize * 1.35) + energyPriceTextHeight,
+			rect.y + cellPadding + (priceFontSize * 1.35),
 			priceFontSize,
 			"ro"
 		)
 		font2:Print(
 			energyPriceText,
 			rect.xEnd - cellPadding - (cellInnerSize * 0.048),
-			rect.y + cellPadding + (priceFontSize * 1.35),
+			rect.y + cellPadding + (priceFontSize * 0.35),
 			priceFontSize,
 			"ro"
 		)
