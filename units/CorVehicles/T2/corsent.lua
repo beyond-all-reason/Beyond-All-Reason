@@ -180,8 +180,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1550,
 				damage = {
-					bombers = 200,
-					fighters = 400,
 					vtol = 200,
 				},
 				rgbcolor = {

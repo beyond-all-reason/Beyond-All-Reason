@@ -137,8 +137,6 @@ return {
 				wobble = 32000,
 				damage = {
 					default = 1,
-					bombers = 1250,
-					fighters = 1250,
 					vtol = 1250,
 				},
 			},

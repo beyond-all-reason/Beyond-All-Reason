@@ -190,9 +190,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
 				damage = {
-					bombers = 65,
 					default = 247,
-					fighters = 65,
 					vtol = 65,
 				},
 			},
