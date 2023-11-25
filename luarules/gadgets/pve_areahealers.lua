@@ -25,24 +25,24 @@ end
 
 local aliveHealers = {}
 local healersTable = {
-    [UnitDefNames["raptorhealer1"].id] = {
-        healingpower = UnitDefNames["raptorhealer1"].repairSpeed,
-        healingrange = UnitDefNames["raptorhealer1"].buildDistance*2,
+    [UnitDefNames["raptor_land_swarmer_heal_t1_v1"].id] = {
+        healingpower = UnitDefNames["raptor_land_swarmer_heal_t1_v1"].repairSpeed,
+        healingrange = UnitDefNames["raptor_land_swarmer_heal_t1_v1"].buildDistance*2,
         canbehealed = false,
     },
-    [UnitDefNames["raptorhealer2"].id] = {
-        healingpower = UnitDefNames["raptorhealer2"].repairSpeed,
-        healingrange = UnitDefNames["raptorhealer2"].buildDistance*2,
+    [UnitDefNames["raptor_land_swarmer_heal_t2_v1"].id] = {
+        healingpower = UnitDefNames["raptor_land_swarmer_heal_t2_v1"].repairSpeed,
+        healingrange = UnitDefNames["raptor_land_swarmer_heal_t2_v1"].buildDistance*2,
         canbehealed = false,
     },
-    [UnitDefNames["raptorhealer3"].id] = {
-        healingpower = UnitDefNames["raptorhealer3"].repairSpeed,
-        healingrange = UnitDefNames["raptorhealer3"].buildDistance*2,
+    [UnitDefNames["raptor_land_swarmer_heal_t3_v1"].id] = {
+        healingpower = UnitDefNames["raptor_land_swarmer_heal_t3_v1"].repairSpeed,
+        healingrange = UnitDefNames["raptor_land_swarmer_heal_t3_v1"].buildDistance*2,
         canbehealed = false,
     },
-    [UnitDefNames["raptorhealer4"].id] = {
-        healingpower = UnitDefNames["raptorhealer4"].repairSpeed,
-        healingrange = UnitDefNames["raptorhealer4"].buildDistance*2,
+    [UnitDefNames["raptor_land_swarmer_heal_t4_v1"].id] = {
+        healingpower = UnitDefNames["raptor_land_swarmer_heal_t4_v1"].repairSpeed,
+        healingrange = UnitDefNames["raptor_land_swarmer_heal_t4_v1"].buildDistance*2,
         canbehealed = false,
     },
     [UnitDefNames["raptor_matriarch_healer"].id] = {
