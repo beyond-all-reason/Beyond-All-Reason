@@ -700,7 +700,7 @@ function widget:GameStart()
 		end
 		if client ~= nil then client:close() end
 	end
-	local succes, res = pcall(LobbyInfo)
+	--local succes, res = pcall(LobbyInfo)
 end
 
 function widget:Initialize()
