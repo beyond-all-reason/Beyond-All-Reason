@@ -2162,6 +2162,7 @@ end
 function widget:GetConfigData()
 	return {
 		alwaysReturn = alwaysReturn,
+		autoSelectFirst = autoSelectFirst,
 		showPrice = showPrice,
 		showRadarIcon = showRadarIcon,
 		showGroupIcon = showGroupIcon,
@@ -2174,6 +2175,9 @@ end
 function widget:SetConfigData(data)
 	if data.alwaysReturn ~= nil then
 		alwaysReturn = data.alwaysReturn
+	end
+	if data.autoSelectFirst ~= nil then
+		autoSelectFirst = data.autoSelectFirst
 	end
 	if data.showPrice ~= nil then
 		showPrice = data.showPrice
