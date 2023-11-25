@@ -1,4 +1,5 @@
-﻿# November 2023
+# November 2023
+• [Quaker] Reworked to be larger with a heavier weapon, so that the T2 veh artillery has a similar asymmetry to the T1 veh artillery.  Cost changed from 280m 3300E -> 360m 4000E, health increased 830 -> 1000, max speed reduced 54 -> 48, Damage per shot increased 300 -> 420, aoe increased 129 -> 144, reloadtime increased 4.25s -> 5s
 • [Omen] Cor T2 radar vehicle's movement speed increased 36 -> 48 to be closer to arm T2 radar vehicle (57 speed)
 • [Crawling Bombs] Movement speed while underwater reduced to 2/3 speed on land
 • [Consul] Hound removed from build list, Sprinter and Platypus added to build list
