@@ -15,19 +15,19 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local queenUnits = {
-    [UnitDefNames["ve_raptorq"].id] = true,
-    [UnitDefNames["e_raptorq"].id] = true,
-    [UnitDefNames["n_raptorq"].id] = true,
-    [UnitDefNames["h_raptorq"].id] = true,
-    [UnitDefNames["vh_raptorq"].id] = true,
-    [UnitDefNames["epic_raptorq"].id] = true,
+    [UnitDefNames["raptor_queen_veryeasy"].id] = true,
+    [UnitDefNames["raptor_queen_easy"].id] = true,
+    [UnitDefNames["raptor_queen_normal"].id] = true,
+    [UnitDefNames["raptor_queen_hard"].id] = true,
+    [UnitDefNames["raptor_queen_veryhard"].id] = true,
+    [UnitDefNames["raptor_queen_epiq"].id] = true,
     
-    [UnitDefNames["raptor_miniqueen_spectre"].id] = true,
-	[UnitDefNames["raptor_miniqueen_electric"].id] = true,
-	[UnitDefNames["raptor_miniqueen_acid"].id] = true,
-	[UnitDefNames["raptor_miniqueen_healer"].id] = true,
-	[UnitDefNames["raptor_miniqueen_basic"].id] = true,
-	[UnitDefNames["raptor_miniqueen_fire"].id] = true,
+    [UnitDefNames["raptor_matriarch_spectre"].id] = true,
+	[UnitDefNames["raptor_matriarch_electric"].id] = true,
+	[UnitDefNames["raptor_matriarch_acid"].id] = true,
+	[UnitDefNames["raptor_matriarch_healer"].id] = true,
+	[UnitDefNames["raptor_matriarch_basic"].id] = true,
+	[UnitDefNames["raptor_matriarch_fire"].id] = true,
 
     [UnitDefNames["armscavengerbossv2_veryeasy"].id] = true,
     [UnitDefNames["armscavengerbossv2_easy"].id] = true,

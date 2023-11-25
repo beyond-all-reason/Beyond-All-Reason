@@ -45,9 +45,9 @@ local healersTable = {
         healingrange = UnitDefNames["raptorhealer4"].buildDistance*2,
         canbehealed = false,
     },
-    [UnitDefNames["raptor_miniqueen_healer"].id] = {
-        healingpower = UnitDefNames["raptor_miniqueen_healer"].repairSpeed,
-        healingrange = UnitDefNames["raptor_miniqueen_healer"].buildDistance*2,
+    [UnitDefNames["raptor_matriarch_healer"].id] = {
+        healingpower = UnitDefNames["raptor_matriarch_healer"].repairSpeed,
+        healingrange = UnitDefNames["raptor_matriarch_healer"].buildDistance*2,
         canbehealed = false,
     },
 }

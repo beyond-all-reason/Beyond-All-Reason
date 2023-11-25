@@ -81,7 +81,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptor_turrets_acid_acidspit.id] = {
+    [WeaponDefNames.raptor_turret_acid_t2_v1_acidspit.id] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -89,7 +89,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptor_turretl_acid_acidspit.id] = {
+    [WeaponDefNames.raptor_turret_acid_t3_v1_acidspit.id] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -97,7 +97,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptor_turretxl_acid_acidspit.id] = {
+    [WeaponDefNames.raptor_turret_acid_t4_v1_acidspit.id] = {
         ceg = "acid-area-150",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -105,7 +105,7 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptor_miniqueen_acid_acidgoo.id] = {
+    [WeaponDefNames.raptor_matriarch_acid_acidgoo.id] = {
         ceg = "acid-area-75",
         damageCeg = "acid-damage-gen",
         time = 10,
@@ -113,7 +113,7 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "_RAPTORACID_",
     },
-    [WeaponDefNames.raptor_miniqueen_acid_spike_acid_blob.id] = {
+    [WeaponDefNames.raptor_matriarch_acid_spike_acid_blob.id] = {
         ceg = "acid-area-75",
         damageCeg = "acid-damage-gen",
         time = 10,

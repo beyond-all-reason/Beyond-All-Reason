@@ -886,18 +886,18 @@ scavBehaviours = {
 		[UnitDefNames["armscavengerbossv2_epic_scav"].id]		= { distance = 2000, chance = 0.001},
 	},
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and boss
-		--[UnitDefNames["raptorhealer1"].id] = true,
+		--[UnitDefNames["raptor_land_swarmer_heal_t1_v1"].id] = true,
 		[UnitDefNames["armrectr_scav"].id] = true,--Armada Rezzer
 		[UnitDefNames["cornecro_scav"].id] = true,--Cortex Rezzer
 	},
 	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance
-		--[UnitDefNames["raptor_land_arty_basic_t2_v1"].id] = true,
+		--[UnitDefNames["raptor_allterrain_arty_basic_t2_v1"].id] = true,
 	},
 	KAMIKAZE = { -- Long lifetime and no regrouping, always uses Move command to rush into the enemy
-		--[UnitDefNames["raptor_dodo1"].id] = true,
+		--[UnitDefNames["raptor_land_kamikaze_basic_t2_v1"].id] = true,
 	},
 	ALLOWFRIENDLYFIRE = {
-		--[UnitDefNames["raptor_land_arty_basic_t2_v1"].id] = true,
+		--[UnitDefNames["raptor_allterrain_arty_basic_t2_v1"].id] = true,
 	},
 }
 
