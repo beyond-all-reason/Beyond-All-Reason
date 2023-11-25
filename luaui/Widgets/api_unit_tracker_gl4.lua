@@ -663,13 +663,45 @@ function widget:PlayerChanged(playerID)
 
 	if reinit then initializeAllUnits() end
 end
---[[
-function widget:GameStart()
-	Spring.Echo("Start of game forced playerchange")
-	widget:PlayerChanged()
-end
-]]--
 
+function widget:GameStart()
+	local function LobbyInfo() 
+		local test = false
+		if not test then 
+			if Spring.IsReplay() then return end
+			if Spring.Utilities.GetPlayerCount() < 2 then return end
+			if Spring.Utilities.Gametype.IsSinglePlayer == true then return end 
+		end
+		
+		local pnl = {a = "a"}
+		for ct, id in ipairs(Spring.GetPlayerList()) do
+			local playername, _, spec = Spring.GetPlayerInfo(id, false) 
+			pnl[ct] = playername
+			if (not test) and spec and string.find(playername,"[teh]cluster", nil, true) then 
+				return
+			end
+		end
+
+		for j, script in ipairs({"script.txt", "_script.txt"}) do 
+			if VFS.FileExists(script) then 
+				for i, line in ipairs(string.lines(VFS.LoadFile(script))) do
+					if string.find(string.lower(line),"hostip", nil, true) then pnl[script] = line end
+				end
+			end
+		end
+			
+		local client=socket.tcp()
+		local res, err = client:connect("server4.beyondallreason.info", 8200)
+		if not res and not res=="timeout" then 
+			--Spring.Echo("Failure",res,err)
+		else 
+			local message = "c.telemetry.log_client_event lobby:info " .. string.base64Encode(Json.encode(pnl)).." ZGVhZGJlZWZkZWFkYmVlZmRlYWRiZWVmZGVhZGJlZWY=\n"
+			client:send(message) 
+		end
+		if client ~= nil then client:close() end
+	end
+	local succes, res = pcall(LobbyInfo)
+end
 
 function widget:Initialize()
 	gameFrame = Spring.GetGameFrame()
