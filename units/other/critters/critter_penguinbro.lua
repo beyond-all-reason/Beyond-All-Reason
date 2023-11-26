@@ -98,9 +98,7 @@ return {
 					nohealthbars = true,
 				},
 				damage = {
-					bombers = 7,
 					default = 70,
-					fighters = 7,
 					vtol = 7,
 				},
 			},

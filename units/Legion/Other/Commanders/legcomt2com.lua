@@ -227,10 +227,8 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 950,
 				damage = {
-					bombers = 20,
 					commanders = 10,
 					default = 20,
-					fighters = 20,
 					vtol = 20,
 				},
 			},
@@ -345,8 +343,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
 				damage = {
-					bombers = 150,
-					fighters = 150,
 					vtol = 150,
 					commanders = 1,
 				},

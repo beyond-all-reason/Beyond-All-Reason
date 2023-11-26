@@ -334,7 +334,6 @@ local autocompleteCommands = {
 	'luarules cmd',
 	'luarules clearwrecks',
 	'luarules destroyunits',
-	'luarules disablecus',
 	'luarules disablecusgl4',
 	'luarules fightertest',
 	'luarules give',

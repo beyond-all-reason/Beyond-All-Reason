@@ -163,9 +163,7 @@ return {
 					spark_range = "60",
 				},
 				damage = {
-					bombers = 2.5,
 					default = 21,
-					fighters = 2.5,
 					vtol = 2.5,
 				},
 			},

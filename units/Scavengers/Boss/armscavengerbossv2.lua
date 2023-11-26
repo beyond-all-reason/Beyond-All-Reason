@@ -242,8 +242,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				}, 
 				damage                   = {
 					default              = stats.minigunDamage,
-					bombers				 = stats.minigunDamage*3,
-					fighters 			 = stats.minigunDamage*3,
 					vtol				 = stats.minigunDamage*3,
 				},
 			},
