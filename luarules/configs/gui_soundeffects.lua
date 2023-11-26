@@ -2433,6 +2433,10 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-bot-at-ok",
 		BaseSoundWeaponType = "heatray",
 	},
+
+
+
+
 	leginc = {
 		BaseSoundSelectType = "cor-bot-huge-sel",
 		BaseSoundMovementType = "cor-bot-huge-ok",
@@ -2573,6 +2577,7 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-air-gunship-large-ok",
 		BaseSoundWeaponType = "plasma-huge",
 	},
+
 
 	--Various Random Units
 
