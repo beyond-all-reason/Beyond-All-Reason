@@ -197,11 +197,7 @@ if gadgetHandler:IsSyncedCode() then
 				if (invertmap[2] == "wet") then
 					ymax = 0
 				else
-					for z=0,Game.mapSizeZ, Game.squareSize do
-						for x=0,Game.mapSizeX, Game.squareSize do
-							ymax = math.max(ymax,Spring.GetGroundHeight ( x, z ))
-						end
-					end
+					_, _, _, ymax = Spring.GetGroundExtremes()
 				end
 				Spring.SetHeightMapFunc(function()
 					for z=0,Game.mapSizeZ, Game.squareSize do
