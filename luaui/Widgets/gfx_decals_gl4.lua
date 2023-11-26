@@ -1761,7 +1761,7 @@ local UnitScriptDecals = {
 			},
 		},
 		
-	[UnitDefNames['raptor1'].id] = { 
+	[UnitDefNames['raptor_land_swarmer_basic_t1_v1'].id] = { 
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_raptor_a.tga',
 			offsetx = 0, --offset from what the UnitScriptDecal returns 
