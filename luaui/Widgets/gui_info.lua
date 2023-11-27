@@ -1274,7 +1274,11 @@ local function drawUnitInfo()
 		if displayMode == 'unit' then
 			-- get lots of unit info from functions: https://springrts.com/wiki/Lua_SyncedRead
 			metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
-			maxRange = range
+			if unitDefInfo[displayUnitDefID].mainWeapon ~= nil then
+				maxRange = Spring.GetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, "range")
+			else
+				maxRange = range
+			end
 			if not exp then
 				exp = spGetUnitExperience(displayUnitID)
 			end
