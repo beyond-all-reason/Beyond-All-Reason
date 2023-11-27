@@ -8,12 +8,12 @@
     //   thrustrra, thrustrla, thrustfra, thrustfla;
       
 piece base, aimy,turretf, sleevef, flaref,
-turretaa, sleeveaa, flareaa1, flareaa2, flareaa3, flareaa4, flareaa5, flareaa6, flareaa7, flareaa8, lightaa, aimfromaa,
-turretr1, sleever1, barrelr1, flarer1, turretr2, sleever2, barrelr2, flarer2,
-turretl1, sleevel1, barrell1, flarel1, turretl2, sleevel2, barrell2, flarel2, 
-thrustrr, thrustrl, thrustfr, thrustfl, thrustrra, thrustrla, thrustfra, thrustfla;
+		turretaa, sleeveaa, flareaa1, flareaa2, flareaa3, flareaa4, flareaa5, flareaa6, flareaa7, flareaa8, lightaa, aimfromaa,
+		turretr1, sleever1, barrelr1, flarer1, turretr2, sleever2, barrelr2, flarer2,
+		turretl1, sleevel1, barrell1, flarel1, turretl2, sleevel2, barrell2, flarel2, 
+		thrustrr, thrustrl, thrustfr, thrustfl, thrustrra, thrustrla, thrustfra, thrustfla;
 
-static-var  restore_delay, v1, aa_gun;
+static-var  restore_delay, aa_gun, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -32,7 +32,50 @@ static-var  restore_delay, v1, aa_gun;
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+//#include "idlehover.h"
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	
+	
+	turn turretaa to y-axis <0> speed <200.00000>;
+	turn sleeveaa to x-axis <0.00000> speed <200.00000>;
+	
+	
+	turn turretf to x-axis <0> speed <200.000000>;
+	turn turretf to y-axis <0> speed <200.000000>;
+	
+	
+	turn turretr1 to x-axis <0> speed <200.000000>;
+	turn turretr1 to y-axis <0> speed <200.000000>;
+	turn turretr2 to x-axis <0> speed <200.000000>;
+	turn turretr2 to y-axis <0> speed <200.000000>;
+	turn turretl1 to x-axis <0> speed <200.000000>;
+	turn turretl1 to y-axis <0> speed <200.000000>;
+	turn turretl2 to x-axis <0> speed <200.000000>;
+	turn turretl2 to y-axis <0> speed <200.000000>;
+
+	wpn1_lasthead = 1000000;
+	turn base to y-axis <0.000000> speed <250.000000>;
+	turn base to x-axis <0.000000> speed <250.000000>;
+
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
 
 Create()
 {
@@ -60,7 +103,8 @@ Create()
 	turn turretl2 to y-axis <90> speed <200.000000>;
 
 
-	
+	aa_gun = 0;
+	wpn1_lasthead = 1000000;
 	
 	turn thrustrra to x-axis <-90> now; 
 	turn thrustfra to x-axis <-90> now; 
@@ -70,7 +114,7 @@ Create()
 	{
 		sleep 400;
 	}
-	start-script IdleHover();
+	//start-script IdleHover();
 }
 
 Activate()
@@ -150,9 +194,7 @@ AimFromWeapon6(piecenum)
 	piecenum = barrell2;
 }
 
-
 //flamer
-
 
 AimPrimary(heading, pitch)
 {
@@ -161,25 +203,23 @@ AimPrimary(heading, pitch)
 	
 	turn turretf to x-axis 0-pitch speed <200.000000>;
 	turn turretf to y-axis heading speed <200.000000>;
-
-
-	wait-for-turn turretf around x-axis;
-	wait-for-turn turretf around y-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn turretf around y-axis;
+		wait-for-turn turretf around x-axis;
+	}
+	wpn1_lasthead = heading;
+	start-script RestoreAfterDelay();
 	return (1);
-	
 }
-
 
 FirePrimary()
 {
-	sleep 100;
+	return (1);
 }
 
-
-
-
 //aa
-
 
 AimSecondary(heading, pitch)
 {
@@ -285,49 +325,6 @@ FireWeapon6()
 SetMaxReloadTime(Func_Var_1)
 {
 	restore_delay = Func_Var_1 * 2;
-}
-
-static-var  Stunned;
-ExecuteRestoreAfterDelay()
-{
-    if (Stunned) {
-        return (1);
-    }
-	
-	
-	turn turretaa to y-axis <0> speed <200.00000>;
-	turn sleeveaa to x-axis <0.00000> speed <200.00000>;
-	
-	
-	turn turretf to x-axis <45> speed <200.000000>;
-	turn turretf to y-axis <0> speed <200.000000>;
-	
-	
-	turn turretr1 to x-axis <45> speed <200.000000>;
-	turn turretr1 to y-axis <-90> speed <200.000000>;
-	turn turretr2 to x-axis <45> speed <200.000000>;
-	turn turretr2 to y-axis <-90> speed <200.000000>;
-	turn turretl1 to x-axis <45> speed <200.000000>;
-	turn turretl1 to y-axis <90> speed <200.000000>;
-	turn turretl2 to x-axis <45> speed <200.000000>;
-	turn turretl2 to y-axis <90> speed <200.000000>;
-
-	
-	turn base to y-axis <0.000000> speed <250.000000>;
-	turn base to x-axis <0.000000> speed <250.000000>;
-
-}
-SetStunned(State)
-{
-    Stunned = State;
-	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
-	}
-}
-RestoreAfterDelay()
-{
-	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelay();
 }
 
 StartMoving()

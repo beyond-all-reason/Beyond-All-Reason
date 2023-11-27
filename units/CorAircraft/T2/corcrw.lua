@@ -1,6 +1,7 @@
 return {
 	corcrw = {
 		acceleration = 0.15,
+		airsightdistance = 850,
 		activatewhenbuilt = true,
 		blocking = true,
 		bankingallowed = false,
@@ -38,7 +39,7 @@ return {
 		turnrate = 300,
 		upright = true,
 		customparams = {
-			maxrange = "450",
+			maxrange = "425",
 			unitgroup = 'weapon',
 			model_author = "Mr Bob, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
@@ -103,7 +104,7 @@ return {
 				predictboost = 1,
 				proximitypriority = 1,
 				range = 575,
-				reloadtime = 0.63333,
+				reloadtime = 1.266,
 				rgbcolor = "0 1 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
@@ -148,9 +149,9 @@ return {
 				noexplode = false,
 				noselfdamage = true,
 				predictboost = 1,
-				range = 550,
-				reloadtime = 0.39996,--3 0.09999,--burst 12 0.39996,
-				sizegrowth = 3,
+				range = 450,
+				reloadtime = 0.4,--3 0.09999,--burst 12 0.39996,
+				sizegrowth = 1.5,
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
 				soundtrigger = true,
@@ -165,7 +166,6 @@ return {
 					subs = 4,
 				}
 			},
-
 			dragon_missile = {
 				areaofeffect = 16,
 				avoidfeature = false,
@@ -182,7 +182,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cormissile.s3o",
-				name = "Advanced g2a rapid missile launcher",
+				name = "Advanced d2a rapid missile launcher",
 				noselfdamage = true,
 				range = 840,
 				reloadtime = 0.4,
@@ -214,8 +214,7 @@ return {
 					vtol = 76,
 				},
 			},
-
-			krowlaser2 = {
+			krowlaser2 = {--unused atm
 				areaofeffect = 32,
 				avoidfeature = false,
 				beamtime = 0.25,
