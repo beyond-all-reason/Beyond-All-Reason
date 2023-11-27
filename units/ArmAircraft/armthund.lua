@@ -28,7 +28,7 @@ return {
 		maxvelocity = 8.5,
 		maxwaterdepth = 0,
 		noautofire = true,
-		nochasecategory = "MOBILE",
+		nochasecategory = "VTOL",
 		objectname = "Units/ARMTHUND.s3o",
 		script = "Units/ARMTHUND.cob",
 		seismicsignature = 0,
@@ -109,7 +109,6 @@ return {
 				sprayangle = 300,
 				weapontype = "AircraftBomb",
 				damage = {
-					bombers = 21,
 					default = 105,
 					subs = 35,
 				},

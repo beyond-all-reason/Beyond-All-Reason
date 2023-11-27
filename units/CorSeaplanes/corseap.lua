@@ -114,9 +114,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				damage = {
-					bombers = 15,
 					default = 342,
-					fighters = 15,
 					vtol = 15,
 				},
 				customparams = {

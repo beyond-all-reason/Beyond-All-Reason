@@ -147,9 +147,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
 				damage = {
-					bombers = 25,
 					default = 160,
-					fighters = 25,
 					vtol = 25,
 				},
 			},
@@ -178,9 +176,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 550,
 				damage = {
-					bombers = 27,
 					default = 190,
-					fighters = 27,
 					subs = 70,
 					vtol = 27,
 				},

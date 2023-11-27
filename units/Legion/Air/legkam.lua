@@ -22,7 +22,7 @@ return {
 		maxacc = 0.1,
 		maxaileron = 0.028,
 		maxbank = 0.8,
-		maxdamage = 150,--111,
+		maxdamage = 160,--111,
 		maxelevator = 0.01,--0.003,
 		maxpitch = 0.625,
 		maxrudder = 0.015,
@@ -106,7 +106,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
 				damage = {
-					bombers = 1000,
 					default = 1,
 				},
 			},

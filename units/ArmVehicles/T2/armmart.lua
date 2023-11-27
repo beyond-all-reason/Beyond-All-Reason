@@ -24,7 +24,7 @@ return {
 		maxvelocity = 1.7,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
-		nochasecategory = "NOTLAND VTOL",
+		nochasecategory = "VTOL",
 		objectname = "Units/ARMMART.s3o",
 		script = "Units/ARMMART.cob",
 		seismicsignature = 0,
@@ -155,9 +155,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 355.28159,
 				damage = {
-					bombers = 26,
 					default = 260,
-					fighters = 26,
 					subs = 65,
 					vtol = 26,
 				},

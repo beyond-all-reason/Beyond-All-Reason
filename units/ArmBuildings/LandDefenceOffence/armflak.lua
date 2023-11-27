@@ -157,8 +157,6 @@ return {
 				weaponvelocity = 1600,
 				damage = {
 					--default = 125,
-					bombers = 250,
-					fighters = 500,
 					vtol = 250,
 				},
 				rgbcolor = {

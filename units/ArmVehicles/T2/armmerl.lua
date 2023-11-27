@@ -23,7 +23,7 @@ return {
 		maxvelocity = 1.1,
 		maxwaterdepth = 12,
 		movementclass = "HTANK4",
-		nochasecategory = "VTOL",
+		nochasecategory = "MOBILE VTOL",
 		objectname = "Units/ARMMERL.s3o",
 		script = "Units/ARMMERL.cob",
 		seismicsignature = 0,
@@ -39,7 +39,7 @@ return {
 		turninplacespeedlimit = 0.792,
 		turnrate = 520.29999,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles/t2",
