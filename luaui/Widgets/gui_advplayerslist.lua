@@ -3071,14 +3071,8 @@ function widget:MousePress(x, y, button)
                                         if clickedPlayer.team == myTeamID then
                                             Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
                                         else
-                                            local unitsCount = Spring.GetSelectedUnitsCount()
-                                            Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.giveUnits', { count = unitsCount, name = clickedPlayer.name }))
-                                            local selectedUnits = Spring.GetSelectedUnits()
-                                            for i = 1, #selectedUnits do
-                                                local ux, uy, uz = Spring.GetUnitPosition(selectedUnits[i])
-                                                Spring.MarkerAddPoint(ux, uy, uz)
-                                            end
                                             Spring_ShareResources(clickedPlayer.team, "units")
+                                            Spring.PlaySoundFile("beep4", 1, 'ui')
                                         end
                                     end
                                     release = nil
