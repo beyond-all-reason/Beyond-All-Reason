@@ -28,7 +28,7 @@ return {
 		maxvelocity = 8.5,
 		maxwaterdepth = 0,
 		noautofire = true,
-		nochasecategory = "MOBILE",
+		nochasecategory = "VTOL",
 		objectname = "Units/ARMTHUND.s3o",
 		script = "Units/ARMTHUND.cob",
 		seismicsignature = 0,
