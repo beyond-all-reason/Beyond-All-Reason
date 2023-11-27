@@ -2,11 +2,11 @@ return {
 	armhp = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 4200,
-		buildcostmetal = 1020,
+		buildcostenergy = 3000,
+		buildcostmetal = 900,
 		builder = true,
 		buildpic = "ARMHP.DDS",
-		buildtime = 10200,
+		buildtime = 11000,
 		canmove = true,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumescales = "100 40 90",
@@ -30,7 +30,7 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 286,
 		terraformspeed = 1000,
-		workertime = 200,
+		workertime = 100,
 		yardmap = "occccccooccccccooccccccooccccccooccccccooccccccoocccccco",
 		buildoptions = {
 			[1] = "armch",

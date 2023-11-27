@@ -163,6 +163,7 @@ return {
 					spark_range = "60",
 				},
 				damage = {
+					commanders = 31.5,
 					default = 21,
 					vtol = 2.5,
 				},
