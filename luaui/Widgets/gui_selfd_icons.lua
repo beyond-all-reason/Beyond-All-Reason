@@ -132,7 +132,7 @@ end
 function widget:DrawWorld()
 	if Spring.IsGUIHidden() then return end
 
-	gl.DepthTest(true)
+	gl.DepthTest(false)
 	gl.Color(0.9,0.9,0.9,1)
 
 	local unitScale, countdown
@@ -153,7 +153,7 @@ function widget:DrawWorld()
 
 	gl.Color(1,1,1,1)
 	gl.Texture(false)
-	gl.DepthTest(false)
+	gl.DepthTest(true)
 end
 
 function widget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
