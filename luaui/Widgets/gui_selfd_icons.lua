@@ -85,8 +85,8 @@ local function init()
 			-- check for queued selfd
 			local unitQueue = spGetCommandQueue(unitID,20) or {}
 			if (#unitQueue > 0) then
-				for i=1,#unitQueue do
-					if unitQueue[i].id == CMD.SELFD then
+				for j=1,#unitQueue do
+					if unitQueue[j].id == CMD.SELFD then
 						selfdUnits[unitID] = true
 					end
 				end
