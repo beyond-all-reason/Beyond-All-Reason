@@ -61,15 +61,21 @@ end
 local function DrawIcon(text)
 	local iconSize = 0.9
 	gl.PushMatrix()
+
+	gl.Color(0.9, 0.9, 0.9, 1)
 	gl.Texture(':n:LuaUI/Images/skull.dds')
-	gl.Translate(0.32,1,1.4)
 	gl.Billboard()
-	gl.TexRect(-(iconSize+0.085), 0, -0.08, iconSize)
+	gl.Translate(0, -1.2, 0)
+	gl.TexRect(-iconSize/2, -iconSize/2, iconSize/2, iconSize/2)
+	gl.Texture(false)
+
 	if text ~= 0 then
+		gl.Translate(iconSize/2, -iconSize/2, 0)
 		font:Begin()
-		font:Print(text,0,(iconSize/4),0.66,"oc")
+		font:Print(text, 0, 0, 0.66, "o")
 		font:End()
 	end
+
 	gl.PopMatrix()
 end
 
@@ -135,7 +141,6 @@ function widget:DrawWorld()
 	if Spring.IsGUIHidden() then return end
 
 	gl.DepthTest(false)
-	gl.Color(0.9,0.9,0.9,1)
 
 	local unitScale, countdown
 	for unitID, unitDefID in pairs(selfdUnits) do
@@ -153,8 +158,6 @@ function widget:DrawWorld()
 		end
 	end
 
-	gl.Color(1,1,1,1)
-	gl.Texture(false)
 	gl.DepthTest(true)
 end
 
