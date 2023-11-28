@@ -65,9 +65,11 @@ local function DrawIcon(text)
 	gl.Translate(0.32,1,1.4)
 	gl.Billboard()
 	gl.TexRect(-(iconSize+0.085), 0, -0.08, iconSize)
-	font:Begin()
-	font:Print(text,0,(iconSize/4),0.66,"oc")
-	font:End()
+	if text ~= 0 then
+		font:Begin()
+		font:Print(text,0,(iconSize/4),0.66,"oc")
+		font:End()
+	end
 	gl.PopMatrix()
 end
 
