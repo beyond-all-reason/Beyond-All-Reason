@@ -40,7 +40,7 @@ function widget:Initialize()
         'height'..columnSeparator..
         'metalcost'..columnSeparator..
 		'energycost'..columnSeparator..
-		'buildspeed'..columnSeparator..
+		'buildtime'..columnSeparator..
         'metalmake'..columnSeparator..
         'energymake'..columnSeparator..
         'buildpower'..columnSeparator..
@@ -63,8 +63,9 @@ function widget:Initialize()
         'airsightrange'..columnSeparator..
         'specials'..columnSeparator..
         'weapons'..columnSeparator..
-        'buildoptions'..
+        'buildoptions'..columnSeparator..
         'buildable'..columnSeparator..
+		'file'..columnSeparator..
         '\n'
     )
 
@@ -306,7 +307,7 @@ function widget:Initialize()
                     round(unitDef.height, 0)..columnSeparator..
                     unitDef.metalCost..columnSeparator..
 					unitDef.energyCost..columnSeparator..
-					unitDef.buildSpeed..columnSeparator..
+					unitDef.buildTime..columnSeparator..
                     metalMake..columnSeparator..
                     energyMake..columnSeparator..
                     unitDef.buildSpeed..columnSeparator..
@@ -330,7 +331,8 @@ function widget:Initialize()
                     specials..columnSeparator..
                     weapons..columnSeparator..
                     buildoptions..columnSeparator..
-                    (allBuildableDefs[udid] and '1' or '0')..
+                    (allBuildableDefs[udid] and '1' or '0')..columnSeparator..
+					(unitDef.customParams.subfolder and unitDef.customParams.subfolder..'/' or "") .. unitDef.name..'.lua'..
                     '\n'
                 )
             end

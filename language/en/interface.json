@@ -1156,6 +1156,8 @@
 				"gridmenu_descr": "Alternative build menu, designed for comprehensive hotkey use",
 				"gridmenu_alwaysreturn": "Grid always returns to categories",
 				"gridmenu_alwaysreturn_descr": "While queueing commands, return to categories page after issuing",
+				"gridmenu_autoselectfirst": "Grid category selects structure",
+				"gridmenu_autoselectfirst_descr": "When selecting a category, automatically activate the first option within that category",
 				"keylayout": "Keyboard Layout",
 				"keylayout_descr": "Set the keyboard layout",
 				"keybindings": "Keybind Preset",
