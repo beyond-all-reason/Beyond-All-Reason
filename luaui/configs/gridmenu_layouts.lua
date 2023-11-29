@@ -1239,7 +1239,7 @@ local unitGrids = {
 		{
 			{ "armbeamer", "armfast", "armamb", "armmav", },          -- beamer, sprinter, ambusher, maverick
 			{ "armflak", "armferret", "armjeth", "armpw", },          -- flak, ferret, T1 aa bot, peewee
-			{ "armdl", "armroy", "armsptk", "armamph", },                        -- coastal torp launcher, destroyer, missile spider, platypus
+			{ "armdl", "armroy", "armspid", "armamph", },             -- coastal torp launcher, destroyer, emp spider, platypus
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armveil", },          -- adv radar, camera, wall, adv jammer

@@ -1,4 +1,5 @@
 ﻿# November 2023
+• [Consul] Recluse removed from build list, Webber added to build list.
 • [Air units] Armorclasses merged for all air units, meaning that fighters and bombers will take the same amount of damage as gunships.  
 	- T1 fighters will kill other T1 fighters in 2 shots instead of 1
 	- T1 fighters will kill T2 fighters in 3 shots instead of 2
