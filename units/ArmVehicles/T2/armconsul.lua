@@ -60,7 +60,7 @@ return {
 			[15] = "armcv",
 			[16] = "armpw",
 			[17] = "armjeth",
-			[18] = "armsptk",
+			[18] = "armspid",
 			[19] = "armfast",
 			[20] = "armmav",
 			[21] = "armcs",

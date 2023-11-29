@@ -893,7 +893,7 @@ if Spring.GetModOptions().emprework == true then
 
 		if name == "armspid" then
 			uDef.weapondefs.spider.paralyzetime = 5			
-			uDef.weapondefs.spider.damage.default = 1500
+			--uDef.weapondefs.spider.damage.default = 1500
 		end
 
 		if name == "armdfly" then
