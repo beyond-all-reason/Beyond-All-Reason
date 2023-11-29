@@ -390,6 +390,16 @@ function UnitDef_Post(name, uDef)
 
 	-- Add balanced extras
 	if Spring.GetModOptions().releasecandidates then
+	
+	
+		--Better Dragon
+		if name == "coraap" then			
+			for ix, UnitName in pairs(uDef.buildoptions) do
+				if UnitName == "corcrw" then
+					uDef.buildoptions[ix] = "corcrwh"
+				end
+			end
+		end
 
 		--Shockwave mex
 		if name == "armaca" or name == "armack" or name == "armacv" then

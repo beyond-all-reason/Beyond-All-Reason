@@ -2296,6 +2296,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-air-gunship-large-ok",
 		BaseSoundWeaponType = "laser-large",
 	},
+	corcrwh = {
+		BaseSoundSelectType = "cor-air-gunship-large-sel",
+		BaseSoundMovementType = "cor-air-gunship-large-ok",
+		BaseSoundWeaponType = "laser-large",
+	},
 
 	-- LEGION COMMANDER
 	legcom = {

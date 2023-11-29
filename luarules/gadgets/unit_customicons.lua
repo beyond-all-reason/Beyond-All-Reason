@@ -466,6 +466,7 @@ local units = {
 	corcrash = { "bot_amph_aa.png", 1.05 },
 	corcrus = { "ship_t2_cruiser.png", 2.25749993 },
 	corcrw = { "air_krow.png", 2.0999999 },
+	corcrwh = { "air_krow.png", 2.0999999 },
 	corcrwt4 = { "corcrwt4.png", 3.3599999 },
 	corcs = { "ship_worker.png", 1.39649999 },
 	corcsa = { "air_worker_sea.png", 1.25999999 },
