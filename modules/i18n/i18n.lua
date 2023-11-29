@@ -16,7 +16,6 @@ for _, languageDir in ipairs(translationDirs) do
 	end
 end
 
-i18n.loadFile('language/test_french.lua')
 i18n.loadFile('language/test_unicode.lua')
 
 i18n.languages = {
