@@ -17876,6 +17876,9 @@ local unitDefLights = {
 		},
 	},
 }
+
+
+unitDefLights[UnitDefNames['corcrwh'].id] = unitDefLights[UnitDefNames['corcrw'].id]
 unitDefLights[UnitDefNames['armshltxuw'].id] = unitDefLights[UnitDefNames['armshltx'].id]
 unitDefLights[UnitDefNames['corgantuw'].id] = unitDefLights[UnitDefNames['corgant'].id]
 unitDefLights[UnitDefNames['armdecom'].id] = unitDefLights[UnitDefNames['armcom'].id]

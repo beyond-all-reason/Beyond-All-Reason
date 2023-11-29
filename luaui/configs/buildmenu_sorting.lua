@@ -111,6 +111,7 @@ local unitOrderTable = {
 	['corape']         = 004340,
 	['armblade']       = 004345,
 	['corcrw']         = 004348,
+	['corcrwh']         = 004347,
 	['legfort']        = 004349,
 
 	['armthund']       = 004350, --BOMBERS

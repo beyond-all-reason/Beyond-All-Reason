@@ -392,6 +392,7 @@ local armorDefs = {
 		"corbw",
 		"corape",
 		"corcrw",
+		"corcrwh",
 		"corcut",
 		"corcrwt4",
 		"armfepocht4",
