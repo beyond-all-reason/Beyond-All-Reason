@@ -139,25 +139,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	if Spring.GetModOptions().experimentalrebalancehovercrafttech == true then
-		if name == "corhp" or name == "corfhp" or name == "armhp" or name == "armfhp" then
-			uDef.buildcostmetal = 900 --730 --1100
-			uDef.buildcostenergy = 3000 --1800 --4200
-			uDef.buildtime = 11000 --7150 --11000
-			uDef.workertime = 100 --200
-		end
-		if name == "armch" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "armavp"
-			uDef.buildoptions[numBuildoptions+2] = "armasy"
-		end
-		if name == "corch" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "coravp"
-			uDef.buildoptions[numBuildoptions+2] = "corasy"
-		end
-	end
-
 	if Spring.GetModOptions().expandedt2sea == true then
 		if name == "corcrus" then
 			uDef.maxvelocity = 1.8
@@ -376,11 +357,13 @@ function UnitDef_Post(name, uDef)
 				armvulc = true,
 				corint = true,
 				corbuzz = true,
+				legstarfall = true,
 				armbotrail_scav = true,
 				armbrtha_scav = true,
 				armvulc_scav = true,
 				corint_scav = true,
 				corbuzz_scav = true,
+				legstarfall_scav = true,
 			}
 			if LRPCs[name] then
 				uDef.unitrestricted = 0
@@ -390,6 +373,16 @@ function UnitDef_Post(name, uDef)
 
 	-- Add balanced extras
 	if Spring.GetModOptions().releasecandidates then
+	
+	
+		--Better Dragon
+		if name == "coraap" then			
+			for ix, UnitName in pairs(uDef.buildoptions) do
+				if UnitName == "corcrw" then
+					uDef.buildoptions[ix] = "corcrwh"
+				end
+			end
+		end
 
 		--Shockwave mex
 		if name == "armaca" or name == "armack" or name == "armacv" then
@@ -994,92 +987,6 @@ if Spring.GetModOptions().emprework == true then
 end
 
 
-if Spring.GetModOptions().comtestchanges == true then
-		if name == "armdecom" then
-			uDef.maxdamage = 3700
-		end
-		if name == "cordecom" then
-			uDef.maxdamage = 3700
-		end
-		if name == "armcom" then
-			uDef.maxdamage = 3700
-			uDef.autoheal = 5
-		end
-		if name == "corcom" then
-			uDef.maxdamage = 3700
-			uDef.autoheal = 5
-		end
-		if name == "armllt" then
-			uDef.weapondefs.arm_lightlaser.damage = {
-					commanders = 112.5,
-					default = 75,
-					subs = 5,
-					vtol = 5,
-			}
-		end
-		if name == "armbeamer" then
-			uDef.weapondefs.armbeamer_weapon.damage = {
-					commanders = 40,
-					default = 26.6,
-					vtol = 2,
-			}
-		end
-		if name == "armclaw" then
-			uDef.weapondefs.dclaw.damage = {
-					commanders = 31.5,
-					default = 21,
-					vtol = 2.5,
-			}
-		end
-		if name == "armhlt" then
-			uDef.weapondefs.arm_laserh1.damage = {
-					commanders = 580.5,
-					default = 387,
-					vtol = 35,
-			}
-		end
-		if name == "corllt" then
-			uDef.weapondefs.cor_lightlaser.damage = {
-					commanders = 112.5,
-					default = 75,
-					subs = 5,
-					vtol = 5,
-			}
-		end
-		if name == "corexp" then
-			uDef.weapondefs.hllt_bottom.damage = {
-					commanders = 112.5,
-					default = 75,
-					vtol = 5,
-			}
-		end
-		if name == "corhllt" then
-			uDef.weapondefs.hllt_bottom.damage = {
-					commanders = 112.5,
-					default = 75,
-					vtol = 5,
-			}
-			uDef.weapondefs.hllt_top.damage = {
-					commanders = 112.5,
-					default = 75,
-					vtol = 5,
-			}
-		end
-		if name == "corhlt" then
-			uDef.weapondefs.cor_laserh1.damage = {
-					commanders = 392,
-					default = 261,
-					vtol = 35,
-			}
-		end
-		if name == "cormaw" then
-			uDef.weapondefs.dmaw.damage = {
-					commanders = 33,
-					default = 22,
-					subs = 5.5,
-			}
-		end
-	end
 
 	-- Multipliers Modoptions
 

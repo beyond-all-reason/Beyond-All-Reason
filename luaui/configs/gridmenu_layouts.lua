@@ -90,7 +90,7 @@ local labGrids = {
 	coraap = {
 		"coraca", "corvamp", "corape", "corhurc",              -- T2 con, fig, gunship, bomber
 		"corawac", "corseah", "cortitan", "",                 -- radar, transport, torpedo,
-		"corcrw",                                              -- krow
+		"corcrw","corcrwh",                                              -- krow
 	},
 	legaap = {
 		"legaca", "corvamp", "corape", "legnap",              -- T2 con, fig, gunship, bomber

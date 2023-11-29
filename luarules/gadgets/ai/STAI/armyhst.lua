@@ -281,6 +281,7 @@ function ArmyHST:Init()
 	self.airgun = {
 		armkam = true,
 		corcrw = true,
+		corcrwh = true,
 		corape = true,
 		armbrawl = true,
 		armblade = true,

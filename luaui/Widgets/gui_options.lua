@@ -2907,6 +2907,7 @@ function init()
 				  widgetHandler:DisableWidget('Grid menu')
 				  widgetHandler:EnableWidget('Build menu')
 			  end
+			  init()
 		  end,
 		},
 		{ id = "gridmenu_alwaysreturn", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_alwaysreturn'), type = "bool", value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getAlwaysReturn ~= nil and WG['gridmenu'].getAlwaysReturn()), description = Spring.I18N('ui.settings.option.gridmenu_alwaysreturn_descr'),
@@ -2914,6 +2915,13 @@ function init()
 		  end,
 		  onchange = function(_, value)
 			  saveOptionValue('Grid menu', 'gridmenu', 'setAlwaysReturn', { 'alwaysReturn' }, value)
+		  end,
+		},
+		{ id = "gridmenu_autoselectfirst", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_autoselectfirst'), type = "bool", value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getAutoSelectFirst ~= nil and WG['gridmenu'].getAutoSelectFirst()), description = Spring.I18N('ui.settings.option.gridmenu_autoselectfirst_descr'),
+		  onload = function()
+		  end,
+		  onchange = function(_, value)
+			  saveOptionValue('Grid menu', 'gridmenu', 'setAutoSelectFirst', { 'autoSelectFirst' }, value)
 		  end,
 		},
 
@@ -4474,12 +4482,7 @@ function init()
 		{ id = "language", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.language'), type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
 			onchange = function(i, value)
 				local language = languageCodes[value]
-				Spring.SetConfigString('language', language)
-				Spring.I18N.setLanguage(language)
-
-				if Script.LuaUI('LanguageChanged') then
-					Script.LuaUI.LanguageChanged()
-				end
+				WG['language'].setLanguage(language)
 			end
 		},
 		{ id = "font", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.font'), type = "select", options = {}, value = 1, description = Spring.I18N('ui.settings.option.font_descr'),
@@ -5486,6 +5489,7 @@ function init()
 
 	if not GetWidgetToggleValue('Grid menu') then
 		options[getOptionByID('gridmenu_alwaysreturn')] = nil
+		options[getOptionByID('gridmenu_autoselectfirst')] = nil
 	end
 
 
@@ -5522,15 +5526,6 @@ function init()
 		options[getOptionByID('font2')].value = getSelectKey(getOptionByID('font2'), string.sub(fname, 1, string.len(fname) - 4))
 	end
 
-	-- set sun minimal height
-	if getOptionByID('cus') then
-		if options[getOptionByID('cus')].value then
-			if WG.disabledCus ~= nil and WG.disabledCus then
-				options[getOptionByID('cus')].value = 0.5
-			end
-		end
-	end
-
 	-- check if cus is disabled by auto disable cus widget (in case options widget has been reloaded)
 	if getOptionByID('sun_y') then
 		if select(2, gl.GetSun("pos")) < options[getOptionByID('sun_y')].min then
@@ -5557,12 +5552,6 @@ function init()
 
 		-- set vsync
 		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
-
-		-- disable old cus
-		if Spring.GetConfigInt("cus", 0) == 1 then
-			Spring.SetConfigInt("cus", 0)
-			Spring.SendCommands("luarules disablecus")
-		end
 	end
 	if not waterDetected then
 		Spring.SendCommands("water 0")
@@ -5589,10 +5578,15 @@ function init()
 		--	options[id].onchange(id, options[id].value)
 		--end
 
+		-- disable engine decals (footprints)
+		options[getOptionByID('decals')] = nil
+		if Spring.GetConfigInt("GroundDecals", 3) > 0 then
+			Spring.SendCommands("GroundDecals 0")
+			Spring.SetConfigInt("GroundDecals", 0)
+		end
+
 		if isPotatoGpu then
-			Spring.SendCommands("luarules disablecus")
 			Spring.SendCommands("luarules disablecusgl4")
-			options[getOptionByID('cus')] = nil
 			options[getOptionByID('cusgl4')] = nil
 
 			-- limit available msaa levels to 'off' and 'x2'
@@ -5650,7 +5644,7 @@ function init()
 		end
 
 	elseif gpuMem >= 3000 then
-		if (Spring.GetConfigInt("cus2", 1) ~= 1) then
+		if Spring.GetConfigInt("cus2", 1) ~= 1 then
 			local id = getOptionByID('cusgl4')
 			options[id].onchange(id, 1)
 		end

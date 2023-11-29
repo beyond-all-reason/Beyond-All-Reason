@@ -149,11 +149,15 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 
 end
 
+local ihavejoined = false
 function widget:GameSetup(state, ready, playerStates)
-
+	local spec, fullview = Spring.GetSpectatingState()
 	-- sends a "I arrived" message
-	if Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") == nil then
+	if (not spec) and 
+	   (Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") == nil)
+	   or (ihavejoined == false) then
 		Spring.SendLuaRulesMsg("joined_game") 
+		ihavejoined = true
 	end
 
 	-- check when the 3.2.1 countdown starts

@@ -40,7 +40,7 @@ function widget:Initialize()
         'height'..columnSeparator..
         'metalcost'..columnSeparator..
 		'energycost'..columnSeparator..
-		'buildspeed'..columnSeparator..
+		'buildtime'..columnSeparator..
         'metalmake'..columnSeparator..
         'energymake'..columnSeparator..
         'buildpower'..columnSeparator..
@@ -63,8 +63,9 @@ function widget:Initialize()
         'airsightrange'..columnSeparator..
         'specials'..columnSeparator..
         'weapons'..columnSeparator..
-        'buildoptions'..
+        'buildoptions'..columnSeparator..
         'buildable'..columnSeparator..
+		'file'..columnSeparator..
         '\n'
     )
 
@@ -210,12 +211,8 @@ function widget:Initialize()
                                     weapName = 'EMP-StarburstLauncher'
                                 end
                             else
-                                if WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["fighters"]] and WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["fighters"]] > WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["default"] or 0] then
-                                    if WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["bombers"]] and WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["vtol"]] then
-                                        dps = dps + (((((WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["fighters"]]+WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["bombers"]]+WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["vtol"]])/3)*(1/WeaponDefs[weapon.weaponDef].reload)) * WeaponDefs[weapon.weaponDef].salvoSize) * WeaponDefs[weapon.weaponDef].projectiles)
-                                    else
-                                        dps = dps + (((WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["fighters"]]*(1/WeaponDefs[weapon.weaponDef].reload)) * WeaponDefs[weapon.weaponDef].salvoSize) * WeaponDefs[weapon.weaponDef].projectiles)
-                                    end
+								if WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["vtol"]] > WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["default"] or 0] then
+									dps = dps + (((WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["vtol"]]*(1/WeaponDefs[weapon.weaponDef].reload)) * WeaponDefs[weapon.weaponDef].salvoSize) * WeaponDefs[weapon.weaponDef].projectiles)
                                 else
                                     dps = dps + (((WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["default"] or 0]*(1/WeaponDefs[weapon.weaponDef].reload)) * WeaponDefs[weapon.weaponDef].salvoSize) * WeaponDefs[weapon.weaponDef].projectiles)
                                 end
@@ -306,7 +303,7 @@ function widget:Initialize()
                     round(unitDef.height, 0)..columnSeparator..
                     unitDef.metalCost..columnSeparator..
 					unitDef.energyCost..columnSeparator..
-					unitDef.buildSpeed..columnSeparator..
+					unitDef.buildTime..columnSeparator..
                     metalMake..columnSeparator..
                     energyMake..columnSeparator..
                     unitDef.buildSpeed..columnSeparator..
@@ -330,7 +327,8 @@ function widget:Initialize()
                     specials..columnSeparator..
                     weapons..columnSeparator..
                     buildoptions..columnSeparator..
-                    (allBuildableDefs[udid] and '1' or '0')..
+                    (allBuildableDefs[udid] and '1' or '0')..columnSeparator..
+					(unitDef.customParams.subfolder and unitDef.customParams.subfolder..'/' or "") .. unitDef.name..'.lua'..
                     '\n'
                 )
             end
