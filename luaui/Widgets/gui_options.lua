@@ -4482,12 +4482,7 @@ function init()
 		{ id = "language", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.language'), type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
 			onchange = function(i, value)
 				local language = languageCodes[value]
-				Spring.SetConfigString('language', language)
-				Spring.I18N.setLanguage(language)
-
-				if Script.LuaUI('LanguageChanged') then
-					Script.LuaUI.LanguageChanged()
-				end
+				WG['language'].setLanguage(language)
 			end
 		},
 		{ id = "font", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.font'), type = "select", options = {}, value = 1, description = Spring.I18N('ui.settings.option.font_descr'),
