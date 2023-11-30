@@ -104,7 +104,7 @@ return {
 				predictboost = 1,
 				proximitypriority = 1,
 				range = 575,
-				reloadtime = 1.266,
+				reloadtime = 0.8,
 				rgbcolor = "0 1 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
@@ -162,8 +162,8 @@ return {
 				weapontype = "Flame",
 				weaponvelocity = 500,
 				damage = {
-					default = 8,
-					subs = 4,
+					default = 6,
+					subs = 3,
 				}
 			},
 			dragon_missileh = {
@@ -256,7 +256,7 @@ return {
 				def = "dragonmawh",
 				onlytargetcategory = "SURFACE",
 				maindir = "0 -1 1",
-                maxangledif = 180,
+                maxangledif = 240,
 			},
 			[2] = {
 				def = "dragon_missileh",
@@ -268,25 +268,25 @@ return {
 				def = "KROWLASERH",
 				onlytargetcategory = "SURFACE",
 				maindir = "1 -1 0",
-                maxangledif = 180,
+                maxangledif = 210,
 			},
 			[4] = {
 				def = "KROWLASERH",
 				onlytargetcategory = "SURFACE",
 				maindir = "1 -1 0",
-                maxangledif = 180,
+                maxangledif = 240,
 			},
 			[5] = {
 				def = "KROWLASERH",
 				onlytargetcategory = "SURFACE",
 				maindir = "-1 -1 0",
-                maxangledif = 180,
+                maxangledif = 210,
 			},
 			[6] = {
 				def = "KROWLASERH",
 				onlytargetcategory = "SURFACE",
 				maindir = "-1 -1 0",
-                maxangledif = 180,
+                maxangledif = 240,
 			},
 		},
 	},
