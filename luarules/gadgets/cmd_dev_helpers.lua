@@ -441,8 +441,8 @@ if gadgetHandler:IsSyncedCode() then
 			-- some odd behavior with start box highlighting
 			if isTerrainMod(debugString) then
 				terrainMods(debugString)
-					-- we only need to find 1 command to pass over, cancel actual debug commands
-					return
+				-- we only need to find 1 command to pass over, cancel actual debug commands
+				return
 			end
 			
 
@@ -614,7 +614,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame(n)
-		if n == 1 and terrainMods(Spring.GetModOptions().debugcommands) then
+		if n == 1 and isTerrainMod(Spring.GetModOptions().debugcommands) then
 			adjustFeatureHeight()
 		end
 		if fightertestenabled then
