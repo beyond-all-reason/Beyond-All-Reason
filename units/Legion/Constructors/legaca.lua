@@ -52,6 +52,7 @@ return {
 			"corshroud",
 			"corscavfort",
 			"corasp",
+			"corfasp",
 			"cortarg",
 			"corsd",
 			"corgate",

@@ -52,6 +52,7 @@ return {
 			"armveil",
 			"armfort",
 			"armasp",
+			"armfasp",
 			"armtarg",
 			"armsd",
 			"armgate",

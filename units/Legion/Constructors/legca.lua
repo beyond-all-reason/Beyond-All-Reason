@@ -49,6 +49,7 @@ return {
 			"legmext15",
 			"cormakr",
 			"corasp",
+			"corfasp",
 			"legaap",
 			"leglab",
 			"legvp",
