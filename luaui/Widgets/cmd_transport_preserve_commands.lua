@@ -1,17 +1,16 @@
 function widget:GetInfo()
     return {
-        name	= "Preserve Commands",
-        desc	= "Preserves a unit's command queue after it has been transported",
+        name	= "Preserve Commands After Transport",
+        desc	= "Preserves a unit's build queue after it has been transported, ignores non-build commands",
         author  = "Jazcash",
         date 	= "October 2023",
         license	= "idklmao",
         layer 	= 0,
-        enabled	= false
+        enabled	= true
     }
 end
 
 local orders = {}
-local ignoreInitialCommands = { CMD.MOVE, CMD.GUARD, CMD.LOAD_ONTO }
 
 function widget:Initialize()
     if Spring.IsReplay() then
@@ -26,9 +25,13 @@ end
 function widget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
     if (orders[unitID] and #orders[unitID]) then
         local newOrders = {}
+        local firstBuildCmd = false
 
         for i, command in ipairs(orders[unitID]) do
-            if (i > 1 or not table.contains(ignoreInitialCommands, command.id)) then
+            if (command.id < 0 and firstBuildCmd == false) then
+                firstBuildCmd = true
+            end
+            if (firstBuildCmd == true) then
                 table.insert(newOrders, {command.id, command.params, command.options})
             end
         end
