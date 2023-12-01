@@ -182,15 +182,20 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	-- mode height related --
 	-- valid terrain modifiers:<br>
 	-- modifier [optional]<br>
 	--	invertmap [wet]<br>
 	--	extrene [multiplier]<br>
 	--	minheight [minheight] or minheight [mode] [1-unknown] (which mode array value to use) [0.0f-10.0f] (as steprounding offset)<br>
-	local terrainTriggers = {invertmap=true,extreme=true,flatten=true,maze=false,minheight=true,maxheight=true}
+	local terrainTriggers = {
+		invertmap=true, minheight=true, maxheight=true,
+		extreme=true, extremeFrom=true, extremeAbove=true, extremeBellow=true,
+		flatten=true, floor=true, ceiling=true,
+	}
 	local function isTerrainMod(debugString)
-		for trigger, active in pairs(terrainTriggers) do
-			if active and string.find(debugString, trigger) then
+		for trigger, params in pairs(terrainTriggers) do
+			if string.find(debugString, trigger) then
 				return true
 			end
 		end
@@ -200,259 +205,183 @@ if gadgetHandler:IsSyncedCode() then
 	-- all deformers are performed independantly, rather than merged into a more efficent single caculation, to let the user
 	local function terrainMods(debugString)
 		local commands = string.split(debugString," ")
+
+		-- do we need a list of most common hights? and if so sample it once for all functions
+		-- mode, math mode as in mean, median, and mode, where mode is the most commonly occuring value
+		-- height gets rounded into stepsize of 10, counted, and sorted based on that count
+		local mode = string.find(debugString, "mode") or false
+		local modeArray = {[1]=0}
+		local modeOffset = 0
+		if mode then
+			-- do we have an offset command
+
+			-- count the most common heights, in height groups step sized 10
+			local height, smallestStepHeight = 0, 0
+			local tempModeArray = {}
+			for z=0,Game.mapSizeZ, Game.squareSize do
+				for x=0,Game.mapSizeX, Game.squareSize do
+					height = Spring.GetGroundHeight ( x, z ) or 0
+					smallestStepHeight = math.floor((height)/10)
+					if tempModeArray[smallestStepHeight] then
+						tempModeArray[smallestStepHeight][1] = tempModeArray[smallestStepHeight][1] + 1
+					else
+						tempModeArray[smallestStepHeight] = {1,
+							math.floor((height)/10)*10+5
+						}
+					end
+				end
+			end
+
+			-- drop the step and sort the heights
+			modeArray = {}
+			for _, val in pairs(tempModeArray) do
+				table.insert(modeArray, val)
+			end
+			tempModeArray = {}
+			table.sort(modeArray,
+				function(a,b) return a[1] > b[1] end
+			)
+
+			-- log the table of mode heights, might be useful for users who wish to fish them out
+			Spring.Echo("cmd_dev_helpers, terrainMods; generating table format mode height sampling")
+			Spring.Echo("where id is sorted by most common map height for this map")
+			Spring.Echo("id: | height: |\tid: | height: |\tid: | height:")
+			local tableDebth = math.floor(#modeArray / 3)
+			for j = 1, tableDebth do
+				Spring.Echo(
+					j.."\t"..modeArray[j][2].."\t\t\t"..
+					j+tableDebth.."\t"..modeArray[j+tableDebth][2].."\t\t\t"..
+					j+tableDebth+tableDebth.."\t"..modeArray[j+tableDebth+tableDebth][2]
+				)
+			end
+			Spring.Echo("cmd_dev_helpers, terrainMods, end of table")
+		end
+
+		-- used for reading mode position within the array's constraints or 0
+		local function sampleMode(pos)
+			if pos == nil then return modeArray[1][2] end
+			if pos == -1 then return modeArray[#modeArray][2] end
+			return modeArray[math.min(math.max(1,pos), #modeArray)][2] or 0
+		end
+
+		-- end of mode height related sampling --
+		local definedHeight = 0
 		for i = 1, #commands do
+			definedHeight = 0
 
 			---------------
 			-- invertmap --
 			---------------
-			if commands[i] == "invertmap" then
-				local offset, inverter
-				if (commands[i+1] == "wet") then
-					offset = 0
-				else
-					_, _, _, offset = Spring.GetGroundExtremes()
-				end
-				inverter = -1
-				Spring.SetHeightMapFunc(function()
-					for z=0,Game.mapSizeZ, Game.squareSize do
-						for x=0,Game.mapSizeX, Game.squareSize do
-							Spring.SetHeightMap( x, z, (offset+inverter*Spring.GetGroundHeight ( x, z )))
-						end
-					end
-				end)
-			end
-			
-			-----------------------
-			-- height multiplier --
-			-----------------------
-			if commands[i] == "extreme" then
-				local multiplier = 1
+			if terrainTriggers[commands[i]] then
+				local paramsDepth = 0
+				-- do we have a passed in height or call to use a mode found height
 				if commands[i+1] ~= nil then
-					multiplier = multiplier * (tonumber(commands[i+1]) or 2)
-				else
-					multiplier = multiplier * 2
-				end
-				-------------------------
-				-- terrain deformation -- incrase height intensity
-				-------------------------
-				Spring.SetHeightMapFunc(function()
-					for z=0,Game.mapSizeZ, Game.squareSize do
-						for x=0,Game.mapSizeX, Game.squareSize do
-							Spring.SetHeightMap( x, z, Spring.GetGroundHeight ( x, z )*multiplier)
-						end
-					end
-				end)
-			end
-
-			---------------------------------
-			-- minimum height to flip over --
-			---------------------------------
-			if commands[i] == "minheight" then
-				local minInverter
-				-- are we finding the most common ground height to flip points bellow
-				if commands[i+1] == "mode" then
-					local mode = {}
-					local tmp, meanTmp = 0, 0
-					local stepSizeOffset, pick
-					pick = tonumber(commands[i+2])
-					-- try to extract some extra params for use with mode min height selection
-					if pick then
-						stepSizeOffset = tonumber(commands[i+3])
-						if stepSizeOffset then
-							stepSizeOffset = math.max(math.min(9, stepSizeOffset), 0)
+					paramsDepth = 1
+					if commands[i+1] == "mode" then
+						if commands[i+2] ~= nil then
+							definedHeight = sampleMode(tonumber(commands[i+2]))
+							paramsDepth = 2
 						else
-							stepSizeOffset = 0
+							definedHeight = sampleMode(1)
+							paramsDepth = 1
 						end
+					elseif commands[i+1] == "wet" then
+						-- we are using the second param, instead of 4th, as we don't finalize the orginal heightmap till the end
+						_, definedHeight  = Spring.GetGroundExtremes()
 					else
-						pick = 1
-						stepSizeOffset = 0
+						definedHeight = tonumber(commands[i+1]) or 0
+						definedHeight = definedHeight - modeOffset
 					end
-					
-					-- create a list to pick a mode value from, rounding the nearest 10 together
-					for z=0,Game.mapSizeZ, Game.squareSize do
-						for x=0,Game.mapSizeX, Game.squareSize do
-							tmp = Spring.GetGroundHeight ( x, z ) or 0
-							meanTmp = math.floor((tmp+stepSizeOffset)/10)
-							if mode[meanTmp] then
-								mode[meanTmp] = {
-									mode[meanTmp][1] + 1,
-									math.min( mode[meanTmp][2],tmp )
-								}
-							else
-								mode[meanTmp] = {1, tmp}
+				end
+				definedHeight = definedHeight + modeOffset
+
+				-- invertmap - flip heightmap
+				if commands[i] == "invertmap" then
+					Spring.SetHeightMapFunc(function()
+						for z=0,Game.mapSizeZ, Game.squareSize do
+							for x=0,Game.mapSizeX, Game.squareSize do
+								Spring.SetHeightMap( x, z, (definedHeight-Spring.GetGroundHeight ( x, z )))
 							end
 						end
-					end
-					-- sort these results so that the user may pick one other than best, and to print them out for later use
-					do
-						local sorted = {}
-						for _, val in pairs(mode) do
-							table.insert(sorted, val)
-						end
-						table.sort(sorted,
-							function(a,b) return a[1] > b[1] end
-						)
-						Spring.Echo("cmd_dev_helpers, terrainMods; generating table format for minheight mode")
-						Spring.Echo("where id is sorted by most common map height for this map with step offset: "..stepSizeOffset )
-						Spring.Echo("id: | height: |\tid: | height: |\tid: | height:")
-						local tableDebth = math.floor(#sorted / 3)
-						for j = 1, tableDebth do
-							Spring.Echo(
-								j.."\t"..sorted[j][2].."\t"..
-								j+tableDebth.."\t"..sorted[j+tableDebth][2].."\t"..
-								j+tableDebth+tableDebth.."\t"..sorted[j+tableDebth+tableDebth][2]
-							)
-						end
-						Spring.Echo("cmd_dev_helpers, terrainMods, end of table")
-						minInverter = sorted[pick][2]
-						Spring.Echo("cmd_dev_helpers, terrainMods, minheight inversion, mode, used height: "..minInverter)
-					end
-				-- try to use the second param as the invert bellow height
-				elseif commands[i+1] ~= nil then
-					minInverter = tonumber(commands[i+1]) or 0
-				-- use ground zero as bellow point to flip
-				else
-					minInverter =  0
-				end
+					end)
 
-				-------------------------
-				-- terrain deformation -- bellow a certain point goes up
-				-------------------------
-				Spring.SetHeightMapFunc(function()
-					for z=0,Game.mapSizeZ, Game.squareSize do
-						for x=0,Game.mapSizeX, Game.squareSize do
-							Spring.SetHeightMap( x, z, (math.abs(Spring.GetGroundHeight ( x, z )-minInverter)+minInverter))
-						end
-					end
-				end)
-			end -- end of min height
-
-			---------------------------------
-			-- maxiumum height to flip over --
-			---------------------------------
-			if commands[i] == "maxheight" then
-				local minInverter
-				-- are we finding the most common ground height to flip points above
-				if commands[i+1] == "mode" then
-					local mode = {}
-					local tmp, meanTmp = 0, 0
-					local stepSizeOffset, pick
-					pick = tonumber(commands[i+2])
-					-- try to extract some extra params for use with mode max height selection
-					if pick then
-						stepSizeOffset = tonumber(commands[i+3])
-						if stepSizeOffset then
-							stepSizeOffset = math.max(math.min(9, stepSizeOffset), 0)
-						else
-							stepSizeOffset = 0
-						end
-					else
-						pick = 1
-						stepSizeOffset = 0
-					end
-					
-					-- create a list to pick a mode value from, rounding the nearest 10 together
-					for z=0,Game.mapSizeZ, Game.squareSize do
-						for x=0,Game.mapSizeX, Game.squareSize do
-							tmp = Spring.GetGroundHeight ( x, z ) or 0
-							meanTmp = math.floor((tmp+stepSizeOffset)/10)
-							if mode[meanTmp] then
-								mode[meanTmp] = {
-									mode[meanTmp][1] + 1,
-									math.min( mode[meanTmp][2],tmp )
-								}
-							else
-								mode[meanTmp] = {1, tmp}
+				-- extreme - multipliy the heightmap
+				elseif commands[i] == "extreme" then
+					-- we neglect results of the previous next command check, in case it wasn't a multiplier
+					local multiplier = math.clamp(tonumber(commands[i+1]) or 2, -10, 10)
+					Spring.SetHeightMapFunc(function()
+						for z=0,Game.mapSizeZ, Game.squareSize do
+							for x=0,Game.mapSizeX, Game.squareSize do
+								Spring.SetHeightMap( x, z, Spring.GetGroundHeight ( x, z ) * multiplier)
 							end
 						end
-					end
-					-- sort these results so that the user may pick one other than best, and to print them out for later use
-					do
-						local sorted = {}
-						for _, val in pairs(mode) do
-							table.insert(sorted, val)
+					end)
+				elseif commands[i] == "extremeFrom" or commands[i] == "extremeAbove" then
+					local multiplier = math.clamp(tonumber(commands[i+paramsDepth+1]) or 2, -10, 10)
+					Spring.SetHeightMapFunc(function()
+						for z=0,Game.mapSizeZ, Game.squareSize do
+							for x=0,Game.mapSizeX, Game.squareSize do
+								local tmp = Spring.GetGroundHeight ( x, z )
+								if tmp > definedHeight then
+									Spring.SetHeightMap( x, z, (tmp - definedHeight) * multiplier + definedHeight )
+								end
+							end
 						end
-						table.sort(sorted,
-							function(a,b) return a[1] > b[1] end
-						)
-						Spring.Echo("cmd_dev_helpers, terrainMods; generating table format for maxheight mode")
-						Spring.Echo("where id is sorted by most common map height for this map with step offset: "..stepSizeOffset )
-						Spring.Echo("id: | height: |\tid: | height: |\tid: | height:")
-						local tableDebth = math.floor(#sorted / 3)
-						for j = 1, tableDebth do
-							Spring.Echo(
-								j.."\t"..sorted[j][2].."\t"..
-								j+tableDebth.."\t"..sorted[j+tableDebth][2].."\t"..
-								j+tableDebth+tableDebth.."\t"..sorted[j+tableDebth+tableDebth][2]
-							)
+					end)
+				elseif commands[i] == "extremeBellow" then
+					local multiplier = math.clamp(tonumber(commands[i+paramsDepth+1]) or 2, -10, 10)
+					Spring.SetHeightMapFunc(function()
+						for z=0,Game.mapSizeZ, Game.squareSize do
+							for x=0,Game.mapSizeX, Game.squareSize do
+								local tmp = Spring.GetGroundHeight ( x, z )
+								if tmp < definedHeight then
+									Spring.SetHeightMap( x, z, (tmp - definedHeight) * multiplier + definedHeight )
+								end
+							end
 						end
-						Spring.Echo("cmd_dev_helpers, terrainMods, end of table")
-						minInverter = sorted[pick][2]
-						Spring.Echo("cmd_dev_helpers, terrainMods, maxheight inversion, mode, used height: "..minInverter)
-					end
-				-- try to use the second param as the invert bellow height
-				elseif commands[i+1] ~= nil then
-					minInverter = tonumber(commands[i+1]) or 0
-				-- use ground zero as bellow point to flip
-				else
-					minInverter =  0
-				end
+					end)
 
-				-------------------------
-				-- terrain deformation -- bellow a certain point goes up
-				-------------------------
-				Spring.SetHeightMapFunc(function()
-					for z=0,Game.mapSizeZ, Game.squareSize do
-						for x=0,Game.mapSizeX, Game.squareSize do
-							Spring.SetHeightMap( x, z, -(math.abs(-Spring.GetGroundHeight ( x, z )+minInverter)-minInverter))
+				-- minheight - flip anything bellow above
+				elseif commands[i] == "minheight" then
+					Spring.SetHeightMapFunc(function()
+						for z=0,Game.mapSizeZ, Game.squareSize do
+							for x=0,Game.mapSizeX, Game.squareSize do
+								Spring.SetHeightMap( x, z, (math.abs(Spring.GetGroundHeight ( x, z ) - definedHeight ) + definedHeight ) )
+							end
 						end
-					end
-				end)
-			end -- end of max height
+					end)
 
-			--------------------
-			-- maze generator --
-			--------------------
-			if commands[i] == "maze" and false then
-				local mazeMirror,mazeType,mazeSize
-				local mirrors = {
-					-- letters N/W/E/S compas, two letters reffer to from to, e.g. LR left to right,
-					-- C corner, U/D/L/R same as compass, where the subsequent two letter define direction CDR = from corner going down right
-					-- defines line of symetry
-					WE=0,EW=0,LR=0,RL=0, -- vertical line of symetry
-					NS=1,SN=1,UD=1,DU=1, -- horizontal line of symetry
-					CDR=2,CUL=2,CSE=2,CNW=2, -- diagonal
-					CDL=3,CUR=3,CSW=3,CNE=3, -- diagonal
-					C4=4, -- make all 4 corners match
-					E4=5, -- make all 4 edges match
-				}
-				local types = {
-					normal=0 -- single floors, and walls
-					--river=1,lake=1,rivers=1,lakes=1 -- has rivers
-				}
-				local sizes = {
-					-- sx=1
-					small=2,
-				}
-				if commands[i+1] ~= nil then
-					mazeMirror = mirrors[commands[i+1]] or 0
-					mazeType = types[commands[i+1]] or 0
-					mazeSize = sizes[commands[i+1]] or 0
-					if commands[i+2] ~= nil then
-						mazeMirror = mirrors[commands[i+2]] or mazeMirror
-						mazeType = types[commands[i+2]] or mazeType
-						mazeSize = sizes[commands[i+2]] or mazeSize
-						if commands[i+3] ~= nil then
-							mazeMirror = mirrors[commands[i+3]] or mazeMirror
-							mazeType = types[commands[i+3]] or mazeType
-							mazeSize = sizes[commands[i+3]] or mazeSize
+				-- maxheight - flip anything above bellow
+				elseif commands[i] == "maxheight" then
+					Spring.SetHeightMapFunc(function()
+						for z=0,Game.mapSizeZ, Game.squareSize do
+							for x=0,Game.mapSizeX, Game.squareSize do
+								Spring.SetHeightMap( x, z, -(math.abs(-Spring.GetGroundHeight ( x, z ) + definedHeight ) - definedHeight ) )
+							end
 						end
-					end
+					end)
+
+				elseif commands[i] == "ceiling" or commands[i] == "flatten" then
+					Spring.SetHeightMapFunc(function()
+						for z=0,Game.mapSizeZ, Game.squareSize do
+							for x=0,Game.mapSizeX, Game.squareSize do
+								Spring.SetHeightMap( x, z, math.min(Spring.GetGroundHeight ( x, z ), definedHeight ) )
+							end
+						end
+					end)
+				elseif commands[i] == "floor" then
+					Spring.SetHeightMapFunc(function()
+						for z=0,Game.mapSizeZ, Game.squareSize do
+							for x=0,Game.mapSizeX, Game.squareSize do
+								Spring.SetHeightMap( x, z, math.max(Spring.GetGroundHeight ( x, z ), definedHeight ) )
+							end
+						end
+					end)
 				end
+			elseif commands[i] == "modeOffset" and commands[i+1] then
+				modeOffset = tonumber(commands[i+1]) or 0
 			end
 		end
-
-
 
 		-- orginal height map so that restore ground command doesn't dig trenches or construct mountains
 		Spring.SetOriginalHeightMapFunc(function()
@@ -470,6 +399,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end)
+
 		-- Edge patchwork, something is not right with map edges, i don't know if its the above functions that fail, or if it is during map making
 		do
 		Spring.SetHeightMapFunc(function()
