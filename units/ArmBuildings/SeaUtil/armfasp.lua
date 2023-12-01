@@ -24,8 +24,7 @@ return {
 		idletime = 1800,
 		mass = 200000,
 		maxdamage = 1670,
-		maxslope = 10,
-		maxwaterdepth = 1,
+		minwaterdepth = 5,
 		objectname = "Units/ARMFASP.s3o",
 		onoffable = true,
 		script = "Units/ARMASP.cob",
@@ -33,6 +32,7 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 357.5,
 		terraformspeed = 5000,
+		waterline = 3,
 		workertime = 1000,
 		yardmap = "ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
 		customparams = {
