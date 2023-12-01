@@ -1785,6 +1785,55 @@ local function MarkBinCUSGL4(optName, line, words, playerID)
 	markBin(passnum)
 end
 
+local function FreeTextures() -- pre we are using 2200mb
+	-- free all raptor texes
+	-- free all pilha texes
+	Spring.Echo("Freeing textures")
+	--delete raptor texes if no raptors are present
+	for unitDefID, uniformBin in pairs(objectDefToUniformBin) do 
+		if uniformBin == 'raptor' then 
+			local textureTable = textureKeytoSet[fastObjectDefIDtoTextureKey[unitDefID]]
+			local s1 = gl.DeleteTexture(textureTable[0])
+			local s2 = gl.DeleteTexture(textureTable[1])
+			
+			Spring.Echo("Freeing ",textureTable[0],textureTable[1], s1, s2)
+		end
+	end
+
+	-- delete feature texes if not present, except wrecks of course
+	local features = Spring.GetAllFeatures()
+
+	local delFeatureDefs = {}
+	for featureDefID, featureDef in pairs(FeatureDefs) do delFeatureDefs[featureDefID] = true end 
+
+	for i, featureID in ipairs(features) do 
+		local existingFeatureDefID = Spring.GetFeatureDefID(featureID)
+		delFeatureDefs[existingFeatureDefID] = false
+	end
+
+	for featureDefID, deleteme in pairs(delFeatureDefs) do 
+		local textureTable = textureKeytoSet[fastObjectDefIDtoTextureKey[-featureDefID]]
+			local s1 = gl.DeleteTexture(textureTable[0])
+			local s2 = gl.DeleteTexture(textureTable[1])
+			
+			Spring.Echo("Freeing ",textureTable[0],textureTable[1], s1, s2)
+	end
+	
+	Spring.Echo("RawDelete")
+	local unittexfiles = VFS.DirList("unittextures/")
+	for i, fname in ipairs(unittexfiles) do 
+		if string.find(fname,'chicken', nil, true) then 
+			local s1 = gl.DeleteTexture(fname)
+			Spring.Echo("Freeing ",fname, s1)
+
+		end
+		
+	end
+	
+	
+end
+
+
 function gadget:Initialize()
 	gadgetHandler:AddChatAction("reloadcusgl4", ReloadCUSGL4)
 	gadgetHandler:AddChatAction("disablecusgl4", DisableCUSGL4)
@@ -1792,6 +1841,7 @@ function gadget:Initialize()
 	gadgetHandler:AddChatAction("debugcusgl4", DebugCUSGL4)
 	gadgetHandler:AddChatAction("dumpcusgl4", DumpCUSGL4)
 	gadgetHandler:AddChatAction("markbincusgl4", MarkBinCUSGL4)
+	gadgetHandler:AddChatAction("freetextures", FreeTextures)
 	if not initiated and tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
 		initGL4()
 	end

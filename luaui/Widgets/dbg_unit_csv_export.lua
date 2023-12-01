@@ -211,12 +211,8 @@ function widget:Initialize()
                                     weapName = 'EMP-StarburstLauncher'
                                 end
                             else
-                                if WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["fighters"]] and WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["fighters"]] > WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["default"] or 0] then
-                                    if WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["bombers"]] and WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["vtol"]] then
-                                        dps = dps + (((((WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["fighters"]]+WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["bombers"]]+WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["vtol"]])/3)*(1/WeaponDefs[weapon.weaponDef].reload)) * WeaponDefs[weapon.weaponDef].salvoSize) * WeaponDefs[weapon.weaponDef].projectiles)
-                                    else
-                                        dps = dps + (((WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["fighters"]]*(1/WeaponDefs[weapon.weaponDef].reload)) * WeaponDefs[weapon.weaponDef].salvoSize) * WeaponDefs[weapon.weaponDef].projectiles)
-                                    end
+								if WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["vtol"]] > WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["default"] or 0] then
+									dps = dps + (((WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["vtol"]]*(1/WeaponDefs[weapon.weaponDef].reload)) * WeaponDefs[weapon.weaponDef].salvoSize) * WeaponDefs[weapon.weaponDef].projectiles)
                                 else
                                     dps = dps + (((WeaponDefs[weapon.weaponDef].damages[Game.armorTypes["default"] or 0]*(1/WeaponDefs[weapon.weaponDef].reload)) * WeaponDefs[weapon.weaponDef].salvoSize) * WeaponDefs[weapon.weaponDef].projectiles)
                                 end
