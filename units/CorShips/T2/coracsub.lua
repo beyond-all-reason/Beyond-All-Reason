@@ -52,6 +52,7 @@ return {
 			[11] = "coratl",
 			[12] = "corenaa",
 			[13]= "corfdoom",
+			[14]= "coruwageo",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

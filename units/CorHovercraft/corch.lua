@@ -84,6 +84,7 @@ return {
 			[43] = "cortl",
 			[44] = "coravp",
 			[45] = "corasy",
+			[46] = "coruwgeo",
 		},
 		customparams = {
 			unitgroup = 'builder',

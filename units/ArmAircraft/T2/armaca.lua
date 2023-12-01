@@ -42,6 +42,7 @@ return {
 			"armafus",
 			"armckfus",
 			"armageo",
+			"armuwageo",
 			"armgmm",
 			"armmoho",
 			"armmmkr",

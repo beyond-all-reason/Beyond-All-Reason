@@ -341,6 +341,11 @@ local armorDefs = {
 
 		"armapt3",
 		"corapt3",
+		
+		"coruwgeo",
+		"coruwageo",
+		"armuwageo",
+		"armuwageo",
 
 	},
 

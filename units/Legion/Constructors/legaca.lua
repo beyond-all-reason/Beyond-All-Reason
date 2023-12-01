@@ -41,6 +41,7 @@ return {
 			"corfus",
 			"corafus",
 			"corageo",
+			"coruwageo",
 			"corbhmth",
 			"cormoho",
 			"cormexp",

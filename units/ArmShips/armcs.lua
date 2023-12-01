@@ -51,6 +51,7 @@ return {
 			"armguard",
 			"armtide",
 			"armgeo",
+			"armuwgeo",
 			"armfmkr",
 			"armuwms",
 			"armuwes",
