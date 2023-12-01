@@ -1,5 +1,5 @@
 return {
-	armgeo = {
+	armuwgeo = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		brakerate = 0,
@@ -24,9 +24,9 @@ return {
 		idletime = 1800,
 		maxdamage = 1940,
 		maxslope = 20,
-		maxwaterdepth = 0,
-		objectname = "Units/ARMGEO.s3o",
-		script = "Units/ARMGEO.cob",
+		maxwaterdepth = 99999,
+		objectname = "Units/ARMUWGEO.s3o",
+		script = "Units/ARMUWGEO.cob",
 		seismicsignature = 0,
 		selfdestructas = "geo",
 		sightdistance = 273,
@@ -40,7 +40,7 @@ return {
 			unitgroup = 'energy',
 			cvbuildable = true,
 			geothermal = 1,
-			model_author = "Cremuss",
+			model_author = "Cremuss, Hornet",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
@@ -92,6 +92,9 @@ return {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
 				[3] = "deathceg4",
+			},
+			explosiongenerators = {
+				[1] = "custom:geobubbles",
 			},
 		},
 		sounds = {

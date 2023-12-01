@@ -24,7 +24,7 @@ return {
 		idletime = 1800,
 		maxdamage = 2050,
 		maxslope = 15,
-		maxwaterdepth = 99999,
+		maxwaterdepth = 0,
 		objectname = "Units/CORGEO.s3o",
 		script = "Units/CORGEO.lua",
 		seismicsignature = 0,

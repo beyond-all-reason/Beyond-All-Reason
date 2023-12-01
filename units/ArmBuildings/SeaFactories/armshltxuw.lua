@@ -36,6 +36,7 @@ return {
 			[1] = "armbanth",
 			[2] = "armmar",
 			[3] = "armcroc",
+			[4] = "armlun",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
