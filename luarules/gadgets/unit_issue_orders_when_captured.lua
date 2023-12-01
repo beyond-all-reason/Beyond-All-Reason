@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
-		name    = "Cancel orders on share",
-		desc    = "Prevents units carrying on with orders once shared/taken and turns on mexes that have been captured",
+		name    = "Issue orders when captured",
+		desc    = "Turns on mexes that have been captured",
 		author  = "Bluestone, Beherith",
 		date    = "Jan 2015",
 		license = "GNU GPL, v2 or later",
