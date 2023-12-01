@@ -24,7 +24,7 @@ return {
 		idletime = 1800,
 		maxdamage = 1940,
 		maxslope = 20,
-		maxwaterdepth = 0,
+		maxwaterdepth = 5,
 		objectname = "Units/ARMGEO.s3o",
 		script = "Units/ARMGEO.cob",
 		seismicsignature = 0,

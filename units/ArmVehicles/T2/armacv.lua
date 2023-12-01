@@ -73,7 +73,6 @@ return {
 			[28] = "armvp",
 			[29] = "armavp",
 			[30] = "armshltx",
-			[31] = "armuwageo",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

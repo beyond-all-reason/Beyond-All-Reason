@@ -53,7 +53,7 @@ return {
 			[11] = "armatl",
 			[12] = "armfflak",
 			[13] = "armkraken",
-			[14] = "armuwgeo",
+			[14] = "armuwageo",
 		},
 		customparams = {
 			unitgroup = 'buildert2',
