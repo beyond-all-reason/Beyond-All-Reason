@@ -285,9 +285,6 @@ if gadgetHandler:IsSyncedCode() then
 							definedHeight = sampleMode(1)
 							paramsDepth = 1
 						end
-					elseif commands[i+1] == "wet" then
-						-- we are using the second param, instead of 4th, as we don't finalize the orginal heightmap till the end
-						_, definedHeight  = Spring.GetGroundExtremes()
 					else
 						definedHeight = tonumber(commands[i+1]) or 0
 						definedHeight = definedHeight - modeOffset
@@ -297,6 +294,8 @@ if gadgetHandler:IsSyncedCode() then
 
 				-- invertmap - flip heightmap
 				if commands[i] == "invertmap" then
+					if commands[i+1] == "wet" then definedHeight = 0
+					elseif tonumber(commands[i+1]) == nil then _, definedHeight  = Spring.GetGroundExtremes() end
 					Spring.SetHeightMapFunc(function()
 						for z=0,Game.mapSizeZ, Game.squareSize do
 							for x=0,Game.mapSizeX, Game.squareSize do
