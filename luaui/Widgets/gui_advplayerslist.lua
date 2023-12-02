@@ -3719,7 +3719,7 @@ function widget:ViewResize()
 		--AdvPlayersListAtlas:Delete()
 	end
 
-	local cellheight = math.min(32, math.ceil(math.max(font.size, font2.size) + 4))
+	local cellheight = math.max(32, math.ceil(math.max(font.size, font2.size) + 4))
 	local cellwidth = math.ceil(cellheight*1.25)
 	local cellcount = math.ceil(math.sqrt(32+32 + 200))
 	local atlasconfig = {sizex = cellheight * cellcount, sizey =  cellwidth*cellcount, xresolution = cellheight, yresolution = cellwidth, name = "AdvPlayersListAtlas", defaultfont = {font = font, options = 'o'}}
