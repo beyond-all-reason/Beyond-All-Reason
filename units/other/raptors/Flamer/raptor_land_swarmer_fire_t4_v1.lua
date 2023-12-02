@@ -1,12 +1,12 @@
 return {
 	raptor_land_swarmer_fire_t4_v1 = {
-		acceleration = 1.15,
+		maxacc = 1.15,
 		activatewhenbuilt = true,
 		autoheal = 27,
 
-		brakerate = 0.69,
-		buildcostenergy = 6000,
-		buildcostmetal = 200,
+		maxdec = 0.69,
+		energycost = 6000,
+		metalcost = 200,
 		builder = false,
 		buildpic = "raptors/raptorp2.DDS",
 		buildtime = 7500,
@@ -26,8 +26,8 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 1800,
-		maxdamage = 5000,
-		maxvelocity = 3.5,
+		health = 5000,
+		speed = 105.0,
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,

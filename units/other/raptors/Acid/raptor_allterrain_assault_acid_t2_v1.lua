@@ -1,11 +1,11 @@
 return {
 	raptor_allterrain_assault_acid_t2_v1 = {
-		acceleration = 0.414,
+		maxacc = 0.414,
 		airsightdistance = 650,
 
-		brakerate = 0.46,
-		buildcostenergy = 3520,
-		buildcostmetal = 152,
+		maxdec = 0.46,
+		energycost = 3520,
+		metalcost = 152,
 		builder = false,
 		buildpic = "raptors/raptoracidallterrainassault.DDS",
 		buildtime = 9000,
@@ -26,9 +26,9 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 1500,
-		maxdamage = 11100,
+		health = 11100,
 		maxslope = 18,
-		maxvelocity = 1.125,
+		speed = 33.75,
 		maxwaterdepth = 0,
 		movementclass = "RAPTORALLTERRAINBIGHOVER",
 		noautofire = false,

@@ -1,11 +1,11 @@
 return {
 	raptor_land_swarmer_spectre_t3_v1 = {
-		acceleration = 0.345,
+		maxacc = 0.345,
 		autoheal = 3,
 
-		brakerate = 0.345,
-		buildcostenergy = 79,
-		buildcostmetal = 79,
+		maxdec = 0.345,
+		energycost = 79,
+		metalcost = 79,
 		builder = false,
 		buildpic = "raptors/raptor1x_spectre.DDS",
 		buildtime = 1500,
@@ -31,9 +31,9 @@ return {
 		leavetracks = true,
 		maneuverleashlength = 640,
 		mass = 90,
-		maxdamage = 500,
+		health = 500,
 		maxslope = 18,
-		maxvelocity = 5,
+		speed = 150.0,
 		maxwaterdepth = 0,
 		mincloakdistance = 50,
 		movementclass = "RAPTORSMALLHOVER",

@@ -1,10 +1,10 @@
 return {
 	legstarfall = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 29096,
-		buildcostenergy = 600000,
-		buildcostmetal = 52500,
+		energycost = 600000,
+		metalcost = 52500,
 		buildpic = "legstarfall.DDS",
 		buildtime = 1400000,
 		canrepeat = false,
@@ -21,7 +21,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 33500,
+		health = 33500,
 		maxslope = 13,
 		maxwaterdepth = 0,
 		objectname = "Units/legstarfall.s3o",

@@ -1,10 +1,10 @@
 return {
 	armbotrail = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 32700,
-		buildcostenergy = 192000,
-		buildcostmetal = 13500,
+		energycost = 192000,
+		metalcost = 13500,
 		buildpic = "ARMBOTRAIL.DDS",
 		buildtime = 255000,
 		canrepeat = false,
@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 4450,
+		health = 4450,
 		maxslope = 12,
 		maxwaterdepth = 0,
 		objectname = "scavs/armbotrail.s3o",

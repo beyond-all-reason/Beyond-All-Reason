@@ -1,12 +1,12 @@
 return {
 	raptor_turret_basic_t4_v1 = {
-		acceleration = 0.0115,
+		maxacc = 0.0115,
 		activatewhenbuilt = true,
 		autoheal = 1,
 
-		brakerate = 0.0115,
-		buildcostenergy = 6000,
-		buildcostmetal = 240,
+		maxdec = 0.0115,
+		energycost = 6000,
+		metalcost = 240,
 		builddistance = 500,
 		builder = false,
 		buildpic = "raptors/raptor_turretl.DDS",
@@ -29,9 +29,9 @@ return {
 		idletime = 300,
 		levelground = false,
 		mass = 1400,
-		maxdamage = 30000,
+		health = 30000,
 		maxslope = 255,
-		maxvelocity = 0,
+		speed = 0.0,
 		maxwaterdepth = 0,
 		movementclass = "NANO",
 		noautofire = false,
