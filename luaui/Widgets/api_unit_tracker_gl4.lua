@@ -344,8 +344,9 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 	-- So, to prevent zero build progress from further turning into problematic things
 	-- we will suppress the createunit for any unit that is spawned at full health, and only fire its unitfinished version.
 	-- So we are relying on UnitFinished to be called right after this one
-	local health,maxhealth,_,_,buildProgress = spGetUnitHealth(unitID)
-	if health == maxhealth and buildProgress == 0 then return end
+	-- Stash it for now
+	-- local health,maxhealth,_,_,buildProgress = spGetUnitHealth(unitID)
+	-- if health == maxhealth and buildProgress == 0 then return end
 
 	-- alliedunits
 	if spAreTeamsAllied(unitTeam, myTeamID) then
