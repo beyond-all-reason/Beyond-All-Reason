@@ -95,6 +95,7 @@ local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitLosState = Spring.GetUnitLosState
 local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGetUnitHealth = Spring.GetUnitHealth
 
 -- scriptproxies:
 --[[ NB: these are proxies, not the actual lua functions currently linked LuaUI-side,
@@ -337,6 +338,14 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 	if debuglevel >= 3 then Spring.Echo("UnitCreated", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, reason) end
 
 	if isValidLivingSeenUnit(unitID, unitDefID, 3) == false then return end
+
+	-- Units that are cheated or spawned will fire unitcreated, then unitfinished right after each other
+	-- In this case, their health is already maxhealth, and their buildprogress is 0. 
+	-- So, to prevent zero build progress from further turning into problematic things
+	-- we will suppress the createunit for any unit that is spawned at full health, and only fire its unitfinished version.
+	-- So we are relying on UnitFinished to be called right after this one
+	local health,maxhealth,_,_,buildProgress = spGetUnitHealth(unitID)
+	if health == maxhealth and buildProgress == 0 then return end
 
 	-- alliedunits
 	if spAreTeamsAllied(unitTeam, myTeamID) then
