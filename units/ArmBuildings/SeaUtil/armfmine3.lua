@@ -1,10 +1,10 @@
 return {
 	armfmine3 = {
-		acceleration = 0,
+		maxacc = 0,
 		blocking = false,
-		brakerate = 0,
-		buildcostenergy = 1600,
-		buildcostmetal = 25,
+		maxdec = 0,
+		energycost = 1600,
+		metalcost = 25,
 		buildpic = "ARMFMINE3.DDS",
 		buildtime = 150,
 		canattack = false,
@@ -25,7 +25,7 @@ return {
 		idleautoheal = 10,
 		idletime = 300,
 		initcloaked = true,
-		maxdamage = 11,
+		health = 11,
 		maxslope = 40,
 		mincloakdistance = 8,
 		minwaterdepth = 0,

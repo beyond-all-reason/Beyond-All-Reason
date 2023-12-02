@@ -105,7 +105,7 @@ local function enlargeSelectionVolumes()
 
 	for name, ud in pairs(UnitDefs) do
 		local scale = STATIC_SEL_SCALE
-		if ud.acceleration and ud.acceleration > 0 and ud.canmove then
+		if ud.maxacc and ud.maxacc > 0 and ud.canmove then
 			scale = SEL_SCALE
 		end
 		if ud.customparams.selectionscalemult then

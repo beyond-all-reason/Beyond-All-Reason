@@ -1,12 +1,12 @@
 return {
 	raptor_allterrain_assault_basic_t4_v1 = {
-		acceleration = 0.414,
+		maxacc = 0.414,
 		airsightdistance = 1800,
 		autoheal = 25,
 
-		brakerate = 0.46,
-		buildcostenergy = 3520,
-		buildcostmetal = 302,
+		maxdec = 0.46,
+		energycost = 3520,
+		metalcost = 302,
 		builder = false,
 		buildpic = "raptors/raptorapexallterrainassault.DDS",
 		buildtime = 30000,
@@ -27,9 +27,9 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 200000,
-		maxdamage = 20000,
+		health = 20000,
 		maxslope = 18,
-		maxvelocity = 1,
+		speed = 30.0,
 		maxwaterdepth = 0,
 		movementclass = "RAPTORALLTERRAINBIG2HOVER",
 		noautofire = false,

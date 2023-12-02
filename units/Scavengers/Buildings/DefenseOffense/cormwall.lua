@@ -1,8 +1,8 @@
 return {
 	cormwall = {
-		acceleration = 0,
-		buildcostenergy = 4800, --was 4850
-		buildcostmetal = 1020, --was 485
+		maxacc = 0,
+		energycost = 4800, --was 4850
+		metalcost = 1020, --was 485
 		buildpic = "CORMWALL.DDS",
 		buildtime = 14000, -- was 12214
 		canrepeat = false,
@@ -22,7 +22,7 @@ return {
 		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
-		maxdamage = 5320, --was 4450, --1/2 of corfort
+		health = 5320, --was 4450, --1/2 of corfort
 		maxslope = 24,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",

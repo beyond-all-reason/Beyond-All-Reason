@@ -1,12 +1,12 @@
 return {
 	raptor_land_swarmer_heal_t2_v1 = {
-		acceleration = 1,
+		maxacc = 1,
 		activatewhenbuilt = true,
 		autoheal = 32,
 
-		brakerate = 1,
-		buildcostenergy = 600,
-		buildcostmetal = 40,
+		maxdec = 1,
+		energycost = 600,
+		metalcost = 40,
 		builddistance = 250,
 		builder = 1,
 		buildpic = "raptors/raptorhealer.DDS",
@@ -35,9 +35,9 @@ return {
 		leavetracks = true,
 		maneuverleashlength = 640,
 		mass = 50,
-		maxdamage = 500,
+		health = 500,
 		maxslope = 18,
-		maxvelocity = 3.75,
+		speed = 112.5,
 		maxwaterdepth = 0,
 		metalstorage = 1000,
 		mobilestandorders = 1,

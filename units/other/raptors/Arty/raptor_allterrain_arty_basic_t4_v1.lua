@@ -1,10 +1,10 @@
 return {
 	raptor_allterrain_arty_basic_t4_v1 = {
-		acceleration = 1.15,
+		maxacc = 1.15,
 
-		brakerate = 9.2,
-		buildcostenergy = 12320,
-		buildcostmetal = 396,
+		maxdec = 9.2,
+		energycost = 12320,
+		metalcost = 396,
 		builder = false,
 		buildpic = "raptors/raptorr2.DDS",
 		buildtime = 270000,
@@ -29,9 +29,9 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 40000,
-		maxdamage = 8000,
+		health = 8000,
 		maxslope = 18,
-		maxvelocity = 2.8,
+		speed = 84.0,
 		maxwaterdepth = 0,
 		movementclass = "RAPTORALLTERRAINBIG2HOVER",
 		noautofire = false,

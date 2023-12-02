@@ -1,10 +1,10 @@
 return {
 	raptor_6legged_l = {
-		acceleration = 1.4375,
+		maxacc = 1.4375,
 
-		brakerate = 2.3,
-		buildcostenergy = 5280,
-		buildcostmetal = 99,
+		maxdec = 2.3,
+		energycost = 5280,
+		metalcost = 99,
 		builder = false,
 		buildpic = "raptors/raptorc3c.DDS",
 		buildtime = 1875,
@@ -25,10 +25,10 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 89,
-		maxdamage = 2650,
+		health = 2650,
 		maxreversevelocity = 3,
 		maxslope = 18,
-		maxvelocity = 2.1,
+		speed = 63.0,
 		maxwaterdepth = 15,
 		movementclass = "RAPTORALLTERRAINHOVER",
 		noautofire = false,

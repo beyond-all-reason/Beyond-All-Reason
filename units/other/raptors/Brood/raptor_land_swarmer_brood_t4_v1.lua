@@ -1,10 +1,10 @@
 return {
 	raptor_land_swarmer_brood_t4_v1 = {
-		acceleration = 0.644,
+		maxacc = 0.644,
 
-		brakerate = 0.23,
-		buildcostenergy = 5201,
-		buildcostmetal = 251,
+		maxdec = 0.23,
+		energycost = 5201,
+		metalcost = 251,
 		builder = false,
 		buildpic = "raptors/raptorh2.DDS",
 		buildtime = 9000,
@@ -27,9 +27,9 @@ return {
 		leavetracks = true,
 		maneuverleashlength = 640,
 		mass = 1500,
-		maxdamage = 6700,
+		health = 6700,
 		maxslope = 18,
-		maxvelocity = 3,
+		speed = 90.0,
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,

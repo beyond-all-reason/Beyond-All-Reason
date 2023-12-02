@@ -1,8 +1,8 @@
 return {
 	coruwadves = {
 		buildangle = 7822,
-		buildcostenergy = 11000,
-		buildcostmetal = 840,
+		energycost = 11000,
+		metalcost = 840,
 		buildpic = "CORUWADVES.DDS",
 		buildtime = 20400,
 		canrepeat = false,
@@ -18,7 +18,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 12700,
+		health = 12700,
 		maxslope = 20,
 		maxwaterdepth = 9999,
 		objectname = "Units/CORUWADVES.s3o",

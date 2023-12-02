@@ -1,10 +1,10 @@
 return {
 	raptor_allterrain_swarmer_fire_t2_v1 = {
-		acceleration = 1.4375,
+		maxacc = 1.4375,
 
-		brakerate = 2.3,
-		buildcostenergy = 5280,
-		buildcostmetal = 99,
+		maxdec = 2.3,
+		energycost = 5280,
+		metalcost = 99,
 		builder = false,
 		buildpic = "raptors/raptorpyroallterrain.DDS",
 		buildtime = 2250,
@@ -25,10 +25,10 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 89,
-		maxdamage = 2000,
+		health = 2000,
 		maxreversevelocity = 3,
 		maxslope = 18,
-		maxvelocity = 3.25,
+		speed = 97.5,
 		maxwaterdepth = 15,
 		movementclass = "RAPTORALLTERRAINHOVER",
 		noautofire = false,

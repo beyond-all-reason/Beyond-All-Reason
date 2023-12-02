@@ -1,12 +1,12 @@
 return {
 	raptor_turret_burrow_t2_v1 = {
-		acceleration = 0.0115,
+		maxacc = 0.0115,
 		activatewhenbuilt = true,
 		autoheal = 1,
 
-		brakerate = 0.0115,
-		buildcostenergy = 3000,
-		buildcostmetal = 120,
+		maxdec = 0.0115,
+		energycost = 3000,
+		metalcost = 120,
 		builddistance = 500,
 		builder = false,
 		buildpic = "raptors/raptor_turrets_burrow.DDS",
@@ -29,9 +29,9 @@ return {
 		idletime = 300,
 		levelground = false,
 		mass = 700,
-		maxdamage = 1670,
+		health = 1670,
 		maxslope = 255,
-		maxvelocity = 0,
+		speed = 0.0,
 		maxwaterdepth = 0,
 		movementclass = "NANO",
 		noautofire = false,

@@ -1,10 +1,10 @@
 return {
 	armckfus = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 4096,
-		buildcostenergy = 26000,
-		buildcostmetal = 4700,
+		energycost = 26000,
+		metalcost = 4700,
 		buildpic = "ARMCKFUS.DDS",
 		buildtime = 84400,
 		canrepeat = false,
@@ -23,7 +23,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
     	--initcloaked = true,
-		maxdamage = 4450,
+		health = 4450,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		mincloakdistance = 100,
