@@ -6,7 +6,7 @@ return {
 		buildangle = 4096,
 		buildcostenergy = 13000,
 		buildcostmetal = 540,
-		buildpic = "CORGEO.DDS",
+		buildpic = "CORUWGEO.DDS",
 		buildtime = 12900,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

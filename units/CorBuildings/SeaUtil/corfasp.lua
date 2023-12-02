@@ -13,7 +13,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -9 0",
-		collisionvolumescales = "135 27 135",
+		collisionvolumescales = "155 55 155",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		explodeas = "largeBuildingexplosiongeneric",

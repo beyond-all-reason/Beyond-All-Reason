@@ -752,7 +752,7 @@ local unitGrids = {
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armjuno", },                                   -- juno, air repair pad aircon only
+			{ "armjuno", "armasp", "armfasp"},                                   -- juno, air repair pad aircon only
 			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
 		},
 		{
@@ -775,7 +775,7 @@ local unitGrids = {
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corjuno", },                                   -- juno, air repair pad aircon only
+			{ "corjuno", "corasp", "corfasp"},                                   -- juno, air repair pad aircon only
 			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
 		},
 		{
@@ -1328,7 +1328,7 @@ local unitGrids = {
 	cormls = {
 		{
 			{ "cormex", "cortide", },                              -- mex, tidal
-			{ },                                                   --
+			{ },                                                   --	
 			{ },                                                   --
 		},
 		{
