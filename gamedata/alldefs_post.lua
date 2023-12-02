@@ -637,7 +637,7 @@ function UnitDef_Post(name, uDef)
 
 		if (not uDef.canfly) and uDef.speed then
 			uDef.rspeed = uDef.speed*0.65
-			uDef.turnrate = uDef.speed*300
+			uDef.turnrate = uDef.speed*10
 			uDef.maxacc = uDef.speed*0.05
 			uDef.maxdec  = uDef.speed*0.05
 		elseif uDef.canfly then
