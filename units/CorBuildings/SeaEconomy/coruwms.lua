@@ -1,10 +1,10 @@
 return {
 	coruwms = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 8192,
-		buildcostenergy = 1600,
-		buildcostmetal = 370,
+		energycost = 1600,
+		metalcost = 370,
 		buildpic = "CORUWMS.DDS",
 		buildtime = 3870,
 		canrepeat = false,
@@ -16,7 +16,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3900,
+		health = 3900,
 		maxslope = 20,
 		metalstorage = 3000,
 		minwaterdepth = 40,

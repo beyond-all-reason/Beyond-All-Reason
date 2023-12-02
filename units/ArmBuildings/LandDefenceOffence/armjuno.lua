@@ -1,9 +1,9 @@
 return {
 	armjuno = {
-		acceleration = 0,
-		brakerate = 0,
-		buildcostenergy = 17000,
-		buildcostmetal = 640,
+		maxacc = 0,
+		maxdec = 0,
+		energycost = 17000,
+		metalcost = 640,
 		buildpic = "ARMJUNO.DDS",
 		buildtime = 21800,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -17,7 +17,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2350,
+		health = 2350,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/ARMJUNO.s3o",

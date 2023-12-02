@@ -1,10 +1,10 @@
 return {
 	raptor_allterrain_arty_emp_t4_v1 = {
-		acceleration = 0.115,
+		maxacc = 0.115,
 
-		brakerate = 0.414,
-		buildcostenergy = 12320,
-		buildcostmetal = 396,
+		maxdec = 0.414,
+		energycost = 12320,
+		metalcost = 396,
 		builder = false,
 		buildpic = "raptors/raptorearty2.DDS",
 		buildtime = 6750,
@@ -28,9 +28,9 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 4000,
-		maxdamage = 8000,
+		health = 8000,
 		maxslope = 18,
-		maxvelocity = 2.8,
+		speed = 84.0,
 		maxwaterdepth = 0,
 		movementclass = "RAPTORALLTERRAINBIGHOVER",
 		noautofire = false,

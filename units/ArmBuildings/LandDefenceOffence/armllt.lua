@@ -1,10 +1,10 @@
 return {
 	armllt = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 32768,
-		buildcostenergy = 680,
-		buildcostmetal = 85,
+		energycost = 680,
+		metalcost = 85,
 		buildpic = "ARMLLT.DDS",
 		buildtime = 2660,
 		canrepeat = false,
@@ -21,7 +21,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 5100,
-		maxdamage = 620,
+		health = 620,
 		maxslope = 14,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",

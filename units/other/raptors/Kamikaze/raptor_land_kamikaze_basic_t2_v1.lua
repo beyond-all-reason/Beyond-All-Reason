@@ -1,12 +1,12 @@
 return {
 	raptor_land_kamikaze_basic_t2_v1 = {
-		acceleration = 6.9,
+		maxacc = 6.9,
 		activatewhenbuilt = true,
 		autoheal = 50,
 
-		brakerate = 0.23,
-		buildcostenergy = 3000,
-		buildcostmetal = 128,
+		maxdec = 0.23,
+		energycost = 3000,
+		metalcost = 128,
 		builder = false,
 		buildpic = "raptors/raptor_dodo1.DDS",
 		buildtime = 4500,
@@ -32,9 +32,9 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 50,
-		maxdamage = 890,
+		health = 890,
 		maxslope = 18,
-		maxvelocity = 7,
+		speed = 210.0,
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,

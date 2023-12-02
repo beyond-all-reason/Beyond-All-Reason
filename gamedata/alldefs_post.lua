@@ -86,8 +86,8 @@ end
 function UnitDef_Post(name, uDef)
 	-- Reverse Gear
 	if Spring.GetModOptions().experimentalreversegear == true then
-		if (not uDef.canfly) and uDef.maxvelocity then
-			uDef.maxreversevelocity = uDef.maxvelocity*0.65
+		if (not uDef.canfly) and uDef.speed then
+			uDef.rspeed = uDef.speed*0.65
 		end
 	end
 
@@ -95,36 +95,36 @@ function UnitDef_Post(name, uDef)
 
 	if Spring.GetModOptions().experimentalrebalancet2labs == true then --
 		if name == "coralab" or name == "coravp" or name == "armalab" or name == "armavp" then
-			uDef.buildcostmetal = 1800 --2900
+			uDef.metalcost = 1800 --2900
 		end
 		if name == "coraap" or name == "corasy" or name == "armaap" or name == "armasy" then
-			uDef.buildcostmetal = 2100 --3200
+			uDef.metalcost = 2100 --3200
 		end
 	end
 
 	if Spring.GetModOptions().experimentalrebalancet2metalextractors == true then
 		if name == "armmoho" or name == "armuwmme" then
 			uDef.extractsmetal = 0.002 --0.004
-			uDef.buildcostmetal = 240 --620
-			uDef.buildcostenergy = 3000 --7700
+			uDef.metalcost = 240 --620
+			uDef.energycost = 3000 --7700
 			uDef.buildtime = 12000 --14938
-			uDef.maxdamage = 1000 --2500
-			uDef.energyuse = 10 --20
+			uDef.health = 1000 --2500
+			uDef.energyupkeep = 10 --20
 		end
 		if name == "cormoho" or name == "coruwmme" then
 			uDef.extractsmetal = 0.002 --0.004
-			uDef.buildcostmetal = 250 --640
-			uDef.buildcostenergy = 3100 --8100
+			uDef.metalcost = 250 --640
+			uDef.energycost = 3100 --8100
 			uDef.buildtime = 11000 --14125
-			uDef.maxdamage = 1400 --3500
-			uDef.energyuse = 10 --20
+			uDef.health = 1400 --3500
+			uDef.energyupkeep = 10 --20
 		end
 		if name == "cormexp" then
 			uDef.extractsmetal = 0.002 --0.004
-			uDef.buildcostmetal = 2000 --2400
-			uDef.buildcostenergy = 8500 --12000
-			uDef.maxdamage = 2800 --3500
-			uDef.energyuse = 10 --20
+			uDef.metalcost = 2000 --2400
+			uDef.energycost = 8500 --12000
+			uDef.health = 2800 --3500
+			uDef.energyupkeep = 10 --20
 		end
 	end
 
@@ -141,14 +141,14 @@ function UnitDef_Post(name, uDef)
 
 	if Spring.GetModOptions().expandedt2sea == true then
 		if name == "corcrus" then
-			uDef.maxvelocity = 1.8
-			uDef.maxdamage = 6200
+			uDef.speed = 54
+			uDef.health = 6200
 			uDef.weapondefs.adv_decklaser.reloadtime = 0.333
 			uDef.weapondefs.cor_crus.range = 500
 		end
 		if name == "armcrus" then
-			uDef.maxvelocity = 2.0
-			uDef.maxdamage = 5600
+			uDef.speed = 60
+			uDef.health = 5600
 			uDef.weapondefs.laser.reloadtime = 0.333
 			uDef.weapondefs.gauss.range = 500
 		end
@@ -218,7 +218,7 @@ function UnitDef_Post(name, uDef)
 				armbotrail = true, -- it spawns units so it will add dead launched peewees to respawn queue.
 			}
 			if factories[name] then
-				uDef.unitrestricted = 0
+				uDef.maxthisunit = 0
 			end
 		else
 
@@ -262,21 +262,21 @@ function UnitDef_Post(name, uDef)
 
 		if Spring.GetModOptions().unit_restrictions_notech2 then
 			if tonumber(uDef.customparams.techlevel) == 2 or tonumber(uDef.customparams.techlevel) == 3 then
-				uDef.unitrestricted = 0
+				uDef.maxthisunit = 0
 			end
 		end
 
 		if Spring.GetModOptions().unit_restrictions_notech3 then
 			if tonumber(uDef.customparams.techlevel) == 3 then
-				uDef.unitrestricted = 0
+				uDef.maxthisunit = 0
 			end
 		end
 
 		if Spring.GetModOptions().unit_restrictions_noair then
 			if string.find(uDef.customparams.subfolder, "Aircraft") then
-				uDef.unitrestricted = 0
+				uDef.maxthisunit = 0
 			elseif uDef.canfly then
-				uDef.unitrestricted = 0
+				uDef.maxthisunit = 0
 			end
 			local AircraftFactories = {
 				armap = true,
@@ -302,19 +302,19 @@ function UnitDef_Post(name, uDef)
 
 			}
 			if AircraftFactories[name] then
-				uDef.unitrestricted = 0
+				uDef.maxthisunit = 0
 			end
 		end
 
 		if Spring.GetModOptions().unit_restrictions_noextractors then
 			if (uDef.extractsmetal and uDef.extractsmetal > 0) and (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
-				uDef.unitrestricted = 0
+				uDef.maxthisunit = 0
 			end
 		end
 
 		if Spring.GetModOptions().unit_restrictions_noconverters then
 			if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
-				uDef.unitrestricted = 0
+				uDef.maxthisunit = 0
 			end
 		end
 
@@ -334,7 +334,7 @@ function UnitDef_Post(name, uDef)
 				cormabm_scav = true,
 			}
 			if Nukes[name] then
-				uDef.unitrestricted = 0
+				uDef.maxthisunit = 0
 			end
 		end
 
@@ -346,7 +346,7 @@ function UnitDef_Post(name, uDef)
 				cortron_scav = true,
 			}
 			if TacNukes[name] then
-				uDef.unitrestricted = 0
+				uDef.maxthisunit = 0
 			end
 		end
 
@@ -366,7 +366,7 @@ function UnitDef_Post(name, uDef)
 				legstarfall_scav = true,
 			}
 			if LRPCs[name] then
-				uDef.unitrestricted = 0
+				uDef.maxthisunit = 0
 			end
 		end
 	end
@@ -559,17 +559,17 @@ function UnitDef_Post(name, uDef)
 	-- 	end
 
 	-- 	massoverrideMetalCost = 1
-	-- 	if uDef.buildcostmetal and uDef.buildcostmetal > 0 then
-	-- 		massoverrideMetalCost = uDef.buildcostmetal
-	-- 		Spring.Echo("Metal Cost: "..uDef.buildcostmetal)
+	-- 	if uDef.metalcost and uDef.metalcost > 0 then
+	-- 		massoverrideMetalCost = uDef.metalcost
+	-- 		Spring.Echo("Metal Cost: "..uDef.metalcost)
 	-- 	else
 	-- 		Spring.Echo("Missing Metal Cost")
 	-- 	end
 
 	-- 	massoverrideHealth = 1
-	-- 	if uDef.maxdamage and uDef.maxdamage > 0 then
-	-- 		massoverrideHealth = uDef.maxdamage
-	-- 		Spring.Echo("Max Health: "..uDef.maxdamage)
+	-- 	if uDef.health and uDef.health > 0 then
+	-- 		massoverrideHealth = uDef.health
+	-- 		Spring.Echo("Max Health: "..uDef.health)
 	-- 	else
 	-- 		Spring.Echo("Missing Max Health")
 	-- 	end
@@ -590,18 +590,18 @@ function UnitDef_Post(name, uDef)
 	end
 
 	--[[
-	if uDef.buildcostmetal and uDef.maxdamage then
-		uDef.mass = uDef.buildcostmetal
+	if uDef.metalcost and uDef.health then
+		uDef.mass = uDef.metalcost
 		if uDef.mass and uDef.name then
 			Spring.Echo(uDef.name.."'s mass is:"..uDef.mass)
 		end
 	end
 	]]
-	if string.find(name, "raptor") and uDef.maxdamage then
-		local raptorHealth = uDef.maxdamage
+	if string.find(name, "raptor") and uDef.health then
+		local raptorHealth = uDef.health
 		uDef.activatewhenbuilt = true
-		uDef.buildcostmetal = raptorHealth*0.5
-		uDef.buildcostenergy = math.min(raptorHealth*5, 16000000)
+		uDef.metalcost = raptorHealth*0.5
+		uDef.energycost = math.min(raptorHealth*5, 16000000)
 		uDef.buildtime = math.min(raptorHealth*10, 16000000)
 		uDef.hidedamage = true
 		uDef.mass = raptorHealth
@@ -635,14 +635,14 @@ function UnitDef_Post(name, uDef)
 			uDef.airsightdistance = uDef.sightdistance*2
 		end
 
-		if (not uDef.canfly) and uDef.maxvelocity then
-			uDef.maxreversevelocity = uDef.maxvelocity*0.65
-			uDef.turnrate = uDef.maxvelocity*300
-			uDef.acceleration = uDef.maxvelocity*0.05
-			uDef.brakerate = uDef.maxvelocity*0.05
+		if (not uDef.canfly) and uDef.speed then
+			uDef.rspeed = uDef.speed*0.65
+			uDef.turnrate = uDef.speed*300
+			uDef.maxacc = uDef.speed*0.05
+			uDef.maxdec  = uDef.speed*0.05
 		elseif uDef.canfly then
-			uDef.acceleration = 0.8
-			uDef.brakerate = 0.1
+			uDef.maxacc = 0.8
+			uDef.maxdec  = 0.1
 			uDef.usesmoothmesh = true
 
 			-- flightmodel
@@ -657,7 +657,7 @@ function UnitDef_Post(name, uDef)
 			uDef.turnradius = 64
 			uDef.turnrate = 1600
 			uDef.speedtofront = 0.01
-			uDef.cruisealt = 220
+			uDef.cruisealtitude = 220
 			--uDef.attackrunlength = 32
 		end
 	end
@@ -672,9 +672,9 @@ function UnitDef_Post(name, uDef)
 	processWeapons(name, uDef)
 
 	-- make los height a bit more forgiving	(20 is the default)
-	--uDef.losemitheight = (uDef.losemitheight and uDef.losemitheight or 20) + 20
+	--uDef.sightemitheight = (uDef.sightemitheight and uDef.sightemitheight or 20) + 20
 	if true then
-		uDef.losemitheight = 0
+		uDef.sightemitheight = 0
 		uDef.radaremitheight = 0
 		if uDef.collisionvolumescales then
 			local x = uDef.collisionvolumescales
@@ -684,7 +684,7 @@ function UnitDef_Post(name, uDef)
 				xtab[#xtab+1] = i
 			end
 			--Spring.Echo("Result of volume scales: "..tonumber(xtab[2]))
-			uDef.losemitheight = uDef.losemitheight+tonumber(xtab[2])
+			uDef.sightemitheight = uDef.sightemitheight+tonumber(xtab[2])
 			uDef.radaremitheight = uDef.radaremitheight+tonumber(xtab[2])
 		end
 		if uDef.collisionvolumeoffsets then
@@ -695,28 +695,28 @@ function UnitDef_Post(name, uDef)
 				xtab[#xtab+1] = i
 			end
 			--Spring.Echo("Result of volume offsets: "..tonumber(xtab[2]))
-			uDef.losemitheight = uDef.losemitheight+tonumber(xtab[2])
+			uDef.sightemitheight = uDef.sightemitheight+tonumber(xtab[2])
 			uDef.radaremitheight = uDef.radaremitheight+tonumber(xtab[2])
 		end
-                if uDef.losemitheight < 40 then
-                        uDef.losemitheight = 40
+                if uDef.sightemitheight < 40 then
+                        uDef.sightemitheight = 40
                         uDef.radaremitheight = 40
                 end
-		--Spring.Echo("Final Emit Height: ".. uDef.losemitheight)
+		--Spring.Echo("Final Emit Height: ".. uDef.sightemitheight)
 	end
 
 	if not uDef.customparams.iscommander then
 		--local wreckinfo = ''
-		if uDef.featuredefs and uDef.maxdamage then
+		if uDef.featuredefs and uDef.health then
 			if uDef.featuredefs.dead then
-				uDef.featuredefs.dead.damage = uDef.maxdamage
+				uDef.featuredefs.dead.damage = uDef.health
 				if Spring.GetModOptions().experimentalrebalancewreckstandarization then
-					if uDef.buildcostmetal and uDef.buildcostenergy then
+					if uDef.metalcost and uDef.energycost then
 						if name and not string.find(name, "_scav") then
 							-- if (name and uDef.featuredefs.dead.metal) or uDef.name then
 							-- 	--wreckinfo = wreckinfo .. name ..  " Wreck Before: " .. tostring(uDef.featuredefs.dead.metal) .. ','
 							-- end
-							uDef.featuredefs.dead.metal = math.floor(uDef.buildcostmetal*0.6)
+							uDef.featuredefs.dead.metal = math.floor(uDef.metalcost*0.6)
 							-- if name and not string.find(name, "_scav") then
 							-- 	--wreckinfo = wreckinfo .. " Wreck After: " .. tostring(uDef.featuredefs.dead.metal) .. " ; "
 							-- end
@@ -726,16 +726,16 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
-		if uDef.featuredefs and uDef.maxdamage then
+		if uDef.featuredefs and uDef.health then
 			if uDef.featuredefs.heap then
-				uDef.featuredefs.heap.damage = uDef.maxdamage
+				uDef.featuredefs.heap.damage = uDef.health
 				if Spring.GetModOptions().experimentalrebalancewreckstandarization then
-					if uDef.buildcostmetal and uDef.buildcostenergy then
+					if uDef.metalcost and uDef.energycost then
 						if name and not string.find(name, "_scav") then
 							-- if (name and uDef.featuredefs.heap.metal) or uDef.name then
 							-- 	--wreckinfo = wreckinfo .. name ..  " Heap Before: " .. tostring(uDef.featuredefs.heap.metal) .. ','
 							-- end
-							uDef.featuredefs.heap.metal = math.floor(uDef.buildcostmetal*0.25)
+							uDef.featuredefs.heap.metal = math.floor(uDef.metalcost*0.25)
 							-- if name and not string.find(name, "_scav") then
 							-- 	--wreckinfo = wreckinfo ..  " Heap After: " .. tostring(uDef.featuredefs.heap.metal)
 							-- end
@@ -795,16 +795,16 @@ function UnitDef_Post(name, uDef)
 				end
 
 				--local airmult = 1.3
-				--if uDef.buildcostenergy then
-				--	uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*airmult)
+				--if uDef.energycost then
+				--	uDef.energycost = math.ceil(uDef.energycost*airmult)
 				--end
 				--
 				--if uDef.buildtime then
 				--	uDef.buildtime = math.ceil(uDef.buildtime*airmult)
 				--end
 				--
-				--if uDef.buildcostmetal then
-				--	uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*airmult)
+				--if uDef.metalcost then
+				--	uDef.metalcost = math.ceil(uDef.metalcost*airmult)
 				--end
 				--
 				--if uDef.builder then
@@ -813,8 +813,8 @@ function UnitDef_Post(name, uDef)
 
 				if uDef.customparams.fighter then
 
-					--if uDef.maxdamage then
-					--	uDef.maxdamage = math.ceil(uDef.maxdamage*1.8)
+					--if uDef.health then
+					--	uDef.health = math.ceil(uDef.health*1.8)
 					--end
 --
 					--if uDef.weapondefs then
@@ -827,7 +827,7 @@ function UnitDef_Post(name, uDef)
 					--	end
 					--end
 					--
-					--uDef.maxvelocity = uDef.maxvelocity*1.15
+					--uDef.speed = uDef.maxvelocity*1.15
 					--
 					--uDef.maxacc = uDef.maxacc*1.3
 					--
@@ -852,8 +852,8 @@ function UnitDef_Post(name, uDef)
 					--	uDef.airsightdistance = math.floor((uDef.airsightdistance*rangeMult) + 0.5)
 					--end
 					--
-					--if uDef.maxdamage then
-					--	uDef.maxdamage = math.floor((uDef.maxdamage*airmult) + 0.5)
+					--if uDef.health then
+					--	uDef.health = math.floor((uDef.health*airmult) + 0.5)
 					--end
 					--
 					--if uDef.weapondefs then
@@ -874,11 +874,11 @@ function UnitDef_Post(name, uDef)
     --	if uDef.turnrate ~= nil then
     --		uDef.turnrate = (uDef.turnrate + vehAdditionalTurnrate) * vehTurnrateMultiplier
     --	end
-    --    	if uDef.acceleration ~= nil then
-    --		uDef.acceleration = (uDef.acceleration + vehAdditionalAcceleration) * vehAccelerationMultiplier
+    --    	if uDef.maxacc~= nil then
+    --		uDef.maxacc= (uDef.maxacc+ vehAdditionalAcceleration) * vehAccelerationMultiplier
     --	end
-    --    	if uDef.maxvelocity ~= nil then
-    --		uDef.maxvelocity = (uDef.maxvelocity + vehAdditionalVelocity) * vehVelocityMultiplier
+    --    	if uDef.speed ~= nil then
+    --		uDef.speed = (uDef.maxvelocity + vehAdditionalVelocity) * vehVelocityMultiplier
     --	end
     --end
 
@@ -991,13 +991,13 @@ end
 	-- Multipliers Modoptions
 
 	-- Health
-	if uDef.maxdamage then
+	if uDef.health then
 		local x = Spring.GetModOptions().multiplier_maxdamage
 		if x ~= 1 then
-			if uDef.maxdamage*x > 15000000 then
-				uDef.maxdamage = 15000000
+			if uDef.health*x > 15000000 then
+				uDef.health = 15000000
 			else
-				uDef.maxdamage = uDef.maxdamage*x
+				uDef.health = uDef.health*x
 			end
 			if uDef.autoheal then
 				uDef.autoheal = uDef.autoheal*x
@@ -1009,15 +1009,15 @@ end
 	end
 
 	-- Max Speed
-	if uDef.maxvelocity then
+	if uDef.speed then
 		local x = Spring.GetModOptions().multiplier_maxvelocity
 		if x ~= 1 then
-			uDef.maxvelocity = uDef.maxvelocity*x
-			if uDef.brakerate then
-				uDef.brakerate = uDef.brakerate*((x-1)/2 + 1)
+			uDef.speed = uDef.speed*x
+			if uDef.maxdec  then
+				uDef.maxdec  = uDef.maxdec *((x-1)/2 + 1)
 			end
-			if uDef.acceleration then
-				uDef.acceleration = uDef.acceleration*((x-1)/2 + 1)
+			if uDef.maxacc then
+				uDef.maxacc= uDef.maxacc*((x-1)/2 + 1)
 			end
 		end
 	end
@@ -1050,16 +1050,16 @@ end
 	end
 
 	-- Unit Cost
-	if uDef.buildcostmetal then
+	if uDef.metalcost then
 		local x = Spring.GetModOptions().multiplier_metalcost
 		if x ~= 1 then
-			uDef.buildcostmetal = math.min(uDef.buildcostmetal*x, 16000000)
+			uDef.metalcost = math.min(uDef.metalcost*x, 16000000)
 		end
 	end
-	if uDef.buildcostenergy then
+	if uDef.energycost then
 		local x = Spring.GetModOptions().multiplier_energycost
 		if x ~= 1 then
-			uDef.buildcostenergy = math.min(uDef.buildcostenergy*x, 16000000)
+			uDef.energycost = math.min(uDef.energycost*x, 16000000)
 		end
 	end
 	if uDef.buildtime then
@@ -1112,7 +1112,7 @@ end
 	end
 	if name == "armsolar" or name == "corsolar" then -- special case
 		local x = Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome
-		uDef.energyuse = uDef.energyuse * x
+		uDef.energyupkeep = uDef.energyupkeep * x
 		if uDef.energystorage then
 			uDef.energystorage = uDef.energystorage * x
 		end

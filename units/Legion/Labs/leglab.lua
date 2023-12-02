@@ -1,10 +1,10 @@
 return {
 	leglab = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 1024,
-		buildcostenergy = 1300,
-		buildcostmetal = 620,
+		energycost = 1300,
+		metalcost = 620,
 		builder = true,
 		buildpic = "LEGLAB.DDS",
 		buildtime = 6500,
@@ -21,7 +21,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2900,
+		health = 2900,
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 100,

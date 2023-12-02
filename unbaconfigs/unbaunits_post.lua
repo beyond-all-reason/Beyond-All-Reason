@@ -3,7 +3,7 @@ local function unbaUnitTweaks(name, uDef)
     --     uDef.maxvelocity = uDef.maxvelocity*2
     -- end
 	if name == "armcom" or name == "corcom" then
-		uDef.maxdamage = 7500
+		uDef.health = 7500
 	end
 
 	if Spring.GetModOptions().unbatech == true then

@@ -1,10 +1,10 @@
 return {
 	raptor_land_spiker_spectre_t4_v1 = {
-		acceleration = 3.45,
+		maxacc = 3.45,
 
-		brakerate = 3.45,
-		buildcostenergy = 174,
-		buildcostmetal = 174,
+		maxdec = 3.45,
+		energycost = 174,
+		metalcost = 174,
 		builder = false,
 		buildpic = "raptors/raptors2_spectre.DDS",
 		buildtime = 10500,
@@ -32,9 +32,9 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "750",
 		mass = 300,
-		maxdamage = 1250,
+		health = 1250,
 		maxslope = 18,
-		maxvelocity = 9,
+		speed = 270.0,
 		maxwaterdepth = 0,
 		mincloakdistance = 50,
 		movementclass = "RAPTORSMALLHOVER",

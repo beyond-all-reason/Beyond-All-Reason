@@ -1,10 +1,10 @@
 return {
 	raptor_allterrain_swarmer_basic_t3_v1 = {
-		acceleration = 1.4375,
+		maxacc = 1.4375,
 
-		brakerate = 2.3,
-		buildcostenergy = 5280,
-		buildcostmetal = 99,
+		maxdec = 2.3,
+		energycost = 5280,
+		metalcost = 99,
 		builder = false,
 		buildpic = "raptors/raptorc3b.DDS",
 		buildtime = 2625,
@@ -25,10 +25,10 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 89,
-		maxdamage = 1780,
+		health = 1780,
 		maxreversevelocity = 3,
 		maxslope = 18,
-		maxvelocity = 3.5,
+		speed = 105.0,
 		maxwaterdepth = 15,
 		movementclass = "RAPTORALLTERRAINHOVER",
 		noautofire = false,
