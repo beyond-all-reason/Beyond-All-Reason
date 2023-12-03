@@ -1028,6 +1028,7 @@ local function drawListStandard()
 	if os.clock() > lastBarsUpdate + 0.15 then
 		updateTextLists = true
 		lastBarsUpdate = os.clock()
+		maxMetal, maxEnergy = 0, 0
 		for _, data in ipairs(allyData) do
 			local aID = data.aID
 			if data.exists and type(data["tE"]) == "number" and isTeamReal(aID) and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID) then
