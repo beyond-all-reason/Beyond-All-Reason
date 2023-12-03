@@ -109,7 +109,7 @@ end
 -- Helper functions (Math stuff)
 ------------------------------------------------------------
 
-local function Distance(x1, z1, x2, z2)
+local function distance2dSquared(x1, z1, x2, z2)
 	return (x1 - x2) * (x1 - x2) + (z1 - z2) * (z1 - z2)
 end
 
@@ -150,7 +150,7 @@ local function resourceSpotHasExistingExtractorCommand(x, z, builders)
 			local command = queue[j]
 			local id = -command.id
 			if(mexBuildings[id] or geoBuildings[id]) then
-				local dist = math.sqrt(Distance(x, z, command.params[1], command.params[3]))
+				local dist = math.sqrt(distance2dSquared(x, z, command.params[1], command.params[3]))
 				if dist < Game_extractorRadius * 2 then
 					Spring.Echo("Existing command from main builders on resource spot, skipping")
 					return true
@@ -252,7 +252,6 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 
 	-- Add highest producing constructors to mainBuilders table + give guard orders to "inferior" constructors
 	local mainBuilders = {}
-	local mainBuildersCount = 0
 	local ux, uz, aveX, aveZ = 0, 0, 0, 0
 	local latestMainBuilder
 	for i = 1, #units do
@@ -260,18 +259,16 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 		local constructor = constructorIds[id]
 		if constructor then
 			-- iterate over constructor options to see if it can make the chosen extractor
-			for j, buildingId in pairs(constructor.building) do
+			for _, buildingId in pairs(constructor.building) do
 				if -buildingId == chosenExtractor and extractors[chosenExtractor] then
 					-- found match
 					local x, _, z = spGetUnitPosition(id)
 					if z then
 						ux, uz = ux+x, uz+z
 						latestMainBuilder = id
-						mainBuildersCount = mainBuildersCount + 1
-						mainBuilders[mainBuildersCount] = id
+						mainBuilders[#mainBuilders + 1] = id
 						if justDraw then
-							-- prevent complex calculations further down the line
-							break
+							break -- prevent complex calculations further down the line
 						end
 					end
 				else
@@ -288,32 +285,29 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 		end
 	end
 
-	if mainBuildersCount == 0 then return end
-	aveX, aveZ = ux/mainBuildersCount, uz/mainBuildersCount
+	if #mainBuilders == 0 then return end
+	aveX, aveZ = ux/#mainBuilders, uz/#mainBuilders
 
 	-- Get available mex spots within area
 	local commands = {}
-	local commandsCount = 0
 	local mexes = isGuard and { isGuard } or spots -- only need the mex/spot we guard if that is the case
 	for k = 1, #mexes do
 		local mex = mexes[k]
 		if not (mex.x % 16 == 8) then mexes[k].x = mexes[k].x + 8 - (mex.x % 16) end
 		if not (mex.z % 16 == 8) then mexes[k].z = mexes[k].z + 8 - (mex.z % 16) end
 		mex.x, mex.z = mexes[k].x, mexes[k].z
-		if Distance(cx, cz, mex.x, mex.z) < cr * cr then
+		if distance2dSquared(cx, cz, mex.x, mex.z) < cr * cr then
 			-- Skip mex spots that have queued mexes already
 			-- only searches selected builders, and only checks when shift is held
 			if options.shift then
 				if not resourceSpotHasExistingExtractorCommand(mex.x, mex.z, mainBuilders) then
 					if canExtractorBeUpgraded(mex.x, mex.z, chosenExtractor) then
-						commandsCount = commandsCount + 1
-						commands[commandsCount] = { x = mex.x, z = mex.z, d = Distance(aveX, aveZ, mex.x, mex.z) }
+						commands[#commands + 1] = { x = mex.x, z = mex.z, d = distance2dSquared(aveX, aveZ, mex.x, mex.z) }
 					end
 				end
 			else
 				if canExtractorBeUpgraded(mex.x, mex.z, chosenExtractor) then
-					commandsCount = commandsCount + 1
-					commands[commandsCount] = { x = mex.x, z = mex.z, d = Distance(aveX, aveZ, mex.x, mex.z) }
+					commands[#commands + 1] = { x = mex.x, z = mex.z, d = distance2dSquared(aveX, aveZ, mex.x, mex.z) }
 				end
 			end
 		end
@@ -321,7 +315,7 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 
 	-- Order available mex spots based on distance
 	local orderedCommands = {}
-	while commandsCount > 0 do
+	while #commands > 0 do
 		tasort(commands, function(a, b)
 			return a.d < b.d
 		end)
@@ -329,15 +323,14 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 		aveX, aveZ = commands[1].x, commands[1].z
 		taremove(commands, 1)
 		for _, com in pairs(commands) do
-			com.d = Distance(aveX, aveZ, com.x, com.z)
+			com.d = distance2dSquared(aveX, aveZ, com.x, com.z)
 		end
-		commandsCount = commandsCount - 1
 	end
 
 	-- Shift key not used = give stop command first
 	if not justDraw and not options.shift then
 		checkDuplicateOrders = false -- no need to check for duplicate orders
-		for ct = 1, mainBuildersCount do
+		for ct = 1, #mainBuilders do
 			spGiveOrderToUnit(mainBuilders[ct], CMD_STOP, {}, CMD_OPT_RIGHT)
 		end
 	end
@@ -345,7 +338,7 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 	-- Give the actual mex build orders
 	local facing = spGetBuildFacing() or 1
 	local queuedMexes = {}
-	for ct = 1, mainBuildersCount do
+	for ct = 1, #mainBuilders do
 		local id = mainBuilders[ct]
 		local mexOrders = {}
 
