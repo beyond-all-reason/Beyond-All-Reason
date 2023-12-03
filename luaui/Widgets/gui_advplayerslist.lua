@@ -194,8 +194,8 @@ local now = 0
 
 local timeCounter = 9
 local timeFastCounter = 9
-local updateRate = 0.75
-local updateFastRate = 0.09 -- only updates resources
+local updateRate = 0.85
+local updateFastRate = 0.2 -- only updates resources
 local lastTakeMsg = -120
 local hoverPlayerlist = false
 
@@ -1405,7 +1405,7 @@ function SortList()
     end
     local deadTeamSize = 0.7
     playerScale = math.max(0.5, math.min(1, 33 / ((aliveTeams+(deadTeams*deadTeamSize)+((#teamList-(aliveTeams+(deadTeams*deadTeamSize)))*0.5))-1)))
-    if Spring_GetAllyTeamList() > 24 then
+    if #Spring_GetAllyTeamList() > 24 then
         playerScale = playerScale - (playerScale * ((#Spring_GetAllyTeamList()-2)/500))  -- reduce size some more when mega ffa
     end
 
