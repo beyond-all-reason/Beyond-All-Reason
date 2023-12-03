@@ -63,7 +63,7 @@ function widget:Update(dt)
 	end
 end
 
-local function areaMex(uDefID)
+local function setAreaMexType(uDefID)
 	selectedMex = uDefID
 	Spring.Echo('setting selectedMex to ', tostring(selectedMex))
 end
@@ -122,7 +122,7 @@ function widget:Initialize()
 	end
 
 	WG['areamex'] = {}
-	WG['areamex'].areaMex = function(uDefID)
-		areaMex(uDefID)
+	WG['areamex'].setAreaMexType = function(uDefID)
+		setAreaMexType(uDefID)
 	end
 end

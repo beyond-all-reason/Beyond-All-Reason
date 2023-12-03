@@ -523,17 +523,14 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		end
 
 		local uDef = UnitDefs[-uDefID]
-		-- Spring.Echo("Triggering area mex with unit def " ..tostring(uDefID))
 		local isRepeatMex = uDef.customParams.metal_extractor and uDef.name == activeCmd
-		-- and not (uDef.stealth or #uDef.weapons > 0)
 		local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
 
 		if isRepeatMex then
-			WG['areamex'].areaMex(uDefID)
+			WG['areamex'].setAreaMexType(uDefID)
 		end
 
 		Spring.SetActiveCommand(cmd, 3, false, true, alt, ctrl, meta, shift)
-
 		return true
 	end
 
