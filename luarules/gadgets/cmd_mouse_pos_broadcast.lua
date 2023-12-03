@@ -65,8 +65,8 @@ else
 
 	--------------------------------------------------------------------------------
 
-	local sendPacketEvery	= 0.33
-	local sendPacketEveryWhenSpec	= 0.66
+	local sendPacketEvery	= 0.35
+	local sendPacketEveryWhenSpec	= 0.7
 
 	--------------------------------------------------------------------------------
 
@@ -83,9 +83,9 @@ else
 	local validation = SYNCED.validationMouse
 
 	local myPlayerID = Spring.GetMyPlayerID()
-	local mySpec, _ = Spring.GetSpectatingState()
+	local spec, _ = GetSpectatingState()
 
-	local saveEach = (mySpec and sendPacketEveryWhenSpec or sendPacketEvery) / numMousePos
+	local saveEach = (spec and sendPacketEveryWhenSpec or sendPacketEvery) / numMousePos
 	local updateTick = saveEach
 
 	local updateTimer = 0
@@ -104,8 +104,8 @@ else
 
 	function gadget:PlayerChanged(playerID)
 		if playerID == myPlayerID then
-			mySpec, _ = Spring.GetSpectatingState()
-			if mySpec then
+			spec, _ = Spring.GetSpectatingState()
+			if spec then
 				saveEach = sendPacketEveryWhenSpec/numMousePos
 				updateTick = saveEach
 			end
@@ -114,7 +114,6 @@ else
 
 	function handleMousePosEvent(_,playerID,x,z,click)
 		--here we receive mouse pos from other players and dispatch to luaui
-		local spec, fullView = GetSpectatingState()
 		if not spec then
 			local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID,false)
 			if targetSpec or allyTeamID ~= select(5,GetPlayerInfo(myPlayerID,false)) then
@@ -133,7 +132,7 @@ else
 			local mx,my = GetMouseState()
 			local _,pos = TraceScreenRay(mx,my,true)
 
-			if pos and (n == 1 or (pos[1] ~= lastx or pos[2] ~= lastz)) then	-- only record change in position unless packet is already being instigated previous update tick
+			if pos and (n == 1 or pos[1] ~= lastx or pos[2] ~= lastz) then	-- only record change in position unless packet is already being instigated previous update tick
 				poshistory[n*2]	 = PackU16(floor(pos[1]))
 				poshistory[n*2+1] = PackU16(floor(pos[3]))
 				--if n == numMousePos then
