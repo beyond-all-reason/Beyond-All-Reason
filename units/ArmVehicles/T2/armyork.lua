@@ -1,12 +1,12 @@
 return {
 	armyork = {
-		acceleration = 0.06111,
+		maxacc = 0.06111,
 		airsightdistance = 900,
-		brakerate = 0.12223,
-		buildcostenergy = 9100,
-		buildcostmetal = 450,
+		maxdec = 0.12223,
+		energycost = 9100,
+		metalcost = 450,
 		buildpic = "ARMYORK.DDS",
-		buildtime = 9964,
+		buildtime = 9950,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -10 -2",
@@ -19,9 +19,9 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		maxdamage = 2600,
+		health = 2600,
 		maxslope = 16,
-		maxvelocity = 2.35,
+		speed = 70.5,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
 		nochasecategory = "NOTAIR",
@@ -178,8 +178,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1550,
 				damage = {
-					bombers = 200,
-					fighters = 400,
 					vtol = 200,
 				},
 				rgbcolor = {

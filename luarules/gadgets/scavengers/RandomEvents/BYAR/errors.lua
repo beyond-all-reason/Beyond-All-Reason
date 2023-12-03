@@ -23,6 +23,13 @@ local function rebellion1(currentFrame)
 end
 
 local function rebellion2(currentFrame)
+	local ignoreDefs = {}
+	for udefID,def in ipairs(UnitDefs) do
+		if def.modCategories['object'] or def.customParams.objectify or def.customParams.drone then
+			ignoreDefs[udefID] = true
+		end
+	end
+
 	local scavUnits = Spring.GetTeamUnits(ScavengerTeamID)
 	if #scavUnits > 1 then
 		ScavSendNotification("scav_eventmalfunctions")

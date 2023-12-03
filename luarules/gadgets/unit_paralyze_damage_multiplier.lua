@@ -25,7 +25,16 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
     if paralyzer then
         -- apply customParams paralyse multiplier
         local paralyzeMultiplier = paralyzeMultipliers[uDefID]
-        return damage * paralyzeMultiplier, paralyzeMultiplier
+		
+		
+		if Spring.GetModOptions().emprework==true then
+		
+			if paralyzeMultiplier==1 then
+				--paralyzeMultiplier = 0.6 --a new default EMP resistance for everything
+			end
+		
+		end
+		return damage * paralyzeMultiplier, paralyzeMultiplier
     end
     return damage, 1
 end

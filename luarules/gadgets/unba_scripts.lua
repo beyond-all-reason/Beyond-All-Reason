@@ -23,6 +23,10 @@ local unbacoms = {
     [UnitDefNames["armcom"].id] = true,
     [UnitDefNames["cordecom"].id] = true,
     [UnitDefNames["armdecom"].id] = true,
+    [UnitDefNames["legcom"].id] = true,
+    [UnitDefNames["legcomlvl2"].id] = true,
+    [UnitDefNames["legcomlvl3"].id] = true,
+    [UnitDefNames["legcomlvl4"].id] = true,
 }
 
 local unbaRanks = {
@@ -91,6 +95,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
     if aliveUnbaComs[unitID] and attackerID and unitTeam ~= attackerTeam and select(6, Spring.GetTeamInfo(unitTeam)) ~= select(6, Spring.GetTeamInfo(attackerTeam)) then
         local curHealth, maxHealth = Spring.GetUnitHealth(unitID)
         local xpDifferenceToTop = topCommanderXP - Spring.GetUnitExperience(unitID)
+        curHealth = math.max(curHealth, maxHealth*0.2)
         Spring.SetUnitExperience(unitID, Spring.GetUnitExperience(unitID)+((0.01*(damage/curHealth))*(1+xpDifferenceToTop)))
     end
 end

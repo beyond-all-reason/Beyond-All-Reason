@@ -1,4 +1,33 @@
-﻿# August 2023
+﻿# November 2023
+• [Release Candidate Modoption] Dragon rework is added to the list of units in the release candidates modoption.  This updates the dragon model and changes its weapons.  An anti-air turret is added so that the unit can deal with small amounts of T1 fighters, the front weapon is changed from a laser to a flamethrower, and the side turrets have been split from 2 medium to 4 smaller laser turrets.  
+• [Consul] Recluse removed from build list, Webber added to build list.
+• [Air units] Armorclasses merged for all air units, meaning that fighters and bombers will take the same amount of damage as gunships.  
+	- T1 fighters will kill other T1 fighters in 2 shots instead of 1
+	- T1 fighters will kill T2 fighters in 3 shots instead of 2
+	- Flak will kill T2 fighters in 2 shots instead of 1
+	- To make up for the extra durability, the cost of T2 fighters is increased
+	- Nighthawk (Cor T2 fighter) cost increased from 105m3700E -> 135m4750E, and weapon damage set to 500/shot
+	- Highwind (Arm T2 fighter) cost increased from 120m4900E -> 140m5700E, and weapon damage set to 750/shot
+	- The commander no longer deals extra damage against bombers
+	- Chainsaw and Eradicator damage per shot against fighters and gunships increased to match with previous damage against bombers
+• [Quaker] Reworked to be larger with a heavier weapon, so that the T2 veh artillery has a similar asymmetry to the T1 veh artillery.  Cost changed from 280m 3300E -> 360m 4000E, health increased 830 -> 1000, max speed reduced 54 -> 48, Damage per shot increased 300 -> 420, aoe increased 129 -> 144, reloadtime increased 4.25s -> 5s
+• [Omen] Cor T2 radar vehicle's movement speed increased 36 -> 48 to be closer to arm T2 radar vehicle (57 speed)
+• [Crawling Bombs] Movement speed while underwater reduced to 2/3 speed on land
+• [Consul] Hound removed from build list, Sprinter and Platypus added to build list
+• [Twitcher] Termite added to build list
+• [Termite] Cost reduced from 700m 12000E -> 600m 9000E
+• [Turtle] Cost reduced from 750m 18000E -> 750m 15000E
+• [T2 Amphib Tanks] Paralyze damage taken reduced to 25%
+• [T2 Cruisers] Fires 1 depthcharge at a time instead of 2 round bursts, projectile sped up and tracking improved
+
+# October 2023
+• [Webber] Reclaim speed increased from 100->150.
+
+# August 2023
+• [Shellshocker] Reworked to be the lighter version of t1 veh artillery while cor remains the heavy version.  Reloadtime decreased 6.1 -> 4.3, damage per shot decreased 260 -> 182, inaccuracy reduced to 50% current area, area of effect reduced to 50% current area (-30% radius).  Model size and collision volume decreased by 10%
+• [Wolverine] Cost increased from 155m 2300E -> 170m 2500E.  Model size and collision volume increased by 15%.  Max health 640->750, max velocity 51->48.
+• [Rocketeer] Damage per shot increased 10% (157->173), reloadtime increased 5% (3.8->4)
+• [Aggravator] Damage per shot increased 10% (157->173), reloadtime increased 5% (3.8->4)
 • [Laser/Lightning Weapons] targetmovererror set to zero for T2+ units. 
     - Hitscan weapons no longer randomly miss small fast moving targets.
     - Affected Armada Units: Platypus, Welder, Titan blue laser, Thor side EMP lasers, Starlight.
@@ -8,7 +37,7 @@
 # July 2023
 • [Whistler] Range decreased from 600 -> 575
 • [Lasher] Damage per shot decreased 47 -> 43
-• [Shellshocker] Reloadtime increased 5.7s -> 6.2s
+• [Shellshocker] Reloadtime increased 5.7s -> 6.1s
 • [Wolverine] Reloadtime increased 6.6s -> 7.2s
 • [Dolphin] Cost increased from 165m 1400E -> 175m 1500E
 • [Herring] Cost decreased from 230m 1600E -> 210m 1400E

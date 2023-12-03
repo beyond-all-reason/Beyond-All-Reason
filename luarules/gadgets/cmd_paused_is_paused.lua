@@ -1,7 +1,8 @@
-if not gadgetHandler:IsSyncedCode() then
+if Spring.GetModOptions().allowpausegameplay or Spring.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
-if Spring.Utilities.Gametype.IsSinglePlayer() then
+
+if not gadgetHandler:IsSyncedCode() then
 	return
 end
 

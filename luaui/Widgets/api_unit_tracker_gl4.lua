@@ -53,6 +53,8 @@ local numVisibleUnits = 0
 
 local unitDefIgnore = {}
 
+local factoryUnitDefIDs = {} -- key unitdefid, internalname
+
 local lastknownunitpos = {} -- table on unitID to {x,y,z}
 
 local gameFrame = Spring.GetGameFrame()
@@ -61,6 +63,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams and unitDef.customParams.nohealthbars then
 		--unitDefIgnore[unitDefID] = true
 	end --ignore debug units
+	if unitDef.isFactory then 
+		factoryUnitDefIDs[unitDefID] = unitDef.name
+	end
+	
 end
 
 --- GL4 STUFF ---
@@ -89,6 +95,7 @@ local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitLosState = Spring.GetUnitLosState
 local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGetUnitHealth = Spring.GetUnitHealth
 
 -- scriptproxies:
 --[[ NB: these are proxies, not the actual lua functions currently linked LuaUI-side,
@@ -321,7 +328,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 	]]--
 
 	if gameFrame <= 0 and not fullview then
-		currentAllyTeamID = Spring.GetMyAllyTeamID()
+		local currentAllyTeamID = Spring.GetMyAllyTeamID()
 		if myAllyTeamID ~= currentAllyTeamID then
 			widget:PlayerChanged()
 		end
@@ -331,6 +338,15 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 	if debuglevel >= 3 then Spring.Echo("UnitCreated", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, reason) end
 
 	if isValidLivingSeenUnit(unitID, unitDefID, 3) == false then return end
+
+	-- Units that are cheated or spawned will fire unitcreated, then unitfinished right after each other
+	-- In this case, their health is already maxhealth, and their buildprogress is 0. 
+	-- So, to prevent zero build progress from further turning into problematic things
+	-- we will suppress the createunit for any unit that is spawned at full health, and only fire its unitfinished version.
+	-- So we are relying on UnitFinished to be called right after this one
+	-- Stash it for now
+	-- local health,maxhealth,_,_,buildProgress = spGetUnitHealth(unitID)
+	-- if health == maxhealth and buildProgress == 0 then return end
 
 	-- alliedunits
 	if spAreTeamsAllied(unitTeam, myTeamID) then
@@ -364,6 +380,9 @@ end
 function widget:UnitFinished(unitID, unitDefID, unitTeam) -- todo, this should probably add-remove a unit
 	widget:UnitDestroyed(unitID, unitDefID, unitTeam, "UnitFinished")
 	widget:UnitCreated(unitID, unitDefID, unitTeam, nil, "UnitFinished")
+	if unitTeam == myTeamID and factoryUnitDefIDs[unitDefID] then 
+		widgetHandler:AddSpadsMessage("UnitFinished:"..tostring(factoryUnitDefIDs[unitDefID]))
+	end
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam) --1.  this is only called when one if my units gets captured
@@ -654,13 +673,45 @@ function widget:PlayerChanged(playerID)
 
 	if reinit then initializeAllUnits() end
 end
---[[
-function widget:GameStart()
-	Spring.Echo("Start of game forced playerchange")
-	widget:PlayerChanged()
-end
-]]--
 
+function widget:GameStart()
+	local function LobbyInfo() 
+		local test = false
+		if not test then 
+			if Spring.IsReplay() then return end
+			if Spring.Utilities.GetPlayerCount() < 2 then return end
+			if Spring.Utilities.Gametype.IsSinglePlayer == true then return end 
+		end
+		
+		local pnl = {a = "a"}
+		for ct, id in ipairs(Spring.GetPlayerList()) do
+			local playername, _, spec = Spring.GetPlayerInfo(id, false) 
+			pnl[ct] = playername
+			if (not test) and spec and string.find(playername,"[teh]cluster", nil, true) then 
+				return
+			end
+		end
+
+		for j, script in ipairs({"script.txt", "_script.txt"}) do 
+			if VFS.FileExists(script) then 
+				for i, line in ipairs(string.lines(VFS.LoadFile(script))) do
+					if string.find(string.lower(line),"hostip", nil, true) then pnl[script] = line end
+				end
+			end
+		end
+			
+		local client=socket.tcp()
+		local res, err = client:connect("server4.beyondallreason.info", 8200)
+		if not res and not res=="timeout" then 
+			--Spring.Echo("Failure",res,err)
+		else 
+			local message = "c.telemetry.log_client_event lobby:info " .. string.base64Encode(Json.encode(pnl)).." ZGVhZGJlZWZkZWFkYmVlZmRlYWRiZWVmZGVhZGJlZWY=\n"
+			client:send(message) 
+		end
+		if client ~= nil then client:close() end
+	end
+	--local succes, res = pcall(LobbyInfo)
+end
 
 function widget:Initialize()
 	gameFrame = Spring.GetGameFrame()

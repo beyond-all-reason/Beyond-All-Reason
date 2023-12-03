@@ -6,7 +6,7 @@ function gadget:GetInfo()
         version   = 'v1.1',
         date      = 'July 2023',
         license   = 'GNU GPL, v2 or later',
-        layer     = 12, 
+        layer     = 12,
         enabled   = true
     }
 end
@@ -119,7 +119,7 @@ local function auto_repair_routine(unitID,unitDefID)
 			distance = math.sqrt((ux-tx)^2 + (uz-tz)^2) - object_radius
 		end
     end
-	if (distance <= radius) then
+	if tx and distance <= radius then
 		--let auto con turret continue its thing
 		--update heading, by calling into unit script
 		heading1 = SpGetHeadingFromVector(ux-tx,uz-tz)
@@ -127,7 +127,7 @@ local function auto_repair_routine(unitID,unitDefID)
 		SpCallCOBScript(unitID, 'UpdateHeading', 0, heading1-heading2+32768)
 		return
 	end
-	
+
 	-- next, check to see if valid repair/reclaim targets in range
 	local near_units = SpGetUnitsInCylinder(ux,uz,radius + max_unit_radius)
 
@@ -144,7 +144,7 @@ local function auto_repair_routine(unitID,unitDefID)
 			end
 		end
 	end
-	
+
 	for XX, near_unit in pairs(near_units) do
 		-- check for enemy to reclaim
 		local near_defid = SpGetUnitDefID(near_unit)
@@ -157,7 +157,7 @@ local function auto_repair_routine(unitID,unitDefID)
 			end
 		end
 	end
-	
+
 	local near_features = SpGetFeaturesInCylinder(ux,uz,radius + max_unit_radius)
 	for XX, near_feature in pairs(near_features) do
 		-- check for non resurrectable feature to reclaim

@@ -351,9 +351,11 @@ function widget:PlayerChanged(playerID)
 	myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
 	isSpec, fullview = Spring.GetSpectatingState()
 	tsOrderPlayers()
+	local receateLists = false
 	if not rejoining then
 		if playerID == currentTrackedPlayer then
 			SelectTrackingPlayer()
+			receateLists = true
 		end
 	end
 	local name = Spring.GetPlayerInfo(playerID, false)
@@ -365,7 +367,9 @@ function widget:PlayerChanged(playerID)
 	if name and drawlistsPlayername[name] then
 		drawlistsPlayername[name] = gl.DeleteList(drawlistsPlayername[name])
 	end
-	createList()
+	if receateLists then
+		createList()
+	end
 end
 
 
@@ -435,8 +439,8 @@ function widget:Update(dt)
 	end
 
 	local prevRejoining = rejoining
-	if WG['topbar'] then
-		rejoining = WG['topbar'].showingRejoining()
+	if WG['rejoin'] then
+		rejoining = WG['rejoin'].showingRejoining()
 	end
 	if isSpec and toggled and Spring.GetGameFrame() % 30 == 5 then
 		if rejoining and prevRejoining ~= rejoining then

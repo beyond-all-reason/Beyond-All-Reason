@@ -1,5 +1,12 @@
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
 	return false
+end
+
+local ignoreDefs = {}
+for udefID,def in ipairs(UnitDefs) do
+	if def.modCategories['object'] or def.customParams.objectify or def.customParams.drone then
+		ignoreDefs[udefID] = true
+	end
 end
 
 -- Base
@@ -12,12 +19,6 @@ positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_check
 nearbyCaptureLibrary = VFS.Include("luarules/utilities/damgam_lib/nearby_capture.lua")
 unitSwapLibrary = VFS.Include("luarules/utilities/damgam_lib/unit_swap.lua")
 
-local ignoreDefs = {}
-for udefID,def in ipairs(UnitDefs) do
-	if def.modCategories['object'] or def.customParams.objectify or def.customParams.drone then
-		ignoreDefs[udefID] = true
-	end
-end
 function ScavSendMessage(message)
 	if scavconfig.messenger then
 		SendToUnsynced("SendMessage", message)

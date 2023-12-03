@@ -111,6 +111,7 @@ local unitOrderTable = {
 	['corape']         = 004340,
 	['armblade']       = 004345,
 	['corcrw']         = 004348,
+	['corcrwh']         = 004347,
 	['legfort']        = 004349,
 
 	['armthund']       = 004350, --BOMBERS
@@ -217,6 +218,7 @@ local unitOrderTable = {
 
 	['armsptk']        = 006600, --ALL-TERRAIN
 	['cortermite']     = 006610,
+	['leginfestor']   = 006614,
 	['legsrail']       = 006615,
 
 	['armfboy']        = 006700, --STRONK
@@ -250,6 +252,7 @@ local unitOrderTable = {
 	['corshiva']       = 007050,
 	['legpede']        = 007055,
 	['armthor']        = 007060,
+	['leegmech']        = 007065,
 	['corkorg']        = 007070,
 	['armbanth']       = 007080,
 	['corjugg']        = 007090,
@@ -268,6 +271,7 @@ local unitOrderTable = {
 	['armsptkt4']      = 007320,
 	['cordemont4']     = 007330,
 	['corkarganetht4'] = 007340,
+	['corthermite'] = 007341,
 
 	['armvadert4']     = 007400,
 	['armrattet4']     = 007410,
@@ -399,6 +403,7 @@ local unitOrderTable = {
    ['armmoho']        = 100200,
    ['cormoho']        = 100250,
    ['legmext2']       = 100260,
+   ['armshockwave']   = 100290,
    ['cormexp']        = 100300,
 
    --ECO ENERGY CONVERTERS
@@ -509,8 +514,10 @@ local unitOrderTable = {
    ['corfort']        = 104400,
    ['corscavfort']    = 104505, --scavengers
    ['armclaw']        = 104600,
+   ['armlwall']       = 104650,
    ['corscavdtl']     = 104705, --scavengers
    ['cormaw']         = 104800,
+   ['cormwall']       = 104850,
    ['corscavdtf']     = 104905, --scavengers
    ['corscavdtm']     = 104915, --scavengers
 
@@ -553,6 +560,7 @@ local unitOrderTable = {
    ['corminibuzz']    = 120200, --scavengers
    ['armvulc']        = 120300,
    ['corbuzz']        = 120400,
+   ['legstarfall']        = 120450,
    ['armbotrail']     = 120500, --scavengers
 
    --DEFENSES AA

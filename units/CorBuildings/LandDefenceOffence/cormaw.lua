@@ -1,11 +1,11 @@
 return {
 	cormaw = {
-		acceleration = 0,
+		maxacc = 0,
 		buildangle = 8192,
-		buildcostenergy = 1550,
-		buildcostmetal = 290,
+		energycost = 1550,
+		metalcost = 290,
 		buildpic = "CORMAW.DDS",
-		buildtime = 4419,
+		buildtime = 4420,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
@@ -23,9 +23,9 @@ return {
 		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
-		maxdamage = 1610,
+		health = 1610,
 		maxslope = 18,
-		maxwaterdepth = 0, 
+		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORMAW.s3o",
 		radardistancejam = 8,
@@ -38,6 +38,7 @@ return {
 		upright = true,
 		yardmap = "ffff",
 		customparams = {
+			neutral_when_closed = true,
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/cormaw_aoplane.dds",
 			buildinggrounddecalsizey = 4,
@@ -165,6 +166,7 @@ return {
 				weapontype = "Flame",
 				weaponvelocity = 300,
 				damage = {
+					commanders = 33,
 					default = 22,
 					subs = 5.5,
 				},

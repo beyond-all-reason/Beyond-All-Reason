@@ -1,10 +1,10 @@
 return {
 	coraak = {
-		acceleration = 0.138,
+		maxacc = 0.138,
 		airsightdistance = 925,
-		brakerate = 0.6486,
-		buildcostenergy = 6200,
-		buildcostmetal = 650,
+		maxdec = 0.6486,
+		energycost = 6200,
+		metalcost = 650,
 		buildpic = "CORAAK.DDS",
 		buildtime = 7600,
 		canmove = true,
@@ -18,8 +18,8 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1420,
-		maxvelocity = 1.15,
+		health = 1420,
+		speed = 34.5,
 		movementclass = "ABOT2",
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORAAK.s3o",
@@ -145,8 +145,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1500,
 				damage = {
-					bombers = 220,
-					fighters = 220,
 					vtol = 220,
 				},
 				rgbcolor = {
@@ -230,8 +228,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 825,
 				damage = {
-					bombers = 80,
-					fighters = 80,
 					vtol = 80,
 				},
 			},
@@ -280,8 +276,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 825,
 				damage = {
-					bombers = 80,
-					fighters = 80,
 					vtol = 80,
 				},
 			},
@@ -330,8 +324,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 825,
 				damage = {
-					bombers = 80,
-					fighters = 80,
 					vtol = 80,
 				},
 			},
@@ -380,8 +372,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
 				damage = {
-					bombers = 150,
-					fighters = 150,
 					vtol = 150,
 				},
 			},

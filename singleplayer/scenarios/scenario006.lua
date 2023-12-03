@@ -20,7 +20,7 @@ Tips:
     1. Light laser towers are incredibly effective against small amounts of infantry.
     2. Resurrecting a fallen infantry unit will immediately add it to your army. Use this to stage epic comebacks.
     3. Infantry can be very effective at finding and killing enemy commanders. Be sure to take control of the wreck after killing the first one.
-    4. AKs have more range than Peewees, but less damage for their cost. Both have their strengths and weaknesses!
+    4. Grunts have more range than Pawns, but less damage for their cost. Both have their strengths and weaknesses!
     ]],
 
     mapfilename     = "Red Comet Remake 1.8", -- the name of the map to be displayed here

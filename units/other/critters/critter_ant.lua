@@ -1,11 +1,11 @@
 return {
 	critter_ant = {
-		acceleration = 0.575,
+		maxacc = 0.575,
 		blocking = false,
 
-		brakerate = 1.15,
-		buildcostenergy = 1,
-		buildcostmetal = 0,
+		maxdec = 1.15,
+		energycost = 1,
+		metalcost = 0,
 		builder = false,
 		buildpic = "critters/critter_ant.DDS",
 		buildtime = 10,
@@ -27,9 +27,9 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 10,
-		maxdamage = 11,
+		health = 11,
 		maxslope = 90,
-		maxvelocity = 0.6,
+		speed = 18.0,
 		maxwaterdepth = 2,
 		movementclass = "BOT1",
 		movestate = -1,
@@ -57,6 +57,7 @@ return {
 		waterline = 6,
 		workertime = 0,
 		customparams = {
+			paralyzemultiplier = 0,
 			nohealthbars = true,
 			subfolder = "other/critters",
 		},

@@ -8,6 +8,10 @@ local function convertToPurple(value)
 end
 
 function scav_Wdef_Post(name, wDef)
+    if not wDef.customparams then wDef.customparams = {} end
+    if wDef.commandfire and (not wDef.customparams.scavforcecommandfire) then wDef.commandfire = false end
+    wDef.metalpershot = 0
+    wDef.energypershot = 0
     if wDef.weapontype == "Cannon" then
 		wDef.rgbcolor = {0.96, 0.42, 1}
         --if wDef.intensity then
@@ -50,6 +54,10 @@ function scav_Wdef_Post(name, wDef)
                     wDef.customparams[k] = colors[2]..' '..colors[3]..' '..colors[1]
                 end
             end
+        end
+        if wDef.customparams.carried_unit and (not string.find(wDef.customparams.carried_unit, "_scav")) then
+            wDef.customparams.carried_unit = wDef.customparams.carried_unit .. "_scav"
+            wDef.customparams.spawnrate = 1
         end
     end
     return wDef

@@ -1,9 +1,9 @@
 return {
 	corsy = {
-		acceleration = 0,
-		brakerate = 0,
-		buildcostenergy = 1200,
-		buildcostmetal = 600,
+		maxacc = 0,
+		maxdec = 0,
+		energycost = 1200,
+		metalcost = 600,
 		builder = true,
 		buildpic = "CORSY.DDS",
 		buildtime = 6600,
@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 4300,
+		health = 4300,
 		metalstorage = 100,
 		minwaterdepth = 30,
 		objectname = "Units/CORSY.s3o",

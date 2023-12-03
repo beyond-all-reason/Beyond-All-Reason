@@ -4,7 +4,7 @@
 		Tech Tree gadget
 ------------------------------------------------------------
 To make use of this gadget:
-	Edit the FBI of your units, 
+	Edit the FBI of your units,
 	adding RequireTech and ProvideTech tags
 	in the CustomParams section of UnitInfo.
 
@@ -271,15 +271,11 @@ function gadget:GetInfo()
 		date = "October 2009",
 		license = "Public domain",
 		layer = -10,
-		enabled = true
+		enabled = false
 	}
 end
 
-if Spring.GetModOptions().comm  == "feature" then
-	gadgetHandler.RemoveGadget()
-end
-
-if (gadgetHandler:IsSyncedCode()) then
+if gadgetHandler:IsSyncedCode() then
 
 	-- Variables
 	local TechTable={}
@@ -873,7 +869,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		end
 	end
 
-	--[[ 
+	--[[
 	function gadget:AllowCommand(u,ud,team,cmd,param,opt,synced)
 		local x,y,z
 		if param and cmd<0 and #param==4 then
@@ -999,7 +995,7 @@ else--unsynced
 			Tech = SYNCED.Tech
 		end
 	end
-	
+
 	function gadget:DrawWorld()
 
 		if Spring.IsGUIHidden() or not Tech then

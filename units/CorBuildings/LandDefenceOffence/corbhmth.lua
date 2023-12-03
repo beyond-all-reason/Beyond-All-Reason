@@ -1,13 +1,13 @@
 return {
 	corbhmth = {
-		acceleration = 0,
+		maxacc = 0,
 		activatewhenbuilt = true,
-		brakerate = 0,
+		maxdec = 0,
 		buildangle = 8192,
-		buildcostenergy = 35000,
-		buildcostmetal = 3100,
+		energycost = 35000,
+		metalcost = 3100,
 		buildpic = "CORBHMTH.DDS",
-		buildtime = 59640,
+		buildtime = 59600,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB WEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
@@ -22,7 +22,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 8300,
+		health = 8300,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
@@ -129,7 +129,7 @@ return {
 				name = "Heavy g2g barrage plasma battery",
 				noselfdamage = true,
 				range = 1650,
-				reloadtime = 0.5,
+				reloadtime = 4.166,
 				soundhit = "xplonuk5",
 				soundhitwet = "splslrg",
 				soundstart = "xplolrg5",
@@ -139,9 +139,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 620,
 				damage = {
-					bombers = 110,
 					default = 450,
-					fighters = 110,
 					subs = 150,
 					vtol = 110,
 				},
@@ -149,6 +147,16 @@ return {
 		},
 		weapons = {
 			[1] = {
+				badtargetcategory = "VTOL",
+				def = "CORBHMTH_WEAPON",
+				onlytargetcategory = "SURFACE",
+			},
+			[2] = {
+				badtargetcategory = "VTOL",
+				def = "CORBHMTH_WEAPON",
+				onlytargetcategory = "SURFACE",
+			},
+			[3] = {
 				badtargetcategory = "VTOL",
 				def = "CORBHMTH_WEAPON",
 				onlytargetcategory = "SURFACE",

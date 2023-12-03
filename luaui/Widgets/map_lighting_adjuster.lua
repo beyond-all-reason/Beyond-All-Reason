@@ -119,11 +119,6 @@ local mapSunLighting = {
 		modelShadowDensity = 0.82,
 		groundShadowDensity = 0.9,
 	},
-	['delta siege dry v5.3'] = {
-		unitAmbientColor = { 0.3, 0.3, 0.3 },
-		unitDiffuseColor = {0.7, 0.6, 0.6},
-		unitSpecularColor = {1.2, 1.05, 1},
-	},
 	['swirly rock v1.1'] = {
 		unitAmbientColor = { 0.44, 0.44, 0.44 },
 		unitDiffuseColor = { 0.88, 0.88, 0.88 },

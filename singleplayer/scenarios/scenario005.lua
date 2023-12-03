@@ -10,7 +10,7 @@ local scenariodata = {
 	imagepath		= "scenario005.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "", -- This text will be drawn over image
     summary         = [[Your Armada commander lost the blueprints to most factories and units. Oops! But perhaps your Cortex enemy has a solution for you...]],
-	briefing 		= [[In this challenge, most Armada combat units and factories are disabled. Use your Commander and static defenses to hold your frontline and your expansions. Find and resurrect an enemy constructor to build combat units. Resurrection Bots (Cortex Necro and Armada Rezzer) can resurrect and repair units, but cannot build structures. They are also stealthy, so they dont show up on the enemy's radar. Use your commander's d-gun wisely, as it completely destroys units, including their wrecks. Use terrain to your advantage when playing defensively.
+	briefing 		= [[In this challenge, most Armada combat units and factories are disabled. Use your Commander and static defenses to hold your frontline and your expansions. Find and resurrect an enemy constructor to build combat units. Resurrection Bots (Cortex Graverobber and Armada Lazarus) can resurrect and repair units, but cannot build structures. They are also stealthy, so they dont show up on the enemy's radar. Use your commander's d-gun wisely, as it completely destroys units, including their wrecks. Use terrain to your advantage when playing defensively.
 
 Score:
 	1. Speed: destroy the enemy Commander as fast as possible.

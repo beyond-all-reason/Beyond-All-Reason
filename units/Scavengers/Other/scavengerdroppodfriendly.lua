@@ -1,13 +1,13 @@
 return {
 	scavengerdroppodfriendly = {
-		acceleration = 0,
+		maxacc = 0,
 		activatewhenbuilt = true,
 		autoheal = 1.8,
 		blocking = false,
 
-		brakerate = 0,
-		buildcostenergy = 10,
-		buildcostmetal = 10,
+		maxdec = 0,
+		energycost = 10,
+		metalcost = 10,
 		buildpic = "scavengers/SCAVBEACON.DDS",
 		buildtime = 10,
 		canmove = false,
@@ -23,8 +23,8 @@ return {
 		idletime = 90,
 		levelground = false,
 		mass = 10,
-		maxdamage = 11,
-		maxvelocity = 0,
+		health = 11,
+		speed = 0.0,
 		noautofire = false,
 		objectname = "scavs/cube.s3o",
 		script = "scavs/droppod.cob",
@@ -73,7 +73,7 @@ return {
 				reloadtime = 5,
 				rgbcolor = "0 1 0",
 				smoketrail = 1,
-				soundhit = "voice/scavengers/scavspawn",
+				soundhit = "voice/allison/scavengers/scavspawn",
 				startvelocity = 2000, -- === weaponvelocity to ensure consistent speed
 				targetborder = 0.75,
 				turret = 1,

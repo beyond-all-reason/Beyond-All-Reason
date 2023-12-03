@@ -185,6 +185,46 @@ if gadgetHandler:IsSyncedCode() then
 	local debugcommands = nil
 	function gadget:Initialize()
 		if Spring.GetModOptions() and Spring.GetModOptions().debugcommands then
+
+			-- "for fun" option to invert map
+			-- if debugcommands = invertmap
+			-- or if debugcommands = invertmap wet
+			-- this code block runs
+			-- still some odd behavior with start box highlighting
+			if string.find(Spring.GetModOptions().debugcommands,"invertmap") then
+				local invertmap = string.split(Spring.GetModOptions().debugcommands, ' ')
+				local ymax = -1000000
+				if (invertmap[2] == "wet") then
+					ymax = 0
+				else
+					_, _, _, ymax = Spring.GetGroundExtremes()
+				end
+				Spring.SetHeightMapFunc(function()
+					for z=0,Game.mapSizeZ, Game.squareSize do
+						for x=0,Game.mapSizeX, Game.squareSize do
+							Spring.SetHeightMap( x, z, ymax-Spring.GetGroundHeight ( x, z ))
+						end
+					end
+				end)
+				-- temporary smooth mesh, inverting doesn't work as transition ends up inside the ground
+				Spring.SetSmoothMeshFunc(function()
+					for z=0,Game.mapSizeZ, Game.squareSize do
+						for x=0,Game.mapSizeX, Game.squareSize do
+							Spring.SetSmoothMesh( x, z, 50+Spring.GetGroundHeight ( x, z ))
+						end
+					end
+				end)
+				-- orginal height map so that restore ground command doesn't dig trenches or construct mountains
+				Spring.SetOriginalHeightMapFunc(function()
+					for z=0,Game.mapSizeZ, Game.squareSize do
+						for x=0,Game.mapSizeX, Game.squareSize do
+							Spring.SetOriginalHeightMap( x, z, ymax-Spring.GetGroundOrigHeight ( x, z ))
+						end
+					end
+				end)
+			-- END "for fun" option to invert map
+			else
+
 			debugcommands = {}
 			local commands = string.split(Spring.GetModOptions().debugcommands, '|')
 			for i,command in ipairs(commands) do
@@ -193,6 +233,8 @@ if gadgetHandler:IsSyncedCode() then
 					debugcommands[tonumber(cmdsplit[1])] = cmdsplit[2]
 					Spring.Echo("Adding debug command",cmdsplit[1], cmdsplit[2])
 				end
+			end
+
 			end
 
 		end
@@ -342,7 +384,20 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+
+	local function adjustFeatureHeight()
+		local featuretable = Spring.GetAllFeatures()
+		local x, y, z
+		for i = 1, #featuretable do
+			x, y, z = Spring.GetFeaturePosition(featuretable[i])
+			Spring.SetFeaturePosition(featuretable[i], x,  Spring.GetGroundHeight(x, z),  z , true) -- snaptoground = true
+		end
+	end
+
 	function gadget:GameFrame(n)
+		if n == 1 and string.find(Spring.GetModOptions().debugcommands,"invertmap") then
+			adjustFeatureHeight()
+		end
 		if fightertestenabled then
 			if (n % 3 == 0)  then
 				SpawnUnitDefsForTeamSynced(0, team1unitDefName)
@@ -675,7 +730,7 @@ else	-- UNSYNCED
 	local alpha = 0.98
 
 
-	function gadget:Update() -- START OF UPDATE
+	local gadgetUpdate = function()
 		if fightertestactive then
 			local now = Spring.GetTimerMicros()
 			if lastFrameType == 'draw' then
@@ -689,6 +744,7 @@ else	-- UNSYNCED
 			lastUpdateTimerUs = Spring.GetTimerMicros()
 		end
 	end
+	--function gadget:Update() end gadgetUpdate() end -- START OF UPDATE
 
 	function gadget:GameFrame(n) -- START OF SIM FRAME
 		if fightertestactive then
@@ -706,7 +762,7 @@ else	-- UNSYNCED
 		end
 	end
 
-	function gadget:DrawGenesis() -- START OF DRAW
+	local gadgetDrawGenesis = function()
 		if fightertestactive then
 			local now = Spring.GetTimerMicros()
 			updateTime = Spring.DiffTimers(now, lastUpdateTimerUs)
@@ -715,8 +771,9 @@ else	-- UNSYNCED
 			lastDrawTimerUS = now
 		end
 	end
+	--function gadget:DrawGenesis() gadgetDrawGenesis() end -- START OF DRAW
 
-	function gadget:DrawScreenPost() -- END OF DRAW
+	local gadgetDrawScreenPost = function()
 		if fightertestactive then
 			drawTime = Spring.DiffTimers(Spring.GetTimerMicros(), lastDrawTimerUS)
 			fighterteststats.drawFrameTimes[#fighterteststats.drawFrameTimes + 1] = drawTime
@@ -726,8 +783,9 @@ else	-- UNSYNCED
 			dt = drawTime
 		end
 	end
+	--function gadget:DrawScreenPost() gadgetDrawScreenPost() end -- END OF DRAW
 
-	function gadget:DrawScreen()
+	local gadgetDrawScreen = function()
 		if fightertestactive or isBenchMark then
 			local s = ""
 			if isBenchMark then
@@ -739,6 +797,7 @@ else	-- UNSYNCED
 			gl.Text(s, 600,600,16)
 		end
 	end
+	--function gadget:DrawScreen() gadgetDrawScreen() end
 
 	function gadget:UnitCreated()
 		if fightertestactive then
@@ -843,8 +902,14 @@ else	-- UNSYNCED
 				scenariooptions = Json.decode(scenariooptions)
 				if scenariooptions and scenariooptions.benchmarkcommand then
 					--This is where the magic happens!
+					local prevIsBenchmark = isBenchMark
 					isBenchMark = scenariooptions.benchmarkcommand
 					benchMarkFrames = scenariooptions.benchmarkframes
+					if prevIsBenchmark ~= isBenchMark then
+						gadget.DrawScreen = (fightertestactive or isBenchMark) and gadgetDrawScreen or nil
+						gadgetHandler:UpdateCallIn("DrawScreen")
+						gadgetHandler:UpdateCallIn("DrawScreen") --stupid bug
+					end
 				end
 			end
 			-- initialize stats table
@@ -861,6 +926,16 @@ else	-- UNSYNCED
 			lastUpdateTimerUs = Spring.GetTimerMicros()
 		end
 		fightertestactive = not fightertestactive
+
+		gadget.DrawGenesis = fightertestactive and gadgetDrawGenesis or nil
+		gadgetHandler:UpdateCallIn("DrawGenesis")
+		gadget.DrawScreenPost = fightertestactive and gadgetDrawGenesis or nil
+		gadgetHandler:UpdateCallIn("DrawScreenPost")
+		gadget.DrawScreen = (fightertestactive or isBenchMark) and gadgetDrawScreen or nil
+		gadgetHandler:UpdateCallIn("DrawScreen")
+		gadget.Update = fightertestactive and gadgetUpdate or nil
+		gadgetHandler:UpdateCallIn("Update")
+
 		local msg = PACKET_HEADER .. ':fightertest'
 		for i=1,5 do
 			if words[i] then msg = msg .. " " .. tostring(words[i]) end

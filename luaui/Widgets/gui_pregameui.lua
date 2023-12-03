@@ -21,7 +21,7 @@ local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutline
 local uiScale = (0.7 + (vsx * vsy / 6500000))
 local myPlayerID = Spring.GetMyPlayerID()
 local _, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
-local ffaMode = Spring.GetModOptions().ffa_mode
+local isFFA = Spring.Utilities.Gametype.IsFFA()
 local isReplay = Spring.IsReplay()
 
 local readyButtonColor = {0.05, 0.28, 0}
@@ -149,11 +149,15 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 
 end
 
+local ihavejoined = false
 function widget:GameSetup(state, ready, playerStates)
-
+	local spec, fullview = Spring.GetSpectatingState()
 	-- sends a "I arrived" message
-	if Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") == nil then
+	if (not spec) and 
+	   (Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") == nil)
+	   or (ihavejoined == false) then
 		Spring.SendLuaRulesMsg("joined_game") 
+		ihavejoined = true
 	end
 
 	-- check when the 3.2.1 countdown starts
@@ -162,13 +166,11 @@ function widget:GameSetup(state, ready, playerStates)
 	end
 
 	-- if we can't choose startpositions, no need for ready button etc
-	if Game.startPosType ~= 2 or ffaMode then
-		return true, true
-	end
-
-	-- set my readyState to true if ffa
-	if ffaMode and (not readied or not ready) then
-		readied = true
+	if Game.startPosType ~= 2 then
+		-- additionally automatically set readyState to true if this is a FFA game
+		if isFFA and (not readied or not ready) then
+			readied = true
+		end
 		return true, true
 	end
 
@@ -280,7 +282,7 @@ function widget:Initialize()
 	end
 
 	if mySpec and enableSubbing then
-		if numPlayers <= 4 or isReplay or ffaMode then
+		if numPlayers <= 4 or isReplay or isFFA then
 			eligibleAsSub = false
 		else
 			eligibleAsSub = true

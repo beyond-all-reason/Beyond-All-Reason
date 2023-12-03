@@ -93,10 +93,14 @@ local function SpawnUnit(spawnData)
 			end
 			if spawnData.x > 0 and spawnData.x < mapsizeX and spawnData.z > 0 and spawnData.z < mapsizeZ then
 				local y = Spring.GetGroundHeight(spawnData.x, spawnData.z)
-				if string.find(spawnDef.surface, "LAND") and y > 0 then
-					validSurface = true
-				elseif string.find(spawnDef.surface, "SEA") and y <= 0 then
-					validSurface = true
+				if spawnData.y < math.max(y+32, 32) then
+					if string.find(spawnDef.surface, "LAND") and y > 0 then
+						validSurface = true
+					elseif string.find(spawnDef.surface, "SEA") and y <= 0 then
+						validSurface = true
+					end
+				else
+					validSurface = false
 				end
 			else
 				removeWreck = true

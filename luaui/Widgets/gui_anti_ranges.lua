@@ -203,7 +203,7 @@ function processVisibleUnit(unitID)
 		elseif unitDefId == arm_mobile_anti_water_2 then
             pos[4] = coverageRangeArmWater2
 		elseif unitDefId == cor_mobile_anti_water_2 then
-            pos[4] = coverageRangeCorWater2
+            pos[4] = coverageRangeCoreWater2
         elseif unitDefId == cor_mobile_anti then
             pos[4] = coverageRangeCore
         else
@@ -228,7 +228,7 @@ function widget:UnitLeftLos(unitID)
 		elseif unitDefId == arm_mobile_anti_water_2 then
             pos[4] = coverageRangeArmWater2
 		elseif unitDefId == cor_mobile_anti_water_2 then
-            pos[4] = coverageRangeCorWater2
+            pos[4] = coverageRangeCoreWater2
         elseif unitDefId == cor_mobile_anti then
             pos[4] = coverageRangeCore
         else

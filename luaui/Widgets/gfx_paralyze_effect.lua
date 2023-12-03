@@ -20,7 +20,7 @@ VFS.Include(luaShaderDir.."instancevboidtable.lua")
 local paralyzedUnitShader, unitShapeShader
 
 local shaderConfig = {
-	SKINSUPPORT = Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and 1 or 0,
+	SKINSUPPORT = Script.IsEngineMinVersion(105, 0, 1653) and 1 or 0,
 }
 
 local vsSrc = [[

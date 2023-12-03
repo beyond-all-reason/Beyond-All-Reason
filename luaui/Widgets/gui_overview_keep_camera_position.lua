@@ -57,6 +57,7 @@ function widget:MouseWheel(up, value)
 end
 
 function widget:KeyPress(key, modifier)
+	if not isCamKey(key) then return end
 	if isOverview() then
 		if prevCamState ~= nil then
 			Spring.SetCameraState(prevCamState, 1)
@@ -65,3 +66,4 @@ function widget:KeyPress(key, modifier)
 		prevCamState = Spring.GetCameraState()
 	end
 end
+

@@ -1,10 +1,10 @@
 return {
 	legdefcarryt1 = {
-		acceleration = 0,
-		brakerate = 4.5,
+		maxacc = 0,
+		maxdec = 4.5,
 		buildangle = 4096,
-		buildcostenergy = 6000,
-		buildcostmetal = 200,
+		energycost = 6000,
+		metalcost = 200,
 		buildpic = "LEGDEFCARRYT1.DDS",
 		buildtime = 6000,
 		canrepeat = false,
@@ -22,7 +22,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 700,
-		maxdamage = 1200,
+		health = 1200,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		movementclass = "NANO",
@@ -153,11 +153,11 @@ return {
 					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently. 
 					spawnrate = 8, 				--Spawnrate roughly in seconds. 
 					maxunits = 4,				--Will spawn units until this amount has been reached. 
-					buildcostenergy = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
-					buildcostmetal = 15,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
+					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
+					metalcost = 15,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
 					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit. 
 					decayrate = 4,
-					carrierdeaththroe = "control",
+					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 15,
 					docktohealthreshold = 50,

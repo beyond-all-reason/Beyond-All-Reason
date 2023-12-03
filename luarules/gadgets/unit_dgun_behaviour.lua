@@ -11,9 +11,7 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
-
 local dgunWeapons = {}
-
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if weaponDef.type == 'DGun' then
 		Script.SetWatchProjectile(weaponDefID, true)
@@ -22,12 +20,20 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 end
 
 local isCommander = {}
-
+local isDecoyCommander = {}
+local commanderNames = {}
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
+		commanderNames[unitDef.name] = true
 	end
 end
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	if unitDef.customParams.decoyfor and commanderNames[unitDef.customParams.decoyfor] then
+		isDecoyCommander[unitDefID] = true
+	end
+end
+commanderNames = nil
 
 local flyingDGuns = {}
 local groundedDGuns = {}
@@ -36,7 +42,6 @@ local function addVolumetricDamage(projectileID)
 	local weaponDefID = Spring.GetProjectileDefID(projectileID)
 	local ownerID = Spring.GetProjectileOwnerID(projectileID)
 	local x,y,z = Spring.GetProjectilePosition(projectileID)
-
 	local explosionParame ={
 		weaponDef = weaponDefID,
 		owner = ownerID,
@@ -52,7 +57,6 @@ local function addVolumetricDamage(projectileID)
 		ignoreOwner = dgunWeapons[weaponDefID].noSelfDamage,
 		damageGround = true,
 	}
-
 	Spring.SpawnExplosion(x, y ,z, 0, 0, 0, explosionParame)
 end
 
@@ -100,15 +104,16 @@ function gadget:GameFrame()
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-		if dgunWeapons[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
+	if dgunWeapons[weaponDefID] and isCommander[attackerDefID] and (isCommander[unitDefID] or isDecoyCommander[unitDefID]) then
+		if isDecoyCommander[unitDefID] then
+			return dgunWeapons[weaponDefID].damages[0]
+		else
 			Spring.DeleteProjectile(projectileID)
 			local x, y, z = Spring.GetUnitPosition(unitID)
 			Spring.SpawnCEG("dgun-deflect", x, y, z, 0, 0, 0, 0, 0)
-
 			local armorClass = UnitDefs[unitDefID].armorType
-			local dgunFixedDamage = dgunWeapons[weaponDefID].damages[armorClass]
-			return dgunFixedDamage
+			return dgunWeapons[weaponDefID].damages[armorClass]
 		end
-
+	end
 	return damage
 end

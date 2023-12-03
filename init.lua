@@ -37,3 +37,7 @@ end
 if commonFunctions.i18n[environment] then
 	Spring.I18N = Spring.I18N or VFS.Include("modules/i18n/i18n.lua")
 end
+
+-- we don't want them to run these tests for end users
+-- uncomment this only when working on functions in `common/tablefunctions.lua`
+-- VFS.Include('common/tableFunctionsTests.lua')

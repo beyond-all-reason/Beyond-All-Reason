@@ -1,13 +1,13 @@
 return {
 	armflak = {
-		acceleration = 0,
+		maxacc = 0,
 		airsightdistance = 1000,
-		brakerate = 0,
+		maxdec = 0,
 		buildangle = 8192,
-		buildcostenergy = 13000,
-		buildcostmetal = 820,
+		energycost = 13000,
+		metalcost = 820,
 		buildpic = "ARMFLAK.DDS",
-		buildtime = 19005,
+		buildtime = 19000,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -3 0",
@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1750,
+		health = 1750,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "ALL",
@@ -156,9 +156,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1600,
 				damage = {
-					default = 125,
-					bombers = 250,
-					fighters = 500,
+					--default = 125,
 					vtol = 250,
 				},
 				rgbcolor = {

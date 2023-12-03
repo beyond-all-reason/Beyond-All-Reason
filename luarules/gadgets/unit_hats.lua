@@ -1,3 +1,8 @@
+
+if Spring.GetModOptions().teamcolors_anonymous_mode ~= "disabled" then
+	return
+end
+
 function gadget:GetInfo()
 	return {
 		name = "Hats",
@@ -61,9 +66,13 @@ local vikings = {
 	["Raghna"] = true,
 	["Malady"] = true,
 	["trash_panda"] = true,
+	["Jazcash"] = true,
+	["PRO_Shamon"] = true,
+	["PRO_rANDY"] = true,
+	["LSR"] = true
 }
 local kings = {
-	["MightySheep"] = true,
+	["[teh]Teddy"] = true,
 }
 local goldMedals = {
 }
