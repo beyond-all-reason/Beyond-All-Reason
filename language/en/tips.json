@@ -74,7 +74,7 @@
 			"playerResigned": "A player has resigned",
 			"playerReconnecting": "A player is reconnecting",
 			"playerTimedout": "A player has timed out",
-			"raptorsAndScavsMixed": "WARNING! You have loaded Raptors and Scavengers at the same time. These two gamemodes are incompatible with each other. Please leave the match and select only one of these AIs. Thank you for your understanding."
+			"raptorsAndScavsMixed": "WARNING! You have loaded Raptors and Scavengers at the same time. These two gamemodes are incompatible with each other. Please leave the match and select only one of these AIs. Thank you for your understanding.",
 			"unitsReceived":"You've received new units",
 			"metalExtractorLost": "Metal extractor lost",
 			"radarLost": "Radar lost",
