@@ -142,6 +142,48 @@ local function IsSpotOccupied(spot)
 	return false
 end
 
+
+local function resourceSpotHasExistingExtractorCommand(x, z, builders)
+	for i=1, #builders do
+		local queue = Spring.GetCommandQueue(builders[i], 100)
+		for j=1, #queue do
+			local command = queue[j]
+			local id = -command.id
+			if(mexBuildings[id] or geoBuildings[id]) then
+				local dist = math.sqrt(Distance(x, z, command.params[1], command.params[3]))
+				if dist < Game_extractorRadius * 2 then
+					Spring.Echo("Existing command from main builders on resource spot, skipping")
+					return true
+				end
+			end
+		end
+	end
+	return false
+end
+
+
+-- Naive best match, ignores special mexes (exploiter etc), just finds highest extraction amount
+local function getBestMexFromSelectedBuilders(units, constructorIds, extractors)
+	local bestExtraction = 0
+	local bestExtractor
+	for i = 1, #units do
+		-- only processes first mex option for each builder
+		local id = units[i]
+		local constructor = constructorIds[id]
+
+
+		if constructor then
+			local buildingID = -constructor.building[1]
+			local extractionAmount = extractors[buildingID]
+			if(extractionAmount > bestExtraction) then
+				bestExtraction = extractionAmount
+				bestExtractor = buildingID
+			end
+		end
+	end
+	return bestExtractor
+end
+
 -- Is there any better and allied mex at this location? (returns false if there is)
 local function canExtractorBeUpgraded(x, z, extractorId)
 
@@ -154,13 +196,15 @@ local function canExtractorBeUpgraded(x, z, extractorId)
 		local uid = units[i]
 		local uDefId = spGetUnitDefID(uid)
 		local currentExtractorStrength = mexBuildings[uDefId] or geoBuildings[uDefId]
-		if(newExtractorStrength > currentExtractorStrength) then
-			Spring.Echo("new extractor is stronger")
-			return true
-		end
-		if(newExtractorStrength == currentExtractorStrength and newExtractorIsSpecial) then
-			Spring.Echo("new extractor is special")
-			return true
+		if currentExtractorStrength then
+			if(newExtractorStrength > currentExtractorStrength) then
+				Spring.Echo("new extractor is stronger")
+				return true
+			end
+			if(newExtractorStrength == currentExtractorStrength and newExtractorIsSpecial) then
+				Spring.Echo("new extractor is special")
+				return true
+			end
 		end
 	end
 
@@ -185,41 +229,21 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 	local cx, _, cz, cr = params[1], params[2], params[3], params[4]
 	if not cr or cr < Game_extractorRadius then cr = Game_extractorRadius end
 	local units = selectedUnits
-	local extractorCount = tablelength(extractors)
+
 
 	-- Get highest producing building and constructor
-	local chosenExtractorStrength = 0
-	local lastprocessedbestconstructor
 	local chosenExtractor
-	local function getBestConstructorAndExtractor(constructorId, extractorID)
-		local extractionAmount = extractors[extractorID]
-		if extractionAmount > chosenExtractorStrength then
-			chosenExtractorStrength = extractionAmount
-			lastprocessedbestconstructor = constructorId
-			chosenExtractor = extractorID
-		end
+
+	local extractorCount = tablelength(extractors)
+	if(extractorCount == 1) then
+		-- If calling with a specified mex type, just grab that
+		local key, _ = next(extractors)
+		chosenExtractor = key
+	else
+		chosenExtractor = getBestMexFromSelectedBuilders(units, constructorIds, extractors)
 	end
-	for i = 1, #units do
-		-- only processes first mex option for each builder
-		local id = units[i]
-		local constructor = constructorIds[id]
 
 
-		if constructor then
-			-- get the naive best match out of all possible extractors
-			if extractorCount > 1 then
-				local buildingID = -constructor.building[1]
-				getBestConstructorAndExtractor(id, buildingID)
-			else
-				for j, building in pairs(constructor.building) do
-					local buildingID = -building
-					if(extractors[buildingID]) then
-						getBestConstructorAndExtractor(id, buildingID)
-					end
-				end
-			end
-		end
-	end
 
 	if not chosenExtractor then
 		Spring.Echo("Failed to find a constructor/extractor match")
@@ -230,6 +254,7 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 	local mainBuilders = {}
 	local mainBuildersCount = 0
 	local ux, uz, aveX, aveZ = 0, 0, 0, 0
+	local latestMainBuilder
 	for i = 1, #units do
 		local id = units[i]
 		local constructor = constructorIds[id]
@@ -241,7 +266,7 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 					local x, _, z = spGetUnitPosition(id)
 					if z then
 						ux, uz = ux+x, uz+z
-						lastprocessedbestconstructor = id
+						latestMainBuilder = id
 						mainBuildersCount = mainBuildersCount + 1
 						mainBuilders[mainBuildersCount] = id
 						if justDraw then
@@ -255,7 +280,7 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 						if not options.shift then
 							spGiveOrderToUnit(id, CMD_STOP, {}, CMD_OPT_RIGHT)
 						end
-						spGiveOrderToUnit(id, CMD_GUARD, { lastprocessedbestconstructor }, { "shift" })
+						spGiveOrderToUnit(id, CMD_GUARD, { latestMainBuilder }, { "shift" })
 					end
 				end
 			end
@@ -276,9 +301,20 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 		if not (mex.z % 16 == 8) then mexes[k].z = mexes[k].z + 8 - (mex.z % 16) end
 		mex.x, mex.z = mexes[k].x, mexes[k].z
 		if Distance(cx, cz, mex.x, mex.z) < cr * cr then
-			if canExtractorBeUpgraded(mex.x, mex.z, chosenExtractor) then
-				commandsCount = commandsCount + 1
-				commands[commandsCount] = { x = mex.x, z = mex.z, d = Distance(aveX, aveZ, mex.x, mex.z) }
+			-- Skip mex spots that have queued mexes already
+			-- only searches selected builders, and only checks when shift is held
+			if options.shift then
+				if not resourceSpotHasExistingExtractorCommand(mex.x, mex.z, mainBuilders) then
+					if canExtractorBeUpgraded(mex.x, mex.z, chosenExtractor) then
+						commandsCount = commandsCount + 1
+						commands[commandsCount] = { x = mex.x, z = mex.z, d = Distance(aveX, aveZ, mex.x, mex.z) }
+					end
+				end
+			else
+				if canExtractorBeUpgraded(mex.x, mex.z, chosenExtractor) then
+					commandsCount = commandsCount + 1
+					commands[commandsCount] = { x = mex.x, z = mex.z, d = Distance(aveX, aveZ, mex.x, mex.z) }
+				end
 			end
 		end
 	end
@@ -435,11 +471,9 @@ function widget:Initialize()
 
 	-- This gets called *every frame* by cmd_rclick_quick_build_resource_extractor
 	WG['resource_spot_builder'].BuildMex = function(params, options, isGuard, justDraw, noToggleOrder, buildingID)
-		Spring.Echo("build mex command")
 
 		local buildings = {}
 		if(buildingID) then
-			Spring.Echo("BuildingID is " .. buildingID)
 			buildings[-buildingID] = UnitDefs[-buildingID].extractsMetal
 		else
 			buildings = mexBuildings
