@@ -47,7 +47,7 @@ end
 	v36   (Floris): show grey player name for missing + dead players
 	v37   (Floris/Borg_King): add support for much larger player/spec counts  64 -> 256
 	v38   (Floris): significant performance improvement, + fast updating resources
-	v39   (Floris): auto compress when large amount (33+) of players are participating (same is seperately applied for spectator list)
+	v39   (Floris): auto compress when large amount (33+) of players are participating (same is separately applied for spectator list)
 ]]
 --------------------------------------------------------------------------------
 -- Config
@@ -1395,12 +1395,19 @@ function SortList()
 
 
     local aliveTeams = 0
+    local deadTeams = 0
     for _, team in ipairs(teamList) do
         if not select(3, Spring_GetTeamInfo(team, false)) then
             aliveTeams = aliveTeams  + 1
+        else
+            deadTeams = deadTeams + 1
         end
     end
-    playerScale = math.max(0.5, math.min(1, 33 / ((aliveTeams+((#teamList-aliveTeams)*0.5))-1)))
+    local deadTeamSize = 0.7
+    playerScale = math.max(0.5, math.min(1, 33 / ((aliveTeams+(deadTeams*deadTeamSize)+((#teamList-(aliveTeams+(deadTeams*deadTeamSize)))*0.5))-1)))
+    if Spring_GetAllyTeamList() > 24 then
+        playerScale = playerScale - (playerScale * ((#Spring_GetAllyTeamList()-2)/500))  -- reduce size some more when mega ffa
+    end
 
     -- calls the (cascade) sorting for players
     vOffset = SortAllyTeams(vOffset)
