@@ -681,6 +681,9 @@ function widget:Initialize()
 	WG["gridmenu"].setAutoSelectFirst = function(value)
 		autoSelectFirst = value
 	end
+	WG["gridmenu"].clearCategory = function()
+		clearCategory()
+	end
 
 	WG["buildmenu"] = {}
 	WG["buildmenu"].getGroups = function()
