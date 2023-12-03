@@ -84,7 +84,12 @@ else	-- UNSYNCED
 			mySpec, fullview = Spring.GetSpectatingState()
 		end
 	end
-
+	
+	local function partposfunc()
+		--return function() x=0;y=0;z=0;local __A=x*delay;local __B=y*delay;local __C=z*delay;return  __A, __B, __C,nil end
+	end
+	
+	
 	local function FlameShot(_, unitID, unitDefID, weapon)
 		if Spring.IsUnitIcon(unitID) then
 			return
@@ -112,7 +117,7 @@ else	-- UNSYNCED
 			force = { 0, 0.6, 0 },
 			--forceExp     = 0.2,
 
-			partpos = partpos,
+			partpos = "jitterdefault",
 			pos = { posx, posy, posz },
 
 			emitVector = { dirx, diry, dirz },
