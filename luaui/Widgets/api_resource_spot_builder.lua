@@ -143,19 +143,57 @@ local function IsSpotOccupied(spot)
 end
 
 -- Is there any better and allied mex at this location? (returns false if there is)
-local function NoAlliedMex(x, z, batchextracts)
-	local mexesatspot = Spring.GetUnitsInCylinder(x, z, Game_extractorRadius)
-	for i = 1, #mexesatspot do
-		local uid = mexesatspot[i]
-		if
-			mexBuildings[spGetUnitDefID(uid)] and
-			Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(uid)) and
-			mexBuildings[spGetUnitDefID(uid)] >= batchextracts
-		then
-			return false
+local function canExtractorBeUpgraded(x, z, extractorId)
+
+	local newExtractor = UnitDefs[extractorId]
+	local newExtractorStrength = mexBuildings[extractorId] or geoBuildings[extractorId]
+	local newExtractorIsSpecial = newExtractor.stealth or #newExtractor.weapons > 0
+	Spring.Echo("New extractor extraction amount", tostring(newExtractorStrength))
+	Spring.Echo("New extractor is special", tostring(newExtractorIsSpecial))
+
+	local units = Spring.GetUnitsInCylinder(x, z, Game_extractorRadius)
+	Spring.Echo("units in cylinder", dump(units))
+
+	for i = 1, #units do
+		local uid = units[i]
+		local uDefId = spGetUnitDefID(uid)
+		local currentExtractor = UnitDefs[spGetUnitDefID(uid)]
+		local currentExtractorStrength = mexBuildings[uDefId] or geoBuildings[uDefId]
+		-- is extractor
+		if(newExtractorStrength > currentExtractorStrength) then
+			Spring.Echo("new extractor is stronger")
+			return true
+		end
+		if(newExtractorStrength == currentExtractorStrength and newExtractorIsSpecial) then
+			Spring.Echo("new extractor is special")
+			return true
 		end
 	end
-	return true
+
+	if #units == 0 then
+		Spring.Echo("nothing in spot, build extractor")
+		return true
+	end
+
+	return false
+	--local mexesatspot = Spring.GetUnitsInCylinder(x, z, Game_extractorRadius)
+	--for i = 1, #mexesatspot do
+	--	local uid = mexesatspot[i]
+	--	local isMex = mexBuildings[spGetUnitDefID(uid)]
+	--	local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(uid))
+	--	local isBetterMex = mexBuildings[spGetUnitDefID(uid)] >= extractorStrength
+	--	Spring.Echo('isMex, isAllied, isBetterMex', isMex, isAllied, isBetterMex)
+	--	if
+	--		isMex and
+	--		isAllied and
+	--		isBetterMex
+	--	then
+	--		Spring.Echo("isAlliedMex")
+	--		return false
+	--	end
+	--end
+	--Spring.Echo("isNoAlliedMex")
+	--return true
 end
 
 
@@ -177,13 +215,13 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 	Spring.Echo("number of extractors " .. tostring(extractorCount))
 
 	-- Get highest producing building and constructor
-	local maxresourceextractor = 0
+	local chosenExtractorStrength = 0
 	local lastprocessedbestconstructor
 	local chosenExtractor
 	local function getBestConstructorAndExtractor(constructorId, extractorID)
 		local extractionAmount = extractors[extractorID]
-		if extractionAmount > maxresourceextractor then
-			maxresourceextractor = extractionAmount
+		if extractionAmount > chosenExtractorStrength then
+			chosenExtractorStrength = extractionAmount
 			lastprocessedbestconstructor = constructorId
 			chosenExtractor = extractorID
 		end
@@ -272,7 +310,7 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 		if not (mex.z % 16 == 8) then mexes[k].z = mexes[k].z + 8 - (mex.z % 16) end
 		mex.x, mex.z = mexes[k].x, mexes[k].z
 		if Distance(cx, cz, mex.x, mex.z) < cr * cr then
-			if NoAlliedMex(mex.x, mex.z, maxresourceextractor) then
+			if canExtractorBeUpgraded(mex.x, mex.z, chosenExtractor) then
 				commandsCount = commandsCount + 1
 				commands[commandsCount] = { x = mex.x, z = mex.z, d = Distance(aveX, aveZ, mex.x, mex.z) }
 			end
