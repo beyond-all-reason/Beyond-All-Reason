@@ -45,15 +45,17 @@ local function DummyLayoutHandler(xIcons, yIcons, cmdCount, commands)
 	widgetHandler:CommandsChanged()
 	local reParamsCmds = {}
 	local customCmds = {}
-	
+
 	local cnt = 0
-	
+
 	local AddCommand = function(command)
+		Spring.Echo("Adding custom command")
 		local cc = {}
 		CopyTable(cc,command )
 		cnt = cnt + 1
 		cc.cmdDescID = cmdCount+cnt
 		if (cc.params) then
+			Spring.Echo("adding custom command with params ".. dump(cc.params))
 			if (not cc.actions) then --// workaround for params
 				local params = cc.params
 				for i=1,#params+1 do
@@ -67,10 +69,10 @@ local function DummyLayoutHandler(xIcons, yIcons, cmdCount, commands)
 		cc.pos		 = nil
 		cc.cmdDescID = nil
 		cc.params	 = nil
-		
+
 		customCmds[#customCmds+1] = cc
 	end
-	
+
 	--// preprocess the Custom Commands
 	for i=1,#widgetHandler.customCommands do
 		AddCommand(widgetHandler.customCommands[i])
@@ -79,7 +81,7 @@ local function DummyLayoutHandler(xIcons, yIcons, cmdCount, commands)
 	if (cmdCount <= 0) then
 		return "", xIcons, yIcons, {}, customCmds, {}, {}, {}, {}, reParamsCmds, {} --prevent CommandChanged() from being called twice when deselecting all units  (copied from ca_layout.lua)
 	end
-	
+
 	return "", xIcons, yIcons, {}, customCmds, {}, {}, {}, {}, reParamsCmds, {[1337]=9001}
 end
 

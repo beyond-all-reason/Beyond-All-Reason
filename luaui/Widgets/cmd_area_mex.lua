@@ -20,8 +20,23 @@ local spSendCommands = Spring.SendCommands
 local spGetUnitDefID = Spring.GetUnitDefID
 
 local toggledMetal, retoggleLos, chobbyInterface
+local selectedMex = nil
 
 local metalMap = false
+
+function dump(o)
+	if type(o) == 'table' then
+		local s = '{ '
+		for k,v in pairs(o) do
+			if type(k) ~= 'number' then k = '"'..k..'"' end
+			s = s .. '['..k..'] = ' .. dump(v) .. ','
+		end
+		return s .. '} '
+	else
+		return tostring(o)
+	end
+end
+
 
 function widget:Update(dt)
 	if chobbyInterface then return end
@@ -48,6 +63,11 @@ function widget:Update(dt)
 	end
 end
 
+local function areaMex(uDefID)
+	selectedMex = uDefID
+	Spring.Echo('setting selectedMex to ', tostring(selectedMex))
+end
+
 function widget:CommandNotify(id, params, options)
 	local isGuard = (id == CMD_GUARD)
 	if not (id == CMD_AREA_MEX or isGuard) then
@@ -62,7 +82,9 @@ function widget:CommandNotify(id, params, options)
 	end
 
 	if id == CMD_AREA_MEX then
-		local queuedMexes = WG['resource_spot_builder'].BuildMex(params, options, isGuard, false, true)
+		Spring.Echo("cmd is area mex")
+		local queuedMexes = WG['resource_spot_builder'].BuildMex(params, options, isGuard, false, true, selectedMex)
+		selectedMex = nil
 		if moveReturn and not queuedMexes[1] then	-- used when area_mex isnt queuing a mex, to let the move cmd still pass through
 			return false
 		end
@@ -94,7 +116,13 @@ end
 
 
 function widget:Initialize()
+	--widgetHandler.actionHandler:AddAction(self, "areamex", areamexActionHandler, nil, "p")
 	if WG['resource_spot_finder'] and (not WG['resource_spot_finder'].metalSpotsList or (#WG['resource_spot_finder'].metalSpotsList > 0 and #WG['resource_spot_finder'].metalSpotsList <= 2)) then
 		metalMap = true
+	end
+
+	WG['areamex'] = {}
+	WG['areamex'].areaMex = function(uDefID)
+		areaMex(uDefID)
 	end
 end

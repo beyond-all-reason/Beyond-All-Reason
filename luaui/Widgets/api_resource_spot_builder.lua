@@ -147,7 +147,11 @@ local function NoAlliedMex(x, z, batchextracts)
 	local mexesatspot = Spring.GetUnitsInCylinder(x, z, Game_extractorRadius)
 	for i = 1, #mexesatspot do
 		local uid = mexesatspot[i]
-		if mexBuildings[spGetUnitDefID(uid)] and Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(uid)) and mexBuildings[spGetUnitDefID(uid)] >= batchextracts then
+		if
+			mexBuildings[spGetUnitDefID(uid)] and
+			Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(uid)) and
+			mexBuildings[spGetUnitDefID(uid)] >= batchextracts
+		then
 			return false
 		end
 	end
@@ -155,23 +159,65 @@ local function NoAlliedMex(x, z, batchextracts)
 end
 
 
-local function BuildResourceExtractors(params, options, isGuard, justDraw, constructorIds, buildingIds, spots, checkDuplicateOrders)		-- when isGuard: needs to be a table of the unit pos: { x = ux, y = uy, z = uz }
+local function tablelength(T)
+	local count = 0
+	for _ in pairs(T) do
+		count = count + 1
+	end
+	return count
+end
+
+local function BuildResourceExtractors(params, options, isGuard, justDraw, constructorIds, extractors, spots, checkDuplicateOrders)		-- when isGuard: needs to be a table of the unit pos: { x = ux, y = uy, z = uz }
 	local cx, _, cz, cr = params[1], params[2], params[3], params[4]
 	if not cr or cr < Game_extractorRadius then cr = Game_extractorRadius end
 	local units = selectedUnits
+	local extractorCount = tablelength(extractors)
+
+	Spring.Echo("extractors", dump(extractors))
+	Spring.Echo("number of extractors " .. tostring(extractorCount))
 
 	-- Get highest producing building and constructor
 	local maxresourceextractor = 0
 	local lastprocessedbestconstructor
+	local chosenExtractor
+	local function getBestConstructorAndExtractor(constructorId, extractorID)
+		local extractionAmount = extractors[extractorID]
+		if extractionAmount > maxresourceextractor then
+			maxresourceextractor = extractionAmount
+			lastprocessedbestconstructor = constructorId
+			chosenExtractor = extractorID
+		end
+	end
 	for i = 1, #units do
+		-- only processes first mex option for each builder
 		local id = units[i]
-		if constructorIds[id] then
-			if buildingIds[(constructorIds[id].building[1]) * -1] > maxresourceextractor then
-				maxresourceextractor = buildingIds[(constructorIds[id].building[1]) * -1]
-				lastprocessedbestconstructor = id
+		local constructor = constructorIds[id]
+
+
+		if constructor then
+			-- get the naive best match out of all possible extractors
+			if extractorCount > 1 then
+				local buildingID = -constructor.building[1]
+				Spring.Echo("building id", buildingID)
+				getBestConstructorAndExtractor(id, buildingID)
+			else
+				for j, building in pairs(constructor.building) do
+					local buildingID = -building
+					Spring.Echo("building id", buildingID)
+					if(extractors[buildingID]) then
+						getBestConstructorAndExtractor(id, buildingID)
+					end
+				end
 			end
 		end
 	end
+
+	if not chosenExtractor then
+		Spring.Echo("Failed to find a constructor/extractor match")
+		return
+	end
+
+	Spring.Echo('chosenExtractor', tostring(chosenExtractor))
 
 	-- Add highest producing constructors to mainBuilders table + give guard orders to "inferior" constructors
 	local mainBuilders = {}
@@ -179,30 +225,39 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 	local ux, uz, aveX, aveZ = 0, 0, 0, 0
 	for i = 1, #units do
 		local id = units[i]
-		if constructorIds[id] then
-			if buildingIds[(constructorIds[id].building[1]) * -1] == maxresourceextractor then
-				local x, _, z = spGetUnitPosition(id)
-				if z then
-					ux, uz = ux+x, uz+z
-					lastprocessedbestconstructor = id
-					mainBuildersCount = mainBuildersCount + 1
-					mainBuilders[mainBuildersCount] = id
-					if justDraw then
-						-- prevent complex calculations further down the line
-						break
+		local constructor = constructorIds[id]
+		if constructor then
+			-- iterate over constructor options to see if it can make the chosen extractor
+			for j, buildingId in pairs(constructor.building) do
+				if -buildingId == chosenExtractor and extractors[chosenExtractor] then
+					-- found match
+					Spring.Echo('builder can make chosen extractor')
+					local x, _, z = spGetUnitPosition(id)
+					if z then
+						ux, uz = ux+x, uz+z
+						lastprocessedbestconstructor = id
+						mainBuildersCount = mainBuildersCount + 1
+						mainBuilders[mainBuildersCount] = id
+						if justDraw then
+							-- prevent complex calculations further down the line
+							break
+						end
 					end
-				end
-			else
-				-- guard to a main builder
-				if not justDraw then
-					if not options.shift then
-						spGiveOrderToUnit(id, CMD_STOP, {}, CMD_OPT_RIGHT)
+				else
+					-- guard to a main builder
+					if not justDraw then
+						if not options.shift then
+							spGiveOrderToUnit(id, CMD_STOP, {}, CMD_OPT_RIGHT)
+						end
+						spGiveOrderToUnit(id, CMD_GUARD, { lastprocessedbestconstructor }, { "shift" })
 					end
-					spGiveOrderToUnit(id, CMD_GUARD, { lastprocessedbestconstructor }, { "shift" })
 				end
 			end
+
 		end
 	end
+
+	Spring.Echo("mainbuilderscount", tostring(mainBuildersCount))
 
 	if mainBuildersCount == 0 then return end
 	aveX, aveZ = ux/mainBuildersCount, uz/mainBuildersCount
@@ -257,7 +312,7 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 		if checkDuplicateOrders then
 			local mexOrdersCount = 0
 			for _, order in pairs(Spring.GetUnitCommands(id, maxOrdersCheck)) do
-				if mexBuildings[-order["id"]] then
+				if extractors[-order["id"]] then
 					mexOrdersCount = mexOrdersCount + 1
 					mexOrders[mexOrdersCount] = order
 				end
@@ -266,7 +321,9 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 
 		for i = 1, #orderedCommands do
 			local command = orderedCommands[i]
-			for j = 1, constructorIds[id].buildings do
+			local constructor = constructorIds[id]
+			for j = 1, constructor.buildings do
+				local buildingId = -chosenExtractor
 				local targetPos, targetOwner
 				local occupiedMex = IsSpotOccupied({x = command.x, z =command.z})
 				if occupiedMex then
@@ -276,7 +333,7 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 				else
 
 					local closestResourceSpot = GetClosestPosition(command.x, command.z, spots);
-					local buildingPositions = WG['resource_spot_finder'].GetBuildingPositions(closestResourceSpot, -constructorIds[id].building[j], 0, true)
+					local buildingPositions = WG['resource_spot_finder'].GetBuildingPositions(closestResourceSpot, -buildingId, 0, true)
 					targetPos = GetClosestPosition(command.x, command.z, buildingPositions)
 					targetOwner = spGetMyTeamID()
 				end
@@ -288,7 +345,7 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 
 					if checkDuplicateOrders then
 						for mI, mexOrder in pairs(mexOrders) do
-							if mexOrder["id"] == constructorIds[id].building[j] then
+							if mexOrder["id"] == buildingId then
 								local mParams = mexOrder["params"]
 								if mParams[1] == orderParams[1] and mParams[2] == orderParams[2] and mParams[3] == orderParams[3] and mParams[4] == orderParams[4] then
 									duplicateFound = true
@@ -300,10 +357,10 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 					end
 
 					if not(checkDuplicateOrders and duplicateFound) then
-						queuedMexes[#queuedMexes+1] = { id, math.abs(constructorIds[id].building[j]), newx, spGetGroundHeight(newx, newz), newz, targetOwner }
+						queuedMexes[#queuedMexes+1] = { id, math.abs(buildingId), newx, spGetGroundHeight(newx, newz), newz, targetOwner }
 
 						if not justDraw then
-							spGiveOrderToUnit(id, constructorIds[id].building[j], orderParams, { "shift" })
+							spGiveOrderToUnit(id, buildingId, orderParams, { "shift" })
 						end
 					end
 
@@ -316,6 +373,7 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 	if isGuard and #queuedMexes == 0 then
 		return		-- no mex buildorder made so let move go through!
 	end
+	Spring.Echo("Queued mexes " .. dump(queuedMexes))
 	return queuedMexes
 end
 
@@ -348,6 +406,19 @@ function widget:UnitGiven(unitID, unitDefID, newTeam)
 	end
 end
 
+function dump(o)
+	if type(o) == 'table' then
+		local s = '{ '
+		for k,v in pairs(o) do
+			if type(k) ~= 'number' then k = '"'..k..'"' end
+			s = s .. '['..k..'] = ' .. dump(v) .. ','
+		end
+		return s .. '} '
+	else
+		return tostring(o)
+	end
+end
+
 
 function widget:Initialize()
 	local units = spGetTeamUnits(spGetMyTeamID())
@@ -359,9 +430,19 @@ function widget:Initialize()
 	--make interfaces available to other widgets:
 	WG['resource_spot_builder'] = { }
 
+	-- This gets called *every frame* by cmd_rclick_quick_build_resource_extractor
+	WG['resource_spot_builder'].BuildMex = function(params, options, isGuard, justDraw, noToggleOrder, buildingID)
+		Spring.Echo("build mex command")
 
-	WG['resource_spot_builder'].BuildMex = function(params, options, isGuard, justDraw, noToggleOrder)
-		return BuildResourceExtractors (params, options, isGuard, justDraw, mexConstructors, mexBuildings, WG['resource_spot_finder'].metalSpotsList, noToggleOrder)
+		local buildings = {}
+		if(buildingID) then
+			Spring.Echo("BuildingID is " .. buildingID)
+			buildings[-buildingID] = UnitDefs[-buildingID].extractsMetal
+		else
+			buildings = mexBuildings
+		end
+
+		return BuildResourceExtractors (params, options, isGuard, justDraw, mexConstructors, buildings, WG['resource_spot_finder'].metalSpotsList, noToggleOrder)
 	end
 
 	WG['resource_spot_builder'].BuildGeothermal = function(params, options, isGuard, justDraw)

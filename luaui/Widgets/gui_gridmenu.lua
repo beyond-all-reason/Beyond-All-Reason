@@ -438,6 +438,20 @@ local function enqueueUnit(uDefID, opts)
 	end
 end
 
+function dump(o)
+	if type(o) == 'table' then
+		local s = '{ '
+		for k,v in pairs(o) do
+			if type(k) ~= 'number' then k = '"'..k..'"' end
+			s = s .. '['..k..'] = ' .. dump(v) .. ','
+		end
+		return s .. '} '
+	else
+		return tostring(o)
+	end
+end
+
+
 local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	-- validate args
 	local row = args and tonumber(args[1])
@@ -509,10 +523,14 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		end
 
 		local uDef = UnitDefs[-uDefID]
-		local isRepeatMex = uDef.customParams.metal_extractor
-			and uDef.name == activeCmd
-			and not (uDef.stealth or #uDef.weapons > 0)
+		-- Spring.Echo("Triggering area mex with unit def " ..tostring(uDefID))
+		local isRepeatMex = uDef.customParams.metal_extractor and uDef.name == activeCmd
 		local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
+
+		if isRepeatMex then
+			WG['areamex'].areaMex(uDefID)
+		end
+
 		Spring.SetActiveCommand(cmd, 3, false, true, alt, ctrl, meta, shift)
 
 		return true
