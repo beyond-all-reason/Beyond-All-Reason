@@ -560,7 +560,7 @@ end
 local function UpdateFeatures()
 	clusterMetalUpdated = false
 
-	for _, fID in ipairs(knownFeatures) do
+	for fID, fInfo in pairs(knownFeatures) do
 		local metal, _, energy = spGetFeatureResources(fID)
 
 		if includeEnergy then metal = metal + energy * E2M end
