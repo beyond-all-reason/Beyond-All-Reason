@@ -25,6 +25,7 @@ local tooltipAreas = {}
 local guishaderRects = {}
 local guishaderRectsDlists = {}
 local lastTextListUpdate = os.clock() - 10
+local lastBarsUpdate = os.clock() - 10
 local gamestarted = false
 local gameover = false
 local inSpecMode = false
@@ -72,6 +73,7 @@ local ctrlDown = false
 local textsize = 14
 local maxPlayers = 0
 local refreshCaptions = false
+local maxMetal, maxEnergy = 0, 0
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
@@ -1017,37 +1019,38 @@ local function drawListStandard()
 		updateButtons()
 	end
 
-	local maxMetal, maxEnergy = 0, 0
-	for _, data in ipairs(allyData) do
-		local aID = data.aID
-
-		if data.exists and type(data["tE"]) == "number" and isTeamReal(aID) and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID) then
-
-			if avgData[aID] == nil then
-				avgData[aID] = {}
-				avgData[aID]["tE"] = data["tE"]
-				avgData[aID]["tEr"] = data["tEr"]
-				avgData[aID]["tM"] = data["tM"]
-				avgData[aID]["tMr"] = data["tMr"]
-			else
-				avgData[aID]["tE"] = avgData[aID]["tE"] + ((data["tE"] - avgData[aID]["tE"]) / avgFrames)
-				avgData[aID]["tEr"] = avgData[aID]["tEr"] + ((data["tEr"] - avgData[aID]["tEr"]) / avgFrames)
-				avgData[aID]["tM"] = avgData[aID]["tM"] + ((data["tM"] - avgData[aID]["tM"]) / avgFrames)
-				avgData[aID]["tMr"] = avgData[aID]["tMr"] + ((data["tMr"] - avgData[aID]["tMr"]) / avgFrames)
-			end
-			if avgData[aID]["tM"] and avgData[aID]["tM"] > maxMetal then
-				maxMetal = avgData[aID]["tM"]
-			end
-			if avgData[aID]["tE"] and avgData[aID]["tE"] > maxEnergy then
-				maxEnergy = avgData[aID]["tE"]
-			end
-		end
-	end
-
 	local updateTextLists = false
 	if os.clock() > lastTextListUpdate + 0.5 then
 		updateTextLists = true
 		lastTextListUpdate = os.clock()
+	end
+
+	if os.clock() > lastBarsUpdate + 0.15 then
+		updateTextLists = true
+		lastBarsUpdate = os.clock()
+		for _, data in ipairs(allyData) do
+			local aID = data.aID
+			if data.exists and type(data["tE"]) == "number" and isTeamReal(aID) and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID) then
+				if avgData[aID] == nil then
+					avgData[aID] = {}
+					avgData[aID]["tE"] = data["tE"]
+					avgData[aID]["tEr"] = data["tEr"]
+					avgData[aID]["tM"] = data["tM"]
+					avgData[aID]["tMr"] = data["tMr"]
+				else
+					avgData[aID]["tE"] = avgData[aID]["tE"] + ((data["tE"] - avgData[aID]["tE"]) / avgFrames)
+					avgData[aID]["tEr"] = avgData[aID]["tEr"] + ((data["tEr"] - avgData[aID]["tEr"]) / avgFrames)
+					avgData[aID]["tM"] = avgData[aID]["tM"] + ((data["tM"] - avgData[aID]["tM"]) / avgFrames)
+					avgData[aID]["tMr"] = avgData[aID]["tMr"] + ((data["tMr"] - avgData[aID]["tMr"]) / avgFrames)
+				end
+				if avgData[aID]["tM"] and avgData[aID]["tM"] > maxMetal then
+					maxMetal = avgData[aID]["tM"]
+				end
+				if avgData[aID]["tE"] and avgData[aID]["tE"] > maxEnergy then
+					maxEnergy = avgData[aID]["tE"]
+				end
+			end
+		end
 	end
 
 	for _, data in ipairs(allyData) do
