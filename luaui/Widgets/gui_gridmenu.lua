@@ -1181,12 +1181,12 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 	-- factory queue number
 	if cmd.params[1] then
 		local queueFontSize = cellInnerSize * 0.29
-		local pad = math_floor(cellInnerSize * 0.03)
-		local textWidth = font2:GetTextWidth(cmd.params[1] .. "	") * queueFontSize
+		local textPad = math_floor(cellInnerSize * 0.1)
+		local textWidth = font2:GetTextWidth(cmd.params[1]) * queueFontSize
 		RectRound(
 			rect.x,
 			rect.yEnd - cellPadding - iconPadding - math_floor(cellInnerSize * 0.365),
-			rect.x + textWidth,
+			rect.x + textWidth + (textPad * 2), -- double pad, for a pad at the start and end
 			rect.yEnd - cellPadding - iconPadding,
 			cornerSize * 3.3,
 			0,
@@ -1198,7 +1198,7 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 		)
 		font2:Print(
 			"\255\190\255\190" .. cmd.params[1],
-			rect.x + cellPadding + (pad * 3.5),
+			rect.x + cellPadding + textPad,
 			rect.y + cellPadding + math_floor(cellInnerSize * 0.735),
 			queueFontSize,
 			"o"
@@ -1639,13 +1639,6 @@ local function cacheUnitIcons()
 end
 
 local function drawBuildProgress()
-	local numCellsPerPage = rows * columns
-	local maxCellRectID = numCellsPerPage * currentPage
-	if maxCellRectID > gridOptsCount then
-		maxCellRectID = gridOptsCount
-	end
-
-	local drawncellRectIDs = {}
 	if activeBuilderID then
 		local unitBuildID = spGetUnitIsBuilding(activeBuilderID)
 		if unitBuildID then
@@ -1653,24 +1646,18 @@ local function drawBuildProgress()
 			if unitBuildDefID then
 				-- loop all shown cells
 				for cellRectID, cellRect in pairs(cellRects) do
-					if not drawncellRectIDs[cellRectID] then
-						if cellRectID > maxCellRectID then
-							break
-						end
-						local cellUnitDefID = cellcmds[cellRectID].id * -1
-						if unitBuildDefID == cellUnitDefID then
-							drawncellRectIDs[cellRectID] = true
-							local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
-							RectRoundProgress(
-								cellRect.x + cellPadding + iconPadding,
-								cellRect.y + cellPadding + iconPadding,
-								cellRect.xEnd - cellPadding - iconPadding,
-								cellRect.yEnd - cellPadding - iconPadding,
-								cellSize * 0.03,
-								progress,
-								{ 0.08, 0.08, 0.08, 0.6 }
-							)
-						end
+					local cellUnitDefID = cellcmds[cellRectID].id * -1
+					if unitBuildDefID == cellUnitDefID then
+						local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
+						RectRoundProgress(
+							cellRect.x + cellPadding + iconPadding,
+							cellRect.y + cellPadding + iconPadding,
+							cellRect.xEnd - cellPadding - iconPadding,
+							cellRect.yEnd - cellPadding - iconPadding,
+							cellSize * 0.03,
+							progress,
+							{ 0.08, 0.08, 0.08, 0.6 }
+						)
 					end
 				end
 			end
