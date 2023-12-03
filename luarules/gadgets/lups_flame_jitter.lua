@@ -130,7 +130,7 @@ else	-- UNSYNCED
 			heat = 6,
 		}
 		particleCnt = particleCnt + 1
-
+	--[[
 		particleList[particleCnt] = {
 			class = 'SimpleParticles2',
 			colormap = { { 1, 1, 1, 0.01 },
@@ -202,7 +202,7 @@ else	-- UNSYNCED
 			texture = altFlameTexture and "bitmaps/GPL/flame_alt.tga" or "bitmaps/GPL/flame.tga",
 		}
 		particleCnt = particleCnt + 1
-
+	]]--
 	end
 
 	local function GameFrame()
