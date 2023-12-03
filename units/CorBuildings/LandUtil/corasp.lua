@@ -48,7 +48,6 @@ return {
 			removestop = true,
 			removewait = true,
 			subfolder = "corbuildings/landutil",
-			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
