@@ -194,8 +194,8 @@ local now = 0
 
 local timeCounter = 9
 local timeFastCounter = 9
-local updateRate = 0.85
-local updateFastRate = 0.2 -- only updates resources
+local updateRate = 0.8
+local updateFastRate = 0.15 -- only updates resources
 local lastTakeMsg = -120
 local hoverPlayerlist = false
 
