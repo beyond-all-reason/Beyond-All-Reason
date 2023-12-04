@@ -416,13 +416,17 @@ local spGetCameraVectors = Spring.GetCameraVectors
 -- Data
 
 local screenx, screeny
-
 local gaiaTeamId = spGetGaiaTeamID()
+local clusterizingNeeded = false -- Used to check if clusterizing neds to be run, set by FeatureCreated/Removed 
 
 local minDistance = 300
 local minSqDistance = minDistance^2
 local minPoints = 2
-local minFeatureMetal = 9 --flea
+local minFeatureMetal = 9 -- Tick
+local E2M = 1 / 70 -- Converter ratio
+local minDim = 100
+
+local checkFrequency = 30 
 
 local drawEnabled = true
 local actionActive = false
@@ -431,7 +435,6 @@ local knownFeatures = {}
 
 local reclaimerSelected = false
 local resBotSelected = false
-
 
 local canReclaim = {}
 local canResurrect = {}
@@ -498,6 +501,9 @@ end
 -- Feature Tracking
 
 local featureNeighborsMatrix = {}
+local featureClusters = {}
+local featureConvexHulls = {}
+
 local function UpdateFeatureNeighborsMatrix(fID, added, posChanged, removed)
 	local fInfo = knownFeatures[fID]
 
@@ -527,10 +533,6 @@ local function UpdateFeatureNeighborsMatrix(fID, added, posChanged, removed)
 	end
 end
 
-local featureClusters = {}
-
-local E2M = 1 / 70 --solar ratio
-
 local function ProcessFeature(featureID)
 	local metal, _, energy = spGetFeatureResources(featureID)
 
@@ -554,17 +556,16 @@ local function ProcessFeature(featureID)
 		knownFeatures[featureID] = f
 
 		UpdateFeatureNeighborsMatrix(featureID, true, false, false)
+		clusterizingNeeded = true
 	end
 end
 
 local function UpdateFeatures()
 	clusterMetalUpdated = false
-
 	for fID, fInfo in pairs(knownFeatures) do
 		local metal, _, energy = spGetFeatureResources(fID)
 
 		if includeEnergy then metal = metal + energy * E2M end
-
 		if metal >= minFeatureMetal then
 			local fx, _, fz = spGetFeaturePosition(fID)
 			local fy = spGetGroundHeight(fx, fz)
@@ -691,12 +692,7 @@ local function lineCheck(points)
 	return true
 end
 
-
-local minDim = 100
-
-local featureConvexHulls = {}
 local function ClustersToConvexHull()
-
 	featureConvexHulls = {}
 	for fc = 1, #featureClusters do
 		local clusterPoints = {}
@@ -810,7 +806,10 @@ function widget:FeatureCreated(featureID, allyTeamID)
 end
 
 function widget:FeatureDestroyed(featureID, allyTeamID)
-	knownFeatures[featureID] = nil
+	if knownFeatures[featureID] then
+		knownFeatures[featureID] = nil
+		clusterizingNeeded = true
+	end
 end
 
 function widget:GetConfigData(data)
@@ -896,11 +895,11 @@ local function DrawFeatureClusterText()
 	end
 end
 
-local checkFrequency = 30
 
-local cumDt = 0
 function widget:Update(dt)
-	cumDt = cumDt + dt
+	drawEnabled = UpdateDrawEnabled()
+	if not drawEnabled then return end
+
 	local cx, cy, cz = spGetCameraPosition()
 
 	local desc, w = spTraceScreenRay(screenx / 2, screeny / 2, true)
@@ -909,20 +908,22 @@ function widget:Update(dt)
 		cameraScale = sqrt((cameraDist / 600)) --number is an "optimal" view distance
 	else
 		cameraScale = 1.0
-	end
-
-	drawEnabled = UpdateDrawEnabled()
+	end	
 end
 
 function widget:GameFrame(frame)
 	local frameMod = frame % checkFrequency
-	if frameMod ~= 0 then
+	if not drawEnabled or frameMod ~= 0 then
 		return
 	end
 
 	UpdateFeatures()
-	ClusterizeFeatures()
-	ClustersToConvexHull()
+
+	if clusterizingNeeded then
+		ClusterizeFeatures()
+		ClustersToConvexHull()
+		clusterizingNeeded = false
+	end
 
 	if drawFeatureConvexHullSolidList then
 		glDeleteList(drawFeatureConvexHullSolidList)
