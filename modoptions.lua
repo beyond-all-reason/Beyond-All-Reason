@@ -879,6 +879,15 @@ local options={
 		section = 'options_experimental',
 		def = false,
 	},
+	{
+		key = 'air_rework',
+		name = 'Air Test Changes',
+		desc = 'Prototype version with more maneuverable, slower air units and more differentiation between them.',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
+		hidden = true,
+	},
 
 	{
 		key    = 'experimentalimprovedtransports',
