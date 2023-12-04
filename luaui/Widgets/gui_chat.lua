@@ -520,12 +520,6 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 	-- determine text typing start time
 	local startTime = clock()
 
-	-- convert /n into lines
-	local textLines = string_lines(text)
-
-	-- word wrap text into lines
-	local wordwrappedText = wordWrap(textLines, lineMaxWidth, usedFontSize)
-
 	local sendMetal, sendEnergy
 	local msgColor = '\255\180\180\180'
 	local metalColor = '\255\255\255\255'
@@ -565,6 +559,12 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 			lineType = LineType.System
 		end
 	end
+
+	-- convert /n into lines
+	local textLines = string_lines(text)
+
+	-- word wrap text into lines
+	local wordwrappedText = wordWrap(textLines, lineMaxWidth, usedFontSize)
 
 	local chatLinesCount = #chatLines
 	local lineColor = #wordwrappedText > 1 and ssub(wordwrappedText[1], 1, 4) or ''
