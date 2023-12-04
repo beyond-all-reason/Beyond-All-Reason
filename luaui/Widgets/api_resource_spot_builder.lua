@@ -254,6 +254,7 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 	local mainBuilders = {}
 	local ux, uz, aveX, aveZ = 0, 0, 0, 0
 	local latestMainBuilder
+	local secondaryBuilders = {}
 	for i = 1, #units do
 		local id = units[i]
 		local constructor = constructorIds[id]
@@ -272,17 +273,23 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 						end
 					end
 				else
-					-- guard to a main builder
-					if not justDraw then
-						if not options.shift then
-							spGiveOrderToUnit(id, CMD_STOP, {}, CMD_OPT_RIGHT)
-						end
-						spGiveOrderToUnit(id, CMD_GUARD, { latestMainBuilder }, { "shift" })
-					end
+					secondaryBuilders[#secondaryBuilders + 1] = id
 				end
 			end
 
 		end
+	end
+
+	-- order secondary builders to guard main builders, equally dispersed
+	local index = 1
+	for i, uid in pairs(secondaryBuilders) do
+		if not options.shift then
+			spGiveOrderToUnit(uid, CMD_STOP, {}, CMD_OPT_RIGHT)
+		end
+		local mainBuilderId = mainBuilders[index]
+		spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { "shift" })
+		index = index + 1
+		if index > #mainBuilders then index = 1 end
 	end
 
 	if #mainBuilders == 0 then return end
