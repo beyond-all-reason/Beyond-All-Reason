@@ -244,7 +244,6 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 	end
 
 
-
 	if not chosenExtractor then
 		Spring.Echo("Failed to find a constructor/extractor match")
 		return

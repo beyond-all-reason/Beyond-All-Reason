@@ -84,7 +84,9 @@ function widget:CommandNotify(id, params, options)
 	if id == CMD_AREA_MEX then
 		local queuedMexes = WG['resource_spot_builder'].BuildMex(params, options, isGuard, false, true, selectedMex)
 		selectedMex = nil
-		WG["gridmenu"].clearCategory()
+		if not options.shift then
+			WG["gridmenu"].clearCategory()
+		end
 		if not queuedMexes[1] then	-- used when area_mex isnt queuing a mex, to let the move cmd still pass through
 			return false
 		end
