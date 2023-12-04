@@ -1085,6 +1085,7 @@ if Spring.GetModOptions().air_rework == true then
 	end
 	if name == "armpeep" then 
 		uDef.metalcost = 75
+		uDef.health = 140
 		uDef.speed = 315
 		uDef.maxrudder = 0.024
 		uDef.maxbank = 0.66
@@ -1102,6 +1103,7 @@ if Spring.GetModOptions().air_rework == true then
 	end
 	if name == "corfink" then 
 		uDef.metalcost = 74
+		uDef.health = 155
 		uDef.speed = 303
 		uDef.maxrudder = 0.024
 		uDef.maxbank = 0.66
