@@ -1,6 +1,6 @@
 <!--
 PR Template! If any commented sections are not relevant to this PR, remove them.
-Please fill out the uncommented section with any relevant information
+Please fill out the uncommented sections with any relevant information.
 -->
 
 ### Work done
@@ -29,7 +29,7 @@ Describe any setup requirements to test this work (Specific settings, widgets, e
 #### Test steps
 - [ ] Write the steps needed to test out the changes. Include the expected result.
 
-<!--
+<!-- If relevant
 ### Screenshots:
 If you're making visible changes, add before/after screenshots or videos of the major
 changes so it's easier for reviewers to see what is different in this PR
