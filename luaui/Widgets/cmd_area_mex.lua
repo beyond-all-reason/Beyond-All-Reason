@@ -24,19 +24,6 @@ local selectedMex = nil
 
 local metalMap = false
 
-function dump(o)
-	if type(o) == 'table' then
-		local s = '{ '
-		for k,v in pairs(o) do
-			if type(k) ~= 'number' then k = '"'..k..'"' end
-			s = s .. '['..k..'] = ' .. dump(v) .. ','
-		end
-		return s .. '} '
-	else
-		return tostring(o)
-	end
-end
-
 
 function widget:Update(dt)
 	if chobbyInterface then return end
@@ -65,7 +52,6 @@ end
 
 local function setAreaMexType(uDefID)
 	selectedMex = uDefID
-	Spring.Echo('setting selectedMex to ', tostring(selectedMex))
 end
 
 function widget:CommandNotify(id, params, options)

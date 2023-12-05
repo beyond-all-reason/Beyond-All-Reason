@@ -152,7 +152,6 @@ local function resourceSpotHasExistingExtractorCommand(x, z, builders)
 			if(mexBuildings[id] or geoBuildings[id]) then
 				local dist = math.sqrt(distance2dSquared(x, z, command.params[1], command.params[3]))
 				if dist < Game_extractorRadius * 2 then
-					Spring.Echo("Existing command from main builders on resource spot, skipping")
 					return true
 				end
 			end
@@ -198,18 +197,15 @@ local function canExtractorBeUpgraded(x, z, extractorId)
 		local currentExtractorStrength = mexBuildings[uDefId] or geoBuildings[uDefId]
 		if currentExtractorStrength then
 			if(newExtractorStrength > currentExtractorStrength) then
-				Spring.Echo("new extractor is stronger")
 				return true
 			end
 			if(newExtractorStrength == currentExtractorStrength and newExtractorIsSpecial) then
-				Spring.Echo("new extractor is special")
 				return true
 			end
 		end
 	end
 
 	if #units == 0 then
-		Spring.Echo("nothing in spot, build extractor")
 		return true
 	end
 
@@ -443,20 +439,6 @@ function widget:UnitGiven(unitID, unitDefID, newTeam)
 		widget:UnitCreated(unitID, unitDefID, newTeam)
 	end
 end
-
-function dump(o)
-	if type(o) == 'table' then
-		local s = '{ '
-		for k,v in pairs(o) do
-			if type(k) ~= 'number' then k = '"'..k..'"' end
-			s = s .. '['..k..'] = ' .. dump(v) .. ','
-		end
-		return s .. '} '
-	else
-		return tostring(o)
-	end
-end
-
 
 function widget:Initialize()
 	local units = spGetTeamUnits(spGetMyTeamID())

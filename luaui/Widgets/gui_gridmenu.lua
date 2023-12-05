@@ -450,19 +450,6 @@ local function selectBuilding(uDefID)
 	Spring.SetActiveCommand(cmd, 1, false, true,Spring.GetModKeyState())
 end
 
-function dump(o)
-	if type(o) == 'table' then
-		local s = '{ '
-		for k,v in pairs(o) do
-			if type(k) ~= 'number' then k = '"'..k..'"' end
-			s = s .. '['..k..'] = ' .. dump(v) .. ','
-		end
-		return s .. '} '
-	else
-		return tostring(o)
-	end
-end
-
 
 local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	-- validate args
@@ -2135,7 +2122,6 @@ function widget:MousePress(x, y, button)
 							if isPregame then
 								setPreGamestartDefID(cellcmds[cellRectID].id * -1)
 							elseif spGetCmdDescIndex(cellcmds[cellRectID].id) then
-								Spring.Echo("selecting unit")
 								selectBuilding(cellcmds[cellRectID].id)
 							end
 						elseif builderIsFactory and spGetCmdDescIndex(cellcmds[cellRectID].id) then
