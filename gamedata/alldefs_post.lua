@@ -1221,7 +1221,7 @@ if Spring.GetModOptions().air_rework == true then
 	end
 	if name == "corbw" then
 		uDef.health = 105
-		uDef.speed = 7.1
+		uDef.speed = 210
 		uDef.cruisealtitude = 80
 	end
 	if name == "armseap" or name == "corseap" then
