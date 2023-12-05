@@ -318,10 +318,10 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 
 	-- Order available mex spots based on distance
 	local orderedCommands = {}
+	local sort = function(a, b)
+		return a.d < b.d
+	end
 	while #commands > 0 do
-		local sort = function(a, b)
-			return a.d < b.d
-		end
 		tasort(commands, sort)
 		orderedCommands[#orderedCommands + 1] = commands[1]
 		aveX, aveZ = commands[1].x, commands[1].z
