@@ -1,12 +1,12 @@
 return {
 	raptor_matriarch_electric = {
-		acceleration = 0.1,
+		maxacc = 0.1,
 		airsightdistance = 2400,
 		autoheal = 5,
 
-		brakerate = 0.1,
-		buildcostenergy = 2000000,
-		buildcostmetal = 50000,
+		maxdec = 0.1,
+		energycost = 2000000,
+		metalcost = 50000,
 		builder = false,
 		buildpic = "raptors/raptor_miniqueen_electric.DDS",
 		buildtime = 1500000,
@@ -30,9 +30,9 @@ return {
 		leavetracks = true,
 		maneuverleashlength = 2000,
 		mass = 2000000,
-		maxdamage = 60000,
+		health = 60000,
 		maxslope = 40,
-		maxvelocity = 2.25,
+		speed = 67.5,
 		maxwaterdepth = 0,
 		movementclass = "RAPTORQUEENHOVER",
 		noautofire = false,

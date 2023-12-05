@@ -1,10 +1,10 @@
 return {
 	corplat = {
-		acceleration = 0,
+		maxacc = 0,
 		activatewhenbuilt = true,
-		brakerate = 0,
-		buildcostenergy = 5500,
-		buildcostmetal = 1400,
+		maxdec = 0,
+		energycost = 5500,
+		metalcost = 1400,
 		builder = true,
 		buildpic = "CORPLAT.DDS",
 		buildtime = 11800,
@@ -18,7 +18,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2200,
+		health = 2200,
 		minwaterdepth = 30,
 		objectname = "Units/CORPLAT.s3o",
 		--radardistance = 50,

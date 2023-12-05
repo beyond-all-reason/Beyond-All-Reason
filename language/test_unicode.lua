@@ -87,7 +87,6 @@ return {
 					needEnergyAmount = "I need %{amount} energy!",
 					needMetal = "I need metal!",
 					needMetalAmount = "I need %{amount} metal!",
-					giveUnits = "I gave %{count} units to %{name}.",
 					giveEnergy = "I sent %{amount} energy to %{name}",
 					giveMetal = "I sent %{amount} metal to %{name}",
 					takeTeam = "I took %{name}.",

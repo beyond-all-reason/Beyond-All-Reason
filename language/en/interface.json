@@ -97,7 +97,6 @@
 				"needMetalAmount": "I need %{amount} metal!",
 				"needEnergy": "I need energy!",
 				"needEnergyAmount": "I need %{amount} energy!",
-				"giveUnits": "I gave %{count} units to %{name}.",
 				"giveMetal": "I sent %{amount} metal to %{name}",
 				"giveEnergy": "I sent %{amount} energy to %{name}",
 				"takeTeam": "I took %{name}.",
@@ -650,6 +649,7 @@
 			"cantMove":"%{unit}: Can't reach destination!"
 		},
 		"unitShare": {
+			"shared": "shared %{units} to %{name}",
 			"received": "You received %{count} new unit(s)*",
 			"unit": "*%{unit}"
 		},

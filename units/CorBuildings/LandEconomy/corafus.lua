@@ -1,10 +1,10 @@
 return {
 	corafus = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 4096,
-		buildcostenergy = 48000,
-		buildcostmetal = 9700,
+		energycost = 48000,
+		metalcost = 9700,
 		buildpic = "CORAFUS.DDS",
 		buildtime = 329200,
 		canrepeat = false,
@@ -22,7 +22,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 9400,
+		health = 9400,
 		maxslope = 13,
 		maxwaterdepth = 0,
 		objectname = "Units/CORAFUS.s3o",

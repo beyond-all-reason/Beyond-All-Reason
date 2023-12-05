@@ -1,10 +1,10 @@
 return {
 	raptor_allterrain_arty_brood_t2_v1 = {
-		acceleration = 0.115,
+		maxacc = 0.115,
 
-		brakerate = 0.414,
-		buildcostenergy = 12320,
-		buildcostmetal = 396,
+		maxdec = 0.414,
+		energycost = 12320,
+		metalcost = 396,
 		builder = false,
 		buildpic = "raptors/raptorbroodarty.DDS",
 		buildtime = 6750,
@@ -28,9 +28,9 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 4000,
-		maxdamage = 2000,
+		health = 2000,
 		maxslope = 18,
-		maxvelocity = 1.4,
+		speed = 42.0,
 		maxwaterdepth = 0,
 		movementclass = "RAPTORALLTERRAINBIGHOVER",
 		noautofire = false,
