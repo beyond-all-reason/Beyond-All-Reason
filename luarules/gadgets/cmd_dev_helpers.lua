@@ -209,24 +209,26 @@ if gadgetHandler:IsSyncedCode() then
 		-- do we need a list of most common hights? and if so sample it once for all functions
 		-- mode, math mode as in mean, median, and mode, where mode is the most commonly occuring value
 		-- height gets rounded into stepsize of 10, counted, and sorted based on that count
-		local mode = string.find(debugString, "mode") or false
 		local modeArray = {[1]=0}
 		local modeOffset = 0
-		if mode then
-			-- do we have an offset command
-
+		if string.find(debugString, "mode") then
 			-- count the most common heights, in height groups step sized 10
-			local height, smallestStepHeight = 0, 0
+			local normal, height, smallestStepHeight = 0, 0, 0
 			local tempModeArray = {}
 			for z=0,Game.mapSizeZ, Game.squareSize do
 				for x=0,Game.mapSizeX, Game.squareSize do
 					height = Spring.GetGroundHeight ( x, z ) or 0
+					_, normal, _ = Spring.GetGroundNormal ( x, z )
 					smallestStepHeight = math.floor((height)/10)
 					if tempModeArray[smallestStepHeight] then
 						tempModeArray[smallestStepHeight][1] = tempModeArray[smallestStepHeight][1] + 1
+						if tempModeArray[smallestStepHeight][2] < normal then
+							tempModeArray[smallestStepHeight][2] = normal
+							tempModeArray[smallestStepHeight][3] = height
+						end
 					else
 						tempModeArray[smallestStepHeight] = {1,
-							math.floor((height)/10)*10+5
+							normal, height
 						}
 					end
 				end
@@ -235,7 +237,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- drop the step and sort the heights
 			modeArray = {}
 			for _, val in pairs(tempModeArray) do
-				table.insert(modeArray, val)
+				table.insert(modeArray, {val[1],val[3]})
 			end
 			tempModeArray = {}
 			table.sort(modeArray,
@@ -263,15 +265,14 @@ if gadgetHandler:IsSyncedCode() then
 			if pos == -1 then return modeArray[#modeArray][2] end
 			return modeArray[math.min(math.max(1,pos), #modeArray)][2] or 0
 		end
-
+		
 		-- end of mode height related sampling --
+
+		-- run the terraforming commands
 		local definedHeight = 0
 		for i = 1, #commands do
 			definedHeight = 0
 
-			---------------
-			-- invertmap --
-			---------------
 			if terrainTriggers[commands[i]] then
 				local paramsDepth = 0
 				-- do we have a passed in height or call to use a mode found height
