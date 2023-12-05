@@ -933,12 +933,20 @@ if Spring.GetModOptions().emprework == true then
 			uDef.weapondefs.empmissile.edgeeffectiveness = -0.50
 			uDef.weapondefs.empmissile.damage.default = 20000
 			uDef.weapondefs.empmissile.paralyzetime = 5	
-			uDef.weapondefs.emp.damage.default = 450
+			uDef.weapondefs.emp.damage.default = 275
 			uDef.weapondefs.emp.paralyzetime = 5	
 		end
 
 		if name == "corbw" then
-			uDef.weapondefs.bladewing_lyzer.damage.default = 400
+			uDef.weapondefs.bladewing_lyzer.burst = 5
+			uDef.weapondefs.bladewing_lyzer.reloadtime = 1
+			uDef.weapondefs.bladewing_lyzer.beamburst = true
+			uDef.weapondefs.bladewing_lyzer.sprayangle = 2500
+			uDef.weapondefs.bladewing_lyzer.beamdecay = 0.5
+			uDef.weapondefs.bladewing_lyzer.beamtime = 0.03
+			uDef.weapondefs.bladewing_lyzer.beamttl = 0.4
+			
+			uDef.weapondefs.bladewing_lyzer.damage.default = 60
 			uDef.weapondefs.bladewing_lyzer.paralyzetime = 5	
 		end
 

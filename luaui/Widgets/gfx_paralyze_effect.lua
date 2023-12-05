@@ -286,6 +286,7 @@ void main() {
 	vec3 lightningcolor;
 	float effectalpha;
 	if (paralysis_level < 0.9999) { 
+		//empreworktagdonotremove
 		// Calculate the lightning color based on the amount of electricity
 		lightningcolor = mix(minlightningcolor, maxlightningcolor, electricity); 
 		effectalpha = paralysis_level * lightningalpha; // less transparency non-paralyzed
@@ -300,6 +301,11 @@ void main() {
 	fragColor = max(wholeunitbasecolor, fragColor); // apply whole unit base color	
 }
 ]]
+
+--holy hacks batman
+if Spring.GetModOptions().emprework then
+	fsSrc = string.gsub(fsSrc,'//empreworktagdonotremove','paralysis_level = paralysis_level*3; if (paralysis_level> 1) { paralysis_level = 1; }')
+end
 
 local paralyzedDrawUnitVBOTable
 
