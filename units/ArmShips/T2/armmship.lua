@@ -182,7 +182,7 @@ return {
 				model = "corshiprocket.s3o",
 				name = "Heavy long-range g2g starburst rocket launcher",
 				noselfdamage = true,
-				range = 1600,
+				range = 1550,
 				reloadtime = 6,
 				smoketrail = false,
 				soundhit = "xplomed4",

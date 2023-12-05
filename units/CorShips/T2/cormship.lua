@@ -181,7 +181,7 @@ return {
 				name = "Heavy long-range g2g starburst rocket launcher",
 				noselfdamage = true,
 				proximitypriority = 15,
-				range = 1600,
+				range = 1550,
 				reloadtime = 8,
 				smoketrail = false,
 				soundhit = "xplomed4",

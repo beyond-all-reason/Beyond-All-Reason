@@ -14,7 +14,6 @@ static-var  statechg_DesiredState, statechg_StateChanging;
 
 activatescr()
 {
-	get PRINT(1111111);
 	signal SIG_FOLD;
 	set-signal-mask SIG_FOLD;
 
@@ -33,7 +32,6 @@ activatescr()
 
 deactivatescr()
 {
-	get PRINT(100000);
 	signal SIG_FOLD;
 	set-signal-mask SIG_FOLD;
 
@@ -108,7 +106,6 @@ InitState()
 
 RequestState(requestedstate, currentstate)
 {
-	get PRINT(111, requestedstate, currentstate);
 
 	if( statechg_StateChanging )
 	{
@@ -152,24 +149,20 @@ Create()
 
 //seems not always called when movement starts.
 StartMoving() {
-	get PRINT(444, 1);
 	start-script RequestState(0);
 	return (0);
 }
 StopMoving() {
-	get PRINT(444, 2);
 	start-script RequestState(1);
 	return (0);
 }
 
 ///moving. quite what or how is up for debate but /something/ is happening.
 MoveRate1() {
-	get PRINT(555, 1);
 	start-script RequestState(0);
 	return (0);
 }
 MoveRate2() {
-	get PRINT(555, 2);
 	start-script RequestState(0);
 	return (0);
 }
@@ -183,7 +176,6 @@ Activate()
 
 Deactivate()
 {
-	get PRINT(0);
 	start-script RequestState(1);
 	return (0);
 }
