@@ -40,6 +40,8 @@ local selectedUnits = spGetSelectedUnits()
 local Game_extractorRadius = Game.extractorRadius
 local tasort = table.sort
 local taremove = table.remove
+local tacount = table.count
+
 
 ------------------------------------------------------------
 -- Other variables
@@ -150,8 +152,11 @@ local function resourceSpotHasExistingExtractorCommand(x, z, builders)
 			local command = queue[j]
 			local id = -command.id
 			if(mexBuildings[id] or geoBuildings[id]) then
-				local dist = math.sqrt(distance2dSquared(x, z, command.params[1], command.params[3]))
-				if dist < Game_extractorRadius * 2 then
+				local dist = distance2dSquared(x, z, command.params[1], command.params[3])
+				-- Save a sqrt by multiplying by 4
+				-- Note that this is calculating by diameter, and could be too aggressive on maps with closely spaced mexes
+				-- Reduce this radius if there are cases found where mex spots get missed when in close proximity
+				if dist < Game_extractorRadius * 4 then
 					return true
 				end
 			end
@@ -183,7 +188,7 @@ local function getBestMexFromSelectedBuilders(units, constructorIds, extractors)
 	return bestExtractor
 end
 
--- Is there any better and allied mex at this location? (returns false if there is)
+-- Can any mex at this location be upgraded
 local function canExtractorBeUpgraded(x, z, extractorId)
 
 	local newExtractor = UnitDefs[extractorId]
@@ -194,14 +199,18 @@ local function canExtractorBeUpgraded(x, z, extractorId)
 	for i = 1, #units do
 		local uid = units[i]
 		local uDefId = spGetUnitDefID(uid)
-		local currentExtractorStrength = mexBuildings[uDefId] or geoBuildings[uDefId]
-		if currentExtractorStrength then
+		local currentExtractorStrength = mexBuildings[uDefId] or geoBuildings[uDefId] -- is an extractor
+		local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(uid))
+		if currentExtractorStrength and isAllied then
 			if(newExtractorStrength > currentExtractorStrength) then
 				return true
 			end
 			if(newExtractorStrength == currentExtractorStrength and newExtractorIsSpecial) then
 				return true
 			end
+		end
+		if not currentExtractorStrength then -- is not an extractor
+			return true
 		end
 	end
 
@@ -213,14 +222,6 @@ local function canExtractorBeUpgraded(x, z, extractorId)
 end
 
 
-local function tablelength(T)
-	local count = 0
-	for _ in pairs(T) do
-		count = count + 1
-	end
-	return count
-end
-
 local function BuildResourceExtractors(params, options, isGuard, justDraw, constructorIds, extractors, spots, checkDuplicateOrders)		-- when isGuard: needs to be a table of the unit pos: { x = ux, y = uy, z = uz }
 	local cx, _, cz, cr = params[1], params[2], params[3], params[4]
 	if not cr or cr < Game_extractorRadius then cr = Game_extractorRadius end
@@ -230,7 +231,7 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 	-- Get highest producing building and constructor
 	local chosenExtractor
 
-	local extractorCount = tablelength(extractors)
+	local extractorCount = tacount(extractors)
 	if(extractorCount == 1) then
 		-- If calling with a specified mex type, just grab that
 		local key, _ = next(extractors)
@@ -318,9 +319,10 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 	-- Order available mex spots based on distance
 	local orderedCommands = {}
 	while #commands > 0 do
-		tasort(commands, function(a, b)
+		local sort = function(a, b)
 			return a.d < b.d
-		end)
+		end
+		tasort(commands, sort)
 		orderedCommands[#orderedCommands + 1] = commands[1]
 		aveX, aveZ = commands[1].x, commands[1].z
 		taremove(commands, 1)

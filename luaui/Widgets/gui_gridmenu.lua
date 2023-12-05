@@ -447,7 +447,7 @@ local function selectBuilding(uDefID)
 		WG['areamex'].setAreaMexType(uDefID)
 	end
 
-	Spring.SetActiveCommand(cmd, 1, false, true,Spring.GetModKeyState())
+	Spring.SetActiveCommand(cmd, 1, true, false, Spring.GetModKeyState())
 end
 
 
