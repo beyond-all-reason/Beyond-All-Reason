@@ -1054,7 +1054,7 @@ local unitGrids = {
 			{ },                                               --
 		},
 		{
-			{ "armason", "armfatf", },                         -- adv sonar, floating targeting facility
+			{ "armason", "armfatf","armfasp" },                         -- adv sonar, floating targeting facility
 			{ },                                               --
 			{ },                                               --
 		},
@@ -1077,7 +1077,7 @@ local unitGrids = {
 			{ },                                               --
 		},
 		{
-			{ "corason", "corfatf", },                         -- adv sonar, floating targeting facility
+			{ "corason", "corfatf", "corfasp" },                         -- adv sonar, floating targeting facility
 			{ },                                               --
 		},
 		{
