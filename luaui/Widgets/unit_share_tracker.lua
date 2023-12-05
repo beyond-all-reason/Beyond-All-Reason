@@ -236,7 +236,12 @@ function widget:ViewResize()
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
-	if newTeam == GetMyTeamID() then
+	local _, _, _, captureProgress, _ = Spring.GetUnitHealth(unitID)
+	local captured = (captureProgress == 1)
+
+	local selfShare = (oldTeam == newTeam) -- may happen if took other player
+
+	if newTeam == GetMyTeamID() and not selfShare and not captured then
 		if not timeNow then
 			StartTime()
 		end
