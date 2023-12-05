@@ -438,6 +438,19 @@ local function enqueueUnit(uDefID, opts)
 	end
 end
 
+local function selectBuilding(uDefID)
+	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local uDef = UnitDefs[-uDefID]
+	local isRepeatMex = uDef.customParams.metal_extractor and uDef.name == activeCmd
+	local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
+
+	if isRepeatMex then
+		WG['areamex'].setAreaMexType(uDefID)
+	end
+
+	Spring.SetActiveCommand(cmd, 3, false, true, alt, ctrl, meta, shift)
+end
+
 function dump(o)
 	if type(o) == 'table' then
 		local s = '{ '
@@ -522,15 +535,8 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 			return
 		end
 
-		local uDef = UnitDefs[-uDefID]
-		local isRepeatMex = uDef.customParams.metal_extractor and uDef.name == activeCmd
-		local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
 
-		if isRepeatMex then
-			WG['areamex'].setAreaMexType(uDefID)
-		end
-
-		Spring.SetActiveCommand(cmd, 3, false, true, alt, ctrl, meta, shift)
+		selectBuilding(uDefID)
 		return true
 	end
 
@@ -947,10 +953,7 @@ function widget:Update(dt)
 	end
 
 	if selectNextFrame and not isPregame then
-		local cmdIndex = spGetCmdDescIndex(selectNextFrame)
-		if cmdIndex then
-			Spring.SetActiveCommand(cmdIndex, 1, true, false, Spring.GetModKeyState())
-		end
+		selectBuilding(selectNextFrame)
 		selectNextFrame = nil
 		switchedCategory = nil
 
@@ -2133,13 +2136,8 @@ function widget:MousePress(x, y, button)
 							if isPregame then
 								setPreGamestartDefID(cellcmds[cellRectID].id * -1)
 							elseif spGetCmdDescIndex(cellcmds[cellRectID].id) then
-								Spring.SetActiveCommand(
-									spGetCmdDescIndex(cellcmds[cellRectID].id),
-									1,
-									true,
-									false,
-									Spring.GetModKeyState()
-								)
+								Spring.Echo("selecting unit")
+								selectBuilding(cellcmds[cellRectID].id)
 							end
 						elseif builderIsFactory and spGetCmdDescIndex(cellcmds[cellRectID].id) then
 							Spring.PlaySoundFile(Cfgs.sound_queue_rem, 0.75, "ui")
