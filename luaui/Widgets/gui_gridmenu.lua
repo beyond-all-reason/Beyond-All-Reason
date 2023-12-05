@@ -439,7 +439,6 @@ local function enqueueUnit(uDefID, opts)
 end
 
 local function selectBuilding(uDefID)
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local uDef = UnitDefs[-uDefID]
 	local isRepeatMex = uDef.customParams.metal_extractor and uDef.name == activeCmd
 	local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
@@ -448,7 +447,7 @@ local function selectBuilding(uDefID)
 		WG['areamex'].setAreaMexType(uDefID)
 	end
 
-	Spring.SetActiveCommand(cmd, 3, false, true, alt, ctrl, meta, shift)
+	Spring.SetActiveCommand(cmd, 1, false, true,Spring.GetModKeyState())
 end
 
 function dump(o)
