@@ -44,6 +44,7 @@ local queuedSelfD = {}
 local drawLists = {}
 
 local glDrawListAtUnit			= gl.DrawListAtUnit
+local glDepthTest				= gl.DepthTest
 local spGetUnitDefID			= Spring.GetUnitDefID
 local spIsUnitInView 			= Spring.IsUnitInView
 local spGetUnitSelfDTime		= Spring.GetUnitSelfDTime
@@ -52,6 +53,8 @@ local spGetCommandQueue			= Spring.GetCommandQueue
 local spIsUnitAllied			= Spring.IsUnitAllied
 local spGetCameraDirection		= Spring.GetCameraDirection
 local spGetUnitMoveTypeData		= Spring.GetUnitMoveTypeData
+local spIsGUIHidden				= Spring.IsGUIHidden
+local spGetUnitTransporter		= Spring.GetUnitTransporter
 
 local spec = Spring.GetSpectatingState()
 
@@ -163,16 +166,16 @@ function widget:Update(dt)
 end
 
 function widget:DrawWorld()
-	if Spring.IsGUIHidden() then return end
+	if spIsGUIHidden() then return end
 
-	gl.DepthTest(false)
+	glDepthTest(false)
 
 	local unitScale, countdown
 
 	-- draw icon + countodown if there is an active self-d countdown going
 	for unitID, unitDefID in pairs(activeSelfD) do
 		if (spIsUnitAllied(unitID) or spec) and spIsUnitInView(unitID) then
-			if Spring.GetUnitTransporter(unitID) == nil then
+			if spGetUnitTransporter(unitID) == nil then
 				unitScale = unitConf[unitDefID]
 				countdown = math.ceil(spGetUnitSelfDTime(unitID) / 2)
 				if not drawLists[countdown] then
@@ -187,7 +190,7 @@ function widget:DrawWorld()
 	for unitID, unitDefID in pairs(queuedSelfD) do
 		-- don't draw this if it also has an active countdown
 		if activeSelfD[unitID] == nil and (spIsUnitAllied(unitID) or spec) and spIsUnitInView(unitID) then
-			if Spring.GetUnitTransporter(unitID) == nil then
+			if spGetUnitTransporter(unitID) == nil then
 				unitScale = unitConf[unitDefID]
 				if not drawLists[0] then
 					drawLists[0] = gl.CreateList(DrawIcon, 0)
@@ -197,7 +200,7 @@ function widget:DrawWorld()
 		end
 	end
 
-	gl.DepthTest(true)
+	glDepthTest(true)
 end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
