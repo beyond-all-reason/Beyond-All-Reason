@@ -1,7 +1,7 @@
 function widget:GetInfo()
    return {
-      name      = "Self-Destruct icons",
-      desc      = "",
+      name      = "Self-Destruct Icons",
+      desc      = "Show an icon and countdown (if active) for units that have a self-destruct command",
       author    = "Floris",
       date      = "06.05.2014",
       license   = "GNU GPL, v2 or later",
