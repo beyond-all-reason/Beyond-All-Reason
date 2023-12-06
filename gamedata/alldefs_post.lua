@@ -947,8 +947,8 @@ if Spring.GetModOptions().emprework == true then
 			uDef.weapondefs.bladewing_lyzer.beamtime = 0.03
 			uDef.weapondefs.bladewing_lyzer.beamttl = 0.4
 			
-			uDef.weapondefs.bladewing_lyzer.damage.default = 100
-			uDef.weapondefs.bladewing_lyzer.paralyzetime = 5	
+			uDef.weapondefs.bladewing_lyzer.damage.default = 120
+			uDef.weapondefs.bladewing_lyzer.paralyzetime = 1	
 		end
 
 
