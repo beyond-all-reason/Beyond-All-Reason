@@ -1075,39 +1075,55 @@ if Spring.GetModOptions().air_rework == true then
 		}
 	end
 	if name == "armawac" then 
-		uDef.metalcost = 230
-		uDef.speed = 258
-		uDef.maxrudder = 0.015
+		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
+		uDef.speed = uDef.speed * 0.7
+		uDef.maxrudder = 0.017
 		uDef.maxbank = 0.66
 		uDef.health = 1040
-		uDef.maxacc = 0.3
+		uDef.maxacc = 0.4
 		uDef.cruisealtitude = 250
 	end
 	if name == "armpeep" then 
-		uDef.metalcost = 75
-		uDef.health = 140
-		uDef.speed = 315
+		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
+		uDef.health = 133
+		uDef.speed = uDef.speed * 0.7
 		uDef.maxrudder = 0.024
 		uDef.maxbank = 0.66
 		uDef.maxacc = 0.4
 		uDef.cruisealtitude = 120
 	end
 	if name == "corawac" then 
-		uDef.metalcost = 230
-		uDef.speed = 258
-		uDef.maxrudder = 0.015
+		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
+		uDef.speed = uDef.speed * 0.7
+		uDef.maxrudder = 0.017
 		uDef.maxbank = 0.66
-		uDef.health = 1040
-		uDef.maxacc = 0.3
+		uDef.health = 1140
+		uDef.maxacc = 0.4
 		uDef.cruisealtitude = 250
 	end
 	if name == "corfink" then 
-		uDef.metalcost = 74
-		uDef.health = 155
-		uDef.speed = 303
+		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
+		uDef.health = 150
+		uDef.speed = uDef.speed * 0.7
 		uDef.maxrudder = 0.024
 		uDef.maxbank = 0.66
 		uDef.maxacc = 0.4
+	end
+	if name == "corhunt" then 
+		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
+		uDef.speed = uDef.speed * 0.7
+		uDef.maxrudder = 0.015
+		uDef.maxbank = 0.66
+		uDef.maxacc = 0.4
+		uDef.cruisealtitude = 220
+	end
+	if name == "armsehak" then 
+		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
+		uDef.speed = uDef.speed * 0.7
+		uDef.maxrudder = 0.015
+		uDef.maxbank = 0.66
+		uDef.maxacc = 0.4
+		uDef.cruisealtitude = 220
 	end
 	if name == "corvamp" then
 		uDef.metalcost = 175
@@ -1226,7 +1242,7 @@ if Spring.GetModOptions().air_rework == true then
 	end
 	if name == "armseap" or name == "corseap" then
 		uDef.health = uDef.health * 1.5
-		uDef.speed = uDef.speed * 0.75
+		uDef.speed = uDef.speed * 0.65
 		uDef.turnrate = uDef.turnrate * 1.5
 	end
 	if  name == "armsaber" then
