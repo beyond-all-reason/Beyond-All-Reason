@@ -947,11 +947,15 @@ if Spring.GetModOptions().emprework == true then
 			uDef.weapondefs.bladewing_lyzer.beamtime = 0.03
 			uDef.weapondefs.bladewing_lyzer.beamttl = 0.4
 			
-			uDef.weapondefs.bladewing_lyzer.damage.default = 60
+			uDef.weapondefs.bladewing_lyzer.damage.default = 100
 			uDef.weapondefs.bladewing_lyzer.paralyzetime = 5	
 		end
 
 
+		if (name == "corsilo" or name == "armsilo" or name == "armvulc" or name == "corbuzz" or name == "legstarfall") then
+			uDef.customparams.paralyzemultiplier = 1.5
+		end
+		
 		if name == "corsumo" then
 			uDef.customparams.paralyzemultiplier = 0.9
 		end
