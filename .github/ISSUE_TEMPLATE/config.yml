@@ -2,6 +2,7 @@ blank_issues_enabled: true
 contact_links:
   - name: Beyond All Reason Official Discord
     url: https://discord.gg/beyond-all-reason
+    about: You can raise more open suggestions on our Discord if you prefer that format of discussion
   - name: Engine Issues
     url: https://github.com/beyond-all-reason/spring/issues
     about: If you know your issue is specifically an engine problem, please report it here instead
