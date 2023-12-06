@@ -1,6 +1,5 @@
 name: Feature Request
 description: Use this template to submit an idea for an enhancement to the game
-title: ''
 labels: ["enhancement", "Awaiting Approval"]
 
 body:
