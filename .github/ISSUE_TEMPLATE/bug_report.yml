@@ -1,6 +1,6 @@
 name: Bug Report
 description: Raise a game-related bug report
-labels: ["bug"]
+labels: ["Bug"]
 
 body:
   - type: textarea
