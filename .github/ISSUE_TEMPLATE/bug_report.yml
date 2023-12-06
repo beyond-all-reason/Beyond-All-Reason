@@ -1,0 +1,19 @@
+name: Bug Report
+description: Raise a game-related bug report
+title: ''
+labels: ["bug"]
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please describe the bug
+    validations:
+      required: true
+
+  - type: textarea
+    id: problems
+    attributes:
+      label: Reproduction steps
+      description: If you can reliably reproduce this bug, please describe how others can do so
