@@ -1027,7 +1027,7 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.maxacc = 0.36
 		uDef.maxrudder = 0.013
 		uDef.maxbank = 0.65
-		uDef.health = 330
+		uDef.health = 310
 		uDef.sightdistance = 460
 		uDef.cruisealtitude = 110
 		uDef.weapondefs.armvtol_missile.proximitypriority = -1
@@ -1040,7 +1040,7 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.weapondefs.armvtol_missile.weaponacceleration = 350
 		uDef.weapondefs.armvtol_missile.canattackground = true
 		uDef.weapondefs.armvtol_missile.damage = {
-			default = 100,
+			default = 64,
 			vtol = 240,
 		}
 		uDef.weapons[1].onlytargetcategory = "NOTSUB"
@@ -1163,7 +1163,7 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.maxacc = 0.36
 		uDef.maxrudder = 0.013
 		uDef.maxbank = 0.65
-		uDef.health = 330
+		uDef.health = 310
 		uDef.sightdistance = 460
 		uDef.cruisealtitude = 110
 		uDef.weapondefs.corvtol_missile.proximitypriority = -1
@@ -1176,7 +1176,7 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.weapondefs.corvtol_missile.weaponacceleration = 350
 		uDef.weapondefs.corvtol_missile.canattackground = true
 		uDef.weapondefs.corvtol_missile.damage = {
-			default = 100,
+			default = 64,
 			vtol = 240,
 		}
 		uDef.weapons[1].onlytargetcategory = "NOTSUB"
