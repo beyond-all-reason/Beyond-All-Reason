@@ -156,7 +156,7 @@ local function resourceSpotHasExistingExtractorCommand(x, z, builders)
 				-- Save a sqrt by multiplying by 4
 				-- Note that this is calculating by diameter, and could be too aggressive on maps with closely spaced mexes
 				-- Reduce this radius if there are cases found where mex spots get missed when in close proximity
-				if dist < Game_extractorRadius * 4 then
+				if dist < Game_extractorRadius * Game_extractorRadius then
 					return true
 				end
 			end
