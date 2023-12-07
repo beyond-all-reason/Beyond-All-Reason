@@ -4,6 +4,14 @@ labels: ["Bug"]
 
 body:
   - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Briefly describe the problem
+    validations:
+      required: true
+
+  - type: textarea
     id: expected_behaviour
     attributes:
       label: Expected Behaviour
