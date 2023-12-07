@@ -715,8 +715,16 @@ function widget:UnitTaken(unitID, _, oldTeamID, newTeamID)
 	local newAllyTeamID = select(6, Spring.GetTeamInfo(newTeamID))
 
 	local myAllyTeamID = Spring.GetMyAllyTeamID()
+
+	local allyTeamShare = (oldAllyTeamID == myAllyTeamID and newAllyTeamID == myAllyTeamID)
+	local selfShare = (oldTeamID == newTeamID) -- may happen if took other player
+
+	local _, _, _, captureProgress, _ = Spring.GetUnitHealth(unitID)
+	local captured = (captureProgress == 1)
+
 	local spec = Spring.GetSpectatingState()
-	if not spec and (oldAllyTeamID ~= myAllyTeamID or newAllyTeamID ~= myAllyTeamID) then -- skip captured units
+
+	if (not spec and not allyTeamShare) or selfShare or captured then
 		return
 	end
 
