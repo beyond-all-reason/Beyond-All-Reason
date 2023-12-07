@@ -1,10 +1,10 @@
-local versionNumber = "v1.0"
+local versionNumber = "v1.1"
 
 function widget:GetInfo()
 	return {
 		name = "Share Tracker",
 		desc = versionNumber .. " Marks received units.",
-		author = "Evil4Zerggin/TheFatController",
+		author = "Evil4Zerggin/TheFatController/indev29",
 		date = "17 August 2009",
 		license = "GNU LGPL, v2.1 or later",
 		layer = 0,
@@ -18,20 +18,25 @@ local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua")
 -- config
 ----------------------------------------------------------------
 
---negative to disable blinking
-local blinkPeriod = -1
 local ttl = 10
 local highlightSize = 16
 local highlightLineMin = 10
 local highlightLineMax = 20
 local edgeMarkerSize = 8
 local lineWidth = 1
-local maxAlpha = 1
 local fontSize = 16
 local unitCount = 0
 local msgTimer = 0
+
 local blink = false
 local blinkTime = 0
+local blinkPeriod = 0.07
+local blinkOnScreenAlphaMin = 0.5
+local blinkOnScreenAlphaMax = 1.0
+local blinkOnMinimapAlphaMin = 0.8
+local blinkOnMinimapAlphaMax = 1.0
+local blinkOnEdgeAlphaMin = 1.0
+local blinkOnEdgeAlphaMax = 1.0
 
 local minimapHighlightSize = 3
 local minimapHighlightLineMin = 4
@@ -98,6 +103,13 @@ local function StartTime()
 	on = true
 end
 
+local function blinkAlpha(minAlpha, maxAlpha)
+	if blink then
+		return minAlpha
+	end
+	return maxAlpha
+end
+
 ----------------------------------------------------------------
 -- callins
 ----------------------------------------------------------------
@@ -117,20 +129,18 @@ function widget:DrawScreen()
 	glLineWidth(lineWidth)
 
 	for unitID, defs in pairs(mapPoints) do
-		local alpha = maxAlpha * (defs.time - timeNow) / ttl
-		if alpha <= 0 then
+		local expired = timeNow > defs.time
+		if expired then
 			mapPoints[unitID] = nil
 		else
 			defs.x, defs.y, defs.z = Spring.GetUnitPosition(unitID)
 			if defs.x then
 				local sx, sy, sz = WorldToScreenCoords(defs.x, defs.y, defs.z)
-				if blink then
-					glColor(defs.r, defs.g, defs.b, alpha * 0.5)
-				else
-					glColor(defs.r, defs.g, defs.b, alpha)
-				end
 				if sx >= 0 and sy >= 0 and sx <= vsx and sy <= vsy then
 					--in screen
+					local alpha = blinkAlpha(blinkOnScreenAlphaMin, blinkOnScreenAlphaMax)
+					glColor(defs.r, defs.g, defs.b, alpha)
+
 					local vertices = {
 						{ v = { sx, sy - highlightLineMin, 0 } },
 						{ v = { sx, sy - highlightLineMax, 0 } },
@@ -145,10 +155,10 @@ function widget:DrawScreen()
 					glRect(sx - defs.highlightSize, sy - defs.highlightSize, sx + defs.highlightSize, sy + defs.highlightSize)
 					glShape(GL_LINES, vertices)
 				else
-					if blink then
-						glColor(defs.r, defs.g, defs.b, alpha)
-					end
 					--out of screen
+					local alpha = blinkAlpha(blinkOnEdgeAlphaMin, blinkOnEdgeAlphaMax)
+					glColor(defs.r, defs.g, defs.b, alpha)
+
 					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 					--flip if behind screen
 					if sz > 1 then
@@ -226,7 +236,12 @@ function widget:ViewResize()
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
-	if newTeam == GetMyTeamID() then
+	local _, _, _, captureProgress, _ = Spring.GetUnitHealth(unitID)
+	local captured = (captureProgress == 1)
+
+	local selfShare = (oldTeam == newTeam) -- may happen if took other player
+
+	if newTeam == GetMyTeamID() and not selfShare and not captured then
 		if not timeNow then
 			StartTime()
 		end
@@ -246,7 +261,7 @@ function widget:Update(dt)
 		timeNow = timeNow + dt
 		timePart = timePart + dt
 	end
-	if blinkTime > 0.03 then
+	if blinkTime > blinkPeriod then
 		blink = not blink
 		blinkTime = 0
 	else
@@ -286,10 +301,11 @@ function widget:DrawInMiniMap(sx, sy)
 				y = sy - defs.z * ratioY
 			end
 
-			local alpha = maxAlpha * (defs.time - timeNow) / ttl
-			if alpha <= 0 then
+			local expired = timeNow > defs.time
+			if expired then
 				mapPoints[unitID] = nil
 			else
+				local alpha = blinkAlpha(blinkOnMinimapAlphaMin, blinkOnMinimapAlphaMax)
 				glColor(defs.r, defs.g, defs.b, alpha)
 				local vertices = {
 					{ v = { x, y - minimapHighlightLineMin, 0 } },

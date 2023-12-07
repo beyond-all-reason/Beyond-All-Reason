@@ -50,6 +50,21 @@ local CommandsToCatchFeature = { -- CMDTYPES: ICON_UNIT_FEATURE_OR_AREA
     [CMD.RESURRECT] = true,
 }
 
+local LuaAIsToExclude = {
+    ["ScavengersAI"] = true,
+    ["RaptorsAI"] = true,
+}
+
+local TeamIDsToExclude = {} -- dynamically filled below
+
+for _, teamID in ipairs(Spring.GetTeamList()) do
+    local teamLuaAI = Spring.GetTeamLuaAI(teamID)
+    if (teamLuaAI and LuaAIsToExclude[teamLuaAI]) then
+        TeamIDsToExclude[teamID] = true
+    end
+end
+
+
 
 
 if gadgetHandler:IsSyncedCode() then
@@ -59,7 +74,7 @@ if gadgetHandler:IsSyncedCode() then
         local allowed = true
         local frame = Spring.GetGameFrame()
 
-        if frame < norushtimer then
+        if frame < norushtimer and (not TeamIDsToExclude[unitTeam]) then
             local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(unitTeam)
             if cmdID < 0 then
                 if cmdParams[1] and cmdParams[2] and cmdParams[3] then

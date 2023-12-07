@@ -1,12 +1,12 @@
 return {
 	armpship = {
-		acceleration = 0.04771,
+		maxacc = 0.04771,
 		airsightdistance = 470,
 		autoheal = 1.5,
 		blocking = true,
-		brakerate = 0.04771,
-		buildcostenergy = 2600,
-		buildcostmetal = 390,
+		maxdec = 0.04771,
+		energycost = 2600,
+		metalcost = 390,
 		buildpic = "ARMPSHIP.DDS",
 		buildtime = 4350,
 		canmove = true,
@@ -22,8 +22,8 @@ return {
 		icontype = "sea",
 		idleautoheal = 2,
 		idletime = 900,
-		maxdamage = 2150,
-		maxvelocity = 2.7,
+		health = 2150,
+		speed = 81.0,
 		minwaterdepth = 6,
 		movementclass = "BOAT4",
 		nochasecategory = "VTOL UNDERWATER",
@@ -136,9 +136,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 290,
 				damage = {
-					bombers = 37,
 					default =  70,
-					fighters = 37,
 					subs = 70, --7
 					vtol = 37,
 				},

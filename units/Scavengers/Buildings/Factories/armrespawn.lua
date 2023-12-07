@@ -2,10 +2,10 @@ local range = Spring.GetModOptions().commanderbuildersrange
 
 return {
 	armrespawn = {
-		acceleration = 0,
-		brakerate = 4.5,
-		buildcostenergy = 500,
-		buildcostmetal = 50,
+		maxacc = 0,
+		maxdec = 4.5,
+		energycost = 1,
+		metalcost = 1,
 		builddistance = range,
 		builder = true,
 		buildpic = "ARMNANOTCPLAT.DDS",
@@ -30,7 +30,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 700,
-		maxdamage = 20000,
+		health = 20000,
 		maxslope = 10,
 		maxwaterdepth = 50000000,
 		minwaterdepth = 12,

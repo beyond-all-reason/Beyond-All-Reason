@@ -1,0 +1,40 @@
+name: Bug Report
+description: Raise a game-related bug report
+labels: ["Bug"]
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Briefly describe the problem
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behaviour
+    attributes:
+      label: Expected Behaviour
+      description: What should happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_behaviour
+    attributes:
+      label: Actual Behaviour
+      description: What is currently happening?
+    validations:
+      required: true
+
+  - type: textarea
+    id: problems
+    attributes:
+      label: Reproduction steps
+      description: If you can reliably reproduce this bug, please describe how others can do so
+
+  - type: textarea
+    id: other
+    attributes:
+      label: Other
+      description: Note any additional info here

@@ -5,7 +5,7 @@
 
 piece  flare1, flare2, turret, base, sleeve, smoke1, smoke2;
 
-static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, gun_1;
+static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, gun_1, ourheading;
 static-var out_of_arc_count;
 
 // Signal definitions
@@ -134,20 +134,12 @@ AimPrimary(heading, pitch)
 	// out of firing arc aim calls happen during "preaiming" logic
 	// logic to reset gun to neutral if the target heading has been
 	// out of firing arc for ~3 seconds
-	if ( (heading < -24576) OR (heading > 24576) )
-	{
-		// assume reaim time is every 15 frames, 0.5 seconds
-		out_of_arc_count = out_of_arc_count + 1;
-		// after 6 aim checks, if target is still out of arc, restore gun to neutral
-		if (out_of_arc_count > 6)
-		{
-			start-script ExecuteRestoreAfterDelay();
-		}
-		return (0);
-	}
-	out_of_arc_count = 0;
+	ourheading = heading;
+	if (heading < -24576) ourheading = -24576;
+	if (heading > 24576) ourheading = 24576;
 
-	turn turret to y-axis heading speed <125.000000>;
+
+	turn turret to y-axis ourheading speed <125.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <125.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;

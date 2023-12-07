@@ -1,11 +1,11 @@
 return {
 	armptl = {
-		acceleration = 0,
+		maxacc = 0,
 		activatewhenbuilt = true,
-		brakerate = 0,
+		maxdec = 0,
 		buildangle = 16384,
-		buildcostenergy = 1500,
-		buildcostmetal = 170,
+		energycost = 1500,
+		metalcost = 170,
 		buildpic = "ARMTL.DDS",
 		buildtime = 3700,
 		canrepeat = false,
@@ -17,7 +17,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1300,
+		health = 1300,
 		maxslope = 999,
 		minwaterdepth = 12,
 		objectname = "Units/ARMTL.s3o",
@@ -28,7 +28,7 @@ return {
 		sonardistance = 230,
 		yardmap = "ooooooooo",
 		customparams = {
-			unitgroup = 'weaponaa',
+			unitgroup = 'sub',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,

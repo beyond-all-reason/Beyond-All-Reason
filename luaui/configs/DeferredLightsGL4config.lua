@@ -13144,6 +13144,17 @@ local unitDefLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	[UnitDefNames['corthermite'].id] = {
+		eyes = {
+			lightType = 'point',
+			pieceName = 'head',
+			lightConfig = { posx = 0, posy = 6, posz = 8, radius = 28,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.15,
+							modelfactor = 0.4, specular = 0, scattering = 1, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	[UnitDefNames['corstorm'].id] = {
 		eyes = {
 			lightType = 'point',
@@ -16954,6 +16965,62 @@ local unitDefLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	[UnitDefNames['corgolt4'].id] = {
+		base1 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 44, posy = 38, posz = -6, radius = 34,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.1,
+							modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		base2 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = -44, posy = 38, posz = -6, radius = 34,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.1,
+							modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		back1 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 30, posy = 48, posz = -42, radius = 44,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.08,
+							modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		back2 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 52, posy = 34, posz = -42, radius = 44,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.08,
+							modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		back3 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = -30, posy = 48, posz = -42, radius = 44,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.08,
+							modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		back4 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = -52, posy = 34, posz = -42, radius = 44,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.08,
+							modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	[UnitDefNames['cormabm'].id] = {
 		eyes1 = {
 			lightType = 'point',
@@ -17809,6 +17876,13 @@ local unitDefLights = {
 		},
 	},
 }
+
+
+unitDefLights[UnitDefNames['corcrwh'].id] = unitDefLights[UnitDefNames['corcrw'].id]
+unitDefLights[UnitDefNames['coruwgeo'].id] = unitDefLights[UnitDefNames['corgeo'].id]
+unitDefLights[UnitDefNames['coruwageo'].id] = unitDefLights[UnitDefNames['corageo'].id]
+unitDefLights[UnitDefNames['armuwgeo'].id] = unitDefLights[UnitDefNames['armgeo'].id]
+unitDefLights[UnitDefNames['armuwageo'].id] = unitDefLights[UnitDefNames['armageo'].id]
 unitDefLights[UnitDefNames['armshltxuw'].id] = unitDefLights[UnitDefNames['armshltx'].id]
 unitDefLights[UnitDefNames['corgantuw'].id] = unitDefLights[UnitDefNames['corgant'].id]
 unitDefLights[UnitDefNames['armdecom'].id] = unitDefLights[UnitDefNames['armcom'].id]
@@ -18027,10 +18101,74 @@ local unitEventLights = {
 				alwaysVisible = true,
 				lightConfig = { posx = 0, posy = 7, posz = -5, radius = 24,
 					color2r = 0.6, color2g = 0.07, color2b = 0, colortime = 400,
-					r = 1.1, g = 0.45, b = 0, a = 0.66,
+					r = 1.1, g = 0.45, b = 0, a = 0.36,
 					modelfactor = 2, specular = 1, scattering = 0.5, lensflare = 0,
 					lifetime = 200, sustain = 15, animtype = 0},
 			},
+		},
+
+		[UnitDefNames['cordemont4'].id] = {
+
+
+			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'lfbarrel2',
+				lightName = 'cordemonl2glow',
+				alwaysVisible = true,
+				lightConfig = { posx = 0, posy = 4, posz = 8, radius = 53,
+					color2r = 0.8, color2g = 0.37, color2b = 0, colortime = 300,
+					r = 0, g = 0, b = 0, a = 0.08,
+					modelfactor = 2, specular = 1, scattering = 0.05, lensflare = 0,
+					lifetime = 200, sustain = 5, animtype = 0},
+			},			
+			[2] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'rfbarrel2',
+				lightName = 'cordemonr2glow',
+				alwaysVisible = true,
+				lightConfig = { posx = 0, posy = 4, posz = 8, radius = 53,
+					color2r = 0.8, color2g = 0.37, color2b = 0, colortime = 300,
+					r = 0, g = 0, b = 0, a = 0.08,
+					modelfactor = 2, specular = 1, scattering = 0.05, lensflare = 0,
+					lifetime = 200, sustain = 5, animtype = 0},
+			},
+			
+		},
+		[UnitDefNames['corthermite'].id] = {
+			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'barrel1',
+				lightName = 'thermiteleft',
+				alwaysVisible = true,
+				lightConfig = { posx = 0, posy = 4, posz = 8, radius = 33,
+					color2r = 0.8, color2g = 0.37, color2b = 0, colortime = 300,
+					r = 0, g = 0, b = 0, a = 0.03,
+					modelfactor = 2, specular = 1, scattering = 0.05, lensflare = 0,
+					lifetime = 100, sustain = 5, animtype = 0},
+			},			
+			[2] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'barrelr',
+				lightName = 'thermiteright',
+				alwaysVisible = true,
+				lightConfig = { posx = 0, posy = 4, posz = 8, radius = 33,
+					color2r = 0.8, color2g = 0.37, color2b = 0, colortime = 300,
+					r = 0, g = 0, b = 0, a = 0.03,
+					modelfactor = 2, specular = 1, scattering = 0.05, lensflare = 0,
+					lifetime = 100, sustain = 5, animtype = 0},
+			},
+			[3] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'flameflarer',
+				lightName = 'thermiteflame',
+				alwaysVisible = true,
+				lightConfig = { posx = 0, posy = 4, posz = 8, radius = 15,
+					color2r = 0.8, color2g = 0.37, color2b = 0, colortime = 300,
+					r = 0, g = 0, b = 0, a = 0.03,
+					modelfactor = 2, specular = 1, scattering = 0.05, lensflare = 0,
+					lifetime = 200, sustain = 5, animtype = 0},
+			},
+			
 		},
 
 		[UnitDefNames['armraz'].id] = {

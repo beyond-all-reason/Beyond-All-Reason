@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author	= "Beherith",
 		date	  = "2016-03-30",
 		license   = "GNU GPL, v2 or later",
-		layer	 = -9999,
+		layer	 = 9999999,
 		enabled   = false,
 	}
 end
@@ -14,6 +14,7 @@ local myshader = nil
 myshaderDebgDrawLoc = nil
 myshaderTexture0Loc = nil
 local dbgDraw = 0
+local depthCopyTex = nil
 
 deferredbuffers = ({
 	"$map_gbuffer_normtex",
@@ -29,6 +30,7 @@ deferredbuffers = ({
 	"$model_gbuffer_emittex" ,
 	"$model_gbuffer_misctex" ,
 	"$model_gbuffer_zvaltex",
+	"depthcopy",
 })
 deferredbuffer_info= ({
 	["$map_gbuffer_normtex"] ="contains the smoothed normals buffer of the map in view in world space coordinates (note that to get true normal vectors from it, you must multiply the vector by 2 and subtract 1)",
@@ -43,9 +45,10 @@ deferredbuffer_info= ({
 	["$model_gbuffer_emittex"] 	= "for emissive materials (bloom would be the canonical use) New in version 95",
 	["$model_gbuffer_misctex"] 	= "for arbitrary shader data New in version 95",
 	["$model_gbuffer_zvaltex"]	= "contains the depth values (z-buffer) of the models in view. ",
+	["depthcopy"]	= "A copy of the current depth buffer. ",
 })
 
-currentbuffer = 8 -- starts with model_gbuffer_normtex
+currentbuffer = 13 -- starts with model_gbuffer_normtex
 
 local function RemoveMe(msg)
 	Spring.Echo(msg)
@@ -63,12 +66,19 @@ local function MakeShader()
 			uniform int debugDraw;
 			void main(void) {
 				vec4 a = texture2D(texture0, gl_TexCoord[0].st);
-				if (!debugDraw) {
+				if (debugDraw == 0) {
 					gl_FragColor = a;
 				} else {
-					a.r= a.a;
-					a.a = 1.0;
-					gl_FragColor = a;
+					if (debugDraw==1){
+						a.r= a.a;
+						a.a = 1.0;
+						gl_FragColor = a;
+						gl_FragColor = vec4(fract(a.rbg), 1.0);
+					}else{
+						a.rgb = fract(100*(pow(a.rgb, vec3(8.0))));
+						a.a = 1.0;
+						gl_FragColor = a;
+					}
 				}
 			}
 		]],
@@ -103,6 +113,18 @@ function widget:Initialize()
 	if hasdeferredrendering == false then
 		RemoveMe("[deferred buffer visualizer] removing widget, AllowDeferred Model and Map Rendering is required")
 	end
+	local vsx, vsy = Spring.GetViewGeometry()
+	local GL_DEPTH_COMPONENT24 = 0x81A6
+	
+	local GL_DEPTH_COMPONENT   = 0x1902
+	local GL_DEPTH_COMPONENT32 = 0x81A7
+	depthCopyTex = 	 gl.CreateTexture(vsx,vsy, {
+		target = GL_TEXTURE_2D,
+		format = GL_DEPTH_COMPONENT,
+		min_filter = GL.NEAREST,
+		mag_filter = GL.NEAREST,
+	})
+	if depthCopyTex == nil then Spring.Echo("Failed to allocate the depth texture", vsx,vsy) end 
 	AddChatActions()
 	MakeShader()
 end
@@ -115,11 +137,21 @@ function widget:Shutdown()
 end
 
 function widget:DrawWorld()
+	if deferredbuffers[currentbuffer] == 'depthcopy' then
+		local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+		gl.CopyToTexture(depthCopyTex, 0, 0, vpx, vpy, vsx, vsy) -- the original screen image
+	end
 	gl.Blending(GL.ONE, GL.ZERO)
 	gl.UseShader(myshader)
-	gl.UniformInt(myshaderDebgDrawLoc, dbgDraw)
 	gl.UniformInt(myshaderTexture0Loc, 0)
-	gl.Texture(0, deferredbuffers[currentbuffer])
+	
+	if deferredbuffers[currentbuffer] == 'depthcopy' then
+		gl.Texture(0, depthCopyTex)
+		gl.UniformInt(myshaderDebgDrawLoc, 2)
+	else
+		gl.Texture(0, deferredbuffers[currentbuffer])
+	gl.UniformInt(myshaderDebgDrawLoc, dbgDraw)
+	end
 	gl.TexRect(0, -1, 1, 1, 0.5, 0, 1, 1)
 	gl.Texture(0, false)
 	gl.UseShader(0)

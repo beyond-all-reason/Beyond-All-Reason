@@ -24,11 +24,11 @@ Spring.CreateDir("music/custom/menu")
 ----------------------------------------------------------------------
 
 local showGUI = true
-local minSilenceTime = 60
-local maxSilenceTime = 300
+local minSilenceTime = 30
+local maxSilenceTime = 120
 local warLowLevel = 1000
-local warHighLevel = 20000
-local warMeterResetTime = 30 -- seconds
+local warHighLevel = 30000
+local warMeterResetTime = 60 -- seconds
 local interruptionMinimumTime = 20 -- seconds
 local interruptionMaximumTime = 40 -- seconds
 
@@ -243,8 +243,8 @@ local prevPlayedTime = playedTime
 
 local silenceTimer = math.random(minSilenceTime, maxSilenceTime)
 
-local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 20)	-- user value, cause actual volume will change during fadein/outc
-local volume = Spring.GetConfigInt("snd_volmaster", 100)
+local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 50)	-- user value, cause actual volume will change during fadein/outc
+local volume = Spring.GetConfigInt("snd_volmaster", 80)
 
 local RectRound, UiElement, UiButton, UiSlider, UiSliderKnob, bgpadding, elementCorner
 local borderPaddingRight, borderPaddingLeft, font, draggingSlider, doCreateList, chobbyInterface, mouseover
@@ -393,11 +393,11 @@ local function createList()
 	buttons['musicvolumeicon'] = {buttons['next'][3]+padding+padding, bottom+padding+heightoffset, buttons['next'][3]+((widgetHeight * widgetScale)), top-padding+heightoffset}
 	--buttons['musicvolumeicon'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
 	buttons['musicvolume'] = {buttons['musicvolumeicon'][3]+padding, bottom+padding+heightoffset, buttons['musicvolumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
-	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (getVolumePos(maxMusicVolume/100))
+	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (getVolumePos(maxMusicVolume/99))
 
 	buttons['volumeicon'] = {buttons['musicvolume'][3]+padding+padding+padding, bottom+padding+heightoffset, buttons['musicvolume'][3]+((widgetHeight * widgetScale)), top-padding+heightoffset}
 	buttons['volume'] = {buttons['volumeicon'][3]+padding, bottom+padding+heightoffset, buttons['volumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
-	buttons['volume'][5] = buttons['volume'][1] + (buttons['volume'][3] - buttons['volume'][1]) * (getVolumePos(volume/200))
+	buttons['volume'][5] = buttons['volume'][1] + (buttons['volume'][3] - buttons['volume'][1]) * (getVolumePos(volume/80))
 
 	local textsize = 11 * widgetScale
 	local textXPadding = 10 * widgetScale
@@ -548,7 +548,7 @@ function widget:Initialize()
 	end
 	WG['music'].SetMusicVolume = function(value)
 		maxMusicVolume = value
-		Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume))
+		Spring.SetConfigInt("snd_volmusic", math.min(99,math.ceil(maxMusicVolume))) -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
 		if fadeDirection then
 			setMusicVolume(fadeLevel)
 		end
@@ -658,15 +658,15 @@ end
 function widget:MouseMove(x, y)
 	if showGUI and draggingSlider ~= nil then
 		if draggingSlider == 'musicvolume' then
-			maxMusicVolume = math.floor(getVolumeCoef(getSliderValue(draggingSlider, x)) * 100)
-			Spring.SetConfigInt("snd_volmusic", maxMusicVolume)
+			maxMusicVolume = math.ceil(getVolumeCoef(getSliderValue(draggingSlider, x)) * 99)
+			Spring.SetConfigInt("snd_volmusic", math.min(99,maxMusicVolume))  -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
 			if fadeDirection then
 				setMusicVolume(fadeLevel)
 			end
 			createList()
 		end
 		if draggingSlider == 'volume' then
-			volume = math.floor(getVolumeCoef(getSliderValue(draggingSlider, x)) * 200)
+			volume = math.ceil(getVolumeCoef(getSliderValue(draggingSlider, x)) * 80)
 			Spring.SetConfigInt("snd_volmaster", volume)
 			createList()
 		end
@@ -682,14 +682,14 @@ local function mouseEvent(x, y, button, release)
 			local button = 'musicvolume'
 			if math_isInRect(x, y, buttons[button][1] - sliderWidth, buttons[button][2], buttons[button][3] + sliderWidth, buttons[button][4]) then
 				draggingSlider = button
-				maxMusicVolume = math.floor(getVolumeCoef(getSliderValue(button, x)) * 100)
-				Spring.SetConfigInt("snd_volmusic", maxMusicVolume)
+				maxMusicVolume = math.ceil(getVolumeCoef(getSliderValue(button, x)) * 99)
+				Spring.SetConfigInt("snd_volmusic", math.min(99, maxMusicVolume))   -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
 				createList()
 			end
 			button = 'volume'
 			if math_isInRect(x, y, buttons[button][1] - sliderWidth, buttons[button][2], buttons[button][3] + sliderWidth, buttons[button][4]) then
 				draggingSlider = button
-				volume = math.floor(getVolumeCoef(getSliderValue(button, x)) * 200)
+				volume = math.ceil(getVolumeCoef(getSliderValue(button, x)) * 80)
 				Spring.SetConfigInt("snd_volmaster", volume)
 				createList()
 			end
@@ -761,7 +761,7 @@ function widget:Update(dt)
 		if math_isInRect(mx, my, left, bottom, right, top) then
 			mouseover = true
 		end
-		local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
+		local curVolume = Spring.GetConfigInt("snd_volmaster", 80)
 		if volume ~= curVolume then
 			volume = curVolume
 			doCreateList = true
@@ -789,7 +789,7 @@ function widget:DrawScreen()
 		mouseover = false
 	else
 		if math_isInRect(mx, my, left, bottom, right, top) then
-			local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
+			local curVolume = Spring.GetConfigInt("snd_volmaster", 80)
 			if volume ~= curVolume then
 				volume = curVolume
 				createList()
@@ -1015,10 +1015,10 @@ function widget:GameFrame(n)
 						fadeOutSkipTrack = true
 					elseif (interruptionEnabled and (playedTime >= interruptionTime) and gameFrame >= serverFrame-300)
 					  and ((currentTrackListString == "intro" and n > 90)
-						or (currentTrackListString == "peace" and warMeter > warLowLevel * 2) -- Peace in battle times, let's play some WarLow music at double of WarLow threshold
-						or (currentTrackListString == "warLow" and warMeter > warHighLevel * 2) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at double of WarHigh threshold
-						or (currentTrackListString == "warHigh" and warMeter <= warHighLevel * 0.5) -- WarHigh music is playing, but it has been quite peaceful recently. Let's switch to WarLow music at 50% of WarHigh threshold
-						or (currentTrackListString == "warLow" and warMeter <= warLowLevel * 0.5 )) then -- WarLow music is playing, but it has been quite peaceful recently. Let's switch to peace music at 50% of WarLow threshold
+						or (currentTrackListString == "peace" and warMeter > warHighLevel * 0.5 ) -- Peace in battle times, let's play some WarLow music at half of WarHigh threshold
+						or (currentTrackListString == "warLow" and warMeter > warHighLevel * 2 ) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at double of WarHigh threshold
+						or (currentTrackListString == "warHigh" and warMeter <= warLowLevel * 0.5 ) -- WarHigh music is playing, but it has been quite peaceful recently. Let's switch to peace music at 50% of WarLow threshold
+						or (currentTrackListString == "warLow" and warMeter <= warLowLevel * 0.25 )) then -- WarLow music is playing, but it has been quite peaceful recently. Let's switch to peace music at 25% of WarLow threshold
 							fadeDirection = -2
 							fadeOutSkipTrack = true
 					elseif (playedTime >= totalTime - 12 and Spring.GetConfigInt("UseSoundtrackFades", 1) == 1) then

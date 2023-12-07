@@ -50,6 +50,7 @@ function SpawnAssistTurret(unitID, unitDefID, unitTeam)
 	if spawnpadID then
         Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz,0,0,0)
 		Spring.GiveOrderToUnit(spawnpadID, CMD.GUARD, unitID, {})
+        Spring.SetUnitCosts(spawnpadID, {buildTime = 20000, metalCost = 100, energyCost = 1000})
 		--Spring.SetUnitBlocking(spawnpadID, false)
 	end
 end

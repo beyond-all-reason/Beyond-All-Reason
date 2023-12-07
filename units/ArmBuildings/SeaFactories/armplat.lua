@@ -1,10 +1,10 @@
 return {
 	armplat = {
-		acceleration = 0,
+		maxacc = 0,
 		--activatewhenbuilt = true,
-		brakerate = 0,
-		buildcostenergy = 5000,
-		buildcostmetal = 1450,
+		maxdec = 0,
+		energycost = 5000,
+		metalcost = 1450,
 		builder = true,
 		buildpic = "ARMPLAT.DDS",
 		buildtime = 12000,
@@ -18,7 +18,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2000,
+		health = 2000,
 		minwaterdepth = 30,
 		objectname = "Units/ARMPLAT.s3o",
 		onoffable = true,

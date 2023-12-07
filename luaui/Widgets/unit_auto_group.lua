@@ -73,6 +73,7 @@ local createdFrame = {}
 
 local gameStarted
 
+local GetUnitGroup = Spring.GetUnitGroup
 local SetUnitGroup = Spring.SetUnitGroup
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitDefID = Spring.GetUnitDefID
@@ -229,7 +230,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 
 	if builtInFrame or immediate or groupableBuildings[unitDefID] or (builtInPlace[unitID] and #Spring.GetCommandQueue(unitID, 1) == 0) then
 		local gr = unit2group[unitDefID]
-		if gr ~= nil then
+		if gr ~= nil and GetUnitGroup(unitID) == nil then
 			SetUnitGroup(unitID, gr)
 		end
 	end
