@@ -1364,7 +1364,12 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.buildoptions[numBuildoptions+3] = "corcut"
 		uDef.buildoptions[numBuildoptions+4] = "corseap"
 	end
-
+	if name == "corplat" then
+		uDef.buildoptions[5] = "corsfig2"
+	end
+	if name == "armplat" then
+		uDef.buildoptions[5] = "armsfig2"
+	end
 	if name == "armrl" then
 		uDef.weapondefs.armrl_missile.startvelocity = 111
 		uDef.weapondefs.armrl_missile.flighttime = 2.5
