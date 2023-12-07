@@ -1,5 +1,6 @@
 <!--
-PR Template! If any commented sections are not relevant to this PR, remove them.
+PR Template! Please make sure to give your PR a relevant title so a squash merge remains descriptive
+If any commented sections are not relevant to this PR, remove them.
 Please fill out the uncommented sections with any relevant information.
 -->
 
@@ -8,12 +9,6 @@ Please fill out the uncommented sections with any relevant information.
 Describe the changes or additions made in this PR, and why they
 are necessary or important. If there is unusual complexity in the
 code or functionality, please explain it so reviewers can understand.
--->
-
-<!-- If relevant
-### Blockers
-- [ ] List questions that need to be answered to finish this work
-- [ ] If this PR is reliant on another PR being merged, link it here
 -->
 
 <!-- If relevant
