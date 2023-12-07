@@ -39,6 +39,7 @@ return {
 			[2] = "corshiva",
 			[3] = "corseal",
 			[4] = "corparrow",
+			[5] = "corsok",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

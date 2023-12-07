@@ -63,6 +63,12 @@ local unitlist = {
 	{'corvp','coramsub'},
 	{'armap','armplat'},
 	{'corap','corplat'},
+	{'corasp','corfasp'},
+	{'armasp','armfasp'},
+	{'armgeo','armuwgeo'},
+	{'armageo','armuwageo'},
+	{'corgeo','coruwgeo'},
+	{'corageo','coruwageo'},
 }
 
 local groundBuildings = {}

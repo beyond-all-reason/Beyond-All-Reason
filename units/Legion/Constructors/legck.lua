@@ -43,6 +43,7 @@ return {
 			"coradvsol",
 			"corwin",
 			"corgeo",
+			"coruwgeo",
 			"cormstor",
 			"corestor",
 			"legmex",

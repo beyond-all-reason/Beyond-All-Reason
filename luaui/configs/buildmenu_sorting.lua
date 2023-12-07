@@ -432,10 +432,14 @@ local unitOrderTable = {
 
    --ECO NRG GEOS
    ['armgeo']         = 101200,
+   ['armuwgeo']       = 101201,
    ['corgeo']         = 101250,
+   ['coruwgeo']       = 101251,
    ['armgmm']         = 101300,
    ['corageo']        = 101350,
+   ['coruwageo']      = 101351,
    ['armageo']        = 101400,
+   ['armuwageo']      = 101401,
    ['corbhmth']       = 101450,
 
    --ECO NRG FUSIONS
@@ -485,7 +489,9 @@ local unitOrderTable = {
 
    --UTILITIES
    ['armasp']         = 102800, --AIR REPAIR PADS
+   ['armfasp']         = 102801,
    ['corasp']         = 102825,
+   ['corfasp']         = 102826,
 
    ['armeyes']        = 103000,
    ['coreyes']        = 103050,
