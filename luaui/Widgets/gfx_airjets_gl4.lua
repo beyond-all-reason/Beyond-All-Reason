@@ -85,8 +85,14 @@ local effectDefs = {
 	["armsfig"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "thrust", limit = true },
 	},
+	["armsfig2"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 8, length = 45, piece = "thrust", limit = true },
+	},
 	["corsfig"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust", limit = true },
+	},
+	["corsfig2"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 8, length = 45, piece = "thrust", limit = true },
 	},
 	["armhawk"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrust", limit = true },

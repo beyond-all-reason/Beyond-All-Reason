@@ -1045,7 +1045,7 @@ if Spring.GetModOptions().air_rework == true then
 		}
 		uDef.weapons[1].onlytargetcategory = "NOTSUB"
 	end
-	if name == "armsfig" then
+	if name == "armsfig2" then
 		uDef.metalcost = 450
 		uDef.energycost = 6500
 		uDef.buildtime = 10000
@@ -1062,7 +1062,7 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.weapondefs.armsfig_weapon.proximitypriority = -1
 		uDef.weapondefs.armsfig_weapon.flighttime = 1.2
 		uDef.weapondefs.armsfig_weapon.range = 650
-		uDef.weapondefs.armsfig_weapon.burst = 7
+		uDef.weapondefs.armsfig_weapon.burst = 4
 		uDef.weapondefs.armsfig_weapon.burstrate = 0.15
 		uDef.weapondefs.armsfig_weapon.explosiongenerator = "custom:genericshellexplosion-medium-bomb"
 		uDef.weapondefs.armsfig_weapon.smokePeriod = 7
@@ -1070,7 +1070,7 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.weapondefs.armsfig_weapon.smokesize = 10
 		uDef.weapondefs.armsfig_weapon.smoketrail = true
 		uDef.weapondefs.armsfig_weapon.areaofeffect = 180
-		uDef.weapondefs.armsfig_weapon.reloadtime = 11
+		uDef.weapondefs.armsfig_weapon.reloadtime = 6
 		uDef.weapondefs.armsfig_weapon.startvelocity = 180
 		uDef.weapondefs.armsfig_weapon.tolerance = 3000
 		uDef.weapondefs.armsfig_weapon.turnrate = 3000
@@ -1181,7 +1181,7 @@ if Spring.GetModOptions().air_rework == true then
 		}
 		uDef.weapons[1].onlytargetcategory = "NOTSUB"
 	end
-	if name == "corsfig" then
+	if name == "corsfig2" then
 		uDef.metalcost = 520
 		uDef.energycost = 8000
 		uDef.buildtime = 11000
@@ -1353,14 +1353,14 @@ if Spring.GetModOptions().air_rework == true then
 	if name == "armaap" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions+1] = "armsb"
-		uDef.buildoptions[numBuildoptions+2] = "armsfig"
+		uDef.buildoptions[numBuildoptions+2] = "armsfig2"
 		uDef.buildoptions[numBuildoptions+3] = "armsaber"
 		uDef.buildoptions[numBuildoptions+4] = "armseap"
 	end
 	if name == "coraap" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions+1] = "corsb"
-		uDef.buildoptions[numBuildoptions+2] = "corsfig"
+		uDef.buildoptions[numBuildoptions+2] = "corsfig2"
 		uDef.buildoptions[numBuildoptions+3] = "corcut"
 		uDef.buildoptions[numBuildoptions+4] = "corseap"
 	end
