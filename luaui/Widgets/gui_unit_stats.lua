@@ -344,13 +344,13 @@ local function drawStats(uDefID, uID)
 	local uDef = uDefs[uDefID]
 	local maxHP = uDef.health
 	local uTeam = Spring.GetMyTeamID()
-	local losRadius = uDef.losRadius
-	local airLosRadius = uDef.airLosRadius
-	local radarRadius = uDef.radarRadius
-	local sonarRadius = uDef.sonarRadius
-	local jammingRadius = uDef.jammerRadius
-	local sonarJammingRadius = uDef.sonarJamRadius
-	local seismicRadius = uDef.seismicRadius
+	local losRadius = uDef.sightDistance
+	local airLosRadius = uDef.airSightDistance
+	local radarRadius = uDef.radarDistance
+	local sonarRadius = uDef.sonarDistance
+	local jammingRadius = uDef.radarDistanceJam
+	local sonarJammingRadius = uDef.sonarDistanceJam
+	local seismicRadius = uDef.seismicDistance
 	local armoredMultiple = uDef.armoredMultiple
 	local paralyzeMult = 1
 	if uDef.customParams.paralyzemultiplier then
@@ -625,7 +625,7 @@ local function drawStats(uDefID, uID)
 				oRld = 1
 			elseif i == selfDWeaponIndex then
 				wpnName = texts.selfdestruct
-				oRld = uDef.selfDCountdown
+				oRld = uDef.selfDestructCountdown
 			end
 			if wepCount > 1 then
 				DrawText(texts.weap..":", format(yellow .. "%dx" .. white .. " %s", wepCount, wpnName))

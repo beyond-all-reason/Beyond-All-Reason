@@ -246,7 +246,7 @@ function RaidHST:squadMove(squad)
 	local pos = squad.path[1]
 	local X
 	local Z
-	local range = self.ai.armyhst.unitTable[squad.unitName].losRadius / 2
+	local range = self.ai.armyhst.unitTable[squad.unitName].sightDistance / 2
 	for index,id in pairs(squad.members) do
 		ref = index/10
 
