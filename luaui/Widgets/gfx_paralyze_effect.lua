@@ -264,7 +264,7 @@ void main() {
 		lacunarity = 2.5;
 		minlightningcolor = vec3(0.1, 0.1, 1.0); //blue
 		maxlightningcolor = vec3(1.0, 1.0, 1.0); //white
-		wholeunitbasecolor = vec4(0.39, 0.43, 0.94, 0.30); // light blue base tone
+		wholeunitbasecolor = vec4(0.49, 0.43, 0.94, 0.35); // light blue base tone
 		lightningalpha = 1.2;
 		lighting_sharpness = 4.8; 
 		lighting_width = 3.8;
@@ -305,7 +305,7 @@ void main() {
 --holy hacks batman
 if Spring.GetModOptions().emprework then
 	fsSrc = string.gsub(fsSrc,'//empreworktagdonotremove','paralysis_level = paralysis_level*3; if (paralysis_level> 1) { paralysis_level = 1; }')
-	fsSrc = string.gsub(fsSrc,'//empreworkherealsodonotremove','if (paralysis_level > 0.49) { wholeunitbasecolor = vec4(0.45, 0.35, 0.94, 0.15); }')
+	fsSrc = string.gsub(fsSrc,'//empreworkherealsodonotremove','if (paralysis_level > 0.49) { wholeunitbasecolor = vec4(0.35, 0.43, 0.94, 0.18); }')
 end
 
 local paralyzedDrawUnitVBOTable
