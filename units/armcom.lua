@@ -19,7 +19,7 @@ return {
 		cloakcost = 100,
 		cloakcostmoving = 1000,
 		collisionvolumeoffsets = "0 3 0",
-		collisionvolumescales = "48 60 48",
+		collisionvolumescales = "48 59 48",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energymake = 25,
