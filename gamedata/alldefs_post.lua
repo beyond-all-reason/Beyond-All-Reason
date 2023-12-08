@@ -939,16 +939,16 @@ if Spring.GetModOptions().emprework == true then
 		end
 
 		if name == "corbw" then
-			uDef.weapondefs.bladewing_lyzer.burst = 5
-			uDef.weapondefs.bladewing_lyzer.reloadtime = 1
-			uDef.weapondefs.bladewing_lyzer.beamburst = true
-			uDef.weapondefs.bladewing_lyzer.sprayangle = 2500
-			uDef.weapondefs.bladewing_lyzer.beamdecay = 0.5
-			uDef.weapondefs.bladewing_lyzer.beamtime = 0.03
-			uDef.weapondefs.bladewing_lyzer.beamttl = 0.4
+			--uDef.weapondefs.bladewing_lyzer.burst = 4
+			--uDef.weapondefs.bladewing_lyzer.reloadtime = 0.8
+			--uDef.weapondefs.bladewing_lyzer.beamburst = true
+			--uDef.weapondefs.bladewing_lyzer.sprayangle = 2100
+			--uDef.weapondefs.bladewing_lyzer.beamdecay = 0.5
+			--uDef.weapondefs.bladewing_lyzer.beamtime = 0.03
+			--uDef.weapondefs.bladewing_lyzer.beamttl = 0.4
 			
-			uDef.weapondefs.bladewing_lyzer.damage.default = 120
-			uDef.weapondefs.bladewing_lyzer.paralyzetime = 1	
+			uDef.weapondefs.bladewing_lyzer.damage.default = 100
+			uDef.weapondefs.bladewing_lyzer.paralyzetime = 5	
 		end
 
 

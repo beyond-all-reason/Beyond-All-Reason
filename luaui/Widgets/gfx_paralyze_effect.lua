@@ -272,7 +272,6 @@ void main() {
 	}
 	// ------------------ CONFIG END --------------------
 	
-	
 	vec4 noiseposition = noisescale * vec4(v_modelPosOrig, (timeInfo.x + timeInfo.w) * lightning_speed);
 	float noise4 = 0;
 	noise4 += pow(persistance, 1.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 1.0));
@@ -287,6 +286,7 @@ void main() {
 	float effectalpha;
 	if (paralysis_level < 0.9999) { 
 		//empreworktagdonotremove
+		//empreworkherealsodonotremove
 		// Calculate the lightning color based on the amount of electricity
 		lightningcolor = mix(minlightningcolor, maxlightningcolor, electricity); 
 		effectalpha = paralysis_level * lightningalpha; // less transparency non-paralyzed
@@ -305,6 +305,7 @@ void main() {
 --holy hacks batman
 if Spring.GetModOptions().emprework then
 	fsSrc = string.gsub(fsSrc,'//empreworktagdonotremove','paralysis_level = paralysis_level*3; if (paralysis_level> 1) { paralysis_level = 1; }')
+	fsSrc = string.gsub(fsSrc,'//empreworkherealsodonotremove','if (paralysis_level > 0.49) { wholeunitbasecolor = vec4(0.45, 0.35, 0.94, 0.15); }')
 end
 
 local paralyzedDrawUnitVBOTable

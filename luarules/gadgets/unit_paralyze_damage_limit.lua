@@ -99,6 +99,13 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 				thismaxtime = weaponParalyzeDamageTime[weaponID]
 			end
 			
+			
+			bufferdamage = hp / 1000
+			--rootdamage = (damage / 50) * hp^0.5
+			--Spring.Echo('h damage rootdamage',hp,damage, rootdamage)
+			damage = damage + bufferdamage --overcome relative effects drain
+			
+			
 			--Spring.Echo('raw stuntime, ohm, using mult value, thismaxtime (pre-minumum)', weaponParalyzeDamageTime[weaponID], ohm, ((ohm == 1 and 0.5) or ohm), thismaxtime)
 			--thismaxtime = math.max(1, thismaxtime)--prevent microstuns (compounds oddly with shuri unfortunately)
 			
