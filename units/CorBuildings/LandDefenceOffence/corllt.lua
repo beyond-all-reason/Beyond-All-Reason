@@ -1,10 +1,10 @@
 return {
 	corllt = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 32000,
-		buildcostenergy = 700,
-		buildcostmetal = 90,
+		energycost = 700,
+		metalcost = 90,
 		buildpic = "CORLLT.DDS",
 		buildtime = 2720,
 		canrepeat = false,
@@ -21,7 +21,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 5100,
-		maxdamage = 650,
+		health = 650,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",

@@ -1,9 +1,9 @@
 return {
 	cormaw = {
-		acceleration = 0,
+		maxacc = 0,
 		buildangle = 8192,
-		buildcostenergy = 1550,
-		buildcostmetal = 290,
+		energycost = 1550,
+		metalcost = 290,
 		buildpic = "CORMAW.DDS",
 		buildtime = 4420,
 		canrepeat = false,
@@ -23,7 +23,7 @@ return {
 		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
-		maxdamage = 1610,
+		health = 1610,
 		maxslope = 18,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",

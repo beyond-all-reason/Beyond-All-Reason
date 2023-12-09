@@ -54,10 +54,6 @@ out DataVS {
 	uvec4 v_bartype_index_ssboloc;
 };
 
-layout(std140, binding=0) readonly buffer MatrixBuffer {
-	mat4 UnitPieces[];
-};
-
 bool vertexClipped(vec4 clipspace, float tolerance) {
   return any(lessThan(clipspace.xyz, -clipspace.www * tolerance)) ||
          any(greaterThan(clipspace.xyz, clipspace.www * tolerance));
@@ -77,19 +73,25 @@ bool vertexClipped(vec4 clipspace, float tolerance) {
 
 void main()
 {
-	uint baseIndex = instData.x; // this tells us which unit matrix to find
-	mat4 modelMatrix = UnitPieces[baseIndex]; // This gives us the models  world pos and rot matrix
+	vec4 drawPos = vec4(UNITUNIFORMS.drawPos.xyz, 1.0); // Models world pos and heading (.w) . Changed to use always available drawpos instead of model matrix.
 
-	gl_Position = cameraViewProj * vec4(modelMatrix[3].xyz, 1.0); // We transform this vertex into the center of the model
+	gl_Position = cameraViewProj * drawPos; // We transform this vertex into the center of the model
 
-	v_centerpos = vec4( modelMatrix[3].xyz, 1.0); // We are going to pass the centerpoint to the GS
+	v_centerpos = drawPos; // We are going to pass the centerpoint to the GS
 	v_numvertices = 4u;
 	if (vertexClipped(gl_Position, CLIPTOLERANCE)) v_numvertices = 0; // Make no primitives on stuff outside of screen
 
 	// this sets the num prims to 0 for units further from cam than iconDistance
 	float cameraDistance = length((cameraViewInv[3]).xyz - v_centerpos.xyz);
-	v_parameters.y = 1.0 - (clamp(cameraDistance * cameraDistanceMult, BARFADESTART, BARFADEEND) - BARFADESTART)/ ( BARFADEEND-BARFADESTART);
-	v_parameters.z = 1.0 - (clamp(cameraDistance * cameraDistanceMult * cameraDistanceMultGlyph, BARFADESTART, BARFADEEND) - BARFADESTART)/ ( BARFADEEND-BARFADESTART);
+	
+	// Calculate bar alpha
+	v_parameters.y = (clamp(cameraDistance * cameraDistanceMult, BARFADESTART, BARFADEEND) - BARFADESTART)/ ( BARFADEEND-BARFADESTART);
+	v_parameters.y = 1.0 - clamp(v_parameters.y, 0.0, 1.0);
+	
+	// Calculate glyph alpha
+	v_parameters.z = (clamp(cameraDistance * cameraDistanceMult * cameraDistanceMultGlyph, BARFADESTART, BARFADEEND) - BARFADESTART)/ ( BARFADEEND-BARFADESTART);
+	v_parameters.z = 1.0 - clamp(v_parameters.z, 0.0, 1.0);
+
 	#ifdef DEBUGSHOW
 		v_parameters.y = 1.0;
 		v_parameters.z = 1.0;
@@ -97,8 +99,9 @@ void main()
 
 	v_parameters.w = height_timers.w;
 	v_sizemodifiers = height_timers.yz;
+	
 	if (length((cameraViewInv[3]).xyz - v_centerpos.xyz) >  iconDistance){
-		v_parameters.yz = vec2(0.0);
+		//v_parameters.yz = vec2(0.0); // No longer needed
 	}
 
 
@@ -107,7 +110,8 @@ void main()
 	v_centerpos.y += HEIGHTOFFSET; // Add some height to ensure above groundness
 	v_centerpos.y += height_timers.x; // Add per-instance height offset
 
-	if ((UNITUNIFORMS.composite & 0x00000003u) < 1u ) v_numvertices = 0u; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon))
+	// This is not needed since the switch to .drawPos
+	//if ((UNITUNIFORMS.composite & 0x00000003u) < 1u ) v_numvertices = 0u; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon))
 
 
 	v_bartype_index_ssboloc = bartype_index_ssboloc;

@@ -1,30 +1,34 @@
 
+local voidWater = false
+local waterLevel = Spring.GetModOptions().map_waterlevel
+local waterIsLava = Spring.GetModOptions().map_waterislava
+local minHeight, _, _, _ = Spring.GetGroundExtremes()
 local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
 if success and mapinfo then
-	if mapinfo.voidwater then
-		return
-	end
+	voidWater = mapinfo.voidwater
 end
 
 function widget:GetInfo()
 	return {
 		name = "Context Build",
 		desc = "Toggles buildings between water/ground equivalent buildings automagically" ,
-		author = "dizekat and BrainDamage",
-		date = "30 July 2009",
+		author = "Rebuilt by Hobo Joe, original by dizekat and BrainDamage",
+		date = "Dec 2023",
 		license = "GNU LGPL, v2.1 or later",
 		layer = 1,
 		enabled = true
 	}
 end
 
-local unitlist = {--- Human friendly list. Automatically converted to unitdef IDs on init
-	 -- this should only ever swap between pairs of (buildable) units, 03/06/13
-	{'armmex','armuwmex', 'cormex','coruwmex'},-- to test that widget behaves correctly when unit can't really be built
+--- Human friendly list. Automatically converted to unitdef IDs on init
+-- this should only ever swap between pairs of (buildable) units
+local unitlist = {
+	{'armmex','armuwmex'},
+	{'cormex','coruwmex'},
 	{'armmakr','armfmkr'},
 	{'cormakr','corfmkr'},
-	--{'armdrag','armfdrag'},  --both can be built in shallow water -> do not touch
-	--{'cordrag','corfdrag'},  --both can be built in shallow water -> do not touch
+	{'armdrag','armfdrag'},
+	{'cordrag','corfdrag'},
 	{'armmstor', 'armuwms'},
 	{'armestor', 'armuwes'},
 	{'cormstor', 'coruwms'},
@@ -59,23 +63,39 @@ local unitlist = {--- Human friendly list. Automatically converted to unitdef ID
 	{'corvp','coramsub'},
 	{'armap','armplat'},
 	{'corap','corplat'},
+	{'corasp','corfasp'},
+	{'armasp','armfasp'},
+	{'armgeo','armuwgeo'},
+	{'armageo','armuwageo'},
+	{'corgeo','coruwgeo'},
+	{'corageo','coruwageo'},
 }
+
+local groundBuildings = {}
+local waterBuildings = {}
 
 local GetActiveCommand		= Spring.GetActiveCommand
 local SetActiveCommand		= Spring.SetActiveCommand
-local GetMouseState			= Spring.GetMouseState
-local TraceScreenRay		= Spring.TraceScreenRay
-local TestBuildOrder		= Spring.TestBuildOrder
 
-local alternative_units = {}-- unit def id --> list of alternative unit def ids
-local updateRate = 8/30
+local spGetMouseState = Spring.GetMouseState
+local spTraceScreenRay = Spring.TraceScreenRay
+
+local mouseDownPos
+
+local updateRate = 0.1
 local timeCounter = 0
 local gameStarted
 
+local function distance2dSquared(x1, y1, x2, y2)
+	local dx = x1 - x2
+	local dy = y1 - y2
+	return dx * dx + dy * dy
+end
+
 local function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
-        widgetHandler:RemoveWidget()
-    end
+	if waterIsLava or voidWater or waterLevel < minHeight then
+		widgetHandler:RemoveWidget()
+	end
 end
 
 function widget:GameStart()
@@ -93,20 +113,58 @@ function widget:Initialize()
     end
 
 	for _,unitNames in ipairs(unitlist) do
-		local list={}
-		for _,unitName in ipairs(unitNames) do
+		for i, unitName in ipairs(unitNames) do
 			local unitDefID = UnitDefNames[unitName].id
+			local isWater = i % 2 == 0
+
+			-- Break the unit list into two matching arrays
 			if unitDefID then
-				table.insert(list,unitDefID)
+				if isWater then
+					table.insert(waterBuildings,unitDefID)
+				else
+					table.insert(groundBuildings, unitDefID)
+				end
 			end
 		end
 
-		for _,unitDefID in ipairs(list) do
-			local tempcopy = list
-			table.remove(tempcopy,unitDefID) -- exclude itself from the alternatives
-			alternative_units[unitDefID]=tempcopy
+	end
+end
+
+
+local function isBuilding()
+	local _, cmdID
+	if isPregame and WG['pregame-build'].getPreGameDefID then
+		cmdID = WG['pregame-build'].getPreGameDefID()
+		cmdID = cmdID and -cmdID or 0 --invert to get the correct negative value
+	else
+		_, cmdID = GetActiveCommand()
+	end
+
+	return cmdID and cmdID < 0 or false
+end
+
+
+local function getCursorWorldPosition()
+	local mx, my = spGetMouseState()
+	local _, pos = spTraceScreenRay(mx, my, true, false)
+	return pos
+end
+
+function widget:MousePress(mx, my, button)
+	if isBuilding and button == 1 then
+		mouseDownPos = getCursorWorldPosition()
+	end
+end
+
+
+-- Return the first index with the given value (or nil if not found).
+local function indexOf(array, value)
+	for i, v in ipairs(array) do
+		if v == value then
+			return i
 		end
 	end
+	return nil
 end
 
 function widget:Update(deltaTime)
@@ -124,25 +182,46 @@ function widget:Update(deltaTime)
 	end
 	local unitDefID = -cmd_id
 
-	local alternatives = alternative_units[unitDefID]
-	if not alternatives then
+	local pos = getCursorWorldPosition()
+	if not pos then
 		return
 	end
 
-	local mx, my = GetMouseState()
-	local _, coords = TraceScreenRay(mx, my, true, true)
-	if not coords then
+	local x, y, lmb, mmb, rmb = spGetMouseState()
+	local dist = distance2dSquared(mouseDownPos[1], mouseDownPos[3], pos[1], pos[3])
+
+	if mouseDownPos and lmb and dist > 100 then
+		-- currently doing a build drag, don't swap buildings
 		return
 	end
 
-	if TestBuildOrder(unitDefID, coords[1], coords[2], coords[3], 1) == 0 then
-		--Spring.Echo('cant build, looking for alternatives')
-		for _,alt_id in ipairs(alternatives) do --- try all alternatives
-			if TestBuildOrder(alt_id, coords[1], coords[2], coords[3], 1) ~= 0 then
-				if SetActiveCommand('buildunit_'..UnitDefs[alt_id].name) then
-					return
-				end
-			end
+	-- Check both arrays for a match with the current building cmd
+	local isGround = false
+	local alt = nil
+	local index = indexOf(groundBuildings, unitDefID)
+	if index then
+		isGround = true
+		alt = waterBuildings[index]
+	end
+
+	if not index then
+		isGround = false
+		index = indexOf(waterBuildings, unitDefID)
+		alt = groundBuildings[index]
+	end
+
+	if not index or not alt then
+		return
+	end
+
+	-- Water level is always 0, but there's minor inaccuracy in the chain, so fuzz it a bit
+	if pos[2] < 0.01 then
+		if(isGround) then
+			SetActiveCommand('buildunit_'..UnitDefs[alt].name)
+		end
+	else
+		if not isGround then
+			SetActiveCommand('buildunit_'..UnitDefs[alt].name)
 		end
 	end
 end

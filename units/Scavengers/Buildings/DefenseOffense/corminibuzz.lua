@@ -1,10 +1,10 @@
 return {
 	corminibuzz = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 29096,
-		buildcostenergy = 60000,
-		buildcostmetal = 2000,
+		energycost = 60000,
+		metalcost = 2000,
 		buildpic = "CORMINIBUZZ.DDS",
 		buildtime = 65000,
 		canrepeat = false,
@@ -19,7 +19,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 6700,
+		health = 6700,
 		maxslope = 13,
 		maxwaterdepth = 0,
 		objectname = "Units/scavbuildings/CORMINIBUZZ.s3o",

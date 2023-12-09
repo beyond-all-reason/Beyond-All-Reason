@@ -1,10 +1,10 @@
 return {
 	corrl = {
-		acceleration = 0,
+		maxacc = 0,
 		airsightdistance = 700,
-		brakerate = 0,
-		buildcostenergy = 850,
-		buildcostmetal = 80,
+		maxdec = 0,
+		energycost = 850,
+		metalcost = 80,
 		buildpic = "CORRL.DDS",
 		buildtime = 1750,
 		canrepeat = false,
@@ -21,7 +21,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 5100,
-		maxdamage = 335,
+		health = 335,
 		maxslope = 20,
 		maxwaterdepth = 0,
 		nochasecategory = "ALL",

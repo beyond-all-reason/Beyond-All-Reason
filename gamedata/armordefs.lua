@@ -49,6 +49,7 @@ local armorDefs = {
 		"armanac",
 		"armap",
 		"armasp",
+		"armfasp",
 		"armbrtha",
 		"armch",
 		"armck",
@@ -136,6 +137,7 @@ local armorDefs = {
 		"corak",
 		"corap",
 		"corasp",
+		"corfasp",
 		"corbhmth",
 		"corbuzz",
 		"corcan",
@@ -341,6 +343,11 @@ local armorDefs = {
 
 		"armapt3",
 		"corapt3",
+		
+		"coruwgeo",
+		"coruwageo",
+		"armuwageo",
+		"armuwageo",
 
 	},
 
@@ -392,6 +399,7 @@ local armorDefs = {
 		"corbw",
 		"corape",
 		"corcrw",
+		"corcrwh",
 		"corcut",
 		"corcrwt4",
 		"armfepocht4",
@@ -450,7 +458,9 @@ local armorDefs = {
 		"corveng",
 		"armhawk",
 		"armsfig",
+		"armsfig2",
 		"corsfig",
+		"corsfig2",
 		"corvamp",
 		"legfig",
 	},

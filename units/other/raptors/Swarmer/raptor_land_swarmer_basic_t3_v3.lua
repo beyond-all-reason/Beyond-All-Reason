@@ -1,11 +1,11 @@
 return {
 	raptor_land_swarmer_basic_t3_v3 = {
-		acceleration = 0.575,
+		maxacc = 0.575,
 		autoheal = 3,
 
-		brakerate = 0.345,
-		buildcostenergy = 79,
-		buildcostmetal = 79,
+		maxdec = 0.345,
+		energycost = 79,
+		metalcost = 79,
 		builder = false,
 		buildpic = "raptors/raptor1z.DDS",
 		buildtime = 1800,
@@ -27,9 +27,9 @@ return {
 		leavetracks = true,
 		maneuverleashlength = 640,
 		mass = 70,
-		maxdamage = 1060,
+		health = 1060,
 		maxslope = 18,
-		maxvelocity = 5,
+		speed = 150.0,
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,

@@ -1,9 +1,9 @@
 return {
 	armhp = {
-		acceleration = 0,
-		brakerate = 0,
-		buildcostenergy = 3000,
-		buildcostmetal = 900,
+		maxacc = 0,
+		maxdec = 0,
+		energycost = 3000,
+		metalcost = 900,
 		builder = true,
 		buildpic = "ARMHP.DDS",
 		buildtime = 11000,
@@ -19,7 +19,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3350,
+		health = 3350,
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 200,

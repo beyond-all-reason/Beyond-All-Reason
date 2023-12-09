@@ -17876,6 +17876,13 @@ local unitDefLights = {
 		},
 	},
 }
+
+
+unitDefLights[UnitDefNames['corcrwh'].id] = unitDefLights[UnitDefNames['corcrw'].id]
+unitDefLights[UnitDefNames['coruwgeo'].id] = unitDefLights[UnitDefNames['corgeo'].id]
+unitDefLights[UnitDefNames['coruwageo'].id] = unitDefLights[UnitDefNames['corageo'].id]
+unitDefLights[UnitDefNames['armuwgeo'].id] = unitDefLights[UnitDefNames['armgeo'].id]
+unitDefLights[UnitDefNames['armuwageo'].id] = unitDefLights[UnitDefNames['armageo'].id]
 unitDefLights[UnitDefNames['armshltxuw'].id] = unitDefLights[UnitDefNames['armshltx'].id]
 unitDefLights[UnitDefNames['corgantuw'].id] = unitDefLights[UnitDefNames['corgant'].id]
 unitDefLights[UnitDefNames['armdecom'].id] = unitDefLights[UnitDefNames['armcom'].id]

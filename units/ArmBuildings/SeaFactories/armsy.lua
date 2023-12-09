@@ -1,9 +1,9 @@
 return {
 	armsy = {
-		acceleration = 0,
-		brakerate = 0,
-		buildcostenergy = 1200,
-		buildcostmetal = 600,
+		maxacc = 0,
+		maxdec = 0,
+		energycost = 1200,
+		metalcost = 600,
 		builder = true,
 		buildpic = "ARMSY.DDS",
 		buildtime = 6660,
@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 4100,
+		health = 4100,
 		metalstorage = 100,
 		minwaterdepth = 30,
 		objectname = "Units/ARMSY.s3o",

@@ -2296,6 +2296,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-air-gunship-large-ok",
 		BaseSoundWeaponType = "laser-large",
 	},
+	corcrwh = {
+		BaseSoundSelectType = "cor-air-gunship-large-sel",
+		BaseSoundMovementType = "cor-air-gunship-large-ok",
+		BaseSoundWeaponType = "laser-large",
+	},
 
 	-- LEGION COMMANDER
 	legcom = {
@@ -2679,6 +2684,12 @@ GUIUnitSoundEffects = {
 	lootboxnano_t4_var2	= LootboxNanoSoundEffects,
 	lootboxnano_t4_var3	= LootboxNanoSoundEffects,
 	lootboxnano_t4_var4	= LootboxNanoSoundEffects,
+	
+	
+	coruwgeo = corgeo,
+	coruwageo = corageo,
+	armuwgeo = armgeo,
+	armuwageo = armageo,
 
 }
 

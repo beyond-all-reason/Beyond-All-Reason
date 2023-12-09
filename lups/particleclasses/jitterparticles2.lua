@@ -152,8 +152,8 @@ function JitterParticles2:CreateParticleAttributes(up, right, forward, partpos,n
   sizeEnd   = sizeStart + self.sizeGrowth * life
 
   if (partpos) then
-    local part = { speed=speed, velocity=Vlength(speed), life=life, delay=delay, i=n }
-    pos = { ProcessParamCode(partpos, part) }
+    --local part = { speed=speed, velocity=Vlength(speed), life=life, delay=delay, i=n }
+    pos = {speed[1] * delay, speed[2] * delay, speed[3]* delay }
   else
     pos = nullVector
   end
@@ -327,10 +327,10 @@ local function InitializeParticles(self)
   local right   = Vcross( up, {up[2],up[3],-up[1]} );
   local forward = Vcross( up, right );
 
-  local partposCode
-  if (self.partpos ~= "0,0,0") then
-    partposCode = ParseParamString(self.partpos)
-  end
+  --local partposCode
+  --if (self.partpos ~= "0,0,0") then
+  --  partposCode = ParseParamString(self.partpos)
+  --end
 
   self.force = Vmul(self.force,self.life + self.lifeSpread)
 
@@ -344,7 +344,7 @@ local function InitializeParticles(self)
 
   self.maxSpawnRadius = 0
   for i=1,self.count do
-    local life,delay, x,y,z, dx,dy,dz, sizeStart,sizeEnd = self:CreateParticleAttributes(up,right,forward, partposCode, i-1)
+    local life,delay, x,y,z, dx,dy,dz, sizeStart,sizeEnd = self:CreateParticleAttributes(up,right,forward, self.partpos, i-1)
     dx,dy,dz = MultMatrix3x3(emitMatrix,dx,dy,dz)
     DrawParticleForDList(life, delay,
                          x,y,z,    -- relative start pos

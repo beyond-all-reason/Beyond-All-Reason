@@ -1,9 +1,9 @@
 return {
 	coracsub = {
-		acceleration = 0.042,
-		brakerate = 0.042,
-		buildcostenergy = 9000,
-		buildcostmetal = 700,
+		maxacc = 0.042,
+		maxdec = 0.042,
+		energycost = 9000,
+		metalcost = 700,
 		builddistance = 180,
 		builder = true,
 		buildpic = "CORACSUB.DDS",
@@ -22,8 +22,8 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1110, --445,
-		maxvelocity = 2.16,
+		health = 1110, --445,
+		speed = 64.8,
 		minwaterdepth = 20,
 		movementclass = "UBOAT4",
 		objectname = "Units/CORACSUB.s3o",
@@ -52,6 +52,8 @@ return {
 			[11] = "coratl",
 			[12] = "corenaa",
 			[13]= "corfdoom",
+			[14]= "coruwageo",
+			[15] = "corfasp",
 		},
 		customparams = {
 			unitgroup = 'buildert2',
