@@ -3,19 +3,21 @@ local globalScope = gadget and _G or WG
 
 function upget:GetInfo()
 	return {
-		name      = "API Resource Spot Finder",
-		desc      = "Finds metal and geothermal spots for other upgets",
-		author    = "Niobium, Tarte (added geothermal)",
-		version   = "2.0",
-		date      = "November 2010: last update: April 13, 2022",
-		license   = "GNU GPL, v2 or later",
-		layer     = -999999,
-		enabled   = true
+		name = "API Resource Spot Finder",
+		desc = "Finds metal and geothermal spots for other upgets",
+		author = "Niobium, Tarte (added geothermal)",
+		version = "2.0",
+		date = "November 2010: last update: April 13, 2022",
+		license = "GNU GPL, v2 or later",
+		layer = -999999,
+		enabled = true,
 	}
 end
 
 if gadget then
-	if not gadgetHandler:IsSyncedCode() then return end
+	if not gadgetHandler:IsSyncedCode() then
+		return
+	end
 end
 
 local metalMapSquareSize = Game.metalMapSquareSize -- Resolution of metal map
@@ -58,8 +60,8 @@ end
 -- Find geothermal spots
 ------------------------------------------------------------
 
-local function GetFootprintPos(value)	-- not entirely acurate, unsure why
-	return (math.floor(value/precision)*precision)+(precision/2)
+local function GetFootprintPos(value) -- not entirely acurate, unsure why
+	return (math.floor(value / precision) * precision) + (precision / 2)
 end
 
 local function GetSpotsGeo()
@@ -77,13 +79,13 @@ local function GetSpotsGeo()
 			local x, y, z = Spring.GetFeaturePosition(features[i])
 			spotCount = spotCount + 1
 			geoSpots[spotCount] = {
-				x= GetFootprintPos(x),
-				y=y,
-				z= GetFootprintPos(z),
-				minX= GetFootprintPos(x),
-				maxX= GetFootprintPos(x),
-				minZ= GetFootprintPos(z),
-				maxZ= GetFootprintPos(z)
+				x = GetFootprintPos(x),
+				y = y,
+				z = GetFootprintPos(z),
+				minX = GetFootprintPos(x),
+				maxX = GetFootprintPos(x),
+				minZ = GetFootprintPos(z),
+				maxZ = GetFootprintPos(z),
 			}
 		end
 	end
@@ -107,10 +109,13 @@ local function GetValidStrips(spot)
 				local dz = sz - mz
 				local maxXOffset = squareSize * ceil(sqrt(extractorRadiusSqr - dz * dz) / squareSize - 1) -- Test for metal being included is dist < extractorRadius
 				local left, right = sRight[sz] - maxXOffset, sLeft[sz] + maxXOffset
-				if left  > vLeft  then vLeft  = left  end
-				if right < vRight then vRight = right end
+				if left > vLeft then
+					vLeft = left
+				end
+				if right < vRight then
+					vRight = right
+				end
 			end
-
 		end
 		validLeft[mz] = vLeft
 		validRight[mz] = vRight
@@ -138,12 +143,10 @@ local function GetBuildingPositions(spot, uDefID, facing, testBuild)
 	local validRight = spot.validRight
 	for z, vLeft in pairs(validLeft) do
 		if z % 16 == zoff then
-			for x = metalMapSquareSize *  ceil((vLeft + xoff) / metalMapSquareSize) - xoff,
-				metalMapSquareSize * floor((validRight[z] + xoff) / metalMapSquareSize) - xoff,
-				metalMapSquareSize do
+			for x = metalMapSquareSize * ceil((vLeft + xoff) / metalMapSquareSize) - xoff, metalMapSquareSize * floor((validRight[z] + xoff) / metalMapSquareSize) - xoff, metalMapSquareSize do
 				local y = spGetGroundHeight(x, z)
 				if not (testBuild and spTestBuildOrder(uDefID, x, y, z, facing) == 0) then
-					positions[#positions + 1] = {x=x, y=y, z=z}
+					positions[#positions + 1] = { x = x, y = y, z = z }
 				end
 			end
 		end
@@ -153,8 +156,7 @@ local function GetBuildingPositions(spot, uDefID, facing, testBuild)
 end
 
 local function IsBuildingPositionValid(spot, x, z)
-	if z <= spot.maxZ - extractorRadius or
-	   z >= spot.minZ + extractorRadius then -- Test for metal being included is dist < extractorRadius
+	if z <= spot.maxZ - extractorRadius or z >= spot.minZ + extractorRadius then -- Test for metal being included is dist < extractorRadius
 		return false
 	end
 
@@ -162,8 +164,7 @@ local function IsBuildingPositionValid(spot, x, z)
 	for sz = spot.minZ, spot.maxZ, metalMapSquareSize do
 		local dz = sz - z
 		local maxXOffset = sqrt(extractorRadiusSqr - dz * dz) -- Test for metal being included is dist < extractorRadius
-		if x <= sRight[sz] - maxXOffset or
-		   x >= sLeft[sz] + maxXOffset then
+		if x <= sRight[sz] - maxXOffset or x >= sLeft[sz] + maxXOffset then
 			return false
 		end
 	end
@@ -176,7 +177,6 @@ end
 ------------------------------------------------------------
 
 local function GetSpotsMetal()
-
 	-- Main group collection
 	local uniqueGroups = {}
 
@@ -192,7 +192,6 @@ local function GetSpotsMetal()
 
 	-- Strip processing function (To avoid some code duplication)
 	local function DoStrip(x1, x2, z, worth)
-
 		local assignedTo
 
 		for i = aboveIdx, workingIdx - 1 do
@@ -235,12 +234,12 @@ local function GetSpotsMetal()
 			stripGroup[nStrips] = assignedTo
 		else
 			local newGroup = {
-					left = {[z] = x1},
-					right = {[z] = x2},
-					minZ = z,
-					maxZ = z,
-					worth = worth
-				}
+				left = { [z] = x1 },
+				right = { [z] = x2 },
+				minZ = z,
+				maxZ = z,
+				worth = worth,
+			}
 			stripGroup[nStrips] = newGroup
 			uniqueGroups[newGroup] = true
 		end
@@ -249,7 +248,6 @@ local function GetSpotsMetal()
 	-- Strip finding
 	workingIdx = huge
 	for mz = metalmapStartX, metalmapSizeZ, metalMapSquareSize do
-
 		aboveIdx = workingIdx
 		workingIdx = nStrips + 1
 
@@ -276,12 +274,15 @@ local function GetSpotsMetal()
 	-- Final processing
 	local spots = {}
 	for g, _ in pairs(uniqueGroups) do
-
 		local gMinX, gMaxX = huge, -1
 		local gLeft, gRight = g.left, g.right
 		for iz = g.minZ, g.maxZ, metalMapSquareSize do
-			if gLeft[iz] < gMinX then gMinX = gLeft[iz] end
-			if gRight[iz] > gMaxX then gMaxX = gRight[iz] end
+			if gLeft[iz] < gMinX then
+				gMinX = gLeft[iz]
+			end
+			if gRight[iz] > gMaxX then
+				gMaxX = gRight[iz]
+			end
 		end
 		g.minX = gMinX
 		g.maxX = gMaxX
@@ -300,18 +301,18 @@ end
 ------------------------------------------------------------
 
 function upget:Initialize()
-	globalScope['resource_spot_finder'] = { }
-	globalScope['resource_spot_finder'].metalSpotsList = GetSpotsMetal()
+	globalScope["resource_spot_finder"] = {}
+	globalScope["resource_spot_finder"].metalSpotsList = GetSpotsMetal()
 
-	globalScope['resource_spot_finder'].GetBuildingPositions = GetBuildingPositions
-	globalScope['resource_spot_finder'].IsMexPositionValid = IsBuildingPositionValid
+	globalScope["resource_spot_finder"].GetBuildingPositions = GetBuildingPositions
+	globalScope["resource_spot_finder"].IsMexPositionValid = IsBuildingPositionValid
 end
 
 local firstUpdate = true
 -- function upget:Update(dt)
 function upget:Update()
 	if firstUpdate then
-		globalScope['resource_spot_finder'].geoSpotsList = GetSpotsGeo()
+		globalScope["resource_spot_finder"].geoSpotsList = GetSpotsGeo()
 		firstUpdate = false
 	end
 end
