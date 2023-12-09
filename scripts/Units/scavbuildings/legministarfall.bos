@@ -3,33 +3,51 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, cog, cog1, cog2, cog3, cog4, stand, tubes, f11,f12,f13,f14,f15,f21,f22,f23,f24,f25,f26,f31,f32,f33,f34,f35,f36,f37,f41,f42,f43,f44,f45,f46,f47,f48,f51,f52,f53,f54,f55,f56,f57,f58,f59,f61,f62,f63,f64,f65,f66,f67,f68,f71,f72,f73,f74,f75,f76,f77,f81,f82,f83,f84,f85,f86,f91,f92,f93,f94,f95;
+piece  base, cog, cog1, cog2, cog3, cog4, stand, tubes,handle, f11,f12,f13,f14,f15,f21,f22,f23,f24,f25,f26,f31,f32,f33,f34,f35,f36,f37,f41,f42,f43,f44,f45,f46,f47,f48,f51,f52,f53,f54,f55,f56,f57,f58,f59,f61,f62,f63,f64,f65,f66,f67,f68,f71,f72,f73,f74,f75,f76,f77,f81,f82,f83,f84,f85,f86,f91,f92,f93,f94,f95;
 
-static-var  guncount, restore_delay, shotcount, spin_speed, spin_delay, time_to_reload, fire_rotation, last_primary_heading, last_primary_pitch, last_visual_heading;
+static-var  guncount, restore_delay, shotcount, spin_speed, spin_delay, time_to_reload, fire_rotation, last_primary_heading, last_primary_pitch, last_visual_heading, aiming;
 
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_FIRE			4
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+//#define SMOKEPIECE base
+//#include "smokeunit_thread_nohit.h"
 
 Create()
 {
 
 
 
-
 	turn tubes to x-axis <20> speed <20>;
+	//turn handle to x-axis <45> speed <2000>;
 
+	
+	
 	guncount = 60;//changed to 0 first fire cycle
 	restore_delay = 500;
 
 	last_primary_heading = -1000000;
 	last_visual_heading = 0;
 	last_primary_pitch = 0;
+	aiming = 0;
 	return (0);
 }
+
+
+
+
+clockwork(anglex, anglez)
+{
+	if (aiming==1) {
+		turn base to x-axis anglex speed <900>;
+		turn base to z-axis <0> - anglez speed <900>;
+		wait-for-turn base around z-axis;
+		wait-for-turn base around x-axis;
+		start-script clockwork(Rand(-90,90), Rand(-90,90));
+	}
+}
+
 
 lua_UnitScriptLight(lightIndex, count) 
 {
@@ -43,8 +61,12 @@ RestoreAfterDelay()
 
 AimPrimary(heading, pitch)
 {
+get PRINT( get GAME_FRAME,1112);
+	aiming = 1;
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
+	start-script clockwork(Rand(-90,90), Rand(-90,90));
+	spin handle around z-axis speed <150>;
 
 	turn cog to y-axis heading speed <15.000000>;
 
@@ -91,6 +113,8 @@ AimPrimary(heading, pitch)
 	last_primary_heading = heading;
 	last_primary_pitch = pitch;
 	start-script RestoreAfterDelay();
+	stop-spin handle around z-axis;
+	aiming = 0;
 	return (1);
 }
 
