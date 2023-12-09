@@ -438,6 +438,19 @@ local function enqueueUnit(uDefID, opts)
 	end
 end
 
+local function selectBuilding(uDefID)
+	local uDef = UnitDefs[-uDefID]
+	local isRepeatMex = uDef.customParams.metal_extractor and uDef.name == activeCmd
+	local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
+
+	if isRepeatMex then
+		WG['areamex'].setAreaMexType(uDefID)
+	end
+
+	Spring.SetActiveCommand(cmd, 1, true, false, Spring.GetModKeyState())
+end
+
+
 local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	-- validate args
 	local row = args and tonumber(args[1])
@@ -508,13 +521,8 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 			return
 		end
 
-		local uDef = UnitDefs[-uDefID]
-		local isRepeatMex = uDef.customParams.metal_extractor
-			and uDef.name == activeCmd
-			and not (uDef.stealth or #uDef.weapons > 0)
-		local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
-		Spring.SetActiveCommand(cmd, 3, false, true, alt, ctrl, meta, shift)
 
+		selectBuilding(uDefID)
 		return true
 	end
 
@@ -664,6 +672,9 @@ function widget:Initialize()
 	end
 	WG["gridmenu"].setAutoSelectFirst = function(value)
 		autoSelectFirst = value
+	end
+	WG["gridmenu"].clearCategory = function()
+		clearCategory()
 	end
 
 	WG["buildmenu"] = {}
@@ -928,10 +939,7 @@ function widget:Update(dt)
 	end
 
 	if selectNextFrame and not isPregame then
-		local cmdIndex = spGetCmdDescIndex(selectNextFrame)
-		if cmdIndex then
-			Spring.SetActiveCommand(cmdIndex, 1, true, false, Spring.GetModKeyState())
-		end
+		selectBuilding(selectNextFrame)
 		selectNextFrame = nil
 		switchedCategory = nil
 
@@ -2114,13 +2122,7 @@ function widget:MousePress(x, y, button)
 							if isPregame then
 								setPreGamestartDefID(cellcmds[cellRectID].id * -1)
 							elseif spGetCmdDescIndex(cellcmds[cellRectID].id) then
-								Spring.SetActiveCommand(
-									spGetCmdDescIndex(cellcmds[cellRectID].id),
-									1,
-									true,
-									false,
-									Spring.GetModKeyState()
-								)
+								selectBuilding(cellcmds[cellRectID].id)
 							end
 						elseif builderIsFactory and spGetCmdDescIndex(cellcmds[cellRectID].id) then
 							Spring.PlaySoundFile(Cfgs.sound_queue_rem, 0.75, "ui")

@@ -650,24 +650,46 @@ function UnitDef_Post(name, uDef)
 			uDef.maxacc = uDef.speed*0.00166
 			uDef.maxdec  = uDef.speed*0.00166
 		elseif uDef.canfly then
-			uDef.maxacc = 0.8
-			uDef.maxdec  = 0.1
-			uDef.usesmoothmesh = true
+			if Spring.GetModOptions().air_rework == true then
+				uDef.speed = uDef.speed*0.65
+				uDef.health = uDef.health*1.5
 
-			-- flightmodel
-			uDef.maxacc = 0.25
-			uDef.maxaileron = 0.025
-			uDef.maxbank = 0.8
-			uDef.maxelevator = 0.025
-			uDef.maxpitch = 0.75
-			uDef.maxrudder = 0.025
-			uDef.wingangle = 0.06593
-			uDef.wingdrag = 0.835
-			uDef.turnradius = 64
-			uDef.turnrate = 1600
-			uDef.speedtofront = 0.01
-			uDef.cruisealtitude = 220
-			--uDef.attackrunlength = 32
+				uDef.maxacc = 1
+				uDef.maxdec  = 1
+				uDef.usesmoothmesh = true
+
+				-- flightmodel
+				uDef.maxaileron = 0.025
+				uDef.maxbank = 0.65
+				uDef.maxelevator = 0.025
+				uDef.maxpitch = 0.75
+				uDef.maxrudder = 0.18
+				uDef.wingangle = 0.06593
+				uDef.wingdrag = 0.02
+				uDef.turnradius = 64
+				uDef.turnrate = 50
+				uDef.speedtofront = 0.06
+				uDef.cruisealtitude = 220
+				--uDef.attackrunlength = 32
+			else
+				uDef.maxacc = 1
+				uDef.maxdec  = 0.25
+				uDef.usesmoothmesh = true
+	
+				-- flightmodel
+				uDef.maxaileron = 0.025
+				uDef.maxbank = 0.8
+				uDef.maxelevator = 0.025
+				uDef.maxpitch = 0.75
+				uDef.maxrudder = 0.025
+				uDef.wingangle = 0.06593
+				uDef.wingdrag = 0.835
+				uDef.turnradius = 64
+				uDef.turnrate = 1600
+				uDef.speedtofront = 0.01
+				uDef.cruisealtitude = 220
+				--uDef.attackrunlength = 32
+			end
 		end
 	end
 
@@ -999,7 +1021,9 @@ end
 --Air rework
 if Spring.GetModOptions().air_rework == true then
 	if name == "armhawk" then
-		uDef.metalcost = 180
+		uDef.metalcost = 205
+		uDef.energycost = 6500
+		uDef.buildtime = uDef.buildtime * 1.15
 		uDef.maxaileron = 0.02
 		uDef.maxacc = 0.6
 		uDef.speed = 233
@@ -1009,9 +1033,9 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.sightdistance = 550
 		uDef.cruisealtitude = 220
 		uDef.weapondefs.armvtol_advmissile.proximitypriority = -1	
-		uDef.weapondefs.armvtol_advmissile.flighttime = 2.5
-		uDef.weapondefs.armvtol_advmissile.range = 1280
-		uDef.weapondefs.armvtol_advmissile.reloadtime = 3.1
+		uDef.weapondefs.armvtol_advmissile.flighttime = 2.7
+		uDef.weapondefs.armvtol_advmissile.range = 1430
+		uDef.weapondefs.armvtol_advmissile.reloadtime = 2.7
 		uDef.weapondefs.armvtol_advmissile.startvelocity = 120
 		uDef.weapondefs.armvtol_advmissile.tolerance = 16500
 		uDef.weapondefs.armvtol_advmissile.turnrate = 26000
@@ -1022,7 +1046,9 @@ if Spring.GetModOptions().air_rework == true then
 		}
 	end
 	if name == "armfig" then
-		uDef.metalcost = 95
+		uDef.metalcost = 126
+		uDef.energycost = 3700
+		uDef.buildtime = 4350
 		uDef.speed = 188
 		uDef.maxacc = 0.36
 		uDef.maxrudder = 0.013
@@ -1037,11 +1063,12 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.weapondefs.armvtol_missile.startvelocity = 110
 		uDef.weapondefs.armvtol_missile.tolerance = 12000
 		uDef.weapondefs.armvtol_missile.turnrate = 23500
+		uDef.weapondefs.armvtol_missile.name = "Light guided a2a/a2g missile launcher"
 		uDef.weapondefs.armvtol_missile.weaponacceleration = 350
 		uDef.weapondefs.armvtol_missile.canattackground = true
 		uDef.weapondefs.armvtol_missile.damage = {
 			default = 64,
-			vtol = 240,
+			vtol = 200,
 		}
 		uDef.weapons[1].onlytargetcategory = "NOTSUB"
 	end
@@ -1135,7 +1162,9 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.cruisealtitude = 220
 	end
 	if name == "corvamp" then
-		uDef.metalcost = 175
+		uDef.metalcost = 200
+		uDef.energycost = 5500
+		uDef.buildtime = uDef.buildtime * 1.15
 		uDef.maxaileron = 0.02
 		uDef.maxacc = 0.7
 		uDef.speed = 250
@@ -1145,9 +1174,9 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.sightdistance = 550
 		uDef.cruisealtitude = 220
 		--uDef.canLoopbackAttack = true
-		uDef.weapondefs.corvtol_advmissile.flighttime = 2.2
-		uDef.weapondefs.corvtol_advmissile.range = 900
-		uDef.weapondefs.corvtol_advmissile.reloadtime = 1.3
+		uDef.weapondefs.corvtol_advmissile.flighttime = 2.4
+		uDef.weapondefs.corvtol_advmissile.range = 1050
+		uDef.weapondefs.corvtol_advmissile.reloadtime = 1.15
 		uDef.weapondefs.corvtol_advmissile.startvelocity = 170
 		uDef.weapondefs.corvtol_advmissile.tolerance = 15500
 		uDef.weapondefs.corvtol_advmissile.turnrate = 27000
@@ -1158,7 +1187,9 @@ if Spring.GetModOptions().air_rework == true then
 		}
 	end
 	if name == "corveng" then
-		uDef.metalcost = 95
+		uDef.metalcost = 125
+		uDef.energycost = 3700
+		uDef.buildtime = 4350
 		uDef.speed = 188
 		uDef.maxacc = 0.36
 		uDef.maxrudder = 0.013
@@ -1175,9 +1206,10 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.weapondefs.corvtol_missile.turnrate = 23500
 		uDef.weapondefs.corvtol_missile.weaponacceleration = 350
 		uDef.weapondefs.corvtol_missile.canattackground = true
+		uDef.weapondefs.corvtol_missile.name = "Light guided a2a/a2g missile launcher"
 		uDef.weapondefs.corvtol_missile.damage = {
 			default = 64,
-			vtol = 240,
+			vtol = 200,
 		}
 		uDef.weapons[1].onlytargetcategory = "NOTSUB"
 	end
@@ -1230,6 +1262,10 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.turnrate = uDef.turnrate * 1.5
 		uDef.cruisealtitude = 100
 		uDef.buildtime = uDef.buildtime * 0.8
+	end
+	if name == "armkam" then
+		uDef.weapondefs.med_emg.burstrate = 0.08
+		uDef.weapondefs.med_emg.reloadtime = 1.15
 	end
 	if name == "corcrw" or name == "corcrwh" then
 		uDef.health = uDef.health * 1.6
@@ -1372,11 +1408,21 @@ if Spring.GetModOptions().air_rework == true then
 	end
 	if name == "armrl" then
 		uDef.weapondefs.armrl_missile.startvelocity = 111
-		uDef.weapondefs.armrl_missile.flighttime = 2.5
+		uDef.weapondefs.armrl_missile.flighttime = 2.6
+	end
+	if name == "armfrt" then
+		uDef.weapondefs.armrl_missile.startvelocity = 111
+		uDef.weapondefs.armrl_missile.flighttime = 2.6
+		uDef.weapondefs.armrl_missile.weaponacceleration = 200
+	end
+	if name == "corfrt" then
+		uDef.weapondefs.armrl_missile.startvelocity = 111
+		uDef.weapondefs.armrl_missile.flighttime = 2.6
+		uDef.weapondefs.armrl_missile.weaponacceleration = 200
 	end
 	if name == "corrl" then
 		uDef.weapondefs.corrl_missile.startvelocity = 111
-		uDef.weapondefs.corrl_missile.flighttime = 2.5
+		uDef.weapondefs.corrl_missile.flighttime = 2.6
 	end
 	if name == "armferret" then 
 		uDef.weapondefs.ferret_missile.startvelocity = 120
@@ -1470,6 +1516,59 @@ if Spring.GetModOptions().air_rework == true then
 	end
 	if name == "corflak" then
 		uDef.weapondefs.armflak_gun.weaponvelocity = 1100
+	end
+	if name == "armsam" then
+		uDef.weapondefs.armtruck_missile.startvelocity = 135
+		uDef.weapondefs.armtruck_missile.weaponacceleration = 230
+		uDef.weapondefs.armtruck_missile.damage.vtol = 200
+	end
+	if name == "cormist" then
+		uDef.weapondefs.cortruck_missile.startvelocity = 135
+		uDef.weapondefs.cortruck_missile.weaponacceleration = 230
+		uDef.weapondefs.cortruck_missile.damage.vtol = 150
+	end
+	if name == "corpt" then
+		uDef.weapondefs.cortruck_missile.startvelocity = 135
+		uDef.weapondefs.cortruck_missile.weaponacceleration = 250
+		uDef.weapondefs.cortruck_missile.damage.vtol = 150
+	end
+	if name == "armpt" then
+		uDef.weapondefs.aamissile.startvelocity = 140
+		uDef.weapondefs.aamissile.weaponacceleration = 270
+		uDef.weapondefs.aamissile.flighttime = 2.1
+	end
+	if name == "corenaa" then
+		uDef.weapondefs.armflak_gun.weaponvelocity = 1100
+	end
+	if name == "armfflak" then
+		uDef.weapondefs.armflak_gun.weaponvelocity = 1100
+	end
+	if name == "armlatnk" then
+		uDef.weapondefs.armamph_missile.startvelocity = 150
+		uDef.weapondefs.armamph_missile.weaponacceleration = 250
+		uDef.weapondefs.armamph_missile.flighttime = 2
+	end
+	if name == "armamph" then
+		uDef.weapondefs.armamph_missile.startvelocity = 150
+		uDef.weapondefs.armamph_missile.weaponacceleration = 250
+		uDef.weapondefs.armamph_missile.flighttime = 2
+	end
+	if name == "armmar" then
+		uDef.weapondefs.armamph_missile.startvelocity = 150
+		uDef.weapondefs.armamph_missile.weaponacceleration = 250
+		uDef.weapondefs.armamph_missile.flighttime = 2
+	end
+	if name == "armaas" then
+		uDef.weapondefs.ga2.startvelocity = 150
+		uDef.weapondefs.ga2.weaponacceleration = 230
+		uDef.weapondefs.ga2.flighttime = 2.5
+		uDef.weapondefs.mobileflak.weaponvelocity = 1000
+	end
+	if name == "corarch" then
+		uDef.weapondefs.ga2.startvelocity = 150
+		uDef.weapondefs.ga2.weaponacceleration = 230
+		uDef.weapondefs.ga2.flighttime = 2.5
+		uDef.weapondefs.mobileflak.weaponvelocity = 1000
 	end
 end
 
