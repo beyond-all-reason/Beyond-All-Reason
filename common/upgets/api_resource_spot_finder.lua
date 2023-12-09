@@ -18,8 +18,9 @@ if gadget then
 	if not gadgetHandler:IsSyncedCode() then return end
 end
 
-local gridSize = 16 -- Resolution of metal map
-local buildGridSize = 8 -- Resolution of build positions
+local metalMapSquareSize = Game.metalMapSquareSize -- Resolution of metal map
+local squareSize = Game.squareSize -- Resolution of build positions
+local precision = Game.footprintScale * Game.squareSize -- (footprint 1 = 16 map distance)
 
 ------------------------------------------------------------
 -- Speedups
@@ -36,15 +37,15 @@ local spTestBuildOrder = Spring.TestBuildOrder
 local extractorRadius = Game.extractorRadius
 local extractorRadiusSqr = extractorRadius * extractorRadius
 
-local buildmapSizeX = Game.mapSizeX - buildGridSize
-local buildmapSizeZ = Game.mapSizeZ - buildGridSize
-local buildmapStartX = buildGridSize
-local buildmapStartZ = buildGridSize
+local buildmapSizeX = Game.mapSizeX - squareSize
+local buildmapSizeZ = Game.mapSizeZ - squareSize
+local buildmapStartX = squareSize
+local buildmapStartZ = squareSize
 
-local metalmapSizeX = Game.mapSizeX - 1.5 * gridSize
-local metalmapSizeZ = Game.mapSizeZ - 1.5 * gridSize
-local metalmapStartX = 1.5 * gridSize
-local metalmapStartZ = 1.5 * gridSize
+local metalmapSizeX = Game.mapSizeX - 1.5 * metalMapSquareSize
+local metalmapSizeZ = Game.mapSizeZ - 1.5 * metalMapSquareSize
+local metalmapStartX = 1.5 * metalMapSquareSize
+local metalmapStartZ = 1.5 * metalMapSquareSize
 
 local unitXoff = {}
 local unitZoff = {}
@@ -58,7 +59,6 @@ end
 ------------------------------------------------------------
 
 local function GetFootprintPos(value)	-- not entirely acurate, unsure why
-	local precision = 16		-- (footprint 1 = 16 map distance)
 	return (math.floor(value/precision)*precision)+(precision/2)
 end
 
@@ -99,13 +99,13 @@ local function GetValidStrips(spot)
 	local sLeft, sRight = spot.left, spot.right
 	local validLeft = {}
 	local validRight = {}
-	local maxZOffset = buildGridSize * ceil(extractorRadius / buildGridSize - 1)
-	for mz = max(sMaxZ - maxZOffset, buildmapStartZ), min(sMinZ + maxZOffset, buildmapSizeZ), buildGridSize do
+	local maxZOffset = squareSize * ceil(extractorRadius / squareSize - 1)
+	for mz = max(sMaxZ - maxZOffset, buildmapStartZ), min(sMinZ + maxZOffset, buildmapSizeZ), squareSize do
 		local vLeft, vRight = buildmapStartX, buildmapSizeX
 		if spot.left and spot.right then
-			for sz = sMinZ, sMaxZ, gridSize do
+			for sz = sMinZ, sMaxZ, metalMapSquareSize do
 				local dz = sz - mz
-				local maxXOffset = buildGridSize * ceil(sqrt(extractorRadiusSqr - dz * dz) / buildGridSize - 1) -- Test for metal being included is dist < extractorRadius
+				local maxXOffset = squareSize * ceil(sqrt(extractorRadiusSqr - dz * dz) / squareSize - 1) -- Test for metal being included is dist < extractorRadius
 				local left, right = sRight[sz] - maxXOffset, sLeft[sz] + maxXOffset
 				if left  > vLeft  then vLeft  = left  end
 				if right < vRight then vRight = right end
@@ -138,9 +138,9 @@ local function GetBuildingPositions(spot, uDefID, facing, testBuild)
 	local validRight = spot.validRight
 	for z, vLeft in pairs(validLeft) do
 		if z % 16 == zoff then
-			for x = gridSize *  ceil((vLeft + xoff) / gridSize) - xoff,
-				gridSize * floor((validRight[z] + xoff) / gridSize) - xoff,
-				gridSize do
+			for x = metalMapSquareSize *  ceil((vLeft + xoff) / metalMapSquareSize) - xoff,
+				metalMapSquareSize * floor((validRight[z] + xoff) / metalMapSquareSize) - xoff,
+				metalMapSquareSize do
 				local y = spGetGroundHeight(x, z)
 				if not (testBuild and spTestBuildOrder(uDefID, x, y, z, facing) == 0) then
 					positions[#positions + 1] = {x=x, y=y, z=z}
@@ -159,7 +159,7 @@ local function IsBuildingPositionValid(spot, x, z)
 	end
 
 	local sLeft, sRight = spot.left, spot.right
-	for sz = spot.minZ, spot.maxZ, gridSize do
+	for sz = spot.minZ, spot.maxZ, metalMapSquareSize do
 		local dz = sz - z
 		local maxXOffset = sqrt(extractorRadiusSqr - dz * dz) -- Test for metal being included is dist < extractorRadius
 		if x <= sRight[sz] - maxXOffset or
@@ -196,16 +196,16 @@ local function GetSpotsMetal()
 		local assignedTo
 
 		for i = aboveIdx, workingIdx - 1 do
-			if stripLeft[i] > x2 + gridSize then
+			if stripLeft[i] > x2 + metalMapSquareSize then
 				break
-			elseif stripRight[i] + gridSize >= x1 then
+			elseif stripRight[i] + metalMapSquareSize >= x1 then
 				local matchGroup = stripGroup[i]
 				if assignedTo then
 					if matchGroup ~= assignedTo then
-						for iz = matchGroup.minZ, assignedTo.minZ - gridSize, gridSize do
+						for iz = matchGroup.minZ, assignedTo.minZ - metalMapSquareSize, metalMapSquareSize do
 							assignedTo.left[iz] = matchGroup.left[iz]
 						end
-						for iz = matchGroup.minZ, matchGroup.maxZ, gridSize do
+						for iz = matchGroup.minZ, matchGroup.maxZ, metalMapSquareSize do
 							assignedTo.right[iz] = matchGroup.right[iz]
 						end
 						if matchGroup.minZ < assignedTo.minZ then
@@ -248,7 +248,7 @@ local function GetSpotsMetal()
 
 	-- Strip finding
 	workingIdx = huge
-	for mz = metalmapStartX, metalmapSizeZ, gridSize do
+	for mz = metalmapStartX, metalmapSizeZ, metalMapSquareSize do
 
 		aboveIdx = workingIdx
 		workingIdx = nStrips + 1
@@ -256,13 +256,13 @@ local function GetSpotsMetal()
 		local stripStart = nil
 		local stripWorth = 0
 
-		for mx = metalmapStartZ, metalmapSizeX, gridSize do
+		for mx = metalmapStartZ, metalmapSizeX, metalMapSquareSize do
 			local _, _, groundMetal = spGetGroundInfo(mx, mz)
 			if groundMetal > 0 then
 				stripStart = stripStart or mx
 				stripWorth = stripWorth + groundMetal
 			elseif stripStart then
-				DoStrip(stripStart, mx - gridSize, mz, stripWorth)
+				DoStrip(stripStart, mx - metalMapSquareSize, mz, stripWorth)
 				stripStart = nil
 				stripWorth = 0
 			end
@@ -279,7 +279,7 @@ local function GetSpotsMetal()
 
 		local gMinX, gMaxX = huge, -1
 		local gLeft, gRight = g.left, g.right
-		for iz = g.minZ, g.maxZ, gridSize do
+		for iz = g.minZ, g.maxZ, metalMapSquareSize do
 			if gLeft[iz] < gMinX then gMinX = gLeft[iz] end
 			if gRight[iz] > gMaxX then gMaxX = gRight[iz] end
 		end
