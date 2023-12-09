@@ -113,7 +113,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTSUB",
-				def = "COAX_DEPTHCHARGE",
+				def = "cotd_depthcharge",
 				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 		},

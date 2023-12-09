@@ -214,14 +214,12 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
 				def = "PLASMA",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 			[2] = {
-				badtargetcategory = "NOTSUB",
 				def = "cotc_depthcharge",
-				onlytargetcategory = "NOTHOVER",
+				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 		},
 	},

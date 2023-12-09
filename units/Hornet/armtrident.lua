@@ -162,9 +162,9 @@ return {
 					docktohealthreshold = 50,
 					enabledocking = false,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpiecestart = 2,		--First model piece to be used for docking.
+					dockingpiecestart = 10,		--First model piece to be used for docking.
 					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit.
-					dockingpieceend = 5,		--Last model piece used for docking. Will loop back to first when exceeded.
+					dockingpieceend = 14,		--Last model piece used for docking. Will loop back to first when exceeded.
 					dockingradius = 300,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},
@@ -190,7 +190,7 @@ return {
 				name = "Depthcharge launcher",
 				noselfdamage = true,
 				numbounce = 1,
-				range = 600,
+				range = 400,
 				reloadtime = 1.5,
 				soundhit = "xplodep2",
 				soundhitwet = "splsmed",
@@ -211,15 +211,13 @@ return {
 				},
 			},		},
 		weapons = {
-			[1] = {
-				badtargetcategory = "VTOL",
-				def = "PLASMA",
-				onlytargetcategory = "SURFACE",
-			},
 			[2] = {
-				badtargetcategory = "NOTSUB",
+				def = "PLASMA",
+				onlytargetcategory = "CANBEUW UNDERWATER",
+			},
+			[1] = {
 				def = "TRIDENT_DEPTHCHARGE",
-				onlytargetcategory = "NOTHOVER",
+				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 		},
 	},

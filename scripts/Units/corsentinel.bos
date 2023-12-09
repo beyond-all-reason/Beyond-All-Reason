@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  ground, base, radar, nano1, nano2, wake1, wake2, flare, drone1, drone2, drone3, drone4, drone5, turret;
+piece  base, nano, wake1, wake2, drone1, drone2, drone3, drone4, drone5, turret, flare, aimy, aimfromy;
 
 static-var  Static_Var_1, oldHead;
 static-var  Stunned;
@@ -12,6 +12,7 @@ static-var  Stunned;
 #define SIG_MOVE			2
 
 #define SIG_AIM				4
+#define SIG_AIM2		    8
 
 
 #define BASEPIECE base
@@ -45,13 +46,11 @@ RockOnWaves()
 
 Go()
 {
-	spin radar around y-axis speed <-50.043956> accelerate <2>;
 	return (0);
 }
 
 Stop()
 {
-	spin radar around y-axis speed <0.000000>;
 	return (0);
 }
 
@@ -141,7 +140,7 @@ StopMoving()
 
 SweetSpot(piecenum)
 {
-	piecenum = base;
+	piecenum = aimy;
 }
 
 AimPrimary(heading, pitch)
@@ -155,17 +154,18 @@ AimPrimary(heading, pitch)
 FirePrimary()
 {
 	sleep 150;
+	return (1);
 }
 
 QueryPrimary(piecenum)
 {
-	piecenum = radar;
+	piecenum = aimfromy;
 	return (0);
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = radar;
+	piecenum = aimfromy;
 	return (0);
 }
 
@@ -176,9 +176,6 @@ AimFromPrimary(piecenum)
 
 
 
-
-
-/*
 
 AimSecondary(heading, pitch)
 {
@@ -191,29 +188,20 @@ AimSecondary(heading, pitch)
 
 FireSecondary()
 {
-	sleep 500;
 	return (0);
 }
 
 AimFromSecondary(piecenum)
 {
-	piecenum = tflare;
+	piecenum = turret;
 	return (0);
 }
 
 QuerySecondary(piecenum)
 {
-	piecenum = tflare;
-	return (0);
-}
-
-SweetSpot(piecenum)
-{
 	piecenum = turret;
 	return (0);
 }
-
-///*/
 
 
 

@@ -3,9 +3,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  ground, base, radar, nano1, nano2, wake1, flare, drone1, drone2, drone3, drone4, turret, plunger;
+piece  base, nano1, nano2, wake1, drone1, drone2, drone3, drone4, turret, plunger, flare, aimy, aimfromy;
 
-static-var  Static_Var_1, oldHead;
+static-var  oldHead;
 static-var  Stunned;
 
 // Signal definitions
@@ -146,7 +146,7 @@ StopMoving()
 
 SweetSpot(piecenum)
 {
-	piecenum = base;
+	piecenum = aimy;
 }
 
 AimPrimary(heading, pitch)
@@ -167,13 +167,13 @@ FirePrimary()
 
 QueryPrimary(piecenum)
 {
-	piecenum = base;
+	piecenum = aimfromy;
 	return (0);
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = base;
+	piecenum = aimfromy;
 	return (0);
 }
 

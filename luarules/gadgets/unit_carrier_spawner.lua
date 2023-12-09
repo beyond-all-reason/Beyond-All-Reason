@@ -544,6 +544,7 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
 			end
 		end
 	elseif carrierMetaList[unitID] and (cmdID ~= CMD.MOVE or cmdID ~= CMD.FIRE_STATE) then
+		Spring.Echo("hornetdebug unitID:", unitID, " command:", cmdID, " commandParam:", cmdParams)
 		carrierMetaList[unitID].activeRecall = false
 		carrierMetaList[unitID].subUnitsCommand.cmdID = cmdID
 		carrierMetaList[unitID].subUnitsCommand.cmdParams = cmdParams
@@ -719,6 +720,8 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	local setTargetOrder = false
 	local carrierStates = spGetUnitStates(carrierID)
 	local newOrder = true
+	
+	Spring.Echo("hornetdebug carrier:", carrierID, " command:", cmdID, " commandParam:", cmdParam_1)
 
 	--local activeSpawning = true
 	local idleRadius = carrierMetaData.radius
