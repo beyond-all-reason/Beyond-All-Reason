@@ -48,9 +48,9 @@ function gadget:AllowCommand(_, _, _, cmdID, cmdParams)
 
 	local bx, bz = cmdParams[1], cmdParams[3]
 	-- We find the closest metal spot to the assigned command position
-	local closestSpot = GetClosestSpot(bx, bz, _G["resource_spot_finder"].metalSpotsList)
+	local closestSpot = GetClosestSpot(bx, bz, GG["resource_spot_finder"].metalSpotsList)
 
-	if not (closestSpot and _G["resource_spot_finder"].IsMexPositionValid(closestSpot, bx, bz)) then
+	if not (closestSpot and GG["resource_spot_finder"].IsMexPositionValid(closestSpot, bx, bz)) then
 		return false
 	end
 

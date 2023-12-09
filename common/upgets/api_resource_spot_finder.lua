@@ -1,5 +1,5 @@
 local upget = gadget or widget
-local globalScope = gadget and _G or WG
+local globalScope = gadget and GG or WG
 
 function upget:GetInfo()
 	return {
