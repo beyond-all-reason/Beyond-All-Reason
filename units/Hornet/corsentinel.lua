@@ -12,13 +12,10 @@ return {
 		canreclaim = false,
 		canrepair = false,
 		category = "ALL NOTLAND MOBILE NOTSUB NOWEAPON SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "-1 5 2",
-		collisionvolumescales = "48 48 136",
+		collisionvolumeoffsets = "-1 5 0",
+		collisionvolumescales = "48 48 102",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		energymake = 25,
-		energystorage = 1500,
-		energyuse = 25,
 		explodeas = "hugeexplosiongeneric",
 		floater = true,
 		footprintx = 6,
@@ -27,25 +24,24 @@ return {
 		idleautoheal = 15,
 		idletime = 600,
 		losemitheight = 56,
-		mass = 10000,
+		mass = 5000,
 		maxdamage = 3500,
 		maxvelocity = 2.1,
 		minwaterdepth = 15,
 		movementclass = "BOAT8",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSENTINEL.s3o",
-		radardistance = 1500,
-		radaremitheight = 56,
 		script = "Units/CORSENTINEL.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfD",
-		sightdistance = 700,
-		sonardistance = 700,
+		sightdistance = 600,
+		sonardistance = 600,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 180,
 		waterline = 0,
 		customparams = {
+			maxrange = 600,
 			model_author = "Odin, Hornet",
 			normaltex = "unittextures/Cor_normal.dds",
 			subfolder = "corships/t2",
@@ -132,9 +128,9 @@ return {
 				explosiongenerator = "",--"custom:genericshellexplosion-medium",
 				gravityaffected = "true",
 				hightrajectory = 1,
-				impulseboost = 0.123,
+				impulseboost = 1.9,
 				impulsefactor = 0.123,
-				name = "HeavyCannon",
+				name = "Depth Charge Drones",
 				noselfdamage = true,
 				range = 1300,
 				reloadtime = 2.5,
@@ -154,7 +150,7 @@ return {
 					engagementrange = 1300,
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 6, 				--Spawnrate roughly in seconds.
-					maxunits = 10,				--Will spawn units until this amount has been reached.
+					maxunits = 5,				--Will spawn units until this amount has been reached.
 					buildcostenergy = 1000,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					buildcostmetal = 40,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1400,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
@@ -165,11 +161,11 @@ return {
 					dockingarmor = 0.2,
 					dockinghealrate = 54,
 					docktohealthreshold = 50,
-					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
+					enabledocking = false,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpiecestart = 9,		--First model piece to be used for docking.
+					dockingpiecestart = 4,		--First model piece to be used for docking.
 					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit.
-					dockingpieceend = 19,		--Last model piece used for docking. Will loop back to first when exceeded.
+					dockingpieceend = 10,		--Last model piece used for docking. Will loop back to first when exceeded.
 					dockingradius = 300,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},
@@ -210,7 +206,7 @@ return {
 				weaponvelocity = 200,
 				damage = {
 					--commanders = 340,
-					default = 225,
+					default = 255,
 					-- subs = 300,
 				},
 			},			

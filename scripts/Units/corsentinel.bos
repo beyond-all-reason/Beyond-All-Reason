@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  ground, base, radar, nano1, nano2, wake1, wake2, blink, drone1, drone2, drone3, drone4, drone5, turret, flare;
+piece  ground, base, radar, nano1, nano2, wake1, wake2, flare, drone1, drone2, drone3, drone4, drone5, turret;
 
 static-var  Static_Var_1, oldHead;
 static-var  Stunned;
@@ -22,18 +22,7 @@ static-var  Stunned;
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-Lights()
-{
-	while( TRUE )
-	{
-	    if (!Stunned) {
-		    emit-sfx 1024 + 0 from blink;
-		}
-		sleep 2500;
-	}
-	sleep 50;
-	start-script Lights();
-}
+
 
 RockOnWaves()
 {
@@ -92,7 +81,6 @@ RestoreAfterDelay()
 
 Create()
 {
-	hide blink;
 	hide wake1;
 	hide wake2;
 	while( get BUILD_PERCENT_LEFT )
@@ -104,7 +92,6 @@ Create()
 
 Activate()
 {
-	start-script Lights();
 	start-script Go();
 }
 

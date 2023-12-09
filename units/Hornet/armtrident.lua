@@ -12,13 +12,10 @@ return {
 		canreclaim = false,
 		canrepair = false,
 		category = "ALL NOTLAND MOBILE NOTSUB NOWEAPON SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "3 -7 -3",
-		collisionvolumescales = "48 48 140",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "48 48 92",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		energymake = 25,
-		energystorage = 1500,
-		energyuse = 25,
 		explodeas = "hugeexplosiongeneric",
 		floater = true,
 		footprintx = 6,
@@ -34,13 +31,11 @@ return {
 		movementclass = "BOAT8",
 		nochasecategory = "VTOL",
 		objectname = "Units/armtrident.s3o",
-		radardistance = 1500,
-		radaremitheight = 56,
 		script = "Units/armtrident.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfD",
-		sightdistance = 700,
-		sonardistance = 700,
+		sightdistance = 600,
+		sonardistance = 600,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 180,
@@ -165,11 +160,11 @@ return {
 					dockingarmor = 0.2,
 					dockinghealrate = 36,
 					docktohealthreshold = 50,
-					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
+					enabledocking = false,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpiecestart = 8,		--First model piece to be used for docking.
+					dockingpiecestart = 2,		--First model piece to be used for docking.
 					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit.
-					dockingpieceend = 11,		--Last model piece used for docking. Will loop back to first when exceeded.
+					dockingpieceend = 5,		--Last model piece used for docking. Will loop back to first when exceeded.
 					dockingradius = 300,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},
@@ -211,7 +206,7 @@ return {
 				weaponvelocity = 200,
 				damage = {
 					--commanders = 340,
-					default = 225,
+					default = 255,
 					-- subs = 300,
 				},
 			},		},

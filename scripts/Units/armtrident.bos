@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  ground, base, radar, nano1, nano2, wake1, blink, drone1, drone2, drone3, drone4, turret, plunger, flare;
+piece  ground, base, radar, nano1, nano2, wake1, flare, drone1, drone2, drone3, drone4, turret, plunger;
 
 static-var  Static_Var_1, oldHead;
 static-var  Stunned;
@@ -12,6 +12,7 @@ static-var  Stunned;
 #define SIG_MOVE			2
 
 #define SIG_AIM				4
+#define SIG_AIM2			8
 
 
 #define BASEPIECE base
@@ -101,7 +102,7 @@ Activate()
 
 Deactivate()
 {
-}
+ }
 
 
 waveSplash()
@@ -153,12 +154,15 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	start-script RestoreAfterDelay();
+	emit-sfx 258 from nano2;
 	return (1);
 }
 
 FirePrimary()
 {
+	emit-sfx 258 from nano1;
 	sleep 150;
+	return (1);
 }
 
 QueryPrimary(piecenum)
@@ -183,8 +187,8 @@ AimFromPrimary(piecenum)
 
 AimSecondary(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIG_AIM2;
+	set-signal-mask SIG_AIM2;
 	turn turret to y-axis heading speed <200.000000>;
 	wait-for-turn turret around y-axis;
 	return (1);
