@@ -212,11 +212,11 @@ return {
 			},		},
 		weapons = {
 			[1] = {
-				def = "TRIDENT_DEPTHCHARGE",
+				def = "PLASMA",
 				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 			[2] = {
-				def = "PLASMA",
+				def = "TRIDENT_DEPTHCHARGE",
 				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 		},
