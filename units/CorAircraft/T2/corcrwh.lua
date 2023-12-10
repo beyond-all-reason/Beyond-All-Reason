@@ -48,7 +48,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:flamestreamthermite",
+				[1] = "custom:flamestreamxxl",
 			},
 			crashexplosiongenerators = {
 				[1] = "crashing-large",
@@ -138,7 +138,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.01,
-				explosiongenerator = "custom:burnthermite",
+				explosiongenerator = "custom:burnblackxl",
 				groundbounce = true,
 				bounceSlip = 1.0,
 				firestarter = 100,
@@ -155,9 +155,12 @@ return {
 				range = 450,
 				reloadtime = 0.4,--3 0.09999,--burst 12 0.39996,
 				sizegrowth = 2.5,
+				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
-				soundtrigger = true,
+				soundhitvolume = 9.5,
+				soundstartvolume = 7.3,
+				soundtrigger = false,
 				sprayangle = 700,
 				tolerance = 20000,
 				turret = true,
