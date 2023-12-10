@@ -1,75 +1,41 @@
+
+
 #define TA			// This is a TA script
 
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  rtube, ltube, flare1, flare2, base, tbrace, ring, wake, aimfrom;
+piece  base, flare, tube, housing, rtube, ltube, wake;
 
-static-var  gun_1, restore_delay, shotcount, silo_state;
+static-var  restore_delay, shotcount;
+
+static-var  silo_state;
 // 0 = closed
 // 1 = opening
 // 2 = opened
 // 3 = closing, fired missile
 // 4 = closing, no missile fired
 
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
+
 // Signal definitions
-#define SIG_MOVE			2
-#define SIG_AIM			4
-
-#define BASEPIECE base
-#define HITSPEED <25.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 7
-#define MAXTILT 200
-HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
-{
-	var amount;//, speedz, speedx;
-	amount = damage / (100 * UNITSIZE);
-	if (amount < 3  ) return (0);
-	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
-	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-	wait-for-turn BASEPIECE around z-axis;
-	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
-}
-HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	return (100); //return damage percent
-}
+#define SIG_AIM				2
+#define SIG_MOVE			4
 
 Create()
 {
-}
-
-
-
-Create()
-{
-	hide wake;
-	hide flare1;
-	hide flare2;
-	gun_1 = rtube;//0
-	
 	hide flare;
 	shotcount = 0;
 	restore_delay = 15000;
 	silo_state = 0;
 	return (0);
-
 }
-
 
 lua_UnitScriptLight(lightIndex, count) 
 {
 	return 0;
 }
-
-
 
 OpenSilo()
 {
@@ -82,14 +48,11 @@ OpenSilo()
 	{
 		// 8.5 seconds to open up
 		silo_state = 1;
-		show light1;
-		show light2;
-		show light3;
-		show light4;
-		turn door1 to x-axis <127.5> speed <15>;
-		turn door2 to x-axis <-127.5> speed <15>;
-		wait-for-turn door1 around x-axis;
-		wait-for-turn door2 around x-axis;
+
+		turn tube to x-axis <-90> speed <15>;
+		////turn door2 to z-axis <-127.5> speed <15>;
+		wait-for-turn tube around x-axis;
+		//wait-for-turn door2 around z-axis;
 		silo_state = 2;
 	}
 }
@@ -97,14 +60,12 @@ OpenSilo()
 CloseSiloDoors()
 {
 	// 30 seconds to close from <127.5> open position
-	hide light1;
-	hide light2;
-	hide light3;
-	hide light4;
-	turn door1 to x-axis <0> speed <4.25>;
-	turn door2 to x-axis <0> speed <4.25>;
-	wait-for-turn door1 around x-axis;
-	wait-for-turn door2 around x-axis;
+
+
+	turn tube to x-axis <0> speed <15>;
+	//turn door2 to z-axis <0> speed <4.25>;
+	wait-for-turn tube around x-axis;
+	//wait-for-turn door2 around z-axis;
 	silo_state = 0;
 }
 
@@ -126,15 +87,39 @@ RestoreAfterDelay()
 	return (0);
 }
 
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	start-script OpenSilo();
+	start-script RestoreAfterDelay();
+	if (silo_state == 2)
+	{
+		return (1);
+	}
+	return (0);
+}
 
+FirePrimary()
+{
+	shotcount = shotcount + 1;
+	call-script lua_UnitScriptLight(1, shotcount);
+	call-script lua_UnitScriptLight(2, shotcount);
+	start-script CloseSilo_Fired();
+	return (0);
+}
 
+QueryPrimary(piecenum)
+{
+	piecenum = flare;
+	return (0);
+}
 
-
-
-
-
-
-
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
 
 
 
@@ -160,131 +145,27 @@ StopMoving()
 }
 
 
-
-
-AimPrimary(heading, pitch)
-{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	start-script OpenSilo();
-	start-script RestoreAfterDelay();
-	if (silo_state == 2)
-	{
-		return (1);
-	}
-	return (0);
-}
-
-FirePrimary()
-{
-	shotcount = shotcount + 1;
-	call-script lua_UnitScriptLight(1, shotcount);
-	call-script lua_UnitScriptLight(2, shotcount);
-	start-script CloseSilo_Fired();
-	return (0);
-}
-
-QuerySecondary(piecenum)
-{
-	piecenum = flare;
-	return (0);
-}
-
-
-AimSecondary(heading, pitch)
-{
-	return(1);
-}
-
-AimFromSecondary(piecenum)
-{
-    piecenum=aimfrom;
-}
-
-FireSecondary()
-{
-	
-	if( gun_1 == 0)
-	{
-		emit-sfx 1024 + 0 from flare1;
-		emit-sfx 1024 + 1 from flare1;
-		sleep 50;
-		emit-sfx 1024 + 0 from flare1;
-		sleep 100;
-		emit-sfx 1024 + 0 from flare1;
-		sleep 150;
-		emit-sfx 1024 + 0 from flare1;
-		sleep 200;
-		emit-sfx 1024 + 0 from flare1;
-	}
-	else
-	{
-		emit-sfx 1024 + 0 from flare2;
-		emit-sfx 1024 + 1 from flare2;
-		sleep 50;
-		emit-sfx 1024 + 0 from flare2;
-		sleep 100;
-		emit-sfx 1024 + 0 from flare2;
-		sleep 150;
-		emit-sfx 1024 + 0 from flare2;
-		sleep 200;
-		emit-sfx 1024 + 0 from flare2;
-	}
-	
-}
-
-Shot1 () {
-	gun_1 = !gun_1;
-}
-
-QueryPrimary(piecenum)
-{
-	if( gun_1 == 0)
-	{
-		piecenum = flare1;
-	} else {
-		piecenum = flare2;
-	}
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
-
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode rtube type BITMAPONLY | NOHEATCLOUD;
-		explode ltube type BITMAPONLY | NOHEATCLOUD;
-		explode wake type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode rtube type NOHEATCLOUD;
-		explode ltube type FIRE | SMOKE | NOHEATCLOUD;
-		//explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | NOHEATCLOUD;
-		explode rtube type FIRE | SMOKE | NOHEATCLOUD;
-		explode ltube type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
-		//explode wake type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
-		explode rtube type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
-		explode ltube type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
-		//explode wake type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
 }
