@@ -47,6 +47,9 @@ return {
 			techlevel = 2,
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:flamestreamthermite",
+			},
 			crashexplosiongenerators = {
 				[1] = "crashing-large",
 				[2] = "crashing-large",
@@ -151,7 +154,7 @@ return {
 				predictboost = 1,
 				range = 450,
 				reloadtime = 0.4,--3 0.09999,--burst 12 0.39996,
-				sizegrowth = 1.5,
+				sizegrowth = 2.5,
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
 				soundtrigger = true,
