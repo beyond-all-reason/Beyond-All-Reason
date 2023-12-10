@@ -129,7 +129,7 @@ return {
 				hightrajectory = 1,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				name = "HeavyCannon",
+				name = "Depth Charge Drones",
 				noselfdamage = true,
 				range = 1300,
 				reloadtime = 2.5,
@@ -190,7 +190,7 @@ return {
 				name = "Depthcharge launcher",
 				noselfdamage = true,
 				numbounce = 1,
-				range = 400,
+				range = 600,
 				reloadtime = 1.5,
 				soundhit = "xplodep2",
 				soundhitwet = "splsmed",
@@ -211,12 +211,12 @@ return {
 				},
 			},		},
 		weapons = {
-			[2] = {
-				def = "PLASMA",
-				onlytargetcategory = "CANBEUW UNDERWATER",
-			},
 			[1] = {
 				def = "TRIDENT_DEPTHCHARGE",
+				onlytargetcategory = "CANBEUW UNDERWATER",
+			},
+			[2] = {
+				def = "PLASMA",
 				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 		},
