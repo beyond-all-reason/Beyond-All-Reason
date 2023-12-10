@@ -961,6 +961,7 @@ return {
   },
   ["flamestreamxxl"] = {
     flame = {
+
       air                = true,
       class              = [[CSimpleParticleSystem]],
       count              = 1,
@@ -969,27 +970,25 @@ return {
         airdrag            = 0.92,
         colormap           = [[0.75 0.45 0.99 0.3   0.96 0.90 0.95 095   0.98 0.95 0.90 0.35  0.92 0.88 0.80 0.15   0.75 0.45 0.1 0.08    0.01 0 0 0.01]],
         directional        = true,
-        emitrot            = 2.5,
-        emitrotspread      = 1,
+        emitrot            = 2,
+        emitrotspread      = 2,
         emitvector         = [[dir]],
-        emitmul            = [[1.0, 1.0 r0.86, 2.0]],
+        emitmul            = [[1.0, 2.0, 2.0]],
         gravity            = [[0, 0.06, 0]],
         numparticles       = [[0.75 r0.86]],
-        particlelife       = 14,
-        particlelifespread = 6,
-        particlesize       = -20,
-        particlesizespread = -9,
-        particlespeed      = 14,
-        particlespeedspread = 8,
+        particlelife       = 9,
+        particlelifespread = 12,
+        particlesize       = -30,
+        particlesizespread = -20,
+        particlespeed      = 15,
+        particlespeedspread = 5,
         rotParams          = [[-7 r14, -20 r40, -15 r30]],
         pos                = [[-3 r6, 0, -3 r6]],
         sizegrowth         = 1.01,
         sizemod            = 1.05,
         texture            = [[flamestream]],
         drawOrder          = 1,
-		
 
-		
       },
     },
     sparks = {
