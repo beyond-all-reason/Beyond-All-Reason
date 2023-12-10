@@ -7,17 +7,6 @@
 
 //todo:
 
-//initial test of firing from full open etc
-
-//crude telescope lowering animation
-
-
-
-//lock 'siege' deployment mode, force to pack up before moving. manual or toggle?
-
-//redo model & animation to unfold properly
-
-
 //seems to start with active state set incorrectly ? needs on/off spamming several times
 
 
@@ -29,10 +18,34 @@
 
 piece  base, hatch1, hatch2, post, p1, p2, p3, turret, sleeve, barrel, flare, antenna, light, lightpoint, tail, fins, core, con, condar, base, wake;
 
-static-var  activated, restore_delay, statechg_DesiredState, statechg_StateChanging, shooting, shotcount, deployed, modpitch;
+static-var  activated, restore_delay, statechg_DesiredState, statechg_StateChanging, shooting, shotcount, deployed, modpitch, Stunned;
 
 // Signal definitions
 #define SIG_AIM				2
+
+
+
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	
+	
+	turn turret to z-axis <0.000000> speed <50.000000>;
+	turn sleeve to x-axis <-90.000000> speed <50.000000>;
+	wait-for-turn turret around z-axis;
+	wait-for-turn sleeve around x-axis;
+
+	
+}
+
+RestoreAfterDelay()
+{
+	sleep 3000;
+	start-script ExecuteRestoreAfterDelay();
+}
+
 
 
 activatescr()
@@ -78,6 +91,8 @@ activatescr()
 	}
 
 	sleep 33;
+	//todo: call movement deactivation script
+
 }
 
 deactivatescr()
@@ -127,6 +142,7 @@ deactivatescr()
 
 
 	sleep 33;
+	//todo: call movement reactivation script
 }
 
 
@@ -147,6 +163,9 @@ Stop()
 	set ARMORED to 1;
 
 }
+
+
+
 
 InitState()
 {
@@ -183,8 +202,8 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	hide flare;
-
-
+	//move base to z-axis [-15] speed [240];
+	Stunned = 0;
 	activated = 0;
 	call-script InitState();
 	restore_delay = 3000;
@@ -207,12 +226,13 @@ lua_UnitScriptLight(lightIndex, count)
 
 Activate()
 {
+	//call lua to Do Shit?
 	start-script RequestState(0);//was 0
 }
 
 Deactivate()
 {
-	signal SIG_AIM;
+
 	start-script RequestState(1);//was 1
 }
 
@@ -231,17 +251,20 @@ AimPrimary(heading, pitch)
 	{
 		sleep 150;
 	}
+		//sleep 150;
 	//modpitch = pitch + 90;
 	turn turret to z-axis heading speed <50.000000>;
 	//turn sleeve to x-axis <0.000000> - modpitch speed <50.000000>;
 	turn sleeve to x-axis <-90.000000> - pitch speed <50.000000>;
-	wait-for-turn turret around y-axis;
+	wait-for-turn turret around z-axis;
 	wait-for-turn sleeve around x-axis;
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
 FirePrimary()
 {
+
     shooting=1;
     shotcount = shotcount + 1;
     emit-sfx 1024 + 2 from flare;

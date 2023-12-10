@@ -34,6 +34,7 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 
 		[UnitDefNames['armsilo'].id] = 10,
 		[UnitDefNames['corsilo'].id] = 10,
+		[UnitDefNames['cordesolator'].id] = 10,
 
 		[UnitDefNames['armamd'].id] = 20,
 		[UnitDefNames['corfmd'].id] = 20,

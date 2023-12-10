@@ -12546,6 +12546,26 @@ local unitDefLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	[UnitDefNames['armexcalibur'].id] = {
+		antenna = {
+			lightType = 'point',
+			pieceName = 'sleeve',
+			lightConfig = { posx = -5, posy = 23, posz = -6, radius = 8,
+							color2r = 1, color2g = 1, color2b = 0.2, colortime = 0,
+							r = 1, g = 1, b = 0.2, a = 0.07,
+							modelfactor = 0.4, specular = 0.5, scattering = 1, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		top = {
+			lightType = 'point',
+			pieceName = 'sleeve',
+			lightConfig = { posx = 0, posy = 14, posz = 5, radius = 26,
+							color2r = 1, color2g = 1, color2b = 0.2, colortime = 0,
+							r = 1, g = 1, b = 0.2, a = 0.065,
+							modelfactor = 0.4, specular = 0.5, scattering = 0.6, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		}
+	},
 	[UnitDefNames['armlatnk'].id] = {
 		weaponglow = {
 			lightType = 'point',
@@ -18059,6 +18079,19 @@ local unitEventLights = {
 		},
 
 		[UnitDefNames['armanni'].id] = {
+			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'barrel',
+				lightName = 'armsnipebarrelglow',
+				alwaysVisible = true,
+				lightConfig = { posx = 0, posy = 15, posz = -8, radius = 23,
+					color2r = 0.7, color2g = 0.5, color2b = 0, colortime = 400,
+					r = 0.3, g = 0.05, b = 0, a = 0.5,
+					modelfactor = 1, specular = 1, scattering = 0.3, lensflare = 0,
+					lifetime = 200, sustain = 2},
+			},
+		},
+		[UnitDefNames['armexcalibur'].id] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'barrel',
