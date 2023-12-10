@@ -73,7 +73,7 @@ local function XiaomiWireless()
 	LStickButton = {'buttons',15,1} -- delect all? TODO
 	DeadZone = 0
 end
-XiaomiWireless()
+--XiaomiWireless()
 
 ---------------------X-Box 360 Controller ----------------------------------------
 local function XBox360()
@@ -355,7 +355,7 @@ function widget:Initialize()
 	Spring.Echo("Started Camera Joystick, make sure you are running the joystick server, and switch camera to Ctrl+F4")
 	if debugMode then dumpConfig() end
 	local connected = SocketConnect(host, port)
-	if connected then 
+	if connected then
 		Spring.SetConfigInt("RotOverheadClampMap",0)
 	end
 end
@@ -535,7 +535,7 @@ function widget:Update(dt) -- dt in seconds
 			--frameSpeed = 60* dt
 			--frameSpeed = 1 * 0.9 + 60 * dt * 0.1 -- some exponential smoothing
 			frameSpeed = 1 -- no smoothing
-			
+
 			if debugMode then Spring.Echo("speed correction",dt,frameSpeed) end
 		end
 		local ndx, ndz = norm2d(cs.dx, cs.dz)
