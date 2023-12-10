@@ -8,19 +8,10 @@ function gadget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = 1,
 		enabled = true,
-		handler = true,
 	}
 end
 
 if not gadgetHandler:IsSyncedCode() then
-	return
-end
-
-local metalSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList
-
--- no metal spots in map or metalmap
--- gadget is not required
-if not metalSpots or #metalSpots > 0 and #metalSpots <= 2 then
 	return
 end
 
@@ -48,6 +39,20 @@ local function GetClosestSpot(x, z, positions)
 	return bestPos
 end
 
+local metalSpotsList
+
+function gadget:Initialize()
+	metalSpotsList = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList
+
+	-- no metal spots in map or metalmap
+	-- gadget is not required
+	if not metalSpotsList or #metalSpotsList > 0 and #metalSpotsList <= 2 then
+		Spring.Echo("<gadgets/cmd_mex_denier.lua> No, 1 or 2 metal spots found, removing self")
+
+		gadgetHandler:RemoveGadget(self)
+	end
+end
+
 -- function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 function gadget:AllowCommand(_, _, _, cmdID, cmdParams)
 	if not isMex[-cmdID] then
@@ -56,8 +61,9 @@ function gadget:AllowCommand(_, _, _, cmdID, cmdParams)
 
 	local bx, bz = cmdParams[1], cmdParams[3]
 	-- We find the closest metal spot to the assigned command position
-	local closestSpot = GetClosestSpot(bx, bz, metalSpots)
+	local closestSpot = GetClosestSpot(bx, bz, metalSpotsList)
 
+	-- We check if current order is to build mex in closest spot
 	if not (closestSpot and GG["resource_spot_finder"].IsMexPositionValid(closestSpot, bx, bz)) then
 		return false
 	end
