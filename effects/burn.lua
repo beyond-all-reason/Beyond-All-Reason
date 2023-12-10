@@ -977,16 +977,20 @@ return {
         numparticles       = [[0.75 r0.86]],
         particlelife       = 14,
         particlelifespread = 6,
-        particlesize       = -15,
-        particlesizespread = -6,
+        particlesize       = -35,
+        particlesizespread = -16,
         particlespeed      = 14,
         particlespeedspread = 8,
         rotParams          = [[-5 r10, 0, -5 r10]],
+        animParams         = [[16,6,50 r60]],
         pos                = [[-2 r4, 10 r8, -2 r4]],
         sizegrowth         = 0.10,
         sizemod            = 0.96,
-        texture            = [[flamestream]],
+        texture            = [[BARFlame02]],
         drawOrder          = 1,
+		
+
+		
       },
     },
     sparks = {
