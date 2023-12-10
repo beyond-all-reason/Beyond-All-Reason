@@ -16,6 +16,14 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local metalSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList
+
+-- no metal spots in map or metalmap
+-- gadget is not required
+if not metalSpots or #metalSpots > 0 and #metalSpots <= 2 then
+	return
+end
+
 local isMex = {}
 for uDefID, uDef in pairs(UnitDefs) do
 	if uDef.extractsMetal > 0 then
@@ -48,7 +56,7 @@ function gadget:AllowCommand(_, _, _, cmdID, cmdParams)
 
 	local bx, bz = cmdParams[1], cmdParams[3]
 	-- We find the closest metal spot to the assigned command position
-	local closestSpot = GetClosestSpot(bx, bz, GG["resource_spot_finder"].metalSpotsList)
+	local closestSpot = GetClosestSpot(bx, bz, metalSpots)
 
 	if not (closestSpot and GG["resource_spot_finder"].IsMexPositionValid(closestSpot, bx, bz)) then
 		return false
