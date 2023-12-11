@@ -1,10 +1,10 @@
 return {
 	cormine1 = {
-		acceleration = 0,
+		maxacc = 0,
 		blocking = false,
-		brakerate = 0,
-		buildcostenergy = 270,
-		buildcostmetal = 5,
+		maxdec = 0,
+		energycost = 270,
+		metalcost = 5,
 		buildpic = "CORMINE1.DDS",
 		buildtime = 50,
 		canattack = false,
@@ -26,7 +26,7 @@ return {
 		idletime = 300,
 		initcloaked = true,
 		levelground = false,
-		maxdamage = 11,
+		health = 11,
 		maxslope = 40,
 		maxwaterdepth = 0,
 		mincloakdistance = 8,

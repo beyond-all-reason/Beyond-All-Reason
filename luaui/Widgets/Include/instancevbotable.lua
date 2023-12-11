@@ -139,6 +139,17 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		end
 	end
 	
+	function instanceTable:getMemUsage()
+		-- arrays are 16 bytes per element
+		-- Hash tables are 40 bytes per element
+		local totalMem = 0
+		totalMem = totalMem + self.usedElements * self.instanceStep * 16 -- the actual instance data
+		totalMem = totalMem + self.usedElements * 16 -- indextoinstanceid
+		totalMem = totalMem + self.usedElements * 40 -- instanceIDtoIndex
+		if self.indextoUnitID then totalMem = totalMem + self.usedElements * 16 end
+		return totalMem
+	end
+	
 	newInstanceVBO:Upload(instanceData)
 	
 	--register self in WG if possible
@@ -317,19 +328,23 @@ function resizeInstanceVBOTable(iT)
 		-- we need to walk through both tables at the same time, and virtually pop all invalid unit/featureIDs on a resize, or else face dire consequences (crashes) later on
 		-- the tables we need to keep updated are:
 		local new_instanceData = {}
+		local new_instanceData_count = 0
 		local new_usedElements = 0
 		local new_instanceIDtoIndex = {}
 		local new_indextoInstanceID = {}
 		local new_indextoUnitID = {}
 		local invalidcount = 0
+		local iTStep = iT.instanceStep
 
 		for i, objectID in ipairs(iT.indextoUnitID) do
 			local isValidID = false
 			if iT.featureIDs then isValidID = Spring.ValidFeatureID(objectID)
 			else isValidID = Spring.ValidUnitID(objectID) end
 			if isValidID then
-				for j = 1, iT.instanceStep do 
-					new_instanceData[#new_instanceData + 1 ] = iT.instanceData[j + new_usedElements * iT.instanceStep]
+				local offset = new_usedElements * iTStep
+				for j = 1, iTStep do 
+					new_instanceData_count = new_instanceData_count + 1
+					new_instanceData[new_instanceData_count] = iT.instanceData[j + offset]
 				end
 				new_usedElements = new_usedElements + 1 
 				local currentInstanceID = iT.indextoInstanceID[i]
@@ -663,7 +678,6 @@ function compactInstanceVBO(iT, removelist, keeplist)
 	if usedElements == 0 then return 0 end
 	local instanceStep = iT.instanceStep
 	local instanceData = iT.instanceData
-	local instanceIDtoIndex = iT.instanceIDtoIndex
 	local indextoInstanceID = iT.indextoInstanceID
 	local newindextoInstanceID = {}
 	local newinstanceIDtoIndex = {}
@@ -685,11 +699,12 @@ function compactInstanceVBO(iT, removelist, keeplist)
 			numremoved = numremoved + 1
 		end
 	end
-	
-	iT.dirty = true -- we set the flag to notify that CPU and GPU contents dont match!
-	iT.usedElements = newUsedElements
-	iT.instanceIDtoIndex = newinstanceIDtoIndex
-	iT.indextoInstanceID = newindextoInstanceID
+	if numremoved > 0 then 
+		iT.dirty = true -- we set the flag to notify that CPU and GPU contents dont match!
+		iT.usedElements = newUsedElements
+		iT.instanceIDtoIndex = newinstanceIDtoIndex
+		iT.indextoInstanceID = newindextoInstanceID
+	end
 	return numremoved
 end
 

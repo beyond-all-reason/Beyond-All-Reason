@@ -63,7 +63,7 @@ AimFromSecondary(piecenum)
 	{	piecenum=head;	}
 
 QuerySecondary(piecenum)
-	{	piecenum=lsack; }
+	{	piecenum=head; }
 
 
 
@@ -115,15 +115,11 @@ Shot1()
 	{ }
 Shot2()
 	{
-	turn lsack to y-axis <30> speed <200>;
-	turn rsack to y-axis <-30> speed <200>;
-	move rsack to x-axis [-1] speed [9];
-	move lsack to x-axis [1] speed [9];;
+	turn lsack to y-axis <40> speed [1];
+	turn rsack to y-axis <-40> speed [1];
 	wait-for-turn lsack around y-axis;
-	turn lsack to y-axis <0> speed <20>;
-	turn rsack to y-axis <0> speed <20>;
-	move rsack to x-axis [0] speed [0.3];
-	move lsack to x-axis [0] speed [0.3];
-	call-script lua_FlameShot(2);
+	turn lsack to y-axis <0> speed [0.3];
+	turn rsack to y-axis <0> speed [0.3];
+	//call-script lua_FlameShot(2);
 	return (head);
 	}

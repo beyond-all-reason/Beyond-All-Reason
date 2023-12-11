@@ -32,6 +32,23 @@ for key, code in ipairs(languageCodes) do
 	languageNames[key] = Spring.I18N.languages[code]
 end
 
+-- detect potatos
+local isPotatoCpu = false
+local isPotatoGpu = false
+local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
+--if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+--	isPotatoGpu = true
+--end
+if not gpuMem then
+	gpuMem = 0
+end
+if gpuMem > 0 and gpuMem < 2500 then
+	isPotatoGpu = true
+end
+if not Platform.glHaveGL4 then
+	isPotatoGpu = true
+end
+
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
 local devMode = Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI()
@@ -272,6 +289,14 @@ local function showOption(option)
 	return false
 end
 
+local function adjustShadowQuality()
+	local quality = Spring.GetConfigInt("ShadowQuality", 3)
+	local shadowMapSize = 600 + math.min(10240, (vsy+vsx)*0.37)*(quality*0.5)
+	Spring.SetConfigInt("Shadows", (quality==0 and 0 or 1))
+	Spring.SetConfigInt("ShadowMapSize", shadowMapSize)
+	Spring.SendCommands("shadows "..(quality==0 and 0 or 1).." " .. shadowMapSize)
+end
+
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = (vsy / 1080)
@@ -315,6 +340,8 @@ function widget:ViewResize()
 	if backgroundGuishader ~= nil then
 		backgroundGuishader = glDeleteList(backgroundGuishader)
 	end
+
+	adjustShadowQuality()
 end
 
 local function detectWater()
@@ -1000,7 +1027,7 @@ function widget:Update(dt)
 			if WG['music'] and WG['music'].GetMusicVolume then
 				options[getOptionByID('sndvolmusic')].value = WG['music'].GetMusicVolume()
 			else
-				options[getOptionByID('sndvolmusic')].value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20)
+				options[getOptionByID('sndvolmusic')].value = tonumber(Spring.GetConfigInt("snd_volmusic", 50) or 50)
 			end
 		end
 	end
@@ -1818,23 +1845,6 @@ function loadAllWidgetData()
 	end
 end
 
--- detect potatos
-local isPotatoCpu = false
-local isPotatoGpu = false
-local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
---if Platform ~= nil and Platform.gpuVendor == 'Intel' then
---	isPotatoGpu = true
---end
-if not gpuMem then
-	gpuMem = 0
-end
-if gpuMem > 0 and gpuMem < 2500 then
-	isPotatoGpu = true
-end
-if not Platform.glHaveGL4 then
-	isPotatoGpu = true
-end
-
 function init()
 	presetCodes = { 'lowest', 'low', 'medium', 'high', 'ultra', 'custom', }
 	presetCodes = table.merge(presetCodes, table.invert(presetCodes))
@@ -1876,7 +1886,7 @@ function init()
 			guishader = 0,
 			decalsgl4 = 1,
 			decals = 1,
-			shadowslider = 2,
+			shadowslider = 3,
 			grass = false,
 			cusgl4 = true,
 		},
@@ -1894,7 +1904,7 @@ function init()
 		 	guishader = guishaderIntensity,
 			decalsgl4 = 1,
 		 	decals = 2,
-			shadowslider = 3,
+			shadowslider = 4,
 		 	grass = true,
 			cusgl4 = true,
 		},
@@ -1912,7 +1922,7 @@ function init()
 			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 3,
-			shadowslider = 4,
+			shadowslider = 5,
 			grass = true,
 			cusgl4 = true,
 		},
@@ -1930,7 +1940,7 @@ function init()
 			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 4,
-			shadowslider = 5,
+			shadowslider = 6,
 			grass = true,
 			cusgl4 = true,
 		},
@@ -2285,37 +2295,10 @@ function init()
 		  end,
 		},
 
-		{ id = "shadowslider", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.shadowslider'), type = "select", options = { 'lowest', 'low', 'medium', 'high', 'ultra'}, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 2048) or 2048), description = Spring.I18N('ui.settings.option.shadowslider_descr'),
-		  onload = function(i)
-			  local ShadowMapSize = tonumber(Spring.GetConfigInt("ShadowMapSize", 2048) or 2048)
-			  if devMode then
-				  options[getOptionByID('shadowslider')].options[6] = 'insane'
-			  end
-			  local quality = {
-				  ['lowest'] = 1792, ['low'] = 2560, ['medium'] = 4096, ['high'] = 6144, ['ultra'] = 8192, ['insane'] = 10240
-			  }
-			  if ShadowMapSize == 0 then
-				  --options[getOptionByID('shadowslider')].value = 1
-			  elseif ShadowMapSize ~= nil then
-				  for k,v in pairs( options[getOptionByID('shadowslider')].options) do
-					  if quality[v] ~= nil and quality[v] <= ShadowMapSize then
-						  options[getOptionByID('shadowslider')].value = k
-					  end
-				  end
-			  end
-		  end,
+		{ id = "shadowslider", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.shadowslider'), type = "select", options = { 'off', 'lowest', 'low', 'medium', 'high', 'ultra'}, value = Spring.GetConfigInt("ShadowQuality", 3)+1, description = Spring.I18N('ui.settings.option.shadowslider_descr'),
 		  onchange = function(i, value)
-			  local quality = {
-				  [1] = 1792, [2] = 2560, [3] = 4096, [4] = 6144, [5] = 8192, [6] = 10240
-			  }
-			  if options[getOptionByID('shadowslider')].options[value] == nil then
-				  value = (value == 1 and 2 or 4)
-				  options[getOptionByID('shadowslider')].value = value
-			  end
-			  value = quality[value]
-			  Spring.SendCommands("shadows 1 " .. value)
-			  Spring.SetConfigInt("Shadows", 1)
-			  Spring.SetConfigInt("ShadowMapSize", value)
+			  Spring.SetConfigInt("ShadowQuality", value - 1)
+			  adjustShadowQuality()
 		  end,
 		},
 
@@ -2626,7 +2609,7 @@ function init()
 		  end,
 		},
 
-		{ id = "sndvolmaster", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.volume') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.sndvolmaster'), type = "slider", min = 0, max = 200, step = 2, value = tonumber(Spring.GetConfigInt("snd_volmaster", 1) or 100),
+		{ id = "sndvolmaster", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.volume') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.sndvolmaster'), type = "slider", min = 0, max = 80, step = 2, value = tonumber(Spring.GetConfigInt("snd_volmaster", 1) or 80),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2677,7 +2660,7 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setMapmarkVolume', { 'sndMapmarkFileVolume' }, value)
 		  end,
 		},
-		{ id = "sndvolmusic", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolmusic'), type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
+		{ id = "sndvolmusic", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolmusic'), type = "slider", min = 0, max = 99, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 50) or 50),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2924,6 +2907,21 @@ function init()
 				  widgetHandler:DisableWidget('Grid menu')
 				  widgetHandler:EnableWidget('Build menu')
 			  end
+			  init()
+		  end,
+		},
+		{ id = "gridmenu_alwaysreturn", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_alwaysreturn'), type = "bool", value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getAlwaysReturn ~= nil and WG['gridmenu'].getAlwaysReturn()), description = Spring.I18N('ui.settings.option.gridmenu_alwaysreturn_descr'),
+		  onload = function()
+		  end,
+		  onchange = function(_, value)
+			  saveOptionValue('Grid menu', 'gridmenu', 'setAlwaysReturn', { 'alwaysReturn' }, value)
+		  end,
+		},
+		{ id = "gridmenu_autoselectfirst", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_autoselectfirst'), type = "bool", value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getAutoSelectFirst ~= nil and WG['gridmenu'].getAutoSelectFirst()), description = Spring.I18N('ui.settings.option.gridmenu_autoselectfirst_descr'),
+		  onload = function()
+		  end,
+		  onchange = function(_, value)
+			  saveOptionValue('Grid menu', 'gridmenu', 'setAutoSelectFirst', { 'autoSelectFirst' }, value)
 		  end,
 		},
 
@@ -3090,7 +3088,7 @@ function init()
 			  Spring.SetConfigFloat("MiddleClickScrollSpeed", value)
 		  end,
 		},
-		{ id = "cameramovespeed", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.cameramovespeed'), type = "slider", min = 0, max = 50, step = 1, value = Spring.GetConfigInt("CamSpringScrollSpeed", 10), description = Spring.I18N('ui.settings.option.cameramovespeed_descr'),
+		{ id = "cameramovespeed", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.cameramovespeed'), type = "slider", min = 0, max = 100, step = 1, value = Spring.GetConfigInt("CamSpringScrollSpeed", 10), description = Spring.I18N('ui.settings.option.cameramovespeed_descr'),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3606,7 +3604,7 @@ function init()
 		{ id = "label_ui_visuals", group = "ui", name = Spring.I18N('ui.settings.option.label_visuals'), category = types.basic },
 		{ id = "label_ui_visuals_spacer", group = "ui", category = types.basic },
 
-		{ id = "uniticon_scaleui", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.uniticonscaleui'), type = "slider", min = 0.85, max = 2, step = 0.05, value = tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = Spring.I18N('ui.settings.option.uniticonscaleui_descr'),
+		{ id = "uniticon_scaleui", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.uniticonscaleui'), type = "slider", min = 0.85, max = 3, step = 0.05, value = tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = Spring.I18N('ui.settings.option.uniticonscaleui_descr'),
 		  onchange = function(i, value)
 			  Spring.SendCommands("iconscaleui " .. value)
 			  Spring.SetConfigFloat("UnitIconScaleUI", value)
@@ -4484,12 +4482,7 @@ function init()
 		{ id = "language", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.language'), type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
 			onchange = function(i, value)
 				local language = languageCodes[value]
-				Spring.SetConfigString('language', language)
-				Spring.I18N.setLanguage(language)
-
-				if Script.LuaUI('LanguageChanged') then
-					Script.LuaUI.LanguageChanged()
-				end
+				WG['language'].setLanguage(language)
 			end
 		},
 		{ id = "font", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.font'), type = "select", options = {}, value = 1, description = Spring.I18N('ui.settings.option.font_descr'),
@@ -5494,6 +5487,12 @@ function init()
 		options[getOptionByID('scav_messages')] = nil
 	end
 
+	if not GetWidgetToggleValue('Grid menu') then
+		options[getOptionByID('gridmenu_alwaysreturn')] = nil
+		options[getOptionByID('gridmenu_autoselectfirst')] = nil
+	end
+
+
 	-- add fonts
 	if getOptionByID('font') then
 		local fonts = {}
@@ -5527,15 +5526,6 @@ function init()
 		options[getOptionByID('font2')].value = getSelectKey(getOptionByID('font2'), string.sub(fname, 1, string.len(fname) - 4))
 	end
 
-	-- set sun minimal height
-	if getOptionByID('cus') then
-		if options[getOptionByID('cus')].value then
-			if WG.disabledCus ~= nil and WG.disabledCus then
-				options[getOptionByID('cus')].value = 0.5
-			end
-		end
-	end
-
 	-- check if cus is disabled by auto disable cus widget (in case options widget has been reloaded)
 	if getOptionByID('sun_y') then
 		if select(2, gl.GetSun("pos")) < options[getOptionByID('sun_y')].min then
@@ -5562,12 +5552,6 @@ function init()
 
 		-- set vsync
 		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
-
-		-- disable old cus
-		if Spring.GetConfigInt("cus", 0) == 1 then
-			Spring.SetConfigInt("cus", 0)
-			Spring.SendCommands("luarules disablecus")
-		end
 	end
 	if not waterDetected then
 		Spring.SendCommands("water 0")
@@ -5587,17 +5571,22 @@ function init()
 
 	-- reduce options for potatoes
 	if isPotatoGpu or isPotatoCpu then
-		local id = getOptionByID('shadowslider')
-		options[id].options = { 1, 2 }
-		if options[id].value > 2 then
-			options[id].value = 2
-			options[id].onchange(id, options[id].value)
+		--local id = getOptionByID('shadowslider')
+		--options[id].options = { 1, 2, 3 }
+		--if options[id].value > 3 then
+		--	options[id].value = 3
+		--	options[id].onchange(id, options[id].value)
+		--end
+
+		-- disable engine decals (footprints)
+		options[getOptionByID('decals')] = nil
+		if Spring.GetConfigInt("GroundDecals", 3) > 0 then
+			Spring.SendCommands("GroundDecals 0")
+			Spring.SetConfigInt("GroundDecals", 0)
 		end
 
 		if isPotatoGpu then
-			Spring.SendCommands("luarules disablecus")
 			Spring.SendCommands("luarules disablecusgl4")
-			options[getOptionByID('cus')] = nil
 			options[getOptionByID('cusgl4')] = nil
 
 			-- limit available msaa levels to 'off' and 'x2'
@@ -5649,28 +5638,24 @@ function init()
 
 			-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
 			if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500 then
-				options[getOptionByID('shadowslider')] = nil
-				options[getOptionByID('shadows_opacity')] = nil
-
 				Spring.SendCommands("advmapshading 0")
-				Spring.SendCommands("Shadows 0 1024")
 			end
 
 		end
 
 	elseif gpuMem >= 3000 then
-		if (Spring.GetConfigInt("cus2", 1) ~= 1) then
+		if Spring.GetConfigInt("cus2", 1) ~= 1 then
 			local id = getOptionByID('cusgl4')
 			options[id].onchange(id, 1)
 		end
 		options[getOptionByID('cusgl4')] = nil
 
-		local id = getOptionByID('shadowslider')
-		options[id].options[1] = nil
-		if options[id].value == 1 then
-			options[id].value = 2
-			options[id].onchange(id, options[id].value)
-		end
+		--local id = getOptionByID('shadowslider')
+		--options[id].options[1] = nil
+		--if options[id].value == 1 then
+		--	options[id].value = 2
+		--	options[id].onchange(id, options[id].value)
+		--end
 
 		if Spring.GetConfigInt("Water", 0) ~= 4 then
 			Spring.SendCommands("water 4")
@@ -6158,6 +6143,7 @@ function widget:Initialize()
 			Spring.SetConfigInt("AdvMapShading", 0)
 			Spring.SendCommands("advmapshading 0")
 			Spring.SendCommands("Shadows 0 1024")
+			Spring.GetConfigInt("ShadowQuality", 0)
 			Spring.SetConfigInt("ShadowMapSize", 1024)
 			Spring.SetConfigInt("Shadows", 0)
 			Spring.SetConfigInt("MSAALevel", 0)
@@ -6190,10 +6176,10 @@ function widget:Initialize()
 			Spring.SetConfigInt("MaxSounds", 128)
 		end
 
-		-- limit music volume
-		if Spring.GetConfigInt("snd_volmusic", 20) > 50 then
-			Spring.SetConfigInt("snd_volmusic", 50)
-		end
+		-- limit music volume -- why?
+		-- if Spring.GetConfigInt("snd_volmusic", 50) > 50 then
+		-- 	Spring.SetConfigInt("snd_volmusic", 50)
+		-- end
 
 		-- enable advanced model shading
 		if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then

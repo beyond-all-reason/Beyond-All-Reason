@@ -1,8 +1,8 @@
 return {
 	xmasball2 = {
 		blocking = true,
-		buildcostenergy = 1,
-		buildcostmetal = 0,
+		energycost = 1,
+		metalcost = 0,
 		buildpic = "other/xmasball2.dds",
 		buildtime = 255,
 		canattack = false,
@@ -21,9 +21,9 @@ return {
 		hidedamage = true,
 		idleautoheal = 0,
 		mass = 45,
-		maxdamage = 560000,
+		health = 560000,
 		maxslope = 64,
-		maxvelocity = 1,
+		speed = 30.0,
 		maxwaterdepth = 0,
 		movementclass = "BOT1",
 		objectname = "xmasball2.s3o",

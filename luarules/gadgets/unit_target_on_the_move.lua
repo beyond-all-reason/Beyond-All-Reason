@@ -98,6 +98,9 @@ if gadgetHandler:IsSyncedCode() then
 		unitAlwaysSeen[unitDefID] = unitDef.isBuilding or unitDef.speed == 0
 	end
 
+	-- fastpass for units that don't have an attack command for other reasons
+	validUnits[UnitDefNames.legpede.id]=true
+
 	local unitTargets = {} -- data holds all unitID data
 	local pausedTargets = {}
 	--------------------------------------------------------------------------------

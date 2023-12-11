@@ -96,7 +96,6 @@
 				"needMetalAmount": "Ich benötige %{amount} Metall!",
 				"needEnergy": "Ich benötige Energie!",
 				"needEnergyAmount": "Ich benötige %{amount} Energie!",
-				"giveUnits": "Ich habe %{name} %{count} Einheiten gegeben.",
 				"giveMetal": "Ich habe %{name} %{amount} Metall gesendet.",
 				"giveEnergy": "Ich habe %{name} %{amount} Energie gesendet.",
 				"takeTeam": "Ich habe %{name}übernommen. ",

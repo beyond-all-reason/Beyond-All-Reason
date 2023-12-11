@@ -7,9 +7,9 @@
 
 piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot,
 		lfoot, dish, barrel, aimy1, aimx1, aimx2, hatpoint, teleport, railturretl, railsleevel, railflarel, sleeve, barrelr, flare, 
-		barrel1l, barrel2l, barrel3l, barrel4l, railturretr, railsleever, railflarer, barrel1r, barrel2r, barrel3r, barrel4r;  
+		barrel1l, barrel2l, barrel3l, barrel4l, railturretr, railsleever, railflarer, barrel1r, barrel2r, barrel3r, barrel4r, Ref_Point;  
 
-static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm,animSpeed, torsoaim, gun_1, wpn1_lasthead;
+static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm,animSpeed, torsoaim, gun_1, wpn1_lasthead, wpn4_lasthead;
 
 // Signal definitions
 #define SIG_AIM 2
@@ -393,35 +393,35 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\ani
 // Call this from MotionControl()!
 StopWalking() {
 	move pelvis to y-axis [-1.000000] speed [6.944444];
-	if (leftArm) turn biggun to x-axis <-52.006372> speed <28.433941>;
-	turn head to x-axis <-1.298815> speed <11.896390>;
-	turn head to y-axis <0.000000> speed <28.723844>;
-	turn lfoot to x-axis <2.870126> speed <274.263975>;
-	turn lleg to x-axis <22.425678> speed <349.693872>;
-	turn lleg to y-axis <0.000000> speed <7.922289>;
-	turn lleg to z-axis <0.000000> speed <7.923996>;
-	turn lthigh to x-axis <-21.115098> speed <255.919901>;
-	turn lthigh to y-axis <11.110453> speed <66.749106>;
-	turn lthigh to z-axis <-10.103126> speed <151.418301>;
-	if (leftArm) turn luparm to x-axis <19.231610> speed <69.841862>;
-	if (leftArm) turn luparm to y-axis <7.211138> speed <46.845002>;
-	if (leftArm) turn luparm to z-axis <-16.200000> speed <28.500010>;
-	turn pelvis to y-axis <0.000000> speed <21.666665>;
-	turn pelvis to z-axis <0.000000> speed <18.055557>;
-	turn rfoot to x-axis <0.415283> speed <248.713120>;
-	turn rleg to x-axis <25.768060> speed <346.011740>;
-	turn rleg to y-axis <0.000000> speed <6.521982>;
-	turn rleg to z-axis <0.000000> speed <6.524652>;
-	if (rightArm) turn rloarm to x-axis <-53.199995> speed <51.638894>;
-	turn rthigh to x-axis <-21.950628> speed <255.149679>;
-	turn rthigh to y-axis <-11.905752> speed <66.515336>;
-	turn rthigh to z-axis <9.396449> speed <151.125663>;
-	if (rightArm) turn ruparm to x-axis <24.693159> speed <39.648544>;
-	if (rightArm) turn ruparm to y-axis <0.000000> speed <31.089853>;
-	if (rightArm) turn ruparm to z-axis <12.399998> speed <-7.153845>;
-	turn aimy1 to x-axis <-2.263907> speed <15.181924>;
-	turn aimy1 to y-axis <0.000000> speed <59.095757>;
-	turn aimy1 to z-axis <0.000000> speed <18.561539>;
+	if (leftArm) turn biggun to x-axis <-52.006372> speed <7>;
+	turn head to x-axis <-1.298815> speed <3>;
+	turn head to y-axis <0.000000> speed <7>;
+	turn lfoot to x-axis <2.870126> speed <70>;
+	turn lleg to x-axis <22.425678> speed <90>;
+	turn lleg to y-axis <0.000000> speed <2>;
+	turn lleg to z-axis <0.000000> speed <2>;
+	turn lthigh to x-axis <-21.115098> speed <64>;
+	turn lthigh to y-axis <11.110453> speed <17>;
+	turn lthigh to z-axis <-10.103126> speed <38>;
+	if (leftArm) turn luparm to x-axis <19.231610> speed <17>;
+	if (leftArm) turn luparm to y-axis <7.211138> speed <12>;
+	if (leftArm) turn luparm to z-axis <-16.200000> speed <7>;
+	turn pelvis to y-axis <0.000000> speed <5>;
+	turn pelvis to z-axis <0.000000> speed <4.5>;
+	turn rfoot to x-axis <0.415283> speed <62>;
+	turn rleg to x-axis <25.768060> speed <87>;
+	turn rleg to y-axis <0.000000> speed <1.6>;
+	turn rleg to z-axis <0.000000> speed <1.6>;
+	if (rightArm) turn rloarm to x-axis <-53.199995> speed <13>;
+	turn rthigh to x-axis <-21.950628> speed <64>;
+	turn rthigh to y-axis <-11.905752> speed <17>;
+	turn rthigh to z-axis <9.396449> speed <38>;
+	if (rightArm) turn ruparm to x-axis <24.693159> speed <10>;
+	if (rightArm) turn ruparm to y-axis <0.000000> speed <8>;
+	if (rightArm) turn ruparm to z-axis <12.399998> speed <-1.8>;
+	turn aimy1 to x-axis <-2.263907> speed <3.8>;
+	turn aimy1 to y-axis <0.000000> speed <15>;
+	turn aimy1 to z-axis <0.000000> speed <4.6>;
 }
 // REMEMBER TO animspeed = 4 in Create() !!
 UnitSpeed(){
@@ -430,11 +430,11 @@ UnitSpeed(){
 	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
-		if (animSpeed<4.5) animSpeed=4.5;
-		animSpeed = (maxSpeed * 27 / 10) / animSpeed;
+		if (animSpeed<7) animSpeed=7;
+		animSpeed = (maxSpeed * 54 / 10) / animSpeed;
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
-		if (animSpeed<12) animSpeed = 12;
-		if (animspeed>36) animSpeed = 36;
+		if (animSpeed<12) animSpeed = 18;
+		if (animspeed>54) animSpeed = 54;
 		sleep 131;
 	}
 }
@@ -484,13 +484,14 @@ Create(){
 	hide teleport;
 	hide railflarer;
 	hide railflarel;
+	hide Ref_Point;
 	//turn rloarm to  x-axis <-15> speed <130.0000> ; //-- Turn(rloarm, x-axis, math.rad(-15),math.rad(130))
 	turn lflare to x-axis <90> now; //	Turn(lflare, x-axis,math.rad(90))
 	turn flare to x-axis <90> now;
 	turn nano to x-axis <90> now; //Turn(nano, x-axis,math.rad(90))
 	turn laserflare to x-axis <90> now; //	Turn(laserflare, x-axis,math.rad(90))
 	spin dish around y-axis speed <100>; //Spin(dish, y-axis, 2.5)
-	animSpeed = 18;
+	animSpeed = 27;
 	gun_1 = 1;
 	torsoaim = 0;
 	bMoving = 0;
@@ -528,6 +529,7 @@ RestoreAfterDelay(){
 	rightarm = 1;
 	leftarm = 1;
 	wpn1_lasthead = 1000000;
+	wpn4_lasthead = 1000000;
 }
 
 
@@ -574,10 +576,59 @@ AimPrimary(heading, pitch) //pew pew
 	//call-script FixArms(0, 1);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn torso to  y-axis heading + <10> speed <100.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
-	torsoaim = heading;
-	turn rloarm to  x-axis <-55> speed <130.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-	turn ruparm to x-axis <-40> - pitch speed <130.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
+	turn torso to  y-axis heading + <10> speed <50.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	
+	
+	var gun_xz;
+    gun_xz = get PIECE_XZ(rloarm);                                //get packed gun coordinates
+    var gun_x;
+    gun_x = (gun_xz & 0xffff0000) / 0x00010000;                //unpack x coordinates of gun (credit for unpack code goes to Beherith)
+    var gun_z;
+    gun_z = (gun_xz & 0x0000ffff);                            //unpack z coordinates of gun
+    
+    var turret_xz;
+    turret_xz = get PIECE_XZ(flare);                        //get packed turret coordinates
+    var turret_x;
+    turret_x = (turret_xz & 0xffff0000) / 0x00010000;        //unpack x coordinates of turret
+    var turret_z;
+    turret_z = (turret_xz & 0x0000ffff);                    //unpack z coordinates of turret
+    
+    var aim_x;
+    var aim_z;
+    aim_x = gun_x - turret_x;                                //calculate relative coordinates of the gun to the turret (how far away it is in each direction)
+    aim_z = gun_z - turret_z;
+    
+    
+    var hull_xz;
+    hull_xz = get PIECE_XZ(pelvis);                            //get packed hull coordinates
+    var hull_x;
+    hull_x = (hull_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of hull
+    var hull_z;
+    hull_z = (hull_xz & 0x0000ffff);                        //unpack z coordinates of hull
+    
+    var smoke_xz;
+    smoke_xz = get PIECE_XZ(Ref_Point);                            //get packed smoke coordinates
+    var smoke_x;
+    smoke_x = (smoke_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of smoke
+    var smoke_z;
+    smoke_z = (smoke_xz & 0x0000ffff);                        //unpack z coordinates of smoke
+    
+    var face_x;
+    var face_z;
+    face_x = hull_x - smoke_x;                                //calculate relative coordinates of the hull to the smoke (how far away it is in each direction)
+    face_z = hull_z - smoke_z;
+	
+	var cauaim;
+    var cauface;
+    cauaim = get ATAN(aim_z, aim_x);                        //use arctan (ATAN) to calculate the angle of the turret. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
+    cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
+    
+    //var torsoaim;
+    torsoaim = cauface - cauaim;                                //calculate angle of turret relative to the hull
+	//torsoaim = heading;
+	
+	turn rloarm to  x-axis <-55> speed <50.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
+	turn ruparm to x-axis <-40> - pitch speed <50.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
@@ -597,7 +648,7 @@ AimPrimary(heading, pitch) //pew pew
 
 FirePrimary()
 {
-	spin barrelr around y-axis speed <300.000000>;
+	spin barrelr around y-axis speed <100.000000>;
 	return (1);
 }
 
@@ -641,7 +692,7 @@ AimSecondary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
-	torsoaim = heading;
+	//torsoaim = heading;
 	turn rloarm to  x-axis <-55> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 	turn ruparm to x-axis <-40> - pitch speed <390.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
 	wait-for-turn torso around y-axis;
@@ -728,7 +779,6 @@ AimFromWeapon4(piecenum)
 
 FireWeapon4()
 {	
-	gun_1 = !gun_1;
 	if (gun_1){
 		emit-sfx 1024 + 0 from railflarer;
 		move barrel1r to z-axis [-3.000000] speed [500.000000];
@@ -740,7 +790,7 @@ FireWeapon4()
 		move barrel2r to z-axis [0.000000] speed [3.000000];	
 		move barrel3r to z-axis [0.000000] speed [3.000000];	
 		move barrel4r to z-axis [0.000000] speed [3.000000];
-		//sleep 800;
+		sleep 600;
 		gun_1 = 2;	
 	}
 	else {
@@ -754,9 +804,10 @@ FireWeapon4()
 		move barrel2l to z-axis [0.000000] speed [3.000000];	
 		move barrel3l to z-axis [0.000000] speed [3.000000];	
 		move barrel4l to z-axis [0.000000] speed [3.000000];
-		//sleep 800;
+		sleep 600;
 		gun_1 = 0;	
 	}
+	gun_1 = !gun_1;
 }
 
 AimWeapon4(heading, pitch)
@@ -767,10 +818,15 @@ AimWeapon4(heading, pitch)
 	turn railsleever to x-axis <0> - pitch speed <80.000000>;
 	turn railturretl to y-axis heading - torsoaim speed <100.000000>;
 	turn railsleevel to x-axis <0> - pitch speed <80.000000>;
-	wait-for-turn railturretr around y-axis;
-	wait-for-turn railsleever around x-axis;
-	wait-for-turn railturretl around y-axis;
-	wait-for-turn railsleevel around x-axis;
+	if (((get ABS(wpn4_lasthead - heading)) > 65536) OR(((get ABS(wpn4_lasthead - heading)) > 3000) AND ((get ABS(wpn4_lasthead - heading)) < 64236)))
+	{
+		wpn4_lasthead = 1000000;
+		wait-for-turn railturretr around y-axis;
+		wait-for-turn railsleever around x-axis;
+		wait-for-turn railturretl around y-axis;
+		wait-for-turn railsleevel around x-axis;
+	}
+	wpn4_lasthead = heading;
 	return (1);
 }
 

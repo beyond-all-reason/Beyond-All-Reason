@@ -15,9 +15,12 @@ local decalAlpha = 0.33
 
 --------------- Atlas textures ----------------
 
-local atlasID = nil
-local atlasSize = 4096
+
+local atlas = VFS.Include("unittextures/decals_features/featureaoplates_atlas.lua")
+local getUVCoords = atlas.getUVCoords
+atlas.flip(atlas)
 local atlassedImages = {}
+
 local featureDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 4 , sizez = 4}
 -- remember, we can use xXyY = gl.GetAtlasTexture(atlasID, texture) to query the atlas
 
@@ -29,12 +32,10 @@ local function basepath(s,pattern)
 end
 
 local function addDirToAtlas(atlas, path)
-	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
-	local files = VFS.DirList(path)
+
 	--Spring.Echo("Adding",#files, "images to atlas from", path)
 	for i=1, #files do
 		if imgExts[string.sub(files[i],-3,-1)] then
-			gl.AddAtlasTexture(atlas,files[i])
 			local s3oname = basepath(files[i],'/')
 			if string.find(s3oname, "_dead", 1 , true) then 
 				--Spring.Echo('s3oname',s3oname)
@@ -54,10 +55,25 @@ local function addDirToAtlas(atlas, path)
 end
 
 local function makeAtlas()
-	atlasID = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
-	addDirToAtlas(atlasID, "unittextures/decals_features/")
-	local success = gl.FinalizeTextureAtlas(atlasID)
-	if not success then Spring.Echo("Failed to build atlas for Ground AO plates Features") end 
+	for filename, uvs in pairs(atlas) do
+		if type(uvs) == "table" then 
+
+			local s3oname = basepath(filename,'/')
+			if string.find(s3oname, "_dead", 1 , true) then 
+				--Spring.Echo('s3oname',s3oname)
+				s3oname = string.sub(s3oname, 1,	string.find(s3oname, "_dead", 1 , true) + 4)
+				atlassedImages[s3oname] = filename
+			elseif string.find(s3oname, "arm.x.._._", 1) or string.find(s3oname, "cor.x.._._", 1) then 
+				s3oname = string.sub(s3oname, 1,7)
+				
+				--Spring.Echo('s3oname',s3oname)
+				atlassedImages[s3oname] = filename
+			else
+				--Spring.Echo('Custom Feature AO plate:',s3oname, filename)])
+				atlassedImages[s3oname] = filename
+			end
+		end
+	end
 end
 
 ---- GL4 Backend Stuff----
@@ -83,7 +99,7 @@ local function AddPrimitiveAtUnit(featureID, featureDefID, noUpload)
 	local numVertices = 4 -- default to circle
 	local additionalheight = 0
 	
-	local p,q,s,t = gl.GetAtlasTexture(atlasID, decalInfo.texfile)
+	local p,q,s,t = getUVCoords(atlas, decalInfo.texfile)
 	--Spring.Echo (featureDefID,featureID,decalInfo.texfile, decalInfo.sizez, decalInfo.sizex , decalInfo.alpha, p, q, s,t)
 	
 	pushElementInstance(
@@ -92,7 +108,7 @@ local function AddPrimitiveAtUnit(featureID, featureDefID, noUpload)
 			0, --Spring.GetUnitTeam(featureID), -- teamID
 			numVertices, -- how many trianges should we make
 			gf, 0, decalInfo.alpha * decalAlpha, 0, -- the gameFrame (for animations), and any other parameters one might want to add
-			q,p,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+			q,p,t,s, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
 			0, 0, 0, 0}, -- these are just padding zeros, that will get filled in 
 		featureID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
@@ -109,15 +125,21 @@ local function ProcessAllFeatures()
 	end
 	uploadAllElements(groundPlateVBO)
 end
-
+local firstRun = true
 function widget:DrawWorldPreUnit()
+	if firstRun then 
+		glTexture(0, atlas.atlasimage)
+		glTexture(0, false)
+		firstRun = false
+	end
+		
 	if groundPlateVBO.usedElements > 0 then 
 		local disticon = Spring.GetConfigInt("FeatureFadeDistance", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		glCulling(GL_BACK)
 		glDepthTest(GL_LEQUAL)
 		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		--glDepthTest(false)
-		glTexture(0, atlasID)
+		glTexture(0, atlas.atlasimage)
 		groundPlateShader:Activate()
 		groundPlateShader:SetUniform("iconDistance",disticon) 
 		groundPlateShader:SetUniform("addRadius",0) 
@@ -279,10 +301,3 @@ function widget:GameFrame()
 end
 
 	
-	
-
-function widget:ShutDown()
-	if atlasID ~= nil then 
-		gl.DeleteTextureAtlas(atlasID)
-	end
-end

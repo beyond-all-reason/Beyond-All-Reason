@@ -1,10 +1,10 @@
 return {
 	coruwadvms = {
 		buildangle = 6093,
-		buildcostenergy = 11000,
-		buildcostmetal = 760,
+		energycost = 11000,
+		metalcost = 760,
 		buildpic = "CORUWADVMS.DDS",
-		buildtime = 20524,
+		buildtime = 20500,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		collisionvolumeoffsets = "-6 0 0",
@@ -17,7 +17,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 11200,
+		health = 11200,
 		maxslope = 20,
 		maxwaterdepth = 9999,
 		metalstorage = 10000,

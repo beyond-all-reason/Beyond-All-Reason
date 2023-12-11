@@ -47,7 +47,7 @@ end
 	v36   (Floris): show grey player name for missing + dead players
 	v37   (Floris/Borg_King): add support for much larger player/spec counts  64 -> 256
 	v38   (Floris): significant performance improvement, + fast updating resources
-	v39   (Floris): auto compress when large amount (33+) of players are participating (same is seperately applied for spectator list)
+	v39   (Floris): auto compress when large amount (33+) of players are participating (same is separately applied for spectator list)
 ]]
 --------------------------------------------------------------------------------
 -- Config
@@ -194,8 +194,8 @@ local now = 0
 
 local timeCounter = 9
 local timeFastCounter = 9
-local updateRate = 0.75
-local updateFastRate = 0.09 -- only updates resources
+local updateRate = 0.8
+local updateFastRate = 0.15 -- only updates resources
 local lastTakeMsg = -120
 local hoverPlayerlist = false
 
@@ -1395,12 +1395,19 @@ function SortList()
 
 
     local aliveTeams = 0
+    local deadTeams = 0
     for _, team in ipairs(teamList) do
         if not select(3, Spring_GetTeamInfo(team, false)) then
             aliveTeams = aliveTeams  + 1
+        else
+            deadTeams = deadTeams + 1
         end
     end
-    playerScale = math.max(0.5, math.min(1, 33 / ((aliveTeams+((#teamList-aliveTeams)*0.5))-1)))
+    local deadTeamSize = 0.7
+    playerScale = math.max(0.5, math.min(1, 33 / ((aliveTeams+(deadTeams*deadTeamSize)+((#teamList-(aliveTeams+(deadTeams*deadTeamSize)))*0.5))-1)))
+    if #Spring_GetAllyTeamList() > 24 then
+        playerScale = playerScale - (playerScale * ((#Spring_GetAllyTeamList()-2)/500))  -- reduce size some more when mega ffa
+    end
 
     -- calls the (cascade) sorting for players
     vOffset = SortAllyTeams(vOffset)
@@ -1994,6 +2001,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 
     local name = player[playerID].name
     local team = player[playerID].team
+    if not team then return end -- this prevents error when co-op / joinas is active
+
     local allyteam = player[playerID].allyteam
     local pingLvl = player[playerID].pingLvl
     local cpuLvl = player[playerID].cpuLvl
@@ -3069,14 +3078,8 @@ function widget:MousePress(x, y, button)
                                         if clickedPlayer.team == myTeamID then
                                             Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
                                         else
-                                            local unitsCount = Spring.GetSelectedUnitsCount()
-                                            Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.giveUnits', { count = unitsCount, name = clickedPlayer.name }))
-                                            local selectedUnits = Spring.GetSelectedUnits()
-                                            for i = 1, #selectedUnits do
-                                                local ux, uy, uz = Spring.GetUnitPosition(selectedUnits[i])
-                                                Spring.MarkerAddPoint(ux, uy, uz)
-                                            end
                                             Spring_ShareResources(clickedPlayer.team, "units")
+                                            Spring.PlaySoundFile("beep4", 1, 'ui')
                                         end
                                     end
                                     release = nil
@@ -3717,7 +3720,7 @@ function widget:ViewResize()
 		--AdvPlayersListAtlas:Delete()
 	end
 
-	local cellheight = math.min(32, math.ceil(math.max(font.size, font2.size) + 4))
+	local cellheight = math.max(32, math.ceil(math.max(font.size, font2.size) + 4))
 	local cellwidth = math.ceil(cellheight*1.25)
 	local cellcount = math.ceil(math.sqrt(32+32 + 200))
 	local atlasconfig = {sizex = cellheight * cellcount, sizey =  cellwidth*cellcount, xresolution = cellheight, yresolution = cellwidth, name = "AdvPlayersListAtlas", defaultfont = {font = font, options = 'o'}}

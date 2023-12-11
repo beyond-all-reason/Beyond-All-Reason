@@ -1,11 +1,11 @@
 return {
 	corvroc = {
-		acceleration = 0.02489,
-		brakerate = 0.04978,
-		buildcostenergy = 6700,
-		buildcostmetal = 880,
+		maxacc = 0.02489,
+		maxdec = 0.04978,
+		energycost = 6700,
+		metalcost = 880,
 		buildpic = "CORVROC.DDS",
-		buildtime = 15002,
+		buildtime = 15000,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -9 -2",
@@ -18,9 +18,9 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		maxdamage = 1390,
+		health = 1390,
 		maxslope = 16,
-		maxvelocity = 1.1,
+		speed = 33.0,
 		maxwaterdepth = 12,
 		movementclass = "HTANK4",
 		nochasecategory = "MOBILE VTOL",
@@ -38,7 +38,7 @@ return {
 		turninplacespeedlimit = 0.792,
 		turnrate = 520.29999,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles/t2",
@@ -160,6 +160,7 @@ return {
 		},
 		weapons = {
 			[1] = {
+				badtargetcategory = "MOBILE",
 				def = "CORTRUCK_ROCKET",
 				onlytargetcategory = "SURFACE",
 			},

@@ -11,31 +11,12 @@ function widget:GetInfo()
 end
 
 -- Configurable Parts:
-local atlasID = nil
-local atlasSize = 2048
 local groundaoplatealpha = 1.0
 
-local atlassedImages = {}
+local atlas = VFS.Include("unittextures/decals/unitaoplates_atlas.lua")
+local getUVCoords = atlas.getUVCoords
+atlas.flip(atlas)
 local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 4 , sizez = 4}
--- remember, we can use xXyY = gl.GetAtlasTexture(atlasID, texture) to query the atlas
-
-local function addDirToAtlas(atlas, path)
-	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
-	local files = VFS.DirList(path)
-	--Spring.Echo("Adding",#files, "images to atlas from", path)
-	for i=1, #files do
-		if imgExts[string.sub(files[i],-3,-1)] then
-			gl.AddAtlasTexture(atlas,files[i])
-			atlassedImages[files[i]] = true
-		end
-	end
-end
-
-local function makeAtlas()
-	atlasID = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
-	addDirToAtlas(atlasID, "unittextures/decals/")
-	gl.FinalizeTextureAtlas(atlasID)
-end
 
 local groundPlateVBO = nil
 local groundPlateShader = nil
@@ -63,7 +44,9 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload,reason)
 	if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then return end -- these cant/dont have plates
 	
 	local decalInfo = unitDefIDtoDecalInfo[unitDefID]
-	local p,q,s,t = glGetAtlasTexture(atlasID, decalInfo.texfile)
+	
+	local p,q,s,t = getUVCoords(atlas, decalInfo.texfile)
+	--Spring.Echo(decalInfo.texfile, p,q,s,t)
 
 	return pushElementInstance(
 		groundPlateVBO, -- push into this Instance VBO Table
@@ -71,7 +54,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload,reason)
 			0, -- Spring.GetUnitTeam(unitID), -- teamID, but its not used here so just pass zero
 			4, -- how many vertices should we make (4 is a quad)
 			gf, 0, decalInfo.alpha, 0, -- the gameFrame (for animations), and any other parameters one might want to add
-			q,p,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+			q,p,t,s, -- These are our default UV atlas tranformations, note how Y axis is flipped for atlas
 			0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
 		unitID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
@@ -79,13 +62,19 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload,reason)
 		unitID) -- last one should be UNITID! 
 end
 
+local firstRun = true
 function widget:DrawWorldPreUnit()
+	if firstRun then 
+		glTexture(0, atlas.atlasimage)
+		glTexture(0, false)
+		firstRun = false
+	end
 	if groundPlateVBO.usedElements > 0 then
 		--Spring.Echo(groundPlateVBO.usedElements)
 		glCulling(GL_BACK)
 		glDepthTest(GL_LEQUAL)
 		glDepthMask(false) --"BK OpenGL state resets", default is already false, could remove
-		glTexture(0, atlasID)
+		glTexture(0, atlas.atlasimage)
 		groundPlateShader:Activate()
 		groundPlateVBO.VAO:DrawArrays(GL_POINTS,groundPlateVBO.usedElements)
 		groundPlateShader:Deactivate()
@@ -99,7 +88,7 @@ end
 
 function widget:Initialize()
 	-- Init texture atlas
-	makeAtlas()
+	--makeAtlas()
 	
 	-- Init the unitDefIDtoDecalInfo
 	for id , unitDefID in pairs(UnitDefs) do
@@ -107,8 +96,8 @@ function widget:Initialize()
 		if UD.customParams and UD.customParams.usebuildinggrounddecal and UD.customParams.buildinggrounddecaltype then
 			--local UD.name
 			local texname = "unittextures/" .. UD.customParams.buildinggrounddecaltype
-			---Spring.Echo(texname)
-			if atlassedImages[texname] then
+			--Spring.Echo(texname)
+			if atlas[texname] then
 				unitDefIDtoDecalInfo[id] = {
 						texfile = texname,
 						-- note that this is hacky, as customparams are always strings, but multiplying number with stringnumber is number
@@ -170,8 +159,3 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 	end
 end
 
-function widget:ShutDown()
-	if atlasID ~= nil then
-		gl.DeleteTextureAtlas(atlasID)
-	end
-end

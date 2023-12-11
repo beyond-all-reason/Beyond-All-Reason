@@ -268,7 +268,7 @@ if gadgetHandler:IsSyncedCode() then
 			local tx, tz = px + r * math_sin(theta), pz + r * math_cos(theta)
 			local ty = Spring.GetGroundHeight(tx, tz)
 			--local uDID = Spring.GetUnitDefID(unitID)
-			--local cruiseAlt = UnitDefs[uDID].wantedHeight
+			--local cruiseAlt = UnitDefs[uDID].cruiseAltitude
 			Spring.GiveOrderToUnit(unitID, CMD_MOVE, { tx, ty, tz }, 0)
 		end
 	end

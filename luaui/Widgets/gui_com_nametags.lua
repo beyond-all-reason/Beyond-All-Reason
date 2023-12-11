@@ -315,8 +315,12 @@ end
 
 
 local function CheckCom(unitID, unitDefID, unitTeam)
-	if comHeight[unitDefID] and unitTeam ~= GaiaTeam then
-		comms[unitID] = GetCommAttributes(unitID, unitDefID)
+	if comHeight[unitDefID] then
+		if unitTeam ~= GaiaTeam then
+			comms[unitID] = GetCommAttributes(unitID, unitDefID)
+		end
+	elseif comms[unitID] then
+		comms[unitID] = nil
 	end
 end
 

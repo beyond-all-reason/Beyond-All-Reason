@@ -1,9 +1,9 @@
 return {
 	armapt3 = {
-		acceleration = 0,
-		brakerate = 0,
-		buildcostenergy = 60000,
-		buildcostmetal = 8500,
+		maxacc = 0,
+		maxdec = 0,
+		energycost = 60000,
+		metalcost = 8500,
 		builder = true,
 		buildpic = "ARMAP.DDS",
 		buildtime = 72400,
@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 11100,
+		health = 11100,
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 1000,

@@ -43,7 +43,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 	--local nonCrashable = {'armpeep', 'corfink', 'corbw', 'armfig', 'armsfig', 'armhawk', 'corveng', 'corsfig', 'corvamp'}
-	local nonCrashable = {'armpeep', 'corfink', 'corbw'}
+	local nonCrashable = {'armpeep', 'corfink', 'corbw', 'legkam'}
 	for udid, ud in pairs(UnitDefs) do
 		for _, unitname in pairs(nonCrashable) do
 			if string.find(ud.name, unitname) then

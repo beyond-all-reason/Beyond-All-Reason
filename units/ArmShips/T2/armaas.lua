@@ -1,11 +1,11 @@
 return {
 	armaas = {
-		acceleration = 0.03875,
+		maxacc = 0.03875,
 		airsightdistance = 900,
-		brakerate = 0.03875,
+		maxdec = 0.03875,
 		buildangle = 16384,
-		buildcostenergy = 12000,
-		buildcostmetal = 1000,
+		energycost = 12000,
+		metalcost = 1000,
 		buildpic = "ARMAAS.DDS",
 		buildtime = 15000,
 		canmove = true,
@@ -21,8 +21,8 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3900,
-		maxvelocity = 2.1,
+		health = 3900,
+		speed = 63.0,
 		minwaterdepth = 30,
 		movementclass = "BOAT4",
 		nochasecategory = "NOTAIR",
@@ -192,8 +192,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 880,
 				damage = {
-					bombers = 63,
-					fighters = 63,
 					vtol = 63,
 				},
 			},
@@ -228,8 +226,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1300,
 				damage = {
-					bombers = 200,
-					fighters = 400,
 					vtol = 200,
 				},
 				rgbcolor = {
