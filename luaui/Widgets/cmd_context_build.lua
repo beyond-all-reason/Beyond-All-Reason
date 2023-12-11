@@ -188,11 +188,12 @@ function widget:Update(deltaTime)
 	end
 
 	local x, y, lmb, mmb, rmb = spGetMouseState()
-	local dist = distance2dSquared(mouseDownPos[1], mouseDownPos[3], pos[1], pos[3])
 
-	if mouseDownPos and lmb and dist > 100 then
+	if mouseDownPos and lmb then
 		-- currently doing a build drag, don't swap buildings
-		return
+		if distance2dSquared(mouseDownPos[1], mouseDownPos[3], pos[1], pos[3]) > 100 then
+			return
+		end
 	end
 
 	-- Check both arrays for a match with the current building cmd
