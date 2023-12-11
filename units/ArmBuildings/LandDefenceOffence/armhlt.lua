@@ -1,10 +1,10 @@
 return {
 	armhlt = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 8192,
-		buildcostenergy = 4700,
-		buildcostmetal = 440,
+		energycost = 4700,
+		metalcost = 440,
 		buildpic = "ARMHLT.DDS",
 		buildtime = 12500,
 		canrepeat = false,
@@ -19,7 +19,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2600,
+		health = 2600,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",

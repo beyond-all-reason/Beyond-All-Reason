@@ -200,8 +200,8 @@ else
 			if string.find(unitDef.name,'corint') or string.find(unitDef.name,'armbrtha') or string.find(unitDef.name,'corbuzz') or string.find(unitDef.name,'armvulc') or string.find(unitDef.name,'legstarfall') then
 				isLrpc[unitDefID] = true
 			end
-			if unitDef.isBuilding and unitDef.radarRadius > 1900 then
-				isRadar[unitDefID] = unitDef.radarRadius
+			if unitDef.isBuilding and unitDef.radarDistance > 1900 then
+				isRadar[unitDefID] = unitDef.radarDistance
 			end
 			if unitDef.extractsMetal > 0 then
 				isMex[unitDefID] = unitDef.extractsMetal

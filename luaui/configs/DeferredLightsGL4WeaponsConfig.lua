@@ -22,6 +22,8 @@
 local exampleLight = {
 	lightType = 'point', -- or cone or beam
 	pieceName = nil, -- optional
+	yOffset = 10, -- optional, gives extra Y height
+	fraction = 3, -- optional, only every nth projectile gets the effect (randomly)
 	lightConfig = {
 		posx = 0, posy = 0, posz = 0, radius = 0,
 		r = 1, g = 1, b = 1, a = 1,
@@ -103,12 +105,13 @@ local BaseClasses = {
 
 	FlameProjectile = {
 		lightType = 'point', -- or cone or beam
+		fraction = 2, -- only spawn every nth light
 		lightConfig = {
 			posx = 0, posy = 15, posz = 0, radius = 25,
-			r = 1, g = 0.9, b = 0.6, a = 0.068,
-			color2r = 0.75, color2g = 0.45, color2b = 0.22, colortime = 10, -- point lights only, colortime in seconds for unit-attached
-			modelfactor = 0.2, specular = 0.5, scattering = 0.5, lensflare = 0,
-			lifetime = 25, sustain = 0, aninmtype = 0, -- unused
+			r = 1.0, g = 0.9, b = 0.6, a = 0.086,
+			color2r = 0.75, color2g = 0.45, color2b = 0.22, colortime = 15, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = 0.2, specular = 0.5, scattering = 0.8, lensflare = 0,
+			lifetime = 23, sustain = 0, aninmtype = 0, -- unused
 		},
 	},
 
@@ -407,7 +410,7 @@ local function AssignLightsToAllWeapons()
 		elseif weaponDef.type == 'Flame' then
 			--sizeclass = "Small"
 			sizeclass = GetClosestSizeClass(radius*3)
-			t.a = orgMult*0.17
+			t.a = orgMult*0.17 * 2
 			projectileDefLights[weaponID] = GetLightClass("FlameProjectile", "Fire", sizeclass, t)
 		end
 

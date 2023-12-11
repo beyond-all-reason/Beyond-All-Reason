@@ -1143,11 +1143,11 @@ function ArmyHST:GetUnitTable()
 		utable.humanName = unitDef.humanName
 		utable.side = side
 		utable.defId = unitDefID
-		utable.radarRadius = unitDef["radarRadius"]
-		utable.airLosRadius = unitDef["airLosRadius"]
-		utable.losRadius = unitDef["losRadius"]
-		utable.sonarRadius = unitDef["sonarRadius"]
-		utable.jammerRadius = unitDef["jammerRadius"]
+		utable.radarDistance = unitDef["radarDistance"]
+		utable.airSightDistance = unitDef["airSightDistance"]
+		utable.sightDistance = unitDef["sightDistance"]
+		utable.sonarDistance = unitDef["sonarDistance"]
+		utable.radarDistanceJam = unitDef["radarDistanceJam"]
 		utable.stealth = unitDef.stealth
 		utable.metalCost = unitDef.metalCost
 		utable.energyCost = unitDef.energyCost
@@ -1393,8 +1393,8 @@ function ArmyHST:GetUnitTable()
 		utable.bigExplosion = unitDef["deathExplosion"] == "atomic_blast"
 		utable.xsize = unitDef["xsize"]
 		utable.zsize = unitDef["zsize"]
-		utable.wreckName = unitDef["wreckName"]
-		self.wrecks[unitDef["wreckName"]] = unitDef["name"]
+		utable.corpse = unitDef["corpse"]
+		self.wrecks[unitDef["corpse"]] = unitDef["name"]
 		--end
 	end
 end
