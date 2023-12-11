@@ -52,7 +52,7 @@ function widget:Initialize()
         'hover'..columnSeparator..
         'ship'..columnSeparator..
         'tank'..columnSeparator..
-        'kbot'..columnSeparator..
+        'bot'..columnSeparator..
         'building'..columnSeparator..
         'dps'..columnSeparator..
         'weaponrange'..columnSeparator..
@@ -315,7 +315,7 @@ function widget:Initialize()
                     (unitDef.modCategories["hover"] and '1' or '')..columnSeparator..
                     (unitDef.modCategories["ship"] and '1' or '')..columnSeparator..
                     (unitDef.modCategories["tank"] and '1' or '')..columnSeparator..
-                    (unitDef.modCategories["kbot"] and '1' or '')..columnSeparator..
+                    (unitDef.modCategories["bot"] and '1' or '')..columnSeparator..
                     ((unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) and '1' or '')..columnSeparator..
                     dps..columnSeparator..
                     weaponRange..columnSeparator..
