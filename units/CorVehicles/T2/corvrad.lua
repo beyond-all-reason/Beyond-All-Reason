@@ -1,8 +1,8 @@
 return {
 	corvrad = {
-		maxacc = 0.01043,
+		maxacc = 0.02086,
 		activatewhenbuilt = true,
-		maxdec = 0.02086,
+		maxdec = 0.04172,
 		energycost = 1300,
 		metalcost = 92,
 		buildpic = "CORVRAD.DDS",
@@ -38,7 +38,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.825,
-		turnrate = 210,
+		turnrate = 315,
 		customparams = {
 			unitgroup = 'util',
 			model_author = "Beherith",
