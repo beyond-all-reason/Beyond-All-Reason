@@ -277,15 +277,17 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 	end
 
 	-- order secondary builders to guard main builders, equally dispersed
-	local index = 1
-	for i, uid in pairs(secondaryBuilders) do
-		if not options.shift then
-			spGiveOrderToUnit(uid, CMD_STOP, {}, CMD_OPT_RIGHT)
+	if not justDraw then
+		local index = 1
+		for i, uid in pairs(secondaryBuilders) do
+			if not options.shift then
+				spGiveOrderToUnit(uid, CMD_STOP, {}, CMD_OPT_RIGHT)
+			end
+			local mainBuilderId = mainBuilders[index]
+			spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { "shift" })
+			index = index + 1
+			if index > #mainBuilders then index = 1 end
 		end
-		local mainBuilderId = mainBuilders[index]
-		spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { "shift" })
-		index = index + 1
-		if index > #mainBuilders then index = 1 end
 	end
 
 	if #mainBuilders == 0 then return end
