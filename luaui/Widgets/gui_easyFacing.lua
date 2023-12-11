@@ -257,11 +257,13 @@ local function drawOrientation()
 	glColor(0.0, 1.0, 0.0, 0.45)
 
 	glPushMatrix()
+	gl.DepthTest(false)
 	glTranslate(centerX + transX, centerY, centerZ + transZ)
 	glRotate((3 + facing) * 90, 0, 1, 0)
 	glScale((transSpace or 70)/70, 1.0, (transSpace or 70)/70)
 	glBeginEnd(GL_TRIANGLES, drawFunc)
 	glScale(1.0, 1.0, 1.0)
+	gl.DepthTest(true)
 	glPopMatrix()
 	glColor(1.0, 1.0, 1.0, 1.0)
 end

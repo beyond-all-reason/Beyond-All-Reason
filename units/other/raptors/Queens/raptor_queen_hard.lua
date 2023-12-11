@@ -1,12 +1,12 @@
 return {
 	raptor_queen_hard = {
-		acceleration = 0.1,
+		maxacc = 0.1,
 		airsightdistance = 2400,
 		autoheal = 40,
 
-		brakerate = 0.1,
-		buildcostenergy = 2000000,
-		buildcostmetal = 50000,
+		maxdec = 0.1,
+		energycost = 2000000,
+		metalcost = 50000,
 		builder = false,
 		buildpic = "raptors/h_raptorq.DDS",
 		buildtime = 1500000,
@@ -30,9 +30,9 @@ return {
 		leavetracks = true,
 		maneuverleashlength = 2000,
 		mass = 2000000,
-		maxdamage = 1000000,
+		health = 1000000,
 		maxslope = 40,
-		maxvelocity = 2.5,
+		speed = 75.0,
 		maxwaterdepth = 0,
 		movementclass = "RAPTORQUEENHOVER",
 		noautofire = false,

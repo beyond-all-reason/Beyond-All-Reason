@@ -1,11 +1,11 @@
 return {
 	cordronecarry = {
-		acceleration = 0.01722,
+		maxacc = 0.01722,
 		activatewhenbuilt = true,
-		brakerate = 0.01722,
+		maxdec = 0.01722,
 		buildangle = 16384,
-		buildcostenergy = 13000,
-		buildcostmetal = 1300,
+		energycost = 13000,
+		metalcost = 1300,
 		buildpic = "CORDRONECARRY.DDS",
 		buildtime = 20000,
 		canmove = true,
@@ -18,7 +18,7 @@ return {
 		corpse = "DEAD",
 		energymake = 25,
 		energystorage = 1500,
-		energyuse = 25,
+		energyupkeep = 25,
 		explodeas = "hugeexplosiongeneric",
 		floater = true,
 		footprintx = 6,
@@ -26,10 +26,10 @@ return {
 		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 600,
-		losemitheight = 56,
+		sightemitheight = 56,
 		mass = 10000,
-		maxdamage = 3500,
-		maxvelocity = 2.1,
+		health = 3500,
+		speed = 63.0,
 		minwaterdepth = 15,
 		movementclass = "BOAT8",
 		nochasecategory = "VTOL",
@@ -155,8 +155,8 @@ return {
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 6, 				--Spawnrate roughly in seconds.
 					maxunits = 10,				--Will spawn units until this amount has been reached.
-					buildcostenergy = 1000,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					buildcostmetal = 40,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					energycost = 1000,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 40,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1400,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 9,
 					attackformationspread = 200,	--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.

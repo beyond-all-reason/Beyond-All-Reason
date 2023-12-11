@@ -1,10 +1,10 @@
 return {
 	raptor_land_spiker_basic_t2_v1 = {
-		acceleration = 1.725,
+		maxacc = 1.725,
 
-		brakerate = 1.4375,
-		buildcostenergy = 174,
-		buildcostmetal = 174,
+		maxdec = 1.4375,
+		energycost = 174,
+		metalcost = 174,
 		builder = false,
 		buildpic = "raptors/raptors1.DDS",
 		buildtime = 3750,
@@ -28,9 +28,9 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "750",
 		mass = 900,
-		maxdamage = 910,
+		health = 910,
 		maxslope = 18,
-		maxvelocity = 5,
+		speed = 150.0,
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,

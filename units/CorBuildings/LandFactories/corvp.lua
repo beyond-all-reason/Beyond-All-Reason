@@ -1,10 +1,10 @@
 return {
 	corvp = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 2048,
-		buildcostenergy = 1800,
-		buildcostmetal = 720,
+		energycost = 1800,
+		metalcost = 720,
 		builder = true,
 		buildpic = "CORVP.DDS",
 		buildtime = 7150,
@@ -22,7 +22,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		levelground = false,
-		maxdamage = 3000,
+		health = 3000,
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 100,

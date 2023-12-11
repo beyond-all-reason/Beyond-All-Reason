@@ -1,11 +1,11 @@
 return {
 	raptor_land_assault_spectre_t2_v1 = {
-		acceleration = 0.414,
+		maxacc = 0.414,
 		airsightdistance = 650,
 
-		brakerate = 0.46,
-		buildcostenergy = 3520,
-		buildcostmetal = 152,
+		maxdec = 0.46,
+		energycost = 3520,
+		metalcost = 152,
 		builder = false,
 		buildpic = "raptors/raptora1_spectre.DDS",
 		buildtime = 9000,
@@ -30,9 +30,9 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 100000,
-		maxdamage = 2500,
+		health = 2500,
 		maxslope = 18,
-		maxvelocity = 1.3,
+		speed = 39.0,
 		maxwaterdepth = 0,
 		mincloakdistance = 50,
 		movementclass = "RAPTORBIGHOVER",

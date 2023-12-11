@@ -43,7 +43,7 @@ local function refreshFeatureDefs()
 	local processedFeatureDefs = {}
 
 	for _, unitDef in pairs(UnitDefs) do
-		local corpseDef = FeatureDefNames[unitDef.wreckName]
+		local corpseDef = FeatureDefNames[unitDef.corpse]
 
 		while corpseDef ~= nil do
 			setCorpseDescription(unitDef.translatedHumanName, corpseDef)

@@ -995,14 +995,22 @@ function widget:MousePress(x, y, button)
 			if not disableInput then
 				for cellRectID, cellRect in pairs(cellRects) do
 					if cmds[cellRectID].id and UnitDefs[-cmds[cellRectID].id].translatedHumanName and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (units.unitRestricted[-cmds[cellRectID].id]) then
+						local uDefID = cmds[cellRectID].id
 						if button ~= 3 then
 							if playSounds then
 								Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
 							end
 							if preGamestartPlayer then
-								setPreGamestartDefID(cmds[cellRectID].id * -1)
-							elseif spGetCmdDescIndex(cmds[cellRectID].id) then
-								Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 1, true, false, Spring.GetModKeyState())
+								setPreGamestartDefID(-uDefID)
+							elseif spGetCmdDescIndex(uDefID) then
+								local uDef = UnitDefs[-uDefID]
+								local isRepeatMex = uDef.customParams.metal_extractor and uDef.name == activeCmd
+								local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
+
+								if isRepeatMex then
+									WG['areamex'].setAreaMexType(uDefID)
+								end
+								Spring.SetActiveCommand(cmd, 1, true, false, Spring.GetModKeyState())
 							end
 						else
 							if cmds[cellRectID].params[1] and playSounds then

@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, doorl, door, post, turret, sleeve, barrel, dish, flare, antenna, light;
+piece  base, doorl, door, post, turret, sleeve, barrel, dish, flare, antenna, light, aimfromy;
 
 static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateChanging, shooting, shotcount;
 
@@ -184,7 +184,7 @@ FirePrimary()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = barrel;
+	piecenum = aimfromy;
 }
 
 QueryPrimary(piecenum)
