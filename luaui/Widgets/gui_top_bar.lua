@@ -138,12 +138,7 @@ if riskWindValue == nil then
 		riskWindValue = "100"
 	end
 end
-local tidalSpeedOverwrites = {
-	high = 25,
-	medium = 18,
-	low = 13,
-}
-local tidalSpeed = tidalSpeedOverwrites[Spring.GetModOptions().map_tidal] or Game.tidal
+local tidalSpeed = Spring.GetTidal()
 local tidalWaveAnimationHeight = 10
 local windRotation = 0
 
