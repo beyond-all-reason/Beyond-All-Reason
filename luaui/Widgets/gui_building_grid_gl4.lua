@@ -120,6 +120,12 @@ function initShader()
 	end
 end
 
+local forceShow = {}
+local function getForceShow()
+	-- show grid as long as any source wants us to show it (logical OR)
+    return next(forceShow, nil) ~= nil
+end
+
 function widget:Initialize()
     WG['buildinggrid'] = {}
     WG['buildinggrid'].getOpacity = function()
@@ -128,6 +134,13 @@ function widget:Initialize()
     WG['buildinggrid'].setOpacity = function(value)
         opacity = value
         -- widget needs reloading wholly
+    end
+    WG['buildinggrid'].setForceShow = function(reason, enabled)
+        if enabled then
+            forceShow[reason] = true
+        else
+            forceShow[reason] = nil
+        end
     end
 
     initShader()
@@ -177,15 +190,9 @@ end
 
 
 function widget:Update()
-	local _, cmdID
-	if isPregame and WG['pregame-build'] and WG['pregame-build'].getPreGameDefID then
-		cmdID = WG['pregame-build'].getPreGameDefID()
-		cmdID = cmdID and -cmdID or 0 --invert to get the correct negative value
-	else
-		_, cmdID = Spring.GetActiveCommand()
-	end
+	local _, cmdID = Spring.GetActiveCommand()
 
-	showGrid = cmdID and cmdID < 0 or false
+	showGrid = (cmdID and cmdID < 0) or getForceShow()
 end
 
 function widget:DrawWorldPreUnit()
