@@ -1,7 +1,7 @@
 -- see alldefs.lua for documentation
 VFS.Include("gamedata/alldefs_post.lua")
 VFS.Include("gamedata/post_save_to_customparams.lua")
-local system = VFS.Include('gamedata/system.lua')
+local system = VFS.Include("gamedata/system.lua")
 
 local regularUnitDefs = {}
 local scavengerUnitDefs = {}
@@ -11,7 +11,7 @@ for name, unitDef in pairs(UnitDefs) do
 end
 
 local function getFilePath(filename, path)
-	local files = VFS.DirList(path, '*.lua')
+	local files = VFS.DirList(path, "*.lua")
 	for i = 1, #files do
 		if path .. filename == files[i] then
 			return path
@@ -30,10 +30,10 @@ end
 local function bakeUnitDefs()
 	for name, unitDef in pairs(regularUnitDefs) do
 		-- usable when baking ... keeping subfolder structure
-		local filepath = getFilePath(name..'.lua', 'units/')
+		local filepath = getFilePath(name .. ".lua", "units/")
 
 		if filepath then
-			unitDef.customparams.subfolder = string.sub(filepath, 7, #filepath-1)
+			unitDef.customparams.subfolder = string.sub(filepath, 7, #filepath - 1)
 		end
 
 		SaveDefToCustomParams("UnitDefs", name, unitDef)
@@ -58,7 +58,7 @@ local function tableMergeSpecial(t1, t2)
 				end
 			end
 		else
-			if v == 'nil' then
+			if v == "nil" then
 				newTable[k] = nil
 			else
 				newTable[k] = v
@@ -85,7 +85,7 @@ local function getDimensions(scale)
 	local dimensionsStr = string.split(scale, " ")
 	-- string conversion (required for MediaWiki export)
 	local dimensions = {}
-	for i,v in pairs(dimensionsStr) do
+	for i, v in pairs(dimensionsStr) do
 		dimensions[i] = tonumber(v)
 	end
 	local largest = (dimensions and dimensions[1] and tonumber(dimensions[1])) or 0
@@ -105,7 +105,7 @@ local function enlargeSelectionVolumes()
 
 	for name, ud in pairs(UnitDefs) do
 		local scale = STATIC_SEL_SCALE
-		if ud.acceleration and ud.acceleration > 0 and ud.canmove then
+		if ud.maxacc and ud.maxacc > 0 and ud.canmove then
 			scale = SEL_SCALE
 		end
 		if ud.customparams.selectionscalemult then
@@ -117,41 +117,49 @@ local function enlargeSelectionVolumes()
 
 			if ud.selectionvolumescales then
 				local dim = getDimensions(ud.selectionvolumescales)
-				ud.selectionvolumescales  = math.ceil(dim[1]*scale) .. " " .. math.ceil(dim[2]*scale) .. " " .. math.ceil(dim[3]*scale)
+				ud.selectionvolumescales = math.ceil(dim[1] * scale)
+					.. " "
+					.. math.ceil(dim[2] * scale)
+					.. " "
+					.. math.ceil(dim[3] * scale)
 			else
-				local size = math.max(ud.footprintx or 0, ud.footprintz or 0)*15
+				local size = math.max(ud.footprintx or 0, ud.footprintz or 0) * 15
 				if size > 0 then
 					local dimensions, largest = getDimensions(ud.collisionvolumescales)
 					local x, y, z = size, size, size
 					if size > largest then
 						ud.selectionvolumeoffsets = ud.selectionvolumeoffsets or "0 0 0"
-						ud.selectionvolumetype    = ud.selectionvolumetype or "ellipsoid"
+						ud.selectionvolumetype = ud.selectionvolumetype or "ellipsoid"
 					elseif string.lower(ud.collisionvolumetype) == "cylx" then
 						ud.selectionvolumeoffsets = ud.selectionvolumeoffsets or ud.collisionvolumeoffsets or "0 0 0"
-						x = dimensions[1]*CYL_LENGTH
-						y = math.max(dimensions[2], math.min(size, CYL_ADD + dimensions[2]*CYL_SCALE))
-						z = math.max(dimensions[3], math.min(size, CYL_ADD + dimensions[3]*CYL_SCALE))
-						ud.selectionvolumetype    = ud.selectionvolumetype or ud.collisionvolumetype
+						x = dimensions[1] * CYL_LENGTH
+						y = math.max(dimensions[2], math.min(size, CYL_ADD + dimensions[2] * CYL_SCALE))
+						z = math.max(dimensions[3], math.min(size, CYL_ADD + dimensions[3] * CYL_SCALE))
+						ud.selectionvolumetype = ud.selectionvolumetype or ud.collisionvolumetype
 					elseif string.lower(ud.collisionvolumetype) == "cyly" then
 						ud.selectionvolumeoffsets = ud.selectionvolumeoffsets or ud.collisionvolumeoffsets or "0 0 0"
-						x = math.max(dimensions[1], math.min(size, CYL_ADD + dimensions[1]*CYL_SCALE))
-						y = dimensions[2]*CYL_LENGTH
-						z = math.max(dimensions[3], math.min(size, CYL_ADD + dimensions[3]*CYL_SCALE))
-						ud.selectionvolumetype    = ud.selectionvolumetype or ud.collisionvolumetype
+						x = math.max(dimensions[1], math.min(size, CYL_ADD + dimensions[1] * CYL_SCALE))
+						y = dimensions[2] * CYL_LENGTH
+						z = math.max(dimensions[3], math.min(size, CYL_ADD + dimensions[3] * CYL_SCALE))
+						ud.selectionvolumetype = ud.selectionvolumetype or ud.collisionvolumetype
 					elseif string.lower(ud.collisionvolumetype) == "cylz" then
 						ud.selectionvolumeoffsets = ud.selectionvolumeoffsets or ud.collisionvolumeoffsets or "0 0 0"
-						x = math.max(dimensions[1], math.min(size, CYL_ADD + dimensions[1]*CYL_SCALE))
-						y = math.max(dimensions[2], math.min(size, CYL_ADD + dimensions[2]*CYL_SCALE))
-						z = dimensions[3]*CYL_LENGTH
-						ud.selectionvolumetype    = ud.selectionvolumetype or ud.collisionvolumetype
+						x = math.max(dimensions[1], math.min(size, CYL_ADD + dimensions[1] * CYL_SCALE))
+						y = math.max(dimensions[2], math.min(size, CYL_ADD + dimensions[2] * CYL_SCALE))
+						z = dimensions[3] * CYL_LENGTH
+						ud.selectionvolumetype = ud.selectionvolumetype or ud.collisionvolumetype
 					elseif string.lower(ud.collisionvolumetype) == "box" then
 						ud.selectionvolumeoffsets = ud.selectionvolumeoffsets or "0 0 0"
 						x = dimensions[1]
 						y = dimensions[2]
 						z = dimensions[3]
-						ud.selectionvolumetype    = ud.selectionvolumetype or ud.collisionvolumetype
+						ud.selectionvolumetype = ud.selectionvolumetype or ud.collisionvolumetype
 					end
-					ud.selectionvolumescales  = math.ceil(x*scale) .. " " .. math.ceil(y*scale) .. " " .. math.ceil(z*scale)
+					ud.selectionvolumescales = math.ceil(x * scale)
+						.. " "
+						.. math.ceil(y * scale)
+						.. " "
+						.. math.ceil(z * scale)
 				end
 			end
 		else
@@ -161,11 +169,10 @@ local function enlargeSelectionVolumes()
 		if VISUALIZE_SELECTION_VOLUME then
 			if ud.selectionvolumescales then
 				ud.collisionvolumeoffsets = ud.selectionvolumeoffsets
-				ud.collisionvolumescales  = ud.selectionvolumescales
-				ud.collisionvolumetype    = ud.selectionvolumetype
+				ud.collisionvolumescales = ud.selectionvolumescales
+				ud.collisionvolumetype = ud.selectionvolumetype
 			end
 		end
-
 	end
 end
 
@@ -177,8 +184,8 @@ local function createScavengerUnitDefs()
 	local customScavDefs = VFS.Include("gamedata/scavengers/unitdef_changes.lua")
 
 	for name, unitDef in pairs(UnitDefs) do
-		if not string.find(name, '_scav') and not string.find(name, 'critter')  and not string.find(name, 'raptor') then
-			local scavName = name .. '_scav'
+		if not string.find(name, "_scav") and not string.find(name, "critter") and not string.find(name, "raptor") then
+			local scavName = name .. "_scav"
 			if customScavDefs[name] ~= nil then
 				scavengerUnitDefs[scavName] = tableMergeSpecial(unitDef, customScavDefs[name])
 			else
@@ -196,7 +203,7 @@ end
 
 local function preProcessTweakOptions()
 	local modOptions = {}
-	if (Spring.GetModOptions) then
+	if Spring.GetModOptions then
 		modOptions = Spring.GetModOptions()
 	end
 
@@ -228,9 +235,10 @@ local function preProcessTweakOptions()
 						Spring.Echo("Error executing tweakdef", name, postsFuncStr, "Error :" .. result)
 					end
 				end
-				append = (append or 0) + 1
-				name = "tweakdefs" .. append
 			end
+
+			append = (append or 0) + 1
+			name = "tweakdefs" .. append
 		end
 	end
 
@@ -245,7 +253,7 @@ local function preProcessTweakOptions()
 		local modoptName = "tweakunits"
 		while modOptions[modoptName] and modOptions[modoptName] ~= "" do
 			local success, tweaks = pcall(Spring.Utilities.CustomKeyToUsefulTable, modOptions[modoptName])
-			if not success then 
+			if not success then
 				Spring.Echo("Failed to parse modoption", modoptName, "with value", modOptions[modoptName])
 			else
 				if type(tweaks) == "table" then
@@ -257,9 +265,10 @@ local function preProcessTweakOptions()
 						end
 					end
 				end
-				append = (append or 0) + 1
-				modoptName = "tweakunits" .. append
 			end
+
+			append = (append or 0) + 1
+			modoptName = "tweakunits" .. append
 		end
 	end
 end

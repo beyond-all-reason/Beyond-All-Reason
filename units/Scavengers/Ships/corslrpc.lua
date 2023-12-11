@@ -1,12 +1,12 @@
 local unitName = "Intimidator Ship"
 return {
 	corslrpc = {
-		acceleration = 0.005,
+		maxacc = 0.005,
 		activatewhenbuilt = true,
-		brakerate = 0.005,
+		maxdec = 0.005,
 		buildangle = 16384,
-		buildcostenergy = 80000,
-		buildcostmetal = 8000,
+		energycost = 80000,
+		metalcost = 8000,
 		buildpic = "corslrpc.DDS",
 		buildtime = 100000,
 		canmove = true,
@@ -22,8 +22,8 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 7200,
-		maxvelocity = 1.11,
+		health = 7200,
+		speed = 33.3,
 		minwaterdepth = 12,
 		movementclass = "EPICSHIP",
 		nochasecategory = "VTOL",

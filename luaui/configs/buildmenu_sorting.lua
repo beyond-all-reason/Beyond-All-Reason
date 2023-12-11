@@ -101,6 +101,8 @@ local unitOrderTable = {
 	['legfig']         = 004306,
 	['armhawk']        = 004310, --FIGHTERS T2
 	['corvamp']        = 004315,
+	['armsfig2']       = 004316, -- T2 Heavy Fighter (air rework mod)
+	['corsfig2']       = 004317,
 
 	['armkam']         = 004320, --GUNSHIPS
 	['legmos']         = 004322,
@@ -111,6 +113,7 @@ local unitOrderTable = {
 	['corape']         = 004340,
 	['armblade']       = 004345,
 	['corcrw']         = 004348,
+	['corcrwh']         = 004347,
 	['legfort']        = 004349,
 
 	['armthund']       = 004350, --BOMBERS
@@ -217,6 +220,7 @@ local unitOrderTable = {
 
 	['armsptk']        = 006600, --ALL-TERRAIN
 	['cortermite']     = 006610,
+	['leginfestor']   = 006614,
 	['legsrail']       = 006615,
 
 	['armfboy']        = 006700, --STRONK
@@ -269,6 +273,7 @@ local unitOrderTable = {
 	['armsptkt4']      = 007320,
 	['cordemont4']     = 007330,
 	['corkarganetht4'] = 007340,
+	['corthermite'] = 007341,
 
 	['armvadert4']     = 007400,
 	['armrattet4']     = 007410,
@@ -427,10 +432,14 @@ local unitOrderTable = {
 
    --ECO NRG GEOS
    ['armgeo']         = 101200,
+   ['armuwgeo']       = 101201,
    ['corgeo']         = 101250,
+   ['coruwgeo']       = 101251,
    ['armgmm']         = 101300,
    ['corageo']        = 101350,
+   ['coruwageo']      = 101351,
    ['armageo']        = 101400,
+   ['armuwageo']      = 101401,
    ['corbhmth']       = 101450,
 
    --ECO NRG FUSIONS
@@ -480,7 +489,9 @@ local unitOrderTable = {
 
    --UTILITIES
    ['armasp']         = 102800, --AIR REPAIR PADS
+   ['armfasp']         = 102801,
    ['corasp']         = 102825,
+   ['corfasp']         = 102826,
 
    ['armeyes']        = 103000,
    ['coreyes']        = 103050,
@@ -557,6 +568,7 @@ local unitOrderTable = {
    ['corminibuzz']    = 120200, --scavengers
    ['armvulc']        = 120300,
    ['corbuzz']        = 120400,
+   ['legstarfall']        = 120450,
    ['armbotrail']     = 120500, --scavengers
 
    --DEFENSES AA

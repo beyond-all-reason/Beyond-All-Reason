@@ -56,7 +56,7 @@ local xPos = math_floor(vsx * relXpos)
 local currentWind = 0
 local gameStarted = (Spring.GetGameFrame() > 0)
 local displayComCounter = false
-local displayTidalSpeed = true
+local displayTidalSpeed = not (Spring.GetModOptions().map_waterislava or Game.waterDamage > 0)
 local updateTextClock = os.clock()
 
 local glTranslate = gl.Translate
@@ -496,7 +496,19 @@ end
 
 -- return true if tidal speed is *relevant*, enough water in the world (>= 10%)
 local function checkTidalRelevant()
-	local _, _, mapMinHeight, mapMaxHeight = Spring.GetGroundExtremes()
+	local mapMinHeight = 0
+	-- account for invertmap to the best of our abiltiy
+	if string.find(Spring.GetModOptions().debugcommands,"invertmap") then
+		if string.find(Spring.GetModOptions().debugcommands,"wet") then
+			-- assume that they want water if keyword "wet" is involved, too violitile between initilization and subsequent post terraform checks
+			return true
+		--else
+		--	mapMinHeight = 0
+		end
+	else
+		mapMinHeight = select(3,Spring.GetGroundExtremes())
+	end
+	mapMinHeight = mapMinHeight - (Spring.GetModOptions().map_waterlevel or 0)
 	return mapMinHeight <= -20	-- armtide/cortide can be built from 20 waterdepth (hardcoded here cause am too lazy to auto cycle trhough unitdefs and read it from there)
 end
 

@@ -1,7 +1,7 @@
 function widget:GetInfo()
    return {
-      name      = "Self-Destruct icons",
-      desc      = "",
+      name      = "Self-Destruct Icons",
+      desc      = "Show an icon and countdown (if active) for units that have a self-destruct command",
       author    = "Floris",
       date      = "06.05.2014",
       license   = "GNU GPL, v2 or later",
@@ -33,9 +33,18 @@ local fontfileOutlineSize = 4.5
 local fontfileOutlineStrength = 9
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local selfdUnits = {}
+-- {unitID -> unitDefID, ... }
+-- presence of a unitID key indicates that the unit has an active (counting down) SELFD command
+local activeSelfD = {}
+
+-- {unitID -> unitDefID, ... }
+-- presence of a unitID key indicates that the unit has a queued SELFD command
+local queuedSelfD = {}
+
 local drawLists = {}
+
 local glDrawListAtUnit			= gl.DrawListAtUnit
+local glDepthTest				= gl.DepthTest
 local spGetUnitDefID			= Spring.GetUnitDefID
 local spIsUnitInView 			= Spring.IsUnitInView
 local spGetUnitSelfDTime		= Spring.GetUnitSelfDTime
@@ -44,6 +53,8 @@ local spGetCommandQueue			= Spring.GetCommandQueue
 local spIsUnitAllied			= Spring.IsUnitAllied
 local spGetCameraDirection		= Spring.GetCameraDirection
 local spGetUnitMoveTypeData		= Spring.GetUnitMoveTypeData
+local spIsGUIHidden				= Spring.IsGUIHidden
+local spGetUnitTransporter		= Spring.GetUnitTransporter
 
 local spec = Spring.GetSpectatingState()
 
@@ -61,37 +72,62 @@ end
 local function DrawIcon(text)
 	local iconSize = 0.9
 	gl.PushMatrix()
+
+	gl.Color(0.9, 0.9, 0.9, 1)
 	gl.Texture(':n:LuaUI/Images/skull.dds')
-	gl.Translate(0.32,1,1.4)
 	gl.Billboard()
-	gl.TexRect(-(iconSize+0.085), 0, -0.08, iconSize)
-	font:Begin()
-	font:Print(text,0,(iconSize/4),0.66,"oc")
-	font:End()
+	gl.Translate(0, -1.2, 0)
+	gl.TexRect(-iconSize/2, -iconSize/2, iconSize/2, iconSize/2)
+	gl.Texture(false)
+
+	if text ~= 0 then
+		gl.Translate(iconSize/2, -iconSize/2, 0)
+		font:Begin()
+		font:Print(text, 0, 0, 0.66, "o")
+		font:End()
+	end
+
 	gl.PopMatrix()
+end
+
+local function hasSelfDActive(unitID)
+	local time = spGetUnitSelfDTime(unitID)
+	return time ~= nil and time > 0
+end
+
+local function hasSelfDQueued(unitID)
+	local cmdQueue = spGetCommandQueue(unitID, -1) or {}
+	if #cmdQueue > 0 then
+		for i = 1, #cmdQueue do
+			if cmdQueue[i].id == CMD.SELFD then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+local function updateUnit(unitID)
+	if hasSelfDActive(unitID) then
+		activeSelfD[unitID] = spGetUnitDefID(unitID)
+	else
+		activeSelfD[unitID] = nil
+	end
+	if hasSelfDQueued(unitID) then
+		queuedSelfD[unitID] = spGetUnitDefID(unitID)
+	else
+		queuedSelfD[unitID] = nil
+	end
 end
 
 local function init()
 	spec = Spring.GetSpectatingState()
-	-- check all units for selfd cmd
-	selfdUnits = {}
+
+	activeSelfD = {}
+	queuedSelfD = {}
 	local allUnits = spGetAllUnits()
 	for i=1,#allUnits do
-		local unitID = allUnits[i]
-		if spGetUnitSelfDTime(unitID) ~= nil then
-			if spGetUnitSelfDTime(unitID) > 0 then
-				selfdUnits[unitID] = true
-			end
-			-- check for queued selfd
-			local unitQueue = spGetCommandQueue(unitID,20) or {}
-			if (#unitQueue > 0) then
-				for i=1,#unitQueue do
-					if unitQueue[i].id == CMD.SELFD then
-						selfdUnits[unitID] = true
-					end
-				end
-			end
-		end
+		updateUnit(allUnits[i])
 	end
 end
 
@@ -130,76 +166,107 @@ function widget:Update(dt)
 end
 
 function widget:DrawWorld()
-	if Spring.IsGUIHidden() then return end
+	if spIsGUIHidden() then return end
 
-	gl.DepthTest(true)
-	gl.Color(0.9,0.9,0.9,1)
+	glDepthTest(false)
 
 	local unitScale, countdown
-	for unitID, unitDefID in pairs(selfdUnits) do
-		if spIsUnitAllied(unitID) or spec then
-			if spIsUnitInView(unitID) then
+
+	-- draw icon + countodown if there is an active self-d countdown going
+	for unitID, unitDefID in pairs(activeSelfD) do
+		if (spIsUnitAllied(unitID) or spec) and spIsUnitInView(unitID) then
+			if spGetUnitTransporter(unitID) == nil then
 				unitScale = unitConf[unitDefID]
 				countdown = math.ceil(spGetUnitSelfDTime(unitID) / 2)
 				if not drawLists[countdown] then
 					drawLists[countdown] = gl.CreateList(DrawIcon, countdown)
 				end
-				glDrawListAtUnit(unitID, drawLists[countdown], false, unitScale,unitScale,unitScale)
+				glDrawListAtUnit(unitID, drawLists[countdown], false, unitScale, unitScale, unitScale)
 			end
-		else
-			selfdUnits[unitID] = nil
 		end
 	end
 
-	gl.Color(1,1,1,1)
-	gl.Texture(false)
-	gl.DepthTest(false)
-end
+	-- draw just icon if there is a queued self-d command
+	for unitID, unitDefID in pairs(queuedSelfD) do
+		-- don't draw this if it also has an active countdown
+		if activeSelfD[unitID] == nil and (spIsUnitAllied(unitID) or spec) and spIsUnitInView(unitID) then
+			if spGetUnitTransporter(unitID) == nil then
+				unitScale = unitConf[unitDefID]
+				if not drawLists[0] then
+					drawLists[0] = gl.CreateList(DrawIcon, 0)
+				end
+				glDrawListAtUnit(unitID, drawLists[0], true, unitScale, unitScale, unitScale)
+			end
+		end
+	end
 
-function widget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	selfdUnits[unitID] = nil
+	glDepthTest(true)
 end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+	if ignoreUnitDefs[unitDefID] then
+		return
+	end
 
-	if not ignoreUnitDefs[unitDefID] then
+	if cmdID ~= CMD.SELFD and not cmdOpts.shift and queuedSelfD[unitID] then
+		-- had a queued selfd, but the queue was replaced, so mark not queued
+		queuedSelfD[unitID] = nil
+	elseif cmdID == CMD.SELFD then
+		local cmdQueue = spGetCommandQueue(unitID, -1)
+		local hasCmdQueue = #cmdQueue > 0
 
-		-- check for queued selfd (to check if queue gets cancelled)
-		if selfdUnits[unitID] then
-			local foundSelfdCmd = false
-			local unitQueue = spGetCommandQueue(unitID,20) or {}
-			if #unitQueue > 0 then
-				for i=1,#unitQueue do
-					if unitQueue[i].id == CMD.SELFD then
-						foundSelfdCmd = true
-						break
+		if not cmdOpts.shift or not hasCmdQueue then
+			-- simple selfd command, so toggle active (if there's no queue, shift doesn't change anything)
+			if spGetUnitSelfDTime(unitID) > 0 then
+				activeSelfD[unitID] = nil
+			else
+				activeSelfD[unitID] = unitDefID
+			end
+		else -- implies (cmdOpts.shift and hasCmdQueue)
+			-- added a queued selfd; check if it's cancelling the only selfd command, then either mark queued or unqueued
+
+			-- check if the only selfd command is at the end (and thus will get cancelled)
+			local hasMiddleSelfd = false
+			local hasEndSelfd = false
+			for i = 1, #cmdQueue do
+				if cmdQueue[i].id == CMD.SELFD then
+					if i == #cmdQueue then
+						hasEndSelfd = true
+					else
+						hasMiddleSelfd = true
 					end
 				end
 			end
-			if foundSelfdCmd then
-				selfdUnits[unitID] = nil
-			end
-		end
 
-		if cmdID == CMD.SELFD then
-			if spGetUnitSelfDTime(unitID) > 0 then  	-- since cmd hasnt been cancelled yet
-				selfdUnits[unitID] = nil
+			if not hasMiddleSelfd and hasEndSelfd then
+				-- cancelled only selfd command
+				queuedSelfD[unitID] = nil
 			else
-				selfdUnits[unitID] = spGetUnitDefID(unitID)
+				-- normal queued command
+				queuedSelfD[unitID] = unitDefID
 			end
 		end
 	end
 end
 
+function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+	if ignoreUnitDefs[unitDefID] then
+		return
+	end
+
+	if queuedSelfD[unitID] then
+		updateUnit(unitID)
+	end
+end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	if selfdUnits[unitID] then
-		selfdUnits[unitID] = nil
-	end
+	activeSelfD[unitID] = nil
+	queuedSelfD[unitID] = nil
 end
 
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if unitCanFly[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		selfdUnits[unitID] = nil
+		activeSelfD[unitID] = nil
+		queuedSelfD[unitID] = nil
 	end
 end

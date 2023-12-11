@@ -1,13 +1,13 @@
 return {
 	armfflak = {
-		acceleration = 0,
+		maxacc = 0,
 		airsightdistance = 1000,
-		brakerate = 0,
+		maxdec = 0,
 		buildangle = 16384,
-		buildcostenergy = 23000,
-		buildcostmetal = 850,
+		energycost = 23000,
+		metalcost = 850,
 		buildpic = "ARMFFLAK.DDS",
-		buildtime = 21855,
+		buildtime = 21900,
 		canrepeat = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -10 0",
@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1920,
+		health = 1920,
 		minwaterdepth = 5,
 		objectname = "Units/ARMFFLAK.s3o",
 		script = "Units/ARMFFLAK.cob",
@@ -127,8 +127,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 2450,
 				damage = {
-					bombers = 250,
-					fighters = 500,
 					vtol = 250,
 				},
 				rgbcolor = {

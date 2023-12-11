@@ -1,11 +1,11 @@
 local unitName = "Epic Serpent"
 return {
 	armserpt3 = {
-		acceleration = 0.02,
+		maxacc = 0.02,
 		activatewhenbuilt = true,
-		brakerate = 0.02,
-		buildcostenergy = 225000,
-		buildcostmetal = 15000,
+		maxdec = 0.02,
+		energycost = 225000,
+		metalcost = 15000,
 		buildpic = "armserpt3.DDS",
 		buildtime = 250000,
 		canmove = true,
@@ -20,8 +20,8 @@ return {
 		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 900,
-		maxdamage = 26500,
-		maxvelocity = 1.5,
+		health = 26500,
+		speed = 45.0,
 		minwaterdepth = 30,
 		movementclass = "EPICSUBMARINE",
 		nochasecategory = "VTOL",

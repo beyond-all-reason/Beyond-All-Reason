@@ -407,6 +407,9 @@ end
 
 -- we don't want to use FFA colors for TeamFFA, because we want each team to have its own color theme
 local useFFAColors = Spring.Utilities.Gametype.IsFFA() and not Spring.Utilities.Gametype.IsTeams()
+if (not useFFAColors) and (not teamColors[allyTeamCount]) and (not isSurvival) then -- Edge case for TeamFFA with more than supported number of teams
+	useFFAColors = true
+end
 
 if gadgetHandler:IsSyncedCode() then
 	if anonymousMode ~= "disabled" then
@@ -524,7 +527,6 @@ if gadgetHandler:IsSyncedCode() then
 		local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
 		local isAI = Spring.GetTeamLuaAI(teamID)
 		setUpTeamColor(teamID, allyTeamID, isAI)
-
 		local r = Spring.GetTeamRulesParam(teamID, "AutoTeamColorRed")
 		local g = Spring.GetTeamRulesParam(teamID, "AutoTeamColorGreen")
 		local b = Spring.GetTeamRulesParam(teamID, "AutoTeamColorBlue")

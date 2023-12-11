@@ -1,9 +1,9 @@
 return {
 	corfhp = {
-		acceleration = 0,
-		brakerate = 0,
-		buildcostenergy = 4200,
-		buildcostmetal = 1100,
+		maxacc = 0,
+		maxdec = 0,
+		energycost = 3000,
+		metalcost = 900,
 		builder = true,
 		buildpic = "CORFHP.DDS",
 		buildtime = 11000,
@@ -19,7 +19,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3750,
+		health = 3750,
 		metalstorage = 200,
 		minwaterdepth = 5,
 		objectname = "Units/CORFHP.s3o",
@@ -30,7 +30,7 @@ return {
 		sightdistance = 312,
 		terraformspeed = 1000,
 		waterline = 4,
-		workertime = 200,
+		workertime = 100,
 		yardmap = "wCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCw",
 		buildoptions = {
 			[1] = "corch",
