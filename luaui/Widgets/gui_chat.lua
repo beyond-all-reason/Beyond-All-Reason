@@ -633,8 +633,10 @@ local function commonUnitName(unitIDs)
 	for _, unitID in pairs(unitIDs) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
 
-		if commonUnitDefID and unitDefID ~= commonUnitDefID then
-			return "units"
+		-- unitDefID will be nil if shared units are visible only as unidentified radar dots
+		-- (when spectating with PlayerView ON from enemy team's point of view)
+		if (commonUnitDefID and unitDefID ~= commonUnitDefID) or not unitDefID then
+			return #unitIDs > 1 and "units" or "unit"
 		end
 
 		commonUnitDefID = unitDefID
@@ -743,7 +745,12 @@ function widget:UnitTaken(unitID, _, oldTeamID, newTeamID)
 		}
 	end
 
-	lastUnitShare[key].unitIDs[#lastUnitShare[key].unitIDs + 1] = unitID
+	-- When spectating from enemy team's point of view with PlayerView OFF and
+	-- if said team has vision of shared units,
+	-- widget:UnitTaken will be called twice per unit (one time for each team i guess)
+	if not table.contains(lastUnitShare[key].unitIDs, unitID) then
+		lastUnitShare[key].unitIDs[#lastUnitShare[key].unitIDs + 1] = unitID
+	end
 end
 
 function widget:PlayerChanged(playerID)
