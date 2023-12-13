@@ -4,4 +4,3 @@
 .vscode/
 .project
 *.code-workspace
-singleplayer/test_mission.lua
