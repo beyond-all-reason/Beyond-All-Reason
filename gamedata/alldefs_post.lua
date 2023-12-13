@@ -1029,10 +1029,12 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.speed = 233
 		uDef.maxrudder = 0.016
 		uDef.maxbank = 0.65
-		uDef.health = 760
+		uDef.health = 730
 		uDef.sightdistance = 550
 		uDef.cruisealtitude = 220
-		uDef.weapondefs.armvtol_advmissile.proximitypriority = -1	
+		uDef.weapondefs.armvtol_advmissile.proximitypriority = 0
+		uDef.weapondefs.armvtol_advmissile.areaofeffect = 52
+		uDef.weapondefs.armvtol_advmissile.impactonly = 0
 		uDef.weapondefs.armvtol_advmissile.flighttime = 2.7
 		uDef.weapondefs.armvtol_advmissile.range = 1430
 		uDef.weapondefs.armvtol_advmissile.reloadtime = 2.7
@@ -1053,16 +1055,22 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.maxacc = 0.36
 		uDef.maxrudder = 0.013
 		uDef.maxbank = 0.65
-		uDef.health = 310
+		uDef.health = 290
 		uDef.sightdistance = 460
 		uDef.cruisealtitude = 110
-		uDef.weapondefs.armvtol_missile.proximitypriority = -1
+		uDef.weapondefs.armvtol_missile.explosiongenerator = "custom:genericshellexplosion-tiny"
+		uDef.weapondefs.armvtol_missile.smokePeriod = 8
+		uDef.weapondefs.armvtol_missile.smoketime = 14
+		uDef.weapondefs.armvtol_missile.smokesize = 5.0
+		uDef.weapondefs.armvtol_missile.smokecolor = 0.66
+		uDef.weapondefs.armvtol_missile.cegtag = "missiletrailtiny"
+		uDef.weapondefs.armvtol_missile.proximitypriority = 0
 		uDef.weapondefs.armvtol_missile.flighttime = 1.7
 		uDef.weapondefs.armvtol_missile.range = 530
-		uDef.weapondefs.armvtol_missile.reloadtime = 2.4
+		uDef.weapondefs.armvtol_missile.reloadtime = 3
 		uDef.weapondefs.armvtol_missile.startvelocity = 110
-		uDef.weapondefs.armvtol_missile.tolerance = 12000
-		uDef.weapondefs.armvtol_missile.turnrate = 23500
+		uDef.weapondefs.armvtol_missile.tolerance = 11000
+		uDef.weapondefs.armvtol_missile.turnrate = 23000
 		uDef.weapondefs.armvtol_missile.name = "Light guided a2a/a2g missile launcher"
 		uDef.weapondefs.armvtol_missile.weaponacceleration = 350
 		uDef.weapondefs.armvtol_missile.canattackground = true
@@ -1082,12 +1090,12 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.maxbank = 0.15
 		--uDef.maxpitch = 0.02
 		--uDef.maxelevator = 0.02
-		uDef.health = 2400
+		uDef.health = 2250
 		uDef.sightdistance = 460
 		uDef.cruisealtitude = 110
 		--uDef.turnradius = 128
-		uDef.weapondefs.armsfig_weapon.proximitypriority = -1
-		uDef.weapondefs.armsfig_weapon.flighttime = 1.2
+		uDef.weapondefs.armsfig_weapon.proximitypriority = 0
+		uDef.weapondefs.armsfig_weapon.flighttime = 1.4
 		uDef.weapondefs.armsfig_weapon.range = 650
 		uDef.weapondefs.armsfig_weapon.burst = 4
 		uDef.weapondefs.armsfig_weapon.burstrate = 0.15
@@ -1096,18 +1104,18 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.weapondefs.armsfig_weapon.smoketime = 48
 		uDef.weapondefs.armsfig_weapon.smokesize = 10
 		uDef.weapondefs.armsfig_weapon.smoketrail = true
-		uDef.weapondefs.armsfig_weapon.areaofeffect = 180
-		uDef.weapondefs.armsfig_weapon.reloadtime = 6
+		uDef.weapondefs.armsfig_weapon.areaofeffect = 200
+		uDef.weapondefs.armsfig_weapon.reloadtime = 3
 		uDef.weapondefs.armsfig_weapon.startvelocity = 180
-		uDef.weapondefs.armsfig_weapon.tolerance = 3000
-		uDef.weapondefs.armsfig_weapon.turnrate = 3000
+		uDef.weapondefs.armsfig_weapon.tolerance = 1000
+		uDef.weapondefs.armsfig_weapon.turnrate = 4000
 		uDef.weapondefs.armsfig_weapon.weaponacceleration = 450
 		uDef.weapondefs.armsfig_weapon.weaponvelocity = 1000
-		uDef.weapondefs.armsfig_weapon.wobble = 3
+		uDef.weapondefs.armsfig_weapon.wobble = 5
 		uDef.weapondefs.armsfig_weapon.dance = 30
 		uDef.weapondefs.armsfig_weapon.damage = {
 			default = 1,
-			vtol = 360,
+			vtol = 180,
 		}
 	end
 	if name == "armawac" then 
@@ -1166,14 +1174,17 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.energycost = 5500
 		uDef.buildtime = uDef.buildtime * 1.15
 		uDef.maxaileron = 0.02
-		uDef.maxacc = 0.7
+		uDef.maxacc = 0.78
+		uDef.maxdec = 0.11
 		uDef.speed = 250
 		uDef.maxrudder = 0.018
 		uDef.maxbank = 0.65
-		uDef.health = 650
+		uDef.health = 600
 		uDef.sightdistance = 550
 		uDef.cruisealtitude = 220
-		--uDef.canLoopbackAttack = true
+		uDef.weapondefs.corvtol_advmissile.impactonly = 0
+		uDef.weapondefs.corvtol_advmissile.proximitypriority = 0
+		uDef.weapondefs.corvtol_advmissile.areaofeffect = 64
 		uDef.weapondefs.corvtol_advmissile.flighttime = 2.4
 		uDef.weapondefs.corvtol_advmissile.range = 1050
 		uDef.weapondefs.corvtol_advmissile.reloadtime = 1.15
@@ -1194,16 +1205,22 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.maxacc = 0.36
 		uDef.maxrudder = 0.013
 		uDef.maxbank = 0.65
-		uDef.health = 310
+		uDef.health = 290
 		uDef.sightdistance = 460
 		uDef.cruisealtitude = 110
-		uDef.weapondefs.corvtol_missile.proximitypriority = -1
+		uDef.weapondefs.corvtol_missile.explosiongenerator = "custom:genericshellexplosion-tiny"
+		uDef.weapondefs.corvtol_missile.smokePeriod = 8
+		uDef.weapondefs.corvtol_missile.smoketime = 14
+		uDef.weapondefs.corvtol_missile.smokesize = 5.0
+		uDef.weapondefs.corvtol_missile.smokecolor = 0.66
+		uDef.weapondefs.corvtol_missile.cegtag = "missiletrailtiny"
+		uDef.weapondefs.corvtol_missile.proximitypriority = 0
 		uDef.weapondefs.corvtol_missile.flighttime = 1.7
 		uDef.weapondefs.corvtol_missile.range = 530
-		uDef.weapondefs.corvtol_missile.reloadtime = 2.4
+		uDef.weapondefs.corvtol_missile.reloadtime = 3
 		uDef.weapondefs.corvtol_missile.startvelocity = 110
-		uDef.weapondefs.corvtol_missile.tolerance = 12000
-		uDef.weapondefs.corvtol_missile.turnrate = 23500
+		uDef.weapondefs.corvtol_missile.tolerance = 11000
+		uDef.weapondefs.corvtol_missile.turnrate = 23000
 		uDef.weapondefs.corvtol_missile.weaponacceleration = 350
 		uDef.weapondefs.corvtol_missile.canattackground = true
 		uDef.weapondefs.corvtol_missile.name = "Light guided a2a/a2g missile launcher"
@@ -1223,7 +1240,7 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.maxbank = 0.15
 		--uDef.maxpitch = 0.02
 		--uDef.maxelevator = 0.02
-		uDef.health = 2600
+		uDef.health = 2450
 		uDef.sightdistance = 460
 		uDef.cruisealtitude = 110
 		uDef.turnradius = 128
@@ -1268,7 +1285,7 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.weapondefs.med_emg.reloadtime = 1.15
 	end
 	if name == "corcrw" or name == "corcrwh" then
-		uDef.health = uDef.health * 1.6
+		uDef.health = uDef.health * 1.5
 		uDef.speed = uDef.speed * 0.75
 		--uDef.turnrate = uDef.turnrate * 1.5
 		uDef.cruisealtitude = 80
@@ -1319,7 +1336,7 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.weapondefs.vtol_rocket2.burst = 4
 		uDef.weapondefs.vtol_rocket2.burstrate = 0.15
 		uDef.weapondefs.vtol_rocket2.explosiongenerator = "custom:genericshellexplosion-medium"
-		uDef.weapondefs.vtol_rocket2.weaponvelocity = 430
+		uDef.weapondefs.vtol_rocket2.weaponvelocity = 550
 		uDef.weapondefs.vtol_rocket2.damage = {
 			default = 140,
 			vtol = 28,
@@ -1344,10 +1361,10 @@ if Spring.GetModOptions().air_rework == true then
 	if name == "cortitan" or name == "corshad" or name == "armthund" or name == "armliche" or name == "armstil" or name == "armlance" then
 		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15)%1
 		uDef.speed = uDef.speed * 0.65
-		uDef.maxacc = uDef.maxacc * 1.2
+		uDef.maxacc = uDef.maxacc * 1.3
 		uDef.maxbank = 0.65
 		uDef.maxrudder = uDef.maxrudder * 2.2
-		uDef.health = uDef.health * 1.7
+		uDef.health = uDef.health * 1.6
 		uDef.sightdistance = 550
 		uDef.cruisealtitude = 120
 	end
@@ -1357,7 +1374,7 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.maxbank = 0.5
 		uDef.maxrudder = uDef.maxrudder * 2
 		uDef.maxaileron = uDef.maxaileron *0.7
-		uDef.health = uDef.health * 2.5
+		uDef.health = uDef.health * 2.3
 		uDef.sightdistance = 520
 		uDef.weapondefs.coradvbomb.burstrate = 0.26
 		uDef.weapondefs.coradvbomb.damage = {
@@ -1370,7 +1387,7 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.maxbank = 0.5
 		uDef.maxrudder = uDef.maxrudder * 2
 		uDef.maxaileron = uDef.maxaileron *0.7
-		uDef.health = uDef.health * 2.5
+		uDef.health = uDef.health * 2.3
 		uDef.sightdistance = 520
 		uDef.weapondefs.armadvbomb.burstrate = 0.35
 		uDef.weapondefs.armadvbomb.burst = 6
@@ -1382,7 +1399,7 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.maxacc = 0.35
 		uDef.maxbank = 0.68
 		uDef.maxrudder = uDef.maxrudder * 2.5
-		uDef.health = uDef.health * 1.5
+		uDef.health = uDef.health * 1.4
 		uDef.sightdistance = 720
 		uDef.cruisealtitude = 120
 	end
@@ -1424,12 +1441,14 @@ if Spring.GetModOptions().air_rework == true then
 		uDef.weapondefs.corrl_missile.startvelocity = 111
 		uDef.weapondefs.corrl_missile.flighttime = 2.6
 	end
-	if name == "armferret" then 
+	if name == "armferret" then
+		uDef.weapondefs.ferret_missile.areaofeffect = 48
 		uDef.weapondefs.ferret_missile.startvelocity = 120
 		uDef.weapondefs.ferret_missile.weaponacceleration = 210
 		uDef.weapondefs.ferret_missile.weaponvelocity = 1100                       
 	end
 	if name == "cormadsam" then 
+		uDef.weapondefs.madsam_missile.areaofeffect = 48
 		uDef.weapondefs.madsam_missile.startvelocity = 120
 		uDef.weapondefs.madsam_missile.weaponacceleration = 210
 		uDef.weapondefs.madsam_missile.weaponvelocity = 1100                       
@@ -1844,13 +1863,13 @@ function WeaponDef_Post(name, wDef)
 		--Air rework
 		if Spring.GetModOptions().air_rework == true then
 			if wDef.weapontype == "BeamLaser" or wDef.weapontype == "LaserCannon" then
-				wDef.damage.vtol = wDef.damage.default * 0.15
+				wDef.damage.vtol = wDef.damage.default * 0.25
 			end
 			if wDef.range == 300 and wDef.reloadtime == 0.4 then --comm lasers
 				wDef.damage.vtol = wDef.damage.default
 			end
 			if wDef.weapontype == "Cannon" and wDef.damage.default ~= nil then
-				wDef.damage.vtol = wDef.damage.default * 0.25
+				wDef.damage.vtol = wDef.damage.default * 0.35
 			end
 		end
 
