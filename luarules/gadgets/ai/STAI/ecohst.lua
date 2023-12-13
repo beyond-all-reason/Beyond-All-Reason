@@ -35,12 +35,6 @@ function EcoHST:Update()
 	self.samples[#self.samples+1] = sample
 	if not self.hasData or #self.samples == framesPerAvg then
 		self:Average()
-		self.realMetal = self.Metal.income / self.Metal.usage
-		self.realEnergy = self.Energy.income / self.Energy.usage
-		self.scaledMetal = self.Metal.reserves * self.realMetal
-		self.scaledEnergy = self.Energy.reserves * self.realEnergy
-		self.extraEnergy = self.Energy.income - self.Energy.usage
-		self.extraMetal = self.Metal.income - self.Metal.usage
 	end
 end
 
@@ -63,17 +57,10 @@ function EcoHST:Average()
 		for property, value in pairs(resource) do
 			self[name][property] = resources[name][property] / totalSamples
 		end
-		self[name].extra = self[name].income - self[name].usage
-		self[name].effective = self[name].extra / self[name].income
 		if self[name].capacity == 0 then
 			self[name].full = math.huge
 		else
 			self[name].full = self[name].reserves / self[name].capacity
-		end
-		if self[name].income == 0 then
-			self[name].tics = math.huge
-		else
-			self[name].tics = self[name].reserves / self[name].income
 		end
 	end
 	self.hasData = true
