@@ -4,8 +4,8 @@ return {
 		airsightdistance = 1100,
 		blocking = false,
 		brakerate = 0.0875,
-		buildcostenergy = 6500,
-		buildcostmetal = 250,
+		buildcostenergy = 6200,
+		buildcostmetal = 180,
 		buildpic = "CORCA.DDS",
 		buildtime = 10000,
 		canfly = true,
@@ -19,7 +19,7 @@ return {
 		icontype = "air",
 		maxacc = 0.4,
 		maxaileron = 0.016,
-		maxbank = 0.85,
+		maxbank = 0.72,
 		maxdamage = 480,
 		maxelevator = 0.013,
 		maxpitch = 0.745,
@@ -128,7 +128,7 @@ return {
 				damage = {
 					commanders = 1,
 					default = 2,
-					vtol = 75,
+					vtol = 85,
 				},
 			},
 		
