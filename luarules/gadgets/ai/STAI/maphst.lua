@@ -885,9 +885,9 @@ function MapHST:DrawDebug()
 	for X,Zetas in pairs(self.GRID) do
 		for Z, CELL in pairs(Zetas) do
 			map:DrawPoint(CELL.POS, nil, X .. ':' ..Z.. ' = ' ..((X - 1) *self.ai.maphst.gridSideX) + Z, 9)
-			if CELL.trampled > self.ttt.trampled / 2 then --CELL.trampled > 1 then --
-				map:DrawPoint(CELL.POS, {1,1,1,1}, math.ceil(CELL.trampled), 9)
-			end
+-- 			if CELL.trampled > self.ttt.trampled / 2 then --CELL.trampled > 1 then --
+-- 				map:DrawPoint(CELL.POS, {1,1,1,1}, math.ceil(CELL.trampled), 9)
+-- 			end
 			local pos1, pos2 = {},{}
 			pos1.x, pos1.z = CELL.POS.x - self.gridSizeHalf, CELL.POS.z - self.gridSizeHalf
 			pos2.x, pos2.z = CELL.POS.x + self.gridSizeHalf, CELL.POS.z + self.gridSizeHalf
