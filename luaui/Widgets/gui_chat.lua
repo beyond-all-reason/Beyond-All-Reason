@@ -633,8 +633,10 @@ local function commonUnitName(unitIDs)
 	for _, unitID in pairs(unitIDs) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
 
-		if commonUnitDefID and unitDefID ~= commonUnitDefID then
-			return "units"
+		-- unitDefID will be nil if shared units are visible only as unidentified radar dots
+		-- (when spectating with PlayerView ON from enemy team's point of view)
+		if (commonUnitDefID and unitDefID ~= commonUnitDefID) or not unitDefID then
+			return #unitIDs > 1 and "units" or "unit"
 		end
 
 		commonUnitDefID = unitDefID
