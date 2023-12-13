@@ -9,14 +9,14 @@ Shard.resourceKeyAliases = {
 Shard.unitsByID = {}
 Shard.unittypesByID = {}
 Shard.featuresByID = {}
+Shard.shardResource = {}
 
 function Shard:shardify_resource(luaResource)
-	local shardResource = {}
 	for key, value in pairs(luaResource) do
 		local newKey = self.resourceKeyAliases[key] or key
-		shardResource[newKey] = value
+		Shard.shardResource[newKey] = value
 	end
-	return shardResource
+	return Shard.shardResource
 end
 
 function Shard:shardify_unit( unitID )
