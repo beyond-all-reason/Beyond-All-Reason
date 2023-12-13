@@ -87,6 +87,7 @@ return {
 			birdshot = {
 				areaofeffect = 10,
 				avoidfeature = false,
+				burnblow = true,
 				craterboost = 0,
 				cratermult = 0,
 				collidefriendly = false,

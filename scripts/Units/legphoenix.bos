@@ -3,8 +3,8 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, lthrust, mthrust, rthrust, ring1, ring2, ring3, ringlight, flare, emitter, eflare;
-static-var maxSpeed, currentSpeed, shotcount, timer;
+piece  base, lthrust, mthrust, rthrust, ring1, ring2, ring3, ringlight, firecone, coneflare, fireline, lineflare;
+static-var maxSpeed, currentSpeed, shotcount, timer, isfiring;
 
 
 
@@ -46,8 +46,11 @@ lua_UnitScriptLight(lightIndex, count)
 
 Create()
 {
+	turn firecone to x-axis <45> speed <50>;
+	turn firecone to y-axis <0> speed <50>;
 	shotcount = 0;
 	timer = 0;
+	isfiring = 0;
 	start-script BarrelRoll();
 	hide lthrust;
 	hide mthrust;
@@ -69,51 +72,69 @@ Deactivate()
 }
 
 StrafeFire() {
+
+
+	
+		
 	signal SIG_STRAFE;
 	set-signal-mask SIG_STRAFE;
-	while (TRUE) {
-		timer = timer +1;
-		if (timer<200) {
-		emit-sfx 2048 from eflare;
+	while (isfiring == 1) {
+		timer = timer + 1;
+		if (timer<100) {
+			//get PRINT(timer);
+			emit-sfx 2048 from firecone;
+			sleep 1;
 		} else {
-		timer = 0;
+			timer = 0;
+			isfiring = 0;
 		}
 	}
 }
 
 
 FirePrimary() {
+	signal SIG_STRAFE;
 //deny reaiming during firing?
 //barrel roll?
+	isfiring = 1;
 
 	spin ring1 around x-axis speed <90> accelerate <200>;
 	spin ring2 around x-axis speed <60> accelerate <200>;
 	spin ring2 around y-axis speed <30> accelerate <200>;
 	spin ring3 around z-axis speed <30> accelerate <200>;
 	//light
-	emit-sfx 1024 + 1 from eflare;
+	emit-sfx 1024 + 1 from coneflare;
 	
-	start-script StrafeFire();
+	
 	
 	shotcount = shotcount + 1;
-	emit-sfx 1024 + 0 from eflare;
+	emit-sfx 1024 + 0 from coneflare;
 	call-script lua_UnitScriptLight(1, shotcount);
 
 	return (1);
 }
 
+Shot1() {
+	start-script StrafeFire();
+}
+
 AimPrimary(heading, pitch)
 {
-turn emitter to x-axis 0 - pitch speed <500>;
-turn emitter to y-axis heading speed <500>;
-wait-for-turn emitter around x-axis;
-wait-for-turn emitter around y-axis;
-return (1);
+	if (isfiring==0 OR TRUE) {
+
+		//turn firecone to x-axis 0 - pitch speed <500>;
+		//turn firecone to y-axis heading speed <500>;
+		//wait-for-turn firecone around x-axis;
+		//wait-for-turn firecone around y-axis;
+		return (1);
+	} else {
+		return (0);
+	}
 }
 
 QueryPrimary(piecenum)
 {
-	piecenum = emitter;
+	piecenum = firecone;
 }
 
 

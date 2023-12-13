@@ -52,7 +52,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:flamestreamxxl",
+				[1] = "custom:gausscannonprojectilexl",
 			},
 			crashexplosiongenerators = {
 				[1] = "crashing-large",
@@ -169,12 +169,7 @@ return {
 				badtargetcategory = "MOBILE",
 				def = "skybeam",
 				onlytargetcategory = "NOTSUB",
-			},
-			[2] = {
-				badtargetcategory = "MOBILE",
-				def = "coradvbomb",
-				onlytargetcategory = "NOTSUB",
-			},
+			}--might need second fake weapon for a bomb aimer
 		},
 	},
 }
