@@ -53,9 +53,9 @@ end
 
 function LabsBST:preFilter()
 	self:EchoDebug('prefilter')
-	if self.ai.Energy.full > 0.1  then
+	if self.ai.ecohst.Energy.full > 0.1  then
 		self.unit:Internal():FactoryUnWait()
-	elseif self.ai.Metal.full < 0.1 then
+	elseif self.ai.ecohst.Metal.full < 0.1 then
 		for id, lab in pairs(self.ai.labshst.labs) do
 			if lab.underConstruction then
 				self.unit:Internal():FactoryWait()

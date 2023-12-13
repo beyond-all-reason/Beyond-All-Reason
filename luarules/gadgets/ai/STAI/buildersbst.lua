@@ -143,7 +143,7 @@ function BuildersBST:specialFilter(cat,param,name)
 		local newName = self.ai.armyhst[cat][name]
 		self:EchoDebug('newName',newName)
 		if self.unit:Internal():CanBuild(self.game:GetTypeByName(newName)) then
-			if self.ai.Metal.reserves > 100 and self.ai.Energy.income > 200 and self.role == 'eco' then
+			if self.ai.ecohst.Metal.reserves > 100 and self.ai.ecohst.Energy.income > 200 and self.role == 'eco' then
 				name = newName
 			end
 		end
@@ -152,7 +152,7 @@ function BuildersBST:specialFilter(cat,param,name)
 		local newName = self.ai.armyhst[cat][name]
 		self:EchoDebug('newName',newName)
 		if self.unit:Internal():CanBuild(game:GetTypeByName(newName)) then
-			if self.ai.Metal.reserves > 1000 and self.ai.Energy.income > 4000 and self.role == 'eco' then
+			if self.ai.ecohst.Metal.reserves > 1000 and self.ai.ecohst.Energy.income > 4000 and self.role == 'eco' then
 				name = newName
 			end
 		end

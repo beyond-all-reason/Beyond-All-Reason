@@ -23,7 +23,7 @@ end
 
 
 function AttackHST:SetMassLimit()
-	self.squadMassLimit = math.ceil(self.ai.Metal.income * 100)
+	self.squadMassLimit = math.ceil(self.ai.ecohst.Metal.income * 100)
 	self:EchoDebug('squad mass limit',self.squadMassLimit)
 end
 

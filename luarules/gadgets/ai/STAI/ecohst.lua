@@ -17,8 +17,8 @@ function EcoHST:Init()
 	self.DebugEnabled = false
 	self.hasData = false -- so that it gets data immediately
 	self.samples = {}
-	self.ai.Energy = {}
-	self.ai.Metal = {}
+	self.Energy = {}
+	self.Metal = {}
 	self:Update()
 end
 
@@ -35,12 +35,12 @@ function EcoHST:Update()
 	self.samples[#self.samples+1] = sample
 	if not self.hasData or #self.samples == framesPerAvg then
 		self:Average()
-		self.ai.realMetal = self.ai.Metal.income / self.ai.Metal.usage
-		self.ai.realEnergy = self.ai.Energy.income / self.ai.Energy.usage
-		self.ai.scaledMetal = self.ai.Metal.reserves * self.ai.realMetal
-		self.ai.scaledEnergy = self.ai.Energy.reserves * self.ai.realEnergy
-		self.extraEnergy = self.ai.Energy.income - self.ai.Energy.usage
-		self.extraMetal = self.ai.Metal.income - self.ai.Metal.usage
+		self.ai.realMetal = self.Metal.income / self.Metal.usage
+		self.ai.realEnergy = self.Energy.income / self.Energy.usage
+		self.ai.scaledMetal = self.Metal.reserves * self.ai.realMetal
+		self.ai.scaledEnergy = self.Energy.reserves * self.ai.realEnergy
+		self.extraEnergy = self.Energy.income - self.Energy.usage
+		self.extraMetal = self.Metal.income - self.Metal.usage
 	end
 end
 

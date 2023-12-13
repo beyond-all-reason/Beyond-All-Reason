@@ -19,8 +19,8 @@ end
 
 
 function TasksHST:startLabsParams()
-	local M = self.ai.Metal
-	local E = self.ai.Energy
+	local M = self.ai.ecohst.Metal
+	local E = self.ai.ecohst.Energy
 	self.labs.premode = {
 		{category = 'techs',
 			economy = function()
@@ -100,7 +100,7 @@ function TasksHST:startLabsParams()
 
 			{category = 'breaks',
 			economy = function()
-				return self.ai.Metal.full > 0.3 and self.ai.Energy.full > 0.3
+				return self.ai.ecohst.Metal.full > 0.3 and self.ai.ecohst.Energy.full > 0.3
 			end,
 			numeric = {min = 0,max = 15},
 			wave = 3},
@@ -221,7 +221,7 @@ function TasksHST:startLabsParams()
 
 			{category = 'breaks',
 			economy = function()
-				return self.ai.Metal.full > 0.7 and self.ai.Energy.full > 0.7
+				return self.ai.ecohst.Metal.full > 0.7 and self.ai.ecohst.Energy.full > 0.7
 			end,
 			numeric = {max = 40},
 			wave = 10},
@@ -303,8 +303,8 @@ function TasksHST:startLabsParams()
 end
 
 function TasksHST:startRolesParams()
-	local M = self.ai.Metal
-	local E = self.ai.Energy
+	local M = self.ai.ecohst.Metal
+	local E = self.ai.ecohst.Energy
 ------------------------------------------------------------------------------------------------------------------------------------
 	------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------
@@ -327,7 +327,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_wind_' ,
 			economy = function(_,param,name)--ecofunc()
-					return  ((E.full < 0.5 or E.income < E.usage  )  or E.income < 30) and self.ai.Energy.income < 3000
+					return  ((E.full < 0.5 or E.income < E.usage  )  or E.income < 30) and self.ai.ecohst.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -336,7 +336,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_tide_' ,
 			economy = function(_,param,name)--ecofunc()
-					return ((E.full < 0.5 or E.income < E.usage )  or E.income < 30) and self.ai.Energy.income < 3000
+					return ((E.full < 0.5 or E.income < E.usage )  or E.income < 30) and self.ai.ecohst.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -345,7 +345,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_solar_' ,
 			economy = function(_,param,name)--ecofunc()
-					return ((E.full < 0.5 or E.income < E.usage  )  or E.income < 40 ) and self.ai.Energy.income < 3000
+					return ((E.full < 0.5 or E.income < E.usage  )  or E.income < 40 ) and self.ai.ecohst.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -682,7 +682,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_wind_' ,
 			economy = function(_,param,name)--ecofunc()
-					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 30) and self.ai.Energy.income < 3000
+					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 30) and self.ai.ecohst.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -692,7 +692,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_tide_' ,
 			economy = function(_,param,name)--ecofunc()
-					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 30) and self.ai.Energy.income < 3000
+					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 30) and self.ai.ecohst.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -702,7 +702,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_solar_' ,
 			economy = function(_,param,name)--ecofunc(_,param,name)
-					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 50) and self.ai.Energy.income < 3000
+					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 50) and self.ai.ecohst.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter

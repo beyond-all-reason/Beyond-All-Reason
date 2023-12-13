@@ -126,7 +126,7 @@ function LabsHST:EconomyToBuildFactories()
 		factoryCount = factoryCount + 1
 	end
 	local factoryCountPow = factoryCount * factoryCount
-	if self.ai.overviewhst.ECONOMY >= factoryCount * 4 or self.ai.Energy.income > factoryCountPow * 800 then
+	if self.ai.overviewhst.ECONOMY >= factoryCount * 4 or self.ai.ecohst.Energy.income > factoryCountPow * 800 then
 		return true
 	end
 	self:EchoDebug('not economy to build factory')

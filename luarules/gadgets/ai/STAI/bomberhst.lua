@@ -43,7 +43,7 @@ function BomberHST:RemoveRecruit(bmbrbehaviour)
 end
 
 function BomberHST:SetMassLimit()
-	self.squadMassLimit = 0 + (math.max(self.ai.Metal.income * 20, 4000))
+	self.squadMassLimit = 0 + (math.max(self.ai.ecohst.Metal.income * 20, 4000))
 	self:EchoDebug('squadmasslimit',self.squadMassLimit)
 end
 
