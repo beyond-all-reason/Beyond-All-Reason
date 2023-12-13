@@ -103,8 +103,10 @@ deactivatescr()
 		hide lightpoint;
 		stop-spin condar around y-axis;
 		turn condar to y-axis <0> speed <90>;
-		sleep 400;
+		turn turret to z-axis <0> speed <80>;
 		wait-for-turn condar around y-axis;
+		wait-for-turn turret around z-axis;
+		sleep 400;
 	}
 	if( TRUE )
 	{
