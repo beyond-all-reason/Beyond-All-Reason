@@ -15,7 +15,7 @@ return {
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		hoverattack = false,
+		hoverattack = true,
 		icontype = "air",
 		idleautoheal = 5,
 		idletime = 1800,

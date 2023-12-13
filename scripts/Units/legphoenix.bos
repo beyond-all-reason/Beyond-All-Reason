@@ -73,18 +73,26 @@ Deactivate()
 
 StrafeFire() {
 
-
-	
-		
 	signal SIG_STRAFE;
 	set-signal-mask SIG_STRAFE;
+	
+	
+	emit-sfx 1024 + 0 from coneflare;
+	emit-sfx 1024 + 1 from coneflare;
+	shotcount = shotcount + 1;
+	call-script lua_UnitScriptLight(1, shotcount);
+
 	while (isfiring == 1) {
 		timer = timer + 1;
 		if (timer<100) {
 			//get PRINT(timer);
-			emit-sfx 2048 from firecone;
+			emit-sfx 2048+1 from firecone;
 			sleep 1;
 		} else {
+			spin ring1 around x-axis speed <90> accelerate <200>;
+			spin ring2 around x-axis speed <60> accelerate <200>;
+			spin ring2 around y-axis speed <30> accelerate <200>;
+			spin ring3 around z-axis speed <30> accelerate <200>;
 			timer = 0;
 			isfiring = 0;
 		}
@@ -92,7 +100,47 @@ StrafeFire() {
 }
 
 
+//decoy weapon for aimer and for tricking straight flightpath out of the damn thing
+
 FirePrimary() {
+
+	//deny reaiming during firing?
+	//barrel roll?
+	start-script StrafeFire();
+	signal SIG_STRAFE;
+	isfiring = 1;
+
+	spin ring1 around x-axis speed <180> accelerate <200>;
+	spin ring2 around x-axis speed <120> accelerate <200>;
+	spin ring2 around y-axis speed <60> accelerate <200>;
+	spin ring3 around z-axis speed <70> accelerate <200>;
+	//light
+
+	return 0;
+
+}
+Shot1(){
+	return 0;
+}
+
+AimPrimary() {
+	return 0;
+}
+QueryPrimary(piecenum)
+{
+	piecenum = base;
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = firecone;
+}
+AimSecondary(h,p) {
+	return (0);
+}
+
+/*
+FireSecondary() {
 	signal SIG_STRAFE;
 //deny reaiming during firing?
 //barrel roll?
@@ -114,11 +162,11 @@ FirePrimary() {
 	return (1);
 }
 
-Shot1() {
-	start-script StrafeFire();
+Shot2() {
+	//start-script StrafeFire();
 }
 
-AimPrimary(heading, pitch)
+AimSecondary(heading, pitch)
 {
 	if (isfiring==0 OR TRUE) {
 
@@ -132,11 +180,11 @@ AimPrimary(heading, pitch)
 	}
 }
 
-QueryPrimary(piecenum)
+QuerySecondary(piecenum)
 {
 	piecenum = firecone;
 }
-
+//*/
 
 
 SweetSpot(piecenum)
