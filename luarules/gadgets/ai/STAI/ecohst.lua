@@ -17,7 +17,7 @@ function EcoHST:Init()
 	self.Index = 1
 
 	local McurrentLevel, Mstorage, Mpull, Mincome, Mexpense, Mshare, Msent, Mreceived = Spring.GetTeamResources(self.ai.id, 'metal')
-	local EcurrentLevel, Estorage, Epull, Eincome, Eexpense, Eshare, Esent, Ereceived = Spring.GetTeamResources(self.ai.id, 'metal')
+	local EcurrentLevel, Estorage, Epull, Eincome, Eexpense, Eshare, Esent, Ereceived = Spring.GetTeamResources(self.ai.id, 'energy')
 	for i= 1,average do
 		for idx,name in pairs(self.resourceNames) do
 			self.samples[i] =  {}
@@ -46,8 +46,8 @@ function EcoHST:Init()
 			E.full = 1
 		end
 	end
-	self.Energy = {reserves = 0, capacity = 1000, pull = 0 , income = 20, expense = 0, share = 0, sent = 0, received = 0}
-	self.Metal = {reserves = 0, capacity = 1000, pull = 0 , income = 20, expense = 0, share = 0, sent = 0, received = 0}
+	self.Energy = {reserves = 0, capacity = 1000, pull = 0 , income = 20, usage = 0, share = 0, sent = 0, received = 0,full = 1}
+	self.Metal = {reserves = 0, capacity = 1000, pull = 0 , income = 20, usage = 0, share = 0, sent = 0, received = 0,full = 1}
 
 end
 

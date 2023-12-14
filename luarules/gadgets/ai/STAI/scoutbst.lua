@@ -11,7 +11,7 @@ function ScoutBST:Init()
 	self.attacking = nil
 	self.evading = nil
 	self.active = false
-
+	self.position = self.unit:Internal():GetPosition()
 	self.mtype, self.network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.name = self.unit:Internal():Name()
 	self.isWeapon = self.ai.armyhst.unitTable[self.name].isWeapon
@@ -69,7 +69,7 @@ function ScoutBST:Evading()
 	if home then
 		home = home.position
 	else
-		home = self.unit:Internal():GetPosition()
+		home = self.position
 	end
 
 	home = self.ai.tool:RandomAway(home,300)
@@ -97,7 +97,7 @@ end
 
 function ScoutBST:ImmediateTarget()
 	self:EchoDebug('immediate targeting')
-	local scoutPos = self.unit:Internal():GetPosition()
+	local scoutPos = self.position
 	local bestDist = math.huge
 	if self.target then
 		bestDist = self.ai.tool:distance(scoutPos,self.target)
@@ -130,8 +130,9 @@ function ScoutBST:Update()
 	end
 	if self.active then
 		local unit = self.unit:Internal()
-		local scoutPos = unit:GetPosition()
-		local X,Z = self.ai.maphst:PosToGrid(scoutPos)
+-- 		local scoutPos = unit:GetPosition()
+		self.position.x, self.position.y ,self.position.z = unit:GetRawPos()
+		local X,Z = self.ai.maphst:PosToGrid(self.position)
 		self.ai.scouthst.SCOUTED[X] = self.ai.scouthst.SCOUTED[X] or {}
 		self.ai.scouthst.SCOUTED[X][Z] = game:Frame()
 		self:EchoDebug('scout',self.id,'scoutCell',X,Z,game:Frame())
@@ -174,7 +175,7 @@ end
 
 
 function ScoutBST:bestAdjacentPos(unit,target)
-	local upos = unit:GetPosition()
+	local upos = self.position
 	local X, Z = self.ai.maphst:PosToGrid(upos)
 	local areacells = self.ai.maphst:areaCells(X,Z,1,self.ai.loshst.ENEMY)
 	local risky = {}
