@@ -74,7 +74,7 @@ function ShardUnit:SyncOrder(id,cmd,pos,opts,timeout)
 -- 	else
 -- 		Spring.Echo('incorrect ST GOTU OPTS format','name',self.type:Name(),'id',id,'cmd',cmd,'pos',pos)
 -- 	end
-	
+
 	tracy.ZoneBeginN("StGiveOrderToSync")
 	msg = 'StGiveOrderToSync'
 	msg = msg .. '*' .. id .. '*'
@@ -84,7 +84,7 @@ function ShardUnit:SyncOrder(id,cmd,pos,opts,timeout)
 	msg = msg .. '#' .. timeout .. '#'
 	msg = msg .. '!' .. uName .. '!'  ..'StEndGOTS'
 	Spring.SendLuaRulesMsg(msg)
-	
+
 	tracy.ZoneEnd()
 -- 	end
 
@@ -520,7 +520,7 @@ function ShardUnit:GetPosition()
 		Spring.Echo(self:Name(), self.id, "nil position")
 		return
 	end
-	if self.position == nil then 
+	if self.position == nil then
 		self.position = {}
 	end
 	local position = self.position
@@ -529,6 +529,11 @@ function ShardUnit:GetPosition()
 	position.z = bpz
 
 	return position
+end
+
+function ShardUnit:GetRawPos()
+	local bpx, bpy, bpz = Spring.GetUnitPosition(self.id)
+	return bpx, bpy, bpz
 end
 
 function ShardUnit:GetHealtsParams()
