@@ -50,7 +50,7 @@ end
 local isComWreck = {}
 local xmasComwreckDefID
 for fdefID,def in ipairs(FeatureDefs) do
-	if def.name == "armcom_dead" or def.name == "corcom_dead" then
+	if def.name == "armcom_dead" or def.name == "corcom_dead" or def.name == "legcom_dead" or def.name == "legcomlvl2_dead" or def.name == "legcomlvl3_dead" or def.name == "legcomlvl4_dead" then
 		isComWreck[fdefID] = true
 	end
 	if def.name == "xmascomwreck" then
