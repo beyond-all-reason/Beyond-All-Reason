@@ -15,7 +15,7 @@ end
 function CommanderBST:Update()
 	local f = self.game:Frame()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'CommanderBST' then return end
-	if self.ai.overviewhst.T2LAB then
+	if self.ai.labshst.T2LAB then
 		self.save = 1
 	elseif self.unit:Internal():GetHealth() <= self.unit:Internal():GetMaxHealth() * 0.99 then
 		self.save = 2

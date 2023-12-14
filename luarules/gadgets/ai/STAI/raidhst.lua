@@ -19,7 +19,7 @@ function RaidHST:Init()
 end
 
 function RaidHST:SetRaidCount()
-	self.minRaidCount = math.min(6 + self.ai.overviewhst.ECONOMY,15)
+	self.minRaidCount = math.min(5 + self.ai.ecohst.Metal.income,15)
 	self:EchoDebug('minRaidCount',self.minRaidCount)
 end
 

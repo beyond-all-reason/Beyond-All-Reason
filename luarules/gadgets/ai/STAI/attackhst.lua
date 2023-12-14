@@ -69,7 +69,7 @@ function AttackHST:DraftAttackSquads()
 						self:SquadFormation(squad)
 						if (squad.mass > self.squadMassLimit or #squad.members > self.countLimit) or (squad.mass > 15000)then
 							squad.lock = true
-							self.countLimit = math.min(15,self.countLimit + self.ai.overviewhst.ECONOMY)
+							self.countLimit = math.min(15,self.countLimit + self.ai.labshst.ECONOMY)
 						end
 					end
 				end
@@ -90,7 +90,7 @@ function AttackHST:DraftAttackSquads()
 					squad.colour = {0,math.random(),math.random(),1}
 					self:SquadFormation(squad)
 					--squad.graph = self.ai.maphst:GetPathGraph(squad.mtype)
-					if (squad.mass > self.squadMassLimit or #squad.members > 5 + self.ai.overviewhst.ECONOMY) or (squad.mass > 15000)then
+					if (squad.mass > self.squadMassLimit or #squad.members > 5 + self.ai.labshst.ECONOMY) or (squad.mass > 15000)then
 						squad.lock = true
 
 					end
