@@ -6264,19 +6264,31 @@ function widget:Initialize()
 			return false
 		end
 	end
-	WG['options'].addOption = function(option)
-		option.group = "custom"
-		customOptions[#customOptions+1] = option
+	WG['options'].addOptions = function(newOptions)
+		for _, option in ipairs(newOptions) do
+			option.group = "custom"
+			customOptions[#customOptions+1] = option
+		end
+
 		init()
 	end
-	WG['options'].removeOption = function(name)
-		for i,option in pairs(customOptions) do
-			if option.id == name then
-				customOptions[i] = nil
-				init()
-				break
+	WG['options'].removeOptions = function(names)
+		for _, name in ipairs(names) do
+			for i, option in pairs(customOptions) do
+				if option.id == name then
+					customOptions[i] = nil
+					break
+				end
 			end
 		end
+
+		init()
+	end
+	WG['options'].addOption = function(option)
+		return WG['options'].addOptions({ option })
+	end
+	WG['options'].removeOption = function(name)
+		return WG['options'].removeOptions({ name })
 	end
 end
 
