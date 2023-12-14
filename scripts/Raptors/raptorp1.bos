@@ -14,7 +14,7 @@ static-var bMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
 
 // For N:\animations\raptor_2legged_fast_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))
 #define MOVESCALE 100 //How much extra body sway the raptor should have. Scale this with size of raptor
-#define MOVESPEED  7  //How many frames per animation cycle, valid 2-10
+#define MOVESPEED  5  //How many frames per animation cycle, valid 2-10
 #define animAmplitude 55 //How big steps the raptor should take, valid 20-200
 #define LUHAND lsack  //define these as the left and right head thingies
 #define RUHAND rsack  
@@ -64,13 +64,13 @@ AimFromSecondary(piecenum)
 	{	piecenum=head;	}
 
 QuerySecondary(piecenum)
-	{	piecenum=lsack; }
+	{	piecenum=head; }
 
 AimFromTertiary(piecenum)
 	{	piecenum=head;	}
 
 QueryTertiary(piecenum)
-	{	piecenum=lsack; }
+	{	piecenum=head; }
 
 
 
@@ -136,16 +136,12 @@ Shot1()
 	{ }
 Shot2()
 	{
-	turn lsack to y-axis <30> speed <200>;
-	turn rsack to y-axis <-30> speed <200>;
-	move rsack to x-axis [-1] speed [9];
-	move lsack to x-axis [1] speed [9];;
+	turn lsack to y-axis <40> speed [1];
+	turn rsack to y-axis <-40> speed [1];
 	wait-for-turn lsack around y-axis;
-	turn lsack to y-axis <0> speed <20>;
-	turn rsack to y-axis <0> speed <20>;
-	move rsack to x-axis [0] speed [0.3];
-	move lsack to x-axis [0] speed [0.3];
-	call-script lua_FlameShot(2);
+	turn lsack to y-axis <0> speed [0.3];
+	turn rsack to y-axis <0> speed [0.3];
+	//call-script lua_FlameShot(2);
 	return (head);
 	}
 Shot3()

@@ -1,10 +1,10 @@
 return {
 	armvp = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 1024,
-		buildcostenergy = 1800,
-		buildcostmetal = 740,
+		energycost = 1800,
+		metalcost = 740,
 		builder = true,
 		buildpic = "ARMVP.DDS",
 		buildtime = 7200,
@@ -21,7 +21,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		levelground = false,
-		maxdamage = 3000,
+		health = 3000,
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 100,

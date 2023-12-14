@@ -1,9 +1,9 @@
 return {
 	armamph = {
-		acceleration = 0.138,
-		brakerate = 0.6486,
-		buildcostenergy = 2700,
-		buildcostmetal = 260,
+		maxacc = 0.138,
+		maxdec = 0.6486,
+		energycost = 2700,
+		metalcost = 260,
 		buildpic = "ARMAMPH.DDS",
 		buildtime = 5200,
 		canmove = true,
@@ -18,9 +18,9 @@ return {
 		footprintz = 3,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1170,
+		health = 1170,
 		maxslope = 14,
-		maxvelocity = 3,
+		speed = 90.0,
 		movementclass = "HOVER5",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMAMPH.s3o",
@@ -153,8 +153,6 @@ return {
 				customparams = {
 				},
 				damage = {
-					bombers = 85,
-					fighters = 85,
 					vtol = 85,
 				},
 			},
@@ -188,9 +186,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 500,
 				damage = {
-					bombers = 15,
 					default = 80,
-					fighters = 15,
 					vtol = 15,
 				},
 			},

@@ -862,16 +862,6 @@ local options={
 	},
 
 	{
-		key = 'comtestchanges',
-		name = 'Commander Test Changes',
-		desc = 'Comupdate, but with health 4000->3700, regen 0->5, and T1 turrets deal 1.5x damage to commanders',
-		type = 'bool',
-		section = 'options_experimental',
-		def = true,
-		hidden = true,
-	},
-
-	{
 		key = 'expandedt2sea',
 		name = 'Expanded T2 Sea',
 		desc = 'T2 sea is expanded to include a lightning ship for arm and a flamethrower ship for cor, and both factions get a drone carrier ship and an anti-nuke support ship to replace the aircraft carrier.  Cruisers rebalanced to be slower and lower range but higher health and dps for a more defensive role',
@@ -885,6 +875,14 @@ local options={
 		key = 'emprework',
 		name = 'EMP Rework',
 		desc = 'EMP is changed to slow units movement and firerate, before eventually stunning.',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
+	},
+	{
+		key = 'air_rework',
+		name = 'Air Rework',
+		desc = 'Prototype version with more maneuverable, slower air units and more differentiation between them.',
 		type = 'bool',
 		section = 'options_experimental',
 		def = false,
@@ -937,16 +935,6 @@ local options={
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,
-		hidden = true,
-	},
-
-	{
-		key    = 'experimentalrebalancehovercrafttech',
-		name   = 'Rebalance Candidate: Hovercraft rebalance - Cheaper lab with buildpower 200 -> 100, can Tech2 into Vehicles and Ships',
-		desc   = '',
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = true,
 		hidden = true,
 	},
 
@@ -1092,6 +1080,15 @@ local options={
 			{key="disco", name="Local (Disco)", desc="Same as local, except that colors are reshuffled every 2 mins for extra spicyness."},
 			{key="allred", name="All red", desc="You cannot distinguish different players, they all have the same color (red by default, can be changed in accessibility settings). Diplomacy is very hard."},
 		},
+	},
+
+	{
+		key     = 'teamffa_start_boxes_shuffle',
+		name    = 'Shuffle TeamFFA start boxes',
+		desc    = "In TeamFFA games (more than 2 teams, excluding Raptors / Scavengers), start boxes will be randomly assigned to each team: team 1 might be assigned any start box rather than team 1 always being assigned start box 1.",
+		type    = 'bool',
+		section = 'options_extra',
+		def     = true,
 	},
 
 	{

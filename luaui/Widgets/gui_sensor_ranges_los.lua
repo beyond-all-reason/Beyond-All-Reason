@@ -131,8 +131,8 @@ local crashable = {}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	-- save perf by excluding low los range units
-	if unitDef.losRadius and unitDef.losRadius > minSightDistance then
-		unitRange[unitDefID] = unitDef.losRadius - rangecorrectionelmos
+	if unitDef.sightDistance and unitDef.sightDistance > minSightDistance then
+		unitRange[unitDefID] = unitDef.sightDistance - rangecorrectionelmos
 	end
 end
 

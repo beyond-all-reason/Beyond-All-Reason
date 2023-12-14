@@ -1,11 +1,11 @@
 return {
 	armferret = {
-		acceleration = 0,
+		maxacc = 0,
 		airsightdistance = 850,
-		brakerate = 0,
+		maxdec = 0,
 		buildangle = 8192,
-		buildcostenergy = 5700,
-		buildcostmetal = 360,
+		energycost = 5700,
+		metalcost = 360,
 		buildpic = "ARMFERRET.DDS",
 		buildtime = 5800,
 		canrepeat = false,
@@ -22,7 +22,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1330,
+		health = 1330,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		mincloakdistance = 72,
@@ -165,8 +165,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1200,
 				damage = {
-					bombers = 150,
-					fighters = 150,
 					vtol = 150,
 				},
 			},

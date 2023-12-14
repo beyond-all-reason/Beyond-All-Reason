@@ -19,49 +19,15 @@ function gadget:GetInfo()
 	}
 end
 
-
---------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
--- configs
-
-local sendPacketEvery	= 0.33
-local numMousePos		= 2 --//num mouse pos in 1 packet
+local numMousePos		= 2 	-- num mouse pos in 1 packet
 
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
--- locals
-
-local GetMouseState		= Spring.GetMouseState
-local TraceScreenRay	= Spring.TraceScreenRay
-local SendLuaRulesMsg	= Spring.SendLuaRulesMsg
-local GetMyPlayerID		= Spring.GetMyPlayerID
-local GetSpectatingState= Spring.GetSpectatingState
-local GetPlayerInfo		= Spring.GetPlayerInfo
-local GetLastUpdateSeconds= Spring.GetLastUpdateSeconds
-
 
 local PackU16			= VFS.PackU16
 local UnpackU16			= VFS.UnpackU16
 
-local floor				= math.floor
-local tanh				= math.tanh
-local abs				= math.abs
-
-
---------------------------------------------------------------------------------
-
-local updateTimer = 0
-local poshistory = {}
-
-local saveEach = sendPacketEvery/numMousePos
-local updateTick = saveEach
-
-
-local lastx,lastz = 0,0
-local n = 0
-local lastclick = 0
 
 if gadgetHandler:IsSyncedCode() then
 	local charset = {}  do -- [0-9a-zA-Z]
@@ -92,104 +58,139 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		end
 	end
+
+
 else
 
---------------------------------------------------------------------------------
 
-local myPlayerID = GetMyPlayerID()
-local validation = SYNCED.validationMouse
+	--------------------------------------------------------------------------------
 
-function gadget:Initialize()
-	gadgetHandler:AddSyncAction("mouseBroadcast", handleMousePosEvent)
-end
+	local sendPacketEvery	= 0.35
+	local sendPacketEveryWhenSpec	= 0.7
 
-function gadget:Shutdown()
-	gadgetHandler:RemoveSyncAction("mouseBroadcast")
-end
+	--------------------------------------------------------------------------------
 
-function handleMousePosEvent(_,playerID,x,z,click)
-	--here we receive mouse pos from other players and dispatch to luaui
-	local spec, fullView = GetSpectatingState()
-	if not spec then
-		local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID,false)
-		if targetSpec or allyTeamID ~= select(5,GetPlayerInfo(myPlayerID,false)) then
-			return
+	local GetMouseState			= Spring.GetMouseState
+	local TraceScreenRay		= Spring.TraceScreenRay
+	local SendLuaRulesMsg		= Spring.SendLuaRulesMsg
+	local GetSpectatingState	= Spring.GetSpectatingState
+	local GetPlayerInfo			= Spring.GetPlayerInfo
+	local GetLastUpdateSeconds	= Spring.GetLastUpdateSeconds
+
+	local floor				= math.floor
+	local abs				= math.abs
+
+	local validation = SYNCED.validationMouse
+
+	local myPlayerID = Spring.GetMyPlayerID()
+	local spec, _ = GetSpectatingState()
+
+	local saveEach = (spec and sendPacketEveryWhenSpec or sendPacketEvery) / numMousePos
+	local updateTick = saveEach
+
+	local updateTimer = 0
+	local poshistory = {}
+
+	local lastx,lastz = 0,0
+	local n = 0
+
+	function gadget:Initialize()
+		gadgetHandler:AddSyncAction("mouseBroadcast", handleMousePosEvent)
+	end
+
+	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction("mouseBroadcast")
+	end
+
+	function gadget:PlayerChanged(playerID)
+		if playerID == myPlayerID then
+			spec, _ = Spring.GetSpectatingState()
+			if spec then
+				saveEach = sendPacketEveryWhenSpec/numMousePos
+				updateTick = saveEach
+			end
 		end
 	end
-    if Script.LuaUI("MouseCursorEvent") then
-        Script.LuaUI.MouseCursorEvent(playerID,x,z,click)
-    end
-end
 
-function gadget:Update()
-	updateTimer = updateTimer + GetLastUpdateSeconds()
+	function handleMousePosEvent(_,playerID,x,z,click)
+		--here we receive mouse pos from other players and dispatch to luaui
+		if not spec then
+			local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID,false)
+			if targetSpec or allyTeamID ~= select(5,GetPlayerInfo(myPlayerID,false)) then
+				return
+			end
+		end
+		if Script.LuaUI("MouseCursorEvent") then
+			Script.LuaUI.MouseCursorEvent(playerID,x,z,click)
+		end
+	end
 
-	if updateTimer > updateTick then
+	function gadget:Update()
+		updateTimer = updateTimer + GetLastUpdateSeconds()
+
+		if updateTimer > updateTick then
+			local mx,my = GetMouseState()
+			local _,pos = TraceScreenRay(mx,my,true)
+
+			if pos and (n == 1 or pos[1] ~= lastx or pos[2] ~= lastz) then	-- only record change in position unless packet is already being instigated previous update tick
+				poshistory[n*2]	 = PackU16(floor(pos[1]))
+				poshistory[n*2+1] = PackU16(floor(pos[3]))
+				--if n == numMousePos then
+					lastx,lastz = pos[1],pos[3]
+				--end
+				n = n + 1
+			end
+			updateTick = updateTimer + saveEach
+		end
+
+		if n > numMousePos then
+			n = 0
+			updateTimer = 0
+			updateTick = saveEach
+
+			local posStr = "0"
+			for i=numMousePos,1,-1 do
+				local xStr = poshistory[i*2]
+				local zStr = poshistory[i*2+1]
+				if xStr and zStr then
+					posStr = posStr .. xStr .. zStr
+				end
+			end
+			SendLuaRulesMsg("£" .. validation .. posStr)
+		end
+	end
+
+
+	function gadget:MousePress(x,y,button)
+		if button == 2 then
+			return
+		end
 		local mx,my = GetMouseState()
 		local _,pos = TraceScreenRay(mx,my,true)
 
-		if pos then
-			poshistory[n*2]	 = PackU16(floor(pos[1]))
-			poshistory[n*2+1] = PackU16(floor(pos[3]))
-			if n == numMousePos then
-				lastx,lastz = pos[1],pos[3]
+		if not pos then
+			return
+		end
+		if abs(pos[1] - lastx) > 300 or abs(pos[3] - lastz) > 300 then
+			for i=0,5 do
+				local posindex = i%2 == 0 and 1 or 3
+				poshistory[i] = PackU16(floor(pos[posindex]))
 			end
-			n = n + 1
-		end
-
-		updateTick = updateTimer + saveEach
-	end
-
-	if n > numMousePos then
-		n = 0
-		updateTimer = 0
-		updateTick = saveEach
-
-		local posStr = "0"
-
-		for i=numMousePos,1,-1 do
-			local xStr = poshistory[i*2]
-			local zStr = poshistory[i*2+1]
-			if xStr and zStr then
-				posStr = posStr .. xStr .. zStr
+			lastx,lastz = pos[1],pos[3]
+			updateTick = saveEach
+			updateTimer = 0
+			n = 0
+			local posStr = "0"
+			for i=numMousePos,1,-1 do
+				local xStr = poshistory[i*2]
+				local zStr = poshistory[i*2+1]
+				if xStr and zStr then
+					posStr = posStr .. xStr .. zStr
+				end
 			end
+			SendLuaRulesMsg("£" .. validation .. posStr)
 		end
-		SendLuaRulesMsg("£" .. validation .. posStr)
-
 	end
-end
-
-
-function gadget:MousePress(x,y,button)
-	if button == 2 then
-		return
-	end
-	local mx,my = GetMouseState()
-	local _,pos = TraceScreenRay(mx,my,true)
-
-	if not pos then
-		return
-	end
-	if abs(pos[1] - lastx) > 300 or abs(pos[3] - lastz) > 300 then
-		for i=0,5 do
-			local posindex = i%2 == 0 and 1 or 3
-			poshistory[i] = PackU16(floor(pos[posindex]))
-		end
-		lastx,lastz = pos[1],pos[3]
-		updateTick = saveEach
-		updateTimer = 0
-		n = 0
-		local posStr = "0"
-		for i=numMousePos,1,-1 do
-			local xStr = poshistory[i*2]
-			local zStr = poshistory[i*2+1]
-			if xStr and zStr then
-				posStr = posStr .. xStr .. zStr
-			end
-		end
-		SendLuaRulesMsg("£" .. validation .. posStr)
-	end
-end
 
 end
 

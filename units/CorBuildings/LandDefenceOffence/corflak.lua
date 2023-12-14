@@ -1,11 +1,11 @@
 return {
 	corflak = {
-		acceleration = 0,
+		maxacc = 0,
 		airsightdistance = 1000,
-		brakerate = 0,
+		maxdec = 0,
 		buildangle = 8192,
-		buildcostenergy = 14000,
-		buildcostmetal = 850,
+		energycost = 14000,
+		metalcost = 850,
 		buildpic = "CORFLAK.DDS",
 		buildtime = 20100,
 		canrepeat = false,
@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1840,
+		health = 1840,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "ALL",
@@ -156,8 +156,6 @@ return {
 				weaponvelocity = 1600,
 				damage = {
 					--default = 125,
-					bombers = 250,
-					fighters = 500,
 					vtol = 250,
 				},
 				rgbcolor = {

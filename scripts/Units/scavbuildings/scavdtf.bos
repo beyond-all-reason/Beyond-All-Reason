@@ -47,6 +47,7 @@ Go()
 {
 	set ARMORED to 0;
 	move top to y-axis [0] speed [50];
+	turn spark to x-axis <0> speed <150.000000>;
 	wait-for-move top along y-axis;
 	move barrel to z-axis [0] speed [24];
 	Static_Var_1 = 1;
@@ -57,6 +58,7 @@ Stop()
 	set ARMORED to 1;
 	Static_Var_1 = 0;
 	turn top to y-axis <0.000000> speed <300.000000>;
+	turn spark to x-axis <90> speed <150.000000>;
 	move barrel to z-axis [-12] speed [24];
 	wait-for-move barrel along z-axis;
 	move top to y-axis [-29] speed [50];
@@ -100,7 +102,7 @@ Create()
 	hide aimpoint;
 	hide firepoint;
 	hide flare;
-	hide flare;
+	turn spark to x-axis <90> speed <600.000000>;
 	restore_delay = 2000;
 	Static_Var_1 = 0;
 	call-script InitState();

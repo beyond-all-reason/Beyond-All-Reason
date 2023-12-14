@@ -23,6 +23,7 @@ VFS.Include("luarules/configs/customcmds.h.lua")
 SYMKEYS = table.invert(KEYSYMS)
 
 local alwaysReturn = false
+local autoSelectFirst = true
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
@@ -395,7 +396,10 @@ end
 
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
-	WG["pregame-build"].setPreGamestartDefID(uDefID)
+	if WG["pregame-build"] and WG["pregame-build"].setPreGamestartDefID then
+		WG["pregame-build"].setPreGamestartDefID(uDefID)
+	end
+
 	if not uDefID then
 		currentCategory = nil
 		doUpdate = true
@@ -436,6 +440,19 @@ local function enqueueUnit(uDefID, opts)
 		end
 	end
 end
+
+local function selectBuilding(uDefID)
+	local uDef = UnitDefs[-uDefID]
+	local isRepeatMex = uDef.customParams.metal_extractor and uDef.name == activeCmd
+	local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
+
+	if isRepeatMex then
+		WG['areamex'].setAreaMexType(uDefID)
+	end
+
+	Spring.SetActiveCommand(cmd, 1, true, false, Spring.GetModKeyState())
+end
+
 
 local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	-- validate args
@@ -507,13 +524,8 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 			return
 		end
 
-		local uDef = UnitDefs[-uDefID]
-		local isRepeatMex = uDef.customParams.metal_extractor
-			and uDef.name == activeCmd
-			and not (uDef.stealth or #uDef.weapons > 0)
-		local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
-		Spring.SetActiveCommand(cmd, 3, false, true, alt, ctrl, meta, shift)
 
+		selectBuilding(uDefID)
 		return true
 	end
 
@@ -657,6 +669,15 @@ function widget:Initialize()
 	end
 	WG["gridmenu"].setAlwaysReturn = function(value)
 		alwaysReturn = value
+	end
+	WG["gridmenu"].getAutoSelectFirst = function()
+		return autoSelectFirst
+	end
+	WG["gridmenu"].setAutoSelectFirst = function(value)
+		autoSelectFirst = value
+	end
+	WG["gridmenu"].clearCategory = function()
+		clearCategory()
 	end
 
 	WG["buildmenu"] = {}
@@ -921,10 +942,7 @@ function widget:Update(dt)
 	end
 
 	if selectNextFrame and not isPregame then
-		local cmdIndex = spGetCmdDescIndex(selectNextFrame)
-		if cmdIndex then
-			Spring.SetActiveCommand(cmdIndex, 1, true, false, Spring.GetModKeyState())
-		end
+		selectBuilding(selectNextFrame)
 		selectNextFrame = nil
 		switchedCategory = nil
 
@@ -1129,7 +1147,7 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 	-- price
 	if showPrice then
 		local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
-		local energyColor = disabled and "\n\255\135\135\135" or "\n\255\255\255\000"
+		local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
 		local function AddSpaces(price)
 			if price >= 1000 then
 				return string.format("%s %03d", AddSpaces(math_floor(price / 1000)), price % 1000)
@@ -1140,18 +1158,17 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 		local energyPrice = AddSpaces(units.unitEnergyCost[uid])
 		local metalPriceText = metalColor .. metalPrice
 		local energyPriceText = energyColor .. energyPrice
-		local energyPriceTextHeight = font2:GetTextHeight(energyPriceText) * priceFontSize
 		font2:Print(
 			metalPriceText,
 			rect.xEnd - cellPadding - (cellInnerSize * 0.048),
-			rect.y + cellPadding + (priceFontSize * 1.35) + energyPriceTextHeight,
+			rect.y + cellPadding + (priceFontSize * 1.35),
 			priceFontSize,
 			"ro"
 		)
 		font2:Print(
 			energyPriceText,
 			rect.xEnd - cellPadding - (cellInnerSize * 0.048),
-			rect.y + cellPadding + (priceFontSize * 1.35),
+			rect.y + cellPadding + (priceFontSize * 0.35),
 			priceFontSize,
 			"ro"
 		)
@@ -1568,7 +1585,7 @@ local function drawGrid()
 		end
 	end
 
-	if cellcmds[1] and (activeBuilder or isPregame) and switchedCategory then
+	if cellcmds[1] and autoSelectFirst and (activeBuilder or isPregame) and switchedCategory then
 		selectNextFrame = cellcmds[1].id
 	end
 end
@@ -2108,13 +2125,7 @@ function widget:MousePress(x, y, button)
 							if isPregame then
 								setPreGamestartDefID(cellcmds[cellRectID].id * -1)
 							elseif spGetCmdDescIndex(cellcmds[cellRectID].id) then
-								Spring.SetActiveCommand(
-									spGetCmdDescIndex(cellcmds[cellRectID].id),
-									1,
-									true,
-									false,
-									Spring.GetModKeyState()
-								)
+								selectBuilding(cellcmds[cellRectID].id)
 							end
 						elseif builderIsFactory and spGetCmdDescIndex(cellcmds[cellRectID].id) then
 							Spring.PlaySoundFile(Cfgs.sound_queue_rem, 0.75, "ui")
@@ -2155,6 +2166,7 @@ end
 function widget:GetConfigData()
 	return {
 		alwaysReturn = alwaysReturn,
+		autoSelectFirst = autoSelectFirst,
 		showPrice = showPrice,
 		showRadarIcon = showRadarIcon,
 		showGroupIcon = showGroupIcon,
@@ -2167,6 +2179,9 @@ end
 function widget:SetConfigData(data)
 	if data.alwaysReturn ~= nil then
 		alwaysReturn = data.alwaysReturn
+	end
+	if data.autoSelectFirst ~= nil then
+		autoSelectFirst = data.autoSelectFirst
 	end
 	if data.showPrice ~= nil then
 		showPrice = data.showPrice

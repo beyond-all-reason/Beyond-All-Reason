@@ -50,7 +50,7 @@ Create()
 	start-script BuildMe();
 }
 
-SetSpeed(windSpd) //called every 450 frames
+SetSpeed(windSpd) //called every 15s (450 frames)
 {
 	WindSpeed = 0 - windSpd; //invert if desired
 	if (!Stunned) {
@@ -61,7 +61,7 @@ SetSpeed(windSpd) //called every 450 frames
 	}
 }
 
-SetDirection(windDir) //called every 450 frames
+SetDirection(windDir) //called every 15s (450 frames)
 {
 	LastDirection = WindDirection;
 	WindDirection = windDir + <180>;

@@ -1,10 +1,10 @@
 return {
 	armalab = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 1024,
-		buildcostenergy = 15000,
-		buildcostmetal = 2900,
+		energycost = 15000,
+		metalcost = 2900,
 		builder = true,
 		buildpic = "ARMALAB.DDS",
 		buildtime = 16200,
@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 4250,
+		health = 4250,
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 200,

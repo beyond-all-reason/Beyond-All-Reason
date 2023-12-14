@@ -1,10 +1,10 @@
 return {
 	corvipe = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 8192,
-		buildcostenergy = 14000,
-		buildcostmetal = 730,
+		energycost = 14000,
+		metalcost = 730,
 		buildpic = "CORVIPE.DDS",
 		buildtime = 15000,
 		canrepeat = false,
@@ -17,7 +17,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3000,
+		health = 3000,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
@@ -155,9 +155,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 950,
 				damage = {
-					bombers = 26,
 					default = 825,
-					fighters = 26,
 					hvyboats = 577.5,
 					subs = 5,
 					vtol = 26,

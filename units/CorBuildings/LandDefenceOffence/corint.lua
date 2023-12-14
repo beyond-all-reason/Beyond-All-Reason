@@ -1,10 +1,10 @@
 return {
 	corint = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 32700,
-		buildcostenergy = 67000,
-		buildcostmetal = 4600,
+		energycost = 67000,
+		metalcost = 4600,
 		buildpic = "CORINT.DDS",
 		buildtime = 93300,
 		canrepeat = false,
@@ -19,7 +19,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 4700,
+		health = 4700,
 		maxslope = 13,
 		maxwaterdepth = 0,
 		objectname = "Units/CORINT.s3o",
