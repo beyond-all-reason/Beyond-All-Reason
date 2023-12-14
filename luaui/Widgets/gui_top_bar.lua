@@ -138,7 +138,7 @@ if riskWindValue == nil then
 		riskWindValue = "100"
 	end
 end
-local tidalSpeed = Spring.GetTidal()
+local tidalSpeed = Spring.GetTidal() -- for now assumed that it is not dynamiccally changed
 local tidalWaveAnimationHeight = 10
 local windRotation = 0
 

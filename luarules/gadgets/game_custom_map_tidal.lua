@@ -1,25 +1,27 @@
+if not gadgetHandler:IsSyncedCode() then return false end
+
 function gadget:GetInfo()
 	return {
 		name = "Custom Map Tidal",
 		desc = "Sets map tidal for modoption via engine call",
-		author = "",
-		date = "",
-		license = "Horses",
+		author = "robert the pie",
+		date = "December 2023",
+		license = "GPLv2 or late",
 		layer = 0,
 		enabled = true  --  loaded by default?
 	}
 end
 
-if gadgetHandler:IsSyncedCode() then
-
 function gadget:Initialize()
 	local newTidal = Spring.GetModOptions().map_tidal
-	-- set tidal doesn't u
-	local tidalSpeeds = {high=23,medium=18,low=13,off=0}
+	local tidalSpeeds = {
+		high=23,
+		medium=18,
+		low=13,
+		unchanged=nil,
+	}
 	local newValue = tidalSpeeds[newTidal]
 	if newValue then
 		Spring.SetTidal(newValue)
 	end
-end
-
 end
