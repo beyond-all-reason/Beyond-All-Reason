@@ -50,7 +50,12 @@ function Unit:Update()
 	-- Pass the update event to the behaviours
 	for k,behaviour in pairs(self.behaviours) do
 		self.game:StartTimer(behaviour:Name() .. ' Unit')
+-- 		local RAM = gcinfo()
 		behaviour:Update()
+-- 		RAM = gcinfo() - RAM
+-- 		if RAM > 0 then
+-- 			Spring.Echo(behaviour:Name(), RAM , 'RAM')
+-- 		end
 		self.game:StopTimer(behaviour:Name() .. ' Unit')
 	end
 
