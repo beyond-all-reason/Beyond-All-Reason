@@ -108,18 +108,20 @@ end
 
 function EcoHST:DebugAll()
 	if self.DebugEnabled then
-		for i,sample in pairs(self.samples) do
-			for name, properties in pairs(sample) do
-				for property, value in pairs(properties) do
-					self:EchoDebug('sample = ',i,name,  ".",property , ": " , value)
-				end
-			end
+-- 		for i,sample in pairs(self.samples) do
+-- 			for name, properties in pairs(sample) do
+-- 				for property, value in pairs(properties) do
+-- 					self:EchoDebug('sample = ',i,name,  ".",property , ": " , value)
+-- 				end
+-- 			end
+-- 		end
+		for property,value in pairs(self.Metal) do
+			self:EchoDebug('average Metal',property,value)
 		end
+		for property,value in pairs(self.Energy) do
+			self:EchoDebug('average Energy',property,value)
+		end
+
 	end
-	for property,value in pairs(self.Metal) do
-		self:EchoDebug('average Metal',property,value)
-	end
-	for property,value in pairs(self.Energy) do
-		self:EchoDebug('average Energy',property,value)
-	end
+
 end

@@ -62,7 +62,7 @@ end
 
 SchedulerHST.MScheduler = {
 
-	'EcoHst',
+	'EcoHST',
 -- 	'OverviewHST',
 	'LosHST',
 	'TargetHST',
