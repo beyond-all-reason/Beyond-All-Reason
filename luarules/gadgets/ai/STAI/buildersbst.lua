@@ -9,6 +9,7 @@ function BuildersBST:Init()
 	self.active = false
 	self.watchdogTimeout = 1800
 	local u = self.unit:Internal()
+	self.position = u:GetPosition()
 	local mtype, network = self.ai.maphst:MobilityOfUnit(u)
 	self.id = u:ID()
 	self.mtype = mtype
@@ -89,6 +90,7 @@ function BuildersBST:Update()
 		return
 	end
 	local f = self.game:Frame()
+	self.position.x,self.position.y,self.position.z = self.unit:Internal():GetRawPos()
 	if not self:IsActive() then
 		return
 	end
@@ -187,7 +189,7 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 
 	local POS = nil
 	local builder = self.unit:Internal()
-	local builderPos =  self.ai.tool:UnitPos(self)
+	local builderPos =  self.position()
 	local army = self.ai.armyhst
 	local site = self.ai.buildingshst
 	if loc and type(loc) == 'table' then
@@ -206,7 +208,8 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 			POS = site:searchPosInList(utype, builder, loc.min,loc.max,loc.list,loc.neighbours)
 		end
 		if not POS and loc.himself then
-			POS = site:ClosestBuildSpot(builder, builderPos, utype)
+-- 			POS = site:ClosestBuildSpot(builder, builderPos, utype)
+			POS = site:FindClosestBuildSite(utype, builderPos.x,builderPos.y,builderPos.z, minDist, maxDist)
 		end
 	end
 	--factory will get position in labshst
@@ -247,13 +250,17 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 		end
 		if target then
 			self:EchoDebug(self.name,' search position for nano near ',target.name )
-			POS = site:ClosestBuildSpot(builder, target.position, utype,nil,nil,nil,390)
+-- 			POS = site:ClosestBuildSpot(builder, target.position, utype,nil,nil,nil,390)
+			POS = site:FindClosestBuildSite(utype, target.position.x,target.position.y,target.position.z, nil, maxDist)
+
 		end
 		if not POS then
 			local lab = self.ai.labshst:ClosestHighestLevelFactory(builder,5000)
 			if lab then
 				self:EchoDebug("searching for top level factory")
-				POS = site:ClosestBuildSpot(builder, lab.position, utype,nil,nil,nil,390)
+-- 				POS = site:ClosestBuildSpot(builder, lab.position, utype,nil,nil,nil,390)
+				POS = site:FindClosestBuildSite(utype, lab.position.x,lab.position.y,lab.position.z, nil, maxDist)
+
 			end
 		end
 	end
