@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, lthrust, mthrust, rthrust, ring1, ring2, ring3, ringlight, firecone, coneflare, fireline, lineflare;
+piece  base, lthrust, mthrust, rthrust, ring1, ring2, ring3, ringlight, fireline, lineflare, bombdrop;
 static-var maxSpeed, currentSpeed, shotcount, timer, isfiring;
 
 
@@ -29,13 +29,17 @@ BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
 		//get PRINT(maxSpeed, currentSpeed, Static_Var_1);
 		if( Rand( 1, 5 ) == 1 AND (maxSpeed < (currentSpeed+100) ) )
 		{
-			turn base to z-axis <240.054945> speed <120.027473>;
-			wait-for-turn base around z-axis;
-			turn base to z-axis <120.027473> speed <180.043956>;
-			wait-for-turn base around z-axis;
-			turn base to z-axis <0.000000> speed <120.027473>;
+			start-script DoBarrelRoll();
 		}
 	}
+}
+
+DoBarrelRoll() {
+	turn base to z-axis <240.054945> speed <120.027473>;
+	wait-for-turn base around z-axis;
+	turn base to z-axis <120.027473> speed <180.043956>;
+	wait-for-turn base around z-axis;
+	turn base to z-axis <0.000000> speed <120.027473>;
 }
 
 lua_UnitScriptLight(lightIndex, count)
@@ -46,15 +50,16 @@ lua_UnitScriptLight(lightIndex, count)
 
 Create()
 {
-	turn firecone to x-axis <45> speed <50>;
-	turn firecone to y-axis <0> speed <50>;
+	turn fireline to x-axis <55> speed <50>;
+	turn fireline to y-axis <0> speed <50>;
 	shotcount = 0;
 	timer = 0;
 	isfiring = 0;
 	start-script BarrelRoll();
-	hide lthrust;
-	hide mthrust;
-	hide rthrust;
+	//hide lthrust;
+	//hide mthrust;
+	//hide rthrust;
+
 }
 
 Activate()
@@ -62,6 +67,10 @@ Activate()
 	show rthrust;
 	show mthrust;
 	show lthrust;
+	spin ring1 around x-axis speed <60> accelerate <200>;
+	spin ring2 around x-axis speed <40> accelerate <200>;
+	spin ring2 around y-axis speed <30> accelerate <200>;
+	spin ring3 around z-axis speed <20> accelerate <200>;
 }
 
 Deactivate()
@@ -69,6 +78,15 @@ Deactivate()
 	hide rthrust;
 	hide mthrust;
 	hide lthrust;
+	stop-spin ring1 around x-axis;
+	stop-spin ring2 around x-axis;
+	stop-spin ring2 around y-axis;
+	stop-spin ring3 around z-axis;
+	turn ring1 to x-axis <0> speed <60>;
+	turn ring2 to x-axis <0> speed <60>;
+	turn ring2 to y-axis <0> speed <60>;
+	turn ring3 to z-axis <0> speed <60>;
+	
 }
 
 StrafeFire() {
@@ -77,16 +95,15 @@ StrafeFire() {
 	set-signal-mask SIG_STRAFE;
 	
 	
-	emit-sfx 1024 + 0 from coneflare;
-	emit-sfx 1024 + 1 from coneflare;
+	//emit-sfx 1024 + 0 from lineflare;
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
 
 	while (isfiring == 1) {
 		timer = timer + 1;
-		if (timer<100) {
+		if (timer<65) {
 			//get PRINT(timer);
-			emit-sfx 2048+1 from firecone;
+			emit-sfx 2048+1 from fireline;
 			sleep 1;
 		} else {
 			spin ring1 around x-axis speed <90> accelerate <200>;
@@ -100,21 +117,22 @@ StrafeFire() {
 }
 
 
-//decoy weapon for aimer and for tricking straight flightpath out of the damn thing
 
 FirePrimary() {
 
-	//deny reaiming during firing?
-	//barrel roll?
-	start-script StrafeFire();
-	signal SIG_STRAFE;
+	//signal SIG_STRAFE;
 	isfiring = 1;
+	start-script StrafeFire();
 
 	spin ring1 around x-axis speed <180> accelerate <200>;
 	spin ring2 around x-axis speed <120> accelerate <200>;
 	spin ring2 around y-axis speed <60> accelerate <200>;
 	spin ring3 around z-axis speed <70> accelerate <200>;
-	//light
+	
+	sleep 2900;
+	if (Rand(0,20)==20) {
+		start-script DoBarrelRoll();
+	}
 
 	return 0;
 
@@ -128,12 +146,12 @@ AimPrimary() {
 }
 QueryPrimary(piecenum)
 {
-	piecenum = base;
+	piecenum = fireline;
 }
 
 QuerySecondary(piecenum)
 {
-	piecenum = firecone;
+	piecenum = fireline;
 }
 AimSecondary(h,p) {
 	return (0);
@@ -189,7 +207,7 @@ QuerySecondary(piecenum)
 
 SweetSpot(piecenum)
 {
-	piecenum = base;
+	piecenum = bombdrop;
 }
 
 

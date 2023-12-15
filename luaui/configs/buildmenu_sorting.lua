@@ -101,6 +101,8 @@ local unitOrderTable = {
 	['legfig']         = 004306,
 	['armhawk']        = 004310, --FIGHTERS T2
 	['corvamp']        = 004315,
+	['legionnaire']    = 004316,
+	['legvenator']     = 004317,
 
 	['armkam']         = 004320, --GUNSHIPS
 	['legmos']         = 004322,
@@ -124,6 +126,7 @@ local unitOrderTable = {
 	['corhurc']        = 004380,
 	['legnap']         = 004381,
 	['legmineb']       = 004382,
+	['legphoenix']     = 004383,
 	['armliche']       = 004385,
 	['armstil']        = 004390,
 

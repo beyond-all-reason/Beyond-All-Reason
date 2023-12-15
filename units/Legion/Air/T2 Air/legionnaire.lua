@@ -6,7 +6,7 @@ return {
 		brakerate = 0.0875,
 		buildcostenergy = 6200,
 		buildcostmetal = 180,
-		buildpic = "CORCA.DDS",
+		buildpic = "legionnaire.DDS",
 		buildtime = 10000,
 		canfly = true,
 		canmove = true,

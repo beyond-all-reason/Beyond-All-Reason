@@ -699,6 +699,7 @@ local units = {
 	leginc = { "corsumo.png", 1.85 },
 	leginf = { "cortrem_t2.png", 1.9425 },
 	leginfestor = { "cortermite_1.5.png", 1.57499993 },
+	legionnaire = { "air_t2.png", 1.02899992 },
 	legkam = { "air_kamikaze.png", 1 },
 	legkark = { "legkark.png", 1.2 },
 	leglab = { "factory_bot.png", 1.52250004 },
@@ -712,6 +713,7 @@ local units = {
 	legmrv = { "vehicle_t2_raid.png", 1.45},
 	legnap = { "air_t2_bomber_napalm.png", 1.85 },
 	legpede = { "corkarg_2.05.png", 3 },
+	legphoenix = { "air_t2_bomber.png", 1.74299991 },
 	legrail = { "vehicle_t1_tank_rail.png", 1.35},
 	legsco = { "vehicle_t2_sco.png", 1.65 },
 	legshot = { "kbot_t2_shotgun.png", 1.6 },
@@ -720,6 +722,7 @@ local units = {
 	legstr = { "bot_t2_raid.png", 1.3 },
 	legvp = { "factory_vehicle.png", 1.52250004 },
 	legvcarry = { "vehicle_t2_carry.png", 1.65 },
+	legvenator = { "air_t2.png", 1.02899992 },
 	legdefcarryt1 = { "legdefcarryt1.png", 1.66 },
 	
 

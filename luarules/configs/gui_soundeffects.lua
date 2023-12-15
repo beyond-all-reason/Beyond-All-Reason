@@ -2574,6 +2574,22 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "plasma-huge",
 	},
 
+	legionnaire = {
+		BaseSoundSelectType = "arm-air-medium-sel",
+		BaseSoundMovementType = "arm-air-medium-ok",
+		BaseSoundWeaponType = "aarocket-air",
+	},
+	legvenator = {
+		BaseSoundSelectType = "arm-air-medium-sel",
+		BaseSoundMovementType = "arm-air-medium-ok",
+		BaseSoundWeaponType = "aarocket-air",
+	},
+	legphoenix = {
+		BaseSoundSelectType = "arm-air-bomber-sel",
+		BaseSoundMovementType = "arm-air-bomber-ok",
+		BaseSoundWeaponType = "air-bomb-large",
+	},
+
 	--Various Random Units
 
 	freefusion = {

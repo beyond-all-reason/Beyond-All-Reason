@@ -455,7 +455,7 @@ local armorDefs = {
 		"legfig",
 		"legionnaire",
 		"legvenator",
-		"corsupervamp",
+		"legphoenix",
 	},
 	shields = {
 		"armgate",
