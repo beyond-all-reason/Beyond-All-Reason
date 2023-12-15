@@ -8,8 +8,9 @@ function UnbaCom_Post(name)
 	tablecom.weapons = {}
 	tablecom.script = "scripts/Units/unbacom/unba"..lowername.."_lus.lua"
 	tablecom.objectname = "Units/"..uppername..".S3O"
-
-
+	if lowername == 'armcom' or lowername == 'corcom' or lowername == 'armdecom' or lowername == 'cordecom' then
+		tablecom.objectname = "Units/"..uppername.."-XMAS.S3O"
+	end
 
 	--------------------------------------------
 	---					ARM					 ---
