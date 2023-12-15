@@ -143,7 +143,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 625,
-				object = "Units/arm2X2F.s3o",
+				object = "gingerbread",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
