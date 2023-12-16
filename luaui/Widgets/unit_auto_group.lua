@@ -226,7 +226,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 
 	if GetUnitRulesParam(unitID, "resurrected") then
-		toBeAddedLater[unitID] = true
+		toBeAddedLater[unitID] = unitDefID
 		return
 	end
 
@@ -247,8 +247,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function widget:GameFrame()
-	for unitID, _ in pairs(toBeAddedLater) do
-		local unitDefID = GetUnitDefID(unitID)
+	for unitID, unitDefID in pairs(toBeAddedLater) do
 		if unitHealth[unitDefID] and GetUnitHealth(unitID) == unitHealth[unitDefID] then
 			local gr = unit2group[unitDefID]
 			if gr ~= nil and GetUnitGroup(unitID) == nil then
@@ -273,6 +272,7 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	finiGroup[unitID] = nil
 	createdFrame[unitID] = nil
 	builtInPlace[unitID] = nil
+	toBeAddedLater[unitID] = nil
 end
 
 function widget:UnitGiven(unitID, unitDefID, newTeamID, teamID)
@@ -282,9 +282,10 @@ function widget:UnitGiven(unitID, unitDefID, newTeamID, teamID)
 			SetUnitGroup(unitID, gr)
 		end
 	end
-	createdFrame[unitID] = nil
 	finiGroup[unitID] = nil
+	createdFrame[unitID] = nil
 	builtInPlace[unitID] = nil
+	toBeAddedLater[unitID] = nil
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeamID, teamID)
@@ -294,8 +295,8 @@ function widget:UnitTaken(unitID, unitDefID, oldTeamID, teamID)
 			SetUnitGroup(unitID, gr)
 		end
 	end
-	createdFrame[unitID] = nil
 	finiGroup[unitID] = nil
+	createdFrame[unitID] = nil
 	builtInPlace[unitID] = nil
 end
 
