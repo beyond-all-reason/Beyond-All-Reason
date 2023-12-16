@@ -11,6 +11,7 @@ function upget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -999999,
 		enabled = true,
+		handler = true,
 	}
 end
 
@@ -308,11 +309,14 @@ function upget:Initialize()
 	globalScope["resource_spot_finder"].IsMexPositionValid = IsBuildingPositionValid
 end
 
-local firstUpdate = true
 -- function upget:Update(dt)
 function upget:Update()
-	if firstUpdate then
-		globalScope["resource_spot_finder"].geoSpotsList = GetSpotsGeo()
-		firstUpdate = false
+	globalScope["resource_spot_finder"].geoSpotsList = GetSpotsGeo()
+
+	-- remove update callin, we already did all we wanted to do
+	if gadget then
+		gadgetHandler:RemoveGadgetCallIn("Update", self)
+	else
+		widgetHandler:RemoveWidgetCallIn("Update", self)
 	end
 end
