@@ -33,8 +33,8 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 
-local maxDecorations = 200
-local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/2000000)
+local maxDecorations = 250
+local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/1800000)
 local candycaneSnowMapMult = 2.5
 local addGaiaBalls = false	-- if false, only own team colored balls are added
 
@@ -164,13 +164,15 @@ function initiateXmas()
 			for i=1, candycaneAmount do
 				local x = random(0, Game.mapSizeX)
 				local z = random(0, Game.mapSizeZ)
-				local groundType, groundType2 = Spring.GetGroundInfo(x,z)
-				if (type(groundType) == 'string' and groundType ~= "void" or groundType2 ~= "void") then	-- 105 compatibility
-					local y = GetGroundHeight(x, z)
-					local caneType = math.ceil(random(1,7))
-					local featureID = Spring.CreateFeature('candycane'..caneType,x,y,z,random(0,360))
-					Spring.SetFeatureRotation(featureID, random(-12,12), random(-12,12), random(-180,180))
-					candycanes[featureID] = caneType
+				local y = GetGroundHeight(x, z)
+				if y > 5 then
+					local groundType, groundType2 = Spring.GetGroundInfo(x,z)
+					if (type(groundType) == 'string' and groundType ~= "void" or groundType2 ~= "void") then	-- 105 compatibility
+						local caneType = math.ceil(random(1,7))
+						local featureID = Spring.CreateFeature('candycane'..caneType,x,y,z,random(0,360))
+						Spring.SetFeatureRotation(featureID, random(-12,12), random(-12,12), random(-180,180))
+						candycanes[featureID] = caneType
+					end
 				end
 			end
 		end
