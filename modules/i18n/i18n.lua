@@ -5,15 +5,43 @@ local i18n = VFS.Include(I18N_PATH .. "init.lua", nil, VFS.ZIP)
 local asianFont = 'SourceHanSans-Regular.ttc'
 local translationDirs = VFS.SubDirs('language')
 
+-- Construct a map of
+-- languageCode -> list of translation files associated with that language.
+local languageFiles = {}
 for _, languageDir in ipairs(translationDirs) do
 	local translationFiles = VFS.DirList(languageDir, '*.json')
 	local languageCode = table.remove( string.split(languageDir, '/') )
+	languageFiles[languageCode] = translationFiles
+end
 
-	for _, file in ipairs(translationFiles) do
+-- Loads all language translation files associated with languageCode.
+local function loadLanguageFiles(languageCode)
+	Spring.Log("i18n", "debug", "Loading " .. languageCode .. " translation files.")
+	if languageFiles[languageCode] == nil then
+		Spring.Log("i18n", "warning",
+				"No language files associated with requested language code " ..
+				languageCode)
+	end
+
+	for _, file in ipairs(languageFiles[languageCode]) do
 		local i18nJson = VFS.LoadFile(file)
 		local i18nLua = { [languageCode] = Json.decode(i18nJson) }
 		i18n.load(i18nLua)
 	end
+end
+
+-- Map of language code -> whether or not the language files are loaded.
+local languageLoaded = {}
+
+-- Ensures that language translation files associated with languageCode are
+-- loaded (if any).
+local function ensureLanguageLoaded(languageCode)
+	if languageLoaded[languageCode] then
+		return
+	end
+
+	loadLanguageFiles(languageCode)
+	languageLoaded[languageCode] = true
 end
 
 i18n.loadFile('language/test_unicode.lua')
@@ -26,7 +54,12 @@ i18n.languages = {
 	test_unicode = "test_unicode"
 }
 
+-- Some initialization routines requires english translations prior to the first
+-- i18n.setLanguage call.
+ensureLanguageLoaded('en')
+
 function i18n.setLanguage(language)
+	ensureLanguageLoaded(language)
 	i18n.setLocale(language)
 
 	-- Font substitution is handled at the OS level, meaning we cannot control which fallback font is used
