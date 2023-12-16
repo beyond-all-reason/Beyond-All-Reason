@@ -70,6 +70,7 @@ end
 local finiGroup = {}
 local myTeam = Spring.GetMyTeamID()
 local createdFrame = {}
+local toBeAddedLater = {}
 
 local gameStarted
 
@@ -84,6 +85,7 @@ local TraceScreenRay = Spring.TraceScreenRay
 local GetUnitPosition = Spring.GetUnitPosition
 local GetGameFrame = Spring.GetGameFrame
 local Echo = Spring.Echo
+local GetUnitRulesParam = Spring.GetUnitRulesParam
 
 
 function widget:GameStart()
@@ -222,6 +224,11 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		return
 	end
 
+	if GetUnitRulesParam(unitID, "resurrected") then
+		toBeAddedLater[unitID] = true
+		return
+	end
+
 	local builtInFrame = createdFrame[unitID] == GetGameFrame()
 
 	if not builtInFrame then
@@ -236,6 +243,20 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 
 	builtInPlace[unitID] = nil
+end
+
+function widget:GameFrame()
+	for unitID, _ in pairs(toBeAddedLater) do
+		local health = GetUnitHealth(unitID)
+		local unitDefID = GetUnitDefID(unitID)
+		local def = UnitDefs[unitDefID]
+		if health == def.health then
+			local gr = unit2group[unitDefID]
+			if gr ~= nil and GetUnitGroup(unitID) == nil then
+				SetUnitGroup(unitID, gr)
+			end
+		end
+	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
