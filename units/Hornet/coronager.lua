@@ -170,11 +170,10 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "UNDERWATER",
 				def = "STOA_MISSILE",
 				maindir = "0 1 0",
 				maxangledif = 230, --vertical launch - we ballin'
-				onlytargetcategory = "SURFACE NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},
