@@ -255,6 +255,7 @@ function widget:GameFrame()
 			if gr ~= nil and GetUnitGroup(unitID) == nil then
 				SetUnitGroup(unitID, gr)
 			end
+			toBeAddedLater[unitID] = nil
 		end
 	end
 end
