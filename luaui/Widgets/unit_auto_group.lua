@@ -55,16 +55,17 @@ local mobileBuilders = {}
 local builtInPlace = {}
 
 local unitShowGroup = {}
+local unitHealth = {}
 for udefID, def in ipairs(UnitDefs) do
 	if not def.isFactory then
 		if def.buildOptions and #def.buildOptions > 0 then
 			mobileBuilders[udefID] = true
 		end
-
 		if (groupableBuildings[udefID] or not def.isBuilding) then
 			unitShowGroup[udefID] = true
 		end
 	end
+	unitHealth[udefID] = def.health
 end
 
 local finiGroup = {}
@@ -247,10 +248,8 @@ end
 
 function widget:GameFrame()
 	for unitID, _ in pairs(toBeAddedLater) do
-		local health = GetUnitHealth(unitID)
 		local unitDefID = GetUnitDefID(unitID)
-		local def = UnitDefs[unitDefID]
-		if health == def.health then
+		if GetUnitHealth(unitID) == unitHealth[unitDefID] then
 			local gr = unit2group[unitDefID]
 			if gr ~= nil and GetUnitGroup(unitID) == nil then
 				SetUnitGroup(unitID, gr)
