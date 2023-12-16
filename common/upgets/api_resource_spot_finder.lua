@@ -11,7 +11,6 @@ function upget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -999999,
 		enabled = true,
-		handler = true,
 	}
 end
 
@@ -213,7 +212,7 @@ local function GetSpotsMetal()
 						end
 						assignedTo.maxZ = z
 						assignedTo.worth = assignedTo.worth + matchGroup.worth
-						uniqueGroups[matchGroup] = nil
+						table.removeFirst(uniqueGroups, matchGroup)
 					end
 				else
 					assignedTo = matchGroup
@@ -242,7 +241,7 @@ local function GetSpotsMetal()
 				worth = worth,
 			}
 			stripGroup[nStrips] = newGroup
-			uniqueGroups[newGroup] = true
+			table.insert(uniqueGroups, newGroup)
 		end
 	end
 
@@ -274,7 +273,7 @@ local function GetSpotsMetal()
 
 	-- Final processing
 	local spots = {}
-	for g, _ in pairs(uniqueGroups) do
+	for _, g in ipairs(uniqueGroups) do
 		local gMinX, gMaxX = huge, -1
 		local gLeft, gRight = g.left, g.right
 		for iz = g.minZ, g.maxZ, metalMapSquareSize do
@@ -314,9 +313,6 @@ function upget:Update()
 	globalScope["resource_spot_finder"].geoSpotsList = GetSpotsGeo()
 
 	-- remove update callin, we already did all we wanted to do
-	if gadget then
-		gadgetHandler:RemoveGadgetCallIn("Update", self)
-	else
-		widgetHandler:RemoveWidgetCallIn("Update", self)
-	end
+	local handler = gadget and gadgetHandler or widgetHandler
+	handler:RemoveCallIn("Update")
 end
