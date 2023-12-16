@@ -62,6 +62,7 @@ local lockcameraLos = true                    -- togglelos
 local minWidth = 190	-- for the sake of giving the addons some room
 
 local hideDeadTeams = true
+local hideDeadAllyTeams = true
 local absoluteResbarValues = false
 
 local curFrame = Spring.GetGameFrame()
@@ -1432,7 +1433,7 @@ function SortAllyTeams(vOffset)
     local allyTeamList = Spring_GetAllyTeamList()
     local allyTeamsCount = table.maxn(allyTeamList) - 1
 
-    --find own ally team
+    -- find own ally team
     vOffset = 12 / 2.66
     for allyTeamID = 0, allyTeamsCount - 1 do
         if allyTeamID == myAllyTeamID then
@@ -1451,7 +1452,7 @@ function SortAllyTeams(vOffset)
     -- add the others
     local firstenemy = true
     for allyTeamID = 0, allyTeamsCount - 1 do
-        if allyTeamID ~= myAllyTeamID then
+        if allyTeamID ~= myAllyTeamID and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
             if firstenemy then
                 vOffset = vOffset + 13
                 vOffset = vOffset + labelOffset - 3
