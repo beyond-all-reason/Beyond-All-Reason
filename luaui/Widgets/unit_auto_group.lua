@@ -249,7 +249,7 @@ end
 function widget:GameFrame()
 	for unitID, _ in pairs(toBeAddedLater) do
 		local unitDefID = GetUnitDefID(unitID)
-		if GetUnitHealth(unitID) == unitHealth[unitDefID] then
+		if unitHealth[unitDefID] and GetUnitHealth(unitID) == unitHealth[unitDefID] then
 			local gr = unit2group[unitDefID]
 			if gr ~= nil and GetUnitGroup(unitID) == nil then
 				SetUnitGroup(unitID, gr)
