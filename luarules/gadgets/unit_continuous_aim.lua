@@ -93,6 +93,7 @@ local convertedUnits = {
 	[UnitDefNames.cordecom.id] = 5,
 	[UnitDefNames.armdecom.id] = 5,
 	[UnitDefNames.legbal.id] = 5,
+	[UnitDefNames.legbastion.id] = 5,
 	[UnitDefNames.legcen.id] = 2,
 	[UnitDefNames.leggat.id] = 5,
 	[UnitDefNames.leggob.id] = 5,

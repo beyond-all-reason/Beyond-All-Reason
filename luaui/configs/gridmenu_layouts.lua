@@ -93,10 +93,9 @@ local labGrids = {
 		"corcrw",                                              -- krow
 	},
 	legaap = {
-	
 	"legaca","legionnaire","legvenator","",					--T2 con, defensive fig, interceptor
 	"legmineb","legnap","legphoenix","cortitan",			--minebomber, napalmbomber, 'heavy bomber', torpedo
-	"corape", "legfort","corseah","corawac",				--gunship, knockoff krow, transport, radar
+	"corape", "legfort","legstronghold","legwhisper",				--gunship, knockoff krow, (armed)transport, radar
 	},
 	-- seaplanes
 	armplat = {
@@ -887,7 +886,7 @@ local unitGrids = {
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "corvipe", "legbastion", "cortoast", "cortron", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
 			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "corint", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
@@ -957,7 +956,7 @@ local unitGrids = {
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "corvipe", "legbastion", "cortoast", "cortron", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
 			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "corint", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
@@ -1026,7 +1025,7 @@ local unitGrids = {
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "corvipe", "legbastion", "cortoast", "cortron", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
 			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "corint", "legstarfall", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},

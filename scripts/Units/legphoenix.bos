@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, lthrust, mthrust, rthrust, ring1, ring2, ring3, ringlight, fireline, lineflare, bombdrop;
+piece  base, lthrust, mthrust, rthrust, ring1, ring2, ring3, ringlight, fireline, lineflare;
 static-var maxSpeed, currentSpeed, shotcount, timer, isfiring;
 
 
@@ -207,7 +207,7 @@ QuerySecondary(piecenum)
 
 SweetSpot(piecenum)
 {
-	piecenum = bombdrop;
+	piecenum = base;
 }
 
 

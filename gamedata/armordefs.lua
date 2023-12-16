@@ -341,6 +341,7 @@ local armorDefs = {
 
 		"armapt3",
 		"corapt3",
+		"legbastion",
 
 	},
 	
@@ -456,6 +457,8 @@ local armorDefs = {
 		"legionnaire",
 		"legvenator",
 		"legphoenix",
+		"legstronghold",
+		"legwhisper",
 	},
 	shields = {
 		"armgate",

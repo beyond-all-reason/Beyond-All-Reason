@@ -1,0 +1,247 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, sauron, sauronarms, ring1, ring2, ring3, fr1, fr2, fr3, aimfromy, aimy, flare, fireline, lineflare;
+
+static-var  restore_delay, Static_Var_3, dakka, shotcount, timer;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_LIGHT			4
+#define SIG_RESTORE			8
+
+
+//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
+// MaxVelocity and acceleration are in degrees per frame (not second!)
+// Jerk is the minimum velocity of the turret
+// A high precision requirement can result in overshoots if desired 
+// (c) CC BY NC ND Beherith mysterme@gmail.com
+#define MAX_AIMY1_VELOCITY <3.00>
+#define AIMY1_ACCELERATION <0.16>
+#define AIMY1_JERK <0.5>
+#define AIMY1_PRECISION <1.2>
+#define AIMY1_RESTORE_SPEED <1.0>
+
+static-var timetozero, deceleratethreshold;
+static-var Stunned;
+
+static-var aimy1delta, aimy1velocity, aimy1target, aimy1position, gameFrame1;
+
+
+lua_UnitScriptLight(lightIndex, count) {
+	return 0;
+}
+
+Create()
+{
+	dakka = 0;
+	shotcount = 0;
+	//Static_Var_3 = 0;
+	restore_delay = 2000;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 250;
+	}
+	start-script SpinIdle();
+}
+
+RestoreAfterDelay() {
+	get PRINT(888);
+	signal SIG_RESTORE;
+	set-signal-mask SIG_RESTORE;
+
+	sleep restore_delay;
+	dakka = 0;
+	start-script SpinIdle();
+	return (0);
+}
+
+SpinIdle() {
+	spin ring1 around x-axis speed <90> accelerate <200>;
+	spin ring2 around x-axis speed <60> accelerate <200>;
+	spin ring2 around y-axis speed <30> accelerate <200>;
+	spin ring3 around z-axis speed <30> accelerate <200>;
+	spin fr1 around z-axis speed <30> accelerate <20>;
+	spin fr2 around z-axis speed <20> accelerate <20>;
+	spin fr3 around z-axis speed <10> accelerate <20>;
+}
+SpinFiring() {
+	spin ring1 around x-axis speed <180> accelerate <200>;
+	spin ring2 around x-axis speed <120> accelerate <200>;
+	spin ring2 around y-axis speed <60> accelerate <200>;
+	spin ring3 around z-axis speed <70> accelerate <200>;
+}
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
+
+
+Enlighten() {
+get PRINT(999);
+	signal SIG_LIGHT;
+	set-signal-mask SIG_LIGHT;
+	
+	
+
+	while (dakka == 1) {
+		timer = timer + 1;
+		if (timer<295) {
+			//get PRINT(timer);
+			emit-sfx 2048 from fireline;
+			sleep 1;
+		} else {
+			start-script SpinIdle();
+			timer = 0;
+			dakka = 0;
+		}
+	}
+}
+
+
+
+AimPrimary(heading, pitch) {
+	get PRINT(1, heading, pitch);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn sauronarms to x-axis <0.000000> - pitch speed <85>;
+	turn sauron to y-axis heading speed <35>;
+	
+	wait-for-turn sauron around y-axis;
+	wait-for-turn sauronarms around x-axis;
+
+	//sleep 30;		
+	
+
+	return (1);
+}
+
+FirePrimary()
+{
+	get PRINT(11);
+	start-script SpinFiring();
+	timer = 0;
+	dakka = 1;
+	start-script Enlighten();
+	//sleep 150;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+Shot1() {
+	get PRINT(111);
+	//emit-sfx 1024 + 0 from lineflare;
+	shotcount = shotcount + 1;
+	call-script lua_UnitScriptLight(1, shotcount);
+}
+
+
+/*
+
+AimPrimary(heading, pitch) {
+
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	//We can do this any time
+	
+	aimy1target = heading;
+	aimy1delta = aimy1target - aimy1position;
+
+	
+	while( ( get ABS(aimy1delta) > AIMY1_PRECISION ) OR (get ABS(aimy1velocity) > AIMY1_JERK)){
+		if (gameFrame1 != get(GAME_FRAME)){ //this is to make sure we dont get double-called, as previous aimweapon thread runs before new aimweaponthread can signal-kill previous one 
+			gameFrame1 = get(GAME_FRAME);
+	
+			//Clamp aimy1position and aimy1delta between <-180>;<180>
+			while (aimy1position >  <180>) aimy1position = aimy1position - <360>;
+			while (aimy1position < <-180>) aimy1position = aimy1position + <360>;
+			while (aimy1delta >  <180>) aimy1delta = aimy1delta - <360>;
+			while (aimy1delta < <-180>) aimy1delta = aimy1delta + <360>;
+		
+			//number of frames required to decelerate to 0
+			timetozero = get ABS(aimy1velocity) / AIMY1_ACCELERATION;
+			
+			//distance from target where we should start decelerating, always 'positive'
+			//pos = t * v - (t*(t-1)*a/2)
+			deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_ACCELERATION / 2); 
+			
+			//get PRINT ( aimy1delta , deceleratethreshold, aimy1velocity, timetozero );
+			
+			if (get ABS(aimy1delta) <= deceleratethreshold){ //we need to decelerate
+				if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
+				else 				   aimy1velocity = aimy1velocity + AIMY1_ACCELERATION;
+			}	
+			else //we need to accelerate
+			{
+				if (aimy1delta > 0) aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity + AIMY1_ACCELERATION); 
+				else                aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity - AIMY1_ACCELERATION);
+			}
+			
+			//Apply jerk at very low velocities
+			if (get ABS(aimy1velocity) < AIMY1_JERK){
+				if ((aimy1delta >        AIMY1_JERK)) aimy1velocity =        AIMY1_JERK;
+				if ((aimy1delta < (-1) * AIMY1_JERK)) aimy1velocity = (-1) * AIMY1_JERK;
+			}
+			
+			aimy1position = aimy1position + aimy1velocity; 
+			turn sauron to y-axis aimy1position now;
+			aimy1delta = aimy1target - aimy1position ; 	
+		}
+		sleep 30;		
+	}
+	
+	start-script RestoreAfterDelay();
+
+	aimy1velocity = 0;
+	return (1);
+}//*/
+
+
+
+
+
+AimFromPrimary(piecenum)
+{
+	piecenum = aimfromy;
+}
+
+
+QueryPrimary(piecenum)
+{
+	piecenum = lineflare;
+}
+
+
+
+
+SweetSpot(piecenum)
+{
+	piecenum = aimy;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+	return corpsetype;
+}

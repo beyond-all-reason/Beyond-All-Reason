@@ -719,10 +719,12 @@ local units = {
 	legshot = { "kbot_t2_shotgun.png", 1.6 },
 	legsrail = { "allterrain_t2_rail.png", 1.85 },
 	legstarfall = { "armvulc.png", 3.25499964 },
+	legstronghold = { "air_trans.png", 1.83749986 },
 	legstr = { "bot_t2_raid.png", 1.3 },
 	legvp = { "factory_vehicle.png", 1.52250004 },
 	legvcarry = { "vehicle_t2_carry.png", 1.65 },
 	legvenator = { "air_t2.png", 1.02899992 },
+	legwhisper = { "air_t2_radar.png", 1.39649999 },
 	legdefcarryt1 = { "legdefcarryt1.png", 1.66 },
 	
 
