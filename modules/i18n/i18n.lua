@@ -18,9 +18,7 @@ end
 local function loadLanguageFiles(languageCode)
 	Spring.Log("i18n", "debug", "Loading " .. languageCode .. " translation files.")
 	if languageFiles[languageCode] == nil then
-		Spring.Log("i18n", "warning",
-				"No language files associated with requested language code " ..
-				languageCode)
+		return
 	end
 
 	for _, file in ipairs(languageFiles[languageCode]) do
