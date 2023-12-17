@@ -210,6 +210,14 @@ function Tool:reverseSortByValue(t)
 	return sorted
 end
 
+function Tool:sortByDistance(POS,list)
+	local distanceIndex = {}
+	for index,pos in pairs(list) do
+		distanceIndex[self:distance(pos,POS)] = index
+	end
+	return distanceIndex
+end
+
 function Tool:listHasKey( value, list )
 	for k,v in pairs(list) do
 		if k == value then

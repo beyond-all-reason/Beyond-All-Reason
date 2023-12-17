@@ -189,7 +189,7 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 
 	local POS = nil
 	local builder = self.unit:Internal()
-	local builderPos =  self.position()
+	local builderPos =  self.position
 	local army = self.ai.armyhst
 	local site = self.ai.buildingshst
 	if loc and type(loc) == 'table' then
@@ -209,7 +209,7 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 		end
 		if not POS and loc.himself then
 -- 			POS = site:ClosestBuildSpot(builder, builderPos, utype)
-			POS = site:FindClosestBuildSite(utype, builderPos.x,builderPos.y,builderPos.z, minDist, maxDist)
+			POS = site:FindClosestBuildSite(utype, builderPos.x,builderPos.y,builderPos.z, minDist, maxDist,builder)
 		end
 	end
 	--factory will get position in labshst
@@ -251,7 +251,7 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 		if target then
 			self:EchoDebug(self.name,' search position for nano near ',target.name )
 -- 			POS = site:ClosestBuildSpot(builder, target.position, utype,nil,nil,nil,390)
-			POS = site:FindClosestBuildSite(utype, target.position.x,target.position.y,target.position.z, nil, maxDist)
+			POS = site:FindClosestBuildSite(utype, target.position.x,target.position.y,target.position.z, nil, maxDist,builder)
 
 		end
 		if not POS then
@@ -259,7 +259,7 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 			if lab then
 				self:EchoDebug("searching for top level factory")
 -- 				POS = site:ClosestBuildSpot(builder, lab.position, utype,nil,nil,nil,390)
-				POS = site:FindClosestBuildSite(utype, lab.position.x,lab.position.y,lab.position.z, nil, maxDist)
+				POS = site:FindClosestBuildSite(utype, lab.position.x,lab.position.y,lab.position.z, nil, maxDist,builder)
 
 			end
 		end

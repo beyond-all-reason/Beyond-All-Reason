@@ -14,7 +14,7 @@ local mCeil = math.ceil
 
 function MapHST:Init()
 
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self:EchoDebug('MapHST START')
 	if self.map_loaded then
 		print('map already loaded')
@@ -729,22 +729,29 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 	local spotDistance = math.huge
 
 	if not layer or not net then return end
-	for index, spot in pairs(self.networks[layer][net].metals) do
+	local sortlist = self.ai.tool:sortByDistance(position,self.networks[layer][net].metals)
+	for dist, index in pairs(sortlist) do
+		Spring:Echo(dist,index)
+	end
+	for dist, index in pairs(sortlist) do
+		local spot = self.networks[layer][net].metals[index]
+		Spring:Echo('mexplace',spot.x,spot.y)
 		if self:UnitCanGoHere(builder, spot) then
 			if not self.ai.buildingshst:PlansOverlap(spot, uname) then
 				if self.ai.targethst:IsSafeCell(spot, builder) then
 					if map:CanBuildHere(unittype, spot) then
 						local CELL = self:GetCell(spot,self.ai.loshst.ENEMY)
 						if not CELL or CELL.ENEMY == 0 then
-							local distance = self.ai.tool:distance(position,spot)
-							--print(distance-Distance)
- 							--if distance < 300 then
- 							--	return spot
- 							--else
-								if distance < spotDistance then
-									spotPosition = spot
-									spotDistance = distance
-								end
+							return spot
+-- 							local distance = self.ai.tool:distance(position,spot)
+-- 							--print(distance-Distance)
+--  							--if distance < 300 then
+--  							--	return spot
+--  							--else
+-- 								if distance < spotDistance then
+-- 									spotPosition = spot
+-- 									spotDistance = distance
+-- 								end
  							--end
 						else
 							self:EchoDebug(spot.x,spot.z,'reject cause ENEMY')
