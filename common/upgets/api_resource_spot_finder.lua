@@ -1,6 +1,10 @@
 local upget = gadget or widget
 local globalScope = gadget and GG or WG
 
+-- gadget side must be layered after gadgets/map_metal_spot_placer.lua
+-- so that it works with maps with side-configured metal spots
+local layer = gadget and -9 or -999999
+
 function upget:GetInfo()
 	return {
 		name = "API Resource Spot Finder",
@@ -9,7 +13,7 @@ function upget:GetInfo()
 		version = "2.0",
 		date = "November 2010: last update: April 13, 2022",
 		license = "GNU GPL, v2 or later",
-		layer = -999999,
+		layer = layer,
 		enabled = true,
 	}
 end
