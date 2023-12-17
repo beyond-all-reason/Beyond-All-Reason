@@ -104,8 +104,9 @@ Create()
 	// close and armor once construction is done
 	// only if no target in range when done
 	sleep 1000;
-	if (statechg_DesiredState == TRUE)
+	if (statechg_DesiredState)
 	{
+		start-script RequestState(0);
 		start-script RequestState(1);
 	}
 
@@ -160,7 +161,14 @@ FirePrimary()
 
 QueryPrimary(piecenum)
 {
-	piecenum = flare;
+	if (OpenClosed == 1)
+	{
+		piecenum = flare;
+	}
+	else
+	{
+		piecenum = aimpoint;
+	}
 }
 
 SweetSpot(piecenum)

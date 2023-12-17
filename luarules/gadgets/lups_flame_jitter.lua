@@ -29,7 +29,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	GG.LUPS = GG.LUPS or {}
-	GG.LUPS.FlameShot = FlameShot
+	GG.LUPS.FlameShot = FlameShot   
+
 
 	function gadget:GameFrame(n)
 		thisGameFrame = n
@@ -84,7 +85,12 @@ else	-- UNSYNCED
 			mySpec, fullview = Spring.GetSpectatingState()
 		end
 	end
-
+	
+	local function partposfunc()
+		--return function() x=0;y=0;z=0;local __A=x*delay;local __B=y*delay;local __C=z*delay;return  __A, __B, __C,nil end
+	end
+	
+	
 	local function FlameShot(_, unitID, unitDefID, weapon)
 		if Spring.IsUnitIcon(unitID) then
 			return
@@ -106,39 +112,39 @@ else	-- UNSYNCED
 			class = 'JitterParticles2',
 			colormap = { { 1, 1, 1, 1 }, { 1, 1, 1, 1 } },
 			count = 1,
-			life = particleLife,
+			life = particleLife*0.5,
 			lifeSpread = 6,
 			delaySpread = 3,
 			force = { 0, 0.6, 0 },
 			--forceExp     = 0.2,
 
-			partpos = partpos,
+			partpos = "jitterdefault",
 			pos = { posx, posy, posz },
 
 			emitVector = { dirx, diry, dirz },
 			emitRotSpread = 2.5,
 
-			speed = 8,
+			speed = 6,
 			speedSpread = 1.5,
 			speedExp = 1.5,
 
-			size = 35,
-			sizeGrowth = 5.5,
+			size = 35 + (particleLife*2),
+			sizeGrowth = 5,
 
-			scale = 1.5,
-			strength = 1.2,
+			scale = 1.4,
+			strength = 1.3,
 			heat = 6,
 		}
 		particleCnt = particleCnt + 1
-
+--[[	
 		particleList[particleCnt] = {
 			class = 'SimpleParticles2',
 			colormap = { { 1, 1, 1, 0.01 },
-						 { 1, 1, 1, 0.01 },
-						 { 0.75, 0.5, 0.5, 0.01 },
+						 { 0.92, 0.89, 0.80, 0.01 },
+						 { 0.75, 0.55, 0.3, 0.02 },
 						 { 0, 0, 0, 0.01 } },
 			count = 1,
-			life = particleLife*0.8,
+			life = particleLife*0.5,
 			lifeSpread = 6,
 			delaySpread = 3,
 
@@ -202,7 +208,7 @@ else	-- UNSYNCED
 			texture = altFlameTexture and "bitmaps/GPL/flame_alt.tga" or "bitmaps/GPL/flame.tga",
 		}
 		particleCnt = particleCnt + 1
-
+	]]--
 	end
 
 	local function GameFrame()

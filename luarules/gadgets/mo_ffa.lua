@@ -10,7 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-if not Spring.GetModOptions().ffa_mode then
+if not Spring.Utilities.Gametype.IsFFA() then
 	return false
 end
 
@@ -25,13 +25,13 @@ if gadgetHandler:IsSyncedCode() then
 
 	local GetPlayerInfo = Spring.GetPlayerInfo
 	local GetPlayerList = Spring.GetPlayerList
-	local GetTeamList = Spring.GetTeamList
 	local GetAIInfo = Spring.GetAIInfo
 	local GetTeamLuaAI = Spring.GetTeamLuaAI
 	local deadTeam = {}
 	local droppedTeam = {}
 	local teamsWithUnitsToKill = {}
 	local gaiaTeamID = Spring.GetGaiaTeamID()
+	local teamList = Spring.GetTeamList()
 
 	function gadget:Initialize()
 		if Spring.GetGameFrame() >= leaveWreckageFromFrame then
@@ -85,7 +85,7 @@ if gadgetHandler:IsSyncedCode() then
 			destroyTeam(teamID)
 			teamsWithUnitsToKill[teamID] = nil
 		end
-		for _, teamID in pairs(GetTeamList()) do
+		for _, teamID in pairs(teamList) do
 			if not deadTeam[teamID] then
 				local noneControlling, allResigned = GetTeamIsTakeable(teamID)
 				if noneControlling then

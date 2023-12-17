@@ -1,9 +1,9 @@
 return {
 	corgator = {
-		acceleration = 0.04631,
-		brakerate = 0.09262,
-		buildcostenergy = 1042,
-		buildcostmetal = 118,
+		maxacc = 0.04631,
+		maxdec = 0.09262,
+		energycost = 1042,
+		metalcost = 118,
 		buildpic = "CORGATOR.DDS",
 		buildtime = 1761,
 		canmove = true,
@@ -18,9 +18,9 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		maxdamage = 820,
+		health = 820,
 		maxslope = 10,
-		maxvelocity = 2.85,
+		speed = 85.5,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
 		nochasecategory = "VTOL",
@@ -37,6 +37,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.96,
 		turnrate = 427,
+		usePieceCollisionVolumes=true,
 		customparams = {
 			unitgroup = 'weapon',
 			basename = "base",
@@ -157,9 +158,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
 				damage = {
-					bombers = 9,
 					default = 75,
-					fighters = 9,
 					vtol = 9,
 				},
 			},

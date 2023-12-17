@@ -303,7 +303,7 @@ local function createList()
 				RectRound(toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4], elementCorner, 1, 1, 0, toggleButton3[1] < left and 1 or 0)
 			end
 		end)
-		WG['guishader'].InsertDlist(backgroundGuishader, 'playertv')
+		WG['guishader'].InsertDlist(backgroundGuishader, 'playertv', true)
 	end
 end
 
@@ -317,6 +317,9 @@ local function updatePosition(force)
 		parentPos = WG['music'].GetPosition()        -- returns {top,left,bottom,right,widgetScale}
 	elseif WG['advplayerlist_api'] ~= nil then
 		parentPos = WG['advplayerlist_api'].GetPosition()        -- returns {top,left,bottom,right,widgetScale}
+	else
+		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
+		parentPos = {0,vsx-(220*scale),0,vsx,scale}
 	end
 	if parentPos[5] ~= nil then
 		left = parentPos[2]
@@ -348,9 +351,11 @@ function widget:PlayerChanged(playerID)
 	myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
 	isSpec, fullview = Spring.GetSpectatingState()
 	tsOrderPlayers()
+	local receateLists = false
 	if not rejoining then
 		if playerID == currentTrackedPlayer then
 			SelectTrackingPlayer()
+			receateLists = true
 		end
 	end
 	local name = Spring.GetPlayerInfo(playerID, false)
@@ -362,7 +367,9 @@ function widget:PlayerChanged(playerID)
 	if name and drawlistsPlayername[name] then
 		drawlistsPlayername[name] = gl.DeleteList(drawlistsPlayername[name])
 	end
-	createList()
+	if receateLists then
+		createList()
+	end
 end
 
 
@@ -432,8 +439,8 @@ function widget:Update(dt)
 	end
 
 	local prevRejoining = rejoining
-	if WG['topbar'] then
-		rejoining = WG['topbar'].showingRejoining()
+	if WG['rejoin'] then
+		rejoining = WG['rejoin'].showingRejoining()
 	end
 	if isSpec and toggled and Spring.GetGameFrame() % 30 == 5 then
 		if rejoining and prevRejoining ~= rejoining then
@@ -842,7 +849,7 @@ function widget:SetConfigData(data)
 	if Spring.GetGameFrame() > 0 and data.toggled ~= nil then
 		toggled = data.toggled
 	end
-	if data.alwaysDisplayName then
+	if data.alwaysDisplayName ~= nil then
 		alwaysDisplayName = data.alwaysDisplayName
 	end
 	if data.playerChangeDelay then

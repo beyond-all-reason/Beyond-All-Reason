@@ -1,11 +1,11 @@
 return {
 	corcarry2 = {
-		acceleration = 0.01647,
+		maxacc = 0.01647,
 		activatewhenbuilt = true,
-		brakerate = 0.01647,
+		maxdec = 0.01647,
 		buildangle = 16384,
-		buildcostenergy = 17000,
-		buildcostmetal = 1400,
+		energycost = 17000,
+		metalcost = 1400,
 		--builder = true,
 		buildpic = "CORCARRY2.DDS",
 		buildtime = 20000,
@@ -21,7 +21,7 @@ return {
 		corpse = "DEAD",
 		energymake = 25,
 		energystorage = 1500,
-		energyuse = 25,
+		energyupkeep = 25,
 		explodeas = "hugeexplosiongeneric",
 		floater = true,
 		footprintx = 7,
@@ -29,12 +29,12 @@ return {
 		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 600,
-		losemitheight = 50,
+		sightemitheight = 50,
 		mass = 10000,
-		maxdamage = 3000,
-		maxvelocity = 2.008,
+		health = 3000,
+		speed = 60.24,
 		minwaterdepth = 15,
-		movementclass = "BOAT7",
+		movementclass = "BOAT8",
 		movestate = 1,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCARRY2.s3o",
@@ -209,14 +209,14 @@ return {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "cordrone",     --Name of the unit spawned by this carrier unit. 
+					carried_unit = "cordroneold",     --Name of the unit spawned by this carrier unit. 
 					-- carried_unit2... 			Currently not implemented, but planned.
 					engagementrange = 1200, 	
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently. 
 					spawnrate = 3, 				--Spawnrate roughly in seconds. 
 					maxunits = 24,				--Will spawn units until this amount has been reached. 
-					buildcostenergy = 500,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
-					buildcostmetal = 20,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
+					energycost = 500,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
+					metalcost = 20,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working. 
 					controlradius = 1300,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit. 
 					decayrate = 6,
 					carrierdeaththroe = "control",

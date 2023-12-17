@@ -28,7 +28,7 @@ end
 
 local skipUnits = {
 	meteor = true,
-	chicken_hive = true,
+	raptor_hive = true,
 }
 
 local index = 1

@@ -25,6 +25,7 @@ local tooltipAreas = {}
 local guishaderRects = {}
 local guishaderRectsDlists = {}
 local lastTextListUpdate = os.clock() - 10
+local lastBarsUpdate = os.clock() - 10
 local gamestarted = false
 local gameover = false
 local inSpecMode = false
@@ -72,6 +73,7 @@ local ctrlDown = false
 local textsize = 14
 local maxPlayers = 0
 local refreshCaptions = false
+local maxMetal, maxEnergy = 0, 0
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
@@ -82,7 +84,7 @@ local avgFrames = 8
 local xRelPos, yRelPos = 1, 1
 local widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 local singleTeams = (#Spring.GetTeamList() - 1 == #Spring.GetAllyTeamList() - 1)
-local enableStartposbuttons = not Spring.GetModOptions().ffa_mode	-- spots wont match when ffa
+local enableStartposbuttons = not Spring.Utilities.Gametype.IsFFA()	-- spots wont match when ffa
 local myFullview = select(2, Spring.GetSpectatingState())
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
@@ -118,17 +120,11 @@ local function round(num, idp)
 end
 
 local function formatRes(number)
-	local label
-	if number > 10000 then
-		label = tconcat({ floor(round(number / 1000)), "k" })
-	elseif number > 1000 then
-		label = tconcat({ strsub(round(number / 1000, 1), 1, 2 + (strfind(round(number / 1000, 1), ".", nil, true) or 0)), "k" })
-	elseif number > 10 then
-		label = strsub(round(number, 0), 1, 3 + (strfind(round(number, 0), ".", nil, true) or 0))
+	if number < 1000 then
+		return string.format("%d", number)
 	else
-		label = strsub(round(number, 1), 1, 2 + (strfind(round(number, 1), ".", nil, true) or 0))
+		return string.format("%.1fk", number / 1000)
 	end
-	return tostring(label)
 end
 
 local function getTeamSum(allyIndex, param)
@@ -714,7 +710,7 @@ local function DrawEBar(tE, tEp, vOffset)
 			widgetPosY + widgetHeight - vOffset + dy - barheight
 	)
 	-- energy total
-	glColor(1, 1, 0, 0.7)
+	glColor(0.7, 0.7, 0.7, 1)
 	gl.Texture(images["bar"])
 	glTexRect(
 			widgetPosX + dx,
@@ -810,7 +806,7 @@ local function DrawMBar(tM, tMp, vOffset)
 			widgetPosY + widgetHeight - vOffset + dy - barheight
 	)
 	-- metal total
-	glColor(1, 1, 1, 0.7)
+	glColor(0.7, 0.7, 0.7, 1)
 	gl.Texture(images["bar"])
 	glTexRect(
 			widgetPosX + dx,
@@ -1023,37 +1019,39 @@ local function drawListStandard()
 		updateButtons()
 	end
 
-	local maxMetal, maxEnergy = 0, 0
-	for _, data in ipairs(allyData) do
-		local aID = data.aID
-
-		if data.exists and type(data["tE"]) == "number" and isTeamReal(aID) and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID) then
-
-			if avgData[aID] == nil then
-				avgData[aID] = {}
-				avgData[aID]["tE"] = data["tE"]
-				avgData[aID]["tEr"] = data["tEr"]
-				avgData[aID]["tM"] = data["tM"]
-				avgData[aID]["tMr"] = data["tMr"]
-			else
-				avgData[aID]["tE"] = avgData[aID]["tE"] + ((data["tE"] - avgData[aID]["tE"]) / avgFrames)
-				avgData[aID]["tEr"] = avgData[aID]["tEr"] + ((data["tEr"] - avgData[aID]["tEr"]) / avgFrames)
-				avgData[aID]["tM"] = avgData[aID]["tM"] + ((data["tM"] - avgData[aID]["tM"]) / avgFrames)
-				avgData[aID]["tMr"] = avgData[aID]["tMr"] + ((data["tMr"] - avgData[aID]["tMr"]) / avgFrames)
-			end
-			if avgData[aID]["tM"] and avgData[aID]["tM"] > maxMetal then
-				maxMetal = avgData[aID]["tM"]
-			end
-			if avgData[aID]["tE"] and avgData[aID]["tE"] > maxEnergy then
-				maxEnergy = avgData[aID]["tE"]
-			end
-		end
-	end
-
 	local updateTextLists = false
 	if os.clock() > lastTextListUpdate + 0.5 then
 		updateTextLists = true
 		lastTextListUpdate = os.clock()
+	end
+
+	if os.clock() > lastBarsUpdate + 0.15 then
+		updateTextLists = true
+		lastBarsUpdate = os.clock()
+		maxMetal, maxEnergy = 0, 0
+		for _, data in ipairs(allyData) do
+			local aID = data.aID
+			if data.exists and type(data["tE"]) == "number" and isTeamReal(aID) and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID) then
+				if avgData[aID] == nil then
+					avgData[aID] = {}
+					avgData[aID]["tE"] = data["tE"]
+					avgData[aID]["tEr"] = data["tEr"]
+					avgData[aID]["tM"] = data["tM"]
+					avgData[aID]["tMr"] = data["tMr"]
+				else
+					avgData[aID]["tE"] = avgData[aID]["tE"] + ((data["tE"] - avgData[aID]["tE"]) / avgFrames)
+					avgData[aID]["tEr"] = avgData[aID]["tEr"] + ((data["tEr"] - avgData[aID]["tEr"]) / avgFrames)
+					avgData[aID]["tM"] = avgData[aID]["tM"] + ((data["tM"] - avgData[aID]["tM"]) / avgFrames)
+					avgData[aID]["tMr"] = avgData[aID]["tMr"] + ((data["tMr"] - avgData[aID]["tMr"]) / avgFrames)
+				end
+				if avgData[aID]["tM"] and avgData[aID]["tM"] > maxMetal then
+					maxMetal = avgData[aID]["tM"]
+				end
+				if avgData[aID]["tE"] and avgData[aID]["tE"] > maxEnergy then
+					maxEnergy = avgData[aID]["tE"]
+				end
+			end
+		end
 	end
 
 	for _, data in ipairs(allyData) do

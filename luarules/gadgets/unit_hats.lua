@@ -1,3 +1,8 @@
+
+if Spring.GetModOptions().teamcolors_anonymous_mode ~= "disabled" then
+	return
+end
+
 function gadget:GetInfo()
 	return {
 		name = "Hats",
@@ -44,7 +49,7 @@ local Hats = {}  -- key of unitID of hat, value of wearer unitID
 
 local unitDefHat = {}
 for udid, ud in pairs(UnitDefs) do
-	--almost all chickens have dying anims
+	--almost all raptors have dying anims
 	if ud.customParams.subfolder and ud.customParams.subfolder == "other/hats" then
 		unitDefHat[udid] = true
 	end
@@ -60,21 +65,20 @@ local unitDefCanWearHats = {
 local vikings = {
 	["Raghna"] = true,
 	["Malady"] = true,
-	["captainjacksparrow"] = true,
-	["[DE]LSR"] = true,
+	["trash_panda"] = true,
+	["Jazcash"] = true,
+	["PRO_Shamon"] = true,
+	["PRO_rANDY"] = true,
+	["LSR"] = true
 }
 local kings = {
-	["MightySheep"] = true,
+	["[teh]Teddy"] = true,
 }
 local goldMedals = {
-	["EmperorGlass"] = true,
 }
 local silverMedals = {
-	["[eVo]Lopatka"] = true,
 }
 local bronzeMedals = {
-	["MatBlader"] = true,
-	["[eVo]therxyy"] = true,
 }
 function gadget:GameFrame(gf)
 	if gf == 90 then
@@ -245,6 +249,14 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 			Spring.Echo("Hat was given, but found noone to put it onto, destroying", hatID)
 		end
 		Spring.DestroyUnit(hatID)
+	end
+end
+
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
+	if Hats[unitID] then
+		return 0, 0
+	else
+		return damage,1
 	end
 end
 

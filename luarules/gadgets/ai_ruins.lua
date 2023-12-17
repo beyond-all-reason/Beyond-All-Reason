@@ -55,7 +55,7 @@ end
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 local blueprintController = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_controller.lua')
 
-local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 10
+local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 3
 
 local function randomlyRotateBlueprint()
 	local randomRotation = math.random(0,3)
@@ -154,7 +154,7 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 				local unit = Spring.CreateUnit(UnitDefNames[nonscavname].id, posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
 				if unit then
 					Spring.SpawnCEG("scav-spawnexplo", posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), 0,0,0)
-					local radarRange = UnitDefs[building.unitDefID].radarRadius
+					local radarRange = UnitDefs[building.unitDefID].radarDistance
 					local canMove = UnitDefs[building.unitDefID].canMove
 					local speed = UnitDefs[building.unitDefID].speed
 

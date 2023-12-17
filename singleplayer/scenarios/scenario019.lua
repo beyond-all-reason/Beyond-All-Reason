@@ -7,18 +7,18 @@ local scenariodata = {
 	isnew 			= true,
 	imagepath		= "scenario019.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "Scour the map for hidden treasures", -- This text will be drawn over image
-    summary         = [[Only a few units remain, Goliath, Reaper, Diplomat and a few supporting roles. Navigate your way through this glacier pass without building a base, and destroy the waves of Armada Tier 1 units to get to their Commander.]],
+    summary         = [[Only a few units remain, Tzar, Tiger, Negotiator and a few supporting roles. Navigate your way through this glacier pass without building a base, and destroy the waves of Armada Tier 1 units to get to their Commander.]],
 	briefing 		= [[You only have a couple of vehicles to navigate the treacherous Glacer Pass, straight through an Armada base. Luckily this Armada Commander does not have much useful technology at his disposal, but will attempt to 
  
-Intelligence reports mines around the walled entrance to the main Armada base, enter cautiously, or use the massive area of effect damage of Goliath to clear mines.
+Intelligence reports mines around the walled entrance to the main Armada base, enter cautiously, or use the massive area of effect damage of the Tzar to clear mines.
  
 You will not be able to construct a base in this mission at all.  
  
 Tips:
- - Parasites are cloakable, stealthy spies, that can be self-destructed for a large EMP blast to stun groups of units.
- - Goliath has a very large range, and a huge area of effect, but a is slow and hard to maneuver. Use Reapoer to keep any smaller Tier 1 units away from him. 
- - Diplomat, while slow, has an enormous range, and can take out anything foolish enough to stand still.
- - Rectors can resurrect wrecked units, however, wrecks can be reduced to useless heaps by area-of-effect damage.
+ - Spectre are cloakable, stealthy spies, that can be self-destructed for a large EMP blast to stun groups of units.
+ - Tzar has a very large range, and a huge area of effect, but a is slow and hard to maneuver. Use Reapoer to keep any smaller Tier 1 units away from him. 
+ - Negotiator, while slow, has an enormous range, and can take out anything foolish enough to stand still.
+ - Graverobbers can resurrect wrecked units, however, wrecks can be reduced to useless heaps by area-of-effect damage.
  - There may be useful wrecks on different areas of the map, that can assist you in your mission.
  
 Scoring:

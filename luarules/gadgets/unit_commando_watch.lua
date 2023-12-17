@@ -21,7 +21,6 @@ local MAPSIZEX = Game.mapSizeX
 local MAPSIZEZ = Game.mapSizeZ
 local MINE2 = UnitDefNames["cormine4"].id
 local mines = {}
-local orderQueue = {}
 local MINE_BLAST = {}
 MINE_BLAST[WeaponDefNames["mine_light"].id] = true
 MINE_BLAST[WeaponDefNames["mine_medium"].id] = true
@@ -58,13 +57,6 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	return damage, 1
 end
 
-function gadget:GameFrame(n)
-	for unitID, coords in pairs(orderQueue) do
-		Spring.GiveOrderToUnit(unitID, MINE2 * -1, coords, 0)
-		orderQueue[unitID] = nil
-	end
-end
-
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if builderID and unitDefID == MINE2 and isCommando[Spring.GetUnitDefID(builderID)] then
 		mines[unitID] = builderID
@@ -73,7 +65,6 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	mines[unitID] = nil
-	orderQueue[unitID] = nil
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)

@@ -32,6 +32,7 @@ local sec = 0
 local sec2 = 0
 
 local spGetCameraState = Spring.GetCameraState
+local spGetActiveCommand = Spring.GetActiveCommand
 local math_isInRect = math.isInRect
 
 local wasOverview = false
@@ -208,8 +209,8 @@ function widget:DrawScreen()
 		if dlistGuishader and WG['guishader'] then
 			WG['guishader'].RemoveDlist('minimap')
 			dlistGuishader = gl.DeleteList(dlistGuishader)
-			wasOverview = true
 		end
+		wasOverview = true
 
 	elseif not (minimized or maximized) or (wasOverview and Spring.GetConfigInt("MinimapMinimize", 0) == 0) then
 		if wasOverview and Spring.GetConfigInt("MinimapMinimize", 0) == 0 then
@@ -267,6 +268,12 @@ function widget:MousePress(x, y, button)
 	leftclicked = false
 
 	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4]) then
+
+		local activeCmd = spGetActiveCommand()
+		if activeCmd and activeCmd ~= 0 then
+			return false
+		end
+
 		if not math_isInRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4]) then
 			return true
 		elseif button == 1 and leftClickMove then

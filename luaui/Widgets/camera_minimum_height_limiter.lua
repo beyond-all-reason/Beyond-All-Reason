@@ -10,22 +10,27 @@ function widget:GetInfo()
 	}
 end
 
-local desiredLevel = Spring.GetConfigInt("MinimumCameraHeight", 300)
+local defaultDesiredLevel = 300
+local desiredLevel = Spring.GetConfigInt("MinimumCameraHeight", defaultDesiredLevel)
 local optionRefresh = 0
 
 function widget:Update()
-    local camstate = Spring.GetCameraState()
-    if (camstate.name == "ta" and camstate.height < desiredLevel) then
-        camstate.height = desiredLevel
-        Spring.SetCameraState(camstate, Spring.GetConfigFloat("CameraTransitionTime", 0))
-    elseif (camstate.name == "spring" and camstate.dist < desiredLevel) then
-        camstate.dist = desiredLevel
-        Spring.SetCameraState(camstate, Spring.GetConfigFloat("CameraTransitionTime", 0))
-    end
+	if WG['advplayerlist_api'] and WG['advplayerlist_api'].GetLockPlayerID() ~= nil then
+		return
+	end
 
-    optionRefresh = optionRefresh+1
-    if optionRefresh > 30 then
-        optionRefresh = 0
-        desiredLevel = Spring.GetConfigInt("MinimumCameraHeight", 0)
-    end
+	local camstate = Spring.GetCameraState()
+	if (camstate.name == "ta" and camstate.height < desiredLevel) then
+		camstate.height = desiredLevel
+		Spring.SetCameraState(camstate, Spring.GetConfigFloat("CameraTransitionTime", 0))
+	elseif (camstate.name == "spring" and camstate.dist < desiredLevel) then
+		camstate.dist = desiredLevel
+		Spring.SetCameraState(camstate, Spring.GetConfigFloat("CameraTransitionTime", 0))
+	end
+
+	optionRefresh = optionRefresh+1
+	if optionRefresh > 30 then
+		optionRefresh = 0
+		desiredLevel = Spring.GetConfigInt("MinimumCameraHeight", defaultDesiredLevel)
+	end
 end

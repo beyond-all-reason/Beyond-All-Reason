@@ -16,7 +16,6 @@ local CMD_UNIT_SET_TARGET_NO_GROUND = 34922
 local CMD_UNIT_SET_TARGET = 34923
 local CMD_UNIT_CANCEL_TARGET = 34924
 local CMD_UNIT_SET_TARGET_RECTANGLE = 34925
-local pauseEnd = {}
 --export to CMD table
 CMD.CMD_UNIT_SET_TARGET_NO_GROUND = CMD_UNIT_SET_TARGET_NO_GROUND
 CMD[CMD_UNIT_SET_TARGET_NO_GROUND] = 'UNIT_SET_TARGET_NO_GROUND'
@@ -53,17 +52,12 @@ if gadgetHandler:IsSyncedCode() then
 	local USEEN_UPDATE_FREQUENCY = 150
 	local UNSEEN_TIMEOUT = 2
 
-
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 	local spSetUnitTarget = Spring.SetUnitTarget
 	local spValidUnitID = Spring.ValidUnitID
-	local spGetUnitPosition = Spring.GetUnitPosition
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetUnitLosState = Spring.GetUnitLosState
-	local spGetUnitSeparation = Spring.GetUnitSeparation
-	local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
-	local spGetUnitPosition = Spring.GetUnitPosition
 	local spGetUnitTeam = Spring.GetUnitTeam
 	local spAreTeamsAllied = Spring.AreTeamsAllied
 	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
@@ -76,7 +70,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitWeaponTestTarget = Spring.GetUnitWeaponTestTarget
 	local spGetUnitWeaponTestRange = Spring.GetUnitWeaponTestRange
 	local spGetUnitWeaponHaveFreeLineOfFire = Spring.GetUnitWeaponHaveFreeLineOfFire
-	local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 	local spGetGroundHeight = Spring.GetGroundHeight
 
 	local tremove = table.remove
@@ -105,8 +98,11 @@ if gadgetHandler:IsSyncedCode() then
 		unitAlwaysSeen[unitDefID] = unitDef.isBuilding or unitDef.speed == 0
 	end
 
-	unitTargets = {} -- data holds all unitID data
-	pausedTargets = {}
+	-- fastpass for units that don't have an attack command for other reasons
+	validUnits[UnitDefNames.legpede.id]=true
+
+	local unitTargets = {} -- data holds all unitID data
+	local pausedTargets = {}
 	--------------------------------------------------------------------------------
 	-- Commands
 
@@ -164,11 +160,6 @@ if gadgetHandler:IsSyncedCode() then
 		local ownTeam, enemyTeam = spGetUnitTeam(unitID), spGetUnitTeam(targetID)
 		return ownTeam and enemyTeam and spAreTeamsAllied(ownTeam, enemyTeam)
 	end
-
-	--local function locationInRange(unitID, x, y, z, range)
-	--	local ux, uy, uz = spGetUnitPosition(unitID)
-	--	return range and ((ux - x)^2 + (uz - z)^2) < range^2
-	--end
 
 	local function TargetCanBeReached(unitID, teamID, weaponList, target)
 		if not weaponList then
@@ -274,9 +265,15 @@ if gadgetHandler:IsSyncedCode() then
 			if not append then
 				data.targets = {}
 			end
+			local currentTargets = {}
+			for i, targetData in ipairs(data.targets) do
+				currentTargets[targetData.target] = true
+			end
 			for _, targetData in ipairs(targets) do
-				if checkTarget(unitID, targetData.target) then
-					data.targets[#data.targets + 1] = targetData
+				if not currentTargets[targetData.target] then	-- check if this target isnt already in targetData
+					if checkTarget(unitID, targetData.target) then
+						data.targets[#data.targets + 1] = targetData
+					end
 				end
 			end
 			if #data.targets == 0 then
@@ -533,6 +530,18 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local waitingForInsertRemoval = {}
+	local function pauseTargetting(unitID)
+		if unitTargets[unitID] and not pausedTargets[unitID] then
+			pausedTargets[unitID] = unitTargets[unitID]
+			removeUnit(unitID, true)
+		end
+	end
+	local function unpauseTargetting(unitID)
+		addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true)
+		pausedTargets[unitID] = nil
+	end
+
 	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdTag, cmdParams, cmdOptions)
 		if type(cmdOptions) ~= 'table' then
 			-- does UnitCmdDone always returns number instead of table?
@@ -545,13 +554,17 @@ if gadgetHandler:IsSyncedCode() then
 			elseif pausedTargets[unitID] then
 				SendToUnsynced("targetList", unitID, 0)
 				pausedTargets[unitID] = nil
-				pauseEnd[unitID] = nil
 			end
-		elseif cmdID == CMD_DGUN then
-			if pausedTargets[unitID] then
-				addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true)
-				pausedTargets[unitID] = nil
-				pauseEnd[unitID] = nil
+		else
+			local activeCommandIsDgun = spGetCommandQueue(unitID, 0) ~= 0 and spGetCommandQueue(unitID, 1)[1].id == CMD_DGUN
+			if pausedTargets[unitID] and not activeCommandIsDgun then
+				if waitingForInsertRemoval[unitID] then
+					waitingForInsertRemoval[unitID] = nil
+				else
+					unpauseTargetting(unitID)
+				end
+			elseif not pausedTargets[unitID] and activeCommandIsDgun then
+				pauseTargetting(unitID)
 			end
 		end
 	end
@@ -566,14 +579,12 @@ if gadgetHandler:IsSyncedCode() then
 				elseif pausedTargets[unitID] then
 					SendToUnsynced("targetList", unitID, 0)
 					pausedTargets[unitID] = nil
-					pauseEnd[unitID] = nil
 				end
 			elseif cmdID == CMD_DGUN then
-				if unitTargets[unitID] then
-					pausedTargets[unitID] = unitTargets[unitID]
-					removeUnit(unitID, true)
-					pauseEnd[unitID] = Spring.GetGameFrame() + 45
-				end
+				pauseTargetting(unitID)
+			elseif (cmdID == CMD.INSERT and cmdParams[2] == CMD_DGUN) then
+				pauseTargetting(unitID)
+				waitingForInsertRemoval[unitID] = true
 			end
 		end
 		return true  -- command was not used OR was used but not fully processed, so don't block command
@@ -589,17 +600,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- it might create a slight increase of cpu usage when hundreds of units gets
 		-- a set target command, howrever a quick test with 300 fidos only increased by 1%
 		-- sim here
-		for unitID, pauseend in pairs(pauseEnd) do
-			if pauseEnd[unitID] and pauseEnd[unitID] == n then
-				addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true)
-				pausedTargets[unitID] = nil
-				pauseEnd[unitID] = nil
-			else
-				if spGetCommandQueue(unitID, 0) == 2 then
-					pauseEnd[unitID] = Spring.GetGameFrame() + 15
-				end
-			end
-		end
+
 		for unitID, unitData in pairs(unitTargets) do
 			local targetIndex
 			for index, targetData in ipairs(unitData.targets) do
@@ -630,12 +631,11 @@ if gadgetHandler:IsSyncedCode() then
 
 	end
 
-	--------------------------------------------------------------------------------
-	--------------------------------------------------------------------------------
-else
-	-- UNSYNCED
-	--------------------------------------------------------------------------------
-	--------------------------------------------------------------------------------
+
+
+else	-- UNSYNCED
+
+
 
 	local glVertex = gl.Vertex
 	local glPushAttrib = gl.PushAttrib
@@ -645,31 +645,21 @@ else
 	local glColor = gl.Color
 	local glBeginEnd = gl.BeginEnd
 	local glPopAttrib = gl.PopAttrib
-	local glCreateList = gl.CreateList
-	local glCallList = gl.CallList
-	local glDeleteList = gl.DeleteList
 	local GL_LINE_STRIP = GL.LINE_STRIP
 	local GL_LINES = GL.LINES
 
-	local spIsUnitInLos = Spring.IsUnitInLos
-	local spIsUnitInRadar = Spring.IsUnitInRadar
 	local spGetUnitPosition = Spring.GetUnitPosition
 	local spGetUnitLosState = Spring.GetUnitLosState
 	local spValidUnitID = Spring.ValidUnitID
 	local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 	local spGetMyTeamID = Spring.GetMyTeamID
 	local spIsUnitSelected = Spring.IsUnitSelected
-	local spGetModKeyState = Spring.GetModKeyState
 	local spGetSpectatingState = Spring.GetSpectatingState
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 	local spGetUnitTeam = Spring.GetUnitTeam
-	local spGetLastUpdateSeconds = Spring.GetLastUpdateSeconds
-
-	local GetUnitTarget = GG.GetUnitTarget
 
 	local myAllyTeam = spGetMyAllyTeamID()
 	local myTeam = spGetMyTeamID()
-	local myPlayerID = Spring.GetMyPlayerID()
 	local _, fullview = spGetSpectatingState()
 
 	local lineWidth = 1.4

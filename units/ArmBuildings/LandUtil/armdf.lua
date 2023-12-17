@@ -1,10 +1,10 @@
 return {
 	armdf = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 4096,
-		buildcostenergy = 100,
-		buildcostmetal = 370,
+		energycost = 100,
+		metalcost = 370,
 		buildpic = "ARMDF.DDS",
 		buildtime = 7500,
 		canrepeat = false,
@@ -21,7 +21,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 5200,
+		health = 5200,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/ARMFUS.s3o",
@@ -29,7 +29,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 210,
-		yardmap = "ooooo ooooo ooooo ooooo",
+		yardmap = "oooooo oooooo oooooo oooooo oooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armfus_aoplane.dds",

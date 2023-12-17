@@ -18,11 +18,11 @@ local mapSizeZ = Game.mapSizeZ
 local landLevel
 local seaLevel
 
--- Get TeamIDs and AllyTeamIDs of Scavengers and Chickens
+-- Get TeamIDs and AllyTeamIDs of Scavengers and Raptors
 local scavengerTeamID
 local scavengerAllyTeamID
-local chickenTeamID
-if Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsChickens() then
+local raptorTeamID
+if Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsRaptors() then
     local teams = Spring.GetTeamList()
     for i = 1,#teams do
         local luaAI = Spring.GetTeamLuaAI(teams[i])
@@ -32,10 +32,10 @@ if Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsChick
                 _,_,_,_,_,scavengerAllyTeamID = Spring.GetTeamInfo(scavengerTeamID)
             end
         end
-        if not chickenTeamID then
-            if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ChickensAI' then
-                chickenTeamID = i - 1
-                _,_,_,_,_,chickenAllyTeamID = Spring.GetTeamInfo(chickenTeamID)
+        if not raptorTeamID then
+            if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
+                raptorTeamID = i - 1
+                _,_,_,_,_,raptorAllyTeamID = Spring.GetTeamInfo(raptorTeamID)
             end
         end
     end
@@ -98,6 +98,41 @@ local function FlatAreaCheck(posx, posy, posz, posradius, heightTollerance, chec
     
     return true -- Nothing failed, so position is safe
 
+end
+
+local function LandOrSeaCheck(posx, posy, posz, posradius) -- returns string, "land", "sea", "mixed", "death"
+    local posradius = posradius or 1000
+    local deathwater = Game.waterDamage
+    local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+
+        -- Check height of test points in all 8 directions.
+	local testpos1 = Spring.GetGroundHeight((posx + posradius), (posz + posradius) )
+	local testpos2 = Spring.GetGroundHeight((posx + posradius), (posz - posradius) )
+	local testpos3 = Spring.GetGroundHeight((posx - posradius), (posz + posradius) )
+	local testpos4 = Spring.GetGroundHeight((posx - posradius), (posz - posradius) )
+	local testpos5 = Spring.GetGroundHeight((posx + posradius), posz )
+	local testpos6 = Spring.GetGroundHeight(posx, (posz + posradius) )
+	local testpos7 = Spring.GetGroundHeight((posx - posradius), posz )
+	local testpos8 = Spring.GetGroundHeight(posx, (posz - posradius) )
+
+    local minimumheight = math.min(testpos1, testpos2, testpos3, testpos4, testpos5, testpos6, testpos7, testpos8)
+    local maximumheight = math.min(testpos1, testpos2, testpos3, testpos4, testpos5, testpos6, testpos7, testpos8)
+
+    if (deathwater > 0 and minimumheight <= 0) or (lavaLevel and (minimumheight <= lavaLevel)) then
+        return "death"
+    end
+    
+    if minimumheight <= 0 and maximumheight <= 0 then
+        return "sea"
+    end
+
+    if minimumheight > 0 and maximumheight > 0 then
+        return "land"
+    end
+
+    if minimumheight <= 0 and maximumheight > 0 then
+        return "mixed"
+    end
 end
 
 local function OccupancyCheck(posx, posy, posz, posradius) -- Returns true if there are no units in the spawn area
@@ -321,6 +356,7 @@ return {
     SurfaceCheck = SurfaceCheck,
     LavaCheck = LavaCheck,
     MapIsLandOrSea = MapIsLandOrSea,
+    LandOrSeaCheck = LandOrSeaCheck,
 
     -- Scavengers
     ScavengerSpawnAreaCheck = ScavengerSpawnAreaCheck,

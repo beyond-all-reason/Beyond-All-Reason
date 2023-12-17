@@ -32,14 +32,6 @@ local playerRankImages = "luaui\\images\\advplayerslist\\ranks\\"
 local comLevelSize = fontSize * 2.5
 local comLevelImages = "luaui\\images\\Ranks\\rank"
 
-local maxRank = 1
-for i=1, 100 do
-	if not VFS.FileExists(comLevelImages..i..'.png') then
-		break
-	end
-	maxRank = i
-end
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -198,7 +190,7 @@ local function GetCommAttributes(unitID, unitDefID)
 		if not xp then
 			xp = GetUnitExperience(unitID)
 		end
-		if comms[unitID] and xp ~= comms[unitID][7] and comnameList[name] then
+		if comms[unitID] and xp ~= comms[unitID][7] and name and comnameList[name] then
 			comnameList[name] = gl.DeleteList(comnameList[name])
 		end
 	end
@@ -216,6 +208,27 @@ local function RemoveLists()
 	comnameList = {}
 	comnameIconList = {}
 end
+
+local unbaRanks = {
+	[1] = 0,
+	[2] = 2,
+	[3] = 5,
+	[4] = 9,
+	[5] = 15,
+	[6] = 23,
+	[7] = 32,
+	[8] = 42,
+	[9] = 54,
+	[10] = 68,
+	[11] = 83,
+	[12] = 99,
+	[13] = 117,
+	[14] = 137,
+	[15] = 158,
+	[16] = 180,
+	[17] = 204,
+	[18] = 230,
+}
 
 local function createComnameList(attributes)
 	if comnameList[attributes[1]] ~= nil then
@@ -281,10 +294,18 @@ local function createComnameList(attributes)
 			--local y_r = y + (fontSize * 0.44)
 			local x_r = 0
 			local y_r = y + (fontSize * 0.4) + (comLevelSize * 0.42)
-			if VFS.FileExists(comLevelImages..(math.floor(attributes[7]*100)+2)..'.png') then
-				glTexture(comLevelImages..(math.floor(attributes[7]*100)+2)..'.png')
+			local unbaCurrentRank = 1
+			for i = 2,#unbaRanks do
+				if unbaRanks[i] >= attributes[7]*100 then
+					break
+				else
+					unbaCurrentRank = i
+				end
+			end
+			if VFS.FileExists(comLevelImages..unbaCurrentRank..'.png') then
+				glTexture(comLevelImages..unbaCurrentRank..'.png')
 			else
-				glTexture(comLevelImages..maxRank..'.png')
+				glTexture(comLevelImages.. 16 ..'.png')
 			end
 			glTexRect(x_r-halfSize, y_r-halfSize, x_r+halfSize, y_r+halfSize)
 			glTexture(false)
@@ -294,8 +315,12 @@ end
 
 
 local function CheckCom(unitID, unitDefID, unitTeam)
-	if comHeight[unitDefID] and unitTeam ~= GaiaTeam then
-		comms[unitID] = GetCommAttributes(unitID, unitDefID)
+	if comHeight[unitDefID] then
+		if unitTeam ~= GaiaTeam then
+			comms[unitID] = GetCommAttributes(unitID, unitDefID)
+		end
+	elseif comms[unitID] then
+		comms[unitID] = nil
 	end
 end
 
@@ -557,7 +582,9 @@ if unba then
 			--if math.floor(xp*100) ~= math.floor(oldXP*100) then
 				GetCommAttributes(unitID, unitDefID)
 				local name, _ = GetPlayerInfo(select(2, GetTeamInfo(unitTeam, false)), false)
-				comnameList[name] = gl.DeleteList(comnameList[name])
+				if name and comnameList[name] then
+					comnameList[name] = gl.DeleteList(comnameList[name])
+				end
 			--end
 		end
 	end

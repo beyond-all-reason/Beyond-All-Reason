@@ -5,8 +5,7 @@
 
 piece  flare21, flare22, base, turret2, launcher2, door1, door2, flare11, flare12, flare13, ground, wake, bow;
 
-static-var  Static_Var_1, gun_1, gun_3, restore_delay, Static_Var_5,
-            statechg_DesiredState, statechg_StateChanging, oldHead;
+static-var  gun_1, gun_3, restore_delay, oldHead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -22,23 +21,6 @@ static-var  Static_Var_1, gun_1, gun_3, restore_delay, Static_Var_5,
 #define MAXTILT 100
 
 #include "unit_hitbyweaponid_and_smoke.h"
-
-activatescr()
-{
-	turn door1 to z-axis <0> now;
-	turn door1 to z-axis <-90> speed <160>;
-	turn door2 to z-axis <0> now;
-	turn door2 to z-axis <90> speed <160>;
-	sleep 600;
-}
-
-deactivatescr()
-{
-
-	turn door1 to z-axis <0> speed <160>;
-	turn door2 to z-axis <0> speed <160>;
-	sleep 600;
-}
 
 SetDirection(heading)
 {
@@ -68,51 +50,6 @@ RockOnWaves()
 	}
 }
 
-
-go()
-{
-	call-script activatescr();
-	Static_Var_1 = 1;
-}
-
-stop()
-{
-	Static_Var_1 = 0;
-	call-script deactivatescr();
-	/*
-	if( Static_Var_5 )
-	{
-	}
-	*/
-	Static_Var_5 = 0;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 Create()
 {
 	hide bow;
@@ -123,13 +60,9 @@ Create()
 	hide flare22;
 	hide flare21;
 	hide ground;
-	Static_Var_5 = 0;
 	gun_1 = 1;
 	gun_3 = 0;
-	Static_Var_1 = 0;
 	restore_delay = 3000;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
@@ -145,7 +78,7 @@ abaim()
 
 SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = Func_Var_1 * 8;
+	restore_delay = Func_Var_1 * 3;
 }
 
 static-var  Stunned;
@@ -154,10 +87,11 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	Static_Var_5 = 0;
-	start-script RequestState(1);
+
 	turn turret2 to y-axis <0.000000> speed <70.016484>;
 	turn launcher2 to x-axis <0.000000> speed <30.005495>;
+	turn door1 to z-axis <0> speed <160>;
+	turn door2 to z-axis <0> speed <160>;
 }
 SetStunned(State)
 {
@@ -213,13 +147,12 @@ StopMoving()
 
 AimPrimary(heading, pitch)
 {
-	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	while( !Static_Var_1 )
-	{
-		sleep 250;
-	}
+
+	turn door1 to z-axis <-90> speed <160>;
+	turn door2 to z-axis <90> speed <160>;
+	wait-for-turn door1 around z-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }

@@ -37,8 +37,9 @@ vertex = [[
 		float unused5;
 		float unused6;
 
+		vec4 drawPos;
 		vec4 speed;
-		vec4[5] userDefined; //can't use float[20] because float in arrays occupies 4 * float space
+		vec4[4] userDefined; //can't use float[16] because float in arrays occupies 4 * float space
 	};
 
 	layout(std140, binding=1) readonly buffer UniformsBuffer {
@@ -70,7 +71,7 @@ vertex = [[
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
-	#define OPTION_HEALTH_TEXCHICKS 9
+	#define OPTION_HEALTH_TEXRAPTORS 9
 
 	#define OPTION_MODELSFOG 10
 
@@ -493,7 +494,7 @@ fragment = [[
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
-	#define OPTION_HEALTH_TEXCHICKS 9
+	#define OPTION_HEALTH_TEXRAPTORS 9
 
 	#define OPTION_MODELSFOG 10
 
@@ -1243,7 +1244,7 @@ fragment = [[
 		vec3 N;
 
 		vec4 normalTexVal;
-		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
+		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXRAPTORS)) {
 			normalTexVal = texture(normalTex, myUV);
 		}
 
@@ -1251,7 +1252,7 @@ fragment = [[
 		vec3 seedVec;
 
 		#ifdef ENABLE_OPTION_HEALTH_TEXTURING
-		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
+		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXRAPTORS)) {
 			seedVec = modelVertexPosOrig.xyz * 0.6;
 			seedVec.y += 1024.0 * hash11(float(unitID));
 
@@ -1266,7 +1267,7 @@ fragment = [[
 			tbnNormal = NORM2SNORM(normalTexVal.xyz);
 
 			#ifdef ENABLE_OPTION_HEALTH_TEXTURING
-				if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
+				if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXRAPTORS)) {
 					if (healthMix > 0.05){
 						vec3 tbnNormalw = NORM2SNORM(texture(normalTexw, myUV, textureLODBias).xyz);
 						wrecknormal = tbnNormalw;
@@ -1331,7 +1332,7 @@ fragment = [[
 		vec4 teeeeemcolor = teamCol;
 		vec3 albedoColor = SRGBtoLINEAR(mix(texColor1.rgb, teeeeemcolor.rgb, texColor1.a));
 
-		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
+		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXRAPTORS)) {
 			float texHeight = normalTexVal.a;
 			float healthyness = clamp(healthMix * 2.0 - 0.5, 0.0, 1.0); //healthyness of 0 is near dead, 1 is fully healthy
 			if (texHeight < healthyness){
@@ -1676,6 +1677,7 @@ fragment = [[
 	},
 }
 
+local SKIN_SUPPORT = Script.IsEngineMinVersion(105, 0, 1653) and "1" or "0"
 local defaultMaterialTemplate = {
 	--standardUniforms --locs, set by api_cus
 	--deferredUniforms --locs, set by api_cus
@@ -1689,7 +1691,7 @@ local defaultMaterialTemplate = {
 	-- they need to be redefined on every child material that has its own {shader,deferred,shadow}Definitions
 	shaderDefinitions = {
 		"#define RENDERING_MODE 0",
-		"#define SKINSUPPORT " .. (Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and "1" or "0"),
+		"#define SKINSUPPORT " .. SKIN_SUPPORT,
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 
@@ -1706,7 +1708,7 @@ local defaultMaterialTemplate = {
 	},
 	deferredDefinitions = {
 		"#define RENDERING_MODE 1",
-		"#define SKINSUPPORT " .. (Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and "1" or "0"),
+		"#define SKINSUPPORT " .. SKIN_SUPPORT,
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 
@@ -1723,7 +1725,7 @@ local defaultMaterialTemplate = {
 	},
 	shadowDefinitions = {
 		"#define RENDERING_MODE 2",
-		"#define SKINSUPPORT " .. (Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and "1" or "0"),
+		"#define SKINSUPPORT " .. SKIN_SUPPORT,
 		"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
 		"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
 		[[
@@ -1740,7 +1742,7 @@ local defaultMaterialTemplate = {
 	},
 	reflectionDefinitions = {
 		"#define RENDERING_MODE 0",
-		"#define SKINSUPPORT " .. (Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and "1" or "0"),
+		"#define SKINSUPPORT " .. SKIN_SUPPORT,
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 
@@ -1769,7 +1771,7 @@ local defaultMaterialTemplate = {
 
 		health_displace  = false,
 		health_texturing = false,
-		health_texchicks = false,
+		health_texraptors = false,
 
 		modelsfog        = true,
 
@@ -1794,7 +1796,7 @@ local defaultMaterialTemplate = {
 
 		health_displace  = false,
 		health_texturing = false,
-		health_texchicks = false,
+		health_texraptors = false,
 
 		treewind         = false,
 
@@ -1845,7 +1847,7 @@ local shaderPlugins = {
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
-	#define OPTION_HEALTH_TEXCHICKS 9
+	#define OPTION_HEALTH_TEXRAPTORS 9
 
 	#define OPTION_MODELSFOG 10
 
@@ -1867,7 +1869,7 @@ local knownBitOptions = {
 
 	["health_texturing"] = 7,
 	["health_displace"] = 8,
-	["health_texchicks"] = 9,
+	["health_texraptors"] = 9,
 
 	["modelsfog"] = 10,
 

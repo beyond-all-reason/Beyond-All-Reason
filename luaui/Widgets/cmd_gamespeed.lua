@@ -29,7 +29,9 @@ local speedLevels = {
 }
 
 local function setGameSpeed(speed)
-	Spring.SendCommands("setspeed " .. speed)
+	if Spring.Utilities.Gametype.IsSinglePlayer() or Spring.IsCheatingEnabled() or Spring.IsReplay() then
+		Spring.SendCommands("setspeed " .. speed)
+	end
 end
 
 local function increaseSpeed()

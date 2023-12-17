@@ -1,11 +1,9 @@
-local gadgetEnabled = true	--not (Spring.GetModOptions().newdgun or Spring.GetModOptions().unba)
-
-local ignoreDgunPart = Spring.GetModOptions().comupdate or Spring.GetModOptions().newdgun or Spring.GetModOptions().unba
+local gadgetEnabled = true	--not Spring.GetModOptions().unba
 
 function gadget:GetInfo()
 	return {
 		name      = "preventcombomb",
-		desc      = "Commanders survive commander blast and DGun",
+		desc      = "Commanders survive commander blast",
 		author    = "TheFatController",
 		date      = "Aug 31, 2009",
 		license   = "GNU GPL, v2 or later",
@@ -34,19 +32,17 @@ local cantFall = {}
 
 local COM_BLAST = WeaponDefNames['commanderexplosion'].id
 
+local isDGUN = {}
 local isCommander = {}
-for udefID,def in pairs(UnitDefs) do
+for udefID, def in pairs(UnitDefs) do
 	if def.customParams.iscommander then
 		isCommander[udefID] = true
-	end
-end
-local isDGUN = {}
-for udefID,_ in pairs(isCommander) do
-	if WeaponDefNames[ UnitDefs[ udefID ].name..'_disintegrator' ] then
-		isDGUN[ WeaponDefNames[ UnitDefs[udefID].name..'_disintegrator' ].id ] = true
-	else
-		Spring.Echo('ERROR: preventcombomb: No disintegrator weapon found for: '..UnitDefs[udefID].name)
-		isCommander[udefID] = nil
+		if WeaponDefNames[ def.name..'_disintegrator' ] then
+			isDGUN[ WeaponDefNames[ def.name..'_disintegrator' ].id ] = true
+		else
+			--Spring.Echo('ERROR: preventcombomb: No disintegrator weapon found for: '..def.name)
+			isCommander[udefID] = nil
+		end
 	end
 end
 local armcomDefID = UnitDefNames["armcom"].id
@@ -74,8 +70,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		return 0, 0
 	end
 
-	if (isDGUN[weaponID] and not ignoreDgunPart) or weaponID == COM_BLAST then
-
+	if weaponID == COM_BLAST then
 		local hp,_ = GetUnitHealth(unitID)
 		hp = hp or 0
 		local combombDamage = hp-200-math_random(1,10)
@@ -113,7 +108,6 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			end
 		end
 	end
-
 	return damage
 end
 

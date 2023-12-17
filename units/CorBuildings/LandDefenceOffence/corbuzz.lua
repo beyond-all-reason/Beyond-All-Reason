@@ -1,10 +1,10 @@
 return {
 	corbuzz = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 29096,
-		buildcostenergy = 718000,
-		buildcostmetal = 61000,
+		energycost = 718000,
+		metalcost = 61000,
 		buildpic = "CORBUZZ.DDS",
 		buildtime = 1400000,
 		canrepeat = false,
@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 33500,
+		health = 33500,
 		maxslope = 13,
 		maxwaterdepth = 0,
 		objectname = "Units/CORBUZZ.s3o",

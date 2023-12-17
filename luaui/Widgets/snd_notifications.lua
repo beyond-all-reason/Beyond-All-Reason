@@ -11,6 +11,11 @@ function widget:GetInfo()
 	}
 end
 
+local defaultVoiceSet = 'allison'
+
+local useDefaultVoiceFallback = true	-- when a voiceset has missing file, try to load the default voiceset file instead
+local useDefaultVoiceFallbackCustom = true	-- only used for dynamicly added notifications like scavengers do
+
 local silentTime = 0.7	-- silent time between queued notifications
 local globalVolume = 0.7
 local playTrackedPlayerNotifs = false
@@ -25,8 +30,8 @@ local tutorialPlayLimit = 2		-- display the same tutorial message only this many
 --------------------------------------------------------------------------------
 
 local LastPlay = {}
-
 local Sound = {}
+local customNotifications = {}
 local soundList = {}
 local SoundOrder = {}
 local spGetGameFrame = Spring.GetGameFrame
@@ -48,7 +53,7 @@ function addSound(name, file, minDelay, duration, messageKey, unlisted)
 	end
 end
 
-local voiceSet = Spring.GetConfigString('voiceset', 'allison')
+local voiceSet = Spring.GetConfigString('voiceset', defaultVoiceSet)
 local voiceSetFound = false
 local files = VFS.SubDirs('sounds/voice', '*')
 for k, file in ipairs(files) do
@@ -59,11 +64,55 @@ for k, file in ipairs(files) do
 	end
 end
 if not voiceSetFound then
-	voiceSet = 'allison'
+	voiceSet = defaultVoiceSet
 end
 
-soundFolder = "Sounds/voice/"..voiceSet.."/"
-VFS.Include(soundFolder .. 'config.lua')
+local soundFolder = "Sounds/voice/"..voiceSet.."/"
+local defaultSoundFolder = "Sounds/voice/"..defaultVoiceSet.."/"
+
+-- load and parse sound files/notifications
+local soundsTable = VFS.Include(soundFolder .. 'config.lua')
+for notifID, notifDef in pairs(soundsTable) do -- Temporary to keep it working for now
+	local notifSounds = {}
+	local notifTexts = {}
+	for i = 1, #notifDef.sound do
+		if notifDef.sound[i].file then
+			if VFS.FileExists(soundFolder .. notifDef.sound[i].file) then
+				notifSounds[i] = soundFolder .. notifDef.sound[i].file
+				notifTexts[i] = notifDef.sound[i].text
+			elseif useDefaultVoiceFallback and VFS.FileExists(defaultSoundFolder .. notifDef.sound[i].file) then
+				notifSounds[i] = defaultSoundFolder .. notifDef.sound[i].file
+				notifTexts[i] = notifDef.sound[i].text
+				--Spring.Echo('missing voice notification file: "'..soundFolder .. notifDef.sound[i].file..'"   ('..notifID..'),  using default voiceset instead ('..defaultVoiceSet..')')
+			else
+				Spring.Echo('missing voice notification file: "'..soundFolder .. notifDef.sound[i].file..'"   ('..notifID..')')
+			end
+		end
+	end
+	if notifSounds[1] then
+		addSound(notifID, notifSounds, notifDef.delay, notifDef.length, notifDef.sound[1].text, notifDef.unlisted) -- bandaid, picking text from first variation always.
+	end
+end
+
+
+local function AddNotification(name, files, minDelay, duration, messageKey, unlisted)
+	customNotifications[name] = { files, minDelay, duration, messageKey, unlisted }
+	local newFiles = {}
+	for i, file in pairs(files) do
+		if VFS.FileExists(soundFolder .. file) then
+			newFiles[#newFiles+1] = soundFolder..file
+		elseif useDefaultVoiceFallbackCustom and VFS.FileExists(defaultSoundFolder .. file) then
+			newFiles[#newFiles+1] = defaultSoundFolder..file
+			--Spring.Echo('missing custom voice notification file: "'.. soundFolder..file..'"   ('..name..'),  using default voiceset instead ('..defaultVoiceSet..')')
+		else
+			Spring.Echo('missing custom voice notification file: "'.. soundFolder..file..'"   ('..name..')')
+		end
+	end
+	if newFiles[1] then
+		addSound(name, newFiles, minDelay, duration, messageKey, unlisted)
+	end
+end
+
 
 unitsOfInterest = {}
 unitsOfInterest[UnitDefNames['armemp'].id] = 'EMPmissilesiloDetected'
@@ -80,7 +129,7 @@ unitsOfInterest[UnitDefNames['corkorg'].id] = 'KorgothDetected'
 unitsOfInterest[UnitDefNames['armbanth'].id] = 'BanthaDetected'
 unitsOfInterest[UnitDefNames['armepoch'].id] = 'FlagshipDetected'
 unitsOfInterest[UnitDefNames['corblackhy'].id] = 'FlagshipDetected'
-unitsOfInterest[UnitDefNames['cormando'].id] = 'CommandoDetected'
+-- unitsOfInterest[UnitDefNames['cormando'].id] = 'CommandoDetected'
 unitsOfInterest[UnitDefNames['armthovr'].id] = 'TransportDetected'
 unitsOfInterest[UnitDefNames['corthovr'].id] = 'TransportDetected'
 unitsOfInterest[UnitDefNames['corintr'].id] = 'TransportDetected'
@@ -166,8 +215,8 @@ local isT2 = {}
 local isT3mobile = {}
 local isMine = {}
 for udefID,def in ipairs(UnitDefs) do
-	-- not critter/chicken/object
-	if not string.find(def.name, 'critter') and not string.find(def.name, 'chicken') and (not def.modCategories or not def.modCategories.object) then
+	-- not critter/raptor/object
+	if not string.find(def.name, 'critter') and not string.find(def.name, 'raptor') and (not def.modCategories or not def.modCategories.object) then
 		if def.canFly then
 			isAircraft[udefID] = true
 		end
@@ -273,7 +322,7 @@ function widget:Initialize()
 	end
 
 	widgetHandler:RegisterGlobal('EventBroadcast', eventBroadcast)
-	widgetHandler:RegisterGlobal('AddNotification', addSound)
+	widgetHandler:RegisterGlobal('AddNotification', AddNotification)
 
 	WG['notifications'] = {}
 	for sound, params in pairs(Sound) do
@@ -330,13 +379,27 @@ function widget:Initialize()
 	WG['notifications'].setPlayTrackedPlayerNotifs = function(value)
 		playTrackedPlayerNotifs = value
 	end
-	WG['notifications'].addSound = function(name, file, minDelay, duration, messageKey, unlisted)
-		addSound(name, file, minDelay, duration, messageKey, unlisted)
-	end
+	--WG['notifications'].addSound = function(name, file, minDelay, duration, messageKey, unlisted)
+	--	addSound(name, file, minDelay, duration, messageKey, unlisted)
+	--end
 	WG['notifications'].addEvent = function(value, force)
 		if Sound[value] then
 			queueNotification(value, force)
 		end
+	end
+	WG['notifications'].playNotification = function(value)
+		if Sound[value] and Sound[value].file and Sound[value].file[1] ~= '' then
+			local m = math.random(1,#Sound[value].file)
+			Spring.PlaySoundFile(Sound[value].file[m], globalVolume, 'ui')
+		end
+	end
+
+	for name, params in pairs(customNotifications) do
+		AddNotification(name, params[1], params[2], params[3], params[4], params[5])
+	end
+
+	if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
+		queueNotification('RaptorsAndScavsMixed')
 	end
 end
 
@@ -371,11 +434,16 @@ function widget:GameFrame(gf)
 				queueTutorialNotification('t_buildenergy')
 			end
 			if e_income >= 50 and m_income >= 4 then
-				queueTutorialNotification('t_nowproduce')
+				queueTutorialNotification('t_makefactory')
 			end
 			if not hasMadeT2 and e_income >= 600 and m_income >= 12 then
 				queueTutorialNotification('t_readyfortech2')
 			end
+		end
+
+		-- raptors and scavs mixed check
+		if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
+			queueNotification('RaptorsAndScavsMixed')
 		end
 
 		-- low power check
@@ -563,26 +631,30 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 			queueTutorialNotification('t_paralyzer')
 		end
 
-		-- notify when commander gets heavy damage
-		if commanders[unitID] and not spIsUnitInView(unitID) then
-			if not commandersDamages[unitID] then
-				commandersDamages[unitID] = {}
-			end
-			local gameframe = spGetGameFrame()
-			commandersDamages[unitID][gameframe] = damage		-- if widget:UnitDamaged can be called multiple times during 1 gameframe then you need to add those up, i dont know
-
-			-- count total damage of last few secs
-			local totalDamage = 0
-			local startGameframe = gameframe - (5.5 * 30)
-			for gf,damage in pairs(commandersDamages[unitID]) do
-				if gf > startGameframe then
-					totalDamage = totalDamage + damage
-				else
-					commandersDamages[unitID][gf] = nil
+		-- notify when commander gets damaged
+		if commanders[unitID] then
+			local x, y, z = Spring.GetUnitPosition(unitID)
+			local camX, camY, camZ = Spring.GetCameraPosition()
+			if not spIsUnitInView(unitID) or math.diag(camX-x, camY-y, camZ-z) > 3000 then
+				if not commandersDamages[unitID] then
+					commandersDamages[unitID] = {}
 				end
-			end
-			if totalDamage >= commanders[unitID] * 0.12 then
-				queueNotification('ComHeavyDamage')
+				local gameframe = spGetGameFrame()
+				commandersDamages[unitID][gameframe] = damage		-- if widget:UnitDamaged can be called multiple times during 1 gameframe then you need to add those up, i dont know
+
+				-- count total damage of last few secs
+				local totalDamage = 0
+				local startGameframe = gameframe - (5.5 * 30)
+				for gf,damage in pairs(commandersDamages[unitID]) do
+					if gf > startGameframe then
+						totalDamage = totalDamage + damage
+					else
+						commandersDamages[unitID][gf] = nil
+					end
+				end
+				if totalDamage >= commanders[unitID] * 0.12 then
+					queueNotification('ComHeavyDamage')
+				end
 			end
 		end
 	end
@@ -625,9 +697,6 @@ local function playNextSound()
 				m = math.random(1,#Sound[event].file)
 				Spring.PlaySoundFile(Sound[event].file[m], globalVolume, 'ui')
 			end
-			-- if displayMessages and WG['messages'] and Sound[event].messageKey and Sound[event].messageKey[m] then -- Ready for fix with variation text
-			-- 	WG['messages'].addMessage(Spring.I18N(Sound[event].messageKey[m]))
-			-- end
 			if displayMessages and WG['messages'] and Sound[event].messageKey then
 				WG['messages'].addMessage(Spring.I18N(Sound[event].messageKey))
 			end
@@ -682,7 +751,7 @@ function widget:Update(dt)
 		else
 			isIdle = false
 		end
-		if WG['topbar'] and WG['topbar'].showingRejoining and WG['topbar'].showingRejoining() then
+		if WG['rejoin'] and WG['rejoin'].showingRejoining() then
 			isIdle = true
 		end
 	end
@@ -706,7 +775,7 @@ end
 
 function widget:GetConfigData(data)
 	return {
-		Sound = Sound,
+		customNotifications = customNotifications,
 		soundList = soundList,
 		globalVolume = globalVolume,
 		spoken = spoken,
@@ -720,8 +789,8 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-	if data.Sound ~= nil and Spring.GetGameFrame() > 0 then
-		Sound = data.Sound
+	if data.customNotifications ~= nil and Spring.GetGameFrame() > 0 then
+		customNotifications = data.customNotifications
 	end
 	if data.soundList ~= nil then
 		for sound, enabled in pairs(data.soundList) do

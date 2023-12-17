@@ -52,8 +52,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local isT2Mex = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		-- not critter/chicken/object
-		if not string.find(unitDef.name, 'critter') and not string.find(unitDef.name, 'chicken') and (not unitDef.modCategories or not unitDef.modCategories.object) then
+		-- not critter/raptor/object
+		if not string.find(unitDef.name, 'critter') and not string.find(unitDef.name, 'raptor') and (not unitDef.modCategories or not unitDef.modCategories.object) then
 			if unitDef.extractsMetal >= 0.004 then
 				isT2Mex[unitDefID] = unitDef.extractsMetal
 			end
@@ -64,8 +64,8 @@ if gadgetHandler:IsSyncedCode() then
 		[WeaponDefNames["corsilo_crblmssl"].id] = true,
 		[WeaponDefNames["armsilo_scav_nuclear_missile"].id] = true,
 		[WeaponDefNames["corsilo_scav_crblmssl"].id] = true,
-		[WeaponDefNames["chicken_turretxl_meteor_weapon"].id] = true,
-		--WeaponDefNames["chickenr2_meteorlauncher"].id] = true,
+		[WeaponDefNames["raptor_turret_meteor_t4_v1_weapon"].id] = true,
+		--WeaponDefNames["raptor_allterrain_arty_basic_t4_v1_meteorlauncher"].id] = true,
 	}
 	local gamestarted = (Spring.GetGameFrame() > 0)
 	local gameover = false
@@ -168,22 +168,21 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-
+	
 
 	function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 		local event = "IntrusionCountermeasure"
 		local players = AllPlayers()
 		local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
-		for ct, player in pairs (players) do
-			if tostring(player) then
-				local playerAllyTeam = select(5,Spring.GetPlayerInfo(player))
-				if playerAllyTeam == allyTeam and unitAllyTeam ~= playerAllyTeam then
-					SendToUnsynced("EventBroadcast", event, tostring(player))
+		for ct, playerID in pairs (players) do
+			if tostring(playerID) then
+				local _, _, spec, _, playerAllyTeam = Spring.GetPlayerInfo(playerID, false)
+				if not spec and playerAllyTeam == allyTeam and unitAllyTeam ~= playerAllyTeam then
+					SendToUnsynced("EventBroadcast", event, tostring(playerID))
 				end
 			end
 		end
 	end
-
 else
 
 	local enableLastcomNotif = (Spring.GetModOptions().deathmode == 'com' and Spring.GetModOptions().scoremode == 'disabled')
@@ -193,16 +192,16 @@ else
 	local isMex = {}
 	local isLrpc = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		-- not critter/chicken/object
-		if not string.find(unitDef.name, 'critter') and not string.find(unitDef.name, 'chicken') and (not unitDef.modCategories or not unitDef.modCategories.object) then
+		-- not critter/raptor/object
+		if not string.find(unitDef.name, 'critter') and not string.find(unitDef.name, 'raptor') and (not unitDef.modCategories or not unitDef.modCategories.object) then
 			if unitDef.customParams.iscommander and not string.find(unitDef.name,'_scav') then
 				isCommander[unitDefID] = true
 			end
-			if string.find(unitDef.name,'corint') or string.find(unitDef.name,'armbrtha') or string.find(unitDef.name,'corbuzz') or string.find(unitDef.name,'armvulc') then
+			if string.find(unitDef.name,'corint') or string.find(unitDef.name,'armbrtha') or string.find(unitDef.name,'corbuzz') or string.find(unitDef.name,'armvulc') or string.find(unitDef.name,'legstarfall') then
 				isLrpc[unitDefID] = true
 			end
-			if unitDef.isBuilding and unitDef.radarRadius > 1900 then
-				isRadar[unitDefID] = unitDef.radarRadius
+			if unitDef.isBuilding and unitDef.radarDistance > 1900 then
+				isRadar[unitDefID] = unitDef.radarDistance
 			end
 			if unitDef.extractsMetal > 0 then
 				isMex[unitDefID] = unitDef.extractsMetal
@@ -229,7 +228,7 @@ else
 		if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
 			local luaAI = Spring.GetTeamLuaAI(teamID)
 			if luaAI and luaAI ~= "" then
-				if string.find(luaAI, 'Scavengers') or string.find(luaAI, 'Chickens') then
+				if string.find(luaAI, 'Scavengers') or string.find(luaAI, 'Raptors') then
 					playingAsHorde = true
 				end
 			end

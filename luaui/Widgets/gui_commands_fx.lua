@@ -103,7 +103,10 @@ for udefID, def in ipairs(UnitDefs) do
 	if string.find(def.name, "critter_") then
 		isCritter[udefID] = true
 	end
-	if def.customParams['nohealthbars'] then
+	if def.customParams.nohealthbars then
+		ignoreUnits[udefID] = true
+	end
+	if def.customParams.drone then
 		ignoreUnits[udefID] = true
 	end
 end

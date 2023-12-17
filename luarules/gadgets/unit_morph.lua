@@ -1,6 +1,3 @@
-if not Spring.GetModOptions().experimentalmorphs then
-  return
-end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -22,10 +19,10 @@ function gadget:GetInfo()
     date      = "Jan, 2008",
     license   = "GNU GPL, v2 or later",
     layer     = 500,
-    enabled   = true
+    enabled   = false
   }
 end
-local echo  = Spring.Echo
+
 --local unitDefsData = VFS.Include("gamedata/unitdefs_data.lua")  -- TA Prime all-inclusive unitDefs file format
 
 -- Changes for "The Cursed"
@@ -34,9 +31,9 @@ local echo  = Spring.Echo
 -- Changes for "Advanced BA"
 --		Deadnight Warrior: may add a customized command name in the morphdefs, otherwise defaults to "Upgrade"
 --				   you may use "$$unitname" and "$$into" in 'text', both will be replaced with human readable unit names
--- Changes by raaar (04/2012): 
+-- Changes by raaar (04/2012):
 --      commented out the preservation of cmd queue and unit lineage at lines 536 and 559
--- Changes by raaar (12/2013): 
+-- Changes by raaar (12/2013):
 --      commented out turning unit off at lines 396 and 425, was giving errors in spring 95.0
 -- Changes for "TA Prime" by _MaDDoX (12/2017):
 --      Default buildtime, buildcostenergy and buildcostmetal is now the difference between original and target unit values
@@ -46,7 +43,6 @@ local echo  = Spring.Echo
 --      'require' supports multiple tech requirements (comma-separated)
 --      Morph button text now shown in red when requirements not fulfilled
 
-  
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -218,7 +214,7 @@ local function BuildMorphDef(udSrc, morphData)
     newData.xp   = morphData.xp or 0
     newData.rank = morphData.rank or 0
     newData.facing = morphData.facing
-    
+
     local requireDefined = -1
     local foundAllRequires = true
     if (morphData.require) then
@@ -248,7 +244,7 @@ local function BuildMorphDef(udSrc, morphData)
 	newData.texture = morphData.texture
 	if morphData.text then
 		newData.text = string.gsub(morphData.text, "$$unitname", udSrc.humanName)
-		newData.text = string.gsub(newData.text, "$$into", udDst.humanName)		
+		newData.text = string.gsub(newData.text, "$$into", udDst.humanName)
 	else
 		newData.text = morphData.text
 	end
@@ -312,9 +308,9 @@ local function TechReqList(teamID, reqTechs)
     for i = 1, #requires do
       local hasRequire = GG.TechCheck(requires[i], teamID) == true
       if (hasRequire) then
-        --echo('Morph gadget: Requirement found: ' .. requires[i])
+        --Spring.Echo('Morph gadget: Requirement found: ' .. requires[i])
       else
-        --echo('Morph gadget: Unreached requirement: ' .. requires[i])
+        --Spring.Echo('Morph gadget: Unreached requirement: ' .. requires[i])
         --require = -1
         unreachedTechs[#unreachedTechs+1] = requires[i]
       end
@@ -327,7 +323,7 @@ end
 local function TechReqCheck(teamID, reqTechs)
   if (not reqTechs or reqTechs == -1) then
     return true end
-  
+
   local hasAllTechs = true
   local requires = reqTechs:split(',')
 
@@ -337,7 +333,7 @@ local function TechReqCheck(teamID, reqTechs)
       hasAllTechs = false
     end
   end
-  
+
   return hasAllTechs
 end
 
@@ -352,7 +348,7 @@ local function GetMorphToolTip(unitID, unitDefID, teamID, morphDef, teamTech, un
   end
   if (morphDef.time > 0) then
   	tt = tt .. GreenStr  .. 'time: '   .. morphDef.time     .. '\n'
-  end	
+  end
   if (morphDef.metal > 0) then
   	tt = tt .. CyanStr   .. 'metal: '  .. morphDef.metal    .. '\n'
   end
@@ -428,14 +424,14 @@ local function AddMorphCmdDesc(unitID, unitDefID, teamID, morphDef, teamTech)
   local teamReqTechs = TechReqList(teamID, morphDef.require)
   local teamHasTechs = teamReqTechs and #teamReqTechs == 0
   morphCmdDesc.tooltip = GetMorphToolTip(unitID, unitDefID, teamID, morphDef, teamTech, unitXP, unitRank, teamReqTechs)
-  
+
   if morphDef.texture then
 	morphCmdDesc.texture = "LuaRules/Images/Morph/".. morphDef.texture
   else
 	morphCmdDesc.texture = "#" .. morphDef.into   --//only works with a patched layout.lua or the TweakedLayout widget!
   end
   morphCmdDesc.name = morphDef.cmdname
-  
+
   morphCmdDesc.disabled= (morphDef.tech > teamTech) or (morphDef.rank > unitRank)
                           or(morphDef.xp > unitXP) or (not teamHasTechs)
 
@@ -522,7 +518,7 @@ end
 
 local function StopMorph(unitID, morphData)
   morphUnits[unitID] = nil
-    
+
   --Spring.SetUnitHealth(unitID, { paralyze = -1})
   local scale = morphData.progress * stopPenalty
   local unitDefID = Spring.GetUnitDefID(unitID)
@@ -565,30 +561,30 @@ local function FinishMorph(unitID, morphData)
 
   if udDst.isBuilding or udDst.isFactory then
   --if udDst.isBuilding then
-  
+
 	local x = math.floor(px/16)*16
 	local y = py
 	local z = math.floor(pz/16)*16
-	
+
 	local xsize = udDst.xsize
-	local zsize =(udDst.zsize or udDst.ysize)	
+	local zsize =(udDst.zsize or udDst.ysize)
 	if ((face == 1) or(face == 3)) then
 	  xsize, zsize = zsize, xsize
-	end	
+	end
 	if xsize/4 ~= math.floor(xsize/4) then
 	  x = x+8
 	end
 	if zsize/4 ~= math.floor(zsize/4) then
 	  z = z+8
-	end	
+	end
 	newUnit = Spring.CreateUnit(defName, x, y, z, face, unitTeam)
 	Spring.SetUnitPosition(newUnit, x, y, z)
   else
 	newUnit = Spring.CreateUnit(defName, px, py, pz, face, unitTeam)
 	--Spring.SetUnitRotation(newUnit, 0, -h * math.pi / 32768, 0)
 	Spring.SetUnitPosition(newUnit, px, py, pz)
-  end  
-  
+  end
+
   if (extraUnitMorphDefs[unitID] ~= nil) then
     -- nothing here for now
   end
@@ -656,9 +652,9 @@ local function FinishMorph(unitID, morphData)
   local newHealth = (oldHealth / oldMaxHealth) * newMaxHealth
   if newHealth<=1 then newHealth = 1 end
   Spring.SetUnitHealth(newUnit, {health = newHealth, build = buildProgress})
-  
+
   --// copy shield power
-  local enabled,oldShieldState = Spring.GetUnitShieldState(unitID) 
+  local enabled,oldShieldState = Spring.GetUnitShieldState(unitID)
   if oldShieldState and Spring.GetUnitShieldState(newUnit) then
     Spring.SetUnitShieldState(newUnit, enabled,oldShieldState)
   end
@@ -679,7 +675,7 @@ end
 local function UpdateMorph(unitID, morphData)
   if not isFinished(unitID) then return true end
   if Spring.GetUnitTransporter(unitID) then return true end
-	
+
   if (Spring.UseUnitResource(unitID, morphData.def.resTable)) then
     morphData.progress = morphData.progress + morphData.increment
   end
@@ -694,14 +690,14 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-  
+
   --// Add MorphDefs from customData entries (TODO: allow data merge, currently only overrides)
   local function AddCustomMorphDefs()
    -- Standard .fbi method: (needs testing, TA Prime uses UnitDefsData)
 	for id,unitDef in pairs(UnitDefs) do
 		if unitDef.customParams.morphdef and type(unitDef.customParams.morphdef) == "table" then
 			local customMorphDef = unitDef.customParams.morphdef
-			--#debug echo(unitname.." morphdef into: "..tostring(unitDef.customParams.into))
+			--#debug Spring.Echo(unitname.." morphdef into: "..tostring(unitDef.customParams.into))
 			morphDefs[unitDef.name] = {customMorphDef}
 		end
 	end
@@ -710,7 +706,7 @@ end
     -- UnitDefsData method:
     -- if unitDefsData == nil then
       -- return end
-    
+
     -- for id,unitDef in pairs(UnitDefs) do
       -- local nam = unitDef.name
       -- for _, uData in pairs(unitDefsData.data) do
@@ -734,14 +730,14 @@ function gadget:Initialize()
     GetUnitRank = GG.rankHandler.GetUnitRank
     RankToXp    = GG.rankHandler.RankToXp
   end
-  
+
   -- self linking for planetwars
   GG['morphHandler'] = {}
   GG['morphHandler'].AddExtraUnitMorph = AddExtraUnitMorph
 
   hostName = GG.PlanetWars and GG.PlanetWars.options.hostname or nil
   PWUnits = GG.PlanetWars and GG.PlanetWars.units or {}
-  
+
   if (type(GG.UnitRanked)~="table") then GG.UnitRanked = {} end
   table.insert(GG.UnitRanked, UnitRanked)
 
@@ -918,7 +914,7 @@ function UnitRanked(unitID,unitDefID,teamID,newRank,oldRank)
           local morphCmdDesc = {}
           local teamReqTechs = TechReqList(teamID,morphDef.require)
           local teamHasTechs = teamReqTechs and #teamReqTechs == 0
-        
+
           morphCmdDesc.disabled = (morphDef.tech > teamTech) or (morphDef.rank > newRank)
                                   or (morphDef.xp > unitXP) or (not teamHasTechs)
           morphCmdDesc.tooltip  = GetMorphToolTip(unitID, unitDefID, teamID, morphDef, teamTech, unitXP, newRank, teamReqTechs)
@@ -994,10 +990,10 @@ function gadget:GameFrame(n)
   --if n == startFrame then
 
   --end
-  
+
   if ((n+24)%150<1) then
     --AddCustomMorphDefs()
-    
+
     local unitCount = #XpMorphUnits
     local i = 1
 
@@ -1057,7 +1053,7 @@ local function handleEzMorph(unitID, unitDefID, teamID, targetDefID)
 	if not morphSet then
 		return true, true
 	end
-	
+
 	local validMorphs = {}
  	for morphCmd, morphDef in pairs(morphSet) do
 		if (not targetDefID or morphDef.into == targetDefID)

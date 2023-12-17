@@ -1,10 +1,10 @@
 return {
 	armuwadves = {
 		buildangle = 8192,
-		buildcostenergy = 10000,
-		buildcostmetal = 830,
+		energycost = 10000,
+		metalcost = 830,
 		buildpic = "ARMUWADVES.DDS",
-		buildtime = 20302,
+		buildtime = 20300,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
@@ -18,7 +18,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 11700,
+		health = 11700,
 		maxslope = 20,
 		maxwaterdepth = 9999,
 		objectname = "Units/ARMUWADVES.s3o",

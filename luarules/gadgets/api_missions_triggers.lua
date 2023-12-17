@@ -12,7 +12,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local actionsDispatcher
+local actionsDispatcher, trackedUnits
 
 local types, timeTypes, unitTypes, featureTypes, gameTypes
 local triggers, timeTriggers, unitTriggers, featureTriggers, gameTriggers
@@ -98,6 +98,7 @@ function gadget:Initialize()
 	actionsDispatcher = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
 	types = GG['MissionAPI'].TriggerTypes
 	triggers = GG['MissionAPI'].Triggers
+	trackedUnits = GG['MissionAPI'].TrackedUnits
 end
 
 function gadget:GameFrame(n)
@@ -105,8 +106,23 @@ function gadget:GameFrame(n)
 		if trigger.type == types.TimeElapsed then
 			local gameframe = trigger.parameters.gameFrame
 			local interval = trigger.parameters.interval
-			
+
 			if n == gameframe or (trigger.settings.repeating and n > gameframe and (n - gameframe) % interval == 0) then
+				activateTrigger(trigger)
+			end
+		end
+	end
+end
+
+function gadget:MetaUnitAdded(unitId, unitDefId, unitTeam)
+	for triggerId, trigger in pairs(triggers) do
+		if trigger.type == types.UnitExists then
+			local unitName = trigger.parameters.unitName
+			local unitDefName = trigger.parameters.unitDefName
+
+			if unitName and unitName == trackedUnits[unitId] then
+				activateTrigger(trigger)
+			elseif unitDefName == unitDefId.name then
 				activateTrigger(trigger)
 			end
 		end

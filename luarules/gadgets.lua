@@ -1079,7 +1079,12 @@ function gadgetHandler:GamePaused(playerID, paused)
 end
 
 function gadgetHandler:RecvFromSynced(...)
-	tracy.ZoneBeginN("G:RecvFromSynced")
+	local arg1, arg2 = ...
+  if (type(arg1) == 'string') then 
+		tracy.ZoneBeginN("G:RecvFromSynced:"..arg1)
+	else
+		tracy.ZoneBeginN("G:RecvFromSynced")
+	end
 	if actionHandler.RecvFromSynced(...) then
 		tracy.ZoneEnd()
 		return
@@ -1626,6 +1631,12 @@ function gadgetHandler:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paral
 	local retDamage = damage
 	local retImpulse = 1.0
 
+	-- To future devs
+	-- yes, multiple gadgets can affect damage and impulse
+	-- and that ordering *does* matter
+	-- so if your new UnitPreDamaged is behaving weird
+	-- check every other gadget that may be handing damage or impulse
+	-- and check the layering and ordering of the gadgets
 	for _, g in ipairs(self.UnitPreDamagedList) do
 		local dmg, imp = g:UnitPreDamaged(
 			unitID, unitDefID, unitTeam,
@@ -1637,7 +1648,7 @@ function gadgetHandler:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paral
 			retDamage = dmg
 		end
 		if imp ~= nil then
-			retImpulse = imp
+			retImpulse = retImpulse*imp
 		end
 	end
 
@@ -1878,16 +1889,20 @@ end
 --
 
 function gadgetHandler:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
+	tracy.ZoneBeginN("G:ProjectileCreated") 
 	for _, g in ipairs(self.ProjectileCreatedList) do
 		g:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function gadgetHandler:ProjectileDestroyed(proID)
+	tracy.ZoneBeginN("G:ProjectileDestroyed") 
 	for _, g in ipairs(self.ProjectileDestroyedList) do
 		g:ProjectileDestroyed(proID)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1978,7 +1993,9 @@ end
 function gadgetHandler:DrawWorld()
 	tracy.ZoneBeginN("G:DrawWorld") 
 	for _, g in ipairs(self.DrawWorldList) do
+		tracy.ZoneBeginN("G:DrawWorld:" .. g.ghInfo.name)
 		g:DrawWorld()
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return

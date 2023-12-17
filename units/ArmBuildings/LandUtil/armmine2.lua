@@ -1,10 +1,10 @@
 return {
 	armmine2 = {
-		acceleration = 0,
+		maxacc = 0,
 		blocking = false,
-		brakerate = 0,
-		buildcostenergy = 1050,
-		buildcostmetal = 16,
+		maxdec = 0,
+		energycost = 1050,
+		metalcost = 16,
 		buildpic = "ARMMINE2.DDS",
 		buildtime = 100,
 		canattack = false,
@@ -26,7 +26,7 @@ return {
 		idletime = 300,
 		initcloaked = true,
 		levelground = false,
-		maxdamage = 11,
+		health = 11,
 		maxslope = 40,
 		maxwaterdepth = 0,
 		mincloakdistance = 8,

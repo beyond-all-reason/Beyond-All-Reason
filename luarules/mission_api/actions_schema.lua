@@ -33,16 +33,63 @@ local parameters = {
 			type = 'string',
 		},
 	 },
-	[actionTypes.DisableTrigger] = {  },
+
+	[actionTypes.DisableTrigger] = {
+		[1] = {
+			name = 'triggerId',
+			required = true,
+			type = 'string',
+		},
+	 },
+
 	[actionTypes.IssueOrders] = {  },
 	[actionTypes.AllowCommands] = {  },
 	[actionTypes.RestrictCommands] = {  },
 	[actionTypes.AlterBuildlist] = {  },
 	[actionTypes.EnableBuildOption] = {  },
 	[actionTypes.DisableBuildOption] = {  },
-	[actionTypes.SpawnUnits] = {  },
+
+	[actionTypes.SpawnUnits] = {
+		[1] = {
+			name = 'name',
+			required = false,
+			type = 'string',
+		},
+		[2] = {
+			name = 'unitDefName',
+			required = true,
+			type = 'string',
+		},
+		[3] = {
+			name = 'quantity',
+			required = false,
+			type = 'number',
+		},
+		[4] = {
+			name = 'x',
+			required = true,
+			type = 'number',
+		},
+		[5] = {
+			name = 'y',
+			required = false,
+			type = 'number',
+		},
+		[6] = {
+			name = 'z',
+			required = true,
+			type = 'number',
+		},
+	},
+
 	[actionTypes.SpawnConstruction] = {  },
-	[actionTypes.DespawnUnits] = {  },
+	[actionTypes.DespawnUnits] = {
+		[1] = {
+			name = 'name',
+			required = true,
+			type = 'string',
+		},
+	 },
 	[actionTypes.SpawnWeapons] = {  },
 	[actionTypes.SpawnEffects] = {  },
 	[actionTypes.RevealLOS] = {  },
@@ -53,6 +100,7 @@ local parameters = {
 	[actionTypes.Pause] = {  },
 	[actionTypes.Unpause] = {  },
 	[actionTypes.PlayMedia] = {  },
+
 	[actionTypes.SendMessage] = {
 		[1] = {
 			name = 'message',
@@ -60,6 +108,7 @@ local parameters = {
 			type = 'string',
 		}
 	},
+
 	[actionTypes.Victory] = {  },
 	[actionTypes.Defeat] = {  },
 }

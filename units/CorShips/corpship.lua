@@ -1,17 +1,17 @@
 return {
 	corpship = {
-		acceleration = 0.04391,
+		maxacc = 0.04391,
 		airsightdistance = 470,
 		autoheal = 1.5,
 		blocking = true,
-		brakerate = 0.04391,
-		buildcostenergy = 2700,
-		buildcostmetal = 410,
+		maxdec = 0.04391,
+		energycost = 2700,
+		metalcost = 410,
 		buildpic = "CORPSHIP.DDS",
 		buildtime = 4450,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 -6 -2",
+		collisionvolumeoffsets = "0 -7 -2",
 		collisionvolumescales = "25 24 71",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
@@ -22,8 +22,8 @@ return {
 		icontype = "sea",
 		idleautoheal = 2,
 		idletime = 900,
-		maxdamage = 2350,
-		maxvelocity = 2.75,
+		health = 2350,
+		speed = 82.5,
 		minwaterdepth = 6,
 		movementclass = "BOAT4",
 		nochasecategory = "VTOL UNDERWATER",
@@ -39,7 +39,7 @@ return {
 		customparams = {
 			unitgroup = 'weapon',
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "coreships",
+			subfolder = "corships",
 		},
 		featuredefs = {
 			dead = {
@@ -137,9 +137,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 340,
 				damage = {
-					bombers = 31,
 					default = 96,
-					fighters = 31,
 					vtol = 31,
 				},
 			},

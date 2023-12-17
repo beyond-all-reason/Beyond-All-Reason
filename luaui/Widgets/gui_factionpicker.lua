@@ -13,7 +13,7 @@ local factions = {
 	{ startUnit = UnitDefNames.corcom.id, faction = 'cor' },
 	{ startUnit = UnitDefNames.armcom.id, faction = 'arm' },
 }
-if not Spring.GetModOptions().unba and Spring.GetModOptions().experimentallegionfaction then
+if Spring.GetModOptions().experimentallegionfaction then
 	factions[#factions+1] = { startUnit = UnitDefNames.legcom.id, faction = 'leg' }
 end
 
@@ -308,7 +308,7 @@ function widget:MousePress(x, y, button)
 					Spring.PlaySoundFile(sound_button, 0.6, 'ui')
 				end
 				-- tell initial spawn
-				Spring.SendLuaRulesMsg('\138' .. tostring(factions[i].startUnit))
+				Spring.SendLuaRulesMsg('changeStartUnit' .. tostring(factions[i].startUnit))
 				break
 			end
 		end

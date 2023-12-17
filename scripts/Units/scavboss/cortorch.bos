@@ -1,0 +1,158 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, turret, lloarm, flare1, thruster1, thruster2, thruster3;
+
+static-var  restore_delay;
+static-var  unit_speed;
+
+// Signal definitions
+#define SIG_AIM				2
+
+#define BASEPIECE base
+#define HITSPEED <55.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 2
+#define MAXTILT 100
+
+#include "unit_hitbyweaponid_and_smoke.h"
+
+PilotLight(Func_Var_1)
+{
+	while( TRUE )
+	{
+		emit-sfx 1024 + 0 from flare1;
+		sleep 40;
+	}
+}
+
+
+Create()
+{
+	//hide flare1;
+	//flare_count = 1;
+	restore_delay = 3000;
+	start-script PilotLight();
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn turret to y-axis <0.000000> speed <90.000000>;
+	turn lloarm to x-axis <0.000000> speed <90.000000>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn turret to y-axis heading speed <270.000000>;
+	turn lloarm to x-axis <0.000000> - pitch speed <90.000000>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn lloarm around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	//emit-sfx 1024 + 0 from flare5;
+	//move barrel to z-axis [-1.000000] speed [500.000000];
+	//wait-for-move barrel along z-axis;
+	//move barrel to z-axis [0.000000] speed [3.000000];
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = turret;
+}
+
+QueryPrimary(piecenum)
+{
+	//get PRINT(get GAME_FRAME,piecenum,flare_count,piecenum);
+	piecenum = flare1;
+	hide thruster1;
+	hide thruster2;
+	hide thruster3;
+	unit_speed = get CURRENT_SPEED;
+	if ( (unit_speed > 0) AND (unit_speed <= 2.35*65536) )
+	{
+		show thruster1;
+	}
+	if ( (unit_speed > 2.35*65536) AND (unit_speed <= 4.0*65536) )
+	{
+		show thruster2;
+	}
+	if (unit_speed > 4.0*65536)
+	{
+		show thruster3;
+	}
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turret type BITMAPONLY | NOHEATCLOUD;
+		explode lloarm type BITMAPONLY | NOHEATCLOUD;
+		//explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turret type FALL | NOHEATCLOUD;
+		explode lloarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode barrel type FALL | NOHEATCLOUD;
+		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lloarm type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode barrel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lloarm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

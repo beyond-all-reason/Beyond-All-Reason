@@ -159,6 +159,7 @@ local textBufferCount = 0
 local spec = Spring.GetSpectatingState()
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousName = '?????'
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local showStats = false
@@ -221,6 +222,11 @@ local function GetTeamName(teamID)
     if Spring.GetGameRulesParam('ainame_'..teamID) then
         leaderName = Spring.GetGameRulesParam('ainame_'..teamID)
     end
+
+	if not spec and anonymousMode ~= 'disabled' then
+		return anonymousName
+	end
+
 	return leaderName or 'Error:NoName'
 end
 
@@ -338,13 +344,13 @@ local function drawStats(uDefID, uID)
 	local uDef = uDefs[uDefID]
 	local maxHP = uDef.health
 	local uTeam = Spring.GetMyTeamID()
-	local losRadius = uDef.losRadius
-	local airLosRadius = uDef.airLosRadius
-	local radarRadius = uDef.radarRadius
-	local sonarRadius = uDef.sonarRadius
-	local jammingRadius = uDef.jammerRadius
-	local sonarJammingRadius = uDef.sonarJamRadius
-	local seismicRadius = uDef.seismicRadius
+	local losRadius = uDef.sightDistance
+	local airLosRadius = uDef.airSightDistance
+	local radarRadius = uDef.radarDistance
+	local sonarRadius = uDef.sonarDistance
+	local jammingRadius = uDef.radarDistanceJam
+	local sonarJammingRadius = uDef.sonarDistanceJam
+	local seismicRadius = uDef.seismicDistance
 	local armoredMultiple = uDef.armoredMultiple
 	local paralyzeMult = 1
 	if uDef.customParams.paralyzemultiplier then
@@ -595,9 +601,7 @@ local function drawStats(uDefID, uID)
 	end
 
 	local totaldps = 0
-	local totaldpsAoE = 0
 	local totalbDamages = 0
-	local totalbDamagesAoE = 0
 	local useExp = true
 	for i = 1, #wepsCompact do
 
@@ -621,7 +625,7 @@ local function drawStats(uDefID, uID)
 				oRld = 1
 			elseif i == selfDWeaponIndex then
 				wpnName = texts.selfdestruct
-				oRld = uDef.selfDCountdown
+				oRld = uDef.selfDestructCountdown
 			end
 			if wepCount > 1 then
 				DrawText(texts.weap..":", format(yellow .. "%dx" .. white .. " %s", wepCount, wpnName))
@@ -654,8 +658,6 @@ local function drawStats(uDefID, uID)
 			local accuracyBonus = accuracy ~= 0 and (uWep.accuracy/accuracy-1) or 0
 			local moveErrorBonus = moveError ~= 0 and (uWep.targetMoveError/moveError-1) or 0
 			--local range = spGetUnitWeaponState(uID,weaponNums[i] or -1,"range") or uWep.range
-			local ee = uWep.edgeEffectiveness
-			local AoE = math.max(1,(math.pi * uWep.damageAreaOfEffect^2)/256)
 
 			local rangeBonus = range ~= 0 and (range/uWep.range-1) or 0
 			if uExp ~= 0 then
@@ -685,18 +687,14 @@ local function drawStats(uDefID, uID)
 			local oDmg = uWep.damages[cat]
 			local catName = Game.armorTypes[cat]
 			local burst = uWep.salvoSize
-			local EEFactor = (ee - (-1 + ee)*math.log(1 - ee))/ee^2
 			if string.find(uWep.name, "disintegrator") then
 				DrawText(texts.dmg..":", yellow..texts.infinite)
 			elseif wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
 				if catName and oDmg and (oDmg ~= defaultDamage or cat == 0) then
 					local dmgString
 					local dps = defaultDamage * burst / (useExp and reload or uWep.reload)
-					local dpsAoE = dps * AoE * EEFactor
 					local bDamages = defaultDamage * burst
-					local bDamagesAoE = bDamages * AoE * EEFactor
 					dmgString = texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.."."
-					dmgString = texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.." ( "..(format(yellow .. "%d", bDamagesAoE))..white.." )."
 					DrawText(texts.dmg..":", dmgString)
 				end
 				local dmgString	= white
@@ -712,15 +710,10 @@ local function drawStats(uDefID, uID)
 				if catName and oDmg and (oDmg ~= defaultDamage or cat == 0) then
 					local dmgString
 					local dps = defaultDamage * burst / (useExp and reload or uWep.reload)
-					local dpsAoE = dps * AoE * EEFactor
 					local bDamages = defaultDamage * burst
-					local bDamagesAoE = bDamages * AoE * EEFactor
 					totaldps = totaldps + wepCount*dps
-					totaldpsAoE = totaldpsAoE + wepCount*dpsAoE
 					totalbDamages = totalbDamages + wepCount* bDamages
-					totalbDamagesAoE = totalbDamagesAoE +  wepCount*bDamagesAoE
 					dmgString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.."."
-					dmgString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.." ( "..(format(yellow .. "%d", dpsAoE))..white.." ) "..texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.." ( "..(format(yellow .. "%d", bDamagesAoE))..white.." )."
 					if wepCount > 1 then
 						dmgString = dmgString .. white .. " ("..texts.each..")"
 					end
@@ -762,7 +755,7 @@ local function drawStats(uDefID, uID)
 	end
 
 	if totaldps > 0 then
-		DrawText(texts.totaldmg..':', texts.dps.." = "..(format(yellow .. "%d", totaldps))..white.." ( "..(format(yellow .. "%d", totaldpsAoE))..white.." ) "..texts.burst.." = "..(format(yellow .. "%d", totalbDamages))..white.." ( "..(format(yellow .. "%d", totalbDamagesAoE))..white.." ).")
+		DrawText(texts.totaldmg..':', texts.dps.." = "..(format(yellow .. "%d", totaldps))..white..'; '..texts.burst.." = "..(format(yellow .. "%d", totalbDamages))..white..".")
 		cY = cY - fontSize
 	end
 
@@ -802,11 +795,7 @@ local function drawStats(uDefID, uID)
 	-- title
 	local text = "\255\190\255\190" .. UnitDefs[uDefID].translatedHumanName
 	if uID then
-		local playername = ''
-		if (not anonymousMode ~= "disabled") or spec then
-			playername = GetTeamColorCode(uTeam) .. GetTeamName(uTeam)
-		end
-		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   ".. playername .. grey .. effectivenessRate
+		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   ".. GetTeamColorCode(uTeam) .. GetTeamName(uTeam) .. grey .. effectivenessRate
 	end
 	local backgroundRect = {floor(cX-bgpadding), ceil(cYstart-bgpadding), floor(cX+(font:GetTextWidth(text)*titleFontSize)+(titleFontSize*3.5)), floor(cYstart+(titleFontSize*1.8)+bgpadding)}
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1,1,1,0, 1,1,0,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))

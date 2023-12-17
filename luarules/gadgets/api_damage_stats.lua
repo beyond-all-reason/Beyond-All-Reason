@@ -28,32 +28,32 @@ local gameType
 function gadget:Initialize()
     local tList = Spring.GetTeamList()
 
-    if Spring.GetModOptions().ffa_mode then
+    if Spring.Utilities.Gametype.IsFFA() then
         gameType = "free for all"
         return
     end
 
     local nHumanTeams = 0
     local nAITeams = 0
-    local nChickenTeams = 0
+    local nRaptorTeams = 0
     for _,teamID in pairs(tList) do
         local luaAI = Spring.GetTeamLuaAI(teamID) or ''
-        local aiChicken = (luaAI:find("Chicken") ~= nil)
+        local aiRaptor = (luaAI:find("Raptor") ~= nil)
         local aiTeam = select(4,Spring.GetTeamInfo(teamID,false))
         local gaiaTeam = (teamID == Spring.GetGaiaTeamID())
-        if aiChicken then
-            nChickenTeams = nChickenTeams + 1
+        if aiRaptor then
+            nRaptorTeams = nRaptorTeams + 1
         end
         if aiTeam then
             nAITeams = nAITeams + 1
         end
-        if not aiTeam and not aiChicken and not gaiaTeam then
+        if not aiTeam and not aiRaptor and not gaiaTeam then
             nHumanTeams = nHumanTeams + 1
         end
     end
 
-    if nChickenTeams >=1 then
-        gameType = "chicken defence"
+    if nRaptorTeams >=1 then
+        gameType = "raptor defence"
         return
     end
 

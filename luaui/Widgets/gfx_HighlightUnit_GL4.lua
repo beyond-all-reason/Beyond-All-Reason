@@ -22,9 +22,9 @@ local uniqueID = 0
 local debugmode = 0
 
 local highlightunitShaderConfig = {
-	ANIMSPEED = 0.066,
-	ANIMFREQUENCY = 0.033,
-	SKINSUPPORT = Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and 1 or 0,
+	ANIMSPEED = 2 / Game.gameSpeed,
+	ANIMFREQUENCY = 1 / Game.gameSpeed,
+	SKINSUPPORT = Script.IsEngineMinVersion(105, 0, 1653) and 1 or 0,
 }
 
 local vsSrc =
@@ -75,8 +75,9 @@ struct SUniformsBuffer {
     float unused5;
     float unused6;
 
+    vec4 drawPos;
     vec4 speed;
-    vec4[5] userDefined; //can't use float[20] because float in arrays occupies 4 * float space
+    vec4[4] userDefined; //can't use float[16] because float in arrays occupies 4 * float space
 };
 
 layout(std140, binding=1) readonly buffer UniformsBuffer {
@@ -177,11 +178,11 @@ local uniqueIDtoUnitID = {}
 local unitIDtoUniqueID = {} -- table of tables, as a unitid can have multiple highlights fuck yeah
 
 local unitDefIgnore = {} -- We explicitly disallow the highlighting of any unitDef like this, as it interferes with unit tracker api!
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams and unitDef.customParams.nohealthbars then
-		unitDefIgnore[unitDefID] = true
-	end --ignore debug units
-end
+--for unitDefID, unitDef in pairs(UnitDefs) do
+--	if unitDef.customParams and unitDef.customParams.nohealthbars then
+--		unitDefIgnore[unitDefID] = true
+--	end --ignore debug units
+--end
 
 
 local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha, edgeexponent, animamount, px, py, pz, rotationY, consumerID)
@@ -204,15 +205,15 @@ local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha,
 
 	if objecttype == 'unitID' then
 		local unitDefID = Spring.GetUnitDefID(objectID)
-		if unitDefID== nil or unitDefIgnore[unitDefID] then 
+		if unitDefID== nil or unitDefIgnore[unitDefID] then
 			Spring.Echo("Warning: Unit", objectID, "with unitDefID", unitDefID,  "is explicitly disallowed in highlightUnitVBOTable from",consumerID)
-			return nil 
+			return nil
 		end
 	end
-	
+
 	uniqueID = uniqueID + 1
 	local key = uniqueID
-	if consumerID then 
+	if consumerID then
 		key = tostring(objectID) .. consumerID
 	end
 	local staticmodel = (objecttype == "unitDefID" or objecttype == "featureDefID") and 1 or 0
@@ -231,9 +232,9 @@ local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha,
 		unitIDtoUniqueID[objectID] = {}
 		unitIDtoUniqueID[objectID][key] = true
 	end
-	if debugmode > 0 then 
+	if debugmode > 0 then
 		local unitdefname = "unknown unitdefname"
-		if objecttype == 'unitID' then 
+		if objecttype == 'unitID' then
 			unitdefname = UnitDefs[Spring.GetUnitDefID(objectID)].name
 		end
 		Spring.Echo("HighlightUnitGL4", objectID, objecttype, consumerID, key, unitdefname)
@@ -242,9 +243,9 @@ local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha,
 end
 
 local function StopHighlightUnitGL4(uniqueID, noUpload)
-	if debugmode > 0 then 
+	if debugmode > 0 then
 		local unitdefname = "bad unitdefid"
-		if uniqueIDtoUnitID[uniqueID] and Spring.GetUnitDefID(uniqueIDtoUnitID[uniqueID]) then 
+		if uniqueIDtoUnitID[uniqueID] and Spring.GetUnitDefID(uniqueIDtoUnitID[uniqueID]) then
 			unitdefname =  UnitDefs[Spring.GetUnitDefID(uniqueIDtoUnitID[uniqueID])].name
 		end
 		Spring.Echo("StopHighlightUnitGL4", uniqueID, noUpload, 'from index',highlightUnitVBOTable.instanceIDtoIndex[uniqueID], unitdefname )
@@ -284,7 +285,7 @@ if TESTMODE then
 	end
 end
 
-function widget:GameFrame(n) 
+function widget:GameFrame(n)
 	if (n%61) == 1 then
 		validateInstanceVBOIDTable(highlightUnitVBOTable, "api validation")
 	end
@@ -300,8 +301,8 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) -- extV
 	uniqueIDtoUnitID = {}
 	unitIDtoUniqueID = {}
 	clearInstanceTable(highlightUnitVBOTable)
-	
-	--for uniqueID, unitID in pairs(uniqueIDtoUnitID) do 
+
+	--for uniqueID, unitID in pairs(uniqueIDtoUnitID) do
 		-- i am no longer nice to consumers
 		--if extVisibleUnits[unitID] == nil then -- no longer visible, so we must remove the uniqueID
 			--StopHighlightUnitGL4(uniqueID)
@@ -310,14 +311,14 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) -- extV
 end
 
 function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
-	if unitIDtoUniqueID[unitID] then 
-		for uniqueID, _ in pairs(unitIDtoUniqueID[unitID]) do 
+	if unitIDtoUniqueID[unitID] then
+		for uniqueID, _ in pairs(unitIDtoUniqueID[unitID]) do
 			StopHighlightUnitGL4(uniqueID)
 		end
 	end
 end
 
-function widget:Initialize()	
+function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
@@ -380,11 +381,11 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if highlightUnitVBOTable and highlightUnitVBOTable.VAO then 
-		if Spring.Utilities.IsDevMode() then 
+	if highlightUnitVBOTable and highlightUnitVBOTable.VAO then
+		if Spring.Utilities.IsDevMode() then
 			dumpAndCompareInstanceData(highlightUnitVBOTable)
 		end
-		highlightUnitVBOTable.VAO:Delete() 
+		highlightUnitVBOTable.VAO:Delete()
 	end
 	if highlightunitShader then highlightunitShader:Finalize() end
 
@@ -405,15 +406,15 @@ function widget:TextCommand(command)
 			end
 			highlightUnitVBOTable.debugZombies = (newdebuglevel>0)
 		end
-		
-		for uniqueID, unitID in pairs(uniqueIDtoUnitID) do 
+
+		for uniqueID, unitID in pairs(uniqueIDtoUnitID) do
 			local unitdefname = "bad unitid"
-			if Spring.GetUnitDefID(unitID) then 
+			if Spring.GetUnitDefID(unitID) then
 				unitdefname =  UnitDefs[Spring.GetUnitDefID(unitID)].name
 			end
 			Spring.Echo("debugapihighlightunit", uniqueID, unitID, unitdefname, highlightUnitVBOTable.instanceIDtoIndex[uniqueID] )
 		end
-		
+
 	end
 end
 

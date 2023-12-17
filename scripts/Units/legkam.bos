@@ -7,6 +7,8 @@ piece  base, thrust, firepoint;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
+#define SIG_AIM				2
+
 Go()
 {
 }
@@ -88,9 +90,12 @@ AimWeapon3()
 
 FireWeapon1()
 {
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	emit-sfx 1024 from base;
-	emit-sfx 2048 + 2 from base; //Weapon3 creates a dragon's eye once weapon1 fires
+	emit-sfx 2048 + 2 from firepoint; //Weapon3 creates a dragon's eye once weapon1 fires
 	emit-sfx 4096 + 1 from base; //Weapon2 detonates the crawling bomb once weapon1 fires
+	sleep 1000;
 }
 
 QueryWeapon1(piecenum)

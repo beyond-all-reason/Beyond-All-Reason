@@ -105,6 +105,9 @@ local hiddenCommandTypes = {
 	[CMDTYPE.NEXT] = true,
 }
 
+local CMDTYPE_ICON_BUILDING = CMDTYPE.ICON_BUILDING
+local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
+
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
 
@@ -231,13 +234,14 @@ local function refreshCommands()
 	local otherCommands = {}
 	local stateCommandsCount = 0
 	local otherCommandsCount = 0
-	for index, command in pairs(spGetActiveCmdDescs()) do
+	local activeCmdDescs = spGetActiveCmdDescs()
+	for _, command in ipairs(activeCmdDescs) do
 		if type(command) == "table" and not disabledCommand[command.name] then
-			if command.type == CMDTYPE.ICON_MODE then
+			if command.type == CMDTYPE_ICON_MODE then
 				isStateCommand[command.id] = true
 			end
 			if not hiddenCommands[command.id] and not hiddenCommandTypes[command.type] and command.action ~= nil and not command.disabled then
-				if command.type == CMDTYPE.ICON_BUILDING or (string.sub(command.action, 1, 10) == 'buildunit_') then
+				if command.type == CMDTYPE_ICON_BUILDING or (string.sub(command.action, 1, 10) == 'buildunit_') then
 					-- intentionally empty, no action to take
 				elseif isStateCommand[command.id] then
 					stateCommandsCount = stateCommandsCount + 1
@@ -342,14 +346,14 @@ function widget:Initialize()
 	WG['ordermenu'].reloadBindings = reloadBindings
 	WG['ordermenu'].setBottomPosition = function(value)
 		stickToBottom = value
-		widget:ViewResize()
+		doUpdate = true
 	end
 	WG['ordermenu'].getAlwaysShow = function()
 		return alwaysShow
 	end
 	WG['ordermenu'].setAlwaysShow = function(value)
 		alwaysShow = value
-		widget:ViewResize()
+		doUpdate = true
 	end
 	WG['ordermenu'].getBottomPosition = function()
 		return stickToBottom
@@ -363,6 +367,7 @@ function widget:Initialize()
 		else
 			disabledCommand[params[1]] = nil
 		end
+		doUpdate = true
 	end
 	WG['ordermenu'].getColorize = function()
 		return colorize
@@ -445,7 +450,7 @@ local function RectQuad(px, py, sx, sy, offset)
 	gl.TexCoord(offset, offset)
 	gl.Vertex(px, sy, 0)
 end
-function DrawRect(px, py, sx, sy, zoom)
+local function DrawRect(px, py, sx, sy, zoom)
 	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
 end
 

@@ -67,7 +67,7 @@ local mySetMaterialUniform = {
 
 local armTanks = {}
 local corTanks = {}
-local chickenUnits = {}
+local raptorUnits = {}
 local otherUnits = {}
 local spGetUnitHealth = Spring.GetUnitHealth
 local unitsHealth = {} --cache
@@ -306,14 +306,14 @@ local materials = {
 
 		--UnitDamaged = UnitDamaged,
 	}),
-	unitsNormalMapChickens = table.merge(unitsNormalMapTemplate, {
+	unitsNormalMapRaptors = table.merge(unitsNormalMapTemplate, {
 		shaderOptions = {
 			normalmapping = true,
 			flashlights = false,
 			vertex_ao = true,
 			health_displace = true,
 			health_texturing = false,
-			health_texchicks = true,
+			health_texraptors = true,
 			treewind = true,
 		},
 		deferredOptions = {
@@ -322,7 +322,7 @@ local materials = {
 			vertex_ao = true,
 			health_displace = true,
 			health_texturing = false,
-			health_texchicks = true,
+			health_texraptors = true,
 			treewind = true,
 			materialIndex = 4,
 		},
@@ -331,10 +331,10 @@ local materials = {
 		},
 
 		-- are these below required?
-		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(chickenUnits, unitID, unitDefID, mat) end,
-		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(chickenUnits, unitID, unitDefID) end,
+		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(raptorUnits, unitID, unitDefID, mat) end,
+		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(raptorUnits, unitID, unitDefID) end,
 
-		GameFrame = function (gf, mat) GameFrame(false, chickenUnits, gf, mat) end,
+		GameFrame = function (gf, mat) GameFrame(false, raptorUnits, gf, mat) end,
 
 		UnitDamaged = UnitDamaged,
 	}),
@@ -399,8 +399,8 @@ for id = 1, #UnitDefs do
 			if wreckAtlas then
 				unitMaterials[id] = {"unitsNormalMapOthersArmCor", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3]}
 			else
-				if facName == "chi" then
-					unitMaterials[id] = {"unitsNormalMapChickens", NORMALTEX = normalTex}
+				if facName == "rap" then
+					unitMaterials[id] = {"unitsNormalMapRaptors", NORMALTEX = normalTex}
 				else
 					unitMaterials[id] = {"unitsNormalMapOthers", NORMALTEX = normalTex}
 				end

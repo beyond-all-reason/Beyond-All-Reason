@@ -1,11 +1,11 @@
 return {
 	corarch = {
-		acceleration = 0.03127,
+		maxacc = 0.03127,
 		airsightdistance = 900,
-		brakerate = 0.03127,
+		maxdec = 0.03127,
 		buildangle = 16384,
-		buildcostenergy = 12000,
-		buildcostmetal = 1000,
+		energycost = 12000,
+		metalcost = 1000,
 		buildpic = "CORARCH.DDS",
 		buildtime = 15000,
 		canmove = true,
@@ -21,8 +21,8 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3900,
-		maxvelocity = 2.016,
+		health = 3900,
+		speed = 60.48,
 		minwaterdepth = 30,
 		movementclass = "BOAT4",
 		nochasecategory = "NOTAIR",
@@ -225,8 +225,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1550,
 				damage = {
-					bombers = 200,
-					fighters = 400,
 					vtol = 200,
 				},
 				rgbcolor = {

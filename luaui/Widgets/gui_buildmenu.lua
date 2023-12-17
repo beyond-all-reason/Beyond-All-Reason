@@ -24,7 +24,8 @@ local alwaysShow = false
 local cfgCellPadding = 0.007
 local cfgIconPadding = 0.015 -- space between icons
 local cfgIconCornerSize = 0.025
-local cfgPriceFontSize = 0.19
+local cfgPriceFontSizeFourColls = 0.16
+local cfgPriceFontSizeFiveColls = 0.19
 local cfgActiveAreaMargin = 0.1 -- (# * bgpadding) space between the background border and active area
 
 local defaultColls = 5
@@ -180,10 +181,6 @@ end
 
 local minWaterUnitDepth = -11
 local showWaterUnits = false
-local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-if not voidWater and mapMinWater <= minWaterUnitDepth then
-	showWaterUnits = true
-end
 -- make them a disabled unit (instead of removing it entirely)
 if not showWaterUnits then
 	units.restrictWaterUnits(true)
@@ -223,7 +220,7 @@ local function RefreshCommands()
 
 			local cmdUnitdefs = {}
 			for i, udefid in pairs(UnitDefs[startDefID].buildOptions) do
-				if not unbaStartBuildoptions or unbaStartBuildoptions[udefid] then
+				if not units.unbaStartBuildoptions or units.unbaStartBuildoptions[udefid] then
 					cmdUnitdefs[udefid] = i
 				end
 			end
@@ -394,6 +391,12 @@ function widget:Update(dt)
 			doUpdate = true
 		end
 
+		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
+		if not voidWater and mapMinWater <= units.minWaterUnitDepth and not showWaterUnits then
+			showWaterUnits = true
+			units.restrictWaterUnits(false)
+		end
+
 		if stickToBottom then
 			if WG['advplayerlist_api'] ~= nil then
 				local advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
@@ -428,7 +431,7 @@ function drawBuildmenuBg()
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
 end
 
-local function drawCell(cellRectID, usedZoom, cellColor, disabled)
+local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 	local uDefID = cmds[cellRectID].id * -1
 
 	-- unit icon
@@ -482,14 +485,20 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled)
 
 	-- price
 	if showPrice then
-		--doCircle(x, y, z, radius, sides)
-		local text
-		if disabled then
-			text = "\255\125\125\125" .. units.unitMetalCost[uDefID] .. "\n\255\135\135\135"
-		else
-			text = "\255\245\245\245" .. units.unitMetalCost[uDefID] .. "\n\255\255\255\000"
+		local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
+		local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
+		local function AddSpaces(price)
+			if price >= 1000 then
+				return string.format("%s %03d", AddSpaces(math_floor(price / 1000)), price % 1000)
+			end
+			return price
 		end
-		font2:Print(text .. units.unitEnergyCost[uDefID], cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
+		local metalPrice = AddSpaces(units.unitMetalCost[uDefID])
+		local energyPrice = AddSpaces(units.unitEnergyCost[uDefID])
+		local metalPriceText = metalColor .. metalPrice
+		local energyPriceText = energyColor .. energyPrice
+		font2:Print(metalPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
+		font2:Print(energyPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
 	end
 
 	-- factory queue number
@@ -587,7 +596,7 @@ function drawBuildmenu()
 	iconPadding = math_max(1, math_floor(cellSize * cfgIconPadding))
 	cornerSize = math_floor(cellSize * cfgIconCornerSize)
 	cellInnerSize = cellSize - cellPadding - cellPadding
-	priceFontSize = math_floor((cellInnerSize * cfgPriceFontSize) + 0.5)
+	priceFontSize = math_floor((cellInnerSize * (colls == 5 and cfgPriceFontSizeFiveColls or cfgPriceFontSizeFourColls)) + 0.5)
 
 	cellRects = {}
 	local numCellsPerPage = rows * colls
@@ -659,12 +668,12 @@ end
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
 local function cacheUnitIcons()
 	local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalextraunits)
-	local excludeChickens = not Spring.Utilities.Gametype.IsChickens()
+	local excludeRaptors = not Spring.Utilities.Gametype.IsRaptors()
 	gl.Translate(-vsx,0,0)
 	gl.Color(1, 1, 1, 0.001)
 	for id, unit in pairs(UnitDefs) do
 		if not excludeScavs or not string.find(unit.name,'_scav') then
-			if not excludeChickens or not string.find(unit.name,'chicken') then
+			if not excludeRaptors or not string.find(unit.name,'raptor') then
 				gl.Texture('#'..id)
 				gl.TexRect(-1, -1, 0, 0)
 				if units.unitIconType[id] and iconTypesMap[units.unitIconType[id]] then
@@ -986,14 +995,22 @@ function widget:MousePress(x, y, button)
 			if not disableInput then
 				for cellRectID, cellRect in pairs(cellRects) do
 					if cmds[cellRectID].id and UnitDefs[-cmds[cellRectID].id].translatedHumanName and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (units.unitRestricted[-cmds[cellRectID].id]) then
+						local uDefID = cmds[cellRectID].id
 						if button ~= 3 then
 							if playSounds then
 								Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
 							end
 							if preGamestartPlayer then
-								setPreGamestartDefID(cmds[cellRectID].id * -1)
-							elseif spGetCmdDescIndex(cmds[cellRectID].id) then
-								Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 1, true, false, Spring.GetModKeyState())
+								setPreGamestartDefID(-uDefID)
+							elseif spGetCmdDescIndex(uDefID) then
+								local uDef = UnitDefs[-uDefID]
+								local isRepeatMex = uDef.customParams.metal_extractor and uDef.name == activeCmd
+								local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
+
+								if isRepeatMex then
+									WG['areamex'].setAreaMexType(uDefID)
+								end
+								Spring.SetActiveCommand(cmd, 1, true, false, Spring.GetModKeyState())
 							end
 						else
 							if cmds[cellRectID].params[1] and playSounds then
@@ -1116,6 +1133,10 @@ local function bindBuildUnits(widget)
 end
 
 function widget:Initialize()
+	if widgetHandler:IsWidgetKnown("Grid menu") then
+		widgetHandler:DisableWidget("Grid menu")
+	end
+
 	units.checkGeothermalFeatures()
 	if disableWind then
 		units.restrictWindUnits(true)

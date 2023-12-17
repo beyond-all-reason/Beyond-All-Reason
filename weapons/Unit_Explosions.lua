@@ -1,7 +1,7 @@
 local impulseboost = 0.123
 local impulsefactor = 0.123
 
-unitDeaths = {
+local unitDeaths = {
 
 	blank = {
 		weaponType = "Cannon",
@@ -872,8 +872,8 @@ unitDeaths = {
 	commanderexplosion = {
 		name = "Matter/AntimatterExplosion",
 		weaponType = "Cannon",
-		AreaOfEffect = 725,
-		cameraShake = 720,
+		AreaOfEffect = 700,
+		cameraShake = 510,
 		explosionSpeed = 725,
 		impulseboost = impulseboost*2,
 		impulsefactor = impulsefactor,
@@ -886,16 +886,14 @@ unitDeaths = {
 		explosiongenerator = "custom:COMMANDER_EXPLOSION",
 		craterboost = 4,
 		cratermult = 2,
-		edgeeffectiveness = 0.3,
+		edgeeffectiveness = 0,
 		damage = {
-			default = 56000,
-			commanders = 13900,
+			default = 5000,
 		},
 		customparams = {
 			unitexplosion = 1,
 		}
 	},
-
 
 	--BUILDING DEATHS--
 

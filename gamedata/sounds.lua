@@ -150,8 +150,8 @@ local soundData = {
 		rolloff = 1.5,
 	},
 
-	-- CHICKEN SOUNDS
-	['chickens'] = {
+	-- RAPTOR SOUNDS
+	['raptors'] = {
 		gain = 1.2 * 0.5,
 		pitchmod = {
 			default = 0.23,
@@ -295,35 +295,40 @@ local soundData = {
 
 	-- AMBIENCE
 	['atmos'] = {
-		gain = 0.8,
+		gain = 1.2 * 0.3,
+		priority = -10,
 		pitchmod = 0.22,
 		gainmod  = 0,
 		dopplerscale = 8.0,
 		maxconcurrent = 10,
 		rolloff = 0.7,
-		--maxdist = 10000,
+		in3d = true,
+		maxdist = 5000, --was disabled and 10000
 	},
 
 	-- AMBIENCE LOCAL
 	['atmos-local'] = {
-		gain = 0.8,
+		gain = 1.2 * 0.3,
+		priority = -5,
 		pitchmod = 0.22,
 		gainmod  = 0,
 		dopplerscale = 4.0,
 		maxconcurrent = 10,
 		rolloff = 1.5,
-		maxdist = 5000,
+		maxdist = 2500, --was 5000
+		in3d = true,
 	},
 
 	-- AMBIENCE GEOVENTS
 	['atmos-geovents'] = {
 		gain = 0.8,
+		priority = -3,
 		pitchmod = 0.06,
 		gainmod  = 0,
 		dopplerscale = 2.0,
 		maxconcurrent = 10,
 		rolloff = 3,
-		maxdist = 3000,
+		maxdist = 2000, --was 3000
 	},
 }
 

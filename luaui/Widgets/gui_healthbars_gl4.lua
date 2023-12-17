@@ -384,27 +384,29 @@ local skipGlyphsNumbers = 0.0  -- 0.0 is draw glyph and number,  1.0 means only 
 
 local debugmode = false
 
+local barHeight = 0.9
 local shaderConfig = { -- these are our shader defines
 	HEIGHTOFFSET = 3, -- Additional height added to everything
 	CLIPTOLERANCE = 1.1, -- At 1.0 it wont draw at units just outside of view (may pop in), 1.1 is a good safe amount
 	MAXVERTICES = 64, -- The max number of vertices we can emit, make sure this is consistent with what you are trying to draw (tris 3, quads 4, corneredrect 8, circle 64
+	CLIPTOLERANCE = 1.2,
+	BARWIDTH = 2.56,
+	BARHEIGHT = barHeight,
+	BGBOTTOMCOLOR = "vec4(0.25, 0.25, 0.25, 0.8)",
+	BGTOPCOLOR = "vec4(0.1, 0.1, 0.1, 0.8)",
+	BARSCALE = 4.0,
+	PERCENT_VISIBILITY_MAX = 0.99,
+	TIMER_VISIBILITY_MIN = 0.0,
+	BARSTEP = 10, -- pixels to downshift per new bar
+	BOTTOMDARKENFACTOR = 0.5,
+	BARFADESTART = 3200,
+	BARFADEEND = 3800,
+	ATLASSTEP = 0.0625,
+	MINALPHA = 0.2,
 }
-shaderConfig.CLIPTOLERANCE = 1.2
-shaderConfig.BARWIDTH = 2.56
-shaderConfig.BARHEIGHT = 0.80
-shaderConfig.BARCORNER = shaderConfig.BARHEIGHT /5
+shaderConfig.BARCORNER = 0.06 + (shaderConfig.BARHEIGHT / 9)
 shaderConfig.SMALLERCORNER = shaderConfig.BARCORNER * 0.6
-shaderConfig.BGBOTTOMCOLOR = "vec4(0.25, 0.25, 0.25, 0.8)"
-shaderConfig.BGTOPCOLOR = "vec4(0.1, 0.1, 0.1, 0.8)"
-shaderConfig.BARSCALE = 4.0
-shaderConfig.PERCENT_VISIBILITY_MAX = 0.99
-shaderConfig.TIMER_VISIBILITY_MIN = 0.0
-shaderConfig.BARSTEP = 10 -- pixels to downshift per new bar
-shaderConfig.BOTTOMDARKENFACTOR = 0.5
-shaderConfig.BARFADESTART = 3200
-shaderConfig.BARFADEEND = 3800
-shaderConfig.ATLASSTEP = 0.0625
-shaderConfig.MINALPHA = 0.2
+
 if debugmode then
 	shaderConfig.DEBUGSHOW = 1 -- comment this to always show all bars
 end
@@ -431,6 +433,49 @@ local shaderSourceCache = {
 		  },
 		shaderConfig = shaderConfig,		  
 	}
+
+
+-- Walk through unitdefs for the stuff we need:
+for udefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams and unitDef.customParams.nohealthbars then
+		unitDefIgnore[udefID] = true
+	end --ignore debug units
+
+	local shieldDefID = unitDef.shieldWeaponDef
+	local shieldPower = ((shieldDefID) and (WeaponDefs[shieldDefID].shieldPower)) or (-1)
+	if shieldPower > 1 then unitDefhasShield[udefID] = shieldPower
+		--Spring.Echo("HAS SHIELD")
+	end
+
+	local weapons = unitDef.weapons
+	local reloadTime = unitDef.reloadTime or 0
+	local primaryWeapon = 1
+	for i = 1, #weapons do
+		local WeaponDef = WeaponDefs[weapons[i].weaponDef]
+		if WeaponDef and WeaponDef.reload and WeaponDef.reload > reloadTime then
+			reloadTime = WeaponDef.reload
+			primaryWeapon = i
+		end
+	end
+	unitDefHeights[udefID] = unitDef.height
+	unitDefSizeMultipliers[udefID] = math.min(1.45, math.max(0.85, (Spring.GetUnitDefDimensions(udefID).radius / 150) + math.min(0.6, unitDef.power / 4000))) + math.min(0.6, unitDef.health / 22000)
+	if unitDef.canStockpile then unitDefCanStockpile[udefID] = unitDef.canStockpile end
+	if reloadTime and reloadTime > minReloadTime then
+		if debugmode then Spring.Echo("Unit with watched reload time:", unitDef.name, reloadTime, minReloadTime) end
+
+		unitDefReload[udefID] = reloadTime
+		unitDefPrimaryWeapon[udefID] = primaryWeapon
+	end
+	if unitDef.hideDamage == true then
+		unitDefHideDamage[udefID] = true
+	end
+end
+
+for fdefID, featureDef in pairs(FeatureDefs) do
+	--Spring.Echo(featureDef.name, featureDef.height)
+	featureDefHeights[fdefID] = featureDef.height or 32
+end
+
 
 local function goodbye(reason)
   Spring.Echo("Healthbars GL4 widget exiting with reason: "..reason)
@@ -903,57 +948,16 @@ function widget:Initialize()
 		drawWhenGuiHidden = value
 	end
 
-
 	initGL4()
-	-- Walk through unitdefs for the stuff we need:
-	for udefID, unitDef in pairs(UnitDefs) do
-		if unitDef.customParams and unitDef.customParams.nohealthbars then
-			unitDefIgnore[udefID] = true
-		end --ignore debug units
 
-		local shieldDefID = unitDef.shieldWeaponDef
-		shieldPower = ((shieldDefID) and (WeaponDefs[shieldDefID].shieldPower)) or (-1)
-		if shieldPower > 1 then unitDefhasShield[udefID] = shieldPower
-			--Spring.Echo("HAS SHIELD")
-		end
-
-		local weapons = unitDef.weapons
-		local reloadTime = unitDef.reloadTime or 0
-		local primaryWeapon = 1
-		for i = 1, #weapons do
-			local WeaponDef = WeaponDefs[weapons[i].weaponDef]
-			if WeaponDef and WeaponDef.reload and WeaponDef.reload > reloadTime then
-				reloadTime = WeaponDef.reload
-				primaryWeapon = i
-			end
-		end
-		unitDefHeights[udefID] = unitDef.height
-		unitDefSizeMultipliers[udefID] = math.min(1.45, math.max(0.85, (Spring.GetUnitDefDimensions(udefID).radius / 150) + math.min(0.6, unitDef.power / 4000))) + math.min(0.6, unitDef.health / 22000)
-		if unitDef.canStockpile then unitDefCanStockpile[udefID] = unitDef.canStockpile end
-		if reloadTime and reloadTime > minReloadTime then
-			if debugmode then Spring.Echo("Unit with watched reload time:", unitDef.name, reloadTime, minReloadTime) end
-
-			unitDefReload[udefID] = reloadTime
-			unitDefPrimaryWeapon[udefID] = primaryWeapon
-		end
-		if unitDef.hideDamage == true then
-			unitDefHideDamage[udefID] = true
-		end
-
-	end
-
-	for fdefID, featureDef in pairs(FeatureDefs) do
-		--Spring.Echo(featureDef.name, featureDef.height)
-		featureDefHeights[fdefID] = featureDef.height or 32
-	end
 	-- TODO: dont even bother drawing health bars for features that were present on frame 0 - no point in doing so
 	-- This is stuff like trees and map features, and scenario features
 	init()
 	initfeaturebars()
-	widgetHandler:RegisterGlobal("FeatureReclaimStartedHealthbars",FeatureReclaimStartedHealthbars )
-	widgetHandler:RegisterGlobal("UnitCaptureStartedHealthbars",UnitCaptureStartedHealthbars )
-	widgetHandler:RegisterGlobal("UnitParalyzeDamageHealthbars",UnitParalyzeDamageHealthbars )
-	widgetHandler:RegisterGlobal("ProjectileCreatedReloadHB",ProjectileCreatedReloadHB )
+	widgetHandler:RegisterGlobal("FeatureReclaimStartedHealthbars", FeatureReclaimStartedHealthbars )
+	widgetHandler:RegisterGlobal("UnitCaptureStartedHealthbars", UnitCaptureStartedHealthbars )
+	widgetHandler:RegisterGlobal("UnitParalyzeDamageHealthbars", UnitParalyzeDamageHealthbars )
+	widgetHandler:RegisterGlobal("ProjectileCreatedReloadHB", ProjectileCreatedReloadHB )
 end
 
 function widget:Shutdown()
@@ -1127,8 +1131,13 @@ function widget:GameFrame(n)
 				local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
 				--uniformcache[1] = math.floor((paralyzeDamage - maxHealth)) / (maxHealth * empDecline))
 				if paralyzeDamage then
+				
+					-- this returns something like 1.20 which somehow turns into seconds somewhere unsearchable, currently wrong display
+					-- this needs conditional fixing within an if Spring.GetModOptions().emprework
 					uniformcache[1] = paralyzeDamage / maxHealth
-					--Spring.Echo("Paralyze damage", paralyzeDamage, maxHealth)
+					--Spring.Echo("Paralyze damages", paralyzeDamage, maxHealth)
+					--Spring.Echo("Paralyze damage cur", (paralyzeDamage / maxHealth))
+
 					gl.SetUnitBufferUniforms(unitID, uniformcache, 4)
 				end
 			else
@@ -1295,6 +1304,7 @@ end
 function widget:GetConfigData(data)
 	return {
 		barScale = barScale,
+		barHeight = barHeight,
 		variableBarSizes = variableBarSizes,
 		drawWhenGuiHidden = drawWhenGuiHidden
 	}
@@ -1307,5 +1317,11 @@ function widget:SetConfigData(data)
 	end
 	if data.drawWhenGuiHidden ~= nil then
 		drawWhenGuiHidden = data.drawWhenGuiHidden
+	end
+	if data.barHeight ~= nil then
+		barHeight = data.barHeight
+		shaderSourceCache.shaderConfig.BARHEIGHT = barHeight
+		shaderSourceCache.shaderConfig.BARCORNER = 0.06 + (shaderConfig.BARHEIGHT / 9)
+		shaderSourceCache.shaderConfig.SMALLERCORNER = shaderConfig.BARCORNER * 0.6
 	end
 end

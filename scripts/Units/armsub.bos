@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flare, base, doorr, doorl, prop;
+piece  flare, base, doorr, doorl, prop, aimpoint;
 
 static-var  restore_delay, currentSpeed, moveSpeed;
 // Signal definitions
@@ -104,7 +104,7 @@ RestoreAfterDelay()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = flare;
+	piecenum = aimpoint;
 }
 
 AimPrimary(heading, pitch)

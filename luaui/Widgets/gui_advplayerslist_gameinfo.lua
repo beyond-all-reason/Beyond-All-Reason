@@ -102,14 +102,14 @@ local function updateValues()
 end
 
 local function createList()
-	if drawlist[3] ~= nil then
-		glDeleteList(drawlist[3])
+	if drawlist[3] then
+		drawlist[3] = glDeleteList(drawlist[3])
 	end
 	if WG['guishader'] then
 		drawlist[3] = glCreateList( function()
 			RectRound(left, bottom, right, top, elementCorner)
 		end)
-		WG['guishader'].InsertDlist(drawlist[3], 'displayinfo')
+		WG['guishader'].InsertDlist(drawlist[3], 'displayinfo', true)
 	end
 	if drawlist[1] ~= nil then
 		glDeleteList(drawlist[1])
@@ -149,24 +149,25 @@ end
 
 
 function updatePosition(force)
-	if WG['advplayerlist_api'] ~= nil then
-		local prevPos = advplayerlistPos
-		if WG['unittotals'] ~= nil then
-			advplayerlistPos = WG['unittotals'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		elseif WG['music'] ~= nil then
-			advplayerlistPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		else
-			advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		end
-		if advplayerlistPos[5] ~= nil then
-			left = advplayerlistPos[2]
-			bottom = advplayerlistPos[1]
-			right = advplayerlistPos[4]
-			top = math.ceil(advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5]))
-			widgetScale = advplayerlistPos[5]
-			if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
-				createList()
-			end
+	local prevPos = advplayerlistPos
+	if WG['unittotals'] ~= nil then
+		advplayerlistPos = WG['unittotals'].GetPosition()
+	elseif WG['music'] ~= nil then
+		advplayerlistPos = WG['music'].GetPosition()
+	elseif WG['advplayerlist_api'] then
+		advplayerlistPos = WG['advplayerlist_api'].GetPosition()
+	else
+		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
+		advplayerlistPos = {0,vsx-(220*scale),0,vsx,scale}
+	end
+	if advplayerlistPos[5] ~= nil then
+		left = advplayerlistPos[2]
+		bottom = advplayerlistPos[1]
+		right = advplayerlistPos[4]
+		top = math.ceil(advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5]))
+		widgetScale = advplayerlistPos[5]
+		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
+			createList()
 		end
 	end
 end

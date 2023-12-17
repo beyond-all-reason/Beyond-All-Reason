@@ -32,17 +32,17 @@ return {
   --   name = 'STAI',
   --   desc = 'Medium  AI by @pandaro',
   -- },
-  {
-    name = 'ControlModeAI',
-    desc = 'AI designed for Control Points gamemode, stays idle if control mode is disabled',
-  },
+  -- {
+  --   name = 'ControlModeAI',
+  --   desc = 'AI designed for Control Points gamemode, stays idle if control mode is disabled',
+  -- },
   {
     name = 'Shard',
     desc = 'Shard - Basic Shard AI'
   },
   {
-    name = 'ChickensAI',
-    desc = 'Chicken Defence'
+    name = 'RaptorsAI',
+    desc = 'Raptor Defence'
   },
 }
 

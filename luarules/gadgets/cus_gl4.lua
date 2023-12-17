@@ -32,7 +32,7 @@ end
 		-- Units
 			-- tanks : -- these are units actually
 			-- barunits :
-			-- chickens
+			-- raptors
 			-- scavengers
 			--
 
@@ -42,7 +42,7 @@ end
 
 	-- Textures:
 		-- arm/cor
-		-- 10x chickensets
+		-- 10x raptorsets
 		-- 5x featuresets
 		-- scavengers?
 	-- Objects (the VAO)
@@ -62,7 +62,7 @@ end
 	-- DONE treadoffset unitUniform
 	-- DONE: BITOPTIONS UNIFOOOOORM!
 	-- normalmapping
-	-- chickens
+	-- raptors
 	-- tanktracks
 	-- Reflection camera
 	-- refraction camera
@@ -143,7 +143,7 @@ end
 
 	-- TODO: check if LuaShader UniformLocations are cached
 
-	-- DONE: add a wreck texture to chickens! It uses lavadistortion texture, its fine
+	-- DONE: add a wreck texture to raptors! It uses lavadistortion texture, its fine
 
 	-- TODO: Use a 3d texture lookup instead of perlin implementation for damage shading
 
@@ -257,7 +257,7 @@ do --save a ton of locals
 	local OPTION_THREADS_CORE     = 64
 	local OPTION_HEALTH_TEXTURING = 128
 	local OPTION_HEALTH_DISPLACE  = 256
-	local OPTION_HEALTH_TEXCHICKS = 512
+	local OPTION_HEALTH_TEXRAPTORS = 512
 	local OPTION_MODELSFOG        = 1024
 	local OPTION_TREEWIND         = 2048
 	local OPTION_PBROVERRIDE      = 4096
@@ -285,8 +285,8 @@ do --save a ton of locals
 			baseVertexDisplacement = 0.4,
 			brightnessFactor = 1.5,
 		},
-		chicken = {
-			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS  + OPTION_HEALTH_DISPLACE + OPTION_HEALTH_TEXCHICKS + OPTION_TREEWIND + OPTION_SHIFT_RGBHSV,
+		raptor = {
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS  + OPTION_HEALTH_DISPLACE + OPTION_HEALTH_TEXRAPTORS + OPTION_TREEWIND + OPTION_SHIFT_RGBHSV,
 			baseVertexDisplacement = 0.0,
 			brightnessFactor = 1.5,
 		},
@@ -756,17 +756,17 @@ local function GenFastTextureKey(objectDefID, objectDef, normaltexpath, texturet
 end
 
 local wreckAtlases = {
-	["arm"] = {
+	["arm"] = { -- these are only here for posterity
 		"unittextures/Arm_wreck_color.dds",
 		"unittextures/Arm_wreck_other.dds",
 		"unittextures/Arm_wreck_color_normal.dds",
 	},
-	["cor"] = {
+	["cor"] = { 
 		"unittextures/cor_color_wreck.dds",
 		"unittextures/cor_other_wreck.dds",
 		"unittextures/cor_color_wreck_normal.dds",
 	},
-	["chicken"] = {
+	["raptor"] = {
 		"luaui/images/lavadistortion.png",
 	}
 }
@@ -779,11 +779,18 @@ local existingfilecache = {} -- this speeds up the VFS calls
 local function GetNormal(unitDef, featureDef)
 	local normalMap = blankNormalMap
 
-	if unitDef and unitDef.customParams and unitDef.customParams.normaltex and
-		(existingfilecache[unitDef.customParams.normaltex] or VFS.FileExists(unitDef.customParams.normaltex)) then
-
-		existingfilecache[unitDef.customParams.normaltex] = true
-		return unitDef.customParams.normaltex
+	if unitDef and unitDef.model then
+		if existingfilecache[unitDef.model.textures.tex1] == nil and VFS.FileExists(unitDef.model.textures.tex1) then
+			existingfilecache[unitDef.model.textures.tex1] = string.format("%%%i:0", unitDef.id)
+		end
+		if existingfilecache[unitDef.model.textures.tex2] == nil and VFS.FileExists(unitDef.model.textures.tex2) then
+			existingfilecache[unitDef.model.textures.tex2] = string.format("%%%i:1", unitDef.id)
+		end
+		if unitDef.customParams and unitDef.customParams.normaltex and
+			(existingfilecache[unitDef.customParams.normaltex] or VFS.FileExists(unitDef.customParams.normaltex)) then
+			existingfilecache[unitDef.customParams.normaltex] = true
+			return unitDef.customParams.normaltex
+		end
 	end
 
 	if featureDef then
@@ -801,8 +808,8 @@ local function GetNormal(unitDef, featureDef)
 		if  (existingfilecache[unittexttures .. tex1] or VFS.FileExists(unittexttures .. tex1)) and
 			(existingfilecache[unittexttures .. tex2] or VFS.FileExists(unittexttures .. tex2)) then
 
-			existingfilecache[unittexttures .. tex1] = true
-			existingfilecache[unittexttures .. tex2] = true
+			existingfilecache[unittexttures .. tex1] = string.format("%%%i:0", -1*featureDef.id)
+			existingfilecache[unittexttures .. tex2] = string.format("%%%i:1", -1*featureDef.id)
 			normalMap = unittexttures .. tex1:gsub("%.","_normals.")
 			-- Spring.Echo(normalMap)
 			if (existingfilecache[normalMap] or VFS.FileExists(normalMap)) then
@@ -819,9 +826,61 @@ local function GetNormal(unitDef, featureDef)
 	end
 	return blankNormalMap
 end
+-- BIG TODO:
+-- Replace lua texture names with overrides of WreckTex et al!
+-- 
+-- %34:1 = unitDef 34 s3o tex2 (:0->tex1,:1->tex2)
+-- %-102:0 = featureDef 102 s3o tex1 
+-- The problem here being hat tex1 and tex2 dont participate in texture key hashing.
+-- so e.g. raptors may have been drawn with incorrect textures all along, due to them being keyed 
+
+
 
 local knowntrees = VFS.Include("modelmaterials_gl4/known_feature_trees.lua")
 local function initBinsAndTextures()
+	
+	-- init features first, to gain access to stored wreck textures!
+	Spring.Echo("[CUS GL4] Init Feature bins")
+	for featureDefID, featureDef in pairs(FeatureDefs) do
+		if featureDef.model then -- this is kind of a hack to work around specific modelless features metalspots found on Otago 1.4
+			local normalTex = GetNormal(nil, featureDef)
+			local textureTable = {
+				[0] = string.format("%%-%s:%i", featureDefID, 0),
+				[1] = string.format("%%-%s:%i", featureDefID, 1),
+				[2] = normalTex,
+				[3] = false,
+				[4] = false,
+				[5] = false,
+				[6] = "$shadow",
+				[7] = "$reflection",
+				[8] = "$info",
+				[9] = brdfLUT,
+				[10] = noisetex3dcube,
+				--[10] = envLUT,
+			}
+
+			objectDefToUniformBin[-1 * featureDefID] = 'feature'
+
+			if featureDef.name:find("raptor_egg", nil, true) then
+				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
+				--featuresDefsWithAlpha[-1 * featureDefID] = "yes"
+			elseif (featureDef.customParams and featureDef.customParams.treeshader == 'yes')
+				or knowntrees[featureDef.name] then
+				objectDefToUniformBin[-1 * featureDefID] = 'tree'
+				featuresDefsWithAlpha[-1 * featureDefID] = "yes"
+			elseif featureDef.name:find("_dead", nil, true) or featureDef.name:find("_heap", nil, true) then
+				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
+			elseif featureDef.name:find("pilha_crystal", nil, true) or (featureDef.customParams and featureDef.customParams.cuspbr) then
+				objectDefToUniformBin[-1 * featureDefID] = 'featurepbr'
+			end
+			--Spring.Echo("Assigned normal map to", featureDef.name, normalTex)
+
+			local texKeyFast = GenFastTextureKey(-1 * featureDefID, featureDef, normalTex, textureTable)
+			if textureKeytoSet[texKeyFast] == nil then
+				textureKeytoSet[texKeyFast] = textureTable
+			end
+		end
+	end
 	--if true then return end
 	Spring.Echo("[CUS GL4] Init Unit bins")
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -855,12 +914,19 @@ local function initBinsAndTextures()
 			local lowercasetex2 = string.lower(unitDef.model.textures.tex2 or "")
 			local lowercasenormaltex = string.lower(normalTex or "")
 
+			
 			local wreckTex1 = (lowercasetex1:find("arm_color", nil, true) and "unittextures/Arm_wreck_color.dds") or
-								(lowercasetex1:find("cor_color", nil, true) and "unittextures/Cor_color_wreck.dds")  or false
+								(lowercasetex1:find("cor_color", nil, true) and "unittextures/cor_color_wreck.dds")  or false
+			if wreckTex1 and existingfilecache[wreckTex1] then -- this part is what ensures that these textures dont get loaded separately, but instead use ones provided by featuredefs
+				wreckTex1 = existingfilecache[wreckTex1]
+			end
 			local wreckTex2 = (lowercasetex2:find("arm_other", nil, true) and "unittextures/Arm_wreck_other.dds") or
-								(lowercasetex2:find("cor_other", nil, true) and "unittextures/Cor_other_wreck.dds")  or false
+								(lowercasetex2:find("cor_other", nil, true) and "unittextures/cor_other_wreck.dds")  or false
+			if wreckTex2 and existingfilecache[wreckTex2] then  -- this part is what ensures that these textures dont get loaded separately, but instead use ones provided by featuredefs
+				wreckTex2 = existingfilecache[wreckTex2]
+			end
 			local wreckNormalTex = (lowercasenormaltex:find("arm_normal") and "unittextures/Arm_wreck_color_normal.dds") or
-					(lowercasenormaltex:find("cor_normal") and "unittextures/Cor_color_wreck_normal.dds") or false
+					(lowercasenormaltex:find("cor_normal") and "unittextures/cor_color_wreck_normal.dds") or false
 
 			if unitDef.name:find("_scav", nil, true) then -- it better be a scavenger unit, or ill kill you
 				textureTable[3] = wreckTex1
@@ -871,10 +937,10 @@ local function initBinsAndTextures()
 				elseif 	unitDef.name:sub(1,3) == 'cor' then
 					objectDefToUniformBin[unitDefID] = 'corscavenger'
 				end
-			elseif unitDef.name:find("chicken", nil, true) or unitDef.name:find("chicken_hive", nil, true) then
-				textureTable[5] = wreckAtlases['chicken'][1]
-				objectDefToUniformBin[unitDefID] = 'chicken'
-				--Spring.Echo("Chickenwreck", textureTable[5])
+			elseif unitDef.name:find("raptor", nil, true) or unitDef.name:find("raptor_hive", nil, true) then
+				textureTable[5] = wreckAtlases['raptor'][1]
+				objectDefToUniformBin[unitDefID] = 'raptor'
+				--Spring.Echo("Raptorwreck", textureTable[5])
 			elseif wreckTex1 and wreckTex2 then -- just a true unit:
 				textureTable[3] = wreckTex1
 				textureTable[4] = wreckTex2
@@ -888,47 +954,7 @@ local function initBinsAndTextures()
 		end
 	end
 
-	Spring.Echo("[CUS GL4] Init Feature bins")
-	for featureDefID, featureDef in pairs(FeatureDefs) do
-		if featureDef.model then -- this is kind of a hack to work around specific modelless features metalspots found on Otago 1.4
-			local normalTex = GetNormal(nil, featureDef)
-			local textureTable = {
-				[0] = string.format("%%-%s:%i", featureDefID, 0),
-				[1] = string.format("%%-%s:%i", featureDefID, 1),
-				[2] = normalTex,
-				[3] = false,
-				[4] = false,
-				[5] = false,
-				[6] = "$shadow",
-				[7] = "$reflection",
-				[8] = "$info",
-				[9] = brdfLUT,
-				[10] = noisetex3dcube,
-				--[10] = envLUT,
-			}
 
-			objectDefToUniformBin[-1 * featureDefID] = 'feature'
-
-			if featureDef.name:find("chicken_egg", nil, true) then
-				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
-				--featuresDefsWithAlpha[-1 * featureDefID] = "yes"
-			elseif (featureDef.customParams and featureDef.customParams.treeshader == 'yes')
-				or knowntrees[featureDef.name] then
-				objectDefToUniformBin[-1 * featureDefID] = 'tree'
-				featuresDefsWithAlpha[-1 * featureDefID] = "yes"
-			elseif featureDef.name:find("_dead", nil, true) or featureDef.name:find("_heap", nil, true) then
-				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
-			elseif featureDef.name:find("pilha_crystal", nil, true) or (featureDef.customParams and featureDef.customParams.cuspbr) then
-				objectDefToUniformBin[-1 * featureDefID] = 'featurepbr'	
-			end
-			--Spring.Echo("Assigned normal map to", featureDef.name, normalTex)
-
-			local texKeyFast = GenFastTextureKey(-1 * featureDefID, featureDef, normalTex, textureTable)
-			if textureKeytoSet[texKeyFast] == nil then
-				textureKeytoSet[texKeyFast] = textureTable
-			end
-		end
-	end
 
 end
 
@@ -937,16 +963,16 @@ local function PreloadTextures()
 	Spring.Echo("[CUS GL4] Cache Textures")
 	-- init the arm and core wrecks, and wreck normals
 	gl.Texture(0, "unittextures/Arm_wreck_color_normal.dds")
-	gl.Texture(0, "unittextures/Arm_wreck_color.dds")
-	gl.Texture(0, "unittextures/Arm_wreck_other.dds")
+	--gl.Texture(0, "unittextures/Arm_wreck_color.dds")
+	--gl.Texture(0, "unittextures/Arm_wreck_other.dds")
 	gl.Texture(0, "unittextures/Arm_normal.dds")
-	gl.Texture(0, "unittextures/Arm_color.dds")
-	gl.Texture(0, "unittextures/Arm_other.dds")
+	--gl.Texture(0, "unittextures/Arm_color.dds") -- these absolutely never need to be loaded like this
+	--gl.Texture(0, "unittextures/Arm_other.dds")
 	gl.Texture(0, "unittextures/cor_normal.dds")
-	gl.Texture(0, "unittextures/cor_other.dds")
-	gl.Texture(0, "unittextures/cor_color.dds")
-	gl.Texture(0, "unittextures/cor_other_wreck.dds")
-	gl.Texture(0, "unittextures/cor_color_wreck.dds")
+	--gl.Texture(0, "unittextures/cor_other.dds")
+	--gl.Texture(0, "unittextures/cor_color.dds")
+	--gl.Texture(0, "unittextures/cor_other_wreck.dds")
+	--gl.Texture(0, "unittextures/cor_color_wreck.dds")
 	gl.Texture(0, "unittextures/cor_color_wreck_normal.dds")
 	gl.Texture(0, false)
 	preloadedTextures = true
@@ -1471,6 +1497,7 @@ local function ExecuteDrawPass(drawPass)
 	local batches = 0
 	local units = 0
 	local shaderswaps = 0
+	local unbindtextures = false
 	gl.Culling(GL.BACK)
 	--for shaderName, data in pairs(unitDrawBins[drawPass]) do
 	for _, shaderName in ipairs(shaderOrder) do
@@ -1504,9 +1531,6 @@ local function ExecuteDrawPass(drawPass)
 							units = units + texAndObj.numobjects
 							local mybinVAO = texAndObj.VAO
 							for bindPosition, tex in pairs(texAndObj.textures) do
-								if Spring.GetGameFrame() % 60 == 0 then
-									--Spring.Echo(bindPosition, tex)
-								end
 								gl.Texture(bindPosition, tex)
 							end
 
@@ -1516,16 +1540,20 @@ local function ExecuteDrawPass(drawPass)
 							mybinVAO:Submit()
 
 							SetFixedStatePost(drawPass, shaderTable)
-
-							for bindPosition, tex in pairs(texAndObj.textures) do
-								gl.Texture(bindPosition, false)
-							end
+							unbindtextures = true
+				
 						end
 					end
 				end
 
 				gl.UseShader(0)
 			end
+		end
+	end
+	
+	if unbindtextures then 
+		for i=0,10 do
+			gl.Texture(i, false)
 		end
 	end
 
@@ -1757,6 +1785,55 @@ local function MarkBinCUSGL4(optName, line, words, playerID)
 	markBin(passnum)
 end
 
+local function FreeTextures() -- pre we are using 2200mb
+	-- free all raptor texes
+	-- free all pilha texes
+	Spring.Echo("Freeing textures")
+	--delete raptor texes if no raptors are present
+	for unitDefID, uniformBin in pairs(objectDefToUniformBin) do 
+		if uniformBin == 'raptor' then 
+			local textureTable = textureKeytoSet[fastObjectDefIDtoTextureKey[unitDefID]]
+			local s1 = gl.DeleteTexture(textureTable[0])
+			local s2 = gl.DeleteTexture(textureTable[1])
+			
+			Spring.Echo("Freeing ",textureTable[0],textureTable[1], s1, s2)
+		end
+	end
+
+	-- delete feature texes if not present, except wrecks of course
+	local features = Spring.GetAllFeatures()
+
+	local delFeatureDefs = {}
+	for featureDefID, featureDef in pairs(FeatureDefs) do delFeatureDefs[featureDefID] = true end 
+
+	for i, featureID in ipairs(features) do 
+		local existingFeatureDefID = Spring.GetFeatureDefID(featureID)
+		delFeatureDefs[existingFeatureDefID] = false
+	end
+
+	for featureDefID, deleteme in pairs(delFeatureDefs) do 
+		local textureTable = textureKeytoSet[fastObjectDefIDtoTextureKey[-featureDefID]]
+			local s1 = gl.DeleteTexture(textureTable[0])
+			local s2 = gl.DeleteTexture(textureTable[1])
+			
+			Spring.Echo("Freeing ",textureTable[0],textureTable[1], s1, s2)
+	end
+	
+	Spring.Echo("RawDelete")
+	local unittexfiles = VFS.DirList("unittextures/")
+	for i, fname in ipairs(unittexfiles) do 
+		if string.find(fname,'chicken', nil, true) then 
+			local s1 = gl.DeleteTexture(fname)
+			Spring.Echo("Freeing ",fname, s1)
+
+		end
+		
+	end
+	
+	
+end
+
+
 function gadget:Initialize()
 	gadgetHandler:AddChatAction("reloadcusgl4", ReloadCUSGL4)
 	gadgetHandler:AddChatAction("disablecusgl4", DisableCUSGL4)
@@ -1764,6 +1841,7 @@ function gadget:Initialize()
 	gadgetHandler:AddChatAction("debugcusgl4", DebugCUSGL4)
 	gadgetHandler:AddChatAction("dumpcusgl4", DumpCUSGL4)
 	gadgetHandler:AddChatAction("markbincusgl4", MarkBinCUSGL4)
+	gadgetHandler:AddChatAction("freetextures", FreeTextures)
 	if not initiated and tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
 		initGL4()
 	end
@@ -1915,7 +1993,7 @@ function gadget:DrawWorldPreUnit()
 		end
 
 		if numdestroyedFeatures > 0 then
-			
+
 			ProcessFeatures(destroyedFeatureIDs, destroyedFeatureDrawFlags, "destroyed")
 			for i=numdestroyedFeatures,1,-1 do
 				destroyedFeatureIDs[i] = nil
@@ -1923,30 +2001,30 @@ function gadget:DrawWorldPreUnit()
 			end
 			numdestroyedFeatures = 0
 		end
-		if firstDraw then 
+		if firstDraw then
 			local firstfeatures = Spring.GetVisibleFeatures()
 			local firstdrawFlagsFeatures = {}
 			local validFirstFeatures = {}
 			local numfirstfeatures = 0
-			for i, featureID in ipairs(firstfeatures) do 
+			for i, featureID in ipairs(firstfeatures) do
 				local flag = Spring.GetFeatureDrawFlag(featureID)
-				if flag and flag > 0 then 
-					numfirstfeatures = numfirstfeatures + 1 
+				if flag and flag > 0 then
+					numfirstfeatures = numfirstfeatures + 1
 					validFirstFeatures[numfirstfeatures] = featureID
 					firstdrawFlagsFeatures[numfirstfeatures] = flag
 				end
-					
-			end 
+
+			end
 			ProcessFeatures(validFirstFeatures, firstdrawFlagsFeatures, "firstDraw")
-			
+
 			local firstunits = Spring.GetVisibleUnits()
 			local firstdrawFlagsUnits = {}
-			for i, unitID in ipairs(firstunits) do firstdrawFlagsUnits[i] = 1 + 4 + 16 end 
+			for i, unitID in ipairs(firstunits) do firstdrawFlagsUnits[i] = 1 + 4 + 16 end
 			ProcessUnits(firstunits, firstdrawFlagsUnits, "firstDraw")
-			
+
 			firstDraw = false
 		end
-		
+
 
 		ProcessUnits(units, drawFlagsUnits, "changed")
 		ProcessFeatures(features, drawFlagsFeatures, "changed")
@@ -1976,19 +2054,19 @@ function gadget:DrawWorldPreUnit()
 end
 
 local nightFactorBins = {tree = 1.3, feature = 1.3, featurepbr = 1.3, treepbr = 1.3}
-local lastSunChanged = -1 
+local lastSunChanged = -1
 function gadget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
 	local df = Spring.GetDrawFrame()
 	if df == lastSunChanged then return end
 	lastSunChanged = df
 	local nightFactor = 1.0
-	if GG['NightFactor'] then 
+	if GG['NightFactor'] then
 		local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
 		nightFactor = (GG['NightFactor'].red + GG['NightFactor'].green + GG['NightFactor'].blue) * 0.33
 	end
-	for uniformBinName, defaultBrightnessFactor in pairs(nightFactorBins) do 
+	for uniformBinName, defaultBrightnessFactor in pairs(nightFactorBins) do
 		uniformBins[uniformBinName].brightnessFactor = defaultBrightnessFactor * nightFactor
-	end 
+	end
 end
 
 local function drawPassBitsToNumber(opaquePass, deferredPass, drawReflection, drawRefraction)

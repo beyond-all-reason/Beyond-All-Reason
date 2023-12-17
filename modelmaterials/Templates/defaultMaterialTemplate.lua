@@ -22,7 +22,7 @@ vertex = [[
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
-	#define OPTION_HEALTH_TEXCHICKS 9
+	#define OPTION_HEALTH_TEXRAPTORS 9
 
 	#define OPTION_MODELSFOG 10
 
@@ -372,7 +372,7 @@ fragment = [[
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
-	#define OPTION_HEALTH_TEXCHICKS 9
+	#define OPTION_HEALTH_TEXRAPTORS 9
 
 	#define OPTION_MODELSFOG 10
 
@@ -1141,13 +1141,13 @@ fragment = [[
 		vec3 N;
 
 		vec4 normalTexVal;
-		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
+		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXRAPTORS)) {
 			normalTexVal = texture(normalTex, myUV);
 		}
 
 		float healthMix;
 		vec3 seedVec;
-		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
+		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXRAPTORS)) {
 			seedVec = modelVertexPosOrig.xyz * 0.6;
 			seedVec.y += 1024.0 * hash11(float(intOptions[0]));
 
@@ -1162,7 +1162,7 @@ fragment = [[
 				vec3 tbnNormalw = NORM2SNORM(texture(normalTexw, myUV).xyz);
 				tbnNormal = mix(tbnNormal, tbnNormalw, healthMix);
 			}
-			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
+			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXRAPTORS)) {
 				vec3 tbnNormalw = NORM2SNORM(texture(rgbNoise, 0.5 * myUV).rgb);
 				tbnNormalw = mix(tbnNormal, tbnNormalw, 0.5);
 
@@ -1202,7 +1202,7 @@ fragment = [[
 
 		vec3 albedoColor = SRGBtoLINEAR(mix(texColor1.rgb, teamColor.rgb, texColor1.a));
 
-		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
+		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXRAPTORS)) {
 			float texHeight = normalTexVal.a;
 			float healthyness = clamp(healthMix * 2.0 - 0.5, 0.0, 1.0); //healthyness of 0 is near dead, 1 is fully healthy
 			if (texHeight < healthyness){
@@ -1536,7 +1536,7 @@ local defaultMaterialTemplate = {
 
 		health_displace  = false,
 		health_texturing = false,
-		health_texchicks = false,
+		health_texraptors = false,
 
 		modelsfog        = true,
 
@@ -1563,7 +1563,7 @@ local defaultMaterialTemplate = {
 
 		health_displace  = false,
 		health_texturing = false,
-		health_texchicks = false,
+		health_texraptors = false,
 
 		treewind         = false,
 		autonormal       = false,
@@ -1614,7 +1614,7 @@ local shaderPlugins = {
 
 	#define OPTION_HEALTH_TEXTURING 7
 	#define OPTION_HEALTH_DISPLACE 8
-	#define OPTION_HEALTH_TEXCHICKS 9
+	#define OPTION_HEALTH_TEXRAPTORS 9
 
 	#define OPTION_MODELSFOG 10
 
@@ -1636,7 +1636,7 @@ local knownBitOptions = {
 
 	["health_texturing"] = 7,
 	["health_displace"] = 8,
-	["health_texchicks"] = 9,
+	["health_texraptors"] = 9,
 
 	["modelsfog"] = 10,
 

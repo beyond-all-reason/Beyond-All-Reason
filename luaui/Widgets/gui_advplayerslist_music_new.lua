@@ -24,11 +24,11 @@ Spring.CreateDir("music/custom/menu")
 ----------------------------------------------------------------------
 
 local showGUI = true
-local minSilenceTime = 60
-local maxSilenceTime = 300
+local minSilenceTime = 30
+local maxSilenceTime = 120
 local warLowLevel = 1000
-local warHighLevel = 20000
-local warMeterResetTime = 30 -- seconds
+local warHighLevel = 30000
+local warMeterResetTime = 60 -- seconds
 local interruptionMinimumTime = 20 -- seconds
 local interruptionMaximumTime = 40 -- seconds
 
@@ -70,46 +70,39 @@ local function ReloadMusicPlaylists()
 	deviceLostSafetyCheck = 0
 	---------------------------------COLLECT MUSIC------------------------------------
 
+	local allowedExtensions = "{*.ogg,*.mp3}"
 	-- New Soundtrack List
 	local musicDirNew 			= 'music/original'
-	local peaceTracksNew 			= VFS.DirList(musicDirNew..'/peace', '*.ogg')
-	local warhighTracksNew 			= VFS.DirList(musicDirNew..'/warhigh', '*.ogg')
-	local warlowTracksNew 			= VFS.DirList(musicDirNew..'/warlow', '*.ogg')
-	local gameoverTracksNew 		= VFS.DirList(musicDirNew..'/gameover', '*.ogg')
-	local bossFightTracksNew   		= VFS.DirList(musicDirNew..'/bossfight', '*.ogg')
-	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu', '*.ogg')
-	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', '*.ogg')
-
-	-- Old Soundtrack List
-	local musicDirOld 			= 'music/legacy'
-	local peaceTracksOld 			= VFS.DirList(musicDirOld..'/peace', '*.ogg')
-	local warhighTracksOld 			= VFS.DirList(musicDirOld..'/warhigh', '*.ogg')
-	local warlowTracksOld 			= VFS.DirList(musicDirOld..'/warlow', '*.ogg')
-	local gameoverTracksOld 		= VFS.DirList(musicDirOld..'/gameover', '*.ogg')
-	local bossFightTracksOld  		= VFS.DirList(musicDirOld..'/bossfight', '*.ogg')
-	local menuTracksOld 			= VFS.DirList(musicDirOld..'/menu', '*.ogg')
-	local loadingTracksOld   		= VFS.DirList(musicDirOld..'/loading', '*.ogg')
+	local peaceTracksNew 			= VFS.DirList(musicDirNew..'/peace', allowedExtensions)
+	local warhighTracksNew 			= VFS.DirList(musicDirNew..'/warhigh', allowedExtensions)
+	local warlowTracksNew 			= VFS.DirList(musicDirNew..'/warlow', allowedExtensions)
+	local gameoverTracksNew 		= VFS.DirList(musicDirNew..'/gameover', allowedExtensions)
+	local bossFightTracksNew   		= VFS.DirList(musicDirNew..'/bossfight', allowedExtensions)
+	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu', allowedExtensions)
+	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', allowedExtensions)
 
 	-- Custom Soundtrack List
 	local musicDirCustom 		= 'music/custom'
-	local baseTracksCustom 			= VFS.DirList(musicDirCustom, '*.ogg')
-	local peaceTracksCustom 		= VFS.DirList(musicDirCustom..'/peace', '*.ogg')
-	local warhighTracksCustom 		= VFS.DirList(musicDirCustom..'/warhigh', '*.ogg')
-	local warlowTracksCustom 		= VFS.DirList(musicDirCustom..'/warlow', '*.ogg')
-	local warTracksCustom 			= VFS.DirList(musicDirCustom..'/war', '*.ogg')
-	local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', '*.ogg')
-	local bossFightTracksCustom 	= VFS.DirList(musicDirCustom..'/bossfight', '*.ogg')
-	local menuTracksCustom 			= VFS.DirList(musicDirCustom..'/menu', '*.ogg')
-	local loadingTracksCustom  		= VFS.DirList(musicDirCustom..'/loading', '*.ogg')
+	local peaceTracksCustom 		= VFS.DirList(musicDirCustom..'/peace', allowedExtensions)
+	local warhighTracksCustom 		= VFS.DirList(musicDirCustom..'/warhigh', allowedExtensions)
+	local warlowTracksCustom 		= VFS.DirList(musicDirCustom..'/warlow', allowedExtensions)
+	local warTracksCustom 			= VFS.DirList(musicDirCustom..'/war', allowedExtensions)
+	local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', allowedExtensions)
+	local bossFightTracksCustom 	= VFS.DirList(musicDirCustom..'/bossfight', allowedExtensions)
+	local menuTracksCustom 			= VFS.DirList(musicDirCustom..'/menu', allowedExtensions)
+	local loadingTracksCustom  		= VFS.DirList(musicDirCustom..'/loading', allowedExtensions)
 
 	-----------------------------------SETTINGS---------------------------------------
 
 	interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
 	silenceTimerEnabled 			= Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
 	local newSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
-	local oldSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackOld', 0) == 1
 	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1
 
+	if Spring.GetConfigInt('UseSoundtrackNew', 1) == 0 and Spring.GetConfigInt('UseSoundtrackOld', 0) == 1 then
+		Spring.SetConfigInt('UseSoundtrackNew', 1)
+		Spring.SetConfigInt('UseSoundtrackOld', 0)
+	end
 	-------------------------------CREATE PLAYLISTS-----------------------------------
 
 	peaceTracks = {}
@@ -130,21 +123,7 @@ local function ReloadMusicPlaylists()
 		table.append(loadingTracks, loadingTracksNew)
 	end
 
-	if oldSoundtrackEnabled then
-		table.append(peaceTracks, peaceTracksOld)
-		table.append(warhighTracks, warhighTracksOld)
-		table.append(warlowTracks, warlowTracksOld)
-		table.append(gameoverTracks, gameoverTracksOld)
-		table.append(bossFightTracks, bossFightTracksOld)
-		table.append(menuTracks, menuTracksOld)
-		table.append(loadingTracks, loadingTracksOld)
-	end
-
 	if customSoundtrackEnabled then
-		table.append(peaceTracks, baseTracksCustom)
-		table.append(warhighTracks, baseTracksCustom)
-		table.append(warlowTracks, baseTracksCustom)
-
 		table.append(peaceTracks, peaceTracksCustom)
 		table.append(warhighTracks, warhighTracksCustom)
 		table.append(warlowTracks, warlowTracksCustom)
@@ -264,8 +243,8 @@ local prevPlayedTime = playedTime
 
 local silenceTimer = math.random(minSilenceTime, maxSilenceTime)
 
-local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 20)	-- user value, cause actual volume will change during fadein/outc
-local volume = Spring.GetConfigInt("snd_volmaster", 100)
+local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 50)	-- user value, cause actual volume will change during fadein/outc
+local volume = Spring.GetConfigInt("snd_volmaster", 80)
 
 local RectRound, UiElement, UiButton, UiSlider, UiSliderKnob, bgpadding, elementCorner
 local borderPaddingRight, borderPaddingLeft, font, draggingSlider, doCreateList, chobbyInterface, mouseover
@@ -397,7 +376,7 @@ local function capitalize(text)
 end
 
 local function processTrackname(trackname)
-	trackname = string.gsub(trackname, ".ogg", "")
+	trackname = string.gsub(trackname, ".%w+$", "")
 	trackname = trackname:match("[^/|\\]*$")
 	return capitalize(trackname)
 end
@@ -414,11 +393,11 @@ local function createList()
 	buttons['musicvolumeicon'] = {buttons['next'][3]+padding+padding, bottom+padding+heightoffset, buttons['next'][3]+((widgetHeight * widgetScale)), top-padding+heightoffset}
 	--buttons['musicvolumeicon'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
 	buttons['musicvolume'] = {buttons['musicvolumeicon'][3]+padding, bottom+padding+heightoffset, buttons['musicvolumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
-	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (getVolumePos(maxMusicVolume/100))
+	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (getVolumePos(maxMusicVolume/99))
 
 	buttons['volumeicon'] = {buttons['musicvolume'][3]+padding+padding+padding, bottom+padding+heightoffset, buttons['musicvolume'][3]+((widgetHeight * widgetScale)), top-padding+heightoffset}
 	buttons['volume'] = {buttons['volumeicon'][3]+padding, bottom+padding+heightoffset, buttons['volumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
-	buttons['volume'][5] = buttons['volume'][1] + (buttons['volume'][3] - buttons['volume'][1]) * (getVolumePos(volume/200))
+	buttons['volume'][5] = buttons['volume'][1] + (buttons['volume'][3] - buttons['volume'][1]) * (getVolumePos(volume/80))
 
 	local textsize = 11 * widgetScale
 	local textXPadding = 10 * widgetScale
@@ -434,7 +413,7 @@ local function createList()
 		drawlist[5] = glCreateList( function()
 			RectRound(left, bottom, right, top, elementCorner, 1,0,0,1)
 		end)
-		WG['guishader'].InsertDlist(drawlist[5], 'music')
+		WG['guishader'].InsertDlist(drawlist[5], 'music', true)
 	end
 	drawlist[1] = glCreateList( function()
 		UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1)
@@ -530,18 +509,20 @@ local function createList()
 end
 
 local function updatePosition(force)
+	local prevPos = advplayerlistPos
 	if WG['advplayerlist_api'] ~= nil then
-		local prevPos = advplayerlistPos
-		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-
-		left = advplayerlistPos[2]
-		bottom = advplayerlistPos[1]
-		right = advplayerlistPos[4]
-		top = math.ceil(advplayerlistPos[1]+(widgetHeight * advplayerlistPos[5]))
-		widgetScale = advplayerlistPos[5]
-		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
-			createList()
-		end
+		advplayerlistPos = WG['advplayerlist_api'].GetPosition()
+	else
+		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
+		advplayerlistPos = {0,vsx-(220*scale),0,vsx,scale}
+	end
+	left = advplayerlistPos[2]
+	bottom = advplayerlistPos[1]
+	right = advplayerlistPos[4]
+	top = math.ceil(advplayerlistPos[1]+(widgetHeight * advplayerlistPos[5]))
+	widgetScale = advplayerlistPos[5]
+	if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
+		createList()
 	end
 end
 
@@ -567,7 +548,7 @@ function widget:Initialize()
 	end
 	WG['music'].SetMusicVolume = function(value)
 		maxMusicVolume = value
-		Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume))
+		Spring.SetConfigInt("snd_volmusic", math.min(99,math.ceil(maxMusicVolume))) -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
 		if fadeDirection then
 			setMusicVolume(fadeLevel)
 		end
@@ -677,15 +658,15 @@ end
 function widget:MouseMove(x, y)
 	if showGUI and draggingSlider ~= nil then
 		if draggingSlider == 'musicvolume' then
-			maxMusicVolume = math.floor(getVolumeCoef(getSliderValue(draggingSlider, x)) * 100)
-			Spring.SetConfigInt("snd_volmusic", maxMusicVolume)
+			maxMusicVolume = math.ceil(getVolumeCoef(getSliderValue(draggingSlider, x)) * 99)
+			Spring.SetConfigInt("snd_volmusic", math.min(99,maxMusicVolume))  -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
 			if fadeDirection then
 				setMusicVolume(fadeLevel)
 			end
 			createList()
 		end
 		if draggingSlider == 'volume' then
-			volume = math.floor(getVolumeCoef(getSliderValue(draggingSlider, x)) * 200)
+			volume = math.ceil(getVolumeCoef(getSliderValue(draggingSlider, x)) * 80)
 			Spring.SetConfigInt("snd_volmaster", volume)
 			createList()
 		end
@@ -701,14 +682,14 @@ local function mouseEvent(x, y, button, release)
 			local button = 'musicvolume'
 			if math_isInRect(x, y, buttons[button][1] - sliderWidth, buttons[button][2], buttons[button][3] + sliderWidth, buttons[button][4]) then
 				draggingSlider = button
-				maxMusicVolume = math.floor(getVolumeCoef(getSliderValue(button, x)) * 100)
-				Spring.SetConfigInt("snd_volmusic", maxMusicVolume)
+				maxMusicVolume = math.ceil(getVolumeCoef(getSliderValue(button, x)) * 99)
+				Spring.SetConfigInt("snd_volmusic", math.min(99, maxMusicVolume))   -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
 				createList()
 			end
 			button = 'volume'
 			if math_isInRect(x, y, buttons[button][1] - sliderWidth, buttons[button][2], buttons[button][3] + sliderWidth, buttons[button][4]) then
 				draggingSlider = button
-				volume = math.floor(getVolumeCoef(getSliderValue(button, x)) * 200)
+				volume = math.ceil(getVolumeCoef(getSliderValue(button, x)) * 80)
 				Spring.SetConfigInt("snd_volmaster", volume)
 				createList()
 			end
@@ -780,7 +761,7 @@ function widget:Update(dt)
 		if math_isInRect(mx, my, left, bottom, right, top) then
 			mouseover = true
 		end
-		local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
+		local curVolume = Spring.GetConfigInt("snd_volmaster", 80)
 		if volume ~= curVolume then
 			volume = curVolume
 			doCreateList = true
@@ -808,7 +789,7 @@ function widget:DrawScreen()
 		mouseover = false
 	else
 		if math_isInRect(mx, my, left, bottom, right, top) then
-			local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
+			local curVolume = Spring.GetConfigInt("snd_volmaster", 80)
 			if volume ~= curVolume then
 				volume = curVolume
 				createList()
@@ -1034,10 +1015,10 @@ function widget:GameFrame(n)
 						fadeOutSkipTrack = true
 					elseif (interruptionEnabled and (playedTime >= interruptionTime) and gameFrame >= serverFrame-300)
 					  and ((currentTrackListString == "intro" and n > 90)
-						or (currentTrackListString == "peace" and warMeter > warLowLevel * 2) -- Peace in battle times, let's play some WarLow music at double of WarLow threshold
-						or (currentTrackListString == "warLow" and warMeter > warHighLevel * 2) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at double of WarHigh threshold
-						or (currentTrackListString == "warHigh" and warMeter <= warHighLevel * 0.5) -- WarHigh music is playing, but it has been quite peaceful recently. Let's switch to WarLow music at 50% of WarHigh threshold
-						or (currentTrackListString == "warLow" and warMeter <= warLowLevel * 0.5 )) then -- WarLow music is playing, but it has been quite peaceful recently. Let's switch to peace music at 50% of WarLow threshold
+						or (currentTrackListString == "peace" and warMeter > warHighLevel * 0.5 ) -- Peace in battle times, let's play some WarLow music at half of WarHigh threshold
+						or (currentTrackListString == "warLow" and warMeter > warHighLevel * 2 ) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at double of WarHigh threshold
+						or (currentTrackListString == "warHigh" and warMeter <= warLowLevel * 0.5 ) -- WarHigh music is playing, but it has been quite peaceful recently. Let's switch to peace music at 50% of WarLow threshold
+						or (currentTrackListString == "warLow" and warMeter <= warLowLevel * 0.25 )) then -- WarLow music is playing, but it has been quite peaceful recently. Let's switch to peace music at 25% of WarLow threshold
 							fadeDirection = -2
 							fadeOutSkipTrack = true
 					elseif (playedTime >= totalTime - 12 and Spring.GetConfigInt("UseSoundtrackFades", 1) == 1) then

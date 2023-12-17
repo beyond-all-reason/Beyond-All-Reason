@@ -6,19 +6,16 @@ function widget:GetInfo()
     date      = "Sep 6, 2011",
     license   = "GNU GPL, v3 or later",
     layer     = 0,
-    enabled   = true  --  loaded by default?
+    enabled   = true
   }
 end
 
--- Config
 local defaultSpacing = 0
-local maxBuildSpacing = 32 -- This means widget wont remember a build spacing of more than 512 elmos, you can still set it highter for building, it just will clamp the remembereance
+local maxBuildSpacing = 16 -- you can still increase build spacing, it just will clamp the remembrance of it
 
--- Globals
 local lastCmdID = nil
 local buildSpacing = {}
 
--- Speedups
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetBuildSpacing = Spring.GetBuildSpacing
 local spSetBuildSpacing = Spring.SetBuildSpacing
@@ -28,18 +25,14 @@ for udid, ud in pairs(UnitDefs) do
     unitNames[udid] = ud.name
 end
 
--- Callins
 function widget:Update()
-    
     local _, cmdID = spGetActiveCommand()
     if cmdID and cmdID < 0 then
-        
         if cmdID ~= lastCmdID then
             spSetBuildSpacing(math.min(maxBuildSpacing, buildSpacing[unitNames[-cmdID]] or defaultSpacing))
             lastCmdID = cmdID
         end
-        
-        buildSpacing[unitNames[-cmdID]] = spGetBuildSpacing()
+		buildSpacing[unitNames[-cmdID]] = spGetBuildSpacing()
     end
 end
 

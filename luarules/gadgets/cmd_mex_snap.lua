@@ -33,6 +33,8 @@ local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spGetUnitMetalExtraction = Spring.GetUnitMetalExtraction
 local spGiveOrder = Spring.GiveOrder
+local spGetUnitPosition = Spring.GetUnitPosition
+local spIsUnitAllied = Spring.IsUnitAllied
 local math_pi = math.pi
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
 
@@ -141,22 +143,23 @@ local function GetClashingOrdersGame()
 			end
 			if canBuild then
 				local unitOrders = spGetUnitCommands(unitID, 100)
+				if unitOrders then
+					for _, order in pairs(unitOrders) do
+						local orderDefID = -order["id"]
+						local extractsMetal = isMex[orderDefID]
 
-				for _, order in pairs(unitOrders) do
-					local orderDefID = -order["id"]
-					local extractsMetal = isMex[orderDefID]
+						if extractsMetal then
+							local params = order["params"]
+							ordersCount = ordersCount + 1
+							orders[ordersCount] = { params, extractsMetal }
 
-					if extractsMetal then
-						local params = order["params"]
-						ordersCount = ordersCount + 1
-						orders[ordersCount] = { params, extractsMetal }
+							local obx, _, obz = spPos2BuildPos(orderDefID, params[1], params[2], params[3])
+							local buildData = { -activeCmdID, obx, nil, obz, params[4] or buildFacing }
+							local buildData2 = { orderDefID, bx, nil, bz, buildFacing }
 
-						local obx, _, obz = spPos2BuildPos(orderDefID, params[1], params[2], params[3])
-						local buildData = { -activeCmdID, obx, nil, obz, params[4] or buildFacing }
-						local buildData2 = { orderDefID, bx, nil, bz, buildFacing }
-
-						if DoBuildingsClash(buildData, buildData2) then
-							return nil
+							if DoBuildingsClash(buildData, buildData2) then
+								return nil
+							end
 						end
 					end
 				end
@@ -171,6 +174,39 @@ local function GetClashingOrders()
 	return preGamestartPlayer and GetClashingOrdersPreGame() or GetClashingOrdersGame()
 end
 
+local function SnapExistingMex(spot, x, z)
+	local bestDist = math.huge
+	local best_mex = -1
+	local best_x, best_z
+	local found_units = spGetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
+	if #found_units == 0 then
+		return false
+	end
+	for i = 1, #found_units do
+		local unit = found_units[i]
+		if spIsUnitAllied(unit) then
+			local mMakes = spGetUnitMetalExtraction(unit)
+			if mMakes then
+				local ux,uy,uz = spGetUnitPosition(unit)
+				local dx, dz = x - ux, z - uz
+				local dist = dx * dx + dz * dz
+				if dist < bestDist then
+					bestDist = dist
+					best_mex = i
+					best_x = ux
+					best_z = uz
+				end
+			end
+		end
+	end
+	if best_mex > 0 then
+		spot.x = best_x
+		spot.z = best_z
+	end
+	return true
+end
+
+
 local function GetClosestMex(x, z, positions, metalExtracts, orders)
 	local bestPos
 	local bestDist = math.huge
@@ -179,7 +215,7 @@ local function GetClosestMex(x, z, positions, metalExtracts, orders)
 		if pos.x then
 			local dx, dz = x - pos.x, z - pos.z
 			local dist = dx * dx + dz * dz
-			if dist < bestDist and GetExtractionAmount(pos, metalExtracts, orders) > 0 then
+			if dist < bestDist and (SnapExistingMex(pos, x, z) or GetExtractionAmount(pos, metalExtracts, orders) > 0 ) then
 				bestPos = pos
 				bestDist = dist
 			end
@@ -199,6 +235,7 @@ local function GetClosestPosition(x, z, positions)
 			if dist < bestDist then
 				bestPos = pos
 				bestDist = dist
+				SnapExistingMex(pos, x, z)
 			end
 		end
 	end
@@ -228,7 +265,7 @@ function gadget:Initialize()
 	_G.MexSnap = {}
 	if not _G['resource_spot_finder'] or not _G['resource_spot_finder'].metalSpotsList then
 		Spring.Echo("<Snap Mex> This gadget requires the 'Metalspot Finder' gadget to run.")
-		gadgetHandler:Removegadget()
+		gadgetHandler:RemoveGadget()
 	end
 end
 
@@ -297,6 +334,7 @@ function gadget:Update()
 		return
 	end
 	curPosition = bestPos
+	_G.MexSnap.curPosition = curPosition
 end
 
 function gadget:DrawWorld()
@@ -331,11 +369,10 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return
 	end
 
-	local cbx, cbz = cmdParams[1], cmdParams[3]
 	local orders = cmdOpts.shift and GetClashingOrders() or {}
 	local closestSpot = GetClosestMex(bx, bz, _G['resource_spot_finder'].metalSpotsList, isMex[-cmdID], orders)
 
-	if closestSpot and not _G['resource_spot_finder'].IsMexPositionValid(closestSpot, cbx, cbz) then
+	if closestSpot then -- and not _G['resource_spot_finder'].IsMexPositionValid(closestSpot, cmdParams[1], cmdParams[3]) then
 		local cbface = cmdParams[4]
 		local mexPositions = _G['resource_spot_finder'].GetBuildingPositions(closestSpot, -cmdID, cbface, true)
 		local bestPos = GetClosestPosition(bx, bz, mexPositions)
@@ -346,11 +383,11 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			return true
 		end
 	end
-	--local _, metal, metal2 = Spring.GetGroundInfo(cbx, cbz)
-	--if type(metal) == 'string' and metal2 > 0 then
-	--	return false
-	--else
-	--	return true
-	--end
+	local _, metal, metal2 = Spring.GetGroundInfo(cmdParams[1], cmdParams[3])
+	if type(metal) == 'string' and metal2 > 0 then
+		return false
+	else
+		return true
+	end
 end
 

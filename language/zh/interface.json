@@ -64,7 +64,6 @@
               "needMetal":"我需要金属!",
               "giveMetal":"我给了 %{name} %{amount} 金属",
               "giveEnergy":"我给了 %{name} %{amount} 电力",
-              "giveUnits":"我给了 %{name} %{count} 个单位",
               "needEnergy":"我需要电力!",
               "needEnergyAmount":"我需要 %{amount} 电力!",
               "takeTeamAmount":"我接管了 %{name}: %{units} 个单位, %{energy} 电力和 %{metal} 金属",
@@ -98,7 +97,7 @@
           "changelog":{
             "title":"改动日志"
           },
-          "chickens":{
+          "raptors":{
             "queenIsAngry":"你激怒了女王!",
             "queenHealth":"女王血量: %{health}%%",
             "wave":"第%{waveNumber}波",
@@ -108,9 +107,9 @@
             "gracePeriod":"缓冲期: %{time}",
             "burrowCount":"巢穴数量: %{count}",
             "burrowKillCount":"已摧毁巢穴: %{count}",
-            "chickenKillCount":"已击杀外星大虾: %{count}",
+            "raptorKillCount":"已击杀外星大虾: %{count}",
             "queenAnger":"女王怒气值: %{anger}%%",
-            "chickenCount":"外星大虾数量: %{count}",
+            "raptorCount":"外星大虾数量: %{count}",
             "difficulty":{
               "epic":"史诗",
               "hard":"困难",
@@ -207,7 +206,7 @@
             "windStrength":"风速",
             "engineVersionError":"引擎版本出错",
             "waterDamage":"溺水伤害",
-            "chickenOptions":"外星大虾选项",
+            "raptorOptions":"外星大虾选项",
             "tidalStrength":"浪涌速度",
             "size":"大小",
             "hardness":"硬度",
@@ -452,9 +451,6 @@
             "unitAdded":"把 %{unit} 加入自动群组 #%{groupNumber}.",
             "unitRemoved":"把 %{unit} 移出自动群组."
           },
-          "dgunrule":{
-            "enemycom":"提醒你:用裂解炮杀敌=你输了\n(由你担任最后的指挥官)"
-          },
           "reclaimInfo":{
             "metal":"金属: %{metal}",
             "energy":"电力: %{energy}"
@@ -492,11 +488,8 @@
           },
           "gametypeInfo":{
             "killAllCommanders":"杀死所有敌方指挥官",
-            "dgunrule":"当你只剩下1个指挥官时,用裂解炮打击一个敌人的指挥官会导致你失败",
-            "dgunruleExplanation":"(这条规则是为了防止廉价的胜利/平局而制定的)",
             "owncomends":"失去指挥官=失去对单位的控制/投降",
             "killAllUnits":"杀死所有敌方单位",
-            "commandersSurviveDgun":"指挥员在裂解炮和指挥官爆炸中幸存下来",
             "victoryCondition":"胜利条件",
             "unbalancedCommanders":"不平衡的指挥官被启用。指挥官等级提高并获得升级"
           },

@@ -22,37 +22,69 @@ if gadgetHandler:IsSyncedCode() then
 		"AlKo",
 		"AKU",
 		"Beherith",
+		"Borg King",
 		"Born2Crawl",
 		"Damgam",
-		"drivver44",
+		"deadlypants",
 		"Doo",
+		"drivver44",
+		"DrWizzard",
+		"Errrrrrr",
+		"Fireball",
 		"FireStorm",
 		"Flaka",
 		"Floris",
 		"gajop",
 		"GoogleFrog",
+		"Hobo Joe",
 		"hokomoko",
+		"Hornet",
 		"IceXuick",
+		"Itanthias",
 		"ivand",
 		"Jazcash",
+		"Johannes",
 		"kek",
 		"Krogoth",
 		"lamer",
+		"Lexon",
+		"Lonewolfdesign",
+		"lov",
+		"LunyAlex",
 		"MaDDoX",
+		"Marek",
+		"Moose",
 		"Monty",
+		"Nathan Sharples",
+		"Nihilore",
+		"Nikuksis",
+		"Odin",
+		"Okema",
 		"pandaro",
+		"Perfi",
 		"PtaQ",
+		"Raghna",
+		"Rebelnode",
+		"Requiem",
+		"resopmok",
+		"robert th epie",
 		"rossco",
+		"Ryan Krause",
+		"Skymirrh",
 		"skynet",
 		"Sprung",
 		"Tarnished Knight",
 		"Teifion",
+		"Teddy",
 		"TeeeeVeeeeOn",
 		"tovernaar123",
 		"Vache",
+		"verybadsoldier",
 		"wilkubyk",
 		"Watch The Fort",
+		"Xehrath",
 		"Yaribz",
+		"Zagupi",
 		"Zecrus",
 
 		-- Supporters ($20+ Donation)
@@ -100,7 +132,6 @@ if gadgetHandler:IsSyncedCode() then
 		"Poops",
 		"Prime_Federator",
 		"principal",
-		"Raghna",
 		"Rezol",
 		"Ripperjack",
 		"rlm",
@@ -331,31 +362,31 @@ if gadgetHandler:IsSyncedCode() then
 		"Whirlwind",
 		"Wolverine"
 	}
-	local namelistChicken = {'Alien Raptors'}
+	local namelistRaptor = {'Alien Raptors'}
 	local namelistScavengers = {'Scavengers'}
 
 	local takenNames = {}
-	local takenNamesChicken = {}
+	local takenNamesRaptor = {}
 
-	function getName(teamID, chicken, scavenger)
+	function getName(teamID, raptor, scavenger)
 		local aiName
-		if chicken then
-			aiName = namelistChicken[math.random(1,#namelistChicken)]
+		if raptor then
+			aiName = namelistRaptor[math.random(1,#namelistRaptor)]
 		elseif scavenger then
 			aiName = namelistScavengers[math.random(1,#namelistScavengers)]
 		else
 			aiName = namelist[math.random(1,#namelist)]
 		end
-		if chicken and takenNamesChicken[aiName] == nil then
-			takenNamesChicken[aiName] = teamID
+		if raptor and takenNamesRaptor[aiName] == nil then
+			takenNamesRaptor[aiName] = teamID
 			return aiName
 		elseif scavenger then
 			return aiName
-		elseif not chicken and takenNames[aiName] == nil then
+		elseif not raptor and takenNames[aiName] == nil then
 			takenNames[aiName] = teamID
 			return aiName
 		else
-			return getName(teamID, chicken, scavenger)
+			return getName(teamID, raptor, scavenger)
 		end
 	end
 
@@ -366,7 +397,7 @@ if gadgetHandler:IsSyncedCode() then
 				if select(4,Spring.GetAIInfo(teamID)) == 'NullAI' then	-- doesnt seem to work
 					Spring.SetGameRulesParam('ainame_'..teamID, 'NullAI (idle)')
 				else
-					Spring.SetGameRulesParam('ainame_'..teamID, getName(teamID, string.find(Spring.GetTeamLuaAI(teamID) or '', "Chickens"), string.find(Spring.GetTeamLuaAI(teamID) or '', "Scavenger")))
+					Spring.SetGameRulesParam('ainame_'..teamID, getName(teamID, string.find(Spring.GetTeamLuaAI(teamID) or '', "Raptors"), string.find(Spring.GetTeamLuaAI(teamID) or '', "Scavenger")))
 				end
 			end
 		end

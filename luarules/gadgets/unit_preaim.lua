@@ -44,6 +44,7 @@ local exludedUnits = {    -- exclude auto target range boost for popup units
 	[UnitDefNames.corllt.id] = true,
 	[UnitDefNames.corhllt.id] = true,
 	[UnitDefNames.armllt.id] = true,
+	[UnitDefNames.leginc.id] = true,
 }
 local scavengerPopups = {}
 for k, v in pairs(exludedUnits) do

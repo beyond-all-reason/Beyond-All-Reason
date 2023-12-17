@@ -61,7 +61,6 @@ local DEBUG_SSAO = false -- use for debug
 
 local math_sqrt = math.sqrt
 
-local cusMult = 1.4
 local strengthMult = 1
 
 local initialTonemapA = Spring.GetConfigFloat("tonemapA", 4.75)
@@ -425,24 +424,6 @@ function widget:Initialize()
 	end)
 
 end
-
-local sec = 0
-function widget:Update(dt)
-	sec = sec + dt
-	if sec > 1 then
-		sec = 0
-		if Spring.GetConfigInt("cus", 1) == 1 then
-			if WG.disabledCus then
-				strengthMult = 1
-			else
-				strengthMult = cusMult
-			end
-		else
-			strengthMult = 1
-		end
-	end
-end
-
 
 function widget:Shutdown()
 

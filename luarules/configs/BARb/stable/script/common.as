@@ -31,9 +31,9 @@ SArmorInfo InitArmordef()
 		"scavboss",
 		"indestructable",
 		"crawlingbombs",
+		"walls",
 		"standard",
-		"bombers",
-		"fighters",
+		"space",
 		"mines",
 		"nanos",
 		"vtol",
@@ -41,8 +41,7 @@ SArmorInfo InitArmordef()
 		"lboats",
 		"hvyboats",
 		"subs",
-		"tinychicken",
-		"chicken"
+		"raptor"
 	};
 	armors.sortAsc();
 	armors.insertAt(0, "default");
@@ -52,7 +51,7 @@ SArmorInfo InitArmordef()
 		armorTypes[armors[i]] = i;
 	}
 
-	array<string> airTypes = {"bombers", "fighters", "vtol"};
+	array<string> airTypes = {"vtol"};
 	array<string> surfaceTypes = {"default"};
 	array<string> waterTypes = {"subs"};
 

@@ -30,6 +30,8 @@ local isAirplant = {
 	[UnitDefNames.armap.id] = true,
 	[UnitDefNames.armaap.id] = true,
 	[UnitDefNames.armplat.id] = true,
+	[UnitDefNames.legap.id] = true,
+	[UnitDefNames.legaap.id] = true,
 	[UnitDefNames.armapt3.id] = true,
 	[UnitDefNames.corapt3.id] = true
 }

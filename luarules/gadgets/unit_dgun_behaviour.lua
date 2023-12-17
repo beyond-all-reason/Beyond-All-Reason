@@ -1,5 +1,3 @@
-local newCommanderBehaviour = Spring.GetModOptions().comupdate
-
 function gadget:GetInfo()
 	return {
 		name = "D-Gun Behaviour",
@@ -13,9 +11,7 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
-
 local dgunWeapons = {}
-
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if weaponDef.type == 'DGun' then
 		Script.SetWatchProjectile(weaponDefID, true)
@@ -24,12 +20,20 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 end
 
 local isCommander = {}
-
+local isDecoyCommander = {}
+local commanderNames = {}
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
+		commanderNames[unitDef.name] = true
 	end
 end
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	if unitDef.customParams.decoyfor and commanderNames[unitDef.customParams.decoyfor] then
+		isDecoyCommander[unitDefID] = true
+	end
+end
+commanderNames = nil
 
 local flyingDGuns = {}
 local groundedDGuns = {}
@@ -38,7 +42,6 @@ local function addVolumetricDamage(projectileID)
 	local weaponDefID = Spring.GetProjectileDefID(projectileID)
 	local ownerID = Spring.GetProjectileOwnerID(projectileID)
 	local x,y,z = Spring.GetProjectilePosition(projectileID)
-
 	local explosionParame ={
 		weaponDef = weaponDefID,
 		owner = ownerID,
@@ -54,7 +57,6 @@ local function addVolumetricDamage(projectileID)
 		ignoreOwner = dgunWeapons[weaponDefID].noSelfDamage,
 		damageGround = true,
 	}
-
 	Spring.SpawnExplosion(x, y ,z, 0, 0, 0, explosionParame)
 end
 
@@ -78,7 +80,7 @@ function gadget:GameFrame()
 		local x, y, z = Spring.GetProjectilePosition(proID)
 		local h = Spring.GetGroundHeight(x, z)
 
-		if y < h + 1 then -- assume ground collision
+		if y < h + 1 or y < 0 then -- assume ground or water collision
 			-- normalize horizontal velocity
 			local dx, _, dz, speed = Spring.GetProjectileVelocity(proID)
 			local norm = speed / math.sqrt(dx^2 + dz^2)
@@ -93,21 +95,25 @@ function gadget:GameFrame()
 
 	for proID in pairs(groundedDGuns) do
 		local x, y, z = Spring.GetProjectilePosition(proID)
-		Spring.SetProjectilePosition(proID, x, Spring.GetGroundHeight(x, z) - 1, z)
+		-- place projectile slightly under ground to ensure fiery trail
+		local verticalOffset = 1
+		Spring.SetProjectilePosition(proID, x, math.max(Spring.GetGroundHeight(x, z), 0) - verticalOffset, z)
 
 		-- NB: no removal; do this every frame so that it doesn't fly off a cliff or something
 	end
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if newCommanderBehaviour then
-		if dgunWeapons[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
+	if dgunWeapons[weaponDefID] and isCommander[attackerDefID] and (isCommander[unitDefID] or isDecoyCommander[unitDefID]) then
+		if isDecoyCommander[unitDefID] then
+			return dgunWeapons[weaponDefID].damages[0]
+		else
 			Spring.DeleteProjectile(projectileID)
-			local x, y, z = Spring.GetUnitPosition(unitID)		
+			local x, y, z = Spring.GetUnitPosition(unitID)
 			Spring.SpawnCEG("dgun-deflect", x, y, z, 0, 0, 0, 0, 0)
-			return 0
+			local armorClass = UnitDefs[unitDefID].armorType
+			return dgunWeapons[weaponDefID].damages[armorClass]
 		end
 	end
-
 	return damage
 end

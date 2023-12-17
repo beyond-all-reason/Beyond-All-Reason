@@ -10,10 +10,6 @@ static-var  bMoving, bAiming, restore_delay, gun_left, firststep;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe, curSpeed, doorOpen;
 
-lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
-{
-	return 0;
-}
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_AIM_3			8
@@ -60,7 +56,6 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 	}
 	while(bMoving) {
 		if (bMoving) {
-			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lankle to x-axis <-36.575663> speed <1388.118384> / animSpeed; 
 			turn lankle to z-axis <-1.310726> speed <28.107630> / animSpeed; 
 			turn lankle to y-axis <-0.854192> speed <15.882829> / animSpeed; 
@@ -210,7 +205,6 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) {
-			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lankle to x-axis <-5.727493> speed <23.611729> / animSpeed; 
 			turn lankle to z-axis <0.742267> speed <3.383836> / animSpeed; 
 			turn lfoot to x-axis <-2.167152> speed <241.825170> / animSpeed; 
@@ -663,11 +657,11 @@ static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
 // A high precision requirement can result in overshoots if desired 
 // (c) CC BY NC ND Beherith mysterme@gmail.com
 
-#define MAX_AIMY1_VELOCITY <5.00>
-#define AIMY1_ACCELERATION <0.3>
+#define MAX_AIMY1_VELOCITY <7.00>
+#define AIMY1_ACCELERATION <0.5>
 #define AIMY1_JERK <1.0>
 #define AIMY1_PRECISION <1.2>
-#define AIMY1_RESTORE_SPEED <2.0>
+#define AIMY1_RESTORE_SPEED <3.0>
 
 RestoreAfterDelay()
 {
@@ -760,8 +754,8 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
-	turn aimy1 to y-axis heading speed <140.000000>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <85.000000>;
+	turn aimy1 to y-axis heading speed <180.000000>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <110.000000>;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	
@@ -830,7 +824,14 @@ FireSecondary()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = rlauncher;
+	if( gun_left )
+	{
+		piecenum = lflare;
+	}
+	else
+	{
+		piecenum = rflare;
+	}
 }
 
 AimFromSecondary(piecenum) //not needed?

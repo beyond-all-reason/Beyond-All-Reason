@@ -76,7 +76,51 @@ scanToCode["dvorak"] = {
 	-- NEEDS CORRECTION ABOVE
 }
 
-local layouts = { 'qwerty', 'qwertz', 'azerty', 'dvorak' }
+scanToCode["de-neo"] = {
+	Q = "X",
+	W = "V",
+	E = "L",
+	R = "C",
+	T = "W",
+	Y = "K",
+	U = "H",
+	I = "G",
+	O = "F",
+	P = "Q",
+	A = "U",
+	S = "I",
+	D = "A",
+	F = "E",
+	G = "O",
+	H = "S",
+	J = "N",
+	K = "R",
+	L = "T",
+	Z = "Ü",
+	X = "Ö",
+	C = "Ä",
+	V = "P",
+	B = "Z",
+	N = "B",
+	M = "M",
+	[";"] = "d",
+	["'"] = "y",
+	[","] = ",",
+	["."] = ".",
+	["/"] = "j",
+	["`"] = "^",
+	["-"] = "-",
+	["="] = "`",
+	-- NEEDS CORRECTION BELOW
+	-- The key used in qwerty for \ is used as Mod3 -- ISO_Level3_Shift
+	-- which activates the third layer on the keyboard.
+	-- Since it's just a modifier, no real key is pressed and as such,
+	-- mapping it to a key is kind of difficult.
+	["\\"] = "\\",
+	-- NEEDS CORRECTION ABOVE
+}
+
+local layouts = { 'qwerty', 'qwertz', 'azerty', 'dvorak', 'de-neo' }
 
 local function sanitizeKey(key, layout)
 	if not (type(key) == "string") then
@@ -93,24 +137,39 @@ local function sanitizeKey(key, layout)
 	return key
 end
 
+local keybindingLayouts = {
+	'Default',
+	'Default (Mnemonic)',
+	'Default 60% Keyboard',
+	'Grid Optimized',
+	'Grid Optimized 60% Keyboard',
+	'Custom'
+}
+
+local keybindingPresets = {
+	['Default'] = 'luaui/configs/hotkeys/default_keys.txt',
+	['Default (Mnemonic)'] = 'luaui/configs/hotkeys/mnemonic_keys.txt',
+	['Default 60% Keyboard'] = 'luaui/configs/hotkeys/default_keys_60pct.txt',
+	['Grid Optimized'] = 'luaui/configs/hotkeys/grid_keys.txt',
+	['Grid Optimized 60% Keyboard'] = 'luaui/configs/hotkeys/grid_keys_60pct.txt',
+	['Custom'] = 'uikeys.txt',
+}
+
+local keybindingLayoutFiles = {}
+local presetKeybindings = {}
+
+for i, v in ipairs(keybindingLayouts) do
+	local file = keybindingPresets[v]
+	keybindingLayoutFiles[i] = file
+	presetKeybindings[file] = v
+end
+
 return {
 	layouts = layouts,
 	scanToCode = scanToCode,
 	sanitizeKey = sanitizeKey,
-	keybindingLayouts = {
-		'Default',
-		'Default (Mnemonic)',
-		'Default 60% Keyboard',
-		'Grid Optimized',
-		'Grid Optimized 60% Keyboard',
-		'Custom'
-	},
-	keybindingLayoutFiles = {
-		'luaui/configs/bar_hotkeys.lua',
-		'luaui/configs/bar_hotkeys_mnemonic.lua',
-		'luaui/configs/bar_hotkeys_60.lua',
-		'luaui/configs/bar_hotkeys_grid.lua',
-		'luaui/configs/bar_hotkeys_grid_60.lua',
-		'bar_hotkeys_custom.lua'
-	}
+	keybindingLayouts = keybindingLayouts,
+	keybindingLayoutFiles = keybindingLayoutFiles,
+	keybindingPresets = keybindingPresets,
+	presetKeybindings = presetKeybindings,
 }

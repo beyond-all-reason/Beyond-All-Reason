@@ -222,15 +222,15 @@ local function makeSpotVBO()
 
 
 				arrayAppend(VBOData, {math.sin(a3)*innersize, math.cos(a3)*innersize, dir, a3})
-				if dir == 1 then 
+				if dir == 1 then
 					arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, a4})
 					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
 				else
 					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
 					arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, a4})
 				end
-				
-				if dir == -1 then 
+
+				if dir == -1 then
 					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
 					arrayAppend(VBOData, {math.sin(a2)*outersize, math.cos(a2)*outersize, dir, a2})
 				else

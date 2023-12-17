@@ -9,9 +9,6 @@ local mapSunLighting = {
 		unitSpecularColor = {0.95, 0.75, 0.7},
 		modelShadowDensity = 0.55,
 	},
-	['tumult'] = {
-		groundDiffuseColor = { 0.77, 0.6, 0.44 },
-	},
 	['valles_marineris_v2'] = {
 		groundAmbientColor = { 0.4, 0.55, 0.55 },
 		groundDiffuseColor = { 0.92, 0.58, 0.45 },
@@ -84,39 +81,30 @@ local mapSunLighting = {
 		unitAmbientColor = {0.7, 0.75, 0.7},
 		modelShadowDensity = 0.75,
 	},
-	['nuclear winter bar 1.2'] = {
-		groundAmbientColor = { 0.52, 0.52, 0.59 },
-	},
-	['flats and forests remake v1'] = {
-		groundDiffuseColor = { 0.8, 0.8, 0.8 },
-		groundAmbientColor = { 0.44, 0.44, 0.44 },
-		unitDiffuseColor = {0.8, 0.8, 0.76},
-		unitAmbientColor = {0.33, 0.33, 0.33},
-	},
 	['comet catcher remake 1.8'] = {
 		unitAmbientColor = { 0.75, 0.75, 0.75 },
 	},
-	['hotlips_redux_v2'] = {
-		groundDiffuseColor = { 0.88, 0.4, 0.22 },
-		unitAmbientColor = { 0.85, 0.85, 0.85 },
-		unitDiffuseColor = {1, 0.88, 0.8},
-		unitSpecularColor = {1, 0.88, 0.8},
-	},
-	['forge v1.2'] = {
-		unitAmbientColor = { 0.45, 0.45, 0.45 },
-		unitDiffuseColor = {0.4, 0.4, 0.4},
-		unitSpecularColor = {0.65, 0.5, 0.5},
-	},
-	['bismuth valley v1.0'] = {
-		unitAmbientColor = { 0.45, 0.45, 0.45 },
-		unitDiffuseColor = {0.75, 0.75, 0.7},
-	},
-	['all that glitters v1.2'] = {
-		groundDiffuseColor = { 0.4, 0.65, 0.6 },
-		unitAmbientColor = { 0.45, 0.45, 0.45 },
-		unitDiffuseColor = {1.0, 0.7, 0.7},
-		unitSpecularColor = {1.0, 0.5, 0.5},
-	},
+	--['flats and forests remake v1'] = {
+	--	groundDiffuseColor = { 0.8, 0.8, 0.8 },
+	--	groundAmbientColor = { 0.44, 0.44, 0.44 },
+	--	unitDiffuseColor = {0.8, 0.8, 0.76},
+	--	unitAmbientColor = {0.33, 0.33, 0.33},
+	--},
+	--['forge v1.2'] = {
+	--	unitAmbientColor = { 0.45, 0.45, 0.45 },
+	--	unitDiffuseColor = {0.4, 0.4, 0.4},
+	--	unitSpecularColor = {0.65, 0.5, 0.5},
+	--},
+	--['bismuth valley v1.0'] = {
+	--	unitAmbientColor = { 0.45, 0.45, 0.45 },
+	--	unitDiffuseColor = {0.75, 0.75, 0.7},
+	--},
+	--['all that glitters v1.2'] = {
+	--	groundDiffuseColor = { 0.4, 0.65, 0.6 },
+	--	unitAmbientColor = { 0.45, 0.45, 0.45 },
+	--	unitDiffuseColor = {1.0, 0.7, 0.7},
+	--	unitSpecularColor = {1.0, 0.5, 0.5},
+	--},
 	['rosetta 1.4'] = {
 		unitAmbientColor = { 0.7, 0.7, 0.7 },
 		unitDiffuseColor = {1.1, 1.05, 1.0},
@@ -130,6 +118,10 @@ local mapSunLighting = {
 		unitSpecularColor = {1.2, 1.05, 1.05},
 		modelShadowDensity = 0.82,
 		groundShadowDensity = 0.9,
+	},
+	['swirly rock v1.1'] = {
+		unitAmbientColor = { 0.44, 0.44, 0.44 },
+		unitDiffuseColor = { 0.88, 0.88, 0.88 },
 	},
 }
 
@@ -171,7 +163,7 @@ end
 function widget:Initialize()
 	widgetHandler:RegisterGlobal("NightFactorChanged",NightFactorChanged )
 	WG['NightFactor'] = {red = 1, green = 1, blue = 1, shadow = 1, altitude = 1}
-	
+
 	if not mapSunLighting[currentMapname] and not mapSun[currentMapname] then return end
 	if Spring.GetGameFrame() < 1 then
 		if mapSun[currentMapname] then
@@ -186,7 +178,7 @@ function widget:Initialize()
 	end
 end
 
-local lastSunChanged = -1 
+local lastSunChanged = -1
 function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
 	local df = Spring.GetDrawFrame()
 	--Spring.Echo("widget:SunChanged", df)

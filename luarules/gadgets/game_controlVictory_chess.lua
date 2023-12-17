@@ -4,7 +4,7 @@ end
 
 local gadgetEnabled = false
 if Spring.Utilities.Gametype.IsPvE() then
-	Spring.Echo("[ControlVictory] Deactivated because Chickens or Scavengers are present!")
+	Spring.Echo("[ControlVictory] Deactivated because Raptors or Scavengers are present!")
 elseif Spring.GetModOptions().scoremode ~= "disabled" and Spring.GetModOptions().scoremode_chess then
     gadgetEnabled = true
 end

@@ -1,10 +1,10 @@
 return {
 	critter_penguin = {
-		acceleration = 0.15,
+		maxacc = 0.15,
 		blocking = false,
-		brakerate = 1,
-		buildcostenergy = 200,
-		buildcostmetal = 15,
+		maxdec = 1,
+		energycost = 200,
+		metalcost = 15,
 		builder = false,
 		buildpic = "critters/critter_penguin.DDS",
 		buildtime = 250,
@@ -28,11 +28,11 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 24,
-		maxdamage = 167,
+		health = 167,
 		maxslope = 45,
-		maxvelocity = 0.5,
+		speed = 15.0,
 		maxwaterdepth = 22,
-		movementclass = "CRITTERH",
+		movementclass = "BOT1",
 		movestate = -1,
 		noautofire = false,
 		nochasecategory = "MOBILE ",
@@ -58,6 +58,7 @@ return {
 		waterline = 6,
 		workertime = 0,
 		customparams = {
+			paralyzemultiplier = 0,
 			subfolder = "other/critters",
 		},
 		weapondefs = {
@@ -98,9 +99,7 @@ return {
 					nohealthbars = true,
 				},
 				damage = {
-					bombers = 1,
 					default = 10,
-					fighters = 1,
 					subs = 1,
 					vtol = 1,
 				},

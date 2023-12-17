@@ -1,9 +1,9 @@
 return {
 	corforge = {
-		acceleration = 0.02547,
-		brakerate = 0.05093,
-		buildcostenergy = 6500,
-		buildcostmetal = 360,
+		maxacc = 0.02547,
+		maxdec = 0.05093,
+		energycost = 4700,
+		metalcost = 330,
 		buildpic = "CORFORGE.DDS",
 		buildtime = 7200,
 		builddistance = 136,
@@ -20,8 +20,8 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		maxdamage = 2000, 
-		maxvelocity = 1.65,
+		health = 2000, 
+		speed = 49.5,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		nochasecategory = "NOTLAND VTOL",
@@ -39,7 +39,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.287,
 		turnrate = 363,
-		workertime = 100,
+		workertime = 140,
 		buildoptions = {
 			[1] = "corsolar",
 			[2] = "corwin",
@@ -54,6 +54,7 @@ return {
 			model_author = "MASHUP",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles/t2",
+			paralyzemultiplier = 0.04,
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -165,15 +166,8 @@ return {
 				turret = true,
 				weapontype = "Flame",
 				weaponvelocity = 600, 
-				customparams = {
-					sizeclass_GL4 = "Micro",
-				--	expl_light_color = "1 0.33 0.04",
-				--	expl_light_life_mult = 1.1,
-				--	expl_light_radius_mult = 1.15,
-				--	light_color = "1 0.5 0.05",
-				},
 				damage = {
-					default = 8,
+					default = 5.25,
 				},
 			},
 		},

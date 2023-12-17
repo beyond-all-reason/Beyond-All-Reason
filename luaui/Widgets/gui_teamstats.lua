@@ -32,7 +32,7 @@ local math_isInRect = math.isInRect
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
-local isFFA = Spring.GetModOptions().ffa_mode
+local isFFA = Spring.Utilities.Gametype.IsFFA()
 
 local header = {
 	"frame",

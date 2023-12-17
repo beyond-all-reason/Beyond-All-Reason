@@ -1805,32 +1805,32 @@
 
 		// RAPTORS --------------------------------------------------------------------
         
-		"epic_chickenq": {
+		"raptor_queen_epiq": {
 			"role": ["super"],
             "threat": {"air":0.0, "water":0.0, "surf": 0.01},
 			"retreat": 0.8
 		},
-        "vh_chickenq": {
+        "raptor_queen_veryhard": {
 			"role": ["super"],
             "threat": {"air":0.0, "water":0.0, "surf": 0.012},
 			"retreat": 0.8
 		},
-        "h_chickenq": {
+        "raptor_queen_hard": {
 			"role": ["super"],
             "threat": {"air":0.0, "water":0.0, "surf": 0.015},
 			"retreat": 0.8
 		},
-        "n_chickenq": {
+        "raptor_queen_normal": {
 			"role": ["super"],
             "threat": {"air":0.0, "water":0.0, "surf": 0.02},
 			"retreat": 0.8
 		},
-        "e_chickenq": {
+        "raptor_queen_easy": {
 			"role": ["super"],
             "threat": {"air":0.0, "water":0.0, "surf": 0.03},
 			"retreat": 0.8
 		},
-        "ve_chickenq": {
+        "raptor_queen_veryeasy": {
 			"role": ["super"],
             "threat": {"air":0.0, "water":0.0, "surf": 0.04},
 			"retreat": 0.8

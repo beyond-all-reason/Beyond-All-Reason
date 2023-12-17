@@ -57,6 +57,9 @@ local unitOrderTable = {
 	['corfast']        = 003200,
 
 	['armconsul']      = 003300, --VEH
+	['corprinter']     = 003325, --VEH
+	['corvac']		   = 003326, --VEH
+	['corvacct']       = 003327, --VEH
 	['corforge']       = 003350, --VEH
 
 	['armmls']         = 003400, --SHIP
@@ -98,6 +101,8 @@ local unitOrderTable = {
 	['legfig']         = 004306,
 	['armhawk']        = 004310, --FIGHTERS T2
 	['corvamp']        = 004315,
+	['armsfig2']       = 004316, -- T2 Heavy Fighter (air rework mod)
+	['corsfig2']       = 004317,
 
 	['armkam']         = 004320, --GUNSHIPS
 	['legmos']         = 004322,
@@ -108,6 +113,7 @@ local unitOrderTable = {
 	['corape']         = 004340,
 	['armblade']       = 004345,
 	['corcrw']         = 004348,
+	['corcrwh']         = 004347,
 	['legfort']        = 004349,
 
 	['armthund']       = 004350, --BOMBERS
@@ -185,11 +191,13 @@ local unitOrderTable = {
 	['legstr']         = 006105,
 	['corpyro']        = 006110,
 	['armlatnk']       = 006120,
+	['cortorch']       = 006125,
 	['legmrv']         = 006130,
 
 	['armzeus']        = 006300, --MAIN BATTLE
 	['armmav']         = 006310,
 	['armbull']        = 006320,
+	['corftiger']      = 006325,
 	['correap']        = 006330,
 	['legsco']         = 006335,
 	['armmanni']       = 006340,
@@ -212,6 +220,7 @@ local unitOrderTable = {
 
 	['armsptk']        = 006600, --ALL-TERRAIN
 	['cortermite']     = 006610,
+	['leginfestor']   = 006614,
 	['legsrail']       = 006615,
 
 	['armfboy']        = 006700, --STRONK
@@ -230,6 +239,7 @@ local unitOrderTable = {
 	['coramph']        = 006910,
 	['armcroc']        = 006920,
 	['corseal']        = 006930,
+	['corsala']        = 006935,
 	['corparrow']      = 006940,
 
    -- T2 HOVER
@@ -244,6 +254,7 @@ local unitOrderTable = {
 	['corshiva']       = 007050,
 	['legpede']        = 007055,
 	['armthor']        = 007060,
+	['leegmech']        = 007065,
 	['corkorg']        = 007070,
 	['armbanth']       = 007080,
 	['corjugg']        = 007090,
@@ -262,6 +273,7 @@ local unitOrderTable = {
 	['armsptkt4']      = 007320,
 	['cordemont4']     = 007330,
 	['corkarganetht4'] = 007340,
+	['corthermite'] = 007341,
 
 	['armvadert4']     = 007400,
 	['armrattet4']     = 007410,
@@ -308,11 +320,17 @@ local unitOrderTable = {
 	['corroy']         = 009230,
 
 	-- T2 WATER ATTACK
+	['armlship']       = 009280, --ANTISWARM
+	['corfship']       = 009290,
+	
 	['armcrus']        = 009300, --MAIN BATTLE
 	['corcrus']        = 009310,
 
 	['armmship']       = 009340, --ROCKETS
 	['cormship']       = 009350,
+	
+	['armdronecarry']  = 009360, --DRONE CARRIERS
+	['cordronecarry']  = 009361,
 
 	['armbats']        = 009370, --STRONK
 	['corbats']        = 009380,
@@ -369,8 +387,10 @@ local unitOrderTable = {
 	['cormabm']        = 020010,
 
 	['armcarry']       = 020100,
+	['armantiship']	   = 020101,
 	['armcarry2']      = 020105,
 	['corcarry']       = 020110,
+	['corantiship']    = 020111,
 	['corcarry2']      = 020115,
 
 -- BUILDINGS
@@ -385,6 +405,7 @@ local unitOrderTable = {
    ['armmoho']        = 100200,
    ['cormoho']        = 100250,
    ['legmext2']       = 100260,
+   ['armshockwave']   = 100290,
    ['cormexp']        = 100300,
 
    --ECO ENERGY CONVERTERS
@@ -411,10 +432,14 @@ local unitOrderTable = {
 
    --ECO NRG GEOS
    ['armgeo']         = 101200,
+   ['armuwgeo']       = 101201,
    ['corgeo']         = 101250,
+   ['coruwgeo']       = 101251,
    ['armgmm']         = 101300,
    ['corageo']        = 101350,
+   ['coruwageo']      = 101351,
    ['armageo']        = 101400,
+   ['armuwageo']      = 101401,
    ['corbhmth']       = 101450,
 
    --ECO NRG FUSIONS
@@ -464,7 +489,9 @@ local unitOrderTable = {
 
    --UTILITIES
    ['armasp']         = 102800, --AIR REPAIR PADS
+   ['armfasp']         = 102801,
    ['corasp']         = 102825,
+   ['corfasp']         = 102826,
 
    ['armeyes']        = 103000,
    ['coreyes']        = 103050,
@@ -495,8 +522,10 @@ local unitOrderTable = {
    ['corfort']        = 104400,
    ['corscavfort']    = 104505, --scavengers
    ['armclaw']        = 104600,
+   ['armlwall']       = 104650,
    ['corscavdtl']     = 104705, --scavengers
    ['cormaw']         = 104800,
+   ['cormwall']       = 104850,
    ['corscavdtf']     = 104905, --scavengers
    ['corscavdtm']     = 104915, --scavengers
 
@@ -539,6 +568,7 @@ local unitOrderTable = {
    ['corminibuzz']    = 120200, --scavengers
    ['armvulc']        = 120300,
    ['corbuzz']        = 120400,
+   ['legstarfall']        = 120450,
    ['armbotrail']     = 120500, --scavengers
 
    --DEFENSES AA

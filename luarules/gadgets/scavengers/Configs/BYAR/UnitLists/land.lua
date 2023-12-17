@@ -35,6 +35,7 @@ return {
 		"armsam_scav",
 		"armpincer_scav",
 		"armjanus_scav",
+		"armzapper_scav",
 		"corgator_scav",
 		"cormist_scav",
 		"corwolv_scav",
@@ -103,14 +104,17 @@ return {
 		"armmerl_scav",
 		"armbull_scav",
 		"corforge_scav",
+		"corftiger_scav",
 		"cormart_scav",
 		"corsent_scav",
 		"corseal_scav",
+		"corsala_scav",
 		"correap_scav",
 		"corgatreap_scav",
 		"corvroc_scav",
 		"corban_scav",
 		"corparrow_scav",
+		"cortorch_scav",
 
 		-- Hovercraft
 		"corhal_scav",
@@ -123,6 +127,8 @@ return {
 		"corack_scav",
 		"cordecom_scav",
 		"coracv_scav",
+		"corprinter_scav",
+		"corvac_scav",
 	},
 
 	T3 = {
@@ -146,6 +152,7 @@ return {
 		"armmeatball_scav",
 		"armassimilator_scav",
 		"legpede_scav",
+		"leegmech_scav",
 
 		-- Vehicles
 		"armthor_scav",

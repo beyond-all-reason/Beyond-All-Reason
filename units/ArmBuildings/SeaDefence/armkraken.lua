@@ -1,12 +1,11 @@
-local unitName = "Kraken"
 return {
 	armkraken = {
-		acceleration = 0,
+		maxacc = 0,
 		activatewhenbuilt = true,
-		brakerate = 0,
+		maxdec = 0,
 		buildangle = 16384,
-		buildcostenergy = 13000,
-		buildcostmetal = 1000,
+		energycost = 13000,
+		metalcost = 1000,
 		buildpic = "ARMKRAKEN.DDS",
 		buildtime = 20000,
 		canrepeat = false,
@@ -21,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 4450,
+		health = 4450,
 		minwaterdepth = 2,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMKRAKEN.s3o",
@@ -37,6 +36,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
 			subfolder = "armbuildings/seadefence",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -134,9 +134,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 600,
 				damage = {
-					bombers = 50,
 					default = 180,
-					fighters = 50,
 					vtol = 50,
 				},
 			},

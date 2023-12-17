@@ -10,6 +10,19 @@ function gadget:GetInfo()
 	}
 end
 
+local random = math.random
+
+local SpSetProjectileVelocity = Spring.SetProjectileVelocity
+local SpSetProjectileTarget = Spring.SetProjectileTarget
+
+local SpGetProjectileVelocity = Spring.GetProjectileVelocity
+local SpGetProjectileOwnerID = Spring.GetProjectileOwnerID
+local SpGetUnitStates = Spring.GetUnitStates
+local SpGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
+local SpGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
+local SpGetProjectileTarget = Spring.GetProjectileTarget
+local SpGetUnitIsDead = Spring.GetUnitIsDead
+
 if gadgetHandler:IsSyncedCode() then
 
 	local projectiles = {}
@@ -81,6 +94,85 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	applyingFunctions.cruise = function (proID)
+		return false
+    end
+
+	checkingFunctions.sector_fire = {}
+	checkingFunctions.sector_fire["always"] = function (proID)
+		-- as soon as the siege projectile is created, pass true on the
+		-- checking function, to go to applying function
+		-- so the unit state is only checked when the projectile is created
+		return true
+	end
+
+	applyingFunctions.sector_fire = function (proID)
+		local ownerID = SpGetProjectileOwnerID(proID)
+		local ownerState = SpGetUnitStates(ownerID)
+		--if ownerState.active == true then
+		local infos = projectiles[proID]
+		--x' = x cos θ − y sin θ
+		--y' = x sin θ + y cos θ
+		local vx, vy, vz = SpGetProjectileVelocity(proID)
+
+		angle_factor = tonumber(infos.spread_angle)*random()-tonumber(infos.spread_angle)*0.5
+		angle_factor = angle_factor*math.pi/180
+		vx_new = vx*math.cos(angle_factor) - vz*math.sin(angle_factor)
+		vz_new = vx*math.sin(angle_factor) + vz*math.cos(angle_factor)
+
+		--vx_new = vx
+		--vz_new = vz
+		velocity_reduction = 1-math.sqrt(1-tonumber(infos.max_range_reduction))
+		velocity_floor = (1-velocity_reduction)^2
+		velocity_factor = random()*(1-velocity_floor)
+		velocity_factor = math.sqrt(velocity_floor+velocity_factor)
+		vx = vx_new*velocity_factor
+		vy = vy*velocity_factor
+		vz = vz_new*velocity_factor
+		SpSetProjectileVelocity(proID,vx,vy,vz)
+		--end
+    end
+
+	checkingFunctions.retarget = {}
+	checkingFunctions.retarget["always"] = function (proID)
+		-- Might be slightly more optimal to check the unit itself if it changes target,
+		-- then tell the in-flight missiles to change target if the unit changes target
+		-- instead of checking each in-flight missile
+		-- but not sure if there is an easy hook function or callin function
+		-- that only runs if a unit changes target
+
+		-- refactor slightly, only do target change if the target the missile
+		-- is heading towards is dead
+		-- karganeth switches away from alive units a little too often, causing
+		-- missiles that would have hit to instead miss
+		if SpGetProjectileTimeToLive(proID) <= 0 then
+			-- stop missile retargeting when it runs out of fuel
+			return true
+		end
+
+		local targetTypeInt, targetID = SpGetProjectileTarget(proID)
+		-- if the missile is heading towards a unit
+		if targetTypeInt == string.byte('u') then
+			--check if the target unit is dead or dying
+			local dead_state = SpGetUnitIsDead(targetID)
+			if dead_state == nil or dead_state == true then
+				--hardcoded to assume the retarget weapon is the primary weapon.
+				--TODO, make this more general
+				local target_type,_,owner_target = SpGetUnitWeaponTarget(SpGetProjectileOwnerID(proID),1)
+				if target_type == 1 then
+					--hardcoded to assume the retarget weapon does not target features or intercept projectiles, only targets units if not shooting ground.
+					--TODO, make this more general
+					 SpSetProjectileTarget(proID,owner_target,string.byte('u'))
+				end
+				if target_type == 2 then
+					SpSetProjectileTarget(proID,owner_target[1],owner_target[2],owner_target[3])
+				end
+			end
+		end
+
+		return false
+	end
+
+	applyingFunctions.retarget = function (proID)
 		return false
     end
 

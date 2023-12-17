@@ -1,10 +1,10 @@
 return {
 	legdrone = {
-		acceleration = 0.25,
+		maxacc = 0.25,
 		blocking = false,
-		brakerate = 0.55,
-		buildcostenergy = 500,
-		buildcostmetal = 15,
+		maxdec = 0.55,
+		energycost = 500,
+		metalcost = 15,
 		buildpic = "CORBW.DDS",
 		buildtime = 1036,
 		canfly = true,
@@ -12,7 +12,7 @@ return {
 		cantbetransported = false,
 		category = "ALL WEAPON VTOL NOTSUB NOTHOVER",
 		collide = true,
-		cruisealt = 78,
+		cruisealtitude = 78,
 		explodeas = "tinyExplosionGeneric",
 		footprintx = 1,
 		footprintz = 1,
@@ -20,9 +20,9 @@ return {
 		icontype = "air",
 		idleautoheal = 0,
 		idletime = 1800,
-		maxdamage = 270,
+		health = 270,
 		maxslope = 10,
-		maxvelocity = 9.35,
+		speed = 280.5,
 		maxwaterdepth = 0,
 		nochasecategory = "COMMANDER VTOL",
 		objectname = "Units/LEGDRONE.s3o",
@@ -40,6 +40,7 @@ return {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft",
+			drone = 1,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {
@@ -100,9 +101,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
 				damage = {
-					bombers = 25,
 					default = 80,
-					fighters = 25,
 					vtol = 25,
 				},
 			},
@@ -144,9 +143,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 950,
 				damage = {
-					bombers = 5,
 					default = 16,
-					fighters = 5,
 					vtol = 5,
 				},
 			},
