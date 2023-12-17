@@ -50,20 +50,24 @@ end
 -- Helper functions
 function RemoveCommand(unitID, cmdIndex, commandQueueSize)
 	local cmdID, _, cmdTag, _, cmdParam2 = spGetUnitCurrentCommand(unitID, cmdIndex)
+	local commandDeleted = false
 	if (cmdID == CMDRECLAIM or cmdID == CMDREPAIR) and cmdParam2 then -- second param means it is an area order
 		local _, _, cmdTag2 = spGetUnitCurrentCommand(unitID, cmdIndex + 1)
 		spGiveOrderToUnit(unitID, CMD.REMOVE, { cmdTag2, cmdTag }, 0)
+		commandDeleted = true
 	elseif (cmdID == CMDREPAIR) and cmdIndex ~= commandQueueSize then
 		--dirty way to remove weird guard behaviors
 		local cmdID2, _, cmdTag2 = spGetUnitCurrentCommand(unitID, cmdIndex + 1)
 		if cmdID2 == CMDGUARD then
 			spGiveOrderToUnit(unitID, CMD.REMOVE, { cmdTag2, cmdTag }, 0)
+			commandDeleted = true
 		end
 	elseif (cmdID == CMDGUARD) and (cmdIndex ~= 1) then
 		--again same thing
 		local cmdID2, _, cmdTag2 = spGetUnitCurrentCommand(unitID, cmdIndex - 1)
 		if cmdID2 == CMDREPAIR then
 			spGiveOrderToUnit(unitID, CMD.REMOVE, { cmdTag, cmdTag2 }, 0)
+			commandDeleted = true
 		end
 	elseif (cmdID == CMD.FIGHT) and (cmdIndex == 1) then  --removes patrol commands too
 		local commands = spGetUnitCommands(unitID, -1)
@@ -79,8 +83,10 @@ function RemoveCommand(unitID, cmdIndex, commandQueueSize)
 					spGiveOrderToUnit(unitID, commands[i].id, commands[i].params, {"shift"})
 				end
 			end
+			commandDeleted = true
 		end
-	elseif cmdID then
+	end
+	if cmdID and not commandDeleted then
 		spGiveOrderToUnit(unitID, CMD.REMOVE, { cmdTag }, 0)
 	end
 
