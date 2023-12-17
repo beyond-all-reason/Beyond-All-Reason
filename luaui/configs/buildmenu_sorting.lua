@@ -434,7 +434,7 @@ local unitOrderTable = {
    ['armgeo']         = 101200,
    ['armuwgeo']       = 101201,
    ['corgeo']         = 101250,
-   ['coruwgeo']       = 101251,
+   --['coruwgeo']       = 101251,
    ['armgmm']         = 101300,
    ['corageo']        = 101350,
    ['coruwageo']      = 101351,
@@ -489,7 +489,6 @@ local unitOrderTable = {
 
    --UTILITIES
    ['armasp']         = 102800, --AIR REPAIR PADS
-   ['armfasp']         = 102801,
    ['corasp']         = 102825,
    ['corfasp']         = 102826,
 
@@ -612,7 +611,13 @@ local unitOrderTable = {
 
    --WATER ECO NRG GENS
    ['armtide']        = 203000,
-   ['cortide']        = 203500,
+   ['cortide']        = 203100,
+
+   --WATER ECO NRG GEOS
+   ['armuwgeo']       = 204000,
+   ['coruwgeo']       = 204100,
+   ['armuwageo']       = 204500,
+   ['coruwageo']       = 204600,
 
    --WATER ECO NRG FUSIONS
    ['armuwfus']       = 205000,
@@ -628,29 +633,32 @@ local unitOrderTable = {
 
    ['armsy']          = 211100,
    ['corsy']          = 211200,
-   ['armasy']         = 211300,
-   ['corasy']         = 211400,
    ['armfhp']         = 212100,
    ['corfhp']         = 212200,
    ['armamsub']       = 213100,
    ['coramsub']       = 213200,
    ['armplat']        = 214100,
    ['corplat']        = 214200,
-
-   ['armshltxuw']     = 215100,
-   ['corgantuw']      = 215200,
+   	--T2
+   ['armasy']         = 215000,
+   ['corasy']         = 215100,
+   	--T3
+   ['armshltxuw']     = 216100,
+   ['corgantuw']      = 216200,
 
    --WATER MINES
-   ['armfmine3']      = 216100,
-   ['corfmine3']      = 216200,
+   ['armfmine3']      = 217100,
+   ['corfmine3']      = 217200,
 
    --WATER UTILITIES
+   ['armfasp']        = 220000,
+   ['corfasp']        = 220050,
    ['armfrad']        = 220100,
-   ['corfrad']        = 220200,
-   ['armason']        = 220300,
-   ['corason']        = 220400,
-   ['armfatf']        = 220500,
-   ['corfatf']        = 220600,
+   ['corfrad']        = 220150,
+   ['armason']        = 220200,
+   ['corason']        = 220250,
+   ['armfatf']        = 220400,
+   ['corfatf']        = 220450,
 
    --WATER DEFENSES LAND
    ['armfdrag']       = 230100,

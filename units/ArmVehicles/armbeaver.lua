@@ -86,6 +86,7 @@ return {
 			[41] = "armfhlt",
 			[42] = "armfrt",
 			[43] = "armptl",
+			[44] = "armuwgeo",
 		},
 		customparams = {
 			unitgroup = 'builder',
