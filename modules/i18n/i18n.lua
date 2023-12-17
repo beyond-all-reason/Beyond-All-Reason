@@ -16,7 +16,6 @@ end
 
 -- Loads all language translation files associated with languageCode.
 local function loadLanguageFiles(languageCode)
-	Spring.Log("i18n", "debug", "Loading " .. languageCode .. " translation files.")
 	if languageFiles[languageCode] == nil then
 		return
 	end
