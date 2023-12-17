@@ -46,7 +46,7 @@ function gadget:Initialize()
 
 	-- no metal spots in map or metalmap
 	-- gadget is not required
-	if not metalSpotsList or #metalSpotsList > 0 and #metalSpotsList <= 2 then
+	if not metalSpotsList or #metalSpotsList <= 2 then
 		Spring.Echo("<gadgets/cmd_mex_denier.lua> No, 1 or 2 metal spots found, removing self")
 
 		gadgetHandler:RemoveGadget(self)
