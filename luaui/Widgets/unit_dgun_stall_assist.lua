@@ -41,13 +41,9 @@ local spGetTeamResources = Spring.GetTeamResources
 local spGetTeamUnits = Spring.GetTeamUnits
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 
 local CMD_DGUN = CMD.DGUN
 local CMD_WAIT = CMD.WAIT
-local CMD_MOVE = CMD.MOVE
-local CMD_REPAIR = CMD.REPAIR
-local CMD_RECLAIM = CMD.RECLAIM
 
 ----------------------------------------------------------------
 -- Callins
@@ -144,8 +140,8 @@ function widget:Update(dt)
 							waitedUnits[#waitedUnits + 1] = uID
 						end
 					else
-						local uCmd, _, _, cmdParams = spGetUnitCurrentCommand(uID, 1)
-						if not uCmd or (uCmd ~= CMD_WAIT and uCmd ~= CMD_RECLAIM and uCmd ~= CMD_MOVE and (uCmd ~= CMD_REPAIR or (cmdParams and spGetUnitIsBeingBuilt(cmdParams)))) then
+						local uCmd = spGetUnitCurrentCommand(uID, 1)
+						if not uCmd or uCmd ~= CMD_WAIT then
 							waitedUnits[#waitedUnits + 1] = uID
 						end
 					end
