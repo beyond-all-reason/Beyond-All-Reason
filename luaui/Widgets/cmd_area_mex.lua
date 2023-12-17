@@ -73,7 +73,7 @@ function widget:CommandNotify(id, params, options)
 		if not options.shift then
 			if WG["gridmenu"] then WG["gridmenu"].clearCategory() end
 		end
-		if not queuedMexes[1] then	-- used when area_mex isnt queuing a mex, to let the move cmd still pass through
+		if not queuedMexes or not queuedMexes[1] then	-- used when area_mex isnt queuing a mex, to let the move cmd still pass through
 			return false
 		end
 		return true
