@@ -194,7 +194,6 @@ local currentCategory
 local currentPage = 1
 local pages = 1
 local backRect = Rect:new(0, 0, 0, 0)
-local catLabelRect = Rect:new(0, 0, 0, 0)
 local nextPageRect = Rect:new(0, 0, 0, 0)
 local categoriesAndPagesRect = Rect:new(0, 0, 0, 0)
 local buildpicsRect = Rect:new(0, 0, 0 ,0)
@@ -1071,26 +1070,6 @@ local function drawButton(rect, opts, icon)
 	end
 end
 
-local function drawCatLabel(rect, opts, icon)
-	opts = opts or {}
-
-	local padding = math_max(1, math_floor(bgpadding * 0.52))
-
-	local color1 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- bottom
-	local color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- top
-
-	UiElement(rect.x, rect.y, rect.xEnd, rect.yEnd, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
-
-	if icon then
-		local iconSize = math.min(math.floor((rect.yEnd - rect.y) * 1.1), categoryButtonHeight)
-		icon = ":l:" .. icon
-		gl.Color(1, 1, 1, 0.9)
-		gl.Texture(icon)
-		gl.BeginEnd(GL.QUADS, TexRectRound, rect.x + (bgpadding / 2), rect.yEnd - iconSize, rect.x + iconSize, rect.yEnd - (bgpadding / 2),  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
-		--	gl.TexRect(px, sy - iconSize, px + iconSize, sy)
-		gl.Texture(false)
-	end
-end
 
 local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 	local uid = cmd.id * -1
@@ -1299,6 +1278,7 @@ local function drawCategories()
 
 
 	-- set up buttons
+	-- Draw all categories normally
 	if not currentCategory then
 		for catIndex, cat in pairs(categories) do
 			local catText = cat
@@ -1317,26 +1297,27 @@ local function drawCategories()
 			local fontHeight = font2:GetTextHeight(catText) * categoryFontSize
 			local fontHeightOffset = fontHeight * 0.34
 			local fontColor = disabled and "\255\100\100\100" or ""
-			font2:Print(fontColor .. , rect.x + (textPadding * 3), (rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset, fontSize, "o")
+			font2:Print(fontColor .. catText, rect.x + (textPadding * 3), (rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset, fontSize, "o")
 
 			drawButtonHotkey(rect, keyText)
 			drawButton(rect, opts, catIcon)
 		end
 
-
-	elseif currentCategory then
+	-- Selected category, render it in the center, with back and page buttons to the left and right
+	else
 		local backText = "Back"
 		local buttonWidth
 		local buttonHeight
+		local parentRect = categoriesAndPagesRect
 		if stickToBottom then
-			buttonHeight = (categoriesAndPagesRect.yEnd - categoriesAndPagesRect.y) / 3
-			backRect = Rect:new(categoriesAndPagesRect.x, categoriesAndPagesRect.y + bgpadding, categoriesAndPagesRect.xEnd, categoriesAndPagesRect.y + buttonHeight)
+			buttonHeight = (parentRect.yEnd - parentRect.y) / 3
+			backRect = Rect:new(parentRect.x, parentRect.y + bgpadding, parentRect.xEnd, parentRect.y + buttonHeight)
 			buttonWidth = backRect.xEnd - backRect.x
 			local heightOffset = backRect.yEnd - font2:GetTextHeight(backText) * pageFontSize * 0.35 - buttonHeight/2
 			font2:Print(backText, backRect.x + (buttonWidth * 0.25), heightOffset, pageFontSize, "co")
 		else
-			buttonWidth = (categoriesAndPagesRect.xEnd - categoriesAndPagesRect.x) / 3
-			backRect = Rect:new(categoriesAndPagesRect.x, categoriesAndPagesRect.y, categoriesAndPagesRect.xEnd - (buttonWidth * 2) - (bgpadding * 2), categoriesAndPagesRect.yEnd)
+			buttonWidth = (parentRect.xEnd - parentRect.x) / (numCats - 1)
+			backRect = Rect:new(parentRect.x, parentRect.y, parentRect.x + (buttonWidth) - (bgpadding * 2), parentRect.yEnd)
 			buttonHeight = backRect.yEnd - backRect.y
 			local heightOffset = backRect.yEnd - font2:GetTextHeight(backText) * pageFontSize * 0.35 - buttonHeight/2
 			font2:Print("⟵", backRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
@@ -1359,15 +1340,15 @@ local function drawCategories()
 			end
 		end
 		local catIcon = Cfgs.categoryIcons[categoryIndex]
+		local catRect
 		if stickToBottom then
-			catLabelRect = Rect:new(categoriesAndPagesRect.x, categoriesAndPagesRect.y + buttonHeight + bgpadding, categoriesAndPagesRect.xEnd, categoriesAndPagesRect.yEnd - buttonHeight - bgpadding)
+			catRect = Rect:new(parentRect.x, parentRect.y + buttonHeight + bgpadding, parentRect.xEnd, parentRect.yEnd - buttonHeight - bgpadding)
 		else
-			catLabelRect = Rect:new(backRect.xEnd + bgpadding, categoriesAndPagesRect.y, categoriesAndPagesRect.xEnd - buttonWidth - bgpadding, categoriesAndPagesRect.yEnd)
+			catRect = Rect:new(parentRect.x + (buttonWidth), parentRect.y, parentRect.xEnd - (buttonWidth) - bgpadding, parentRect.yEnd)
 		end
-		heightOffset = catLabelRect.yEnd - font2:GetTextHeight(currentCategory) * pageFontSize * 0.35 - buttonHeight/2
-		font2:Print(currentCategory, catLabelRect.x + (buttonWidth / 3), heightOffset, pageFontSize, "co")
-		local catOpts = {}
-		drawCatLabel(catLabelRect, catOpts, catIcon)
+		heightOffset = catRect.yEnd - font2:GetTextHeight(currentCategory) * pageFontSize * 0.35 - buttonHeight/2
+		font2:Print(currentCategory, catRect.x + (buttonWidth * 0.3), heightOffset, categoryFontSize, "co")
+		drawButton(catRect, opts, catIcon)
 	end
 end
 
