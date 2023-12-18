@@ -2220,6 +2220,17 @@ function widget:GetConfigData(data)
 			inputHistoryLimited[#inputHistoryLimited+1] = v
 		end
 	end
+
+	-- limit it to possibly prevent game config corruption
+	local maxOrgLines = 500
+	if #orgLines > maxOrgLines then
+		local prunedOrgLines = {}
+		for i=1, maxOrgLines do
+			prunedOrgLines[i] = orgLines[#orgLines-(maxOrgLines+i)]
+		end
+		orgLines = prunedOrgLines
+	end
+
 	return {
 		gameFrame = Spring.GetGameFrame(),
 		orgLines = gameOver and nil or orgLines,
