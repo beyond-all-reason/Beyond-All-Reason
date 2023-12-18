@@ -11,17 +11,30 @@ if not math.round then
 end
 
 if not math.cross_product then
-	function math.cross_product (px, pz, ax, az, bx, bz)
+	function math.cross_product(px, pz, ax, az, bx, bz)
 		return ((px - bx) * (az - bz) - (ax - bx) * (pz - bz))
 	end
 end
 
 local abs = math.abs
+
+if not math.delta_eq then
+	---Compare two numbers to be equal within a given precision
+	---@param a number The first number to be compared
+	---@param b number The second number to be compared
+	---@param delta? number The precision of the comparison. Defaults to 1e-5
+	---@return boolean
+	function math.delta_eq(a, b, delta)
+		delta = delta or 0.00001
+		return abs(a - b) < delta
+	end
+end
+
 local strFormat = string.format
 
 if not ToSI then
 	function ToSI(num, displaySign)
-		if type(num) ~= 'number' then
+		if type(num) ~= "number" then
 			num = tonumber(num)
 		end
 		if num == 0 then
@@ -46,7 +59,7 @@ end
 if not ToSIPrec then
 	function ToSIPrec(num)
 		-- more precise
-		if type(num) ~= 'number' then
+		if type(num) ~= "number" then
 			num = tonumber(num)
 		end
 
@@ -60,7 +73,6 @@ if not ToSIPrec then
 				return strFormat("%.2f", num)
 			elseif absNum < 10 then
 				return strFormat("%.2f", num)
-
 			elseif absNum < 1000 then
 				return strFormat("%.0f", num)
 			elseif absNum < 1000000 then
@@ -94,13 +106,11 @@ if not math.triangulate then
 			-- the van gogh concave polygon triangulation algorithm: cuts off ears
 			-- is pretty shitty at O(V^3) but was easy to code and it's typically only done once anyway
 			while #polygon > 2 do
-
 				-- get a candidate ear
 				local triangle
 				local c0, c1, c2 = 0
 				local candidate_ok = false
 				while not candidate_ok do
-
 					c0 = c0 + 1
 					c1, c2 = c0 + 1, c0 + 2
 					if c1 > #polygon then
@@ -110,13 +120,17 @@ if not math.triangulate then
 						c2 = c2 - #polygon
 					end
 					triangle = {
-						polygon[c0][1], polygon[c0][2],
-						polygon[c1][1], polygon[c1][2],
-						polygon[c2][1], polygon[c2][2],
+						polygon[c0][1],
+						polygon[c0][2],
+						polygon[c1][1],
+						polygon[c1][2],
+						polygon[c2][1],
+						polygon[c2][2],
 					}
 
 					-- make sure the ear is of proper rotation but then make it counter-clockwise
-					local dir = math.cross_product(triangle[5], triangle[6], triangle[1], triangle[2], triangle[3], triangle[4])
+					local dir =
+						math.cross_product(triangle[5], triangle[6], triangle[1], triangle[2], triangle[3], triangle[4])
 					if (dir < 0) == clockwise then
 						if dir > 0 then
 							local temp = triangle[5]
@@ -132,9 +146,35 @@ if not math.triangulate then
 						for i = 1, #polygon do
 							if i ~= c0 and i ~= c1 and i ~= c2 then
 								local current_pt = polygon[i]
-								if (math.cross_product(current_pt[1], current_pt[2], triangle[1], triangle[2], triangle[3], triangle[4]) < 0)
-									and (math.cross_product(current_pt[1], current_pt[2], triangle[3], triangle[4], triangle[5], triangle[6]) < 0)
-									and (math.cross_product(current_pt[1], current_pt[2], triangle[5], triangle[6], triangle[1], triangle[2]) < 0)
+								if
+									(
+										math.cross_product(
+											current_pt[1],
+											current_pt[2],
+											triangle[1],
+											triangle[2],
+											triangle[3],
+											triangle[4]
+										) < 0
+									)
+									and (math.cross_product(
+										current_pt[1],
+										current_pt[2],
+										triangle[3],
+										triangle[4],
+										triangle[5],
+										triangle[6]
+									) < 0)
+									and (
+										math.cross_product(
+											current_pt[1],
+											current_pt[2],
+											triangle[5],
+											triangle[6],
+											triangle[1],
+											triangle[2]
+										) < 0
+									)
 								then
 									candidate_ok = false
 								end

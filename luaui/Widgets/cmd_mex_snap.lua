@@ -7,28 +7,28 @@
 -- Before changing anything significant in this file please follow this
 -- checklist to be sure a regression is not being introduced:
 --
--- - [x] **Basic Snap functionality**: Selecting mex as current active
+-- - [] **Basic Snap functionality**: Selecting mex as current active
 --       command shows an arrow towards and a ghost of a mexbuilding to
 --       snap to closest mex spot
 --
--- - [x] **Basic Snap functionality**: Clicking places a mex on spot
+-- - [] **Basic Snap functionality**: Clicking places a mex on spot
 --       ghosted in previous step
 --
--- - [x] **Avoid already built spots**: If theres a close mex
+-- - [] **Avoid already built spots**: If theres a close mex
 --       spot, but with an already built mex of same tier, it snaps to
 --       the next closest mex spot
 --
--- - [x] **Avoid already assigned mex build orders**: If theres a close
+-- - [] **Avoid already assigned mex build orders**: If theres a close
 --       mex spot, but with an order already assigned on the same
 --       currently selected builder, to build a mex of same tier, it
 --       snaps to the next closest mex spot.
 --       _Only when shift is currently pressed (i.e. queued order)_.
 --
--- - [x] **Snaps to upgradable mexes**: If theres a close mex
+-- - [] **Snaps to upgradable mexes**: If theres a close mex
 --       spot, but with an already built mex of lower tier, it snaps to
 --       upgrade it to current tier
 --
--- - [x] **Works on maps with side-loaded mexes**: Basic functionality
+-- - [] **Works on maps with side-loaded mexes**: Basic functionality
 --       works on maps like Azurite Shores or Rosetta.
 --       See luarules/gadgets/map_metal_spot_placer.lua for context
 --
@@ -69,6 +69,7 @@ local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spGetUnitMetalExtraction = Spring.GetUnitMetalExtraction
 local spGiveOrder = Spring.GiveOrder
 local math_pi = math.pi
+local math_delta_eq = math.delta_eq
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
 
 local activeCmdID, bx, by, bz, bface
@@ -114,6 +115,13 @@ local function GetExtractionAmount(spot, metalExtracts, orders)
 		if dx * dx + dz * dz < Game_extractorRadiusSq then
 			remainingMetal = remainingMetal - order[2] * spotWorth
 		end
+	end
+
+	-- Calculations between spot finder spotWorth and actual mMakes from
+	-- units differ by a tiny delta, if they are close enough to 0 we
+	-- round them to 0
+	if math_delta_eq(remainingMetal, 0) then
+		remainingMetal = 0
 	end
 
 	return remainingMetal
