@@ -140,6 +140,7 @@ local flyByUnits = {
     "corape",
     "corawac",
     "corcrw",
+    "corcrwh",
     "corhurc",
     "corseah",
     "cortitan",

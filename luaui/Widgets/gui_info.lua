@@ -181,33 +181,33 @@ local function refreshUnitInfo()
 		end
 		unitDefInfo[unitDefID].armorType = Game.armorTypes[unitDef.armorType or 0] or '???'
 
-		if unitDef.losRadius > 0 then
-			unitDefInfo[unitDefID].losRadius = unitDef.losRadius
+		if unitDef.sightDistance > 0 then
+			unitDefInfo[unitDefID].sightDistance = unitDef.sightDistance
 		end
-		if unitDef.airLosRadius > 0 then
-			unitDefInfo[unitDefID].airLosRadius = unitDef.airLosRadius
+		if unitDef.airSightDistance > 0 then
+			unitDefInfo[unitDefID].airSightDistance = unitDef.airSightDistance
 		end
-		if unitDef.radarRadius > 0 then
-			unitDefInfo[unitDefID].radarRadius = unitDef.radarRadius
+		if unitDef.radarDistance > 0 then
+			unitDefInfo[unitDefID].radarDistance = unitDef.radarDistance
 		end
-		if unitDef.sonarRadius > 0 then
-			unitDefInfo[unitDefID].sonarRadius = unitDef.sonarRadius
+		if unitDef.sonarDistance > 0 then
+			unitDefInfo[unitDefID].sonarDistance = unitDef.sonarDistance
 		end
-		if unitDef.jammerRadius > 0 then
-			unitDefInfo[unitDefID].jammerRadius = unitDef.jammerRadius
+		if unitDef.radarDistanceJam > 0 then
+			unitDefInfo[unitDefID].radarDistanceJam = unitDef.radarDistanceJam
 		end
-		if unitDef.sonarJamRadius > 0 then
-			unitDefInfo[unitDefID].sonarJamRadius = unitDef.sonarJamRadius
+		if unitDef.sonarDistanceJam > 0 then
+			unitDefInfo[unitDefID].sonarDistanceJam = unitDef.sonarDistanceJam
 		end
-		if unitDef.seismicRadius > 0 then
-			unitDefInfo[unitDefID].seismicRadius = unitDef.seismicRadius
+		if unitDef.seismicDistance > 0 then
+			unitDefInfo[unitDefID].seismicDistance = unitDef.seismicDistance
 		end
 
 		if unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency then
 			unitDefInfo[unitDefID].metalmaker = { tonumber(unitDef.customParams.energyconv_capacity), tonumber(unitDef.customParams.energyconv_efficiency) }
 		end
 
-		unitDefInfo[unitDefID].tooltip = unitDef.translatedTooltip
+		unitDefInfo[unitDefID].description = unitDef.translatedTooltip
 		unitDefInfo[unitDefID].iconType = unitDef.iconType
 		unitDefInfo[unitDefID].energyCost = unitDef.energyCost
 		unitDefInfo[unitDefID].metalCost = unitDef.metalCost
@@ -216,7 +216,7 @@ local function refreshUnitInfo()
 
 		unitDefInfo[unitDefID].health = unitDef.health
 		unitDefInfo[unitDefID].buildTime = unitDef.buildTime
-		unitDefInfo[unitDefID].buildPic = unitDef.buildpicname and true or false
+		unitDefInfo[unitDefID].buildPic = unitDef.buildPic and true or false
 		if unitDef.canStockpile then
 			unitDefInfo[unitDefID].canStockpile = true
 		end
@@ -979,7 +979,7 @@ local function drawUnitInfo()
 	iconSize = iconSize + iconPadding
 
 	local dps, dps2, dps3, range, metalExtraction, stockpile, maxRange, exp, metalMake, metalUse, energyMake, energyUse
-	local text, unitDescriptionLines = font:WrapText(unitDefInfo[displayUnitDefID].tooltip, (contentWidth - iconSize) * (loadedFontSize / fontSize))
+	local text, unitDescriptionLines = font:WrapText(unitDefInfo[displayUnitDefID].description, (contentWidth - iconSize) * (loadedFontSize / fontSize))
 
 	if displayUnitID then
 		exp = spGetUnitExperience(displayUnitID)
@@ -1274,7 +1274,11 @@ local function drawUnitInfo()
 		if displayMode == 'unit' then
 			-- get lots of unit info from functions: https://springrts.com/wiki/Lua_SyncedRead
 			metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
-			maxRange = range
+			if unitDefInfo[displayUnitDefID].mainWeapon ~= nil then
+				maxRange = Spring.GetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, "range")
+			else
+				maxRange = range
+			end
 			if not exp then
 				exp = spGetUnitExperience(displayUnitID)
 			end
@@ -1394,27 +1398,27 @@ local function drawUnitInfo()
 		--	addTextInfo('armor', unitDefInfo[displayUnitDefID].armorType)
 		--end
 
-		if unitDefInfo[displayUnitDefID].losRadius then
-			addTextInfo(texts.los, round(unitDefInfo[displayUnitDefID].losRadius, 0))
+		if unitDefInfo[displayUnitDefID].sightDistance then
+			addTextInfo(texts.los, round(unitDefInfo[displayUnitDefID].sightDistance, 0))
 		end
-		if unitDefInfo[displayUnitDefID].airLosRadius and (unitDefInfo[displayUnitDefID].airUnit or unitDefInfo[displayUnitDefID].isAaUnit) then
+		if unitDefInfo[displayUnitDefID].airSightDistance and (unitDefInfo[displayUnitDefID].airUnit or unitDefInfo[displayUnitDefID].isAaUnit) then
 
-			addTextInfo(texts.airlos, round(unitDefInfo[displayUnitDefID].airLosRadius, 0))
+			addTextInfo(texts.airlos, round(unitDefInfo[displayUnitDefID].airSightDistance, 0))
 		end
-		if unitDefInfo[displayUnitDefID].radarRadius then
-			addTextInfo(texts.radar, round(unitDefInfo[displayUnitDefID].radarRadius, 0))
+		if unitDefInfo[displayUnitDefID].radarDistance then
+			addTextInfo(texts.radar, round(unitDefInfo[displayUnitDefID].radarDistance, 0))
 		end
-		if unitDefInfo[displayUnitDefID].sonarRadius then
-			addTextInfo(texts.sonar, round(unitDefInfo[displayUnitDefID].sonarRadius, 0))
+		if unitDefInfo[displayUnitDefID].sonarDistance then
+			addTextInfo(texts.sonar, round(unitDefInfo[displayUnitDefID].sonarDistance, 0))
 		end
-		if unitDefInfo[displayUnitDefID].jammerRadius then
-			addTextInfo(texts.jamrange, round(unitDefInfo[displayUnitDefID].jammerRadius, 0))
+		if unitDefInfo[displayUnitDefID].radarDistanceJam then
+			addTextInfo(texts.jamrange, round(unitDefInfo[displayUnitDefID].radarDistanceJam, 0))
 		end
-		if unitDefInfo[displayUnitDefID].sonarJamRadius then
-			addTextInfo(texts.sonarjamrange, round(unitDefInfo[displayUnitDefID].sonarJamRadius, 0))
+		if unitDefInfo[displayUnitDefID].sonarDistanceJam then
+			addTextInfo(texts.sonarjamrange, round(unitDefInfo[displayUnitDefID].sonarDistanceJam, 0))
 		end
-		if unitDefInfo[displayUnitDefID].seismicRadius then
-			addTextInfo(texts.seismic, unitDefInfo[displayUnitDefID].seismicRadius)
+		if unitDefInfo[displayUnitDefID].seismicDistance then
+			addTextInfo(texts.seismic, unitDefInfo[displayUnitDefID].seismicDistance)
 		end
 		--addTextInfo('mass', round(Spring.GetUnitMass(displayUnitID),0))
 		--addTextInfo('radius', round(Spring.GetUnitRadius(displayUnitID),0))
@@ -1848,7 +1852,7 @@ function widget:DrawScreen()
 				local cells = cellHovered and { [cellHovered] = selectionCells[cellHovered] } or selectionCells
 				-- description
 				if cellHovered then
-					local text, numLines = font:WrapText(unitDefInfo[selectionCells[cellHovered]].tooltip, (backgroundRect[3] - backgroundRect[1]) * (loadedFontSize / 16))
+					local text, numLines = font:WrapText(unitDefInfo[selectionCells[cellHovered]].description, (backgroundRect[3] - backgroundRect[1]) * (loadedFontSize / 16))
 					stats = stats .. statsIndent .. tooltipTextColor .. text .. '\n\n'
 				end
 				local text

@@ -23,7 +23,7 @@ else
 	return false
 end
 local nukeDefs = {
-    [UnitDefNames["raptor_turretxl_meteor"].id] = true,
+    [UnitDefNames["raptor_turret_meteor_t4_v1"].id] = true,
     [UnitDefNames["corsilo_scav"].id] = true,
     [UnitDefNames["armsilo_scav"].id] = true,
     [UnitDefNames["corjuno_scav"].id] = true,

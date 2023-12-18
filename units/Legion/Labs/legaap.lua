@@ -1,6 +1,6 @@
 return {
 	legaap = {
-		maxacc= 0,
+		maxacc = 0,
 		maxdec = 0,
 		energycost = 28000,
 		metalcost = 3200,

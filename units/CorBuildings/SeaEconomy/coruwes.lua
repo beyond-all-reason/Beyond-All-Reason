@@ -1,10 +1,10 @@
 return {
 	coruwes = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 8192,
-		buildcostenergy = 2700,
-		buildcostmetal = 300,
+		energycost = 2700,
+		metalcost = 300,
 		buildpic = "CORUWES.DDS",
 		buildtime = 7250,
 		canrepeat = false,
@@ -17,7 +17,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3400,
+		health = 3400,
 		maxslope = 20,
 		minwaterdepth = 31,
 		objectname = "Units/CORUWES.s3o",

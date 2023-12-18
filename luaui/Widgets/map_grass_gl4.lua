@@ -1503,7 +1503,7 @@ function widget:DrawWorldPreUnit()
     if not placementMode then
 		startInstanceIndex, instanceCount = GetStartEndRows()
 	end
-	if instanceCount == 0 or startInstanceIndex == #grassInstanceData/4 then return end
+	if instanceCount <= 0 or startInstanceIndex == #grassInstanceData/4 then return end
     local _, _, isPaused = Spring.GetGameSpeed()
     if not isPaused then
       getWindSpeed()

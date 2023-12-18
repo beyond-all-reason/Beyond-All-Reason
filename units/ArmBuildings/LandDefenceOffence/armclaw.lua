@@ -1,9 +1,9 @@
 return {
 	armclaw = {
-		acceleration = 0,
+		maxacc = 0,
 		buildangle = 8192,
-		buildcostenergy = 1600,
-		buildcostmetal = 340,
+		energycost = 1600,
+		metalcost = 340,
 		buildpic = "ARMCLAW.DDS",
 		buildtime = 4650,
 		canrepeat = false,
@@ -23,7 +23,7 @@ return {
 		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
-		maxdamage = 1330,
+		health = 1330,
 		maxslope = 18,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
@@ -163,6 +163,7 @@ return {
 					spark_range = "60",
 				},
 				damage = {
+					commanders = 31.5,
 					default = 21,
 					vtol = 2.5,
 				},

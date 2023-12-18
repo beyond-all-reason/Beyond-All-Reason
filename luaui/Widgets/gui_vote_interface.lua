@@ -13,6 +13,9 @@ end
 -- dont show vote buttons for specs when containing the following keywords (use lowercase)
 local globalVoteWords =  { 'forcestart', 'stop', 'joinas' }
 
+local INDIVIDUAL_RESIGN_VOTE_PATTERN = "called a vote for command \"resign ([^%s]+)\""
+local TEAM_RESIGN_VOTE_PATTERN = "called a vote for command \"resign ([^%s]+) TEAM\""
+
 local voteEndDelay = 4
 local voteTimeout = 75	-- fallback timeout in case vote is aborted undetected
 
@@ -413,7 +416,17 @@ function widget:AddConsoleLine(lines, priority)
 						end
 					end
 
-					if not sfind(line, '"resign ', nil, true) or isTeamPlayer(ssub(line, sfind(line, '"resign ', nil, true) + 8, sfind(line, ' TEAM', nil, true) - 1)) then
+					local individualResignTarget = string.match(line, INDIVIDUAL_RESIGN_VOTE_PATTERN)
+					local teamResignTarget = string.match(line, TEAM_RESIGN_VOTE_PATTERN)
+
+					local isIndividualResignVote = individualResignTarget ~= nil
+					local isTeamResignVote = teamResignTarget ~= nil
+
+					local isResignVote = isIndividualResignVote or isTeamResignVote
+					local isResignVoteMyTeam = (isIndividualResignVote and isTeamPlayer(individualResignTarget))
+						or (isTeamResignVote and isTeamPlayer(teamResignTarget))
+
+					if not isResignVote or isResignVoteMyTeam then
 						eligiblePlayers = {}
 						votesRequired = nil
 						votesEligible = nil

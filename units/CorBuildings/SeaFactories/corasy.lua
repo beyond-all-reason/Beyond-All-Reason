@@ -1,9 +1,9 @@
 return {
 	corasy = {
-		acceleration = 0,
-		brakerate = 0,
-		buildcostenergy = 10000,
-		buildcostmetal = 3100,
+		maxacc = 0,
+		maxdec = 0,
+		energycost = 10000,
+		metalcost = 3100,
 		builder = true,
 		buildpic = "CORASY.DDS",
 		buildtime = 15700,
@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 5900,
+		health = 5900,
 		metalstorage = 200,
 		minwaterdepth = 30,
 		objectname = "Units/CORASY.s3o",

@@ -1,11 +1,11 @@
 return {
 	critter_duck = {
-		acceleration = 0.12,
+		maxacc = 0.12,
 		blocking = false,
 
-		brakerate = 1,
-		buildcostenergy = 1,
-		buildcostmetal = 0,
+		maxdec = 1,
+		energycost = 1,
+		metalcost = 0,
 		builder = false,
 		buildpic = "critters/critter_duck.DDS",
 		buildtime = 10,
@@ -27,9 +27,9 @@ return {
 		leavetracks = false,
 		maneuverleashlength = "640",
 		mass = 24,
-		maxdamage = 17,
+		health = 17,
 		maxslope = 45,
-		maxvelocity = 0.35,
+		speed = 10.5,
 		maxwaterdepth = 22,
 		movementclass = "BOT1",
 		movestate = -1,

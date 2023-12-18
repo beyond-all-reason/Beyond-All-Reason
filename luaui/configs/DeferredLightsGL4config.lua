@@ -18080,6 +18080,13 @@ local unitDefLights = {
 		},
 	},
 }
+
+
+unitDefLights[UnitDefNames['corcrwh'].id] = unitDefLights[UnitDefNames['corcrw'].id]
+unitDefLights[UnitDefNames['coruwgeo'].id] = unitDefLights[UnitDefNames['corgeo'].id]
+unitDefLights[UnitDefNames['coruwageo'].id] = unitDefLights[UnitDefNames['corageo'].id]
+unitDefLights[UnitDefNames['armuwgeo'].id] = unitDefLights[UnitDefNames['armgeo'].id]
+unitDefLights[UnitDefNames['armuwageo'].id] = unitDefLights[UnitDefNames['armageo'].id]
 unitDefLights[UnitDefNames['armshltxuw'].id] = unitDefLights[UnitDefNames['armshltx'].id]
 unitDefLights[UnitDefNames['corgantuw'].id] = unitDefLights[UnitDefNames['corgant'].id]
 unitDefLights[UnitDefNames['armdecom'].id] = unitDefLights[UnitDefNames['armcom'].id]
@@ -18338,9 +18345,9 @@ local unitEventLights = {
 				pieceName = 'lfbarrel2',
 				lightName = 'cordemonl2glow',
 				alwaysVisible = true,
-				lightConfig = { posx = 0, posy = 4, posz = 8, radius = 53,
+				lightConfig = { posx = 0, posy = 4, posz = 8, radius = 43,
 					color2r = 0.8, color2g = 0.37, color2b = 0, colortime = 300,
-					r = 0, g = 0, b = 0, a = 0.08,
+					r = 0, g = 0, b = 0, a = 0.03,
 					modelfactor = 2, specular = 1, scattering = 0.05, lensflare = 0,
 					lifetime = 200, sustain = 5, animtype = 0},
 			},			
@@ -18349,9 +18356,9 @@ local unitEventLights = {
 				pieceName = 'rfbarrel2',
 				lightName = 'cordemonr2glow',
 				alwaysVisible = true,
-				lightConfig = { posx = 0, posy = 4, posz = 8, radius = 53,
+				lightConfig = { posx = 0, posy = 4, posz = 8, radius = 43,
 					color2r = 0.8, color2g = 0.37, color2b = 0, colortime = 300,
-					r = 0, g = 0, b = 0, a = 0.08,
+					r = 0, g = 0, b = 0, a = 0.03,
 					modelfactor = 2, specular = 1, scattering = 0.05, lensflare = 0,
 					lifetime = 200, sustain = 5, animtype = 0},
 			},

@@ -154,7 +154,7 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 				local unit = Spring.CreateUnit(UnitDefNames[nonscavname].id, posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
 				if unit then
 					Spring.SpawnCEG("scav-spawnexplo", posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), 0,0,0)
-					local radarRange = UnitDefs[building.unitDefID].radarRadius
+					local radarRange = UnitDefs[building.unitDefID].radarDistance
 					local canMove = UnitDefs[building.unitDefID].canMove
 					local speed = UnitDefs[building.unitDefID].speed
 

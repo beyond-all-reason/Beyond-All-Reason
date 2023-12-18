@@ -1,9 +1,9 @@
 return {
 	armbeaver = {
-		acceleration = 0.01842,
-		brakerate = 0.11052,
-		buildcostenergy = 3100,
-		buildcostmetal = 150,
+		maxacc = 0.01842,
+		maxdec = 0.11052,
+		energycost = 3100,
+		metalcost = 150,
 		builddistance = 112,
 		builder = true,
 		buildpic = "ARMBEAVER.DDS",
@@ -22,9 +22,9 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		maxdamage = 1030,
+		health = 1030,
 		maxslope = 16,
-		maxvelocity = 1.4,
+		speed = 42.0,
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
 		objectname = "Units/ARMBEAVER.s3o",
@@ -86,6 +86,7 @@ return {
 			[41] = "armfhlt",
 			[42] = "armfrt",
 			[43] = "armptl",
+			[44] = "armuwgeo",
 		},
 		customparams = {
 			unitgroup = 'builder',

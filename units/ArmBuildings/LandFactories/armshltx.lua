@@ -1,9 +1,9 @@
 return {
 	armshltx = {
-		acceleration = 0,
-		brakerate = 0,
-		buildcostenergy = 58000,
-		buildcostmetal = 7900,
+		maxacc = 0,
+		maxdec = 0,
+		energycost = 58000,
+		metalcost = 7900,
 		builder = true,
 		buildpic = "ARMSHLTX.DDS",
 		buildtime = 61400,
@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 16000,
+		health = 16000,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		metalstorage = 800,

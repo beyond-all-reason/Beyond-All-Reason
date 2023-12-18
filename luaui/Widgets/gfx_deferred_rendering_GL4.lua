@@ -1293,9 +1293,10 @@ local function updateProjectileLights(newgameframe)
 					--end
 				else
 					local weaponDefID = spGetProjectileDefID ( projectileID )
-					if projectileDefLights[weaponDefID] then
+					if projectileDefLights[weaponDefID] and ( projectileID % (projectileDefLights[weaponDefID].fraction or 1) == 0 ) then
 						local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
 						lightType = projectileDefLights[weaponDefID].lightType
+						
 						lightParamTable[1] = px
 						lightParamTable[2] = py
 						lightParamTable[3] = pz

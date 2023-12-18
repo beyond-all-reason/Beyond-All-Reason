@@ -1,4 +1,6 @@
 ﻿# November 2023
+• [Release Candidate Modoption] Dragon rework is added to the list of units in the release candidates modoption.  This updates the dragon model and changes its weapons.  An anti-air turret is added so that the unit can deal with small amounts of T1 fighters, the front weapon is changed from a laser to a flamethrower, and the side turrets have been split from 2 medium to 4 smaller laser turrets.  
+• [Consul] Recluse removed from build list, Webber added to build list.
 • [Air units] Armorclasses merged for all air units, meaning that fighters and bombers will take the same amount of damage as gunships.  
 	- T1 fighters will kill other T1 fighters in 2 shots instead of 1
 	- T1 fighters will kill T2 fighters in 3 shots instead of 2
