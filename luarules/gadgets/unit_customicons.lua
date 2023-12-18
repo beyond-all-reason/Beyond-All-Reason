@@ -670,6 +670,7 @@ local units = {
 	legassistdrone = { "air_assistdrone.png", 0.85 },
 	legassistdrone_land = { "land_assistdrone.png", 0.85 },
 	legavp = { "factory_vehicle_t2.png", 1.9425 },
+	legbastion = { "cordoom.png", 2.0474999 },
 	legbal = {"bot_rocket.png", 1.2},
 	legbar = { "vehicle_t1_arty_napalm.png", 1.55 },
 	legbart = { "bot_t2_arty_napalm.png", 1.6 },

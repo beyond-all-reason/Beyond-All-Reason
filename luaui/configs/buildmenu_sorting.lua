@@ -108,6 +108,7 @@ local unitOrderTable = {
 	['legmos']         = 004322,
 	['armsaber']       = 004325,
 	['corcut']         = 004330,
+	['legstronghold']  = 004331,
 
 	['armbrawl']       = 004335, --GUNSHIPS T2
 	['corape']         = 004340,
@@ -121,6 +122,7 @@ local unitOrderTable = {
 	['legkam']         = 004357,
 	['armsb']          = 004360,
 	['corsb']          = 004365,
+	['legphoenix']     = 004366,
 
 	['armpnix']        = 004370, --BOMBERS T2
 	['corhurc']        = 004380,

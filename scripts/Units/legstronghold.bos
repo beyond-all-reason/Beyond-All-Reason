@@ -77,6 +77,8 @@ Create()
 	turn thrustrla to x-axis <-90> now; 
 	turn thrustrra to x-axis <-90> now; 
 	
+	turn pole to x-axis <45> now;
+	
 	hide link;
 	unitviewer = FALSE;
 	canfire = 0;
@@ -120,7 +122,7 @@ EndTransport()
 
 Activate()
 {
-	get PRINT(5);
+	//get PRINT(5);
 	show thrustfra;
 	show thrustfla;
 	show thrustrla;
@@ -132,7 +134,7 @@ Activate()
 Deactivate()
 {
 	canfire = 1;
-	get PRINT(6);
+	//get PRINT(6);
 	hide thrustfra;
 	hide thrustfla;
 	hide thrustrla;
@@ -149,7 +151,7 @@ StopMoving()
 
 MoveRate0()
 {
-	get PRINT(0);
+	//get PRINT(0);
 	//canfire = 1;
 	turn thrustrr to x-axis <0.000000> speed <80.000000>;
 	turn thrustrl to x-axis <0.000000> speed <80.000000>;
@@ -159,7 +161,7 @@ MoveRate0()
 
 MoveRate1()
 {
-	get PRINT(1);
+	//get PRINT(1);
 	signal 8;
 	set-signal-mask 8;
 	moverate = 1;
@@ -172,7 +174,7 @@ MoveRate1()
 
 MoveRate2()
 {
-	get PRINT(2);
+	//get PRINT(2);
 	signal 8;
 	set-signal-mask 8;
 	moverate = 2;
@@ -185,7 +187,7 @@ MoveRate2()
 
 MoveRate3()
 {
-		get PRINT(3);
+		//get PRINT(3);
 
 	signal 8;
 	set-signal-mask 8;
@@ -234,14 +236,15 @@ RestoreAfterDelay()
 
 AimPrimary(heading, pitch)
 {
-	get PRINT(88, canfire);
-	if (canfire==0) {
-		return (0);		
-	} else {
+	//disabled all this for now
+	//get PRINT(88, canfire);
+	//if (canfire==0) {
+		//return (0);		
+	//} else {
 		signal SIG_AIM;
 		set-signal-mask SIG_AIM;
-		turn pole to y-axis heading speed <200.000000>;
-		turn sleeve to x-axis <0.000000> - pitch speed <100.000000>;
+		turn sleeve to y-axis heading speed <200.000000>;
+		turn sleeve to x-axis <0.000000> - <45> - pitch speed <100.000000>;
 		if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 		{
 			wpn1_lasthead = 1000000;
@@ -251,7 +254,7 @@ AimPrimary(heading, pitch)
 		wpn1_lasthead = heading;
 		start-script RestoreAfterDelay();
 		return (1);
-	}
+	//}
 }
 
 FirePrimary()

@@ -13408,6 +13408,65 @@ local unitDefLights = {
 		},
 	},
 
+	[UnitDefNames['legbastion'].id] = {
+		dish = {
+			lightType = 'point',
+			pieceName = 'ambienttop',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 78,
+							color2r = 0.3, color2g = 0.8, color2b = 0.8, colortime = 0,
+							r = 1.0, g = 0.8, b = 0.1, a = 0.21,
+							modelfactor = 0.4, specular = 0.5, scattering = 1.2, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		beacon = {
+			lightType = 'cone',
+			pieceName = 'fireline',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 1250,
+							dirx = 0, diry = 0, dirz = 1, theta = 0.05,
+							r = 1, g = 0.8, b = 0.1, a = 1.45,
+							modelfactor = 0, specular = 1, scattering = 2, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+
+		lp1 = {
+			lightType = 'cone',
+			pieceName = 'lp1',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+							dirx = 2, diry = 6, dirz = -2, theta = 0.67,
+							r = 1, g = 1, b = 1, a = 0.30,
+							modelfactor = 0, specular = 1, scattering = 2, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		lp2 = {
+			lightType = 'cone',
+			pieceName = 'lp2',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+							dirx = 2, diry = 6, dirz = 2, theta = 0.67,
+							r = 1, g = 1, b = 1, a = 0.30,
+							modelfactor = 0, specular = 1, scattering = 2, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		lp3 = {
+			lightType = 'cone',
+			pieceName = 'lp3',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+							dirx = -2, diry = 6, dirz = -2, theta = 0.67,
+							r = 1, g = 1, b = 1, a = 0.30,
+							modelfactor = 0, specular = 1, scattering = 2, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		lp4 = {
+			lightType = 'cone',
+			pieceName = 'lp4',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+							dirx = -2, diry = 6, dirz = 2, theta = 0.67,
+							r = 1, g = 1, b = 1, a = 0.30,
+							modelfactor = 0, specular = 1, scattering = 2, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		
+	},
+
 	
 	[UnitDefNames['armvader'].id] = {
 		-- redlight = {
@@ -18251,10 +18310,23 @@ local unitEventLights = {
 				lightName = 'phoenixringlight',
 				alwaysVisible = true,
 				lightConfig = { posx = 0, posy = 7, posz = -5, radius = 54,
-					color2r = 0.6, color2g = 0.87, color2b = 0.9, colortime = 400,
-					r = 1.1, g = 1, b = 0.3, a = 0.36,
+					color2r = 1, color2g = 0.87, color2b = 0.3, colortime = 200,
+					r = 1.0, g = 0.8, b = 0.1, a = 0.56,
 					modelfactor = 2, specular = 1, scattering = 0.5, lensflare = 0,
-					lifetime = 400, sustain = 15, animtype = 0},
+					lifetime = 200, sustain = 15, animtype = 0},
+			},
+		},
+		[UnitDefNames['legbastion'].id] = {
+			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'lightpoint',
+				lightName = 'bastionringlight',
+				alwaysVisible = true,
+				lightConfig = { posx = 0, posy = 0, posz = 0, radius = 64,
+					color2r = 1, color2g = 0.87, color2b = 0.3, colortime = 200,
+					r = 1.0, g = 0.8, b = 0.1, a = 0.66,
+					modelfactor = 2, specular = 1, scattering = 0.5, lensflare = 0,
+					lifetime = 200, sustain = 15, animtype = 0},
 			},
 		},
 

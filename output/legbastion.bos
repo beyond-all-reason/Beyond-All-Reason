@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, sauron, sauronarms, ring1, ring2, ring3, fr1, fr2, fr3, aimfromy, aimy, flare, fireline, lineflare, lightpoint, ambienttop, lp1, lp2, lp3, lp4;
+piece  base, sauron, sauronarms, ring1, ring2, ring3, fr1, fr2, fr3, aimfromy, aimy, flare, fireline, lineflare;
 
 static-var  restore_delay, Static_Var_3, dakka, shotcount, timer, lastfired, gameframe, state;
 
@@ -107,12 +107,10 @@ RestoreAfterDelay() {
 		gameframe = get(GAME_FRAME);
 	}
 	
-	if(state==1) {
-		dakka = 0;
-		turn sauronarms to x-axis <0.000000> speed <85>;
-		turn sauron to y-axis <0> speed <35>;
-		start-script SpinIdle();
-	}
+	dakka = 0;
+	turn sauronarms to x-axis <0.000000> speed <85>;
+	turn sauron to y-axis <0> speed <35>;
+	start-script SpinIdle();
 	return (0);
 }
 
@@ -164,7 +162,6 @@ AimPrimary(heading, pitch) {
 	
 	gameframe = get(GAME_FRAME);
 	//get PRINT(lastfired, gameframe);
-	if (state==0) return (0);
 	if (lastfired+100>gameframe) return (0);
 	lastfired = gameframe;
 	
@@ -192,14 +189,14 @@ FirePrimary()
 	start-script Enlighten();
 	//sleep 150;
 	start-script RestoreAfterDelay();
-	shotcount = shotcount + 1;
-	call-script lua_UnitScriptLight(1, shotcount);
 	return (1);
 }
 
 Shot1() {
 	//get PRINT(111);
 	//emit-sfx 1024 + 0 from lineflare;
+	shotcount = shotcount + 1;
+	call-script lua_UnitScriptLight(1, shotcount);
 }
 
 
@@ -301,8 +298,8 @@ Killed(severity, corpsetype)
 		explode fr1 type BITMAPONLY;
 		explode fr2 type BITMAPONLY;
 		explode fr3 type BITMAPONLY;
-		explode ring1 type FIRE | SMOKE | FALL;;
-		explode ring2 type FIRE | SMOKE | FALL;;
+		explode ring1 type BITMAPONLY;
+		explode ring2 type BITMAPONLY;
 		explode ring3 type FIRE | SMOKE | FALL;
 		explode lightpoint type BITMAPONLY;
 		explode ambienttop type BITMAPONLY;
@@ -327,7 +324,7 @@ Killed(severity, corpsetype)
 		explode fr1 type FIRE | SMOKE | FALL;
 		explode fr2 type FIRE | SMOKE | FALL;
 		explode fr3 type FIRE | SMOKE | FALL;
-		explode ring1 type FIRE | SMOKE | FALL;
+		explode ring1 type FALL;
 		explode ring2 type FIRE | SMOKE | FALL;
 		explode ring3 type FIRE | SMOKE | FALL;
 		explode lightpoint type FALL;
@@ -351,11 +348,11 @@ Killed(severity, corpsetype)
 		explode fireline type EXPLODE_ON_HIT | SMOKE | FALL;
 		explode lineflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode fr1 type FIRE | SMOKE | FALL;
-		explode fr2 type FIRE | SMOKE | FALL;
-		explode fr3 type FIRE | SMOKE | FALL;
+		explode fr2 type SMOKE | FALL;
+		explode fr3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode ring1 type FIRE | SMOKE | FALL;
-		explode ring2 type FIRE | SMOKE | FALL;
-		explode ring3 type FIRE | SMOKE | FALL;
+		explode ring2 type SMOKE | FALL;
+		explode ring3 type SMOKE | FALL;
 		explode lightpoint type FIRE | SMOKE | FALL;
 		explode ambienttop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode aimfromy type FIRE | SMOKE | FALL;
