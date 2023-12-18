@@ -82,8 +82,6 @@ return {
 			},
 		},
 		weapondefs = {
-		
-		
 			birdshot = {
 				areaofeffect = 10,
 				avoidfeature = false,

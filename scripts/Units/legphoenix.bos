@@ -18,21 +18,7 @@ static-var maxSpeed, currentSpeed, shotcount, timer, isfiring;
 
 #define SIG_STRAFE 2
 
-BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
-{
-	currentSpeed = (get CURRENT_SPEED);
-	maxSpeed = (get MAX_SPEED);
-	
-	while (TRUE){
-		sleep 2000;
-		currentSpeed = (get CURRENT_SPEED);
-		//get PRINT(maxSpeed, currentSpeed, Static_Var_1);
-		if( Rand( 1, 5 ) == 1 AND (maxSpeed < (currentSpeed+100) ) )
-		{
-			start-script DoBarrelRoll();
-		}
-	}
-}
+
 
 DoBarrelRoll() {
 	turn base to z-axis <240.054945> speed <120.027473>;
@@ -55,7 +41,6 @@ Create()
 	shotcount = 0;
 	timer = 0;
 	isfiring = 0;
-	start-script BarrelRoll();
 	//hide lthrust;
 	//hide mthrust;
 	//hide rthrust;
