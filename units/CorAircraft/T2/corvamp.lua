@@ -1,5 +1,6 @@
 return {
 	corvamp = {
+		acceleration = 0.35,
 		airsightdistance = 1100,
 		blocking = false,
 		maxdec = 0.0875,

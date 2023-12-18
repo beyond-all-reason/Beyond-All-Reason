@@ -25,7 +25,7 @@ return {
 		maxpitch = 0.745,
 		maxrudder = 0.015,
 		maxslope = 15,
-		speed = 300,
+		speed = 270,
 		maxwaterdepth = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/legionnaire.s3o",
