@@ -164,6 +164,10 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.75 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.75 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrra2", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrla2", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfra2", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfla2", emitVector = { 0, 1, 0 }, light = 0.75 },
 	},
 
 	-- gunships

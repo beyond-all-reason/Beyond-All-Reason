@@ -26,7 +26,7 @@ return {
 		maxpitch = 0.625,
 		maxrudder = 0.00541,
 		maxslope = 10,
-		speed = 10.7,
+		speed = 430,
 		maxwaterdepth = 0,
 		objectname = "Units/legwhisper.s3o",
 		radardistance = 2400,
