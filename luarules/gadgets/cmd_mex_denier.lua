@@ -11,6 +11,16 @@ function gadget:GetInfo()
 	}
 end
 
+-- Some of these maps have more than 2 metal spots, disable mex denier
+local metalMaps = {
+	["Oort_Cloud_V2"] = true,
+	["Asteroid_Mines_V2.1"] = true,
+	["Cloud9_V2"] = true,
+	["Iron_Isle_V1"] = true,
+	["Nine_Metal_Islands_V1"] = true,
+	["SpeedMetal BAR V2"] = true,
+}
+
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
@@ -42,12 +52,18 @@ end
 local metalSpotsList
 
 function gadget:Initialize()
+	if metalMaps[Game.mapName] then
+		Spring.Echo(gadget:GetInfo().name, "Indiscrete metal map detected, removing self")
+
+		gadgetHandler:RemoveGadget(self)
+	end
+
 	metalSpotsList = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList
 
 	-- no metal spots in map or metalmap
 	-- gadget is not required
 	if not metalSpotsList or #metalSpotsList <= 2 then
-		Spring.Echo("<gadgets/cmd_mex_denier.lua> No, 1 or 2 metal spots found, removing self")
+		Spring.Echo(gadget:GetInfo().name, "None, 1 or 2 metal spots found, removing self")
 
 		gadgetHandler:RemoveGadget(self)
 	end
