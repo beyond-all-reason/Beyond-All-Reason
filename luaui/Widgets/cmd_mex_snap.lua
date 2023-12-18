@@ -1,19 +1,56 @@
+-- IMPORTANT --
+--
+-- Due to repeated regressions in functionality, please take below into
+-- account. Please update it to include new test scenarios if you
+-- introduce new functionality.
+--
+-- Before changing anything significant in this file please follow this
+-- checklist to be sure a regression is not being introduced:
+--
+-- - [x] **Basic Snap functionality**: Selecting mex as current active
+--       command shows an arrow towards and a ghost of a mexbuilding to
+--       snap to closest mex spot
+--
+-- - [x] **Basic Snap functionality**: Clicking places a mex on spot
+--       ghosted in previous step
+--
+-- - [x] **Avoid already built spots**: If theres a close mex
+--       spot, but with an already built mex of same tier, it snaps to
+--       the next closest mex spot
+--
+-- - [x] **Avoid already assigned mex build orders**: If theres a close
+--       mex spot, but with an order already assigned on the same
+--       currently selected builder, to build a mex of same tier, it
+--       snaps to the next closest mex spot.
+--       _Only when shift is currently pressed (i.e. queued order)_.
+--
+-- - [x] **Snaps to upgradable mexes**: If theres a close mex
+--       spot, but with an already built mex of lower tier, it snaps to
+--       upgrade it to current tier
+--
+-- - [x] **Works on maps with side-loaded mexes**: Basic functionality
+--       works on maps like Azurite Shores or Rosetta.
+--       See luarules/gadgets/map_metal_spot_placer.lua for context
+--
+-- IMPORTANT --
 
 function widget:GetInfo()
 	return {
-		name      = "Mex Snap",
-		desc      = "Snaps mexes to give 100% metal",
-		author    = "Niobium",
-		version   = "v1.2",
-		date      = "November 2010",
-		license   = "GNU GPL, v2 or later",
-		layer     = -1,
-		enabled   = true,
-		handler   = true
+		name = "Mex Snap",
+		desc = "Snaps mexes to give 100% metal",
+		author = "Niobium",
+		version = "v1.2",
+		date = "November 2010",
+		license = "GNU GPL, v2 or later",
+		layer = -1,
+		enabled = true,
+		handler = true,
 	}
 end
 
-local maxCommands = 100
+-- Max number of commands to dig through and find clashing orders for
+-- current builder and snapping position
+local maxCommands = 50
 
 local Game_extractorRadius = Game.extractorRadius
 local Game_extractorRadiusSq = Game_extractorRadius * Game_extractorRadius
@@ -33,36 +70,33 @@ local spGetUnitMetalExtraction = Spring.GetUnitMetalExtraction
 local spGiveOrder = Spring.GiveOrder
 local math_pi = math.pi
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
-local spGetUnitPosition = Spring.GetUnitPosition
-local spIsUnitAllied = Spring.IsUnitAllied
-
 
 local activeCmdID, bx, by, bz, bface
 local unitshape
 local curPosition
 
+-- These use api_resource_spot_{finder,builder} and are assigned at initialization
+local isMexConstructor = function()
+	return false
+end
 local isMex = {}
+local metalSpotsList = {}
+local GetBuildingPositions = function()
+	return {}
+end
+local IsMexPositionValid = function()
+	return false
+end
+
 local unitSizesQuad = {}
 for uDefID, uDef in pairs(UnitDefs) do
 	if uDef.extractsMetal > 0 then
-		isMex[uDefID] = uDef.extractsMetal * 1000
-		unitSizesQuad[uDefID] = {uDef.xsize*4, uDef.zsize*4}
-	end
-end
-local isMexConstructor = {}
-for uDefID, uDef in pairs(UnitDefs) do
-	if uDef.buildOptions then
-		for _, option in ipairs(uDef.buildOptions) do
-			if isMex[option] then
-				isMexConstructor[uDefID] = uDef.buildOptions
-				break
-			end
-		end
+		unitSizesQuad[uDefID] = { uDef.xsize * 4, uDef.zsize * 4 }
 	end
 end
 
 local function GetExtractionAmount(spot, metalExtracts, orders)
-	local spotWorth = spot.worth/1000.0
+	local spotWorth = spot.worth
 	local remainingMetal = spotWorth * metalExtracts
 
 	for _, unit in pairs(spGetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)) do
@@ -75,10 +109,9 @@ local function GetExtractionAmount(spot, metalExtracts, orders)
 
 	for _, order in pairs(orders) do
 		local ox, oz = order[1][1], order[1][3]
-
 		local dx, dz = ox - spot.x, oz - spot.z
 
-		if dx*dx + dz*dz < Game_extractorRadiusSq then
+		if dx * dx + dz * dz < Game_extractorRadiusSq then
 			remainingMetal = remainingMetal - order[2] * spotWorth
 		end
 	end
@@ -95,23 +128,22 @@ local function GetBuildingDimensions(uDefID, facing)
 end
 
 local function DoBuildingsClash(buildData1, buildData2)
-
 	local w1, h1 = GetBuildingDimensions(buildData1[1], buildData1[5])
 	local w2, h2 = GetBuildingDimensions(buildData2[1], buildData2[5])
 
-	return math.abs(buildData1[2] - buildData2[2]) < w1 + w2 and
-		math.abs(buildData1[4] - buildData2[4]) < h1 + h2
+	return math.abs(buildData1[2] - buildData2[2]) < w1 + w2 and math.abs(buildData1[4] - buildData2[4]) < h1 + h2
 end
 
 local function GetClashingOrdersPreGame()
-	if not (WG['pregame-build'] and WG['pregame-build'].getPreGameDefID and WG['pregame-build'].getBuildQueue) then return {} end
-
+	if not (WG["pregame-build"] and WG["pregame-build"].getPreGameDefID and WG["pregame-build"].getBuildQueue) then
+		return {}
+	end
 
 	local buildFacing = spGetBuildFacing() or 1
 	local orders = {}
 	local ordersCount = 0
 
-	for _, order in pairs(WG['pregame-build'].getBuildQueue()) do
+	for _, order in pairs(WG["pregame-build"].getBuildQueue()) do
 		local orderDefID = order[1]
 		local extractsMetal = isMex[orderDefID]
 
@@ -137,15 +169,18 @@ local function GetClashingOrdersGame()
 	local orders = {}
 	local ordersCount = 0
 
-	--local mexConstructor = WG['resource_spot_builder'].GetMexConstructor
-
 	for _, unitID in pairs(spGetSelectedUnits()) do
-		local udef = Spring.GetUnitDefID(unitID)
-		if isMexConstructor[udef] then
+		local mexDef = isMexConstructor(unitID)
+
+		if mexDef then
 			local canBuild = false
-			for _, buildOption in pairs(isMexConstructor[udef]) do
-				if buildOption == -activeCmdID then canBuild = true; break end
+			for _, buildOption in pairs(mexDef.building) do
+				if buildOption == activeCmdID then
+					canBuild = true
+					break
+				end
 			end
+
 			if canBuild then
 				local unitOrders = spGetUnitCommands(unitID, maxCommands)
 				if unitOrders then
@@ -179,38 +214,6 @@ local function GetClashingOrders()
 	return preGamestartPlayer and GetClashingOrdersPreGame() or GetClashingOrdersGame()
 end
 
-local function SnapExistingMex(spot, x, z)
-	local bestDist = math.huge
-	local best_mex = -1
-	local best_x, best_z
-	local found_units = spGetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
-	if #found_units == 0 then
-		return false
-	end
-	for i = 1, #found_units do
-		local unit = found_units[i]
-		if spIsUnitAllied(unit) then
-			local mMakes = spGetUnitMetalExtraction(unit)
-			if mMakes then
-				local ux,uy,uz = spGetUnitPosition(unit)
-				local dx, dz = x - ux, z - uz
-				local dist = dx * dx + dz * dz
-				if dist < bestDist then
-					bestDist = dist
-					best_mex = i
-					best_x = ux
-					best_z = uz
-				end
-			end
-		end
-	end
-	if best_mex > 0 then
-		spot.x = best_x
-		spot.z = best_z
-	end
-	return true
-end
-
 local function GetClosestMex(x, z, positions, metalExtracts, orders)
 	local bestPos
 	local bestDist = math.huge
@@ -219,8 +222,7 @@ local function GetClosestMex(x, z, positions, metalExtracts, orders)
 		if pos.x then
 			local dx, dz = x - pos.x, z - pos.z
 			local dist = dx * dx + dz * dz
-			if dist < bestDist and (SnapExistingMex(pos, x, z) or GetExtractionAmount(pos, metalExtracts, orders) > 0 ) then
-			-- if dist < bestDist and GetExtractionAmount(pos, metalExtracts, orders) > 0 then
+			if dist < bestDist and GetExtractionAmount(pos, metalExtracts, orders) > 0 then
 				bestPos = pos
 				bestDist = dist
 			end
@@ -240,7 +242,6 @@ local function GetClosestPosition(x, z, positions)
 			if dist < bestDist then
 				bestPos = pos
 				bestDist = dist
-				SnapExistingMex(pos, x, z)
 			end
 		end
 	end
@@ -272,10 +273,17 @@ function widget:Initialize()
 	if not WG.DrawUnitShapeGL4 then
 		widgetHandler:RemoveWidget()
 	end
-	if not WG['resource_spot_finder'] or not WG['resource_spot_finder'].metalSpotsList then
+	if not WG["resource_spot_finder"] or not WG["resource_spot_finder"].metalSpotsList then
 		Spring.Echo("<Snap Mex> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget()
 	end
+
+	isMexConstructor = WG["resource_spot_builder"].GetMexConstructor
+	isMex = WG["resource_spot_builder"].GetMexBuildings()
+
+	metalSpotsList = WG["resource_spot_finder"].metalSpotsList
+	GetBuildingPositions = WG["resource_spot_finder"].GetBuildingPositions
+	IsMexPositionValid = WG["resource_spot_finder"].IsMexPositionValid
 end
 
 function widget:Shutdown()
@@ -296,8 +304,10 @@ end
 
 function widget:Update()
 	if preGamestartPlayer then
-		activeCmdID = WG['pregame-build'] and WG['pregame-build'].getPreGameDefID()
-		if activeCmdID then activeCmdID = -activeCmdID end
+		activeCmdID = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
+		if activeCmdID then
+			activeCmdID = -activeCmdID
+		end
 	else
 		_, activeCmdID = spGetActiveCommand()
 	end
@@ -323,22 +333,24 @@ function widget:Update()
 
 	-- Find build position and check if it is available (Would get 100% metal)
 	bx, by, bz = spPos2BuildPos(-activeCmdID, pos[1], pos[2], pos[3])
+
 	local shift = select(4, spGetModKeyState())
 	local orders = shift and GetClashingOrders() or {}
+
 	if not orders then
 		clearCurPosition()
 		return
 	end
 
-	local closestSpot = GetClosestMex(bx, bz, WG['resource_spot_finder'].metalSpotsList, metalExtracts, orders)
-	if not closestSpot or WG['resource_spot_finder'].IsMexPositionValid(closestSpot, bx, bz) then
+	local closestSpot = GetClosestMex(bx, bz, metalSpotsList, metalExtracts, orders)
+	if not closestSpot or IsMexPositionValid(closestSpot, bx, bz) then
 		clearCurPosition()
 		return
 	end
 
 	-- Get the closest position that would give 100%
 	bface = spGetBuildFacing()
-	local mexPositions = WG['resource_spot_finder'].GetBuildingPositions(closestSpot, -activeCmdID, bface, true)
+	local mexPositions = GetBuildingPositions(closestSpot, -activeCmdID, bface, true)
 	local bestPos = GetClosestPosition(bx, bz, mexPositions)
 	if not bestPos then
 		clearCurPosition()
@@ -369,38 +381,60 @@ function widget:DrawWorld()
 	gl.DepthTest(true)
 
 	-- Add/update unit shape rendering
-	local newUnitshape = {-activeCmdID, bestPos.x, bestPos.y, bestPos.z, bface}
-	if not unitshape or (unitshape[1]~= newUnitshape[1] or unitshape[2]~= newUnitshape[2] or unitshape[3]~= newUnitshape[3] or unitshape[4]~= newUnitshape[4] or unitshape[5]~= newUnitshape[5]) then
+	local newUnitshape = { -activeCmdID, bestPos.x, bestPos.y, bestPos.z, bface }
+	if
+		not unitshape
+		or (
+			unitshape[1] ~= newUnitshape[1]
+			or unitshape[2] ~= newUnitshape[2]
+			or unitshape[3] ~= newUnitshape[3]
+			or unitshape[4] ~= newUnitshape[4]
+			or unitshape[5] ~= newUnitshape[5]
+		)
+	then
 		clearShape()
 		unitshape = newUnitshape
-		unitshape[6] = WG.DrawUnitShapeGL4(unitshape[1], unitshape[2], unitshape[3], unitshape[4], unitshape[5]*math_pi, 0.66, spGetMyTeamID(), 0.15, 0.3)
+		unitshape[6] = WG.DrawUnitShapeGL4(
+			unitshape[1],
+			unitshape[2],
+			unitshape[3],
+			unitshape[4],
+			unitshape[5] * math_pi,
+			0.66,
+			spGetMyTeamID(),
+			0.15,
+			0.3
+		)
 	end
 end
 
 local lastMexCmd = 0
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-
 	local metalExtracts = isMex[-cmdID]
 
-	if not metalExtracts then return end
+	if not metalExtracts then
+		return
+	end
 
-	if cmdOpts.mexsnap then return end -- notifying order
+	if cmdOpts.mexsnap then
+		return
+	end -- notifying order
 
-	if lastMexCmd+0.1 > os.clock() then return end	-- ignore accidental line-drag cmd
+	if lastMexCmd + 0.1 > os.clock() then
+		return
+	end -- ignore accidental line-drag cmd
 	lastMexCmd = os.clock()
 
-	local cbx, cbz = cmdParams[1], cmdParams[3]
-
 	local orders = cmdOpts.shift and GetClashingOrders() or {}
-	local closestSpot = GetClosestMex(bx, bz, WG['resource_spot_finder'].metalSpotsList, metalExtracts, orders)
+	local closestSpot = GetClosestMex(bx, bz, metalSpotsList, metalExtracts, orders)
 
-	if closestSpot then --and not WG['resource_spot_finder'].IsMexPositionValid(closestSpot, cbx, cbz) then
+	if closestSpot then --and not IsMexPositionValid(closestSpot, cmdParams[1], cmdParams[3]) then
 		local cbface = cmdParams[4]
-		local mexPositions = WG['resource_spot_finder'].GetBuildingPositions(closestSpot, -cmdID, cbface, true)
+		local mexPositions = GetBuildingPositions(closestSpot, -cmdID, cbface, true)
 		local bestPos = GetClosestPosition(bx, bz, mexPositions)
 		if bestPos then
 			cmdOpts.mexsnap = true
-			GiveNotifyingOrder(cmdID, {bestPos.x, bestPos.y, bestPos.z, bface}, cmdOpts)
+			GiveNotifyingOrder(cmdID, { bestPos.x, bestPos.y, bestPos.z, bface }, cmdOpts)
 			return true
 		end
 	end
