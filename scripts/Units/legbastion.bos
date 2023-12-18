@@ -13,13 +13,13 @@ static-var  restore_delay, Static_Var_3, dakka, shotcount, timer, lastfired, gam
 #define SIG_RESTORE			8
 
 
-//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
-// MaxVelocity and acceleration are in degrees per frame (not second!)
+//-------------------------------CONSTANT maxaccTURRET TURNING---------------------------
+// speed and maxaccare in degrees per frame (not second!)
 // Jerk is the minimum velocity of the turret
 // A high precision requirement can result in overshoots if desired 
 // (c) CC BY NC ND Beherith mysterme@gmail.com
 #define MAX_AIMY1_VELOCITY <3.00>
-#define AIMY1_ACCELERATION <0.16>
+#define AIMY1_maxacc<0.16>
 #define AIMY1_JERK <0.5>
 #define AIMY1_PRECISION <1.2>
 #define AIMY1_RESTORE_SPEED <1.0>
@@ -226,22 +226,22 @@ AimPrimary(heading, pitch) {
 			while (aimy1delta < <-180>) aimy1delta = aimy1delta + <360>;
 		
 			//number of frames required to decelerate to 0
-			timetozero = get ABS(aimy1velocity) / AIMY1_ACCELERATION;
+			timetozero = get ABS(aimy1velocity) / AIMY1_maxacc;
 			
 			//distance from target where we should start decelerating, always 'positive'
 			//pos = t * v - (t*(t-1)*a/2)
-			deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_ACCELERATION / 2); 
+			deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_maxacc/ 2); 
 			
 			//get PRINT ( aimy1delta , deceleratethreshold, aimy1velocity, timetozero );
 			
 			if (get ABS(aimy1delta) <= deceleratethreshold){ //we need to decelerate
-				if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
-				else 				   aimy1velocity = aimy1velocity + AIMY1_ACCELERATION;
+				if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_maxacc;
+				else 				   aimy1velocity = aimy1velocity + AIMY1_maxacc;
 			}	
 			else //we need to accelerate
 			{
-				if (aimy1delta > 0) aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity + AIMY1_ACCELERATION); 
-				else                aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity - AIMY1_ACCELERATION);
+				if (aimy1delta > 0) aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity + AIMY1_maxacc); 
+				else                aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity - AIMY1_maxacc);
 			}
 			
 			//Apply jerk at very low velocities
