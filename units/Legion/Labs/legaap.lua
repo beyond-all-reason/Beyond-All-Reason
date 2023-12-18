@@ -1,9 +1,9 @@
 return {
 	legaap = {
-		acceleration = 0,
-		brakerate = 0,
-		buildcostenergy = 28000,
-		buildcostmetal = 3200,
+		maxacc= 0,
+		maxdec = 0,
+		energycost = 28000,
+		metalcost = 3200,
 		builder = true,
 		buildpic = "LEGAAP.DDS",
 		buildtime = 20700,
@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3900,
+		health = 3900,
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 200,

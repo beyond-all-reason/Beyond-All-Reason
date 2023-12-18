@@ -1,10 +1,10 @@
 return {
 	legphoenix = {
-		acceleration = 0.05,
+		maxacc= 0.05,
 		blocking = false,
-		brakerate = 0.045,
-		buildcostenergy = 25000,
-		buildcostmetal = 450,
+		maxdec = 0.045,
+		energycost = 25000,
+		metalcost = 450,
 		buildpic = "LEGPHOENIX.DDS",
 		buildtime = 40000,
 		canfly = true,
@@ -16,7 +16,7 @@ return {
 		collisionvolumescales = "110 20 60",--yes this is unconventional but needs to be this way (passes the Drivver Test)
 		collisionvolumetype = "Box",
 		collide = false,
-		cruisealt = 220,
+		cruisealtitude = 220,
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -31,7 +31,7 @@ return {
 		maxpitch = 0.625,
 		maxrudder = 0.00498,
 		maxslope = 10,
-		maxvelocity = 8.98,
+		speed = 8.98,
 		maxwaterdepth = 0,
 		noautofire = true,
 		nochasecategory = "VTOL",
