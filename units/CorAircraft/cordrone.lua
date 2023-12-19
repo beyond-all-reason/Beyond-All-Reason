@@ -28,7 +28,7 @@ return {
 		script = "Units/CORDRONE.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
-		sightdistance = 500,
+		sightdistance = 600,
 		turninplaceanglelimit = 360,
 		turnrate = 900,
 		upright = true,
