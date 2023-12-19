@@ -2358,6 +2358,13 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-lolcannon",
 	},
 	
+	legbastion = {
+		BaseSoundSelectType = "arm-bld-defense-action-t3",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "laser-large",
+	},
+
+	
 	-- LEGION FACTORIES
 	leglab = {
 		BaseSoundSelectType = "arm-bld-factory",
@@ -2581,6 +2588,31 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "cor-air-gunship-large-sel",
 		BaseSoundMovementType = "cor-air-gunship-large-ok",
 		BaseSoundWeaponType = "plasma-huge",
+	},
+	legstronghold = {
+		BaseSoundSelectType = "arm-air-transport-large-sel",
+		BaseSoundMovementType = "arm-air-transport-large-ok",
+		BaseSoundWeaponType = "fastemg-medium",--transport-large ?
+	},
+	legwhisper = {
+		BaseSoundSelectType = "arm-air-medium-sel",
+		BaseSoundMovementType = "arm-air-medium-ok",
+		BaseSoundWeaponType = "radar",
+	},
+	legionnaire = {
+		BaseSoundSelectType = "arm-air-medium-sel",
+		BaseSoundMovementType = "arm-air-medium-ok",
+		BaseSoundWeaponType = "aarocket-air",
+	},
+	legvenator = {
+		BaseSoundSelectType = "arm-air-medium-sel",
+		BaseSoundMovementType = "arm-air-medium-ok",
+		BaseSoundWeaponType = "aarocket-air",
+	},
+	legphoenix = {
+		BaseSoundSelectType = "arm-air-bomber-sel",
+		BaseSoundMovementType = "arm-air-bomber-ok",
+		BaseSoundWeaponType = "air-bomb-large",
 	},
 
 

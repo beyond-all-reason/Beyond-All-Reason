@@ -101,6 +101,8 @@ local unitOrderTable = {
 	['legfig']         = 004306,
 	['armhawk']        = 004310, --FIGHTERS T2
 	['corvamp']        = 004315,
+	['legionnaire']    = 004316,
+	['legvenator']     = 004317,
 	['armsfig2']       = 004316, -- T2 Heavy Fighter (air rework mod)
 	['corsfig2']       = 004317,
 
@@ -108,6 +110,7 @@ local unitOrderTable = {
 	['legmos']         = 004322,
 	['armsaber']       = 004325,
 	['corcut']         = 004330,
+	['legstronghold']  = 004331,
 
 	['armbrawl']       = 004335, --GUNSHIPS T2
 	['corape']         = 004340,
@@ -122,11 +125,13 @@ local unitOrderTable = {
 	['legkam']         = 004357,
 	['armsb']          = 004360,
 	['corsb']          = 004365,
+	['legphoenix']     = 004366,
 
 	['armpnix']        = 004370, --BOMBERS T2
 	['corhurc']        = 004380,
 	['legnap']         = 004381,
 	['legmineb']       = 004382,
+	['legphoenix']     = 004383,
 	['armliche']       = 004385,
 	['armstil']        = 004390,
 

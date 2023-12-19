@@ -343,6 +343,7 @@ local armorDefs = {
 
 		"armapt3",
 		"corapt3",
+		"legbastion",
 		
 		"coruwgeo",
 		"coruwageo",
@@ -463,6 +464,11 @@ local armorDefs = {
 		"corsfig2",
 		"corvamp",
 		"legfig",
+		"legionnaire",
+		"legvenator",
+		"legphoenix",
+		"legstronghold",
+		"legwhisper",
 	},
 	shields = {
 		"armgate",
