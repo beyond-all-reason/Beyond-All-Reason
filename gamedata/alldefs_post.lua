@@ -897,18 +897,18 @@ if Spring.GetModOptions().emprework == true then
 			uDef.weapondefs.stiletto_bomb.burst = 3
 			uDef.weapondefs.stiletto_bomb.burstrate = 0.3333
 			uDef.weapondefs.stiletto_bomb.edgeeffectiveness = 0.30
-			uDef.weapondefs.stiletto_bomb.damage.default = 1200
+			uDef.weapondefs.stiletto_bomb.damage.default = 1600
 			uDef.weapondefs.stiletto_bomb.paralyzetime = 5			
 		end
 
 		if name == "armspid" then
 			uDef.weapondefs.spider.paralyzetime = 5			
-			uDef.weapondefs.spider.damage.vtol = 225			
-			--uDef.weapondefs.spider.damage.default = 1500
+			uDef.weapondefs.spider.damage.vtol = 175			
+			uDef.weapondefs.spider.damage.default = 700
 		end
 
 		if name == "armdfly" then
-			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 5			
+			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 8			
 		end
 		
 
@@ -916,7 +916,7 @@ if Spring.GetModOptions().emprework == true then
 			uDef.weapondefs.armemp_weapon.areaofeffect = 512
 			uDef.weapondefs.armemp_weapon.burstrate = 0.3333
 			uDef.weapondefs.armemp_weapon.edgeeffectiveness = -0.10
-			uDef.weapondefs.armemp_weapon.paralyzetime = 15
+			uDef.weapondefs.armemp_weapon.paralyzetime = 23
 			uDef.weapondefs.armemp_weapon.damage.default = 60000
 			
 		end
@@ -935,6 +935,7 @@ if Spring.GetModOptions().emprework == true then
 			uDef.weapondefs.empmissile.damage.default = 20000
 			uDef.weapondefs.empmissile.paralyzetime = 5	
 			uDef.weapondefs.emp.damage.default = 275
+			uDef.weapondefs.emp.reloadtime = .5
 			uDef.weapondefs.emp.paralyzetime = 5	
 		end
 
@@ -947,55 +948,55 @@ if Spring.GetModOptions().emprework == true then
 			--uDef.weapondefs.bladewing_lyzer.beamtime = 0.03
 			--uDef.weapondefs.bladewing_lyzer.beamttl = 0.4
 			
-			uDef.weapondefs.bladewing_lyzer.damage.default = 100
+			uDef.weapondefs.bladewing_lyzer.damage.default = 300
 			uDef.weapondefs.bladewing_lyzer.paralyzetime = 5	
 		end
 
 
 		if (name == "corsilo" or name == "armsilo" or name == "armvulc" or name == "corbuzz" or name == "legstarfall") then
-			uDef.customparams.paralyzemultiplier = 1.5
+			uDef.customparams.paralyzemultiplier = 1.4
 		end
 		
-		if name == "corsumo" then
-			uDef.customparams.paralyzemultiplier = 0.9
-		end
+		--if name == "corsumo" then
+			--uDef.customparams.paralyzemultiplier = 0.9
+		--end
 		
-		if name == "armmar" then
-			uDef.customparams.paralyzemultiplier = 1.3
-		end
+		--if name == "armmar" then
+			--uDef.customparams.paralyzemultiplier = 1.3
+		--end
 		
 		if name == "armbanth" then
-			uDef.customparams.paralyzemultiplier = 2
+			uDef.customparams.paralyzemultiplier = 1
 		end
 
-		if name == "armraz" then
-			uDef.customparams.paralyzemultiplier = 1.2
-		end
-		if name == "armvang" then
-			uDef.customparams.paralyzemultiplier = 1.1
-		end
+		--if name == "armraz" then
+			--uDef.customparams.paralyzemultiplier = 1.2
+		--end
+		--if name == "armvang" then
+			--uDef.customparams.paralyzemultiplier = 1.1
+		--end
 		
-		if name == "armlun" then
-			uDef.customparams.paralyzemultiplier = 1.05
-		end
+		--if name == "armlun" then
+			--uDef.customparams.paralyzemultiplier = 1.05
+		--end
 		
-		if name == "corshiva" then
-			uDef.customparams.paralyzemultiplier = 1.1
-		end
+		--if name == "corshiva" then
+			--uDef.customparams.paralyzemultiplier = 1.1
+		--end
 		
-		if name == "corcat" then
-			uDef.customparams.paralyzemultiplier = 1.05
-		end
+		--if name == "corcat" then
+			--uDef.customparams.paralyzemultiplier = 1.05
+		--end
 		
-		if name == "corkarg" then
-			uDef.customparams.paralyzemultiplier = 1.2
-		end
-		if name == "corsok" then
-			uDef.customparams.paralyzemultiplier = 1.1
-		end
-		if name == "cordemont4" then
-			uDef.customparams.paralyzemultiplier = 1.2
-		end
+		--if name == "corkarg" then
+			--uDef.customparams.paralyzemultiplier = 1.2
+		--end
+		--if name == "corsok" then
+			--uDef.customparams.paralyzemultiplier = 1.1
+		--end
+		--if name == "cordemont4" then
+			--uDef.customparams.paralyzemultiplier = 1.2
+		--end
 
 end
 
@@ -1249,16 +1250,16 @@ function WeaponDef_Post(name, wDef)
 		if Spring.GetModOptions().emprework==true then
 
 			if name == 'empblast' then
-				wDef.areaofeffect = 350
+				--wDef.areaofeffect = 350
 				wDef.edgeeffectiveness = 0.6
-				wDef.paralyzetime = 12
+				--wDef.paralyzetime = 12
 				wDef.damage.default = 50000
 			end
 			if name == 'spybombx' then
-				wDef.areaofeffect = 350
-				wDef.edgeeffectiveness = 0.30
-				wDef.paralyzetime = 12
-				wDef.damage.default = 20000
+				wDef.areaofeffect = 340
+				wDef.edgeeffectiveness = 0.75
+				wDef.paralyzetime = 20
+				wDef.damage.default = 40000
 			end
 			if name == 'spybombxscav' then
 				wDef.edgeeffectiveness = 0.50
