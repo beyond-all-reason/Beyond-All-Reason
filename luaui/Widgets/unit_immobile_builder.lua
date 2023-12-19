@@ -131,7 +131,7 @@ function widget:UnitIdle(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitCommand(unitID, unitDefID, _, cmdID, _, cmdOpts)
-	if cmdID ~= CMD_FIGHT then
+	if isImmobileBuilder[unitDefID] and cmdOpts.shift and cmdID ~= CMD_FIGHT then
 		local firstCmdID, _, cmdTag = spGetUnitCurrentCommand(unitID, 1)
 		if firstCmdID == CMD_FIGHT then
 			spGiveOrderToUnit(unitID, CMD.REMOVE, { cmdTag }, 0)
