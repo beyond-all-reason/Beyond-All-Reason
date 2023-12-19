@@ -562,6 +562,7 @@ local unitOrderTable = {
    ['cortoast']       = 107400,
    ['armanni']        = 107500,
    ['cordoom']        = 107600,
+   ['legbastion']     = 107650,
    ['armannit3']      = 107700, --scavengers
    ['cordoomt3']      = 107800, --scavengers
 
