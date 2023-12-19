@@ -28,7 +28,7 @@ return {
 		script = "Units/ARMDRONE.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 500,
+		sightdistance = 600,
 		turninplaceanglelimit = 360,
 		turnrate = 1000,
 		customparams = {
