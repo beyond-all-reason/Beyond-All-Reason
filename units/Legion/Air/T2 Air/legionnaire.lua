@@ -108,7 +108,7 @@ return {
 				predictboost = 1,
 				proximitypriority = 3,
 				range = 600,
-				reloadtime = 0.50,
+				reloadtime = 1,
 				rgbcolor = "1 0.4 0.95",
 				--size = 2.25,
 				soundhit = "bimpact3",
