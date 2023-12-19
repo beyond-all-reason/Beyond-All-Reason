@@ -292,9 +292,10 @@ end
 local function adjustShadowQuality()
 	local quality = Spring.GetConfigInt("ShadowQuality", 3)
 	local shadowMapSize = 600 + math.min(10240, (vsy+vsx)*0.37)*(quality*0.5)
-	Spring.SetConfigInt("Shadows", (quality==0 and 0 or 1))
+	Spring.SetConfigInt("Shadows", 1)
 	Spring.SetConfigInt("ShadowMapSize", shadowMapSize)
-	Spring.SendCommands("shadows "..(quality==0 and 0 or 1).." " .. shadowMapSize)
+	Spring.SendCommands("shadows 1 " .. shadowMapSize)
+	--Spring.Echo(shadowMapSize)
 end
 
 function widget:ViewResize()
@@ -341,7 +342,9 @@ function widget:ViewResize()
 		backgroundGuishader = glDeleteList(backgroundGuishader)
 	end
 
-	adjustShadowQuality()
+	if not (Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500) then
+		adjustShadowQuality()
+	end
 end
 
 local function detectWater()
@@ -1886,7 +1889,7 @@ function init()
 			guishader = 0,
 			decalsgl4 = 1,
 			decals = 1,
-			shadowslider = 3,
+			shadowslider = 2,
 			grass = false,
 			cusgl4 = true,
 		},
@@ -1904,7 +1907,7 @@ function init()
 		 	guishader = guishaderIntensity,
 			decalsgl4 = 1,
 		 	decals = 2,
-			shadowslider = 4,
+			shadowslider = 3,
 		 	grass = true,
 			cusgl4 = true,
 		},
@@ -1922,7 +1925,7 @@ function init()
 			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 3,
-			shadowslider = 5,
+			shadowslider = 4,
 			grass = true,
 			cusgl4 = true,
 		},
@@ -1940,7 +1943,7 @@ function init()
 			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 4,
-			shadowslider = 6,
+			shadowslider = 5,
 			grass = true,
 			cusgl4 = true,
 		},
@@ -2295,9 +2298,9 @@ function init()
 		  end,
 		},
 
-		{ id = "shadowslider", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.shadowslider'), type = "select", options = { 'off', 'lowest', 'low', 'medium', 'high', 'ultra'}, value = Spring.GetConfigInt("ShadowQuality", 3)+1, description = Spring.I18N('ui.settings.option.shadowslider_descr'),
+		{ id = "shadowslider", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.shadowslider'), type = "select", options = { 'lowest', 'low', 'medium', 'high', 'ultra'}, value = Spring.GetConfigInt("ShadowQuality", 3), description = Spring.I18N('ui.settings.option.shadowslider_descr'),
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("ShadowQuality", value - 1)
+			  Spring.SetConfigInt("ShadowQuality", value)
 			  adjustShadowQuality()
 		  end,
 		},
@@ -5638,7 +5641,11 @@ function init()
 
 			-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
 			if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500 then
+				options[getOptionByID('shadowslider')] = nil
+				options[getOptionByID('shadows_opacity')] = nil
+
 				Spring.SendCommands("advmapshading 0")
+				Spring.SendCommands("Shadows 0 1024")
 			end
 
 		end
@@ -6143,7 +6150,7 @@ function widget:Initialize()
 			Spring.SetConfigInt("AdvMapShading", 0)
 			Spring.SendCommands("advmapshading 0")
 			Spring.SendCommands("Shadows 0 1024")
-			Spring.GetConfigInt("ShadowQuality", 0)
+			Spring.GetConfigInt("ShadowQuality", 1)
 			Spring.SetConfigInt("ShadowMapSize", 1024)
 			Spring.SetConfigInt("Shadows", 0)
 			Spring.SetConfigInt("MSAALevel", 0)
