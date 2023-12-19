@@ -1,14 +1,20 @@
 local scenariodata = {
-	index			= 23, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
-	scenarioid		= "benchmark_lightside", -- no spaces, lowercase, this will be used to save the score
+	index			= 24, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
+	scenarioid		= "benchmark_pathfinding", -- no spaces, lowercase, this will be used to save the score
     version         = "1.0", -- increment this to keep the score when changing a mission
-	title			= "Benchmark BAR", -- can be anything
+	title			= "Benchmark pathfinding", -- can be anything
 	author			= "Beherith, AKU", -- your name here
 	isnew 			= true,
 	imagepath		= "scenario023.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "Units will act automatically during the benchmark", -- This text will be drawn over image
-    summary         = [[This is a quick, ~3 minute benchmark script. You may leave after the benchmark is complete.]],
-	briefing 		= [[This scenario starts a benchmark by spawning 650 units to continously fight against 650 units. Use Bots/Tanks/Aircraft an option for close to a real game's match benchmark and collision an option for synthetic testing multithreading abilities of the game's engine. The average Sim, Draw and Update times are shown on screen. The game will automatically center the camera over the units, do not move the camera while the benchmark is running, and do not interact with the units. The game will return after printing the results to screen and infolog, and submitting them to the server.
+    summary         = [[Pathfinding benchmark.
+Amount of units at the end of testing depends of setting:
+1 unit spawn rate ~700 units
+3 unit spawn rate ~2000 units
+10 unit spawn rate ~7000 units
+15 unit spawn rate ~10000 units
+]],
+	briefing 		= [[Pathfinding benchmark. The average Sim, Draw and Update times are shown on screen. The game will automatically center the camera over the units, do not move the camera while the benchmark is running, and do not interact with the units. The game will return after printing the results to screen and infolog, and submitting them to the server.
 		
 	A total of 2000 simulation frames are tested. 
 	
@@ -17,22 +23,22 @@ local scenariodata = {
 	/luarules fightertest [unitname1] [unitname2] [maxunits] [spawnstep] [spawnradius] 
 	For this benchmark, it is
 
-	/luarules fightertest corak armpw 650 10 2040
+	/luarules armcv armck 11000 1 12000
 
 	]],
 
-	mapfilename		= "Starwatcher 1.0", -- the name of the map to be displayed here
+	mapfilename		= "Jade Empress 1.3", -- the name of the map to be displayed here
 	playerstartx	= "10%", -- X position of where player comm icon should be drawn, from top left of the map
 	playerstarty	= "10%", -- Y position of where player comm icon should be drawn, from top left of the map
 	partime 		= 180, -- par time in seconds
 	parresources	= 1, -- par resource amount
 	difficulty		= 15, -- Percieved difficulty at 'normal' level: integer 1-10
-    defaultdifficulty = "Bots", -- an entry of the difficulty table
+    defaultdifficulty = "3 unit spawn rate", -- an entry of the difficulty table
     difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
-		{name = "Bots", playerhandicap = "corak armpw 650 10 2040" , enemyhandicap = 0},
-		{name = "Tanks", playerhandicap = "armbull armbull 650 10 2040" , enemyhandicap = 0},
-		{name = "Aircraft", playerhandicap = "corvamp armhawk 650 10 2040" , enemyhandicap = 0},
-		{name = "Collision", simspeed = "setspeed 20", cpu80 = "speedcontrol 0", playerhandicap = "coracsub coracsub 1300 2 1" , enemyhandicap = 0},
+		{name = "1 unit spawn rate", playerhandicap = "armcv armck 11000 1 12000" , enemyhandicap = 0},
+		{name = "3 unit spawn rate", playerhandicap = "armcv armck 11000 3 12000" , enemyhandicap = 0},
+		{name = "10 unit spawn rate", playerhandicap = "armcv armck 11000 10 12000" , enemyhandicap = 0},
+		{name = "15 unit spawn rate", playerhandicap = "armcv armck 11000 15 12000" , enemyhandicap = 0},
     },
     allowedsides     = {""}, --these are the permitted factions for this mission
 	victorycondition= "None", -- This is plaintext, but should be reflected in startscript
@@ -40,9 +46,9 @@ local scenariodata = {
     unitlimits   = {},
     scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
         --myoption = "dostuff",
-        scenarioid = "benchmark_lightside", --must be present for scores
+        scenarioid = "benchmark_pathfinding", --must be present for scores
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
-		benchmarkcommand = "luarules fightertest corak armpw 650 10 2040", -- make sure the matches the debugcommands identically named modoption's info
+		benchmarkcommand = "luarules fightertest armcv armck 11000 1 12000", -- make sure the matches the debugcommands identically named modoption's info
 		benchmarkframes = 2000,
 		-- quiteforce sucks, does not end the game. 
 		--unitloadout = {},	
@@ -87,9 +93,10 @@ local scenariodata = {
 	[modoptions]
 	{
         scenariooptions = __SCENARIOOPTIONS__;
-		debugcommands = 1:cheat|15:luarules fightertest __PLAYERHANDICAP__|20:vsync 0|25:deselect|30:__SIMSPEED__|35:__CPU80__|2015:screenshot|2016:luarules fightertest|2020:vsync 1;
+		maxunits = 11000;
+		debugcommands = 1:cheat|15:luarules fightertest __PLAYERHANDICAP__|25:deselect|2015:screenshot|2016:luarules fightertest;
 	}
-
+	
 	[allyTeam1]
 	{
 		startrectright = 1;
