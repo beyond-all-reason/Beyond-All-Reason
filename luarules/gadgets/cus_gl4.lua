@@ -308,13 +308,11 @@ do --save a ton of locals
 		treepbr = {
 			bitOptions = defaultBitShaderOptions + OPTION_TREEWIND + OPTION_PBROVERRIDE,
 			baseVertexDisplacement = 0.0,
-			hasAlphaShadows = 1.0,
 			brightnessFactor = 1.3,
 		},
 		tree = {
 			bitOptions = defaultBitShaderOptions + OPTION_TREEWIND + OPTION_PBROVERRIDE,
 			baseVertexDisplacement = 0.0,
-			hasAlphaShadows = 1.0,
 			brightnessFactor = 1.3,
 		},
 		wreck = {

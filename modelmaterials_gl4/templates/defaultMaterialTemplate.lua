@@ -578,15 +578,12 @@ fragment = [[
 	// Options
 	uniform int bitOptions;
 
-	uniform float hasAlphaShadows = 0.0;
-
 	uniform float brightnessFactor = 1.5;
 	//int bitOptions = 1 +  2 + 8 + 16 + 128 + 256;
 
 	float simFrame = (timeInfo.x + timeInfo.w);
 
 	float textureLODBias =  -0.5; //-0.5 * sin (simFrame * 0.1) - 0.5;
-
 
 	//uniform float pbrParams[8];
 
@@ -1833,161 +1830,6 @@ local shaderPlugins = {
 }
 
 
-
-
---[[
-	#define OPTION_SHADOWMAPPING 0
-	#define OPTION_NORMALMAPPING 1
-	#define OPTION_SHIFT_RGBHSV 2
-	#define OPTION_VERTEX_AO 3
-	#define OPTION_FLASHLIGHTS 4
-
-	#define OPTION_THREADS_ARM 5
-	#define OPTION_THREADS_CORE 6
-
-	#define OPTION_HEALTH_TEXTURING 7
-	#define OPTION_HEALTH_DISPLACE 8
-	#define OPTION_HEALTH_TEXRAPTORS 9
-
-	#define OPTION_MODELSFOG 10
-
-	#define OPTION_TREEWIND 11
-	#define OPTION_PBROVERRIDE 12
-
-]]--
-
--- bit = (index - 1)
-local knownBitOptions = {
-	["shadowmapping"] = 0,
-	["normalmapping"] = 1,
-	["shift_rgbhsv"] = 2,
-	["vertex_ao"] = 3,
-	["flashlights"] = 4,
-
-	["threads_arm"] = 5,
-	["threads_core"] = 6,
-
-	["health_texturing"] = 7,
-	["health_displace"] = 8,
-	["health_texraptors"] = 9,
-
-	["modelsfog"] = 10,
-
-	["treewind"] = 11,
-}
-
-local knownIntOptions = {
-	["shadowsQuality"] = 1,
-	["materialIndex"] = 1,
-
-}
-local knownFloatOptions = {
-}
-
-local allOptions = nil
-
--- Lua limitations only allow to send 24 bits. Should be enough for now.
-local function EncodeBitmaskField(bitmask, option, position)
-	return math.bit_or(bitmask, ((option and 1) or 0) * math.floor(2 ^ position))
-end
-
-local function ProcessOptions(materialDef, optName, optValues)
-	local handled = false
-
-	if not materialDef.originalOptions then
-		materialDef.originalOptions = {}
-		materialDef.originalOptions[1] = table.copy(materialDef.shaderOptions)
-		materialDef.originalOptions[2] = table.copy(materialDef.deferredOptions)
-		materialDef.originalOptions[3] = table.copy(materialDef.shadowOptions)
-	end
-
-	for id, optTable in ipairs({materialDef.shaderOptions, materialDef.deferredOptions, materialDef.shadowOptions}) do
-		if knownBitOptions[optName] then --boolean
-			local optValue = unpack(optValues or {})
-			local optOriginalValue = materialDef.originalOptions[id][optName]
-
-			if optOriginalValue then
-				if optValue ~= nil then
-					if type(optValue) == "boolean" then
-						optTable[optName] = optValue
-					elseif type(tonumber(optValue)) == "number" then
-						optTable[optName] = ((tonumber(optValue) > 0) and true) or false
-					end
-				else
-					optTable[optName] = not optTable[optName] -- apparently `not nil` == true
-				end
-
-				handled = true
-			end
-		elseif knownIntOptions[optName] then --integer
-			--TODO
-			--handled = true
-		elseif knownFloatOptions[optName] then --float
-			--TODO
-			--handled = true
-		end
-	end
-
-	return handled
-end
-
-local function ApplyOptions(luaShader, materialDef, key)
-
-	local optionsTbl
-	if key == 1 then
-		optionsTbl = materialDef.shaderOptions
-	elseif key == 2 then
-		optionsTbl = materialDef.deferredOptions
-	elseif key == 3 then
-		optionsTbl = materialDef.shadowOptions
-	end
-
-	local intOption = 0
-
-	for optName, optValue in pairs(optionsTbl) do
-		if knownBitOptions[optName] then --boolean
-
-			intOption = EncodeBitmaskField(intOption, optValue, knownBitOptions[optName]) --encode options into Int.
-
-		elseif knownIntOptions[optName] then --integer
-
-			if type(optValue) == "number" and knownIntOptions[optName] == 1 then
-				luaShader:SetUniformInt(optName, optValue)
-			elseif type(optValue) == "table" and knownIntOptions[optName] == #optValue then
-				luaShader:SetUniformInt(optName, unpack(optValue))
-			end
-
-		elseif knownFloatOptions[optName] then --float
-			if type(optValue) == "number" and knownFloatOptions[optName] == 1 then
-				luaShader:SetUniformFloat(optName, optValue)
-			elseif type(optValue) == "table" and knownFloatOptions[optName] == #optValue then
-				luaShader:SetUniformFloat(optName, unpack(optValue))
-			end
-
-		end
-	end
-
-	luaShader:SetUniformInt("bitOptions", intOption)
-end
-
-local function GetAllOptions()
-	if not allOptions then
-		allOptions = {}
-		for k, _ in pairs(knownBitOptions) do
-			allOptions[k] = true
-		end
-
-		for k, _ in pairs(knownIntOptions) do
-			allOptions[k] = true
-		end
-
-		for k, _ in pairs(knownFloatOptions) do
-			allOptions[k] = true
-		end
-	end
-	return allOptions
-end
-
 local function SunChanged(luaShader)
 
 	luaShader:SetUniformFloatArrayAlways("pbrParams", {
@@ -2002,10 +1844,6 @@ local function SunChanged(luaShader)
 	})
 	luaShader:SetUniformFloatAlways("gamma", Spring.GetConfigFloat("modelGamma", 1.0))
 end
-
-defaultMaterialTemplate.ProcessOptions = ProcessOptions
-defaultMaterialTemplate.ApplyOptions = ApplyOptions
-defaultMaterialTemplate.GetAllOptions = GetAllOptions
 
 defaultMaterialTemplate.SunChangedOrig = SunChanged
 defaultMaterialTemplate.SunChanged = SunChanged
