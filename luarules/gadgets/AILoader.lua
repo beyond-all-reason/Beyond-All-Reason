@@ -165,7 +165,7 @@ else
 				self:UnitFinished(uId, Spring.GetUnitDefID(uId), Spring.GetUnitTeam(uId))
 			end
 		end
-
+		collectgarbage('collect')
 	end
 
 	function gadget:SetupAI(id)
@@ -213,12 +213,12 @@ else
 		thisAI.neutralUnitIds = thisAI.neutralUnitIds or {}
 		return thisAI
 	end
-	
+
 	local basememlimit = 200000
 	local pershardmemlimit = 50000
 	local garbagelimit = basememlimit -- in kilobytes, will adjust upwards as needed
 	local numShards = 0
-	
+
 	function gadget:GameStart()
 		-- Initialise AIs
 		for _, thisAI in ipairs(Shard.AIs) do
@@ -241,16 +241,16 @@ else
 			--1 run AI game frame update handlers
 			thisAI:Prepare()
 			thisAI:Update()
-			
-			if i == 1 and n % 121 == 0 then 
+
+			if i == 1 and n % 121 == 0 then
 				local ramuse = gcinfo()
-				--Spring.Echo("RAMUSE",i,n, RAMUSE)
-				if ramuse > garbagelimit then 
+				Spring.Echo("RAMUSE",i,n, ramuse)
+				if ramuse > garbagelimit then
 					collectgarbage("collect")
 					collectgarbage("collect")
 					local notgarbagemem = gcinfo()
 					local newgarbagelimit = math.min(1000000, notgarbagemem + basememlimit + pershardmemlimit * numShards) -- peak 1 GB
-					Spring.Echo(string.format("%d STAIs using %d MB RAM > %d MB limit, performing garbage collection and adjusting limit to %d MB", 
+					Spring.Echo(string.format("%d STAIs using %d MB RAM > %d MB limit, performing garbage collection and adjusting limit to %d MB",
 						numShards, math.floor(ramuse/1000), math.floor(garbagelimit/1000), math.floor(newgarbagelimit/1000) ) )
 					garbagelimit = newgarbagelimit
 				end
