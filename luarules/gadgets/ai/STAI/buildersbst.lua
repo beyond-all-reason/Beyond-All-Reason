@@ -5,7 +5,7 @@ function BuildersBST:Name()
 end
 
 function BuildersBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.active = false
 	self.watchdogTimeout = 1800
 	local u = self.unit:Internal()
@@ -119,7 +119,9 @@ function BuildersBST:Update()
 		self:Warn(' no builder to execute sketch',self.sketch)
 
 	else
+		local RAM = gcinfo()
 		self:ProgressQueue()
+		Spring.Echo('progressqueueRAM',gcinfo()-RAM)
 	end
 end
 
@@ -192,24 +194,34 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 	local builderPos =  self.position
 	local army = self.ai.armyhst
 	local site = self.ai.buildingshst
+	local RAM = gcinfo()
 	if loc and type(loc) == 'table' then
+	self:EchoDebug('loc.himself',loc.himself)
 		if loc.categories then
 			for index, category in pairs(loc.categories) do
 				if category == 'selfCat' then
 					category = cat
 				end
+				self:EchoDebug('category',category)
+
 				POS = site:searchPosNearCategories(utype, builder,loc.min, loc.max,{category},loc.neighbours, loc.number)
+				Spring.Echo('posnearcategoryram',gcinfo() - RAM)
+				self:EchoDebug('POS',POS)
 				if POS then
 					break
 				end
 			end
 		end
 		if not POS and loc.list then
+
 			POS = site:searchPosInList(utype, builder, loc.min,loc.max,loc.list,loc.neighbours)
+			Spring.Echo('posinlistram',gcinfo() - RAM)
+			self:EchoDebug('POS2',POS)
 		end
 		if not POS and loc.himself then
 -- 			POS = site:ClosestBuildSpot(builder, builderPos, utype)
-			POS = site:FindClosestBuildSite(utype, builderPos.x,builderPos.y,builderPos.z, minDist, maxDist,builder)
+			POS = site:FindClosestBuildSite(utype, builderPos.x,builderPos.y,builderPos.z, loc.min, loc.max,builder)
+			self:EchoDebug('POS3',POS)
 		end
 	end
 	--factory will get position in labshst
@@ -241,7 +253,8 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 		for id,lab in pairs(self.ai.labshst.labs) do
 			self:EchoDebug(mtype,lab.level,self.ai.armyhst.factoryMobilities[lab.name][1],currentLevel)
 			if mtype == self.ai.armyhst.factoryMobilities[lab.name][1] and lab.level >= currentLevel then
-				if not self.ai.buildingshst:unitsNearCheck(lab.position,390,10+(5*lab.level),{'_nano_'}) then
+				local lp = lab.position
+				if not self.ai.buildingshst:unitsNearCheck(lp.x,lp.y,lp.z,390,10+(5*lab.level),{'_nano_'}) then
 					self:EchoDebug( self.name, ' can push up self mtype ', lab.name)
 					currentLevel = lab.level
 					target = lab
@@ -350,8 +363,11 @@ function BuildersBST:ProgressQueue()
 				utype = self.game:GetTypeByName(jobName)
 			end
 			if jobName and utype and not p then
+				local RAM = gcinfo()
+				Spring.Echo('lmsdcjhdbc',jobName)
 				utype, jobName, p = self:findPlace(utype, jobName,JOB.category,JOB.location)
 				self:EchoDebug('p',p)
+				Spring.Echo('findplaceRAM',gcinfo()-RAM,jobName)
 			end
 			if jobName and not utype   then
 				self:Warn('warning' , self.name , " cannot build:",jobName,", couldnt grab the unit type from the engine")

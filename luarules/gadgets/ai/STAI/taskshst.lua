@@ -630,7 +630,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'_mex_'},min = 50,neighbours = {'_llt_','_popup2_','_popup1_'},list = self.map:GetMetalSpots()} ,
+			location = {min = 50,neighbours = {'_llt_','_popup2_','_popup1_'},list = self.map:GetMetalSpots()} ,
 			},
 
 		{ 	category = '_popup2_' ,
@@ -639,7 +639,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'_mex_'},min = 50,neighbours = {'_popup2_'}} ,
+			location = {list = self.map:GetMetalSpots(),min = 50,neighbours = {'_popup2_'}} ,
 	        },
 
 		{ 	category = '_solar_' ,
@@ -905,7 +905,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {min = 50,categories = {'_nano_','factoryMobilities'},himself = true} ,
+			location = {min = 100,categories = {'_nano_','factoryMobilities'},himself = true} ,
 	        special = true,
 	        },
 
@@ -915,7 +915,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {min = 50,categories = {'_nano_','factoryMobilities'},himself = true} ,
+			location = {min = 100,categories = {'_nano_','factoryMobilities'},himself = true} ,
 	        special = true,
 	        },
 
@@ -925,7 +925,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location ={min = 50,categories = {'_nano_','factoryMobilities'},himself = true} ,
+			location ={min = 100,categories = {'_nano_','factoryMobilities'},himself = true} ,
 			special = true } , --specialFilter
 
 		{ 	category = '_llt_' ,

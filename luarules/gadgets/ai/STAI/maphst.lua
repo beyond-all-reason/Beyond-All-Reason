@@ -14,7 +14,7 @@ local mCeil = math.ceil
 
 function MapHST:Init()
 
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self:EchoDebug('MapHST START')
 	if self.map_loaded then
 		print('map already loaded')
@@ -730,18 +730,24 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 
 	if not layer or not net then return end
 	local sortlist = self.ai.tool:sortByDistance(position,self.networks[layer][net].metals)
-	for dist, index in pairs(sortlist) do
-		Spring:Echo(dist,index)
-	end
-	for dist, index in pairs(sortlist) do
-		local spot = self.networks[layer][net].metals[index]
-		Spring:Echo('mexplace',spot.x,spot.y)
+-- 	for index, spot in ipairs(sortlist) do
+-- 		Spring:Echo(index,spot)
+-- 	end
+-- 	local RAM = gcinfo()
+	for index, spot in pairs(sortlist) do
+-- 		local spot = self.networks[layer][net].metals[index]
+
 		if self:UnitCanGoHere(builder, spot) then
+-- 			Spring:Echo('mexRAM1',gcinfo()-RAM)
 			if not self.ai.buildingshst:PlansOverlap(spot, uname) then
+-- 				Spring:Echo('mexRAM2',gcinfo()-RAM)
 				if self.ai.targethst:IsSafeCell(spot, builder) then
+-- 					Spring:Echo('mexRAM3',gcinfo()-RAM)
 					if map:CanBuildHere(unittype, spot) then
+-- 					Spring:Echo('mexRAM4',gcinfo()-RAM)
 						local CELL = self:GetCell(spot,self.ai.loshst.ENEMY)
 						if not CELL or CELL.ENEMY == 0 then
+--						Spring:Echo('mexRAM5',gcinfo()-RAM]])
 							return spot
 -- 							local distance = self.ai.tool:distance(position,spot)
 -- 							--print(distance-Distance)

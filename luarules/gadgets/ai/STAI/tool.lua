@@ -79,6 +79,13 @@ function Tool:RandomAway(pos, dist, opposite, angle)
 	end
 end
 
+function Tool:RawDistance(x1,y1,z1,x2,y2,z2)
+	local x = x1-x2
+	local y = y1-y2
+	local z = z1-z2
+	return sqrt( (x*x) + (y*y) + (z*z) )
+end
+
 function Tool:DISTANCE(POS1,POS2)
 	local x = POS2.x - POS1.x
 	local y = POS2.y - POS1.y
@@ -212,11 +219,21 @@ end
 
 function Tool:sortByDistance(POS,list)
 	local distanceIndex = {}
+	local dix={}
 	for index,pos in pairs(list) do
-		distanceIndex[self:distance(pos,POS)] = index
+		distanceIndex[(self:distance(pos,POS))] = index
+		dix[index]=(self:distance(pos,POS))
+
 	end
-	return distanceIndex
+	table.sort(dix)
+	for i,v in pairs(dix) do
+		--Spring:Echo(i,v)
+		dix[i] = list[distanceIndex[v]]
+	end
+	return dix
 end
+
+
 
 function Tool:listHasKey( value, list )
 	for k,v in pairs(list) do

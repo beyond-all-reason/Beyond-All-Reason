@@ -14,6 +14,7 @@ function BuildingsHST:Init()
 	self.sketch = {}
 	self.builders = {}
 	self.roles = {}
+	self.allyMex = {}
 	self:DontBuildOnMetalOrGeoSpots()
 end
 
@@ -121,26 +122,30 @@ function BuildingsHST:DontBuildOnMetalOrGeoSpots()
 	end
 end
 
-function BuildingsHST:FindClosestBuildSite(unittype, bx,by,bz, minDist, maxDist,builder) -- returns Position
+function BuildingsHST:FindClosestBuildSite(unittype, bx,by,bz, minDist, maxDist,builder,recycledPos) -- returns Position
 
-	local ch = 2
-	map:EraseAll(ch)
+	--local ch = 2
+	--map:EraseAll(ch)
 
 	maxDist = maxDist or 390
-	minDist = minDist or 0
+	minDist = minDist or 1
+	minDist = math.max(minDist,1)
 
 	local twicePi = math.pi * 2
 	local angleIncMult = twicePi / minDist
 
 	local maxX, maxZ = Game.mapSizeX, Game.mapSizeZ
-	map:DrawPoint({x=bx,y=by,z=bz}, {1,0,0,1},'origin',  ch)
+	---map:DrawPoint({x=bx,y=by,z=bz}, {1,0,0,1},'origin',  ch)
 	local attempt = 1
-	local maxtest = math.min(10,(maxDist - minDist) / 100)
-	local checkpos = {x = -1,y = -1,z = -1}
+	local maxtest = math.max(10,(maxDist - minDist) / 100)
+	local checkpos = recycledPos or {}
+	--self:EchoDebug('FindClosestBuildSite',unittype,bx,bz,minDist,maxDist,maxtest)
 	for radius = minDist, maxDist, maxtest do
+		self:EchoDebug('radius = minDist, maxDist, maxtest',radius , maxDist, maxtest)
 		local angleInc = radius * twicePi * angleIncMult
 		local initAngle = math.random() * twicePi
 		for angle = initAngle, initAngle+twicePi, angleInc do
+			self:EchoDebug('intAAngle initAngle+twicePi, angleinc',initAngle, initAngle+twicePi, angleInc)
 			attempt = attempt + 1
 
 			local realAngle = angle+0
@@ -167,7 +172,7 @@ function BuildingsHST:FindClosestBuildSite(unittype, bx,by,bz, minDist, maxDist,
 			checkpos.x = x
 			checkpos.y = y
 			checkpos.z = z
-			map:DrawPoint({x=x, y=y, z=z}, {1,1,1,1},attempt,  ch)
+			--map:DrawPoint({x=x, y=y, z=z}, {1,1,1,1},attempt,  ch)
 			local check = self:CheckBuildPos(checkpos, unittype, builder, originalPosition)
 			if check then
 				local buildable, px,py,pz = self:CanBuildHere(unittype, x,y,z)
@@ -180,12 +185,6 @@ function BuildingsHST:FindClosestBuildSite(unittype, bx,by,bz, minDist, maxDist,
 			end
 		end
 	end
---[[
-	local lastDitch, lastDitchPos = self:CanBuildHere(unittype, builderpos)
-	if lastDitch then
-		lastDitchPos = validFunction(lastDitchPos)
-		if lastDitchPos then return lastDitchPos end
-	end]]
 end
 
 function BuildingsHST:CanBuildHere(unittype,x,y,z) -- returns boolean
@@ -194,19 +193,6 @@ function BuildingsHST:CanBuildHere(unittype,x,y,z) -- returns boolean
 	-- Spring.Echo(unittype:Name(), newX, newY, newZ, blocked)
 	return ( not blocked ), newX, newY, newZ
 end
-
--- function BuildingsHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minimumDistance, attemptNumber, buildDistance, maximumDistance)
--- 	self:EchoDebug("looking for build spot for " .. builder:Name() .. " to build " .. unitTypeToBuild:Name())
--- 	maximumDistance = maximumDistance or 390
--- 	--minimumDistance = minimumDistance or 1
--- 	--buildDistance = buildDistance or 100
--- 	local target = self:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minimumDistance, validFunction)
---  	return target
--- end
-
-
-
-
 
 function BuildingsHST:CheckBuildPos(pos, unitTypeToBuild, builder--[[, originalPosition]]) --TODO clean this
 	if not pos then return end
@@ -221,11 +207,7 @@ function BuildingsHST:CheckBuildPos(pos, unitTypeToBuild, builder--[[, originalP
 			return nil
 		end
 	end
--- 	local s = self.ai.map:CanBuildHere(unitTypeToBuild, pos)
--- 	if not s then
--- 		self:EchoDebug("cannot build " .. unitTypeToBuild:Name() .. " here: " .. pos.x .. ", " .. pos.z)
--- 		return nil
--- 	end
+
 	local rect
 	if pos ~= nil then
 		rect = {position = pos, unitName = unitTypeToBuild:Name()}
@@ -237,6 +219,7 @@ function BuildingsHST:CheckBuildPos(pos, unitTypeToBuild, builder--[[, originalP
 		for i, dont in pairs(self.dontBuildRects) do
 			if self.ai.tool:RectsOverlap(rect, dont) then
 				pos = nil
+				return nil
 			end
 		end
 	end
@@ -266,77 +249,65 @@ end
 
 function BuildingsHST:searchPosNearCategories(utype,builder,minDist,maxDist,categories,neighbours,number)
 	if not categories then return end
-	self:EchoDebug(categories,'searcing')
+	self:EchoDebug(categories,'search pos near categories')
 	local army = self.ai.armyhst
 	local builderName = builder:Name()
-	local p = nil
+	local p = {}
 	maxDist = maxDist or 390
 	if type(maxDist) == 'string' then
 		maxDist = army.unitTable[builderName][maxDist]
 	end
 	local Units = {}
+
 	for i,cat in pairs(categories) do
 		for name, _ in pairs(army[cat]) do
+-- 			local RAM = gcinfo()
 			local defId = army.unitTable[name].defId
 			local units = self.game:GetTeamUnitsByDefs(self.ai.id,defId)
+-- 			Spring.Echo('teamunitbydefsram',gcinfo()-RAM)
 			for index,uID in pairs(units) do
-				self:EchoDebug('unit', index,uId)
+				self:EchoDebug('unit', index,uID)
 				local dist = self.game:GetUnitSeparation(uID,builder:ID())
 				self:EchoDebug('dist = ', dist)
 				table.insert(Units,dist,uID)
 			end
+-- 			Spring.Echo('teamunitbydefsram',gcinfo()-RAM)
+			local k,sortedUnits = self.ai.tool:tableSorting(Units)
+			for index, uID in pairs(sortedUnits) do
+				local unitID = table.remove(sortedUnits,index)--self.game:GetUnitByID(uID)
+				local unit = self.game:GetUnitByID(unitID)
+				local unitName = unit:Name()
+				--local unitPos = unit:GetPosition()
+				local  bx,by,bz = unit:GetRawPos()
+				if not neighbours or not self:unitsNearCheck(bx,by,bz, maxDist,number,neighbours) then
+					p = self:FindClosestBuildSite(utype, bx,by,bz, minDist, maxDist,builder,p)
+					if p and p.x then
+						return p
+					end
+				end
+			end
+-- 			Spring.Echo('forsortedram',gcinfo()-RAM)
 		end
 	end
-	local k,sortedUnits = self.ai.tool:tableSorting(Units)
-	for index, uID in pairs(sortedUnits) do
-		local unit = self.game:GetUnitByID(uID)
-		local unitName = unit:Name()
-		local bx,by,bz = unit:GetRawPos()
-		if not neighbours or not self:unitsNearCheck(unitPos, maxDist,number,neighbours) then
--- 			p = self:ClosestBuildSpot(builder, unitPos, utype , minDist, nil, nil, maxDist )
-			p = self:FindClosestBuildSite(utype, bx,by,bz, minDist, maxDist,builder)
-		end
 
-		if p then
-			return p
-		end
-	end
 end
 
 function BuildingsHST:searchPosInList(utype, builder,minDist,maxDist,list,neighbours,number)
+	self:EchoDebug('search pos in list for')
 	local maxDist = maxDist or 390
 	local d = math.huge
 	local p
 	local tmpDist
-	local tmpOos
+	local tmpPos = {}
 	if not list then return end
-	for distance, index in pairs(self.ai.tool:sortByDistance(builder:GetPosition(),list)) do
-		local pos = list[index]
-		self:EchoDebug(index,pos)
-		if not neighbours or not self:unitsNearCheck(pos, maxDist,number,neighbours)then
--- 			tmpPos = self:ClosestBuildSpot(builder, pos, utype , minDist, nil, nil, maxDist)
-			tmpPos = self:FindClosestBuildSite(utype, pos.x,pos.y,pos.z, minDist, maxDist,builder)
-			if tmpPos then
+	for  index, pos in pairs(self.ai.tool:sortByDistance(builder:GetPosition(),list)) do
+		if not neighbours or not self:unitsNearCheck(pos.x,pos.y,pos.z, maxDist,number,neighbours)then
+			tmpPos = self:FindClosestBuildSite(utype, pos.x,pos.y,pos.z, minDist, maxDist,builder,tmpPos)
+			if tmpPos and tmpPos.x then
 				return tmpPos
-				--[[tmpDist = self.ai.tool:distance(pos,)
-				self:EchoDebug('tmpdist',tmpDist)
-				if tmpDist < 389 then --  here is used to exit the cycle if builder is sufficient near to go here without search more
-					self:EchoDebug(index,'dist < 389')
-					p = tmpPos
-					break --exit the cycle
-				else
-					if tmpDist < d then
-						d = tmpDist
-						p = tmpPos
-						self:EchoDebug('Found pos in list for ', index)
-					end
-				end]]
-
 			end
 		end
 	end
--- 	self:EchoDebug('posinlist',p)
--- 	return p
 end
 
 function BuildingsHST:BuildNearNano(builder, utype,minDist)
@@ -348,21 +319,21 @@ function BuildingsHST:BuildNearNano(builder, utype,minDist)
 -- 		local nanoPos = nanoUnit:GetPosition()
 		local bx,by,bz = nanoUnit:GetRawPos()
 -- 		local p = self:ClosestBuildSpot(builder, nanoPos, utype, 10, nil, nil, maxDist)
-		local p = FindClosestBuildSite(utype, bx,by,bz, nil, maxDist,builder)
+		local p = self:FindClosestBuildSite(utype, bx,by,bz, nil, maxDist,builder)
 		if p then
-			self:EchoDebug('found Position for near nano hotspot at: ' .. nanoPos.x ..' ' ..nanoPos.z)
+			self:EchoDebug('found Position for near nano hotspot at: ' .. p.x ..' ' ..p.z)
 		end
 	end
 end
 
-function BuildingsHST:unitsNearCheck(pos,range,number,targets)
-	if not range or not pos then return end
+function BuildingsHST:unitsNearCheck(x,y,z,range,number,targets)
+	if not range or not x then return end
 	number = number or 1
 	local counter = 0
 	for i,target in pairs(targets) do
 		for builder,project in pairs(self.builders) do
 			if not project.unitID and project.unitName == target or (self.ai.armyhst[target] and self.ai.armyhst[target][project.unitName]) then
-				if self.ai.tool:distance(project.position, pos) < range then
+				if self.ai.tool:RawDistance(project.position.x,project.position.y,project.position.z, x,y,z) < range then
 					counter = counter + 1
 					if counter >= number then
 						self:EchoDebug(' block by a project',counter ,project.unitName)
@@ -372,7 +343,7 @@ function BuildingsHST:unitsNearCheck(pos,range,number,targets)
 			end
 		end
 	end
-	local neighbours = self.game:getUnitsInCylinder(pos, range)
+	local neighbours = self.game:getUnitsInCylinder({x=x,z=z}, range)
 	if not neighbours then return false end
 	for idx, unitID in pairs(neighbours) do
 		local unitName = self.game:GetUnitByID(unitID):Name()

@@ -9,7 +9,7 @@ function LabsHST:internalName()
 end
 
 function LabsHST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.labs = {}
 	self.ECONOMY = 0
 	self:factoriesRating()
@@ -142,7 +142,7 @@ function LabsHST:Update()
 	self.ECONOMY = math.floor(math.min(M.income / 10,E.income / 100))
 	self.needT2 = ((M.income > 20 or self.X100M > 0.2) and E.income > 800 and self.T1LAB)
 	self.needT3 = ((M.income > 50 or self.X100M > 0.4) and E.income > 4000 and self.T2LAB)
-	self:EchoDebug('ECO',self.ECONOMY , ' M',math.floor(M.income / 10), 'E',math.floor(E.income / 100),'X100M',self.X100M)
+	self:EchoDebug('ECO',self.ECONOMY , ' M',math.floor(M.income / 10), 'E',math.floor(E.income / 100),'X100M',self.X100M,'lab',self.T1LAB,self.T2LAB,M.income > 20,E.income > 800)
 
 	self.ai.buildingshst:VisualDBG()--here cause buildingshst have no update
 end
@@ -242,7 +242,8 @@ function LabsHST:PrePositionFilter()
 			buildMe = false
 		end
 		if buildMe and not self.needT2  and T2 then
-			self:EchoDebug(factoryName .. ' Advanced when i dont need it')
+
+			self:EchoDebug(factoryName .. ' Advanced when i dont need it',buildMe,self.needT2,T2)
 			buildMe = false
 		end
 		if buildMe and not self.needT3  and T3 then
@@ -271,12 +272,12 @@ function LabsHST:FactoryPosition(factoryName,builder)
 		self:EchoDebug(' position to build', factoryName, 'found at', p.x,p.z,'near nano')
 		return p
 	end
-	p = site:searchPosNearCategories(utype, builder,50,780,{'_nano_'})
+	p = site:searchPosNearCategories(utype, builder,50,390,{'_nano_'})
 	if p then
 		self:EchoDebug(' position to build', factoryName, 'found at', p.x,p.z,'near _nano_ ')
 		return p
 	end
-	p = site:searchPosNearCategories(utype, builder,50,1000,{'factoryMobilities'})
+	p = site:searchPosNearCategories(utype, builder,250,780,{'factoryMobilities'})
 	if p then
 		self:EchoDebug(' position to build', factoryName, 'found at', p.x,p.z,'near factory')
 		return p
