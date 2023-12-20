@@ -120,8 +120,8 @@ void main(){
 	
 	#ifdef USE_CIRCLES
 		if (numVertices > 5u){ // A circle with even subdivisions
-			numVertices = min(numVertices,62u); // to make sure that we dont emit more than 64 vertices
-			float internalAngle = float(numVertices) * radians(180.0) / float(numVertices);
+			numVertices = min(numVertices,64u); // to make sure that we dont emit more than 64 vertices
+			float internalAngle = float(numVertices - 2u) * radians(180.0) / float(numVertices);
 			float addRadiusCorr = 1 / sin(internalAngle / 2.0);
 			//left most vertex
 			offsetVertex4(- width * 0.5, 0.0,  0, 0.0, 0.5, addRadiusCorr);
