@@ -831,7 +831,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			else
 				timeOfLastSpawn = GetGameSeconds()
-				playerAggression = playerAggression + (config.angerBonus*(queenAnger*0.01))
+				--playerAggression = playerAggression + (config.angerBonus*(queenAnger*0.01))
 			end
 		end
 		tracy.ZoneEnd()

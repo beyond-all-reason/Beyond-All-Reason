@@ -846,7 +846,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			else
 				timeOfLastSpawn = GetGameSeconds()
-				playerAggression = playerAggression + (config.angerBonus*(bossAnger*0.01))
+				--playerAggression = playerAggression + (config.angerBonus*(bossAnger*0.01))
 			end
 		end
 	end
