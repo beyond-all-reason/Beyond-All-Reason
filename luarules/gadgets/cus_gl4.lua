@@ -426,13 +426,18 @@ local function ClearBit(x, p)
 end
 
 local featuresDefsWithAlpha = {}
+local unitDefsUseSkinning = {}
 
 local function GetShader(drawPass, objectDefID)
 	if objectDefID == nil then
 		return false
 	end
 	if objectDefID >= 0 then
-		return shaders[drawPass]['unit']
+		if unitDefsUseSkinning[objectDefID] then 
+			return shaders[drawPass]['unitskinning']
+		else
+			return shaders[drawPass]['unit']
+		end
 	else
 		if featuresDefsWithAlpha[objectDefID] then
 			return shaders[drawPass]['tree']
@@ -442,12 +447,17 @@ local function GetShader(drawPass, objectDefID)
 	end
 end
 
-local function GetShaderName(drawPass, objectDefID)
+local function GetShaderName(drawPass, objectDefID) 
+	-- this function does 2 table lookups, could get away with just one. 
 	if objectDefID == nil then
 		return false
 	end
 	if objectDefID >= 0 then
-		return 'unit'
+		if unitDefsUseSkinning[objectDefID] then 
+			return 'unitskinning'
+		else
+			return 'unit'
+		end
 	else
 		if featuresDefsWithAlpha[objectDefID] then
 			return 'tree'
@@ -508,6 +518,7 @@ local MATERIALS_DIR = "modelmaterials_gl4/"
 
 local defaultMaterialTemplate
 local unitsNormalMapTemplate
+local unitsSkinnedTemplate -- This is reserved for units with skinning animations
 local featuresNormalMapTemplate
 local treesNormalMapTemplate
 
@@ -569,6 +580,35 @@ local function initMaterials()
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
 			"#define ENABLE_OPTION_THREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
+			itsXmas and "#define XMAS 1" or "#define XMAS 0",
+		},
+	})
+
+
+	unitsSkinnedTemplate = appendShaderDefinitionsToTemplate(defaultMaterialTemplate, {
+		shaderDefinitions = {
+			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
+			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
+			"#define USESKINNING",
+			itsXmas and "#define XMAS 1" or "#define XMAS 0",
+		},
+		deferredDefinitions = {
+			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
+			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
+			"#define USESKINNING",
+			itsXmas and "#define XMAS 1" or "#define XMAS 0",
+		},
+		shadowDefinitions = {
+			"#define USESKINNING",
+			itsXmas and "#define XMAS 1" or "",
+		},
+		reflectionDefinitions = {
+			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
+			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
+			"#define USESKINNING",
 			itsXmas and "#define XMAS 1" or "#define XMAS 0",
 		},
 	})
@@ -944,7 +984,11 @@ local function initBinsAndTextures()
 				textureTable[4] = wreckTex2
 				textureTable[5] = wreckNormalTex
 			end
-
+			
+			if unitDef.customParams and unitDef.customParams.useskinning then 
+				unitDefsUseSkinning[unitDefID] = true
+			end
+			
 			local texKeyFast = GenFastTextureKey(unitDefID, unitDef, normalTex, textureTable)
 			if textureKeytoSet[texKeyFast] == nil then
 				textureKeytoSet[texKeyFast] = textureTable
@@ -1592,6 +1636,7 @@ local function initGL4()
 	-- Initialize shaders types like so::
 	-- shaders[0]['unit_deferred'] = LuaShaderObject
 	compileMaterialShader(unitsNormalMapTemplate, "unit")
+	compileMaterialShader(unitsSkinnedTemplate, "unitskinned")
 	compileMaterialShader(featuresNormalMapTemplate, "feature")
 	compileMaterialShader(treesNormalMapTemplate, "tree")
 

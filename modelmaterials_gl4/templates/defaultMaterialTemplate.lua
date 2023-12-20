@@ -269,7 +269,72 @@ vertex = [[
 		mVP.xz += diff + diff2 * wind;
 		//mVP.y += float(UNITID/256);// + sin(simFrame *0.1)+15; // whoops this was meant as debug
 	}
+	
+	#ifdef USESKINNING
+		uint GetUnpackedValue(uint packedValue, uint byteNum) {
+			return (packedValue >> (8u * byteNum)) & 0xFFu;
+		}
+		// See: https://github.com/beyond-all-reason/spring/blob/d37412acca1ae14a602d0cf46243d0aedd132701/cont/base/springcontent/shaders/GLSL/ModelVertProgGL4.glsl#L135C1-L191C2
+		
+		// The only difference is that displacedPos is passed in, and we always assume staticModel = false
+		void GetModelSpaceVertex(in vec3 displacedPos, out vec4 msPosition, out vec3 msNormal)
+		{
+			bool staticModel = false;// (matrixMode > 0);
 
+			vec4 piecePos = vec4(displacedPos, 1.0);
+
+			vec4 weights = vec4(
+				float(GetUnpackedValue(bonesInfo.y, 0)) / 255.0,
+				float(GetUnpackedValue(bonesInfo.y, 1)) / 255.0,
+				float(GetUnpackedValue(bonesInfo.y, 2)) / 255.0,
+				float(GetUnpackedValue(bonesInfo.y, 3)) / 255.0
+			);
+
+			uint b0 = GetUnpackedValue(bonesInfo.x, 0); //first boneID
+			mat4 b0BoneMat = mat[instData.x + b0 + uint(!staticModel)];
+			mat3 b0NormMat = mat3(b0BoneMat);
+
+			weights[0] *= b0BoneMat[3][3];
+
+			msPosition = b0BoneMat * piecePos;
+			msNormal   = b0NormMat * normal;
+
+			if (staticModel || weights[0] == 1.0)
+				return;
+
+			float wSum = 0.0;
+
+			msPosition *= weights[0];
+			msNormal   *= weights[0];
+			wSum       += weights[0];
+
+			uint numPieces = GetUnpackedValue(instData.z, 3);
+			mat4 bposeMat    = mat[instData.w + b0];
+
+			// Vertex[ModelSpace,BoneX] = PieceMat[BoneX] * InverseBindPosMat[BoneX] * BindPosMat[Bone0] * Vertex[Bone0]
+			for (uint bi = 1; bi < 3; ++bi) {
+				uint bID = GetUnpackedValue(bonesInfo.x, bi);
+
+				if (bID == 0xFFu || weights[bi] == 0.0)
+					continue;
+
+				mat4 bposeInvMat = mat[instData.w + numPieces + bID];
+				mat4 boneMat     = mat[instData.x +        1u + bID];
+
+				weights[bi] *= boneMat[3][3];
+
+				mat4 skinMat = boneMat * bposeInvMat * bposeMat;
+				mat3 normMat = mat3(skinMat);
+
+				msPosition += skinMat * piecePos * weights[bi];
+				msNormal   += normMat * normal   * weights[bi];
+				wSum       += weights[bi];
+			}
+
+			msPosition /= wSum;
+			msNormal   /= wSum;
+		}
+	#endif
 
 	/***********************************************************************/
 	// Vertex shader main()
@@ -328,9 +393,15 @@ vertex = [[
 		}
 		#endif
 
-
-		vec4 modelPos = pieceMatrix * piecePos;
-		vec4 worldPos = worldPieceMatrix * piecePos;
+		#ifdef USESKINNING
+			// What in the lords name do we have to do here?
+			vec4 modelPos; // model-space positision
+			GetModelSpaceVertex(piecePos.xyz, modelPos, modelVertexNormal);
+			vec4 worldPos = worldMatrix * piecePos;
+		#else
+			vec4 modelPos = pieceMatrix * piecePos;
+			vec4 worldPos = worldPieceMatrix * piecePos;
+		#endif
 		//worldPos.x += 64; // for dem debuggins
 
 		//gl_TexCoord[0] = gl_MultiTexCoord0;
@@ -1632,6 +1703,7 @@ fragment = [[
 			fragData[GBUFFER_SPECTEX_IDX] = vec4(outSpecularColor, alphaBin);
 
 			#ifndef HASALPHASHADOWS
+				// This seems to be a silly way of forcing no bloom on trees, as only trees HASALPHASHADOWS
 				fragData[GBUFFER_EMITTEX_IDX] = vec4(vec3(albedoColor * emissiveness * 2.0) + outSpecularColor * 0.3, alphaBin);
 			#endif
 			fragData[GBUFFER_MISCTEX_IDX] = vec4(float(materialIndex) / 255.0, 0.0, 0.0, alphaBin);
