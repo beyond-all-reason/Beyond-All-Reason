@@ -730,7 +730,7 @@ else	-- UNSYNCED
 	local alpha = 0.98
 
 
-	local gadgetUpdate = function()
+	function gadget:Update() -- START OF UPDATE
 		if fightertestactive then
 			local now = Spring.GetTimerMicros()
 			if lastFrameType == 'draw' then
@@ -744,7 +744,6 @@ else	-- UNSYNCED
 			lastUpdateTimerUs = Spring.GetTimerMicros()
 		end
 	end
-	--function gadget:Update() end gadgetUpdate() end -- START OF UPDATE
 
 	function gadget:GameFrame(n) -- START OF SIM FRAME
 		if fightertestactive then
@@ -762,7 +761,7 @@ else	-- UNSYNCED
 		end
 	end
 
-	local gadgetDrawGenesis = function()
+	function gadget:DrawGenesis() -- START OF DRAW
 		if fightertestactive then
 			local now = Spring.GetTimerMicros()
 			updateTime = Spring.DiffTimers(now, lastUpdateTimerUs)
@@ -771,9 +770,8 @@ else	-- UNSYNCED
 			lastDrawTimerUS = now
 		end
 	end
-	--function gadget:DrawGenesis() gadgetDrawGenesis() end -- START OF DRAW
 
-	local gadgetDrawScreenPost = function()
+	function gadget:DrawScreenPost() -- END OF DRAW
 		if fightertestactive then
 			drawTime = Spring.DiffTimers(Spring.GetTimerMicros(), lastDrawTimerUS)
 			fighterteststats.drawFrameTimes[#fighterteststats.drawFrameTimes + 1] = drawTime
@@ -783,9 +781,8 @@ else	-- UNSYNCED
 			dt = drawTime
 		end
 	end
-	--function gadget:DrawScreenPost() gadgetDrawScreenPost() end -- END OF DRAW
 
-	local gadgetDrawScreen = function()
+	function gadget:DrawScreen()
 		if fightertestactive or isBenchMark then
 			local s = ""
 			if isBenchMark then
@@ -797,7 +794,6 @@ else	-- UNSYNCED
 			gl.Text(s, 600,600,16)
 		end
 	end
-	--function gadget:DrawScreen() gadgetDrawScreen() end
 
 	function gadget:UnitCreated()
 		if fightertestactive then
@@ -902,14 +898,8 @@ else	-- UNSYNCED
 				scenariooptions = Json.decode(scenariooptions)
 				if scenariooptions and scenariooptions.benchmarkcommand then
 					--This is where the magic happens!
-					local prevIsBenchmark = isBenchMark
 					isBenchMark = scenariooptions.benchmarkcommand
 					benchMarkFrames = scenariooptions.benchmarkframes
-					if prevIsBenchmark ~= isBenchMark then
-						gadget.DrawScreen = (fightertestactive or isBenchMark) and gadgetDrawScreen or nil
-						gadgetHandler:UpdateCallIn("DrawScreen")
-						gadgetHandler:UpdateCallIn("DrawScreen") --stupid bug
-					end
 				end
 			end
 			-- initialize stats table
@@ -926,16 +916,6 @@ else	-- UNSYNCED
 			lastUpdateTimerUs = Spring.GetTimerMicros()
 		end
 		fightertestactive = not fightertestactive
-
-		gadget.DrawGenesis = fightertestactive and gadgetDrawGenesis or nil
-		gadgetHandler:UpdateCallIn("DrawGenesis")
-		gadget.DrawScreenPost = fightertestactive and gadgetDrawGenesis or nil
-		gadgetHandler:UpdateCallIn("DrawScreenPost")
-		gadget.DrawScreen = (fightertestactive or isBenchMark) and gadgetDrawScreen or nil
-		gadgetHandler:UpdateCallIn("DrawScreen")
-		gadget.Update = fightertestactive and gadgetUpdate or nil
-		gadgetHandler:UpdateCallIn("Update")
-
 		local msg = PACKET_HEADER .. ':fightertest'
 		for i=1,5 do
 			if words[i] then msg = msg .. " " .. tostring(words[i]) end
