@@ -554,6 +554,9 @@ else	-- UNSYNCED
 
 
 
+	local vsx,vsy = Spring.GetViewGeometry()
+	local uiScale = vsy / 1080
+
 	function gadget:Initialize()
 		-- doing it via GotChatMsg ensures it will only listen to the caller
 		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- Give a category of units, options /luarules givecat [cor|arm|scav|raptor]
@@ -729,6 +732,10 @@ else	-- UNSYNCED
 	local su = 0
 	local alpha = 0.98
 
+	function gadget:ViewResize()
+		vsx, vsy = Spring.GetViewGeometry()
+		uiScale = vsy / 1080
+	end
 
 	function gadget:Update() -- START OF UPDATE
 		if fightertestactive then
@@ -788,10 +795,8 @@ else	-- UNSYNCED
 			if isBenchMark then
 				s = s .. string.format("Benchmark Frame %d/%d\n", #fighterteststats.simFrameTimes,benchMarkFrames)
 			end
-
-			s = s .. string.format("Sim = ~%3.2fms  (%3.2fms)\nUpdate = ~%3.2fms (%3.2fms)\nDraw = ~%3.2fms (%3.2fms)",
-				ss, simTime, su, updateTime, sd,  drawTime)
-			gl.Text(s, 600,600,16)
+			s = s .. string.format("Sim = ~%3.2fms  (%3.2fms)\nUpdate = ~%3.2fms (%3.2fms)\nDraw = ~%3.2fms (%3.2fms)", ss, simTime, su, updateTime, sd,  drawTime)
+			gl.Text(s, 600*uiScale, 600*uiScale, 16*uiScale)
 		end
 	end
 
@@ -872,7 +877,6 @@ else	-- UNSYNCED
 				stats.engineVersion = Engine.versionFull
 				stats.gpu = Platform.gpu
 				stats.cpu = Platform.hwConfig
-				local vsx,vsy = Spring.GetViewGeometry()
 				stats.display = tostring(vsx) ..'x' .. tostring(vsy)
 
 				Spring.Echo("Benchmark Results")
