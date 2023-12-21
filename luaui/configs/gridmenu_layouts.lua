@@ -1247,9 +1247,9 @@ local unitGrids = {
 			{ "armmine2" },                                           -- med. mine
 		},
 		{
-			{ "armvp", "armcv", },                                    -- vehicle lab, T1 veh con
-			{ "armnanotc", "armcs", },                                -- nano, sea con
-			{ },                                                      --
+			{ "armcv", "armvp" },                             	 	  -- T1 veh con, vehicle lab
+			{ "armnanotc" },                                		  -- nano
+			{ "armcs" },                                              -- sea con
 		}
 	},
 
@@ -1276,28 +1276,28 @@ local unitGrids = {
 			{ },                          --
 		}
 	},
-	
+
 	--corprinter
 	corprinter = {
 		{
-			{'corsolar', 'cormex' },        
-			{ },                                             
+			{'corsolar', 'cormex' },
+			{ },
 			{ },                          -- solar, mex
 		},
 		{
-			{ },        
-			{ },                                             
-			{ },                          
+			{ },
+			{ },
+			{ },
 		},
 		{
-			{ 'corrad','', 'corfort'},        
-			{ },                                             
+			{ 'corrad','', 'corfort'},
+			{ },
 			{ },                          --radar, t2 wall
 		},
 		{
-			{ },        
-			{ },                                             
-			{ },                          
+			{ },
+			{ },
+			{ },
 		}
 	},
 
