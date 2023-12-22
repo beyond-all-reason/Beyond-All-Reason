@@ -1,6 +1,6 @@
 function widget:GetInfo()
 	return {
-		name = "Top Bar", 
+		name = "Top Bar supplyable BP alpha", 
 		desc = "Shows Resources, wind speed, commander counter, and various options.", 
 		author = "Floris and Floris and Floris and Robert82", 
 		date = "Feb, 2017", 
@@ -16,7 +16,7 @@ function Log(Message)
 		Spring.Echo(Message)
 	end
 end
-local Debugmode1 = true
+local Debugmode1 = false
 function Log1(Message)
 	if Debugmode1==true then
 		Spring.Echo(Message)
@@ -1408,34 +1408,15 @@ function widget:GameFrame(n)
 		for i = 1, 1 do
 			if gameFrame % 2 == 0 and drawBPIndicators == true then
 				Log1("sum")
-				local totalMetalCostOfBuilders = BP[2]
-				local avgTotalReservedBP = BP[3]
-				local totalAvailableBP = BP[4]
-				local avgTotalUsedBP = BP[5]
-				local usefulBPFactorM = BP[8]
-				local usefulBPFactorE = BP[9]
-				
-				if BP[2] == nil then
-					totalMetalCostOfBuilders = 1
-				end
-
-				if BP[3] == nil then
-					avgTotalReservedBP = 1
-				end
-				if BP[4] == nil then
-					totalAvailableBP = 1
-				end
-
-				if BP[5] == nil then
-					avgTotalUsedBP = 1
-				end
-
-				if BP[8] == nil then
-					usefulBPFactorM = 1
-				end
-				if BP[9] == nil then
-					usefulBPFactorE = 1
-				end
+				local totalMetalCostOfBuilders = BP[2] or 1N
+				local avgTotalReservedBP = BP[3] or 1
+				local totalAvailableBP = BP[4] or 1
+				local avgTotalUsedBP = BP[5] or 1
+				local usefulBPFactorM = BP[8] or 1
+				local usefulBPFactorE = BP[9] or 1 --this means the same as the following statement
+				--if BP[9] == nil then 
+				--	usefulBPFactorE = 1
+				--end
 				local indicatorPosM = usefulBPFactorM * avgTotalReservedBP / totalAvailableBP
 				local indicatorPosE = usefulBPFactorE * avgTotalReservedBP / totalAvailableBP
 				if indicatorPosM == nil or indicatorPosM > 1 then --be save that the usefulBPFactorM isn't nil or over 100%
@@ -1461,15 +1442,11 @@ function widget:GameFrame(n)
 				if #totalReservedBPData > 5 then --so a grand total of x refresh cicles is considdered (search for "if gameFrame % = " to find the time steps )
 					table.remove(totalReservedBPData, 1)
 				end
-
 				local avgTotalReservedBP = 0
-				
 				for _, power in ipairs(totalReservedBPData) do
 					avgTotalReservedBP = avgTotalReservedBP + power
 				end
-
 				avgTotalReservedBP = math.floor(avgTotalReservedBP / #totalReservedBPData)
-
 				table.insert(totalUsedBPData, totallyUsedBP)
 				if #totalUsedBPData > 5 then --so a grand total of x refresh cicles is considdered (search for "if gameFrame % = " to find the time steps )
 					table.remove(totalUsedBPData, 1)
@@ -2662,10 +2639,13 @@ function TrackBuilder(unitID, unitDefID, unitTeam) -- needed for exact calculati
 			if isFactory == false or (isFactory == true and includeFactories == true) then
 				trackedNum = trackedNum + 1
 				local unitDefID = Spring.GetUnitDefID(unitID) --handling metal cost
+				local currentUnitMetalCost
 				if not UnitDefs[unitDefID].metalCost then
-					UnitDefs[unitDefID].metalCost = 100 -- Standard value if somthing went wrong
+					currentUnitMetalCost = 100 -- Standard value if somthing went wrong
+				else
+					currentUnitMetalCost = UnitDefs[unitDefID].metalCost
 				end
-				local currentUnitMetalCost = UnitDefs[unitDefID].metalCost
+				currentUnitMetalCost = currentUnitMetalCost
 				local unitName = UnitDefs[unitDefID].name -- Cost of Comms
 				if unitName == "armcom" or unitName == "corcom" then
 					currentUnitMetalCost = metalCostForCommander
