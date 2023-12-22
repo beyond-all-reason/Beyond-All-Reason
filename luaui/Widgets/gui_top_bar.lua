@@ -1,6 +1,6 @@
 function widget:GetInfo()
 	return {
-		name = "Top Bar supplyable BP alpha", 
+		name = "Top Bar in Game", 
 		desc = "Shows Resources, wind speed, commander counter, and various options.", 
 		author = "Floris and Floris and Floris and Robert82", 
 		date = "Feb, 2017", 
@@ -1408,7 +1408,7 @@ function widget:GameFrame(n)
 		for i = 1, 1 do
 			if gameFrame % 2 == 0 and drawBPIndicators == true then
 				Log1("sum")
-				local totalMetalCostOfBuilders = BP[2] or 1N
+				local totalMetalCostOfBuilders = BP[2] or 1
 				local avgTotalReservedBP = BP[3] or 1
 				local totalAvailableBP = BP[4] or 1
 				local avgTotalUsedBP = BP[5] or 1
