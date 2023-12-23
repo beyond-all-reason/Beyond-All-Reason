@@ -33,7 +33,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 
-local maxDecorations = 250
+local maxDecorations = 330
 local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/1800000)
 local candycaneSnowMapMult = 2.5
 local addGaiaBalls = false	-- if false, only own team colored balls are added
@@ -95,18 +95,18 @@ for udefID,def in ipairs(UnitDefs) do
 				if cost > v[1] then
 					balls = v[2]
 					radius = v[3] --+ impulse
-					impulse = impulse + (radius/1.7)
+					impulse = impulse + (radius/1.6)
 				else
 					break
 				end
 			end
 			if balls > 0 then
-				hasDecoration[udefID] = {balls, impulse, 30*14, radius}
+				hasDecoration[udefID] = {balls, impulse, 30*16, radius}
 			end
 		end
 	end
 	if def.customParams.iscommander ~= nil then
-		hasDecoration[udefID] = {28, 9, 30*22, 1, true} -- always shows decorations for commander even if maxDecorations is reached
+		hasDecoration[udefID] = {28, 9, 30*25, 1, true} -- always shows decorations for commander even if maxDecorations is reached
 	end
 end
 
@@ -258,12 +258,14 @@ function gadget:GameFrame(n)
 
 	-- add gifted unit decorations
 	for _, unitID in ipairs(createdDecorations) do
-		if decorations[unitID] == nil then
+		if not decorations[unitID] then
 			decorationCount = decorationCount + 1
-			decorations[unitID] = Spring.GetGameFrame() + 600 + (random()*300)
+			decorations[unitID] = Spring.GetGameFrame() + 2000 + (random()*1000)
 			setGaiaUnitSpecifics(unitID)
 			Spring.SetUnitRotation(unitID,random()*360,random()*360,random()*360)
-			Spring.AddUnitImpulse(unitID, (random()-0.5)*2, 3.8+(random()*1), (random()-0.5)*2)
+			--Spring.AddUnitImpulse(unitID, (random()-0.5)*2, 3.8+(random()*1), (random()-0.5)*2)
+			local impulseMult = 100
+			Spring.AddUnitImpulse(unitID, (random()-0.5)*(impulseMult/3), 1+(random()*(impulseMult/1.6)), (random()-0.5)*(impulseMult/3))
 		end
 	end
 	createdDecorations = {}
@@ -271,12 +273,8 @@ end
 
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if decorationUdefIDs[unitDefID] and not decorations[unitID] then
-		decorationCount = decorationCount + 1
-		decorations[unitID] = Spring.GetGameFrame() + 1300 + (random()*500)
-		Spring.SetUnitRotation(unitID,random()*360,random()*360,random()*360)
-		local impulseMult = 80
-		Spring.AddUnitImpulse(unitID, (random()-0.5)*(impulseMult/3), 1+(random()*impulseMult), (random()-0.5)*(impulseMult/3))
+	if decorationUdefIDs[unitDefID] then
+		createdDecorations[#createdDecorations+1] = unitID
 	end
 end
 
