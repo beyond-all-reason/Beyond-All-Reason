@@ -397,7 +397,7 @@ vertex = [[
 			// What in the lords name do we have to do here?
 			vec4 modelPos; // model-space positision
 			GetModelSpaceVertex(piecePos.xyz, modelPos, modelVertexNormal);
-			vec4 worldPos = worldMatrix * piecePos;
+			vec4 worldPos = worldMatrix * modelPos;
 		#else
 			vec4 modelPos = pieceMatrix * piecePos;
 			vec4 worldPos = worldPieceMatrix * piecePos;
