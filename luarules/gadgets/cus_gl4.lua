@@ -518,7 +518,7 @@ local MATERIALS_DIR = "modelmaterials_gl4/"
 
 local defaultMaterialTemplate
 local unitsNormalMapTemplate
-local unitsSkinnedTemplate -- This is reserved for units with skinning animations
+local unitsSkinningTemplate -- This is reserved for units with skinning animations
 local featuresNormalMapTemplate
 local treesNormalMapTemplate
 
@@ -585,7 +585,7 @@ local function initMaterials()
 	})
 
 
-	unitsSkinnedTemplate = appendShaderDefinitionsToTemplate(defaultMaterialTemplate, {
+	unitsSkinningTemplate = appendShaderDefinitionsToTemplate(defaultMaterialTemplate, {
 		shaderDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
 			"#define ENABLE_OPTION_THREADS 1",
@@ -987,6 +987,7 @@ local function initBinsAndTextures()
 			
 			if unitDef.customParams and unitDef.customParams.useskinning then 
 				unitDefsUseSkinning[unitDefID] = true
+				objectDefToUniformBin[unitDefID]  = 'otherunit' -- This will temporarily disable raptor shader
 			end
 			
 			local texKeyFast = GenFastTextureKey(unitDefID, unitDef, normalTex, textureTable)
@@ -1521,7 +1522,7 @@ end
 
 local shaderactivations = 0
 
-local shaderOrder = {'tree','feature','unit',} -- this forces ordering, no real reason to do so, just for testing
+local shaderOrder = {'tree','feature','unit','unitskinning'} -- this forces ordering, no real reason to do so, just for testing
 
 local drawpassstats = {} -- a table of drawpass number and the actual number of units and batches performed by that pass
 for drawpass, _ in pairs(overrideDrawFlagsCombined) do drawpassstats[drawpass] = {shaders = 0, batches = 0, units = 0} end
@@ -1636,7 +1637,7 @@ local function initGL4()
 	-- Initialize shaders types like so::
 	-- shaders[0]['unit_deferred'] = LuaShaderObject
 	compileMaterialShader(unitsNormalMapTemplate, "unit")
-	compileMaterialShader(unitsSkinnedTemplate, "unitskinned")
+	compileMaterialShader(unitsSkinningTemplate, "unitskinning")
 	compileMaterialShader(featuresNormalMapTemplate, "feature")
 	compileMaterialShader(treesNormalMapTemplate, "tree")
 
