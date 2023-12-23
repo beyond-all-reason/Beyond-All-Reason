@@ -271,7 +271,7 @@ end
 
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if decorationUdefIDs[unitDefID] then
+	if decorationUdefIDs[unitDefID] and not decorations[unitID] then
 		decorationCount = decorationCount + 1
 		decorations[unitID] = Spring.GetGameFrame() + 1300 + (random()*500)
 		Spring.SetUnitRotation(unitID,random()*360,random()*360,random()*360)
