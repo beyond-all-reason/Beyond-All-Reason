@@ -2138,6 +2138,7 @@ function widget:MousePress(x, y, button)
 			if backRect and backRect:contains(x, y) then
 				Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, "ui")
 				clearCategory()
+				return true
 			end
 
 			for i, rect in pairs(builderRects) do
