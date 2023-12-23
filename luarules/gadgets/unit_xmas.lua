@@ -205,14 +205,15 @@ function gadget:GameFrame(n)
 			if frame < n then
 				decorations[unitID] = nil
 				local x,y,z = Spring.GetUnitPosition(unitID)
-				local gy = Spring.GetGroundHeight(x,z)
-
-				decorationsTerminal[unitID] = n+random(0,50)+225+((y - gy) * 33)		-- allows if in sea to take longer to go under seafloor
-				if decorationsTerminal[unitID] > n+1500 then	-- limit time
-					decorationsTerminal[unitID] = n+1500
+				if x then
+					local gy = Spring.GetGroundHeight(x,z)
+					decorationsTerminal[unitID] = n+random(0,50)+225+((y - gy) * 33)		-- allows if in sea to take longer to go under seafloor
+					if decorationsTerminal[unitID] > n+1500 then	-- limit time
+						decorationsTerminal[unitID] = n+1500
+					end
+					local env = Spring.UnitScript.GetScriptEnv(unitID)
+					Spring.UnitScript.CallAsUnit(unitID,env.Sink)
 				end
-				local env = Spring.UnitScript.GetScriptEnv(unitID)
-				Spring.UnitScript.CallAsUnit(unitID,env.Sink)
 			end
 		end
 	end
@@ -266,6 +267,17 @@ function gadget:GameFrame(n)
 		end
 	end
 	createdDecorations = {}
+end
+
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	if decorationUdefIDs[unitDefID] then
+		decorationCount = decorationCount + 1
+		decorations[unitID] = Spring.GetGameFrame() + 1300 + (random()*500)
+		Spring.SetUnitRotation(unitID,random()*360,random()*360,random()*360)
+		local impulseMult = 80
+		Spring.AddUnitImpulse(unitID, (random()-0.5)*(impulseMult/3), 1+(random()*impulseMult), (random()-0.5)*(impulseMult/3))
+	end
 end
 
 function gadget:FeatureCreated(featureID, allyTeam)
