@@ -410,10 +410,10 @@ local function setupCategoryRects()
 		local x1 = categoriesRect.x
 		local contentHeight = (categoriesRect.yEnd - categoriesRect.y) / numCats
 		local contentWidth = categoriesRect.xEnd - categoriesRect.x
-		if(currentCategory) then
+		if currentCategory then
 			-- put current category in center and hide all others
 			for i, cat in ipairs(categories) do
-				if(cat == currentCategory) then
+				if cat == currentCategory then
 					local y1 = ((categoriesRect.yEnd - categoriesRect.y) / 2) - (contentHeight / 2)
 					catRects[cat] = Rect:new(
 						x1,
@@ -441,11 +441,11 @@ local function setupCategoryRects()
 		local buttonWidth = math.round(((categoriesRect.xEnd - categoriesRect.x) / numCats))
 		local padding = math_max(1, math_floor(bgpadding * 0.52))
 		local y2 = categoriesRect.yEnd
-		if(currentCategory) then
+		if currentCategory then
 			-- put current category in center and hide all others
 			local x1 = (math.round(categoriesRect.xEnd - categoriesRect.x) / 2) - (buttonWidth / 2)
 			for i, cat in ipairs(categories) do
-				if(cat == currentCategory) then
+				if cat == currentCategory then
 					catRects[cat] = Rect:new(
 						x1,
 						y2 - categoryButtonHeight + padding,
@@ -2124,21 +2124,19 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if
-		buildmenuShows
-		and (backgroundRect:contains(x, y) or buildersRect:contains(x, y) or nextBuilderRect:contains(x, y))
-	then
+	if buildmenuShows and (backgroundRect:contains(x, y) or buildersRect:contains(x, y) or nextBuilderRect:contains(x, y)) then
 		if activeBuilder or (isPregame and startDefID) then
-			if nextPageRect and nextPageRect:contains(x, y) then
-				Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, "ui")
-				nextPageHandler()
-				return true
-			end
-
-			if backRect and backRect:contains(x, y) then
-				Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, "ui")
-				clearCategory()
-				return true
+			if currentCategory then
+				if nextPageRect and nextPageRect:contains(x, y) then
+					Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, "ui")
+					nextPageHandler()
+					return true
+				end
+				if backRect and backRect:contains(x, y) then
+					Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, "ui")
+					clearCategory()
+					return true
+				end
 			end
 
 			for i, rect in pairs(builderRects) do
