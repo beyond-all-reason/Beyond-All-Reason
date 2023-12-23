@@ -37,7 +37,7 @@ local BUILDCAT_ECONOMY = "Economy"
 local BUILDCAT_COMBAT = "Combat"
 local BUILDCAT_UTILITY = "Utility"
 local BUILDCAT_PRODUCTION = "Build"
-local categoryFontSize, hotkeyFontSize, pageButtonHeight
+local categoryFontSize, categoryButtonHeight, hotkeyFontSize
 
 local folder = "LuaUI/Images/groupicons/"
 local groups = {
@@ -142,6 +142,14 @@ function Rect:new(x1, y1, x2, y2)
 		return self.x .. self.y .. self.yEnd .. self.xEnd
 	end
 
+	function this:getWidth()
+		return self.xEnd - self.x
+	end
+
+	function this:getHeight()
+		return self.yEnd - self.y
+	end
+
 	return this
 end
 
@@ -196,8 +204,7 @@ local pages = 1
 local backRect = Rect:new(0, 0, 0, 0)
 local nextPageRect = Rect:new(0, 0, 0, 0)
 local categoriesRect = Rect:new(0, 0, 0, 0)
-local buildpicsRect = Rect:new(0, 0, 0, 0)
-local paginatorsRect = Rect:new(0, 0, 0, 0)
+local buildpicsRect = Rect:new(0, 0, 0 ,0)
 local buildersRect = Rect:new(0, 0, 0, 0)
 local nextBuilderRect = Rect:new(0, 0, 0, 0)
 local isPregame = Spring.GetGameFrame() == 0 and not isSpec
@@ -394,6 +401,82 @@ local function reloadBindings()
 	doUpdate = true
 end
 
+
+-- we don't need to do this every frame, only call when category rects have changed
+local function setupCategoryRects()
+	local numCats = #categories
+	-- set up rects
+	if stickToBottom then
+		local x1 = categoriesRect.x
+		local contentHeight = (categoriesRect.yEnd - categoriesRect.y) / numCats
+		local contentWidth = categoriesRect.xEnd - categoriesRect.x
+		if(currentCategory) then
+			-- put current category in center and hide all others
+			for i, cat in ipairs(categories) do
+				if(cat == currentCategory) then
+					local y1 = ((categoriesRect.yEnd - categoriesRect.y) / 2) - (contentHeight / 2)
+					catRects[cat] = Rect:new(
+						x1,
+						y1,
+						x1 + contentWidth - activeAreaMargin,
+						y1 + contentHeight - 2
+					)
+				else
+					catRects[cat] = Rect:new(0, 0, 0, 0)
+				end
+			end
+		else
+			for i, cat in ipairs(categories) do
+				local y1 = categoriesRect.yEnd - i * contentHeight + 2
+				catRects[cat] = Rect:new(
+					x1,
+					y1,
+					x1 + contentWidth - activeAreaMargin,
+					y1 + contentHeight - 2
+				)
+			end
+		end
+
+	else
+		local buttonWidth = math.round(((categoriesRect.xEnd - categoriesRect.x) / numCats))
+		local padding = math_max(1, math_floor(bgpadding * 0.52))
+		local y2 = categoriesRect.yEnd
+		if(currentCategory) then
+			-- put current category in center and hide all others
+			local x1 = (math.round(categoriesRect.xEnd - categoriesRect.x) / 2) - (buttonWidth / 2)
+			for i, cat in ipairs(categories) do
+				if(cat == currentCategory) then
+					catRects[cat] = Rect:new(
+						x1,
+						y2 - categoryButtonHeight + padding,
+						x1 + buttonWidth,
+						y2 - activeAreaMargin - padding
+					)
+				else
+					catRects[cat] = Rect:new(0, 0, 0, 0)
+				end
+			end
+		else
+			for i, cat in ipairs(categories) do
+				local x1 = categoriesRect.x + (i - 1) * buttonWidth
+				catRects[cat] = Rect:new(
+					x1,
+					y2 - categoryButtonHeight + padding,
+					x1 + buttonWidth,
+					y2 - activeAreaMargin - padding
+				)
+			end
+		end
+	end
+end
+
+
+local function setCurrentCategory(category)
+	currentCategory = category
+	setupCategoryRects()
+end
+
+
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
 	if WG["pregame-build"] and WG["pregame-build"].setPreGamestartDefID then
@@ -401,8 +484,7 @@ local function setPreGamestartDefID(uDefID)
 	end
 
 	if not uDefID then
-		currentCategory = nil
-		doUpdate = true
+		setCurrentCategory(nil)
 	end
 end
 
@@ -423,7 +505,7 @@ local function gridmenuCategoryHandler(_, _, args)
 		return
 	end
 
-	currentCategory = categories[cIndex]
+	setCurrentCategory(categories[cIndex])
 	switchedCategory = os.clock()
 	doUpdate = true
 
@@ -538,7 +620,7 @@ function widget:CommandNotify(cmdID, _, cmdOpts)
 	end
 
 	if alwaysReturn or not cmdOpts.shift then
-		currentCategory = nil
+		setCurrentCategory(nil)
 		doUpdate = true
 	end
 end
@@ -723,6 +805,7 @@ function widget:Initialize()
 		widget:Update(1000)
 		widget:ViewResize()
 		doUpdate = true
+		setupCategoryRects()
 	end
 	WG["buildmenu"].getSize = function()
 		return backgroundRect.y, backgroundRect.yEnd
@@ -763,9 +846,8 @@ function widget:ViewResize()
 	categoryFontSize = 0.0115 * ui_scale * vsy
 	hotkeyFontSize = categoryFontSize + 5
 	pageFontSize = categoryFontSize
-	pageButtonHeight = math_floor(2.3 * categoryFontSize * ui_scale)
-	categoryButtonHeight = pageButtonHeight
-	builderButtonSize = pageButtonHeight * 2
+	categoryButtonHeight = math_floor(2.3 * categoryFontSize * ui_scale)
+	builderButtonSize = categoryButtonHeight * 2
 
 	activeAreaMargin = math_ceil(bgpadding * Cfgs.cfgActiveAreaMargin)
 
@@ -783,19 +865,22 @@ function widget:ViewResize()
 		local posYEnd = 0
 		local posX = math_floor(ordermenuLeft * vsx) + widgetSpaceMargin
 		local height = posY
-		builderButtonSize = pageButtonHeight * 1.75
+		builderButtonSize = categoryButtonHeight * 1.75
 
 		rows = 2
 		columns = 6
 		cellSize = math_floor((height - bgpadding) / rows)
+		buttonHeight = (categoriesRect.yEnd - categoriesRect.y) / (#categories)
 
-		local categoryWidth = 8 * categoryFontSize * ui_scale
+		local categoryWidth = 10 * categoryFontSize * ui_scale
 
 		-- assemble rects left to right
-		categoriesRect =
-			Rect:new(posX + bgpadding, posYEnd + pageButtonHeight + bgpadding, posX + categoryWidth, posY - bgpadding)
-
-		paginatorsRect = Rect:new(posX + bgpadding, posYEnd + bgpadding, posX + categoryWidth, categoriesRect.y)
+		categoriesRect = Rect:new(
+			posX + bgpadding,
+			posYEnd,
+			posX + categoryWidth,
+			posY - bgpadding
+		)
 
 		buildpicsRect = Rect:new(
 			categoriesRect.xEnd + bgpadding,
@@ -806,16 +891,29 @@ function widget:ViewResize()
 
 		backgroundRect = Rect:new(posX, posYEnd, buildpicsRect.xEnd + bgpadding, posY)
 
+		backRect = Rect:new(
+			categoriesRect.x,
+			categoriesRect.yEnd - buttonHeight + bgpadding,
+			categoriesRect.xEnd,
+			categoriesRect.yEnd
+		)
+
+		nextPageRect = Rect:new(
+			categoriesRect.x,
+			categoriesRect.y + bgpadding,
+			categoriesRect.xEnd,
+			categoriesRect.y + buttonHeight - bgpadding)
+
 		-- start with no width and grow dynamically
 		buildersRect = Rect:new(posX, backgroundRect.yEnd, posX, backgroundRect.yEnd + builderButtonSize)
 	else -- if stick to side we know cells are 3 row by 4 column
-		local width = 0.212 -- hardcoded width to match bottom element
+		local width = 0.2125 -- hardcoded width to match bottom element
 		width = width / (vsx / vsy) * 1.78 -- make smaller for ultrawide screens
 		width = width * ui_scale
 
 		-- 0.14 is the space required to put this above the bottom-left UI element
 		local posYEnd = math_floor(0.14 * ui_scale * vsy) + widgetSpaceMargin
-		local posY = math_floor(posYEnd + ((0.74 * vsx) * width + pageButtonHeight)) / vsy
+		local posY = math_floor(posYEnd + ((0.74 * vsx) * width))/vsy
 		local posX = 0
 
 		if WG["ordermenu"] and not WG["ordermenu"].getBottomPosition() then
@@ -830,7 +928,7 @@ function widget:ViewResize()
 		-- make pixel aligned
 		width = posXEnd - posX
 
-		categoryButtonHeight = pageButtonHeight * 1.4
+		categoryButtonHeight = categoryButtonHeight * 1.4
 
 		-- assemble rects, bottom to top
 		categoriesRect = Rect:new(
@@ -843,7 +941,6 @@ function widget:ViewResize()
 		rows = 3
 		columns = 4
 		cellSize = math_floor((width - (bgpadding * 2)) / columns)
-		pageButtonHeight = cellSize / 3
 
 		buildpicsRect = Rect:new(
 			posX + bgpadding,
@@ -852,14 +949,26 @@ function widget:ViewResize()
 			categoriesRect.yEnd + (cellSize * rows)
 		)
 
-		paginatorsRect = Rect:new(
-			posX + bgpadding,
-			buildpicsRect.yEnd + bgpadding,
-			posXEnd - bgpadding,
-			buildpicsRect.yEnd + pageButtonHeight
+		backgroundRect = Rect:new(
+			posX,
+			posYEnd,
+			posXEnd,
+			buildpicsRect.yEnd + (bgpadding * 1.5)
 		)
 
-		backgroundRect = Rect:new(posX, posYEnd, posXEnd, paginatorsRect.yEnd + (bgpadding * 1.5))
+		local buttonWidth = (categoriesRect.xEnd - categoriesRect.x) / 3
+		local padding = math_max(1, math_floor(bgpadding * 0.52))
+		backRect = Rect:new(
+			categoriesRect.x,
+			categoriesRect.y + padding,
+			categoriesRect.x + (buttonWidth) - (bgpadding * 2),
+			categoriesRect.yEnd - padding)
+
+		nextPageRect = Rect:new(
+			categoriesRect.xEnd - (buttonWidth) + (2 * bgpadding),
+			categoriesRect.y + padding,
+			categoriesRect.xEnd,
+			categoriesRect.yEnd - padding)
 
 		-- start with no width and grow dynamically
 		buildersRect = Rect:new(posX, backgroundRect.yEnd, posX, backgroundRect.yEnd + builderButtonSize)
@@ -880,7 +989,7 @@ function widget:Update(dt)
 		activeBuilder = nil
 		activeBuilderID = nil
 		builderIsFactory = false
-		currentCategory = nil
+		setCurrentCategory(nil)
 		selectedBuilders = {}
 		selectedBuildersCount = 0
 		currentPage = 1
@@ -1010,7 +1119,7 @@ local function drawButton(rect, opts, icon)
 	local dim = disabled and 0.4 or 1.0
 
 	if icon then
-		local iconSize = math.min(math.floor((rect.yEnd - rect.y) * 1.1), pageButtonHeight)
+		local iconSize = math.min(math.floor((rect.yEnd - rect.y) * 1.1), categoryButtonHeight)
 		icon = ":l:" .. icon
 		gl.Color(dim, dim, dim, 0.9)
 		gl.Texture(icon)
@@ -1072,6 +1181,7 @@ local function drawButton(rect, opts, icon)
 		drawnHoveredButton = rect:getId()
 	end
 end
+
 
 local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 	local uid = cmd.id * -1
@@ -1242,130 +1352,82 @@ local function drawButtonHotkey(rect, keyText)
 	)
 end
 
+
+
 local function drawCategories()
-	local numCats = #categories
-
-	-- set up rects
-	if stickToBottom then
-		local x1 = categoriesRect.x
-
-		local contentHeight = (categoriesRect.yEnd - categoriesRect.y) / numCats
-		local contentWidth = categoriesRect.xEnd - categoriesRect.x
-
-		for i, cat in ipairs(categories) do
-			local y1 = categoriesRect.yEnd - i * contentHeight + 2
-			catRects[cat] = Rect:new(x1, y1, x1 + contentWidth - activeAreaMargin, y1 + contentHeight - 2)
-		end
-	else
-		local y2 = categoriesRect.yEnd
-
-		local buttonWidth = math.round(((categoriesRect.xEnd - categoriesRect.x) / numCats))
-		local padding = math_max(1, math_floor(bgpadding * 0.52))
-
-		for i, cat in ipairs(categories) do
-			local x1 = categoriesRect.x + (i - 1) * buttonWidth
-			catRects[cat] =
-				Rect:new(x1, y2 - categoryButtonHeight + padding, x1 + buttonWidth, y2 - activeAreaMargin - padding)
-		end
+	if next(catRects) == nil then
+		setupCategoryRects()
 	end
-
-	-- set up buttons
 	for catIndex, cat in pairs(categories) do
-		local catText = cat
-		local catIcon = Cfgs.categoryIcons[catIndex]
-		local keyText = keyConfig.sanitizeKey(Cfgs.categoryKeys[catIndex], currentLayout)
 		local rect = catRects[cat]
+		if(rect:getWidth() ~= 0) then
+			local catText = cat
+			local catIcon = Cfgs.categoryIcons[catIndex]
+			local keyText = keyConfig.sanitizeKey(Cfgs.categoryKeys[catIndex], currentLayout)
 
-		local disabled = (currentCategory and cat ~= currentCategory) and true or false
+			local opts = {
+				highlight = (cat == currentCategory),
+				hovered = (hoveredButton == rect:getId()),
+			}
 
-		local opts = {
-			disabled = disabled,
-			highlight = (cat == currentCategory),
-			hovered = (hoveredButton == rect:getId()),
-		}
+			local fontSize = categoryFontSize
+			local fontHeight = font2:GetTextHeight(catText) * categoryFontSize
+			local fontHeightOffset = fontHeight * 0.34
+			local fontColor = disabled and "\255\100\100\100" or ""
+			font2:Print(fontColor .. catText, rect.x + (bgpadding * 7), (rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset, fontSize, "o")
 
-		local textPadding = bgpadding * 2
-
-		local fontSize = categoryFontSize
-		local fontHeight = font2:GetTextHeight(catText) * categoryFontSize
-		local fontHeightOffset = fontHeight * 0.34
-		local fontColor = disabled and "\255\100\100\100" or ""
-		font2:Print(
-			fontColor .. catText,
-			rect.x + (textPadding * 3),
-			(rect.y - (rect.y - rect.yEnd) / 2) - fontHeightOffset,
-			fontSize,
-			"o"
-		)
-
-		if not currentCategory then
-			drawButtonHotkey(rect, keyText)
+			if(cat ~= currentCategory) then
+				drawButtonHotkey(rect, keyText)
+			end
+			drawButton(rect, opts, catIcon)
 		end
-
-		drawButton(rect, opts, catIcon)
-	end
-
-	-- back button
-	if currentCategory and not stickToBottom then
-		local backText = "Back"
-		local width = (paginatorsRect.xEnd - paginatorsRect.x) / 2
-		backRect =
-			Rect:new(paginatorsRect.x, paginatorsRect.y, paginatorsRect.xEnd - width - bgpadding, paginatorsRect.yEnd)
-		local buttonWidth = backRect.xEnd - backRect.x
-		local buttonHeight = backRect.yEnd - backRect.y
-		local heightOffset = backRect.yEnd - font2:GetTextHeight(backText) * pageFontSize * 0.35 - buttonHeight / 2
-		font2:Print("⟵", backRect.x + (bgpadding * 3), heightOffset, pageFontSize, "o")
-		font2:Print(backText, backRect.x + (buttonWidth * 0.5), heightOffset, pageFontSize * 1.1, "co")
-
-		local opts = {
-			highlight = false,
-			hovered = hoveredButton == backRect:getId(),
-		}
-
-		drawButtonHotkey(backRect, "Shift")
-		drawButton(backRect, opts)
 	end
 end
 
-local function drawPaginators()
+
+local function drawPageAndBackButtons()
+	if not currentCategory then
+		return
+	end
+
+	-- Back button
+	local backText = "Back"
+	local buttonWidth = backRect:getWidth()
+	local buttonHeight = backRect:getHeight()
+	local heightOffset = backRect.yEnd - font2:GetTextHeight(backText) * pageFontSize * 0.35 - buttonHeight/2
+	font2:Print(backText, backRect.x + (buttonWidth * 0.25), heightOffset, pageFontSize * 1.1, "co")
+	if not stickToBottom then
+		font2:Print("⟵", backRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
+	end
+
+	local opts = {
+		highlight = false,
+		hovered = hoveredButton == backRect:getId(),
+	}
+
+	drawButtonHotkey(backRect, "Shift")
+	drawButton(backRect, opts)
+
 	if pages == 1 then
 		return
 	end
 
+	-- Page button
 	local nextKeyText = keyConfig.sanitizeKey(Cfgs.NEXT_PAGE_KEY, currentLayout)
-	local nextPageText = "\255\245\245\245" .. "Next Page    ⟶"
-	local pagesText = "\255\245\245\245" .. currentPage .. " / " .. pages
-
-	local opts = {
-		highlight = false,
-		hovered = false,
-	}
-
-	local buttonHeight = nextPageRect.yEnd - nextPageRect.y
-	local buttonWidth = nextPageRect.xEnd - nextPageRect.x
-	local heightOffset = nextPageRect.yEnd - font2:GetTextHeight(pagesText) * pageFontSize * 0.2 - buttonHeight / 2
-
-	if stickToBottom then
-		nextPageRect = Rect:new(paginatorsRect.x, paginatorsRect.y, paginatorsRect.xEnd, paginatorsRect.yEnd)
-		nextPageText = "\255\245\245\245" .. "Page " .. currentPage .. "/" .. pages .. " 🠚"
-		font2:Print(nextPageText, nextPageRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
-	else
-		local width = paginatorsRect.xEnd - paginatorsRect.x
-		nextPageRect = Rect:new(
-			paginatorsRect.x + (width / 2) + bgpadding,
-			paginatorsRect.y,
-			paginatorsRect.xEnd,
-			paginatorsRect.yEnd
-		)
-		font2:Print(pagesText, nextPageRect.x + (bgpadding * 2), heightOffset, pageFontSize, "o")
-		font2:Print(nextPageText, nextPageRect.x + (buttonWidth * 0.55), heightOffset, pageFontSize, "co")
-	end
-
-	drawButtonHotkey(nextPageRect, nextKeyText)
+	local nextPageText = "\255\245\245\245" .. "Page " .. currentPage .. "/" .. pages .. "  🠚"
 
 	opts.hovered = hoveredButton and nextPageRect:getId() == hoveredButton
+
+	buttonHeight = nextPageRect:getHeight()
+	local fontHeight = font2:GetTextHeight(nextPageText) * pageFontSize
+	local fontHeightOffset = fontHeight * 0.34
+
+	font2:Print(nextPageText, nextPageRect.x + (bgpadding * 3), (nextPageRect.y + (buttonHeight / 2)) - fontHeightOffset, pageFontSize, "o")
+
+	drawButtonHotkey(nextPageRect, nextKeyText)
 	drawButton(nextPageRect, opts)
 end
+
 
 local function drawBuilderIcon(unitDefID, rect, count, lightness, zoom, highlightOpacity)
 	local hovered = hoveredButton == rect:getId()
@@ -1591,7 +1653,6 @@ local function drawGrid()
 end
 
 local function drawBuildMenu()
-	catRects = {}
 	font2:Begin()
 
 	if activeBuilder and not builderIsFactory then
@@ -1621,7 +1682,7 @@ local function drawBuildMenu()
 	hotkeyActions = {}
 
 	drawGrid()
-	drawPaginators()
+	drawPageAndBackButtons()
 	drawBuilders()
 
 	font2:End()
@@ -1786,53 +1847,57 @@ function widget:DrawScreen()
 					end
 
 					-- category buttons
-					for cat, catRect in pairs(catRects) do
-						if catRect:contains(x, y) then
-							hoveredButton = catRect:getId()
+					if not currentCategory then
+						for cat, catRect in pairs(catRects) do
+							if catRect:contains(x, y) then
+								hoveredButton = catRect:getId()
 
-							if hoveredButton ~= drawnHoveredButton then
-								doUpdate = true
-							end
-
-							if WG["tooltip"] then
-								-- when meta: unitstats does the tooltip
-								local textColor = "\255\215\255\215"
-
-								local text = Cfgs.categoryTooltips[cat]
-								local index = 0
-								for k, v in pairs(categories) do
-									if v == cat then
-										index = k
-									end
+								if hoveredButton ~= drawnHoveredButton then
+									doUpdate = true
 								end
 
-								local catKey = keyConfig.sanitizeKey(Cfgs.keyLayout[1][index], currentLayout)
-								text = text .. "\255\240\240\240 - Hotkey: " .. textColor .. "[" .. catKey .. "]"
 
-								WG["tooltip"].ShowTooltip("buildmenu", text, nil, nil, cat)
+								if WG['tooltip'] then
+									-- when meta: unitstats does the tooltip
+									local textColor = "\255\215\255\215"
+
+									local text = Cfgs.categoryTooltips[cat]
+									local index = 0
+									for k, v in pairs(categories) do
+										if v == cat then
+											index = k
+										end
+									end
+
+									local catKey = keyConfig.sanitizeKey(Cfgs.keyLayout[1][index], currentLayout)
+									text = text .. "\255\240\240\240 - Hotkey: " .. textColor .. "[" .. catKey .. "]"
+
+									WG['tooltip'].ShowTooltip('buildmenu', text, nil, nil, cat)
+								end
+
+								hoveredButtonNotFound = false
+								break
 							end
+						end
 
+					else
+						-- paginator buttons
+						if nextPageRect and nextPageRect:contains(x, y) then
+							hoveredButton = nextPageRect:getId()
 							hoveredButtonNotFound = false
-							break
+							if WG['tooltip'] then
+								local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.nextPage')
+								WG['tooltip'].ShowTooltip('buildmenu', text)
+							end
 						end
-					end
 
-					-- paginator buttons
-					if nextPageRect.y and nextPageRect:contains(x, y) then
-						hoveredButton = nextPageRect:getId()
-						hoveredButtonNotFound = false
-						if WG["tooltip"] then
-							local text = "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextPage")
-							WG["tooltip"].ShowTooltip("buildmenu", text)
-						end
-					end
-
-					if backRect.y and backRect:contains(x, y) then
-						hoveredButton = backRect:getId()
-						hoveredButtonNotFound = false
-						if WG["tooltip"] then
-							local text = "\255\240\240\240" .. Spring.I18N("ui.buildMenu.homePage")
-							WG["tooltip"].ShowTooltip("buildmenu", text)
+						if backRect and backRect:contains(x, y) then
+							hoveredButton = backRect:getId()
+							hoveredButtonNotFound = false
+							if WG['tooltip'] then
+								local text = "\255\240\240\240" .. Spring.I18N('ui.buildMenu.homePage')
+								WG['tooltip'].ShowTooltip('buildmenu', text)
+							end
 						end
 					end
 
@@ -2028,13 +2093,13 @@ end
 
 function widget:KeyPress(key, modifier, isRepeat)
 	if currentCategory and key == KEYSYMS.ESCAPE then
-		currentCategory = nil
+		setCurrentCategory(nil)
 		doUpdate = true
 	end
 end
 
 function clearCategory()
-	currentCategory = nil
+	setCurrentCategory(nil)
 	Spring.SetActiveCommand(0, 0, false, false, Spring.GetModKeyState())
 	doUpdate = true
 end
@@ -2091,10 +2156,9 @@ function widget:MousePress(x, y, button)
 			if not disableInput then
 				for cat, catRect in pairs(catRects) do
 					if catRect:contains(x, y) then
-						currentCategory = cat
-						Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, "ui")
-
+						setCurrentCategory(cat)
 						doUpdate = true
+						Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, "ui")
 						return true
 					end
 				end
@@ -2134,7 +2198,7 @@ function widget:MousePress(x, y, button)
 			return true
 		end
 	elseif activeBuilder and button == 3 then
-		currentCategory = nil
+		setCurrentCategory(nil)
 		doUpdate = true
 	end
 end
