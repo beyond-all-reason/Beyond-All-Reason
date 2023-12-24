@@ -12,10 +12,18 @@ end
 
 local decorationUdefIDs = {}
 local decorationUdefIDlist = {}
+local decorationSizes = {}
 for udefID,def in ipairs(UnitDefs) do
-	if def.name == 'xmasball' or def.name == 'xmasball2' then
+	if string.sub(def.name, 1, 8) == 'xmasball' then
 		decorationUdefIDlist[#decorationUdefIDlist+1] = udefID
 		decorationUdefIDs[udefID] = true
+		local size = tonumber(string.sub(def.name, 11))
+		if size then
+			if not decorationSizes[size] then
+				decorationSizes[size] = {}
+			end
+			decorationSizes[size][#decorationSizes[size]+1] = udefID
+		end
 	end
 end
 
@@ -58,21 +66,21 @@ for fdefID,def in ipairs(FeatureDefs) do
 end
 
 local costSettings = {
-	{0, 0, 0},
-	{40, 1, 0.7},
-	{100, 1, 0.8},
-	{200, 1, 0.9},
-	{350, 2, 0.9},
-	{600, 2, 1},
-	{900, 3, 1.05},
-	{1200, 3, 1.15},
-	{1500, 4, 1.15},
-	{2000, 4, 1.25},
-	{2500, 5, 1.25},
-	{4000, 6, 1.35},
-	{7000, 7, 1.45},
-	{12000, 8, 1.55},
-	{20000, 9, 1.7},
+	{0, 0, 1},
+	{40, 1, 1},
+	{100, 1, 1},
+	{200, 1, 2},
+	{350, 2, 2},
+	{600, 2, 2},
+	{900, 3, 3},
+	{1200, 3, 3},
+	{1500, 4, 3},
+	{2000, 4, 4},
+	{2500, 5, 4},
+	{4000, 6, 5},
+	{7000, 7, 5},
+	{12000, 8, 6},
+	{20000, 9, 6},
 }
 local isBuilder = {}
 local unitSize = {}
@@ -88,13 +96,13 @@ for udefID,def in ipairs(UnitDefs) do
 		if def.mass >= 35 then
 			local balls = math.floor(((def.radius-13) / 7.5))
 			local cost = def.metalCost + (def.energyCost/100)
-			local impulse = 0.37
+			local impulse = 0.5
 			local radius = 0.8
 			for _,v in ipairs(costSettings) do
 				if cost > v[1] then
 					balls = v[2]
 					radius = v[3] --+ impulse
-					impulse = impulse + (radius/1.6)
+					impulse = impulse + (radius/#decorationSizes)
 				else
 					break
 				end
@@ -227,7 +235,9 @@ function gadget:GameFrame(n)
 				if addGaiaBalls and random() > 0.5 then
 					teamID = gaiaTeamID
 				end
-				local decorationDefID = decorationUdefIDlist[math.floor(1 + (math.random() * (#decorationUdefIDlist-0.001)))]
+				local size = math.max(1, math.min(#decorationSizes, math.floor((hasDecoration[data[5]][4]))))	-- retrieve max size
+				size = math.min(size, (math.ceil((size*0.35) + (math.random() * (size*0.65)))))	-- pick a size
+				local decorationDefID = decorationSizes[size][math.floor(1 + (math.random() * (#decorationSizes[size]-0.001)))]	-- pick one of 2 variants/textured baubles
 				uID = Spring.CreateUnit(decorationDefID, data[1],data[2],data[3], 0, teamID)
 				if uID ~= nil then
 					decorationCount = decorationCount + 1

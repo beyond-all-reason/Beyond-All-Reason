@@ -736,7 +736,7 @@ local units = {
 	legvenator = { "air_t2.png", 1.02899992 },
 	legwhisper = { "air_t2_radar.png", 1.39649999 },
 	legdefcarryt1 = { "legdefcarryt1.png", 1.66 },
-	
+
 
 
 	lootboxbronze = { "lootbox.png", 1.04999995 },
@@ -802,8 +802,18 @@ local units = {
 	corscavdtl = { "wall_0.4.png", 0.41999999 },
 	corscavdtm = { "wall_0.4.png", 0.41999999 },
 	corscavfort = { "wall_0.4.png", 0.41999999 },
-	xmasball = { "blank.png", 1.04999995 },
-	xmasball2 = { "blank.png", 1.04999995 },
+	xmasball1_1 = { "blank.png", 1.04999995 },
+	xmasball1_2 = { "blank.png", 1.04999995 },
+	xmasball1_3 = { "blank.png", 1.04999995 },
+	xmasball1_4 = { "blank.png", 1.04999995 },
+	xmasball1_5 = { "blank.png", 1.04999995 },
+	xmasball1_6 = { "blank.png", 1.04999995 },
+	xmasball2_1 = { "blank.png", 1.04999995 },
+	xmasball2_2 = { "blank.png", 1.04999995 },
+	xmasball2_3 = { "blank.png", 1.04999995 },
+	xmasball2_4 = { "blank.png", 1.04999995 },
+	xmasball2_5 = { "blank.png", 1.04999995 },
+	xmasball2_6 = { "blank.png", 1.04999995 },
 	corfdoom = { "cordoom.png", 1.5 },
 }
 

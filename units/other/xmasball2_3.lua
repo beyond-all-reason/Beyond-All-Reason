@@ -1,9 +1,9 @@
 return {
-	xmasball = {
+	xmasball2_3 = {
 		blocking = true,
 		energycost = 1,
 		metalcost = 0,
-		buildpic = "other/xmasball.dds",
+		buildpic = "other/xmasball2.dds",
 		buildtime = 255,
 		canattack = false,
 		canmove = true,
@@ -20,13 +20,13 @@ return {
 		footprintz = 1,
 		hidedamage = true,
 		idleautoheal = 0,
-		mass = 40,
+		mass = 45,
 		health = 560000,
 		maxslope = 64,
 		speed = 30.0,
 		maxwaterdepth = 0,
 		movementclass = "BOT1",
-		objectname = "xmasball.s3o",
+		objectname = "xmasball2_3.s3o",
 		reclaimable = false,
 		repairable = false,
 		script = "xmasball.lua",
