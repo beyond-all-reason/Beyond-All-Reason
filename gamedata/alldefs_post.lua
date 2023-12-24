@@ -953,11 +953,11 @@ if Spring.GetModOptions().emprework == true then
 		end
 
 
-		if (name == "corsilo" or name == "armsilo" or name =="corfmd" or name =="armamd" or name =="cormabm" or name =="armscab") then
+		if (name =="corfmd" or name =="armamd" or name =="cormabm" or name =="armscab") then
 			uDef.customparams.paralyzemultiplier = 1.5
 		end
 
-		if (name == "armvulc" or name == "corbuzz" or name == "legstarfall") then
+		if (name == "armvulc" or name == "corbuzz" or name == "legstarfall" or name == "corsilo" or name == "armsilo") then
 			uDef.customparams.paralyzemultiplier = 2
 		end
 			
