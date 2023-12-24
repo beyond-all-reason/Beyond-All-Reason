@@ -388,7 +388,7 @@ function widget:AddConsoleLine(lines, priority)
 					local players = Spring.GetPlayerList()
 					for _, playerID in ipairs(players) do
 						local playerName, _, spec, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
-						if sfind(line, string.gsub(playerName, "%p", "%%%1") .. " called a vote ", nil, true) then
+						if sfind(line, playerName .. " called a vote ", nil, true) then
 							ownerPlayername = playerName
 							if allyTeamID == myAllyTeamID then
 								alliedWithVoteOwner = true
