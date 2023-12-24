@@ -5448,10 +5448,6 @@ function init()
 		--planeColor = {number r, number g, number b},
 	}
 
-	--if os.date("%m") ~= "12"  or  os.date("%d") < "12" then
-	--	options[getOptionByID('xmas')] = nil
-	--end
-
 	if not isPotatoGpu and gpuMem <= 4500 then
 		options[getOptionByID('advmapshading')].category = types.basic
 	end

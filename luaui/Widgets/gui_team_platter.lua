@@ -56,7 +56,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			unitDef.zsize * 8.2 + 12
 		}
 	end
-	if unitDef.name == 'xmasball' or unitDef.name == 'xmasball2' then
+	if unitDef.customParams.decoration then
 		unitDecoration[unitDefID] = true
 	end
 end
@@ -120,8 +120,8 @@ function widget:DrawWorldPreUnit()
 
 		glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
 		glStencilMask(1)
-		
-		if hasBadCulling then 
+
+		if hasBadCulling then
 			gl.Culling(false)
 		else
 			gl.Culling(GL.BACK)
