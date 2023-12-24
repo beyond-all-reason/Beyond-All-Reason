@@ -19,8 +19,7 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
-local forceXmas = false	-- for debugging purpose
-
+-------------------------------------------------------------------------------
 if not gadgetHandler:IsSyncedCode() then
 	local uniformcache = {0}
 	function gadget:UnitCreated(unitID, unitDefID)
@@ -31,7 +30,9 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 	return
 end
+-------------------------------------------------------------------------------
 
+_G.itsXmas = true
 
 local maxDecorations = 330
 local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/1800000)
@@ -39,11 +40,9 @@ local candycaneSnowMapMult = 2.5
 local addGaiaBalls = false	-- if false, only own team colored balls are added
 
 local enableUnitDecorations = true		-- burst out xmas ball after unit death
-if not forceXmas then
-	for _,teamID in ipairs(Spring.GetTeamList()) do
-		if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
-			enableUnitDecorations = false
-		end
+for _,teamID in ipairs(Spring.GetTeamList()) do
+	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
+		enableUnitDecorations = false
 	end
 end
 
@@ -110,8 +109,6 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
-_G.itsXmas = false
-
 local decorationCount = 0
 local decorations = {}
 local decorationsTerminal = {}
@@ -121,20 +118,9 @@ local candycanes = {}
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local random = math.random
 local GetGroundHeight = Spring.GetGroundHeight
-local receivedPlayerXmas = {}
-local receivedPlayerCount = 0
 local initiated
 
 VFS.Include("luarules/configs/map_biomes.lua")
-
-function gadget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,4)=="xmas" then
-		if receivedPlayerXmas[playerID] == nil then
-			receivedPlayerCount = receivedPlayerCount + 1
-			receivedPlayerXmas[playerID] = (msg:sub(5,6) == '1' and true or false)
-		end
-	end
-end
 
 function initiateXmas()
 	if not initiated then
@@ -279,33 +265,28 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadget:FeatureCreated(featureID, allyTeam)
-	if _G.itsXmas then
-		-- replace comwreck with xmas comwreck
-		if isComWreck[Spring.GetFeatureDefID(featureID)] then
-			local px,py,pz = Spring.GetFeaturePosition(featureID)
-			local rx,ry,rz = Spring.GetFeatureRotation(featureID)
-			local dx,dy,dz = Spring.GetFeatureDirection(featureID)
-			local heading = Spring.GetFeatureHeading(featureID)
-			local teamID = Spring.GetFeatureTeam(featureID)
-			Spring.DestroyFeature(featureID)
-			local xmasFeatureID = Spring.CreateFeature(xmasComwreckDefID, px, py, pz, heading, teamID)
-			if xmasFeatureID then
-				Spring.SetFeatureRotation(xmasFeatureID, rx,ry,rz)
-				Spring.SetFeatureDirection(xmasFeatureID, dx,dy,dz)
-				local comtype = 'armcom'
-				if string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower(), 'corcom', nil, true) then
-					comtype = 'corcom'
-				end
-				Spring.SetFeatureResurrect(xmasFeatureID, comtype, "s", 0)
+	-- replace comwreck with xmas comwreck
+	if isComWreck[Spring.GetFeatureDefID(featureID)] then
+		local px,py,pz = Spring.GetFeaturePosition(featureID)
+		local rx,ry,rz = Spring.GetFeatureRotation(featureID)
+		local dx,dy,dz = Spring.GetFeatureDirection(featureID)
+		local heading = Spring.GetFeatureHeading(featureID)
+		local teamID = Spring.GetFeatureTeam(featureID)
+		Spring.DestroyFeature(featureID)
+		local xmasFeatureID = Spring.CreateFeature(xmasComwreckDefID, px, py, pz, heading, teamID)
+		if xmasFeatureID then
+			Spring.SetFeatureRotation(xmasFeatureID, rx,ry,rz)
+			Spring.SetFeatureDirection(xmasFeatureID, dx,dy,dz)
+			local comtype = 'armcom'
+			if string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower(), 'corcom', nil, true) then
+				comtype = 'corcom'
 			end
+			Spring.SetFeatureResurrect(xmasFeatureID, comtype, "s", 0)
 		end
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-	if not _G.itsXmas then
-		return
-	end
 	if decorationUdefIDs[unitDefID] then
 		if decorations[unitID] ~= nil then
 			decorations[unitID] = nil
@@ -364,28 +345,5 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 end
 
 function gadget:GameStart()
-	if not _G.itsXmas then
-		local xmasRatio = 0
-		for playerID, xmas in pairs(receivedPlayerXmas) do
-			if xmas then
-				xmasRatio = xmasRatio + (1/receivedPlayerCount)
-			end
-		end
-		if xmasRatio > 0.75 or forceXmas then
-			_G.itsXmas = true
-			initiateXmas()
-		else
-			return
-		end
-	end
-end
-
--- in case of luarules reload
-if forceXmas then
-	function gadget:Initialize()
-		if Spring.GetGameFrame() > 0 then
-			_G.itsXmas = true
-			initiateXmas()
-		end
-	end
+	initiateXmas()
 end

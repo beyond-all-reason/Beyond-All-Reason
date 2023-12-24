@@ -2594,12 +2594,6 @@ function init()
 		{ id = "label_gfx_game_spacer", group = "gfx", category = types.basic },
 		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos GL4", name = Spring.I18N('ui.settings.option.resurrectionhalos'), type = "bool", value = GetWidgetToggleValue("Resurrection Halos GL4"), description = Spring.I18N('ui.settings.option.resurrectionhalos_descr') },
 
-		--{ id = "xmas", group = "gfx", name = Spring.I18N('ui.settings.option.xmas'), category = types.basic, type = "bool", value = (Spring.GetConfigFloat("decorationsize", 1) == 1), description = Spring.I18N('ui.settings.option.xmas_descr'),
-		--  onchange = function(i, value)
-		--	  Spring.SetConfigFloat("decorationsize", (value and 1 or 0))
-		--  end,
-		--},
-
 
 		-- SOUND
 		{ id = "snddevice", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.snddevice'), type = "select", restart = true, options = soundDevices, value = soundDevicesByName[Spring.GetConfigString("snd_device")], description = Spring.I18N('ui.settings.option.snddevice_descr'),
