@@ -897,14 +897,14 @@ if Spring.GetModOptions().emprework == true then
 			uDef.weapondefs.stiletto_bomb.burst = 3
 			uDef.weapondefs.stiletto_bomb.burstrate = 0.3333
 			uDef.weapondefs.stiletto_bomb.edgeeffectiveness = 0.30
-			uDef.weapondefs.stiletto_bomb.damage.default = 1600
-			uDef.weapondefs.stiletto_bomb.paralyzetime = 5			
+			uDef.weapondefs.stiletto_bomb.damage.default = 1200
+			uDef.weapondefs.stiletto_bomb.paralyzetime = 1			
 		end
 
 		if name == "armspid" then
-			uDef.weapondefs.spider.paralyzetime = 5			
-			uDef.weapondefs.spider.damage.vtol = 175			
-			uDef.weapondefs.spider.damage.default = 700
+			uDef.weapondefs.spider.paralyzetime = 2			
+			uDef.weapondefs.spider.damage.vtol = 100			
+			uDef.weapondefs.spider.damage.default = 400
 		end
 
 		if name == "armdfly" then
@@ -916,7 +916,7 @@ if Spring.GetModOptions().emprework == true then
 			uDef.weapondefs.armemp_weapon.areaofeffect = 512
 			uDef.weapondefs.armemp_weapon.burstrate = 0.3333
 			uDef.weapondefs.armemp_weapon.edgeeffectiveness = -0.10
-			uDef.weapondefs.armemp_weapon.paralyzetime = 23
+			uDef.weapondefs.armemp_weapon.paralyzetime = 22
 			uDef.weapondefs.armemp_weapon.damage.default = 60000
 			
 		end
@@ -934,9 +934,9 @@ if Spring.GetModOptions().emprework == true then
 			uDef.weapondefs.empmissile.edgeeffectiveness = -0.50
 			uDef.weapondefs.empmissile.damage.default = 20000
 			uDef.weapondefs.empmissile.paralyzetime = 5	
-			uDef.weapondefs.emp.damage.default = 275
+			uDef.weapondefs.emp.damage.default = 200
 			uDef.weapondefs.emp.reloadtime = .5
-			uDef.weapondefs.emp.paralyzetime = 5	
+			uDef.weapondefs.emp.paralyzetime = 1	
 		end
 
 		if name == "corbw" then
@@ -949,14 +949,18 @@ if Spring.GetModOptions().emprework == true then
 			--uDef.weapondefs.bladewing_lyzer.beamttl = 0.4
 			
 			uDef.weapondefs.bladewing_lyzer.damage.default = 300
-			uDef.weapondefs.bladewing_lyzer.paralyzetime = 5	
+			uDef.weapondefs.bladewing_lyzer.paralyzetime = 1	
 		end
 
 
-		if (name == "corsilo" or name == "armsilo" or name == "armvulc" or name == "corbuzz" or name == "legstarfall") then
-			uDef.customparams.paralyzemultiplier = 1.4
+		if (name == "corsilo" or name == "armsilo" or name =="corfmd" or name =="armamd" or name =="cormabm" or name =="armscab") then
+			uDef.customparams.paralyzemultiplier = 1.5
 		end
-		
+
+		if (name == "armvulc" or name == "corbuzz" or name == "legstarfall") then
+			uDef.customparams.paralyzemultiplier = 2
+		end
+			
 		--if name == "corsumo" then
 			--uDef.customparams.paralyzemultiplier = 0.9
 		--end
@@ -966,7 +970,7 @@ if Spring.GetModOptions().emprework == true then
 		--end
 		
 		if name == "armbanth" then
-			uDef.customparams.paralyzemultiplier = 1
+			uDef.customparams.paralyzemultiplier = 1.6
 		end
 
 		--if name == "armraz" then
@@ -1250,16 +1254,16 @@ function WeaponDef_Post(name, wDef)
 		if Spring.GetModOptions().emprework==true then
 
 			if name == 'empblast' then
-				--wDef.areaofeffect = 350
+				wDef.areaofeffect = 350
 				wDef.edgeeffectiveness = 0.6
-				--wDef.paralyzetime = 12
+				wDef.paralyzetime = 12
 				wDef.damage.default = 50000
 			end
 			if name == 'spybombx' then
-				wDef.areaofeffect = 340
-				wDef.edgeeffectiveness = 0.75
+				wDef.areaofeffect = 350
+				wDef.edgeeffectiveness = 0.4
 				wDef.paralyzetime = 20
-				wDef.damage.default = 40000
+				wDef.damage.default = 16000
 			end
 			if name == 'spybombxscav' then
 				wDef.edgeeffectiveness = 0.50
