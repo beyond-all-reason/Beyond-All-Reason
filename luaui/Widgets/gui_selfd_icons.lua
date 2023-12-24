@@ -35,11 +35,11 @@ local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSi
 
 -- {unitID -> unitDefID, ... }
 -- presence of a unitID key indicates that the unit has an active (counting down) SELFD command
-local activeSelfD = {}
+activeSelfD = {}
 
 -- {unitID -> unitDefID, ... }
 -- presence of a unitID key indicates that the unit has a queued SELFD command
-local queuedSelfD = {}
+queuedSelfD = {}
 
 local drawLists = {}
 
