@@ -42,7 +42,7 @@ end
 
 _G.itsXmas = true
 
-local maxDecorations = 330
+local maxDecorations = 350
 local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/1800000)
 local candycaneSnowMapMult = 2.5
 local addGaiaBalls = false	-- if false, only own team colored balls are added
@@ -108,12 +108,12 @@ for udefID,def in ipairs(UnitDefs) do
 				end
 			end
 			if balls > 0 then
-				hasDecoration[udefID] = {balls, impulse, 30*16, radius}
+				hasDecoration[udefID] = {balls, impulse, 30*20, radius}
 			end
 		end
 	end
 	if def.customParams.iscommander ~= nil then
-		hasDecoration[udefID] = {28, 9, 30*25, 1, true} -- always shows decorations for commander even if maxDecorations is reached
+		hasDecoration[udefID] = {28, 9, 30*33, 1, true} -- always shows decorations for commander even if maxDecorations is reached
 	end
 end
 
@@ -270,7 +270,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if decorationUdefIDs[unitDefID] then
-		createdDecorations[#createdDecorations+1] = unitID
+		--createdDecorations[#createdDecorations+1] = unitID
 	end
 end
 

@@ -12,7 +12,7 @@ return {
 		capturable = false,
 		category = "OBJECT",
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "6.8 6.8 6.8",
+		collisionvolumescales = "4 4 4",
 		collisionvolumetype = "Sphere",
 		crushresistance = 2500,
 		explodeas = "blank",
