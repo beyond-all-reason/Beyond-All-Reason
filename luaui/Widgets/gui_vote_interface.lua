@@ -39,7 +39,7 @@ local slower = string.lower
 local RectRound, UiElement, UiButton, bgpadding, elementCorner, widgetSpaceMargin
 local voteDlist, font, font2, gameStarted, dlistGuishader
 local weAreVoteOwner, hovered, voteName, windowArea, closeButtonArea, yesButtonArea, noButtonArea
-local voteEndTime, voteEndText, voteOwnerPlayername
+local voteEndTime, voteEndText
 
 local eligibleToVote = false
 
@@ -196,11 +196,6 @@ local function StartVote(name)	-- when called without params its just to refresh
 
 		fontSize = fontSize * 0.85
 		gl.Color(0, 0, 0, 1)
-
-		-- vote owner playername
-		--font:Begin()
-		--font:Print(voteOwnerPlayername, windowArea[1] + ((windowArea[3] - windowArea[1]) / 2), windowArea[4] - bgpadding - bgpadding - bgpadding - fontSize, fontSize, "con")
-		--font:End()
 
 		-- vote name
 		font:Begin()
@@ -380,15 +375,13 @@ function widget:AddConsoleLine(lines, priority)
 				-- > [teh]cluster2[06] * [ur]mum called a vote for command "stop please" [!vote y, !vote n, !vote b]
 				if sfind(line, " called a vote ", nil, true) then
 
-					voteOwnerPlayername = ssub(line, sfind(slower(line), "* ", nil, true)+2, sfind(slower(line), " called a vote ", nil, true)-1)
-
 					-- find who started the vote, and see if we're allied
 					local ownerPlayername = false
 					local alliedWithVoteOwner = false
 					local players = Spring.GetPlayerList()
 					for _, playerID in ipairs(players) do
 						local playerName, _, spec, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
-						if sfind(line, playerName .. " called a vote ", nil, true) then
+						if sfind(line, string.gsub(playerName, "%p", "%%%1") .. " called a vote ") then
 							ownerPlayername = playerName
 							if allyTeamID == myAllyTeamID then
 								alliedWithVoteOwner = true
@@ -487,7 +480,7 @@ function widget:AddConsoleLine(lines, priority)
 					if yesVotesNeeded and sfind(yesVotesNeeded, "(", nil, true) then
 						yesVotesNeeded = ssub(yesVotesNeeded, 1, sfind(yesVotesNeeded, "(", nil, true)-1)
 					end
-					-- no notes
+					-- no votes
 					str = ssub(text, sfind(text, "n:", nil, true)+2)
 					local noVotes = ssub(str,  1, sfind(str, "/", nil, true)-1)
 					local noVotesNeeded = ssub(str,  sfind(str, "/", nil, true)+1)
