@@ -1912,10 +1912,12 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 		local oldTeamName, newTeamName, shareDesc = string.match(line, format)
 
 		-- shared 5 Wind Turbine to Player2
-		text = msgColor .. Spring.I18N('ui.unitShare.shared', {
-			units = msgHighlightColor .. shareDesc .. msgColor,
-			name = teamcolorPlayername(newTeamName)
-		})
+		if newTeamName and shareDesc then
+			text = msgColor .. Spring.I18N('ui.unitShare.shared', {
+				units = msgHighlightColor .. shareDesc .. msgColor,
+				name = teamcolorPlayername(newTeamName)
+			})
+		end
 
 		nameText = teamcolorPlayername(oldTeamName)
 		line = text
