@@ -260,7 +260,7 @@ function gadget:GameFrame(n)
 			setGaiaUnitSpecifics(unitID)
 			Spring.SetUnitRotation(unitID,random()*360,random()*360,random()*360)
 			--Spring.AddUnitImpulse(unitID, (random()-0.5)*2, 3.8+(random()*1), (random()-0.5)*2)
-			local impulseMult = 100
+			local impulseMult = 80
 			Spring.AddUnitImpulse(unitID, (random()-0.5)*(impulseMult/3), 1+(random()*(impulseMult/1.6)), (random()-0.5)*(impulseMult/3))
 		end
 	end
@@ -270,7 +270,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if decorationUdefIDs[unitDefID] then
-		--createdDecorations[#createdDecorations+1] = unitID
+		createdDecorations[#createdDecorations+1] = unitID
 	end
 end
 
