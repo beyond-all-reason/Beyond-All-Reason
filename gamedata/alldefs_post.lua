@@ -176,8 +176,8 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Control Mode Tweaks
-	--[[if Spring.GetModOptions().scoremode ~= "disabled" then
-		if Spring.GetModOptions().scoremode_chess == true then
+	if modOptions.scoremode ~= "disabled" then
+		if modOptions.scoremode_chess == true then
 			-- Disable Wrecks
 			uDef.corpse = nil
 			-- Disable Bad Units
@@ -224,7 +224,7 @@ function UnitDef_Post(name, uDef)
 		else
 
 		end
-	end]]--
+	end
 
 	-- test New sound system!
 	--VFS.Include('luarules/configs/gui_soundeffects.lua')
