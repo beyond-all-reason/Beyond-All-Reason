@@ -154,7 +154,7 @@ function widget:GameSetup(state, ready, playerStates)
 	local spec, fullview = Spring.GetSpectatingState()
 	-- sends a "I arrived" message
 	-- NOTE: Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") seems to be always nil!
-	if not spec and Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") == nil and not ihavejoined then
+	if not spec and not ihavejoined and Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") == nil then
 		Spring.SendLuaRulesMsg("joined_game")
 		ihavejoined = true
 	end
