@@ -1300,7 +1300,6 @@ function widgetHandler:SetViewSize(vsx, vsy)
 	self.xViewSize = vsx
 	self.yViewSize = vsy
 	if self.xViewSizeOld ~= vsx or self.yViewSizeOld ~= vsy then
-		Spring.Echo("calling ViewResize from barwidgets")
 		widgetHandler:ViewResize(vsx, vsy)
 		self.xViewSizeOld = vsx
 		self.yViewSizeOld = vsy
