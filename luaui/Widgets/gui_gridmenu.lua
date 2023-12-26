@@ -870,7 +870,6 @@ function widget:ViewResize()
 		rows = 2
 		columns = 6
 		cellSize = math_floor((height - bgpadding) / rows)
-		buttonHeight = (categoriesRect.yEnd - categoriesRect.y) / (#categories)
 
 		local categoryWidth = 10 * categoryFontSize * ui_scale
 
@@ -891,6 +890,7 @@ function widget:ViewResize()
 
 		backgroundRect = Rect:new(posX, posYEnd, buildpicsRect.xEnd + bgpadding, posY)
 
+		local buttonHeight = categoriesRect:getHeight() / 4
 		backRect = Rect:new(
 			categoriesRect.x,
 			categoriesRect.yEnd - buttonHeight + bgpadding,
@@ -1042,6 +1042,7 @@ function widget:Update(dt)
 			or ordermenuHeight ~= prevOrdermenuHeight
 		then
 			widget:ViewResize()
+			prevAdvplayerlistLeft = advplayerlistLeft
 		end
 
 		disableInput = Cfgs.disableInputWhenSpec and isSpec
