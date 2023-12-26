@@ -84,8 +84,9 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
+	local modOptions = Spring.GetModOptions()
 	-- Reverse Gear
-	if Spring.GetModOptions().experimentalreversegear == true then
+	if modOptions.experimentalreversegear == true then
 		if (not uDef.canfly) and uDef.speed then
 			uDef.rspeed = uDef.speed*0.65
 		end
@@ -93,7 +94,7 @@ function UnitDef_Post(name, uDef)
 
 	-- Rebalance Candidates
 
-	if Spring.GetModOptions().experimentalrebalancet2labs == true then --
+	if modOptions.experimentalrebalancet2labs == true then --
 		if name == "coralab" or name == "coravp" or name == "armalab" or name == "armavp" then
 			uDef.metalcost = 1800 --2900
 		end
@@ -102,7 +103,7 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	if Spring.GetModOptions().experimentalrebalancet2metalextractors == true then
+	if modOptions.experimentalrebalancet2metalextractors == true then
 		if name == "armmoho" or name == "armuwmme" then
 			uDef.extractsmetal = 0.002 --0.004
 			uDef.metalcost = 240 --620
@@ -128,7 +129,7 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	if Spring.GetModOptions().experimentalrebalancet2energy == true then
+	if modOptions.experimentalrebalancet2energy == true then
 		if name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armwint2"
@@ -139,7 +140,7 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	if Spring.GetModOptions().expandedt2sea == true then
+	if modOptions.expandedt2sea == true then
 		if name == "corcrus" then
 			uDef.speed = 54
 			uDef.health = 6200
@@ -175,7 +176,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Control Mode Tweaks
-	if Spring.GetModOptions().scoremode ~= "disabled" then
+	--[[if Spring.GetModOptions().scoremode ~= "disabled" then
 		if Spring.GetModOptions().scoremode_chess == true then
 			-- Disable Wrecks
 			uDef.corpse = nil
@@ -223,7 +224,7 @@ function UnitDef_Post(name, uDef)
 		else
 
 		end
-	end
+	end]]--
 
 	-- test New sound system!
 	--VFS.Include('luarules/configs/gui_soundeffects.lua')
@@ -260,19 +261,19 @@ function UnitDef_Post(name, uDef)
 		if not uDef.customparams.techlevel then uDef.customparams.techlevel = 1 end
 		if not uDef.customparams.subfolder then uDef.customparams.subfolder = "none" end
 
-		if Spring.GetModOptions().unit_restrictions_notech2 then
+		if modOptions.unit_restrictions_notech2 then
 			if tonumber(uDef.customparams.techlevel) == 2 or tonumber(uDef.customparams.techlevel) == 3 then
 				uDef.maxthisunit = 0
 			end
 		end
 
-		if Spring.GetModOptions().unit_restrictions_notech3 then
+		if modOptions.unit_restrictions_notech3 then
 			if tonumber(uDef.customparams.techlevel) == 3 then
 				uDef.maxthisunit = 0
 			end
 		end
 
-		if Spring.GetModOptions().unit_restrictions_noair then
+		if modOptions.unit_restrictions_noair then
 			if string.find(uDef.customparams.subfolder, "Aircraft") then
 				uDef.maxthisunit = 0
 			elseif uDef.canfly then
@@ -306,19 +307,19 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
-		if Spring.GetModOptions().unit_restrictions_noextractors then
+		if modOptions.unit_restrictions_noextractors then
 			if (uDef.extractsmetal and uDef.extractsmetal > 0) and (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
 				uDef.maxthisunit = 0
 			end
 		end
 
-		if Spring.GetModOptions().unit_restrictions_noconverters then
+		if modOptions.unit_restrictions_noconverters then
 			if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
 				uDef.maxthisunit = 0
 			end
 		end
 
-		if Spring.GetModOptions().unit_restrictions_nonukes then
+		if modOptions.unit_restrictions_nonukes then
 			local Nukes = {
 				armamd = true,
 				armsilo = true,
@@ -338,7 +339,7 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
-		if Spring.GetModOptions().unit_restrictions_notacnukes then
+		if modOptions.unit_restrictions_notacnukes then
 			local TacNukes = {
 				armemp = true,
 				cortron = true,
@@ -350,7 +351,7 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
-		if Spring.GetModOptions().unit_restrictions_nolrpc then
+		if modOptions.unit_restrictions_nolrpc then
 			local LRPCs = {
 				armbotrail = true,
 				armbrtha = true,
@@ -372,7 +373,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Add balanced extras
-	if Spring.GetModOptions().releasecandidates then
+	if modOptions.releasecandidates then
 
 
 		--Better Dragon
@@ -432,7 +433,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Add scav units to normal factories and builders
-	if Spring.GetModOptions().experimentalextraunits then
+	if modOptions.experimentalextraunits then
 		if name == "armshltx" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
@@ -650,7 +651,7 @@ function UnitDef_Post(name, uDef)
 			uDef.maxacc = uDef.speed*0.00166
 			uDef.maxdec  = uDef.speed*0.00166
 		elseif uDef.canfly then
-			if Spring.GetModOptions().air_rework == true then
+			if modOptions.air_rework == true then
 				uDef.speed = uDef.speed*0.65
 				uDef.health = uDef.health*1.5
 
@@ -741,7 +742,7 @@ function UnitDef_Post(name, uDef)
 		if uDef.featuredefs and uDef.health then
 			if uDef.featuredefs.dead then
 				uDef.featuredefs.dead.damage = uDef.health
-				if Spring.GetModOptions().experimentalrebalancewreckstandarization then
+				if modOptions.experimentalrebalancewreckstandarization then
 					if uDef.metalcost and uDef.energycost then
 						if name and not string.find(name, "_scav") then
 							-- if (name and uDef.featuredefs.dead.metal) or uDef.name then
@@ -760,7 +761,7 @@ function UnitDef_Post(name, uDef)
 		if uDef.featuredefs and uDef.health then
 			if uDef.featuredefs.heap then
 				uDef.featuredefs.heap.damage = uDef.health
-				if Spring.GetModOptions().experimentalrebalancewreckstandarization then
+				if modOptions.experimentalrebalancewreckstandarization then
 					if uDef.metalcost and uDef.energycost then
 						if name and not string.find(name, "_scav") then
 							-- if (name and uDef.featuredefs.heap.metal) or uDef.name then
@@ -819,7 +820,7 @@ function UnitDef_Post(name, uDef)
 			uDef.crashdrag = 0.01	-- default 0.005
 
 			if not (string.find(name, "fepoch") or string.find(name, "fblackhy") or string.find(name, "corcrw") or string.find(name, "legfort")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
-				if not Spring.GetModOptions().experimentalnoaircollisions then
+				if not modOptions.experimentalnoaircollisions then
 					uDef.collide = false
 				else
 					uDef.collide = true
@@ -915,13 +916,13 @@ function UnitDef_Post(name, uDef)
 
 	-- Unbacom
 
-	if Spring.GetModOptions().unba == true then
+	if modOptions.unba == true then
 		unbaUnits = VFS.Include("unbaconfigs/unbaunits_post.lua")
 		uDef = unbaUnits.unbaUnitTweaks(name, uDef)
 	end
 
 
-if Spring.GetModOptions().emprework == true then
+if modOptions.emprework == true then
 
 		if name == "armstil" then
 			uDef.weapondefs.stiletto_bomb.areaofeffect = 250
@@ -1019,7 +1020,7 @@ end
 
 
 --Air rework
-if Spring.GetModOptions().air_rework == true then
+if modOptions.air_rework == true then
 	if name == "armhawk" then
 		uDef.metalcost = 205
 		uDef.energycost = 6500
@@ -1596,7 +1597,7 @@ end
 
 	-- Health
 	if uDef.health then
-		local x = Spring.GetModOptions().multiplier_maxdamage
+		local x = modOptions.multiplier_maxdamage
 		if x ~= 1 then
 			if uDef.health*x > 15000000 then
 				uDef.health = 15000000
@@ -1614,7 +1615,7 @@ end
 
 	-- Max Speed
 	if uDef.speed then
-		local x = Spring.GetModOptions().multiplier_maxvelocity
+		local x = modOptions.multiplier_maxvelocity
 		if x ~= 1 then
 			uDef.speed = uDef.speed*x
 			if uDef.maxdec  then
@@ -1628,7 +1629,7 @@ end
 
 	-- Turn Speed
 	if uDef.turnrate then
-		local x = Spring.GetModOptions().multiplier_turnrate
+		local x = modOptions.multiplier_turnrate
 		if x ~= 1 then
 			uDef.turnrate = uDef.turnrate*x
 		end
@@ -1636,7 +1637,7 @@ end
 
 	-- Build Distance
 	if uDef.builddistance then
-		local x = Spring.GetModOptions().multiplier_builddistance
+		local x = modOptions.multiplier_builddistance
 		if x ~= 1 then
 			uDef.builddistance = uDef.builddistance*x
 		end
@@ -1644,7 +1645,7 @@ end
 
 	-- Buildpower
 	if uDef.workertime then
-		local x = Spring.GetModOptions().multiplier_buildpower
+		local x = modOptions.multiplier_buildpower
 		if x ~= 1 then
 			uDef.workertime = uDef.workertime*x
 		end
@@ -1655,19 +1656,19 @@ end
 
 	-- Unit Cost
 	if uDef.metalcost then
-		local x = Spring.GetModOptions().multiplier_metalcost
+		local x = modOptions.multiplier_metalcost
 		if x ~= 1 then
 			uDef.metalcost = math.min(uDef.metalcost*x, 16000000)
 		end
 	end
 	if uDef.energycost then
-		local x = Spring.GetModOptions().multiplier_energycost
+		local x = modOptions.multiplier_energycost
 		if x ~= 1 then
 			uDef.energycost = math.min(uDef.energycost*x, 16000000)
 		end
 	end
 	if uDef.buildtime then
-		local x = Spring.GetModOptions().multiplier_buildtimecost
+		local x = modOptions.multiplier_buildtimecost
 		if x ~= 1 then
 			uDef.buildtime = math.min(uDef.buildtime*x, 16000000)
 		end
@@ -1679,7 +1680,7 @@ end
 	--metalstorage
 	-- Metal Extraction Multiplier
 	if (uDef.extractsmetal and uDef.extractsmetal > 0) and (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
-		local x = Spring.GetModOptions().multiplier_metalextraction * Spring.GetModOptions().multiplier_resourceincome
+		local x = modOptions.multiplier_metalextraction * modOptions.multiplier_resourceincome
 		uDef.extractsmetal = uDef.extractsmetal * x
 		uDef.customparams.metal_extractor = uDef.customparams.metal_extractor * x
 		if uDef.metalstorage then
@@ -1689,14 +1690,14 @@ end
 
 	-- Energy Production Multiplier
 	if uDef.energymake then
-		local x = Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome
+		local x = modOptions.multiplier_energyproduction * modOptions.multiplier_resourceincome
 		uDef.energymake = uDef.energymake * x
 		if uDef.energystorage then
 			uDef.energystorage = uDef.energystorage * x
 		end
 	end
 	if uDef.windgenerator and uDef.windgenerator > 0 then
-		local x = Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome
+		local x = modOptions.multiplier_energyproduction * modOptions.multiplier_resourceincome
 		uDef.windgenerator = uDef.windgenerator * x
 		if uDef.customparams.energymultiplier then
 			uDef.customparams.energymultiplier = tonumber(uDef.customparams.energymultiplier) * x
@@ -1708,14 +1709,14 @@ end
 		end
 	end
 	if uDef.tidalgenerator then
-		local x = Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome
+		local x = modOptions.multiplier_energyproduction * modOptions.multiplier_resourceincome
 		uDef.tidalgenerator = uDef.tidalgenerator * x
 		if uDef.energystorage then
 			uDef.energystorage = uDef.energystorage * x
 		end
 	end
 	if name == "armsolar" or name == "corsolar" then -- special case
-		local x = Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome
+		local x = modOptions.multiplier_energyproduction * modOptions.multiplier_resourceincome
 		uDef.energyupkeep = uDef.energyupkeep * x
 		if uDef.energystorage then
 			uDef.energystorage = uDef.energystorage * x
@@ -1724,7 +1725,7 @@ end
 
 	-- Energy Conversion Multiplier
 	if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
-		local x = Spring.GetModOptions().multiplier_energyconversion * Spring.GetModOptions().multiplier_resourceincome
+		local x = modOptions.multiplier_energyconversion * modOptions.multiplier_resourceincome
 		--uDef.customparams.energyconv_capacity = uDef.customparams.energyconv_capacity * x
 		uDef.customparams.energyconv_efficiency = uDef.customparams.energyconv_efficiency * x
 		if uDef.metalstorage then
@@ -1737,28 +1738,28 @@ end
 
 	-- Sensors range
 	if uDef.sightdistance then
-		local x = Spring.GetModOptions().multiplier_losrange
+		local x = modOptions.multiplier_losrange
 		if x ~= 1 then
 			uDef.sightdistance = uDef.sightdistance*x
 		end
 	end
 
 	if uDef.airsightdistance then
-		local x = Spring.GetModOptions().multiplier_losrange
+		local x = modOptions.multiplier_losrange
 		if x ~= 1 then
 			uDef.airsightdistance = uDef.airsightdistance*x
 		end
 	end
 
 	if uDef.radardistance then
-		local x = Spring.GetModOptions().multiplier_radarrange
+		local x = modOptions.multiplier_radarrange
 		if x ~= 1 then
 			uDef.radardistance = uDef.radardistance*x
 		end
 	end
 
 	if uDef.sonardistance then
-		local x = Spring.GetModOptions().multiplier_radarrange
+		local x = modOptions.multiplier_radarrange
 		if x ~= 1 then
 			uDef.sonardistance = uDef.sonardistance*x
 		end
