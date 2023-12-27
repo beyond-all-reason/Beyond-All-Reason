@@ -1814,10 +1814,12 @@ end
 
 -- process weapondef
 function WeaponDef_Post(name, wDef)
+	local modOptions = Spring.GetModOptions()
+
 	if not SaveDefsToCustomParams then
 		-------------- EXPERIMENTAL MODOPTIONS
 		-- Standard Gravity
-		local gravityModOption = Spring.GetModOptions().experimentalstandardgravity
+		local gravityModOption = modOptions.experimentalstandardgravity
 
 		--Spring.Echo(wDef.name,wDef.mygravity)
 		if gravityModOption == "low" then
@@ -1837,7 +1839,7 @@ function WeaponDef_Post(name, wDef)
 
 		----EMP rework
 
-		if Spring.GetModOptions().emprework==true then
+		if modOptions.emprework then
 
 			if name == 'empblast' then
 				wDef.areaofeffect = 350
@@ -1861,7 +1863,7 @@ function WeaponDef_Post(name, wDef)
 		end
 
 		--Air rework
-		if Spring.GetModOptions().air_rework == true then
+		if modOptions.air_rework == true then
 			if wDef.weapontype == "BeamLaser" or wDef.weapontype == "LaserCannon" then
 				wDef.damage.vtol = wDef.damage.default * 0.25
 			end
@@ -1875,7 +1877,7 @@ function WeaponDef_Post(name, wDef)
 
 
 		---- SHIELD CHANGES
-		local shieldModOption = Spring.GetModOptions().experimentalshields
+		local shieldModOption = modOptions.experimentalshields
 
 		if shieldModOption == "absorbplasma" then
 			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
@@ -1897,9 +1899,9 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		if Spring.GetModOptions().multiplier_shieldpower then
+		if modOptions.multiplier_shieldpower then
 			if wDef.shield then
-				local multiplier = Spring.GetModOptions().multiplier_shieldpower
+				local multiplier = modOptions.multiplier_shieldpower
 				if wDef.shield.power then
 					wDef.shield.power = wDef.shield.power*multiplier
 				end
@@ -1946,8 +1948,7 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		-- xmas!
-		if wDef.weapontype == "StarburstLauncher" and wDef.model and  VFS.FileExists('objects3d\\candycane_'..wDef.model) then
+		if modOptions.xmas and wDef.weapontype == "StarburstLauncher" and wDef.model and  VFS.FileExists('objects3d\\candycane_'..wDef.model) then
 			wDef.model = 'candycane_'..wDef.model
 		end
 
@@ -2012,7 +2013,7 @@ function WeaponDef_Post(name, wDef)
 
 		ProcessSoundDefaults(wDef)
 	end
-	if Spring.GetModOptions().unba == true then
+	if modOptions.unba == true then
 		unbaUnits = VFS.Include("unbaconfigs/unbaunits_post.lua")
 		wDef = unbaUnits.unbaWeaponTweaks(name, wDef)
 	end
@@ -2021,7 +2022,7 @@ function WeaponDef_Post(name, wDef)
 
 	-- Weapon Range
 	if true then -- dumb way to keep the x local here
-		local x = Spring.GetModOptions().multiplier_weaponrange
+		local x = modOptions.multiplier_weaponrange
 		if x ~= 1 then
 			if wDef.range then
 				wDef.range = wDef.range*x
@@ -2045,7 +2046,7 @@ function WeaponDef_Post(name, wDef)
 
 	-- Weapon Damage
 	if true then -- dumb way to keep the x local here
-		local x = Spring.GetModOptions().multiplier_weapondamage
+		local x = modOptions.multiplier_weapondamage
 		if x ~= 1 then
 			if wDef.damage then
 				for damageClass, damageValue in pairs(wDef.damage) do
