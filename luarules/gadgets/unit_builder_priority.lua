@@ -209,12 +209,12 @@ local function UpdatePassiveBuilders(teamID, interval)
 		local canBuildTeam = canBuild[teamID]
 		for builderID in pairs(canBuildTeam) do
 			local builtUnit = spGetUnitIsBuilding(builderID)
-			local expenseMetal = builtUnit and costIDOverride[unitID] or nil
+			local expenseMetal = builtUnit and costIDOverride[builtUnit] or nil
 			local maxbuildspeed = maxBuildSpeed[builderID]
 			if builtUnit and expenseMetal and maxbuildspeed then	-- added check for maxBuildSpeed[builderID] else line below could error (unsure why), probably units that were newly created?
 
-				local expenseEnergy = costIDOverride[unitID + energyOffset]
-				local rate = maxbuildspeed / costIDOverride[unitID + buildTimeOffset]
+				local expenseEnergy = costIDOverride[builtUnit + energyOffset]
+				local rate = maxbuildspeed / costIDOverride[builtUnit + buildTimeOffset]
 
 				-- TODO: redo solar and basic MM no-stall logic
 				
@@ -331,8 +331,9 @@ function gadget:TeamChanged(teamID)
 end
 
 function gadget:GameFrame(n)
-	-- Looping through all build target owners for godforsaken unknown reasons
-	-- but this is fast anyway, only a 75us usecs for a hundred units.
+	
+	-- Thus on the next frame, we can loop through build target owners and
+	-- set their buildpower to what we wanted instead of 0.001 we had for 1 frame.
 	if tracy then tracy.ZoneBeginN("redundant set") end
 	for  builtUnit, builderID in pairs(buildTargets) do
 		if spValidUnitID(builderID) and spGetUnitIsBuilding(builderID) == builtUnit then
