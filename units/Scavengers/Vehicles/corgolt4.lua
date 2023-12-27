@@ -67,6 +67,7 @@ return {
 				collisionvolumetype = "Box",
 				damage = 100000,
 				energy = 0,
+				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,
 				footprintz = 5,
@@ -147,7 +148,6 @@ return {
 				leadlimit = 64,
 				name = "Huge g2g plasma cannon",
 				noselfdamage = true,
-				weaponAimAdjustPriority = 9,
 				proximitypriority = -4,
 				predictBoost = 0.8,
 				range = 1000,
@@ -213,6 +213,7 @@ return {
 				badtargetcategory = "VTOL",
 				def = "CORLEVLR_WEAPON",
 				onlytargetcategory = "SURFACE",
+				weaponAimAdjustPriority = 9,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
