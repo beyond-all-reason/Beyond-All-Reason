@@ -140,11 +140,19 @@ local TimedDamageWeapons = {
         resistance = "test",
     },
 	[WeaponDefNames.leginc_heatraylarge.id] = {
-        ceg = "fire-incinerator",
+        ceg = "burnflamexm",
         damageCeg = "burnflamexl",
-        time = 3,
+        time = 1,
         damage = 0,
         range = 37,
+        resistance = "test",
+    },
+    [WeaponDefNames.legbastion_pineappleofdoom.id] = {
+        ceg = "fire-incinerator",
+        damageCeg = "burnflamexl",
+        time = 2,
+        damage = 0,
+        range = 50,
         resistance = "test",
     },
 	[WeaponDefNames.leginf_rapidnapalm.id] = {
@@ -213,8 +221,8 @@ local TimedDamageWeapons = {
     },
 	[WeaponDefNames.leginc_scav_heatraylarge.id] = {
         ceg = "fire-incinerator",
-        damageCeg = "burnflamexl",
-        time = 3,
+        damageCeg = "burnflame",
+        time = 1,
         damage = 0,
         range = 37,
         resistance = "test",

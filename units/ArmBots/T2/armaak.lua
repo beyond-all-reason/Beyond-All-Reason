@@ -280,8 +280,8 @@ return {
 					default = 0,
 				},
 				customparams = {
-					bogus = 1
-				}
+					bogus = 1,
+				},
 			},
 		},
 		weapons = {

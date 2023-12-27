@@ -317,9 +317,6 @@ function widget:Initialize()
 	widgetHandler.knownChanged = true
 	Spring.SendCommands('unbindkeyset f11')
 
-	if Spring.GetGameFrame() <= 0 then
-		Spring.SendLuaRulesMsg('xmas' .. ((os.date("%m") == "12" and os.date("%d") >= "12") and '1' or '0'))
-	end
 	WG['widgetselector'] = {}
 	WG['widgetselector'].toggle = function(state)
 		local newShow = state

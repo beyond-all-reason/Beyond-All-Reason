@@ -292,9 +292,10 @@ end
 local function adjustShadowQuality()
 	local quality = Spring.GetConfigInt("ShadowQuality", 3)
 	local shadowMapSize = 600 + math.min(10240, (vsy+vsx)*0.37)*(quality*0.5)
-	Spring.SetConfigInt("Shadows", (quality==0 and 0 or 1))
+	Spring.SetConfigInt("Shadows", 1)
 	Spring.SetConfigInt("ShadowMapSize", shadowMapSize)
-	Spring.SendCommands("shadows "..(quality==0 and 0 or 1).." " .. shadowMapSize)
+	Spring.SendCommands("shadows 1 " .. shadowMapSize)
+	--Spring.Echo(shadowMapSize)
 end
 
 function widget:ViewResize()
@@ -341,7 +342,9 @@ function widget:ViewResize()
 		backgroundGuishader = glDeleteList(backgroundGuishader)
 	end
 
-	adjustShadowQuality()
+	if not (Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500) then
+		adjustShadowQuality()
+	end
 end
 
 local function detectWater()
@@ -1886,7 +1889,7 @@ function init()
 			guishader = 0,
 			decalsgl4 = 1,
 			decals = 1,
-			shadowslider = 3,
+			shadowslider = 2,
 			grass = false,
 			cusgl4 = true,
 		},
@@ -1904,7 +1907,7 @@ function init()
 		 	guishader = guishaderIntensity,
 			decalsgl4 = 1,
 		 	decals = 2,
-			shadowslider = 4,
+			shadowslider = 3,
 		 	grass = true,
 			cusgl4 = true,
 		},
@@ -1922,7 +1925,7 @@ function init()
 			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 3,
-			shadowslider = 5,
+			shadowslider = 4,
 			grass = true,
 			cusgl4 = true,
 		},
@@ -1940,7 +1943,7 @@ function init()
 			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 4,
-			shadowslider = 6,
+			shadowslider = 5,
 			grass = true,
 			cusgl4 = true,
 		},
@@ -2295,9 +2298,9 @@ function init()
 		  end,
 		},
 
-		{ id = "shadowslider", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.shadowslider'), type = "select", options = { 'off', 'lowest', 'low', 'medium', 'high', 'ultra'}, value = Spring.GetConfigInt("ShadowQuality", 3)+1, description = Spring.I18N('ui.settings.option.shadowslider_descr'),
+		{ id = "shadowslider", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.shadowslider'), type = "select", options = { 'lowest', 'low', 'medium', 'high', 'ultra'}, value = Spring.GetConfigInt("ShadowQuality", 3), description = Spring.I18N('ui.settings.option.shadowslider_descr'),
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("ShadowQuality", value - 1)
+			  Spring.SetConfigInt("ShadowQuality", value)
 			  adjustShadowQuality()
 		  end,
 		},
@@ -2590,12 +2593,6 @@ function init()
 		{ id = "label_gfx_game", group = "gfx", name = Spring.I18N('ui.settings.option.label_game'), category = types.advanced },
 		{ id = "label_gfx_game_spacer", group = "gfx", category = types.basic },
 		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos GL4", name = Spring.I18N('ui.settings.option.resurrectionhalos'), type = "bool", value = GetWidgetToggleValue("Resurrection Halos GL4"), description = Spring.I18N('ui.settings.option.resurrectionhalos_descr') },
-
-		--{ id = "xmas", group = "gfx", name = Spring.I18N('ui.settings.option.xmas'), category = types.basic, type = "bool", value = (Spring.GetConfigFloat("decorationsize", 1) == 1), description = Spring.I18N('ui.settings.option.xmas_descr'),
-		--  onchange = function(i, value)
-		--	  Spring.SetConfigFloat("decorationsize", (value and 1 or 0))
-		--  end,
-		--},
 
 
 		-- SOUND
@@ -4011,7 +4008,7 @@ function init()
 		  end,
 		},
 
-		{ id = "attackrange", group = "ui", category = types.basic, widget = "Attack Range GL4", name = Spring.I18N('ui.settings.option.attackrange'), type = "bool", value = GetWidgetToggleValue("Defense Range"), description = Spring.I18N('ui.settings.option.attackrange_descr') },
+		{ id = "attackrange", group = "ui", category = types.basic, widget = "Attack Range GL4", name = Spring.I18N('ui.settings.option.attackrange'), type = "bool", value = GetWidgetToggleValue("Attack Range GL4"), description = Spring.I18N('ui.settings.option.attackrange_descr') },
 		{ id = "attackrange_shiftonly", category = types.dev, group = "ui", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.attackrange_shiftonly'), type = "bool", value = (WG['attackrange'] ~= nil and WG['attackrange'].getShiftOnly ~= nil and WG['attackrange'].getShiftOnly()), description = Spring.I18N('ui.settings.option.attackrange_shiftonly_descr'),
 		  onload = function(i)
 			loadWidgetData("Attack Range GL4", "attackrange_shiftonly", { 'shift_only' })
@@ -4020,7 +4017,7 @@ function init()
 			saveOptionValue('Attack Range GL4', 'attackrange', 'setShiftOnly', { 'shift_only' }, value)
 		  end,
 		},
-		{ id = "attackrange_cursorunitrange", category = types.dev, group = "ui", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.attackrange_cursorunitrange'), type = "bool", value = (WG['attackrange'] ~= nil and WG['attackrange'].setCursorUnitRange ~= nil and WG['attackrange'].setCursorUnitRange()), description = Spring.I18N('ui.settings.option.attackrange_cursorunitrange_descr'),
+		{ id = "attackrange_cursorunitrange", category = types.dev, group = "ui", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.attackrange_cursorunitrange'), type = "bool", value = (WG['attackrange'] ~= nil and WG['attackrange'].getCursorUnitRange ~= nil and WG['attackrange'].getCursorUnitRange()), description = Spring.I18N('ui.settings.option.attackrange_cursorunitrange_descr'),
 		  onload = function(i)
 			  loadWidgetData("Attack Range GL4", "attackrange_cursorunitrange", { 'cursor_unit_range' })
 		  end,
@@ -5451,10 +5448,6 @@ function init()
 		--planeColor = {number r, number g, number b},
 	}
 
-	--if os.date("%m") ~= "12"  or  os.date("%d") < "12" then
-	--	options[getOptionByID('xmas')] = nil
-	--end
-
 	if not isPotatoGpu and gpuMem <= 4500 then
 		options[getOptionByID('advmapshading')].category = types.basic
 	end
@@ -5638,7 +5631,11 @@ function init()
 
 			-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
 			if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 2500 then
+				options[getOptionByID('shadowslider')] = nil
+				options[getOptionByID('shadows_opacity')] = nil
+
 				Spring.SendCommands("advmapshading 0")
+				Spring.SendCommands("Shadows 0 1024")
 			end
 
 		end
@@ -6143,7 +6140,7 @@ function widget:Initialize()
 			Spring.SetConfigInt("AdvMapShading", 0)
 			Spring.SendCommands("advmapshading 0")
 			Spring.SendCommands("Shadows 0 1024")
-			Spring.GetConfigInt("ShadowQuality", 0)
+			Spring.GetConfigInt("ShadowQuality", 1)
 			Spring.SetConfigInt("ShadowMapSize", 1024)
 			Spring.SetConfigInt("Shadows", 0)
 			Spring.SetConfigInt("MSAALevel", 0)
@@ -6264,19 +6261,31 @@ function widget:Initialize()
 			return false
 		end
 	end
-	WG['options'].addOption = function(option)
-		option.group = "custom"
-		customOptions[#customOptions+1] = option
+	WG['options'].addOptions = function(newOptions)
+		for _, option in ipairs(newOptions) do
+			option.group = "custom"
+			customOptions[#customOptions+1] = option
+		end
+
 		init()
 	end
-	WG['options'].removeOption = function(name)
-		for i,option in pairs(customOptions) do
-			if option.id == name then
-				customOptions[i] = nil
-				init()
-				break
+	WG['options'].removeOptions = function(names)
+		for _, name in ipairs(names) do
+			for i, option in pairs(customOptions) do
+				if option.id == name then
+					customOptions[i] = nil
+					break
+				end
 			end
 		end
+
+		init()
+	end
+	WG['options'].addOption = function(option)
+		return WG['options'].addOptions({ option })
+	end
+	WG['options'].removeOption = function(name)
+		return WG['options'].removeOptions({ name })
 	end
 end
 

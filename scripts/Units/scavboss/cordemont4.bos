@@ -7,7 +7,7 @@ piece  pelvis, torso, rthigh, rleg, rfoot, lthigh, lleg, lfoot,lbturret, lbbarre
 rbbarrel1, rbbarrel2,luparm, llarm, lfbarrel1, lfbarrel2,ruparm, rlarm, rfbarrel1, rfbarrel2,
 lfflare1, lfflare2, rfflare1, rfflare2,lbflare, rbflare, head, horns, aimx1, aimy1, aaturretl, aaturretr, boxl, boxr, aaflarel, aaflarer;
 
-static-var  gun_1, bMoving, bAiming, gun_2, targetswap, oldheading, isfiring, issmoking, shotcount;
+static-var  gun_1, bMoving, bAiming, gun_2, targetswap, oldheading, isfiring, issmoking, shotcount, lightcount1, lightcount2;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
@@ -887,6 +887,8 @@ Create()
 	isfiring = 0;
 	issmoking = 0;
 	shotcount = 0;
+	lightcount1 = 0;
+	lightcount2 = 0;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	animSpeed = 6;
@@ -1098,7 +1100,7 @@ AimSecondary(heading, pitch)
 }
 
 
-Shot1(zero)
+Shot1()
 {
 	signal SIG_FIRE1;
 	
@@ -1127,13 +1129,24 @@ Shot1(zero)
 	if( gun_1 == 3 )
 
 	{
-		call-script lua_UnitScriptLight(1, shotcount);
+			call-script lua_UnitScriptLight(1, shotcount);
+		//get PRINT(lightcount1);
+		if (lightcount1 == 95) {
+			lightcount1 = 0;
+		} else {
+			lightcount1 = lightcount1 + 1;
+		}
 		gun_1 = 4;
 		return(1);
 	}
 	if( gun_1 == 4 )
 	{
-	
+		if (lightcount2 == 95) {
+			call-script lua_UnitScriptLight(2, shotcount);
+			lightcount2 = 0;
+		} else {
+			lightcount2 = lightcount2 + 1;
+		}
 		call-script lua_UnitScriptLight(2, shotcount);
 
 		gun_1 = 1;

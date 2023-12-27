@@ -633,8 +633,10 @@ local function commonUnitName(unitIDs)
 	for _, unitID in pairs(unitIDs) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
 
-		if commonUnitDefID and unitDefID ~= commonUnitDefID then
-			return "units"
+		-- unitDefID will be nil if shared units are visible only as unidentified radar dots
+		-- (when spectating with PlayerView ON from enemy team's point of view)
+		if (commonUnitDefID and unitDefID ~= commonUnitDefID) or not unitDefID then
+			return #unitIDs > 1 and "units" or "unit"
 		end
 
 		commonUnitDefID = unitDefID
@@ -1910,10 +1912,12 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 		local oldTeamName, newTeamName, shareDesc = string.match(line, format)
 
 		-- shared 5 Wind Turbine to Player2
-		text = msgColor .. Spring.I18N('ui.unitShare.shared', {
-			units = msgHighlightColor .. shareDesc .. msgColor,
-			name = teamcolorPlayername(newTeamName)
-		})
+		if newTeamName and shareDesc then
+			text = msgColor .. Spring.I18N('ui.unitShare.shared', {
+				units = msgHighlightColor .. shareDesc .. msgColor,
+				name = teamcolorPlayername(newTeamName)
+			})
+		end
 
 		nameText = teamcolorPlayername(oldTeamName)
 		line = text
@@ -2218,6 +2222,17 @@ function widget:GetConfigData(data)
 			inputHistoryLimited[#inputHistoryLimited+1] = v
 		end
 	end
+
+	-- limit it to possibly prevent game config corruption
+	local maxOrgLines = 500
+	if #orgLines > maxOrgLines then
+		local prunedOrgLines = {}
+		for i=1, maxOrgLines do
+			prunedOrgLines[i] = orgLines[#orgLines-(maxOrgLines+i)]
+		end
+		orgLines = prunedOrgLines
+	end
+
 	return {
 		gameFrame = Spring.GetGameFrame(),
 		orgLines = gameOver and nil or orgLines,

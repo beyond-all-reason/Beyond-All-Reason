@@ -287,8 +287,9 @@ return {
 				range = 0,
 				reloadtime = 1.5,
 				soundhitwet = "splssml",
-				soundhit = "korgstep",
-				soundhitvolume = 42,
+				soundhitdry = "korgstep",
+				soundhitdryvolume = 18,
+				soundhitwetvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
 					noexplosionlight = 1,
@@ -303,8 +304,8 @@ return {
 				impactonly = 1,
 				name = "KrogAim",
 				noselfdamage = true,
-				soundhit = "korgaim",
-				soundhitvolume = 42,
+				soundhitdry = "korgaim",
+				soundhitdryvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
 					noexplosionlight = 1,
@@ -318,8 +319,8 @@ return {
 				impactonly = 1,
 				name = "KrogRestore",
 				noselfdamage = true,
-				soundhit = "korgrestore2",
-				soundhitvolume = 40,
+				soundhitdry = "korgrestore2",
+				soundhitdryvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
 					noexplosionlight = 1,

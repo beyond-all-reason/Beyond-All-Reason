@@ -103,7 +103,12 @@ local effectDefs = {
 	["legfig"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 25, piece = "thrust", limit = true },
 	},
-
+	["legionnaire"] = {
+		{ color = { 0.2, 0.4, 0.5 }, width = 3.5, length = 30, piece = "thrusta", limit = true },
+	},
+	["legvenator"] = {
+		{ color = { 0.3, 0.4, 0.6 }, width = 5.5, length = 55, piece = "thrusta", limit = true },
+	},
 	-- radar
 	["armawac"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 30, piece = "thrust", light = 1 },
@@ -112,6 +117,9 @@ local effectDefs = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "lthrust", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "mthrust", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "rthrust", light = 1 },
+	},
+	["legwhisper"] = {
+		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 30, piece = "thrust", light = 1 },
 	},
 	["corhunt"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 37, piece = "thrust", light = 1 },
@@ -150,6 +158,16 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.75 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.75 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.75 },
+	},
+	["legstronghold"] = {
+		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrra2", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrla2", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfra2", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfla2", emitVector = { 0, 1, 0 }, light = 0.75 },
 	},
 
 	-- gunships
@@ -303,7 +321,11 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "flarebl", emitVector = { 0, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "flarebr", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
-
+	["legphoenix"] = {
+		{ color = { 0.8, 0.7, 0.2 }, width = 4, length = 30, piece = "lthrust", light = 1 },
+		{ color = { 0.8, 0.7, 0.2 }, width = 5, length = 40, piece = "mthrust", light = 1 },
+		{ color = { 0.8, 0.7, 0.2 }, width = 4, length = 30, piece = "rthrust", light = 1 },
+	},
 	-- construction
 	["armca"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 24, piece = "thrust", xzVelocity = 1.2 },

@@ -79,7 +79,6 @@ local function DummyLayoutHandler(xIcons, yIcons, cmdCount, commands)
 	return "", xIcons, yIcons, {}, customCmds, {}, {}, {}, {}, reParamsCmds, {[1337]=9001}
 end
 
---------------------------------------------------------------------------------
 
 function ConfigLayoutHandler(data)
 	if (type(data) == 'function') then
@@ -92,4 +91,7 @@ function ConfigLayoutHandler(data)
 end
 LayoutButtons = DummyLayoutHandler
 
---------------------------------------------------------------------------------
+
+-- refresh, this prevents default engine buildmenu still showing up after a luaui reload
+Spring.ForceLayoutUpdate()
+

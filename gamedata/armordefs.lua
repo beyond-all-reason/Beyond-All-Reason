@@ -16,8 +16,18 @@ local armorDefs = {
 		"corcomboss",
 	},
 	indestructable = {
-		"xmasball",
-		"xmasball2",
+		"xmasball1_1",
+		"xmasball1_2",
+		"xmasball1_3",
+		"xmasball1_4",
+		"xmasball1_5",
+		"xmasball1_6",
+		"xmasball2_1",
+		"xmasball2_2",
+		"xmasball2_3",
+		"xmasball2_4",
+		"xmasball2_5",
+		"xmasball2_6",
 		"armstone",
 		"corstone",
 		"dice",
@@ -343,7 +353,8 @@ local armorDefs = {
 
 		"armapt3",
 		"corapt3",
-		
+		"legbastion",
+
 		"coruwgeo",
 		"coruwageo",
 		"armuwageo",
@@ -463,6 +474,11 @@ local armorDefs = {
 		"corsfig2",
 		"corvamp",
 		"legfig",
+		"legionnaire",
+		"legvenator",
+		"legphoenix",
+		"legstronghold",
+		"legwhisper",
 	},
 	shields = {
 		"armgate",

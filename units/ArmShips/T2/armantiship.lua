@@ -43,7 +43,7 @@ return {
 		script = "Units/ARMANTISHIP.cob",
 		seismicsignature = 0,
 		selfdestructas = "minifusionExplosion",
-		sightdistance = 1105,
+		sightdistance = 1000,
 		sonardistance = 760,
 		terraformspeed = 5000,
 		turninplace = true,

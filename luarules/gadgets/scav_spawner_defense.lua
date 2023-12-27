@@ -239,9 +239,10 @@ if gadgetHandler:IsSyncedCode() then
 		local highValueTargetCount = SetCount(squadPotentialHighValueTarget)
 		local pos = {}
 		local pickedTarget = nil
+		local highValueTargetPickChance = math.min(0.75, highValueTargetCount*0.15)
 		repeat
 			loops = loops + 1
-			if highValueTargetCount > 0 and mRandom() <= 0.75 then
+			if highValueTargetCount > 0 and mRandom() <= highValueTargetPickChance then
 				for target in pairs(squadPotentialHighValueTarget) do
 					if mRandom(1,highValueTargetCount) == 1 then
 						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
@@ -845,7 +846,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			else
 				timeOfLastSpawn = GetGameSeconds()
-				playerAggression = playerAggression + (config.angerBonus*(bossAnger*0.01))
+				--playerAggression = playerAggression + (config.angerBonus*(bossAnger*0.01))
 			end
 		end
 	end

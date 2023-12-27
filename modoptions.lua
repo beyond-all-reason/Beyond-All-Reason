@@ -1017,6 +1017,15 @@ local options={
 		type	= "section",
 	},
 
+	--{
+	--	key    = "xmas",
+	--	name   = "Holiday decorations",
+	--	desc   = "Various  holiday decorations",
+	--	type   = "bool",
+	--	def    = true,
+	--	section= "options_extra",
+	--},
+
 	{
 		key="map_waterlevel",
 		name="Water Level",
@@ -1080,6 +1089,15 @@ local options={
 			{key="disco", name="Local (Disco)", desc="Same as local, except that colors are reshuffled every 2 mins for extra spicyness."},
 			{key="allred", name="All red", desc="You cannot distinguish different players, they all have the same color (red by default, can be changed in accessibility settings). Diplomacy is very hard."},
 		},
+	},
+
+	{
+		key     = 'teamffa_start_boxes_shuffle',
+		name    = 'Shuffle TeamFFA start boxes',
+		desc    = "In TeamFFA games (more than 2 teams, excluding Raptors / Scavengers), start boxes will be randomly assigned to each team: team 1 might be assigned any start box rather than team 1 always being assigned start box 1.",
+		type    = 'bool',
+		section = 'options_extra',
+		def     = true,
 	},
 
 	{
