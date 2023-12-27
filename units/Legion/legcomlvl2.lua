@@ -126,7 +126,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 2000,
-				object = "gingerbread",
+				object = 'Units/armcom_dead.s3o',
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 			},
