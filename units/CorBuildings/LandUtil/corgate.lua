@@ -1,11 +1,11 @@
 return {
 	corgate = {
-		acceleration = 0,
+		maxacc = 0,
 		activatewhenbuilt = true,
-		brakerate = 0,
+		maxdec = 0,
 		buildangle = 2048,
-		buildcostenergy = 55000,
-		buildcostmetal = 3200,
+		energycost = 55000,
+		metalcost = 3200,
 		buildpic = "CORGATE.DDS",
 		buildtime = 55000,
 		canattack = false,
@@ -22,7 +22,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3550,
+		health = 3550,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		noautofire = true,
@@ -136,7 +136,7 @@ return {
 				shield = {
 					alpha = 0.17,
 					armortype = "shields",
-					energyuse = 0,
+					energyupkeep = 0,
 					force = 2.5,
 					intercepttype = 1,
 					power = 3250,

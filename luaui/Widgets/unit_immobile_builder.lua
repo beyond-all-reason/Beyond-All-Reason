@@ -33,6 +33,7 @@ local spGetUnitDefID		= Spring.GetUnitDefID
 local spGetUnitPosition		= Spring.GetUnitPosition
 local spGiveOrderToUnit		= Spring.GiveOrderToUnit
 local spGetSpectatingState	= Spring.GetSpectatingState
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 
 local hmsx = Game.mapSizeX/2
 local hmsz = Game.mapSizeZ/2
@@ -129,6 +130,14 @@ function widget:UnitIdle(unitID, unitDefID, unitTeam)
 	end
 end
 
+function widget:UnitCommand(unitID, unitDefID, _, cmdID, _, cmdOpts)
+	if isImmobileBuilder[unitDefID] and cmdOpts.shift and cmdID ~= CMD_FIGHT then
+		local firstCmdID, _, cmdTag = spGetUnitCurrentCommand(unitID, 1)
+		if firstCmdID == CMD_FIGHT then
+			spGiveOrderToUnit(unitID, CMD.REMOVE, { cmdTag }, 0)
+		end
+	end
+end
 
 
 --------------------------------------------------------------------------------

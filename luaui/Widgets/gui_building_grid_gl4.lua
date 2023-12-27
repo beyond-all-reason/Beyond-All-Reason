@@ -178,7 +178,7 @@ end
 
 function widget:Update()
 	local _, cmdID
-	if isPregame and WG['pregame-build'].getPreGameDefID then
+	if isPregame and WG['pregame-build'] and WG['pregame-build'].getPreGameDefID then
 		cmdID = WG['pregame-build'].getPreGameDefID()
 		cmdID = cmdID and -cmdID or 0 --invert to get the correct negative value
 	else

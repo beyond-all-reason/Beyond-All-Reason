@@ -1,9 +1,9 @@
 return {
 	armpb = {
-		acceleration = 0,
-		brakerate = 0,
-		buildcostenergy = 14000,
-		buildcostmetal = 680,
+		maxacc = 0,
+		maxdec = 0,
+		energycost = 14000,
+		metalcost = 680,
 		buildpic = "ARMPB.DDS",
 		buildtime = 15000,
 		canrepeat = false,
@@ -17,7 +17,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2800,
+		health = 2800,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		mincloakdistance = 55,
@@ -145,9 +145,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 800,
 				damage = {
-					bombers = 26,
 					default = 675,
-					fighters = 26,
 					hvyboats = 472.5,
 					subs = 300,
 					vtol = 26,

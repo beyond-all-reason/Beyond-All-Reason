@@ -22,6 +22,8 @@
 local exampleLight = {
 	lightType = 'point', -- or cone or beam
 	pieceName = nil, -- optional
+	yOffset = 10, -- optional, gives extra Y height
+	fraction = 3, -- optional, only every nth projectile gets the effect (randomly)
 	lightConfig = {
 		posx = 0, posy = 0, posz = 0, radius = 0,
 		r = 1, g = 1, b = 1, a = 1,
@@ -103,12 +105,13 @@ local BaseClasses = {
 
 	FlameProjectile = {
 		lightType = 'point', -- or cone or beam
+		fraction = 2, -- only spawn every nth light
 		lightConfig = {
 			posx = 0, posy = 15, posz = 0, radius = 25,
-			r = 1, g = 0.9, b = 0.6, a = 0.068,
-			color2r = 0.75, color2g = 0.45, color2b = 0.22, colortime = 10, -- point lights only, colortime in seconds for unit-attached
-			modelfactor = 0.2, specular = 0.5, scattering = 0.5, lensflare = 0,
-			lifetime = 25, sustain = 0, aninmtype = 0, -- unused
+			r = 1.0, g = 0.9, b = 0.6, a = 0.086,
+			color2r = 0.75, color2g = 0.45, color2b = 0.22, colortime = 15, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = 0.2, specular = 0.5, scattering = 0.8, lensflare = 0,
+			lifetime = 23, sustain = 0, aninmtype = 0, -- unused
 		},
 	},
 
@@ -131,7 +134,7 @@ local BaseClasses = {
 			r = 2, g = 2, b = 2, a = 0.7,
 			color2r = 0.75, color2g = 0.72, color2b = 0.6, colortime = 0, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.8, specular = 0.5, scattering = 0.6, lensflare = 8,
-			lifetime = 6, sustain = 0.0035, 	aninmtype = 0, -- unused
+			lifetime = 6, sustain = 0.0035, aninmtype = 0, -- unused
 		},
 	},
 }
@@ -333,6 +336,7 @@ local function AssignLightsToAllWeapons()
 		if weaponDef.type == 'BeamLaser' then
 			muzzleFlash = false
 
+
 			if not weaponDef.paralyzer then
 				t.r, t.g, t.b = math.min(1, r+0.3), math.min(1, g+0.3), math.min(1, b+0.3)
 				t.color2r, t.color2g, t.color2b = r, g, b
@@ -340,6 +344,7 @@ local function AssignLightsToAllWeapons()
 
 			radius = (3.5 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (5 * radius * orgMult)
 			t.a = (orgMult * 0.1) / (0.2 + weaponDef.beamtime)
+			--projectileDefLights[weaponID].yOffset = 64
 
 			if weaponDef.paralyzer then
 				radius = radius * 0.5
@@ -407,7 +412,7 @@ local function AssignLightsToAllWeapons()
 		elseif weaponDef.type == 'Flame' then
 			--sizeclass = "Small"
 			sizeclass = GetClosestSizeClass(radius*3)
-			t.a = orgMult*0.17
+			t.a = orgMult*0.17 * 2
 			projectileDefLights[weaponID] = GetLightClass("FlameProjectile", "Fire", sizeclass, t)
 		end
 
@@ -675,13 +680,59 @@ GetLightClass("Explosion", "Fire", "Small", {r = 0.54, g = 0.45, b = 0.12, a = 0
 										 sustain = 30, lifetime = 125,
 										 modelfactor = -0.3, specular = -0.3, scattering = 0.15, lensflare = 0})
 
+--legphoenix
+explosionLights[WeaponDefNames["legphoenix_skybeam"].id] =
+GetLightClass("Explosion", "Fire", "Small", {r = 0.54, g = 0.45, b = 0.12, a = 0.35,
+										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.25,
+										 sustain = 2, lifetime = 3,
+										 modelfactor = -0.3, specular = -0.3, scattering = 0.45, lensflare = 0})
+
+projectileDefLights[WeaponDefNames["legphoenix_skybeam"].id] =
+GetLightClass("LaserProjectile", "Warm", "Tiny", {a = 0.25,
+											r = 1.0, g = 0.65, b = 0.1,
+											color2r = 0.3, color2g = 0.1, color2b = 0.03, colortime = 15,
+											pos2x = 0, pos2y = 0, pos2z = 0,
+											modelfactor = 0.5, specular = 0.05, scattering = 1.3, lensflare = 16,
+											lifetime = 3, sustain = 2,})
+
+--legbastion
+explosionLights[WeaponDefNames["legbastion_pineappleofdoom"].id] =
+GetLightClass("Explosion", "Fire", "Medium", {r = 0.26, g = 0.22, b = 0.06, a = 0.25,
+										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.3,
+										 sustain = 2, lifetime = 4,
+										 modelfactor = -0.3, specular = -0.3, scattering = 0.55, lensflare = 0})
+
+explosionLights[WeaponDefNames["legbastion_pineappleofdoom"].id].yOffset = 38
+
+projectileDefLights[WeaponDefNames["legbastion_pineappleofdoom"].id] =
+GetLightClass("LaserProjectile", "Warm", "Smaller", {r = 1.0, g = 0.65, b = 0.1, a = 0.18, 
+											color2r = 0.15, color2g = 0.04, color2b = 0.015, colortime = 0.03,
+											--pos2x = 0, pos2y = 0, pos2z = 0,
+											modelfactor = 0.5, specular = 0.05, scattering = 0.3, lensflare = 0,
+											lifetime = 3, sustain = 2})
+
+--leginc
+explosionLights[WeaponDefNames["leginc_heatraylarge"].id] =
+GetLightClass("Explosion", "Fire", "Smaller", {r = 0.54, g = 0.45, b = 0.12, a = 0.15,
+										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.3,
+										 sustain = 2, lifetime = 3,
+										 modelfactor = -0.3, specular = -0.1, scattering = 1.95, lensflare = 0})
+
+explosionLights[WeaponDefNames["leginc_heatraylarge"].id].yOffset = 32
+
+projectileDefLights[WeaponDefNames["leginc_heatraylarge"].id] =
+GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1, a = 0.15,
+											color2r = 0.15, color2g = 0.05, color2b = 0.015, colortime = 0.03,
+											--pos2x = 0, pos2y = 0, pos2z = 0,
+											modelfactor = 0.3, specular = -0.05, scattering = 0.3, lensflare = 16,
+											sustain = 2, lifetime = 3, })
 
 --armthundt4
 explosionLights[WeaponDefNames["armthundt4_armbomb"].id] =
 GetLightClass("Explosion", nil, "Large", {r = 2, g = 1.5, b = 1.0, a = 0.22,
 										  color2r = 0.9, color2g = 0.5, color2b = 0.15, colortime = 65,
 										  sustain = 4, lifetime = 55,
-										  modelfactor = 0.1, specular = 0.2, scattering = 0.2, lensflare = 4})
+										  modelfactor = 0.1, specular = 0.4, scattering = 0.4, lensflare = 6})
 
 --armmerl
 projectileDefLights[WeaponDefNames["armmerl_armtruck_rocket"].id] =

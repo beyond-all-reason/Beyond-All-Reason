@@ -64,8 +64,8 @@ if gadgetHandler:IsSyncedCode() then
 		[WeaponDefNames["corsilo_crblmssl"].id] = true,
 		[WeaponDefNames["armsilo_scav_nuclear_missile"].id] = true,
 		[WeaponDefNames["corsilo_scav_crblmssl"].id] = true,
-		[WeaponDefNames["raptor_turretxl_meteor_weapon"].id] = true,
-		--WeaponDefNames["raptorr2_meteorlauncher"].id] = true,
+		[WeaponDefNames["raptor_turret_meteor_t4_v1_weapon"].id] = true,
+		--WeaponDefNames["raptor_allterrain_arty_basic_t4_v1_meteorlauncher"].id] = true,
 	}
 	local gamestarted = (Spring.GetGameFrame() > 0)
 	local gameover = false
@@ -200,8 +200,8 @@ else
 			if string.find(unitDef.name,'corint') or string.find(unitDef.name,'armbrtha') or string.find(unitDef.name,'corbuzz') or string.find(unitDef.name,'armvulc') or string.find(unitDef.name,'legstarfall') then
 				isLrpc[unitDefID] = true
 			end
-			if unitDef.isBuilding and unitDef.radarRadius > 1900 then
-				isRadar[unitDefID] = unitDef.radarRadius
+			if unitDef.isBuilding and unitDef.radarDistance > 1900 then
+				isRadar[unitDefID] = unitDef.radarDistance
 			end
 			if unitDef.extractsMetal > 0 then
 				isMex[unitDefID] = unitDef.extractsMetal

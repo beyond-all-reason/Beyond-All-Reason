@@ -95,10 +95,10 @@ local function scavUnitDef_Post(name, uDef)
 	end
 	
 
-	if uDef.maxdamage then
+	if uDef.health then
 		if not string.find(name, "armscavengerbossv2") then
- 			uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage * 0.1))
- 			uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage * 0.1))
+ 			uDef.autoheal = math.ceil(math.sqrt(uDef.health * 0.1))
+ 			uDef.idleautoheal = math.ceil(math.sqrt(uDef.health * 0.1))
 		end
 	end
 
@@ -116,8 +116,8 @@ if uDef.builder then
  		if uDef.turnrate then
  			uDef.turnrate = uDef.turnrate * 1.5
  		end
- 		if uDef.brakerate then
- 			uDef.brakerate = uDef.brakerate * 3
+ 		if uDef.maxdec  then
+ 			uDef.maxdec  = uDef.maxdec  * 3
  		end
  		if uDef.builddistance then
  			uDef.builddistance = uDef.builddistance * 2

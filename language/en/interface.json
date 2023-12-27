@@ -97,7 +97,6 @@
 				"needMetalAmount": "I need %{amount} metal!",
 				"needEnergy": "I need energy!",
 				"needEnergyAmount": "I need %{amount} energy!",
-				"giveUnits": "I gave %{count} units to %{name}.",
 				"giveMetal": "I sent %{amount} metal to %{name}",
 				"giveEnergy": "I sent %{amount} energy to %{name}",
 				"takeTeam": "I took %{name}.",
@@ -650,6 +649,7 @@
 			"cantMove":"%{unit}: Can't reach destination!"
 		},
 		"unitShare": {
+			"shared": "shared %{units} to %{name}",
 			"received": "You received %{count} new unit(s)*",
 			"unit": "*%{unit}"
 		},
@@ -1156,6 +1156,8 @@
 				"gridmenu_descr": "Alternative build menu, designed for comprehensive hotkey use",
 				"gridmenu_alwaysreturn": "Grid always returns to categories",
 				"gridmenu_alwaysreturn_descr": "While queueing commands, return to categories page after issuing",
+				"gridmenu_autoselectfirst": "Grid category selects structure",
+				"gridmenu_autoselectfirst_descr": "When selecting a category, automatically activate the first option within that category",
 				"keylayout": "Keyboard Layout",
 				"keylayout_descr": "Set the keyboard layout",
 				"keybindings": "Keybind Preset",

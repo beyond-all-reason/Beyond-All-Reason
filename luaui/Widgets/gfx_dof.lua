@@ -152,7 +152,7 @@ function InitTextures()
 
 	depthTex = gl.CreateTexture(vsx,vsy, {
 		border = false,
-		format = GL_DEPTH_COMPONENT24,
+		format = GL_DEPTH_COMPONENT32,
 		min_filter = GL.NEAREST,
 		mag_filter = GL.NEAREST,
 	})

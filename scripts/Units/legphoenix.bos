@@ -1,0 +1,275 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, lthrust, mthrust, rthrust, ring1, ring2, ring3, ringlight, fireline, lineflare;
+static-var maxSpeed, currentSpeed, shotcount, timer, isfiring;
+
+
+
+
+
+#define BASEPIECE base
+#define HITSPEED <105.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 1
+#define MAXTILT 100
+
+#define SIG_STRAFE 2
+
+
+
+DoBarrelRoll() {
+	turn base to z-axis <240.054945> speed <120.027473>;
+	wait-for-turn base around z-axis;
+	turn base to z-axis <120.027473> speed <180.043956>;
+	wait-for-turn base around z-axis;
+	turn base to z-axis <0.000000> speed <120.027473>;
+}
+
+lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
+}
+
+
+Create()
+{
+	turn fireline to x-axis <55> speed <50>;
+	turn fireline to y-axis <0> speed <50>;
+	shotcount = 0;
+	timer = 0;
+	isfiring = 0;
+	//hide lthrust;
+	//hide mthrust;
+	//hide rthrust;
+
+}
+
+Activate()
+{
+	show rthrust;
+	show mthrust;
+	show lthrust;
+	spin ring1 around x-axis speed <60> accelerate <200>;
+	spin ring2 around x-axis speed <40> accelerate <200>;
+	spin ring2 around y-axis speed <30> accelerate <200>;
+	spin ring3 around z-axis speed <20> accelerate <200>;
+}
+
+Deactivate()
+{
+	hide rthrust;
+	hide mthrust;
+	hide lthrust;
+	stop-spin ring1 around x-axis;
+	stop-spin ring2 around x-axis;
+	stop-spin ring2 around y-axis;
+	stop-spin ring3 around z-axis;
+	turn ring1 to x-axis <0> speed <60>;
+	turn ring2 to x-axis <0> speed <60>;
+	turn ring2 to y-axis <0> speed <60>;
+	turn ring3 to z-axis <0> speed <60>;
+	
+}
+
+StrafeFire() {
+
+	signal SIG_STRAFE;
+	set-signal-mask SIG_STRAFE;
+	
+	
+	//emit-sfx 1024 + 0 from lineflare;
+	shotcount = shotcount + 1;
+	call-script lua_UnitScriptLight(1, shotcount);
+
+	while (isfiring == 1) {
+		timer = timer + 1;
+		if (timer<65) {
+			//get PRINT(timer);
+			emit-sfx 2048+1 from fireline;
+			sleep 1;
+		} else {
+			spin ring1 around x-axis speed <90> accelerate <200>;
+			spin ring2 around x-axis speed <60> accelerate <200>;
+			spin ring2 around y-axis speed <30> accelerate <200>;
+			spin ring3 around z-axis speed <30> accelerate <200>;
+			timer = 0;
+			isfiring = 0;
+		}
+	}
+}
+
+
+
+FirePrimary() {
+
+	//signal SIG_STRAFE;
+	isfiring = 1;
+	start-script StrafeFire();
+
+	spin ring1 around x-axis speed <180> accelerate <200>;
+	spin ring2 around x-axis speed <120> accelerate <200>;
+	spin ring2 around y-axis speed <60> accelerate <200>;
+	spin ring3 around z-axis speed <70> accelerate <200>;
+	emit-sfx 4096 + 2 from base;
+	sleep 2900;
+	if (Rand(0,20)==20) {
+		start-script DoBarrelRoll();
+	}
+
+	return 0;
+
+}
+Shot1(){
+	return 0;
+}
+
+AimPrimary() {
+	return 0;
+}
+QueryPrimary(piecenum)
+{
+	piecenum = fireline;
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = fireline;
+}
+AimSecondary(h,p) {
+	return (0);
+}
+
+/*
+FireSecondary() {
+	signal SIG_STRAFE;
+//deny reaiming during firing?
+//barrel roll?
+	isfiring = 1;
+
+	spin ring1 around x-axis speed <90> accelerate <200>;
+	spin ring2 around x-axis speed <60> accelerate <200>;
+	spin ring2 around y-axis speed <30> accelerate <200>;
+	spin ring3 around z-axis speed <30> accelerate <200>;
+	//light
+	emit-sfx 1024 + 1 from coneflare;
+	
+	
+	
+	shotcount = shotcount + 1;
+	emit-sfx 1024 + 0 from coneflare;
+	call-script lua_UnitScriptLight(1, shotcount);
+
+	return (1);
+}
+
+Shot2() {
+	//start-script StrafeFire();
+}
+
+AimSecondary(heading, pitch)
+{
+	if (isfiring==0 OR TRUE) {
+
+		//turn firecone to x-axis 0 - pitch speed <500>;
+		//turn firecone to y-axis heading speed <500>;
+		//wait-for-turn firecone around x-axis;
+		//wait-for-turn firecone around y-axis;
+		return (1);
+	} else {
+		return (0);
+	}
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = firecone;
+}
+//*/
+
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+
+
+
+
+
+//vtol only?
+MoveRate0()
+{
+//0
+	spin ring1 around x-axis speed <60> accelerate <200>;
+	spin ring2 around x-axis speed <40> accelerate <200>;
+	spin ring2 around y-axis speed <30> accelerate <200>;
+	spin ring3 around z-axis speed <20> accelerate <200>;
+
+}
+
+MoveRate1()
+{
+//1/3rds
+
+	spin ring1 around x-axis speed <60> accelerate <200>;
+	spin ring2 around x-axis speed <40> accelerate <200>;
+	spin ring2 around y-axis speed <20> accelerate <200>;
+	spin ring3 around z-axis speed <20> accelerate <200>;
+
+}
+
+MoveRate2()
+{
+//2/3rds
+	spin ring1 around x-axis speed <60> accelerate <200>;
+	spin ring2 around x-axis speed <40> accelerate <200>;
+	spin ring2 around y-axis speed <20> accelerate <200>;
+	spin ring3 around z-axis speed <20> accelerate <200>;
+
+}
+
+MoveRate3()
+{
+//landing?
+	spin ring1 around x-axis speed <60> accelerate <200>;
+	spin ring2 around x-axis speed <40> accelerate <200>;
+	spin ring2 around y-axis speed <20> accelerate <200>;
+	spin ring3 around z-axis speed <20> accelerate <200>;
+
+}
+
+
+
+
+
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+	corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+	corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return corpsetype;
+}

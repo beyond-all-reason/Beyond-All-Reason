@@ -1,9 +1,9 @@
 return {
 	corftiger = {
-		acceleration = 0.0362,
-		brakerate = 0.0724,
-		buildcostenergy = 10000,
-		buildcostmetal = 665,
+		maxacc = 0.0362,
+		maxdec = 0.0724,
+		energycost = 10000,
+		metalcost = 665,
 		buildpic = "CORFTIGER.DDS",
 		buildtime = 11500,
 		canmove = true,
@@ -18,9 +18,9 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		maxdamage = 5300,
+		health = 5300,
 		maxslope = 12,
-		maxvelocity = 2.35,
+		speed = 70.5,
 		maxwaterdepth = 100,
 		movementclass = "MTANK3",
 		nochasecategory = "VTOL",
@@ -163,9 +163,7 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				damage = {
-					bombers = 4.7,
 					default = 14.5, --109
-					fighters = 4.7,
 					vtol = 4.7,
 				},
 			},

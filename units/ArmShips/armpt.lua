@@ -1,12 +1,12 @@
 return {
 	armpt = {
-		acceleration = 0.07011,
+		maxacc = 0.07011,
 		activatewhenbuilt = true,
 		airsightdistance = 800,
 		autoheal = 1.5,
-		brakerate = 0.07011,
-		buildcostenergy = 1000,
-		buildcostmetal = 150,
+		maxdec = 0.07011,
+		energycost = 1000,
+		metalcost = 150,
 		buildpic = "ARMPT.DDS",
 		buildtime = 2700,
 		canmove = true,
@@ -22,8 +22,8 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 900,
-		maxdamage = 780,
-		maxvelocity = 3.1,
+		health = 780,
+		speed = 93.0,
 		minwaterdepth = 6,
 		movementclass = "BOAT3",
 		nochasecategory = "VTOL UNDERWATER",
@@ -161,8 +161,6 @@ return {
 				customparams = {
 				},
 				damage = {
-					bombers = 80,
-					fighters = 80,
 					vtol = 80,
 				},
 			},
@@ -199,9 +197,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 750,
 				damage = {
-					bombers = 5,
 					default = 24,
-					fighters = 5,
 					--subs = 2,
 					vtol = 5,
 				},
