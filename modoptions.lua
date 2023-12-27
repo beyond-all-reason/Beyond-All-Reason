@@ -1017,6 +1017,15 @@ local options={
 		type	= "section",
 	},
 
+	--{
+	--	key    = "xmas",
+	--	name   = "Holiday decorations",
+	--	desc   = "Various  holiday decorations",
+	--	type   = "bool",
+	--	def    = true,
+	--	section= "options_extra",
+	--},
+
 	{
 		key="map_waterlevel",
 		name="Water Level",

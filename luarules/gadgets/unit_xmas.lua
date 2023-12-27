@@ -6,8 +6,12 @@ function gadget:GetInfo()
 		date		= "October 2017",
 		license     = "GNU GPL, v2 or later",
 		layer		= 0,
-		enabled		= true,
+		enabled		= false,
 	}
+end
+
+if not Spring.GetModOptions().xmas then
+	return
 end
 
 local decorationUdefIDs = {}
