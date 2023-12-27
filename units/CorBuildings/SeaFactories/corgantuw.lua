@@ -1,9 +1,9 @@
 return {
 	corgantuw = {
-		acceleration = 0,
-		brakerate = 0,
-		buildcostenergy = 62500,
-		buildcostmetal = 8350,
+		maxacc = 0,
+		maxdec = 0,
+		energycost = 62500,
+		metalcost = 8350,
 		builder = true,
 		buildpic = "CORGANTUW.DDS",
 		buildtime = 67300,
@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 17800,
+		health = 17800,
 		maxslope = 10,
 		metalstorage = 800,
 		minwaterdepth = 30,
@@ -39,6 +39,7 @@ return {
 			[2] = "corshiva",
 			[3] = "corseal",
 			[4] = "corparrow",
+			[5] = "corsok",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

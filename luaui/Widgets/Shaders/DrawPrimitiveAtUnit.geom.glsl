@@ -43,12 +43,12 @@ vec2 transformUV(float u, float v){// this is needed for atlassing
 	return vec2(uvoffsets.s + a * u, uvoffsets.p + b * v);
 }
 
-void offsetVertex4( float x, float y, float z, float u, float v){
+void offsetVertex4(float x, float y, float z, float u, float v, float addRadiusCorr){
 	g_uv.xy = transformUV(u,v);
 	vec3 primitiveCoords = vec3(x,y,z);
 	vec3 vecnorm = normalize(primitiveCoords);
 	PRE_OFFSET
-	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( addRadius * vecnorm + primitiveCoords ), 1.0);
+	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * (addRadius * addRadiusCorr * vecnorm + primitiveCoords ), 1.0);
 	g_uv.zw = dataIn[0].v_parameters.zw;
 	POST_GEOMETRY
 	EmitVertex();
@@ -82,55 +82,60 @@ void main(){
 	float height = dataIn[0].v_lengthwidthcornerheight.w;
 	
 	#ifdef USE_TRIANGLES
-		if (numVertices == uint(3)){ // triangle pointing "forward"
-			offsetVertex4(0.0, 0.0, length, 0.5, 1.0); // xyz uv
-			offsetVertex4(-0.866 * width, 0.0, -0.5 * length, 0.0, 0.0);
-			offsetVertex4(0.866* width, 0.0, -0.5 * length, 1.0, 0.0);
+		if (numVertices == 3u){ // triangle pointing "forward"
+			offsetVertex4(0.0, 0.0, length, 0.5, 1.0, 2.000); // xyz uv
+			offsetVertex4(-0.866 * width, 0.0, -0.5 * length, 0.0, 0.0, 2.000);
+			offsetVertex4(0.866* width, 0.0, -0.5 * length, 1.0, 0.0, 2.000);
 			EndPrimitive();
 		}
 	#endif
 	
 	#ifdef USE_QUADS
-		if (numVertices == uint(4)){ // A quad
-			offsetVertex4( width * 0.5, 0.0,  length * 0.5, 0.0, 1.0);
-			offsetVertex4( width * 0.5, 0.0, -length * 0.5, 0.0, 0.0);
-			offsetVertex4(-width * 0.5, 0.0,  length * 0.5, 1.0, 1.0);
-			offsetVertex4(-width * 0.5, 0.0, -length * 0.5, 1.0, 0.0);
+		if (numVertices == 4u){ // A quad
+			offsetVertex4( width * 0.5, 0.0,  length * 0.5, 0.0, 1.0, 1.414);
+			offsetVertex4( width * 0.5, 0.0, -length * 0.5, 0.0, 0.0, 1.414);
+			offsetVertex4(-width * 0.5, 0.0,  length * 0.5, 1.0, 1.0, 1.414);
+			offsetVertex4(-width * 0.5, 0.0, -length * 0.5, 1.0, 0.0, 1.414);
 			EndPrimitive();
 		}
 	#endif
-	
+
 	#ifdef USE_CORNERRECT
-		if (numVertices == uint(2)){ // A quad with chopped off corners
+		if (numVertices == 2u){ // A quad with chopped off corners
 			float csuv = (cs / (length + width))*2.0;
-			offsetVertex4( - width * 0.5 , 0.0,  - length * 0.5 + cs, 0, csuv); // bottom left
-			offsetVertex4( - width * 0.5 , 0.0,  + length * 0.5 - cs, 0, 1.0 - csuv); // top left
-			offsetVertex4( - width * 0.5 + cs, 0.0,  - length * 0.5 , csuv, 0); // bottom left
-			offsetVertex4( - width * 0.5 + cs, 0.0,  + length * 0.5, csuv, 1.0); // top left
-			offsetVertex4( + width * 0.5 - cs, 0.0,  - length * 0.5 , 1.0 - csuv, 0.0); // bottom right
-			offsetVertex4( + width * 0.5 - cs, 0.0,  + length * 0.5 ,1.0 - csuv, 1.0 ); // top right
-			offsetVertex4( + width * 0.5 , 0.0,  - length * 0.5 + cs , 1.0 , csuv ); // bottom right
-			offsetVertex4( + width * 0.5 , 0.0,  + length * 0.5 - cs , 1.0 -csuv , 1.0 ); // top right
+			// FIXME: Need to incorporate corner size to get the best results.
+			// This is a fudge that looks about right for selected buildings, which have corners of 15% for a square.
+			float addRadiusCorrFudge = 1.1;
+			offsetVertex4( - width * 0.5 , 0.0,  - length * 0.5 + cs, 0, csuv, addRadiusCorrFudge); // bottom left
+			offsetVertex4( - width * 0.5 , 0.0,  + length * 0.5 - cs, 0, 1.0 - csuv, addRadiusCorrFudge); // top left
+			offsetVertex4( - width * 0.5 + cs, 0.0,  - length * 0.5 , csuv, 0, addRadiusCorrFudge); // bottom left
+			offsetVertex4( - width * 0.5 + cs, 0.0,  + length * 0.5, csuv, 1.0, addRadiusCorrFudge); // top left
+			offsetVertex4( + width * 0.5 - cs, 0.0,  - length * 0.5 , 1.0 - csuv, 0.0, addRadiusCorrFudge); // bottom right
+			offsetVertex4( + width * 0.5 - cs, 0.0,  + length * 0.5 ,1.0 - csuv, 1.0, addRadiusCorrFudge); // top right
+			offsetVertex4( + width * 0.5 , 0.0,  - length * 0.5 + cs , 1.0 , csuv, addRadiusCorrFudge); // bottom right
+			offsetVertex4( + width * 0.5 , 0.0,  + length * 0.5 - cs , 1.0 -csuv , 1.0, addRadiusCorrFudge); // top right
 			EndPrimitive();
 		}
 	#endif
 	
 	#ifdef USE_CIRCLES
-		if (numVertices > uint(5)) { //A circle with even subdivisions
-			numVertices = min(numVertices,62u); // to make sure that we dont emit more than 64 vertices
+		if (numVertices > 5u){ // A circle with even subdivisions
+			numVertices = min(numVertices,64u); // to make sure that we dont emit more than 64 vertices
+			float internalAngle = float(numVertices - 2u) * radians(180.0) / float(numVertices);
+			float addRadiusCorr = 1 / sin(internalAngle / 2.0);
 			//left most vertex
-			offsetVertex4(- width * 0.5, 0.0,  0, 0.0, 0.5);
+			offsetVertex4(- width * 0.5, 0.0,  0, 0.0, 0.5, addRadiusCorr);
 			int numSides = int(numVertices) / 2;
 			//for each phi in (-PI/2, Pi/2) omit the first and last one
 			for (int i = 1; i < numSides; i++){
 				float phi = ((i * 3.141592) / numSides) -  1.5707963;
 				float sinphi = sin(phi);
 				float cosphi = cos(phi);
-				offsetVertex4( width * 0.5 * sinphi, 0.0,  length * 0.5 * cosphi, sinphi*0.5 + 0.5, cosphi * 0.5 + 0.5);
-				offsetVertex4( width * 0.5 * sinphi, 0.0,  -length * 0.5 * cosphi, sinphi*0.5 + 0.5, cosphi *(-0.5) + 0.5);
+				offsetVertex4( width * 0.5 * sinphi, 0.0,  length * 0.5 * cosphi, sinphi*0.5 + 0.5, cosphi * 0.5 + 0.5, addRadiusCorr);
+				offsetVertex4( width * 0.5 * sinphi, 0.0,  -length * 0.5 * cosphi, sinphi*0.5 + 0.5, cosphi *(-0.5) + 0.5, addRadiusCorr);
 			}
 			// add right most vertex
-			offsetVertex4(width * 0.5, 0.0,  0, 1.0, 0.5);
+			offsetVertex4(width * 0.5, 0.0,  0, 1.0, 0.5, addRadiusCorr);
 			EndPrimitive();
 		}
 	#endif

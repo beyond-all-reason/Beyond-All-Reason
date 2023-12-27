@@ -5,6 +5,7 @@
 
 
 #define SIG_BUILD		4	
+#define SIG_MOTION		8	
 piece  base, fan, doorl,doorr,platform,arm,nano,emit,thrust, nanolight;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
@@ -12,6 +13,9 @@ static-var  statechg_DesiredState, statechg_StateChanging;
 
 activatescr()
 {
+	signal SIG_MOTION;
+	set-signal-mask SIG_MOTION;
+	show thrust;
 	if( TRUE )
 	{
 
@@ -24,7 +28,10 @@ activatescr()
 
 deactivatescr()
 {
+	signal SIG_MOTION;
+	set-signal-mask SIG_MOTION;
 	hide nanolight;
+	hide thrust;
 	if( TRUE )
 	{
 		turn arm to y-axis <0> speed <90>;
@@ -33,7 +40,8 @@ deactivatescr()
 		sleep 500;
 		move doorl to x-axis [0] speed [10];
 		move doorr to x-axis [0] speed [10];
-		stop-spin fan around y-axis decelerate <20>;
+		//stop-spin fan around y-axis decelerate <20>; 
+		//^ could maybe stop on landing but when does that ever happen. when hovering it should stay on.
 		sleep 998;
 	}
 	sleep 44;
@@ -113,6 +121,16 @@ Deactivate()
 {
 	hide thrust;
 	start-script RequestState(1);
+	return (0);
+}
+
+///moving. quite what or how is up for debate but /something/ is happening.
+MoveRate1() {
+	start-script RequestState(0);
+	return (0);
+}
+MoveRate2() {
+	start-script RequestState(0);
 	return (0);
 }
 

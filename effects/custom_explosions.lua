@@ -1,5 +1,8 @@
 
 local definitions = {
+
+  ["noexplosion"] = {--needed for hacking behaviour via fake weapons
+  },
   ["botrailspawn"] = {
     centerflare = {
       air                = true,

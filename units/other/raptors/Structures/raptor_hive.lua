@@ -1,12 +1,12 @@
 return {
 	raptor_hive = {
-		acceleration = 0,
+		maxacc = 0,
 		activatewhenbuilt = true,
 		autoheal = 1.8,
 
-		brakerate = 0,
-		buildcostenergy = 25000,
-		buildcostmetal = 400,
+		maxdec = 0,
+		energycost = 25000,
+		metalcost = 400,
 		builddistance = 90,
 		builder = true,
 		buildpic = "raptors/raptor_hive.DDS",
@@ -24,8 +24,8 @@ return {
 		idletime = 90,
 		levelground = false,
 		mass = 165.75,
-		maxdamage = 50000,
-		maxvelocity = 0,
+		health = 50000,
+		speed = 0.0,
 		noautofire = false,
 		objectname = "Raptors/raptor_hive.s3o",
 		radardistance = 900,
@@ -153,8 +153,6 @@ return {
 				wobble = 32000,
 				damage = {
 					default = 1,
-					bombers = 1000,
-					fighters = 1000,
 					vtol = 1000,
 				},
 			},

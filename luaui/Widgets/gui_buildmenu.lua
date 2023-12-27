@@ -486,7 +486,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 	-- price
 	if showPrice then
 		local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
-		local energyColor = disabled and "\n\255\135\135\135" or "\n\255\255\255\000"
+		local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
 		local function AddSpaces(price)
 			if price >= 1000 then
 				return string.format("%s %03d", AddSpaces(math_floor(price / 1000)), price % 1000)
@@ -497,9 +497,8 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 		local energyPrice = AddSpaces(units.unitEnergyCost[uDefID])
 		local metalPriceText = metalColor .. metalPrice
 		local energyPriceText = energyColor .. energyPrice
-		local energyPriceTextHeight = font2:GetTextHeight(energyPriceText) * priceFontSize
-		font2:Print(metalPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35) + energyPriceTextHeight, priceFontSize, "ro")
-		font2:Print(energyPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
+		font2:Print(metalPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
+		font2:Print(energyPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
 	end
 
 	-- factory queue number
@@ -996,14 +995,22 @@ function widget:MousePress(x, y, button)
 			if not disableInput then
 				for cellRectID, cellRect in pairs(cellRects) do
 					if cmds[cellRectID].id and UnitDefs[-cmds[cellRectID].id].translatedHumanName and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (units.unitRestricted[-cmds[cellRectID].id]) then
+						local uDefID = cmds[cellRectID].id
 						if button ~= 3 then
 							if playSounds then
 								Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
 							end
 							if preGamestartPlayer then
-								setPreGamestartDefID(cmds[cellRectID].id * -1)
-							elseif spGetCmdDescIndex(cmds[cellRectID].id) then
-								Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 1, true, false, Spring.GetModKeyState())
+								setPreGamestartDefID(-uDefID)
+							elseif spGetCmdDescIndex(uDefID) then
+								local uDef = UnitDefs[-uDefID]
+								local isRepeatMex = uDef.customParams.metal_extractor and uDef.name == activeCmd
+								local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
+
+								if isRepeatMex then
+									WG['areamex'].setAreaMexType(uDefID)
+								end
+								Spring.SetActiveCommand(cmd, 1, true, false, Spring.GetModKeyState())
 							end
 						else
 							if cmds[cellRectID].params[1] and playSounds then

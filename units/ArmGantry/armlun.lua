@@ -1,10 +1,10 @@
 return {
 	armlun = {
 		activatewhenbuilt = true,
-		acceleration = 0.01788,
-		brakerate = 0.01788,
-		buildcostenergy = 23000,
-		buildcostmetal = 1150,
+		maxacc = 0.01788,
+		maxdec = 0.01788,
+		energycost = 23000,
+		metalcost = 1150,
 		builder = false,
 		buildpic = "ARMLUN.DDS",
 		buildtime = 32000,
@@ -21,9 +21,9 @@ return {
 		footprintz = 4,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 5300,
+		health = 5300,
 		maxslope = 16,
-		maxvelocity = 1.67,
+		speed = 50.1,
 		maxwaterdepth = 0,
 		movementclass = "HHOVER4",
 		nochasecategory = "VTOL",
@@ -149,9 +149,7 @@ return {
 					--when = "ypos<0",
 				},
 				damage = {
-					bombers = 60,
 					default = 370,
-					fighters = 60,
 					subs = 370,
 					vtol = 60,
 				},
@@ -185,9 +183,7 @@ return {
 
 				},
 				damage = {
-					bombers = 60,
 					default = 370,
-					fighters = 60,
 					subs = 370,
 					vtol = 60,
 				},
@@ -226,9 +222,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 230,
 				damage = {
-					bombers = 35,
 					default = 330,
-					fighters = 35,
 					subs = 165,
 					vtol = 35,
 				},

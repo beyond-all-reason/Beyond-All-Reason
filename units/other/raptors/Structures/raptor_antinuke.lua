@@ -1,10 +1,10 @@
 return {
 	raptor_antinuke = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 4096,
-		buildcostenergy = 40000,
-		buildcostmetal = 1500,
+		energycost = 40000,
+		metalcost = 1500,
 		buildpic = "raptors/raptor_hive.DDS",
 		buildtime = 60000,
 		canattack = false,
@@ -19,7 +19,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 10000,
+		health = 10000,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		noautofire = true,

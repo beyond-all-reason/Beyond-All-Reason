@@ -138,8 +138,7 @@ if riskWindValue == nil then
 		riskWindValue = "100"
 	end
 end
-
-local tidalSpeed = Game.tidal
+local tidalSpeed = Spring.GetTidal() -- for now assumed that it is not dynamiccally changed
 local tidalWaveAnimationHeight = 10
 local windRotation = 0
 
@@ -496,7 +495,19 @@ end
 
 -- return true if tidal speed is *relevant*, enough water in the world (>= 10%)
 local function checkTidalRelevant()
-	local _, _, mapMinHeight, mapMaxHeight = Spring.GetGroundExtremes()
+	local mapMinHeight = 0
+	-- account for invertmap to the best of our abiltiy
+	if string.find(Spring.GetModOptions().debugcommands,"invertmap") then
+		if string.find(Spring.GetModOptions().debugcommands,"wet") then
+			-- assume that they want water if keyword "wet" is involved, too violitile between initilization and subsequent post terraform checks
+			return true
+		--else
+		--	mapMinHeight = 0
+		end
+	else
+		mapMinHeight = select(3,Spring.GetGroundExtremes())
+	end
+	mapMinHeight = mapMinHeight - (Spring.GetModOptions().map_waterlevel or 0)
 	return mapMinHeight <= -20	-- armtide/cortide can be built from 20 waterdepth (hardcoded here cause am too lazy to auto cycle trhough unitdefs and read it from there)
 end
 

@@ -260,9 +260,10 @@ if gadgetHandler:IsSyncedCode() then
 		local highValueTargetCount = squadPotentialHighValueTarget.count
 		local pos = {}
 		local pickedTarget = nil
+		local highValueTargetPickChance = math.min(0.75, highValueTargetCount*0.15)
 		repeat
 			loops = loops + 1
-			if highValueTargetCount > 0 and mRandom() <= 0.75 then
+			if highValueTargetCount > 0 and mRandom() <= highValueTargetPickChance then
 				local target = squadPotentialHighValueTarget:GetRandom()
 				if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
 					local x,y,z = Spring.GetUnitPosition(target)
@@ -830,7 +831,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			else
 				timeOfLastSpawn = GetGameSeconds()
-				playerAggression = playerAggression + (config.angerBonus*(queenAnger*0.01))
+				--playerAggression = playerAggression + (config.angerBonus*(queenAnger*0.01))
 			end
 		end
 		tracy.ZoneEnd()

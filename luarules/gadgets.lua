@@ -1389,7 +1389,7 @@ end
 function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam,
 										  unitID, unitDefID, part)
 									
-	tracy.ZoneBeginN("G:AllowCommand")  
+	tracy.ZoneBeginN("G:AllowUnitBuildStep")  
 	for _, g in ipairs(self.AllowUnitBuildStepList) do
 		if not g:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part) then
 			tracy.ZoneEnd()

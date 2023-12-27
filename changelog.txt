@@ -1,4 +1,18 @@
 ﻿# November 2023
+• [Release Candidate Modoption] Dragon rework is added to the list of units in the release candidates modoption.  This updates the dragon model and changes its weapons.  An anti-air turret is added so that the unit can deal with small amounts of T1 fighters, the front weapon is changed from a laser to a flamethrower, and the side turrets have been split from 2 medium to 4 smaller laser turrets.  
+• [Consul] Recluse removed from build list, Webber added to build list.
+• [Air units] Armorclasses merged for all air units, meaning that fighters and bombers will take the same amount of damage as gunships.  
+	- T1 fighters will kill other T1 fighters in 2 shots instead of 1
+	- T1 fighters will kill T2 fighters in 3 shots instead of 2
+	- Flak will kill T2 fighters in 2 shots instead of 1
+	- To make up for the extra durability, the cost of T2 fighters is increased
+	- Nighthawk (Cor T2 fighter) cost increased from 105m3700E -> 135m4750E, and weapon damage set to 500/shot
+	- Highwind (Arm T2 fighter) cost increased from 120m4900E -> 140m5700E, and weapon damage set to 750/shot
+	- The commander no longer deals extra damage against bombers
+	- Chainsaw and Eradicator damage per shot against fighters and gunships increased to match with previous damage against bombers
+• [Quaker] Reworked to be larger with a heavier weapon, so that the T2 veh artillery has a similar asymmetry to the T1 veh artillery.  Cost changed from 280m 3300E -> 360m 4000E, health increased 830 -> 1000, max speed reduced 54 -> 48, Damage per shot increased 300 -> 420, aoe increased 129 -> 144, reloadtime increased 4.25s -> 5s
+• [Omen] Cor T2 radar vehicle's movement speed increased 36 -> 48 to be closer to arm T2 radar vehicle (57 speed)
+• [Crawling Bombs] Movement speed while underwater reduced to 2/3 speed on land
 • [Consul] Hound removed from build list, Sprinter and Platypus added to build list
 • [Twitcher] Termite added to build list
 • [Termite] Cost reduced from 700m 12000E -> 600m 9000E
