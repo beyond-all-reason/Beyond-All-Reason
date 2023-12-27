@@ -713,7 +713,19 @@
 			"raptor_queen_veryeasy": "Raptor Queen",
 			"raptor_queen_veryhard": "Raptor Queen",
 			"xmasball": "Xmas Ball",
-			"xmasball2": "Xmas Ball"
+			"xmasball2": "Xmas Ball",
+			"xmasball1_1": "Xmas ball",
+			"xmasball1_2": "Xmas ball",
+			"xmasball1_3": "Xmas ball",
+			"xmasball1_4": "Xmas ball",
+			"xmasball1_5": "Xmas ball",
+			"xmasball1_6": "Xmas ball",
+			"xmasball2_1": "Xmas ball",
+			"xmasball2_2": "Xmas ball",
+			"xmasball2_3": "Xmas ball",
+			"xmasball2_4": "Xmas ball",
+			"xmasball2_5": "Xmas ball",
+			"xmasball2_6": "Xmas ball"
 		},
 		"descriptions": {
 			"armaak": "Advanced Amphibious Anti-Air Bot",
@@ -1424,7 +1436,19 @@
 			"raptor_queen_veryeasy": "The Mother of Them ALL! ",
 			"raptor_queen_veryhard": "The Mother of Them ALL! ",
 			"xmasball": "Xmas ball",
-			"xmasball2": "Xmas ball"
+			"xmasball2": "Xmas ball",
+			"xmasball1_1": "Xmas ball",
+			"xmasball1_2": "Xmas ball",
+			"xmasball1_3": "Xmas ball",
+			"xmasball1_4": "Xmas ball",
+			"xmasball1_5": "Xmas ball",
+			"xmasball1_6": "Xmas ball",
+			"xmasball2_1": "Xmas ball",
+			"xmasball2_2": "Xmas ball",
+			"xmasball2_3": "Xmas ball",
+			"xmasball2_4": "Xmas ball",
+			"xmasball2_5": "Xmas ball",
+			"xmasball2_6": "Xmas ball"
 		}
 	}
 }
