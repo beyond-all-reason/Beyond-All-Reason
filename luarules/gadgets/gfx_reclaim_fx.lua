@@ -15,14 +15,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local random = math.random
 
-	local ignoreUnits = {}
-	for udefID,def in ipairs(UnitDefs) do
-		if def.modCategories['object'] or def.customParams.objectify then
-			ignoreUnits[udefID] = true
-		end
-	end
-
-
 	local featureList = {}
 	for featureDefID, fdef in pairs(FeatureDefs) do
 		if fdef.model and fdef.model.minx and fdef.model.maxx then
@@ -42,8 +34,11 @@ if gadgetHandler:IsSyncedCode() then
 	local unitMinZ = {}
 	local unitMaxZ = {}
 	local unitMaxY = {}
-	for unitDefID, unitDef in pairs(UnitDefs) do
-		if not ignoreUnits[unitDef.name] then
+	local ignoreUnits = {}
+	for unitDefID, unitDef in ipairs(UnitDefs) do
+		if unitDef.modCategories['object'] or unitDef.customParams.objectify then
+			ignoreUnits[unitDefID] = true
+		else
 			unitNumFx[unitDefID] = math.min(1 + math.ceil(unitDef.metalCost/250), 30)
 			unitMinX[unitDefID] = unitDef.model.minx
 			unitMaxX[unitDefID] = unitDef.model.maxx
