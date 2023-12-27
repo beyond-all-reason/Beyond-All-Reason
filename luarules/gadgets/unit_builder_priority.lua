@@ -122,7 +122,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
 	if canPassive[unitDefID] then
 		spInsertUnitCmdDesc(unitID, cmdPassiveDesc)
 		if not passiveCons[teamID] then passiveCons[teamID] = {} end
-		passiveCons[teamID][unitID] = spGetUnitRulesParam(unitID,ruleName) == 1 or nil
+		passiveCons[teamID][unitID] = spGetUnitRulesParam(unitID,ruleName) ~= 1 or nil
 		currentBuildSpeed[unitID] = maxBuildSpeed[unitID]
 		spSetUnitBuildSpeed(unitID, currentBuildSpeed[unitID]) -- to handle luarules reloads correctly
 	end
