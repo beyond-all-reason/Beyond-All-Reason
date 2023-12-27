@@ -345,7 +345,8 @@ function gadget:GameFrame(n)
         end
     end
 	--buildTargetOwners = {}
-    buildTargets = (next(buildTargets) and buildTargets) or {} -- check if table is empty and if not reallocate it!
+	buildTargets = (next(buildTargets) and {}) or buildTargets -- check if table is empty and if not reallocate it!
+	
 	if tracy then tracy.ZoneEnd() end
 	for i=1, #teamList do
 		local teamID = teamList[i]
