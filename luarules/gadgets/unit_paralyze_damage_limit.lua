@@ -100,7 +100,7 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 			end
 			
 			
-			bufferdamage = hp / 100
+			bufferdamage = hp / 200
 			--rootdamage = (damage / 50) * hp^0.5
 			--Spring.Echo('h damage rootdamage',hp,damage, rootdamage)
 			damage = damage + bufferdamage --overcome relative effects drain
