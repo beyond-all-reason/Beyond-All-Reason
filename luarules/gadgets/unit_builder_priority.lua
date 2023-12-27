@@ -45,8 +45,13 @@ local canBuild = {} --builders[teamID][builderID], contains all builders
 local maxBuildSpeed = {} -- {builderUnitID = buildSpeed} build speed of builderID, as in UnitDefs (contains all builders)
 local currentBuildSpeed = {} -- {builderid = currentBuildSpeed} build speed of builderID for current interval, not accounting for buildOwners special speed (contains only passive builders)
 
-local costID = {} -- costID[unitID] (contains all units), take values from costs table
+--local costID = {} -- costID[unitID] (contains all units), take values from costs table
 
+-- NOTE: Explanation: Instead of using an individual table to store {unitID = {metal, energy, buildtime}}
+-- We are using using a single table, where {unitID = metal, (unitID + energyOffset) = energy, (unitID+buildTimeOffset) = buildtime}
+local costIDOverride = {}
+local energyOffset = Game.maxUnits + 1
+local buildTimeOffset = (Game.maxUnits + 1) * 2 
 local ruleName = "builderPriority"
 
 local resTable = {"metal","energy"} -- 1 = metal, 2 = energy
@@ -118,7 +123,10 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
         spSetUnitBuildSpeed(unitID, currentBuildSpeed[unitID]) -- to handle luarules reloads correctly
     end
 
-    costID[unitID] = cost[unitDefID]
+    --costID[unitID] = cost[unitDefID]
+	costIDOverride[unitID +               0] = cost[unitDefID][1]
+	costIDOverride[unitID +    energyOffset] = cost[unitDefID][2]
+	costIDOverride[unitID + buildTimeOffset] = cost[unitDefID][3]
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
@@ -149,7 +157,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID)
     currentBuildSpeed[unitID] = nil
     --buildTargetOwners[unitID] = nil
 
-    costID[unitID] = nil
+    --costID[unitID] = nil
+	costIDOverride[unitID +               0] = nil
+	costIDOverride[unitID +    energyOffset] = nil
+	costIDOverride[unitID + buildTimeOffset] = nil
 end
 
 
@@ -192,20 +203,29 @@ local function UpdatePassiveBuilders(teamID, interval)
 --	end
 	local passiveConsTeam = passiveCons[teamID]
 	if tracy then tracy.ZoneBeginN("UpdateStart") end 
-	local passiveExpenseEnergy = {}
-	local passiveExpenseMetal = {}
+	--local passiveExpenseEnergy = {}
+	--local passiveExpenseMetal = {}
+	local passiveExpense = {} -- once again, similar to the costIDOverride we are using a single table with offsets to store two values per unitID
 	-- this is about 800 us
 	if canBuild[teamID] then
 		local canBuildTeam = canBuild[teamID]
 		for builderID in pairs(canBuildTeam) do
 			local builtUnit = spGetUnitIsBuilding(builderID)
+			local expenseMetal = builtUnit and costIDOverride[unitID] or nil
+			local maxbuildspeed = maxBuildSpeed[builderID]
+			if builtUnit and expenseMetal and maxbuildspeed then	-- added check for maxBuildSpeed[builderID] else line below could error (unsure why), probably units that were newly created?
+
+				local expenseEnergy = costIDOverride[unitID + energyOffset]
+				local rate = maxbuildspeed / costIDOverride[unitID + buildTimeOffset]
+			--[[
 			local targetCosts = builtUnit and costID[builtUnit] or nil
-			if builtUnit and targetCosts and maxBuildSpeed[builderID] then	-- added check for maxBuildSpeed[builderID] else line below could error (unsure why), probably units that were newly created?
+			local maxbuildspeed = maxBuildSpeed[builderID]
+			if builtUnit and targetCosts and maxbuildspeed then	-- added check for maxBuildSpeed[builderID] else line below could error (unsure why), probably units that were newly created?
 
 				local expenseMetal = targetCosts[1]
 				local expenseEnergy = targetCosts[2]
-				local rate = maxBuildSpeed[builderID] / targetCosts[3]
-
+				local rate = maxbuildspeed / targetCosts[3]
+			]]--
 				-- TODO: redo solar and basic MM no-stall logic
 				
 				if expenseMetal <= 1 then 
@@ -221,8 +241,8 @@ local function UpdatePassiveBuilders(teamID, interval)
 				end
 
 				if passiveConsTeam[builderID] then 
-					passiveExpenseMetal[builderID] = expenseMetal
-					passiveExpenseEnergy[builderID] = expenseEnergy
+					passiveExpense[builderID] = expenseMetal
+					passiveExpense[builderID+ energyOffset] = expenseEnergy
 					buildTargets[builtUnit] = builderID -- this will naturally assign at least one passive con
 					
 					passiveConsTotalExpenseEnergy = passiveConsTotalExpenseEnergy + expenseEnergy
@@ -257,9 +277,9 @@ local function UpdatePassiveBuilders(teamID, interval)
 		local wouldStall = false
 		--if teamStallingEnergy or teamStallingMetal then -- this is always a number no?
 			--if passiveConsExpense[builderID] then
-			if passiveExpenseMetal[builderID] then
+			if passiveExpense[builderID] then
 				--if teamStallingEnergy then
-					local passivePullEnergy = passiveExpenseEnergy[builderID] * intervalpersimspeed
+					local passivePullEnergy = passiveExpense[builderID + energyOffset] * intervalpersimspeed
 					if teamStallingEnergy <= passivePullEnergy then
 						wouldStall = true
 					else
@@ -275,7 +295,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 					--end
 				--end
 				--if teamStallingMetal then
-					local passivePullMetal = passiveExpenseMetal[builderID] * intervalpersimspeed
+					local passivePullMetal = passiveExpense[builderID] * intervalpersimspeed
 					--if passivePullMetal > 0 then
 						local newPullMetal = teamStallingMetal - passivePullMetal
 						if newPullMetal <= 0 then
@@ -290,7 +310,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 		
 		-- TODO: we need better rotation among passive builders anyway, as their resuorce assigment is order dependent and thus unevely shitty.
 		-- turn this passive builder on/off as appropriate
-		local wantedBuildSpeed = (wouldStall or not passiveExpenseMetal[builderID]) and 0 or maxBuildSpeed[builderID]
+		local wantedBuildSpeed = (wouldStall or not passiveExpense[builderID]) and 0 or maxBuildSpeed[builderID]
 		
 		if currentBuildSpeed[builderID] ~= wantedBuildSpeed then
 			spSetUnitBuildSpeed(builderID, wantedBuildSpeed)
