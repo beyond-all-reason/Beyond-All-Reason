@@ -5,7 +5,7 @@
 
 piece  base, cog, cog1, cog2, cog3, cog4, stand, tubes,handle, f11,f12,f13,f14,f15,f21,f22,f23,f24,f25,f26,f31,f32,f33,f34,f35,f36,f37,f41,f42,f43,f44,f45,f46,f47,f48,f51,f52,f53,f54,f55,f56,f57,f58,f59,f61,f62,f63,f64,f65,f66,f67,f68,f71,f72,f73,f74,f75,f76,f77,f81,f82,f83,f84,f85,f86,f91,f92,f93,f94,f95;
 
-static-var  guncount, restore_delay, shotcount, spin_speed, spin_delay, time_to_reload, fire_rotation, last_primary_heading, last_primary_pitch, last_visual_heading, aiming;
+static-var  guncount, restore_delay, shotcount, spin_speed, spin_delay, time_to_reload, fire_rotation, last_primary_heading, last_primary_pitch, last_visual_heading, aiming, clockwork_started;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -61,11 +61,14 @@ RestoreAfterDelay()
 
 AimPrimary(heading, pitch)
 {
-get PRINT( get GAME_FRAME,1112);
+//get PRINT( get GAME_FRAME,7777);
 	aiming = 1;
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	start-script clockwork(Rand(-90,90), Rand(-90,90));
+	//clockwork_started = GAME_FRAME;
+	if (last_visual_heading != heading) { 
+		start-script clockwork(Rand(-90,90), Rand(-90,90));
+	}
 	spin handle around z-axis speed <150>;
 
 	turn cog to y-axis heading speed <15.000000>;
@@ -122,7 +125,7 @@ FirePrimary() {
 	guncount = 0;
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
-
+	clockwork_started = last_visual_heading;
 
 
 

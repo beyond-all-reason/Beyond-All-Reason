@@ -128,7 +128,7 @@ Shot1(heading,pitch) {
 QueryPrimary(piecenum)
 {
 
-		piecenum = guncount+8;
+		piecenum = guncount+7;
 
 }
 
