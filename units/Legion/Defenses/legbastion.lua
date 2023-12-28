@@ -132,7 +132,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.45,
-				energypershot = 1000,
+				energypershot = 500,
 				explosiongenerator = "custom:genericshellexplosion-medium-beam",
 				firestarter = 90,
 				firetolerance = 300,
@@ -159,7 +159,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					default = 3500,
+					default = 5500,
 				},
 			},
 		},
