@@ -719,6 +719,7 @@ local units = {
 	legmext2 = { "mex_t2.png", 1.20749986 },
 	legmg = { "defence_2_mg.png", 1.60849993 },
 	legmineb = { "air_bomber_minelayer.png", 1.4 },
+	legministarfall = { "armvulc.png", 1.88999987 },
 	legmos = { "air_hover_rocket.png", 1.25999999 },
 	legmrv = { "vehicle_t2_raid.png", 1.45},
 	legnap = { "air_t2_bomber_napalm.png", 1.85 },
