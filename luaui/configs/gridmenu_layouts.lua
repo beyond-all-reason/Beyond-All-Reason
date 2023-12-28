@@ -176,6 +176,11 @@ local labGrids = {
 	corgant = {
 		"corcat", "corkarg", "corshiva", "corkorg",
 		"corjugg", "corsok"
+	},
+	leggant = {
+		"corcat", "corkarg", "corshiva", "corkorg",
+		"corjugg", "corsok", "legpede", "leegmech",
+		"legjugglite","","",""
 	}
 }
 local unitGrids = {
