@@ -531,8 +531,8 @@ do
 	end
 
 	instrumentedDecode = function (js_string)
-		if tracy then tracy.ZoneBegin() end 
-		localret = decode(js_string)
+		if tracy then tracy.ZoneBeginN("Json:Decode") end 
+		local localret = decode(js_string)
 		if tracy then tracy.ZoneEnd() end 
 		return localret
 	end
