@@ -354,12 +354,14 @@ local armorDefs = {
 		"armapt3",
 		"corapt3",
 		"legbastion",
+		"legstarfall",
 
 		"coruwgeo",
 		"coruwageo",
 		"armuwageo",
 		"armuwageo",
 
+		"legjugglite",
 	},
 
 	space = {

@@ -2543,6 +2543,13 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-medium-ok",
 		BaseSoundWeaponType = "plasma-medium",
 	},
+	-- LEGION T3 VEHICLES
+	
+	legjugglite = {
+		BaseSoundSelectType = "cor-tnk-large-sel",
+		BaseSoundMovementType = "cor-tnk-large-ok",
+		BaseSoundWeaponType = "heatray-xl",
+	},
 	-- LEGION AIRCRAFT
 	legca = {
 		BaseSoundSelectType = "arm-air-small-sel",
@@ -2666,6 +2673,7 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-bot-t3-at-ok",
 		BaseSoundWeaponType = "heatray-xl",
 	},
+
 
 
 	armuwmex = {},
