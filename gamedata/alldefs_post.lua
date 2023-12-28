@@ -461,6 +461,7 @@ function UnitDef_Post(name, uDef)
 		elseif name == "corgantuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgolt4"
+			uDef.buildoptions[numBuildoptions+2] = "corakt4"
 		elseif name == "armvp" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armzapper"
@@ -523,7 +524,7 @@ function UnitDef_Post(name, uDef)
 		elseif name == "legaca" or name == "legack" or name == "legacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corapt3"
-			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
+			uDef.buildoptions[numBuildoptions+2] = "legministarfall"
       		uDef.buildoptions[numBuildoptions+3] = "corwint2"
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
 			uDef.buildoptions[numBuildoptions+6] = "cordoomt3"

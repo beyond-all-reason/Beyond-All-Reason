@@ -572,9 +572,10 @@ local unitOrderTable = {
    ['corint']         = 110200,
    ['armminivulc']    = 120100, --scavengers
    ['corminibuzz']    = 120200, --scavengers
+   ['legministarfall']= 120250, --scavengers
    ['armvulc']        = 120300,
    ['corbuzz']        = 120400,
-   ['legstarfall']        = 120450,
+   ['legstarfall']    = 120450,
    ['armbotrail']     = 120500, --scavengers
 
    --DEFENSES AA
