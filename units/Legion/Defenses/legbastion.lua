@@ -144,7 +144,7 @@ return {
 				predictboost = 0.3,
 				proximitypriority = 1,
 				range = 1100,
-				reloadtime = 1.8,
+				reloadtime = 2.5,
 				rgbcolor = "1 0.5 0",
 				rgbcolor2 = "0.9 1.0 0.5",
 				soundhitdry = "",
@@ -159,7 +159,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					default = 5500,
+					default = 4500,
 				},
 			},
 		},

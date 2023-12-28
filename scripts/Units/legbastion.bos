@@ -3,9 +3,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, sauron, sauronarms, ring1, ring2, ring3, fr1, fr2, fr3, aimfromy, aimy, flare, fireline, lineflare, lightpoint, ambienttop, lp1, lp2, lp3, lp4;
+piece  base, base2, base3, sauron, sauronarms, ring1, ring2, ring3, fr1, fr2, fr3, aimfromy, aimy, flare, fireline, lineflare, lightpoint, ambienttop, lp1, lp2, lp3, lp4;
 
-static-var  restore_delay, Static_Var_3, dakka, shotcount, timer, lastfired, gameframe, state;
+static-var  restore_delay, Static_Var_3, dakka, shotcount, timer, lastfired, gameframe, state, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -30,20 +30,27 @@ static-var Stunned;
 static-var aimy1delta, aimy1velocity, aimy1target, aimy1position, gameFrame1;
 
 
+activatescr () {
+	move base2 to y-axis [0] speed [20];
+	move base3 to y-axis [0] speed [20];
 
-
-
-Activate() {
 	turn sauronarms to x-axis <0.000000> speed <85>;
 	start-script SpinIdle();
 	//show fireline;
 	state=1;
 }
 
-Deactivate() {
+deactivatescr() {
 	signal SIG_AIM;
 	state=0;
 	//hide fireline;
+	
+	move base2 to y-axis [-10] speed [15];
+	move base3 to y-axis [-16] speed [15];
+	wait-for-move base2 along y-axis;
+	wait-for-move base3 along y-axis;
+	
+	
 	turn sauronarms to x-axis <-90.000000> speed <85>;
 	turn sauron to y-axis <0> speed <35>;
 	
@@ -59,6 +66,74 @@ Deactivate() {
 	stop-spin fr1 around z-axis;
 	stop-spin fr2 around z-axis;
 	stop-spin fr3 around z-axis;
+}
+
+
+Go()
+{
+
+	set ARMORED to 0;
+	if( !state )
+	{
+		call-script activatescr();
+	}
+	state = 1;
+}
+
+Stop()
+{
+	state = 0;
+	call-script deactivatescr();
+	set ARMORED to 1;
+
+}
+
+
+
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	signal SIG_AIM;
+	start-script RequestState(1);
 }
 
 
@@ -82,7 +157,11 @@ lua_UnitScriptLight(lightIndex, count) {
 
 Create()
 {
+
+
 	state=1;
+	call-script InitState();
+	
 	dakka = 0;
 	lastfired = get(GAME_FRAME);
 	shotcount = 0;
@@ -135,7 +214,7 @@ SpinFiring() {
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-
+//this used to sweepfire, mothballed for now until engine update
 Enlighten() {
 	//get PRINT(999);
 	signal SIG_LIGHT;
@@ -148,7 +227,7 @@ Enlighten() {
 		if (timer<295) {
 			//get PRINT(timer);
 			//emit-sfx 2048 from fireline;
-			sleep 1;
+			sleep 100;
 		} else {
 			start-script SpinIdle();
 			timer = 0;
@@ -160,12 +239,11 @@ Enlighten() {
 
 AimPrimary(heading, pitch) {
 	
-	//get PRINT(timer);
+	if (state==0) return (0);
 	
 	gameframe = get(GAME_FRAME);
 	//get PRINT(lastfired, gameframe);
-	if (state==0) return (0);
-	if (lastfired+100>gameframe) return (0);
+	//if (lastfired+100>gameframe) return (0);
 	lastfired = gameframe;
 	
 	//get PRINT(1, heading, pitch);

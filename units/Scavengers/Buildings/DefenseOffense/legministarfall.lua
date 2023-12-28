@@ -120,7 +120,7 @@ return {
 				sprayangle = 400,
 				highTrajectory = 1,
 				
-				cegtag = "starfire",
+				cegtag = "ministarfire",
 				collidefriendly = false,
 				craterboost = 0.1,
 				cratermult = 0.1,
@@ -135,7 +135,7 @@ return {
 				noselfdamage = true,
 				range = 1400,
 				reloadtime = 15,
-				rgbcolor = "0.7 0.7 1.0 1.0 1.0 1.0 1.0 1.0",
+				rgbcolor = "0.7 0.7 1.0 0.7 1.0 1.0 1.0 0.7",
 				soundhit = "xplomed3",
 				soundhitwet = "splshbig",
 				soundstart = "cannon2",
