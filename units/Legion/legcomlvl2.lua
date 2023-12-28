@@ -334,7 +334,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 1,
 				--energypershot = 250,
-				explosiongenerator = "custom:genericshellexplosion-large-aoe",
+				explosiongenerator = "custom:burnfirecom",
 				gravityaffected = "true",
 				impulsefactor = 1.8,
 				model = "banishermissile.s3o",
