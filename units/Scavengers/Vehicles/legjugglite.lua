@@ -5,7 +5,7 @@ return {
 		maxdec = 0.08,
 		energycost = 47750,
 		metalcost = 2500,
-		buildpic = "CORSALA.DDS",
+		buildpic = "LEGJUGGLITE.DDS",
 		buildtime = 80000,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
