@@ -2080,6 +2080,11 @@ function init()
 		end
 	end
 
+	local oldValues = {}
+	for _, option in ipairs(options) do
+		oldValues[option.id] = option.value
+	end
+
 	options = {
 		--GFX
 		{ id = "preset", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.preset'), type = "select", options = presetNames, value = presetCodes[Spring.GetConfigString('graphicsPreset')],
@@ -5936,6 +5941,9 @@ function init()
 			if userwidgetOptions[name] then
 				for k, customOption in pairs(userwidgetOptions[name]) do
 					options[#options+1] = table.copy(customOptions[customOption])
+					if oldValues[options[#options].id] ~= nil then
+						options[#options].value = oldValues[options[#options].id]
+					end
 					options[#options].name = widgetOptionColor..'  '..options[#options].name
 					usedCustomOptions[customOption] = true
 				end
