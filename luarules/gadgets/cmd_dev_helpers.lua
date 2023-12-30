@@ -292,6 +292,12 @@ if gadgetHandler:IsSyncedCode() then
 			local height = Spring.GetGroundExtremes() + (tonumber(value[1]) or 0)
 			Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -height)
 		end,
+		waterlevel = function(value)
+			local height = tonumber(value[1])
+			if height then
+				Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -height)
+			end
+		end,
 	}
 
 	local function isTerrainMod(debugString)
@@ -316,6 +322,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- 		flatten <height>						lowers anything above to it
 	-- 		floor <height>							raises anything bellow to it
 	-- 		zero [height (not mode compatible)]		sets water level to lowest point or specified height to the roughly best of its ability
+	--		waterlevel <height>							move everything up or down
 	-- extra:
 	--		triangular brackets reffer to required <>
 	--		square brackets reffer to optional []
