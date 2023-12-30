@@ -1374,7 +1374,12 @@ function SortList()
     mySpecStatus = select(3, Spring_GetPlayerInfo(myPlayerID, false))
 
     -- checks if a team has died
-    local teamList = Spring_GetTeamList()
+    local teamList
+    if enemyListShow then
+        teamList = Spring_GetTeamList()
+    else
+        teamList = Spring_GetTeamList(myAllyTeamID)
+    end
     if mySpecStatus ~= myOldSpecStatus then
         if mySpecStatus then
             for _, team in ipairs(teamList) do
@@ -1475,14 +1480,11 @@ function SortTeams(allyTeamID, vOffset)
     -- Adds teams to the draw list (own team first)
     -- (teams are not visible as such unless they are empty or AI)
     local teamsList = Spring_GetTeamList(allyTeamID)
-
-    --add teams
     for _, teamID in ipairs(teamsList) do
         drawListOffset[#drawListOffset + 1] = vOffset
         drawList[#drawList + 1] = -1
         vOffset = SortPlayers(teamID, allyTeamID, vOffset) -- adds players form the team
     end
-
     return vOffset
 end
 
