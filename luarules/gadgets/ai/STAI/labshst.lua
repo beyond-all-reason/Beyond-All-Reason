@@ -9,9 +9,11 @@ function LabsHST:internalName()
 end
 
 function LabsHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.labs = {}
 	self.ECONOMY = 0
+	self.lastLabEcoM = 0
+	self.lastLabEcoE = 0
 	self:factoriesRating()
 end
 
@@ -126,10 +128,12 @@ function LabsHST:EconomyToBuildFactories()
 	for id,factory in pairs(self.labs) do
 		factoryCount = factoryCount + 1
 	end
-	local factoryCountPow = factoryCount * factoryCount
-	if self.ECONOMY or 0 >= factoryCount * 4 or self.ai.ecohst.Energy.income > factoryCountPow * 800 then
-		return true
-	end
+-- 	local factoryCountPow = factoryCount * factoryCount
+-- 	if self.ECONOMY or 0 >= factoryCount * 4 or self.ai.ecohst.Energy.income > factoryCountPow * 800 then
+-- 		return true
+-- 	end
+	if factoryCount == 0 then return true end
+	if self.ai.ecohst.Energy.income > self.lastLabEcoE + (800*factoryCount) then return true end
 	self:EchoDebug('not economy to build factory')
 end
 

@@ -17,7 +17,14 @@ end
 
 function UnitHST:Update()--is before shardlua/unit
 	for ID,unit in pairs(self.units) do
-		if unit then
+		local x,y,z = unit:Internal():GetRawPos() --Spring.GetUnitPosition(unit:Internal():ID())
+		unit:Internal().x = x
+ 		unit:Internal().y = y
+ 		unit:Internal().z = z
+-- 		unit.x = x
+-- 		unit.y = y
+-- 		unit.z = z
+		if x then
 			if unit:HasBehaviours() then
 				unit:Update()
 			end
@@ -36,7 +43,12 @@ end
 
 function UnitHST:UnitCreated(unit, unitDefId, teamId, builderId)
 	local u = self:AIRepresentation(unit)
+
 	if not u then return end
+	local x,y,z = u:Internal():GetRawPos() --Spring.GetUnitPosition(unit:Internal():ID())
+	u:Internal().x = x
+	u:Internal().y = y
+	u:Internal().z = z
 	if u:HasBehaviours() then
 		u:UnitCreated(u, unitDefId, teamId, builderId)
 	end

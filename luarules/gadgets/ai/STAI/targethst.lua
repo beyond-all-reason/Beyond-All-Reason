@@ -16,18 +16,25 @@ function TargetHST:Init()
 	self.pathModParam = 0.3
 	self.pathModifierFuncs = {}
 	self.enemyFrontList = {}
+	self.blobchecked = {}
 end
 
 function TargetHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
+	--local RAM = gcinfo()
 	self:EnemiesCellsAnalisy()
+	--Spring:Echo('targeth1',gcinfo()-RAM)
+
 	--self:ScanEnemyCell()
 	--self:perifericalTarget()
 	--self:enemyFront()
 	self:GetMobileBlobs()
+	--Spring:Echo('targeth2',gcinfo()-RAM)
 	self:GetImmobileBlobs()
+	--Spring:Echo('targeth3',gcinfo()-RAM)
 	--self:EnemyCenter()
 	self:drawDBG()
+	--Spring:Echo('targeth4',gcinfo()-RAM)
 end
 
 function TargetHST:EnemiesCellsAnalisy() --MOVE TO TACTICALHST!!!
@@ -68,8 +75,8 @@ function TargetHST:NearbyVulnerable(position)
 	end
 end
 function TargetHST:GetMobileBlobs()
-	self.blobchecked = {}
-	self.MOBILE_BLOBS = {}
+	--self.blobchecked = {}
+-- 	self.MOBILE_BLOBS = {}
 	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z,cell in pairs( cells) do
 			local blobref = X..':'..Z
@@ -78,8 +85,12 @@ function TargetHST:GetMobileBlobs()
 			end
 		end
 	end
-	self.blobchecked = nil
+ 	--self.blobchecked = nil
+	for i,v in pairs(self.blobchecked) do
+		self.blobchecked[i] = nil
+	end
 	for ref, blob in pairs(self.MOBILE_BLOBS) do
+
 		for i,v in pairs(blob.cells) do
 			for id,name in pairs(v.units) do
 				blob.units[id] = name
@@ -106,19 +117,20 @@ function TargetHST:GetMobileBlobs()
 		blob.defend = defendCell
 		blob.defendDist = defendDist
 
-		local refDist = math.huge
-		local refCell = nil
- 		for X, cells in pairs(self.ai.loshst.OWN) do
- 			for Z, cell in pairs(cells) do
- 				local dist = self.ai.tool:distance(cell.POS,blob.position)
- 				if dist < refDist then
- 					refDist = dist
- 					refCell = cell
- 				end
- 			end
- 		end
-		blob.refCell = refCell
-		blob.refDist = refDist
+-- 		local refDist = math.huge
+-- 		local refCell = nil
+--  		for X, cells in pairs(self.ai.loshst.OWN) do
+--  			for Z, cell in pairs(cells) do
+--  				local dist = self.ai.tool:distance(cell.POS,blob.position)
+--  				if dist < refDist then
+--  					refDist = dist
+--  					refCell = cell
+--  				end
+--  			end
+--  		end
+		blob.refCell = defendCell
+		blob.refDist = defendDist
+		self.MOBILE_BLOBS[ref] = nil
 	end
 end
 
@@ -138,7 +150,7 @@ function TargetHST:blobMobileCell(grid,param,x,z,blobref)--rolling on the cell t
 end
 
 function TargetHST:GetImmobileBlobs()
-	self.blobchecked = {}
+	--self.blobchecked = {}
 	self.IMMOBILE_BLOBS = {}
 	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z,cell in pairs( cells) do
@@ -148,7 +160,11 @@ function TargetHST:GetImmobileBlobs()
 			end
 		end
 	end
-	self.blobchecked = nil
+	--self.blobchecked = nil
+		for i,v in pairs(self.blobchecked) do
+
+		self.blobchecked[i] = nil
+	end
 	for ref, blob in pairs(self.IMMOBILE_BLOBS) do
 		for i,v in pairs(blob.cells) do
 			for id,name in pairs(v.units) do

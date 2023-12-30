@@ -65,79 +65,144 @@ local spGetGaiaTeamID = Spring.GetGaiaTeamID()
 --SYNCED CODE
 if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
-		GG.AiHelpers.Start()
+		--GG.AiHelpers.Start()
 	end
-function gadget:RecvLuaMsg(msg, playerID)
 
-		if string.sub(msg,1,17) == 'StGiveOrderToSync' then
-			local id = string.split(msg,"*")
-			local cmd = string.split(msg,'_')
-			local pos = string.split(msg,':')
-			local opts = string.split(msg,';')
-			local timeout = string.split(msg,'#')
-			local unit = string.split(msg,'!')
-			if #id ~= 3 or #cmd ~= 3 or #pos ~= 3 or #opts ~= 3 or #timeout ~= 3 or #unit ~= 3 then
-				spEcho('format incomplete',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
-				spEcho('recvluamsg',msg)
-				spEcho('splitting length',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
-				spEcho('GiveOrderToUnit : ')
-				spEcho('unit',unit,type(unit))
-				spEcho('id',id,type(id))
-				spEcho('cmd',cmd,type(cmd))
-				spEcho('pos',pos,type(pos))
-				spEcho('opts',opts,type(opts))
-				spEcho('timeout',timeout,type(timeout))
-				Spring.Debug.TableEcho(pos)
+
+
+
+
+
+
+
+
+	function gadget:RecvLuaMsg(msg, playerID)
+		--msg = 'StGiveOrderToSync'..';'..id..';'..cmd..';'..pos..';'..opts..';'..timeout..';'..uname..';'.'StEndGOTS'
+		--Spring.Debug.TableEcho(datas)
+		local datas = string.split(msg,';')
+		if datas[1] ~= 'StGiveOrderToSync' or datas[7] ~= 'StEndGOTS' then
+			Spring.Echo('ST RECEIVEDGOTS INCOMPLETE GOTS ',#datas)
+			return
+		end
+
+		if #datas ~= 7 then
+			Spring.Echo('ST RECEIVEDGOTS INCOMPLETE GOTS ',#datas)
+			return
+		end
+
+		local id = datas[2]
+		local cmd = datas[3]
+		local pos = datas[4]
+		local opts = datas[5]
+		--local timeout = datas[6]
+		local unit = datas[6]
+
+		pos = string.split(pos,',')
+		if not pos or not pos[1] or pos[1] == '' then
+			Spring.Debug.TableEcho(pos)
+			spEcho('warn! invalid POS argument in STAI gotu luarules message')
+			return
+		end
+		if opts ~= 0 then
+			opts = string.split(opts,',')
+			if not opts or not opts[1] or opts[1] == '' then
+				Spring.Debug.TableEcho(opts)
+				spEcho('warn! invalid OPTS argument in STAI gotu luarules message')
 				return
-			end
-			id = id[2]
-			cmd = cmd[2]
-			pos = pos[2]
-			opts = opts[2]
-			timeout = timeout[2]
-			unit = unit[2]
-			if not Spring.ValidUnitID ( id )  then
-				Spring.Echo('ST RECEIVEDGOTS ID INVALID','name',unit,'id',id,'cmd',cmd)
-				return
-			end
-			if string.split(pos,',') then
-				pos = string.split(pos,',')
-				if not pos[1] or pos[1] == '' then
-					Spring.Debug.TableEcho(pos)
-					spEcho('warn! invalid pos argument in STAI gotu luarules message')
-					return
-				end
-			end
-			if string.split(opts,',') then
-				opts = string.split(opts,',')
-				if not opts[1] or opts[1] == '' then
-					Spring.Debug.TableEcho(pos)
-					spEcho('warn! invalid opts argument in STAI gotu luarules message')
-					return
-				end
-			end
-			if type(timeout) ~= 'table' then--maybe this is not required
-				timeout = {timeout}
-			end
-			if dbg then
-				spEcho('recvluamsg',msg)
-				spEcho('splitting length',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
-				spEcho('GiveOrderToUnit : ')
-				spEcho('unit',unit,type(unit))
-				spEcho('id',id,type(id))
-				spEcho('cmd',cmd,type(cmd))
-				spEcho('pos',pos,type(pos))
-				spEcho('opts',opts,type(opts))
-				spEcho('timeout',timeout,type(timeout))
-				Spring.Debug.TableEcho(pos)
-			end
-			local order = Spring.GiveOrderToUnit(id,cmd,pos,opts,timeout)
-			if order ~= true then
-				spEcho('order error in STAI unsync to sync give order to unit',msg)
-				spEcho('order', order,id,cmd,pos,opts,timeout)
 			end
 		end
+
+		local order = Spring.GiveOrderToUnit(id,cmd,pos,opts)
+		if order ~= true then
+			spEcho('order error in STAI unsync to sync give order to unit',msg)
+			spEcho('order', order,id,cmd,pos,opts)
+-- 		else
+-- 			spEcho('STAI give order to unit OK')
+		end
 	end
+
+
+
+
+
+
+
+
+
+
+
+
+-- 	function gadget:RecvLuaMsg1(msg, playerID)
+--
+-- 		if string.sub(msg,1,17) == 'StGiveOrderToSync' then
+-- 			local id = string.split(msg,"*")
+-- 			local cmd = string.split(msg,'_')
+-- 			local pos = string.split(msg,':')
+-- 			local opts = string.split(msg,';')
+-- 			local timeout = string.split(msg,'#')
+-- 			local unit = string.split(msg,'!')
+-- 			if #id ~= 3 or #cmd ~= 3 or #pos ~= 3 or #opts ~= 3 or #timeout ~= 3 or #unit ~= 3 then
+-- 				spEcho('format incomplete',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
+-- 				spEcho('recvluamsg',msg)
+-- 				spEcho('splitting length',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
+-- 				spEcho('GiveOrderToUnit : ')
+-- 				spEcho('unit',unit,type(unit))
+-- 				spEcho('id',id,type(id))
+-- 				spEcho('cmd',cmd,type(cmd))
+-- 				spEcho('pos',pos,type(pos))
+-- 				spEcho('opts',opts,type(opts))
+-- 				spEcho('timeout',timeout,type(timeout))
+-- 				Spring.Debug.TableEcho(pos)
+-- 				return
+-- 			end
+-- 			id = id[2]
+-- 			cmd = cmd[2]
+-- 			pos = pos[2]
+-- 			opts = opts[2]
+-- 			timeout = timeout[2]
+-- 			unit = unit[2]
+-- 			if not Spring.ValidUnitID ( id )  then
+-- 				Spring.Echo('ST RECEIVEDGOTS ID INVALID','name',unit,'id',id,'cmd',cmd)
+-- 				return
+-- 			end
+-- 			if string.split(pos,',') then
+-- 				pos = string.split(pos,',')
+-- 				if not pos[1] or pos[1] == '' then
+-- 					Spring.Debug.TableEcho(pos)
+-- 					spEcho('warn! invalid pos argument in STAI gotu luarules message')
+-- 					return
+-- 				end
+-- 			end
+-- 			if string.split(opts,',') then
+-- 				opts = string.split(opts,',')
+-- 				if not opts[1] or opts[1] == '' then
+-- 					Spring.Debug.TableEcho(pos)
+-- 					spEcho('warn! invalid opts argument in STAI gotu luarules message')
+-- 					return
+-- 				end
+-- 			end
+-- 			if type(timeout) ~= 'table' then--maybe this is not required
+-- 				timeout = {timeout}
+-- 			end
+-- 			if dbg then
+-- 				spEcho('recvluamsg',msg)
+-- 				spEcho('splitting length',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
+-- 				spEcho('GiveOrderToUnit : ')
+-- 				spEcho('unit',unit,type(unit))
+-- 				spEcho('id',id,type(id))
+-- 				spEcho('cmd',cmd,type(cmd))
+-- 				spEcho('pos',pos,type(pos))
+-- 				spEcho('opts',opts,type(opts))
+-- 				spEcho('timeout',timeout,type(timeout))
+-- 				Spring.Debug.TableEcho(pos)
+-- 			end
+-- 			local order = Spring.GiveOrderToUnit(id,cmd,pos,opts,timeout)
+-- 			if order ~= true then
+-- 				spEcho('order error in STAI unsync to sync give order to unit',msg)
+-- 				spEcho('order', order,id,cmd,pos,opts,timeout)
+-- 			end
+-- 		end
+-- 	end
 else
 
 	-- UNSYNCED CODE
@@ -235,6 +300,7 @@ else
 
 	function gadget:GameFrame(n)
 		-- for each AI...
+
 		for i, thisAI in ipairs(Shard.AIs) do
 			--local RAM = gcinfo()
 			-- update sets of unit ids : own, friendlies, enemies
@@ -367,6 +433,7 @@ else
 	end
 
 	function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+-- 		local RAM = gcinfo()
 		local unit = Shard:shardify_unit(unitID)
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
@@ -374,8 +441,10 @@ else
 				thisAI:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 			end
 		end
+-- 		Spring.Echo('uelram',gcinfo()-RAM)
 	end
 	function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+-- 	local RAM = gcinfo()
 		local unit = Shard:shardify_unit(unitID)
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
@@ -383,8 +452,10 @@ else
 				thisAI:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 			end
 		end
+-- 		Spring.Echo('ullram',gcinfo()-RAM)
 	end
 	function gadget:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+-- 	local RAM = gcinfo()
 		local unit = Shard:shardify_unit(unitID)
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
@@ -392,8 +463,10 @@ else
 				thisAI:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 			end
 		end
+-- 		Spring.Echo('uerram',gcinfo()-RAM)
 	end
 	function gadget:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+-- 		local RAM = gcinfo()
 		local unit = Shard:shardify_unit(unitID)
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
@@ -401,6 +474,7 @@ else
 				thisAI:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 			end
 		end
+-- 		Spring.Echo('ulrram',gcinfo()-RAM)
 	end
 
 -- 	function gadget:UnitMoved(a,b,c,d)

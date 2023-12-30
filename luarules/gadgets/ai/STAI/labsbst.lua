@@ -45,6 +45,7 @@ function LabsBST:OwnerCreated()
 end
 function LabsBST:OwnerBuilt()
 	self.ai.labshst.labs[self.id].underConstruction = nil
+	self.ai.labshst.lastLabEcoE = self.ai.ecohst.Energy.income
 end
 
 function LabsBST:OwnerDead()
@@ -79,7 +80,7 @@ function LabsBST:Update()
 	if soldier then
 		for i=1,param.wave or 1 do
 			utype = self.game:GetTypeByName(soldier)
-			self.unit:Internal():Build(utype,self.unit:Internal():GetPosition(),0,{-1})
+			self.unit:Internal():Build(utype,self.position,0,{-1})
 		end
 	end
 end
@@ -199,8 +200,8 @@ end
 
 function LabsBST:ampRating()
 	-- precalculate amphibious rank
-	local ampSpots = self.ai.maphst:AccessibleSpotsHere('amp', self.unit:Internal():GetPosition())
-	local vehSpots = self.ai.maphst:AccessibleSpotsHere('veh', self.unit:Internal():GetPosition())
+	local ampSpots = self.ai.maphst:AccessibleSpotsHere('amp', self.position)
+	local vehSpots = self.ai.maphst:AccessibleSpotsHere('veh', self.position)
 	local amphRank = 0
 	if #ampSpots > 0 and #vehSpots > 0 then
 		amphRank = 1 - (#vehSpots / #ampSpots)

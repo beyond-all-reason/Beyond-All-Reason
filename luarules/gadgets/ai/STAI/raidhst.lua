@@ -189,24 +189,31 @@ end
 function RaidHST:getSquadPosition(squad)
 	local members = squad.members
 	self:EchoDebug(#members,'in squad',squad.squadID,'search pos')
-	local squadPos = {x=0,y=0,z=0}
-	squad.membersPos = {}
+-- 	local squadPos = {x=0,y=0,z=0}
+	squad.position = squad.position or {}
+	squad.position.x = 0
+	squad.position.y = 0
+	squad.position.z = 0
+-- 	squad.membersPos = {}
 	for index,id in pairs(members) do
 		local unit = self.game:GetUnitByID(id)
 		if unit:IsAlive() then
-			local unitPos = unit:GetPosition()
-			squad.membersPos[index] = unitPos
-			squadPos.x = squadPos.x + unitPos.x
-			squadPos.z = squadPos.z + unitPos.z
+			--local unitPos = unit:GetPosition()
+			squad.membersPos[index] = squad.membersPos[index] or {}
+			squad.membersPos[index].x , squad.membersPos[index].y, squad.membersPos[index].z = unit:GetRawPos()
+
+
+			squad.position.x = squad.position.x + squad.membersPos[index].x
+			squad.position.z = squad.position.z + squad.membersPos[index].z
 		else
 			table.remove(self.raiders,self.id)
 			table.remove(squad.members,index)
 		end
 	end
-	squadPos.x = squadPos.x / # members
-	squadPos.z = squadPos.z / # members
-	squadPos.y = Spring.GetGroundHeight(squadPos.x,squadPos.z)
-	squad.position = {x = squadPos.x, y = squadPos.y, z = squadPos.z}
+	squad.position.x = squad.position.x / # members
+	squad.position.z = squad.position.z / # members
+	squad.position.y = Spring.GetGroundHeight(squad.position.x,squad.position.z)
+-- 	squad.position = {x = squadPos.x, y = squadPos.y, z = squadPos.z}
 	self:EchoDebug('actual squad.position',squad.position.x,squad.position.z)
 end
 
@@ -242,7 +249,7 @@ function RaidHST:goToNextNode(squad)
 end
 
 function RaidHST:squadMove(squad)
-	squad.formation = {}
+	squad.formation = squad.formation or {}
 	local pos = squad.path[1]
 	local X
 	local Z
@@ -263,14 +270,17 @@ function RaidHST:squadMove(squad)
 
 		local unit = self.game:GetUnitByID(id)
 
-		local arch = api.Position()
-		arch.x = pos.x + X
-		arch.z = pos.z + Z
-		arch.y = Spring.GetGroundHeight(arch.x,arch.z)
-		self:EchoDebug('arch',arch.x,arch.z)
-		self:EchoDebug('go to next node',index,arch.x,arch.z)
-		squad.formation[index] = arch
-		unit:Move(arch)
+		--local arch = api.Position()
+		local x = pos.x + X
+		local z = pos.z + Z
+		local y = Spring.GetGroundHeight(x,z)
+		self:EchoDebug('arch',x,z)
+		self:EchoDebug('go to next node',index,x,z)
+		squad.formation[index] = squad.formation[index] or {}
+		squad.formation[index].x = x
+		squad.formation[index].y = y
+		squad.formation[index].z = z
+		unit:Move(squad.formation[index])
   		--unit:Move(self.ai.tool:RandomAway( pos, 128))
 	end
 end

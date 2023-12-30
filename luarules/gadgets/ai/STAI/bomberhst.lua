@@ -177,9 +177,11 @@ function BomberHST:GetTarget(squad)
 		squad.target = bestCell
 		local bu
 		local bv = 0
-		for id,name in pairs(bestCell.units) do
-			local ut = self.ai.armyhst.unitTable[name]
-			self:EchoDebug(id,name,ut.metalCost)
+		for id,M in pairs(bestCell.units) do
+			local unit = game:GetUnitByID(id)
+			local uName = unit:Name()
+			local ut = self.ai.armyhst.unitTable[uName]
+			self:EchoDebug(id,uName,ut.metalCost)
 			if ut.metalCost > bv then
 				bv = ut.metalCost
 				bu = id

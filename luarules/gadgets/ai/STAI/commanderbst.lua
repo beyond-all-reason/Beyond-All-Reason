@@ -9,6 +9,8 @@ function CommanderBST:Init()
 	local u = self.unit:Internal()
 	self.id = u:ID()
 	self.save = false
+	self.position = self.unit:Internal():GetPosition()
+	self.ai.loshst.CENTER = self.position
 	self:EchoDebug("init")
 end
 

@@ -118,16 +118,16 @@ function ShardAI:Update()
 			self:Warn("nil module!")
 		else
  			self.game:StartTimer(m:Name() .. ' hst')
-			--local RAM = gcinfo()
+			local RAM = gcinfo()
 
 			tracyZoneBeginMem(m:Name())
 			m:Update()
 			tracyZoneEndMem()
  			self.game:StopTimer(m:Name() .. ' hst')
-			--RAM = gcinfo() - RAM
-			--if RAM > 100 and m:Name() ~= 'UnitHandler' then
-			--	print (m:Name(),RAM/1000)
-			--end
+			RAM = gcinfo() - RAM
+			if RAM > 1 --[[and m:Name() ~= 'UnitHandler']] then
+				print (m:Name(),RAM)
+			end
 		end
 	end
 	tracyZoneEndMem()

@@ -79,6 +79,39 @@ function Tool:RandomAway(pos, dist, opposite, angle)
 	end
 end
 
+function Tool:RandomAway2(pos, dist, opposite, angle,away)
+	if angle == nil then
+		angle = random() * twicePi
+	end
+	away = away or {}
+-- 	local mapSize = self.ai.map:MapDimensions()
+-- 	local maxElmosX = mapSize.x * 8
+-- 	local maxElmosZ = mapSize.z * 8
+	away.x, away.y,away.z = 0,0,0
+	away.x = pos.x + dist * cos(angle)
+	away.z = pos.z - dist * sin(angle)
+	away.y = pos.y + 0
+	if away.x < 1 then
+		away.x = 1
+	elseif away.x > self.ai.maphst.elmoMapSizeX - 1 then
+		away.x = self.ai.maphst.elmoMapSizeX - 1
+	end
+	if away.z < 1 then
+		away.z = 1
+	elseif away.z > self.ai.maphst.elmoMapSizeZ - 1 then
+		away.z = self.ai.maphst.elmoMapSizeZ - 1
+	end
+	if opposite then
+		angle = twicePi - angle
+		return away, Tool:RandomAway2(pos, dist, false, angle,away)
+	else
+		return away
+	end
+end
+
+
+
+
 function Tool:RawDistance(x1,y1,z1,x2,y2,z2)
 	local x = x1-x2
 	local y = y1-y2

@@ -172,6 +172,22 @@ function MapHST:PosToGrid(pos)
 	return X, Z
 end
 
+function MapHST:RawPosToGrid(x,y,z)
+	local X = math.ceil(x / self.gridSize)
+	local Z = math.ceil(z / self.gridSize)
+	if not self.GRID[X] or not self.GRID[X][Z] then
+		self:Warn( X,Z,'is out of GRID',x,z)
+	end
+	return X, Z
+end
+
+function MapHST:IsCellInGrid(X,Z)
+	if X < 1 or Z < 1 or X > self.gridSideX or Z > self.gridSideZ then
+		return nil
+	end
+	return true
+end
+
 function MapHST:GridToPos(X,Z)
 	local pos = {}
 	pos.x = X * self.gridSize - self.gridSizeHalf
