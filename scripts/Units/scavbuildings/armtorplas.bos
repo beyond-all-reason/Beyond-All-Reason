@@ -1,0 +1,243 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, flare, launcher, turret, doorl, doorr, pturret, sleeves, barrel1, barrel2, flare1, flare2;
+
+static-var  restore_delay, gun_2;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_PAIM			4
+
+RockOnWaves()
+{
+	var rockDir, rockAng, rockSpeed;
+	rockDir = <-0.1>;
+	rockAng = <-0.1>;
+	while( TRUE )
+	{
+		while( get ABS(rockAng) < <1.31> )
+		{
+			rockSpeed = <1.45> - get ABS(rockAng);
+			turn base to x-axis rockAng speed rockSpeed*5;
+			turn base to z-axis rockAng speed rockSpeed*5;
+			wait-for-turn base around x-axis;
+			wait-for-turn base around z-axis;
+			rockAng = rockAng + rockDir;
+		}
+		rockDir = 0 - rockDir;
+		rockAng = rockAng + rockDir + rockDir;
+	}
+}
+
+
+#define BASEPIECE base
+#define HITSPEED <25.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 1
+#define MAXTILT 200
+
+#include "unit_hitbyweaponid_and_smoke.h"
+
+Create()
+{
+
+	hide flare2;
+	hide flare1;
+	gun_2 = flare1;
+
+	restore_delay = 3000;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script RockOnWaves();
+	return (0);
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn pturret to y-axis <0.000000> speed <90.016484>;
+	turn sleeves to x-axis <0.000000> speed <50.005495>;
+
+	
+	turn turret to y-axis <0.000000> speed <90.021978>;
+	turn launcher to x-axis <0.000000> speed <50.010989>;
+
+	turn doorl to y-axis <0> speed <270>;
+
+	turn doorr to y-axis <0> speed <270>;
+
+	wait-for-turn doorl around y-axis;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn doorl to y-axis <135> speed <270>;
+	
+	turn doorr to y-axis <-135> speed <270>;
+	turn turret to y-axis heading speed <80.016484>;
+	wait-for-turn turret around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	emit-sfx 256 | 3 from flare;
+	return (0);
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = launcher;
+	return (0);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flare;
+	return (0);
+}
+
+
+
+
+
+
+
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_PAIM;
+	set-signal-mask SIG_PAIM;
+	turn pturret to y-axis heading speed <200.000000>;
+	turn sleeves to x-axis <0.000000> - pitch speed <200.000000>;
+	wait-for-turn pturret around y-axis;
+	wait-for-turn sleeves around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireSecondary()
+{
+	if( gun_2 == 0 )
+	{
+	    emit-sfx 1024 + 0 from flare1;
+		move barrel1 to z-axis [-2.200000] speed [300.000000];
+		wait-for-move barrel1 along z-axis;
+		move barrel1 to z-axis [0.000000] speed [3.000000];
+	}
+	if( gun_2 == 1 )
+	{
+	    emit-sfx 1024 + 0 from flare2;
+		move barrel2 to z-axis [-2.200000] speed [300.000000];
+		wait-for-move barrel2 along z-axis;
+		move barrel2 to z-axis [0.000000] speed [3.000000];
+	}
+	gun_2 = !gun_2;
+}
+
+AimFromSecondary(piecenum)
+{
+	if (gun_2 == 0) {
+		piecenum = barrel1;
+	} else {
+		piecenum = barrel2;
+	}
+}
+
+QuerySecondary(piecenum)
+{
+	if (gun_2 == 0) {
+		piecenum = flare1;
+	} else {
+		piecenum = flare2;
+	}}
+
+
+
+
+
+
+
+
+
+
+
+
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turret type BITMAPONLY | NOHEATCLOUD;
+		explode pturret type BITMAPONLY | NOHEATCLOUD;
+		explode launcher type BITMAPONLY | NOHEATCLOUD;
+		explode flare type BITMAPONLY | NOHEATCLOUD;
+		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorr type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turret type FALL | NOHEATCLOUD;
+		explode pturret type FALL | NOHEATCLOUD;
+		explode launcher type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorl type FALL | NOHEATCLOUD;
+		explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type SMOKE | FALL | NOHEATCLOUD;
+		explode pturret type SMOKE | FALL | NOHEATCLOUD;
+		explode launcher type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorl type SMOKE | FALL | NOHEATCLOUD;
+		explode doorr type SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode pturret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode launcher type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode doorr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}
