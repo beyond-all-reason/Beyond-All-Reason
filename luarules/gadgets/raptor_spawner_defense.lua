@@ -136,6 +136,7 @@ if gadgetHandler:IsSyncedCode() then
 	local aliveEggsTable = {}
 	local squadsTable = {}
 	local unitSquadTable = {}
+	local squadTargetsByEcoWeight = {}
 	local squadPotentialTarget = {}
 	local squadPotentialHighValueTarget = {}
 	local unitTargetPool = {}
@@ -260,28 +261,64 @@ if gadgetHandler:IsSyncedCode() then
 		local highValueTargetCount = squadPotentialHighValueTarget.count
 		local pos = {}
 		local pickedTarget = nil
-		local highValueTargetPickChance = math.min(0.75, highValueTargetCount*0.15)
-		repeat
-			loops = loops + 1
-			if highValueTargetCount > 0 and mRandom() <= highValueTargetPickChance then
-				local target = squadPotentialHighValueTarget:GetRandom()
-				if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
-					local x,y,z = Spring.GetUnitPosition(target)
-					pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
-					pickedTarget = target
-					break
+
+		-- Mod
+		if Spring.GetModOptions().raptorsEcoWeightPathing == true then
+
+			for weight,units in pairs(squadTargetsByEcoWeight) do
+				ecoTierMaxProbability = ecoTierMaxProbability + weight * units.count
+			end
+
+			local random = mRandom(1, ecoTierMaxProbability)
+			ecoTierMaxProbability = 0
+
+			-- 10 tries to find a valid target
+			for try = 1, 10 do
+
+				for weight,units in pairs(squadTargetsByEcoWeight) do
+					ecoTierMaxProbability = ecoTierMaxProbability + weight * units.count
+
+					if random <= ecoTierMaxProbability then
+						local target = squadTargetsByEcoWeight[weight]:GetRandom()
+						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+							-- Spring.Echo("Targetting eco: " .. random .. " found " .. UnitDefs[Spring.GetUnitDefID(target)].name);
+
+							local x,y,z = Spring.GetUnitPosition(target)
+							pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
+							pickedTarget = target
+							break
+						end
+					end
 				end
-			else
-				local target = squadPotentialTarget:GetRandom()
-				if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
-					local x,y,z = Spring.GetUnitPosition(target)
-					pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
-					pickedTarget = target
+
+				if pos.x then
 					break
 				end
 			end
-
-		until pos.x or loops >= 10
+		else
+			local highValueTargetPickChance = math.min(0.75, highValueTargetCount*0.15)
+			repeat
+				loops = loops + 1
+				if highValueTargetCount > 0 and mRandom() <= highValueTargetPickChance then
+					local target = squadPotentialHighValueTarget:GetRandom()
+					if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+						local x,y,z = Spring.GetUnitPosition(target)
+						pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
+						pickedTarget = target
+						break
+					end
+				else
+					local target = squadPotentialTarget:GetRandom()
+					if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+						local x,y,z = Spring.GetUnitPosition(target)
+						pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
+						pickedTarget = target
+						break
+					end
+				end
+	
+			until pos.x or loops >= 10
+		end
 
 		if not pos.x then
 			pos = getRandomMapPos()
@@ -1239,22 +1276,79 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		if unitTeam == raptorTeamID then
-			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultRaptorFirestate},0)
-			if UnitDefs[unitDefID].canCloak then
-				Spring.GiveOrderToUnit(unitID,37382,{1},0)
-			end
-			return
-		end
-		
-		squadPotentialTarget:Remove(unitID)
-		squadPotentialHighValueTarget:Remove(unitID)
-	
 
-		if not UnitDefs[unitDefID].canMove then
-			squadPotentialTarget:Add(unitID)
-			if config.highValueTargets[unitDefID] then
-				squadPotentialHighValueTarget:Add(unitID)
+		-- Mod
+		if Spring.GetModOptions().raptorsEcoWeightPathing == true then
+
+			local unitDef = UnitDefs[unitDefID]
+
+			if unitTeam == raptorTeamID then
+				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultRaptorFirestate},0)
+				if unitDef.canCloak then
+					Spring.GiveOrderToUnit(unitID,37382,{1},0)
+				end
+				return
+			end
+
+			-- For each squadTargetsByEcoWeight, remove them
+			for _,unitList in pairs(squadTargetsByEcoWeight) do
+				unitList:Remove(unitID)
+			end
+
+			if not unitDef.canMove then
+				-- Calculate an eco value based on energy and metal production
+				local ecoValue = 1
+
+				if unitDef.energyMake then
+					ecoValue = ecoValue + unitDef.energyMake
+				end
+
+				if unitDef.energyUpkeep < 0 then
+					ecoValue = ecoValue - unitDef.energyUpkeep
+				end
+
+				if unitDef.windGenerator then
+					ecoValue = ecoValue + unitDef.windGenerator*0.75
+				end
+					
+				if unitDef.customParams and unitDef.customParams.energyconv_capacity then
+					ecoValue = ecoValue + unitDef.customParams.energyconv_capacity / 2
+				end
+
+				-- Spring.Echo("Built units eco value: " .. ecoValue)
+
+				-- Ends up building an object like:
+				-- {
+				--  0: [non-eco]
+				--	25: [t1 windmill, t1 solar, t1 mex],
+				--	75: [adv solar]
+				--	1000: [fusion]
+				--	3000: [adv fusion]
+				-- }
+
+				if not squadTargetsByEcoWeight[ecoValue] then
+					squadTargetsByEcoWeight[ecoValue] = SetListUtilities.NewSetListNoTable()
+				end
+
+				squadTargetsByEcoWeight[ecoValue]:Add(unitID)
+			end
+		else
+			if unitTeam == raptorTeamID then
+				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultRaptorFirestate},0)
+				if UnitDefs[unitDefID].canCloak then
+					Spring.GiveOrderToUnit(unitID,37382,{1},0)
+				end
+				return
+			end
+			
+			squadPotentialTarget:Remove(unitID)
+			squadPotentialHighValueTarget:Remove(unitID)
+
+			if not UnitDefs[unitDefID].canMove then
+				squadPotentialTarget:Add(unitID)
+				if config.highValueTargets[unitDefID] then
+					squadPotentialHighValueTarget:Add(unitID)
+				end
 			end
 		end
 		if config.ecoBuildingsPenalty[unitDefID] then
@@ -1842,8 +1936,16 @@ if gadgetHandler:IsSyncedCode() then
 			unitSquadTable[unitID] = nil
 		end
 
-		squadPotentialTarget:Remove(unitID)
-		squadPotentialHighValueTarget:Remove(unitID)
+		-- Mod
+		if Spring.GetModOptions().raptorsEcoWeightPathing == true then
+			for _,unitList in pairs(squadTargetsByEcoWeight) do
+				unitList:Remove(unitID)
+			end
+		else
+			squadPotentialTarget:Remove(unitID)
+			squadPotentialHighValueTarget:Remove(unitID)
+		end
+
 		for squad in ipairs(unitTargetPool) do
 			if unitTargetPool[squad] == unitID then
 				refreshSquad(squad)
