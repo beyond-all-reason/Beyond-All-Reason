@@ -335,17 +335,18 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- do we need a list of most common heights? and if so sample it once for all functions
 		-- mode, math mode as in mean, median, and mode, where mode is the most commonly occuring value
-		-- height gets rounded into stepsize of 10, counted, and sorted based on that count, using the flatest surface found within that step as the representitive height
+		-- height gets rounded into stepsize of MODESTEPSIZE variable, counted, and sorted based on that count, using the flatest surface found within that step as the representitive height
 		local modeArray = {[1]=0}
 		if string.find(debugString, "mode") then
-			-- count the most common heights, in height groups step sized 10
+			-- count the most common heights, in height groups step sized MODESTEPSIZE variable
 			local normal, height, smallestStepHeight = 0, 0, 0
 			local tempModeArray = {}
+			local MODESTEPSIZE = 16
 			for z=0,Game.mapSizeZ, Game.squareSize do
 				for x=0,Game.mapSizeX, Game.squareSize do
 					height = Spring.GetGroundHeight ( x, z ) or 0
 					_, normal, _ = Spring.GetGroundNormal ( x, z )
-					smallestStepHeight = math.floor((height)/10)
+					smallestStepHeight = math.floor((height)/MODESTEPSIZE)
 					if tempModeArray[smallestStepHeight] then
 						tempModeArray[smallestStepHeight][1] = tempModeArray[smallestStepHeight][1] + 1
 						if tempModeArray[smallestStepHeight][2] < normal then
