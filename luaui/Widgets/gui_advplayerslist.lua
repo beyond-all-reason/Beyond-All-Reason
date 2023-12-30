@@ -1402,15 +1402,18 @@ function SortList()
 
     local aliveTeams = 0
     local deadTeams = 0
-    for _, team in ipairs(teamList) do
-        if not select(3, Spring_GetTeamInfo(team, false)) then
-            aliveTeams = aliveTeams  + 1
-        else
-            deadTeams = deadTeams + 1
+    for _, teamID in ipairs(teamList) do
+        local _, _, alive, _, _, allyTeamID = Spring_GetTeamInfo(teamID, false)
+        if aliveAllyTeams[allyTeamID] then
+            if not alive then
+                aliveTeams = aliveTeams  + 1
+            else
+                deadTeams = deadTeams + 1
+            end
         end
     end
-    local deadTeamSize = 0.7
-    playerScale = math.max(0.5, math.min(1, 33 / ((aliveTeams+(deadTeams*deadTeamSize)+((#teamList-(aliveTeams+(deadTeams*deadTeamSize)))*0.5))-1)))
+    local deadTeamSize = 0.66
+    playerScale = math.max(0.4, math.min(1, 33 / (aliveTeams+(deadTeams*deadTeamSize))))
     if #Spring_GetAllyTeamList() > 24 then
         playerScale = playerScale - (playerScale * ((#Spring_GetAllyTeamList()-2)/500))  -- reduce size some more when mega ffa
     end
