@@ -1266,15 +1266,15 @@ if gadgetHandler:IsSyncedCode() then
 			if unitDef.energyMake then
 				ecoValue = ecoValue + unitDef.energyMake
 			end
-
 			if unitDef.energyUpkeep < 0 then
 				ecoValue = ecoValue - unitDef.energyUpkeep
 			end
-
 			if unitDef.windGenerator then
 				ecoValue = ecoValue + unitDef.windGenerator*0.75
 			end
-				
+			if unitDef.extractsMetal > 0 then
+				ecoValue = ecoValue + 400
+			end
 			if unitDef.customParams and unitDef.customParams.energyconv_capacity then
 				ecoValue = ecoValue + unitDef.customParams.energyconv_capacity / 2
 			end
