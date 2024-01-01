@@ -254,30 +254,32 @@ if gadgetHandler:IsSyncedCode() then
 		local pos = {}
 		local pickedTarget = nil
 
-		local ecoTierMaxProbability = 0
+		local ecoTierMaxProbability = 1
 
 		for weight,units in pairs(squadTargetsByEcoWeight) do
 			ecoTierMaxProbability = ecoTierMaxProbability + weight * units.count
 		end
 
 		local random = mRandom(1, ecoTierMaxProbability)
-		ecoTierMaxProbability = 0
+		ecoTierMaxProbability = 1
 
 		-- 10 tries to find a valid target
 		for try = 1, 10 do
 
 			for weight,units in pairs(squadTargetsByEcoWeight) do
-				ecoTierMaxProbability = ecoTierMaxProbability + weight * units.count
+				if units.count then
+					ecoTierMaxProbability = ecoTierMaxProbability + weight * units.count
 
-				if random <= ecoTierMaxProbability then
-					local target = squadTargetsByEcoWeight[weight]:GetRandom()
-					if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
-						-- Spring.Echo("Targetting eco: " .. random .. " found " .. UnitDefs[Spring.GetUnitDefID(target)].name);
+					if random <= ecoTierMaxProbability then
+						local target = units:GetRandom()
+						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+							-- Spring.Echo("Targetting eco: " .. random .. " found " .. UnitDefs[Spring.GetUnitDefID(target)].name);
 
-						local x,y,z = Spring.GetUnitPosition(target)
-						pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
-						pickedTarget = target
-						break
+							local x,y,z = Spring.GetUnitPosition(target)
+							pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
+							pickedTarget = target
+							break
+						end
 					end
 				end
 			end
@@ -1262,11 +1264,10 @@ if gadgetHandler:IsSyncedCode() then
 		if not unitDef.canMove then
 			-- Calculate an eco value based on energy and metal production
 			local ecoValue = 1
-
 			if unitDef.energyMake then
 				ecoValue = ecoValue + unitDef.energyMake
 			end
-			if unitDef.energyUpkeep < 0 then
+			if unitDef.energyUpkeep and unitDef.energyUpkeep < 0 then
 				ecoValue = ecoValue - unitDef.energyUpkeep
 			end
 			if unitDef.windGenerator then
@@ -1275,23 +1276,27 @@ if gadgetHandler:IsSyncedCode() then
 			if unitDef.tidalGenerator then
 				ecoValue = ecoValue + unitDef.tidalGenerator*15
 			end
-			if unitDef.extractsMetal > 0 then
+			if unitDef.extractsMetal and unitDef.extractsMetal > 0 then
 				ecoValue = ecoValue + 400
 			end
 			if unitDef.customParams and unitDef.customParams.energyconv_capacity then
-				ecoValue = ecoValue + unitDef.customParams.energyconv_capacity / 2
+				ecoValue = ecoValue + tonumber(unitDef.customParams.energyconv_capacity) / 2
+			end
+
+			-- Decoy fusion support
+			if unitDef.customParams and unitDef.customParams.decoyfor then
+				ecoValue = ecoValue + 1000
 			end
 
 			-- Make it extra risky to build T2 eco
-			if unitDef.customParams and unitDef.customParams.techlevel > 1 then
-				ecoValue = ecoValue * unitDef.customParams.techlevel
+			if unitDef.customParams and unitDef.customParams.techlevel and tonumber(unitDef.customParams.techlevel) > 1 then
+				ecoValue = ecoValue * tonumber(unitDef.customParams.techlevel) * 0.75
 			end
 
 			-- Anti-nuke - add value to force players to go T2 economy, rather than staying T1
 			if unitDef.customParams and (unitDef.customParams.unitgroup == "antinuke" or unitDef.customParams.unitgroup == "nuke") then
 				ecoValue = 1000
 			end
-
 			-- Spring.Echo("Built units eco value: " .. ecoValue)
 
 			-- Ends up building an object like:
