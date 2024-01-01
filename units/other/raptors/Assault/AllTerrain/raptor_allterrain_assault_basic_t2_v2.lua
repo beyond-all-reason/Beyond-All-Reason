@@ -34,7 +34,6 @@ return {
 		noautofire = false,
 		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptorallterraina1b.s3o",
-		onlytargetcategory2 = "VTOL",
 		script = "Raptors/raptorallterraina1.cob",
 		seismicsignature = 0,
 		selfdestructas = "BIGBUG_DEATH",
@@ -157,11 +156,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL SPACE",
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 125,
-				--onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR",
 			},
 			[2] = {
 				onlytargetcategory = "VTOL",

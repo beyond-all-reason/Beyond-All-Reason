@@ -47,7 +47,7 @@ return {
 		speed = 360.0,
 		moverate1 = "32",
 		noautofire = false,
-		nochasecategory = "NOTAIR",
+		nochasecategory = "NOTAIR SPACE",
 		objectname = "Raptors/raptor_pidgeond.s3o",
 		script = "Raptors/raptorw1d.cob",
 		seismicsignature = 0,

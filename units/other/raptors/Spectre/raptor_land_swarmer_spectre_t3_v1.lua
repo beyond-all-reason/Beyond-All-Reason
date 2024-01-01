@@ -116,7 +116,7 @@ return {
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 180,
-				--onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR",
 			},
 		},
 	},

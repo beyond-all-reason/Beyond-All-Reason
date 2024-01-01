@@ -133,7 +133,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL SPACE",
 				def = "acidspit",
 				maindir = "0 0 1",
 				maxangledif = 125,
