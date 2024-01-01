@@ -1272,11 +1272,24 @@ if gadgetHandler:IsSyncedCode() then
 			if unitDef.windGenerator then
 				ecoValue = ecoValue + unitDef.windGenerator*0.75
 			end
+			if unitDef.tidalGenerator then
+				ecoValue = ecoValue + unitDef.tidalGenerator*15
+			end
 			if unitDef.extractsMetal > 0 then
 				ecoValue = ecoValue + 400
 			end
 			if unitDef.customParams and unitDef.customParams.energyconv_capacity then
 				ecoValue = ecoValue + unitDef.customParams.energyconv_capacity / 2
+			end
+
+			-- Make it extra risky to build T2 eco
+			if unitDef.customParams and unitDef.customParams.techlevel > 1 then
+				ecoValue = ecoValue * unitDef.customParams.techlevel
+			end
+
+			-- Anti-nuke - add value to force players to go T2 economy, rather than staying T1
+			if unitDef.customParams and (unitDef.customParams.unitgroup == "antinuke" or unitDef.customParams.unitgroup == "nuke") then
+				ecoValue = 1000
 			end
 
 			-- Spring.Echo("Built units eco value: " .. ecoValue)
