@@ -96,22 +96,26 @@ for key, value in pairs(modoptions) do
 	if modoptionsDefault[key] and value == modoptionsDefault[key].def then
 		unchangedModoptions[key] = tostring(value)
 	else
-		if not string.find(key, 'tweakunits') then
+		if not string.find(key, 'tweakunits') and not string.find(key, 'tweakdefs') then
 			changedModoptions[key] = tostring(value)
 		else
-			local success, tweaks = pcall(Spring.Utilities.CustomKeyToUsefulTable, value)
-			if success and type(tweaks) == "table" then
-				local text = ''
-				for name, ud in pairs(tweaks) do
-					if UnitDefNames[name] then
-						text = text .. '\n' .. valuecolor.. name..valuegreycolor..' = \{'
-						text = text..stringifyDefTable(ud, {}, name)
-						text = text .. '\n' .. '\}'
-					end
-				end
-				changedModoptions[key] = text
+			if string.find(key, 'tweakdefs') then
+				changedModoptions[key] = '\n' .. string.base64Decode(value)
 			else
-				changedModoptions[key] = tostring(value)
+				local success, tweaks = pcall(Spring.Utilities.CustomKeyToUsefulTable, value)
+				if success and type(tweaks) == "table" then
+					local text = ''
+					for name, ud in pairs(tweaks) do
+						if UnitDefNames[name] then
+							text = text .. '\n' .. valuecolor.. name..valuegreycolor..' = \{'
+							text = text..stringifyDefTable(ud, {}, name)
+							text = text .. '\n' .. '\}'
+						end
+					end
+					changedModoptions[key] = text
+				else
+					changedModoptions[key] = tostring(value)
+				end
 			end
 		end
 	end
@@ -248,7 +252,7 @@ function DrawTextarea(x, y, width, height, scrollbar)
 			local line = fileLines[lineKey]
 			if string.find(line, '::') then
 				local cmd = string.match(line, '^[ %+a-zA-Z0-9_-]*')        -- escaping the escape: \\ doesnt work in lua !#$@&*()&5$#
-				local descr = string.sub(line, string.len(string.match(line, '^[ %+a-zA-Z0-9_-]*::')) + 1)
+				local descr = string.sub(line, string.len(string.match(line, '^[ %+a-zA-Z0-9_-]*::') or '') + 1)
 				descr, numLines = font:WrapText(descr, (width - scrollbarMargin - scrollbarWidth - 250 - textRightOffset) * 0.65 * (loadedFontSize / fontSizeLine))
 				if (lineSeparator + fontSizeTitle) * (j + numLines - 1) > height then
 					break

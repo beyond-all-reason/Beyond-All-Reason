@@ -198,12 +198,12 @@ local chobbyInterface
 local unitRange = {} -- table of unit types with their radar ranges
 local isBuilding = {} -- unitDefID keys
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.sonarRadius and unitDef.sonarRadius > minSonarDistance then	-- save perf by excluding low radar range units
+	if unitDef.sonarDistance and unitDef.sonarDistance > minSonarDistance then	-- save perf by excluding low radar range units
 		if string.find(unitDef.name, "raptor", nil, true) then
 			-- skip raptors from sonar
 		else
 			if not unitRange[unitDefID] then unitRange[unitDefID] = {} end
-			unitRange[unitDefID]['range'] = unitDef.sonarRadius
+			unitRange[unitDefID]['range'] = unitDef.sonarDistance
 
 			if unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
 				isBuilding[unitDefID] = true

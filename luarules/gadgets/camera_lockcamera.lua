@@ -12,57 +12,18 @@ function gadget:GetInfo()
 	}
 end
 
-
-------------------------------------------------
---config
 ------------------------------------------------
 
---broadcast
-
-local broadcastPeriod = 0.12 -- will send packet in this interval (s)
+local broadcastPeriod = 0.12	-- will send packet in this interval (s)
 
 ------------------------------------------------
---speedups
-------------------------------------------------
-local GetCameraState = Spring.GetCameraState
-local SetCameraState = Spring.SetCameraState
-local GetCameraNames = Spring.GetCameraNames
-local GetMouseState = Spring.GetMouseState
-local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
-local GetMyPlayerID = Spring.GetMyPlayerID
-local GetMyAllyTeamID = Spring.GetMyAllyTeamID
-local GetSpectatingState = Spring.GetSpectatingState
-local GetPlayerInfo = Spring.GetPlayerInfo
 
-local SendLuaRulesMsg = Spring.SendLuaRulesMsg
-
-local SendCommands = Spring.SendCommands
-
-local Echo = Spring.Echo
-local strGMatch = string.gmatch
-local strSub = string.sub
-local strLen = string.len
-local strByte = string.byte
-local strChar = string.char
-
-local floor = math.floor
-local ceil = math.ceil
-local max = math.max
-local min = math.min
-
-
-local vfsPackU8 = VFS.PackU8
-local vfsPackF32 = VFS.PackF32
-local vfsUnpackU8 = VFS.UnpackU8
-local vfsUnpackF32 = VFS.UnpackF32
-local allowBroadcast = true
-
-------------------------------------------------
---const
-------------------------------------------------
 local PACKET_HEADER = "="
-local PACKET_HEADER_LENGTH = strLen(PACKET_HEADER)
+local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
+
 if gadgetHandler:IsSyncedCode() then
+
+	local strSub = string.sub
 
 	local charset = {}  do -- [0-9a-zA-Z]
 		for c = 48, 57  do table.insert(charset, string.char(c)) end
@@ -71,7 +32,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	local function randomString(length)
 		if not length or length <= 0 then return '' end
-		--math.randomseed(os.clock()^5)
 		return randomString(length - 1) .. charset[math.random(1, #charset)]
 	end
 
@@ -82,26 +42,45 @@ if gadgetHandler:IsSyncedCode() then
 		if strSub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER or strSub(msg, 1+PACKET_HEADER_LENGTH, 1+PACKET_HEADER_LENGTH+1) ~= validation then
 			return
 		end
-
 		SendToUnsynced("cameraBroadcast",playerID,msg)
 		return true
 	end
+
+
 else
+
+
+	local GetCameraState = Spring.GetCameraState
+	local SetCameraState = Spring.SetCameraState
+	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
+	local GetMyAllyTeamID = Spring.GetMyAllyTeamID
+	local GetSpectatingState = Spring.GetSpectatingState
+	local GetPlayerInfo = Spring.GetPlayerInfo
+	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
+	local SendCommands = Spring.SendCommands
+
+	local strByte = string.byte
+	local strChar = string.char
+
+	local floor = math.floor
+
+	local vfsPackF32 = VFS.PackF32
+
 	local totalTime = 0
 	local timeSinceBroadcast = 0
 
 	local lastPacketSent
 
-	local CAMERA_IDS = GetCameraNames()
+	local CAMERA_IDS = Spring.GetCameraNames()
 	local CAMERA_NAMES = {}
 	local CAMERA_STATE_FORMATS = {}
 
 	local validation = SYNCED.validationCam
 
 	------------------------------------------------
-	--H4X
+	-- H4X
 	------------------------------------------------
-	--[0, 254] -> char
+	-- [0, 254] -> char
 	local function CustomPackU8(num)
 		return strChar(num + 1)
 	end
@@ -115,9 +94,9 @@ else
 		end
 	end
 
-	--1 sign bit, 7 exponent bits, 8 mantissa bits, -64 bias, denorm, no infinities or NaNs, avoid zero bytes, big-Endian
+	-- 1 sign bit, 7 exponent bits, 8 mantissa bits, -64 bias, denorm, no infinities or NaNs, avoid zero bytes, big-Endian
 	local function CustomPackF16(num)
-		--vfsPack is little-Endian
+		-- vfsPack is little-Endian
 		local floatChars = vfsPackF32(num)
 		if not floatChars then return nil end
 
@@ -198,10 +177,10 @@ else
 	end
 
 	------------------------------------------------
-	--packets
+	-- packets
 	------------------------------------------------
 
-	--does not allow spaces in keys; values are numbers
+	-- does not allow spaces in keys; values are numbers
 	local function CameraStateToPacket(s)
 
 		local name = s.name
@@ -249,12 +228,7 @@ else
 	end
 
 
-
-	------------------------------------------------
-	--callins
-	------------------------------------------------
-
-	Echo("<LockCamera>: Sorry for the camera switch spam, but this is the only reliable way to list camera states other than hardcoding them")
+	Spring.Echo("<LockCamera>: Sorry for the camera switch spam, but this is the only reliable way to list camera states other than hardcoding them")
 	local prevCameraState = GetCameraState()
 	for name, num in pairs(CAMERA_IDS) do
 		CAMERA_NAMES[num] = name
@@ -270,7 +244,7 @@ else
 		CAMERA_STATE_FORMATS[name] = packetFormat
 	end
 	SetCameraState(prevCameraState,0)
-	--workaround a bug where minimap remains minimized because we switched to overview cam
+	-- workaround a bug where minimap remains minimized because we switched to overview cam
 	SendCommands("minimap minimize")
 
 	function gadget:Initialize()
@@ -284,18 +258,14 @@ else
 
 	function handleCameraBroadcastEvent(_,playerID,msg)
 		local cameraState
-		--a packet consisting only of the header indicated that transmission has stopped
+		-- a packet consisting only of the header indicated that transmission has stopped
 		if msg ~= PACKET_HEADER then
 			cameraState = PacketToCameraState(msg)
 			if not cameraState then
-				Echo("<LockCamera>: Bad packet recieved.")
+				Spring.Echo("<LockCamera>: Bad packet recieved.")
 				return
 			end
 		end
-		--local myPlayerID = GetMyPlayerID()
-		--if myPlayerID == playerID then
-		--	return
-		--end
 		local spec, fullView = GetSpectatingState()
 		if not spec or not fullView then
 			local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID,false)
@@ -324,7 +294,7 @@ else
 		local msg = CameraStateToPacket(state)
 
 		if not msg then
-			Echo("<LockCamera>: Error creating packet!")
+			Spring.Echo("<LockCamera>: Error creating packet!")
 			return
 		end
 

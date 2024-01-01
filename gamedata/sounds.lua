@@ -122,6 +122,7 @@ local soundData = {
 				['^minigun'] = 0.09,
 				['^lrpcshot'] = 0.12,
 				['^raptorlaser$'] = 0.04,
+				['^heatray3'] = 0.04,
 				['^xplosml'] = 0.22,
 				['^xplomed'] = 0.25,
 				['^xplolrg'] = 0.3,
@@ -218,7 +219,7 @@ local soundData = {
 		gainmod  = 0.2 * 0.3,
 		dopplerscale = 0.5,
 		maxconcurrent = 6,
-		rolloff = 1.0,
+		rolloff = 1.1,
 		priority = 1,
 		--in3d = false,
 	},
@@ -230,7 +231,7 @@ local soundData = {
 		gainmod  = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 2,
-		rolloff = 1.2,
+		rolloff = 1.3,
 		priority = 1,
 		--in3d = false,
 	},
@@ -295,35 +296,40 @@ local soundData = {
 
 	-- AMBIENCE
 	['atmos'] = {
-		gain = 0.8,
+		gain = 1.2 * 0.3,
+		priority = -10,
 		pitchmod = 0.22,
 		gainmod  = 0,
 		dopplerscale = 8.0,
 		maxconcurrent = 10,
 		rolloff = 0.7,
-		--maxdist = 10000,
+		in3d = true,
+		maxdist = 5000, --was disabled and 10000
 	},
 
 	-- AMBIENCE LOCAL
 	['atmos-local'] = {
-		gain = 0.8,
+		gain = 1.2 * 0.3,
+		priority = -5,
 		pitchmod = 0.22,
 		gainmod  = 0,
 		dopplerscale = 4.0,
 		maxconcurrent = 10,
 		rolloff = 1.5,
-		maxdist = 5000,
+		maxdist = 2500, --was 5000
+		in3d = true,
 	},
 
 	-- AMBIENCE GEOVENTS
 	['atmos-geovents'] = {
 		gain = 0.8,
+		priority = -3,
 		pitchmod = 0.06,
 		gainmod  = 0,
 		dopplerscale = 2.0,
 		maxconcurrent = 10,
 		rolloff = 3,
-		maxdist = 3000,
+		maxdist = 2000, --was 3000
 	},
 }
 

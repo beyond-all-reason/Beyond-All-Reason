@@ -1,9 +1,9 @@
 function gadget:GetInfo()
 	return {
 		name     = "Don't target flyover nukes",
-		desc     = "bla",
-		author	 = "ashdnazg + [teh]decay",
-		date     = "Too late",
+		desc     = "Antinukes can target flyover nukes, this gadget ensures that they dont.",
+		author	 = "Beherith",
+		date     = "2023.11.09",
 		license	 = "GNU GPL, v2 or later",
 		layer    = 0,
 		enabled  = true
@@ -14,35 +14,60 @@ if not gadgetHandler:IsSyncedCode() then
 	return false	--	no unsynced code
 end
 
-local interceptors = {}
+-- Localize and pre-compute things
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetProjectileTarget = Spring.GetProjectileTarget
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetFeaturePosition = Spring.GetFeaturePosition
+local spGetProjectilePosition = Spring.GetProjectilePosition
+
+local unitTargetType = string.byte('u')
+local featureTargetType = string.byte('f')
+local groundTargetType = string.byte('g')
+local projectileTargetType = string.byte('p')
+
+-- Hashes (100000 * interceptorweaponID + unitDefID) to coveragesquared. This, along with other above optimizations make this significantly (100x) faster
+local interceptorUnitDefWeapCovSqr = {} 
 
 function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponID, targetProjectileID)
+	--interceptorWeaponID is actually weaponNum, e.g.: gadget:AllowWeaponInterceptTarget( 24871, 1, 6540)
+	--old method using the below method hammered cache hard:
+	--local coverageRange = WeaponDefs[UnitDefs[Spring.GetUnitDefID(interceptorUnitID)].weapons[interceptorWeaponID].weaponDef].coverageRange
     --Spring.GetProjectileTarget( number projectileID ) -> nil | [number targetTypeInt, number targetID | table targetPos = {x, y, z}]
-	local targetType, targetID = Spring.GetProjectileTarget(targetProjectileID)
+	local targetType, targetID = spGetProjectileTarget(targetProjectileID)
 
     if targetType then
-		local coverageRange = WeaponDefs[UnitDefs[Spring.GetUnitDefID(interceptorUnitID)].weapons[interceptorWeaponID].weaponDef].coverageRange
-		local ox, _, oz = Spring.GetUnitPosition(interceptorUnitID)
+		local unitDefID = spGetUnitDefID(interceptorUnitID)
+		local covSquared = interceptorUnitDefWeapCovSqr[100000 * interceptorWeaponID + unitDefID]
+		
+		local ox, _, oz = spGetUnitPosition(interceptorUnitID)
 		local tx, ty, tz
-        if targetType == string.byte('u') then -- unit
-            tx, ty, tz = Spring.GetUnitPosition(targetID)
-        elseif targetType == string.byte('f') then -- feature
-            tx, ty, tz = Spring.GetFeaturePosition(targetID)
-        elseif targetType == string.byte('p') then --PROJECTILE
-            tx, ty, tz = Spring.GetProjectilePosition(targetID)
-        elseif targetType == string.byte('g') then -- ground
-            tx, ty, tz = unpack(targetID)
+        if targetType == unitTargetType then -- unit
+            tx, ty, tz = spGetUnitPosition(targetID)
+        elseif targetType == featureTargetType then -- feature
+            tx, ty, tz = spGetFeaturePosition(targetID)
+        elseif targetType == projectileTargetType then --PROJECTILE
+            tx, ty, tz = spGetProjectilePosition(targetID)
+        elseif targetType == groundTargetType then -- ground
+            tx, tz = targetID[1], targetID[3]
         end
 
-        return (ox - tx)*(ox - tx) + (oz - tz)*(oz - tz) < coverageRange*coverageRange
+        return (ox - tx)*(ox - tx) + (oz - tz)*(oz - tz) < covSquared
     end
 end
 
-
 function gadget:Initialize()
-	for wdid, wd in pairs(WeaponDefs) do
-		if wd.interceptor > 0 and wd.coverageRange then
-			Script.SetWatchAllowTarget(wdid, true)
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local weapons = unitDef.weapons
+		for weaponNum = 1, #weapons do
+			local WeaponDefID = weapons[weaponNum].weaponDef
+			local WeaponDef = WeaponDefs[WeaponDefID]
+			if WeaponDef.coverageRange and WeaponDef.coverageRange > 0 then 
+				interceptorUnitDefWeapCovSqr[100000 * weaponNum + unitDefID] = WeaponDef.coverageRange * WeaponDef.coverageRange
+			end
+			if WeaponDef.interceptor > 0 and WeaponDef.coverageRange then
+				Script.SetWatchAllowTarget(WeaponDefID, true)
+			end
 		end
 	end
 end

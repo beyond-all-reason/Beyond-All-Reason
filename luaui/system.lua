@@ -85,6 +85,7 @@ if (System == nil) then
 
 		next           = next,
 		pairs          = pairs,
+		pairsByKeys    = pairsByKeys, -- custom: defined in `common\tablefunctions.lua`
 		ipairs         = ipairs,
 
 		tonumber       = tonumber,

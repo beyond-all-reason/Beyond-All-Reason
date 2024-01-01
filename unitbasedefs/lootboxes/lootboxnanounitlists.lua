@@ -93,6 +93,7 @@ return {
 		"legbart",
 		"legshot",
 		"legsrail",
+		"leginfestor",
 		"legstr",
 
 		-- Vehicles
@@ -218,6 +219,7 @@ return {
 		"corjugg",
 		"armbanth",
 		"armthor",
+		"leegmech",
 
 		-- Superboss
 		"armpwt4",

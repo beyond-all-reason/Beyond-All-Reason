@@ -66,9 +66,13 @@ local vikings = {
 	["Raghna"] = true,
 	["Malady"] = true,
 	["trash_panda"] = true,
+	["Jazcash"] = true,
+	["PRO_Shamon"] = true,
+	["PRO_rANDY"] = true,
+	["LSR"] = true
 }
 local kings = {
-	["MightySheep"] = true,
+	["[teh]Teddy"] = true,
 }
 local goldMedals = {
 }

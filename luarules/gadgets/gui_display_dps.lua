@@ -46,7 +46,6 @@ local GetUnitViewPosition = Spring.GetUnitViewPosition
 local IsUnitInView = Spring.IsUnitInView
 
 local glTranslate = gl.Translate
-local glColor = gl.Color
 local glBillboard = gl.Billboard
 local glDepthMask = gl.DepthMask
 local glDepthTest = gl.DepthTest
@@ -237,7 +236,6 @@ local function calcDPS(inTable, paralyze, theTime)
 end
 
 local function drawDeathDPS(damage, ux, uy, uz, textSize, red, alpha)
-
 	glPushMatrix()
 	glTranslate(ux, uy, uz)
 	glBillboard()
@@ -367,7 +365,7 @@ function gadget:DrawWorld()
 
 		if changed then
 			table.sort(damageTable, function(m1, m2)
-				return m1.damage < m2.damage;
+				return m1.damage < m2.damage
 			end)
 			changed = false
 		end
@@ -410,7 +408,7 @@ function gadget:DrawWorld()
 	for i, death in pairs(deadList) do
 		if death.lifeSpan <= 0 then
 			table.remove(deadList, i)
-		else
+		elseif type(death.damage) == "number" then	-- checking this cause someone got an error that this was being NaN
 			drawDeathDPS(death.damage, death.x, death.y, death.z, death.textSize, death.red, death.lifeSpan)
 			if not paused then
 				death.y = (death.y + death.riseTime)

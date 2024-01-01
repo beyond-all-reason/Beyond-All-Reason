@@ -1079,7 +1079,12 @@ function gadgetHandler:GamePaused(playerID, paused)
 end
 
 function gadgetHandler:RecvFromSynced(...)
-	tracy.ZoneBeginN("G:RecvFromSynced")
+	local arg1, arg2 = ...
+  if (type(arg1) == 'string') then 
+		tracy.ZoneBeginN("G:RecvFromSynced:"..arg1)
+	else
+		tracy.ZoneBeginN("G:RecvFromSynced")
+	end
 	if actionHandler.RecvFromSynced(...) then
 		tracy.ZoneEnd()
 		return
@@ -1384,7 +1389,7 @@ end
 function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam,
 										  unitID, unitDefID, part)
 									
-	tracy.ZoneBeginN("G:AllowCommand")  
+	tracy.ZoneBeginN("G:AllowUnitBuildStep")  
 	for _, g in ipairs(self.AllowUnitBuildStepList) do
 		if not g:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part) then
 			tracy.ZoneEnd()
@@ -1884,16 +1889,20 @@ end
 --
 
 function gadgetHandler:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
+	tracy.ZoneBeginN("G:ProjectileCreated") 
 	for _, g in ipairs(self.ProjectileCreatedList) do
 		g:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
 function gadgetHandler:ProjectileDestroyed(proID)
+	tracy.ZoneBeginN("G:ProjectileDestroyed") 
 	for _, g in ipairs(self.ProjectileDestroyedList) do
 		g:ProjectileDestroyed(proID)
 	end
+	tracy.ZoneEnd()
 	return
 end
 
@@ -1984,7 +1993,9 @@ end
 function gadgetHandler:DrawWorld()
 	tracy.ZoneBeginN("G:DrawWorld") 
 	for _, g in ipairs(self.DrawWorldList) do
+		tracy.ZoneBeginN("G:DrawWorld:" .. g.ghInfo.name)
 		g:DrawWorld()
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return

@@ -30,15 +30,9 @@ end
 
 function gadget:GameFrame(n)
 	if n % 2 == 0 then
-		for i, v in pairs(cegList) do
-			if v.enabled then
-				SpawnCEG(v.ceg, v.xs, v.ys, v.zs, 0, 1.0, 0, 0, 0)
-			end
-			if random(0, 2) == 1 then
-				v.enabled = false
-			else
-				cegList[i] = nil
-			end
+		for featureID, v in pairs(cegList) do
+			SpawnCEG(v.ceg, v.xs, v.ys, v.zs, 0, 1.0, 0, 0, 0)
+			cegList[featureID] = nil
 		end
 	end
 end
@@ -57,7 +51,7 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 				x = x + random(featureDefs.minX, featureDefs.maxX)
 				z = z + random(featureDefs.minZ, featureDefs.maxZ)
 				y = y + featureDefs.y
-				cegList[featureID] = { ceg = cegs[random(1, 3)], xs = x, ys = y, zs = z, enabled = true }
+				cegList[featureID] = { ceg = cegs[random(1, 3)], xs = x, ys = y, zs = z }
 			end
 		end
 	end

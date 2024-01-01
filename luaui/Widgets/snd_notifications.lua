@@ -129,7 +129,7 @@ unitsOfInterest[UnitDefNames['corkorg'].id] = 'KorgothDetected'
 unitsOfInterest[UnitDefNames['armbanth'].id] = 'BanthaDetected'
 unitsOfInterest[UnitDefNames['armepoch'].id] = 'FlagshipDetected'
 unitsOfInterest[UnitDefNames['corblackhy'].id] = 'FlagshipDetected'
-unitsOfInterest[UnitDefNames['cormando'].id] = 'CommandoDetected'
+-- unitsOfInterest[UnitDefNames['cormando'].id] = 'CommandoDetected'
 unitsOfInterest[UnitDefNames['armthovr'].id] = 'TransportDetected'
 unitsOfInterest[UnitDefNames['corthovr'].id] = 'TransportDetected'
 unitsOfInterest[UnitDefNames['corintr'].id] = 'TransportDetected'
@@ -751,7 +751,7 @@ function widget:Update(dt)
 		else
 			isIdle = false
 		end
-		if WG['topbar'] and WG['topbar'].showingRejoining and WG['topbar'].showingRejoining() then
+		if WG['rejoin'] and WG['rejoin'].showingRejoining() then
 			isIdle = true
 		end
 	end

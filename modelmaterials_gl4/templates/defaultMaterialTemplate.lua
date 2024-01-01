@@ -1677,6 +1677,7 @@ fragment = [[
 	},
 }
 
+local SKIN_SUPPORT = Script.IsEngineMinVersion(105, 0, 1653) and "1" or "0"
 local defaultMaterialTemplate = {
 	--standardUniforms --locs, set by api_cus
 	--deferredUniforms --locs, set by api_cus
@@ -1690,7 +1691,7 @@ local defaultMaterialTemplate = {
 	-- they need to be redefined on every child material that has its own {shader,deferred,shadow}Definitions
 	shaderDefinitions = {
 		"#define RENDERING_MODE 0",
-		"#define SKINSUPPORT " .. (Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and "1" or "0"),
+		"#define SKINSUPPORT " .. SKIN_SUPPORT,
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 
@@ -1707,7 +1708,7 @@ local defaultMaterialTemplate = {
 	},
 	deferredDefinitions = {
 		"#define RENDERING_MODE 1",
-		"#define SKINSUPPORT " .. (Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and "1" or "0"),
+		"#define SKINSUPPORT " .. SKIN_SUPPORT,
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 
@@ -1724,7 +1725,7 @@ local defaultMaterialTemplate = {
 	},
 	shadowDefinitions = {
 		"#define RENDERING_MODE 2",
-		"#define SKINSUPPORT " .. (Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and "1" or "0"),
+		"#define SKINSUPPORT " .. SKIN_SUPPORT,
 		"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
 		"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
 		[[
@@ -1741,7 +1742,7 @@ local defaultMaterialTemplate = {
 	},
 	reflectionDefinitions = {
 		"#define RENDERING_MODE 0",
-		"#define SKINSUPPORT " .. (Spring.Utilities.EngineVersionAtLeast(105,1,1,1653) and "1" or "0"),
+		"#define SKINSUPPORT " .. SKIN_SUPPORT,
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 

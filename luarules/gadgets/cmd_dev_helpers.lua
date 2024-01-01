@@ -194,18 +194,31 @@ if gadgetHandler:IsSyncedCode() then
 			if string.find(Spring.GetModOptions().debugcommands,"invertmap") then
 				local invertmap = string.split(Spring.GetModOptions().debugcommands, ' ')
 				local ymax = -1000000
-				for z=0,Game.mapSizeZ, Game.squareSize do
-					for x=0,Game.mapSizeX, Game.squareSize do
-						ymax = math.max(ymax,Spring.GetGroundHeight ( x, z ))
-					end
-				end
 				if (invertmap[2] == "wet") then
 					ymax = 0
+				else
+					_, _, _, ymax = Spring.GetGroundExtremes()
 				end
 				Spring.SetHeightMapFunc(function()
 					for z=0,Game.mapSizeZ, Game.squareSize do
 						for x=0,Game.mapSizeX, Game.squareSize do
 							Spring.SetHeightMap( x, z, ymax-Spring.GetGroundHeight ( x, z ))
+						end
+					end
+				end)
+				-- temporary smooth mesh, inverting doesn't work as transition ends up inside the ground
+				Spring.SetSmoothMeshFunc(function()
+					for z=0,Game.mapSizeZ, Game.squareSize do
+						for x=0,Game.mapSizeX, Game.squareSize do
+							Spring.SetSmoothMesh( x, z, 50+Spring.GetGroundHeight ( x, z ))
+						end
+					end
+				end)
+				-- orginal height map so that restore ground command doesn't dig trenches or construct mountains
+				Spring.SetOriginalHeightMapFunc(function()
+					for z=0,Game.mapSizeZ, Game.squareSize do
+						for x=0,Game.mapSizeX, Game.squareSize do
+							Spring.SetOriginalHeightMap( x, z, ymax-Spring.GetGroundOrigHeight ( x, z ))
 						end
 					end
 				end)
@@ -371,7 +384,20 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+
+	local function adjustFeatureHeight()
+		local featuretable = Spring.GetAllFeatures()
+		local x, y, z
+		for i = 1, #featuretable do
+			x, y, z = Spring.GetFeaturePosition(featuretable[i])
+			Spring.SetFeaturePosition(featuretable[i], x,  Spring.GetGroundHeight(x, z),  z , true) -- snaptoground = true
+		end
+	end
+
 	function gadget:GameFrame(n)
+		if n == 1 and string.find(Spring.GetModOptions().debugcommands,"invertmap") then
+			adjustFeatureHeight()
+		end
 		if fightertestenabled then
 			if (n % 3 == 0)  then
 				SpawnUnitDefsForTeamSynced(0, team1unitDefName)
@@ -455,8 +481,8 @@ if gadgetHandler:IsSyncedCode() then
 				local heading = Spring.GetUnitHeading(unitID)
 				local unitTeam = Spring.GetUnitTeam(unitID)
 				Spring.DestroyUnit(unitID, false, true)
-				if UnitDefs[unitDefID].wreckName and FeatureDefNames[UnitDefs[unitDefID].wreckName] then
-					Spring.CreateFeature(FeatureDefNames[UnitDefs[unitDefID].wreckName].id, x, y, z, heading, unitTeam)
+				if UnitDefs[unitDefID].corpse and FeatureDefNames[UnitDefs[unitDefID].corpse] then
+					Spring.CreateFeature(FeatureDefNames[UnitDefs[unitDefID].corpse].id, x, y, z, heading, unitTeam)
 				end
 			end
 		end
@@ -527,6 +553,9 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 
+
+	local vsx,vsy = Spring.GetViewGeometry()
+	local uiScale = vsy / 1080
 
 	function gadget:Initialize()
 		-- doing it via GotChatMsg ensures it will only listen to the caller
@@ -703,6 +732,10 @@ else	-- UNSYNCED
 	local su = 0
 	local alpha = 0.98
 
+	function gadget:ViewResize()
+		vsx, vsy = Spring.GetViewGeometry()
+		uiScale = vsy / 1080
+	end
 
 	function gadget:Update() -- START OF UPDATE
 		if fightertestactive then
@@ -762,10 +795,8 @@ else	-- UNSYNCED
 			if isBenchMark then
 				s = s .. string.format("Benchmark Frame %d/%d\n", #fighterteststats.simFrameTimes,benchMarkFrames)
 			end
-
-			s = s .. string.format("Sim = ~%3.2fms  (%3.2fms)\nUpdate = ~%3.2fms (%3.2fms)\nDraw = ~%3.2fms (%3.2fms)",
-				ss, simTime, su, updateTime, sd,  drawTime)
-			gl.Text(s, 600,600,16)
+			s = s .. string.format("Sim = ~%3.2fms  (%3.2fms)\nUpdate = ~%3.2fms (%3.2fms)\nDraw = ~%3.2fms (%3.2fms)", ss, simTime, su, updateTime, sd,  drawTime)
+			gl.Text(s, 600*uiScale, 600*uiScale, 16*uiScale)
 		end
 	end
 
@@ -846,7 +877,6 @@ else	-- UNSYNCED
 				stats.engineVersion = Engine.versionFull
 				stats.gpu = Platform.gpu
 				stats.cpu = Platform.hwConfig
-				local vsx,vsy = Spring.GetViewGeometry()
 				stats.display = tostring(vsx) ..'x' .. tostring(vsy)
 
 				Spring.Echo("Benchmark Results")

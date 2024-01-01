@@ -47,10 +47,14 @@ function addon.Initialize()
 			table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/loading', allowedExtensions))
 		end
 
-		if #musicPlaylist == 0 or math.random(0,3) == 0 then
+		if #musicPlaylist == 0 then
 			if originalSoundtrackEnabled == 1 then
 				local musicDirOriginal 		= 'music/original'
 				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/peace', allowedExtensions))
+			end
+			if customSoundtrackEnabled == 1 then
+				local musicDirCustom 		= 'music/custom'
+				table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/peace', allowedExtensions))
 			end
 		end
 

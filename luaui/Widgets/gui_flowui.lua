@@ -583,9 +583,8 @@ WG.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr
 	local syPad = bgpadding * (sy < WG.FlowUI.vsy and 1 or 0) * (ptl or 1)
 
 	-- background
-	gl.Texture(false)
-	WG.FlowUI.Draw.RectRound(px, py, sx, sy, bgpadding * 1.6, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4] }, { color2[1], color2[2], color2[3], color2[4] })
-	--WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] }, { color2[1], color2[2], color2[3], color2[4] })
+	--gl.Texture(false)
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, bgpadding * 1.6, tl, tr, br, bl, color1, color2)
 
 	-- highlight edges thinly
 	-- top
@@ -741,7 +740,7 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 		local iconPadding = math.floor((sx - px) * 0.03)
 		gl.Color(1, 1, 1, 0.9)
 		gl.Texture(radarTexture)
-		gl.BeginEnd(GL.QUADS, WG.FlowUI.Draw.TexRectRound, sx - iconPadding - iconSize, py + iconPadding, sx - iconPadding, py + iconPadding + iconSize,  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
+		gl.BeginEnd(GL.QUADS, WG.FlowUI.Draw.TexRectRound, px + iconPadding, py + iconPadding, px + iconPadding + iconSize, py + iconPadding + iconSize,  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
 		--gl.TexRect(sx - iconPadding - iconSize, py + iconPadding, sx - iconPadding, py + iconPadding + iconSize)
 		gl.Texture(false)
 	end

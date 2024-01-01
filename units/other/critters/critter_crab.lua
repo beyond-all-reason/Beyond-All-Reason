@@ -1,11 +1,11 @@
 return {
 	critter_crab = {
-		acceleration = 0.1,
+		maxacc = 0.1,
 		blocking = false,
 
-		brakerate = 0.01,
-		buildcostenergy = 1,
-		buildcostmetal = 0,
+		maxdec = 0.01,
+		energycost = 1,
+		metalcost = 0,
 		builder = false,
 		buildpic = "critters/critter_crab.dds",
 		buildtime = 10,
@@ -27,9 +27,9 @@ return {
 		leavetracks = false,
 		maneuverleashlength = "640",
 		mass = 24,
-		maxdamage = 44,
+		health = 44,
 		maxslope = 65,
-		maxvelocity = 0.45,
+		speed = 13.5,
 		--maxwaterdepth = 22,
 		movementclass = "ABOT2",
 		movestate = -1,
@@ -55,6 +55,7 @@ return {
 		--waterline = 6,
 		workertime = 0,
 		customparams = {
+			paralyzemultiplier = 0,
 			nohealthbars = true,
 			subfolder = "other/critters",
 		},

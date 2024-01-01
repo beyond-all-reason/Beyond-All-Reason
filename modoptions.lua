@@ -38,6 +38,15 @@ local options={
 	},
 
 	{
+		key			="ranked_game",
+		name   		= "Ranked Game",
+		desc   		= "Should game results affect OpenSkill. Note that games with AI or games that are not balanced are always unranked.",
+		type   		= "bool",
+		section		="restrictions",
+		def    		= true,
+	},
+
+	{
 		key="deathmode",
 		name="Game End Mode",
 		desc="What it takes to eliminate a team",
@@ -238,8 +247,8 @@ local options={
 	},
 	{
 		key    = "scav_bosstimemult",
-		name   = "Boss Preparation Time Multiplier (Range: 0.1 - 3)",
-		desc   = "How quickly Boss Anger goes from 0 to 100%.",
+		name   = "Boss Preparation Time Multiplier",
+		desc   = "(Range: 0.1 - 3). How quickly Boss Anger goes from 0 to 100%.",
 		type   = "number",
 		def    = 1,
 		min    = 0.1,
@@ -249,8 +258,8 @@ local options={
 	},
 	{
 		key    = "scav_spawncountmult",
-		name   = "Unit Spawn Per Wave Multiplier (Range: 1 - 5)",
-		desc   = "How many times more scavs will spawn per wave.",
+		name   = "Unit Spawn Per Wave Multiplier",
+		desc   = "(Range: 1 - 5). How many times more scavs will spawn per wave.",
 		type   = "number",
 		def    = 1,
 		min    = 1,
@@ -260,8 +269,8 @@ local options={
 	},
 	{
 		key    = "scav_spawntimemult",
-		name   = "Time Between Waves Multiplier (Range: 0.1 - 3)",
-		desc   = "How often new waves will spawn.",
+		name   = "Time Between Waves Multiplier",
+		desc   = "(Range: 0.1 - 3). How often new waves will spawn.",
 		type   = "number",
 		def    = 1,
 		min    = 0.1,
@@ -271,8 +280,8 @@ local options={
 	},
 	{
 		key    = "scav_graceperiodmult",
-		name   = "Grace Period Time Multiplier (Range: 0.1 - 3)",
-		desc   = "Time before Scavs become active.",
+		name   = "Grace Period Time Multiplier",
+		desc   = "(Range: 0.1 - 3). Time before Scavs become active.",
 		type   = "number",
 		def    = 1,
 		min    = 0.1,
@@ -332,8 +341,8 @@ local options={
 	},
 	{
 		key    = "raptor_queentimemult",
-		name   = "Queen Hatching Time Multiplier (Range: 0.1 - 3)",
-		desc   = "How quickly Queen Hatch goes from 0 to 100%",
+		name   = "Queen Hatching Time Multiplier",
+		desc   = "(Range: 0.1 - 3). How quickly Queen Hatch goes from 0 to 100%",
 		type   = "number",
 		def    = 1,
 		min    = 0.1,
@@ -343,8 +352,8 @@ local options={
 	},
 	{
 		key    = "raptor_spawncountmult",
-		name   = "Unit Spawn Per Wave Multiplier (Range: 1 - 5)",
-		desc   = "How many times more raptors will spawn per wave.",
+		name   = "Unit Spawn Per Wave Multiplier",
+		desc   = "(Range: 1 - 5). How many times more raptors will spawn per wave.",
 		type   = "number",
 		def    = 1,
 		min    = 1,
@@ -353,9 +362,20 @@ local options={
 		section= "raptor_defense_options",
 	},
 	{
+		key    = "raptor_firstwavesboost",
+		name   = "First Waves Size Boost",
+		desc   = "(Range: 1 - 10). Intended to use with heavily modified settings. Makes first waves larger, the bigger the number the larger they are. Cools down within first few waves.",
+		type   = "number",
+		def    = 1,
+		min    = 1,
+		max    = 10,
+		step   = 0.1,
+		section= "raptor_defense_options",
+	},
+	{
 		key    = "raptor_spawntimemult",
-		name   = "Time Between Waves Multiplier (Range: 0.1 - 3)",
-		desc   = "How often new waves will spawn.",
+		name   = "Time Between Waves Multiplier",
+		desc   = "(Range: 0.1 - 3). How often new waves will spawn.",
 		type   = "number",
 		def    = 1,
 		min    = 0.1,
@@ -365,12 +385,12 @@ local options={
 	},
 	{
 		key    = "raptor_graceperiodmult",
-		name   = "Grace Period Time Multiplier (Range: 0.1 - 3)",
-		desc   = "Time before Raptors become active. ",
+		name   = "Grace Period Time Multiplier",
+		desc   = "(Range: 0.1 - 5). Time before Raptors become active. ",
 		type   = "number",
 		def    = 1,
 		min    = 0.1,
-		max    = 3,
+		max    = 5,
 		step   = 0.1,
 		section= "raptor_defense_options",
 	},
@@ -463,8 +483,8 @@ local options={
 
 	{
 		key    = "startmetal",
-		name   = "Starting metal (Range 0 - 10000)",
-		desc   = "Determines amount of metal and metal storage that each player will start with",
+		name   = "Starting metal",
+		desc   = "(Range 0 - 10000). Determines amount of metal and metal storage that each player will start with",
 		type   = "number",
 		section= "options_resources",
 		def    = 1000,
@@ -475,8 +495,8 @@ local options={
 
 	{
 		key    = "startmetalstorage",
-		name   = "Starting metal storage - Only works if it's higher than Starting metal (Range 1000 - 20000)",
-		desc   = "Determines amount of metal and metal storage that each player will start with",
+		name   = "Starting metal storage",
+		desc   = "(Range 1000 - 20000). Only works if it's higher than Starting metal. Determines amount of metal and metal storage that each player will start with",
 		type   = "number",
 		section= "options_resources",
 		def    = 1000,
@@ -487,8 +507,8 @@ local options={
 
 	{
 		key    = "startenergy",
-		name   = "Starting energy (Range 0 - 10000)",
-		desc   = "Determines amount of energy and energy storage that each player will start with",
+		name   = "Starting energy",
+		desc   = "(Range 0 - 10000). Determines amount of energy and energy storage that each player will start with",
 		type   = "number",
 		section= "options_resources",
 		def    = 1000,
@@ -499,8 +519,8 @@ local options={
 
 	{
 		key    = "startenergystorage",
-		name   = "Starting energy storage - Only works if it's higher than Starting energy (Range 1000 - 20000)",
-		desc   = "Determines amount of energy and energy storage that each player will start with",
+		name   = "Starting energy storage",
+		desc   = "(Range 1000 - 20000). Only works if it's higher than Starting energy. Determines amount of energy and energy storage that each player will start with",
 		type   = "number",
 		section= "options_resources",
 		def    = 1000,
@@ -511,8 +531,8 @@ local options={
 
 	{
 		key    = 'multiplier_resourceincome',
-		name   = 'Overall Resource Income Multiplier - Stacks up with the three options below. (Range 0.1 - 10)',
-		desc   = 'Overall Resource Income Multiplier',
+		name   = 'Overall Resource Income Multiplier',
+		desc   = '(Range 0.1 - 10). Stacks up with the three options below.',
 		type   =  "number",
 		section = 'options_resources',
 		def    = 1,
@@ -523,8 +543,8 @@ local options={
 
 	{
 		key    = 'multiplier_metalextraction',
-		name   = 'Metal Extraction Multiplier (Range 0.1 - 10)',
-		desc   = 'Metal Extraction Multiplier',
+		name   = 'Metal Extraction Multiplier ',
+		desc   = '(Range 0.1 - 10).',
 		type   =  "number",
 		section = 'options_resources',
 		def    = 1,
@@ -535,20 +555,20 @@ local options={
 
 	{
 		key    = 'multiplier_energyconversion',
-		name   = 'Energy Conversion Multiplier (Range 0.1 - 10)',
-		desc   = 'Energy Conversion Multiplier',
+		name   = 'Energy Conversion Efficiency Multiplier ',
+		desc   = '(Range 0.1 - 1). lower means you get less metal per energy converted',
 		type   =  "number",
 		section = 'options_resources',
 		def    = 1,
 		min    = 0.1,
-		max    = 10,
+		max    = 1,
 		step   = 0.1,
 	},
 
 	{
 		key    = 'multiplier_energyproduction',
-		name   = 'Energy Production Multiplier (Range 0.1 - 10)',
-		desc   = 'Energy Production Multiplier',
+		name   = 'Energy Production Multiplier',
+		desc   = '(Range 0.1 - 10).',
 		type   =  "number",
 		section = 'options_resources',
 		def    = 1,
@@ -573,8 +593,8 @@ local options={
 
 	{
 		key    = 'multiplier_maxdamage',
-		name   = 'Health Multiplier (Range 0.1 - 10)',
-		desc   = 'Health Multiplier',
+		name   = 'Health Multiplier',
+		desc   = '(Range 0.1 - 10).',
 		type   ="number",
 		section = 'options_unit_modifiers',
 		hidden = true,
@@ -586,8 +606,8 @@ local options={
 
 	{
 		key    = 'multiplier_maxvelocity',
-		name   = 'Unit Max Velocity Multiplier (Range 0.1 - 10)',
-		desc   = 'Unit Max Velocity Multiplier',
+		name   = 'Unit Max Velocity Multiplier',
+		desc   = '(Range 0.1 - 10).',
 		type   ="number",
 		section = 'options_unit_modifiers',
 		def    = 1,
@@ -598,8 +618,8 @@ local options={
 
 	{
 		key    = 'multiplier_turnrate',
-		name   = 'Unit Turn Rate Multiplier (Range 0.1 - 10)',
-		desc   = 'Unit Turn Rate Multiplier',
+		name   = 'Unit Turn Rate Multiplier',
+		desc   = '(Range 0.1 - 10).',
 		type   ="number",
 		section = 'options_unit_modifiers',
 		def    = 1,
@@ -610,8 +630,8 @@ local options={
 
 	{
 		key    = 'multiplier_builddistance',
-		name   = 'Build Range Multiplier (Range 0.5 - 10)',
-		desc   = 'Build Range Multiplier',
+		name   = 'Build Range Multiplier ',
+		desc   = '(Range 0.5 - 10).',
 		type   ="number",
 		section = 'options_unit_modifiers',
 		def    = 1,
@@ -622,8 +642,8 @@ local options={
 
 	{
 		key    = 'multiplier_buildpower',
-		name   = 'Build Power Multiplier (Range 0.1 - 10)',
-		desc   = 'Build Power Multiplier',
+		name   = 'Build Power Multiplier',
+		desc   = '(Range 0.1 - 10).',
 		type   ="number",
 		section = 'options_unit_modifiers',
 		def    = 1,
@@ -635,7 +655,7 @@ local options={
 	{
 		key    = 'multiplier_metalcost',
 		name   = 'Unit Cost Multiplier - Metal',
-		desc   = 'Unit Cost Multiplier - Metal',
+		desc   = '(Range 0.1 - 10).',
 		type   ="number",
 		section = 'options_unit_modifiers',
 		def    = 1,
@@ -648,7 +668,7 @@ local options={
 	{
 		key    = 'multiplier_energycost',
 		name   = 'Unit Cost Multiplier - Energy',
-		desc   = 'Unit Cost Multiplier - Energy',
+		desc   = '(Range 0.1 - 10).',
 		type   ="number",
 		section = 'options_unit_modifiers',
 		def    = 1,
@@ -661,7 +681,7 @@ local options={
 	{
 		key    = 'multiplier_buildtimecost',
 		name   = 'Unit Cost Multiplier - Time',
-		desc   = 'Unit Cost Multiplier - Time',
+		desc   = '(Range 0.1 - 10).',
 		type   ="number",
 		section = 'options_unit_modifiers',
 		def    = 1,
@@ -673,8 +693,8 @@ local options={
 
 	{
 		key    = 'multiplier_losrange',
-		name   = 'Vision Range Multiplier (Range 0.5 - 10)',
-		desc   = 'Vision Range Multiplier',
+		name   = 'Vision Range Multiplier',
+		desc   = '(Range 0.5 - 10).',
 		type   ="number",
 		section = 'options_unit_modifiers',
 		def    = 1,
@@ -685,8 +705,8 @@ local options={
 
 	{
 		key    = 'multiplier_radarrange',
-		name   = 'Radar and Sonar Range Multiplier (Range 0.5 - 10)',
-		desc   = 'Radar and Sonar Range Multiplier',
+		name   = 'Radar and Sonar Range Multiplier',
+		desc   = '(Range 0.5 - 10).',
 		type   ="number",
 		section = 'options_unit_modifiers',
 		def    = 1,
@@ -697,8 +717,8 @@ local options={
 
 	{
 		key    = 'multiplier_weaponrange',
-		name   = 'Weapon Range Multiplier (Range 0.5 - 10)',
-		desc   = 'Weapon Range Multiplier',
+		name   = 'Weapon Range Multiplier',
+		desc   = '(Range 0.5 - 10).',
 		type   ="number",
 		section = 'options_unit_modifiers',
 		def    = 1,
@@ -709,8 +729,8 @@ local options={
 
 	{
 		key    = 'multiplier_weapondamage',
-		name   = 'Weapon Damage Multiplier (Range 0.1 - 10)',
-		desc   = 'Weapon Damage Multiplier (Also affects unit death explosions)',
+		name   = 'Weapon Damage Multiplier ',
+		desc   = '(Range 0.1 - 10). Also affects unit death explosions.',
 		type   ="number",
 		section = 'options_unit_modifiers',
 		def    = 1,
@@ -721,8 +741,8 @@ local options={
 
 	{
 		key    = 'multiplier_shieldpower',
-		name   = 'Shield Power Multiplier (Range 0.1 - 10)',
-		desc   = 'Shield Power Multiplier',
+		name   = 'Shield Power Multiplier',
+		desc   = '(Range 0.1 - 10)',
 		type   ="number",
 		section = 'options_unit_modifiers',
 		def    = 1,
@@ -733,7 +753,7 @@ local options={
 
 	{
 		key		= "experimentalreversegear",
-		name	= "Reverse gear - Allows units to move backwards over short distances",
+		name	= "Reverse gear",
 		desc	= "Allows units to move backwards over short distances",
 		type	= "bool",
 		def		= false,
@@ -742,8 +762,8 @@ local options={
 
 	{
 		key     = "tweakunits",
-		name    = "Tweak Units for advanced users!   ",
-		desc    = "A base64 encoded lua table of unit parameters to change.",
+		name    = "Tweak Units",
+		desc    = "For advanced users!!! A base64 encoded lua table of unit parameters to change.",
 		section = 'options_unit_modifiers',
 		type    = "string",
 		def     = "",
@@ -751,8 +771,8 @@ local options={
 
 	{
 		key     = "tweakdefs",
-		name    = "Tweak Defs for advanced users!   ",
-		desc    = "A base64 encoded snippet of code that modifies game definitions.",
+		name    = "Tweak Defs",
+		desc    = "For advanced users!!! A base64 encoded snippet of code that modifies game definitions.",
 		section = 'options_unit_modifiers',
 		type    = "string",
 		def     = "",
@@ -782,8 +802,8 @@ local options={
 
 	{
 		key    = 'experimentalshields',
-		name   = 'Shield Override',
-		desc   = 'Shield Override',
+		name   = 'Shield Type Override',
+		desc   = 'Shield Type Override',
 		type   = 'list',
 		section = 'options_experimental',
 		def  = "unchanged",
@@ -824,9 +844,9 @@ local options={
 	},
 
 	{
-		key    = 'expandedcortexvehiclest2',
-		name   = 'Additional Cortex T2 Vehicles',
-		desc   = 'Adds Forge, a combat engineer like the butler with a flamethrower. Adds Printer, an armored field engineer. Adds Heat Tiger, Tiger with a heat laser',
+		key    = 'releasecandidates',
+		name   = 'Release Candidate Units',
+		desc   = 'Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently, adds Printer, Demon, Salamander, and Shockwave (Arm T2 EMP Mex)',
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,
@@ -842,16 +862,6 @@ local options={
 	},
 
 	{
-		key = 'comtestchanges',
-		name = 'Commander Test Changes',
-		desc = 'Comupdate, but with health 4000->3700, regen 0->5, and T1 turrets deal 1.5x damage to commanders',
-		type = 'bool',
-		section = 'options_experimental',
-		def = true,
-		hidden = true,
-	},
-
-	{
 		key = 'expandedt2sea',
 		name = 'Expanded T2 Sea',
 		desc = 'T2 sea is expanded to include a lightning ship for arm and a flamethrower ship for cor, and both factions get a drone carrier ship and an anti-nuke support ship to replace the aircraft carrier.  Cruisers rebalanced to be slower and lower range but higher health and dps for a more defensive role',
@@ -860,14 +870,22 @@ local options={
 		def = false,
 	},
 
+
 	{
-		key    = 'experimentalmorphs',
-		name   = 'Upgradeable Units',
-		desc   = 'Upgradeable Units',
-		type   = 'bool',
+		key = 'emprework',
+		name = 'EMP Rework',
+		desc = 'EMP is changed to slow units movement and firerate, before eventually stunning.',
+		type = 'bool',
 		section = 'options_experimental',
-		def  = false,
-		hidden = true,
+		def = false,
+	},
+	{
+		key = 'air_rework',
+		name = 'Air Rework',
+		desc = 'Prototype version with more maneuverable, slower air units and more differentiation between them.',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
 	},
 
 	{
@@ -921,16 +939,6 @@ local options={
 	},
 
 	{
-		key    = 'experimentalrebalancehovercrafttech',
-		name   = 'Rebalance Candidate: Hovercraft rebalance - Cheaper lab with buildpower 200 -> 100, can Tech2 into Vehicles and Ships',
-		desc   = '',
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = true,
-		hidden = true,
-	},
-
-	{
 		key    = 'experimentalrebalancewreckstandarization',
 		name   = 'Rebalance Candidate: Standarized wreck metal values. *0.6 of metal cost for wreck, *0.25 for heap.',
 		desc   = '',
@@ -951,8 +959,8 @@ local options={
 
 	{
 		key    		= 'norush',
-		name   		= "No Rush mode - Unfinished - Missing visual indicators, Requires Startboxes (doesn't work in FFA or 1v1 preset)",
-		desc   		= 'No Rush mode',
+		name   		= "No Rush mode",
+		desc   		= "!UNFINISHED! - Missing visual indicators, Requires Startboxes (doesn't work in FFA or 1v1 preset)",
 		type   		= "bool",
 		section		= 'options_experimental',
 		def    		= false,
@@ -960,8 +968,8 @@ local options={
 
 	{
 		key    		= 'norushtimer',
-		name   		= "No Rush Time (in minutes)",
-		desc   		= 'No Rush Time (in minutes)',
+		name   		= "No Rush Time",
+		desc   		= '(Range: 5 - 30). Minutes',
 		type   		= "number",
 		section		= 'options_experimental',
 		def    		= 5,
@@ -972,8 +980,8 @@ local options={
 
 	{
 		key    = 'teamcolors_icon_dev_mode',
-		name   = "Icon Dev Mode (Don't use in normal games)",
-		desc   = 'Forces teamcolors to be an specific one, for all teams',
+		name   = "Icon Dev Mode ",
+		desc   = "(Don't use in normal games) Forces teamcolors to be an specific one, for all teams",
 		type   = 'list',
 		section = 'options_experimental',
 		def  = "disabled",
@@ -985,6 +993,15 @@ local options={
 			{key="raptororange", name="Raptor Orange", desc="description"},
 			{key="gaiagray", name="Gaia Gray", desc="description"},
 		}
+	},
+
+	{
+		key    		= 'faction_limiter',
+		name   		= 'Limit which factions a team can play.',
+		desc   		= 'Input the factions a team should play, seperating teams by a comma, e.g. "armada cortex, legion" = cor/arm vs legion.',
+		type   		= "string",
+		section		= 'options_experimental',
+		def			= "",
 	},
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1000,10 +1017,19 @@ local options={
 		type	= "section",
 	},
 
+	--{
+	--	key    = "xmas",
+	--	name   = "Holiday decorations",
+	--	desc   = "Various  holiday decorations",
+	--	type   = "bool",
+	--	def    = true,
+	--	section= "options_extra",
+	--},
+
 	{
 		key="map_waterlevel",
-		name="Water Level (Doesn't work if Map Deformation is disabled!)",
-		desc=" <0 = Decrease water level, >0 = Increase water level",
+		name="Water Level",
+		desc="Doesn't work if Map Deformation is disabled! <0 = Decrease water level, >0 = Increase water level",
 		type="number",
 		def    = 0,
 		min    = -10000,
@@ -1032,8 +1058,8 @@ local options={
 
 	{
 		key		= "unba",
-		name	= "UnbaCom - Commanders gaining upgrades with experience",
-		desc	= "Commander levels up with XP, gaining better weapons, more health and higher tech buildlist.",
+		name	= "UnbaCom",
+		desc	= "Commanders gaining upgrades with experience! Commander levels up with XP, gaining better weapons, more health and higher tech buildlist.",
 		type	= "bool",
 		def		= false,
 		section	= "options_extra",
@@ -1041,8 +1067,8 @@ local options={
 
 	{
 		key		= "unbatech",
-		name	= "UnbaTech - Reworked Tech Progression (Requires UnbaCom)",
-		desc	= "Constructors cannot build Tech2 factories. In order to reach Tech2 you have to level up your commander.",
+		name	= "UnbaTech",
+		desc	= "(Requires UnbaCom) Constructors cannot build Tech2 factories. In order to reach Tech2 you have to level up your commander.",
 		type	= "bool",
 		def		= false,
 		section	= "options_extra",
@@ -1050,24 +1076,34 @@ local options={
 	},
 
 	{
-		key    = 'teamcolors_anonymous_mode',
-		name   = 'Anonymous Mode',
-		desc   = 'Anonimizes players in the match so you have harder time telling who is who.',
-		type   = 'list',
+		key     = 'teamcolors_anonymous_mode',
+		name    = 'Anonymous Mode',
+		desc    = "Anonymize players by changing colors (based on chosen mode) and replacing names with question marks, making it harder to know who's who.",
+		type    = 'list',
 		section = 'options_extra',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="Anonymous Mode disabled."},
-			{key="allred", name="Force SimpleColors", desc="All players have simple colors enabled, enemies cannot be recognized from each other."},
-			{key="global", name="Shuffle Globally", desc="Player colors order is shuffled globally, everyone see the same colors"},
-			{key="local", name="Shuffle Locally", desc="Player colors order is shuffled locally, everyone see different colors"},
-			{key="disco", name="Shuffle Locally - DiscoMode", desc="Player colors order is shuffled locally, everyone see different colors that change every once a while randomly"},
-		}
+		def     = "disabled",
+		items   = {
+			{key="disabled", name="Disabled"},
+			{key="global", name="Global", desc="You can distinguish different players and everyone sees the same colors globally. Diplomacy is the same as usual except using colors instead of names (e.g. \"Red, let's ally against Blue\")."},
+			{key="local", name="Local", desc="You can distinguish different players but everyone sees different colors locally. Diplomacy is harder but possible using positions (e.g. \"Southeast, let's ally against Northeast\")."},
+			{key="disco", name="Local (Disco)", desc="Same as local, except that colors are reshuffled every 2 mins for extra spicyness."},
+			{key="allred", name="All red", desc="You cannot distinguish different players, they all have the same color (red by default, can be changed in accessibility settings). Diplomacy is very hard."},
+		},
+	},
+
+	{
+		key     = 'teamffa_start_boxes_shuffle',
+		name    = 'Shuffle TeamFFA start boxes',
+		desc    = "In TeamFFA games (more than 2 teams, excluding Raptors / Scavengers), start boxes will be randomly assigned to each team: team 1 might be assigned any start box rather than team 1 always being assigned start box 1.",
+		type    = 'bool',
+		section = 'options_extra',
+		def     = true,
 	},
 
 	{
 		key="ruins",
-		name="Ruins - Remains of the battles once fought",
+		name="Ruins",
+		desc = "Remains of the battles once fought",
 		type="list",
 		def="scav_only",
 		section="options_extra",
@@ -1112,7 +1148,8 @@ local options={
 
 	{
 		key="lootboxes",
-		name="Lootboxes - Random drops of valuable stuff.",
+		name="Lootboxes",
+		desc = "Random drops of valuable stuff.",
 		type="list",
 		def="scav_only",
 		section="options_extra",
@@ -1141,19 +1178,19 @@ local options={
 		key="assistdronesenabled",
 		name="Construction Drones",
 		type="list",
-		def="pve_only",
+		def="disabled",
 		section="options_extra",
 		items={
 			{key="enabled", name="Enabled"},
-			{key="pve_only", name="Enabled for PvE only"},
+			--{key="pve_only", name="Enabled for PvE only"},
 			{key="disabled", name="Disabled"},
 		}
 	},
 
 	{
 		key    = 'assistdronesbuildpowermultiplier',
-		name   = 'Construction Drones: Buildpower Multiplier (Range 0.5 - 3)',
-		desc   = 'How many assist drones per commander should be spawned',
+		name   = 'Construction Drones: Buildpower Multiplier',
+		desc   = '(Range 0.5 - 3). How many assist drones per commander should be spawned',
 		type   = 'number',
 		section= 'options_extra',
 		def    = 1,
@@ -1186,20 +1223,21 @@ local options={
 
 	{
 		key="commanderbuildersenabled",
-		name="Starter Construction Turret",
+		name="Main Construction Turret",
 		type="list",
-		def="pve_only",
+		def="disabled",
 		section="options_extra",
 		items={
 			{key="enabled", name="Enabled"},
-			{key="pve_only", name="Enabled for PvE only"},
+			--{key="pve_only", name="Enabled for PvE only"},
 			{key="disabled", name="Disabled"},
 		}
 	},
 
 	{
 		key    = 'commanderbuildersrange',
-		name   = 'Starter Construction Turret: Buildrange (Range 500 - 2000)',
+		name   = 'Main Construction Turret: Buildrange',
+		desc   = "(Range 500 - 2000).",
 		type   = 'number',
 		section= 'options_extra',
 		def    = 1000,
@@ -1210,7 +1248,8 @@ local options={
 
 	{
 		key    = 'commanderbuildersbuildpower',
-		name   = 'Starter Construction Turret: Buildpower (Range 100 - 1000)',
+		name   = 'Main Construction Turret: Buildpower',
+		desc   = "(Range 100 - 1000).",
 		type   = 'number',
 		section= 'options_extra',
 		def    = 400,
@@ -1218,37 +1257,6 @@ local options={
 		max    = 1000,
 		step   = 1,
 	},
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

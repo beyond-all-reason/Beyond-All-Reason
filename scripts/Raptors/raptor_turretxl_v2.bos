@@ -234,6 +234,9 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	move base to y-axis [-0.2] * WORMSIZE now;
+	move base to y-axis <0> speed [0.1] * WORMSIZE;
+	
 	segvelocity = 0;
 	segtarget= 0;
 	segposition = 0;
@@ -467,6 +470,7 @@ AimFromPrimary(piecenum)
 
 Killed(severity, corpsetype)
 {
+	move base to y-axis [-0.2] * WORMSIZE speed [0.1] * WORMSIZE;
 	var randSeverity;
 	randSeverity = RAND(0,severity);
 

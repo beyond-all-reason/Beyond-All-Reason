@@ -7,7 +7,7 @@
 
 piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot,
 		lfoot, dish, barrel, aimy1, aimx1, aimx2, hatpoint, teleport, railturretl, railsleevel, railflarel, sleeve, barrelr, flare, 
-		barrel1l, barrel2l, barrel3l, barrel4l, railturretr, railsleever, railflarer, barrel1r, barrel2r, barrel3r, barrel4r;  
+		barrel1l, barrel2l, barrel3l, barrel4l, railturretr, railsleever, railflarer, barrel1r, barrel2r, barrel3r, barrel4r, Ref_Point;  
 
 static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm,animSpeed, torsoaim, gun_1, wpn1_lasthead;
 
@@ -484,6 +484,7 @@ Create(){
 	hide teleport;
 	hide railflarer;
 	hide railflarel;
+	hide Ref_Point;
 	//turn rloarm to  x-axis <-15> speed <130.0000> ; //-- Turn(rloarm, x-axis, math.rad(-15),math.rad(130))
 	turn lflare to x-axis <90> now; //	Turn(lflare, x-axis,math.rad(90))
 	turn flare to x-axis <90> now;
@@ -575,7 +576,54 @@ AimPrimary(heading, pitch) //pew pew
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	turn torso to  y-axis heading + <10> speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
-	torsoaim = heading;
+	
+	var gun_xz;
+    gun_xz = get PIECE_XZ(rloarm);                                //get packed gun coordinates
+    var gun_x;
+    gun_x = (gun_xz & 0xffff0000) / 0x00010000;                //unpack x coordinates of gun (credit for unpack code goes to Beherith)
+    var gun_z;
+    gun_z = (gun_xz & 0x0000ffff);                            //unpack z coordinates of gun
+    
+    var turret_xz;
+    turret_xz = get PIECE_XZ(flare);                        //get packed turret coordinates
+    var turret_x;
+    turret_x = (turret_xz & 0xffff0000) / 0x00010000;        //unpack x coordinates of turret
+    var turret_z;
+    turret_z = (turret_xz & 0x0000ffff);                    //unpack z coordinates of turret
+    
+    var aim_x;
+    var aim_z;
+    aim_x = gun_x - turret_x;                                //calculate relative coordinates of the gun to the turret (how far away it is in each direction)
+    aim_z = gun_z - turret_z;
+    
+    
+    var hull_xz;
+    hull_xz = get PIECE_XZ(pelvis);                            //get packed hull coordinates
+    var hull_x;
+    hull_x = (hull_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of hull
+    var hull_z;
+    hull_z = (hull_xz & 0x0000ffff);                        //unpack z coordinates of hull
+    
+    var smoke_xz;
+    smoke_xz = get PIECE_XZ(Ref_Point);                            //get packed smoke coordinates
+    var smoke_x;
+    smoke_x = (smoke_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of smoke
+    var smoke_z;
+    smoke_z = (smoke_xz & 0x0000ffff);                        //unpack z coordinates of smoke
+    
+    var face_x;
+    var face_z;
+    face_x = hull_x - smoke_x;                                //calculate relative coordinates of the hull to the smoke (how far away it is in each direction)
+    face_z = hull_z - smoke_z;
+	
+	var cauaim;
+    var cauface;
+    cauaim = get ATAN(aim_z, aim_x);                        //use arctan (ATAN) to calculate the angle of the turret. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
+    cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
+    
+    //var torsoaim;
+    torsoaim = cauface - cauaim;                                //calculate angle of turret relative to the hull
+	//torsoaim = heading;
 	turn rloarm to  x-axis <-55> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 	turn ruparm to x-axis <-40> - pitch speed <390.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))

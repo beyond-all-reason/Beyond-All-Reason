@@ -65,6 +65,7 @@ void main()
 	float currentAlpha = min(1.0, (lifetonow / parameters.w))  * alphastart - lifetonow* alphadecay;
 	currentAlpha = clamp(currentAlpha, 0.0, lengthwidthrotation.w);
 	v_lengthwidthrotation.w = currentAlpha;
+	if (currentAlpha < 0.01) v_skipdraw = 1u;
 	
 	// heatdecay is:
 	float heatdecay = alphastart_alphadecay_heatstart_heatdecay.w;
@@ -75,7 +76,7 @@ void main()
 
 	vec3 toCamera = cameraViewInv[3].xyz - v_centerpos.xyz;
 	//if (dot(toCamera, toCamera) >  fadeDistance * fadeDistance) v_skipdraw = 1u;
-
+	
 	
 	gl_Position = cameraViewProj * v_centerpos;
 }

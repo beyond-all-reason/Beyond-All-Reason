@@ -76,7 +76,51 @@ scanToCode["dvorak"] = {
 	-- NEEDS CORRECTION ABOVE
 }
 
-local layouts = { 'qwerty', 'qwertz', 'azerty', 'dvorak' }
+scanToCode["de-neo"] = {
+	Q = "X",
+	W = "V",
+	E = "L",
+	R = "C",
+	T = "W",
+	Y = "K",
+	U = "H",
+	I = "G",
+	O = "F",
+	P = "Q",
+	A = "U",
+	S = "I",
+	D = "A",
+	F = "E",
+	G = "O",
+	H = "S",
+	J = "N",
+	K = "R",
+	L = "T",
+	Z = "Ü",
+	X = "Ö",
+	C = "Ä",
+	V = "P",
+	B = "Z",
+	N = "B",
+	M = "M",
+	[";"] = "d",
+	["'"] = "y",
+	[","] = ",",
+	["."] = ".",
+	["/"] = "j",
+	["`"] = "^",
+	["-"] = "-",
+	["="] = "`",
+	-- NEEDS CORRECTION BELOW
+	-- The key used in qwerty for \ is used as Mod3 -- ISO_Level3_Shift
+	-- which activates the third layer on the keyboard.
+	-- Since it's just a modifier, no real key is pressed and as such,
+	-- mapping it to a key is kind of difficult.
+	["\\"] = "\\",
+	-- NEEDS CORRECTION ABOVE
+}
+
+local layouts = { 'qwerty', 'qwertz', 'azerty', 'dvorak', 'de-neo' }
 
 local function sanitizeKey(key, layout)
 	if not (type(key) == "string") then

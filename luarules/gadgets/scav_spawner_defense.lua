@@ -239,9 +239,10 @@ if gadgetHandler:IsSyncedCode() then
 		local highValueTargetCount = SetCount(squadPotentialHighValueTarget)
 		local pos = {}
 		local pickedTarget = nil
+		local highValueTargetPickChance = math.min(0.75, highValueTargetCount*0.15)
 		repeat
 			loops = loops + 1
-			if highValueTargetCount > 0 and mRandom() <= 0.75 then
+			if highValueTargetCount > 0 and mRandom() <= highValueTargetPickChance then
 				for target in pairs(squadPotentialHighValueTarget) do
 					if mRandom(1,highValueTargetCount) == 1 then
 						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
@@ -845,7 +846,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			else
 				timeOfLastSpawn = GetGameSeconds()
-				playerAggression = playerAggression + (config.angerBonus*(bossAnger*0.01))
+				--playerAggression = playerAggression + (config.angerBonus*(bossAnger*0.01))
 			end
 		end
 	end
@@ -1214,8 +1215,8 @@ if gadgetHandler:IsSyncedCode() then
 			--Spring.Debug.TableEcho(uSettings)
 			if not uSettings.maxBossAnger then uSettings.maxBossAnger = uSettings.minBossAnger + 100 end
 			if uSettings.minBossAnger <= techAnger and uSettings.maxBossAnger >= techAnger then
-				local numOfTurrets = math.ceil((uSettings.spawnedPerWave*(1-config.scavPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.scavPerPlayerMultiplier)*SetCount(humanTeams))
-				local maxExisting = math.ceil((uSettings.maxExisting*(1-config.scavPerPlayerMultiplier))+(uSettings.maxExisting*config.scavPerPlayerMultiplier)*SetCount(humanTeams))
+				local numOfTurrets = (uSettings.spawnedPerWave*(1-config.scavPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.scavPerPlayerMultiplier)*SetCount(humanTeams)
+				local maxExisting = (uSettings.maxExisting*(1-config.scavPerPlayerMultiplier))+(uSettings.maxExisting*config.scavPerPlayerMultiplier)*SetCount(humanTeams)
 				local maxAllowedToSpawn
 				if techAnger <= 100 then  -- i don't know how this works but it does. scales maximum amount of turrets allowed to spawn with techAnger.
 					maxAllowedToSpawn = math.ceil(maxExisting*((techAnger-uSettings.minBossAnger)/(math.min(100-uSettings.minBossAnger, uSettings.maxBossAnger-uSettings.minBossAnger))))
@@ -1223,23 +1224,25 @@ if gadgetHandler:IsSyncedCode() then
 					maxAllowedToSpawn = math.ceil(maxExisting*(techAnger*0.01))
 				end
 				--Spring.Echo(uName,"MaxExisting",maxExisting,"MaxAllowed",maxAllowedToSpawn)
-				for i = 1, numOfTurrets do
+				for i = 1, math.ceil(numOfTurrets) do
 					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and (Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[uName].id) <= maxAllowedToSpawn) then
-						local attempts = 0
-						local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
-						local footprintZ = UnitDefNames[uName].zsize -- why the fuck is this footprint *2??????
-						local footprintAvg = 128
-						if footprintX and footprintZ then
-							footprintAvg = ((footprintX+footprintZ))*4
-						end
-						repeat
-							attempts = attempts + 1
-							local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName, uSettings, footprintAvg+32)
-							if turretUnitID then
-								setScavXP(turretUnitID)
-								Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
+						if i <= numOfTurrets or math.random() <= numOfTurrets%1 then
+							local attempts = 0
+							local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
+							local footprintZ = UnitDefNames[uName].zsize -- why the fuck is this footprint *2??????
+							local footprintAvg = 128
+							if footprintX and footprintZ then
+								footprintAvg = ((footprintX+footprintZ))*4
 							end
-						until turretUnitID or attempts > 100
+							repeat
+								attempts = attempts + 1
+								local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName, uSettings, footprintAvg+32)
+								if turretUnitID then
+									setScavXP(turretUnitID)
+									Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
+								end
+							until turretUnitID or attempts > 100
+						end
 					end
 				end
 			end
@@ -1596,7 +1599,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local scavTeamUnitCount = GetTeamUnitCount(scavTeamID) or 0
-		if scavTeamUnitCount < scavUnitCap and n%15 == 9 then
+		if scavTeamUnitCount < scavUnitCap and n%5 == 4 then
 			SpawnScavs()
 		end
 
