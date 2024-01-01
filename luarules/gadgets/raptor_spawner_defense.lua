@@ -1299,7 +1299,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			-- Decoy fusion support
-			if unitDef.customParams and unitDef.customParams.decoyfor then
+			if unitDef.customParams and unitDef.customParams.decoyfor == "armfus" then
 				ecoValue = ecoValue + 1000
 			end
 
