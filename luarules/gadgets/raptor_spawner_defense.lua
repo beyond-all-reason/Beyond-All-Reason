@@ -1243,6 +1243,14 @@ if gadgetHandler:IsSyncedCode() then
 	-- Call-ins
 	--------------------------------------------------------------------------------
 
+	local WALLS = {
+		"armdrag",
+		"armfort",
+		"cordrag",
+		"corfort",
+		"scavdrag",
+		"scavfort",
+	}
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 
@@ -1261,6 +1269,13 @@ if gadgetHandler:IsSyncedCode() then
 			unitList:Remove(unitID)
 		end
 
+		-- If a wall
+		for _, wallName in pairs(WALLS) do
+			if unitDef.name == wallName then
+				return
+			end
+		end
+
 		if not unitDef.canMove then
 			-- Calculate an eco value based on energy and metal production
 			local ecoValue = 1
@@ -1277,7 +1292,7 @@ if gadgetHandler:IsSyncedCode() then
 				ecoValue = ecoValue + unitDef.tidalGenerator*15
 			end
 			if unitDef.extractsMetal and unitDef.extractsMetal > 0 then
-				ecoValue = ecoValue + 400
+				ecoValue = ecoValue + 200
 			end
 			if unitDef.customParams and unitDef.customParams.energyconv_capacity then
 				ecoValue = ecoValue + tonumber(unitDef.customParams.energyconv_capacity) / 2
@@ -1290,7 +1305,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			-- Make it extra risky to build T2 eco
 			if unitDef.customParams and unitDef.customParams.techlevel and tonumber(unitDef.customParams.techlevel) > 1 then
-				ecoValue = ecoValue * tonumber(unitDef.customParams.techlevel) * 0.75
+				ecoValue = ecoValue * tonumber(unitDef.customParams.techlevel) * 2
 			end
 
 			-- Anti-nuke - add value to force players to go T2 economy, rather than staying T1
