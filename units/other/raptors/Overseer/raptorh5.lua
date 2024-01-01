@@ -39,7 +39,7 @@ return {
 		movementclass = "RAPTORSMALLHOVER",
 		nanocolor = "0.7 0.15 0.15",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/brain_bug.s3o",
 		script = "Raptors/raptorh5.cob",
 		selfdestructas = "ROOST_DEATH",

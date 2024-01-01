@@ -36,7 +36,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORQUEENHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptor_miniqueen_electric.s3o",
 		pushresistant = true,
 		script = "Raptors/raptor_miniqueen.cob",

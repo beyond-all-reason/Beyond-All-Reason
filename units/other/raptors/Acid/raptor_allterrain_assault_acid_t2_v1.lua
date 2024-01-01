@@ -32,7 +32,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORALLTERRAINBIGHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptoracidallterrainassault.s3o",
 		onlytargetcategory2 = "VTOL",
 		script = "Raptors/raptorallterraina1.cob",

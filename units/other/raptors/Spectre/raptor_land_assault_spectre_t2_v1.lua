@@ -37,7 +37,7 @@ return {
 		mincloakdistance = 50,
 		movementclass = "RAPTORBIGHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptora_spectre.s3o",
 		onlytargetcategory2 = "VTOL",
 		script = "Raptors/raptora1.cob",

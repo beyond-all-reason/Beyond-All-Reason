@@ -39,7 +39,7 @@ return {
 		mincloakdistance = 50,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptors2_spectre.s3o",
 		script = "Raptors/raptors2.cob",
 		seismicsignature = 2,

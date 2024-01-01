@@ -35,7 +35,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORALLTERRAINBIG2HOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptor_artillery_meteor_v2.s3o",
 		script = "Raptors/raptor_artillery_v2.cob",
 		seismicsignature = 0,

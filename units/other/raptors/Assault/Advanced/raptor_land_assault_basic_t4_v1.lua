@@ -33,7 +33,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORBIG2HOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptora2.s3o",
 		onlytargetcategory2 = "VTOL",
 		script = "Raptors/raptora2.cob",

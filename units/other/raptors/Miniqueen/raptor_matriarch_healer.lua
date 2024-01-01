@@ -39,7 +39,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORQUEENHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptor_miniqueen_healer.s3o",
 		pushresistant = true,
 		repairable = false,
