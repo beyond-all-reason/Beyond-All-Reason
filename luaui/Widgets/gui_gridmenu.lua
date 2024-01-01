@@ -474,6 +474,7 @@ end
 local function setCurrentCategory(category)
 	currentCategory = category
 	setupCategoryRects()
+	doUpdate = true
 end
 
 
