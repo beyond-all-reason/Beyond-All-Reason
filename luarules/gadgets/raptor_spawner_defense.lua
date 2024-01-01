@@ -1288,7 +1288,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			-- Anti-nuke - add value to force players to go T2 economy, rather than staying T1
-			if unitDef.customParams and unitDef.customParams.unitgroup == "antinuke" then
+			if unitDef.customParams and (unitDef.customParams.unitgroup == "antinuke" or unitDef.customParams.unitgroup == "nuke") then
 				ecoValue = 1000
 			end
 
