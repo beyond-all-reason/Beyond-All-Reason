@@ -551,7 +551,7 @@ local function Draw(extension,layer,water)
 	for partClass,Units in pairs(FxLayer) do
 		local beginDraw = partClass[BeginDrawPass]
 		if beginDraw then
-
+			if tracy then tracy.ZoneBeginN("LUPS:Draw:"..tostring(partClass.pi.name)) end 
 			beginDraw()
 			local drawfunc = partClass[DrawPass]
 
@@ -630,7 +630,8 @@ local function Draw(extension,layer,water)
 			end
 
 			partClass[EndDrawPass]()
-
+			
+			if tracy then tracy.ZoneEnd() end 
 		end
 	end
 end

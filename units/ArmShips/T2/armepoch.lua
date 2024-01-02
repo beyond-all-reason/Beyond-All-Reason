@@ -1,11 +1,11 @@
 return {
 	armepoch = {
-		acceleration = 0.01104,
+		maxacc = 0.01104,
 		activatewhenbuilt = true,
-		brakerate = 0.01104,
+		maxdec = 0.01104,
 		buildangle = 16384,
-		buildcostenergy = 158000,
-		buildcostmetal = 17000,
+		energycost = 158000,
+		metalcost = 17000,
 		buildpic = "ARMEPOCH.DDS",
 		buildtime = 169800,
 		canmove = true,
@@ -22,10 +22,10 @@ return {
 		icontype = "sea",
 		idleautoheal = 25,
 		idletime = 1800,
-		losemitheight = 52,
+		sightemitheight = 52,
 		mass = 9999999,
-		maxdamage = 50000,
-		maxvelocity = 1.795,
+		health = 50000,
+		speed = 53.85,
 		minwaterdepth = 15,
 		movementclass = "BOAT8",
 		objectname = "Units/ARMEPOCH.s3o",
@@ -153,8 +153,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1550,
 				damage = {
-					bombers = 250,
-					fighters = 250,
 					vtol = 250,
 				},
 				rgbcolor = {
@@ -187,9 +185,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 600,
 				damage = {
-					bombers = 130,
 					default = 290,
-					fighters = 130,
 					-- subs = 5,
 					vtol = 130,
 				},
@@ -218,9 +214,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 570,
 				damage = {
-					bombers = 65,
 					default = 270,
-					fighters = 65,
 					-- subs = 5,
 					vtol = 65,
 				},
@@ -272,8 +266,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
 				damage = {
-					bombers = 150,
-					fighters = 150,
 					vtol = 150,
 					commanders = 1,
 				},

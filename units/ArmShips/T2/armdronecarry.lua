@@ -1,11 +1,11 @@
 return {
 	armdronecarry = {
-		acceleration = 0.01722,
+		maxacc = 0.01722,
 		activatewhenbuilt = true,
-		brakerate = 0.01722,
+		maxdec = 0.01722,
 		buildangle = 16384,
-		buildcostenergy = 12500,
-		buildcostmetal = 1250,
+		energycost = 13000,
+		metalcost = 1300,
 		buildpic = "ARMDRONECARRY.DDS",
 		buildtime = 20000,
 		canmove = true,
@@ -18,7 +18,7 @@ return {
 		corpse = "DEAD",
 		energymake = 25,
 		energystorage = 1500,
-		energyuse = 25,
+		energyupkeep = 25,
 		explodeas = "hugeexplosiongeneric",
 		floater = true,
 		footprintx = 6,
@@ -26,10 +26,10 @@ return {
 		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 600,
-		losemitheight = 56,
+		sightemitheight = 56,
 		mass = 10000,
-		maxdamage = 3500,
-		maxvelocity = 2.1,
+		health = 3500,
+		speed = 63.0,
 		minwaterdepth = 15,
 		movementclass = "BOAT8",
 		nochasecategory = "VTOL",
@@ -155,8 +155,8 @@ return {
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 4, 				--Spawnrate roughly in seconds.
 					maxunits = 16,				--Will spawn units until this amount has been reached.
-					buildcostenergy = 750,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					buildcostmetal = 30,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					energycost = 600,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 25,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1400,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 6,
 					attackformationspread = 120,	--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
@@ -164,7 +164,7 @@ return {
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 36,
-					docktohealthreshold = 50,
+					docktohealthreshold = 45,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpiecestart = 11,		--First model piece to be used for docking.
@@ -173,12 +173,63 @@ return {
 					dockingradius = 300,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},
+			aamissile = {
+				areaofeffect = 48,
+				avoidfeature = false,
+				burnblow = true,
+				canattackground = false,
+				cegtag = "missiletrailaa",
+				collidefriendly = false,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.15,
+				explosiongenerator = "custom:genericshellexplosion-medium-air",
+				firestarter = 70,
+				flighttime = 1.75,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
+				metalpershot = 0,
+				model = "cormissile.s3o",
+				name = "Missiles",
+				noselfdamage = true,
+				range = 710,
+				reloadtime = 2,
+				smoketrail = true,
+				smokePeriod = 7,
+				smoketime = 13,
+				smokesize = 5.4,
+				smokecolor = 0.95,
+				smokeTrailCastShadow = false,
+				castshadow = false,
+				soundhit = "xplomed2",
+				soundhitwet = "splshbig",
+				soundstart = "rockhvy2",
+				startvelocity = 430,
+				texture1 = "null",
+				texture2 = "smoketrailaa3",
+				tolerance = 8000,
+				tracks = true,
+				turnrate = 30000,
+				turret = true,
+				weaponacceleration = 90,
+				weapontimer = 5,
+				weapontype = "MissileLauncher",
+				weaponvelocity = 450,
+				damage = {
+					vtol = 138,
+				},
+			},
 		},
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "PLASMA",
 				onlytargetcategory = "SURFACE",
+			},
+			[2] = {
+				def = "AAMISSILE",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

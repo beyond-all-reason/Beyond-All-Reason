@@ -38,10 +38,10 @@ local selectedRadarUnitID = false
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.name == 'armarad' then
-		largeradarrange = unitDef.radarRadius
+		largeradarrange = unitDef.radarDistance
 	end
 	if unitDef.name == 'armrad' then
-		smallradarrange = unitDef.radarRadius
+		smallradarrange = unitDef.radarDistance
 	end
 
 	if unitDef.name == 'armrad' then
@@ -50,7 +50,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		--[[Spring.Echo(unitDef.radarHeight) -- DOES NOT WORK NEITHER OF THEM
 		Spring.Echo(unitDef.radarEmitHeight)
 		Spring.Echo(unitDef.radaremitheight)
-		Spring.Echo(unitDef.radarRadius)
+		Spring.Echo(unitDef.radarDistance)
 		for k,v in pairs(unitDef) do
 			Spring.Echo(k,v)
 		end]]--

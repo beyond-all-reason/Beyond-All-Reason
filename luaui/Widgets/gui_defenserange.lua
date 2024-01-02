@@ -92,13 +92,17 @@ modConfig["BYAR"]["unitList"] = {
 	corfmd = { weapons = { 3 } },
 	corint = { weapons = { 1 } },
 	corbuzz = { weapons = { 1 } },
-
+	
+	--LEGION
+	legstarfall = { weapons = { 1 } },
+	
 	-- SCAVENGERS
 	scavengerdroppodbeacon_scav = { weapons = { 1 } },
 
 	armannit3 = { weapons = { 1 } },
 	--armbotrail = { weapons = { 1 } },
 	armminivulc = { weapons = { 1 } },
+	legministarfall = { weapons = { 1 } },
 
 	cordoomt3 = { weapons = { 1 } },
 	corhllllt = { weapons = { 1 } },

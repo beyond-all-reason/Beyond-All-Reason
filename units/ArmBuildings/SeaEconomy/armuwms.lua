@@ -1,10 +1,10 @@
 return {
 	armuwms = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 8192,
-		buildcostenergy = 1200,
-		buildcostmetal = 400,
+		energycost = 1200,
+		metalcost = 400,
 		buildpic = "ARMUWMS.DDS",
 		buildtime = 3750,
 		canrepeat = false,
@@ -16,7 +16,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3600,
+		health = 3600,
 		maxslope = 20,
 		metalstorage = 3000,
 		minwaterdepth = 31,

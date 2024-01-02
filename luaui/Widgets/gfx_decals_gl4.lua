@@ -102,9 +102,23 @@ for k,_ in pairs(upperkeys) do
 	atlas[k] = nil 
 end
 upperkeys = nil
+-- re-pad the atlas a little bit to avoid mip bleed:
+--function(t,p) for k,v in pairs(t) do if type(v) == "table" then p = p or 0.5; local px,py = p/t.width, p/t.height; v[1], v[2], v[3], v[4] = v[1] + px, v[2]-px, v[3] + py, v[4] - py end end end ,
+
+-- FIXME: Actually fix the unused scars having full white alpha (all emissive) in normal texture!
+for k,v in pairs(atlas) do 
+	if type(v) =='table' then -- do 8/512 padding
+		local px = (8/512) * v[5]/ atlas.width		
+		local py = (8/512) * v[6]/ atlas.height
+		v[1], v[2], v[3], v[4] = v[1] + px, v[2]-px, v[3] + py, v[4] - py
+	end
+end
 
 local getUVCoords = atlas.getUVCoords
 atlas.flip(atlas)
+
+
+
 
 local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 4 , sizez = 4}
 
@@ -576,8 +590,16 @@ end
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local skipdraw = false
+local firstRun = true
 
 local function DrawDecals()
+	if firstRun then 
+		glTexture(0, "luaui/images/decals_gl4/decalsgl4_atlas_diffuse.dds")
+		glTexture(0, false)
+		glTexture(0, "luaui/images/decals_gl4/decalsgl4_atlas_normal.dds")
+		glTexture(0, false)
+	end
+	
 	if skipdraw then return end
 	local alt, ctrl = Spring.GetModKeyState()
 	if alt and (isSinglePlayer) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
@@ -1753,7 +1775,7 @@ local UnitScriptDecals = {
 			},
 		},
 		
-	[UnitDefNames['raptor1'].id] = { 
+	[UnitDefNames['raptor_land_swarmer_basic_t1_v1'].id] = { 
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_raptor_a.tga',
 			offsetx = 0, --offset from what the UnitScriptDecal returns 

@@ -136,8 +136,7 @@ if gadgetHandler:IsSyncedCode() then
 	local aliveEggsTable = {}
 	local squadsTable = {}
 	local unitSquadTable = {}
-	local squadPotentialTarget = {}
-	local squadPotentialHighValueTarget = {}
+	local squadTargetsByEcoWeight = {}
 	local unitTargetPool = {}
 	local unitCowardCooldown = {}
 	local unitTeleportCooldown = {}
@@ -223,9 +222,6 @@ if gadgetHandler:IsSyncedCode() then
 	
 	local SetListUtilities = VFS.Include('common/SetList.lua')
 
-	squadPotentialTarget = SetListUtilities.NewSetListNoTable()
-	squadPotentialHighValueTarget = SetListUtilities.NewSetListNoTable()
-
 	function SetToList(set)
 		local list = {}
 		local count = 0
@@ -255,32 +251,43 @@ if gadgetHandler:IsSyncedCode() then
 		-- Pre-opt: 224 us, sigma 105 us!
 		-- Post-opt: 3 us, sigma 1us
 		tracy.ZoneBeginN("Raptors:getRandomEnemyPos")
-		local loops = 0
-		local targetCount = squadPotentialTarget.count
-		local highValueTargetCount = squadPotentialHighValueTarget.count
 		local pos = {}
 		local pickedTarget = nil
-		repeat
-			loops = loops + 1
-			if highValueTargetCount > 0 and mRandom() <= 0.75 then
-				local target = squadPotentialHighValueTarget:GetRandom()
-				if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
-					local x,y,z = Spring.GetUnitPosition(target)
-					pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
-					pickedTarget = target
-					break
-				end
-			else
-				local target = squadPotentialTarget:GetRandom()
-				if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
-					local x,y,z = Spring.GetUnitPosition(target)
-					pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
-					pickedTarget = target
-					break
+
+		local ecoTierMaxProbability = 1
+
+		for weight,units in pairs(squadTargetsByEcoWeight) do
+			ecoTierMaxProbability = ecoTierMaxProbability + weight * units.count
+		end
+
+		local random = mRandom(1, ecoTierMaxProbability)
+		ecoTierMaxProbability = 1
+
+		-- 10 tries to find a valid target
+		for try = 1, 10 do
+
+			for weight,units in pairs(squadTargetsByEcoWeight) do
+				if units.count then
+					ecoTierMaxProbability = ecoTierMaxProbability + weight * units.count
+
+					if random <= ecoTierMaxProbability then
+						local target = units:GetRandom()
+						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+							-- Spring.Echo("Targetting eco: " .. random .. " found " .. UnitDefs[Spring.GetUnitDefID(target)].name);
+
+							local x,y,z = Spring.GetUnitPosition(target)
+							pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
+							pickedTarget = target
+							break
+						end
+					end
 				end
 			end
 
-		until pos.x or loops >= 10
+			if pos.x then
+				break
+			end
+		end
 
 		if not pos.x then
 			pos = getRandomMapPos()
@@ -830,7 +837,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			else
 				timeOfLastSpawn = GetGameSeconds()
-				playerAggression = playerAggression + (config.angerBonus*(queenAnger*0.01))
+				--playerAggression = playerAggression + (config.angerBonus*(queenAnger*0.01))
 			end
 		end
 		tracy.ZoneEnd()
@@ -1236,26 +1243,93 @@ if gadgetHandler:IsSyncedCode() then
 	-- Call-ins
 	--------------------------------------------------------------------------------
 
+	local WALLS = {
+		"armdrag",
+		"armfort",
+		"cordrag",
+		"corfort",
+		"scavdrag",
+		"scavfort",
+	}
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+
+		local unitDef = UnitDefs[unitDefID]
+
 		if unitTeam == raptorTeamID then
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultRaptorFirestate},0)
-			if UnitDefs[unitDefID].canCloak then
+			if unitDef.canCloak then
 				Spring.GiveOrderToUnit(unitID,37382,{1},0)
 			end
 			return
 		end
-		
-		squadPotentialTarget:Remove(unitID)
-		squadPotentialHighValueTarget:Remove(unitID)
-	
 
-		if not UnitDefs[unitDefID].canMove then
-			squadPotentialTarget:Add(unitID)
-			if config.highValueTargets[unitDefID] then
-				squadPotentialHighValueTarget:Add(unitID)
+		-- For each squadTargetsByEcoWeight, remove them
+		for _,unitList in pairs(squadTargetsByEcoWeight) do
+			unitList:Remove(unitID)
+		end
+
+		-- If a wall
+		for _, wallName in pairs(WALLS) do
+			if unitDef.name == wallName then
+				return
 			end
 		end
+
+		if not unitDef.canMove then
+			-- Calculate an eco value based on energy and metal production
+			local ecoValue = 1
+			if unitDef.energyMake then
+				ecoValue = ecoValue + unitDef.energyMake
+			end
+			if unitDef.energyUpkeep and unitDef.energyUpkeep < 0 then
+				ecoValue = ecoValue - unitDef.energyUpkeep
+			end
+			if unitDef.windGenerator then
+				ecoValue = ecoValue + unitDef.windGenerator*0.75
+			end
+			if unitDef.tidalGenerator then
+				ecoValue = ecoValue + unitDef.tidalGenerator*15
+			end
+			if unitDef.extractsMetal and unitDef.extractsMetal > 0 then
+				ecoValue = ecoValue + 200
+			end
+			if unitDef.customParams and unitDef.customParams.energyconv_capacity then
+				ecoValue = ecoValue + tonumber(unitDef.customParams.energyconv_capacity) / 2
+			end
+
+			-- Decoy fusion support
+			if unitDef.customParams and unitDef.customParams.decoyfor == "armfus" then
+				ecoValue = ecoValue + 1000
+			end
+
+			-- Make it extra risky to build T2 eco
+			if unitDef.customParams and unitDef.customParams.techlevel and tonumber(unitDef.customParams.techlevel) > 1 then
+				ecoValue = ecoValue * tonumber(unitDef.customParams.techlevel) * 2
+			end
+
+			-- Anti-nuke - add value to force players to go T2 economy, rather than staying T1
+			if unitDef.customParams and (unitDef.customParams.unitgroup == "antinuke" or unitDef.customParams.unitgroup == "nuke") then
+				ecoValue = 1000
+			end
+			-- Spring.Echo("Built units eco value: " .. ecoValue)
+
+			-- Ends up building an object like:
+			-- {
+			--  0: [non-eco]
+			--	25: [t1 windmill, t1 solar, t1 mex],
+			--	75: [adv solar]
+			--	1000: [fusion]
+			--	3000: [adv fusion]
+			-- }
+
+			if not squadTargetsByEcoWeight[ecoValue] then
+				squadTargetsByEcoWeight[ecoValue] = SetListUtilities.NewSetListNoTable()
+			end
+
+			squadTargetsByEcoWeight[ecoValue]:Add(unitID)
+		end
+
 		if config.ecoBuildingsPenalty[unitDefID] then
 			playerAggressionEcoValue = playerAggressionEcoValue + (config.ecoBuildingsPenalty[unitDefID]/(config.queenTime/3600)) -- scale to 60minutes = 3600seconds queen time
 		end
@@ -1841,8 +1915,10 @@ if gadgetHandler:IsSyncedCode() then
 			unitSquadTable[unitID] = nil
 		end
 
-		squadPotentialTarget:Remove(unitID)
-		squadPotentialHighValueTarget:Remove(unitID)
+		for _,unitList in pairs(squadTargetsByEcoWeight) do
+			unitList:Remove(unitID)
+		end
+
 		for squad in ipairs(unitTargetPool) do
 			if unitTargetPool[squad] == unitID then
 				refreshSquad(squad)

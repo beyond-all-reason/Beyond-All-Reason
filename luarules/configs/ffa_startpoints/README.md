@@ -32,7 +32,7 @@ The **FFA start setup** gadget's purpose is to address all of these issues.
 
 If using start boxes, the gadget will shuffle them at game start so as to make
 sure that nobody can know where anybody else is based off the start boxes
-defined in the lobby.
+defined in the lobby. (This behaviour can be disabled via ModOptions.)
 
 If not using start boxes, the gadget will try to leverage custom FFA start
 points configs to position players at the start of the game in a better way than

@@ -194,9 +194,9 @@ local chobbyInterface
 local unitRange = {} -- table of unit types with their radar ranges
 local isBuilding = {} -- unitDefID keys
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.radarRadius and unitDef.radarRadius > minRadarDistance then	-- save perf by excluding low radar range units
+	if unitDef.radarDistance and unitDef.radarDistance > minRadarDistance then	-- save perf by excluding low radar range units
 		if not unitRange[unitDefID] then unitRange[unitDefID] = {} end
-		unitRange[unitDefID]['range'] = unitDef.radarRadius
+		unitRange[unitDefID]['range'] = unitDef.radarDistance
 
 		if unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
 			isBuilding[unitDefID] = true

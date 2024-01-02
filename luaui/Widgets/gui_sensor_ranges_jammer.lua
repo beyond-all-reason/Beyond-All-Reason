@@ -194,8 +194,8 @@ local chobbyInterface
 local unitRange = {} -- table of unit types with their radar ranges
 local isBuilding = {} -- unitDefID keys
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.jammerRadius and unitDef.jammerRadius > minJammerDistance then	-- save perf by excluding low radar range units
-		unitRange[unitDefID] = unitDef.jammerRadius
+	if unitDef.radarDistanceJam and unitDef.radarDistanceJam > minJammerDistance then	-- save perf by excluding low radar range units
+		unitRange[unitDefID] = unitDef.radarDistanceJam
 		if unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
 			isBuilding[unitDefID] = true
 		end

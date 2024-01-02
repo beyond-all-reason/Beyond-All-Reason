@@ -1,10 +1,10 @@
 return {
 	corwin = {
-		acceleration = 0,
+		maxacc = 0,
 		activatewhenbuilt = true,
-		brakerate = 0,
-		buildcostenergy = 175,
-		buildcostmetal = 45,
+		maxdec = 0,
+		energycost = 175,
+		metalcost = 45,
 		buildpic = "CORWIN.DDS",
 		buildtime = 1680,
 		canrepeat = false,
@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 199,
+		health = 199,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/CORWIN.s3o",
