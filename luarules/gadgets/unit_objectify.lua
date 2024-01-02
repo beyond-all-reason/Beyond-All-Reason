@@ -48,7 +48,7 @@ if gadgetHandler:IsSyncedCode() then
     function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
         if isObject[unitDefID] and not paralyzer then
             local health,maxHealth,_,_,buildProgress = Spring.GetUnitHealth(unitID)
-            if buildProgress and maxHealth and buildProgress < 0.99 then
+            if buildProgress and maxHealth and buildProgress < 1 then
                 return (damage/100)*maxHealth, nil
             end
         end

@@ -802,7 +802,7 @@ end
 local function AddStaticLightsForUnit(unitID, unitDefID, noUpload)
 	if unitDefLights[unitDefID] then
 		local _,_,_,_, buildprogress = Spring.GetUnitHealth(unitID)
-		if buildprogress < 0.99999 then return end
+		if buildprogress < 1 then return end
 		local unitDefLight = unitDefLights[unitDefID]
 		if unitDefLight.initComplete ~= true then  -- late init
 			for lightname, lightParams in pairs(unitDefLight) do
@@ -1293,9 +1293,10 @@ local function updateProjectileLights(newgameframe)
 					--end
 				else
 					local weaponDefID = spGetProjectileDefID ( projectileID )
-					if projectileDefLights[weaponDefID] then
+					if projectileDefLights[weaponDefID] and ( projectileID % (projectileDefLights[weaponDefID].fraction or 1) == 0 ) then
 						local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
 						lightType = projectileDefLights[weaponDefID].lightType
+						
 						lightParamTable[1] = px
 						lightParamTable[2] = py
 						lightParamTable[3] = pz

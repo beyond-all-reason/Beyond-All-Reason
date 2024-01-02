@@ -1,9 +1,9 @@
 return {
 	corhp = {
-		acceleration = 0,
-		brakerate = 0,
-		buildcostenergy = 4200,
-		buildcostmetal = 1100,
+		maxacc = 0,
+		maxdec = 0,
+		energycost = 3000,
+		metalcost = 900,
 		builder = true,
 		buildpic = "CORHP.DDS",
 		buildtime = 11000,
@@ -19,7 +19,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3750,
+		health = 3750,
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 200,
@@ -30,7 +30,7 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 312,
 		terraformspeed = 1000,
-		workertime = 200,
+		workertime = 100,
 		yardmap = "occccccooccccccooccccccooccccccooccccccooccccccoocccccco",
 		buildoptions = {
 			[1] = "corch",

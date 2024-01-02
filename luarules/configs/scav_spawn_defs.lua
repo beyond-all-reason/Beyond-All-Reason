@@ -168,7 +168,7 @@ local TierConfiguration = { -- Double for basic squads
 local LandUnitsList = {
 	Raid = {
 		[1] = {
-			--Armada 
+			--Armada
 			["armflea_scav"] = 1,
 			["armpw_scav"] = 1,
 			["armfav_scav"] = 1,
@@ -227,7 +227,7 @@ local LandUnitsList = {
 			["armraz_scav"] = 1,
 			--Cortex
 			["cordemont4_scav"] = 1,
-			--Legion	
+			--Legion
 			--N/A
 		},
 	},
@@ -323,7 +323,7 @@ local LandUnitsList = {
 			["armrock_scav"] = 1,
 			["armjeth_scav"] = 1,
 			["armah_scav"] = 1,
-			--Cortex	
+			--Cortex
 			["corstorm_scav"] = 1,
 			["corcrash_scav"] = 1,
 			["corah_scav"] = 1,
@@ -345,7 +345,7 @@ local LandUnitsList = {
 			["legrail_scav"] = 1,
 		},
 		[3] = {
-			--Armada	
+			--Armada
 			["armfido_scav"] = 1,
 			["armaak_scav"] = 1,
 			["armmav_scav"] = 1,
@@ -387,9 +387,9 @@ local LandUnitsList = {
 		},
 		[6] = {
 			--Armada
-			
+
 			--Cortex
-			
+
 			--Legion
 			--N/A
 		},
@@ -416,7 +416,7 @@ local LandUnitsList = {
 			["legck_scav"] = 1,
 		},
 		[3] = {
-			--Armada	
+			--Armada
 			["armack_scav"] = 1,
 			["armacv_scav"] = 1,
 			["armfark_scav"] = 1,
@@ -435,7 +435,7 @@ local LandUnitsList = {
 
 		},
 		[4] = {
-			--Armada	
+			--Armada
 
 			--Cortex
 
@@ -466,37 +466,37 @@ local LandUnitsList = {
 local SeaUnitsList = {
 	Raid = {
 		[1] = {
-		--Armada	
+		--Armada
 		["armdecade_scav"] = 1,
 		--Cortex
 		["coresupp_scav"] = 1,
 		},
 		[2] = {
-		--Armada	
+		--Armada
 
 		--Cortex
 
 		},
 		[3] = {
-		--Armada	
+		--Armada
 		["armlship_scav"] = 1,
 		--Cortex
 		["corfship_scav"] = 1,
 		},
 		[4] = {
-		--Armada	
+		--Armada
 		["armsubk_scav"] = 1,
 		--Cortex
 		["corshark_scav"] = 1,
 		},
 		[5] = {
-		--Armada	
+		--Armada
 
 		--Cortex
 
 		},
 		[6] = {
-		--Armada	
+		--Armada
 
 		--Cortex
 
@@ -504,12 +504,12 @@ local SeaUnitsList = {
 	},
 	Assault = {
 		[1] = {
-		--Armada	
+		--Armada
 
 		--Cortex
 		},
 		[2] = {
-		--Armada	
+		--Armada
 		["armpship_scav"] = 1,
 		["armroy_scav"] = 1,
 		--Cortex
@@ -517,26 +517,26 @@ local SeaUnitsList = {
 		["corroy_scav"] = 1,
 		},
 		[3] = {
-		--Armada	
+		--Armada
 		["armcrus_scav"] = 1,
 		--Cortex
 		["corcrus_scav"] = 1,
 		},
 		[4] = {
-		--Armada	
+		--Armada
 		["armbats_scav"] = 1,
 		--Cortex
 		["corbats_scav"] = 1,
 		},
 		[5] = {
-		--Armada	
+		--Armada
 		["armpshipt3_scav"] = 1,
 		["armptt2_scav"] = 1,
 		--Cortex
 		["corblackhy_scav"] = 1,
 		},
 		[6] = {
-		--Armada	
+		--Armada
 		["armepoch_scav"] = 1,
 		["armserpt3_scav"] = 1,
 		--Cortex
@@ -545,19 +545,19 @@ local SeaUnitsList = {
 	},
 	Support = {
 		[1] = {
-		--Armada	
+		--Armada
 		["armpt_scav"] = 1,
 		--Cortex
 		["corpt_scav"] = 1,
 		},
 		[2] = {
-		--Armada	
+		--Armada
 		["armsub_scav"] = 1,
 		--Cortex
 		["corsub_scav"] = 1,
 		},
 		[3] = {
-		--Armada	
+		--Armada
 		["armcarry2_scav"] = 1,
 		["armantiship_scav"] = 1,
 		["armdronecarry_scav"] = 1,
@@ -569,7 +569,7 @@ local SeaUnitsList = {
 		["corarch_scav"] = 1,
 		},
 		[4] = {
-		--Armada	
+		--Armada
 		["armserp_scav"] = 1,
 		["armmship_scav"] = 1,
 		["armsjam_scav"] = 1,
@@ -579,13 +579,13 @@ local SeaUnitsList = {
 		["corsjam_scav"] = 1,
 		},
 		[5] = {
-		--Armada	
-		
+		--Armada
+
 		--Cortex
-		
+
 		},
 		[6] = {
-		--Armada	
+		--Armada
 		["armdecadet3_scav"] = 1,
 		--Cortex
 		["corslrpc_scav"] = 1,
@@ -593,13 +593,13 @@ local SeaUnitsList = {
 	},
 	Healer = {
 		[1] = {
-		--Armada	
+		--Armada
 
 		--Cortex
-		
+
 		},
 		[2] = {
-		--Armada	
+		--Armada
 		["armcs_scav"] = 1,
 		["armrecl_scav"] = 1,
 		--Cortex
@@ -607,7 +607,7 @@ local SeaUnitsList = {
 		["correcl_scav"] = 1,
 		},
 		[3] = {
-		--Armada	
+		--Armada
 		["armacsub_scav"] = 1,
 		["armmls_scav"] = 1,
 		--Cortex
@@ -615,17 +615,17 @@ local SeaUnitsList = {
 		["cormls_scav"] = 1,
 		},
 		[4] = {
-		--Armada	
+		--Armada
 
 		--Cortex
 		},
 		[5] = {
-		--Armada	
+		--Armada
 
 		--Cortex
 		},
 		[6] = {
-		--Armada	
+		--Armada
 
 		--Cortex
 		},
@@ -647,7 +647,7 @@ local AirUnitsList = {
 	["corhunt_scav"] = 1,
 	--Legion
 	["legfig_scav"] = 1,
-		
+
 	},
 	[2] = {
 	--Armada
@@ -668,7 +668,7 @@ local AirUnitsList = {
 	["legmos_scav"] = 1,
 	["legcib_scav"] = 1,
 	["legkam_scav"] = 1,
-		
+
 	},
 	[3] = {
 	--Armada
@@ -841,6 +841,7 @@ local Turrets = {
 		["cordoomt3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["armvulc_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["corbuzz_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
+		["legstarfall_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 	},
 }
 
@@ -859,7 +860,7 @@ for tier, _ in pairs(Turrets) do
 			-- Spring.Echo("---")
 			-- Spring.Echo(turret)
 			-- Spring.Echo(UnitDefs[UnitDefNames[turret].id].name)
-			scavTurrets[turret] = { 
+			scavTurrets[turret] = {
 				minBossAnger = TierConfiguration[tier].minAnger,
 				spawnedPerWave = turretInfo.spawnedPerWave or 1,
 				maxExisting = turretInfo.maxExisting or 10,
@@ -886,18 +887,18 @@ scavBehaviours = {
 		[UnitDefNames["armscavengerbossv2_epic_scav"].id]		= { distance = 2000, chance = 0.001},
 	},
 	HEALER = { -- Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and boss
-		--[UnitDefNames["raptorhealer1"].id] = true,
+		--[UnitDefNames["raptor_land_swarmer_heal_t1_v1"].id] = true,
 		[UnitDefNames["armrectr_scav"].id] = true,--Armada Rezzer
 		[UnitDefNames["cornecro_scav"].id] = true,--Cortex Rezzer
 	},
 	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance
-		--[UnitDefNames["raptorr1"].id] = true,
+		--[UnitDefNames["raptor_allterrain_arty_basic_t2_v1"].id] = true,
 	},
 	KAMIKAZE = { -- Long lifetime and no regrouping, always uses Move command to rush into the enemy
-		--[UnitDefNames["raptor_dodo1"].id] = true,
+		--[UnitDefNames["raptor_land_kamikaze_basic_t2_v1"].id] = true,
 	},
 	ALLOWFRIENDLYFIRE = {
-		--[UnitDefNames["raptorr1"].id] = true,
+		--[UnitDefNames["raptor_allterrain_arty_basic_t2_v1"].id] = true,
 	},
 }
 
@@ -1118,6 +1119,8 @@ local ecoBuildingsPenalty = { -- Additional boss hatch per second from eco build
 	[UnitDefNames["corfus"].id] 	= 0.000125,
 	[UnitDefNames["armuwfus"].id] 	= 0.000125,
 	[UnitDefNames["coruwfus"].id] 	= 0.000125,
+	[UnitDefNames["armageo"].id] 	= 0.000125,
+	[UnitDefNames["corageo"].id] 	= 0.000125,
 	[UnitDefNames["armafus"].id] 	= 0.0005,
 	[UnitDefNames["corafus"].id] 	= 0.0005,
 
@@ -1144,6 +1147,8 @@ local highValueTargets = { -- Priority targets for Scav. Must be immobile to pre
 	[UnitDefNames["corfus"].id] 	= true,
 	[UnitDefNames["armuwfus"].id] 	= true,
 	[UnitDefNames["coruwfus"].id] 	= true,
+	[UnitDefNames["armageo"].id] 	= true,
+	[UnitDefNames["corageo"].id] 	= true,
 	[UnitDefNames["armafus"].id] 	= true,
 	[UnitDefNames["corafus"].id] 	= true,
 	-- T2 Metal Makers

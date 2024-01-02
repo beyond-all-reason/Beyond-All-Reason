@@ -308,7 +308,7 @@ function widget:MousePress(x, y, button)
 					Spring.PlaySoundFile(sound_button, 0.6, 'ui')
 				end
 				-- tell initial spawn
-				Spring.SendLuaRulesMsg('\138' .. tostring(factions[i].startUnit))
+				Spring.SendLuaRulesMsg('changeStartUnit' .. tostring(factions[i].startUnit))
 				break
 			end
 		end

@@ -777,48 +777,65 @@ local envLUT = "modelmaterials_gl4/envlut_0.png"
 local existingfilecache = {} -- this speeds up the VFS calls
 
 local function GetNormal(unitDef, featureDef)
-	local normalMap = blankNormalMap
+	local FileExists =  VFS.FileExists
 
+	local normalMap = blankNormalMap
+	local unittextures = "unittextures/"
 	if unitDef and unitDef.model then
-		if existingfilecache[unitDef.model.textures.tex1] == nil and VFS.FileExists(unitDef.model.textures.tex1) then
-			existingfilecache[unitDef.model.textures.tex1] = string.format("%%%i:0", unitDef.id)
+		local tex1 = unittextures .. unitDef.model.textures.tex1
+		local tex2 = unittextures .. unitDef.model.textures.tex2
+		if existingfilecache[tex1] == nil and FileExists(tex1) then
+			existingfilecache[tex1] = string.format("%%%i:0", unitDef.id)
 		end
-		if existingfilecache[unitDef.model.textures.tex2] == nil and VFS.FileExists(unitDef.model.textures.tex2) then
-			existingfilecache[unitDef.model.textures.tex2] = string.format("%%%i:1", unitDef.id)
+		if existingfilecache[tex2] == nil and FileExists(tex2) then
+			existingfilecache[tex2] = string.format("%%%i:1", unitDef.id)
 		end
-		if unitDef.customParams and unitDef.customParams.normaltex and
-			(existingfilecache[unitDef.customParams.normaltex] or VFS.FileExists(unitDef.customParams.normaltex)) then
-			existingfilecache[unitDef.customParams.normaltex] = true
-			return unitDef.customParams.normaltex
+		
+		if unitDef.customParams and unitDef.customParams.normaltex then
+			local normaltex = unitDef.customParams.normaltex
+			if existingfilecache[normaltex] == nil and FileExists(normaltex) then 
+				existingfilecache[normaltex] = normaltex
+			end
+			return normaltex
 		end
 	end
 
 	if featureDef then
-		local tex1 = featureDef.model.textures.tex1 or "DOESNTEXIST.PNG"
-		local tex2 = featureDef.model.textures.tex2 or "DOESNTEXIST.PNG"
-
-		if featureDef.customParams and featureDef.customParams.normaltex and
-			(existingfilecache[featureDef.customParams.normaltex] or VFS.FileExists(featureDef.customParams.normaltex)) then
-
-			existingfilecache[featureDef.customParams.normaltex] = true
-			return featureDef.customParams.normaltex
+		local tex1 = unittextures .. (featureDef.model.textures.tex1 or "DOESNTEXIST.PNG")
+		local tex2 = unittextures .. (featureDef.model.textures.tex2 or "DOESNTEXIST.PNG")
+		
+		-- cache them:
+		if existingfilecache[tex1] == nil and FileExists(tex1) then 
+			existingfilecache[tex1] = string.format("%%%i:0", -1*featureDef.id)
+		end
+		if existingfilecache[tex2] == nil and FileExists(tex2) then 
+			existingfilecache[tex2] = string.format("%%%i:1", -1*featureDef.id)
 		end
 
-		local unittexttures = "unittextures/"
-		if  (existingfilecache[unittexttures .. tex1] or VFS.FileExists(unittexttures .. tex1)) and
-			(existingfilecache[unittexttures .. tex2] or VFS.FileExists(unittexttures .. tex2)) then
-
-			existingfilecache[unittexttures .. tex1] = string.format("%%%i:0", -1*featureDef.id)
-			existingfilecache[unittexttures .. tex2] = string.format("%%%i:1", -1*featureDef.id)
-			normalMap = unittexttures .. tex1:gsub("%.","_normals.")
+		if featureDef.customParams and featureDef.customParams.normaltex then
+			local normaltex = featureDef.customParams.normaltex
+			if existingfilecache[normaltex] == nil and FileExists(normaltex) then	
+				existingfilecache[normaltex] = normaltex
+			end
+			return normaltex
+		else
+			if featureDef.model.textures.tex1 == "Arm_wreck_color.dds" then 
+				return unittextures.."Arm_wreck_color_normal.dds"
+			end
+			
+			if featureDef.model.textures.tex1 == "cor_color_wreck.dds" then 
+				return unittextures.."cor_color_wreck_normal.dds"
+			end
+			-- try to search for an appropriate normal 
+			normalMap = tex1:gsub("%.","_normals.")
 			-- Spring.Echo(normalMap)
-			if (existingfilecache[normalMap] or VFS.FileExists(normalMap)) then
+			if (existingfilecache[normalMap] or FileExists(normalMap)) then
 				existingfilecache[normalMap] = true
 				return normalMap
 			end
-			normalMap = unittexttures .. tex1:gsub("%.","_normal.")
+			normalMap = tex1:gsub("%.","_normal.")
 			-- Spring.Echo(normalMap)
-			if (existingfilecache[normalMap] or VFS.FileExists(normalMap)) then
+			if (existingfilecache[normalMap] or FileExists(normalMap)) then
 				existingfilecache[normalMap] = true
 				return normalMap
 			end
@@ -1785,6 +1802,55 @@ local function MarkBinCUSGL4(optName, line, words, playerID)
 	markBin(passnum)
 end
 
+local function FreeTextures() -- pre we are using 2200mb
+	-- free all raptor texes
+	-- free all pilha texes
+	Spring.Echo("Freeing textures")
+	--delete raptor texes if no raptors are present
+	for unitDefID, uniformBin in pairs(objectDefToUniformBin) do 
+		if uniformBin == 'raptor' then 
+			local textureTable = textureKeytoSet[fastObjectDefIDtoTextureKey[unitDefID]]
+			local s1 = gl.DeleteTexture(textureTable[0])
+			local s2 = gl.DeleteTexture(textureTable[1])
+			
+			Spring.Echo("Freeing ",textureTable[0],textureTable[1], s1, s2)
+		end
+	end
+
+	-- delete feature texes if not present, except wrecks of course
+	local features = Spring.GetAllFeatures()
+
+	local delFeatureDefs = {}
+	for featureDefID, featureDef in pairs(FeatureDefs) do delFeatureDefs[featureDefID] = true end 
+
+	for i, featureID in ipairs(features) do 
+		local existingFeatureDefID = Spring.GetFeatureDefID(featureID)
+		delFeatureDefs[existingFeatureDefID] = false
+	end
+
+	for featureDefID, deleteme in pairs(delFeatureDefs) do 
+		local textureTable = textureKeytoSet[fastObjectDefIDtoTextureKey[-featureDefID]]
+			local s1 = gl.DeleteTexture(textureTable[0])
+			local s2 = gl.DeleteTexture(textureTable[1])
+			
+			Spring.Echo("Freeing ",textureTable[0],textureTable[1], s1, s2)
+	end
+	
+	Spring.Echo("RawDelete")
+	local unittexfiles = VFS.DirList("unittextures/")
+	for i, fname in ipairs(unittexfiles) do 
+		if string.find(fname,'chicken', nil, true) then 
+			local s1 = gl.DeleteTexture(fname)
+			Spring.Echo("Freeing ",fname, s1)
+
+		end
+		
+	end
+	
+	
+end
+
+
 function gadget:Initialize()
 	gadgetHandler:AddChatAction("reloadcusgl4", ReloadCUSGL4)
 	gadgetHandler:AddChatAction("disablecusgl4", DisableCUSGL4)
@@ -1792,6 +1858,7 @@ function gadget:Initialize()
 	gadgetHandler:AddChatAction("debugcusgl4", DebugCUSGL4)
 	gadgetHandler:AddChatAction("dumpcusgl4", DumpCUSGL4)
 	gadgetHandler:AddChatAction("markbincusgl4", MarkBinCUSGL4)
+	gadgetHandler:AddChatAction("freetextures", FreeTextures)
 	if not initiated and tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
 		initGL4()
 	end

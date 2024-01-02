@@ -289,10 +289,19 @@ local isSpec, fullview = Spring.GetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myTeamID = Spring.GetMyTeamID()
 
+local unitTextureFilesArray = VFS.DirList("unittextures/")
+local unitTextureFiles = {}
+for _, path in pairs(unitTextureFilesArray) do
+	unitTextureFiles[path] = true
+end
+
 local normalMaps = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.normaltex and VFS.FileExists(unitDef.customParams.normaltex) then
-		normalMaps[unitDefID] = unitDef.customParams.normaltex
+	local unitNormalTexture = unitDef.customParams.normaltex
+	if unitNormalTexture and (
+			unitTextureFiles[string.lower(unitNormalTexture)] or
+			VFS.FileExists(unitNormalTexture)) then
+		normalMaps[unitDefID] = unitNormalTexture
 	else
 		normalMaps[unitDefID] = "unittextures/blank_normal.dds"
 	end

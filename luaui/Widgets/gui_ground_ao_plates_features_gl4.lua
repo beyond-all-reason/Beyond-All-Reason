@@ -125,8 +125,14 @@ local function ProcessAllFeatures()
 	end
 	uploadAllElements(groundPlateVBO)
 end
-
+local firstRun = true
 function widget:DrawWorldPreUnit()
+	if firstRun then 
+		glTexture(0, atlas.atlasimage)
+		glTexture(0, false)
+		firstRun = false
+	end
+		
 	if groundPlateVBO.usedElements > 0 then 
 		local disticon = Spring.GetConfigInt("FeatureFadeDistance", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		glCulling(GL_BACK)

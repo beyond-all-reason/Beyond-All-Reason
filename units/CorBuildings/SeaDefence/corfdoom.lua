@@ -1,12 +1,12 @@
 local unitName = "Devastator"
 return {
 	corfdoom = {
-		acceleration = 0,
+		maxacc = 0,
 		activatewhenbuilt = true,
-		brakerate = 0,
+		maxdec = 0,
 		buildangle = 4096,
-		buildcostenergy = 15000,
-		buildcostmetal = 1200,
+		energycost = 15000,
+		metalcost = 1200,
 		buildpic = "CORFDOOM.DDS",
 		buildtime = 24000,
 		canrepeat = false,
@@ -23,8 +23,8 @@ return {
 		icontype = "building",
 		idleautoheal = 2,
 		idletime = 1800,
-		losemitheight = 80,
-		maxdamage = 6700,
+		sightemitheight = 80,
+		health = 6700,
 		minwaterdepth = 5,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORFDOOM.s3o",
@@ -138,9 +138,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 450,
 				damage = {
-					bombers = 90,
 					default = 420,
-					fighters = 90,
 					subs = 90,
 					vtol = 90,
 				},
@@ -177,9 +175,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
 				damage = {
-					bombers = 52,
 					default = 231,
-					fighters = 52,
 					vtol = 52,
 				},
 			},

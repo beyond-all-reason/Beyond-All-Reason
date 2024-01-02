@@ -123,7 +123,7 @@ local xPos = 0
 local yPos = 0
 
 local drawSantahat = false
-if os.date("%m") == "12"  and  os.date("%d") >= "12" then
+if os.date("%m") == "12" and os.date("%d") >= "12" and  os.date("%d") <= "26" then
 	drawSantahat = true
 end
 

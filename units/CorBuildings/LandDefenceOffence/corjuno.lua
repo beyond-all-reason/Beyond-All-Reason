@@ -1,9 +1,9 @@
 return {
 	corjuno = {
-		acceleration = 0,
-		brakerate = 0,
-		buildcostenergy = 16000,
-		buildcostmetal = 660,
+		maxacc = 0,
+		maxdec = 0,
+		energycost = 16000,
+		metalcost = 660,
 		buildpic = "CORJUNO.DDS",
 		buildtime = 27700,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -17,7 +17,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2500,
+		health = 2500,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/CORJUNO.s3o",

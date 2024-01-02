@@ -93,11 +93,13 @@ local convertedUnits = {
 	[UnitDefNames.cordecom.id] = 5,
 	[UnitDefNames.armdecom.id] = 5,
 	[UnitDefNames.legbal.id] = 5,
+	[UnitDefNames.legbastion.id] = 5,
 	[UnitDefNames.legcen.id] = 2,
 	[UnitDefNames.leggat.id] = 5,
 	[UnitDefNames.leggob.id] = 5,
 	[UnitDefNames.leginc.id] = 10,
 	[UnitDefNames.cordemont4.id] = 6,
+	[UnitDefNames.corcrwh.id] = 7,
 	[UnitDefNames.leglob.id] = 5,
 	[UnitDefNames.legmos.id] = 5,
 	[UnitDefNames.leghades.id] = 5,
@@ -116,6 +118,8 @@ local convertedUnits = {
 	[UnitDefNames.legcomlvl3.id] = 5,
 	[UnitDefNames.legcomlvl4.id] = 5,
 	[UnitDefNames.leegmech.id] = 5,
+	[UnitDefNames.legionnaire.id] = 5,
+	[UnitDefNames.legvenator.id] = 5,
 }
 
 

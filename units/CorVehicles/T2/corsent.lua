@@ -1,10 +1,10 @@
 return {
 	corsent = {
-		acceleration = 0.05823,
+		maxacc = 0.05823,
 		airsightdistance = 900,
-		brakerate = 0.11647,
-		buildcostenergy = 10500,
-		buildcostmetal = 470,
+		maxdec = 0.11647,
+		energycost = 10500,
+		metalcost = 470,
 		buildpic = "CORSENT.DDS",
 		buildtime = 12000,
 		canmove = true,
@@ -19,9 +19,9 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		maxdamage = 2700,
+		health = 2700,
 		maxslope = 14,
-		maxvelocity = 2.3,
+		speed = 69.0,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
 		nochasecategory = "NOTAIR",
@@ -180,8 +180,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1550,
 				damage = {
-					bombers = 200,
-					fighters = 400,
 					vtol = 200,
 				},
 				rgbcolor = {

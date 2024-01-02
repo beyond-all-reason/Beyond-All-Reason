@@ -62,7 +62,13 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload,reason)
 		unitID) -- last one should be UNITID! 
 end
 
+local firstRun = true
 function widget:DrawWorldPreUnit()
+	if firstRun then 
+		glTexture(0, atlas.atlasimage)
+		glTexture(0, false)
+		firstRun = false
+	end
 	if groundPlateVBO.usedElements > 0 then
 		--Spring.Echo(groundPlateVBO.usedElements)
 		glCulling(GL_BACK)
