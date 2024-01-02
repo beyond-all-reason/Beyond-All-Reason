@@ -60,12 +60,34 @@ for udefID, def in ipairs(UnitDefs) do
 	unitZoff[udefID] = (4 * def.zsize) % 16
 end
 
+local metalSpots
+local geoSpots
+
 ------------------------------------------------------------
 -- Find geothermal spots
 ------------------------------------------------------------
 
 local function GetFootprintPos(value) -- not entirely acurate, unsure why
 	return (math.floor(value / precision) * precision) + (precision / 2)
+end
+
+local function getClosestGeo(x, z)
+	if not geoSpots or #geoSpots <= 0 then
+		return
+	end
+
+	local bestSpot
+	local bestDist = math.huge
+	for i = 1, #geoSpots do
+		local spot = geoSpots[i]
+		local dx, dz = x - spot.x, z - spot.z
+		local dist = dx * dx + dz * dz
+		if dist < bestDist then
+			bestSpot = spot
+			bestDist = dist
+		end
+	end
+	return bestSpot
 end
 
 local function GetSpotsGeo()
@@ -179,6 +201,28 @@ end
 ------------------------------------------------------------
 -- Find metal spots
 ------------------------------------------------------------
+
+---Returns the nearest mex spot to the given coordinates. Does not consider if the spot is taken
+---@param x table
+---@param z table
+local function getClosestMex(x, z)
+	if not metalSpots or #metalSpots <= 0 then
+		return
+	end
+
+	local bestSpot
+	local bestDist = math.huge
+	for i = 1, #metalSpots do
+		local spot = metalSpots[i]
+		local dx, dz = x - spot.x, z - spot.z
+		local dist = dx * dx + dz * dz
+		if dist < bestDist then
+			bestSpot = spot
+			bestDist = dist
+		end
+	end
+	return bestSpot
+end
 
 local function GetSpotsMetal()
 	-- Main group collection
@@ -305,9 +349,13 @@ end
 ------------------------------------------------------------
 
 function upget:Initialize()
+	metalSpots = GetSpotsMetal()
+	geoSpots = GetSpotsGeo()
 	globalScope["resource_spot_finder"] = {}
-	globalScope["resource_spot_finder"].metalSpotsList = GetSpotsMetal()
+	globalScope["resource_spot_finder"].metalSpotsList = metalSpots
 
+	globalScope["resource_spot_finder"].GetClosestMexSpot = getClosestMex
+	globalScope["resource_spot_finder"].GetClosestGeoSpot = getClosestGeo
 	globalScope["resource_spot_finder"].GetBuildingPositions = GetBuildingPositions
 	globalScope["resource_spot_finder"].IsMexPositionValid = IsBuildingPositionValid
 end

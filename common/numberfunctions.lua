@@ -212,4 +212,36 @@ if not math.HSLtoRGB then
 
 		return cr, cg, cb
 	end
+
+
+
+
+	if not math.distance2dSquared then
+		function math.distance2dSquared(x1, z1, x2, z2)
+			local x = x1 - x2
+			local z = z1 - z2
+			return x * x + z * z
+		end
+	end
+
+	if not math.distance2d then
+		function math.distance2d(x1, z1, x2, z2)
+			return math.sqrt(math.distance2dSquared(x1, z1, x2, z2))
+		end
+	end
+
+	if not math.distance3d then
+		function math.distance3dSquared(x1, y1, z1, x2, y2, z2)
+			local x = x1 - x2
+			local y = y1 - y2
+			local z = z1 - z2
+			return x * x + y * y + z * z
+		end
+	end
+
+	if not math.distance3dSquared then
+		function math.distance3d(x1, y1, z1, x2, y2, z2)
+			return math.sqrt(math.distance3dSquared(x1, y1, z1, x2, y2, z2))
+		end
+	end
 end

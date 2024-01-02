@@ -8,7 +8,7 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		handler = true,
 		layer = 1000,
-		enabled = true  --  loaded by default?
+		enabled = false  --  loaded by default?
 	}
 end
 
@@ -41,7 +41,7 @@ local spGetActiveCommand = Spring.GetActiveCommand
 ------------------------------------------------------------
 -- Other variables
 ------------------------------------------------------------
-local chobbyInterface, activeUnitShape, lastInsertedOrder
+local activeUnitShape, lastInsertedOrder
 
 local isMex = {}
 local isCloakableBuilder = {}
@@ -52,6 +52,19 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 	if unitDef.extractsMetal > 0 then
 		isMex[unitDefID] = true
+	end
+end
+
+function dump(o)
+	if type(o) == 'table' then
+		local s = '{ '
+		for k,v in pairs(o) do
+			if type(k) ~= 'number' then k = '"'..k..'"' end
+			s = s .. '['..k..'] = ' .. dump(v) .. ','
+		end
+		return s .. '} '
+	else
+		return tostring(o)
 	end
 end
 
@@ -99,12 +112,12 @@ function CheckForBuildingOpportunity(type, params)
 	end
 	if params and params[3] and (isTech1Mex or isTech1Geo or type == 'ground' or type == 'feature') then
 		if type == 'ground' or type == 'feature' then
-			closestMex = GetClosestPosition(params[1], params[3], WG['resource_spot_finder'].metalSpotsList)
-			if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
+			closestMex = WG["resource_spot_finder"].GetClosestMexSpot(params[1], params[3])
+			if closestMex and math.distance2dSquared(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
 				groundHasEmptyMetal = true
 			end
-			closestGeo = GetClosestPosition(params[1], params[3], WG['resource_spot_finder'].geoSpotsList)
-			if closestGeo and Distance(params[1], params[3], closestGeo.x, closestGeo.z) < geoPlacementRadius then
+			closestGeo = WG["resource_spot_finder"].GetClosestGeoSpot(params[1], params[3])
+			if closestGeo and math.distance2dSquared(params[1], params[3], closestGeo.x, closestGeo.z) < geoPlacementRadius then
 				groundHasEmptyGeo = true
 			end
 		end
@@ -123,7 +136,6 @@ local sec = 0
 local drawUnitShape = false
 local activeCmdID
 function widget:Update(dt)
-	if chobbyInterface then return end
 
 	local doUpdate = activeUnitShape ~= nil
 	sec = sec + dt
@@ -337,26 +349,3 @@ function widget:CommandNotify(id, params, options)
 	end
 	return result
 end
-
--- make it so that it snaps and upgrades and does not need to be placed perfectly on top
---[[function widget:MousePress(mx, my, button)
-	if button == 1 and drawUnitShape and selectedUnits[1] then
-
-		activeCmdID = spGetActiveCommand()
-		if activeCmdID and isMex[-activeCmdID] then -- current activecmd is already build mex, let player decide how to place it
-			return false
-		end
-
-		if Spring.TestBuildOrder(drawUnitShape[1], drawUnitShape[2], drawUnitShape[3], drawUnitShape[4], 0) == 2 then
-			local alt, ctrl, meta, shift = Spring.GetModKeyState()
-			local keyState = {}
-			if alt then keyState.alt = true end
-			if ctrl then keyState.ctrl = true end
-			if meta then keyState.meta = true end
-			if shift then keyState.shift = true end
-			if WG['resource_spot_builder'] then
-				WG['resource_spot_builder'].BuildMex({ drawUnitShape[2], drawUnitShape[3], drawUnitShape[4] }, keyState, false, false)
-			end
-		end
-	end
-end]]
