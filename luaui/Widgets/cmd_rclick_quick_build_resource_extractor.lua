@@ -63,6 +63,10 @@ local function Distance(x1, z1, x2, z2)
 end
 
 local function GetClosestPosition(x, z, positions)
+	if not positions or #positions <= 0 then
+		return nil
+	end
+
 	local bestPos
 	local bestDist = math.huge
 	for i = 1, #positions do
