@@ -39,6 +39,7 @@ local huge = math.huge
 local spGetGroundInfo = Spring.GetGroundInfo
 local spGetGroundHeight = Spring.GetGroundHeight
 local spTestBuildOrder = Spring.TestBuildOrder
+local spSetGameRulesParam = Spring.SetGameRulesParam
 
 local extractorRadius = Game.extractorRadius
 local extractorRadiusSqr = extractorRadius * extractorRadius
@@ -135,6 +136,7 @@ local function GetValidStrips(spot)
 	spot.validRight = validRight
 end
 
+
 local function GetBuildingPositions(spot, uDefID, facing, testBuild)
 	local xoff, zoff
 	if facing == 0 or facing == 2 then
@@ -166,6 +168,7 @@ local function GetBuildingPositions(spot, uDefID, facing, testBuild)
 	return positions
 end
 
+
 local function IsBuildingPositionValid(spot, x, z)
 	if z <= spot.maxZ - extractorRadius or z >= spot.minZ + extractorRadius then -- Test for metal being included is dist < extractorRadius
 		return false
@@ -186,6 +189,24 @@ end
 ------------------------------------------------------------
 -- Find metal spots
 ------------------------------------------------------------
+
+local function setMexGameRules(spots)
+	-- Set gamerules values for mex spots, used by AI
+	if spots and #spots > 0 then
+		local mexCount = #spots
+		Spring.SetGameRulesParam("mex_count", mexCount)
+
+		for i = 1, mexCount do
+			local mex = spots[i]
+			Spring.SetGameRulesParam("mex_x" .. i, mex.x)
+			Spring.SetGameRulesParam("mex_y" .. i, mex.y)
+			Spring.SetGameRulesParam("mex_z" .. i, mex.z)
+			Spring.SetGameRulesParam("mex_metal" .. i, mex.worth)
+		end
+	else
+		Spring.SetGameRulesParam("mex_count", -1)
+	end
+end
 
 ---Returns the nearest mex spot to the given coordinates. Does not consider if the spot is taken
 ---@param x table
@@ -311,14 +332,28 @@ local function GetSpotsMetal()
 
 		spots[#spots + 1] = g
 	end
+
+	if(gadget) then
+		setMexGameRules(spots)
+	end
+
+	--for i = 1, #spots do
+	--	Spring.MarkerAddPoint(spots[i].x,spots[i].y,spots[i].z,"")
+	--end
+
 	return spots
 end
+
+
 
 ------------------------------------------------------------
 -- Callins
 ------------------------------------------------------------
 
 function upget:Initialize()
+	if(gadget) then
+		Spring.SetGameRulesParam("base_extraction", 0.001)
+	end
 	metalSpots = GetSpotsMetal()
 	geoSpots = GetSpotsGeo()
 	globalScope["resource_spot_finder"] = {}

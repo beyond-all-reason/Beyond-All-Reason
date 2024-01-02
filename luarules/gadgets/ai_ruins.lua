@@ -248,7 +248,7 @@ end
 
 function gadget:GameFrame(n)
 	if n == 301 then
-		local mexSpots = GG.metalSpots
+		local mexSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList or nil
 		if mexSpots and #mexSpots > 5 then
 			SpawnMexes(mexSpots)
 		end
