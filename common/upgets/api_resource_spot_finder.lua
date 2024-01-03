@@ -7,7 +7,7 @@ local layer = gadget and -9 or -999999
 
 function upget:GetInfo()
 	return {
-		name = "API Resource Spot Finder",
+		name = "API Resource Spot Finder (mex/geo)",
 		desc = "Finds metal and geothermal spots for other upgets",
 		author = "Niobium, Tarte (added geothermal)",
 		version = "2.0",

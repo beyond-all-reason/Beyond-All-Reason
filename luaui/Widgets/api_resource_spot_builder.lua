@@ -1,6 +1,6 @@
 function widget:GetInfo()
 	return {
-		name = "API Resource Spot Builder",
+		name = "API Resource Spot Builder (mex/geo)",
 		desc = "Handles construction of metal extractors and geothermal power plants for other widgets",
 		author = "Google Frog, NTG (file handling), Chojin (metal map), Doo (multiple enhancements), Floris (mex placer/upgrader), Tarte (maintenance/geothermal)",
 		version = "2.0",
@@ -60,6 +60,22 @@ local geoConstructors = {}
 local geoConstructorsDef = {}
 local geoConstructorsT2 = {}
 local geoBuildings = {}
+
+
+
+function dump(o)
+	if type(o) == 'table' then
+		local s = '{ '
+		for k,v in pairs(o) do
+			if type(k) ~= 'number' then k = '"'..k..'"' end
+			s = s .. '['..k..'] = ' .. dump(v) .. ','
+		end
+		return s .. '} '
+	else
+		return tostring(o)
+	end
+end
+
 
 ------------------------------------------------------------
 -- populate unit tables
@@ -199,6 +215,43 @@ local function getBestExtractorFromBuilders(units, constructorIds, extractors)
 end
 
 
+---extractorCanBeUpgraded
+---@param currentExtractorUuid table uuid of current extractor
+---@param newExtractorId table unitDefID of new extractor
+local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
+
+	local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(currentExtractorUuid))
+	if not isAllied then
+		return false
+	end
+
+	local currentExtractorId = spGetUnitDefID(currentExtractorUuid)
+	local newExtractor = UnitDefs[newExtractorId]
+	local newExtractorStrength = mexBuildings[newExtractorId] or geoBuildings[newExtractorId]
+	local currentExtractorStrength = mexBuildings[currentExtractorId] or geoBuildings[currentExtractorId]
+
+	if not (newExtractorStrength and currentExtractorStrength) then
+		return false
+	end
+
+	local newExtractorIsSpecial = newExtractor.stealth or #newExtractor.weapons > 0
+
+	if(newExtractorStrength > currentExtractorStrength) then
+		Spring.Echo("new extractor is stronger than current extractor")
+		return true
+	end
+	if(newExtractorStrength == currentExtractorStrength and newExtractorIsSpecial) then
+		Spring.Echo("new extractor is special")
+		return true
+	end
+	if currentExtractorStrength == newExtractorStrength then
+		Spring.Echo("new extractor is equal")
+		return false
+	end
+
+	return false
+end
+
 
 ---Returns true if the specified extractor be built on this spot - considers upgrades and sidegrades
 ---@param spot table
@@ -211,6 +264,11 @@ local function extractorCanBeBuiltOnSpot(spot, extractorId)
 	local newExtractorIsSpecial = newExtractor.stealth or #newExtractor.weapons > 0
 
 	local units = Spring.GetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
+
+	if #units == 0 then
+		return true
+	end
+
 	for i = 1, #units do
 		local uid = units[i]
 		local uDefId = spGetUnitDefID(uid)
@@ -218,47 +276,23 @@ local function extractorCanBeBuiltOnSpot(spot, extractorId)
 		local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(uid))
 		if currentExtractorStrength and isAllied then
 			if(newExtractorStrength > currentExtractorStrength) then
+				Spring.Echo("new extractor is stronger than current extractor")
 				return true
 			end
 			if(newExtractorStrength == currentExtractorStrength and newExtractorIsSpecial) then
+				Spring.Echo("new extractor is special")
 				return true
 			end
-		end
-		if not currentExtractorStrength then -- is not an extractor
-			return true
-		end
-	end
-
-	if #units == 0 then
-		return true
-	end
-
-	return false
-end
-
-
-local function makeExtractorCmdsForSpot(extractor, spot)
-	local commands = {}
-
-	-- normalize positions to the grid
-	spot.x, spot.y, spot.z = spPos2BuildPos(extractor, spot.x, spot.y, spot.z)
-	if options.shift then
-		if not spotHasExtractorQueued(spot) then
-			if extractorCanBeBuiltOnSpot(spot, extractor) then
-				commands[#commands + 1] = { x = spot.x, z = spot.z, d = math.distance2dSquared(aveX, aveZ, spot.x, spot.z) }
+			if currentExtractorStrength == newExtractorStrength then
+				Spring.Echo("new extractor is equal")
+				return false
 			end
 		end
-	else
-		if extractorCanBeBuiltOnSpot(spot, chosenExtractor) then
-			commands[#commands + 1] = { x = spot.x, z = spot.z, d = math.distance2dSquared(aveX, aveZ, spot.x, spot.z) }
-		end
 	end
-	return commands
+
+	return true
 end
 
-local function PreviewExtractor(params, options, isGuard, extractor)
-
-end
 
 
 ---Gives build order to the units that can make the selected building, all other builders get guard commands to the primary builders
@@ -339,7 +373,7 @@ local function PreviewExtractorCommand(params, extractor, spot)
 	local occupiedMex = spotHasExtractor({ x = command.x, z =command.z})
 	if occupiedMex then
 		local occupiedPos = { spGetUnitPosition(occupiedMex) }
-		targetPos = {x=occupiedPos[1], y=occupiedPos[2], z=occupiedPos[3]}
+		targetPos = { x=occupiedPos[1], y=occupiedPos[2], z=occupiedPos[3] }
 		targetOwner = Spring.GetUnitTeam(occupiedMex)	-- because gadget "Mex Upgrade Reclaimer" will share a t2 mex build upon ally t1 mex
 	else
 		local buildingPositions = WG['resource_spot_finder'].GetBuildingPositions(spot, -buildingId, 0, true)
@@ -357,8 +391,56 @@ local function PreviewExtractorCommand(params, extractor, spot)
 end
 
 
-local function ApplyPreviewCmds(cmds)
+local function ApplyPreviewCmds(cmds, constructorIds, shift)
+	Spring.Echo("Applying commands", dump(cmds))
+	local units = selectedUnits
+	local buildingId = cmds[1][1]
+	local mainBuilders, _ = sortBuilders(units, constructorIds, buildingId, shift, false)
 
+	local checkDuplicateOrders = true
+
+	-- Shift key not used = give stop command first
+	if not shift then
+		checkDuplicateOrders = false -- no need to check for duplicate orders
+		for ct = 1, #mainBuilders do
+			spGiveOrderToUnit(mainBuilders[ct], CMD_STOP, {}, CMD_OPT_RIGHT)
+		end
+	end
+
+
+	local finalCommands = {}
+	for ct = 1, #mainBuilders do
+		local id = mainBuilders[ct]
+		local mexOrders = {}
+
+		for i = 1, #cmds do
+			local cmd = cmds[i]
+
+			local orderParams = { cmd[2], cmd[3], cmd[4], cmd[5] }
+
+			local duplicateFound = false
+
+			if checkDuplicateOrders then
+				for mI, mexOrder in pairs(mexOrders) do
+					if mexOrder["id"] == buildingId then
+						local mParams = mexOrder["params"]
+						if mParams[1] == orderParams[1] and mParams[2] == orderParams[2] and mParams[3] == orderParams[3] and mParams[4] == orderParams[4] then
+							duplicateFound = true
+							mexOrders[mI] = nil
+							break
+						end
+					end
+				end
+			end
+
+			if not(checkDuplicateOrders and duplicateFound) then
+				finalCommands[#finalCommands + 1] = { id, math.abs(buildingId), cmd[2], cmd[3], cmd[4], cmd[6] }
+				Spring.Echo("giving order to unit", id, -buildingId, dump(orderParams), { "shift" })
+				spGiveOrderToUnit(id, -buildingId, orderParams, { "shift" })
+			end
+		end
+	end
+	return finalCommands
 end
 
 
@@ -504,6 +586,7 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 						queuedMexes[#queuedMexes+1] = { id, math.abs(buildingId), newx, spGetGroundHeight(newx, newz), newz, targetOwner }
 
 						if not justDraw then
+							Spring.Echo("giving order to unit", id, buildingId, dump(orderParams), { "shift" })
 							spGiveOrderToUnit(id, buildingId, orderParams, { "shift" })
 						end
 					end
@@ -576,7 +659,10 @@ function widget:Initialize()
 		return BuildResourceExtractors (params, options, isGuard, justDraw, geoConstructors, geoBuildings, WG['resource_spot_finder'].geoSpotsList)
 	end
 
+	WG['resource_spot_builder'].ExtractorCanBeBuiltOnSpot = extractorCanBeBuiltOnSpot
+	WG['resource_spot_builder'].ExtractorCanBeUpgraded = extractorCanBeUpgraded
 	WG['resource_spot_builder'].PreviewExtractorCommand = PreviewExtractorCommand
+	WG['resource_spot_builder'].ApplyPreviewCmds = ApplyPreviewCmds
 
 	----------------------------------------------
 	-- builders and buildings - MEX
