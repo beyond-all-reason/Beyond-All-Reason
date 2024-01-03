@@ -96,7 +96,7 @@ function widget:Update(dt)
 		return
 	end
 	updateTime = 0
-	buildCmd = {}
+
 
 	if not selectedUnits or #selectedUnits == 0 then
 		clearGhostBuild()

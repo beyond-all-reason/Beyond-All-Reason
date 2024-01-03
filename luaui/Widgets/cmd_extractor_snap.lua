@@ -1,0 +1,196 @@
+function widget:GetInfo()
+	return {
+		name      = "Extractor Snap (mex/geo)",
+		desc      = "Snaps extractors to give nearest spot",
+		author    = "Hobo Joe, based on work by Niobium and Floris",
+		version   = "v1.0",
+		date      = "Jan 2024",
+		license   = "GNU GPL, v2 or later",
+		layer     = -1,
+		enabled   = false,
+		handler   = true
+	}
+end
+
+
+local spGetActiveCommand = Spring.GetActiveCommand
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetMouseState = Spring.GetMouseState
+local spTraceScreenRay = Spring.TraceScreenRay
+local spPos2BuildPos = Spring.Pos2BuildPos
+local extractorRadiusSq = Game.extractorRadius * Game.extractorRadius
+
+local mexConstructors
+local geoConstructors
+local mexBuildings
+local geoBuildings
+
+local selectedMex
+local selectedGeo
+local targetPos
+local cursorPos
+local buildCmd
+local unitShape
+local activeUnitShape
+
+function dump(o)
+	if type(o) == 'table' then
+		local s = '{ '
+		for k,v in pairs(o) do
+			if type(k) ~= 'number' then k = '"'..k..'"' end
+			s = s .. '['..k..'] = ' .. dump(v) .. ','
+		end
+		return s .. '} '
+	else
+		return tostring(o)
+	end
+end
+
+
+local function MakeLine(x1, y1, z1, x2, y2, z2)
+	gl.Vertex(x1, y1, z1)
+	gl.Vertex(x2, y2, z2)
+end
+
+
+function widget:Initialize()
+	if not WG.DrawUnitShapeGL4 then
+		widget:Shutdown()
+	end
+
+	mexConstructors = WG["resource_spot_builder"].GetMexConstructors()
+	geoConstructors = WG["resource_spot_builder"].GetGeoConstructors()
+
+	mexBuildings = WG["resource_spot_builder"].GetMexBuildings()
+	geoBuildings = WG["resource_spot_builder"].GetGeoBuildings()
+end
+
+
+local function clear()
+	if activeUnitShape then
+		WG.StopDrawUnitShapeGL4(activeUnitShape)
+		activeUnitShape = nil
+	end
+	nearestSpot = nil
+	cursorPos = nil
+	unitShape = nil
+	selectedMex = nil
+	selectedGeo = nil
+	buildCmd = {}
+end
+
+
+function widget:Update()
+	local _, activeCmdID = spGetActiveCommand()
+	if not activeCmdID then
+		clear()
+		return
+	end
+
+	selectedMex = mexBuildings[-activeCmdID]
+	selectedGeo = geoBuildings[-activeCmdID]
+
+	if not (selectedMex or selectedGeo) then
+		clear()
+		return
+	end
+
+	-- Attempt to get position of command
+	local mx, my, mb, mmb, mrb = spGetMouseState()
+	local _, pos = spTraceScreenRay(mx, my, true)
+	if not pos or not pos[1] then
+		clear()
+		return
+	end
+	local x, y, z = pos[1], pos[2], pos[3]
+	cursorPos = {}
+	cursorPos.x, cursorPos.y, cursorPos.z = spPos2BuildPos(-activeCmdID, x, y, z)
+
+	Spring.Echo("cursor pos is", cursorPos.x, cursorPos.z)
+
+	local nearestSpot = selectedMex and WG["resource_spot_finder"].GetClosestMexSpot(x, z) or WG["resource_spot_finder"].GetClosestGeoSpot(x, z)
+	if not nearestSpot then
+		clear()
+		return
+	end
+
+	local spotIsTaken = WG["resource_spot_builder"].SpotHasExtractorQueued(nearestSpot)
+	if spotIsTaken then
+		clear()
+		return
+	end
+
+	buildCmd = {}
+	local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(pos, -activeCmdID, nearestSpot)
+	if cmd then
+		targetPos = { x = cmd[2], y = cmd[3], z = cmd[4] }
+
+		local dist = math.distance3dSquared(cursorPos.x, cursorPos.y, cursorPos.z, targetPos.x, targetPos.y, targetPos.z)
+
+
+		if(dist < 1) then
+			Spring.Echo("building within radius, no need for snapping")
+			clear()
+			return
+		end
+
+		buildCmd[1] = cmd
+		local newUnitShape = { math.abs(activeCmdID), cmd[2], cmd[3], cmd[4], cmd[5], cmd[6] }
+		-- check equality by position
+		if unitShape and (unitShape[2] ~= newUnitShape[2] or unitShape[3] ~= newUnitShape[3] or unitShape[4] ~= newUnitShape[4]) then
+			WG.StopDrawUnitShapeGL4(activeUnitShape)
+			activeUnitShape = nil
+		end
+		unitShape = newUnitShape
+	else
+		clear()
+	end
+
+	-- Draw ghost
+	if WG.DrawUnitShapeGL4 then
+		if unitShape then
+			if not activeUnitShape then
+				activeUnitShape = WG.DrawUnitShapeGL4(unitShape[1], unitShape[2], unitShape[3], unitShape[4], unitShape[5] * (math.pi/2), 0.66, unitShape[6], 0.15, 0.3)
+			end
+		elseif activeUnitShape then
+			clearGhostBuild()
+		end
+	end
+
+	if buildCmd and buildCmd[1] and mb then
+		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+
+		if selectedMex then
+			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
+		end
+		if selectedGeo then
+			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, shift)
+		end
+		if not shift then
+			Spring.SetActiveCommand(0)
+		end
+	end
+end
+
+
+function widget:DrawWorld()
+	if not WG.DrawUnitShapeGL4
+	or not targetPos
+	or not cursorPos then
+		return
+	end
+
+	-- Draw line
+	gl.DepthTest(false)
+	gl.LineWidth(2)
+	gl.Color(1, 1, 0, 0.45)
+	gl.BeginEnd(GL.LINE_STRIP, MakeLine, cursorPos.x, cursorPos.y, cursorPos.z, targetPos.x, targetPos.y, targetPos.z)
+	gl.LineWidth(1.0)
+	gl.DepthTest(true)
+end
+
+
+function widget:Shutdown()
+	clear()
+end

@@ -258,7 +258,6 @@ end
 ---@param extractorId table
 ---@return boolean
 local function extractorCanBeBuiltOnSpot(spot, extractorId)
-
 	local units = Spring.GetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
 
 	if #units == 0 then
@@ -338,6 +337,12 @@ local function sortBuilders(units, constructorIds, buildingId, shift, justDraw)
 end
 
 
+---Puts together build orders for ghost previews (e.g. mex snap). These orders can be fed directly to
+---ApplyPreviewCmds to actually give the orders to units
+---@param params table
+---@param extractor table
+---@param spot table
+---@return table format is { buildingId, x, y, z, facing, owner }
 local function PreviewExtractorCommand(params, extractor, spot)
 	local cmdX, _, cmdZ = params[1], params[2], params[3]
 	local units = selectedUnits
@@ -347,15 +352,19 @@ local function PreviewExtractorCommand(params, extractor, spot)
 	-- Skip mex spots that have queued mexes already
 	if extractorCanBeBuiltOnSpot(spot, extractor) then
 		command = { x = spot.x, z = spot.z }
+	else
+		return
 	end
 
 	-- Construct the actual mex build orders
+
 	local facing = spGetBuildFacing() or 1
+	Spring.Echo("build facing is", facing)
 	local finalCommand = {}
 
 	local buildingId = -extractor
 	local targetPos, targetOwner
-	local occupiedMex = spotHasExtractor({ x = command.x, z =command.z})
+	local occupiedMex = spotHasExtractor(command)
 	if occupiedMex then
 		local occupiedPos = { spGetUnitPosition(occupiedMex) }
 		targetPos = { x=occupiedPos[1], y=occupiedPos[2], z=occupiedPos[3] }
@@ -367,8 +376,6 @@ local function PreviewExtractorCommand(params, extractor, spot)
 	end
 	if targetPos then
 		local newx, newz = targetPos.x, targetPos.z
-
-
 		finalCommand = { math.abs(buildingId), newx, spGetGroundHeight(newx, newz), newz, facing, targetOwner }
 
 	end
@@ -377,7 +384,6 @@ end
 
 
 local function ApplyPreviewCmds(cmds, constructorIds, shift)
-	Spring.Echo("Applying commands", dump(cmds))
 	local units = selectedUnits
 	local buildingId = cmds[1][1]
 	local mainBuilders, _ = sortBuilders(units, constructorIds, buildingId, shift, false)
@@ -420,7 +426,7 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 
 			if not(checkDuplicateOrders and duplicateFound) then
 				finalCommands[#finalCommands + 1] = { id, math.abs(buildingId), cmd[2], cmd[3], cmd[4], cmd[6] }
-				Spring.Echo("giving order to unit", id, -buildingId, dump(orderParams), { "shift" })
+				--Spring.Echo("giving order to unit", id, -buildingId, dump(orderParams), { "shift" })
 				spGiveOrderToUnit(id, -buildingId, orderParams, { "shift" })
 			end
 		end
@@ -648,6 +654,7 @@ function widget:Initialize()
 	WG['resource_spot_builder'].ExtractorCanBeUpgraded = extractorCanBeUpgraded
 	WG['resource_spot_builder'].PreviewExtractorCommand = PreviewExtractorCommand
 	WG['resource_spot_builder'].ApplyPreviewCmds = ApplyPreviewCmds
+	WG['resource_spot_builder'].SpotHasExtractorQueued = spotHasExtractorQueued
 
 	----------------------------------------------
 	-- builders and buildings - MEX
