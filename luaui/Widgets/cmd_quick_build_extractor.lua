@@ -16,9 +16,7 @@ local CMD_MOVE = CMD.MOVE
 local CMD_GUARD = CMD.GUARD
 local CMD_RECLAIM = CMD.RECLAIM
 
-local spGetGroundHeight = Spring.GetGroundHeight
 local spGetActiveCommand = Spring.GetActiveCommand
-local spGetMyTeamID = Spring.GetMyTeamID
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 
@@ -44,19 +42,6 @@ local buildCmd
 
 local updateTime = 0
 
-function dump(o)
-	if type(o) == 'table' then
-		local s = '{ '
-		for k,v in pairs(o) do
-			if type(k) ~= 'number' then k = '"'..k..'"' end
-			s = s .. '['..k..'] = ' .. dump(v) .. ','
-		end
-		return s .. '} '
-	else
-		return tostring(o)
-	end
-end
-
 local isCloakableBuilder = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildOptions[1] and unitDef.canCloak then
@@ -80,6 +65,7 @@ function widget:Initialize()
 	geoBuildings = WG["resource_spot_builder"].GetGeoBuildings()
 end
 
+
 local function clearGhostBuild()
 	if WG.DrawUnitShapeGL4 and activeUnitShape then
 		WG.StopDrawUnitShapeGL4(activeUnitShape)
@@ -90,12 +76,14 @@ local function clearGhostBuild()
 	selectedSpot = nil
 end
 
+
 local selectedUnits = Spring.GetSelectedUnits()
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
 	bestMex = WG['resource_spot_builder'].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
 	bestGeo = WG['resource_spot_builder'].GetBestExtractorFromBuilders(selectedUnits, geoConstructors, geoBuildings)
 end
+
 
 function widget:Update(dt)
 	if(selectedSpot) then
@@ -115,6 +103,11 @@ function widget:Update(dt)
 		return
 	end
 
+	-- Don't do anything with cloaked units
+	if #selectedUnits == 1 and unitIsCloaked(selectedUnits[1]) then
+		return
+	end
+
 	local _, activeCmd = spGetActiveCommand()
 	if activeCmd and (activeCmd < 0 or activeCmd == CMD_RECLAIM) then
 		clearGhostBuild()
@@ -128,7 +121,7 @@ function widget:Update(dt)
 	end
 
 	local extractor
-	local mx, my, mb, mmb, mb2 = Spring.GetMouseState()
+	local mx, my = Spring.GetMouseState()
 
 	-- First check unit under cursor. If it's an extractor, see if there's valid upgrades
 	-- If it's not an extractor, simply exit
@@ -143,7 +136,6 @@ function widget:Update(dt)
 			local x, _, z = spGetUnitPosition(unitUuid)
 
 			extractor = unitIsMex and bestMex or bestGeo
-			Spring.Echo("extractor is", extractor)
 			local canUpgrade = WG['resource_spot_builder'].ExtractorCanBeUpgraded(unitUuid, extractor)
 			if not canUpgrade then
 				clearGhostBuild()
@@ -234,11 +226,6 @@ function widget:CommandNotify(id, params, options)
 	local isGuard = (id == CMD_GUARD)
 	local isReclaim = (id == CMD_RECLAIM)
 	if not (isMove or isGuard or isReclaim) or (isReclaim and params[2]) then
-		return
-	end
-
-	-- Don't do anything with cloaked units
-	if #selectedUnits == 1 and unitIsCloaked(selectedUnits[1]) then
 		return
 	end
 
