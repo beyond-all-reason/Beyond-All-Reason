@@ -259,10 +259,6 @@ end
 ---@return boolean
 local function extractorCanBeBuiltOnSpot(spot, extractorId)
 
-	local newExtractor = UnitDefs[extractorId]
-	local newExtractorStrength = mexBuildings[extractorId] or geoBuildings[extractorId]
-	local newExtractorIsSpecial = newExtractor.stealth or #newExtractor.weapons > 0
-
 	local units = Spring.GetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
 
 	if #units == 0 then
@@ -272,21 +268,10 @@ local function extractorCanBeBuiltOnSpot(spot, extractorId)
 	for i = 1, #units do
 		local uid = units[i]
 		local uDefId = spGetUnitDefID(uid)
-		local currentExtractorStrength = mexBuildings[uDefId] or geoBuildings[uDefId] -- is an extractor
-		local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(uid))
-		if currentExtractorStrength and isAllied then
-			if(newExtractorStrength > currentExtractorStrength) then
-				Spring.Echo("new extractor is stronger than current extractor")
-				return true
-			end
-			if(newExtractorStrength == currentExtractorStrength and newExtractorIsSpecial) then
-				Spring.Echo("new extractor is special")
-				return true
-			end
-			if currentExtractorStrength == newExtractorStrength then
-				Spring.Echo("new extractor is equal")
-				return false
-			end
+		local isExtractor = mexBuildings[uDefId] or geoBuildings[uDefId]
+		local canUpgrade = extractorCanBeUpgraded(uid, extractorId)
+		if(isExtractor and not canUpgrade) then
+			return false
 		end
 	end
 

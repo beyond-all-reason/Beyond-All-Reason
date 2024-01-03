@@ -22,16 +22,16 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 
-local extractorRadius = Game.extractorRadius
-
 local geoPlacementRadius = 5000	-- (not actual ingame distance)
-local mexPlacementRadius = 1600	-- (not actual ingame distance)
+local mexPlacementRadius = 2000	-- (not actual ingame distance)
 
 local mexConstructors
 local geoConstructors
 local mexBuildings
 local geoBuildings
 
+local bestGeo
+local bestMex
 
 local drawUnitShape = false
 local activeUnitShape
@@ -40,8 +40,9 @@ local selectedSpot
 local selectedMex
 local selectedGeo
 
-local activeCmd
 local buildCmd
+
+local updateTime = 0
 
 function dump(o)
 	if type(o) == 'table' then
@@ -68,9 +69,7 @@ end
 
 
 function widget:Initialize()
-
 	if not WG.DrawUnitShapeGL4 then
-		Spring.Echo("Missing draw shape, exiting")
 		widget:Shutdown()
 	end
 
@@ -94,41 +93,45 @@ end
 local selectedUnits = Spring.GetSelectedUnits()
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
+	bestMex = WG['resource_spot_builder'].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
+	bestGeo = WG['resource_spot_builder'].GetBestExtractorFromBuilders(selectedUnits, geoConstructors, geoBuildings)
 end
 
 function widget:Update(dt)
-	-- TODO: limit by time
+	if(selectedSpot) then
+		-- we want to do this every frame to avoid cursor flicker. Rest of work can be on a timer
+		Spring.SetMouseCursor('upgmex')
+	end
 
-	buildCmd = { }
+	updateTime = updateTime + dt
+	if(updateTime < 0.05) then
+		return
+	end
+	updateTime = 0
+	buildCmd = {}
 
 	if not selectedUnits or #selectedUnits == 0 then
-		Spring.Echo("No selected units")
 		clearGhostBuild()
 		return
 	end
 
-	local mx, my, mb, mmb, mb2 = Spring.GetMouseState()
-
-	-- TODO: mouseover unit and upgrade behavior
-
-	_, activeCmd = spGetActiveCommand()
-	Spring.Echo("activeCmd", activeCmd)
+	local _, activeCmd = spGetActiveCommand()
 	if activeCmd and (activeCmd < 0 or activeCmd == CMD_RECLAIM) then
 		clearGhostBuild()
 		return
 	end
 
 
-	local extractor
-	local bestMex = WG['resource_spot_builder'].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
-	local bestGeo = WG['resource_spot_builder'].GetBestExtractorFromBuilders(selectedUnits, geoConstructors, geoBuildings)
 	if not bestMex and not bestGeo then
-		Spring.Echo("no best mex or best geo", bestMex, bestGeo)
 		clearGhostBuild()
 		return
 	end
 
-	-- check unit under cursor
+	local extractor
+	local mx, my, mb, mmb, mb2 = Spring.GetMouseState()
+
+	-- First check unit under cursor. If it's an extractor, see if there's valid upgrades
+	-- If it's not an extractor, simply exit
 	local type, rayParams = Spring.TraceScreenRay(mx, my)
 	local unitUuid = type == 'unit' and rayParams or nil
 	local unitDefID = type == 'unit' and spGetUnitDefID(rayParams) or nil
@@ -136,7 +139,6 @@ function widget:Update(dt)
 	if(unitUuid and unitDefID) then
 		local unitIsMex = mexBuildings[unitDefID]
 		local unitIsGeo = geoBuildings[unitDefID]
-		Spring.Echo("unitIsMex, unitIsGeo", unitIsMex, unitIsGeo)
 		if (unitIsMex or unitIsGeo) then
 			local x, _, z = spGetUnitPosition(unitUuid)
 
@@ -160,7 +162,7 @@ function widget:Update(dt)
 			return
 		end
 	else
-		-- If no valid units, check cursor position against known spots
+		-- If no valid units, check cursor position against extractor spots
 		local _, groundPos = Spring.TraceScreenRay(mx, my, true)
 		if not groundPos or not groundPos[1] then
 			clearGhostBuild()
@@ -195,10 +197,7 @@ function widget:Update(dt)
 		end
 	end
 
-
-
 	local canBuild = WG['resource_spot_builder'].ExtractorCanBeBuiltOnSpot(selectedSpot, extractor)
-	Spring.Echo("canBuild", canBuild)
 	if not canBuild then
 		clearGhostBuild()
 		return
@@ -206,19 +205,10 @@ function widget:Update(dt)
 
 	-- Set up ghost
 	if extractor and selectedSpot then
-		Spring.Echo("selectedSpot", selectedSpot.x, selectedSpot.y, selectedSpot.z)
-		Spring.SetMouseCursor('upgmex')
 		local cmdPos = {selectedSpot.x, selectedSpot.y, selectedSpot.z} -- we only want to build on the center, so we pass the spot in for the position, instead of the groundPos
 		local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(cmdPos, extractor, selectedSpot)
 		buildCmd[1] = cmd
-		drawUnitShape = {
-			math.abs(extractor),
-			cmd[2],
-			cmd[3], --spGetGroundHeight(selectedSpot.x, selectedSpot.z),
-			cmd[4],
-			cmd[5],
-			cmd[6]
-		}
+		drawUnitShape = { math.abs(extractor), cmd[2], cmd[3], cmd[4], cmd[5], cmd[6] }
 	else
 		drawUnitShape = false
 	end
@@ -237,34 +227,27 @@ end
 
 
 function widget:CommandNotify(id, params, options)
-	Spring.Echo("cmd notify")
 	if not buildCmd then
-		Spring.Echo("no build cmd")
 		return
 	end
 	local isMove = (id == CMD_MOVE)
 	local isGuard = (id == CMD_GUARD)
 	local isReclaim = (id == CMD_RECLAIM)
 	if not (isMove or isGuard or isReclaim) or (isReclaim and params[2]) then
-		Spring.Echo("not a move or guard or reclaim cmd")
 		return
 	end
 
+	-- Don't do anything with cloaked units
 	if #selectedUnits == 1 and unitIsCloaked(selectedUnits[1]) then
-		Spring.Echo("cloaked unit, exit")
 		return
 	end
 
 	if selectedMex then
 		local cmd = WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, options.shift)
-		--local cmd = WG['resource_spot_builder'].BuildMex(params, options, isGuard, false, true, -selectedMex)
-		Spring.Echo("mex build cmd is", dump(cmd))
 		return cmd
 	end
 	if selectedGeo then
 		local cmd = WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, options.shift)
-		--local cmd = WG['resource_spot_builder'].BuildGeo(params, options, isGuard, false, true, -selectedGeo)
-		Spring.Echo("geo build cmd is", dump(cmd))
 		return cmd
 	end
 end
