@@ -41,6 +41,7 @@ return {
 		turninplacespeedlimit = 1.6,
 		turnrate = 180,
 		customparams = {
+			maxrange="540",
 			unitgroup = 'emp',
 			lumamult = "0.7",
 			model_author = "Flaka",
