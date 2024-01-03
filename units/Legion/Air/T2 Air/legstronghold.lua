@@ -122,8 +122,8 @@ return {
 				weaponvelocity = 958,
 				damage = {
 					commanders = 5,
-					default = 16,
-					vtol = 16,
+					default = 12,
+					vtol = 12,
 				},
 			},
 		},

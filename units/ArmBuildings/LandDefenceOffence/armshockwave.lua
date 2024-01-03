@@ -5,7 +5,7 @@ return {
 		maxdec = 0,
 		buildangle = 32768,
 		energycost = 14000,
-		metalcost = 1000,
+		metalcost = 1200,
 		buildingmask = 0,
 		buildpic = "ARMSHOCKWAVE.DDS",
 		buildtime = 15000,
