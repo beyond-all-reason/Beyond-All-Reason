@@ -25,7 +25,7 @@ return {
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORSEAL.s3o",
+		objectname = "Units/CORSALA.s3o",
 		script = "Units/scavboss/CORSALA.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
