@@ -144,7 +144,6 @@ for _, _ in pairs(UnitDefs) do
 	unitOrder[count] = count
 	count = count + 1
 end
-local totalUnits = count
 
 -- maxOrder is the largest order value found in unitOrderManualOverrideTable.
 -- Units with no value in unitOrderManualOverrideTable will implicitly take the
