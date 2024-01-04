@@ -214,6 +214,10 @@ function widget:DrawScreen()
 			return
 		end
 		local unitDefID = -cmd_id
+		forceUpdate = false
+		if unitDefID ~= lastUnitDefID then
+			forceUpdate = true
+		end
 		lastUnitDefID = unitDefID
 		mexDefInfo = mexDefInfos[unitDefID]
 	end

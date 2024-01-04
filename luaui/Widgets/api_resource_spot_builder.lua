@@ -2,13 +2,13 @@ function widget:GetInfo()
 	return {
 		name = "API Resource Spot Builder (mex/geo)",
 		desc = "Handles construction of metal extractors and geothermal power plants for other widgets",
-		author = "Google Frog, NTG (file handling), Chojin (metal map), Doo (multiple enhancements), Floris (mex placer/upgrader), Tarte (maintenance/geothermal)",
+		author = "Hobo Joe, badosu, Google Frog, NTG, Chojin, Doo, Floris, Tarte",
 		version = "2.0",
 		date = "Oct 23, 2010; last update: April 12, 2022",
 		license = "GNU GPL, v2 or later",
 		handler = true,
 		layer = 0,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -174,8 +174,8 @@ end
 
 
 ---extractorCanBeUpgraded
----@param currentExtractorUuid table uuid of current extractor
----@param newExtractorId table unitDefID of new extractor
+---@param currentExtractorUuid number uuid of current extractor
+---@param newExtractorId number unitDefID of new extractor
 local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 	local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(currentExtractorUuid))
 	if not isAllied then
@@ -230,7 +230,6 @@ local function extractorCanBeBuiltOnSpot(spot, extractorId)
 
 	return true
 end
-
 
 
 ---Gives build order to the units that can make the selected building, all other builders get guard commands to the primary builders
@@ -321,9 +320,7 @@ end
 
 local function ApplyPreviewCmds(cmds, constructorIds, shift)
 	local units = selectedUnits
-	local buildingId = cmds[1][1]
-	Spring.Echo("cmds are", table.dump(cmds))
-	Spring.Echo("building id is ", buildingId)
+	local buildingId = cmds[1][1] -- assume they are all the same building id
 	local mainBuilders = sortBuilders(units, constructorIds, buildingId, shift)
 
 	local checkDuplicateOrders = true
@@ -335,7 +332,6 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 			spGiveOrderToUnit(mainBuilders[ct], CMD_STOP, {}, CMD_OPT_RIGHT)
 		end
 	end
-
 
 	local finalCommands = {}
 	for ct = 1, #mainBuilders do
@@ -421,12 +417,11 @@ function widget:Initialize()
 	WG['resource_spot_builder'].PreviewExtractorCommand = PreviewExtractorCommand
 	WG['resource_spot_builder'].ApplyPreviewCmds = ApplyPreviewCmds
 	WG['resource_spot_builder'].SpotHasExtractorQueued = spotHasExtractorQueued
+	WG['resource_spot_builder'].GetBestExtractorFromBuilders = getBestExtractorFromBuilders
 
 	----------------------------------------------
 	-- builders and buildings - MEX
 	----------------------------------------------
-
-	WG['resource_spot_builder'].GetBestExtractorFromBuilders = getBestExtractorFromBuilders
 
 	WG['resource_spot_builder'].GetMexConstructors = function()
 		return mexConstructors
@@ -436,16 +431,8 @@ function widget:Initialize()
 		return mexBuildings
 	end
 
-	----------------------------------------------
-	-- builders and buildings - Geothermal
-	----------------------------------------------
-
 	WG['resource_spot_builder'].GetGeoConstructors = function()
 		return geoConstructors
-	end
-
-	WG['resource_spot_builder'].GetGeoConstructorsDef = function()
-		return geoConstructorsDef
 	end
 
 	WG['resource_spot_builder'].GetGeoBuildings = function()

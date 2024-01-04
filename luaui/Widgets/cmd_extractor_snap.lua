@@ -58,6 +58,7 @@ function widget:Initialize()
 	end
 end
 
+
 function widget:GameStart()
 	isPregame = false
 end
@@ -96,7 +97,7 @@ function widget:Update()
 	selectedMex = mexBuildings[-activeCmdID]
 	selectedGeo = geoBuildings[-activeCmdID]
 
-	if selectedMex and metalMap then
+	if selectedMex and metalMap then -- no snapping on metal maps
 		clear()
 		return
 	end
@@ -136,10 +137,9 @@ function widget:Update()
 	local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(pos, -activeCmdID, nearestSpot)
 	if cmd then
 		targetPos = { x = cmd[2], y = cmd[3], z = cmd[4] }
-		WG.ExtractorSnap.position = targetPos
+		WG.ExtractorSnap.position = targetPos -- used by prospector and pregame queue
 
 		local dist = math.distance3dSquared(cursorPos.x, cursorPos.y, cursorPos.z, targetPos.x, targetPos.y, targetPos.z)
-
 		if(dist < 1) then
 			clear()
 			return

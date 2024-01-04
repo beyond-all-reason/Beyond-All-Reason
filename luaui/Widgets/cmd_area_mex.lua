@@ -7,7 +7,7 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		handler = true,
 		layer = 1,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -51,7 +51,7 @@ end
 ---Finds all builders among selected units that can make the specified constructor, and gets their average position
 ---@param units table selected units
 ---@param constructorIds table All mex constructors
----@param buildingId table Specific mex that we want to build
+---@param buildingId number Specific mex that we want to build
 ---@return table { x, z }
 local function getAvgPositionOfValidBuilders(units, constructorIds, buildingId)
 	-- Add highest producing constructors to mainBuilders table + give guard orders to "inferior" constructors
@@ -73,7 +73,6 @@ local function getAvgPositionOfValidBuilders(units, constructorIds, buildingId)
 			end
 		end
 	end
-
 
 	if builderCount == 0 then return end
 	return { x = tX / builderCount, z = tZ / builderCount }
@@ -199,7 +198,6 @@ end
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
 end
-
 
 
 function widget:CommandsChanged()
