@@ -139,10 +139,8 @@ local unitOrder = {}
 local unitOrderManualOverrideTable = VFS.Include("luaui/configs/buildmenu_sorting.lua")
 
 -- Populate unitOrder with identity values.
-local count = 1
-for _, _ in pairs(UnitDefs) do
-	unitOrder[count] = count
-	count = count + 1
+for unitDefID, _ in pairs(UnitDefs) do
+	unitOrder[unitDefID] = unitDefID
 end
 
 -- maxOrder is the largest order value found in unitOrderManualOverrideTable.
