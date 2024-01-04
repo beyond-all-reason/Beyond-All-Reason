@@ -230,6 +230,23 @@ if not table.shuffle then
 	end
 end
 
+if not table.dump then
+	---Turns a table into a string
+	---@param o table
+	function table.dump(o)
+		if type(o) == 'table' then
+			local s = '{ '
+			for k,v in pairs(o) do
+				if type(k) ~= 'number' then k = '"'..k..'"' end
+				s = s .. '['..k..'] = ' .. dump(v) .. ','
+			end
+			return s .. '} '
+		else
+			return tostring(o)
+		end
+	end
+end
+
 if not pairsByKeys then
 	---pairs-like iterator function traversing the table in the order of its keys.
 	---Natural sort order will be used by default, optionally pass a comparator

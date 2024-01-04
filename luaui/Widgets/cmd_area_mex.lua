@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 		name = "Area Mex",
 		desc = "Adds a command to cap mexes in an area.",
-		author = "Google Frog, NTG (file handling), Chojin (metal map), Doo (multiple enhancements), Floris (mex placer/upgrader), Tarte (maintenance)",
+		author = "Hobo Joe, Google Frog, NTG, Chojin , Doo, Floris, Tarte",
 		date = "Oct 23, 2010, (last update: March 3, 2022)",
 		license = "GNU GPL, v2 or later",
 		handler = true,
@@ -17,7 +17,6 @@ local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMapDrawMode = Spring.GetMapDrawMode
 local spGetUnitPosition = Spring.GetUnitPosition
 local spSendCommands = Spring.SendCommands
-local spGetUnitDefID = Spring.GetUnitDefID
 local taremove = table.remove
 
 local toggledMetal, retoggleLos
@@ -34,21 +33,6 @@ local function setAreaMexType(uDefID)
 	selectedMex = -uDefID
 end
 
-function dump(o)
-	if type(o) == 'table' then
-		local s = '{ '
-		for k,v in pairs(o) do
-			if type(k) ~= 'number' then k = '"'..k..'"' end
-			s = s .. '['..k..'] = ' .. dump(v) .. ','
-		end
-		return s .. '} '
-	else
-		return tostring(o)
-	end
-end
-
-
-
 function widget:Initialize()
 	metalSpots = WG['resource_spot_finder'].metalSpotsList
 	mexBuildings = WG["resource_spot_builder"].GetMexBuildings()
@@ -64,6 +48,11 @@ function widget:Initialize()
 end
 
 
+---Finds all builders among selected units that can make the specified constructor, and gets their average position
+---@param units table selected units
+---@param constructorIds table All mex constructors
+---@param buildingId table Specific mex that we want to build
+---@return table { x, z }
 local function getAvgPositionOfValidBuilders(units, constructorIds, buildingId)
 	-- Add highest producing constructors to mainBuilders table + give guard orders to "inferior" constructors
 	local builderCount = 0
@@ -91,7 +80,10 @@ local function getAvgPositionOfValidBuilders(units, constructorIds, buildingId)
 end
 
 
-
+---Get all mex spots in an area
+---@param x number
+---@param z number
+---@param radius number
 local function getSpotsInArea(x, z, radius)
 	local validSpots = {}
 	for i = 1, #metalSpots do
@@ -105,6 +97,9 @@ local function getSpotsInArea(x, z, radius)
 end
 
 
+---Make build commands for all passed in spots, but do not apply them
+---@param spots table
+---@return table An array of commands, in the same format as PreviewExtractorCommand
 local function getCmdsForValidSpots(spots)
 	local cmds = {}
 	for i = 1, #spots do
@@ -112,7 +107,7 @@ local function getCmdsForValidSpots(spots)
 		local spotHasQueue = WG["resource_spot_builder"].SpotHasExtractorQueued(spot)
 		if not spotHasQueue then
 			local pos = { spot.x, spot.y, spot.z }
-			local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(pos, selectedMex, spot)
+			local cmd = WG['resource_spot_builder'].PreviewExtractorCommand(pos, selectedMex, spot)
 			cmds[#cmds + 1] = cmd
 		end
 	end
@@ -120,10 +115,10 @@ local function getCmdsForValidSpots(spots)
 end
 
 
--- Nearest neighbor search. Spots are passed in to do minor weighting based on mex value
+---Nearest neighbor search. Spots are passed in to do minor weighting based on mex value
+---@param cmds table
+---@param spots table
 local function sortCmdsByDistance(cmds, spots)
-
-
 	local builderPos = getAvgPositionOfValidBuilders(selectedUnits, mexConstructors, selectedMex)
 	local orderedCommands = {}
 	local lastPos = builderPos
@@ -157,34 +152,22 @@ function widget:CommandNotify(id, params, options)
 
 	local cmdX, _, cmdZ, cmdRadius = params[1], params[2], params[3], params[4]
 	local spots = getSpotsInArea(cmdX, cmdZ, cmdRadius)
-	Spring.Echo("got " .. #spots .. " metal spots")
 
 	if not selectedMex then
 		selectedMex = WG['resource_spot_builder'].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
 	end
 
-	Spring.Echo("selected mex is", selectedMex)
-
 	local cmds = getCmdsForValidSpots(spots)
-	Spring.Echo("buildable spots", #cmds)
 	local sortedCmds = sortCmdsByDistance(cmds, spots)
-
-
-	Spring.Echo("Sorted cmds", #sortedCmds)
 
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	WG['resource_spot_builder'].ApplyPreviewCmds(sortedCmds, mexConstructors, shift)
 
-
-
-	--local queuedMexes = WG['resource_spot_builder'].BuildMex(params, options, isGuard, false, true, selectedMex)
 	selectedMex = nil
+
 	if not options.shift then
 		if WG["gridmenu"] then WG["gridmenu"].clearCategory() end
 	end
-	--if not queuedMexes or not queuedMexes[1] then	-- used when area_mex isnt queuing a mex, to let the move cmd still pass through
-	--	return false
-	--end
 	return true
 end
 

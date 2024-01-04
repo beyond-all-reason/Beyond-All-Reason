@@ -72,22 +72,7 @@ local function GetFootprintPos(value) -- not entirely acurate, unsure why
 end
 
 local function getClosestGeo(x, z)
-	if not geoSpots or #geoSpots <= 0 then
-		return
-	end
-
-	local bestSpot
-	local bestDist = math.huge
-	for i = 1, #geoSpots do
-		local spot = geoSpots[i]
-		local dx, dz = x - spot.x, z - spot.z
-		local dist = dx * dx + dz * dz
-		if dist < bestDist then
-			bestSpot = spot
-			bestDist = dist
-		end
-	end
-	return bestSpot
+	return math.getClosestPosition(x, z, geoSpots)
 end
 
 local function GetSpotsGeo()
@@ -97,14 +82,14 @@ local function GetSpotsGeo()
 			geoFeatureDefs[defID] = true
 		end
 	end
-	local geoSpots = {}
+	local spots = {}
 	local features = Spring.GetAllFeatures()
 	local spotCount = 0
 	for i = 1, #features do
 		if geoFeatureDefs[Spring.GetFeatureDefID(features[i])] then
 			local x, y, z = Spring.GetFeaturePosition(features[i])
 			spotCount = spotCount + 1
-			geoSpots[spotCount] = {
+			spots[spotCount] = {
 				x = GetFootprintPos(x),
 				y = y,
 				z = GetFootprintPos(z),
@@ -115,7 +100,7 @@ local function GetSpotsGeo()
 			}
 		end
 	end
-	return geoSpots
+	return spots
 end
 
 ------------------------------------------------------------
@@ -206,22 +191,7 @@ end
 ---@param x table
 ---@param z table
 local function getClosestMex(x, z)
-	if not metalSpots or #metalSpots <= 0 then
-		return
-	end
-
-	local bestSpot
-	local bestDist = math.huge
-	for i = 1, #metalSpots do
-		local spot = metalSpots[i]
-		local dx, dz = x - spot.x, z - spot.z
-		local dist = dx * dx + dz * dz
-		if dist < bestDist then
-			bestSpot = spot
-			bestDist = dist
-		end
-	end
-	return bestSpot
+	return math.getClosestPosition(x, z, metalSpots)
 end
 
 local function GetSpotsMetal()

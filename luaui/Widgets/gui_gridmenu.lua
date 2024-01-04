@@ -2105,7 +2105,7 @@ function widget:KeyPress(key, modifier, isRepeat)
 	end
 end
 
-function clearCategory()
+local function clearCategory()
 	setCurrentCategory(nil)
 	Spring.SetActiveCommand(0, 0, false, false, Spring.GetModKeyState())
 	doUpdate = true

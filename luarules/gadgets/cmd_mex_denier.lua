@@ -32,23 +32,6 @@ for uDefID, uDef in pairs(UnitDefs) do
 	end
 end
 
-local function GetClosestSpot(x, z, positions)
-	local bestPos
-	local bestDist = math.huge
-	for i = 1, #positions do
-		local pos = positions[i]
-		if pos.x then
-			local dx, dz = x - pos.x, z - pos.z
-			local dist = dx * dx + dz * dz
-			if dist < bestDist then
-				bestPos = pos
-				bestDist = dist
-			end
-		end
-	end
-	return bestPos
-end
-
 local metalSpotsList
 
 function gadget:Initialize()
@@ -77,7 +60,7 @@ function gadget:AllowCommand(_, _, _, cmdID, cmdParams)
 
 	local bx, bz = cmdParams[1], cmdParams[3]
 	-- We find the closest metal spot to the assigned command position
-	local closestSpot = GetClosestSpot(bx, bz, metalSpotsList)
+	local closestSpot = math.getClosestPosition(bx, bz, metalSpotsList)
 
 	-- We check if current order is to build mex in closest spot
 	if not (closestSpot and GG["resource_spot_finder"].IsMexPositionValid(closestSpot, bx, bz)) then
