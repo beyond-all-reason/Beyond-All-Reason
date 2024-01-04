@@ -28,6 +28,8 @@ return {
 		movementclass = "BOAT3",
 		nochasecategory = "VTOL UNDERWATER",
 		objectname = "Units/CORPT.s3o",
+		radardistance = 1000,
+		radaremitheight = 25,
 		script = "Units/CORPT.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
@@ -86,6 +88,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:waterwake-tiny",
+				[2] = "custom:radarpulse_t1",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

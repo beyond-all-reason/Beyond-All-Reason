@@ -1598,16 +1598,6 @@ end
 
 --Lategame Rebalance
 if Spring.GetModOptions().lategame_rebalance == true then
-	if name == "armmart" then
-		uDef.metalcost = 320
-		uDef.energycost = 4900
-		uDef.buildtime = 6500
-	end
-	if name == "cormart" then
-		uDef.metalcost = 400
-		uDef.energycost = 4400
-		uDef.buildtime = 6500
-	end
 	if name == "armamb" then
 		uDef.weapondefs.armamb_gun.reloadtime = 2
 		uDef.weapondefs.armamb_gun_high.reloadtime = 7.7

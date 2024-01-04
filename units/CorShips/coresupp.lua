@@ -29,7 +29,7 @@ return {
 		script = "Units/CORESUPP.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
-		sightdistance = 500,
+		sightdistance = 600,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 500, --663,
