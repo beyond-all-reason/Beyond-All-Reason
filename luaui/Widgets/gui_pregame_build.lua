@@ -218,9 +218,9 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 							 { v = { bx - bw, by, bz + bh } } })
 
 	if drawRanges then
-		local isMex = UnitDefs[uDefID] and UnitDefs[uDefID].extractsMetal > 0
+		local isMex = UnitDefs[bDefID] and UnitDefs[bDefID].extractsMetal > 0
 		if isMex then
-			gl.Color(1.0, 0.3, 0.3, 0.7)
+			gl.Color(1.0, 0.0, 0.0, 0.5)
 			gl.DrawGroundCircle(bx, by, bz, Game.extractorRadius, 50)
 		end
 
@@ -253,10 +253,16 @@ function widget:MousePress(x, y, button)
 
 		if selBuildQueueDefID then
 			if button == 1 then
-				local mexSnapPosition = WG.MexSnap and WG.MexSnap.curPosition
-				if mexSnapPosition then
-					pos = { mexSnapPosition.x, mexSnapPosition.y, mexSnapPosition.z }
+				local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
+				if WG.ExtractorSnap and isMex then
+					local snapPos = WG.ExtractorSnap.position
+					if snapPos then
+						pos = { snapPos.x, snapPos.y, snapPos.z }
+					else
+						return true --if snap doesn't have a position, don't place anything
+					end
 				end
+
 				if not pos then
 					return
 				end

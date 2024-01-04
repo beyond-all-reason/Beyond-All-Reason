@@ -32,6 +32,7 @@ local unitShape
 local activeUnitShape
 local metalMap = false
 
+local isPregame = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
 
 local function MakeLine(x1, y1, z1, x2, y2, z2)
 	gl.Vertex(x1, y1, z1)
@@ -44,6 +45,8 @@ function widget:Initialize()
 		widget:Shutdown()
 	end
 
+	WG.ExtractorSnap = {}
+
 	mexConstructors = WG["resource_spot_builder"].GetMexConstructors()
 	geoConstructors = WG["resource_spot_builder"].GetGeoConstructors()
 
@@ -53,6 +56,10 @@ function widget:Initialize()
 	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
 		metalMap = true
 	end
+end
+
+function widget:GameStart()
+	isPregame = false
 end
 
 
@@ -66,12 +73,21 @@ local function clear()
 	unitShape = nil
 	selectedMex = nil
 	selectedGeo = nil
+	WG.ExtractorSnap.position = nil
 	buildCmd = {}
 end
 
 
 function widget:Update()
-	local _, activeCmdID = spGetActiveCommand()
+	local activeCmdID
+
+	if isPregame then
+		activeCmdID = WG['pregame-build'] and WG['pregame-build'].getPreGameDefID()
+		if activeCmdID then activeCmdID = -activeCmdID end
+	else
+		_, activeCmdID = spGetActiveCommand()
+	end
+
 	if not activeCmdID then
 		clear()
 		return
@@ -91,6 +107,7 @@ function widget:Update()
 	end
 
 	-- Attempt to get position of command
+	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local mx, my, mb, mmb, mrb = spGetMouseState()
 	local _, pos = spTraceScreenRay(mx, my, true)
 	if not pos or not pos[1] then
@@ -107,16 +124,19 @@ function widget:Update()
 		return
 	end
 
-	local spotIsTaken = WG["resource_spot_builder"].SpotHasExtractorQueued(nearestSpot)
-	if spotIsTaken then
-		clear()
-		return
+	if shift then
+		local spotIsTaken = WG["resource_spot_builder"].SpotHasExtractorQueued(nearestSpot)
+		if spotIsTaken then
+			clear()
+			return
+		end
 	end
 
 	buildCmd = {}
 	local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(pos, -activeCmdID, nearestSpot)
 	if cmd then
 		targetPos = { x = cmd[2], y = cmd[3], z = cmd[4] }
+		WG.ExtractorSnap.position = targetPos
 
 		local dist = math.distance3dSquared(cursorPos.x, cursorPos.y, cursorPos.z, targetPos.x, targetPos.y, targetPos.z)
 
@@ -148,9 +168,11 @@ function widget:Update()
 		end
 	end
 
-	if buildCmd and buildCmd[1] and mb then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	if isPregame then
+		return
+	end
 
+	if buildCmd and buildCmd[1] and mb then
 		if selectedMex then
 			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
 		end

@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "Prospector",
-		desc = "Tooltip for amount of metal extracted when placing metal extractors.",
+		desc = "Tooltip for amount of metal extracted when placing mexes.",
 		author = "Evil4Zerggin",
 		date = "9 January 2009",
 		license = "GNU LGPL, v2.1 or later",
@@ -59,6 +59,7 @@ local lastUnitDefID
 local TEXT_CORRECT_Y = 1.25
 
 local myTeamID
+local metalMap = false
 local METAL_MAP_SQUARE_SIZE = 16
 local MEX_RADIUS = Game.extractorRadius
 local MAP_SIZE_X = Game.mapSizeX
@@ -187,38 +188,11 @@ function widget:Initialize()
 	SetupMexDefInfos()
 	myTeamID = Spring.GetMyTeamID()
 	once = true
-end
-
-function widget:DrawWorld()
-	local drawMode = GetMapDrawMode()
-	if GetGameFrame() < 1 and defaultDefID and drawMode == "metal" then
-		local mx, my = GetMouseState()
-		local _, coords = TraceScreenRay(mx, my, true, true)
-		coords = coords or {}
-		if WG.MexSnap and WG.MexSnap.curPosition then
-			coords[1] = WG.MexSnap.curPosition[1]
-			coords[3] = WG.MexSnap.curPosition[3]
-		end
-		if not (coords[1] and coords[3]) then
-			return
-		end
-
-		IntegrateMetal(mexDefInfos[defaultDefID], coords[1], coords[3], false)
-
-		glLineWidth(1)
-		glColor(1, 0, 0, 0.5)
-		glDrawGroundCircle(centerX, 0, centerZ, MEX_RADIUS, 64)
-		if defaultDefID then
-			glPushMatrix()
-			glColor(1, 1, 1, 0.25)
-			glTranslate(centerX, coords[2], centerZ)
-			glUnitShape(defaultDefID, myTeamID)
-			glPopMatrix()
-		end
-		glColor(1, 1, 1, 1)
+	local metalSpots = WG["resource_spot_finder"].metalSpotsList
+	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
+		metalMap = true
 	end
 end
-
 
 
 function widget:DrawScreen()
@@ -240,10 +214,6 @@ function widget:DrawScreen()
 			return
 		end
 		local unitDefID = -cmd_id
-		local forceUpdate = false
-		if unitDefID ~= lastUnitDefID then
-			forceUpdate = true
-		end
 		lastUnitDefID = unitDefID
 		mexDefInfo = mexDefInfos[unitDefID]
 	end
@@ -258,9 +228,10 @@ function widget:DrawScreen()
 	if not coords then
 		return
 	end
-	if WG.MexSnap and WG.MexSnap.curPosition then
-		coords[1] = WG.MexSnap.curPosition.x
-		coords[3] = WG.MexSnap.curPosition.z
+	if not metalMap then
+		local pos = WG["resource_spot_finder"].GetClosestMexSpot(coords[1], coords[3])
+		coords[1] = pos.x
+		coords[3] = pos.z
 	end
 	IntegrateMetal(mexDefInfo, coords[1], coords[3], forceUpdate)
 	DrawTextWithBackground(Spring.I18N('ui.prospector.metalExtraction', { amount = strFormat("%.2f", extraction) }), mx, my, textSize, "do")

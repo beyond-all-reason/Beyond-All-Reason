@@ -33,6 +33,8 @@ local selectedUnits = spGetSelectedUnits()
 
 local Game_extractorRadius = Game.extractorRadius
 
+local isPregame = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
+
 
 ------------------------------------------------------------
 -- unit tables
@@ -109,19 +111,36 @@ end
 ---@param builders table which units will have their queues checked - doing a global check is too expensive
 local function spotHasExtractorQueued(spot, builders)
 	builders = builders or selectedUnits
-	for i=1, #builders do
-		local queue = Spring.GetCommandQueue(builders[i], 100)
+
+	-- annoying pregame stuff
+	local function checkQueue(queue)
 		for j=1, #queue do
 			local command = queue[j]
-			local id = -command.id
+			local id = command.id and -command.id or command[1]
+			local x = command.params and command.params[1] or command[2]
+			local z = command.params and command.params[3] or command[4]
 			if(mexBuildings[id] or geoBuildings[id]) then
-				local dist = math.distance2dSquared(spot.x, spot.z, command.params[1], command.params[3])
+				local dist = math.distance2dSquared(spot.x, spot.z, x, z)
 				-- Save a sqrt by multiplying by 4
 				-- Note that this is calculating by diameter, and could be too aggressive on maps with closely spaced mexes
 				-- Reduce this radius if there are cases found where mex spots get missed when in close proximity
 				if dist < Game_extractorRadius * Game_extractorRadius then
 					return true
 				end
+			end
+		end
+		return false
+	end
+
+	if isPregame then
+		local queue = WG['pregame-build'].getBuildQueue()
+		return checkQueue(queue)
+
+	else
+		for i=1, #builders do
+			local hasOrder = checkQueue(Spring.GetCommandQueue(builders[i], 100))
+			if hasOrder then
+				return true
 			end
 		end
 	end
@@ -381,6 +400,12 @@ function widget:UnitGiven(unitID, unitDefID, newTeam)
 		widget:UnitCreated(unitID, unitDefID, newTeam)
 	end
 end
+
+
+function widget:GameStart()
+	isPregame = false
+end
+
 
 function widget:Initialize()
 	local units = spGetTeamUnits(spGetMyTeamID())
