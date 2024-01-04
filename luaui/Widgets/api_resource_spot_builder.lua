@@ -261,7 +261,7 @@ end
 ---ApplyPreviewCmds to actually give the orders to units
 ---@param params table
 ---@param extractor table
----@param spot table
+---@param spot table can be a spot or a position, just needs to have { x, y, z } properties
 ---@return table format is { buildingId, x, y, z, facing, owner }
 local function PreviewExtractorCommand(params, extractor, spot)
 	local cmdX, _, cmdZ = params[1], params[2], params[3]
@@ -303,7 +303,9 @@ end
 local function ApplyPreviewCmds(cmds, constructorIds, shift)
 	local units = selectedUnits
 	local buildingId = cmds[1][1]
-	local mainBuilders, _ = sortBuilders(units, constructorIds, buildingId, shift, false)
+	Spring.Echo("cmds are", table.dump(cmds))
+	Spring.Echo("building id is ", buildingId)
+	local mainBuilders = sortBuilders(units, constructorIds, buildingId, shift)
 
 	local checkDuplicateOrders = true
 

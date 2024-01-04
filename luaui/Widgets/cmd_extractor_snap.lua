@@ -14,12 +14,9 @@ end
 
 
 local spGetActiveCommand = Spring.GetActiveCommand
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spPos2BuildPos = Spring.Pos2BuildPos
-local extractorRadiusSq = Game.extractorRadius * Game.extractorRadius
 
 local mexConstructors
 local geoConstructors
@@ -33,6 +30,7 @@ local cursorPos
 local buildCmd
 local unitShape
 local activeUnitShape
+local metalMap = false
 
 
 local function MakeLine(x1, y1, z1, x2, y2, z2)
@@ -51,6 +49,10 @@ function widget:Initialize()
 
 	mexBuildings = WG["resource_spot_builder"].GetMexBuildings()
 	geoBuildings = WG["resource_spot_builder"].GetGeoBuildings()
+	local metalSpots = WG["resource_spot_finder"].metalSpotsList
+	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
+		metalMap = true
+	end
 end
 
 
@@ -77,6 +79,11 @@ function widget:Update()
 
 	selectedMex = mexBuildings[-activeCmdID]
 	selectedGeo = geoBuildings[-activeCmdID]
+
+	if selectedMex and metalMap then
+		clear()
+		return
+	end
 
 	if not (selectedMex or selectedGeo) then
 		clear()

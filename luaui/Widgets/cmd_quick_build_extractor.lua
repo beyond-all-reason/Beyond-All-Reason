@@ -31,13 +31,15 @@ local geoBuildings
 local bestGeo
 local bestMex
 
-local drawUnitShape = false
+local unitShape = false
 local activeUnitShape
 
 local selectedSpot
+local selectedPos
 local selectedMex
 local selectedGeo
 
+local metalMap = false
 local buildCmd = {}
 
 local updateTime = 0
@@ -63,6 +65,11 @@ function widget:Initialize()
 
 	mexBuildings = WG["resource_spot_builder"].GetMexBuildings()
 	geoBuildings = WG["resource_spot_builder"].GetGeoBuildings()
+
+	local metalSpots = WG["resource_spot_finder"].metalSpotsList
+	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
+		metalMap = true
+	end
 end
 
 
@@ -74,6 +81,7 @@ local function clearGhostBuild()
 	selectedMex = nil
 	selectedGeo = nil
 	selectedSpot = nil
+	selectedPos = nil
 	buildCmd = {}
 end
 
@@ -134,7 +142,7 @@ function widget:Update(dt)
 		local unitIsMex = mexBuildings[unitDefID]
 		local unitIsGeo = geoBuildings[unitDefID]
 		if (unitIsMex or unitIsGeo) then
-			local x, _, z = spGetUnitPosition(unitUuid)
+			local x, y, z = spGetUnitPosition(unitUuid)
 
 			extractor = unitIsMex and bestMex or bestGeo
 			local canUpgrade = WG['resource_spot_builder'].ExtractorCanBeUpgraded(unitUuid, extractor)
@@ -144,17 +152,19 @@ function widget:Update(dt)
 			end
 
 			if unitIsMex then
-				selectedSpot = WG["resource_spot_finder"].GetClosestMexSpot(x, z)
+				--selectedSpot = WG["resource_spot_finder"].GetClosestMexSpot(x, z)
+				selectedPos = { x = x, y = y, z = z }
 				selectedMex = bestMex
 			else
-				selectedSpot = WG["resource_spot_finder"].GetClosestGeoSpot(x, z)
+				--selectedSpot = WG["resource_spot_finder"].GetClosestGeoSpot(x, z)
+				selectedPos = { x = x, y = y, z = z }
 				selectedGeo = bestGeo
 			end
 		else
 			clearGhostBuild()
 			return
 		end
-	else
+	elseif not metalMap then
 		-- If no valid units, check cursor position against extractor spots
 		local _, groundPos = Spring.TraceScreenRay(mx, my, true)
 		if not groundPos or not groundPos[1] then
@@ -188,29 +198,38 @@ function widget:Update(dt)
 			clearGhostBuild()
 			return
 		end
+
+		local canBuild = WG['resource_spot_builder'].ExtractorCanBeBuiltOnSpot(selectedSpot, extractor)
+		if not canBuild then
+			clearGhostBuild()
+			return
+		end
 	end
 
-	local canBuild = WG['resource_spot_builder'].ExtractorCanBeBuiltOnSpot(selectedSpot, extractor)
-	if not canBuild then
-		clearGhostBuild()
-		return
-	end
 
 	-- Set up ghost
-	if extractor and selectedSpot then
-		local cmdPos = {selectedSpot.x, selectedSpot.y, selectedSpot.z} -- we only want to build on the center, so we pass the spot in for the position, instead of the groundPos
-		local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(cmdPos, extractor, selectedSpot)
+	if extractor and (selectedSpot or selectedPos) then
+		-- we only want to build on the center, so we pass the spot in for the position, instead of the groundPos
+		local cmdPos = selectedPos and { selectedPos.x, selectedPos.y, selectedPos.z } or { selectedSpot.x, selectedSpot.y, selectedSpot.z}
+		local spotPos = selectedPos and selectedPos or selectedSpot
+		local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(cmdPos, extractor, spotPos)
 		buildCmd[1] = cmd
-		drawUnitShape = { math.abs(extractor), cmd[2], cmd[3], cmd[4], cmd[5], cmd[6] }
+		local newUnitShape = { math.abs(extractor), cmd[2], cmd[3], cmd[4], cmd[5], cmd[6] }
+		-- check equality by position
+		if unitShape and (unitShape[2] ~= newUnitShape[2] or unitShape[3] ~= newUnitShape[3] or unitShape[4] ~= newUnitShape[4]) then
+			WG.StopDrawUnitShapeGL4(activeUnitShape)
+			activeUnitShape = nil
+		end
+		unitShape = newUnitShape
 	else
-		drawUnitShape = false
+		unitShape = false
 	end
 
 	-- Draw ghost
 	if WG.DrawUnitShapeGL4 then
-		if drawUnitShape then
+		if unitShape then
 			if not activeUnitShape then
-				activeUnitShape = WG.DrawUnitShapeGL4(drawUnitShape[1], drawUnitShape[2], drawUnitShape[3], drawUnitShape[4], drawUnitShape[5], 0.66, drawUnitShape[6], 0.15, 0.3)
+				activeUnitShape = WG.DrawUnitShapeGL4(unitShape[1], unitShape[2], unitShape[3], unitShape[4], unitShape[5], 0.66, unitShape[6], 0.15, 0.3)
 			end
 		elseif activeUnitShape then
 			clearGhostBuild()
