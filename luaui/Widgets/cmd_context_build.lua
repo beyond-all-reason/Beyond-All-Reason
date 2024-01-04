@@ -89,6 +89,10 @@ local ptlCons = {
 local groundBuildings = {}
 local waterBuildings = {}
 
+local unitName = {}
+for udid, ud in pairs(UnitDefs) do
+	unitName[udid] = ud.name
+end
 local mouseDownPos
 
 local updateRate = 0.1
@@ -210,18 +214,18 @@ function widget:DrawWorld()
 		return
 	end
 
-	local name = UnitDefs[alt].name
-	
+	local name = unitName[alt]
+
 	-- Check for amphibious constructors
 	local selectedUnits = GetSelectedUnits()
 	local amphibCons = 0
 	for _, unitID in ipairs(selectedUnits) do
-		if ptlCons[UnitDefs[GetUnitDefID(unitID)].name] then
+		if ptlCons[unitName[GetUnitDefID(unitID)]] then
 			amphibCons = amphibCons + 1
 		end
 	end
 
-	if (amphibCons > 0) then
+	if amphibCons > 0 then
 		local amphibBuildings = {
 			['cortl'] = 'corptl',
 			['armtl'] = 'armptl',
@@ -231,8 +235,8 @@ function widget:DrawWorld()
 
 	-- Water level is always 0, but there's minor inaccuracy in the chain, so fuzz it a bit
 	if pos[2] < 0.01 then
-		if(isGround) then
-			if(isPregame) then
+		if isGround then
+			if isPregame then
 				setPreGamestartDefID(alt)
 			else
 				SetActiveCommand('buildunit_'..name)
@@ -240,10 +244,10 @@ function widget:DrawWorld()
 		end
 	else
 		if not isGround then
-			if(isPregame) then
+			if isPregame then
 				setPreGamestartDefID(alt)
 			else
-				SetActiveCommand('buildunit_'..UnitDefs[alt].name)
+				SetActiveCommand('buildunit_'..unitName[alt])
 			end
 		end
 	end
@@ -258,21 +262,20 @@ function widget:Initialize()
 	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
-
+	local uDefNames = UnitDefNames
 	for _,unitNames in ipairs(unitlist) do
 		for i, unitName in ipairs(unitNames) do
-			local unitDefID = UnitDefNames[unitName].id
+			local unitDefID = uDefNames[unitName].id
 			local isWater = i % 2 == 0
 
 			-- Break the unit list into two matching arrays
 			if unitDefID then
 				if isWater then
-					table.insert(waterBuildings,unitDefID)
+					table.insert(waterBuildings, unitDefID)
 				else
 					table.insert(groundBuildings, unitDefID)
 				end
 			end
 		end
-
 	end
 end
