@@ -38,7 +38,7 @@ local selectedSpot
 local selectedMex
 local selectedGeo
 
-local buildCmd
+local buildCmd = {}
 
 local updateTime = 0
 
@@ -74,6 +74,7 @@ local function clearGhostBuild()
 	selectedMex = nil
 	selectedGeo = nil
 	selectedSpot = nil
+	buildCmd = {}
 end
 
 

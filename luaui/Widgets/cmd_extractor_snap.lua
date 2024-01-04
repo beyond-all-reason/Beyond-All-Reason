@@ -107,8 +107,6 @@ function widget:Update()
 	cursorPos = {}
 	cursorPos.x, cursorPos.y, cursorPos.z = spPos2BuildPos(-activeCmdID, x, y, z)
 
-	Spring.Echo("cursor pos is", cursorPos.x, cursorPos.z)
-
 	local nearestSpot = selectedMex and WG["resource_spot_finder"].GetClosestMexSpot(x, z) or WG["resource_spot_finder"].GetClosestGeoSpot(x, z)
 	if not nearestSpot then
 		clear()
@@ -128,9 +126,7 @@ function widget:Update()
 
 		local dist = math.distance3dSquared(cursorPos.x, cursorPos.y, cursorPos.z, targetPos.x, targetPos.y, targetPos.z)
 
-
 		if(dist < 1) then
-			Spring.Echo("building within radius, no need for snapping")
 			clear()
 			return
 		end

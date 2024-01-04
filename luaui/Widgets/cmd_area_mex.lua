@@ -11,24 +11,186 @@ function widget:GetInfo()
 	}
 end
 
-local CMD_GUARD = CMD.GUARD
 local CMD_AREA_MEX = 10100
 
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMapDrawMode = Spring.GetMapDrawMode
+local spGetUnitPosition = Spring.GetUnitPosition
 local spSendCommands = Spring.SendCommands
 local spGetUnitDefID = Spring.GetUnitDefID
+local taremove = table.remove
 
-local toggledMetal, retoggleLos, chobbyInterface
-local selectedMex = nil
+local toggledMetal, retoggleLos
+local selectedMex
+local selectedUnits
+local mexConstructors
+local mexBuildings
+local metalSpots
 
 local metalMap = false
 
 
-function widget:Update(dt)
-	if chobbyInterface then return end
+local function setAreaMexType(uDefID)
+	selectedMex = -uDefID
+end
 
-	--local drawUnitShape = false
+function dump(o)
+	if type(o) == 'table' then
+		local s = '{ '
+		for k,v in pairs(o) do
+			if type(k) ~= 'number' then k = '"'..k..'"' end
+			s = s .. '['..k..'] = ' .. dump(v) .. ','
+		end
+		return s .. '} '
+	else
+		return tostring(o)
+	end
+end
+
+
+
+function widget:Initialize()
+	metalSpots = WG['resource_spot_finder'].metalSpotsList
+	mexBuildings = WG["resource_spot_builder"].GetMexBuildings()
+	mexConstructors = WG["resource_spot_builder"].GetMexConstructors()
+	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
+		metalMap = true
+	end
+
+	WG['areamex'] = {}
+	WG['areamex'].setAreaMexType = function(uDefID)
+		setAreaMexType(uDefID)
+	end
+end
+
+
+local function getAvgPositionOfValidBuilders(units, constructorIds, buildingId)
+	-- Add highest producing constructors to mainBuilders table + give guard orders to "inferior" constructors
+	local builderCount = 0
+	local tX, tZ = 0, 0
+	for i = 1, #units do
+		local id = units[i]
+		local constructor = constructorIds[id]
+		if constructor then
+			-- iterate over constructor options to see if it can make the chosen extractor
+			for _, buildable in pairs(constructor.building) do
+				if -buildable == buildingId then -- assume that it's a valid extractor based on previous steps
+					local x, _, z = spGetUnitPosition(id)
+					if z then
+						tX, tZ = tX+x, tZ+z
+						builderCount = builderCount + 1
+					end
+				end
+			end
+		end
+	end
+
+
+	if builderCount == 0 then return end
+	return { x = tX / builderCount, z = tZ / builderCount }
+end
+
+
+
+local function getSpotsInArea(x, z, radius)
+	local validSpots = {}
+	for i = 1, #metalSpots do
+		spot = metalSpots[i]
+		local dist = math.distance2dSquared(x, z, spot.x, spot.z)
+		if dist < radius * radius then
+			validSpots[#validSpots + 1] = spot
+		end
+	end
+	return validSpots
+end
+
+
+local function getCmdsForValidSpots(spots)
+	local cmds = {}
+	for i = 1, #spots do
+		local spot = spots[i]
+		local spotHasQueue = WG["resource_spot_builder"].SpotHasExtractorQueued(spot)
+		if not spotHasQueue then
+			local pos = { spot.x, spot.y, spot.z }
+			local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(pos, selectedMex, spot)
+			cmds[#cmds + 1] = cmd
+		end
+	end
+	return cmds
+end
+
+
+-- Nearest neighbor search. Spots are passed in to do minor weighting based on mex value
+local function sortCmdsByDistance(cmds, spots)
+
+
+	local builderPos = getAvgPositionOfValidBuilders(selectedUnits, mexConstructors, selectedMex)
+	local orderedCommands = {}
+	local lastPos = builderPos
+	local pos = {}
+	while #cmds > 0 do
+		local shortestDist = math.huge
+		local shortestIndex = -1
+		for i = 1, #cmds do
+			local dist = math.distance2dSquared(lastPos.x, lastPos.z, cmds[i][2], cmds[i][4])
+			dist = dist / spots[i].worth
+			if dist < shortestDist then
+				shortestDist = dist
+				shortestIndex = i
+				pos = { x = cmds[i][2], z = cmds[i][4] }
+			end
+
+		end
+		orderedCommands[#orderedCommands + 1] = cmds[shortestIndex]
+		taremove(cmds, shortestIndex)
+		taremove(spots, shortestIndex)
+		lastPos = pos
+	end
+	return orderedCommands
+end
+
+
+function widget:CommandNotify(id, params, options)
+	if id ~= CMD_AREA_MEX then
+		return
+	end
+
+	local cmdX, _, cmdZ, cmdRadius = params[1], params[2], params[3], params[4]
+	local spots = getSpotsInArea(cmdX, cmdZ, cmdRadius)
+	Spring.Echo("got " .. #spots .. " metal spots")
+
+	if not selectedMex then
+		selectedMex = WG['resource_spot_builder'].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
+	end
+
+	Spring.Echo("selected mex is", selectedMex)
+
+	local cmds = getCmdsForValidSpots(spots)
+	Spring.Echo("buildable spots", #cmds)
+	local sortedCmds = sortCmdsByDistance(cmds, spots)
+
+
+	Spring.Echo("Sorted cmds", #sortedCmds)
+
+	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	WG['resource_spot_builder'].ApplyPreviewCmds(sortedCmds, mexConstructors, shift)
+
+
+
+	--local queuedMexes = WG['resource_spot_builder'].BuildMex(params, options, isGuard, false, true, selectedMex)
+	selectedMex = nil
+	if not options.shift then
+		if WG["gridmenu"] then WG["gridmenu"].clearCategory() end
+	end
+	--if not queuedMexes or not queuedMexes[1] then	-- used when area_mex isnt queuing a mex, to let the move cmd still pass through
+	--	return false
+	--end
+	return true
+end
+
+
+-- Adjust map view mode as needed
+function widget:Update(dt)
 	local _, cmd, _ = spGetActiveCommand()
 	if cmd == CMD_AREA_MEX then
 		if spGetMapDrawMode() ~= 'metal' then
@@ -50,40 +212,16 @@ function widget:Update(dt)
 	end
 end
 
-local function setAreaMexType(uDefID)
-	selectedMex = uDefID
+
+function widget:SelectionChanged(sel)
+	selectedUnits = sel
 end
 
-function widget:CommandNotify(id, params, options)
-	local isGuard = (id == CMD_GUARD)
-	if not (id == CMD_AREA_MEX or isGuard) then
-		return
-	end
-	if isGuard then
-		local mx, my, mb = Spring.GetMouseState()
-		local type, unitID = Spring.TraceScreenRay(mx, my)
-		if not (type == 'unit' and WG['resource_spot_builder'] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] < 0.002) then
-			return
-		end
-	end
 
-	if id == CMD_AREA_MEX then
-		local queuedMexes = WG['resource_spot_builder'].BuildMex(params, options, isGuard, false, true, selectedMex)
-		selectedMex = nil
-		if not options.shift then
-			if WG["gridmenu"] then WG["gridmenu"].clearCategory() end
-		end
-		if not queuedMexes or not queuedMexes[1] then	-- used when area_mex isnt queuing a mex, to let the move cmd still pass through
-			return false
-		end
-		return true
-	end
-end
 
 function widget:CommandsChanged()
 	if not metalMap then
-		local selectedUnits = Spring.GetSelectedUnits()
-		if #selectedUnits > 0 then
+		if selectedUnits and #selectedUnits > 0 then
 			local customCommands = widgetHandler.customCommands
 			for i = 1, #selectedUnits do
 				if WG['resource_spot_builder'] and WG['resource_spot_builder'].GetMexConstructors()[selectedUnits[i]] then
@@ -102,15 +240,3 @@ function widget:CommandsChanged()
 	end
 end
 
-
-function widget:Initialize()
-	--widgetHandler.actionHandler:AddAction(self, "areamex", areamexActionHandler, nil, "p")
-	if WG['resource_spot_finder'] and (not WG['resource_spot_finder'].metalSpotsList or (#WG['resource_spot_finder'].metalSpotsList > 0 and #WG['resource_spot_finder'].metalSpotsList <= 2)) then
-		metalMap = true
-	end
-
-	WG['areamex'] = {}
-	WG['areamex'].setAreaMexType = function(uDefID)
-		setAreaMexType(uDefID)
-	end
-end

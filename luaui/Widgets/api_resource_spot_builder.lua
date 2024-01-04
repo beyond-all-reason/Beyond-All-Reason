@@ -194,7 +194,6 @@ end
 ---@param constructorIds table builder types to check
 ---@param extractors table valid extractors, useful to specify specific types or check only geos etc
 local function getBestExtractorFromBuilders(units, constructorIds, extractors)
-	constructorIds = constructorIds or selectedUnits
 	local bestExtraction = 0
 	local bestExtractor
 	for i = 1, #units do
@@ -219,7 +218,6 @@ end
 ---@param currentExtractorUuid table uuid of current extractor
 ---@param newExtractorId table unitDefID of new extractor
 local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
-
 	local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(currentExtractorUuid))
 	if not isAllied then
 		return false
@@ -237,15 +235,12 @@ local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 	local newExtractorIsSpecial = newExtractor.stealth or #newExtractor.weapons > 0
 
 	if(newExtractorStrength > currentExtractorStrength) then
-		Spring.Echo("new extractor is stronger than current extractor")
 		return true
 	end
 	if(newExtractorStrength == currentExtractorStrength and newExtractorIsSpecial) then
-		Spring.Echo("new extractor is special")
 		return true
 	end
 	if currentExtractorStrength == newExtractorStrength then
-		Spring.Echo("new extractor is equal")
 		return false
 	end
 
@@ -345,7 +340,6 @@ end
 ---@return table format is { buildingId, x, y, z, facing, owner }
 local function PreviewExtractorCommand(params, extractor, spot)
 	local cmdX, _, cmdZ = params[1], params[2], params[3]
-	local units = selectedUnits
 
 	local command = {}
 	spot.x, spot.y, spot.z = spPos2BuildPos(extractor, spot.x, spot.y, spot.z)
@@ -357,9 +351,7 @@ local function PreviewExtractorCommand(params, extractor, spot)
 	end
 
 	-- Construct the actual mex build orders
-
 	local facing = spGetBuildFacing() or 1
-	Spring.Echo("build facing is", facing)
 	local finalCommand = {}
 
 	local buildingId = -extractor
@@ -426,7 +418,6 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 
 			if not(checkDuplicateOrders and duplicateFound) then
 				finalCommands[#finalCommands + 1] = { id, math.abs(buildingId), cmd[2], cmd[3], cmd[4], cmd[6] }
-				--Spring.Echo("giving order to unit", id, -buildingId, dump(orderParams), { "shift" })
 				spGiveOrderToUnit(id, -buildingId, orderParams, { "shift" })
 			end
 		end
@@ -636,14 +627,14 @@ function widget:Initialize()
 	-- This gets called *every frame* by cmd_rclick_quick_build_resource_extractor
 	WG['resource_spot_builder'].BuildMex = function(params, options, isGuard, justDraw, noToggleOrder, buildingID)
 
-		local buildings = {}
-		if(buildingID) then
-			buildings[-buildingID] = UnitDefs[-buildingID].extractsMetal
-		else
-			buildings = mexBuildings
-		end
+		--local buildings = {}
+		--if(buildingID) then
+		--	buildings[-buildingID] = UnitDefs[-buildingID].extractsMetal
+		--else
+		--	buildings = mexBuildings
+		--end
 
-		return BuildResourceExtractors (params, options, isGuard, justDraw, mexConstructors, buildings, WG['resource_spot_finder'].metalSpotsList, noToggleOrder)
+		return BuildResourceExtractors (params, options, isGuard, justDraw, mexConstructors, buildingID, WG['resource_spot_finder'].metalSpotsList, noToggleOrder)
 	end
 
 	WG['resource_spot_builder'].BuildGeothermal = function(params, options, isGuard, justDraw)
