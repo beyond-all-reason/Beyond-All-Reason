@@ -26,6 +26,8 @@ local GetActiveCommand		= Spring.GetActiveCommand
 local SetActiveCommand		= Spring.SetActiveCommand
 local spGetMouseState 		= Spring.GetMouseState
 local spTraceScreenRay 		= Spring.TraceScreenRay
+local GetSelectedUnits      = Spring.GetSelectedUnits
+local GetUnitDefID          = Spring.GetUnitDefID
 local currentTime 			= os.clock
 
 --- Human friendly list. Automatically converted to unitdef IDs on init
@@ -75,6 +77,13 @@ local unitlist = {
 	{'armageo','armuwageo'},
 	{'corgeo','coruwgeo'},
 	{'corageo','coruwageo'},
+	{'armllt', 'armptl'}, -- for the amphibious construction vehicles trying to build ptls on land
+	{'corllt', 'corptl'},
+}
+
+local ptlCons = {
+	['armbeaver'] = true,
+	['cormuskrat'] = true,
 }
 
 local groundBuildings = {}
@@ -201,13 +210,32 @@ function widget:DrawWorld()
 		return
 	end
 
+	local name = UnitDefs[alt].name
+	
+	-- Check for amphibious constructors
+	local selectedUnits = GetSelectedUnits()
+	local amphibCons = 0
+	for _, unitID in ipairs(selectedUnits) do
+		if ptlCons[UnitDefs[GetUnitDefID(unitID)].name] then
+			amphibCons = amphibCons + 1
+		end
+	end
+
+	if (amphibCons > 0) then
+		local amphibBuildings = {
+			['cortl'] = 'corptl',
+			['armtl'] = 'armptl',
+		}
+		name = amphibBuildings[name] or name
+	end
+
 	-- Water level is always 0, but there's minor inaccuracy in the chain, so fuzz it a bit
 	if pos[2] < 0.01 then
 		if(isGround) then
 			if(isPregame) then
 				setPreGamestartDefID(alt)
 			else
-				SetActiveCommand('buildunit_'..UnitDefs[alt].name)
+				SetActiveCommand('buildunit_'..name)
 			end
 		end
 	else
