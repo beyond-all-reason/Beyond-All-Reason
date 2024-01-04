@@ -142,6 +142,7 @@ function widget:Update()
 		local dist = math.distance3dSquared(cursorPos.x, cursorPos.y, cursorPos.z, targetPos.x, targetPos.y, targetPos.z)
 		if(dist < 1) then
 			clear()
+			WG.ExtractorSnap.position = targetPos --bit of a hack, this still needs to be set during pregame
 			return
 		end
 
