@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 -- dont show vote buttons for specs when containing the following keywords (use lowercase)
-local globalVoteWords =  { 'forcestart', 'stop', 'joinas' }
+local globalVoteWords =  { 'forcestart', 'stop', 'joinas', 'kickban', 'gkick', 'bkick', 'nospecchat' }
 
 local INDIVIDUAL_RESIGN_VOTE_PATTERN = "called a vote for command \"resign ([^%s]+)\""
 local TEAM_RESIGN_VOTE_PATTERN = "called a vote for command \"resign ([^%s]+) TEAM\""

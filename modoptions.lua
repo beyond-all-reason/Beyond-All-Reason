@@ -889,6 +889,15 @@ local options={
 	},
 
 	{
+		key = 'lategame_rebalance',
+		name = 'Lategame Rebalance',
+		desc = 'T2 defenses and anti-air is weaker, giving more time for late T2 strategies to be effective.  Early T3 unit prices increased. Increased price of calamity/ragnarock by 20% so late T3 has more time to be effective.',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
+	},
+
+	{
 		key    = 'experimentalimprovedtransports',
 		name   = 'Transport Units Rework',
 		desc   = 'Transport Units Rework',
