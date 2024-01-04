@@ -212,6 +212,22 @@ local isPregame = Spring.GetGameFrame() == 0 and not isSpec
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local unitName = {}
+local unitBuildOptions = {}
+local unitMetal_extractor = {}
+local unitTranslatedHumanName = {}
+local unitTranslatedTooltip = {}
+for udid, ud in pairs(UnitDefs) do
+	unitName[udid] = ud.name
+	unitBuildOptions[udid] = ud.buildOptions
+	unitTranslatedHumanName[udid] = ud.translatedHumanName
+	unitTranslatedTooltip[udid] = ud.translatedTooltip
+	if ud.customParams.metal_extractor then
+		unitMetal_extractor[udid] = ud.customParams.metal_extractor
+	end
+end
+
+
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitHealth = Spring.GetUnitHealth
@@ -311,7 +327,7 @@ local function RefreshCommands()
 			end
 		else
 			categories = Cfgs.buildCategories
-			local buildOptions = UnitDefs[activeBuilder].buildOptions
+			local buildOptions = unitBuildOptions[activeBuilder]
 			if isPregame and units.unbaStartBuildoptions then
 				buildOptions = units.unbaStartBuildoptions
 			end
@@ -321,6 +337,7 @@ local function RefreshCommands()
 
 	gridOptsCount = tablelength(gridOpts)
 end
+
 
 local function getActionHotkey(action)
 	local key
@@ -525,14 +542,11 @@ local function enqueueUnit(uDefID, opts)
 end
 
 local function selectBuilding(uDefID)
-	local uDef = UnitDefs[-uDefID]
-	local isRepeatMex = uDef.customParams.metal_extractor and uDef.name == activeCmd
+	local isRepeatMex = unitMetal_extractor[-uDefID] and unitName[-uDefID] == activeCmd
 	local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
-
 	if isRepeatMex then
 		WG['areamex'].setAreaMexType(uDefID)
 	end
-
 	Spring.SetActiveCommand(cmd, 1, true, false, Spring.GetModKeyState())
 end
 
@@ -1739,6 +1753,7 @@ local function drawBuildProgress()
 end
 
 
+
 local function handleButtonHover()
 	local x, y, b, b2, b3 = Spring.GetMouseState()
 	local hovering = false
@@ -1769,16 +1784,16 @@ local function handleButtonHover()
 							local textColor = "\255\215\255\215"
 							if units.unitRestricted[uDefID] then
 								text = Spring.I18N("ui.buildMenu.disabled", {
-									unit = UnitDefs[uDefID].translatedHumanName,
+									unit = unitTranslatedHumanName[uDefID],
 									textColor = textColor,
 									warnColor = "\255\166\166\166",
 								})
 							else
-								text = UnitDefs[uDefID].translatedHumanName
+								text = unitTranslatedHumanName[uDefID]
 							end
 							WG["tooltip"].ShowTooltip(
 								"buildmenu",
-								"\255\240\240\240" .. UnitDefs[uDefID].translatedTooltip,
+								"\255\240\240\240" .. unitTranslatedTooltip[uDefID],
 								nil,
 								nil,
 								text
@@ -1873,8 +1888,7 @@ local function handleButtonHover()
 							index = index + 1
 							if index == i then
 								if WG["tooltip"] then
-									name = UnitDefs[unitDefID].translatedHumanName
-									WG["tooltip"].ShowTooltip("buildmenu", "\255\240\240\240" .. name)
+									WG["tooltip"].ShowTooltip("buildmenu", "\255\240\240\240" .. unitTranslatedHumanName[unitDefID])
 								end
 							end
 						end
@@ -2176,7 +2190,7 @@ function widget:MousePress(x, y, button)
 				for cellRectID, cellRect in pairs(cellRects) do
 					if
 						cellcmds[cellRectID].id
-						and UnitDefs[-cellcmds[cellRectID].id].translatedHumanName
+						and unitTranslatedHumanName[-cellcmds[cellRectID].id]
 						and cellRect:contains(x, y)
 						and not units.unitRestricted[-cellcmds[cellRectID].id]
 					then

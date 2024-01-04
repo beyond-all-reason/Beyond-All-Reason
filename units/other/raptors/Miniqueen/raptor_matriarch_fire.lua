@@ -173,6 +173,7 @@ return {
 				def = "flamethrowerspike",
 				maindir = "0 0 1",
 				maxangledif = 155,
+				badtargetcategory = "SPACE",
 			},
 			[2] = {
 				badtargetcategory = "NOTAIR",
@@ -189,6 +190,7 @@ return {
 			[5] = {
 				def = "flamethrowermain",
 				maxangledif = 180,
+				badtargetcategory = "SPACE",
 			},
 		},
 	},

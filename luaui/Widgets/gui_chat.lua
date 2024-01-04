@@ -405,6 +405,7 @@ end
 local autocompleteUnitNames = {}
 local autocompleteUnitCodename = {}
 local uniqueHumanNames = {}
+local unitTranslatedHumanName = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if not uniqueHumanNames[unitDef.translatedHumanName] then
 		uniqueHumanNames[unitDef.translatedHumanName] = true
@@ -413,6 +414,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if not string.find(unitDef.name, "_scav", nil, true) then
 		autocompleteUnitCodename[#autocompleteUnitCodename+1] = unitDef.name:lower()
 	end
+	unitTranslatedHumanName[unitDefID] = unitDef.translatedHumanName
 end
 uniqueHumanNames = nil
 for featureDefID, featureDef in pairs(FeatureDefs) do
@@ -642,7 +644,7 @@ local function commonUnitName(unitIDs)
 		commonUnitDefID = unitDefID
 	end
 
-	return UnitDefs[commonUnitDefID].translatedHumanName
+	return unitTranslatedHumanName[commonUnitDefID]
 end
 
 local function getAIName(teamID)

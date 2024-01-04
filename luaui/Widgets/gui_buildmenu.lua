@@ -115,6 +115,21 @@ local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local unitName = {}
+local unitBuildOptions = {}
+local unitMetal_extractor = {}
+local unitTranslatedHumanName = {}
+local unitTranslatedTooltip = {}
+for udid, ud in pairs(UnitDefs) do
+	unitName[udid] = ud.name
+	unitBuildOptions[udid] = ud.buildOptions
+	unitTranslatedHumanName[udid] = ud.translatedHumanName
+	unitTranslatedTooltip[udid] = ud.translatedTooltip
+	if ud.customParams.metal_extractor then
+		unitMetal_extractor[udid] = ud.customParams.metal_extractor
+	end
+end
+
 local spIsUnitSelected = Spring.IsUnitSelected
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetSelectedUnits = Spring.GetSelectedUnits
@@ -219,7 +234,7 @@ local function RefreshCommands()
 		if startDefID then
 
 			local cmdUnitdefs = {}
-			for i, udefid in pairs(UnitDefs[startDefID].buildOptions) do
+			for i, udefid in pairs(unitBuildOptions[startDefID]) do
 				if not units.unbaStartBuildoptions or units.unbaStartBuildoptions[udefid] then
 					cmdUnitdefs[udefid] = i
 				end
@@ -230,7 +245,7 @@ local function RefreshCommands()
 					-- mimmick output of spGetActiveCmdDescs
 					cmds[cmdsCount] = {
 						id = uDefID * -1,
-						name = UnitDefs[uDefID].name,
+						name = unitName[uDefID],
 						params = {}
 					}
 				end
@@ -765,11 +780,11 @@ function widget:DrawScreen()
 								local text
 								local textColor = "\255\215\255\215"
 								if units.unitRestricted[uDefID] then
-									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].translatedHumanName, textColor = textColor, warnColor = "\255\166\166\166" })
+									text = Spring.I18N('ui.buildMenu.disabled', { unit = unitTranslatedHumanName[uDefID], textColor = textColor, warnColor = "\255\166\166\166" })
 								else
 									text = UnitDefs[uDefID].translatedHumanName
 								end
-								WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240"..UnitDefs[uDefID].translatedTooltip, nil, nil, text)
+								WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240"..unitTranslatedTooltip[uDefID], nil, nil, text)
 							end
 
 							-- highlight --if b and not disableInput then
@@ -994,7 +1009,7 @@ function widget:MousePress(x, y, button)
 			end
 			if not disableInput then
 				for cellRectID, cellRect in pairs(cellRects) do
-					if cmds[cellRectID].id and UnitDefs[-cmds[cellRectID].id].translatedHumanName and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (units.unitRestricted[-cmds[cellRectID].id]) then
+					if cmds[cellRectID].id and unitTranslatedHumanName[-cmds[cellRectID].id] and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (units.unitRestricted[-cmds[cellRectID].id]) then
 						local uDefID = cmds[cellRectID].id
 						if button ~= 3 then
 							if playSounds then
@@ -1003,10 +1018,8 @@ function widget:MousePress(x, y, button)
 							if preGamestartPlayer then
 								setPreGamestartDefID(-uDefID)
 							elseif spGetCmdDescIndex(uDefID) then
-								local uDef = UnitDefs[-uDefID]
-								local isRepeatMex = uDef.customParams.metal_extractor and uDef.name == activeCmd
+								local isRepeatMex = unitMetal_extractor[-uDefID] and unitName[-uDefID] == activeCmd
 								local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
-
 								if isRepeatMex then
 									WG['areamex'].setAreaMexType(uDefID)
 								end
@@ -1041,9 +1054,7 @@ local function buildUnitHandler(_, _, _, data)
 	if not preGamestartPlayer then return end
 	if units.unitRestricted[data.unitDefID] then return end
 
-	local comDef = UnitDefs[startDefID]
-
-	if not comDef or not comBuildOptions[comDef.name] or not comBuildOptions[comDef.name][data.unitDefID] then return end
+	if not unitName[startDefID] or not comBuildOptions[unitName[startDefID]] or not comBuildOptions[unitName[startDefID]][data.unitDefID] then return end
 
 	-- If no current active selection we can return early
 	if not selBuildQueueDefID then
@@ -1083,7 +1094,7 @@ local function buildUnitHandler(_, _, _, data)
 		if string.sub(keybind.command, 1, 10) == 'buildunit_' then
 			local uDefName = string.sub(keybind.command, 11)
 			local uDef = UnitDefNames[uDefName]
-			if comBuildOptions[comDef.name][uDef.id] and not units.unitRestricted[uDef.id] then
+			if comBuildOptions[unitName[startDefID]][uDef.id] and not units.unitRestricted[uDef.id] then
 				table.insert(buildCycle, uDef.id)
 			end
 		end
@@ -1122,7 +1133,7 @@ local function bindBuildUnits(widget)
 	for _, comDefName in ipairs({ "armcom", "corcom" }) do
 		for _, buildOption in ipairs(UnitDefNames[comDefName].buildOptions) do
 			if not units.unitRestricted[buildOption] then
-				local unitDefName = UnitDefs[buildOption].name
+				local unitDefName = unitName[buildOption]
 
 				comBuildOptions[comDefName][buildOption] = true
 				table.insert(boundUnits, unitDefName)
