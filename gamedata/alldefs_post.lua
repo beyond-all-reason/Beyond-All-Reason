@@ -276,6 +276,8 @@ function UnitDef_Post(name, uDef)
 		if modOptions.unit_restrictions_noair then
 			if string.find(uDef.customparams.subfolder, "Aircraft") then
 				uDef.maxthisunit = 0
+			elseif uDef.customparams.unitgroup == "aa" then
+				uDef.maxthisunit = 0
 			elseif uDef.canfly then
 				uDef.maxthisunit = 0
 			end
