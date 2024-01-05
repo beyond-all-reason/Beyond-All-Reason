@@ -135,7 +135,7 @@ function widget:Update()
 
 	buildCmd = {}
 	local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(pos, -activeCmdID, nearestSpot)
-	if cmd then
+	if cmd and #cmd > 0 then
 		targetPos = { x = cmd[2], y = cmd[3], z = cmd[4] }
 		WG.ExtractorSnap.position = targetPos -- used by prospector and pregame queue
 
