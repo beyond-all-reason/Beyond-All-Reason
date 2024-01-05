@@ -117,7 +117,7 @@ end
 ---Nearest neighbor search. Spots are passed in to do minor weighting based on mex value
 ---@param cmds table
 ---@param spots table
-local function sortCmdsByDistance(cmds, spots)
+local function calculateCmdOrder(cmds, spots)
 	local builderPos = getAvgPositionOfValidBuilders(selectedUnits, mexConstructors, selectedMex)
 	local orderedCommands = {}
 	local lastPos = builderPos
@@ -157,7 +157,7 @@ function widget:CommandNotify(id, params, options)
 	end
 
 	local cmds = getCmdsForValidSpots(spots)
-	local sortedCmds = sortCmdsByDistance(cmds, spots)
+	local sortedCmds = calculateCmdOrder(cmds, spots)
 
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	WG['resource_spot_builder'].ApplyPreviewCmds(sortedCmds, mexConstructors, shift)
