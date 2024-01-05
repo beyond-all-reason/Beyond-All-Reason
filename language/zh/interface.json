@@ -210,7 +210,9 @@
             "tidalStrength":"浪涌速度",
             "size":"大小",
             "hardness":"硬度",
-            "engine":"引擎"
+            "engine":"引擎",
+            "reclaimableMetal": "可回收金属",
+            "reclaimableEnergy": "可回收能源"
           },
           "forceResignMessage":"你已经被强制投降: 当你仍有队友在场时,不要自毁所有单位",
           "factionPicker":{
