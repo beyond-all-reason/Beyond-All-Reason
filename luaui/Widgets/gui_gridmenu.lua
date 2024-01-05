@@ -712,6 +712,14 @@ local function nextPageHandler()
 	return true
 end
 
+
+local function clearCategory()
+	setCurrentCategory(nil)
+	Spring.SetActiveCommand(0, 0, false, false, Spring.GetModKeyState())
+	doUpdate = true
+end
+
+
 function widget:Initialize()
 	if widgetHandler:IsWidgetKnown("Build menu") then
 		widgetHandler:DisableWidget("Build menu")
@@ -2103,12 +2111,6 @@ function widget:KeyPress(key, modifier, isRepeat)
 		setCurrentCategory(nil)
 		doUpdate = true
 	end
-end
-
-local function clearCategory()
-	setCurrentCategory(nil)
-	Spring.SetActiveCommand(0, 0, false, false, Spring.GetModKeyState())
-	doUpdate = true
 end
 
 function widget:KeyRelease(key)

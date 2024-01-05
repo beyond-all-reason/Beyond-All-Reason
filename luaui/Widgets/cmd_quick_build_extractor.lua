@@ -32,7 +32,7 @@ local bestGeo
 local bestMex
 
 local unitShape = false
-local activeUnitShape
+local activeShape
 
 local selectedSpot
 local selectedPos
@@ -74,9 +74,9 @@ end
 
 
 local function clearGhostBuild()
-	if WG.DrawUnitShapeGL4 and activeUnitShape then
-		WG.StopDrawUnitShapeGL4(activeUnitShape)
-		activeUnitShape = nil
+	if WG.DrawUnitShapeGL4 and activeShape then
+		WG.StopDrawUnitShapeGL4(activeShape)
+		activeShape = nil
 	end
 	selectedMex = nil
 	selectedGeo = nil
@@ -211,14 +211,13 @@ function widget:Update(dt)
 	if extractor and (selectedSpot or selectedPos) then
 		-- we only want to build on the center, so we pass the spot in for the position, instead of the groundPos
 		local cmdPos = selectedPos and { selectedPos.x, selectedPos.y, selectedPos.z } or { selectedSpot.x, selectedSpot.y, selectedSpot.z}
-		local spotPos = selectedPos and selectedPos or selectedSpot
+		local spotPos = selectedPos and selectedPos or selectedSpot -- When a specific mex is moused over, we use that position instead of the spot for previewing the command
 		local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(cmdPos, extractor, spotPos)
 		buildCmd[1] = cmd
 		local newUnitShape = { math.abs(extractor), cmd[2], cmd[3], cmd[4], cmd[5], cmd[6] }
 		-- check equality by position
 		if unitShape and (unitShape[2] ~= newUnitShape[2] or unitShape[3] ~= newUnitShape[3] or unitShape[4] ~= newUnitShape[4]) then
-			WG.StopDrawUnitShapeGL4(activeUnitShape)
-			activeUnitShape = nil
+			clearGhostBuild()
 		end
 		unitShape = newUnitShape
 	else
@@ -228,10 +227,10 @@ function widget:Update(dt)
 	-- Draw ghost
 	if WG.DrawUnitShapeGL4 then
 		if unitShape then
-			if not activeUnitShape then
-				activeUnitShape = WG.DrawUnitShapeGL4(unitShape[1], unitShape[2], unitShape[3], unitShape[4], unitShape[5], 0.66, unitShape[6], 0.15, 0.3)
+			if not activeShape then
+				activeShape = WG.DrawUnitShapeGL4(unitShape[1], unitShape[2], unitShape[3], unitShape[4], unitShape[5] * (math.pi / 2), 0.66, unitShape[6], 0.15, 0.3)
 			end
-		elseif activeUnitShape then
+		elseif activeShape then
 			clearGhostBuild()
 		end
 	end
@@ -260,6 +259,5 @@ function widget:CommandNotify(id, params, options)
 end
 
 function widget:Shutdown()
-	Spring.Echo("shutting down quick build")
 	clearGhostBuild()
 end

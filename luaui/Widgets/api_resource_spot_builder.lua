@@ -319,6 +319,9 @@ end
 
 
 local function ApplyPreviewCmds(cmds, constructorIds, shift)
+	if not cmds or #cmds <= 0 then
+		return
+	end
 	local units = selectedUnits
 	local buildingId = cmds[1][1] -- assume they are all the same building id
 	local mainBuilders = sortBuilders(units, constructorIds, buildingId, shift)

@@ -254,12 +254,10 @@ function widget:MousePress(x, y, button)
 		if selBuildQueueDefID then
 			if button == 1 then
 				local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
-				if WG.ExtractorSnap and isMex then
+				if WG.ExtractorSnap then
 					local snapPos = WG.ExtractorSnap.position
 					if snapPos then
 						pos = { snapPos.x, snapPos.y, snapPos.z }
-					else
-						return true --if snap doesn't have a position, don't place anything
 					end
 				end
 
@@ -293,6 +291,13 @@ function widget:MousePress(x, y, button)
 								anyClashes = true
 								table.remove(buildQueue, i)
 							end
+						end
+
+						-- Special handling to check if mex position is valid
+						local spot = WG["resource_spot_finder"].GetClosestMexSpot(bx, bz)
+						local validPos = spot and WG["resource_spot_finder"].IsMexPositionValid(spot, bx, bz) or false
+						if isMex and not validPos then
+							return
 						end
 
 						if not anyClashes then
@@ -479,6 +484,10 @@ function widget:GameStart()
 end
 
 function widget:Shutdown()
+	-- Stop drawing all ghosts
+	for id, _ in pairs(unitshapes) do
+		removeUnitShape(id)
+	end
 	widgetHandler:DeregisterGlobal(widget, 'GetPreGameDefID')
 	widgetHandler:DeregisterGlobal(widget, 'GetBuildQueue')
 	WG['pregame-build'] = nil

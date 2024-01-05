@@ -86,7 +86,7 @@ end
 local function getSpotsInArea(x, z, radius)
 	local validSpots = {}
 	for i = 1, #metalSpots do
-		spot = metalSpots[i]
+		local spot = metalSpots[i]
 		local dist = math.distance2dSquared(x, z, spot.x, spot.z)
 		if dist < radius * radius then
 			validSpots[#validSpots + 1] = spot
