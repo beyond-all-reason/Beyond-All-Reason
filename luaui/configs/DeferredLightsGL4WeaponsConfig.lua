@@ -302,10 +302,11 @@ local function AssignLightsToAllWeapons()
 		radius = ((orgMult * 75) + (radius * 2.4)) * 0.33
 
 		local r, g, b = 1, 0.8, 0.45
-		if weaponDef.visuals ~= nil and weaponDef.visuals.colorR ~= nil then
-			r = weaponDef.visuals.colorR
-			g = weaponDef.visuals.colorG
-			b = weaponDef.visuals.colorB
+		local weaponVisuals = weaponDef.visuals
+		if weaponVisuals ~= nil and weaponVisuals.colorR ~= nil then
+			r = weaponVisuals.colorR
+			g = weaponVisuals.colorG
+			b = weaponVisuals.colorB
 		end
 		local muzzleFlash = true
 		local explosionLight = true
