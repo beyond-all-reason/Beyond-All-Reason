@@ -11,6 +11,8 @@ function widget:GetInfo()
 	}
 end
 
+Spring.SendCommands("resbar 0")
+
 -- Add new options at: function init
 
 local types = {
