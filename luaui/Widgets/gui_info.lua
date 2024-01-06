@@ -28,7 +28,7 @@ local showEngineTooltip = false		-- straight up display old engine delivered tex
 
 local texts = {}
 
-local iconTypesMap = VFS.Include("luarules/configs/uniticons.lua")
+local iconTypes = VFS.Include("gamedata/icontypes.lua")
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -954,7 +954,7 @@ local function drawUnitInfo()
 			0.03,
 			nil, nil,
 			"#" .. displayUnitDefID,
-			((unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType] or nil),
+			((unitDefInfo[displayUnitDefID].iconType and iconTypes[unitDefInfo[displayUnitDefID].iconType]) and ':l:' .. (iconTypes[unitDefInfo[displayUnitDefID].iconType] and iconTypes[unitDefInfo[displayUnitDefID].iconType].bitmap or nil)),
 			groups[unitGroup[displayUnitDefID]],
 			{unitDefInfo[displayUnitDefID].metalCost, unitDefInfo[displayUnitDefID].energyCost}
 		)
@@ -1171,7 +1171,7 @@ local function drawUnitInfo()
 						0.1,
 						nil, disabled and 0 or nil,
 						"#"..uDefID,
-						((unitDefInfo[uDefID].iconType and iconTypesMap[unitDefInfo[uDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[uDefID].iconType] or nil),
+						((unitDefInfo[uDefID].iconType and iconTypes[unitDefInfo[uDefID].iconType]) and ':l:' .. (iconTypes[unitDefInfo[uDefID].iconType] and iconTypes[unitDefInfo[uDefID].iconType] or nil)),
 						groups[unitGroup[uDefID]],
 						{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
 					)
@@ -1220,7 +1220,7 @@ local function drawUnitInfo()
 							0.1,
 							nil, nil,
 							"#"..uDefID,
-							((unitDefInfo[uDefID].iconType and iconTypesMap[unitDefInfo[uDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[uDefID].iconType] or nil),
+							((unitDefInfo[uDefID].iconType and iconTypes[unitDefInfo[uDefID].iconType]) and ':l:' .. (iconTypes[unitDefInfo[uDefID].iconType] and iconTypes[unitDefInfo[uDefID].iconType] or nil)),
 							groups[unitGroup[uDefID]],
 							{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
 						)

@@ -27,10 +27,10 @@ local unitGroup = {}	-- {unitDefID = 'energy'}retrieves from buildmenu in initia
 local unitIcon = {}	-- {unitDefID = 'icons/'}, retrieves from buildmenu in initialize
 
 
-local iconTypesMap = VFS.Include("luarules/configs/uniticons.lua")
+local iconTypes = VFS.Include("gamedata/icontypes.lua")
 for udid, unitDef in pairs(UnitDefs) do
-	if unitDef.iconType and iconTypesMap[unitDef.iconType] then
-		unitIcon[udid] = iconTypesMap[unitDef.iconType]
+	if unitDef.iconType and iconTypes[unitDef.iconType] then
+		unitIcon[udid] = iconTypes[unitDef.iconType].bitmap
 	end
 end
 

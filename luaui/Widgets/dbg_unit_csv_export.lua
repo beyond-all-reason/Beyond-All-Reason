@@ -12,7 +12,7 @@ end
 
 
 local filename = "unitlist.csv"
-local iconTypesMap = VFS.Include("luarules/configs/uniticons.lua")
+local iconTypes = VFS.Include("gamedata/icontypes.lua")
 
 
 local function round(num, numDecimalPlaces)
@@ -297,7 +297,7 @@ function widget:Initialize()
                     unitDef.translatedHumanName..columnSeparator..
                     unitDef.translatedTooltip..columnSeparator..
                     description..columnSeparator..
-                    (iconTypesMap[unitDef.iconType] and string.gsub(string.gsub(iconTypesMap[unitDef.iconType], 'icons/', ''), '.png', '') or '')..columnSeparator..
+                    (iconTypes[unitDef.iconType] and string.gsub(string.gsub(iconTypes[unitDef.iconType].bitmap, 'icons/', ''), '.png', '') or '')..columnSeparator..
                     round(unitDef.height, 0)..columnSeparator..
                     unitDef.metalCost..columnSeparator..
 					unitDef.energyCost..columnSeparator..

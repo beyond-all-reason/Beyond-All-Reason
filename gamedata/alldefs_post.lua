@@ -85,6 +85,9 @@ end
 
 function UnitDef_Post(name, uDef)
 	local modOptions = Spring.GetModOptions()
+
+	uDef.icontype = name
+
 	-- Reverse Gear
 	if modOptions.experimentalreversegear == true then
 		if (not uDef.canfly) and uDef.speed then
@@ -1747,7 +1750,7 @@ if Spring.GetModOptions().lategame_rebalance == true then
 		uDef.energycost = 5250
 		uDef.buildtime = 9250
 	end
-end	
+end
 	-- Multipliers Modoptions
 
 	-- Health

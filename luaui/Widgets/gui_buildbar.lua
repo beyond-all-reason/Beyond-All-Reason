@@ -46,15 +46,15 @@ local bopt_inext = { 0, 0 }
 
 local myTeamID = 0
 
-local iconTypesMap = VFS.Include("luarules/configs/uniticons.lua")
+local iconTypes = VFS.Include("gamedata/icontypes.lua")
 local unitIcon = {}
 local unitBuildOptions = {}
 for udid, unitDef in pairs(UnitDefs) do
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
 		unitBuildOptions[udid] = unitDef.buildOptions
 	end
-	if unitDef.iconType and iconTypesMap[unitDef.iconType] then
-		unitIcon[udid] = ':l:'..iconTypesMap[unitDef.iconType]
+	if unitDef.iconType and iconTypes[unitDef.iconType] then
+		unitIcon[udid] = ':l:'..iconTypes[unitDef.iconType].bitmap
 	end
 end
 

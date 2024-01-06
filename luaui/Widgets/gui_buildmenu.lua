@@ -13,7 +13,7 @@ end
 
 include("keysym.h.lua")
 
-local iconTypesMap = VFS.Include("luarules/configs/uniticons.lua")
+local iconTypes = VFS.Include("gamedata/icontypes.lua")
 
 SYMKEYS = table.invert(KEYSYMS)
 
@@ -466,7 +466,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 		usedZoom,
 		nil, disabled and 0 or nil,
 		'#' .. uDefID,
-		showRadarIcon and (((units.unitIconType[uDefID] and iconTypesMap[units.unitIconType[uDefID]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypesMap[units.unitIconType[uDefID]] or nil)) or nil,
+		showRadarIcon and (((units.unitIconType[uDefID] and iconTypes[units.unitIconType[uDefID]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. (iconTypes[units.unitIconType[uDefID]] and  iconTypes[units.unitIconType[uDefID]].bitmap or nil))) or nil,
 		showGroupIcon and (groups[units.unitGroup[uDefID]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[units.unitGroup[uDefID]] or nil) or nil,
 		{units.unitMetalCost[uDefID], units.unitEnergyCost[uDefID]},
 		tonumber(cmds[cellRectID].params[1])
@@ -693,8 +693,8 @@ local function cacheUnitIcons()
 			if not excludeRaptors or not string.find(unit.name,'raptor') then
 				gl.Texture('#'..id)
 				gl.TexRect(-1, -1, 0, 0)
-				if units.unitIconType[id] and iconTypesMap[units.unitIconType[id]] then
-					gl.Texture(':l:' .. iconTypesMap[units.unitIconType[id]])
+				if units.unitIconType[id] and iconTypes[units.unitIconType[id]] then
+					gl.Texture(':l:' .. iconTypes[units.unitIconType[id]].bitmap)
 					gl.TexRect(-1, -1, 0, 0)
 				end
 			end
