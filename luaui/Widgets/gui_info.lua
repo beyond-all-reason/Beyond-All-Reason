@@ -1171,7 +1171,7 @@ local function drawUnitInfo()
 						0.1,
 						nil, disabled and 0 or nil,
 						"#"..uDefID,
-						((unitDefInfo[uDefID].iconType and iconTypes[unitDefInfo[uDefID].iconType]) and ':l:' .. (iconTypes[unitDefInfo[uDefID].iconType] and iconTypes[unitDefInfo[uDefID].iconType] or nil)),
+						((unitDefInfo[uDefID].iconType and iconTypes[unitDefInfo[uDefID].iconType]) and ':l:' .. (iconTypes[unitDefInfo[uDefID].iconType] and iconTypes[unitDefInfo[uDefID].iconType].bitmap or nil)),
 						groups[unitGroup[uDefID]],
 						{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
 					)
@@ -1220,7 +1220,7 @@ local function drawUnitInfo()
 							0.1,
 							nil, nil,
 							"#"..uDefID,
-							((unitDefInfo[uDefID].iconType and iconTypes[unitDefInfo[uDefID].iconType]) and ':l:' .. (iconTypes[unitDefInfo[uDefID].iconType] and iconTypes[unitDefInfo[uDefID].iconType] or nil)),
+							((unitDefInfo[uDefID].iconType and iconTypes[unitDefInfo[uDefID].iconType]) and ':l:' .. (iconTypes[unitDefInfo[uDefID].iconType] and iconTypes[unitDefInfo[uDefID].iconType].bitmap or nil)),
 							groups[unitGroup[uDefID]],
 							{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
 						)
