@@ -13,6 +13,8 @@ end
 
 include("keysym.h.lua")
 
+local iconTypesMap = VFS.Include("luarules/configs/uniticons.lua")
+
 SYMKEYS = table.invert(KEYSYMS)
 
 local comBuildOptions
@@ -52,7 +54,7 @@ local hoverCellZoom = 0.05 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
-local bgpadding, activeAreaMargin, iconTypesMap
+local bgpadding, activeAreaMargin
 local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2, cmdsCount
 local doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize, priceFontSize
@@ -1151,12 +1153,6 @@ function widget:Initialize()
 	units.checkGeothermalFeatures()
 	if disableWind then
 		units.restrictWindUnits(true)
-	end
-
-
-	iconTypesMap = {}
-	if Script.LuaRules('GetIconTypes') then
-		iconTypesMap = Script.LuaRules.GetIconTypes()
 	end
 
 	-- Get our starting unit

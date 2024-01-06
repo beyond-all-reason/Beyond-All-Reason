@@ -20,6 +20,8 @@ end
 include("keysym.h.lua")
 VFS.Include("luarules/configs/customcmds.h.lua")
 
+local iconTypesMap = VFS.Include("luarules/configs/uniticons.lua")
+
 SYMKEYS = table.invert(KEYSYMS)
 
 local alwaysReturn = false
@@ -115,7 +117,7 @@ local hoverCellZoom = 0.1 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
-local bgpadding, iconMargin, activeAreaMargin, iconTypesMap
+local bgpadding, iconMargin, activeAreaMargin
 local dlistGuishader, dlistGuishaderBuilders, dlistBuildmenuBg, dlistBuildmenu, font2
 local doUpdate, doUpdateClock, ordermenuHeight, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
@@ -743,11 +745,6 @@ function widget:Initialize()
 
 	ui_opacity = WG.FlowUI.opacity
 	ui_scale = WG.FlowUI.scale
-
-	iconTypesMap = {}
-	if Script.LuaRules("GetIconTypes") then
-		iconTypesMap = Script.LuaRules.GetIconTypes()
-	end
 
 	-- Get our starting unit
 	if isPregame then

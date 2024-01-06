@@ -12,6 +12,7 @@ end
 
 
 local filename = "unitlist.csv"
+local iconTypesMap = VFS.Include("luarules/configs/uniticons.lua")
 
 
 local function round(num, numDecimalPlaces)
@@ -21,9 +22,6 @@ local function round(num, numDecimalPlaces)
 end
 
 function widget:Initialize()
-    if Script.LuaRules('GetIconTypes') then
-        iconTypesMap = Script.LuaRules.GetIconTypes()
-    end
     local file = assert(io.open(filename,'w'), "Unable to save file")
 
     local columnSeparator = ';'

@@ -46,11 +46,15 @@ local bopt_inext = { 0, 0 }
 
 local myTeamID = 0
 
+local iconTypesMap = VFS.Include("luarules/configs/uniticons.lua")
 local unitIcon = {}
 local unitBuildOptions = {}
 for udid, unitDef in pairs(UnitDefs) do
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
 		unitBuildOptions[udid] = unitDef.buildOptions
+	end
+	if unitDef.iconType and iconTypesMap[unitDef.iconType] then
+		unitIcon[udid] = ':l:'..iconTypesMap[unitDef.iconType]
 	end
 end
 
@@ -365,15 +369,6 @@ function widget:Initialize()
 					end
 				end
 				unitBuildOptions[uDefID] = newBuildOptions
-			end
-		end
-	end
-
-	if Script.LuaRules('GetIconTypes') then
-		local iconTypesMap = Script.LuaRules.GetIconTypes()
-		for udid, unitDef in pairs(UnitDefs) do
-			if unitDef.iconType and iconTypesMap[unitDef.iconType] then
-				unitIcon[udid] = ':l:'..iconTypesMap[unitDef.iconType]
 			end
 		end
 	end

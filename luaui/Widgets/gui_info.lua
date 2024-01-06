@@ -28,6 +28,8 @@ local showEngineTooltip = false		-- straight up display old engine delivered tex
 
 local texts = {}
 
+local iconTypesMap = VFS.Include("luarules/configs/uniticons.lua")
+
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
@@ -57,7 +59,7 @@ local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousName = '?????'
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
-local iconTypesMap, dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
+local dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
 local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures
 local cellRect, cellPadding, cornerSize, cellsize, cellHovered
 local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
@@ -577,10 +579,6 @@ function widget:Initialize()
 		end
 	end
 
-	iconTypesMap = {}
-	if Script.LuaRules('GetIconTypes') then
-		iconTypesMap = Script.LuaRules.GetIconTypes()
-	end
 	Spring.SetDrawSelectionInfo(false)    -- disables springs default display of selected units count
 	Spring.SendCommands("tooltip 0")
 
