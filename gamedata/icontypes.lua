@@ -2959,6 +2959,15 @@ local icontypes = {
 		bitmap = "icons/blank.png",
 		size = 1.04999995
 	},
+
+	blank = {
+		bitmap = "icons/blank.png",
+		size = 1,
+	},
+	default = {
+		size = 1.2,
+		radiusadjust = 1,
+	},
 }
 
 setmetatable(icontypes, { __index = function(table, key)
