@@ -693,7 +693,7 @@ local function cacheUnitIcons()
 			if not excludeRaptors or not string.find(unit.name,'raptor') then
 				gl.Texture('#'..id)
 				gl.TexRect(-1, -1, 0, 0)
-				if units.unitIconType[id] and iconTypes[units.unitIconType[id]] then
+				if units.unitIconType[id] and iconTypes[units.unitIconType[id]] and iconTypes[units.unitIconType[id]].bitmap then
 					gl.Texture(':l:' .. iconTypes[units.unitIconType[id]].bitmap)
 					gl.TexRect(-1, -1, 0, 0)
 				end

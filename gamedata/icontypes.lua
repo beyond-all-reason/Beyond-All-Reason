@@ -2965,7 +2965,7 @@ local icontypes = {
 		size = 1,
 	},
 	default = {
-		size = 1.2,
+		size = 1,
 		radiusadjust = 1,
 	},
 }
