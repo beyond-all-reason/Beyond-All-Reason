@@ -28,6 +28,8 @@ local content = ''
 
 local tidal = Game.tidal
 local map_tidal = Spring.GetModOptions().map_tidal
+local reclaimable_metal = 0
+local reclaimable_energy = 0
 
 if map_tidal == "unchanged" then
 elseif map_tidal == "low" then
@@ -410,6 +412,8 @@ local function refreshContent()
 	content = content .. keycolor .. Spring.I18N('ui.gameInfo.gravity') .. separator .. valuegreycolor .. Game.gravity .. "\n"
 	content = content .. keycolor .. Spring.I18N('ui.gameInfo.hardness') .. separator .. valuegreycolor .. Game.mapHardness .. keycolor .. "\n"
 	content = content .. keycolor .. Spring.I18N('ui.gameInfo.tidalStrength') .. separator .. valuegreycolor .. tidal .. keycolor .. "\n"
+	content = content .. keycolor .. Spring.I18N('ui.gameInfo.reclaimableMetal') .. separator .. valuegreycolor .. reclaimable_metal .. keycolor .. "\n"
+	content = content .. keycolor .. Spring.I18N('ui.gameInfo.reclaimableEnergy') .. separator .. valuegreycolor .. reclaimable_energy .. keycolor .. "\n"
 
 	if Game.windMin == Game.windMax then
 		content = content .. keycolor .. Spring.I18N('ui.gameInfo.windStrength') .. separator .. valuegreycolor .. Game.windMin .. valuegreycolor .. "\n"
@@ -455,6 +459,24 @@ local function closeInfoHandler()
 
     return true
   end
+end
+
+local spGetAllFeatures = Spring.GetAllFeatures
+local spGetFeatureResources = Spring.GetFeatureResources
+local spGetFeatureTeam = Spring.GetFeatureTeam
+local spGetGaiaTeamID = Spring.GetGaiaTeamID
+local gaiaTeamId = spGetGaiaTeamID()
+
+function widget:GamePreload()
+	for _, featureID in ipairs(spGetAllFeatures()) do
+		local metal, _, energy = spGetFeatureResources(featureID)
+		if spGetFeatureTeam(featureID) == gaiaTeamId then
+			reclaimable_metal = reclaimable_metal + metal
+			reclaimable_energy = reclaimable_energy + energy
+		end
+	end
+
+	refreshContent()
 end
 
 function widget:Initialize()

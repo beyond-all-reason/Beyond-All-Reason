@@ -517,7 +517,9 @@
 			"windStrength": "Vitesse du vent",
 			"waterDamage": "Dégâts d'eau",
 			"raptorOptions": "Options des Raptor",
-			"modOptions": "Options des mods"
+			"modOptions": "Options des mods",
+			"reclaimableMetal": "Métal récupérable",
+			"reclaimableEnergy": "L'énergie récupérable"
 		},
 		"cmdlimiter": {
 			"forceresignwarning": "Vous avez mis en file d'attente un trop grand nombre de bâtiments en trop peu de temps, continuer risquerait de vous voir éjecté.",
