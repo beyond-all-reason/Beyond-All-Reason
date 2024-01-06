@@ -2052,7 +2052,7 @@ function shutdown()
 end
 
 function widget:Shutdown()
-	Spring.SendCommands("resbar 1")
+	--Spring.SendCommands("resbar 1")
 	shutdown()
 	WG['topbar'] = nil
 end
