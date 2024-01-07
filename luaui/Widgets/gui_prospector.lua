@@ -1,3 +1,10 @@
+-----------------------------------------------
+-- Displays the precise extraction value for metal extractors no matter where they are placed
+-- Most maps have in-world text displaying the spot value, but that shows the same value regardless of
+-- a mexes actual metal extraction amount (e.g. t2 is higher)
+-- On metal maps, there is no spot value at all, so this is required to see how much mexes will produce
+-----------------------------------------------
+
 function widget:GetInfo()
 	return {
 		name = "Prospector",

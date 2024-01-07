@@ -8,7 +8,6 @@ function widget:GetInfo()
 		license   = "GNU GPL, v2 or later",
 		layer     = 1,
 		enabled   = true,
-		handler   = true
 	}
 end
 
@@ -42,7 +41,8 @@ end
 
 function widget:Initialize()
 	if not WG.DrawUnitShapeGL4 then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
+		return
 	end
 
 	WG.ExtractorSnap = {}
