@@ -211,7 +211,6 @@ local function refreshUnitInfo()
 		end
 
 		unitDefInfo[unitDefID].description = unitDef.translatedTooltip
-		unitDefInfo[unitDefID].iconType = unitDef.iconType
 		unitDefInfo[unitDefID].energyCost = unitDef.energyCost
 		unitDefInfo[unitDefID].metalCost = unitDef.metalCost
 		unitDefInfo[unitDefID].energyStorage = unitDef.energyStorage
