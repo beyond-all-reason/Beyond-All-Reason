@@ -29,10 +29,11 @@ local unitIcon = {}	-- {unitDefID = 'icons/'}, retrieves from buildmenu in initi
 
 local iconTypes = VFS.Include("gamedata/icontypes.lua")
 for udid, unitDef in pairs(UnitDefs) do
-	if unitDef.iconType and iconTypes[unitDef.iconType] then
+	if unitDef.iconType and iconTypes[unitDef.iconType] and iconTypes[unitDef.iconType].bitmap then
 		unitIcon[udid] = iconTypes[unitDef.iconType].bitmap
 	end
 end
+iconTypes = nil
 
 --- OO stuff
 -- Each uielement should have a parent, and can have any number of childrent

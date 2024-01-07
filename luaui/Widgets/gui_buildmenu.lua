@@ -13,7 +13,6 @@ end
 
 include("keysym.h.lua")
 
-local iconTypes = VFS.Include("gamedata/icontypes.lua")
 
 SYMKEYS = table.invert(KEYSYMS)
 
@@ -122,6 +121,8 @@ local unitBuildOptions = {}
 local unitMetal_extractor = {}
 local unitTranslatedHumanName = {}
 local unitTranslatedTooltip = {}
+local iconTypes = {}
+local orgIconTypes = VFS.Include("gamedata/icontypes.lua")
 for udid, ud in pairs(UnitDefs) do
 	unitName[udid] = ud.name
 	unitBuildOptions[udid] = ud.buildOptions
@@ -130,7 +131,11 @@ for udid, ud in pairs(UnitDefs) do
 	if ud.customParams.metal_extractor then
 		unitMetal_extractor[udid] = ud.customParams.metal_extractor
 	end
+	if ud.iconType and orgIconTypes[ud.iconType] and orgIconTypes[ud.iconType].bitmap then
+		iconTypes[ud.name] = orgIconTypes[ud.iconType].bitmap
+	end
 end
+orgIconTypes = nil
 
 local spIsUnitSelected = Spring.IsUnitSelected
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
@@ -466,11 +471,12 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 		usedZoom,
 		nil, disabled and 0 or nil,
 		'#' .. uDefID,
-		showRadarIcon and (((units.unitIconType[uDefID] and iconTypes[units.unitIconType[uDefID]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. (iconTypes[units.unitIconType[uDefID]] and  iconTypes[units.unitIconType[uDefID]].bitmap or nil))) or nil,
+		showRadarIcon and (((units.unitIconType[uDefID] and iconTypes[units.unitIconType[uDefID]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypes[units.unitIconType[uDefID]] or nil)) or nil,
 		showGroupIcon and (groups[units.unitGroup[uDefID]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[units.unitGroup[uDefID]] or nil) or nil,
 		{units.unitMetalCost[uDefID], units.unitEnergyCost[uDefID]},
 		tonumber(cmds[cellRectID].params[1])
 	)
+
 
 	-- colorize/highlight unit icon
 	if cellColor then
@@ -693,8 +699,8 @@ local function cacheUnitIcons()
 			if not excludeRaptors or not string.find(unit.name,'raptor') then
 				gl.Texture('#'..id)
 				gl.TexRect(-1, -1, 0, 0)
-				if units.unitIconType[id] and iconTypes[units.unitIconType[id]] and iconTypes[units.unitIconType[id]].bitmap then
-					gl.Texture(':l:' .. iconTypes[units.unitIconType[id]].bitmap)
+				if units.unitIconType[id] and iconTypes[units.unitIconType[id]] then
+					gl.Texture(':l:' .. iconTypes[units.unitIconType[id]])
 					gl.TexRect(-1, -1, 0, 0)
 				end
 			end

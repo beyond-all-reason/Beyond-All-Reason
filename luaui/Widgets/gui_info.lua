@@ -55,9 +55,7 @@ local tooltipValueWhiteColor = '\255\255\255\255'
 
 local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor .. ": Select\n " .. tooltipTextColor .. "   + CTRL" .. tooltipLabelTextColor .. ": Select units of this type on map\n " .. tooltipTextColor .. "   + ALT" .. tooltipLabelTextColor .. ": Select 1 single unit of this unit type\n " .. tooltipTextColor .. "Right click" .. tooltipLabelTextColor .. ": Remove\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Remove only 1 unit from that unit type\n " .. tooltipTextColor .. "Middle click" .. tooltipLabelTextColor .. ": Move to center location\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Move to center off whole selection"
 
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousName = '?????'
-local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
 local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures
@@ -85,7 +83,6 @@ local spGetTeamUnitsSorted = Spring.GetTeamUnitsSorted
 local spSelectUnitMap = Spring.SelectUnitMap
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitResources = Spring.GetUnitResources
-local spGetUnitMaxRange = Spring.GetUnitMaxRange
 local spGetUnitExperience = Spring.GetUnitExperience
 local spGetUnitMetalExtraction = Spring.GetUnitMetalExtraction
 local spGetUnitStates = Spring.GetUnitStates
@@ -136,6 +133,10 @@ local isGeothermalUnit = {}
 local function refreshUnitInfo()
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitDefInfo[unitDefID] = {}
+
+		if unitDef.iconType and iconTypes[unitDef.iconType] and iconTypes[unitDef.iconType].bitmap then
+			unitDefInfo[unitDefID].icontype = iconTypes[unitDef.iconType].bitmap
+		end
 
 		if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'
 			or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship'])  then
@@ -954,7 +955,7 @@ local function drawUnitInfo()
 			0.03,
 			nil, nil,
 			"#" .. displayUnitDefID,
-			((unitDefInfo[displayUnitDefID].iconType and iconTypes[unitDefInfo[displayUnitDefID].iconType]) and ':l:' .. (iconTypes[unitDefInfo[displayUnitDefID].iconType] and iconTypes[unitDefInfo[displayUnitDefID].iconType].bitmap or nil)),
+			(unitDefInfo[displayUnitDefID].icontype and ':l:' .. unitDefInfo[displayUnitDefID].icontype or nil),
 			groups[unitGroup[displayUnitDefID]],
 			{unitDefInfo[displayUnitDefID].metalCost, unitDefInfo[displayUnitDefID].energyCost}
 		)
@@ -1171,7 +1172,7 @@ local function drawUnitInfo()
 						0.1,
 						nil, disabled and 0 or nil,
 						"#"..uDefID,
-						((unitDefInfo[uDefID].iconType and iconTypes[unitDefInfo[uDefID].iconType]) and ':l:' .. (iconTypes[unitDefInfo[uDefID].iconType] and iconTypes[unitDefInfo[uDefID].iconType].bitmap or nil)),
+						(unitDefInfo[uDefID].icontype and ':l:' .. unitDefInfo[uDefID].icontype or nil),
 						groups[unitGroup[uDefID]],
 						{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
 					)
@@ -1220,7 +1221,7 @@ local function drawUnitInfo()
 							0.1,
 							nil, nil,
 							"#"..uDefID,
-							((unitDefInfo[uDefID].iconType and iconTypes[unitDefInfo[uDefID].iconType]) and ':l:' .. (iconTypes[unitDefInfo[uDefID].iconType] and iconTypes[unitDefInfo[uDefID].iconType].bitmap or nil)),
+							(unitDefInfo[uDefID].icontype and ':l:' .. unitDefInfo[uDefID].icontype or nil),
 							groups[unitGroup[uDefID]],
 							{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
 						)

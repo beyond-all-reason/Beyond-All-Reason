@@ -297,7 +297,7 @@ function widget:Initialize()
                     unitDef.translatedHumanName..columnSeparator..
                     unitDef.translatedTooltip..columnSeparator..
                     description..columnSeparator..
-                    (iconTypes[unitDef.iconType] and string.gsub(string.gsub(iconTypes[unitDef.iconType].bitmap, 'icons/', ''), '.png', '') or '')..columnSeparator..
+                    (iconTypes[unitDef.iconType] and iconTypes[unitDef.iconType].bitmap and string.gsub(string.gsub(iconTypes[unitDef.iconType].bitmap, 'icons/', ''), '.png', '') or '')..columnSeparator..
                     round(unitDef.height, 0)..columnSeparator..
                     unitDef.metalCost..columnSeparator..
 					unitDef.energyCost..columnSeparator..
