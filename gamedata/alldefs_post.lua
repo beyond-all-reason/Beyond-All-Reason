@@ -462,7 +462,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+3] = "corgolt4"
 			uDef.buildoptions[numBuildoptions+4] = "corakt4"
 			uDef.buildoptions[numBuildoptions+5] = "corthermite"
-			uDef.buildoptions[numBuildoptions+6] = "legjugglite"--technically legion but also cortex
+			--uDef.buildoptions[numBuildoptions+6] = "legjugglite"--technically legion but also cortex
 		elseif name == "corgantuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgolt4"
