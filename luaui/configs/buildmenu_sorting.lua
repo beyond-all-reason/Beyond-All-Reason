@@ -246,6 +246,7 @@ local unitOrderTable = {
 	['corseal']        = 006930,
 	['corsala']        = 006935,
 	['corparrow']      = 006940,
+	['legfloat']       = 006941,
 
    -- T2 HOVER
    ['corhal']         = 006950,
