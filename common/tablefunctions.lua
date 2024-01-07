@@ -122,7 +122,7 @@ if not table.count then
 	---only works if the table is a Lua sequence (i.e. indexes form a contiguous
 	---sequence starting from 1).
 	---@param tbl table
-	---@return integer
+	---@return number
 	function table.count(tbl)
 		local count = 0
 		for _ in pairs(tbl) do
@@ -226,23 +226,6 @@ if not table.shuffle then
 		for i = firstIndex, #sequence - 2 + firstIndex do
 			local j = math.random(i, #sequence)
 			sequence[i], sequence[j] = sequence[j], sequence[i]
-		end
-	end
-end
-
-if not table.dump then
-	---Turns a table into a string
-	---@param o table
-	function table.dump(o)
-		if type(o) == 'table' then
-			local s = '{ '
-			for k,v in pairs(o) do
-				if type(k) ~= 'number' then k = '"'..k..'"' end
-				s = s .. '['..k..'] = ' .. table.dump(v) .. ','
-			end
-			return s .. '} '
-		else
-			return tostring(o)
 		end
 	end
 end

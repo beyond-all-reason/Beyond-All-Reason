@@ -42,16 +42,18 @@ end
 
 function widget:Initialize()
 	if not WG.DrawUnitShapeGL4 then
-		widget:Shutdown()
+		widgetHandler:RemoveWidget(self)
 	end
 
 	WG.ExtractorSnap = {}
+	local builder = WG.resource_spot_builder
 
-	mexConstructors = WG["resource_spot_builder"].GetMexConstructors()
-	geoConstructors = WG["resource_spot_builder"].GetGeoConstructors()
+	mexConstructors = builder.GetMexConstructors()
+	geoConstructors = builder.GetGeoConstructors()
 
-	mexBuildings = WG["resource_spot_builder"].GetMexBuildings()
-	geoBuildings = WG["resource_spot_builder"].GetGeoBuildings()
+	mexBuildings = builder.GetMexBuildings()
+	geoBuildings = builder.GetGeoBuildings()
+
 	local metalSpots = WG["resource_spot_finder"].metalSpotsList
 	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
 		metalMap = true

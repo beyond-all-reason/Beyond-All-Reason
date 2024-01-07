@@ -20,8 +20,9 @@ local spGetActiveCommand = Spring.GetActiveCommand
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 
-local geoPlacementRadius = 5000	-- (not actual ingame distance)
-local mexPlacementRadius = 2000	-- (not actual ingame distance)
+-- These are arbitrary values that feel right - basing this on the ever-changing values of mex radius results in a really confusing experience
+local geoPlacementRadius = 5000
+local mexPlacementRadius = 2000
 
 local mexConstructors
 local geoConstructors
@@ -60,11 +61,13 @@ function widget:Initialize()
 		widget:Shutdown()
 	end
 
-	mexConstructors = WG["resource_spot_builder"].GetMexConstructors()
-	geoConstructors = WG["resource_spot_builder"].GetGeoConstructors()
+	local builder = WG.resource_spot_builder
 
-	mexBuildings = WG["resource_spot_builder"].GetMexBuildings()
-	geoBuildings = WG["resource_spot_builder"].GetGeoBuildings()
+	mexConstructors = builder.GetMexConstructors()
+	geoConstructors = builder.GetGeoConstructors()
+
+	mexBuildings = builder.GetMexBuildings()
+	geoBuildings = builder.GetGeoBuildings()
 
 	local metalSpots = WG["resource_spot_finder"].metalSpotsList
 	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
@@ -135,8 +138,8 @@ function widget:Update(dt)
 	-- First check unit under cursor. If it's an extractor, see if there's valid upgrades
 	-- If it's not an extractor, simply exit
 	local type, rayParams = Spring.TraceScreenRay(mx, my)
-	local unitUuid = type == 'unit' and rayParams or nil
-	local unitDefID = type == 'unit' and spGetUnitDefID(rayParams) or nil
+	local unitUuid = type == 'unit' and rayParams
+	local unitDefID = type == 'unit' and spGetUnitDefID(rayParams)
 
 	if(unitUuid and unitDefID) then
 		local unitIsMex = mexBuildings[unitDefID]

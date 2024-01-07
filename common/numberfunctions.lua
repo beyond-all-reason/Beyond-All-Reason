@@ -224,7 +224,7 @@ if not math.HSLtoRGB then
 
 	if not math.distance2d then
 		function math.distance2d(x1, z1, x2, z2)
-			return math.sqrt(math.distance2dSquared(x1, z1, x2, z2))
+			return math.diag(x1 - x2, z1 - z2)
 		end
 	end
 
@@ -239,7 +239,7 @@ if not math.HSLtoRGB then
 
 	if not math.distance3dSquared then
 		function math.distance3d(x1, y1, z1, x2, y2, z2)
-			return math.sqrt(math.distance3dSquared(x1, y1, z1, x2, y2, z2))
+			return math.diag(x1 - x2, y1 - y2, z1 - z2)
 		end
 	end
 
