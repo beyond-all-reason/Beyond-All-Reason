@@ -641,6 +641,7 @@
 			"legdefcarryt1": "Drone Defense",
 			"legdrone": "Light Combat Drone",
 			"legfig": "Fighter / Scout Drone",
+			"legfloat": "Triton",
 			"legfort": "Legion Flying Fortress",
 			"leggant": "Experimental Gantry",
 			"leggat": "Gatling",
@@ -1363,6 +1364,7 @@
 			"legdefcarryt1": "Carries 4 Drones (costs 15m 500E each)",
 			"legdrone": "Light Combat Drone",
 			"legfig": "Fighter / Scout Drone",
+			"legfloat": "Heavy Convertible Tank/Boat"
 			"legfort": "Flying Fortress",
 			"leggant": "Produces Experimental Units",
 			"leggat": "Armored Assault Tank",

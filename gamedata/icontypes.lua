@@ -2099,6 +2099,10 @@ local icontypes = {
 		bitmap = "icons/air.png",
 		size = 0.64999998
 	},
+	legfloat = {
+		bitmap = "icons/corparrow.png",
+		size = 1.4
+	},
 	legfort = {
 		bitmap = "icons/air_battleship.png",
 		size = 2.29999995
