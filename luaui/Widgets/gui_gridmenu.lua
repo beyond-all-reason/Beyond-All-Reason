@@ -1702,25 +1702,30 @@ local function drawBuildMenu()
 end
 
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
+-- load time = 0.7 seconds (excluding legion,raptors,scavs) tested with Tracy (pc: RTX4070 + 7800X3D)
+-- TODO: only cache all startunit buildoptions, load the rest gradually the following frames
 local function cacheUnitIcons()
 	local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalextraunits)
 	local excludeRaptors = not Spring.Utilities.Gametype.IsRaptors()
-	gl.Translate(-vsx, 0, 0)
+	local excludeLegion = not Spring.GetModOptions().experimentallegionfaction
+	gl.Translate(-vsx,0,0)
 	gl.Color(1, 1, 1, 0.001)
 	for id, unit in pairs(UnitDefs) do
-		if not excludeScavs or not string.find(unit.name, "_scav") then
-			if not excludeRaptors or not string.find(unit.name, "raptor") then
-				gl.Texture("#" .. id)
-				gl.TexRect(-1, -1, 0, 0)
-				if units.unitIconType[id] and iconTypes[units.unitIconType[id]] then
-					gl.Texture(":l:" .. iconTypes[units.unitIconType[id]])
+		if not excludeScavs or not string.find(unit.name,'_scav') then
+			if not excludeRaptors or not string.find(unit.name,'raptor') then
+				if not excludeLegion or string.sub(unit.name, 1, 3) ~= 'leg' then
+					gl.Texture('#'..id)
 					gl.TexRect(-1, -1, 0, 0)
+					if units.unitIconType[id] and iconTypes[units.unitIconType[id]] then
+						gl.Texture(':l:' .. iconTypes[units.unitIconType[id]])
+						gl.TexRect(-1, -1, 0, 0)
+					end
 				end
 			end
 		end
 	end
 	gl.Color(1, 1, 1, 1)
-	gl.Translate(vsx, 0, 0)
+	gl.Translate(vsx,0,0)
 end
 
 local function drawBuildProgress()
