@@ -342,13 +342,13 @@ elseif string.find(mapName, "hyperion shale") then
 	lavaColorCorrection = "vec3(1.0, 1.0, 1.0)"
 	lavaCoastColor = "vec3(0.0, 0.35, 0.9)"
 	lavaCoastLightBoost = 0.3
-	lavaFogColor = "vec3(0.0, 0.3, 1.0)" 
+	lavaFogColor = "vec3(0.0, 0.3, 1.0)"
 	lavaFogFactor = 0.01
-	lavaFogHeight = 15 
+	lavaFogHeight = 15
 	lavaFogAbove = 4.0
 	lavaFogDistortion = 2.0
-	lavaTideamplitude = 0.3 
-	lavaTideperiod = 1000 
+	lavaTideamplitude = 0.3
+	lavaTideperiod = 1000
     if isLavaGadget and isLavaGadget == "synced" then
 		addTideRhym (-1, 0.05, 5*6000)
     end
