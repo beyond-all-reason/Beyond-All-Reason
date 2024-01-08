@@ -338,6 +338,7 @@ elseif string.find(mapName, "sector") then
 elseif string.find(mapName, "hyperion shale") then
 	lavaMap = true
 	lavaGrow = 0
+	nolavaburstcegs = true
 	lavaDiffuseEmitTex = "LuaUI/images/lava/lava2_diffuseemitblue.dds"
 	lavaColorCorrection = "vec3(1.0, 1.0, 1.0)"
 	lavaCoastColor = "vec3(0.0, 0.35, 0.9)"
