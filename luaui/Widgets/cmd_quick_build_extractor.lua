@@ -58,7 +58,7 @@ end
 
 function widget:Initialize()
 	if not WG.DrawUnitShapeGL4 then
-		widget:Shutdown()
+		widgetHandler:RemoveWidget()
 	end
 
 	local builder = WG.resource_spot_builder
