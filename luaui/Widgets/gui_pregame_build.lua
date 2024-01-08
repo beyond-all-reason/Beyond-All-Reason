@@ -19,6 +19,7 @@ local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
 local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+local metalMap = false
 
 local unitshapes = {}
 
@@ -151,6 +152,11 @@ function widget:Initialize()
 		if not startDefID or startDefID ~= Spring.GetTeamRulesParam(myTeamID, 'startUnit') then
 			startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 		end
+	end
+
+	local metalSpots = WG["resource_spot_finder"].metalSpotsList
+	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
+		metalMap = true
 	end
 
 	WG['pregame-build'] = {}
@@ -297,7 +303,7 @@ function widget:MousePress(x, y, button)
 						local spot = WG["resource_spot_finder"].GetClosestMexSpot(bx, bz)
 						local validPos = spot and WG["resource_spot_finder"].IsMexPositionValid(spot, bx, bz) or false
 						local spotIsTaken = WG["resource_spot_builder"].SpotHasExtractorQueued(spot)
-						if isMex and (not validPos or spotIsTaken) then
+						if isMex and not metalMap and (not validPos or spotIsTaken) then
 							return true
 						end
 
@@ -419,10 +425,19 @@ function widget:DrawWorld()
 
 	-- Draw selected building
 	if selBuildData then
-		if Spring.TestBuildOrder(selBuildQueueDefID, selBuildData[2], selBuildData[3], selBuildData[4], selBuildData[5]) ~= 0 and WG.ExtractorSnap.position then
+		-- mmm, convoluted logic. Pregame handling is hell
+		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
+		local testOrder = Spring.TestBuildOrder(selBuildQueueDefID, selBuildData[2], selBuildData[3], selBuildData[4], selBuildData[5]) ~= 0
+		if testOrder and not isMex then
 			DrawBuilding(selBuildData, borderValidColor, true)
+		elseif isMex then
+			if WG.ExtractorSnap.position or metalMap then
+				DrawBuilding(selBuildData, borderValidColor, true)
+			else
+				DrawBuilding(selBuildData, borderInvalidColor, true)
+			end
 		else
-			DrawBuilding(selBuildData, borderInvalidColor, true)
+			DrawBuilding(selBuildData, borderValidColor, true)
 		end
 	end
 
