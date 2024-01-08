@@ -110,8 +110,9 @@ function widget:Update()
 	end
 
 	-- Attempt to get position of command
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+
 	local mx, my, mb, mmb, mrb = spGetMouseState()
+	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local _, pos = spTraceScreenRay(mx, my, true)
 	if not pos or not pos[1] then
 		clear()
@@ -170,20 +171,22 @@ function widget:Update()
 			clearGhostBuild()
 		end
 	end
+end
+
+-- Apply build command
+function widget:MousePress(x, y, button)
 
 	if isPregame then
 		return
 	end
 
-	if buildCmd and buildCmd[1] and mb then
+	if button == 1 and buildCmd and buildCmd[1] then
+		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if selectedMex then
 			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
 		end
 		if selectedGeo then
 			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, shift)
-		end
-		if not shift then
-			Spring.SetActiveCommand(0)
 		end
 	end
 end
