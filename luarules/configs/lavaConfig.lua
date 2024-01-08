@@ -335,6 +335,23 @@ elseif string.find(mapName, "sector") then
 		addTideRhym (4, 0.05, 5*6000)
 	end
 
+elseif string.find(mapName, "hyperion shale") then
+	lavaMap = true
+	lavaGrow = 0
+	lavaColorCorrection = "vec3(1.0, 1.0, 1.0)"
+	lavaCoastColor = "vec3(1.0, 0.25, 0.0)"
+	lavaCoastLightBoost = 0.3
+	lavaFogColor = "vec3(1.5, 0.1, 0.0)" 
+	lavaFogFactor = 0.01
+	lavaFogHeight = 15 
+	lavaFogAbove = 4.0
+	lavaFogDistortion = 2.0
+	lavaTideamplitude = 0.3 
+	lavaTideperiod = 1000 
+    if isLavaGadget and isLavaGadget == "synced" then
+		addTideRhym (-1, 0.05, 5*6000)
+    end
+
 elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - keep at the very bottom
 	--lavaMap = true
 	--lavaGrow = 0
