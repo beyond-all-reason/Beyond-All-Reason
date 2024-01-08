@@ -296,8 +296,9 @@ function widget:MousePress(x, y, button)
 						-- Special handling to check if mex position is valid
 						local spot = WG["resource_spot_finder"].GetClosestMexSpot(bx, bz)
 						local validPos = spot and WG["resource_spot_finder"].IsMexPositionValid(spot, bx, bz) or false
-						if isMex and not validPos then
-							return
+						local spotIsTaken = WG["resource_spot_builder"].SpotHasExtractorQueued(spot)
+						if isMex and (not validPos or spotIsTaken) then
+							return true
 						end
 
 						if not anyClashes then
@@ -418,7 +419,7 @@ function widget:DrawWorld()
 
 	-- Draw selected building
 	if selBuildData then
-		if Spring.TestBuildOrder(selBuildQueueDefID, selBuildData[2], selBuildData[3], selBuildData[4], selBuildData[5]) ~= 0 then
+		if Spring.TestBuildOrder(selBuildQueueDefID, selBuildData[2], selBuildData[3], selBuildData[4], selBuildData[5]) ~= 0 and WG.ExtractorSnap.position then
 			DrawBuilding(selBuildData, borderValidColor, true)
 		else
 			DrawBuilding(selBuildData, borderInvalidColor, true)
