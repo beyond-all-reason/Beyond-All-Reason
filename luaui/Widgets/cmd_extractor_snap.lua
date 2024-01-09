@@ -183,10 +183,10 @@ function widget:MousePress(x, y, button)
 	if button == 1 and buildCmd and buildCmd[1] then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if selectedMex then
-			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
+			return WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
 		end
 		if selectedGeo then
-			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, shift)
+			return WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, shift)
 		end
 	end
 end
