@@ -257,20 +257,45 @@ local function sortBuilders(units, constructorIds, buildingId, shift)
 		end
 	end
 
+	--------------------------------
+	-- Small local functions to iterate over current builders and reduce command spam. Potentially expensive with 50+ selected cons
+	local function isMainBuilderOfId(id)
+		for i = 1, #mainBuilders do
+			if mainBuilders[i] == id then
+				return true
+			end
+		end
+		return false
+	end
+
+	local function hasExistingGuardOrder(uid)
+		local queue = Spring.GetCommandQueue(uid, 10)
+		for i = 1, #queue do
+			local cmd = queue[i]
+			if cmd.id == CMD_GUARD and (cmd.params and cmd.params[1] and isMainBuilderOfId(cmd.params[1])) then
+				return true
+			end
+		end
+		return false
+	end
+	-----------------------------------
+
 	-- order secondary builders to guard main builders, equally dispersed
 	local index = 1
 	for i, uid in pairs(secondaryBuilders) do
+		local mainBuilderId = mainBuilders[index]
 		if not shift then
 			spGiveOrderToUnit(uid, CMD_STOP, {}, CMD_OPT_RIGHT)
+			spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { "shift" })
 		end
-		local mainBuilderId = mainBuilders[index]
-		spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { "shift" })
+		if not hasExistingGuardOrder(uid) then
+			spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { "shift" })
+		end
 		index = index + 1
 		if index > #mainBuilders then index = 1 end
 	end
 
 	if #mainBuilders == 0 then return end
-
 	return mainBuilders
 end
 
