@@ -517,7 +517,9 @@
 			"windStrength": "Wind speed",
 			"waterDamage": "Water damage",
 			"raptorOptions": "Raptor options",
-			"modOptions": "Mod options"
+			"modOptions": "Mod options",
+			"reclaimableMetal": "Reclaimable Metal",
+			"reclaimableEnergy": "Reclaimable Energy"
 		},
 		"cmdlimiter": {
 			"forceresignwarning": "You queued too much buildings a few time, continue this and you will get forcefully resigned.",

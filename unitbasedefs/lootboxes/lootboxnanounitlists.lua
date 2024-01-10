@@ -118,6 +118,7 @@ return {
 
 		-- Hovercraft
 		"corhal",
+		"legfloat",
 
 		-- Air
 		"armsb",

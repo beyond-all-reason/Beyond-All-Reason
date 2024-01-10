@@ -21,25 +21,25 @@ local removableCommand = {
 	[CMD.PATROL] = true,
 }
 
-local function IsValidUnit(unitID)
-	local unitDefID = Spring.GetUnitDefID(unitID)
-	return unitDefID and UnitDefs[unitDefID] and UnitDefs[unitDefID].isBuilder and not UnitDefs[unitDefID].isFactory
+local validUnit = {}
+for udid, ud in pairs(UnitDefs) do
+	validUnit[udid] = ud.isBuilder and not ud.isFactory
 end
 
 function widget:CommandNotify(id, params, cmdOptions)
 	if not doCommandRemove then
 		return false
 	end
-	
+
 	if not cmdOptions.shift then
 		doCommandRemove = false
 		return false
 	end
-	
+
 	local units = Spring.GetSelectedUnits()
 	for i = 1, #units do
 		local unitID = units[i]
-		if IsValidUnit(unitID) then
+		if validUnit[Spring.GetUnitDefID(unitID)] then
 			local cmd = Spring.GetCommandQueue(unitID, -1)
 			if cmd then
 				for c = 1, #cmd do
@@ -50,7 +50,7 @@ function widget:CommandNotify(id, params, cmdOptions)
 			end
 		end
 	end
-	
+
 	doCommandRemove = false
 	return false
 end

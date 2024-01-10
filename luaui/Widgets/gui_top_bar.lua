@@ -45,7 +45,10 @@ local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 local bladesTexture = ":n:LuaUI/Images/wind-blades.png"
 local wavesTexture = ":n:LuaUI/Images/tidal-waves.png"
-local comTexture = ":n:Icons/corcom.png"		-- will be changed later to unit icon depending on faction
+local comTexture = ":n:Icons/corcom.png"
+if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')] then
+	comTexture = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name..'.png'
+end
 
 local math_floor = math.floor
 local math_min = math.min
@@ -91,8 +94,6 @@ local spec = spGetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
-
-comTexture = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
 
 local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
 local numTeamsInAllyTeam = #myAllyTeamList
@@ -2051,7 +2052,7 @@ function shutdown()
 end
 
 function widget:Shutdown()
-	Spring.SendCommands("resbar 1")
+	--Spring.SendCommands("resbar 1")
 	shutdown()
 	WG['topbar'] = nil
 end

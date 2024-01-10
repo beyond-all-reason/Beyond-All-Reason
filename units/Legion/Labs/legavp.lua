@@ -37,10 +37,9 @@ return {
 		yardmap = "oooooooooooooooooooocccccoooocccccoooocccccoooocccccoooocccccoo",
 		buildoptions = {
 			"legacv",
-			"corseal",
 			"legmrv",
 			"legsco",
-			"corparrow",
+			"legfloat",
 			"corgol",
 			"corban",
 			"cormart",

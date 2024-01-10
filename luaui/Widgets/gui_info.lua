@@ -28,6 +28,8 @@ local showEngineTooltip = false		-- straight up display old engine delivered tex
 
 local texts = {}
 
+local iconTypes = VFS.Include("gamedata/icontypes.lua")
+
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
@@ -53,11 +55,9 @@ local tooltipValueWhiteColor = '\255\255\255\255'
 
 local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor .. ": Select\n " .. tooltipTextColor .. "   + CTRL" .. tooltipLabelTextColor .. ": Select units of this type on map\n " .. tooltipTextColor .. "   + ALT" .. tooltipLabelTextColor .. ": Select 1 single unit of this unit type\n " .. tooltipTextColor .. "Right click" .. tooltipLabelTextColor .. ": Remove\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Remove only 1 unit from that unit type\n " .. tooltipTextColor .. "Middle click" .. tooltipLabelTextColor .. ": Move to center location\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Move to center off whole selection"
 
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousName = '?????'
-local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
-local iconTypesMap, dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
+local dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
 local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures
 local cellRect, cellPadding, cornerSize, cellsize, cellHovered
 local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
@@ -83,7 +83,6 @@ local spGetTeamUnitsSorted = Spring.GetTeamUnitsSorted
 local spSelectUnitMap = Spring.SelectUnitMap
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitResources = Spring.GetUnitResources
-local spGetUnitMaxRange = Spring.GetUnitMaxRange
 local spGetUnitExperience = Spring.GetUnitExperience
 local spGetUnitMetalExtraction = Spring.GetUnitMetalExtraction
 local spGetUnitStates = Spring.GetUnitStates
@@ -134,6 +133,10 @@ local isGeothermalUnit = {}
 local function refreshUnitInfo()
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitDefInfo[unitDefID] = {}
+
+		if unitDef.iconType and iconTypes[unitDef.iconType] and iconTypes[unitDef.iconType].bitmap then
+			unitDefInfo[unitDefID].icontype = iconTypes[unitDef.iconType].bitmap
+		end
 
 		if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'
 			or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship'])  then
@@ -208,7 +211,6 @@ local function refreshUnitInfo()
 		end
 
 		unitDefInfo[unitDefID].description = unitDef.translatedTooltip
-		unitDefInfo[unitDefID].iconType = unitDef.iconType
 		unitDefInfo[unitDefID].energyCost = unitDef.energyCost
 		unitDefInfo[unitDefID].metalCost = unitDef.metalCost
 		unitDefInfo[unitDefID].energyStorage = unitDef.energyStorage
@@ -577,10 +579,6 @@ function widget:Initialize()
 		end
 	end
 
-	iconTypesMap = {}
-	if Script.LuaRules('GetIconTypes') then
-		iconTypesMap = Script.LuaRules.GetIconTypes()
-	end
 	Spring.SetDrawSelectionInfo(false)    -- disables springs default display of selected units count
 	Spring.SendCommands("tooltip 0")
 
@@ -956,7 +954,7 @@ local function drawUnitInfo()
 			0.03,
 			nil, nil,
 			"#" .. displayUnitDefID,
-			((unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType] or nil),
+			(unitDefInfo[displayUnitDefID].icontype and ':l:' .. unitDefInfo[displayUnitDefID].icontype or nil),
 			groups[unitGroup[displayUnitDefID]],
 			{unitDefInfo[displayUnitDefID].metalCost, unitDefInfo[displayUnitDefID].energyCost}
 		)
@@ -1173,7 +1171,7 @@ local function drawUnitInfo()
 						0.1,
 						nil, disabled and 0 or nil,
 						"#"..uDefID,
-						((unitDefInfo[uDefID].iconType and iconTypesMap[unitDefInfo[uDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[uDefID].iconType] or nil),
+						(unitDefInfo[uDefID].icontype and ':l:' .. unitDefInfo[uDefID].icontype or nil),
 						groups[unitGroup[uDefID]],
 						{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
 					)
@@ -1222,7 +1220,7 @@ local function drawUnitInfo()
 							0.1,
 							nil, nil,
 							"#"..uDefID,
-							((unitDefInfo[uDefID].iconType and iconTypesMap[unitDefInfo[uDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[uDefID].iconType] or nil),
+							(unitDefInfo[uDefID].icontype and ':l:' .. unitDefInfo[uDefID].icontype or nil),
 							groups[unitGroup[uDefID]],
 							{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
 						)

@@ -2543,6 +2543,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-medium-ok",
 		BaseSoundWeaponType = "plasma-medium",
 	},
+	legfloat = {
+		BaseSoundSelectType = "cor-tnk-medium-amph-sel",
+		BaseSoundMovementType = "cor-tnk-medium-amph-ok",
+		BaseSoundWeaponType = "plasma-large",
+	},
 	-- LEGION T3 VEHICLES
 	
 	legjugglite = {

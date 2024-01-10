@@ -17,8 +17,24 @@ function widget:GetInfo()
 	}
 end
 
+
+local startUnits = { UnitDefNames.armcom.id, UnitDefNames.corcom.id }
+if Spring.GetModOptions().experimentallegionfaction then
+	startUnits[#startUnits+1] = UnitDefNames.legcom.id
+end
+local startBuildOptions = {}
+for i, uDefID in pairs(startUnits) do
+	startBuildOptions[#startBuildOptions+1] = uDefID
+	for u, buildoptionDefID in pairs(UnitDefs[uDefID].buildOptions) do
+		startBuildOptions[#startBuildOptions+1] = buildoptionDefID
+	end
+end
+startUnits = nil
+
+
 include("keysym.h.lua")
 VFS.Include("luarules/configs/customcmds.h.lua")
+
 
 SYMKEYS = table.invert(KEYSYMS)
 
@@ -30,8 +46,6 @@ local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 
 local prevHoveredCellID, hoverDlist, hoverUdefID, hoverCellSelected
 local prevQueueNr, prevB, prevB3
-
-local cachedUnitIcons
 
 local BUILDCAT_ECONOMY = "Economy"
 local BUILDCAT_COMBAT = "Combat"
@@ -115,7 +129,7 @@ local hoverCellZoom = 0.1 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
-local bgpadding, iconMargin, activeAreaMargin, iconTypesMap
+local bgpadding, iconMargin, activeAreaMargin
 local dlistGuishader, dlistGuishaderBuilders, dlistBuildmenuBg, dlistBuildmenu, font2
 local doUpdate, doUpdateClock, ordermenuHeight, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
@@ -211,6 +225,28 @@ local isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
+
+local unitName = {}
+local unitBuildOptions = {}
+local unitMetal_extractor = {}
+local unitTranslatedHumanName = {}
+local unitTranslatedTooltip = {}
+local iconTypes = {}
+local orgIconTypes = VFS.Include("gamedata/icontypes.lua")
+for udid, ud in pairs(UnitDefs) do
+	unitName[udid] = ud.name
+	unitBuildOptions[udid] = ud.buildOptions
+	unitTranslatedHumanName[udid] = ud.translatedHumanName
+	unitTranslatedTooltip[udid] = ud.translatedTooltip
+	if ud.customParams.metal_extractor then
+		unitMetal_extractor[udid] = ud.customParams.metal_extractor
+	end
+	if ud.iconType and orgIconTypes[ud.iconType] and orgIconTypes[ud.iconType].bitmap then
+		iconTypes[ud.name] = orgIconTypes[ud.iconType].bitmap
+	end
+end
+orgIconTypes = nil
+
 
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -311,7 +347,7 @@ local function RefreshCommands()
 			end
 		else
 			categories = Cfgs.buildCategories
-			local buildOptions = UnitDefs[activeBuilder].buildOptions
+			local buildOptions = unitBuildOptions[activeBuilder]
 			if isPregame and units.unbaStartBuildoptions then
 				buildOptions = units.unbaStartBuildoptions
 			end
@@ -321,6 +357,7 @@ local function RefreshCommands()
 
 	gridOptsCount = tablelength(gridOpts)
 end
+
 
 local function getActionHotkey(action)
 	local key
@@ -525,14 +562,11 @@ local function enqueueUnit(uDefID, opts)
 end
 
 local function selectBuilding(uDefID)
-	local uDef = UnitDefs[-uDefID]
-	local isRepeatMex = uDef.customParams.metal_extractor and uDef.name == activeCmd
+	local isRepeatMex = unitMetal_extractor[-uDefID] and unitName[-uDefID] == activeCmd
 	local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)
-
 	if isRepeatMex then
 		WG['areamex'].setAreaMexType(uDefID)
 	end
-
 	Spring.SetActiveCommand(cmd, 1, true, false, Spring.GetModKeyState())
 end
 
@@ -729,11 +763,6 @@ function widget:Initialize()
 
 	ui_opacity = WG.FlowUI.opacity
 	ui_scale = WG.FlowUI.scale
-
-	iconTypesMap = {}
-	if Script.LuaRules("GetIconTypes") then
-		iconTypesMap = Script.LuaRules.GetIconTypes()
-	end
 
 	-- Get our starting unit
 	if isPregame then
@@ -1210,12 +1239,8 @@ local function drawCell(rect, cmd, usedZoom, cellColor, disabled)
 		nil,
 		disabled and 0 or nil,
 		"#" .. uid,
-		showRadarIcon
-				and ((units.unitIconType[uid] and iconTypesMap[units.unitIconType[uid]]) and ":l" .. (disabled and "t0.3,0.3,0.3" or "") .. ":" .. iconTypesMap[units.unitIconType[uid]] or nil)
-			or nil,
-		showIcon
-				and (groups[units.unitGroup[uid]] and ":l" .. (disabled and "t0.3,0.3,0.3:" or ":") .. groups[units.unitGroup[uid]] or nil)
-			or nil,
+		showRadarIcon and ((units.unitIconType[uid] and iconTypes[units.unitIconType[uid]]) and ":l" .. (disabled and "t0.3,0.3,0.3" or "") .. ":" .. iconTypes[units.unitIconType[uid]] or nil) or nil,
+		showIcon and (groups[units.unitGroup[uid]] and ":l" .. (disabled and "t0.3,0.3,0.3:" or ":") .. groups[units.unitGroup[uid]] or nil) or nil,
 		{ units.unitMetalCost[uid], units.unitEnergyCost[uid] },
 		tonumber(cmd.params[1])
 	)
@@ -1689,28 +1714,6 @@ local function drawBuildMenu()
 	font2:End()
 end
 
--- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
-local function cacheUnitIcons()
-	local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalextraunits)
-	local excludeRaptors = not Spring.Utilities.Gametype.IsRaptors()
-	gl.Translate(-vsx, 0, 0)
-	gl.Color(1, 1, 1, 0.001)
-	for id, unit in pairs(UnitDefs) do
-		if not excludeScavs or not string.find(unit.name, "_scav") then
-			if not excludeRaptors or not string.find(unit.name, "raptor") then
-				gl.Texture("#" .. id)
-				gl.TexRect(-1, -1, 0, 0)
-				if units.unitIconType[id] and iconTypesMap[units.unitIconType[id]] then
-					gl.Texture(":l:" .. iconTypesMap[units.unitIconType[id]])
-					gl.TexRect(-1, -1, 0, 0)
-				end
-			end
-		end
-	end
-	gl.Color(1, 1, 1, 1)
-	gl.Translate(vsx, 0, 0)
-end
-
 local function drawBuildProgress()
 	if activeBuilderID then
 		local unitBuildID = spGetUnitIsBuilding(activeBuilderID)
@@ -1737,6 +1740,7 @@ local function drawBuildProgress()
 		end
 	end
 end
+
 
 
 local function handleButtonHover()
@@ -1769,16 +1773,16 @@ local function handleButtonHover()
 							local textColor = "\255\215\255\215"
 							if units.unitRestricted[uDefID] then
 								text = Spring.I18N("ui.buildMenu.disabled", {
-									unit = UnitDefs[uDefID].translatedHumanName,
+									unit = unitTranslatedHumanName[uDefID],
 									textColor = textColor,
 									warnColor = "\255\166\166\166",
 								})
 							else
-								text = UnitDefs[uDefID].translatedHumanName
+								text = unitTranslatedHumanName[uDefID]
 							end
 							WG["tooltip"].ShowTooltip(
 								"buildmenu",
-								"\255\240\240\240" .. UnitDefs[uDefID].translatedTooltip,
+								"\255\240\240\240" .. unitTranslatedTooltip[uDefID],
 								nil,
 								nil,
 								text
@@ -1873,8 +1877,7 @@ local function handleButtonHover()
 							index = index + 1
 							if index == i then
 								if WG["tooltip"] then
-									name = UnitDefs[unitDefID].translatedHumanName
-									WG["tooltip"].ShowTooltip("buildmenu", "\255\240\240\240" .. name)
+									WG["tooltip"].ShowTooltip("buildmenu", "\255\240\240\240" .. unitTranslatedHumanName[unitDefID])
 								end
 							end
 						end
@@ -2008,11 +2011,6 @@ local function handleButtonHover()
 end
 
 function widget:DrawScreen()
-	if (not cachedUnitIcons) and Spring.GetGameFrame() == 0 then
-		cachedUnitIcons = true
-		cacheUnitIcons()
-	end
-
 	if WG["buildmenu"] then
 		WG["buildmenu"].hoverID = nil
 	end
@@ -2176,7 +2174,7 @@ function widget:MousePress(x, y, button)
 				for cellRectID, cellRect in pairs(cellRects) do
 					if
 						cellcmds[cellRectID].id
-						and UnitDefs[-cellcmds[cellRectID].id].translatedHumanName
+						and unitTranslatedHumanName[-cellcmds[cellRectID].id]
 						and cellRect:contains(x, y)
 						and not units.unitRestricted[-cellcmds[cellRectID].id]
 					then

@@ -507,7 +507,9 @@
 			"windStrength": "Windgeschwindigkeit",
 			"waterDamage": "Wasserschaden ",
 			"raptorOptions": "Raptoreinstellungen",
-			"modOptions": "Modeinstellungen"
+			"modOptions": "Modeinstellungen",
+			"reclaimableMetal": "Gewinnbares Metall",
+			"reclaimableEnergy": "Gewinnbare Energie"
 		},
 		"raptors": {
 			"firstWave1": "Die Raptoren sind eingetroffen!",

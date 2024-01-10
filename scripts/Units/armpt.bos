@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flarel, flarer, flareaa, turretaa, ground, base, turretl, turretr;
+piece  flarel, flarer, flareaa, turretaa, ground, base, turretl, turretr, radar, blink;
 
 static-var  gun_1, Static_Var_2, restore_delay, oldHead;
 
@@ -30,6 +30,17 @@ SetDirection(heading)
 	oldHead = heading;
 }
 
+Lights()
+{
+	while( TRUE )
+	{
+		emit-sfx 1024 + 1 from blink;
+		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
+}
+
 RockOnWaves()
 {
 	var rockDir, rockAng, rockSpeed;
@@ -49,6 +60,17 @@ RockOnWaves()
 	}
 }
 
+Go()
+{
+	spin radar around y-axis speed <-50.043956> accelerate <2>;
+	return (0);
+}
+
+Stop()
+{
+	spin radar around y-axis speed <0.000000>;
+	return (0);
+}
 
 Create()
 {
@@ -56,7 +78,7 @@ Create()
 	hide flareaa;
 	hide flarer;
 	hide ground;
-
+	hide blink;
 	gun_1 = flarel;
 	Static_Var_2 = 1;
 	restore_delay = 3000;
@@ -65,6 +87,17 @@ Create()
 		sleep 500;
 	}
 	start-script RockOnWaves();
+	start-script Lights();
+}
+
+Activate()
+{
+	start-script Go();
+}
+
+Deactivate()
+{
+	start-script Stop();
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -138,7 +171,7 @@ AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
-	move turretaa to y-axis [4] speed [16];
+	move turretaa to y-axis [2] speed [16];
 	turn turretaa to y-axis heading speed <300>;
 	wait-for-turn turretaa around y-axis;
 	start-script RestoreAfterDelay();
