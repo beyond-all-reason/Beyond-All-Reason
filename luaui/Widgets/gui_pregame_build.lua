@@ -428,7 +428,7 @@ function widget:GameFrame(n)
 	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
 	if #buildQueue == 0 then
 		widgetHandler:RemoveWidgetCallIn('GameFrame', self)
-		widgetHandler:RemoveWidget()
+		widgetHandler:RemoveWidget(self)
 		return
 	end
 
