@@ -503,7 +503,7 @@
 			"endVote": "Fin du vote",
 			"cancel": "ESC",
 			"votecancelled": "Vote Annulé",
-			"votepassed": "Vote Passé",
+			"votepassed": "Vote Réussi",
 			"votefailed": "Échec du vote"
 		},
 		"gameInfo": {
