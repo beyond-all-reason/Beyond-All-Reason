@@ -98,7 +98,7 @@ end
 
 
 function widget:Update(dt)
-	if(selectedSpot) then
+	if(selectedSpot or selectedPos) then
 		-- we want to do this every frame to avoid cursor flicker. Rest of work can be on a timer
 		Spring.SetMouseCursor('upgmex')
 	end
@@ -240,26 +240,24 @@ function widget:Update(dt)
 end
 
 
-function widget:CommandNotify(id, params, options)
-	if not buildCmd then
-		return
-	end
-	local isMove = (id == CMD_MOVE)
-	local isGuard = (id == CMD_GUARD)
-	local isReclaim = (id == CMD_RECLAIM)
-	if not (isMove or isGuard or isReclaim) or (isReclaim and params[2]) then
+function widget:MousePress(x, y, button)
+	if not buildCmd or not buildCmd[1] then
 		return
 	end
 
-	if selectedMex then
-		local cmd = WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, options.shift)
-		return cmd
-	end
-	if selectedGeo then
-		local cmd = WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, options.shift)
-		return cmd
+	if (button == 3) then
+		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		if selectedMex then
+			Spring.Echo("applying mex build command")
+			return WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
+
+		end
+		if selectedGeo then
+			return WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, shift)
+		end
 	end
 end
+
 
 function widget:Shutdown()
 	clearGhostBuild()

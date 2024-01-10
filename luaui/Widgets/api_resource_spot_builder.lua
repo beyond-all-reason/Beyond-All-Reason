@@ -250,8 +250,10 @@ local function sortBuilders(units, constructorIds, buildingId, shift)
 			for _, buildable in pairs(constructor.building) do
 				if -buildable == buildingId then -- assume that it's a valid extractor based on previous steps
 					mainBuilders[#mainBuilders + 1] = id
+					break
 				else
 					secondaryBuilders[#secondaryBuilders + 1] = id
+					break
 				end
 			end
 		end
@@ -285,13 +287,15 @@ local function sortBuilders(units, constructorIds, buildingId, shift)
 	for i, uid in pairs(secondaryBuilders) do
 		local mainBuilderId = mainBuilders[index]
 		if not shift then
-			spGiveOrderToUnit(uid, CMD_STOP, {}, CMD_OPT_RIGHT)
+			spGiveOrderToUnit(uid, CMD_STOP, {}, { })
 			spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { "shift" })
+			index = index + 1
 		end
-		if not hasExistingGuardOrder(uid) then
+		if shift and not hasExistingGuardOrder(uid) then
 			spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { "shift" })
+			index = index + 1
 		end
-		index = index + 1
+
 		if index > #mainBuilders then index = 1 end
 	end
 

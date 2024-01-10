@@ -173,20 +173,18 @@ function widget:Update()
 	end
 end
 
--- Apply build command
-function widget:MousePress(x, y, button)
 
+function widget:CommandNotify(id, params, options)
 	if isPregame then
 		return
 	end
 
-	if button == 1 and buildCmd and buildCmd[1] then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	if buildCmd and buildCmd[1] then
 		if selectedMex then
-			return WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
+			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, options.shift)
 		end
 		if selectedGeo then
-			return WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, shift)
+			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, options.shift)
 		end
 	end
 end
