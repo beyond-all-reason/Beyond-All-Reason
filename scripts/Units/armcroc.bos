@@ -3,12 +3,13 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret, barrel, flare, sleeve, head, tail;
+piece  base, turret, barrel, flare, sleeve, head, tail, aflare, aturret, abarrel, launcher, asleeve;
 
-static-var  restore_delay, Static_Var_2, bMoving;
+static-var  restore_delay, Static_Var_2, bMoving, gun_2;
 
 // Signal definitions
 #define SIG_AIM				2
+#define SIG_AIM2			4
 
 
 
@@ -21,7 +22,6 @@ RockUnit(anglex, anglez)
 	turn base to z-axis <0.000000> speed <20.000000>;
 	turn base to x-axis <0.000000> speed <20.000000>;
 	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
 }
 
 
@@ -39,7 +39,7 @@ EmitSFX()
 	{
 		if( bMoving )
 		{
-			if( Static_Var_2 == 3 )
+			if( Static_Var_2 == 3 )//does ... anything ever trip this?
 			{
 				emit-sfx 259 from base;
 			}
@@ -52,6 +52,11 @@ Create()
 {
 	hide flare;
 	hide flare;
+	hide aflare;
+	hide aflare;
+	
+//	turn aturret to y-axis <-180> speed <500>;
+	
 	Static_Var_2 = 4;
 	bMoving = FALSE;
 	restore_delay = 3000;
@@ -73,6 +78,19 @@ ExecuteRestoreAfterDelay()
 	turn sleeve to x-axis <0.000000> speed <30.000000>;
 	move barrel to z-axis [-4.000000] speed [12.000000];
 	move turret to y-axis [0] speed [8];
+	
+	//turn launcher to x-axis <0> speed <25.00000>;
+	//spin aturret around y-axis speed <25.0>;
+	//move aturret to y-axis [18.5] speed [100];
+	//move launcher to y-axis [0] speed [100];
+
+	turn launcher to x-axis <0.000000> speed <100.000000>;
+	turn aturret to y-axis <0> speed <70>;
+	wait-for-turn aturret around y-axis;
+	wait-for-turn launcher around x-axis;
+	move aturret to y-axis [0] speed [70];
+	move launcher to y-axis [0] speed [70];
+	
 }
 SetStunned(State)
 {
@@ -129,6 +147,70 @@ AimFromPrimary(piecenum)
 {
 	piecenum = turret;
 }
+
+
+
+
+
+
+
+
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM2;
+	set-signal-mask SIG_AIM2;
+	
+	move aturret to y-axis [15] speed [100];
+	move launcher to y-axis [4.5] speed [100];
+	turn launcher to x-axis <90.000000> speed <200.000000>;
+	
+	if( gun_2 == 1 )
+	{
+		turn asleeve to y-axis <0.000000> speed <400.000000>;
+	}
+	if( gun_2 == 2 )
+	{
+		turn asleeve to y-axis <120.027473> speed <400.000000>;
+	}
+	if( gun_2 == 3 )
+	{
+		turn asleeve to y-axis <-120.027473> speed <400.000000>;
+	}
+	turn aturret to y-axis <180> + heading speed <450.000000>;
+	turn launcher to x-axis <90.000000> + pitch speed <450.000000>;
+	wait-for-turn asleeve around z-axis;
+	wait-for-turn aturret around y-axis;
+	wait-for-turn launcher around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireSecondary()
+{
+	gun_2 = aflare;//why would it ever not be this?
+	++gun_2;
+	if( gun_2 == 4 )
+	{
+		gun_2 = aflare;
+	}
+	return (0);
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = aturret;
+	return (0);
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = aflare;
+	return (0);
+}
+
+
+
 
 SweetSpot(piecenum)
 {
