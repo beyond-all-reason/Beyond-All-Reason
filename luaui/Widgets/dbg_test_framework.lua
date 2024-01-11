@@ -771,7 +771,7 @@ function widget:GameFrame(frame)
 end
 
 function widget:Update(dt)
-	step()
+	--step()
 end
 
 function widget:Initialize()
