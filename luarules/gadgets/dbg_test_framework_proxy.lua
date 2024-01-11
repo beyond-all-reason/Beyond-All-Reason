@@ -2,7 +2,6 @@ function gadget:GetInfo()
 	return {
 		name = "Test Framework Proxy",
 		desc = "Proxy for Synced commands",
-		author = "citrine",
 		date = "2023",
 		license = "GNU GPL, v2 or later",
 		version = 0,
