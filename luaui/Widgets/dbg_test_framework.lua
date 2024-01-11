@@ -13,6 +13,7 @@ end
 
 VFS.Include('luarules/testing/util.lua')
 local MochaJSONReporter = VFS.Include('luarules/testing/mochaJsonReporter.lua')
+local assertions = VFS.Include('luarules/testing/assertions.lua')
 
 local LOG_LEVEL = LOG.INFO
 
@@ -629,6 +630,11 @@ local function initializeTestEnvironment()
 
 		Json = Json,
 	}
+
+	for k, v in pairs(assertions) do
+		Spring.Echo(k)
+		env[k] = v
+	end
 
 	return env
 end
