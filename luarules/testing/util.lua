@@ -65,6 +65,9 @@ function formatTestResult(testResult)
 	if testResult.frames ~= nil then
 		s = s .. " [" .. testResult.frames .. " frames]"
 	end
+	if testResult.milliseconds ~= nil then
+		s = s .. " [" .. testResult.milliseconds .. " ms]"
+	end
 	if testResult.error ~= nil then
 		s = s .. " | " .. testResult.error
 	end

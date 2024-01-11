@@ -93,6 +93,10 @@ local function displayTestResults(results)
 	end
 end
 
+local gameTimer
+local runTestsTimer
+local testTimer
+
 local testRunState
 local activeTestState
 local resumeState
@@ -199,6 +203,8 @@ local function startTests(patterns)
 	testRunState.index = 1
 
 	log(LOG.NOTICE, "=====RUNNING TESTS=====")
+
+	runTestsTimer = Spring.GetTimer()
 end
 
 local function finishTest(result)
@@ -210,6 +216,8 @@ local function finishTest(result)
 	if activeTestState and activeTestState.startFrame and result.frames == nil then
 		result.frames = Spring.GetGameFrame() - activeTestState.startFrame
 	end
+
+	result.milliseconds = Spring.DiffTimers(Spring.GetTimer(), testTimer, true)
 
 	log(LOG.NOTICE, formatTestResult(result))
 
@@ -333,6 +341,16 @@ Test = {
 				return Spring.GetGameFrame() >= (startFrame + frames)
 			end,
 			frames + 5,
+			1
+		)
+	end,
+	waitTime = function(milliseconds, timeout)
+		local startTimer = Spring.GetTimer()
+		Test.waitUntil(
+			function()
+				return Spring.DiffTimers(Spring.GetTimer(), startTimer, true) >= milliseconds
+			end,
+			timeout or (milliseconds / 10 + 1), -- assume 100fps for timeout
 			1
 		)
 	end,
@@ -622,12 +640,24 @@ local function handleWait()
 	}
 end
 
+local function getGameTime()
+	return Spring.DiffTimers(Spring.GetTimer(), gameTimer, true)
+end
+
+local function getRunTestsTime()
+	return Spring.DiffTimers(Spring.GetTimer(), runTestsTimer, true)
+end
+
+local function getTestTime()
+	return Spring.DiffTimers(Spring.GetTimer(), testTimer, true)
+end
+
 local function step()
 	if not testRunState.runningTests then
 		return
 	end
 
-	log(LOG.DEBUG, "FRAME " .. frame .. " | " .. table.toString({
+	log(LOG.DEBUG, "FRAME " .. Spring.GetGameFrame() .. " | " .. getRunTestsTime() .. "ms | " .. table.toString({
 		resumeState = {
 			predicate = resumeState.predicate ~= nil and "present" or "nil",
 			timeoutLeft = resumeState.timeoutLeft,
@@ -675,6 +705,8 @@ local function step()
 			activeTestState.environment = envOrError
 			activeTestState.coroutine = coroutine.create(activeTestState.environment.__runTestInternal)
 			activeTestState.startFrame = Spring.GetGameFrame()
+
+			testTimer = Spring.GetTimer()
 		else
 			finishTest({
 				result = TEST_RESULT.ERROR,
@@ -751,6 +783,8 @@ function widget:Initialize()
 		nil,
 		"t"
 	)
+
+	gameTimer = Spring.GetTimer()
 end
 
 function widget:Shutdown()
