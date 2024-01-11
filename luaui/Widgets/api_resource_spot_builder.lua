@@ -247,14 +247,16 @@ local function sortBuilders(units, constructorIds, buildingId, shift)
 		local constructor = constructorIds[id]
 		if constructor then
 			-- iterate over constructor options to see if it can make the chosen extractor
+			local canBuild = false
 			for _, buildable in pairs(constructor.building) do
 				if -buildable == buildingId then -- assume that it's a valid extractor based on previous steps
 					mainBuilders[#mainBuilders + 1] = id
-					break
-				else
-					secondaryBuilders[#secondaryBuilders + 1] = id
+					canBuild = true
 					break
 				end
+			end
+			if not canBuild then
+				secondaryBuilders[#secondaryBuilders + 1] = id
 			end
 		end
 	end
