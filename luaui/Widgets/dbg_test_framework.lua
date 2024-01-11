@@ -350,7 +350,7 @@ Test = {
 			function()
 				return Spring.DiffTimers(Spring.GetTimer(), startTimer, true) >= milliseconds
 			end,
-			timeout or (milliseconds / 10 + 1), -- assume 100fps for timeout
+			timeout or (milliseconds * 30 / 1000 + 5),
 			1
 		)
 	end,
