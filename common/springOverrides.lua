@@ -21,6 +21,8 @@ if Spring.GetModOptions then
 		end
 	end
 
+	-- Prevent widgets from messing with each other's modoptions table.
+	-- The native engine call does this by returning a new table each time but that is wasteful
 	local readOnlyModOptions = {}
 	setmetatable(readOnlyModOptions, {
 		__index = modOptions,
