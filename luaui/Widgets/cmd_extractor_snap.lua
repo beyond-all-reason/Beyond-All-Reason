@@ -174,17 +174,20 @@ function widget:Update()
 end
 
 
-function widget:CommandNotify(id, params, options)
+function widget:MousePress(x, y, button)
 	if isPregame then
 		return
 	end
 
-	if buildCmd and buildCmd[1] then
+	if button == 1 and buildCmd and buildCmd[1] then
+		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if selectedMex then
-			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, options.shift)
+			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
 		end
 		if selectedGeo then
-			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, options.shift)
+			-- this still makes a nasty "cant build" sound when the cmd is invalid, probably will
+			-- until this gets implemented https://github.com/beyond-all-reason/spring/issues/1188
+			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, shift)
 		end
 	end
 end
