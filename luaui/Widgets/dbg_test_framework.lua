@@ -451,6 +451,7 @@ local function initializeTestEnvironment()
 
 		-- widgets
 		widgetHandler = widgetHandler,
+		WG = WG,
 
 		-- game
 		VFS = VFS,
