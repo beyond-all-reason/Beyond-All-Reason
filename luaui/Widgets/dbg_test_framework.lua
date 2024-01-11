@@ -622,7 +622,7 @@ local function handleWait()
 	}
 end
 
-function widget:GameFrame(frame)
+local function step()
 	if not testRunState.runningTests then
 		return
 	end
@@ -674,7 +674,7 @@ function widget:GameFrame(frame)
 			log(LOG.DEBUG, "Initializing test: " .. activeTestState.label)
 			activeTestState.environment = envOrError
 			activeTestState.coroutine = coroutine.create(activeTestState.environment.__runTestInternal)
-			activeTestState.startFrame = frame
+			activeTestState.startFrame = Spring.GetGameFrame()
 		else
 			finishTest({
 				result = TEST_RESULT.ERROR,
@@ -731,6 +731,14 @@ function widget:GameFrame(frame)
 			result = TEST_RESULT.PASS,
 		})
 	end
+end
+
+function widget:GameFrame(frame)
+	step()
+end
+
+function widget:Update(dt)
+	step()
 end
 
 function widget:Initialize()
