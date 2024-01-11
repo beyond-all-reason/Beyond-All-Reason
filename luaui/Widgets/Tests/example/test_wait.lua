@@ -29,4 +29,7 @@ function test()
 	Test.waitUntil(function()
 		return (Spring.GetGameFrame() - startFrame > 3)
 	end)
+
+	Spring.Echo("[test_wait] waiting 1000 ms")
+	Test.waitTime(1000)
 end

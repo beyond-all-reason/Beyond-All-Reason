@@ -129,7 +129,7 @@ local function resetResumeState()
 	log(LOG.DEBUG, "[resetResumeState]")
 	resumeState = {
 		predicate = nil,
-		timeoutLeft = nil,
+		timeoutExpireFrame = nil,
 	}
 end
 
@@ -139,7 +139,7 @@ local function resetReturnState()
 		waitingForReturnId = nil,
 		success = nil,
 		pendingValueOrError = nil,
-		timeoutLeft = nil,
+		timeoutExpireFrame = nil,
 	}
 end
 
@@ -254,7 +254,7 @@ local function createNestedProxy(prefix, path)
 				waitingForReturnId = returnId,
 				success = nil,
 				pendingValueOrError = nil,
-				timeoutLeft = RETURN_TIMEOUT,
+				timeoutExpireFrame = Spring.GetGameFrame() + RETURN_TIMEOUT,
 			}
 
 			log(LOG.DEBUG, "[createNestedProxy." .. prefix .. ".send] " .. table.toString({
@@ -288,7 +288,7 @@ SyncedRun = function(fn)
 		waitingForReturnId = returnId,
 		success = nil,
 		pendingValueOrError = nil,
-		timeoutLeft = RETURN_TIMEOUT,
+		timeoutExpireFrame = Spring.GetGameFrame() + RETURN_TIMEOUT,
 	}
 
 	log(LOG.DEBUG, "[SyncedRun.send] " .. table.toString({
@@ -318,7 +318,7 @@ Test = {
 
 		resumeState = {
 			predicate = f,
-			timeoutLeft = timeout,
+			timeoutExpireFrame = Spring.GetGameFrame() + timeout,
 		}
 
 		local resumeOk, resumeResult = coroutine.yield()
@@ -398,7 +398,7 @@ function widget:RecvLuaMsg(msg)
 				waitingForReturnId = nil,
 				success = returnOk,
 				pendingValueOrError = returnValueOrError,
-				timeoutLeft = nil,
+				timeoutExpireFrame = nil,
 			}
 		end
 	end
@@ -546,11 +546,8 @@ local function handleReturn()
 		}
 	end
 
-	if returnState.timeoutLeft ~= nil then
-		returnState.timeoutLeft = returnState.timeoutLeft - 1
-		log(LOG.DEBUG, "decrementing return timeout: " .. returnState.timeoutLeft)
-
-		if returnState.timeoutLeft == 0 then
+	if returnState.timeoutExpireFrame ~= nil then
+		if Spring.GetGameFrame() >= returnState.timeoutExpireFrame then
 			-- resume took too long, result is error
 			log(LOG.DEBUG, "[handleReturn] timeout -> error")
 			return {
@@ -597,9 +594,7 @@ local function handleWait()
 		}
 	end
 
-	resumeState.timeoutLeft = resumeState.timeoutLeft - 1
-
-	if resumeState.timeoutLeft == 0 then
+	if Spring.GetGameFrame() >= resumeState.timeoutExpireFrame then
 		-- resume took too long, result is error
 		log(LOG.DEBUG, "[handleWait] timeout -> error")
 		return {
@@ -661,7 +656,7 @@ local function step()
 	log(LOG.DEBUG, "FRAME " .. Spring.GetGameFrame() .. " | " .. getRunTestsTime() .. "ms | " .. table.toString({
 		resumeState = {
 			predicate = resumeState.predicate ~= nil and "present" or "nil",
-			timeoutLeft = resumeState.timeoutLeft,
+			timeoutExpireFrame = resumeState.timeoutExpireFrame,
 		},
 		returnState = returnState,
 		coroutineStatus = activeTestState.coroutine and coroutine.status(activeTestState.coroutine) or "nil",
@@ -771,7 +766,7 @@ function widget:GameFrame(frame)
 end
 
 function widget:Update(dt)
-	--step()
+	step()
 end
 
 function widget:Initialize()
