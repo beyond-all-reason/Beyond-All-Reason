@@ -31,7 +31,7 @@ local vsx, vsy = Spring.GetViewGeometry()
 -- load time armada+cortex = 0.7 seconds (excluding legion,raptors,scavs) tested with Tracy (pc: RTX4070 + 7800X3D)
 -- only loading armada/cortex start units buildoptions = 45ms, loading the rest gets delayed
 local delayedCachePos = 0
-local cacheIconsPerFrame = 25
+local cacheIconsPerFrame = 3
 local nonStartUnitCacheDelay = 6	-- apply delay or it will load during loadscreen still
 local function cacheUnitIcons()
     local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalextraunits)
