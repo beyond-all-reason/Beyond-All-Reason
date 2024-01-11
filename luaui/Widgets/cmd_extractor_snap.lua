@@ -185,9 +185,11 @@ function widget:MousePress(x, y, button)
 			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
 		end
 		if selectedGeo then
-			-- this still makes a nasty "cant build" sound when the cmd is invalid, probably will
-			-- until this gets implemented https://github.com/beyond-all-reason/spring/issues/1188
 			WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, geoConstructors, shift)
+			if(not shift and WG["gridmenu"] and WG["gridmenu"].clearCategory) then
+				WG["gridmenu"].clearCategory()
+			end
+			return true -- override other mouse presses and handle stuff manually
 		end
 	end
 end
