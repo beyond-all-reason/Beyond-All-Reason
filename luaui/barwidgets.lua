@@ -460,13 +460,45 @@ end
 
 
 
-function widgetHandler:LoadWidget(filename, fromZip)
+function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 	local basename = Basename(filename)
 	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets) and VFS.ZIP or VFS.RAW_FIRST)
 	if text == nil then
 		Spring.Echo('Failed to load: ' .. basename .. '  (missing file: ' .. filename .. ')')
 		return nil
 	end
+
+	if enableLocalsAccess then
+		-- enableLocalsAccess makes it so local variables within the widget can be accessed as if they were globals (as
+		-- opposed to not being able to access them at all from outside the widget). This is accomplished by loading the
+		-- widget with an additional code snippet to list all of the local variables, getting that result, and then
+		-- loading again with a code snippet that sets up external access to those variables.
+		localsAccess = localsAccess or VFS.Include('luarules/testing/localsAccess.lua')
+
+		local textWithLocalsDetector = text .. localsAccess.localsDetectorString
+
+		local chunk, err = loadstring(textWithLocalsDetector, filename)
+		if chunk == nil then
+			Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
+			return nil
+		end
+
+		local widget = widgetHandler:NewWidget()
+		setfenv(chunk, widget)
+		local success, valOrErr = pcall(chunk)
+		if not success then
+			Spring.Echo('Failed to load: ' .. basename .. '  (' .. valOrErr .. ')')
+			return nil
+		end
+		if err == false then
+			return nil -- widget asked for a silent death
+		end
+
+		local localsNames = valOrErr
+
+		text = text .. localsAccess.generateLocalsAccessStr(localsNames)
+	end
+
 	local chunk, err = loadstring(text, filename)
 	if chunk == nil then
 		Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
@@ -482,6 +514,10 @@ function widgetHandler:LoadWidget(filename, fromZip)
 	end
 	if err == false then
 		return nil -- widget asked for a silent death
+	end
+
+	if enableLocalsAccess then
+		setmetatable(widget, localsAccess.generateLocalsAccessMetatable(getmetatable(widget)))
 	end
 
 	-- user widgets may not access widgetHandler
@@ -939,19 +975,19 @@ function widgetHandler:IsWidgetKnown(name)
 	return self.knownWidgets[name] and true or false
 end
 
-function widgetHandler:EnableWidget(name)
+function widgetHandler:EnableWidget(name, enableLocalsAccess)
 	local ki = self.knownWidgets[name]
 	if not ki then
 		Spring.Echo("EnableWidget(), could not find widget: " .. tostring(name))
 		return false
 	end
 	if not ki.active then
-		Spring.Echo('Loading:  ' .. ki.filename)
+		Spring.Echo('Loading:  ' .. ki.filename .. (enableLocalsAccess and " (with locals)" or ""))
 		local order = widgetHandler.orderList[name]
 		if not order or order <= 0 then
 			self.orderList[name] = 1
 		end
-		local w = self:LoadWidget(ki.filename, ki.fromZip)
+		local w = self:LoadWidget(ki.filename, ki.fromZip, enableLocalsAccess)
 		if not w then
 			return false
 		end
