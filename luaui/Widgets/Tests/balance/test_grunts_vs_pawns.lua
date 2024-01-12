@@ -4,6 +4,8 @@ end
 
 function cleanup()
 	Test.clearMap()
+
+	Spring.SendCommands("setspeed " .. 1)
 end
 
 function test()
