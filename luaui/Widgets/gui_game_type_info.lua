@@ -85,6 +85,25 @@ function widget:Initialize()
 	widget:ViewResize()
 end
 
+function widget:LanguageChanged()
+	if Spring.GetModOptions().deathmode == "killall" then
+		messages[1].str = "\255\255\255\255" .. Spring.I18N('ui.gametypeInfo.victoryCondition') .. ": " .. Spring.I18N('ui.gametypeInfo.killAllUnits')
+	elseif Spring.GetModOptions().deathmode == "neverend" then
+		widgetHandler:RemoveWidget()
+		return
+	else
+		messages[1].str = "\255\255\255\255" .. Spring.I18N('ui.gametypeInfo.victoryCondition') .. ": " .. Spring.I18N('ui.gametypeInfo.killAllCommanders')
+	end
+
+	if Spring.GetModOptions().unba then
+		messages[2].str = "\255\255\222\111" .. Spring.I18N('ui.gametypeInfo.unbalancedCommanders')
+	end
+
+	if Spring.GetModOptions().deathmode == "own_com" then
+		messages[3].str = "\255\255\150\150" .. Spring.I18N('ui.gametypeInfo.owncomends')
+	end
+end
+
 local blink = false
 local function blink( on )
 	if on and not blink then
