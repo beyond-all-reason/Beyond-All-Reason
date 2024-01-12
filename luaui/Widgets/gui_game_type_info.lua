@@ -108,16 +108,17 @@ end
 
 local sec = 0
 function widget:Update(dt)
+	if messages[2] == nil then return end
+
 	sec = sec + dt
 	if sec > 1 then
 		sec = sec - 1
 	end
-	if messages[2] ~= nil then
-		if sec > 0.5 then
-			blink(true)
-		else
-			blink(false)
-		end
+	
+	if sec > 0.5 then
+		blink(true)
+	else
+		blink(false)
 	end
 end
 
