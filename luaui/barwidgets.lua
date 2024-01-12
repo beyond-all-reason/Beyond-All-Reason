@@ -438,19 +438,19 @@ end
 function widgetHandler:AddSpadsMessage(contents)
 	-- The canonical, agreed format is the following:
 	-- This must be called from an unsynced context, cause it needs playername and playerid and stuff
-	
+
 	-- The game sends a lua message, which should be base64'd to prevent wierd character bullshit:
-	-- Lua Message Format: 
+	-- Lua Message Format:
 		-- leetspeek luaspads:base64message
 		-- lu@$p@d$:ABCEDFGS==
-		-- Must contain, with triangle bracket literals <playername>[space]<contents>[space]<gameseconds> 
+		-- Must contain, with triangle bracket literals <playername>[space]<contents>[space]<gameseconds>
 	-- will get parsed by barmanager, and forwarded to autohostmonitor as:
-	-- match-event <UnnamedPlayer> <LuaUI\Widgets\test_unitshape_instancing.lua/czE3YEocdDJ8bLoO5++a2A==> <35> 
+	-- match-event <UnnamedPlayer> <LuaUI\Widgets\test_unitshape_instancing.lua/czE3YEocdDJ8bLoO5++a2A==> <35>
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID,false)
 	local gameSeconds = math.max(0,math.round(Spring.GetGameFrame() / 30))
-	if type(contents) == 'table' then 
-		contents = Json.encode(contents) 
+	if type(contents) == 'table' then
+		contents = Json.encode(contents)
 	end
 	local rawmessage = string.format("<%s> <%s> <%d>", myPlayerName, contents, gameSeconds)
 	local b64message = 'lu@$p@d$:' .. string.base64Encode(rawmessage)
@@ -487,7 +487,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
 	-- user widgets may not access widgetHandler
 	-- fixme: remove the or true part
 	if widget.GetInfo and widget:GetInfo().handler then
-		if fromZip or true then 
+		if fromZip or true then
 			widget.widgetHandler = self
 		else
 			Spring.Echo('Failed to load: ' .. basename .. '  (user widgets may not access widgetHandler)', fromZip, filename, allowuserwidgets)
@@ -554,9 +554,9 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		self.knownWidgets[name].active = false
 		return nil
 	end
-	if not fromZip then 
+	if not fromZip then
 		local md5 = VFS.CalculateHash(text,0)
-		if widgetHandler.widgetHashes[md5] == nil then 
+		if widgetHandler.widgetHashes[md5] == nil then
 			widgetHandler.widgetHashes[md5] = filename
 			-- Embed LuaRules message that we enabled a new user widget
 			--local success, err = pcall(widgetHandler.AddSpadsMessage, widgetHandler, tostring(filename) .. ":" .. tostring(md5))
@@ -565,7 +565,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
 			--end
 		end
 	end
-	
+
 	-- load the config data
 	local config = self.configData[name]
 	if widget.SetConfigData and config then
@@ -1581,7 +1581,7 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, a
 	return false
 end
 
-function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)	
+function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
 	tracy.ZoneBeginN("W:KeyRelease")
 	local textOwner = self.textOwner
 
@@ -1716,7 +1716,7 @@ function widgetHandler:ControllerAdded(deviceIndex)
 			return true
 		end
 	end
-	
+
 	tracy.ZoneEnd()
 	return false
 end
@@ -2196,7 +2196,7 @@ function widgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 end
 
 function widgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-	
+
 	tracy.ZoneBeginN("W:UnitCommand")
 	for _, w in ipairs(self.UnitCommandList) do
 		w:UnitCommand(unitID, unitDefID, unitTeam,
