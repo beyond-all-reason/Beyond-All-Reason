@@ -43,17 +43,17 @@ function widget:ViewResize()
 
 	font = WG['fonts'].getFont(nil, 1.5, 0.25, 1.25)
 
-	if( messages[1] ) then
+	if messages[1] then
 		messages[1].x = widgetScale * 60
 		messages[1].y = widgetScale * 15.5
 	end
 
-	if( messages[2] ) then
+	if messages[2] then
 		messages[2].x = 100 * widgetScale
 		messages[2].y = 15.5 * widgetScale
 	end
 
-	if( messages[3] ) then
+	if messages[3] then
 		messages[3].x = 40 * widgetScale
 		messages[3].y = 13 * widgetScale
 	end
@@ -85,8 +85,18 @@ function widget:Initialize()
 	widget:ViewResize()
 end
 
-local sec = 0
 local blink = false
+local function blink( on )
+	if on and not blink then
+		blink = true
+		messages[2].str = "\255\255\222\111" .. Spring.I18N('ui.gametypeInfo.unbalancedCommanders')
+	elseif blink and not on then
+		blink = false
+		messages[2].str = "\255\255\150\050" .. Spring.I18N('ui.gametypeInfo.unbalancedCommanders')
+	end
+end
+
+local sec = 0
 function widget:Update(dt)
 	sec = sec + dt
 	if sec > 1 then
@@ -94,9 +104,9 @@ function widget:Update(dt)
 	end
 	if messages[2] ~= nil then
 		if sec > 0.5 then
-			messages[2].str = "\255\255\222\111" .. Spring.I18N('ui.gametypeInfo.unbalancedCommanders')
+			blink(true)
 		else
-			messages[2].str = "\255\255\150\050" .. Spring.I18N('ui.gametypeInfo.unbalancedCommanders')
+			blink(false)
 		end
 	end
 end
