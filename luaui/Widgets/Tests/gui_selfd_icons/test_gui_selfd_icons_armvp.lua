@@ -1,13 +1,26 @@
+local widgetName = "Self-Destruct Icons"
+
 function setup()
 	Test.clearMap()
+
+	initialWidgetActive = widgetHandler.knownWidgets[widgetName].active
+	if initialWidgetActive then
+		widgetHandler:DisableWidget(widgetName)
+	end
+	widgetHandler:EnableWidget(widgetName, true)
 end
 
 function cleanup()
 	Test.clearMap()
+
+	widgetHandler:DisableWidget(widgetName)
+	if initialWidgetActive then
+		widgetHandler:EnableWidget(widgetName, false)
+	end
 end
 
 function test()
-	widget = widgetHandler:FindWidget("Self-Destruct Icons")
+	widget = widgetHandler:FindWidget(widgetName)
 	assert(widget)
 
 	local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
