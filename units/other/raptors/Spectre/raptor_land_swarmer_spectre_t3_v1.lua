@@ -1,9 +1,7 @@
 return {
 	raptor_land_swarmer_spectre_t3_v1 = {
 		maxacc = 0.345,
-		autoheal = 3,
-
-		maxdec = 0.345,
+		autoheal = 3,		maxdec = 0.345,
 		energycost = 79,
 		metalcost = 79,
 		builder = false,

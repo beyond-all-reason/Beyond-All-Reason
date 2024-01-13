@@ -128,9 +128,7 @@ return {
 			},
 		
 
-			edragon_missile = {
-			
-				areaofeffect = 16,
+			edragon_missile = {				areaofeffect = 16,
 				avoidfeature = false,
 				burnblow = true,
 				canattackground = false,

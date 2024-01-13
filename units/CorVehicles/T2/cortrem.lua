@@ -122,9 +122,7 @@ return {
 			},
 		},
 		weapondefs = {
-			tremor_focus_fire = {
-					
-				accuracy = 0, --accuracy controlled by the customparams sector_fire
+			tremor_focus_fire = {				accuracy = 0, --accuracy controlled by the customparams sector_fire
 				areaofeffect = 200,
 				avoidfeature = false,
 				cegtag = "arty-medium",

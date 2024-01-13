@@ -1,8 +1,6 @@
 return {
 	raptor_6legged_l = {
-		maxacc = 1.4375,
-
-		maxdec = 2.3,
+		maxacc = 1.4375,		maxdec = 2.3,
 		energycost = 5280,
 		metalcost = 99,
 		builder = false,

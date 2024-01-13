@@ -79,9 +79,7 @@ return {
 			select = {
 				[1] = "vtolcrac",
 			},
-		},
-	
-		weapondefs = {
+		},		weapondefs = {
 			armmg_weapon = {
 				accuracy = 7,
 				areaofeffect = 16,

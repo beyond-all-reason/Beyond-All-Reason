@@ -2,9 +2,7 @@ return {
 	raptor_matriarch_fire = {
 		maxacc = 0.1,
 		airsightdistance = 2400,
-		autoheal = 5,
-
-		maxdec = 0.1,
+		autoheal = 5,		maxdec = 0.1,
 		energycost = 2000000,
 		metalcost = 50000,
 		builddistance = 1000,

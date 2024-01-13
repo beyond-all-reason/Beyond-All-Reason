@@ -1,8 +1,6 @@
 return {
 	raptor_land_spiker_basic_t2_v1 = {
-		maxacc = 1.725,
-
-		maxdec = 1.4375,
+		maxacc = 1.725,		maxdec = 1.4375,
 		energycost = 174,
 		metalcost = 174,
 		builder = false,
