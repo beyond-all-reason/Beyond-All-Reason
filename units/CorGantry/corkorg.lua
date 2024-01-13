@@ -15,7 +15,6 @@ return {
 		explodeas = "korgExplosion",
 		footprintx = 5,
 		footprintz = 5,
-		icontype = "korgoth",
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 200000,

@@ -16,7 +16,6 @@ return {
 		explodeas = "mediumExplosionGeneric-uw",
 		footprintx = 3,
 		footprintz = 3,
-		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 900,
 		health = 3550, --2200,

@@ -19,7 +19,6 @@ return {
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
 		sightemitheight = 72,

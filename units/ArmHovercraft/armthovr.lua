@@ -17,7 +17,6 @@ return {
 		explodeas = "hugeExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
-		icontype = "armthovr",
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 5700,

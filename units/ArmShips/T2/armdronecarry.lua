@@ -23,7 +23,6 @@ return {
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
-		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 600,
 		sightemitheight = 56,

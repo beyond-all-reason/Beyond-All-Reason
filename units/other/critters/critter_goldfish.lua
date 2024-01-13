@@ -20,7 +20,6 @@ return {
 		explodeas = "TINYBUG_DEATH",
 		footprintx = 1,
 		footprintz = 1,
-		icontype = "blank",
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 1,

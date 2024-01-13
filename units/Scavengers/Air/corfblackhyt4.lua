@@ -22,7 +22,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		hoverattack = true,
-		icontype = "air",
 		idleautoheal = 25,
 		idletime = 1800,
 		sightemitheight = 64,

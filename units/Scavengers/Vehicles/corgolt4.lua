@@ -15,7 +15,6 @@ return {
 		explodeas = "bantha",
 		footprintx = 5,
 		footprintz = 5,
-		icontype = "scavboss",
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,

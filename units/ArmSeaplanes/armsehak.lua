@@ -16,7 +16,6 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		icontype = "air",
 		idleautoheal = 5,
 		idletime = 1800,
 		maxacc = 0.1325,

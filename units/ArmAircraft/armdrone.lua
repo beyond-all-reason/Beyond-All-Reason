@@ -16,7 +16,6 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		hoverattack = true,
-		icontype = "air",
 		idleautoheal = 0,
 		idletime = 1800,
 		health = 300,

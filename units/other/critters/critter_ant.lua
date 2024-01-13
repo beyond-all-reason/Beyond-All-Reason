@@ -22,7 +22,6 @@ return {
 		floater = true,
 		footprintx = 1,
 		footprintz = 1,
-		icontype = "blank",
 		idleautoheal = 0,
 		leavetracks = true,
 		maneuverleashlength = "640",

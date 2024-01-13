@@ -17,7 +17,6 @@ return {
 		energyupkeep = 5,
 		footprintx = 1,
 		footprintz = 1,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 300,
 		initcloaked = true,

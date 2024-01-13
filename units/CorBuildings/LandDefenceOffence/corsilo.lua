@@ -15,7 +15,6 @@ return {
 		explodeas = "nukeBuilding",
 		footprintx = 7,
 		footprintz = 7,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 6200,

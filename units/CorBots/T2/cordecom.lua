@@ -28,7 +28,6 @@ return {
 		footprintz = 2,
 		hidedamage = true,
    		holdsteady = true,
-		icontype = "corcommander",
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 4900,

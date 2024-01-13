@@ -19,7 +19,6 @@ return {
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
-		icontype = "sea",
 		loadingradius = 250,
 		health = 3200,
 		speed = 72.0,

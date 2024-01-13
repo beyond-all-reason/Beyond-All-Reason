@@ -26,7 +26,6 @@ return {
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 700,

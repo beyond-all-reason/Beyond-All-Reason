@@ -19,7 +19,6 @@ return {
 		explodeas = "fusionExplosion",
 		footprintx = 6,
 		footprintz = 6,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
 		sightemitheight = 72,
