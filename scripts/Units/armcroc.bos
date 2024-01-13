@@ -193,11 +193,6 @@ AimSecondary(heading, pitch)
 FireSecondary()
 {
 	gun_2 = aflare;//why would it ever not be this?
-	++gun_2;
-	if( gun_2 == 4 )
-	{
-		gun_2 = aflare;
-	}
 	return (0);
 }
 
