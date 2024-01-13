@@ -153,7 +153,7 @@ local function getLocals(i)
 		if n == nil then
 			break
 		end
-		result[n] = v
+		result[#result + 1] = { n, v }
 		j = j + 1
 	end
 	return result
@@ -167,7 +167,7 @@ local function getUpvalues(fn)
 		if n == nil then
 			break
 		end
-		result[n] = v
+		result[#result + 1] = { n, v }
 		j = j + 1
 	end
 	return result
@@ -222,8 +222,19 @@ function deserializeFunctionRun(serializedFn)
 		error(data)
 	end
 
+	local localsDictionary = {}
+
+	for i = 1, #data.locals do
+		local key = data.locals[i][1]
+		local value = data.locals[i][2]
+
+		if key ~= nil and value ~= nil then
+			localsDictionary[key] = value
+		end
+	end
+
 	local callableFunction = function()
-		local pcallOk, pcallResult = splitFirstElement(pack(pcall(data.fn, data.locals)))
+		local pcallOk, pcallResult = splitFirstElement(pack(pcall(data.fn, localsDictionary)))
 		return pcallOk, pcallResult
 	end
 
