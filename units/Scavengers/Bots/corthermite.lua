@@ -153,7 +153,9 @@ return {
 					default = 3000,
 					vtol = 750,
 				},
-			},			tmaw = {
+			},
+			
+			tmaw = {
 				accuracy = 700,
 				areaofeffect = 128,
 				avoidfeature = false,
@@ -198,7 +200,9 @@ return {
 					default = 30,
 					subs = 10,
 				}
-			},		},
+			},
+			
+		},
 		weapons = {
 			[1] = {
 				def = "THERMITE_LASER",

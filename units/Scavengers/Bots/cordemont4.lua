@@ -80,7 +80,9 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
-			},		},
+			},
+			
+		},
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:flamestreamxxl",
@@ -164,7 +166,6 @@ return {
 					subs = 20,
 				}--,customparams = { single_hit_multi = 'true' },
 			},
-
 				
 			dmaw = {
 				areaofeffect = 128,

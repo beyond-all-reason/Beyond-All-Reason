@@ -127,8 +127,9 @@ return {
 				}--,customparams = { single_hit_multi = 'true' },
 			},
 		
-
-			edragon_missile = {				areaofeffect = 16,
+			edragon_missile = {
+			
+				areaofeffect = 16,
 				avoidfeature = false,
 				burnblow = true,
 				canattackground = false,
@@ -175,8 +176,6 @@ return {
 					vtol = 400,
 				},			
 			},
-
-
 			krowbosslaser = {
 				areaofeffect = 8,
 				avoidfeature = false,
@@ -295,7 +294,6 @@ return {
 				maindir = "-1 -1 0",
                 maxangledif = 180,
 			},
-
 		},
 	},
 }

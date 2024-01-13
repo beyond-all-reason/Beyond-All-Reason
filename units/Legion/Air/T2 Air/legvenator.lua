@@ -39,7 +39,6 @@ return {
 		usesmoothmesh = true,
 		wingangle = 0.06363,
 		wingdrag = 0.21,
-
 		customparams = {
 			unitgroup = 'aa',
 			model_author = "Hornet",

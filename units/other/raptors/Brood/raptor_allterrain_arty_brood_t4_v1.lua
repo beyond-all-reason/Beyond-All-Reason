@@ -1,7 +1,6 @@
 return {
 	raptor_allterrain_arty_brood_t4_v1 = {
 		maxacc = 1.15,
-
 		maxdec = 9.2,
 		energycost = 12320,
 		metalcost = 396,

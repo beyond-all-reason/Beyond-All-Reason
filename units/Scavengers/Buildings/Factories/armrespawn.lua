@@ -1,5 +1,4 @@
 local range = Spring.GetModOptions().commanderbuildersrange
-
 return {
 	armrespawn = {
 		maxacc = 0,

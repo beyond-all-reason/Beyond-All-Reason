@@ -229,7 +229,6 @@ return {
 					bogus = 1,
 				},
 			},
-
 		},
 		weapons = {
 			[1] = {

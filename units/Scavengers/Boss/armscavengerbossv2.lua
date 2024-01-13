@@ -48,7 +48,6 @@ local difficultyParams = {
 		topTurretsDamage = 10000,
 	},
 }
-
 local unitsTable = {}
 for difficulty, stats in pairs(difficultyParams) do
 	unitsTable["armscavengerbossv2_" .. difficulty] = {
@@ -393,5 +392,4 @@ for difficulty, stats in pairs(difficultyParams) do
 		},
 	}
 end
-
 return unitsTable

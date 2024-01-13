@@ -2,7 +2,6 @@ return {
 	raptorh5 = {
 		maxacc = 0.92,
 		autoheal = 8,
-
 		maxdec = 0.92,
 		energycost = 5201,
 		metalcost = 251,

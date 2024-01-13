@@ -77,7 +77,9 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
-			},			heap = {
+			},
+			
+			heap = {
 				blocking = false,
 				category = "heaps",
 				collisionvolumescales = "35.0 4.0 6.0",
@@ -163,7 +165,9 @@ return {
 					shields = 1500,
 					subs = 500,
 				},
-			},			corgol_sidelaser = {
+			},
+			
+			corgol_sidelaser = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				beamtime = 0.16,

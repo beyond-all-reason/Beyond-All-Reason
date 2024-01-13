@@ -159,7 +159,6 @@ return {
 			-- 		vtol = 87,
 			-- 	},
 			-- },
-
 			machinegun                   = {
 				accuracy				 = 50,
 				AreaOfEffect             = 25,

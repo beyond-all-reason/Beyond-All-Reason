@@ -105,7 +105,6 @@ return {
 				[2] = "deathceg3",
 				[3] = "deathceg4",
 			},
-
 		},
 		sounds = {
 			activate = "mexrun2",

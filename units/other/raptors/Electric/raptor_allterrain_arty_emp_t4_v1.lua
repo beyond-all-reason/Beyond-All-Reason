@@ -1,7 +1,6 @@
 return {
 	raptor_allterrain_arty_emp_t4_v1 = {
 		maxacc = 0.115,
-
 		maxdec = 0.414,
 		energycost = 12320,
 		metalcost = 396,

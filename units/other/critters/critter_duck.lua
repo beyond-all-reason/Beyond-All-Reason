@@ -2,7 +2,6 @@ return {
 	critter_duck = {
 		maxacc = 0.12,
 		blocking = false,
-
 		maxdec = 1,
 		energycost = 1,
 		metalcost = 0,

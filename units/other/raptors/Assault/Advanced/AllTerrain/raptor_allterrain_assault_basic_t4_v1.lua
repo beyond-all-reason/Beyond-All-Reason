@@ -2,7 +2,8 @@ return {
 	raptor_allterrain_assault_basic_t4_v1 = {
 		maxacc = 0.414,
 		airsightdistance = 1800,
-		autoheal = 25,		maxdec = 0.46,
+		autoheal = 25,
+		maxdec = 0.46,
 		energycost = 3520,
 		metalcost = 302,
 		builder = false,

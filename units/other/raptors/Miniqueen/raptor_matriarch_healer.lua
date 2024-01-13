@@ -3,7 +3,6 @@ return {
 		maxacc = 0.1,
 		airsightdistance = 2400,
 		autoheal = 5,
-
 		maxdec = 0.1,
 		energycost = 2000000,
 		metalcost = 50000,
