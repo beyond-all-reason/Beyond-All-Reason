@@ -339,6 +339,7 @@ Test = {
 		end
 	end,
 	waitFrames = function(frames)
+		log(LOG.DEBUG, "[waitFrames] " .. frames)
 		local startFrame = Spring.GetGameFrame()
 		Test.waitUntil(
 			function()
@@ -347,8 +348,10 @@ Test = {
 			frames + 5,
 			1
 		)
+		log(LOG.DEBUG, "[waitFrames.done]")
 	end,
 	waitTime = function(milliseconds, timeout)
+		log(LOG.DEBUG, "[waitTime] " .. milliseconds)
 		local startTimer = Spring.GetTimer()
 		Test.waitUntil(
 			function()
@@ -357,8 +360,10 @@ Test = {
 			timeout or (milliseconds * 30 / 1000 + 5),
 			1
 		)
+		log(LOG.DEBUG, "[waitTime.done]")
 	end,
 	waitUntilCallin = function(name, predicate, timeout)
+		log(LOG.DEBUG, "[waitUntilCallin] " .. name)
 		Test.waitUntil(
 			function()
 				for _, args in ipairs(callinState.buffer[name] or {}) do
@@ -371,6 +376,7 @@ Test = {
 			timeout,
 			1
 		)
+		log(LOG.DEBUG, "[waitUntilCallin.done]")
 	end,
 	spy = function(...)
 		local spyCtrl = spy(...)
@@ -413,33 +419,50 @@ local function runTestInternal()
 
 	local setupOk, setupResult
 	if setup ~= nil then
+		log(LOG.DEBUG, "[runTestInternal.setup]")
 		setupOk, setupResult = yieldable_pcall(setup)
+		log(LOG.DEBUG, "[runTestInternal.setup.done] " .. table.toString({
+			setupOk, setupResult
+		}))
 	else
+		log(LOG.DEBUG, "[runTestInternal.setup.skipped]")
 		setupOk = true
 	end
 
 	local testOk, testResult
 	if setupOk then
+		log(LOG.DEBUG, "[runTestInternal.test]")
 		testOk, testResult = yieldable_pcall(test)
+		log(LOG.DEBUG, "[runTestInternal.test.done] " .. table.toString({
+			testOk, testResult
+		}))
 	end
 
 	-- always try to run cleanup
 	local cleanupOk, cleanupResult
 	if cleanup ~= nil then
+		log(LOG.DEBUG, "[runTestInternal.cleanup]")
 		cleanupOk, cleanupResult = yieldable_pcall(cleanup)
+		log(LOG.DEBUG, "[runTestInternal.cleanup.done] " .. table.toString({
+			cleanupOk, cleanupResult
+		}))
 	else
+		log(LOG.DEBUG, "[runTestInternal.cleanup.skipped]")
 		cleanupOk = true
 	end
 
 	if not cleanupOk then
+		log(LOG.DEBUG, "[runTestInternal.cleanup.error]")
 		error(cleanupResult, 2)
 	end
 
 	if not setupOk then
+		log(LOG.DEBUG, "[runTestInternal.setup.error]")
 		error(setupResult, 2)
 	end
 
 	if not testOk then
+		log(LOG.DEBUG, "[runTestInternal.test.error]")
 		error(testResult, 2)
 	end
 end
@@ -714,6 +737,10 @@ local function step()
 		)
 
 		local result, error = coroutine.resume(activeTestState.coroutine, coroutineOk, coroutineArgs)
+		log(LOG.DEBUG, "Unresuming test: " .. table.toString({
+			result = result,
+			error = error,
+		}))
 		if not result then
 			-- test fail
 			finishTest({
