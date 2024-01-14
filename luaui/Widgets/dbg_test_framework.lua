@@ -184,6 +184,11 @@ local function startTests(patterns)
 		patterns = patterns,
 	}))
 
+	if testRunState.runningTests then
+		log(LOG.WARNING, "Tests are already running!")
+		return
+	end
+
 	resetState()
 
 	log(LOG.NOTICE, "=====FINDING TESTS=====")
