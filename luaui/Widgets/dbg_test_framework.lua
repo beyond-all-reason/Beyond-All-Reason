@@ -541,10 +541,8 @@ local function loadTestFromFile(filename)
 end
 
 local function handleReturn()
-	log(LOG.DEBUG, "[handleReturn]")
 	if returnState.success == nil and returnState.waitingForReturnId == nil then
 		-- no return to handle, so just continue
-		log(LOG.DEBUG, "[handleReturn] nil success -> continue")
 		return {
 			status = "continue",
 		}
@@ -562,7 +560,6 @@ local function handleReturn()
 	end
 
 	if returnState.waitingForReturnId then
-		log(LOG.DEBUG, "[handleReturn] waiting for return -> wait")
 		return {
 			status = "wait"
 		}
@@ -590,9 +587,7 @@ local function handleReturn()
 end
 
 local function handleWait()
-	log(LOG.DEBUG, "[handleWait]")
 	if resumeState.predicate == nil then
-		log(LOG.DEBUG, "[handleWait] nil predicate -> continue")
 		return {
 			status = "continue",
 		}
@@ -610,7 +605,6 @@ local function handleWait()
 	local success, returnOrError = pcall(resumeState.predicate)
 	if success then
 		-- predicate ran successfully
-		log(LOG.DEBUG, "[handleWait] predicate success")
 		if returnOrError then
 			-- succeeded, we can resume
 			log(LOG.DEBUG, "[handleWait] predicate success + true -> continue")
@@ -620,7 +614,6 @@ local function handleWait()
 			}
 		else
 			-- failed, wait and try again next frame
-			log(LOG.DEBUG, "[handleWait] predicate success + false -> wait")
 			return {
 				status = "wait"
 			}
@@ -633,11 +626,6 @@ local function handleWait()
 			error = returnOrError
 		}
 	end
-
-	log(LOG.DEBUG, "[handleWait] fallthrough -> continue")
-	return {
-		status = "continue",
-	}
 end
 
 local function getGameTime()
@@ -657,16 +645,6 @@ local function step()
 		return
 	end
 
-	log(LOG.DEBUG, "FRAME " .. Spring.GetGameFrame() .. " | " .. getRunTestsTime() .. "ms | " .. table.toString({
-		resumeState = {
-			predicate = resumeState.predicate ~= nil and "present" or "nil",
-			timeoutExpireFrame = resumeState.timeoutExpireFrame,
-		},
-		returnState = returnState,
-		coroutineStatus = activeTestState.coroutine and coroutine.status(activeTestState.coroutine) or "nil",
-		callinState = callinState,
-	}))
-
 	--*result = {
 	--	status =
 	--		| "continue" (ok to continue to other checks and resuming test)
@@ -676,18 +654,12 @@ local function step()
 	--	returnValue = (status="continue" only, optional)
 	--}
 	local returnResult = handleReturn()
-	log(LOG.DEBUG, "[returnResult] " .. table.toString({
-		returnResult = returnResult,
-	}))
 
 	if returnResult.status == "wait" then
 		return
 	end
 
 	local waitResult = handleWait()
-	log(LOG.DEBUG, "[waitResult] " .. table.toString({
-		waitResult = waitResult,
-	}))
 
 	if waitResult.status == "wait" then
 		return
