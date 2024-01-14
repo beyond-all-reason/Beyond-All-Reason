@@ -112,6 +112,7 @@ local function checkBuilder(unitID)
 			if cmd.id < 0 then
 				local myCmd = {
 					id = -cmd.id,
+					teamid = spGetUnitTeam(unitID),
 					params = cmd.params
 				}
 				local id = math.abs(cmd.id)..'_'..floor(cmd.params[1])..'_'..floor(cmd.params[3])
