@@ -179,7 +179,7 @@ AimSecondary(heading, pitch)
 	}
 	turn aturret to y-axis <180> + heading speed <450.000000>;
 	total = <90.000000> + pitch;
-	if (total < 20000) {
+	if (total < <120>) {
 		total = <120>;
 	}
 	turn launcher to x-axis total speed <450.000000>;
