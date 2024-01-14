@@ -147,7 +147,6 @@ local function resetCallinState()
 	log(LOG.DEBUG, "[resetCallinState]")
 	callinState = {
 		buffer = {},
-		current = {},
 	}
 end
 
@@ -362,7 +361,7 @@ Test = {
 	waitUntilCallin = function(name, predicate, timeout)
 		Test.waitUntil(
 			function()
-				for _, args in ipairs(callinState.current[name]) do
+				for _, args in ipairs(callinState.buffer[name] or {}) do
 					if predicate == nil or predicate(unpack(args)) then
 						return true
 					end
@@ -716,11 +715,6 @@ local function step()
 			return
 		end
 	end
-
-	-- in between resumes, shift the callin buffer (so we get all calls that happened since we last resumed; this
-	-- includes callins that happened during a wait or synced call)
-	callinState.current = callinState.buffer
-	callinState.buffer = {}
 
 	-- resume the test
 	if coroutine.status(activeTestState.coroutine) == "suspended" then
