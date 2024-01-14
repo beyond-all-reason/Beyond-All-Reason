@@ -176,7 +176,7 @@ registerCallins(widget, function(name, args)
 	if callinState.buffer[name] == nil then
 		callinState.buffer[name] = {}
 	end
-	callinState.buffer[name][#(callinState.buffer) + 1] = args
+	callinState.buffer[name][#(callinState.buffer[name]) + 1] = args
 end)
 
 local function startTests(patterns)
