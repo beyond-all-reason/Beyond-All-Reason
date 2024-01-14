@@ -335,7 +335,7 @@ Test = {
 		resetResumeState()
 
 		if not resumeOk then
-			error(resumeResult, 3 + (errorOffset or 0))
+			error(resumeResult, 2 + (errorOffset or 0))
 		end
 	end,
 	waitFrames = function(frames)
