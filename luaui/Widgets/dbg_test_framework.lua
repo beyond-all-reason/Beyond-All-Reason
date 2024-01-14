@@ -18,7 +18,7 @@ local LOG_LEVEL = LOG.INFO
 local RETURN_TIMEOUT = 30
 local DEFAULT_WAIT_TIMEOUT = 5 * 30
 
-local SHOW_ALL_RESULTS = false
+local SHOW_ALL_RESULTS = true
 
 -- utils
 -- =====
