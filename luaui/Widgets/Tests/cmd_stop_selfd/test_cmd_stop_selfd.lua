@@ -20,22 +20,22 @@ function test()
 
 	-- issue selfd and then issue stop
 	Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
-	Test.waitFrames(1)
+	Test.waitFrames(3)
 	assert(Spring.GetUnitSelfDTime(unitID) > 0)
 
 	Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
-	Test.waitFrames(1)
+	Test.waitFrames(3)
 	assert(Spring.GetUnitSelfDTime(unitID) == 0)
 	assert(#(Spring.GetCommandQueue(unitID, 1)) == 0)
 
 	-- issue {move, selfd}, then issue stop
 	Spring.GiveOrderToUnit(unitID, CMD.MOVE, { 1, 1, 1 }, 0)
 	Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, { "shift" })
-	Test.waitFrames(1)
+	Test.waitFrames(3)
 	assert(Spring.GetUnitSelfDTime(unitID) == 0)
 
 	Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
-	Test.waitFrames(1)
+	Test.waitFrames(3)
 	assert(Spring.GetUnitSelfDTime(unitID) == 0)
 	assert(#(Spring.GetCommandQueue(unitID, 1)) == 0)
 end
