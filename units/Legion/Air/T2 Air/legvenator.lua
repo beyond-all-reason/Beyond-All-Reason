@@ -16,7 +16,6 @@ return {
 		explodeas = "smallExplosionGenericAir",
 		footprintx = 2,
 		footprintz = 2,
-		icontype = "air",
 		maxacc= 0.2075,
 		maxaileron = 0.01488,
 		maxbank = 0.7,
@@ -40,7 +39,6 @@ return {
 		usesmoothmesh = true,
 		wingangle = 0.06363,
 		wingdrag = 0.21,
-
 		customparams = {
 			unitgroup = 'aa',
 			model_author = "Hornet",

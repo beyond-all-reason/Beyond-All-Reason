@@ -18,7 +18,6 @@ return {
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 8,
 		footprintz = 6,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 3750,

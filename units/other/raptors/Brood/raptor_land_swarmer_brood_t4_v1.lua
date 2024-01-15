@@ -1,7 +1,6 @@
 return {
 	raptor_land_swarmer_brood_t4_v1 = {
 		maxacc = 0.644,
-
 		maxdec = 0.23,
 		energycost = 5201,
 		metalcost = 251,

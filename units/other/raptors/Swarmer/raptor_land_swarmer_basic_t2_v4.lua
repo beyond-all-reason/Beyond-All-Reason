@@ -1,7 +1,6 @@
 return {
 	raptor_land_swarmer_basic_t2_v4 = {
 		maxacc = 0.345,
-
 		maxdec = 0.345,
 		energycost = 53,
 		metalcost = 25,

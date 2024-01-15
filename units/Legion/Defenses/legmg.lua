@@ -18,7 +18,6 @@ return {
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 7500,

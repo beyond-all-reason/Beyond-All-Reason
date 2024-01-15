@@ -16,7 +16,6 @@ return {
 		explodeas = "largeexplosiongeneric-uw",
 		footprintx = 4,
 		footprintz = 4,
-		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 900,
 		health = 3900, --2450,

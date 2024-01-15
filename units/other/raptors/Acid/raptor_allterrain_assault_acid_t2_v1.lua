@@ -2,7 +2,6 @@ return {
 	raptor_allterrain_assault_acid_t2_v1 = {
 		maxacc = 0.414,
 		airsightdistance = 650,
-
 		maxdec = 0.46,
 		energycost = 3520,
 		metalcost = 152,

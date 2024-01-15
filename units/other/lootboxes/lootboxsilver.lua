@@ -26,7 +26,6 @@ return {
 		floater = true,
 		footprintx = 2,
 		footprintz = 2,
-		icontype = "lootbox",
 		idleautoheal = 10,
 		idletime = 1800,
 		levelground = false,
