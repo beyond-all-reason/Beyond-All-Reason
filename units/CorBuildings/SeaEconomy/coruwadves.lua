@@ -15,7 +15,6 @@ return {
 		explodeas = "advenergystorage",
 		footprintx = 5,
 		footprintz = 5,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 12700,

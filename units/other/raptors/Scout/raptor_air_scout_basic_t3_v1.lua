@@ -3,7 +3,6 @@ return {
 		acceleration = 2,
 		airhoverfactor = 0,
 		attackrunlength = 32,
-
 		maxdec = 0.4,
 		energycost = 50,
 		metalcost = 50,

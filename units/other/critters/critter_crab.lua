@@ -2,7 +2,6 @@ return {
 	critter_crab = {
 		maxacc = 0.1,
 		blocking = false,
-
 		maxdec = 0.01,
 		energycost = 1,
 		metalcost = 0,
@@ -22,7 +21,6 @@ return {
 		--floater = true,
 		footprintx = 1,
 		footprintz = 1,
-		icontype = "blank",
 		idleautoheal = 0,
 		leavetracks = false,
 		maneuverleashlength = "640",

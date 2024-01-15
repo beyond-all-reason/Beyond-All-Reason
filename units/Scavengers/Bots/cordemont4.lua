@@ -166,7 +166,6 @@ return {
 					subs = 20,
 				}--,customparams = { single_hit_multi = 'true' },
 			},
-
 				
 			dmaw = {
 				areaofeffect = 128,
