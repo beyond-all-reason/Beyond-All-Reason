@@ -368,40 +368,36 @@ function widgetHandler:Initialize()
 
 	local unsortedWidgets = {}
 
-	-- stuff the raw widgets into unsortedWidgets
-	if self.allowUserWidgets and allowuserwidgets then
-		local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.RAW)
-		for k, wf in ipairs(widgetFiles) do
-			GetWidgetInfo(wf, VFS.RAW)
-			local widget = self:LoadWidget(wf, false)
-			if widget and not zipOnly[widget.whInfo.name] then
-				table.insert(unsortedWidgets, widget)
-				Yield()
+	local function loadWidgetsInDir(dirname, vfsSetting)
+		local widgetFiles = VFS.DirList(dirname, "*.lua", vfsSetting, true)
+		local fromZip = (vfsSetting == VFS.ZIP or vfsSetting == VFS.MAP)
+
+		for _, filePath in ipairs(widgetFiles) do
+			if not (
+				-- Do not load recursively lua files in these folders:
+				string.find(filePath, '/[iI]ncludes?/') or
+				string.find(filePath, '/[sS]haders?/') or
+				string.find(filePath, '/_.-/') -- anything starting with an underscore
+			) then
+				GetWidgetInfo(filePath, vfsSetting)
+				local widget = self:LoadWidget(filePath, fromZip)
+
+				if widget and (fromZip or not zipOnly[widget.whInfo.name]) then
+					table.insert(unsortedWidgets, widget)
+					Yield()
+				end
+
 			end
 		end
 	end
 
-	-- stuff the zip widgets into unsortedWidgets
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.ZIP)
-	for k, wf in ipairs(widgetFiles) do
-		GetWidgetInfo(wf, VFS.ZIP)
-		local widget = self:LoadWidget(wf, true)
-		if widget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
-		end
+	-- stuff the raw widgets into unsortedWidgets
+	if self.allowUserWidgets and allowuserwidgets then
+		loadWidgetsInDir(WIDGET_DIRNAME, VFS.RAW)
 	end
 
-	-- stuff the map widgets into unsortedWidgets
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME_MAP, "*.lua", VFS.MAP)
-	for k, wf in ipairs(widgetFiles) do
-		GetWidgetInfo(wf, VFS.MAP)
-		local widget = self:LoadWidget(wf, true)
-		if widget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
-		end
-	end
+	loadWidgetsInDir(WIDGET_DIRNAME, VFS.ZIP)
+	loadWidgetsInDir(WIDGET_DIRNAME_MAP, VFS.MAP)
 
 	-- sort the widgets
 	table.sort(unsortedWidgets, function(w1, w2)
@@ -438,19 +434,19 @@ end
 function widgetHandler:AddSpadsMessage(contents)
 	-- The canonical, agreed format is the following:
 	-- This must be called from an unsynced context, cause it needs playername and playerid and stuff
-	
+
 	-- The game sends a lua message, which should be base64'd to prevent wierd character bullshit:
-	-- Lua Message Format: 
+	-- Lua Message Format:
 		-- leetspeek luaspads:base64message
 		-- lu@$p@d$:ABCEDFGS==
-		-- Must contain, with triangle bracket literals <playername>[space]<contents>[space]<gameseconds> 
+		-- Must contain, with triangle bracket literals <playername>[space]<contents>[space]<gameseconds>
 	-- will get parsed by barmanager, and forwarded to autohostmonitor as:
-	-- match-event <UnnamedPlayer> <LuaUI\Widgets\test_unitshape_instancing.lua/czE3YEocdDJ8bLoO5++a2A==> <35> 
+	-- match-event <UnnamedPlayer> <LuaUI\Widgets\test_unitshape_instancing.lua/czE3YEocdDJ8bLoO5++a2A==> <35>
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID,false)
 	local gameSeconds = math.max(0,math.round(Spring.GetGameFrame() / 30))
-	if type(contents) == 'table' then 
-		contents = Json.encode(contents) 
+	if type(contents) == 'table' then
+		contents = Json.encode(contents)
 	end
 	local rawmessage = string.format("<%s> <%s> <%d>", myPlayerName, contents, gameSeconds)
 	local b64message = 'lu@$p@d$:' .. string.base64Encode(rawmessage)
@@ -461,7 +457,7 @@ end
 
 
 function widgetHandler:LoadWidget(filename, fromZip)
-	local basename = Basename(filename)
+	local basename, path = Basename(filename)
 	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets) and VFS.ZIP or VFS.RAW_FIRST)
 	if text == nil then
 		Spring.Echo('Failed to load: ' .. basename .. '  (missing file: ' .. filename .. ')')
@@ -487,7 +483,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
 	-- user widgets may not access widgetHandler
 	-- fixme: remove the or true part
 	if widget.GetInfo and widget:GetInfo().handler then
-		if fromZip or true then 
+		if fromZip or true then
 			widget.widgetHandler = self
 		else
 			Spring.Echo('Failed to load: ' .. basename .. '  (user widgets may not access widgetHandler)', fromZip, filename, allowuserwidgets)
@@ -495,7 +491,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		end
 	end
 
-	self:FinalizeWidget(widget, filename, basename)
+	self:FinalizeWidget(widget, filename, basename, path)
 	local name = widget.whInfo.name
 	if basename == SELECTOR_BASENAME then
 		self.orderList[name] = 1  -- always load the widget selector
@@ -520,6 +516,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		knownInfo.author = widget.whInfo.author
 		knownInfo.basename = widget.whInfo.basename
 		knownInfo.filename = widget.whInfo.filename
+		knownInfo.path = widget.whInfo.path
 		knownInfo.fromZip = fromZip
 		self.knownWidgets[name] = knownInfo
 		self.knownCount = self.knownCount + 1
@@ -554,9 +551,9 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		self.knownWidgets[name].active = false
 		return nil
 	end
-	if not fromZip then 
+	if not fromZip then
 		local md5 = VFS.CalculateHash(text,0)
-		if widgetHandler.widgetHashes[md5] == nil then 
+		if widgetHandler.widgetHashes[md5] == nil then
 			widgetHandler.widgetHashes[md5] = filename
 			-- Embed LuaRules message that we enabled a new user widget
 			--local success, err = pcall(widgetHandler.AddSpadsMessage, widgetHandler, tostring(filename) .. ":" .. tostring(md5))
@@ -565,7 +562,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
 			--end
 		end
 	end
-	
+
 	-- load the config data
 	local config = self.configData[name]
 	if widget.SetConfigData and config then
@@ -672,11 +669,12 @@ function widgetHandler:NewWidget()
 	return widget
 end
 
-function widgetHandler:FinalizeWidget(widget, filename, basename)
+function widgetHandler:FinalizeWidget(widget, filename, basename, path)
 	local wi = {}
 
 	wi.filename = filename
 	wi.basename = basename
+	wi.path = path
 	if widget.GetInfo == nil then
 		wi.name = basename
 		wi.layer = 0
@@ -1575,7 +1573,7 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, a
 	return false
 end
 
-function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)	
+function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
 	tracy.ZoneBeginN("W:KeyRelease")
 	local textOwner = self.textOwner
 
@@ -1710,7 +1708,7 @@ function widgetHandler:ControllerAdded(deviceIndex)
 			return true
 		end
 	end
-	
+
 	tracy.ZoneEnd()
 	return false
 end
@@ -2190,7 +2188,7 @@ function widgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 end
 
 function widgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-	
+
 	tracy.ZoneBeginN("W:UnitCommand")
 	for _, w in ipairs(self.UnitCommandList) do
 		w:UnitCommand(unitID, unitDefID, unitTeam,
