@@ -7,14 +7,12 @@ local scenariodata = {
 	isnew 			= true,
 	imagepath		= "scenario023.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "Units will act automatically during the benchmark", -- This text will be drawn over image
-    summary         = [[Pathfinding benchmark.
-Amount of units at the end of testing depends of setting:
-1 unit spawn rate ~700 units
-3 unit spawn rate ~2000 units
-10 unit spawn rate ~7000 units
-15 unit spawn rate ~10000 units
-]],
-	briefing 		= [[Pathfinding benchmark. The average Sim, Draw and Update times are shown on screen. The game will automatically center the camera over the units, do not move the camera while the benchmark is running, and do not interact with the units. The game will return after printing the results to screen and infolog, and submitting them to the server.
+    summary         = [[Pathfinding benchmark.]],
+	briefing 		= [[Pathfinding benchmark. The average Sim, Draw and Update times are shown on screen. The game will automatically center the camera over the units, do not move the camera while the benchmark is running, and do not interact with the units. The game will return after printing the results to screen and infolog, and submitting them to the server. Amount of units at the end of testing depends of setting: 
+	1 unit spawn rate ~700 units; 
+	3 unit spawn rate ~2000 units; 
+	10 unit spawn rate ~7000 units; 
+	15 unit spawn rate ~10000 units
 		
 	A total of 2000 simulation frames are tested. 
 	
