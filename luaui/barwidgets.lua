@@ -377,7 +377,7 @@ function widgetHandler:Initialize()
 				-- Do not load recursively lua files in these folders:
 				string.find(filePath, '/[iI]ncludes?/') or
 				string.find(filePath, '/[sS]haders?/') or
-				string.find(filePath, '/_.-/') -- anything starting with an underscore
+				string.find(filePath, '/_.-/') -- any folder starting with an underscore
 			) then
 				GetWidgetInfo(filePath, vfsSetting)
 				local widget = self:LoadWidget(filePath, fromZip)
