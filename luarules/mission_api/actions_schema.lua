@@ -21,27 +21,29 @@ local actionTypes = {
 
 	-- Units
 	SpawnUnits                  = 400, --
-	SpawnConstruction           = 401,
-	DespawnUnits                = 402, --
-	SpawnWeapons                = 403,
-	SpawnEffects                = 404,
-	TransferUnits               = 405,
+	DespawnUnits                = 401, --
+	SpawnWeapons                = 402,
+	SpawnEffects                = 403,
+	TransferUnits               = 404,
+
+	-- SFX
+	SpawnExplosion              = 500, --
 
 	-- Map
-	RevealLOS                   = 500,
-	UnrevealLOS                 = 501,
-	AlterMapZones               = 502,
+	RevealLOS                   = 600,
+	UnrevealLOS                 = 601,
+	AlterMapZones               = 602,
 
 	-- Media
-	ControlCamera               = 600,
-	Pause                       = 601,
-	Unpause                     = 602,
-	PlayMedia                   = 603,
-	SendMessage                 = 604,
+	ControlCamera               = 700,
+	Pause                       = 701,
+	Unpause                     = 702,
+	PlayMedia                   = 703,
+	SendMessage                 = 704,
 
 	-- Win Condition
-	Victory                     = 700,
-	Defeat                      = 701,
+	Victory                     = 800,
+	Defeat                      = 801,
 }
 
 --============================================================--
@@ -115,26 +117,64 @@ local parameters = {
 			name = 'facing',
 			required = false,
 			type = 'direction'
+		},
+		[6] = {
+			name = 'construction',
+			required = false,
+			type = 'bool'
 		}
 	},
 
-	[actionTypes.SpawnConstruction] = { },
 	[actionTypes.DespawnUnits] = {
 		[1] = {
-			name = 'name',
+			name = 'unit',
 			required = true,
-			type = 'string',
+			type = 'unit',
 		},
 	 },
 	[actionTypes.SpawnWeapons] = {  },
 	[actionTypes.SpawnEffects] = {  },
-	[actionTypes.TransferUnits] = {  },
+	[actionTypes.TransferUnits] = { 
+		[1] = {
+			name = 'unit',
+			required = true,
+			type = 'unit'
+		},
+		[2] = {
+			name = 'newTeam',
+			required = true,
+			type = 'number'
+		},
+		[3] = {
+			name = 'given',
+			required = false,
+			type = 'bool'
+		}
+	 },
+
+	-- SFX
+	[actionTypes.SpawnExplosion] = { 
+		[1] = {
+			name = 'position',
+			required = true,
+			type = 'vec3'
+		},
+		[2] = {
+			name = 'direction',
+			required = true,
+			type = 'vec3'
+		},
+		[3] = {
+			name = 'params',
+			required = true,
+			type = 'table'
+		}
+	},
 
 	-- Map
 	[actionTypes.RevealLOS] = {  },
 	[actionTypes.UnrevealLOS] = {  },
 	[actionTypes.AlterMapZones] = {  },
-
 
 	-- Media
 	[actionTypes.ControlCamera] = {  },

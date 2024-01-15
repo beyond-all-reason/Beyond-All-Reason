@@ -6,6 +6,26 @@ local actionsDefs = VFS.Include('luarules/mission_api/actions_defs.lua')
 
 --============================================================--
 
+-- Utils
+
+--============================================================--
+
+local function GetUnitsFromUnit(unit)
+	if unit.team == nil then unit.team = Spring.ALL_UNITS end
+
+	if unit.type == actionsDefs.unitType.name then
+		return trackedUnits[unit.unit]
+	elseif unit.type == actionsDefs.unitType.unitID then
+		return { unit.unit }
+	elseif unit.type == actionsDefs.unitType.UnitDefID then
+		return Spring.GetTeamUnitsByDefs(unit.team, unit.unit)
+	elseif unit.type == actionsDefs.unitType.UnitDefName then
+		return Spring.GetTeamUnitsByDefs(unit.team, UnitDefNames[unit.unit])
+	end
+end
+
+--============================================================--
+
 -- Triggers
 
 --============================================================--
@@ -26,56 +46,9 @@ end
 
 --============================================================--
 
-local function IssueOrdersID(unitID, teamID, orders)
-	Spring.GiveOrderArrayToUnitArray({unitID}, orders)
-end
-
-----------------------------------------------------------------
-
-local function IssueOrdersName(name, teamID, orders)
-	local units = trackedUnits[name]
-	if type(units) == 'number' then
-		IssueOrdersID(units, orders)
-	elseif type(units) == 'table' then
-		for _, unitID in ipairs(units) do
-			IssueOrdersID(unitID, teamID, orders)
-		end
-	end
-end
-
-----------------------------------------------------------------
-
-local function IssueOrdersDefID(unitDefID, teamID, orders)
-	local units = Spring.GetTeamUnitsByDefs(teamID, unitDefID)
-
-	for _, unitID in ipairs(units) do
-		IssueOrdersID(unitID, orders)
-	end
-end
-
-----------------------------------------------------------------
-
-local function IssueOrdersDefName(unitDefName, teamID, orders)
-	local unitDefID = UnitDefNames[unitDefName]
-	if unitDefID then
-		IssueOrdersDefID(unitDefID, teamID, orders)
-	end
-end
-
-----------------------------------------------------------------
-
 local function IssueOrders(unit, orders)
-	if not unit.team then unit.team = Spring.ALL_UNITS end
-
-	if unit.type == actionsDefs.unitType.name then
-		IssueOrdersName(unit.unit, unit.team, orders)
-	elseif unit.type == actionsDefs.unitType.ID then
-		IssueOrdersID(unit.unit, unit.team, orders)
-	elseif unit.type == actionsDefs.unitType.unitDefID then
-		IssueOrdersDefID(unit.unit, unit.team, orders)
-	elseif unit.type == actionsDefs.unitType.unitDefName then
-		IssueOrdersDefName(unit.unit, unit.team, orders)
-	end
+	local units = GetUnitsFromUnit(unit)
+	Spring.GiveOrderArrayToUnitArray(units, orders)
 end
 
 --============================================================--
@@ -84,7 +57,7 @@ end
 
 --============================================================--
 
-local function SpawnUnits(name, unitDef, quantity, position, facing)
+local function SpawnUnits(name, unitDef, quantity, position, facing, construction)
 	if quantity == 0 then return end
 
 	position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
@@ -97,46 +70,46 @@ local function SpawnUnits(name, unitDef, quantity, position, facing)
 		unitId = UnitDefs[unitDef.unitDef].name
 	end
 
-	if quantity == 1 then
-		unitId = Spring.CreateUnit(unitDefName, position.x, position.y, position.z, facing, unitDef.team)
+	if not trackedUnits[name] then trackedUnits[name] = {} end
+
+	for i = 1, quantity do
+		unitId = Spring.CreateUnit(unitDefName, position.x, position.y, position.z, facing, unitDef.team, construction)
 
 		if unitId and name then
-			trackedUnits[name] = unitId
+			trackedUnits[name][#trackedUnits[name] + 1] = unitId
 			trackedUnits[unitId] = name
-		end
-	else
-		trackedUnits[name] = {}
-		for i = 1, quantity do
-			unitId = Spring.CreateUnit(unitDefName, position.x, position.y, position.z, facing, unitDef.team)
-
-			if unitId and name then
-				trackedUnits[name][#trackedUnits[name] + 1] = unitId
-				trackedUnits[unitId] = name
-			end
 		end
 	end
 end
 
 ----------------------------------------------------------------
 
-local function DespawnUnits(name)
-	if type(trackedUnits[name] == 'number') then
-		local unitId = trackedUnits[name]
+local function DespawnUnits(unit)
+	local units = GetUnitsFromUnit(unit)
 
-		if unitId then
-			trackedUnits[name] = nil
-			trackedUnits[unitId] = nil
-
-			Spring.DestroyUnit(unitId, false, true)
-		end
-	elseif type(trackedUnits[name] == 'table') then
-		for _, id in ipairs(trackedUnits[name]) do
-			Spring.DestroyUnit(id)
-			trackedUnits[id] = nil
-		end
-		trackedUnits[name] = nil
+	for _, id in ipairs(units) do
+		Spring.DestroyUnit(id)
 	end
-		
+end
+
+----------------------------------------------------------------
+
+local function TransferUnits(unit, newTeam, given)
+	local units = GetUnitsFromUnit(unit)
+
+	for _, id in ipairs(units) do
+		Spring.TransferUnit(id, newTeam, given)
+	end
+end
+
+--============================================================--
+
+-- SFX
+
+--============================================================--
+
+local function SpawnExplosion(position, direction, params)
+	SpawnExplosion(position[1], position[2], position[3], direction[1], direction[2], direction[3], params)
 end
 
 --============================================================--
@@ -164,6 +137,10 @@ return {
 	-- Units
 	['SpawnUnits'] = SpawnUnits,
 	['DespawnUnits'] = DespawnUnits,
+	['TransferUnits'] = TransferUnits,
+
+	-- SFX
+	['SpawnExplosion'] = SpawnExplosion,
 
 	-- Map
 
