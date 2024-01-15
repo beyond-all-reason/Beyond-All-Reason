@@ -27,6 +27,7 @@ local triggerTypes = {
 }
 
 local parameters = {
+	-- Time
 	[triggerTypes.TimeElapsed] = {
 		[1] = {
 			name = 'gameFrame',
@@ -39,7 +40,24 @@ local parameters = {
 			type = 'number'
 		},
 	},
-	[triggerTypes.UnitExists] = {  },
+	
+	[triggerTypes.UnitExists] = { 
+		[1] = {
+			name = 'unitType',
+			required = true,
+			type = 'number' -- actions_defs.unitType
+		},
+		[2] = {
+			name = 'unit',
+			required = true,
+			type = 'unit'
+		},
+		[3] = {
+			name = 'team',
+			required = false,
+			type = 'number'
+		}
+	 },
 	[triggerTypes.UnitNotExists] = {  },
 	[triggerTypes.ConstructionStarted] = {  },
 	[triggerTypes.ConstructionFinished] = {  },

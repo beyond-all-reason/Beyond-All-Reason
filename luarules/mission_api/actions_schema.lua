@@ -1,19 +1,18 @@
 --============================================================--
 
--- Types
+-- Action Types
 
 --============================================================--
 
 local actionTypes = {
 	-- Triggers
-	EnableTrigger               = 100,
-	DisableTrigger              = 101,
+	EnableTrigger               = 100, --
+	DisableTrigger              = 101, --
 
 	-- Orders
-	IssueOrdersId               = 200,
-	IssueOrdersName             = 201,
-	AllowCommands               = 202,
-	RestrictCommands            = 203,
+	IssueOrders                 = 200, --
+	AllowCommands               = 201,
+	RestrictCommands            = 202,
 
 	-- Build Options
 	AlterBuildlist              = 300,
@@ -21,9 +20,9 @@ local actionTypes = {
 	DisableBuildOption          = 302,
 
 	-- Units
-	SpawnUnits                  = 400,
+	SpawnUnits                  = 400, --
 	SpawnConstruction           = 401,
-	DespawnUnits                = 402,
+	DespawnUnits                = 402, --
 	SpawnWeapons                = 403,
 	SpawnEffects                = 404,
 	TransferUnits               = 405,
@@ -47,7 +46,7 @@ local actionTypes = {
 
 --============================================================--
 
--- Params
+-- Action Parameters
 
 --============================================================--
 
@@ -55,7 +54,7 @@ local parameters = {
 	-- Triggers
 	[actionTypes.EnableTrigger] = {
 		[1] = {
-			name = 'triggerId',
+			name = 'triggerID',
 			required = true,
 			type = 'string',
 		},
@@ -63,18 +62,18 @@ local parameters = {
 
 	[actionTypes.DisableTrigger] = {
 		[1] = {
-			name = 'triggerId',
+			name = 'triggerID',
 			required = true,
 			type = 'string',
 		},
 	 },
 
 	 -- Orders
-	[actionTypes.IssueOrdersId] = { 
+	[actionTypes.IssueOrders] = { 
 		[1] = {
-			name = 'unitId',
+			name = 'unit',
 			required = true,
-			type = 'string'
+			type = 'unit'
 		},
 		[2] = {
 			name = 'orders',
@@ -98,9 +97,9 @@ local parameters = {
 			type = 'string',
 		},
 		[2] = {
-			name = 'unitDefName',
+			name = 'unitDef',
 			required = true,
-			type = 'string',
+			type = 'unitDef',
 		},
 		[3] = {
 			name = 'quantity',
@@ -108,23 +107,18 @@ local parameters = {
 			type = 'number',
 		},
 		[4] = {
-			name = 'x',
+			name = 'position',
 			required = true,
-			type = 'number',
+			type = 'vec3'
 		},
 		[5] = {
-			name = 'y',
+			name = 'facing',
 			required = false,
-			type = 'number',
-		},
-		[6] = {
-			name = 'z',
-			required = true,
-			type = 'number',
-		},
+			type = 'direction'
+		}
 	},
 
-	[actionTypes.SpawnConstruction] = {  },
+	[actionTypes.SpawnConstruction] = { },
 	[actionTypes.DespawnUnits] = {
 		[1] = {
 			name = 'name',
