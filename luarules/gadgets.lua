@@ -340,8 +340,8 @@ function gadgetHandler:Initialize()
 		if not (
 			-- Do not load recursively lua files in these folders:
 			string.find(gf, '/[iI]ncludes?/') or
-			string.find(gf, '/ai/[sS]hard.-/') or -- don't load from these AI sub folders in particular
-			string.find(gf, '/ai/STAI/') or       -- because the scripts inside are not gadgets
+			string.find(gf, '/ai/[sS]hard.-/') or 		-- don't load from these AI sub folders in particular
+			string.find(gf, '/ai/[sS][tT][aA][iI]/') or	-- because the scripts inside are not gadgets
 			string.find(gf, '/scavengers/') or
 			string.find(gf, '/_.-/') -- any folder starting with an underscore
 		) then
