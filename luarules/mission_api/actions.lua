@@ -11,13 +11,13 @@ local actionsDefs = VFS.Include('luarules/mission_api/actions_defs.lua')
 --============================================================--
 
 local function EnableTrigger(triggerID)
-	triggers[triggerId].settings.active = true
+	triggers[triggerID].settings.active = true
 end
 
 ----------------------------------------------------------------
 
 local function DisableTrigger(triggerID)
-	triggers[triggerId].settings.active = false
+	triggers[triggerID].settings.active = false
 end
 
 --============================================================--
