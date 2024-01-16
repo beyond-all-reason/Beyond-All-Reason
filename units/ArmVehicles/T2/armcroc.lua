@@ -171,6 +171,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
 				firestarter = 70,
 				flighttime = 1.9,
+				fixedLauncher = true,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
@@ -210,8 +211,6 @@ return {
 			[1] = {
 				def = "ARM_TRITON",
 				onlytargetcategory = "SURFACE",
-				maindir = "0 0 1",
-				maxangledif = 300,
 			},
 			[2] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",

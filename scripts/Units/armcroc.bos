@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret, barrel, flare, sleeve, head, tail, aflare, aturret, abarrel, launcher, asleeve;
+piece  base, turret, barrel, flare, sleeve, head, tail, aflare, abarrel, launcher, asleeve, lid;
 
 static-var  restore_delay, Static_Var_2, bMoving, gun_2, total;
 
@@ -84,12 +84,12 @@ ExecuteRestoreAfterDelay()
 	//move aturret to y-axis [18.5] speed [100];
 	//move launcher to y-axis [0] speed [100];
 
-	turn launcher to x-axis <0.000000> speed <100.000000>;
-	turn aturret to y-axis <0> speed <70>;
-	wait-for-turn aturret around y-axis;
-	wait-for-turn launcher around x-axis;
-	move aturret to y-axis [0] speed [70];
-	move launcher to y-axis [0] speed [70];
+	turn lid to x-axis <0.000000> speed <80>;
+	turn asleeve to y-axis <0.000000> speed <400.000000>;
+	move launcher to y-axis [0.000000] speed [10.000000];
+	wait-for-turn lid around x-axis;
+	wait-for-turn asleeve around z-axis;
+	wait-for-move launcher along x-axis;
 	
 }
 SetStunned(State)
@@ -161,9 +161,8 @@ AimSecondary(heading, pitch)
 	signal SIG_AIM2;
 	set-signal-mask SIG_AIM2;
 	
-	move aturret to y-axis [15] speed [100];
-	move launcher to y-axis [4.5] speed [100];
-	turn launcher to x-axis <90.000000> speed <200.000000>;
+	turn lid to x-axis <-179.000000> speed <200.000000>;
+	move launcher to y-axis [2.5] speed [30];
 	
 	if( gun_2 == 1 )
 	{
@@ -177,28 +176,24 @@ AimSecondary(heading, pitch)
 	{
 		turn asleeve to y-axis <-120.027473> speed <400.000000>;
 	}
-	turn aturret to y-axis <180> + heading speed <450.000000>;
-	total = <90.000000> + pitch;
-	if (total < <120>) {
-		total = <120>;
-	}
-	turn launcher to x-axis total speed <450.000000>;
+
+	wait-for-turn lid around x-axis;
 	wait-for-turn asleeve around z-axis;
-	wait-for-turn aturret around y-axis;
-	wait-for-turn launcher around x-axis;
+	wait-for-move launcher along x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
 FireSecondary()
 {
-	gun_2 = aflare;//why would it ever not be this?
+	++gun_2;
+	if (gun_2 == 4) gun_2 = 1;
 	return (0);
 }
 
 AimFromSecondary(piecenum)
 {
-	piecenum = aturret;
+	piecenum = launcher;
 	return (0);
 }
 
