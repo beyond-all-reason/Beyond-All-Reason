@@ -9,7 +9,7 @@ function LosHST:internalName()
 end
 
 function LosHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.knownEnemies = {}
 	self.losEnemy = {}
 	self.radarEnemy = {}

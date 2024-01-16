@@ -79,14 +79,18 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:RecvLuaMsg(msg, playerID)
 		--msg = 'StGiveOrderToSync'..';'..id..';'..cmd..';'..pos..';'..opts..';'..timeout..';'..uname..';'.'StEndGOTS'
 		--Spring.Debug.TableEcho(datas)
+		if string.sub(msg,1,17) ~= 'StGiveOrderToSync' then
+			return
+		end
 		local datas = string.split(msg,';')
+
 		if datas[1] ~= 'StGiveOrderToSync' or datas[7] ~= 'StEndGOTS' then
-			Spring.Echo('ST RECEIVEDGOTS INCOMPLETE GOTS ',#datas)
+			Spring.Echo('ST RECEIVEDGOTS INCOMPLETE GOTS ',#datas,msg)
 			return
 		end
 
 		if #datas ~= 7 then
-			Spring.Echo('ST RECEIVEDGOTS INCOMPLETE GOTS ',#datas)
+			Spring.Echo('ST RECEIVEDGOTS INCOMPLETE GOTS ',#datas,msg)
 			return
 		end
 
@@ -111,7 +115,7 @@ if gadgetHandler:IsSyncedCode() then
 				return
 			end
 		end
-
+-- 		Spring.Echo('GOTS ORDER ISSUES',id,cmd,pos,opts)
 		local order = Spring.GiveOrderToUnit(id,cmd,pos,opts)
 		if order ~= true then
 			spEcho('order error in STAI unsync to sync give order to unit',msg)
@@ -310,7 +314,7 @@ else
 
 			if i == 1 and n % 121 == 0 then
 				local ramuse = gcinfo()
-				Spring.Echo("RAMUSE",i,n, ramuse)
+				Spring.Echo("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%RAMUSE",i,n, ramuse)
 				if ramuse > garbagelimit then
 					collectgarbage("collect")
 					collectgarbage("collect")

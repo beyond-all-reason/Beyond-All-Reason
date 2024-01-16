@@ -112,26 +112,26 @@ function ShardAI:Update()
 	end
 
 	tracyZoneBeginMem("ShardAI:Update")
-	self.game:StartTimer('UPDATE')
+	--self.game:StartTimer('UPDATE')
 	for i,m in ipairs(self.modules) do
 		if m == nil then
 			self:Warn("nil module!")
 		else
- 			self.game:StartTimer(m:Name() .. ' hst')
-			local RAM = gcinfo()
+ 			--self.game:StartTimer(m:Name() .. ' hst')
+			--local RAM = gcinfo()
 
-			tracyZoneBeginMem(m:Name())
+			--tracyZoneBeginMem(m:Name())
 			m:Update()
-			tracyZoneEndMem()
- 			self.game:StopTimer(m:Name() .. ' hst')
-			RAM = gcinfo() - RAM
-			if RAM > 1 --[[and m:Name() ~= 'UnitHandler']] then
-				print (m:Name(),RAM)
-			end
+			--tracyZoneEndMem()
+ 			--self.game:StopTimer(m:Name() .. ' hst')
+			--RAM = gcinfo() - RAM
+			--if RAM > 1 --[[and m:Name() ~= 'UnitHandler']] then
+			--	print (m:Name(),RAM)
+			--end
 		end
 	end
-	tracyZoneEndMem()
-	self.game:StopTimer('UPDATE')
+	--tracyZoneEndMem()
+	--self.game:StopTimer('UPDATE')
 end
 
 function ShardAI:GameMessage(text)

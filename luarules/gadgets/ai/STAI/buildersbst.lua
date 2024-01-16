@@ -21,15 +21,32 @@ function BuildersBST:Init()
 	self.queue = self.ai.taskshst.roles[self.role]
 	self:EchoDebug(self.name .. " " .. self.id .. " initializing...")
 	self.unit:ElectBehaviour()
+
 end
 
 function BuildersBST:OwnerBuilt()
+	self:EngineerhstBuilderBuild()
+
 end
+
+function BuildersBST:EngineerhstBuilderBuild()
+	for engineerName,builderName in pairs(self.ai.armyhst.engineers) do
+		if self.name == builderName then
+			self.ai.engineerhst.Builders[self.id] = {}
+			self.ai.engineerhst:EngineersNeeded()
+			return
+		end
+	end
+end
+
+
 
 function BuildersBST:OwnerDead()
 	if self.unit ~= nil then
 		self.ai.buildingshst.roles[self.id] = nil
+		self.ai.engineerhst.Builders[self.id] = nil
 		self.ai.buildingshst:ClearMyProjects(self.id)
+
 	end
 end
 
@@ -154,7 +171,7 @@ function BuildersBST:specialFilter(cat,param,name)
 		local newName = self.ai.armyhst[cat][name]
 		self:EchoDebug('newName',newName)
 		if self.unit:Internal():CanBuild(game:GetTypeByName(newName)) then
-			if self.ai.ecohst.Metal.reserves > 1000 and self.ai.ecohst.Energy.income > 4000 and self.role == 'eco' then
+			if   self.ai.ecohst.Energy.income > 4000 and self.role == 'eco' then
 				name = newName
 			end
 		end
@@ -186,13 +203,11 @@ end
 
 function BuildersBST:findPlace(utype, value,cat,loc)
 	if not value or not cat or not utype then return end
-
 	local POS = nil
 	local builder = self.unit:Internal()
 	local builderPos =  self.position
 	local army = self.ai.armyhst
 	local site = self.ai.buildingshst
-	local RAM = gcinfo()
 	if loc and type(loc) == 'table' then
 		if loc.categories then
 			for index, category in pairs(loc.categories) do

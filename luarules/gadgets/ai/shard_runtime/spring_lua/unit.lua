@@ -383,6 +383,12 @@ function ShardUnit:FactoryUnWait()
 end
 ]]
 
+function ShardUnit:GetUnitCommands(count)
+	count = count or 1
+	local currentOrder = Spring.GetUnitCommands(self.id,count)
+	return currentOrder
+end
+
 function ShardUnit:Stop()
 	local order = self:SyncOrder( self.id, CMD.STOP, {}, 0 )
 	--return Spring.GiveOrderToUnit( self.id, CMD.STOP, {}, 0 )
@@ -689,6 +695,13 @@ function ShardUnit:CanBuild( uType )
 	return self:Type():CanBuild(uType)
 end
 
+function ShardUnit:GetFacing(id)
+	return Spring.GetUnitBuildFacing ( id )
+-- 	0, "s", "south"
+--     1, "e", "east"
+--     2, "n", "north"
+--     3, "w", "west"
+end
 
 function ShardUnit:GetResourceUsage( idx )
 	local metalMake, metalUse, energyMake, energyUse = Spring.GetUnitResources(self.id)

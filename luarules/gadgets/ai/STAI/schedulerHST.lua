@@ -78,6 +78,7 @@ SchedulerHST.BScheduler = {
 	'BootBST',
 	'CommanderBST',
 	'BuildersBST',
+	'EngineerBST',
 	'LabsBST',
 	'ScoutBST',
 	'RaidBST',

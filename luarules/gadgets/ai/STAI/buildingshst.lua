@@ -537,12 +537,16 @@ function BuildingsHST:SetRole(builderID)
 	elseif self.ai.armyhst.unitTable[name].techLevel == 4 then
 		if self.roles[builderID] then
 			role = self.roles[builderID].role
-		elseif self:RoleCounter(name,'expand') < 2 then
+		elseif self:RoleCounter(name,'expand') < 1 then
 			role = 'expand'
 		elseif self:RoleCounter(name,'eco') < 1 then
 			role = 'eco'
+		elseif self:RoleCounter(name,'expand') < 2 then
+			role = 'expand'
 		elseif self:RoleCounter(name,'support') < 1 then
 			role = 'support'
+		elseif self:RoleCounter(name,'metalMaker') < 1 then
+			role = 'metalMaker'
 		elseif self:RoleCounter(name,'default') < 1 then
 			role = 'default'
 		else
@@ -559,10 +563,13 @@ function BuildingsHST:SetRole(builderID)
 			role = 'eco'
 		elseif self:RoleCounter(name,'expand') < 3 then
 			role = 'expand'
+		elseif self:RoleCounter(name,'nano') < 1 then
+			role = 'nano'
 		elseif self:RoleCounter(name,'support') < 1 then
 			role = 'support'
 		elseif self:RoleCounter(name,'default') < 1 then
 			role = 'default'
+
 		else
 			if math.random() <0.6 then
 				role ='expand'

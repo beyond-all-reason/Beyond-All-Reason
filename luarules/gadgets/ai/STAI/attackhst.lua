@@ -12,7 +12,7 @@ local floor = math.floor
 local ceil = math.ceil
 
 function AttackHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.recruits = {}
 	self.squads = {}
 	self.squadID = 1
@@ -156,10 +156,10 @@ function AttackHST:SquadCheck(squad)
 	squad.leaderPos = squad.leaderPos or {}
 	for i,member in pairs(squad.members) do
 
-		if member.unit.x then
+		if member.unit then
 			squad.leader = member.unit:Internal()
 			--leaderPos = {x = member.unit.x, y = member.unit.y  , z = member.unit.z}
-			squad.leaderPos.x,squad.leaderPos.y,squad.leaderPos.z = member.unit.x, member.unit.y  , member.unit.z
+			squad.leaderPos.x,squad.leaderPos.y,squad.leaderPos.z = member.unit:Internal():GetRawPos()
 			break
 -- 			local d = self.ai.tool:distance(p,squad.position)
 -- 			if d < memberDist then

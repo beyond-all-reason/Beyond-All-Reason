@@ -10,7 +10,7 @@ function AttackerBST:Name()
 end
 
 function AttackerBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.network = network

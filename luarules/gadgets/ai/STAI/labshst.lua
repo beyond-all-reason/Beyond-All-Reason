@@ -133,7 +133,7 @@ function LabsHST:EconomyToBuildFactories()
 -- 		return true
 -- 	end
 	if factoryCount == 0 then return true end
-	if self.ai.ecohst.Energy.income > self.lastLabEcoE + (800*factoryCount) then return true end
+	if self.ai.ecohst.Energy.income > self.lastLabEcoE + (600*factoryCount) then return true end
 	self:EchoDebug('not economy to build factory')
 end
 
