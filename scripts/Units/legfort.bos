@@ -224,8 +224,8 @@ AimSecondary(heading, pitch)
 	if (aimto < <0>){
 		aimsl = -2 * aimto / 3;
 	}
-	turn sleevesr to z-axis pitch - aimsl speed <200.000000>;
-	turn turretr to x-axis -1*aimto speed <200.000000>;
+	turn sleevesr to z-axis pitch - aimsl speed <300.000000>;
+	turn turretr to x-axis -1*aimto speed <300.000000>;
 	wait-for-turn sleevesr around z-axis;
 	wait-for-turn turretr around x-axis;
 	return (1);
@@ -248,8 +248,8 @@ AimTertiary(heading, pitch)
 	if (aimto < <0>){
 		aimsl = -2 * aimto / 3;
 	}
-	turn sleevesl to z-axis -1*pitch + aimsl speed <200.000000>;
-	turn turretl to x-axis aimto speed <200.000000>;
+	turn sleevesl to z-axis -1*pitch + aimsl speed <300.000000>;
+	turn turretl to x-axis aimto speed <300.000000>;
 	wait-for-turn sleevesl around z-axis;
 	wait-for-turn turretl around x-axis;
 	return (1);
@@ -287,17 +287,17 @@ FireSecondary()
 	if( gun_2 == 1 )
 	{
 	    emit-sfx 1024 + 0 from flare1r;
-		move barrel1r to x-axis [-3.001648] now;
+		move barrel1r to x-axis [-2] now;
 		sleep 100;
-		move barrel1r to x-axis [0.000000] speed [2];
+		move barrel1r to x-axis [0.000000] speed [5];
 	}
 	if( gun_2 == 2 )
 	{
 	    gun_2 = 0;
 		emit-sfx 1024 + 0 from flare2r;
-		move barrel2r to x-axis [-3.001648] now;
+		move barrel2r to x-axis [-2] now;
 		sleep 100;
-		move barrel2r to x-axis [0.000000] speed [2];
+		move barrel2r to x-axis [0.000000] speed [5];
 	}
 	++gun_2;
 }
@@ -307,17 +307,17 @@ FireTertiary()
 	if( gun_3 == 1 )
 	{
 	    emit-sfx 1024 + 0 from flare1l;
-		move barrel1l to x-axis [3.001648] now;
+		move barrel1l to x-axis [2] now;
 		sleep 100;
-		move barrel1l to x-axis [0.000000] speed [2];
+		move barrel1l to x-axis [0.000000] speed [5];
 	}
 	if( gun_3 == 2 )
 	{
 	    gun_3 = 0;
 		emit-sfx 1024 + 0 from flare2l;
-		move barrel2l to x-axis [3.001648] now;
+		move barrel2l to x-axis [2] now;
 		sleep 100;
-		move barrel2l to x-axis [0.000000] speed [2];
+		move barrel2l to x-axis [0.000000] speed [5];
 	}
 	++gun_3;
 }

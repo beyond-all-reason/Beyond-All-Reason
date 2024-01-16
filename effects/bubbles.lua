@@ -1,4 +1,36 @@
 return {
+	["geobubbles"] = {
+		bubbles = {
+			air                = false,
+     		class              = [[CSimpleParticleSystem]],
+     		count              = 1,
+     		ground             = false,
+     		water              = true,
+  			underwater         = true,
+      		properties = {
+		        airdrag            = 0.95,
+		        colormap           = [[0.5 0.51 0.53 0.010   0.30 0.31 0.33 0.008   0 0 0 0.01]],
+		        directional        = false,
+		        emitrot            = 15,
+		        emitrotspread      = 35,
+		        emitvector         = [[0, -0.4 r0.12, 0]],
+		        gravity            = [[-0.01 r0.01, 0.05, 0.01 r0.01]],
+		        numparticles       = [[1 r1]],
+		        particlelife       = 45,
+		        particlelifespread = 35,
+		        particlesize       = 0.25,
+		        particlesizespread = 0.15,
+		        particlespeed      = 1,
+		        particlespeedspread = 3,
+		        rotParams          = [[-40 r80, -30 r60, -180 r360]],
+		        pos                = [[-10 r20, -20, -10 r20]],
+		        sizegrowth         = 0.27,
+		        sizemod            = 0.98,
+		        texture            = [[bubbletexture]],
+		        useairlos          = false,
+			},
+		},
+	},
 	["subbubbles"] = {
 		bubbles = {
 			air                = false,

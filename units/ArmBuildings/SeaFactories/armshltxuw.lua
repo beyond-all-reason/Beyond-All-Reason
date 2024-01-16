@@ -1,9 +1,9 @@
 return {
 	armshltxuw = {
-		acceleration = 0,
-		brakerate = 0,
-		buildcostenergy = 58000,
-		buildcostmetal = 7900,
+		maxacc = 0,
+		maxdec = 0,
+		energycost = 58000,
+		metalcost = 7900,
 		builder = true,
 		buildpic = "ARMSHLTXUW.DDS",
 		buildtime = 61400,
@@ -17,10 +17,9 @@ return {
 		explodeas = "hugeBuildingexplosiongeneric-uw",
 		footprintx = 9,
 		footprintz = 9,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 16000,
+		health = 16000,
 		maxslope = 10,
 		metalstorage = 800,
 		minwaterdepth = 30,
@@ -36,6 +35,7 @@ return {
 			[1] = "armbanth",
 			[2] = "armmar",
 			[3] = "armcroc",
+			[4] = "armlun",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

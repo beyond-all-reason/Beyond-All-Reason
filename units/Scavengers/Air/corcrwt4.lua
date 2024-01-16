@@ -1,12 +1,12 @@
 return {
 	corcrwt4 = {
-		acceleration = 0.08,
+		maxacc = 0.08,
 		activatewhenbuilt = true,
 		blocking = false,
 		bankingallowed = false,
-		brakerate = 0.275,
-		buildcostenergy = 150000,
-		buildcostmetal = 15000,
+		maxdec = 0.275,
+		energycost = 150000,
+		metalcost = 15000,
 		buildpic = "scavengers/corcrwt4.DDS",
 		buildtime = 150000,
 		canfly = true,
@@ -16,17 +16,16 @@ return {
 		collisionvolumeoffsets = "0 10 0",
 		collisionvolumescales = "80 51 120",
 		collisionvolumetype = "Box",
-		cruisealt = 110,
+		cruisealtitude = 110,
 		explodeas = "bantha",
 		footprintx = 5,
 		footprintz = 5,
 		hoverattack = true,
-		icontype = "air",
 		idleautoheal = 15,
 		idletime = 1200,
-		maxdamage = 22000,
+		health = 22000,
 		maxslope = 10,
-		maxvelocity = 3.83,
+		speed = 114.9,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/corcrwt4.s3o",
@@ -128,7 +127,6 @@ return {
 				}--,customparams = { single_hit_multi = 'true' },
 			},
 		
-
 			edragon_missile = {
 			
 				areaofeffect = 16,
@@ -178,8 +176,6 @@ return {
 					vtol = 400,
 				},			
 			},
-
-
 			krowbosslaser = {
 				areaofeffect = 8,
 				avoidfeature = false,
@@ -298,7 +294,6 @@ return {
 				maindir = "-1 -1 0",
                 maxangledif = 180,
 			},
-
 		},
 	},
 }

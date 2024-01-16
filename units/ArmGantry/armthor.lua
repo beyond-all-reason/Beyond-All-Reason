@@ -1,9 +1,9 @@
 return {
 	armthor = {
-		acceleration = 0.015,
-		brakerate = 0.03,
-		buildcostenergy = 240000,
-		buildcostmetal = 9000,
+		maxacc = 0.015,
+		maxdec = 0.03,
+		energycost = 240000,
+		metalcost = 9000,
 		buildpic = "ARMTHOR.DDS",
 		buildtime = 250000,
 		canManualFire = true,
@@ -20,9 +20,9 @@ return {
 		idletime = 1800,
 		leavetracks = true,
 		mass = 100000,
-		maxdamage = 56000,
+		health = 56000,
 		maxslope = 14,
-		maxvelocity = 1.8,
+		speed = 54.0,
 		maxwaterdepth = 20,
 		movementclass = "HTANK5",
 		nochasecategory = "VTOL",
@@ -41,6 +41,7 @@ return {
 		turninplacespeedlimit = 1.6,
 		turnrate = 180,
 		customparams = {
+			maxrange="540",
 			unitgroup = 'emp',
 			lumamult = "0.7",
 			model_author = "Flaka",
@@ -167,7 +168,6 @@ return {
 					subs = 30,
 				},
 			},
-
 			empmissile = {
 				areaofeffect = 196,
 				avoidfeature = false,
@@ -214,7 +214,6 @@ return {
 					default = 80000,
 				},
 			},
-
 			emp = {
 				areaofeffect = 8,
 				avoidfeature = false,

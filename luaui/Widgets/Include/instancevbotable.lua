@@ -334,15 +334,17 @@ function resizeInstanceVBOTable(iT)
 		local new_indextoInstanceID = {}
 		local new_indextoUnitID = {}
 		local invalidcount = 0
+		local iTStep = iT.instanceStep
 
 		for i, objectID in ipairs(iT.indextoUnitID) do
 			local isValidID = false
 			if iT.featureIDs then isValidID = Spring.ValidFeatureID(objectID)
 			else isValidID = Spring.ValidUnitID(objectID) end
 			if isValidID then
-				for j = 1, iT.instanceStep do 
+				local offset = new_usedElements * iTStep
+				for j = 1, iTStep do 
 					new_instanceData_count = new_instanceData_count + 1
-					new_instanceData[new_instanceData_count] = iT.instanceData[j + new_usedElements * iT.instanceStep]
+					new_instanceData[new_instanceData_count] = iT.instanceData[j + offset]
 				end
 				new_usedElements = new_usedElements + 1 
 				local currentInstanceID = iT.indextoInstanceID[i]

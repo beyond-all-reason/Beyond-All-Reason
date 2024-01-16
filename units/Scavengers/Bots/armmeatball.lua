@@ -1,9 +1,9 @@
 return {
 	armmeatball = {
-		acceleration = 0.253,
-		brakerate = 0.8211,
-		buildcostenergy = 30000,
-		buildcostmetal = 3000,
+		maxacc = 0.253,
+		maxdec = 0.8211,
+		energycost = 30000,
+		metalcost = 3000,
 		buildpic = "ARMMEATBALL.DDS",
 		buildtime = 30000,
 		canmove = true,
@@ -18,9 +18,9 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 200000,
-		maxdamage = 8000,
+		health = 8000,
 		maxslope = 17,
-		maxvelocity = 1,
+		speed = 30.0,
 		maxwaterdepth = 32,
 		movementclass = "EPICBOT",
 		nochasecategory = "VTOL",
@@ -190,7 +190,6 @@ return {
 					vtol = 60,
 				},
 			},
-
 			lrpc = {
 				accuracy = 1500,
 				areaofeffect = 75,

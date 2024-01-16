@@ -93,7 +93,9 @@ local convertedUnits = {
 	[UnitDefNames.cordecom.id] = 5,
 	[UnitDefNames.armdecom.id] = 5,
 	[UnitDefNames.legbal.id] = 5,
+	[UnitDefNames.legbastion.id] = 5,
 	[UnitDefNames.legcen.id] = 2,
+	[UnitDefNames.legfloat.id] = 5,
 	[UnitDefNames.leggat.id] = 5,
 	[UnitDefNames.leggob.id] = 5,
 	[UnitDefNames.leginc.id] = 10,
@@ -103,6 +105,7 @@ local convertedUnits = {
 	[UnitDefNames.legmos.id] = 5,
 	[UnitDefNames.leghades.id] = 5,
 	[UnitDefNames.leghelios.id] = 5,
+	[UnitDefNames.legkeres.id] = 5,
 	[UnitDefNames.legrail.id] = 5,
 	[UnitDefNames.legbar.id] = 5,
 	[UnitDefNames.legcomoff.id] = 5,
@@ -117,6 +120,8 @@ local convertedUnits = {
 	[UnitDefNames.legcomlvl3.id] = 5,
 	[UnitDefNames.legcomlvl4.id] = 5,
 	[UnitDefNames.leegmech.id] = 5,
+	[UnitDefNames.legionnaire.id] = 5,
+	[UnitDefNames.legvenator.id] = 5,
 }
 
 

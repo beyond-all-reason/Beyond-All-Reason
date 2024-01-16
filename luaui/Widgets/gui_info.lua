@@ -28,6 +28,8 @@ local showEngineTooltip = false		-- straight up display old engine delivered tex
 
 local texts = {}
 
+local iconTypes = VFS.Include("gamedata/icontypes.lua")
+
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
@@ -53,11 +55,9 @@ local tooltipValueWhiteColor = '\255\255\255\255'
 
 local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor .. ": Select\n " .. tooltipTextColor .. "   + CTRL" .. tooltipLabelTextColor .. ": Select units of this type on map\n " .. tooltipTextColor .. "   + ALT" .. tooltipLabelTextColor .. ": Select 1 single unit of this unit type\n " .. tooltipTextColor .. "Right click" .. tooltipLabelTextColor .. ": Remove\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Remove only 1 unit from that unit type\n " .. tooltipTextColor .. "Middle click" .. tooltipLabelTextColor .. ": Move to center location\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Move to center off whole selection"
 
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousName = '?????'
-local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
-local iconTypesMap, dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
+local dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
 local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures
 local cellRect, cellPadding, cornerSize, cellsize, cellHovered
 local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
@@ -83,7 +83,6 @@ local spGetTeamUnitsSorted = Spring.GetTeamUnitsSorted
 local spSelectUnitMap = Spring.SelectUnitMap
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitResources = Spring.GetUnitResources
-local spGetUnitMaxRange = Spring.GetUnitMaxRange
 local spGetUnitExperience = Spring.GetUnitExperience
 local spGetUnitMetalExtraction = Spring.GetUnitMetalExtraction
 local spGetUnitStates = Spring.GetUnitStates
@@ -135,6 +134,10 @@ local function refreshUnitInfo()
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitDefInfo[unitDefID] = {}
 
+		if unitDef.iconType and iconTypes[unitDef.iconType] and iconTypes[unitDef.iconType].bitmap then
+			unitDefInfo[unitDefID].icontype = iconTypes[unitDef.iconType].bitmap
+		end
+
 		if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'
 			or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship'])  then
 			if not (unitDef.modCategories['hover'] or (unitDef.modCategories['mobile'] and unitDef.modCategories['canbeuw'])) then
@@ -181,34 +184,33 @@ local function refreshUnitInfo()
 		end
 		unitDefInfo[unitDefID].armorType = Game.armorTypes[unitDef.armorType or 0] or '???'
 
-		if unitDef.losRadius > 0 then
-			unitDefInfo[unitDefID].losRadius = unitDef.losRadius
+		if unitDef.sightDistance > 0 then
+			unitDefInfo[unitDefID].sightDistance = unitDef.sightDistance
 		end
-		if unitDef.airLosRadius > 0 then
-			unitDefInfo[unitDefID].airLosRadius = unitDef.airLosRadius
+		if unitDef.airSightDistance > 0 then
+			unitDefInfo[unitDefID].airSightDistance = unitDef.airSightDistance
 		end
-		if unitDef.radarRadius > 0 then
-			unitDefInfo[unitDefID].radarRadius = unitDef.radarRadius
+		if unitDef.radarDistance > 0 then
+			unitDefInfo[unitDefID].radarDistance = unitDef.radarDistance
 		end
-		if unitDef.sonarRadius > 0 then
-			unitDefInfo[unitDefID].sonarRadius = unitDef.sonarRadius
+		if unitDef.sonarDistance > 0 then
+			unitDefInfo[unitDefID].sonarDistance = unitDef.sonarDistance
 		end
-		if unitDef.jammerRadius > 0 then
-			unitDefInfo[unitDefID].jammerRadius = unitDef.jammerRadius
+		if unitDef.radarDistanceJam > 0 then
+			unitDefInfo[unitDefID].radarDistanceJam = unitDef.radarDistanceJam
 		end
-		if unitDef.sonarJamRadius > 0 then
-			unitDefInfo[unitDefID].sonarJamRadius = unitDef.sonarJamRadius
+		if unitDef.sonarDistanceJam > 0 then
+			unitDefInfo[unitDefID].sonarDistanceJam = unitDef.sonarDistanceJam
 		end
-		if unitDef.seismicRadius > 0 then
-			unitDefInfo[unitDefID].seismicRadius = unitDef.seismicRadius
+		if unitDef.seismicDistance > 0 then
+			unitDefInfo[unitDefID].seismicDistance = unitDef.seismicDistance
 		end
 
 		if unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency then
 			unitDefInfo[unitDefID].metalmaker = { tonumber(unitDef.customParams.energyconv_capacity), tonumber(unitDef.customParams.energyconv_efficiency) }
 		end
 
-		unitDefInfo[unitDefID].tooltip = unitDef.translatedTooltip
-		unitDefInfo[unitDefID].iconType = unitDef.iconType
+		unitDefInfo[unitDefID].description = unitDef.translatedTooltip
 		unitDefInfo[unitDefID].energyCost = unitDef.energyCost
 		unitDefInfo[unitDefID].metalCost = unitDef.metalCost
 		unitDefInfo[unitDefID].energyStorage = unitDef.energyStorage
@@ -216,7 +218,7 @@ local function refreshUnitInfo()
 
 		unitDefInfo[unitDefID].health = unitDef.health
 		unitDefInfo[unitDefID].buildTime = unitDef.buildTime
-		unitDefInfo[unitDefID].buildPic = unitDef.buildpicname and true or false
+		unitDefInfo[unitDefID].buildPic = unitDef.buildPic and true or false
 		if unitDef.canStockpile then
 			unitDefInfo[unitDefID].canStockpile = true
 		end
@@ -577,10 +579,6 @@ function widget:Initialize()
 		end
 	end
 
-	iconTypesMap = {}
-	if Script.LuaRules('GetIconTypes') then
-		iconTypesMap = Script.LuaRules.GetIconTypes()
-	end
 	Spring.SetDrawSelectionInfo(false)    -- disables springs default display of selected units count
 	Spring.SendCommands("tooltip 0")
 
@@ -956,7 +954,7 @@ local function drawUnitInfo()
 			0.03,
 			nil, nil,
 			"#" .. displayUnitDefID,
-			((unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType] or nil),
+			(unitDefInfo[displayUnitDefID].icontype and ':l:' .. unitDefInfo[displayUnitDefID].icontype or nil),
 			groups[unitGroup[displayUnitDefID]],
 			{unitDefInfo[displayUnitDefID].metalCost, unitDefInfo[displayUnitDefID].energyCost}
 		)
@@ -979,7 +977,7 @@ local function drawUnitInfo()
 	iconSize = iconSize + iconPadding
 
 	local dps, dps2, dps3, range, metalExtraction, stockpile, maxRange, exp, metalMake, metalUse, energyMake, energyUse
-	local text, unitDescriptionLines = font:WrapText(unitDefInfo[displayUnitDefID].tooltip, (contentWidth - iconSize) * (loadedFontSize / fontSize))
+	local text, unitDescriptionLines = font:WrapText(unitDefInfo[displayUnitDefID].description, (contentWidth - iconSize) * (loadedFontSize / fontSize))
 
 	if displayUnitID then
 		exp = spGetUnitExperience(displayUnitID)
@@ -1173,7 +1171,7 @@ local function drawUnitInfo()
 						0.1,
 						nil, disabled and 0 or nil,
 						"#"..uDefID,
-						((unitDefInfo[uDefID].iconType and iconTypesMap[unitDefInfo[uDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[uDefID].iconType] or nil),
+						(unitDefInfo[uDefID].icontype and ':l:' .. unitDefInfo[uDefID].icontype or nil),
 						groups[unitGroup[uDefID]],
 						{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
 					)
@@ -1222,7 +1220,7 @@ local function drawUnitInfo()
 							0.1,
 							nil, nil,
 							"#"..uDefID,
-							((unitDefInfo[uDefID].iconType and iconTypesMap[unitDefInfo[uDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[uDefID].iconType] or nil),
+							(unitDefInfo[uDefID].icontype and ':l:' .. unitDefInfo[uDefID].icontype or nil),
 							groups[unitGroup[uDefID]],
 							{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
 						)
@@ -1398,27 +1396,27 @@ local function drawUnitInfo()
 		--	addTextInfo('armor', unitDefInfo[displayUnitDefID].armorType)
 		--end
 
-		if unitDefInfo[displayUnitDefID].losRadius then
-			addTextInfo(texts.los, round(unitDefInfo[displayUnitDefID].losRadius, 0))
+		if unitDefInfo[displayUnitDefID].sightDistance then
+			addTextInfo(texts.los, round(unitDefInfo[displayUnitDefID].sightDistance, 0))
 		end
-		if unitDefInfo[displayUnitDefID].airLosRadius and (unitDefInfo[displayUnitDefID].airUnit or unitDefInfo[displayUnitDefID].isAaUnit) then
+		if unitDefInfo[displayUnitDefID].airSightDistance and (unitDefInfo[displayUnitDefID].airUnit or unitDefInfo[displayUnitDefID].isAaUnit) then
 
-			addTextInfo(texts.airlos, round(unitDefInfo[displayUnitDefID].airLosRadius, 0))
+			addTextInfo(texts.airlos, round(unitDefInfo[displayUnitDefID].airSightDistance, 0))
 		end
-		if unitDefInfo[displayUnitDefID].radarRadius then
-			addTextInfo(texts.radar, round(unitDefInfo[displayUnitDefID].radarRadius, 0))
+		if unitDefInfo[displayUnitDefID].radarDistance then
+			addTextInfo(texts.radar, round(unitDefInfo[displayUnitDefID].radarDistance, 0))
 		end
-		if unitDefInfo[displayUnitDefID].sonarRadius then
-			addTextInfo(texts.sonar, round(unitDefInfo[displayUnitDefID].sonarRadius, 0))
+		if unitDefInfo[displayUnitDefID].sonarDistance then
+			addTextInfo(texts.sonar, round(unitDefInfo[displayUnitDefID].sonarDistance, 0))
 		end
-		if unitDefInfo[displayUnitDefID].jammerRadius then
-			addTextInfo(texts.jamrange, round(unitDefInfo[displayUnitDefID].jammerRadius, 0))
+		if unitDefInfo[displayUnitDefID].radarDistanceJam then
+			addTextInfo(texts.jamrange, round(unitDefInfo[displayUnitDefID].radarDistanceJam, 0))
 		end
-		if unitDefInfo[displayUnitDefID].sonarJamRadius then
-			addTextInfo(texts.sonarjamrange, round(unitDefInfo[displayUnitDefID].sonarJamRadius, 0))
+		if unitDefInfo[displayUnitDefID].sonarDistanceJam then
+			addTextInfo(texts.sonarjamrange, round(unitDefInfo[displayUnitDefID].sonarDistanceJam, 0))
 		end
-		if unitDefInfo[displayUnitDefID].seismicRadius then
-			addTextInfo(texts.seismic, unitDefInfo[displayUnitDefID].seismicRadius)
+		if unitDefInfo[displayUnitDefID].seismicDistance then
+			addTextInfo(texts.seismic, unitDefInfo[displayUnitDefID].seismicDistance)
 		end
 		--addTextInfo('mass', round(Spring.GetUnitMass(displayUnitID),0))
 		--addTextInfo('radius', round(Spring.GetUnitRadius(displayUnitID),0))
@@ -1852,7 +1850,7 @@ function widget:DrawScreen()
 				local cells = cellHovered and { [cellHovered] = selectionCells[cellHovered] } or selectionCells
 				-- description
 				if cellHovered then
-					local text, numLines = font:WrapText(unitDefInfo[selectionCells[cellHovered]].tooltip, (backgroundRect[3] - backgroundRect[1]) * (loadedFontSize / 16))
+					local text, numLines = font:WrapText(unitDefInfo[selectionCells[cellHovered]].description, (backgroundRect[3] - backgroundRect[1]) * (loadedFontSize / 16))
 					stats = stats .. statsIndent .. tooltipTextColor .. text .. '\n\n'
 				end
 				local text

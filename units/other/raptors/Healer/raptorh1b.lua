@@ -1,12 +1,11 @@
 return {
 	raptorh1b = {
-		acceleration = 1,
+		maxacc = 1,
 		activatewhenbuilt = true,
 		autoheal = 24,
-
-		brakerate = 1,
-		buildcostenergy = 600,
-		buildcostmetal = 40,
+		maxdec = 1,
+		energycost = 600,
+		metalcost = 40,
 		builddistance = 400,
 		builder = 1,
 		buildpic = "raptors/raptorh1b.DDS",
@@ -35,9 +34,9 @@ return {
 		leavetracks = true,
 		maneuverleashlength = 640,
 		mass = 60,
-		maxdamage = 365,
+		health = 365,
 		maxslope = 18,
-		maxvelocity = 5,
+		speed = 150.0,
 		maxwaterdepth = 0,
 		metalstorage = 1000,
 		mobilestandorders = 1,

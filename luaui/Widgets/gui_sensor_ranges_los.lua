@@ -102,6 +102,8 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
 local spIsUnitAllied = Spring.IsUnitAllied
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitHealth = Spring.GetUnitHealth
 local glColor = gl.Color
 local glColorMask = gl.ColorMask
 local glDepthTest = gl.DepthTest
@@ -120,36 +122,16 @@ local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
 -- Globals
 local vsx, vsy = Spring.GetViewGeometry()
 local lineScale = 1
-local unitList = {} -- all ally units and their coordinates and radar ranges
 local spec, fullview = spGetSpectatingState()
 local allyTeamID = Spring.GetMyAllyTeamID()
 
 -- find all unit types with radar in the game and place ranges into unitRange table
 local unitRange = {} -- table of unit types with their radar ranges
-local crashable = {}
-
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	-- save perf by excluding low los range units
-	if unitDef.losRadius and unitDef.losRadius > minSightDistance then
-		unitRange[unitDefID] = unitDef.losRadius - rangecorrectionelmos
-	end
-end
-
---crashable aircraft
-for _, UnitDef in pairs(UnitDefs) do
-	if UnitDef.canFly == true and UnitDef.transportSize == 0 and string.sub(UnitDef.name, 1, 7) ~= "critter" and string.sub(UnitDef.name, 1, 7) ~= "raptor" then
-		crashable[UnitDef.id] = true
-	end
-end
-
---local nonCrashable = {'armpeep', 'corfink', 'corbw', 'armfig', 'armsfig', 'armhawk', 'corveng', 'corsfig', 'corvamp'}
-local nonCrashable = { 'armpeep', 'corfink', 'corbw' }
-for udid, ud in pairs(UnitDefs) do
-	for _, unitname in pairs(nonCrashable) do
-		if string.find(ud.name, unitname) then
-			crashable[udid] = nil
-		end
+	if unitDef.sightDistance and unitDef.sightDistance > minSightDistance then
+		unitRange[unitDefID] = unitDef.sightDistance - rangecorrectionelmos
 	end
 end
 
@@ -158,59 +140,21 @@ function widget:ViewResize(newX, newY)
 	lineScale = (vsy + 500)/ 1300
 end
 
--- collect data about the unit and store it into unitList
-local unitIDtoaddreason = {}
+-- a reusable table, since we will literally only modify its first element.
 local instanceCache = {0,0,0,0,0,0,0,0}
-local function processUnit(unitID, unitDefID, caller, teamID)
-	if debugmode then
-		Spring.Echo("processunit", unitID, unitDefID, caller, teamID)
-		Spring.Echo('allied:',spIsUnitAllied(unitID),'spec',spec,'fullview',fullview, 'getteam', Spring.GetUnitTeam(unitID)  )
-	end
-	-- units given to the enemy get called for some reason?
-	teamID = teamID or Spring.GetUnitTeam(unitID)
-
-	if (not (spec and fullview)) and (not spIsUnitAllied(unitID)) then -- given units are still considered allies :/
-		return
-	end -- display mode for specs
-
-	if teamID == gaiaTeamID then
-		return
-	end -- no gaia units
-
-	local range = unitRange[unitDefID]
-	if range == nil then
-		return
-	end -- not enough LOS to be drawn
-
-	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
-	if buildProgress < 0.99 then
-		return
-	end
-
-	unitList[unitID] = unitDefID
-	-- shall we jam it straight into the table?
-	--if circleInstanceVBO.instanceIDtoIndex[unitID] then S pring.Echo("Duplicate unit added", unitID, caller, unitIDtoaddreason[unitID]) end
-	unitIDtoaddreason[unitID] = caller
-	instanceCache[1] = range
-	pushElementInstance(circleInstanceVBO,
-		instanceCache,
-		unitID, --key
-		true, -- updateExisting
-		caller == "Initialize", -- dont upload on init, 
-		unitID -- new unitID stuff
-	)
-
-end
 
 local function InitializeUnits()
-	unitList = {}
+	--Spring.Echo("Sensor Ranges LOS InitializeUnits")
 	clearInstanceTable(circleInstanceVBO)
-	local units = Spring.GetAllUnits()
-	for i = 1, #units do
-		processUnit(units[i], spGetUnitDefID(units[i]), "Initialize")
+	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
+		local visibleUnits =  WG['unittrackerapi'].visibleUnits
+		for unitID, unitDefID in pairs(visibleUnits) do
+			widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID), true)
+		end
 	end
-	uploadAllElements(circleInstanceVBO) --upload initialized at once
+	uploadAllElements(circleInstanceVBO)
 end
+
 
 function widget:PlayerChanged()
 	local prevFullview = fullview
@@ -236,7 +180,6 @@ function widget:Initialize()
 	WG.losrange.setUseTeamColors = function(value)
 		useteamcolors = value
 	end
-
 	initgl4()
 	widget:ViewResize()
 	InitializeUnits()
@@ -246,44 +189,45 @@ function widget:Shutdown()
 	WG.losrange = nil
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if unitList[unitID] then
-		unitList[unitID] = nil
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
+	--Spring.Echo("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, noupload)
+	unitTeam = unitTeam or spGetUnitTeam(unitID)
+	noupload = noupload == true
+	if unitRange[unitDefID] == nil or unitTeam == gaiaTeamID then return end
+	
+	if (not (spec and fullview)) and (not spIsUnitAllied(unitID)) then -- given units are still considered allies :/
+		return
+	end -- display mode for specs
+	
+	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+	if buildProgress < 0.99 then return end
+
+	instanceCache[1] =  unitRange[unitDefID] 
+	pushElementInstance(circleInstanceVBO,
+		instanceCache,
+		unitID, --key
+		true, -- updateExisting
+		noupload,
+		unitID -- unitID for uniform buffers
+	)
+end
+
+function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
+	-- Note that this unit uses its own VisibleUnitsChanged, to handle the case where we go into fullview.
+	--InitializeUnits()
+end
+
+function widget:VisibleUnitRemoved(unitID)
+	if circleInstanceVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(circleInstanceVBO, unitID)
 	end
 end
 
-function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	widget:UnitDestroyed(unitID)
-	if (spec and fullview) or Spring.AreTeamsAllied(unitTeam, newTeam) == true then
-		processUnit(unitID, unitDefID, "UnitTaken", newTeam)
-	end
-end
-
-function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	widget:UnitDestroyed(unitID)
-	if (spec and fullview) or Spring.AreTeamsAllied(unitTeam, oldTeam) == true then
-		processUnit(unitID, unitDefID, "UnitGiven", unitTeam)
-	end
-end
-
-function widget:UnitFinished(unitID, unitDefID, unitTeam)
-	processUnit(unitID, unitDefID, "UnitFinished", unitTeam)
-end
-
 function widget:DrawWorldPreUnit()
 	--if spec and fullview then return end
-	if Spring.IsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then
-		return
-	end
-
-	if circleInstanceVBO.usedElements == 0 then
-		return
-	end
-
-	if opacity < 0.01 then
-		return
-	end
+	if Spring.IsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
+	if circleInstanceVBO.usedElements == 0 then return end
+	if opacity < 0.01 then return end
 
 	--gl.Clear(GL.STENCIL_BUFFER_BIT) -- clear stencil buffer before starting work
 	glColorMask(false, false, false, false) -- disable color drawing

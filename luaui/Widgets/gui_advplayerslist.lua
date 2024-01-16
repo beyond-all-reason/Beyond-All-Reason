@@ -47,7 +47,7 @@ end
 	v36   (Floris): show grey player name for missing + dead players
 	v37   (Floris/Borg_King): add support for much larger player/spec counts  64 -> 256
 	v38   (Floris): significant performance improvement, + fast updating resources
-	v39   (Floris): auto compress when large amount (33+) of players are participating (same is seperately applied for spectator list)
+	v39   (Floris): auto compress when large amount (33+) of players are participating (same is separately applied for spectator list)
 ]]
 --------------------------------------------------------------------------------
 -- Config
@@ -62,6 +62,7 @@ local lockcameraLos = true                    -- togglelos
 local minWidth = 190	-- for the sake of giving the addons some room
 
 local hideDeadTeams = true
+local hideDeadAllyTeams = true
 local absoluteResbarValues = false
 
 local curFrame = Spring.GetGameFrame()
@@ -194,8 +195,8 @@ local now = 0
 
 local timeCounter = 9
 local timeFastCounter = 9
-local updateRate = 0.75
-local updateFastRate = 0.09 -- only updates resources
+local updateRate = 0.8
+local updateFastRate = 0.15 -- only updates resources
 local lastTakeMsg = -120
 local hoverPlayerlist = false
 
@@ -1373,7 +1374,12 @@ function SortList()
     mySpecStatus = select(3, Spring_GetPlayerInfo(myPlayerID, false))
 
     -- checks if a team has died
-    local teamList = Spring_GetTeamList()
+    local teamList
+    if enemyListShow then
+        teamList = Spring_GetTeamList()
+    else
+        teamList = Spring_GetTeamList(myAllyTeamID)
+    end
     if mySpecStatus ~= myOldSpecStatus then
         if mySpecStatus then
             for _, team in ipairs(teamList) do
@@ -1395,12 +1401,22 @@ function SortList()
 
 
     local aliveTeams = 0
-    for _, team in ipairs(teamList) do
-        if not select(3, Spring_GetTeamInfo(team, false)) then
-            aliveTeams = aliveTeams  + 1
+    local deadTeams = 0
+    for _, teamID in ipairs(teamList) do
+        local _, _, alive, _, _, allyTeamID = Spring_GetTeamInfo(teamID, false)
+        if aliveAllyTeams[allyTeamID] then
+            if not alive then
+                aliveTeams = aliveTeams  + 1
+            else
+                deadTeams = deadTeams + 1
+            end
         end
     end
-    playerScale = math.max(0.5, math.min(1, 33 / ((aliveTeams+((#teamList-aliveTeams)*0.5))-1)))
+    local deadTeamSize = 0.66
+    playerScale = math.max(0.4, math.min(1, 33 / (aliveTeams+(deadTeams*deadTeamSize))))
+    if #Spring_GetAllyTeamList() > 24 then
+        playerScale = playerScale - (playerScale * ((#Spring_GetAllyTeamList()-2)/500))  -- reduce size some more when mega ffa
+    end
 
     -- calls the (cascade) sorting for players
     vOffset = SortAllyTeams(vOffset)
@@ -1425,7 +1441,7 @@ function SortAllyTeams(vOffset)
     local allyTeamList = Spring_GetAllyTeamList()
     local allyTeamsCount = table.maxn(allyTeamList) - 1
 
-    --find own ally team
+    -- find own ally team
     vOffset = 12 / 2.66
     for allyTeamID = 0, allyTeamsCount - 1 do
         if allyTeamID == myAllyTeamID then
@@ -1444,7 +1460,7 @@ function SortAllyTeams(vOffset)
     -- add the others
     local firstenemy = true
     for allyTeamID = 0, allyTeamsCount - 1 do
-        if allyTeamID ~= myAllyTeamID then
+        if allyTeamID ~= myAllyTeamID and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
             if firstenemy then
                 vOffset = vOffset + 13
                 vOffset = vOffset + labelOffset - 3
@@ -1467,14 +1483,11 @@ function SortTeams(allyTeamID, vOffset)
     -- Adds teams to the draw list (own team first)
     -- (teams are not visible as such unless they are empty or AI)
     local teamsList = Spring_GetTeamList(allyTeamID)
-
-    --add teams
     for _, teamID in ipairs(teamsList) do
         drawListOffset[#drawListOffset + 1] = vOffset
         drawList[#drawList + 1] = -1
         vOffset = SortPlayers(teamID, allyTeamID, vOffset) -- adds players form the team
     end
-
     return vOffset
 end
 
@@ -2304,7 +2317,7 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
         DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset - glowsize)
     end
 
-    if energyConversion ~= 0.75 and not dead then    -- default = 0.75
+    if energyConversion and energyConversion ~= 0.75 and not dead then    -- default = 0.75
         gl_Color(0,0,0, 0.125)
         gl_Texture(false)
         DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) - 0.75 - bordersize,
@@ -3071,14 +3084,8 @@ function widget:MousePress(x, y, button)
                                         if clickedPlayer.team == myTeamID then
                                             Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
                                         else
-                                            local unitsCount = Spring.GetSelectedUnitsCount()
-                                            Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.giveUnits', { count = unitsCount, name = clickedPlayer.name }))
-                                            local selectedUnits = Spring.GetSelectedUnits()
-                                            for i = 1, #selectedUnits do
-                                                local ux, uy, uz = Spring.GetUnitPosition(selectedUnits[i])
-                                                Spring.MarkerAddPoint(ux, uy, uz)
-                                            end
                                             Spring_ShareResources(clickedPlayer.team, "units")
+                                            Spring.PlaySoundFile("beep4", 1, 'ui')
                                         end
                                     end
                                     release = nil
@@ -3719,7 +3726,7 @@ function widget:ViewResize()
 		--AdvPlayersListAtlas:Delete()
 	end
 
-	local cellheight = math.min(32, math.ceil(math.max(font.size, font2.size) + 4))
+	local cellheight = math.max(32, math.ceil(math.max(font.size, font2.size) + 4))
 	local cellwidth = math.ceil(cellheight*1.25)
 	local cellcount = math.ceil(math.sqrt(32+32 + 200))
 	local atlasconfig = {sizex = cellheight * cellcount, sizey =  cellwidth*cellcount, xresolution = cellheight, yresolution = cellwidth, name = "AdvPlayersListAtlas", defaultfont = {font = font, options = 'o'}}

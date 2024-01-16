@@ -6,21 +6,29 @@ function gadget:GetInfo()
 		date		= "October 2017",
 		license     = "GNU GPL, v2 or later",
 		layer		= 0,
-		enabled		= false,
+		enabled		= Spring.GetModOptions().xmas,
 	}
 end
 
+
 local decorationUdefIDs = {}
 local decorationUdefIDlist = {}
+local decorationSizes = {}
 for udefID,def in ipairs(UnitDefs) do
-	if def.name == 'xmasball' or def.name == 'xmasball2' then
+	if string.sub(def.name, 1, 8) == 'xmasball' then
 		decorationUdefIDlist[#decorationUdefIDlist+1] = udefID
 		decorationUdefIDs[udefID] = true
+		local size = tonumber(string.sub(def.name, 11))
+		if size then
+			if not decorationSizes[size] then
+				decorationSizes[size] = {}
+			end
+			decorationSizes[size][#decorationSizes[size]+1] = udefID
+		end
 	end
 end
 
-local forceXmas = false	-- for debugging purpose
-
+-------------------------------------------------------------------------------
 if not gadgetHandler:IsSyncedCode() then
 	local uniformcache = {0}
 	function gadget:UnitCreated(unitID, unitDefID)
@@ -31,26 +39,26 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 	return
 end
+-------------------------------------------------------------------------------
 
+_G.itsXmas = true
 
-local maxDecorations = 200
-local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/2000000)
+local maxDecorations = 350
+local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/1800000)
 local candycaneSnowMapMult = 2.5
 local addGaiaBalls = false	-- if false, only own team colored balls are added
 
 local enableUnitDecorations = true		-- burst out xmas ball after unit death
-if not forceXmas then
-	for _,teamID in ipairs(Spring.GetTeamList()) do
-		if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
-			enableUnitDecorations = false
-		end
+for _,teamID in ipairs(Spring.GetTeamList()) do
+	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
+		enableUnitDecorations = false
 	end
 end
 
 local isComWreck = {}
 local xmasComwreckDefID
 for fdefID,def in ipairs(FeatureDefs) do
-	if def.name == "armcom_dead" or def.name == "corcom_dead" then
+	if def.name == "armcom_dead" or def.name == "corcom_dead" or def.name == "legcom_dead" or def.name == "legcomlvl2_dead" or def.name == "legcomlvl3_dead" or def.name == "legcomlvl4_dead" then
 		isComWreck[fdefID] = true
 	end
 	if def.name == "xmascomwreck" then
@@ -59,21 +67,21 @@ for fdefID,def in ipairs(FeatureDefs) do
 end
 
 local costSettings = {
-	{0, 0, 0},
-	{40, 1, 0.7},
-	{100, 1, 0.8},
-	{200, 1, 0.9},
-	{350, 2, 0.9},
-	{600, 2, 1},
-	{900, 3, 1.05},
-	{1200, 3, 1.15},
-	{1500, 4, 1.15},
-	{2000, 4, 1.25},
-	{2500, 5, 1.25},
-	{4000, 6, 1.35},
-	{7000, 7, 1.45},
-	{12000, 8, 1.55},
-	{20000, 9, 1.7},
+	{0, 0, 1},
+	{40, 1, 1},
+	{100, 1, 1},
+	{200, 1, 2},
+	{350, 2, 2},
+	{600, 2, 2},
+	{900, 3, 3},
+	{1200, 3, 3},
+	{1500, 4, 3},
+	{2000, 4, 4},
+	{2500, 5, 4},
+	{4000, 6, 5},
+	{7000, 7, 5},
+	{12000, 8, 6},
+	{20000, 9, 6},
 }
 local isBuilder = {}
 local unitSize = {}
@@ -89,28 +97,26 @@ for udefID,def in ipairs(UnitDefs) do
 		if def.mass >= 35 then
 			local balls = math.floor(((def.radius-13) / 7.5))
 			local cost = def.metalCost + (def.energyCost/100)
-			local impulse = 0.37
+			local impulse = 0.5
 			local radius = 0.8
 			for _,v in ipairs(costSettings) do
 				if cost > v[1] then
 					balls = v[2]
 					radius = v[3] --+ impulse
-					impulse = impulse + (radius/1.7)
+					impulse = impulse + (radius/#decorationSizes)
 				else
 					break
 				end
 			end
 			if balls > 0 then
-				hasDecoration[udefID] = {balls, impulse, 30*14, radius}
+				hasDecoration[udefID] = {balls, impulse, 30*20, radius}
 			end
 		end
 	end
 	if def.customParams.iscommander ~= nil then
-		hasDecoration[udefID] = {28, 9, 30*22, 1, true} -- always shows decorations for commander even if maxDecorations is reached
+		hasDecoration[udefID] = {28, 9, 30*33, 1, true} -- always shows decorations for commander even if maxDecorations is reached
 	end
 end
-
-_G.itsXmas = false
 
 local decorationCount = 0
 local decorations = {}
@@ -121,20 +127,9 @@ local candycanes = {}
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local random = math.random
 local GetGroundHeight = Spring.GetGroundHeight
-local receivedPlayerXmas = {}
-local receivedPlayerCount = 0
 local initiated
 
 VFS.Include("luarules/configs/map_biomes.lua")
-
-function gadget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,4)=="xmas" then
-		if receivedPlayerXmas[playerID] == nil then
-			receivedPlayerCount = receivedPlayerCount + 1
-			receivedPlayerXmas[playerID] = (msg:sub(5,6) == '1' and true or false)
-		end
-	end
-end
 
 function initiateXmas()
 	if not initiated then
@@ -164,13 +159,15 @@ function initiateXmas()
 			for i=1, candycaneAmount do
 				local x = random(0, Game.mapSizeX)
 				local z = random(0, Game.mapSizeZ)
-				local groundType, groundType2 = Spring.GetGroundInfo(x,z)
-				if (type(groundType) == 'string' and groundType ~= "void" or groundType2 ~= "void") then	-- 105 compatibility
-					local y = GetGroundHeight(x, z)
-					local caneType = math.ceil(random(1,7))
-					local featureID = Spring.CreateFeature('candycane'..caneType,x,y,z,random(0,360))
-					Spring.SetFeatureRotation(featureID, random(-12,12), random(-12,12), random(-180,180))
-					candycanes[featureID] = caneType
+				local y = GetGroundHeight(x, z)
+				if y > 5 then
+					local groundType, groundType2 = Spring.GetGroundInfo(x,z)
+					if (type(groundType) == 'string' and groundType ~= "void" or groundType2 ~= "void") then	-- 105 compatibility
+						local caneType = math.ceil(random(1,7))
+						local featureID = Spring.CreateFeature('candycane'..caneType,x,y,z,random(0,360))
+						Spring.SetFeatureRotation(featureID, random(-12,12), random(-12,12), random(-180,180))
+						candycanes[featureID] = caneType
+					end
 				end
 			end
 		end
@@ -203,14 +200,15 @@ function gadget:GameFrame(n)
 			if frame < n then
 				decorations[unitID] = nil
 				local x,y,z = Spring.GetUnitPosition(unitID)
-				local gy = Spring.GetGroundHeight(x,z)
-
-				decorationsTerminal[unitID] = n+random(0,50)+225+((y - gy) * 33)		-- allows if in sea to take longer to go under seafloor
-				if decorationsTerminal[unitID] > n+1500 then	-- limit time
-					decorationsTerminal[unitID] = n+1500
+				if x then
+					local gy = Spring.GetGroundHeight(x,z)
+					decorationsTerminal[unitID] = n+random(0,50)+225+((y - gy) * 33)		-- allows if in sea to take longer to go under seafloor
+					if decorationsTerminal[unitID] > n+1500 then	-- limit time
+						decorationsTerminal[unitID] = n+1500
+					end
+					local env = Spring.UnitScript.GetScriptEnv(unitID)
+					Spring.UnitScript.CallAsUnit(unitID,env.Sink)
 				end
-				local env = Spring.UnitScript.GetScriptEnv(unitID)
-				Spring.UnitScript.CallAsUnit(unitID,env.Sink)
 			end
 		end
 	end
@@ -238,7 +236,9 @@ function gadget:GameFrame(n)
 				if addGaiaBalls and random() > 0.5 then
 					teamID = gaiaTeamID
 				end
-				local decorationDefID = decorationUdefIDlist[math.floor(1 + (math.random() * (#decorationUdefIDlist-0.001)))]
+				local size = math.max(1, math.min(#decorationSizes, math.floor((hasDecoration[data[5]][4]))))	-- retrieve max size
+				size = math.min(size, (math.ceil((size*0.35) + (math.random() * (size*0.65)))))	-- pick a size
+				local decorationDefID = decorationSizes[size][math.floor(1 + (math.random() * (#decorationSizes[size]-0.001)))]	-- pick one of 2 variants/textured baubles
 				uID = Spring.CreateUnit(decorationDefID, data[1],data[2],data[3], 0, teamID)
 				if uID ~= nil then
 					decorationCount = decorationCount + 1
@@ -255,43 +255,49 @@ function gadget:GameFrame(n)
 
 	-- add gifted unit decorations
 	for _, unitID in ipairs(createdDecorations) do
-		if decorations[unitID] == nil then
+		if not decorations[unitID] then
 			decorationCount = decorationCount + 1
-			decorations[unitID] = Spring.GetGameFrame() + 600 + (random()*300)
+			decorations[unitID] = Spring.GetGameFrame() + 2000 + (random()*1000)
 			setGaiaUnitSpecifics(unitID)
 			Spring.SetUnitRotation(unitID,random()*360,random()*360,random()*360)
-			Spring.AddUnitImpulse(unitID, (random()-0.5)*2, 3.8+(random()*1), (random()-0.5)*2)
+			--Spring.AddUnitImpulse(unitID, (random()-0.5)*2, 3.8+(random()*1), (random()-0.5)*2)
+			local impulseMult = 80
+			Spring.AddUnitImpulse(unitID, (random()-0.5)*(impulseMult/3), 1+(random()*(impulseMult/1.6)), (random()-0.5)*(impulseMult/3))
 		end
 	end
 	createdDecorations = {}
 end
 
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	if decorationUdefIDs[unitDefID] then
+		createdDecorations[#createdDecorations+1] = unitID
+	end
+end
+
 function gadget:FeatureCreated(featureID, allyTeam)
-	if _G.itsXmas then
-		-- replace comwreck with xmas comwreck
-		if isComWreck[Spring.GetFeatureDefID(featureID)] then
-			local px,py,pz = Spring.GetFeaturePosition(featureID)
-			local rx,ry,rz = Spring.GetFeatureRotation(featureID)
-			local dx,dy,dz = Spring.GetFeatureDirection(featureID)
-			Spring.DestroyFeature(featureID)
-			local xmasFeatureID = Spring.CreateFeature(xmasComwreckDefID, px,py,pz)
-			if xmasFeatureID then
-				Spring.SetFeatureRotation(xmasFeatureID, rx,ry,rz)
-				Spring.SetFeatureDirection(xmasFeatureID, dx,dy,dz)
-				local comtype = 'armcom'
-				if string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower(), 'corcom', nil, true) then
-					comtype = 'corcom'
-				end
-				Spring.SetFeatureResurrect(xmasFeatureID, comtype, "s", 0)
+	-- replace comwreck with xmas comwreck
+	if isComWreck[Spring.GetFeatureDefID(featureID)] then
+		local px,py,pz = Spring.GetFeaturePosition(featureID)
+		local rx,ry,rz = Spring.GetFeatureRotation(featureID)
+		local dx,dy,dz = Spring.GetFeatureDirection(featureID)
+		local heading = Spring.GetFeatureHeading(featureID)
+		local teamID = Spring.GetFeatureTeam(featureID)
+		Spring.DestroyFeature(featureID)
+		local xmasFeatureID = Spring.CreateFeature(xmasComwreckDefID, px, py, pz, heading, teamID)
+		if xmasFeatureID then
+			Spring.SetFeatureRotation(xmasFeatureID, rx,ry,rz)
+			Spring.SetFeatureDirection(xmasFeatureID, dx,dy,dz)
+			local comtype = 'armcom'
+			if string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower(), 'corcom', nil, true) then
+				comtype = 'corcom'
 			end
+			Spring.SetFeatureResurrect(xmasFeatureID, comtype, "s", 0)
 		end
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-	if not _G.itsXmas then
-		return
-	end
 	if decorationUdefIDs[unitDefID] then
 		if decorations[unitID] ~= nil then
 			decorations[unitID] = nil
@@ -350,28 +356,5 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 end
 
 function gadget:GameStart()
-	if not _G.itsXmas then
-		local xmasRatio = 0
-		for playerID, xmas in pairs(receivedPlayerXmas) do
-			if xmas then
-				xmasRatio = xmasRatio + (1/receivedPlayerCount)
-			end
-		end
-		if xmasRatio > 0.75 or forceXmas then
-			_G.itsXmas = true
-			initiateXmas()
-		else
-			return
-		end
-	end
-end
-
--- in case of luarules reload
-if forceXmas then
-	function gadget:Initialize()
-		if Spring.GetGameFrame() > 0 then
-			_G.itsXmas = true
-			initiateXmas()
-		end
-	end
+	initiateXmas()
 end

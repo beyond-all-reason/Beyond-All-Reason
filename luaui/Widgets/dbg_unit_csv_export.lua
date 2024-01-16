@@ -12,6 +12,7 @@ end
 
 
 local filename = "unitlist.csv"
+local iconTypes = VFS.Include("gamedata/icontypes.lua")
 
 
 local function round(num, numDecimalPlaces)
@@ -21,9 +22,6 @@ local function round(num, numDecimalPlaces)
 end
 
 function widget:Initialize()
-    if Script.LuaRules('GetIconTypes') then
-        iconTypesMap = Script.LuaRules.GetIconTypes()
-    end
     local file = assert(io.open(filename,'w'), "Unable to save file")
 
     local columnSeparator = ';'
@@ -52,7 +50,7 @@ function widget:Initialize()
         'hover'..columnSeparator..
         'ship'..columnSeparator..
         'tank'..columnSeparator..
-        'kbot'..columnSeparator..
+        'bot'..columnSeparator..
         'building'..columnSeparator..
         'dps'..columnSeparator..
         'weaponrange'..columnSeparator..
@@ -139,10 +137,10 @@ function widget:Initialize()
                 if unitDef.sonarStealth then
                     specials = specials .. 'sonar-stealth, '
                 end
-                if unitDef.radarRadius >= 1000 then
+                if unitDef.radarDistance >= 1000 then
                     specials = specials .. 'radar, '
                 end
-                if unitDef.jammerRadius > 0  then
+                if unitDef.radarDistanceJam > 0  then
                     specials = specials .. 'jammer, '
                 end
                 if unitDef.hasShield then
@@ -163,7 +161,7 @@ function widget:Initialize()
                 if unitDef.customParams.isairbase then
                     specials = specials .. 'airbase, '
                 end
-                if unitDef.seismicRadius > 0 then
+                if unitDef.seismicDistance > 0 then
                     specials = specials .. 'stealth-detector, '
                 end
                 if specials ~= '' then
@@ -171,24 +169,24 @@ function widget:Initialize()
                 end
 
                 local jammerRange = ''
-                if unitDef.jammerRadius > 0 then
-                    jammerRange = round(unitDef.jammerRadius, 0)
+                if unitDef.radarDistanceJam > 0 then
+                    jammerRange = round(unitDef.radarDistanceJam, 0)
                 end
                 local radarRange = ''
-                if unitDef.radarRadius > 0 then
-                    radarRange = round(unitDef.radarRadius, 0)
+                if unitDef.radarDistance > 0 then
+                    radarRange = round(unitDef.radarDistance, 0)
                 end
                 local sonarRange = ''
-                if unitDef.sonarRadius > 0 then
-                    sonarRange = round(unitDef.sonarRadius, 0)
+                if unitDef.sonarDistance > 0 then
+                    sonarRange = round(unitDef.sonarDistance, 0)
                 end
                 local sightRange = ''
-                if unitDef.losRadius > 0 then
-                    sightRange = round(unitDef.losRadius, 0)
+                if unitDef.sightDistance > 0 then
+                    sightRange = round(unitDef.sightDistance, 0)
                 end
                 local airsightRange = ''
-                if unitDef.airLosRadius > 0 then
-                    airsightRange = round(unitDef.airLosRadius, 0)
+                if unitDef.airSightDistance > 0 then
+                    airsightRange = round(unitDef.airSightDistance, 0)
                 end
 
                 local dps = 0
@@ -237,8 +235,8 @@ function widget:Initialize()
                     end
                 end
 
-                if unitDef.seismicRadius > 0 then
-                    weaponRange = unitDef.seismicRadius
+                if unitDef.seismicDistance > 0 then
+                    weaponRange = unitDef.seismicDistance
                 end
 
                 if unitDef.customParams.unitgroup and unitDef.customParams.unitgroup == 'explo' and unitDef.deathExplosion and WeaponDefNames[unitDef.deathExplosion] then
@@ -299,7 +297,7 @@ function widget:Initialize()
                     unitDef.translatedHumanName..columnSeparator..
                     unitDef.translatedTooltip..columnSeparator..
                     description..columnSeparator..
-                    (iconTypesMap[unitDef.iconType] and string.gsub(string.gsub(iconTypesMap[unitDef.iconType], 'icons/', ''), '.png', '') or '')..columnSeparator..
+                    (iconTypes[unitDef.iconType] and iconTypes[unitDef.iconType].bitmap and string.gsub(string.gsub(iconTypes[unitDef.iconType].bitmap, 'icons/', ''), '.png', '') or '')..columnSeparator..
                     round(unitDef.height, 0)..columnSeparator..
                     unitDef.metalCost..columnSeparator..
 					unitDef.energyCost..columnSeparator..
@@ -315,7 +313,7 @@ function widget:Initialize()
                     (unitDef.modCategories["hover"] and '1' or '')..columnSeparator..
                     (unitDef.modCategories["ship"] and '1' or '')..columnSeparator..
                     (unitDef.modCategories["tank"] and '1' or '')..columnSeparator..
-                    (unitDef.modCategories["kbot"] and '1' or '')..columnSeparator..
+                    (unitDef.modCategories["bot"] and '1' or '')..columnSeparator..
                     ((unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) and '1' or '')..columnSeparator..
                     dps..columnSeparator..
                     weaponRange..columnSeparator..

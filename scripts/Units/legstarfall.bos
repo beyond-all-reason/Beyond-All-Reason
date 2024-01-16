@@ -95,7 +95,7 @@ AimPrimary(heading, pitch)
 }
 
 FirePrimary() {
-	
+	guncount = 0;
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
 
@@ -120,7 +120,7 @@ Shot1(heading,pitch) {
 	
 	
 	++guncount;
-	if (guncount==61) guncount = 0;
+	if (guncount==62) guncount = 0;
 
 
 }
@@ -128,7 +128,7 @@ Shot1(heading,pitch) {
 QueryPrimary(piecenum)
 {
 
-		piecenum = guncount+8;
+		piecenum = guncount+7;
 
 }
 

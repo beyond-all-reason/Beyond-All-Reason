@@ -171,6 +171,11 @@ local spIsGUIHidden = Spring.IsGUIHidden
 local math_max = math.max
 local math_ceil = math.ceil
 
+local unitName = {}
+for udid, ud in pairs(UnitDefs) do
+	unitName[udid] = ud.name
+end
+
 ---------------------------------------------------------------------------------
 --Light falloff functions: http://gamedev.stackexchange.com/questions/56897/glsl-light-attenuation-color-and-intensity-formula
 
@@ -802,7 +807,7 @@ end
 local function AddStaticLightsForUnit(unitID, unitDefID, noUpload)
 	if unitDefLights[unitDefID] then
 		local _,_,_,_, buildprogress = Spring.GetUnitHealth(unitID)
-		if buildprogress < 0.99999 then return end
+		if buildprogress < 1 then return end
 		local unitDefLight = unitDefLights[unitDefID]
 		if unitDefLight.initComplete ~= true then  -- late init
 			for lightname, lightParams in pairs(unitDefLight) do
@@ -1008,7 +1013,7 @@ local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
 		end
 		if (not spec) and lightTable.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then return end
 		if lightTable.initComplete == nil then InitializeLight(lightTable, unitID) end
-		local instanceID = tostring(unitID) .. "_" .. tostring(UnitDefs[unitDefID].name) .. "UnitScriptLight" .. tostring(lightIndex) .. "_" .. tostring(param)
+		local instanceID = tostring(unitID) .. "_" .. tostring(unitName[unitDefID]) .. "UnitScriptLight" .. tostring(lightIndex) .. "_" .. tostring(param)
 		AddLight(instanceID, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
 	end
 end
@@ -1143,7 +1148,7 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 								local unitHeight = Spring.GetUnitHeight(unitID)
 								if unitHeight == nil then
 									local losstate = Spring.GetUnitLosState(unitID)
-									Spring.Echo("Unitheight is nil for unitID", unitID, "unitDefName", UnitDefs[unitDefID].name, eventName, lightname, 'losstate', losstate and losstate.los)
+									Spring.Echo("Unitheight is nil for unitID", unitID, "unitDefName", unitName[unitDefID], eventName, lightname, 'losstate', losstate and losstate.los)
 								end
 
 								lightCacheTable[2] = lightCacheTable[2] + lightTable.aboveUnit + (unitHeight or 0)
@@ -1293,9 +1298,10 @@ local function updateProjectileLights(newgameframe)
 					--end
 				else
 					local weaponDefID = spGetProjectileDefID ( projectileID )
-					if projectileDefLights[weaponDefID] then
+					if projectileDefLights[weaponDefID] and ( projectileID % (projectileDefLights[weaponDefID].fraction or 1) == 0 ) then
 						local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
 						lightType = projectileDefLights[weaponDefID].lightType
+
 						lightParamTable[1] = px
 						lightParamTable[2] = py
 						lightParamTable[3] = pz

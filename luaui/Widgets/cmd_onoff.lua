@@ -14,6 +14,11 @@ local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGetUnitStates = Spring.GetUnitStates
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
+local unitOnOffable = {}
+for udid, ud in pairs(UnitDefs) do
+	unitOnOffable[udid] = ud.onOffable
+end
+
 local function onoff(_, _, args)
 	local state = args[1]
 	if state ~= nil and (state ~= "0" and state ~= "1") then return end
@@ -23,7 +28,7 @@ local function onoff(_, _, args)
 	local anyOnOffable = false
 
 	for unitDefId, units in pairs(selectedUnitsSorted) do
-		if UnitDefs[unitDefId].onOffable then
+		if unitOnOffable[unitDefId] then
 			anyOnOffable = true
 
 			if state == nil then

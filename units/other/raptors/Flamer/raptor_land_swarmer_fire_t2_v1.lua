@@ -1,12 +1,11 @@
 return {
 	raptor_land_swarmer_fire_t2_v1 = {
-		acceleration = 1.035,
+		maxacc = 1.035,
 		activatewhenbuilt = true,
 		autoheal = 50,
-
-		brakerate = 0.805,
-		buildcostenergy = 15000,
-		buildcostmetal = 250,
+		maxdec = 0.805,
+		energycost = 15000,
+		metalcost = 250,
 		builder = false,
 		buildpic = "raptors/raptorp1.DDS",
 		buildtime = 4500,
@@ -26,12 +25,12 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 600,
-		maxdamage = 500,
-		maxvelocity = 4.5,
+		health = 500,
+		speed = 135.0,
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL",
+		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptorp2.s3o",
 		script = "Raptors/raptorr2.cob",
 		seismicsignature = 0,
@@ -144,13 +143,13 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL SPACE",
 				def = "CHASEWEAPON",
 				maindir = "0 0 1",
 				onlytargetcategory = "NOTAIR",
 			},
 			[2] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL SPACE",
 				def = "FLAMER",
 				maindir = "0 0 1",
 				maxangledif = 270,

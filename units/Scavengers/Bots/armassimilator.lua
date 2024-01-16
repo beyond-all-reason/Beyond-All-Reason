@@ -1,9 +1,9 @@
 return {
 	armassimilator = {
-		acceleration = 0.2369,
-		brakerate = 0.9039,
-		buildcostenergy = 25000,
-		buildcostmetal = 2500,
+		maxacc = 0.2369,
+		maxdec = 0.9039,
+		energycost = 25000,
+		metalcost = 2500,
 		buildpic = "ARMASSIMILATOR.DDS",
 		buildtime = 25000,
 		canmove = true,
@@ -18,9 +18,9 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 200000,
-		maxdamage = 7500,
+		health = 7500,
 		maxslope = 15,
-		maxvelocity = 2,
+		speed = 60.0,
 		maxwaterdepth = 22,
 		movementclass = "EPICBOT",
 		objectname = "Units/scavboss/armassimilator.s3o",
@@ -159,7 +159,6 @@ return {
 			-- 		vtol = 87,
 			-- 	},
 			-- },
-
 			machinegun                   = {
 				accuracy				 = 50,
 				AreaOfEffect             = 25,

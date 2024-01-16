@@ -1,12 +1,11 @@
 return {
 	raptor_land_kamikaze_emp_t4_v1 = {
-		acceleration = 6.9,
+		maxacc = 6.9,
 		activatewhenbuilt = true,
 		autoheal = 135,
-
-		brakerate = 0.23,
-		buildcostenergy = 9000,
-		buildcostmetal = 350,
+		maxdec = 0.23,
+		energycost = 9000,
+		metalcost = 350,
 		builder = false,
 		buildpic = "raptors/raptor_dodo2_electric.DDS",
 		buildtime = 22500,
@@ -32,13 +31,13 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 100,
-		maxdamage = 4450,
+		health = 4450,
 		maxslope = 18,
-		maxvelocity = 8,
+		speed = 240.0,
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL HOVER",
+		nochasecategory = "VTOL SPACE HOVER",
 		objectname = "Raptors/raptor_dodo2_electric.s3o",
 		script = "Raptors/raptor_dodo2.cob",
 		seismicsignature = 4,
@@ -67,6 +66,7 @@ return {
 			normaltex = "unittextures/chicken_m_normals.png",
 			--treeshader = "no",
 			instantselfd = true,
+			paralyzemultiplier = 0,
 		},
 		sfxtypes = {
 			explosiongenerators = {

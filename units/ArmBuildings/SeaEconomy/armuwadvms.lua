@@ -1,8 +1,8 @@
 return {
 	armuwadvms = {
 		buildangle = 5049,
-		buildcostenergy = 11500,
-		buildcostmetal = 750,
+		energycost = 11500,
+		metalcost = 750,
 		buildpic = "ARMUWADVMS.DDS",
 		buildtime = 20400,
 		canrepeat = false,
@@ -14,10 +14,9 @@ return {
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 10300,
+		health = 10300,
 		maxslope = 20,
 		maxwaterdepth = 9999,
 		metalstorage = 10000,

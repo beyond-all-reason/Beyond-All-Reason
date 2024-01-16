@@ -29,7 +29,7 @@ local showTipAboveBar = true
 local showTipBackground = false	-- false = tips shown below the loading bar
 
 local infolog = VFS.LoadFile("infolog.txt")
-local usingIntelGpu = false
+local usingIntelPotato = false
 if infolog then
 	local function lines(str)
 		local t = {}
@@ -46,17 +46,20 @@ if infolog then
 		end
 		if string.find(line, 'GL vendor') then
 			if string.find(string.lower(line), 'intel') then
-				usingIntelGpu = true
+				usingIntelPotato = true
 			end
 		end
 		if string.find(line, 'GLSL version') then
 			if string.find(string.lower(line), 'intel') then
-				usingIntelGpu = true
+				usingIntelPotato = true
 			end
 		end
 		if string.find(line, 'GL renderer') then
 			if string.find(string.lower(line), 'intel') then
-				usingIntelGpu = true
+				usingIntelPotato = true
+			end
+			if string.find(string.lower(line), 'intel') and string.find(string.lower(line), 'arc') then
+				usingIntelPotato = false
 			end
 		end
 	end
@@ -448,7 +451,7 @@ function addon.DrawLoadScreen()
 			if showTips and showTipAboveBar and showTipBackground then
 				guishaderRects['loadprocess2'] = {(posX*vsx)-borderSize, ((posY*vsy)+height+borderSize), (vsx-(posX*vsx))+borderSize, tipPosYtop*vsy}
 			end
-			if usingIntelGpu then
+			if usingIntelPotato then
 				guishaderRects['loadprocess3'] = {0, 0.95*vsy, vsx,vsy}
 			end
 			DrawStencilTexture()
@@ -617,7 +620,7 @@ function addon.DrawLoadScreen()
 		gl.PopMatrix()
 	end
 
-	if usingIntelGpu then
+	if usingIntelPotato then
 		gl.Color(0.15,0.15,0.15,(blurShader and 0.55 or 0.7))
 		gl.Rect(0,0.95,1,1)
 		gl.PushMatrix()

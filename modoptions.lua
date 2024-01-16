@@ -879,6 +879,23 @@ local options={
 		section = 'options_experimental',
 		def = false,
 	},
+	{
+		key = 'air_rework',
+		name = 'Air Rework',
+		desc = 'Prototype version with more maneuverable, slower air units and more differentiation between them.',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
+	},
+
+	{
+		key = 'lategame_rebalance',
+		name = 'Lategame Rebalance',
+		desc = 'T2 defenses and anti-air is weaker, giving more time for late T2 strategies to be effective.  Early T3 unit prices increased. Increased price of calamity/ragnarock by 20% so late T3 has more time to be effective.',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
+	},
 
 	{
 		key    = 'experimentalimprovedtransports',
@@ -1009,6 +1026,15 @@ local options={
 		type	= "section",
 	},
 
+	--{
+	--	key    = "xmas",
+	--	name   = "Holiday decorations",
+	--	desc   = "Various  holiday decorations",
+	--	type   = "bool",
+	--	def    = true,
+	--	section= "options_extra",
+	--},
+
 	{
 		key="map_waterlevel",
 		name="Water Level",
@@ -1072,6 +1098,15 @@ local options={
 			{key="disco", name="Local (Disco)", desc="Same as local, except that colors are reshuffled every 2 mins for extra spicyness."},
 			{key="allred", name="All red", desc="You cannot distinguish different players, they all have the same color (red by default, can be changed in accessibility settings). Diplomacy is very hard."},
 		},
+	},
+
+	{
+		key     = 'teamffa_start_boxes_shuffle',
+		name    = 'Shuffle TeamFFA start boxes',
+		desc    = "In TeamFFA games (more than 2 teams, excluding Raptors / Scavengers), start boxes will be randomly assigned to each team: team 1 might be assigned any start box rather than team 1 always being assigned start box 1.",
+		type    = 'bool',
+		section = 'options_extra',
+		def     = true,
 	},
 
 	{

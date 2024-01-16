@@ -20,6 +20,10 @@ local flankingShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local glTexture             = gl.Texture
 
+local udefHasFlankingIcon = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	udefHasFlankingIcon[unitDefID] = (unitDef.speed and unitDef.speed > 0) or #unitDef.weapons > 0
+end
 
 local spec, fullview = Spring.GetSpectatingState()
 local allyTeamID = Spring.GetMyAllyTeamID()
@@ -74,11 +78,10 @@ end
 
 function widget:UnitCreated(unitID)
 	--Spring.Echo(spec, fullview, Spring.IsUnitAllied(unitID))
-	if not (spec and fullview) then
+	if not spec and fullview then
 		if not Spring.IsUnitAllied(unitID) then return end
 	end
-	local unitDefID = Spring.GetUnitDefID(unitID)
-	if  (UnitDefs[unitDefID].speed and UnitDefs[unitDefID].speed > 0) or #UnitDefs[unitDefID].weapons > 0 then
+	if udefHasFlankingIcon[Spring.GetUnitDefID(unitID)] then
 		AddPrimitiveAtUnit(unitID, -300)
 	end
 end

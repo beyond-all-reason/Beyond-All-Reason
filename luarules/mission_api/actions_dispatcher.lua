@@ -5,8 +5,8 @@ local types = GG['MissionAPI'].ActionTypes
 local actions = GG['MissionAPI'].Actions
 
 local typeMapping = {
-	-- [types.EnableTrigger] = ,
-	-- [types.DisableTrigger] = ,
+	[types.EnableTrigger] = actionFunctions.EnableTrigger,
+	[types.DisableTrigger] = actionFunctions.DisableTrigger,
 	-- [types.IssueOrders] = ,
 	-- [types.AllowCommands] = ,
 	-- [types.RestrictCommands] = ,
