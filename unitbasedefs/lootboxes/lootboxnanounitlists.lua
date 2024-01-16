@@ -177,6 +177,7 @@ return {
 		"legpede",
 
 		-- Vehicles
+		"legkeres",
 		"armthor_scav",
 
 		-- Hovercraft
