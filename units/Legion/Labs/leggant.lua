@@ -42,6 +42,7 @@ return {
 			[6] = "corsok",
 			[7] = "legpede",
 			[8] = "leegmech",
+			[9] = "legkeres",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
