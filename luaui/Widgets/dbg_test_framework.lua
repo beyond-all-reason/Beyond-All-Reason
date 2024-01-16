@@ -261,9 +261,7 @@ local function createNestedProxy(prefix, path)
 				timeoutExpireFrame = Spring.GetGameFrame() + RETURN_TIMEOUT,
 			}
 
-			log(LOG.DEBUG, "[createNestedProxy." .. prefix .. ".send] " .. table.toString({
-				serializedFn = serializedFn,
-			}))
+			log(LOG.DEBUG, "[createNestedProxy." .. prefix .. ".send]")
 			Spring.SendLuaRulesMsg(prefix .. serializedFn)
 
 			local resumeOk, resumeResult = coroutine.yield()
@@ -295,9 +293,7 @@ SyncedRun = function(fn)
 		timeoutExpireFrame = Spring.GetGameFrame() + RETURN_TIMEOUT,
 	}
 
-	log(LOG.DEBUG, "[SyncedRun.send] " .. table.toString({
-		serializedFn = serializedFn,
-	}))
+	log(LOG.DEBUG, "[SyncedRun.send]")
 	Spring.SendLuaRulesMsg(PROXY_RUN_PREFIX .. serializedFn)
 
 	local resumeOk, resumeResult = coroutine.yield()

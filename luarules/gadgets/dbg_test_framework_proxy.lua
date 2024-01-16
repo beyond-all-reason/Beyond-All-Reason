@@ -70,9 +70,7 @@ local function processCall(msg, env)
 end
 
 local function processCode(msg)
-	log(LOG.DEBUG, "[processCode] " .. table.toString({
-		msg = msg,
-	}))
+	log(LOG.DEBUG, "[processCode]")
 
 	local fn, returnId = deserializeFunctionRun(msg)
 
