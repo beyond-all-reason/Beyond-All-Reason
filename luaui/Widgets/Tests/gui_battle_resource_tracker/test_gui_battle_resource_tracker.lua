@@ -1,6 +1,8 @@
 local widgetName = "Battle Resource Tracker"
 
 function setup()
+	assert(widgetHandler.knownWidgets[widgetName] ~= nil)
+
 	Test.clearMap()
 
 	initialWidgetActive = widgetHandler.knownWidgets[widgetName].active
