@@ -9,7 +9,7 @@ function EngineerHST:internalName()
 end
 
 function EngineerHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.Engineers = {}
 	self.Builders = {}
 	self.maxEngineersPerBuilder = 1
