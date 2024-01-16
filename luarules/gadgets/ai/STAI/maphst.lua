@@ -535,6 +535,14 @@ end
 
 function MapHST:getPath(unitName,POS1,POS2,toGrid)
 	local mclass = self.ai.armyhst.unitTable[unitName].mclass
+	if not unitName then
+		self:Warn('getPath receive a nil unitName',unitName)
+		return
+	end
+	if not mclass then
+		self:Warn('getPath receive a nil unitName',unitName,mclass)
+		return
+	end
 	local metapath = Spring.RequestPath(mclass, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z)
 	if metapath then
 		local waypoints, pathStartIdx = metapath:GetPathWayPoints()

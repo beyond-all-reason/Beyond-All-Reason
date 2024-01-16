@@ -92,40 +92,24 @@ function LosHST:Update()
 -- 	self.ENEMY = self.ENEMY or {} -- WAIT BUT WHY REALLOC EVERY FRAME?
 -- 	self.OWN = self.OWN or {}
 -- 	self.ALLY = self.ALLY or {}
-local RAM = gcinfo()
 	self:FreeCellsToPool('ENEMY')
 	self:FreeCellsToPool('OWN')
 	self:FreeCellsToPool('ALLY')
 -- 	LosHST:tracyZoneBeginN("losEnemy")
 
-	RAM1 = gcinfo()
-	if RAM1-RAM > 0 then Spring.Echo('los 1',RAM1-RAM) end
 	for id,def in pairs(self.losEnemy) do
-		local RAM10 = gcinfo()
 		local unit = game:GetUnitByID(id)
 		local x,y,z = unit:GetRawPos()
-		RAM11 = gcinfo()
-		if RAM11-RAM10 > 0 then Spring.Echo('los 11',RAM11-RAM10) end
 		if self.losEnemy[id] and self.radarEnemy[id] then
 			self:Warn('unit in los and in radar, with losStatus:' ,game:GetUnitLos(id))
-		RAM12 = gcinfo()
-		if RAM12-RAM10 > 0 then Spring.Echo('los 12',RAM12-RAM10) end
 		elseif not  x or not unit:IsAlive()then
 			self:cleanEnemy(id)
-		RAM13 = gcinfo()
-		if RAM13-RAM10 > 0 then Spring.Echo('los 13',RAM13-RAM10) end
 		else
 			local X,Z = self.ai.maphst:RawPosToGrid(x,y,z)
-		RAM14 = gcinfo()
-		if RAM14-RAM10 > 0 then Spring.Echo('los 14',RAM14-RAM10) end
 			self:setCellLos(self.ENEMY,unit,X,Z)
-		RAM15 = gcinfo()
-		if RAM15-RAM10 > 0 then Spring.Echo('los 15',RAM15-RAM10) end
 		end
 	end
 -- 	LosHST:tracyZoneEnd()
-	RAM2 = gcinfo()
-	if RAM2-RAM1 > 0 then Spring.Echo('los 2',RAM2-RAM1) end
 -- 	LosHST:tracyZoneBeginN("radarEnemy")
 	for id,def in pairs(self.radarEnemy) do
 		local unit = game:GetUnitByID(id)
@@ -142,8 +126,6 @@ local RAM = gcinfo()
 		end
 	end
 
-	RAM3 = gcinfo()
-	if RAM3-RAM2 > 0 then Spring.Echo('los 3',RAM3-RAM2) end
 -- 	LosHST:tracyZoneEnd()
 -- self:EchoDebug(gcinfo()-RAM)
 -- 	LosHST:tracyZoneBeginN("ownImmobile")
@@ -505,7 +487,6 @@ function LosHST:setCellRadar(grid,unit,X,Z)
 end
 
 function LosHST:setCellLos(grid,unit,X,Z)
-local RAM = gcinfo()
 
 -- 	if not self.ai.maphst:GridToPos(X,Z) then
 -- 		return
@@ -518,8 +499,6 @@ local RAM = gcinfo()
 	grid[X] = grid[X] or {}
 	grid[X][Z] = grid[X][Z] or self:setupCell(grid,X,Z)
 	local CELL = grid[X][Z]
-				RAM5 = gcinfo()
-		if RAM5-RAM > 0 then Spring.Echo('los 5',RAM5-RAM) end
 	CELL.unitsCount = CELL.unitsCount + 1
 	CELL.units[unit:ID()] = unit:Name()
 	local name = unit:Name()
