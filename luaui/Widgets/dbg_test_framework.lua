@@ -376,6 +376,7 @@ Test = {
 			timeout,
 			1
 		)
+		callinState.buffer[name] = {}
 		log(LOG.DEBUG, "[waitUntilCallin.done]")
 	end,
 	spy = function(...)
