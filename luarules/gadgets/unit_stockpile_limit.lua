@@ -63,6 +63,8 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 		[UnitDefNames['legcomlvl4'].id] = 4,
 		
 		[UnitDefNames['legstarfall'].id] = 1,
+		[UnitDefNames['cords'].id] = 6,
+		
 		
 	}
 	----------------------------------------------------------------------------
