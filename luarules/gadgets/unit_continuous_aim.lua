@@ -105,6 +105,7 @@ local convertedUnits = {
 	[UnitDefNames.legmos.id] = 5,
 	[UnitDefNames.leghades.id] = 5,
 	[UnitDefNames.leghelios.id] = 5,
+	[UnitDefNames.legkeres.id] = 5,
 	[UnitDefNames.legrail.id] = 5,
 	[UnitDefNames.legbar.id] = 5,
 	[UnitDefNames.legcomoff.id] = 5,
