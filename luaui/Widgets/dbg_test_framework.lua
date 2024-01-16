@@ -20,6 +20,12 @@ local DEFAULT_WAIT_TIMEOUT = 5 * 30
 
 local SHOW_ALL_RESULTS = true
 
+local noColorOutput = false
+local quitWhenDone = false
+local gameStartTestPatterns = nil
+local logFilePath = nil
+local logFile = nil
+
 -- utils
 -- =====
 local function log(level, str, ...)
@@ -31,6 +37,9 @@ local function log(level, str, ...)
 		LOG.NOTICE,
 		str
 	)
+	if logFile ~= nil then
+		logFile:write(str .. "\n")
+	end
 end
 
 -- main code
@@ -89,7 +98,7 @@ end
 local function displayTestResults(results)
 	log(LOG.INFO, "=====TEST RESULTS=====")
 	for _, testResult in ipairs(results) do
-		log(LOG.INFO, formatTestResult(testResult))
+		log(LOG.INFO, formatTestResult(testResult, noColorOutput))
 	end
 end
 
@@ -206,6 +215,10 @@ local function startTests(patterns)
 		return
 	end
 
+	if logFilePath ~= nil then
+		logFile = io.open(logFilePath, "w")
+	end
+
 	resetState()
 
 	log(LOG.NOTICE, "=====FINDING TESTS=====")
@@ -241,7 +254,7 @@ local function finishTest(result)
 
 	result.milliseconds = getTestTime()
 
-	log(LOG.NOTICE, formatTestResult(result))
+	log(LOG.NOTICE, formatTestResult(result, noColorOutput))
 
 	testRunState.results[#(testRunState.results) + 1] = result
 
@@ -258,6 +271,14 @@ local function finishTest(result)
 		testRunState.runningTests = false
 		if SHOW_ALL_RESULTS then
 			displayTestResults(testRunState.results)
+		end
+
+		if logFile ~= nil and io.type(logFile) == "file" then
+			io.close(logFile)
+		end
+
+		if quitWhenDone then
+			Spring.SendCommands("quitforce")
 		end
 	end
 end
@@ -781,6 +802,11 @@ local function step()
 end
 
 function widget:GameFrame(frame)
+	if gameStartTestPatterns ~= nil and frame >= 0 then
+		startTests(gameStartTestPatterns)
+		gameStartTestPatterns = nil
+	end
+
 	step()
 end
 
@@ -800,6 +826,18 @@ function widget:Initialize()
 		"runtests",
 		function(cmd, optLine, optWords, data, isRepeat, release, actions)
 			startTests(splitPhrases(optLine))
+		end,
+		nil,
+		"t"
+	)
+	widgetHandler.actionHandler:AddAction(
+		self,
+		"runtestsheadless",
+		function(cmd, optLine, optWords, data, isRepeat, release, actions)
+			noColorOutput = true
+			quitWhenDone = true
+			gameStartTestPatterns = splitPhrases(optLine)
+			logFilePath = "testlog.txt"
 		end,
 		nil,
 		"t"

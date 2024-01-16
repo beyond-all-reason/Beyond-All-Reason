@@ -49,18 +49,26 @@ function rgbReset()
 	return rgbToColorCode(0.85, 0.85, 0.85)
 end
 
-function formatTestResult(testResult)
+function formatTestResult(testResult, noColor)
 	local resultColor
-	if testResult.result == TEST_RESULT.PASS then
-		resultColor = rgbToColorCode(0, 1, 0)
-	elseif testResult.result == TEST_RESULT.FAIL then
-		resultColor = rgbToColorCode(1, 0, 0)
-	elseif testResult.result == TEST_RESULT.SKIP then
-		resultColor = rgbToColorCode(0.8, 0.8, 0)
-	elseif testResult.result == TEST_RESULT.ERROR then
-		resultColor = rgbToColorCode(0.8, 0, 0.8)
+	local resetColor
+	if noColor then
+		resultColor = ""
+		resetColor = ""
+	else
+		if testResult.result == TEST_RESULT.PASS then
+			resultColor = rgbToColorCode(0, 1, 0)
+		elseif testResult.result == TEST_RESULT.FAIL then
+			resultColor = rgbToColorCode(1, 0, 0)
+		elseif testResult.result == TEST_RESULT.SKIP then
+			resultColor = rgbToColorCode(0.8, 0.8, 0)
+		elseif testResult.result == TEST_RESULT.ERROR then
+			resultColor = rgbToColorCode(0.8, 0, 0.8)
+		end
+		resetColor = rgbReset()
 	end
-	local resultStr = resultColor .. TEST_RESULT_ID_TO_STRING[testResult.result] .. rgbReset()
+
+	local resultStr = resultColor .. TEST_RESULT_ID_TO_STRING[testResult.result] .. resetColor
 	local s = string.format("%s: %s", resultStr, testResult.label)
 	if testResult.frames ~= nil then
 		s = s .. " [" .. testResult.frames .. " frames]"
