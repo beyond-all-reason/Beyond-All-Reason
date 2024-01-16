@@ -21,7 +21,7 @@ local unitType = {
 
 -- unitDef = {
 --      type = number (unitDefType),
---      unitDef = string/number,
+--      unitDef = string/number/table,
 --      team = number
 --}
 

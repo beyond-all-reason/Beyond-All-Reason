@@ -1,3 +1,5 @@
+--============================================================--
+
 function gadget:GetInfo()
 	return {
 		name = "Mission API loader",
@@ -8,15 +10,21 @@ function gadget:GetInfo()
 	}
 end
 
+--============================================================--
+
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
+
+--============================================================--
 
 local scriptPath
 local triggersController, actionsController
 local rawTriggers, rawActions
 
-local function loadMission()
+--============================================================--
+
+local function LoadMission()
 	local mission = VFS.Include("singleplayer/" .. scriptPath)
 	rawTriggers = mission.Triggers
 	rawActions = mission.Actions
@@ -29,6 +37,8 @@ local function loadMission()
 
 	triggersController.PostprocessTriggers()
 end
+
+----------------------------------------------------------------
 
 function gadget:Initialize()
 	-- TODO: Actually pass script path in modoptions
@@ -52,9 +62,13 @@ function gadget:Initialize()
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 
-	loadMission();
+	LoadMission();
 end
+
+----------------------------------------------------------------
 
 function gadget:Shutdown()
 	GG['MissionAPI'] = nil
 end
+
+--============================================================--

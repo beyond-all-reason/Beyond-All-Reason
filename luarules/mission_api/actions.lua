@@ -62,22 +62,22 @@ local function SpawnUnits(name, unitDef, quantity, position, facing, constructio
 
 	position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
 
-	local unitId = -1
+	local unitID = -1
 	local unitDefName = ''
 	if unitDef.type == actionsDefs.unitDefType.name then
 		unitDefName = unitDef.unitDef
 	elseif unitDef.type == actionsDefs.unitDefType.ID then
-		unitId = UnitDefs[unitDef.unitDef].name
+		unitID = UnitDefs[unitDef.unitDef].name
 	end
 
 	if not trackedUnits[name] then trackedUnits[name] = {} end
 
 	for i = 1, quantity do
-		unitId = Spring.CreateUnit(unitDefName, position.x, position.y, position.z, facing, unitDef.team, construction)
+		unitID = Spring.CreateUnit(unitDefName, position.x, position.y, position.z, facing, unitDef.team, construction)
 
-		if unitId and name then
-			trackedUnits[name][#trackedUnits[name] + 1] = unitId
-			trackedUnits[unitId] = name
+		if unitID and name then
+			trackedUnits[name][#trackedUnits[name] + 1] = unitID
+			trackedUnits[unitID] = name
 		end
 	end
 end
@@ -124,6 +124,16 @@ end
 
 --============================================================--
 
+-- Custom
+
+--============================================================--
+
+local function Custom(func)
+	func()
+end
+
+--============================================================--
+
 return {
 	-- Triggers
 	['EnableTrigger'] = EnableTrigger,
@@ -148,6 +158,9 @@ return {
 	['SendMessage'] = SendMessage,
 
 	-- Win Condition
+
+	-- Custom
+	['Custom'] = Custom,
 }
 
 --============================================================--

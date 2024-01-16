@@ -22,12 +22,12 @@ local actionTypes = {
 	-- Units
 	SpawnUnits                  = 400, --
 	DespawnUnits                = 401, --
-	SpawnWeapons                = 402,
-	SpawnEffects                = 403,
 	TransferUnits               = 404,
 
 	-- SFX
 	SpawnExplosion              = 500, --
+	SpawnWeapons                = 501,
+	SpawnEffects                = 502,
 
 	-- Map
 	RevealLOS                   = 600,
@@ -44,6 +44,9 @@ local actionTypes = {
 	-- Win Condition
 	Victory                     = 800,
 	Defeat                      = 801,
+
+	-- Custom
+	Custom                      = 900,
 }
 
 --============================================================--
@@ -193,6 +196,15 @@ local parameters = {
 	-- Win Condition
 	[actionTypes.Victory] = {  },
 	[actionTypes.Defeat] = {  },
+
+	-- Custom
+	[actionTypes.Custom] = {
+		[1] = {
+			name = 'function',
+			required = true,
+			type = 'function',
+		},
+	},
 }
 
 --============================================================--
