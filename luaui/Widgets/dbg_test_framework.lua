@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
-		name = "Test Framework Widget",
-		desc = "Test framework helper widget",
+		name = "Test Framework Runner",
+		desc = "Run tests with: /runtests <pattern1> <pattern2> ...",
 		date = "2023",
 		license = "GNU GPL, v2 or later",
 		version = 0,
