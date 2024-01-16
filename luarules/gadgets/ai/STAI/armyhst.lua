@@ -134,7 +134,7 @@ function ArmyHST:Init()
 		armlatnk = true,
 		corseal = true,
 		corpyro = true,
-		armfido = 'armzeus',
+		armzeus = true,
 		armsh = true,
 		corsh = true,
 		corsub = true,
