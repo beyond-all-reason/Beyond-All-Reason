@@ -62,32 +62,6 @@ end
 
 --============================================================--
 
-local function UnitIsUnit(unit, unitID, unitDefID)
-	if unit.type == actionsDefs.type.name then
-		for _, id in ipairs(trackedUnits[unit.unit]) do
-			if unitID == id then
-				return true
-			end
-		end
-	elseif unit.type == actionsDefs.type.unitID then
-		if unitID == unit.unit then
-			return true
-		end
-	elseif unit.type == actionsDefs.type.unitDefID then
-		if unitDefID == unit.unit then
-			return true
-		end
-	elseif unit.type == actionsDefs.type.unitDefName then
-		if unitDefID == UnitDefNames[unit.unit] then
-			return true
-		end
-	end
-
-	return false
-end
-
---============================================================--
-
 -- Time
 
 ----------------------------------------------------------------
@@ -109,10 +83,9 @@ end
 ----------------------------------------------------------------
 
 local function CheckUnitExists(trigger)
-	local team = trigger.parameters.teamID or Spring.ALL_UNITS
 	local quantity = trigger.parameters.quantity or 1
 
-	local units = Spring.GetTeamUnitsByDefs(team, trigger.parameters.unitDefID)
+	local units = Spring.GetTeamUnitsByDefs(trigger.parameters.unitDef.team, trigger.parameters.unitDef.getName())
 	if #units >= quantity then
 		ActivateTrigger(trigger)
 		return
@@ -122,27 +95,25 @@ end
 ----------------------------------------------------------------
 
 local function CheckUnitNotExists(trigger)
-	local team = trigger.parameters.unit.team or Spring.ALL_UNITS
-	local type = trigger.parameters.unit.type
-	local unit = trigger.parameters.unit.unit
+	local unit = trigger.parameters.unit
 
-	if type == actionsDefs.type.name then
-		if trackedUnits[unit] == nil then
+	if unit.type == actionsDefs.type.name then
+		if trackedUnits[unit.ID] == nil then
 			ActivateTrigger(trigger)
 			return
 		end
-	elseif type == actionsDefs.type.unitID then
-		if not Spring.IsValidUnit(unit) then
+	elseif unit.type == actionsDefs.type.unitID then
+		if not Spring.IsValidUnit(unit.ID) then
 			ActivateTrigger(trigger)
 			return
 		end
-	elseif type == actionsDefs.type.unitDefID then
-		if #(Spring.GetTeamUnitsByDefs(team, unit)) == 0 then
+	elseif unit.type == actionsDefs.type.unitDefID then
+		if #(Spring.GetTeamUnitsByDefs(unit.team, unit.ID)) == 0 then
 			ActivateTrigger(trigger)
 			return
 		end
-	elseif type == actionsDefs.type.unitDefName then
-		if #(Spring.GetTeamUnitsByDefs(team, UnitDefNames[unit])) == 0 then
+	elseif unit.type == actionsDefs.type.unitDefName then
+		if #(Spring.GetTeamUnitsByDefs(unit.team, UnitDefNames[unit.ID])) == 0 then
 			ActivateTrigger(trigger)
 			return
 		end
@@ -152,7 +123,7 @@ end
 ----------------------------------------------------------------
 
 local function CheckUnitKilled(trigger, unitID, unitDefID)
-	if UnitIsUnit(trigger.parameters.unit, unit.unitID, unit.unitDefID) then
+	if trigger.parameters.unit.isUnit(unitID, unitDefID) then
 		ActivateTrigger(trigger)
 	end
 end
@@ -160,40 +131,15 @@ end
 ----------------------------------------------------------------
 
 local function CheckUnitCaptured(trigger, unitID, unitDefID)
-	if UnitIsUnit(trigger.parameters.unit, unit.unitID, unit.unitDefID) then
+	if trigger.parameters.unit.isUnit(unitID, unitDefID) then
 		ActivateTrigger(trigger)
 	end
 end
 
 ----------------------------------------------------------------
 
-local function CheckUnitEnteredLocation(trigger)
-	local unit = trigger.parameters.unit
-	if not unit.team then unit.team = Spring.ALL_UNITS end
-	local position = trigger.parameters.position
-	local width = trigger.parameters.width
-	local height = trigger.parameters.height
-
-	local units = {}
-
-	if height then
-		units = Spring.GetUnitsInRectangle(position[1], position[2], position[1] + width, position[2] + height, unit.team)
-	else
-		units = Spring.GetUnitsInCylinder(position[1], position[2], width, unit.team)
-	end
-
-	for _, id in ipairs(units) do
-		if UnitIsUnit(unit, id, Spring.GetUnitDefID(id)) then
-			ActivateTrigger(trigger)
-			return
-		end
-	end
-end
-
-----------------------------------------------------------------
-
 local function CheckConstructionStarted(trigger, unitID, unitDefID)
-	if UnitIsUnit(trigger.parameters.unit, unitID, unitDefID) then
+	if trigger.parameters.unit.isUnit(unitID, unitDefID) then
 		ActivateTrigger(trigger)
 		return
 	end
@@ -202,7 +148,7 @@ end
 ----------------------------------------------------------------
 
 local function CheckConstructionFinished(trigger, unitID, unitDefID)
-	if UnitIsUnit(trigger.parameters.unit, unitID, unitDefID) then
+	if trigger.parameters.unit.isUnit(unitID, unitDefID) then
 		ActivateTrigger(trigger)
 		return
 	end
@@ -244,8 +190,6 @@ function gadget:GameFrame(n)
 			CheckUnitExists(trigger)
 		elseif trigger.type == types.UnitNotExists then
 			CheckUnitNotExists(trigger)
-		elseif trigger.type == types.UnitEnteredLocation then
-			CheckUnitEnteredLocation(trigger)
 		end
 	end
 end

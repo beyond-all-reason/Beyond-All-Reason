@@ -78,7 +78,7 @@ local parameters = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'unit'
+			type = 'Unit'
 		},
 		[2] = {
 			name = 'orders',
@@ -104,7 +104,7 @@ local parameters = {
 		[2] = {
 			name = 'unitDef',
 			required = true,
-			type = 'unitDef',
+			type = 'UnitDef',
 		},
 		[3] = {
 			name = 'quantity',
@@ -114,7 +114,7 @@ local parameters = {
 		[4] = {
 			name = 'position',
 			required = true,
-			type = 'vec3'
+			type = 'Vec2'
 		},
 		[5] = {
 			name = 'facing',
@@ -132,7 +132,7 @@ local parameters = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'unit',
+			type = 'Unit',
 		},
 	 },
 	[actionTypes.SpawnWeapons] = {  },
@@ -141,7 +141,7 @@ local parameters = {
 		[1] = {
 			name = 'unit',
 			required = true,
-			type = 'unit'
+			type = 'Unit'
 		},
 		[2] = {
 			name = 'newTeam',
@@ -160,12 +160,12 @@ local parameters = {
 		[1] = {
 			name = 'position',
 			required = true,
-			type = 'vec3'
+			type = 'Vec3'
 		},
 		[2] = {
 			name = 'direction',
 			required = true,
-			type = 'vec3'
+			type = 'Vec3'
 		},
 		[3] = {
 			name = 'params',
