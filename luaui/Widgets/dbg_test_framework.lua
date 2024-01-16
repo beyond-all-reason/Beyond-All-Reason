@@ -764,7 +764,9 @@ function widget:GameFrame(frame)
 end
 
 function widget:Update(dt)
-	step()
+	if Spring.GetGameFrame() <= 0 then
+		step()
+	end
 end
 
 function widget:Initialize()
