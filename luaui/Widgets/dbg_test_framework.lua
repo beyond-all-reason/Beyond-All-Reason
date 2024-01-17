@@ -767,6 +767,10 @@ function widget:Update(dt)
 end
 
 function widget:Initialize()
+	if not Spring.Utilities.IsDevMode() then
+		widgetHandler:RemoveWidget(self)
+	end
+
 	widgetHandler.actionHandler:AddAction(
 		self,
 		"runtests",
