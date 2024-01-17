@@ -393,6 +393,17 @@ Test = {
 		callinState.buffer[name] = {}
 		log(LOG.DEBUG, "[waitUntilCallin.done]")
 	end,
+	waitUntilCallinArgs = function(name, expectedArgs)
+		Test.waitUntilCallin(name, function(...)
+			local currentArgs = { ... }
+			for k, v in pairs(expectedArgs) do
+				if currentArgs[k] == nil or currentArgs[k] ~= v then
+					return false
+				end
+				return true
+			end
+		end)
+	end,
 	spy = function(...)
 		local spyCtrl = spy(...)
 		spyControls[#spyControls + 1] = spyCtrl
