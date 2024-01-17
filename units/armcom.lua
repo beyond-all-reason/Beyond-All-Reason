@@ -282,7 +282,7 @@ return {
 				name = "Disintegrator",
 				noexplode = true,
 				noselfdamage = true,
-				range = 250,
+				range = 238,
 				reloadtime = 0.9,
 				soundhit = "xplomas2",
 				soundhitwet = "sizzlexs",
