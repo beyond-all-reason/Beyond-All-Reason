@@ -30,6 +30,10 @@ local buildCmd
 local unitShape
 local activeUnitShape
 local metalMap = false
+local metalSpots = {}
+local metalSpotsCoords = {} -- used to save memory for table copies
+local geoSpots = {}
+local geoSpotsCoords = {} -- used to save memory for table copies
 
 local isPregame = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
 
@@ -54,9 +58,17 @@ function widget:Initialize()
 	mexBuildings = builder.GetMexBuildings()
 	geoBuildings = builder.GetGeoBuildings()
 
-	local metalSpots = WG["resource_spot_finder"].metalSpotsList
+	geoSpots = WG["resource_spot_finder"].geoSpotsList
+	metalSpots = WG["resource_spot_finder"].metalSpotsList
 	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
 		metalMap = true
+	end
+
+	for i = 1, #metalSpots do
+		metalSpotsCoords[#metalSpotsCoords + 1] = { x = metalSpots[i].x, y = metalSpots[i].y, z = metalSpots[i].z }
+	end
+	for i = 1, #geoSpots do
+		geoSpotsCoords[#geoSpots + 1] = { x = geoSpots[i].x, y = geoSpots[i].y, z = geoSpots[i].z }
 	end
 end
 
@@ -78,6 +90,58 @@ local function clear()
 	selectedGeo = nil
 	WG.ExtractorSnap.position = nil
 	buildCmd = {}
+end
+
+
+local function clashesWithBuildQueue(uid, pos)
+	local units = Spring.GetSelectedUnits()
+
+	local function GetBuildingDimensions(uDefID, facing)
+		local bDef = UnitDefs[uDefID]
+		if (facing % 2 == 1) then
+			return 4 * bDef.zsize, 4 * bDef.xsize
+		else
+			return 4 * bDef.xsize, 4 * bDef.zsize
+		end
+	end
+
+	local function DoBuildingsClash(buildData1, buildData2)
+		local w1, h1 = GetBuildingDimensions(buildData1[1], buildData1[5])
+		local w2, h2 = GetBuildingDimensions(buildData2[1], buildData2[5])
+
+		return math.abs(buildData1[2] - buildData2[2]) < w1 + w2 and
+			math.abs(buildData1[4] - buildData2[4]) < h1 + h2
+	end
+
+	local buildFacing = Spring.GetBuildFacing()
+	local newBuildData = { uid, pos.x, pos.y, pos.z, buildFacing }
+	if isPregame then
+		local queue = WG['pregame-build'].getBuildQueue()
+		for i = 1, #queue do
+			if DoBuildingsClash(newBuildData, queue[i]) then
+				return true
+			end
+		end
+	else
+		for i = 1, #units do
+			local queue = Spring.GetCommandQueue(units[i], 100)
+			for j=1, #queue do
+				local command = queue[j]
+				local id = command.id and command.id or command[1]
+				if id < 0 then
+					local x = command.params and command.params[1] or command[2]
+					local y = command.params and command.params[2] or command[3]
+					local z = command.params and command.params[3] or command[4]
+					local facing = command.params and command.params[4] or 1
+					local buildData = { -id, x, y, z, facing }
+					if DoBuildingsClash(newBuildData, buildData) then
+						return true
+					end
+				end
+			end
+		end
+	end
+	return false
 end
 
 
@@ -122,7 +186,16 @@ function widget:Update()
 	cursorPos = {}
 	cursorPos.x, cursorPos.y, cursorPos.z = spPos2BuildPos(-activeCmdID, x, y, z)
 
-	local nearestSpot = selectedMex and WG["resource_spot_finder"].GetClosestMexSpot(x, z) or WG["resource_spot_finder"].GetClosestGeoSpot(x, z)
+	local time = os.clock()
+
+	if clashesWithBuildQueue(-activeCmdID, cursorPos) then
+		clear()
+		return
+	end
+
+	local nearestSpot = selectedMex and
+		WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, metalSpots, selectedMex) or
+		WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, geoSpots, selectedGeo)
 	if not nearestSpot then
 		clear()
 		return
@@ -135,6 +208,8 @@ function widget:Update()
 			return
 		end
 	end
+
+	Spring.Echo("time to check clashes and find nearest valid spot", os.clock() - time)
 
 	buildCmd = {}
 	local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(pos, -activeCmdID, nearestSpot)

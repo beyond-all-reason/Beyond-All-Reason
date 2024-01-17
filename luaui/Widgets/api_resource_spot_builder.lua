@@ -232,6 +232,29 @@ local function extractorCanBeBuiltOnSpot(spot, extractorId)
 end
 
 
+local function findNearestValidSpotForExtractor(x, z, spotsIn, extractor)
+	-- sort spots by distance
+	local spots = table.copy(spotsIn)
+	table.sort(spots, function(a, b)
+		return math.distance2dSquared(a.x, a.z, x, z) < math.distance2dSquared(b.x, b.z, x, z)
+	end)
+	for i = 1, #spots do
+		local spot = spots[i]
+		local existingExtractor = spotHasExtractor(spot)
+		local hasExtractorQueued = spotHasExtractorQueued(spot)
+		Spring.Echo("spot has extractor queued", hasExtractorQueued)
+		if not existingExtractor and not hasExtractorQueued then
+			return spot
+		end
+
+		local canBeBuilt = extractorCanBeBuiltOnSpot(spot, extractor)
+		if canBeBuilt and not hasExtractorQueued then
+			return spot
+		end
+	end
+end
+
+
 ---Gives build order to the units that can make the selected building, all other builders get guard commands to the primary builders
 ---@param units table
 ---@param constructorIds table
@@ -448,6 +471,7 @@ function widget:Initialize()
 	WG['resource_spot_builder'] = { }
 	WG['resource_spot_builder'].ExtractorCanBeBuiltOnSpot = extractorCanBeBuiltOnSpot
 	WG['resource_spot_builder'].ExtractorCanBeUpgraded = extractorCanBeUpgraded
+	WG['resource_spot_builder'].FindNearestValidSpotForExtractor = findNearestValidSpotForExtractor
 	WG['resource_spot_builder'].PreviewExtractorCommand = PreviewExtractorCommand
 	WG['resource_spot_builder'].ApplyPreviewCmds = ApplyPreviewCmds
 	WG['resource_spot_builder'].SpotHasExtractorQueued = spotHasExtractorQueued

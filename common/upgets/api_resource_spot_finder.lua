@@ -358,6 +358,7 @@ function upget:Initialize()
 	geoSpots = GetSpotsGeo()
 	globalScope["resource_spot_finder"] = {}
 	globalScope["resource_spot_finder"].metalSpotsList = metalSpots
+	globalScope["resource_spot_finder"].geoSpotsList = geoSpots
 
 	globalScope["resource_spot_finder"].GetClosestMexSpot = getClosestMex
 	globalScope["resource_spot_finder"].GetClosestGeoSpot = getClosestGeo
