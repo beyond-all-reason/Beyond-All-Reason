@@ -152,15 +152,19 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	initGL4()
 	for i = 0,9 do grouptounitID[i] = {} end
 	unitIDtoGroup = {}
 end
 
 function widget:Shutdown()
-	if unitGroupShader then unitGroupShader:Finalize() end 
-	if unitGroupVBO.VBO then unitGroupVBO:Delete() end 
-	if unitGroupVBO.VAO then unitGroupVBO.VAO:Delete() end 
+	if unitGroupShader then unitGroupShader:Finalize() end
+	if unitGroupVBO and unitGroupVBO.VBO then unitGroupVBO:Delete() end
+	if unitGroupVBO and unitGroupVBO.VAO then unitGroupVBO.VAO:Delete() end
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
