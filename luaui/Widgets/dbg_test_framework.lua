@@ -821,6 +821,8 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget(self)
 	end
 
+	widgetHandler:EnableWidget("Test Framework Watchdog")
+
 	widgetHandler.actionHandler:AddAction(
 		self,
 		"runtests",
