@@ -99,11 +99,11 @@ end
 ---Make build commands for all passed in spots, but do not apply them
 ---@param spots table
 ---@return table An array of commands, in the same format as PreviewExtractorCommand
-local function getCmdsForValidSpots(spots)
+local function getCmdsForValidSpots(spots, shift)
 	local cmds = {}
 	for i = 1, #spots do
 		local spot = spots[i]
-		local spotHasQueue = WG["resource_spot_builder"].SpotHasExtractorQueued(spot)
+		local spotHasQueue = shift and WG["resource_spot_builder"].SpotHasExtractorQueued(spot) or false
 		if not spotHasQueue then
 			local pos = { spot.x, spot.y, spot.z }
 			local cmd = WG['resource_spot_builder'].PreviewExtractorCommand(pos, selectedMex, spot)
@@ -156,10 +156,11 @@ function widget:CommandNotify(id, params, options)
 		selectedMex = WG['resource_spot_builder'].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
 	end
 
-	local cmds = getCmdsForValidSpots(spots)
+	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local cmds = getCmdsForValidSpots(spots, shift)
 	local sortedCmds = calculateCmdOrder(cmds, spots)
 
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+
 	WG['resource_spot_builder'].ApplyPreviewCmds(sortedCmds, mexConstructors, shift)
 
 	selectedMex = nil
