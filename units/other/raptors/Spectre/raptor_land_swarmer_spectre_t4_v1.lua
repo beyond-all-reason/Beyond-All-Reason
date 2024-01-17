@@ -1,7 +1,6 @@
 return {
 	raptor_land_swarmer_spectre_t4_v1 = {
 		maxacc = 0.4025,
-
 		maxdec = 0.345,
 		energycost = 1000,
 		metalcost = 100,

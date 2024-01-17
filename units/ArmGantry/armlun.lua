@@ -180,7 +180,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 300,
 				customparams = {
-
 				},
 				damage = {
 					default = 370,

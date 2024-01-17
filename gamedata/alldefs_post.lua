@@ -86,7 +86,9 @@ end
 function UnitDef_Post(name, uDef)
 	local modOptions = Spring.GetModOptions()
 
-	uDef.icontype = name
+	if not uDef.icontype then
+		uDef.icontype = name
+	end
 
 	-- Reverse Gear
 	if modOptions.experimentalreversegear == true then

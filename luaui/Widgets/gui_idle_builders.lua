@@ -37,6 +37,7 @@ local spGetFullBuildQueue = Spring.GetFullBuildQueue
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetCommandQueue = Spring.GetCommandQueue
 local spGetTeamUnitsSorted = Spring.GetTeamUnitsSorted
+local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local myTeamID = Spring.GetMyTeamID()
 
 local floor = math.floor
@@ -106,7 +107,7 @@ local function isIdleBuilder(unitID)
 				if isFactory[udef] then
 					return true
 				else
-					if spGetCommandQueue(unitID, 0) == 0 then
+					if (spGetCommandQueue(unitID, 0) == 0) and not(spGetUnitMoveTypeData(unitID).aircraftState == "crashing") then
 						return true
 					end
 				end

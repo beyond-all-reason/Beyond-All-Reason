@@ -21,9 +21,17 @@ if Spring.GetModOptions then
 		end
 	end
 
+	-- Prevent widgets from messing with each other's modoptions table.
+	-- The native engine call does this by returning a new table each time but that is wasteful
+	local readOnlyModOptions = {}
+	setmetatable(readOnlyModOptions, {
+		__index = modOptions,
+		__newindex = function(t, k, v)
+			  error("attempt to update a read-only Spring.GetModOptions table", 2)
+			end
+	})
+
 	Spring.GetModOptions = function ()
-		-- Returning the table itself would allow callers to mutate the table
-		-- Copying it ensures each caller gets its own copy
-		return table.copy(modOptions)
+		return readOnlyModOptions
 	end
 end

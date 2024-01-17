@@ -2151,6 +2151,10 @@ local icontypes = {
 		bitmap = "icons/legkark.png",
 		size = 1.20000005
 	},
+	legkeres = {
+		bitmap = "icons/vehicle_t3_tank_mgun.png",
+		size = 2
+	},
 	leglab = {
 		bitmap = "icons/factory_bot.png",
 		size = 1.52250004
@@ -2974,17 +2978,13 @@ local icontypes = {
 	},
 }
 
-setmetatable(icontypes, { __index = function(table, key)
-	if string.find(key, "_scav") then
-		local new_key = key:gsub("_scav", "")
-		local normal_icon = units[new_key]
-		local new_object;
-		if normal_icon then
-			local new_path = "inverted/" .. normal_icon[1]
-			new_object = { new_path, normal_icon[2] } -- new path old
-		end
-		return new_object
+local newIcontypes = {}
+for name, params in pairs(icontypes) do
+	newIcontypes[name] = params
+	newIcontypes[name..'_scav'] = { size = params.size or 1 }
+	if params.bitmap then
+		newIcontypes[name..'_scav'].bitmap = params.bitmap:gsub('\/', '\/inverted\/')
 	end
-end })
+end
 
-return icontypes
+return newIcontypes

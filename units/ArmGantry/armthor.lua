@@ -168,7 +168,6 @@ return {
 					subs = 30,
 				},
 			},
-
 			empmissile = {
 				areaofeffect = 196,
 				avoidfeature = false,
@@ -215,7 +214,6 @@ return {
 					default = 80000,
 				},
 			},
-
 			emp = {
 				areaofeffect = 8,
 				avoidfeature = false,

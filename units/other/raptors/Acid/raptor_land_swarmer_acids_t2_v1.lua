@@ -1,7 +1,6 @@
 return {
 	raptor_land_swarmer_acids_t2_v1 = {
 		maxacc = 0.1725,
-
 		maxdec = 0.345,
 		energycost = 53,
 		metalcost = 25,
