@@ -6,7 +6,7 @@
 piece  base, thrustfl, thrustfr, thrustbl, thrustbr,  flarefl, flarefr, flarebl, flarebr, 
 	bomb3l, bomb3r, bomb2l, bomb2r, bomb1l, bomb1r, bay3l, bay3r, bay2l, bay2r, bay1l, bay1r;
 
-static-var  statechg_DesiredState, statechg_StateChanging, currbomb, grunts_stockpiled;
+static-var  statechg_DesiredState, statechg_StateChanging, currbomb;
 
 Go()
 {
@@ -56,101 +56,8 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = FALSE;
 }
 
-lua_BosSetStockpile(count) {
-	return 1;
-}
-
-SetStockpile(num_stockpiled)
-{
-	get PRINT (num_stockpiled);
-	if (num_stockpiled == 0)
-	{
-		hide bomb1l;
-		hide bomb1r;
-		hide bomb2l;
-		hide bomb2r;
-		hide bomb3l;
-		hide bomb3r;
-		sleep 100;
-		grunts_stockpiled = 0;//avoid collision with currbomb for now, remove one later
-	}
-	if (num_stockpiled == 1)
-	{
-		show bomb1l;
-		hide bomb1r;
-		hide bomb2l;
-		hide bomb2r;
-		hide bomb3l;
-		hide bomb3r;
-		sleep 100;
-		grunts_stockpiled = 1;
-	}
-	if (num_stockpiled == 2)
-	{
-		show bomb1l;
-		show bomb1r;
-		hide bomb2l;
-		hide bomb2r;
-		hide bomb3l;
-		hide bomb3r;
-		sleep 100;
-		grunts_stockpiled = 2;
-	}
-	if (num_stockpiled == 3)
-	{
-		show bomb1l;
-		show bomb1r;
-		show bomb2l;
-		hide bomb2r;
-		hide bomb3l;
-		hide bomb3r;
-		sleep 100;
-		grunts_stockpiled = 3;
-	}
-	if (num_stockpiled == 4)
-	{
-		show bomb1l;
-		show bomb1r;
-		show bomb2l;
-		show bomb2r;
-		hide bomb3l;
-		hide bomb3r;
-		sleep 100;
-		grunts_stockpiled = 4;
-	}
-	if (num_stockpiled == 5)
-	{
-		show bomb1l;
-		show bomb1r;
-		show bomb2l;
-		show bomb2r;
-		show bomb3l;
-		hide bomb3r;
-		sleep 100;
-		grunts_stockpiled = 5;
-	}
-	if (num_stockpiled == 6)
-	{
-		show bomb1l;
-		show bomb1r;
-		show bomb2l;
-		show bomb2r;
-		show bomb3l;
-		show bomb3r;
-		sleep 100;
-		grunts_stockpiled = 6;
-	}
-}
-
 Create(){
 
-	hide bomb1l;
-	hide bomb1r;
-	hide bomb2l;
-	hide bomb2r;
-	hide bomb3l;
-	hide bomb3r;
-		
 	turn flarefl to x-axis <-90> now; 
 	turn flarefr to x-axis <-90> now; 
 	turn flarebl to x-axis <-90> now; 
@@ -200,20 +107,20 @@ Reload(){
 	}
 }
 
-QueryWeapon1(piecenum) // called third, and all the fucking time
+QueryPrimary(piecenum) // called third, and all the fucking time
 {
 	//get PRINT(3, currbomb);
 	piecenum = bay3l + currbomb - 1;
 	//piecenum = bomb3l;
 }
 
-AimFromWeapon1(piecenum)
+AimFromPrimary(piecenum)
 {
 	piecenum = base;
 }
 
 
-AimWeapon1(heading,pitch){
+AimPrimary(heading,pitch){
 	//turn bay3l to y-axis <90> now;
 	//turn bomb3l to y-axis <90> now;
 	return 1;
@@ -232,145 +139,12 @@ Shot1(){ // called second, and after each bomb
 	currbomb = currbomb + 1;
 }
 
-FireWeapon1(){ //called first and once only
+FirePrimary(){ //called first and once only
 	//get PRINT(1, currbomb);
 	currbomb = 0;
 	signal 32;
-	//start-script Reload();
-	
-	call-script lua_BosSetStockpile(0);
+	start-script Reload();
 }
-
-
-
-QueryWeapon2(piecenum) // called third, and all the fucking time
-{
-	piecenum = bomb3r;
-}
-AimFromWeapon2(piecenum)
-{
-	piecenum = base;
-}
-AimWeapon2(heading,pitch){
-	if (grunts_stockpiled>0) {
-	return 1;
-	} else {
-	return 0;
-	}
-}
-FireWeapon2(){
-}
-
-
-
-QueryWeapon3(piecenum) // called third, and all the fucking time
-{
-	piecenum = bomb3r;
-}
-AimFromWeapon3(piecenum)
-{
-	piecenum = base;
-}
-AimWeapon3(heading,pitch){
-	if (grunts_stockpiled>1) {
-	return 1;
-	} else {
-	return 0;
-	}
-}
-FireWeapon3(){
-}
-
-
-QueryWeapon4(piecenum) // called third, and all the fucking time
-{
-	piecenum = bomb3r;
-}
-AimFromWeapon4(piecenum)
-{
-	piecenum = base;
-}
-AimWeapon4(heading,pitch){
-	if (grunts_stockpiled>2) {
-	return 1;
-	} else {
-	return 0;
-	}
-}
-FireWeapon4(){
-}
-
-QueryWeapon5(piecenum) // called third, and all the fucking time
-{
-	piecenum = bomb3r;
-}
-AimFromWeapon5(piecenum)
-{
-	piecenum = base;
-}
-AimWeapon5(heading,pitch){
-	if (grunts_stockpiled>3) {
-	return 1;
-	} else {
-	return 0;
-	}
-}
-FireWeapon5(){
-}
-
-QueryWeapon6(piecenum) // called third, and all the fucking time
-{
-	piecenum = bomb3r;
-}
-AimFromWeapon6(piecenum)
-{
-	piecenum = base;
-}
-AimWeapon6(heading,pitch){
-	if (grunts_stockpiled>4) {
-	return 1;
-	} else {
-	return 0;
-	}
-}
-FireWeapon6(){
-}
-
-
-
-QueryWeapon7(piecenum) // called third, and all the fucking time
-{
-	piecenum = bomb3r;
-}
-AimFromWeapon7(piecenum)
-{
-	piecenum = base;
-}
-AimWeapon7(heading,pitch){
-	if (grunts_stockpiled>5) {
-	return 1;
-	} else {
-	return 0;
-	}
-}
-FireWeapon7(){
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 SweetSpot(piecenum)
 {
