@@ -786,4 +786,5 @@ end
 
 function widget:Shutdown()
 	widgetHandler.actionHandler:RemoveAction("runtests", "t")
+	widgetHandler.actionHandler:RemoveAction("runtestsheadless", "t")
 end
