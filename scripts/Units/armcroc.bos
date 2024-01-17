@@ -3,9 +3,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret, barrel, flare, sleeve, head, tail, aflare, abarrel, launcher, asleeve, lid;
+piece  base, turret, barrel, flare, sleeve, head, tail, lid, turretmis, misbox, misflare;
 
-static-var  restore_delay, Static_Var_2, bMoving, gun_2, total;
+static-var  restore_delay, Static_Var_2, bMoving, gun_2, corrected;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -51,10 +51,8 @@ EmitSFX()
 Create()
 {
 	hide flare;
-	hide flare;
-	hide aflare;
-	hide aflare;
-	
+	hide misflare;
+	//turn turretmis to x-axis <-25> now;
 //	turn aturret to y-axis <-180> speed <500>;
 	
 	Static_Var_2 = 4;
@@ -78,18 +76,14 @@ ExecuteRestoreAfterDelay()
 	turn sleeve to x-axis <0.000000> speed <30.000000>;
 	move barrel to z-axis [-4.000000] speed [12.000000];
 	move turret to y-axis [0] speed [8];
-	
-	//turn launcher to x-axis <0> speed <25.00000>;
-	//spin aturret around y-axis speed <25.0>;
-	//move aturret to y-axis [18.5] speed [100];
-	//move launcher to y-axis [0] speed [100];
-
-	turn lid to x-axis <0.000000> speed <80>;
-	turn asleeve to y-axis <0.000000> speed <400.000000>;
-	move launcher to y-axis [0.000000] speed [10.000000];
+	turn lid to x-axis <0.000000> speed <80>;	
+	turn turretmis to y-axis <0> speed <180>;
+	turn misbox to x-axis <0> speed <180>;
+	sleep 1500;
+	move turretmis to y-axis [0.000000] speed [5.000000];
 	wait-for-turn lid around x-axis;
-	wait-for-turn asleeve around z-axis;
-	wait-for-move launcher along x-axis;
+	wait-for-move turretmis along y-axis;
+	wait-for-turn misbox around x-axis;
 	
 }
 SetStunned(State)
@@ -148,38 +142,29 @@ AimFromPrimary(piecenum)
 	piecenum = turret;
 }
 
-
-
-
-
-
-
-
-
 AimSecondary(heading, pitch)
 {
 	signal SIG_AIM2;
 	set-signal-mask SIG_AIM2;
-	
 	turn lid to x-axis <-179.000000> speed <200.000000>;
-	move launcher to y-axis [2.5] speed [30];
 	
-	if( gun_2 == 1 )
-	{
-		turn asleeve to y-axis <0.000000> speed <400.000000>;
+		
+	corrected = heading;
+	if (heading < <45> AND heading > 0) {
+		corrected = <45>;
 	}
-	if( gun_2 == 2 )
-	{
-		turn asleeve to y-axis <120.027473> speed <400.000000>;
+	if (heading > <-45> AND heading < 0) {
+		corrected = <-45>;
 	}
-	if( gun_2 == 3 )
-	{
-		turn asleeve to y-axis <-120.027473> speed <400.000000>;
-	}
+	turn turretmis to y-axis corrected speed <180.000000>;
 
+	
+	turn misbox to x-axis -1*pitch speed <180>;
+	move turretmis to y-axis [3.5] speed [2];
 	wait-for-turn lid around x-axis;
-	wait-for-turn asleeve around z-axis;
-	wait-for-move launcher along x-axis;
+	wait-for-move turretmis along x-axis;
+	wait-for-turn turretmis around y-axis;
+	wait-for-turn misbox around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -193,13 +178,13 @@ FireSecondary()
 
 AimFromSecondary(piecenum)
 {
-	piecenum = launcher;
+	piecenum = turretmis;
 	return (0);
 }
 
 QuerySecondary(piecenum)
 {
-	piecenum = aflare;
+	piecenum = misflare;
 	return (0);
 }
 
