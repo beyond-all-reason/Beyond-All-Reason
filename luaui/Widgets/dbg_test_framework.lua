@@ -399,6 +399,13 @@ Test = {
 		return spyCtrl
 	end,
 	clearMap = SyncedExtra.clearMap,
+	clearCallinBuffer = function(name)
+		if name ~= nil then
+			callinState.buffer[name] = {}
+		else
+			callinState.buffer = {}
+		end
+	end,
 }
 
 function widget:RecvLuaMsg(msg)
