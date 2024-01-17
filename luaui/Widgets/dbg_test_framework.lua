@@ -97,6 +97,18 @@ local gameTimer
 local runTestsTimer
 local testTimer
 
+local function getGameTime()
+	return Spring.DiffTimers(Spring.GetTimer(), gameTimer, true)
+end
+
+local function getRunTestsTime()
+	return Spring.DiffTimers(Spring.GetTimer(), runTestsTimer, true)
+end
+
+local function getTestTime()
+	return Spring.DiffTimers(Spring.GetTimer(), testTimer, true)
+end
+
 local testRunState
 local activeTestState
 local resumeState
@@ -221,7 +233,7 @@ local function finishTest(result)
 		result.frames = Spring.GetGameFrame() - activeTestState.startFrame
 	end
 
-	result.milliseconds = Spring.DiffTimers(Spring.GetTimer(), testTimer, true)
+	result.milliseconds = getTestTime()
 
 	log(LOG.NOTICE, formatTestResult(result))
 
@@ -646,18 +658,6 @@ local function handleWait()
 			error = returnOrError
 		}
 	end
-end
-
-local function getGameTime()
-	return Spring.DiffTimers(Spring.GetTimer(), gameTimer, true)
-end
-
-local function getRunTestsTime()
-	return Spring.DiffTimers(Spring.GetTimer(), runTestsTimer, true)
-end
-
-local function getTestTime()
-	return Spring.DiffTimers(Spring.GetTimer(), testTimer, true)
 end
 
 local function step()
