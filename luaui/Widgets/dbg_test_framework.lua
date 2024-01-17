@@ -98,15 +98,21 @@ local runTestsTimer
 local testTimer
 
 local function getGameTime()
-	return Spring.DiffTimers(Spring.GetTimer(), gameTimer, true)
+	if gameTimer ~= nil then
+		return Spring.DiffTimers(Spring.GetTimer(), gameTimer, true)
+	end
 end
 
 local function getRunTestsTime()
-	return Spring.DiffTimers(Spring.GetTimer(), runTestsTimer, true)
+	if runTestsTimer ~= nil then
+		return Spring.DiffTimers(Spring.GetTimer(), runTestsTimer, true)
+	end
 end
 
 local function getTestTime()
-	return Spring.DiffTimers(Spring.GetTimer(), testTimer, true)
+	if testTimer ~= nil then
+		return Spring.DiffTimers(Spring.GetTimer(), testTimer, true)
+	end
 end
 
 local testRunState
