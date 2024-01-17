@@ -10,7 +10,7 @@ local triggerTypes = {
 	UnitKilled           = 202, --
 	UnitCaptured         = 203, --
 	UnitResurrected      = 204,
-	UnitEnteredLocation  = 205, --
+	UnitEnteredLocation  = 205,
 	UnitLeftLocation     = 206,
 	UnitDwellLocation    = 207,
 	UnitSpotted          = 208,
@@ -34,7 +34,7 @@ local triggerTypes = {
 	TotalUnitsCaptured   = 503,
 
 	-- Team
-	TeamDestroyed        = 601,
+	TeamDestroyed        = 601, --
 
 	-- Mission Control
 	Victory              = 700,

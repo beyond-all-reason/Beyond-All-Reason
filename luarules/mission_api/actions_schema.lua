@@ -22,7 +22,7 @@ local actionTypes = {
 	-- Units
 	SpawnUnits                  = 400, --
 	DespawnUnits                = 401, --
-	TransferUnits               = 404,
+	TransferUnits               = 404, --
 
 	-- SFX
 	SpawnExplosion              = 500, --
@@ -46,7 +46,7 @@ local actionTypes = {
 	Defeat                      = 801,
 
 	-- Custom
-	Custom                      = 900,
+	Custom                      = 900, --
 }
 
 --============================================================--
