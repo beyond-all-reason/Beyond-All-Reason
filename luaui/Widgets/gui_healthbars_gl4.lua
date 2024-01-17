@@ -924,6 +924,10 @@ local function ProjectileCreatedReloadHB(projectileID, unitID, weaponID, unitDef
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	WG['healthbars'] = {}
 	WG['healthbars'].getScale = function()
 		return barScale
