@@ -380,11 +380,12 @@ function gadgetHandler:Initialize()
 	for _, g in ipairs(unsortedGadgets) do
 		gadgetHandler:InsertGadget(g)
 
-		local gtype = ((syncedHandler and "synced") or "unsynced")
-		local gname = g.ghInfo.name
-		local gbasename = g.ghInfo.basename
+		local gType = ((syncedHandler and "synced") or "unsynced")
+		local gName = g.ghInfo.name
+		local gBaseName = g.ghInfo.basename
+		local gLocalPath = g.ghInfo.localPath
 
-		Spring.Log(LOG_SECTION, LOG.INFO, string.format("Loaded %s gadget:  %-18s  <%s>", gtype, gname, gbasename))
+		Spring.Log(LOG_SECTION, LOG.INFO, string.format("Loaded %s gadget:  %-18s  <%s%s>", gType, gName, gLocalPath, gBaseName))
 	end
 end
 
@@ -571,6 +572,7 @@ function gadgetHandler:FinalizeGadget(gadget, filename, basename, path)
 	gi.filename = filename
 	gi.basename = basename
 	gi.path = path
+	gi.localPath = string.sub(path, #GADGETS_DIR + 1)
 	if gadget.GetInfo == nil then
 		gi.name = basename
 		gi.layer = 0

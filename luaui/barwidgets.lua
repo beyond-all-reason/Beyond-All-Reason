@@ -422,7 +422,9 @@ function widgetHandler:Initialize()
 		local name = w.whInfo.name
 		local basename = w.whInfo.basename
 		local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
-		Spring.Echo(string.format("Loading widget from %s  %-18s  <%s> ...", source, name, basename))
+		local localPath = w.whInfo.localPath
+
+		Spring.Echo(string.format("Loading widget from %s  %-18s  <%s%s> ...", source, name, localPath, basename))
 		Yield()
 		widgetHandler:InsertWidget(w)
 	end
@@ -675,6 +677,7 @@ function widgetHandler:FinalizeWidget(widget, filename, basename, path)
 	wi.filename = filename
 	wi.basename = basename
 	wi.path = path
+	wi.localPath = string.sub(path, #WIDGET_DIRNAME + 1)
 	if widget.GetInfo == nil then
 		wi.name = basename
 		wi.layer = 0
