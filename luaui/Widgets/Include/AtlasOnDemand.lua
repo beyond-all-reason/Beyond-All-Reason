@@ -324,7 +324,10 @@ local function MakeAtlasOnDemand(config)
 	-- @param ysize width of the image, optional, but will override if specified
 	-- @return an array of UV coordinates in xXyYwh format
 	function AtlasOnDemand:AddImage(image, xsize, ysize)
-		if self.uvcoords[image] then 
+		if gl.RenderToTexture == nil then
+			return {x = 0,X = 1,y = 0,Y = 1,w = 1,h = 1, id = image}
+		end
+		if self.uvcoords[image] then
 			Spring.Echo(string.format("AtlasOnDemand %s Warning: image %s is already added to this atlas", self.name, tostring(image)))
 			return self.uvcoords[image]
 		end
@@ -358,6 +361,9 @@ local function MakeAtlasOnDemand(config)
 	-- @param params optional table of at least { font = fontObject (or specify the default font!)}
 	-- @return an array of {x,X,y,Y,w,h,descender}
 	function AtlasOnDemand:AddText(text, params)
+		if gl.RenderToTexture == nil then
+			return {x = 0,X = 1,y = 0,Y = 1,w = 1,h = 1, id = text}
+		end
 		local textparams
 		if not params then -- render with default fot
 			if self.uvcoords[text] then
@@ -628,12 +634,16 @@ local function MakeAtlasOnDemand(config)
 	function AtlasOnDemand:RenderTasks()
 		if self.hastasks then 
 			if next(self.renderImageTaskList) then 
-				gl.RenderToTexture(self.textureID, self.RenderImageTasks, self)
+				if gl.RenderToTexture ~= nil then
+					gl.RenderToTexture(self.textureID, self.RenderImageTasks, self)
+				end
 				-- work backwards through the buffer of tasks:
 				self.renderImageTaskList = {}
 			end
 			if next(self.renderTextTaskList) then 
-				gl.RenderToTexture(self.textureID, self.RenderTextTasks, self)
+				if gl.RenderToTexture ~= nil then
+					gl.RenderToTexture(self.textureID, self.RenderTextTasks, self)
+				end
 				self.renderTextTaskList = {}
 			end
 			self.hastasks = false
