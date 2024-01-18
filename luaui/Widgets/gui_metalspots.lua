@@ -464,7 +464,7 @@ end
 
 
 function widget:Shutdown()
-	MetalSpotTextAtlas:Delete()
+	if MetalSpotTextAtlas then MetalSpotTextAtlas:Delete() end
 	WG.metalspots = nil
 	mySpots = {}
 	valueList = {}
