@@ -1189,6 +1189,12 @@ end
 
 
 function widgetHandler:Update()
+	
+	if collectgarbage("count") > 1200000 then 
+		Spring.Echo("Warning: Emergency garbage collection due to exceeding 1.2GB LuaRAM")
+		collectgarbage("collect")
+	end
+	
 	local deltaTime = Spring.GetLastUpdateSeconds()
 	-- update the hour timer
 	hourTimer = (hourTimer + deltaTime) % 3600.0
