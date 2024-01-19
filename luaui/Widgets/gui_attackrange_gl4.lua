@@ -9,7 +9,7 @@ function widget:GetInfo()
 		"[v" .. string.format("%s", versionNumber ) .. "] Displays attack ranges of selected units. Alt+, and alt+. (alt comma and alt period) to cycle backward and forward through display config of current unit (saved through games!). Custom keybind to toggle cursor unit range on and off.",
 		author  = "Errrrrrr, Beherith",
 		date    = "July 20, 2023",
-		license = "GPLv2",
+		license = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer   = -99,
 		enabled = true,
 		handler = true,
@@ -350,6 +350,7 @@ end
 --position only relevant if no saved config data found
 
 local myAllyTeam            = Spring.GetMyAllyTeamID()
+local myTeamID              = Spring.GetMyTeamID()
 
 --------------------------------------------------------------------------------
 
@@ -1055,6 +1056,7 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "cursor_range_toggle", ToggleCursorRange, nil, "p")
 
 	myAllyTeam = Spring.GetMyAllyTeamID()
+	myTeamID = Spring.GetMyTeamID()
 	local allyteamlist = Spring.GetAllyTeamList()
 	--Spring.Echo("# of allyteams = ", #allyteamlist)
 	numallyteams = #allyteamlist
@@ -1444,7 +1446,7 @@ function widget:DrawWorldPreUnit()
 end
 
 -- Need to add all the callins for handling unit creation/destruction/gift of builders
-function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+--[[function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if unitTeam == myAllyTeam and unitBuilder[unitDefID] then
 		builders[unitID] = true
 	end
@@ -1461,6 +1463,21 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		builders[unitID] = nil
 		RemoveSelectedUnit(unitID, false)
 	end
+end
+]]--
+
+
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	if unitTeam == myTeamID and unitBuilder[unitDefID] then
+		builders[unitID] = true
+	end
+end
+
+function widget:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
+	unitDefID = unitDefID or spGetUnitDefID(unitID)
+	unitTeam = unitTeam or Spring.GetUnitTeam(unitID)
+	RemoveSelectedUnit(unitID, false)	
+	builders[unitID] = nil
 end
 
 --SAVE / LOAD CONFIG FILE
