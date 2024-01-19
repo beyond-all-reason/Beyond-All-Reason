@@ -332,23 +332,30 @@ function gadgetHandler:Initialize()
 
 	local unsortedGadgets = {}
 	-- get the gadget names
-	local gadgetFiles = VFS.DirList(GADGETS_DIR, "*.lua", VFSMODE)
-	--  table.sort(gadgetFiles)
+	local gadgetFiles = VFS.DirList(GADGETS_DIR, "*.lua", VFSMODE, true)
 
 	--  for k,gf in ipairs(gadgetFiles) do
 	--    Spring.Echo('gf1 = ' .. gf) -- FIXME
 	--  end
 	local doMoreYield = (Spring.Yield ~= nil);
 	-- stuff the gadgets into unsortedGadgets
-	for k, gf in ipairs(gadgetFiles) do
-		--    Spring.Echo('gf2 = ' .. gf) -- FIXME
-		local gadget = self:LoadGadget(gf, VFSMODE_OVERRIDE[string.lower(gf)])
-		if gadget then
-			table.insert(unsortedGadgets, gadget)
-			if not IsSyncedCode() and doMoreYield then
-				doMoreYield = Spring.Yield()
-				if doMoreYield == false then --GetThreadSafety == false
-					--Spring.Echo("GadgetHandler Yield: entering critical section")
+	for _, gf in ipairs(gadgetFiles) do
+		if not (
+			-- Do not load recursively lua files in these folders:
+			string.find(gf, '/[iI]ncludes?/') or
+			string.find(gf, '/ai/[sS]hard.-/') or 		-- don't load from these AI sub folders in particular
+			string.find(gf, '/ai/[sS][tT][aA][iI]/') or	-- because the scripts inside are not gadgets
+			string.find(gf, '/scavengers/') or
+			string.find(gf, '/_.-/') -- any folder starting with an underscore
+		) then
+			local gadget = self:LoadGadget(gf, VFSMODE_OVERRIDE[string.lower(gf)])
+			if gadget then
+				table.insert(unsortedGadgets, gadget)
+				if not IsSyncedCode() and doMoreYield then
+					doMoreYield = Spring.Yield()
+					if doMoreYield == false then --GetThreadSafety == false
+						--Spring.Echo("GadgetHandler Yield: entering critical section")
+					end
 				end
 			end
 		end
@@ -376,11 +383,12 @@ function gadgetHandler:Initialize()
 	for _, g in ipairs(unsortedGadgets) do
 		gadgetHandler:InsertGadget(g)
 
-		local gtype = ((syncedHandler and "synced") or "unsynced")
-		local gname = g.ghInfo.name
-		local gbasename = g.ghInfo.basename
+		local gType = ((syncedHandler and "synced") or "unsynced")
+		local gName = g.ghInfo.name
+		local gBaseName = g.ghInfo.basename
+		local gLocalPath = g.ghInfo.localPath
 
-		Spring.Log(LOG_SECTION, LOG.INFO, string.format("Loaded %s gadget:  %-18s  <%s>", gtype, gname, gbasename))
+		Spring.Log(LOG_SECTION, LOG.INFO, string.format("Loaded %s gadget:  %-18s  <%s%s>", gType, gName, gLocalPath, gBaseName))
 	end
 end
 
@@ -392,7 +400,7 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 		kbytes = collectgarbage("count")
 	end
 
-	local basename = Basename(filename)
+	local basename, path = Basename(filename)
 	local text = VFS.LoadFile(filename, overridevfsmode or VFSMODE)
 	if text == nil then
 		Spring.Log(LOG_SECTION, LOG.ERROR, 'Failed to load: ' .. filename)
@@ -421,7 +429,7 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 		gadget.gadgetHandler = self
 	end
 
-	self:FinalizeGadget(gadget, filename, basename)
+	self:FinalizeGadget(gadget, filename, basename, path)
 	local name = gadget.ghInfo.name
 
 	err = self:ValidateGadget(gadget)
@@ -443,6 +451,7 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 		knownInfo.author = gadget.ghInfo.author
 		knownInfo.basename = gadget.ghInfo.basename
 		knownInfo.filename = gadget.ghInfo.filename
+		knownInfo.path = gadget.ghInfo.path
 		self.knownGadgets[name] = knownInfo
 		self.knownCount = self.knownCount + 1
 		self.knownChanged = true
@@ -560,11 +569,13 @@ function gadgetHandler:NewGadget()
 	return gadget
 end
 
-function gadgetHandler:FinalizeGadget(gadget, filename, basename)
+function gadgetHandler:FinalizeGadget(gadget, filename, basename, path)
 	local gi = {}
 
 	gi.filename = filename
 	gi.basename = basename
+	gi.path = path
+	gi.localPath = string.sub(path, #GADGETS_DIR + 1)
 	if gadget.GetInfo == nil then
 		gi.name = basename
 		gi.layer = 0

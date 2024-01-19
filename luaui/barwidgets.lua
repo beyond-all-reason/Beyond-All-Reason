@@ -368,40 +368,36 @@ function widgetHandler:Initialize()
 
 	local unsortedWidgets = {}
 
-	-- stuff the raw widgets into unsortedWidgets
-	if self.allowUserWidgets and allowuserwidgets then
-		local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.RAW)
-		for k, wf in ipairs(widgetFiles) do
-			GetWidgetInfo(wf, VFS.RAW)
-			local widget = self:LoadWidget(wf, false)
-			if widget and not zipOnly[widget.whInfo.name] then
-				table.insert(unsortedWidgets, widget)
-				Yield()
+	local function loadWidgetsInDir(dirname, vfsSetting)
+		local widgetFiles = VFS.DirList(dirname, "*.lua", vfsSetting, true)
+		local fromZip = (vfsSetting == VFS.ZIP or vfsSetting == VFS.MAP)
+
+		for _, filePath in ipairs(widgetFiles) do
+			if not (
+				-- Do not load recursively lua files in these folders:
+				string.find(filePath, '/[iI]ncludes?/') or
+				string.find(filePath, '/[sS]haders?/') or
+				string.find(filePath, '/_.-/') -- any folder starting with an underscore
+			) then
+				GetWidgetInfo(filePath, vfsSetting)
+				local widget = self:LoadWidget(filePath, fromZip)
+
+				if widget and (fromZip or not zipOnly[widget.whInfo.name]) then
+					table.insert(unsortedWidgets, widget)
+					Yield()
+				end
+
 			end
 		end
 	end
 
-	-- stuff the zip widgets into unsortedWidgets
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.ZIP)
-	for k, wf in ipairs(widgetFiles) do
-		GetWidgetInfo(wf, VFS.ZIP)
-		local widget = self:LoadWidget(wf, true)
-		if widget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
-		end
+	-- stuff the raw widgets into unsortedWidgets
+	if self.allowUserWidgets and allowuserwidgets then
+		loadWidgetsInDir(WIDGET_DIRNAME, VFS.RAW)
 	end
 
-	-- stuff the map widgets into unsortedWidgets
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME_MAP, "*.lua", VFS.MAP)
-	for k, wf in ipairs(widgetFiles) do
-		GetWidgetInfo(wf, VFS.MAP)
-		local widget = self:LoadWidget(wf, true)
-		if widget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
-		end
-	end
+	loadWidgetsInDir(WIDGET_DIRNAME, VFS.ZIP)
+	loadWidgetsInDir(WIDGET_DIRNAME_MAP, VFS.MAP)
 
 	-- sort the widgets
 	table.sort(unsortedWidgets, function(w1, w2)
@@ -426,7 +422,9 @@ function widgetHandler:Initialize()
 		local name = w.whInfo.name
 		local basename = w.whInfo.basename
 		local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
-		Spring.Echo(string.format("Loading widget from %s  %-18s  <%s> ...", source, name, basename))
+		local localPath = w.whInfo.localPath
+
+		Spring.Echo(string.format("Loading widget from %s  %-18s  <%s%s> ...", source, name, localPath, basename))
 		Yield()
 		widgetHandler:InsertWidget(w)
 	end
@@ -461,7 +459,7 @@ end
 
 
 function widgetHandler:LoadWidget(filename, fromZip)
-	local basename = Basename(filename)
+	local basename, path = Basename(filename)
 	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets) and VFS.ZIP or VFS.RAW_FIRST)
 	if text == nil then
 		Spring.Echo('Failed to load: ' .. basename .. '  (missing file: ' .. filename .. ')')
@@ -495,7 +493,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		end
 	end
 
-	self:FinalizeWidget(widget, filename, basename)
+	self:FinalizeWidget(widget, filename, basename, path)
 	local name = widget.whInfo.name
 	if basename == SELECTOR_BASENAME then
 		self.orderList[name] = 1  -- always load the widget selector
@@ -520,6 +518,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		knownInfo.author = widget.whInfo.author
 		knownInfo.basename = widget.whInfo.basename
 		knownInfo.filename = widget.whInfo.filename
+		knownInfo.path = widget.whInfo.path
 		knownInfo.fromZip = fromZip
 		self.knownWidgets[name] = knownInfo
 		self.knownCount = self.knownCount + 1
@@ -672,11 +671,13 @@ function widgetHandler:NewWidget()
 	return widget
 end
 
-function widgetHandler:FinalizeWidget(widget, filename, basename)
+function widgetHandler:FinalizeWidget(widget, filename, basename, path)
 	local wi = {}
 
 	wi.filename = filename
 	wi.basename = basename
+	wi.path = path
+	wi.localPath = string.sub(path, #WIDGET_DIRNAME + 1)
 	if widget.GetInfo == nil then
 		wi.name = basename
 		wi.layer = 0
