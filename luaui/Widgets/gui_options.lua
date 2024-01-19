@@ -207,7 +207,7 @@ local reclaimFieldHighlightOptions = {
 local startScript = VFS.LoadFile("_script.txt")
 if not startScript then
 	local modoptions = ''
-	for key, value in pairs(Spring.GetModOptions()) do
+	for key, value in pairs(Spring.GetModOptionsCopy()) do
 		local v = value
 		if type(v) == 'boolean' then
 			v = (v and '1' or '0')
