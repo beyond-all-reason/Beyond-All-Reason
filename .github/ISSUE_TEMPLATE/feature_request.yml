@@ -18,9 +18,10 @@ body:
       required: true
 
   - type: checkboxes
-    id: gameplay
-    label: Does this feature pertain to gameplay mechanics or balance?
-    description: Issues with this box checked will be discussed by the Game Design Team
+    attributes:
+      id: gameplay
+      label: Does this feature pertain to gameplay mechanics or balance?
+      description: Issues with this box checked will be discussed by the Game Design Team
 
   - type: textarea
     attributes:
