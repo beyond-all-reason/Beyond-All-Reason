@@ -1,4 +1,5 @@
 name: Feature Request
+description: Submit a request or propose a feature that you think would improve the game in some way
 labels: ["Enhancement"]
 
 body:
