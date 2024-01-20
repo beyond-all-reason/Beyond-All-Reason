@@ -33,7 +33,7 @@ jobs:
           template-path: .github/ISSUE_TEMPLATE/feature_request.yml
 
       - name: Advanced Issue Labeler
-        uses: redhat-plumbers-in-action/advanced-issue-labeler@v3.0.0
+        uses: redhat-plumbers-in-action/advanced-issue-labeler@v3
         with:
           issue-form: ${{ steps.issue-parser.outputs.jsonString }}
           token: ${{ secrets.GITHUB_TOKEN }}

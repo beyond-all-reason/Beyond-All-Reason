@@ -3,10 +3,6 @@ description: Submit a request or propose a feature that you think would improve 
 labels: ["Enhancement"]
 
 body:
-  - type: markdown
-    attributes:
-      value: "Please use the [blank issue form](https://github.com/beyond-all-reason/Beyond-All-Reason/issues/new) if your issue is not a feature request."
-
   - type: textarea
     attributes:
       label: Description
