@@ -23,7 +23,7 @@ body:
       label: Does this feature pertain to gameplay mechanics or balance?
       description: Issues with this box checked will be discussed by the Game Design Team
       options:
-        - label: \Yes
+        - label: Yes it does
 
   - type: textarea
     attributes:
