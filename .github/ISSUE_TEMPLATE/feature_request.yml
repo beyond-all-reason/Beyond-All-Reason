@@ -1,5 +1,5 @@
 name: Feature Request
-description: Use this template to submit an idea for an enhancement to the game
+description: Use this template to submit an idea for an enhancement to the game. Please use the [blank issue form](https://github.com/beyond-all-reason/Beyond-All-Reason/issues/new) if your issue is not specifically a feature request.
 labels: ["Enhancement"]
 
 body:
@@ -17,13 +17,21 @@ body:
     validations:
       required: true
 
-  - type: checkboxes
-    id: gameplay
+  - type: dropdown
+    id: feature_type
     attributes:
-      label: Does this feature pertain to gameplay mechanics or balance?
-      description: Issues with this box checked will be discussed by the Game Design Team
+      label: What area of the game does this feature request pertain?
+      description: Issues with the gameplay box checked will be discussed by the Game Design Team
+      multiple: true
       options:
-        - label: Yes it does
+        - 'Gameplay'
+        - 'Graphics'
+        - 'UI/UX'
+        - 'Settings, Controls or Hotkeys'
+        - 'Codebase or APIs'
+        - 'Other'
+    validations:
+      required: true
 
   - type: textarea
     attributes:
