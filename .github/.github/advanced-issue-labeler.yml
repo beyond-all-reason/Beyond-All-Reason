@@ -1,0 +1,8 @@
+policy:
+  - template: ['feature_request.yml']
+    section:
+      - id: [feature_type]
+        # block-list: ['Gameplay', 'Graphics', 'UI/UX', 'Settings, Controls or Hotkeys', 'Codebase or APIs', 'Other']
+        label:
+          - name: 'Awaiting GDT Approval'
+            keys: ['Gameplay']
