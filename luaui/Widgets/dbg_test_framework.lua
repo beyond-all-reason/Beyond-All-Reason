@@ -247,7 +247,9 @@ local function finishTest(result)
 		control.remove()
 	end
 
+	result.index = result.index or testRunState.index
 	result.label = result.label or activeTestState.label
+	result.filename = result.filename or activeTestState.filename
 	if activeTestState and activeTestState.startFrame and result.frames == nil then
 		result.frames = Spring.GetGameFrame() - activeTestState.startFrame
 	end
