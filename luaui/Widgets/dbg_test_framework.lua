@@ -65,7 +65,7 @@ local function findTestFiles(directory, patterns, rootDirectory, result)
 
 	for _, filename in ipairs(VFS.DirList(directory, "*", VFS.RAW_FIRST)) do
 		local relativePath = string.sub(filename, string.len(rootDirectory) + 1)
-		local withoutExtension = removeFileExtension(filename)
+		local withoutExtension = removeFileExtension(relativePath)
 		if patterns == nil or #patterns == 0 or matchesPatterns(withoutExtension, patterns) then
 			log(LOG.INFO, "Found test file: " .. relativePath)
 			result[#result + 1] = {
