@@ -15,6 +15,11 @@
 -- REASON:
 -- AllowUnitBuildStep is damn expensive and is a serious perf hit if it is used for all this.
 
+-- Done: Unify the usage of ruleName, to make it so that high prio = nil or false, low prio = assigned buildspeed
+
+-- TODO: rewrite the whole goddamn thing as a multilevel queue!
+
+
 function gadget:GetInfo()
 	return {
 		name	  = 'Builder Priority', 	-- this once was named: Passive Builders v3
@@ -30,18 +35,28 @@ end
 local DEBUG = false -- will draw the buildSpeeds above builders. Perf heavy but its debugging only.
 local VERBOSE = false -- will spam debug into infolog
 
+local ruleName = "builderPriorityLow" -- So that non-nil means low prio, and the actual build speed number, nil means high
+
 if not gadgetHandler:IsSyncedCode() then
 	if DEBUG then 
+		
+		local canPassive = {} -- canPassive[unitDefID] = nil / true
+		for unitDefID, unitDef in pairs(UnitDefs) do
+			canPassive[unitDefID] = ((unitDef.canAssist and unitDef.buildSpeed > 0) or #unitDef.buildOptions > 0)
+		end
+		
 		function gadget:DrawWorld()
 			for i, unitID in pairs(Spring.GetAllUnits()) do 
-				local mybuildspeed = Spring.GetUnitRulesParam(unitID, "mybuildspeed")
-				if mybuildspeed then 
-					--Spring.Echo("unitID", unitID," has buildspeed", mybuildspeed)
+				if Spring.IsUnitInView(unitID) and canPassive[Spring.GetUnitDefID(unitID)] then  
+					local lowPriority = Spring.GetUnitRulesParam(unitID, ruleName)
+				
 					local x,y,z = Spring.GetUnitPosition(unitID)
 					gl.PushMatrix()
 					gl.Translate(x,y+64, z)
-					gl.Text(tostring(mybuildspeed),0,0,16,'n')
+					
+					gl.Text(((lowPriority and "L:"..tostring(lowPriority)) or "High"),0,0,16,'n')
 					gl.PopMatrix()
+
 				end
 			end
 			
@@ -53,6 +68,8 @@ local CMD_PRIORITY = 34571
 
 local stallMarginInc = 0.2 -- 
 local stallMarginSto = 0.01
+
+local buildPowerMinimum = 0.001 -- A small amount of buildpower we allocate to each build target owner to ensure that nanoframes dont vanish 
 
 local passiveCons = {} -- passiveCons[teamID][builderID] = true for passive cons
 local roundRobinIndexTeam = {} -- {teamID = roundRobinIndex}
@@ -68,7 +85,6 @@ local currentBuildSpeed = {} -- {builderid = currentBuildSpeed} build speed of b
 local costIDOverride = {}
 local energyOffset = Game.maxUnits + 1
 local buildTimeOffset = (Game.maxUnits + 1) * 2 
-local ruleName = "builderPriority"
 
 local resTable = {"metal","energy"} -- 1 = metal, 2 = energy
 
@@ -78,7 +94,7 @@ local cmdPassiveDesc = {
 	  action  = 'priority',
 	  type	= CMDTYPE.ICON_MODE,
 	  tooltip = 'Builder Mode: Low Priority restricts build when stalling on resources',
-	  params  = {1, 'Low Prio', 'High Prio'}
+	  params  = {1, 'Low Prio', 'High Prio'}, -- cmdParams[1], where 0 == Low Prio, 1 == High prio
 }
 
 local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
@@ -142,10 +158,12 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
 	if canPassive[unitDefID] then
 		spInsertUnitCmdDesc(unitID, cmdPassiveDesc)
 		if not passiveCons[teamID] then passiveCons[teamID] = {} end
-		passiveCons[teamID][unitID] = spGetUnitRulesParam(unitID,ruleName) ~= 1 or nil
+		passiveCons[teamID][unitID] = spGetUnitRulesParam(unitID, ruleName) or nil -- non-nil rule means passive
 		currentBuildSpeed[unitID] = maxBuildSpeed[unitID]
 		spSetUnitBuildSpeed(unitID, currentBuildSpeed[unitID]) -- to handle luarules reloads correctly
-		if DEBUG then Spring.SetUnitRulesParam(unitID, "mybuildspeed", currentBuildSpeed[unitID], LOS_ACCESS)  end
+		if DEBUG then 
+			Spring.Echo(string.format("UnitID %i of def %s has been set to %s = %s",unitID, UnitDefs[unitDefID].name, ruleName, tostring(passiveCons[teamID][unitID])))
+		end
 	end
 
 	costIDOverride[unitID +			   0] = cost[unitDefID]
@@ -192,17 +210,23 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		local cmdIdx = spFindUnitCmdDesc(unitID, CMD_PRIORITY)
 		if cmdIdx then
 			local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
-			cmdDesc.params[1] = cmdParams[1]
+			cmdDesc.params[1] = cmdParams[1] -- cmdParams[1] where 0 == Low Prio, 1 == High prio
 			spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
-			spSetUnitRulesParam(unitID,ruleName,cmdParams[1])
+			local lowPriority = (cmdParams[1] == 0)
+			
+			spSetUnitRulesParam(unitID, ruleName, (lowPriority and maxBuildSpeed[unitID] ) or nil) -- init builders
+			
 			if not passiveCons[teamID] then passiveCons[teamID] = {} end
-			if cmdParams[1] == 0 then --
+			
+			if cmdParams[1] == 0 then -- Low Prio
 				passiveCons[teamID][unitID] = true
-			elseif maxBuildSpeed[unitID] then
-				spSetUnitBuildSpeed(unitID, maxBuildSpeed[unitID])
-				if DEBUG then spSetUnitRulesParam(unitID, "mybuildspeed",  maxBuildSpeed[unitID], LOS_ACCESS) end
-				currentBuildSpeed[unitID] = maxBuildSpeed[unitID]
+			elseif maxBuildSpeed[unitID] then -- high prio and this unreasonable check?
 				passiveCons[teamID][unitID] = nil
+				currentBuildSpeed[unitID] = maxBuildSpeed[unitID]
+				spSetUnitBuildSpeed(unitID, maxBuildSpeed[unitID])
+			end
+			if DEBUG then 
+				Spring.Echo(string.format("UnitID %i of def %s has been set to %s = %s (%s)",unitID, UnitDefs[unitDefID].name, ruleName, tostring(passiveCons[teamID][unitID]), tostring(cmdParams[1])))
 			end
 		end
 		return false -- Allowing command causes command queue to be lost if command is unshifted
@@ -210,6 +234,10 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	return true
 end
 
+-- Dont count solars and mm's as stalling:
+local solars = {} -- builderID, targetID
+local makers = {} -- builderID, targetID
+local midPrioSolarMaker = {} -- builderID to negative metal, positive energy cost
 
 local function UpdatePassiveBuilders(teamID, interval)
 
@@ -241,25 +269,29 @@ local function UpdatePassiveBuilders(teamID, interval)
 
 				-- TODO: redo solar and basic MM no-stall logic
 				
-				if expenseMetal <= 1 then 
-					expenseMetal = 0   -- metal maker costs 1 metal, don't stall because of that
-				else
-					expenseMetal = expenseMetal * rate
-				end
-
-				if expenseEnergy <= 1 then 
-					expenseEnergy = 0   -- solar costs 0 energy, don't stall because of that
-				else
-					expenseEnergy = expenseEnergy * rate
-				end
+				-- metal maker costs 1 metal, don't stall because of that
+				expenseMetal = (expenseMetal <=1) and 0 or expenseMetal * rate
+				
+				-- solar costs 0 energy, don't stall because of that
+				expenseEnergy = (expenseEnergy <=1) and 0 or expenseEnergy * rate
 
 				if passiveConsTeam[builderID] then 
 					passiveExpense[builderID] = expenseMetal
 					passiveExpense[builderID+ energyOffset] = expenseEnergy
-					buildTargets[builtUnit] = builderID 
 					numPassiveCons = numPassiveCons + 1
 					passiveConsTotalExpenseEnergy = passiveConsTotalExpenseEnergy + expenseEnergy
 					passiveConsTotalExpenseMetal  = passiveConsTotalExpenseMetal  + expenseMetal
+					buildTargets[builtUnit] = builderID 
+					--[[
+					if expenseMetal == 0 then
+						midPrioSolarMaker[builderID] = expenseEnergy
+					elseif expenseEnergy == 0 then 
+						midPrioSolarMaker[builderID] = -1 * expenseMetal
+					else
+						-- So we dont accidentally override these:
+					end
+					]]--
+					
 				else
 					nonPassiveConsTotalExpenseEnergy = nonPassiveConsTotalExpenseEnergy + expenseEnergy
 					nonPassiveConsTotalExpenseMetal  = nonPassiveConsTotalExpenseMetal  + expenseMetal
@@ -289,10 +321,39 @@ local function UpdatePassiveBuilders(teamID, interval)
 	local passiveMetalStart = passiveMetalLeft
 	local passiveEnergyStart = passiveEnergyLeft
 	
-	-- Round robining who gets a bit of the leftover resources:
-	-- This is done in two passes around the pairs(passiveConsTeam), and initially, we ignore the first roundRobinIndex units, then in second pass ignore the last roundRobinIndex units. 
-	local roundRobinIndex = roundRobinIndexTeam[teamID] or 1 -- this stores the first unit that _should_ get res
 	local havePassiveResourcesLeft = (passiveEnergyLeft > 0) and (passiveMetalLeft > 0 )
+	-- Allow passive cons to build 
+	--[[
+	for builderID, costtype in pairs(midPrioSolarMaker) do 
+		local wantedBuildSpeed = 0 -- init at zero buildspeed
+	
+		if costtype < 0 then -- metal
+			if (passiveMetalLeft > -1 * costtype) then 
+				passiveMetalLeft = passiveMetalLeft + costtype
+			end
+		else
+			if (passiveEnergyLeft > costtype) then
+				passiveEnergyLeft = passiveEnergyLeft - costtype
+			end
+		end
+		
+		
+		midPrioSolarMaker[builderID] = nil
+	end
+	]]--
+	-- !!!!!! Important Explanation !!!!!
+	-- Iterating over a hash table has a random, but fixed order
+	-- If we just iterated over passive cons once, naively, then the first cons would always get the leftover resources
+	-- We want to do a round-robin of leftover resources distribution, where all cons approximately evenly get resources
+	-- We also want to minimize buildspeed changes, so the trivial solution of assigning fractional buildpower to all is undesired. 
+	-- Thus we need to store which index of hash table we doled out the last leftovers in the previous pass.
+	-- Then we need to iterate over passive cons twice
+	-- This is done in two passes around the pairs(passiveConsTeam), 
+		-- First Pass: we ignore the first roundRobinIndex units, and if there are still resources left over, we start a second pass
+		-- Second Pass: then in second pass ignore the last roundRobinIndex units. 
+		
+	local roundRobinIndex = roundRobinIndexTeam[teamID] or 1 -- this stores the first unit that _should_ get res
+	havePassiveResourcesLeft = (passiveEnergyLeft > 0) and (passiveMetalLeft > 0 )
 
 	if havePassiveResourcesLeft then 
 		-- on the first pass, ignore everything < roundRobinLimit
@@ -316,31 +377,31 @@ local function UpdatePassiveBuilders(teamID, interval)
 							if passiveEnergyLeft < passivePullEnergy or passiveMetalLeft < passivePullMetal then 
 								-- we ran out, time to save our roundrobin index, and bail
 								havePassiveResourcesLeft = false 
-								if VERBOSE then Spring.Echo(string.format("Ran out for %d at %i, RRI =%d, j=%d",builderID, i, roundRobinIndex,j)) end 
+								if VERBOSE then Spring.Echo(string.format("Ran out for %d at %i, RRI =%d, j=%d",builderID, i, roundRobinIndex, j)) end 
 							else
 								-- Yes we still have resources
 								wantedBuildSpeed = maxBuildSpeed[builderID]
 								passiveEnergyLeft = passiveEnergyLeft - passivePullEnergy
 								passiveMetalLeft  = passiveMetalLeft  - passivePullMetal
-								if VERBOSE then Spring.Echo(string.format("Had Some for %d at %i, RRI =%d, j=%d",builderID, i, roundRobinIndex,j)) end 
+								if VERBOSE then Spring.Echo(string.format("Had Some for %d at %i, RRI =%d, j=%d",builderID, i, roundRobinIndex, j)) end 
 							end
 						end
 						
 						if currentBuildSpeed[builderID] ~= wantedBuildSpeed then
 							spSetUnitBuildSpeed(builderID, wantedBuildSpeed)
+							spSetUnitRulesParam(builderID, ruleName, wantedBuildSpeed) 
 							currentBuildSpeed[builderID] = wantedBuildSpeed
-							if DEBUG then spSetUnitRulesParam(builderID, "mybuildspeed", wantedBuildSpeed, LOS_ACCESS) end
 						end
 					end
 				end
 			end
-			if not havePassiveResourcesLeft or j == 2 then 
+			if (not havePassiveResourcesLeft) or (not firstpass) then 
 				-- Either ran out of resources, or on our second pass
 				roundRobinIndexTeam[teamID] = roundRobinIndex
 				break 
 			else
-				-- We are gonna do a second pass then. 
-				if j == 1 then 
+				-- We still have resources left over after completing the first pass, so do a second pass too 
+				if firstpass then 
 					roundRobinIndex = 1
 				end
 			end
@@ -350,14 +411,13 @@ local function UpdatePassiveBuilders(teamID, interval)
 		for builderID in pairs(passiveConsTeam) do 
 			if passiveExpense[builderID] then 
 				if currentBuildSpeed[builderID] ~= 0 then
-					spSetUnitBuildSpeed(builderID, 0)
 					currentBuildSpeed[builderID] = 0
-					if DEBUG then spSetUnitRulesParam(builderID, "mybuildspeed", 0, LOS_ACCESS) end
+					spSetUnitBuildSpeed(builderID, 0)
+					spSetUnitRulesParam(builderID, ruleName, 0)
 				end
 			end
 		end	
 	end
-	
 	
 	-- dont remove the resources given to a builder in a round-robin fashion just because they are build target owners
 	-- take them off the buildTargets stack!
@@ -367,10 +427,10 @@ local function UpdatePassiveBuilders(teamID, interval)
 		-- if owner is passive, then give it a bit of BP
 		-- TODO: this needs to be smarter
 		-- This ensures that we at least build each unit a tiny bit.
-		if currentBuildSpeed[builderUnitID] <= 0.001 then 
-			-- This builderUnitID has been assigned as passive with no resources
-			spSetUnitBuildSpeed(builderUnitID, max(currentBuildSpeed[builderUnitID], 0.001)) -- 
-			if DEBUG then spSetUnitRulesParam(builderUnitID, "mybuildspeed", max(currentBuildSpeed[builderUnitID], 0.001), LOS_ACCESS) end
+		if currentBuildSpeed[builderUnitID] < buildPowerMinimum then 
+			-- This builderUnitID has been assigned as passive with no resources, so give it a little bit
+			spSetUnitBuildSpeed(builderUnitID, buildPowerMinimum) -- 
+			spSetUnitRulesParam(builderUnitID, ruleName, buildPowerMinimum)
 		else
 			-- this builderUnitID has been assigned greater than 0 resources in the round robin pass, so remove it from the next frames clear pass
 			buildTargets[buildTargetID] = nil
@@ -388,53 +448,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 			)
 		)
 	end
-
-	--- ----------------------------------------- OLD METHOD -------------------------------------------------
-		
-	-- work through passive cons allocating as much expense as we have left
-	--[[
-	for builderID in pairs(passiveConsTeam) do
-		-- find out if we have used up all the expense available to passive builders yet
-		local wouldStall = false
-
-		if passiveExpense[builderID] then
-		
-			local passivePullEnergy = passiveExpense[builderID + energyOffset] * intervalpersimspeed
-			if passiveEnergyLeft <= passivePullEnergy then
-				wouldStall = true
-			else
-				passiveEnergyLeft = passiveEnergyLeft - passivePullEnergy
-			end
-
-			local passivePullMetal = passiveExpense[builderID] * intervalpersimspeed
-			if passiveMetalLeft <= passivePullMetal then
-				wouldStall = true
-			else
-				passiveMetalLeft = passiveMetalLeft - passivePullMetal
-			end
-		end
-
-		-- TODO: we need better rotation among passive builders anyway, as their resuorce assigment is order dependent and thus unevely shitty.
-		-- turn this passive builder on/off as appropriate
-		local wantedBuildSpeed = (wouldStall or not passiveExpense[builderID]) and 0 or maxBuildSpeed[builderID]
-		
-		if currentBuildSpeed[builderID] ~= wantedBuildSpeed then
-			spSetUnitBuildSpeed(builderID, wantedBuildSpeed)
-			currentBuildSpeed[builderID] = wantedBuildSpeed
-			if DEBUG then spSetUnitRulesParam(builderID, "mybuildspeed", wantedBuildSpeed, LOS_ACCESS) end
-		end
-	end
-
-	-- override buildTargetOwners build speeds for a single frame; let them build at a tiny rate to prevent nanoframes from possibly decaying
-	for buildTargetID, builderUnitID in pairs(buildTargets) do 
-		-- if owner is passive, then give it a bit of BP
-		-- TODO: this needs to be smarter
-		-- This ensures that we at least build each unit a tiny bit.
-		spSetUnitBuildSpeed(builderUnitID, max(currentBuildSpeed[builderUnitID], 0.001)) -- 
-		if DEBUG then spSetUnitRulesParam(builderUnitID, "mybuildspeed", max(currentBuildSpeed[builderUnitID], 0.001), LOS_ACCESS) end
-	end ]]--
 end
-
 
 local function GetUpdateInterval(teamID)
 	local maxInterval = 1
@@ -464,17 +478,21 @@ function gadget:TeamChanged(teamID)
 end
 
 function gadget:GameFrame(n)
-	
-	-- Thus on the next frame, we can loop through build target owners and
-	-- set their buildpower to what we wanted instead of 0.001 we had for 1 frame.
+	-- During the previous UpdatePassiveBuilders, we set build target owners to buildPowerMinimum to that the nanoframes dont die
+	-- Now we can set their buildpower to what we wanted instead of buildPowerMinimum we had for 1 frame.
 	if tracy then tracy.ZoneBeginN("redundant set") end
 	for  builtUnit, builderID in pairs(buildTargets) do
 		if spValidUnitID(builderID) and spGetUnitIsBuilding(builderID) == builtUnit then
-			spSetUnitBuildSpeed(builderID, currentBuildSpeed[builderID])
-			if DEBUG then spSetUnitRulesParam(builderID, "mybuildspeed", currentBuildSpeed[builderID], LOS_ACCESS) end
+			spSetUnitBuildSpeed(builderID, 0) -- 100ns
+			spSetUnitRulesParam(builderID, ruleName, 0) -- 300 ns
+	
+			if DEBUG then 
+				if currentBuildSpeed[builderID] > 0 then 
+					Spring.Echo("Warning:, the buildspeed of", builderID, "was nonzero before clearing it. ")
+				end
+			end
 		end
 	end
-	
 	
 	--buildTargetOwners = {}
 	buildTargets = (next(buildTargets) and {}) or buildTargets -- check if table is empty and if not reallocate it!
