@@ -147,7 +147,7 @@ local function resetActiveTestState()
 		coroutine = nil,
 		environment = nil,
 		startFrame = nil,
-		file = nil,
+		filename = nil,
 		label = nil,
 	}
 end
@@ -733,9 +733,9 @@ local function step()
 	-- is there a test set up? if not, create one
 	if activeTestState.coroutine == nil then
 		activeTestState.label = testRunState.files[testRunState.index].label
-		activeTestState.file = testRunState.files[testRunState.index]
+		activeTestState.filename = testRunState.files[testRunState.index].filename
 
-		local success, envOrError = loadTestFromFile(activeTestState.file.filename)
+		local success, envOrError = loadTestFromFile(activeTestState.filename)
 
 		if success then
 			log(LOG.DEBUG, "Initializing test: " .. activeTestState.label)
