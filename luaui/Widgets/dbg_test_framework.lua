@@ -12,6 +12,7 @@ function widget:GetInfo()
 end
 
 VFS.Include('luarules/testing/util.lua')
+local MochaJSONReporter = VFS.Include('luarules/testing/mochaJsonReporter.lua')
 
 local LOG_LEVEL = LOG.INFO
 
@@ -23,8 +24,8 @@ local SHOW_ALL_RESULTS = true
 local noColorOutput = false
 local quitWhenDone = false
 local gameStartTestPatterns = nil
-local logFilePath = nil
-local logFile = nil
+local testResultsFilePath = nil
+local testReporter = nil
 
 -- utils
 -- =====
@@ -37,9 +38,38 @@ local function log(level, str, ...)
 		LOG.NOTICE,
 		str
 	)
-	if logFile ~= nil then
-		logFile:write(str .. "\n")
+end
+
+local function logStartTests()
+	if testResultsFilePath == nil then
+		return
 	end
+
+	testReporter = MochaJSONReporter:new()
+	testReporter:startTests()
+end
+
+local function logEndTests(duration)
+	if testResultsFilePath == nil then
+		return
+	end
+	testReporter:endTests(duration)
+
+	testReporter:report(testResultsFilePath)
+end
+
+local function logTestResult(testResult)
+	if testResultsFilePath == nil then
+		return
+	end
+
+	testReporter:testResult(
+		testResult.label,
+		testResult.filename,
+		(testResult.result == TEST_RESULT.PASS),
+		testResult.milliseconds,
+		testResult.error
+	)
 end
 
 -- main code
@@ -215,9 +245,7 @@ local function startTests(patterns)
 		return
 	end
 
-	if logFilePath ~= nil then
-		logFile = io.open(logFilePath, "w")
-	end
+	logStartTests()
 
 	resetState()
 
@@ -253,10 +281,11 @@ local function finishTest(result)
 	if activeTestState and activeTestState.startFrame and result.frames == nil then
 		result.frames = Spring.GetGameFrame() - activeTestState.startFrame
 	end
-
 	result.milliseconds = getTestTime()
 
 	log(LOG.NOTICE, formatTestResult(result, noColorOutput))
+
+	logTestResult(result)
 
 	testRunState.results[#(testRunState.results) + 1] = result
 
@@ -275,9 +304,7 @@ local function finishTest(result)
 			displayTestResults(testRunState.results)
 		end
 
-		if logFile ~= nil and io.type(logFile) == "file" then
-			io.close(logFile)
-		end
+		logEndTests(getRunTestsTime())
 
 		if quitWhenDone then
 			Spring.SendCommands("quitforce")
@@ -841,7 +868,7 @@ function widget:Initialize()
 			noColorOutput = true
 			quitWhenDone = true
 			gameStartTestPatterns = splitPhrases(optLine)
-			logFilePath = "testlog.txt"
+			testResultsFilePath = "testlog/results.json"
 		end,
 		nil,
 		"t"
