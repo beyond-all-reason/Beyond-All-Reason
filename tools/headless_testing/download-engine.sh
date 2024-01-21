@@ -5,6 +5,9 @@ json=$(curl $json_url)
 
 url=$(echo $json | jq -r '.setups[] | select(.package.id == "manual-linux") | .downloads.resources[] | select(.destination | contains("engine")) | .url')
 destination=$(echo $json | jq -r '.setups[] | select(.package.id == "manual-linux") | .downloads.resources[] | select(.destination | contains("engine")) | .destination')
+env_variables=$(echo $json | jq -r '.setups[] | select(.package.id == "manual-linux") | .env_variables | to_entries[] | "\(.key)=\(.value)"')
+
+echo "$env_variables" > "config.env"
 
 mkdir -p "$destination"
 

@@ -8,11 +8,13 @@ RUN apt-get update && \
 RUN mkdir -p maps games engine
 
 COPY --chmod=755 ./download-engine.sh /bar/
-RUN /bar/download-engine.sh
+RUN ./download-engine.sh
 
-RUN /bar/engine/*/pr-downloader --filesystem-writepath "/bar" download-map "Full Metal Plate 1.5"
+COPY --chmod=755 ./download-maps.sh /bar/
+RUN ./download-maps.sh
 
 COPY ./startscript.txt /bar/
+COPY ./springsettings.cfg /bar/
 COPY --chmod=755 ./start.sh /bar/
 
-ENTRYPOINT /bar/start.sh /bar /bar/startscript.txt
+ENTRYPOINT ./start.sh /bar /bar/startscript.txt
