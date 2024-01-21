@@ -1,3 +1,3 @@
 #!/bin/bash
 
-env $(cat ./config.env) engine/*/pr-downloader --filesystem-writepath "/bar" --download-map "Full Metal Plate 1.5"
+engine/*/pr-downloader --filesystem-writepath "$BAR_ROOT" --download-map "Full Metal Plate 1.5"

@@ -1,4 +1,4 @@
 #!/bin/bash
 
-rm -rf ./LuaUI/Config
+rm -rf $1/LuaUI/Config
 $1/engine/*/spring-headless --isolation --write-dir "$1" "$2"
