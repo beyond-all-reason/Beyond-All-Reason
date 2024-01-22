@@ -48,7 +48,7 @@ return {
 		upright = true,
 		customparams = {
 			model_author = "Odin",
-			normaltex = "unittextures/Cor_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "scavengers/air",
 			techlevel = 3,
 		},
