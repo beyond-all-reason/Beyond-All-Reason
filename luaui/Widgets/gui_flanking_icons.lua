@@ -28,33 +28,44 @@ end
 local spec, fullview = Spring.GetSpectatingState()
 local allyTeamID = Spring.GetMyAllyTeamID()
 
-local function AddPrimitiveAtUnit(unitID, gameframe) -- since the icon fades, gameframe specifies last update
-	if Spring.ValidUnitID(unitID) ~= true or  Spring.GetUnitIsDead(unitID) == true then return end
-	local gameframe = gameframe or Spring.GetGameFrame()
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitRadius = Spring.GetUnitRadius
+local spGetUnitFlanking = Spring.GetUnitFlanking
+local spGetGameFrame = Spring.GetGameFrame
+local spIsUnitAllied = Spring.IsUnitAllied
 
-	local radius = Spring.GetUnitRadius(unitID) * 3 or 64
-	local mode, modilityAdd, minDamage,  maxDamage , dirX , dirY , dirZ, bonusnumber = Spring.GetUnitFlanking(unitID)
+local instanceCache = {0,0,0,2,-- length,width,cornersize (0), extraheight
+					   0,4, -- teamID, vertices
+					   0,0,0,0, -- the gameFrame (for fading), the direction to rotate the circle, 0,0
+					   0,1,0,1,  -- These are our default UV atlas tranformations
+					   0,0,0,0} -- these are just padding zeros, that will get filled in
+
+local function AddPrimitiveAtUnit(unitID, gameframe, noupload) -- since the icon fades, gameframe specifies last update
+	--if Spring.ValidUnitID(unitID) ~= true or  Spring.GetUnitIsDead(unitID) == true then return end
+	gameframe = gameframe or spGetGameFrame()
+
+	local radius = spGetUnitRadius(unitID) * 3 or 64
+	local mode, modilityAdd, minDamage,  maxDamage , dirX , dirY , dirZ, bonusnumber = spGetUnitFlanking(unitID)
 
 	local flankingangle = 0
 	if dirX then flankingangle = math.atan2(dirX, -1.0* dirZ) end
 	--Spring.Echo(math.deg(flankingangle), "Flank angle = ", unitID, flankingangle, dirX, dirZ)
+	instanceCache[1] = radius
+	instanceCache[2] = radius
+	instanceCache[7] = gameframe	
+	instanceCache[8] = flankingangle
 
 	pushElementInstance(
 		flankingVBO, -- push into this Instance VBO Table
-			{radius, radius, 0, 2,  -- length,width,cornersize (0), extraheight
-			0, -- teamID, unused
-			4, -- how many vertices should we make, 4 is a rect
-			gameframe, flankingangle, 0, 0, -- the gameFrame (for fading), the direction to rotate the circle
-			0, 1, 0, 1, -- These are our default UV atlas tranformations
-			0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
+		instanceCache, -- used the cached instance 
 		unitID, -- this is the key inside the VBO TAble, should be unique per unit
 		true, -- update existing element
-		nil, -- noupload, dont use unless you
+		noupload, -- noupload, dont use unless you know what you are doing
 		unitID) -- last one should be UNITID!
 end
 
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	-- because we allow updating, we are going to set these every time damage is taking (thus changing flank angle)
+	-- because we allow updating, we are going to set these every time damage is taken (thus changing flank angle)
 	if flankingVBO.instanceIDtoIndex[unitID] then
 		AddPrimitiveAtUnit(unitID)
 	end
@@ -76,31 +87,30 @@ function widget:DrawWorldPreUnit()
 	end
 end
 
-function widget:UnitCreated(unitID)
-	--Spring.Echo(spec, fullview, Spring.IsUnitAllied(unitID))
-	if not spec and fullview then
-		if not Spring.IsUnitAllied(unitID) then return end
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
+	if not spec and fullview then 
+		if not spIsUnitAllied(unitID) then return end
 	end
-	if udefHasFlankingIcon[Spring.GetUnitDefID(unitID)] then
-		AddPrimitiveAtUnit(unitID, -300)
+	if udefHasFlankingIcon[unitDefID] then 
+		AddPrimitiveAtUnit(unitID, -300, noupload)
 	end
 end
 
-function RemovePrimitive(unitID)
+function widget:VisibleUnitRemoved(unitID)
 	if flankingVBO.instanceIDtoIndex[unitID] then
-		popElementInstance(flankingVBO,unitID)
+		popElementInstance(flankingVBO, unitID)
 	end
-end
-
-function widget:UnitDestroyed(unitID)
-	RemovePrimitive(unitID)
 end
 
 local function init()
-	local units = Spring.GetAllUnits()
-	for _, unitID in ipairs(units) do
-		widget:UnitCreated(unitID)
+	clearInstanceTable(flankingVBO)
+	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
+		local visibleUnits =  WG['unittrackerapi'].visibleUnits
+		for unitID, unitDefID in pairs(visibleUnits) do
+			widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID), true)
+		end
 	end
+	uploadAllElements(flankingVBO)
 end
 
 function widget:Initialize()
@@ -125,7 +135,6 @@ function widget:Initialize()
 	spec, fullview = Spring.GetSpectatingState()
 	init()
 end
-
 
 function widget:PlayerChanged()
 	local prevFullview = fullview
