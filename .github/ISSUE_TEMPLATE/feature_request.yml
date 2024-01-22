@@ -6,14 +6,14 @@ body:
   - type: textarea
     attributes:
       label: Description
-      description: Brief description of the feature
+      description: Brief description of the feature you are proposing
     validations:
       required: true
 
   - type: textarea
     attributes:
-      label: Problems this will solve
-      description: Explain the issues this feature would solve, or how it may impact the game
+      label: Why?
+      description: Explain the problems this feature would solve, or how it would improve the game
     validations:
       required: true
 
