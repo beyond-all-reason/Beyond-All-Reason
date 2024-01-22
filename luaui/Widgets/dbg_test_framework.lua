@@ -850,8 +850,6 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget(self)
 	end
 
-	widgetHandler:EnableWidget("Test Framework Watchdog")
-
 	widgetHandler.actionHandler:AddAction(
 		self,
 		"runtests",
@@ -869,6 +867,8 @@ function widget:Initialize()
 			quitWhenDone = true
 			gameStartTestPatterns = splitPhrases(optLine)
 			testResultsFilePath = "testlog/results.json"
+
+			widgetHandler:EnableWidget("Test Framework Watchdog")
 		end,
 		nil,
 		"t"
