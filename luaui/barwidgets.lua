@@ -15,6 +15,8 @@ VFS.Include(LUAUI_DIRNAME .. "system.lua",           nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "callins.lua",          nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "savetable.lua",        nil, VFS.ZIP)
 
+local moduleLoader = VFS.Include("common/springUtilities/scriptModuleLoader.lua", nil, VFS.ZIP)
+
 local gl = gl
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '.lua'
@@ -368,17 +370,11 @@ function widgetHandler:Initialize()
 
 	local unsortedWidgets = {}
 
-	local function loadWidgetsInDir(dirname, vfsSetting)
-		local widgetFiles = VFS.DirList(dirname, "*.lua", vfsSetting, true)
-		local fromZip = (vfsSetting == VFS.ZIP or vfsSetting == VFS.MAP)
-
-		for _, filePath in ipairs(widgetFiles) do
-			if not (
-				-- Do not load recursively lua files in these folders:
-				string.find(filePath, '/[iI]ncludes?/') or
-				string.find(filePath, '/[sS]haders?/') or
-				string.find(filePath, '/_.-/') -- any folder starting with an underscore
-			) then
+	local function loadWidgetsInDir(dirname, vfsSetting, fromZip)
+		moduleLoader.loadAllModulesInDir(
+			dirname,
+			vfsSetting,
+			function(filePath, parentWidget)
 				GetWidgetInfo(filePath, vfsSetting)
 				local widget = self:LoadWidget(filePath, fromZip)
 
@@ -387,17 +383,18 @@ function widgetHandler:Initialize()
 					Yield()
 				end
 
+				return widget
 			end
-		end
+		)
 	end
 
 	-- stuff the raw widgets into unsortedWidgets
 	if self.allowUserWidgets and allowuserwidgets then
-		loadWidgetsInDir(WIDGET_DIRNAME, VFS.RAW)
+		loadWidgetsInDir(WIDGET_DIRNAME, VFS.RAW, false)
 	end
 
-	loadWidgetsInDir(WIDGET_DIRNAME, VFS.ZIP)
-	loadWidgetsInDir(WIDGET_DIRNAME_MAP, VFS.MAP)
+	loadWidgetsInDir(WIDGET_DIRNAME, VFS.ZIP, true)
+	loadWidgetsInDir(WIDGET_DIRNAME_MAP, VFS.MAP, true)
 
 	-- sort the widgets
 	table.sort(unsortedWidgets, function(w1, w2)
@@ -436,19 +433,19 @@ end
 function widgetHandler:AddSpadsMessage(contents)
 	-- The canonical, agreed format is the following:
 	-- This must be called from an unsynced context, cause it needs playername and playerid and stuff
-	
+
 	-- The game sends a lua message, which should be base64'd to prevent wierd character bullshit:
-	-- Lua Message Format: 
+	-- Lua Message Format:
 		-- leetspeek luaspads:base64message
 		-- lu@$p@d$:ABCEDFGS==
-		-- Must contain, with triangle bracket literals <playername>[space]<contents>[space]<gameseconds> 
+		-- Must contain, with triangle bracket literals <playername>[space]<contents>[space]<gameseconds>
 	-- will get parsed by barmanager, and forwarded to autohostmonitor as:
-	-- match-event <UnnamedPlayer> <LuaUI\Widgets\test_unitshape_instancing.lua/czE3YEocdDJ8bLoO5++a2A==> <35> 
+	-- match-event <UnnamedPlayer> <LuaUI\Widgets\test_unitshape_instancing.lua/czE3YEocdDJ8bLoO5++a2A==> <35>
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID,false)
 	local gameSeconds = math.max(0,math.round(Spring.GetGameFrame() / 30))
-	if type(contents) == 'table' then 
-		contents = Json.encode(contents) 
+	if type(contents) == 'table' then
+		contents = Json.encode(contents)
 	end
 	local rawmessage = string.format("<%s> <%s> <%d>", myPlayerName, contents, gameSeconds)
 	local b64message = 'lu@$p@d$:' .. string.base64Encode(rawmessage)
@@ -485,7 +482,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
 	-- user widgets may not access widgetHandler
 	-- fixme: remove the or true part
 	if widget.GetInfo and widget:GetInfo().handler then
-		if fromZip or true then 
+		if fromZip or true then
 			widget.widgetHandler = self
 		else
 			Spring.Echo('Failed to load: ' .. basename .. '  (user widgets may not access widgetHandler)', fromZip, filename, allowuserwidgets)
@@ -553,9 +550,9 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		self.knownWidgets[name].active = false
 		return nil
 	end
-	if not fromZip then 
+	if not fromZip then
 		local md5 = VFS.CalculateHash(text,0)
-		if widgetHandler.widgetHashes[md5] == nil then 
+		if widgetHandler.widgetHashes[md5] == nil then
 			widgetHandler.widgetHashes[md5] = filename
 			-- Embed LuaRules message that we enabled a new user widget
 			--local success, err = pcall(widgetHandler.AddSpadsMessage, widgetHandler, tostring(filename) .. ":" .. tostring(md5))
@@ -564,7 +561,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
 			--end
 		end
 	end
-	
+
 	-- load the config data
 	local config = self.configData[name]
 	if widget.SetConfigData and config then
@@ -1190,12 +1187,12 @@ end
 
 
 function widgetHandler:Update()
-	
-	if collectgarbage("count") > 1200000 then 
+
+	if collectgarbage("count") > 1200000 then
 		Spring.Echo("Warning: Emergency garbage collection due to exceeding 1.2GB LuaRAM")
 		collectgarbage("collect")
 	end
-	
+
 	local deltaTime = Spring.GetLastUpdateSeconds()
 	-- update the hour timer
 	hourTimer = (hourTimer + deltaTime) % 3600.0
@@ -1582,7 +1579,7 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, a
 	return false
 end
 
-function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)	
+function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
 	tracy.ZoneBeginN("W:KeyRelease")
 	local textOwner = self.textOwner
 
@@ -1717,7 +1714,7 @@ function widgetHandler:ControllerAdded(deviceIndex)
 			return true
 		end
 	end
-	
+
 	tracy.ZoneEnd()
 	return false
 end
@@ -2197,7 +2194,7 @@ function widgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 end
 
 function widgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-	
+
 	tracy.ZoneBeginN("W:UnitCommand")
 	for _, w in ipairs(self.UnitCommandList) do
 		w:UnitCommand(unitID, unitDefID, unitTeam,
