@@ -46,6 +46,8 @@ function loadModule(fileOrDirPath, vfsMode, loaderCallback, loadedModules, paren
 		local _,_,path = string.find(fileOrDirPath, "(.*[\\/:])[^\\/:]*$")
 		table.insert(loadedModules, fileOrDirPath)
 		if parentModule ~= nil then
+			newModule._parentModule = parentModule
+
 			parentModule._childModules = parentModule._childModules or {}
 			table.insert(parentModule._childModules, newModule)
 		end
