@@ -381,9 +381,9 @@ function widgetHandler:Initialize()
 				if widget and (fromZip or not zipOnly[widget.whInfo.name]) then
 					table.insert(unsortedWidgets, widget)
 					Yield()
-				end
 
-				return widget
+					return widget
+				end
 			end
 		)
 	end
