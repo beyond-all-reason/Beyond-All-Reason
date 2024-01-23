@@ -5,21 +5,24 @@
 ---@param loaderCallback fun(filePath:string, parentModule: table | nil): table, string[] | boolean
 ---@param loadedModules string[] | nil
 ---@param parentModule table | nil
-local function loadModule(fileOrDirPath, vfsMode, loaderCallback, loadedModules, parentModule) end
+local function loadModule(fileOrDirPath, vfsMode, loaderCallback, loadedModules, parentModule)
+end
 
 ---@param modulePaths string[]
 ---@param vfsMode
 ---@param loaderCallback fun(filePath:string, parentModule: table | nil): table, string[] | boolean
 ---@param loadedModules string[] | nil
 ---@param parentModule table | nil
-local function loadModulesFromList(modulePaths, vfsMode, loaderCallback, loadedModules, parentModule) end
+local function loadModulesFromList(modulePaths, vfsMode, loaderCallback, loadedModules, parentModule)
+end
 
 ---@param dirPath string
 ---@param vfsMode
 ---@param loaderCallback fun(filePath:string, parentModule: table | nil): table, string[] | boolean
 ---@param loadedModules string[] | nil
 ---@param parentModule table | nil
-local function loadAllModulesInDir(dirPath, vfsMode, loaderCallback, loadedModules, parentModule) end
+local function loadAllModulesInDir(dirPath, vfsMode, loaderCallback, loadedModules, parentModule)
+end
 
 local recursionDepth = 0
 local MAX_RECURSION_DEPTH = 10
@@ -43,7 +46,7 @@ function loadModule(fileOrDirPath, vfsMode, loaderCallback, loadedModules, paren
 			return
 		end
 
-		local _,_,path = string.find(fileOrDirPath, "(.*[\\/:])[^\\/:]*$")
+		local _, _, path = string.find(fileOrDirPath, "(.*[\\/:])[^\\/:]*$")
 		table.insert(loadedModules, fileOrDirPath)
 		if parentModule ~= nil then
 			newModule._parentModule = parentModule
@@ -90,7 +93,7 @@ end
 
 function loadAllModulesInDir(dirPath, vfsMode, loaderCallback, loadedModules, parentModule)
 	local lastChar = string.sub(dirPath, -1)
-	if lastChar ~= "/" and lastChar ~="\\" then
+	if lastChar ~= "/" and lastChar ~= "\\" then
 		dirPath = dirPath .. "/"
 	end
 
