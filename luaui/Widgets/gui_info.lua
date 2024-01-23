@@ -233,33 +233,77 @@ local function refreshUnitInfo()
 		end
 		local totalDps = 0
 		local weapons = unitDef.weapons
+		local totalMinDps = 0
+		local totalMaxDps = 0
 
 		for i = 1, #weapons do
 			if not unitDefInfo[unitDefID].weapons then
 				unitDefInfo[unitDefID].weapons = {}
 				unitDefInfo[unitDefID].dps = 0
+				unitDefInfo[unitDefID].mindps = 0
+				unitDefInfo[unitDefID].maxdps = 0
 				unitDefInfo[unitDefID].range = 0
 				unitDefInfo[unitDefID].reloadTime = 0
 				unitDefInfo[unitDefID].mainWeapon = i
 			end
+
 			unitDefInfo[unitDefID].weapons[i] = weapons[i].weaponDef
 			local weaponDef = WeaponDefs[weapons[i].weaponDef]
 			if weaponDef.interceptor ~= 0 and weaponDef.coverageRange then
 				unitDefInfo[unitDefID].maxCoverage = math.max(unitDefInfo[unitDefID].maxCoverage or 1, weaponDef.coverageRange)
 			end
 			if weaponDef.damages then
-				if  unitDef.name == 'armthor' or unitDef.name == 'armcom' or unitDef.name == 'corcom'
-				or unitDef.name == 'armvang' or unitDef.name == 'corkarg' then
+
+				if unitDef.name == 'armfido' then
+					local unit_exempt = 1
+					unitDefInfo[unitDefID].unit_exempt = unit_exempt
+					if i==2 then                                --Calculating using second weapon only
+						local defDmg
+						local dps
+
+						defDmg = weaponDef.damages[0]      		--Damage to default armor category
+						dps = math_floor(defDmg * weaponDef.salvoSize / weaponDef.reload)
+						unitDefInfo[unitDefID].dps = dps
+						unitDefInfo[unitDefID].range = weaponDef.range
+						unitDefInfo[unitDefID].reloadTime = weaponDef.reload
+
+
+					end
+				elseif unitDef.name == 'armcom' or unitDef.name == 'corcom' or unitDef.name == 'armvang' or unitDef.name == 'corkarg' then
+					local unit_exempt = 1
+					unitDefInfo[unitDefID].unit_exempt = unit_exempt
 					if i == 1 then  									--Calculating using first weapon only
 						local defDmg
 						local dps
 						if weaponDef.energyCost > 0 and (not unitDefInfo[unitDefID].energyPerShot or weaponDef.energyCost > unitDefInfo[unitDefID].energyPerShot) then
-						unitDefInfo[unitDefID].energyPerShot = weaponDef.energyCost
+							unitDefInfo[unitDefID].energyPerShot = weaponDef.energyCost
 						end
 						if weaponDef.metalCost > 0 and (not unitDefInfo[unitDefID].metalPerShot or weaponDef.metalCost > unitDefInfo[unitDefID].metalPerShot) then
-						unitDefInfo[unitDefID].metalPerShot = weaponDef.metalCost
+							unitDefInfo[unitDefID].metalPerShot = weaponDef.metalCost
 						end
-						if weapons[i].onlyTargets['vtol'] ~= nil then
+						if weaponDef.type == "BeamLaser" then
+							defDmg = weaponDef.damages[0]
+							minIntensity = math.max(weaponDef.minIntensity, 0.5)
+							local mindps
+							local maxdps
+							mindps = math_floor(minIntensity*(defDmg * weaponDef.salvoSize / weaponDef.reload))
+							maxdps = math_floor(defDmg * weaponDef.salvoSize / weaponDef.reload)
+							totalMinDps = totalMinDps + mindps
+							unitDefInfo[unitDefID].mindps = totalMinDps
+							totalMaxDps = totalMaxDps + maxdps
+							unitDefInfo[unitDefID].maxdps = totalMaxDps
+							if mindps > unitDefInfo[unitDefID].mindps then
+								unitDefInfo[unitDefID].reloadTime = weaponDef.reload	-- only main weapon is relevant
+								unitDefInfo[unitDefID].mainWeapon = i
+								unitDefInfo[unitDefID].range = weaponDef.range
+							end
+
+
+
+
+
+
+						elseif weapons[i].onlyTargets['vtol'] ~= nil then
 							defDmg = weaponDef.damages[14]				--Damage to air category
 							dps = math_floor(defDmg * weaponDef.salvoSize / weaponDef.reload)
 							unitDefInfo[unitDefID].dps = dps
@@ -273,19 +317,24 @@ local function refreshUnitInfo()
 							unitDefInfo[unitDefID].reloadTime = weaponDef.reload
 						end
 					end
-
-				elseif unitDef.name == 'armfido' then
-					if i==2 then                                --Calculating using second weapon only
+				elseif unitDef.name == 'armamb' then
+					local unit_exempt = 1
+					unitDefInfo[unitDefID].unit_exempt = unit_exempt
+					if i==1 then                                --Calculating using first weapon only
 						local defDmg
 						local dps
+
 						defDmg = weaponDef.damages[0]      		--Damage to default armor category
 						dps = math_floor(defDmg * weaponDef.salvoSize / weaponDef.reload)
 						unitDefInfo[unitDefID].dps = dps
 						unitDefInfo[unitDefID].range = weaponDef.range
 						unitDefInfo[unitDefID].reloadTime = weaponDef.reload
 
+
 					end
 				elseif unitDef.name == 'corkorg' then          --excluding korstomp from dps calcuation for juggernaut
+					local unit_exempt = 1
+					unitDefInfo[unitDefID].unit_exempt = unit_exempt
 					if i==1 then
 						local defDmg
 						local dps
@@ -297,18 +346,23 @@ local function refreshUnitInfo()
 
 					if i==2 then
 						local defDmg
-						local dps2
 						if weaponDef.energyCost > 0 and (not unitDefInfo[unitDefID].energyPerShot or weaponDef.energyCost > unitDefInfo[unitDefID].energyPerShot) then
-						unitDefInfo[unitDefID].energyPerShot = weaponDef.energyCost
+							unitDefInfo[unitDefID].energyPerShot = weaponDef.energyCost
 						end
 						if weaponDef.metalCost > 0 and (not unitDefInfo[unitDefID].metalPerShot or weaponDef.metalCost > unitDefInfo[unitDefID].metalPerShot) then
-						unitDefInfo[unitDefID].metalPerShot = weaponDef.metalCost
+							unitDefInfo[unitDefID].metalPerShot = weaponDef.metalCost
 						end
 						defDmg = weaponDef.damages[0]      		--Damage to default armor category
-						dps2 = math_floor(defDmg * weaponDef.salvoSize / weaponDef.reload)
-						unitDefInfo[unitDefID].dps2 = dps2
+						minIntensity = math.max(weaponDef.minIntensity, 0.5)
+						local mindps
+						local maxdps
+						mindps = math_floor(minIntensity*(defDmg * weaponDef.salvoSize / weaponDef.reload))
+						maxdps = math_floor(defDmg * weaponDef.salvoSize / weaponDef.reload)
 						unitDefInfo[unitDefID].range = weaponDef.range
 						unitDefInfo[unitDefID].reloadTime = weaponDef.reload
+						unitDefInfo[unitDefID].mindps = mindps
+						unitDefInfo[unitDefID].maxdps = maxdps
+						unitDefInfo[unitDefID].mainWeapon = i
 					end
 
 					if i==3 then
@@ -320,14 +374,18 @@ local function refreshUnitInfo()
 
 					end
 				elseif unitDef.name == 'armepoch' then          --unit exception because aa weapon deals damage to default category (can remove upon unit update)
+					local unit_exempt = 1
+					unitDefInfo[unitDefID].unit_exempt = unit_exempt
 					if i==1 then
 						local defDmg
 						local dps
+
 						defDmg = weaponDef.damages[0]      		--Damage to default armor category
 						dps = 2*(math_floor(defDmg * weaponDef.salvoSize / weaponDef.reload))
 						unitDefInfo[unitDefID].dps = dps
 						unitDefInfo[unitDefID].range = weaponDef.range
 						unitDefInfo[unitDefID].reloadTime = weaponDef.reload
+
 					end
 
 					if i==2 then
@@ -338,34 +396,96 @@ local function refreshUnitInfo()
 						unitDefInfo[unitDefID].dps2 = dps2
 
 					end
+				end
+				if weaponDef.type == "BeamLaser" and unitDefInfo[unitDefID].unit_exempt == nil then	-- BeamLaser dps calc
 
-				else
 
 					local reloadTime = 0
 					local defDmg
 
 					if weapons[1].onlyTargets['vtol'] ~= nil then	--if main weapon isn't dedicated aa, then all weapons calculate using default armor category
-							defDmg = weaponDef.damages[14]
+						defDmg = weaponDef.damages[14]
 					else
-							defDmg = weaponDef.damages[0]
+						defDmg = weaponDef.damages[0]
 					end
 
-					local dps = math_floor(defDmg * weaponDef.salvoSize / weaponDef.reload)
-					if dps > unitDefInfo[unitDefID].dps then      --unitDefInfo[unitDefID].dps = dps
+					minIntensity = math.max(weaponDef.minIntensity, 0.5)
+					local mindps
+					local maxdps
+					mindps = math_floor(minIntensity*(defDmg * weaponDef.salvoSize / weaponDef.reload))
+					maxdps = math_floor(defDmg * weaponDef.salvoSize / weaponDef.reload)
+					if mindps > unitDefInfo[unitDefID].mindps and mindps > unitDefInfo[unitDefID].dps then
 						unitDefInfo[unitDefID].reloadTime = weaponDef.reload	-- only main weapon is relevant
 						unitDefInfo[unitDefID].mainWeapon = i
 						unitDefInfo[unitDefID].range = weaponDef.range
 					end
 					if weaponDef.energyCost > 0 and (not unitDefInfo[unitDefID].energyPerShot or weaponDef.energyCost > unitDefInfo[unitDefID].energyPerShot) then
-					unitDefInfo[unitDefID].energyPerShot = weaponDef.energyCost
+						unitDefInfo[unitDefID].energyPerShot = weaponDef.energyCost
 					end
 					if weaponDef.metalCost > 0 and (not unitDefInfo[unitDefID].metalPerShot or weaponDef.metalCost > unitDefInfo[unitDefID].metalPerShot) then
-					unitDefInfo[unitDefID].metalPerShot = weaponDef.metalCost
+						unitDefInfo[unitDefID].metalPerShot = weaponDef.metalCost
+					end
+					totalMinDps = totalMinDps + mindps
+					unitDefInfo[unitDefID].mindps = totalMinDps
+					totalMaxDps = totalMaxDps + maxdps
+					unitDefInfo[unitDefID].maxdps = totalMaxDps
+
+
+					if weaponDef.paralyzer == true then
+						local minemp
+						local maxemp
+						minemp = mindps
+						maxemp = maxdps
+						unitDefInfo[unitDefID].minemp = minemp
+						unitDefInfo[unitDefID].maxemp = maxemp
+						unitDefInfo[unitDefID].range = weaponDef.range
+					end
+
+				elseif weaponDef.paralyzer == true then
+					local defDmg
+					local emp
+					defDmg = weaponDef.damages[0]      		--Damage to default armor category
+					emp = math_floor(defDmg * weaponDef.salvoSize / weaponDef.reload)
+					unitDefInfo[unitDefID].emp = emp
+					unitDefInfo[unitDefID].range = weaponDef.range
+					unitDefInfo[unitDefID].reloadTime = weaponDef.reload
+
+
+
+
+
+
+				end
+				if weaponDef.type ~= "BeamLaser" and unitDefInfo[unitDefID].unit_exempt == nil and weaponDef.paralyzer ~= true then
+
+					local reloadTime = 0
+					local defDmg
+
+
+					if weapons[1].onlyTargets['vtol'] ~= nil then	--if main weapon isn't dedicated aa, then all weapons calculate using default armor category
+						defDmg = weaponDef.damages[14]
+					else
+						defDmg = weaponDef.damages[0]
+					end
+
+					local dps = math_floor(defDmg * weaponDef.salvoSize / weaponDef.reload)
+					if dps > unitDefInfo[unitDefID].dps then      --unitDefInfo[unitDefID].dps = dps
+						unitDefInfo[unitDefID].reloadTime = weaponDef.reload	-- only main weapon is relevant
+						unitDefInfo[unitDefID].mainWeapon = 1
+						unitDefInfo[unitDefID].range = weaponDef.range
+					end
+					if weaponDef.energyCost > 0 and (not unitDefInfo[unitDefID].energyPerShot or weaponDef.energyCost > unitDefInfo[unitDefID].energyPerShot) then
+						unitDefInfo[unitDefID].energyPerShot = weaponDef.energyCost
+					end
+					if weaponDef.metalCost > 0 and (not unitDefInfo[unitDefID].metalPerShot or weaponDef.metalCost > unitDefInfo[unitDefID].metalPerShot) then
+						unitDefInfo[unitDefID].metalPerShot = weaponDef.metalCost
 					end
 					totalDps = totalDps + dps
 					unitDefInfo[unitDefID].dps = totalDps
-				end
 
+
+
+				end
 			end
 			if weapons[i].onlyTargets['vtol'] ~= nil then
 				unitDefInfo[unitDefID].isAaUnit = true
@@ -976,7 +1096,7 @@ local function drawUnitInfo()
 	end
 	iconSize = iconSize + iconPadding
 
-	local dps, dps2, dps3, range, metalExtraction, stockpile, maxRange, exp, metalMake, metalUse, energyMake, energyUse
+	local dps, dps2, dps3, mindps, maxdps, emp, minemp, maxemp, range, metalExtraction, stockpile, maxRange, exp, metalMake, metalUse, energyMake, energyUse
 	local text, unitDescriptionLines = font:WrapText(unitDefInfo[displayUnitDefID].description, (contentWidth - iconSize) * (loadedFontSize / fontSize))
 
 	if displayUnitID then
@@ -1098,7 +1218,7 @@ local function drawUnitInfo()
 				--if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode ~= 'disabled' then
 				--	name = ColourString(Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255) .. name
 				--else
-					name = ColourString(Spring.GetTeamColor(teamID)) .. name
+				name = ColourString(Spring.GetTeamColor(teamID)) .. name
 				--end
 				font2:Print(name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
 			end
@@ -1189,7 +1309,7 @@ local function drawUnitInfo()
 		glColor(1, 1, 1, 1)
 
 
-	-- draw transported unit list
+		-- draw transported unit list
 	elseif displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and (Spring.GetUnitIsTransporting(displayUnitID) and #Spring.GetUnitIsTransporting(displayUnitID) or 0) > 0 then
 		local units = Spring.GetUnitIsTransporting(displayUnitID)
 		if #units > 0 then
@@ -1264,6 +1384,21 @@ local function drawUnitInfo()
 		if unitDefInfo[displayUnitDefID].dps3 then
 			dps3 = unitDefInfo[displayUnitDefID].dps3
 		end
+		if unitDefInfo[displayUnitDefID].mindps then
+			mindps = unitDefInfo[displayUnitDefID].mindps
+		end
+		if unitDefInfo[displayUnitDefID].maxdps then
+			maxdps = unitDefInfo[displayUnitDefID].maxdps
+		end
+		if unitDefInfo[displayUnitDefID].minemp then
+			minemp = unitDefInfo[displayUnitDefID].minemp
+		end
+		if unitDefInfo[displayUnitDefID].maxemp then
+			maxemp = unitDefInfo[displayUnitDefID].maxemp
+		end
+		if unitDefInfo[displayUnitDefID].emp then
+			emp = unitDefInfo[displayUnitDefID].emp
+		end
 		if unitDefInfo[displayUnitDefID].range then
 			range = unitDefInfo[displayUnitDefID].range
 		end
@@ -1314,45 +1449,127 @@ local function drawUnitInfo()
 
 			if dps3 then
 
-					dps = round(dps + dps2 + dps3/ reloadTimeSpeedup, 0)
-					addTextInfo(texts.dps, dps)
+				mindps = round(mindps+dps+dps3/ reloadTimeSpeedup, 0)
+				maxdps = round(maxdps+dps+dps3/ reloadTimeSpeedup, 0)
+				addTextInfo("DPS", mindps.."-"..maxdps)
 
-					if unitDefInfo[displayUnitDefID].maxCoverage then
-						addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
-					elseif maxRange then
-						addTextInfo(texts.weaponrange, math_floor(maxRange))
-					end
-					if currentReloadTime and currentReloadTime > 0 then
+				if unitDefInfo[displayUnitDefID].maxCoverage then
+					addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
+				elseif maxRange then
+					addTextInfo(texts.weaponrange, math_floor(maxRange))
+				end
+				if currentReloadTime and currentReloadTime > 0 then
 					addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
-					end
+				end
+
+			elseif minemp and dps ~= 0 then
+
+				dps = round(dps / reloadTimeSpeedup, 0)
+				addTextInfo(texts.dps, dps)
+				if unitDefInfo[displayUnitDefID].maxCoverage then
+					addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
+				elseif maxRange then
+					addTextInfo(texts.weaponrange, math_floor(maxRange))
+				end
+				if currentReloadTime and currentReloadTime > 0 then
+					addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
+				end
+
+				minemp = round(minemp/ reloadTimeSpeedup, 0)
+				maxemp = round(maxemp/ reloadTimeSpeedup, 0)
+				addTextInfo("DPS(EMP)", minemp.."-"..maxemp)
+
+
+
+			elseif mindps > 0 and dps ~= 0 then
+
+				mindps = round(mindps+dps/ reloadTimeSpeedup, 0)
+				maxdps = round(maxdps+dps/ reloadTimeSpeedup, 0)
+				addTextInfo("DPS", mindps.."-"..maxdps)
+
+				if unitDefInfo[displayUnitDefID].maxCoverage then
+					addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
+				elseif maxRange then
+					addTextInfo(texts.weaponrange, math_floor(maxRange))
+				end
+				if currentReloadTime and currentReloadTime > 0 then
+					addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
+				end
+
+
+
+			elseif minemp and dps == 0 then
+
+				mindps = round(mindps/ reloadTimeSpeedup, 0)
+				maxdps = round(maxdps/ reloadTimeSpeedup, 0)
+				addTextInfo("DPS(EMP)", minemp.."-"..maxemp)
+
+				if unitDefInfo[displayUnitDefID].maxCoverage then
+					addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
+				elseif maxRange then
+					addTextInfo(texts.weaponrange, math_floor(maxRange))
+				end
+				if currentReloadTime and currentReloadTime > 0 then
+					addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
+				end
+
+
+
+			elseif emp then
+				emp = round(emp / reloadTimeSpeedup, 0)
+				addTextInfo("DPS(EMP)", emp)
+				if unitDefInfo[displayUnitDefID].maxCoverage then
+					addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
+				elseif maxRange then
+					addTextInfo(texts.weaponrange, math_floor(maxRange))
+				end
+				if currentReloadTime and currentReloadTime > 0 then
+					addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
+				end
+
 
 			elseif dps2 then
 
-					dps = round(dps + dps2 / reloadTimeSpeedup, 0)
-					addTextInfo(texts.dps, dps)
+				dps = round(dps + dps2 / reloadTimeSpeedup, 0)
+				addTextInfo(texts.dps, dps)
 
-					if unitDefInfo[displayUnitDefID].maxCoverage then
-						addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
-					elseif maxRange then
-						addTextInfo(texts.weaponrange, math_floor(maxRange))
-					end
-					if currentReloadTime and currentReloadTime > 0 then
+				if unitDefInfo[displayUnitDefID].maxCoverage then
+					addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
+				elseif maxRange then
+					addTextInfo(texts.weaponrange, math_floor(maxRange))
+				end
+				if currentReloadTime and currentReloadTime > 0 then
 					addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
-					end
+				end
+			elseif mindps > 0 and dps == 0 then
+
+				mindps = round(mindps/ reloadTimeSpeedup, 0)
+				maxdps = round(maxdps/ reloadTimeSpeedup, 0)
+				addTextInfo("DPS", mindps.."-"..maxdps)
+
+				if unitDefInfo[displayUnitDefID].maxCoverage then
+					addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
+				elseif maxRange then
+					addTextInfo(texts.weaponrange, math_floor(maxRange))
+				end
+				if currentReloadTime and currentReloadTime > 0 then
+					addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
+				end
+
 
 			elseif dps then
 
-					dps = round(dps / reloadTimeSpeedup, 0)
-					addTextInfo(texts.dps, dps)
-
-					if unitDefInfo[displayUnitDefID].maxCoverage then
-						addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
-					elseif maxRange then
-						addTextInfo(texts.weaponrange, math_floor(maxRange))
-					end
-					if currentReloadTime and currentReloadTime > 0 then
+				dps = round(dps / reloadTimeSpeedup, 0)
+				addTextInfo("DPS", dps)
+				if unitDefInfo[displayUnitDefID].maxCoverage then
+					addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
+				elseif maxRange then
+					addTextInfo(texts.weaponrange, math_floor(maxRange))
+				end
+				if currentReloadTime and currentReloadTime > 0 then
 					addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
-					end
+				end
+
 
 			end
 
