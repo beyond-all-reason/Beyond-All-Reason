@@ -96,7 +96,7 @@ function widget:LanguageChanged()
 end
 
 local blink = false
-local function blink( on )
+local function toggleBlink( on )
 	if on and not blink then
 		blink = true
 		messages[2].str = "\255\255\222\111" .. Spring.I18N('ui.gametypeInfo.unbalancedCommanders')
@@ -114,11 +114,11 @@ function widget:Update(dt)
 	if sec > 1 then
 		sec = sec - 1
 	end
-	
+
 	if sec > 0.5 then
-		blink(true)
+		toggleBlink(true)
 	else
-		blink(false)
+		toggleBlink(false)
 	end
 end
 

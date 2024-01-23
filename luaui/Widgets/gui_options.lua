@@ -207,7 +207,7 @@ local reclaimFieldHighlightOptions = {
 local startScript = VFS.LoadFile("_script.txt")
 if not startScript then
 	local modoptions = ''
-	for key, value in pairs(Spring.GetModOptions()) do
+	for key, value in pairs(Spring.GetModOptionsCopy()) do
 		local v = value
 		if type(v) == 'boolean' then
 			v = (v and '1' or '0')
@@ -5925,7 +5925,7 @@ function init()
 				options[#options+1] = { id = "label_custom_widgets_spacer", group = "custom", category = types.basic }
 			end
 			local desc = data.desc or ''
-			if desc ~= '' then
+			if desc ~= '' and WG['tooltip'] then
 				local maxWidth = WG['tooltip'].getFontsize() * 90
 				local textLines, numLines = font:WrapText(desc, maxWidth)
 				desc = string.gsub(textLines, '[\n]', '\n')

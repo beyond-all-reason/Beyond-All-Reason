@@ -34,4 +34,10 @@ if Spring.GetModOptions then
 	Spring.GetModOptions = function ()
 		return readOnlyModOptions
 	end
+
+	-- Returns a copy of the modOptions table. Slower, but allows iterating over
+	-- the returned table using pairs/ipairs.
+	Spring.GetModOptionsCopy = function ()
+		return table.copy(modOptions)
+	end
 end

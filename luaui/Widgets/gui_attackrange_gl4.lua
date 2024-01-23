@@ -1041,6 +1041,10 @@ function ToggleCursorRange(_, _, args)
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget(self)
+		return
+	end
 	initUnitList()
 
 	if initGL4() == false then

@@ -1239,6 +1239,10 @@ local function GadgetWeaponExplosionGrass(px, py, pz, weaponID, ownerID)
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	WG['grassgl4'] = {}
 	WG['grassgl4'].getDistanceMult = function()
 		return distanceMult
