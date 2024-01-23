@@ -2399,7 +2399,9 @@ end
 function widgetHandler:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
 	tracy.ZoneBeginN("W:VisibleUnitsChanged")
 	for _, w in ipairs(self.VisibleUnitsChangedList) do
+		tracy.ZoneBeginN("W:VisibleUnitsChanged:" .. w.whInfo.name)
 		w:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 end
