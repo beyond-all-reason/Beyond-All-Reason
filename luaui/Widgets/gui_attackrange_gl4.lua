@@ -242,6 +242,7 @@ local function initializeUnitDefRing(unitDefID)
 		local range = weaponDef.range
 		local dps = 0
 		local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
+		
 		--Spring.Echo(weaponType)
 		if weaponType ~= nil and weaponType > 0 then
 			local damage = 0
@@ -269,6 +270,68 @@ local function initializeUnitDefRing(unitDefID)
 			end
 			--Spring.Echo("weaponNum: ".. weaponNum ..", name: " .. tableToString(weaponDef.name))
 			local groupselectionfadescale = colorConfig[weaponTypeMap[weaponType]].groupselectionfadescale
+			
+			--local udwp = UnitDefs[unitDefID].weapons
+			local maxangledif = (weapons[weaponNum].maxAngleDif or -1) 
+			-- weapons[weaponNum].maxAngleDif is :
+			-- 0 for 180
+			-- -1 for 360
+			-- 0.707 for 90 
+			
+			-- Because I cant be assed to calculate the full 3d cone-ground intersection slice within the vertex shader:
+			-- We are only going to display angles for weapons that actually point forward, e.g. mainDirXYZ of 0 0 1
+			-- we need to output two numbers here, and pack it into one float
+			-- The integer part will be the offset around the circle, from forward dir, in degrees, +-180
+			-- the fractional part will be the max left-right attack angle around the ground plane. 
+			-- maindir = "0 0 1" is forward
+			-- exactly zero means no angle limits!
+			-- maindir "0 1 0" is designed for shooting at feet prevention!
+			
+			local maxangledif = 0
+			if weapons[weaponNum].maxAngleDif > -1 then 
+				local offsetdegrees = 0
+				local difffract = 0
+				
+				local weaponParams = weapons[weaponNum]
+				local mdx = weaponParams.mainDirX
+				local mdy = weaponParams.mainDirY
+				local mdz = weaponParams.mainDirZ
+				local angledif = math.acos(weapons[weaponNum].maxAngleDif) / math.pi
+				local angledeg = angledif * 180
+				
+				-- Normalize maindir
+				local length = math.diag(mdx,mdy,mdz)
+				mdx = mdx/length
+				mdy = mdy/length
+				mdz = mdz/length
+				
+				offsetdegrees = math.atan2(mdx,mdz) * 180 / math.pi
+				difffract = angledif --(1.0 - angledif ) * (0.5) -- So 0.001 is tiny aim angle, 0.9999 is full aim angle
+				
+				maxangledif = math.floor(offsetdegrees) 
+				
+				if math.abs(mdy) > 0.01 and math.abs(mdy) < 0.99 then -- its off the Y plane
+					local modifier = math.sqrt ( 1.0 - mdy*mdy)
+					difffract  = difffract * modifier
+					maxangledif = maxangledif + difffract
+				elseif  math.abs(mdy) < 0.99 then
+					maxangledif = maxangledif  + difffract
+				else
+					
+				end
+				
+				
+				
+				Spring.Echo(string.format("%s has params offsetdegrees = %.2f MAD = %.3f (%.1f deg), diffract = %.3f md(xyz) = (%.3f,%.3f,%.3f)", 
+						weaponDef.name, offsetdegrees, weapons[weaponNum].maxAngleDif, angledif*180,  difffract, mdx,mdy,mdz))
+				
+					
+				--Spring.Echo("weapons[weaponNum].maxAngleDif",weapons[weaponNum].maxAngleDif, maxangledif)
+				--for k,v in pairs(weapons[weaponNum]) do Spring.Echo(k,v)end
+			end
+			
+			--if weapons[weaponNum].maxAngleDif then	Spring.Echo(weapons[weaponNum].maxAngleDif,'for',weaponDef.name ) end
+			
 			local ringParams = { range, color[1], color[2], color[3], color[4],
 				fadeparams[1], fadeparams[2], fadeparams[3], fadeparams[4],
 				weaponDef.projectilespeed or 1,
@@ -277,7 +340,8 @@ local function initializeUnitDefRing(unitDefID)
 				weaponDef.heightMod or 0,
 				groupselectionfadescale,
 				weaponType,
-				isDgun
+				isDgun,
+				maxangledif
 			}
 			unitDefRings[unitDefID]['rings'][weaponNum] = ringParams
 			--Spring.Echo("Added ringParams: "..tableToString(ringParams))
@@ -492,6 +556,7 @@ local vsSrc = [[
 	uniform float lineAlphaUniform = 1.0;
 	uniform float cannonmode = 0.0;
 	uniform float fadeDistOffset = 0.0;
+	uniform float drawMode = 0.0;
 
 	uniform sampler2D heightmapTex;
 	uniform sampler2D losTex; // hmm maybe?
@@ -572,6 +637,13 @@ local vsSrc = [[
 			return rangeFactor * ( speed2dSq + speed2d * sqrt( root1 ) ) / (-1.0 * gravity);
 		}
 	}
+	
+	vec2 rotate(vec2 v, float a) {
+		float s = sin(a);
+		float c = cos(a);
+		mat2 m = mat2(c, s, -s, c);
+		return m * v;
+	}
 
 	//float heightMod  default: 0.2 (0.8 for #Cannon, 1.0 for #BeamLaser and #LightningCannon)
 	//Changes the spherical weapon range into an ellipsoid. Values above 1.0 mean the weapon cannot target as high as it can far, values below 1.0 mean it can target higher than it can far. For example 0.5 would allow the weapon to target twice as high as far.
@@ -591,12 +663,31 @@ local vsSrc = [[
 	#define MOUSEALPHA alphaControl.w
 
 	#define ISDGUN additionalParams.z
+	
+	#define MAXANGLEDIF additionalParams.w
 
 	void main() {
 		// Get the center pos of the unit
 		vec3 modelWorldPos = uni[instData.y].drawPos.xyz;
-
+		
+		float unitHeading = uni[instData.y].drawPos.w ;
+		
+		
 		circleprogress.xy = circlepointposition.xy;
+		
+		// find angle between unit Heading and circleprogress.xy
+		//unitHeading is -pi to +pi, with zero on z+, and increasing towards x+
+		//circleheading is -pi to +pi, with zero z-, and increasing towards x+ 
+		
+		// rotate the circle into unit space, wierd that it has to be rotated on other direction
+		float maxAngleDif = 1;
+		float mainDirDegrees = 0; 
+		if (MAXANGLEDIF != 0) {
+			maxAngleDif = fract(MAXANGLEDIF);// goes from 0.0 to 1.0, where 0.25 would mean a 90 deg cone
+			mainDirDegrees = MAXANGLEDIF - maxAngleDif;// Is the offset in degrees. 
+		}
+		circleprogress.xy = rotate(circleprogress.xy, (3.141592 -1.0*unitHeading + mainDirDegrees * 3.141592 / 180.0));
+		
 		circleprogress.w = circlepointposition.z;
 		blendedcolor = color1;
 		groupselectionfadescale = additionalParams.x;
@@ -606,9 +697,9 @@ local vsSrc = [[
 		vec4 circleWorldPos = vec4(1.0);
 		float range2 = RANGE;
 		if (ISDGUN > 0.5) {
-			circleWorldPos.xz = circlepointposition.xy * RANGE * 1.05 + modelWorldPos.xz;
+			circleWorldPos.xz = circleprogress.xy * RANGE * 1.05 + modelWorldPos.xz;
 		} else {
-			circleWorldPos.xz = circlepointposition.xy * RANGE +  modelWorldPos.xz;
+			circleWorldPos.xz = circleprogress.xy * RANGE +  modelWorldPos.xz;
 		}
 
 		vec4 alphaControl = vec4(1.0);
@@ -622,7 +713,7 @@ local vsSrc = [[
 			// BAR only has 3 distinct ballistic projectiles, heightBoostFactor is only a handful from -1 to 2.8 and 6 and 8
 			// gravity we can assume to be linear
 
-			float heightDiff = (circleWorldPos.y - YGROUND) * 0.5;
+			float heightDiff = (circleWorldPos.y - modelWorldPos.y) * 0.5;
 
 			float rangeFactor = RANGE /  GetRangeFactor(PROJECTILESPEED); //correct
 			if (rangeFactor > 1.0 ) rangeFactor = 1.0;
@@ -642,7 +733,7 @@ local vsSrc = [[
 						adds = adds - 1;
 					}
 					adjustment = adjustment * 0.5;
-					circleWorldPos.xz = circlepointposition.xy * radius + modelWorldPos.xz;
+					circleWorldPos.xz = circleprogress.xy * radius + modelWorldPos.xz;
 					float newY = heightAtWorldPos(circleWorldPos.xz );
 					yDiff = abs(circleWorldPos.y - newY);
 					circleWorldPos.y = max(0, newY);
@@ -664,13 +755,27 @@ local vsSrc = [[
 				}
 			}
 		}
-
-		circleWorldPos.y += 6; // lift it from the ground
+		
+		
 
 		// -- MAP OUT OF BOUNDS
 		vec2 mymin = min(circleWorldPos.xz,mapSize.xy - circleWorldPos.xz);
 		float inboundsness = min(mymin.x, mymin.y);
 		OUTOFBOUNDSALPHA = 1.0 - clamp(inboundsness*(-0.02),0.0,1.0);
+		
+		// -- HANDLE MAXANGLEDIFF
+		// If the unit cant fire in that direction due to maxanglediff constraints, then put the point back to modelWorldPos
+		// Also, dont 
+		// convert current circleprogress to relative heading:
+		float relheadingradians = abs(((circleprogress.w - 0.5)) * 2);
+		if (MAXANGLEDIF != 0.0) {
+			if(relheadingradians > maxAngleDif){
+				circleWorldPos.xyz = modelWorldPos.xyz;
+			}
+			OUTOFBOUNDSALPHA = 1.0;
+		}
+		
+		circleWorldPos.y += 6; // lift it from the ground
 
 
 		//--- DISTANCE FADE ---
@@ -716,7 +821,8 @@ local vsSrc = [[
 		float disttomousefromunit = 1.0 - smoothstep(48, 64, length(modelWorldPos.xz - mouseWorldPos.xz));
 		// this will be positive if in mouse, negative else
 		float highlightme = clamp( (disttomousefromunit ) + 0.0, 0.0, 1.0);
-		MOUSEALPHA = 0.1* highlightme;
+		// Note that this doesnt really work well with boundary-only stenciling, due to random draw order. 
+		MOUSEALPHA = (0.1  + 0.5 * step(0.5,drawMode)) * highlightme;
 
 		// ------------ dump the stuff for FS --------------------
 		//worldPos = circleWorldPos;
@@ -779,6 +885,7 @@ local fsSrc = [[
 		finalAlpha = clamp(finalAlpha, 0.0, 1.0);
 
 		fragColor = vec4(blendedcolor.x, blendedcolor.y, blendedcolor.z, blendedcolor.w * finalAlpha);
+		//fragColor = mix(vec4(1,0,0,1), vec4(0,1,0,1), circleprogress.w);
 	}
 ]]
 
@@ -903,7 +1010,7 @@ local function AddSelectedUnit(unitID, mouseover)
 			cacheTable[3] = mpz
 			local vaokey = allystring .. weaponTypeToString[weaponType]
 
-			for i = 1, 16 do
+			for i = 1, 17 do
 				cacheTable[i + 3] = ringParams[i]
 			end
 
@@ -1446,7 +1553,9 @@ function widget:DrawWorldPreUnit()
 end
 
 -- Need to add all the callins for handling unit creation/destruction/gift of builders
---[[function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+
+--[[
+function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if unitTeam == myAllyTeam and unitBuilder[unitDefID] then
 		builders[unitID] = true
 	end
