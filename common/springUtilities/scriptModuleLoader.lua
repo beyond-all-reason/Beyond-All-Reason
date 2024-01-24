@@ -49,10 +49,10 @@ function loadModule(fileOrDirPath, vfsMode, loaderCallback, loadedModules, paren
 		local _, _, path = string.find(fileOrDirPath, "(.*[\\/:])[^\\/:]*$")
 		table.insert(loadedModules, fileOrDirPath)
 		if parentModule ~= nil then
-			newModule._parentModule = parentModule
+			newModule._parent = parentModule
 
-			parentModule._childModules = parentModule._childModules or {}
-			table.insert(parentModule._childModules, newModule)
+			parentModule._children = parentModule._children or {}
+			table.insert(parentModule._children, newModule)
 		end
 
 		if recursionDepth <= MAX_RECURSION_DEPTH then

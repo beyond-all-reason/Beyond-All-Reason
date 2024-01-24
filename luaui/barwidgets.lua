@@ -374,21 +374,17 @@ function widgetHandler:Initialize()
 		moduleLoader.loadAllModulesInDir(
 			dirname,
 			vfsSetting,
-			function(filePath, parentWidget)
+			function(filePath, parentKnownInfo)
 				GetWidgetInfo(filePath, vfsSetting)
-				local widget = self:LoadWidget(filePath, fromZip)
+				local widget, knownInfo = self:LoadWidget(filePath, fromZip)
 
 				if widget and (fromZip or not zipOnly[widget.whInfo.name]) then
 					table.insert(unsortedWidgets, widget)
 					Yield()
-
-					local childWidgets = nil
-					if widget.GetChildWidgets then
-						childWidgets = widget:GetChildWidgets()
-					end
-
-					return widget, childWidgets
 				end
+
+				-- use knownInfo to hold the parent/child relationship data
+				return knownInfo, knownInfo and knownInfo.childPaths
 			end
 		)
 	end
@@ -459,7 +455,7 @@ function widgetHandler:AddSpadsMessage(contents)
 end
 
 
-
+---@return table, table widget if loaded, widgetInfo if that was loaded
 function widgetHandler:LoadWidget(filename, fromZip)
 	local basename, path = Basename(filename)
 	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets) and VFS.ZIP or VFS.RAW_FIRST)
@@ -522,6 +518,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		knownInfo.filename = widget.whInfo.filename
 		knownInfo.path = widget.whInfo.path
 		knownInfo.fromZip = fromZip
+		knownInfo.childPaths = widget.whInfo.childPaths
 		self.knownWidgets[name] = knownInfo
 		self.knownCount = self.knownCount + 1
 		self.knownChanged = true
@@ -552,8 +549,8 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		self.orderList[name] = order
 	else
 		self.orderList[name] = 0
-		self.knownWidgets[name].active = false
-		return nil
+		knownInfo.active = false
+		return nil, knownInfo
 	end
 	if not fromZip then
 		local md5 = VFS.CalculateHash(text,0)
@@ -573,7 +570,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		widget:SetConfigData(config)
 	end
 
-	return widget
+	return widget, knownInfo
 end
 
 function widgetHandler:NewWidget()
@@ -680,6 +677,7 @@ function widgetHandler:FinalizeWidget(widget, filename, basename, path)
 	wi.basename = basename
 	wi.path = path
 	wi.localPath = string.sub(path, #WIDGET_DIRNAME + 1)
+
 	if widget.GetInfo == nil then
 		wi.name = basename
 		wi.layer = 0
@@ -702,6 +700,8 @@ function widgetHandler:FinalizeWidget(widget, filename, basename, path)
 		__metatable = "protected"
 	}
 	setmetatable(widget.whInfo, mt)
+
+	wi.childPaths = widget.GetChildWidgetPaths and widget.GetChildWidgetPaths()
 end
 
 function widgetHandler:ValidateWidget(widget)

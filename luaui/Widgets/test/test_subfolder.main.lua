@@ -10,6 +10,6 @@ function widget:GetInfo()
 	}
 end
 
-function widget:GetChildWidgets()
+function widget:GetChildWidgetPaths()
 	return true
 end
