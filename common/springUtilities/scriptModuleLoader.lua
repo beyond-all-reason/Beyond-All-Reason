@@ -39,7 +39,7 @@ function loadModule(fileOrDirPath, vfsMode, loaderCallback, loadedModules, paren
 		local ok, newModule, subModulesPaths = pcall(loaderCallback, fileOrDirPath, parentModule)
 
 		if not ok then
-			Spring.Log("script module loader", "fatal", newModule)
+			Spring.Log("script module loader", LOG.ERROR, newModule)
 		end
 
 		if newModule == nil then
@@ -62,6 +62,11 @@ function loadModule(fileOrDirPath, vfsMode, loaderCallback, loadedModules, paren
 				loadAllModulesInDir(path, vfsMode, loaderCallback, loadedModules, newModule)
 			elseif type(subModulesPaths) == 'table' and #subModulesPaths > 0 then
 				for idx, subModulePath in ipairs(subModulesPaths) do
+					-- check for ../ or ..\
+					if string.find(subModulePath, "%.%.[\\/]") then
+						error(string.format('children cannot be loaded from a parent directory!! Attempted path: %s', subModulePath), 2)
+					end
+
 					if not string.find(subModulePath, path, nil, true) then
 						subModulesPaths[idx] = path .. subModulePath
 					end
