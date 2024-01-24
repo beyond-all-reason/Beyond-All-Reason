@@ -349,7 +349,12 @@ function gadgetHandler:Initialize()
 					end
 				end
 
-				return gadget
+				local childGadgets = nil
+				if gadget.GetChildGadgets ~= nil then
+					childGadgets = gadget:GetChildGadgets()
+				end
+
+				return gadget, childGadgets
 			end
 		end
 	)

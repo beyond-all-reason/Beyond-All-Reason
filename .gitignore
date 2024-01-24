@@ -4,8 +4,4 @@
 .vscode/
 .project
 *.code-workspace
-/infolog.txt
-/springsettings.cfg
 /.idea
-/fontcache
-/cache

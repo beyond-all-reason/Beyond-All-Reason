@@ -75,9 +75,15 @@ function loadModule(fileOrDirPath, vfsMode, loaderCallback, loadedModules, paren
 		end
 
 	elseif isDir then
-		local moduleMainFile = VFS.DirList(fileOrDirPath, "*main.lua", vfsMode)[1]
-		if moduleMainFile then
-			loadModule(moduleMainFile, vfsMode, loaderCallback, loadedModules, parentModule)
+		local moduleMainFileCandidates = VFS.DirList(fileOrDirPath, "*main.lua", vfsMode)
+
+		if #moduleMainFileCandidates >= 2 then
+			Spring.Echo(string.format("[script module loader] more than one file found matching the pattern '*main.lua'. skipping directory: %s", fileOrDirPath));
+			return
+		end
+
+		if #moduleMainFileCandidates == 1 then
+			loadModule(moduleMainFileCandidates[1], vfsMode, loaderCallback, loadedModules, parentModule)
 		end
 	end
 end

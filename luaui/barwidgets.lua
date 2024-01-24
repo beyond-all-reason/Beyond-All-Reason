@@ -382,7 +382,12 @@ function widgetHandler:Initialize()
 					table.insert(unsortedWidgets, widget)
 					Yield()
 
-					return widget
+					local childWidgets = nil
+					if widget.GetChildWidgets then
+						childWidgets = widget:GetChildWidgets()
+					end
+
+					return widget, childWidgets
 				end
 			end
 		)
