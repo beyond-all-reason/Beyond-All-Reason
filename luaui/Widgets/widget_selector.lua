@@ -403,14 +403,16 @@ function UpdateList(force)
 	widgetsList = {}
 	fullWidgetsList = {}
 
-	local function checkTextFilter(name, data)
+	local function checkTextFilter(name, data, searchDirection)
+		searchDirection = searchDirection or 0
+
 		local function checkChildren(parentData)
 			if not parentData._children then
 				return false
 			end
 
 			for _, child in ipairs(parentData._children) do
-				if checkTextFilter(child.name, child) then
+				if checkTextFilter(child.name, child, 1) then
 					return true
 				end
 			end
@@ -423,7 +425,8 @@ function UpdateList(force)
 			or (data.desc and string.find(string.lower(data.desc), string.lower(inputText), nil, true))
 			or (data.basename and string.find(string.lower(data.basename), string.lower(inputText), nil, true))
 			or (data.author and string.find(string.lower(data.author), string.lower(inputText), nil, true))
-			or checkChildren(data)
+			or (searchDirection <= 0 and data._parent and checkTextFilter(data._parent.name, data._parent, -1))
+			or (searchDirection >= 0 and checkChildren(data))
 		)
 	end
 
