@@ -402,9 +402,34 @@ function UpdateList(force)
 	--maxWidth = 0
 	widgetsList = {}
 	fullWidgetsList = {}
+
+	local function checkTextFilter(name, data)
+		local function checkChildren(parentData)
+			if not parentData._children then
+				return false
+			end
+
+			for _, child in ipairs(parentData._children) do
+				if checkTextFilter(child.name, child) then
+					return true
+				end
+			end
+
+			return false
+		end
+
+		return (not inputText or inputText == '') or (
+			string.find(string.lower(name), string.lower(inputText), nil, true)
+			or (data.desc and string.find(string.lower(data.desc), string.lower(inputText), nil, true))
+			or (data.basename and string.find(string.lower(data.basename), string.lower(inputText), nil, true))
+			or (data.author and string.find(string.lower(data.author), string.lower(inputText), nil, true))
+			or checkChildren(data)
+		)
+	end
+
 	for name, data in pairs(widgetHandler.knownWidgets) do
-		if name ~= myName and name ~= 'Write customparam.__def to files' then
-			if (not inputText or inputText == '') or (string.find(string.lower(name), string.lower(inputText), nil, true) or (data.desc and string.find(string.lower(data.desc), string.lower(inputText), nil, true)) or (data.basename and string.find(string.lower(data.basename), string.lower(inputText), nil, true)) or (data.author and string.find(string.lower(data.author), string.lower(inputText), nil, true))) then
+		if name ~= myName and name ~= 'Write customparam.__def to files' and not data._parent then
+			if checkTextFilter(name, data) then
 				fullWidgetsList[#fullWidgetsList+1] = { name, data }
 				-- look for the maxWidth
 				local width = fontSize * font:GetTextWidth(name)
@@ -417,6 +442,39 @@ function UpdateList(force)
 	--maxWidth = (maxWidth / fontSize)
 
 	table.sort(fullWidgetsList, SortWidgetListFunc)	-- occurred: Error in IsAbove(): [string "LuaUI/Widgets/widget_selector.lua"]:300: invalid order function for sorting (migh have happened cause i renamed/added a custom widget after launch)
+
+	local sanityDepthLimit = 10
+	local function insertChildWidgets(parentIndex, nameDataPair)
+		if nameDataPair[2]._children and #nameDataPair[2]._children > 0 then
+			local childrenToAdd = {}
+
+			for _, child in ipairs(nameDataPair[2]._children) do
+				if checkTextFilter(child.name, child) then
+					childrenToAdd[#childrenToAdd + 1] =  { child.name, child }
+				end
+			end
+
+			table.sort(childrenToAdd, SortWidgetListFunc)
+
+			for childIdx = #childrenToAdd, 1, -1 do
+				local child = childrenToAdd[childIdx]
+				table.insert(fullWidgetsList, parentIndex + 1, child)
+
+				sanityDepthLimit = sanityDepthLimit - 1
+				if sanityDepthLimit > 0 then
+					insertChildWidgets(parentIndex + 1, { child.name, child })
+				end
+				sanityDepthLimit = sanityDepthLimit + 1
+			end
+		end
+	end
+
+	-- iterating backwards is the only way this loop is certain to end
+	-- also makes it much easier to insert into the list
+	-- since new entries will keep pushing existing ones back
+	for idx = #fullWidgetsList, 1, -1 do
+		insertChildWidgets(idx, fullWidgetsList[idx])
+	end
 
 	localWidgetCount = 0
 	for _, namedata in ipairs(fullWidgetsList) do
@@ -662,7 +720,15 @@ function widget:DrawScreen()
 			color = (active and '\255\064\224\064') or (enabled and '\255\200\200\064') or '\255\224\064\064'
 		end
 		prevFromZip = data.fromZip
-		font:Print(color .. name, midx, posy + (fontSize * sizeMultiplier) * 0.5, fontSize * sizeMultiplier, "vc")
+
+		local childDepth = 0
+		local tmpData = data
+		while(tmpData._parent) do
+			childDepth = childDepth + 1
+			tmpData = tmpData._parent
+		end
+
+		font:Print(color .. string.rep('> ', childDepth) .. name, midx, posy + (fontSize * sizeMultiplier) * 0.5, fontSize * sizeMultiplier, "vc")
 		posy = posy - (yStep * sizeMultiplier)
 	end
 	if customWidgetPosy then

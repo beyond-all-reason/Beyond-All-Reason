@@ -427,6 +427,12 @@ function widgetHandler:Initialize()
 	loadWidgetsInDir(WIDGET_DIRNAME, VFS.ZIP, true)
 	loadWidgetsInDir(WIDGET_DIRNAME_MAP, VFS.MAP, true)
 
+	--[[ TODO
+		How do we handle the case where a user wants to use a custom version of a child widget?
+		Do we even do anything to try and handle it? Does the user need a custom copy of the parent widget too?
+	]]
+
+
 	local function infoComp(w1, w2)
 		local l1 = w1.layer
 		local l2 = w2.layer
