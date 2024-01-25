@@ -63,7 +63,8 @@ widgetHandler = {
 	orderList = {},
 
 	---@class KnownInfo info about widgets that were discovered to exist during WidgetHandler initialization, whether or not they are currently active
-	---@field name string widget name from widget:GetInfo().name
+	---@field name string widget name from widget:GetInfo()
+	---@field layer number widget layer from widget:GetInfo()
 	---@field desc string widget description from widget:GetInfo()
 	---@field author string widget author from widget:GetInfo()
 	---@field filename string Full path to widget from content root + file name
@@ -388,6 +389,7 @@ function widgetHandler:Initialize()
 	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
 
 	local unsortedWidgets = {}
+	local childWidgetsToInit = {}
 
 	local function loadWidgetsInDir(dirname, vfsSetting, fromZip)
 		moduleLoader.loadAllModulesInDir(
@@ -401,13 +403,12 @@ function widgetHandler:Initialize()
 					widget -- did the widget load correctly AND is it to start enabled?
 					and (fromZip or not zipOnly[widget.whInfo.name]) -- Only trust "core" widgets that come with the game
 				then
-					-- If the widget is a child of that'll get enabled, then we don't need to worry about it here???
-					-- TODO: make list of unloaded child widgets that are otherwise enabled?? Don't redo the LoadWidget operation if we can help it? "Temp" self.childrenToInit table?
 					if parentKnownInfo == nil then
 						-- stuff the raw widgets into unsortedWidgets
 						table.insert(unsortedWidgets, widget)
 					else
-
+						-- If the widget is a child of another widget, then push it to a side list
+						childWidgetsToInit[knownInfo.name] = widget
 					end
 				end
 
@@ -426,15 +427,14 @@ function widgetHandler:Initialize()
 	loadWidgetsInDir(WIDGET_DIRNAME, VFS.ZIP, true)
 	loadWidgetsInDir(WIDGET_DIRNAME_MAP, VFS.MAP, true)
 
-	-- sort the widgets
-	table.sort(unsortedWidgets, function(w1, w2)
-		local l1 = w1.whInfo.layer
-		local l2 = w2.whInfo.layer
+	local function infoComp(w1, w2)
+		local l1 = w1.layer
+		local l2 = w2.layer
 		if l1 ~= l2 then
 			return (l1 < l2)
 		end
-		local n1 = w1.whInfo.name
-		local n2 = w2.whInfo.name
+		local n1 = w1.name
+		local n2 = w2.name
 		local o1 = self.orderList[n1]
 		local o2 = self.orderList[n2]
 		if o1 ~= o2 then
@@ -442,19 +442,53 @@ function widgetHandler:Initialize()
 		else
 			return (n1 < n2)
 		end
-	end)
+	end
+
+	-- sort the widgets
+	table.sort(unsortedWidgets, function(w1, w2) return infoComp(w1.whInfo, w2.whInfo) end)
+
+	local function loadChildren(parentWidget, parentInfo)
+		if parentInfo._children and #parentInfo._children > 0 then
+			table.sort(parentInfo._children, infoComp)
+
+			for _, childInfo in ipairs(parentInfo._children) do
+				local childWidget = childWidgetsToInit[childInfo.name]
+
+				if childWidget then
+					childWidgetsToInit[childInfo.name] = nil
+					Spring.Echo(string.format(
+						"Loading child widget %-18s > %-18s <%s%s>",
+						parentWidget.whInfo.name, childWidget.whInfo.name,
+						childWidget.whInfo.localPath, childWidget.whInfo.basename
+					))
+					self:InsertWidget(childWidget)
+
+					childWidget._parent = parentWidget
+					parentWidget._children = parentWidget._children or {}
+					table.insert(parentWidget._children, childWidget)
+
+					loadChildren(childWidget, childInfo)
+				end
+			end
+		end
+	end
 
 	-- add the widgets
 	for _, w in ipairs(unsortedWidgets) do
 		local name = w.whInfo.name
 		local basename = w.whInfo.basename
-		local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
 		local localPath = w.whInfo.localPath
+
+		local ki = self.knownWidgets[name]
+		local source = ki.fromZip and "mod: " or "user:"
 
 		Spring.Echo(string.format("Loading widget from %s  %-18s  <%s%s> ...", source, name, localPath, basename))
 		Yield()
 		widgetHandler:InsertWidget(w)
+		loadChildren(w, ki)
 	end
+
+	self.childWidgetsToInit = nil
 
 	-- save the active widgets, and their ordering
 	self:SaveConfigData()
@@ -542,6 +576,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
 		-- create a knownInfo table
 		knownInfo = {}
 		knownInfo.name = name
+		knownInfo.layer = widget.whInfo.layer
 		knownInfo.desc = widget.whInfo.desc
 		knownInfo.author = widget.whInfo.author
 		knownInfo.filename = widget.whInfo.filename
@@ -871,7 +906,7 @@ function widgetHandler:InsertWidget(widget)
 	end
 
 	---@type KnownInfo
-	local ki = self.knownInfo[widget.whInfo.name]
+	local ki = self.knownWidgets[widget.whInfo.name]
 
 	SafeWrapWidget(widget)
 
@@ -887,15 +922,6 @@ function widgetHandler:InsertWidget(widget)
 	if widget.Initialize then
 		widget:Initialize()
 	end
-
-	-- load in children of this widget if they are enabled
-	if ki._children then
-		for _, childInfo in ipairs(ki._children) do
-			if self.orderList[childInfo.name] and self.orderList > 0 then
-				self:InsertWidget(childInfo.name)
-			end
-		end
-	end
 end
 
 function widgetHandler:RemoveWidget(widget)
@@ -906,10 +932,11 @@ function widgetHandler:RemoveWidget(widget)
 	local name = widget.whInfo.name
 	---@type KnownInfo
 	local ki = self.knownWidgets[name]
-	-- first, disable children (without removing from orderList)
-	if ki._children then
+
+	-- first, remove children (without removing from orderList)
+	if ki._children and #ki._children > 0 then
 		for _, childInfo in ipairs(ki._children) do
-			self.RemoveWidget(self.FindWidget(childInfo.name))
+			self:RemoveWidget(self:FindWidget(childInfo.name))
 		end
 	end
 
@@ -1021,6 +1048,18 @@ function widgetHandler:EnableWidget(name)
 		end
 		self:InsertWidget(w)
 		self:SaveConfigData()
+
+		-- re-enable child widgets if they were previously enabled
+		if ki._children and #ki._children > 0 then
+			for _, childInfo in ipairs(ki._children) do
+				local active = self.knownWidgets[childInfo.name].active
+				local enabled = self.orderList[childInfo.name] and (self.orderList[childInfo.name] > 0)
+
+				if not active and enabled then
+					self:EnableWidget(childInfo.name)
+				end
+			end
+		end
 	end
 	return true
 end
