@@ -234,6 +234,10 @@ local function refreshUnitInfo()
 		local weapons = unitDef.weapons
 
 
+		-----------------------------------------------------
+		-- Utility functions for calculating weapon values --
+		-----------------------------------------------------
+
 		local function calculateLaserDPS(def, damage)
 			minIntensity = math.max(def.minIntensity, 0.5)
 			local prevMinDps = unitDefInfo[unitDefID].mindps or 0
@@ -243,8 +247,6 @@ local function refreshUnitInfo()
 
 			unitDefInfo[unitDefID].mindps = mindps + prevMinDps
 			unitDefInfo[unitDefID].maxdps = maxdps + prevMaxDps
-			unitDefInfo[unitDefID].reloadTime = def.reload	-- only main weapon is relevant
-			unitDefInfo[unitDefID].range = def.range
 			return mindps, maxdps
 		end
 
@@ -255,8 +257,6 @@ local function refreshUnitInfo()
 			local newDps = math_floor(damage * (def.salvoSize * def.projectiles) / def.reload)
 			unitDefInfo[unitDefID].mindps = newDps + prevMinDps
 			unitDefInfo[unitDefID].maxdps = newDps + prevMaxDps
-			unitDefInfo[unitDefID].range = def.range
-			unitDefInfo[unitDefID].reloadTime = def.reload
 		end
 
 
@@ -268,6 +268,9 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].metalPerShot = def.metalCost
 			end
 		end
+
+		-----------------------------------------------------
+
 
 		local unitExempt = false
 
@@ -325,12 +328,15 @@ local function refreshUnitInfo()
 					if i==2 then
 						setEnergyAndMetalCosts(weaponDef)
 						calculateLaserDPS(weaponDef, weaponDef.damages[0])
-						unitDefInfo[unitDefID].mainWeapon = i
 					end
 
 					if i==3 then
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0]) --Damage to default armor category
 					end
+				end
+				if unitDefInfo[unitDefID].mainWeapon == i then
+					unitDefInfo[unitDefID].range = weaponDef.range
+					unitDefInfo[unitDefID].reloadTime = weaponDef.reload
 				end
 				if weaponDef.type == "BeamLaser" and not unitExempt then	-- BeamLaser dps calc
 
@@ -356,22 +362,15 @@ local function refreshUnitInfo()
 
 						unitDefInfo[unitDefID].minemp = mindps + prevMinDps
 						unitDefInfo[unitDefID].maxemp = maxdps + prevMaxDps
-						if i == 1 then
-							unitDefInfo[unitDefID].reloadTime = weaponDef.reload	-- only main weapon is relevant
-							unitDefInfo[unitDefID].range = weaponDef.range
-						end
 					end
 
-				elseif weaponDef.paralyzer == true and not weaponDef.manualFire then -- exclude thor emp missile
-					local defDmg
-					local emp
-					defDmg = weaponDef.damages[0]      		--Damage to default armor category
-					emp = math_floor(defDmg * weaponDef.salvoSize / weaponDef.reload)
+				elseif weaponDef.paralyzer == true and unitDef.name ~= 'armthor' then -- exclude thor emp missile
+					local defDmg = weaponDef.damages[0]      		--Damage to default armor category
+					local emp = math_floor(defDmg * weaponDef.salvoSize / weaponDef.reload)
 					unitDefInfo[unitDefID].minemp = emp
 					unitDefInfo[unitDefID].maxemp = emp
 					unitDefInfo[unitDefID].range = weaponDef.range
 					unitDefInfo[unitDefID].reloadTime = weaponDef.reload
-
 				end
 				if weaponDef.type ~= "BeamLaser" and weaponDef.paralyzer ~= true and not unitExempt then
 
@@ -383,8 +382,10 @@ local function refreshUnitInfo()
 						defDmg = weaponDef.damages[0]
 					end
 
-					calculateWeaponDPS(weaponDef, defDmg)
-					setEnergyAndMetalCosts(weaponDef)
+					if(defDmg > 0) then
+						calculateWeaponDPS(weaponDef, defDmg)
+						setEnergyAndMetalCosts(weaponDef)
+					end
 				end
 			end
 			if weapons[i].onlyTargets['vtol'] ~= nil then
