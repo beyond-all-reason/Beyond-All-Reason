@@ -421,6 +421,7 @@ local function InitializeLight(lightTable, unitID)
 			lightparams[lightParamKeyOrder.a] =  lightparams[lightParamKeyOrder.a]
 			lightparams[lightParamKeyOrder.lifetime] = math.floor( lightparams[lightParamKeyOrder.lifetime] )
 			lightTable.lightParamTable = lightparams
+			lightTable.lightConfig = nil -- never used again after initialization
 		end
 
 		if unitID then
@@ -1089,7 +1090,27 @@ function widget:Shutdown()
 	for lighttype, vbo in pairs(projectileLightVBOMap) do ram = ram + vbo:Delete() end
 	for lighttype, vbo in pairs(lightVBOMap) do ram = ram + vbo:Delete() end 	
 	ram = ram + cursorPointLightVBO:Delete()
+	
 	--Spring.Echo("DLGL4 ram usage MB = ", ram / 1000000) 
+	--Spring.Echo("featureDefLights", table.countMem(featureDefLights))
+	--Spring.Echo("unitEventLights", table.countMem(unitEventLights))
+	--Spring.Echo("unitDefLights", table.countMem(unitDefLights))
+	--Spring.Echo("projectileDefLights", table.countMem(projectileDefLights))
+	--Spring.Echo("explosionLights", table.countMem(explosionLights))
+	
+	-- Note, these must be nil'ed manually, because 
+	-- tables included from VFS.Include dont get GC'd unless specifically nil'ed
+	unitDefLights = nil
+	featureDefLights = nil
+	unitEventLights = nil
+	muzzleFlashLights = nil 
+	projectileDefLights = nil 
+	explosionLights  = nil 
+	gibLight = nil 
+	
+	--collectgarbage("collect")
+	--collectgarbage("collect")
+	
 end
 
 local windX = 0
