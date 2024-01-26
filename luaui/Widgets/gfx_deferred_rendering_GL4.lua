@@ -483,9 +483,9 @@ local function AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, 
 	end
 	lightparams[spawnFramePos] = gameFrame -- this might be problematic, as we will be modifying a table
 	lightparams[pieceIndexPos] = pieceIndex or 0
-	tracy.ZoneBeginN("pushElementInstance")
+	--tracy.ZoneBeginN("pushElementInstance")
 	instanceID = pushElementInstance(targetVBO, lightparams, instanceID, true, noUpload, unitID)
-	tracy.ZoneEnd()
+	--tracy.ZoneEnd()
 	if lightparams[18] > 0 then
 		calcLightExpiry(targetVBO, lightparams, instanceID) -- This will add lights that have >0 lifetime to the removal queue
 	end
