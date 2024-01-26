@@ -596,9 +596,6 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		if args[3] and args[3] == "builder" then
 			return false
 		end
-		if meta then
-			return
-		end
 
 		local opts
 
