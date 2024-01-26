@@ -134,7 +134,6 @@ void main() {
 	
 	float unitHeading = uni[instData.y].drawPos.w ;
 	
-	
 	circleprogress.xy = circlepointposition.xy;
 	
 	// find angle between unit Heading and circleprogress.xy
@@ -224,6 +223,14 @@ void main() {
 	vec2 mymin = min(circleWorldPos.xz,mapSize.xy - circleWorldPos.xz);
 	float inboundsness = min(mymin.x, mymin.y);
 	OUTOFBOUNDSALPHA = 1.0 - clamp(inboundsness*(-0.02),0.0,1.0);
+	
+	
+	// -- Better drawing of underwater stuff
+	if (modelWorldPos.y > -20) { // for submerged units, try to keep the ranges above the water for clarity
+		modelWorldPos.y = max(0, modelWorldPos.y);
+		circleWorldPos.y = max(0, circleWorldPos.y);
+	}
+	
 	
 	// -- HANDLE MAXANGLEDIFF
 	// If the unit cant fire in that direction due to maxanglediff constraints, then put the point back to modelWorldPos
