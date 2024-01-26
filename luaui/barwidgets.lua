@@ -467,11 +467,8 @@ function widgetHandler:Initialize()
 						parentWidget.whInfo.name, childWidget.whInfo.name,
 						childWidget.whInfo.localPath, childWidget.whInfo.basename
 					))
-					self:InsertWidget(childWidget)
 
-					childWidget._parent = parentWidget
-					parentWidget._children = parentWidget._children or {}
-					table.insert(parentWidget._children, childWidget)
+					self:InsertWidget(childWidget, parentWidget)
 
 					loadChildren(childWidget, childInfo)
 				end
@@ -906,7 +903,7 @@ local function ArrayRemove(t, w)
 	end
 end
 
-function widgetHandler:InsertWidget(widget)
+function widgetHandler:InsertWidget(widget, parentWidget)
 	if widget == nil then
 		return
 	end
@@ -924,6 +921,18 @@ function widgetHandler:InsertWidget(widget)
 		end
 	end
 	self:UpdateCallIns()
+	ki.active = true
+
+	if ki._parent then
+		parentWidget = parentWidget or self:FindWidget(ki._parent.name)
+		if parentWidget then
+			widget._parent = parentWidget
+			parentWidget._children = parentWidget._children or {}
+			if not table.contains(parentWidget._children, widget) then
+				table.insert(parentWidget._children, widget)
+			end
+		end
+	end
 
 	if widget.Initialize then
 		widget:Initialize()
