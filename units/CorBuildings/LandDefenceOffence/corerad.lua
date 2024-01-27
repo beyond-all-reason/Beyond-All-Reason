@@ -132,7 +132,7 @@ return {
 				name = "Long-range rapid-fire g2a missile launcher",
 				noselfdamage = true,
 				projectiles = 1,
-				proximitypriority = -2,
+				proximitypriority = -0.5,
 				range = 1125,
 				reloadtime = 1.6,
 				smoketrail = true,
@@ -163,7 +163,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "COR_ERAD",
 				onlytargetcategory = "VTOL",
 				fastautoretargeting = true,
