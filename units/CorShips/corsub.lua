@@ -21,7 +21,7 @@ return {
 		idleautoheal = 8,
 		idletime = 900,
 		health = 1060, --1410, -- 710,
-		speed = 60.0,
+		speed = 57.0,
 		minwaterdepth = 15,
 		movementclass = "UBOAT4",
 		nochasecategory = "VTOL",

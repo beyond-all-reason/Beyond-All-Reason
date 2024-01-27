@@ -652,7 +652,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 						commandersDamages[unitID][gf] = nil
 					end
 				end
-				if totalDamage >= commanders[unitID] * 0.12 then
+				if totalDamage >= commanders[unitID] * 0.2 then
 					queueNotification('ComHeavyDamage')
 				end
 			end
