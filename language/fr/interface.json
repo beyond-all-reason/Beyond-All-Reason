@@ -503,7 +503,7 @@
 			"endVote": "Fin du vote",
 			"cancel": "ESC",
 			"votecancelled": "Vote Annulé",
-			"votepassed": "Vote Réussi",
+			"votepassed": "Vote Passé",
 			"votefailed": "Échec du vote"
 		},
 		"gameInfo": {
@@ -518,8 +518,8 @@
 			"waterDamage": "Dégâts d'eau",
 			"raptorOptions": "Options des Raptor",
 			"modOptions": "Options des mods",
-			"reclaimableMetal": "Métal recyclable",
-			"reclaimableEnergy": "Énergie recyclable"
+			"reclaimableMetal": "Métal récupérable",
+			"reclaimableEnergy": "L'énergie récupérable"
 		},
 		"cmdlimiter": {
 			"forceresignwarning": "Vous avez mis en file d'attente un trop grand nombre de bâtiments en trop peu de temps, continuer risquerait de vous voir éjecté.",
@@ -651,7 +651,6 @@
 			"cantMove":"%{unit} : Impossible d'atteindre la destination !"
 		},
 		"unitShare": {
-			"shared": "%{units} partagé à %{name}",
 			"received": "Vous avez reçu %{count} nouvelle(s) unité(s)*",
 			"unit": "*%{unit}"
 		},
@@ -1001,8 +1000,8 @@
 				"snowautoreduce_descr": "Réduit automatiquement la quantité de neige quand les IPS moyens baissent\n\n(Réactiver cette option prendra du temps pour réajuster aux IPS moyens)",
 				"snowamount": "quantité",
 				"snowamount_descr": "désactiver l'option \"réduction automatique\" pour voir la quantité maximale de neige autorisé",
-				"resurrectionhalos": "Auréoles des unités réassemblées",
-				"resurrectionhalos_descr": "Adjoint une auréole aux unités réassemblées",
+				"resurrectionhalos": "Auréoles des unités réanimées",
+				"resurrectionhalos_descr": "Adjoint une auréole aux unités réanimées",
 				"xmas": "Boules de Noël",
 				"xmas_descr": "désactiver rendra les boules de Noël invisibles (les autres décorations restent)",
 				"tombstones": "Pierres tombales",
@@ -1156,10 +1155,6 @@
 				"minimapcanflip_descr": "Inverse l'orientation de la minicarte lorsque la caméra du joueur est orienté à l'opposé",
 				"gridmenu": "Menu en grille",
 				"gridmenu_descr": "Dispose le menu de construction en mode grille.\nConçu pour une utilisation plus simple des touches de raccourcis.",
-				"gridmenu_alwaysreturn": "Grille retourne toujours aux catégories",
-				"gridmenu_alwaysreturn_descr": "Lorsque vous donnez des ordres; retour à la page des catégories après les avoir émis",
-				"gridmenu_autoselectfirst": "Grille sélectionne structures",
-				"gridmenu_autoselectfirst_descr": "Lors de la sélection d'une catégorie, active automatiquement la première option de cette catégorie.",
 				"keylayout": "Configuration du clavier",
 				"keylayout_descr": "Régler la disposition du clavier",
 				"keybindings": "Raccourcis prédéfinis",
@@ -1494,12 +1489,6 @@
 				"language": "Langage",
 				"reclaimfieldhighlight": "Surbrillance des épaves",
 				"reclaimfieldhighlight_descr": "Permet d'automatiquement mettre en valeur les concentrations d'épaves recyclables.",
-				"reclaimfieldhighlight_always": "Toujours actif",
-				"reclaimfieldhighlight_resource": "Affichage ressources seulement",
-				"reclaimfieldhighlight_reclaimer": "Recycleur sélectionné",
-				"reclaimfieldhighlight_resbot": "Réassembleur sélectionné",
-				"reclaimfieldhighlight_order": "Ordre de recyclage actif",
-				"reclaimfieldhighlight_disabled": "Désactivé",
 				"buildinggrid": "Grille de constr.",
 				"buildinggrid_descr": "Affiche une grille de construction au sol afin de faciliter le placement des bâtiments.",
 				"buildinggridopacity": "opacité"
