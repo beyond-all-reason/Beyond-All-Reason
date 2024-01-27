@@ -1027,6 +1027,7 @@
 				"sndvolgeneral": "general",
 				"sndvolbattle": "battle",
 				"sndvolui": "interface",
+				"sndvolambient": "ambient",
 				"sndvolunitreply": "unit reply",
 				"sndunitsound": "Unit Response Sounds",
 				"sndunitsound_desc": "Unit Response Sounds",
