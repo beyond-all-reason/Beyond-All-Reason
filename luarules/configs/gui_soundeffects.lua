@@ -2325,6 +2325,11 @@ GUIUnitSoundEffects = {
 	},
 
 	-- LEGION T1 BUILDINGS
+	legwin = {
+		BaseSoundSelectType = "arm-bld-nrghum",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-windgen",
+	},
 	legmex = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",

@@ -60,7 +60,7 @@ return {
 		workertime = 300,--400,
 		buildoptions = {
 			[1] = "corsolar",
-			[2] = "corwin",
+			[2] = "legwin",
 			[3] = "cormstor",
 			[4] = "corestor",
 			[5] = "legmex",

@@ -2251,6 +2251,10 @@ local icontypes = {
 		bitmap = "icons/air_t2_radar.png",
 		size = 1.39649999
 	},
+	legwin = {
+		bitmap = "icons/wind.png",
+		size = 1.04999995
+	},
 	lootboxbronze = {
 		bitmap = "icons/lootbox.png",
 		size = 1.04999995

@@ -41,7 +41,7 @@ return {
 		buildoptions = {
 			"corsolar",
 			"coradvsol",
-			"corwin",
+			"legwin",
 			"corgeo",
 			"cormstor",
 			"corestor",
