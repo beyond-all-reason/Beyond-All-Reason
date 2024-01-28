@@ -1614,7 +1614,7 @@ end
 
 	-- Max Speed
 	if uDef.speed then
-		local x = Spring.GetModOptions().multiplier_maxvelocity
+		local x = Spring.GetModOptions().multiplier_maxspeed
 		if x ~= 1 then
 			uDef.speed = uDef.speed*x
 			if uDef.maxdec  then

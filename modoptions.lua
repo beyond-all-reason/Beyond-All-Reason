@@ -605,8 +605,8 @@ local options={
 	},
 
 	{
-		key    = 'multiplier_maxvelocity',
-		name   = 'Unit Max Velocity Multiplier',
+		key    = 'multiplier_maxspeed',
+		name   = 'Unit Max Speed Multiplier',
 		desc   = '(Range 0.1 - 10).',
 		type   ="number",
 		section = 'options_unit_modifiers',
