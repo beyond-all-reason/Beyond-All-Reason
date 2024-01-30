@@ -46,9 +46,11 @@ local debugdrawvisible = false
 
 
 local alliedUnits = {} -- table of unitID : unitDefID
+local alliedUnitsTeam = {} -- table of unitID : unitTeam
 local numAlliedUnits = 0
 
 local visibleUnits = {} -- table of unitID : unitDefID
+local visibleUnitsTeam = {} -- table of unitID : unitTeam
 local numVisibleUnits = 0
 
 local unitDefIgnore = {}
@@ -146,6 +148,7 @@ local function alliedUnitsAdd(unitID, unitDefID, unitTeam, silent)
 		return
 	end -- already known
 	alliedUnits[unitID] = unitDefID
+	alliedUnitsTeam[unitID] = unitTeam
 	numAlliedUnits = numAlliedUnits + 1
 	if silent then return end
 	if Script.LuaUI('AlliedUnitAdded') then
@@ -159,12 +162,15 @@ end
 local function alliedUnitsRemove(unitID, reason)
 	if debuglevel >= 3 then Spring.Debug.TraceEcho(numAlliedUnits) end
 	if alliedUnits[unitID] then
+		local unitDefID = alliedUnits[unitID]
 		alliedUnits[unitID] = nil
+		local unitTeam = alliedUnitsTeam[unitID]
+		alliedUnitsTeam[unitID] = nil
 		numAlliedUnits = numAlliedUnits - 1
 		-- call all listeners
-		--if Script.LuaUI('AlliedUnitRemoved') then
-		--	Script.LuaUI.AlliedUnitRemoved(unitID)
-		--end
+		if Script.LuaUI('AlliedUnitRemoved') then
+			Script.LuaUI.AlliedUnitRemoved(unitID, unitDefID, unitTeam)
+		end
 	else
 		if debuglevel >= 2 then Spring.Echo("alliedUnitsRemove", "tried to remove non-existing unitID", unitID, reason) end
 	end
@@ -196,10 +202,11 @@ local instanceVBOCacheTable = {
 local function visibleUnitsAdd(unitID, unitDefID, unitTeam, silent)
 	if debuglevel >= 3 then Spring.Debug.TraceEcho(numVisibleUnits) end
 	if visibleUnits[unitID] then  -- already known
-		if debuglevel >= 2 then Spring.Echo("alliedUnitsAdd", "tried to add existing unitID", unitID) end
+		if debuglevel >= 2 then Spring.Echo("visibleUnitsAdd", "tried to add existing unitID", unitID) end
 		return
 	end
 	visibleUnits[unitID] = unitDefID
+	visibleUnitsTeam[unitID] = unitTeam
 	numVisibleUnits = numVisibleUnits + 1
 	if debugdrawvisible then
 		unitTeam = unitTeam or spGetUnitTeam(unitID) or 0
@@ -230,14 +237,18 @@ local function visibleUnitsRemove(unitID, reason)
 		if lastknownunitpos[unitID] then lastknownunitpos[unitID] = nil end
 	end
 	if visibleUnits[unitID] then
+		local unitDefID = visibleUnits[unitID]
 		visibleUnits[unitID] = nil
+		local unitTeam = visibleUnitsTeam[unitID]
+		visibleUnitsTeam[unitID] = nil
 		numVisibleUnits = numVisibleUnits - 1
+		
 		if debugdrawvisible then
 			popElementInstance(unitTrackerVBO, unitID)
 		end
 		-- call all listeners
 		if Script.LuaUI('VisibleUnitRemoved') then
-			Script.LuaUI.VisibleUnitRemoved(unitID)
+			Script.LuaUI.VisibleUnitRemoved(unitID, unitDefID, unitTeam)
 		end
 	else
 		if debuglevel >= 2 then Spring.Echo("visibleUnitsRemove", "tried to remove non-existing unitID", unitID, reason) end
@@ -369,8 +380,13 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, reason)
 end
 
 local function GadgetCrashingAircraft(unitID, unitDefID, teamID)
-
+	--Spring.Echo("Global:GadgetCrashingAircraft",unitID, unitDefID, teamID)
 end
+
+function widget:GadgetCrashingAircraft(unitID, unitDefID, teamID)
+	--Spring.Echo("widget:GadgetCrashingAircraft",unitID, unitDefID, teamID)
+end
+
 
 function widget:UnitDestroyedByTeam(unitID, unitDefID, unitTeam)
 	--alliedUnitsRemove(unitID)
@@ -526,9 +542,13 @@ end
 
 local function initializeAllUnits()
 	alliedUnits = {}
+	alliedUnitsTeam = {}
 	numAlliedUnits = 0
+	
 	visibleUnits = {}
+	visibleUnitsTeam = {}
 	numVisibleUnits = 0
+	
 	if debuglevel >= 2 then
 				Spring.Echo("initializeAllUnits()",
 					"spec", spec,
@@ -549,7 +569,9 @@ local function initializeAllUnits()
 	end
 
 	WG['unittrackerapi'].visibleUnits = visibleUnits
+	WG['unittrackerapi'].visibleUnitsTeam = visibleUnitsTeam
 	WG['unittrackerapi'].alliedUnits = alliedUnits
+	WG['unittrackerapi'].alliedUnitsTeam = alliedUnitsTeam
 	visibleUnitsChanged()
 	alliedUnitsChanged()
 end
@@ -722,11 +744,11 @@ function widget:Initialize()
 
 	scriptLuauiVisibleUnitAdded = Script.LuaUI.VisibleUnitAdded
 	scriptLuauiVisibleUnitRemoved = Script.LuaUI.VisibleUnitRemoved
-	scriptLuauiVisibleUnitChanged = Script.LuaUI.VisibleUnitChanged
+	scriptLuauiVisibleUnitsChanged = Script.LuaUI.VisibleUnitChanged
 
 	scriptLuauiAlliedUnitAdded = Script.LuaUI.AlliedUnitAdded
 	scriptLuauiAlliedUnitRemoved = Script.LuaUI.AlliedUnitRemoved
-	scriptLuauiAlliedUnitChanged = Script.LuaUI.AlliedUnitChanged
+	scriptLuauiAlliedUnitsChanged = Script.LuaUI.AlliedUnitChanged
 
 
 	if debugdrawvisible then
@@ -735,9 +757,10 @@ function widget:Initialize()
 
 	WG['unittrackerapi'] = {}
 	WG['unittrackerapi'].visibleUnits = visibleUnits
+	WG['unittrackerapi'].visibleUnitsTeam = visibleUnitsTeam
 	WG['unittrackerapi'].alliedUnits = alliedUnits
+	WG['unittrackerapi'].alliedUnitsTeam = alliedUnitsTeam
 	initializeAllUnits()
-
 	widgetHandler:RegisterGlobal('GadgetCrashingAircraft1', GadgetCrashingAircraft)
 end
 
@@ -745,12 +768,17 @@ function widget:Shutdown()
 	-- ok this is quite sensitive, in order to prevent taking down the rest of the world with it
 	-- we need to clear the visible units, and call the respective callins
 	alliedUnits = {}
+	alliedUnitsTeam = {}
 	numAlliedUnits = 0
 	visibleUnits = {}
+	visibleUnitsTeam = {}
 	numVisibleUnits = 0
 
+
 	WG['unittrackerapi'].visibleUnits = visibleUnits
+	WG['unittrackerapi'].visibleUnitsTeam = visibleUnitsTeam
 	WG['unittrackerapi'].alliedUnits = alliedUnits
+	WG['unittrackerapi'].alliedUnitsTeam = alliedUnitsTeam
 	visibleUnitsChanged()
 	alliedUnitsChanged()
 

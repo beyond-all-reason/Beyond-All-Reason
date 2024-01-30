@@ -2388,10 +2388,10 @@ function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:VisibleUnitRemoved(unitID)
+function widgetHandler:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
 	tracy.ZoneBeginN("W:VisibleUnitRemoved")
 	for _, w in ipairs(self.VisibleUnitRemovedList) do
-		w:VisibleUnitRemoved(unitID)
+		w:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
 	end
 	tracy.ZoneEnd()
 end
@@ -2414,10 +2414,10 @@ function widgetHandler:AlliedUnitAdded(unitID, unitDefID, unitTeam)
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:AlliedUnitRemoved(unitID)
+function widgetHandler:AlliedUnitRemoved(unitID, unitDefID, unitTeam)
 	tracy.ZoneBeginN("W:AlliedUnitRemoved")
 	for _, w in ipairs(self.AlliedUnitRemovedList) do
-		w:AlliedUnitRemoved(unitID)
+		w:AlliedUnitRemoved(unitID, unitDefID, unitTeam)
 	end
 	tracy.ZoneEnd()
 end
