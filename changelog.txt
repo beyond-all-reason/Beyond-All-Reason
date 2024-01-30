@@ -1,7 +1,7 @@
 ﻿# January 2024
 • [Turtle] Added a weak anti-air turret so that an amphibious turtle attack is more difficult to counter
 • [T1 subs] Eel (arm sub) speed increased 63->66, Orca (cor sub) speed reduced 60->57
-• [T1 frigates] Orca (arm frigate) cost reduced 390m2600E->380m2550E, Riptide (cor frigate) cost increased 410m2700E->420m2800E
+• [T1 frigates] Ellysaw (arm frigate) cost reduced 390m2600E->380m2550E, Riptide (cor frigate) cost increased 410m2700E->420m2800E
 • [Mauser] Cost increased from 270m4100E -> 320m4900E
 • [Quaker] Cost increased from 360m4000E -> 400m4400E
 • [Supporter] Line of sight increased 500 -> 600
