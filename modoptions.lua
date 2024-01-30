@@ -561,7 +561,7 @@ local options={
 		section = 'options_resources',
 		def    = 1,
 		min    = 0.1,
-		max    = 1,
+		max    = 10,
 		step   = 0.1,
 	},
 
