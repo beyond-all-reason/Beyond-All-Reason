@@ -556,7 +556,7 @@ local options={
 	{
 		key    = 'multiplier_energyconversion',
 		name   = 'Energy Conversion Efficiency Multiplier ',
-		desc   = '(Range 0.1 - 1). lower means you get less metal per energy converted',
+		desc   = '(Range 0.1 - 10). lower means you get less metal per energy converted',
 		type   =  "number",
 		section = 'options_resources',
 		def    = 1,
