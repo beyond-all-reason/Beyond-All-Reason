@@ -118,7 +118,7 @@ for udid, ud in pairs(UnitDefs) do
 	unitWeapons[udid] = ud.weapons
 	unitMaxWeaponRange[udid] = ud.maxWeaponRange
 	unitOnOffable[udid] = ud.onOffable
-	if ud.customParams.onOffName then
+	if ud.customParams.onoffname then
 		unitOnOffName[udid] = ud.customParams.onoffname
 	end
 end
