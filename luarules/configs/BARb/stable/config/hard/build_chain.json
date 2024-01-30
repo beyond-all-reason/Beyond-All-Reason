@@ -217,57 +217,57 @@
 		},
         "corap": {
 			//"hub": [[{"unit": "corllt", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
-		},
+//		},
 
 
 
-		"armsy": {
-			"hub": [	
-				[
-				{"unit": "armfhlt", "category": "defence", "offset": {"front": 150}, "priority": "now"},
-				{"unit": "armasy", "category": "factory", "offset": [100, 100]}
-			]
-		]
-		},
-		"armasy": {
-			"hub": [	    
-                [
-					{"unit": "armuwfus", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"},
-					{"unit": "armatl", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"}
-				]     
-		    ]
-		},
+//		"armsy": {
+//			"hub": [
+//				[
+//				{"unit": "armfhlt", "category": "defence", "offset": {"front": 150}, "priority": "now"},
+//				{"unit": "armasy", "category": "factory", "offset": [100, 100]}
+//			]
+//		]
+//		},
+//		"armasy": {
+//			"hub": [
+//                [
+//					{"unit": "armuwfus", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"},
+//					{"unit": "armatl", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"}
+//				]
+//		    ]
+//		},
 
 
-		"corsy": {
-			"hub": [	
-				[
-				{"unit": "corfhlt", "category": "defence", "offset": {"front": 150}, "priority": "high"}
-				//{"unit": "corasy", "category": "factory", "offset": [100, 100], "priority": "low"}
-				],
-				[	
-					{"unit": "coruwfus", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"},
-					{"unit": "coruwfus", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"}
-				],
-				[
-					{"unit": "coruwmmm", "category": "defence", "offset": {"back": 400}, "priority": "normal"},
-					{"unit": "coruwmmm", "category": "defence", "offset": {"back": 400}, "priority": "low"},
-					{"unit": "coruwmmm", "category": "defence", "offset": {"back": 400}, "priority": "low"},
-					{"unit": "coruwmmm", "category": "defence", "offset": {"back": 400}, "priority": "low"}
-				]	
-			]
-		},
-        "corasy": {
-			"hub": [	
-				[
-			    	{"unit": "corfhlt", "category": "defence", "offset": {"front": 150}, "priority": "high"}
-				],
-            	[	
-					{"unit": "coruwfus", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"},
-					{"unit": "coratl", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"},
-					{"unit": "corfdoom", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"}	
-				]
-		    ]
+//		"corsy": {
+//			"hub": [
+//				[
+//				{"unit": "corfhlt", "category": "defence", "offset": {"front": 150}, "priority": "high"}
+//				//{"unit": "corasy", "category": "factory", "offset": [100, 100], "priority": "low"}
+//				],
+//				[
+//					{"unit": "coruwfus", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"},
+//					{"unit": "coruwfus", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"}
+//				],
+//				[
+//					{"unit": "coruwmmm", "category": "defence", "offset": {"back": 400}, "priority": "normal"},
+//					{"unit": "coruwmmm", "category": "defence", "offset": {"back": 400}, "priority": "low"},
+//					{"unit": "coruwmmm", "category": "defence", "offset": {"back": 400}, "priority": "low"},
+//					{"unit": "coruwmmm", "category": "defence", "offset": {"back": 400}, "priority": "low"}
+//				]
+//			]
+//		},
+//        "corasy": {
+//			"hub": [
+//				[
+//			    	{"unit": "corfhlt", "category": "defence", "offset": {"front": 150}, "priority": "high"}
+//				],
+//            	[
+//					{"unit": "coruwfus", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"},
+//					{"unit": "coratl", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"},
+//					{"unit": "corfdoom", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"}
+//				]
+//		    ]
 		}
 	},
 
@@ -329,52 +329,52 @@
 					{"unit": "corint", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.4}, "priority": "low"} 
 				]
 		]
-		},
-		"armfrad":{
-            "hub":[
-				[{"unit": "armsy", "category": "factory", "offset": {"front": 100}, "condition": {"chance":1.0}, "priority": "now"}],
+//		},
+//		"armfrad":{
+//            "hub":[
+//				[{"unit": "armsy", "category": "factory", "offset": {"front": 100}, "condition": {"chance":1.0}, "priority": "now"}],
 
-				[
-					{"unit": "cortl", "category": "defence", "offset": {"front":100},  "priority": "now"},
-					{"unit": "corasy", "category": "factory", "offset": [50, 50],  "priority": "high"}
-				],
+//				[
+//					{"unit": "cortl", "category": "defence", "offset": {"front":100},  "priority": "now"},
+//					{"unit": "corasy", "category": "factory", "offset": [50, 50],  "priority": "high"}
+//				],
 
-				[{"unit": "armkraken", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
-				[{"unit": "armatl", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
-                [{"unit": "armfrt", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
-				[{"unit": "armbrtha", "category": "defence", "offset": [-100, 0], "condition": {"chance":1.0}, "priority": "low"}],
-				[{"unit": "armanni", "category": "defence", "offset": [-100, 0], "condition": {"chance":1.0}, "priority": "low"}],
+//				[{"unit": "armkraken", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
+//				[{"unit": "armatl", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
+//                [{"unit": "armfrt", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
+//				[{"unit": "armbrtha", "category": "defence", "offset": [-100, 0], "condition": {"chance":1.0}, "priority": "low"}],
+//				[{"unit": "armanni", "category": "defence", "offset": [-100, 0], "condition": {"chance":1.0}, "priority": "low"}],
 				
-				[
-					{"unit": "armamd", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.5}, "priority": "low"},
-					{"unit": "armjamt", "category": "defence", "offset": [-100, 0], "condition": {"chance":1.0}, "priority": "low"}
-				]
-			]
-        },
-		"corfrad":{
-            "hub":[
-				[{"unit": "corsy", "category": "factory", "offset": {"front": 100}, "condition": {"chance": 1.0}, "priority": "now"}],
+//				[
+//					{"unit": "armamd", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.5}, "priority": "low"},
+//					{"unit": "armjamt", "category": "defence", "offset": [-100, 0], "condition": {"chance":1.0}, "priority": "low"}
+//				]
+//			]
+//        },
+//		"corfrad":{
+//            "hub":[
+//				[{"unit": "corsy", "category": "factory", "offset": {"front": 100}, "condition": {"chance": 1.0}, "priority": "now"}],
 
-				[
-					{"unit": "corfhlt", "category": "defence", "offset": {"front":100},  "priority": "now"},
-					{"unit": "corasy", "category": "factory", "offset": [50, 50],  "priority": "high"}
-				],
+//				[
+//					{"unit": "corfhlt", "category": "defence", "offset": {"front":100},  "priority": "now"},
+//					{"unit": "corasy", "category": "factory", "offset": [50, 50],  "priority": "high"}
+//				],
 
-				[{"unit": "corpun", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
-				[{"unit": "cortoast", "category": "factory", "offset": [100, 0], "condition": {"chance":1.0}, "priority": "normal"}],
-				[{"unit": "corint", "category": "defence", "offset": [-100, 100], "condition": {"chance":1.0}, "priority": "low"}],
+//				[{"unit": "corpun", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
+//				[{"unit": "cortoast", "category": "factory", "offset": [100, 0], "condition": {"chance":1.0}, "priority": "normal"}],
+//				[{"unit": "corint", "category": "defence", "offset": [-100, 100], "condition": {"chance":1.0}, "priority": "low"}],
 				
-				[
-					{"unit": "corfmd", "category": "defence", "offset": [-100, 100], "condition": {"chance":0.5}, "priority": "low"},
-					{"unit": "corjamt", "category": "defence", "offset": [-100, 100], "condition": {"chance":1.0}, "priority": "low"}
-				],
+//				[
+//					{"unit": "corfmd", "category": "defence", "offset": [-100, 100], "condition": {"chance":0.5}, "priority": "low"},
+//					{"unit": "corjamt", "category": "defence", "offset": [-100, 100], "condition": {"chance":1.0}, "priority": "low"}
+//				],
 
 
-				[{"unit": "corfdoom", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
-				[{"unit": "coratl", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}]
+//				[{"unit": "corfdoom", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}],
+//				[{"unit": "coratl", "category": "factory", "offset": [100, 50], "condition": {"chance":1.0}, "priority": "normal"}]
 				
 
-			]
+//			]
         }
 
 	}
