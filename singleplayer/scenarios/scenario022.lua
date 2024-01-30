@@ -7,28 +7,28 @@ local scenariodata = {
 	isnew = true,
 	imagepath		= "scenario022.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "River Assault", -- This text will be drawn over image
-    summary         = [[After a ferocious battle, Cortex Commander decided to join Armada forces. Unfortunately, other Cortex commanders discovered the intent of the treacherous plan and sent a mighty force to prevent it.]],
-	briefing 		= [[You will start with some Lazarus (Resurrection and Repair Bots), that can resurrect units from their wrecks. Your Only hope is to hide your position and build mighty army to crush all opposing forces.
+    summary         = [[After a ferocious battle, a Cortex Commander decided to join Armada forces. Unfortunately, other Cortex commanders discovered the intent of the treacherous plan and sent a mighty force to prevent it.]],
+	briefing 		= [[You will start with some Lazarus (Resurrection and Repair Bots), that can resurrect units from their wrecks. Your Only Hope is to hide your position and build a mighty army to crush all opposing forces.
        
 	!!! DO NOT UNDERESTIMATE YOUR ENEMY !!!
       
-  While you will be fighting for life , don't forget to fortify your Ally too, since WE can't lose Cortex Command Tower. 
+  While you will be fighting for your life , don't forget to fortify your Ally too, since WE can't lose the Cortex Command Tower. 
   
 Reinforcements:
- - You and Your Ally will receive first contingency around 9th minute from the begin of mission 
- - Enemy will be getting Reinforcements every 8 and 20 minutes 
+ - You and your Ally will receive the first contingency around the 9th minute from the begin of mission.
+ - The enemy will be getting Reinforcements every 8 and 20 minutes.
     
 Tips:
- - Sharing is Caring! When you share limited units & buildings with your Ally this will strengthens economy and combat capabilities of both.
- - To gain access of your Ally units, build Decoy Commander and capture one of your Ally Constructor unit. 
+ - Sharing is Caring! When you share limited units & buildings with your Ally this will strengthen economy and combat capabilities of both of you.
+ - To gain access to your Ally's units, build Decoy Commander and capture one of your Ally's Constructor units. 
  - Use Radar Jamming units to hide your presence from enemy Radar.
  - Resurrection bots will use Energy to resurrect units, at a flat cost of 75e per second while resurrecting.
- - You can issue Area-Resurrect and Area-Reclaim commands by right-click dragging
+ - You can issue Area-Resurrect and Area-Reclaim commands by right-click dragging.
  - Repairing units does not cost any resources.
      
 Scoring:
  - Time taken to finish the scenario
- - Resources spent to complete victory condition.
+ - Resources spent to complete victory condition
      
 											     IMPORTANT CHANGE!!
 	Beginner: Your Resources = +50%, Enemy Resources = -20%
