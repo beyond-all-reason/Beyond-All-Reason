@@ -40,7 +40,6 @@ void AiMakeDefence(int cluster, const AIFloat3& in pos)
 		|| (aiEnemyMgr.mobileThreat > 0.f))
 	{
 		aiMilitaryMgr.DefaultMakeDefence(cluster, pos);
-//		AiAddPoint(pos, "def");
 	}
 }
 

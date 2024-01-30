@@ -6,16 +6,12 @@
 
 namespace Main {
 
-void AiMain()
+void AiMain()  // Initialize config params
 {
-	// NOTE: Initialize config params
-// 	aiEconomyMgr.reclConvertEff = 2.f;
-// 	aiEconomyMgr.reclEnergyEff = 20.f;
-// 	for (Id defId = 1, count = ai.GetDefCount(); defId < count; ++defId) {
-// 		CCircuitDef@ cdef = ai.GetCircuitDef(defId);
-// 		AiLog(cdef.GetName() + " | threat = " + cdef.threat + " | power = " + cdef.power +
-// 			" | air = " + cdef.GetAirThreat() + " | surf = " + cdef.GetSurfThreat() + " | water = " + cdef.GetWaterThreat());
-// 	}
+}
+
+void AiUpdate()  // SlowUpdate, every 30 frames with initial offset of skirmishAIId
+{
 }
 
 }  // namespace Main
