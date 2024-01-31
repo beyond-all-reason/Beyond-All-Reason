@@ -76,6 +76,11 @@ SBuildTask Common(Task::BuildType type, Task::Priority priority,
 	ti.shake = shake;
 	ti.isActive = isActive;
 	ti.timeout = timeout;
+
+	ti.cost = SResource(0.f, 0.f);
+	@ti.reprDef = null;
+	ti.pointId = -1;
+	ti.isPlop = false;
 	return ti;
 }
 SBuildTask Spot(Task::BuildType type, Task::Priority priority,
@@ -283,6 +288,11 @@ SFightTask Common(Task::FightType type)
 {
 	SFightTask ti;
 	ti.type = type;
+
+	ti.check = type;
+	ti.promote = type;
+	ti.power = 0.f;
+	@ti.vip = null;
 	return ti;
 }
 SFightTask Guard(CCircuitUnit@ vip)
