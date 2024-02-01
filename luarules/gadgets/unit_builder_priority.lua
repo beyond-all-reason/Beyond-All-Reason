@@ -92,12 +92,11 @@ local buildPowerMinimum = 0.001 -- A small amount of buildpower we allocate to e
 
 local passiveCons = {} -- passiveCons[teamID][builderID] = true for passive cons
 local roundRobinIndexTeam = {} -- {teamID = roundRobinIndex}
-
 local roundRobinLastRoundTeamBuilders = {} -- {teamID = {builderID = true}} -- this is for taking away the resources of previous RR recipients
+local canBuild = {} --builders[teamID][builderID], contains all builders
 
 local buildTargets = {} --{builtUnitID = builderUnitID} the unitIDs of build targets of passive builders, a -1 here indicates that this build target has Active builders too.
 
-local canBuild = {} --builders[teamID][builderID], contains all builders
 local maxBuildSpeed = {} -- {builderUnitID = buildSpeed} build speed of builderID, as in UnitDefs (contains all builders)
 local currentBuildSpeed = {} -- {builderid = currentBuildSpeed} build speed of builderID for current interval, not accounting for buildOwners special speed (contains only passive builders)
 
@@ -156,55 +155,63 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	cost[unitDefID				  ] = unitDef.metalCost
 	cost[unitDefID +	energyOffset] = unitDef.energyCost
 	cost[unitDefID + buildTimeOffset] = unitDef.buildTime
-	
 end
 
 local function updateTeamList()
 	teamList = spGetTeamList()
+	for _, teamID in ipairs(teamList) do
+		passiveCons[teamID] = {} -- passiveCons[teamID][builderID] = true for passive cons
+		roundRobinIndexTeam[teamID] = 1 -- {teamID = roundRobinIndex}
+		roundRobinLastRoundTeamBuilders[teamID] = {} -- {teamID = {builderID = true}} -- this is for taking away the resources of previous RR recipients
+		canBuild[teamID] = {} --builders[teamID][builderID], contains all builders
+	end
 end
 
 function gadget:Initialize()
+	updateTeamList()
 	for _,unitID in pairs(Spring.GetAllUnits()) do
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
 	end
-	updateTeamList()
 end
 
-local function SetBuilderPriority(builderID, highPriority)
-		
+local function MaybeSetWantedBuildSpeed(builderID, wantedSpeed, force)
+	if (currentBuildSpeed[builderID] ~= wantedSpeed) or force then
+		spSetUnitBuildSpeed(builderID, wantedSpeed) -- 100 ns per call
+		spSetUnitRulesParam(builderID, ruleName, wantedSpeed)  -- 300 ns per call
+		currentBuildSpeed[builderID] = wantedSpeed
+	end
+end
+
+local function SetBuilderPriority(builderID, lowPriority)
+	if lowPriority then  -- low prio immediately sets it to 0 buildspeed
+		MaybeSetWantedBuildSpeed(builderID, 0, true)
+	else -- set to high
+		-- clear all our passive status
+		spSetUnitBuildSpeed(builderID, maxBuildSpeed[builderID]) 
+		spSetUnitRulesParam(builderID, ruleName, nil) 
+		currentBuildSpeed[unitID] = maxBuildSpeed[builderID]
+	end
 end
 
 local function UDN(unitID)
 	return UnitDefs[Spring.GetUnitDefID(unitID)].name
 end
 
-local function MaybeSetWantedBuildSpeed(builderID, wantedSpeed)
-	if currentBuildSpeed[builderID] ~= wantedSpeed then
-		spSetUnitBuildSpeed(builderID, wantedSpeed)
-		spSetUnitRulesParam(builderID, ruleName, wantedSpeed) 
-		currentBuildSpeed[builderID] = wantedSpeed
-	end
-end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
-	if canPassive[unitDefID] or unitBuildSpeed[unitDefID] then
-		canBuild[teamID] = canBuild[teamID] or {}
+	if unitBuildSpeed[unitDefID] then
 		canBuild[teamID][unitID] = true
-		maxBuildSpeed[unitID] = unitBuildSpeed[unitDefID] or 0
+		maxBuildSpeed[unitID] = unitBuildSpeed[unitDefID]
 	end
 	if canPassive[unitDefID] then
 		spInsertUnitCmdDesc(unitID, cmdPassiveDesc)
-		if not passiveCons[teamID] then passiveCons[teamID] = {} end
-		passiveCons[teamID][unitID] = spGetUnitRulesParam(unitID, ruleName) or nil -- non-nil rule means passive
-		
-		if passiveCons[teamID][unitID] then -- nil means high prio
-			MaybeSetWantedBuildSpeed(unitID, 0)
-		else
-			currentBuildSpeed[unitID] = maxBuildSpeed[unitID]
-			spSetUnitBuildSpeed(unitID, currentBuildSpeed[unitID]) -- to handle luarules reloads correctly
-		end
+		local lowPriority = spGetUnitRulesParam(unitID, ruleName) or nil -- non-nil rule means passive
+		passiveCons[teamID][unitID] = lowPriority
+		SetBuilderPriority(unitID, lowPriority)
+
 		if VERBOSE then 
-			Spring.Echo(string.format("UnitID %i of def %s has been set to %s = %s",unitID, UnitDefs[unitDefID].name, ruleName, tostring(passiveCons[teamID][unitID])))
+			Spring.Echo(string.format("UnitID %i of def %s has been set to %s = %s",
+					unitID, UnitDefs[unitDefID].name, ruleName, tostring(passiveCons[teamID][unitID])))
 		end
 	end
 
@@ -214,17 +221,8 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
-	if passiveCons[oldTeamID] and passiveCons[oldTeamID][unitID] then
-		passiveCons[newTeamID] = passiveCons[newTeamID] or {}
-		passiveCons[newTeamID][unitID] = passiveCons[oldTeamID][unitID]
-		passiveCons[oldTeamID][unitID] = nil
-	end
-
-	if canBuild[oldTeamID] and canBuild[oldTeamID][unitID] then
-		canBuild[newTeamID] = canBuild[newTeamID] or {}
-		canBuild[newTeamID][unitID] = true
-		canBuild[oldTeamID][unitID] = nil
-	end
+	gadget:UnitDestroyed(unitID, unitDefID, oldTeamID)
+	gadget:UnitCreated(unitID, unitDefID, newTeamID)
 end
 
 function gadget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
@@ -232,12 +230,12 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID)
-	canBuild[teamID] = canBuild[teamID] or {}
+	-- Clear Team stuff
 	canBuild[teamID][unitID] = nil
-
-	passiveCons[teamID] = passiveCons[teamID] or {}
-	
+	roundRobinLastRoundTeamBuilders[teamID][unitID] = nil
 	passiveCons[teamID][unitID] = nil
+	
+	-- clear unit data
 	maxBuildSpeed[unitID] = nil
 	currentBuildSpeed[unitID] = nil
 
@@ -246,6 +244,12 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID)
 	costIDOverride[unitID + buildTimeOffset] = nil
 end
 
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	-- as its no longer being built, clear cache of its costs
+	costIDOverride[unitID +			   0] = nil
+	costIDOverride[unitID +	energyOffset] = nil
+	costIDOverride[unitID + buildTimeOffset] = nil
+end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	-- track which cons are set to passive
@@ -257,32 +261,19 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 			spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
 			local lowPriority = (cmdParams[1] == 0)
 			
-			spSetUnitRulesParam(unitID, ruleName, (lowPriority and maxBuildSpeed[unitID] ) or nil) -- init builders
-			
-			if not passiveCons[teamID] then passiveCons[teamID] = {} end
-			
-			if lowPriority then -- Low Prio
-				passiveCons[teamID][unitID] = true
-				MaybeSetWantedBuildSpeed(unitID, 0) -- set it to zero first when set to passive
-			elseif maxBuildSpeed[unitID] then -- high prio and this unreasonable check?
-				passiveCons[teamID][unitID] = nil
-				currentBuildSpeed[unitID] = maxBuildSpeed[unitID]
-				spSetUnitBuildSpeed(unitID, maxBuildSpeed[unitID])
-				roundRobinLastRoundTeamBuilders[teamID][unitID] = nil -- this is to ensure that mid-update changes carry over
-			end
+			SetBuilderPriority(builderID, lowPriority)
+			passiveCons[teamID][unitID] = lowPriority or nil
+			roundRobinLastRoundTeamBuilders[teamID][unitID] = nil -- this is to ensure that mid-update changes carry over
+
 			if VERBOSE then 
-				Spring.Echo(string.format("UnitID %i of def %s has been set to %s = %s (%s)",unitID, UnitDefs[unitDefID].name, ruleName, tostring(passiveCons[teamID][unitID]), tostring(cmdParams[1])))
+				Spring.Echo(string.format("UnitID %i of def %s has been set to %s = %s (%s)",
+						unitID, UnitDefs[unitDefID].name, ruleName, tostring(passiveCons[teamID][unitID]), tostring(cmdParams[1])))
 			end
 		end
 		return false -- Allowing command causes command queue to be lost if command is unshifted
 	end
 	return true
 end
-
--- Dont count solars and mm's as stalling:
---local solars = {} -- builderID, targetID
---local makers = {} -- builderID, targetID
-local midPrioSolarMaker = {} -- builderID to negative metal, positive energy cost
 
 local function UpdatePassiveBuilders(teamID, interval)
 
@@ -293,8 +284,6 @@ local function UpdatePassiveBuilders(teamID, interval)
 	local passiveConsTotalExpenseEnergy = 0
 	local passiveConsTotalExpenseMetal = 0
 
-	passiveCons[teamID] = passiveCons[teamID] or {} -- alloc a table if not already
-
 	local passiveConsTeam = passiveCons[teamID]
 	if tracy then tracy.ZoneBeginN("UpdateStart") end 
 	local numPassiveCons = 0
@@ -302,7 +291,9 @@ local function UpdatePassiveBuilders(teamID, interval)
 	
 	local passiveExpense = {} -- once again, similar to the costIDOverride we are using a single table with offsets to store two values per unitID
 	
-	local solarOrConverter = {} -- maps builtUnit to BuilderID
+	
+	-- Dont count solars and mm's as stalling:
+	local midPrioSolarMaker = {} -- builderID to negative metal, positive energy cost
 	-- this is about 800 us
 	if canBuild[teamID] then
 		local canBuildTeam = canBuild[teamID]
@@ -360,46 +351,36 @@ local function UpdatePassiveBuilders(teamID, interval)
 		end
 	end
 	
-	
-	-- How do we identify those units which we havent touched above yet?
 	local passiveMetalStart = passiveMetalLeft
 	local passiveEnergyStart = passiveEnergyLeft
 	
 	local havePassiveResourcesLeft = (passiveEnergyLeft > 0) and (passiveMetalLeft > 0 )
-	-- Allow passive cons to build solars and makers
-	for builderID, costtype in pairs(midPrioSolarMaker) do 
-		local wantedBuildSpeed = 0 -- init at zero buildspeed
-		
-		--if DEBUG then Spring.Echo(builderID, "midPrioSolarMaker", costtype, passiveEnergyLeft, passiveMetalLeft, UDN(builderID)) end 
 	
+	-- Allow passive cons to build solars and makers as a medium priority
+	for builderID, costtype in pairs(midPrioSolarMaker) do 
 		if costtype < 0 then -- metal
 			if (passiveMetalLeft > -1 * costtype) then 
 				passiveMetalLeft = passiveMetalLeft + costtype
 				MaybeSetWantedBuildSpeed(builderID, maxBuildSpeed[builderID])
 			else
-				midPrioSolarMaker[builderID] = nil
+				midPrioSolarMaker[builderID] = nil -- remove them if we cant give them resources here
 			end
 		else -- energy
 			if (passiveEnergyLeft > costtype) then
 				passiveEnergyLeft = passiveEnergyLeft - costtype
 				MaybeSetWantedBuildSpeed(builderID, maxBuildSpeed[builderID])
 			else
-				midPrioSolarMaker[builderID] = nil	
+				midPrioSolarMaker[builderID] = nil	-- remove them if we cant give them resources here
 			end
 		end
-		--midPrioSolarMaker[builderID] = nil -- dont clear these just yet, as they are indeed marked as passive
 	end
 	
-	
-	
 	-- Take away the resources allocated in a round-robin way in the previous pass:
-	roundRobinLastRoundTeamBuilders[teamID] = roundRobinLastRoundTeamBuilders[teamID] or {}
 	local previousRoundRobinBuilders = 	roundRobinLastRoundTeamBuilders[teamID] 
 	for builderID, _ in pairs(previousRoundRobinBuilders) do 
 		MaybeSetWantedBuildSpeed(builderID, 0)
 		previousRoundRobinBuilders[builderID] = nil
 	end
-	
 	
 	-- !!!!!! Important Explanation !!!!!
 	-- Iterating over a hash table has a random, but fixed order
@@ -474,18 +455,15 @@ local function UpdatePassiveBuilders(teamID, interval)
 		end	
 	end
 	
+	-- override buildTarget builders build speeds for a single frame; let them build at a tiny rate to prevent nanoframes from possibly decaying (yes this is confirmed to happen)
 	-- dont remove the resources given to a builder in a round-robin fashion just because they are build target owners
-	-- take them off the buildTargets stack!
-	
-		-- override buildTargetOwners build speeds for a single frame; let them build at a tiny rate to prevent nanoframes from possibly decaying
+	-- and take them off the buildTargets queue!
 	for buildTargetID, builderUnitID in pairs(buildTargets) do 
 		-- if owner is passive, then give it a bit of BP
-		-- TODO: this needs to be smarter
 		-- This ensures that we at least build each unit a tiny bit.
 		if currentBuildSpeed[builderUnitID] < buildPowerMinimum then 
 			-- This builderUnitID has been assigned as passive with no resources, so give it a little bit
-			spSetUnitBuildSpeed(builderUnitID, buildPowerMinimum) -- 
-			spSetUnitRulesParam(builderUnitID, ruleName, buildPowerMinimum)
+			MaybeSetWantedBuildSpeed(builderUnitID, buildPowerMinimum)
 		else
 			-- this builderUnitID has been assigned greater than 0 resources in the round robin pass, so remove it from the next frames clear pass
 			buildTargets[buildTargetID] = nil
@@ -535,27 +513,17 @@ end
 function gadget:GameFrame(n)
 	-- During the previous UpdatePassiveBuilders, we set build target owners to buildPowerMinimum so that the nanoframes dont die
 	-- Now we can set their buildpower to what we wanted instead of buildPowerMinimum we had for 1 frame.
-	if tracy then tracy.ZoneBeginN("redundant set") end
-	for  builtUnit, builderID in pairs(buildTargets) do
+	for builtUnit, builderID in pairs(buildTargets) do
 		if spValidUnitID(builderID) and spGetUnitIsBuilding(builderID) == builtUnit then
-			spSetUnitBuildSpeed(builderID, 0) -- 100ns
-			spSetUnitRulesParam(builderID, ruleName, 0) -- 300 ns
-	
-			if DEBUG or VERBOSE then 
-				if currentBuildSpeed[builderID] > 0 then 
-					Spring.Echo("Warning:, the buildspeed of", builderID, "was nonzero before clearing it. ")
-				end
-			end
+			MaybeSetWantedBuildSpeed(builderID, 0)
 		end
 	end
 	
-	--buildTargetOwners = {}
 	buildTargets = (next(buildTargets) and {}) or buildTargets -- check if table is empty and if not reallocate it!
 	
-	if tracy then tracy.ZoneEnd() end
 	for i=1, #teamList do
 		local teamID = teamList[i]
-		if teamID == 0 and not deadTeamList[teamID] then -- isnt dead
+		if not deadTeamList[teamID] then -- isnt dead
 			if n == updateFrame[teamID] then
 				local interval = GetUpdateInterval(teamID)
 				UpdatePassiveBuilders(teamID, interval)
