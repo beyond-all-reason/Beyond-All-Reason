@@ -33,7 +33,7 @@ Note to self, there are four outstanding issues with this approach:
     low prio cons who are sole builders of a target
     low prio everyone else.
 
-    Todo: needs UnitUniformBuffers set for nanospray gl4
+    Sets UnitUniformBuffers set for nanospray gl4
 
 
 ]]--
@@ -53,6 +53,7 @@ end
 
 local DEBUG = false -- will draw the buildSpeeds above builders. Perf heavy but its debugging only.
 local VERBOSE = false -- will spam debug into infolog
+local FORWARDUNIFORMS = false -- Needed for future nanospray GL4
 
 local ruleName = "builderPriorityLow" -- So that non-nil means low prio, and the actual build speed number, nil means high
 
@@ -81,6 +82,27 @@ if not gadgetHandler:IsSyncedCode() then
 			
 		end
 	end
+	if FORWARDUNIFORMS then 
+		local uniformCache = {0}
+		local function BuildSpeedsChanged(cmdname, countx2, ...)
+			local vararg = {...}
+			for i= 1, countx2, 2 do 
+				uniformCache[1] = vararg[i+1]
+				gl.SetUnitBufferUniforms(vararg[i], uniformCache, 1)
+				--Spring.Echo(vararg[i], vararg[i+1])
+			end
+			
+		end
+		
+		function gadget:Initialize()
+			gadgetHandler:AddSyncAction("BuildSpeedsChanged", BuildSpeedsChanged)
+		end
+
+		function gadget:Shutdown()
+			gadgetHandler:RemoveSyncAction("BuildSpeedsChanged")
+		end
+	end
+
 else
 
 local CMD_PRIORITY = 34571
@@ -174,11 +196,19 @@ function gadget:Initialize()
 	end
 end
 
+local nCBS = 0
+local changedBuildSpeeds = {}
+
 local function MaybeSetWantedBuildSpeed(builderID, wantedSpeed, force)
 	if (currentBuildSpeed[builderID] ~= wantedSpeed) or force then
 		spSetUnitBuildSpeed(builderID, wantedSpeed) -- 100 ns per call
 		spSetUnitRulesParam(builderID, ruleName, wantedSpeed)  -- 300 ns per call
 		currentBuildSpeed[builderID] = wantedSpeed
+		if FORWARDUNIFORMS then 
+			changedBuildSpeeds[nCBS + 1] = builderID
+			changedBuildSpeeds[nCBS + 2] = wantedSpeed
+			nCBS = nCBS + 2
+		end
 	end
 end
 
@@ -189,9 +219,27 @@ local function SetBuilderPriority(builderID, lowPriority)
 		-- clear all our passive status
 		spSetUnitBuildSpeed(builderID, maxBuildSpeed[builderID]) 
 		spSetUnitRulesParam(builderID, ruleName, nil) 
-		currentBuildSpeed[unitID] = maxBuildSpeed[builderID]
+		currentBuildSpeed[builderID] = maxBuildSpeed[builderID]
+		
+		if FORWARDUNIFORMS then 
+			changedBuildSpeeds[nCBS + 1] = builderID
+			changedBuildSpeeds[nCBS + 2] = maxBuildSpeed[builderID]
+			nCBS = nCBS + 2
+		end
 	end
 end
+
+local function BuildSpeedsChanged()
+	if nCBS > 0 then 
+		-- Note: we are pretty much pushing an entire unpacked table onto sendtounsynced
+		-- the max amound of stuff we can send here is like <8000 elements. 
+		-- todo: actually check that we dont send more, and if we do, then split it into multiple calls.
+		SendToUnsynced("BuildSpeedsChanged", nCBS, unpack(changedBuildSpeeds))
+		changedBuildSpeeds = {}
+		nCBS = 0
+	end
+end
+
 
 local function UDN(unitID)
 	return UnitDefs[Spring.GetUnitDefID(unitID)].name
@@ -261,7 +309,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 			spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
 			local lowPriority = (cmdParams[1] == 0)
 			
-			SetBuilderPriority(builderID, lowPriority)
+			SetBuilderPriority(unitID, lowPriority)
 			passiveCons[teamID][unitID] = lowPriority or nil
 			roundRobinLastRoundTeamBuilders[teamID][unitID] = nil -- this is to ensure that mid-update changes carry over
 
@@ -532,6 +580,9 @@ function gadget:GameFrame(n)
 				updateFrame[teamID] = n + GetUpdateInterval(teamID)
 			end
 		end
+	end
+	if FORWARDUNIFORMS then 
+		BuildSpeedsChanged()
 	end
 end
 
