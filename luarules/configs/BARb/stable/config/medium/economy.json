@@ -64,7 +64,7 @@
 	},
 	"mex_up": 1,  // maximum number of simultaneous mex upgrades
 
-	"calc_mex": true,  // always calculate mex spots (global)
+	"calc_mex": false,  // always calculate mex spots (global)
 
 	"goal_exec": 42.0,  // targeted time to finish non-build task, in seconds
 	"build_mod": 1000.0,  // default build_mod for UnitDef, if it's not specified
