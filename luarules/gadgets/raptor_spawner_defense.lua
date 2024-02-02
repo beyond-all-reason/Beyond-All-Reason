@@ -61,6 +61,7 @@ if gadgetHandler:IsSyncedCode() then
 	local GetUnitHealth = Spring.GetUnitHealth
 	local SetUnitExperience = Spring.SetUnitExperience
 	local GetUnitIsDead = Spring.GetUnitIsDead
+	local UnitDefs = UnitDefs
 
 	local mRandom = math.random
 	local math = math
@@ -88,6 +89,7 @@ if gadgetHandler:IsSyncedCode() then
 	local playerAggression = 0
 	local playerAggressionLevel = 0
 	local playerAggressionEcoValue = 0
+	local playerAggressionEcoValues = {}
 	local queenAngerAggressionLevel = 0
 	local difficultyCounter = config.difficulty
 	local waveParameters = {
@@ -1278,40 +1280,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if not unitDef.canMove then
 			-- Calculate an eco value based on energy and metal production
-			local ecoValue = 1
-			if unitDef.energyMake then
-				ecoValue = ecoValue + unitDef.energyMake
-			end
-			if unitDef.energyUpkeep and unitDef.energyUpkeep < 0 then
-				ecoValue = ecoValue - unitDef.energyUpkeep
-			end
-			if unitDef.windGenerator then
-				ecoValue = ecoValue + unitDef.windGenerator*0.75
-			end
-			if unitDef.tidalGenerator then
-				ecoValue = ecoValue + unitDef.tidalGenerator*15
-			end
-			if unitDef.extractsMetal and unitDef.extractsMetal > 0 then
-				ecoValue = ecoValue + 200
-			end
-			if unitDef.customParams and unitDef.customParams.energyconv_capacity then
-				ecoValue = ecoValue + tonumber(unitDef.customParams.energyconv_capacity) / 2
-			end
-
-			-- Decoy fusion support
-			if unitDef.customParams and unitDef.customParams.decoyfor == "armfus" then
-				ecoValue = ecoValue + 1000
-			end
-
-			-- Make it extra risky to build T2 eco
-			if unitDef.customParams and unitDef.customParams.techlevel and tonumber(unitDef.customParams.techlevel) > 1 then
-				ecoValue = ecoValue * tonumber(unitDef.customParams.techlevel) * 2
-			end
-
-			-- Anti-nuke - add value to force players to go T2 economy, rather than staying T1
-			if unitDef.customParams and (unitDef.customParams.unitgroup == "antinuke" or unitDef.customParams.unitgroup == "nuke") then
-				ecoValue = 1000
-			end
+			local ecoValue = ecoValueByDef(unitDef)
 			-- Spring.Echo("Built units eco value: " .. ecoValue)
 
 			-- Ends up building an object like:
@@ -1328,6 +1297,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			squadTargetsByEcoWeight[ecoValue]:Add(unitID)
+			playerAggressionEcoValues[unitTeam] = (playerAggressionEcoValues[unitTeam] or 0) + ecoValue
 		end
 
 		if config.ecoBuildingsPenalty[unitDefID] then
@@ -1724,6 +1694,45 @@ if gadgetHandler:IsSyncedCode() then
 		tracy.ZoneEnd()
 	end
 
+	function ecoValueByDef(unitDef)
+		local ecoValue = 1
+		if unitDef.energyMake then
+			ecoValue = ecoValue + unitDef.energyMake
+		end
+		if unitDef.energyUpkeep and unitDef.energyUpkeep < 0 then
+			ecoValue = ecoValue - unitDef.energyUpkeep
+		end
+		if unitDef.windGenerator then
+			ecoValue = ecoValue + unitDef.windGenerator*0.75
+		end
+		if unitDef.tidalGenerator then
+			ecoValue = ecoValue + unitDef.tidalGenerator*15
+		end
+		if unitDef.extractsMetal and unitDef.extractsMetal > 0 then
+			ecoValue = ecoValue + 200
+		end
+		if unitDef.customParams and unitDef.customParams.energyconv_capacity then
+			ecoValue = ecoValue + tonumber(unitDef.customParams.energyconv_capacity) / 2
+		end
+
+		-- Decoy fusion support
+		if unitDef.customParams and unitDef.customParams.decoyfor == "armfus" then
+			ecoValue = ecoValue + 1000
+		end
+
+		-- Make it extra risky to build T2 eco
+		if unitDef.customParams and unitDef.customParams.techlevel and tonumber(unitDef.customParams.techlevel) > 1 then
+			ecoValue = ecoValue * tonumber(unitDef.customParams.techlevel) * 2
+		end
+
+		-- Anti-nuke - add value to force players to go T2 economy, rather than staying T1
+		if unitDef.customParams and (unitDef.customParams.unitgroup == "antinuke" or unitDef.customParams.unitgroup == "nuke") then
+			ecoValue = 1000
+		end
+
+		return ecoValue
+	end
+
 	local announcedFirstWave = false
 	function gadget:GameFrame(n)
 
@@ -1762,6 +1771,7 @@ if gadgetHandler:IsSyncedCode() then
 			playerAggression = playerAggression*0.995
 			playerAggressionLevel = math.floor(playerAggression)
 			SetGameRulesParam("raptorPlayerAggressionLevel", playerAggressionLevel)
+			SetGameRulesParam("raptorPlayerAggressionEcoValues", Json.encode(playerAggressionEcoValues))
 			if not queenID then
 				currentMaxWaveSize = (minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))
 			else
@@ -1928,6 +1938,8 @@ if gadgetHandler:IsSyncedCode() then
 		if unitTeam == raptorTeamID then
 			local kills = GetGameRulesParam("raptor" .. "Kills") or 0
 			SetGameRulesParam("raptor" .. "Kills", kills + 1)
+		else
+			playerAggressionEcoValues[unitTeam] = (playerAggressionEcoValues[unitTeam] or 0) - ecoValueByDef(UnitDefs[unitDefID])
 		end
 
 		if unitID == queenID then
