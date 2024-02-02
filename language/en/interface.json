@@ -540,7 +540,7 @@
 			"raptorKillCount": "Raptors Killed: %{count}",
 			"raptorPlayerAgression": "Player Aggression Level: %{count}",
 			"queenAngerWithGain": "Queen Hatch: %{anger}%% (+%{gain}%%/s)",
-			"queenAngerWithTech": "Queen Hatch: %{anger}%% (Evolution: %{techAnger}%%)",
+			"queenAngerWithTech": "Queen Hatch: %{anger}%% (Evolved: %{techAnger}%%)",
 			"queenAngerBase": "Base: +%{value}%%/s",
 			"queenAngerAggression": "Aggression: +%{value}%%/s",
 			"queenAngerEco": "Economy: +%{value}%%/s",
