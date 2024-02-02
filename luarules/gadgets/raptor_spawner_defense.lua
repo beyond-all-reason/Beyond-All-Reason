@@ -1297,7 +1297,9 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			squadTargetsByEcoWeight[ecoValue]:Add(unitID)
-			playerAggressionEcoValues[unitTeam] = (playerAggressionEcoValues[unitTeam] or 0) + ecoValue
+			if unitTeam ~= raptorTeamID then
+				playerAggressionEcoValues[unitTeam] = (playerAggressionEcoValues[unitTeam] or 0) + ecoValue
+			end
 		end
 
 		if config.ecoBuildingsPenalty[unitDefID] then
