@@ -156,6 +156,58 @@ local function WaveRow(n)
 	return n * (waveFontSize + waveSpacingY)
 end
 
+function Interpolate(value, inMin, inMax, outMin, outMax)
+	-- Define the range of input values (100 to 500)
+	local minValue = inMin
+	local maxValue = inMax
+
+	-- Define the range of output values (1 to 0.4)
+	local minOutputValue = outMin
+	local maxOutputValue = outMax
+
+	-- Ensure the value is within the specified range
+	value = math.max(minValue, math.min(maxValue, value))
+
+	-- Calculate the interpolation
+	local t = (value - minValue) / (maxValue - minValue)
+	local result = minOutputValue + t * (maxOutputValue - minOutputValue)
+
+	return result
+end
+
+function TruncateTextToPixelWidth(text, width)
+	while font:GetTextWidth(text) * panelFontSize > width and text:len() >= 0 do
+		text = text:sub(1, -2)
+	end
+	return text
+end
+
+function DrawPlayerEcoInfos(row)
+	font:Print(textColor .. 'Player Ecos:', panelMarginX, PanelRow(row), panelFontSize, "")
+	local playersEcoInfo = GetPlayersEcoInfo(7 - row)
+
+	for i = 1, #playersEcoInfo do
+		local playerEcoInfo = playersEcoInfo[i]
+		local gb = 1
+		local alpha = 1
+		if playerEcoInfo.value > 170 then
+			gb = Interpolate(playerEcoInfo.value, 170, 600, 0.5, 0.3)
+		elseif playerEcoInfo.value > 100 then
+			gb = Interpolate(playerEcoInfo.value, 100, 170, 0.8, 0.5)
+		elseif playerEcoInfo.value < 80 then
+			alpha = Interpolate(playerEcoInfo.value, 0, 70, 1, 0.8)
+		end
+		font:SetTextColor(1, gb, gb, playerEcoInfo.forced and 0.6 or alpha)
+
+		local namePosX = panelMarginX + 10 + (i == #playersEcoInfo and 40 or 0)
+		local ecoTextWidth = math.floor(font:GetTextWidth(playerEcoInfo.valueString) * panelFontSize)
+		local ecoTextRightX = panelMarginX + 220
+		font:Print(TruncateTextToPixelWidth(playerEcoInfo.name, (ecoTextRightX - ecoTextWidth) - namePosX), namePosX,
+			PanelRow(row + i), panelFontSize, "")
+		font:Print(playerEcoInfo.valueString, ecoTextRightX - ecoTextWidth, PanelRow(row + i), panelFontSize, "")
+	end
+end
+
 local function CreatePanelDisplayList()
 	gl.PushMatrix()
 	gl.Translate(x1, y1, 0)
@@ -170,35 +222,46 @@ local function CreatePanelDisplayList()
 
 			local gain = 0
 			if Spring.GetGameRulesParam("RaptorQueenAngerGain_Base") then
-				font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerBase', { value = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Base"), 3) }), panelMarginX+5, PanelRow(3), panelFontSize, "")
-				font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerAggression', { value = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Aggression"), 3) }), panelMarginX+5, PanelRow(4), panelFontSize, "")
+				-- font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerBase', { value = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Base"), 3) }), panelMarginX, PanelRow(3), panelFontSize, "")
+				-- font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerAggression', { value = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Aggression"), 3) }), panelMarginX, PanelRow(4), panelFontSize, "")
 				--font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerEco', { value = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Eco"), 3) }), panelMarginX+5, PanelRow(5), panelFontSize, "")
-				gain = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Base"), 3) + math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Aggression"), 3) + math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Eco"), 3)
+				gain = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Base"), 3) +
+						math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Aggression"), 3) +
+						math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Eco"), 3)
 			end
 			--font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerWithGain', { anger = gameInfo.raptorQueenAnger, gain = math.round(gain, 3) }), panelMarginX, PanelRow(1), panelFontSize, "")
-			font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerWithTech', { anger = gameInfo.raptorQueenAnger, techAnger = gameInfo.raptorTechAnger}), panelMarginX, PanelRow(1), panelFontSize, "")
+			font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerWithTech', { anger = gameInfo.raptorQueenAnger, techAnger = gameInfo.raptorTechAnger }), panelMarginX, PanelRow(1), panelFontSize, "")
 
 			local totalSeconds = (100 - gameInfo.raptorQueenAnger) / gain
-			time = string.formatTime(totalSeconds)
-			font:Print(textColor .. Spring.I18N('ui.raptors.queenETA', { time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
+			font:Print(textColor .. Spring.I18N('ui.raptors.queenETA', { time = '' }), panelMarginX, PanelRow(2), panelFontSize, "")
+			local time = string.formatTime(totalSeconds)
+			font:Print(textColor .. time, panelMarginX + 220 - font:GetTextWidth(time) * panelFontSize, PanelRow(2), panelFontSize, "")
+
+			DrawPlayerEcoInfos(3)
+
 			if #currentlyResistantToNames > 0 then
 				currentlyResistantToNames = {}
 				currentlyResistantTo = {}
 			end
 		else
 			font:Print(textColor .. Spring.I18N('ui.raptors.queenHealth', { health = gameInfo.raptorQueenHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
-			for i = 1,#currentlyResistantToNames do
+
+			DrawPlayerEcoInfos(2)
+
+			for i = 1, #currentlyResistantToNames do
 				if i == 1 then
 					font:Print(textColor .. Spring.I18N('ui.raptors.queenResistantToList'), panelMarginX, PanelRow(11), panelFontSize, "")
 				end
-				font:Print(textColor .. currentlyResistantToNames[i], panelMarginX+20, PanelRow(11+i), panelFontSize, "")
+				font:Print(textColor .. currentlyResistantToNames[i], panelMarginX + 20, PanelRow(11 + i), panelFontSize, "")
 			end
 		end
 	else
-		font:Print(textColor .. Spring.I18N('ui.raptors.gracePeriod', { time = string.formatTime(math.ceil(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5)) }), panelMarginX, PanelRow(1), panelFontSize, "")
+		font:Print(textColor .. Spring.I18N('ui.raptors.gracePeriod', { time = '' }), panelMarginX, PanelRow(1), panelFontSize, "")
+		local timeText = string.formatTime(math.ceil(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5))
+		font:Print(textColor .. timeText, panelMarginX + 220 - font:GetTextWidth(timeText) * panelFontSize, PanelRow(1), panelFontSize, "")
+		DrawPlayerEcoInfos(2)
 	end
 
-	font:Print(textColor .. Spring.I18N('ui.raptors.raptorKillCount', { count = gameInfo.raptorKills }), panelMarginX, PanelRow(6), panelFontSize, "")
 	local endless = ""
 	if Spring.GetModOptions().raptor_endless then
 		endless = ' (' .. Spring.I18N('ui.raptors.difficulty.endless') .. ')'
@@ -307,6 +370,64 @@ local function UpdateRules()
 	updatePanel = true
 end
 
+function GetPlayersEcoInfo(maxRows)
+	local myTeamId       = Spring.GetMyTeamID()
+	local teamList       = Spring.GetTeamList()
+	local playerEcoInfos = {}
+	maxRows              = (maxRows or 3) - (myTeamId == nil and 0 or 1)
+	local sum            = 0
+
+	for i = 1, #teamList do
+		local teamID = teamList[i]
+		local playerName
+		local playerList = Spring.GetPlayerList(teamID)
+		if playerList[1] then
+			playerName = Spring.GetPlayerInfo(playerList[1])
+		else
+			_, playerName = Spring.GetAIInfo(teamID)
+		end
+
+		local _, _, _, income = Spring.GetTeamResources(playerList[1] or teamID, 'energy')
+		if income then
+			sum = sum + income
+			table.insert(playerEcoInfos, {
+				value = income,
+				name = playerName,
+				teamID = teamID,
+				me = myTeamId == teamID,
+				forced = false
+			})
+		end
+	end
+
+	-- normalize and add text formatting
+	local nplayerEcoInfos = #playerEcoInfos
+	for i = 1, nplayerEcoInfos do
+		local playerEcoInfo = playerEcoInfos[i]
+		playerEcoInfo.value = nplayerEcoInfos * (playerEcoInfo.value or 0) * 100 / sum
+		playerEcoInfo.valueString = string.format("%.0f%%", playerEcoInfo.value, 2)
+	end
+
+	table.sort(playerEcoInfos, function(a, b) return a.value > b.value end)
+
+	-- limit rows and add player forced flag
+	local playerEcoInfosLimited = {}
+	for i = 1, #playerEcoInfos do
+		local ecoInfo = playerEcoInfos[i]
+		if ecoInfo.me or #playerEcoInfosLimited < maxRows then
+			if ecoInfo.me then
+				if #playerEcoInfosLimited >= maxRows then
+					ecoInfo.forced = true
+				end
+				maxRows = maxRows + 1
+			end
+			table.insert(playerEcoInfosLimited, ecoInfo)
+		end
+	end
+
+	return playerEcoInfosLimited
+end
+
 function RaptorEvent(raptorEventArgs)
 	if raptorEventArgs.type == "firstWave" or raptorEventArgs.type == "queen" then
 		showMarqueeMessage = true
@@ -396,8 +517,6 @@ function widget:GameFrame(n)
 		end
 	end
 end
-
-
 
 function widget:DrawScreen()
 	Draw()
