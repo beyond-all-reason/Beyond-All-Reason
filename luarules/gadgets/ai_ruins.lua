@@ -149,7 +149,7 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 			local name = UnitDefs[building.unitDefID].name
 			local nonscavname = string.gsub(name, "_scav", "")
 			local r = math.random(1,100)
-			if r < 40 then
+			if r < 40 and UnitDefNames[nonscavname] then
 				local posy = Spring.GetGroundHeight(posx + (xOffset*flipX*mirrorX), posz + (zOffset*flipZ*mirrorZ))
 				local unit = Spring.CreateUnit(UnitDefNames[nonscavname].id, posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
 				if unit then
