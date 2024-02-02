@@ -316,7 +316,15 @@ function widget:MousePress(x, y, button)
 							buildQueue[#buildQueue + 1] = buildData
 						end
 					else
-						buildQueue = { buildData }
+						-- don't place mex if the spot is not valid
+						if isMex then
+							if WG.ExtractorSnap.position then
+								buildQueue = { buildData }
+							end
+						else
+							buildQueue = { buildData }
+						end
+
 					end
 
 					if not shift then

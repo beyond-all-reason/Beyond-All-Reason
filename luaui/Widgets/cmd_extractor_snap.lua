@@ -93,6 +93,10 @@ local function clear()
 end
 
 
+---If position of the active blueprint is an extractor, the snap behavior of this widget will be
+---disabled to allow cancelling queue actions the same way other buildings would.
+---@param uid table unitDefID
+---@param pos table position in format { x, y, z }
 local function clashesWithBuildQueue(uid, pos)
 	local units = Spring.GetSelectedUnits()
 
@@ -174,7 +178,6 @@ function widget:Update()
 	end
 
 	-- Attempt to get position of command
-
 	local mx, my, mb, mmb, mrb = spGetMouseState()
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local _, pos = spTraceScreenRay(mx, my, true)
@@ -186,30 +189,29 @@ function widget:Update()
 	cursorPos = {}
 	cursorPos.x, cursorPos.y, cursorPos.z = spPos2BuildPos(-activeCmdID, x, y, z)
 
-	local time = os.clock()
-
-	if clashesWithBuildQueue(-activeCmdID, cursorPos) then
+	-- check if there is stuff in the way - if there is we change behavior
+	local clashes = clashesWithBuildQueue(-activeCmdID, cursorPos)
+	if clashes then
 		clear()
 		return
 	end
 
-	local nearestSpot = selectedMex and
-		WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, metalSpots, selectedMex) or
-		WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, geoSpots, selectedGeo)
+	-- get nearest unoccupied spot, we have to separate shift behavior for pregame reasons here
+	local nearestSpot
+	if selectedMex then
+		nearestSpot = shift and
+			WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, metalSpots, selectedMex) or
+			WG["resource_spot_finder"].GetClosestMexSpot(x, z)
+	else
+		nearestSpot = shift and
+			WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, geoSpots, selectedGeo) or
+			WG["resource_spot_finder"].GetClosestGeoSpot(x, z)
+	end
 	if not nearestSpot then
 		clear()
 		return
 	end
 
-	if shift then
-		local spotIsTaken = WG["resource_spot_builder"].SpotHasExtractorQueued(nearestSpot)
-		if spotIsTaken then
-			clear()
-			return
-		end
-	end
-
-	Spring.Echo("time to check clashes and find nearest valid spot", os.clock() - time)
 
 	buildCmd = {}
 	local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(pos, -activeCmdID, nearestSpot)

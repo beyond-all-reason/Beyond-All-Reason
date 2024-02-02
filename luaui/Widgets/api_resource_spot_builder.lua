@@ -232,6 +232,11 @@ local function extractorCanBeBuiltOnSpot(spot, extractorId)
 end
 
 
+---Finds the nearest unoccupied resource spot from the provided list
+---@param x number
+---@param z number
+---@param spotsIn table
+---@param extractor table unitDefID
 local function findNearestValidSpotForExtractor(x, z, spotsIn, extractor)
 	-- sort spots by distance
 	local spots = table.copy(spotsIn)
@@ -242,7 +247,6 @@ local function findNearestValidSpotForExtractor(x, z, spotsIn, extractor)
 		local spot = spots[i]
 		local existingExtractor = spotHasExtractor(spot)
 		local hasExtractorQueued = spotHasExtractorQueued(spot)
-		Spring.Echo("spot has extractor queued", hasExtractorQueued)
 		if not existingExtractor and not hasExtractorQueued then
 			return spot
 		end
