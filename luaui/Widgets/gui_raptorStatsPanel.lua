@@ -233,7 +233,7 @@ local function CreatePanelDisplayList()
 			font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerWithTech', { anger = gameInfo.raptorQueenAnger, techAnger = gameInfo.raptorTechAnger }), panelMarginX, PanelRow(1), panelFontSize, "")
 
 			local totalSeconds = (100 - gameInfo.raptorQueenAnger) / gain
-			font:Print(textColor .. Spring.I18N('ui.raptors.queenETA', { time = '' }), panelMarginX, PanelRow(2), panelFontSize, "")
+			font:Print(textColor .. Spring.I18N('ui.raptors.queenETA'), panelMarginX, PanelRow(2), panelFontSize, "")
 			local time = string.formatTime(totalSeconds)
 			font:Print(textColor .. time, panelMarginX + 220 - font:GetTextWidth(time) * panelFontSize, PanelRow(2), panelFontSize, "")
 
