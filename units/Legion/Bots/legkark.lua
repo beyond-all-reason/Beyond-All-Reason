@@ -38,7 +38,7 @@ return {
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "Firestorm",
-			normaltex = "unittextures/Cor_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots",
 			wpn1turretx = 200,
 			wpn1turrety = 200,

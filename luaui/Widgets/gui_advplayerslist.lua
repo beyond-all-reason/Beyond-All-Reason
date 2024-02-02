@@ -73,6 +73,11 @@ local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold
 local font, font2
 
 local AdvPlayersListAtlas
+
+if not SkillUncertainties then
+    SkillUncertainties = VFS.Include("luaui/configs/SkillUncertainties.lua") or {}
+end
+
 --------------------------------------------------------------------------------
 -- SPEED UPS
 --------------------------------------------------------------------------------
@@ -1098,43 +1103,44 @@ end
 
 function GetSkill(playerID)
     local customtable = select(11, Spring.GetPlayerInfo(playerID))
-    local tsMu = customtable.skill
-    local tsSigma = customtable.skilluncertainty
-    local tskill = ""
-    if tsMu then
-        tskill = tsMu and tonumber(tsMu:match("-?%d+%.?%d*")) or 0
-        tskill = round(tskill, 0)
-        if string.find(tsMu, ")", nil, true) then
-            tskill = "\255" .. string.char(190) .. string.char(140) .. string.char(140) .. tskill -- ')' means inferred from lobby rank
+    local osMu = customtable.skill
+    local osSigma = customtable.skilluncertainty
+    local osSkill = ""
+    if osMu then
+        osSkill = osMu and tonumber(osMu:match("-?%d+%.?%d*")) or 0
+        osSkill = round(osSkill, 0)
+        if string.find(osMu, ")", nil, true) then
+            osSkill = "\255" .. string.char(190) .. string.char(140) .. string.char(140) .. osSkill -- ')' means inferred from lobby rank
         else
             -- show privacy mode
             local priv = ""
-            if string.find(tsMu, "~", nil, true) then
+            if string.find(osMu, "~", nil, true) then
                 -- '~' means privacy mode is on
                 priv = "\255" .. string.char(200) .. string.char(200) .. string.char(200) .. "*"
             end
 
             --show sigma
             local tsRed, tsGreen, tsBlue = 195, 195, 195
-            if tsSigma and type(tsSigma) == 'number' then
-                -- 0 is low sigma, 3 is high sigma
-                tsSigma = tonumber(tsSigma)
-                if tsSigma > 2 then
-                    tsRed, tsGreen, tsBlue = 190, 130, 130
-                elseif tsSigma == 2 then
-                    tsRed, tsGreen, tsBlue = 140, 140, 140
-                elseif tsSigma == 1 then
-                    tsRed, tsGreen, tsBlue = 195, 195, 195
-                elseif tsSigma < 1 then
-                    tsRed, tsGreen, tsBlue = 250, 250, 250
+            if osSigma and next(SkillUncertainties) then
+                osSigma = tonumber(osSigma)
+              
+                -- 0.00 is absolute certain , 8.33 is initial uncertaintiy at registration time (written at 2024/01/11)
+                if osSigma < SkillUncertainties[0].limit then
+                    tsRed, tsGreen, tsBlue = unpack(SkillUncertainties[0].color)
+                elseif osSigma < SkillUncertainties[1].limit then
+                    tsRed, tsGreen, tsBlue = unpack(SkillUncertainties[1].color)
+                elseif osSigma < SkillUncertainties[2].limit  then
+                    tsRed, tsGreen, tsBlue = unpack(SkillUncertainties[2].color)
+                else
+                    tsRed, tsGreen, tsBlue = unpack(SkillUncertainties[3].color)
                 end
             end
-            tskill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. tskill
+            osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. osSkill
         end
     else
-        tskill = "\255" .. string.char(160) .. string.char(160) .. string.char(160) .. "?"
+        osSkill = "\255" .. string.char(160) .. string.char(160) .. string.char(160) .. "?"
     end
-    return tskill
+    return osSkill
 end
 
 function CreatePlayer(playerID)
@@ -1147,8 +1153,7 @@ function CreatePlayer(playerID)
 	end
 
     --skill
-    local tskill
-    tskill = GetSkill(playerID)
+    local osSkillFormatted = GetSkill(playerID)
 
     --cpu/ping
     local tpingLvl = GetPingLvl(tping)
@@ -1177,7 +1182,7 @@ function CreatePlayer(playerID)
     end
     return {
         rank = trank,
-        skill = tskill,
+        skill = osSkillFormatted,
         name = tname,
         team = tteam,
         allyteam = tallyteam,
@@ -1228,7 +1233,7 @@ function CreatePlayerFromTeam(teamID)
     if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
         tred, tgreen, tblue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
     end
-    local tname, ttotake, tskill, tai
+    local tname, ttotake, tai
     local tdead = true
 
     if isAI then
@@ -1252,7 +1257,6 @@ function CreatePlayerFromTeam(teamID)
     if tname == nil then
         tname = absentName
     end
-    tskill = ""
 
     -- resources
     local energy, energyStorage, energyIncome, energyShare, metal, metalStorage, metalIncome, metalShare = 0, 1, 0, 0, 1, 0, 0, 0
@@ -1271,7 +1275,7 @@ function CreatePlayerFromTeam(teamID)
 
     return {
         rank = 8, -- "don't know which" value
-        skill = tskill,
+        skill = "",
         name = tname,
         team = teamID,
         allyteam = tallyteam,

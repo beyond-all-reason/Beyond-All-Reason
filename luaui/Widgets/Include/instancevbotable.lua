@@ -150,6 +150,17 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		return totalMem
 	end
 	
+	function instanceTable:Delete()
+		-- Frees the instancevbo and vao for this instance table. Does not touch the vertex and index vbos.
+		-- returns an estimate of how much ram was used
+		if self.instanceVBO then self.instanceVBO:Delete() end
+		if self.VAO then self.VAO:Delete() end 
+		local memusage = self:getMemUsage() 
+		self:clearInstanceTable() 
+		return memusage
+	end
+	
+	
 	newInstanceVBO:Upload(instanceData)
 	
 	--register self in WG if possible

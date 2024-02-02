@@ -44,7 +44,7 @@ return {
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "Mr Bob",
-			normaltex = "unittextures/arm_normal.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "coraircraft/t2",
 			techlevel = 2,
 		},

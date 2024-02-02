@@ -421,6 +421,7 @@ local function InitializeLight(lightTable, unitID)
 			lightparams[lightParamKeyOrder.a] =  lightparams[lightParamKeyOrder.a]
 			lightparams[lightParamKeyOrder.lifetime] = math.floor( lightparams[lightParamKeyOrder.lifetime] )
 			lightTable.lightParamTable = lightparams
+			lightTable.lightConfig = nil -- never used again after initialization
 		end
 
 		if unitID then
@@ -483,7 +484,9 @@ local function AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, 
 	end
 	lightparams[spawnFramePos] = gameFrame -- this might be problematic, as we will be modifying a table
 	lightparams[pieceIndexPos] = pieceIndex or 0
+	--tracy.ZoneBeginN("pushElementInstance")
 	instanceID = pushElementInstance(targetVBO, lightparams, instanceID, true, noUpload, unitID)
+	--tracy.ZoneEnd()
 	if lightparams[18] > 0 then
 		calcLightExpiry(targetVBO, lightparams, instanceID) -- This will add lights that have >0 lifetime to the removal queue
 	end
@@ -804,7 +807,7 @@ end
 
 -- multiple lights per unitdef/piece are possible, as the lights are keyed by lightname
 
-local function AddStaticLightsForUnit(unitID, unitDefID, noUpload)
+local function AddStaticLightsForUnit(unitID, unitDefID, noUpload, reason)
 	if unitDefLights[unitDefID] then
 		local _,_,_,_, buildprogress = Spring.GetUnitHealth(unitID)
 		if buildprogress < 1 then return end
@@ -822,7 +825,7 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noUpload)
 				local targetVBO = unitLightVBOMap[lightParams.lightType]
 
 				if (not spec) and lightParams.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then return end
-				AddLight(tostring(unitID) ..  lightname, unitID, lightParams.pieceIndex, targetVBO, lightParams.lightParamTable)
+				AddLight(tostring(unitID) ..  lightname, unitID, lightParams.pieceIndex, targetVBO, lightParams.lightParamTable, noUpload)
 			end
 		end
 	end
@@ -1080,6 +1083,34 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('GadgetWeaponBarrelfire')
 
 	widgetHandler:DeregisterGlobal('UnitScriptLight')
+	
+	deferredLightShader:Delete()
+	local ram = 0
+	for lighttype, vbo in pairs(unitLightVBOMap) do ram = ram + vbo:Delete() end 
+	for lighttype, vbo in pairs(projectileLightVBOMap) do ram = ram + vbo:Delete() end
+	for lighttype, vbo in pairs(lightVBOMap) do ram = ram + vbo:Delete() end 	
+	ram = ram + cursorPointLightVBO:Delete()
+	
+	--Spring.Echo("DLGL4 ram usage MB = ", ram / 1000000) 
+	--Spring.Echo("featureDefLights", table.countMem(featureDefLights))
+	--Spring.Echo("unitEventLights", table.countMem(unitEventLights))
+	--Spring.Echo("unitDefLights", table.countMem(unitDefLights))
+	--Spring.Echo("projectileDefLights", table.countMem(projectileDefLights))
+	--Spring.Echo("explosionLights", table.countMem(explosionLights))
+	
+	-- Note, these must be nil'ed manually, because 
+	-- tables included from VFS.Include dont get GC'd unless specifically nil'ed
+	unitDefLights = nil
+	featureDefLights = nil
+	unitEventLights = nil
+	muzzleFlashLights = nil 
+	projectileDefLights = nil 
+	explosionLights  = nil 
+	gibLight = nil 
+	
+	--collectgarbage("collect")
+	--collectgarbage("collect")
+	
 end
 
 local windX = 0

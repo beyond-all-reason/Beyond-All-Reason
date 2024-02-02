@@ -207,7 +207,7 @@ local reclaimFieldHighlightOptions = {
 local startScript = VFS.LoadFile("_script.txt")
 if not startScript then
 	local modoptions = ''
-	for key, value in pairs(Spring.GetModOptions()) do
+	for key, value in pairs(Spring.GetModOptionsCopy()) do
 		local v = value
 		if type(v) == 'boolean' then
 			v = (v and '1' or '0')
@@ -2639,6 +2639,13 @@ function init()
 			  Spring.SetConfigInt("snd_volui", value)
 		  end,
 		},
+		--{ id = "sndambient", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolambient'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volambient", 1) or 100),
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("snd_volambient", value)
+		--  end,
+		--},
 		--{ id = "sndvolunitreply", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolunitreply'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volunitreply", 1) or 100),
 		--  onload = function(i)
 		--  end,
@@ -5925,7 +5932,7 @@ function init()
 				options[#options+1] = { id = "label_custom_widgets_spacer", group = "custom", category = types.basic }
 			end
 			local desc = data.desc or ''
-			if desc ~= '' then
+			if desc ~= '' and WG['tooltip'] then
 				local maxWidth = WG['tooltip'].getFontsize() * 90
 				local textLines, numLines = font:WrapText(desc, maxWidth)
 				desc = string.gsub(textLines, '[\n]', '\n')
@@ -6098,6 +6105,9 @@ function widget:Initialize()
 	if widgetHandler.orderList["Pregame Queue"] < 0.5 then
 		widgetHandler:EnableWidget("Pregame Queue")
 	end
+	if widgetHandler.orderList["Screen Mode/Resolution Switcher"] < 0.5 then
+		widgetHandler:EnableWidget("Screen Mode/Resolution Switcher")
+	end
 
 	-- enable GL4 unit rendering api's
 	if widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
@@ -6106,7 +6116,6 @@ function widget:Initialize()
 	if widgetHandler.orderList["HighlightUnit API GL4"] < 0.5 then
 		widgetHandler:EnableWidget("HighlightUnit API GL4")
 	end
-
 
 	updateGrabinput()
 	widget:ViewResize()
