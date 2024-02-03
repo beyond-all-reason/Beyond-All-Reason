@@ -13,7 +13,6 @@ end
 local config                = VFS.Include('LuaRules/Configs/raptor_spawn_defs.lua')
 local Set                   = VFS.Include('common/SetList.lua').NewSetListMin
 
-local GetTeamColor          = Spring.GetTeamColor
 local DiffTimers            = Spring.DiffTimers
 local GetAIInfo             = Spring.GetAIInfo
 local GetAllUnits           = Spring.GetAllUnits
@@ -97,44 +96,6 @@ local rules                     = {
 	"raptorQueenHealth",
 	"lagging",
 	"raptorDifficulty",
-	"raptorCount",
-	"raptoraCount",
-	"raptorsCount",
-	"raptorfCount",
-	"raptorrCount",
-	"raptorwCount",
-	"raptorcCount",
-	"raptorpCount",
-	"raptorhCount",
-	"raptor_turretCount",
-	"raptor_dodoCount",
-	"raptor_hiveCount",
-	"raptorKills",
-	"raptoraKills",
-	"raptorsKills",
-	"raptorfKills",
-	"raptorrKills",
-	"raptorwKills",
-	"raptorcKills",
-	"raptorpKills",
-	"raptorhKills",
-	"raptor_turretKills",
-	"raptor_dodoKills",
-	"raptor_hiveKills",
-}
-
-local raptorTypes               = {
-	"raptor",
-	"raptora",
-	"raptorh",
-	"raptors",
-	"raptorw",
-	"raptor_dodo",
-	"raptorp",
-	"raptorf",
-	"raptorc",
-	"raptorr",
-	"raptor_turret",
 }
 
 local WALLS                     = Set()
@@ -160,21 +121,12 @@ if not raptorTeamID then
 	raptorTeamID = gaiaTeamID
 end
 
-local function getRaptorCounts(type)
-	local total = 0
-	local subtotal
-
-	for _, raptorType in ipairs(raptorTypes) do
-		subtotal = gameInfo[raptorType .. type]
-		total = total + subtotal
-	end
-
-	return total
-end
-
 local function updatePos(x, y)
-	x1 = math.min((viewSizeX * 0.94) - (w * widgetScale) / 2, x)
-	y1 = math.min((viewSizeY * 0.89) - (h * widgetScale) / 2, y)
+	local x0 = (viewSizeX * 0.94) - (w * widgetScale) / 2
+	local y0 = (viewSizeY * 0.89) - (h * widgetScale) / 2
+	x1 = x0 < x and x0 or x
+	y1 = y0 < y and y0 or y
+
 	updatePanel = true
 end
 
@@ -186,7 +138,7 @@ local function WaveRow(n)
 	return n * (waveFontSize + waveSpacingY)
 end
 
-function Interpolate(value, inMin, inMax, outMin, outMax)
+local function Interpolate(value, inMin, inMax, outMin, outMax)
 	-- Define the range of input values (100 to 500)
 	local minValue = inMin
 	local maxValue = inMax
@@ -196,7 +148,7 @@ function Interpolate(value, inMin, inMax, outMin, outMax)
 	local maxOutputValue = outMax
 
 	-- Ensure the value is within the specified range
-	value = math.max(minValue, math.min(maxValue, value))
+	value = (value < minValue) and minValue or ((value > maxValue) and maxValue or value)
 
 	-- Calculate the interpolation
 	local t = (value - minValue) / (maxValue - minValue)
@@ -205,14 +157,14 @@ function Interpolate(value, inMin, inMax, outMin, outMax)
 	return result
 end
 
-function CutStringAtPixelWidth(text, width)
+local function CutStringAtPixelWidth(text, width)
 	while font:GetTextWidth(text) * panelFontSize > width and text:len() >= 0 do
 		text = text:sub(1, -2)
 	end
 	return text
 end
 
-function DrawPlayerEcoInfos(row)
+local function DrawPlayerEcoInfos(row)
 	font:Print('Player Aggros:', panelMarginX, PanelRow(row), panelFontSize, "")
 	local playersEcoInfo = GetPlayersEcoInfo(7 - row)
 
@@ -402,11 +354,10 @@ local function UpdateRules()
 		gameInfo = {}
 	end
 
-	for _, rule in ipairs(rules) do
+	for i = 1, #rules do
+		local rule = rules[i]
 		gameInfo[rule] = GetGameRulesParam(rule) or 0
 	end
-	gameInfo.raptorCounts = getRaptorCounts('Count')
-	gameInfo.raptorKills = getRaptorCounts('Kills')
 
 	updatePanel = true
 end
@@ -436,7 +387,6 @@ function PlayerAggroEcoDistribution()
 				teamID = teamID,
 				me = myTeamId == teamID,
 				forced = false,
-				color = { GetTeamColor(teamID) }
 			})
 		end
 	end
@@ -506,37 +456,6 @@ function RaptorEvent(raptorEventArgs)
 		refreshMarqueeMessage = true
 		messageArgs = raptorEventArgs
 		waveTime = GetTimer()
-	end
-end
-
-function widget:Initialize()
-	widget:ViewResize()
-
-	displayList = gl.CreateList(function()
-		gl.Blending(true)
-		gl.Color(1, 1, 1, 1)
-		gl.Texture(panelTexture)
-		gl.TexRect(0, 0, w, h)
-	end)
-
-	widgetHandler:RegisterGlobal("RaptorEvent", RaptorEvent)
-	UpdateRules()
-	viewSizeX, viewSizeY = gl.GetViewSizes()
-	local x = math.abs(math.floor(viewSizeX - 320))
-	local y = math.abs(math.floor(viewSizeY - 300))
-
-	-- reposition if scavengers panel is shown as well
-	if Utilities.Gametype.IsScavengers() then
-		x = x - 315
-	end
-
-	updatePos(x, y)
-
-	local allUnits = GetAllUnits()
-	for i = 1, #allUnits do
-		local unitID = allUnits[i]
-		local unitDefID = GetUnitDefID(unitID)
-		RegisterUnit(unitID, unitDefID, GetUnitTeam(unitID))
 	end
 end
 
@@ -628,7 +547,7 @@ function widget:LanguageChanged()
 	updatePanel = true
 end
 
-function EcoValueByDef(unitDef)
+local function EcoValueByDef(unitDef)
 	-- Calculate an eco value based on energy and metal production
 	-- Echo("Built units eco value: " .. ecoValue)
 
@@ -679,7 +598,7 @@ function EcoValueByDef(unitDef)
 	return ecoValue
 end
 
-function ValidEcoUnitDef(unitDef, teamID)
+local function ValidEcoUnitDef(unitDef, teamID)
 	-- skip Raptor AI, moving units and player built walls
 	if teamID == raptorTeamID or not unitDef.canMove or WALLS.hash[unitDef.name] ~= nil then
 		return false
@@ -687,7 +606,7 @@ function ValidEcoUnitDef(unitDef, teamID)
 	return true
 end
 
-function RegisterUnit(unitID, unitDefID, unitTeam)
+local function RegisterUnit(unitID, unitDefID, unitTeam)
 	local unitDef = UnitDefs[unitDefID]
 
 	if ValidEcoUnitDef(unitDef, unitTeam) then
@@ -695,7 +614,7 @@ function RegisterUnit(unitID, unitDefID, unitTeam)
 	end
 end
 
-function DeregisterUnit(unitID, unitDefID, unitTeam)
+local function DeregisterUnit(unitID, unitDefID, unitTeam)
 	local unitDef = UnitDefs[unitDefID]
 
 	if ValidEcoUnitDef(unitDef, unitTeam) then
@@ -714,4 +633,35 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	DeregisterUnit(unitID, unitDefID, unitTeam)
+end
+
+function widget:Initialize()
+	widget:ViewResize()
+
+	displayList = gl.CreateList(function()
+		gl.Blending(true)
+		gl.Color(1, 1, 1, 1)
+		gl.Texture(panelTexture)
+		gl.TexRect(0, 0, w, h)
+	end)
+
+	widgetHandler:RegisterGlobal("RaptorEvent", RaptorEvent)
+	UpdateRules()
+	viewSizeX, viewSizeY = gl.GetViewSizes()
+	local x = math.abs(math.floor(viewSizeX - 320))
+	local y = math.abs(math.floor(viewSizeY - 300))
+
+	-- reposition if scavengers panel is shown as well
+	if Utilities.Gametype.IsScavengers() then
+		x = x - 315
+	end
+
+	updatePos(x, y)
+
+	local allUnits = GetAllUnits()
+	for i = 1, #allUnits do
+		local unitID = allUnits[i]
+		local unitDefID = GetUnitDefID(unitID)
+		RegisterUnit(unitID, unitDefID, GetUnitTeam(unitID))
+	end
 end
