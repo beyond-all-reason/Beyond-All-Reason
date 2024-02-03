@@ -231,13 +231,13 @@ function DrawPlayerEcoInfos(row)
 
 			-- Spring.Echo(playerEcoInfo.name .. ' forced ' .. tostring(playerEcoInfo.forced))
 
-			local namePosX = panelMarginX + 10 + (i == #playersEcoInfo and 40 or 0)
+			local namePosX = i == #playersEcoInfo and 80 or panelMarginX + 11
 			local normalizedStringWidth = math.floor(font:GetTextWidth(playerEcoInfo.valueNormalizedString) * panelFontSize)
 			local valuesRightX = panelMarginX + 220
 			local valuesLeftX = panelMarginX + 145
 			local rowY = PanelRow(row + i)
 			font:SetTextColor(1, gb, gb, playerEcoInfo.forced and 0.6 or alpha)
-			font:Print(CutStringAtPixelWidth(playerEcoInfo.name, valuesLeftX - namePosX - 3), namePosX, rowY, panelFontSize, "")
+			font:Print(CutStringAtPixelWidth(playerEcoInfo.name, valuesLeftX - namePosX - 2), namePosX, rowY, panelFontSize, "")
 			font:Print(playerEcoInfo.valueRatioString, valuesLeftX, rowY, panelFontSize, "")
 			font:Print(playerEcoInfo.valueNormalizedString, valuesRightX - normalizedStringWidth, rowY, panelFontSize, "")
 		end
@@ -296,7 +296,7 @@ local function CreatePanelDisplayList()
 		end
 	else
 		font:Print(I18N('ui.raptors.gracePeriod', { time = '' }), panelMarginX, PanelRow(1), panelFontSize, "")
-		local timeText = string.formatTime(math.ceil(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5))
+		local timeText = string.formatTime(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5)
 		font:Print(timeText, panelMarginX + 220 - font:GetTextWidth(timeText) * panelFontSize, PanelRow(1), panelFontSize, "")
 		DrawPlayerEcoInfos(2)
 	end
