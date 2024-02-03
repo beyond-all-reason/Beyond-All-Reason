@@ -48,7 +48,7 @@ function widget:Initialize()
 end
 
 
----Finds all builders among selected units that can make the specified constructor, and gets their average position
+---Finds all builders among selected units that can make the specified building, and gets their average position
 ---@param units table selected units
 ---@param constructorIds table All mex constructors
 ---@param buildingId number Specific mex that we want to build

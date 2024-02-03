@@ -155,11 +155,9 @@ function widget:Update(dt)
 			end
 
 			if unitIsMex then
-				--selectedSpot = WG["resource_spot_finder"].GetClosestMexSpot(x, z)
 				selectedPos = { x = x, y = y, z = z }
 				selectedMex = bestMex
 			else
-				--selectedSpot = WG["resource_spot_finder"].GetClosestGeoSpot(x, z)
 				selectedPos = { x = x, y = y, z = z }
 				selectedGeo = bestGeo
 			end

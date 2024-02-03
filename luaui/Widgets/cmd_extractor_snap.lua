@@ -31,9 +31,7 @@ local unitShape
 local activeUnitShape
 local metalMap = false
 local metalSpots = {}
-local metalSpotsCoords = {} -- used to save memory for table copies
 local geoSpots = {}
-local geoSpotsCoords = {} -- used to save memory for table copies
 
 local isPregame = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
 
@@ -62,13 +60,6 @@ function widget:Initialize()
 	metalSpots = WG["resource_spot_finder"].metalSpotsList
 	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
 		metalMap = true
-	end
-
-	for i = 1, #metalSpots do
-		metalSpotsCoords[#metalSpotsCoords + 1] = { x = metalSpots[i].x, y = metalSpots[i].y, z = metalSpots[i].z }
-	end
-	for i = 1, #geoSpots do
-		geoSpotsCoords[#geoSpots + 1] = { x = geoSpots[i].x, y = geoSpots[i].y, z = geoSpots[i].z }
 	end
 end
 
@@ -100,6 +91,7 @@ end
 local function clashesWithBuildQueue(uid, pos)
 	local units = Spring.GetSelectedUnits()
 
+	-- local building test functions taken from pregame_build
 	local function GetBuildingDimensions(uDefID, facing)
 		local bDef = UnitDefs[uDefID]
 		if (facing % 2 == 1) then
@@ -190,8 +182,7 @@ function widget:Update()
 	cursorPos.x, cursorPos.y, cursorPos.z = spPos2BuildPos(-activeCmdID, x, y, z)
 
 	-- check if there is stuff in the way - if there is we change behavior
-	local clashes = clashesWithBuildQueue(-activeCmdID, cursorPos)
-	if clashes then
+	if clashesWithBuildQueue(-activeCmdID, cursorPos) then
 		clear()
 		return
 	end
