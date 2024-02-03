@@ -22,6 +22,8 @@ local placedDirectly = false
 
 local unitshape
 
+local ownerID = "Geothermal Snap"
+
 local isGeo = {}
 for uDefID, uDef in pairs(UnitDefs) do
 	if uDef.needGeo then
@@ -185,12 +187,14 @@ function widget:DrawWorld()
 	gl.LineWidth(1.0)
 	gl.DepthTest(true)
 
+	
 	-- Add/update unit shape rendering
 	local newUnitshape = {-cmdID, bestPos[1], bestPos[2], bestPos[3], bface}
 	if not unitshape or (unitshape[1]~= newUnitshape[1] or unitshape[2]~= newUnitshape[2] or unitshape[3]~= newUnitshape[3] or unitshape[4]~= newUnitshape[4] or unitshape[5]~= newUnitshape[5]) then
-		clearShape()
 		unitshape = newUnitshape
-		unitshape[6] = WG.DrawUnitShapeGL4(unitshape[1], unitshape[2], unitshape[3], unitshape[4], unitshape[5]*math_pi, 0.66, Spring.GetMyTeamID(), 0.15, 0.3)
+		-- Note that DrawUnitShapeGL4 returns the uniqueID, and we just use that as a reference to update an existing unitshape
+		--DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID, teamcoloroverride, highlight, updateID, ownerID)
+		unitshape[6] = WG.DrawUnitShapeGL4(unitshape[1], unitshape[2], unitshape[3], unitshape[4], unitshape[5]*math_pi, 0.66, Spring.GetMyTeamID(), 0.15, 0.3, unitshape[6], ownerID)
 	end
 end
 
