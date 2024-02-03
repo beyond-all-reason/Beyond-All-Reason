@@ -51,36 +51,36 @@ if not GetGameRulesParam("raptorDifficulty") then
 end
 
 local displayList
-local panelTexture = ":n:LuaUI/Images/raptorpanel.tga"
+local panelTexture              = ":n:LuaUI/Images/raptorpanel.tga"
 
-local panelFontSize = 14
-local waveFontSize = 36
+local panelFontSize             = 14
+local waveFontSize              = 36
 
-local vsx, vsy = Spring.GetViewGeometry()
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local vsx, vsy                  = Spring.GetViewGeometry()
+local fontfile2                 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
-local viewSizeX, viewSizeY = 0, 0
-local w = 300
-local h = 210
-local x1 = 0
-local y1 = 0
-local panelMarginX = 30
-local panelMarginY = 40
-local panelSpacingY = 5
-local waveSpacingY = 7
+local viewSizeX, viewSizeY      = 0, 0
+local w                         = 300
+local h                         = 210
+local x1                        = 0
+local y1                        = 0
+local panelMarginX              = 30
+local panelMarginY              = 40
+local panelSpacingY             = 5
+local waveSpacingY              = 7
 local moving
 local capture
 local gameInfo
-local waveSpeed = 0.1
-local waveCount = 0
+local waveSpeed                 = 0.1
+local waveCount                 = 0
 local waveTime
 local enabled
 local gotScore
-local scoreCount = 0
-local resistancesTable = {}
-local currentlyResistantTo = {}
+local scoreCount                = 0
+local resistancesTable          = {}
+local currentlyResistantTo      = {}
 local currentlyResistantToNames = {}
-local WALLS = Set({
+local WALLS                     = Set({
 	"armdrag",
 	"armfort",
 	"cordrag",
@@ -88,15 +88,15 @@ local WALLS = Set({
 	"scavdrag",
 	"scavfort",
 })
-local playersAggroEcos = {}
+local playersAggroEcos          = {}
 
 local guiPanel --// a displayList
 local updatePanel
-local hasRaptorEvent = false
+local hasRaptorEvent            = false
 
-local difficultyOption = GetModOptions().raptor_difficulty
+local difficultyOption          = GetModOptions().raptor_difficulty
 
-local rules = {
+local rules                     = {
 	"raptorQueenTime",
 	"raptorQueenAnger",
 	"raptorTechAnger",
@@ -130,7 +130,7 @@ local rules = {
 	"raptor_hiveKills",
 }
 
-local raptorTypes = {
+local raptorTypes               = {
 	"raptor",
 	"raptora",
 	"raptorh",
@@ -146,7 +146,7 @@ local raptorTypes = {
 
 local raptorTeamID
 
-local teams = GetTeamList()
+local teams                     = GetTeamList()
 for _, teamID in ipairs(teams) do
 	local teamLuaAI = GetTeamLuaAI(teamID)
 	if (teamLuaAI and string.find(teamLuaAI, "Raptors")) then
@@ -421,7 +421,7 @@ function PlayerAggroEcoDistribution()
 			_, playerName = GetAIInfo(teamID)
 		end
 
-		local aggroEcoValue = playersAggroEcos[teamID] or 0
+		local aggroEcoValue = playersAggroEcos[teamID] == playersAggroEcos[teamID] and (playersAggroEcos[teamID] or 0) or 0
 		if playerName and not playerName:find("Raptors") then
 			sum = sum + aggroEcoValue
 			table.insert(playerEcoInfos, {
@@ -442,10 +442,10 @@ function GetPlayersEcoInfo(maxRows)
 	local playerEcoInfos, sum = PlayerAggroEcoDistribution()
 
 	-- normalize and add text formatting
-	local nplayerEcoInfos     = #playerEcoInfos
-	for i = 1, nplayerEcoInfos do
+	local nPlayerEcoInfos     = #playerEcoInfos
+	for i = 1, nPlayerEcoInfos do
 		local playerEcoInfo = playerEcoInfos[i]
-		playerEcoInfo.value = nplayerEcoInfos * (playerEcoInfo.value or 0) * 100 / (sum or 1)
+		playerEcoInfo.value = nPlayerEcoInfos * (playerEcoInfo.value or 0) * 100 / (sum or 1)
 		playerEcoInfo.valueString = string.format("%.0f%%", playerEcoInfo.value or 0, 2)
 	end
 
