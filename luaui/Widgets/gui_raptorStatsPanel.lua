@@ -204,7 +204,7 @@ function Interpolate(value, inMin, inMax, outMin, outMax)
 	return result
 end
 
-function TruncateTextToPixelWidth(text, width)
+function CutStringAtPixelWidth(text, width)
 	while font:GetTextWidth(text) * panelFontSize > width and text:len() >= 0 do
 		text = text:sub(1, -2)
 	end
@@ -220,21 +220,26 @@ function DrawPlayerEcoInfos(row)
 		if playerEcoInfo.name then
 			local gb = 1
 			local alpha = 1
-			if playerEcoInfo.value > 170 then
-				gb = Interpolate(playerEcoInfo.value, 170, 600, 0.5, 0.3)
-			elseif playerEcoInfo.value > 100 then
-				gb = Interpolate(playerEcoInfo.value, 100, 170, 0.8, 0.5)
-			elseif playerEcoInfo.value < 80 then
-				alpha = Interpolate(playerEcoInfo.value, 0, 70, 1, 0.8)
+			if playerEcoInfo.valueRatio > 1.7 then
+				gb = Interpolate(playerEcoInfo.valueRatio, 1.7, 6, 0.5, 0.3)
+			elseif playerEcoInfo.valueRatio > 1.2 then
+				gb = Interpolate(playerEcoInfo.valueRatio, 1.2, 1.7, 0.8, 0.5)
+			elseif playerEcoInfo.valueRatio < 0.8 then
+				alpha = Interpolate(playerEcoInfo.valueRatio, 0, 0.7, 1, 0.8)
 			end
 			font:SetTextColor(1, gb, gb, playerEcoInfo.forced and 0.6 or alpha)
 
+			-- Spring.Echo(playerEcoInfo.name .. ' forced ' .. tostring(playerEcoInfo.forced))
+
 			local namePosX = panelMarginX + 10 + (i == #playersEcoInfo and 40 or 0)
-			local ecoTextWidth = math.floor(font:GetTextWidth(playerEcoInfo.valueString) * panelFontSize)
-			local ecoTextRightX = panelMarginX + 220
+			local normalizedStringWidth = math.floor(font:GetTextWidth(playerEcoInfo.valueNormalizedString) * panelFontSize)
+			local valuesRightX = panelMarginX + 220
+			local valuesLeftX = panelMarginX + 145
+			local rowY = PanelRow(row + i)
 			font:SetTextColor(1, gb, gb, playerEcoInfo.forced and 0.6 or alpha)
-			font:Print(TruncateTextToPixelWidth(playerEcoInfo.name, (ecoTextRightX - ecoTextWidth) - namePosX), namePosX, PanelRow(row + i), panelFontSize, "")
-			font:Print(playerEcoInfo.valueString, ecoTextRightX - ecoTextWidth, PanelRow(row + i), panelFontSize, "")
+			font:Print(CutStringAtPixelWidth(playerEcoInfo.name, valuesLeftX - namePosX - 3), namePosX, rowY, panelFontSize, "")
+			font:Print(playerEcoInfo.valueRatioString, valuesLeftX, rowY, panelFontSize, "")
+			font:Print(playerEcoInfo.valueNormalizedString, valuesRightX - normalizedStringWidth, rowY, panelFontSize, "")
 		end
 	end
 	font:SetTextColor(1, 1, 1, 1)
@@ -421,8 +426,8 @@ function PlayerAggroEcoDistribution()
 			_, playerName = GetAIInfo(teamID)
 		end
 
-		local aggroEcoValue = playersAggroEcos[teamID] == playersAggroEcos[teamID] and (playersAggroEcos[teamID] or 0) or 0
-		if playerName and not playerName:find("Raptors") then
+		local aggroEcoValue = playersAggroEcos[teamID]
+		if playerName and not playerName:find("Raptors") and aggroEcoValue and aggroEcoValue > 0 then
 			sum = sum + aggroEcoValue
 			table.insert(playerEcoInfos, {
 				value = aggroEcoValue,
@@ -441,28 +446,35 @@ function GetPlayersEcoInfo(maxRows)
 	maxRows                   = (maxRows or 3) - 1
 	local playerEcoInfos, sum = PlayerAggroEcoDistribution()
 
+	if sum == 0 then
+		return {}
+	end
+
 	-- normalize and add text formatting
-	local nPlayerEcoInfos     = #playerEcoInfos
+	local nPlayerEcoInfos = #playerEcoInfos
 	for i = 1, nPlayerEcoInfos do
-		local playerEcoInfo = playerEcoInfos[i]
-		playerEcoInfo.value = nPlayerEcoInfos * (playerEcoInfo.value or 0) * 100 / (sum or 1)
-		playerEcoInfo.valueString = string.format("%.0f%%", playerEcoInfo.value or 0, 2)
+		local playerEcoInfo                 = playerEcoInfos[i]
+		playerEcoInfo.valueRatio            = nPlayerEcoInfos * playerEcoInfo.value / sum
+		playerEcoInfo.valueNormalized       = playerEcoInfo.value * 100 / sum
+		playerEcoInfo.valueRatioString      = string.format("%.1fX", playerEcoInfo.valueRatio)
+		playerEcoInfo.valueNormalizedString = string.format(" (%.0f%%)", playerEcoInfo.valueNormalized)
 	end
 
 	table.sort(playerEcoInfos, function(a, b) return a.value > b.value end)
 
 	-- limit rows and add player forced flag
 	local playerEcoInfosLimited = {}
+	local playerEcoInfo
 	for i = 1, #playerEcoInfos do
-		local ecoInfo = playerEcoInfos[i]
-		if ecoInfo.me or #playerEcoInfosLimited < maxRows then
-			if ecoInfo.me then
-				if #playerEcoInfosLimited > maxRows then
-					ecoInfo.forced = true
-				end
+		playerEcoInfo = playerEcoInfos[i]
+		if playerEcoInfo.me or #playerEcoInfosLimited < maxRows then
+			if playerEcoInfo.me then
 				maxRows = maxRows + 1
 			end
-			table.insert(playerEcoInfosLimited, ecoInfo)
+			if playerEcoInfo.me and i > #playerEcoInfosLimited + 1 then
+				playerEcoInfo.forced = true
+			end
+			table.insert(playerEcoInfosLimited, playerEcoInfo)
 		end
 	end
 
