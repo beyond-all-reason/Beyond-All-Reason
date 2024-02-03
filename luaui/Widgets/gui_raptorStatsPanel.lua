@@ -684,11 +684,7 @@ function RegisterUnit(unitID, unitDefID, unitTeam)
 	end
 end
 
-function widget:UnitCreated(unitID, unitDefID, unitTeam)
-	RegisterUnit(unitID, unitDefID, unitTeam)
-end
-
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
+function DeregisterUnit(unitID, unitDefID, unitTeam)
 	if unitTeam == raptorTeamID then
 		return
 	end
@@ -704,4 +700,17 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 	if not unitDef.canMove then
 		playersAggroEcos[unitTeam] = (playersAggroEcos[unitTeam] or 0) - EcoValueByDef(unitDef)
 	end
+end
+
+function widget:UnitCreated(unitID, unitDefID, unitTeam)
+	RegisterUnit(unitID, unitDefID, unitTeam)
+end
+
+function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+	RegisterUnit(unitID, unitDefID, unitTeam)
+	DeregisterUnit(unitID, unitDefID, oldTeam)
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	DeregisterUnit(unitID, unitDefID, unitTeam)
 end
