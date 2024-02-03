@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 local config                = VFS.Include('LuaRules/Configs/raptor_spawn_defs.lua')
-local Set                   = VFS.Include('common/SetList.lua').NewSetList
+local Set                   = VFS.Include('common/SetList.lua').NewSetListMin
 
 local GetTeamColor          = Spring.GetTeamColor
 local DiffTimers            = Spring.DiffTimers
@@ -80,14 +80,7 @@ local scoreCount                = 0
 local resistancesTable          = {}
 local currentlyResistantTo      = {}
 local currentlyResistantToNames = {}
-local WALLS                     = Set({
-	"armdrag",
-	"armfort",
-	"cordrag",
-	"corfort",
-	"scavdrag",
-	"scavfort",
-})
+
 local playersAggroEcos          = {}
 
 local guiPanel --// a displayList
@@ -144,9 +137,17 @@ local raptorTypes               = {
 	"raptor_turret",
 }
 
+local WALLS                     = Set()
+WALLS:Add("armdrag")
+WALLS:Add("armfort")
+WALLS:Add("cordrag")
+WALLS:Add("corfort")
+WALLS:Add("scavdrag")
+WALLS:Add("scavfort")
+
 local raptorTeamID
 
-local teams                     = GetTeamList()
+local teams = GetTeamList()
 for _, teamID in ipairs(teams) do
 	local teamLuaAI = GetTeamLuaAI(teamID)
 	if (teamLuaAI and string.find(teamLuaAI, "Raptors")) then
@@ -628,6 +629,18 @@ function widget:LanguageChanged()
 end
 
 function EcoValueByDef(unitDef)
+	-- Calculate an eco value based on energy and metal production
+	-- Echo("Built units eco value: " .. ecoValue)
+
+	-- Ends up building an object like:
+	-- {
+	--  0: [non-eco]
+	--	25: [t1 windmill, t1 solar, t1 mex],
+	--	75: [adv solar]
+	--	1000: [fusion]
+	--	3000: [adv fusion]
+	-- }
+
 	local ecoValue = 1
 	if unitDef.energyMake then
 		ecoValue = ecoValue + unitDef.energyMake
@@ -666,50 +679,26 @@ function EcoValueByDef(unitDef)
 	return ecoValue
 end
 
+function ValidEcoUnitDef(unitDef, teamID)
+	-- skip Raptor AI, moving units and player built walls
+	if teamID == raptorTeamID or not unitDef.canMove or WALLS.hash[unitDef.name] ~= nil then
+		return false
+	end
+	return true
+end
+
 function RegisterUnit(unitID, unitDefID, unitTeam)
 	local unitDef = UnitDefs[unitDefID]
 
-	if unitTeam == raptorTeamID then
-		return
-	end
-
-	-- If a wall
-	for _, wallName in pairs(WALLS) do
-		if unitDef.name == wallName then
-			return
-		end
-	end
-
-	if not unitDef.canMove then
-		-- Calculate an eco value based on energy and metal production
-		-- Echo("Built units eco value: " .. ecoValue)
-
-		-- Ends up building an object like:
-		-- {
-		--  0: [non-eco]
-		--	25: [t1 windmill, t1 solar, t1 mex],
-		--	75: [adv solar]
-		--	1000: [fusion]
-		--	3000: [adv fusion]
-		-- }
+	if ValidEcoUnitDef(unitDef, unitTeam) then
 		playersAggroEcos[unitTeam] = (playersAggroEcos[unitTeam] or 0) + EcoValueByDef(unitDef)
 	end
 end
 
 function DeregisterUnit(unitID, unitDefID, unitTeam)
-	if unitTeam == raptorTeamID then
-		return
-	end
-
-	-- If a wall
 	local unitDef = UnitDefs[unitDefID]
-	for _, wallName in pairs(WALLS) do
-		if unitDef.name == wallName then
-			return
-		end
-	end
 
-	if not unitDef.canMove then
+	if ValidEcoUnitDef(unitDef, unitTeam) then
 		playersAggroEcos[unitTeam] = (playersAggroEcos[unitTeam] or 0) - EcoValueByDef(unitDef)
 	end
 end
