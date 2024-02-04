@@ -2275,7 +2275,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 	-- transporting enemy coms
 	if Spring.GetModOptions().transportenemy == "notcoms" then
 		for name,ud in pairs(UnitDefs) do
-			if ud.customParams.iscommander then
+			if ud.customparams.iscommander then
 				ud.transportbyenemy = false
 			end
 		end
