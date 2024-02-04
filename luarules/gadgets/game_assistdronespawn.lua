@@ -35,17 +35,27 @@ end
 
 local drones = {}
 if Spring.GetModOptions().assistdronesair == true then
-    drones = {
-        [UDN.armcom.id] = "armassistdrone",
-        [UDN.corcom.id] = "corassistdrone",
-        [UDN.legcom.id] = "legassistdrone",
-    }
+	--drones = {
+	--	[UDN.armcom.id] = "armassistdrone",
+	--	[UDN.corcom.id] = "corassistdrone",
+	--	[UDN.legcom.id] = "legassistdrone",
+	--}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.customParams.iscommander then
+			drones[unitDefID] = string.sub(unitDef.name, 1, 3).."assistdrone"
+		end
+	end
 else
-    drones = {
-        [UDN.armcom.id] = "armassistdrone_land",
-        [UDN.corcom.id] = "corassistdrone_land",
-        [UDN.legcom.id] = "legassistdrone_land",
-    }
+	--drones = {
+	--	[UDN.armcom.id] = "armassistdrone_land",
+	--	[UDN.corcom.id] = "corassistdrone_land",
+	--	[UDN.legcom.id] = "legassistdrone_land",
+	--}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.customParams.iscommander then
+			drones[unitDefID] = string.sub(unitDef.name, 1, 3).."assistdrone_land"
+		end
+	end
 end
 
 
@@ -71,7 +81,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
     end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam) 
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
     if commandersList[unitID] then
         commandersList[unitID] = nil
     end
