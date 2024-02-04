@@ -168,8 +168,8 @@ return {
 					decayrate = 4,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
-					dockinghealrate = 15,
-					docktohealthreshold = 50,
+					dockinghealrate = 16,
+					docktohealthreshold = 66,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpiecestart = 5,		--First model piece to be used for docking.

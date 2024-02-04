@@ -123,6 +123,14 @@ local TimedDamageWeapons = {
     },
 
 
+	[WeaponDefNames.leegmech_aimhull.id] = {
+        ceg = "fire-area-75",
+        damageCeg = "burnflamexl",
+        time = 10,
+        damage = 30,
+        range = 75,
+        resistance = "test",
+    },
 	[WeaponDefNames.legbart_clusternapalm.id] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
