@@ -105,9 +105,8 @@ local unitArray_ = {
   "corantiship",
 
   --misc
-
 }
--- add commanders
+-- add commanders too
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
@@ -117,9 +116,9 @@ end
 
 local unitArray = {}
 for _, name in pairs(unitArray_) do
-  if UnitDefNames[name] then
-    unitArray[UnitDefNames[name].id] = true
-  end
+	if UnitDefNames[name] then
+		unitArray[UnitDefNames[name].id] = true
+	end
 end
 unitArray_ = nil
 
@@ -127,22 +126,22 @@ local myTeamID = Spring.GetMyTeamID()
 
 
 function widget:PlayerChanged(playerID)
-  if Spring.GetSpectatingState() then
-    widgetHandler:RemoveWidget()
-  end
-  myTeamID = Spring.GetMyTeamID()
+	if Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget()
+	end
+	myTeamID = Spring.GetMyTeamID()
 end
 
 function widget:Initialize()
-  if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
-    widget:PlayerChanged()
-  end
+	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+		widget:PlayerChanged()
+	end
 end
 
-function widget:UnitFromFactory(unitID, unitDefID, unitTeam)
-  if unitTeam == myTeamID then
-    if unitArray[unitDefID] then
-      Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
-    end
-  end
+function widget:UnitCreated(unitID, unitDefID, unitTeam)
+	if unitTeam == myTeamID then
+		if unitArray[unitDefID] then
+			Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
+		end
+	end
 end
