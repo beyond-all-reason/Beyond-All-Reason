@@ -58,7 +58,6 @@ local unitArray_ = {
   "leggant",
 }
 -- add commanders too
-local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
 		unitArray_[#unitArray_+1] = unitDef.name
@@ -68,7 +67,9 @@ end
 local unitArray = {}
 for _, name in pairs(unitArray_) do
   unitArray[UnitDefNames[name].id] = true
-  unitArray[UnitDefNames[name.."_scav"].id] = true
+	if UnitDefNames[name.."_scav"] then
+		unitArray[UnitDefNames[name.."_scav"].id] = true
+	end
 end
 unitArray_ = nil
 
