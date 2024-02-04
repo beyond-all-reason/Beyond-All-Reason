@@ -191,11 +191,11 @@ function widget:Update()
 	local nearestSpot
 	if selectedMex then
 		nearestSpot = shift and
-			WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, metalSpots, selectedMex) or
+			WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, metalSpots, -activeCmdID) or
 			WG["resource_spot_finder"].GetClosestMexSpot(x, z)
 	else
 		nearestSpot = shift and
-			WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, geoSpots, selectedGeo) or
+			WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, geoSpots, -activeCmdID) or
 			WG["resource_spot_finder"].GetClosestGeoSpot(x, z)
 	end
 	if not nearestSpot then

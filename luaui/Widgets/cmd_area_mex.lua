@@ -119,14 +119,14 @@ end
 ---@param spots table
 local function calculateCmdOrder(cmds, spots)
 	local builderPos = getAvgPositionOfValidBuilders(selectedUnits, mexConstructors, selectedMex)
+	if not builderPos then return end
 	local orderedCommands = {}
-	local lastPos = builderPos
 	local pos = {}
 	while #cmds > 0 do
 		local shortestDist = math.huge
 		local shortestIndex = -1
 		for i = 1, #cmds do
-			local dist = math.distance2dSquared(lastPos.x, lastPos.z, cmds[i][2], cmds[i][4])
+			local dist = math.distance2dSquared(builderPos.x, builderPos.z, cmds[i][2], cmds[i][4])
 			dist = dist / spots[i].worth
 			if dist < shortestDist then
 				shortestDist = dist
@@ -138,7 +138,7 @@ local function calculateCmdOrder(cmds, spots)
 		orderedCommands[#orderedCommands + 1] = cmds[shortestIndex]
 		taremove(cmds, shortestIndex)
 		taremove(spots, shortestIndex)
-		lastPos = pos
+		builderPos = pos
 	end
 	return orderedCommands
 end
