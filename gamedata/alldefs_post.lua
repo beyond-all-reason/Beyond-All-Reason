@@ -483,7 +483,7 @@ function UnitDef_Post(name, uDef)
 				if UnitName == "corvac" then
 					printerpresent = true
 				end
-			end	
+			end
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
 			uDef.buildoptions[numBuildoptions+2] = "corforge"
@@ -492,7 +492,7 @@ function UnitDef_Post(name, uDef)
 			if (printerpresent==false) then -- assuming sala and vac stay paired, this is tidiest solution
 				uDef.buildoptions[numBuildoptions+5] = "corsala"
 				uDef.buildoptions[numBuildoptions+6] = "corvac" --corprinter
-			end	
+			end
 		elseif name == "corgant" or name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
 
@@ -2275,7 +2275,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 	-- transporting enemy coms
 	if Spring.GetModOptions().transportenemy == "notcoms" then
 		for name,ud in pairs(UnitDefs) do
-			if name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom" then
+			if ud.customParams.iscommander then
 				ud.transportbyenemy = false
 			end
 		end
