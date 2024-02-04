@@ -107,7 +107,6 @@ WALLS:Add("scavdrag")
 WALLS:Add("scavfort")
 
 local raptorTeamID
-
 local teams = GetTeamList()
 for _, teamID in ipairs(teams) do
 	local teamLuaAI = GetTeamLuaAI(teamID)
@@ -115,10 +114,8 @@ for _, teamID in ipairs(teams) do
 		raptorTeamID = teamID
 	end
 end
-
-local gaiaTeamID = GetGaiaTeamID()
 if not raptorTeamID then
-	raptorTeamID = gaiaTeamID
+	raptorTeamID = GetGaiaTeamID()
 end
 
 local function updatePos(x, y)
@@ -128,6 +125,73 @@ local function updatePos(x, y)
 	y1 = y0 < y and y0 or y
 
 	updatePanel = true
+end
+local function PlayerAggroValues()
+	local myTeamId     = GetMyTeamID()
+	local teamList     = GetTeamList()
+	local playerAggros = {}
+	local sum          = 0
+
+	for i = 1, #teamList do
+		local teamID = teamList[i]
+		local playerName
+		local playerList = GetPlayerList(teamID)
+		if playerList[1] then
+			playerName = GetPlayerInfo(playerList[1])
+		else
+			_, playerName = GetAIInfo(teamID)
+		end
+
+		local aggroEcoValue = playersAggroEcos[teamID]
+		if playerName and not playerName:find("Raptors") and aggroEcoValue and aggroEcoValue > 0 then
+			sum = sum + aggroEcoValue
+			table.insert(playerAggros, {
+				value = aggroEcoValue,
+				name = playerName,
+				teamID = teamID,
+				me = myTeamId == teamID,
+				forced = false,
+			})
+		end
+	end
+	return playerAggros, sum
+end
+
+local function PlayerAggros(maxRows)
+	maxRows                 = (maxRows or 3) - 1
+	local playerAggros, sum = PlayerAggroValues()
+
+	if sum == 0 then
+		return {}
+	end
+
+	table.sort(playerAggros, function(a, b) return a.value > b.value end)
+
+	-- add string formatting, forced current player result and limit results
+	local nPlayerAggros = #playerAggros
+	local playerAggrosLimited = {}
+	local playerAggro
+	for i = 1, nPlayerAggros do
+		playerAggro = playerAggros[i]
+
+		-- Always include current player
+		if playerAggro.me or #playerAggrosLimited < maxRows then
+			if playerAggro.me then
+				maxRows = maxRows + 1
+			end
+			-- Current player added as last, so forced
+			if playerAggro.me and i > #playerAggrosLimited + 1 then
+				playerAggro.forced = true
+			end
+			playerAggro.aggroMultiple       = nPlayerAggros * playerAggro.value / sum
+			playerAggro.aggroFraction       = playerAggro.value * 100 / sum
+			playerAggro.aggroMultipleString = string.format("%.1fX", playerAggro.aggroMultiple)
+			playerAggro.aggroFractionString = string.format(" (%.0f%%)", playerAggro.aggroFraction)
+			table.insert(playerAggrosLimited, playerAggro)
+		end
+	end
+
+	return playerAggrosLimited
 end
 
 local function PanelRow(n)
@@ -164,35 +228,33 @@ local function CutStringAtPixelWidth(text, width)
 	return text
 end
 
-local function DrawPlayerEcoInfos(row)
+local function DrawPlayerAggros(row)
 	font:Print('Player Aggros:', panelMarginX, PanelRow(row), panelFontSize, "")
-	local playersEcoInfo = GetPlayersEcoInfo(7 - row)
+	local playersEcoInfo = PlayerAggros(7 - row)
 
 	for i = 1, #playersEcoInfo do
 		local playerEcoInfo = playersEcoInfo[i]
 		if playerEcoInfo.name then
 			local gb = 1
 			local alpha = 1
-			if playerEcoInfo.valueRatio > 1.7 then
-				gb = Interpolate(playerEcoInfo.valueRatio, 1.7, 6, 0.5, 0.3)
-			elseif playerEcoInfo.valueRatio > 1.2 then
-				gb = Interpolate(playerEcoInfo.valueRatio, 1.2, 1.7, 0.8, 0.5)
-			elseif playerEcoInfo.valueRatio < 0.8 then
-				alpha = Interpolate(playerEcoInfo.valueRatio, 0, 0.7, 1, 0.8)
+			if playerEcoInfo.aggroMultiple > 1.7 then
+				gb = Interpolate(playerEcoInfo.aggroMultiple, 1.7, 6, 0.5, 0.3)
+			elseif playerEcoInfo.aggroMultiple > 1.2 then
+				gb = Interpolate(playerEcoInfo.aggroMultiple, 1.2, 1.7, 0.8, 0.5)
+			elseif playerEcoInfo.aggroMultiple < 0.8 then
+				alpha = Interpolate(playerEcoInfo.aggroMultiple, 0, 0.7, 1, 0.8)
 			end
 			font:SetTextColor(1, gb, gb, playerEcoInfo.forced and 0.6 or alpha)
 
-			-- Spring.Echo(playerEcoInfo.name .. ' forced ' .. tostring(playerEcoInfo.forced))
-
 			local namePosX = i == #playersEcoInfo and 80 or panelMarginX + 11
-			local normalizedStringWidth = math.floor(font:GetTextWidth(playerEcoInfo.valueNormalizedString) * panelFontSize)
+			local aggroFractionStringWidth = math.floor(font:GetTextWidth(playerEcoInfo.aggroFractionString) * panelFontSize)
 			local valuesRightX = panelMarginX + 220
 			local valuesLeftX = panelMarginX + 145
 			local rowY = PanelRow(row + i)
 			font:SetTextColor(1, gb, gb, playerEcoInfo.forced and 0.6 or alpha)
 			font:Print(CutStringAtPixelWidth(playerEcoInfo.name, valuesLeftX - namePosX - 2), namePosX, rowY, panelFontSize, "")
-			font:Print(playerEcoInfo.valueRatioString, valuesLeftX, rowY, panelFontSize, "")
-			font:Print(playerEcoInfo.valueNormalizedString, valuesRightX - normalizedStringWidth, rowY, panelFontSize, "")
+			font:Print(playerEcoInfo.aggroMultipleString, valuesLeftX, rowY, panelFontSize, "")
+			font:Print(playerEcoInfo.aggroFractionString, valuesRightX - aggroFractionStringWidth, rowY, panelFontSize, "")
 		end
 	end
 	font:SetTextColor(1, 1, 1, 1)
@@ -227,7 +289,7 @@ local function CreatePanelDisplayList()
 			local time = string.formatTime(totalSeconds)
 			font:Print(time, panelMarginX + 200 - font:GetTextWidth(time:gsub(':.*', '')) * panelFontSize, PanelRow(2), panelFontSize, "")
 
-			DrawPlayerEcoInfos(3)
+			DrawPlayerAggros(3)
 
 			if #currentlyResistantToNames > 0 then
 				currentlyResistantToNames = {}
@@ -238,7 +300,7 @@ local function CreatePanelDisplayList()
 			local healthText = tostring(gameInfo.raptorQueenHealth)
 			font:Print(gameInfo.raptorQueenHealth .. '%', panelMarginX + 220 - font:GetTextWidth(healthText) * panelFontSize, PanelRow(1), panelFontSize, "")
 
-			DrawPlayerEcoInfos(2)
+			DrawPlayerAggros(2)
 
 			for i = 1, #currentlyResistantToNames do
 				if i == 1 then
@@ -251,7 +313,7 @@ local function CreatePanelDisplayList()
 		font:Print(I18N('ui.raptors.gracePeriod', { time = '' }), panelMarginX, PanelRow(1), panelFontSize, "")
 		local timeText = string.formatTime(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5)
 		font:Print(timeText, panelMarginX + 220 - font:GetTextWidth(timeText) * panelFontSize, PanelRow(1), panelFontSize, "")
-		DrawPlayerEcoInfos(2)
+		DrawPlayerAggros(2)
 	end
 
 	local endless = ""
@@ -360,76 +422,6 @@ local function UpdateRules()
 	end
 
 	updatePanel = true
-end
-
-function PlayerAggroEcoDistribution()
-	local myTeamId       = GetMyTeamID()
-	local teamList       = GetTeamList()
-	local playerEcoInfos = {}
-	local sum            = 0
-
-	for i = 1, #teamList do
-		local teamID = teamList[i]
-		local playerName
-		local playerList = GetPlayerList(teamID)
-		if playerList[1] then
-			playerName = GetPlayerInfo(playerList[1])
-		else
-			_, playerName = GetAIInfo(teamID)
-		end
-
-		local aggroEcoValue = playersAggroEcos[teamID]
-		if playerName and not playerName:find("Raptors") and aggroEcoValue and aggroEcoValue > 0 then
-			sum = sum + aggroEcoValue
-			table.insert(playerEcoInfos, {
-				value = aggroEcoValue,
-				name = playerName,
-				teamID = teamID,
-				me = myTeamId == teamID,
-				forced = false,
-			})
-		end
-	end
-	return playerEcoInfos, sum
-end
-
-function GetPlayersEcoInfo(maxRows)
-	maxRows                   = (maxRows or 3) - 1
-	local playerEcoInfos, sum = PlayerAggroEcoDistribution()
-
-	if sum == 0 then
-		return {}
-	end
-
-	-- normalize and add text formatting
-	local nPlayerEcoInfos = #playerEcoInfos
-	for i = 1, nPlayerEcoInfos do
-		local playerEcoInfo                 = playerEcoInfos[i]
-		playerEcoInfo.valueRatio            = nPlayerEcoInfos * playerEcoInfo.value / sum
-		playerEcoInfo.valueNormalized       = playerEcoInfo.value * 100 / sum
-		playerEcoInfo.valueRatioString      = string.format("%.1fX", playerEcoInfo.valueRatio)
-		playerEcoInfo.valueNormalizedString = string.format(" (%.0f%%)", playerEcoInfo.valueNormalized)
-	end
-
-	table.sort(playerEcoInfos, function(a, b) return a.value > b.value end)
-
-	-- limit rows and add player forced flag
-	local playerEcoInfosLimited = {}
-	local playerEcoInfo
-	for i = 1, #playerEcoInfos do
-		playerEcoInfo = playerEcoInfos[i]
-		if playerEcoInfo.me or #playerEcoInfosLimited < maxRows then
-			if playerEcoInfo.me then
-				maxRows = maxRows + 1
-			end
-			if playerEcoInfo.me and i > #playerEcoInfosLimited + 1 then
-				playerEcoInfo.forced = true
-			end
-			table.insert(playerEcoInfosLimited, playerEcoInfo)
-		end
-	end
-
-	return playerEcoInfosLimited
 end
 
 function RaptorEvent(raptorEventArgs)
