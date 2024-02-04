@@ -39,7 +39,6 @@ local unitArray_ = {
   "armfhp",
   "armshltx",
   "armshltxuw",
-  "armcom",
   "armamsub",
   "corlab",
   "coralab",
@@ -52,13 +51,20 @@ local unitArray_ = {
   "corgant",
   "corgantuw",
   "coramsub",
-  "corcom",
   "leglab",
   "legvp",
   "legalab",
   "legavp",
   "leggant",
 }
+-- add commanders too
+local isCommander = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.iscommander then
+		unitArray_[#unitArray_+1] = unitDef.name
+	end
+end
+
 local unitArray = {}
 for _, name in pairs(unitArray_) do
   unitArray[UnitDefNames[name].id] = true
