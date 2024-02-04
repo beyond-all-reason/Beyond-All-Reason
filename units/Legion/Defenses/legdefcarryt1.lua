@@ -25,7 +25,6 @@ return {
 		health = 1200,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		movementclass = "NANO",
 		nochasecategory = "MOBILE",
 		objectname = "Units/LEGDEFCARRYT1.s3o",
 		script = "Units/LEGDEFCARRYT1.cob",
@@ -159,8 +158,8 @@ return {
 					decayrate = 4,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
-					dockinghealrate = 15,
-					docktohealthreshold = 50,
+					dockinghealrate = 16,
+					docktohealthreshold = 66,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpiecestart = 2,		--First model piece to be used for docking.

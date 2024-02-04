@@ -6,7 +6,7 @@ return {
 		energycost = 500,
 		metalcost = 15,
 		buildpic = "CORBW.DDS",
-		buildtime = 1036,
+		buildtime = 1000,
 		canfly = true,
 		canmove = true,
 		cantbetransported = false,
@@ -20,7 +20,7 @@ return {
 		icontype = "air",
 		idleautoheal = 0,
 		idletime = 1800,
-		health = 270,
+		health = 415,
 		maxslope = 10,
 		speed = 280.5,
 		maxwaterdepth = 0,
@@ -30,7 +30,7 @@ return {
 		script = "Units/LEGDRONE.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
-		sightdistance = 500,
+		sightdistance = 600,
 		turninplaceanglelimit = 360,
 		turnrate = 1100,
 		upright = true,
@@ -41,6 +41,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft",
 			drone = 1,
+			nohealthbars = 1,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {
@@ -141,7 +142,7 @@ return {
 				turret = true,
 				--weapontimer = 1,
 				weapontype = "LaserCannon",
-				weaponvelocity = 950,
+				weaponvelocity = 990,
 				damage = {
 					default = 16,
 					vtol = 5,
