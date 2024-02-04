@@ -107,7 +107,6 @@ local unitArray_ = {
   --misc
 }
 -- add commanders too
-local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
 		unitArray_[#unitArray_+1] = unitDef.name
