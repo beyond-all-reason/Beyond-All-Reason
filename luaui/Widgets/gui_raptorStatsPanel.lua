@@ -600,7 +600,7 @@ end
 
 local function ValidEcoUnitDef(unitDef, teamID)
 	-- skip Raptor AI, moving units and player built walls
-	if teamID == raptorTeamID or not unitDef.canMove or WALLS.hash[unitDef.name] ~= nil then
+	if teamID == raptorTeamID or unitDef.canMove or WALLS.hash[unitDef.name] ~= nil then
 		return false
 	end
 	return true
