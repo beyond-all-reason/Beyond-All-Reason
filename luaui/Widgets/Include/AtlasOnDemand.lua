@@ -10,25 +10,35 @@
 -- Read the documentation for the 5-6 user facing functions:
 --		function MakeAtlasOnDemand(config)
 --		function AtlasOnDemand:AddImage(image, xsize, ysize)
+--		function AtlasOnDemand:PlaceImage(image, x, y, xsize, ysize)
 --		function AtlasOnDemand:AddText(text, params)
 --		function AtlasOnDemand:RemoveFromAtlas(uvcoords, id)
 --		function AtlasOnDemand:RenderTasks()
 --		function AtlasOnDemand:Delete() 
 --		function AtlasOnDemand:DrawToScreen(aliastest,noalpha)
 
--- Example usage:
--- :Initialize()
---		local myAtlas = MakeAtlasOnDemand({sizex = 1024, sizey =  512, xresolution = 96, yresolution = 24, name = "AtlasOnDemand Tester", defaultfont = {font = fontObj}})
+--[[
 
---    local myimguvcoords = myAtlas:AddImage("luaui/images/myimg.png", xsize, ysize)
---    local mytextuvcoords = myAtlas:AddText("text", | {textparams optional}) -- will draw with defaultFont as passed during creation
+-- Example usage:
+local myAtlas
+local function widget:Initialize()
+		myAtlas = MakeAtlasOnDemand({sizex = 1024, sizey =  512, xresolution = 96, yresolution = 24, name = "AtlasOnDemand Tester", defaultfont = {font = fontObj}})
+		myAtlas:PlaceImage("mybackground.png", 0, 0, myAtlas.xsize, myAtlas.ysize) -- draw a background
+    local myimguvcoords = myAtlas:AddImage("luaui/images/myimg.png", xsize, ysize) -- allocate space for this image
+    local mytextuvcoords = myAtlas:AddText("text", | {textparams optional}) -- will draw with defaultFont as passed during creation
+end
+
+
+local function widget:Draw()
+		myAtlas:RenderTasks() -- must be called when you want to finish drawing onto the atlas. 
 		
--- :Draw()
---		myAtlas:RenderTasks()
---		gl.TexRect(posx, posy, posx + myimguvcoords[5], posy + myimguvcoords[6], myimguvcoords[1], myimguvcoords[3], myimguvcoords[2], myimguvcoords[4])
---
--- :Remove()
---		myAtlas:Delete()
+		gl.TexRect(posx, posy, posx + myimguvcoords[5], posy + myimguvcoords[6], myimguvcoords[1], myimguvcoords[3], myimguvcoords[2], myimguvcoords[4])
+end
+
+local function widget:Shutdown()
+		myAtlas:Delete()
+end
+]]--
 ----------------------------------------------------
 
 
@@ -349,6 +359,24 @@ local function MakeAtlasOnDemand(config)
 		return uvcoords
 	end
 	
+	---Places an image onto the atlas at a specific position.
+	-- @param image is a valid VFS path to the image
+	-- @param x the desired left coordinate of the image on the atlas	
+	-- @param y the desired bottom coordinate of the image on the atlas
+	-- @param xsize desired width of the image in pixels
+	-- @param ysize desired height of the image
+	-- @return number of queued draw tasks
+	function AtlasOnDemand:PlaceImage(image, x, y, xsize, ysize)
+		local texInfo = gl.TextureInfo(image)
+		if texInfo then 
+			local task =  {id = image, w = xsize , h = ysize, x = x, y = y }
+			self.renderImageTaskList[#self.renderImageTaskList + 1 ] = task
+			self.hastasks = true
+			return #self.renderImageTaskList 
+		else
+			Spring.Echo(string.format("AtlasOnDemand %s Warning:   unable to read gl.TextureInfo(%s)",self.name, tostring(image)))
+		end
+	end	
 	-- This should return a width, height and UV set for pixel-perfect rendering
 	-- This does not support redundancy checking yet! That is up to the user, as there are too many params to check.
 	
