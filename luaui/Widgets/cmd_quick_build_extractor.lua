@@ -239,6 +239,16 @@ end
 
 
 function widget:MousePress(x, y, button)
+	if not bestMex and not bestGeo then
+		clearGhostBuild()
+		return
+	end
+
+	-- update runs on a timer for performance reasons, but this can result in edge-cases where if
+	-- the click happens at a certain time, the build commands won't be ready yet, and a guard
+	-- command will be issued. We force an update on click to make sure that all the data needed is here and ready
+	widget:Update(1)
+
 	if not buildCmd or not buildCmd[1] then
 		return
 	end
@@ -246,7 +256,6 @@ function widget:MousePress(x, y, button)
 	if (button == 3) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if selectedMex then
-			Spring.Echo("applying mex build command")
 			return WG['resource_spot_builder'].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
 
 		end

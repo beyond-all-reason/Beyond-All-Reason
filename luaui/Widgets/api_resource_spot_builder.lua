@@ -384,7 +384,7 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 	local buildingId = cmds[1][1] -- assume they are all the same building id
 	local mainBuilders = sortBuilders(units, constructorIds, buildingId, shift)
 
-	if not mainBuilders or #mainBuilders <=0 then
+	if not mainBuilders or #mainBuilders <= 0 then
 		return
 	end
 

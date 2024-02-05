@@ -143,6 +143,8 @@ end
 
 function widget:Update()
 	local activeCmdID
+	selectedMex = nil
+	selectedGeo = nil
 
 	if isPregame then
 		activeCmdID = WG['pregame-build'] and WG['pregame-build'].getPreGameDefID()
@@ -156,20 +158,22 @@ function widget:Update()
 		return
 	end
 
-	selectedMex = mexBuildings[-activeCmdID]
-	selectedGeo = geoBuildings[-activeCmdID]
-
-	if selectedMex and metalMap then -- no snapping on metal maps
-		clear()
-		return
-	end
+	if mexBuildings[-activeCmdID] then selectedMex = -activeCmdID end
+	if geoBuildings[-activeCmdID] then selectedGeo = -activeCmdID end
 
 	if not (selectedMex or selectedGeo) then
 		clear()
 		return
 	end
 
+
+	if selectedMex and metalMap then -- no snapping on metal maps
+		clear()
+		return
+	end
+
 	-- Attempt to get position of command
+	local buildingId = -activeCmdID
 	local mx, my, mb, mmb, mrb = spGetMouseState()
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local _, pos = spTraceScreenRay(mx, my, true)
@@ -179,10 +183,10 @@ function widget:Update()
 	end
 	local x, y, z = pos[1], pos[2], pos[3]
 	cursorPos = {}
-	cursorPos.x, cursorPos.y, cursorPos.z = spPos2BuildPos(-activeCmdID, x, y, z)
+	cursorPos.x, cursorPos.y, cursorPos.z = spPos2BuildPos(buildingId, x, y, z)
 
 	-- check if there is stuff in the way - if there is we change behavior
-	if clashesWithBuildQueue(-activeCmdID, cursorPos) then
+	if clashesWithBuildQueue(buildingId, cursorPos) then
 		clear()
 		return
 	end
@@ -191,11 +195,11 @@ function widget:Update()
 	local nearestSpot
 	if selectedMex then
 		nearestSpot = shift and
-			WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, metalSpots, -activeCmdID) or
+			WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, metalSpots, selectedMex) or
 			WG["resource_spot_finder"].GetClosestMexSpot(x, z)
 	else
 		nearestSpot = shift and
-			WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, geoSpots, -activeCmdID) or
+			WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, geoSpots, selectedGeo) or
 			WG["resource_spot_finder"].GetClosestGeoSpot(x, z)
 	end
 	if not nearestSpot then
@@ -205,7 +209,7 @@ function widget:Update()
 
 
 	buildCmd = {}
-	local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(pos, -activeCmdID, nearestSpot)
+	local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(pos, buildingId, nearestSpot)
 	if cmd and #cmd > 0 then
 		targetPos = { x = cmd[2], y = cmd[3], z = cmd[4] }
 		WG.ExtractorSnap.position = targetPos -- used by prospector and pregame queue
@@ -218,7 +222,7 @@ function widget:Update()
 		end
 
 		buildCmd[1] = cmd
-		local newUnitShape = { math.abs(activeCmdID), cmd[2], cmd[3], cmd[4], cmd[5], cmd[6] }
+		local newUnitShape = { math.abs(buildingId), cmd[2], cmd[3], cmd[4], cmd[5], cmd[6] }
 		-- check equality by position
 		if unitShape and (unitShape[2] ~= newUnitShape[2] or unitShape[3] ~= newUnitShape[3] or unitShape[4] ~= newUnitShape[4]) then
 			WG.StopDrawUnitShapeGL4(activeUnitShape)
