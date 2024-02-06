@@ -19,7 +19,7 @@ function widget:Update(dt)
 		t = 0
 		if widgetHandler:FindWidget("Test Framework Runner") == nil then
 			Spring.Log(widget:GetInfo().name, LOG.WARNING, "Test runner crashed, exiting game")
-			widgetHandler:DisableWidget(widget.GetInfo().name)
+			widgetHandler:DisableWidget(widget:GetInfo().name)
 			Spring.SendCommands("quitforce")
 		end
 	end
