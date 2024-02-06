@@ -3,7 +3,7 @@ local serpent = serpent or VFS.Include('common/luaUtilities/serpent.lua')
 TEST_RESULT = {
 	PASS = 1,
 	FAIL = 2,
-	SKIPPED = 3,
+	SKIP = 3,
 	ERROR = 4,
 }
 

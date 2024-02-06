@@ -500,6 +500,24 @@ end
 local function runTestInternal()
 	log(LOG.DEBUG, "[runTestInternal]")
 
+	local skipOk, skipResult
+	if skip ~= nil then
+		log(LOG.DEBUG, "[runTestInternal.skip]")
+		skipOk, skipResult = yieldable_pcall(skip)
+		log(LOG.DEBUG, "[runTestInternal.skip.done] " .. table.toString({
+			skipOk, skipResult
+		}))
+
+		if not skipOk then
+			log(LOG.DEBUG, "[runTestInternal.skip.error]")
+			error(skipResult, 2)
+		end
+
+		if skipResult then
+			return TEST_RESULT.SKIP
+		end
+	end
+
 	local setupOk, setupResult
 	if setup ~= nil then
 		log(LOG.DEBUG, "[runTestInternal.setup]")
@@ -548,6 +566,8 @@ local function runTestInternal()
 		log(LOG.DEBUG, "[runTestInternal.test.error]")
 		error(testResult, 2)
 	end
+
+	return TEST_RESULT.PASS
 end
 
 local function initializeTestEnvironment()
@@ -558,6 +578,7 @@ local function initializeTestEnvironment()
 		SyncedRun = SyncedRun,
 		__runTestInternal = runTestInternal,
 		yieldable_pcall = yieldable_pcall,
+		TEST_RESULT = TEST_RESULT,
 
 		-- widgets
 		widgetHandler = widgetHandler,
@@ -783,6 +804,7 @@ local function step()
 	end
 
 	-- resume the test
+	local resumeOk, resumeResult
 	if coroutine.status(activeTestState.coroutine) == "suspended" then
 		local coroutineOk, coroutineArgs
 		if returnResult.returnValue ~= nil then
@@ -807,25 +829,25 @@ local function step()
 			})
 		)
 
-		local result, error = coroutine.resume(activeTestState.coroutine, coroutineOk, coroutineArgs)
+		resumeOk, resumeResult = coroutine.resume(activeTestState.coroutine, coroutineOk, coroutineArgs)
 		log(LOG.DEBUG, "Unresuming test: " .. table.toString({
-			result = result,
-			error = error,
+			result = resumeOk,
+			error = resumeResult,
 		}))
-		if not result then
+		if not resumeOk then
 			-- test fail
 			finishTest({
 				result = TEST_RESULT.FAIL,
-				error = error,
+				error = resumeResult,
 			})
 			return
 		end
 	end
 
 	if coroutine.status(activeTestState.coroutine) == "dead" then
-		-- test pass
+		-- test did not fail or error, so may have been pass or skip
 		finishTest({
-			result = TEST_RESULT.PASS,
+			result = resumeResult or TEST_RESULT.PASS,
 		})
 	end
 end

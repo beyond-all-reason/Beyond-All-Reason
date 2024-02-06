@@ -1,3 +1,7 @@
+function skip()
+	return Game.mapName ~= "Full Metal Plate 1.5"
+end
+
 function setup()
 	Test.clearMap()
 end
