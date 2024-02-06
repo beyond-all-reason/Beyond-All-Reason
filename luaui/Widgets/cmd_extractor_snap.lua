@@ -186,7 +186,14 @@ function widget:Update()
 	cursorPos.x, cursorPos.y, cursorPos.z = spPos2BuildPos(buildingId, x, y, z)
 
 	-- check if there is stuff in the way - if there is we change behavior
-	if clashesWithBuildQueue(buildingId, cursorPos) then
+	local clashes = clashesWithBuildQueue(buildingId, cursorPos)
+	if clashes and isPregame then
+		if shift then
+			clear()
+			return
+		end
+	end
+	if clashes and not isPregame then
 		clear()
 		return
 	end
