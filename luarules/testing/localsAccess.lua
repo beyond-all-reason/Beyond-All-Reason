@@ -43,12 +43,12 @@ local function generateLocalsAccessMetatable(baseMetatable)
 					return baseMetatable.__index(t, k)
 				end
 			else
-				rawget(t, k)
+				return rawget(t, k)
 			end
 		end,
 		__newindex = function(t, k, v)
 			if t.__localsAccess and t.__localsAccess.setters[k] ~= nil then
-				t.__localsAccess.setters[k](v)
+				return t.__localsAccess.setters[k](v)
 			elseif baseMetatable and baseMetatable.__newindex ~= nil then
 				return baseMetatable.__newindex(t, k, v)
 			else
