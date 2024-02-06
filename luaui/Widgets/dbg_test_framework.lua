@@ -868,6 +868,7 @@ function widget:Update(dt)
 end
 
 function widget:Initialize()
+	widgetHandler:DisableWidget("Test Framework Watchdog")
 	if not Spring.Utilities.IsDevMode() then
 		widgetHandler:RemoveWidget(self)
 	end
