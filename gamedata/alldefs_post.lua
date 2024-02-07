@@ -505,7 +505,6 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "corgolt4"
 			uDef.buildoptions[numBuildoptions+3] = "corakt4"
 			uDef.buildoptions[numBuildoptions+4] = "corthermite"
-			uDef.buildoptions[numBuildoptions+5] = "legjugglite"--technically legion but also cortex
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "corca" or name == "corck" or name == "corcv" then

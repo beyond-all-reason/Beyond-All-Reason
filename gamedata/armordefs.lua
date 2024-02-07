@@ -361,7 +361,6 @@ local armorDefs = {
 		"armuwageo",
 		"armuwageo",
 
-		"legjugglite",
 	},
 
 	space = {

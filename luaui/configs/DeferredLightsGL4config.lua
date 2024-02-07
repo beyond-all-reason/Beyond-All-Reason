@@ -18337,36 +18337,6 @@ local unitEventLights = {
 			},
 		},
 		
-		
-		[UnitDefNames['legjugglite'].id] = {
-			head1 = {
-				lightType = 'point',
-				pieceName = 'head',
-				lightConfig = { posx = 0, posy = 18, posz = 20, radius = 33,
-								color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
-								r = 1, g = 0.2, b = 0, a = 0.2,
-								modelfactor = 0.2, specular = 0.2, scattering = 0, lensflare = 0,
-								lifetime = 0, sustain = 0, animtype = 0},
-			},
-			head2 = {
-				lightType = 'point',
-				pieceName = 'head',
-				lightConfig = { posx = 0, posy = 25, posz = 0, radius = 33,
-								color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
-								r = 1, g = 0.2, b = 0, a = 0.19,
-								modelfactor = 0.2, specular = 0.2, scattering = 0, lensflare = 0,
-								lifetime = 0, sustain = 0, animtype = 0},
-			},
-			eyes = {
-				lightType = 'point',
-				pieceName = 'head',
-				lightConfig = { posx = 0, posy = 2, posz = 16, radius = 9,
-								color2r = 1, color2g = 1, color2b = 0.2, colortime = 0,
-								r = 1, g = 1, b = 0, a = 0.14,
-								modelfactor = 0.2, specular = 0.2, scattering = 0, lensflare = 0,
-								lifetime = 0, sustain = 0, animtype = 0},
-			},
-		},
 
 		[UnitDefNames['cordemont4'].id] = {
 
