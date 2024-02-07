@@ -214,6 +214,10 @@ function widget:Update(dt)
 		local cmdPos = selectedPos and { selectedPos.x, selectedPos.y, selectedPos.z } or { selectedSpot.x, selectedSpot.y, selectedSpot.z}
 		local spotPos = selectedPos and selectedPos or selectedSpot -- When a specific mex is moused over, we use that position instead of the spot for previewing the command
 		local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(cmdPos, extractor, spotPos)
+		if not cmd then
+			clearGhostBuild()
+			return
+		end
 		buildCmd[1] = cmd
 		local newUnitShape = { math.abs(extractor), cmd[2], cmd[3], cmd[4], cmd[5], cmd[6] }
 		-- check equality by position

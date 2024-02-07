@@ -27,6 +27,7 @@ local spPos2BuildPos = Spring.Pos2BuildPos
 local spGetTeamUnits = Spring.GetTeamUnits
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitDefID = Spring.GetUnitDefID
 
 local selectedUnits = spGetSelectedUnits()
@@ -223,7 +224,8 @@ local function extractorCanBeBuiltOnSpot(spot, extractorId)
 		local uDefId = spGetUnitDefID(uid)
 		local isExtractor = mexBuildings[uDefId] or geoBuildings[uDefId]
 		local canUpgrade = extractorCanBeUpgraded(uid, extractorId)
-		if(isExtractor and not canUpgrade) then
+		local isBeingBuilt, _ = spGetUnitIsBeingBuilt(uid)
+		if(isExtractor and (not canUpgrade or isBeingBuilt)) then
 			return false
 		end
 	end
