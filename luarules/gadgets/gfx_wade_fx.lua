@@ -106,6 +106,14 @@ end
 
 function gadget:GameFrame(n)
 	if n%fold_frames == 0 then
+		if (n == 1) then
+			local minheight = Spring.GetGroundExtremes()
+			if minheight > 20 then 
+				gadgetHandler:RemoveGadget(self)
+				return 
+			end
+		end
+		
 		local listData = unitsData
 		for i = current_fold, unitsCount, n_folds do
 			local unitID = listData[i]
