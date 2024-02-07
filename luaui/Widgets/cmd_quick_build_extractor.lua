@@ -172,7 +172,7 @@ function widget:Update(dt)
 			clearGhostBuild()
 			return
 		end
-		local pos = { x = groundPos[1], y = groundPos.y, z = groundPos[3] }
+		local pos = { x = groundPos[1], y = groundPos[2], z = groundPos[3] }
 		local nearestMex = WG["resource_spot_finder"].GetClosestMexSpot(pos.x, pos.z)
 		local nearestGeo = WG["resource_spot_finder"].GetClosestGeoSpot(pos.x, pos.z)
 

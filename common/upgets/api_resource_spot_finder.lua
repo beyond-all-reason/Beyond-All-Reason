@@ -69,7 +69,7 @@ local geoSpots
 ------------------------------------------------------------
 
 local function GetFootprintPos(value) -- not entirely acurate, unsure why
-	return (math.floor(value / precision) * precision) + (precision / 2)
+	return (math.round(value / precision) * precision)
 end
 
 local function getClosestGeo(x, z)
@@ -94,10 +94,10 @@ local function GetSpotsGeo()
 				x = GetFootprintPos(x),
 				y = y,
 				z = GetFootprintPos(z),
-				minX = GetFootprintPos(x),
-				maxX = GetFootprintPos(x),
-				minZ = GetFootprintPos(z),
-				maxZ = GetFootprintPos(z),
+				minX = GetFootprintPos(x) - (precision / 2),
+				maxX = GetFootprintPos(x) + (precision / 2),
+				minZ = GetFootprintPos(z) - (precision / 2),
+				maxZ = GetFootprintPos(z) + (precision / 2),
 			}
 		end
 	end
@@ -194,14 +194,14 @@ local function setMexGameRules(spots)
 	-- Set gamerules values for mex spots, used by AI
 	if spots and #spots > 0 then
 		local mexCount = #spots
-		Spring.SetGameRulesParam("mex_count", mexCount)
+		spSetGameRulesParam("mex_count", mexCount)
 
 		for i = 1, mexCount do
 			local mex = spots[i]
-			Spring.SetGameRulesParam("mex_x" .. i, mex.x)
-			Spring.SetGameRulesParam("mex_y" .. i, mex.y)
-			Spring.SetGameRulesParam("mex_z" .. i, mex.z)
-			Spring.SetGameRulesParam("mex_metal" .. i, mex.worth)
+			spSetGameRulesParam("mex_x" .. i, mex.x)
+			spSetGameRulesParam("mex_y" .. i, mex.y)
+			spSetGameRulesParam("mex_z" .. i, mex.z)
+			spSetGameRulesParam("mex_metal" .. i, mex.worth)
 		end
 	else
 		Spring.SetGameRulesParam("mex_count", -1)
@@ -364,13 +364,4 @@ function upget:Initialize()
 	globalScope["resource_spot_finder"].GetClosestGeoSpot = getClosestGeo
 	globalScope["resource_spot_finder"].GetBuildingPositions = GetBuildingPositions
 	globalScope["resource_spot_finder"].IsMexPositionValid = IsBuildingPositionValid
-end
-
--- function upget:Update(dt)
-function upget:Update()
-	globalScope["resource_spot_finder"].geoSpotsList = GetSpotsGeo()
-
-	-- remove update callin, we already did all we wanted to do
-	local handler = gadget and gadgetHandler or widgetHandler
-	handler:RemoveCallIn("Update")
 end
