@@ -39,6 +39,8 @@ Note to self, there are four outstanding issues with this approach:
 ]]--
 
 
+
+
 function gadget:GetInfo()
 	return {
 		name	  = 'Builder Priority', 	-- this once was named: Passive Builders v3
@@ -54,8 +56,21 @@ end
 local DEBUG = false -- will draw the buildSpeeds above builders. Perf heavy but its debugging only.
 local VERBOSE = false -- will spam debug into infolog
 local FORWARDUNIFORMS = false -- Needed for future nanospray GL4
-
+-- Available Info to Widgets:
+--Number is build speed number, and means low priority, otherwise nil means high
+--Spring.GetUnitRulesParam(unitID, "builderPriorityLow")
 local ruleName = "builderPriorityLow" -- So that non-nil means low prio, and the actual build speed number, nil means high
+
+--TeamRulesParams
+local totalBuildPowerRule = "totalBuildPower" -- total build power of a team
+local highPrioBuildPowerRule = "highPrioBuildPower" -- The total buildpower of constructors set to high priority
+local lowPrioBuildPowerRule = "lowPrioBuildPower"	-- The total buildpower of constructors set to low  priority 
+local highPrioBuildPowerWantedRule = "highPrioBuildPowerWanted" -- The total buildpower of constructors set to high priority that are building things
+local lowPrioBuildPowerWantedRule = "lowPrioBuildPowerWanted"  -- The total buildpower of constructors set to low priority that are building things
+local highPrioBuildPowerUsedRule = "highPrioBuildPowerUsed" -- The total buildpower of constructors set to high priority that is actually spent on building stuff
+local lowPrioBuildPowerUsedRule = "lowPrioBuildPowerUsed" -- The total buildpower of constructors set to low priority that is actually spent on building stuff
+
+
 
 if not gadgetHandler:IsSyncedCode() then
 	if DEBUG then 
@@ -186,6 +201,12 @@ local function updateTeamList()
 		roundRobinIndexTeam[teamID] = 1 -- {teamID = roundRobinIndex}
 		roundRobinLastRoundTeamBuilders[teamID] = {} -- {teamID = {builderID = true}} -- this is for taking away the resources of previous RR recipients
 		canBuild[teamID] = {} --builders[teamID][builderID], contains all builders
+		Spring.SetTeamRulesParam(teamID, totalBuildPowerRule, 0)
+		Spring.SetTeamRulesParam(teamID, highPrioBuildPowerRule, 0)
+		Spring.SetTeamRulesParam(teamID, lowPrioBuildPowerRule, 0)
+		Spring.SetTeamRulesParam(teamID, highPrioBuildPowerUsedRule, 0)
+		Spring.SetTeamRulesParam(teamID, lowPrioBuildPowerUsedRule, 0)
+
 	end
 end
 
@@ -338,7 +359,14 @@ local function UpdatePassiveBuilders(teamID, interval)
 
 	
 	local passiveExpense = {} -- once again, similar to the costIDOverride we are using a single table with offsets to store two values per unitID
-	
+	local totalBuildPower = 0
+	local highPrioBuildPower = 0
+	local lowPrioBuildPower = 0
+	local highPrioBuildPowerWanted = 0
+	local lowPrioBuildPowerWanted = 0
+	local highPrioBuildPowerUsed = 0
+	local lowPrioBuildPowerUsed = 0
+
 	
 	-- Dont count solars and mm's as stalling:
 	local midPrioSolarMaker = {} -- builderID to negative metal, positive energy cost
@@ -349,6 +377,14 @@ local function UpdatePassiveBuilders(teamID, interval)
 			local builtUnit = spGetUnitIsBuilding(builderID)
 			local expenseMetal = builtUnit and costIDOverride[builtUnit] or nil
 			local maxbuildspeed = maxBuildSpeed[builderID]
+			totalBuildPower = totalBuildPower + maxbuildspeed
+			local isPassive = passiveConsTeam[builderID]
+			if isPassive then 
+				lowPrioBuildPower = lowPrioBuildPower + maxbuildspeed
+			else
+				highPrioBuildPower = highPrioBuildPower + maxbuildspeed
+			end
+			
 			if builtUnit and expenseMetal and maxbuildspeed then	-- added check for maxBuildSpeed[builderID] else line below could error (unsure why), probably units that were newly created?
 
 				local expenseEnergy = costIDOverride[builtUnit + energyOffset]
@@ -362,7 +398,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 				-- solar costs 0 energy, don't stall because of that
 				expenseEnergy = (expenseEnergy <=1) and 0 or expenseEnergy * rate
 
-				if passiveConsTeam[builderID] then 
+				if isPassive then 
 					passiveExpense[builderID] = expenseMetal
 					passiveExpense[builderID+ energyOffset] = expenseEnergy
 					numPassiveCons = numPassiveCons + 1
@@ -373,13 +409,17 @@ local function UpdatePassiveBuilders(teamID, interval)
 					
 					if expenseMetal == 0 then midPrioSolarMaker[builderID] = expenseEnergy end
 					if expenseEnergy == 0 then midPrioSolarMaker[builderID] = -1 * expenseMetal end
-
+					lowPrioBuildPowerWanted = lowPrioBuildPowerWanted + maxbuildspeed
 					
 				else
+					highPrioBuildPowerWanted = highPrioBuildPowerWanted + maxbuildspeed
 					nonPassiveConsTotalExpenseEnergy = nonPassiveConsTotalExpenseEnergy + expenseEnergy
 					nonPassiveConsTotalExpenseMetal  = nonPassiveConsTotalExpenseMetal  + expenseMetal
 				end
+				
 			end
+			
+			
 		end
 	end
 	local intervalpersimspeed = interval/simSpeed
@@ -404,12 +444,28 @@ local function UpdatePassiveBuilders(teamID, interval)
 	
 	local havePassiveResourcesLeft = (passiveEnergyLeft > 0) and (passiveMetalLeft > 0 )
 	
+	if havePassiveResourcesLeft then 
+		highPrioBuildPowerUsed = highPrioBuildPowerWanted
+	else
+		-- make a very wild guess:
+		-- a fraction of 1 is used if passiveMetalLeft == 0
+		-- if passiveMetalLeft = -1 * nonPassiveConsTotalExpenseMetal then its 0.5
+		nonPassiveConsTotalExpenseMetal = math.max(nonPassiveConsTotalExpenseMetal, 1)
+		nonPassiveConsTotalExpenseEnergy = math.max(nonPassiveConsTotalExpenseEnergy, 1)
+		local highPrioMetalSpend = (nonPassiveConsTotalExpenseMetal - math.min(0,passiveMetalLeft)) /nonPassiveConsTotalExpenseMetal
+		local highPrioEnergySpend = (nonPassiveConsTotalExpenseEnergy - math.min(0,passiveEnergyLeft)) /nonPassiveConsTotalExpenseMetal
+		
+		highPrioBuildPowerUsed = highPrioBuildPowerWanted * math.min(highPrioMetalSpend, highPrioEnergySpend)
+	end
+	
+	
 	-- Allow passive cons to build solars and makers as a medium priority
 	for builderID, costtype in pairs(midPrioSolarMaker) do 
 		if costtype < 0 then -- metal
 			if (passiveMetalLeft > -1 * costtype) then 
 				passiveMetalLeft = passiveMetalLeft + costtype
 				MaybeSetWantedBuildSpeed(builderID, maxBuildSpeed[builderID])
+				lowPrioBuildPowerUsed = lowPrioBuildPowerUsed + maxBuildSpeed[builderID]
 			else
 				midPrioSolarMaker[builderID] = nil -- remove them if we cant give them resources here
 			end
@@ -417,6 +473,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 			if (passiveEnergyLeft > costtype) then
 				passiveEnergyLeft = passiveEnergyLeft - costtype
 				MaybeSetWantedBuildSpeed(builderID, maxBuildSpeed[builderID])
+				lowPrioBuildPowerUsed = lowPrioBuildPowerUsed + maxBuildSpeed[builderID]
 			else
 				midPrioSolarMaker[builderID] = nil	-- remove them if we cant give them resources here
 			end
@@ -478,6 +535,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 							end
 						end
 						MaybeSetWantedBuildSpeed(builderID, wantedBuildSpeed)
+						lowPrioBuildPowerUsed = lowPrioBuildPowerUsed + wantedBuildSpeed
 
 					end
 				end
@@ -517,6 +575,15 @@ local function UpdatePassiveBuilders(teamID, interval)
 			buildTargets[buildTargetID] = nil
 		end
 	end 
+	
+	
+	Spring.SetTeamRulesParam(teamID, totalBuildPowerRule, totalBuildPower)
+	Spring.SetTeamRulesParam(teamID, highPrioBuildPowerRule, highPrioBuildPower)
+	Spring.SetTeamRulesParam(teamID, lowPrioBuildPowerRule, lowPrioBuildPower)
+	Spring.SetTeamRulesParam(teamID, highPrioBuildPowerWantedRule, highPrioBuildPowerWanted)
+	Spring.SetTeamRulesParam(teamID, lowPrioBuildPowerWantedRule, lowPrioBuildPowerWanted)
+	Spring.SetTeamRulesParam(teamID, highPrioBuildPowerUsedRule, highPrioBuildPowerUsed)
+	Spring.SetTeamRulesParam(teamID, lowPrioBuildPowerUsedRule, lowPrioBuildPowerUsed)
 	
 	if VERBOSE then 
 		Spring.Echo(string.format("%d Pstart = %.1f/%.0f Pleft = %.1f/%.0f RRI=%d #passive=%d Stalled=%d", 
