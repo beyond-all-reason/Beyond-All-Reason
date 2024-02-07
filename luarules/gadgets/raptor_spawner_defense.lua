@@ -1270,13 +1270,13 @@ if gadgetHandler:IsSyncedCode() then
 			unitList:Remove(unitID)
 		end
 
-		if IsWall(unitDef) then
+		if RaptorCommon.IsWall(unitDef) then
 			return
 		end
 
 		if not unitDef.canMove then
 			-- Calculate an eco value based on energy and metal production
-			local ecoValue = EcoValueDef(unitDef)
+			local ecoValue = RaptorCommon.EcoValueDef(unitDef)
 			-- Spring.Echo("Built units eco value: " .. ecoValue)
 
 			-- Ends up building an object like:

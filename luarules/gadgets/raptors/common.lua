@@ -91,3 +91,9 @@ function IsValidEcoUnitDef(unitDef, teamID)
 	end
 	return true
 end
+
+return {
+	EcoValueDef       = EcoValueDef,
+	IsValidEcoUnitDef = IsValidEcoUnitDef,
+	IsWall            = IsWall
+}
