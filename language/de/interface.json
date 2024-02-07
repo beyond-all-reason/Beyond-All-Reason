@@ -524,7 +524,7 @@
 			"wave2": "%{unitCount} Raptoren!",
 			"raptorCount": "Raptoren: %{count}",
 			"raptorKillCount": "Raptoren getötet: %{count}",
-			"raptorPlayerAgression": "Spieler-Aggressivitätsniveau: %{count}",
+			"playerAggroLabel": "Spieler zieht Aggro:",
 			"queenAnger": "Königin schlüpft:%{anger}%% (+%{gain}%%/s)",
 			"queenAngerBase": "Basis: +%{value}%%/s",
 			"queenAngerAggression": "Aggressivität: +%{value}%%/s",

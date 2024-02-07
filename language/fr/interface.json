@@ -193,7 +193,7 @@
 			"morph_tooltip": "Passer au niveau technologique supérieur (clic-droit pour annuler)",
 			"Spawning Disabled": "Réapparition désactivée",
 			"Spawning Enabled": "Réapparition désactivée",
-			
+
 			"Fire at will": "Feu à volonté",
 			"Hold fire": "Halte au feu",
 			"Return fire": "Riposter",
@@ -538,7 +538,7 @@
 			"wave2": "%{unitCount} Vespides !",
 			"raptorCount": "Vespides : %{count}",
 			"raptorKillCount": "Vespides abattus : %{count}",
-			"raptorPlayerAgression": "Niveau d'agressivité : %{count}",
+			"playerAggroLabel": "Le joueur attire l'aggro:",
 			"queenAngerWithGain": "Éclosion de la Reine : %{anger}%% (+%{gain}%%/s) ",
 			"queenAngerWithTech": "Éclosion de la Reine : %{anger}%% (Évolution : %{techAnger}%%)",
 			"queenAngerBase": "Base : +%{value}%%/s",

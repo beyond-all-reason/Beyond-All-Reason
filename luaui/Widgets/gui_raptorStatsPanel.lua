@@ -297,7 +297,7 @@ local function CutStringAtPixelWidth(text, width)
 end
 
 local function DrawPlayerAggros(row)
-	font:Print('Player Aggros:', panelMarginX, PanelRow(row), panelFontSize, "")
+	font:Print(I18N("ui.raptors.playerAggroLabel"), panelMarginX, PanelRow(row), panelFontSize, "")
 	local playersEcoInfo = PlayerAggros(7 - row)
 
 	for i = 1, #playersEcoInfo do

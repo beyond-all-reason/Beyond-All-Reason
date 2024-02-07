@@ -538,7 +538,7 @@
 			"wave2": "%{unitCount} Raptors!",
 			"raptorCount": "Raptors: %{count}",
 			"raptorKillCount": "Raptors Killed: %{count}",
-			"raptorPlayerAgression": "Player Aggression Level: %{count}",
+			"playerAggroLabel": "Player Aggros:",
 			"queenAngerWithGain": "Queen Hatch: %{anger}%% (+%{gain}%%/s)",
 			"queenAngerWithTech": "Queen Hatch: %{anger}%% (Evolved: %{techAnger}%%)",
 			"queenAngerBase": "Base: +%{value}%%/s",
