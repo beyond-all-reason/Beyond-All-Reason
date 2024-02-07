@@ -24,6 +24,11 @@ if not raptorTeamID then
 	raptorTeamID = GetGaiaTeamID()
 end
 
+
+function IsWall(unitDef)
+    return WALLS.hash[unitDef.name] ~= nil
+end
+
 -- Calculate an eco value based on energy and metal production
 -- Echo("Built units eco value: " .. ecoValue)
 
@@ -35,11 +40,6 @@ end
 --	1000: [fusion]
 --	3000: [adv fusion]
 -- }
-
-function IsWall(unitDef)
-    return WALLS.hash[unitDef.name] ~= nil
-end
-
 function EcoValueDef(unitDef)
 
     if IsValidEcoUnitDef(unitDef) then
