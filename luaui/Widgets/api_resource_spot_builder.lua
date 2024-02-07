@@ -345,10 +345,11 @@ local function PreviewExtractorCommand(params, extractor, spot)
 	local cmdX, _, cmdZ = params[1], params[2], params[3]
 
 	local command = {}
-	spot.x, spot.y, spot.z = spPos2BuildPos(extractor, spot.x, spot.y, spot.z)
+	local x, y, z = spPos2BuildPos(extractor, spot.x, spot.y, spot.z)
+	local buildPos = { x = x, y = y, z = z }
 	-- Skip mex spots that have queued mexes already
 	if extractorCanBeBuiltOnSpot(spot, extractor) then
-		command = { x = spot.x, z = spot.z }
+		command = buildPos
 	else
 		return
 	end
