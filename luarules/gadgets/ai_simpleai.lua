@@ -175,7 +175,7 @@ local function SimpleGetClosestMexSpot(x, z)
 	--tracy.ZoneBeginN("SimpleAI:SimpleGetClosestMexSpot")
 	local bestSpot
 	local bestDist = math.huge
-	local metalSpots = GG.metalSpots
+	local metalSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList or nil
 	if metalSpots then
 		for i = 1, #metalSpots do
 			local spot = metalSpots[i]

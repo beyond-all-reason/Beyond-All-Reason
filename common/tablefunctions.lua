@@ -122,7 +122,7 @@ if not table.count then
 	---only works if the table is a Lua sequence (i.e. indexes form a contiguous
 	---sequence starting from 1).
 	---@param tbl table
-	---@return integer
+	---@return number
 	function table.count(tbl)
 		local count = 0
 		for _ in pairs(tbl) do
