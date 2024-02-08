@@ -195,10 +195,11 @@ local function updatePos(x, y)
 	updatePanel = true
 end
 local function PlayerAggroValues()
-	local myTeamId     = GetMyTeamID()
-	local teamList     = GetTeamList()
-	local playerAggros = {}
-	local sum          = 0
+	local myTeamId      = GetMyTeamID()
+	local teamList      = GetTeamList()
+	local playerAggros  = {}
+	local sum           = 0
+	local nPlayerAggros = 0
 
 	for i = 1, #teamList do
 		local teamID = teamList[i]
@@ -213,13 +214,14 @@ local function PlayerAggroValues()
 		local aggroEcoValue = playersAggroEcos[teamID] or 0
 		if playerName and not playerName:find("Raptors") then
 			sum = sum + aggroEcoValue
-			table.insert(playerAggros, {
+			nPlayerAggros = nPlayerAggros + 1
+			playerAggros[nPlayerAggros] = {
 				value = aggroEcoValue,
 				name = playerName,
 				teamID = teamID,
 				me = myTeamId == teamID,
 				forced = false,
-			})
+			}
 		end
 	end
 	return playerAggros, sum
@@ -237,25 +239,27 @@ local function PlayerAggros(maxRows)
 
 	-- add string formatting, forced current player result and limit results
 	local playerAggrosLimited = {}
+	local nPlayerAggrosLimited = 0
 	local nPlayerAggros = #playerAggros
 	local playerAggro
 	for i = 1, nPlayerAggros do
 		playerAggro = playerAggros[i]
 
 		-- Always include current player
-		if playerAggro.me or #playerAggrosLimited < maxRows then
+		if playerAggro.me or nPlayerAggrosLimited < maxRows then
 			if playerAggro.me then
 				maxRows = maxRows + 1
 			end
 			-- Current player added as last, so forced
-			if playerAggro.me and i > #playerAggrosLimited + 1 then
+			if playerAggro.me and i > nPlayerAggrosLimited + 1 then
 				playerAggro.forced = true
 			end
-			playerAggro.aggroMultiple       = nPlayerAggros * playerAggro.value / sum
-			playerAggro.aggroFraction       = playerAggro.value * 100 / sum
-			playerAggro.aggroMultipleString = string.format("%.1fX", playerAggro.aggroMultiple)
-			playerAggro.aggroFractionString = string.format(" (%.0f%%)", playerAggro.aggroFraction)
-			table.insert(playerAggrosLimited, playerAggro)
+			playerAggro.aggroMultiple                 = nPlayerAggros * playerAggro.value / sum
+			playerAggro.aggroFraction                 = playerAggro.value * 100 / sum
+			playerAggro.aggroMultipleString           = string.format("%.1fX", playerAggro.aggroMultiple)
+			playerAggro.aggroFractionString           = string.format(" (%.0f%%)", playerAggro.aggroFraction)
+			nPlayerAggrosLimited                      = nPlayerAggrosLimited + 1
+			playerAggrosLimited[nPlayerAggrosLimited] = playerAggro
 		end
 	end
 
@@ -503,7 +507,7 @@ function RaptorEvent(raptorEventArgs)
 	if raptorEventArgs.type == "queenResistance" then
 		if raptorEventArgs.number then
 			if not currentlyResistantTo[raptorEventArgs.number] then
-				table.insert(resistancesTable, raptorEventArgs.number)
+				resistancesTable[#resistancesTable + 1] = raptorEventArgs.number
 				currentlyResistantTo[raptorEventArgs.number] = true
 			end
 		end
