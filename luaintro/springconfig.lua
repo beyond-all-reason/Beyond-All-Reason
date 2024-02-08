@@ -79,7 +79,7 @@ Spring.SetConfigInt("AllowDeferredMapRendering", 1)
 Spring.SetConfigInt("AllowDeferredModelRendering", 1)
 
 -- Disable LoadingMT because: crashes on load, but fixed in 105.1.1-1422, redisable in 105.1.1-1432
-Spring.SetConfigInt("LoadingMT", 0)
+--Spring.SetConfigInt("LoadingMT", 0)
 
 -- Chobby had this set to 100 before and it introduced latency of 4ms a sim-frame, having a 10%-15% penalty compared it the default
 -- This was set to 2 as of 2022.08.16, Beherith reduced it to 1 for even less GC probability

@@ -5,7 +5,6 @@ return {
 		amphibious = true,
 		autoheal = 10,
 		bankscale = "1",
-
 		maxdec = 0.2,
 		energycost = 2200,
 		metalcost = 72,

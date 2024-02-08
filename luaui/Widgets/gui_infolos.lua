@@ -155,6 +155,10 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	--local alwaysColor, losColor, radarColor, jamColor, radarColor2 = Spring.GetLosViewColors()
 	texX = (Game.mapSizeX/8)/shaderConfig.RESOLUTION
 	texY = (Game.mapSizeZ/8)/shaderConfig.RESOLUTION

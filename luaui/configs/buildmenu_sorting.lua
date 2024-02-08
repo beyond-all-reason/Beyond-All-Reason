@@ -259,7 +259,6 @@ local unitOrderTable = {
 	['armvang']        = 007040,
 	['corshiva']       = 007050,
 	['legkeres']	   = 007051,
-	['legjugglite']    = 007052,
 	['legpede']        = 007055,
 	['armthor']        = 007060,
 	['leegmech']       = 007065,

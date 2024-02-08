@@ -2,7 +2,6 @@ return {
 	raptor_land_swarmer_basic_t4_v2 = {
 		maxacc = 0.805,
 		autoheal = 20,
-
 		maxdec = 5.75,
 		energycost = 1000,
 		metalcost = 150,

@@ -1426,7 +1426,7 @@ function widget:DrawScreen()
 		end
 	end
 
-	if showButtons and dlistButtons1 then
+	if showButtons and dlistButtons1 and buttonsArea['buttons'] then
 		glCallList(dlistButtons1)
 
 		-- changelog changes highlight

@@ -18,16 +18,12 @@ end
 
 VFS.Include("unbaconfigs/stats.lua")
 
-local unbacoms = {
-    [UnitDefNames["corcom"].id] = true,
-    [UnitDefNames["armcom"].id] = true,
-    [UnitDefNames["cordecom"].id] = true,
-    [UnitDefNames["armdecom"].id] = true,
-    [UnitDefNames["legcom"].id] = true,
-    [UnitDefNames["legcomlvl2"].id] = true,
-    [UnitDefNames["legcomlvl3"].id] = true,
-    [UnitDefNames["legcomlvl4"].id] = true,
-}
+local isCommander = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.iscommander then
+		isCommander[unitDefID] = true
+	end
+end
 
 local unbaRanks = {
 	[1] = 0,
@@ -65,13 +61,13 @@ local function getTopCommanderXP()
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-    if unbacoms[unitDefID] then
+    if isCommander[unitDefID] then
         aliveUnbaComs[unitID] = true
     end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
-    if unbacoms[unitDefID] then
+    if isCommander[unitDefID] then
         aliveUnbaComs[unitID] = nil
     end
 end

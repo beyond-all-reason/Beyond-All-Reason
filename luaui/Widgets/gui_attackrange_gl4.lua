@@ -118,7 +118,7 @@ for udid, ud in pairs(UnitDefs) do
 	unitWeapons[udid] = ud.weapons
 	unitMaxWeaponRange[udid] = ud.maxWeaponRange
 	unitOnOffable[udid] = ud.onOffable
-	if ud.customParams.onOffName then
+	if ud.customParams.onoffname then
 		unitOnOffName[udid] = ud.customParams.onoffname
 	end
 end
@@ -1041,6 +1041,10 @@ function ToggleCursorRange(_, _, args)
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget(self)
+		return
+	end
 	initUnitList()
 
 	if initGL4() == false then

@@ -4,7 +4,6 @@ return {
 		airsightdistance = 600,
 		amphibious = true,
 		bankscale = "1",
-
 		maxdec = 0.2,
 		energycost = 2200,
 		metalcost = 72,

@@ -21,6 +21,8 @@ if Spring.GetModOptions then
 		end
 	end
 
+	-- Prevent widgets from messing with each other's modoptions table.
+	-- The native engine call does this by returning a new table each time but that is wasteful
 	local readOnlyModOptions = {}
 	setmetatable(readOnlyModOptions, {
 		__index = modOptions,
@@ -31,5 +33,11 @@ if Spring.GetModOptions then
 
 	Spring.GetModOptions = function ()
 		return readOnlyModOptions
+	end
+
+	-- Returns a copy of the modOptions table. Slower, but allows iterating over
+	-- the returned table using pairs/ipairs.
+	Spring.GetModOptionsCopy = function ()
+		return table.copy(modOptions)
 	end
 end

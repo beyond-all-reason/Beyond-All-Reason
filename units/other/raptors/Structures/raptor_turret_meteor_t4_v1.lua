@@ -3,7 +3,6 @@ return {
 		maxacc = 0.0115,
 		activatewhenbuilt = true,
 		autoheal = 1,
-
 		maxdec = 0.0115,
 		energycost = 6000,
 		metalcost = 240,
@@ -109,7 +108,6 @@ return {
 				def = "WEAPON",
 				onlytargetcategory = "NONE",
 			},
-
 		},
 	},
 }

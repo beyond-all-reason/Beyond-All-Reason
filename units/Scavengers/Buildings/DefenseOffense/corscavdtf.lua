@@ -16,7 +16,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-		icontype = "building",
 		idleautoheal = 10,
 		idletime = 900,
 		levelground = false,

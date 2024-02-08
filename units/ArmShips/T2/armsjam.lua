@@ -18,7 +18,6 @@ return {
 		floater = true,
 		footprintx = 3,
 		footprintz = 3,
-		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 570,

@@ -12,10 +12,12 @@ function gadget:GetInfo()
     }
 end
 
-local isCommander = {
-	[UnitDefNames["armcom"].id] = true,
-	[UnitDefNames["corcom"].id] = true,
-}
+local isCommander = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.iscommander then
+		isCommander[unitDefID] = true
+	end
+end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
     if isCommander[unitDefID] then

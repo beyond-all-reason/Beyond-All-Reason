@@ -460,7 +460,7 @@ end
 function widget:PlayerChanged(playerID)
 	spec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
-	if not showWhenSpec and Spring.GetGameFrame() > 1 and spec then
+	if not showWhenSpec and spec then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -469,6 +469,10 @@ end
 local initializeGameFrame = 0
 
 function widget:Initialize()
+	if not showWhenSpec and spec then
+		widgetHandler:RemoveWidget()
+		return
+	end
 	initializeGameFrame = Spring.GetGameFrame()
 	widget:ViewResize()
 	widget:PlayerChanged()
@@ -483,7 +487,7 @@ function widget:Shutdown()
 	if dlist then
 		gl.DeleteList(dlist)
 	end
-	if WG['guishader'] and dlistGuishader then
+	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('idlebuilders')
 		dlistGuishader = nil
 	end

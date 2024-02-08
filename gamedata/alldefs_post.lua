@@ -86,7 +86,9 @@ end
 function UnitDef_Post(name, uDef)
 	local modOptions = Spring.GetModOptions()
 
-	uDef.icontype = name
+	if not uDef.icontype then
+		uDef.icontype = name
+	end
 
 	-- Reverse Gear
 	if modOptions.experimentalreversegear == true then
@@ -263,7 +265,7 @@ function UnitDef_Post(name, uDef)
 	if uDef.customparams then
 		if not uDef.customparams.techlevel then uDef.customparams.techlevel = 1 end
 		if not uDef.customparams.subfolder then uDef.customparams.subfolder = "none" end
-
+		addeddemon = false
 		if modOptions.unit_restrictions_notech2 then
 			if tonumber(uDef.customparams.techlevel) == 2 or tonumber(uDef.customparams.techlevel) == 3 then
 				uDef.maxthisunit = 0
@@ -409,6 +411,10 @@ function UnitDef_Post(name, uDef)
 			--uDef.buildoptions[numBuildoptions+3] = "corforge"
 			--uDef.buildoptions[numBuildoptions+4] = "cortorch"
 		end
+		if name == "legavp" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corvac" --corprinter
+		end
 		if name == "coramsub" then
 			for ix, UnitName in pairs(uDef.buildoptions) do
 				if UnitName == "corseal" then
@@ -423,6 +429,7 @@ function UnitDef_Post(name, uDef)
 		if name == "corgant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cordemont4"
+			addeddemon = true
 		end
 
 		if name == "corgantuw" then
@@ -439,6 +446,7 @@ function UnitDef_Post(name, uDef)
 
 	-- Add scav units to normal factories and builders
 	if modOptions.experimentalextraunits then
+
 		if name == "armshltx" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
@@ -455,14 +463,6 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "armpwt4"
 			uDef.buildoptions[numBuildoptions+3] = "armvadert4"
 			uDef.buildoptions[numBuildoptions+4] = "armmeatball"
-		elseif name == "corgant" or name == "leggant" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "cordemont4"
-			uDef.buildoptions[numBuildoptions+2] = "corkarganetht4"
-			uDef.buildoptions[numBuildoptions+3] = "corgolt4"
-			uDef.buildoptions[numBuildoptions+4] = "corakt4"
-			uDef.buildoptions[numBuildoptions+5] = "corthermite"
-			--uDef.buildoptions[numBuildoptions+6] = "legjugglite"--technically legion but also cortex
 		elseif name == "corgantuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgolt4"
@@ -470,16 +470,21 @@ function UnitDef_Post(name, uDef)
 		elseif name == "armvp" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armzapper"
-		elseif name == "coravp" then
+		elseif name == "legavp" then
 			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
+			uDef.buildoptions[numBuildoptions+2] = "corforge"
+			uDef.buildoptions[numBuildoptions+3] = "corftiger"
+			uDef.buildoptions[numBuildoptions+4] = "cortorch"
+			uDef.buildoptions[numBuildoptions+5] = "corvac" --corprinter
+		elseif name == "coravp" then
 			printerpresent = false
 			for ix, UnitName in pairs(uDef.buildoptions) do
 				if UnitName == "corvac" then
 					printerpresent = true
 				end
 			end
-
-
+			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
 			uDef.buildoptions[numBuildoptions+2] = "corforge"
 			uDef.buildoptions[numBuildoptions+3] = "corftiger"
@@ -488,6 +493,18 @@ function UnitDef_Post(name, uDef)
 				uDef.buildoptions[numBuildoptions+5] = "corsala"
 				uDef.buildoptions[numBuildoptions+6] = "corvac" --corprinter
 			end
+		elseif name == "corgant" or name == "leggant" then
+			local numBuildoptions = #uDef.buildoptions
+
+			if (addeddemon==false) then
+				uDef.buildoptions[numBuildoptions+1] = "cordemont4"
+				numBuildoptions = numBuildoptions+1
+				addeddemon = true
+			end
+			uDef.buildoptions[numBuildoptions+1] = "corkarganetht4"
+			uDef.buildoptions[numBuildoptions+2] = "corgolt4"
+			uDef.buildoptions[numBuildoptions+3] = "corakt4"
+			uDef.buildoptions[numBuildoptions+4] = "corthermite"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "corca" or name == "corck" or name == "corcv" then
@@ -2257,7 +2274,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 	-- transporting enemy coms
 	if Spring.GetModOptions().transportenemy == "notcoms" then
 		for name,ud in pairs(UnitDefs) do
-			if name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom" then
+			if ud.customparams.iscommander then
 				ud.transportbyenemy = false
 			end
 		end

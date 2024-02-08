@@ -25,7 +25,6 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		hoverattack = true,
-		icontype = "blank",
 		idleautoheal = 0,
 		mass = 125,
 		maxbank = 0.2,

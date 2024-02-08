@@ -601,8 +601,8 @@ local function DrawDecals()
 	end
 	
 	if skipdraw then return end
-	local alt, ctrl = Spring.GetModKeyState()
-	if alt and (isSinglePlayer) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
+	--local alt, ctrl = Spring.GetModKeyState()
+	--if alt and (isSinglePlayer) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
 	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
 
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
@@ -1899,6 +1899,10 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	local t0 = Spring.GetTimer()
 	--if makeAtlases() == false then
 	--	goodbye("Failed to init texture atlas for DecalsGL4")

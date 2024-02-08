@@ -3,7 +3,6 @@ return {
 		maxacc = 0.0115,
 		activatewhenbuilt = true,
 		autoheal = 1,
-
 		maxdec = 0.0115,
 		energycost = 3000,
 		metalcost = 120,

@@ -22,7 +22,6 @@ return {
 		extractsmetal = 0.004,
 		footprintx = 4,
 		footprintz = 4,
-		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 4200,
@@ -106,7 +105,6 @@ return {
 				[2] = "deathceg3",
 				[3] = "deathceg4",
 			},
-
 		},
 		sounds = {
 			activate = "mexrun2",

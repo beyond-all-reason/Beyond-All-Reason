@@ -180,7 +180,7 @@ local labGrids = {
 	leggant = {
 		"corcat", "corkarg", "corshiva", "corkorg",
 		"corjugg", "corsok", "legpede", "leegmech",
-		"legjugglite","legkeres","",""
+		"legkeres","",""
 	}
 }
 local unitGrids = {

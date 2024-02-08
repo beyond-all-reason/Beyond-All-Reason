@@ -23,7 +23,6 @@ return {
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
-		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 600,
 		sightemitheight = 56,
@@ -47,7 +46,7 @@ return {
 		waterline = 0,
 		customparams = {
 			model_author = "Odin",
-			normaltex = "unittextures/Cor_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships/t2",
 			techlevel = 2,
 		},

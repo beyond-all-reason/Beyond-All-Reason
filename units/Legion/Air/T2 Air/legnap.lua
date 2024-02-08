@@ -16,7 +16,6 @@ return {
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		icontype = "air",
 		idleautoheal = 5,
 		idletime = 1800,
 		maxacc = 0.0525,
@@ -45,7 +44,7 @@ return {
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "Mr Bob",
-			normaltex = "unittextures/arm_normal.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "coraircraft/t2",
 			techlevel = 2,
 		},

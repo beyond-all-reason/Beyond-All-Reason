@@ -51,7 +51,7 @@ for key, value in pairs(defaultModoptions) do
 	modoptionsDefault[value.key] = {name = value.name, desc = value.desc, def = value.def}
 end
 
-local modoptions = Spring.GetModOptions()
+local modoptions = Spring.GetModOptionsCopy()
 local changedModoptions = {}
 local unchangedModoptions = {}
 local changedRaptorModoptions = {}

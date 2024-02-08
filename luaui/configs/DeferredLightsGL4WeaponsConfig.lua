@@ -763,24 +763,6 @@ GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 48, posz = 0,
 
 muzzleFlashLights[WeaponDefNames["corkorg_corkorg_laser"].id].yOffset = 32
 
---legjugglite
-projectileDefLights[WeaponDefNames["legjugglite_corkorg_laser"].id] =
-GetLightClass("LaserProjectile", nil, "Medium", {a = 0.08,
-											r = 1.0, g = 0.65, b = 0.1,
-											color2r = 0.3, color2g = 0.1, color2b = 0.03, colortime = 10,
-											pos2x = 0, pos2y = 100, pos2z = 0,
-											modelfactor = 0.5, specular = 0.05, scattering = 0.05, lensflare = 16,
-											lifetime = 60, sustain = 4})
-
-muzzleFlashLights[WeaponDefNames["legjugglite_corkorg_laser"].id] =
-GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 48, posz = 0,
-											 r = 1.2, g = 1.1, b = 0.5, a = 0.9,
-											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 10,
-											 modelfactor = 0.5, specular = 0.3, scattering = 2.8, lensflare = 9,
-											 lifetime = 120, sustain = 4})
-
-muzzleFlashLights[WeaponDefNames["legjugglite_corkorg_laser"].id].yOffset = 32
-
 --corkorg_shotgun
 projectileDefLights[WeaponDefNames["corkorg_corkorg_fire"].id] =
 GetLightClass("CannonProjectile", "Plasma", "Smaller", {a = 0.04,

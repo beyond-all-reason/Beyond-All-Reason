@@ -3,7 +3,6 @@ return {
 		maxacc = 0.1,
 		airsightdistance = 2400,
 		autoheal = 5,
-
 		maxdec = 0.1,
 		energycost = 2000000,
 		metalcost = 50000,
@@ -107,7 +106,6 @@ return {
 				rgbcolor = "0.8 0.99 0.11",
 				soundhit = "bloodsplash3",
 				soundstart = "alien_bombrel",
-
 				sprayangle = 2000,
 				tolerance = 5000,
 				turret = true,
@@ -178,7 +176,6 @@ return {
 				rgbcolor = "0.8 0.99 0.11",
 				soundhit = "bloodsplash3",
 				soundstart = "alien_bombrel",
-
 				sprayangle = 256,
 				tolerance = 5000,
 				turret = true,

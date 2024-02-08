@@ -16,7 +16,6 @@ return {
 		explodeas = "smallExplosionGenericAir",
 		footprintx = 2,
 		footprintz = 2,
-		icontype = "air",
 		maxacc= 0.4,
 		maxaileron = 0.016,
 		maxbank = 0.72,

@@ -335,7 +335,7 @@ local function InitializeAtlas(mSpots)
 	--Spring.Echo(textheight) 
 	local textwidth  = 2 * textheight
 	-- attempt to make a square-ish, power of two-ish atlas:
-	local cellcount = math.ceil(math.sqrt(numvalues))
+	local cellcount = math.max(1, math.ceil(math.sqrt(numvalues)))
 	MetalSpotTextAtlas = MakeAtlasOnDemand({sizex = textwidth * cellcount, sizey =  textheight*cellcount, xresolution = textwidth, yresolution = textheight, name = "MetalSpotAtlas", defaultfont = {font = font, options = 'o'}})
 	AtlasTextureID = MetalSpotTextAtlas.textureID
 	
@@ -464,7 +464,7 @@ end
 
 
 function widget:Shutdown()
-	MetalSpotTextAtlas:Delete()
+	if MetalSpotTextAtlas then MetalSpotTextAtlas:Delete() end
 	WG.metalspots = nil
 	mySpots = {}
 	valueList = {}
