@@ -226,7 +226,7 @@ local LandUnitsList = {
 			--Armada
 			["armraz_scav"] = 1,
 			--Cortex
-			["cordemont4_scav"] = 1,
+			["cordemon_scav"] = 1,
 			--Legion
 			--N/A
 		},

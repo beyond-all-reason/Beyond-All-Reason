@@ -1,10 +1,10 @@
 return {
-	cordemont4 = {
+	cordemon = {
 		maxacc = 0.2208,
 		maxdec = 1,
 		energycost = 90000,--150000,
 		metalcost = 6000,--10000,
-		buildpic = "CORDEMONT4.DDS",
+		buildpic = "CORDEMON.DDS",
 		buildtime = 90000,--150000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -24,8 +24,8 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/cordemont4.s3o",
-		script = "Units/scavboss/cordemont4.COB",
+		objectname = "Units/cordemon.s3o",
+		script = "Units/cordemon.COB",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xxl",
 		sightdistance = 500,
@@ -58,7 +58,7 @@ return {
 				height = 40,
 				hitdensity = 100,
 				metal = 3600,
-				object = "Units/scavboss/cordemont4_dead.s3o",
+				object = "Units/cordemon_dead.s3o",
 				reclaimable = true,
 				world = "All Worlds",
 			},
