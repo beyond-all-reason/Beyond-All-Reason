@@ -19,6 +19,7 @@ local playSounds = true
 local soundVolume = 0.5
 local setHeight = 0.046
 local maxGroups = 9
+local showRez = true
 
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
@@ -79,13 +80,20 @@ local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRec
 
 local isBuilder = {}
 local isFactory = {}
+local isResurrector = {}
 local unitHumanName = {}
+
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and (unitDef.canAssist or unitDef.buildOptions[1]) and not unitDef.customParams.isairbase then
 		isBuilder[unitDefID] = true
 	end
+
 	if unitDef.isFactory then
 		isFactory[unitDefID] = true
+	end
+
+	if unitDef.canResurrect then
+		isResurrector[unitDefID] = true
 	end
 
 	if unitDef.translatedHumanName then
@@ -96,7 +104,7 @@ end
 local function isIdleBuilder(unitID)
 	local udef = spGetUnitDefID(unitID)
 	local qCount = 0
-	if isBuilder[udef] then
+	if isBuilder[udef] or (showRez and isResurrector[udef]) then
 		--- can build
 		local buildQueue = spGetFullBuildQueue(unitID)
 		if not buildQueue[1] then
