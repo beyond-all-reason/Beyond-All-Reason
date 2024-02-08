@@ -971,7 +971,7 @@ GetLightClass("MissileProjectile", "Purple", "Tiny", {a = 0.7,
 										color2r = 0.5, color2g = 0.2, color2b = 0.8, colortime = 1.6,
 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 2})
 
---cordemont4
+--cordemon
 projectileDefLights[WeaponDefNames["cordemont4_dmaw"].id] =
 GetLightClass("FlameProjectile", nil, "SmallMedium", {posy = 80, a = 0.08, colortime = 15, lifetime = 40})
 

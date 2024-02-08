@@ -174,7 +174,7 @@ return {
 		"armrattet4_scav",
 		"armvadert4_scav",
 		"corakt4_scav",
-		"cordemont4_scav",
+		"cordemon_scav",
 		"corkarganetht4_scav",
 		"corgolt4_scav",
 	},
