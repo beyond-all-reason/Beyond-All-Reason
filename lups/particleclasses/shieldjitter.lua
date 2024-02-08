@@ -54,7 +54,8 @@ ShieldJitter.Default = {
 
 function ShieldJitter:BeginDrawDistortion()
   gl.UseShader(warpShader)
-  gl.Uniform(timerUniform,  Spring.GetGameSeconds()*0.1)
+  local drawTime = (Spring.GetGameFrame() + Spring.GetFrameTimeOffset()) * 0.003333333
+  gl.Uniform(timerUniform,  drawTime)
 
   gl.Culling(GL.FRONT) --FIXME: check if camera is in the sphere
 end
