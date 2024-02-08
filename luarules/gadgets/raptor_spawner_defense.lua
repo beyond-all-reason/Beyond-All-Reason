@@ -418,7 +418,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- Spring.Echo("SquadLifeReport - SquadID: #".. i .. ", LifetimeRemaining: ".. squadsTable[i].squadLife)
 
 			if squadsTable[i].squadLife <= 0 then
-				-- Echo("Life is 0, time to do some killing")
+				-- Spring.Echo("Life is 0, time to do some killing")
 				if squadsTable[i].squadUnits.count > 0 then
 					if squadsTable[i].squadBurrow and (not queenID) then
 						Spring.DestroyUnit(squadsTable[i].squadBurrow, true, false)
@@ -538,7 +538,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- Spring.Echo("First squad, #".. squadID)
 		else
 			for i = 1,#squadsTable do
-				-- Echo("Attempt to recycle squad #" .. i .. ". Containing " .. squadsTable.counti].squadUnits) .. " units.")
+				-- Spring.Echo("Attempt to recycle squad #" .. i .. ". Containing " .. squadsTable.counti].squadUnits) .. " units.")
 				if squadsTable[i].squadUnits.count == 0 then -- Yes, we found one empty squad to recycle
 					squadID = i
 					-- Spring.Echo("Recycled squad, #".. squadID)
@@ -575,9 +575,9 @@ if gadgetHandler:IsSyncedCode() then
 				squadBurrow = newSquad.burrow,
 			}
 
-			-- Echo("Created Raptor Squad, containing " .. #squadsTable[squadID].squadUnits .. " units!")
-			-- Echo("Role: " .. squadsTable[squadID].squadRole)
-			-- Echo("Lifetime: " .. squadsTable[squadID].squadLife)
+			-- Spring.Echo("Created Raptor Squad, containing " .. #squadsTable[squadID].squadUnits .. " units!")
+			-- Spring.Echo("Role: " .. squadsTable[squadID].squadRole)
+			-- Spring.Echo("Lifetime: " .. squadsTable[squadID].squadLife)
 			for i = 1,squadsTable[squadID].squadUnits.count do
 				local unitID = squadsTable[squadID].squadUnits[i]
 				unitSquadTable[unitID] = squadID
