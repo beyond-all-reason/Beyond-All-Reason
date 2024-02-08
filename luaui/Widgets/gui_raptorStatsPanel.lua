@@ -194,7 +194,7 @@ local function updatePos(x, y)
 
 	updatePanel = true
 end
-local function PlayerAggroValues()
+local function PlayerAggroAggregation()
 	local myTeamId      = GetMyTeamID()
 	local teamList      = GetTeamList()
 	local playerAggros  = {}
@@ -227,9 +227,9 @@ local function PlayerAggroValues()
 	return playerAggros, sum
 end
 
-local function PlayerAggros(maxRows)
+local function PlayerAggroLimitFormat(maxRows)
 	maxRows                 = (maxRows or 3) - 1
-	local playerAggros, sum = PlayerAggroValues()
+	local playerAggros, sum = PlayerAggroAggregation()
 
 	if sum == 0 then
 		return {}
@@ -302,7 +302,7 @@ end
 
 local function DrawPlayerAggros(row)
 	font:Print(I18N("ui.raptors.playerAggroLabel"):gsub("ui.raptors.playerAggroLabel", 'Player Aggros:'), panelMarginX, PanelRow(row), panelFontSize, "")
-	local playersEcoInfo = PlayerAggros(7 - row)
+	local playersEcoInfo = PlayerAggroLimitFormat(7 - row)
 
 	for i = 1, #playersEcoInfo do
 		local playerEcoInfo = playersEcoInfo[i]
