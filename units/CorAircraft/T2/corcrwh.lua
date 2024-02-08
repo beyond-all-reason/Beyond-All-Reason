@@ -190,7 +190,7 @@ return {
 				name = "Advanced d2a rapid missile launcher",
 				noselfdamage = true,
 				range = 840,
-				reloadtime = 0.4,
+				reloadtime = 0.8,
 				smoketrail = true,
 				smokePeriod = 7,
 				smoketime = 10,
@@ -214,8 +214,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1250,
 				damage = {
-					bombers = 76,
-					fighters = 76,
 					vtol = 76,
 				},
 			},

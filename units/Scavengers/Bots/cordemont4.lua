@@ -22,7 +22,7 @@ return {
 		maxslope = 160,
 		speed = 63.0,--2.5,
 		maxwaterdepth = 12,
-		movementclass = "EPICBOT",
+		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/cordemont4.s3o",
 		script = "Units/scavboss/cordemont4.COB",
@@ -115,7 +115,6 @@ return {
 			},
 		},
 		weapondefs = {
-		
 			newdmaw = { -- fire based with trailing AoE on particles (or not, atm)
 				accuracy = 0,
 				areaofeffect = 128,
@@ -162,11 +161,10 @@ return {
 				weapontype = "Flame",
 				weaponvelocity = 500,
 				damage = {
-					default = 60,--100,
-					subs = 20,
+					default = 48,--100,
+					subs = 16,
 				}--,customparams = { single_hit_multi = 'true' },
 			},
-				
 			dmaw = {
 				areaofeffect = 128,
 				avoidfeature = false,
@@ -210,8 +208,8 @@ return {
 				weapontype = "notFlame",
 				weaponvelocity = 600,
 				damage = {
-					default = 60,--100,
-					subs = 20,
+					default = 48,--100,
+					subs = 16,
 				},
 				customparams = {
 					single_hit_multi = 'true'
