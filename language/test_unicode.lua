@@ -467,7 +467,6 @@ return {
 			gametypeInfo = {
 				killAllUnits = "Kill all enemy units",
 				killAllCommanders = "Kill all enemy Commanders",
-				unbalancedCommanders = "Unbalanced Commanders is enabled: Commander levels up and gains upgrades",
 				victoryCondition = "Victory condition",
 			},
 			startSpot = {
