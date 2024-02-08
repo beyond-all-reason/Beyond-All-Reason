@@ -601,8 +601,8 @@ local function DrawDecals()
 	end
 	
 	if skipdraw then return end
-	local alt, ctrl = Spring.GetModKeyState()
-	if alt and (isSinglePlayer) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
+	--local alt, ctrl = Spring.GetModKeyState()
+	--if alt and (isSinglePlayer) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
 	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
 
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode

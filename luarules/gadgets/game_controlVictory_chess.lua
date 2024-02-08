@@ -39,6 +39,12 @@ local teamRespawnQueue = {}
 local teamIsLandPlayer = {}
 local resurrectedUnits = {}
 
+local isCommander = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.iscommander then
+		isCommander[unitDefID] = true
+	end
+end
 
 local function distance(pos1,pos2)
 	local xd = pos1.x-pos2.x
@@ -980,7 +986,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
     local unitName = UnitDefs[unitDefID].name
     if resurrectedUnits[unitID] then
         resurrectedUnits[unitID] = nil
-    elseif unitTeam ~= gaiaTeamID and unitName ~= "armcom" and unitName ~= "corcom" and unitName ~= "legcom" then
+    elseif unitTeam ~= gaiaTeamID and not isCommander[unitDefID] then
         local UnitName = UnitDefs[unitDefID].name
         respawnDeadUnit(UnitName, unitTeam)
     end

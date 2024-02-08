@@ -212,4 +212,58 @@ if not math.HSLtoRGB then
 
 		return cr, cg, cb
 	end
+
+
+	if not math.distance2dSquared then
+		function math.distance2dSquared(x1, z1, x2, z2)
+			local x = x1 - x2
+			local z = z1 - z2
+			return x * x + z * z
+		end
+	end
+
+	if not math.distance2d then
+		function math.distance2d(x1, z1, x2, z2)
+			return math.diag(x1 - x2, z1 - z2)
+		end
+	end
+
+	if not math.distance3d then
+		function math.distance3dSquared(x1, y1, z1, x2, y2, z2)
+			local x = x1 - x2
+			local y = y1 - y2
+			local z = z1 - z2
+			return x * x + y * y + z * z
+		end
+	end
+
+	if not math.distance3dSquared then
+		function math.distance3d(x1, y1, z1, x2, y2, z2)
+			return math.diag(x1 - x2, y1 - y2, z1 - z2)
+		end
+	end
+
+	if not math.getClosestPosition then
+		---Gets the closest position out of a list to given coordinates. 2d.
+		---@param x table
+		---@param z table
+		---@param positions table must have fields .x and .z
+		function math.getClosestPosition(x, z, positions)
+			if not positions or #positions <= 0 then
+				return
+			end
+			local bestPos
+			local bestDist = math.huge
+			for i = 1, #positions do
+				local pos = positions[i]
+				local dx, dz = x - pos.x, z - pos.z
+				local dist = dx * dx + dz * dz
+				if dist < bestDist then
+					bestPos = pos
+					bestDist = dist
+				end
+			end
+			return bestPos
+		end
+	end
 end
