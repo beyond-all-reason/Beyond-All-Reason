@@ -187,7 +187,7 @@ return {
 				castshadow = false, --projectile
 				soundhit = "xplomed2",
 				soundhitwet = "splshbig",
-				soundstart = "rockhvy2"
+				soundstart = "rockhvy2",
 				startvelocity = 430,
 				texture1 = "null",
 				texture2 = "smoketrailaa3",
