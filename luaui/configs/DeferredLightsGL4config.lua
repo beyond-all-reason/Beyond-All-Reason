@@ -13264,7 +13264,7 @@ local unitDefLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	
+
 	[UnitDefNames['legionnaire'].id] = {
 		thruster1 = {
 			lightType = 'point',
@@ -13341,7 +13341,7 @@ local unitDefLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	
+
 	[UnitDefNames['legphoenix'].id] = {
 		dish = {
 			lightType = 'point',
@@ -13464,10 +13464,10 @@ local unitDefLights = {
 							modelfactor = 0, specular = 1, scattering = 2, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
-		
+
 	},
 
-	
+
 	[UnitDefNames['armvader'].id] = {
 		-- redlight = {
 		-- 	lightType = 'point',
@@ -18336,9 +18336,9 @@ local unitEventLights = {
 					lifetime = 200, sustain = 15, animtype = 0},
 			},
 		},
-		
 
-		[UnitDefNames['cordemont4'].id] = {
+
+		[UnitDefNames['cordemon'].id] = {
 
 
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
@@ -18351,7 +18351,7 @@ local unitEventLights = {
 					r = 0, g = 0, b = 0, a = 0.03,
 					modelfactor = 2, specular = 1, scattering = 0.05, lensflare = 0,
 					lifetime = 200, sustain = 5, animtype = 0},
-			},			
+			},
 			[2] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'rfbarrel2',
@@ -18363,7 +18363,7 @@ local unitEventLights = {
 					modelfactor = 2, specular = 1, scattering = 0.05, lensflare = 0,
 					lifetime = 200, sustain = 5, animtype = 0},
 			},
-			
+
 		},
 		[UnitDefNames['corthermite'].id] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
@@ -18376,7 +18376,7 @@ local unitEventLights = {
 					r = 0, g = 0, b = 0, a = 0.03,
 					modelfactor = 2, specular = 1, scattering = 0.05, lensflare = 0,
 					lifetime = 100, sustain = 5, animtype = 0},
-			},			
+			},
 			[2] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'barrelr',
@@ -18399,7 +18399,7 @@ local unitEventLights = {
 					modelfactor = 2, specular = 1, scattering = 0.05, lensflare = 0,
 					lifetime = 200, sustain = 5, animtype = 0},
 			},
-			
+
 		},
 
 		[UnitDefNames['armraz'].id] = {
