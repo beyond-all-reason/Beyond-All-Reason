@@ -1,10 +1,6 @@
 local Set                   = VFS.Include('common/SetList.lua').NewSetListMin
 
-local GetGaiaTeamID = Spring.GetGaiaTeamID
-local GetTeamList = Spring.GetTeamList
-local GetTeamLuaAI = Spring.GetTeamLuaAI
-
-local WALLS                     = Set()
+local WALLS = Set()
 WALLS:Add("armdrag")
 WALLS:Add("armfort")
 WALLS:Add("cordrag")
@@ -13,20 +9,28 @@ WALLS:Add("scavdrag")
 WALLS:Add("scavfort")
 
 local raptorTeamID
-local teams = GetTeamList()
+local teams = Spring.GetTeamList()
 for _, teamID in ipairs(teams) do
-	local teamLuaAI = GetTeamLuaAI(teamID)
+	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
 	if (teamLuaAI and string.find(teamLuaAI, "Raptors")) then
 		raptorTeamID = teamID
 	end
 end
 if not raptorTeamID then
-	raptorTeamID = GetGaiaTeamID()
+	raptorTeamID = Spring.GetGaiaTeamID()
 end
 
 
-function IsWall(unitDef)
+local function IsWall(unitDef)
     return WALLS.hash[unitDef.name] ~= nil
+end
+
+local function IsValidEcoUnitDef(unitDef, teamID)
+	-- skip Raptor AI, moving units and player built walls
+	if (teamID and teamID == raptorTeamID) or unitDef.canMove or IsWall(unitDef) then
+		return false
+	end
+	return true
 end
 
 -- Calculate an eco value based on energy and metal production
@@ -40,9 +44,9 @@ end
 --	1000: [fusion]
 --	3000: [adv fusion]
 -- }
-function EcoValueDef(unitDef)
+local function EcoValueDef(unitDef)
 
-    if IsValidEcoUnitDef(unitDef) then
+    if not IsValidEcoUnitDef(unitDef) then
 		return 0
 	end
 
@@ -84,16 +88,8 @@ function EcoValueDef(unitDef)
 	return ecoValue
 end
 
-function IsValidEcoUnitDef(unitDef, teamID)
-	-- skip Raptor AI, moving units and player built walls
-	if (teamID and teamID == raptorTeamID) or unitDef.canMove or WALLS.hash[unitDef.name] ~= nil then
-		return false
-	end
-	return true
-end
-
 return {
-	EcoValueDef       = EcoValueDef,
+	IsWall            = IsWall,
 	IsValidEcoUnitDef = IsValidEcoUnitDef,
-	IsWall            = IsWall
+	EcoValueDef       = EcoValueDef,
 }

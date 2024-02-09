@@ -15,24 +15,16 @@ local Set               = VFS.Include('common/SetList.lua').NewSetListMin
 
 local DiffTimers        = Spring.DiffTimers
 local GetAIInfo         = Spring.GetAIInfo
-local GetAllUnits       = Spring.GetAllUnits
-local GetGaiaTeamID     = Spring.GetGaiaTeamID
 local GetGameRulesParam = Spring.GetGameRulesParam
 local GetGameSeconds    = Spring.GetGameSeconds
-local GetModOptions     = Spring.GetModOptions
+
 local GetMyTeamID       = Spring.GetMyTeamID
 local GetPlayerInfo     = Spring.GetPlayerInfo
 local GetPlayerList     = Spring.GetPlayerList
 local GetTeamList       = Spring.GetTeamList
-local GetTeamLuaAI      = Spring.GetTeamLuaAI
 local GetTimer          = Spring.GetTimer
-local GetUnitDefID      = Spring.GetUnitDefID
-local GetUnitTeam       = Spring.GetUnitTeam
-local GetViewGeometry   = Spring.GetViewGeometry
 local I18N              = Spring.I18N
-local SendCommands      = Spring.SendCommands
 local UnitDefs          = UnitDefs
-local Utilities         = Spring.Utilities
 
 -- to be deleted pending PR #2572
 local WALLS             = Set()
@@ -45,13 +37,21 @@ WALLS:Add("scavfort")
 local raptorTeamID
 local teams = GetTeamList()
 for _, teamID in ipairs(teams) do
-	local teamLuaAI = GetTeamLuaAI(teamID)
+	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
 	if (teamLuaAI and string.find(teamLuaAI, "Raptors")) then
 		raptorTeamID = teamID
 	end
 end
 if not raptorTeamID then
-	raptorTeamID = GetGaiaTeamID()
+	raptorTeamID = Spring.GetGaiaTeamID()
+end
+
+local function IsValidEcoUnitDef(unitDef, teamID)
+	-- skip Raptor AI, moving units and player built walls
+	if teamID == raptorTeamID or unitDef.canMove or WALLS.hash[unitDef.name] ~= nil then
+		return false
+	end
+	return true
 end
 
 -- Calculate an eco value based on energy and metal production
@@ -66,6 +66,11 @@ end
 --	3000: [adv fusion]
 -- }
 local function EcoValueDef(unitDef)
+
+	if not IsValidEcoUnitDef(unitDef) then
+		return 0
+	end
+
 	local ecoValue = 1
 	if unitDef.energyMake then
 		ecoValue = ecoValue + unitDef.energyMake
@@ -104,14 +109,6 @@ local function EcoValueDef(unitDef)
 	return ecoValue
 end
 
-local function IsValidEcoUnitDef(unitDef, teamID)
-	-- skip Raptor AI, moving units and player built walls
-	if teamID == raptorTeamID or unitDef.canMove or WALLS.hash[unitDef.name] ~= nil then
-		return false
-	end
-	return true
-end
-
 local RaptorCommon
 if io.open('LuaRules/gadgets/raptors/common.lua', "r") == nil then
 	RaptorCommon = {
@@ -129,7 +126,7 @@ local messageArgs, marqueeMessage
 local refreshMarqueeMessage = false
 local showMarqueeMessage    = false
 
-if not Utilities.Gametype.IsRaptors() then
+if not Spring.Utilities.Gametype.IsRaptors() then
 	return false
 end
 
@@ -174,7 +171,7 @@ local guiPanel --// a displayList
 local updatePanel
 local hasRaptorEvent            = false
 
-local difficultyOption          = GetModOptions().raptor_difficulty
+local modOptions     = Spring.GetModOptions()
 
 local rules                     = {
 	"raptorQueenTime",
@@ -389,10 +386,10 @@ local function CreatePanelDisplayList()
 	end
 
 	local endless = ""
-	if GetModOptions().raptor_endless then
+	if modOptions.raptor_endless then
 		endless = ' (' .. I18N('ui.raptors.difficulty.endless') .. ')'
 	end
-	local difficultyCaption = I18N('ui.raptors.difficulty.' .. difficultyOption)
+	local difficultyCaption = I18N('ui.raptors.difficulty.' .. modOptions.raptor_difficulty)
 	font:Print(I18N('ui.raptors.mode', { mode = difficultyCaption }) .. endless, 80, h - 170, panelFontSize, "")
 	font:End()
 
@@ -525,7 +522,7 @@ end
 
 function widget:Shutdown()
 	if hasRaptorEvent then
-		SendCommands({ "luarules HasRaptorEvent 0" })
+		Spring.SendCommands({ "luarules HasRaptorEvent 0" })
 	end
 
 	if guiPanel then
@@ -540,7 +537,7 @@ end
 
 function widget:GameFrame(n)
 	if not hasRaptorEvent and n > 1 then
-		SendCommands({ "luarules HasRaptorEvent 1" })
+		Spring.SendCommands({ "luarules HasRaptorEvent 1" })
 		hasRaptorEvent = true
 	end
 	if n % 30 < 1 then
@@ -593,7 +590,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:ViewResize()
-	vsx, vsy = GetViewGeometry()
+	vsx, vsy = Spring.GetViewGeometry()
 
 	font = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
@@ -657,16 +654,16 @@ function widget:Initialize()
 	local y = math.abs(math.floor(viewSizeY - 300))
 
 	-- reposition if scavengers panel is shown as well
-	if Utilities.Gametype.IsScavengers() then
+	if Spring.Utilities.Gametype.IsScavengers() then
 		x = x - 315
 	end
 
 	updatePos(x, y)
 
-	local allUnits = GetAllUnits()
+	local allUnits = Spring.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
-		local unitDefID = GetUnitDefID(unitID)
-		RegisterUnit(unitID, unitDefID, GetUnitTeam(unitID))
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		RegisterUnit(unitID, unitDefID, Spring.GetUnitTeam(unitID))
 	end
 end
