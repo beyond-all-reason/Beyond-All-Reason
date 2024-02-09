@@ -270,7 +270,6 @@ local function AddFNode(pos)
         fNodes[n + 1] = pos
         fDists[n + 1] = fDists[n] + sqrt(distSq)
         lineLength = lineLength+distSq^0.5
-		WG.customformations_linelength = lineLength
     end
 
     totaldxy = 0
@@ -380,7 +379,7 @@ end
 --------------------------------------------------------------------------------
 
 function widget:MousePress(mx, my, mButton)
-    lineLength=0 --for linestipple
+    lineLength = 0 --for linestipple
     -- Where did we click
     inMinimap = spIsAboveMiniMap(mx, my)
     if inMinimap and not MiniMapFullProxy then return false end
@@ -450,8 +449,6 @@ function widget:MousePress(mx, my, mButton)
     -- Is this line a path candidate (We don't do a path off an overriden command)
 	pathCandidate = (not overriddenCmd) and selectedUnitsCount==1 and (not shift or repeatForSingleUnit)
 
-    -- We handled the mouse press
-	WG.customformations_linelength = lineLength
     return true
 end
 
@@ -511,14 +508,12 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
         end
     end
 
-	WG.customformations_linelength = lineLength
     return false
 end
 
 
 function widget:MouseRelease(mx, my, mButton)
 	lineLength = 0
-	WG.customformations_linelength = lineLength
 
     -- It is possible for MouseRelease to fire after MouseRelease
     if #fNodes == 0 then
@@ -722,7 +717,6 @@ end
 local function DrawFilledCircleOutFading(pos, size, cornerCount)
     SetColor(usingCmd, 1)
 	local lengthPerUnit = lineLength / (selectedUnitsCount-1)
-    local lengthUnitNext = lengthPerUnit
 	if (lengthPerUnit < 64) and (usingCmd == CMD.UNLOAD_UNIT) then
 		glColor(1.0,0.3,0.0,1.0)
 	end
@@ -735,7 +729,7 @@ end
 local function DrawFormationDots(vertFunction, zoomY)
 	gl.PushAttrib(GL.ALL_ATTRIB_BITS)
     local currentLength = 0
-    local lengthPerUnit = lineLength / (selectedUnitsCount-1)
+    local lengthPerUnit = lineLength / (selectedUnitsCount - 1)
     local lengthUnitNext = lengthPerUnit
     local dotSize = sqrt(zoomY*0.24)
     if (#fNodes > 1) and (selectedUnitsCount > 1) then
@@ -1343,8 +1337,6 @@ end
 
 
 function widget:Initialize()
-	WG.customformations_linelength = 0
-
 	WG.customformations = {}
 	WG.customformations.getRepeatForSingleUnit = function()
 		return repeatForSingleUnit
