@@ -547,6 +547,10 @@ function widget:MouseRelease(mx, my, mButton)
         end
     end
 
+	if selectedUnitsCount == 1 and not shift then
+		spSetActiveCommand(0) -- Deselect command
+	end
+
     -- Are we going to use the drawn formation?
     local usingFormation = true
 
