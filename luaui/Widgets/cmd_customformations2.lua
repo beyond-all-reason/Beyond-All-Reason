@@ -13,7 +13,7 @@ function widget:GetInfo()
     }
 end
 
--- 06/04/13 -- Cleaned up commands in Custom Formations:
+-- Behavior:
 -- To give a line command: select command, then right click & drag
 -- To give a command within an area: select command, then left click and drag
 -- To give a command at a point: select command, left click and don't drag
@@ -21,19 +21,14 @@ end
 -- To deselect non-default command and return to default command: right click and don't drag
 -- To deselect default command: left click
 
--- 29/05/13 -- Dots are of consistent size depending on zoom and terrain height
--- 25/05/13 -- Fixed crash bug that was triggered by pressing the left mouse button during line drawing with right mouse button. Also improved visuals.
--- 13/04/13 -- Visuals remade by PixelOfDeath
--- 23/03/13 -- Attack order y-coord placement remade by Bluestone for spring 94+
-
 local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
-
 local dotImage			= "LuaUI/Images/formationDot.dds"
 
---------------------------------------------------------------------------------
+
 --------------------------------------------------------------------------------
 -- User Configurable Constants
 --------------------------------------------------------------------------------
+
 -- issue repeat commands for a single unit while holding shift
 local repeatForSingleUnit = true
 
@@ -64,10 +59,6 @@ local formationCmds = {
     [CMD.PATROL] = true,
     [CMD.UNLOAD_UNIT] = true,
     [CMD_SETTARGET] = true -- set target
-}
--- What commands require alt to be held
-local requiresAlt = {
-    --nothing!
 }
 
 -- Context-based default commands that can be overridden (meaning that cf2 doesn't touch the command i.e. guard/attack when mouseover unit)
@@ -139,20 +130,15 @@ local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 local spGetModKeyState = Spring.GetModKeyState
 local spGetInvertQueueKey = Spring.GetInvertQueueKey
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
-local spGetUnitDefID = Spring.GetUnitDefID
 local spGiveOrder = Spring.GiveOrder
 local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 local spGetCommandQueue = Spring.GetCommandQueue
 local spGetUnitPosition = Spring.GetUnitPosition
-local spTraceScreenRay = Spring.TraceScreenRay
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitHeight = Spring.GetUnitHeight
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetViewGeometry = Spring.GetViewGeometry
 local spTraceScreenRay = Spring.TraceScreenRay
-
 
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local maxUnits = Game.maxUnits
@@ -160,13 +146,9 @@ local maxUnits = Game.maxUnits
 local osclock = os.clock
 local tsort = table.sort
 local floor = math.floor
-local ceil = math.ceil
 local sqrt = math.sqrt
-local sin = math.sin
-local cos = math.cos
 local max = math.max
 local huge = math.huge
-local pi2 = 2*math.pi
 
 local CMD_INSERT = CMD.INSERT
 local CMD_MOVE = CMD.MOVE
@@ -187,7 +169,6 @@ local selectedUnitsCount = Spring.GetSelectedUnitsCount()
 -- Helper Functions
 --------------------------------------------------------------------------------
 local function GetModKeys()
-
     local alt, ctrl, meta, shift = spGetModKeyState()
 
     if spGetInvertQueueKey() then -- Shift inversion
@@ -197,11 +178,11 @@ local function GetModKeys()
     return alt, ctrl, meta, shift
 end
 
+
 local function GetUnitFinalPosition(uID)
-
     local ux, uy, uz = spGetUnitPosition(uID)
-
     local cmds = spGetCommandQueue(uID,5000)
+
 	if cmds then
 		for i = #cmds, 1, -1 do
 
@@ -234,6 +215,8 @@ local function GetUnitFinalPosition(uID)
 
     return ux, uy, uz
 end
+
+
 local function SetColor(cmdID, alpha)
     if     cmdID == CMD_MOVE       then glColor(0.5, 1.0, 0.5, alpha) -- Green
     elseif cmdID == CMD_ATTACK     then glColor(1.0, 0.2, 0.2, alpha) -- Red
@@ -242,8 +225,9 @@ local function SetColor(cmdID, alpha)
     else                                glColor(0.5, 0.5, 1.0, alpha) -- Blue
     end
 end
-local function CanUnitExecute(uID, cmdID)
 
+
+local function CanUnitExecute(uID, cmdID)
     if cmdID == CMD_UNLOADUNIT then
         local transporting = spGetUnitIsTransporting(uID)
         return (transporting and #transporting > 0)
@@ -251,6 +235,8 @@ local function CanUnitExecute(uID, cmdID)
 
     return (spFindUnitCmdDesc(uID, cmdID) ~= nil)
 end
+
+
 local function GetExecutingUnits(cmdID)
     local units = {}
     for i = 1, selectedUnitsCount do
@@ -262,8 +248,8 @@ local function GetExecutingUnits(cmdID)
     return units
 end
 
-local function AddFNode(pos)
 
+local function AddFNode(pos)
     local px, pz = pos[1], pos[3]
     if px < 0 or pz < 0 or px > mapSizeX or pz > mapSizeZ then
         return false
@@ -293,7 +279,6 @@ end
 
 
 local function GetInterpNodes(mUnits)
-
     local number = #mUnits
     local spacing = fDists[#fNodes] / (#mUnits - 1)
 
@@ -343,12 +328,11 @@ local function GetInterpNodes(mUnits)
     eY = spGetGroundHeight(eX, eZ)
     interpNodes[number] = {eX, eY, eZ}
 
-    --DEBUG for i=1,number do Spring.Echo(interpNodes[i]) end
-
     return interpNodes
 end
-local function GetCmdOpts(alt, ctrl, meta, shift, right)
 
+
+local function GetCmdOpts(alt, ctrl, meta, shift, right)
     local opts = { alt=alt, ctrl=ctrl, meta=meta, shift=shift, right=right }
     local coded = 0
 
@@ -361,16 +345,18 @@ local function GetCmdOpts(alt, ctrl, meta, shift, right)
     opts.coded = coded
     return opts
 end
-local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
 
+
+local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
     if widgetHandler:CommandNotify(cmdID, cmdParams, cmdOpts) then
         return
     end
 
     spGiveOrder(cmdID, cmdParams, cmdOpts.coded)
 end
-local function GiveNotifyingOrderToUnit(uArr, oArr, uID, cmdID, cmdParams, cmdOpts)
 
+
+local function GiveNotifyingOrderToUnit(uArr, oArr, uID, cmdID, cmdParams, cmdOpts)
     for _, w in ipairs(widgetHandler.widgets) do
         if w.UnitCommandNotify and w:UnitCommandNotify(uID, cmdID, cmdParams, cmdOpts) then
             return
@@ -393,7 +379,6 @@ end
 -- Mouse/keyboard Callins
 --------------------------------------------------------------------------------
 
-
 function widget:MousePress(mx, my, mButton)
     lineLength=0 --for linestipple
     -- Where did we click
@@ -406,7 +391,6 @@ function widget:MousePress(mx, my, mButton)
         usingRMB = false
     end
 
-    --Spring.Echo("mouse:", mButton)
     if mButton ~= 3 then return false end --all formation commands are done using right click & drag
 
     -- Get command that would've been issued
@@ -470,6 +454,8 @@ function widget:MousePress(mx, my, mButton)
 	WG.customformations_linelength = lineLength
     return true
 end
+
+
 function widget:MouseMove(mx, my, dx, dy, mButton)
     -- It is possible for MouseMove to fire after MouseRelease
     if #fNodes == 0 then
@@ -528,6 +514,8 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 	WG.customformations_linelength = lineLength
     return false
 end
+
+
 function widget:MouseRelease(mx, my, mButton)
 	lineLength = 0
 	WG.customformations_linelength = lineLength
@@ -594,9 +582,6 @@ function widget:MouseRelease(mx, my, mButton)
 
         -- Get command options
         local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, usingRMB)
-
-        -- Single click ? (no line drawn)
-        --if (#fNodes == 1) then
 
         -- we add the drag threshold code here
         -- tracing to a point with a drag threshold pixel delta added to mouse coord, to get world distance
@@ -693,6 +678,8 @@ function widget:MouseRelease(mx, my, mButton)
 
     return true
 end
+
+
 function widget:KeyRelease(key)
     if (key == keyShift) and endShift then
         spSetActiveCommand(0)
@@ -703,18 +690,22 @@ end
 --------------------------------------------------------------------------------
 -- Drawing
 --------------------------------------------------------------------------------
+
 local function tVerts(verts)
     for i = 1, #verts do
         local v = verts[i]
         glVertex(v[1], v[2], v[3])
     end
 end
+
+
 local function tVertsMinimap(verts)
     for i = 1, #verts do
         local v = verts[i]
         glVertex(v[1], v[3], 1)
     end
 end
+
 
 local function DrawGroundquad(x,y,z,size)
     gl.TexCoord(0,0)
@@ -726,6 +717,7 @@ local function DrawGroundquad(x,y,z,size)
     gl.TexCoord(1,0)
     gl.Vertex(x+size,y,z-size)
 end
+
 
 local function DrawFilledCircleOutFading(pos, size, cornerCount)
     SetColor(usingCmd, 1)
@@ -778,6 +770,7 @@ local function DrawFormationDots(vertFunction, zoomY)
 	gl.PopAttrib(GL.ALL_ATTRIB_BITS)
 end
 
+
 local function DrawFormationLines(vertFunction, lineStipple)
     glLineStipple(lineStipple, 4369)
     glLineWidth(2.0)
@@ -793,6 +786,7 @@ local function DrawFormationLines(vertFunction, lineStipple)
     glLineStipple(false)
 end
 
+
 local Xs, Ys = spGetViewGeometry()
 Xs, Ys = Xs*0.5, Ys*0.5
 function widget:ViewResize(viewSizeX, viewSizeY)
@@ -800,11 +794,13 @@ function widget:ViewResize(viewSizeX, viewSizeY)
     Xs, Ys = Xs*0.5, Ys*0.5
 end
 
+
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
 	end
 end
+
 
 function widget:DrawWorld()
 	if chobbyInterface then return end
@@ -828,6 +824,7 @@ function widget:DrawWorld()
     end
 end
 
+
 --TODO maybe include minimap drawing again
 function widget:DrawInMiniMap()
     glPushMatrix()
@@ -845,6 +842,7 @@ function widget:DrawInMiniMap()
     glPopMatrix()
 end
 
+
 function widget:Update(deltaTime)
     dimmAlpha = dimmAlpha - lineFadeRate * deltaTime
     if dimmAlpha <= 0 then
@@ -857,9 +855,11 @@ function widget:Update(deltaTime)
     end
 end
 
+
 ---------------------------------------------------------------------------------------------------------
 -- Config
 ---------------------------------------------------------------------------------------------------------
+
 function widget:GetConfigData() -- Saving
     return {
         ['maxHungarianUnits'] = maxHungarianUnits,
@@ -869,25 +869,23 @@ function widget:SetConfigData(data) -- Loading
     maxHungarianUnits = data['maxHungarianUnits'] or defaultHungarianUnits
 end
 
+
 ---------------------------------------------------------------------------------------------------------
 -- Matching Algorithms
 ---------------------------------------------------------------------------------------------------------
-function GetOrdersNoX(nodes, units, unitCount, shifted)
 
+function GetOrdersNoX(nodes, units, unitCount, shifted)
     -- Remember when  we start
     -- This is for capping total time
     -- Note: We at least complete initial assignment
     local startTime = osclock()
 
-    ---------------------------------------------------------------------------------------------------------
     -- Find initial assignments
-    ---------------------------------------------------------------------------------------------------------
     local unitSet = {}
     local fdist = -1
     local fm
 
     for u = 1, unitCount do
-
         -- Get unit position
         local ux, uz
         if shifted then
@@ -1048,6 +1046,8 @@ function GetOrdersNoX(nodes, units, unitCount, shifted)
     end
     return orders
 end
+
+
 function GetOrdersHungarian(nodes, units, unitCount, shifted)
     -------------------------------------------------------------------------------------
     -------------------------------------------------------------------------------------
@@ -1090,11 +1090,8 @@ function GetOrdersHungarian(nodes, units, unitCount, shifted)
     end
 
     --------------------------------------------------------------------------------------------
-    --------------------------------------------------------------------------------------------
     -- find optimal solution and send orders
     local result = findHungarian(distances, unitCount)
-
-    --------------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------------
     -- determine needed time and optimize the maxUnits limit
 
@@ -1137,8 +1134,8 @@ function GetOrdersHungarian(nodes, units, unitCount, shifted)
     return orders
 end
 
-function findHungarian(array, n)
 
+function findHungarian(array, n)
     -- Vars
     local colcover = {}
     local rowcover = {}
@@ -1155,7 +1152,6 @@ function findHungarian(array, n)
 
     -- Subtract minimum from rows
     for i = 1, n do
-
         local aRow = array[i]
         local minVal = aRow[1]
         for j = 2, n do
@@ -1171,7 +1167,6 @@ function findHungarian(array, n)
 
     -- Subtract minimum from columns
     for j = 1, n do
-
         local minVal = array[1][j]
         for i = 2, n do
             if array[i][j] < minVal then
@@ -1198,7 +1193,6 @@ function findHungarian(array, n)
 
     -- Start solving system
     while true do
-
         -- Are we done ?
         local done = true
         for i = 1, n do
@@ -1221,13 +1215,13 @@ function findHungarian(array, n)
         stepFiveStar(colcover, rowcover, r, c, n, starscol, primescol)
     end
 end
+
+
 function doPrime(array, colcover, rowcover, n, starscol, r, c, rmax, primescol)
-
     primescol[r] = c
-
     local starCol = starscol[r]
-    if starCol then
 
+    if starCol then
         rowcover[r] = true
         colcover[starCol] = false
 
@@ -1245,8 +1239,9 @@ function doPrime(array, colcover, rowcover, n, starscol, r, c, rmax, primescol)
         return r, c
     end
 end
-function stepPrimeZeroes(array, colcover, rowcover, n, starscol, primescol)
 
+
+function stepPrimeZeroes(array, colcover, rowcover, n, starscol, primescol)
     -- Infinite loop
     while true do
 
@@ -1301,8 +1296,9 @@ function stepPrimeZeroes(array, colcover, rowcover, n, starscol, primescol)
         end
     end
 end
-function stepFiveStar(colcover, rowcover, row, col, n, starscol, primescol)
 
+
+function stepFiveStar(colcover, rowcover, row, col, n, starscol, primescol)
     -- Star the initial prime
     primescol[row] = false
     starscol[row] = col
@@ -1345,6 +1341,7 @@ function stepFiveStar(colcover, rowcover, row, col, n, starscol, primescol)
     end
 end
 
+
 function widget:Initialize()
 	WG.customformations_linelength = 0
 
@@ -1354,9 +1351,9 @@ function widget:Initialize()
 	end
 	WG.customformations.setRepeatForSingleUnit = function(value)
 		repeatForSingleUnit = value
-		Spring.Echo("setting repeat to", value)
 	end
 end
+
 
 function widget:Shutdown()
 	WG.customformations_linelength = 0
