@@ -1356,5 +1356,5 @@ end
 
 
 function widget:Shutdown()
-	WG.customformations_linelength = 0
+	WG.customformations = nil
 end
