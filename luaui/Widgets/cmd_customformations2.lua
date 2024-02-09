@@ -34,6 +34,9 @@ local dotImage			= "LuaUI/Images/formationDot.dds"
 --------------------------------------------------------------------------------
 -- User Configurable Constants
 --------------------------------------------------------------------------------
+-- issue repeat commands for a single unit while holding shift
+local repeatForSingleUnit = true
+
 -- Minimum spacing between commands (Squared) when drawing a path for a single unit, must be >16*16 (Or orders overlap and cancel)
 local minPathSpacingSq = 50 * 50
 
@@ -447,8 +450,7 @@ function widget:MousePress(mx, my, mButton)
     end
 
     -- Is this command eligible for a custom formation ?
-    local alt, ctrl, meta, shift = GetModKeys()
-    if not (formationCmds[usingCmd] and (alt or not requiresAlt[usingCmd])) then
+    if not (formationCmds[usingCmd]) then
         return false
     end
 
@@ -459,8 +461,10 @@ function widget:MousePress(mx, my, mButton)
     -- Setup formation node array
     if not AddFNode(pos) then return false end
 
+	local alt, ctrl, meta, shift = spGetModKeyState()
+
     -- Is this line a path candidate (We don't do a path off an overriden command)
-    pathCandidate = (not overriddenCmd) and (selectedUnitsCount==1 or (alt and not requiresAlt[usingCmd]))
+	pathCandidate = (not overriddenCmd) and selectedUnitsCount==1 and (not shift or repeatForSingleUnit)
 
     -- We handled the mouse press
 	WG.customformations_linelength = lineLength
@@ -590,7 +594,7 @@ function widget:MouseRelease(mx, my, mButton)
         -- Single click ? (no line drawn)
         --if (#fNodes == 1) then
 
-        -- we add the drag threshold code here  
+        -- we add the drag threshold code here
         -- tracing to a point with a drag threshold pixel delta added to mouse coord, to get world distance
         local selectionThreshold = Spring.GetConfigInt("MouseDragFrontCommandThreshold")
         local _, dragDeltaPos = spTraceScreenRay(mx,my+selectionThreshold, true, false, false, true)
@@ -1339,6 +1343,15 @@ end
 
 function widget:Initialize()
 	WG.customformations_linelength = 0
+
+	WG.customformations = {}
+	WG.customformations.getRepeatForSingleUnit = function()
+		return repeatForSingleUnit
+	end
+	WG.customformations.setRepeatForSingleUnit = function(value)
+		repeatForSingleUnit = value
+		Spring.Echo("setting repeat to", value)
+	end
 end
 
 function widget:Shutdown()
