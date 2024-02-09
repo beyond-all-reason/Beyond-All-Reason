@@ -867,13 +867,6 @@ function UnitDef_Post(name, uDef)
     --	end
     --end
 
-	-- Unbacom
-
-	if modOptions.unba == true then
-		unbaUnits = VFS.Include("unbaconfigs/unbaunits_post.lua")
-		uDef = unbaUnits.unbaUnitTweaks(name, uDef)
-	end
-
 
 if modOptions.emprework == true then
 
@@ -2116,10 +2109,6 @@ function WeaponDef_Post(name, wDef)
 		end
 
 		ProcessSoundDefaults(wDef)
-	end
-	if modOptions.unba == true then
-		unbaUnits = VFS.Include("unbaconfigs/unbaunits_post.lua")
-		wDef = unbaUnits.unbaWeaponTweaks(name, wDef)
 	end
 
 	-- Multipliers
