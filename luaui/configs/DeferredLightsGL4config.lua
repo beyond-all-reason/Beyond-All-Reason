@@ -5291,6 +5291,44 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['armlship'] = {
+		back = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 18, posz = -29, radius = 30,
+							color2r = 1, color2g = 1, color2b = 0.2, colortime = 0,
+							r = 1, g = 1, b = 0.2, a = 0.08,
+							modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		turret = {
+			lightType = 'point',
+			pieceName = 'turret',
+			lightConfig = { posx = 0, posy = 13, posz = -2, radius = 22,
+							color2r = 1, color2g = 1, color2b = 0.2, colortime = 0,
+							r = 1, g = 1, b = 0.2, a = 0.08,
+							modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		turretfront1 = {
+			lightType = 'point',
+			pieceName = 'turret',
+			lightConfig = { posx = 5.5, posy = 0, posz = 16.5, radius = 7,
+							color2r = 1, color2g = 1, color2b = 0.2, colortime = 0,
+							r = 1, g = 1, b = 0.2, a = 0.055,
+							modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		turretfront2 = {
+			lightType = 'point',
+			pieceName = 'turret',
+			lightConfig = { posx = -5.5, posy = 0, posz = 16.5, radius = 7,
+							color2r = 1, color2g = 1, color2b = 0.2, colortime = 0,
+							r = 1, g = 1, b = 0.2, a = 0.055,
+							modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	['correcl'] = {
 		front1 = {
 			lightType = 'point',
@@ -14194,7 +14232,7 @@ local unitLights = {
 			lightType = 'point',
 			pieceName = 'base',
 			lightConfig = { posx = 15, posy = 35, posz = 7, radius = 32,
-							color2r = 0.7, color2g = 0.7, color2b = 0.25, colortime = 6,
+							color2r = 0.7, color2g = 0.7, color2b = 0.25, colortime = 8,
 							r = 1, g = 1, b = 0.3, a = 0.05,
 							modelfactor = 0.3, specular = 0.5, scattering = 0.35, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
@@ -14203,7 +14241,7 @@ local unitLights = {
 			lightType = 'point',
 			pieceName = 'base',
 			lightConfig = { posx = 15, posy = 35, posz = 0, radius = 32,
-							color2r = 0.7, color2g = 0.7, color2b = 0.25, colortime = 6,
+							color2r = 0.7, color2g = 0.7, color2b = 0.25, colortime = 7,
 							r = 1, g = 1, b = 0.3, a = 0.05,
 							modelfactor = 0.3, specular = 0.5, scattering = 0.35, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
@@ -14239,7 +14277,7 @@ local unitLights = {
 			lightType = 'point',
 			pieceName = 'base',
 			lightConfig = { posx = -15, posy = 35, posz = 7, radius = 32,
-							color2r = 0.7, color2g = 0.7, color2b = 0.25, colortime = 8,
+							color2r = 0.7, color2g = 0.7, color2b = 0.25, colortime = 9,
 							r = 1, g = 1, b = 0.3, a = 0.05,
 							modelfactor = 0.3, specular = 0.5, scattering = 0.35, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
@@ -14248,7 +14286,7 @@ local unitLights = {
 			lightType = 'point',
 			pieceName = 'base',
 			lightConfig = { posx = -15, posy = 35, posz = 0, radius = 32,
-							color2r = 0.7, color2g = 0.7, color2b = 0.25, colortime = 8,
+							color2r = 0.7, color2g = 0.7, color2b = 0.25, colortime = 7,
 							r = 1, g = 1, b = 0.3, a = 0.05,
 							modelfactor = 0.3, specular = 0.5, scattering = 0.35, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
@@ -18255,6 +18293,7 @@ local unitLights = {
 }
 
 
+unitLights['armtorps'] = unitLights['armmls']
 unitLights['coruwgeo'] = unitLights['corgeo']
 unitLights['coruwageo'] = unitLights['corageo']
 unitLights['armuwgeo'] = unitLights['armgeo']
@@ -18263,6 +18302,8 @@ unitLights['armshltxuw'] = unitLights['armshltx']
 unitLights['corgantuw'] = unitLights['corgant']
 unitLights['armdecom'] = unitLights['armcom']
 unitLights['cordecom'] = unitLights['corcom']
+unitLights['armcomcon'] = unitLights['armcom']
+unitLights['corcomcon'] = unitLights['corcom']
 unitLights['armdf'] = table.copy(unitLights['armfus'])
 unitLights['armuwfus'] = table.copy(unitLights['armfus'])
 unitLights['armckfus'] = table.copy(unitLights['armfus'])
