@@ -14144,6 +14144,179 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['corcrwh'] = {
+		eyes1 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 32, posz = 25, radius = 15,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.08,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		eyes2 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 6, posy = 32, posz = 18, radius = 18,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.055,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		eyes3 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = -6, posy = 32, posz = 18, radius = 18,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.055,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		eyes4 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = -5.5, posy = 24, posz = 51, radius = 16,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.08,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		eyes5 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 5.5, posy = 24, posz = 51, radius = 16,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.08,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		top1_2 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 15, posy = 35, posz = 7, radius = 32,
+							color2r = 0.7, color2g = 0.7, color2b = 0.25, colortime = 6,
+							r = 1, g = 1, b = 0.3, a = 0.05,
+							modelfactor = 0.3, specular = 0.5, scattering = 0.35, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		top1_1 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 15, posy = 35, posz = 0, radius = 32,
+							color2r = 0.7, color2g = 0.7, color2b = 0.25, colortime = 6,
+							r = 1, g = 1, b = 0.3, a = 0.05,
+							modelfactor = 0.3, specular = 0.5, scattering = 0.35, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		top1 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 15, posy = 35, posz = -7, radius = 32,
+							color2r = 0.7, color2g = 0.7, color2b = 0.25, colortime = 6,
+							r = 1, g = 1, b = 0.3, a = 0.05,
+							modelfactor = 0.3, specular = 0.5, scattering = 0.35, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		top2 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 15, posy = 35, posz = -15, radius = 32,
+							color2r = 0.7, color2g = 0.7, color2b = 0.3, colortime = 7,
+							r = 1, g = 1, b = 0.3, a = 0.05,
+							modelfactor = 0.3, specular = 0.5, scattering = 0.35, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		top3 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 15, posy = 35, posz = -22, radius = 32,
+							color2r = 0.7, color2g = 0.7, color2b = 0.25, colortime = 9,
+							r = 1, g = 1, b = 0.3, a = 0.05,
+							modelfactor = 0.3, specular = 0.5, scattering = 0.35, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		top4_2 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = -15, posy = 35, posz = 7, radius = 32,
+							color2r = 0.7, color2g = 0.7, color2b = 0.25, colortime = 8,
+							r = 1, g = 1, b = 0.3, a = 0.05,
+							modelfactor = 0.3, specular = 0.5, scattering = 0.35, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		top4_1 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = -15, posy = 35, posz = 0, radius = 32,
+							color2r = 0.7, color2g = 0.7, color2b = 0.25, colortime = 8,
+							r = 1, g = 1, b = 0.3, a = 0.05,
+							modelfactor = 0.3, specular = 0.5, scattering = 0.35, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		top4 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = -15, posy = 35, posz = -7, radius = 32,
+							color2r = 0.7, color2g = 0.7, color2b = 0.25, colortime = 8,
+							r = 1, g = 1, b = 0.3, a = 0.05,
+							modelfactor = 0.3, specular = 0.5, scattering = 0.35, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		top5 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = -15, posy = 35, posz = -15, radius = 32,
+							color2r = 0.7, color2g = 0.7, color2b = 0.25, colortime = 5,
+							r = 1, g = 1, b = 0.3, a = 0.05,
+							modelfactor = 0.3, specular = 0.5, scattering = 0.35, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		top6 = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = -15, posy = 35, posz = -22, radius = 32,
+							color2r = 0.7, color2g = 0.7, color2b = 0.25, colortime = 6,
+							r = 1, g = 1, b = 0.3, a = 0.05,
+							modelfactor = 0.3, specular = 0.5, scattering = 0.35, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		thrust1 = {
+			lightType = 'cone',
+			pieceName = 'thrustrra',
+			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.74,
+							r = 0.45, g = 0.7, b = 1, a = 0.24,
+							modelfactor = 0.4, specular = 1, scattering = 0.5, lensflare = 2,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		thrust2 = {
+			lightType = 'cone',
+			pieceName = 'thrustrla',
+			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.74,
+							r = 0.45, g = 0.7, b = 1, a = 0.24,
+							modelfactor = 0.4, specular = 1, scattering = 0.5, lensflare = 2,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		thrust3 = {
+			lightType = 'cone',
+			pieceName = 'thrustfla',
+			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.74,
+							r = 0.45, g = 0.7, b = 1, a = 0.24,
+							modelfactor = 0.4, specular = 1, scattering = 0.5, lensflare = 2,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		thrust4 = {
+			lightType = 'cone',
+			pieceName = 'thrustfra',
+			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.74,
+							r = 0.45, g = 0.7, b = 1, a = 0.24,
+							modelfactor = 0.4, specular = 1, scattering = 0.5, lensflare = 2,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	['armwin'] = {
 		light = {
 			lightType = 'point',
@@ -18082,7 +18255,6 @@ local unitLights = {
 }
 
 
-unitLights['corcrwh'] = unitLights['corcrw']
 unitLights['coruwgeo'] = unitLights['corgeo']
 unitLights['coruwageo'] = unitLights['corageo']
 unitLights['armuwgeo'] = unitLights['armgeo']
@@ -18339,8 +18511,6 @@ local unitEventLights = {
 
 
 		['cordemon'] = {
-
-
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'lfbarrel2',
@@ -18363,8 +18533,8 @@ local unitEventLights = {
 					modelfactor = 2, specular = 1, scattering = 0.05, lensflare = 0,
 					lifetime = 200, sustain = 5, animtype = 0},
 			},
-
 		},
+
 		['corthermite'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
