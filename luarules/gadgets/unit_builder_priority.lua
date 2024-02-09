@@ -136,6 +136,7 @@ local buildTargets = {} --{builtUnitID = builderUnitID} the unitIDs of build tar
 
 local maxBuildSpeed = {} -- {builderUnitID = buildSpeed} build speed of builderID, as in UnitDefs (contains all builders)
 local currentBuildSpeed = {} -- {builderid = currentBuildSpeed} build speed of builderID for current interval, not accounting for buildOwners special speed (contains only passive builders)
+local unitDefRelativeMetalBurden = {} -- relative metal burden (0..1) on economy when building the unit; 0 means its cost is basically all-energy (metal maker), 1 means all-metal (solar panel)
 
 -- NOTE: Explanation: Instead of using an individual table to store {unitID = {metal, energy, buildtime}}
 -- We are using using a single table, where {unitID = metal, (unitID + energyOffset) = energy, (unitID+buildTimeOffset) = buildtime}
@@ -210,10 +211,65 @@ local function updateTeamList()
 	end
 end
 
+-- For a given unitdef, calculate the relative metal burden of building it, taking into account any resources the unit
+-- will produce or consume for a time after being built.
+
+-- The returned value will be between 0 and 1.
+-- 0 means the economic burden of building it is basically energy-only (e.g. a metal extractor or metal maker),
+-- 1 means the economic burden of building it is basically metal-only (e.g. a basic solar collector),
+-- with most units falling somewhere in between (around 0.1)
+
+-- For example, a Cortex construction bot costs 120 metal, 1750 energy, and produces 7 E/s.
+-- Assuming it stays alive for just 30 seconds, that's a net energy cost of 1750 - (7 * 30) = 1540.
+-- The relative metal burden is 120 / (120 + 1540) = 0.072.
+local function CalculateRelativeMetalBurden(unitDef)
+
+	-- Some units produce (or require) resources. How many seconds of production/use should we factor into the burden of this unit?
+	local productionTime = 30 -- seconds
+	local metalCost = unitDef.metalCost
+	local energyCost = unitDef.energyCost
+	local metalMake = 0
+	local energyMake = unitDef.energyMake - unitDef.energyUpkeep
+
+	local avgTide = Spring.GetTidal()
+	local avgMexStrength = 2 -- assume 2.0 metal spots
+	local avgWindSpeed = math.max((Game.windMin or 0), (Game.windMax or 0) * .75) --fallback approximation from gui_top_bar.lua
+
+	if unitDef.windGenerator > 0 then
+		energyMake = math.min(avgWindSpeed, unitDef.windGenerator)
+	elseif unitDef.tidalGenerator > 0 then
+		energyMake = avgTide * unitDef.tidalGenerator
+	elseif unitDef.customParams then
+		if unitDef.customParams.metal_extractor then
+			local mex = tonumber(unitDef.customParams.metal_extractor)
+			if mex > 0 then
+				metalMake = mex * avgMexStrength
+			end
+		elseif unitDef.customParams.energyconv_capacity then
+			energyMake = -tonumber(unitDef.customParams.energyconv_capacity)
+			metalMake = -energyMake * tonumber(unitDef.customParams.energyconv_efficiency)
+		end
+	end
+
+	local metalBurden = math.max(0, metalCost - metalMake * productionTime) -- 0 or greater
+	local energyBurden = math.max(0, energyCost - energyMake * productionTime) -- 0 or greater
+	local relativeMetalBurden = metalBurden / math.max(1, metalBurden + energyBurden) -- 0..1
+	--[[
+	Spring.Echo("unit " .. tostring(unitDef.name) .. " has M/E cost " .. tostring(metalCost) .. ", " .. tostring(energyCost)
+		.. ", M/E production " .. tostring(metalMake) .. ", " .. tostring(energyMake)
+		.." M/E burden " .. tostring(metalBurden) .. ", " .. tostring(energyBurden)
+		.. " relative M burden " .. tostring(relativeMetalBurden))
+	]]
+	return relativeMetalBurden
+end
+
 function gadget:Initialize()
 	updateTeamList()
 	for _,unitID in pairs(Spring.GetAllUnits()) do
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+	end
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		unitDefRelativeMetalBurden[unitDefID] = CalculateRelativeMetalBurden(unitDef)
 	end
 end
 
@@ -368,8 +424,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 	local lowPrioBuildPowerUsed = 0
 
 	
-	-- Dont count solars and mm's as stalling:
-	local midPrioSolarMaker = {} -- builderID to negative metal, positive energy cost
+	local lowPrioBuilderMetalBurdens = {} -- builderID to metal burden (0..1) of their build target
 	-- this is about 800 us
 	if canBuild[teamID] then
 		local canBuildTeam = canBuild[teamID]
@@ -405,10 +460,10 @@ local function UpdatePassiveBuilders(teamID, interval)
 					passiveConsTotalExpenseEnergy = passiveConsTotalExpenseEnergy + expenseEnergy
 					passiveConsTotalExpenseMetal  = passiveConsTotalExpenseMetal  + expenseMetal
 					buildTargets[builtUnit] = builderID 
-					
-					
-					if expenseMetal == 0 then midPrioSolarMaker[builderID] = expenseEnergy end
-					if expenseEnergy == 0 then midPrioSolarMaker[builderID] = -1 * expenseMetal end
+
+					local builtUnitDefID = Spring.GetUnitDefID(builtUnit)
+					table.insert(lowPrioBuilderMetalBurdens, { unitDefRelativeMetalBurden[builtUnitDefID], builderID })
+
 					lowPrioBuildPowerWanted = lowPrioBuildPowerWanted + maxbuildspeed
 					
 				else
@@ -422,6 +477,16 @@ local function UpdatePassiveBuilders(teamID, interval)
 			
 		end
 	end
+
+	local function compareBuilderMetalBurdens(a, b)
+		-- a[1] is metal burden, a[2] is builder unit ID
+		if a[1] == b[1] then
+			return a[2] < b[2]
+		end
+		return a[1] < b[1]
+	end
+	table.sort(lowPrioBuilderMetalBurdens, compareBuilderMetalBurdens)
+
 	local intervalpersimspeed = interval/simSpeed
 	if tracy then tracy.ZoneEnd() end 
 	
@@ -457,29 +522,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 		
 		highPrioBuildPowerUsed = highPrioBuildPowerWanted * math.min(highPrioMetalSpend, highPrioEnergySpend)
 	end
-	
-	
-	-- Allow passive cons to build solars and makers as a medium priority
-	for builderID, costtype in pairs(midPrioSolarMaker) do 
-		if costtype < 0 then -- metal
-			if (passiveMetalLeft > -1 * costtype) then 
-				passiveMetalLeft = passiveMetalLeft + costtype
-				MaybeSetWantedBuildSpeed(builderID, maxBuildSpeed[builderID])
-				lowPrioBuildPowerUsed = lowPrioBuildPowerUsed + maxBuildSpeed[builderID]
-			else
-				midPrioSolarMaker[builderID] = nil -- remove them if we cant give them resources here
-			end
-		else -- energy
-			if (passiveEnergyLeft > costtype) then
-				passiveEnergyLeft = passiveEnergyLeft - costtype
-				MaybeSetWantedBuildSpeed(builderID, maxBuildSpeed[builderID])
-				lowPrioBuildPowerUsed = lowPrioBuildPowerUsed + maxBuildSpeed[builderID]
-			else
-				midPrioSolarMaker[builderID] = nil	-- remove them if we cant give them resources here
-			end
-		end
-	end
-	
+
 	-- Take away the resources allocated in a round-robin way in the previous pass:
 	local previousRoundRobinBuilders = 	roundRobinLastRoundTeamBuilders[teamID] 
 	for builderID, _ in pairs(previousRoundRobinBuilders) do 
@@ -502,6 +545,23 @@ local function UpdatePassiveBuilders(teamID, interval)
 	havePassiveResourcesLeft = (passiveEnergyLeft > 0) and (passiveMetalLeft > 0 )
 
 	if havePassiveResourcesLeft then 
+
+		-- What is the relative metal burden that we could support precisely with our remaining resources?
+		local resourcesLeftMetalBurden = passiveMetalLeft / (passiveMetalLeft + passiveEnergyLeft)
+		-- TODO: Replace the two-pass round-robin below with the following logic:
+		-- Now that passive builders have been sorted by their builds' metal burdens, find the two builders (adjacent
+		-- in the array, or the same element) whose metal burden most closely matches the metal burden we can support.
+		-- Call these b0 and b1.
+		-- 		1. See which of lowPrioBuilderMetalBurdens[b0] and [b1] has a metal burden _closer_ to resourcesLeftMetalBurden.
+		-- 		   (If tied, choose arbitrarily.)
+		-- 		2. Give the chosen builder as many resources as we can.
+		-- 		3. If we chose b0, decrement b0. If we chose b1, increment b1.
+		-- 		4. If we have resources left, recalculate resourcesLeftMetalBurden and repeat from step 1
+		-- 		   (excluding either of b0 or b1 that's fallen off the end of the array).
+		-- This should produce relatively stable buildspeeds while avoiding two problems:
+		-- 		a. energy being wasted due to a metal stall, or vice-versa
+		-- 		b. large amounts of structures being half-built when we'd be better off with some fully-built and some still near 0%
+
 		-- on the first pass, ignore everything < roundRobinLimit
 		-- on the second pass, ignore everything >= roundRobinLimit
 		local roundRobinLimit = roundRobinIndex
@@ -513,7 +573,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 				i = i + 1
 				if (firstpass and i >= roundRobinLimit) or ((not firstpass) and i < roundRobinLimit) then  
 				--if i >= roundRobinIndex then  
-					if passiveExpense[builderID] and not midPrioSolarMaker[builderID] then -- this builder is actually building, and wasnt given resources for solar or maker
+					if passiveExpense[builderID] then -- this builder is actually building
 						local wantedBuildSpeed = 0 -- init at zero buildspeed
 						if havePassiveResourcesLeft then 
 							-- we still have res, so try to pull it
@@ -555,7 +615,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 	-- Special case, we are completely and totally stalled, no resources left for passive builders. 
 
 		for builderID in pairs(passiveConsTeam) do 
-			if passiveExpense[builderID] and not midPrioSolarMaker[builderID] then  
+			if passiveExpense[builderID] then
 				MaybeSetWantedBuildSpeed(builderID, 0)
 			end
 		end	
