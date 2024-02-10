@@ -451,8 +451,8 @@ Test = {
 				if currentArgs[k] == nil or currentArgs[k] ~= v then
 					return false
 				end
-				return true
 			end
+			return true
 		end)
 	end,
 	spy = function(...)
