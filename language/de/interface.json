@@ -202,7 +202,7 @@
 			"repeat_tooltip": "Wiederholt die Befehlswarteschlange",
 			"Low Prio": "Niedrige Priorität",
 			"High Prio": "Hohe Priorität",
-			"priority_tooltip": "Bestimmt die Ressourcenzuteilung dieses Arbeiters, wenn Mangel herrscht",
+			"priority_tooltip": "Bestimmt die Ressourcenzuteilung dieses Arbeiters, wenn Mangel herrscht.\nBei Buildern mit niedriger Priorität werden übrig gebliebene Ressourcen zuerst an\nBuilds vergeben, die den Ressourcenüberlauf reduzieren und die Produktion steigern.",
 			"Decloaked": "Sichtbar",
 			"Cloaked": "Getarnt",
 			"wantcloak_tooltip": "Sichtbarkeitszustand",
