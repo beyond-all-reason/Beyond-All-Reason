@@ -128,8 +128,6 @@ local stallMarginSto = 0.01
 local buildPowerMinimum = 0.001 -- A small amount of buildpower we allocate to each build target owner to ensure that nanoframes dont vanish 
 
 local passiveCons = {} -- passiveCons[teamID][builderID] = true for passive cons
-local roundRobinIndexTeam = {} -- {teamID = roundRobinIndex}
-local roundRobinLastRoundTeamBuilders = {} -- {teamID = {builderID = true}} -- this is for taking away the resources of previous RR recipients
 local canBuild = {} --builders[teamID][builderID], contains all builders
 
 local buildTargets = {} --{builtUnitID = builderUnitID} the unitIDs of build targets of passive builders, a -1 here indicates that this build target has Active builders too.
@@ -199,8 +197,6 @@ local function updateTeamList()
 	teamList = spGetTeamList()
 	for _, teamID in ipairs(teamList) do
 		passiveCons[teamID] = {} -- passiveCons[teamID][builderID] = true for passive cons
-		roundRobinIndexTeam[teamID] = 1 -- {teamID = roundRobinIndex}
-		roundRobinLastRoundTeamBuilders[teamID] = {} -- {teamID = {builderID = true}} -- this is for taking away the resources of previous RR recipients
 		canBuild[teamID] = {} --builders[teamID][builderID], contains all builders
 		Spring.SetTeamRulesParam(teamID, totalBuildPowerRule, 0)
 		Spring.SetTeamRulesParam(teamID, highPrioBuildPowerRule, 0)
@@ -357,7 +353,6 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, teamID)
 	-- Clear Team stuff
 	canBuild[teamID][unitID] = nil
-	roundRobinLastRoundTeamBuilders[teamID][unitID] = nil
 	passiveCons[teamID][unitID] = nil
 	
 	-- clear unit data
@@ -388,7 +383,6 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 			
 			SetBuilderPriority(unitID, lowPriority)
 			passiveCons[teamID][unitID] = lowPriority or nil
-			roundRobinLastRoundTeamBuilders[teamID][unitID] = nil -- this is to ensure that mid-update changes carry over
 
 			if VERBOSE then 
 				Spring.Echo(string.format("UnitID %i of def %s has been set to %s = %s (%s)",
@@ -478,15 +472,6 @@ local function UpdatePassiveBuilders(teamID, interval)
 		end
 	end
 
-	local function compareBuilderMetalBurdens(a, b)
-		-- a[1] is metal burden, a[2] is builder unit ID
-		if a[1] == b[1] then
-			return a[2] < b[2]
-		end
-		return a[1] < b[1]
-	end
-	table.sort(lowPrioBuilderMetalBurdens, compareBuilderMetalBurdens)
-
 	local intervalpersimspeed = interval/simSpeed
 	if tracy then tracy.ZoneEnd() end 
 	
@@ -509,7 +494,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 	
 	local havePassiveResourcesLeft = (passiveEnergyLeft > 0) and (passiveMetalLeft > 0 )
 	
-	if havePassiveResourcesLeft then 
+	if havePassiveResourcesLeft then
 		highPrioBuildPowerUsed = highPrioBuildPowerWanted
 	else
 		-- make a very wild guess:
@@ -522,33 +507,14 @@ local function UpdatePassiveBuilders(teamID, interval)
 		
 		highPrioBuildPowerUsed = highPrioBuildPowerWanted * math.min(highPrioMetalSpend, highPrioEnergySpend)
 	end
-
-	-- Take away the resources allocated in a round-robin way in the previous pass:
-	local previousRoundRobinBuilders = 	roundRobinLastRoundTeamBuilders[teamID] 
-	for builderID, _ in pairs(previousRoundRobinBuilders) do 
-		MaybeSetWantedBuildSpeed(builderID, 0)
-		previousRoundRobinBuilders[builderID] = nil
-	end
 	
-	-- !!!!!! Important Explanation !!!!!
-	-- Iterating over a hash table has a random, but fixed order
-	-- If we just iterated over passive cons once, naively, then the first cons would always get the leftover resources
-	-- We want to do a round-robin of leftover resources distribution, where all cons approximately evenly get resources
-	-- We also want to minimize buildspeed changes, so the trivial solution of assigning fractional buildpower to all is undesired. 
-	-- Thus we need to store which index of hash table we doled out the last leftovers in the previous pass.
-	-- Then we need to iterate over passive cons twice
-	-- This is done in two passes around the pairs(passiveConsTeam), 
-		-- First Pass: we ignore the first roundRobinIndex units, and if there are still resources left over, we start a second pass
-		-- Second Pass: then in second pass ignore the last roundRobinIndex units. 
-		
-	local roundRobinIndex = roundRobinIndexTeam[teamID] or 1 -- this stores the first unit that _should_ get res
 	havePassiveResourcesLeft = (passiveEnergyLeft > 0) and (passiveMetalLeft > 0 )
 
-	if havePassiveResourcesLeft then 
+	if havePassiveResourcesLeft then
 
 		-- What is the relative metal burden that we could support precisely with our remaining resources?
 		local resourcesLeftMetalBurden = passiveMetalLeft / (passiveMetalLeft + passiveEnergyLeft)
-		-- TODO: Replace the two-pass round-robin below with the following logic:
+
 		-- Now that passive builders have been sorted by their builds' metal burdens, find the two builders (adjacent
 		-- in the array, or the same element) whose metal burden most closely matches the metal burden we can support.
 		-- Call these b0 and b1.
@@ -562,53 +528,65 @@ local function UpdatePassiveBuilders(teamID, interval)
 		-- 		a. energy being wasted due to a metal stall, or vice-versa
 		-- 		b. large amounts of structures being half-built when we'd be better off with some fully-built and some still near 0%
 
-		-- on the first pass, ignore everything < roundRobinLimit
-		-- on the second pass, ignore everything >= roundRobinLimit
-		local roundRobinLimit = roundRobinIndex
-		
-		for j=1, 2 do
-			local i = 0
-			local firstpass = (j == 1) 
-			for builderID in pairs(passiveConsTeam) do 
-				i = i + 1
-				if (firstpass and i >= roundRobinLimit) or ((not firstpass) and i < roundRobinLimit) then  
-				--if i >= roundRobinIndex then  
-					if passiveExpense[builderID] then -- this builder is actually building
-						local wantedBuildSpeed = 0 -- init at zero buildspeed
-						if havePassiveResourcesLeft then 
-							-- we still have res, so try to pull it
-							local passivePullEnergy = passiveExpense[builderID + energyOffset] * intervalpersimspeed
-							local passivePullMetal  = passiveExpense[builderID] * intervalpersimspeed
-							roundRobinIndex = i -- So the next time we run around this exact table, we should give this con some res
-							if passiveEnergyLeft < passivePullEnergy or passiveMetalLeft < passivePullMetal then 
-								-- we ran out, time to save our roundrobin index, and bail
-								havePassiveResourcesLeft = false 
-								if VERBOSE then Spring.Echo(string.format("Ran out for %d at %i, RRI =%d, j=%d",builderID, i, roundRobinIndex, j)) end 
-								break
-							else
-								-- Yes we still have resources
-								wantedBuildSpeed = maxBuildSpeed[builderID]
-								passiveEnergyLeft = passiveEnergyLeft - passivePullEnergy
-								passiveMetalLeft  = passiveMetalLeft  - passivePullMetal
-								previousRoundRobinBuilders[builderID] = true
-								if VERBOSE then Spring.Echo(string.format("Had Some for %d at %i, RRI =%d, j=%d",builderID, i, roundRobinIndex, j)) end 
-							end
-						end
-						MaybeSetWantedBuildSpeed(builderID, wantedBuildSpeed)
-						lowPrioBuildPowerUsed = lowPrioBuildPowerUsed + wantedBuildSpeed
+		-- We built the lowPrioBuilderMetalBurdens table earlier but haven't needed it until now. Sort it.
+		local function compareBuilderMetalBurdens(a, b)
+			-- a[1] is metal burden, a[2] is builder unit ID
+			if a[1] == b[1] then
+				return a[2] < b[2]
+			end
+			return a[1] < b[1]
+		end
+		table.sort(lowPrioBuilderMetalBurdens, compareBuilderMetalBurdens)
 
+		-- Binary search to find the b0 and b1 whose build metal burdens are closest to resourcesLeftMetalBurden
+		local n = #lowPrioBuilderMetalBurdens
+		local b0 = 1
+		local b1 = math.max(b0 + 1, n) -- if n==1, make b1 out-of-bounds
+		while b0 + 1 < b1 do -- run until b0 and b1 are adjacent
+			local bt = math.floor((b0 + b1) / 2)
+			if lowPrioBuilderMetalBurdens[bt][1] < resourcesLeftMetalBurden then
+				b0 = bt -- move b0 to the right
+			else
+				b1 = bt -- move b1 to the left
+			end
+		end
+
+		while n >= 1 and (b0 >= 1 or b1 <= n) do
+			-- We can spend resources, and at least one builder hasn't received resources yet.
+			local bClosest
+			-- If b1 is out-of-bounds, or if b0 is in-bounds and a closer match than b1, choose b0
+			if b1 > n or (b0 >= 1 and math.abs(lowPrioBuilderMetalBurdens[b0][1] - resourcesLeftMetalBurden) < math.abs(lowPrioBuilderMetalBurdens[b1][1] - resourcesLeftMetalBurden)) then
+				bClosest = b0
+				b0 = b0 - 1
+			else
+				bClosest = b1
+				b1 = b1 + 1
+			end
+			local builderID = lowPrioBuilderMetalBurdens[bClosest][2]
+
+			if passiveExpense[builderID] then -- this builder is actually building
+				local wantedBuildSpeed = 0 -- init at zero buildspeed
+				if havePassiveResourcesLeft then
+					-- we still have res, so try to pull it
+					local passivePullEnergy = passiveExpense[builderID + energyOffset] * intervalpersimspeed
+					local passivePullMetal  = passiveExpense[builderID] * intervalpersimspeed
+					if passiveEnergyLeft < passivePullEnergy or passiveMetalLeft < passivePullMetal then
+						havePassiveResourcesLeft = false
+						if VERBOSE then Spring.Echo(string.format("Ran out for builder %d at index %i (burden %.2f)", builderID, bClosest, lowPrioBuilderMetalBurdens[bClosest][1])) end
+						-- No need to set a fractional buildspeed, just wait for next frame and more resources.
+					else
+						-- We still have enough resources for this builder to build at max speed
+						wantedBuildSpeed = maxBuildSpeed[builderID]
+						passiveEnergyLeft = passiveEnergyLeft - passivePullEnergy
+						passiveMetalLeft  = passiveMetalLeft  - passivePullMetal
+
+						-- Update resources-left metal burden for the next pass.
+						resourcesLeftMetalBurden = passiveMetalLeft / (passiveMetalLeft + passiveEnergyLeft)
+						if VERBOSE then Spring.Echo(string.format("Had some for builder %d at index %i (burden %.2f)", builderID, bClosest, lowPrioBuilderMetalBurdens[bClosest][1])) end
 					end
 				end
-			end
-			if (not havePassiveResourcesLeft) or (not firstpass) then 
-				-- Either ran out of resources, or on our second pass
-				roundRobinIndexTeam[teamID] = roundRobinIndex
-				break 
-			else
-				-- We still have resources left over after completing the first pass, so do a second pass too 
-				if firstpass then 
-					roundRobinIndex = 1
-				end
+				MaybeSetWantedBuildSpeed(builderID, wantedBuildSpeed)
+				lowPrioBuildPowerUsed = lowPrioBuildPowerUsed + wantedBuildSpeed
 			end
 		end
 	else
@@ -622,7 +600,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 	end
 	
 	-- override buildTarget builders build speeds for a single frame; let them build at a tiny rate to prevent nanoframes from possibly decaying (yes this is confirmed to happen)
-	-- dont remove the resources given to a builder in a round-robin fashion just because they are build target owners
+	-- dont remove the resources given to a builder just because they are build target owners
 	-- and take them off the buildTargets queue!
 	for buildTargetID, builderUnitID in pairs(buildTargets) do 
 		-- if owner is passive, then give it a bit of BP
@@ -631,7 +609,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 			-- This builderUnitID has been assigned as passive with no resources, so give it a little bit
 			MaybeSetWantedBuildSpeed(builderUnitID, buildPowerMinimum)
 		else
-			-- this builderUnitID has been assigned greater than 0 resources in the round robin pass, so remove it from the next frames clear pass
+			-- this builderUnitID has been assigned greater than 0 resources, so remove it from the next frame's clear pass
 			buildTargets[buildTargetID] = nil
 		end
 	end 
@@ -646,11 +624,10 @@ local function UpdatePassiveBuilders(teamID, interval)
 	Spring.SetTeamRulesParam(teamID, lowPrioBuildPowerUsedRule, lowPrioBuildPowerUsed)
 	
 	if VERBOSE then 
-		Spring.Echo(string.format("%d Pstart = %.1f/%.0f Pleft = %.1f/%.0f RRI=%d #passive=%d Stalled=%d", 
+		Spring.Echo(string.format("%d Pstart = %.1f/%.0f Pleft = %.1f/%.0f #passive=%d Stalled=%d",
 			Spring.GetGameFrame(),
 			passiveMetalStart, passiveEnergyStart,
-			passiveMetalLeft, passiveEnergyLeft, 
-			roundRobinIndex, 
+			passiveMetalLeft, passiveEnergyLeft,
 			numPassiveCons,
 			havePassiveResourcesLeft and 0 or 1
 			)
