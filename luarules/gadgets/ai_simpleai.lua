@@ -18,6 +18,8 @@ local HashPosTable = MakeHashedPosTable()
 
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 
+local Game_extractorRadius = Game.extractorRadius
+
 -- team locals
 local SimpleFactoriesCount = {}
 local SimpleFactories = {}
@@ -46,7 +48,7 @@ function gadget:GetInfo()
 		author = "Damgam",
 		date = "2020",
 		license = "GNU GPL, v2 or later",
-		layer = -100,
+		layer = -8,
 		enabled = enabled,
 	}
 end
@@ -125,6 +127,7 @@ local SimpleConverterDefs = {RandomChoice = RandomChoice}
 local SimpleTurretDefs = {RandomChoice = RandomChoice}
 local SimpleUndefinedBuildingDefs = {RandomChoice = RandomChoice}
 local SimpleUndefinedUnitDefs = {RandomChoice = RandomChoice}
+local SimpleMexUnitDefID
 
 local BuildOptions = {} -- {unitDefHasBuildOptions = {1= buildOpt0, RandomChoice = RandomChoice}}
 
@@ -148,6 +151,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			SimpleConstructorDefs[unitDefID] = 1
 		elseif unitDef.extractsMetal > 0 or unitDef.customParams.metal_extractor then
 			SimpleExtractorDefs[unitDefID] = 1
+			-- hardcode t1 mex
+			if unitDef.name == 'armmex' then
+				SimpleMexUnitDefID = unitDefID
+			end
 		elseif (unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10)) or (unitDef.windGenerator > 0 and wind > 10) or unitDef.tidalGenerator > 0 or unitDef.customParams.solar then
 			SimpleGeneratorDefs[unitDefID] = 1
 		elseif unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency then
@@ -176,17 +183,18 @@ local function SimpleGetClosestMexSpot(x, z)
 	local bestSpot
 	local bestDist = math.huge
 	local metalSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList or nil
+	local getBuildingPositions = GG["resource_spot_finder"] and GG["resource_spot_finder"].GetBuildingPositions or nil
 	if metalSpots then
 		for i = 1, #metalSpots do
 			local spot = metalSpots[i]
 			local dx, dz = x - spot.x, z - spot.z
 			local dist = dx * dx + dz * dz
 			if dist < bestDist then
-				local units = Spring.GetUnitsInCylinder(spot.x, spot.z, 128)
-			--local height = Spring.GetGroundHeight(spot.x, spot.z)
+				local units = Spring.GetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
 				if #units == 0 then
-					--and height > 0 then
-					bestSpot = spot
+					local buildingPositions = getBuildingPositions(spot, SimpleMexUnitDefID, 0, true)
+					local targetPos = math.getClosestPosition(spot.x, spot.z, buildingPositions)
+					bestSpot = targetPos
 					bestDist = dist
 				end
 			end
