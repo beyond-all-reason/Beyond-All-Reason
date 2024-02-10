@@ -315,6 +315,8 @@ local function GetSpotsMetal()
 	for _, g in ipairs(uniqueGroups) do
 		local gMinX, gMaxX = huge, -1
 		local gLeft, gRight = g.left, g.right
+		local sumX, sumZ = 0, 0
+		local totalCells = 0
 		for iz = g.minZ, g.maxZ, metalMapSquareSize do
 			if gLeft[iz] < gMinX then
 				gMinX = gLeft[iz]
@@ -322,12 +324,20 @@ local function GetSpotsMetal()
 			if gRight[iz] > gMaxX then
 				gMaxX = gRight[iz]
 			end
+
+			local rowCells = floor((gRight[iz] - gLeft[iz]) / metalMapSquareSize + 1)
+			totalCells = totalCells + rowCells
+			sumX = sumX + (gLeft[iz] + gRight[iz]) * 0.5 * rowCells
+			sumZ = sumZ + iz * rowCells
 		end
 		g.minX = gMinX
 		g.maxX = gMaxX
 
-		g.x = (gMinX + gMaxX) * 0.5
-		g.z = (g.minZ + g.maxZ) * 0.5
+		-- center weighted by cells: unlike boundary center
+		-- {x = (gMinX + gMaxX) * 0.5, z = (g.minZ + g.maxZ) * 0.5}
+		-- it stores info to choose proper offset for Pos2BuildPos
+		g.x = sumX / totalCells
+		g.z = sumZ / totalCells
 		g.y = spGetGroundHeight(g.x, g.z)
 
 		spots[#spots + 1] = g
