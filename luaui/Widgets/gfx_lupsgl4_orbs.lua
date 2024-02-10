@@ -1,8 +1,4 @@
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---https://gist.github.com/lhog/77f3fb10fed0c4e054b6c67eb24efeed#file-test_unitshape_instancing-lua-L177-L178
-
---------------------------------------------OLD AIRJETS---------------------------
 function widget:GetInfo()
 	return {
 		name = "LUPS Orb GL4",
@@ -34,6 +30,17 @@ local glAlphaTest = gl.AlphaTest
 local glDepthTest = gl.DepthTest
 
 local spValidUnitID = Spring.ValidUnitID
+
+--------------------------------------------------------------------------------
+-- Beherith's notes
+--------------------------------------------------------------------------------
+-- TODO:
+-- Add health-based brightening
+-- Add shield based darkening 
+-- Optimize shader
+-- Combine Effects of techniques
+-- ELECTRORB TOO EXPENSIVE!
+
 
 --------------------------------------------------------------------------------
 -- Configuration
@@ -190,25 +197,41 @@ if UnitDefNames['armcom_scav'] then
 	scavEffects = nil
 end
 
-local newEffects = {}
+local orbUnitDefs = {}
+
+
 for unitname, effect in pairs(UnitEffects) do
-	newEffects[UnitDefNames[unitname].id] = effect
+	if UnitDefNames[unitname] then 
+		for _, effectdef in ipairs(effect) do 
+			if effectdef.class == "ShieldSphere" then 
+				local attr = {} 
+				local opts = effectdef.options
+				--orbUnitDefs[UnitDefNames[unitname].id] = 
+				attr[1], attr[2], attr[3] = unpack(opts.pos)
+				attr[4] = opts.size
+				
+				attr[5] = 1 -- margin
+				attr[6] = 0 -- precision
+				attr[7] = 1 -- gameframe
+				attr[8] = 1 -- technique
+				--Spring.Echo(unitname)
+				--Spring.Debug.TableEcho(opts)
+				
+				attr[ 9], attr[10], attr[11], attr[12] = unpack((opts.colormap1 and opts.colormap1[1]) or {-1,-1,-1,-1})
+				attr[13], attr[14], attr[15], attr[16] = unpack((opts.colormap2 and opts.colormap2[1]) or {-1,-1,-1,-1})
+				
+				attr[17], attr[18], attr[19], attr[20] = 0, 0, 0, 0 -- padding for instData
+				orbUnitDefs[UnitDefNames[unitname].id] =  attr
+			end
+		end
+	end
 end
-UnitEffects = newEffects
-newEffects = nil
 
-local texture1 = "bitmaps/GPL/Lups/perlin_noise.jpg"    -- noise texture
---local texture1 = "luaui/images/perlin_noise_rgba_512.png"    -- noise texture
-local texture2 = ":c:bitmaps/gpl/lups/jet2.bmp"        -- shape
-local texture3 = ":c:bitmaps/GPL/Lups/jet.bmp"        -- jitter shape
-
-for name, effects in pairs(effectDefs) do
-end
+UnitEffects = nil
 
 --------------------------------------------------------------------------------
 -- Variables
 --------------------------------------------------------------------------------
-
 
 local sphereVBO = nil
 local orbVBO = nil
@@ -231,7 +254,7 @@ layout (location = 1) in vec3 normals;
 layout (location = 2) in vec2 uvs;
 
 layout (location = 3) in vec4 posrad; // time is gameframe spawned :D
-layout (location = 4) in vec4 light_precision_gf_technique;
+layout (location = 4) in vec4 margin_precision_gf_technique;
 layout (location = 5) in vec4 color1;
 layout (location = 6) in vec4 color2;
 layout (location = 7) in uvec4 instData; // unitID, teamID, ??
@@ -274,19 +297,39 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 void main()
 {
 	vec3 modelWorldPos = uni[instData.y].drawPos.xyz;
+	unitID_vs = float(uni[instData.y].composite >> 16 );
+	
 	float modelRot = uni[instData.y].drawPos.w;
-	mat3 rotY = rotation3dY(modelRot);
+	mat3 rotY = rotation3dY(0);
 	
+		
 	vec4 vertexWorldPos = vec4(1);
-	vertexWorldPos.xyz = rotY * ( position * posrad.w + posrad.xyz) + modelWorldPos;
+	vertexWorldPos.xyz = rotY * ( position.xzy * posrad.w + posrad.xyz + vec3(100.0) ) + modelWorldPos;
 	
-	gl_Position = cameraViewProj * vertexWorldPos;
 	
+	if ((uni[instData.y].composite & 0x00000003u) < 1u ) { // not drawn
+		gl_Position = cameraViewProj * vec4(modelWorldPos + vec3(0,-1000,0),1);
+	}else{ // actually drawn
+		gl_Position = cameraViewProj * vertexWorldPos;
+	}
+
+	//gl_Position = cameraViewProj * vec4(modelWorldPos + position * 100, 1.0);
+	
+	mat3 normalMatrix = mat3( cameraView[0].xyz, cameraView[1].xyz, cameraView[2].xyz);
+	
+	vec3 normal = normalMatrix * (rotY * normals);
+	//vec3 vertex = vec3(gl_ModelViewMatrix * gl_Vertex);
+	float angle = dot(normal,position)*inversesqrt( dot(normal,normal)*dot(position,position) ); //dot(norm(n),norm(v))
+	opac_vs = pow( abs( angle ) , margin_precision_gf_technique.x);
+	opac_vs = 1.0;
 	color1_vs = color1;
 	color2_vs = color2;
-	modelPos_vs = modelWorldPos;
+	modelPos_vs = vec4(position.xzy, 0);
+	//modelPos_vs.z = fract(modelPos_vs.z * 10);
 	
-	technique_vs = int(floor(light_precision_gf_technique.w));
+	gameFrame_vs = timeInfo.x + timeInfo.w * 0.1;
+	
+	technique_vs = int(floor(margin_precision_gf_technique.w));
 	
 }
 ]]
@@ -317,201 +360,203 @@ in DataVS {
 
 out vec4 fragColor;
 
-			const float PI = acos(0.0) * 2.0;
+	const float PI = acos(0.0) * 2.0;
 
-			float hash13(vec3 p3) {
-				const float HASHSCALE1 = 44.38975;
-				p3  = fract(p3 * HASHSCALE1);
-				p3 += dot(p3, p3.yzx + 19.19);
-				return fract((p3.x + p3.y) * p3.z);
-			}
+	float hash13(vec3 p3) {
+		const float HASHSCALE1 = 44.38975;
+		p3  = fract(p3 * HASHSCALE1);
+		p3 += dot(p3, p3.yzx + 19.19);
+		return fract((p3.x + p3.y) * p3.z);
+	}
 
-			float noise12(vec2 p){
-				vec2 ij = floor(p);
-				vec2 xy = fract(p);
-				xy = 3.0 * xy * xy - 2.0 * xy * xy * xy;
-				//xy = 0.5 * (1.0 - cos(PI * xy));
-				float a = hash13(vec3(ij + vec2(0.0, 0.0), unitID));
-				float b = hash13(vec3(ij + vec2(1.0, 0.0), unitID));
-				float c = hash13(vec3(ij + vec2(0.0, 1.0), unitID));
-				float d = hash13(vec3(ij + vec2(1.0, 1.0), unitID));
-				float x1 = mix(a, b, xy.x);
-				float x2 = mix(c, d, xy.x);
-				return mix(x1, x2, xy.y);
-			}
+	float noise12(vec2 p){
+		vec2 ij = floor(p);
+		vec2 xy = fract(p);
+		xy = 3.0 * xy * xy - 2.0 * xy * xy * xy;
+		//xy = 0.5 * (1.0 - cos(PI * xy));
+		float a = hash13(vec3(ij + vec2(0.0, 0.0), unitID_vs));
+		float b = hash13(vec3(ij + vec2(1.0, 0.0), unitID_vs));
+		float c = hash13(vec3(ij + vec2(0.0, 1.0), unitID_vs));
+		float d = hash13(vec3(ij + vec2(1.0, 1.0), unitID_vs));
+		float x1 = mix(a, b, xy.x);
+		float x2 = mix(c, d, xy.x);
+		return mix(x1, x2, xy.y);
+	}
 
-			float noise13( vec3 P ) {
-				//  https://github.com/BrianSharpe/Wombat/blob/master/Perlin3D.glsl
+	float noise13( vec3 P ) {
+		//  https://github.com/BrianSharpe/Wombat/blob/master/Perlin3D.glsl
 
-				// establish our grid cell and unit position
-				vec3 Pi = floor(P);
-				vec3 Pf = P - Pi;
-				vec3 Pf_min1 = Pf - 1.0;
+		// establish our grid cell and unit position
+		vec3 Pi = floor(P);
+		vec3 Pf = P - Pi;
+		vec3 Pf_min1 = Pf - 1.0;
 
-				// clamp the domain
-				Pi.xyz = Pi.xyz - floor(Pi.xyz * ( 1.0 / 69.0 )) * 69.0;
-				vec3 Pi_inc1 = step( Pi, vec3( 69.0 - 1.5 ) ) * ( Pi + 1.0 );
+		// clamp the domain
+		Pi.xyz = Pi.xyz - floor(Pi.xyz * ( 1.0 / 69.0 )) * 69.0;
+		vec3 Pi_inc1 = step( Pi, vec3( 69.0 - 1.5 ) ) * ( Pi + 1.0 );
 
-				// calculate the hash
-				vec4 Pt = vec4( Pi.xy, Pi_inc1.xy ) + vec2( 50.0, 161.0 ).xyxy;
-				Pt *= Pt;
-				Pt = Pt.xzxz * Pt.yyww;
-				const vec3 SOMELARGEFLOATS = vec3( 635.298681, 682.357502, 668.926525 );
-				const vec3 ZINC = vec3( 48.500388, 65.294118, 63.934599 );
-				vec3 lowz_mod = vec3( 1.0 / ( SOMELARGEFLOATS + Pi.zzz * ZINC ) );
-				vec3 highz_mod = vec3( 1.0 / ( SOMELARGEFLOATS + Pi_inc1.zzz * ZINC ) );
-				vec4 hashx0 = fract( Pt * lowz_mod.xxxx );
-				vec4 hashx1 = fract( Pt * highz_mod.xxxx );
-				vec4 hashy0 = fract( Pt * lowz_mod.yyyy );
-				vec4 hashy1 = fract( Pt * highz_mod.yyyy );
-				vec4 hashz0 = fract( Pt * lowz_mod.zzzz );
-				vec4 hashz1 = fract( Pt * highz_mod.zzzz );
+		// calculate the hash
+		vec4 Pt = vec4( Pi.xy, Pi_inc1.xy ) + vec2( 50.0, 161.0 ).xyxy;
+		Pt *= Pt;
+		Pt = Pt.xzxz * Pt.yyww;
+		const vec3 SOMELARGEFLOATS = vec3( 635.298681, 682.357502, 668.926525 );
+		const vec3 ZINC = vec3( 48.500388, 65.294118, 63.934599 );
+		vec3 lowz_mod = vec3( 1.0 / ( SOMELARGEFLOATS + Pi.zzz * ZINC ) );
+		vec3 highz_mod = vec3( 1.0 / ( SOMELARGEFLOATS + Pi_inc1.zzz * ZINC ) );
+		vec4 hashx0 = fract( Pt * lowz_mod.xxxx );
+		vec4 hashx1 = fract( Pt * highz_mod.xxxx );
+		vec4 hashy0 = fract( Pt * lowz_mod.yyyy );
+		vec4 hashy1 = fract( Pt * highz_mod.yyyy );
+		vec4 hashz0 = fract( Pt * lowz_mod.zzzz );
+		vec4 hashz1 = fract( Pt * highz_mod.zzzz );
 
-				// calculate the gradients
-				vec4 grad_x0 = hashx0 - 0.49999;
-				vec4 grad_y0 = hashy0 - 0.49999;
-				vec4 grad_z0 = hashz0 - 0.49999;
-				vec4 grad_x1 = hashx1 - 0.49999;
-				vec4 grad_y1 = hashy1 - 0.49999;
-				vec4 grad_z1 = hashz1 - 0.49999;
-				vec4 grad_results_0 = inversesqrt( grad_x0 * grad_x0 + grad_y0 * grad_y0 + grad_z0 * grad_z0 ) * ( vec2( Pf.x, Pf_min1.x ).xyxy * grad_x0 + vec2( Pf.y, Pf_min1.y ).xxyy * grad_y0 + Pf.zzzz * grad_z0 );
-				vec4 grad_results_1 = inversesqrt( grad_x1 * grad_x1 + grad_y1 * grad_y1 + grad_z1 * grad_z1 ) * ( vec2( Pf.x, Pf_min1.x ).xyxy * grad_x1 + vec2( Pf.y, Pf_min1.y ).xxyy * grad_y1 + Pf_min1.zzzz * grad_z1 );
+		// calculate the gradients
+		vec4 grad_x0 = hashx0 - 0.49999;
+		vec4 grad_y0 = hashy0 - 0.49999;
+		vec4 grad_z0 = hashz0 - 0.49999;
+		vec4 grad_x1 = hashx1 - 0.49999;
+		vec4 grad_y1 = hashy1 - 0.49999;
+		vec4 grad_z1 = hashz1 - 0.49999;
+		vec4 grad_results_0 = inversesqrt( grad_x0 * grad_x0 + grad_y0 * grad_y0 + grad_z0 * grad_z0 ) * ( vec2( Pf.x, Pf_min1.x ).xyxy * grad_x0 + vec2( Pf.y, Pf_min1.y ).xxyy * grad_y0 + Pf.zzzz * grad_z0 );
+		vec4 grad_results_1 = inversesqrt( grad_x1 * grad_x1 + grad_y1 * grad_y1 + grad_z1 * grad_z1 ) * ( vec2( Pf.x, Pf_min1.x ).xyxy * grad_x1 + vec2( Pf.y, Pf_min1.y ).xxyy * grad_y1 + Pf_min1.zzzz * grad_z1 );
 
-				// Classic Perlin Interpolation
-				vec3 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
-				vec4 res0 = mix( grad_results_0, grad_results_1, blend.z );
-				vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) );
-				float final = dot( res0, blend2.zxzx * blend2.wwyy );
-				return ( final * 1.1547005383792515290182975610039 );  // scale things to a strict -1.0->1.0 range  *= 1.0/sqrt(0.75)
-			}
+		// Classic Perlin Interpolation
+		vec3 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
+		vec4 res0 = mix( grad_results_0, grad_results_1, blend.z );
+		vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) );
+		float final = dot( res0, blend2.zxzx * blend2.wwyy );
+		return ( final * 1.1547005383792515290182975610039 );  // scale things to a strict -1.0->1.0 range  *= 1.0/sqrt(0.75)
+	}
 
-			float Fbm12(vec2 P) {
-				const int octaves = 2;
-				const float lacunarity = 1.5;
-				const float gain = 0.49;
+	float Fbm12(vec2 P) {
+		const int octaves = 2;
+		const float lacunarity = 1.5;
+		const float gain = 0.49;
 
-				float sum = 0.0;
-				float amp = 1.0;
-				vec2 pp = P;
+		float sum = 0.0;
+		float amp = 1.0;
+		vec2 pp = P;
 
-				int i;
+		int i;
 
-				for(i = 0; i < octaves; ++i)
-				{
-					amp *= gain;
-					sum += amp * noise12(pp);
-					pp *= lacunarity;
-				}
-				return sum;
-			}
+		for(i = 0; i < octaves; ++i)
+		{
+			amp *= gain;
+			sum += amp * noise12(pp);
+			pp *= lacunarity;
+		}
+		return sum;
+	}
 
-			float Fbm31Magic(vec3 p) {
-				 float v = 0.0;
-				 v += noise13(p * 1.0) * 2.200;
-				 v -= noise13(p * 4.0) * 3.125;
-				 return v;
-			}
+	float Fbm31Magic(vec3 p) {
+		 float v = 0.0;
+		 v += noise13(p * 1.0) * 2.200;
+		 v -= noise13(p * 4.0) * 3.125;
+		 return v;
+	}
 
-			float Fbm31Electro(vec3 p) {
-				 float v = 0.0;
-				 v += noise13(p * 0.9) * 0.99;
-				 v += noise13(p * 3.99) * 0.49;
-				 v += noise13(p * 8.01) * 0.249;
-				 v += noise13(p * 15.05) * 0.124;
-				 return v;
-			}
+	float Fbm31Electro(vec3 p) {
+		 float v = 0.0;
+		 v += noise13(p * 0.9) * 0.99;
+		 v += noise13(p * 3.99) * 0.49;
+		 v += noise13(p * 8.01) * 0.249;
+		 v += noise13(p * 15.05) * 0.124;
+		 return v;
+	}
 
-			#define SNORM2NORM(value) (value * 0.5 + 0.5)
-			#define NORM2SNORM(value) (value * 2.0 - 1.0)
+	#define SNORM2NORM(value) (value * 0.5 + 0.5)
+	#define NORM2SNORM(value) (value * 2.0 - 1.0)
 
-			#define time (gameFrame_vs * 0.03333333)
+	#define time (gameFrame_vs * 0.03333333)
 
-			vec3 LightningOrb(vec2 vUv, vec3 color) {
-				vec2 uv = NORM2SNORM(vUv);
+	vec3 LightningOrb(vec2 vUv, vec3 color) {
+		vec2 uv = NORM2SNORM(vUv);
 
-				const float strength = 0.01;
-				const float dx = 0.1;
+		const float strength = 0.01;
+		const float dx = 0.1;
 
-				float t = 0.0;
+		float t = 0.0;
 
-				for (int k = -4; k < 14; ++k) {
-					vec2 thisUV = uv;
-					thisUV.x -= dx * float(k);
-					thisUV.y += float(k);
-					t += abs(strength / ((thisUV.x + Fbm12( thisUV + time ))));
-				}
+		for (int k = -4; k < 14; ++k) {
+			vec2 thisUV = uv;
+			thisUV.x -= dx * float(k);
+			thisUV.y += float(k);
+			t += abs(strength / ((thisUV.x + Fbm12( thisUV + time ))));
+		}
 
-				return color * t;
-			}
+		return color * t;
+	}
 
-			vec3 MagicOrb(vec3 noiseVec, vec3 color) {
-				float t = 0.0;
+	vec3 MagicOrb(vec3 noiseVec, vec3 color) {
+		float t = 0.0;
 
-				for( int i = 1; i < 2; ++i ) {
-					t = abs(2.0 / ((noiseVec.y + Fbm31Magic( noiseVec + 0.5 * time / float(i)) ) * 75.0));
-					t += 1.3 * float(i);
-				}
-				return color * t;
-			}
+		for( int i = 1; i < 2; ++i ) {
+			t = abs(2.0 / ((noiseVec.y + Fbm31Magic( noiseVec + 0.5 * time / float(i)) ) * 75.0));
+			t += 1.3 * float(i);
+		}
+		return color * t;
+	}
 
-			vec3 ElectroOrb(vec3 noiseVec, vec3 color) {
-				float t = 0.0;
+	vec3 ElectroOrb(vec3 noiseVec, vec3 color) {
+		float t = 0.0;
 
-				for( int i = 0; i < 5; ++i ) {
-					noiseVec = noiseVec.zyx;
-					t = abs(2.0 / (Fbm31Electro(noiseVec + vec3(0.0, time / float(i + 1), 0.0)) * 120.0));
-					t += 0.2 * float(i + 1);
-				}
+		for( int i = 0; i < 5; ++i ) {
+			noiseVec = noiseVec.zyx;
+			t = abs(2.0 / (Fbm31Electro(noiseVec + vec3(0.0, time / float(i + 1), 0.0)) * 120.0));
+			t += 0.2 * float(i + 1);
+		}
 
-				return color * t;
-			}
+		return color * t;
+	}
 
-			vec2 RadialCoords(vec3 a_coords)
-			{
-				vec3 a_coords_n = normalize(a_coords);
-				float lon = atan(a_coords_n.z, a_coords_n.x);
-				float lat = acos(a_coords_n.y);
-				vec2 sphereCoords = vec2(lon, lat) / PI;
-				return vec2(sphereCoords.x * 0.5 + 0.5, 1.0 - sphereCoords.y);
-			}
+	vec2 RadialCoords(vec3 a_coords)
+	{
+		vec3 a_coords_n = normalize(a_coords);
+		float lon = atan(a_coords_n.z, a_coords_n.x);
+		float lat = acos(a_coords_n.y);
+		vec2 sphereCoords = vec2(lon, lat) / PI;
+		return vec2(sphereCoords.x * 0.5 + 0.5, 1.0 - sphereCoords.y);
+	}
 
-			vec3 RotAroundY(vec3 p)
-			{
-				float ra = -time * 1.5;
-				mat4 tr = mat4(cos(ra), 0.0, sin(ra), 0.0,
-							   0.0, 1.0, 0.0, 0.0,
-							   -sin(ra), 0.0, cos(ra), 0.0,
-							   0.0, 0.0, 0.0, 1.0);
+	vec3 RotAroundY(vec3 p)
+	{
+		float ra = -time * 1.5;
+		mat4 tr = mat4(cos(ra), 0.0, sin(ra), 0.0,
+					   0.0, 1.0, 0.0, 0.0,
+					   -sin(ra), 0.0, cos(ra), 0.0,
+					   0.0, 0.0, 0.0, 1.0);
 
-				return (tr * vec4(p, 1.0)).xyz;
-			}
+		return (tr * vec4(p, 1.0)).xyz;
+	}
 
 void main(void)
 {
-				fragColor = mix(color1_vs, color2_vs, opac_vs);
+	fragColor = mix(color1_vs, color2_vs, opac_vs);
 
-				if (technique_vs == 1) { // LightningOrb
-					vec3 noiseVec = modelPos_vs.xyz;
-					noiseVec = RotAroundY(noiseVec);
-					vec2 vUv = (RadialCoords(noiseVec));
-					vec3 col = LightningOrb(vUv, fragColor.rgb);
-					fragColor.rgb = max(fragColor.rgb, col * col);
-				}
-				else if (technique_vs == 2) { // MagicOrb
-					vec3 noiseVec = modelPos_vs.xyz;
-					noiseVec = RotAroundY(noiseVec);
-					vec3 col = MagicOrb(noiseVec, fragColor.rgb);
-					fragColor.rgb = max(fragColor.rgb, col * col);
-				}
-				else if (technique_vs == 3) { // ElectroOrb
-					vec3 noiseVec = modelPos_vs.xyz;
-					noiseVec = RotAroundY(noiseVec);
-					vec3 col = ElectroOrb(noiseVec, fragColor.rgb);
-					fragColor.rgb = max(fragColor.rgb, col * col);
-				}
+	if (technique_vs == 1) { // LightningOrb
+		vec3 noiseVec = modelPos_vs.xyz;
+		noiseVec = RotAroundY(noiseVec);
+		vec2 vUv = (RadialCoords(noiseVec));
+		vec3 col = LightningOrb(vUv, fragColor.rgb);
+		fragColor.rgb = max(fragColor.rgb, col * col);
+	}
+	else if (technique_vs == 2) { // MagicOrb
+		vec3 noiseVec = modelPos_vs.xyz;
+		noiseVec = RotAroundY(noiseVec);
+		vec3 col = MagicOrb(noiseVec, fragColor.rgb);
+		fragColor.rgb = max(fragColor.rgb, col * col);
+	}
+	else if (technique_vs == 3) { // ElectroOrb
+		vec3 noiseVec = modelPos_vs.xyz;
+		noiseVec = RotAroundY(noiseVec);
+		vec3 col = ElectroOrb(noiseVec, fragColor.rgb);
+		fragColor.rgb = max(fragColor.rgb, col * col);
+	}
 
-				fragColor.a = length(fragColor.rgb);
-				if (reflectionPass > 0) fragColor.rgba *= 3.0;
+	fragColor.a = length(fragColor.rgb);
+	if (reflectionPass > 0) fragColor.rgba *= 3.0;
+	//fragColor.rgba = vec4(1.0);
+	//fragColor.rgb = modelPos_vs.xyz;
 }
 ]]
 
@@ -540,16 +585,16 @@ local function initGL4()
   )
   shaderCompiled = orbShader:Initialize()
   if not shaderCompiled then goodbye("Failed to compile orbShader GL4 ") end
-  local sphereVBO, numVerts, sphereIndexVBO, VBODataSize = makeSphereVBO(24,16,1)
+  local sphereVBO, numVerts, sphereIndexVBO, numIndices = makeSphereVBO(24,16,1)
   local orbVBOLayout = {
 		  {id = 3, name = 'posrad', size = 4}, -- widthlength
-		  {id = 4, name = 'light_precision_gf_technique', size = 4}, --  emit dir
+		  {id = 4, name = 'margin_precision_gf_technique', size = 4}, --  emit dir
 		  {id = 5, name = 'color1', size = 4}, --- color
 		  {id = 6, name = 'color2', size = 4}, --- color
 		  {id = 7, name = 'instData', type = GL.UNSIGNED_INT, size= 4},
 		}
-  orbVBO = makeInstanceVBOTable(orbVBOLayout,256, "orbVBO", 5)
-  orbVBO.numVertices = numVerts
+  orbVBO = makeInstanceVBOTable(orbVBOLayout,256, "orbVBO", 7)
+  orbVBO.numVertices = numIndices
   orbVBO.vertexVBO = sphereVBO
   orbVBO.VAO = makeVAOandAttach(orbVBO.vertexVBO, orbVBO.instanceVBO)
   orbVBO.primitiveType = GL.TRIANGLES
@@ -562,34 +607,14 @@ end
 --------------------------------------------------------------------------------
 local function DrawOrbs(isReflection)
 	if orbVBO.usedElements > 0 then
-		
 		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove both state changes
-		gl.Culling(false)
+		gl.Culling(GL.FRONT)
 		orbShader:Activate()
 		--orbShader:SetUniformInt("reflectionPass", ((isReflection == true) and 1) or 0)
 		drawInstanceVBO(orbVBO)
 		orbShader:Deactivate()
 	end
 end
-
---------------------------------------------------------------------------------
--- Unit Handling
---------------------------------------------------------------------------------
-
-local function FinishInitialization(unitID, effectDef)
-	local pieceMap = spGetUnitPieceMap(unitID)
-	for i = 1, #effectDef do
-		local fx = effectDef[i]
-		if fx.piece then
-			--Spring.Echo("FinishInitialization", fx.piece, pieceMap[fx.piece])
-			fx.piecenum = pieceMap[fx.piece]
-		end
-		fx.width = fx.width*1.2
-		fx.length = fx.length*1.4
-	end
-	effectDef.finishedInit = true
-end
-
 --------------------------------------------------------------------------------
 -- Widget Interface
 --------------------------------------------------------------------------------
@@ -598,51 +623,57 @@ function widget:DrawWorld()
 	DrawOrbs(false)
 end
 
-function widget:DrawWorldReflection()
-	--DrawOrbs(true)
-end
-
 function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
 	end
 	initGL4()
-	reInitialize()
+	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
+		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+	else
+		Spring.Echo("Unit Tracker API unavailable, exiting Orb Lups GL4")
+		widgetHandler:RemoveWidget()
+		return
+	end
 end
 
-local instanceCache = {}
-for i =1,20 do instanceCache[i] = 0 end
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
-	--Spring.Echo("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, noupload)
-	unitTeam = unitTeam or spGetUnitTeam(unitID)
-	
-	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
-	if buildProgress < 1 then return end
+	if unitDefID and orbUnitDefs[unitDefID] then 
 
-	instanceCache[1] =  unitRange[unitDefID] 
-		pushElementInstance(circleInstanceVBO,
-		instanceCache,
-		unitID, --key
-		true, -- updateExisting
-		noupload,
-		unitID -- unitID for uniform buffers
-	)
+		--unitTeam = unitTeam or spGetUnitTeam(unitID)
+		
+		local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+		if buildProgress < 1 then return end
+
+		local instanceCache = orbUnitDefs[unitDefID]
+		Spring.Echo("Added lups orb")
+		pushElementInstance(orbVBO,
+			instanceCache,
+			unitID, --key
+			true, -- updateExisting
+			noupload,
+			unitID -- unitID for uniform buffers
+		)
+	end 
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	-- Note that this unit uses its own VisibleUnitsChanged, to handle the case where we go into fullview.
-	--InitializeUnits()
+	if orbVBO.usedElements > 0 then 
+		clearInstanceTable(orbVBO) 
+	end
+	for unitID, unitDefID in pairs(extVisibleUnits) do 
+		widget:VisibleUnitAdded(unitID, unitDefID, nil, true)
+	end
+	uploadAllElements(orbVBO)
 end
 
 function widget:VisibleUnitRemoved(unitID)
-	if circleInstanceVBO.instanceIDtoIndex[unitID] then
-		popElementInstance(circleInstanceVBO, unitID)
+	if orbVBO.instanceIDtoIndex[unitID] then
+		popElementInstance(orbVBO, unitID)
 	end
 end
 
 function widget:Shutdown()
-	for unitID, unitDefID in pairs(activePlanes) do
-		RemoveUnit(unitID, unitDefID, spGetUnitTeam(unitID))
-	end
+	-- FIXME: clean up after thyself!
 end
