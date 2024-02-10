@@ -66,7 +66,6 @@ end
 --	3000: [adv fusion]
 -- }
 local function EcoValueDef(unitDef)
-
 	if not IsValidEcoUnitDef(unitDef) then
 		return 0
 	end
@@ -171,16 +170,19 @@ local guiPanel --// a displayList
 local updatePanel
 local hasRaptorEvent            = false
 
-local modOptions     = Spring.GetModOptions()
+local modOptions                = Spring.GetModOptions()
 
 local rules                     = {
-	"raptorQueenTime",
-	"raptorQueenAnger",
-	"raptorTechAnger",
-	"raptorGracePeriod",
-	"raptorQueenHealth",
 	"lagging",
 	"raptorDifficulty",
+	"raptorGracePeriod",
+	"raptorQueenAnger",
+	"RaptorQueenAngerGain_Aggression",
+	"RaptorQueenAngerGain_Base",
+	"RaptorQueenAngerGain_Eco",
+	"raptorQueenHealth",
+	"raptorQueenTime",
+	"raptorTechAnger",
 }
 
 local function updatePos(x, y)
@@ -272,20 +274,12 @@ local function WaveRow(n)
 end
 
 local function Interpolate(value, inMin, inMax, outMin, outMax)
-	-- Define the range of input values
-	local minValue = inMin
-	local maxValue = inMax
-
-	-- Define the range of output values
-	local minOutputValue = outMin
-	local maxOutputValue = outMax
-
 	-- Ensure the value is within the specified range
-	value = (value < minValue) and minValue or ((value > maxValue) and maxValue or value)
+	value = (value < inMin) and inMin or ((value > inMax) and inMax or value)
 
 	-- Calculate the interpolation
-	local t = (value - minValue) / (maxValue - minValue)
-	local result = minOutputValue + t * (maxOutputValue - minOutputValue)
+	local t = (value - inMin) / (inMax - inMin)
+	local result = outMin + t * (outMax - outMin)
 
 	return result
 end
@@ -316,7 +310,7 @@ local function DrawPlayerAggros(row)
 			font:SetTextColor(1, gb, gb, playerEcoInfo.forced and 0.6 or alpha)
 
 			local namePosX = i == 7 - row and 80 or panelMarginX + 11
-			local aggroFractionStringWidth = math.floor(font:GetTextWidth(playerEcoInfo.aggroFractionString) * panelFontSize)
+			local aggroFractionStringWidth = math.floor(0.5 + font:GetTextWidth(playerEcoInfo.aggroFractionString) * panelFontSize)
 			local valuesRightX = panelMarginX + 220
 			local valuesLeftX = panelMarginX + 145
 			local rowY = PanelRow(row + i)
@@ -341,21 +335,12 @@ local function CreatePanelDisplayList()
 	local currentTime = GetGameSeconds()
 	if currentTime > gameInfo.raptorGracePeriod then
 		if gameInfo.raptorQueenAnger < 100 then
-			local gain = 0
-			if GetGameRulesParam("RaptorQueenAngerGain_Base") then
-				-- font:Print(I18N('ui.raptors.queenAngerBase', { value = math.round(GetGameRulesParam("RaptorQueenAngerGain_Base"), 3) }), panelMarginX, PanelRow(3), panelFontSize, "")
-				-- font:Print(I18N('ui.raptors.queenAngerAggression', { value = math.round(GetGameRulesParam("RaptorQueenAngerGain_Aggression"), 3) }), panelMarginX, PanelRow(4), panelFontSize, "")
-				--font:Print(I18N('ui.raptors.queenAngerEco', { value = math.round(GetGameRulesParam("RaptorQueenAngerGain_Eco"), 3) }), panelMarginX+5, PanelRow(5), panelFontSize, "")
-				gain = math.round(GetGameRulesParam("RaptorQueenAngerGain_Base"), 3) +
-					math.round(GetGameRulesParam("RaptorQueenAngerGain_Aggression"), 3) +
-					math.round(GetGameRulesParam("RaptorQueenAngerGain_Eco"), 3)
-			end
-			--font:Print(I18N('ui.raptors.queenAngerWithGain', { anger = gameInfo.raptorQueenAnger, gain = math.round(gain, 3) }), panelMarginX, PanelRow(1), panelFontSize, "")
-			font:Print(I18N('ui.raptors.queenAngerWithTech', { anger = gameInfo.raptorQueenAnger, techAnger = gameInfo.raptorTechAnger }):gsub('ution', 'ved'), panelMarginX, PanelRow(1), panelFontSize, "")
+			local hatchEvolutionString = I18N('ui.raptors.queenAngerWithTech', { anger = gameInfo.raptorQueenAnger, techAnger = gameInfo.raptorTechAnger })
+			font:Print(hatchEvolutionString, panelMarginX, PanelRow(1), panelFontSize - Interpolate(font:GetTextWidth(hatchEvolutionString) * panelFontSize, 234, 244, 0, 0.61), "")
 
-			local totalSeconds = (100 - gameInfo.raptorQueenAnger) / gain
 			font:Print(I18N('ui.raptors.queenETA', { time = '' }):gsub('%.', ''), panelMarginX, PanelRow(2), panelFontSize, "")
-			local time = string.formatTime(totalSeconds)
+			local gain = gameInfo.RaptorQueenAngerGain_Base + gameInfo.RaptorQueenAngerGain_Aggression + gameInfo.RaptorQueenAngerGain_Eco
+			local time = string.formatTime((100 - gameInfo.raptorQueenAnger) / gain)
 			font:Print(time, panelMarginX + 200 - font:GetTextWidth(time:gsub(':.*', '')) * panelFontSize, PanelRow(2), panelFontSize, "")
 
 			DrawPlayerAggros(3)
@@ -367,7 +352,7 @@ local function CreatePanelDisplayList()
 		else
 			font:Print(I18N('ui.raptors.queenHealth', { health = '' }):gsub('%%', ''), panelMarginX, PanelRow(1), panelFontSize, "")
 			local healthText = tostring(gameInfo.raptorQueenHealth)
-			font:Print(gameInfo.raptorQueenHealth .. '%', panelMarginX + 220 - font:GetTextWidth(healthText) * panelFontSize, PanelRow(1), panelFontSize, "")
+			font:Print(gameInfo.raptorQueenHealth .. '%', panelMarginX + 210 - font:GetTextWidth(healthText) * panelFontSize, PanelRow(1), panelFontSize, "")
 
 			DrawPlayerAggros(2)
 
@@ -431,7 +416,6 @@ local function getResistancesMessage()
 
 	refreshMarqueeMessage = false
 
-
 	return messages
 end
 
@@ -463,7 +447,6 @@ local function Draw()
 			end
 
 			font2:Begin()
-			font:SetTextColor(1, 1, 1, 1)
 			for i, message in ipairs(marqueeMessage) do
 				font2:Print(message, viewSizeX / 2, waveY - (WaveRow(i) * widgetScale), waveFontSize * widgetScale, "co")
 			end
