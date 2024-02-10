@@ -637,7 +637,6 @@ local function initializeTestEnvironment()
 	}
 
 	for k, v in pairs(assertions) do
-		Spring.Echo(k)
 		env[k] = v
 	end
 
