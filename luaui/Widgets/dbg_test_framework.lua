@@ -460,6 +460,11 @@ Test = {
 		spyControls[#spyControls + 1] = spyCtrl
 		return spyCtrl
 	end,
+	mock = function(...)
+		local mockCtrl = mock(...)
+		spyControls[#spyControls + 1] = mockCtrl
+		return mockCtrl
+	end,
 	clearMap = SyncedExtra.clearMap,
 	clearCallinBuffer = function(name)
 		if name ~= nil then

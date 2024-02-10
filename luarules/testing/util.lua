@@ -293,6 +293,27 @@ function spy(parent, target)
 	end
 	parent[target] = wrapper
 	return {
+		original = original,
+		calls = calls,
+		remove = function()
+			parent[target] = original
+		end
+	}
+end
+
+function mock(parent, target, fn)
+	local original = parent[target]
+	local calls = {}
+	local wrapper = function(...)
+		local args = { ... }
+		calls[#calls + 1] = table.copy(args)
+		if fn ~= nil then
+			return fn(unpack(args))
+		end
+	end
+	parent[target] = wrapper
+	return {
+		original = original,
 		calls = calls,
 		remove = function()
 			parent[target] = original
