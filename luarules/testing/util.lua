@@ -61,7 +61,7 @@ function formatTestResult(testResult, noColor)
 		elseif testResult.result == TEST_RESULT.FAIL then
 			resultColor = rgbToColorCode(1, 0, 0)
 		elseif testResult.result == TEST_RESULT.SKIP then
-			resultColor = rgbToColorCode(0.8, 0.8, 0)
+			resultColor = rgbToColorCode(1, 0.8, 0)
 		elseif testResult.result == TEST_RESULT.ERROR then
 			resultColor = rgbToColorCode(0.8, 0, 0.8)
 		end
