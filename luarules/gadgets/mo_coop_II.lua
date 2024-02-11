@@ -26,6 +26,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local armcomDefID = UnitDefNames.armcom.id
 	local corcomDefID = UnitDefNames.corcom.id
+	local legcomDefID = UnitDefNames.legcom.id
 
 	----------------------------------------------------------------
 	-- Setting up
@@ -124,6 +125,9 @@ if gadgetHandler:IsSyncedCode() then
 				startUnit = corcomDefID
 			else
 				startUnit = armcomDefID
+			end
+			if Spring.GetModOptions().experimentallegionfaction and math.random() > 0.33 then
+				startUnit = legcomDefID
 			end
 		end
 
