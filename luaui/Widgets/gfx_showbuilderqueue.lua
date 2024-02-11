@@ -115,17 +115,18 @@ local function checkBuilder(unitID)
 					teamid = spGetUnitTeam(unitID),
 					params = cmd.params
 				}
-				local id = math.abs(cmd.id)..'_'..floor(cmd.params[1])..'_'..floor(cmd.params[3])
+				local unitDefID = math.abs(cmd.id)
+				local id = unitDefID..'_'..floor(cmd.params[1])..'_'..floor(cmd.params[3])
 				if createdUnit[id] == nil then
 					if command[id] == nil then
 						command[id] = {id = myCmd, builders = 0}
-						local unitDefID = math.abs(cmd.id)
 
 						local groundheight = spGetGroundHeight(floor(cmd.params[1]), floor(cmd.params[3]))
 						if unitWaterline[unitDefID] then
 							groundheight = math.max (groundheight, -1 * unitWaterline[unitDefID])
 						end
-						addUnitShape(id, math.abs(cmd.id), floor(cmd.params[1]), groundheight, floor(cmd.params[3]), cmd.params[4] and (cmd.params[4] * math_halfpi) or 0, myCmd.teamid)
+						local x, y, z = Spring.Pos2BuildPos(unitDefID, cmd.params[1], groundheight, cmd.params[3], cmd.params[4] or 0)
+						addUnitShape(id, unitDefID, x, y, z, cmd.params[4] and (cmd.params[4] * math_halfpi) or 0, myCmd.teamid)
 					end
 					command[id][unitID] = true
 					command[id].builders = command[id].builders + 1
