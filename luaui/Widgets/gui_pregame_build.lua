@@ -159,10 +159,7 @@ function widget:Initialize()
 		end
 	end
 
-	local metalSpots = WG["resource_spot_finder"].metalSpotsList
-	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
-		metalMap = true
-	end
+	metalMap = WG["resource_spot_finder"].isMetalMap
 
 	WG['pregame-build'] = {}
 	WG['pregame-build'].getPreGameDefID = function()
@@ -318,7 +315,7 @@ function widget:MousePress(x, y, button)
 					else
 						-- don't place mex if the spot is not valid
 						if isMex then
-							if WG.ExtractorSnap.position then
+							if WG.ExtractorSnap.position or metalMap then
 								buildQueue = { buildData }
 							end
 						else
