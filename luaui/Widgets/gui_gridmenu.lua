@@ -348,9 +348,6 @@ local function RefreshCommands()
 		else
 			categories = Cfgs.buildCategories
 			local buildOptions = unitBuildOptions[activeBuilder]
-			if isPregame and units.unbaStartBuildoptions then
-				buildOptions = units.unbaStartBuildoptions
-			end
 			gridOpts = grid.getSortedGridForBuilder(activeBuilder, buildOptions, currentCategory)
 		end
 	end

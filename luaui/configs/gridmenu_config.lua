@@ -126,18 +126,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitCategories[unitDefID] = categoryGroupMapping[unitDef.customParams.unitgroup] or BUILDCAT_UTILITY
 end
 
-function dump(o)
-	if type(o) == 'table' then
-		local s = '{ '
-		for k,v in pairs(o) do
-			if type(k) ~= 'number' then k = '"'..k..'"' end
-			s = s .. '['..k..'] = ' .. dump(v) .. ','
-		end
-		return s .. '} '
-	else
-		return tostring(o)
-	end
-end
 
 local function getCategoryIndex(category)
 	if category == BUILDCAT_ECONOMY then return 1

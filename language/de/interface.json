@@ -466,7 +466,6 @@
 		"gametypeInfo": {
 			"killAllUnits": "Vernichte alle feindlichen Einheiten",
 			"killAllCommanders": "Vernichte alle feindlichen Kommandanten",
-			"unbalancedCommanders": "Unausgewogene Kommandanten sind aktiviert: Kommandanten steigen auf und erhalten Upgrades",
 			"victoryCondition": "Siegbedingung",
 			"owncomends": "Verlust des Kommandanten = Verlust der Kontrolle über eigene Einheiten / Aufgeben"
 		},

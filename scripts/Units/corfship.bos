@@ -3,12 +3,13 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, ground, wake1, wake2, turret, sleeve, flare;
+piece  base, ground, wake1, wake2, turret, sleeve, flare, mturret, mbarrel, flare1, flare2, flare3;
 		
-static-var  restore_delay, Static_Var_7, Static_Var_8, aimDir, oldHead;
+static-var  restore_delay, Static_Var_7, Static_Var_8, aimDir, oldHead, gun_1;
 
 // Signal definitions
 #define SIG_AIM				2
+#define SIG_AIM_2			4
 #define SIG_MOVE			4096
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
@@ -115,6 +116,7 @@ Create()
 	hide wake1;
 	hide flare;
 	hide ground;
+	gun_1 = 1;
 	restore_delay = 3000;
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -219,6 +221,51 @@ AimFromPrimary(piecenum)
 QueryPrimary(piecenum)
 {
 	piecenum = flare;
+	return (0);
+}
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	turn mturret to y-axis heading speed <300.000000>;
+	turn mbarrel to x-axis <0> - pitch speed <300>;  //?
+	wait-for-turn mturret around y-axis;
+	wait-for-turn mbarrel around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireSecondary()
+{
+	++gun_1;
+	if( gun_1 == 4 )
+	{
+		gun_1 = 1;
+	}
+	return (0);
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = mturret;
+	return (0);
+}
+
+QuerySecondary(piecenum)
+{
+	if( gun_1 == 1 )
+	{
+		piecenum = flare1;
+	}
+	if( gun_1 == 2 )
+	{
+		piecenum = flare2;
+	}
+	if( gun_1 == 3 )
+	{
+		piecenum = flare3;
+	}
 	return (0);
 }
 

@@ -1195,8 +1195,8 @@ local icontypes = {
 		bitmap = "icons/corcom.png",
 		size = 1.83749986
 	},
-	cordemont4 = {
-		bitmap = "icons/cordemont4.png",
+	cordemon = {
+		bitmap = "icons/cordemon.png",
 		size = 2.625
 	},
 	cordl = {

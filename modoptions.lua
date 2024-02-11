@@ -556,12 +556,12 @@ local options={
 	{
 		key    = 'multiplier_energyconversion',
 		name   = 'Energy Conversion Efficiency Multiplier ',
-		desc   = '(Range 0.1 - 1). lower means you get less metal per energy converted',
+		desc   = '(Range 0.1 - 2). lower means you get less metal per energy converted',
 		type   =  "number",
 		section = 'options_resources',
 		def    = 1,
 		min    = 0.1,
-		max    = 1,
+		max    = 2,
 		step   = 0.1,
 	},
 
@@ -846,7 +846,7 @@ local options={
 	{
 		key    = 'releasecandidates',
 		name   = 'Release Candidate Units',
-		desc   = 'Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently, adds Printer, Demon, Salamander, and Shockwave (Arm T2 EMP Mex)',
+		desc   = 'Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex',
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,
@@ -860,16 +860,6 @@ local options={
 		section = 'options_experimental',
 		def  = false,
 	},
-
-	{
-		key = 'expandedt2sea',
-		name = 'Expanded T2 Sea',
-		desc = 'T2 sea is expanded to include a lightning ship for arm and a flamethrower ship for cor, and both factions get a drone carrier ship and an anti-nuke support ship to replace the aircraft carrier.  Cruisers rebalanced to be slower and lower range but higher health and dps for a more defensive role',
-		type = 'bool',
-		section = 'options_experimental',
-		def = false,
-	},
-
 
 	{
 		key = 'emprework',
@@ -1064,26 +1054,6 @@ local options={
 		section = 'options_extra',
 		def  = false,
 	},
-
-	{
-		key		= "unba",
-		name	= "UnbaCom",
-		desc	= "Commanders gaining upgrades with experience! Commander levels up with XP, gaining better weapons, more health and higher tech buildlist.",
-		type	= "bool",
-		def		= false,
-		section	= "options_extra",
-	},
-
-	{
-		key		= "unbatech",
-		name	= "UnbaTech",
-		desc	= "(Requires UnbaCom) Constructors cannot build Tech2 factories. In order to reach Tech2 you have to level up your commander.",
-		type	= "bool",
-		def		= false,
-		section	= "options_extra",
-		hidden = true,
-	},
-
 	{
 		key     = 'teamcolors_anonymous_mode',
 		name    = 'Anonymous Mode',
