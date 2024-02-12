@@ -46,7 +46,6 @@ function gadget:AllowCommand(_, _, _, cmdID, cmdParams)
 
 	-- We check if current order is to build mex in closest spot
 	if not (closestSpot and GG["resource_spot_finder"].IsMexPositionValid(closestSpot, bx, bz)) then
-		Spring.Echo("DENYING MEX")
 		return false
 	end
 
