@@ -11,6 +11,9 @@ function widget:GetInfo()
 	}
 end
 
+
+local spTestBuildOrder = Spring.TestBuildOrder
+
 local buildQueue = {}
 local selBuildQueueDefID
 local facingMap = {south=0, east=1, north=2, west=3}
@@ -159,10 +162,7 @@ function widget:Initialize()
 		end
 	end
 
-	local metalSpots = WG["resource_spot_finder"].metalSpotsList
-	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
-		metalMap = true
-	end
+	metalMap = WG["resource_spot_finder"].isMetalMap
 
 	WG['pregame-build'] = {}
 	WG['pregame-build'].getPreGameDefID = function()
@@ -318,7 +318,7 @@ function widget:MousePress(x, y, button)
 					else
 						-- don't place mex if the spot is not valid
 						if isMex then
-							if WG.ExtractorSnap.position then
+							if WG.ExtractorSnap.position or metalMap then
 								buildQueue = { buildData }
 							end
 						else
@@ -440,9 +440,10 @@ function widget:DrawWorld()
 	if selBuildData then
 		-- mmm, convoluted logic. Pregame handling is hell
 		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
-		local testOrder = Spring.TestBuildOrder(selBuildQueueDefID, selBuildData[2], selBuildData[3], selBuildData[4], selBuildData[5]) ~= 0
-		if testOrder and not isMex then
-			DrawBuilding(selBuildData, borderValidColor, true)
+		local testOrder = spTestBuildOrder(selBuildQueueDefID, selBuildData[2], selBuildData[3], selBuildData[4], selBuildData[5]) ~= 0
+		if not isMex then
+			local color = testOrder and borderValidColor or borderInvalidColor
+			DrawBuilding(selBuildData, color, true)
 		elseif isMex then
 			if WG.ExtractorSnap.position or metalMap then
 				DrawBuilding(selBuildData, borderValidColor, true)

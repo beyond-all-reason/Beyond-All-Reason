@@ -58,9 +58,7 @@ function widget:Initialize()
 
 	geoSpots = WG["resource_spot_finder"].geoSpotsList
 	metalSpots = WG["resource_spot_finder"].metalSpotsList
-	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
-		metalMap = true
-	end
+	metalMap = WG["resource_spot_finder"].isMetalMap
 end
 
 

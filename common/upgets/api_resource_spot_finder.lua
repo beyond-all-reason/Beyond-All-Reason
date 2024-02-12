@@ -28,6 +28,17 @@ local metalMapSquareSize = Game.metalMapSquareSize -- Resolution of metal map
 local squareSize = Game.squareSize -- Resolution of build positions
 local precision = Game.footprintScale * Game.squareSize -- (footprint 1 = 16 map distance)
 
+-- Some of these maps have more than 2 metal spots, disable mex denier
+local metalMaps = {
+	["Oort_Cloud_V2"] = true,
+	["Asteroid_Mines_V2.1"] = true,
+	["Cloud9_V2"] = true,
+	["Iron_Isle_V1"] = true,
+	["Nine_Metal_Islands_V1"] = true,
+	["SpeedMetal BAR V2"] = true,
+}
+local isMetalMap = false
+
 ------------------------------------------------------------
 -- Speedups
 ------------------------------------------------------------
@@ -354,12 +365,23 @@ function upget:Initialize()
 	if(gadget) then
 		Spring.SetGameRulesParam("base_extraction", 0.001)
 	end
+
+
 	metalSpots = GetSpotsMetal()
 	geoSpots = GetSpotsGeo()
 	globalScope["resource_spot_finder"] = {}
 	globalScope["resource_spot_finder"].metalSpotsList = metalSpots
 	globalScope["resource_spot_finder"].geoSpotsList = geoSpots
 
+	if metalMaps[Game.mapName] then
+		isMetalMap = true
+	end
+	-- no metal spots in map or metalmap
+	if not metalSpots or #metalSpots <= 2 then
+		isMetalMap = true
+	end
+
+	globalScope["resource_spot_finder"].isMetalMap = isMetalMap
 	globalScope["resource_spot_finder"].GetClosestMexSpot = getClosestMex
 	globalScope["resource_spot_finder"].GetClosestGeoSpot = getClosestGeo
 	globalScope["resource_spot_finder"].GetBuildingPositions = GetBuildingPositions
