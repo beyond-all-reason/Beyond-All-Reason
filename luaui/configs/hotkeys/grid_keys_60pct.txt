@@ -110,7 +110,6 @@ bind             meta+8  ShowElevation
 bind                f10  options
 bind                f11  luaui selector
 bind            Any+f12  screenshot png
-bind      Alt+backspace  fullscreen
 
 bind     Ctrl+meta+sc_q  group unset
 bind           Alt+sc_q  remove_from_autogroup
