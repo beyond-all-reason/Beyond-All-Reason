@@ -11,6 +11,9 @@ function widget:GetInfo()
 	}
 end
 
+
+local spTestBuildOrder = Spring.TestBuildOrder
+
 local buildQueue = {}
 local selBuildQueueDefID
 local facingMap = {south=0, east=1, north=2, west=3}
@@ -437,9 +440,10 @@ function widget:DrawWorld()
 	if selBuildData then
 		-- mmm, convoluted logic. Pregame handling is hell
 		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
-		local testOrder = Spring.TestBuildOrder(selBuildQueueDefID, selBuildData[2], selBuildData[3], selBuildData[4], selBuildData[5]) ~= 0
-		if testOrder and not isMex then
-			DrawBuilding(selBuildData, borderValidColor, true)
+		local testOrder = spTestBuildOrder(selBuildQueueDefID, selBuildData[2], selBuildData[3], selBuildData[4], selBuildData[5]) ~= 0
+		if not isMex then
+			local color = testOrder and borderValidColor or borderInvalidColor
+			DrawBuilding(selBuildData, color, true)
 		elseif isMex then
 			if WG.ExtractorSnap.position or metalMap then
 				DrawBuilding(selBuildData, borderValidColor, true)
