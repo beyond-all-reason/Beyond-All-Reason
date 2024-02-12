@@ -226,6 +226,10 @@ local function PlayerAggroAggregation()
 	return playerAggros, sum
 end
 
+local function SortValueDesc(a, b)
+	return a.value > b.value
+end
+
 local function PlayerAggroLimitFormat(maxRows)
 	maxRows                 = (maxRows or 3) - 1
 	local playerAggros, sum = PlayerAggroAggregation()
@@ -234,7 +238,7 @@ local function PlayerAggroLimitFormat(maxRows)
 		return {}
 	end
 
-	table.sort(playerAggros, function(a, b) return a.value > b.value end)
+	table.sort(playerAggros, SortValueDesc)
 
 	-- add string formatting, forced current player result and limit results
 	local playerAggrosLimited = {}
