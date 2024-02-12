@@ -170,7 +170,7 @@ local time
 
 function JitterParticles2.BeginDrawDistortion()
   glUseShader(billShader)
-  time = (Spring.GetGameFrame() + Spring.GetFrameTimeOffset()) / Game.gameSpeed / 10
+  time = (Spring.GetGameFrame() + Spring.GetFrameTimeOffset()) / (Game.gameSpeed * 10)
 end
 
 function JitterParticles2.EndDrawDistortion()
