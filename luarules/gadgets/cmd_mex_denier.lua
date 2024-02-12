@@ -31,6 +31,7 @@ function gadget:Initialize()
 		Spring.Echo(gadget:GetInfo().name, "Metal map detected, removing self")
 		gadgetHandler:RemoveGadget(self)
 	end
+	metalSpotsList = GG["resource_spot_finder"].metalSpotsList
 end
 
 -- function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
@@ -45,6 +46,7 @@ function gadget:AllowCommand(_, _, _, cmdID, cmdParams)
 
 	-- We check if current order is to build mex in closest spot
 	if not (closestSpot and GG["resource_spot_finder"].IsMexPositionValid(closestSpot, bx, bz)) then
+		Spring.Echo("DENYING MEX")
 		return false
 	end
 
