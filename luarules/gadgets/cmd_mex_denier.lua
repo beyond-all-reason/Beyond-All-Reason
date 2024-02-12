@@ -31,6 +31,7 @@ function gadget:Initialize()
 		Spring.Echo(gadget:GetInfo().name, "Metal map detected, removing self")
 		gadgetHandler:RemoveGadget(self)
 	end
+	metalSpotsList = GG["resource_spot_finder"].metalSpotsList
 end
 
 -- function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
