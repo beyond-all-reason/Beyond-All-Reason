@@ -1632,7 +1632,6 @@ local function drawVSBar(left, bottom, right, top, indexLeft, indexRight, metric
     if ((valueLeft > 0) or (valueRight > 0)) and
             ((mouseX > left) and (mouseX < right) and (mouseY > bottom) and (mouseY < top)) then
         local scalingFactor = barLength / (valueLeft + valueRight)
-        local lineMiddle = mathfloor((top + bottom) / 2)
 
         local lineStart
         local lineEnd = left
