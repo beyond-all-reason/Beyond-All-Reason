@@ -128,19 +128,25 @@ local stallMarginSto = 0.01
 local buildPowerMinimum = 0.001 -- A small amount of buildpower we allocate to each build target owner to ensure that nanoframes dont vanish 
 
 local passiveCons = {} -- passiveCons[teamID][builderID] = true for passive cons
+local lastRoundTeamBuilders = {} -- {teamID = {builderID = 123}} -- last gameframe that we assigned resources, so we can take away the resources of previous recipients
 local canBuild = {} --builders[teamID][builderID], contains all builders
 
 local buildTargets = {} --{builtUnitID = builderUnitID} the unitIDs of build targets of passive builders, a -1 here indicates that this build target has Active builders too.
 
 local maxBuildSpeed = {} -- {builderUnitID = buildSpeed} build speed of builderID, as in UnitDefs (contains all builders)
-local currentBuildSpeed = {} -- {builderid = currentBuildSpeed} build speed of builderID for current interval, not accounting for buildOwners special speed (contains only passive builders)
+local currentBuildSpeed = {} -- {builderid = currentBuildSpeed} build speed of builderID for current interval, not accounting for buildTargets special speed (contains only passive builders)
 local unitDefRelativeMetalBurden = {} -- relative metal burden (0..1) on economy when building the unit; 0 means its cost is basically all-energy (metal maker), 1 means all-metal (solar panel)
 
 -- NOTE: Explanation: Instead of using an individual table to store {unitID = {metal, energy, buildtime}}
--- We are using using a single table, where {unitID = metal, (unitID + energyOffset) = energy, (unitID+buildTimeOffset) = buildtime}
+-- We are using using a single table, where: {
+--      unitID = metal,
+--      (unitID + energyOffset) = energy,
+--      (unitID + buildTimeOffset) = buildtime,
+--      (unitID + unitDefIDOffset) = unitDefID}
 local costIDOverride = {}
 local energyOffset = Game.maxUnits + 1
 local buildTimeOffset = (Game.maxUnits + 1) * 2 
+local unitDefIDOffset = (Game.maxUnits + 1) * 3
 
 local resTable = {"metal","energy"} -- 1 = metal, 2 = energy
 
@@ -197,6 +203,7 @@ local function updateTeamList()
 	teamList = spGetTeamList()
 	for _, teamID in ipairs(teamList) do
 		passiveCons[teamID] = {} -- passiveCons[teamID][builderID] = true for passive cons
+		lastRoundTeamBuilders[teamID] = {} -- {teamID = {builderID = true}} -- this is for taking away the resources of previous recipients
 		canBuild[teamID] = {} --builders[teamID][builderID], contains all builders
 		Spring.SetTeamRulesParam(teamID, totalBuildPowerRule, 0)
 		Spring.SetTeamRulesParam(teamID, highPrioBuildPowerRule, 0)
@@ -339,6 +346,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
 	costIDOverride[unitID +			   0] = cost[unitDefID]
 	costIDOverride[unitID +	energyOffset] = cost[unitDefID + energyOffset]
 	costIDOverride[unitID + buildTimeOffset] = cost[unitDefID + buildTimeOffset]
+	costIDOverride[unitID + unitDefIDOffset] = unitDefID
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
@@ -353,6 +361,7 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, teamID)
 	-- Clear Team stuff
 	canBuild[teamID][unitID] = nil
+	lastRoundTeamBuilders[teamID][unitID] = nil
 	passiveCons[teamID][unitID] = nil
 	
 	-- clear unit data
@@ -362,6 +371,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID)
 	costIDOverride[unitID +			   0] = nil
 	costIDOverride[unitID +	energyOffset] = nil
 	costIDOverride[unitID + buildTimeOffset] = nil
+	costIDOverride[unitID + unitDefIDOffset] = nil
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -369,6 +379,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	costIDOverride[unitID +			   0] = nil
 	costIDOverride[unitID +	energyOffset] = nil
 	costIDOverride[unitID + buildTimeOffset] = nil
+	costIDOverride[unitID + unitDefIDOffset] = nil
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
@@ -383,6 +394,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 			
 			SetBuilderPriority(unitID, lowPriority)
 			passiveCons[teamID][unitID] = lowPriority or nil
+			lastRoundTeamBuilders[teamID][unitID] = nil -- this is to ensure that mid-update changes carry over
 
 			if VERBOSE then 
 				Spring.Echo(string.format("UnitID %i of def %s has been set to %s = %s (%s)",
@@ -394,7 +406,70 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	return true
 end
 
-local function UpdatePassiveBuilders(teamID, interval)
+local function sortMetalBurdensAndGetInitialPointers(lowPrioBuilderMetalBurdens, resourcesLeftMetalBurden)
+	-- Sort the lowPrioBuilderMetalBurdens table.
+	local function compareBuilderMetalBurdens(a, b)
+		-- a[1] is metal burden, a[2] is builder unit ID
+		if a[1] == b[1] then
+			return a[2] < b[2]
+		end
+		return a[1] < b[1]
+	end
+	table.sort(lowPrioBuilderMetalBurdens, compareBuilderMetalBurdens)
+
+	-- TODO: We already have the initial burden, so we get to choose the secondary sort.
+	-- Consider whether a secondary sort based on total buildpower of the builder might require fewer total buildpower changes.
+
+	-- Now that passive builders have been sorted by their builds' metal burdens, find the two builders (adjacent
+	-- in the array) whose metal burden most closely matches the metal burden we can support.
+	-- Call these b0 and b1.
+	-- 		1. See which of lowPrioBuilderMetalBurdens[b0] and [b1] has a metal burden _closer_ to resourcesLeftMetalBurden.
+	-- 		   (If tied, choose arbitrarily.)
+	-- 		2. Give the chosen builder as many resources as we can.
+	-- 		3. If we chose b0, decrement b0. If we chose b1, increment b1.
+	-- 		4. If we have resources left, recalculate resourcesLeftMetalBurden and repeat from step 1
+	-- 		   (excluding either of b0 or b1 that's fallen off the end of the array).
+	-- This should produce relatively stable buildspeeds while avoiding two problems:
+	-- 		a. energy being wasted due to a metal stall, or vice-versa
+	-- 		b. large amounts of structures being half-built when we'd be better off with some fully-built and some still near 0%
+
+	-- Binary search to find the b0 and b1 whose build metal burdens are closest to resourcesLeftMetalBurden
+	local n = #lowPrioBuilderMetalBurdens
+	local b0 = 1
+	local b1 = math.max(b0 + 1, n) -- if n<=1, make b1 out-of-bounds
+	while b0 + 1 < b1 do -- run until b0 and b1 are adjacent
+		local bt = math.floor((b0 + b1) / 2)
+		if lowPrioBuilderMetalBurdens[bt][1] < resourcesLeftMetalBurden then
+			b0 = bt -- move b0 to the right
+		else
+			b1 = bt -- move b1 to the left
+		end
+	end
+
+	return b0, b1, n
+end
+
+local function getNextBestBuilderByMetalBurden(lowPrioBuilderMetalBurdens, resourcesLeftMetalBurden, b0, b1, n)
+	local bClosest = -1 -- invalid by default
+	--if DEBUG then Spring.Echo("resourcesLeftMetalBurden b0=" .. tostring(b0) .. ", b1=" .. tostring(b1) .. ", n=" .. tostring(n)) end
+
+	if n >= 1 and (b0 >= 1 or b1 <= n) then
+		-- at least one of b0 and b1 are in-bounds
+		if b1 > n or (b0 >= 1 and math.abs(lowPrioBuilderMetalBurdens[b0][1] - resourcesLeftMetalBurden) < math.abs(lowPrioBuilderMetalBurdens[b1][1] - resourcesLeftMetalBurden)) then
+			-- if b1 is out-of-bounds, or if b0 is in-bounds and closer to b1, then choose b0
+			bClosest = b0
+			b0 = b0 - 1
+		else
+			bClosest = b1
+			b1 = b1 + 1
+		end
+	end
+
+	--if DEBUG then Spring.Echo("remaining burden " .. tostring(resourcesLeftMetalBurden) .. ", closest is " .. bClosest) end
+	return b0, b1, bClosest
+end
+
+local function UpdatePassiveBuilders(teamID, interval, gameFrame)
 
 	-- calculate how much expense each passive con would require, and how much total expense the non-passive cons require
 	local nonPassiveConsTotalExpenseEnergy = 0
@@ -439,17 +514,13 @@ local function UpdatePassiveBuilders(teamID, interval)
 				local expenseEnergy = costIDOverride[builtUnit + energyOffset]
 				local rate = maxbuildspeed / costIDOverride[builtUnit + buildTimeOffset]
 
-				-- TODO: redo solar and basic MM no-stall logic
-				
-				-- metal maker costs 1 metal, don't stall because of that
-				expenseMetal = (expenseMetal <=1) and 0 or expenseMetal * rate
-				
-				-- solar costs 0 energy, don't stall because of that
-				expenseEnergy = (expenseEnergy <=1) and 0 or expenseEnergy * rate
+				-- At full buildpower, how much would this builder spend per second?
+				expenseMetal = expenseMetal * rate
+				expenseEnergy = expenseEnergy * rate
 
 				if isPassive then 
 					passiveExpense[builderID] = expenseMetal
-					passiveExpense[builderID+ energyOffset] = expenseEnergy
+					passiveExpense[builderID + energyOffset] = expenseEnergy
 					numPassiveCons = numPassiveCons + 1
 					passiveConsTotalExpenseEnergy = passiveConsTotalExpenseEnergy + expenseEnergy
 					passiveConsTotalExpenseMetal  = passiveConsTotalExpenseMetal  + expenseMetal
@@ -459,8 +530,9 @@ local function UpdatePassiveBuilders(teamID, interval)
 					if (not buildOwner) or builderID < buildOwner then
 						buildTargets[builtUnit] = builderID
 					end
-					local builtUnitDefID = Spring.GetUnitDefID(builtUnit)
-					table.insert(lowPrioBuilderMetalBurdens, { unitDefRelativeMetalBurden[builtUnitDefID], builderID })
+
+					local builtUnitDefID = costIDOverride[builtUnit + unitDefIDOffset]
+					table.insert(lowPrioBuilderMetalBurdens, { unitDefRelativeMetalBurden[builtUnitDefID], builderID, builtUnit })
 
 					lowPrioBuildPowerWanted = lowPrioBuildPowerWanted + maxbuildspeed
 					
@@ -515,107 +587,91 @@ local function UpdatePassiveBuilders(teamID, interval)
 	
 	havePassiveResourcesLeft = (passiveEnergyLeft > 0) and (passiveMetalLeft > 0 )
 
+	local teamBuilders = lastRoundTeamBuilders[teamID]
+
+	-- What is the relative metal burden that we could support precisely with our remaining resources?
+	local resourcesLeftMetalBurden = 0
 	if havePassiveResourcesLeft then
+		resourcesLeftMetalBurden = passiveMetalLeft / (passiveMetalLeft + passiveEnergyLeft)
+	end
 
-		-- What is the relative metal burden that we could support precisely with our remaining resources?
-		local resourcesLeftMetalBurden = passiveMetalLeft / (passiveMetalLeft + passiveEnergyLeft)
+	local b0, b1, n = sortMetalBurdensAndGetInitialPointers(lowPrioBuilderMetalBurdens, resourcesLeftMetalBurden)
+	local bClosest = -1
 
-		-- Now that passive builders have been sorted by their builds' metal burdens, find the two builders (adjacent
-		-- in the array, or the same element) whose metal burden most closely matches the metal burden we can support.
-		-- Call these b0 and b1.
-		-- 		1. See which of lowPrioBuilderMetalBurdens[b0] and [b1] has a metal burden _closer_ to resourcesLeftMetalBurden.
-		-- 		   (If tied, choose arbitrarily.)
-		-- 		2. Give the chosen builder as many resources as we can.
-		-- 		3. If we chose b0, decrement b0. If we chose b1, increment b1.
-		-- 		4. If we have resources left, recalculate resourcesLeftMetalBurden and repeat from step 1
-		-- 		   (excluding either of b0 or b1 that's fallen off the end of the array).
-		-- This should produce relatively stable buildspeeds while avoiding two problems:
-		-- 		a. energy being wasted due to a metal stall, or vice-versa
-		-- 		b. large amounts of structures being half-built when we'd be better off with some fully-built and some still near 0%
-
-		-- We built the lowPrioBuilderMetalBurdens table earlier but haven't needed it until now. Sort it.
-		local function compareBuilderMetalBurdens(a, b)
-			-- a[1] is metal burden, a[2] is builder unit ID
-			if a[1] == b[1] then
-				return a[2] < b[2]
-			end
-			return a[1] < b[1]
+	-- Set build speed for all low-priority builders that are building
+	while true do
+		-- We can spend resources, and at least one builder hasn't received resources yet.
+		b0, b1, bClosest = getNextBestBuilderByMetalBurden(lowPrioBuilderMetalBurdens, resourcesLeftMetalBurden, b0, b1, n)
+		if bClosest < 0 then
+			-- no more builders
+			break
 		end
-		table.sort(lowPrioBuilderMetalBurdens, compareBuilderMetalBurdens)
+		local builderID = lowPrioBuilderMetalBurdens[bClosest][2]
+		local builtUnitID = lowPrioBuilderMetalBurdens[bClosest][3]
 
-		-- Binary search to find the b0 and b1 whose build metal burdens are closest to resourcesLeftMetalBurden
-		local n = #lowPrioBuilderMetalBurdens
-		local b0 = 1
-		local b1 = math.max(b0 + 1, n) -- if n==1, make b1 out-of-bounds
-		while b0 + 1 < b1 do -- run until b0 and b1 are adjacent
-			local bt = math.floor((b0 + b1) / 2)
-			if lowPrioBuilderMetalBurdens[bt][1] < resourcesLeftMetalBurden then
-				b0 = bt -- move b0 to the right
-			else
-				b1 = bt -- move b1 to the left
-			end
-		end
-
-		while n >= 1 and (b0 >= 1 or b1 <= n) do
-			-- We can spend resources, and at least one builder hasn't received resources yet.
-			local bClosest
-			-- If b1 is out-of-bounds, or if b0 is in-bounds and a closer match than b1, choose b0
-			if b1 > n or (b0 >= 1 and math.abs(lowPrioBuilderMetalBurdens[b0][1] - resourcesLeftMetalBurden) < math.abs(lowPrioBuilderMetalBurdens[b1][1] - resourcesLeftMetalBurden)) then
-				bClosest = b0
-				b0 = b0 - 1
-			else
-				bClosest = b1
-				b1 = b1 + 1
-			end
-			local builderID = lowPrioBuilderMetalBurdens[bClosest][2]
-
-			if passiveExpense[builderID] then -- this builder is actually building
-				local wantedBuildSpeed = 0 -- init at zero buildspeed
-				if havePassiveResourcesLeft then
-					-- we still have res, so try to pull it
-					local passivePullEnergy = passiveExpense[builderID + energyOffset] * intervalpersimspeed
-					local passivePullMetal  = passiveExpense[builderID] * intervalpersimspeed
-					if passiveEnergyLeft < passivePullEnergy or passiveMetalLeft < passivePullMetal then
-						havePassiveResourcesLeft = false
-						if VERBOSE then Spring.Echo(string.format("Ran out for builder %d at index %i (burden %.2f)", builderID, bClosest, lowPrioBuilderMetalBurdens[bClosest][1])) end
-						-- No need to set a fractional buildspeed, just wait for next frame and more resources.
-					else
-						-- We still have enough resources for this builder to build at max speed
-						wantedBuildSpeed = maxBuildSpeed[builderID]
-						passiveEnergyLeft = passiveEnergyLeft - passivePullEnergy
-						passiveMetalLeft  = passiveMetalLeft  - passivePullMetal
-
+		if passiveExpense[builderID] then -- this builder is actually building
+			--Spring.Echo("checking whether we have passive resources left: " .. tostring(passiveMetalLeft) .. ", " .. tostring(passiveEnergyLeft))
+			local wantedBuildSpeed = 0 -- init at zero buildspeed
+			if havePassiveResourcesLeft then
+				-- we still have res, so try to pull it
+				local passivePullEnergy = passiveExpense[builderID + energyOffset] * intervalpersimspeed
+				local passivePullMetal  = passiveExpense[builderID] * intervalpersimspeed
+				if passiveEnergyLeft < passivePullEnergy or passiveMetalLeft < passivePullMetal then
+					havePassiveResourcesLeft = false
+					if VERBOSE then Spring.Echo(string.format("Ran out for builder %d at index %i (burden %.2f) %.2f/%.2f, %.2f/%.2f (%.2f/%.2f %.2f)", builderID, bClosest, lowPrioBuilderMetalBurdens[bClosest][1],
+						passivePullMetal, passiveMetalLeft, passivePullEnergy, passiveEnergyLeft, passiveExpense[builderID], passiveExpense[builderID + energyOffset], intervalpersimspeed)) end
+					-- No need to set a fractional buildspeed, just wait for next update and more resources.
+				else
+					-- We still have enough resources for this builder to build at max speed
+					wantedBuildSpeed = maxBuildSpeed[builderID]
+					passiveEnergyLeft = passiveEnergyLeft - passivePullEnergy
+					passiveMetalLeft  = passiveMetalLeft  - passivePullMetal
+					if passiveMetalLeft + passiveEnergyLeft > 0 then
 						-- Update resources-left metal burden for the next pass.
 						resourcesLeftMetalBurden = passiveMetalLeft / (passiveMetalLeft + passiveEnergyLeft)
-						if VERBOSE then Spring.Echo(string.format("Had some for builder %d at index %i (burden %.2f)", builderID, bClosest, lowPrioBuilderMetalBurdens[bClosest][1])) end
 					end
-				end
-				MaybeSetWantedBuildSpeed(builderID, wantedBuildSpeed)
-				lowPrioBuildPowerUsed = lowPrioBuildPowerUsed + wantedBuildSpeed
-			end
-		end
-	else
-	-- Special case, we are completely and totally stalled, no resources left for passive builders. 
 
-		for builderID in pairs(passiveConsTeam) do 
-			if passiveExpense[builderID] then
-				MaybeSetWantedBuildSpeed(builderID, 0)
+					-- Remember that this unit was building so that we can easily remove its resources later.
+					teamBuilders[builderID] = gameFrame
+
+					-- If our build target has a low-priority owner that isn't us, take ownership of it here,
+					-- so that we can skip the buildPowerMinimum workaround to any other builder on the same job.
+					if buildTargets[builtUnitID] > 0 then -- has a passive builder attached
+						buildTargets[builtUnitID] = builderID
+					end
+
+					if VERBOSE then Spring.Echo(string.format("Had some for builder %d at index %i (burden %.2f)  %.2f/%.2f, %.2f/%.2f (%.2f/%.2f %.2f)", builderID, bClosest, lowPrioBuilderMetalBurdens[bClosest][1],
+						passivePullMetal, passiveMetalLeft, passivePullEnergy, passiveEnergyLeft, passiveExpense[builderID], passiveExpense[builderID + energyOffset], intervalpersimspeed)) end
+				end
 			end
-		end	
+			MaybeSetWantedBuildSpeed(builderID, wantedBuildSpeed)
+			lowPrioBuildPowerUsed = lowPrioBuildPowerUsed + wantedBuildSpeed
+		end
+	end
+
+	-- If any low-prio builders last received their build orders on a _previous_ frame, take their resources away now.
+	for builderID, lastOrderedBuildFrame in pairs(teamBuilders) do
+		if lastOrderedBuildFrame < gameFrame then
+			MaybeSetWantedBuildSpeed(builderID, 0)
+			teamBuilders[builderID] = nil
+		end
 	end
 	
 	-- override buildTarget builders build speeds for a single frame; let them build at a tiny rate to prevent nanoframes from possibly decaying (yes this is confirmed to happen)
 	-- dont remove the resources given to a builder just because they are build target owners
 	-- and take them off the buildTargets queue!
 	for buildTargetID, builderUnitID in pairs(buildTargets) do 
-		-- if owner is passive, then give it a bit of BP
-		-- This ensures that we at least build each unit a tiny bit.
-		if currentBuildSpeed[builderUnitID] < buildPowerMinimum then 
-			-- This builderUnitID has been assigned as passive with no resources, so give it a little bit
-			MaybeSetWantedBuildSpeed(builderUnitID, buildPowerMinimum)
-		else
-			-- this builderUnitID has been assigned greater than 0 resources, so remove it from the next frame's clear pass
-			buildTargets[buildTargetID] = nil
+		-- builderUnitID < 0 means there's an active builder working on this unit, no need to do anything
+		if builderUnitID > 0 then
+			-- if owner is passive, then give it a bit of BP
+			-- This ensures that we at least build each unit a tiny bit.
+			if currentBuildSpeed[builderUnitID] < buildPowerMinimum then
+				-- This builderUnitID has been assigned as passive with no resources, so give it a little bit
+				MaybeSetWantedBuildSpeed(builderUnitID, buildPowerMinimum)
+			else
+				-- this builderUnitID has been assigned greater than 0 resources, so remove it from the next frame's clear pass
+				buildTargets[buildTargetID] = nil
+			end
 		end
 	end 
 	
@@ -682,7 +738,7 @@ function gadget:GameFrame(n)
 		if not deadTeamList[teamID] then -- isnt dead
 			if n == updateFrame[teamID] then
 				local interval = GetUpdateInterval(teamID)
-				UpdatePassiveBuilders(teamID, interval)
+				UpdatePassiveBuilders(teamID, interval, n)
 				updateFrame[teamID] = n + interval
 			elseif not updateFrame[teamID] or updateFrame[teamID] < n then
 				updateFrame[teamID] = n + GetUpdateInterval(teamID)
