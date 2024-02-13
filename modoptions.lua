@@ -1006,7 +1006,7 @@ local options={
 	{
 		key		= "skyshift",
 		name	= "Skyshift: Air Rework",
-		desc	= "A comeplete overhaul of air units and mechanics",
+		desc	= "A complete overhaul of air units and mechanics",
 		type	= "bool",
 		def		= false,
 		section	= "options_experimental",
