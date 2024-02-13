@@ -357,7 +357,7 @@ local function addToUnitCache(teamID, unitID, unitDefID)
 end
 
 local function removeFromUnitCache(teamID, unitID, unitDefID)
-    local function removeFromUnitCacheInternal(cache, teamID, unitID, value)
+    local function removeFromUnitCacheInternal(cache, value)
         if unitCache[teamID][cache] then
             if unitCache[teamID][cache][unitID] then
                 if cachedTotals[teamID][cache] then
