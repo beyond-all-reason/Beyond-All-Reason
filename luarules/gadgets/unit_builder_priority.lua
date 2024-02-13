@@ -453,14 +453,19 @@ local function UpdatePassiveBuilders(teamID, interval)
 					numPassiveCons = numPassiveCons + 1
 					passiveConsTotalExpenseEnergy = passiveConsTotalExpenseEnergy + expenseEnergy
 					passiveConsTotalExpenseMetal  = passiveConsTotalExpenseMetal  + expenseMetal
-					buildTargets[builtUnit] = builderID 
 
+					-- take ownership of this build if it has no builder attached _or_ if our builder ID is lower
+					local buildOwner = buildTargets[builtUnit]
+					if (not buildOwner) or builderID < buildOwner then
+						buildTargets[builtUnit] = builderID
+					end
 					local builtUnitDefID = Spring.GetUnitDefID(builtUnit)
 					table.insert(lowPrioBuilderMetalBurdens, { unitDefRelativeMetalBurden[builtUnitDefID], builderID })
 
 					lowPrioBuildPowerWanted = lowPrioBuildPowerWanted + maxbuildspeed
 					
 				else
+					buildTargets[builtUnit] = -1 -- mark this unit as having a high-priority builder working on it
 					highPrioBuildPowerWanted = highPrioBuildPowerWanted + maxbuildspeed
 					nonPassiveConsTotalExpenseEnergy = nonPassiveConsTotalExpenseEnergy + expenseEnergy
 					nonPassiveConsTotalExpenseMetal  = nonPassiveConsTotalExpenseMetal  + expenseMetal
