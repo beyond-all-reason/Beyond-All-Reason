@@ -657,7 +657,7 @@ end
 local function buildMetricsEnabled()
     metricsEnabled = {}
 
-    index = 1
+    local index = 1
     for _,metric in ipairs(metricsAvailable) do
         if widgetConfig >= metric.configLevel then
             local metricEnabled = table.copy(metric)
