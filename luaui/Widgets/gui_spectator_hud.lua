@@ -1225,7 +1225,7 @@ local function updateSortingTooltip()
 		elseif sortingChosen == "teamaggregate" then
 			tooltipText = "Sort by Team Aggregate (click to change)"
 		end
-	
+
 		WG['tooltip'].AddTooltip(
 			sortingTooltipName,
 			{ sortingLeft, sortingBottom, sortingRight, sortingTop },
@@ -1952,11 +1952,11 @@ local function init()
 		settings.useMovingAverage = false
 	elseif widgetConfig == constants.configLevel.advanced then
 		settings.statsUpdateFrequency = 6  -- 5 times a second
-		settings.useMovingAverage = true 
+		settings.useMovingAverage = true
 		settings.movingAverageWindowSize = 4  -- approx 1 sec
 	elseif widgetConfig == constants.configLevel.expert then
 		settings.statsUpdateFrequency = 2  -- 15 times a second, same as engine slowUpdate
-		settings.useMovingAverage = true 
+		settings.useMovingAverage = true
 		settings.movingAverageWindowSize = 16  -- approx 1 sec
 	end
 
@@ -2187,7 +2187,7 @@ function widget:ViewResize()
 
 	reInit()
 end
-			 
+
 function widget:GameFrame(frameNum)
 	if not haveFullView then
 		return
