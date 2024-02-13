@@ -636,20 +636,19 @@ local function UpdatePassiveBuilders(teamID, interval)
 end
 
 local function GetUpdateInterval(teamID)
-	local maxInterval = 1
+	local maxInterval = 6
 	for _,resName in pairs(resTable) do
 		local _, stor, _, inc = spGetTeamResources(teamID, resName)
 		local resMaxInterval
 		if inc > 0 then
-			resMaxInterval = floor(stor*simSpeed/inc)+1 -- how many frames would it take to fill our current storage based on current income?
-		else
-			resMaxInterval = 6
-		end
-		if resMaxInterval > maxInterval then
-			maxInterval = resMaxInterval
+			local resMaxInterval = floor(stor*simSpeed/inc)+1 -- (1 or greater) how many frames would it take to fill our current storage based on current income?
+
+			-- Update more frequently if we're in danger of overflowing this resource
+			if resMaxInterval < maxInterval then
+				maxInterval = resMaxInterval
+			end
 		end
 	end
-	if maxInterval > 6 then maxInterval = 6 end
 	--Spring.Echo("interval: "..maxInterval)
 	return maxInterval
 end
