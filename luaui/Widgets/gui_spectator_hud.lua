@@ -311,7 +311,7 @@ local function buildUnitDefs()
 end
 
 local function addToUnitCache(teamID, unitID, unitDefID)
-    local function addToUnitCacheInternal(cache, teamID, unitID, value)
+    local function addToUnitCacheInternal(cache, value)
         if unitCache[teamID][cache] then
             if not unitCache[teamID][cache][unitID] then
                 if cachedTotals[teamID][cache] then
