@@ -49,9 +49,6 @@ local widgetConfig = 3
 local widgetDimensions = {}
 local headerDimensions = {}
 
-local topBarPosition
-local topBarShowButtons
-
 local viewScreenWidth, viewScreenHeight
 
 local buttonSideLength
