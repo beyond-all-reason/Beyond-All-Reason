@@ -40,7 +40,8 @@ local spValidUnitID = Spring.ValidUnitID
 -- Optimize shader
 -- Combine Effects of techniques
 -- ELECTRORB TOO EXPENSIVE!
-
+	-- to multiple wraps, like 4 instead of 18 goddamn passes!
+-- Ensure SphereVBO indices to triangles are ordered bottom to top!
 
 --------------------------------------------------------------------------------
 -- Configuration
@@ -254,18 +255,18 @@ layout (location = 1) in vec3 normals;
 layout (location = 2) in vec2 uvs;
 
 layout (location = 3) in vec4 posrad; // time is gameframe spawned :D
-layout (location = 4) in vec4 margin_precision_gf_technique;
+layout (location = 4) in vec4 margin_teamID_gf_technique;
 layout (location = 5) in vec4 color1;
 layout (location = 6) in vec4 color2;
 layout (location = 7) in uvec4 instData; // unitID, teamID, ??
 
 out DataVS {
-	flat vec4 color1_vs;
-	flat vec4 color2_vs;
-	flat float unitID_vs;
-	flat float opac_vs;
+	vec4 color1_vs;
+	//flat vec4 color2_vs;
+	float unitID_vs;
 	flat float gameFrame_vs;
 	flat int technique_vs;
+	float opac_vs;
 	vec4 modelPos_vs;
 };
 
@@ -296,40 +297,65 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 #line 10468
 void main()
 {
+	if ((uni[instData.y].composite & 0x00000003u) < 1u ) { // not drawn
+		// Ivand's recommendation is to place vertices outside of NDC space:
+		gl_Position = vec4(2.0,2.0,2.0,1.0);
+		return;
+	}
+	
 	vec3 modelWorldPos = uni[instData.y].drawPos.xyz;
-	unitID_vs = float(uni[instData.y].composite >> 16 );
+	unitID_vs = 0.1 + float(uni[instData.y].composite >> 16 ) / 256000.0;
 	
 	float modelRot = uni[instData.y].drawPos.w;
 	mat3 rotY = rotation3dY(0);
-	
 		
 	vec4 vertexWorldPos = vec4(1);
-	vertexWorldPos.xyz = rotY * ( position.xzy * posrad.w + posrad.xyz + vec3(100.0) ) + modelWorldPos;
+	vec3 flippedPos = vec3(1,-1,1) * position.xzy;
+	vertexWorldPos.xyz = rotY * ( flippedPos * posrad.w + posrad.xyz + vec3(0,0,0) ) + modelWorldPos;
 	
-	
-	if ((uni[instData.y].composite & 0x00000003u) < 1u ) { // not drawn
-		gl_Position = cameraViewProj * vec4(modelWorldPos + vec3(0,-1000,0),1);
-	}else{ // actually drawn
-		gl_Position = cameraViewProj * vertexWorldPos;
-	}
+	gl_Position = cameraViewProj * vertexWorldPos;
 
-	//gl_Position = cameraViewProj * vec4(modelWorldPos + position * 100, 1.0);
 	
+
 	mat3 normalMatrix = mat3( cameraView[0].xyz, cameraView[1].xyz, cameraView[2].xyz);
 	
-	vec3 normal = normalMatrix * (rotY * normals);
+	vec3 normal = (rotY * normals.xzy);
+	normal.y *= -1;
+	vec3 camPos = cameraViewInv[3].xyz;
+	vec3 camToWorldPos = normalize(cameraViewInv[3].xyz  - vertexWorldPos.xyz);
 	//vec3 vertex = vec3(gl_ModelViewMatrix * gl_Vertex);
-	float angle = dot(normal,position)*inversesqrt( dot(normal,normal)*dot(position,position) ); //dot(norm(n),norm(v))
-	opac_vs = pow( abs( angle ) , margin_precision_gf_technique.x);
-	opac_vs = 1.0;
-	color1_vs = color1;
-	color2_vs = color2;
-	modelPos_vs = vec4(position.xzy, 0);
+	color1_vs.rgb = camToWorldPos.xyz;
+	float angle = dot(normal,camToWorldPos); //*inversesqrt( dot(normal,normal)*dot(position,position) ); //dot(norm(n),norm(v))
+	opac_vs = pow( abs( angle ) , margin_teamID_gf_technique.x);
+	//opac_vs = 1.0;
+	//color1_vs.rgb = vec3(angle);
+	
+	vec4 color2_vs;
+	if (color1.r < 0) { // negative numbers mean teamcolor
+		vec4 teamcolor = teamColor[int(margin_teamID_gf_technique.y)];
+		//	ShieldSphereParticle.Default.colormap1 = {{(r*0.45)+0.3, (g*0.45)+0.3, (b*0.45)+0.3, 0.6}}
+		//ShieldSphereParticle.Default.colormap2 = {{r*0.5, g*0.5, b*0.5, 0.66} }
+		color1_vs = vec4(teamcolor.rgb, 0.5);
+		color1_vs.rgb = color1_vs.rgb * 0.45 + 0.3;
+		color2_vs = vec4(teamcolor.rgb, 0.66);
+		color2_vs.rgb = color2_vs.rgb * 0.5;
+	}else{ // base color
+		color1_vs = color1;
+		color2_vs = color2_vs;
+	}
+	
+	color1_vs = mix(color1_vs, color2_vs, opac_vs);
+	
+	float relHealth  = clamp(uni[instData.y].health/uni[instData.y].maxHealth, 0, 1);
+	//color1_vs.rgb *= 1.0 + relHealth;
+	
+	
+	modelPos_vs = vec4(position.xzy*posrad.w, 0);
 	//modelPos_vs.z = fract(modelPos_vs.z * 10);
+	modelPos_vs.w = relHealth;
+	gameFrame_vs = (timeInfo.x + timeInfo.w) ;
 	
-	gameFrame_vs = timeInfo.x + timeInfo.w * 0.1;
-	
-	technique_vs = int(floor(margin_precision_gf_technique.w));
+	technique_vs = int(floor(margin_teamID_gf_technique.w));
 	
 }
 ]]
@@ -349,12 +375,11 @@ uniform int reflectionPass = 0;
 
 #define DISTORTION 0.01
 in DataVS {
-	flat vec4 color1_vs;
-	flat vec4 color2_vs;
-	flat float unitID_vs;
-	flat float opac_vs;
+	vec4 color1_vs;
+	float unitID_vs;
 	flat float gameFrame_vs;
 	flat int technique_vs;
+	float opac_vs;
 	vec4 modelPos_vs;
 };
 
@@ -473,7 +498,7 @@ out vec4 fragColor;
 		vec2 uv = NORM2SNORM(vUv);
 
 		const float strength = 0.01;
-		const float dx = 0.1;
+		const float dx = 0.2;
 
 		float t = 0.0;
 
@@ -482,6 +507,26 @@ out vec4 fragColor;
 			thisUV.x -= dx * float(k);
 			thisUV.y += float(k);
 			t += abs(strength / ((thisUV.x + Fbm12( thisUV + time ))));
+		}
+
+		return color * t;
+	}
+	
+	
+	vec3 LightningOrb2(vec2 vUv, vec3 color) {
+		// looks quite similar to previous, but twice as fast
+		float violence = (1.0 - modelPos_vs.w);
+		vUv.x = fract(vUv.x * 2.0); // double it
+		vec2 uv = NORM2SNORM(vUv);
+		const float strength = 0.03 + 0.1 * violence;
+		const float dx = 0.225;
+		float t = 0.0;
+		for (int k = -4; k < 3; ++k) {
+			vec2 thisUV = uv;
+			thisUV.x -= dx * float(k);
+			thisUV.y += 3 * float(k);
+			vec2 fbmUV = vec2(thisUV.x * 2 + time, thisUV.y + 0.3*time);
+			t += abs(strength / ((thisUV.x + (2.0 * Fbm12( fbmUV ) -0.95))));
 		}
 
 		return color * t;
@@ -509,6 +554,7 @@ out vec4 fragColor;
 		return color * t;
 	}
 
+	// Returns the X coords (around the belly) as [0-1], the Y coords as down-up [0-1]
 	vec2 RadialCoords(vec3 a_coords)
 	{
 		vec3 a_coords_n = normalize(a_coords);
@@ -520,7 +566,7 @@ out vec4 fragColor;
 
 	vec3 RotAroundY(vec3 p)
 	{
-		float ra = -time * 1.5;
+		float ra = -time * 2.1;
 		mat4 tr = mat4(cos(ra), 0.0, sin(ra), 0.0,
 					   0.0, 1.0, 0.0, 0.0,
 					   -sin(ra), 0.0, cos(ra), 0.0,
@@ -531,13 +577,16 @@ out vec4 fragColor;
 
 void main(void)
 {
-	fragColor = mix(color1_vs, color2_vs, opac_vs);
+	fragColor = color1_vs;
+	
+	//modelPos_vs contains the sphere's coords.
 
 	if (technique_vs == 1) { // LightningOrb
 		vec3 noiseVec = modelPos_vs.xyz;
 		noiseVec = RotAroundY(noiseVec);
 		vec2 vUv = (RadialCoords(noiseVec));
-		vec3 col = LightningOrb(vUv, fragColor.rgb);
+		vec3 col = LightningOrb2(vUv, fragColor.rgb);
+		//fragColor.rgba = vec4(col,1.0); return;
 		fragColor.rgb = max(fragColor.rgb, col * col);
 	}
 	else if (technique_vs == 2) { // MagicOrb
@@ -557,11 +606,13 @@ void main(void)
 	if (reflectionPass > 0) fragColor.rgba *= 3.0;
 	//fragColor.rgba = vec4(1.0);
 	//fragColor.rgb = modelPos_vs.xyz;
+	//fragColor.rgba = vec4(opac_vs,opac_vs, opac_vs, 1.0);
+	//fragColor.rgb = color1_vs.rgb;
 }
 ]]
 
 local function goodbye(reason)
-  Spring.Echo("Airjet GL4 widget exiting with reason: "..reason)
+  Spring.Echo("Lups Orb GL4 widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget()
 end
 
@@ -586,9 +637,10 @@ local function initGL4()
   shaderCompiled = orbShader:Initialize()
   if not shaderCompiled then goodbye("Failed to compile orbShader GL4 ") end
   local sphereVBO, numVerts, sphereIndexVBO, numIndices = makeSphereVBO(24,16,1)
+  --Spring.Echo("SphereVBO has", numVerts, "vertices and ", numIndices,"indices")
   local orbVBOLayout = {
 		  {id = 3, name = 'posrad', size = 4}, -- widthlength
-		  {id = 4, name = 'margin_precision_gf_technique', size = 4}, --  emit dir
+		  {id = 4, name = 'margin_teamID_gf_technique', size = 4}, --  emit dir
 		  {id = 5, name = 'color1', size = 4}, --- color
 		  {id = 6, name = 'color2', size = 4}, --- color
 		  {id = 7, name = 'instData', type = GL.UNSIGNED_INT, size= 4},
@@ -598,7 +650,7 @@ local function initGL4()
   orbVBO.vertexVBO = sphereVBO
   orbVBO.VAO = makeVAOandAttach(orbVBO.vertexVBO, orbVBO.instanceVBO)
   orbVBO.primitiveType = GL.TRIANGLES
-  orbVBO.indexVBO = sphereIndexVBO
+  orbVBO.indexVBO = sphereIndexVBO  
   orbVBO.VAO:AttachIndexBuffer(orbVBO.indexVBO)
 end
 
@@ -607,8 +659,10 @@ end
 --------------------------------------------------------------------------------
 local function DrawOrbs(isReflection)
 	if orbVBO.usedElements > 0 then
+		gl.DepthTest(true)
 		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove both state changes
-		gl.Culling(GL.FRONT)
+		--gl.Culling(GL.FRONT)
+		gl.Culling(false)
 		orbShader:Activate()
 		--orbShader:SetUniformInt("reflectionPass", ((isReflection == true) and 1) or 0)
 		drawInstanceVBO(orbVBO)
@@ -641,13 +695,16 @@ end
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
 	if unitDefID and orbUnitDefs[unitDefID] then 
 
-		--unitTeam = unitTeam or spGetUnitTeam(unitID)
+		unitTeam = unitTeam or spGetUnitTeam(unitID)
 		
 		local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
 		if buildProgress < 1 then return end
 
 		local instanceCache = orbUnitDefs[unitDefID]
-		Spring.Echo("Added lups orb")
+		instanceCache[6] = unitTeam
+		instanceCache[7] = Spring.GetGameFrame()
+		
+		--Spring.Echo("Added lups orb")
 		pushElementInstance(orbVBO,
 			instanceCache,
 			unitID, --key
