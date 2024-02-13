@@ -1893,7 +1893,7 @@ local function drawMetricChange()
             headerDimensions.left,
             highlightBottom,
             headerDimensions.right,
-            highlighTop
+            highlightTop
         )
     end
 
