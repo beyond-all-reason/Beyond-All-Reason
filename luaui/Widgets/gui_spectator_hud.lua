@@ -2127,20 +2127,6 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
     end
 end
 
-function widget:KeyPress(key, mods, isRepeat)
-    if key == 0x132 and not isRepeat and not mods.shift and not mods.alt then
-        ctrlDown = true
-    end
-    return false
-end
-
-function widget:KeyRelease(key)
-    if key == 0x132 then
-        ctrlDown = false
-    end
-    return false
-end
-
 local function isInDimensions(x, y, dimensions)
     return (x > dimensions["left"]) and (x < dimensions["right"]) and (y > dimensions["bottom"]) and (y < dimensions["top"])
 end
