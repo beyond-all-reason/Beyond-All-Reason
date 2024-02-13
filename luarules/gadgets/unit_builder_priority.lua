@@ -53,7 +53,7 @@ function gadget:GetInfo()
 	}
 end
 
-local DEBUG = false -- will draw the buildSpeeds above builders. Perf heavy but its debugging only.
+local DEBUG = true -- will draw the buildSpeeds above builders. Perf heavy but its debugging only.
 local VERBOSE = false -- will spam debug into infolog
 local FORWARDUNIFORMS = false -- Needed for future nanospray GL4
 -- Available Info to Widgets:
@@ -94,8 +94,17 @@ if not gadgetHandler:IsSyncedCode() then
 
 				end
 			end
-			
 		end
+		
+		function gadget:DrawScreen()
+			local myTeam = Spring.GetMyTeamID()
+			local myPrioUpdateRate = Spring.GetTeamRulesParam(myTeam, "builderUpdateInterval")
+			if myPrioUpdateRate then 
+				local vsx, vsy = Spring.GetViewGeometry()
+				gl.Text(string.format("Update Interval = %.2f",myPrioUpdateRate), vsx/2, 16,16)
+			end
+		end
+		
 	end
 	if FORWARDUNIFORMS then 
 		local uniformCache = {0}
@@ -614,6 +623,7 @@ local function GetUpdateInterval(teamID)
 	end
 	if maxInterval > 6 then maxInterval = 6 end
 	--Spring.Echo("interval: "..maxInterval)
+	Spring.SetTeamRulesParam(teamID, "builderUpdateInterval", maxInterval)
 	return maxInterval
 end
 
