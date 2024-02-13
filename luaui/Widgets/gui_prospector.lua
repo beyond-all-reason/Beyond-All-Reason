@@ -195,10 +195,7 @@ function widget:Initialize()
 	SetupMexDefInfos()
 	myTeamID = Spring.GetMyTeamID()
 	once = true
-	local metalSpots = WG["resource_spot_finder"].metalSpotsList
-	if not metalSpots or (#metalSpots > 0 and #metalSpots <= 2) then
-		metalMap = true
-	end
+	metalMap = WG["resource_spot_finder"].isMetalMap
 end
 
 
