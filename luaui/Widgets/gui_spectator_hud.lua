@@ -1788,7 +1788,6 @@ local function drawVSModeMetrics()
         local statsRight = vsModeStats[indexRight].metrics[metric.id]
 
         local bottom = vsModeMetricsAreaTop - metric.id * vsModeMetricHeight
-        local top = bottom + vsModeMetricHeight
 
         local iconLeft = vsModeMetricsAreaLeft + borderPadding + vsModeMetricIconPadding
         local iconRight = iconLeft + vsModeMetricIconWidth
