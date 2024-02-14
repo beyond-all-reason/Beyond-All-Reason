@@ -5,6 +5,10 @@ local function skyshiftUnitTweaks(name, uDef)
 			-----ARMADA AIR-----
 			--------------------
 ---------------------------------------------
+	if name == "armca" then
+		uDef.health = 720
+	end
+	
 	if name == "armfig" then
 		uDef.acceleration = 0.6
 		uDef.airsightdistance = 950
@@ -115,7 +119,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.health = 2160
 		uDef.maxelevator = 0.015
 		uDef.maxpitch = 0.14
-		uDef.maxrudder = 0.0095
+		uDef.maxrudder = 0.02
 		uDef.maxslope = 10
 		uDef.speed = 96
 		uDef.maxwaterdepth = 0
@@ -127,8 +131,8 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.selfdestructas = "mediumExplosionGenericSelfd"
 		uDef.sightdistance = 195
 		uDef.speedtofront = 0.07
-		uDef.turnradius = 8
-		uDef.turnrate = 500
+		uDef.turnradius = 4
+		uDef.turnrate = 800
 		uDef.usesmoothmesh = true
 		uDef.wingangle = 0.06315
 		uDef.wingdrag = 0.135
@@ -193,10 +197,12 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.idleautoheal = 5
 		uDef.idletime = 1800
 		uDef.health = 1320
-		uDef.maxacc = 0.5
+		uDef.maxacc = 0.065
+		uDef.maxbank = 0.8
 		uDef.maxdec = 0.5
 		uDef.maxslope = 10
-		uDef.maxrudder = 0.01
+		uDef.maxpitch = 0.45
+		uDef.maxrudder = 0.004
 		uDef.maxwaterdepth = 0
 		uDef.speed = 75
 		uDef.nochasecategory = "NOTAIR"
@@ -206,6 +212,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.selfdestructas = "smallExplosionGenericSelfd"
 		uDef.sightdistance = 520
 		uDef.turninplaceanglelimit = 360
+		uDef.turnradius = 6
 		uDef.turnrate = 375
 		uDef.weapondefs = {
 			med_emg = {
@@ -363,6 +370,10 @@ local function skyshiftUnitTweaks(name, uDef)
 			--------------------
 ---------------------------------------------
 
+	if name == "corca" then
+		uDef.health = 720
+	end
+	
 	if name == "corveng" then
 		uDef.acceleration = 0.45
 		uDef.airsightdistance = 950
@@ -478,7 +489,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.health = 2520
 		uDef.maxelevator = 0.015
 		uDef.maxpitch = 0.14
-		uDef.maxrudder = 0.0095
+		uDef.maxrudder = 0.02
 		uDef.maxslope = 10
 		uDef.speed = 90
 		uDef.maxwaterdepth = 0
@@ -490,8 +501,8 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.selfdestructas = "mediumExplosionGenericSelfd"
 		uDef.sightdistance = 169
 		uDef.speedtofront = 0.065
-		uDef.turnradius = 8
-		uDef.turnrate = 500
+		uDef.turnradius = 4
+		uDef.turnrate = 800
 		uDef.usesmoothmesh = true
 		uDef.wingangle = 0.06296
 		uDef.wingdrag = 0.145
@@ -650,12 +661,12 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.idleautoheal = 5
 		uDef.idletime = 1800
 		uDef.health = 1300
-		uDef.maxacc = 1
-		uDef.maxbank = 1
+		uDef.maxacc = 0.065
+		uDef.maxbank = 0.8
 		uDef.maxdec = 0.85
 		uDef.maxelevator = 0.08
-		uDef.maxpitch = 0.75
-		uDef.maxrudder = 0.05
+		uDef.maxpitch = 0.45
+		uDef.maxrudder = 0.004
 		uDef.maxslope = 10
 		uDef.maxwaterdepth = 0
 		uDef.speed = 75
@@ -666,7 +677,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.selfdestructas = "mediumExplosionGenericSelfd"
 		uDef.sightdistance = 595
 		uDef.turninplaceanglelimit = 360
-		uDef.turnradius = 40
+		uDef.turnradius = 6
 		uDef.turnrate = 700
 		uDef.weapondefs = {
 			med_emg = {
@@ -736,9 +747,37 @@ local function skyshiftUnitTweaks(name, uDef)
 		end
 	end
 	
+	if name == "armsam" then
+		uDef.energycost = 1350
+		uDef.buildtime = 2000
+		uDef.nochasecategory = "NOTAIR"
+		uDef.speed = 70
+		uDef.weapondefs.armtruck_missile.reloadtime = 3
+		uDef.weapondefs.armtruck_missile.damage.default = 1
+		uDef.weapons = {
+			[1] = {
+				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
+				def = "ARMTRUCK_MISSILE",
+				onlytargetcategory = "VTOL",
+			},
+		}
+	end
 	
-	
-	
+	if name == "cormist" then
+		uDef.energycost = 1400
+		uDef.buildtime = 2000
+		uDef.nochasecategory = "NOTAIR"
+		uDef.speed = 70
+		uDef.weapondefs.cortruck_missile.damage.default = 1
+		uDef.weapondefs.cortruck_missile.damage.vtol = 130
+		uDef.weapons = {
+			[1] = {
+				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
+				def = "CORTRUCK_MISSILE",
+				onlytargetcategory = "VTOL",
+			},
+		}
+	end
 	
 	
 	
