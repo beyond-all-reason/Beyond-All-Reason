@@ -3,7 +3,7 @@ function widget:GetInfo()
 		name      = 'Spectate Next Alive Player',
 		desc      = 'Auto spectate another alive player when currently selected player died',
 		author    = 'Floris',
-		date      = 'February 2023',
+		date      = 'February 2024',
 		license	  = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true

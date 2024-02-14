@@ -533,7 +533,7 @@ modules = {
 
 m_point = {
     active = true,
-    defaut = true, -- defaults dont seem to be accesible on widget data load
+    default = true,
 }
 
 m_take = {
@@ -1123,7 +1123,7 @@ function GetSkill(playerID)
             local tsRed, tsGreen, tsBlue = 195, 195, 195
             if osSigma and next(SkillUncertainties) then
                 osSigma = tonumber(osSigma)
-              
+
                 -- 0.00 is absolute certain , 8.33 is initial uncertaintiy at registration time (written at 2024/01/11)
                 if osSigma < SkillUncertainties[0].limit then
                     tsRed, tsGreen, tsBlue = unpack(SkillUncertainties[0].color)
@@ -1230,7 +1230,7 @@ function CreatePlayerFromTeam(teamID)
     -- for when we don't have a human player occupying the slot, also when a player changes team (dies)
     local _, _, isDead, isAI, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(teamID, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(teamID)
-    if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
+    if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
         tred, tgreen, tblue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
     end
     local tname, ttotake, tai
@@ -2469,7 +2469,7 @@ end
 
 function colourNames(teamID)
     local nameColourR, nameColourG, nameColourB, nameColourA = Spring_GetTeamColor(teamID)
-	if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
+	if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
     local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
@@ -3488,7 +3488,7 @@ function CheckPlayersChange()
                     player[player[i].team + specOffset] = CreatePlayerFromTeam(player[i].team)
                 end
                 player[i].team = teamID
-				if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
+				if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
 					player[i].red, player[i].green, player[i].blue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 				else
 					player[i].red, player[i].green, player[i].blue = Spring_GetTeamColor(teamID)
