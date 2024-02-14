@@ -235,6 +235,7 @@ local function GetSpotsMetal()
 	local stripLeft = {}
 	local stripRight = {}
 	local stripGroup = {}
+	local maxStripLength = extractorRadius * 6
 
 	-- Indexes
 	local aboveIdx
@@ -342,17 +343,17 @@ local function GetSpotsMetal()
 		g.y = spGetGroundHeight(g.x, g.z)
 
 		spots[#spots + 1] = g
-	end
 
-	if(gadget) then
-		setMexGameRules(spots)
+		if gMaxX - gMinX > maxStripLength or g.maxZ - g.minZ > maxStripLength then
+			return false, true
+		end
 	end
 
 	--for i = 1, #spots do
 	--	Spring.MarkerAddPoint(spots[i].x,spots[i].y,spots[i].z,"")
 	--end
 
-	return spots
+	return spots, false
 end
 
 
@@ -370,24 +371,23 @@ function upget:Initialize()
 		Spring.SetGameRulesParam("base_extraction", 1.0)
 	end
 
+	if metalMaps[Game.mapName] then
+		metalSpots, isMetalMap = false, true
+	else
+		metalSpots, isMetalMap = GetSpotsMetal()
+	end
 
-	metalSpots = GetSpotsMetal()
 	geoSpots = GetSpotsGeo()
 	globalScope["resource_spot_finder"] = {}
 	globalScope["resource_spot_finder"].metalSpotsList = metalSpots
 	globalScope["resource_spot_finder"].geoSpotsList = geoSpots
-
-	if metalMaps[Game.mapName] then
-		isMetalMap = true
-	end
-	-- no metal spots in map or metalmap
-	if not metalSpots or #metalSpots <= 2 then
-		isMetalMap = true
-	end
-
 	globalScope["resource_spot_finder"].isMetalMap = isMetalMap
 	globalScope["resource_spot_finder"].GetClosestMexSpot = getClosestMex
 	globalScope["resource_spot_finder"].GetClosestGeoSpot = getClosestGeo
 	globalScope["resource_spot_finder"].GetBuildingPositions = GetBuildingPositions
 	globalScope["resource_spot_finder"].IsMexPositionValid = IsBuildingPositionValid
+
+	if(gadget) then
+		setMexGameRules(metalSpots)
+	end
 end
