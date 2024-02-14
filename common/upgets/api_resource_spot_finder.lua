@@ -235,6 +235,7 @@ local function GetSpotsMetal()
 	local stripLeft = {}
 	local stripRight = {}
 	local stripGroup = {}
+	local maxStripLength = extractorRadius * 6
 
 	-- Indexes
 	local aboveIdx
@@ -242,6 +243,10 @@ local function GetSpotsMetal()
 
 	-- Strip processing function (To avoid some code duplication)
 	local function DoStrip(x1, x2, z, worth)
+		if x2 - x1 > maxStripLength then
+			return false
+		end
+
 		local assignedTo
 
 		for i = aboveIdx, workingIdx - 1 do
@@ -281,6 +286,10 @@ local function GetSpotsMetal()
 		stripRight[nStrips] = x2
 
 		if assignedTo then
+			if assignedTo.maxZ - assignedTo.minZ > maxStripLength then
+				return false
+			end
+
 			stripGroup[nStrips] = assignedTo
 		else
 			local newGroup = {
@@ -293,32 +302,45 @@ local function GetSpotsMetal()
 			stripGroup[nStrips] = newGroup
 			table.insert(uniqueGroups, newGroup)
 		end
+
+		return true
 	end
 
 	-- Strip finding
-	workingIdx = huge
-	for mz = metalmapStartX, metalmapSizeZ, metalMapSquareSize do
-		aboveIdx = workingIdx
-		workingIdx = nStrips + 1
+	local function StripFinding()
+		workingIdx = huge
+		for mz = metalmapStartX, metalmapSizeZ, metalMapSquareSize do
+			aboveIdx = workingIdx
+			workingIdx = nStrips + 1
 
-		local stripStart = nil
-		local stripWorth = 0
+			local stripStart = nil
+			local stripWorth = 0
 
-		for mx = metalmapStartZ, metalmapSizeX, metalMapSquareSize do
-			local _, _, groundMetal = spGetGroundInfo(mx, mz)
-			if groundMetal > 0 then
-				stripStart = stripStart or mx
-				stripWorth = stripWorth + groundMetal
-			elseif stripStart then
-				DoStrip(stripStart, mx - metalMapSquareSize, mz, stripWorth)
-				stripStart = nil
-				stripWorth = 0
+			for mx = metalmapStartZ, metalmapSizeX, metalMapSquareSize do
+				local _, _, groundMetal = spGetGroundInfo(mx, mz)
+				if groundMetal > 0 then
+					stripStart = stripStart or mx
+					stripWorth = stripWorth + groundMetal
+				elseif stripStart then
+					if not DoStrip(stripStart, mx - metalMapSquareSize, mz, stripWorth) then
+						return false
+					end
+					stripStart = nil
+					stripWorth = 0
+				end
+			end
+
+			if stripStart then
+				if not DoStrip(stripStart, metalmapSizeX, mz, stripWorth) then
+					return false
+				end
 			end
 		end
+		return true
+	end
 
-		if stripStart then
-			DoStrip(stripStart, metalmapSizeX, mz, stripWorth)
-		end
+	if not StripFinding() then
+		return false, true
 	end
 
 	-- Final processing
@@ -344,15 +366,11 @@ local function GetSpotsMetal()
 		spots[#spots + 1] = g
 	end
 
-	if(gadget) then
-		setMexGameRules(spots)
-	end
-
 	--for i = 1, #spots do
 	--	Spring.MarkerAddPoint(spots[i].x,spots[i].y,spots[i].z,"")
 	--end
 
-	return spots
+	return spots, false
 end
 
 
@@ -363,27 +381,26 @@ end
 
 function upget:Initialize()
 	if(gadget) then
-		Spring.SetGameRulesParam("base_extraction", 0.001)
+		Spring.SetGameRulesParam("base_extraction", 1.0)  -- 0.001
 	end
 
+	if metalMaps[Game.mapName] then
+		metalSpots, isMetalMap = false, true
+	else
+		metalSpots, isMetalMap = GetSpotsMetal()
+	end
 
-	metalSpots = GetSpotsMetal()
 	geoSpots = GetSpotsGeo()
 	globalScope["resource_spot_finder"] = {}
 	globalScope["resource_spot_finder"].metalSpotsList = metalSpots
 	globalScope["resource_spot_finder"].geoSpotsList = geoSpots
-
-	if metalMaps[Game.mapName] then
-		isMetalMap = true
-	end
-	-- no metal spots in map or metalmap
-	if not metalSpots or #metalSpots <= 2 then
-		isMetalMap = true
-	end
-
 	globalScope["resource_spot_finder"].isMetalMap = isMetalMap
 	globalScope["resource_spot_finder"].GetClosestMexSpot = getClosestMex
 	globalScope["resource_spot_finder"].GetClosestGeoSpot = getClosestGeo
 	globalScope["resource_spot_finder"].GetBuildingPositions = GetBuildingPositions
 	globalScope["resource_spot_finder"].IsMexPositionValid = IsBuildingPositionValid
+
+	if(gadget) then
+		setMexGameRules(metalSpots)
+	end
 end
