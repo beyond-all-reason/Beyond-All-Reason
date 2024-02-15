@@ -1088,10 +1088,11 @@ function GetAliveAllyTeams()
     aliveAllyTeams = {}
     local allteams = Spring_GetTeamList()
     teamN = table.maxn(allteams) - 1 --remove gaia
+	local gf = Spring.GetGameFrame()
     for i = 0, teamN - 1 do
-        local _, _, isDead, _, _, tallyteam = Spring_GetTeamInfo(i, false)
-        if not isDead then
-            aliveAllyTeams[tallyteam] = true
+        local _, _, isDead, _, _, allyTeam = Spring_GetTeamInfo(i, false)
+        if not isDead or gf == 0 then
+            aliveAllyTeams[allyTeam] = true
         end
     end
 end
