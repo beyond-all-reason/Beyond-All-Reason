@@ -102,6 +102,7 @@ local function GetSpotsGeo()
 			local x, y, z = Spring.GetFeaturePosition(features[i])
 			spotCount = spotCount + 1
 			spots[spotCount] = {
+				isGeo = true,
 				x = GetFootprintPos(x),
 				y = y,
 				z = GetFootprintPos(z),
@@ -340,6 +341,8 @@ local function GetSpotsMetal()
 		g.x = (gMinX + gMaxX) * 0.5
 		g.z = (g.minZ + g.maxZ) * 0.5
 		g.y = spGetGroundHeight(g.x, g.z)
+
+		g.isMex = true
 
 		spots[#spots + 1] = g
 	end
