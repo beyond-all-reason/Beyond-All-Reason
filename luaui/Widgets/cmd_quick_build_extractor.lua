@@ -167,7 +167,7 @@ function widget:Update(dt)
 		end
 	elseif not metalMap then
 		-- If no valid units, check cursor position against extractor spots
-		local _, groundPos = Spring.TraceScreenRay(mx, my, true)
+		local _, groundPos = Spring.TraceScreenRay(mx, my, true, false, false, true)
 		if not groundPos or not groundPos[1] then
 			clearGhostBuild()
 			return

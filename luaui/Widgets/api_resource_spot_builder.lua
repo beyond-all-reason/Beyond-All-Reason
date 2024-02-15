@@ -356,7 +356,7 @@ local function PreviewExtractorCommand(params, extractor, spot)
 
 	-- Construct the actual mex build orders
 	local facing = spGetBuildFacing() or 1
-	local finalCommand = {}
+	local finalCommand
 
 	local buildingId = -extractor
 	local targetPos, targetOwner

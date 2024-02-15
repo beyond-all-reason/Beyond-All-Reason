@@ -105,7 +105,9 @@ local function getCmdsForValidSpots(spots, shift)
 		if not spotHasQueue then
 			local pos = { spot.x, spot.y, spot.z }
 			local cmd = WG['resource_spot_builder'].PreviewExtractorCommand(pos, selectedMex, spot)
-			cmds[#cmds + 1] = cmd
+			if cmd then
+				cmds[#cmds + 1] = cmd
+			end
 		end
 	end
 	return cmds
