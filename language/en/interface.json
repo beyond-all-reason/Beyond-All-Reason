@@ -207,7 +207,7 @@
 			"repeat_tooltip": "Repeat unit command queue",
 			"Low Prio": "Low Priority",
 			"High Prio": "High Priority",
-			"priority_tooltip": "Assigns resources to use for this builder when not having enough for all",
+			"priority_tooltip": "Assigns resources to use for this builder when not having enough for all.\nAmong low-priority builders, leftover resources are given first to\nbuilds that reduce resource overflow and will increase production.",
 			"Decloaked": "Visible",
 			"Cloaked": "Cloaked",
 			"wantcloak_tooltip": "Visibility state",

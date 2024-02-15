@@ -207,7 +207,7 @@
 			"repeat_tooltip": "Permet la répétition des tâches de l'unité",
 			"Low Prio": "Priorité faible",
 			"High Prio": "Priorité élevée",
-			"priority_tooltip": "Définit la priorité d'utilisation des ressources de ce constructeur lorsqu'il n'y en a pas assez pour toutes les constructions en cours",
+			"priority_tooltip": "Définit la priorité d'utilisation des ressources de ce constructeur lorsqu'il n'y en a pas assez pour toutes les constructions en cours.\nParmi les constructeurs de faible priorité, les ressources restantes seront d'abord allouées\naux constructions qui augmenteront la production et réduiront le débordement de ressources.",
 			"Decloaked": "Visible",
 			"Cloaked": "Camouflé",
 			"wantcloak_tooltip": "Visibilité",

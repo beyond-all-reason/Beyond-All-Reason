@@ -555,7 +555,7 @@
             "wait_tooltip":"暂停指定单位/工厂的命令/建造队列",
             "LandAt 0":"不撤退",
             "stopproduction":"清除队列",
-            "priority_tooltip":"当没有足够的资源给所有的建造者时，分配资源给这个建造者使用。",
+            "priority_tooltip":"当没有足够的资源给所有的建造者时，分配资源给这个建造者使用。 在低优先级的构建器中，剩余资源将首先用于增加产量并减少资源溢出的构建。",
             "morph_tooltip":"升级到下一个科技级别(点两下可取消)",
             "loadunits_tooltip":"在指定的区域内装载单位或多个单位",
             "autorepairlevel_tooltip":"设置在什么血量 %% 时,这架飞行器会回到最近的飞行器维修平台",
