@@ -39,7 +39,7 @@ elseif ruinDensity == "verydense" then
 	ruinDensityMultiplier = 10
 end
 
-math_random = math.random
+math_random = math.random	-- not a local cause the includes below use it
 
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 local blueprintController = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_controller.lua')
