@@ -729,7 +729,7 @@ local function playNextSound()
 				Spring.PlaySoundFile(Sound[event].file[m], globalVolume, 'ui')
 			end
 			if displayMessages and WG['messages'] and Sound[event].messageKey then
-				WG['messages'].addMessage(Spring.I18N(Sound[event].messageKey))
+				WG['messages'].addMessage(Spring.I18N(Sound[event].messageKey)..'  ('..gameMaxUnits..')')
 			end
 		end
 		LastPlay[event] = spGetGameFrame()
