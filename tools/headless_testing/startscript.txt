@@ -1,0 +1,28 @@
+[GAME]
+{
+	MapName=Full Metal Plate 1.7;
+	GameType=Beyond All Reason $VERSION;
+	GameStartDelay=0;
+	StartPosType=0;
+	RecordDemo=0;
+	MyPlayerName=TestRunner;
+	IsHost=1;
+	FixedRNGSeed = 1;
+  [MODOPTIONS]
+  {
+    debugcommands=1:cheat|2:godmode|3:globallos|30:runtestsheadless;
+		deathmode=neverend;
+  }
+  [ALLYTEAM0]
+  {
+  }
+  [TEAM0]
+  {
+    allyteam=0;
+    teamleader=0;
+  }
+  [PLAYER0]
+  {
+    team=0;
+  }
+}
