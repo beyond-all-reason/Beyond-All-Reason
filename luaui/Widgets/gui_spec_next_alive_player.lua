@@ -15,10 +15,6 @@ local myTeamID = Spring.GetMyTeamID()
 local processPlayerChangedFrame
 local processPlayerChangedPlayerID
 
---function widget:TeamDied(teamID)	-- this doesnt get triggered :(
---	Spring.Echo('teamdied: '..teamID)
---end
-
 local function switchToTeam(teamID)
 	local oldMapDrawMode = Spring.GetMapDrawMode()
 	Spring.SelectUnitArray({})
@@ -53,11 +49,20 @@ local function processPlayerChanged(playerID)
 	end
 end
 
+function widget:TeamDied(teamID)
+	spec, fullview = Spring.GetSpectatingState()
+	if spec and myTeamID == teamID then
+		local _, playerID = Spring.GetTeamInfo(teamID, false)
+		processPlayerChangedFrame = Spring.GetGameFrame() + 1
+		processPlayerChangedPlayerID = playerID
+	end
+end
+
 function widget:PlayerChanged(playerID)
 	spec, fullview = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
 	local _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID, false)	-- player can be spec here and team not be dead still
-	if spec and myTeamID == teamID  then
+	if spec and myTeamID == teamID then
 		processPlayerChangedFrame = Spring.GetGameFrame() + 1
 		processPlayerChangedPlayerID = playerID
 	end
