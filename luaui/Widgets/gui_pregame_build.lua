@@ -26,36 +26,49 @@ local metalMap = false
 
 local unitshapes = {}
 
-armToCor = {
-	[UnitDefNames["armmex"].id] = UnitDefNames["cormex"].id,
-	[UnitDefNames["armuwmex"].id] = UnitDefNames["coruwmex"].id,
-	[UnitDefNames["armsolar"].id] = UnitDefNames["corsolar"].id,
-	[UnitDefNames["armwin"].id] = UnitDefNames["corwin"].id,
-	[UnitDefNames["armtide"].id] = UnitDefNames["cortide"].id,
-	[UnitDefNames["armllt"].id] = UnitDefNames["corllt"].id,
-	[UnitDefNames["armrad"].id] = UnitDefNames["corrad"].id,
-	[UnitDefNames["armrl"].id] = UnitDefNames["corrl"].id,
-	[UnitDefNames["armtl"].id] = UnitDefNames["cortl"].id,
-	[UnitDefNames["armsonar"].id] = UnitDefNames["corsonar"].id,
-	[UnitDefNames["armfrt"].id] = UnitDefNames["corfrt"].id,
-	[UnitDefNames["armlab"].id] = UnitDefNames["corlab"].id,
-	[UnitDefNames["armvp"].id] = UnitDefNames["corvp"].id,
-	[UnitDefNames["armsy"].id] = UnitDefNames["corsy"].id,
-	[UnitDefNames["armmstor"].id] = UnitDefNames["cormstor"].id,
-	[UnitDefNames["armestor"].id] = UnitDefNames["corestor"].id,
-	[UnitDefNames["armmakr"].id] = UnitDefNames["cormakr"].id,
-	[UnitDefNames["armeyes"].id] = UnitDefNames["coreyes"].id,
-	[UnitDefNames["armdrag"].id] = UnitDefNames["cordrag"].id,
-	[UnitDefNames["armdl"].id] = UnitDefNames["cordl"].id,
-	[UnitDefNames["armap"].id] = UnitDefNames["corap"].id,
-	[UnitDefNames["armfrad"].id] = UnitDefNames["corfrad"].id,
-	[UnitDefNames["armuwms"].id] = UnitDefNames["coruwms"].id,
-	[UnitDefNames["armuwes"].id] = UnitDefNames["coruwes"].id,
-	[UnitDefNames["armfmkr"].id] = UnitDefNames["corfmkr"].id,
-	[UnitDefNames["armfdrag"].id] = UnitDefNames["corfdrag"].id,
-	[UnitDefNames["armptl"].id] = UnitDefNames["corptl"].id,
+local armToCorNames = {
+	['armmex'] = 'cormex',
+	['armuwmex'] = 'coruwmex',
+	['armsolar'] = 'corsolar',
+	['armwin'] = 'corwin',
+	['armtide'] = 'cortide',
+	['armllt'] = 'corllt',
+	['armrad'] = 'corrad',
+	['armrl'] = 'corrl',
+	['armtl'] = 'cortl',
+	['armsonar'] = 'corsonar',
+	['armfrt'] = 'corfrt',
+	['armlab'] = 'corlab',
+	['armvp'] = 'corvp',
+	['armsy'] = 'corsy',
+	['armmstor'] = 'cormstor',
+	['armestor'] = 'corestor',
+	['armmakr'] = 'cormakr',
+	['armeyes'] = 'coreyes',
+	['armdrag'] = 'cordrag',
+	['armdl'] = 'cordl',
+	['armap'] = 'corap',
+	['armfrad'] = 'corfrad',
+	['armuwms'] = 'coruwms',
+	['armuwes'] = 'coruwes',
+	['armfmkr'] = 'corfmkr',
+	['armfdrag'] = 'corfdrag',
+	['armptl'] = 'corptl',
 }
-corToArm = table.invert(armToCor)
+-- convert unitname -> unitDefID
+local armToCor = {}
+for unitName, corUnitName in pairs(armToCorNames) do
+	if not UnitDefNames[unitName] then
+		Spring.Echo('WARNING... gui_pregame_build: couldnt find unit name: '..unitName)
+	elseif not UnitDefNames[corUnitName] then
+		Spring.Echo('WARNING... gui_pregame_build: couldnt find unit name: '..corUnitName)
+	else
+		armToCor[UnitDefNames[unitName].id] = UnitDefNames[corUnitName].id
+	end
+end
+armToCorNames = nil
+
+local corToArm = table.invert(armToCor)
 
 
 local function buildFacingHandler(_, _, args)
@@ -67,16 +80,13 @@ local function buildFacingHandler(_, _, args)
 	if args and args[1] == "inc" then
 		facing = (facing + 1) % 4
 		Spring.SetBuildFacing(facing)
-
 		return true
 	elseif args and args[1] == "dec" then
 		facing = (facing - 1) % 4
 		Spring.SetBuildFacing(facing)
-
 		return true
 	elseif args and facingMap[args[1]] then
 		Spring.SetBuildFacing(facingMap[args[1]])
-
 		return true
 	end
 end
