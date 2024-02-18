@@ -39,7 +39,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Firestorm",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbots",
+			subfolder = "cortex_bots",
 			wpn1turretx = 200,
 			wpn1turrety = 200,
 		},

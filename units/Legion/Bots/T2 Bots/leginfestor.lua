@@ -49,7 +49,7 @@ return {
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.125,
-			subfolder = "corbots/t2",
+			subfolder = "cortex_bots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {

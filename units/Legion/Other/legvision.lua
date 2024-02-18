@@ -39,7 +39,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "corbuildings/landutil",
+			subfolder = "cortex_buildings/landutil",
 		},
 		featuredefs = {
 			cdragonseyes_dead = {

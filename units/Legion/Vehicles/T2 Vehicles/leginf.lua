@@ -44,7 +44,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corvehicles/t2",
+			subfolder = "cortex_vehicles/t2",
 			techlevel = 2,
 		},
 		featuredefs = {

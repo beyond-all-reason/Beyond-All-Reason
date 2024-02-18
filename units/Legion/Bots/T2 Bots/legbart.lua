@@ -37,7 +37,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Zecrus",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbots/t2",
+			subfolder = "cortex_bots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {

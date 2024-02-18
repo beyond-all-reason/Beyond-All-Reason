@@ -75,7 +75,7 @@ return {
 			area_mex_def = "cormex",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corvehicles",
+			subfolder = "cortex_vehicles",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

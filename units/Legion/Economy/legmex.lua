@@ -47,7 +47,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "corbuildings/landeconomy",
+			subfolder = "cortex_buildings/landeconomy",
 		},
 		featuredefs = {
 			dead = {

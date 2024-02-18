@@ -50,7 +50,7 @@ return {
 			restoretime = "3000",
 			rockstrength = "0",
 			sleevename = "sleeve",
-			subfolder = "corvehicles",
+			subfolder = "cortex_vehicles",
 			turretname = "turret",
 			wpn1turretx = "192.5",
 			wpn1turrety = "192.5",

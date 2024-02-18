@@ -73,7 +73,7 @@ return {
 			area_mex_def = "legmex",
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "coraircraft",
+			subfolder = "cortex_aircraft",
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

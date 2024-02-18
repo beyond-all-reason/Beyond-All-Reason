@@ -44,7 +44,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Mr Bob, Flaka, Zecrus",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbots",
+			subfolder = "cortex_bots",
 		},
 		featuredefs = {
 			dead = {

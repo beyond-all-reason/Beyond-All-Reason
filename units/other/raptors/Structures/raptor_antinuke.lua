@@ -36,7 +36,7 @@ return {
 			normaltex = "unittextures/chicken_l_normals.png",
 			removestop = true,
 			removewait = true,
-			subfolder = "corbuildings/landdefenceoffence",
+			subfolder = "cortex_buildings/landdefenceoffence",
 			techlevel = 2,
 		},
 		sfxtypes = {

@@ -36,7 +36,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "armbuildings/landutil",
+			subfolder = "armada_buildings/landutil",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

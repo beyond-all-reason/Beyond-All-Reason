@@ -38,7 +38,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Zecrus",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armbots",
+			subfolder = "armada_bots",
 		},
 		featuredefs = {
 			dead = {

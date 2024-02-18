@@ -39,7 +39,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armbots/t2",
+			subfolder = "armada_bots/t2",
 			techlevel = 3,
 		},
 		featuredefs = {

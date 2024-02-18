@@ -52,7 +52,7 @@ return {
 			restoretime = "3000",
 			rockstrength = "4",
 			sleevename = "sleeve",
-			subfolder = "armvehicles",
+			subfolder = "armada_vehicles",
 			turretname = "turret",
 			wpn1turretx = "45",
 			wpn1turrety = "80",

@@ -43,7 +43,7 @@ return {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
-			subfolder = "corbuildings/landdefenceoffence",
+			subfolder = "cortex_buildings/landdefenceoffence",
 			legacyname = "Gaat Gun",
 		},
 		featuredefs = {

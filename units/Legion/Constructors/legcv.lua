@@ -83,7 +83,7 @@ return {
 			area_mexT15_def = "legmext15",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corvehicles",
+			subfolder = "cortex_vehicles",
 		},
 		featuredefs = {
 			dead = {

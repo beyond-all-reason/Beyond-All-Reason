@@ -39,7 +39,7 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 1,
-			subfolder = "corbots/t2",
+			subfolder = "cortex_bots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {

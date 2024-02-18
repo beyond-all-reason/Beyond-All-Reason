@@ -38,7 +38,7 @@ return {
 			--unitgroup = 'emp',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "coraircraft",
+			subfolder = "cortex_aircraft",
 			drone = 1,
 			nohealthbars = 1,
 		},
