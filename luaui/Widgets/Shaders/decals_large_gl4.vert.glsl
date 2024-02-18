@@ -44,7 +44,7 @@ void offsetVertex4( float x, float y, float z, float u, float v){
 	//vec3 vecnorm = normalize(primitiveCoords);// AHA zero case!
 	vec4 worldPos = vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
 	
-	vec2 uvhm = heighmapUVatWorldPos(worldPos.xz);
+	vec2 uvhm = heightmapUVatWorldPos(worldPos.xz);
 	worldPos.y = textureLod(heightmapTex, uvhm, 0.0).x + 0.01;
 	gl_Position = cameraViewProj * worldPos;
 	gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in Z
@@ -101,7 +101,7 @@ void main()
 	vertexPos.xz += worldPos.xz;
 	
 	// get the height here:
-	vertexPos.y  = textureLod(heightmapTex, heighmapUVatWorldPos(vertexPos.xz), 0.0).x + HEIGHTOFFSET;
+	vertexPos.y  = textureLod(heightmapTex, heightmapUVatWorldPos(vertexPos.xz), 0.0).x + HEIGHTOFFSET;
 	
 	// Output it to the FS
 	gl_Position = cameraViewProj * vertexPos;

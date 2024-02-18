@@ -290,7 +290,7 @@ void main()
 	#line 13000
 	// Get the heightmap and the normal map at the center position of the light in v_worldPosRad.xyz
 	
-	vec2 uvhm = heighmapUVatWorldPos(v_worldPosRad.xz);
+	vec2 uvhm = heightmapUVatWorldPos(v_worldPosRad.xz);
 	v_lightcenter_gradient_height.w = textureLod(heightmapTex, uvhm, 0.0).x;
 	
 	vec4 mapnormals = textureLod(mapnormalsTex, uvhm, 0.0);
