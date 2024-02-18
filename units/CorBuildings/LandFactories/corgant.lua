@@ -40,6 +40,7 @@ return {
 			[4] = "corshiva",
 			[5] = "corcat",
 			[6] = "corsok",
+			[7] = "cordemon",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

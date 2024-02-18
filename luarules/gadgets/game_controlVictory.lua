@@ -172,7 +172,7 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RegisterGlobal('CaptureRadius', gCaptureRadius)
 
 		-- Create table of metal spots.
-		local metalSpots = GG.metalSpots
+		local metalSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList or nil
 		local metalPoints = {}
 		if metalSpots then
 			for i = 1, #metalSpots do

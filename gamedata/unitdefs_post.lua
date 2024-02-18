@@ -69,14 +69,6 @@ local function tableMergeSpecial(t1, t2)
 	return newTable
 end
 
--- Unbalanced (upgradeable) Commanders modoption
-if Spring.GetModOptions().unba then
-	VFS.Include("unbaconfigs/unbacom_post.lua")
-	VFS.Include("unbaconfigs/stats.lua")
-	VFS.Include("unbaconfigs/buildoptions.lua")
-	UnbaCom_Post("armcom")
-	UnbaCom_Post("corcom")
-end
 
 local function getDimensions(scale)
 	if not scale then

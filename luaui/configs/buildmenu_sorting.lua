@@ -259,7 +259,6 @@ local unitOrderTable = {
 	['armvang']        = 007040,
 	['corshiva']       = 007050,
 	['legkeres']	   = 007051,
-	['legjugglite']    = 007052,
 	['legpede']        = 007055,
 	['armthor']        = 007060,
 	['leegmech']       = 007065,
@@ -279,7 +278,7 @@ local unitOrderTable = {
 	['armpwt4']        = 007300,
    ['corakt4']        = 007310,
 	['armsptkt4']      = 007320,
-	['cordemont4']     = 007330,
+	['cordemon']     = 007330,
 	['corkarganetht4'] = 007340,
 	['corthermite'] = 007341,
 

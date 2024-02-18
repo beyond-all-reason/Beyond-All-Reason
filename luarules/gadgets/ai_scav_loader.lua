@@ -1,27 +1,29 @@
-local enabled = false
-local teams = Spring.GetTeamList()
-for i = 1,#teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		scavengersAIEnabled = true
-		scavengerAITeamID = i - 1
-		break
-	end
-end
-if scavengersAIEnabled then
-	enabled = false
+
+if not Spring.Utilities.Gametype.IsScavengers() then
+	return
+else
+	return	-- new scavengers is active already!
 end
 
 function gadget:GetInfo()
-  return {
-    name      = "loader for Scavenger mod",
-    desc      = "123",
-    author    = "Damgam",
-    date      = "2019",
-	license   = "GNU GPL, v2 or later",
-    layer     = -100,
-    enabled   = enabled,
-  }
+	return {
+		name      = "loader for Scavenger mod",
+		desc      = "123",
+		author    = "Damgam",
+		date      = "2019",
+		license   = "GNU GPL, v2 or later",
+		layer     = -100,
+		enabled   = true,
+	}
+end
+
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+		scavengerAITeamID = i - 1
+		break
+	end
 end
 
 function gadget:GameOver()
@@ -30,9 +32,7 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	if enabled then
-		VFS.Include('luarules/gadgets/scavengers/boot.lua')
-	end
+	VFS.Include('luarules/gadgets/scavengers/boot.lua')
 
 else
 

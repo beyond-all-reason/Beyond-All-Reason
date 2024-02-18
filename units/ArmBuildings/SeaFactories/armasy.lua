@@ -39,10 +39,11 @@ return {
 			[5] = "armserp",
 			[6] = "armaas",
 			[7] = "armsjam",
-			[8] = "armcarry",
+			[8] = "armantiship",
 			[9] = "armbats",
 			[10] = "armmship",
 			[11] = "armepoch",
+			[12] = "armlship",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

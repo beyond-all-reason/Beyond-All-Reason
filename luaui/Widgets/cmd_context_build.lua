@@ -100,12 +100,6 @@ local lastUpdateTime = 0
 local gameStarted
 
 
-local function distance2dSquared(x1, y1, x2, y2)
-	local dx = x1 - x2
-	local dy = y1 - y2
-	return dx * dx + dy * dy
-end
-
 local function maybeRemoveSelf()
 	if waterIsLava or voidWater or waterLevel < minHeight then
 		widgetHandler:RemoveWidget()
@@ -190,7 +184,7 @@ function widget:DrawWorld()
 
 	if mouseDownPos and lmb then
 		-- currently doing a build drag, don't swap buildings
-		if distance2dSquared(mouseDownPos[1], mouseDownPos[3], pos[1], pos[3]) > 100 then
+		if math.distance2dSquared(mouseDownPos[1], mouseDownPos[3], pos[1], pos[3]) > 100 then
 			return
 		end
 	end

@@ -416,18 +416,18 @@ local xzVelocityUnits = {}
 local defs = {}
 local limitDefs = {}
 for name, effects in pairs(effectDefs) do
-	for fx, data in pairs(effects) do
-		if not effectDefs[name][fx].emitVector then
-			effectDefs[name][fx].emitVector = { 0, 0, -1 }
-		end
-		if effectDefs[name][fx].xzVelocity then
-			xzVelocityUnits[UnitDefNames[name].id] = effectDefs[name][fx].xzVelocity
-		end
-		if effectDefs[name][fx].limit then
-			limitDefs[UnitDefNames[name].id] = true
-		end
-	end
 	if UnitDefNames[name] then
+		for fx, data in pairs(effects) do
+			if not effectDefs[name][fx].emitVector then
+				effectDefs[name][fx].emitVector = { 0, 0, -1 }
+			end
+			if effectDefs[name][fx].xzVelocity and then
+				xzVelocityUnits[UnitDefNames[name].id] = effectDefs[name][fx].xzVelocity
+			end
+			if effectDefs[name][fx].limit then
+				limitDefs[UnitDefNames[name].id] = true
+			end
+		end
 		defs[UnitDefNames[name].id] = effectDefs[name]
 	else
 		Spring.Echo("Airjets: Error: unitdef name '"..name.."' doesnt exist")

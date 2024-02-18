@@ -11,15 +11,6 @@ function gadget:GetInfo()
 	}
 end
 
--- Some of these maps have more than 2 metal spots, disable mex denier
-local metalMaps = {
-	["Oort_Cloud_V2"] = true,
-	["Asteroid_Mines_V2.1"] = true,
-	["Cloud9_V2"] = true,
-	["Iron_Isle_V1"] = true,
-	["Nine_Metal_Islands_V1"] = true,
-	["SpeedMetal BAR V2"] = true,
-}
 
 if not gadgetHandler:IsSyncedCode() then
 	return
@@ -32,41 +23,15 @@ for uDefID, uDef in pairs(UnitDefs) do
 	end
 end
 
-local function GetClosestSpot(x, z, positions)
-	local bestPos
-	local bestDist = math.huge
-	for i = 1, #positions do
-		local pos = positions[i]
-		if pos.x then
-			local dx, dz = x - pos.x, z - pos.z
-			local dist = dx * dx + dz * dz
-			if dist < bestDist then
-				bestPos = pos
-				bestDist = dist
-			end
-		end
-	end
-	return bestPos
-end
-
 local metalSpotsList
 
 function gadget:Initialize()
-	if metalMaps[Game.mapName] then
-		Spring.Echo(gadget:GetInfo().name, "Indiscrete metal map detected, removing self")
-
+	local isMetalMap = GG["resource_spot_finder"].isMetalMap
+	if isMetalMap then
+		Spring.Echo(gadget:GetInfo().name, "Metal map detected, removing self")
 		gadgetHandler:RemoveGadget(self)
 	end
-
-	metalSpotsList = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList
-
-	-- no metal spots in map or metalmap
-	-- gadget is not required
-	if not metalSpotsList or #metalSpotsList <= 2 then
-		Spring.Echo(gadget:GetInfo().name, "None, 1 or 2 metal spots found, removing self")
-
-		gadgetHandler:RemoveGadget(self)
-	end
+	metalSpotsList = GG["resource_spot_finder"].metalSpotsList
 end
 
 -- function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
@@ -77,7 +42,7 @@ function gadget:AllowCommand(_, _, _, cmdID, cmdParams)
 
 	local bx, bz = cmdParams[1], cmdParams[3]
 	-- We find the closest metal spot to the assigned command position
-	local closestSpot = GetClosestSpot(bx, bz, metalSpotsList)
+	local closestSpot = math.getClosestPosition(bx, bz, metalSpotsList)
 
 	-- We check if current order is to build mex in closest spot
 	if not (closestSpot and GG["resource_spot_finder"].IsMexPositionValid(closestSpot, bx, bz)) then

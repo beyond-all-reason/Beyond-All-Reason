@@ -1,3 +1,8 @@
+
+if not Spring.GetModOptions().emprework then
+	return
+end
+
 function gadget:GetInfo()
    return {
       name      = "Unit Slowing",
@@ -6,13 +11,13 @@ function gadget:GetInfo()
       date      = "2010-05-31",
       license   = "GNU GPL, v2 or later",
       layer     = 0,
-      enabled   = Spring.GetModOptions().emprework
+      enabled   = true,
    }
 end
 
 
 if not gadgetHandler:IsSyncedCode() then
-    return false
+    return
 end
 
 

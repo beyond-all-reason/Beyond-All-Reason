@@ -186,91 +186,93 @@ local function initializeUnitDefRing(unitDefID)
 end
 
 local function initUnitList()
-	local defRings = {
+	local unitDefRingsNames = {
 		-- ARMADA
-		armclaw = { weapons = { 1 } },
-		armllt = { weapons = { 1 } },
-		armbeamer = { weapons = { 1 } },
-		armhlt = { weapons = { 1 } },
-		armguard = { weapons = { 4} },
-		armrl = { weapons = { 2 } }, --light aa
-		armferret = { weapons = { 2 } },
-		armcir = { weapons = { 2 } }, --chainsaw
-		armdl = { weapons = { 1 } }, --depthcharge
-		armjuno = { weapons = { 1 } },
-		armtl = { weapons = { 1 } }, --torp launcher
-		armfhlt = { weapons = { 1 } },  --floating hlt
-		armfrt = { weapons = { 2 } },  --floating rocket laucher
-		armfflak = { weapons = { 2 } },  --floating flak AA
-		armatl = { weapons = { 1 } },  --adv torpedo launcher
+		['armclaw'] = { weapons = { 1 } },
+		['armllt'] = { weapons = { 1 } },
+		['armbeamer'] = { weapons = { 1 } },
+		['armhlt'] = { weapons = { 1 } },
+		['armguard'] = { weapons = { 4} },
+		['armrl'] = { weapons = { 2 } }, --light aa
+		['armferret'] = { weapons = { 2 } },
+		['armcir'] = { weapons = { 2 } }, --chainsaw
+		['armdl'] = { weapons = { 1 } }, --depthcharge
+		['armjuno'] = { weapons = { 1 } },
+		['armtl'] = { weapons = { 1 } }, --torp launcher
+		['armfhlt'] = { weapons = { 1 } },  --floating hlt
+		['armfrt'] = { weapons = { 2 } },  --floating rocket laucher
+		['armfflak'] = { weapons = { 2 } },  --floating flak AA
+		['armatl'] = { weapons = { 1 } },  --adv torpedo launcher
 
-		armamb = { weapons = { 4 } }, --ambusher
-		armpb = { weapons = { 4 } }, --pitbull
-		armanni = { weapons = { 1 } },
-		armflak = { weapons = { 2 } },
-		armmercury = { weapons = { 2 } },
-		armemp = { weapons = { 1 } },
-		armamd = { weapons = { 3 } }, --antinuke
+		['armamb'] = { weapons = { 4 } }, --ambusher
+		['armpb'] = { weapons = { 4 } }, --pitbull
+		['armanni'] = { weapons = { 1 } },
+		['armflak'] = { weapons = { 2 } },
+		['armmercury'] = { weapons = { 2 } },
+		['armemp'] = { weapons = { 1 } },
+		['armamd'] = { weapons = { 3 } }, --antinuke
 
-		armbrtha = { weapons = { 4 } },
-		armvulc = { weapons = { 4 } },
-		
+		['armbrtha'] = { weapons = { 4 } },
+		['armvulc'] = { weapons = { 4 } },
+
 		-- CORTEX
-		cormaw = { weapons = { 1 } },
-		corexp = { weapons = { 1} },
-		cormexp = { weapons = { 1,1 } },
-		corllt = { weapons = { 1 } },
-		corhllt = { weapons = { 1 } },
-		corhlt = { weapons = { 1 } },
-		corpun = { weapons = { 4} },
-		corrl = { weapons = { 2 } },
-		cormadsam = { weapons = { 2 } },
-		corerad = { weapons = { 2 } },
-		cordl = { weapons = { 1 } },
-		corjuno = { weapons = { 1 } },
+		['cormaw'] = { weapons = { 1 } },
+		['corexp'] = { weapons = { 1} },
+		['cormexp'] = { weapons = { 1,1 } },
+		['corllt'] = { weapons = { 1 } },
+		['corhllt'] = { weapons = { 1 } },
+		['corhlt'] = { weapons = { 1 } },
+		['corpun'] = { weapons = { 4} },
+		['corrl'] = { weapons = { 2 } },
+		['cormadsam'] = { weapons = { 2 } },
+		['corerad'] = { weapons = { 2 } },
+		['cordl'] = { weapons = { 1 } },
+		['corjuno'] = { weapons = { 1 } },
 
-		corfhlt = { weapons = { 1 } },  --floating hlt
-		cortl = { weapons = { 1 } }, --torp launcher
-		coratl = { weapons = { 1 } }, --T2 torp launcher
-		corfrt = { weapons = { 2 } }, --floating rocket laucher
-		corenaa = { weapons = { 2 } }, --floating flak AA
+		['corfhlt'] = { weapons = { 1 } },  --floating hlt
+		['cortl'] = { weapons = { 1 } }, --torp launcher
+		['coratl'] = { weapons = { 1 } }, --T2 torp launcher
+		['corfrt'] = { weapons = { 2 } }, --floating rocket laucher
+		['corenaa'] = { weapons = { 2 } }, --floating flak AA
 
-		cortoast = { weapons = { 4 } },
-		corvipe = { weapons = { 1 } },
-		cordoom = { weapons = { 1, 1, 1} },
-		corflak = { weapons = { 2 } },
-		corscreamer = { weapons = { 2 } },
-		cortron = { weapons = { 1 } },
-		corfmd = { weapons = { 3 } },
-		corint = { weapons = { 4 } },
-		corbuzz = { weapons = { 4 } },
+		['cortoast'] = { weapons = { 4 } },
+		['corvipe'] = { weapons = { 1 } },
+		['cordoom'] = { weapons = { 1, 1, 1} },
+		['corflak'] = { weapons = { 2 } },
+		['corscreamer'] = { weapons = { 2 } },
+		['cortron'] = { weapons = { 1 } },
+		['corfmd'] = { weapons = { 3 } },
+		['corint'] = { weapons = { 4 } },
+		['corbuzz'] = { weapons = { 4 } },
 
-		-- Antinukes
-		armscab =  { weapons = { 3 } },
-		armcarry =  { weapons = { 3 } },
-		cormabm =  { weapons = { 3 } },
-		corcarry =  { weapons = { 3 } },
-		armantiship =  { weapons = { 3 } },
-		corantiship =  { weapons = { 3 } },
+		['armscab'] = { weapons = { 3 } },
+		['armcarry'] = { weapons = { 3 } },
+		['cormabm'] = { weapons = { 3 } },
+		['corcarry'] = { weapons = { 3 } },
+		['armantiship'] = { weapons = { 3 } },
+		['corantiship'] = { weapons = { 3 } },
 
-		-- SCAVENGER
-		scavengerdroppodbeacon_scav = { weapons = { 1 } },
+		-- SCAVENGERS
+		['scavengerdroppodbeacon_scav'] = { weapons = { 1 } },
 
-		armannit3 = { weapons = { 1 } },
-		armminivulc = { weapons = { 1 } },
+		['armannit3'] = { weapons = { 1 } },
+		['armminivulc'] = { weapons = { 1 } },
 
-		cordoomt3 = { weapons = { 1 } },
-		corhllllt = { weapons = { 1 } },
-		corminibuzz = { weapons = { 1 } }
-		}
-	
-	local unitDefRings = {}
-	for unitDefName, weaponData in pairs(defRings) do 
-		if UnitDefNames[unitDefName] then 
-			unitDefRings[UnitDefNames[unitDefName].id] = weaponData
+		['cordoomt3'] = { weapons = { 1 } },
+		['corhllllt'] = { weapons = { 1 } },
+		['corminibuzz'] = { weapons = { 1 } }
+	}
+	-- convert unitname -> unitDefID
+	unitDefRings = {}
+	for unitName, ranges in pairs(unitDefRingsNames) do
+		if not UnitDefNames[unitName] then
+			Spring.Echo('WARNING... gfx_defenserange_gl4: couldnt apply ranges for unit name: '..unitName)
+		else
+			unitDefRings[UnitDefNames[unitName].id] = ranges
 		end
 	end
-	
+	unitDefRingsNames = nil
+
 	for unitDefID, _ in pairs(unitDefRings) do
 		initializeUnitDefRing(unitDefID)
 	end

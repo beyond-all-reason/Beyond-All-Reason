@@ -463,7 +463,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- armraz legpede corcat leginc armfboy corsumo legmech
+	-- armraz legpede corcat leginc armfboy corsumo legmech cordemon
 	HBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -744,7 +744,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedModClass = 2,
 	},
-	-- armpwt4 corakt4 armmeatball armassimilator armlunchbox cordemont4
+	-- armpwt4 corakt4 armmeatball armassimilator armlunchbox
 	EPICBOT = {
 		crushstrength = 9999,
 		depthmod = 0,

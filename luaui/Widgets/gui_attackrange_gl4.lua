@@ -442,7 +442,7 @@ local attackRangeShader = nil
 
 local function goodbye(reason)
 	Spring.Echo("AttackRange GL4 widget exiting with reason: " .. reason)
-	widgetHandler:RemoveWidget()
+	widgetHandler:RemoveWidget(widget)
 end
 
 local function makeCircleVBO(circleSegments)

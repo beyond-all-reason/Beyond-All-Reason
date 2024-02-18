@@ -240,9 +240,7 @@ local function RefreshCommands()
 
 			local cmdUnitdefs = {}
 			for i, udefid in pairs(unitBuildOptions[startDefID]) do
-				if not units.unbaStartBuildoptions or units.unbaStartBuildoptions[udefid] then
-					cmdUnitdefs[udefid] = i
-				end
+				cmdUnitdefs[udefid] = i
 			end
 			for k, uDefID in pairs(units.unitOrder) do
 				if cmdUnitdefs[uDefID] then
