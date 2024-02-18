@@ -17,7 +17,6 @@ local shared = {} -- shared amongst the lua unitdef enviroments
 local preProcFile  = 'gamedata/unitdefs_pre.lua'
 local postProcFile = 'gamedata/unitdefs_post.lua'
 
-local TDF = TDFparser or VFS.Include('gamedata/parse_tdf.lua')
 local DownloadBuilds = VFS.Include('gamedata/download_builds.lua')
 
 local system = VFS.Include('gamedata/system.lua')
