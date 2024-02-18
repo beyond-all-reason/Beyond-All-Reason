@@ -70,8 +70,9 @@ local morphDefs = {
 			--require = [[tech2]],
 		},
 	},
+}
 
-
+local scavMorphdefs ={
 	-- Scav copies (until i can do that automagically)
 	armmex_scav = {
 		{
@@ -118,6 +119,13 @@ local morphDefs = {
 			--require = [[tech2]],
 		},
 	},
+}
+
+if UnitDefNames['armmoho_scav'] then 
+	table.merge(morphDefs, scavMorphdefs)
+end
+
+local legMorphDefs = {
 
 	--Legion Commander
 	legcom = {
@@ -202,8 +210,7 @@ local morphDefs = {
 	},
 }
 
-
-
+table.merge(morphDefs, legMorphDefs)
 
 -- --------------------- Evo stuff for reference --------------------------------------------
 

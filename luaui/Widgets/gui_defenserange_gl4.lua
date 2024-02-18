@@ -294,7 +294,9 @@ local function initUnitList()
 		scavlist[k] = true
 	end
 	for k,v in pairs(scavlist) do
-		mobileAntiUnitDefs[UnitDefNames[unitName[k] .. '_scav'].id] = mobileAntiUnitDefs[k]
+		if UnitDefNames[unitName[k] .. '_scav'] then 
+			mobileAntiUnitDefs[UnitDefNames[unitName[k] .. '_scav'].id] = mobileAntiUnitDefs[k]
+		end
 	end
 
 	-- Initialize featureDefIDtoUnitDefID

@@ -25,23 +25,27 @@ function SetCount(set)
 end
 
 -- number represents maximum tier of lootbox that can be picked up
-local transportsList = {
-    [UnitDefNames["armatlas_scav"].id] = 1,
-    [UnitDefNames["corvalk_scav"].id] = 1,
-    [UnitDefNames["armdfly_scav"].id] = 2,
-    [UnitDefNames["corseah_scav"].id] = 2,
-}
+local transportsList = {}
 
-local lootboxList = {
-    [UnitDefNames["lootboxbronze_scav"].id] = 1,
-    [UnitDefNames["lootboxsilver_scav"].id] = 1,
-    [UnitDefNames["lootboxgold_scav"].id] = 2,
-    [UnitDefNames["lootboxplatinum_scav"].id] = 2,
-}
+for unitDefName, tier in pairs({armatlas_scav = 1, corvalk_scav = 1, armdfly_scav = 2,corseah_scav = 2}) do 
+	if UnitDefNames[unitDefName] then 
+		transportsList[UnitDefNames[unitDefName].id] = tier
+	end
+end
 
-local spawnerList = {
-    [UnitDefNames["scavengerdroppodbeacon_scav"].id] = true,
-}
+
+local lootboxList = {}
+
+for unitDefName, tier in pairs({lootboxbronze_scav = 1,lootboxsilver_scav  = 1, lootboxgold_scav = 2,lootboxplatinum_scav = 2}) do 
+	if UnitDefNames[unitDefName] then 
+		lootboxList[UnitDefNames[unitDefName].id] = tier
+	end
+end
+
+local spawnerList = {}
+if UnitDefNames["scavengerdroppodbeacon_scav"] then 
+	spawnerList[UnitDefNames["scavengerdroppodbeacon_scav"].id] = true
+end
 
 local teams = Spring.GetTeamList()
 for _, teamID in ipairs(teams) do
