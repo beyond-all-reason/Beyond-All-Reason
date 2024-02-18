@@ -363,7 +363,11 @@ end
 
 function upget:Initialize()
 	if(gadget) then
-		Spring.SetGameRulesParam("base_extraction", 0.001)
+		-- With armmex.extractsMetal=0.001 and armmoho.extractsMetal=0.004
+		-- base_extraction=0.001 is meant to say that T1 mex is baseline x1, and T2 is baseline x4
+		-- as opposed to T1 being x0.5 and T2 being x2.
+		-- Unused now.
+		Spring.SetGameRulesParam("base_extraction", 1.0)
 	end
 
 
