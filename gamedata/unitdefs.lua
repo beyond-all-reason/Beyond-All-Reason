@@ -48,23 +48,26 @@ end
 
 local luaFiles = RecursiveFileSearch('units/', '*.lua')
 
+local legionEnabled = Spring.GetModOptions().experimentallegionfaction
 for _, filename in ipairs(luaFiles) do
-	local udEnv = {}
-	udEnv._G = udEnv
-	udEnv.Shared = shared
-	udEnv.GetFilename = function() return filename end
-	setmetatable(udEnv, { __index = system })
-	local success, uds = pcall(VFS.Include, filename, udEnv, vfs_modes)
-	if (not success) then
-		Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. tostring(uds))
-	elseif (type(uds) ~= 'table') then
-		Spring.Log(section, LOG.ERROR, 'Bad return table from: ' .. filename)
-	else
-		for udName, ud in pairs(uds) do
-			if ((type(udName) == 'string') and (type(ud) == 'table')) then
-				unitDefs[udName] = ud
-			else
-				Spring.Log(section, LOG.ERROR, 'Bad return table entry from: ' .. filename)
+	if legionEnabled or not filename:find('legion') then
+		local udEnv = {}
+		udEnv._G = udEnv
+		udEnv.Shared = shared
+		udEnv.GetFilename = function() return filename end
+		setmetatable(udEnv, { __index = system })
+		local success, uds = pcall(VFS.Include, filename, udEnv, vfs_modes)
+		if (not success) then
+			Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. tostring(uds))
+		elseif (type(uds) ~= 'table') then
+			Spring.Log(section, LOG.ERROR, 'Bad return table from: ' .. filename)
+		else
+			for udName, ud in pairs(uds) do
+				if ((type(udName) == 'string') and (type(ud) == 'table')) then
+					unitDefs[udName] = ud
+				else
+					Spring.Log(section, LOG.ERROR, 'Bad return table entry from: ' .. filename)
+				end
 			end
 		end
 	end
