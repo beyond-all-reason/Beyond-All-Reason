@@ -19,54 +19,75 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Config
 	----------------------------------------------------------------
-	local tokillUnits = {
-		[UnitDefNames.armarad.id] = true,
-		[UnitDefNames.armaser.id] = true,
-		[UnitDefNames.armason.id] = true,
-		[UnitDefNames.armeyes.id] = true,
-		[UnitDefNames.armfrad.id] = true,
-		[UnitDefNames.armjam.id] = true,
-		[UnitDefNames.armjamt.id] = true,
-		[UnitDefNames.armmark.id] = true,
-		[UnitDefNames.armrad.id] = true,
-		[UnitDefNames.armseer.id] = true,
-		[UnitDefNames.armsjam.id] = true,
-		[UnitDefNames.armsonar.id] = true,
-		[UnitDefNames.armveil.id] = true,
-		[UnitDefNames.corarad.id] = true,
-		[UnitDefNames.corason.id] = true,
-		[UnitDefNames.coreter.id] = true,
-		[UnitDefNames.coreyes.id] = true,
-		[UnitDefNames.corfrad.id] = true,
-		[UnitDefNames.corjamt.id] = true,
-		[UnitDefNames.corrad.id] = true,
-		[UnitDefNames.corshroud.id] = true,
-		[UnitDefNames.corsjam.id] = true,
-		[UnitDefNames.corsonar.id] = true,
-		[UnitDefNames.corspec.id] = true,
-		[UnitDefNames.corvoyr.id] = true,
-		[UnitDefNames.corvrad.id] = true,
+	local tokillUnitsNames = {
+		['armarad'] = true,
+		['armaser'] = true,
+		['armason'] = true,
+		['armeyes'] = true,
+		['armfrad'] = true,
+		['armjam'] = true,
+		['armjamt'] = true,
+		['armmark'] = true,
+		['armrad'] = true,
+		['armseer'] = true,
+		['armsjam'] = true,
+		['armsonar'] = true,
+		['armveil'] = true,
+		['corarad'] = true,
+		['corason'] = true,
+		['coreter'] = true,
+		['coreyes'] = true,
+		['corfrad'] = true,
+		['corjamt'] = true,
+		['corrad'] = true,
+		['corshroud'] = true,
+		['corsjam'] = true,
+		['corsonar'] = true,
+		['corspec'] = true,
+		['corvoyr'] = true,
+		['corvrad'] = true,
 
-		[UnitDefNames.corfav.id] = true,
-		[UnitDefNames.armfav.id] = true,
-		[UnitDefNames.armflea.id] = true,
-		[UnitDefNames.raptor_land_swarmer_brood_t2_v1.id] = true,
-		[UnitDefNames.raptor_land_kamikaze_basic_t2_v1.id] = true,
-		[UnitDefNames.raptor_land_kamikaze_emp_t2_v1.id] = true,
-		[UnitDefNames.raptor_land_kamikaze_basic_t4_v1.id] = true,
-		[UnitDefNames.raptor_land_kamikaze_emp_t4_v1.id] = true,
+		['corfav'] = true,
+		['armfav'] = true,
+		['armflea'] = true,
+		['raptor_land_swarmer_brood_t2_v1'] = true,
+		['raptor_land_kamikaze_basic_t2_v1'] = true,
+		['raptor_land_kamikaze_emp_t2_v1'] = true,
+		['raptor_land_kamikaze_basic_t4_v1'] = true,
+		['raptor_land_kamikaze_emp_t4_v1'] = true,
 	}
-	local todenyUnits = {
-		[UnitDefNames.corfav.id] = true,
-		[UnitDefNames.armfav.id] = true,
-		[UnitDefNames.armflea.id] = true,
-		[UnitDefNames.raptor_land_swarmer_brood_t2_v1.id] = true,
-		[UnitDefNames.raptor_land_kamikaze_basic_t2_v1.id] = true,
-		[UnitDefNames.raptor_land_kamikaze_emp_t2_v1.id] = true,
-		[UnitDefNames.raptor_land_kamikaze_basic_t4_v1.id] = true,
-		[UnitDefNames.raptor_land_kamikaze_emp_t4_v1.id] = true,
+	-- convert unitname -> unitDefID
+	local tokillUnits = {}
+	for name, params in pairs(tokillUnitsNames) do
+		if not UnitDefNames[name] then
+			Spring.Log(widget:GetInfo().name, LOG.ERROR, 'couldnt find unit name: '..name)
+		else
+			tokillUnits[UnitDefNames[name].id] = params
+		end
+	end
+	tokillUnitsNames = nil
+
+	local todenyUnitsNames = {
+		['corfav'] = true,
+		['armfav'] = true,
+		['armflea'] = true,
+		['raptor_land_swarmer_brood_t2_v1'] = true,
+		['raptor_land_kamikaze_basic_t2_v1'] = true,
+		['raptor_land_kamikaze_emp_t2_v1'] = true,
+		['raptor_land_kamikaze_basic_t4_v1'] = true,
+		['raptor_land_kamikaze_emp_t4_v1'] = true,
 	}
-	
+	-- convert unitname -> unitDefID
+	local todenyUnits = {}
+	for name, params in pairs(todenyUnitsNames) do
+		if not UnitDefNames[name] then
+			Spring.Log(widget:GetInfo().name, LOG.ERROR, 'couldnt find unit name: '..name)
+		else
+			todenyUnits[UnitDefNames[name].id] = params
+		end
+	end
+	todenyUnitsNames = nil
+
 	for udid, ud in pairs(UnitDefs) do
 		for id, v in pairs(tokillUnits) do
 			if string.find("_scav", ud.name) and string.sub(UnitDefs[id].name, 1, -5) == ud.name then
@@ -101,7 +122,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- kill appropriate things from initial juno blast --
 
 	local junoWeapons = {
-		[WeaponDefNames.legcib_juno_pulse_mini.id] = true,
+		[WeaponDefNames.legcib_juno_pulse_mini'] = true,
 	}
 
 	function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)

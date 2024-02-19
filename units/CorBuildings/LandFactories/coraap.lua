@@ -42,7 +42,7 @@ return {
 			[5] = "corvamp",
 			[6] = "corawac",
 			[7] = "corseah",
-			[8] = "corcrw",
+			[8] = "corcrwh",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

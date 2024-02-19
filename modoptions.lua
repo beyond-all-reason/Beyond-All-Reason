@@ -846,7 +846,7 @@ local options={
 	{
 		key    = 'releasecandidates',
 		name   = 'Release Candidate Units',
-		desc   = 'Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently, adds Printer, Demon, Salamander, and Shockwave (Arm T2 EMP Mex)',
+		desc   = 'Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex',
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,
@@ -860,16 +860,6 @@ local options={
 		section = 'options_experimental',
 		def  = false,
 	},
-
-	{
-		key = 'expandedt2sea',
-		name = 'Expanded T2 Sea',
-		desc = 'T2 sea is expanded to include a lightning ship for arm and a flamethrower ship for cor, and both factions get a drone carrier ship and an anti-nuke support ship to replace the aircraft carrier.  Cruisers rebalanced to be slower and lower range but higher health and dps for a more defensive role',
-		type = 'bool',
-		section = 'options_experimental',
-		def = false,
-	},
-
 
 	{
 		key = 'emprework',
@@ -1012,6 +1002,16 @@ local options={
 		section		= 'options_experimental',
 		def			= "",
 	},
+	
+	{
+		key = 'skyshift',
+		name = 'Skyshift: Air Rework',
+		desc = 'A complete overhaul of air units and mechanics',
+		type = 'bool',
+		def = false,
+		section = 'options_experimental',
+		hidden = true,
+	},
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1064,26 +1064,6 @@ local options={
 		section = 'options_extra',
 		def  = false,
 	},
-
-	{
-		key		= "unba",
-		name	= "UnbaCom",
-		desc	= "Commanders gaining upgrades with experience! Commander levels up with XP, gaining better weapons, more health and higher tech buildlist.",
-		type	= "bool",
-		def		= false,
-		section	= "options_extra",
-	},
-
-	{
-		key		= "unbatech",
-		name	= "UnbaTech",
-		desc	= "(Requires UnbaCom) Constructors cannot build Tech2 factories. In order to reach Tech2 you have to level up your commander.",
-		type	= "bool",
-		def		= false,
-		section	= "options_extra",
-		hidden = true,
-	},
-
 	{
 		key     = 'teamcolors_anonymous_mode',
 		name    = 'Anonymous Mode',

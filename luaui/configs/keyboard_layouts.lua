@@ -139,7 +139,6 @@ end
 
 local keybindingLayouts = {
 	'Default',
-	'Default (Mnemonic)',
 	'Default 60% Keyboard',
 	'Grid Optimized',
 	'Grid Optimized 60% Keyboard',
@@ -148,7 +147,6 @@ local keybindingLayouts = {
 
 local keybindingPresets = {
 	['Default'] = 'luaui/configs/hotkeys/default_keys.txt',
-	['Default (Mnemonic)'] = 'luaui/configs/hotkeys/mnemonic_keys.txt',
 	['Default 60% Keyboard'] = 'luaui/configs/hotkeys/default_keys_60pct.txt',
 	['Grid Optimized'] = 'luaui/configs/hotkeys/grid_keys.txt',
 	['Grid Optimized 60% Keyboard'] = 'luaui/configs/hotkeys/grid_keys_60pct.txt',

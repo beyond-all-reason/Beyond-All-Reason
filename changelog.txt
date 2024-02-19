@@ -1,4 +1,10 @@
-﻿# January 2024
+﻿# February 2024
+• [New Units] Demon (T3 cortex flamethrower mech), Salamander (T2 cortex amphibious tank, replacing Alligator) moved from release candidate modoption into the base game.  Dragon rework (new model, flamethrower, light aa) moved to the base game.  Flamethrower ship and Lightning ship moved from expandedT2sea modoption into the base game
+• [Dragon] Fire rate of anti-air weapon reduced by half
+• [Demon] DPS reduced from 2000->1600, unit no longer has amphibious
+• [Lightning ship and Flamethrower ship] Light aa added so they can protect themselves from light air while raiding
+
+# January 2024
 • [Turtle] Added a weak anti-air turret so that an amphibious turtle attack is more difficult to counter
 • [T1 subs] Eel (arm sub) speed increased 63->66, Orca (cor sub) speed reduced 60->57
 • [T1 frigates] Ellysaw (arm frigate) cost reduced 390m2600E->380m2550E, Riptide (cor frigate) cost increased 410m2700E->420m2800E

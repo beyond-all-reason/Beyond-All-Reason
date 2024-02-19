@@ -73,7 +73,6 @@ local existingGroups = {}
 local clicks = {}
 
 local nearIdle = 0 -- this means that factories with only X build items left will be shown as idle
-local qCount = {}
 local idleList = {}
 
 local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
@@ -103,8 +102,9 @@ end
 
 local function isIdleBuilder(unitID)
 	local udef = spGetUnitDefID(unitID)
-	local qCount = 0
+
 	if isBuilder[udef] or (showRez and isResurrector[udef]) then
+
 		--- can build
 		local buildQueue = spGetFullBuildQueue(unitID)
 		if not buildQueue[1] then
@@ -121,13 +121,13 @@ local function isIdleBuilder(unitID)
 				end
 			end
 		elseif isFactory[udef] then
+			local qCount = 0
 			for _, thing in ipairs(buildQueue) do
 				for _, count in pairs(thing) do
 					qCount = qCount + count
 				end
 			end
 			if qCount <= nearIdle then
-				qCount[unitID] = qCount
 				return true
 			end
 		end
@@ -177,7 +177,6 @@ local function updateList()
 	end
 
 	idleList = {}
-	qCount = {}
 	local myUnits = spGetTeamUnitsSorted(myTeamID)
 	for unitDefID, units in pairs(myUnits) do
 		if type(units) == 'table' then

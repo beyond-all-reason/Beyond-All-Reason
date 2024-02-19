@@ -1140,8 +1140,17 @@ end
 
 
 
-
+---Generate a sphere vertex VBO and the corresponding indexVBO
+---The sphere is oriented in the Z direction 
+---Layout:
+---{id = 0, name = "position", size = 4}, -- cake slices along Z, w is sector angle.
+---{id = 1, name = "normals", size = 3}, -- normal vector
+---{id = 2, name = "uvs", size = 2}, -- UV vector, where x goes around the belly and y goes along Z
+---@param sectorCount number is the number of orange slices around the belly in XY
+---@param stackCount number how many horizontal slices along Z, usually less than sectorcount
+---@param radius number how many elmos in radius, default 1
 function makeSphereVBO(sectorCount, stackCount, radius) -- http://www.songho.ca/opengl/gl_sphere.html
+
 
 	local sphereVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	if sphereVBO == nil then return nil end
@@ -1180,7 +1189,7 @@ function makeSphereVBO(sectorCount, stackCount, radius) -- http://www.songho.ca/
 			VBOData[#VBOData + 1] = x;
 			VBOData[#VBOData + 1] = y;
 			VBOData[#VBOData + 1] = z;
-			VBOData[#VBOData + 1] = 0;
+			VBOData[#VBOData + 1] = sectorAngle;
 			--Spring.Echo(x,y,z)
 			-- normalized vertex normal (nx, ny, nz)
 			nx = x * lengthInv;

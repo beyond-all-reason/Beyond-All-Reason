@@ -11,21 +11,31 @@ function widget:GetInfo()
 end
 
 -- defaults
-local unitdefConfig = {
-	[UnitDefNames["armjamt"].id] = true,
-	[UnitDefNames["armdecom"].id] = false,
-	[UnitDefNames["cordecom"].id] = false,
-	[UnitDefNames["armferret"].id] = false,
-	[UnitDefNames["armamb"].id] = false,
-	[UnitDefNames["armpb"].id] = false,
-	[UnitDefNames["armsnipe"].id] = false,
-	[UnitDefNames["corsktl"].id] = false,
-	[UnitDefNames["armgremlin"].id] = false,
-	[UnitDefNames["armamex"].id] = true,
-	[UnitDefNames["armckfus"].id] = true,
-	[UnitDefNames["armspy"].id] = true,
-	[UnitDefNames["corspy"].id] = true,
+local unitdefConfigNames = {
+	['armjamt'] = true,
+	['armdecom'] = false,
+	['cordecom'] = false,
+	['armferret'] = false,
+	['armamb'] = false,
+	['armpb'] = false,
+	['armsnipe'] = false,
+	['corsktl'] = false,
+	['armgremlin'] = false,
+	['armamex'] = true,
+	['armckfus'] = true,
+	['armspy'] = true,
+	['corspy'] = true,
 }
+-- convert unitname -> unitDefID
+local unitdefConfig = {}
+for unitName, params in pairs(unitdefConfigNames) do
+	if not UnitDefNames[unitName] then
+		Spring.Echo('WARNING... unit_auto_cloak: couldnt apply for not existing unit name: '..unitName)
+	else
+		unitdefConfig[UnitDefNames[unitName].id] = params
+	end
+end
+unitdefConfigNames = nil
 
 local CMD_CLOAK = 37382
 local cloak = CMD_CLOAK --just simplified Var

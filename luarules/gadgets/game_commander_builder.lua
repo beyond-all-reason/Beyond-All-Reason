@@ -27,8 +27,10 @@ local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position
 local spawnpads = {
     [UDN.armcom.id] = "armrespawn",
     [UDN.corcom.id] = "correspawn",
-	[UDN.legcom.id] = "correspawn",
 }
+if Spring.GetModOptions().experimentallegionfaction then
+	spawnpads[UDN.legcom.id] = "correspawn"
+end
 
 function SpawnAssistTurret(unitID, unitDefID, unitTeam)
 	local posx, posy, posz = Spring.GetUnitPosition(unitID)
@@ -62,7 +64,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
     end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam) 
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
     if commandersList[unitID] then
         commandersList[unitID] = nil
     end

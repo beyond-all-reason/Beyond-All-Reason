@@ -141,7 +141,7 @@ local function SpawnLootbox(posx, posy, posz)
 		spCreateUnit("lootdroppod_gold", posx, posy, posz, math_random(0,3), spGaiaTeam)
 	end
 	if spawnedUnit then
-		
+
 		Spring.SetUnitNeutral(spawnedUnit, true)
 		Spring.SetUnitAlwaysVisible(spawnedUnit, true)
 	end
@@ -152,8 +152,8 @@ function gadget:GameFrame(n)
     if n%30 == 0 and n > 2 then
 		if math.random(0,SpawnChance) == 0 then
 			LootboxesToSpawn = LootboxesToSpawn+0.1
-			if LootboxesToSpawn < 0 then 
-				LootboxesToSpawn = 0 
+			if LootboxesToSpawn < 0 then
+				LootboxesToSpawn = 0
 			end
 		end
 

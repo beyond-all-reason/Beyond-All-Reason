@@ -1,4 +1,4 @@
-local gadgetEnabled = true	--not Spring.GetModOptions().unba
+local gadgetEnabled = true
 
 function gadget:GetInfo()
 	return {
