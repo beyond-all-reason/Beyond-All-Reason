@@ -314,12 +314,14 @@ function widget:MousePress(x, y, button)
 							end
 						end
 
-						-- Special handling to check if mex position is valid
-						local spot = WG["resource_spot_finder"].GetClosestMexSpot(bx, bz)
-						local validPos = spot and WG["resource_spot_finder"].IsMexPositionValid(spot, bx, bz) or false
-						local spotIsTaken = WG["resource_spot_builder"].SpotHasExtractorQueued(spot)
-						if isMex and not metalMap and (not validPos or spotIsTaken) then
-							return true
+						if isMex and not metalMap then
+							-- Special handling to check if mex position is valid
+							local spot = WG["resource_spot_finder"].GetClosestMexSpot(bx, bz)
+							local validPos = spot and WG["resource_spot_finder"].IsMexPositionValid(spot, bx, bz) or false
+							local spotIsTaken = spot and WG["resource_spot_builder"].SpotHasExtractorQueued(spot) or false
+							if not validPos or spotIsTaken then
+								return true
+							end
 						end
 
 						if not anyClashes then
