@@ -13,6 +13,12 @@ local pathGraphs = {}
 local mCeil = math.ceil
 
 function MapHST:Init()
+	local mcmcmcmc = Spring.GetGameRulesParam("mex_count")
+	Spring:Echo('mcmcmcmc',mcmcmcmc)
+	for i=1,80 do
+-- 		Spring.Echo(i)
+		Spring.Echo(Spring.GetGameRulesParam("mex_x" .. i))
+	end
 
 	self.DebugEnabled = false
 	self:EchoDebug('MapHST START')
@@ -540,7 +546,7 @@ function MapHST:getPath(unitName,POS1,POS2,toGrid)
 		return
 	end
 	if not mclass then
-		self:Warn('getPath receive a nil unitName',unitName,mclass)
+		self:Warn('getPath receive a nil mclass',unitName,mclass)
 		return
 	end
 	local metapath = Spring.RequestPath(mclass, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z)

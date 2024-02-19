@@ -12,7 +12,7 @@ local floor = math.floor
 local ceil = math.ceil
 
 function RaidHST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.recruits = {}
 	self.squads = {}
 	self.squadID = 1
@@ -286,7 +286,11 @@ function RaidHST:SquadFindPath(squad,target)
 	--end
 
 	--local path, remaining, maxInvalid = squad.pathfinder:Find(25)
-	local path = self.ai.maphst:getPath(squad.leader:Name(),squad.leaderPos,target.POS,true)
+	if not self.ai.armyhst[airgun][squad.leader:Name()] then --TODO workaraund for airgun that do not have mclass
+
+		local path = self.ai.maphst:getPath(squad.leader:Name(),squad.leaderPos,target.POS,true)
+	end
+
 	if path then
 		--local pt = {}
 		table.insert(path,#path,target.POS)
@@ -353,7 +357,24 @@ end
 function RaidHST:SquadsTargetUpdate2()
 	for id,squad in pairs(self.squads) do
 		if squad.target and squad.role == 'offense' and self.ai.maphst:GetCell(squad.target.X,squad.target.Z,self.ai.loshst.ENEMY) then
-			self:EchoDebug('squadID',squadID, 'offense cell', squad.target.X,squad.target.Z)
+			self:EchoDebug('squadID',squad.squadID, 'have offense cell', squad.target.X,squad.target.Z)
+		elseif squad.target and type(squad.role) == 'number' and game:GetUnitByID(squad.role) then
+			local targetX,targetY,targetZ = game:GetUnitByID(squad.role):GetRawPos()
+
+
+			self:EchoDebug('update builder prevent pos',targetX,targetY,targetZ)
+
+			if targetX then
+				local X,Z = self.ai.maphst:RawPosToGrid(targetX,targetY,targetZ)
+				squad.target = self.ai.maphst:GetCell(X,Z,self.ai.maphst.GRID)
+				squad.step = 1
+				squad.path[1].x = targetX
+				squad.path[1].y = targetY
+				squad.path[1].z = targetZ
+				self:EchoDebug('squadID',squad.squadID, 'have preventive cell', squad.role, squad.target.X,squad.target.Z)
+			end
+
+
 		else
 			self:SquadResetTarget(squad)
 			--local defense = self:SquadsTargetDefense(squad)
@@ -362,27 +383,30 @@ function RaidHST:SquadsTargetUpdate2()
 -- 				squad.role = 'defense'
 -- 				self:EchoDebug('set defensive target for',squad.squadID,squad.target.X,squad.target.Z)
 -- 			else
-				local offense = self:SquadsTargetAttack2(squad)
-				if offense and squad.lock then
-					path, step = self:SquadFindPath(squad,offense)
-					if path and step then
-						squad.target = offense
-						squad.role = 'offense'
-						squad.path = path
-						squad.step = step
-						self:EchoDebug('set offensive target for',squad.squadID,squad.target.X,squad.target.Z)
-					end
+
+			local prevent, targetID = self:SquadsTargetPrevent2(squad)
+			if prevent then
+
+				squad.target = prevent
+				squad.role = targetID
+				squad.step = 1
+				squad.path = {squad.target.POS}
+				self:EchoDebug('set preventive target for',squad.squadID,squad.target.X,squad.target.Z)
+			end
+			local offense = self:SquadsTargetAttack2(squad)
+			if squad.lock and offense then
+				path, step = self:SquadFindPath(squad,offense)
+				if path and step then
+					squad.target = offense
+					squad.role = 'offense'
+					squad.path = path
+					squad.step = step
+					self:EchoDebug('set offensive target for',squad.squadID,squad.target.X,squad.target.Z)
 				end
-				if not squad.target then
-					local prevent = self:SquadsTargetPrevent2(squad)
-					if prevent then
-						squad.target = prevent
-						squad.role = 'prevent'
-						self:EchoDebug('set preventive target for',squad.squadID,squad.target.X,squad.target.Z)
-					else
-						self:EchoDebug('squad', squadID, 'have no target')
-					end
-				end
+			end
+			if not squad.target then
+				self:EchoDebug("can't assign target to squad", squad.squadID)
+			end
 			--end
 		end
 	end
@@ -393,6 +417,7 @@ function RaidHST:SquadsTargetPrevent2(squad)
 	local preventDist = 0
 	local preventCell = nil
 	local preventSquad = nil
+	local targetID = nil
 	for id,role in pairs(self.ai.buildingshst.roles) do
 		if role.role == 'expand' then
 			local builder = game:GetUnitByID(id)
@@ -405,11 +430,12 @@ function RaidHST:SquadsTargetPrevent2(squad)
 					preventDist = dist
 					preventCell = cell
 					preventSquad = squad.squadID
+					targetID = id
 				end
 			end
 		end
 	end
-	return preventCell
+	return preventCell, targetID
 end
 
 function RaidHST:SquadsTargetDefense(squad)
@@ -457,6 +483,7 @@ function RaidHST:SquadResetTarget(squad)
 	squad.path = nil
 	squad.pathfinder = nil
 	squad.step = nil
+	squad.role = nil
 	squad.idleCount = 0
 end
 
