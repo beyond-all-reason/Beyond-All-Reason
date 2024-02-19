@@ -22,7 +22,7 @@ return {
 		maxslope = 14,
 		speed = 46.2,
 		maxwaterdepth = 12,
-		movementclass = "BOT3",
+		movementclass = "BOT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMHAM.s3o",
 		script = "Units/ARMHAM.cob",

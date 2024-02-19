@@ -23,7 +23,7 @@ return {
 		maxslope = 14,
 		speed = 45.0,
 		maxwaterdepth = 12,
-		movementclass = "BOT3",
+		movementclass = "BOT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORTHUD.s3o",
 		script = "Units/CORTHUD.cob",
