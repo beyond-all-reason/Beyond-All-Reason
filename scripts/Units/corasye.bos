@@ -70,10 +70,6 @@ CloseYard()
 
 Go()
 {
-	dont-cache beam1;
-	dont-cache beam2;
-	dont-cache gun1;
-	dont-cache gun2;
 	call-script activatescr();
 	call-script OpenYard();
 	set INBUILDSTANCE to 1;
@@ -85,10 +81,6 @@ Stop()
 	set INBUILDSTANCE to 0;
 	call-script CloseYard();
 	call-script deactivatescr();
-	cache beam1;
-	cache beam2;
-	cache gun1;
-	cache gun2;
 	return (0);
 }
 

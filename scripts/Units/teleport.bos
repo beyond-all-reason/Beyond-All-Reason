@@ -11,8 +11,6 @@ Create()
 {
 	hide emit;
 	hide base;
-	dont-shade base;
-	dont-cache base;
 	move emit to y-axis [700.000000] now;
 	turn emit to x-axis <90.000000> now;
 	sleep 100;

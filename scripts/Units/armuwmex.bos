@@ -60,10 +60,6 @@ Create()
 	Static_Var_1 = 0;
 	Static_Var_2 = 91;
 	Static_Var_3 = 182;
-	dont-shade spinner;
-	dont-cache spinner;
-	dont-shade base;
-	dont-cache base;
 	call-script InitState();
 }
 

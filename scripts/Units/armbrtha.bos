@@ -14,10 +14,6 @@ Create()
 {
 	hide flare;
 	hide flare;
-	dont-cache flare;
-	dont-cache barrel;
-	dont-cache sleeve;
-	dont-cache turret;
 	shotcount = 0;
 }
 

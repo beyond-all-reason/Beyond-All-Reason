@@ -377,7 +377,6 @@ Create()
 {
 	hide flare;
 	hide flare;
-	dont-cache flare;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	bSteering = FALSE;

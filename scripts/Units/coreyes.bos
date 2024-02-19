@@ -19,7 +19,6 @@ Bob(){
 
 Create(Func_Var_1)
 {
-	dont-cache sphere;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;

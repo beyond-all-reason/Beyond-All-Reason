@@ -5,7 +5,7 @@
 
 piece body, lthigh, rthigh, lleg, rleg, rfoot,lfoot, turret, flare, barrel, aimy1;
 
-static-var  bMoving, Static_Var_2, Static_Var_3, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe;
+static-var  bMoving, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -312,11 +312,8 @@ Create()
 	hide flare;
 	hide aimy1;
 	bMoving = FALSE;
-	Static_Var_2 = 0;
 	animspeed = 8;
-	Static_Var_3 = 1;
 	hide flare;
-	dont-cache flare;
 	restore_delay = 3000;
 	return (0);
 }
@@ -344,7 +341,6 @@ ExecuteRestoreAfterDelay()
 	turn aimy1 to x-axis <0.000000> speed <100.000000>;
 	wait-for-turn aimy1 around y-axis;
 	wpn1_lasthead = 1000000;
-	Static_Var_2 = 0;
 }
 SetStunned(State)
 {

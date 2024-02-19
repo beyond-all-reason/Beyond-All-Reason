@@ -135,14 +135,6 @@ Create()
 	hide flareb;
 	hide flare;
 	hide flareb;
-	dont-cache flare;
-	dont-cache turret;
-	dont-cache gun;
-	dont-cache barrel;
-	dont-shade flare;
-	dont-shade turret;
-	dont-shade gun;
-	dont-shade barrel;
 	restore_delay = 3000;
 	start-script SmokeUnit();
 	return (0);

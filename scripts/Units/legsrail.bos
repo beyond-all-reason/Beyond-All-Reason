@@ -516,7 +516,6 @@ Create()
 {
 	hide flare;
 	hide aimy1;
-	dont-cache flare;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	bSteering = FALSE;

@@ -526,7 +526,6 @@ Create()
 	hide aimx1;
 	hide aimy1;
 	hide flare;
-	dont-cache flare;
 	bMoving = FALSE;
 	bSteering = FALSE;
 	oldHeading = get HEADING;

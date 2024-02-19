@@ -72,8 +72,6 @@ RequestState(requestedstate, currentstate)
 
 Create()
 /*    89:*/{
-/*    89:*/	dont-shade dish;
-/*    8b:*/	dont-cache dish;
 /*    8d:*/	call-script InitState();
 /*    92:*/	return (0);
 /*    93:*/}

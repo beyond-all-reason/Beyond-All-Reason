@@ -284,7 +284,6 @@ Create()
 	bAiming = FALSE;
 	Static_Var_3 = 1;
 	hide flare;
-	dont-cache flare;
 	animSpeed = 4;
 	restore_delay = 2000;
 	return (0);

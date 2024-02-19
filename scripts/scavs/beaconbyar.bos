@@ -20,7 +20,6 @@ Create()
 {
 	hide launcher;
 	hide base;
-	dont-cache base;
 	set ARMORED to 0;
 	move launcher to y-axis [10000.000000] speed [50000.000000];
 	move launcher to x-axis [0.000000] speed [50000.000000];

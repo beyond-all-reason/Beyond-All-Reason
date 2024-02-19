@@ -9,14 +9,12 @@ static-var  statechg_DesiredState, statechg_StateChanging;
 
 Go()
 {
-	dont-cache sonar;
 	spin sonar around y-axis speed <60.010989>;
 }
 
 Stop()
 {
 	spin sonar around y-axis speed <0.000000>;
-	cache sonar;
 }
 
 InitState()
@@ -53,7 +51,6 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	dont-shade sonar;
 	call-script InitState();
 }
 

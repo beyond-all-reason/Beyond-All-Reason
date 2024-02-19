@@ -5,7 +5,7 @@
 
 piece  base, wheel;
 
-static-var  statechg_DesiredState, statechg_StateChanging, Static_Var_3;
+static-var  statechg_DesiredState, statechg_StateChanging;
 
 RockOnWaves()
 {
@@ -39,14 +39,12 @@ RockOnWaves()
 
 Go()
 {
-	dont-cache wheel;
 	spin wheel around z-axis speed <35.005495>;
 }
 
 Stop()
 {
 	spin wheel around z-axis speed <0.000000>;
-	cache wheel;
 }
 
 InitState()
@@ -83,7 +81,6 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	dont-shade wheel;
 	call-script InitState();	
 	while( get BUILD_PERCENT_LEFT )
 	{

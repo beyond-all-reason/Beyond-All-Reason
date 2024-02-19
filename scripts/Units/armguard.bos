@@ -18,18 +18,6 @@ Create()
 	hide flare2;
 	hide flare1;
 	hide flare2;
-	dont-cache flare1;
-	dont-cache flare2;
-	dont-cache barrel1;
-	dont-cache barrel2;
-	dont-cache sleeves;
-	dont-cache turret;
-	dont-shade flare1;
-	dont-shade flare2;
-	dont-shade barrel1;
-	dont-shade barrel2;
-	dont-shade sleeves;
-	dont-shade turret;
 	nextBarrel = 0;
 }
 

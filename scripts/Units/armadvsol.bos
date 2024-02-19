@@ -22,7 +22,6 @@ Stop()
 
 Create()
 {
-	dont-cache solarbase;
 	return (0);
 }
 

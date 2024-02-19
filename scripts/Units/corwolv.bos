@@ -38,7 +38,6 @@ Create()
 	hide flare;
 	turn flare to z-axis <-45.00000> now;
 	turn flare to x-axis <-45.00000> now;
-	dont-cache flare;
 	restore_delay = 3000;
 	out_of_arc_count = 0;
 	return (0);

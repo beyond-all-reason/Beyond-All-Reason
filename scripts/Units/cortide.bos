@@ -40,14 +40,12 @@ RockOnWaves()
 
 Go()
 {
-	dont-cache wheel;
 	spin wheel around z-axis speed <35.005495>;
 }
 
 Stop()
 {
 	stop-spin wheel around z-axis;
-	cache wheel;
 }
 
 InitState()
@@ -84,7 +82,6 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	dont-shade wheel;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{

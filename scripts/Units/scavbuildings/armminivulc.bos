@@ -43,18 +43,6 @@ Create()
 {
 	hide flare;
 	hide flare;
-	dont-cache flare;
-	dont-cache barrel01;
-	dont-cache barrel02;
-	dont-cache barrel03;
-	dont-cache barrel04;
-	dont-cache housing01;
-	dont-cache housing02;
-	dont-cache housing03;
-	dont-cache housing04;
-	dont-cache spindle;
-	dont-cache neck;
-	dont-cache turret;
 	gun_1 = flare;
 	spin flare around z-axis speed <250.060440>;
 	start-script SmokeUnit();

@@ -14,9 +14,6 @@ Create()
 	hide launcher;
 	hide emit;
 	hide base;
-	//set UNKNOWN_UNIT_VALUE(76) to 1;
-	dont-shade base;
-	dont-cache base;
 	set ARMORED to 0;
 	move launcher to y-axis [3000.000000] speed [10000.000000];
 	move launcher to x-axis [0.000000] speed [10000.000000];
@@ -30,7 +27,6 @@ Create()
 	sleep Rand( 1, 100 );
 	emit-sfx 2048 from launcher;
 	sleep 3000;
-	//set UNKNOWN_UNIT_VALUE(76) to 0;
 }
 
 Killed(severity, corpsetype)

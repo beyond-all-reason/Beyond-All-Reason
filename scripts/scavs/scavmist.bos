@@ -39,8 +39,6 @@ Emitsmoke()
 Create()
 {
 	hide flare;
-	dont-shade flare;
-	dont-cache flare;
 	set ARMORED to 0;
 	//emit-sfx 1024 + 0 from flare;
 	sleep 500;

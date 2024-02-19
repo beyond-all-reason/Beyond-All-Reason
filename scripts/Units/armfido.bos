@@ -1428,7 +1428,6 @@ Create()
 	hide aimx1;
 	hide aimy1;
 	hide flare;
-	dont-cache flare;
 	bAnimate = FALSE;
 	move pelvis to y-axis 4000 speed <500>; 
 	restore_delay = 30;

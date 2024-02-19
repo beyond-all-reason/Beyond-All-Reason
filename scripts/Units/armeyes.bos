@@ -15,20 +15,19 @@ Bob(){
 	}
 }
 
-Create(Func_Var_1)
+Create(random)
 {
-	dont-cache sphere;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;
 	}
 	start-script Bob();
-	Func_Var_1 = Rand( 1, 2 );
-	if( Func_Var_1 == 1 )
+	random = Rand( 1, 2 );
+	if( random == 1 )
 	{
 		spin sphere around y-axis speed <-66>;
 	}
-	if( Func_Var_1 == 2 )
+	if( random == 2 )
 	{
 		spin sphere around y-axis speed <66>;
 	}

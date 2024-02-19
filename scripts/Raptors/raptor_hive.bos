@@ -11,8 +11,6 @@ Create()
 	hide launcher;
 	hide emit;
 	hide base;
-	dont-shade base;
-	dont-cache base;
 	set ARMORED to 0;
 	move launcher to y-axis [3000.000000] speed [10000.000000];
 	move launcher to x-axis [0.000000] speed [10000.000000];
